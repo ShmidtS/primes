@@ -16,28 +16,6 @@ def pointGapsList (points : List Nat) : List Nat :=
   | [] | [_] => []
   | a :: b :: rest => (b - a) :: pointGapsList (b :: rest)
 
-/-- Распределение промежутков для `{0, 1} ∪ {простые <= n}`. -/
-def gapDistribution (n : Nat) : List (Nat × Nat) := Id.run do
-  let ps := primesUpTo n
-  let points := (#[0, 1] ++ ps).toList
-  let gs := pointGapsList points
-  let mut counts : Array (Nat × Nat) := #[]
-  for g in gs do
-    let mut found := false
-    let mut i := 0
-    while i < counts.size && !found do
-      if counts[i]!.1 == g then
-        counts := counts.set! i (g, counts[i]!.2 + 1)
-        found := true
-      i := i + 1
-    if !found then
-      counts := counts.push (g, 1)
-  let sorted := counts.qsort (fun a b => a.1 < b.1)
-  let mut result := [(0, 0)]
-  for i in [0:sorted.size] do
-    result := result ++ [(sorted[i]!.1, sorted[i]!.2)]
-  return result
-
 /-! ## Cumulative sums and prime reconstruction -/
 
 /-- Кумулятивная сумма списка. -/
@@ -64,15 +42,15 @@ def addGapCount (counts : List (Nat × Nat)) (g : Nat) : List (Nat × Nat) :=
       if a == g then (a, b + 1) :: rest
       else (a, b) :: addGapCount rest g
 
-/-- Сортирует таблицу частот и добавляет `(0, 0)`. -/
-def sortedGapCounts (counts : List (Nat × Nat)) : List (Nat × Nat) :=
+/-- Добавляет sentinel `(0, 0)` в начало таблицы частот. -/
+def gapCountsWithSentinel (counts : List (Nat × Nat)) : List (Nat × Nat) :=
   (0, 0) :: counts
 
 /-- Вспомогательная: распределение промежутков по списку простых чисел. -/
 noncomputable def gapDistributionFromPrimes (primes : List Nat) : List (Nat × Nat) :=
   let counts :=
     primes.foldl (fun (counts, prev) p => (addGapCount counts (p - prev), p)) ([], 1) |>.1
-  sortedGapCounts counts
+  gapCountsWithSentinel counts
 
 /-- Распределение промежутков для первых `k` простых чисел. -/
 noncomputable def gapDistributionByCount (k : Nat) : List (Nat × Nat) :=
@@ -577,9 +555,56 @@ def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
   exact ((Finset.range (x + 1)).filter fun n =>
     0 < g ∧ n + g ≤ x ∧ survivesFiniteEratosthenesLayer g n y).card
 
+/-! ### endpointForbiddenResidueCount properties -/
+
 /-- Количество запрещённых классов вычетов для двух концов `n` и `n+g` modulo `p`. -/
 def endpointForbiddenResidueCount (g p : Nat) : Nat :=
   if p ∣ g then 1 else 2
+
+/-- Значение `endpointForbiddenResidueCount` для `g = 2`. -/
+theorem endpointForbiddenResidueCount_two (p : Nat) (hp : Nat.Prime p) :
+    endpointForbiddenResidueCount 2 p = if p = 2 then 1 else 2 := by
+  simp only [endpointForbiddenResidueCount]
+  by_cases hp2 : p = 2
+  · simp [hp2]
+  · suffices ¬p ∣ 2 by simp [this, hp2]
+    intro hd
+    have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp hd
+    contradiction
+
+/-- Значение `endpointForbiddenResidueCount` для `g = 4`. -/
+theorem endpointForbiddenResidueCount_four (p : Nat) (hp : Nat.Prime p) :
+    endpointForbiddenResidueCount 4 p = if p = 2 then 1 else 2 := by
+  simp only [endpointForbiddenResidueCount]
+  by_cases hp2 : p = 2
+  · simp [hp2]
+  · suffices ¬p ∣ 4 by simp [this, hp2]
+    intro hd
+    have hmul : p ∣ 2 * 2 := by simpa [pow_two] using hd
+    have hor : p ∣ 2 ∨ p ∣ 2 := (Nat.Prime.dvd_mul hp).mp hmul
+    have h2 : p ∣ 2 := by cases hor <;> assumption
+    have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp h2
+    contradiction
+
+/-- Значение `endpointForbiddenResidueCount` для `g = 6`. -/
+theorem endpointForbiddenResidueCount_six (p : Nat) (hp : Nat.Prime p) :
+    endpointForbiddenResidueCount 6 p = if p = 2 then 1 else if p = 3 then 1 else 2 := by
+  simp only [endpointForbiddenResidueCount]
+  by_cases hp2 : p = 2
+  · simp [hp2]
+  · by_cases hp3 : p = 3
+    · simp [hp3]
+    · suffices ¬p ∣ 6 by simp [this, hp2, hp3]
+      intro hd
+      have hmul : p ∣ 2 * 3 := by simpa [Nat.mul_comm] using hd
+      have hor : p ∣ 2 ∨ p ∣ 3 := (Nat.Prime.dvd_mul hp).mp hmul
+      cases hor with
+      | inl h2 =>
+        have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp h2
+        contradiction
+      | inr h3 =>
+        have : p = 3 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_three).mp h3
+        contradiction
 
 /-- Формальный конечный singular-series фактор для пары `n, n+g`. -/
 def finitePairSieveFactor (g y : Nat) : ℝ :=
@@ -935,6 +960,8 @@ def divisorCorrectionProduct (k : Nat) : ℝ :=
 def singularSeriesFactor (C₂ : ℝ) (g : Nat) : ℝ :=
   if Even g then 2 * C₂ * divisorCorrectionProduct (g / 2) else 0
 
+/-! ### wheelLocalSingularFactor exact values -/
+
 /-- Локальная плотность выживания пары `(n, n + g)` modulo `p`. -/
 def wheelEndpointSurvivalDensity (g p : Nat) : ℝ :=
   1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)
@@ -942,6 +969,8 @@ def wheelEndpointSurvivalDensity (g p : Nat) : ℝ :=
 /-- Нормированный локальный множитель singular series в wheel-модели. -/
 def wheelLocalSingularFactor (g p : Nat) : ℝ :=
   wheelEndpointSurvivalDensity g p / (1 - 1 / (p : ℝ)) ^ 2
+
+/-! ### finiteWheelSingularSeries and twin prime constant -/
 
 /-- Конечная wheel-версия произведения локальных множителей. -/
 def finiteWheelSingularSeries (g y : Nat) : ℝ :=
@@ -953,19 +982,221 @@ def finiteWheelSingularSeriesLimit (g : Nat) (C₂ : ℝ) : Prop :=
   ∃ L : ℝ, Filter.Tendsto (fun y => finiteWheelSingularSeries g y) Filter.atTop (nhds L) ∧
     L = singularSeriesFactor C₂ g
 
-/-- Локальный wheel-множитель совпадает с нормированной локальной плотностью survival. -/
+/-- Явная форма локального wheel-множителя через делимость `p ∣ g`. -/
 theorem wheelLocalSingularFactor_eq_singular (g p : Nat) (_hp : Nat.Prime p) :
     wheelLocalSingularFactor g p =
-      (1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)) /
-        (1 - 1 / (p : ℝ)) ^ 2 := by
+      (1 - (if p ∣ g then (1 : ℝ) else (2 : ℝ)) / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
   simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, endpointForbiddenResidueCount]
 
-/-- Явная форма локального wheel-множителя через делимость `p ∣ g`. -/
-theorem wheelLocalSingularFactor_eq_singular_simplified (g p : Nat) (hp : Nat.Prime p) :
-    wheelLocalSingularFactor g p =
-      (1 - (if p ∣ g then (1 : ℝ) else (2 : ℝ)) / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
-  rw [wheelLocalSingularFactor_eq_singular g p hp]
-  simp [endpointForbiddenResidueCount]
+/-- Значение `wheelLocalSingularFactor` для `g = 2, p = 2`. -/
+theorem wheelLocalSingularFactor_two_two :
+    wheelLocalSingularFactor 2 2 = 2 := by
+  rw [wheelLocalSingularFactor_eq_singular 2 2 (by decide)]
+  norm_num
+
+/-- Значение `wheelLocalSingularFactor` для `g = 2` и нечётного простого `p`. -/
+theorem wheelLocalSingularFactor_two_odd (p : Nat) (hp : Nat.Prime p) (hp2 : 2 < p) :
+    wheelLocalSingularFactor 2 p = (1 - 2 / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
+  rw [wheelLocalSingularFactor_eq_singular 2 p hp]
+  have : ¬p ∣ 2 := by
+    intro hd
+    have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp hd
+    omega
+  simp [this]
+
+/-- Значение `wheelLocalSingularFactor` для `g = 6, p = 2`. -/
+theorem wheelLocalSingularFactor_six_two :
+    wheelLocalSingularFactor 6 2 = 2 := by
+  rw [wheelLocalSingularFactor_eq_singular 6 2 (by decide)]
+  norm_num
+
+/-- Значение `wheelLocalSingularFactor` для `g = 6, p = 3`. -/
+theorem wheelLocalSingularFactor_six_three :
+    wheelLocalSingularFactor 6 3 = (3 : ℝ) / 2 := by
+  rw [wheelLocalSingularFactor_eq_singular 6 3 (by decide)]
+  norm_num
+
+/-- Значение `wheelLocalSingularFactor` для `g = 6` и простого `p > 3`. -/
+theorem wheelLocalSingularFactor_six_odd_not_three (p : Nat) (hp : Nat.Prime p)
+    (hp2 : 2 < p) (hp3 : p ≠ 3) :
+    wheelLocalSingularFactor 6 p = (1 - 2 / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
+  rw [wheelLocalSingularFactor_eq_singular 6 p hp]
+  have : ¬p ∣ 6 := by
+    intro hd
+    have hmul : p ∣ 2 * 3 := by simpa [Nat.mul_comm] using hd
+    have hor : p ∣ 2 ∨ p ∣ 3 := (Nat.Prime.dvd_mul hp).mp hmul
+    cases hor with
+    | inl h2 =>
+      have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp h2
+      omega
+    | inr h3 =>
+      have : p = 3 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_three).mp h3
+      contradiction
+  simp [this]
+
+/-- Алгебраическое тождество для wheel-множителя при `p > 2`. -/
+private lemma algebraic_identity_wheel (p : ℝ) (hp : 2 < p) :
+    (1 - 2 / p) / (1 - 1 / p) ^ 2 = 1 - 1 / (p - 1) ^ 2 := by
+  have hp0 : p ≠ 0 := by linarith
+  have hp1 : p - 1 ≠ 0 := by linarith
+  have hdenom : (1 - 1 / p) ≠ 0 := by
+    have : 1 / p < 1 := (div_lt_one (by positivity)).mpr (by linarith)
+    linarith
+  field_simp [hp0, hp1, hdenom]
+  ring
+
+/-- Конечная wheel-серия для `g = 2` выражается через частичную twin prime constant. -/
+theorem finiteWheelSingularSeries_two_eq_twinPrimeConstant (y : Nat) (hy : 2 ≤ y) :
+    finiteWheelSingularSeries 2 y = 2 * twinPrimeConstantPartial y := by
+  rw [finiteWheelSingularSeries, twinPrimeConstantPartial]
+  let s := Finset.range (y + 1)
+  let oddPrimes := s.filter (fun p => Nat.Prime p ∧ 2 < p)
+  have h2_mem : 2 ∈ s := by simp [s]; omega
+  have h2_prime : Nat.Prime 2 := by decide
+  have h2_not_odd : 2 ∉ oddPrimes := by simp [oddPrimes, s]
+  -- Разбиение: все простые ≤ y = {2} ∪ нечётные простые
+  have hsplit : s.filter Nat.Prime = insert 2 oddPrimes := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_insert, s, oddPrimes, Finset.mem_range]
+    constructor
+    · intro ⟨hlt, hpr⟩
+      by_cases hp2 : p = 2
+      · exact Or.inl hp2
+      · have hp2gt : 2 < p := by
+          have htwo_le : 2 ≤ p := Nat.Prime.two_le hpr
+          have hne : p ≠ 2 := hp2
+          omega
+        exact Or.inr ⟨hlt, hpr, hp2gt⟩
+    · intro h
+      cases h with
+      | inl h2 =>
+        subst h2
+        have h2lt : 2 < y + 1 := by omega
+        exact ⟨h2lt, h2_prime⟩
+      | inr hodd => exact ⟨hodd.1, hodd.2.1⟩
+  -- Переход от if-then-else к произведению по filter Nat.Prime
+  have hlhs : s.prod (fun p => if Nat.Prime p then wheelLocalSingularFactor 2 p else 1) =
+      (s.filter Nat.Prime).prod (fun p => wheelLocalSingularFactor 2 p) := by
+    rw [← Finset.prod_filter]
+  rw [hlhs]
+  rw [hsplit]
+  rw [Finset.prod_insert h2_not_odd]
+  -- Фактор при p=2: wheelLocalSingularFactor 2 2 = 2 (T3)
+  rw [wheelLocalSingularFactor_two_two]
+  -- Произведение по нечётным простым
+  have hprod : oddPrimes.prod (fun p => wheelLocalSingularFactor 2 p) =
+      oddPrimes.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
+    refine Finset.prod_congr rfl ?_
+    intro p hp
+    have hodd : Nat.Prime p ∧ 2 < p := by
+      simp [oddPrimes, s, Finset.mem_filter, Finset.mem_range] at hp
+      exact hp.2
+    have hp_prime : Nat.Prime p := hodd.1
+    have hp_gt2 : 2 < p := hodd.2
+    rw [wheelLocalSingularFactor_two_odd p hp_prime hp_gt2]
+    exact algebraic_identity_wheel (p : ℝ) (by exact_mod_cast hp_gt2)
+  rw [hprod]
+  -- Переход от произведения по oddPrimes к произведению по s с if-then-else
+  have hoddprod : oddPrimes.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) =
+      s.prod (fun p => if Nat.Prime p ∧ 2 < p then 1 - 1 / ((p : ℝ) - 1) ^ 2 else 1) := by
+    have hfilter : oddPrimes = s.filter (fun p => Nat.Prime p ∧ 2 < p) := rfl
+    rw [hfilter]
+    rw [Finset.prod_filter]
+  rw [hoddprod]
+
+/-- Алгебраическое тождество для wheel-множителя `g = 6` при `p > 3`:
+    фактор `(1 - 2/p) / (1 - 1/p)^2` совпадает с twin-prime формой. -/
+private lemma algebraic_identity_wheel_six (p : ℝ) (hp : 3 < p) :
+    (1 - 2 / p) / (1 - 1 / p) ^ 2 = 1 - 1 / (p - 1) ^ 2 := by
+  have hp0 : p ≠ 0 := by linarith
+  have hp1 : p - 1 ≠ 0 := by linarith
+  have hdenom : (1 - 1 / p) ≠ 0 := by
+    have : 1 / p < 1 := (div_lt_one (by positivity)).mpr (by linarith)
+    linarith
+  field_simp [hp0, hp1, hdenom]
+  ring
+
+/-- Конечная wheel-серия для `g = 6`: фактор при `p = 2` равен `2`, при `p = 3` равен `3/2`,
+    а для `p > 3` совпадает с twin-prime множителем `1 - 1/(p-1)^2`.
+    Более сложная структура, чем для `g = 2`, потому что `6 = 2 * 3` имеет два простых делителя,
+    и произведение нельзя свести к стандартной частичной twin prime constant. -/
+theorem finiteWheelSingularSeries_six_eq (y : Nat) (hy : 3 ≤ y) :
+    finiteWheelSingularSeries 6 y =
+      2 * ((3 : ℝ) / 2) *
+        (Finset.range (y + 1)).prod (fun p =>
+          if Nat.Prime p ∧ 3 < p then 1 - 1 / ((p : ℝ) - 1) ^ 2 else 1) := by
+  rw [finiteWheelSingularSeries]
+  let s := Finset.range (y + 1)
+  let midPrimes := s.filter (fun p => Nat.Prime p ∧ p ≠ 2)
+  let bigPrimes := s.filter (fun p => Nat.Prime p ∧ 3 < p)
+  have h2_prime : Nat.Prime 2 := by decide
+  have h3_prime : Nat.Prime 3 := by decide
+  have h2_not_mid : 2 ∉ midPrimes := by simp [midPrimes, s]
+  have h3_not_big : 3 ∉ bigPrimes := by simp [bigPrimes, s]
+  -- Разбиение: простые ≤ y = {2} ∪ midPrimes, midPrimes = {3} ∪ bigPrimes
+  have hsplit2 : s.filter Nat.Prime = insert 2 midPrimes := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_insert, s, midPrimes, Finset.mem_range]
+    constructor
+    · intro ⟨hlt, hpr⟩
+      by_cases hp2 : p = 2
+      · exact Or.inl hp2
+      · exact Or.inr ⟨hlt, hpr, hp2⟩
+    · intro h
+      cases h with
+      | inl h2 => subst h2; exact ⟨by omega, h2_prime⟩
+      | inr hrest => exact ⟨hrest.1, hrest.2.1⟩
+  have hsplit3 : midPrimes = insert 3 bigPrimes := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_insert, s, midPrimes, bigPrimes, Finset.mem_range]
+    constructor
+    · intro h
+      rcases h with ⟨hlt, hpr, hne2⟩
+      by_cases hp3 : p = 3
+      · exact Or.inl hp3
+      · have hp_gt3 : 3 < p := by
+          have htwo_le : 2 ≤ p := Nat.Prime.two_le hpr
+          omega
+        exact Or.inr ⟨hlt, hpr, hp_gt3⟩
+    · intro h
+      cases h with
+      | inl h3 => subst h3; exact ⟨by omega, h3_prime, by decide⟩
+      | inr hbig => exact ⟨hbig.1, hbig.2.1, by omega⟩
+  -- Переход от if-then-else к произведению по filter Nat.Prime
+  have hlhs : s.prod (fun p => if Nat.Prime p then wheelLocalSingularFactor 6 p else 1) =
+      (s.filter Nat.Prime).prod (fun p => wheelLocalSingularFactor 6 p) := by
+    rw [← Finset.prod_filter]
+  rw [hlhs]
+  rw [hsplit2]
+  rw [Finset.prod_insert h2_not_mid]
+  rw [wheelLocalSingularFactor_six_two]
+  rw [hsplit3]
+  rw [Finset.prod_insert h3_not_big]
+  rw [wheelLocalSingularFactor_six_three]
+  -- Произведение по простым p > 3
+  have hprod : bigPrimes.prod (fun p => wheelLocalSingularFactor 6 p) =
+      bigPrimes.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
+    refine Finset.prod_congr rfl ?_
+    intro p hp
+    have hbig : Nat.Prime p ∧ 3 < p := by
+      simp [bigPrimes, s, Finset.mem_filter, Finset.mem_range] at hp
+      exact hp.2
+    have hp_prime : Nat.Prime p := hbig.1
+    have hp_gt3 : 3 < p := hbig.2
+    have hp_gt2 : 2 < p := by omega
+    have hp_ne3 : p ≠ 3 := by omega
+    rw [wheelLocalSingularFactor_six_odd_not_three p hp_prime hp_gt2 hp_ne3]
+    exact algebraic_identity_wheel_six (p : ℝ) (by exact_mod_cast hp_gt3)
+  rw [hprod]
+  -- Переход от произведения по bigPrimes к произведению по s с if-then-else
+  have hbigprod : bigPrimes.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) =
+      s.prod (fun p => if Nat.Prime p ∧ 3 < p then 1 - 1 / ((p : ℝ) - 1) ^ 2 else 1) := by
+    have hfilter : bigPrimes = s.filter (fun p => Nat.Prime p ∧ 3 < p) := rfl
+    rw [hfilter]
+    rw [Finset.prod_filter]
+  rw [hbigprod]
+  dsimp only [s]
+  rw [mul_assoc]
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные endpoint-плотности. -/
 theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
@@ -1080,6 +1311,8 @@ def GallaghersPoissonLimit : Prop :=
 def GallaghersTheoremFromHL : Prop :=
   HardyLittlewoodKTupleConjecture → GallaghersPoissonLimit
 
+/-! ### twinPrimeConstantPartial and divisorCorrectionProduct values -/
+
 /-- Нулевое частичное произведение `C₂` пусто по простым `> 2`. -/
 theorem twinPrimeConstantPartial_zero : twinPrimeConstantPartial 0 = 1 := by
   norm_num [twinPrimeConstantPartial]
@@ -1099,6 +1332,8 @@ theorem divisorCorrectionProduct_two : divisorCorrectionProduct 2 = 1 := by
 /-- Для `k = 3` единственная поправка равна `(3 - 1)/(3 - 2) = 2`. -/
 theorem divisorCorrectionProduct_three : divisorCorrectionProduct 3 = 2 := by
   norm_num [divisorCorrectionProduct, Finset.prod_range_succ]
+
+/-! ### singularSeriesFactor exact values -/
 
 /-- Нечётные промежутки имеют нулевой singular series. -/
 theorem singularSeriesFactor_of_odd {C₂ : ℝ} {g : Nat} (hg : Odd g) :
@@ -1126,18 +1361,6 @@ theorem singularSeriesFactor_six (C₂ : ℝ) : singularSeriesFactor C₂ 6 = 4 
 theorem singularSeriesFactor_even (C₂ : ℝ) (k : Nat) :
     singularSeriesFactor C₂ (2 * k) = 2 * C₂ * divisorCorrectionProduct k := by
   simp [singularSeriesFactor]
-
-/-- Для gap `2` через общую формулу чётного gap: `2 C₂` с пустой поправкой. -/
-theorem singularSeriesFactor_two_explicit (C₂ : ℝ) :
-    singularSeriesFactor C₂ 2 = 2 * C₂ * divisorCorrectionProduct 1 := by
-  rw [show 2 = 2 * 1 by norm_num]
-  rw [singularSeriesFactor_even]
-
-/-- Для gap `4` через общую формулу чётного gap: `2 C₂` с пустой поправкой. -/
-theorem singularSeriesFactor_four_explicit (C₂ : ℝ) :
-    singularSeriesFactor C₂ 4 = 2 * C₂ * divisorCorrectionProduct 2 := by
-  rw [show 4 = 2 * 2 by norm_num]
-  rw [singularSeriesFactor_even]
 
 /-- Конечная поправка равна произведению по нечётным простым делителям. -/
 theorem divisorCorrectionProduct_eq_primeFactors (k : Nat) :
@@ -1190,7 +1413,7 @@ theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
 
 /-! ## Proven gap-counting lemmas (computable) -/
 
-/-! ### addGapCount and sortedGapCounts -/
+/-! ### addGapCount and gapCountsWithSentinel -/
 
 /-- `addGapCount` увеличивает сумму частот на 1. -/
 lemma addGapCount_sum_succ (counts : List (Nat × Nat)) (g : Nat) :
@@ -1208,11 +1431,11 @@ lemma addGapCount_sum_succ (counts : List (Nat × Nat)) (g : Nat) :
         · simp [ih]
           omega
 
-/-- `sortedGapCounts` сохраняет сумму частот. -/
-lemma sortedGapCounts_sum_eq (counts : List (Nat × Nat)) :
-    ((sortedGapCounts counts).map Prod.snd).sum =
+/-- `gapCountsWithSentinel` сохраняет сумму частот. -/
+lemma gapCountsWithSentinel_sum_eq (counts : List (Nat × Nat)) :
+    ((gapCountsWithSentinel counts).map Prod.snd).sum =
     (counts.map Prod.snd).sum := by
-  simp [sortedGapCounts]
+  simp [gapCountsWithSentinel]
 
 /-- Размер `primesUpTo n` равен числу простых ≤ n. -/
 lemma primesUpTo_size_eq_count (n : Nat) :
@@ -1283,7 +1506,7 @@ theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
   have h_sum_nil : ([] : List Nat).sum = 0 := by simp
   specialize h_foldl_sum [] 1 (primesUpTo (nthPrimeByGaps (k - 1))).toList
   simp [h_nil, h_sum_nil, h_size] at h_foldl_sum ⊢
-  rw [sortedGapCounts_sum_eq]
+  rw [gapCountsWithSentinel_sum_eq]
   exact h_foldl_sum
 
 /-! ### addGapCount weighted sum -/
@@ -1369,16 +1592,6 @@ lemma nthPrimeByGaps_prime (k : Nat) : Nat.Prime (nthPrimeByGaps k) := by
   apply Nat.nth_mem_of_infinite
   exact Nat.infinite_setOf_prime
 
-/-- Преобразование `Pairwise (<)` в `Pairwise (≤)`. -/
-lemma pairwise_lt_imp_le {l : List Nat} (h : l.Pairwise (· < ·)) : l.Pairwise (· ≤ ·) := by
-  induction h with
-  | nil => simp
-  | cons h1 h2 ih =>
-    constructor
-    · intro a ha
-      exact Nat.le_of_lt (h1 a ha)
-    · exact ih
-
 /-- Сумма `gap * frequency` по распределению промежутков равна последнему простому. -/
 lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
     1 + ((gapDistributionByCount k).map (fun entry => entry.1 * entry.2)).sum =
@@ -1418,7 +1631,7 @@ lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
       intro a ha
       have hlt := (List.pairwise_cons.mp hpairwise).1 a ha
       exact Nat.le_of_lt hlt
-    have h2 : primes.Pairwise (· ≤ ·) := pairwise_lt_imp_le hsorted
+    have h2 : primes.Pairwise (· ≤ ·) := hsorted.imp (fun {a b} hlt => Nat.le_of_lt hlt)
     rw [List.pairwise_cons]
     exact ⟨h1, h2⟩
   have hlast : (1 :: primes).getLastD 0 = Nat.nth Nat.Prime (k - 1) := by
@@ -1431,7 +1644,7 @@ lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
     rw [nthPrimeByGaps]
   have hsum : ((gapDistributionFromPrimes primes).map (fun entry => entry.1 * entry.2)).sum
       = (pointGapsList (1 :: primes)).sum := by
-    simp [gapDistributionFromPrimes, sortedGapCounts]
+    simp [gapDistributionFromPrimes, gapCountsWithSentinel]
     have h := foldl_weightedSum_eq_pointGapsSum [] 1 primes
     simp at h ⊢
     linarith [h]
