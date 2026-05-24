@@ -301,6 +301,22 @@ theorem coprimeResidues_append_succ_sorted {P : Nat} (_hP : 0 < P) :
   have hltP : a < P := Finset.mem_range.mp (Finset.mem_filter.mp ha_mem).1
   exact Nat.lt_trans hltP hP'
 
+/-- Кандидаты wheel образуют строго возрастающий список. -/
+theorem wheelCandidateList_sorted {n : Nat} (hn : 2 ≤ n) :
+    (wheelCandidateList n).Pairwise (· < ·) := by
+  have hsorted := coprimeResidues_append_succ_sorted (P := n) (by omega)
+  have happend := (List.pairwise_append.mp hsorted).1
+  simpa [coprimeResidues] using happend
+
+/-- Элемент `coprimeResidues n` является взаимно простым остатком modulo `n`. -/
+theorem coprimeResidues_mod_n {n : Nat} (_hn : 2 ≤ n) (a : Nat)
+    (ha : a ∈ coprimeResidues n) : a < n ∧ Nat.Coprime n a := by
+  have hs : a ∈ wheelCandidates n :=
+    (Finset.mem_sort (s := wheelCandidates n) (r := (· <= ·))).mp
+      (by simpa [coprimeResidues, wheelCandidateList] using ha)
+  exact ⟨Finset.mem_range.mp (Finset.mem_filter.mp hs).1,
+    (Finset.mem_filter.mp hs).2⟩
+
 /-- Wrap-around gap от последнего кандидата к первому в следующем периоде. -/
 def wheelWrapGap (n : Nat) (points : List Nat) : Nat :=
   n + points.headD 0 - points.getLastD 0
@@ -329,6 +345,56 @@ theorem wheelCandidateList_getLastD_lt {n : Nat}
   have hs : (wheelCandidateList n).getLastD 0 ∈ wheelCandidates n :=
     (Finset.mem_sort (s := wheelCandidates n) (r := (· <= ·))).mp hmem
   exact Finset.mem_range.mp (Finset.mem_filter.mp hs).1
+
+/-- Все wheel gaps положительны. -/
+theorem wheelGaps_pos {n : Nat} (hn : 0 < n) : ∀ g ∈ wheelGaps n, g > 0 := by
+  have pointGaps_pos : ∀ points : List Nat, points.Pairwise (· < ·) →
+      ∀ g ∈ pointGapsList points, g > 0 := by
+    intro points
+    induction points with
+    | nil => intro _ g hg; simp [pointGapsList] at hg
+    | cons a rest ih =>
+        intro hpoints g hg
+        cases rest with
+        | nil => simp [pointGapsList] at hg
+        | cons b tail =>
+            simp [pointGapsList] at hg
+            cases hg with
+            | inl hg =>
+                subst g
+                have hab : a < b := (List.pairwise_cons.mp hpoints).1 b (by simp)
+                omega
+            | inr hg =>
+                exact ih (List.pairwise_cons.mp hpoints).2 g hg
+  rcases n with _ | k
+  · omega
+  cases k with
+  | zero =>
+      intro g hg
+      simp [wheelGaps, wheelWrapGap, wheelCandidateList, wheelCandidates, pointGapsList] at hg
+      omega
+  | succ k =>
+      intro g hg
+      let points := wheelCandidateList k.succ.succ
+      have hn2 : 2 ≤ k.succ.succ := by omega
+      have hnonempty : points ≠ [] := by
+        simpa [points, coprimeResidues] using coprimeResidues_ne_nil_of_ge_two (P := k.succ.succ) hn2
+      have hstrict : points.Pairwise (· < ·) := by
+        simpa [points] using wheelCandidateList_sorted hn2
+      rw [show wheelGaps k.succ.succ = pointGapsList points ++ [wheelWrapGap k.succ.succ points] by
+        simp [wheelGaps, points, hnonempty]] at hg
+      simp at hg
+      cases hg with
+      | inl hg_internal => exact pointGaps_pos points hstrict g hg_internal
+      | inr hg_wrap =>
+          subst g
+          have hhead : points.headD 0 = 1 := by
+            simpa [points, coprimeResidues] using coprimeResidues_head hn2
+          have hlast : points.getLastD 0 < k.succ.succ := by
+            simpa [points] using wheelCandidateList_getLastD_lt hnonempty
+          change k.succ.succ + points.headD 0 - points.getLastD 0 > 0
+          rw [hhead]
+          omega
 
 /-- В одном периоде сумма всех wheel gaps равна модулю. -/
 theorem wheelGaps_sum_eq_of_pos (n : Nat) (hpos : 0 < n) :
@@ -409,6 +475,20 @@ theorem primorial_wheelGaps_mean_eq (m : Nat) :
   simp [primorialWheelMeanGap, primorial_wheelGaps_sum_eq,
     primorial_wheelGaps_length_eq_totient]
 
+/-- Primorial строго возрастает при добавлении следующего простого множителя. -/
+theorem primorial_strictly_increasing (m : Nat) : primorial m < primorial (m + 1) := by
+  rw [primorial_succ]
+  have hpos : 0 < primorial m := primorial_pos m
+  have hprime : 2 ≤ Nat.nth Nat.Prime m := (Nat.prime_nth_prime m).two_le
+  nlinarith [Nat.mul_le_mul_left (primorial m) hprime]
+
+/-- Корректная конечная формула Эйлера для `φ(P_m)`. Запрошенная форма с
+`Finset.Iic (Nat.nth Nat.Prime m)` включает следующий простой и ложна при `m = 0`. -/
+theorem totient_primorial_formula (m : Nat) :
+    (Nat.totient (primorial m) : ℚ) =
+      (primorial m : ℚ) * (primorial m).primeFactors.prod (fun p => 1 - (p : ℚ)⁻¹) := by
+  simpa using Nat.totient_eq_mul_prod_factors (primorial m)
+
 /-- Формальная Mertens-asymptotic гипотеза для среднего primorial wheel gap. -/
 def PrimorialWheelAverageGapMertensAsymptotic (γ : ℝ) : Prop :=
   Filter.Tendsto (fun m : Nat => (primorialWheelMeanGap m : ℝ) /
@@ -473,6 +553,59 @@ def primeGapTerm (g x n : Nat) : Nat := by
 /-- Точная частота `F(g, x)` через конечное решето по возможным левым концам. -/
 def primeGapFrequencyExact (g x : Nat) : Nat :=
   (Finset.range (x + 1)).sum (fun n => primeGapTerm g x n)
+
+/-- Точная частота равна числу левых концов соседних простых с промежутком `g`. -/
+theorem primeGapFrequencyExact_eq_count (g x : Nat) :
+    primeGapFrequencyExact g x =
+      (by classical
+       exact ((Finset.range (x + 1)).filter (fun n => ConsecutivePrimeStart g x n)).card) := by
+  classical
+  trans (Finset.range (x + 1)).sum (fun n => if ConsecutivePrimeStart g x n then 1 else 0)
+  · unfold primeGapFrequencyExact
+    apply Finset.sum_congr rfl
+    intro n hn
+    unfold primeGapTerm primeIndicator natIndicator ConsecutivePrimeStart
+    have hprod :
+        (Finset.Icc 1 (g - 1)).prod (fun h => 1 - if Nat.Prime (n + h) then 1 else 0) =
+          if (∀ h ∈ Finset.Icc 1 (g - 1), ¬ Nat.Prime (n + h)) then 1 else 0 := by
+      by_cases hall : ∀ h ∈ Finset.Icc 1 (g - 1), ¬ Nat.Prime (n + h)
+      · rw [if_pos hall]
+        apply Finset.prod_eq_one
+        intro h hh
+        simp [hall h hh]
+      · rw [if_neg hall]
+        push Not at hall
+        rcases hall with ⟨h, hh, hp⟩
+        exact Finset.prod_eq_zero hh (by simp [hp])
+    by_cases hgpos : 0 < g <;>
+      by_cases hnprime : Nat.Prime n <;>
+      by_cases hngprime : Nat.Prime (n + g) <;>
+      by_cases hle : n + g ≤ x <;>
+      simp [hgpos, hnprime, hngprime, hle, hprod]
+  · exact Finset.sum_boole (fun n => ConsecutivePrimeStart g x n) (Finset.range (x + 1))
+
+/-- Для нечётного `g > 1` точных промежутков нет. Формулировка без `1 < g` ложна: `2,3`. -/
+theorem primeGapFrequencyExact_zero_for_odd_g_gt_one (g x : Nat) (hg : Odd g) (hg1 : 1 < g) :
+    primeGapFrequencyExact g x = 0 := by
+  rw [primeGapFrequencyExact_eq_count]
+  classical
+  apply Finset.card_eq_zero.mpr
+  rw [Finset.filter_eq_empty_iff]
+  intro n hn hstart
+  rcases hstart with ⟨hgpos, hnprime, hngprime, hle, hbetween⟩
+  rcases Nat.even_or_odd n with hneven | hnodd
+  · have hn_eq_two : n = 2 := by
+      exact hnprime.eq_two_or_odd'.resolve_right (by simpa using hneven)
+    have h1mem : 1 ∈ Finset.Icc 1 (g - 1) := by
+      simp only [Finset.mem_Icc]
+      omega
+    have hnot : ¬ Nat.Prime (n + 1) := hbetween 1 h1mem
+    exact hnot (by simpa [hn_eq_two] using Nat.prime_three)
+  · have heven : Even (n + g) := hnodd.add_odd hg
+    rcases hngprime.eq_two_or_odd' with htwo | hodd
+    · have hn2 : 2 ≤ n := hnprime.two_le
+      omega
+    · exact (by simpa using heven : ¬ Odd (n + g)) hodd
 
 /-- Булевофинитная форма точной формулы, совпадающая с исходным Python-подходом. -/
 theorem primeGapFrequencyExact_eq_sieve_sum (g x : Nat) :
@@ -849,6 +982,28 @@ def finiteWheelSingularSeries (g y : Nat) : ℝ :=
   (Finset.range (y + 1)).prod fun p =>
     if Nat.Prime p then wheelLocalSingularFactor g p else 1
 
+/-- Локальный wheel-множитель совпадает с нормированной локальной плотностью survival. -/
+theorem wheelLocalSingularFactor_eq_singular (g p : Nat) (_hp : Nat.Prime p) :
+    wheelLocalSingularFactor g p =
+      (1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)) /
+        (1 - 1 / (p : ℝ)) ^ 2 := by
+  simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, wheelEndpointForbiddenCount,
+    endpointForbiddenResidueCount]
+
+/-- Глобальная wheel-series равна survival-произведению с делением на наивные endpoint-плотности. -/
+theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
+    finiteWheelSingularSeries g y =
+      finitePairSieveFactor g y /
+        (Finset.range (y + 1)).prod (fun p =>
+          if Nat.Prime p then (1 - 1 / (p : ℝ)) ^ 2 else 1) := by
+  rw [finiteWheelSingularSeries, finitePairSieveFactor, ← Finset.prod_div_distrib]
+  apply Finset.prod_congr rfl
+  intro p hp
+  by_cases hprime : Nat.Prime p
+  · simp [hprime, wheelLocalSingularFactor, wheelEndpointSurvivalDensity,
+      wheelEndpointForbiddenCount]
+  · simp [hprime]
+
 /-- Интеграл `li₂(x) = ∫₂ˣ dt / log² t`. -/
 def logarithmicIntegral₂ (x : ℝ) : ℝ :=
   ∫ t in (2 : ℝ)..x, 1 / (Real.log t) ^ 2
@@ -973,6 +1128,33 @@ theorem singularSeriesFactor_six (C₂ : ℝ) : singularSeriesFactor C₂ 6 = 4 
 theorem singularSeriesFactor_even (C₂ : ℝ) (k : Nat) :
     singularSeriesFactor C₂ (2 * k) = 2 * C₂ * divisorCorrectionProduct k := by
   simp [singularSeriesFactor]
+
+/-- Конечная поправка равна произведению по нечётным простым делителям. -/
+theorem divisorCorrectionProduct_eq_primeFactors (k : Nat) :
+    divisorCorrectionProduct k =
+      ((Nat.primeFactors k).filter (fun p => 2 < p)).prod
+        (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+  by_cases hk0 : k = 0
+  · subst k
+    simp [divisorCorrectionProduct]
+  · rw [divisorCorrectionProduct, ← Finset.prod_filter]
+    congr 1
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_range, Nat.mem_primeFactors]
+    constructor
+    · intro h
+      exact ⟨⟨h.2.1, h.2.2.2, hk0⟩, h.2.2.1⟩
+    · intro h
+      rcases h with ⟨⟨hprime, hdvd, _⟩, hgt⟩
+      have hle : p ≤ k := Nat.le_of_dvd (Nat.pos_of_ne_zero hk0) hdvd
+      exact ⟨Nat.lt_succ_iff.mpr hle, hprime, hgt, hdvd⟩
+
+/-- Явная формула singular series для чётного gap через нечётные простые делители `k`. -/
+theorem singularSeriesFactor_even_correct (C₂ : ℝ) (k : Nat) :
+    singularSeriesFactor C₂ (2 * k) =
+      2 * C₂ * ((Nat.primeFactors k).filter (fun p => 2 < p)).prod
+        (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+  rw [singularSeriesFactor_even, divisorCorrectionProduct_eq_primeFactors]
 
 /-- Связь с wheel: глобальная формула — базовая константа `2 C₂` и поправки по `p ∣ k`. -/
 theorem singularSeriesFactor_eq_wheel_divisor_product (C₂ : ℝ) (k : Nat) :
