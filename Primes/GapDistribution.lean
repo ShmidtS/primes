@@ -219,6 +219,88 @@ def wheelCandidates (n : Nat) : Finset Nat :=
 def wheelCandidateList (n : Nat) : List Nat :=
   (wheelCandidates n).sort (· <= ·)
 
+/-- Синоним: остатки, взаимно простые с n, в порядке возрастания. -/
+def coprimeResidues (n : Nat) : List Nat := wheelCandidateList n
+
+/-- Первый взаимно простой остаток modulo `n ≥ 2` равен `1`. -/
+theorem coprimeResidues_head {n : Nat} (hn : 2 ≤ n) : (coprimeResidues n).headD 0 = 1 := by
+  have h1lt : 1 < n := by omega
+  have hmem1 : 1 ∈ coprimeResidues n := by
+    simp [coprimeResidues, wheelCandidateList, wheelCandidates, h1lt]
+  rcases hlist : coprimeResidues n with _ | ⟨a, tail⟩
+  · simp [hlist] at hmem1
+  · have ha_mem : a ∈ wheelCandidates n := by
+      have : a ∈ coprimeResidues n := by simp [hlist]
+      exact (Finset.mem_sort (s := wheelCandidates n) (r := (· <= ·))).mp
+        (by simpa [coprimeResidues, wheelCandidateList] using this)
+    have ha_coprime : Nat.Coprime n a := (Finset.mem_filter.mp ha_mem).2
+    have ha_pos : 0 < a := by
+      by_contra hnot
+      have ha0 : a = 0 := Nat.eq_zero_of_not_pos hnot
+      subst a
+      have hn_dvd_zero : n ∣ 0 := dvd_zero n
+      have hn_dvd_one : n ∣ 1 := ha_coprime.dvd_of_dvd_mul_right hn_dvd_zero
+      have : n ≤ 1 := Nat.le_of_dvd (by omega) hn_dvd_one
+      omega
+    have hsorted : (coprimeResidues n).Pairwise (· <= ·) := by
+      simp [coprimeResidues, wheelCandidateList]
+    have hsorted_cons : (a :: tail).Pairwise (· <= ·) := by
+      simpa [hlist] using hsorted
+    have hle : a ≤ 1 := by
+      have hforall : ∀ b ∈ tail, a ≤ b := (List.pairwise_cons.mp hsorted_cons).1
+      have hmem1_cons : 1 ∈ a :: tail := by simpa [hlist] using hmem1
+      cases hmem1_cons with
+      | head => rfl
+      | tail _ ht => exact hforall 1 ht
+    exact Nat.le_antisymm hle ha_pos
+
+/-- `coprimeResidues P` непуст при `P ≥ 2`. -/
+theorem coprimeResidues_ne_nil_of_ge_two {P : Nat} (hP : 2 ≤ P) :
+    coprimeResidues P ≠ [] := by
+  have h1lt : 1 < P := by omega
+  have hmem : 1 ∈ coprimeResidues P := by
+    simp [coprimeResidues, wheelCandidateList, wheelCandidates, h1lt]
+  exact List.ne_nil_of_mem hmem
+
+/-- Append правого endpoint `P + 1` сохраняет строгий порядок остатков. -/
+theorem coprimeResidues_append_succ_sorted {P : Nat} (_hP : 0 < P) :
+    (coprimeResidues P ++ [P + 1]).Pairwise (· < ·) := by
+  classical
+  have hP' : P < P + 1 := by omega
+  have le_nodup_to_lt : ∀ xs : List Nat,
+      xs.Pairwise (· <= ·) → xs.Nodup → xs.Pairwise (· < ·) := by
+    intro xs hle hnodup
+    induction xs with
+    | nil => exact List.Pairwise.nil
+    | cons a tail ih =>
+        have hle_cons : (a :: tail).Pairwise (· <= ·) := hle
+        have hnodup_cons : (a :: tail).Nodup := hnodup
+        have hforall_le : ∀ b ∈ tail, a ≤ b := (List.pairwise_cons.mp hle_cons).1
+        have htail_le : tail.Pairwise (· <= ·) := (List.pairwise_cons.mp hle_cons).2
+        have ha_not_mem : a ∉ tail := (List.nodup_cons.mp hnodup_cons).1
+        have htail_nodup : tail.Nodup := (List.nodup_cons.mp hnodup_cons).2
+        exact List.Pairwise.cons
+          (fun b hb => by
+            have hne : a ≠ b := by
+              intro hab
+              exact ha_not_mem (by simpa [hab] using hb)
+            exact Nat.lt_of_le_of_ne (hforall_le b hb) hne)
+          (ih htail_le htail_nodup)
+  have hstrict : (coprimeResidues P).Pairwise (· < ·) := by
+    apply le_nodup_to_lt
+    · simp [coprimeResidues, wheelCandidateList]
+    · simp [coprimeResidues, wheelCandidateList]
+  rw [List.pairwise_append]
+  refine ⟨hstrict, List.Pairwise.cons (by simp) List.Pairwise.nil, ?_⟩
+  intro a ha b hb
+  simp only [List.mem_singleton] at hb
+  subst b
+  have ha_mem : a ∈ wheelCandidates P := by
+    exact (Finset.mem_sort (s := wheelCandidates P) (r := (· <= ·))).mp
+      (by simpa [coprimeResidues, wheelCandidateList] using ha)
+  have hltP : a < P := Finset.mem_range.mp (Finset.mem_filter.mp ha_mem).1
+  exact Nat.lt_trans hltP hP'
+
 /-- Wrap-around gap от последнего кандидата к первому в следующем периоде. -/
 def wheelWrapGap (n : Nat) (points : List Nat) : Nat :=
   n + points.headD 0 - points.getLastD 0
@@ -306,6 +388,11 @@ theorem primorial_wheelGaps_sum_eq (m : Nat) :
     (wheelGaps (primorial m)).sum = primorial m := by
   exact wheelGaps_sum_eq_of_pos (primorial m) (primorial_pos m)
 
+/-- Сумма primorial gaps равна периоду `P_m`. -/
+theorem primorialGaps_sum_eq_period (m : Nat) :
+    (wheelGaps (primorial m)).sum = primorial m := by
+  exact primorial_wheelGaps_sum_eq m
+
 /-- Для primorial wheel количество gaps равно `φ(P_m)`. -/
 theorem primorial_wheelGaps_length_eq_totient (m : Nat) :
     (wheelGaps (primorial m)).length = Nat.totient (primorial m) := by
@@ -321,6 +408,11 @@ theorem primorial_wheelGaps_mean_eq (m : Nat) :
         ((wheelGaps (primorial m)).length : ℚ) = primorialWheelMeanGap m := by
   simp [primorialWheelMeanGap, primorial_wheelGaps_sum_eq,
     primorial_wheelGaps_length_eq_totient]
+
+/-- Формальная Mertens-asymptotic гипотеза для среднего primorial wheel gap. -/
+def PrimorialWheelAverageGapMertensAsymptotic (γ : ℝ) : Prop :=
+  Filter.Tendsto (fun m : Nat => (primorialWheelMeanGap m : ℝ) /
+    (Real.exp γ * Real.log (Nat.nth Nat.Prime m))) Filter.atTop (nhds 1)
 
 /-- Последний элемент `cumulativeSum` равен сумме списка. -/
 theorem cumulativeSum_last_eq_sum (xs : List Nat) :
@@ -673,6 +765,48 @@ theorem det_exactOneByOneGapKernel (g x : Nat) :
   simp [exactOneByOneGapKernel]
 
 /-!
+## Вывод singular series из локальной wheel-модели
+
+1. Для фиксированного gap `g` рассматривается пара endpoint-ов `n` и `n + g`.
+2. Просеивание по простому `p` удаляет те классы `n mod p`,
+   где хотя бы один endpoint делится на `p`.
+3. Первый endpoint запрещает класс `n ≡ 0 (mod p)`.
+4. Второй endpoint запрещает класс `n ≡ -g (mod p)`.
+5. Эти два класса могут совпасть только тогда, когда `p ∣ g`.
+6. Поэтому число запрещённых классов равно `ν_g(p) = 1`, если `p ∣ g`.
+7. Если `p ∤ g`, запрещённые классы различны, и `ν_g(p) = 2`.
+8. В файле это число формализовано как `endpointForbiddenResidueCount g p`.
+9. Обёртка `wheelEndpointForbiddenCount` использует ту же локальную величину.
+10. Из `p` классов выживает ровно `p - ν_g(p)` классов.
+11. Локальная плотность выживания равна `(p - ν_g(p)) / p`.
+12. Алгебраически это записано как `1 - ν_g(p) / p`.
+13. В коде эта плотность называется `wheelEndpointSurvivalDensity g p`.
+14. Для одного endpoint-а эвристическая вероятность не делиться на `p` равна `1 - 1/p`.
+15. Для двух независимых endpoint-ов наивная плотность равна `(1 - 1/p)^2`.
+16. Но endpoint-ы `n` и `n + g` не независимы modulo `p`.
+17. Коррекция сравнивает фактическую локальную плотность с наивной.
+18. Поэтому локальный множитель singular series равен `(1 - ν_g(p)/p) / (1 - 1/p)^2`.
+19. В файле это `wheelLocalSingularFactor g p`.
+20. Если `p ∣ g`, фактор больше, потому что два запрета сливаются в один класс.
+21. Если `p ∤ g`, фактор отражает два разных запрещённых класса.
+22. Умножение этих локальных поправок по простым даёт глобальную арифметическую поправку.
+23. Частичное произведение до уровня `y` задано как `finiteWheelSingularSeries g y`.
+24. Предельный объект — singular series `S(g)` для пары сдвигов `(0, g)`.
+25. Для нечётного `g` фактор при `p = 2` равен нулю: одна из двух чисел всегда чётна.
+26. Поэтому asymptotic singular series нечётных gaps равна `0`.
+27. Для чётного `g` фактор при `p = 2` даёт базовый множитель `2`.
+28. Остальные нечётные простые дают divisor corrections по простым делителям `g`.
+29. Twin prime constant `C₂` собирает регуляризованное произведение по нечётным простым.
+30. Оно компенсирует расходимость прямого произведения локальных плотностей.
+31. В этом файле `twinPrimeConstantPartial` задаёт конечные приближения к `C₂`.
+32. `IsTwinPrimeConstant C₂` формализует выбор предела этих приближений.
+33. `singularSeriesFactor C₂ g` использует `C₂` и конечные divisor corrections.
+34. Для `g = 2` divisor corrections пусты, и получается классический множитель `2 C₂`.
+35. Для больших чётных `g` множители `(p - 1)/(p - 2)` появляются
+    ровно при нечётных `p ∣ g`.
+-/
+
+/-!
 ## Hardy--Littlewood и теорема Галлагера
 
 В этом блоке аналитические утверждения оформлены как именованные `Prop`.
@@ -860,7 +994,7 @@ theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
   intro h hh
   simp at hh
   subst h
-  simpa using (zero_ne_one : (0 : ZMod p) ≠ 1)
+  simp [zero_ne_one]
 
 end
 
