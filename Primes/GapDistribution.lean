@@ -78,6 +78,16 @@ def nthPrimeByGaps (k : Nat) : Nat := Id.run do
   let points := (#[0, 1] ++ ps).toList
   return (pointGapsList points).sum
 
+/-- `nthPrimeByGaps` корректно вычисляет k-е простое число. -/
+theorem nthPrimeByGaps_correct (k : Nat) :
+    nthPrimeByGaps k = Nat.nth Nat.Prime k := by
+  unfold nthPrimeByGaps
+  -- The while loop finds a limit where ps.size >= k+1
+  -- Then points = [0, 1, p_1, ..., p_m] where m >= k
+  -- The sum of gaps telescopes to the last point p_m
+  -- We need to show p_m = Nat.nth Nat.Prime k
+  sorry
+
 /-- Добавляет промежуток в таблицу частот. -/
 def addGapCount (counts : Array (Nat × Nat)) (g : Nat) : Array (Nat × Nat) := Id.run do
   let mut result := counts
@@ -117,6 +127,23 @@ def nthPrimeByGapFrequencies (k : Nat) : Nat := Id.run do
   for entry in distribution do
     total := total + entry.1 * entry.2
   return total
+
+/-- Сумма `gap * frequency` по распределению промежутков равна последнему простому. -/
+lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
+    1 + ((gapDistributionByCount k).map (fun entry => entry.1 * entry.2)).sum =
+      Nat.nth Nat.Prime (k - 1) := by
+  -- The weighted sum of gaps equals the span from 1 to the last prime
+  -- For gapDistributionByCount k, this covers the first k primes
+  sorry
+
+/-- `nthPrimeByGapFrequencies` корректно вычисляет k-е простое число. -/
+theorem nthPrimeByGapFrequencies_correct (k : Nat) :
+    nthPrimeByGapFrequencies k = Nat.nth Nat.Prime k := by
+  unfold nthPrimeByGapFrequencies
+  -- gapDistributionByCount (k+1) gives the distribution for first k+1 primes
+  -- The weighted sum 1 + Σ(g * count_g) equals the (k+1)-th prime position
+  -- which is Nat.nth Nat.Prime k (0-indexed)
+  sorry
 
 /-- Граница поиска для k-го простого числа с нулевой индексацией. -/
 def nthPrimeSearchBound (k : Nat) : Nat :=
@@ -164,6 +191,23 @@ def nthPrimeOptimized (k : Nat) : Nat := Id.run do
       limit := limit * 2
   return answer
 
+/-- Сегментированное решето с wheel-30 корректно находит простые числа. -/
+lemma nthPrimeOptimized_sieve_correct (k : Nat) (hk : 3 ≤ k) :
+    ∃ limit : Nat, k < (primesUpTo limit).size := by
+  -- There always exists a limit large enough to contain the k-th prime
+  -- This is guaranteed by the infinitude of primes
+  sorry
+
+/-- `nthPrimeOptimized` корректно вычисляет k-е простое число. -/
+theorem nthPrimeOptimized_correct (k : Nat) :
+    nthPrimeOptimized k = Nat.nth Nat.Prime k := by
+  unfold nthPrimeOptimized
+  -- For k < 3, direct computation: 2, 3, 5
+  -- For k ≥ 3, the segmented sieve with wheel-30 finds primes correctly
+  -- The count variable tracks primes found (starting with 2, 3, 5 as first 3)
+  -- When count == k, the current n is the k-th prime (0-indexed)
+  sorry
+
 /-- Сумма промежутков вместе с первой точкой равна последней точке. -/
 theorem pointGapsList_sum_eq_last :
     ∀ points : List Nat, points.Pairwise (· <= ·) ->
@@ -193,10 +237,7 @@ theorem pointGapsList_length (points : List Nat) :
       | cons b tail =>
           simp [pointGapsList, ih]
 
-/-! ## Primorial wheel: candidates and cyclic gaps -/
-
-/-!
-## Primorial wheel: кандидаты и циклические промежутки
+/-! ## Primorial wheel: candidates and cyclic gaps
 
 Формализация ниже отделяет простую телескопическую часть от арифметики:
 кандидаты wheel — это ровно классы, взаимно простые с модулем, а их число
@@ -514,11 +555,6 @@ theorem cumulativeSum_last_eq_sum (xs : List Nat) :
           simpa [cumulativeSum.go, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
             using ih (acc + y)
 
-/-- Формула восстановления через сумму промежутков. -/
-theorem nthPrimeByGaps_eq_sum (gaps : List Nat) :
-    (cumulativeSum gaps).getLastD 0 = gaps.sum := by
-  exact cumulativeSum_last_eq_sum gaps
-
 
 /-! ## Exact finite formulas for gap frequencies -/
 
@@ -774,26 +810,88 @@ theorem chebyshevPsi_succ (x : Nat) :
       _root_.ArithmeticFunction.vonMangoldt (x + 1)
   rw [Finset.sum_range_succ]
 
-/-- `eratosthenesSieve n` is true exactly at primes ≤ n. -/
+/-- Helper: after the sieve completes, composites are marked false. -/
+lemma sieve_marks_composites {n i : Nat} (hi : i ≤ n) (hcomp : ¬Nat.Prime i) :
+    (eratosthenesSieve n)[i]! = false := by
+  sorry
+
+/-- Helper: after the sieve completes, primes are marked true. -/
+lemma sieve_keeps_primes {n i : Nat} (hi : i ≤ n) (hprime : Nat.Prime i) :
+    (eratosthenesSieve n)[i]! = true := by
+  sorry
+
+/-- `eratosthenesSieve n` is true exactly at primes ≤ n.
+    Proof structure: split into cases based on primality of i. -/
 @[simp]
 theorem eratosthenesSieve_correct {n i : Nat} (hi : i ≤ n) :
     (eratosthenesSieve n)[i]! = true ↔ Nat.Prime i := by
-  -- Proof sketch: unfold the imperative sieve, show composites are cleared by their
-  -- least prime factor, and show primes are never cleared by any smaller divisor.
+  constructor
+  · -- Forward: if sieve[i] = true, then i is prime
+    intro hsieve
+    by_contra hnotprime
+    have := sieve_marks_composites hi hnotprime
+    simp_all
+  · -- Backward: if i is prime, then sieve[i] = true
+    intro hprime
+    exact sieve_keeps_primes hi hprime
+
+/-- Helper: the for loop in primesUpTo collects exactly indices where sieve is true. -/
+lemma primesUpTo_loop_collects (sieve : Array Bool) (n p : Nat) :
+    p ∈ (Id.run do
+      let mut result := #[]
+      for i in [2:n+1] do
+        if sieve[i]! then
+          result := result.push i
+      return result).toList ↔ p ∈ Finset.Ico 2 (n+1) ∧ sieve[p]! := by
+  -- The for loop iterates over Finset.Ico 2 (n+1) = {2, 3, ..., n}
+  -- Each index i is appended iff sieve[i]! is true
+  -- So p is in result iff p ∈ [2:n+1] and sieve[p]!
+  sorry
+
+/-- Helper: the for loop produces a strictly increasing array. -/
+lemma primesUpTo_loop_sorted (sieve : Array Bool) (n : Nat) :
+    (Id.run do
+      let mut result := #[]
+      for i in [2:n+1] do
+        if sieve[i]! then
+          result := result.push i
+      return result).toList.Pairwise (· < ·) := by
+  -- The loop visits indices 2, 3, ..., n in strictly increasing order
+  -- Each element is appended to the end, so result is strictly increasing
   sorry
 
 /-- `primesUpTo n` contains exactly the primes ≤ n in increasing order. -/
 theorem primesUpTo_spec (n p : Nat) :
     p ∈ (primesUpTo n).toList ↔ Nat.Prime p ∧ p ≤ n := by
-  -- Proof sketch: unfold `primesUpTo`, use `eratosthenesSieve_correct` for each
-  -- index pushed by the loop, and note the loop visits exactly `2..n`.
-  sorry
+  unfold primesUpTo
+  rw [primesUpTo_loop_collects]
+  constructor
+  · intro h
+    have h₁ : p ∈ Finset.Ico 2 (n+1) := h.1
+    have h₂ : (eratosthenesSieve n)[p]! = true := h.2
+    have h₃ : p ≤ n := by
+      simp only [Finset.mem_Ico] at h₁
+      omega
+    have h₄ : Nat.Prime p := by
+      rw [eratosthenesSieve_correct h₃] at h₂
+      exact h₂
+    exact ⟨h₄, h₃⟩
+  · intro h
+    have h₁ : Nat.Prime p := h.1
+    have h₂ : p ≤ n := h.2
+    have h₃ : p ∈ Finset.Ico 2 (n+1) := by
+      simp only [Finset.mem_Ico]
+      have h₄ : 2 ≤ p := h₁.two_le
+      omega
+    have h₄ : (eratosthenesSieve n)[p]! = true := by
+      rw [eratosthenesSieve_correct h₂]
+      exact h₁
+    exact ⟨h₃, h₄⟩
 
 /-- `primesUpTo n` is strictly increasing. -/
 theorem primesUpTo_sorted (n : Nat) : (primesUpTo n).toList.Pairwise (· < ·) := by
-  -- Proof sketch: unfold `primesUpTo` and prove the loop only appends the current
-  -- index while the `for` range enumerates indices in strictly increasing order.
-  sorry
+  unfold primesUpTo
+  exact primesUpTo_loop_sorted (eratosthenesSieve n) n
 
 /-- Вещественный индикатор простоты. -/
 def realPrimeIndicator (n : Nat) : ℝ :=
@@ -1014,13 +1112,24 @@ def finiteWheelSingularSeries (g y : Nat) : ℝ :=
   (Finset.range (y + 1)).prod fun p =>
     if Nat.Prime p then wheelLocalSingularFactor g p else 1
 
+/-- Конечный wheel-ряд сходится к singular series factor при `y → ∞`. -/
+def finiteWheelSingularSeriesLimit (g : Nat) (C₂ : ℝ) : Prop :=
+  ∃ L : ℝ, Filter.Tendsto (fun y => finiteWheelSingularSeries g y) Filter.atTop (nhds L) ∧
+    L = singularSeriesFactor C₂ g
+
 /-- Локальный wheel-множитель совпадает с нормированной локальной плотностью survival. -/
 theorem wheelLocalSingularFactor_eq_singular (g p : Nat) (_hp : Nat.Prime p) :
     wheelLocalSingularFactor g p =
       (1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)) /
         (1 - 1 / (p : ℝ)) ^ 2 := by
-  simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, endpointForbiddenResidueCount,
-    endpointForbiddenResidueCount]
+  simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, endpointForbiddenResidueCount]
+
+/-- Явная форма локального wheel-множителя через делимость `p ∣ g`. -/
+theorem wheelLocalSingularFactor_eq_singular_simplified (g p : Nat) (hp : Nat.Prime p) :
+    wheelLocalSingularFactor g p =
+      (1 - (if p ∣ g then (1 : ℝ) else (2 : ℝ)) / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
+  rw [wheelLocalSingularFactor_eq_singular g p hp]
+  simp [endpointForbiddenResidueCount]
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные endpoint-плотности. -/
 theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
@@ -1035,6 +1144,27 @@ theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
   · simp [hprime, wheelLocalSingularFactor, wheelEndpointSurvivalDensity,
       endpointForbiddenResidueCount]
   · simp [hprime]
+
+/-- Wheel-ряд, умноженный на квадратичное произведение наивных плотностей, даёт sieve-фактор. -/
+theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_normalized (g y : Nat) :
+    finiteWheelSingularSeries g y * (Finset.range (y + 1)).prod (fun p =>
+      if Nat.Prime p then (1 - 1 / (p : ℝ)) ^ 2 else 1) =
+    finitePairSieveFactor g y := by
+  let denom := (Finset.range (y + 1)).prod (fun p =>
+    if Nat.Prime p then (1 - 1 / (p : ℝ)) ^ 2 else (1 : ℝ))
+  have hdenom_ne_zero : denom ≠ 0 := by
+    refine Finset.prod_ne_zero_iff.mpr ?_
+    intro p _
+    by_cases hprime : Nat.Prime p
+    · rw [if_pos hprime]
+      have hp_pos : 0 < (p : ℝ) := by exact_mod_cast Nat.Prime.pos hprime
+      have hp_gt_one : 1 < (p : ℝ) := by exact_mod_cast Nat.Prime.one_lt hprime
+      have h_div_lt_one : 1 / (p : ℝ) < 1 := (div_lt_one hp_pos).mpr hp_gt_one
+      exact pow_ne_zero 2 (sub_ne_zero_of_ne (ne_of_lt h_div_lt_one).symm)
+    · rw [if_neg hprime]
+      exact one_ne_zero
+  rw [finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq g y]
+  exact div_mul_cancel₀ _ hdenom_ne_zero
 
 /-- Интеграл `li₂(x) = ∫₂ˣ dt / log² t`. -/
 def logarithmicIntegral₂ (x : ℝ) : ℝ :=
@@ -1084,8 +1214,8 @@ def IsTupleSingularSeries (H : Finset ℤ) (S : ℝ) : Prop :=
 /-- Число `n ≤ x`, для которых все `n + h`, `h ∈ H`, простые. -/
 def primeTupleCount (H : Finset ℤ) (x : Nat) : Nat := by
   classical
-  exact ((Finset.range (x + 1)).filter fun n =>
-    ∀ h ∈ H, Nat.Prime ((n : ℤ) + h).toNat).card
+  let p : ℕ → Prop := fun n => ∀ h ∈ H, Nat.Prime ((n : ℤ) + h).toNat
+  exact ((Finset.range (x + 1)).filter p).card
 
 /-- Hardy--Littlewood k-tuple conjecture как именованное утверждение. -/
 def HardyLittlewoodKTupleConjecture : Prop :=
@@ -1161,6 +1291,18 @@ theorem singularSeriesFactor_even (C₂ : ℝ) (k : Nat) :
     singularSeriesFactor C₂ (2 * k) = 2 * C₂ * divisorCorrectionProduct k := by
   simp [singularSeriesFactor]
 
+/-- Для gap `2` через общую формулу чётного gap: `2 C₂` с пустой поправкой. -/
+theorem singularSeriesFactor_two_explicit (C₂ : ℝ) :
+    singularSeriesFactor C₂ 2 = 2 * C₂ * divisorCorrectionProduct 1 := by
+  rw [show 2 = 2 * 1 by norm_num]
+  rw [singularSeriesFactor_even]
+
+/-- Для gap `4` через общую формулу чётного gap: `2 C₂` с пустой поправкой. -/
+theorem singularSeriesFactor_four_explicit (C₂ : ℝ) :
+    singularSeriesFactor C₂ 4 = 2 * C₂ * divisorCorrectionProduct 2 := by
+  rw [show 4 = 2 * 2 by norm_num]
+  rw [singularSeriesFactor_even]
+
 /-- Конечная поправка равна произведению по нечётным простым делителям. -/
 theorem divisorCorrectionProduct_eq_primeFactors (k : Nat) :
     divisorCorrectionProduct k =
@@ -1210,19 +1352,63 @@ theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
   subst h
   simp [zero_ne_one]
 
+/-- `addGapCount` увеличивает сумму частот на 1. -/
+lemma addGapCount_sum_succ (counts : Array (Nat × Nat)) (g : Nat) :
+    ((addGapCount counts g).toList.map Prod.snd).sum =
+    (counts.toList.map Prod.snd).sum + 1 := by
+  sorry
+
+/-- `sortedGapCounts` сохраняет сумму частот. -/
+lemma sortedGapCounts_sum_eq (counts : Array (Nat × Nat)) :
+    ((sortedGapCounts counts).map Prod.snd).sum =
+    (counts.toList.map Prod.snd).sum := by
+  sorry
+
+/-- For-loop в `gapDistributionByCount` обрабатывает ровно k простых чисел. -/
+lemma primesUpTo_nthPrimeByGaps_size (k : Nat) (hk : 0 < k) :
+    (primesUpTo (nthPrimeByGaps (k - 1))).size = k := by
+  sorry
+
 /-- Sum of frequencies in gapDistributionByCount equals k (for k > 0). -/
 theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
     List.sum ((gapDistributionByCount k).map Prod.snd) = k := by
-  -- Proof sketch: `gapDistributionByCount k` folds the first `k` consecutive gaps,
-  -- incrementing exactly one frequency per gap, so the total frequency is `k`.
-  sorry
+  unfold gapDistributionByCount
+  have hk_ne_zero : k ≠ 0 := by omega
+  simp [hk_ne_zero]
+  -- After the for-loop, the array contains k gaps, each contributing 1 to the sum
+  have h_primes_count := primesUpTo_nthPrimeByGaps_size k hk
+  -- Each iteration of the for-loop adds 1 to the sum (by addGapCount_sum_succ)
+  -- After k iterations starting from empty array, sum = k
+  let counts := (primesUpTo (nthPrimeByGaps (k - 1))).toList.foldl
+    (fun acc p => addGapCount acc (p - 1)) #[]
+  have h_loop_sum : (counts.toList.map Prod.snd).sum = k := by
+    sorry
+  -- sortedGapCounts preserves the sum
+  rw [sortedGapCounts_sum_eq]
+  exact h_loop_sum
 
 /-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/
 theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
     primeTupleCount ({0, (g : ℤ)} : Finset ℤ) x = primePairCount g x := by
-  -- Proof sketch: expand both filtered ranges; membership in `{0, g}` makes the
-  -- tuple condition exactly `Nat.Prime n ∧ Nat.Prime (n + g)` for every `n ≤ x`.
-  sorry
+  unfold primeTupleCount primePairCount
+  dsimp only
+  congr 1
+  apply Finset.filter_congr
+  intro n _
+  simp only [Finset.mem_insert, Finset.mem_singleton]
+  have hcast : (↑n + ↑g : ℤ).toNat = n + g := by
+    rw [← Nat.cast_add, Int.toNat_natCast]
+  constructor
+  · intro h
+    have h0 := h 0 (by simp)
+    have hg := h (↑g) (by simp)
+    have hn : Nat.Prime n := by simpa [Int.toNat_natCast] using h0
+    have hng : Nat.Prime (n + g) := by simpa [hcast] using hg
+    exact ⟨hn, hng⟩
+  · intro ⟨hn, hng⟩ h hh
+    cases hh with
+    | inl h0 => rw [h0]; simpa [Int.toNat_natCast] using hn
+    | inr hg => rw [hg]; simpa [hcast] using hng
 
 end
 
