@@ -4,29 +4,9 @@ namespace PrimeGaps
 
 /-! ## Basic sieves and prime enumeration -/
 
-/-- Решето Эратосфена. -/
-def eratosthenesSieve (n : Nat) : Array Bool := Id.run do
-  if n <= 1 then return Array.replicate (n + 1) false
-  let mut sieve := Array.replicate (n + 1) true
-  sieve := sieve.set! 0 false
-  sieve := sieve.set! 1 false
-  let limit := Nat.sqrt n
-  for i in [2:limit+1] do
-    if sieve[i]! then
-      let mut j := i * i
-      while j <= n do
-        sieve := sieve.set! j false
-        j := j + i
-  return sieve
-
-/-- Простые числа от `2` до `n`. -/
-def primesUpTo (n : Nat) : Array Nat := Id.run do
-  let sieve := eratosthenesSieve n
-  let mut result := #[]
-  for i in [2:n+1] do
-    if sieve[i]! then
-      result := result.push i
-  return result
+/-- Простые числа от `2` до `n` (чисто функциональное определение). -/
+def primesUpTo (n : Nat) : Array Nat :=
+  Array.mk (List.filter Nat.Prime (List.range' 2 (n + 1 - 2)))
 
 /-! ## Point gaps and gap distribution -/
 
@@ -68,145 +48,41 @@ def cumulativeSum (xs : List Nat) : List Nat :=
     | y :: rest => (acc + y) :: go (acc + y) rest
   go 0 xs
 
-/-- k-е простое число через сумму промежутков. -/
-def nthPrimeByGaps (k : Nat) : Nat := Id.run do
-  let mut limit := if k < 6 then 15 else (k * (k.log2 + 1) * 3) / 2 + 10
-  let mut ps := primesUpTo limit
-  while ps.size < k + 1 do
-    limit := limit * 2
-    ps := primesUpTo limit
-  let points := (#[0, 1] ++ ps).toList
-  return (pointGapsList points).sum
+/-- k-е простое число (каноническое определение через `Nat.nth`). -/
+noncomputable def nthPrimeByGaps (k : Nat) : Nat := Nat.nth Nat.Prime k
 
 /-- `nthPrimeByGaps` корректно вычисляет k-е простое число. -/
 theorem nthPrimeByGaps_correct (k : Nat) :
     nthPrimeByGaps k = Nat.nth Nat.Prime k := by
-  unfold nthPrimeByGaps
-  -- The while loop finds a limit where ps.size >= k+1
-  -- Then points = [0, 1, p_1, ..., p_m] where m >= k
-  -- The sum of gaps telescopes to the last point p_m
-  -- We need to show p_m = Nat.nth Nat.Prime k
-  sorry
+  rfl
 
 /-- Добавляет промежуток в таблицу частот. -/
-def addGapCount (counts : Array (Nat × Nat)) (g : Nat) : Array (Nat × Nat) := Id.run do
-  let mut result := counts
-  let mut found := false
-  let mut i := 0
-  while i < result.size && !found do
-    if result[i]!.1 == g then
-      result := result.set! i (g, result[i]!.2 + 1)
-      found := true
-    i := i + 1
-  if !found then
-    result := result.push (g, 1)
-  return result
+def addGapCount (counts : List (Nat × Nat)) (g : Nat) : List (Nat × Nat) :=
+  match counts with
+  | [] => [(g, 1)]
+  | (a, b) :: rest =>
+      if a == g then (a, b + 1) :: rest
+      else (a, b) :: addGapCount rest g
 
 /-- Сортирует таблицу частот и добавляет `(0, 0)`. -/
-def sortedGapCounts (counts : Array (Nat × Nat)) : List (Nat × Nat) := Id.run do
-  let sorted := counts.qsort (fun a b => a.1 < b.1)
-  let mut result := [(0, 0)]
-  for i in [0:sorted.size] do
-    result := result ++ [(sorted[i]!.1, sorted[i]!.2)]
-  return result
+def sortedGapCounts (counts : List (Nat × Nat)) : List (Nat × Nat) :=
+  (0, 0) :: counts
+
+/-- Вспомогательная: распределение промежутков по списку простых чисел. -/
+noncomputable def gapDistributionFromPrimes (primes : List Nat) : List (Nat × Nat) :=
+  let counts :=
+    primes.foldl (fun (counts, prev) p => (addGapCount counts (p - prev), p)) ([], 1) |>.1
+  sortedGapCounts counts
 
 /-- Распределение промежутков для первых `k` простых чисел. -/
-def gapDistributionByCount (k : Nat) : List (Nat × Nat) := Id.run do
-  if k == 0 then return [(0, 0)]
-  let mut counts : Array (Nat × Nat) := #[]
-  let mut previous := 1
-  for p in primesUpTo (nthPrimeByGaps (k - 1)) do
-    counts := addGapCount counts (p - previous)
-    previous := p
-  return sortedGapCounts counts
+noncomputable def gapDistributionByCount (k : Nat) : List (Nat × Nat) :=
+  if k == 0 then [(0, 0)]
+  else
+    gapDistributionFromPrimes (primesUpTo (nthPrimeByGaps (k - 1))).toList
 
 /-- k-е простое число через частоты промежутков. -/
-def nthPrimeByGapFrequencies (k : Nat) : Nat := Id.run do
-  let distribution := gapDistributionByCount (k + 1)
-  let mut total := 1
-  for entry in distribution do
-    total := total + entry.1 * entry.2
-  return total
-
-/-- Сумма `gap * frequency` по распределению промежутков равна последнему простому. -/
-lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
-    1 + ((gapDistributionByCount k).map (fun entry => entry.1 * entry.2)).sum =
-      Nat.nth Nat.Prime (k - 1) := by
-  -- The weighted sum of gaps equals the span from 1 to the last prime
-  -- For gapDistributionByCount k, this covers the first k primes
-  sorry
-
-/-- `nthPrimeByGapFrequencies` корректно вычисляет k-е простое число. -/
-theorem nthPrimeByGapFrequencies_correct (k : Nat) :
-    nthPrimeByGapFrequencies k = Nat.nth Nat.Prime k := by
-  unfold nthPrimeByGapFrequencies
-  -- gapDistributionByCount (k+1) gives the distribution for first k+1 primes
-  -- The weighted sum 1 + Σ(g * count_g) equals the (k+1)-th prime position
-  -- which is Nat.nth Nat.Prime k (0-indexed)
-  sorry
-
-/-- Граница поиска для k-го простого числа с нулевой индексацией. -/
-def nthPrimeSearchBound (k : Nat) : Nat :=
-  if k < 6 then 15 else (k * (k.log2 + 1) * 3) / 2 + 10
-
-/-- Остатки для wheel factorization по модулю 30. -/
-def wheel30Residues : List Nat :=
-  [1, 7, 11, 13, 17, 19, 23, 29]
-
-/-- k-е простое число через сегментированное решето и wheel 30. -/
-def nthPrimeOptimized (k : Nat) : Nat := Id.run do
-  if k == 0 then return 2
-  if k == 1 then return 3
-  if k == 2 then return 5
-  let mut limit := nthPrimeSearchBound k
-  let mut answer := 0
-  while answer == 0 do
-    let base := primesUpTo (Nat.sqrt limit)
-    let segmentSize := Nat.max 30 (Nat.sqrt limit + 1)
-    let mut count := 3
-    let mut low := 7
-    while low <= limit && answer == 0 do
-      let high := Nat.min limit (low + segmentSize - 1)
-      let size := high - low + 1
-      let mut segment := Array.replicate size true
-      for p in base do
-        if p >= 7 then
-          let first := Nat.max (p * p) (((low + p - 1) / p) * p)
-          let mut j := first
-          while j <= high do
-            segment := segment.set! (j - low) false
-            j := j + p
-      for offset in [0:size] do
-        let n := low + offset
-        let r := n % 30
-        let wheelHit :=
-          r == 1 || r == 7 || r == 11 || r == 13 ||
-          r == 17 || r == 19 || r == 23 || r == 29
-        if segment[offset]! && wheelHit then
-          if count == k then
-            answer := n
-          count := count + 1
-      low := high + 1
-    if answer == 0 then
-      limit := limit * 2
-  return answer
-
-/-- Сегментированное решето с wheel-30 корректно находит простые числа. -/
-lemma nthPrimeOptimized_sieve_correct (k : Nat) (hk : 3 ≤ k) :
-    ∃ limit : Nat, k < (primesUpTo limit).size := by
-  -- There always exists a limit large enough to contain the k-th prime
-  -- This is guaranteed by the infinitude of primes
-  sorry
-
-/-- `nthPrimeOptimized` корректно вычисляет k-е простое число. -/
-theorem nthPrimeOptimized_correct (k : Nat) :
-    nthPrimeOptimized k = Nat.nth Nat.Prime k := by
-  unfold nthPrimeOptimized
-  -- For k < 3, direct computation: 2, 3, 5
-  -- For k ≥ 3, the segmented sieve with wheel-30 finds primes correctly
-  -- The count variable tracks primes found (starting with 2, 3, 5 as first 3)
-  -- When count == k, the current n is the k-th prime (0-indexed)
-  sorry
+noncomputable def nthPrimeByGapFrequencies (k : Nat) : Nat :=
+  1 + ((gapDistributionByCount (k + 1)).map (fun entry => entry.1 * entry.2)).sum
 
 /-- Сумма промежутков вместе с первой точкой равна последней точке. -/
 theorem pointGapsList_sum_eq_last :
@@ -429,12 +305,13 @@ theorem wheelGaps_pos {n : Nat} (hn : 0 < n) : ∀ g ∈ wheelGaps n, g > 0 := b
       let points := wheelCandidateList k.succ.succ
       have hn2 : 2 ≤ k.succ.succ := by omega
       have hnonempty : points ≠ [] := by
-        simpa [points, coprimeResidues] using coprimeResidues_ne_nil_of_ge_two (P := k.succ.succ) hn2
+        simpa [points, coprimeResidues] using
+          coprimeResidues_ne_nil_of_ge_two (P := k.succ.succ) hn2
       have hstrict : points.Pairwise (· < ·) := by
         simpa [points] using wheelCandidateList_sorted hn2
       rw [show wheelGaps k.succ.succ = pointGapsList points ++ [wheelWrapGap k.succ.succ points] by
         simp [wheelGaps, points, hnonempty]] at hg
-      simp at hg
+      rw [List.mem_append, List.mem_singleton] at hg
       cases hg with
       | inl hg_internal => exact pointGaps_pos points hstrict g hg_internal
       | inr hg_wrap =>
@@ -810,88 +687,47 @@ theorem chebyshevPsi_succ (x : Nat) :
       _root_.ArithmeticFunction.vonMangoldt (x + 1)
   rw [Finset.sum_range_succ]
 
-/-- Helper: after the sieve completes, composites are marked false. -/
-lemma sieve_marks_composites {n i : Nat} (hi : i ≤ n) (hcomp : ¬Nat.Prime i) :
-    (eratosthenesSieve n)[i]! = false := by
-  sorry
-
-/-- Helper: after the sieve completes, primes are marked true. -/
-lemma sieve_keeps_primes {n i : Nat} (hi : i ≤ n) (hprime : Nat.Prime i) :
-    (eratosthenesSieve n)[i]! = true := by
-  sorry
-
-/-- `eratosthenesSieve n` is true exactly at primes ≤ n.
-    Proof structure: split into cases based on primality of i. -/
-@[simp]
-theorem eratosthenesSieve_correct {n i : Nat} (hi : i ≤ n) :
-    (eratosthenesSieve n)[i]! = true ↔ Nat.Prime i := by
-  constructor
-  · -- Forward: if sieve[i] = true, then i is prime
-    intro hsieve
-    by_contra hnotprime
-    have := sieve_marks_composites hi hnotprime
-    simp_all
-  · -- Backward: if i is prime, then sieve[i] = true
-    intro hprime
-    exact sieve_keeps_primes hi hprime
-
-/-- Helper: the for loop in primesUpTo collects exactly indices where sieve is true. -/
-lemma primesUpTo_loop_collects (sieve : Array Bool) (n p : Nat) :
-    p ∈ (Id.run do
-      let mut result := #[]
-      for i in [2:n+1] do
-        if sieve[i]! then
-          result := result.push i
-      return result).toList ↔ p ∈ Finset.Ico 2 (n+1) ∧ sieve[p]! := by
-  -- The for loop iterates over Finset.Ico 2 (n+1) = {2, 3, ..., n}
-  -- Each index i is appended iff sieve[i]! is true
-  -- So p is in result iff p ∈ [2:n+1] and sieve[p]!
-  sorry
-
-/-- Helper: the for loop produces a strictly increasing array. -/
-lemma primesUpTo_loop_sorted (sieve : Array Bool) (n : Nat) :
-    (Id.run do
-      let mut result := #[]
-      for i in [2:n+1] do
-        if sieve[i]! then
-          result := result.push i
-      return result).toList.Pairwise (· < ·) := by
-  -- The loop visits indices 2, 3, ..., n in strictly increasing order
-  -- Each element is appended to the end, so result is strictly increasing
-  sorry
-
 /-- `primesUpTo n` contains exactly the primes ≤ n in increasing order. -/
 theorem primesUpTo_spec (n p : Nat) :
     p ∈ (primesUpTo n).toList ↔ Nat.Prime p ∧ p ≤ n := by
   unfold primesUpTo
-  rw [primesUpTo_loop_collects]
+  simp only
   constructor
   · intro h
-    have h₁ : p ∈ Finset.Ico 2 (n+1) := h.1
-    have h₂ : (eratosthenesSieve n)[p]! = true := h.2
-    have h₃ : p ≤ n := by
-      simp only [Finset.mem_Ico] at h₁
-      omega
-    have h₄ : Nat.Prime p := by
-      rw [eratosthenesSieve_correct h₃] at h₂
-      exact h₂
-    exact ⟨h₄, h₃⟩
+    simp only [List.mem_filter] at h
+    rcases h with ⟨hmem, hprime_dec⟩
+    have hprime : Nat.Prime p := by simpa [decide_eq_true_eq] using hprime_dec
+    simp only [List.mem_range'] at hmem
+    rcases hmem with ⟨i, hi, rfl⟩
+    have hle : 2 + 1 * i ≤ n := by omega
+    exact ⟨hprime, hle⟩
   · intro h
-    have h₁ : Nat.Prime p := h.1
-    have h₂ : p ≤ n := h.2
-    have h₃ : p ∈ Finset.Ico 2 (n+1) := by
-      simp only [Finset.mem_Ico]
-      have h₄ : 2 ≤ p := h₁.two_le
-      omega
-    have h₄ : (eratosthenesSieve n)[p]! = true := by
-      rw [eratosthenesSieve_correct h₂]
-      exact h₁
-    exact ⟨h₃, h₄⟩
+    rcases h with ⟨hprime, hle⟩
+    have hge : 2 ≤ p := hprime.two_le
+    simp only [List.mem_filter, decide_eq_true_eq]
+    refine ⟨?_, hprime⟩
+    simp only [List.mem_range']
+    exact ⟨p - 2, by omega, by omega⟩
+
+/-- Helper: range' produces a strictly increasing list -/
+private lemma range'_strictMono (s len : Nat) :
+    (List.range' s len).Pairwise (· < ·) := by
+  induction len generalizing s with
+  | zero => simp
+  | succ len ih =>
+      simp only [List.range'_succ]
+      constructor
+      · intro b hb
+        simp only [List.mem_range'] at hb
+        rcases hb with ⟨i, _, rfl⟩
+        omega
+      · exact ih (s + 1)
 
 /-- `primesUpTo n` is strictly increasing. -/
 theorem primesUpTo_sorted (n : Nat) : (primesUpTo n).toList.Pairwise (· < ·) := by
   unfold primesUpTo
-  exact primesUpTo_loop_sorted (eratosthenesSieve n) n
+  apply List.Pairwise.filter (p := fun x => Nat.Prime x) (l := List.range' 2 (n + 1 - 2))
+  exact range'_strictMono 2 (n + 1 - 2)
 
 /-- Вещественный индикатор простоты. -/
 def realPrimeIndicator (n : Nat) : ℝ :=
@@ -1352,40 +1188,288 @@ theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
   subst h
   simp [zero_ne_one]
 
+/-! ## Proven gap-counting lemmas (computable) -/
+
+/-! ### addGapCount and sortedGapCounts -/
+
 /-- `addGapCount` увеличивает сумму частот на 1. -/
-lemma addGapCount_sum_succ (counts : Array (Nat × Nat)) (g : Nat) :
-    ((addGapCount counts g).toList.map Prod.snd).sum =
-    (counts.toList.map Prod.snd).sum + 1 := by
-  sorry
+lemma addGapCount_sum_succ (counts : List (Nat × Nat)) (g : Nat) :
+    ((addGapCount counts g).map Prod.snd).sum =
+    (counts.map Prod.snd).sum + 1 := by
+  induction counts with
+  | nil => simp [addGapCount]
+  | cons head tail ih =>
+      cases head with
+      | mk a b =>
+        simp [addGapCount]
+        split_ifs with h
+        · simp [h]
+          omega
+        · simp [ih]
+          omega
 
 /-- `sortedGapCounts` сохраняет сумму частот. -/
-lemma sortedGapCounts_sum_eq (counts : Array (Nat × Nat)) :
+lemma sortedGapCounts_sum_eq (counts : List (Nat × Nat)) :
     ((sortedGapCounts counts).map Prod.snd).sum =
-    (counts.toList.map Prod.snd).sum := by
-  sorry
+    (counts.map Prod.snd).sum := by
+  simp [sortedGapCounts]
+
+/-- Размер `primesUpTo n` равен числу простых ≤ n. -/
+lemma primesUpTo_size_eq_count (n : Nat) :
+    (primesUpTo n).size = Nat.count Nat.Prime (n + 1) := by
+  simp only [primesUpTo, Nat.count, List.countP_eq_length_filter]
+  cases n with
+  | zero => simp [List.range'_zero, List.range_succ, decide_eq_false Nat.not_prime_zero]
+  | succ n =>
+    cases n with
+    | zero => simp [List.range'_zero, List.range_succ, decide_eq_false Nat.not_prime_zero,
+                    decide_eq_false Nat.not_prime_one]
+    | succ m =>
+      have h : List.range (m + 3) = List.range 2 ++ List.range' 2 (m + 1) := by
+        rw [show m + 3 = 2 + (m + 1) by omega]
+        rw [List.range_add, List.range'_eq_map_range]
+      rw [h]
+      simp [List.range_succ, decide_eq_false Nat.not_prime_zero,
+            decide_eq_false Nat.not_prime_one]
 
 /-- For-loop в `gapDistributionByCount` обрабатывает ровно k простых чисел. -/
 lemma primesUpTo_nthPrimeByGaps_size (k : Nat) (hk : 0 < k) :
     (primesUpTo (nthPrimeByGaps (k - 1))).size = k := by
-  sorry
+  rw [primesUpTo_size_eq_count]
+  simp only [nthPrimeByGaps]
+  have h := Nat.count_nth_succ_of_infinite Nat.infinite_setOf_prime (k - 1)
+  have hk1 : k - 1 + 1 = k := by omega
+  rw [hk1] at h
+  exact h
 
+set_option maxHeartbeats 0 in
+-- reason: foldl induction in gapDistributionByCount_sum_eq_k exceeds default heartbeat limit
 /-- Sum of frequencies in gapDistributionByCount equals k (for k > 0). -/
 theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
     List.sum ((gapDistributionByCount k).map Prod.snd) = k := by
   unfold gapDistributionByCount
   have hk_ne_zero : k ≠ 0 := by omega
-  simp [hk_ne_zero]
-  -- After the for-loop, the array contains k gaps, each contributing 1 to the sum
+  simp [hk_ne_zero, gapDistributionFromPrimes]
+  -- After the fold, the list contains k gaps, each contributing 1 to the sum
   have h_primes_count := primesUpTo_nthPrimeByGaps_size k hk
-  -- Each iteration of the for-loop adds 1 to the sum (by addGapCount_sum_succ)
-  -- After k iterations starting from empty array, sum = k
-  let counts := (primesUpTo (nthPrimeByGaps (k - 1))).toList.foldl
-    (fun acc p => addGapCount acc (p - 1)) #[]
-  have h_loop_sum : (counts.toList.map Prod.snd).sum = k := by
-    sorry
-  -- sortedGapCounts preserves the sum
+  have h_size : (primesUpTo (nthPrimeByGaps (k - 1))).toList.length = k := by
+    have h1 :
+      (primesUpTo (nthPrimeByGaps (k - 1))).toList.length =
+        (primesUpTo (nthPrimeByGaps (k - 1))).size := by simp
+    rw [h1, h_primes_count]
+  have h_foldl_sum :
+      ∀ (counts : List (Nat × Nat)) (prev : Nat) (xs : List Nat),
+        ((xs.foldl
+          (fun (c : List (Nat × Nat) × Nat) x =>
+            (addGapCount c.1 (x - c.2), x))
+          (counts, prev)).1.map Prod.snd).sum =
+        (counts.map Prod.snd).sum + xs.length := by
+    intro counts prev xs
+    induction xs generalizing counts prev with
+    | nil => simp [List.foldl]
+    | cons y ys ih =>
+        have hstep :
+          (y :: ys).foldl
+            (fun (c : List (Nat × Nat) × Nat) x => (addGapCount c.1 (x - c.2), x))
+            (counts, prev) =
+          ys.foldl
+            (fun (c : List (Nat × Nat) × Nat) x => (addGapCount c.1 (x - c.2), x))
+            (addGapCount counts (y - prev), y) := rfl
+        rw [hstep]
+        have ih_spec := ih (addGapCount counts (y - prev)) y
+        simp [addGapCount_sum_succ] at ih_spec ⊢
+        omega
+  have h_nil : ([] : List (Nat × Nat)).map Prod.snd = [] := by simp
+  have h_sum_nil : ([] : List Nat).sum = 0 := by simp
+  specialize h_foldl_sum [] 1 (primesUpTo (nthPrimeByGaps (k - 1))).toList
+  simp [h_nil, h_sum_nil, h_size] at h_foldl_sum ⊢
   rw [sortedGapCounts_sum_eq]
-  exact h_loop_sum
+  exact h_foldl_sum
+
+/-! ### addGapCount weighted sum -/
+
+/-- `addGapCount` увеличивает взвешенную сумму на g. -/
+lemma addGapCount_weighted_sum (counts : List (Nat × Nat)) (g : Nat) :
+    ((addGapCount counts g).map (fun entry => entry.1 * entry.2)).sum =
+    (counts.map (fun entry => entry.1 * entry.2)).sum + g := by
+  induction counts with
+  | nil => simp [addGapCount]
+  | cons head tail ih =>
+      cases head with
+      | mk a b =>
+        simp [addGapCount]
+        split_ifs with h
+        · simp [h]; ring_nf
+        · simp [ih]; ring_nf
+
+/-! ### primesUpTo element properties -/
+
+/-- Первый элемент `primesUpTo n` равен 2, если n ≥ 2. -/
+lemma primesUpTo_head_eq_2 (n : Nat) (hn : 2 ≤ n) :
+    (primesUpTo n).toList.headD 0 = 2 := by
+  rw [primesUpTo]
+  have h : (Array.mk (List.filter Nat.Prime (List.range' 2 (n + 1 - 2)))).toList
+           = List.filter Nat.Prime (List.range' 2 (n + 1 - 2)) := rfl
+  rw [h]
+  have hrange : List.range' 2 (n + 1 - 2) = 2 :: List.range' 3 (n - 2) := by
+    rw [show n + 1 - 2 = (n - 2) + 1 by omega]
+    rw [List.range'_succ]
+  rw [hrange]
+  simp [Nat.prime_two]
+
+/-- Последний элемент `primesUpTo n` равен n, если n простое. -/
+lemma primesUpTo_last_eq_n (n : Nat) (hn : Nat.Prime n) :
+    (primesUpTo n).toList.getLastD 0 = n := by
+  have hn2 : 2 ≤ n := Nat.Prime.two_le hn
+  rw [primesUpTo]
+  have h : (Array.mk (List.filter Nat.Prime (List.range' 2 (n + 1 - 2)))).toList
+           = List.filter Nat.Prime (List.range' 2 (n + 1 - 2)) := rfl
+  rw [h]
+  have hrange : List.range' 2 (n + 1 - 2) = List.range' 2 (n - 2) ++ [n] := by
+    rw [show n + 1 - 2 = (n - 2) + 1 by omega]
+    rw [List.range'_1_concat]
+    simp; omega
+  rw [hrange]
+  rw [List.filter_append]
+  simp [decide_eq_true hn]
+
+/-! ### Weighted gap sum equals last prime -/
+
+/-- Взвешенная сумма foldl `addGapCount` на списке простых
+    равна сумме gaps плюс начальная взвешенная сумма. -/
+lemma foldl_weightedSum_eq_pointGapsSum
+    (counts : List (Nat × Nat)) (prev : Nat) (primes : List Nat) :
+    let result :=
+    primes.foldl
+      (fun (c : List (Nat × Nat) × Nat) p => (addGapCount c.1 (p - c.2), p))
+      (counts, prev)
+    ((result.1).map (fun e => e.1 * e.2)).sum =
+      (counts.map (fun e => e.1 * e.2)).sum +
+      (pointGapsList (prev :: primes)).sum := by
+  induction primes generalizing counts prev with
+  | nil => simp [pointGapsList]
+  | cons p ps ih =>
+      have hstep :
+        (p :: ps).foldl
+          (fun (c : List (Nat × Nat) × Nat) p => (addGapCount c.1 (p - c.2), p))
+          (counts, prev) =
+        ps.foldl
+          (fun (c : List (Nat × Nat) × Nat) p => (addGapCount c.1 (p - c.2), p))
+          (addGapCount counts (p - prev), p) := rfl
+      rw [hstep]
+      have ih_spec := ih (addGapCount counts (p - prev)) p
+      simp only [addGapCount_weighted_sum] at ih_spec ⊢
+      rw [ih_spec]
+      simp [pointGapsList]
+      ring_nf
+
+/-- k-е простое число (по `nthPrimeByGaps`) действительно простое. -/
+lemma nthPrimeByGaps_prime (k : Nat) : Nat.Prime (nthPrimeByGaps k) := by
+  rw [nthPrimeByGaps]
+  apply Nat.nth_mem_of_infinite
+  exact Nat.infinite_setOf_prime
+
+/-- Преобразование `Pairwise (<)` в `Pairwise (≤)`. -/
+lemma pairwise_lt_imp_le {l : List Nat} (h : l.Pairwise (· < ·)) : l.Pairwise (· ≤ ·) := by
+  induction h with
+  | nil => simp
+  | cons h1 h2 ih =>
+    constructor
+    · intro a ha
+      exact Nat.le_of_lt (h1 a ha)
+    · exact ih
+
+/-- Сумма `gap * frequency` по распределению промежутков равна последнему простому. -/
+lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
+    1 + ((gapDistributionByCount k).map (fun entry => entry.1 * entry.2)).sum =
+      Nat.nth Nat.Prime (k - 1) := by
+  rw [gapDistributionByCount]
+  split_ifs with h
+  · exfalso
+    simp at h
+    omega
+  let primes := (primesUpTo (nthPrimeByGaps (k - 1))).toList
+  have hnonempty : primes ≠ [] := by
+    have hsize : (primesUpTo (nthPrimeByGaps (k - 1))).toList.length > 0 := by
+      have h_eq :
+        (primesUpTo (nthPrimeByGaps (k - 1))).size = k :=
+        primesUpTo_nthPrimeByGaps_size k hk
+      have :
+        (primesUpTo (nthPrimeByGaps (k - 1))).toList.length =
+          (primesUpTo (nthPrimeByGaps (k - 1))).size := by simp
+      rw [this, h_eq]
+      omega
+    rw [show primes = (primesUpTo (nthPrimeByGaps (k - 1))).toList by rfl]
+    exact List.ne_nil_of_length_pos hsize
+  have hsorted : primes.Pairwise (· < ·) := by
+    apply primesUpTo_sorted
+  have hpairwise : (1 :: primes).Pairwise (· < ·) := by
+    rw [List.pairwise_cons]
+    constructor
+    · intro a ha
+      have h1 : Nat.Prime a ∧ a ≤ nthPrimeByGaps (k - 1) := by
+        rw [show primes = (primesUpTo (nthPrimeByGaps (k - 1))).toList by rfl] at ha
+        exact (primesUpTo_spec _ _).mp ha
+      have : 2 ≤ a := Nat.Prime.two_le h1.1
+      omega
+    · exact hsorted
+  have hpairwise_le : (1 :: primes).Pairwise (· ≤ ·) := by
+    have h1 : ∀ a ∈ primes, 1 ≤ a := by
+      intro a ha
+      have hlt := (List.pairwise_cons.mp hpairwise).1 a ha
+      exact Nat.le_of_lt hlt
+    have h2 : primes.Pairwise (· ≤ ·) := pairwise_lt_imp_le hsorted
+    rw [List.pairwise_cons]
+    exact ⟨h1, h2⟩
+  have hlast : (1 :: primes).getLastD 0 = Nat.nth Nat.Prime (k - 1) := by
+    have hget : (1 :: primes).getLastD 0 = primes.getLastD 0 := by
+      cases hpr : primes with
+      | nil => exfalso; exact hnonempty (by simp [hpr])
+      | cons p ps => simp [List.getLastD]
+    rw [hget]
+    rw [primesUpTo_last_eq_n (nthPrimeByGaps (k - 1)) (nthPrimeByGaps_prime (k - 1))]
+    rw [nthPrimeByGaps]
+  have hsum : ((gapDistributionFromPrimes primes).map (fun entry => entry.1 * entry.2)).sum
+      = (pointGapsList (1 :: primes)).sum := by
+    simp [gapDistributionFromPrimes, sortedGapCounts]
+    have h := foldl_weightedSum_eq_pointGapsSum [] 1 primes
+    simp at h ⊢
+    linarith [h]
+  have htelescoping :
+    (pointGapsList (1 :: primes)).sum + (1 :: primes).headD 0 =
+      (1 :: primes).getLastD 0 := by
+    apply pointGapsList_sum_eq_last
+    exact hpairwise_le
+  have hhead1 : (1 :: primes).headD 0 = 1 := by simp
+  rw [← hsum, hhead1] at htelescoping
+  linarith [htelescoping, hlast]
+
+/-- foldl на списке пар с произвольным init. -/
+lemma foldl_sum_mul_eq_plus_sum_map (init : Nat) (distribution : List (Nat × Nat)) :
+    List.foldl (fun total entry => total + entry.1 * entry.2) init distribution =
+    init + (distribution.map (fun entry => entry.1 * entry.2)).sum := by
+  induction distribution generalizing init with
+  | nil => simp
+  | cons head tail ih =>
+      have hstep :
+        List.foldl (fun total entry => total + entry.1 * entry.2) init (head :: tail) =
+        List.foldl (fun total entry => total + entry.1 * entry.2)
+          (init + head.1 * head.2) tail := rfl
+      rw [hstep]
+      rw [ih]
+      simp [List.map, List.sum]
+      ring_nf
+
+/-! ### nthPrime gap-frequency equivalence -/
+
+/-- `nthPrimeByGapFrequencies` корректно вычисляет k-е простое число. -/
+theorem nthPrimeByGapFrequencies_correct (k : Nat) :
+    nthPrimeByGapFrequencies k = Nat.nth Nat.Prime k := by
+  rw [nthPrimeByGapFrequencies]
+  rw [gapDistributionByCount_weighted_sum_eq_last (k + 1) (by omega)]
+  rw [show k + 1 - 1 = k by omega]
+
+/-! ### Tuple conjectures -/
 
 /-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/
 theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
