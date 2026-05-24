@@ -2,6 +2,8 @@ import Mathlib
 
 namespace PrimeGaps
 
+/-! ## Basic sieves and prime enumeration -/
+
 /-- Решето Эратосфена. -/
 def eratosthenesSieve (n : Nat) : Array Bool := Id.run do
   if n <= 1 then return Array.replicate (n + 1) false
@@ -25,6 +27,8 @@ def primesUpTo (n : Nat) : Array Nat := Id.run do
     if sieve[i]! then
       result := result.push i
   return result
+
+/-! ## Point gaps and gap distribution -/
 
 /-- Промежутки между соседними точками. -/
 def pointGapsList (points : List Nat) : List Nat :=
@@ -53,6 +57,8 @@ def gapDistribution (n : Nat) : List (Nat × Nat) := Id.run do
   for i in [0:sorted.size] do
     result := result ++ [(sorted[i]!.1, sorted[i]!.2)]
   return result
+
+/-! ## Cumulative sums and prime reconstruction -/
 
 /-- Кумулятивная сумма списка. -/
 def cumulativeSum (xs : List Nat) : List Nat :=
@@ -187,6 +193,8 @@ theorem pointGapsList_length (points : List Nat) :
       | cons b tail =>
           simp [pointGapsList, ih]
 
+/-! ## Primorial wheel: candidates and cyclic gaps -/
+
 /-!
 ## Primorial wheel: кандидаты и циклические промежутки
 
@@ -317,14 +325,7 @@ theorem coprimeResidues_mod_n {n : Nat} (_hn : 2 ≤ n) (a : Nat)
   exact ⟨Finset.mem_range.mp (Finset.mem_filter.mp hs).1,
     (Finset.mem_filter.mp hs).2⟩
 
-/-- Wrap-around gap от последнего кандидата к первому в следующем периоде. -/
-def wheelWrapGap (n : Nat) (points : List Nat) : Nat :=
-  n + points.headD 0 - points.getLastD 0
-
-/-- Все gaps wheel modulo `n`, включая wrap-around. -/
-def wheelGaps (n : Nat) : List Nat :=
-  let points := wheelCandidateList n
-  pointGapsList points ++ if points = [] then [] else [wheelWrapGap n points]
+/-! ## List helpers -/
 
 /-- У непустого списка значение `getLastD` действительно является его элементом. -/
 theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (hxs : xs ≠ []) :
@@ -335,6 +336,15 @@ theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (h
       cases tail with
       | nil => simp
       | cons b rest => simp [List.getLastD]
+
+/-- Wrap-around gap от последнего кандидата к первому в следующем периоде. -/
+def wheelWrapGap (n : Nat) (points : List Nat) : Nat :=
+  n + points.headD 0 - points.getLastD 0
+
+/-- Все gaps wheel modulo `n`, включая wrap-around. -/
+def wheelGaps (n : Nat) : List Nat :=
+  let points := wheelCandidateList n
+  pointGapsList points ++ if points = [] then [] else [wheelWrapGap n points]
 
 /-- В возрастающем списке кандидатов каждый последний элемент всё ещё меньше модуля. -/
 theorem wheelCandidateList_getLastD_lt {n : Nat}
@@ -454,11 +464,6 @@ theorem primorial_wheelGaps_sum_eq (m : Nat) :
     (wheelGaps (primorial m)).sum = primorial m := by
   exact wheelGaps_sum_eq_of_pos (primorial m) (primorial_pos m)
 
-/-- Сумма primorial gaps равна периоду `P_m`. -/
-theorem primorialGaps_sum_eq_period (m : Nat) :
-    (wheelGaps (primorial m)).sum = primorial m := by
-  exact primorial_wheelGaps_sum_eq m
-
 /-- Для primorial wheel количество gaps равно `φ(P_m)`. -/
 theorem primorial_wheelGaps_length_eq_totient (m : Nat) :
     (wheelGaps (primorial m)).length = Nat.totient (primorial m) := by
@@ -514,6 +519,8 @@ theorem nthPrimeByGaps_eq_sum (gaps : List Nat) :
     (cumulativeSum gaps).getLastD 0 = gaps.sum := by
   exact cumulativeSum_last_eq_sum gaps
 
+
+/-! ## Exact finite formulas for gap frequencies -/
 
 /-!
 ## Исследовательский слой: точные формулы для частот промежутков
@@ -753,6 +760,8 @@ def ZetaExplicitPrimeGapConjecture (ζ : ℂ → ℂ) (main : Nat → Nat → �
       Tendsto (fun x : Nat =>
         ‖zetaGapRemainder main zeros g x‖ / normalization x) atTop (nhds 0)
 
+/-! ## Chebyshev, zeta, and analytic conjectures -/
+
 /-- Функция Чебышева `ψ(x) = ∑_{n≤x} Λ(n)`. -/
 def chebyshevPsi (x : Nat) : ℝ :=
   (Finset.range (x + 1)).sum fun n => _root_.ArithmeticFunction.vonMangoldt n
@@ -764,6 +773,27 @@ theorem chebyshevPsi_succ (x : Nat) :
     (Finset.range (x + 1)).sum (fun n => _root_.ArithmeticFunction.vonMangoldt n) +
       _root_.ArithmeticFunction.vonMangoldt (x + 1)
   rw [Finset.sum_range_succ]
+
+/-- `eratosthenesSieve n` is true exactly at primes ≤ n. -/
+@[simp]
+theorem eratosthenesSieve_correct {n i : Nat} (hi : i ≤ n) :
+    (eratosthenesSieve n)[i]! = true ↔ Nat.Prime i := by
+  -- Proof sketch: unfold the imperative sieve, show composites are cleared by their
+  -- least prime factor, and show primes are never cleared by any smaller divisor.
+  sorry
+
+/-- `primesUpTo n` contains exactly the primes ≤ n in increasing order. -/
+theorem primesUpTo_spec (n p : Nat) :
+    p ∈ (primesUpTo n).toList ↔ Nat.Prime p ∧ p ≤ n := by
+  -- Proof sketch: unfold `primesUpTo`, use `eratosthenesSieve_correct` for each
+  -- index pushed by the loop, and note the loop visits exactly `2..n`.
+  sorry
+
+/-- `primesUpTo n` is strictly increasing. -/
+theorem primesUpTo_sorted (n : Nat) : (primesUpTo n).toList.Pairwise (· < ·) := by
+  -- Proof sketch: unfold `primesUpTo` and prove the loop only appends the current
+  -- index while the `for` range enumerates indices in strictly increasing order.
+  sorry
 
 /-- Вещественный индикатор простоты. -/
 def realPrimeIndicator (n : Nat) : ℝ :=
@@ -880,6 +910,8 @@ theorem primeSummatoryEigenpair_recurrence {f : ArithmeticFunction} {eigenvalue 
   rw [← h.2 (n + 1), ← h.2 n]
   exact primeSummatoryOperator_succ f n
 
+/-! ## Determinantal model -/
+
 /-- Детерминантная модель частот простых промежутков. -/
 def DeterminantalPrimeGapConjecture
     (kernel : (x g m : Nat) → Fin m → Fin m → ℝ) (weight : Nat → ℝ) : Prop :=
@@ -897,6 +929,8 @@ theorem det_exactOneByOneGapKernel (g x : Nat) :
     Matrix.det (exactOneByOneGapKernel g x) = primeGapRelativeFrequency g x := by
   simp [exactOneByOneGapKernel]
 
+/-! ## Deriving singular series from local wheel model -/
+
 /-!
 ## Вывод singular series из локальной wheel-модели
 
@@ -909,7 +943,7 @@ theorem det_exactOneByOneGapKernel (g x : Nat) :
 6. Поэтому число запрещённых классов равно `ν_g(p) = 1`, если `p ∣ g`.
 7. Если `p ∤ g`, запрещённые классы различны, и `ν_g(p) = 2`.
 8. В файле это число формализовано как `endpointForbiddenResidueCount g p`.
-9. Обёртка `wheelEndpointForbiddenCount` использует ту же локальную величину.
+9. Обёртка `endpointForbiddenResidueCount` использует ту же локальную величину.
 10. Из `p` классов выживает ровно `p - ν_g(p)` классов.
 11. Локальная плотность выживания равна `(p - ν_g(p)) / p`.
 12. Алгебраически это записано как `1 - ν_g(p) / p`.
@@ -939,6 +973,8 @@ theorem det_exactOneByOneGapKernel (g x : Nat) :
     ровно при нечётных `p ∣ g`.
 -/
 
+/-! ## Hardy-Littlewood conjectures and Gallagher's theorem -/
+
 /-!
 ## Hardy--Littlewood и теорема Галлагера
 
@@ -965,13 +1001,9 @@ def divisorCorrectionProduct (k : Nat) : ℝ :=
 def singularSeriesFactor (C₂ : ℝ) (g : Nat) : ℝ :=
   if Even g then 2 * C₂ * divisorCorrectionProduct (g / 2) else 0
 
-/-- Локальная wheel-поправка: число запрещённых классов для концов пары. -/
-def wheelEndpointForbiddenCount (g p : Nat) : Nat :=
-  endpointForbiddenResidueCount g p
-
 /-- Локальная плотность выживания пары `(n, n + g)` modulo `p`. -/
 def wheelEndpointSurvivalDensity (g p : Nat) : ℝ :=
-  1 - (wheelEndpointForbiddenCount g p : ℝ) / (p : ℝ)
+  1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)
 
 /-- Нормированный локальный множитель singular series в wheel-модели. -/
 def wheelLocalSingularFactor (g p : Nat) : ℝ :=
@@ -987,7 +1019,7 @@ theorem wheelLocalSingularFactor_eq_singular (g p : Nat) (_hp : Nat.Prime p) :
     wheelLocalSingularFactor g p =
       (1 - (endpointForbiddenResidueCount g p : ℝ) / (p : ℝ)) /
         (1 - 1 / (p : ℝ)) ^ 2 := by
-  simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, wheelEndpointForbiddenCount,
+  simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, endpointForbiddenResidueCount,
     endpointForbiddenResidueCount]
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные endpoint-плотности. -/
@@ -1001,7 +1033,7 @@ theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
   intro p hp
   by_cases hprime : Nat.Prime p
   · simp [hprime, wheelLocalSingularFactor, wheelEndpointSurvivalDensity,
-      wheelEndpointForbiddenCount]
+      endpointForbiddenResidueCount]
   · simp [hprime]
 
 /-- Интеграл `li₂(x) = ∫₂ˣ dt / log² t`. -/
@@ -1177,6 +1209,20 @@ theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
   simp at hh
   subst h
   simp [zero_ne_one]
+
+/-- Sum of frequencies in gapDistributionByCount equals k (for k > 0). -/
+theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
+    List.sum ((gapDistributionByCount k).map Prod.snd) = k := by
+  -- Proof sketch: `gapDistributionByCount k` folds the first `k` consecutive gaps,
+  -- incrementing exactly one frequency per gap, so the total frequency is `k`.
+  sorry
+
+/-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/
+theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
+    primeTupleCount ({0, (g : ℤ)} : Finset ℤ) x = primePairCount g x := by
+  -- Proof sketch: expand both filtered ranges; membership in `{0, g}` makes the
+  -- tuple condition exactly `Nat.Prime n ∧ Nat.Prime (n + g)` for every `n ≤ x`.
+  sorry
 
 end
 
