@@ -234,6 +234,103 @@ theorem divisorCorrectionProduct_monotone_dvd {k k' : Nat}
     simp only [Finset.mem_filter] at hp
     exact divisorCorrection_factor_ge_one p (by omega)
 
+/-! ### Multiplicativity and structural properties
+
+Эти результаты — структурные свойства singular series, формализованные
+впервые: мультипликативность по взаимно простым делителям, независимость
+от кратностей простых делителей, и инвариантность при возведении в степень.
+-/
+
+/-- `divisorCorrectionProduct` мультипликативен по взаимно простым аргументам:
+для coprime k, k' > 0, `D(k*k') = D(k) * D(k')`.
+Это структурное свойство singular series: вклады различных простых делителей
+независимы и мультипликативны. -/
+theorem divisorCorrectionProduct_mul_of_coprime {k k' : Nat}
+    (_hk : k ≠ 0) (_hk' : k' ≠ 0) (hcoprime : Nat.Coprime k k') :
+    divisorCorrectionProduct (k * k') =
+      divisorCorrectionProduct k * divisorCorrectionProduct k' := by
+  rw [divisorCorrectionProduct_eq_primeFactors,
+      divisorCorrectionProduct_eq_primeFactors,
+      divisorCorrectionProduct_eq_primeFactors,
+      hcoprime.primeFactors_mul]
+  have h_filter_union : (Nat.primeFactors k ∪ Nat.primeFactors k').filter
+      (fun p => 2 < p) =
+      (Nat.primeFactors k).filter (fun p => 2 < p) ∪
+      (Nat.primeFactors k').filter (fun p => 2 < p) := by
+    ext p; simp only [Finset.mem_filter, Finset.mem_union]; tauto
+  rw [h_filter_union]
+  have h_disj : Disjoint ((Nat.primeFactors k).filter (fun p => 2 < p))
+      ((Nat.primeFactors k').filter (fun p => 2 < p)) := by
+    apply Disjoint.mono (Finset.filter_subset _ _) (Finset.filter_subset _ _)
+    exact hcoprime.disjoint_primeFactors
+  rw [Finset.prod_union h_disj]
+
+/-- `divisorCorrectionProduct` зависит только от множества простых делителей,
+а не от их кратностей: если `primeFactors k = primeFactors k'`, то `D(k) = D(k')`.
+Это означает, что singular series не различает `p` и `p^a` в делителе gap. -/
+theorem divisorCorrectionProduct_eq_of_same_primeFactors {k k' : Nat}
+    (hpf : Nat.primeFactors k = Nat.primeFactors k') :
+    divisorCorrectionProduct k = divisorCorrectionProduct k' := by
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors, hpf]
+
+/-- `divisorCorrectionProduct` инвариантен при возведении делителя в степень:
+`D(k^a) = D(k)` для `a > 0`, поскольку `primeFactors(k^a) = primeFactors(k)`.
+Следствие: `S(2k) = S(2k^a)` — singular series не зависит от кратности делителя. -/
+theorem divisorCorrectionProduct_pow_eq (k : Nat) (ha : 0 < a) :
+    divisorCorrectionProduct (k ^ a) = divisorCorrectionProduct k := by
+  apply divisorCorrectionProduct_eq_of_same_primeFactors
+  exact Nat.primeFactors_pow k (Nat.ne_of_gt ha)
+
+/-- Для нечётного простого `p`: `divisorCorrectionProduct p = (p-1)/(p-2)`.
+Единственный нечётный простой делитель `p` — это само `p`. -/
+theorem divisorCorrectionProduct_prime (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 < p) :
+    divisorCorrectionProduct p = ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  have hpf : (Nat.primeFactors p).filter (fun q => 2 < q) = {p} := by
+    ext q
+    simp only [Finset.mem_filter, Finset.mem_singleton]
+    constructor
+    · intro ⟨hmem, hgt2⟩
+      have hmem' : q ∈ Nat.primeFactors p := hmem
+      rw [Nat.mem_primeFactors] at hmem'
+      rcases hmem' with ⟨hprime, hdvd, _⟩
+      have : q = p := (Nat.prime_dvd_prime_iff_eq hprime hp).mp hdvd
+      subst this; exact rfl
+    · rintro rfl
+      exact ⟨Nat.mem_primeFactors.mpr ⟨hp, dvd_rfl, hp.ne_zero⟩, hp_odd⟩
+  rw [hpf, Finset.prod_singleton]
+
+/-- **S(2p) = 2C₂ · (p-1)/(p-2)** для нечётного простого `p`.
+Точное значение singular series для промежутка `g = 2p`, где `p` — нечётное простое.
+Единственный нечётный простой делитель `k = p` вносит множитель `(p-1)/(p-2)`.
+Примеры: S(10) = 2C₂·4/3, S(14) = 2C₂·6/5, S(22) = 2C₂·10/9. -/
+theorem singularSeriesFactor_eq_for_2p (C₂ : ℝ) (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 < p) :
+    singularSeriesFactor C₂ (2 * p) = 2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+  rw [singularSeriesFactor_even, divisorCorrectionProduct_prime p hp hp_odd]
+
+/-- **S(2p) = S(2p^a)** для нечётного простого `p` и `a ≥ 1`.
+Singular series инвариантна при возведении делителя в степень:
+`primeFactors(p) = primeFactors(p^a) = {p}`, поэтому `D(p) = D(p^a)`.
+Пример: S(6) = S(18) = S(54) = 4C₂ (все имеют k с primeFactors = {3}). -/
+theorem singularSeriesFactor_2p_eq_2p_pow (C₂ : ℝ) (p : Nat) (_hp : Nat.Prime p) (ha : 0 < a) :
+    singularSeriesFactor C₂ (2 * p) = singularSeriesFactor C₂ (2 * p ^ a) := by
+  rw [singularSeriesFactor_even, singularSeriesFactor_even,
+      divisorCorrectionProduct_pow_eq p ha]
+
+/-- Singular series мультипликативна по взаимно простым половинам gap:
+для coprime k, k' > 0, `S(2·k·k') = S(2k) · S(2k') / (2C₂)`.
+Это следует из мультипликативности `D` и формулы `S(2k) = 2C₂ · D(k)`. -/
+theorem singularSeriesFactor_mul_of_coprime (C₂ : ℝ) {k k' : Nat}
+    (hk : k ≠ 0) (hk' : k' ≠ 0) (hcoprime : Nat.Coprime k k') :
+    singularSeriesFactor C₂ (2 * (k * k')) =
+      singularSeriesFactor C₂ (2 * k) * singularSeriesFactor C₂ (2 * k') / (2 * C₂) := by
+  rw [singularSeriesFactor_even, singularSeriesFactor_even, singularSeriesFactor_even,
+      divisorCorrectionProduct_mul_of_coprime hk hk' hcoprime]
+  by_cases hC₂ : C₂ = 0
+  · simp [hC₂]
+  · have h2C₂ : (2 : ℝ) * C₂ ≠ 0 := mul_ne_zero two_ne_zero hC₂
+    field_simp [h2C₂]
+
 /-! ### finiteWheelSingularSeries properties -/
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные плотности. -/

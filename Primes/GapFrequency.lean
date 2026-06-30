@@ -232,5 +232,65 @@ theorem primeGapFrequencyExact_nonneg (g x : Nat) :
   intro n _
   split_ifs <;> simp
 
+/-! ### Consecutive prime pair injectivity
+
+Ключевая комбинаторная теорема: отображение (g, n) ↦ n + g, сопоставляющее
+паре соседних простых их правый конец, инъективно. Это означает, что
+каждое простое p > 2 является правым концом не более одной пары соседних
+простых. Следствие: сумма частот всех промежутков не превосходит π(x) - 1.
+-/
+
+/-- Если (n₁, n₁+g₁) и (n₂, n₂+g₂) — пары соседних простых с одним правым концом,
+то n₁ = n₂. Доказательство от противного: если n₁ < n₂, то n₂ — простое,
+лежящее строго между n₁ и n₁+g₁, что противоречит условию отсутствия простых
+внутри первого промежутка. -/
+theorem ConsecutivePrimeStart_left_injective
+    {g₁ g₂ n₁ n₂ x : Nat}
+    (h1 : ConsecutivePrimeStart g₁ x n₁)
+    (h2 : ConsecutivePrimeStart g₂ x n₂)
+    (heq : n₁ + g₁ = n₂ + g₂) : n₁ = n₂ := by
+  by_cases hlt : n₁ < n₂
+  · have hg₁_pos : 0 < g₁ := h1.1
+    have hg₂_pos : 0 < g₂ := h2.1
+    have hn₂_prime : Nat.Prime n₂ := h2.2.1
+    have hdiff_pos : 0 < n₂ - n₁ := by omega
+    have hdiff_lt : n₂ - n₁ < g₁ := by omega
+    have hmem : n₂ - n₁ ∈ Finset.Icc 1 (g₁ - 1) := Finset.mem_Icc.mpr (by omega)
+    have hforbidden : ¬ Nat.Prime (n₁ + (n₂ - n₁)) := h1.2.2.2.2 _ hmem
+    have : n₁ + (n₂ - n₁) = n₂ := by omega
+    rw [this] at hforbidden
+    exact absurd hn₂_prime hforbidden
+  · by_cases hgt : n₂ < n₁
+    · have hg₂_pos : 0 < g₂ := h2.1
+      have hg₁_pos : 0 < g₁ := h1.1
+      have hn₁_prime : Nat.Prime n₁ := h1.2.1
+      have hdiff_pos : 0 < n₁ - n₂ := by omega
+      have hdiff_lt : n₁ - n₂ < g₂ := by omega
+      have hmem : n₁ - n₂ ∈ Finset.Icc 1 (g₂ - 1) := Finset.mem_Icc.mpr (by omega)
+      have hforbidden : ¬ Nat.Prime (n₂ + (n₁ - n₂)) := h2.2.2.2.2 _ hmem
+      have : n₂ + (n₁ - n₂) = n₁ := by omega
+      rw [this] at hforbidden
+      exact absurd hn₁_prime hforbidden
+    · omega
+
+/-- Правый конец пары соседних простых строго больше 2:
+n ≥ 2 (простое), g > 0, значит n + g > 2. -/
+theorem ConsecutivePrimeStart_right_endpoint_gt_two
+    {g n x : Nat} (h : ConsecutivePrimeStart g x n) :
+    2 < n + g := by
+  have hn_ge_2 : 2 ≤ n := Nat.Prime.two_le h.2.1
+  have hg_pos : 0 < g := h.1
+  omega
+
+/-- Каждое простое p > 2 является правым концом не более одной пары соседних
+простых. Это прямое следствие инъективности. -/
+theorem ConsecutivePrimeStart_right_endpoint_unique
+    {g₁ g₂ n₁ n₂ x : Nat}
+    (h1 : ConsecutivePrimeStart g₁ x n₁)
+    (h2 : ConsecutivePrimeStart g₂ x n₂)
+    (heq : n₁ + g₁ = n₂ + g₂) : g₁ = g₂ ∧ n₁ = n₂ := by
+  have hn : n₁ = n₂ := ConsecutivePrimeStart_left_injective h1 h2 heq
+  exact ⟨by omega, hn⟩
+
 end
 end PrimeGaps
