@@ -377,6 +377,17 @@ theorem primorial_wheelGaps_mean_gap_m2 : primorialWheelMeanGap 2 = 3 := by
   rw [show Nat.totient 6 = 2 by decide]
   norm_num
 
+/-! ### Exact wheel gap computations -/
+
+/-- Сумма wheel gaps для `n = 6` равна `6` (один полный период). -/
+theorem wheelGaps_6_sum : (wheelGaps 6).sum = 6 := by
+  exact wheelGaps_sum_eq_of_pos 6 (by decide)
+
+/-- Длина wheel gaps для `n = 6` равна `φ(6) = 2`. -/
+theorem wheelGaps_6_length : (wheelGaps 6).length = 2 := by
+  rw [wheelGaps_length_eq_totient]
+  decide
+
 end
 
 end PrimeGaps

@@ -225,6 +225,35 @@ theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (hg0 : 0 < g) :
       | inl h0 => subst h; exact ⟨(0 : ℤ), by simp, heq⟩
       | inr hg_eq => subst h; exact ⟨(g : ℤ), by simp, heq⟩
 
+/-- Пара `{0, g}` **недопустима** для нечётного `g > 0`: при `p = 2`
+оба класса `0` и `1` заняты, свободного класса нет.
+Это даёт полную характеризацию: `{0, g}` допустима ⟺ `g` чётно (для `g > 0`). -/
+theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (hg0 : 0 < g) :
+    ¬ AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
+  intro hadm
+  have hp2 : Nat.Prime 2 := by decide
+  obtain ⟨a, ha⟩ := hadm 2 hp2
+  letI : Fact (Nat.Prime 2) := ⟨hp2⟩
+  have h0 : (0 : ZMod 2) ≠ a := ha 0 (by simp)
+  have hg_mod : (g : ZMod 2) = 1 := ZMod.natCast_eq_one_iff_odd.mpr hg
+  have hg_ne : (g : ZMod 2) ≠ a := by
+    intro heq
+    apply ha (g : ℤ) (by simp)
+    exact heq
+  have ha_val : a = 0 ∨ a = 1 := by
+    have huniv : (Finset.univ : Finset (ZMod 2)) = {0, 1} := by
+      ext x
+      simp only [Finset.mem_univ, Finset.mem_insert, Finset.mem_singleton, true_iff]
+      match x with
+      | ⟨0, _⟩ => exact Or.inl rfl
+      | ⟨1, _⟩ => exact Or.inr rfl
+    have ha_mem : a ∈ (Finset.univ : Finset (ZMod 2)) := Finset.mem_univ _
+    rw [huniv] at ha_mem
+    simpa using ha_mem
+  cases ha_val with
+  | inl ha0 => exact h0 (ha0.symm)
+  | inr ha1 => exact hg_ne (hg_mod.trans ha1.symm)
+
 /-! ### Tuple / pair equivalence -/
 
 /-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/

@@ -199,6 +199,62 @@ theorem singularSeriesFactor_eq_wheel_divisor_product (C₂ : ℝ) (k : Nat) :
         if Nat.Prime p ∧ 2 < p ∧ p ∣ k then ((p : ℝ) - 1) / ((p : ℝ) - 2) else 1) := by
   simp [singularSeriesFactor_even, divisorCorrectionProduct]
 
+/-! ### Singular series lower bounds -/
+
+/-- Каждый множитель `(p-1)/(p-2) ≥ 1` для `p > 2`, так как `p-1 ≥ p-2`. -/
+theorem divisorCorrection_factor_ge_one (p : Nat) (hp : 3 ≤ p) :
+    (1 : ℝ) ≤ ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
+  have hp_real : (2 : ℝ) < p := by exact_mod_cast (by omega : 2 < p)
+  have hp_sub2_pos : (0 : ℝ) < p - 2 := by linarith
+  rw [le_div_iff₀ hp_sub2_pos]
+  linarith
+
+/-- `divisorCorrectionProduct k ≥ 1`: произведение множителей `≥ 1` даёт `≥ 1`. -/
+theorem divisorCorrectionProduct_ge_one (k : Nat) :
+    1 ≤ divisorCorrectionProduct k := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  apply Finset.one_le_prod
+  intro p hp
+  simp only [Finset.mem_filter] at hp
+  exact divisorCorrection_factor_ge_one p (by omega)
+
+/-- `singularSeriesFactor C₂ (2k) ≥ 2 * C₂` для `k > 0` и `C₂ ≥ 0`.
+Каждый нечётный простой делитель `k` только увеличивает singular series. -/
+theorem singularSeriesFactor_ge_2C2 {C₂ : ℝ} {k : Nat}
+    (hC₂ : 0 ≤ C₂) (hk : 0 < k) :
+    2 * C₂ ≤ singularSeriesFactor C₂ (2 * k) := by
+  rw [singularSeriesFactor_even]
+  have hprod_ge : 1 ≤ divisorCorrectionProduct k := divisorCorrectionProduct_ge_one k
+  nlinarith
+
+/-- `divisorCorrectionProduct` монотонна по делимости:
+если `k ∣ k'`, то `product(k) ≤ product(k')` (делители `k'` включают делители `k`). -/
+theorem divisorCorrectionProduct_monotone_dvd {k k' : Nat}
+    (hdvd : k ∣ k') (hk : 0 < k) (hk' : k' ≠ 0) :
+    divisorCorrectionProduct k ≤ divisorCorrectionProduct k' := by
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
+  have hsub : Nat.primeFactors k ⊆ Nat.primeFactors k' := by
+    intro p hp
+    rw [Nat.mem_primeFactors] at hp ⊢
+    rcases hp with ⟨hprime, hdvd_k, hk_ne⟩
+    refine ⟨hprime, hdvd_k.trans hdvd, hk'⟩
+  have hfilter_sub : (Nat.primeFactors k).filter (fun p => 2 < p) ⊆
+      (Nat.primeFactors k').filter (fun p => 2 < p) := by
+    intro p hp
+    simp only [Finset.mem_filter] at hp ⊢
+    exact ⟨hsub hp.1, hp.2⟩
+  apply Finset.prod_le_prod_of_subset_of_one_le
+  · exact hfilter_sub
+  · intro p hp
+    simp only [Finset.mem_filter] at hp
+    have hge := divisorCorrection_factor_ge_one p (by omega)
+    have hgt2 : (2 : ℝ) < p := by exact_mod_cast hp.2
+    have hpos : (0 : ℝ) ≤ 1 := by linarith
+    exact le_trans hpos hge
+  · intro p hp hnp
+    simp only [Finset.mem_filter] at hp
+    exact divisorCorrection_factor_ge_one p (by omega)
+
 /-! ### finiteWheelSingularSeries properties -/
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные endpoint-плотности. -/
