@@ -154,6 +154,77 @@ theorem tupleForbiddenResidueCount_empty (p : Nat) :
   unfold tupleForbiddenResidueCount
   simp
 
+/-! ### Pair admissibility -/
+
+/-- Пара `{0, g}` допустима при чётном `g > 0`: для `p = 2` оба конца
+попадают в один класс, для `p > 2` есть свободный класс. -/
+theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (hg0 : 0 < g) :
+    AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
+  intro p hp
+  letI : Fact (Nat.Prime p) := ⟨hp⟩
+  haveI : Fact (1 < p) := ⟨hp.one_lt⟩
+  by_cases hp2 : p = 2
+  · -- p = 2: g even → g ≡ 0 mod 2, so both 0 and g map to 0; pick a = 1
+    subst hp2
+    refine ⟨1, ?_⟩
+    rintro h hh
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hh
+    have h01 : (0 : ZMod 2) ≠ 1 := one_ne_zero.symm
+    cases hh with
+    | inl h0 =>
+      subst h; simp only [Int.cast_zero]; exact h01
+    | inr hg_eq =>
+      subst h; simp only [Int.cast_natCast]
+      have hg0 : (g : ZMod 2) = 0 := by
+        rw [ZMod.natCast_eq_zero_iff]
+        exact even_iff_two_dvd.mp hg
+      exact fun heq => h01 (hg0.symm.trans heq)
+  · -- p > 2: at most 2 forbidden classes, p ≥ 3 → free class exists
+    have h2le : 2 ≤ p := Nat.Prime.two_le hp
+    have hp_gt2 : 2 < p := by omega
+    by_cases hpg : p ∣ g
+    · -- g ≡ 0 mod p: forbidden = {0}, pick a = 1
+      refine ⟨1, ?_⟩
+      rintro h hh
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hh
+      have h01 : (0 : ZMod p) ≠ 1 := one_ne_zero.symm
+      cases hh with
+      | inl h0 =>
+        subst h; simp only [Int.cast_zero]; exact h01
+      | inr hg_eq =>
+        subst h; simp only [Int.cast_natCast]
+        have hg0 : (g : ZMod p) = 0 := by
+          rw [ZMod.natCast_eq_zero_iff]; exact hpg
+        exact fun heq => h01 (hg0.symm.trans heq)
+    · -- g ≢ 0 mod p: forbidden = {0, g mod p}, 2 distinct elements;
+      -- p ≥ 3 means |ZMod p| ≥ 3, so a free class exists
+      have hg_mod_ne : (g : ZMod p) ≠ 0 := by
+        intro hzero
+        apply hpg
+        rw [ZMod.natCast_eq_zero_iff] at hzero
+        exact hzero
+      let forbidden : Finset (ZMod p) :=
+        Finset.image (fun h : ℤ => (h : ZMod p)) ({0, (g : ℤ)} : Finset ℤ)
+      have hforb_card : forbidden.card ≤ 2 := by
+        calc forbidden.card ≤ ({0, (g : ℤ)} : Finset ℤ).card := Finset.card_image_le
+          _ ≤ 2 := by
+            apply le_trans (Finset.card_insert_le _ _)
+            simp
+      have huniv_card : (Finset.univ : Finset (ZMod p)).card = p := by
+        rw [Finset.card_univ, ZMod.card p]
+      have hlt : forbidden.card < (Finset.univ : Finset (ZMod p)).card := by
+        rw [huniv_card]; omega
+      obtain ⟨a, _, ha_not⟩ := Finset.exists_mem_notMem_of_card_lt_card hlt
+      refine ⟨a, ?_⟩
+      rintro h hh
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hh
+      intro heq
+      apply ha_not
+      simp only [forbidden, Finset.mem_image, exists_prop]
+      cases hh with
+      | inl h0 => subst h; exact ⟨(0 : ℤ), by simp, heq⟩
+      | inr hg_eq => subst h; exact ⟨(g : ℤ), by simp, heq⟩
+
 /-! ### Tuple / pair equivalence -/
 
 /-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/

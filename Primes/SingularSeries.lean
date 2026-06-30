@@ -97,6 +97,101 @@ theorem singularSeriesFactor_even_correct (C₂ : ℝ) (k : Nat) :
         (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
   rw [singularSeriesFactor_even, divisorCorrectionProduct_eq_primeFactors]
 
+/-! ### Singular series positivity and exact values -/
+
+/-- `divisorCorrectionProduct k` — произведение положительных множителей `(p-1)/(p-2) > 0`
+для всех нечётных простых `p ≥ 3`. -/
+theorem divisorCorrectionProduct_pos {k : Nat} (hk : 0 < k) :
+    0 < divisorCorrectionProduct k := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  apply Finset.prod_pos
+  intro p hp
+  simp only [Finset.mem_filter] at hp
+  have hp_gt2 : 2 < p := hp.2
+  have hp_prime : Nat.Prime p := (Nat.mem_primeFactors.mp hp.1).1
+  have hp_real_gt1 : 1 < (p : ℝ) := by exact_mod_cast hp_prime.one_lt
+  have hp_real_gt2 : 2 < (p : ℝ) := by exact_mod_cast hp_gt2
+  have hp_sub1 : 0 < (p : ℝ) - 1 := by linarith
+  have hp_sub2 : 0 < (p : ℝ) - 2 := by linarith
+  exact div_pos hp_sub1 hp_sub2
+
+/-- `singularSeriesFactor` положителен для чётного `g = 2k`, `k > 0`, при `C₂ > 0`.
+Это необходимо для осмысленности гипотезы Харди–Литтлвуда. -/
+theorem singularSeriesFactor_pos_of_even {C₂ : ℝ} {k : Nat}
+    (hC₂ : 0 < C₂) (hk : 0 < k) :
+    0 < singularSeriesFactor C₂ (2 * k) := by
+  rw [singularSeriesFactor_even]
+  exact mul_pos (mul_pos (by linarith) hC₂) (divisorCorrectionProduct_pos hk)
+
+/-- Для `g = 2` (twin prime gap) `divisorCorrectionProduct(1) = 1` (пустое произведение,
+так как у 1 нет простых делителей). -/
+theorem divisorCorrectionProduct_one :
+    divisorCorrectionProduct 1 = 1 := by
+  rw [divisorCorrectionProduct_eq_primeFactors, Nat.primeFactors_one]
+  simp
+
+/-- Точное значение singular series для twin prime gap `g = 2`:
+`𝔖(2) = 2 C₂`. Это фундаментальная константа гипотезы о простых близнецах. -/
+theorem singularSeriesFactor_eq_2C2_for_g_2 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 2 = 2 * C₂ := by
+  have h2 : 2 = 2 * 1 := by omega
+  rw [h2, singularSeriesFactor_even, divisorCorrectionProduct_one]
+  ring
+
+/-- Для `g = 4` (cousin prime gap) `k = 2`, и у 2 нет нечётных простых делителей,
+поэтому `𝔖(4) = 2 C₂`. -/
+theorem singularSeriesFactor_eq_2C2_for_g_4 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 4 = 2 * C₂ := by
+  have h4 : 4 = 2 * 2 := by omega
+  rw [h4, singularSeriesFactor_even]
+  have : divisorCorrectionProduct 2 = 1 := by
+    rw [divisorCorrectionProduct_eq_primeFactors]
+    have hpf : (Nat.primeFactors 2 : Finset Nat).filter (fun p => 2 < p) = ∅ := by
+      ext p
+      simp only [Finset.mem_filter, Finset.notMem_empty, false_implies]
+      constructor
+      · intro ⟨hmem, hgt2⟩
+        have hmem' : p ∈ Nat.primeFactors 2 := hmem
+        rw [Nat.mem_primeFactors] at hmem'
+        rcases hmem' with ⟨hprime, hdvd, hne⟩
+        have : p = 2 := by
+          have hle : p ≤ 2 := Nat.le_of_dvd (by omega) hdvd
+          have hge : 2 ≤ p := hprime.two_le
+          omega
+        omega
+      · exact fun h => h.elim
+    rw [hpf]
+    simp
+  rw [this]
+  ring
+
+/-- Для `g = 6` (sexy prime gap) `k = 3`, и единственный нечётный простой делитель
+равен `3`, поэтому `𝔖(6) = 2 C₂ · (3-1)/(3-2) = 4 C₂`. -/
+theorem singularSeriesFactor_eq_4C2_for_g_6 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 6 = 4 * C₂ := by
+  have h6 : 6 = 2 * 3 := by omega
+  rw [h6, singularSeriesFactor_even]
+  have : divisorCorrectionProduct 3 = 2 := by
+    rw [divisorCorrectionProduct_eq_primeFactors]
+    have hpf : (Nat.primeFactors 3 : Finset Nat).filter (fun p => 2 < p) = {3} := by
+      ext p
+      simp only [Finset.mem_filter, Finset.mem_singleton]
+      constructor
+      · intro ⟨hmem, hgt2⟩
+        have hmem' : p ∈ Nat.primeFactors 3 := hmem
+        rw [Nat.mem_primeFactors] at hmem'
+        rcases hmem' with ⟨hprime, hdvd, hne⟩
+        have hle : p ≤ 3 := Nat.le_of_dvd (by omega) hdvd
+        omega
+      · rintro rfl
+        refine ⟨?_, by omega⟩
+        exact Nat.mem_primeFactors.mpr ⟨by decide, by decide, by decide⟩
+    rw [hpf]
+    simp
+    norm_num
+  rw [this]
+  ring
+
 /-- Связь с wheel: глобальная формула — базовая константа `2 C₂` и поправки по `p ∣ k`. -/
 theorem singularSeriesFactor_eq_wheel_divisor_product (C₂ : ℝ) (k : Nat) :
     singularSeriesFactor C₂ (2 * k) = 2 * C₂ *

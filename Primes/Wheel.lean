@@ -325,6 +325,58 @@ def PrimorialWheelAverageGapMertensAsymptotic (γ : ℝ) : Prop :=
   Filter.Tendsto (fun m : Nat => (primorialWheelMeanGap m : ℝ) /
     (Real.exp γ * Real.log (Nat.nth Nat.Prime m))) Filter.atTop (nhds 1)
 
+/-! ### Exact wheel computations for small moduli -/
+
+/-- `primorial 0 = 1` (пустое произведение). -/
+theorem primorial_zero : primorial 0 = 1 := by
+  simp [primorial]
+
+/-- `primorial 1 = 2` (первое простое). -/
+theorem primorial_one : primorial 1 = 2 := by
+  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
+    one_mul, Nat.nth_prime_zero_eq_two]
+
+/-- `primorial 2 = 6` (2 · 3). -/
+theorem primorial_two : primorial 2 = 6 := by
+  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
+    one_mul, Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three]
+  norm_num
+
+/-- `primorial 3 = 30` (2 · 3 · 5). -/
+theorem primorial_three : primorial 3 = 30 := by
+  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
+    one_mul, Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three, Nat.nth_prime_two_eq_five]
+  norm_num
+
+/-- `φ(P_0) = φ(1) = 1`. -/
+theorem totient_primorial_zero : Nat.totient (primorial 0) = 1 := by
+  rw [primorial_zero, Nat.totient_one]
+
+/-- `φ(P_1) = φ(2) = 1`. -/
+theorem totient_primorial_one : Nat.totient (primorial 1) = 1 := by
+  rw [primorial_one, Nat.totient_prime (by decide : Nat.Prime 2)]
+
+/-- `φ(P_2) = φ(6) = 2` (остатки 1 и 5). -/
+theorem totient_primorial_two : Nat.totient (primorial 2) = 2 := by
+  rw [primorial_two]
+  have : Nat.totient 6 = 2 := by decide
+  exact this
+
+/-- `φ(P_3) = φ(30) = 8` (остатки 1,7,11,13,17,19,23,29). -/
+theorem totient_primorial_three : Nat.totient (primorial 3) = 8 := by
+  rw [primorial_three]
+  have : Nat.totient 30 = 8 := by decide
+  exact this
+
+/-- Средний primorial wheel gap для `m = 2`: `P_2 / φ(P_2) = 6/2 = 3`. -/
+theorem primorial_wheelGaps_mean_gap_m2 : primorialWheelMeanGap 2 = 3 := by
+  unfold primorialWheelMeanGap primorial
+  simp only [Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty, one_mul,
+    Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three]
+  change ((6 : ℚ) / (Nat.totient 6 : ℚ)) = 3
+  rw [show Nat.totient 6 = 2 by decide]
+  norm_num
+
 end
 
 end PrimeGaps
