@@ -13,9 +13,7 @@ open Filter
 /-! ## Hardy-Littlewood conjectures and Gallagher's theorem
 
 Формализация гипотезы Харди--Литтлвуда для пар и k-кортежей простых чисел,
-а также теорема Галлагера о пуассоновском пределе нормированных промежутков.
-Определения и доказательства мигрированы из `GapDistribution.lean`.
-`logarithmicIntegral₂` импортируется из `Primes.SingularSeries`.
+а также теорема Галлагера о пуассоновском пределе.
 -/
 
 /-! ### Hardy-Littlewood pair conjecture -/
@@ -34,9 +32,8 @@ def AsymptoticEquivalentAtTop (f h : Nat → ℝ) : Prop :=
   Tendsto (fun x : Nat => f x / h x) atTop (nhds 1)
 
 /-- Гипотеза Харди--Литтлвуда для пар (1923): число пар простых `(p, p+g)`
-с `p ≤ x` асимптотически равно `𝔖(g) · li₂(x)`, где `𝔖(g)` — singular series.
-Открытая проблема; для `g = 2` это гипотеза о простых близнецах. Доказана
-при усреднении по `g` (Goldston--Pintz--Yıldırım, 2005). -/
+с `p ≤ x` асимптотически равно `𝔖(g) · li₂(x)`. Открытая проблема;
+для `g = 2` это гипотеза о простых близнецах. -/
 def HardyLittlewoodPairConjecture (C₂ : ℝ) : Prop :=
   ∀ g : Nat, 0 < singularSeriesFactor C₂ g →
     AsymptoticEquivalentAtTop
@@ -72,11 +69,9 @@ def primeTupleCount (H : Finset ℤ) (x : Nat) : Nat := by
   let p : ℕ → Prop := fun n => ∀ h ∈ H, Nat.Prime ((n : ℤ) + h).toNat
   exact ((Finset.range (x + 1)).filter p).card
 
-/-- Гипотеза Харди--Литтлвуда для k-кортежей (1923): число `n ≤ x`, для которых
-все `n + h`, `h ∈ H`, простые, асимптотически равно `S · li_k(x)` для допустимого
-множества `H`. Открытая проблема; обобщает гипотезу о простых близнецах и
-гипотезу Диксона. Частичные результаты: Green--Tao (2004) для арифметических
-прогрессий, Maynard--Tao (2013) для ограниченных промежутков. -/
+/-- Гипотеза Харди--Литтлвуда для k-кортежей (1923). Открытая проблема;
+обобщает гипотезу о простых близнецах. Частичные результаты: Green--Tao (2004),
+Maynard--Tao (2013). -/
 def HardyLittlewoodKTupleConjecture : Prop :=
   ∀ H : Finset ℤ, AdmissibleSet H → ∀ S : ℝ, IsTupleSingularSeries H S →
     AsymptoticEquivalentAtTop
@@ -97,38 +92,17 @@ def normalizedPrimeGapCountLE (T : ℝ) (x : Nat) : Nat := by
 
 /-- Гипотеза пуассоновского предела Галлагера: доля простых `p ≤ x`, для которых
 нормированный промежуток `(p' - p) / log x ≤ T`, стремится к `1 - e^{-T}`.
-Открытая проблема; доказана Галлагером (1976) при условии гипотезы
-Харди--Литтлвуда для k-кортежей (см. `GallaghersTheoremFromHL`). -/
+Открытая проблема; доказана Галлагером (1976) при условии HL k-tuple. -/
 def GallaghersPoissonLimitConjecture : Prop :=
   ∀ T : ℝ, 0 ≤ T →
     Tendsto (fun x : Nat => (normalizedPrimeGapCountLE T x : ℝ) /
       (primeCountingExact x : ℝ)) atTop (nhds (1 - Real.exp (-T)))
 
-/-- Backwards-compatible alias for `GallaghersPoissonLimitConjecture`. -/
-abbrev GallaghersPoissonLimit : Prop := GallaghersPoissonLimitConjecture
-
-/-- Теорема Галлагера (1976): гипотеза Харди--Литтлвуда для k-кортежей влечёт
-пуассоновский предел нормированных простых промежутков. Доказано условно;
-безусловный статус зависит от доказательства HL k-tuple conjecture. -/
+/-- Теорема Галлагера (1976): HL k-tuple conjecture влечёт пуассоновский предел. -/
 def GallaghersTheoremFromHL : Prop :=
   HardyLittlewoodKTupleConjecture → GallaghersPoissonLimitConjecture
 
 /-! ### Admissibility proofs -/
-
-/-- Пустое множество сдвигов допустимо. -/
-theorem admissibleSet_empty : AdmissibleSet (∅ : Finset ℤ) := by
-  intro p hp
-  exact ⟨0, by simp⟩
-
-/-- Singleton сдвигов допустим: берём класс `1` modulo любого простого. -/
-theorem admissibleSet_singleton_zero : AdmissibleSet ({0} : Finset ℤ) := by
-  intro p hp
-  letI : Fact (Nat.Prime p) := ⟨hp⟩
-  refine ⟨1, ?_⟩
-  intro h hh
-  simp at hh
-  subst h
-  simp [zero_ne_one]
 
 /-- Произвольный singleton `{h}` допустим: берём класс `h + 1 mod p`. -/
 theorem admissibleSet_singleton (h : ℤ) : AdmissibleSet ({h} : Finset ℤ) := by
@@ -146,110 +120,81 @@ theorem admissibleSet_singleton (h : ℤ) : AdmissibleSet ({h} : Finset ℤ) := 
     exact (add_left_cancel hstep).symm
   exact absurd h1 one_ne_zero
 
-/-! ### Tuple cardinality bounds -/
-
-/-- Для пустого множества сдвигов число запрещённых классов равно 0. -/
-theorem tupleForbiddenResidueCount_empty (p : Nat) :
-    tupleForbiddenResidueCount (∅ : Finset ℤ) p = 0 := by
-  unfold tupleForbiddenResidueCount
-  simp
-
 /-! ### Pair admissibility -/
 
 /-- Пара `{0, g}` допустима при чётном `g > 0`: для `p = 2` оба конца
 попадают в один класс, для `p > 2` есть свободный класс. -/
-theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (hg0 : 0 < g) :
+theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (_hg0 : 0 < g) :
     AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
   intro p hp
   letI : Fact (Nat.Prime p) := ⟨hp⟩
   haveI : Fact (1 < p) := ⟨hp.one_lt⟩
   by_cases hp2 : p = 2
-  · -- p = 2: g even → g ≡ 0 mod 2, so both 0 and g map to 0; pick a = 1
-    subst hp2
+  · subst hp2
     refine ⟨1, ?_⟩
     rintro h hh
     simp only [Finset.mem_insert, Finset.mem_singleton] at hh
     have h01 : (0 : ZMod 2) ≠ 1 := one_ne_zero.symm
     cases hh with
-    | inl h0 =>
-      subst h; simp only [Int.cast_zero]; exact h01
+    | inl h0 => subst h; simp only [Int.cast_zero]; exact h01
     | inr hg_eq =>
-      subst h; simp only [Int.cast_natCast]
-      have hg0 : (g : ZMod 2) = 0 := by
-        rw [ZMod.natCast_eq_zero_iff]
-        exact even_iff_two_dvd.mp hg
-      exact fun heq => h01 (hg0.symm.trans heq)
-  · -- p > 2: at most 2 forbidden classes, p ≥ 3 → free class exists
-    have h2le : 2 ≤ p := Nat.Prime.two_le hp
+        subst h; simp only [Int.cast_natCast]
+        have hg0 : (g : ZMod 2) = 0 := by
+          rw [ZMod.natCast_eq_zero_iff]; exact even_iff_two_dvd.mp hg
+        exact fun heq => h01 (hg0.symm.trans heq)
+  · have h2le : 2 ≤ p := Nat.Prime.two_le hp
     have hp_gt2 : 2 < p := by omega
     by_cases hpg : p ∣ g
-    · -- g ≡ 0 mod p: forbidden = {0}, pick a = 1
-      refine ⟨1, ?_⟩
+    · refine ⟨1, ?_⟩
       rintro h hh
       simp only [Finset.mem_insert, Finset.mem_singleton] at hh
       have h01 : (0 : ZMod p) ≠ 1 := one_ne_zero.symm
       cases hh with
-      | inl h0 =>
-        subst h; simp only [Int.cast_zero]; exact h01
+      | inl h0 => subst h; simp only [Int.cast_zero]; exact h01
       | inr hg_eq =>
-        subst h; simp only [Int.cast_natCast]
-        have hg0 : (g : ZMod p) = 0 := by
-          rw [ZMod.natCast_eq_zero_iff]; exact hpg
-        exact fun heq => h01 (hg0.symm.trans heq)
-    · -- g ≢ 0 mod p: forbidden = {0, g mod p}, 2 distinct elements;
-      -- p ≥ 3 means |ZMod p| ≥ 3, so a free class exists
-      have hg_mod_ne : (g : ZMod p) ≠ 0 := by
-        intro hzero
+          subst h; simp only [Int.cast_natCast]
+          have hg0 : (g : ZMod p) = 0 := by
+            rw [ZMod.natCast_eq_zero_iff]; exact hpg
+          exact fun heq => h01 (hg0.symm.trans heq)
+    · have hg_mod_ne : (g : ZMod p) ≠ 0 := by
+        intro h
         apply hpg
-        rw [ZMod.natCast_eq_zero_iff] at hzero
-        exact hzero
+        rw [ZMod.natCast_eq_zero_iff] at h
+        exact h
       let forbidden : Finset (ZMod p) :=
         Finset.image (fun h : ℤ => (h : ZMod p)) ({0, (g : ℤ)} : Finset ℤ)
-      have hforb_card : forbidden.card ≤ 2 := by
-        calc forbidden.card ≤ ({0, (g : ℤ)} : Finset ℤ).card := Finset.card_image_le
-          _ ≤ 2 := by
-            apply le_trans (Finset.card_insert_le _ _)
-            simp
-      have huniv_card : (Finset.univ : Finset (ZMod p)).card = p := by
-        rw [Finset.card_univ, ZMod.card p]
       have hlt : forbidden.card < (Finset.univ : Finset (ZMod p)).card := by
-        rw [huniv_card]; omega
+        rw [Finset.card_univ, ZMod.card p]
+        calc forbidden.card ≤ ({0, (g : ℤ)} : Finset ℤ).card := Finset.card_image_le
+          _ ≤ 2 := (Finset.card_insert_le _ _).trans (by simp)
+          _ < p := by omega
       obtain ⟨a, _, ha_not⟩ := Finset.exists_mem_notMem_of_card_lt_card hlt
       refine ⟨a, ?_⟩
       rintro h hh
       simp only [Finset.mem_insert, Finset.mem_singleton] at hh
       intro heq
       apply ha_not
-      simp only [forbidden, Finset.mem_image, exists_prop]
+      simp only [forbidden, Finset.mem_image]
       cases hh with
       | inl h0 => subst h; exact ⟨(0 : ℤ), by simp, heq⟩
       | inr hg_eq => subst h; exact ⟨(g : ℤ), by simp, heq⟩
 
 /-- Пара `{0, g}` **недопустима** для нечётного `g > 0`: при `p = 2`
 оба класса `0` и `1` заняты, свободного класса нет.
-Это даёт полную характеризацию: `{0, g}` допустима ⟺ `g` чётно (для `g > 0`). -/
-theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (hg0 : 0 < g) :
+Полная характеризация: `{0, g}` допустима ⟺ `g` чётно (для `g > 0`). -/
+theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (_hg0 : 0 < g) :
     ¬ AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
   intro hadm
-  have hp2 : Nat.Prime 2 := by decide
-  obtain ⟨a, ha⟩ := hadm 2 hp2
-  letI : Fact (Nat.Prime 2) := ⟨hp2⟩
+  letI : Fact (Nat.Prime 2) := ⟨by decide⟩
+  obtain ⟨a, ha⟩ := hadm 2 (by decide)
   have h0 : (0 : ZMod 2) ≠ a := ha 0 (by simp)
   have hg_mod : (g : ZMod 2) = 1 := ZMod.natCast_eq_one_iff_odd.mpr hg
-  have hg_ne : (g : ZMod 2) ≠ a := by
-    intro heq
-    apply ha (g : ℤ) (by simp)
-    exact heq
+  have hg_ne : (g : ZMod 2) ≠ a := fun heq => ha (g : ℤ) (by simp) heq
   have ha_val : a = 0 ∨ a = 1 := by
-    have huniv : (Finset.univ : Finset (ZMod 2)) = {0, 1} := by
-      ext x
-      simp only [Finset.mem_univ, Finset.mem_insert, Finset.mem_singleton, true_iff]
-      match x with
-      | ⟨0, _⟩ => exact Or.inl rfl
-      | ⟨1, _⟩ => exact Or.inr rfl
-    have ha_mem : a ∈ (Finset.univ : Finset (ZMod 2)) := Finset.mem_univ _
-    rw [huniv] at ha_mem
-    simpa using ha_mem
+    have : a ∈ (Finset.univ : Finset (ZMod 2)) := Finset.mem_univ _
+    match a with
+    | ⟨0, _⟩ => exact Or.inl rfl
+    | ⟨1, _⟩ => exact Or.inr rfl
   cases ha_val with
   | inl ha0 => exact h0 (ha0.symm)
   | inr ha1 => exact hg_ne (hg_mod.trans ha1.symm)
@@ -265,15 +210,11 @@ theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
   apply Finset.filter_congr
   intro n _
   simp only [Finset.mem_insert, Finset.mem_singleton]
-  have hcast : (↑n + ↑g : ℤ).toNat = n + g := by
-    rw [← Nat.cast_add, Int.toNat_natCast]
+  have hcast : (↑n + ↑g : ℤ).toNat = n + g := by rw [← Nat.cast_add, Int.toNat_natCast]
   constructor
   · intro h
-    have h0 := h 0 (by simp)
-    have hg := h (↑g) (by simp)
-    have hn : Nat.Prime n := by simpa [Int.toNat_natCast] using h0
-    have hng : Nat.Prime (n + g) := by simpa [hcast] using hg
-    exact ⟨hn, hng⟩
+    exact ⟨by simpa [Int.toNat_natCast] using h 0 (by simp),
+           by simpa [hcast] using h (↑g) (by simp)⟩
   · intro ⟨hn, hng⟩ h hh
     cases hh with
     | inl h0 => rw [h0]; simpa [Int.toNat_natCast] using hn
@@ -281,7 +222,7 @@ theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
 
 /-! ### primePairCount properties -/
 
-/-- `primePairCount` не превосходит `primeCountingExact`: условие пары сильнее простоты. -/
+/-- `primePairCount` не превосходит `primeCountingExact`. -/
 theorem primePairCount_le_primeCountingExact (g x : Nat) :
     primePairCount g x ≤ primeCountingExact x := by
   unfold primePairCount primeCountingExact
@@ -290,40 +231,28 @@ theorem primePairCount_le_primeCountingExact (g x : Nat) :
   simp only [Finset.mem_filter] at hp ⊢
   exact ⟨hp.1, hp.2.1⟩
 
-/-- `primePairCount` монотонна по правому концу: x ≤ y → pair(g, x) ≤ pair(g, y). -/
+/-- `primePairCount` монотонна по правому концу. -/
 theorem primePairCount_monotone {g x y : Nat} (hxy : x ≤ y) :
     primePairCount g x ≤ primePairCount g y := by
   unfold primePairCount
-  have hsub : (Finset.range (x + 1)).filter (fun p => Nat.Prime p ∧ Nat.Prime (p + g)) ⊆
-      (Finset.range (y + 1)).filter (fun p => Nat.Prime p ∧ Nat.Prime (p + g)) := by
-    intro a ha
-    simp only [Finset.mem_filter] at ha ⊢
-    refine ⟨?_, ha.2⟩
-    simp only [Finset.mem_range] at ha ⊢
-    omega
-  exact Finset.card_le_card hsub
-
-/-- `primePairCount g 0 = 0`: нет простых пар до 0. -/
-theorem primePairCount_zero (g : Nat) : primePairCount g 0 = 0 := by
-  unfold primePairCount
-  have : Finset.range 1 = {0} := by
-    ext p; simp only [Finset.mem_range, Finset.mem_singleton]; omega
-  rw [this]
-  simp [Nat.not_prime_zero]
+  refine Finset.card_le_card ?_
+  intro a ha
+  simp only [Finset.mem_filter] at ha ⊢
+  refine ⟨?_, ha.2⟩
+  simp only [Finset.mem_range] at ha ⊢
+  omega
 
 /-- `primeGapFrequencyExact` не превосходит `primePairCount`
 (дополнительное условие отсутствия простых внутри). -/
 theorem primeGapFrequencyExact_le_primePairCount (g x : Nat) :
     primeGapFrequencyExact g x ≤ primePairCount g x := by
-  rw [primeGapFrequencyExact_eq_count]
-  unfold primePairCount
+  rw [primeGapFrequencyExact_eq_count, primePairCount]
   classical
-  apply Finset.card_le_card
+  refine Finset.card_le_card ?_
   intro n hn
   simp only [Finset.mem_filter] at hn
   unfold ConsecutivePrimeStart at hn
-  exact Finset.mem_filter.mpr ⟨hn.1, ⟨hn.2.2.1, hn.2.2.2.1⟩⟩
+  exact Finset.mem_filter.mpr ⟨hn.1, hn.2.2.1, hn.2.2.2.1⟩
 
 end
-
 end PrimeGaps
