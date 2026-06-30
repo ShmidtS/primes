@@ -291,5 +291,56 @@ theorem primorial_wheelGaps_mean_gap_m2 : primorialWheelMeanGap 2 = 3 := by
   change ((6 : ℚ) / (Nat.totient 6 : ℚ)) = 3
   rw [show Nat.totient 6 = 2 by decide]; norm_num
 
+/-! ### Euler product and monotonicity — new results
+-/
+
+/-- Средний primorial wheel gap равен эйлерову произведению `∏ p_i/(p_i - 1)`. -/
+theorem primorialWheelMeanGap_eq_euler_product (m : Nat) :
+    primorialWheelMeanGap m =
+    (Finset.range m).prod (fun i =>
+      (Nat.nth Nat.Prime i : ℚ) / ((Nat.nth Nat.Prime i - 1 : ℕ) : ℚ)) := by
+  unfold primorialWheelMeanGap
+  rw [totient_primorial_explicit]
+  unfold primorial
+  push_cast
+  rw [← Finset.prod_div_distrib]
+
+/-- Средний primorial wheel gap строго возрастает. -/
+theorem primorialWheelMeanGap_strictMono :
+    StrictMono primorialWheelMeanGap := by
+  intro n m hnm
+  have h_key : ∀ k : Nat, primorialWheelMeanGap k < primorialWheelMeanGap (k + 1) := by
+    intro k
+    rw [primorialWheelMeanGap_eq_euler_product, primorialWheelMeanGap_eq_euler_product,
+        Finset.prod_range_succ]
+    have hge2 : 2 ≤ Nat.nth Nat.Prime k := (Nat.prime_nth_prime k).two_le
+    have hp_ratio_gt1 : (1 : ℚ) <
+        (Nat.nth Nat.Prime k : ℚ) / ((Nat.nth Nat.Prime k - 1 : ℕ) : ℚ) := by
+      have hdenom : (0 : ℚ) < ((Nat.nth Nat.Prime k - 1 : ℕ) : ℚ) := by
+        have : 0 < Nat.nth Nat.Prime k - 1 := by omega
+        exact_mod_cast this
+      rw [lt_div_iff₀ hdenom, one_mul]
+      exact_mod_cast (by omega : (Nat.nth Nat.Prime k - 1 : ℕ) < Nat.nth Nat.Prime k)
+    have h_prev_pos : (0 : ℚ) < (Finset.range k).prod (fun i =>
+        (Nat.nth Nat.Prime i : ℚ) / ((Nat.nth Nat.Prime i - 1 : ℕ) : ℚ)) := by
+      apply Finset.prod_pos
+      intro i hi
+      have hpi_ge2 : 2 ≤ Nat.nth Nat.Prime i :=
+        (Nat.prime_nth_prime i).two_le
+      have hdenom : (0 : ℚ) < ((Nat.nth Nat.Prime i - 1 : ℕ) : ℚ) := by
+        have : 0 < Nat.nth Nat.Prime i - 1 := by omega
+        exact_mod_cast this
+      have hnum : (0 : ℚ) < (Nat.nth Nat.Prime i : ℚ) := by
+        have : 0 < Nat.nth Nat.Prime i := by omega
+        exact_mod_cast this
+      exact div_pos hnum hdenom
+    nlinarith [hp_ratio_gt1, h_prev_pos]
+  rcases Nat.exists_eq_add_of_lt hnm with ⟨k, hk⟩
+  subst hk
+  clear hnm
+  induction k with
+  | zero => exact h_key n
+  | succ k ih => exact lt_trans ih (h_key (n + k + 1))
+
 end
 end PrimeGaps
