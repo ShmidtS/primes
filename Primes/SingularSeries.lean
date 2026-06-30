@@ -331,6 +331,64 @@ theorem singularSeriesFactor_mul_of_coprime (C₂ : ℝ) {k k' : Nat}
   · have h2C₂ : (2 : ℝ) * C₂ ≠ 0 := mul_ne_zero two_ne_zero hC₂
     field_simp [h2C₂]
 
+/-- **S(2pq) = 2C₂ · (p-1)/(p-2) · (q-1)/(q-2)** для различных нечётных простых p, q.
+Точное значение singular series для полупростого gap `g = 2pq`.
+Это следствие мультипликативности D и D(prime) = (p-1)/(p-2).
+Пример: S(30) = 2C₂·(3-1)/(3-2)·(5-1)/(5-2) = 2C₂·2·4/3 = 16C₂/3. -/
+theorem singularSeriesFactor_eq_for_2pq (C₂ : ℝ) (p q : Nat)
+    (hp : Nat.Prime p) (hq : Nat.Prime q) (hp_odd : 2 < p) (hq_odd : 2 < q)
+    (hpq_ne : p ≠ q) :
+    singularSeriesFactor C₂ (2 * (p * q)) =
+      2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) * (((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
+  rw [singularSeriesFactor_even]
+  have hcoprime : Nat.Coprime p q := (Nat.coprime_primes hp hq).mpr hpq_ne
+  rw [divisorCorrectionProduct_mul_of_coprime hp.ne_zero hq.ne_zero hcoprime,
+      divisorCorrectionProduct_prime p hp hp_odd,
+      divisorCorrectionProduct_prime q hq hq_odd]
+  ring
+
+/-- `divisorCorrectionProduct` для степени 2 равен 1: у 2^a нет нечётных простых делителей. -/
+theorem divisorCorrectionProduct_pow_two (a : Nat) :
+    divisorCorrectionProduct (2 ^ a) = 1 := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  by_cases ha : a = 0
+  · subst a; simp [Nat.primeFactors_one]
+  · have hpf : Nat.primeFactors (2 ^ a) = {2} :=
+      Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two
+    rw [hpf]
+    have h_filter : ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ := by
+      rw [Finset.filter_eq_empty_iff]
+      intro p hp
+      simp only [Finset.mem_singleton] at hp
+      subst hp; omega
+    rw [h_filter]
+    simp
+
+/-- `divisorCorrectionProduct(2^a * m) = divisorCorrectionProduct(m)` для нечётного m.
+2 не вносит вклад в D, поскольку D фильтрует только простые делители > 2. -/
+theorem divisorCorrectionProduct_pow_two_mul (a : Nat) (m : Nat) (hm : Odd m) :
+    divisorCorrectionProduct (2 ^ a * m) = divisorCorrectionProduct m := by
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
+  by_cases ha : a = 0
+  · subst a; simp
+  · have h2a_ne : (2 : Nat) ^ a ≠ 0 := by
+      have h : 0 < 2 ^ a := by
+        cases a <;> simp [Nat.pow_succ, Nat.zero_lt_succ]
+      omega
+    have hm_ne : m ≠ 0 := by
+      have hpos : 0 < m := hm.pos
+      intro h; subst h; simp at hpos
+    rw [Nat.primeFactors_mul h2a_ne hm_ne]
+    have hpf_2a : Nat.primeFactors (2 ^ a) = {2} :=
+      Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two
+    rw [hpf_2a, Finset.filter_union]
+    have h_filter_2 : ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ := by
+      rw [Finset.filter_eq_empty_iff]
+      intro p hp
+      simp only [Finset.mem_singleton] at hp
+      subst hp; omega
+    rw [h_filter_2, Finset.empty_union]
+
 /-! ### finiteWheelSingularSeries properties -/
 
 /-- Глобальная wheel-series равна survival-произведению с делением на наивные плотности. -/

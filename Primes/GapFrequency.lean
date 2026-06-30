@@ -292,5 +292,106 @@ theorem ConsecutivePrimeStart_right_endpoint_unique
   have hn : n₁ = n₂ := ConsecutivePrimeStart_left_injective h1 h2 heq
   exact ⟨by omega, hn⟩
 
+/-! ### Gap uniqueness for fixed left endpoint
+
+Для фиксированного левого конца n существует не более одного g,
+такого что (n, n+g) — пара соседних простых. Если g₁ < g₂, то n+g₁ —
+простое, лежащее строго между n и n+g₂, противоречие.
+Это даёт дизъюнктность множеств {n : CPS(g,x,n)} по разным g.
+-/
+
+/-- Для фиксированного левого конца n существует не более одного g
+с ConsecutivePrimeStart g x n. Если g₁ ≠ g₂, то меньший промежуток
+даёт простое внутри большего — противоречие. -/
+theorem ConsecutivePrimeStart_gap_unique_for_left
+    {g₁ g₂ n x : Nat}
+    (h1 : ConsecutivePrimeStart g₁ x n)
+    (h2 : ConsecutivePrimeStart g₂ x n) : g₁ = g₂ := by
+  by_cases hlt : g₁ < g₂
+  · have hg₁_pos : 0 < g₁ := h1.1
+    have hg₂_pos : 0 < g₂ := h2.1
+    have hn_g1_prime : Nat.Prime (n + g₁) := h1.2.2.1
+    have hshift : g₁ ∈ Finset.Icc 1 (g₂ - 1) := Finset.mem_Icc.mpr (by omega)
+    have hforbidden : ¬ Nat.Prime (n + g₁) := h2.2.2.2.2 g₁ hshift
+    exact absurd hn_g1_prime hforbidden
+  · by_cases hgt : g₂ < g₁
+    · have hg₁_pos : 0 < g₁ := h1.1
+      have hg₂_pos : 0 < g₂ := h2.1
+      have hn_g2_prime : Nat.Prime (n + g₂) := h2.2.2.1
+      have hshift : g₂ ∈ Finset.Icc 1 (g₁ - 1) := Finset.mem_Icc.mpr (by omega)
+      have hforbidden : ¬ Nat.Prime (n + g₂) := h1.2.2.2.2 g₂ hshift
+      exact absurd hn_g2_prime hforbidden
+    · omega
+
+/-- Множества левых концов для разных g дизъюнктны:
+если n принадлежит обоим, то g₁ = g₂. -/
+theorem ConsecutivePrimeStart_left_endpoints_disjoint
+    {g₁ g₂ n x : Nat} (hg : g₁ ≠ g₂)
+    (h1 : ConsecutivePrimeStart g₁ x n) :
+    ¬ ConsecutivePrimeStart g₂ x n := by
+  intro h2
+  exact hg (ConsecutivePrimeStart_gap_unique_for_left h1 h2)
+
+/-- Сумма частот всех промежутков не превосходит π(x).
+Для каждого n существует не более одного g с CPS(g,x,n) (gap uniqueness),
+и n должно быть простым. Следовательно Σ_g F(g,x) ≤ π(x). -/
+theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
+    (Finset.range (x + 1)).sum (fun g => primeGapFrequencyExact g x) ≤
+      primeCountingExact x := by
+  classical
+  -- Per-n bound: sum_g 1[CPS(g,x,n)] <= 1[Prime n]
+  have h_per_n : ∀ n ∈ Finset.range (x + 1),
+      (Finset.range (x + 1)).sum (fun g =>
+        (if ConsecutivePrimeStart g x n then (1 : Nat) else 0)) ≤
+        (if Nat.Prime n then 1 else 0) := by
+    intro n hn
+    by_cases h : ∃ g, g ∈ Finset.range (x + 1) ∧ ConsecutivePrimeStart g x n
+    · rcases h with ⟨g, hg, hcp⟩
+      have huniq : ∀ g' ∈ Finset.range (x + 1),
+          ConsecutivePrimeStart g' x n → g' = g := by
+        intro g' hg' hcp'
+        exact (ConsecutivePrimeStart_gap_unique_for_left (g₁ := g) (g₂ := g') hcp hcp').symm
+      -- Sum = |filter| = |{g}| = 1 via sum_boole
+      rw [Finset.sum_boole]
+      have h_filter : (Finset.range (x + 1)).filter
+          (fun g' => ConsecutivePrimeStart g' x n) = {g} := by
+        ext g'
+        simp only [Finset.mem_filter, Finset.mem_singleton]
+        constructor
+        · intro ⟨hg', hcp'⟩; exact huniq g' hg' hcp'
+        · rintro rfl; exact ⟨hg, hcp⟩
+      rw [h_filter]
+      have hn_prime : Nat.Prime n := hcp.2.1
+      simp [hn_prime]
+    · -- No g: sum = 0
+      rw [Finset.sum_boole]
+      have h_filter : (Finset.range (x + 1)).filter
+          (fun g' => ConsecutivePrimeStart g' x n) = ∅ := by
+        rw [Finset.filter_eq_empty_iff]
+        intro g' hg' hcp'
+        exact h ⟨g', hg', hcp'⟩
+      rw [h_filter]
+      by_cases hp : Nat.Prime n <;> simp [hp]
+  -- Convert and exchange summation
+  have h_eq_count : ∀ g, primeGapFrequencyExact g x =
+      ((Finset.range (x + 1)).filter (fun n => ConsecutivePrimeStart g x n)).card := by
+    intro g; exact primeGapFrequencyExact_eq_count g x
+  simp only [h_eq_count, primeCountingExact]
+  -- Convert both sides to ite sums, exchange, then apply per-n bound
+  have h_lhs : (Finset.range (x + 1)).sum (fun g =>
+      ((Finset.range (x + 1)).filter (fun n => ConsecutivePrimeStart g x n)).card) =
+      (Finset.range (x + 1)).sum (fun n =>
+        (Finset.range (x + 1)).sum (fun g =>
+          (if ConsecutivePrimeStart g x n then (1 : Nat) else 0))) := by
+    classical
+    simp only [Finset.card_eq_sum_ones, Finset.sum_filter]
+    exact Finset.sum_comm ..
+  have h_rhs : ((Finset.range (x + 1)).filter Nat.Prime).card =
+      (Finset.range (x + 1)).sum (fun n => (if Nat.Prime n then (1 : Nat) else 0)) := by
+    classical
+    simp only [Finset.card_eq_sum_ones, Finset.sum_filter]
+  rw [h_lhs, h_rhs]
+  exact Finset.sum_le_sum fun n hn => h_per_n n hn
+
 end
 end PrimeGaps
