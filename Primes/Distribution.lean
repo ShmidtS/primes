@@ -19,26 +19,6 @@ def wignerGOESurmise (t : ℝ) : ℝ :=
 def scaledPrimeGapDensity (g x : Nat) : ℝ :=
   meanPrimeGapScale x * primeGapRelativeFrequency g x
 
-/-- Средний масштаб положителен для `x > 1` (log x > 0 при x > 1). -/
-theorem meanPrimeGapScale_pos {x : Nat} (hx : 1 < x) :
-    0 < meanPrimeGapScale x :=
-  Real.log_pos (by exact_mod_cast hx)
-
-/-- Wigner GOE surmise неотрицательна при `t ≥ 0`. -/
-theorem wignerGOESurmise_nonneg {t : ℝ} (ht : 0 ≤ t) :
-    0 ≤ wignerGOESurmise t := by
-  unfold wignerGOESurmise; positivity
-
-/-- Wigner GOE surmise равна нулю при `t = 0`. -/
-theorem wignerGOESurmise_zero : wignerGOESurmise 0 = 0 := by
-  simp [wignerGOESurmise]
-
-/-- Wigner GOE surmise строго положительна при `t > 0`. -/
-theorem wignerGOESurmise_pos {t : ℝ} (ht : 0 < t) :
-    0 < wignerGOESurmise t := by
-  unfold wignerGOESurmise
-  exact mul_pos (mul_pos (by positivity) ht) (Real.exp_pos _)
-
 /-- Wigner GOE surmise — нечётная функция: `p(-t) = -p(t)`. -/
 theorem wignerGOESurmise_odd (t : ℝ) :
     wignerGOESurmise (-t) = -wignerGOESurmise t := by

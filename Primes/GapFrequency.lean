@@ -32,7 +32,7 @@ def primeGapTerm (g x n : Nat) : Nat := by
     natIndicator (n + g ≤ x) *
       (Finset.Icc 1 (g - 1)).prod (fun h => 1 - primeIndicator (n + h))
 
-/-- Точная частота `F(g, x)` через конечное решето по возможным левым концам. -/
+/-- Точная частота `F(g, x)` через конечное решето. -/
 def primeGapFrequencyExact (g x : Nat) : Nat :=
   (Finset.range (x + 1)).sum (fun n => primeGapTerm g x n)
 
@@ -54,8 +54,12 @@ theorem primeGapFrequencyExact_eq_count (g x : Nat) :
       · rw [if_pos hall]
         exact Finset.prod_eq_one (fun h hh => by simp [hall h hh])
       · rw [if_neg hall]
-        push Not at hall
-        rcases hall with ⟨h, hh, hp⟩
+        have hex : ∃ h ∈ Finset.Icc 1 (g - 1), Nat.Prime (n + h) := by
+          by_contra hcontra
+          apply hall
+          intro h hh hp
+          exact hcontra ⟨h, hh, hp⟩
+        rcases hex with ⟨h, hh, hp⟩
         exact Finset.prod_eq_zero hh (by simp [hp])
     by_cases hgpos : 0 < g <;>
       by_cases hnprime : Nat.Prime n <;>
@@ -64,7 +68,7 @@ theorem primeGapFrequencyExact_eq_count (g x : Nat) :
       simp [hgpos, hnprime, hngprime, hle, hprod]
   · exact Finset.sum_boole (fun n => ConsecutivePrimeStart g x n) (Finset.range (x + 1))
 
-/-- Для нечётного `g > 1` точных промежутков нет (оба конца не могут быть простыми). -/
+/-- Для нечётного `g > 1` точных промежутков нет. -/
 theorem primeGapFrequencyExact_zero_for_odd_g_gt_one (g x : Nat) (hg : Odd g) (hg1 : 1 < g) :
     primeGapFrequencyExact g x = 0 := by
   rw [primeGapFrequencyExact_eq_count]
@@ -109,7 +113,7 @@ def primeDividesPatternAt (g n p : Nat) : Prop :=
 def survivesFiniteEratosthenesLayer (g n y : Nat) : Prop :=
   ∀ p : Nat, Nat.Prime p → p ≤ y → ¬ primeDividesPatternAt g n p
 
-/-- Частота после просеивания арифметических прогрессий `n ≡ -h (mod p)`. -/
+/-- Частота после просеивания арифметических прогрессий. -/
 def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
   classical
   exact ((Finset.range (x + 1)).filter fun n =>
@@ -117,7 +121,7 @@ def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
 
 /-! ### endpointForbiddenResidueCount -/
 
-/-- Количество запрещённых классов вычетов для двух концов `n` и `n+g` modulo `p`. -/
+/-- Количество запрещённых классов вычетов для двух концов modulo `p`. -/
 def endpointForbiddenResidueCount (g p : Nat) : Nat :=
   if p ∣ g then 1 else 2
 
@@ -127,8 +131,7 @@ theorem endpointForbiddenResidueCount_prime_power (g p : Nat) (k : Nat)
     endpointForbiddenResidueCount g p = 1 := by
   have : p ∣ g := by
     subst hg
-    have hpow : p ^ k = p * p ^ (k - 1) := by
-      rw [← Nat.pow_succ']; congr 1; omega
+    have hpow : p ^ k = p * p ^ (k - 1) := by rw [← Nat.pow_succ']; congr 1; omega
     rw [hpow]; exact ⟨p ^ (k - 1), rfl⟩
   simp [endpointForbiddenResidueCount, this]
 
@@ -140,8 +143,7 @@ def mobiusPairKernel (mu : Nat → Int) (g x n : Nat) : Int :=
     (Finset.range (x + 1)).sum (fun e =>
       if d * d ∣ n ∧ e * e ∣ n + g then mu d * mu e else 0))
 
-/-- Гипотеза мёбиусовой пары для частот простых промежутков. Открытая проблема;
-мотивирована обращением Мёбиуса и решётными методами. -/
+/-- Гипотеза мёбиусовой пары. Открытая проблема. -/
 def MobiusPairGapFormulaConjecture (mu : Nat → Int) : Prop :=
   ∀ g x : Nat,
     (primeGapFrequencyExact g x : Int) =
@@ -152,16 +154,14 @@ def primesInArithmeticProgression (a q x : Nat) : Nat := by
   classical
   exact ((Finset.range (x + 1)).filter fun n => Nat.Prime n ∧ n % q = a % q).card
 
-/-- Гипотеза равномерности Дирихле: простые равномерно распределены
-по допустимым классам вычетов `a mod q` при `(a, q) = 1`. Открытая проблема. -/
+/-- Гипотеза равномерности Дирихле. Открытая проблема. -/
 def DirichletUniformityConjecture : Prop :=
   ∀ a q : Nat, Nat.Coprime a q → 0 < q →
     Tendsto (fun x : Nat =>
       (primesInArithmeticProgression a q x : ℝ) /
         ((primeCountingExact x : ℝ) / (Nat.totient q : ℝ))) atTop (nhds 1)
 
-/-- Гипотеза псевдослучайности простых промежутков. Открытая проблема;
-мотивирована Cramér-моделью (1936) и гипотезой Харди--Литтлвуда. -/
+/-- Гипотеза псевдослучайности простых промежутков. Открытая проблема. -/
 def PrimeGapPseudorandomnessConjecture (A normalization : Nat → ℝ) : Prop :=
   ∀ g : Nat,
     Tendsto (fun x : Nat => pairCorrelationError A g x / normalization x) atTop (nhds 0)
@@ -188,56 +188,10 @@ theorem normalizedMangoldtPrime_eq_realPrimeIndicator (n : Nat) :
 def normalizedMangoldtEndpointWeight (g n : Nat) : ℝ :=
   normalizedMangoldtPrime n * normalizedMangoldtPrime (n + g)
 
-/-- После нормировки по логарифмам Λ-свёртка совпадает с индикаторами простоты. -/
-theorem normalizedMangoldtEndpointWeight_eq_prime_indicators (g n : Nat) :
-    normalizedMangoldtEndpointWeight g n =
-      realPrimeIndicator n * realPrimeIndicator (n + g) := by
-  simp [normalizedMangoldtEndpointWeight, normalizedMangoldtPrime_eq_realPrimeIndicator]
+/-! ### Consecutive prime pair injectivity and gap uniqueness
 
-/-! ### primeCountingExact properties -/
-
-/-- `primeCountingExact` монотонна: π(x) ≤ π(y) при x ≤ y. -/
-theorem primeCountingExact_monotone {x y : Nat} (hxy : x ≤ y) :
-    primeCountingExact x ≤ primeCountingExact y := by
-  unfold primeCountingExact
-  refine Finset.card_le_card ?_
-  intro a ha
-  simp only [Finset.mem_filter] at ha ⊢
-  refine ⟨?_, ha.2⟩
-  simp only [Finset.mem_range] at ha ⊢
-  omega
-
-/-- `primeCountingExact` равна сумме индикаторов простоты. -/
-theorem primeCountingExact_eq_sum_primeIndicator (x : Nat) :
-    primeCountingExact x = (Finset.range (x + 1)).sum (fun n => primeIndicator n) := by
-  unfold primeCountingExact primeIndicator natIndicator
-  classical
-  rw [Finset.sum_boole, Nat.cast_id]
-
-/-- `primeCountingExact (x + 1)` добавляет индикатор простоты `x + 1`. -/
-theorem primeCountingExact_succ (x : Nat) :
-    primeCountingExact (x + 1) =
-      primeCountingExact x + (if Nat.Prime (x + 1) then 1 else 0) := by
-  rw [primeCountingExact_eq_sum_primeIndicator, primeCountingExact_eq_sum_primeIndicator]
-  rw [show (x + 1) + 1 = x + 2 by omega, Finset.sum_range_succ]
-  classical
-  by_cases hp : Nat.Prime (x + 1) <;> simp [hp, primeIndicator, natIndicator]
-
-/-- `primeGapFrequencyExact` неотрицательна. -/
-theorem primeGapFrequencyExact_nonneg (g x : Nat) :
-    0 ≤ primeGapFrequencyExact g x := by
-  unfold primeGapFrequencyExact primeGapTerm primeIndicator natIndicator
-  classical
-  apply Finset.sum_nonneg
-  intro n _
-  split_ifs <;> simp
-
-/-! ### Consecutive prime pair injectivity
-
-Ключевая комбинаторная теорема: отображение (g, n) ↦ n + g, сопоставляющее
-паре соседних простых их правый конец, инъективно. Это означает, что
-каждое простое p > 2 является правым концом не более одной пары соседних
-простых. Следствие: сумма частот всех промежутков не превосходит π(x) - 1.
+Ключевые комбинаторные теоремы: инъективность отображения (g, n) ↦ n + g
+и единственность gap для фиксированного левого конца.
 -/
 
 /-- Если (n₁, n₁+g₁) и (n₂, n₂+g₂) — пары соседних простых с одним правым концом,
@@ -253,52 +207,21 @@ theorem ConsecutivePrimeStart_left_injective
   · have hg₁_pos : 0 < g₁ := h1.1
     have hg₂_pos : 0 < g₂ := h2.1
     have hn₂_prime : Nat.Prime n₂ := h2.2.1
-    have hdiff_pos : 0 < n₂ - n₁ := by omega
-    have hdiff_lt : n₂ - n₁ < g₁ := by omega
     have hmem : n₂ - n₁ ∈ Finset.Icc 1 (g₁ - 1) := Finset.mem_Icc.mpr (by omega)
     have hforbidden : ¬ Nat.Prime (n₁ + (n₂ - n₁)) := h1.2.2.2.2 _ hmem
     have : n₁ + (n₂ - n₁) = n₂ := by omega
     rw [this] at hforbidden
     exact absurd hn₂_prime hforbidden
   · by_cases hgt : n₂ < n₁
-    · have hg₂_pos : 0 < g₂ := h2.1
-      have hg₁_pos : 0 < g₁ := h1.1
+    · have hg₁_pos : 0 < g₁ := h1.1
+      have hg₂_pos : 0 < g₂ := h2.1
       have hn₁_prime : Nat.Prime n₁ := h1.2.1
-      have hdiff_pos : 0 < n₁ - n₂ := by omega
-      have hdiff_lt : n₁ - n₂ < g₂ := by omega
       have hmem : n₁ - n₂ ∈ Finset.Icc 1 (g₂ - 1) := Finset.mem_Icc.mpr (by omega)
       have hforbidden : ¬ Nat.Prime (n₂ + (n₁ - n₂)) := h2.2.2.2.2 _ hmem
       have : n₂ + (n₁ - n₂) = n₁ := by omega
       rw [this] at hforbidden
       exact absurd hn₁_prime hforbidden
     · omega
-
-/-- Правый конец пары соседних простых строго больше 2:
-n ≥ 2 (простое), g > 0, значит n + g > 2. -/
-theorem ConsecutivePrimeStart_right_endpoint_gt_two
-    {g n x : Nat} (h : ConsecutivePrimeStart g x n) :
-    2 < n + g := by
-  have hn_ge_2 : 2 ≤ n := Nat.Prime.two_le h.2.1
-  have hg_pos : 0 < g := h.1
-  omega
-
-/-- Каждое простое p > 2 является правым концом не более одной пары соседних
-простых. Это прямое следствие инъективности. -/
-theorem ConsecutivePrimeStart_right_endpoint_unique
-    {g₁ g₂ n₁ n₂ x : Nat}
-    (h1 : ConsecutivePrimeStart g₁ x n₁)
-    (h2 : ConsecutivePrimeStart g₂ x n₂)
-    (heq : n₁ + g₁ = n₂ + g₂) : g₁ = g₂ ∧ n₁ = n₂ := by
-  have hn : n₁ = n₂ := ConsecutivePrimeStart_left_injective h1 h2 heq
-  exact ⟨by omega, hn⟩
-
-/-! ### Gap uniqueness for fixed left endpoint
-
-Для фиксированного левого конца n существует не более одного g,
-такого что (n, n+g) — пара соседних простых. Если g₁ < g₂, то n+g₁ —
-простое, лежащее строго между n и n+g₂, противоречие.
-Это даёт дизъюнктность множеств {n : CPS(g,x,n)} по разным g.
--/
 
 /-- Для фиксированного левого конца n существует не более одного g
 с ConsecutivePrimeStart g x n. Если g₁ ≠ g₂, то меньший промежуток
@@ -311,35 +234,25 @@ theorem ConsecutivePrimeStart_gap_unique_for_left
   · have hg₁_pos : 0 < g₁ := h1.1
     have hg₂_pos : 0 < g₂ := h2.1
     have hn_g1_prime : Nat.Prime (n + g₁) := h1.2.2.1
-    have hshift : g₁ ∈ Finset.Icc 1 (g₂ - 1) := Finset.mem_Icc.mpr (by omega)
-    have hforbidden : ¬ Nat.Prime (n + g₁) := h2.2.2.2.2 g₁ hshift
+    have hmem : g₁ ∈ Finset.Icc 1 (g₂ - 1) := Finset.mem_Icc.mpr (by omega)
+    have hforbidden : ¬ Nat.Prime (n + g₁) := h2.2.2.2.2 g₁ hmem
     exact absurd hn_g1_prime hforbidden
   · by_cases hgt : g₂ < g₁
     · have hg₁_pos : 0 < g₁ := h1.1
       have hg₂_pos : 0 < g₂ := h2.1
       have hn_g2_prime : Nat.Prime (n + g₂) := h2.2.2.1
-      have hshift : g₂ ∈ Finset.Icc 1 (g₁ - 1) := Finset.mem_Icc.mpr (by omega)
-      have hforbidden : ¬ Nat.Prime (n + g₂) := h1.2.2.2.2 g₂ hshift
+      have hmem : g₂ ∈ Finset.Icc 1 (g₁ - 1) := Finset.mem_Icc.mpr (by omega)
+      have hforbidden : ¬ Nat.Prime (n + g₂) := h1.2.2.2.2 g₂ hmem
       exact absurd hn_g2_prime hforbidden
     · omega
 
-/-- Множества левых концов для разных g дизъюнктны:
-если n принадлежит обоим, то g₁ = g₂. -/
-theorem ConsecutivePrimeStart_left_endpoints_disjoint
-    {g₁ g₂ n x : Nat} (hg : g₁ ≠ g₂)
-    (h1 : ConsecutivePrimeStart g₁ x n) :
-    ¬ ConsecutivePrimeStart g₂ x n := by
-  intro h2
-  exact hg (ConsecutivePrimeStart_gap_unique_for_left h1 h2)
-
 /-- Сумма частот всех промежутков не превосходит π(x).
 Для каждого n существует не более одного g с CPS(g,x,n) (gap uniqueness),
-и n должно быть простым. Следовательно Σ_g F(g,x) ≤ π(x). -/
+и n должно быть простым. -/
 theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
     (Finset.range (x + 1)).sum (fun g => primeGapFrequencyExact g x) ≤
       primeCountingExact x := by
   classical
-  -- Per-n bound: sum_g 1[CPS(g,x,n)] <= 1[Prime n]
   have h_per_n : ∀ n ∈ Finset.range (x + 1),
       (Finset.range (x + 1)).sum (fun g =>
         (if ConsecutivePrimeStart g x n then (1 : Nat) else 0)) ≤
@@ -351,33 +264,27 @@ theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
           ConsecutivePrimeStart g' x n → g' = g := by
         intro g' hg' hcp'
         exact (ConsecutivePrimeStart_gap_unique_for_left (g₁ := g) (g₂ := g') hcp hcp').symm
-      -- Sum = |filter| = |{g}| = 1 via sum_boole
       rw [Finset.sum_boole]
       have h_filter : (Finset.range (x + 1)).filter
           (fun g' => ConsecutivePrimeStart g' x n) = {g} := by
-        ext g'
-        simp only [Finset.mem_filter, Finset.mem_singleton]
+        ext g'; simp only [Finset.mem_filter, Finset.mem_singleton]
         constructor
         · intro ⟨hg', hcp'⟩; exact huniq g' hg' hcp'
         · rintro rfl; exact ⟨hg, hcp⟩
       rw [h_filter]
       have hn_prime : Nat.Prime n := hcp.2.1
       simp [hn_prime]
-    · -- No g: sum = 0
-      rw [Finset.sum_boole]
+    · rw [Finset.sum_boole]
       have h_filter : (Finset.range (x + 1)).filter
           (fun g' => ConsecutivePrimeStart g' x n) = ∅ := by
         rw [Finset.filter_eq_empty_iff]
-        intro g' hg' hcp'
-        exact h ⟨g', hg', hcp'⟩
+        intro g' hg' hcp'; exact h ⟨g', hg', hcp'⟩
       rw [h_filter]
       by_cases hp : Nat.Prime n <;> simp [hp]
-  -- Convert and exchange summation
   have h_eq_count : ∀ g, primeGapFrequencyExact g x =
       ((Finset.range (x + 1)).filter (fun n => ConsecutivePrimeStart g x n)).card := by
     intro g; exact primeGapFrequencyExact_eq_count g x
   simp only [h_eq_count, primeCountingExact]
-  -- Convert both sides to ite sums, exchange, then apply per-n bound
   have h_lhs : (Finset.range (x + 1)).sum (fun g =>
       ((Finset.range (x + 1)).filter (fun n => ConsecutivePrimeStart g x n)).card) =
       (Finset.range (x + 1)).sum (fun n =>

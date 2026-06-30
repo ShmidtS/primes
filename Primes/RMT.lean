@@ -9,9 +9,8 @@ noncomputable section
 
 open Filter
 
-/-- Детерминантная модель частот простых промежутков: относительная частота
-`F(g, x)/π(x)` аппроксимируется суммой взвешенных детерминантов конечномерных
-ядер. Открытая проблема; мотивирована GUE-гипотезой Монтгомери--Одлыжко (1973). -/
+/-- Детерминантная модель частот простых промежутков. Открытая проблема;
+мотивирована GUE-гипотезой Монтгомери--Одлыжко (1973). -/
 def DeterminantalPrimeGapConjecture
     (kernel : (x g m : Nat) → Fin m → Fin m → ℝ) (weight : Nat → ℝ) : Prop :=
   ∀ g : Nat,
@@ -28,12 +27,7 @@ theorem det_exactOneByOneGapKernel (g x : Nat) :
     Matrix.det (exactOneByOneGapKernel g x) = primeGapRelativeFrequency g x := by
   simp [exactOneByOneGapKernel]
 
-/-- Гипотеза GOE-Вигнера для простых промежутков: нормированные промежутки
-между последовательными простыми имеют предельную плотность, совпадающую
-с Wigner surmise для GOE, умноженную на `C₂` (twin prime constant).
-Открытая проблема; численные свидетельства (Odlyzko, 1987) подтверждают
-GUE-модель для нулей ζ, но для самих простых промежутков GOE-плотность
-остаётся гипотезой. -/
+/-- Гипотеза GOE-Вигнера для простых промежутков. Открытая проблема. -/
 def GOEWignerPrimeGapConjecture (C₂ : ℝ) : Prop :=
   ∀ (g : Nat → Nat) (τ : ℝ),
     Tendsto (fun x : Nat => (g x : ℝ) / meanPrimeGapScale x) atTop (nhds τ) →

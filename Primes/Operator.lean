@@ -17,7 +17,7 @@ def primeSummatoryOperator (f : ArithmeticFunction) (n : Nat) : ℝ :=
 def IsPrimeSummatoryEigenpair (f : ArithmeticFunction) (eigenvalue : ℝ) : Prop :=
   f ≠ 0 ∧ ∀ n : Nat, primeSummatoryOperator f n = eigenvalue * f n
 
-/-- Любая собственная пара удовлетворяет локальной рекурсии оператора:
+/-- Любая собственная пара удовлетворяет локальной рекурсии:
 при переходе от `n` к `n+1` добавляется только вклад `n+1`. -/
 theorem primeSummatoryEigenpair_recurrence {f : ArithmeticFunction} {eigenvalue : ℝ}
     (h : IsPrimeSummatoryEigenpair f eigenvalue) (n : Nat) :

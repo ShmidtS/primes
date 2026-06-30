@@ -12,11 +12,9 @@ open Filter
 
 /-! ## Hardy-Littlewood conjectures and Gallagher's theorem
 
-Формализация гипотезы Харди--Литтлвуда для пар и k-кортежей простых чисел,
+Формализация гипотезы Харди--Литтлвуда для пар и k-кортежей,
 а также теорема Галлагера о пуассоновском пределе.
 -/
-
-/-! ### Hardy-Littlewood pair conjecture -/
 
 /-- Главный член Hardy--Littlewood для пар простых с промежутком `g`. -/
 def hardyLittlewoodMainTerm (C₂ : ℝ) (g : Nat) (x : ℝ) : ℝ :=
@@ -31,9 +29,7 @@ def primePairCount (g x : Nat) : Nat := by
 def AsymptoticEquivalentAtTop (f h : Nat → ℝ) : Prop :=
   Tendsto (fun x : Nat => f x / h x) atTop (nhds 1)
 
-/-- Гипотеза Харди--Литтлвуда для пар (1923): число пар простых `(p, p+g)`
-с `p ≤ x` асимптотически равно `𝔖(g) · li₂(x)`. Открытая проблема;
-для `g = 2` это гипотеза о простых близнецах. -/
+/-- Гипотеза Харди--Литтлвуда для пар (1923). Открытая проблема. -/
 def HardyLittlewoodPairConjecture (C₂ : ℝ) : Prop :=
   ∀ g : Nat, 0 < singularSeriesFactor C₂ g →
     AsymptoticEquivalentAtTop
@@ -69,9 +65,7 @@ def primeTupleCount (H : Finset ℤ) (x : Nat) : Nat := by
   let p : ℕ → Prop := fun n => ∀ h ∈ H, Nat.Prime ((n : ℤ) + h).toNat
   exact ((Finset.range (x + 1)).filter p).card
 
-/-- Гипотеза Харди--Литтлвуда для k-кортежей (1923). Открытая проблема;
-обобщает гипотезу о простых близнецах. Частичные результаты: Green--Tao (2004),
-Maynard--Tao (2013). -/
+/-- Гипотеза Харди--Литтлвуда для k-кортежей (1923). Открытая проблема. -/
 def HardyLittlewoodKTupleConjecture : Prop :=
   ∀ H : Finset ℤ, AdmissibleSet H → ∀ S : ℝ, IsTupleSingularSeries H S →
     AsymptoticEquivalentAtTop
@@ -90,21 +84,19 @@ def normalizedPrimeGapCountLE (T : ℝ) (x : Nat) : Nat := by
   exact ((Finset.range (x + 1)).filter fun p =>
     ∃ g : Nat, ConsecutivePrimeStart g (p + g) p ∧ (g : ℝ) ≤ T * Real.log (x : ℝ)).card
 
-/-- Гипотеза пуассоновского предела Галлагера: доля простых `p ≤ x`, для которых
-нормированный промежуток `(p' - p) / log x ≤ T`, стремится к `1 - e^{-T}`.
-Открытая проблема; доказана Галлагером (1976) при условии HL k-tuple. -/
+/-- Гипотеза пуассоновского предела Галлагера. Открытая проблема. -/
 def GallaghersPoissonLimitConjecture : Prop :=
   ∀ T : ℝ, 0 ≤ T →
     Tendsto (fun x : Nat => (normalizedPrimeGapCountLE T x : ℝ) /
       (primeCountingExact x : ℝ)) atTop (nhds (1 - Real.exp (-T)))
 
-/-- Теорема Галлагера (1976): HL k-tuple conjecture влечёт пуассоновский предел. -/
+/-- Теорема Галлагера (1976): HL k-tuple влечёт пуассоновский предел. -/
 def GallaghersTheoremFromHL : Prop :=
   HardyLittlewoodKTupleConjecture → GallaghersPoissonLimitConjecture
 
 /-! ### Admissibility proofs -/
 
-/-- Произвольный singleton `{h}` допустим: берём класс `h + 1 mod p`. -/
+/-- Произвольный singleton `{h}` допустим. -/
 theorem admissibleSet_singleton (h : ℤ) : AdmissibleSet ({h} : Finset ℤ) := by
   intro p hp
   letI : Fact (Nat.Prime p) := ⟨hp⟩
@@ -120,10 +112,7 @@ theorem admissibleSet_singleton (h : ℤ) : AdmissibleSet ({h} : Finset ℤ) := 
     exact (add_left_cancel hstep).symm
   exact absurd h1 one_ne_zero
 
-/-! ### Pair admissibility -/
-
-/-- Пара `{0, g}` допустима при чётном `g > 0`: для `p = 2` оба конца
-попадают в один класс, для `p > 2` есть свободный класс. -/
+/-- Пара `{0, g}` допустима при чётном `g > 0`. -/
 theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (_hg0 : 0 < g) :
     AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
   intro p hp
@@ -179,8 +168,7 @@ theorem admissibleSet_pair_of_even {g : Nat} (hg : Even g) (_hg0 : 0 < g) :
       | inl h0 => subst h; exact ⟨(0 : ℤ), by simp, heq⟩
       | inr hg_eq => subst h; exact ⟨(g : ℤ), by simp, heq⟩
 
-/-- Пара `{0, g}` **недопустима** для нечётного `g > 0`: при `p = 2`
-оба класса `0` и `1` заняты, свободного класса нет.
+/-- Пара `{0, g}` **недопустима** для нечётного `g > 0`.
 Полная характеризация: `{0, g}` допустима ⟺ `g` чётно (для `g > 0`). -/
 theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (_hg0 : 0 < g) :
     ¬ AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) := by
@@ -191,7 +179,6 @@ theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (_hg0 : 0 < g) :
   have hg_mod : (g : ZMod 2) = 1 := ZMod.natCast_eq_one_iff_odd.mpr hg
   have hg_ne : (g : ZMod 2) ≠ a := fun heq => ha (g : ℤ) (by simp) heq
   have ha_val : a = 0 ∨ a = 1 := by
-    have : a ∈ (Finset.univ : Finset (ZMod 2)) := Finset.mem_univ _
     match a with
     | ⟨0, _⟩ => exact Or.inl rfl
     | ⟨1, _⟩ => exact Or.inr rfl
@@ -219,40 +206,6 @@ theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
     cases hh with
     | inl h0 => rw [h0]; simpa [Int.toNat_natCast] using hn
     | inr hg => rw [hg]; simpa [hcast] using hng
-
-/-! ### primePairCount properties -/
-
-/-- `primePairCount` не превосходит `primeCountingExact`. -/
-theorem primePairCount_le_primeCountingExact (g x : Nat) :
-    primePairCount g x ≤ primeCountingExact x := by
-  unfold primePairCount primeCountingExact
-  refine Finset.card_le_card ?_
-  intro p hp
-  simp only [Finset.mem_filter] at hp ⊢
-  exact ⟨hp.1, hp.2.1⟩
-
-/-- `primePairCount` монотонна по правому концу. -/
-theorem primePairCount_monotone {g x y : Nat} (hxy : x ≤ y) :
-    primePairCount g x ≤ primePairCount g y := by
-  unfold primePairCount
-  refine Finset.card_le_card ?_
-  intro a ha
-  simp only [Finset.mem_filter] at ha ⊢
-  refine ⟨?_, ha.2⟩
-  simp only [Finset.mem_range] at ha ⊢
-  omega
-
-/-- `primeGapFrequencyExact` не превосходит `primePairCount`
-(дополнительное условие отсутствия простых внутри). -/
-theorem primeGapFrequencyExact_le_primePairCount (g x : Nat) :
-    primeGapFrequencyExact g x ≤ primePairCount g x := by
-  rw [primeGapFrequencyExact_eq_count, primePairCount]
-  classical
-  refine Finset.card_le_card ?_
-  intro n hn
-  simp only [Finset.mem_filter] at hn
-  unfold ConsecutivePrimeStart at hn
-  exact Finset.mem_filter.mpr ⟨hn.1, hn.2.2.1, hn.2.2.2.1⟩
 
 end
 end PrimeGaps

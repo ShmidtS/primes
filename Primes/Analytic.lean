@@ -12,15 +12,11 @@ open Filter
 /-! ## Analytic number theory: Chebyshev, zeta, Perron, Mobius
 
 Определения для аналитической теории простых промежутков.
-Тривиальные следствия (ψ_succ = sum_range_succ, ψ_nonneg = sum_nonneg, и т.д.)
-удалены — они суть прямые применения лемм Mathlib о Finset.
 -/
 
 /-- Функция Чебышева `ψ(x) = ∑_{n≤x} Λ(n)`. -/
 def chebyshevPsi (x : Nat) : ℝ :=
   (Finset.range (x + 1)).sum fun n => _root_.ArithmeticFunction.vonMangoldt n
-
-/-! ### Chebyshev explicit formula -/
 
 /-- Нуль дзета-функции Римана, исключая полюс `1` и нормировочную точку `0`. -/
 def RiemannZetaZero (ρ : ℂ) : Prop :=
@@ -29,7 +25,7 @@ def RiemannZetaZero (ρ : ℂ) : Prop :=
 /-- Один вклад нетривиального нуля в явной формуле для `ψ`: `x^ρ / ρ`. -/
 def chebyshevZeroTerm (x ρ : ℂ) : ℂ := x ^ ρ / ρ
 
-/-- Усечённая явная формула Чебышева: главный член минус конечная сумма по нулям. -/
+/-- Усечённая явная формула Чебышева. -/
 def truncatedChebyshevExplicitFormula (zeros : Finset ℂ) (x : ℂ) : ℂ :=
   x - zeros.sum (fun ρ => chebyshevZeroTerm x ρ)
 
@@ -37,14 +33,11 @@ def truncatedChebyshevExplicitFormula (zeros : Finset ℂ) (x : ℂ) : ℂ :=
 def chebyshevExplicitRemainder (x : ℝ) : ℝ :=
   -Real.log (2 * Real.pi) - (1 / 2) * Real.log (1 - x⁻¹ ^ 2)
 
-/-- Явная формула Чебышева через нули ζ: `ψ(x) = x - Σ_ρ x^ρ/ρ + remainder`.
-Открытая проблема; формальная оболочка, требующая уточнения вклада нулей. -/
+/-- Явная формула Чебышева через нули ζ. Открытая проблема. -/
 def ChebyshevExplicitFormulaConjecture (zeroContribution : ℂ → ℂ) : Prop :=
   ∀ x : Nat,
     (chebyshevPsi x : ℂ) = (x : ℂ) - zeroContribution (x : ℂ) +
       (chebyshevExplicitRemainder (x : ℝ) : ℂ)
-
-/-! ### Perron formula -/
 
 /-- Ядро Перрона/Меллина `x^s / s`. -/
 def perronKernel (x s : ℂ) : ℂ := x ^ s / s
@@ -66,8 +59,6 @@ opaque gapDirichletSeries : Nat → ℂ → ℂ := fun _ _ => 0
 def PerronGapFormulaConjecture (g x : Nat) : Prop :=
   PerronExtracts (gapDirichletCoeff g x) (gapDirichletSeries g)
 
-/-! ### Summatory Mobius function -/
-
 /-- Суммарная функция Мёбиуса `M(x) = ∑_{n≤x} μ(n)`. -/
 def summatoryMoebius (x : Nat) : ℤ :=
   (Finset.range (x + 1)).sum fun n => _root_.ArithmeticFunction.moebius n
@@ -75,8 +66,6 @@ def summatoryMoebius (x : Nat) : ℤ :=
 /-- Формальная оболочка подхода Мингацина/Глауде. -/
 def mingazinMoebiusFilteredGapWeight (g x n : Nat) : ℤ × ℂ :=
   (summatoryMoebius n, gapDirichletCoeff g x n)
-
-/-! ### Zeta zeros and explicit formula for gaps -/
 
 /-- Гипотеза Римана: все нетривиальные нули ζ лежат на критической прямой
 `Re(s) = 1/2`. Clay Mathematics Institute Millennium Prize Problem. -/
@@ -99,8 +88,7 @@ def zetaGapRemainder (main : Nat → Nat → ℂ) (zeros : Nat → Finset ℂ)
     (g x : Nat) : ℂ :=
   (primeGapFrequencyExact g x : ℂ) - main g x - zetaGapOscillation (zeros x) g x
 
-/-- Расширенная гипотеза о дзета-нулях и простых промежутках: RH + асимптотическая
-малость нормированного остатка. Открытая проблема. -/
+/-- Расширенная гипотеза о дзета-нулях и простых промежутках. Открытая проблема. -/
 def ZetaExplicitPrimeGapConjecture (ζ : ℂ → ℂ) (main : Nat → Nat → ℂ)
     (zeros : Nat → Finset ℂ) (normalization : Nat → ℝ) : Prop :=
   RiemannHypothesis ζ ∧
