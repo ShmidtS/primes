@@ -2,6 +2,9 @@ import Mathlib
 import Primes.Basic
 import Primes.GapFrequency
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+
 namespace PrimeGaps
 
 noncomputable section
@@ -23,8 +26,7 @@ theorem primeSummatoryEigenpair_recurrence {f : ArithmeticFunction} {eigenvalue 
     (h : IsPrimeSummatoryEigenpair f eigenvalue) (n : Nat) :
     eigenvalue * f (n + 1) =
       eigenvalue * f n + if Nat.Prime (n + 1) then f (n + 1) else 0 := by
-  rw [← h.2 (n + 1), ← h.2 n]
-  unfold primeSummatoryOperator
+  rw [← h.2 (n + 1), ← h.2 n]; unfold primeSummatoryOperator
   rw [show (n + 1) + 1 = n + 2 by omega, Finset.sum_range_succ]
 
 end

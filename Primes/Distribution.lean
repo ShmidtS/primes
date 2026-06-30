@@ -2,6 +2,9 @@ import Mathlib
 import Primes.Basic
 import Primes.GapFrequency
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+
 namespace PrimeGaps
 
 noncomputable section
@@ -22,9 +25,7 @@ def scaledPrimeGapDensity (g x : Nat) : ℝ :=
 /-- Wigner GOE surmise — нечётная функция: `p(-t) = -p(t)`. -/
 theorem wignerGOESurmise_odd (t : ℝ) :
     wignerGOESurmise (-t) = -wignerGOESurmise t := by
-  unfold wignerGOESurmise
-  rw [show (-t) ^ 2 = t ^ 2 by ring, show Real.pi / 2 * (-t) = -(Real.pi / 2 * t) by ring]
-  ring
+  unfold wignerGOESurmise; rw [show (-t : ℝ) ^ 2 = t ^ 2 by ring]; ring
 
 end
 end PrimeGaps

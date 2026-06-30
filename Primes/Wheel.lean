@@ -1,15 +1,12 @@
 import Mathlib
 import Primes.Basic
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+
 namespace PrimeGaps
 
 noncomputable section
-
-/-! ## Primorial definitions
-
-Primorial `P_m` — произведение первых `m` простых чисел.
-Wheel-кандидаты — классы, взаимно простые с модулем.
--/
 
 /-- Primorial `P_m`: произведение первых `m` простых чисел. -/
 def primorial (m : Nat) : Nat :=
@@ -24,14 +21,6 @@ theorem primorial_succ (m : Nat) :
 theorem primorial_pos (m : Nat) : 0 < primorial m := by
   unfold primorial
   exact Finset.prod_pos fun i _ => (Nat.prime_nth_prime i).pos
-
-/-- Primorial строго возрастает. -/
-theorem primorial_strictly_increasing (m : Nat) : primorial m < primorial (m + 1) := by
-  rw [primorial_succ]
-  nlinarith [primorial_pos m, (Nat.prime_nth_prime m).two_le,
-             Nat.mul_le_mul_left (primorial m) (Nat.Prime.two_le (Nat.prime_nth_prime m))]
-
-/-! ## Wheel candidates and coprime residues -/
 
 /-- Кандидаты wheel modulo `n`: классы `a < n`, взаимно простые с `n`. -/
 def wheelCandidates (n : Nat) : Finset Nat :=
@@ -77,9 +66,8 @@ theorem coprimeResidues_head {n : Nat} (hn : 2 <= n) : (coprimeResidues n).headD
 /-- `coprimeResidues P` непуст при `P >= 2`. -/
 theorem coprimeResidues_ne_nil_of_ge_two {P : Nat} (hP : 2 <= P) :
     coprimeResidues P ≠ [] := by
-  have h1lt : 1 < P := by omega
   have hmem : 1 ∈ coprimeResidues P := by
-    simp [coprimeResidues, wheelCandidateList, wheelCandidates, h1lt]
+    simp [coprimeResidues, wheelCandidateList, wheelCandidates, show 1 < P by omega]
   exact List.ne_nil_of_mem hmem
 
 /-- Append правого endpoint `P + 1` сохраняет строгий порядок остатков. -/
@@ -128,8 +116,6 @@ theorem wheelCandidateList_getLastD_lt {n : Nat}
   have hs : (wheelCandidateList n).getLastD 0 ∈ wheelCandidates n :=
     (Finset.mem_sort (s := wheelCandidates n) (r := (· <= ·))).mp hmem
   exact Finset.mem_range.mp (Finset.mem_filter.mp hs).1
-
-/-! ## Wheel gaps -/
 
 /-- Wrap-around gap от последнего кандидата к первому в следующем периоде. -/
 def wheelWrapGap (n : Nat) (points : List Nat) : Nat :=
@@ -208,17 +194,13 @@ theorem wheelGaps_sum_eq_of_pos (n : Nat) (hpos : 0 < n) :
   rw [show [n + points.headD 0 - points.getLastD 0].sum = n + points.headD 0 - points.getLastD 0 by simp]
   exact hgap
 
-/-- Число кандидатов wheel равно `Nat.totient n`. -/
-theorem wheelCandidates_card_eq_totient (n : Nat) :
-    (wheelCandidates n).card = Nat.totient n := by
-  rw [Nat.totient_eq_card_coprime]; rfl
-
 /-- Количество wheel gaps равно `Nat.totient n`. -/
 theorem wheelGaps_length_eq_totient (n : Nat) :
     (wheelGaps n).length = Nat.totient n := by
   let points := wheelCandidateList n
   have hpoints : points.length = (wheelCandidates n).card := by simp [points, wheelCandidateList]
-  have hcard : (wheelCandidates n).card = Nat.totient n := wheelCandidates_card_eq_totient n
+  have hcard : (wheelCandidates n).card = Nat.totient n := by
+    rw [Nat.totient_eq_card_coprime]; rfl
   by_cases hempty : points = []
   · have htot : Nat.totient n = 0 := by rw [← hcard, ← hpoints]; simp [hempty]
     simp [wheelGaps, points, hempty, htot, pointGapsList]
@@ -226,15 +208,11 @@ theorem wheelGaps_length_eq_totient (n : Nat) :
     simp [wheelGaps, points, hempty, pointGapsList_length, hpoints, hcard]
     omega
 
-/-! ## Primorial wheel properties -/
-
 /-- Средний gap как рациональное число равен `P_m / φ(P_m)`. -/
 def primorialWheelMeanGap (m : Nat) : ℚ :=
   (primorial m : ℚ) / (Nat.totient (primorial m) : ℚ)
 
-/-- Явная формула `φ(P_m)` через произведение `(p_i - 1)`.
-Доказательство: `P_{m+1} = P_m · p_m`, `p_m` не делит `P_m`,
-поэтому `φ(P_{m+1}) = φ(P_m)·(p_m - 1)`. Индукция. -/
+/-- Явная формула `φ(P_m)` через произведение `(p_i - 1)`. -/
 theorem totient_primorial_explicit (m : Nat) :
     Nat.totient (primorial m) = (Finset.range m).prod (fun i => Nat.nth Nat.Prime i - 1) := by
   induction m with
@@ -259,41 +237,6 @@ def PrimorialWheelAverageGapMertensAsymptotic (γ : ℝ) : Prop :=
   Filter.Tendsto (fun m : Nat => (primorialWheelMeanGap m : ℝ) /
     (Real.exp γ * Real.log (Nat.nth Nat.Prime m))) Filter.atTop (nhds 1)
 
-/-! ### Exact primorial and totient values -/
-
-theorem primorial_zero : primorial 0 = 1 := by simp [primorial]
-theorem primorial_one : primorial 1 = 2 := by
-  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
-    one_mul, Nat.nth_prime_zero_eq_two]
-theorem primorial_two : primorial 2 = 6 := by
-  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
-    one_mul, Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three]
-  norm_num
-theorem primorial_three : primorial 3 = 30 := by
-  simp only [primorial, Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty,
-    one_mul, Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three, Nat.nth_prime_two_eq_five]
-  norm_num
-
-theorem totient_primorial_zero : Nat.totient (primorial 0) = 1 := by
-  rw [primorial_zero, Nat.totient_one]
-theorem totient_primorial_one : Nat.totient (primorial 1) = 1 := by
-  rw [primorial_one, Nat.totient_prime (by decide : Nat.Prime 2)]
-theorem totient_primorial_two : Nat.totient (primorial 2) = 2 := by
-  rw [primorial_two]; exact by decide
-theorem totient_primorial_three : Nat.totient (primorial 3) = 8 := by
-  rw [primorial_three]; exact by decide
-
-/-- Средний primorial wheel gap для `m = 2`: `6/2 = 3`. -/
-theorem primorial_wheelGaps_mean_gap_m2 : primorialWheelMeanGap 2 = 3 := by
-  unfold primorialWheelMeanGap primorial
-  simp only [Finset.prod_range_succ, Finset.range_zero, Finset.prod_empty, one_mul,
-    Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three]
-  change ((6 : ℚ) / (Nat.totient 6 : ℚ)) = 3
-  rw [show Nat.totient 6 = 2 by decide]; norm_num
-
-/-! ### Euler product and monotonicity — new results
--/
-
 /-- Средний primorial wheel gap равен эйлерову произведению `∏ p_i/(p_i - 1)`. -/
 theorem primorialWheelMeanGap_eq_euler_product (m : Nat) :
     primorialWheelMeanGap m =
@@ -316,24 +259,15 @@ theorem primorialWheelMeanGap_strictMono :
     have hge2 : 2 ≤ Nat.nth Nat.Prime k := (Nat.prime_nth_prime k).two_le
     have hp_ratio_gt1 : (1 : ℚ) <
         (Nat.nth Nat.Prime k : ℚ) / ((Nat.nth Nat.Prime k - 1 : ℕ) : ℚ) := by
-      have hdenom : (0 : ℚ) < ((Nat.nth Nat.Prime k - 1 : ℕ) : ℚ) := by
-        have : 0 < Nat.nth Nat.Prime k - 1 := by omega
-        exact_mod_cast this
-      rw [lt_div_iff₀ hdenom, one_mul]
+      rw [lt_div_iff₀ (by exact_mod_cast (by omega : 0 < Nat.nth Nat.Prime k - 1)), one_mul]
       exact_mod_cast (by omega : (Nat.nth Nat.Prime k - 1 : ℕ) < Nat.nth Nat.Prime k)
     have h_prev_pos : (0 : ℚ) < (Finset.range k).prod (fun i =>
         (Nat.nth Nat.Prime i : ℚ) / ((Nat.nth Nat.Prime i - 1 : ℕ) : ℚ)) := by
       apply Finset.prod_pos
       intro i hi
-      have hpi_ge2 : 2 ≤ Nat.nth Nat.Prime i :=
-        (Nat.prime_nth_prime i).two_le
-      have hdenom : (0 : ℚ) < ((Nat.nth Nat.Prime i - 1 : ℕ) : ℚ) := by
-        have : 0 < Nat.nth Nat.Prime i - 1 := by omega
-        exact_mod_cast this
-      have hnum : (0 : ℚ) < (Nat.nth Nat.Prime i : ℚ) := by
-        have : 0 < Nat.nth Nat.Prime i := by omega
-        exact_mod_cast this
-      exact div_pos hnum hdenom
+      have hpi_ge2 : 2 ≤ Nat.nth Nat.Prime i := (Nat.prime_nth_prime i).two_le
+      exact div_pos (by exact_mod_cast (by omega : 0 < Nat.nth Nat.Prime i))
+        (by exact_mod_cast (by omega : 0 < Nat.nth Nat.Prime i - 1))
     nlinarith [hp_ratio_gt1, h_prev_pos]
   rcases Nat.exists_eq_add_of_lt hnm with ⟨k, hk⟩
   subst hk

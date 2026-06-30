@@ -1,3 +1,4 @@
 /.lake
 .omc/
 __pycache__/
+.context-mode/

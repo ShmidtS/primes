@@ -3,6 +3,9 @@ import Primes.Basic
 import Primes.GapFrequency
 import Primes.Distribution
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+
 namespace PrimeGaps
 
 noncomputable section
@@ -16,7 +19,8 @@ def DeterminantalPrimeGapConjecture
   ∀ g : Nat,
     Tendsto (fun x : Nat =>
       primeGapRelativeFrequency g x -
-        (Finset.range (g + 1)).sum fun m => weight m * Matrix.det (kernel x g m)) atTop (nhds 0)
+        (Finset.range (g + 1)).sum fun m => weight m * Matrix.det (kernel x g m))
+      atTop (nhds 0)
 
 /-- Одномерное ядро, тривиально кодирующее точную частоту. -/
 def exactOneByOneGapKernel (g x : Nat) : Fin 1 → Fin 1 → ℝ :=

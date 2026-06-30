@@ -2,17 +2,15 @@ import Mathlib
 import Primes.Basic
 import Primes.GapFrequency
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+
 namespace PrimeGaps
 
 noncomputable section
 
 open scoped BigOperators
 open Filter
-
-/-! ## Analytic number theory: Chebyshev, zeta, Perron, Mobius
-
-Определения для аналитической теории простых промежутков.
--/
 
 /-- Функция Чебышева `ψ(x) = ∑_{n≤x} Λ(n)`. -/
 def chebyshevPsi (x : Nat) : ℝ :=

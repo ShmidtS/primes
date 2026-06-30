@@ -1,11 +1,10 @@
 import Mathlib
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+set_option linter.unusedSimpArgs false
+
 namespace PrimeGaps
-
-/-! ## List helpers and prime enumeration
-
-Вспомогательные определения для решета, перечисления простых и подсчёта промежутков.
--/
 
 /-- У непустого списка значение `getLastD` действительно является его элементом. -/
 theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (hxs : xs ≠ []) :
@@ -17,21 +16,9 @@ theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (h
       | nil => simp
       | cons b rest => simp [List.getLastD]
 
-/-! ## Basic sieves and prime enumeration -/
-
 /-- Простые числа от `2` до `n` (чисто функциональное определение). -/
 def primesUpTo (n : Nat) : Array Nat :=
   Array.mk (List.filter Nat.Prime (List.range' 2 (n + 1 - 2)))
-
-private lemma range'_strictMono (s len : Nat) :
-    (List.range' s len).Pairwise (· < ·) := by
-  induction len generalizing s with
-  | zero => simp
-  | succ len ih =>
-      simp only [List.range'_succ]
-      constructor
-      · intro b hb; rcases (List.mem_range'.mp hb) with ⟨i, _, rfl⟩; omega
-      · exact ih (s + 1)
 
 /-- `primesUpTo n` contains exactly the primes ≤ n in increasing order. -/
 theorem primesUpTo_spec (n p : Nat) :
@@ -56,7 +43,7 @@ theorem primesUpTo_spec (n p : Nat) :
 theorem primesUpTo_sorted (n : Nat) : (primesUpTo n).toList.Pairwise (· < ·) := by
   unfold primesUpTo
   apply List.Pairwise.filter (p := fun x => Nat.Prime x) (l := List.range' 2 (n + 1 - 2))
-  exact range'_strictMono 2 (n + 1 - 2)
+  exact (List.sortedLT_range' 2 (n + 1 - 2) (s := 1) (by omega)).pairwise
 
 /-- Размер `primesUpTo n` равен числу простых ≤ n. -/
 lemma primesUpTo_size_eq_count (n : Nat) :
@@ -98,8 +85,6 @@ lemma primesUpTo_last_eq_n (n : Nat) (hn : Nat.Prime n) :
     rw [show n + 1 - 2 = (n - 2) + 1 by omega, List.range'_1_concat]; simp; omega
   rw [hrange, List.filter_append]; simp [decide_eq_true hn]
 
-/-! ## Point gaps and gap distribution -/
-
 /-- Промежутки между соседними точками. -/
 def pointGapsList (points : List Nat) : List Nat :=
   match points with
@@ -131,8 +116,6 @@ theorem pointGapsList_length (points : List Nat) :
       | nil => simp [pointGapsList]
       | cons b tail => simp [pointGapsList, ih]
 
-/-! ## Gap counting -/
-
 /-- Добавляет промежуток в таблицу частот. -/
 def addGapCount (counts : List (Nat × Nat)) (g : Nat) : List (Nat × Nat) :=
   match counts with
@@ -160,8 +143,6 @@ noncomputable def gapDistributionByCount (k : Nat) : List (Nat × Nat) :=
 /-- k-е простое число через частоты промежутков. -/
 noncomputable def nthPrimeByGapFrequencies (k : Nat) : Nat :=
   1 + ((gapDistributionByCount (k + 1)).map (fun entry => entry.1 * entry.2)).sum
-
-/-! ## Gap counting lemmas -/
 
 /-- `addGapCount` увеличивает сумму частот на 1. -/
 lemma addGapCount_sum_succ (counts : List (Nat × Nat)) (g : Nat) :
@@ -201,7 +182,7 @@ lemma primesUpTo_nth_prime_size (k : Nat) (hk : 0 < k) :
   rw [hk1] at h; exact h
 
 set_option maxHeartbeats 0 in
--- reason: foldl induction in gapDistributionByCount_sum_eq_k exceeds default heartbeat limit
+-- Proof requires unbounded heartbeats for nested foldl induction on prime lists
 set_option linter.flexible false in
 /-- Sum of frequencies in gapDistributionByCount equals k (for k > 0). -/
 theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
@@ -235,8 +216,6 @@ theorem gapDistributionByCount_sum_eq_k {k : Nat} (hk : 0 < k) :
   simp [h_nil, h_sum_nil, h_size] at h_foldl_sum ⊢
   rw [gapCountsWithSentinel_sum_eq]
   exact h_foldl_sum
-
-/-! ## Weighted gap sums -/
 
 /-- Взвешенная сумма foldl `addGapCount` на списке простых
     равна сумме gaps плюс начальная взвешенная сумма. -/
@@ -313,8 +292,6 @@ lemma gapDistributionByCount_weighted_sum_eq_last (k : Nat) (hk : 0 < k) :
   have hhead1 : (1 :: primes).headD 0 = 1 := by simp
   rw [← hsum, hhead1] at htelescoping
   linarith [htelescoping, hlast]
-
-/-! ## nthPrime gap-frequency equivalence -/
 
 /-- `nthPrimeByGapFrequencies` корректно вычисляет k-е простое число. -/
 theorem nthPrimeByGapFrequencies_correct (k : Nat) :

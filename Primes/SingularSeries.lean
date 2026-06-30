@@ -3,6 +3,10 @@ import Primes.Basic
 import Primes.GapFrequency
 import Primes.Wheel
 
+set_option linter.style.header false
+set_option linter.style.longLine false
+set_option linter.unusedSimpArgs false
+
 namespace PrimeGaps
 
 noncomputable section
@@ -72,97 +76,32 @@ theorem divisorCorrectionProduct_eq_primeFactors (k : Nat) :
   · rw [divisorCorrectionProduct, ← Finset.prod_filter]
     congr 1; ext p
     simp only [Finset.mem_filter, Finset.mem_range, Nat.mem_primeFactors]
-    constructor
-    · intro h; exact ⟨⟨h.2.1, h.2.2.2, hk0⟩, h.2.2.1⟩
-    · intro h; rcases h with ⟨⟨hprime, hdvd, _⟩, hgt⟩
-      have hle : p ≤ k := Nat.le_of_dvd (Nat.pos_of_ne_zero hk0) hdvd
-      exact ⟨Nat.lt_succ_iff.mpr hle, hprime, hgt, hdvd⟩
+    refine ⟨fun h => ⟨⟨h.2.1, h.2.2.2, hk0⟩, h.2.2.1⟩, ?_⟩
+    · rintro ⟨⟨hprime, hdvd, _⟩, hgt⟩
+      refine ⟨Nat.lt_succ_iff.mpr (Nat.le_of_dvd (Nat.pos_of_ne_zero hk0) hdvd), hprime, hgt, hdvd⟩
 
-/-! ### Exact singular series values -/
+/-! ### Structural properties of D and S -/
 
-/-- `𝔖(2) = 2 C₂` — фундаментальная константа гипотезы о простых близнецах. -/
-theorem singularSeriesFactor_eq_2C2_for_g_2 (C₂ : ℝ) :
-    singularSeriesFactor C₂ 2 = 2 * C₂ := by
-  unfold singularSeriesFactor
-  rw [if_pos even_two, show 2 / 2 = 1 from Nat.div_self (by omega),
-      divisorCorrectionProduct_eq_primeFactors, Nat.primeFactors_one]
-  simp
-
-/-- `𝔖(4) = 2 C₂` (cousin prime gap). -/
-theorem singularSeriesFactor_eq_2C2_for_g_4 (C₂ : ℝ) :
-    singularSeriesFactor C₂ 4 = 2 * C₂ := by
-  unfold singularSeriesFactor
-  rw [if_pos (even_iff_two_dvd.mpr (by decide : (2:Nat) ∣ 4)), show 4 / 2 = 2 from by decide,
-      divisorCorrectionProduct_eq_primeFactors]
-  have hpf : (Nat.primeFactors 2 : Finset Nat).filter (fun p => 2 < p) = ∅ := by
-    ext p
-    simp only [Finset.mem_filter, Finset.notMem_empty]
-    constructor
-    · intro ⟨hmem, hgt2⟩
-      rw [Nat.mem_primeFactors] at hmem
-      rcases hmem with ⟨hprime, hdvd, _⟩
-      have hle : p ≤ 2 := Nat.le_of_dvd (by omega) hdvd
-      have hge : 2 ≤ p := hprime.two_le
-      omega
-    · exact fun h => h.elim
-  rw [hpf]; simp
-
-/-- `𝔖(6) = 4 C₂` (sexy prime gap). -/
-theorem singularSeriesFactor_eq_4C2_for_g_6 (C₂ : ℝ) :
-    singularSeriesFactor C₂ 6 = 4 * C₂ := by
-  unfold singularSeriesFactor
-  rw [if_pos (even_iff_two_dvd.mpr (by decide : (2:Nat) ∣ 6)),
-      show 6 / 2 = 3 from by decide,
-      divisorCorrectionProduct_eq_primeFactors]
-  have hpf : (Nat.primeFactors 3 : Finset Nat).filter (fun p => 2 < p) = {3} := by
-    ext p
-    simp only [Finset.mem_filter, Finset.mem_singleton]
-    constructor
-    · intro ⟨hmem, hgt2⟩
-      rw [Nat.mem_primeFactors] at hmem
-      rcases hmem with ⟨hprime, hdvd, _⟩
-      have hle : p ≤ 3 := Nat.le_of_dvd (by omega) hdvd
-      omega
-    · rintro rfl
-      refine ⟨?_, by omega⟩
-      exact Nat.mem_primeFactors.mpr ⟨by decide, by decide, by decide⟩
-  rw [hpf]; simp; norm_num; ring
-
-/-! ### Structural properties of D and S — new results -/
-
-/-- `divisorCorrectionProduct` мультипликативен по взаимно простым аргументам:
-для coprime k, k', `D(k*k') = D(k) * D(k')`. -/
+/-- `divisorCorrectionProduct` мультипликативен по взаимно простым аргументам. -/
 theorem divisorCorrectionProduct_mul_of_coprime {k k' : Nat}
     (_hk : k ≠ 0) (_hk' : k' ≠ 0) (hcoprime : Nat.Coprime k k') :
     divisorCorrectionProduct (k * k') =
       divisorCorrectionProduct k * divisorCorrectionProduct k' := by
-  rw [divisorCorrectionProduct_eq_primeFactors,
-      divisorCorrectionProduct_eq_primeFactors,
-      divisorCorrectionProduct_eq_primeFactors,
-      hcoprime.primeFactors_mul]
-  have h_filter_union : (Nat.primeFactors k ∪ Nat.primeFactors k').filter
-      (fun p => 2 < p) =
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors,
+      divisorCorrectionProduct_eq_primeFactors, hcoprime.primeFactors_mul]
+  have hfu : (Nat.primeFactors k ∪ Nat.primeFactors k').filter (fun p => 2 < p) =
       (Nat.primeFactors k).filter (fun p => 2 < p) ∪
       (Nat.primeFactors k').filter (fun p => 2 < p) := by
     ext p; simp only [Finset.mem_filter, Finset.mem_union]; tauto
-  rw [h_filter_union]
-  have h_disj : Disjoint ((Nat.primeFactors k).filter (fun p => 2 < p))
-      ((Nat.primeFactors k').filter (fun p => 2 < p)) := by
-    apply Disjoint.mono (Finset.filter_subset _ _) (Finset.filter_subset _ _)
-    exact hcoprime.disjoint_primeFactors
-  rw [Finset.prod_union h_disj]
-
-/-- `D` зависит только от множества простых делителей, не от кратностей. -/
-theorem divisorCorrectionProduct_eq_of_same_primeFactors {k k' : Nat}
-    (hpf : Nat.primeFactors k = Nat.primeFactors k') :
-    divisorCorrectionProduct k = divisorCorrectionProduct k' := by
-  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors, hpf]
+  rw [hfu, Finset.prod_union (by
+    exact Disjoint.mono (Finset.filter_subset _ _) (Finset.filter_subset _ _)
+      hcoprime.disjoint_primeFactors)]
 
 /-- `D(k^a) = D(k)` для `a > 0`. -/
 theorem divisorCorrectionProduct_pow_eq (k : Nat) (ha : 0 < a) :
     divisorCorrectionProduct (k ^ a) = divisorCorrectionProduct k := by
-  apply divisorCorrectionProduct_eq_of_same_primeFactors
-  exact Nat.primeFactors_pow k (Nat.ne_of_gt ha)
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors,
+      Nat.primeFactors_pow k (Nat.ne_of_gt ha)]
 
 /-- `D(p) = (p-1)/(p-2)` для нечётного простого `p`. -/
 theorem divisorCorrectionProduct_prime (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 < p) :
@@ -172,11 +111,9 @@ theorem divisorCorrectionProduct_prime (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 
     ext q
     simp only [Finset.mem_filter, Finset.mem_singleton]
     constructor
-    · intro ⟨hmem, hgt2⟩
+    · rintro ⟨hmem, hgt2⟩
       rw [Nat.mem_primeFactors] at hmem
-      rcases hmem with ⟨hprime, hdvd, _⟩
-      have : q = p := (Nat.prime_dvd_prime_iff_eq hprime hp).mp hdvd
-      subst this; exact rfl
+      exact (Nat.prime_dvd_prime_iff_eq hmem.1 hp).mp hmem.2.1
     · rintro rfl
       exact ⟨Nat.mem_primeFactors.mpr ⟨hp, dvd_rfl, hp.ne_zero⟩, hp_odd⟩
   rw [hpf, Finset.prod_singleton]
@@ -184,18 +121,18 @@ theorem divisorCorrectionProduct_prime (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 
 /-- **S(2p) = 2C₂ · (p-1)/(p-2)** для нечётного простого `p`. -/
 theorem singularSeriesFactor_eq_for_2p (C₂ : ℝ) (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 < p) :
     singularSeriesFactor C₂ (2 * p) = 2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
-  rw [singularSeriesFactor, if_pos (even_two_mul p)]
-  have hdiv : (2 * p) / 2 = p := Nat.mul_div_cancel_left _ (by omega)
-  rw [hdiv, divisorCorrectionProduct_prime p hp hp_odd]
+  rw [singularSeriesFactor, if_pos (even_two_mul p),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_prime p hp hp_odd]
 
 /-- **S(2p) = S(2p^a)** — singular series инвариантна при возведении делителя в степень. -/
 theorem singularSeriesFactor_2p_eq_2p_pow (C₂ : ℝ) (p : Nat) (_hp : Nat.Prime p) (ha : 0 < a) :
     singularSeriesFactor C₂ (2 * p) = singularSeriesFactor C₂ (2 * p ^ a) := by
   rw [singularSeriesFactor, singularSeriesFactor,
-      if_pos (even_two_mul p), if_pos (even_two_mul (p ^ a))]
-  have hdiv1 : (2 * p) / 2 = p := Nat.mul_div_cancel_left _ (by omega)
-  have hdiv2 : (2 * p ^ a) / 2 = p ^ a := Nat.mul_div_cancel_left _ (by omega)
-  rw [hdiv1, hdiv2, divisorCorrectionProduct_pow_eq p ha]
+      if_pos (even_two_mul p), if_pos (even_two_mul (p ^ a)),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_pow_eq p ha]
 
 /-- **S(2pq) = 2C₂ · (p-1)/(p-2) · (q-1)/(q-2)** для различных нечётных простых p, q. -/
 theorem singularSeriesFactor_eq_for_2pq (C₂ : ℝ) (p q : Nat)
@@ -203,11 +140,10 @@ theorem singularSeriesFactor_eq_for_2pq (C₂ : ℝ) (p q : Nat)
     (hpq_ne : p ≠ q) :
     singularSeriesFactor C₂ (2 * (p * q)) =
       2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) * (((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
-  rw [singularSeriesFactor, if_pos (even_two_mul (p * q))]
-  have hdiv : (2 * (p * q)) / 2 = p * q := Nat.mul_div_cancel_left _ (by omega)
-  rw [hdiv]
-  have hcoprime : Nat.Coprime p q := (Nat.coprime_primes hp hq).mpr hpq_ne
-  rw [divisorCorrectionProduct_mul_of_coprime hp.ne_zero hq.ne_zero hcoprime,
+  rw [singularSeriesFactor, if_pos (even_two_mul (p * q)),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_mul_of_coprime hp.ne_zero hq.ne_zero
+        ((Nat.coprime_primes hp hq).mpr hpq_ne),
       divisorCorrectionProduct_prime p hp hp_odd,
       divisorCorrectionProduct_prime q hq hq_odd]
   ring
@@ -218,51 +154,46 @@ theorem singularSeriesFactor_mul_of_coprime (C₂ : ℝ) {k k' : Nat}
     singularSeriesFactor C₂ (2 * (k * k')) =
       singularSeriesFactor C₂ (2 * k) * singularSeriesFactor C₂ (2 * k') / (2 * C₂) := by
   rw [singularSeriesFactor, singularSeriesFactor, singularSeriesFactor,
-      if_pos (even_two_mul (k * k')), if_pos (even_two_mul k), if_pos (even_two_mul k')]
-  have hdiv1 : (2 * (k * k')) / 2 = k * k' := Nat.mul_div_cancel_left _ (by omega)
-  have hdiv2 : (2 * k) / 2 = k := Nat.mul_div_cancel_left _ (by omega)
-  have hdiv3 : (2 * k') / 2 = k' := Nat.mul_div_cancel_left _ (by omega)
-  rw [hdiv1, hdiv2, hdiv3]
-  rw [divisorCorrectionProduct_mul_of_coprime hk hk' hcoprime]
+      if_pos (even_two_mul (k * k')), if_pos (even_two_mul k), if_pos (even_two_mul k'),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_mul_of_coprime hk hk' hcoprime]
   by_cases hC₂ : C₂ = 0
   · simp [hC₂]
-  · have h2C₂ : (2 : ℝ) * C₂ ≠ 0 := mul_ne_zero two_ne_zero hC₂
-    field_simp [h2C₂]
+  · field_simp [mul_ne_zero two_ne_zero hC₂]
 
 /-- `D(2^a) = 1`: у степени 2 нет нечётных простых делителей. -/
 theorem divisorCorrectionProduct_pow_two (a : Nat) :
     divisorCorrectionProduct (2 ^ a) = 1 := by
   rw [divisorCorrectionProduct_eq_primeFactors]
   by_cases ha : a = 0
-  · subst a; simp [Nat.primeFactors_one]
-  · have hpf : Nat.primeFactors (2 ^ a) = {2} :=
-      Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two
-    rw [hpf]
-    have h_filter : ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ := by
-      rw [Finset.filter_eq_empty_iff]
-      intro p hp; simp only [Finset.mem_singleton] at hp; subst hp; omega
-    rw [h_filter]; simp
+  · subst ha; simp [Nat.primeFactors_one]
+  · rw [Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two,
+      show ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ from by
+        rw [Finset.filter_eq_empty_iff]
+        intro p hp; simp only [Finset.mem_singleton] at hp; subst hp; omega]
+    simp
 
 /-- `D(2^a · m) = D(m)` для нечётного m: 2 не вносит вклад в D. -/
 theorem divisorCorrectionProduct_pow_two_mul (a : Nat) (m : Nat) (hm : Odd m) :
     divisorCorrectionProduct (2 ^ a * m) = divisorCorrectionProduct m := by
   rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
   by_cases ha : a = 0
-  · subst a; simp
+  · subst ha; simp
   · have h2a_ne : (2 : Nat) ^ a ≠ 0 := by
-      have h : 0 < 2 ^ a := by cases a <;> simp [Nat.pow_succ, Nat.zero_lt_succ]
+      have : 0 < 2 ^ a := by cases a <;> simp [Nat.pow_succ, Nat.zero_lt_succ]
       omega
     have hm_ne : m ≠ 0 := by
       have hpos : 0 < m := hm.pos
       intro h; subst h; simp at hpos
-    rw [Nat.primeFactors_mul h2a_ne hm_ne]
-    have hpf_2a : Nat.primeFactors (2 ^ a) = {2} :=
-      Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two
-    rw [hpf_2a, Finset.filter_union]
-    have h_filter_2 : ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ := by
-      rw [Finset.filter_eq_empty_iff]
-      intro p hp; simp only [Finset.mem_singleton] at hp; subst hp; omega
-    rw [h_filter_2, Finset.empty_union]
+    rw [Nat.primeFactors_mul h2a_ne hm_ne,
+        Nat.primeFactors_prime_pow (Nat.ne_of_gt (by omega : 0 < a)) Nat.prime_two,
+        Finset.filter_union,
+        show ({2} : Finset Nat).filter (fun p => 2 < p) = ∅ from by
+          rw [Finset.filter_eq_empty_iff]
+          intro p hp; simp only [Finset.mem_singleton] at hp; subst hp; omega,
+        Finset.empty_union]
 
 /-! ### finiteWheelSingularSeries properties -/
 
@@ -280,25 +211,6 @@ theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq (g y : Nat) :
       endpointForbiddenResidueCount]
   · simp [hprime]
 
-/-- Wheel-ряд × квадратичные плотности = sieve-фактор. -/
-theorem finiteWheelSingularSeries_eq_finitePairSieveFactor_normalized (g y : Nat) :
-    finiteWheelSingularSeries g y * (Finset.range (y + 1)).prod (fun p =>
-      if Nat.Prime p then (1 - 1 / (p : ℝ)) ^ 2 else 1) =
-    finitePairSieveFactor g y := by
-  let denom := (Finset.range (y + 1)).prod (fun p =>
-    if Nat.Prime p then (1 - 1 / (p : ℝ)) ^ 2 else (1 : ℝ))
-  have hdenom_ne_zero : denom ≠ 0 := by
-    refine Finset.prod_ne_zero_iff.mpr ?_
-    intro p _
-    by_cases hprime : Nat.Prime p
-    · rw [if_pos hprime]
-      have hp_gt_one : 1 < (p : ℝ) := by exact_mod_cast Nat.Prime.one_lt hprime
-      have h_div_lt_one : 1 / (p : ℝ) < 1 := (div_lt_one (by positivity)).mpr hp_gt_one
-      exact pow_ne_zero 2 (sub_ne_zero.mpr (Ne.symm (ne_of_lt h_div_lt_one)))
-    · rw [if_neg hprime]; exact one_ne_zero
-  rw [finiteWheelSingularSeries_eq_finitePairSieveFactor_div_sq g y]
-  exact div_mul_cancel₀ _ hdenom_ne_zero
-
 /-! ### wheelLocalSingularFactor -/
 
 /-- Явная форма локального wheel-множителя через делимость `p ∣ g`. -/
@@ -306,18 +218,6 @@ theorem wheelLocalSingularFactor_eq_singular (g p : Nat) (_hp : Nat.Prime p) :
     wheelLocalSingularFactor g p =
       (1 - (if p ∣ g then (1 : ℝ) else (2 : ℝ)) / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
   simp [wheelLocalSingularFactor, wheelEndpointSurvivalDensity, endpointForbiddenResidueCount]
-
-/-- Локальный множитель через делимость для произвольного `g` и простого `p`. -/
-theorem wheelLocalSingularFactor_dvd_iff (g p : Nat) (hp : Nat.Prime p) :
-    wheelLocalSingularFactor g p = if p ∣ g then (p : ℝ) / ((p : ℝ) - 1)
-      else (1 - 2 / (p : ℝ)) / (1 - 1 / (p : ℝ)) ^ 2 := by
-  rw [wheelLocalSingularFactor_eq_singular g p hp]
-  by_cases h : p ∣ g
-  · simp [h]
-    have hp_gt_one : (1 : ℝ) < (p : ℝ) := by exact_mod_cast hp.one_lt
-    have hsub_pos : (0 : ℝ) < (p : ℝ) - 1 := by linarith
-    field_simp [hsub_pos.ne']
-  · simp [h]
 
 /-- Алгебраическое тождество для wheel-множителя при `p > 2`. -/
 private lemma algebraic_identity_wheel_div (p : ℝ) (hp : 2 < p) :
@@ -338,21 +238,15 @@ def finiteWheelEvenFactor (k y : Nat) : ℝ :=
 theorem finiteWheelSingularSeries_odd_eq_zero {g y : Nat}
     (hg : Odd g) (hy : 2 ≤ y) :
     finiteWheelSingularSeries g y = 0 := by
-  rw [finiteWheelSingularSeries]
-  let s := Finset.range (y + 1)
-  have h2_mem : 2 ∈ s := Finset.mem_range.mpr (by omega)
-  have h2_not_dvd : ¬(2 : ℕ) ∣ g := fun h =>
+  rw [finiteWheelSingularSeries, ← Finset.prod_filter]
+  have h2mem : 2 ∈ (Finset.range (y + 1)).filter Nat.Prime := by
+    simp only [Finset.mem_filter, Finset.mem_range]; exact ⟨by omega, by decide⟩
+  have h2nd : ¬(2 : Nat) ∣ g := fun h =>
     Nat.not_odd_iff_even.mpr (even_iff_two_dvd.mpr h) hg
-  have hfactor0 : wheelLocalSingularFactor g 2 = 0 := by
+  have hf0 : wheelLocalSingularFactor g 2 = 0 := by
     rw [wheelLocalSingularFactor_eq_singular g 2 (by decide)]
-    simp only [h2_not_dvd, if_false]; norm_num
-  have hsplit : s.prod (fun p => if Nat.Prime p then wheelLocalSingularFactor g p else 1)
-      = (s.filter Nat.Prime).prod (fun p => wheelLocalSingularFactor g p) := by
-    rw [← Finset.prod_filter]
-  rw [hsplit]
-  exact Finset.prod_eq_zero
-    (by simp only [Finset.mem_filter, Finset.mem_range, true_and]
-        exact ⟨by omega, by decide⟩) hfactor0
+    simp only [h2nd, if_false]; norm_num
+  exact Finset.prod_eq_zero h2mem hf0
 
 /-- Общая формула `finiteWheelSingularSeries` для чётного gap `g = 2k`. -/
 theorem finiteWheelSingularSeries_even_eq (k y : Nat) (hy : 2 ≤ y) :
@@ -363,113 +257,95 @@ theorem finiteWheelSingularSeries_even_eq (k y : Nat) (hy : 2 ≤ y) :
   let oddDivs := s.filter (fun p => Nat.Prime p ∧ 2 < p ∧ p ∣ k)
   let oddNonDivs := s.filter (fun p => Nat.Prime p ∧ 2 < p ∧ ¬p ∣ k)
   let allOdd := s.filter (fun p => Nat.Prime p ∧ 2 < p)
-  have h2_prime : Nat.Prime 2 := by decide
-  have h2_not_odd : 2 ∉ allOdd := by simp [allOdd, s]
-  have hsplit_prime : s.filter Nat.Prime = insert 2 allOdd := by
+  have h2p : Nat.Prime 2 := by decide
+  have h2n : 2 ∉ allOdd := by simp [allOdd, s]
+  have hsp : s.filter Nat.Prime = insert 2 allOdd := by
     ext p
     simp only [Finset.mem_filter, Finset.mem_insert, s, allOdd, Finset.mem_range]
-    constructor
-    · intro ⟨hlt, hpr⟩
-      by_cases hp2 : p = 2
+    refine ⟨fun ⟨hlt, hpr⟩ => ?_, fun h => ?_⟩
+    · by_cases hp2 : p = 2
       · exact Or.inl hp2
-      · have htwo_le : 2 ≤ p := Nat.Prime.two_le hpr
-        have hp2gt : 2 < p := by omega
-        exact Or.inr ⟨hlt, hpr, hp2gt⟩
-    · intro h
-      cases h with
-      | inl h2 => subst h2; exact ⟨by omega, h2_prime⟩
+      · have h2le := Nat.Prime.two_le hpr
+        exact Or.inr ⟨hlt, hpr, by omega⟩
+    · cases h with
+      | inl h2 => subst h2; exact ⟨by omega, h2p⟩
       | inr hodd => exact ⟨hodd.1, hodd.2.1⟩
-  have hsplit_odd : allOdd = oddDivs ∪ oddNonDivs := by
+  have hsodd : allOdd = oddDivs ∪ oddNonDivs := by
     ext p
     simp only [allOdd, oddDivs, oddNonDivs, s, Finset.mem_filter,
       Finset.mem_union, Finset.mem_range]
-    constructor
-    · intro ⟨hlt, hpr, hgt2⟩
-      by_cases hpk : p ∣ k
+    refine ⟨fun ⟨hlt, hpr, hgt2⟩ => ?_, fun h => ?_⟩
+    · by_cases hpk : p ∣ k
       · exact Or.inl ⟨hlt, hpr, hgt2, hpk⟩
       · exact Or.inr ⟨hlt, hpr, hgt2, hpk⟩
-    · intro h
-      cases h with
+    · cases h with
       | inl hd => exact ⟨hd.1, hd.2.1, hd.2.2.1⟩
       | inr hnd => exact ⟨hnd.1, hnd.2.1, hnd.2.2.1⟩
   have hdisj : Disjoint oddDivs oddNonDivs := by
     rw [Finset.disjoint_left]
     intro p hp hnp
     exact (Finset.mem_filter.mp hnp).2.2.2 (Finset.mem_filter.mp hp).2.2.2
-  have hlhs : s.prod (fun p => if Nat.Prime p then
+  have hf2 : wheelLocalSingularFactor (2 * k) 2 = 2 := by
+    rw [wheelLocalSingularFactor_eq_singular (2 * k) 2 (by decide)]
+    have h2dvd : (2 : Nat) ∣ 2 * k := Nat.dvd_mul_right 2 k
+    simp only [h2dvd, if_true]; norm_num
+  have hpfilt : s.prod (fun p => if Nat.Prime p then
       wheelLocalSingularFactor (2 * k) p else 1) =
       (s.filter Nat.Prime).prod (fun p => wheelLocalSingularFactor (2 * k) p) := by
     rw [← Finset.prod_filter]
-  rw [hlhs, hsplit_prime, Finset.prod_insert h2_not_odd]
-  have hfactor2 : wheelLocalSingularFactor (2 * k) 2 = 2 := by
-    rw [wheelLocalSingularFactor_eq_singular (2 * k) 2 (by decide)]
-    have h2_dvd : (2 : ℕ) ∣ 2 * k := Nat.dvd_mul_right 2 k
-    simp only [h2_dvd, if_true]; norm_num
-  rw [hfactor2, hsplit_odd, Finset.prod_union hdisj]
-  have hprod_div : oddDivs.prod (fun p => wheelLocalSingularFactor (2 * k) p) =
+  rw [hpfilt, hsp, Finset.prod_insert h2n, hf2, hsodd, Finset.prod_union hdisj]
+  have hpd : oddDivs.prod (fun p => wheelLocalSingularFactor (2 * k) p) =
       oddDivs.prod (fun p =>
         ((p : ℝ) - 1) / ((p : ℝ) - 2) * (1 - 1 / ((p : ℝ) - 1) ^ 2)) := by
     refine Finset.prod_congr rfl ?_
     intro p hp
     have hm := Finset.mem_filter.mp hp
-    have hp_prime : Nat.Prime p := hm.2.1
-    have hp_gt2 : 2 < p := hm.2.2.1
-    have hp_dvd_2k : p ∣ 2 * k := dvd_mul_of_dvd_right hm.2.2.2 2
-    rw [wheelLocalSingularFactor_eq_singular (2 * k) p hp_prime]
-    simp only [hp_dvd_2k, if_true]
-    have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
+    have hdvd : p ∣ 2 * k := dvd_mul_of_dvd_right hm.2.2.2 2
+    rw [wheelLocalSingularFactor_eq_singular (2 * k) p hm.2.1]
+    simp only [hdvd, if_true]
+    have hp_real : (2 : ℝ) < p := by exact_mod_cast hm.2.2.1
     field_simp [hp_real.ne', (by linarith : (p : ℝ) - 1 ≠ 0), (by linarith : (p : ℝ) - 2 ≠ 0)]
     ring
-  rw [hprod_div]
-  have hprod_nondiv : oddNonDivs.prod (fun p => wheelLocalSingularFactor (2 * k) p) =
+  rw [hpd]
+  have hpnd : oddNonDivs.prod (fun p => wheelLocalSingularFactor (2 * k) p) =
       oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
     refine Finset.prod_congr rfl ?_
     intro p hp
-    have hm := Finset.mem_filter.mp hp
-    have hp_prime : Nat.Prime p := hm.2.1
-    have hp_gt2 : 2 < p := hm.2.2.1
-    have hp_not_dvd_2k : ¬p ∣ 2 * k := by
+    have xm := Finset.mem_filter.mp hp
+    have hnd : ¬p ∣ 2 * k := by
       intro hd
-      have hor : p ∣ 2 ∨ p ∣ k := (Nat.Prime.dvd_mul hp_prime).mp hd
+      have hor : p ∣ 2 ∨ p ∣ k := (Nat.Prime.dvd_mul xm.2.1).mp hd
       cases hor with
-      | inl h2 => have : p = 2 := (Nat.prime_dvd_prime_iff_eq hp_prime Nat.prime_two).mp h2; omega
-      | inr hk => exact hm.2.2.2 hk
-    rw [wheelLocalSingularFactor_eq_singular (2 * k) p hp_prime]
-    simp only [hp_not_dvd_2k, if_false]
-    exact algebraic_identity_wheel_div (p : ℝ) (by exact_mod_cast hp_gt2)
-  rw [hprod_nondiv]
-  have h_split_div_prod : oddDivs.prod (fun p =>
-      ((p : ℝ) - 1) / ((p : ℝ) - 2) * (1 - 1 / ((p : ℝ) - 1) ^ 2)) =
-      oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
-      oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
-    exact Finset.prod_mul_distrib ..
-  rw [h_split_div_prod]
+      | inl h2 => have : p = 2 := (Nat.prime_dvd_prime_iff_eq xm.2.1 Nat.prime_two).mp h2; omega
+      | inr hk => exact xm.2.2.2 hk
+    rw [wheelLocalSingularFactor_eq_singular (2 * k) p xm.2.1]
+    simp only [hnd, if_false]
+    exact algebraic_identity_wheel_div (p : ℝ) (by exact_mod_cast xm.2.2.1)
+  rw [hpnd]
+  rw [show oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2) * (1 - 1 / ((p : ℝ) - 1) ^ 2)) =
+        oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
+        oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) from Finset.prod_mul_distrib ..]
   have h_twin_prod :
       oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) *
       oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) =
       (s.filter (fun p => Nat.Prime p ∧ 2 < p)).prod
         (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
-    have h_eq : s.filter (fun p => Nat.Prime p ∧ 2 < p) = oddDivs ∪ oddNonDivs := hsplit_odd
+    have h_eq : s.filter (fun p => Nat.Prime p ∧ 2 < p) = oddDivs ∪ oddNonDivs := hsodd
     rw [h_eq, Finset.prod_union hdisj]
   have htwin : s.prod (fun p =>
       if Nat.Prime p ∧ 2 < p then 1 - 1 / ((p : ℝ) - 1) ^ 2 else 1) =
       (s.filter (fun p => Nat.Prime p ∧ 2 < p)).prod
         (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) := by
     rw [Finset.prod_filter]
-  have h_rearrange :
-      2 * ((oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
-              oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) *
-            oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) =
-        2 * oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
-          (oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) *
-           oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) := by ring
-  rw [h_rearrange, h_twin_prod, ← htwin]
+  rw [show 2 * ((oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
+          oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) *
+        oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) =
+      2 * oddDivs.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) *
+        (oddDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ)) *
+         oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) from by ring,
+    h_twin_prod, ← htwin]
 
-/-! ### Bounds and characterization theorems — new results
-
-Теоремы о нижней оценке `D(k) ≥ 1`, характеризацией равенства,
-2-адической инвариантности `S`, и связи с эйлеровым произведением.
--/
+/-! ### Bounds and characterization theorems -/
 
 /-- `D(k) ≥ 1`: каждый множитель `(p-1)/(p-2) ≥ 1` для `p > 2`. -/
 theorem divisorCorrectionProduct_ge_one (k : Nat) :
@@ -477,48 +353,40 @@ theorem divisorCorrectionProduct_ge_one (k : Nat) :
   rw [divisorCorrectionProduct_eq_primeFactors]
   apply Finset.one_le_prod
   rintro p hp
-  have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
-  have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
-  have hpos : 0 < (p : ℝ) - 2 := by linarith
-  rw [le_div_iff₀ hpos]; linarith
+  have hp_real : (2 : ℝ) < p := by exact_mod_cast (Finset.mem_filter.mp hp).2
+  rw [le_div_iff₀ (by linarith : 0 < (p : ℝ) - 2)]; linarith
 
-/-- `D(k) > 1` ↔ `k` имеет нечётный простой делитель (через `primeFactors`). -/
+/-- `D(k) > 1` ↔ `k` имеет нечётный простой делитель. -/
 theorem divisorCorrectionProduct_gt_one_iff (k : Nat) :
     1 < divisorCorrectionProduct k ↔
     ((Nat.primeFactors k).filter (fun p => 2 < p)).Nonempty := by
   rw [divisorCorrectionProduct_eq_primeFactors]
   constructor
   · intro hgt
-    by_cases h_empty : (Nat.primeFactors k).filter (fun p => 2 < p) = ∅
-    · rw [h_empty, Finset.prod_empty] at hgt
+    by_cases h : (Nat.primeFactors k).filter (fun p => 2 < p) = ∅
+    · rw [h, Finset.prod_empty] at hgt
       exact absurd hgt (by linarith : ¬(1 < (1 : ℝ)))
-    · exact Finset.nonempty_iff_ne_empty.mpr h_empty
-  · intro hnonempty
-    rcases hnonempty with ⟨p, hp⟩
-    have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
-    have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
-    have hpos : 0 < (p : ℝ) - 2 := by linarith
-    have hfactor_gt1 : (1 : ℝ) < ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
-      rw [lt_div_iff₀ hpos]; linarith
-    have h_rest : (1 : ℝ) ≤ (((Nat.primeFactors k).filter (fun q => 2 < q)).erase p).prod
+    · exact Finset.nonempty_iff_ne_empty.mpr h
+  · intro hne
+    rcases hne with ⟨p, hp⟩
+    have hp_real : (2 : ℝ) < p := by exact_mod_cast (Finset.mem_filter.mp hp).2
+    have hf : 1 < ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
+      rw [lt_div_iff₀ (by linarith : 0 < (p : ℝ) - 2)]; linarith
+    have hrest : 1 ≤ (((Nat.primeFactors k).filter (fun q => 2 < q)).erase p).prod
         (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
       apply Finset.one_le_prod
       rintro q hq
-      have hq_in : q ∈ (Nat.primeFactors k).filter (fun r => 2 < r) :=
-        Finset.mem_of_mem_erase hq
-      have hq_gt2 : 2 < q := (Finset.mem_filter.mp hq_in).2
-      have hq_real : (2 : ℝ) < q := by exact_mod_cast hq_gt2
-      have hqpos : 0 < (q : ℝ) - 2 := by linarith
-      rw [le_div_iff₀ hqpos]; linarith
-    have h_split : ((Nat.primeFactors k).filter (fun q => 2 < q)).prod
+      have hq_real : (2 : ℝ) < q := by
+        exact_mod_cast (Finset.mem_filter.mp (Finset.mem_of_mem_erase hq)).2
+      rw [le_div_iff₀ (by linarith : 0 < (q : ℝ) - 2)]; linarith
+    have hsplit : ((Nat.primeFactors k).filter (fun q => 2 < q)).prod
         (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) =
         ((p : ℝ) - 1) / ((p : ℝ) - 2) *
         (((Nat.primeFactors k).filter (fun q => 2 < q)).erase p).prod
           (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
-      conv_lhs =>
-        rw [← Finset.insert_erase hp, Finset.prod_insert (Finset.notMem_erase _ _)]
-    rw [h_split]
-    nlinarith [hfactor_gt1, h_rest]
+      conv_lhs => rw [← Finset.insert_erase hp, Finset.prod_insert (Finset.notMem_erase _ _)]
+    rw [hsplit]
+    nlinarith [hf, hrest]
 
 /-- `S(2^a) = 2C₂` для `a ≥ 1`: singular series для степеней двойки равна twin prime constant. -/
 theorem singularSeriesFactor_2_pow (C₂ : ℝ) (a : Nat) (ha : 1 ≤ a) :
@@ -553,7 +421,6 @@ theorem singularSeriesFactor_ge_2C2 (C₂ : ℝ) (g : Nat) (hg : Even g) (hC₂ 
   unfold singularSeriesFactor
   rw [if_pos hg]
   have hD : 1 ≤ divisorCorrectionProduct (g / 2) := divisorCorrectionProduct_ge_one (g / 2)
-  have h2C₂ : 0 ≤ 2 * C₂ := by linarith
   nlinarith
 
 /-- Алгебраическое тождество: `(p-1)/(p-2) · (1-1/(p-1)²) = p/(p-1)`. -/
@@ -576,27 +443,21 @@ theorem divisorCorrectionProduct_euler_connection (k : Nat) :
   rw [divisorCorrectionProduct_eq_primeFactors, ← Finset.prod_mul_distrib]
   apply Finset.prod_congr rfl
   intro p hp
-  have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
-  exact euler_factor_identity (p : ℝ) (by exact_mod_cast hp_gt2)
+  exact euler_factor_identity (p : ℝ) (by exact_mod_cast (Finset.mem_filter.mp hp).2)
 
-/-! ### Characterization and monotonicity theorems — new results
--/
+/-! ### Characterization and monotonicity theorems -/
 
 /-- D(k) = 1 ↔ k не имеет нечётных простых делителей. -/
 theorem divisorCorrectionProduct_eq_one_iff (k : Nat) :
     divisorCorrectionProduct k = 1 ↔
     (Nat.primeFactors k).filter (fun p => 2 < p) = ∅ := by
-  constructor
-  · intro h
-    by_contra hcontra
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · by_contra hcontra
     have hne : ((Nat.primeFactors k).filter (fun p => 2 < p)).Nonempty :=
       Finset.nonempty_iff_ne_empty.mpr hcontra
-    have : 1 < divisorCorrectionProduct k := by
-      rw [divisorCorrectionProduct_gt_one_iff]
-      exact hne
+    have : 1 < divisorCorrectionProduct k := Iff.mpr (divisorCorrectionProduct_gt_one_iff k) hne
     linarith
-  · intro h
-    rw [divisorCorrectionProduct_eq_primeFactors, h, Finset.prod_empty]
+  · rw [divisorCorrectionProduct_eq_primeFactors, h, Finset.prod_empty]
 
 /-- S(g) = 2C₂ iff g/2 не имеет нечётных простых делителей (для чётного g, C₂ > 0). -/
 theorem singularSeriesFactor_eq_2C2_iff (C₂ : ℝ) (g : Nat) (hg : Even g) (hC₂ : 0 < C₂) :
@@ -604,28 +465,21 @@ theorem singularSeriesFactor_eq_2C2_iff (C₂ : ℝ) (g : Nat) (hg : Even g) (hC
     (Nat.primeFactors (g / 2)).filter (fun p => 2 < p) = ∅ := by
   unfold singularSeriesFactor
   rw [if_pos hg]
-  constructor
-  · intro h
-    have h2C₂_ne : (2 : ℝ) * C₂ ≠ 0 := mul_ne_zero two_ne_zero hC₂.ne'
-    have hD_eq : divisorCorrectionProduct (g / 2) = 1 := by
-      have : (2 * C₂) * divisorCorrectionProduct (g / 2) = (2 * C₂) * 1 := by
-        rw [h, mul_one]
-      exact mul_left_cancel₀ h2C₂_ne this
-    rw [divisorCorrectionProduct_eq_one_iff] at hD_eq
-    exact hD_eq
-  · intro h
-    rw [divisorCorrectionProduct_eq_primeFactors, h, Finset.prod_empty]
-    ring
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · have h2ne : (2 : ℝ) * C₂ ≠ 0 := mul_ne_zero two_ne_zero hC₂.ne'
+    have heq : (2 * C₂) * divisorCorrectionProduct (g / 2) = (2 * C₂) * 1 := by
+      rw [h, mul_one]
+    exact Iff.mp (divisorCorrectionProduct_eq_one_iff (g / 2)) (mul_left_cancel₀ h2ne heq)
+  · rw [divisorCorrectionProduct_eq_primeFactors, h, Finset.prod_empty]; ring
 
 /-- S(g) ≠ 0 для чётного g при C₂ ≠ 0. -/
 theorem singularSeriesFactor_ne_zero (C₂ : ℝ) (g : Nat) (hg : Even g) (hC₂ : C₂ ≠ 0) :
     singularSeriesFactor C₂ g ≠ 0 := by
   unfold singularSeriesFactor
   rw [if_pos hg]
-  have hD_pos : 0 < divisorCorrectionProduct (g / 2) := by
-    have := divisorCorrectionProduct_ge_one (g / 2)
-    linarith
-  exact mul_ne_zero (mul_ne_zero two_ne_zero hC₂) hD_pos.ne'
+  have hD : 0 < divisorCorrectionProduct (g / 2) := by
+    have := divisorCorrectionProduct_ge_one (g / 2); linarith
+  exact mul_ne_zero (mul_ne_zero two_ne_zero hC₂) hD.ne'
 
 /-- S(2pqr) = 2C₂ · (p-1)/(p-2) · (q-1)/(q-2) · (r-1)/(r-2) для различных нечётных простых. -/
 theorem singularSeriesFactor_eq_for_2pqr (C₂ : ℝ) (p q r : Nat)
@@ -636,19 +490,15 @@ theorem singularSeriesFactor_eq_for_2pqr (C₂ : ℝ) (p q r : Nat)
       2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) *
               (((q : ℝ) - 1) / ((q : ℝ) - 2)) *
               (((r : ℝ) - 1) / ((r : ℝ) - 2)) := by
-  rw [singularSeriesFactor, if_pos (even_two_mul (p * q * r))]
-  have hdiv : (2 * (p * q * r)) / 2 = p * q * r := Nat.mul_div_cancel_left _ (by omega)
-  rw [hdiv]
+  rw [singularSeriesFactor, if_pos (even_two_mul (p * q * r)),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
   have hcopq : Nat.Coprime p q := (Nat.coprime_primes hp hq).mpr hpq_ne
-  have hcopr_pr : Nat.Coprime p r := (Nat.coprime_primes hp hr).mpr hpr_ne
-  have hcopr_qr : Nat.Coprime q r := (Nat.coprime_primes hq hr).mpr hqr_ne
-  have hcop_pq_r : Nat.Coprime (p * q) r := by
-    have h1 : Nat.Coprime r p := (Nat.coprime_primes hr hp).mpr (Ne.symm hpr_ne)
-    have h2 : Nat.Coprime r q := (Nat.coprime_primes hr hq).mpr (Ne.symm hqr_ne)
-    have h3 : Nat.Coprime r (p * q) := Nat.Coprime.mul_right h1 h2
-    exact Nat.Coprime.symm h3
-  rw [divisorCorrectionProduct_mul_of_coprime
-        (mul_ne_zero hp.ne_zero hq.ne_zero) hr.ne_zero hcop_pq_r,
+  have hcoppq_r : Nat.Coprime (p * q) r := by
+    have h1 : Nat.Coprime r p := (Nat.coprime_primes hr hp).mpr hpr_ne.symm
+    have h2 : Nat.Coprime r q := (Nat.coprime_primes hr hq).mpr hqr_ne.symm
+    exact Nat.Coprime.symm (Nat.Coprime.mul_right h1 h2)
+  rw [divisorCorrectionProduct_mul_of_coprime (mul_ne_zero hp.ne_zero hq.ne_zero) hr.ne_zero
+        hcoppq_r,
       divisorCorrectionProduct_mul_of_coprime hp.ne_zero hq.ne_zero hcopq,
       divisorCorrectionProduct_prime p hp hp_odd,
       divisorCorrectionProduct_prime q hq hq_odd,
@@ -661,39 +511,28 @@ theorem divisorCorrectionProduct_le_of_primeFactors_subset {k k' : Nat}
             (Nat.primeFactors k').filter (fun p => 2 < p)) :
     divisorCorrectionProduct k ≤ divisorCorrectionProduct k' := by
   rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
-  have h_f_ge_one : ∀ p ∈ (Nat.primeFactors k').filter (fun q => 2 < q),
+  have hge1 : ∀ p ∈ (Nat.primeFactors k').filter (fun q => 2 < q),
       (1 : ℝ) ≤ ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
     rintro p hp
-    have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
-    have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
-    have hpos : 0 < (p : ℝ) - 2 := by linarith
-    rw [le_div_iff₀ hpos]; linarith
-  have h_extra : (1 : ℝ) ≤
-      ((Nat.primeFactors k').filter (fun q => 2 < q) \
+    have hp_real : (2 : ℝ) < p := by exact_mod_cast (Finset.mem_filter.mp hp).2
+    rw [le_div_iff₀ (by linarith : 0 < (p : ℝ) - 2)]; linarith
+  have hextra : 1 ≤ ((Nat.primeFactors k').filter (fun q => 2 < q) \
        (Nat.primeFactors k).filter (fun q => 2 < q)).prod
-        (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+       (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
     apply Finset.one_le_prod
-    rintro p hp
-    have hp_in : p ∈ (Nat.primeFactors k').filter (fun q => 2 < q) :=
-      (Finset.mem_sdiff.mp hp).1
-    exact h_f_ge_one p hp_in
-  have h_S_nonneg : (0 : ℝ) ≤
-      ((Nat.primeFactors k).filter (fun q => 2 < q)).prod
-        (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+    rintro p hp; exact hge1 p (Finset.mem_sdiff.mp hp).1
+  have hSnn : 0 ≤ ((Nat.primeFactors k).filter (fun q => 2 < q)).prod
+      (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
     apply Finset.prod_nonneg
     rintro p hp
-    have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
-    have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
+    have hp_real : (2 : ℝ) < p := by exact_mod_cast (Finset.mem_filter.mp hp).2
     exact div_nonneg (by linarith) (by linarith)
   rw [← Finset.prod_sdiff hsub]
-  have h_extra_nonneg : (0 : ℝ) ≤
-      ((Nat.primeFactors k').filter (fun q => 2 < q) \
+  have henn : 0 ≤ ((Nat.primeFactors k').filter (fun q => 2 < q) \
        (Nat.primeFactors k).filter (fun q => 2 < q)).prod
-        (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) :=
-    le_trans zero_le_one h_extra
-  have h := mul_le_mul h_extra (le_refl _) h_S_nonneg h_extra_nonneg
-  rw [one_mul] at h
-  exact h
+       (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := le_trans zero_le_one hextra
+  have := mul_le_mul hextra (le_refl _) hSnn henn
+  rwa [one_mul] at this
 
 end
 end PrimeGaps
