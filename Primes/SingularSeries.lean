@@ -465,5 +465,119 @@ theorem finiteWheelSingularSeries_even_eq (k y : Nat) (hy : 2 ≤ y) :
            oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) := by ring
   rw [h_rearrange, h_twin_prod, ← htwin]
 
+/-! ### Bounds and characterization theorems — new results
+
+Теоремы о нижней оценке `D(k) ≥ 1`, характеризацией равенства,
+2-адической инвариантности `S`, и связи с эйлеровым произведением.
+-/
+
+/-- `D(k) ≥ 1`: каждый множитель `(p-1)/(p-2) ≥ 1` для `p > 2`. -/
+theorem divisorCorrectionProduct_ge_one (k : Nat) :
+    1 ≤ divisorCorrectionProduct k := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  apply Finset.one_le_prod
+  rintro p hp
+  have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
+  have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
+  have hpos : 0 < (p : ℝ) - 2 := by linarith
+  rw [le_div_iff₀ hpos]; linarith
+
+/-- `D(k) > 1` ↔ `k` имеет нечётный простой делитель (через `primeFactors`). -/
+theorem divisorCorrectionProduct_gt_one_iff (k : Nat) :
+    1 < divisorCorrectionProduct k ↔
+    ((Nat.primeFactors k).filter (fun p => 2 < p)).Nonempty := by
+  rw [divisorCorrectionProduct_eq_primeFactors]
+  constructor
+  · intro hgt
+    by_cases h_empty : (Nat.primeFactors k).filter (fun p => 2 < p) = ∅
+    · rw [h_empty, Finset.prod_empty] at hgt
+      exact absurd hgt (by linarith : ¬(1 < (1 : ℝ)))
+    · exact Finset.nonempty_iff_ne_empty.mpr h_empty
+  · intro hnonempty
+    rcases hnonempty with ⟨p, hp⟩
+    have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
+    have hp_real : (2 : ℝ) < p := by exact_mod_cast hp_gt2
+    have hpos : 0 < (p : ℝ) - 2 := by linarith
+    have hfactor_gt1 : (1 : ℝ) < ((p : ℝ) - 1) / ((p : ℝ) - 2) := by
+      rw [lt_div_iff₀ hpos]; linarith
+    have h_rest : (1 : ℝ) ≤ (((Nat.primeFactors k).filter (fun q => 2 < q)).erase p).prod
+        (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
+      apply Finset.one_le_prod
+      rintro q hq
+      have hq_in : q ∈ (Nat.primeFactors k).filter (fun r => 2 < r) :=
+        Finset.mem_of_mem_erase hq
+      have hq_gt2 : 2 < q := (Finset.mem_filter.mp hq_in).2
+      have hq_real : (2 : ℝ) < q := by exact_mod_cast hq_gt2
+      have hqpos : 0 < (q : ℝ) - 2 := by linarith
+      rw [le_div_iff₀ hqpos]; linarith
+    have h_split : ((Nat.primeFactors k).filter (fun q => 2 < q)).prod
+        (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) =
+        ((p : ℝ) - 1) / ((p : ℝ) - 2) *
+        (((Nat.primeFactors k).filter (fun q => 2 < q)).erase p).prod
+          (fun q => ((q : ℝ) - 1) / ((q : ℝ) - 2)) := by
+      conv_lhs =>
+        rw [← Finset.insert_erase hp, Finset.prod_insert (Finset.notMem_erase _ _)]
+    rw [h_split]
+    nlinarith [hfactor_gt1, h_rest]
+
+/-- `S(2^a) = 2C₂` для `a ≥ 1`: singular series для степеней двойки равна twin prime constant. -/
+theorem singularSeriesFactor_2_pow (C₂ : ℝ) (a : Nat) (ha : 1 ≤ a) :
+    singularSeriesFactor C₂ (2 ^ a) = 2 * C₂ := by
+  unfold singularSeriesFactor
+  cases a with
+  | zero => omega
+  | succ n =>
+    rw [@Nat.pow_succ' 2 n, if_pos (even_two_mul (2 ^ n)),
+        Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+        divisorCorrectionProduct_pow_two n]
+    ring
+
+/-- `S(2^a · m) = S(2m)` для нечётного `m` и `a ≥ 1`: 2-adic инвариантность. -/
+theorem singularSeriesFactor_2adic (C₂ : ℝ) (a : Nat) (m : Nat) (hm : Odd m) (ha : 1 ≤ a) :
+    singularSeriesFactor C₂ (2 ^ a * m) = singularSeriesFactor C₂ (2 * m) := by
+  unfold singularSeriesFactor
+  cases a with
+  | zero => omega
+  | succ n =>
+    rw [@Nat.pow_succ' 2 n]
+    have heven1 : Even (2 * 2 ^ n * m) := by
+      rw [Nat.mul_assoc 2 (2 ^ n) m]; exact even_two_mul (2 ^ n * m)
+    rw [if_pos heven1, if_pos (even_two_mul m)]
+    rw [Nat.mul_assoc 2 (2 ^ n) m, Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+        Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+        divisorCorrectionProduct_pow_two_mul n m hm]
+
+/-- `S(g) ≥ 2C₂` для чётного `g` при `C₂ ≥ 0`. -/
+theorem singularSeriesFactor_ge_2C2 (C₂ : ℝ) (g : Nat) (hg : Even g) (hC₂ : 0 ≤ C₂) :
+    2 * C₂ ≤ singularSeriesFactor C₂ g := by
+  unfold singularSeriesFactor
+  rw [if_pos hg]
+  have hD : 1 ≤ divisorCorrectionProduct (g / 2) := divisorCorrectionProduct_ge_one (g / 2)
+  have h2C₂ : 0 ≤ 2 * C₂ := by linarith
+  nlinarith
+
+/-- Алгебраическое тождество: `(p-1)/(p-2) · (1-1/(p-1)²) = p/(p-1)`. -/
+private lemma euler_factor_identity (p : ℝ) (hp : 2 < p) :
+    ((p - 1) / (p - 2)) * (1 - 1 / (p - 1) ^ 2) = p / (p - 1) := by
+  have hp0 : p ≠ 0 := by linarith
+  have hp1 : p - 1 ≠ 0 := by linarith
+  have hp2 : p - 2 ≠ 0 := by linarith
+  field_simp [hp0, hp1, hp2]
+  ring
+
+/-- `D(k) · ∏_{p|k, p>2} (1-1/(p-1)²) = ∏_{p|k, p>2} p/(p-1)`.
+Связь между divisor correction и эйлеровым произведением. -/
+theorem divisorCorrectionProduct_euler_connection (k : Nat) :
+    divisorCorrectionProduct k *
+    ((Nat.primeFactors k).filter (fun p => 2 < p)).prod
+      (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2)) =
+    ((Nat.primeFactors k).filter (fun p => 2 < p)).prod
+      (fun p => (p : ℝ) / ((p : ℝ) - 1)) := by
+  rw [divisorCorrectionProduct_eq_primeFactors, ← Finset.prod_mul_distrib]
+  apply Finset.prod_congr rfl
+  intro p hp
+  have hp_gt2 : 2 < p := (Finset.mem_filter.mp hp).2
+  exact euler_factor_identity (p : ℝ) (by exact_mod_cast hp_gt2)
+
 end
 end PrimeGaps
