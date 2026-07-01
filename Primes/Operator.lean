@@ -110,5 +110,87 @@ theorem primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue
         rw [hc]; exact ih
   exact h.1 (by funext n; exact hforall n)
 
+/-! ## Excluding eigenvalue 1 via Euclid's theorem -/
+
+private lemma eigenpair_ev_one_impossible {f : ArithmeticFunction} {ev : ℝ}
+    (h : IsPrimeSummatoryEigenpair f ev) (hev : ev = 1) : False := by
+  have hev_ne : ev ≠ 0 := by rw [hev]; norm_num
+  have hfpred : ∀ p : Nat, Nat.Prime p → 2 ≤ p → f (p - 1) = 0 := by
+    intro p hp hp2
+    have hj := primeSummatoryEigenpair_jump_at_prime h (p - 1) (by
+      have h1 : p - 1 + 1 = p := by omega
+      rw [h1]; exact hp)
+    rw [show (p - 1) + 1 = p by omega, hev] at hj
+    rw [show (1 - 1 : ℝ) = 0 from by norm_num, zero_mul, one_mul] at hj
+    exact hj.symm
+  have hf0 : f 0 = 0 := by
+    have hAf0 := h.2 0
+    unfold primeSummatoryOperator at hAf0
+    rw [Finset.range_one, Finset.sum_singleton, if_neg (by decide : ¬Nat.Prime 0),
+      hev, one_mul] at hAf0
+    exact hAf0.symm
+  have hf1 : f 1 = 0 := by
+    have hAf1 := h.2 1
+    unfold primeSummatoryOperator at hAf1
+    rw [Finset.sum_range_succ, Finset.range_one, Finset.sum_singleton,
+      if_neg (by decide : ¬Nat.Prime 0), if_neg (by decide : ¬Nat.Prime 1),
+      zero_add, hev, one_mul] at hAf1
+    exact hAf1.symm
+  have hforall : ∀ n, f n = 0 := by
+    intro n
+    match n with
+    | 0 => exact hf0
+    | 1 => exact hf1
+    | n + 2 =>
+      obtain ⟨p, hp_ge, hp_prime⟩ := Nat.exists_infinite_primes (n + 3)
+      have hfp : f (p - 1) = 0 := hfpred p hp_prime (by omega)
+      have hge : n + 2 ≤ p - 1 := by omega
+      have hback : ∀ j, j ≤ p - 1 - (n + 2) → f (p - 1 - j) = 0 := by
+        intro j hj
+        induction j with
+        | zero => exact hfp
+        | succ j ih =>
+          have hjm : p - 1 - j ≥ n + 2 := by omega
+          by_cases hpr : Nat.Prime (p - 1 - j)
+          · have hge2 : 2 ≤ p - 1 - j := by omega
+            have hpred := hfpred (p - 1 - j) hpr hge2
+            -- hpred : f ((p-1-j) - 1) = 0
+            -- Goal: f (p - 1 - (j + 1)) = 0
+            -- (p-1-j) - 1 = p - 1 - (j + 1) = p - 2 - j
+            have heq : (p - 1 - j) - 1 = p - 1 - (j + 1) := by omega
+            rw [← heq, hpred]
+          · have hc := primeSummatoryEigenpair_const_between_primes h hev_ne
+              (p - 2 - j) (by
+                have h1 : p - 2 - j + 1 = p - 1 - j := by omega
+                rw [h1]; exact hpr)
+            rw [show p - 2 - j + 1 = p - 1 - j by omega] at hc
+            -- hc : f (p - 1 - j) = f (p - 2 - j)
+            -- ih : f (p - 1 - j) = 0
+            -- Goal: f (p - 1 - (j + 1)) = 0
+            -- p - 1 - (j + 1) = p - 2 - j
+            have heq : p - 1 - (j + 1) = p - 2 - j := by omega
+            have hj' : j ≤ p - 1 - (n + 2) := by omega
+            rw [heq, hc.symm, ih hj']
+      have hkey := hback (p - 1 - (n + 2)) (by omega)
+      have hn' : p - 1 - (p - 1 - (n + 2)) = n + 2 := by omega
+      rw [hn'] at hkey
+      exact hkey
+  exact h.1 (by funext n; exact hforall n)
+
+/-- **Спектр оператора суммирования по простым тривиален: единственное собственное значение — 0.**
+
+Для любого eigenpair `(f, ev)`:
+- `ev ≠ 0, 1` → `f = 0` (индукция), противоречие.
+- `ev = 1` → для каждого простого `p`, `f(p-1) = 0`; для каждого `n`, берём простое `p > n+2`,
+  обратная индукция от `p-1` к `n` даёт `f(n) = 0`; `f = 0` — противоречие.
+- Следовательно `ev = 0`. -/
+theorem primeSummatoryEigenpair_only_zero_eigenvalue
+    {f : ArithmeticFunction} {ev : ℝ} (h : IsPrimeSummatoryEigenpair f ev) : ev = 0 := by
+  by_cases hev : ev = 0
+  · exact hev
+  by_cases hev1 : ev = 1
+  · exact absurd (eigenpair_ev_one_impossible h hev1) (by trivial)
+  · exact absurd (primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue h hev hev1) (by trivial)
+
 end
 end PrimeGaps
