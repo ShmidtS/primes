@@ -558,6 +558,20 @@ theorem singularSeriesFactor_eq_of_same_odd_prime_factors (C₂ : ℝ) {k k' : N
       divisorCorrectionProduct_eq_primeFactors,
       divisorCorrectionProduct_eq_primeFactors, hpf]
 
+/-- `D(k) ≤ D(P_m)` если `k ∣ P_m` и `k > 0`: делители primorial не превосходят primorial по D. -/
+theorem divisorCorrectionProduct_le_of_dvd_primorial (k m : Nat) (_hk : 0 < k) (hdvd : k ∣ primorial m) :
+    divisorCorrectionProduct k ≤ divisorCorrectionProduct (primorial m) := by
+  apply divisorCorrectionProduct_le_of_primeFactors_subset
+  intro p hp
+  rw [Finset.mem_filter] at hp
+  have hpprime : Nat.Prime p := (Nat.mem_primeFactors.mp hp.1).1
+  have hp_dvd_k : p ∣ k := (Nat.mem_primeFactors.mp hp.1).2.1
+  have hp_dvd_Pm : p ∣ primorial m := hp_dvd_k.trans hdvd
+  have hpmem : p ∈ (Nat.primeFactors (primorial m)).filter (fun p => 2 < p) := by
+    simp only [Finset.mem_filter]
+    exact ⟨Nat.mem_primeFactors.mpr ⟨hpprime, hp_dvd_Pm, (primorial_pos m).ne'⟩, hp.2⟩
+  exact hpmem
+
 /-- `D(P_m) = ∏_{i=1}^{m-1} (p_i - 1)/(p_i - 2)` для `m ≥ 2`. -/
 theorem divisorCorrectionProduct_primorial (m : Nat) (hm : 2 ≤ m) :
     divisorCorrectionProduct (primorial m) =
@@ -632,6 +646,29 @@ theorem divisorCorrectionProduct_primorial_strictMono (m : Nat) (hm : 1 ≤ m) :
   have h := mul_lt_mul_of_pos_left hfactor_gt1 hD_pos
   rw [mul_one] at h
   exact h
+
+/-- `S(2·P_m)` строго возрастает при `C₂ > 0`: следствие строгой монотонности `D(P_m)`. -/
+theorem singularSeriesFactor_primorial_strictMono (C₂ : ℝ) (hC₂ : 0 < C₂) (m : Nat) (hm : 1 ≤ m) :
+    singularSeriesFactor C₂ (2 * primorial m) < singularSeriesFactor C₂ (2 * primorial (m + 1)) := by
+  rw [singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul _), if_pos (even_two_mul _),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have hD := divisorCorrectionProduct_primorial_strictMono m hm
+  have h2C₂ : 0 < 2 * C₂ := by positivity
+  exact mul_lt_mul_of_pos_left hD h2C₂
+
+/-- `S(2k) ≤ S(2·P_m)` если `k ∣ P_m` и `C₂ > 0`: singular series максимизируется на primorial среди делителей. -/
+theorem singularSeriesFactor_le_primorial (C₂ : ℝ) (hC₂ : 0 < C₂)
+    (k m : Nat) (hk : 0 < k) (hdvd : k ∣ primorial m) :
+    singularSeriesFactor C₂ (2 * k) ≤ singularSeriesFactor C₂ (2 * primorial m) := by
+  rw [singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul _), if_pos (even_two_mul _),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have h2C₂ : 0 < 2 * C₂ := by positivity
+  have hD_le := divisorCorrectionProduct_le_of_dvd_primorial k m hk hdvd
+  exact (mul_le_mul_of_nonneg_left hD_le (le_of_lt h2C₂))
 
 end
 end PrimeGaps

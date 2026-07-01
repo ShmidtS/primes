@@ -493,5 +493,19 @@ theorem primorialWheel_gap_two_appears (m : Nat) (hm : 1 ≤ m) :
   rw [List.mem_append, List.mem_singleton]
   exact Or.inr hwrap.symm
 
+/-- Минимальный gap в primorial wheel равен 2: все gaps чётны и положительны, gap 2 присутствует. -/
+theorem primorialWheel_min_gap_eq_two (m : Nat) (hm : 1 ≤ m) :
+    ∀ g ∈ wheelGaps (primorial m), 2 ≤ g := by
+  intro g hg
+  have heven : Even g := primorialWheelGaps_even m hm g hg
+  have hpos : 0 < g := wheelGaps_pos (primorial_pos m) g hg
+  rcases heven with ⟨k, hk⟩
+  omega
+
+/-- Минимальный gap в primorial wheel в точности 2: все gaps ≥ 2 и gap 2 ∈ wheelGaps. -/
+theorem primorialWheel_min_gap_iff (m : Nat) (hm : 1 ≤ m) :
+    (∀ g ∈ wheelGaps (primorial m), 2 ≤ g) ∧ 2 ∈ wheelGaps (primorial m) :=
+  ⟨primorialWheel_min_gap_eq_two m hm, primorialWheel_gap_two_appears m hm⟩
+
 end
 end PrimeGaps
