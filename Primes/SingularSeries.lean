@@ -670,5 +670,42 @@ theorem singularSeriesFactor_le_primorial (C₂ : ℝ) (hC₂ : 0 < C₂)
   have hD_le := divisorCorrectionProduct_le_of_dvd_primorial k m hk hdvd
   exact (mul_le_mul_of_nonneg_left hD_le (le_of_lt h2C₂))
 
+/-- **S(2p²q) = S(2pq)**: возведение простого делителя в степень не меняет singular series. -/
+theorem singularSeriesFactor_2p_sq_eq_2pq (C₂ : ℝ) (p q : Nat)
+    (hp : Nat.Prime p) (hq : Nat.Prime q) (hp_odd : 2 < p) (hq_odd : 2 < q) (hpq_ne : p ≠ q) :
+    singularSeriesFactor C₂ (2 * (p ^ 2 * q)) = singularSeriesFactor C₂ (2 * (p * q)) := by
+  rw [singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul _), if_pos (even_two_mul _),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  -- Need: D(p^2 * q) = D(p * q)
+  -- primeFactors(p^2 * q) = primeFactors(p^2) ∪ primeFactors(q) = {p} ∪ {q}
+  -- primeFactors(p * q) = {p} ∪ {q}
+  -- So the filtered products are equal
+  have hcop : Nat.Coprime (p ^ 2) q := by
+    have h1 : Nat.Coprime p q := (Nat.coprime_primes hp hq).mpr hpq_ne
+    exact Iff.mpr (Nat.coprime_pow_left_iff (by omega : 0 < 2) p q) h1
+  have hcop' : Nat.Coprime p q := (Nat.coprime_primes hp hq).mpr hpq_ne
+  rw [divisorCorrectionProduct_mul_of_coprime (pow_ne_zero 2 hp.ne_zero) hq.ne_zero hcop,
+      divisorCorrectionProduct_mul_of_coprime hp.ne_zero hq.ne_zero hcop',
+      divisorCorrectionProduct_pow_eq p (by omega : 0 < (2 : Nat)),
+      divisorCorrectionProduct_prime p hp hp_odd,
+      divisorCorrectionProduct_prime q hq hq_odd]
+
+/-- **S(g) монотонна по множеству простых делителей**: если `primeFactors(k) ⊆ primeFactors(k')`,
+  то `S(2k) ≤ S(2k')` при `C₂ > 0`. -/
+theorem singularSeriesFactor_monotone_on_primeFactors (C₂ : ℝ) (hC₂ : 0 < C₂)
+    (k k' : Nat) (_hk : 0 < k) (_hk' : 0 < k')
+    (hsub : (Nat.primeFactors k).filter (fun p => 2 < p) ⊆
+            (Nat.primeFactors k').filter (fun p => 2 < p)) :
+    singularSeriesFactor C₂ (2 * k) ≤ singularSeriesFactor C₂ (2 * k') := by
+  rw [singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul _), if_pos (even_two_mul _),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have h2C₂ : 0 < 2 * C₂ := by positivity
+  exact mul_le_mul_of_nonneg_left
+    (divisorCorrectionProduct_le_of_primeFactors_subset hsub) (le_of_lt h2C₂)
+
 end
 end PrimeGaps
