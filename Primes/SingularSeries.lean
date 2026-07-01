@@ -558,5 +558,45 @@ theorem singularSeriesFactor_eq_of_same_odd_prime_factors (C₂ : ℝ) {k k' : N
       divisorCorrectionProduct_eq_primeFactors,
       divisorCorrectionProduct_eq_primeFactors, hpf]
 
+/-- `D(P_m) = ∏_{i=1}^{m-1} (p_i - 1)/(p_i - 2)` для `m ≥ 2`. -/
+theorem divisorCorrectionProduct_primorial (m : Nat) (hm : 2 ≤ m) :
+    divisorCorrectionProduct (primorial m) =
+      ((Finset.range m).filter (fun i => 0 < i)).prod
+        (fun i => ((Nat.nth Nat.Prime i : ℝ) - 1) / ((Nat.nth Nat.Prime i : ℝ) - 2)) := by
+  rw [divisorCorrectionProduct_eq_primeFactors, primeFactors_primorial m (by omega)]
+  rw [Finset.filter_image]
+  have hinj : ∀ x ∈ (Finset.range m).filter (fun i => 2 < Nat.nth Nat.Prime i),
+      ∀ y ∈ (Finset.range m).filter (fun i => 2 < Nat.nth Nat.Prime i),
+      Nat.nth Nat.Prime x = Nat.nth Nat.Prime y → x = y := by
+    intro x _ y _ hxy
+    exact (Nat.nth_strictMono Nat.infinite_setOf_prime).injective hxy
+  rw [Finset.prod_image hinj]
+  congr 1
+  ext i
+  simp only [Finset.mem_filter, Finset.mem_range]
+  constructor
+  · rintro ⟨hirange, hlt⟩
+    refine ⟨hirange, ?_⟩
+    by_cases hi : i = 0
+    · subst hi; rw [Nat.nth_prime_zero_eq_two] at hlt; omega
+    · omega
+  · rintro ⟨hirange, hipos⟩
+    refine ⟨hirange, ?_⟩
+    have h1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+    have hge : 1 ≤ i := by omega
+    have hle : Nat.nth Nat.Prime 1 ≤ Nat.nth Nat.Prime i :=
+      (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge
+    rw [h1] at hle
+    omega
+
+/-- `S(2·P_m) = 2C₂ · ∏_{i=1}^{m-1} (p_i-1)/(p_i-2)` для `m ≥ 2`. -/
+theorem singularSeriesFactor_primorial_explicit (C₂ : ℝ) (m : Nat) (hm : 2 ≤ m) :
+    singularSeriesFactor C₂ (2 * primorial m) =
+      2 * C₂ * ((Finset.range m).filter (fun i => 0 < i)).prod
+        (fun i => ((Nat.nth Nat.Prime i : ℝ) - 1) / ((Nat.nth Nat.Prime i : ℝ) - 2)) := by
+  rw [singularSeriesFactor, if_pos (even_two_mul _),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_primorial m hm]
+
 end
 end PrimeGaps
