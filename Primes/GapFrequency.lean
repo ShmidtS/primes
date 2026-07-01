@@ -220,6 +220,61 @@ theorem exists_predecessor_prime (q : Nat) (_hq : Nat.Prime q) (hq3 : 3 ≤ q) :
   have : r ≤ s.max' hne := s.le_max' r hr_mem
   omega
 
+/-- Каждое простое `q ∈ [3, x]` даёт ровно одну пару `ConsecutivePrimeStart`. -/
+theorem ConsecutivePrimeStart_exists_for_right_endpoint (x : Nat) (q : Nat)
+    (hq : Nat.Prime q) (hq3 : 3 ≤ q) (hqx : q ≤ x) :
+    ∃ g n, g ∈ Finset.range (x + 1) ∧ n ∈ Finset.range (x + 1) ∧
+      ConsecutivePrimeStart g x n ∧ n + g = q := by
+  obtain ⟨p, hp_prime, hp_lt, hp_no_between⟩ := exists_predecessor_prime q hq hq3
+  have hg : 0 < q - p := by omega
+  have hpg : p + (q - p) = q := by omega
+  refine ⟨q - p, p, ?_, ?_, ?_, hpg⟩
+  · exact Finset.mem_range.mpr (by omega)
+  · exact Finset.mem_range.mpr (by omega)
+  · unfold ConsecutivePrimeStart
+    rw [← hpg] at hq hqx
+    refine ⟨hg, hp_prime, hq, hqx, ?_⟩
+    intro h hh hprime
+    have hmem : h ∈ Finset.Icc 1 (q - p - 1) := hh
+    have hle : h ≤ q - p - 1 := (Finset.mem_Icc.mp hmem).2
+    have hge : 1 ≤ h := (Finset.mem_Icc.mp hmem).1
+    have hp_lt_ph : p < p + h := by omega
+    have hph_lt_q : p + h < q := by omega
+    exact hp_no_between (p + h) hprime hp_lt_ph hph_lt_q
+
+/-- Правый конец пары `ConsecutivePrimeStart` — простое число `≥ 3`. -/
+theorem ConsecutivePrimeStart_right_endpoint_ge_three {g x n : Nat}
+    (h : ConsecutivePrimeStart g x n) : 3 ≤ n + g := by
+  have hg : 0 < g := h.1
+  have hn : Nat.Prime n := h.2.1
+  have hn2 : 2 ≤ n := hn.two_le
+  have hng_prime : Nat.Prime (n + g) := h.2.2.1
+  have hng2 : 2 ≤ n + g := hng_prime.two_le
+  by_contra hcontra
+  have : n + g ≤ 2 := by
+    by_contra hgt; omega
+  -- n + g ≤ 2, but n ≥ 2 and g > 0, so n + g ≥ 3
+  omega
+
+/-- Правый конец пары — простое число. -/
+theorem ConsecutivePrimeStart_right_endpoint_prime {g x n : Nat}
+    (h : ConsecutivePrimeStart g x n) : Nat.Prime (n + g) := h.2.2.1
+
+/-- Правый конец пары — `≤ x`. -/
+theorem ConsecutivePrimeStart_right_endpoint_le {g x n : Nat}
+    (h : ConsecutivePrimeStart g x n) : n + g ≤ x := h.2.2.2.1
+
+/-- Единственность пары по правому концу: если две пары имеют одинаковый
+  правый конец `q = n₁ + g₁ = n₂ + g₂`, то `n₁ = n₂` (и `g₁ = g₂`). -/
+theorem ConsecutivePrimeStart_right_endpoint_injective
+    {g₁ g₂ n₁ n₂ x : Nat}
+    (h1 : ConsecutivePrimeStart g₁ x n₁)
+    (h2 : ConsecutivePrimeStart g₂ x n₂)
+    (heq : n₁ + g₁ = n₂ + g₂) : n₁ = n₂ ∧ g₁ = g₂ := by
+  have hn : n₁ = n₂ := ConsecutivePrimeStart_left_injective h1 h2 heq
+  have hg : g₁ = g₂ := by omega
+  exact ⟨hn, hg⟩
+
 /-! ## Conjectures -/
 
 def mobiusPairKernel (mu : Nat → Int) (g x n : Nat) : Int :=
