@@ -11,46 +11,39 @@ noncomputable section
 
 open Filter
 
-/-! ## Wigner GOE surmise for prime gaps -/
+/-! ## Wigner GOE surmise: definitions and RMT conjectures
 
-/-- Средний масштаб простого промежутка около `x`: эвристически `log x`. -/
+The Wigner GOE surmise `p(t) = (π/2) t exp(-πt²/4)` is the universal
+gap distribution for random matrix ensembles. We define it and state
+conjectures connecting it to prime gap statistics.
+-/
+
+/-- Average scale of prime gaps near `x`: heuristically `log x`. -/
 def meanPrimeGapScale (x : Nat) : ℝ := Real.log (x : ℝ)
 
-/-- GOE Wigner surmise для нормированных промежутков. -/
+/-- GOE Wigner surmise for normalized gaps: `p(t) = (π/2) t exp(-πt²/4)`. -/
 def wignerGOESurmise (t : ℝ) : ℝ :=
   (Real.pi / 2) * t * Real.exp (-(Real.pi / 4) * t ^ 2)
 
-/-- Масштабированная точечная плотность промежутков. -/
+/-- Scaled point density of gaps: `log(x) · F(g,x)/π(x)`. -/
 def scaledPrimeGapDensity (g x : Nat) : ℝ :=
   meanPrimeGapScale x * primeGapRelativeFrequency g x
 
-/-- Wigner GOE surmise — нечётная функция: `p(-t) = -p(t)`. -/
-theorem wignerGOESurmise_odd (t : ℝ) :
-    wignerGOESurmise (-t) = -wignerGOESurmise t := by
-  unfold wignerGOESurmise; rw [show (-t : ℝ) ^ 2 = t ^ 2 by ring]; ring
+/-- GOE-Wigner conjecture: scaled prime gap density converges to `C₂ · p(τ)`. -/
+def GOEWignerPrimeGapConjecture (C₂ : ℝ) : Prop :=
+  ∀ (g : Nat → Nat) (τ : ℝ),
+    Tendsto (fun x : Nat => (g x : ℝ) / meanPrimeGapScale x) atTop (nhds τ) →
+      Tendsto (fun x : Nat => scaledPrimeGapDensity (g x) x) atTop
+        (nhds (C₂ * wignerGOESurmise τ))
 
-/-- Wigner GOE surmise неотрицательна для `t ≥ 0`. -/
-theorem wignerGOESurmise_nonneg {t : ℝ} (ht : 0 ≤ t) :
-    0 ≤ wignerGOESurmise t := by
-  unfold wignerGOESurmise
-  positivity
-
-/-- Wigner GOE surmise обращается в ноль при `t = 0`. -/
-theorem wignerGOESurmise_zero :
-    wignerGOESurmise 0 = 0 := by
-  unfold wignerGOESurmise; ring
-
-/-- Wigner GOE surmise строго положительна для `t > 0`. -/
-theorem wignerGOESurmise_pos {t : ℝ} (ht : 0 < t) :
-    0 < wignerGOESurmise t := by
-  unfold wignerGOESurmise
-  positivity
-
-/-- Wigner GOE surmise — чётная функция от `t²`: зависит только от `t²`. -/
-theorem wignerGOESurmise_sq_arg (t : ℝ) :
-    wignerGOESurmise t = (Real.pi / 2) * t * Real.exp (-(Real.pi / 4) * t * t) := by
-  unfold wignerGOESurmise
-  ring_nf
+/-- Determinantal model for prime gap frequencies (Montgomery--Odlyzko GUE hypothesis). -/
+def DeterminantalPrimeGapConjecture
+    (kernel : (x g m : Nat) → Fin m → Fin m → ℝ) (weight : Nat → ℝ) : Prop :=
+  ∀ g : Nat,
+    Tendsto (fun x : Nat =>
+      primeGapRelativeFrequency g x -
+        (Finset.range (g + 1)).sum fun m => weight m * Matrix.det (kernel x g m))
+      atTop (nhds 0)
 
 end
 end PrimeGaps

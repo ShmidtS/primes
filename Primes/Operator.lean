@@ -101,19 +101,14 @@ theorem primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue
     simp only [Finset.sum_range_one, if_neg (by decide : ¬Nat.Prime 0),
       if_neg (by decide : ¬Nat.Prime 1), if_pos (by decide : Nat.Prime 2),
       zero_add, add_zero] at hAf2
-    -- hAf2 : f 2 = ev * f 2
     have h1 : (1 - ev) * f 2 = 0 := by linear_combination hAf2
-    have h2 : 1 - ev ≠ 0 := by
-      intro h; rw [sub_eq_zero.mp h] at hev1; exact hev1 rfl
-    exact (mul_eq_zero.mp h1).resolve_left h2
+    exact (mul_eq_zero.mp h1).resolve_left fun h => hev1 (sub_eq_zero.mp h).symm
   have hf1 : f 1 = 0 := by
     have hj := primeSummatoryEigenpair_jump_at_prime h 1 (by decide : Nat.Prime 2)
-    rw [show 1 + 1 = 2 by omega] at hj
-    rw [hf2] at hj
-    -- hj : (ev - 1) * 0 = ev * f 1
+    rw [show 1 + 1 = 2 by omega, hf2] at hj
     have h1 : ev * f 1 = 0 := by
-      have : (ev - 1) * (0 : ℝ) = 0 := by ring
-      linarith [hj, this]
+      have hzero : (ev - 1) * (0 : ℝ) = 0 := by ring
+      linarith [hj, hzero]
     exact (mul_eq_zero.mp h1).resolve_left hev
   have hf0 : f 0 = 0 := by
     have hc := primeSummatoryEigenpair_const_between_primes h hev 0 (by decide : ¬Nat.Prime 1)
@@ -127,13 +122,9 @@ theorem primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue
       by_cases hp : Nat.Prime (n + 1)
       · have hj := primeSummatoryEigenpair_jump_at_prime h n hp
         rw [show f n = (0 : ℝ) from ih] at hj
-        have h00 : ev * (0 : ℝ) = 0 := by ring
-        rw [h00] at hj
-        have hev1' : ev - 1 ≠ 0 := by
-          intro h; rw [sub_eq_zero.mp h] at hev1; exact hev1 rfl
-        exact (mul_eq_zero.mp hj).resolve_left hev1'
-      · have hc := primeSummatoryEigenpair_const_between_primes h hev n hp
-        rw [hc]; exact ih
+        rw [show ev * (0 : ℝ) = 0 by ring] at hj
+        exact (mul_eq_zero.mp hj).resolve_left fun h => hev1 (sub_eq_zero.mp h)
+      · exact (primeSummatoryEigenpair_const_between_primes h hev n hp).trans ih
   exact h.1 (by funext n; exact hforall n)
 
 /-! ## Excluding eigenvalue 1 via Euclid's theorem -/
@@ -143,11 +134,9 @@ private lemma eigenpair_ev_one_impossible {f : ArithmeticFunction} {ev : ℝ}
   have hev_ne : ev ≠ 0 := by rw [hev]; norm_num
   have hfpred : ∀ p : Nat, Nat.Prime p → 2 ≤ p → f (p - 1) = 0 := by
     intro p hp hp2
-    have hj := primeSummatoryEigenpair_jump_at_prime h (p - 1) (by
-      have h1 : p - 1 + 1 = p := by omega
-      rw [h1]; exact hp)
-    rw [show (p - 1) + 1 = p by omega, hev] at hj
-    rw [show (1 - 1 : ℝ) = 0 from by norm_num, zero_mul, one_mul] at hj
+    have hj := primeSummatoryEigenpair_jump_at_prime h (p - 1) (by rw [show p - 1 + 1 = p from by omega]; exact hp)
+    rw [show (p - 1) + 1 = p by omega, hev, show (1 - 1 : ℝ) = 0 from by norm_num,
+        zero_mul, one_mul] at hj
     exact hj.symm
   have hf0 : f 0 = 0 := by
     have hAf0 := h.2 0
@@ -170,36 +159,21 @@ private lemma eigenpair_ev_one_impossible {f : ArithmeticFunction} {ev : ℝ}
     | n + 2 =>
       obtain ⟨p, hp_ge, hp_prime⟩ := Nat.exists_infinite_primes (n + 3)
       have hfp : f (p - 1) = 0 := hfpred p hp_prime (by omega)
-      have hge : n + 2 ≤ p - 1 := by omega
       have hback : ∀ j, j ≤ p - 1 - (n + 2) → f (p - 1 - j) = 0 := by
         intro j hj
         induction j with
         | zero => exact hfp
         | succ j ih =>
-          have hjm : p - 1 - j ≥ n + 2 := by omega
           by_cases hpr : Nat.Prime (p - 1 - j)
-          · have hge2 : 2 ≤ p - 1 - j := by omega
-            have hpred := hfpred (p - 1 - j) hpr hge2
-            -- hpred : f ((p-1-j) - 1) = 0
-            -- Goal: f (p - 1 - (j + 1)) = 0
-            -- (p-1-j) - 1 = p - 1 - (j + 1) = p - 2 - j
-            have heq : (p - 1 - j) - 1 = p - 1 - (j + 1) := by omega
-            rw [← heq, hpred]
+          · rw [← show (p - 1 - j) - 1 = p - 1 - (j + 1) from by omega,
+                hfpred (p - 1 - j) hpr (by omega)]
           · have hc := primeSummatoryEigenpair_const_between_primes h hev_ne
-              (p - 2 - j) (by
-                have h1 : p - 2 - j + 1 = p - 1 - j := by omega
-                rw [h1]; exact hpr)
-            rw [show p - 2 - j + 1 = p - 1 - j by omega] at hc
-            -- hc : f (p - 1 - j) = f (p - 2 - j)
-            -- ih : f (p - 1 - j) = 0
-            -- Goal: f (p - 1 - (j + 1)) = 0
-            -- p - 1 - (j + 1) = p - 2 - j
-            have heq : p - 1 - (j + 1) = p - 2 - j := by omega
-            have hj' : j ≤ p - 1 - (n + 2) := by omega
-            rw [heq, hc.symm, ih hj']
+              (p - 2 - j) (by rw [show p - 2 - j + 1 = p - 1 - j from by omega]; exact hpr)
+            rw [show p - 2 - j + 1 = p - 1 - j from by omega] at hc
+            rw [show p - 1 - (j + 1) = p - 2 - j from by omega, ← hc]
+            exact ih (by omega)
       have hkey := hback (p - 1 - (n + 2)) (by omega)
-      have hn' : p - 1 - (p - 1 - (n + 2)) = n + 2 := by omega
-      rw [hn'] at hkey
+      rw [show p - 1 - (p - 1 - (n + 2)) = n + 2 from by omega] at hkey
       exact hkey
   exact h.1 (by funext n; exact hforall n)
 

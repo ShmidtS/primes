@@ -203,19 +203,15 @@ theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
 theorem exists_predecessor_prime (q : Nat) (_hq : Nat.Prime q) (hq3 : 3 ≤ q) :
     ∃ p : Nat, Nat.Prime p ∧ p < q ∧
       ∀ r : Nat, Nat.Prime r → p < r → r < q → False := by
-  have h2lt : 2 < q := by omega
-  have h2mem : 2 ∈ (Finset.range q).filter Nat.Prime := by
-    simp only [Finset.mem_filter, Finset.mem_range]
-    exact ⟨by omega, by decide⟩
-  have hne : (Finset.range q).filter Nat.Prime |>.Nonempty := ⟨2, h2mem⟩
-  set s := (Finset.range q).filter Nat.Prime with hs_def
+  have hne : ((Finset.range q).filter Nat.Prime).Nonempty :=
+    ⟨2, Finset.mem_filter.mpr ⟨Finset.mem_range.mpr (by omega), by decide⟩⟩
+  set s := (Finset.range q).filter Nat.Prime
   have hmax_mem : s.max' hne ∈ s := Finset.max'_mem s hne
-  have hmax_prime : Nat.Prime (s.max' hne) := (Finset.mem_filter.mp hmax_mem).2
-  have hmax_lt : (s.max' hne) < q := Finset.mem_range.mp (Finset.mem_filter.mp hmax_mem).1
-  refine ⟨s.max' hne, hmax_prime, hmax_lt, ?_⟩
+  refine ⟨s.max' hne, (Finset.mem_filter.mp hmax_mem).2,
+          Finset.mem_range.mp (Finset.mem_filter.mp hmax_mem).1, ?_⟩
   intro r hr_pr hr_p hr_q
   have hr_mem : r ∈ s := by
-    rw [hs_def]; simp only [Finset.mem_filter, Finset.mem_range]
+    simp only [s, Finset.mem_filter, Finset.mem_range]
     exact ⟨hr_q, hr_pr⟩
   have : r ≤ s.max' hne := s.le_max' r hr_mem
   omega
@@ -226,43 +222,17 @@ theorem ConsecutivePrimeStart_exists_for_right_endpoint (x : Nat) (q : Nat)
     ∃ g n, g ∈ Finset.range (x + 1) ∧ n ∈ Finset.range (x + 1) ∧
       ConsecutivePrimeStart g x n ∧ n + g = q := by
   obtain ⟨p, hp_prime, hp_lt, hp_no_between⟩ := exists_predecessor_prime q hq hq3
-  have hg : 0 < q - p := by omega
-  have hpg : p + (q - p) = q := by omega
-  refine ⟨q - p, p, ?_, ?_, ?_, hpg⟩
-  · exact Finset.mem_range.mpr (by omega)
-  · exact Finset.mem_range.mpr (by omega)
-  · unfold ConsecutivePrimeStart
-    rw [← hpg] at hq hqx
-    refine ⟨hg, hp_prime, hq, hqx, ?_⟩
+  refine ⟨q - p, p, Finset.mem_range.mpr (by omega), Finset.mem_range.mpr (by omega), ?_, by omega⟩
+  · unfold ConsecutivePrimeStart; rw [← show p + (q - p) = q from by omega] at hq hqx
+    refine ⟨by omega, hp_prime, hq, hqx, ?_⟩
     intro h hh hprime
-    have hmem : h ∈ Finset.Icc 1 (q - p - 1) := hh
-    have hle : h ≤ q - p - 1 := (Finset.mem_Icc.mp hmem).2
-    have hge : 1 ≤ h := (Finset.mem_Icc.mp hmem).1
-    have hp_lt_ph : p < p + h := by omega
-    have hph_lt_q : p + h < q := by omega
-    exact hp_no_between (p + h) hprime hp_lt_ph hph_lt_q
+    obtain ⟨hge, hle⟩ := Finset.mem_Icc.mp hh
+    exact hp_no_between (p + h) hprime (by omega) (by omega)
 
 /-- Правый конец пары `ConsecutivePrimeStart` — простое число `≥ 3`. -/
 theorem ConsecutivePrimeStart_right_endpoint_ge_three {g x n : Nat}
     (h : ConsecutivePrimeStart g x n) : 3 ≤ n + g := by
-  have hg : 0 < g := h.1
-  have hn : Nat.Prime n := h.2.1
-  have hn2 : 2 ≤ n := hn.two_le
-  have hng_prime : Nat.Prime (n + g) := h.2.2.1
-  have hng2 : 2 ≤ n + g := hng_prime.two_le
-  by_contra hcontra
-  have : n + g ≤ 2 := by
-    by_contra hgt; omega
-  -- n + g ≤ 2, but n ≥ 2 and g > 0, so n + g ≥ 3
-  omega
-
-/-- Правый конец пары — простое число. -/
-theorem ConsecutivePrimeStart_right_endpoint_prime {g x n : Nat}
-    (h : ConsecutivePrimeStart g x n) : Nat.Prime (n + g) := h.2.2.1
-
-/-- Правый конец пары — `≤ x`. -/
-theorem ConsecutivePrimeStart_right_endpoint_le {g x n : Nat}
-    (h : ConsecutivePrimeStart g x n) : n + g ≤ x := h.2.2.2.1
+  have hg := h.1; have hn := h.2.1.two_le; omega
 
 /-- Единственность пары по правому концу: если две пары имеют одинаковый
   правый конец `q = n₁ + g₁ = n₂ + g₂`, то `n₁ = n₂` (и `g₁ = g₂`). -/

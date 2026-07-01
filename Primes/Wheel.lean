@@ -25,14 +25,13 @@ theorem primorial_pos (m : Nat) : 0 < primorial m := by
   exact Finset.prod_pos fun i _ => (Nat.prime_nth_prime i).pos
 
 theorem primorial_even (m : Nat) (hm : 1 ≤ m) : Even (primorial m) := by
-  match m, hm with
-  | 0, h => exact absurd h (by simp)
-  | 1, _ =>
-    rw [primorial, Finset.prod_range_one, Nat.nth_prime_zero_eq_two]
-    exact even_two
-  | m + 2, _ =>
+  induction m with
+  | zero => omega
+  | succ m ih =>
     rw [primorial_succ]
-    exact Nat.even_mul.mpr (Or.inl (primorial_even (m + 1) (by omega)))
+    by_cases hm0 : m = 0
+    · subst hm0; rw [Nat.nth_prime_zero_eq_two]; exact even_two
+    · exact Nat.even_mul.mpr (Or.inl (ih (by omega)))
 
 theorem primeFactors_primorial (m : Nat) (hm : 0 < m) :
     Nat.primeFactors (primorial m) =
@@ -316,8 +315,7 @@ theorem wheelWrapGap_eq_two {n : Nat} (hn : 2 ≤ n) :
   have hcoprime : Nat.Coprime n (n - 1) := by
     have hn' : n = 1 + (n - 1) := by omega
     nth_rewrite 1 [hn']
-    rw [Nat.coprime_add_self_left, Nat.coprime_one_left_iff]
-    trivial
+    rw [Nat.coprime_add_self_left, Nat.coprime_one_left_iff]; trivial
   have hnm1_mem : (n - 1 : Nat) ∈ wheelCandidateList n := by
     rw [wheelCandidateList, Finset.mem_sort, wheelCandidates, Finset.mem_filter, Finset.mem_range]
     refine ⟨by omega, hcoprime⟩
@@ -465,18 +463,13 @@ theorem primorialWheelMeanGap_strictMono : StrictMono primorialWheelMeanGap := b
 
 theorem primorialWheelMeanGap_ge_two (m : Nat) (hm : 1 ≤ m) :
     (2 : ℚ) ≤ primorialWheelMeanGap m := by
-  rcases Nat.eq_or_lt_of_le hm with h | h
-  · subst h
-    rw [primorialWheelMeanGap, primorial, Finset.prod_range_one]
-    have hp0 : Nat.nth Nat.Prime 0 = 2 := Nat.nth_prime_zero_eq_two
-    rw [hp0, Nat.totient_prime (by decide : Nat.Prime 2)]
+  have hbase : (2 : ℚ) ≤ primorialWheelMeanGap 1 := by
+    rw [primorialWheelMeanGap, primorial, Finset.prod_range_one, Nat.nth_prime_zero_eq_two,
+        Nat.totient_prime (by decide)]
     simp
-  · have hstrict := primorialWheelMeanGap_strictMono h
-    have hbase : (2 : ℚ) ≤ primorialWheelMeanGap 1 := by
-      rw [primorialWheelMeanGap, primorial, Finset.prod_range_one]
-      have hp0 : Nat.nth Nat.Prime 0 = 2 := Nat.nth_prime_zero_eq_two
-      rw [hp0, Nat.totient_prime (by decide : Nat.Prime 2)]
-      simp
+  by_cases hm1 : m = 1
+  · subst hm1; exact hbase
+  · have hstrict := primorialWheelMeanGap_strictMono (by omega : 1 < m)
     linarith [hbase, hstrict]
 
 /-! ## Mertens asymptotic conjecture -/
