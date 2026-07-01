@@ -545,5 +545,52 @@ theorem singularSeriesFactor_collision_10_154 (C₂ : ℝ) :
       Nat.mul_div_cancel_left _ (by omega : 0 < 2),
       divisorCorrectionProduct_collision_5_77.1]
 
+/-! ## Infinite collision family: D(5k) = D(77k) -/
+
+/-- **Бесконечное семейство collisions**: D(5k) = D(77k) для любого `k`
+взаимно простого с `385 = 5·7·11`.
+
+Поскольку D(5) = D(77) и D мультипликативна по coprime, имеем
+D(5k) = D(5)·D(k) = D(77)·D(k) = D(77k) для любого k coprime to 385.
+
+Это даёт бесконечно много пар gap'ов с одинаковой HL-плотностью:
+S(10k) = S(154k) для всех k coprime to 385. -/
+theorem divisorCorrectionProduct_collision_general (k : Nat) (hk : k ≠ 0)
+    (hcoprime : Nat.Coprime k 385) :
+    divisorCorrectionProduct (5 * k) = divisorCorrectionProduct (77 * k) := by
+  have h_coprime_5k : Nat.Coprime 5 k := by
+    have h5_dvd_385 : 5 ∣ 385 := by norm_num
+    have : Nat.Coprime k 5 := hcoprime.coprime_dvd_right h5_dvd_385
+    exact this.symm
+  have h_coprime_77k : Nat.Coprime 77 k := by
+    have h77_dvd_385 : 77 ∣ 385 := by norm_num
+    have : Nat.Coprime k 77 := hcoprime.coprime_dvd_right h77_dvd_385
+    exact this.symm
+  rw [divisorCorrectionProduct_mul_of_coprime (by norm_num) hk h_coprime_5k,
+      divisorCorrectionProduct_mul_of_coprime (by norm_num) hk h_coprime_77k,
+      divisorCorrectionProduct_collision_5_77.1]
+
+/-- **S(10k) = S(154k)** для любого `k > 0` coprime to 385.
+Бесконечное семейство пар gap'ов с одинаковой HL-плотностью. -/
+theorem singularSeriesFactor_collision_general (C₂ : ℝ) (k : Nat)
+    (hk : 0 < k) (hcoprime : Nat.Coprime k 385) :
+    singularSeriesFactor C₂ (2 * 5 * k) = singularSeriesFactor C₂ (2 * 77 * k) := by
+  have hk_ne : k ≠ 0 := Nat.ne_of_gt hk
+  unfold singularSeriesFactor
+  have h_even_10k : Even (2 * 5 * k) := by
+    have : 2 * 5 * k = 2 * (5 * k) := by ring
+    rw [this]; exact even_two_mul (5 * k)
+  have h_even_154k : Even (2 * 77 * k) := by
+    have : 2 * 77 * k = 2 * (77 * k) := by ring
+    rw [this]; exact even_two_mul (77 * k)
+  rw [if_pos h_even_10k, if_pos h_even_154k]
+  have h_div10 : (2 * 5 * k) / 2 = 5 * k := by
+    have : 2 * (5 * k) = 2 * 5 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have h_div154 : (2 * 77 * k) / 2 = 77 * k := by
+    have : 2 * (77 * k) = 2 * 77 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  rw [h_div10, h_div154, divisorCorrectionProduct_collision_general k hk_ne hcoprime]
+
 end
 end PrimeGaps
