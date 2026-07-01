@@ -11,6 +11,8 @@ noncomputable section
 
 open Filter
 
+/-! ## Wigner GOE surmise for prime gaps -/
+
 /-- Средний масштаб простого промежутка около `x`: эвристически `log x`. -/
 def meanPrimeGapScale (x : Nat) : ℝ := Real.log (x : ℝ)
 

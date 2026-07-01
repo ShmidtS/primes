@@ -12,6 +12,8 @@ noncomputable section
 
 open Filter
 
+/-! ## Random matrix theory conjectures for prime gaps -/
+
 /-- Детерминантная модель частот простых промежутков. Открытая проблема;
 мотивирована GUE-гипотезой Монтгомери--Одлыжко (1973). -/
 def DeterminantalPrimeGapConjecture

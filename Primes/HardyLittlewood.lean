@@ -13,6 +13,8 @@ noncomputable section
 open scoped BigOperators
 open Filter
 
+/-! ## Hardy--Littlewood conjectures -/
+
 /-- Главный член Hardy--Littlewood для пар простых с промежутком `g`. -/
 def hardyLittlewoodMainTerm (C₂ : ℝ) (g : Nat) (x : ℝ) : ℝ :=
   singularSeriesFactor C₂ g * logarithmicIntegral₂ x
@@ -32,6 +34,8 @@ def HardyLittlewoodPairConjecture (C₂ : ℝ) : Prop :=
     AsymptoticEquivalentAtTop
       (fun x => (primePairCount g x : ℝ))
       (fun x => hardyLittlewoodMainTerm C₂ g (x : ℝ))
+
+/-! ## Admissible sets -/
 
 /-- Множество сдвигов допустимо, если modulo каждого простого остаётся свободный класс. -/
 def AdmissibleSet (H : Finset ℤ) : Prop :=
@@ -67,6 +71,8 @@ def HardyLittlewoodKTupleConjecture : Prop :=
       (fun x => (primeTupleCount H x : ℝ))
       (fun x => S * logarithmicIntegral₂ (x : ℝ) / (Real.log (x : ℝ)) ^ (H.card - 2))
 
+/-! ## Gallagher's Poisson limit -/
+
 /-- Промежуток `g` встречается как соседний простой промежуток с левым концом `≤ x`. -/
 def PrimeGapOccursUpTo (g x : Nat) : Prop :=
   ∃ p : Nat, ConsecutivePrimeStart g (p + g) p ∧ p ≤ x
@@ -86,6 +92,8 @@ def GallaghersPoissonLimitConjecture : Prop :=
 /-- Теорема Галлагера (1976): HL k-tuple влечёт пуассоновский предел. -/
 def GallaghersTheoremFromHL : Prop :=
   HardyLittlewoodKTupleConjecture → GallaghersPoissonLimitConjecture
+
+/-! ## Admissibility: singleton and pair characterization -/
 
 /-- Произвольный singleton `{h}` допустим. -/
 theorem admissibleSet_singleton (h : ℤ) : AdmissibleSet ({h} : Finset ℤ) := by
@@ -154,6 +162,8 @@ theorem not_admissibleSet_pair_of_odd {g : Nat} (hg : Odd g) (_hg0 : 0 < g) :
   cases ha_val with
   | inl ha0 => exact h0 (ha0.symm)
   | inr ha1 => exact hg_ne (hg_mod.trans ha1.symm)
+
+/-! ## Tuple count: pair equivalence -/
 
 /-- For a pair tuple {0, g}, primeTupleCount equals primePairCount. -/
 theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :

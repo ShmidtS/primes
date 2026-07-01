@@ -6,6 +6,12 @@ set_option linter.unusedSimpArgs false
 
 namespace PrimeGaps
 
+/-! ## List utilities
+
+Genuinely missing from Mathlib: `getLastD_mem_of_ne_nil` and `getLastD_is_max_of_pairwise_le`.
+The latter uses Mathlib's `Pairwise.rel_getLast`.
+-/
+
 /-- У непустого списка значение `getLastD` действительно является его элементом. -/
 theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (hxs : xs ≠ []) :
     xs.getLastD default ∈ xs := by
@@ -15,6 +21,8 @@ theorem List.getLastD_mem_of_ne_nil {α : Type} [Inhabited α] (xs : List α) (h
       cases tail with
       | nil => simp
       | cons b rest => simp [List.getLastD]
+
+/-! ## Prime enumeration -/
 
 /-- Простые числа от `2` до `n` (чисто функциональное определение). -/
 def primesUpTo (n : Nat) : Array Nat :=
@@ -85,6 +93,8 @@ lemma primesUpTo_last_eq_n (n : Nat) (hn : Nat.Prime n) :
     rw [show n + 1 - 2 = (n - 2) + 1 by omega, List.range'_1_concat]; simp; omega
   rw [hrange, List.filter_append]; simp [decide_eq_true hn]
 
+/-! ## Gap list -/
+
 /-- Промежутки между соседними точками. -/
 def pointGapsList (points : List Nat) : List Nat :=
   match points with
@@ -116,6 +126,8 @@ theorem pointGapsList_length (points : List Nat) :
       | nil => simp [pointGapsList]
       | cons b tail => simp [pointGapsList, ih]
 
+/-! ## Gap frequency distribution -/
+
 /-- Добавляет промежуток в таблицу частот. -/
 def addGapCount (counts : List (Nat × Nat)) (g : Nat) : List (Nat × Nat) :=
   match counts with
@@ -143,6 +155,8 @@ noncomputable def gapDistributionByCount (k : Nat) : List (Nat × Nat) :=
 /-- k-е простое число через частоты промежутков. -/
 noncomputable def nthPrimeByGapFrequencies (k : Nat) : Nat :=
   1 + ((gapDistributionByCount (k + 1)).map (fun entry => entry.1 * entry.2)).sum
+
+/-! ## Gap frequency lemmas -/
 
 /-- `addGapCount` увеличивает сумму частот на 1. -/
 lemma addGapCount_sum_succ (counts : List (Nat × Nat)) (g : Nat) :
@@ -180,6 +194,8 @@ lemma primesUpTo_nth_prime_size (k : Nat) (hk : 0 < k) :
   have h := Nat.count_nth_succ_of_infinite Nat.infinite_setOf_prime (k - 1)
   have hk1 : k - 1 + 1 = k := by omega
   rw [hk1] at h; exact h
+
+/-! ## Gap distribution: sum and weighted sum -/
 
 set_option maxHeartbeats 0 in
 -- Proof requires unbounded heartbeats for nested foldl induction on prime lists

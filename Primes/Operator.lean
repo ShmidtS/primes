@@ -9,6 +9,8 @@ namespace PrimeGaps
 
 noncomputable section
 
+/-! ## Prime summatory operator: eigenpair analysis -/
+
 /-- Арифметическая функция на натуральных числах. -/
 abbrev ArithmeticFunction := Nat → ℝ
 

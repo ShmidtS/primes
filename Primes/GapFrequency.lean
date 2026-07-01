@@ -11,28 +11,82 @@ noncomputable section
 open scoped BigOperators
 open Filter
 
-/-- Индикатор утверждения со значениями в `Nat`. -/
-def natIndicator (P : Prop) [Decidable P] : Nat := if P then 1 else 0
+/-! ## Definitions: indicators and gap frequency -/
 
-/-- Индикатор простоты. -/
+def natIndicator (P : Prop) [Decidable P] : Nat := if P then 1 else 0
 def primeIndicator (n : Nat) : Nat := natIndicator (Nat.Prime n)
 
-/-- `n` и `n + g` — соседние простые с правым концом `≤ x`. -/
+/-- `n` and `n + g` are consecutive primes with right endpoint ≤ x. -/
 def ConsecutivePrimeStart (g x n : Nat) : Prop :=
   0 < g ∧ Nat.Prime n ∧ Nat.Prime (n + g) ∧ n + g ≤ x ∧
     ∀ h : Nat, h ∈ Finset.Icc 1 (g - 1) → ¬ Nat.Prime (n + h)
 
-/-- Один член точной формулы `F(g, x)`. -/
 def primeGapTerm (g x n : Nat) : Nat :=
   natIndicator (0 < g) * primeIndicator n * primeIndicator (n + g) *
     natIndicator (n + g ≤ x) *
       (Finset.Icc 1 (g - 1)).prod (fun h => 1 - primeIndicator (n + h))
 
-/-- Точная частота `F(g, x)` через конечное решето. -/
 def primeGapFrequencyExact (g x : Nat) : Nat :=
   (Finset.range (x + 1)).sum (fun n => primeGapTerm g x n)
 
-/-- Точная частота равна числу левых концов соседних простых с промежутком `g`. -/
+def primeCountingExact (x : Nat) : Nat :=
+  ((Finset.range (x + 1)).filter Nat.Prime).card
+
+def primeGapRelativeFrequency (g x : Nat) : ℝ :=
+  (primeGapFrequencyExact g x : ℝ) / (primeCountingExact x : ℝ)
+
+def pairCorrelationMainTerm (A : Nat → ℝ) (g x : Nat) : ℝ :=
+  A g * (primeCountingExact x : ℝ) / (x : ℝ)
+
+def pairCorrelationError (A : Nat → ℝ) (g x : Nat) : ℝ :=
+  (primeGapFrequencyExact g x : ℝ) - pairCorrelationMainTerm A g x
+
+/-! ## Sieve infrastructure -/
+
+def gapPatternShifts (g : Nat) : Finset Nat :=
+  insert 0 (insert g (Finset.Icc 1 (g - 1)))
+
+def primeDividesPatternAt (g n p : Nat) : Prop :=
+  Nat.Prime p ∧ ∃ h : Nat, h ∈ gapPatternShifts g ∧ p ∣ n + h
+
+def survivesFiniteEratosthenesLayer (g n y : Nat) : Prop :=
+  ∀ p : Nat, Nat.Prime p → p ≤ y → ¬ primeDividesPatternAt g n p
+
+def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
+  classical
+  exact ((Finset.range (x + 1)).filter fun n =>
+    0 < g ∧ n + g ≤ x ∧ survivesFiniteEratosthenesLayer g n y).card
+
+def endpointForbiddenResidueCount (g p : Nat) : Nat :=
+  if p ∣ g then 1 else 2
+
+theorem endpointForbiddenResidueCount_prime_power (g p : Nat) (k : Nat)
+    (_hp : Nat.Prime p) (hk : 0 < k) (hg : g = p ^ k) :
+    endpointForbiddenResidueCount g p = 1 := by
+  have hdvd : p ∣ g := by
+    subst hg; refine ⟨p ^ (k - 1), ?_⟩; rw [← Nat.pow_succ']; congr 1; omega
+  simp [endpointForbiddenResidueCount, hdvd]
+
+/-! ## Mangoldt identity -/
+
+def realPrimeIndicator (n : Nat) : ℝ := if n.Prime then 1 else 0
+
+def normalizedMangoldtPrime (n : Nat) : ℝ :=
+  if n.Prime then _root_.ArithmeticFunction.vonMangoldt n / Real.log (n : ℝ) else 0
+
+theorem normalizedMangoldtPrime_eq_realPrimeIndicator (n : Nat) :
+    normalizedMangoldtPrime n = realPrimeIndicator n := by
+  unfold normalizedMangoldtPrime realPrimeIndicator
+  by_cases hn : n.Prime
+  · rw [if_pos hn, _root_.ArithmeticFunction.vonMangoldt_apply_prime hn, if_pos hn]
+    exact div_self (Real.log_pos (by exact_mod_cast hn.one_lt)).ne'
+  · simp [hn]
+
+def normalizedMangoldtEndpointWeight (g n : Nat) : ℝ :=
+  normalizedMangoldtPrime n * normalizedMangoldtPrime (n + g)
+
+/-! ## Exact frequency: equivalence and parity -/
+
 theorem primeGapFrequencyExact_eq_count (g x : Nat) :
     primeGapFrequencyExact g x =
       (by classical
@@ -61,7 +115,6 @@ theorem primeGapFrequencyExact_eq_count (g x : Nat) :
       simp [hgpos, hnprime, hngprime, hle, hprod]
   · exact Finset.sum_boole (fun n => ConsecutivePrimeStart g x n) (Finset.range (x + 1))
 
-/-- Для нечётного `g > 1` точных промежутков нет. -/
 theorem primeGapFrequencyExact_zero_for_odd_g_gt_one (g x : Nat) (hg : Odd g) (hg1 : 1 < g) :
     primeGapFrequencyExact g x = 0 := by
   rw [primeGapFrequencyExact_eq_count]
@@ -77,102 +130,8 @@ theorem primeGapFrequencyExact_zero_for_odd_g_gt_one (g x : Nat) (hg : Odd g) (h
     · have hn2 : 2 ≤ n := hnprime.two_le; omega
     · exact (by simpa using heven : ¬ Odd (n + g)) hodd
 
-/-- Число простых `≤ x`. -/
-def primeCountingExact (x : Nat) : Nat :=
-  ((Finset.range (x + 1)).filter Nat.Prime).card
+/-! ## Structural theorems: injectivity, uniqueness, sum bound -/
 
-/-- Относительная частота промежутка `g` среди простых `≤ x`. -/
-def primeGapRelativeFrequency (g x : Nat) : ℝ :=
-  (primeGapFrequencyExact g x : ℝ) / (primeCountingExact x : ℝ)
-
-/-- Главный член вида `A(g) · π(x) / x`. -/
-def pairCorrelationMainTerm (A : Nat → ℝ) (g x : Nat) : ℝ :=
-  A g * (primeCountingExact x : ℝ) / (x : ℝ)
-
-/-- Точный остаток после выделения главного члена. -/
-def pairCorrelationError (A : Nat → ℝ) (g x : Nat) : ℝ :=
-  (primeGapFrequencyExact g x : ℝ) - pairCorrelationMainTerm A g x
-
-/-- Сдвиги, которые должны быть проверены решетом для промежутка `g`. -/
-def gapPatternShifts (g : Nat) : Finset Nat :=
-  insert 0 (insert g (Finset.Icc 1 (g - 1)))
-
-/-- `p` отбрасывает `n`, если делит хотя бы один из сдвигов `n + h`. -/
-def primeDividesPatternAt (g n p : Nat) : Prop :=
-  Nat.Prime p ∧ ∃ h : Nat, h ∈ gapPatternShifts g ∧ p ∣ n + h
-
-/-- Конечный слой решета Эратосфена по простым `≤ y`. -/
-def survivesFiniteEratosthenesLayer (g n y : Nat) : Prop :=
-  ∀ p : Nat, Nat.Prime p → p ≤ y → ¬ primeDividesPatternAt g n p
-
-/-- Частота после просеивания арифметических прогрессий. -/
-def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
-  classical
-  exact ((Finset.range (x + 1)).filter fun n =>
-    0 < g ∧ n + g ≤ x ∧ survivesFiniteEratosthenesLayer g n y).card
-
-/-- Количество запрещённых классов вычетов для двух концов modulo `p`. -/
-def endpointForbiddenResidueCount (g p : Nat) : Nat :=
-  if p ∣ g then 1 else 2
-
-/-- Значение `endpointForbiddenResidueCount` для `g = p^k`. -/
-theorem endpointForbiddenResidueCount_prime_power (g p : Nat) (k : Nat)
-    (_hp : Nat.Prime p) (hk : 0 < k) (hg : g = p ^ k) :
-    endpointForbiddenResidueCount g p = 1 := by
-  have hdvd : p ∣ g := by
-    subst hg; refine ⟨p ^ (k - 1), ?_⟩; rw [← Nat.pow_succ']; congr 1; omega
-  simp [endpointForbiddenResidueCount, hdvd]
-
-/-- Мёбиусоподобное ядро. -/
-def mobiusPairKernel (mu : Nat → Int) (g x n : Nat) : Int :=
-  (Finset.range (x + 1)).sum (fun d =>
-    (Finset.range (x + 1)).sum (fun e =>
-      if d * d ∣ n ∧ e * e ∣ n + g then mu d * mu e else 0))
-
-/-- Гипотеза мёбиусовой пары. Открытая проблема. -/
-def MobiusPairGapFormulaConjecture (mu : Nat → Int) : Prop :=
-  ∀ g x : Nat,
-    (primeGapFrequencyExact g x : Int) =
-      (Finset.range (x + 1)).sum (fun n => mobiusPairKernel mu g x n)
-
-/-- Количество простых `≤ x` в прогрессии `a mod q`. -/
-def primesInArithmeticProgression (a q x : Nat) : Nat :=
-  ((Finset.range (x + 1)).filter (fun n => Nat.Prime n ∧ n % q = a % q)).card
-
-/-- Гипотеза равномерности Дирихле. Открытая проблема. -/
-def DirichletUniformityConjecture : Prop :=
-  ∀ a q : Nat, Nat.Coprime a q → 0 < q →
-    Tendsto (fun x : Nat =>
-      (primesInArithmeticProgression a q x : ℝ) /
-        ((primeCountingExact x : ℝ) / (Nat.totient q : ℝ))) atTop (nhds 1)
-
-/-- Гипотеза псевдослучайности простых промежутков. Открытая проблема. -/
-def PrimeGapPseudorandomnessConjecture (A normalization : Nat → ℝ) : Prop :=
-  ∀ g : Nat,
-    Tendsto (fun x : Nat => pairCorrelationError A g x / normalization x) atTop (nhds 0)
-
-/-- Вещественный индикатор простоты. -/
-def realPrimeIndicator (n : Nat) : ℝ := if n.Prime then 1 else 0
-
-/-- Нормированная функция Мангольдта, занулённая вне простых. -/
-def normalizedMangoldtPrime (n : Nat) : ℝ :=
-  if n.Prime then _root_.ArithmeticFunction.vonMangoldt n / Real.log (n : ℝ) else 0
-
-/-- На простых `Λ(n) / log n = 1`; вне простых обе стороны занулены. -/
-theorem normalizedMangoldtPrime_eq_realPrimeIndicator (n : Nat) :
-    normalizedMangoldtPrime n = realPrimeIndicator n := by
-  unfold normalizedMangoldtPrime realPrimeIndicator
-  by_cases hn : n.Prime
-  · rw [if_pos hn, _root_.ArithmeticFunction.vonMangoldt_apply_prime hn, if_pos hn]
-    exact div_self (Real.log_pos (by exact_mod_cast hn.one_lt)).ne'
-  · simp [hn]
-
-/-- Нормированная Λ-свёртка на концах `n` и `n + g`. -/
-def normalizedMangoldtEndpointWeight (g n : Nat) : ℝ :=
-  normalizedMangoldtPrime n * normalizedMangoldtPrime (n + g)
-
-/-- Если две пары соседних простых имеют один правый конец, то левые концы равны:
-меньший левый конец даёт простое внутри большего промежутка. -/
 theorem ConsecutivePrimeStart_left_injective
     {g₁ g₂ n₁ n₂ x : Nat}
     (h1 : ConsecutivePrimeStart g₁ x n₁)
@@ -192,8 +151,6 @@ theorem ConsecutivePrimeStart_left_injective
       exact absurd h1.2.1 hforbidden
     · omega
 
-/-- Для фиксированного левого конца `n` существует не более одного `g`
-с `ConsecutivePrimeStart g x n`: меньший промежуток даёт простое внутри большего. -/
 theorem ConsecutivePrimeStart_gap_unique_for_left
     {g₁ g₂ n x : Nat}
     (h1 : ConsecutivePrimeStart g₁ x n)
@@ -208,8 +165,6 @@ theorem ConsecutivePrimeStart_gap_unique_for_left
       exact absurd h2.2.2.1 (h1.2.2.2.2 g₂ hmem)
     · omega
 
-/-- Сумма частот всех промежутков не превосходит `π(x)`:
-для каждого `n` существует не более одного `g` (gap uniqueness), и `n` должно быть простым. -/
 theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
     (Finset.range (x + 1)).sum (fun g => primeGapFrequencyExact g x) ≤
       primeCountingExact x := by
@@ -242,6 +197,31 @@ theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
   simp only [h_eq, primeCountingExact, Finset.card_eq_sum_ones, Finset.sum_filter]
   rw [Finset.sum_comm]
   exact Finset.sum_le_sum hkey
+
+/-! ## Conjectures -/
+
+def mobiusPairKernel (mu : Nat → Int) (g x n : Nat) : Int :=
+  (Finset.range (x + 1)).sum (fun d =>
+    (Finset.range (x + 1)).sum (fun e =>
+      if d * d ∣ n ∧ e * e ∣ n + g then mu d * mu e else 0))
+
+def MobiusPairGapFormulaConjecture (mu : Nat → Int) : Prop :=
+  ∀ g x : Nat,
+    (primeGapFrequencyExact g x : Int) =
+      (Finset.range (x + 1)).sum (fun n => mobiusPairKernel mu g x n)
+
+def primesInArithmeticProgression (a q x : Nat) : Nat :=
+  ((Finset.range (x + 1)).filter (fun n => Nat.Prime n ∧ n % q = a % q)).card
+
+def DirichletUniformityConjecture : Prop :=
+  ∀ a q : Nat, Nat.Coprime a q → 0 < q →
+    Tendsto (fun x : Nat =>
+      (primesInArithmeticProgression a q x : ℝ) /
+        ((primeCountingExact x : ℝ) / (Nat.totient q : ℝ))) atTop (nhds 1)
+
+def PrimeGapPseudorandomnessConjecture (A normalization : Nat → ℝ) : Prop :=
+  ∀ g : Nat,
+    Tendsto (fun x : Nat => pairCorrelationError A g x / normalization x) atTop (nhds 0)
 
 end
 end PrimeGaps

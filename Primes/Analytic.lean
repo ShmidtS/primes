@@ -12,6 +12,8 @@ noncomputable section
 open scoped BigOperators
 open Filter
 
+/-! ## Chebyshev, zeta, and explicit formula conjectures -/
+
 /-- Функция Чебышева `ψ(x) = ∑_{n≤x} Λ(n)`. -/
 def chebyshevPsi (x : Nat) : ℝ :=
   (Finset.range (x + 1)).sum fun n => _root_.ArithmeticFunction.vonMangoldt n
@@ -37,6 +39,8 @@ def ChebyshevExplicitFormulaConjecture (zeroContribution : ℂ → ℂ) : Prop :
     (chebyshevPsi x : ℂ) = (x : ℂ) - zeroContribution (x : ℂ) +
       (chebyshevExplicitRemainder (x : ℝ) : ℂ)
 
+/-! ## Perron / Dirichlet series -/
+
 /-- Ядро Перрона/Меллина `x^s / s`. -/
 def perronKernel (x s : ℂ) : ℂ := x ^ s / s
 
@@ -56,6 +60,8 @@ opaque gapDirichletSeries : Nat → ℂ → ℂ := fun _ _ => 0
 /-- Гипотеза Перрона для промежутков. Открытая проблема. -/
 def PerronGapFormulaConjecture (g x : Nat) : Prop :=
   PerronExtracts (gapDirichletCoeff g x) (gapDirichletSeries g)
+
+/-! ## Mobius and RH -/
 
 /-- Суммарная функция Мёбиуса `M(x) = ∑_{n≤x} μ(n)`. -/
 def summatoryMoebius (x : Nat) : ℤ :=
