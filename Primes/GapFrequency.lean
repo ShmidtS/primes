@@ -198,6 +198,28 @@ theorem primeGapFrequencyExact_sum_le_primeCountingExact (x : Nat) :
   rw [Finset.sum_comm]
   exact Finset.sum_le_sum hkey
 
+/-- Для каждого простого `q ≥ 3` существует предшествующее простое `p < q`
+без простых в интервале `(p, q)`. -/
+theorem exists_predecessor_prime (q : Nat) (_hq : Nat.Prime q) (hq3 : 3 ≤ q) :
+    ∃ p : Nat, Nat.Prime p ∧ p < q ∧
+      ∀ r : Nat, Nat.Prime r → p < r → r < q → False := by
+  have h2lt : 2 < q := by omega
+  have h2mem : 2 ∈ (Finset.range q).filter Nat.Prime := by
+    simp only [Finset.mem_filter, Finset.mem_range]
+    exact ⟨by omega, by decide⟩
+  have hne : (Finset.range q).filter Nat.Prime |>.Nonempty := ⟨2, h2mem⟩
+  set s := (Finset.range q).filter Nat.Prime with hs_def
+  have hmax_mem : s.max' hne ∈ s := Finset.max'_mem s hne
+  have hmax_prime : Nat.Prime (s.max' hne) := (Finset.mem_filter.mp hmax_mem).2
+  have hmax_lt : (s.max' hne) < q := Finset.mem_range.mp (Finset.mem_filter.mp hmax_mem).1
+  refine ⟨s.max' hne, hmax_prime, hmax_lt, ?_⟩
+  intro r hr_pr hr_p hr_q
+  have hr_mem : r ∈ s := by
+    rw [hs_def]; simp only [Finset.mem_filter, Finset.mem_range]
+    exact ⟨hr_q, hr_pr⟩
+  have : r ≤ s.max' hne := s.le_max' r hr_mem
+  omega
+
 /-! ## Conjectures -/
 
 def mobiusPairKernel (mu : Nat → Int) (g x n : Nat) : Int :=
