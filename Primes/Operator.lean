@@ -42,6 +42,24 @@ theorem primeSummatoryEigenpair_zero_eigenvalue
   simp only [zero_mul, if_pos hp, zero_add] at hrec
   exact hrec.symm
 
+/-- **Полная характеризация собственного пространства для 0**: `(f, 0)` — eigenpair
+  ⟺ `f ≠ 0` и `f` зануляется на всех простых. -/
+theorem primeSummatoryEigenpair_zero_iff
+    (f : ArithmeticFunction) :
+    IsPrimeSummatoryEigenpair f 0 ↔
+      f ≠ 0 ∧ ∀ p : Nat, Nat.Prime p → f p = 0 := by
+  refine ⟨fun h => ⟨h.1, primeSummatoryEigenpair_zero_eigenvalue h⟩, ?_⟩
+  rintro ⟨hfne, hfzero⟩
+  refine ⟨hfne, ?_⟩
+  intro n
+  unfold primeSummatoryOperator
+  have hzero : ∀ p ∈ Finset.range (n + 1), (if Nat.Prime p then f p else 0 : ℝ) = 0 := by
+    intro p hp
+    by_cases hpr : Nat.Prime p
+    · rw [if_pos hpr]; exact hfzero p hpr
+    · rw [if_neg hpr]
+  rw [Finset.sum_congr rfl hzero, Finset.sum_const_zero, zero_mul]
+
 /-- При ненулевом собственном значении `f` постоянна между простыми. -/
 theorem primeSummatoryEigenpair_const_between_primes
     {f : ArithmeticFunction} {ev : ℝ} (h : IsPrimeSummatoryEigenpair f ev)
