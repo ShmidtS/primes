@@ -41,22 +41,6 @@ def pairCorrelationMainTerm (A : Nat → ℝ) (g x : Nat) : ℝ :=
 def pairCorrelationError (A : Nat → ℝ) (g x : Nat) : ℝ :=
   (primeGapFrequencyExact g x : ℝ) - pairCorrelationMainTerm A g x
 
-/-! ## Sieve infrastructure -/
-
-def gapPatternShifts (g : Nat) : Finset Nat :=
-  insert 0 (insert g (Finset.Icc 1 (g - 1)))
-
-def primeDividesPatternAt (g n p : Nat) : Prop :=
-  Nat.Prime p ∧ ∃ h : Nat, h ∈ gapPatternShifts g ∧ p ∣ n + h
-
-def survivesFiniteEratosthenesLayer (g n y : Nat) : Prop :=
-  ∀ p : Nat, Nat.Prime p → p ≤ y → ¬ primeDividesPatternAt g n p
-
-def arithmeticProgressionSieveCount (g x y : Nat) : Nat := by
-  classical
-  exact ((Finset.range (x + 1)).filter fun n =>
-    0 < g ∧ n + g ≤ x ∧ survivesFiniteEratosthenesLayer g n y).card
-
 def endpointForbiddenResidueCount (g p : Nat) : Nat :=
   if p ∣ g then 1 else 2
 
@@ -66,24 +50,6 @@ theorem endpointForbiddenResidueCount_prime_power (g p : Nat) (k : Nat)
   have hdvd : p ∣ g := by
     subst hg; refine ⟨p ^ (k - 1), ?_⟩; rw [← Nat.pow_succ']; congr 1; omega
   simp [endpointForbiddenResidueCount, hdvd]
-
-/-! ## Mangoldt identity -/
-
-def realPrimeIndicator (n : Nat) : ℝ := if n.Prime then 1 else 0
-
-def normalizedMangoldtPrime (n : Nat) : ℝ :=
-  if n.Prime then _root_.ArithmeticFunction.vonMangoldt n / Real.log (n : ℝ) else 0
-
-theorem normalizedMangoldtPrime_eq_realPrimeIndicator (n : Nat) :
-    normalizedMangoldtPrime n = realPrimeIndicator n := by
-  unfold normalizedMangoldtPrime realPrimeIndicator
-  by_cases hn : n.Prime
-  · rw [if_pos hn, _root_.ArithmeticFunction.vonMangoldt_apply_prime hn, if_pos hn]
-    exact div_self (Real.log_pos (by exact_mod_cast hn.one_lt)).ne'
-  · simp [hn]
-
-def normalizedMangoldtEndpointWeight (g n : Nat) : ℝ :=
-  normalizedMangoldtPrime n * normalizedMangoldtPrime (n + g)
 
 /-! ## Exact frequency: equivalence and parity -/
 
