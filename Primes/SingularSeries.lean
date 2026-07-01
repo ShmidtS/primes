@@ -534,5 +534,29 @@ theorem divisorCorrectionProduct_le_of_primeFactors_subset {k k' : Nat}
   have := mul_le_mul hextra (le_refl _) hSnn henn
   rwa [one_mul] at this
 
+/-- `S(2) = 2C₂`: singular series для twin prime gap (промежуток 2). -/
+theorem singularSeriesFactor_two (C₂ : ℝ) :
+    singularSeriesFactor C₂ 2 = 2 * C₂ := by
+  exact singularSeriesFactor_2_pow C₂ 1 (by omega)
+
+/-- `S(2p^a) = 2C₂ · (p-1)/(p-2)` для нечётного простого `p` и `a > 0`. -/
+theorem singularSeriesFactor_2_pow_prime (C₂ : ℝ) (p : Nat) (hp : Nat.Prime p) (hp_odd : 2 < p)
+    (a : Nat) (ha : 0 < a) :
+    singularSeriesFactor C₂ (2 * p ^ a) = 2 * C₂ * (((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+  rw [← singularSeriesFactor_2p_eq_2p_pow C₂ p hp ha, singularSeriesFactor_eq_for_2p C₂ p hp hp_odd]
+
+/-- Singular series одинакова для `2k` и `2k'`, если `k` и `k'` имеют те же нечётные простые делители. -/
+theorem singularSeriesFactor_eq_of_same_odd_prime_factors (C₂ : ℝ) {k k' : Nat}
+    (_hk : k ≠ 0) (_hk' : k' ≠ 0)
+    (hpf : (Nat.primeFactors k).filter (fun p => 2 < p) =
+           (Nat.primeFactors k').filter (fun p => 2 < p)) :
+    singularSeriesFactor C₂ (2 * k) = singularSeriesFactor C₂ (2 * k') := by
+  rw [singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul k), if_pos (even_two_mul k'),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_eq_primeFactors,
+      divisorCorrectionProduct_eq_primeFactors, hpf]
+
 end
 end PrimeGaps

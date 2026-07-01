@@ -173,5 +173,13 @@ theorem primeTupleCount_pair_eq_primePairCount (g x : Nat) :
     · rw [h0]; simpa [Int.toNat_natCast] using hn
     · rw [hg]; simpa [hcast] using hng
 
+/-- Полная характеризация: `{0, g}` допустима ⟺ `g` чётно (для `g > 0`). -/
+theorem admissibleSet_pair_iff {g : Nat} (hg0 : 0 < g) :
+    AdmissibleSet ({0, (g : ℤ)} : Finset ℤ) ↔ Even g := by
+  refine ⟨fun h => ?_, fun heven => admissibleSet_pair_of_even heven hg0⟩
+  rcases Nat.even_or_odd g with he | ho
+  · exact he
+  · exact absurd h (not_admissibleSet_pair_of_odd ho hg0)
+
 end
 end PrimeGaps

@@ -27,5 +27,11 @@ theorem wignerGOESurmise_odd (t : ℝ) :
     wignerGOESurmise (-t) = -wignerGOESurmise t := by
   unfold wignerGOESurmise; rw [show (-t : ℝ) ^ 2 = t ^ 2 by ring]; ring
 
+/-- Wigner GOE surmise неотрицательна для `t ≥ 0`. -/
+theorem wignerGOESurmise_nonneg {t : ℝ} (ht : 0 ≤ t) :
+    0 ≤ wignerGOESurmise t := by
+  unfold wignerGOESurmise
+  positivity
+
 end
 end PrimeGaps

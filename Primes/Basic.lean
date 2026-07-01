@@ -300,4 +300,15 @@ theorem nthPrimeByGapFrequencies_correct (k : Nat) :
       gapDistributionByCount_weighted_sum_eq_last (k + 1) (by omega),
       show k + 1 - 1 = k by omega]
 
+/-- В отсортированном непустом списке каждый элемент ≤ последнего. -/
+theorem List.getLastD_is_max_of_pairwise_le {l : List Nat} (hsorted : l.Pairwise (· ≤ ·))
+    (_hnonempty : l ≠ []) : ∀ x ∈ l, x ≤ l.getLastD 0 := by
+  intro x hx
+  have hle := hsorted.rel_getLast hx
+  have hgetLastD : l.getLastD 0 = l.getLast (List.ne_nil_of_mem hx) := by
+    rw [List.getLastD_eq_getLast?, List.getLast?_eq_getLast_of_ne_nil (List.ne_nil_of_mem hx),
+        Option.getD_some]
+  rw [hgetLastD]
+  exact hle
+
 end PrimeGaps
