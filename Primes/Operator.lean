@@ -495,5 +495,29 @@ theorem primeSummatoryOperator_not_idempotent :
     rw [h_pi2, h_A1]; norm_num
   rw [h_A2, h_A1]; norm_num
 
+/-! ## Operator norm bound: A is π-bounded -/
+
+/-- **A ограничен π**: если `|f(k)| ≤ M` для всех `k`, то
+`|Af(n)| ≤ M · π(n)`.
+Это связывает норму оператора `A` с функцией подсчёта простых чисел:
+`||A|| ≤ π(n)` равномерно по `n`. -/
+theorem primeSummatoryOperator_bound_by_primeCounting
+    (f : ArithmeticFunction) (M : ℝ) (_hM : 0 ≤ M)
+    (hf : ∀ n, |f n| ≤ M) (n : Nat) :
+    |primeSummatoryOperator f n| ≤ M * (primeCountingExact n : ℝ) := by
+  have h_rfl : primeSummatoryOperator f n =
+      (Finset.range (n + 1)).sum (fun p => if Nat.Prime p then f p else 0) := rfl
+  rw [h_rfl, ← Finset.sum_filter]
+  apply le_trans (Finset.abs_sum_le_sum_abs _ _)
+  apply le_trans (Finset.sum_le_sum fun p _ => hf p)
+  -- Goal: S.sum (fun _ => M) ≤ M * primeCountingExact n
+  -- S.sum (fun _ => M) = M * S.card (by sum_mul or sum_const)
+  have h_card : ((Finset.range (n + 1)).filter Nat.Prime).card = primeCountingExact n := rfl
+  have : ((Finset.range (n + 1)).filter Nat.Prime).sum (fun _ => M) =
+      M * ((Finset.range (n + 1)).filter Nat.Prime).card := by
+    rw [Finset.sum_const]
+    ring
+  rw [this, h_card]
+
 end
 end PrimeGaps

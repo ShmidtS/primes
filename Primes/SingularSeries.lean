@@ -714,5 +714,59 @@ theorem singularSeriesFactor_six_gt_two (C₂ : ℝ) (hC₂ : 0 < C₂) :
     2 * C₂ < singularSeriesFactor C₂ 6 := by
   rw [singularSeriesFactor_six]; nlinarith
 
+/-! ## Squarefree kernel: S depends only on odd prime factors -/
+
+/-- Нечётный squarefree kernel: произведение нечётных простых делителей `k`. -/
+def oddSquarefreeKernel (k : Nat) : Nat :=
+  ((Nat.primeFactors k).filter (fun p => 2 < p)).prod (fun p => p)
+
+/-- **`D(k) = D(rad_odd(k))`**: divisor correction product зависит только от
+множества нечётных простых делителей, без учёта их показателей.
+Доказательство: `D` зависит только от `primeFactors(k) ∩ {p > 2}`,
+а `primeFactors(rad_odd(k)) = primeFactors(k) ∩ {p > 2}`. -/
+theorem divisorCorrectionProduct_eq_oddSquarefreeKernel (k : Nat) (_hk : k ≠ 0) :
+    divisorCorrectionProduct k = divisorCorrectionProduct (oddSquarefreeKernel k) := by
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
+  -- Both sides are ∏ over filtered primeFactors. Need:
+  -- (Nat.primeFactors (oddSquarefreeKernel k)).filter (p > 2) = (Nat.primeFactors k).filter (p > 2)
+  -- This follows because oddSquarefreeKernel k = ∏_{p|k, p>2} p
+  -- and primeFactors of a product of distinct primes = those primes
+  have h_eq : (Nat.primeFactors (oddSquarefreeKernel k)).filter (fun p => 2 < p) =
+               (Nat.primeFactors k).filter (fun p => 2 < p) := by
+    unfold oddSquarefreeKernel
+    have h_primes : ∀ p ∈ (Nat.primeFactors k).filter (fun p => 2 < p), Nat.Prime p := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      exact (Nat.mem_primeFactors.mp hp.1).1
+    -- primeFactors of ∏_{p∈S} p = S when all elements are prime
+    rw [Nat.primeFactors_prod h_primes, Finset.filter_filter]
+    simp [and_and_left, and_self]
+  rw [h_eq]
+
+/-- **`S(g) = S(2 · rad_odd(g/2))`** для чётного `g > 0`:
+singular series полностью определяется нечётным squarefree kernel от `g/2`.
+`S` постоянна на классах эквивалентности `g₁ ~ g₂ ⟺ rad_odd(g₁/2) = rad_odd(g₂/2)`. -/
+theorem singularSeriesFactor_eq_squarefreeKernel (C₂ : ℝ) (g : Nat) (hg : Even g) (hg0 : 0 < g) :
+    singularSeriesFactor C₂ g =
+      singularSeriesFactor C₂ (2 * oddSquarefreeKernel (g / 2)) := by
+  have hk_ne_zero : g / 2 ≠ 0 := by
+    intro h
+    obtain ⟨k, hkg⟩ := hg
+    have : g = 0 := by omega
+    exact absurd this (Nat.ne_of_gt hg0)
+  have hD : divisorCorrectionProduct (g / 2) = divisorCorrectionProduct (oddSquarefreeKernel (g / 2)) :=
+    divisorCorrectionProduct_eq_oddSquarefreeKernel (g / 2) hk_ne_zero
+  -- LHS: if Even g then 2 * C₂ * D(g / 2) else 0 = 2 * C₂ * D(g/2) = 2 * C₂ * D(rad)
+  -- RHS: if Even (2 * rad) then 2 * C₂ * D((2*rad)/2) else 0 = 2 * C₂ * D(rad)
+  -- (2 * rad) / 2 = rad since rad * 2 / 2 = rad for Nat (rad ≥ 0)
+  have h_rad_div : (2 * oddSquarefreeKernel (g / 2)) / 2 = oddSquarefreeKernel (g / 2) := by
+    have h2 : 0 < (2 : Nat) := by norm_num
+    have h_comm : 2 * oddSquarefreeKernel (g / 2) = oddSquarefreeKernel (g / 2) * 2 := by ring
+    rw [h_comm, Nat.mul_div_cancel _ h2]
+  have h_even_rad : Even (2 * oddSquarefreeKernel (g / 2)) := even_two_mul _
+  unfold singularSeriesFactor
+  have hg_even := hg
+  simp only [if_pos hg_even, if_pos h_even_rad, h_rad_div, hD]
+
 end
 end PrimeGaps
