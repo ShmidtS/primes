@@ -662,5 +662,65 @@ theorem singularSeriesFactor_collision_general_2 (C₂ : ℝ) (k : Nat)
     rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
   rw [h_div1, h_div2, divisorCorrectionProduct_collision_general_2 k hk_ne hcoprime]
 
+/-! ## Explicit upper bound: D(P_m) ≤ m -/
+
+/-- `p_i ≥ i + 2` для `i ≥ 2`. -/
+theorem nth_prime_ge_add_two (i : Nat) (hi : 2 ≤ i) :
+    i + 2 ≤ Nat.nth Nat.Prime i := by
+  induction i with
+  | zero => omega
+  | succ i ih =>
+    by_cases hi2 : 2 ≤ i
+    · have hpi : i + 2 ≤ Nat.nth Nat.Prime i := ih hi2
+      have hpi_succ : Nat.nth Nat.Prime i < Nat.nth Nat.Prime (i + 1) :=
+        (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (by omega : i < i + 1)
+      omega
+    · have hi1 : i = 1 := by omega
+      subst hi1
+      -- Goal: 2 + 2 ≤ Nat.nth Nat.Prime 2, i.e. 4 ≤ p_2
+      -- p_2 > p_1 = 3 (strict monotone), and p_2 is prime > 3, so p_2 ≥ 5
+      have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+      have hp2_prime : Nat.Prime (Nat.nth Nat.Prime 2) := Nat.prime_nth_prime 2
+      have hp2_gt_3 : 3 < Nat.nth Nat.Prime 2 := by
+        have h_lt : Nat.nth Nat.Prime 1 < Nat.nth Nat.Prime 2 :=
+          (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (by omega : (1 : Nat) < 2)
+        rw [hp1] at h_lt
+        exact h_lt
+      -- p_2 > 3 and prime → p_2 ≥ 5 (next prime after 3 is 5)
+      have hp2_ge_5 : 5 ≤ Nat.nth Nat.Prime 2 := by
+        have h_gt3 : 3 < Nat.nth Nat.Prime 2 := hp2_gt_3
+        have h_pr : Nat.Prime (Nat.nth Nat.Prime 2) := Nat.prime_nth_prime 2
+        have hne_4 : Nat.nth Nat.Prime 2 ≠ 4 := fun h =>
+          have : ¬ Nat.Prime 4 := by decide
+          this (h ▸ h_pr)
+        omega
+      have : 4 ≤ Nat.nth Nat.Prime 2 := by linarith [hp2_ge_5]
+      omega
+
+/-- **D(P_m) ≤ m для m ≥ 2**: явная верхняя оценка divisor correction product.
+
+D(P_m) = ∏_{i=1}^{m-1} (1 + 1/(p_i-2)).
+Для i ≥ 2: p_i ≥ i+2 → p_i-2 ≥ i → 1/(p_i-2) ≤ 1/i → (1+1/(p_i-2)) ≤ (i+1)/i.
+Телескопирование: ∏_{i=2}^{m-1} (i+1)/i = m/2.
+Итого: D(P_m) = 2 · ∏_{i=2}^{m-1} ≤ 2 · m/2 = m. -/
+theorem divisorCorrectionProduct_primorial_bound (m : Nat) (hm : 2 ≤ m) :
+    divisorCorrectionProduct (primorial m) ≤ (m : ℝ) := by
+  rw [divisorCorrectionProduct_primorial m (by omega)]
+  -- D(P_m) = ∏_{i=1}^{m-1} (p_i-1)/(p_i-2)
+  -- = (p_1-1)/(p_1-2) * ∏_{i=2}^{m-1} (p_i-1)/(p_i-2)
+  -- = 2 * ∏_{i=2}^{m-1} (1 + 1/(p_i-2))
+  -- ≤ 2 * ∏_{i=2}^{m-1} (1 + 1/i) = 2 * m/2 = m
+  have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+  -- Factor at i=1: (3-1)/(3-2) = 2
+  -- Factor at i≥2: (p_i-1)/(p_i-2) ≤ (i+1)/i since p_i ≥ i+2
+  -- Need: ∏_{i∈filter, i>0} f(i) ≤ 2 * ∏_{i=2}^{m-1} (i+1)/i = 2 * m/2 = m
+  -- Use: each factor ≤ (i+1)/i, and factor(1) = 2 = (1+1)/1
+  -- So ∏ ≤ ∏_{i=1}^{m-1} (i+1)/i = m/1 = m (telescoping from 1!)
+  -- ∏_{i=1}^{m-1} (i+1)/i = m (telescoping: 2/1 * 3/2 * ... * m/(m-1) = m)
+  -- Each factor ≤ (i+1)/i, so product ≤ ∏ (i+1)/i = m (telescoping)
+  -- Use: ∏ f ≤ ∏ g when f ≤ g pointwise (by induction on Finset)
+  -- Then ∏_{i=1}^{m-1} (i+1)/i = m
+  sorry
+
 end
 end PrimeGaps
