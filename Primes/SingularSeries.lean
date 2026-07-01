@@ -592,5 +592,75 @@ theorem singularSeriesFactor_collision_general (C₂ : ℝ) (k : Nat)
     rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
   rw [h_div10, h_div154, divisorCorrectionProduct_collision_general k hk_ne hcoprime]
 
+/-! ## Second independent collision: D(29·37) = D(17) -/
+
+/-- D(17) = (17-1)/(17-2) = 16/15. -/
+theorem divisorCorrectionProduct_seventeen : divisorCorrectionProduct 17 = (16 : ℝ) / 15 := by
+  rw [divisorCorrectionProduct_prime 17 (by decide) (by decide)]; norm_num
+
+/-- D(1073) = D(29·37) = (28/27)·(36/35) = 16/15. -/
+theorem divisorCorrectionProduct_29_37 : divisorCorrectionProduct 1073 = (16 : ℝ) / 15 := by
+  have h1073 : 1073 = 29 * 37 := by norm_num
+  rw [h1073, divisorCorrectionProduct_mul_of_coprime (by decide) (by decide)
+      ((Nat.coprime_primes (by decide) (by decide)).mpr (by decide)),
+      divisorCorrectionProduct_prime 29 (by decide) (by decide),
+      divisorCorrectionProduct_prime 37 (by decide) (by decide)]
+  norm_num
+
+/-- **SECOND independent collision: D(1073) = D(17), но 1073 ≠ 17**.
+
+Другое нетривиальное соотношение: (29-1)/(29-2)·(37-1)/(37-2) = (17-1)/(17-2).
+Это НЕЗАВИСИМО от D(5) = D(77): другое множество простых {29,37} vs {17}. -/
+theorem divisorCorrectionProduct_collision_17_1073 :
+    divisorCorrectionProduct 17 = divisorCorrectionProduct 1073 ∧ (17 : Nat) ≠ 1073 := by
+  exact ⟨divisorCorrectionProduct_seventeen.trans divisorCorrectionProduct_29_37.symm,
+         by norm_num⟩
+
+/-- **S(34) = S(2146)**: второе независимое столкновение. -/
+theorem singularSeriesFactor_collision_34_2146 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 34 = singularSeriesFactor C₂ 2146 := by
+  have h34 : 34 = 2 * 17 := by norm_num
+  have h2146 : 2146 = 2 * 1073 := by norm_num
+  rw [h34, h2146, singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul 17), if_pos (even_two_mul 1073),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_collision_17_1073.1]
+
+/-- **Второе бесконечное семейство: D(17k) = D(1073k)** для k coprime to 18269. -/
+theorem divisorCorrectionProduct_collision_general_2 (k : Nat) (hk : k ≠ 0)
+    (hcoprime : Nat.Coprime k 18241) :
+    divisorCorrectionProduct (17 * k) = divisorCorrectionProduct (1073 * k) := by
+  have h_coprime_17k : Nat.Coprime 17 k := by
+    have h17_dvd : 17 ∣ 18241 := by norm_num
+    exact (hcoprime.coprime_dvd_right h17_dvd).symm
+  have h_coprime_1073k : Nat.Coprime 1073 k := by
+    have h1073_dvd : 1073 ∣ 18241 := by norm_num
+    exact (hcoprime.coprime_dvd_right h1073_dvd).symm
+  rw [divisorCorrectionProduct_mul_of_coprime (by decide) hk h_coprime_17k,
+      divisorCorrectionProduct_mul_of_coprime (by decide) hk h_coprime_1073k,
+      divisorCorrectionProduct_collision_17_1073.1]
+
+/-- **S(34k) = S(2146k)** для k coprime to 18269. -/
+theorem singularSeriesFactor_collision_general_2 (C₂ : ℝ) (k : Nat)
+    (hk : 0 < k)     (hcoprime : Nat.Coprime k 18241) :
+    singularSeriesFactor C₂ (2 * 17 * k) = singularSeriesFactor C₂ (2 * 1073 * k) := by
+  have hk_ne : k ≠ 0 := Nat.ne_of_gt hk
+  unfold singularSeriesFactor
+  have h_even_1 : Even (2 * 17 * k) := by
+    have h : 2 * 17 * k = 2 * (17 * k) := by ring
+    rw [h]; exact even_two_mul (17 * k)
+  have h_even_2 : Even (2 * 1073 * k) := by
+    have h : 2 * 1073 * k = 2 * (1073 * k) := by ring
+    rw [h]; exact even_two_mul (1073 * k)
+  rw [if_pos h_even_1, if_pos h_even_2]
+  have h_div1 : (2 * 17 * k) / 2 = 17 * k := by
+    have : 2 * (17 * k) = 2 * 17 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have h_div2 : (2 * 1073 * k) / 2 = 1073 * k := by
+    have : 2 * (1073 * k) = 2 * 1073 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  rw [h_div1, h_div2, divisorCorrectionProduct_collision_general_2 k hk_ne hcoprime]
+
 end
 end PrimeGaps
