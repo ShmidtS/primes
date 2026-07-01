@@ -768,5 +768,82 @@ theorem singularSeriesFactor_eq_squarefreeKernel (C₂ : ℝ) (g : Nat) (hg : Ev
   have hg_even := hg
   simp only [if_pos hg_even, if_pos h_even_rad, h_rad_div, hD]
 
+/-! ## Strict monotonicity of D on prime factor sets -/
+
+/-- **Строгая монотонность D**: если нечётные простые делители `k` составляют
+собственное подмножество нечётных простых делителей `k'`, то `D(k) < D(k')`.
+
+Каждый дополнительный нечётный простой делитель `p` добавляет множитель
+`(p-1)/(p-2) > 1`, поэтому D строго возрастает. -/
+theorem divisorCorrectionProduct_lt_of_strict_subset {k k' : Nat}
+    (hsub : (Nat.primeFactors k).filter (fun p => 2 < p) ⊂
+            (Nat.primeFactors k').filter (fun p => 2 < p)) :
+    divisorCorrectionProduct k < divisorCorrectionProduct k' := by
+  rw [divisorCorrectionProduct_eq_primeFactors, divisorCorrectionProduct_eq_primeFactors]
+  set P := (Nat.primeFactors k).filter (fun p => 2 < p)
+  set Q := (Nat.primeFactors k').filter (fun p => 2 < p)
+  have h_subset : P ⊆ Q := hsub.1
+  have h_not_superset : ¬(Q ⊆ P) := hsub.2
+  have h_sdiff_nonempty : (Q \ P).Nonempty := by
+    by_contra h
+    rw [Finset.not_nonempty_iff_eq_empty] at h
+    exact h_not_superset (fun q hq => by
+      by_contra hq_not; have : q ∈ Q \ P := Finset.mem_sdiff.mpr ⟨hq, hq_not⟩
+      rw [h] at this; exact absurd this (by simp))
+  rw [← Finset.prod_sdiff h_subset]
+  have h_P_pos : 0 < P.prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+    apply Finset.prod_pos
+    rintro q hq
+    have hq_gt2 : 2 < q := by
+      have : q ∈ (Nat.primeFactors k).filter (fun p => 2 < p) := hq
+      rw [Finset.mem_filter] at this; exact this.2
+    have : (2 : ℝ) < q := by exact_mod_cast hq_gt2
+    exact div_pos (by linarith) (by linarith)
+  -- (Q\P).prod > 1: use prod_eq_one_iff_of_one_le'
+  -- If (Q\P).prod = 1, then each factor = 1, but each factor > 1
+  have h_extra_gt1 : 1 < (Q \ P).prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+    have h_all_ge1 : ∀ q ∈ (Q \ P), (1 : ℝ) ≤ ((q : ℝ) - 1) / ((q : ℝ) - 2) := by
+      rintro q hq
+      have hq_in_Q : q ∈ Q := (Finset.mem_sdiff.mp hq).1
+      have hq_gt2 : 2 < q := by
+        have : q ∈ (Nat.primeFactors k').filter (fun p => 2 < p) := hq_in_Q
+        rw [Finset.mem_filter] at this; exact this.2
+      have : (2 : ℝ) < q := by exact_mod_cast hq_gt2
+      rw [le_div_iff₀ (by linarith : 0 < (q : ℝ) - 2)]; linarith
+    have h_all_gt1 : ∀ q ∈ (Q \ P), (1 : ℝ) < ((q : ℝ) - 1) / ((q : ℝ) - 2) := by
+      rintro q hq
+      have hq_in_Q : q ∈ Q := (Finset.mem_sdiff.mp hq).1
+      have hq_gt2 : 2 < q := by
+        have : q ∈ (Nat.primeFactors k').filter (fun p => 2 < p) := hq_in_Q
+        rw [Finset.mem_filter] at this; exact this.2
+      have : (2 : ℝ) < q := by exact_mod_cast hq_gt2
+      rw [lt_div_iff₀ (by linarith : 0 < (q : ℝ) - 2)]; linarith
+    -- Product of (> 1) over nonempty set > 1
+    -- Use: Finset.prod_eq_one (contrapositive)
+    rcases Finset.eq_empty_or_nonempty (Q \ P) with h_empty | h_ne
+    · exfalso; exact absurd h_empty (Finset.nonempty_iff_ne_empty.mp h_sdiff_nonempty)
+    · -- Nonempty: pick one element, factor > 1, rest ≥ 1
+      obtain ⟨q, hq⟩ := h_ne
+      have hq_factor : (1 : ℝ) < ((q : ℝ) - 1) / ((q : ℝ) - 2) := h_all_gt1 q hq
+      have h_rest_ge1 : (1 : ℝ) ≤ ((Q \ P).erase q).prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+        apply Finset.one_le_prod
+        rintro r hr
+        have hr_in : r ∈ (Q \ P) := Finset.mem_of_mem_erase hr
+        have hr_in_Q : r ∈ Q := (Finset.mem_sdiff.mp hr_in).1
+        have hr_gt2 : 2 < r := by
+          have : r ∈ (Nat.primeFactors k').filter (fun p => 2 < p) := hr_in_Q
+          rw [Finset.mem_filter] at this; exact this.2
+        have : (2 : ℝ) < r := by exact_mod_cast hr_gt2
+        rw [le_div_iff₀ (by linarith : 0 < (r : ℝ) - 2)]; linarith
+      -- Split product: (Q\P).prod = q_factor * rest via insert_erase
+      have h_split : (Q \ P).prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) =
+        ((q : ℝ) - 1) / ((q : ℝ) - 2) * ((Q \ P).erase q).prod (fun p => ((p : ℝ) - 1) / ((p : ℝ) - 2)) := by
+        conv_lhs => rw [← Finset.insert_erase hq]
+        rw [Finset.prod_insert]
+        exact Finset.notMem_erase _ _
+      rw [h_split]
+      nlinarith [hq_factor, h_rest_ge1]
+  nlinarith [h_extra_gt1, h_P_pos]
+
 end
 end PrimeGaps

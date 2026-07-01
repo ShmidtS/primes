@@ -270,5 +270,54 @@ def PrimeGapPseudorandomnessConjecture (A normalization : Nat → ℝ) : Prop :=
   ∀ g : Nat,
     Tendsto (fun x : Nat => pairCorrelationError A g x / normalization x) atTop (nhds 0)
 
+/-! ## Parity of consecutive prime gaps -/
+
+/-- **Gap чётный при n ≥ 3**: если `n` и `n+g` — последовательные простые
+и `n ≥ 3`, то `g` чётно.
+
+Все простные `≥ 3` нечётные, поэтому разность двух нечётных простых чётна.
+Единственный случай с нечётным gap — пара `(2, 3)` с `g = 1`. -/
+theorem ConsecutivePrimeStart_gap_even_of_left_ge_three {g x n : Nat}
+    (h : ConsecutivePrimeStart g x n) (hn : 3 ≤ n) : Even g := by
+  have hn_prime : Nat.Prime n := h.2.1
+  have hn_odd : Odd n := hn_prime.eq_two_or_odd'.resolve_left (by omega)
+  have hng_prime : Nat.Prime (n + g) := h.2.2.1
+  have hng_ge : 3 ≤ n + g := ConsecutivePrimeStart_right_endpoint_ge_three h
+  have hng_odd : Odd (n + g) := hng_prime.eq_two_or_odd'.resolve_left (by omega)
+  -- n + g - n = g, and odd - odd = even
+  obtain ⟨a, ha⟩ := hn_odd
+  obtain ⟨b, hb⟩ := hng_odd
+  refine ⟨b - a, ?_⟩
+  omega
+
+/-- **Нечётный gap только для (2,3)**: если `g` нечётно и `ConsecutivePrimeStart g x n`,
+то `n = 2` и `n + g = 3` (единственная пара простых с нечётным gap). -/
+theorem ConsecutivePrimeStart_odd_gap_imp_left_eq_two {g x n : Nat}
+    (h : ConsecutivePrimeStart g x n) (hg : Odd g) : n = 2 ∧ n + g = 3 := by
+  have hn_prime : Nat.Prime n := h.2.1
+  have hng_prime : Nat.Prime (n + g) := h.2.2.1
+  have hg_pos : 0 < g := h.1
+  -- n must be 2: if n ≥ 3, then g is even (by previous theorem), contradicting hg
+  have hn_eq_2 : n = 2 := by
+    by_contra hn_ne_2
+    have hn_ge_3 : 3 ≤ n := by
+      have : 2 ≤ n := hn_prime.two_le
+      omega
+    exact absurd (ConsecutivePrimeStart_gap_even_of_left_ge_three h hn_ge_3)
+      (Nat.not_even_iff_odd.mpr hg)
+  -- n+g must be 3: n=2, g=1 (only odd gap), n+g=3
+  refine ⟨hn_eq_2, ?_⟩
+  -- g must be 1: 0 < g, Odd g, and no primes in (2, 2+g) except 2+g
+  have hg_le_1 : g ≤ 1 := by
+    by_contra hg_gt_1
+    have hg_ge_2 : 2 ≤ g := by omega
+    -- If g ≥ 2, then 1 ∈ [1, g-1], and 2+1=3 is prime, contradicting no primes in (2, 2+g)
+    have h3_between : 1 ∈ Finset.Icc 1 (g - 1) := Finset.mem_Icc.mpr ⟨by omega, by omega⟩
+    have hforbidden := h.2.2.2.2 1 h3_between
+    -- hforbidden : ¬ Nat.Prime (n + 1), and n = 2, so ¬ Nat.Prime 3
+    rw [hn_eq_2] at hforbidden
+    exact hforbidden (by decide : Nat.Prime 3)
+  omega
+
 end
 end PrimeGaps
