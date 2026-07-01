@@ -266,5 +266,87 @@ theorem primeSummatoryOperator_range_iff (g : ArithmeticFunction) :
         rw [hAf, ih]
         exact (hg_const (n + 1) (by omega) hp).symm
 
+/-! ## Iterated operator: A²f = double sum over primes -/
+
+/-- `A²f(n) = Σ_{p≤n, prime} Σ_{q≤p, prime} f(q)` — двойная сумма по простым. -/
+theorem primeSummatoryOperator_sq_eq_double_sum (f : ArithmeticFunction) (n : Nat) :
+    primeSummatoryOperator (primeSummatoryOperator f) n =
+      ((Finset.range (n + 1)).filter Nat.Prime).sum fun p =>
+        ((Finset.range (p + 1)).filter Nat.Prime).sum fun q => f q := by
+  have h_outer : primeSummatoryOperator (primeSummatoryOperator f) n =
+    (Finset.range (n + 1)).sum (fun p => if Nat.Prime p then primeSummatoryOperator f p else 0) := rfl
+  rw [h_outer, ← Finset.sum_filter]
+  apply Finset.sum_congr rfl
+  intro p _hp
+  have h_inner : primeSummatoryOperator f p =
+    (Finset.range (p + 1)).sum (fun q => if Nat.Prime q then f q else 0) := rfl
+  rw [h_inner, ← Finset.sum_filter]
+
+/-- **A²f(n) = Σ_{q≤n, prime} f(q) · |{primes p : q ≤ p ≤ n}|**
+— явная формула для итерированного оператора.
+Перестановка двойной суммы: `Σ_p Σ_{q≤p} = Σ_q Σ_{p≥q}`. -/
+theorem primeSummatoryOperator_sq (f : ArithmeticFunction) (n : Nat) :
+    primeSummatoryOperator (primeSummatoryOperator f) n =
+      ((Finset.range (n + 1)).filter Nat.Prime).sum fun q =>
+        (((Finset.Icc q n).filter Nat.Prime).card : ℝ) * f q := by
+  rw [primeSummatoryOperator_sq_eq_double_sum]
+  set S := (Finset.range (n + 1)).filter Nat.Prime with hS
+  -- Step 1: rewrite inner range as S.filter (fun q => q ≤ p)
+  have h_eq1 : S.sum (fun p => ((Finset.range (p + 1)).filter Nat.Prime).sum (fun q => f q)) =
+               S.sum (fun p => (S.filter (fun q => q ≤ p)).sum (fun q => f q)) := by
+    apply Finset.sum_congr rfl
+    intro p hp
+    rw [hS, Finset.mem_filter, Finset.mem_range] at hp
+    have hp_le : p ≤ n := Nat.le_of_lt_succ hp.1
+    have h_eq : ((Finset.range (p + 1)).filter Nat.Prime) = S.filter (fun q => q ≤ p) := by
+      ext q
+      constructor
+      · rintro h
+        rw [Finset.mem_filter, Finset.mem_range] at h
+        obtain ⟨hq, hprime⟩ := h
+        rw [Finset.mem_filter, hS, Finset.mem_filter, Finset.mem_range]
+        exact ⟨⟨by omega, hprime⟩, Nat.le_of_lt_succ hq⟩
+      · rintro h
+        rw [Finset.mem_filter] at h
+        rw [hS, Finset.mem_filter, Finset.mem_range] at h
+        obtain ⟨⟨_, hprime⟩, hq_le⟩ := h
+        rw [Finset.mem_filter, Finset.mem_range]
+        exact ⟨Nat.lt_succ_of_le hq_le, hprime⟩
+    rw [h_eq]
+  rw [h_eq1]
+  -- Step 2: convert filtered sum to if-then-else
+  have h_eq2 : S.sum (fun p => (S.filter (fun q => q ≤ p)).sum (fun q => f q)) =
+               S.sum (fun p => S.sum (fun q => if q ≤ p then f q else 0)) := by
+    apply Finset.sum_congr rfl
+    intro p _; rw [Finset.sum_filter]
+  rw [h_eq2, Finset.sum_comm]
+  -- Step 3: extract f(q) from inner sum
+  have h_eq3 : S.sum (fun q => S.sum (fun p => if q ≤ p then f q else 0)) =
+               S.sum (fun q => (((Finset.Icc q n).filter Nat.Prime).card : ℝ) * f q) := by
+    apply Finset.sum_congr rfl
+    intro q _hq
+    rw [← Finset.sum_filter]
+    have h_card_eq : (S.filter (fun p => q ≤ p)) = ((Finset.Icc q n).filter Nat.Prime) := by
+      ext p
+      constructor
+      · rintro h
+        rw [Finset.mem_filter] at h
+        obtain ⟨h1, h2⟩ := h
+        rw [hS, Finset.mem_filter] at h1
+        obtain ⟨h1a, h1b⟩ := h1
+        rw [Finset.mem_range] at h1a
+        rw [Finset.mem_filter, Finset.mem_Icc]
+        exact ⟨⟨h2, Nat.le_of_lt_succ h1a⟩, h1b⟩
+      · rintro h
+        rw [Finset.mem_filter] at h
+        obtain ⟨h1, h2⟩ := h
+        rw [Finset.mem_Icc] at h1
+        obtain ⟨h1a, h1b⟩ := h1
+        rw [Finset.mem_filter, hS, Finset.mem_filter, Finset.mem_range]
+        exact ⟨⟨Nat.lt_succ_of_le h1b, h2⟩, h1a⟩
+    rw [h_card_eq, Finset.sum_const]
+    simp
+  rw [h_eq3]
+
 end
 end PrimeGaps
