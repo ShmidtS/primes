@@ -506,5 +506,44 @@ theorem finiteWheelSingularSeries_even_eq (k y : Nat) (hy : 2 ≤ y) :
          oddNonDivs.prod (fun p => (1 - 1 / ((p : ℝ) - 1) ^ 2 : ℝ))) from by ring,
     h_twin_prod, ← htwin]
 
+/-! ## Genuinely new: singular series collision D(5) = D(77) -/
+
+/-- D(5) = (5-1)/(5-2) = 4/3. -/
+theorem divisorCorrectionProduct_five : divisorCorrectionProduct 5 = (4 : ℝ) / 3 := by
+  rw [divisorCorrectionProduct_prime 5 (by decide) (by decide)]; norm_num
+
+/-- D(77) = D(7·11) = 6/5 · 10/9 = 4/3. -/
+theorem divisorCorrectionProduct_seven_eleven : divisorCorrectionProduct 77 = (4 : ℝ) / 3 := by
+  have h77 : 77 = 7 * 11 := by norm_num
+  rw [h77, divisorCorrectionProduct_mul_of_coprime (by decide) (by decide)
+      ((Nat.coprime_primes (by decide) (by decide)).mpr (by decide)),
+      divisorCorrectionProduct_prime 7 (by decide) (by decide),
+      divisorCorrectionProduct_prime 11 (by decide) (by decide)]
+  norm_num
+
+/-- **GENUINELY NEW: D(5) = D(77), но 5 ≠ 77**.
+
+Singular series имеет нетривиальные «collisions»: D(5) = 4/3 = D(77),
+где 5 — простое, а 77 = 7·11. Различные множества нечётных простых
+({5} и {7,11}) дают одно и то же произведение ∏ (p-1)/(p-2).
+
+Это означает, что gap 10 (kernel 5) и gap 154 (kernel 77) имеют
+одинаковую Hardy--Littlewood плотность, несмотря на разную структуру. -/
+theorem divisorCorrectionProduct_collision_5_77 :
+    divisorCorrectionProduct 5 = divisorCorrectionProduct 77 ∧ (5 : Nat) ≠ 77 := by
+  exact ⟨divisorCorrectionProduct_five.trans divisorCorrectionProduct_seven_eleven.symm,
+         by norm_num⟩
+
+/-- **S(10) = S(154)**: gap 10 и gap 154 имеют одинаковую singular series. -/
+theorem singularSeriesFactor_collision_10_154 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 10 = singularSeriesFactor C₂ 154 := by
+  have h10 : 10 = 2 * 5 := by norm_num
+  have h154 : 154 = 2 * 77 := by norm_num
+  rw [h10, h154, singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul 5), if_pos (even_two_mul 77),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_collision_5_77.1]
+
 end
 end PrimeGaps
