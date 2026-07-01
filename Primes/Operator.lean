@@ -192,5 +192,79 @@ theorem primeSummatoryEigenpair_only_zero_eigenvalue
   · exact absurd (eigenpair_ev_one_impossible h hev1) (by trivial)
   · exact absurd (primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue h hev hev1) (by trivial)
 
+/-! ## Range structure: evaluation, non-surjectivity, image characterization -/
+
+/-- `Af(0) = 0`: нет простых ≤ 0. -/
+theorem primeSummatoryOperator_eval_zero (f : ArithmeticFunction) :
+    primeSummatoryOperator f 0 = 0 := by
+  unfold primeSummatoryOperator
+  rw [Finset.range_one, Finset.sum_singleton, if_neg (by decide)]
+
+/-- При простом `p`: `Af(p) = Af(p-1) + f(p)`. -/
+theorem primeSummatoryOperator_eval_prime (f : ArithmeticFunction) (p : Nat) (hp : Nat.Prime p) :
+    primeSummatoryOperator f p = primeSummatoryOperator f (p - 1) + f p := by
+  have h := primeSummatoryOperator_succ_diff f (p - 1)
+  have hp2 := hp.two_le
+  rw [show (p - 1) + 1 = p from by omega, if_pos hp] at h
+  linear_combination h
+
+/-- При непростом `n > 0`: `Af(n) = Af(n-1)`. -/
+theorem primeSummatoryOperator_eval_nonprime (f : ArithmeticFunction) (n : Nat)
+    (hn : ¬Nat.Prime n) (hn1 : 0 < n) :
+    primeSummatoryOperator f n = primeSummatoryOperator f (n - 1) := by
+  have h := primeSummatoryOperator_succ_diff f (n - 1)
+  rw [show (n - 1) + 1 = n from by omega, if_neg hn] at h
+  linear_combination h
+
+/-- **`A - I` не сюръективен**: `g(2) = 0` для любого `g` из образа `A - I`,
+поэтому `g ≡ 1` не лежит в образе. Значит `1` принадлежит residual spectrum. -/
+theorem primeSummatoryOperator_minus_I_not_surjective :
+    ¬ ∃ f : ArithmeticFunction, ∀ n, primeSummatoryOperator f n - f n = 1 := by
+  rintro ⟨f, hf⟩
+  have h2 := hf 2
+  unfold primeSummatoryOperator at h2
+  rw [Finset.sum_range_succ, Finset.sum_range_succ] at h2
+  simp only [Finset.sum_range_one, if_neg (by decide : ¬Nat.Prime 0),
+    if_neg (by decide : ¬Nat.Prime 1), if_pos (by decide : Nat.Prime 2),
+    zero_add, add_zero] at h2
+  linarith
+
+/-- **Образ `A` в точности состоит из функций с `g(0) = 0`, постоянных между простыми.**
+Это полная характеризация образа оператора суммирования по простым:
+`g ∈ range(A) ⟺ g(0) = 0 ∧ ∀ n > 0, ¬Prime n → g(n) = g(n-1)`. -/
+theorem primeSummatoryOperator_range_iff (g : ArithmeticFunction) :
+    (∃ f, ∀ n, primeSummatoryOperator f n = g n) ↔
+      g 0 = 0 ∧ ∀ n, 0 < n → ¬Nat.Prime n → g n = g (n - 1) := by
+  refine ⟨fun ⟨f, hf⟩ => ?_, fun ⟨hg0, hg_const⟩ => ?_⟩
+  · refine ⟨(hf 0).symm.trans (primeSummatoryOperator_eval_zero f), ?_⟩
+    intro n hn1 hn
+    rw [← hf n, ← hf (n - 1), primeSummatoryOperator_eval_nonprime f n hn hn1]
+  · set f : ArithmeticFunction := fun n => if Nat.Prime n then g n - g (n - 1) else 0 with hf
+    refine ⟨f, ?_⟩
+    intro n
+    induction n with
+    | zero =>
+      unfold primeSummatoryOperator
+      rw [Finset.range_one, Finset.sum_singleton, if_neg (by decide)]
+      exact hg0.symm
+    | succ n ih =>
+      have hdiff := primeSummatoryOperator_succ_diff f n
+      by_cases hp : Nat.Prime (n + 1)
+      · have hfval : f (n + 1) = g (n + 1) - g n := by
+          change (if Nat.Prime (n + 1) then g (n + 1) - g n else 0) = g (n + 1) - g n
+          rw [if_pos hp]
+        rw [if_pos hp, hfval] at hdiff
+        have hAf : primeSummatoryOperator f (n + 1) = primeSummatoryOperator f n + (g (n + 1) - g n) := by
+          linear_combination hdiff
+        rw [hAf, ih]; ring
+      · have hfval : f (n + 1) = 0 := by
+          change (if Nat.Prime (n + 1) then g (n + 1) - g n else 0) = 0
+          rw [if_neg hp]
+        rw [if_neg hp] at hdiff
+        have hAf : primeSummatoryOperator f (n + 1) = primeSummatoryOperator f n := by
+          linear_combination hdiff
+        rw [hAf, ih]
+        exact (hg_const (n + 1) (by omega) hp).symm
+
 end
 end PrimeGaps
