@@ -598,5 +598,40 @@ theorem singularSeriesFactor_primorial_explicit (C₂ : ℝ) (m : Nat) (hm : 2 �
       Nat.mul_div_cancel_left _ (by omega : 0 < 2),
       divisorCorrectionProduct_primorial m hm]
 
+/-- `D(P_m)` строго возрастает: каждый новый простой делитель добавляет множитель > 1. -/
+theorem divisorCorrectionProduct_primorial_strictMono (m : Nat) (hm : 1 ≤ m) :
+    divisorCorrectionProduct (primorial m) < divisorCorrectionProduct (primorial (m + 1)) := by
+  rw [primorial_succ]
+  have hcoprime : Nat.Coprime (primorial m) (Nat.nth Nat.Prime m) := by
+    unfold primorial
+    rw [Nat.coprime_prod_left_iff]
+    intro i hi
+    have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
+    have hpm : Nat.Prime (Nat.nth Nat.Prime m) := Nat.prime_nth_prime m
+    have hlt : Nat.nth Nat.Prime i < Nat.nth Nat.Prime m :=
+      (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (Finset.mem_range.mp hi)
+    exact (Nat.coprime_primes hpi hpm).mpr (Nat.ne_of_lt hlt)
+  rw [divisorCorrectionProduct_mul_of_coprime (ne_of_gt (primorial_pos m)) (Nat.prime_nth_prime m).ne_zero hcoprime]
+  have hpm : Nat.Prime (Nat.nth Nat.Prime m) := Nat.prime_nth_prime m
+  have hp_odd : 2 < Nat.nth Nat.Prime m := by
+    by_cases hm0 : m = 0
+    · subst hm0; rw [Nat.nth_prime_zero_eq_two]; omega
+    · have h1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+      have hge : 1 ≤ m := by omega
+      have hle : 3 ≤ Nat.nth Nat.Prime m := by
+        rw [← h1]
+        exact (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge
+      omega
+  rw [divisorCorrectionProduct_prime (Nat.nth Nat.Prime m) hpm hp_odd]
+  have hD_pos : 0 < divisorCorrectionProduct (primorial m) := by
+    have := divisorCorrectionProduct_ge_one (primorial m); linarith
+  have hp_real : 2 < (Nat.nth Nat.Prime m : ℝ) := by exact_mod_cast hp_odd
+  have hfactor_gt1 : 1 < ((Nat.nth Nat.Prime m : ℝ) - 1) / ((Nat.nth Nat.Prime m : ℝ) - 2) := by
+    rw [lt_div_iff₀ (by linarith : 0 < (Nat.nth Nat.Prime m : ℝ) - 2)]
+    linarith
+  have h := mul_lt_mul_of_pos_left hfactor_gt1 hD_pos
+  rw [mul_one] at h
+  exact h
+
 end
 end PrimeGaps

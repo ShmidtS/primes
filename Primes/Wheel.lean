@@ -479,5 +479,19 @@ theorem primeFactors_primorial (m : Nat) (hm : 0 < m) :
       rw [hpf_pm, hrange, Finset.image_insert]
       exact Finset.union_comm _ _
 
+/-- Gap 2 всегда присутствует в primorial wheel (как wrap-around). -/
+theorem primorialWheel_gap_two_appears (m : Nat) (hm : 1 ≤ m) :
+    2 ∈ wheelGaps (primorial m) := by
+  have heven : Even (primorial m) := primorial_even m hm
+  have h2dvd : 2 ∣ primorial m := by rcases heven with ⟨k, hk⟩; use k; omega
+  have hpm_ge2 : 2 ≤ primorial m := Nat.le_of_dvd (primorial_pos m) h2dvd
+  have hwrap : wheelWrapGap (primorial m) (wheelCandidateList (primorial m)) = 2 :=
+    wheelWrapGap_eq_two hpm_ge2
+  have hpoints_ne : wheelCandidateList (primorial m) ≠ [] :=
+    coprimeResidues_ne_nil_of_ge_two hpm_ge2
+  rw [wheelGaps, if_neg hpoints_ne]
+  rw [List.mem_append, List.mem_singleton]
+  exact Or.inr hwrap.symm
+
 end
 end PrimeGaps
