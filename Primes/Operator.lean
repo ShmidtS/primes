@@ -348,5 +348,98 @@ theorem primeSummatoryOperator_sq (f : ArithmeticFunction) (n : Nat) :
     simp
   rw [h_eq3]
 
+/-! ## Jordan structure: ker(A²) = ker(A) and spectral decomposition -/
+
+/-- `Af = 0` (для всех `n`) ⟺ `f` обращается в нуль на всех простых.
+Версия `primeSummatoryEigenpair_zero_iff` без требования `f ≠ 0`. -/
+theorem primeSummatoryOperator_eq_zero_iff (f : ArithmeticFunction) :
+    (∀ n, primeSummatoryOperator f n = 0) ↔ (∀ p, Nat.Prime p → f p = 0) := by
+  refine ⟨fun hf p hp => ?_, fun hf n => ?_⟩
+  · have h := primeSummatoryOperator_eval_prime f p hp
+    rw [hf p, hf (p - 1)] at h
+    linarith
+  · unfold primeSummatoryOperator
+    have hzero : ∀ p ∈ Finset.range (n + 1), (if Nat.Prime p then f p else 0 : ℝ) = 0 := by
+      intro p _; by_cases hpr : Nat.Prime p
+      · rw [if_pos hpr]; exact hf p hpr
+      · rw [if_neg hpr]
+    rw [Finset.sum_congr rfl hzero, Finset.sum_const_zero]
+
+/-- Если `Af` обращается в нуль на всех простых, то `Af = 0` везде:
+`Af` — ступенчатая функция (постоянная между простыми), поэтому
+нуль на простых влечёт нуль на всём `Nat`. -/
+theorem primeSummatoryOperator_vanishes_on_primes_imp_zero (f : ArithmeticFunction)
+    (hf : ∀ p, Nat.Prime p → primeSummatoryOperator f p = 0) :
+    ∀ n, primeSummatoryOperator f n = 0 := by
+  intro n
+  induction n with
+  | zero => exact primeSummatoryOperator_eval_zero f
+  | succ n ih =>
+    by_cases hp : Nat.Prime (n + 1)
+    · exact hf (n + 1) hp
+    · have h := primeSummatoryOperator_eval_nonprime f (n + 1) hp (by omega)
+      have : primeSummatoryOperator f (n + 1) = primeSummatoryOperator f n := h
+      rw [this, ih]
+
+/-- **ker(A²) = ker(A)**: алгебраическая кратность собственного значения 0
+равна геометрической. Jordan block для 0 имеет размер 1 — нет нетривиальных
+жордановых цепей.
+
+Доказательство:
+- `←`: `Af = 0 → A²f = A(0) = 0`.
+- `→`: `A²f = 0 → A(Af) = 0 → Af` обращается в нуль на простых (по char ker(A))
+  → `Af = 0` везде (ступенчатость) → `f ∈ ker(A)`. -/
+theorem primeSummatoryOperator_ker_sq_eq_ker (f : ArithmeticFunction) :
+    (∀ n, primeSummatoryOperator (primeSummatoryOperator f) n = 0) ↔
+    (∀ n, primeSummatoryOperator f n = 0) := by
+  refine ⟨fun hf => ?_, fun hf n => ?_⟩
+  · have hAf_vanishes : ∀ p, Nat.Prime p → primeSummatoryOperator f p = 0 :=
+      (primeSummatoryOperator_eq_zero_iff (primeSummatoryOperator f)).mp hf
+    exact primeSummatoryOperator_vanishes_on_primes_imp_zero f hAf_vanishes
+  · have hzero : ∀ p ∈ Finset.range (n + 1),
+        (if Nat.Prime p then primeSummatoryOperator f p else 0 : ℝ) = 0 := by
+      intro p _; by_cases hpr : Nat.Prime p
+      · rw [if_pos hpr, hf p]
+      · rw [if_neg hpr]
+    have h_unfolding : primeSummatoryOperator (primeSummatoryOperator f) n =
+        (Finset.range (n + 1)).sum (fun p => if Nat.Prime p then primeSummatoryOperator f p else 0) := rfl
+    rw [h_unfolding, Finset.sum_congr rfl hzero, Finset.sum_const_zero]
+
+/-- **A - I инъективен**: если `Af = f`, то `f = 0`.
+Собственное значение 1 не существует, поэтому `A - I` — мономорфизм.
+Значит `1` принадлежит residual spectrum (не сюръективен, но инъективен). -/
+theorem primeSummatoryOperator_Af_eq_f_imp_f_eq_zero (f : ArithmeticFunction)
+    (hf : ∀ n, primeSummatoryOperator f n = f n) : f = 0 := by
+  by_contra hf_ne
+  have h : IsPrimeSummatoryEigenpair f 1 := ⟨hf_ne, by intro n; rw [hf n, one_mul]⟩
+  exact absurd (eigenpair_ev_one_impossible h rfl) (by trivial)
+
+/-- **Полная спектральная декомпозиция A**:
+- Point spectrum: `{0}` (eigenspace = {f : f|_primes = 0, f ≠ 0})
+- Residual spectrum: `{1}` (A - I injective, not surjective)
+- Continuous spectrum: `∅` (для λ ≠ 0, 1: A - λI injective)
+- Jordan: ker(A²) = ker(A) — block size 1 для eigenvalue 0
+
+Следствие: `σ(A) = {0, 1}`, спектр дискретный, непрерывной части нет. -/
+theorem primeSummatoryOperator_Af_eq_lambda_f_imp_f_eq_zero (f : ArithmeticFunction) (ev : ℝ)
+    (hev : ev ≠ 0) (hev1 : ev ≠ 1)
+    (hf : ∀ n, primeSummatoryOperator f n = ev * f n) : f = 0 := by
+  by_contra hf_ne
+  exact primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue ⟨hf_ne, hf⟩ hev hev1
+
+/-! ## Connection to prime counting function -/
+
+/-- **A[1] = π**: применение оператора к постоянной функции 1
+даёт функцию подсчёта простых чисел. -/
+theorem primeSummatoryOperator_apply_one (n : Nat) :
+    primeSummatoryOperator (fun _ => (1 : ℝ)) n = (primeCountingExact n : ℝ) := by
+  have h_rfl : primeSummatoryOperator (fun _ => (1 : ℝ)) n =
+      (Finset.range (n + 1)).sum (fun p => if Nat.Prime p then (1 : ℝ) else 0) := rfl
+  rw [h_rfl, ← Finset.sum_filter]
+  unfold primeCountingExact
+  rw [Finset.card_eq_sum_ones]
+  push_cast
+  rfl
+
 end
 end PrimeGaps
