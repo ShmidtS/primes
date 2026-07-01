@@ -35,5 +35,22 @@ theorem wignerGOESurmise_nonneg {t : ℝ} (ht : 0 ≤ t) :
   unfold wignerGOESurmise
   positivity
 
+/-- Wigner GOE surmise обращается в ноль при `t = 0`. -/
+theorem wignerGOESurmise_zero :
+    wignerGOESurmise 0 = 0 := by
+  unfold wignerGOESurmise; ring
+
+/-- Wigner GOE surmise строго положительна для `t > 0`. -/
+theorem wignerGOESurmise_pos {t : ℝ} (ht : 0 < t) :
+    0 < wignerGOESurmise t := by
+  unfold wignerGOESurmise
+  positivity
+
+/-- Wigner GOE surmise — чётная функция от `t²`: зависит только от `t²`. -/
+theorem wignerGOESurmise_sq_arg (t : ℝ) :
+    wignerGOESurmise t = (Real.pi / 2) * t * Real.exp (-(Real.pi / 4) * t * t) := by
+  unfold wignerGOESurmise
+  ring_nf
+
 end
 end PrimeGaps

@@ -22,6 +22,14 @@ def primeSummatoryOperator (f : ArithmeticFunction) (n : Nat) : ℝ :=
 def IsPrimeSummatoryEigenpair (f : ArithmeticFunction) (eigenvalue : ℝ) : Prop :=
   f ≠ 0 ∧ ∀ n : Nat, primeSummatoryOperator f n = eigenvalue * f n
 
+/-- Разность `Af(n+1) - Af(n)` равна `f(n+1)` если `n+1` простое, иначе `0`. -/
+theorem primeSummatoryOperator_succ_diff (f : ArithmeticFunction) (n : Nat) :
+    primeSummatoryOperator f (n + 1) - primeSummatoryOperator f n =
+      (if Nat.Prime (n + 1) then f (n + 1) else 0) := by
+  unfold primeSummatoryOperator
+  rw [show (n + 1) + 1 = n + 2 by omega, Finset.sum_range_succ]
+  ring
+
 /-- Любая собственная пара удовлетворяет локальной рекурсии:
 при переходе от `n` к `n+1` добавляется только вклад `n+1`. -/
 theorem primeSummatoryEigenpair_recurrence {f : ArithmeticFunction} {eigenvalue : ℝ}
