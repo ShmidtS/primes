@@ -60,5 +60,55 @@ theorem primeSummatoryEigenpair_jump_at_prime
   rw [if_pos hn] at hrec
   linear_combination hrec
 
+/-! ## Spectral theorem: no nonzero eigenvalue other than possibly 1 -/
+
+/-- Для `ev ≠ 0, 1` eigenpair не существует: `f = 0`, противоречие с `f ≠ 0`.
+Доказательство: `f(2) = 0` (из `Af(2) = ev·f(2) = f(2)`), затем индукция:
+при простых `jump` даёт `f(p) = 0`, между простыми `const` даёт `f = f(prev) = 0`. -/
+theorem primeSummatoryEigenpair_no_nonzero_nonone_eigenvalue
+    {f : ArithmeticFunction} {ev : ℝ}
+    (h : IsPrimeSummatoryEigenpair f ev) (hev : ev ≠ 0) (hev1 : ev ≠ 1) : False := by
+  have hf2 : f 2 = 0 := by
+    have hAf2 := h.2 2
+    unfold primeSummatoryOperator at hAf2
+    rw [Finset.sum_range_succ, Finset.sum_range_succ] at hAf2
+    simp only [Finset.sum_range_one, if_neg (by decide : ¬Nat.Prime 0),
+      if_neg (by decide : ¬Nat.Prime 1), if_pos (by decide : Nat.Prime 2),
+      zero_add, add_zero] at hAf2
+    -- hAf2 : f 2 = ev * f 2
+    have h1 : (1 - ev) * f 2 = 0 := by linear_combination hAf2
+    have h2 : 1 - ev ≠ 0 := by
+      intro h; rw [sub_eq_zero.mp h] at hev1; exact hev1 rfl
+    exact (mul_eq_zero.mp h1).resolve_left h2
+  have hf1 : f 1 = 0 := by
+    have hj := primeSummatoryEigenpair_jump_at_prime h 1 (by decide : Nat.Prime 2)
+    rw [show 1 + 1 = 2 by omega] at hj
+    rw [hf2] at hj
+    -- hj : (ev - 1) * 0 = ev * f 1
+    have h1 : ev * f 1 = 0 := by
+      have : (ev - 1) * (0 : ℝ) = 0 := by ring
+      linarith [hj, this]
+    exact (mul_eq_zero.mp h1).resolve_left hev
+  have hf0 : f 0 = 0 := by
+    have hc := primeSummatoryEigenpair_const_between_primes h hev 0 (by decide : ¬Nat.Prime 1)
+    rw [show 0 + 1 = 1 by omega] at hc
+    exact hc.symm.trans hf1
+  have hforall : ∀ n, f n = 0 := by
+    intro n
+    induction n with
+    | zero => exact hf0
+    | succ n ih =>
+      by_cases hp : Nat.Prime (n + 1)
+      · have hj := primeSummatoryEigenpair_jump_at_prime h n hp
+        rw [show f n = (0 : ℝ) from ih] at hj
+        have h00 : ev * (0 : ℝ) = 0 := by ring
+        rw [h00] at hj
+        have hev1' : ev - 1 ≠ 0 := by
+          intro h; rw [sub_eq_zero.mp h] at hev1; exact hev1 rfl
+        exact (mul_eq_zero.mp hj).resolve_left hev1'
+      · have hc := primeSummatoryEigenpair_const_between_primes h hev n hp
+        rw [hc]; exact ih
+  exact h.1 (by funext n; exact hforall n)
+
 end
 end PrimeGaps
