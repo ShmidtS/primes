@@ -441,5 +441,59 @@ theorem primeSummatoryOperator_apply_one (n : Nat) :
   push_cast
   rfl
 
+/-! ## Positivity, non-nilpotency, and non-idempotency -/
+
+/-- **A сохраняет неотрицательность**: если `f ≥ 0`, то `Af ≥ 0`. -/
+theorem primeSummatoryOperator_nonneg {f : ArithmeticFunction}
+    (hf : ∀ n, 0 ≤ f n) (n : Nat) : 0 ≤ primeSummatoryOperator f n := by
+  unfold primeSummatoryOperator
+  apply Finset.sum_nonneg
+  intro p _
+  by_cases hp : Nat.Prime p
+  · rw [if_pos hp]; exact hf p
+  · simp only [if_neg hp]; exact le_refl 0
+
+/-- `A[1](n) = π(n) ≥ 1` для `n ≥ 2` (есть хотя бы одно простое — это 2). -/
+theorem primeSummatoryOperator_apply_one_pos (n : Nat) (hn : 2 ≤ n) :
+    1 ≤ primeSummatoryOperator (fun _ => (1 : ℝ)) n := by
+  rw [primeSummatoryOperator_apply_one]
+  unfold primeCountingExact
+  have h_subset : ({2} : Finset Nat) ⊆ (Finset.range (n + 1)).filter Nat.Prime := by
+    intro x hx; simp only [Finset.mem_singleton] at hx; subst hx
+    simp only [Finset.mem_filter, Finset.mem_range]; exact ⟨by omega, by decide⟩
+  have h_card := Finset.card_le_card h_subset
+  rw [Finset.card_singleton] at h_card
+  exact_mod_cast h_card
+
+/-- **A не идемпотентен**: `A²[1](3) ≠ A[1](3)`.
+`A[1](3) = π(3) = 2`, но `A²[1](3) = π(2) + π(3) = 3`.
+Следовательно `A` — не проектор. -/
+theorem primeSummatoryOperator_not_idempotent :
+    primeSummatoryOperator (primeSummatoryOperator (fun _ => (1 : ℝ))) 3 ≠
+      primeSummatoryOperator (fun _ => (1 : ℝ)) 3 := by
+  -- A[1](3) = π(3) = 2
+  have h_A1 : primeSummatoryOperator (fun _ => (1 : ℝ)) 3 = 2 := by
+    have h_rfl : primeSummatoryOperator (fun _ => (1 : ℝ)) 3 =
+        (Finset.range 4).sum (fun p => if Nat.Prime p then (1 : ℝ) else 0) := rfl
+    rw [h_rfl, ← Finset.sum_filter]
+    have h_filt : (Finset.range 4).filter Nat.Prime = {2, 3} := by decide
+    rw [h_filt, Finset.sum_pair (by decide)]
+    norm_num
+  -- A²[1](3) = Σ_{p≤3, prime} A[1](p) = A[1](2) + A[1](3) = 1 + 2 = 3
+  have h_A2 : primeSummatoryOperator (primeSummatoryOperator (fun _ => (1 : ℝ))) 3 = 3 := by
+    have h_rfl : primeSummatoryOperator (primeSummatoryOperator (fun _ => (1 : ℝ))) 3 =
+        (Finset.range 4).sum (fun p => if Nat.Prime p then primeSummatoryOperator (fun _ => (1 : ℝ)) p else 0) := rfl
+    rw [h_rfl, ← Finset.sum_filter]
+    have h_filt : (Finset.range 4).filter Nat.Prime = {2, 3} := by decide
+    rw [h_filt, Finset.sum_pair (by decide)]
+    have h_pi2 : primeSummatoryOperator (fun _ => (1 : ℝ)) 2 = 1 := by
+      have hr : primeSummatoryOperator (fun _ => (1 : ℝ)) 2 =
+          (Finset.range 3).sum (fun p => if Nat.Prime p then (1 : ℝ) else 0) := rfl
+      rw [hr, ← Finset.sum_filter]
+      have h2 : (Finset.range 3).filter Nat.Prime = {2} := by decide
+      rw [h2, Finset.sum_singleton]
+    rw [h_pi2, h_A1]; norm_num
+  rw [h_A2, h_A1]; norm_num
+
 end
 end PrimeGaps

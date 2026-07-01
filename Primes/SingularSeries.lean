@@ -673,5 +673,46 @@ theorem singularSeriesFactor_monotone_on_primeFactors (C₂ : ℝ) (hC₂ : 0 < 
   exact mul_le_mul_of_nonneg_left
     (divisorCorrectionProduct_le_of_primeFactors_subset hsub) (le_of_lt h2C₂)
 
+/-! ## Concrete singular series values and non-injectivity -/
+
+/-- **S(4) = 2C₂**: gap 4 имеет ту же singular series, что и gap 2 (twin prime).
+`D(2) = 1` — нет нечётных простых делителей. -/
+theorem singularSeriesFactor_four (C₂ : ℝ) : singularSeriesFactor C₂ 4 = 2 * C₂ := by
+  have h := singularSeriesFactor_2adic C₂ 2 1 (by decide : Odd 1) (by omega : 1 ≤ 2)
+  rw [show (2 : Nat) ^ 2 * 1 = 4 from by norm_num,
+      show (2 : Nat) * 1 = 2 from by norm_num] at h
+  have h2 : singularSeriesFactor C₂ 2 = 2 * C₂ := singularSeriesFactor_2_pow C₂ 1 (by omega)
+  rw [h, h2]
+
+/-- **S(6) = 4C₂**: gap 6 имеет `D(3) = 2`, поэтому `S(6) = 2C₂ · 2 = 4C₂`.
+Это больше, чем `S(2) = 2C₂` — HL предсказывает больше пар с gap 6, чем с gap 2. -/
+theorem singularSeriesFactor_six (C₂ : ℝ) : singularSeriesFactor C₂ 6 = 4 * C₂ := by
+  have h : singularSeriesFactor C₂ (2 * 3) = 2 * C₂ * (((3 : ℝ) - 1) / ((3 : ℝ) - 2)) :=
+    singularSeriesFactor_eq_for_2p C₂ 3 (by decide) (by decide)
+  rw [show (2 : Nat) * 3 = 6 from by norm_num, show ((3 : ℝ) - 1) / ((3 : ℝ) - 2) = 2 from by norm_num] at h
+  linarith [h]
+
+/-- **S(8) = 2C₂**: gap 8 имеет ту же singular series, что и gap 2 и gap 4.
+`D(4) = D(2²) = D(2) = 1`. -/
+theorem singularSeriesFactor_eight (C₂ : ℝ) : singularSeriesFactor C₂ 8 = 2 * C₂ := by
+  exact singularSeriesFactor_2_pow C₂ 3 (by omega)
+
+/-- **S не инъективна**: `S(2) = S(4) = S(8) = 2C₂`.
+Различные чётные gap'ы могут иметь одинаковую singular series —
+а именно, gap'ы с одинаковой нечётной частью. -/
+theorem singularSeriesFactor_not_injective (C₂ : ℝ) :
+    singularSeriesFactor C₂ 2 = singularSeriesFactor C₂ 4 ∧
+    singularSeriesFactor C₂ 4 = singularSeriesFactor C₂ 8 := by
+  have h2 : singularSeriesFactor C₂ 2 = 2 * C₂ := singularSeriesFactor_2_pow C₂ 1 (by omega)
+  have h4 : singularSeriesFactor C₂ 4 = 2 * C₂ := singularSeriesFactor_four C₂
+  have h8 : singularSeriesFactor C₂ 8 = 2 * C₂ := singularSeriesFactor_eight C₂
+  exact ⟨h2.trans h4.symm, h4.trans h8.symm⟩
+
+/-- **S(6) > S(2) при C₂ > 0**: singular series для gap 6 больше, чем для gap 2.
+Это формализует эвристику HL: пары с gap 6 встречаются чаще, чем пары с gap 2. -/
+theorem singularSeriesFactor_six_gt_two (C₂ : ℝ) (hC₂ : 0 < C₂) :
+    2 * C₂ < singularSeriesFactor C₂ 6 := by
+  rw [singularSeriesFactor_six]; nlinarith
+
 end
 end PrimeGaps
