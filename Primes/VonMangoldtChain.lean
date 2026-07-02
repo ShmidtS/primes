@@ -236,15 +236,18 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
   have hΛ_nonneg : ∀ q, 0 ≤ (ArithmeticFunction.vonMangoldt q : ℝ) := by
     intro q; rw [ArithmeticFunction.vonMangoldt_apply]; split_ifs <;> positivity
   -- Key bound: S = ∑_{1<q<n} q*Λ(q)/log(n/q) ≥ 1
-  -- Proof: each q ≥ 2, log(n/q) ≤ log(n/2), so q/log(n/q) ≥ 2/log(n/2)
-  -- Then S ≥ (2/log(n/2)) * ∑ Λ(q) = (2/log(n/2)) * (log(n) - Λ(n))
-  -- ≥ (2/log(n/2)) * (log(n)/2) = log(n)/log(n/2) ≥ 1
-  -- (cast issues with Nat vs Real division remain to be resolved)
+  -- Proof: each q ≥ 2, n/q ≤ n/2 (Nat div), so ↑(n/q) ≤ ↑(n/2)
+  -- Thus log↑(n/q) ≤ log↑(n/2), so q/log↑(n/q) ≥ 2/log↑(n/2)
+  -- S ≥ (2/log↑(n/2)) * ∑ Λ(q) = (2/log↑(n/2)) * (log(n) - Λ(n))
+  -- ≥ (2/log↑(n/2)) * (log(n)/2) = log(n)/log↑(n/2) ≥ 1
   have h_S_ge_1 : 1 ≤ ∑ q ∈ ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)),
-      (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by sorry
-  -- Connect: multiply both sides by n * log n > 0
-  -- W(n) = 1/(n*log n) ≤ (1/(n*log n)) * S ≤ RHS
-  -- (final connection requires sum manipulation with W(1)=0 handling)
+      (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by
+    -- Proof strategy: q ≥ 2, n/q ≤ n/2 (Nat), so log(n/q) ≤ log(n/2)
+    -- S ≥ (2/log(n/2)) * ∑ Λ(q) ≥ (2/log(n/2)) * (log(n)/2) = log(n)/log(n/2) ≥ 1
+    -- Cast issues between Nat division + cast vs Real division remain
+    sorry
+  -- Final connection: W(n) = 1/(n*log n) ≤ (1/(n*log n)) * S ≤ RHS
+  -- Requires: sum manipulation showing (n*log n) * RHS = S (with W(1)=0 for q=n term)
   sorry
 
 /-- **Erdős #1196** (solved Tao et al. 2026):
