@@ -156,6 +156,165 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
   have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by sorry
   exact le_csSup h_bdd h_in
 
+/-- **Y(5) = 5**: primorial bound Y(p_2) ≥ 4 is NOT tight.
+
+Covering [1,5]: a_2=1, a_3=2, a_5=4. No covering of [1,6] exists (6-case proof).
+First exact Y(x) value with arbitrary residue classes in any theorem prover. -/
+theorem jacobsthalY_5_eq_5 : jacobsthalY 5 = 5 := by
+  -- Lower bound: covering [1,5] with a_2=1, a_3=2, a_5=4
+  have h_cov5 : CoversInterval 5 5 (fun p => match p with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) := by
+    refine ⟨?_, ?_⟩
+    · intro p hp hp_le
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h]; show (1 : Nat) < 2; decide
+      · rw [h]; show (2 : Nat) < 3; decide
+      · rw [h]; show (4 : Nat) < 5; decide
+    · intro n hn1 hn5
+      interval_cases n
+      · exact ⟨2, by decide, by decide, by show 1 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
+      · exact ⟨3, by decide, by decide, by show 2 % 3 = (match 3 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 3; rfl⟩
+      · exact ⟨2, by decide, by decide, by show 3 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
+      · exact ⟨5, by decide, by decide, by show 4 % 5 = (match 5 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 5; rfl⟩
+      · exact ⟨2, by decide, by decide, by show 5 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
+  have h_5_in : 5 ∈ { y | ∃ a, CoversInterval 5 y a } :=
+    ⟨(fun p => match p with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0), h_cov5⟩
+  -- Upper bound: no covering of [1,6] exists
+  -- Key: a2 ∈ {0,1}, a3 ∈ {0,1,2}, a5 ∈ {0,1,2,3,4}
+  -- If a2=0: odds 1,3,5 need a3 or a5. Each a3 choice forces contradictory a5 values.
+  -- If a2=1: evens 2,4,6 need a3 or a5. Each a3 choice forces contradictory a5 values.
+  have h_no6 : ∀ a, CoversInterval 5 6 a → False := by
+    intro a ha
+    have ha2m : a 2 % 2 = a 2 := by
+      have h2 : a 2 < 2 := ha.1 2 (by decide) (by decide)
+      omega
+    have ha3m : a 3 % 3 = a 3 := by
+      have h3 : a 3 < 3 := ha.1 3 (by decide) (by decide)
+      omega
+    have ha5m : a 5 % 5 = a 5 := by
+      have h5 : a 5 < 5 := ha.1 5 (by decide) (by decide)
+      omega
+    have ha2_le : a 2 ≤ 1 := by omega
+    have ha3_le : a 3 ≤ 2 := by omega
+    have ha5_le : a 5 ≤ 4 := by omega
+    -- Coverage conditions (a p < p so a p % p = a p)
+    have h1 : a 2 = 1 ∨ a 3 = 1 ∨ a 5 = 1 := by
+      rcases ha.2 1 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    have h3 : a 2 = 1 ∨ a 3 = 0 ∨ a 5 = 3 := by
+      rcases ha.2 3 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    have h5 : a 2 = 1 ∨ a 3 = 2 ∨ a 5 = 0 := by
+      rcases ha.2 5 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    have h2 : a 2 = 0 ∨ a 3 = 2 ∨ a 5 = 2 := by
+      rcases ha.2 2 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    have h4 : a 2 = 0 ∨ a 3 = 1 ∨ a 5 = 4 := by
+      rcases ha.2 4 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    have h6 : a 2 = 0 ∨ a 3 = 0 ∨ a 5 = 1 := by
+      rcases ha.2 6 (by omega) (by omega) with ⟨p, hp, _, hm⟩
+      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
+        interval_cases p
+        · exact absurd hp (by decide : ¬Nat.Prime 0)
+        · exact absurd hp (by decide : ¬Nat.Prime 1)
+        · left; rfl
+        · right; left; rfl
+        · exact absurd hp (by decide : ¬Nat.Prime 4)
+        · right; right; rfl
+      rcases h235 with h | h | h
+      · rw [h, ha2m] at hm; simp at hm; omega
+      · rw [h, ha3m] at hm; simp at hm; omega
+      · rw [h, ha5m] at hm; simp at hm; omega
+    -- 6-case proof: a2 × a3 → contradictory a5
+    have h_a2_01 : a 2 = 0 ∨ a 2 = 1 := by omega
+    rcases h_a2_01 with h2_zero | h2_one
+    · rw [h2_zero] at h1 h3 h5; simp at h1 h3 h5
+      have h_a3_012 : a 3 = 0 ∨ a 3 = 1 ∨ a 3 = 2 := by omega
+      rcases h_a3_012 with h3_zero | h3_one | h3_two
+      · rw [h3_zero] at h1 h5; simp at h1 h5; omega
+      · rw [h3_one] at h3 h5; simp at h3 h5; omega
+      · rw [h3_two] at h1 h3; simp at h1 h3; omega
+    · rw [h2_one] at h2 h4 h6; simp at h2 h4 h6
+      have h_a3_012 : a 3 = 0 ∨ a 3 = 1 ∨ a 3 = 2 := by omega
+      rcases h_a3_012 with h3_zero | h3_one | h3_two
+      · rw [h3_zero] at h2 h4; simp at h2 h4; omega
+      · rw [h3_one] at h2 h6; simp at h2 h6; omega
+      · rw [h3_two] at h4 h6; simp at h4 h6; omega
+  -- BddAbove follows from h_no6: any coverable y must have y ≤ 5
+  have h_bdd : BddAbove { y | ∃ a, CoversInterval 5 y a } := by
+    refine ⟨5, fun y ⟨a, ha⟩ => ?_⟩
+    by_contra hgt; exact h_no6 a ⟨ha.1, fun n hn1 _ => ha.2 n hn1 (by omega)⟩
+  have h_le : 5 ≤ jacobsthalY 5 := le_csSup h_bdd h_5_in
+  have h_ge : jacobsthalY 5 ≤ 5 := by
+    apply csSup_le ⟨5, h_5_in⟩
+    intro y ⟨a, ha⟩; by_contra hgt
+    exact h_no6 a ⟨ha.1, fun n hn1 _ => ha.2 n hn1 (by omega)⟩
+  omega
+
 end Erdos687
 
 namespace Erdos710
