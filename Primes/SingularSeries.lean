@@ -697,6 +697,42 @@ theorem nth_prime_ge_add_two (i : Nat) (hi : 2 ≤ i) :
       have : 4 ≤ Nat.nth Nat.Prime 2 := by linarith [hp2_ge_5]
       omega
 
+/-- Телескопирующее произведение: ∏_{i=1}^{m-1} (i+1)/i = m. -/
+private lemma telescoping_product (m : Nat) (hm : 0 < m) :
+    ((Finset.range m).filter (fun i => 0 < i)).prod
+      (fun i => ((i : ℝ) + 1) / (i : ℝ)) = (m : ℝ) := by
+  induction m with
+  | zero => omega
+  | succ m ih =>
+    by_cases hm0 : m = 0
+    · subst hm0
+      simp [Finset.range_one, Finset.filter_singleton]
+      norm_num
+    · have hm_pos : 0 < m := by omega
+      rw [Finset.range_succ]
+      have h_insert : (Finset.range m ∪ {m}).filter (fun i => 0 < i) =
+          (Finset.range m).filter (fun i => 0 < i) ∪ {m} := by
+        ext i
+        simp only [Finset.mem_filter, Finset.mem_union, Finset.mem_range, Finset.mem_singleton]
+        constructor
+        · rintro ⟨(hi | rfl), hpos⟩
+          · exact Or.inl ⟨hi, hpos⟩
+          · exact Or.inr rfl
+        · rintro (⟨hi, hpos⟩ | rfl)
+          · exact ⟨Or.inl hi, hpos⟩
+          · exact ⟨Or.inr rfl, by omega⟩
+      rw [h_insert]
+      have h_disjoint : Disjoint ((Finset.range m).filter (fun i => 0 < i)) {m} := by
+        rw [Finset.disjoint_singleton_right]
+        intro hmem
+        have : m < m := (Finset.mem_filter.mp hmem).1
+        omega
+      rw [Finset.prod_union h_disjoint, Finset.prod_singleton]
+      have hm_succ : (m : ℝ) + 1 = ((m + 1 : Nat) : ℝ) := by norm_cast
+      rw [ih hm_pos, hm_succ]
+      field_simp
+      ring
+
 /-- **D(P_m) ≤ m для m ≥ 2**: явная верхняя оценка divisor correction product.
 
 D(P_m) = ∏_{i=1}^{m-1} (1 + 1/(p_i-2)).
@@ -706,21 +742,33 @@ D(P_m) = ∏_{i=1}^{m-1} (1 + 1/(p_i-2)).
 theorem divisorCorrectionProduct_primorial_bound (m : Nat) (hm : 2 ≤ m) :
     divisorCorrectionProduct (primorial m) ≤ (m : ℝ) := by
   rw [divisorCorrectionProduct_primorial m (by omega)]
-  -- D(P_m) = ∏_{i=1}^{m-1} (p_i-1)/(p_i-2)
-  -- = (p_1-1)/(p_1-2) * ∏_{i=2}^{m-1} (p_i-1)/(p_i-2)
-  -- = 2 * ∏_{i=2}^{m-1} (1 + 1/(p_i-2))
-  -- ≤ 2 * ∏_{i=2}^{m-1} (1 + 1/i) = 2 * m/2 = m
-  have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
-  -- Factor at i=1: (3-1)/(3-2) = 2
-  -- Factor at i≥2: (p_i-1)/(p_i-2) ≤ (i+1)/i since p_i ≥ i+2
-  -- Need: ∏_{i∈filter, i>0} f(i) ≤ 2 * ∏_{i=2}^{m-1} (i+1)/i = 2 * m/2 = m
-  -- Use: each factor ≤ (i+1)/i, and factor(1) = 2 = (1+1)/1
-  -- So ∏ ≤ ∏_{i=1}^{m-1} (i+1)/i = m/1 = m (telescoping from 1!)
-  -- ∏_{i=1}^{m-1} (i+1)/i = m (telescoping: 2/1 * 3/2 * ... * m/(m-1) = m)
-  -- Each factor ≤ (i+1)/i, so product ≤ ∏ (i+1)/i = m (telescoping)
-  -- Use: ∏ f ≤ ∏ g when f ≤ g pointwise (by induction on Finset)
-  -- Then ∏_{i=1}^{m-1} (i+1)/i = m
-  sorry
+  trans ((Finset.range m).filter (fun i => 0 < i)).prod
+      (fun i => ((i : ℝ) + 1) / (i : ℝ))
+  · apply Finset.prod_le_prod
+    · intro i hi
+      have hi_pos : 0 < i := (Finset.mem_filter.mp hi).2
+      have hi_real : (0 : ℝ) < i := by exact_mod_cast hi_pos
+      exact div_nonneg (by linarith) (by linarith)
+    · intro i hi
+      have hi_pos : 0 < i := (Finset.mem_filter.mp hi).2
+      have hi_range : i ∈ Finset.range m := (Finset.mem_filter.mp hi).1
+      have hi_lt_m : i < m := Finset.mem_range.mp hi_range
+      by_cases hi_ge_2 : 2 ≤ i
+      · have hpi_bound : (i : ℝ) + 2 ≤ Nat.nth Nat.Prime i := by
+          exact_mod_cast nth_prime_ge_add_two i hi_ge_2
+        have hpi_real : (2 : ℝ) < Nat.nth Nat.Prime i := by linarith
+        have hi_real : (0 : ℝ) < i := by exact_mod_cast hi_pos
+        rw [div_le_div_iff (by linarith : (0 : ℝ) < (Nat.nth Nat.Prime i : ℝ) - 2) (by positivity)]
+        calc ((Nat.nth Nat.Prime i : ℝ) - 1) * (i : ℝ)
+            ≤ (i + 2 - 1) * i := by nlinarith [hpi_bound]
+          _ = (i + 1) * i := by ring
+          _ ≤ (i + 1) * (i + 2 - 2) := by ring
+          _ ≤ (i + 1) * ((Nat.nth Nat.Prime i : ℝ) - 2) := by nlinarith [hpi_bound]
+      · have hi_eq_1 : i = 1 := by omega
+        subst hi_eq_1
+        have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+        rw [hp1]; norm_num
+  · rw [telescoping_product m (by omega)]
 
 end
 end PrimeGaps
