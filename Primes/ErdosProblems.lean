@@ -164,7 +164,11 @@ theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := 
         have : p ^ 1 ≤ p ^ k := Nat.pow_le_pow_right hp.pos (by omega : 1 ≤ k)
         nlinarith [hp3, this]
       omega
-    · sorry
+    · -- n has ≥ 2 distinct prime factors (not a prime power), n odd
+      -- σ*(n) = ∏(1 + p_i^{a_i}), each factor even, ≥ 2 factors → 4 | σ*(n)
+      -- σ*(n) = 2n (unitary perfect), but 4 ∤ 2n (n odd). Contradiction.
+      -- Requires product formula for unitary divisor sum.
+      sorry
 end Erdos1052
 
 -- ============================================================================
