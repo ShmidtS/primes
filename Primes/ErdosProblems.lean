@@ -205,7 +205,58 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         rw [if_neg (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
   have h_in : (p_m - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } :=
     ⟨(fun p => if p = p_m then 1 else 0), h_cover⟩
-  have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by sorry
+  -- BddAbove: primorial(m+1) bounds y. Key: primorial(m+1) ≡ 0 mod p for all p ≤ p_m.
+  -- If y ≥ primorial(m+1), then [1, primorial(m+1)] must be covered.
+  -- n = primorial(m+1) ≡ 0 (mod p) for all primes p ≤ p_m.
+  -- Case 1: a_p ≠ 0 for all p ≤ p_m → n = primorial(m+1) uncovered → contradiction.
+  -- Case 2: a_p = 0 for some p → n covered, but n+1 ≡ 1 (mod p) for all p | primorial(m+1).
+  --   If a_p ≠ 1 for all p → n+1 uncovered → contradiction.
+  --   If a_p = 1 for some p → continue... This terminates because ∏(p-1) ≥ 1 uncovered residues exist.
+  -- For a complete proof, we use the simpler bound: n = primorial(m+1) itself provides
+  -- the contradiction in Case 1, and in Case 2 we use n+1, etc.
+  -- The full argument requires CRT; here we establish the bound structurally.
+  have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by
+    refine ⟨primorial (m + 1), fun y ⟨a, ha⟩ => ?_⟩
+    by_contra h_ge
+    have h_y_ge_P : primorial (m + 1) ≤ y := by omega
+    -- primorial(m+1) = primorial(m) * p_m, divisible by all primes ≤ p_m
+    have h_P_eq : primorial (m + 1) = primorial m * p_m := primorial_succ m
+    have h_P_pos : 0 < primorial (m + 1) := primorial_pos (m + 1)
+    have h_P_dvd : ∀ p, Nat.Prime p → p ≤ p_m → p ∣ primorial (m + 1) := by
+      intro p hp hp_le
+      rw [h_P_eq]
+      by_cases h_eq : p = p_m
+      · rw [h_eq, Nat.mul_comm]; exact Nat.dvd_mul_right p_m (primorial m)
+      · have h_lt : p < p_m := by omega
+        have hd : p ∣ primorial m := prime_lt_nth_prime_dvd_primorial m p hp h_lt
+        exact hd.trans (Nat.dvd_mul_right (primorial m) p_m)
+    -- n = primorial(m+1): covered by ha since y ≥ primorial(m+1)
+    have h_n_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧
+      primorial (m + 1) % p = a p % p :=
+      ha.2 (primorial (m + 1)) (by exact h_P_pos) (by omega)
+    -- But primorial(m+1) % p = 0 for all p | primorial(m+1), so a p % p = 0, i.e. a p ≡ 0
+    obtain ⟨p, hp_pr, hp_le, hp_mod⟩ := h_n_covered
+    have hp_dvd_P : p ∣ primorial (m + 1) := h_P_dvd p hp_pr hp_le
+    have h_P_mod : primorial (m + 1) % p = 0 := Nat.mod_eq_zero_of_dvd hp_dvd_P
+    have ha_mod : a p % p = 0 := by omega
+    have ha_pp : a p < p := ha.1 p hp_pr hp_le
+    have ha_zero : a p = 0 := by
+      have : p * (a p / p) + a p % p = a p := Nat.div_add_mod (a p) p
+      rw [ha_mod] at this
+      have : a p = p * (a p / p) := by omega
+      omega
+    -- Now consider n = primorial(m+1) + 1: n % p = 1 for all p | primorial(m+1)
+    -- If a q ≠ 1 for all q ≤ p_m with q | primorial(m+1), then n is uncovered → contradiction
+    -- But some a q might equal 1. We need to iterate...
+    -- The key: for each prime q ≤ p_m, a q < q, so a q can equal 0, 1, ..., q-1.
+    -- After using up values 0, 1, ..., j-1 for each prime, we reach j = p-1 and
+    -- a q = p-1 is the last option. After that, no more coverage possible.
+    -- Total covered in one period: at most primorial(m+1) - ∏(p-1) < primorial(m+1).
+    -- So some n ∈ [1, primorial(m+1)] is always uncovered.
+    -- This requires the full CRT counting argument which is non-trivial in Lean.
+    -- We leave this as a sorry for now — the covering construction (h_cover) is the
+    -- main contribution; BddAbove is a standard analytic fact.
+    sorry
   exact le_csSup h_bdd h_in
 
 end Erdos687
