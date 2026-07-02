@@ -174,9 +174,20 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       simp [t] at hp hq
       exact (Nat.coprime_primes hp.2 hq.2).mpr hpq
     -- CRT: ∃ n* < P with n* ≡ r(p) mod p for all p ∈ t
-    -- Set.Pairwise on Finset requires coercion to Set — blocked on API mismatch
-    have h_crt : { k : Nat // ∀ p ∈ t, k ≡ r p [MOD p] } := by sorry
-    have h_n_lt : h_crt.val < P := by sorry
+    have h_s_ne : ∀ p ∈ t, (fun q => q) p ≠ 0 := fun p hp => by
+      simp [t] at hp; exact hp.2.ne_zero
+    have h_pp : Set.Pairwise t (Nat.Coprime on (fun p => p)) := by
+      intro p hp q hq hpq
+      rw [Finset.mem_coe] at hp hq
+      exact h_pairwise p hp q hq hpq
+    let h_crt : { k : Nat // ∀ p ∈ t, k ≡ r p [MOD p] } :=
+      Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp
+    have h_n_lt : h_crt.val < P := by
+      have hlt := Nat.chineseRemainderOfFinset_lt_prod r (fun p => p) h_s_ne h_pp
+      have h_prod : ∏ i ∈ t, (fun p => p) i = P := by simp [P, t]
+      rw [h_prod] at hlt
+      show (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
+      exact hlt
     have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
     -- r(p) ≠ a(p) for all primes p ≤ p_m
     have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
@@ -187,6 +198,7 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       by_cases hlt : a p + 1 < p
       · rw [Nat.mod_eq_of_lt hlt]; omega
       · have : a p = p - 1 := by omega
+        have hp2 : 2 ≤ p := hp_pr.two_le
         rw [this, Nat.sub_add_cancel hp_pr.pos, Nat.mod_self]
         omega
     -- n* is uncovered: n* % p = r p ≠ a p = a p % p (since a p < p)
@@ -202,27 +214,26 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       have h_P_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p := by
         intro ⟨p, hp, hple, hpmod⟩
         have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
+        have hp2 : 2 ≤ p := hp.two_le
         have hr_zero : r p = 0 := by
           have hmod := h_n_mod p h_in_t
-          rw [show r p = (a p + 1) % p from rfl] at hmod
-          have : h_crt.val % p = (a p + 1) % p := Nat.modEq_iff_dvd'.mpr (by omega) |>.mp hmod
-          -- h_crt.val = 0, so 0 % p = (a p + 1) % p, so (a p + 1) % p = 0
-          rw [h_n_zero, Nat.zero_mod] at this
+          have hr_lt : r p < p := Nat.mod_lt _ hp.pos
+          have h_extract := Nat.mod_eq_of_modEq hmod hr_lt
+          rw [h_n_zero, Nat.zero_mod] at h_extract
           omega
         have hap : a p < p := ha.1 p hp hple
         have hap_eq : a p = p - 1 := by
-          have : (a p + 1) % p = 0 := hr_zero
+          have hmod_zero : (a p + 1) % p = 0 := hr_zero
           have : a p + 1 < p ∨ a p + 1 = 0 ∨ p ≤ a p + 1 := by omega
           rcases this with hlt | hzero | hge
-          · rw [Nat.mod_eq_of_lt hlt] at this; omega
+          · rw [Nat.mod_eq_of_lt hlt] at hmod_zero; omega
           · omega
-          · -- p ≤ a p + 1 and (a p + 1) % p = 0 means p ∣ (a p + 1)
-            have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero this
+          · have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero hmod_zero
             omega
         have hP_mod : P % p = 0 := by
           apply Nat.mod_eq_zero_of_dvd
           exact Finset.dvd_prod_of_mem (fun q => q) h_in_t
-        have hap_mod : a p % p = a p := by omega
+        have hap_mod : a p % p = a p := Nat.mod_eq_of_lt hap
         rw [hP_mod, hap_mod] at hpmod
         omega
       have h_P_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p :=
@@ -236,16 +247,10 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
         have hap : a p < p := ha.1 p hp hple
         have hmod := h_n_mod p h_in_t
-        -- h_crt.val ≡ r p [MOD p] means h_crt.val % p = r p
         have hr_val : h_crt.val % p = r p := by
-          have : h_crt.val ≡ (a p + 1) % p [MOD p] := by
-            have : r p = (a p + 1) % p := rfl
-            rw [this]; exact hmod
-          -- modEq means same residue mod p
-          have hr_lt : (a p + 1) % p < p := Nat.mod_lt _ hp.pos
-          have hn_lt : h_crt.val % p < p := Nat.mod_lt _ hp.pos
-          exact Nat.modEq_iff_mod_eq.mp this
-        have hap_mod : a p % p = a p := by omega
+          have hr_lt : r p < p := Nat.mod_lt _ hp.pos
+          exact Nat.mod_eq_of_modEq hmod hr_lt
+        have hap_mod : a p % p = a p := Nat.mod_eq_of_lt hap
         rw [hr_val, hap_mod] at hpmod
         exact h_r_ne p h_in_t hpmod
       have h_n_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ h_crt.val % p = a p % p :=
