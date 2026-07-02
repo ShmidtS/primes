@@ -429,18 +429,24 @@ theorem erdosWeight_le_sum_prime_divisors (n : Nat) (hn : 2 ≤ n) :
       exact le_of_lt (hposW q hq2)
     linarith
 
+/-- **Erdős #164** (weaker finite version): ∑_{n∈A} 1/(n log n) ≤ |A| · ∑_p 1/(p log p).
+Proof strategy uses erdosWeight_le_sum_prime_divisors per element.
+Blocked on Finset.sum_const_nat (requires ℕ return, not ℝ) + sum_le_sum_of_subset_of_nonneg API. -/
+theorem erdos_primitive_set_bound_weak (A : Finset Nat)
+    (hA_prim : IsPrimitiveSet A) (hA_pos : ∀ n ∈ A, 2 ≤ n) :
+    erdosSum A ≤ A.card * ∑ p ∈ (Finset.range (A.sup (fun n => n) + 1)).filter Nat.Prime,
+      erdosWeight p := by
+  sorry
+
 /-- **Erdős #164**: ∑_{n∈A} 1/(n log n) ≤ ∑_p 1/(p log p).
-Proof via strong induction on max(A), using erdosWeight_sub_invariant for composites.
-For composite a ∈ A: W(a) ≤ ∑ W(a/q)·Λ(q)/log(a). Children a/q ∉ A (primitivity),
-are < a, and recursively decompose to primes. -/
+Full proof requires Markov chain hitting mass framework (Tao et al. Section 5).
+Key ingredients proven: erdosWeight_sub_invariant, erdosWeight_le_sum_prime_divisors,
+erdosWeight_strictAnti, vonMangoldtTransition_sums_to_one, chain_antichain_at_most_one. -/
 theorem erdos_primitive_set_bound_finite (A : Finset Nat)
     (hA_prim : IsPrimitiveSet A) (hA_pos : ∀ n ∈ A, 2 ≤ n)
     (hA_nonempty : A.Nonempty) :
     erdosSum A ≤ ∑ p ∈ (Finset.range (A.max' hA_nonempty + 1)).filter Nat.Prime,
       erdosWeight p := by
-  -- Full proof requires hitting mass framework (Tao et al. Section 5)
-  -- Key obstacle: per-element bound W(n) <= sum_{p|n} W(p) is necessary
-  -- but not sufficient — need primitivity to prevent double-counting
   sorry
 
 end
