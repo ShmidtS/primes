@@ -158,10 +158,93 @@ theorem chain_antichain_at_most_one
   · exact habne (hA a ha_A b hb_A h_dvd)
   · exact habne.symm (hA b hb_A a ha_A h_dvd)
 
-/-- Sub-invariance: W(n) ≤ ∑ W(n/q)·P(n→n/q). Avoids e^γ loss. -/
-theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) :
+/-- Sub-invariance: W(n) ≤ ∑ W(n/q)·P(n→n/q) for composite n.
+False for primes (W(1)=0 makes RHS=0). Key inequality for Tao et al. #1196 proof. -/
+theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Prime n) :
     erdosWeight n ≤ ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       erdosWeight (n / q) * vonMangoldtTransition n q := by
+  have hn4 : 4 ≤ n := by
+    by_contra h; push_neg at h
+    rcases (show n = 2 ∨ n = 3 by omega) with h2 | h3
+    · exact absurd (h2 ▸ Nat.prime_two) hn_comp
+    · exact absurd (h3 ▸ Nat.prime_three) hn_comp
+  have hn1 : 1 < n := by omega
+  have hn_gt_1 : ¬(n ≤ 1) := by omega
+  have hnpos : (0 : ℝ) < n := Nat.cast_pos.mpr (by omega)
+  have hlogn : 0 < Real.log n := Real.log_pos (Nat.one_lt_cast.mpr hn1)
+  have hnnlog : 0 < (n : ℝ) * Real.log n := mul_pos hnpos hlogn
+  have hn2_le : 2 ≤ n / 2 := by omega
+  have hlogn2 : 0 < Real.log (n / 2) := by
+    have h2_pos : (0 : ℝ) < 2 := by norm_num
+    have hn_gt_2 : (2 : ℝ) < n := Nat.cast_lt.mpr (by omega : 2 < n)
+    exact Real.log_pos ((one_lt_div h2_pos).mpr hn_gt_2)
+  -- Λ(n) ≤ log(n)/2 for composite n
+  have hΛn : (ArithmeticFunction.vonMangoldt n : ℝ) ≤ Real.log n / 2 := by
+    by_cases hpp : IsPrimePow n
+    · rw [ArithmeticFunction.vonMangoldt_apply, if_pos hpp]
+      obtain ⟨p, k, hp, hk_pos, hn_eq⟩ := (isPrimePow_nat_iff n).mp hpp
+      have hk2 : 2 ≤ k := by
+        by_contra h; push_neg at h; have hk1 : k = 1 := by omega
+        rw [hk1, Nat.pow_one] at hn_eq; exact hn_comp (hn_eq ▸ hp)
+      have hminFac : n.minFac = p := by
+        have hmf_prime : n.minFac.Prime := Nat.minFac_prime (fun h => by omega)
+        have hmf_dvd : n.minFac ∣ n := Nat.minFac_dvd n
+        have hmf_dvd_pk : n.minFac ∣ p^k := hn_eq ▸ hmf_dvd
+        exact Nat.prime_eq_prime_of_dvd_pow hmf_prime hp hmf_dvd_pk
+      have hlogn_eq : Real.log n = k * Real.log p := by
+        have hn_cast : (n : ℝ) = (p^k : ℝ) := by
+          rw [hn_eq.symm, Nat.cast_pow]
+        rw [hn_cast, Real.log_pow]
+      have hp2 := hp.two_le
+      have hp_log : 0 < Real.log p := Real.log_pos (Nat.one_lt_cast.mpr (by omega : 1 < p))
+      rw [hminFac, hlogn_eq]
+      have h2le : 2 * Real.log p ≤ k * Real.log p := mul_le_mul_of_nonneg_right (Nat.cast_le.mpr hk2) hp_log.le
+      linarith
+    · rw [ArithmeticFunction.vonMangoldt_apply, if_neg hpp]; positivity
+  -- Reuse vonMangoldtTransition_sums_to_one to get ∑ Λ(q) = log(n)
+  have hsum_Λ : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+      (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n := by
+    have h := vonMangoldtTransition_sums_to_one n hn
+    have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+        vonMangoldtTransition n q = (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n := by
+      intro q hq; rw [vonMangoldtTransition, if_neg hn_gt_1]
+    have h_eq : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+        (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n = 1 := by
+      rw [← Finset.sum_congr rfl h_trans]; exact h
+    rw [← Finset.sum_div] at h_eq
+    exact (div_eq_one_iff_eq (ne_of_gt hlogn)).mp h_eq
+  -- ∑_{q|n, 1<q<n} Λ(q) = log(n) - Λ(n)
+  have hfilter_proper : ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)) =
+      ((Nat.divisors n).filter (fun q => 1 < q)) \ {n} := by
+    ext q
+    simp only [Finset.mem_filter, Finset.mem_sdiff, Finset.mem_singleton]
+    constructor
+    · intro ⟨h1, h2, h3⟩; exact ⟨⟨h1, h2⟩, ne_of_lt h3⟩
+    · intro ⟨⟨h1, h2⟩, h3⟩
+      have hqle : q ≤ n := Nat.le_of_dvd (by omega) (Nat.mem_divisors.mp h1).1
+      exact ⟨h1, h2, lt_of_le_of_ne hqle h3⟩
+  have hsum_Λ_proper : ∑ q ∈ ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)),
+      (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n - (ArithmeticFunction.vonMangoldt n : ℝ) := by
+    rw [hfilter_proper]
+    have h_subset : ({n} : Finset Nat) ⊆ ((Nat.divisors n).filter (fun q => 1 < q)) := by
+      intro x hx; simp only [Finset.mem_singleton] at hx
+      rw [hx]
+      exact Finset.mem_filter.mpr ⟨Nat.mem_divisors.mpr ⟨Nat.dvd_refl n, fun h => by omega⟩, hn1⟩
+    have h_sd := Finset.sum_sdiff (f := fun q => (ArithmeticFunction.vonMangoldt q : ℝ)) h_subset
+    simp only [Finset.sum_singleton] at h_sd
+    linarith [h_sd, hsum_Λ]
+  have hΛ_nonneg : ∀ q, 0 ≤ (ArithmeticFunction.vonMangoldt q : ℝ) := by
+    intro q; rw [ArithmeticFunction.vonMangoldt_apply]; split_ifs <;> positivity
+  -- Key bound: S = ∑_{1<q<n} q*Λ(q)/log(n/q) ≥ 1
+  -- Proof: each q ≥ 2, log(n/q) ≤ log(n/2), so q/log(n/q) ≥ 2/log(n/2)
+  -- Then S ≥ (2/log(n/2)) * ∑ Λ(q) = (2/log(n/2)) * (log(n) - Λ(n))
+  -- ≥ (2/log(n/2)) * (log(n)/2) = log(n)/log(n/2) ≥ 1
+  -- (cast issues with Nat vs Real division remain to be resolved)
+  have h_S_ge_1 : 1 ≤ ∑ q ∈ ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)),
+      (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by sorry
+  -- Connect: multiply both sides by n * log n > 0
+  -- W(n) = 1/(n*log n) ≤ (1/(n*log n)) * S ≤ RHS
+  -- (final connection requires sum manipulation with W(1)=0 handling)
   sorry
 
 /-- **Erdős #1196** (solved Tao et al. 2026):
