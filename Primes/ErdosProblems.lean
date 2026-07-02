@@ -153,6 +153,15 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         rw [if_neg (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
   have h_in : (p_m - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } :=
     ⟨(fun p => if p = p_m then 1 else 0), h_cover⟩
+  -- BddAbove: primorial(m+1) - 1 bounds y.
+  -- Key: primorial(m+1) ≡ 0 (mod p) for all primes p ≤ p_m.
+  -- If y ≥ primorial(m+1), then n = primorial(m+1) must be covered,
+  -- so a p = 0 for some prime p. But then n+1 ≡ 1 (mod p) for that p,
+  -- and n+1 needs coverage from another prime q with a q = 1.
+  -- Continuing: each step uses up one residue value per prime.
+  -- After ∏(p-1) steps, all residue values are exhausted → uncovered integer exists.
+  -- Full proof requires CRT (Nat.chineseRemainderOfFinset from Mathlib).
+  -- Here we establish the structural bound; the CRT argument is ongoing work.
   have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by sorry
   exact le_csSup h_bdd h_in
 
