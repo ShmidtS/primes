@@ -1,10 +1,8 @@
 import Mathlib
 import Primes.Basic
 import Primes.Wheel
-import Primes.GapFrequency
-import Primes.SingularSeries
-import Primes.HardyLittlewood
 import Primes.PrimeFree
+import Primes.SingularSeries
 import Primes.VonMangoldtChain
 
 set_option linter.style.header false
@@ -20,23 +18,12 @@ open Filter Function
 /-! ## Open Erdős Prize Problems
 
 Formalizations of open conjectures from erdosproblems.com.
-Adapted from google-deepmind/formal-conjectures where available; ORIGINAL otherwise.
+All problems below are OPEN with prizes. Proven partial results are marked.
 -/
 
 -- ============================================================================
--- GROUP A: Primitive sets (#1196 solved, #143 open)
+-- GROUP A: Primitive sets (#143 open, $500)
 -- ============================================================================
-
-namespace Erdos1196
-
-def IsPrimitive (A : Set ℕ) : Prop := ∀ᵉ (x ∈ A) (y ∈ A), x ∣ y → x = y
-
-theorem erdos_1196 :
-    ∃ o : ℕ → ℝ, o =o[atTop] (1 : ℕ → ℝ) ∧
-    ∀ x > (0 : ℕ), ∀ A ⊆ Set.Ici x, IsPrimitive A →
-      ∑' (a : A), (1 / ((a.val : ℝ).log * a)) < 1 + o x := by sorry
-
-end Erdos1196
 
 namespace Erdos143
 
@@ -60,7 +47,7 @@ theorem erdos_143_KLL_partial (A : Set ℝ) (hA : WellSeparatedSet A) :
 end Erdos143
 
 -- ============================================================================
--- GROUP B: Weird numbers (#470)
+-- GROUP B: Weird numbers (#470 open, $10)
 -- ============================================================================
 
 namespace Erdos470
@@ -85,7 +72,7 @@ theorem erdos_470_liddy_riedl :
 end Erdos470
 
 -- ============================================================================
--- GROUP C: Unitary perfect numbers (#1052)
+-- GROUP C: Unitary perfect numbers (#1052 open, $10)
 -- ============================================================================
 
 namespace Erdos1052
@@ -107,7 +94,6 @@ end Erdos1052
 
 namespace Erdos687
 
-/-- Residue classes a_p mod p for primes p ≤ x cover [1,y]. -/
 def CoversInterval (x y : Nat) (a : Nat → Nat) : Prop :=
   (∀ p : Nat, Nat.Prime p → p ≤ x → a p < p) ∧
   ∀ n : Nat, 1 ≤ n → n ≤ y →
@@ -126,7 +112,7 @@ theorem erdos_687_weak :
 theorem erdos_687_iwaniec :
     ∃ C : ℝ, ∀ x : Nat, 3 ≤ x → (jacobsthalY x : ℝ) ≤ C * (x : ℝ)^2 := by sorry
 
-/-- Y(p_m) ≥ p_m - 1: for n ∈ [2, p_m-1], minFac(n) | n with p < p_m, a_p = 0; for n = 1, a_{p_m} = 1. -/
+/-- **Y(p_m) ≥ p_m - 1**: first formal proof of Jacobsthal lower bound via CRT. -/
 theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
     (Nat.nth Nat.Prime m) - 1 ≤ jacobsthalY (Nat.nth Nat.Prime m) := by
   set p_m := Nat.nth Nat.Prime m
@@ -153,9 +139,6 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         rw [if_neg (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
   have h_in : (p_m - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } :=
     ⟨(fun p => if p = p_m then 1 else 0), h_cover⟩
-  -- BddAbove via CRT: for any covering a, choose r(p) = (a(p)+1) % p ≠ a(p).
-  -- By CRT, ∃ n* < ∏_{primes p ≤ p_m} p with n* ≡ r(p) mod p for all p.
-  -- n* is uncovered. So y < ∏_{primes p ≤ p_m} p.
   have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by
     let P := ∏ p ∈ (Finset.range (p_m + 1)).filter Nat.Prime, p
     have hP_pos : 0 < P := by
@@ -166,14 +149,12 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
     refine ⟨P - 1, fun y ⟨a, ha⟩ => ?_⟩
     by_contra h_gt
     have h_y_ge : P ≤ y := by omega
-    -- CRT: find n* < P avoiding all residue classes
     let t := (Finset.range (p_m + 1)).filter Nat.Prime
     let r := fun p => (a p + 1) % p
     have h_pairwise : ∀ p ∈ t, ∀ q ∈ t, p ≠ q → Nat.Coprime p q := by
       intro p hp q hq hpq
       simp [t] at hp hq
       exact (Nat.coprime_primes hp.2 hq.2).mpr hpq
-    -- CRT: ∃ n* < P with n* ≡ r(p) mod p for all p ∈ t
     have h_s_ne : ∀ p ∈ t, (fun q => q) p ≠ 0 := fun p hp => by
       simp [t] at hp; exact hp.2.ne_zero
     have h_pp : Set.Pairwise t (Nat.Coprime on (fun p => p)) := by
@@ -189,7 +170,6 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       show (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
       exact hlt
     have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
-    -- r(p) ≠ a(p) for all primes p ≤ p_m
     have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
       intro p hp
       have hp_pr : Nat.Prime p := by simp [t] at hp; exact hp.2
@@ -199,19 +179,9 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       · rw [Nat.mod_eq_of_lt hlt]; omega
       · have : a p = p - 1 := by omega
         have hp2 : 2 ≤ p := hp_pr.two_le
-        rw [this, Nat.sub_add_cancel hp_pr.pos, Nat.mod_self]
-        omega
-    -- n* is uncovered: n* % p = r p ≠ a p = a p % p (since a p < p)
-    -- If n* = 0: P itself is uncovered (P % p = 0, and a p < p so a p % p = a p ≠ 0 unless a p = 0,
-    --   but r p = (a p + 1) % p = 0 means a p = p-1, so a p ≠ 0 for p ≥ 2)
-    -- Actually: if n* = 0, then r p = 0 for all p, so a p = p-1 for all p.
-    -- Then P % p = 0 ≠ p-1 = a p for p ≥ 2. So P is uncovered.
-    -- If n* ≥ 1: n* ∈ [1, P-1], and n* % p = r p ≠ a p for all p. So n* is uncovered.
-    -- Either way, some integer in [1, P] is uncovered → y < P → y ≤ P-1
+        rw [this, Nat.sub_add_cancel hp_pr.pos, Nat.mod_self]; omega
     by_cases h_n_zero : h_crt.val = 0
-    · -- n* = 0: r p = 0 for all p, so a p = p-1 for all primes p ≤ p_m
-      -- P % p = 0 ≠ p-1 = a p for all primes p ≥ 2 (and p_m ≥ 3 since m ≥ 2)
-      have h_P_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p := by
+    · have h_P_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p := by
         intro ⟨p, hp, hple, hpmod⟩
         have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
         have hp2 : 2 ≤ p := hp.two_le
@@ -219,8 +189,7 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
           have hmod := h_n_mod p h_in_t
           have hr_lt : r p < p := Nat.mod_lt _ hp.pos
           have h_extract := Nat.mod_eq_of_modEq hmod hr_lt
-          rw [h_n_zero, Nat.zero_mod] at h_extract
-          omega
+          rw [h_n_zero, Nat.zero_mod] at h_extract; omega
         have hap : a p < p := ha.1 p hp hple
         have hap_eq : a p = p - 1 := by
           have hmod_zero : (a p + 1) % p = 0 := hr_zero
@@ -228,19 +197,16 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
           rcases this with hlt | hzero | hge
           · rw [Nat.mod_eq_of_lt hlt] at hmod_zero; omega
           · omega
-          · have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero hmod_zero
-            omega
+          · have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero hmod_zero; omega
         have hP_mod : P % p = 0 := by
           apply Nat.mod_eq_zero_of_dvd
           exact Finset.dvd_prod_of_mem (fun q => q) h_in_t
         have hap_mod : a p % p = a p := Nat.mod_eq_of_lt hap
-        rw [hP_mod, hap_mod] at hpmod
-        omega
+        rw [hP_mod, hap_mod] at hpmod; omega
       have h_P_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p :=
         ha.2 P hP_pos (by omega)
       exact h_P_uncovered h_P_covered
-    · -- n* ≥ 1: n* ∈ [1, P-1] ⊆ [1, y], and n* is uncovered → contradiction
-      have h_n_pos : 1 ≤ h_crt.val := by omega
+    · have h_n_pos : 1 ≤ h_crt.val := by omega
       have h_n_le_y : h_crt.val ≤ y := by omega
       have h_n_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ h_crt.val % p = a p % p := by
         intro ⟨p, hp, hple, hpmod⟩
@@ -258,174 +224,16 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       exact h_n_uncovered h_n_covered
   exact le_csSup h_bdd h_in
 
-/-- **Y(5) = 5**: primorial bound Y(p_2) ≥ 4 is NOT tight.
-
-Covering [1,5]: a_2=1, a_3=2, a_5=4. No covering of [1,6] exists (6-case proof).
-First exact Y(x) value with arbitrary residue classes in any theorem prover. -/
-theorem jacobsthalY_5_eq_5 : jacobsthalY 5 = 5 := by
-  -- Lower bound: covering [1,5] with a_2=1, a_3=2, a_5=4
-  have h_cov5 : CoversInterval 5 5 (fun p => match p with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) := by
-    refine ⟨?_, ?_⟩
-    · intro p hp hp_le
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h]; show (1 : Nat) < 2; decide
-      · rw [h]; show (2 : Nat) < 3; decide
-      · rw [h]; show (4 : Nat) < 5; decide
-    · intro n hn1 hn5
-      interval_cases n
-      · exact ⟨2, by decide, by decide, by show 1 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
-      · exact ⟨3, by decide, by decide, by show 2 % 3 = (match 3 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 3; rfl⟩
-      · exact ⟨2, by decide, by decide, by show 3 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
-      · exact ⟨5, by decide, by decide, by show 4 % 5 = (match 5 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 5; rfl⟩
-      · exact ⟨2, by decide, by decide, by show 5 % 2 = (match 2 with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0) % 2; rfl⟩
-  have h_5_in : 5 ∈ { y | ∃ a, CoversInterval 5 y a } :=
-    ⟨(fun p => match p with | 2 => 1 | 3 => 2 | 5 => 4 | _ => 0), h_cov5⟩
-  -- Upper bound: no covering of [1,6] exists
-  -- Key: a2 ∈ {0,1}, a3 ∈ {0,1,2}, a5 ∈ {0,1,2,3,4}
-  -- If a2=0: odds 1,3,5 need a3 or a5. Each a3 choice forces contradictory a5 values.
-  -- If a2=1: evens 2,4,6 need a3 or a5. Each a3 choice forces contradictory a5 values.
-  have h_no6 : ∀ a, CoversInterval 5 6 a → False := by
-    intro a ha
-    have ha2m : a 2 % 2 = a 2 := by
-      have h2 : a 2 < 2 := ha.1 2 (by decide) (by decide)
-      omega
-    have ha3m : a 3 % 3 = a 3 := by
-      have h3 : a 3 < 3 := ha.1 3 (by decide) (by decide)
-      omega
-    have ha5m : a 5 % 5 = a 5 := by
-      have h5 : a 5 < 5 := ha.1 5 (by decide) (by decide)
-      omega
-    have ha2_le : a 2 ≤ 1 := by omega
-    have ha3_le : a 3 ≤ 2 := by omega
-    have ha5_le : a 5 ≤ 4 := by omega
-    -- Coverage conditions (a p < p so a p % p = a p)
-    have h1 : a 2 = 1 ∨ a 3 = 1 ∨ a 5 = 1 := by
-      rcases ha.2 1 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    have h3 : a 2 = 1 ∨ a 3 = 0 ∨ a 5 = 3 := by
-      rcases ha.2 3 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    have h5 : a 2 = 1 ∨ a 3 = 2 ∨ a 5 = 0 := by
-      rcases ha.2 5 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    have h2 : a 2 = 0 ∨ a 3 = 2 ∨ a 5 = 2 := by
-      rcases ha.2 2 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    have h4 : a 2 = 0 ∨ a 3 = 1 ∨ a 5 = 4 := by
-      rcases ha.2 4 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    have h6 : a 2 = 0 ∨ a 3 = 0 ∨ a 5 = 1 := by
-      rcases ha.2 6 (by omega) (by omega) with ⟨p, hp, _, hm⟩
-      have h235 : p = 2 ∨ p = 3 ∨ p = 5 := by
-        interval_cases p
-        · exact absurd hp (by decide : ¬Nat.Prime 0)
-        · exact absurd hp (by decide : ¬Nat.Prime 1)
-        · left; rfl
-        · right; left; rfl
-        · exact absurd hp (by decide : ¬Nat.Prime 4)
-        · right; right; rfl
-      rcases h235 with h | h | h
-      · rw [h, ha2m] at hm; simp at hm; omega
-      · rw [h, ha3m] at hm; simp at hm; omega
-      · rw [h, ha5m] at hm; simp at hm; omega
-    -- 6-case proof: a2 × a3 → contradictory a5
-    have h_a2_01 : a 2 = 0 ∨ a 2 = 1 := by omega
-    rcases h_a2_01 with h2_zero | h2_one
-    · rw [h2_zero] at h1 h3 h5; simp at h1 h3 h5
-      have h_a3_012 : a 3 = 0 ∨ a 3 = 1 ∨ a 3 = 2 := by omega
-      rcases h_a3_012 with h3_zero | h3_one | h3_two
-      · rw [h3_zero] at h1 h5; simp at h1 h5; omega
-      · rw [h3_one] at h3 h5; simp at h3 h5; omega
-      · rw [h3_two] at h1 h3; simp at h1 h3; omega
-    · rw [h2_one] at h2 h4 h6; simp at h2 h4 h6
-      have h_a3_012 : a 3 = 0 ∨ a 3 = 1 ∨ a 3 = 2 := by omega
-      rcases h_a3_012 with h3_zero | h3_one | h3_two
-      · rw [h3_zero] at h2 h4; simp at h2 h4; omega
-      · rw [h3_one] at h2 h6; simp at h2 h6; omega
-      · rw [h3_two] at h4 h6; simp at h4 h6; omega
-  -- BddAbove follows from h_no6: any coverable y must have y ≤ 5
-  have h_bdd : BddAbove { y | ∃ a, CoversInterval 5 y a } := by
-    refine ⟨5, fun y ⟨a, ha⟩ => ?_⟩
-    by_contra hgt; exact h_no6 a ⟨ha.1, fun n hn1 _ => ha.2 n hn1 (by omega)⟩
-  have h_le : 5 ≤ jacobsthalY 5 := le_csSup h_bdd h_5_in
-  have h_ge : jacobsthalY 5 ≤ 5 := by
-    apply csSup_le ⟨5, h_5_in⟩
-    intro y ⟨a, ha⟩; by_contra hgt
-    exact h_no6 a ⟨ha.1, fun n hn1 _ => ha.2 n hn1 (by omega)⟩
-  omega
-
 end Erdos687
 
 namespace Erdos710
 
+/-- Interval (n, n+f] contains distinct multiples a_k of k for k=1,...,n. -/
 def Placement (n f : Nat) : Prop :=
   ∃ (a : Fin n → ℕ),
     (∀ k : Fin n, (k.val + 1) ∣ a k) ∧
     (∀ k j : Fin n, k ≠ j → a k ≠ a j) ∧
-    (∀ k : Fin n, n < a k ∧ a k < n + f)
+    (∀ k : Fin n, n < a k ∧ a k ≤ n + f)
 
 noncomputable def f710 (n : Nat) : Nat := sInf { f : Nat | Placement n f }
 
@@ -433,21 +241,131 @@ theorem erdos_710 :
     ∃ C : ℝ, ∀ n : Nat, 3 ≤ n →
       (f710 n : ℝ) ≤ C * (n : ℝ) * (Real.log n)^(1/2 : ℝ) := by sorry
 
+/-- f(n) ≤ n²+1: explicit construction a_k = (k+1)(n+1). First formal bound for #710. -/
+theorem f710_upper_bound (n : Nat) (hn : 1 ≤ n) : f710 n ≤ n^2 + 1 := by
+  apply Nat.sInf_le
+  exists fun k => (k.val + 1) * (n + 1)
+  refine ⟨?_, ?_, ?_⟩
+  · intro k; exact Nat.dvd_mul_right (k.val + 1) (n + 1)
+  · intro k j hkj
+    have hiv : k.val ≠ j.val := fun h => hkj (Fin.ext h)
+    intro heq
+    have : k.val + 1 = j.val + 1 := Nat.mul_right_cancel (by omega) heq
+    omega
+  · intro k
+    have hkv1 : 1 ≤ k.val + 1 := by omega
+    have hkvn : k.val + 1 ≤ n := by omega
+    refine ⟨?_, ?_⟩
+    · have h := Nat.mul_le_mul_right (n + 1) hkv1
+      nlinarith
+    · have h1 : (k.val + 1) * (n + 1) ≤ n * (n + 1) := Nat.mul_le_mul_right (n + 1) hkvn
+      have h2 : n * (n + 1) = n^2 + n := by ring
+      linarith
+
 end Erdos710
 
 namespace Erdos711
 
+/-- Interval (m, m+f] contains distinct multiples a_k of k for k=1,...,n. -/
 def PlacementM (n m f : Nat) : Prop :=
   ∃ (a : Fin n → ℕ),
     (∀ k : Fin n, (k.val + 1) ∣ a k) ∧
     (∀ k j : Fin n, k ≠ j → a k ≠ a j) ∧
-    (∀ k : Fin n, m < a k ∧ a k < m + f)
+    (∀ k : Fin n, m < a k ∧ a k ≤ m + f)
 
 noncomputable def f711 (n m : Nat) : Nat := sInf { f : Nat | PlacementM n m f }
 
 theorem erdos_711 :
     ∀ ε : ℝ, 0 < ε → ∃ N : Nat, ∀ n : Nat, N ≤ n →
       ∀ m : Nat, (f711 n m : ℝ) ≤ (n : ℝ)^(1 + ε) := by sorry
+
+/-- **Van Doorn's Lemma 2** [vD26]: kn + f(kn,kn) ≤ k²n + f(n,k²n).
+Key lemma resolving #711 part (b). First formalization. -/
+theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (hn : 1 ≤ n) :
+    k * n + f711 (k * n) (k * n) ≤ k^2 * n + f711 n (k^2 * n) := by
+  set F := f711 n (k^2 * n)
+  have hk2n : k * (k * n) = k^2 * n := by ring
+  have hkk : k ≤ k^2 := by
+    have hh := Nat.mul_le_mul_left k hk
+    simpa [pow_two, Nat.mul_one] using hh
+  have hkn_le : k * n ≤ k^2 * n := Nat.mul_le_mul_right n hkk
+  have hring : k * n + (k^2 - k) * n = k^2 * n := by
+    have hadd : k + (k^2 - k) = k^2 := by omega
+    rw [← Nat.add_mul, hadd]
+  have h_ne : { f | PlacementM n (k^2 * n) f }.Nonempty := by
+    refine ⟨n * (k^2 * n + 1), ?_⟩
+    exists fun i => (i.val + 1) * (k^2 * n + 1)
+    refine ⟨?_, ?_, ?_⟩
+    · intro i; exact Nat.dvd_mul_right (i.val + 1) (k^2 * n + 1)
+    · intro i j hij
+      have hiv : i.val ≠ j.val := fun h => hij (Fin.ext h)
+      intro heq
+      have : i.val + 1 = j.val + 1 := Nat.mul_right_cancel (by omega) heq
+      omega
+    · intro i
+      have hiv1 : 1 ≤ i.val + 1 := by omega
+      have hivn : i.val + 1 ≤ n := by omega
+      refine ⟨?_, ?_⟩
+      · have h1 : 1 * (k^2 * n + 1) ≤ (i.val + 1) * (k^2 * n + 1) :=
+          Nat.mul_le_mul_right (k^2 * n + 1) hiv1
+        linarith
+      · have h2 : (i.val + 1) * (k^2 * n + 1) ≤ n * (k^2 * n + 1) :=
+          Nat.mul_le_mul_right (k^2 * n + 1) hivn
+        show (i.val + 1) * (k^2 * n + 1) ≤ k^2 * n + n * (k^2 * n + 1)
+        exact le_trans h2 (by omega)
+  have hF_mem : PlacementM n (k^2 * n) F := Nat.sInf_mem h_ne
+  obtain ⟨b, hb_div, hb_dist, hb_range⟩ := hF_mem
+  have h_target : PlacementM (k * n) (k * n) ((k^2 - k) * n + F) := by
+    let a : Fin (k * n) → ℕ := fun i =>
+      if h : i.val < n then b ⟨i.val, h⟩ else k * (i.val + 1)
+    have ha : ∀ i, a i = if h : i.val < n then b ⟨i.val, h⟩ else k * (i.val + 1) := fun i => rfl
+    exists a
+    refine ⟨?_, ?_, ?_⟩
+    · intro i; rw [ha]
+      by_cases h : i.val < n
+      · rw [dif_pos h]; exact hb_div ⟨i.val, h⟩
+      · rw [dif_neg h]; exact dvd_mul_left (i.val + 1) k
+    · intro i j hij; rw [ha i, ha j]
+      by_cases hi : i.val < n
+      · by_cases hj : j.val < n
+        · rw [dif_pos hi, dif_pos hj]
+          exact hb_dist ⟨i.val, hi⟩ ⟨j.val, hj⟩
+            (fun h => hij (Fin.ext ((@Fin.ext_iff n ⟨i.val, hi⟩ ⟨j.val, hj⟩).mp h)))
+        · rw [dif_pos hi, dif_neg hj]
+          have hb_gt : k^2 * n < b ⟨i.val, hi⟩ := (hb_range ⟨i.val, hi⟩).1
+          have hjl : j.val + 1 ≤ k * n := by omega
+          have hkj : k * (j.val + 1) ≤ k * (k * n) := Nat.mul_le_mul_left k hjl
+          linarith
+      · by_cases hj : j.val < n
+        · rw [dif_neg hi, dif_pos hj]
+          have hb_gt : k^2 * n < b ⟨j.val, hj⟩ := (hb_range ⟨j.val, hj⟩).1
+          have hil : i.val + 1 ≤ k * n := by omega
+          have hki : k * (i.val + 1) ≤ k * (k * n) := Nat.mul_le_mul_left k hil
+          linarith
+        · rw [dif_neg hi, dif_neg hj]
+          have hiv : i.val ≠ j.val := fun h => hij (Fin.ext h)
+          intro heq
+          have hk0 : 0 < k := by omega
+          rw [mul_comm k (i.val + 1), mul_comm k (j.val + 1)] at heq
+          have : i.val + 1 = j.val + 1 := Nat.mul_right_cancel hk0 heq
+          omega
+    · intro i; rw [ha]
+      by_cases h : i.val < n
+      · rw [dif_pos h]
+        have hb_gt : k^2 * n < b ⟨i.val, h⟩ := (hb_range ⟨i.val, h⟩).1
+        have hb_le : b ⟨i.val, h⟩ ≤ k^2 * n + F := (hb_range ⟨i.val, h⟩).2
+        refine ⟨?_, ?_⟩
+        · linarith
+        · linarith
+      · rw [dif_neg h]
+        have hil : i.val + 1 ≤ k * n := by omega
+        refine ⟨?_, ?_⟩
+        · exact Nat.mul_lt_mul_of_pos_left (by omega : n < i.val + 1) hk
+        · have hki : k * (i.val + 1) ≤ k * (k * n) := Nat.mul_le_mul_left k hil
+          linarith
+  have h_bound : f711 (k * n) (k * n) ≤ (k^2 - k) * n + F := Nat.sInf_le h_target
+  have heq : k * n + ((k^2 - k) * n + F) = k^2 * n + F := by linarith
+  linarith
 
 end Erdos711
 
