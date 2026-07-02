@@ -292,20 +292,63 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
       erdosWeight (n / q) * ((ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n) =
       (∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
         erdosWeight (n / q) * (ArithmeticFunction.vonMangoldt q : ℝ)) / Real.log n := by
-    sorry
+    rw [Finset.sum_congr rfl (fun q hq => mul_div_assoc' _ _ _)]
+    exact (Finset.sum_div (s := (Nat.divisors n).filter (fun q => 1 < q))
+      (f := fun q => erdosWeight (n / q) * (ArithmeticFunction.vonMangoldt q : ℝ))
+      (a := Real.log n)).symm
   rw [h_factor, le_div_iff₀ hlogn]
   -- Goal: W(n) * log n ≤ ∑ W(n/q) * Λ(q)
   have hWn : erdosWeight n * Real.log n = 1 / n := by
     unfold erdosWeight; field_simp
   rw [hWn, div_le_iff₀ hnpos, mul_comm, Finset.mul_sum]
   -- Goal: 1 ≤ ∑ (n * W(n/q) * Λ(q))
-  -- Use: n * W(n/q) * Λ(q) = q * Λ(q) / log(n/q) for q|n, q<n; 0 for q=n
-  -- Show ∑ = ∑_{q<n} q*Λ(q)/log(n/q) = S ≥ 1
-  -- Key identity per term:
-  -- h_term: each summand identity (blocked on Nat/Real cast in field_simp)
-  -- h_filter_sum: ∑ if q<n then ... else 0 = ∑_{q<n} ... (blocked on Finset.sum_filter API)
-  -- These are routine algebraic identities; the key mathematical content is in h_S_ge_1
-  sorry
+  -- Key identity per term: n * W(n/q) * Λ(q) = q * Λ(q) / log(n/q) for q|n, q<n; 0 for q=n
+  have h_term : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+      (n : ℝ) * (erdosWeight (n / q) * (ArithmeticFunction.vonMangoldt q : ℝ)) =
+      if q < n then (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) else 0 := by
+    intro q hq
+    rcases Finset.mem_filter.mp hq with ⟨hd, hgt1⟩
+    have hqdvd : q ∣ n := (Nat.mem_divisors.mp hd).1
+    have hq_pos : (0 : ℝ) < q := Nat.cast_pos.mpr (by omega)
+    have hqle : q ≤ n := Nat.le_of_dvd (by omega) hqdvd
+    by_cases hqlt : q < n
+    · rw [if_pos hqlt]
+      have hnq_pos : 0 < Real.log (n / q) :=
+        Real.log_pos ((one_lt_div hq_pos).mpr (Nat.cast_lt.mpr hqlt))
+      have h_cast : ((n / q : Nat) : ℝ) = (n : ℝ) / q := Nat.cast_div hqdvd (ne_of_gt hq_pos)
+      unfold erdosWeight
+      rw [h_cast]
+      field_simp
+    · have hqe : q = n := by omega
+      rw [if_neg hqlt, hqe]
+      have h_nn : n / n = 1 := Nat.div_self (by omega)
+      rw [h_nn]
+      unfold erdosWeight
+      simp only [Nat.cast_one, Real.log_one]
+      ring
+  rw [Finset.sum_congr rfl h_term]
+  -- Split sum using hfilter_proper
+  have h_n_mem : n ∈ (Nat.divisors n).filter (fun q => 1 < q) :=
+    Finset.mem_filter.mpr ⟨Nat.mem_divisors.mpr ⟨Nat.dvd_refl n, fun h => by omega⟩, hn1⟩
+  have h_n_subset : ({n} : Finset Nat) ⊆ (Nat.divisors n).filter (fun q => 1 < q) := by
+    intro x hx; simp only [Finset.mem_singleton] at hx; subst hx; exact h_n_mem
+  have h_filter : (Nat.divisors n).filter (fun q => 1 < q) =
+      ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)) ∪ {n} := by
+    rw [← Finset.sdiff_union_of_subset h_n_subset, hfilter_proper]
+  rw [h_filter, Finset.sum_union (by simp [Finset.disjoint_singleton]),
+      Finset.sum_singleton]
+  -- q=n term: if n < n then ... else 0 = 0
+  rw [if_neg (by omega : ¬(n < n)), add_zero]
+  -- All remaining q < n: if_pos applies
+  have h_all_lt : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n), q < n := by
+    intro q hq; exact (Finset.mem_filter.mp hq).2.2
+  have h_sum : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n),
+      (if q < n then (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) else 0) =
+    ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n),
+      (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by
+    exact Finset.sum_congr rfl (fun q hq => by rw [if_pos (h_all_lt q hq)])
+  rw [h_sum]
+  exact h_S_ge_1
 
 /-- **Erdős #1196** (solved Tao et al. 2026):
 ∑_{a∈A} 1/(a log a) ≤ 1 + o(1) for primitive A ⊂ [x,∞). -/
