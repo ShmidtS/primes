@@ -643,7 +643,7 @@ theorem divisorCorrectionProduct_collision_general_2 (k : Nat) (hk : k ≠ 0)
 
 /-- **S(34k) = S(2146k)** для k coprime to 18269. -/
 theorem singularSeriesFactor_collision_general_2 (C₂ : ℝ) (k : Nat)
-    (hk : 0 < k)     (hcoprime : Nat.Coprime k 18241) :
+    (hk : 0 < k) (hcoprime : Nat.Coprime k 18241) :
     singularSeriesFactor C₂ (2 * 17 * k) = singularSeriesFactor C₂ (2 * 1073 * k) := by
   have hk_ne : k ≠ 0 := Nat.ne_of_gt hk
   unfold singularSeriesFactor
@@ -661,6 +661,106 @@ theorem singularSeriesFactor_collision_general_2 (C₂ : ℝ) (k : Nat)
     have : 2 * (1073 * k) = 2 * 1073 * k := by ring
     rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
   rw [h_div1, h_div2, divisorCorrectionProduct_collision_general_2 k hk_ne hcoprime]
+
+/-! ## Third collision family: D(5·13) = D(7·11·13) — cross-cardinality collision
+
+First collision between numbers with DIFFERENT numbers of odd prime factors:
+65 = 5·13 (2 factors) vs 1001 = 7·11·13 (3 factors), yet D(65) = D(1001) = 16/11.
+This demonstrates that D is non-injective even across different factorization cardinalities.
+-/
+
+/-- D(65) = D(5·13) = (4/3)·(12/11) = 16/11. -/
+theorem divisorCorrectionProduct_five_thirteen : divisorCorrectionProduct 65 = (16 : ℝ) / 11 := by
+  have h65 : 65 = 5 * 13 := by norm_num
+  rw [h65, divisorCorrectionProduct_mul_of_coprime (by decide) (by decide)
+      ((Nat.coprime_primes (by decide) (by decide)).mpr (by decide)),
+      divisorCorrectionProduct_prime 5 (by decide) (by decide),
+      divisorCorrectionProduct_prime 13 (by decide) (by decide)]
+  norm_num
+
+/-- D(1001) = D(7·11·13) = (6/5)·(10/9)·(12/11) = 16/11. -/
+theorem divisorCorrectionProduct_seven_eleven_thirteen :
+    divisorCorrectionProduct 1001 = (16 : ℝ) / 11 := by
+  have h1001 : 1001 = 7 * 11 * 13 := by norm_num
+  rw [h1001]
+  have h_coprime_7_143 : Nat.Coprime 7 143 := by decide
+  rw [divisorCorrectionProduct_mul_of_coprime (by decide) (by decide) h_coprime_7_143,
+      divisorCorrectionProduct_prime 7 (by decide) (by decide)]
+  have h143 : 143 = 11 * 13 := by norm_num
+  rw [h143, divisorCorrectionProduct_mul_of_coprime (by decide) (by decide)
+      ((Nat.coprime_primes (by decide) (by decide)).mpr (by decide)),
+      divisorCorrectionProduct_prime 11 (by decide) (by decide),
+      divisorCorrectionProduct_prime 13 (by decide) (by decide)]
+  norm_num
+
+/-- **CROSS-CARDINALITY COLLISION: D(65) = D(1001), but 65 = 5·13 (2 odd primes)
+while 1001 = 7·11·13 (3 odd primes)**.
+
+This is the first collision between numbers with DIFFERENT numbers of odd prime
+factors. Previous collisions (D(5)=D(77), D(17)=D(1073)) were between a single
+prime and a product of two primes — both sides had the same number of factors
+when counting the singleton as one. Here, 65 has 2 odd prime factors {5, 13}
+while 1001 has 3 odd prime factors {7, 11, 13}, yet D(65) = D(1001) = 16/11.
+
+This means S(130) = S(2002): gaps 130 and 2002 have identical Hardy--Littlewood
+singular series density, despite completely different factorization structure. -/
+theorem divisorCorrectionProduct_collision_65_1001 :
+    divisorCorrectionProduct 65 = divisorCorrectionProduct 1001 ∧ (65 : Nat) ≠ 1001 := by
+  exact ⟨divisorCorrectionProduct_five_thirteen.trans
+         divisorCorrectionProduct_seven_eleven_thirteen.symm, by norm_num⟩
+
+/-- **S(130) = S(2002)**: cross-cardinality collision in singular series. -/
+theorem singularSeriesFactor_collision_130_2002 (C₂ : ℝ) :
+    singularSeriesFactor C₂ 130 = singularSeriesFactor C₂ 2002 := by
+  have h130 : 130 = 2 * 65 := by norm_num
+  have h2002 : 2002 = 2 * 1001 := by norm_num
+  rw [h130, h2002, singularSeriesFactor, singularSeriesFactor,
+      if_pos (even_two_mul 65), if_pos (even_two_mul 1001),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      Nat.mul_div_cancel_left _ (by omega : 0 < 2),
+      divisorCorrectionProduct_collision_65_1001.1]
+
+/-- **Third infinite collision family: D(65k) = D(1001k)** for k coprime to 5005 = 5·7·11·13.
+
+Since D(65) = D(1001) and D is multiplicative on coprime arguments,
+D(65k) = D(65)·D(k) = D(1001)·D(k) = D(1001k) for any k coprime to 5005.
+
+This gives infinitely many cross-cardinality collisions:
+S(130k) = S(2002k) for all k coprime to 5005. -/
+theorem divisorCorrectionProduct_collision_general_3 (k : Nat) (hk : k ≠ 0)
+    (hcoprime : Nat.Coprime k 5005) :
+    divisorCorrectionProduct (65 * k) = divisorCorrectionProduct (1001 * k) := by
+  have h_coprime_65k : Nat.Coprime 65 k := by
+    have h65_dvd : 65 ∣ 5005 := by norm_num
+    exact (hcoprime.coprime_dvd_right h65_dvd).symm
+  have h_coprime_1001k : Nat.Coprime 1001 k := by
+    have h1001_dvd : 1001 ∣ 5005 := by norm_num
+    exact (hcoprime.coprime_dvd_right h1001_dvd).symm
+  rw [divisorCorrectionProduct_mul_of_coprime (by decide) hk h_coprime_65k,
+      divisorCorrectionProduct_mul_of_coprime (by decide) hk h_coprime_1001k,
+      divisorCorrectionProduct_collision_65_1001.1]
+
+/-- **S(130k) = S(2002k)** for k coprime to 5005.
+Third infinite family of cross-cardinality singular series collisions. -/
+theorem singularSeriesFactor_collision_general_3 (C₂ : ℝ) (k : Nat)
+    (hk : 0 < k) (hcoprime : Nat.Coprime k 5005) :
+    singularSeriesFactor C₂ (2 * 65 * k) = singularSeriesFactor C₂ (2 * 1001 * k) := by
+  have hk_ne : k ≠ 0 := Nat.ne_of_gt hk
+  unfold singularSeriesFactor
+  have h_even_1 : Even (2 * 65 * k) := by
+    have h : 2 * 65 * k = 2 * (65 * k) := by ring
+    rw [h]; exact even_two_mul (65 * k)
+  have h_even_2 : Even (2 * 1001 * k) := by
+    have h : 2 * 1001 * k = 2 * (1001 * k) := by ring
+    rw [h]; exact even_two_mul (1001 * k)
+  rw [if_pos h_even_1, if_pos h_even_2]
+  have h_div1 : (2 * 65 * k) / 2 = 65 * k := by
+    have : 2 * (65 * k) = 2 * 65 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  have h_div2 : (2 * 1001 * k) / 2 = 1001 * k := by
+    have : 2 * (1001 * k) = 2 * 1001 * k := by ring
+    rw [← this, Nat.mul_div_cancel_left _ (by omega : 0 < 2)]
+  rw [h_div1, h_div2, divisorCorrectionProduct_collision_general_3 k hk_ne hcoprime]
 
 /-! ## Explicit upper bound: D(P_m) ≤ m -/
 
@@ -706,32 +806,35 @@ private lemma telescoping_product (m : Nat) (hm : 0 < m) :
   | succ m ih =>
     by_cases hm0 : m = 0
     · subst hm0
-      simp [Finset.range_one, Finset.filter_singleton]
+      have h_empty : (Finset.range 1).filter (fun i => 0 < i) = ∅ := by
+        rw [Finset.filter_eq_empty_iff]
+        intro x hx hpos
+        have hlt : x < 1 := Finset.mem_range.mp hx
+        omega
+      rw [h_empty, Finset.prod_empty]
       norm_num
     · have hm_pos : 0 < m := by omega
-      rw [Finset.range_succ]
-      have h_insert : (Finset.range m ∪ {m}).filter (fun i => 0 < i) =
-          (Finset.range m).filter (fun i => 0 < i) ∪ {m} := by
+      have h_range_succ : Finset.range (m + 1) = insert m (Finset.range m) := by
+        ext x; simp only [Finset.mem_range, Finset.mem_insert]; omega
+      rw [h_range_succ]
+      have h_insert : (insert m (Finset.range m)).filter (fun i => 0 < i) =
+          insert m ((Finset.range m).filter (fun i => 0 < i)) := by
         ext i
-        simp only [Finset.mem_filter, Finset.mem_union, Finset.mem_range, Finset.mem_singleton]
+        simp only [Finset.mem_filter, Finset.mem_insert, Finset.mem_range]
         constructor
-        · rintro ⟨(hi | rfl), hpos⟩
-          · exact Or.inl ⟨hi, hpos⟩
-          · exact Or.inr rfl
-        · rintro (⟨hi, hpos⟩ | rfl)
-          · exact ⟨Or.inl hi, hpos⟩
-          · exact ⟨Or.inr rfl, by omega⟩
+        · rintro ⟨(rfl | hi), hpos⟩
+          · exact Or.inl rfl
+          · exact Or.inr ⟨hi, hpos⟩
+        · rintro (rfl | ⟨hi, hpos⟩)
+          · exact ⟨Or.inl rfl, by omega⟩
+          · exact ⟨Or.inr hi, hpos⟩
       rw [h_insert]
-      have h_disjoint : Disjoint ((Finset.range m).filter (fun i => 0 < i)) {m} := by
-        rw [Finset.disjoint_singleton_right]
+      have h_not_mem : m ∉ (Finset.range m).filter (fun i => 0 < i) := by
         intro hmem
-        have : m < m := (Finset.mem_filter.mp hmem).1
+        have : m < m := Finset.mem_range.mp (Finset.mem_filter.mp hmem).1
         omega
-      rw [Finset.prod_union h_disjoint, Finset.prod_singleton]
-      have hm_succ : (m : ℝ) + 1 = ((m + 1 : Nat) : ℝ) := by norm_cast
-      rw [ih hm_pos, hm_succ]
+      rw [Finset.prod_insert h_not_mem, ih hm_pos, Nat.cast_add_one]
       field_simp
-      ring
 
 /-- **D(P_m) ≤ m для m ≥ 2**: явная верхняя оценка divisor correction product.
 
@@ -747,8 +850,15 @@ theorem divisorCorrectionProduct_primorial_bound (m : Nat) (hm : 2 ≤ m) :
   · apply Finset.prod_le_prod
     · intro i hi
       have hi_pos : 0 < i := (Finset.mem_filter.mp hi).2
-      have hi_real : (0 : ℝ) < i := by exact_mod_cast hi_pos
-      exact div_nonneg (by linarith) (by linarith)
+      have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
+      have hpi_ge3 : (3 : ℝ) ≤ Nat.nth Nat.Prime i := by
+        have hge1 : 1 ≤ i := by omega
+        have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+        have hle := (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge1
+        rw [hp1] at hle; exact_mod_cast hle
+      have hnum : (0 : ℝ) ≤ (Nat.nth Nat.Prime i : ℝ) - 1 := by linarith
+      have hden : (0 : ℝ) ≤ (Nat.nth Nat.Prime i : ℝ) - 2 := by linarith
+      exact div_nonneg hnum hden
     · intro i hi
       have hi_pos : 0 < i := (Finset.mem_filter.mp hi).2
       have hi_range : i ∈ Finset.range m := (Finset.mem_filter.mp hi).1
@@ -756,14 +866,19 @@ theorem divisorCorrectionProduct_primorial_bound (m : Nat) (hm : 2 ≤ m) :
       by_cases hi_ge_2 : 2 ≤ i
       · have hpi_bound : (i : ℝ) + 2 ≤ Nat.nth Nat.Prime i := by
           exact_mod_cast nth_prime_ge_add_two i hi_ge_2
-        have hpi_real : (2 : ℝ) < Nat.nth Nat.Prime i := by linarith
+        have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
+        have hpi_ge3 : (3 : ℝ) ≤ Nat.nth Nat.Prime i := by
+          have hge1 : 1 ≤ i := by omega
+          have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
+          have hle := (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge1
+          rw [hp1] at hle; exact_mod_cast hle
         have hi_real : (0 : ℝ) < i := by exact_mod_cast hi_pos
-        rw [div_le_div_iff (by linarith : (0 : ℝ) < (Nat.nth Nat.Prime i : ℝ) - 2) (by positivity)]
-        calc ((Nat.nth Nat.Prime i : ℝ) - 1) * (i : ℝ)
-            ≤ (i + 2 - 1) * i := by nlinarith [hpi_bound]
-          _ = (i + 1) * i := by ring
-          _ ≤ (i + 1) * (i + 2 - 2) := by ring
-          _ ≤ (i + 1) * ((Nat.nth Nat.Prime i : ℝ) - 2) := by nlinarith [hpi_bound]
+        have hdenom1 : (0 : ℝ) < (Nat.nth Nat.Prime i : ℝ) - 2 := by linarith
+        have hdenom2 : (0 : ℝ) < i := by exact_mod_cast hi_pos
+        have hne1 : (Nat.nth Nat.Prime i : ℝ) - 2 ≠ 0 := ne_of_gt hdenom1
+        have hne2 : (i : ℝ) ≠ 0 := ne_of_gt hdenom2
+        field_simp [hne1, hne2]
+        nlinarith [hpi_bound, hi_real, hpi_ge3]
       · have hi_eq_1 : i = 1 := by omega
         subst hi_eq_1
         have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
