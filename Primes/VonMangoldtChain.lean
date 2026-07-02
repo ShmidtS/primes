@@ -46,6 +46,42 @@ noncomputable def entranceMass (x Y : Nat) (δ : ℝ) (n : Nat) : ℝ :=
       q < Y ∨ (Y ≤ q ∧ n / q < x)),
       (ArithmeticFunction.vonMangoldt q : ℝ)
 
+/-- Erdős weight W(n) = 1/(n log n) is strictly decreasing for n ≥ 3.
+
+Fundamental for primitive set bounds: W decreasing implies
+∑_{a∈A} W(a) ≤ ∑_{primes p ≥ x} W(p) for primitive A ⊂ [x,∞). -/
+theorem erdosWeight_strictAnti (n : Nat) (hn : 3 ≤ n) :
+    erdosWeight (n + 1) < erdosWeight n := by
+  unfold erdosWeight
+  -- After unfold: 1 / ((n+1 : ℝ) * Real.log (n+1)) < 1 / ((n : ℝ) * Real.log n)
+  have h0n : (0 : ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+  have h0n1 : (0 : ℝ) < n + 1 := by exact_mod_cast (by omega : 0 < n + 1)
+  have h1n : (1 : ℝ) < n := by exact_mod_cast (by omega : 1 < n)
+  have h1n1 : (1 : ℝ) < n + 1 := by exact_mod_cast (by omega : 1 < n + 1)
+  have hln : 0 < Real.log n := Real.log_pos h1n
+  have hln1 : 0 < Real.log (n + 1) := Real.log_pos h1n1
+  have h_nn1 : (n : ℝ) < n + 1 := by exact_mod_cast (by omega : n < n + 1)
+  have h_log_lt : Real.log n < Real.log (n + 1) := Real.log_lt_log h0n h_nn1
+  -- n * log(n) < (n+1) * log(n+1) via mul_lt_mul
+  have h_f_lt : (n : ℝ) * Real.log n < (n + 1 : ℝ) * Real.log (n + 1) := by
+    have : (n + 1 : ℝ) * Real.log (n + 1) = (n : ℝ) * Real.log (n + 1) + Real.log (n + 1) := by ring
+    rw [this]
+    have step1 : (n : ℝ) * Real.log n < (n : ℝ) * Real.log (n + 1) := by
+      have : (n : ℝ) * Real.log (n + 1) - (n : ℝ) * Real.log n = (n : ℝ) * (Real.log (n + 1) - Real.log n) := by ring
+      have hdiff : 0 < (n : ℝ) * (Real.log (n + 1) - Real.log n) := by
+        have : 0 < Real.log (n + 1) - Real.log n := by
+          have := Real.log_lt_log h0n h_nn1
+          linarith
+        exact mul_pos h0n this
+      linarith
+    have step2 : 0 < Real.log (n + 1) := hln1
+    linarith
+  have h_dn : 0 < (n : ℝ) * Real.log n := mul_pos h0n hln
+  have h_dn1 : 0 < (n + 1 : ℝ) * Real.log (n + 1) := mul_pos h0n1 hln1
+  have h_goal : 1 / ((n + 1 : ℝ) * Real.log (n + 1)) < 1 / ((n : ℝ) * Real.log n) :=
+    (one_div_lt_one_div h_dn1 h_dn).mpr h_f_lt
+  norm_cast at h_goal ⊢
+
 /-- Probabilities sum to 1 for n ≥ 2 (uses `ArithmeticFunction.vonMangoldt_sum`). -/
 theorem vonMangoldtTransition_sums_to_one (n : Nat) (hn : 2 ≤ n) :
     ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
