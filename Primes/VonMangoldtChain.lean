@@ -50,13 +50,81 @@ noncomputable def entranceMass (x Y : Nat) (δ : ℝ) (n : Nat) : ℝ :=
 theorem vonMangoldtTransition_sums_to_one (n : Nat) (hn : 2 ≤ n) :
     ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       vonMangoldtTransition n q = 1 := by
-  sorry
+  have hn_not_le_1 : ¬(n ≤ 1) := by omega
+  have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+      vonMangoldtTransition n q = (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n := by
+    intro q hq
+    rw [vonMangoldtTransition, if_neg hn_not_le_1]
+  rw [Finset.sum_congr rfl h_trans, ← Finset.sum_div]
+  have h_sum : ∑ q ∈ Nat.divisors n, (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n :=
+    ArithmeticFunction.vonMangoldt_sum
+  have h_Λ1 : (ArithmeticFunction.vonMangoldt (1 : Nat) : ℝ) = 0 :=
+    ArithmeticFunction.vonMangoldt_apply_one
+  have h_eq : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+        (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n := by
+    have h_split := Finset.sum_filter_add_sum_filter_not
+      (s := Nat.divisors n) (f := fun q => (ArithmeticFunction.vonMangoldt q : ℝ))
+        (p := fun q => 1 < q)
+    have h_comp : (Nat.divisors n).filter (fun q => ¬ 1 < q) = ({1} : Finset Nat) := by
+      ext q
+      constructor
+      · intro h
+        rcases Finset.mem_filter.mp h with ⟨hd, hnle⟩
+        have hq : q = 1 := by
+          by_cases hq0 : q = 0
+          · -- 0 is not a divisor of n ≥ 2
+            rw [hq0] at hd
+            rw [Nat.mem_divisors] at hd
+            omega
+          · omega
+        simp [hq]
+      · intro h
+        simp only [Finset.mem_singleton] at h
+        refine Finset.mem_filter.mpr ⟨by
+          rw [h, Nat.mem_divisors]
+          exact ⟨Nat.one_dvd n, by omega⟩, ?_⟩
+        omega
+    rw [h_comp, Finset.sum_singleton, h_Λ1, add_zero] at h_split
+    linarith [h_sum]
+  rw [h_eq]
+  have h_log_pos : 0 < Real.log (n : ℝ) := Real.log_pos (by exact_mod_cast hn)
+  exact div_self (Ne.symm (ne_of_lt h_log_pos))
 
-/-- Chain ∩ antichain ≤ 1 point. -/
+/-- Chain ∩ antichain ≤ 1 point.
+
+A divisibility chain is totally ordered by ∣, and a primitive set is an antichain:
+two distinct shared elements a, b would have a∣b or b∣a, forcing a = b. -/
 theorem chain_antichain_at_most_one
     (C : DivisibilityChain) (A : Finset Nat) (hA : IsPrimitiveSet A) :
     (A.filter (fun a => a ∈ C.seq)).card ≤ 1 := by
-  sorry
+  -- Auxiliary: any two distinct elements of C.seq are comparable by ∣
+  have h_comparable : ∀ (a b : Nat), a ∈ C.seq → b ∈ C.seq → a ≠ b → a ∣ b ∨ b ∣ a := by
+    intro a b ha hb habne
+    obtain ⟨ia, hia_eq⟩ :=
+      List.exists_mem_iff_get.mp ⟨a, ⟨ha, rfl⟩⟩
+    obtain ⟨ib, hib_eq⟩ :=
+      List.exists_mem_iff_get.mp ⟨b, ⟨hb, rfl⟩⟩
+    have hia_ne_ib : (ia : Nat) ≠ (ib : Nat) := by
+      intro h
+      have h_eq : ia = ib := Fin.ext h
+      rw [h_eq] at hia_eq
+      exact habne (hia_eq.trans hib_eq.symm)
+    rcases Nat.lt_or_gt_of_ne hia_ne_ib with hlt | hgt
+    · have h_dvd := C.chain_prop ia.val ib.val hlt ib.isLt
+      rw [← hia_eq, ← hib_eq] at h_dvd
+      exact Or.inl h_dvd
+    · have h_dvd := C.chain_prop ib.val ia.val hgt ia.isLt
+      rw [← hib_eq, ← hia_eq] at h_dvd
+      exact Or.inr h_dvd
+  by_contra h_gt
+  push_neg at h_gt
+  obtain ⟨a, ha_in, b, hb_in, habne⟩ := Finset.one_lt_card.mp h_gt
+  rw [Finset.mem_filter] at ha_in hb_in
+  obtain ⟨ha_A, ha_seq⟩ := ha_in
+  obtain ⟨hb_A, hb_seq⟩ := hb_in
+  rcases h_comparable a b ha_seq hb_seq habne with h_dvd | h_dvd
+  · exact habne (hA a ha_A b hb_A h_dvd)
+  · exact habne.symm (hA b hb_A a ha_A h_dvd)
 
 /-- Sub-invariance: W(n) ≤ ∑ W(n/q)·P(n→n/q). Avoids e^γ loss. -/
 theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) :
