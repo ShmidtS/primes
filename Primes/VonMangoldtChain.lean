@@ -236,18 +236,75 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
   have hΛ_nonneg : ∀ q, 0 ≤ (ArithmeticFunction.vonMangoldt q : ℝ) := by
     intro q; rw [ArithmeticFunction.vonMangoldt_apply]; split_ifs <;> positivity
   -- Key bound: S = ∑_{1<q<n} q*Λ(q)/log(n/q) ≥ 1
-  -- Proof: each q ≥ 2, n/q ≤ n/2 (Nat div), so ↑(n/q) ≤ ↑(n/2)
-  -- Thus log↑(n/q) ≤ log↑(n/2), so q/log↑(n/q) ≥ 2/log↑(n/2)
-  -- S ≥ (2/log↑(n/2)) * ∑ Λ(q) = (2/log↑(n/2)) * (log(n) - Λ(n))
-  -- ≥ (2/log↑(n/2)) * (log(n)/2) = log(n)/log↑(n/2) ≥ 1
   have h_S_ge_1 : 1 ≤ ∑ q ∈ ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)),
       (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by
-    -- Proof strategy: q ≥ 2, n/q ≤ n/2 (Nat), so log(n/q) ≤ log(n/2)
-    -- S ≥ (2/log(n/2)) * ∑ Λ(q) ≥ (2/log(n/2)) * (log(n)/2) = log(n)/log(n/2) ≥ 1
-    -- Cast issues between Nat division + cast vs Real division remain
+    have h2_pos : (0 : ℝ) < 2 := by norm_num
+    have h_bound : ∀ q ∈ ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)),
+        (2 / Real.log (n / 2)) * (ArithmeticFunction.vonMangoldt q : ℝ) ≤
+        (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by
+      intro q hq
+      rcases Finset.mem_filter.mp hq with ⟨hd, ⟨hgt1, hltn⟩⟩
+      have hq2 : 2 ≤ q := by omega
+      have hq_pos : (0 : ℝ) < q := Nat.cast_pos.mpr (by omega)
+      -- n/q > 1 since q < n (real division)
+      have hnq_pos : 0 < Real.log (n / q) := by
+        have hnq_gt_1 : 1 < (n : ℝ) / q := (one_lt_div hq_pos).mpr (Nat.cast_lt.mpr hltn)
+        exact Real.log_pos hnq_gt_1
+      -- n/q ≤ n/2 since q ≥ 2 (real division)
+      have hle : (n : ℝ) / q ≤ (n : ℝ) / 2 := by
+        exact (div_le_div_iff_of_pos_left hnpos hq_pos h2_pos).mpr (Nat.cast_le.mpr hq2)
+      have hlog_le : Real.log (n / q) ≤ Real.log (n / 2) :=
+        Real.log_le_log (div_pos hnpos hq_pos) hle
+      have h_qlog : (2 : ℝ) / Real.log (n / 2) ≤ (q : ℝ) / Real.log (n / q) := by
+        have hcross : 2 * Real.log (n / q) ≤ (q : ℝ) * Real.log (n / 2) :=
+          mul_le_mul (Nat.cast_le.mpr hq2) hlog_le hnq_pos.le (by norm_num)
+        exact (div_le_div_iff₀ hlogn2 hnq_pos).mpr hcross
+      have h_step : (2 : ℝ) / Real.log (n / 2) * (ArithmeticFunction.vonMangoldt q : ℝ) ≤
+          (q : ℝ) / Real.log (n / q) * (ArithmeticFunction.vonMangoldt q : ℝ) :=
+        mul_le_mul_of_nonneg_right h_qlog (hΛ_nonneg q)
+      exact h_step.trans (le_of_eq (by field_simp))
+    have h_sum_lb := Finset.sum_le_sum h_bound
+    rw [show ∑ q ∈ _, (2 / Real.log (n / 2)) * (ArithmeticFunction.vonMangoldt q : ℝ) =
+        (2 / Real.log (n / 2)) * ∑ q ∈ _, (ArithmeticFunction.vonMangoldt q : ℝ) from
+        by rw [Finset.mul_sum]] at h_sum_lb
+    rw [hsum_Λ_proper] at h_sum_lb
+    have h_half : Real.log n / 2 ≤ Real.log n - (ArithmeticFunction.vonMangoldt n : ℝ) := by linarith
+    have h_step : (2 / Real.log (n / 2)) * (Real.log n - (ArithmeticFunction.vonMangoldt n : ℝ)) ≥
+        (2 / Real.log (n / 2)) * (Real.log n / 2) := by
+      apply mul_le_mul_of_nonneg_left h_half
+      apply div_nonneg <;> norm_num <;> linarith
+    have h_final : (2 / Real.log (n / 2)) * (Real.log n / 2) = Real.log n / Real.log (n / 2) := by ring
+    rw [h_final] at h_step
+    have h_ge_1 : 1 ≤ Real.log n / Real.log (n / 2) := by
+      have hn2_nn : 0 < (n / 2 : ℝ) := div_pos hnpos h2_pos
+      have hn2_le_n : (n : ℝ) / 2 ≤ n := by rw [div_le_iff₀ h2_pos]; linarith
+      exact (one_le_div hlogn2).mpr (Real.log_le_log hn2_nn hn2_le_n)
+    linarith
+  -- Final: W(n) ≤ ∑ W(n/q) * transition(n,q)
+  -- Strategy: multiply by n*log n, show = S ≥ 1
+  have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+      erdosWeight (n / q) * vonMangoldtTransition n q =
+      erdosWeight (n / q) * ((ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n) := by
+    intro q hq; rw [vonMangoldtTransition, if_neg hn_gt_1]
+  rw [Finset.sum_congr rfl h_trans]
+  -- Factor 1/log n: ∑ W * (Λ/log n) = (∑ W * Λ) / log n
+  have h_factor : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+      erdosWeight (n / q) * ((ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n) =
+      (∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
+        erdosWeight (n / q) * (ArithmeticFunction.vonMangoldt q : ℝ)) / Real.log n := by
     sorry
-  -- Final connection: W(n) = 1/(n*log n) ≤ (1/(n*log n)) * S ≤ RHS
-  -- Requires: sum manipulation showing (n*log n) * RHS = S (with W(1)=0 for q=n term)
+  rw [h_factor, le_div_iff₀ hlogn]
+  -- Goal: W(n) * log n ≤ ∑ W(n/q) * Λ(q)
+  have hWn : erdosWeight n * Real.log n = 1 / n := by
+    unfold erdosWeight; field_simp
+  rw [hWn, div_le_iff₀ hnpos, mul_comm, Finset.mul_sum]
+  -- Goal: 1 ≤ ∑ (n * W(n/q) * Λ(q))
+  -- Use: n * W(n/q) * Λ(q) = q * Λ(q) / log(n/q) for q|n, q<n; 0 for q=n
+  -- Show ∑ = ∑_{q<n} q*Λ(q)/log(n/q) = S ≥ 1
+  -- Key identity per term:
+  -- h_term: each summand identity (blocked on Nat/Real cast in field_simp)
+  -- h_filter_sum: ∑ if q<n then ... else 0 = ∑_{q<n} ... (blocked on Finset.sum_filter API)
+  -- These are routine algebraic identities; the key mathematical content is in h_S_ge_1
   sorry
 
 /-- **Erdős #1196** (solved Tao et al. 2026):
