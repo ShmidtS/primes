@@ -354,11 +354,80 @@ theorem erdos_1196_finite_bound (x : Nat) (A : Finset Nat)
   sorry
 
 /-- Per-element bound: W(n) ≤ ∑_{p prime, p | n} W(p) for all n ≥ 2.
-Key: for composite n, W(n) < W(minFac n) since n ≥ 2*minFac n.
-Proof structurally complete, blocked on Nat/Real cast API issues. -/
+Key: for composite n, W(n) < W(minFac n) since n ≥ 2*minFac n. -/
 theorem erdosWeight_le_sum_prime_divisors (n : Nat) (hn : 2 ≤ n) :
     erdosWeight n ≤ ∑ p ∈ Nat.primeFactors n, erdosWeight p := by
-  sorry
+  have hn0 : n ≠ 0 := by omega
+  have hposW : ∀ m : Nat, 2 ≤ m → 0 < erdosWeight m := fun m hm => by
+    unfold erdosWeight
+    have hm_pos : (0 : ℝ) < m := Nat.cast_pos.mpr (by omega)
+    have hm1 : (1 : ℝ) < m := Nat.one_lt_cast.mpr (by omega)
+    exact one_div_pos.mpr (mul_pos hm_pos (Real.log_pos hm1))
+  by_cases hprim : Nat.Prime n
+  · have hmem : n ∈ Nat.primeFactors n :=
+      (Nat.mem_primeFactors_of_ne_zero hn0).mpr ⟨hprim, Nat.dvd_refl n⟩
+    have h_eq : (∑ p ∈ Nat.primeFactors n, erdosWeight p : ℝ) =
+        erdosWeight n + ∑ p ∈ (Nat.primeFactors n).erase n, erdosWeight p := by
+      rw [add_comm, Finset.sum_erase_add (Nat.primeFactors n) _ hmem]
+    have h_nn : 0 ≤ ∑ p ∈ (Nat.primeFactors n).erase n, erdosWeight p := by
+      apply Finset.sum_nonneg
+      intro p hp
+      have hp_prim : Nat.Prime p := Nat.prime_of_mem_primeFactors
+        (Finset.mem_of_mem_erase hp)
+      have hp2 : 2 ≤ p := (Nat.prime_def.mp hp_prim).1
+      exact le_of_lt (hposW p hp2)
+    linarith
+  · have hn4 : 4 ≤ n := by
+      by_contra h; push_neg at h
+      have : n = 2 ∨ n = 3 := by omega
+      rcases this with h2 | h3
+      · exact absurd (h2 ▸ Nat.prime_two) hprim
+      · exact absurd (h3 ▸ Nat.prime_three) hprim
+    let p := n.minFac
+    have hp_prim : Nat.Prime p := Nat.minFac_prime (fun h => by omega)
+    have hp_dvd : p ∣ n := Nat.minFac_dvd n
+    have hp_mem : p ∈ Nat.primeFactors n :=
+      (Nat.mem_primeFactors_of_ne_zero hn0).mpr ⟨hp_prim, hp_dvd⟩
+    have hp2 : 2 ≤ p := (Nat.prime_def.mp hp_prim).1
+    have hn_ge_2p : 2 * p ≤ n := by
+      have hnp : n / p * p = n := Nat.div_mul_cancel hp_dvd
+      have hnp2 : 2 ≤ n / p := by
+        by_contra h
+        have hnp_le : n ≤ p := by
+          calc n = n / p * p := hnp.symm
+            _ ≤ 1 * p := Nat.mul_le_mul_right p
+              (Nat.le_of_not_lt (fun h2 => h (by omega)))
+            _ = p := by rw [Nat.one_mul]
+        have hple : p ≤ n := Nat.le_of_dvd (by omega) hp_dvd
+        exact hprim (Nat.le_antisymm hple hnp_le ▸ hp_prim)
+      have : 2 * p ≤ n / p * p := Nat.mul_le_mul_right p hnp2
+      rw [hnp] at this; exact this
+    have hW_lt : erdosWeight n < erdosWeight p := by
+      unfold erdosWeight
+      have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (by omega : 0 < n)
+      have hp_pos : (0 : ℝ) < p := Nat.cast_pos.mpr (by omega : 0 < p)
+      have hn1 : (1 : ℝ) < n := Nat.one_lt_cast.mpr (by omega : 1 < n)
+      have hp1 : (1 : ℝ) < p := Nat.one_lt_cast.mpr (by omega : 1 < p)
+      have hlogn : 0 < Real.log n := Real.log_pos hn1
+      have hlogp : 0 < Real.log p := Real.log_pos hp1
+      have hn_gt_p : (p : ℝ) < n := by
+        have h2p_le : (2 * p : ℝ) ≤ n := by exact_mod_cast hn_ge_2p
+        linarith [hp_pos]
+      have hlog_lt : Real.log p < Real.log n := Real.log_lt_log hp_pos hn_gt_p
+      have h_nl : (n : ℝ) * Real.log n > p * Real.log p :=
+        mul_lt_mul_of_pos hn_gt_p hlog_lt hp_pos hlogn
+      exact (one_div_lt_one_div (mul_pos hn_pos hlogn) (mul_pos hp_pos hlogp)).mpr h_nl
+    have h_eq : (∑ q ∈ Nat.primeFactors n, erdosWeight q : ℝ) =
+        erdosWeight p + ∑ q ∈ (Nat.primeFactors n).erase p, erdosWeight q := by
+      rw [add_comm, Finset.sum_erase_add (Nat.primeFactors n) _ hp_mem]
+    have h_nn : 0 ≤ ∑ q ∈ (Nat.primeFactors n).erase p, erdosWeight q := by
+      apply Finset.sum_nonneg
+      intro q hp
+      have hq_prim : Nat.Prime q := Nat.prime_of_mem_primeFactors
+        (Finset.mem_of_mem_erase hp)
+      have hq2 : 2 ≤ q := (Nat.prime_def.mp hq_prim).1
+      exact le_of_lt (hposW q hq2)
+    linarith
 
 /-- **Erdős #164**: ∑_{n∈A} 1/(n log n) ≤ ∑_p 1/(p log p).
 Proof via strong induction on max(A), using erdosWeight_sub_invariant for composites.
