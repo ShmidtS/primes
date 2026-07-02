@@ -4,6 +4,7 @@ import Primes.Wheel
 import Primes.PrimeFree
 import Primes.SingularSeries
 import Primes.VonMangoldtChain
+import Primes.UnitaryDivisors
 
 set_option linter.style.header false
 set_option linter.style.longLine false
@@ -165,10 +166,68 @@ theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := 
         nlinarith [hp3, this]
       omega
     · -- n has ≥ 2 distinct prime factors (not a prime power), n odd
-      -- σ*(n) = ∏(1 + p_i^{a_i}), each factor even, ≥ 2 factors → 4 | σ*(n)
-      -- σ*(n) = 2n (unitary perfect), but 4 ∤ 2n (n odd). Contradiction.
-      -- Requires product formula for unitary divisor sum.
-      sorry
+      -- σ*(n) = sum of all unitary divisors = 4k (from sum_allUnitaryDivisors_dvd4)
+      -- σ*(n) = sum of proper + n = 2n (unitary perfect)
+      -- 4 | 2n but n odd → 4 ∤ 2n. Contradiction.
+      have h_dvd4 : 4 ∣ ∑ d ∈ allUnitaryDivisors n, d :=
+        sum_allUnitaryDivisors_dvd4 n hn_odd hn3 h_pp
+      -- Sum of all unitary divisors = sum of proper + n = n + n = 2n
+      have h_all_eq : ∑ d ∈ allUnitaryDivisors n, d =
+        (∑ i ∈ properUnitaryDivisors n, i) + n := by
+        -- n is a unitary divisor of itself (gcd(n, 1) = 1)
+        have hn_unitary : n ∈ allUnitaryDivisors n := by
+          rw [mem_allUnitaryDivisors]
+          refine ⟨by omega, by omega, Nat.dvd_refl n, ?_⟩
+          rw [Nat.div_self hn_pos]
+          exact Nat.coprime_one_right _
+        -- n ∉ properUnitaryDivisors n (Ico 1 n excludes n)
+        have hn_not_proper : n ∉ properUnitaryDivisors n := by
+          rw [properUnitaryDivisors, Finset.mem_filter, Finset.mem_Ico]
+          omega
+        -- allUnitaryDivisors n = insert n (properUnitaryDivisors n)
+        have h_eq : allUnitaryDivisors n = insert n (properUnitaryDivisors n) := by
+          ext d
+          rw [Finset.mem_insert]
+          constructor
+          · intro hmem
+            rw [mem_allUnitaryDivisors] at hmem
+            obtain ⟨hge, hle, hdvd, hcop⟩ := hmem
+            by_cases hdn : d = n
+            · exact Or.inl hdn
+            · right
+              rw [properUnitaryDivisors, Finset.mem_filter, Finset.mem_Ico]
+              exact ⟨⟨hge, by omega⟩, hdvd, hcop⟩
+          · intro hmem
+            rw [mem_allUnitaryDivisors]
+            rcases hmem with hdn | hprop
+            · -- d = n case
+              rw [hdn]
+              refine ⟨by omega, by omega, Nat.dvd_refl n, ?_⟩
+              rw [Nat.div_self hn_pos]
+              exact Nat.coprime_one_right _
+            · rw [properUnitaryDivisors, Finset.mem_filter, Finset.mem_Ico] at hprop
+              obtain ⟨⟨hge, hlt⟩, hdvd, hcop⟩ := hprop
+              exact ⟨hge, Nat.le_of_lt hlt, hdvd, hcop⟩
+        rw [h_eq, Finset.sum_insert hn_not_proper, add_comm]
+      rw [h_all_eq, hsum] at h_dvd4
+      -- h_dvd4 : 4 ∣ n + n. But n odd → n + n = 2n ≡ 2 (mod 4). Contradiction.
+      have h2n : n + n = 2 * n := by ring
+      rw [h2n] at h_dvd4
+      -- 4 ∣ 2*n, but n is odd, so 2*n ≡ 2 (mod 4)
+      have h_not_dvd : ¬ (4 ∣ 2 * n) := by
+        have hn_mod : n % 2 = 1 := Nat.odd_iff.mp hn_odd
+        have h2n_mod : (2 * n) % 4 = 2 := by
+          have hn_eq : n = 2 * (n / 2) + n % 2 := (Nat.div_add_mod n 2).symm
+          rw [hn_eq, hn_mod]
+          have h2n_eq : 2 * (2 * (n / 2) + 1) = 4 * (n / 2) + 2 := by ring
+          rw [h2n_eq]
+          have h4dvd : 4 ∣ 4 * (n / 2) := Nat.dvd_mul_right 4 (n / 2)
+          have h4mod : (4 * (n / 2)) % 4 = 0 := Nat.mod_eq_zero_of_dvd h4dvd
+          rw [Nat.add_mod, h4mod]
+        intro hdvd
+        have : (2 * n) % 4 = 0 := Nat.mod_eq_zero_of_dvd hdvd
+        omega
+      exact h_not_dvd h_dvd4
 end Erdos1052
 
 -- ============================================================================
