@@ -112,6 +112,142 @@ theorem erdos_687_weak :
 theorem erdos_687_iwaniec :
     ∃ C : ℝ, ∀ x : Nat, 3 ≤ x → (jacobsthalY x : ℝ) ≤ C * (x : ℝ)^2 := by sorry
 
+/-- **Y(x) >= x - 1 for ALL x >= 2**: stronger than primorial bound.
+Strategy: a_p = p-1 for all primes p <= x. Then n is covered by p
+iff n ≡ p-1 (mod p) iff p | (n+1). Since n+1 ∈ [2,x] and every
+integer >= 2 has a prime factor <= x, every n ∈ [1,x-1] is covered.
+First formal proof of the general Jacobsthal lower bound. -/
+theorem jacobsthal_lower_general (x : Nat) (hx : 2 ≤ x) :
+    x - 1 ≤ jacobsthalY x := by
+  have h_cover : CoversInterval x (x - 1) (fun p => p - 1) := by
+    refine ⟨?_, ?_⟩
+    · -- a_p = p - 1 < p for all primes p >= 2
+      intro p hp hp_le
+      exact Nat.sub_one_lt_of_lt (hp.two_le)
+    · -- For n ∈ [1, x-1]: n+1 ∈ [2, x], so n+1 has a prime factor p <= x
+      -- Then p | (n+1), so n ≡ -1 ≡ p-1 (mod p), i.e. n % p = (p-1) % p
+      intro n hn1 hn_le
+      have hn1_pos : 0 < n + 1 := by omega
+      have hn1_le_x : n + 1 ≤ x := by omega
+      have hn1_ne1 : n + 1 ≠ 1 := by omega
+      obtain ⟨p, hp_prime, hp_dvd⟩ := Nat.exists_prime_and_dvd hn1_ne1
+      have hp_le : p ≤ x := by
+        have : p ≤ n + 1 := Nat.le_of_dvd (by omega) hp_dvd
+        omega
+      refine ⟨p, hp_prime, hp_le, ?_⟩
+      -- Key: p | (n+1) implies n % p = (p-1) % p
+      have h_succ_mod : (n + 1) % p = 0 := Nat.mod_eq_zero_of_dvd hp_dvd
+      have hp2 : 2 ≤ p := hp_prime.two_le
+      have h1_mod : 1 % p = 1 := Nat.mod_eq_of_lt (by omega : 1 < p)
+      have hadd_mod : (n + 1) % p = (n % p + 1) % p := by
+        rw [Nat.add_mod, h1_mod]
+      rw [hadd_mod] at h_succ_mod
+      -- (n % p + 1) % p = 0 and 0 ≤ n%p < p means n%p + 1 = p
+      have h_rem_lt : n % p < p := Nat.mod_lt _ hp_prime.pos
+      have h_dvd_rem : p ∣ (n % p + 1) := Nat.dvd_of_mod_eq_zero h_succ_mod
+      have h_rem_eq : n % p + 1 = p := by
+        rcases h_dvd_rem with ⟨q, hq⟩
+        have hq_ne_zero : q ≠ 0 := by
+          intro h; rw [h, Nat.mul_zero] at hq; omega
+        have hq_eq : q = 1 := by
+          by_contra h_ne
+          have hq_ge2 : 2 ≤ q := by omega
+          have hpq_ge : p ≤ p * q := by nlinarith
+          nlinarith
+        rw [hq_eq, Nat.mul_one] at hq
+        exact hq
+      have h_n_mod : n % p = p - 1 := by omega
+      have h_ap_mod : (p - 1) % p = p - 1 := Nat.mod_eq_of_lt (by omega : p - 1 < p)
+      show n % p = (p - 1) % p
+      omega
+  have h_in : (x - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval x y a } :=
+    ⟨(fun p => p - 1), h_cover⟩
+  -- BddAbove via CRT (same argument as primorial proof)
+  have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval x y a } := by
+    let P := ∏ p ∈ (Finset.range (x + 1)).filter Nat.Prime, p
+    have hP_pos : 0 < P := by
+      apply Finset.prod_pos
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_range] at hp
+      exact hp.2.pos
+    refine ⟨P - 1, fun y ⟨a, ha⟩ => ?_⟩
+    by_contra h_gt
+    have h_y_ge : P ≤ y := by omega
+    let t := (Finset.range (x + 1)).filter Nat.Prime
+    let r := fun p => (a p + 1) % p
+    have h_pairwise : ∀ p ∈ t, ∀ q ∈ t, p ≠ q → Nat.Coprime p q := by
+      intro p hp q hq hpq
+      simp [t] at hp hq
+      exact (Nat.coprime_primes hp.2 hq.2).mpr hpq
+    have h_s_ne : ∀ p ∈ t, (fun q => q) p ≠ 0 := fun p hp => by
+      simp [t] at hp; exact hp.2.ne_zero
+    have h_pp : Set.Pairwise t (Nat.Coprime on (fun p => p)) := by
+      intro p hp q hq hpq
+      rw [Finset.mem_coe] at hp hq
+      exact h_pairwise p hp q hq hpq
+    let h_crt : { k : Nat // ∀ p ∈ t, k ≡ r p [MOD p] } :=
+      Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp
+    have h_n_lt : h_crt.val < P := by
+      have hlt := Nat.chineseRemainderOfFinset_lt_prod r (fun p => p) h_s_ne h_pp
+      have h_prod : ∏ i ∈ t, (fun p => p) i = P := by simp [P, t]
+      rw [h_prod] at hlt
+      show (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
+      exact hlt
+    have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
+    have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
+      intro p hp
+      have hp_pr : Nat.Prime p := by simp [t] at hp; exact hp.2
+      have hap : a p < p := ha.1 p hp_pr (by simp [t] at hp; omega)
+      show (a p + 1) % p ≠ a p
+      by_cases hlt : a p + 1 < p
+      · rw [Nat.mod_eq_of_lt hlt]; omega
+      · have : a p = p - 1 := by omega
+        have hp2 : 2 ≤ p := hp_pr.two_le
+        rw [this, Nat.sub_add_cancel hp_pr.pos, Nat.mod_self]; omega
+    by_cases h_n_zero : h_crt.val = 0
+    · have h_P_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ x ∧ P % p = a p % p := by
+        intro ⟨p, hp, hple, hpmod⟩
+        have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
+        have hp2 : 2 ≤ p := hp.two_le
+        have hr_zero : r p = 0 := by
+          have hmod := h_n_mod p h_in_t
+          have hr_lt : r p < p := Nat.mod_lt _ hp.pos
+          have h_extract := Nat.mod_eq_of_modEq hmod hr_lt
+          rw [h_n_zero, Nat.zero_mod] at h_extract; omega
+        have hap : a p < p := ha.1 p hp hple
+        have hap_eq : a p = p - 1 := by
+          have hmod_zero : (a p + 1) % p = 0 := hr_zero
+          have : a p + 1 < p ∨ a p + 1 = 0 ∨ p ≤ a p + 1 := by omega
+          rcases this with hlt | hzero | hge
+          · rw [Nat.mod_eq_of_lt hlt] at hmod_zero; omega
+          · omega
+          · have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero hmod_zero; omega
+        have hP_mod : P % p = 0 := by
+          apply Nat.mod_eq_zero_of_dvd
+          exact Finset.dvd_prod_of_mem (fun q => q) h_in_t
+        have hap_mod : a p % p = a p := Nat.mod_eq_of_lt hap
+        rw [hP_mod, hap_mod] at hpmod; omega
+      have h_P_covered : ∃ p, Nat.Prime p ∧ p ≤ x ∧ P % p = a p % p :=
+        ha.2 P hP_pos (by omega)
+      exact h_P_uncovered h_P_covered
+    · have h_n_pos : 1 ≤ h_crt.val := by omega
+      have h_n_le_y : h_crt.val ≤ y := by omega
+      have h_n_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ x ∧ h_crt.val % p = a p % p := by
+        intro ⟨p, hp, hple, hpmod⟩
+        have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
+        have hap : a p < p := ha.1 p hp hple
+        have hmod := h_n_mod p h_in_t
+        have hr_val : h_crt.val % p = r p := by
+          have hr_lt : r p < p := Nat.mod_lt _ hp.pos
+          exact Nat.mod_eq_of_modEq hmod hr_lt
+        have hap_mod : a p % p = a p := Nat.mod_eq_of_lt hap
+        rw [hr_val, hap_mod] at hpmod
+        exact h_r_ne p h_in_t hpmod
+      have h_n_covered : ∃ p, Nat.Prime p ∧ p ≤ x ∧ h_crt.val % p = a p % p :=
+        ha.2 h_crt.val h_n_pos h_n_le_y
+      exact h_n_uncovered h_n_covered
+  exact le_csSup h_bdd h_in
+
 /-- **Y(p_m) ≥ p_m - 1**: first formal proof of Jacobsthal lower bound via CRT. -/
 theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
     (Nat.nth Nat.Prime m) - 1 ≤ jacobsthalY (Nat.nth Nat.Prime m) := by
@@ -261,6 +397,59 @@ theorem f710_upper_bound (n : Nat) (hn : 1 ≤ n) : f710 n ≤ n^2 + 1 := by
     · have h1 : (k.val + 1) * (n + 1) ≤ n * (n + 1) := Nat.mul_le_mul_right (n + 1) hkvn
       have h2 : n * (n + 1) = n^2 + n := by ring
       linarith
+
+/-- f(n) >= n: need n distinct integers in interval of length f. -/
+theorem f710_lower_bound (n : Nat) (hn : 1 ≤ n) :
+    n ≤ f710 n := by
+  by_contra h
+  push_neg at h
+  have hF : f710 n < n := by omega
+  have h_ne : { f | Placement n f }.Nonempty := by
+    refine ⟨n^2 + 1, ?_⟩
+    exists fun k => (k.val + 1) * (n + 1)
+    refine ⟨?_, ?_, ?_⟩
+    · intro k; exact Nat.dvd_mul_right (k.val + 1) (n + 1)
+    · intro k j hkj
+      have hiv : k.val ≠ j.val := fun h => hkj (Fin.ext h)
+      intro heq
+      have : k.val + 1 = j.val + 1 := Nat.mul_right_cancel (by omega) heq
+      omega
+    · intro k
+      have hkv1 : 1 ≤ k.val + 1 := by omega
+      have hkvn : k.val + 1 ≤ n := by omega
+      refine ⟨?_, ?_⟩
+      · have h := Nat.mul_le_mul_right (n + 1) hkv1
+        nlinarith
+      · have h1 : (k.val + 1) * (n + 1) ≤ n * (n + 1) := Nat.mul_le_mul_right (n + 1) hkvn
+        have h2 : n * (n + 1) = n^2 + n := by ring
+        linarith
+  have h_mem : Placement n (f710 n) := Nat.sInf_mem h_ne
+  obtain ⟨a, hdiv, hdist, hrange⟩ := h_mem
+  have h_inj : Function.Injective a := by
+    intro k j hk
+    by_contra h
+    exact (hdist k j h) hk
+  have hF_pos : 0 < f710 n := by
+    by_contra h0
+    have h0' : f710 n = 0 := by omega
+    have := hrange ⟨0, by omega⟩
+    omega
+  let g : Fin n → Fin (f710 n) := fun k =>
+    ⟨a k - (n + 1), by have := hrange k; omega⟩
+  have hg_inj : Function.Injective g := by
+    intro k j hgkj
+    have : a k = a j := by
+      have heq : (a k - (n + 1) : ℕ) = (a j - (n + 1) : ℕ) := by
+        have : g k = g j := hgkj
+        exact Fin.ext_iff.mp this
+      have hak : n < a k := (hrange k).1
+      have haj : n < a j := (hrange j).1
+      omega
+    exact h_inj this
+  have : Fintype.card (Fin n) ≤ Fintype.card (Fin (f710 n)) :=
+    Fintype.card_le_of_injective g hg_inj
+  simp [Fintype.card_fin] at this
+  omega
 
 end Erdos710
 
