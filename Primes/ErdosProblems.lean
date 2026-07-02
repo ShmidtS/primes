@@ -14,8 +14,8 @@ namespace PrimeGaps
 
 noncomputable section
 
-open scoped BigOperators Asymptotics
-open Filter
+open scoped BigOperators Asymptotics Function
+open Filter Function
 
 /-! ## Open Erdős Prize Problems
 
@@ -153,16 +153,104 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         rw [if_neg (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
   have h_in : (p_m - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } :=
     ⟨(fun p => if p = p_m then 1 else 0), h_cover⟩
-  -- BddAbove: primorial(m+1) - 1 bounds y.
-  -- Key: primorial(m+1) ≡ 0 (mod p) for all primes p ≤ p_m.
-  -- If y ≥ primorial(m+1), then n = primorial(m+1) must be covered,
-  -- so a p = 0 for some prime p. But then n+1 ≡ 1 (mod p) for that p,
-  -- and n+1 needs coverage from another prime q with a q = 1.
-  -- Continuing: each step uses up one residue value per prime.
-  -- After ∏(p-1) steps, all residue values are exhausted → uncovered integer exists.
-  -- Full proof requires CRT (Nat.chineseRemainderOfFinset from Mathlib).
-  -- Here we establish the structural bound; the CRT argument is ongoing work.
-  have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by sorry
+  -- BddAbove via CRT: for any covering a, choose r(p) = (a(p)+1) % p ≠ a(p).
+  -- By CRT, ∃ n* < ∏_{primes p ≤ p_m} p with n* ≡ r(p) mod p for all p.
+  -- n* is uncovered. So y < ∏_{primes p ≤ p_m} p.
+  have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by
+    let P := ∏ p ∈ (Finset.range (p_m + 1)).filter Nat.Prime, p
+    have hP_pos : 0 < P := by
+      apply Finset.prod_pos
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_range] at hp
+      exact hp.2.pos
+    refine ⟨P - 1, fun y ⟨a, ha⟩ => ?_⟩
+    by_contra h_gt
+    have h_y_ge : P ≤ y := by omega
+    -- CRT: find n* < P avoiding all residue classes
+    let t := (Finset.range (p_m + 1)).filter Nat.Prime
+    let r := fun p => (a p + 1) % p
+    have h_pairwise : ∀ p ∈ t, ∀ q ∈ t, p ≠ q → Nat.Coprime p q := by
+      intro p hp q hq hpq
+      simp [t] at hp hq
+      exact (Nat.coprime_primes hp.2 hq.2).mpr hpq
+    -- CRT: ∃ n* < P with n* ≡ r(p) mod p for all p ∈ t
+    -- Set.Pairwise on Finset requires coercion to Set — blocked on API mismatch
+    have h_crt : { k : Nat // ∀ p ∈ t, k ≡ r p [MOD p] } := by sorry
+    have h_n_lt : h_crt.val < P := by sorry
+    have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
+    -- r(p) ≠ a(p) for all primes p ≤ p_m
+    have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
+      intro p hp
+      have hp_pr : Nat.Prime p := by simp [t] at hp; exact hp.2
+      have hap : a p < p := ha.1 p hp_pr (by simp [t] at hp; omega)
+      show (a p + 1) % p ≠ a p
+      by_cases hlt : a p + 1 < p
+      · rw [Nat.mod_eq_of_lt hlt]; omega
+      · have : a p = p - 1 := by omega
+        rw [this, Nat.sub_add_cancel hp_pr.pos, Nat.mod_self]
+        omega
+    -- n* is uncovered: n* % p = r p ≠ a p = a p % p (since a p < p)
+    -- If n* = 0: P itself is uncovered (P % p = 0, and a p < p so a p % p = a p ≠ 0 unless a p = 0,
+    --   but r p = (a p + 1) % p = 0 means a p = p-1, so a p ≠ 0 for p ≥ 2)
+    -- Actually: if n* = 0, then r p = 0 for all p, so a p = p-1 for all p.
+    -- Then P % p = 0 ≠ p-1 = a p for p ≥ 2. So P is uncovered.
+    -- If n* ≥ 1: n* ∈ [1, P-1], and n* % p = r p ≠ a p for all p. So n* is uncovered.
+    -- Either way, some integer in [1, P] is uncovered → y < P → y ≤ P-1
+    by_cases h_n_zero : h_crt.val = 0
+    · -- n* = 0: r p = 0 for all p, so a p = p-1 for all primes p ≤ p_m
+      -- P % p = 0 ≠ p-1 = a p for all primes p ≥ 2 (and p_m ≥ 3 since m ≥ 2)
+      have h_P_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p := by
+        intro ⟨p, hp, hple, hpmod⟩
+        have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
+        have hr_zero : r p = 0 := by
+          have hmod := h_n_mod p h_in_t
+          rw [show r p = (a p + 1) % p from rfl] at hmod
+          have : h_crt.val % p = (a p + 1) % p := Nat.modEq_iff_dvd'.mpr (by omega) |>.mp hmod
+          -- h_crt.val = 0, so 0 % p = (a p + 1) % p, so (a p + 1) % p = 0
+          rw [h_n_zero, Nat.zero_mod] at this
+          omega
+        have hap : a p < p := ha.1 p hp hple
+        have hap_eq : a p = p - 1 := by
+          have : (a p + 1) % p = 0 := hr_zero
+          have : a p + 1 < p ∨ a p + 1 = 0 ∨ p ≤ a p + 1 := by omega
+          rcases this with hlt | hzero | hge
+          · rw [Nat.mod_eq_of_lt hlt] at this; omega
+          · omega
+          · -- p ≤ a p + 1 and (a p + 1) % p = 0 means p ∣ (a p + 1)
+            have : p ∣ a p + 1 := Nat.dvd_of_mod_eq_zero this
+            omega
+        have hP_mod : P % p = 0 := by
+          apply Nat.mod_eq_zero_of_dvd
+          exact Finset.dvd_prod_of_mem (fun q => q) h_in_t
+        have hap_mod : a p % p = a p := by omega
+        rw [hP_mod, hap_mod] at hpmod
+        omega
+      have h_P_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ P % p = a p % p :=
+        ha.2 P hP_pos (by omega)
+      exact h_P_uncovered h_P_covered
+    · -- n* ≥ 1: n* ∈ [1, P-1] ⊆ [1, y], and n* is uncovered → contradiction
+      have h_n_pos : 1 ≤ h_crt.val := by omega
+      have h_n_le_y : h_crt.val ≤ y := by omega
+      have h_n_uncovered : ¬ ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ h_crt.val % p = a p % p := by
+        intro ⟨p, hp, hple, hpmod⟩
+        have h_in_t : p ∈ t := by simp [t]; exact ⟨by omega, hp⟩
+        have hap : a p < p := ha.1 p hp hple
+        have hmod := h_n_mod p h_in_t
+        -- h_crt.val ≡ r p [MOD p] means h_crt.val % p = r p
+        have hr_val : h_crt.val % p = r p := by
+          have : h_crt.val ≡ (a p + 1) % p [MOD p] := by
+            have : r p = (a p + 1) % p := rfl
+            rw [this]; exact hmod
+          -- modEq means same residue mod p
+          have hr_lt : (a p + 1) % p < p := Nat.mod_lt _ hp.pos
+          have hn_lt : h_crt.val % p < p := Nat.mod_lt _ hp.pos
+          exact Nat.modEq_iff_mod_eq.mp this
+        have hap_mod : a p % p = a p := by omega
+        rw [hr_val, hap_mod] at hpmod
+        exact h_r_ne p h_in_t hpmod
+      have h_n_covered : ∃ p, Nat.Prime p ∧ p ≤ p_m ∧ h_crt.val % p = a p % p :=
+        ha.2 h_crt.val h_n_pos h_n_le_y
+      exact h_n_uncovered h_n_covered
   exact le_csSup h_bdd h_in
 
 /-- **Y(5) = 5**: primorial bound Y(p_2) ≥ 4 is NOT tight.
