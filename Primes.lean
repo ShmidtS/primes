@@ -7,3 +7,5 @@ import Primes.Analytic
 import Primes.Distribution
 import Primes.Operator
 import Primes.PrimeFree
+import Primes.VonMangoldtChain
+import Primes.ErdosProblems
