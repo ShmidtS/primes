@@ -84,8 +84,87 @@ def IsUnitaryPerfect (n : ℕ) : Prop :=
   ∑ i ∈ properUnitaryDivisors n, i = n ∧ 0 < n
 
 theorem erdos_1052 : {n | IsUnitaryPerfect n}.Finite := by sorry
-theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := by sorry
-
+theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := by
+  by_contra h
+  have hn_odd : Odd n := (Nat.not_even_iff_odd).mp h
+  have hn_pos : 0 < n := hn.2
+  have hsum : ∑ i ∈ properUnitaryDivisors n, i = n := hn.1
+  by_cases hn1 : n = 1
+  · have h_empty : properUnitaryDivisors 1 = ∅ := by
+      simp [properUnitaryDivisors, Finset.Ico_self]
+    rw [hn1] at hsum; rw [h_empty, Finset.sum_empty] at hsum; omega
+  · have hn3 : 3 ≤ n := by
+      have hge2 : 2 ≤ n := by omega
+      have : ¬ (n = 2) := by intro h2; rw [h2] at h; exact h even_two
+      omega
+    by_cases h_pp : ∃ p k : ℕ, Nat.Prime p ∧ 0 < k ∧ n = p ^ k
+    · obtain ⟨p, k, hp, hk, hn_eq⟩ := h_pp
+      have hp3 : 3 ≤ p := by
+        have hp2 : 2 ≤ p := hp.two_le
+        have hp_ne_2 : p ≠ 2 := by
+          intro h2; rw [hn_eq, h2] at hn_odd
+          have : ¬ Odd (2 ^ k) := by
+            have heven : Even (2 ^ k) := Nat.even_pow.mpr ⟨by decide, by omega⟩
+            exact fun h => (Nat.not_even_iff_odd).mpr h heven
+          exact absurd hn_odd this
+        omega
+      have h_eq_1 : properUnitaryDivisors (p ^ k) = {1} := by
+        ext d
+        simp only [properUnitaryDivisors, Finset.mem_filter, Finset.mem_Ico,
+          Finset.mem_singleton]
+        refine ⟨fun ⟨⟨hge1, hlt⟩, hdvd, hcop⟩ => ?_, fun h => ?_⟩
+        · by_cases hd1 : d = 1; · exact hd1
+          have hpk_pos : 0 < p ^ k := pow_pos hp.pos k
+          have hpk_ne : p ^ k ≠ 0 := hpk_pos.ne'
+          have hpf_pk : Nat.primeFactors (p ^ k) = {p} :=
+            Nat.primeFactors_prime_pow (Nat.ne_of_gt hk) hp
+          have hp_dvd_d : p ∣ d := by
+            obtain ⟨q, hq_prime, hq_dvd_d⟩ :=
+              Nat.exists_prime_and_dvd (by omega : d ≠ 1)
+            have hq_pf : q ∈ Nat.primeFactors (p ^ k) :=
+              (Nat.mem_primeFactors_of_ne_zero hpk_ne).mpr ⟨hq_prime, hq_dvd_d.trans hdvd⟩
+            rw [hpf_pk] at hq_pf
+            rw [Finset.mem_singleton] at hq_pf
+            rw [← hq_pf]; exact hq_dvd_d
+          have hmul : d * (p ^ k / d) = p ^ k := by
+            have := Nat.div_mul_cancel hdvd
+            exact mul_comm (p ^ k / d) d ▸ this
+          have hquot_gt1 : 1 < p ^ k / d := by
+            by_contra hq; push_neg at hq
+            -- hq : p ^ k / d ≤ 1
+            by_cases h0 : p ^ k / d = 0
+            · rw [h0, mul_zero] at hmul
+              exact absurd hmul hpk_pos.ne'.symm
+            · have h1 : p ^ k / d = 1 := by
+                rcases hq.eq_or_lt with heq | hlt
+                · exact heq
+                · exfalso; exact h0 (Nat.le_zero.mp (Nat.le_of_lt_succ hlt))
+              rw [h1, mul_one] at hmul; omega
+          have hp_dvd_quot : p ∣ p ^ k / d := by
+            obtain ⟨r, hr_prime, hr_dvd_quot⟩ :=
+              Nat.exists_prime_and_dvd (by omega : p ^ k / d ≠ 1)
+            have hr_dvd_pk : r ∣ p ^ k := by
+              have h1 : r ∣ d * (p ^ k / d) := hr_dvd_quot.mul_left d
+              rw [hmul] at h1; exact h1
+            have hr_pf : r ∈ Nat.primeFactors (p ^ k) :=
+              (Nat.mem_primeFactors_of_ne_zero hpk_ne).mpr ⟨hr_prime, hr_dvd_pk⟩
+            rw [hpf_pk] at hr_pf
+            rw [Finset.mem_singleton] at hr_pf
+            exact hr_pf ▸ hr_dvd_quot
+          have hp_gcd : p ∣ Nat.gcd d (p ^ k / d) := Nat.dvd_gcd hp_dvd_d hp_dvd_quot
+          rw [hcop] at hp_gcd
+          have : p ≤ 1 := Nat.le_of_dvd (by omega) hp_gcd
+          omega
+        · rw [h]
+          refine ⟨⟨by omega, by omega⟩, Nat.one_dvd (p ^ k), ?_⟩
+          rw [Nat.div_one]; exact Nat.coprime_one_left _
+      rw [hn_eq] at hsum
+      rw [h_eq_1, Finset.sum_singleton] at hsum
+      have hpk_ge3 : 3 ≤ p ^ k := by
+        have : p ^ 1 ≤ p ^ k := Nat.pow_le_pow_right hp.pos (by omega : 1 ≤ k)
+        nlinarith [hp3, this]
+      omega
+    · sorry
 end Erdos1052
 
 -- ============================================================================
