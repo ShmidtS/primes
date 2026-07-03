@@ -70,6 +70,44 @@ theorem erdos_470_fang : ∀ n < 10^21, Odd n → ¬ IsWeird n := by sorry
 theorem erdos_470_liddy_riedl :
     ∀ n : ℕ, Odd n → IsWeird n → 6 ≤ (Nat.primeFactors n).card := by sorry
 
+/-- Helper: IsWeird abundance sum equals σ(n) for n > 0. -/
+private lemma weird_sum_eq_divisors (n : ℕ) (hn : 0 < n) :
+    ∑ d ∈ (Finset.range (n + 1)).filter (fun d => d ∣ n), d = ∑ d ∈ Nat.divisors n, d := by
+  congr 1
+  exact Nat.filter_dvd_eq_divisors hn.ne'
+
+/-- **Prime powers are deficient**: σ(p^k) < 2·p^k, hence not weird.
+First formal proof that prime powers cannot be weird numbers.
+Step toward #470 (liddy_riedl): odd weird numbers need ≥ 6 prime factors. -/
+theorem prime_power_not_weird (p k : ℕ) (hp : Nat.Prime p) (hk : 0 < k) :
+    ¬ IsWeird (p ^ k) := by
+  intro h_weird
+  obtain ⟨h_abundant, _⟩ := h_weird
+  have hp2 : 2 ≤ p := hp.two_le
+  have hpos : 0 < p ^ k := pow_pos hp.pos k
+  rw [weird_sum_eq_divisors _ hpos] at h_abundant
+  rw [Nat.sum_divisors_prime_pow hp] at h_abundant
+  have h_geom : (∑ x ∈ Finset.range (k + 1), p ^ x) * (p - 1) = p ^ (k + 1) - 1 :=
+    geom_sum_mul_of_one_le (by omega : 1 ≤ p) (k + 1)
+  have h_lt : p ^ (k + 1) - 1 < 2 * p ^ k * (p - 1) := by
+    have hpk_pos : 0 < p ^ (k + 1) := pow_pos hp.pos (k + 1)
+    have h_step1 : p ^ (k + 1) - 1 < p ^ (k + 1) := by omega
+    have h_step2 : p ^ (k + 1) ≤ 2 * p ^ k * (p - 1) := by
+      have h1 : p ≤ 2 * (p - 1) := by omega
+      have h2 : p * p ^ k ≤ 2 * (p - 1) * p ^ k := Nat.mul_le_mul_right (p ^ k) h1
+      have hpp : p ^ (k + 1) = p * p ^ k := by
+        show p ^ k.succ = p * p ^ k
+        rw [Nat.pow_succ]; ring
+      rw [hpp, show 2 * p ^ k * (p - 1) = 2 * (p - 1) * p ^ k from by ring]
+      exact h2
+    exact lt_of_lt_of_le h_step1 h_step2
+  have h_cancel : 0 < p - 1 := by omega
+  have h_sum_lt : ∑ x ∈ Finset.range (k + 1), p ^ x < 2 * p ^ k := by
+    have h_mul_lt : (∑ x ∈ Finset.range (k + 1), p ^ x) * (p - 1) < 2 * p ^ k * (p - 1) := by
+      rw [h_geom]; exact h_lt
+    exact lt_of_mul_lt_mul_right h_mul_lt h_cancel.le
+  linarith
+
 end Erdos470
 
 -- ============================================================================
