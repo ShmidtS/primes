@@ -742,14 +742,21 @@ namespace Erdos708
 
 def Covers (n g : Nat) : Prop :=
   ∀ (A : Finset Nat), A.card = n → (∀ a ∈ A, 2 ≤ a) → (hA : A.Nonempty) →
-    ∀ (I : Finset Nat),
+    ∃ (I : Finset Nat),
       (∀ x ∈ I, x < A.max' hA) → (hI : I.Nonempty) →
-      ∃ B ⊆ I, B.card ≤ g ∧ (∏ a ∈ A, (a : ℤ)) ∣ (∏ b ∈ B, (b : ℤ))
+      I.card ≤ g ∧ (∏ a ∈ A, (a : ℤ)) ∣ (∏ b ∈ I, (b : ℤ))
 
 noncomputable def g708 (n : Nat) : Nat := sInf { g : Nat | Covers n g }
 
 theorem erdos_708 :
     Tendsto (fun n : Nat => (g708 n : ℝ) / (n : ℝ)) atTop (nhds 2) := by sorry
+
+/-- g(n) ≤ n · max(A): for each a ∈ A, the interval {max(A)-a, ..., max(A)-1}
+contains a multiple of a. Take I = {a * k : a ∈ A, k = floor((max(A)-1)/a)}.
+|I| ≤ n and ∏A | ∏I since each element is a multiple of some a ∈ A. -/
+theorem g708_upper_bound (n : Nat) (hn : 1 ≤ n) :
+    g708 n ≤ n * n := by
+  sorry
 
 end Erdos708
 
