@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Primes"]
+defaultTargets = ["Primes", "Hagi"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -15,3 +15,6 @@ scope = "leanprover-community"
 
 [[lean_lib]]
 name = "Primes"
+
+[[lean_lib]]
+name = "Hagi"
