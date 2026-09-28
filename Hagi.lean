@@ -12,6 +12,11 @@ import Hagi.Attention
 import Hagi.Lift
 import Hagi.Concat
 import Hagi.Ridge
+import Hagi.Select
+import Hagi.Mix
+import Hagi.KVWater
+import Hagi.Ambig
+import Hagi.Grow
 
 set_option linter.style.header false
 

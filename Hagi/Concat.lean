@@ -276,6 +276,142 @@ theorem ensemble_ce_le_mean (t : k) (z₁ z₂ : k → ℝ) :
 
 end Ensemble
 
+section GeneralN
+
+variable {k : Type*} [Fintype k] [Nonempty k] {N : ℕ} [NeZero N]
+
+/-- **General-N ensemble bound (weighted AM-GM / Hoelder).** The
+log-sum-exp of the mean of `N` children is at most the mean of the
+children's log-sum-exps:
+
+`lse (mean of the z_a) ≤ (1/N) ∑_a lse (z_a)`.
+
+This is Jensen for the strictly convex `lse`; the formal route is
+the pointwise weighted AM-GM: with `S_a = ∑_v exp (z_a v)` and
+`t_a v = exp (z_a v)/S_a`, AM-GM gives
+`∏_a (t_a v)^(1/N) ≤ (1/N)∑_a t_a v`, and the left side is exactly
+`exp (zMean v)/∏_a S_a^(1/N)`; summing over `v` collapses the right
+side to `1`, yielding `∑_v exp (zMean v) ≤ ∏_a S_a^(1/N)`. Taking
+logs turns the product into the mean of the `lse`.
+
+Prescription for the code: the `1/n` merged logit ensemble of `N`
+leaves is certified by the mean lse of the leaves — for every `N`,
+not just powers of two. The two-leaf `ensemble_ce_le_mean` above is
+the `N = 2` instance. -/
+theorem lse_mean_le_mean_lse (z : Fin N → k → ℝ) :
+    lse (fun v => (∑ a, z a v) / N)
+      ≤ (∑ a, lse (z a)) / N := by
+  -- normalization: S a = ∑_v exp (z a v) > 0, t a v = exp (z a v)/S a
+  set S : Fin N → ℝ := fun a => ∑ v, Real.exp (z a v) with hS
+  have hSpos : ∀ a, 0 < S a := fun a => exp_sum_pos (z a)
+  set t : Fin N → k → ℝ := fun a v => Real.exp (z a v) / S a with ht
+  -- pointwise AM-GM: ∏_a (t a v)^(1/N) ≤ (1/N)∑_a t a v
+  have htpos : ∀ a v, 0 < t a v := by
+    intro a v
+    unfold t
+    exact div_pos (Real.exp_pos _) (hSpos a)
+  have hamgm : ∀ v : k,
+      ∏ a, (t a v) ^ ((1:ℝ)/N) ≤ ∑ a, (1/(N:ℝ)) * t a v := fun v =>
+    Real.geom_mean_le_arith_mean_weighted
+      (Finset.univ : Finset (Fin N)) (fun _ => 1/(N:ℝ)) (fun a => t a v)
+      (fun a _ => by positivity)
+      (by simp)
+      (fun a _ => le_of_lt (htpos a v))
+  -- the per-child mass is 1
+  have hmass : ∀ a, ∑ v, t a v = 1 := by
+    intro a
+    simp only [ht, ← Finset.sum_div]
+    exact div_self (ne_of_gt (hSpos a))
+  -- the Hoelder split of the merged summand
+  have hsplit : ∀ v : k,
+      Real.exp ((∑ a, z a v) / N)
+        = (∏ a, (S a) ^ ((1:ℝ)/N)) * ∏ a, (t a v) ^ ((1:ℝ)/N) := by
+    intro v
+    have e1 : (∑ a, z a v) / N = ∑ a, z a v / N :=
+      Finset.sum_div _ _ _
+    rw [e1, Real.exp_sum]
+    rw [← Finset.prod_mul_distrib]
+    refine Finset.prod_congr rfl fun a _ => ?_
+    -- exp (z a v / N) = (S a)^(1/N) * (t a v)^(1/N)
+    have hst : S a * t a v = Real.exp (z a v) := by
+      simp only [ht]
+      exact mul_div_cancel₀ _ (ne_of_gt (hSpos a))
+    rw [← Real.mul_rpow (le_of_lt (hSpos a)) (by positivity : (0:ℝ) ≤ t a v),
+      hst, Real.rpow_def_of_pos (Real.exp_pos (z a v)), Real.log_exp]
+    congr 1
+    field_simp
+  -- E ≤ ∏ (S a)^(1/N)
+  have hE : ∑ v, Real.exp ((∑ a, z a v) / N)
+      ≤ ∏ a, (S a) ^ ((1:ℝ)/N) := by
+    have h1 : ∑ v, Real.exp ((∑ a, z a v) / N)
+        = (∏ a, (S a) ^ ((1:ℝ)/N))
+          * ∑ v, ∏ a, (t a v) ^ ((1:ℝ)/N) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun v _ => hsplit v
+    rw [h1]
+    have h2 : ∑ v, ∏ a, (t a v) ^ ((1:ℝ)/N) ≤ 1 := by
+      calc ∑ v, ∏ a, (t a v) ^ ((1:ℝ)/N)
+          ≤ ∑ v, ∑ a, (1/(N:ℝ)) * t a v :=
+            Finset.sum_le_sum fun v _ => hamgm v
+        _ = ∑ a, ∑ v, (1/(N:ℝ)) * t a v := Finset.sum_comm
+        _ = ∑ a, (1/(N:ℝ)) * ∑ v, t a v := by
+            refine Finset.sum_congr rfl fun a _ => ?_
+            exact (Finset.mul_sum Finset.univ (t a) ((1:ℝ)/N)).symm
+        _ = ∑ a, (1/(N:ℝ)) * 1 :=
+            Finset.sum_congr rfl fun a _ => by rw [hmass a]
+        _ = 1 := by simp
+    have hpos : (0:ℝ) < ∏ a, (S a) ^ ((1:ℝ)/N) :=
+      Finset.prod_pos fun a _ => Real.rpow_pos_of_pos (hSpos a) _
+    calc (∏ a, (S a) ^ ((1:ℝ)/N)) * ∑ v, ∏ a, (t a v) ^ ((1:ℝ)/N)
+        ≤ (∏ a, (S a) ^ ((1:ℝ)/N)) * 1 :=
+          mul_le_mul_of_nonneg_left h2 (le_of_lt hpos)
+      _ = ∏ a, (S a) ^ ((1:ℝ)/N) := by ring
+  -- log both sides
+  unfold lse
+  have hlog := Real.log_le_log (exp_sum_pos _) hE
+  rw [Real.log_prod (fun a _ =>
+    ne_of_gt (Real.rpow_pos_of_pos (hSpos a) _)),
+    Finset.sum_congr rfl fun a _ => Real.log_rpow (hSpos a) _] at hlog
+  -- hlog : log (∑ exp zMean) ≤ ∑ (1/N) * log (S a)
+  -- goal : log (∑ exp zMean) ≤ (∑ lse (z a)) / N
+  -- (1/N) * log (S a) = lse (z a) / N, since log (S a) = lse (z a)
+  have hconv : ∑ a, (1/(N:ℝ)) * Real.log (S a)
+      = (∑ a, lse (z a)) / N := by
+    have h1 : ∀ a : Fin N, (1/(N:ℝ)) * Real.log (S a) = lse (z a) / N := by
+      intro a
+      show (1/(N:ℝ)) * Real.log (∑ v, Real.exp (z a v))
+          = Real.log (∑ v, Real.exp (z a v)) / N
+      rw [div_eq_mul_inv, mul_comm]
+      field_simp
+    rw [Finset.sum_div, Finset.sum_congr rfl fun a _ => h1 a]
+  rw [hconv] at hlog
+  exact hlog
+
+/-- **General-N cross-entropy ensemble bound.** `CE(t, mean) ≤
+mean CE(t, children)` — the merge-at-1/n head is at least as good
+as the average child, for any number of children (not just powers
+of two). The linear target term cancels exactly. -/
+theorem ensemble_ce_le_mean_general (t : k) (z : Fin N → k → ℝ) :
+    ceOneHot t (fun v => (∑ a, z a v) / N)
+      ≤ (∑ a, ceOneHot t (z a)) / N := by
+  have hlse := lse_mean_le_mean_lse z
+  unfold ceOneHot
+  have ht : (fun v => (∑ a, z a v) / N) t = (∑ a, z a t) / N := rfl
+  have hlin : (∑ a, ceOneHot t (z a)) / N
+      = (∑ a, (lse (z a) - z a t)) / N := by
+    have : ∀ a : Fin N, ceOneHot t (z a) = lse (z a) - z a t := by
+      intro a
+      unfold ceOneHot
+      rfl
+    rw [Finset.sum_congr rfl fun a _ => this a]
+  have hsplit : (∑ a, (lse (z a) - z a t)) / N
+      = (∑ a, lse (z a)) / N - (∑ a, z a t) / N := by
+    rw [Finset.sum_sub_distrib, sub_div, Finset.sum_div]
+  rw [ht, hsplit]
+  linarith
+
+end GeneralN
+
 /-! ## Head multiplicity: the selection gap as a mass bound -/
 
 section HeadMultiplicity
