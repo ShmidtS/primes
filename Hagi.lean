@@ -22,6 +22,9 @@ import Hagi.RealF3
 import Hagi.Element
 import Hagi.Joint
 import Hagi.GenCycle
+import Hagi.Compound
+import Hagi.RankBudget
+import Hagi.NCE
 
 set_option linter.style.header false
 
