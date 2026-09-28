@@ -11,6 +11,7 @@ import Hagi.ErrorProp
 import Hagi.Attention
 import Hagi.Lift
 import Hagi.Concat
+import Hagi.Ridge
 
 set_option linter.style.header false
 
