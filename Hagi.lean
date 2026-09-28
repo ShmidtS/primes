@@ -17,6 +17,8 @@ import Hagi.Mix
 import Hagi.KVWater
 import Hagi.Ambig
 import Hagi.Grow
+import Hagi.GapLaw
+import Hagi.RealF3
 
 set_option linter.style.header false
 
