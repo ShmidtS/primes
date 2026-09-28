@@ -19,6 +19,7 @@ import Hagi.Ambig
 import Hagi.Grow
 import Hagi.GapLaw
 import Hagi.RealF3
+import Hagi.Element
 
 set_option linter.style.header false
 

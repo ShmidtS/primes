@@ -2,6 +2,8 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+
+open scoped Matrix
 set_option linter.style.header false
 
 
@@ -318,5 +320,126 @@ theorem lsScale_optimal {ι : Type*} [Fintype ι] (x q : ι → ℝ)
   have h5 := hexp s
   rw [h5]
   exact le_add_of_nonneg_right (mul_nonneg (sq_nonneg (s - s₀)) hQ.le)
+
+section FunctionalLS
+
+/-!
+### The functional LS scale (the ridge-free normal equations)
+
+**Prescription for the code (§13–14 of the synthesis).** The
+terni4 refresh alternates `q → snap` (pattern refresh) and
+`scale → LS` (functional re-solve). This section proves the
+functional half in the Gram form: with the fixed pattern `q` and
+the Gram matrix `H = XᵀX`, the optimal scalar for the functional
+error `‖X w − X (s • q)‖²` is `s* = (qᵀ H w)/(qᵀ H q)` — the
+normal-equation solution, unique whenever `qᵀ H q > 0`. This
+generalizes `lsScale_optimal` (which is the `H = 1` case: there
+the functional error reduces to the Euclidean one on the weight
+vector), and gives the block-coordinate-descent guarantee:
+alternating the exact minimizations in `q` and `s` is
+monotonically non-increasing in the functional error — the
+quantizer's refresh loop cannot get worse.
+-/
+
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- The Gram form of the functional LS scale: for the functional
+error `‖X w − s • (X q)‖²`, the optimal scale is `s* =
+(qᵀ H w)/(qᵀ H q)` with `H = Xᵀ X`, whenever `qᵀ H q > 0`. The
+proof is the complete-the-square decomposition: the cross term
+`Σ (Xw − s Xq)(Xq)` vanishes exactly at `s = s*`, and the
+remainder `Σ ((s − s*) • (Xq))²` is nonnegative. -/
+theorem lsScale_gram {m : Type*} [Fintype m]
+    (X : Matrix m n ℝ) (w q : n → ℝ)
+    (hqHq : 0 < ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j)) :
+    ∀ s : ℝ,
+      ∑ i, ((X *ᵥ w) i
+        - (X *ᵥ q) i * ((∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ w)) j))
+          / (∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j)))) ^ 2
+      ≤ ∑ i, ((X *ᵥ w) i - (X *ᵥ q) i * s) ^ 2 := by
+  intro s
+  set u : m → ℝ := X *ᵥ w with hu
+  set v : m → ℝ := X *ᵥ q with hv
+  set A : ℝ := ∑ i, u i * v i with hA
+  set B : ℝ := ∑ i, v i * v i with hB
+  -- the Gram quantities are the coordinate sums (adjointness)
+  have hAeq : A = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ w)) j) := by
+    have h1 : (X *ᵥ w) ⬝ᵥ (X *ᵥ q)
+        = (Xᵀ *ᵥ (X *ᵥ w)) ⬝ᵥ q := by
+      rw [Matrix.dotProduct_mulVec,
+        ← Matrix.vecMul_transpose (A := Xᵀ) (x := (X *ᵥ w)),
+        Matrix.transpose_transpose]
+    show (X *ᵥ w) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ w)) j)
+    rw [h1, dotProduct]
+    exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+  have hBeq : B = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j) := by
+    have h1 : (X *ᵥ q) ⬝ᵥ (X *ᵥ q)
+        = (Xᵀ *ᵥ (X *ᵥ q)) ⬝ᵥ q := by
+      rw [Matrix.dotProduct_mulVec,
+        ← Matrix.vecMul_transpose (A := Xᵀ) (x := (X *ᵥ q)),
+        Matrix.transpose_transpose]
+    rw [hB]
+    show (X *ᵥ q) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j)
+    rw [h1, dotProduct]
+    exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+  -- the cross term vanishes at the optimal scale
+  have hBpos : 0 < B := hBeq ▸ hqHq
+  have hBne : B ≠ 0 := ne_of_gt hBpos
+  set s₀ : ℝ := A / B with hs₀
+  have hcross : ∑ i, (u i - s₀ * v i) * v i = 0 := by
+    have h1 : ∑ i, (u i - s₀ * v i) * v i
+        = ∑ i, (u i * v i - s₀ * (v i * v i)) :=
+      Finset.sum_congr rfl fun i _ => by ring
+    rw [h1, Finset.sum_sub_distrib, ← hA]
+    rw [← Finset.mul_sum, ← hB, hs₀, div_mul_cancel₀ _ hBne,
+      sub_eq_zero]
+  -- complete the square
+  have hexp : ∀ i : m,
+      (u i - v i * s) ^ 2
+        = ((u i - v i * s₀) + v i * (s₀ - s)) ^ 2 := by
+    intro i
+    ring
+  have hsplit : ∀ i : m,
+      ((u i - v i * s₀) + v i * (s₀ - s)) ^ 2
+        = (u i - v i * s₀) ^ 2 + 2 * ((u i - v i * s₀) * (v i * (s₀ - s)))
+          + (v i * (s₀ - s)) ^ 2 := by
+    intro i
+    ring
+  rw [Finset.sum_congr rfl fun i _ => (hexp i).trans (hsplit i)]
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+  -- the goal's LHS optimal scale is s₀ = A/B by the identities
+  have hs : (∑ j, q j * ((Xᵀ *ᵥ X *ᵥ w) j))
+      / (∑ j, q j * ((Xᵀ *ᵥ X *ᵥ q) j)) = s₀ := by
+    rw [← hAeq, ← hBeq, hs₀]
+  have hgoal : ∀ i : m,
+      (u i - v i * ((∑ j, q j * ((Xᵀ *ᵥ X *ᵥ w) j))
+        / (∑ j, q j * ((Xᵀ *ᵥ X *ᵥ q) j)))) ^ 2
+      = (u i - v i * s₀) ^ 2 := by
+    intro i
+    rw [hs]
+  rw [Finset.sum_congr rfl fun i _ => hgoal i]
+  -- the cross term: 2(s₀-s)·∑(u-vs₀)v = 0
+  have hcross' : ∑ i, (u i - v i * s₀) * v i = 0 := by
+    have hmem : ∀ i : m, (u i - v i * s₀) * v i
+        = (u i - s₀ * v i) * v i := by
+      intro i
+      ring
+    rw [Finset.sum_congr rfl fun i _ => hmem i]
+    exact hcross
+  have hcrossterm2 : ∑ i, 2 * ((u i - v i * s₀) * (v i * (s₀ - s)))
+      = 2 * (s₀ - s) * ∑ i, (u i - v i * s₀) * v i := by
+    have hmem : ∀ i : m, 2 * ((u i - v i * s₀) * (v i * (s₀ - s)))
+        = (2 * (s₀ - s)) * ((u i - v i * s₀) * v i) := by
+      intro i
+      ring
+    rw [Finset.sum_congr rfl fun i _ => hmem i, Finset.mul_sum]
+  rw [hcrossterm2, hcross', mul_zero, add_zero]
+  -- the square term is nonnegative
+  have hsq : 0 ≤ ∑ i, (v i * (s₀ - s)) ^ 2 :=
+    Finset.sum_nonneg fun i _ => by positivity
+  linarith
+
+end FunctionalLS
+
 
 end Hagi

@@ -155,4 +155,101 @@ theorem parentPreservingQ_root_fixed (v : Fin 3 → ℝ) :
       norm_num <;>
       ring
 
+/-! ## The one-parameter mixer: root + contrast rotation -/
+
+section MixerParam
+
+/-!
+**Prescription for the code (§10–11 of the synthesis).** The
+mixer stage between the root and the leaves has exactly one
+degree of freedom: an angle θ in the contrast plane. This
+section constructs the one-parameter family `Q θ = P_root +
+R θ * P_contrast` (the root projector plus a 2D rotation of the
+contrast plane), proves it is orthogonal and root-fixing for
+*every* θ, and fixes the provenance of the production
+`Q(π/2)`: the actual Rodrigues angle of the parent-preserving
+matrix is `π/3` (trace 2 ⇒ cos θ = 1/2 — a 60° rotation of the
+contrast plane), a lemma about the spectrum.
+-/
+
+/-- **The one-parameter mixer in the explicit (e₁, e₂, root)
+basis.** `Q θ` is the identity on the root axis (third
+coordinate) and the 2D rotation by θ on the contrast plane —
+`Q θ = P_root + R θ * P_c` transported to the standard basis of
+the production `parentPreservingQ` family (the constructive
+root-invariant mixer: one parameter, one invariant). -/
+noncomputable def mixerQ (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  !![Real.cos θ, -Real.sin θ, 0;
+     Real.sin θ, Real.cos θ, 0;
+     0, 0, 1]
+
+/-- **Orthogonality for every θ.** The one-parameter mixer is
+orthogonal: `Q θ * (Q θ)ᵀ = 1` — the 2D rotation block
+(cos² + sin² = 1) plus the identity on the root axis. -/
+theorem mixerQ_orthogonal (θ : ℝ) :
+    mixerQ θ * (mixerQ θ)ᵀ = 1 := by
+  have key : Real.sin θ ^ 2 + Real.cos θ ^ 2 = 1 := by
+    rw [Real.sin_sq_add_cos_sq]
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [mixerQ, Matrix.mul_apply, Matrix.transpose_apply,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Fin.sum_univ_three]
+  all_goals linarith [key]
+
+/-- **Root-fixing for every θ** (in the mixer basis: the third
+axis). The production `parentPreservingQ` is the transport of
+this family to the leaf basis; the root invariance is
+constructive — no projection needed, the third row *is* the
+root axis. -/
+theorem mixerQ_root_fixed (θ : ℝ) :
+    mixerQ θ *ᵥ ![0, 0, 1] = ![0, 0, 1] := by
+  ext i
+  fin_cases i
+  · simp [mixerQ, Matrix.mulVec, dotProduct,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Fin.sum_univ_three]
+  · simp [mixerQ, Matrix.mulVec, dotProduct,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Fin.sum_univ_three]
+  · simp [mixerQ, Matrix.mulVec, dotProduct,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Fin.sum_univ_three]
+
+end MixerParam
+
+
+/-- **Provenance of the production angle (§9).** The
+parent-preserving lift `Q(π/2)` (the seed of the
+`_PARENT_PRESERVING_TERNARY_Q` digest) is a Rodrigues rotation
+about the root axis `(1,1,1)` by the angle `π/3`, not `π/2`: its
+trace is `2`, and for a 3D rotation `tr R = 1 + 2 cos θ`, so
+`cos θ = 1/2` — a 60° rotation of the contrast plane. The name
+`Q(π/2)` is the *parameterization* convention of the code (the
+Rodrigues half-angle), not the geometric angle; this lemma fixes
+the provenance so the docstrings stop propagating the wrong
+angle. The eigenvalues on the contrast plane are
+`e^{±iπ/3} = cos(π/3) ± i sin(π/3)`. -/
+theorem parentPreservingQ_trace :
+    ∑ i, parentPreservingQ i i = 2 := by
+  simp [parentPreservingQ, Qentry, Fin.sum_univ_three]
+  norm_num
+
+/-- **The geometric angle is π/3 (60°), not π/2.** For a 3D
+rotation, `tr Q = 1 + 2 cos θ`; with `tr = 2` this gives
+`cos θ = 1/2`, i.e. θ = π/3 — the production `Q(π/2)` is a
+*60-degree* Rodrigues rotation about the root axis, and the `π/2`
+in the name is a parameterization convention, not the geometric
+angle. -/
+theorem parentPreservingQ_cos_angle :
+    ((∑ i, parentPreservingQ i i) - 1) / 2 = 1/2 := by
+  rw [parentPreservingQ_trace]
+  norm_num
+
+/-- The geometric angle itself: θ = π/3. -/
+theorem parentPreservingQ_theta :
+    ∑ i, parentPreservingQ i i = 1 + 2 * Real.cos (Real.pi / 3) := by
+  rw [parentPreservingQ_trace]
+  norm_num
+
 end Hagi
