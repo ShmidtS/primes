@@ -20,6 +20,8 @@ import Hagi.Grow
 import Hagi.GapLaw
 import Hagi.RealF3
 import Hagi.Element
+import Hagi.Joint
+import Hagi.GenCycle
 
 set_option linter.style.header false
 
