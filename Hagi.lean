@@ -28,6 +28,10 @@ import Hagi.NCE
 import Hagi.NCEVar
 import Hagi.DField
 import Hagi.ValueOfRead
+import Hagi.NCEExact
+import Hagi.LazyAdam
+import Hagi.ComputeBudget
+import Hagi.DFieldKKT
 
 set_option linter.style.header false
 
