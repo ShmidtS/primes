@@ -51,6 +51,7 @@ import Hagi.Variational
 import Hagi.Upgrades
 import Hagi.Wave2
 import Hagi.Wave3
+import Hagi.Wave4
 
 set_option linter.style.header false
 
