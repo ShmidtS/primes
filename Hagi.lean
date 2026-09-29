@@ -45,6 +45,7 @@ import Hagi.TernaryLean
 import Hagi.MergeScaling
 import Hagi.F3Root
 import Hagi.SinkCost
+import Hagi.PreNorm
 
 set_option linter.style.header false
 
