@@ -35,6 +35,9 @@ import Hagi.DFieldKKT
 import Hagi.DBridge
 import Hagi.Distill
 import Hagi.SafeQP
+import Hagi.Dominate
+import Hagi.Decompose
+import Hagi.FreeEnergy
 
 set_option linter.style.header false
 
