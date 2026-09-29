@@ -25,6 +25,9 @@ import Hagi.GenCycle
 import Hagi.Compound
 import Hagi.RankBudget
 import Hagi.NCE
+import Hagi.NCEVar
+import Hagi.DField
+import Hagi.ValueOfRead
 
 set_option linter.style.header false
 

@@ -158,4 +158,57 @@ theorem compound_cumulative (M₀ : ℝ) (c : ℕ → ℝ) (k : ℕ)
 
 end Compound
 
+
+
+section Interval
+
+/-- **The interval-arithmetic recursion budget: the honest
+"continue" verdict under noisy measurements.** With the
+harvest ratio α, the replenishment D and the joint channel J
+known only up to measurement intervals, the worst-case lower
+bound on the per-cycle gain is αlo•Dlo + Jlo — the monotone
+end of the interval arithmetic (all quantities nonneg). The
+generation verdict is then a *statistical* decision:
+
+* CONTINUE while `αlo•Dlo + Jlo > ε_c` — even the pessimistic
+  end of the confidence region beats the fold threshold;
+* FOLD once `αhi•Dhi + Jhi ≤ ε_c` — even the optimistic end is
+  under;
+* between them — the uncertainty band — the verdict is
+  UNDECIDED from the current data: measure another generation
+  instead of guessing.
+
+This replaces the point comparison of `compound_budget` with
+the interval comparison — the honest form for the noisy
+three-point measurements of (c₁,c₂,c₃) (the confidence region
+of the (α, J) regression). **Prescription for the code**: the
+generation gate reports the triple (lo, point, hi) of
+α•D + J; the decision takes lo for continue and hi for fold;
+the middle band triggers another generation, not a coin
+flip. -/
+theorem compound_budget_interval (αlo Dlo Jlo εc : ℝ)
+    (α D J : ℝ)
+    (hαlo : 0 ≤ αlo) (hDlo : 0 ≤ Dlo)
+    (hα : αlo ≤ α) (hD : Dlo ≤ D) (hJ : Jlo ≤ J) :
+    αlo * Dlo + Jlo ≤ α * D + J := by
+  have hαD : αlo * Dlo ≤ α * D :=
+    mul_le_mul hα hD hDlo (le_trans hαlo hα)
+  linarith [hαD, hJ]
+
+/-- **The fold verdict under intervals**: when even the
+optimistic end of the confidence region is under the fold
+threshold, the recursion folds regardless of the noise — the
+certified stop. -/
+theorem compound_fold_interval (αhi Dlo Dhi Jlo Jhi εc : ℝ)
+    (α D J : ℝ)
+    (hDlo : 0 ≤ Dlo) (hαlo : 0 ≤ α) (hαhi : 0 ≤ αhi)
+    (hα : α ≤ αhi) (hD : Dlo ≤ D ∧ D ≤ Dhi) (hJ : Jlo ≤ J ∧ J ≤ Jhi)
+    (hfold : αhi * Dhi + Jhi ≤ εc) :
+    α * D + J ≤ εc := by
+  have hαD : α * D ≤ αhi * Dhi :=
+    mul_le_mul hα hD.2 (le_trans hDlo hD.1) hαhi
+  linarith [hαD, hJ.2, hfold]
+
+end Interval
+
 end Hagi
