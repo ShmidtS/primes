@@ -47,6 +47,8 @@ import Hagi.F3Root
 import Hagi.SinkCost
 import Hagi.PreNorm
 import Hagi.DesignOpt
+import Hagi.Variational
+import Hagi.Upgrades
 
 set_option linter.style.header false
 
