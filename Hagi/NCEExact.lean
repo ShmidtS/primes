@@ -260,25 +260,14 @@ theorem ceGap_delta_ceiling (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     mul_le_mul_of_nonneg_left hdiv (by positivity)
   linarith [hmul]
 
-/-- **The real anchor recurrence (round-34 fix of the
-trivial form)**: with the per-anchor-stretch drift injection
-ρs and the anchor's restoring contraction γ, the recurrence
-
-`D_{t+1} ≤ (1−γ)•D_t + ρ•s`
-
-has the closed-form stationary point
-
-`D_∞ ≤ ρ•s/γ` —
-
-and the ε-criterion translates directly: the drift stays
-under ε for every anchor cadence satisfying
-`s ≤ γ•ε/ρ` — the exact_ce_interval recipe (the anchor
-budget as a function of the measured drift rate). -/
-theorem anchor_drift_bound (gamma rho s : ℝ)
-    (hgamma : 0 < gamma) (hrho : 0 ≤ rho) (hs : 0 ≤ s) :
-    -- the stationary point of D_{t+1} = (1−γ)D_t + ρs:
-    -- D_∞ = ρs/γ (the closed form; the bracket form)
-    rho * s / gamma = rho * s / gamma := rfl
+-- REPLACED (round 41 audit): the rfl tautology theorem
+-- `anchor_drift_bound` (`rho * s / gamma = rho * s / gamma`)
+-- `rho * s / gamma = rho * s / gamma` is superseded by the
+-- honest recurrence theorem `Hagi.Plan41.anchor_recurrence`:
+-- D_t ≤ (1−γ)^t·D₀ + ρs/γ for every t (the stationary value
+-- ρs/γ is the t → ∞ limit; the finite-t bound is the actual
+-- criterion — the cadence s ≤ γε/ρ applies once the transient
+-- (1−γ)^t·D₀ has decayed under the slack).
 
 /-- **The ε-criterion of the anchor cadence**: the drift
 stays bounded by ε iff the cadence s satisfies
