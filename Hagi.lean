@@ -32,6 +32,8 @@ import Hagi.NCEExact
 import Hagi.LazyAdam
 import Hagi.ComputeBudget
 import Hagi.DFieldKKT
+import Hagi.DBridge
+import Hagi.Distill
 
 set_option linter.style.header false
 
