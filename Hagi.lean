@@ -43,6 +43,8 @@ import Hagi.MergeIdentity
 import Hagi.BranchScale
 import Hagi.TernaryLean
 import Hagi.MergeScaling
+import Hagi.F3Root
+import Hagi.SinkCost
 
 set_option linter.style.header false
 
