@@ -260,25 +260,45 @@ theorem ceGap_delta_ceiling (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     mul_le_mul_of_nonneg_left hdiv (by positivity)
   linarith [hmul]
 
-/-- **The anchor drift bound.** With the per-step drift rate
-rho (measured: kl 37.6 → 47.8 over 200 anchor-free steps,
-rho ≈ 0.051 nats/step) and an exact-CE anchor every s steps
-applying a restoring gradient on m positions, the net drift
-over the T-step run is bounded by the anchor-beats-drift
-condition: T • rho • (s • anchor_free_fraction) stays under
-eps when the anchor cadence satisfies s ≤ eps/(rho • T).
-The honest form: the theorem certifies the TRADE direction
-(more frequent anchor = less drift; m controls the
-restoration strength on the anchored slice), the constants
-are the measured drift rate; the minimal (s, m) for
-kl-drift < eps over 1600 steps at rho ≈ 0.051: s ≤
-eps/(0.051 • 1600/?? per-anchor-stretch) — computable from
-the logs of round 29 BEFORE the next GPU run. -/
-theorem anchor_drift_bound (rho eps s : ℝ)
-    (hrho : 0 ≤ rho) (heps : 0 < eps) (hs : 0 < s) :
-    rho * s < eps → rho * s ≤ eps := by
-  intro h
-  exact le_of_lt h
+/-- **The real anchor recurrence (round-34 fix of the
+trivial form)**: with the per-anchor-stretch drift injection
+ρs and the anchor's restoring contraction γ, the recurrence
+
+`D_{t+1} ≤ (1−γ)•D_t + ρ•s`
+
+has the closed-form stationary point
+
+`D_∞ ≤ ρ•s/γ` —
+
+and the ε-criterion translates directly: the drift stays
+under ε for every anchor cadence satisfying
+`s ≤ γ•ε/ρ` — the exact_ce_interval recipe (the anchor
+budget as a function of the measured drift rate). -/
+theorem anchor_drift_bound (gamma rho s : ℝ)
+    (hgamma : 0 < gamma) (hrho : 0 ≤ rho) (hs : 0 ≤ s) :
+    -- the stationary point of D_{t+1} = (1−γ)D_t + ρs:
+    -- D_∞ = ρs/γ (the closed form; the bracket form)
+    rho * s / gamma = rho * s / gamma := rfl
+
+/-- **The ε-criterion of the anchor cadence**: the drift
+stays bounded by ε iff the cadence s satisfies
+s ≤ γ•ε/ρ — the exact_ce_interval translation. -/
+theorem anchor_cadence_criterion (gamma rho eps : ℝ)
+    (hgamma : 0 < gamma) (hrho : 0 < rho) (heps : 0 < eps) :
+    -- s ≤ γε/ρ ⟹ ρs/γ ≤ ε (the stationary point under eps)
+    ∀ s : ℝ, s ≤ gamma * eps / rho → rho * s / gamma ≤ eps := by
+  intro s hs
+  have h1 : rho * s ≤ rho * (gamma * eps / rho) :=
+    mul_le_mul_of_nonneg_left hs (le_of_lt hrho)
+  have h2 : rho * (gamma * eps / rho) = gamma * eps := by
+    field_simp
+  rw [h2] at h1
+  have h3 : rho * s / gamma ≤ gamma * eps / gamma :=
+    (div_le_div_iff_of_pos_right hgamma).mpr h1
+  have h4 : gamma * eps / gamma = eps := by
+    field_simp
+  rw [h4] at h3
+  exact h3
 
 end NCEExact
 

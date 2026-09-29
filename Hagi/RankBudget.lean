@@ -158,25 +158,36 @@ theorem rankResidual_equalized
   rw [hlin, add_zero] at hsum
   exact hsum
 
-/-- **The explicit allocation (the closed form).** At the
-equalized point, the optimal rank of tensor j is
-`r_j* = (log c_j − log(λ (m_j + n_j)))/κ_j` — logarithmic in
-the tail scale, inverse in the decay rate; the active set is
-`c_j > λ (m_j + n_j)`. The identity here is the log-form
-rewrite used to compute it from the measured spectra. -/
+/-- **The explicit allocation (the closed form, round-25
+kappa-corrected — the Lean file synced with the Python fix).**
+At the equalized point, the optimal rank of tensor j is
+
+`r_j* = [κ_j⁻¹ · log(c_j·κ_j / (λ (m_j + n_j)))]₊` —
+
+with the tail scale MULTIPLIED by the decay rate in the
+numerator (the marginal of E = c·e^{−κr} is c·κ·e^{−κr}; the
+equalization c_j κ_j e^{−κ_j r} = λ (m_j+n_j) gives the
+closed form) and the positive part max(0, ·) — the ACTIVE
+SET `c_j·κ_j > λ (m_j + n_j)` (the inactive tensors get
+r_j* = 0; the Python active-set from round 25 synced). The
+identity here is the log-form rewrite used to compute it
+from the measured spectra. -/
 theorem rankResidual_allocation
     (c κ : ι → ℝ) (lam L : ℝ)
     (hc : ∀ j, 0 < c j) (hk : ∀ j, 0 < κ j)
     (hlam : 0 < lam) (hL : 0 < L) :
-    ∀ j, (Real.log (c j) - Real.log L) / κ j
-      = -(1/(κ j)) * Real.log (L / c j) := by
+    ∀ j, (Real.log (c j * κ j) - Real.log L) / κ j
+      = -(1/(κ j)) * Real.log (L / (c j * κ j)) := by
   intro j
-  -- log c - log L = log(c/L) = -log(L/c)
-  have h1 : Real.log (c j / L) = Real.log (c j) - Real.log L :=
-    Real.log_div (by exact ne_of_gt (hc j)) (by exact ne_of_gt hL)
-  have h2 : Real.log (L / c j) = Real.log L - Real.log (c j) :=
-    Real.log_div (by exact ne_of_gt hL) (by exact ne_of_gt (hc j))
-  -- both sides: (log c - log L)/κ = -(1/κ)(log L - log c)
+  -- log(cκ) - log L = log(cκ/L) = -log(L/(cκ))
+  have hck : 0 < c j * κ j := mul_pos (hc j) (hk j)
+  have h1 : Real.log (c j * κ j / L)
+      = Real.log (c j * κ j) - Real.log L :=
+    Real.log_div (by exact ne_of_gt hck) (by exact ne_of_gt hL)
+  have h2 : Real.log (L / (c j * κ j))
+      = Real.log L - Real.log (c j * κ j) :=
+    Real.log_div (by exact ne_of_gt hL) (by exact ne_of_gt hck)
+  -- both sides: (log(cκ) - log L)/κ = -(1/κ)(log L - log(cκ))
   rw [h2]
   field_simp
   ring

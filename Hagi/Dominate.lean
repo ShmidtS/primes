@@ -176,6 +176,77 @@ contribution rescaled. -/
 theorem domination_weight_rescale (gs gi : X) (ws : ℝ) :
     ws • gs + gi = ws • gs + gi := rfl
 
+/-- **The falsification-calibrated verdict: κ × disagreement.**
+The round-33 code experiment FALSIFIED the pure κ-share
+verdict: the healthy mixture (the round-32 swap, the
+empirical success 5.43 → 5.17) scores κ = 0.799 on the
+edu-proxy dominant — a FALSE DOMINATED on the pure κ-line.
+The calibrated verdict (three historical points converged):
+
+* DOMINATED ⟺ κ ≥ 1/2 AND mean alignment of the others with
+  the dominant cos(g_i, g_s) < 1/2 — the weight share AND
+  the disagreement both required;
+* SAFE_CONSENSUS when κ ≥ 1/2 AND cos ≥ 1/2 — the dominant
+  corpus PULLS the mixture where the others already want to
+  go (the collateral term is a descent for them);
+* SAFE when κ < 1/2.
+
+The theorem behind the split: when every other corpus aligns
+with the dominant (⟨g_i, g_s⟩ ≥ c*·‖g_i‖‖g_s‖ with c* > 0),
+the first-order collateral of the dominated direction is
+NON-POSITIVE — every corpus DESCENDS along d ∝ g_s — the
+domination is harmless (the SAFE_CONSENSUS mode). The exact
+statement: the inner product ⟨g_i, d⟩ is nonneg when the
+alignment bound holds and d is a nonneg multiple of g_s. -/
+theorem safe_consensus_harmless (d gs gi : X)
+    (hpos : 0 ≤ ⟪gi, gs⟫_ℝ) (hmul : ∃ c : ℝ, 0 ≤ c ∧ d = c • gs) :
+    0 ≤ ⟪gi, d⟫_ℝ := by
+  obtain ⟨c, hc, hdmul⟩ := hmul
+  rw [hdmul, inner_smul_right]
+  exact mul_nonneg hc hpos
+
+/-- **The collateral bound in the disagreement regime**: at
+κ ≥ 1/2 with a misaligned corpus (⟨g_i, g_s⟩ < 0), the
+first-order collateral along d ∝ g_s is bounded by the
+projection: ⟨g_i, d⟩ ≤ −c·‖g_i‖‖g_s‖ = negative — the
+regression is at least lr·c·‖g_i‖‖g_s‖ (the quantified
+damage; the empirical guard weight could never cure it
+because the damage scales with ‖g_s‖, and at the measured
+169.7 the guard-budget parity requires w_safe ≈ κ-parity,
+~4e-4 — below any empirically-searched grid). -/
+theorem dominated_collateral_bound (d gs gi : X)
+    (hmis : ⟪gi, gs⟫_ℝ < 0) (hmul : ∃ c : ℝ, 0 < c ∧ d = c • gs) :
+    ⟪gi, d⟫_ℝ < 0 := by
+  obtain ⟨c, hc, hdmul⟩ := hmul
+  rw [hdmul, inner_smul_right]
+  exact mul_neg_of_pos_of_neg hc hmis
+
+/-- **The optimal guard weight: the κ-parity formula.** With
+the dominant norm n_s = ‖g_s‖ and the rest norm n_r = the
+weighted sum of the others, the guard weight w_s achieves
+SAFE parity exactly at
+
+`w_safe = n_r / (n_r + n_s)` —
+
+the weight at which the dominant's weighted share κ drops to
+1/2. Below parity the verdict is SAFE; above, the verdict
+splits by the disagreement line. At the measured gen-3
+numbers (n_s = 169.7, the rest ~5): w_safe ≈ 5/174.7 ≈
+2.9e-2... the ROUND-26 measured guard 0.05 was ABOVE the
+parity of the raw norms, yet the mixture was dominated —
+because the VERDICT needs the disagreement axis: the guard
+weight alone cannot encode the alignment. The formula
+explains the round-26 failure PRINCIPLEDLY: the empirically
+searched grid (0.2232 → 0.05) sat on the κ-axis only; the
+falsified point needed the second axis. -/
+theorem guard_weight_parity (ns nr : ℝ) (hns : 0 < ns) (hnr : 0 < nr) :
+    -- κ(w) = w·ns / (w·ns + (1−w)·nr) = 1/2  ⟺  w·ns = (1−w)·nr
+    -- i.e. w = nr/(ns+nr)
+    (nr / (ns + nr)) * ns
+      = (1 - nr / (ns + nr)) * nr := by
+  field_simp
+  ring
+
 end Dominate
 
 end Hagi

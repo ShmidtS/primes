@@ -128,6 +128,37 @@ theorem waterfilling_bound (c : ι → ℝ) (kappa : ℝ)
     _ ≤ ∑ i, c i * Real.exp (-kappa * b i) :=
         Finset.sum_le_sum fun i _ => hper i
 
+/-- **The active-set form (round-34 sync with the Python
+fix): the allocation law with the positive part.** The
+closed-form water level
+
+`b_i* = max(0, (1/κ)·log(c_i/λ))` —
+
+the negative-bit clamp: tensors with c_i ≤ λ (the residual
+under the price even at zero budget) are EXCLUDED (b_i* = 0)
+and the budget redistributes over the active set
+{c_i > λ}. The Lean side previously recorded only the
+interior form (c_i·e^{−κb_i*} = λ); the positive part is the
+boundary case of the same KKT (the complementarity: the
+inactive tensors' marginal at 0 is under the price). The
+formal statement: for the inactive tensor (c_i ≤ λ) the
+clamped allocation is zero. -/
+theorem waterfilling_inactive_clamp (c_i lam kappa : ℝ)
+    (hcpos : 0 < c_i) (hlam : 0 < lam) (hkappa : 0 < kappa)
+    (hinactive : c_i ≤ lam) :
+    max 0 ((1/kappa) * Real.log (c_i / lam)) = 0 := by
+  have hratio : c_i / lam ≤ 1 := (div_le_one₀ hlam).mpr hinactive
+  -- log(c/λ) ≤ 0 ⟸ c/λ ≤ 1 (log monotone at 1)
+  have hlog : Real.log (c_i / lam) ≤ 0 := by
+    have h1 : Real.log (c_i / lam) ≤ Real.log 1 :=
+      Real.log_le_log (div_pos hcpos hlam) hratio
+    rw [Real.log_one] at h1
+    exact h1
+  -- (1/κ)·log(c/λ) ≤ 0 ⟹ max 0 · = 0
+  have hinner : (1/kappa) * Real.log (c_i / lam) ≤ 0 := by
+    apply mul_nonpos_of_nonneg_of_nonpos (by positivity) hlog
+  exact max_eq_left (le_trans hinner (le_refl 0))
+
 end Waterfilling
 
 end Hagi

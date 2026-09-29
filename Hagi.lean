@@ -38,6 +38,9 @@ import Hagi.SafeQP
 import Hagi.Dominate
 import Hagi.Decompose
 import Hagi.FreeEnergy
+import Hagi.GrowthGate
+import Hagi.MergeIdentity
+import Hagi.BranchScale
 
 set_option linter.style.header false
 
