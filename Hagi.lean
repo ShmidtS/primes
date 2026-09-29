@@ -34,6 +34,7 @@ import Hagi.ComputeBudget
 import Hagi.DFieldKKT
 import Hagi.DBridge
 import Hagi.Distill
+import Hagi.SafeQP
 
 set_option linter.style.header false
 
