@@ -18,6 +18,7 @@ import Hagi.Budget.KVWater
 import Hagi.Core.Ambig
 import Hagi.Growth.Grow
 import Hagi.Ensemble.GapLaw
+import Hagi.Ensemble.Hoeffding
 import Hagi.Core.RealF3
 import Hagi.Core.Element
 import Hagi.Step.Joint

@@ -298,3 +298,20 @@ triviality 1.0000, clean axioms on all three.
 
 Anchors 74 → 77. Build 8686 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R56 — T1a CLOSED: the Hoeffding kernel via the chord route
+
+Hagi/Ensemble/Hoeffding.lean (open since round-47):
+- exp_chord: the convexity chord of exp on [−M, M]
+- sum_pair_weights / sum_pair_diff_zero / sum_pair_const /
+  sum2_mul: the double-sum toolkit (product-weight
+  centering is AUTOMATIC: E_{u,v}[d_u−d_v] ≡ 0)
+- **exp_prod_le_cosh**: ΣΣ p_u p_v e^{d_u−d_v} ≤ cosh M
+  for any pool with pairwise disagreement ≤ M. Via the
+  twoGap identity: gap ≤ ½·log cosh M — the STRICT
+  admission certificate for bounded-disagreement pools.
+  The Var-квадратичная form (½log cosh M ≤ M²/4) and the
+  Hoeffding tail form remain open (declared).
+
+Anchors 77 → 84 (+7 theorems). Build 8687 jobs green,
+0 sorry, triviality 1.0000, clean axioms.
