@@ -282,3 +282,19 @@ Applied from the sweep — roadmap #1.3 CLOSED:
 
 Anchors 71 → 74. Build 8686 jobs green, 0 sorry,
 triviality 1.0000, clean axioms on all three.
+
+## R55 — SafeQP nonconvex descent budget (roadmap #1, first piece)
+
+- safeqp_cumulative: telescope (Σ_{t<n} η_t·‖d*_t‖²)/2 +
+  E_n ≤ E_0 — the cumulative form
+- safeqp_total_descent: Σ η_t·‖d*_t‖² ≤ 2(E₀−E_min) — the
+  descent budget is FINITE even on nonconvex landscapes
+- safeqp_eps_critical: with uniform step floor η_min and
+  activity ‖d*_t‖² ≥ ε², ε-criticality is reached within
+  2(E₀−E_min)/(η_min·ε²) steps — no limit cycles, no
+  paralysis away from criticality
+- Honest boundary: ‖d*‖→0 ⇒ Pareto ε-stationarity
+  (min_α‖Σαᵢ∇Lᵢ‖ ≤ O(ε)) via Gram dual feasibility — open
+
+Anchors 74 → 77. Build 8686 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

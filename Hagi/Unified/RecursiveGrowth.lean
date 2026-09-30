@@ -237,4 +237,68 @@ theorem optimal_step_ge_recip (L dn2 inner : ℝ)
   have hkey : 1 / L * (L * dn2) = dn2 := by field_simp
   nlinarith [hin]
 
+/-! ## Roadmap #1: nonconvex SafeQP iterations — the descent budget
+
+The first machine-checked piece of the Lyapunov-stability gap
+(#1): even on a NONCONVEX landscape, the SafeQP iteration with
+certified per-step decrease ≥ η_t·‖d*_t‖²/2 has a FINITE total
+descent budget: Σ η_t·‖d*_t‖² ≤ 2(E₀ − E_min). With a uniform
+step floor η_min and activity ‖d*_t‖² ≥ ε², the iteration
+MUST reach an ε-critical point within 2(E₀−E_min)/(η_min·ε²)
+steps — no limit cycles, no paralysis away from criticality
+(the optimizer-paralysis fear of the review is bounded to
+exactly this budget).
+
+**Honest boundary**: the link ‖d*_t‖ → 0 ⇒ Pareto
+ε-stationarity (min_α ‖Σαᵢ∇Lᵢ‖ ≤ O(ε)) for the multi-domain
+Gram geometry remains open — the CAGrad-style argument needs
+the dual-feasibility structure not yet formalized.
+
+-/
+
+theorem safeqp_cumulative (E eta dn : ℕ → ℝ) (Emin : ℝ)
+    (hE : ∀ t, Emin ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - eta t * dn t ^ 2 / 2)
+    (n : ℕ) :
+    (∑ t ∈ Finset.range n, eta t * dn t ^ 2) / 2 + E n ≤ E 0 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [Finset.sum_range_succ]
+    have h1 := hstep n
+    have h2 : (∑ t ∈ Finset.range n, eta t * dn t ^ 2 + eta n * dn n ^ 2) / 2 + E (n + 1)
+        ≤ (∑ t ∈ Finset.range n, eta t * dn t ^ 2) / 2 + E n := by linarith
+    linarith [ih, h2]
+
+theorem safeqp_total_descent (E eta dn : ℕ → ℝ) (Emin : ℝ)
+    (hE : ∀ t, Emin ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - eta t * dn t ^ 2 / 2)
+    (n : ℕ) :
+    ∑ t ∈ Finset.range n, eta t * dn t ^ 2 ≤ 2 * (E 0 - Emin) := by
+  have hc := safeqp_cumulative E eta dn Emin hE hstep n
+  have hEn := hE n
+  linarith
+
+theorem safeqp_eps_critical (E eta dn : ℕ → ℝ) (Emin etamin eps : ℝ)
+    (hE : ∀ t, Emin ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - eta t * dn t ^ 2 / 2)
+    (hetamin : ∀ t, etamin ≤ eta t) (heps : 0 < eps) (hetamin0 : 0 < etamin)
+    (hactive : ∀ t, eps ^ 2 ≤ dn t ^ 2) (n : ℕ) :
+    (n : ℝ) ≤ 2 * (E 0 - Emin) / (etamin * eps ^ 2) := by
+  have hsum := safeqp_total_descent E eta dn Emin hE hstep n
+  have hlb : (n : ℝ) * (etamin * eps ^ 2) ≤ ∑ t ∈ Finset.range n, eta t * dn t ^ 2 := by
+    have hterm : ∀ t ∈ Finset.range n, etamin * eps ^ 2 ≤ eta t * dn t ^ 2 := by
+      intro t _
+      have h1 := hetamin t
+      have h2 := hactive t
+      nlinarith
+    have hmono : ∑ t ∈ Finset.range n, etamin * eps ^ 2 ≤ ∑ t ∈ Finset.range n, eta t * dn t ^ 2 :=
+      Finset.sum_le_sum hterm
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul] at hmono
+    exact hmono
+  have hpos : 0 < etamin * eps ^ 2 := by positivity
+  have hgoal : (n:ℝ) * (etamin * eps ^ 2) ≤ 2 * (E 0 - Emin) := by linarith
+  rw [le_div_iff₀ hpos]
+  linarith
+
 end Hagi
