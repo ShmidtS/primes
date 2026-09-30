@@ -144,6 +144,90 @@ theorem budget_gap_sign_const (dM dS u C C0 : ℝ)
 -- T3c (equal-rate sign constancy) — the sign machinery for
 -- the unequal-rate crossover remains open.
 
+/-- **T3d (two-sided break-even, closed)**: with merged-pool
+head start d_M < d_S, contraction rate c ∈ (0,1), per-step
+rate κ, and leaf-compute cost C₀, the merged trajectory
+beats scratch net of leaf cost **iff** C₀ < κ·ln(d_S/d_M)/ln(1/c).
+Sign fix vs the round-47 note: the exponent is −C₀/κ (leaf
+compute *consumed* from the budget), so the break-even budget
+is positive, k = ln(dS/dM)/ln(1/c) > 0. The one-sided
+`budget_gap_sign_const` plus this iff fully closes T3d. -/
+theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
+    (hdM : 0 < dM) (hdS : 0 < dS) (hdSdM : dM < dS) (hc : 0 < c) (hc1 : c < 1)
+    (hk : 0 < kappa) :
+    dM * c^(-(C0 / kappa)) < dS ↔ C0 < (Real.log (dS / dM) / Real.log (1/c)) * kappa := by
+  have hsum : Real.log c + Real.log (1/c) = 0 := by
+    have hcne : c ≠ 0 := ne_of_gt hc
+    have h2 : Real.log (1/c) = Real.log 1 - Real.log c := Real.log_div (one_ne_zero) hcne
+    rw [h2, Real.log_one, zero_sub]; ring
+  have hlnc : Real.log c < 0 := by
+    have h1 : Real.log c < Real.log 1 := Real.log_lt_log hc (by linarith : c < (1:ℝ))
+    rw [Real.log_one] at h1; exact h1
+  have hln1c : 0 < Real.log (1/c) := by linarith
+  have hB : 0 < Real.log (dS / dM) :=
+    Real.log_pos ((one_lt_div hdM).mpr hdSdM)
+  -- core: c^{−t} < dS/dM ↔ t·ln(1/c) < B   [log monotone, one-sided enough both ways via contraposition]
+  have key : c^(-(C0/kappa)) < dS / dM ↔ C0/kappa * Real.log (1/c) < Real.log (dS/dM) := by
+    constructor
+    · intro h
+      have := Real.log_lt_log (Real.rpow_pos_of_pos hc _) h
+      rw [Real.log_rpow hc] at this
+      rw [show -(C0/kappa) * Real.log c = C0/kappa * Real.log (1/c) from by
+      have h0 : -(C0/kappa) * Real.log c + C0/kappa * Real.log c = 0 := by ring
+      have h1 : C0/kappa * Real.log c + C0/kappa * Real.log (1/c) = 0 := by
+        have := hsum; nlinarith [hsum]
+      linarith] at this
+      exact this
+    · intro h
+      by_contra hcon
+      push_neg at hcon
+      have hge : Real.log (dS/dM) ≤ Real.log (c^(-(C0/kappa))) :=
+        Real.log_le_log (by positivity) hcon
+      rw [Real.log_rpow hc] at hge
+      rw [show -(C0/kappa) * Real.log c = C0/kappa * Real.log (1/c) from by
+      have h0 : -(C0/kappa) * Real.log c + C0/kappa * Real.log c = 0 := by ring
+      have h1 : C0/kappa * Real.log c + C0/kappa * Real.log (1/c) = 0 := by
+        have := hsum; nlinarith [hsum]
+      linarith] at hge
+      linarith
+  constructor
+  · intro h
+    have h1 : c^(-(C0/kappa)) < dS / dM := by
+      rw [lt_div_iff₀ hdM]
+      linarith
+    have h2 := (key.mp h1)
+    -- h2: (C0/κ)·L < B  ⟹ C0 < κ·B/L
+    -- goal: C0 < (B/L)·κ ; have h2: (C0/κ)·L < B ; L>0, κ>0
+    have hrew : Real.log (dS/dM) / Real.log (1/c) * kappa
+        = Real.log (dS/dM) * kappa / Real.log (1/c) := by
+      rw [div_mul_eq_mul_div]
+    rw [hrew, lt_div_iff₀ hln1c]
+    -- now: C0*L < B*κ ; from h2 : (C0/κ)·L < B multiply by κ
+    have hkey : C0 / kappa * Real.log (1/c) * kappa = C0 * Real.log (1/c) := by
+      rw [div_mul_eq_mul_div]
+      rw [show C0 * Real.log (1/c) / kappa * kappa = C0 * Real.log (1/c) from by
+        field_simp]
+    nlinarith [h2, hkey]
+  · intro h
+    -- C0 < κ·B/L ⟹ (C0/κ)·L < B
+    have h2 : C0/kappa * Real.log (1/c) < Real.log (dS/dM) := by
+      have h3 : C0 * Real.log (1/c) < Real.log (dS/dM) * kappa := by
+        have h5 : C0 * Real.log (1/c)
+            < (Real.log (dS/dM) / Real.log (1/c) * kappa) * Real.log (1/c) :=
+          mul_lt_mul_of_pos_right h hln1c
+        rw [div_mul_eq_mul_div] at h5
+        rw [show Real.log (dS/dM) * kappa / Real.log (1/c) * Real.log (1/c)
+            = Real.log (dS/dM) * kappa from by field_simp] at h5
+        exact h5
+      have hkey : C0 / kappa * Real.log (1/c) * kappa = C0 * Real.log (1/c) := by
+        rw [div_mul_eq_mul_div]
+        rw [show C0 * Real.log (1/c) / kappa * kappa = C0 * Real.log (1/c) from by
+          field_simp]
+      nlinarith [h3, hkey]
+    have h1 := key.mpr h2
+    have h3 : c^(-(C0/kappa)) * dM < dS := (lt_div_iff₀ hdM).mp h1
+    linarith
+
 end EqualBudget
 
 end Hagi

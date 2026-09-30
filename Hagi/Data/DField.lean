@@ -341,4 +341,76 @@ theorem divField_zero_iff (p : K → Corpus V) (w : K → ℝ)
 
 end DField
 
+section Product
+
+theorem log_ratio_add (a b c d : ℝ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) (hd : 0 < d) :
+    Real.log ((a * b) / (c * d)) = Real.log (a / c) + Real.log (b / d) := by
+  have h1 : (a * b) / (c * d) = (a / c) * (b / d) := by field_simp
+  rw [h1, Real.log_mul (by positivity) (by positivity)]
+
+theorem kl_product {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
+    (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
+    (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1) :
+    KLdiv (fun uv : V × V => p1 uv.1 * p2 uv.2) (fun uv : V × V => q1 uv.1 * q2 uv.2)
+      = KLdiv p1 q1 + KLdiv p2 q2 := by
+  -- term-level split
+  have hsplit : ∀ x y : V,
+      (p1 x * p2 y) * Real.log ((p1 x * p2 y) / (q1 x * q2 y))
+      = (p1 x * p2 y) * Real.log (p1 x / q1 x)
+        + (p1 x * p2 y) * Real.log (p2 y / q2 y) := by
+    intro x y
+    rw [log_ratio_add (p1 x) (p2 y) (q1 x) (q2 y) (hp1 x) (hp2 y) (hq1 x) (hq2 y), mul_add]
+  have hinner : ∀ x : V, ∑ y : V,
+      (p1 x * p2 y) * Real.log ((p1 x * p2 y) / (q1 x * q2 y))
+      = p1 x * Real.log (p1 x / q1 x)
+        + p1 x * (∑ y : V, p2 y * Real.log (p2 y / q2 y)) := by
+    intro x
+    rw [Finset.sum_congr rfl (fun y _ => hsplit x y), Finset.sum_add_distrib]
+    have h1 : ∑ y : V, p1 x * p2 y * Real.log (p1 x / q1 x)
+        = p1 x * Real.log (p1 x / q1 x) := by
+      have hre : ∀ y : V, p1 x * p2 y * Real.log (p1 x / q1 x)
+          = (p1 x * Real.log (p1 x / q1 x)) * p2 y := fun y => by ring
+      rw [Finset.sum_congr rfl (fun y _ => hre y)]
+      exact (Finset.mul_sum (Finset.univ : Finset V)
+        (fun y => p2 y) (p1 x * Real.log (p1 x / q1 x))).symm |>.trans (by
+        rw [hsum2]; ring)
+    have h2 : ∑ y : V, p1 x * p2 y * Real.log (p2 y / q2 y)
+        = p1 x * (∑ y : V, p2 y * Real.log (p2 y / q2 y)) := by
+      have hre : ∀ y : V, p1 x * p2 y * Real.log (p2 y / q2 y)
+          = p1 x * (p2 y * Real.log (p2 y / q2 y)) := fun y => by ring
+      rw [Finset.sum_congr rfl (fun y _ => hre y), Finset.mul_sum]
+    rw [h1, h2]
+  unfold KLdiv
+  rw [Fintype.sum_prod_type (fun uv : V × V =>
+    (p1 uv.1 * p2 uv.2) * Real.log ((p1 uv.1 * p2 uv.2) / (q1 uv.1 * q2 uv.2))),
+    Finset.sum_congr rfl (fun x _ => hinner x), Finset.sum_add_distrib]
+  have hlast : ∑ x : V, p1 x * ∑ y : V, p2 y * Real.log (p2 y / q2 y)
+      = ∑ v : V, p2 v * Real.log (p2 v / q2 v) := by
+    have hre : ∀ x : V, p1 x * (∑ y : V, p2 y * Real.log (p2 y / q2 y))
+        = (∑ y : V, p2 y * Real.log (p2 y / q2 y)) * p1 x := fun x => mul_comm _ _
+    rw [Finset.sum_congr rfl (fun x _ => hre x)]
+    exact (Finset.mul_sum (Finset.univ : Finset V) (fun x => p1 x)
+      (∑ y : V, p2 y * Real.log (p2 y / q2 y))).symm |>.trans (by
+      rw [hsum1]; ring)
+  rw [hlast]
+
+
+/-- **Corollary (D_L ≥ D_1, product case)**: the KL divergence
+of a product distribution dominates the divergence of its
+marginals. Applied token-wise along a document, this shows the
+sequence-level divergence lower-bounds the unigram divergence —
+closing the D_L ≥ D_1 gap for independent-position models
+(the dependent case remains open, see Honest boundary above). -/
+theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
+    (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
+    (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1)
+    (hsumq1 : ∑ v, q1 v = 1) (hsumq2 : ∑ v, q2 v = 1) :
+    KLdiv p1 q1 ≤ KLdiv (fun uv : V × V => p1 uv.1 * p2 uv.2)
+      (fun uv : V × V => q1 uv.1 * q2 uv.2) := by
+  rw [kl_product p1 q1 p2 q2 hp1 hq1 hp2 hq2 hsum1 hsum2]
+  have h2 : 0 ≤ KLdiv p2 q2 := kl_nonneg p2 q2 hp2 hq2 hsum2 hsumq2
+  linarith
+
+end Product
+
 end Hagi

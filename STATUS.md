@@ -148,3 +148,18 @@
   merge_init_head_start (слабая, помечена), adaptive_ns_exists,
   supportSet_bound (нужен min V·)
 - «0 sorry» по всей `Hagi/`: сохраняется
+
+## R50 — Proofs landed (post-refactor)
+
+- **kl_product** (Hagi.Data.DField): KL divergence of product
+  distributions = sum of marginal divergences. Closes the
+  10-attempt blocker (explicit `Finset.mul_sum` terms, not rw).
+- **KL_product_ge_marginal** (Hagi.Data.DField): D_L ≥ D_1 for
+  independent-position models — sequence divergence dominates
+  unigram divergence. Dependent case remains open (honest).
+- **headstart_pays_iff** (Hagi.Audit.EqualBudget): two-sided
+  break-even C₀ < κ·ln(dS/dM)/ln(1/c). Sign bug of the r47
+  note found & fixed: exponent is −C₀/κ. T3d CLOSED.
+- Remaining unproved: T1a-Hoeffding core, stochastic SafeQP,
+  per-stage Lyapunov, η closed form, global architecture KKT,
+  spectrum→CE two-sided link.
