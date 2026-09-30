@@ -56,6 +56,7 @@ import Hagi.Plan41
 import Hagi.Plan42
 import Hagi.Plan43
 import Hagi.Wave5
+import Hagi.RootContrast
 
 set_option linter.style.header false
 

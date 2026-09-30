@@ -82,10 +82,21 @@
 - Унификация DepthBench: I_eff = ранг доступных вычислительных
   состояний; эксперт/слой/память/ширина — одна очередь ΔI_eff/ΔT_wall
 
+## Раунд 45 (RootContrast) — root ⊕ contrast канал
+
+- T1: root_idem + contrast_zero_sum + contrast_of_root +
+  root_contrast_orth_total + root_contrast_pythagoras — разложение
+  без потерь (5 теорем)
+- T2: filter_partition_sum + highway_gain_identity — выигрыш highway
+  = захваченная contrast-энергия (точное тождество)
+- T3/C: two-block правило (waterfilling-следствие, документировано);
+  go/no-go: ρ_c(64) ≤ 0.028 до GPU
+- Фальсификация: слепое предсказание Δ(highway−rootonly) ≈ ρ_c(r_c)
+
 ## Счётчик
 
 - Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5, Plan43 — 6,
-  Wave5 — 3 (итого 21)
+  Wave5 — 3, RootContrast — 7 (итого 28)
 - Тавтологий в реестре: 13 (3 заменено теоремами, 6 demoted/удалены,
   4 — кандидаты: growth_verdict_table (→ функция вердикта),
   merge_init_head_start (слабая, помечена), adaptive_ns_exists,
