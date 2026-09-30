@@ -109,19 +109,11 @@ end GradMerge
 
 section ConfigCert
 
-/-- **(2) The ConFIG constructive certificate** (tum-pbs/ConFIG,
-ICLR'25 Spotlight — transported): if a conflict-free
-direction EXISTS (some d with a positive inner product
-against EVERY corpus gradient), the existence is CERTIFIED
-by exhibiting d — a constructive certificate, no QP solve.
-The dual reading: our κ×cos test of `Hagi.Dominate` MEASURES
-whether the raw mixture direction qualifies; ConFIG BUILDS
-a qualifying direction when one exists. The two compose:
-measure first (cheap), construct only if the measurement
-fails. -/
-theorem config_cert_constructive (K : Type) [Fintype K]
-    (hcf : ∃ d : K → ℝ, (∀ i : K, 0 < d i)) :
-    ∃ d : K → ℝ, (∀ i : K, 0 < d i) := hcf
+-- NOT A THEOREM (round-41 audit): the statement was
+-- conclusion ≡ hypothesis (an identity restatement). The
+-- PRESCRIPTION stands (measure → construct → only then QP);
+-- the honest constructive content lives in the ConFIG
+-- closed-form construction, not in an existence tautology.
 
 end ConfigCert
 

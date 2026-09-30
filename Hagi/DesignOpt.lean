@@ -158,14 +158,11 @@ theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
   rw [he0]
   exact heps
 
-/-- **The wall-clock model**: the step time is the max of
-the compute and the bandwidth terms plus the launch/IO
-overhead — the two-cost structure (the math cost AND the
-hardware cost) of the design objective. -/
-theorem wall_clock_model (F B Rc Rb Tl : ℝ)
-    (hRc : 0 < Rc) (hRb : 0 < Rb) :
+-- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- prescription carrier only. Demoted to the DEFINITION of the
+-- wall-clock model; the two-cost structure is the object.
+noncomputable def wallClock (F B Rc Rb Tl : ℝ) : ℝ :=
     max (F / Rc) (B / Rb) + Tl
-      = max (F / Rc) (B / Rb) + Tl := rfl
 
 /-- **THE MAIN THEOREM (the interior optimality of the
 compute-optimal design)**: at the optimum of the constrained

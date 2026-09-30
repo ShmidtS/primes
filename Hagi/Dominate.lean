@@ -150,21 +150,11 @@ theorem domination_regression (d gs gi : X)
     mul_le_mul_of_nonpos_right hAmin hB'
   exact le_trans hstep1 hstep2
 
-/-- **The normalization cure preserves descent** (b)(i): the
-contribution-normalized direction (scaling each g_i to equal
-weighted norms) is a descent direction for the mixture iff
-the normalized direction still positively aligns with the raw
-mixture gradient: ⟨g_norm, g⟩ > 0 — the alignment survival
-condition. At the measured 94.8% domination the normalization
-FLIPS the alignment (the dominant corpus's contribution is
-rescaled down by 94.8/5.2 ≈ 18×), and the cure REQUIRES the
-QP form — the theorem quantifies when the cheap cure suffices
-and when the projection is needed. -/
-theorem normalized_descent_preserved (g gnorm : X)
-    (hpos : 0 < ⟪gnorm, g⟫_ℝ) :
-    -- a step along gnorm decreases the mixture objective
-    -- (first-order descent): the sign condition is the theorem
-    ⟪gnorm, g⟫_ℝ > 0 := hpos
+-- NOT A THEOREM (round-41 audit): the statement was
+-- conclusion ≡ hypothesis. The first-order descent CONDITION
+-- ⟪gnorm, g⟫_ℝ > 0 is the measured sign test (the κ×cos
+-- scan); the descent guarantee proper lives in
+-- Hagi.Plan41.proj_descent_inner (the projection theorem).
 
 /-- **The weight-to-zero cure is the limit of normalization**
 (b)(iii): driving the dominant corpus's weight down rescales

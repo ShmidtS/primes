@@ -275,18 +275,10 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
     ring
   rw [hLX, hRX]
 
-/-- **(P1b) The autoregressive token split** — exact on the
-finite token tree: the reverse-KL of an autoregressive joint
-decomposes over the token positions (the chain rule);
-on-policy distillation (the teacher scores ONLY the
-student's visited states) is the token-sum of the same
-free-energy descent — the formal license of the
-RKL-distillation recipe. The honest boundary: the full
-measure-theoretic chain rule is out of the finite-support
-scope; the identity is exact on the finite tree. -/
-theorem token_kl_decomposition (T : Type) [Fintype T]
-    (kl : T → ℝ) :
-    ∑ t, kl t = ∑ t, kl t := rfl
+-- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- prescription carrier only. Demoted to the DEFINITION of the
+-- per-token KL total; the honest boundary is documented above.
+def tokenKLTotal {T : Type} [Fintype T] (kl : T → ℝ) : ℝ := ∑ t, kl t
 
 end FreeEnergy
 

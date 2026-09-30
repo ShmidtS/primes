@@ -27,6 +27,14 @@
 | `FreeEnergy.token_kl_decomposition` | `A = A := rfl` | кандидат в `def` |
 | `Upgrades.sink_receptive_field_exact` | `A = A := rfl` | кандидат в `def` |
 | `NCEExact.anchor_drift_bound` | `A = A := rfl` | **ЗАМЕНЕНО** на `Plan41.anchor_recurrence` |
+| `DesignOpt.wall_clock_model` | rfl | **demoted → `def wallClock`** |
+| `FreeEnergy.token_kl_decomposition` | rfl | **demoted → `def tokenKLTotal`** |
+| `Upgrades.sink_receptive_field_exact` | rfl | **demoted → `def sinkReceptiveField`** |
+| `Wave2.config_cert_constructive` | вывод=посылка | **удалена** (предписание сохранено комментарием) |
+| `Dominate.normalized_descent_preserved` | вывод=посылка | **удалена** (ссылка на Plan41.proj_descent_inner) |
+| `MergeScaling.edge_count_linear` | `N ≤ N*1` | **удалена** |
+| `LazyAdam.decayProduct_exact` | rfl | **удалена** (комментарий-предписание) |
+| `Wave3.head_start_persists` | ring-тривиальность | **ЗАМЕНЕНО** на `Plan42.head_start_timeshift` (PL-сдвиг) |
 | `Dominate.normalized_descent_preserved` | вывод = посылка | кандидат на удаление/def |
 | `Wave2.config_cert_constructive` | вывод = посылка | кандидат на удаление/def |
 | `MergeScaling.edge_count_linear` | `N ≤ N*1` | кандидат на удаление |
@@ -42,8 +50,20 @@
 
 - дрейф ρ (anchor), сжатие γ, пороги κ — измеряемые константы
 
+## Фаза 2 (Plan42) — слабые формулировки исправлены
+
+- `nce_estimator_unbiased` — несмещённость per-sample NCE (2.2)
+- `log_jensen_uniform` — ceGap направление Йенсена (2.3; дельта — только с χ² ≤ cK)
+- `exp_tangent` + `waterfilling_optimal` — waterfilling ОПТИМАЛЕН из
+  касательной + выравнивания маргиналов: `hinterior` — вывод, не гипотеза (2.4)
+- `head_start_timeshift` — PL-сдвиг: merge = k шагов форы,
+  k = ln(Δs/Δm)/ln(c) — измеримо (2.5)
+
 ## Счётчик
 
-- Нетривиальных теорем-якорей в `Plan41`: 7
-- Тавтологий в реестре: 13 (1 заменено, 12 — кандидаты)
+- Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5 (итого 12)
+- Тавтологий в реестре: 13 (3 заменено теоремами, 6 demoted/удалены,
+  4 — кандидаты: growth_verdict_table, merge_init_head_start,
+  designopt_interior_law+ marg. (закрыты waterfilling_optimal),
+  adaptive_ns_exists, supportSet_bound)
 - «0 sorry» по всей `Hagi/`: сохраняется

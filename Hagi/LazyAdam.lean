@@ -113,16 +113,12 @@ theorem lazyReplay_exact (beta2 vstale g : ℝ) (d : ℕ) :
       = (beta2^d) * vstale + (beta2^d) * (1 - beta2) * g^2 := by
   ring
 
-/-- **The decay-product accumulator equivalence**: the
-decoupled weight decay over a missed stretch is the product
-of the per-step factors — the lazy replay applies ONE scalar
-(the product) instead of d per-step multiplications; the two
-are equal by the associativity of the product, for ANY
-schedule η_s (the product is maintained as the per-row
-accumulator D_r). -/
-theorem decayProduct_exact (lam : ℝ) (eta : ℕ → ℝ) (d : ℕ) :
-    ∏ s ∈ Finset.range d, (1 - eta s * lam)
-      = ∏ s ∈ Finset.range d, (1 - eta s * lam) := rfl
+-- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- prescription carrier only. The honest content (the lazy
+-- replay applies ONE product accumulator instead of d per-step
+-- multiplications — equal by associativity, for ANY schedule
+-- η_s) is the lazyDecay_exact-style identity; the accumulator
+-- is the implementation, not a theorem.
 
 /-- **The support-set bound**: the touched rows per step are
 at most the union of the input, target and negative rows —

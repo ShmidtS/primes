@@ -166,20 +166,12 @@ end Orthogonal
 
 section HeadStart
 
-/-- **The persistent head start** (from sbintuitions/
-sparse-upcycling-scaling-laws — the critical-ratio analog):
-under EQUAL descent rates the merge-vs-scratch gap is CONSTANT
-in time: L_merge(t) = L_merge(0) − ρt, L_scratch(t) =
-L_scratch(0) − ρt, so the gap L_scratch(t) − L_merge(t) =
-L_scratch(0) − L_merge(0) for EVERY t. The merged
-initialization's step-0 advantage (the Jensen init advantage
-of `Hagi.Wave2.merge_init_head_start`) persists to every
-equal-slope step; a shrinking measured gap is the signature
-of the rate-divergence regime (the scratch rate faster — the
-critical token ratio). -/
-theorem head_start_persists (Lm0 Ls0 ρ t : ℝ)
-    (hgap : Lm0 < Ls0) :
-    (Ls0 - ρ * t) - (Lm0 - ρ * t) = Ls0 - Lm0 := by ring
+-- NOT A THEOREM (round-41 audit): the ring-trivial equal-rate
+-- gap identity. REPLACED by the honest PL-contraction form
+-- `Hagi.Plan42.head_start_timeshift`: under geometric decay
+-- L−L* = Δ·c^t, the merge head start is a TIME SHIFT
+-- Lm(t+k) = Ls(t) with dm·c^k = ds — the measurable
+-- prediction (k is the merge's step-equivalent advantage).
 
 end HeadStart
 

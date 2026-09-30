@@ -74,14 +74,11 @@ theorem ns_geometric_envelope (e : ℕ → ℝ) (rho : ℝ)
       _ ≤ rho * ((rho^n) * e0) := mul_le_mul_of_nonneg_left ih (le_of_lt hrho)
       _ = (rho^n) * rho * e0 := by ring
 
-/-- **The exact receptive field of the window+sinks regime**
-(the blindband identity): query i sees EXACTLY the positions
-[0, min(S,i)] ∪ [max(0, i−W+1), i] — the structural coverage;
-the design question is only the mass outside this union. -/
-theorem sink_receptive_field_exact (W S i : ℕ) :
-    -- the visible set as a union of ranges: structural identity
-    (Finset.range (min S i) ∪ (Finset.range (i+1)).filter (fun k => k + W > i))
-      = (Finset.range (min S i) ∪ (Finset.range (i+1)).filter (fun k => k + W > i)) := rfl
+-- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- prescription carrier only. Demoted to the DEFINITION of the
+-- exact receptive field (the honest structural object).
+def sinkReceptiveField (W S i : ℕ) : Finset ℕ :=
+    Finset.range (min S i) ∪ (Finset.range (i+1)).filter (fun k => k + W > i)
 
 /-- **The per-sample NCE correction**: the INLINE estimator
 (1/K)Σ_j K·q(v_j)·(f(v_j) − log(K·q(v_j))) with v_j ~ q is

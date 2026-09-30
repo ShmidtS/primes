@@ -88,14 +88,10 @@ namespace Hagi
 
 section MergeScaling
 
-/-- **The edge-count linearity of the joint channel**: the
-number of cross-block compositions the joint phase trains
-is linear in N at fixed width — the mixer capacity share of
-the fixed parameter budget grows with the block count (the
-formal core of the acceleration law). -/
-theorem edge_count_linear (N : ℕ) (hN : 0 < N) :
-    (N : ℝ) ≤ (N : ℝ) * 1 := by
-  linarith
+-- NOT A THEOREM (round-41 audit): `N ≤ N*1` is trivial.
+-- The honest content of the edge-count law is the LINEAR
+-- mixer-cost O(N) (documented in the module header); the
+-- count is a measured quantity, not a theorem.
 
 /-- **The two-channel step law**: with the ensemble step
 decaying (the Gap_N curvature) and the joint step growing
