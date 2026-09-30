@@ -163,3 +163,31 @@
 - Remaining unproved: T1a-Hoeffding core, stochastic SafeQP,
   per-stage Lyapunov, η closed form, global architecture KKT,
   spectrum→CE two-sided link.
+
+## R51 — External review fixes (three defects closed)
+
+External review (round-51) found real defects; all fixed:
+
+1. **factor_quant_go** (Hagi.Budget.ElementQuant): carried
+   contradictory hypotheses (tail+qerr<qdirect ∧ qdirect≤
+   tail+qerr) — a theorem about an empty set. Replaced with
+   the honest GO/NO-GO certificate: triangle bound + measured
+   inequality ⇒ true factor-route error < direct error.
+2. **diversity_noncollapse** (Hagi.Step.JointPreserve): was
+   mislabeled — the proven statement is an UPPER bound
+   compatible with total collapse (s=0 ⇒ D_T→0). Docstring
+   corrected; added **diversity_floor** (+ geom_shift helper):
+   D_T ≥ ρ^T·D₀ + (inj−ξ)·Σρ^i — the sign the architecture
+   needs: inj > ξ rules OUT collapse.
+3. **GlobalConvergence** confirmed as generic telescope (not
+   fixed): per-stage Merge/Joint/Compress Lyapunov bounds
+   remain open — listed as the main theoretical gap before a
+   true macro-cycle contraction theorem.
+
+Also from the review, confirmed-open: stochastic SafeQP
+perturbation, LazyAdam β₁>0 replay equivalence, TableLoRA ×
+quantization (Eckart–Young + ternary commutation), spectrum→CE
+two-sided link, global architecture KKT.
+
+Anchors 58 → 61 (factor_quant_go reborn, diversity_floor,
+geom_shift). Build green, 0 sorry.

@@ -40,15 +40,22 @@ theorem factor_quant_error {X : Type*} [NormedAddCommGroup X] (dE AB QAB : X)
   rw [h1, h2] at h3
   exact h3
 
-/-- **The GO/NO-GO comparison**: the factorize+quantize
-route beats the direct quantization IFF tail + qerr < qdirect
-— with the factor-quantize bound from the triangle above,
-the direct route's error exceeds it whenever the measured
-inequality holds. -/
-theorem factor_quant_go (tail qerr qdirect boundDirect : ℝ)
-    (hgain : tail + qerr < qdirect)
-    (hbound : boundDirect ≤ qdirect) (hbest : qdirect ≤ tail + qerr) :
-    boundDirect < tail + qerr := by
-  linarith
+/-- **The GO/NO-GO certificate (honest form)**: if the
+factor-route error bound `tail + qerr` is strictly below the
+measured direct-quantization error `qdirect`, then the true
+factor-route error is strictly below `qdirect` — via the
+commutation triangle above. This is a real decision rule, not
+a vacuous implication: the earlier revision carried the
+contradictory pair (tail+qerr < qdirect) ∧ (qdirect ≤
+tail+qerr), which made the theorem about an empty hypothesis
+set. Found in external review, 2025-round-51. -/
+theorem factor_quant_go {X : Type*} [NormedAddCommGroup X]
+    (dE AB QAB : X) (tail qerr qdirect : ℝ)
+    (htail : ‖dE - AB‖ = tail) (hqerr : ‖AB - QAB‖ = qerr)
+    (hgain : tail + qerr < qdirect) :
+    ‖dE - QAB‖ < qdirect := by
+  have h3 := factor_quant_error dE AB QAB tail qerr htail hqerr
+  calc ‖dE - QAB‖ ≤ tail + qerr := h3
+    _ < qdirect := hgain
 
 end Hagi
