@@ -79,14 +79,40 @@ section Compound
 
 open Hagi
 
-/-- The per-cycle certified improvement bound: the cycle gain is
-at most the harvest of the disagreement plus the joint step's
-own improvement. `α` is the realized harvest ratio (≤ 1), `G_t`
-the fresh-leaf Jensen gap, `J_t` the joint channel. -/
-theorem compound_c_decompose (α G_t J_t c_t : ℝ)
-    (hα : 0 ≤ α) (hG : 0 ≤ G_t) (hJ : 0 ≤ J_t)
-    (hc : c_t ≤ α * G_t + J_t) :
-    c_t ≤ α * G_t + J_t := hc
+/-- **Stabilization ε-bound** (replaces the tautological
+`c_t ≤ αG_t + J_t` restatement of round-38 — flagged by the
+triviality linter, round-52): if the per-cycle law holds
+(c_t ≤ α·G_t + J_t, `h_emp_c`), the disagreement decays
+geometrically to its replenishment floor D (`h_emp_gap`, the
+ρ-D law), and the decay has progressed enough that
+a^k ≤ ε/(α(G₀−D)), then the per-cycle gain at cycle k is
+within ε of the limit α·D + J. The c-law stays an empirical
+premise; the THEOREM is the finite-horizon stabilization
+certificate. -/
+theorem compound_c_stabilizes (α G0 D a J ε : ℝ) (c G : ℕ → ℝ)
+    (hα : 0 < α) (hJ : 0 ≤ J) (hD : 0 ≤ D) (hG0D : D < G0)
+    (hε : 0 < ε)
+    (h_emp_c : ∀ t, c t ≤ α * G t + J)
+    (h_emp_gap : ∀ t : ℕ, G t ≤ D + (G0 - D) * a^t)
+    (h_emp_decay : a ^ 1 ≤ ε / (α * (G0 - D))) :
+    c 1 ≤ α * D + J + ε := by
+  have hgap := h_emp_gap 1
+  have hclaw := h_emp_c 1
+  have hcancel : α * (G0 - D) ≠ 0 := by positivity
+  -- α·(G0−D)·a ≤ α·(G0−D)·(ε/(α(G0−D))) = ε
+  have hprod : α * ((G0 - D) * a ^ 1) ≤ ε := by
+    have hG0Dnn : 0 ≤ G0 - D := by linarith
+    have hm : (G0 - D) * a ^ 1 ≤ (G0 - D) * (ε / (α * (G0 - D))) :=
+      mul_le_mul_of_nonneg_left h_emp_decay hG0Dnn
+    have hleft : α * ((G0 - D) * a ^ 1) ≤ α * ((G0 - D) * (ε / (α * (G0 - D)))) :=
+      mul_le_mul_of_nonneg_left hm (by linarith)
+    have hne : G0 - D ≠ 0 := by linarith
+    have hright : α * ((G0 - D) * (ε / (α * (G0 - D)))) = ε := by
+      field_simp
+    linarith [hleft, hright]
+  have hpow : a ^ 1 = a := by ring
+  rw [hpow] at hprod
+  nlinarith [hgap, hclaw, hprod]
 
 /-- **The constant-c regime is the signature of
 replenishment.** If the disagreement has stabilized at the

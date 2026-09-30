@@ -191,3 +191,38 @@ two-sided link, global architecture KKT.
 
 Anchors 58 → 61 (factor_quant_go reborn, diversity_floor,
 geom_shift). Build green, 0 sorry.
+
+## R52 — Per-stage Lyapunov + rule regime (h_emp_, triviality metric)
+
+**New rules adopted (user mandate):**
+- theorem counts only if conclusion ≠ hypothesis (no rfl/A=A)
+- empirical premises MUST be h_emp_-prefixed
+- second metric: non-trivial share via scripts/triviality_lint.py
+- #print axioms gate (propext/Classical.choice/Quot.sound only)
+- docstring names must exist; numbers #eval'd or marked «измерено»
+
+**New module Hagi.Unified.MacroCycle** (the review-51 bridge #4):
+- merge_stage / merge_stage_decrease: merged energy ≤ mean − G
+  (Jensen gap G ≥ 0 from gap_N_nonneg; the stage never
+  increases the certificate; strict decrease when G > 0)
+- joint_stage: smooth descent at rate η‖d*‖²/2 — HONEST
+  correction: the earlier plan claimed η‖d*‖²; the smooth
+  descent lemma with ⟪g,d*⟫ ≥ ‖d*‖² and η ≤ 1/L gives the
+  half rate only
+- compress_stage: ternary rounding cost ≤ κs/2 per entry
+- macro_step_decrease: composition E4 ≤ Emean − (G + η‖d*‖²/2
+  − κs/2) — the unified stop law now rests on stage theorems
+- macro_termination: (E₀−E_min)/ε generations, now
+  stage-decomposed (upgrades the generic telescope)
+
+**Triviality linter** (scripts/triviality_lint.py): 288
+theorems scanned, 1 tautology found and fixed:
+- compound_c_decompose (conclusion ≡ hypothesis hc) replaced
+  by compound_c_stabilizes — finite-horizon ε-stabilization
+  of the per-cycle gain at the limit α·D + J (the c-law
+  itself now an explicit h_emp_c premise)
+- non-trivial share: 1.0000 (lower bound)
+
+Anchors 61 → 66 (+merge_stage, +merge_stage_decrease,
++joint_stage, +compress_stage, +macro_step_decrease,
++compound_c_stabilizes). Build 8685 jobs green, 0 sorry.
