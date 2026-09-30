@@ -59,11 +59,23 @@
 - `head_start_timeshift` — PL-сдвиг: merge = k шагов форы,
   k = ln(Δs/Δm)/ln(c) — измеримо (2.5)
 
+## Раунд 43 (Plan43) — ревью-дополнения
+
+- `min_dist_to_vi` + `safeQP_descent` — инстанциация на safeSet:
+  VI из минимальности (ciInf-форма), ОБЕ гарантии спуска ‖ds‖²≤⟪g0,ds⟫ и
+  ‖g0−ds‖≤‖g0‖ — контроллер теперь на Lean, не на пороге
+- `ns_iter_bound` — σ_k ≤ a^k·σ₀ (индукция); докстринг-ошибка
+  «890/74 ≈ 3.4445³» исправлена (3.4445³ = 40.9); правило k(σ_min)
+  численно проверено ревьюером (2..7 шагов для σ₀=10⁻¹..10⁻⁴)
+- `amgm_equality` + `amgm_uniqueness` + `batch_T_min` — равенство
+  точно при B*²=B_n·t₀/c, единственность оптимума, T(B) ≥ const
+  равномерно — оптимальный батч ВЫВЕДЕН и ЕДИНСТВЕНЕН
+
 ## Счётчик
 
-- Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5 (итого 12)
+- Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5, Plan43 — 6 (итого 18)
 - Тавтологий в реестре: 13 (3 заменено теоремами, 6 demoted/удалены,
-  4 — кандидаты: growth_verdict_table, merge_init_head_start,
-  designopt_interior_law+ marg. (закрыты waterfilling_optimal),
-  adaptive_ns_exists, supportSet_bound)
+  4 — кандидаты: growth_verdict_table (→ функция вердикта),
+  merge_init_head_start (слабая, помечена), adaptive_ns_exists,
+  supportSet_bound (нужен min V·)
 - «0 sorry» по всей `Hagi/`: сохраняется
