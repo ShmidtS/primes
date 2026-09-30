@@ -45,9 +45,16 @@ useless); a sharp knee makes the highway MANDATORY.
 
 **C — the go/no-go certificate (definition + the link)**:
 measure the spectra of Σ_leaves = [h₁−h̄ | … | h_n−h̄] on a
-calibration batch (one inference pass, no training); GO ⟺
-ρ_c(r_c) ≤ ε with ε ≈ the measured F3 penalty 0.028
-(calibration: root-only with r=64 loses exactly that).
+calibration batch (one inference pass, no training). SEMANTICS
+FIXED (round 46): ρ has TWO distinct normalized quantities —
+`rhoTail r = E_tail(r)/E_total` (the UNCAPTURED fraction) and
+`rhoCaptured r = E_captured(r)/E_total = 1 − rhoTail` — and
+the highway gain is `E_total · rhoCaptured(r_c)`, NOT the
+tail ratio. GO ⟺ E_total·rhoCaptured(64) ≥ ε_move (the
+captured energy exceeds the movement cost threshold); the
+earlier note "ρ_c=0.1701 → GO because ρ_c > 0.028" mixed the
+two: 0.1701 is rhoTail(64), so captured = 0.8299·E_total —
+the GO verdict stands but through the correct quantity.
 
 **Falsification (mandatory)**: the blind prediction for the
 depth-1-highway run: Δ(F3-highway − F3-root-only) ≈ ρ_c(r_c)
@@ -212,5 +219,36 @@ theorem highway_gain_identity (m : ℕ) (s : ℕ → ℝ) (E_root : ℕ → ℝ)
   linarith
 
 end T2
+
+section RhoDefs
+
+/-- The contrast spectral energy captured by rank r
+(normalized). -/
+noncomputable def rhoCaptured (m : ℕ) (s : ℕ → ℝ) (r : ℕ) : ℝ :=
+  (∑ j ∈ (Finset.range m).filter (fun j => j < r), s j^2)
+    / (∑ j ∈ Finset.range m, s j^2)
+
+/-- The contrast spectral TAIL fraction at rank r (the
+uncaptured remainder). -/
+noncomputable def rhoTail (m : ℕ) (s : ℕ → ℝ) (r : ℕ) : ℝ :=
+  (∑ j ∈ (Finset.range m).filter (fun j => r ≤ j), s j^2)
+    / (∑ j ∈ Finset.range m, s j^2)
+
+/-- **The ρ-partition (the round-46 semantics fix)**: the two
+normalized fractions sum to exactly 1 — captured + tail =
+total. The highway gain of T2 is E_total·rhoCaptured(r_c);
+rhoTail is the residual loss. GO ⟺ E_total·rhoCaptured ≥
+ε_move — never the tail ratio against the threshold. -/
+theorem rho_partition (m : ℕ) (s : ℕ → ℝ) (r : ℕ)
+    (hpos : (0:ℝ) < ∑ j ∈ Finset.range m, s j^2) :
+    rhoCaptured m s r + rhoTail m s r = 1 := by
+  have hpart := filter_partition_sum m s r
+  unfold rhoCaptured rhoTail
+  show (∑ j ∈ (Finset.range m).filter (fun j => j < r), s j^2) / (∑ j ∈ Finset.range m, s j^2)
+      + (∑ j ∈ (Finset.range m).filter (fun j => r ≤ j), s j^2) / (∑ j ∈ Finset.range m, s j^2) = 1
+  field_simp
+  linarith [hpart]
+
+end RhoDefs
 
 end Hagi

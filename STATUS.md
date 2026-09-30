@@ -93,10 +93,22 @@
   go/no-go: ρ_c(64) ≤ 0.028 до GPU
 - Фальсификация: слепое предсказание Δ(highway−rootonly) ≈ ρ_c(r_c)
 
+## Раунд 46 (CycleChannel + ρ-фикс)
+
+- rhoCaptured/rhoTail defs + rho_partition — семантика ρ исправлена
+  (GO через captured = E_total·rhoCaptured ≥ ε, не tail-отношение);
+  round47-заметка «0.1701 → GO» ретроспективно корректна через
+  captured = 0.8299·E_total
+- cycle_decay_mono + cycle_decay_ratio — модель затухания поколений
+  (насыщающаяся форма; 2-точечная калибровка, Δ_3 слепая)
+- channel_switch — порог F_switch = (b·C_move·s/(k·C_rank))²:
+  ниже него ранг-канал СТРОГО доминирует — автостоп сиб-поколений
+
 ## Счётчик
 
 - Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5, Plan43 — 6,
-  Wave5 — 3, RootContrast — 7 (итого 28)
+  Wave5 — 3, RootContrast — 7 (+rho_partition), CycleChannel — 3
+  (итого 32)
 - Тавтологий в реестре: 13 (3 заменено теоремами, 6 demoted/удалены,
   4 — кандидаты: growth_verdict_table (→ функция вердикта),
   merge_init_head_start (слабая, помечена), adaptive_ns_exists,
