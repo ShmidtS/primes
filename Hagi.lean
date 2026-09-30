@@ -59,6 +59,7 @@ import Hagi.Wave5
 import Hagi.RootContrast
 import Hagi.CycleChannel
 import Hagi.EqualBudget
+import Hagi.Unified
 import Hagi.JointCost
 import Hagi.SeedOnly
 
