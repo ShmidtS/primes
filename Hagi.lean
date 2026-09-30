@@ -62,6 +62,7 @@ import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
 import Hagi.Unified.GlobalConvergence
 import Hagi.Unified.MacroCycle
+import Hagi.Unified.RecursiveGrowth
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum

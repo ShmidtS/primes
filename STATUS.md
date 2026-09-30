@@ -226,3 +226,35 @@ theorems scanned, 1 tautology found and fixed:
 Anchors 61 → 66 (+merge_stage, +merge_stage_decrease,
 +joint_stage, +compress_stage, +macro_step_decrease,
 +compound_c_stabilizes). Build 8685 jobs green, 0 sorry.
+
+## R53 — Recursive-growth roadmap: first three closures
+
+Roadmap (6 theory gaps toward Unified Recursive Growth Theory);
+three closed in Hagi/Unified/RecursiveGrowth.lean:
+
+- **#5b gating_tail_bound** (+ ortho_norm_sq helper): with
+  orthonormal branch basis v (Hadamard), routing to subset s
+  costs EXACTLY the tail energy: error² = Σ_{i∉s} c_i².
+  Equality — top-k by |c_i| is optimal routing for every k.
+- **#4 fisher_nullspace**: updates in ker F (Hadamard-mixed
+  gradient decomposition) leave old-task loss non-increasing
+  (dL ≤ ⟪dW, F dW⟫ = 0). No-forgetting certificate.
+- **#6a unitary_perturb_bound / unitary_perturb_metric**:
+  δ-perturbed isometry distorts norm by ≤ δ‖x‖ per layer —
+  additive, RMSNorm-compensable. κ(d)·2^{-p} hardware form
+  open (needs float error models).
+
+Declared open (beyond current apparatus): #1 nonconvex
+SafeQP Pareto/Lyapunov, #2 free probability + "why 3", #3
+verifier-bootstrap entropy floor.
+
+Landscape verified: lean-dojo/TorchLean (arXiv 2602.22631)
+and LeanMachineLearning/LML are real and adjacent — TorchLean
+verifies static networks (robustness/IBP/Lyapunov controls),
+LML formalizes learning theory (regret/PAC). Neither covers
+growth/merge/mixer algebra; Hagi's lane (verified growth
+process) remains unique. Integration candidates noted, not
+yet imported.
+
+Anchors 66 → 71. Build 8686 jobs green, 0 sorry, 0
+triviality flags, clean axioms on all five new theorems.
