@@ -258,3 +258,27 @@ yet imported.
 
 Anchors 66 → 71. Build 8686 jobs green, 0 sorry, 0
 triviality flags, clean axioms on all five new theorems.
+
+## R54 — GitHub MCP sweep + analytic step (roadmap #1.3 closed)
+
+Landscape verified via GitHub MCP (round-54):
+- lean-dojo/TorchLean: CROWN/Lyapunov module tree real
+  (Certificate, Verification, TwoStage pipelines)
+- LeanMachineLearning/LML: real; SubGaussian.lean re-exports
+  Mathlib (no new Hoeffding core — T1a still needs the
+  chord-inequality route or upstream integration)
+- nktkt/leanx: VERIFIED to be a TorchLean mirror (same
+  README) — not an independent asset
+
+Applied from the sweep — roadmap #1.3 CLOSED:
+- optimal_step_unconstrained / _value / _ge_recip
+  (Hagi.Unified.RecursiveGrowth): the guaranteed decrease
+  g(η) = η·inner − L·dn²·η²/2 is a concave quadratic with
+  ANALYTIC maximizer η* = inner/(L·dn²), value
+  inner²/(2L·dn²) — learning_rate eliminated as a
+  hyperparameter class in the certified regime (TorchLean
+  Lyapunov-controller spirit). Safe clip η = min(1/L, η*)
+  equals 1/L exactly at full certification (inner = dn²).
+
+Anchors 71 → 74. Build 8686 jobs green, 0 sorry,
+triviality 1.0000, clean axioms on all three.

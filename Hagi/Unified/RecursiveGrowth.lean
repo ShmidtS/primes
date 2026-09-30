@@ -187,4 +187,54 @@ theorem unitary_perturb_metric {E : Type*} [NormedAddCommGroup E]
   · linarith
   · linarith
 
+/-! ## Roadmap #1.3: the curvature-aware analytic step
+
+The review (round-53/54) demands eliminating `learning_rate`
+as a hyperparameter class: the step must be COMPUTED from the
+measured curvature, in the spirit of the TorchLean Lyapunov
+controllers (lean-dojo/TorchLean, NN/MLTheory/CROWN/Lyapunov —
+verified landscape, round-54). With the smooth-descent bound
+E₂ ≤ E₁ − η·inner + L·dn²·η²/2, the guaranteed decrease
+g(η) = η·inner − L·dn²·η²/2 is a concave quadratic: its
+maximum is ANALYTIC — η* = inner/(L·dn²), value
+inner²/(2·L·dn²) — no LR tuning; in the certified SafeQP
+regime (inner ≥ dn²) the analytic step is at least 1/L, so
+the safe clip is η = min(1/L, η*) = 1/L exactly when the
+direction is fully certified (inner = dn²).
+
+-/
+
+/-- Curvature-aware optimal step (roadmap #1.3): the guaranteed
+descent g(η) = η·inner − L·dn²·η²/2 is a concave quadratic;
+its maximum over ALL η is at η* = inner/(L·dn²) with value
+inner²/(2·L·dn²) — an ANALYTIC step size, no LR hyperparameter.
+Moreover η* ≥ 1/L when inner ≥ dn² (the certified SafeQP regime). -/
+theorem optimal_step_unconstrained (L dn2 inner : ℝ)
+    (hL : 0 < L) (hdn : 0 < dn2) :
+    ∀ η' : ℝ, η' * inner - L * dn2 * η' ^ 2 / 2
+      ≤ inner ^ 2 / (2 * L * dn2) := by
+  intro η'
+  -- completing the square: inner²/(2Ldn2) − g(η') = (L·dn2/2)·(η' − inner/(L·dn2))²
+  have hsq : inner ^ 2 / (2 * L * dn2) - (η' * inner - L * dn2 * η' ^ 2 / 2)
+      = (L * dn2 / 2) * (η' - inner / (L * dn2)) ^ 2 := by
+    field_simp
+    ring
+  have hnn : 0 ≤ (L * dn2 / 2) * (η' - inner / (L * dn2)) ^ 2 :=
+    mul_nonneg (by positivity) (sq_nonneg _)
+  linarith
+
+theorem optimal_step_value (L dn2 inner : ℝ)
+    (hL : 0 < L) (hdn : 0 < dn2) :
+    (inner / (L * dn2)) * inner - L * dn2 * (inner / (L * dn2)) ^ 2 / 2
+      = inner ^ 2 / (2 * L * dn2) := by
+  field_simp
+  ring
+
+theorem optimal_step_ge_recip (L dn2 inner : ℝ)
+    (hL : 0 < L) (hdn : 0 < dn2) (hin : dn2 ≤ inner) :
+    1 / L ≤ inner / (L * dn2) := by
+  rw [le_div_iff₀ (by positivity : (0:ℝ) < L * dn2)]
+  have hkey : 1 / L * (L * dn2) = dn2 := by field_simp
+  nlinarith [hin]
+
 end Hagi
