@@ -58,6 +58,9 @@ import Hagi.Plan43
 import Hagi.Wave5
 import Hagi.RootContrast
 import Hagi.CycleChannel
+import Hagi.EqualBudget
+import Hagi.JointCost
+import Hagi.SeedOnly
 
 set_option linter.style.header false
 

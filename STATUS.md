@@ -104,11 +104,28 @@
 - channel_switch — порог F_switch = (b·C_move·s/(k·C_rank))²:
   ниже него ранг-канал СТРОГО доминирует — автостоп сиб-поколений
 
+## Раунд 47 (SeedOnly + JointCost + EqualBudget)
+
+- T1b disp_recurrence_general (ЛЮБОЙ a, вкл. a≥1) + geom_range_identity
+- T1c: sum_dist_mean_le (среднее минимизирует) + seed_only_disp_bound
+  (композиция Λ²·s·Σa^i); T1d seed_only_grow_stop (пол < ε → стоп)
+- T1a (gap≤c·dispersion, c=1/4, Хёфдинг) — НЕ ДОКАЗАН: лемма есть в
+  Mathlib (SubGaussian.lean), конечная интеграция не завершена
+- T2a block_lowrank_lt_dense_iff (3r < (N−1)h); T2b nsIter_scale
+  (ровно N³) + nsIter_block_le; T2c amdahl_ceiling (1.07/1.21/1.63);
+  T2d offdiag_pythagoras (ρ_off корректен)
+- T3a aitken_exact (точное восстановление L*,c по 3 точкам);
+  T3b aitken_consistency (тест фальсификации PL-модели);
+  T3c budget_gap_sign_const (равные скорости → знак C-константен)
+- T3d (iff break-even) — НЕ ДОКАЗАН: знаковый case-анализ превысил
+  бюджет попыток; T2e (launch-порог) — документирован
+
 ## Счётчик
 
 - Нетривиальных теорем-якорей: Plan41 — 7, Plan42 — 5, Plan43 — 6,
-  Wave5 — 3, RootContrast — 7 (+rho_partition), CycleChannel — 3
-  (итого 32)
+  Wave5 — 3, RootContrast — 7, CycleChannel — 3, R47 — 13 (итого 44)
+- Недоказанное раунда 47: T1a-ядро (Хёфдинг-константа 1/4),
+  T3d-iff, T2e
 - Тавтологий в реестре: 13 (3 заменено теоремами, 6 demoted/удалены,
   4 — кандидаты: growth_verdict_table (→ функция вердикта),
   merge_init_head_start (слабая, помечена), adaptive_ns_exists,
