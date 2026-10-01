@@ -134,4 +134,12 @@ theorem certifiedGain_positive (N : ℕ) (M c : ℝ) (h : c < M) :
 
 end Grow
 
+/-- The PL-certificate lemma (P0). -/
+theorem pl_stop_certificate (Lw Lstar mu gnorm : ℝ)
+    (hmu : 0 < mu)
+    (h_emp_pl : mu * (Lw - Lstar) ≤ gnorm ^ 2 / 2) :
+    Lw - Lstar ≤ gnorm ^ 2 / (2 * mu) := by
+  rw [le_div_iff₀ (by linarith : (0:ℝ) < 2 * mu)]
+  nlinarith [h_emp_pl]
+
 end Hagi

@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.SafeQPRobust
+import Hagi.Dynamics.Contraction
 
 set_option linter.style.header false
 
@@ -46,3 +47,28 @@ theorem lazy_moment_drift (beta1 M : ℝ) (m : ℕ → ℝ) (hb : 0 ≤ beta1)
     |m d| ≤ |beta1^d| * M := by
   rw [dense_m_decay beta1 m hstep d, abs_mul, abs_of_nonneg (pow_nonneg hb d)]
   exact mul_le_mul_of_nonneg_left hM0 (pow_nonneg hb d)
+
+/-- The momentum-decay trajectory bound (P1): the cumulative
+skipped-step contribution over any gap d is at most
+η·(‖m_t‖/(√v+ε))·β₁/(1−β₁); stated with the effective
+per-step magnitude c := η·‖m_t‖/(√v_min+ε) as h_emp input. -/
+theorem lazy_momentum_bound (beta c : ℝ)
+    (hbeta : 0 < beta) (hbeta1 : beta < 1) (hc : 0 ≤ c)
+    (d : ℕ) :
+    c * (∑ s ∈ Finset.range d, beta ^ (s + 1))
+      ≤ c * (beta / (1 - beta)) := by
+  have hgeom : ∑ s ∈ Finset.range d, beta ^ (s + 1) ≤ beta / (1 - beta) := by
+    have hsplit : ∑ s ∈ Finset.range d, beta ^ (s + 1)
+        = beta * ∑ s ∈ Finset.range d, beta ^ s := by
+      rw [show ∑ s ∈ Finset.range d, beta ^ (s + 1)
+          = ∑ s ∈ Finset.range d, beta * beta ^ s from
+          Finset.sum_congr rfl (fun s _ => by ring)]
+      exact (Finset.mul_sum (s := Finset.range d) (f := fun s => beta ^ s) (a := beta)).symm
+    rw [hsplit]
+    have hsum := Hagi.geom_sum_le_inv beta hbeta.le hbeta1 d
+    have hmul : beta * ∑ s ∈ Finset.range d, beta ^ s
+        ≤ beta * (1 / (1 - beta)) :=
+      mul_le_mul_of_nonneg_left hsum hbeta.le
+    have hconv : beta * (1 / (1 - beta)) = beta / (1 - beta) := by field_simp
+    linarith
+  exact mul_le_mul_of_nonneg_left hgeom hc

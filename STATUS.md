@@ -597,3 +597,27 @@ renames of overclaims) queued.
 
 Anchors 116 → 118. Build 8694 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R69 — Round-69 program: P0 PL-certificate + P1 lazy momentum
+
+- **pl_stop_certificate** (Growth/Grow): under the PL
+  condition mu(L−L*) ≤ ‖∇L‖²/2 (h_emp_pl), the GRADIENT-norm
+  stop certifies the MODEL: L−L* ≤ g²/(2mu). The two-tier
+  stop discipline: certifiedGain < eps certifies the bound
+  (the README's honest note stands); the measured gradient
+  norm certifies the model (this lemma). P0 of the
+  round-69 priority table closed at the conditional level.
+- **lazy_momentum_bound** (Step/LazyAdamMomentum): the
+  cumulative skipped-step contribution over ANY gap d is at
+  most c·beta/(1−beta) with c the per-step effective
+  magnitude — the quasi-lazy momentum certificate (P1):
+  with a reset buffer, trajectory error is O(eta·beta1/
+  (1−beta1)) regardless of the gap. Closes the audit's
+  beta1 > 0 concern at the certificate level.
+- σ-commutation (2A): attempted, DISCARDED as trivial at
+  the current abstraction (funext rfl); needs TensorProduct
+  structure — declared open. Eckart–Young (P0a), stochastic
+  SafeQP bias (already have R64 forms), N-leaf gap — open.
+
+Anchors 118 → 120. Build 8694 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
