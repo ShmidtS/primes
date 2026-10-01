@@ -413,4 +413,22 @@ theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 
 
 end Product
 
+/-- **DField smoothing (the support gap fix)**: mixing any
+nonnegative mass function p with the uniform u at rate
+α ∈ (0,1) yields a STRICTLY positive distribution —
+(1−α)p + αu > 0 pointwise — so every full-support KL
+theorem of the DField axis applies to real corpora (zero
+counts included) after smoothing. The bridge from the
+full-support world to real vocab distributions. -/
+theorem dfield_smoothing {V : Type} [Fintype V] [Nonempty V]
+    (p u : V → ℝ) (alpha : ℝ)
+    (hp : ∀ v, 0 ≤ p v) (hu : ∀ v, 0 < u v)
+    (halpha : 0 < alpha) (halpha1 : alpha < 1) :
+    ∀ v, 0 < (1 - alpha) * p v + alpha * u v := by
+  intro v
+  have h1 : (0:ℝ) ≤ (1 - alpha) * p v := by
+    exact mul_nonneg (by linarith) (hp v)
+  have h2 : (0:ℝ) < alpha * u v := mul_pos halpha (hu v)
+  linarith
+
 end Hagi

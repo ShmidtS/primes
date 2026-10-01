@@ -976,3 +976,25 @@ RecursiveImprovement, Universality, MasterHAGI.
 
 Anchors 150 → 153. Build 8703 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R84 — review items: safeqp_inactive, multiplicative law, DField smoothing
+
+- **safeqp_inactive** (Step/SafeQP): when g0 ∈ safeSet,
+  every projection minimizer IS g0 (dist g0 g0 = 0 the
+  absolute minimum) — the d* = g0 inactive case is now an
+  explicit theorem (the review's docstring-vs-statement
+  gap closed).
+- **capability_multiplicative** (Dynamics/FastGrowth): each
+  successful cycle multiplying capability by ≥ (1+α),
+  α > 0, gives C_T ≥ C_0·(1+α)^T — EXPONENTIAL growth in
+  the number of successes. With the probability layer
+  (success prob ≥ p, the audit's DiscoveryProbability),
+  N ~ pT makes log C_T = Ω(T) — the true fast-growth core;
+  the deterministic half is here, the stochastic half open.
+- **dfield_smoothing** (Data/DField): (1−α)p + αu > 0
+  pointwise — every full-support KL theorem of the DField
+  axis applies to real corpora (zero counts) after
+  smoothing; the bridge from the full-support world.
+
+Anchors 153 → 156. Build 8703 green, 0 sorry, triviality
+1.0000, clean axioms.

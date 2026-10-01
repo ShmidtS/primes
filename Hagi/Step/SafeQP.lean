@@ -269,4 +269,22 @@ theorem safeQP_noconflict (g : K → X) (g0 : X) (eps : K → ℝ)
 
 end SafeQP
 
+/-- **SafeQP inactive, explicit (the review's gap)**: when
+the raw gradient g0 already lies in the safe set, every
+minimizer of the projection IS g0 itself (distance 0 is the
+absolute minimum) — the controller provably does nothing. -/
+theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    [FiniteDimensional ℝ X] {K : Type} [Fintype K]
+    (g : K → X) (g0 : X) (eps : K → ℝ)
+    (heps : ∀ i, 0 ≤ eps i)
+    (ds : X)
+    (hds : ds ∈ safeSet g eps ∧ ∀ d ∈ safeSet g eps, dist ds g0 ≤ dist d g0)
+    (hsafe : g0 ∈ safeSet g eps) :
+    ds = g0 := by
+  obtain ⟨hs_mem, hmin⟩ := hds
+  have h0min : dist ds g0 ≤ dist g0 g0 := hmin g0 hsafe
+  rw [dist_self] at h0min
+  have hdseq0 : dist ds g0 = 0 := le_antisymm h0min dist_nonneg
+  exact eq_of_dist_eq_zero hdseq0
+
 end Hagi

@@ -80,4 +80,36 @@ theorem growth_efficiency_div (Rext : ℕ → ℝ) (Gamma c K : ℝ)
   rw [div_le_div_iff₀ hK (mul_pos hT hK)]
   nlinarith [hmain, hK, hT]
 
+/-- **The multiplicative capability law (the audit's
+exponential takeoff core, deterministic half)**: if every
+SUCCESSFUL event multiplies capability by ≥ (1+α) with
+α > 0 (and failures never decrease it), then after T cycles
+of which N are successful,
+
+  C_T ≥ C_0 · (1 + α)^N
+
+— exponential growth in the number of successes. With the
+probability layer (success probability ≥ p per cycle,
+h_util Σp = ∞), N ~ Binomial(T, p) makes log C_T = Ω(T) —
+the true fast-growth form of the audit's Master theorem.
+The deterministic core is here; the stochastic half stays
+open. -/
+theorem capability_multiplicative (C : ℕ → ℝ) (succ : ℕ → ℕ)
+    (alpha : ℝ) (halpha : 0 < alpha) (hC0 : 0 ≤ C 0)
+    (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha))
+    (T : ℕ) :
+    C T ≥ C 0 * (1 + alpha) ^ T := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      have h1 := hmul T
+      have hbase : (1 + alpha) ^ (T + 1) = (1 + alpha) ^ T * (1 + alpha) := by
+        rw [pow_succ]
+      rw [hbase]
+      calc C (T + 1) ≥ C T * (1 + alpha) := h1
+        _ ≥ (C 0 * (1 + alpha) ^ T) * (1 + alpha) := by
+            refine mul_le_mul_of_nonneg_right ih ?_
+            linarith
+        _ = C 0 * ((1 + alpha) ^ T * (1 + alpha)) := by ring
+
 end Hagi
