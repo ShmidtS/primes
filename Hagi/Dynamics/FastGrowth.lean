@@ -169,4 +169,84 @@ theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
     mul_le_mul_of_nonneg_left hmono hC0
   linarith
 
+/-- **The risk-side takeoff (dual of capability_takeoff)**:
+each successful cycle multiplies the external RISK by at
+most (1−β), β ∈ (0,1); failures are neutral. Then
+
+  R_T ≤ R_0 · (1−β)^(Σ s_t)
+
+— exponential risk decay in the success count: the
+ε-floor is reached after finitely many certified
+successes (see risk_epsilon_floor for the explicit count). -/
+theorem risk_takeoff_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
+    (beta : ℝ) (hbeta : 0 < beta) (hbeta1 : beta < 1)
+    (hmul : ∀ t, R (t + 1) ≤ R t * (1 - beta) ^ (s t))
+    (T : ℕ) :
+    R T ≤ R 0 * (1 - beta) ^ (∑ t ∈ Finset.range T, s t) := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      have h1 := hmul T
+      have hsum : ∑ t ∈ Finset.range (T + 1), s t
+          = (∑ t ∈ Finset.range T, s t) + s T :=
+        Finset.sum_range_succ s T
+      have hpow : (1 - beta) ^ ((∑ t ∈ Finset.range T, s t) + s T)
+          = (1 - beta) ^ (∑ t ∈ Finset.range T, s t) * (1 - beta) ^ (s T) :=
+        pow_add _ _ _
+      have hfac : (0:ℝ) ≤ (1 - beta) ^ (∑ t ∈ Finset.range T, s t) := by positivity
+      rw [hsum, hpow]
+      calc R (T + 1) ≤ R T * (1 - beta) ^ (s T) := h1
+        _ ≤ (R 0 * (1 - beta) ^ (∑ t ∈ Finset.range T, s t)) * (1 - beta) ^ (s T) := by
+            refine mul_le_mul_of_nonneg_right ih ?_
+            positivity
+        _ = R 0 * ((1 - beta) ^ (∑ t ∈ Finset.range T, s t) * (1 - beta) ^ (s T)) := by
+            ring
+
+/-- **The ε-floor certificate with the explicit success
+count**: with risk decaying geometrically per success, the
+minimal number of successful cycles to reach the ε-floor is
+
+  N ≥ ln(R_0/ε) / ln(1/(1−β))
+
+— a closed-form stopping certificate: the controller knows
+IN ADVANCE (given the measured β and the current risk) how
+many certified successes remain to the target. -/
+theorem risk_epsilon_floor (R0 eps beta : ℝ) (N : ℕ)
+    (heps : 0 < eps) (hR0pos : 0 < R0) (hR0e : eps ≤ R0)
+    (hbeta : 0 < beta) (hbeta1 : beta < 1)
+    (hN : Real.log (R0 / eps) / Real.log (1 / (1 - beta)) ≤ (N:ℝ)) :
+    R0 * (1 - beta) ^ N ≤ eps := by
+  have h1m1 : (0:ℝ) < 1 - beta := by linarith
+  have hlt1 : 1 - beta < 1 := by linarith
+  have hlnneg : Real.log (1 - beta) < 0 := Real.log_neg h1m1 hlt1
+  have hinvgt1 : 1 < 1 / (1 - beta) := by
+    rw [lt_div_iff₀ h1m1]; linarith
+  have hlogpos : (0:ℝ) < Real.log (1 / (1 - beta)) := Real.log_pos hinvgt1
+  -- key: N * (-ln(1-β)) ≥ ln(R0/ε) from hN
+  have hkey : Real.log (R0 / eps) ≤ (N:ℝ) * (-Real.log (1 - beta)) := by
+    have h3 : Real.log (1 / (1 - beta)) = -Real.log (1 - beta) := by
+      rw [Real.log_div (by norm_num : (1:ℝ) ≠ 0) (by linarith : ((1:ℝ) - beta) ≠ 0)]
+      simp
+    have hmul : (Real.log (R0 / eps) / Real.log (1 / (1 - beta)))
+        * Real.log (1 / (1 - beta)) ≤ (N:ℝ) * Real.log (1 / (1 - beta)) :=
+      mul_le_mul_of_nonneg_right hN hlogpos.le
+    have hcancel : (Real.log (R0 / eps) / Real.log (1 / (1 - beta)))
+        * Real.log (1 / (1 - beta)) = Real.log (R0 / eps) := by
+      field_simp
+    rw [hcancel] at hmul
+    rw [h3] at hmul
+    exact hmul
+  -- ln(R0·(1-β)^N) = ln R0 + N ln(1-β) ≤ ln ε
+  have hpowpos : (0:ℝ) < (1 - beta) ^ N := by positivity
+  have hlogmul : Real.log (R0 * (1 - beta) ^ N)
+      = Real.log R0 + (N:ℝ) * Real.log (1 - beta) := by
+    rw [Real.log_mul hR0pos.ne' hpowpos.ne', Real.log_pow]
+  have hlogle : Real.log (R0 * (1 - beta) ^ N) ≤ Real.log eps := by
+    rw [hlogmul]
+    have hdiv : Real.log (R0 / eps) = Real.log R0 - Real.log eps :=
+      Real.log_div hR0pos.ne' heps.ne'
+    rw [hdiv] at hkey
+    linarith
+  exact (Real.log_le_log_iff (by positivity : (0:ℝ) < R0 * (1 - beta) ^ N) heps).mp hlogle
+
 end Hagi

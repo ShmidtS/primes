@@ -1051,3 +1051,29 @@ boundaries listed).
 
 Anchors 158 → 160. Build 8704 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R87 — risk-side takeoff + the explicit epsilon-floor count
+
+Dynamics/FastGrowth, two new theorems:
+- **risk_takeoff_counted**: each successful cycle
+  multiplying the external RISK by <= (1-beta), beta in
+  (0,1), failures neutral, gives
+
+    R_T <= R_0 * (1-beta)^(sum s_t)
+
+  — exponential risk decay in the success count (the dual
+  of capability_takeoff_counted R85).
+- **risk_epsilon_floor**: the CLOSED-FORM stopping
+  certificate — the epsilon-floor is reached after
+
+    N >= ln(R_0/eps) / ln(1/(1-beta))
+
+  successful cycles (log_pow + log monotonicity): the
+  controller knows IN ADVANCE, from the measured beta and
+  the current risk, how many certified successes remain to
+  the target. The progress/completion calculus of the whole
+  loop is now closed-form on both sides (capability growth
+  R85, risk decay + stopping count R87).
+
+Anchors 160 → 162. Build 8704 green, 0 sorry, triviality
+1.0000, clean axioms.
