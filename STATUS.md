@@ -952,3 +952,27 @@ FastGrowth, Universality, MasterHAGI.
 
 Anchors 148 → 150. Build 8702 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R83 — FastGrowth: the compute-normalized capability law
+
+New module Hagi/Dynamics/FastGrowth.lean:
+- **capability_cumulative**: T certified cycles each
+  transferring Γ ≥ c > 0 accumulate external gain ≥ T·c
+  (capability_gain_transfer telescoped — the linear growth
+  law).
+- **growth_efficiency_lower** (+ **growth_efficiency_div**):
+  the honest "fast" of the audit's program — every unit of
+  compute buys ≥ c/K of external risk reduction:
+
+    ΔC/FLOPs ≥ c/K > 0
+
+  (T cycles at cost K each; the division form needs T > 0).
+
+Audit front status: CapabilityGain ✅ (R82), FastGrowth
+✅ (R83, linear minimal form); remaining:
+ImplementationRefinement (TorchLean), CertifiedEstimator
+(probability), DiscoveryProbability (Borel–Cantelli),
+RecursiveImprovement, Universality, MasterHAGI.
+
+Anchors 150 → 153. Build 8703 green, 0 sorry, triviality
+1.0000, clean axioms.
