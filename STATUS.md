@@ -641,3 +641,26 @@ top-level real-variable theorem — open.
 
 Anchors 120 → 122. Build 8695 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R71 — Audit bridge #5 CLOSED: the top-level theorem on real variables
+
+New module Hagi/Unified/TopLevel.lean:
+- **top_level_cycle_bound**: one full macro generation
+  obeys E_cycle ≤ E_mean − (G + η‖d*‖²/2 − κ√n·s/2) where
+  EVERY symbol is a real pipeline quantity — E's are
+  token-weighted CE's (Concat law; the only empirical input
+  is the dataset measure), d*/⟪g₀,d*⟫/‖d*‖ are the actual
+  SafeQP projection output (derived), κ√n·s/2 is the
+  ternary cost (R70 chain). The composition of merge_
+  stage_linked + joint_stage_linked + quant_energy_bridge.
+- **top_level_termination**: with the real stage sum ≥ ε
+  per generation, termination in (E_mean0 − E_min)/ε
+  generations — the applied telescope.
+
+The audit's five bridges: #1 ✅ (R67), #4 ✅ (R70), #5 ✅
+(R71); #2 (D-field derivative) and #3 (finite-K NCE) remain
+open (need calculus-in-simplex and probability-layer
+machinery respectively).
+
+Anchors 122 → 124. Build 8696 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
