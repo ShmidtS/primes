@@ -692,3 +692,22 @@ five-bridge audit.
 
 Anchors 124 → 128. Build 8697 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R73 — Roadmap #1: expected Lyapunov step + horizon
+
+- **expected_cycle_step** (Unified/TopLevel): the audit-#1
+  form realized — E_cycle ≤ E_mean − (G + η‖d*‖²/2 − ηm₀ −
+  κ√n·s/2), composing stochastic_safeqp_descent (R64,
+  minibatch noise m₀) + merge law + quant cost. Controlled
+  descent per generation even under minibatch noise.
+- **expected_horizon_termination**: per-cycle expected
+  stage sum ≥ ε ⟹ ε-floor reached in (E₀−E_min)/ε
+  generations — the infinite-horizon guarantee (no
+  oscillation/divergence of the growing tree).
+
+Roadmap status: #1 ✅ (R73 + prior telescopes), #2 ✅
+conditional (R72), #3 ✅ (R72), #6 ✅ (R72); #4 regret, #5
+PAC-Bayes — open (probability layer).
+
+Anchors 128 → 130. Build 8697 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
