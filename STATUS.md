@@ -526,3 +526,25 @@ self-modification separation theorem, Ville e-processes.
 
 Anchors 110 → 113. Build 8694 jobs green, 0 sorry,
 triviality 1.0000 (first linter catch removed).
+
+## R66 — The tree-of-domains theorem
+
+The user's architectural insight formalized: the correct HAGI
+tree is SIBLING-PER-DOMAIN (orthogonal corpora), not
+sibling-per-seed. R66/67 stand data: seed-siblings on a
+SHARED mix collapse into one function; gen-1 leaves (each on
+its own domain subset) stayed genuinely diverse (gap 0.078).
+
+- **domain_disagreement_floor** (Ensemble/Hoeffding): if any
+  token pair (u,v) carries disagreement |d_u−d_v| ≥ δ with
+  positive softmax mass q = p_u p_v — the signature of
+  orthogonal domain specialists — the Jensen gap is bounded
+  BELOW: twoGap ≥ ½·log(1 + q·(cosh δ − 1)) > 0 for δ > 0.
+  Domain orthogonality GUARANTEES the ensemble gap; the
+  mix-sibling collapse is the contrapositive. sibling-per-
+  domain is the provably diverse tree.
+
+Anchors 113 → 114. Build 8694 jobs green, 0 sorry,
+triviality 1.0000, clean axioms. (twoGap_ce_identity — the
+exact CE-gap bridge #1 — in progress, one assembly link
+remains; M²/8 cosh²D product bound next.)

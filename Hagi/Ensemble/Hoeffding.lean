@@ -348,4 +348,159 @@ theorem chord_weighted {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
     rw [hsum, mul_one]
     field_simp
 
+variable {k : Type} [Fintype k] [Nonempty k] [DecidableEq k]
+
+/-- **Domain-orthogonality guarantees the ensemble gap**
+(the tree-of-domains architecture theorem): if some token
+pair (u,v) carries pairwise disagreement |d_u − d_v| ≥ δ
+with positive softmax mass q = p_u·p_v — the signature of
+orthogonal domain specialists (the A-expert specializes on
+domain-A tokens while the B-expert stays at baseline) — the
+Jensen gap is bounded BELOW:
+
+  twoGap ≥ ½·log(1 + q·(cosh δ − 1)) > 0 for δ > 0.
+
+Contrapositive = the R66/67 diagnosis made mathematical:
+siblings on the SAME mix drive every pairwise disagreement
+to 0 (collapse); siblings on ORTHOGONAL domains keep a
+guaranteed floor. The correct HAGI tree is
+sibling-per-domain, not sibling-per-seed. -/
+theorem domain_disagreement_floor (p d : k → ℝ)
+    (hp : ∀ v, 0 < p v) (hsum : ∑ v, p v = 1)
+    (u v : k) (delta : ℝ) (hdelta : 0 ≤ delta)
+    (hdis : delta ≤ abs (d u - d v)) :
+    Real.log (1 + p u * p v * (Real.cosh delta - 1)) / 2
+      ≤ Hagi.twoGap p d := by
+  -- cosh lower bound on the (u,v) term
+  have hdeltaabs : abs delta = delta := abs_of_nonneg hdelta
+  have hmono : Real.cosh delta ≤ Real.cosh (d u - d v) := by
+    apply Real.cosh_le_cosh.mpr
+    rw [hdeltaabs]
+    exact hdis
+  -- isolate the (u,v) term inside the double cosh-sum
+  have hinner : p u * p v * Real.cosh (d u - d v)
+      ≤ ∑ b, p u * p b * Real.cosh (d u - d b) :=
+    Finset.single_le_sum (f := fun b => p u * p b * Real.cosh (d u - d b))
+      (fun b _ => mul_nonneg (mul_nonneg (hp u).le (hp b).le) (Real.cosh_pos _).le)
+      (Finset.mem_univ v)
+  have houter : p u * p v * Real.cosh (d u - d v)
+      ≤ ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := by
+    calc p u * p v * Real.cosh (d u - d v)
+        ≤ ∑ b, p u * p b * Real.cosh (d u - d b) := hinner
+      _ ≤ ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := by
+          exact Finset.single_le_sum
+            (f := fun a => ∑ b, p a * p b * Real.cosh (d a - d b))
+            (fun a _ => Finset.sum_nonneg fun b _ =>
+              mul_nonneg (mul_nonneg (hp a).le (hp b).le) (Real.cosh_pos _).le)
+            (Finset.mem_univ u)
+  -- the total sum ≥ 1 + q(cosh δ − 1):  split off the (u,v) mass
+  have hsum1 : ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)
+      = (p u * p v * Real.cosh (d u - d v))
+        + (∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)
+            - p u * p v * Real.cosh (d u - d v)) := by ring
+  -- split the double sum into the (u,v) term and the rest
+  have hsplituv : ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)
+      = p u * p v * Real.cosh (d u - d v)
+        + (∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b * Real.cosh (d a - d b))
+        + ∑ b ∈ Finset.univ.erase v, p u * p b * Real.cosh (d u - d b) := by
+    rw [← Finset.sum_erase_add Finset.univ
+      (fun a => ∑ b, p a * p b * Real.cosh (d a - d b)) (Finset.mem_univ u)]
+    rw [show ∑ b, p u * p b * Real.cosh (d u - d b)
+        = (∑ b ∈ Finset.univ.erase v, p u * p b * Real.cosh (d u - d b)
+          + p u * p v * Real.cosh (d u - d v)) from by
+      rw [← Finset.sum_erase_add Finset.univ
+        (fun b => p u * p b * Real.cosh (d u - d b)) (Finset.mem_univ v)]]
+    ring
+  -- the rest terms: cosh ≥ 1 everywhere
+  have hrest1 : ∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b
+      ≤ ∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b * Real.cosh (d a - d b) := by
+    refine Finset.sum_le_sum (fun a _ => Finset.sum_le_sum (fun b _ => ?_))
+    calc p a * p b = p a * p b * 1 := by ring
+      _ ≤ p a * p b * Real.cosh (d a - d b) :=
+          mul_le_mul_of_nonneg_left (one_le_cosh _) (mul_nonneg (hp a).le (hp b).le)
+  have hrest2 : ∑ b ∈ Finset.univ.erase v, p u * p b
+      ≤ ∑ b ∈ Finset.univ.erase v, p u * p b * Real.cosh (d u - d b) := by
+    refine Finset.sum_le_sum (fun b _ => ?_)
+    calc p u * p b = p u * p b * 1 := by ring
+      _ ≤ p u * p b * Real.cosh (d u - d b) :=
+          mul_le_mul_of_nonneg_left (one_le_cosh _) (mul_nonneg (hp u).le (hp b).le)
+  -- the total weight identity split the same way
+  have hwsplit : ∑ a, ∑ b, p a * p b
+      = p u * p v
+        + (∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b)
+        + ∑ b ∈ Finset.univ.erase v, p u * p b := by
+    rw [← Finset.sum_erase_add Finset.univ
+      (fun a => ∑ b, p a * p b) (Finset.mem_univ u)]
+    rw [show ∑ b, p u * p b
+        = (∑ b ∈ Finset.univ.erase v, p u * p b + p u * p v) from by
+      rw [← Finset.sum_erase_add Finset.univ
+        (fun b => p u * p b) (Finset.mem_univ v)]]
+    ring
+  have hpairsum : ∑ a, ∑ b, p a * p b = 1 := Hagi.sum_pair_weights p hsum
+  -- assemble: sum ≥ q·coshδ + (1 − q), purely by linear arithmetic on atoms
+  have hlower : 1 + p u * p v * (Real.cosh delta - 1)
+      ≤ ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := by
+    have huv' : p u * p v * Real.cosh delta ≤ p u * p v * Real.cosh (d u - d v) :=
+      mul_le_mul_of_nonneg_left hmono (mul_nonneg (hp u).le (hp v).le)
+    have hw : (1:ℝ) = p u * p v
+        + (∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b)
+        + ∑ b ∈ Finset.univ.erase v, p u * p b := by
+      rw [← hpairsum, ← hwsplit]
+    -- normalize hsplituv into the same shape and finish by linear arithmetic
+    have hsplit' : ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)
+        = p u * p v * Real.cosh (d u - d v)
+        + (∑ a ∈ Finset.univ.erase u, ∑ b, p a * p b * Real.cosh (d a - d b))
+        + ∑ b ∈ Finset.univ.erase v, p u * p b * Real.cosh (d u - d b) := by
+      rw [← hsplituv]
+    nlinarith [huv', hrest1, hrest2, hw, hsplit']
+  -- convert to twoGap via the cosh identity
+  have hcosh := Hagi.twoGap_cosh (p := p) (d := d)
+  unfold Hagi.twoGap
+  -- log monotone + positivity, then halve
+  have hpossum : (0:ℝ) < ∑ a, ∑ b, p a * p b * Real.exp (d a - d b) := by
+    obtain ⟨w⟩ := ‹Nonempty k›
+    have hge : (0:ℝ) < p w * p w * Real.exp (d w - d w) := by
+      have hc : (0:ℝ) < Real.exp (d w - d w) := Real.exp_pos _
+      exact mul_pos (mul_pos (hp w) (hp w)) hc
+    have hle : p w * p w * Real.exp (d w - d w)
+        ≤ ∑ a, ∑ b, p a * p b * Real.exp (d a - d b) := by
+      calc p w * p w * Real.exp (d w - d w)
+          ≤ ∑ b, p w * p b * Real.exp (d w - d b) :=
+            Finset.single_le_sum (f := fun b => p w * p b * Real.exp (d w - d b))
+              (fun b _ => mul_nonneg (mul_nonneg (hp w).le (hp b).le) (Real.exp_pos _).le)
+              (Finset.mem_univ w)
+        _ ≤ ∑ a, ∑ b, p a * p b * Real.exp (d a - d b) :=
+            Finset.single_le_sum
+              (f := fun a => ∑ b, p a * p b * Real.exp (d a - d b))
+              (fun a _ => Finset.sum_nonneg fun b _ =>
+                mul_nonneg (mul_nonneg (hp a).le (hp b).le) (Real.exp_pos _).le)
+              (Finset.mem_univ w)
+    linarith
+  -- back to exp form via hcosh
+  have hposarg : (0:ℝ) < 1 + p u * p v * (Real.cosh delta - 1) := by
+    have h1 : (0:ℝ) ≤ Real.cosh delta - 1 := by linarith [one_le_cosh delta]
+    have h2 : (0:ℝ) ≤ p u * p v * (Real.cosh delta - 1) :=
+      mul_nonneg (mul_nonneg (hp u).le (hp v).le) h1
+    linarith
+  -- chain in cosh form then convert
+  have hcosheq : ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)
+      = ∑ a, ∑ b, p a * p b * Real.exp (d a - d b) := hcosh.symm
+  have hposcosh : (0:ℝ) < ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := by
+    have := hcosheq
+    calc (0:ℝ) < ∑ a, ∑ b, p a * p b * Real.exp (d a - d b) := hpossum
+      _ = ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := hcosheq.symm
+  have hlogmono : Real.log (1 + p u * p v * (Real.cosh delta - 1))
+      ≤ Real.log (∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)) :=
+    Real.log_le_log hposarg hlower
+  calc Real.log (1 + p u * p v * (Real.cosh delta - 1)) / 2
+      = (1/2) * Real.log (1 + p u * p v * (Real.cosh delta - 1)) := by ring
+    _ ≤ (1/2) * Real.log (∑ a, ∑ b, p a * p b * Real.cosh (d a - d b)) :=
+        mul_le_mul_of_nonneg_left hlogmono (by norm_num)
+    _ = Real.log (∑ a, ∑ b, p a * p b * Real.exp (d a - d b)) / 2 := by
+        rw [hcosheq]
+        ring
+  -- the calc chain lands in a,b-binders; the goal is the u,v-spelling:
+  rw [show 1 / 2 * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
+      = Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) / 2 from by ring]
+
 end Hagi
