@@ -730,3 +730,35 @@ Next (R75): the product telescoping W_T/W_0 ≤ exp(-ηΣ⟨p,l⟩
 
 Anchors 130 → 132. Build 8698 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R75 — external-audit honesty round (6 fixes)
+
+1. **stochastic_safeqp_descent** (Step/SafeQPRobust): the
+   degenerate |x−x| concentration hypothesis replaced by a
+   REAL two-inner form |inner_est − inner_true| ≤ m0 with the
+   smooth lemma applied at the estimate. The semantics now
+   match the name (noisy estimator); same conclusion.
+2. **expected_cycle_step → noisy_cycle_step** (Unified/
+   TopLevel): renamed + docstring — a DETERMINISTIC slack
+   theorem, no probability space/expectation operator.
+   A true expectation theorem needs the measure layer.
+3. **top_level_cycle_bound** (Unified/TopLevel): the quant
+   stage now DERIVED through quant_energy_bridge (w, q, n,
+   per-weight residues, h_emp_ Lipschitz as inputs) instead
+   of assuming the final bound — the dependency graph is
+   now real (the audit's structural mismatch fixed).
+4. **ns_poly_bound / ns_iter_bound docstrings**
+   (Audit/Foundations): honest boundary — a = 3.4445 > 1 is
+   a growth factor, NOT a contraction; the actual NS
+   convergence (f(σ) < σ on an invariant interval) declared
+   OPEN.
+5. **idle_identity → idle_merge_zero_gap**
+   (Unified/GlobalDynamics): renamed; only the merge-stage
+   zero-gap is proven + safeqp_idle separately; the full
+   cycle-identity (incl. compression idle) declared OPEN.
+6. **branchscale_minmax docstring** (External/Layers): only
+   the lower bound is formalized; attainability (s²v const
+   achieves the floor) declared an open construction.
+
+Anchors: renamed 2, added 0 → 132. Build 8698 green,
+0 sorry, triviality 1.0000, clean axioms.

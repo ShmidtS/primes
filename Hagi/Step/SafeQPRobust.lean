@@ -54,23 +54,27 @@ theorem stochastic_safeqp_feasible {K : Type} [Fintype K]
   fun i => Hagi.robust_feasibility (g i) (d i) (gdhat i) (eps i) (m i)
     (htrue i) (h_emp_conc i)
 
-/-- **Stochastic SafeQP: the descent certificate degrades
-gracefully**. The certified descent ⟪g₀,d*⟫ ≥ ‖d*‖² combined
-with the smooth lemma gives the deterministic half-rate; the
-minibatch noise on the mixture inner product (radius m₀,
-h_emp_) degrades the guarantee additively:
-E₂ ≤ E₁ − η‖d*‖²/2 + η·m₀. The step remains informative
-(net descent) whenever m₀ < ‖d*‖² — the batch condition
-B ≥ 2σ²·log(1/δ)/‖d*‖⁴ («измерено»-freely derivable from the
-subgaussian form). -/
-theorem stochastic_safeqp_descent (inner_true dnorm m0 eta L E1 E2 : ℝ)
+/-- **Noisy SafeQP: the descent certificate degrades
+gracefully (R75 honesty fix)**. The certified descent
+⟪g₀,d*⟫ ≥ ‖d*‖² holds for the TRUE inner product; the
+minibatch ESTIMATE deviates by at most m₀ (the concentration
+radius, h_emp_conc — a REAL two-quantity hypothesis, not the
+degenerate |x−x| of the pre-R75 version). The smooth lemma
+applied at the estimated inner product then gives
+E₂ ≤ E₁ − η‖d*‖²/2 + η·m₀. Net descent whenever m₀ < ‖d*‖²;
+the batch condition B ≥ 2σ²·log(1/δ)/‖d*‖⁴ supplies the
+concentration radius (external subgaussian form, h_emp_). -/
+theorem stochastic_safeqp_descent (inner_true inner_est dnorm m0 eta L E1 E2 : ℝ)
     (hdescent : dnorm ^ 2 ≤ inner_true)
-    (h_emp_conc0 : |inner_true - inner_true| ≤ m0)
+    (h_emp_conc : |inner_est - inner_true| ≤ m0)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
-    (h_emp_smooth : E2 ≤ E1 - eta * inner_true + L * eta ^ 2 * dnorm ^ 2 / 2) :
+    (h_emp_smooth : E2 ≤ E1 - eta * inner_est + L * eta ^ 2 * dnorm ^ 2 / 2) :
     E2 ≤ E1 - eta * dnorm ^ 2 / 2 + eta * m0 := by
-  have heff : dnorm ^ 2 - m0 ≤ inner_true := by
-    rw [abs_le] at h_emp_conc0
+  have heff : dnorm ^ 2 - m0 ≤ inner_est := by
+    rw [abs_le] at h_emp_conc
+    have h1 : -(m0) ≤ inner_est - inner_true := h_emp_conc.1
+    have h2 : inner_est - inner_true ≤ m0 := h_emp_conc.2
+    have h3 : inner_true - m0 ≤ inner_est := by linarith
     linarith
   have hsecond : L * eta ^ 2 * dnorm ^ 2 / 2 ≤ eta * dnorm ^ 2 / 2 := by
     have hLe : L * eta ≤ 1 := by

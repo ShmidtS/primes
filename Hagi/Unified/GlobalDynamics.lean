@@ -43,17 +43,17 @@ theorem safeqp_idle {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
   intro d hd
   simp
 
-/-- **The idle identity theorem (roadmap #6)**: on perfectly
-learned data (mixture gradient 0) with consensus logits
-(pairwise disagreement 0), the macro cycle is an IDENTITY:
-- the merge gap is exactly 0 (consensus ⟹ twoGap = 0)
-- the joint step is exactly 0 (SafeQP idle)
-- hence no energy change from the growth machinery. The
-model provably rests on mastered data; garbage/no-signal
-inputs (zero measured gradient) cannot cause drift,
-overfitting churn, or structural mutation. -/
+/-- **The idle-merge zero-gap lemma (roadmap #6, part 1; R75
+honesty fix: renamed from idle_identity — the full
+macro-cycle identity is NOT yet composed)**: on consensus
+logits (every pairwise deviation identically 0) the merge
+gap is EXACTLY 0 (twoGap_zero_iff). Together with the
+separately-proven safeqp_idle (zero gradient ⟹ step 0)
+this covers the merge and joint stages; the compression
+stage's idle behavior is not yet formalized, so the full
+cycle-identity theorem remains OPEN. -/
 
-theorem idle_identity {k : Type} [Fintype k] [Nonempty k]
+theorem idle_merge_zero_gap {k : Type} [Fintype k] [Nonempty k]
     (m : k → ℝ) (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
     (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1) :
     Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) (fun _ => (0:ℝ)) = 0 :=

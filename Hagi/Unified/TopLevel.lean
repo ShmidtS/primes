@@ -57,15 +57,19 @@ theorem top_level_cycle_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSp
     (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) (g0 ds : X)
     (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0)
     (L eta Emean E2 E3 E4 G kappa s : ℝ) {n : ℕ}
+    {w q : Fin n → ℝ}
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
     (hE2 : E2 ≤ Emean - G) (hG : 0 ≤ G)
     (h_emp_smooth : E3 ≤ E2 - eta * ⟪g0, ds⟫_ℝ + L * eta ^ 2 * ‖ds‖ ^ 2 / 2)
-    (hn : 0 ≤ s) (hkappa : 0 ≤ kappa)
-    (h_emp_quant : E4 - E3 ≤ kappa * Real.sqrt (n : ℝ) * s / 2) :
+    (hs0 : 0 ≤ s) (hres : ∀ i, |w i - q i| ≤ s / 2) (hkappa : 0 ≤ kappa)
+    (h_emp_lip : E4 - E3 ≤ kappa * Real.sqrt (∑ i, (w i - q i) ^ 2)) :
     E4 ≤ Emean - (G + eta * ‖ds‖ ^ 2 / 2 - kappa * Real.sqrt (n : ℝ) * s / 2) := by
   -- the joint stage with REAL descent quantities (derived from safeQP_descent)
   have hjoint := Hagi.joint_stage_linked C hconv h0 g0 ds hs hmin L eta E2 E3
     hL heta heta0 h_emp_smooth
+  -- the quant stage DERIVED through the R70 bridge (dependency made real —
+  -- the R75 honesty fix: not an assumed final bound)
+  have hquant := Hagi.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa h_emp_lip
   -- assemble the three real stages: merge law, joint descent, quant cost
   linarith
 
@@ -82,12 +86,14 @@ theorem top_level_termination {E : ℕ → ℝ} (Emin eps : ℝ)
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
   Hagi.lyapunov_termination Emin eps hE hstep heps k
 
-/-- **The expected one-cycle Lyapunov step (roadmap #1,
-expectation form)**: with the stochastic SafeQP descent
-(the R64 minibatch law: E₂ ≤ E₁ − η‖d*‖²/2 + ηm₀, the noise
-term m₀ from the batch concentration), the merge law
-(E_mean − G), and the ternary compression cost (κ√n·s/2),
-the expected full generation satisfies
+/-- **The noisy one-cycle Lyapunov step (roadmap #1; R75
+honesty fix: renamed from expected_cycle_step — this is a
+DETERMINISTIC slack theorem, no probability space or
+expectation operator)**: with the noisy SafeQP descent
+(the R75 two-inner minibatch law: estimate vs true inner
+with concentration radius m₀), the merge law (E_mean − G),
+and the ternary compression cost, the full generation
+satisfies
 
   E_cycle ≤ E_mean − (G + η‖d*‖²/2 − ηm₀ − κ√n·s/2)
 
@@ -95,17 +101,17 @@ the expected full generation satisfies
 modulo the three measured constants (m₀ batch noise, κ
 curvature, s grid). Positive stage sum ⟹ controlled descent
 per generation even under minibatch noise. -/
-theorem expected_cycle_step (inner_true dnorm m0 eta L Emean E1 E2 E3 E4 G kappa s : ℝ)
+theorem noisy_cycle_step (inner_true inner_est dnorm m0 eta L Emean E1 E2 E3 E4 G kappa s : ℝ)
     (hdescent : dnorm ^ 2 ≤ inner_true)
-    (h_emp_conc0 : |inner_true - inner_true| ≤ m0)
+    (h_emp_conc : |inner_est - inner_true| ≤ m0)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
-    (h_emp_smooth : E2 ≤ E1 - eta * inner_true + L * eta ^ 2 * dnorm ^ 2 / 2)
+    (h_emp_smooth : E2 ≤ E1 - eta * inner_est + L * eta ^ 2 * dnorm ^ 2 / 2)
     (hE1 : E1 ≤ Emean - G)
     (hquant : E4 - E3 ≤ kappa * Real.sqrt 1 * s / 2)
     (hE3 : E3 = E2) :
     E4 ≤ Emean - (G + eta * dnorm ^ 2 / 2 - eta * m0 - kappa * Real.sqrt 1 * s / 2) := by
-  have hstoch := Hagi.stochastic_safeqp_descent inner_true dnorm m0 eta L E1 E2
-    hdescent h_emp_conc0 hL heta heta0 h_emp_smooth
+  have hstoch := Hagi.stochastic_safeqp_descent inner_true inner_est dnorm m0 eta L E1 E2
+    hdescent h_emp_conc hL heta heta0 h_emp_smooth
   rw [hE3] at hquant
   linarith
 

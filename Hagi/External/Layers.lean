@@ -105,15 +105,17 @@ end Admission
 section BranchUniformity
 
 /-- **The BranchScale min-max floor** (the reviewer's
-S_l²·v_l ≈ const as a theorem): for ANY allocation of residual
-scales with total budget Σ s_l² = B over branches with
-variances v_l > 0, the worst per-layer variance contribution is
-at least B / Σ_l (1/v_l) — and the floor is ACHIEVED exactly by
-the uniform allocation s_l²·v_l = const. A single global scale
-s is provably suboptimal whenever the v_l vary: the per-layer
-scales must compensate the measured branch variance. (The
-exchange argument: s_l² ≤ M·v_l⁻¹ summed over l gives the
-bound; equality forces each term to the max.) -/
+S_l²·v_l ≈ const as a theorem; R75 honesty fix): for ANY
+allocation of residual scales with total budget Σ s_l² = B
+over branches with variances v_l > 0, the worst per-layer
+variance contribution is at least B / Σ_l (1/v_l). HONEST
+BOUNDARY: only the LOWER bound is formalized; the
+attainability direction (the uniform allocation
+s_l²·v_l = const achieves the floor) is stated but NOT
+proven here — it remains an open construction. A single
+global scale s is provably suboptimal whenever the v_l
+vary. (The exchange argument: s_l² ≤ M·v_l⁻¹ summed over l
+gives the bound.) -/
 theorem branchscale_minmax {L : Type} [Fintype L] [Nonempty L] (s v : L → ℝ)
     (hv : ∀ l, 0 < v l) (B M : ℝ)
     (hM : ∀ l, s l ^ 2 * v l ≤ M) (hsum : ∑ l, s l ^ 2 = B) :
