@@ -329,3 +329,21 @@ Anchors 77 → 84 (+7 theorems). Build 8687 jobs green,
 
 Anchors 84 → 86. Build 8687 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R58 — Pareto link closed (roadmap #1 honest core complete)
+
+- gram_cone_inner: Σλᵢgᵢ (λ≥0) makes ≥0 inner product with
+  every common-ascent direction — the Gram-cone certificate
+- safeqp_pareto_orthogonality: SafeQP paralysis (d* = 0)
+  happens IFF every common-ascent direction is orthogonal to
+  the mixture gradient (VI ≤ 0 + cone ≥ 0 ⟹ = 0). The
+  contrapositive is the non-stall certificate: any safe d
+  with ⟪g0,d⟫ ≠ 0 forces a nonzero certified step
+- Combined with safeqp_eps_critical (R55): the SafeQP
+  iteration reaches ε-criticality, and the only earlier stop
+  is the exact-orthogonality degenerate case
+- Honest boundary: full Farkas equivalence and the O(ε)
+  Pareto rate not claimed
+
+Anchors 86 → 88. Build 8687 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

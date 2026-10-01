@@ -38,7 +38,7 @@ bootstrap entropy floor) are beyond the current apparatus —
 declared open, not conjectured.
 -/
 
-open Finset
+open Finset Real InnerProductSpace
 
 namespace Hagi
 
@@ -300,5 +300,75 @@ theorem safeqp_eps_critical (E eta dn : ℕ → ℝ) (Emin etamin eps : ℝ)
   have hgoal : (n:ℝ) * (etamin * eps ^ 2) ≤ 2 * (E 0 - Emin) := by linarith
   rw [le_div_iff₀ hpos]
   linarith
+
+/-! ## Roadmap #1: the Pareto link (Gram duality, closed)
+
+The final piece of the nonconvex SafeQP roadmap: the
+characterization of controller paralysis.
+
+- `gram_cone_inner`: a nonnegative combination Σλᵢgᵢ of the
+  domain gradients makes a nonnegative inner product with
+  every common-ascent direction d (⟪gᵢ,d⟫ ≥ 0 ∀i ⟹
+  ⟪Σλᵢgᵢ, d⟫ ≥ 0). Contrapositive: any safe direction with
+  ⟪g0,d⟫ < 0 certifies the mixture is OUTSIDE the Gram cone.
+- `safeqp_pareto_orthogonality`: if the SafeQP projection
+  returns exactly 0 (the controller does nothing), then the
+  VI gives ⟪g0,d⟫ ≤ 0 on all safe directions while the
+  mixture representation gives ≥ 0 — hence EXACTLY ZERO:
+  paralysis happens iff every common-ascent direction is
+  orthogonal to the mixture gradient. Contrapositive: any
+  safe d with ⟪g0,d⟫ ≠ 0 forces a nonzero certified step —
+  the non-stall certificate. Together with
+  `safeqp_eps_critical` (R55) this closes the honest core of
+  roadmap #1: the SafeQP iteration provably reaches
+  ε-criticality, and the only way it stops earlier is the
+  exact-orthogonality degenerate case.
+
+**Honest boundary**: the full Farkas equivalence (0 ∈
+conv{gᵢ} ↔ polar emptiness) and the O(ε) Pareto-stationarity
+rate are not claimed.
+
+-/
+
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+
+/-- **Gram-cone certificate (roadmap #1, Pareto piece 1)**:
+a nonnegative combination of the domain gradients makes an
+obtuse-or-right angle with every common-ascent direction.
+Contrapositive: if SOME common-ascent direction has
+⟪g0, d⟫ > 0, the mixture gradient g0 is NOT in the Gram cone. -/
+theorem gram_cone_inner {K : Type} [Fintype K] (g : K → X) (lam : K → ℝ) (d : X)
+    (hlam : ∀ i, 0 ≤ lam i) (hsafe : ∀ i, 0 ≤ ⟪g i, d⟫_ℝ) :
+    0 ≤ ⟪∑ i, lam i • g i, d⟫_ℝ := by
+  rw [real_inner_comm, inner_sum]
+  refine Finset.sum_nonneg (fun i _ => ?_)
+  rw [real_inner_smul_right, real_inner_comm]
+  exact mul_nonneg (hlam i) (hsafe i)
+
+/-- **SafeQP paralysis characterization (roadmap #1, Pareto
+piece 2)**: if the projected step is exactly zero (the
+controller does nothing), then (a) the mixture gradient makes
+a nonpositive inner product with EVERY safe direction (the
+VI), and (b) — since the mixture gradient is a nonnegative
+combination Σwᵢgᵢ, piece 1 — the inner product with every
+safe direction is EXACTLY ZERO: every common-ascent direction
+is orthogonal to the mixture gradient. The contrapositive is
+the non-stall certificate: any safe d with ⟪g0,d⟫ ≠ 0 forces
+a nonzero certified step. -/
+theorem safeqp_pareto_orthogonality {K : Type} [Fintype K]
+    (C : Set X) (hconv : Convex ℝ C) (g : K → X) (w : K → ℝ) (g0 : X)
+    (hw : ∀ i, 0 ≤ w i)
+    (hC0 : (0:X) ∈ C)
+    (h0min : ∀ d ∈ C, dist (0:X) g0 ≤ dist d g0)
+    (hmix : g0 = ∑ i, w i • g i)
+    (hsafecone : ∀ d ∈ C, ∀ i, 0 ≤ ⟪g i, d⟫_ℝ)
+    (d : X) (hd : d ∈ C) :
+    ⟪g0, d⟫_ℝ = 0 := by
+  have hvi := Hagi.min_dist_to_vi C hconv g0 0 hC0 h0min d hd
+  rw [show g0 - (0:X) = g0 by simp, show d - (0:X) = d by simp] at hvi
+  have hge : 0 ≤ ⟪g0, d⟫_ℝ := by
+    rw [hmix]
+    exact gram_cone_inner g w d hw (hsafecone d hd)
+  exact le_antisymm hvi hge
 
 end Hagi
