@@ -548,3 +548,27 @@ Anchors 113 → 114. Build 8694 jobs green, 0 sorry,
 triviality 1.0000, clean axioms. (twoGap_ce_identity — the
 exact CE-gap bridge #1 — in progress, one assembly link
 remains; M²/8 cosh²D product bound next.)
+
+## R67 — Audit bridge #1 CLOSED: the exact CE-gap identity
+
+- **twoGap_ce_identity** (Ensemble/Hoeffding): for experts
+  z1 = m+d, z2 = m−d with softmax-midpoint weights,
+  twoGap p d = (CE(z1)+CE(z2))/2 − CE(m) — EXACTLY, for
+  every token t (the target logit cancels; the pair sum
+  factorizes via pair_factor; each marginal = lse(m±d) −
+  log S). The abstract twoGap IS the real CE Jensen gap.
+- **ce_gap_bounded**: composition — the REAL cross-entropy
+  gap of the merge cycle ≤ M²/4 under |d_u−d_v| ≤ M. The
+  admission gate now bounds the TRUE CE quantity, not an
+  abstract surrogate (audit finding: 'merge_skip_certificate
+  proves the abstract twoGap small, not the real CE loss' —
+  closed).
+
+The M²/8 sharp route (pair_factor + chord_weighted proven in
+R61; the mu-canceling cosh²D product bound remains) and
+bridges #2–#5 of the audit (D-field derivative, finite-K
+NCE, quantization→energy chain, top-level real-variable
+theorem) remain the program.
+
+Anchors 114 → 116. Build 8694 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

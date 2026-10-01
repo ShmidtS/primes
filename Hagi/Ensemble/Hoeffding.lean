@@ -503,4 +503,94 @@ theorem domain_disagreement_floor (p d : k → ℝ)
   rw [show 1 / 2 * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
       = Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) / 2 from by ring]
 
+/-- The exact CE-gap identity (audit bridge #1). -/
+theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
+    Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) d
+      = (Hagi.ceOneHot t (fun v => m v + d v)
+          + Hagi.ceOneHot t (fun v => m v - d v)) / 2
+        - Hagi.ceOneHot t m := by
+  set p : k → ℝ := fun v => Real.exp (m v) / ∑ w, Real.exp (m w) with hpdef
+  set S : ℝ := ∑ w, Real.exp (m w) with hS
+  have hSpos : 0 < S := by
+    have hge : Real.exp (m t) ≤ S := Finset.single_le_sum
+      (fun v _ => Real.exp_nonneg (m v)) (Finset.mem_univ t)
+    have hpos' : (0:ℝ) < Real.exp (m t) := Real.exp_pos (m t)
+    linarith
+  -- marginal factor 1: Σ p_v e^{d_v} = Σ e^{m+d} / S
+  have hf1 : ∑ v, p v * Real.exp (d v) = (∑ v, Real.exp (m v + d v)) / S := by
+    have hterm : ∀ v : k, p v * Real.exp (d v) = Real.exp (m v + d v) / S := by
+      intro v
+      rw [hpdef, div_mul_eq_mul_div, ← Real.exp_add]
+    rw [Finset.sum_congr rfl (fun v _ => hterm v), Finset.sum_div]
+  -- marginal factor 2: Σ p_v e^{-d_v} = Σ e^{m-d} / S
+  have hf2 : ∑ v, p v * Real.exp (-(d v)) = (∑ v, Real.exp (m v - d v)) / S := by
+    have hterm : ∀ v : k, p v * Real.exp (-(d v)) = Real.exp (m v - d v) / S := by
+      intro v
+      have harg : m v + -(d v) = m v - d v := by ring
+      rw [hpdef, div_mul_eq_mul_div, ← Real.exp_add, harg]
+    rw [Finset.sum_congr rfl (fun v _ => hterm v), Finset.sum_div]
+  -- logs: log(Σ e^{m±d}/S) = lse(m±d) − log S
+  have hsum1pos : (0:ℝ) < ∑ v, Real.exp (m v + d v) := by
+    have hge : Real.exp (m t + d t) ≤ ∑ v, Real.exp (m v + d v) :=
+      Finset.single_le_sum (f := fun v => Real.exp (m v + d v))
+        (fun v _ => Real.exp_nonneg _) (Finset.mem_univ t)
+    have hpos' : (0:ℝ) < Real.exp (m t + d t) := Real.exp_pos _
+    linarith
+  have hsum2pos : (0:ℝ) < ∑ v, Real.exp (m v - d v) := by
+    have hge : Real.exp (m t - d t) ≤ ∑ v, Real.exp (m v - d v) :=
+      Finset.single_le_sum (f := fun v => Real.exp (m v - d v))
+        (fun v _ => Real.exp_nonneg _) (Finset.mem_univ t)
+    have hpos' : (0:ℝ) < Real.exp (m t - d t) := Real.exp_pos _
+    linarith
+  have hlog1 : Real.log (∑ v, p v * Real.exp (d v))
+      = Hagi.lse (fun v => m v + d v) - Real.log S := by
+    rw [hf1, Real.log_div (ne_of_gt hsum1pos) (ne_of_gt hSpos)]
+    rfl
+  have hlog2 : Real.log (∑ v, p v * Real.exp (-(d v)))
+      = Hagi.lse (fun v => m v - d v) - Real.log S := by
+    rw [hf2, Real.log_div (ne_of_gt hsum2pos) (ne_of_gt hSpos)]
+    rfl
+  -- twoGap unfolds to ½·log(ΣΣ pp e^{d_u−d_v}); factor + log_mul
+  have hposf1 : 0 < ∑ v, p v * Real.exp (d v) := by
+    rw [hf1]
+    exact div_pos hsum1pos hSpos
+  have hposf2 : 0 < ∑ v, p v * Real.exp (-(d v)) := by
+    rw [hf2]
+    exact div_pos hsum2pos hSpos
+  have hpair := Hagi.pair_factor p d
+  unfold Hagi.twoGap
+  rw [hpair, Real.log_mul (ne_of_gt hposf1) (ne_of_gt hposf2), hlog1, hlog2]
+  -- RHS: (ceOneHot t (m+d) + ceOneHot t (m−d))/2 − ceOneHot t m
+  --    = (lse(m+d) + lse(m−d) − 2·log S + 2·log S)/2 ... assemble:
+  unfold Hagi.ceOneHot Hagi.lse
+  have hcancel : (fun v => m v + d v) t + (fun v => m v - d v) t = 2 * m t := by ring_nf
+  -- targets: z1 t + z2 t = 2 m t, cancels with −m t twice
+  rw [show (fun v => m v + d v) t = m t + d t from rfl]
+  rw [show (fun v => m v - d v) t = m t - d t from rfl]
+  rw [show m t = m t from rfl]
+  -- now pure log arithmetic:
+  have hlogS : Real.log S = Real.log (∑ v, Real.exp (m v)) := rfl
+  rw [hlogS]
+  ring_nf
+
+/-- **The REAL CE admission gate** (composition of the exact
+identity with the quadratic bound): for experts z1 = m+d,
+z2 = m−d with softmax-midpoint weights, the TRUE
+cross-entropy Jensen gap — the merge-cycle's actual expected
+loss reduction — is bounded by M²/4 whenever the per-PAIR
+half-deviation diameter obeys |d_u − d_v| ≤ M. One scalar
+measurement gates the real GPU merge decision. -/
+theorem ce_gap_bounded {k : Type} [Fintype k] [Nonempty k] (m d : k → ℝ) (t : k) (M : ℝ)
+    (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
+    (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
+    (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M) :
+    Hagi.ceOneHot t (fun v => m v + d v) / 2
+      + Hagi.ceOneHot t (fun v => m v - d v) / 2
+      - Hagi.ceOneHot t m ≤ M ^ 2 / 4 := by
+  have hid := Hagi.twoGap_ce_identity m d t
+  have hbound : Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) d ≤ M ^ 2 / 4 :=
+    Hagi.twoGap_bounded k _ d M (fun v => (hp v).le) hsum hM hD
+  rw [hid] at hbound
+  linarith
+
 end Hagi
