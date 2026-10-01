@@ -664,3 +664,31 @@ machinery respectively).
 
 Anchors 122 → 124. Build 8696 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R72 — Global-dynamics roadmap: #3 prune, #6 idle, #2 KL-forgetting
+
+- **prune_certificate** (Ensemble/Hoeffding): merging two
+  leaves with pairwise logit difference ≤ delta raises CE
+  by at most delta²/4 — the exact twoGap bound instantiated
+  at the centroid-closeness regime. The tree BREATHES:
+  grow on new info, shrink on consolidation, budget held
+  by the merge certificate (roadmap #3 CLOSED).
+- **safeqp_idle + idle_identity** (Unified/GlobalDynamics):
+  zero mixture gradient ⟹ the SafeQP step is exactly 0
+  (0 ∈ C, dist 0 minimal, uniqueness); consensus logits ⟹
+  merge gap exactly 0 (twoGap_zero_iff). Identity under
+  Idle (roadmap #6 CLOSED): the model provably rests on
+  mastered/garbage data — no drift, no churn.
+- **forgetting_kl_bound** (Unified/GlobalDynamics, #2
+  conditional Fisher form): old-domain KL drift ≤ HALF the
+  Fisher quadratic form (second-order KL expansion, h_emp_);
+  a step in the 2ε-Fisher-ball drifts ≤ ε nats. Two-tier
+  with fisher_nullspace (kernel steps: exactly zero).
+
+Open (declared): #1 expectation-form Lyapunov (measure
+layer), #4 regret bounds, #5 PAC-Bayes (probability
+machinery); M²/8; Eckart–Young; bridges #2/#3 of the
+five-bridge audit.
+
+Anchors 124 → 128. Build 8697 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

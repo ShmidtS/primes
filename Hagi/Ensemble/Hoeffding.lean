@@ -675,4 +675,23 @@ theorem chord_factor2 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
       show (-(∑ v, p v * d v) + D) = D - ∑ v, p v * d v from by ring] at h
   exact h
 
+/-- **The certified pruning/merge certificate (roadmap #3)**:
+merging two leaves whose logits differ by at most delta at
+EVERY token (the centroid-closeness / high-mutual-
+information regime) increases the cross-entropy by at most
+delta²/4 — the exact twoGap bound instantiated at the
+half-deviation diameter M = delta. The tree can BREATHE:
+grow on new information, shrink on consolidation, with the
+computational budget held by the merge certificate. -/
+theorem prune_certificate {k : Type} [Fintype k] [Nonempty k]
+    (m d : k → ℝ) (t : k) (delta : ℝ)
+    (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
+    (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
+    (hdelta : 0 < delta)
+    (hclose : ∀ u v, abs ((d u - d v)) ≤ delta) :
+    Hagi.ceOneHot t (fun v => m v + d v) / 2
+      + Hagi.ceOneHot t (fun v => m v - d v) / 2
+      - Hagi.ceOneHot t m ≤ delta ^ 2 / 4 :=
+  Hagi.ce_gap_bounded m d t delta hp hsum hdelta hclose
+
 end Hagi
