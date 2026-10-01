@@ -842,3 +842,31 @@ Anchors 134 → 136. Build 8699 green, 0 sorry, triviality
 Anchors 136 → 140 (kl_eq_ce_gap + 3 verdicts − dropped
 carriers). Build 8699 green, 0 sorry, triviality 1.0000,
 clean axioms.
+
+## R79 — the insight channel: RLTL;DR formally permitted
+
+New module Hagi/Autonomy/Insight.lean (the RLTL;DR bridge —
+self-generated feedback as a growth channel):
+- **insight_kl_descent**: internalization IS KL-descent —
+  the insight-conditioned behavior is the teacher; residual
+  gap = exactly the KL gap (the R78 master identity at
+  p_E := p_insight). One currency with the distill axis.
+- **insight_consolidation_safe**: the insight gradient
+  through the SafeQP filter — certified alignment
+  ‖d*‖² ≤ ⟪g_I,d*⟫ + per-domain linearized drift guard
+  (⟪g_old,d*⟫ ≥ −ε): internalization cannot destroy old
+  skills beyond the declared budget.
+- **experience_cycle_bound**: the ExperienceGate —
+  E_next ≤ E_t − (G_insight + G_merge + η‖d*‖²/2 − C_exp −
+  C_quant); internalize vs grow vs stop share ONE Lyapunov
+  currency. The RLTL;DR token counts feed C_exp (rollouts
+  720M/12M vs internalization 2.9M/292k forward/backward —
+  exploration, not backprop, is the main cost).
+
+The unified self-improvement inequality (user's synthesis):
+  G_experience + G_diversity + G_joint >
+  C_exploration + C_quantization + C_forgetting
+is now the formal growth criterion of the whole loop.
+
+Anchors 140 → 143. Build 8700 green, 0 sorry, triviality
+1.0000, clean axioms.
