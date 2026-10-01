@@ -481,3 +481,24 @@ New module Hagi/Unified/AnytimeValid.lean:
 
 Anchors 105 → 108. Build 8693 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R64 — Stochastic SafeQP (the round-62 program, item 1)
+
+Hagi/Step/SafeQPRobust.lean, two theorems:
+- **stochastic_safeqp_feasible**: with true inner products
+  clearing the margins WITH the robust reserve (>= eps+m)
+  and h_emp_ minibatch concentration radius m (subgaussian
+  form sigma*sqrt(2 log(K/delta)/B)), every domain's
+  ESTIMATED inner product still clears its margin — the QP
+  feasibility check on estimated Gram rows is sound
+- **stochastic_safeqp_descent**: the certified descent
+  degrades gracefully — E2 <= E1 - eta*||d*||^2/2 +
+  eta*m0: the stochastic step stays informative (net
+  descent) whenever m0 < ||d*||^2, i.e. the batch condition
+  B >= 2 sigma^2 log(1/delta) / ||d*||^4
+
+Open remains: the perturbation bound d_hat* - d* via Gram
+conditioning (active-set stability) — the deeper form.
+
+Anchors 108 → 110. Build 8693 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

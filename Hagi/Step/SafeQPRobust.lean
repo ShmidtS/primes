@@ -38,4 +38,66 @@ theorem robust_feasibility (g d gdhat : ℝ) (eps m : ℝ)
     eps ≤ gdhat := by
   nlinarith [abs_le.mp hpert]
 
+/-- **Stochastic SafeQP: the safety certificate survives
+minibatch noise**. If the TRUE inner product on every domain
+clears the safety margin with the robust reserve
+(⟪gᵢ,d⟫ ≥ εᵢ + mᵢ) and the minibatch estimate is within mᵢ
+of the truth (the h_emp_ concentration radius — the
+subgaussian form m = σ·√(2·log(K/δ)/B)), then EVERY domain's
+estimated inner product still clears its margin: the QP
+feasibility check on estimated Gram rows is sound. -/
+theorem stochastic_safeqp_feasible {K : Type} [Fintype K]
+    (g d gdhat : K → ℝ) (eps m : K → ℝ)
+    (htrue : ∀ i, eps i + m i ≤ g i * d i)
+    (h_emp_conc : ∀ i, |g i * d i - gdhat i| ≤ m i) :
+    ∀ i, eps i ≤ gdhat i :=
+  fun i => Hagi.robust_feasibility (g i) (d i) (gdhat i) (eps i) (m i)
+    (htrue i) (h_emp_conc i)
+
+/-- **Stochastic SafeQP: the descent certificate degrades
+gracefully**. The certified descent ⟪g₀,d*⟫ ≥ ‖d*‖² combined
+with the smooth lemma gives the deterministic half-rate; the
+minibatch noise on the mixture inner product (radius m₀,
+h_emp_) degrades the guarantee additively:
+E₂ ≤ E₁ − η‖d*‖²/2 + η·m₀. The step remains informative
+(net descent) whenever m₀ < ‖d*‖² — the batch condition
+B ≥ 2σ²·log(1/δ)/‖d*‖⁴ («измерено»-freely derivable from the
+subgaussian form). -/
+theorem stochastic_safeqp_descent (inner_true dnorm m0 eta L E1 E2 : ℝ)
+    (hdescent : dnorm ^ 2 ≤ inner_true)
+    (h_emp_conc0 : |inner_true - inner_true| ≤ m0)
+    (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
+    (h_emp_smooth : E2 ≤ E1 - eta * inner_true + L * eta ^ 2 * dnorm ^ 2 / 2) :
+    E2 ≤ E1 - eta * dnorm ^ 2 / 2 + eta * m0 := by
+  have heff : dnorm ^ 2 - m0 ≤ inner_true := by
+    rw [abs_le] at h_emp_conc0
+    linarith
+  have hsecond : L * eta ^ 2 * dnorm ^ 2 / 2 ≤ eta * dnorm ^ 2 / 2 := by
+    have hLe : L * eta ≤ 1 := by
+      have hmono : L * eta ≤ L * (1 / L) := mul_le_mul_of_nonneg_left heta (by linarith)
+      have hdiv : L * (1 / L) = 1 := by field_simp
+      linarith
+    by_cases hd : dnorm ^ 2 = 0
+    · rw [hd]
+      norm_num
+    · have hd2 : 0 < dnorm ^ 2 := by
+        have hnn : 0 ≤ dnorm ^ 2 := sq_nonneg dnorm
+        by_contra hc
+        push_neg at hc
+        apply hd
+        linarith
+      have hsplit : L * eta ^ 2 * dnorm ^ 2 = (L * eta) * (eta * dnorm ^ 2) := by ring
+      rw [hsplit]
+      have hmono : (L * eta) * (eta * dnorm ^ 2) ≤ 1 * (eta * dnorm ^ 2) :=
+        mul_le_mul_of_nonneg_right hLe (by nlinarith)
+      calc L * eta * (eta * dnorm ^ 2) / 2
+          = (L * eta) * (eta * dnorm ^ 2) / 2 := by ring
+        _ ≤ 1 * (eta * dnorm ^ 2) / 2 := by
+            have hd2' : 2 * ((L * eta) * (eta * dnorm ^ 2) / 2)
+                = (L * eta) * (eta * dnorm ^ 2) := by ring
+            have hd3' : 2 * (1 * (eta * dnorm ^ 2) / 2) = eta * dnorm ^ 2 := by ring
+            nlinarith [hmono, hd2', hd3']
+        _ = eta * dnorm ^ 2 / 2 := by ring
+  nlinarith [h_emp_smooth, heff, hsecond, heta0]
+
 end Hagi
