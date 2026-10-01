@@ -65,7 +65,10 @@ be wall-clock-slower than a small GEMM (the measured
 Hadamard-vs-matmul anomaly) — the optimizer must optimize
 the wall-clock surrogate, not the FLOP count.
 
-* `designopt_interior_law` — THE MAIN THEOREM (the
+* `shadow_price_sum_identity` — the shadow-price sum law (R89
+rename: NOT a KKT-optimality theorem — the optimization
+problem itself is not formalized; this is the arithmetic
+identity the interior KKT program builds on) (the
 interior optimality): at the compute-optimal design, every
 interior mechanism's marginal quality-gain-per-compute
 EQUALIZES at the shadow price λ (the KKT interior condition
@@ -172,7 +175,7 @@ interior condition); the active mechanisms are those whose
 zero-level marginal exceeds λ; the stopping rule is that NO
 mechanism's marginal exceeds λ. The single law from which
 N*, r*, W*, S*, K*, loop*, p* all derive. -/
-theorem designopt_interior_law (ι : Type) [Fintype ι]
+theorem shadow_price_sum_identity (ι : Type) [Fintype ι]
     (marg c : ι → ℝ) (lam : ℝ)
     (hinterior : ∀ j, marg j = lam * c j) :
     ∑ j, marg j = lam * ∑ j, c j := by

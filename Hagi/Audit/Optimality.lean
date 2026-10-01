@@ -27,7 +27,7 @@ c_i·κ_i·e^{−κ_i·b_i*} = λ and Σ b* = Σ b', ANY feasible b'
 satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*} — the
 waterfilling is optimal, DERIVED (convexity tangent + the
 budget identity), turning `hinterior` from a hypothesis into
-a conclusion and closing the `designopt_interior_law` family
+a conclusion and closing the `shadow_price_sum_identity` family
 honestly.
 
 **2.5 — `head_start_timeshift`**: the PL-contraction form of
@@ -139,7 +139,7 @@ marginals equalize at b* (c_i·κ_i·e^{−κ_i·b_i*} = λ for all
 i) and b* is feasible, then EVERY feasible b' (Σ b' = Σ b*)
 satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}: the
 waterfilling allocation is optimal — `hinterior` becomes a
-CONCLUSION, closing `designopt_interior_law` and
+CONCLUSION, closing `shadow_price_sum_identity` and
 `marginalValue_law` honestly (the interior condition is the
 optimality certificate, not an assumption). HONEST BOUNDARY
 (R78): this is KKT ⟹ optimality ONLY — the EXISTENCE of an

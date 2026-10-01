@@ -161,6 +161,21 @@ identity (`interleave_char_mul`) above are the two halves of the
 transport, and the block computation is the remaining glue.
 -/
 
+/-- **The block algebra (R89, step 1 of the orthogonality
+route)**: reBlock c * (reBlock d)ᵀ = reBlock (c * star d) —
+the 2×2 real blocks compose under complex multiplication;
+combined with character orthogonality this closes to
+reUnitMat * reUnitMatᵀ = I (the remaining entry-level sum
+is the documented next step). -/
+theorem reBlock_mul_transpose (c d : ℂ) :
+    (reBlock c : Matrix (Fin 2) (Fin 2) ℝ) * (reBlock d)ᵀ = reBlock (c * star d) := by
+  ext i j
+  simp only [reBlock, Matrix.mul_apply, Matrix.transpose_apply,
+    Matrix.head_cons, Matrix.cons_val_one, Matrix.cons_val_zero]
+  fin_cases i <;> fin_cases j <;>
+    simp [Complex.mul_re, Complex.mul_im] <;>
+    ring
+
 end RealF3
 
 end Hagi

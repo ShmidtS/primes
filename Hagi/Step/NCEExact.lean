@@ -239,7 +239,7 @@ EMPIRICAL judgment (logit_scale drift 1.784 → 1.841, kl
 diagnosis, but NOT as a theorem. The PRESCRIPTION (anchor
 the out-of-sample regime: z_loss, logit_scale clamp,
 periodic exact-CE) remains empirically motivated. -/
-theorem ceGap_delta_ceiling (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
+theorem relative_second_moment_floor (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
     -- the noise-explainable gap is AT MOST the per-sample
     -- relative second moment over 2K

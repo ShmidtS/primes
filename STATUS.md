@@ -1100,3 +1100,25 @@ PAC-Bayes probability theorem, success probability.
 
 Anchors 162 → 163. Build 8704 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R89 — honesty renames + RealF3 orthogonality step 1
+
+- **ceGap_delta_ceiling → relative_second_moment_floor**
+  (Step/NCEExact, the audit's #1 priority): the name now
+  matches the content (the Cauchy–Schwarz E[W²]/Z² ≥ 1
+  floor); the honest-boundary docstring (R61) already
+  declared the finite-K ceiling open.
+- **designopt_interior_law → shadow_price_sum_identity**
+  (Budget/DesignOpt + Audit/Optimality): NOT a KKT theorem —
+  the optimization problem is not formalized; the rename
+  reflects the arithmetic identity the interior program
+  builds on.
+- **RealF3.reBlock_mul_transpose** (Core/RealF3): the block
+  algebra reBlock c * (reBlock d)ᵀ = reBlock (c * star d) —
+  step 1 of the documented orthogonality route; the entry-
+  level character sum (reUnitMat * reUnitMatᵀ = I) remains
+  the next step (the Lean↔production row/column orientation
+  convention noted by the audit stays open alongside).
+
+Anchors 163 → 164. Build 8704 green, 0 sorry, triviality
+1.0000, clean axioms.
