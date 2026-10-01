@@ -68,6 +68,7 @@ import Hagi.Dynamics.CurvatureSafe
 import Hagi.Dynamics.Contraction
 import Hagi.Autonomy.TTTStability
 import Hagi.Sparsity.SparseStep0
+import Hagi.Unified.GrowthState
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum

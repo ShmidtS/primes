@@ -433,3 +433,30 @@ Audit findings and dispositions:
 
 Anchors 100 → 102 (+pair_factor, +chord_weighted; −5
 tautologies). Build 8691 jobs green, 0 sorry.
+
+## R62 — Unity AT THE LEAN LEVEL (audit round-62 directives)
+
+New module Hagi/Unified/GrowthState.lean:
+- **joint_stage_linked**: inner/dnorm are now the REAL
+  ⟪g₀,d*⟫ and ‖d*‖ from safeQP_descent — the descent
+  hypothesis is DERIVED from the projection theorem; only
+  the energy's L-smoothness remains h_emp_ (audit finding 5
+  closed at the joint stage)
+- **macro_termination_derived**: the telescope explicitly
+  applied to the per-generation certified decrease (the
+  stage sum G + η‖d*‖²/2 − κs/2 ≥ ε enters as h_gen) — the
+  'restated hypothesis' finding fixed at the composition
+  point
+- **protected_generation_budget**: the target-theorem
+  skeleton — per-generation regression ≤ ε and spend ≤ b
+  telescope to T·ε and T·b across the whole growth history
+
+Queued per the round-62 program: merge_stage link to
+ensemble_ce_le_mean_general (token-level instantiation),
+stochastic SafeQP (concentration), anytime-valid controller
+certificates (e-processes — 'the most underrated item'),
+Muon/LazyAdam/STE step models, fresh-data fraction condition
+for diversity_floor, self-modification separation theorem.
+
+Anchors 102 → 105. Build 8692 jobs green, 0 sorry,
+triviality 1.0000 (heuristic), clean axioms.
