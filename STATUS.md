@@ -347,3 +347,22 @@ triviality 1.0000, clean axioms.
 
 Anchors 86 → 88. Build 8687 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R59 — Controller decision theorems (T1a → skip/ceiling)
+
+Response to the round-59 synthesis review:
+- merge_skip_certificate: M²/4 < ε ⟹ skipping the entire
+  GPU merge cycle loses strictly less than ε nats — the
+  SKIP decision certified by one scalar (M)
+- merge_value_ceiling: through transport efficiency
+  η ∈ [0,1], the materialized merge value is η·twoGap ≤
+  M²/4 — the admission gate must compare η·gap, not the raw
+  gap, against ε (matches the R56/R57 stand diagnosis:
+  transport η, not diversity, is the bottleneck)
+- Corrections to the review table: Pareto-link CLOSED in
+  R58 (b8e4fc1): safeqp_pareto_orthogonality + non-stall
+  certificate; η-transport bound exists since R48
+  (highway_gain_transport_bound)
+
+Anchors 88 → 90. Build 8687 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

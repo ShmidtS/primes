@@ -273,4 +273,35 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
   show (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
   nlinarith [hlogmono]
 
+/-- **The pre-gate skip certificate (R59)**: if the pool's
+disagreement diameter M obeys M²/4 < ε (the T1a quadratic
+gate), then the entire ensemble gain available from ANY merge
+of this pool is below ε — skipping the GPU merge cycle loses
+strictly less than ε nats. The controller decision SKIP is
+certified by one scalar measurement (M). -/
+theorem merge_skip_certificate (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ) (M eps : ℝ)
+    (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1)
+    (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M)
+    (hgate : M ^ 2 / 4 < eps) :
+    Hagi.twoGap p d < eps := by
+  have hb := Hagi.twoGap_bounded V p d M hp hsum hM hD
+  linarith
+
+/-- **The materialized-gain ceiling through transport**: the
+ensemble gain that actually reaches the output through a
+transport channel of efficiency η ∈ [0,1] is at most η·G —
+composing the exact gap (≤ ½log cosh M) with the η-transport
+bound. The controller's effective value of a merge is
+η·twoGap, and the admission gate must compare it — not the
+raw gap — against ε. -/
+theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ) (M eta : ℝ)
+    (hp : ∀ v, 0 < p v) (hsum : ∑ v, p v = 1)
+    (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M)
+    (heta : 0 ≤ eta) (heta1 : eta ≤ 1) :
+    eta * Hagi.twoGap p d ≤ M ^ 2 / 4 := by
+  have hb : Hagi.twoGap p d ≤ M ^ 2 / 4 :=
+    Hagi.twoGap_bounded V p d M (fun v => le_of_lt (hp v)) hsum hM hD
+  have hgap0 : 0 ≤ Hagi.twoGap p d := Hagi.twoGap_nonneg hp hsum
+  nlinarith [hb, hgap0, heta, heta1]
+
 end Hagi
