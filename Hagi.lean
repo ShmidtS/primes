@@ -68,6 +68,7 @@ import Hagi.Dynamics.CurvatureSafe
 import Hagi.Dynamics.Contraction
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
+import Hagi.Data.PACBayes
 import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
 import Hagi.Unified.AnytimeValid

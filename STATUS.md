@@ -786,3 +786,27 @@ conditional (R72), #3 ✅ (R72), #4 ✅ (R74+R76), #6 ✅
 
 Anchors 132 → 134. Build 8698 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R77 — Roadmap #5 core: Gibbs variational inequality (PAC-Bayes)
+
+New module Hagi/Data/PACBayes.lean:
+- **log_weighted_jensen**: Σ q ln x ≤ ln Σ qx — weighted
+  Jensen for log via the tangent bound ln y ≤ y/m − 1 + ln m
+  (concavity, no measure theory).
+- **gibbs_variational**: for any posterior q, prior p on a
+  finite hypothesis class and any f:
+
+    E_q f ≤ KL(q‖p) + ln E_p e^f
+
+  — the change-of-measure lemma underlying EVERY PAC-Bayes
+  bound, proved deterministically (pointwise identity
+  f − ln(q/p) = ln(p e^f/q) + Jensen). The final PAC-Bayes
+  generalization bound needs one external Hoeffding step
+  (h_emp_) — the deterministic core is machine-verified.
+
+Global roadmap FINAL: #1 ✅ #2 ✅ (cond) #3 ✅ #4 ✅ #5 ✅
+(core; Hoeffding step external) #6 ✅. All six global
+dynamics fronts now have certified cores.
+
+Anchors 134 → 136. Build 8699 green, 0 sorry, triviality
+1.0000, clean axioms.
