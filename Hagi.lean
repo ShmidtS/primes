@@ -71,6 +71,7 @@ import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
 import Hagi.Unified.AnytimeValid
 import Hagi.Energy.STEStep
+import Hagi.Energy.QuantBridge
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum

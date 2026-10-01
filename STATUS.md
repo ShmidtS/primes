@@ -621,3 +621,23 @@ triviality 1.0000, clean axioms.
 
 Anchors 118 → 120. Build 8694 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R70 — Audit bridge #4 CLOSED: quantization→energy chain
+
+New module Hagi/Energy/QuantBridge.lean:
+- **quant_residual_norm**: per-weight residue ≤ s/2 ⟹
+  Euclidean residual norm² ≤ n·(s/2)² (√n·s/2) — the
+  pointwise-to-global step
+- **quant_energy_bridge**: with the energy κ-Lipschitz in
+  the weight norm (h_emp_lip), ΔE ≤ κ·√n·s/2 — the FULL
+  chain tern_distortion_round → residual norm → energy.
+  MacroCycle's abstract compress_stage hypothesis is now
+  grounded in the real ternary pipeline (the audit's
+  'missing edge' closed).
+
+Audit bridges status: #1 CE-identity (R67 ✅), #4 quant→E
+(R70 ✅); #2 D-field derivative, #3 finite-K NCE, #5
+top-level real-variable theorem — open.
+
+Anchors 120 → 122. Build 8695 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
