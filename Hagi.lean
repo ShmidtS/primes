@@ -71,6 +71,7 @@ import Hagi.Autonomy.Hedge
 import Hagi.Data.PACBayes
 import Hagi.Autonomy.Insight
 import Hagi.Unified.Liveness
+import Hagi.Dynamics.CapabilityGain
 import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
 import Hagi.Unified.AnytimeValid

@@ -926,3 +926,29 @@ model respectively.
 
 Anchors 146 → 148. Build 8701 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R82 — capability gain: the internal→external transfer
+
+New module Hagi/Dynamics/CapabilityGain.lean (the audit's
+central missing bridge, conditional form):
+- **capability_gain_transfer**: R_ext = E_int + gap (the
+  REAL generalization gap); internal certificate Γ_t > 0 +
+  non-degrading gap ⟹ R_ext(θ_{t+1}) ≤ R_ext(θ_t) − Γ_t —
+  the internal Lyapunov descent TRANSFERS to external
+  capability. The full chain now: residual potential
+  (liveness R80) ⟹ useful action (twoGap R80) ⟹ internal
+  descent (SafeQP + MacroCycle R71) ⟹ EXTERNAL capability
+  gain (R82).
+- **pb_gap_bound_mono**: the budget side — the PAC-Bayes gap
+  bound is monotone in the KL budget (gibbs_variational R77
+  route); compression/prune with KL non-increasing keeps the
+  certified bound from growing. Actual-gap monotonicity
+  stays h_emp_ until the CertifiedEstimator bridge.
+
+Remaining per the audit's closing sequence:
+ImplementationRefinement (TorchLean route), CertifiedEstimator
+(probability layer), DiscoveryProbability, RecursiveImprovement,
+FastGrowth, Universality, MasterHAGI.
+
+Anchors 148 → 150. Build 8702 green, 0 sorry, triviality
+1.0000, clean axioms.
