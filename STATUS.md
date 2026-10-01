@@ -315,3 +315,17 @@ Hagi/Ensemble/Hoeffding.lean (open since round-47):
 
 Anchors 77 → 84 (+7 theorems). Build 8687 jobs green,
 0 sorry, triviality 1.0000, clean axioms.
+
+## R57 — Quadratic admission bound (T1a complete)
+
+- log_cosh_le: log cosh M ≤ M²/2 (via Mathlib
+  cosh_le_exp_half_sq)
+- **twoGap_bounded**: twoGap p d ≤ M²/4 for pairwise
+  disagreement ≤ M — the FULL quadratic admission bound,
+  composing exp_prod_le_cosh with the cosh quadratic
+  reduction. The admission criterion is now: measure the
+  pool's disagreement diameter M, gain is provably within
+  M²/4. T1a fully closed (exact cosh form + quadratic form).
+
+Anchors 84 → 86. Build 8687 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

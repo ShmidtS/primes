@@ -220,4 +220,57 @@ theorem exp_prod_le_cosh {V : Type} [Fintype V] (p d : V → ℝ) (M : ℝ)
     _ = Real.cosh M := by
         rw [Real.cosh_eq M]
         ring
+theorem log_cosh_le (M : ℝ) : Real.log (Real.cosh M) ≤ M ^ 2 / 2 := by
+  have hc : Real.cosh M ≤ Real.exp (M ^ 2 / 2) := cosh_le_exp_half_sq M
+  have hpos : 0 < Real.cosh M := Real.cosh_pos M
+  have hlog : Real.log (Real.cosh M) ≤ Real.log (Real.exp (M ^ 2 / 2)) :=
+    Real.log_le_log hpos (cosh_le_exp_half_sq M)
+  rw [Real.log_exp] at hlog
+  exact hlog
+
+theorem half_log_cosh_le (M : ℝ) : Real.log (Real.cosh M) / 2 ≤ M ^ 2 / 4 := by
+  have h := log_cosh_le M
+  linarith [div_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (0:ℝ) < 4)]
+
+/-- **Full quadratic admission bound**: the Jensen gap of a
+pool with pairwise disagreement ≤ M is at most M²/4 —
+composition of exp_prod_le_cosh (cosh bound) with the
+Mathlib cosh_le_exp_half_sq quadratic reduction. -/
+theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
+    (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1)
+    (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M) :
+    Hagi.twoGap p d ≤ M ^ 2 / 4 := by
+  have hcosh := Hagi.exp_prod_le_cosh p d M hp hsum hM hD
+  have hquad : Real.cosh M ≤ Real.exp (M ^ 2 / 2) := cosh_le_exp_half_sq M
+  have hle : ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) ≤ Real.exp (M ^ 2 / 2) :=
+    le_trans hcosh hquad
+  -- twoGap = ½ log (sum) ≤ ½ log (exp(M²/2)) = M²/4
+  have hpos : 0 < ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
+    -- every term ≥ p_u p_v · e^{−M}, so the sum ≥ e^{−M}·ΣΣ p p = e^{−M} > 0
+    have hone : ∑ u, ∑ v, p u * p v = 1 := Hagi.sum_pair_weights p hsum
+    have hge : ∀ (u : V) (v : V),
+        p u * p v * Real.exp (-M) ≤ p u * p v * Real.exp (d u - d v) := by
+      intro u v
+      have hd : -M ≤ d u - d v := by
+        have := hD u v
+        rw [abs_le] at this
+        linarith
+      have hexp : Real.exp (-M) ≤ Real.exp (d u - d v) := Real.exp_le_exp_of_le hd
+      exact mul_le_mul_of_nonneg_left hexp (mul_nonneg (hp u) (hp v))
+    have hlb : (∑ u, ∑ v, p u * p v) * Real.exp (-M)
+        ≤ ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
+      calc (∑ u, ∑ v, p u * p v) * Real.exp (-M)
+          = ∑ u, ∑ v, p u * p v * Real.exp (-M) := by
+              rw [mul_comm, ← Hagi.sum2_mul (f := fun u v => p u * p v) (c := Real.exp (-M))]
+              exact Finset.sum_congr rfl (fun u _ => Finset.sum_congr rfl (fun v _ => by ring))
+        _ ≤ ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
+          refine Finset.sum_le_sum (fun u _ => Finset.sum_le_sum (fun v _ => hge u v))
+    rw [hone, one_mul] at hlb
+    exact lt_of_lt_of_le (by positivity : (0:ℝ) < Real.exp (-M)) hlb
+  have hlogmono : Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
+      ≤ Real.log (Real.exp (M ^ 2 / 2)) := Real.log_le_log hpos hle
+  rw [Real.log_exp] at hlogmono
+  show (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
+  nlinarith [hlogmono]
+
 end Hagi
