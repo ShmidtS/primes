@@ -998,3 +998,30 @@ Anchors 150 → 153. Build 8703 green, 0 sorry, triviality
 
 Anchors 153 → 156. Build 8703 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R85 — the counted takeoff law: exponential under success counting
+
+Dynamics/FastGrowth, two new theorems:
+- **capability_takeoff_counted**: each cycle multiplying
+  capability by >= (1+alpha)^(s_t) with s_t the success
+  indicator gives
+
+    C_T >= C_0 * (1+alpha)^(sum s_t)
+
+  — exponential in the SUCCESS COUNT; failures neutral
+  (s_t = 0 multiplies by 1): safety and growth in ONE law.
+  Induction with pow_add over the counted sum.
+- **capability_takeoff_floor**: with a success-count floor
+  N <= sum s_t (h_emp_ — from DiscoveryProbability
+  concentration, P(s_t=1) >= p ⟹ N >= floor(pT)):
+
+    C_T >= C_0 * (1+alpha)^N
+
+  the exponential takeoff conditional on the measured
+  discovery rate — the audit's fast-growth Master theorem
+  complete on the deterministic side; only the stochastic
+  concentration (Borel–Cantelli / Chernoff on sum s_t)
+  remains, on the probability-layer front.
+
+Anchors 156 → 158. Build 8703 green, 0 sorry, triviality
+1.0000, clean axioms.
