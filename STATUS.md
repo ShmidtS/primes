@@ -711,3 +711,22 @@ PAC-Bayes — open (probability layer).
 
 Anchors 128 → 130. Build 8697 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R74 — Roadmap #4 step 1: Hedge per-step bound
+
+New module Hagi/Autonomy/Hedge.lean:
+- **exp_neg_le_quad**: e^{-y} ≤ 1 - y + y²/2 for y ≥ 0 —
+  proven via MVT (f = 1-y+y²/2-e^{-y}, f' = y-1+e^{-y} ≥ 0
+  by add_one_le_exp, f(0)=0); absent from Mathlib in this
+  usable form — the base lemma for exponential-weights.
+- **hedge_step**: for losses in [0,1], any weights p with
+  Σp=1, η ∈ [0,1]: Σ p·e^{-ηl} ≤ 1 - η⟨p,l⟩ + η²/2 — the
+  per-step multiplicative potential drop of Hedge routing.
+  The router's potential never collapses.
+
+Next (R75): the product telescoping W_T/W_0 ≤ exp(-ηΣ⟨p,l⟩
++ η²T/2) + the log lower bound W_T ≥ e^{-ηL*}/K ⟹ regret
+≤ lnK/η + ηT/2 — the full O(√(T lnK)) router regret.
+
+Anchors 130 → 132. Build 8698 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
