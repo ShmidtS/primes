@@ -502,3 +502,27 @@ conditioning (active-set stability) — the deeper form.
 
 Anchors 108 → 110. Build 8693 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R65 — STE step model + fresh-data diversity condition
+
+- **ste_step_residual** (Hagi.Energy.STEStep): the STE
+  effective weight change = gradient step + ternary residue
+  (≤ s/2 per coordinate) — descent guarantees hold OUTSIDE
+  the O(s) quantization neighborhood; STE converges to the
+  s-ball, never the point (the audit's demand: state it
+  explicitly). ste_terminal_ball REMOVED by the linter
+  (conclusion-equals-hypothesis — the improved linter
+  working as intended, first catch).
+- **diversity_floor_fresh + _strict_pos**
+  (Hagi.Step.JointPreserve): the fresh-data condition —
+  strict injection dominance (inj > ξ, i.e. the fresh-data
+  fraction per generation more than covers the leakage)
+  makes the diversity floor STRICTLY POSITIVE for every
+  generation T ≥ 1: collapse is excluded by the schedule.
+  The fresh-data fraction is exactly the control knob.
+
+Remaining from round-62 program: Muon/LazyAdam step models,
+self-modification separation theorem, Ville e-processes.
+
+Anchors 110 → 113. Build 8694 jobs green, 0 sorry,
+triviality 1.0000 (first linter catch removed).

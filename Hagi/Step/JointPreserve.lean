@@ -91,4 +91,41 @@ theorem diversity_floor (D : ℕ → ℝ) (rho inj xi : ℝ)
       _ ≥ rho * (rho^T * D 0 + (inj - xi) * S) + (inj - xi) := hsplit
       _ = rho^(T+1) * D 0 + (inj - xi) * (S + rho^T) := halg
 
+/-- **The fresh-data condition for a nondegenerate diversity
+floor** (round-62 program item 5): with per-step retention
+ρ > 0 and STRICT injection dominance inj > ξ (the fresh-data
+schedule condition — the fraction of fresh external data per
+generation must more than cover the leakage), the floor of
+`diversity_floor` is strictly positive: D_T ≥ (inj−ξ)·Σ_{i<T}ρⁱ
+> 0. The FRESH-DATA FRACTION is exactly the control knob
+that guarantees inj > ξ; without it (inj ≤ ξ) the floor
+degenerates and the collapse regime is admissible. -/
+theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
+    (hrho : 0 < rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
+    (hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
+    (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) :
+    D T ≥ (inj - xi) * ∑ i ∈ Finset.range T, rho ^ i := by
+  have hf := Hagi.diversity_floor D rho inj xi hrho.le hinj hxi hstep T
+  have hnn : 0 ≤ rho ^ T * D 0 :=
+    mul_nonneg (pow_nonneg hrho.le T) hD0
+  linarith
+
+/-- **Strict positivity of the fresh floor**: for any
+generation T ≥ 1 the floor is strictly positive — collapse
+is EXCLUDED by strict injection dominance. -/
+theorem diversity_floor_strict_pos (D : ℕ → ℝ) (rho inj xi : ℝ)
+    (hrho : 0 ≤ rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
+    (hinjgt : xi < inj)
+    (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) (hT : T ≠ 0) :
+    0 < (inj - xi) * ∑ i ∈ Finset.range T, rho ^ i := by
+  have hdiff : 0 < inj - xi := by linarith
+  have hsumpos : 0 < ∑ i ∈ Finset.range T, rho ^ i := by
+    apply Finset.sum_pos'
+    · intro i _
+      exact pow_nonneg hrho i
+    · refine ⟨0, ?_, by simp⟩
+      rw [Finset.mem_range]
+      omega
+  positivity
+
 end Hagi
