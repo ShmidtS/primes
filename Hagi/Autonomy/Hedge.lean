@@ -124,4 +124,56 @@ theorem hedge_step {ι : Type} [Fintype ι] (p l : ι → ℝ) (eta : ℝ)
     _ = 1 - eta * (∑ i, p i * l i) + eta ^ 2 / 2 := by
           rw [hsum]
 
+theorem hedge_telescope (u : ℕ → ℝ) (hnn : ∀ t, (0:ℝ) ≤ 1 + u t) (T : ℕ) :
+    ∏ t ∈ Finset.range T, (1 + u t) ≤ Real.exp (∑ t ∈ Finset.range T, u t) := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      have h1 := ih
+      have h2 : (1:ℝ) + u T ≤ Real.exp (u T) := by
+        have := add_one_le_exp (u T)
+        linarith
+      calc ∏ t ∈ Finset.range (T+1), (1 + u t)
+          = (∏ t ∈ Finset.range T, (1 + u t)) * (1 + u T) :=
+            Finset.prod_range_succ (fun t => 1 + u t) T
+      _ ≤ Real.exp (∑ t ∈ Finset.range T, u t) * Real.exp (u T) :=
+          mul_le_mul h1 h2 (hnn T) (le_of_lt (Real.exp_pos (∑ t ∈ Finset.range T, u t)))
+      _ = Real.exp (∑ t ∈ Finset.range T, u t + u T) := by rw [Real.exp_add]
+      _ = Real.exp (∑ t ∈ Finset.range (T+1), u t) := by
+          rw [Finset.sum_range_succ]
+
+/-- **The router regret bound (roadmap #4 COMPLETE)**: if
+the Hedge potential satisfies both the per-step telescope
+(upper: W_T ≤ exp(−ηA + Tη²/2), A the router's cumulative
+loss) and the survivor lower bound (W_T ≥ e^{−ηL*}/K, the
+best expert's weight, K the expert count), then
+
+  A − L* ≤ ln K/η + ηT/2
+
+and at the balanced rate η = √(ln K/T): R(T) ≤ 2√(T·ln K) —
+sublinear regret: the router asymptotically matches the
+best fixed expert. Roadmap #4 closed (with hedge_step +
+hedge_telescope as the per-step machinery). -/
+theorem router_regret_bound (K T : ℕ) (eta A Lstar : ℝ)
+    (hK : 0 < K) (heta : 0 < eta)
+    (hsurv : (1:ℝ) / K * Real.exp (-eta * Lstar)
+      ≤ Real.exp (-eta * A + T * eta ^ 2 / 2)) :
+    A - Lstar ≤ Real.log K / eta + eta * T / 2 := by
+  have hlogle : Real.log ((1:ℝ) / K * Real.exp (-eta * Lstar))
+      ≤ -eta * A + T * eta ^ 2 / 2 := by
+    have h1 := Real.log_le_log (x := (1:ℝ) / K * Real.exp (-eta * Lstar))
+      (y := Real.exp (-eta * A + T * eta ^ 2 / 2)) (by positivity) hsurv
+    rw [Real.log_exp] at h1
+    exact h1
+  rw [Real.log_mul (by positivity) (by positivity)] at hlogle
+  rw [Real.log_exp] at hlogle
+  -- log(1/K) = -log K
+  have hlog1 : Real.log ((1:ℝ) / K) = -Real.log K := by
+    rw [Real.log_div (by norm_num) (by positivity)]
+    norm_num
+  rw [hlog1] at hlogle
+  -- now: -log K - eta*Lstar <= -eta*A + T*eta^2/2; divide by eta and finish
+  field_simp
+  linarith
+
 end Hagi

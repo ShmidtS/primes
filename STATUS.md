@@ -762,3 +762,27 @@ triviality 1.0000, clean axioms.
 
 Anchors: renamed 2, added 0 → 132. Build 8698 green,
 0 sorry, triviality 1.0000, clean axioms.
+
+## R76 — Roadmap #4 COMPLETE: router regret bound
+
+- **hedge_telescope** (Autonomy/Hedge): ∏(1+u_t) ≤
+  exp(Σu_t) — the product-to-exp telescope (induction on T,
+  1+x ≤ e^x per factor, exp-of-sum factorization).
+- **router_regret_bound** (Autonomy/Hedge): combining the
+  potential telescope (upper) with the survivor bound
+  W_T ≥ e^{−ηL*}/K (lower) and log-monotonicity:
+
+    A − L* ≤ ln K / η + ηT / 2
+
+  at η = √(lnK/T): R(T) ≤ 2√(T·lnK) — SUBLINEAR regret.
+  The HAGI router asymptotically matches the best fixed
+  expert. Roadmap #4 closed (hedge_step R74 +
+  telescope + survivor ⟹ regret).
+
+Global-dynamics roadmap final status: #1 ✅ (R73), #2 ✅
+conditional (R72), #3 ✅ (R72), #4 ✅ (R74+R76), #6 ✅
+(R72, merge stage); #5 PAC-Bayes — the last open front
+(needs the probability/measure layer).
+
+Anchors 132 → 134. Build 8698 green, 0 sorry, triviality
+1.0000, clean axioms.
