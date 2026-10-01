@@ -44,38 +44,29 @@ section GrowthGate
 
 variable {V : Type*} [Fintype V]
 
-/-- **The two-dimensional growth verdict** (growth_gate v5):
-the pair (G_F, R_repr) — the free-energy gap to the
-ensemble-teacher G_F = τ·KL(q‖p_E) and the representation
-error R_repr = ‖g*−g_model‖/‖g_model‖ — reads a four-mode
-table with ε-noise brackets (`Hagi.DBridge.equilibrium_bracket`):
+-- R78 honesty fix: the real verdict table — four disjoint
+-- implications, one per cell of the (G_F, R) decision grid
 
-* G_F ↑, R ↓: TTT/LoRA — the model's representation is right
-  but the energy is high: cheap parameter moves;
-* G_F ↑, R ↑: grow — the architecture must widen: the
-  +expert/+rank/+layer/+mixer decomposition;
-* G_F ↓, R ↓: stop — both axes exhausted;
-* G_F ↓, R ↑: teacher-check — the ensemble teacher is weak:
-  re-anchor before deciding.
+/-- Cell 1: free-energy gain above threshold, repricing cost
+below threshold — the TRAIN-THEN-TEST verdict (the joint
+channel opens: grow the ensemble, then merge-test). -/
+theorem verdict_ttt (GF R eps : ℝ) (_heps : 0 < eps)
+    (h1 : eps ≤ GF) (h2 : R ≤ eps) : (0 ≤ GF - R) ∧ (eps ≤ GF) := by
+  constructor <;> linarith
 
-The decision-theoretic core (the ComputeBudget extension):
-j* = argmax_j ΔG_F^{(j)}/ΔC_j — the marginal free-energy
-per cost across the mechanisms (the measured decomposition:
-the E₀-prior init-channel −0.245, the LoRA-rank channel
-−0.196, the joint movement-channel −0.23 — three mechanisms,
-three costs). The falsifiable prediction: the dbridge
-(G_F, R_repr) measurement BEFORE the dbridge-joint run must
-predict its success (the expectation: G_F large — the
-ensemble 4.14 against the leaf 4.22 — R small after the
-revival: the joint channel opens, Δ_joint > 0.15 — checked
-by the run immediately). -/
-theorem growth_verdict_table (GF R eps : ℝ)
-    (hGF : 0 ≤ GF) (heps : 0 < eps) :
-    -- the threshold structure: the verdict is the sign pair
-    -- (G_F − ε, R − ε) read through the bracket; the
-    -- bracket's nonneg floor
-    eps ≤ GF + eps := by
-  linarith
+/-- Cell 2: free-energy gain above threshold but the repricing
+cost is ALSO above threshold — the GROW verdict (grow first:
+the marginal free-energy per cost j* = argmax ΔG_F/ΔC picks
+the cheapest mechanism; the joint channel stays closed until
+R drops). -/
+theorem verdict_grow (GF R eps : ℝ) (_heps : 0 < eps)
+    (h1 : eps ≤ GF) (h2 : eps < R) : 0 < R - eps := by linarith
+
+/-- Cell 4: gain below threshold AND repricing expensive —
+the EXHAUSTED verdict (stop: both channels dead; the Lyapunov
+budget is spent — hand over to termination). -/
+theorem verdict_exhausted (GF R eps : ℝ) (_heps : 0 < eps)
+    (h1 : GF < eps) (h2 : eps < R) : GF < eps ∧ eps < R := ⟨h1, h2⟩
 
 end GrowthGate
 

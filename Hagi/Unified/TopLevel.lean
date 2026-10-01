@@ -115,13 +115,14 @@ theorem noisy_cycle_step (inner_true inner_est dnorm m0 eta L Emean E1 E2 E3 E4 
   rw [hE3] at hquant
   linarith
 
-/-- **The expected-horizon termination (roadmap #1,
-asymptotic form)**: if every generation's expected stage sum
+/-- **The horizon termination (roadmap #1 asymptotic; R78
+honesty fix: renamed — DETERMINISTIC Lyapunov telescope, no
+expectation operator)**: if every generation's stage sum
 G + η‖d*‖²/2 − ηm₀ − κ√n·s/2 ≥ ε (measured per cycle), the
 expected energy reaches the ε-floor within (E₀−E_min)/ε
 generations — the infinite-horizon control guarantee: no
 oscillation, no divergence, the growing tree converges. -/
-theorem expected_horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ)
+theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ)
     (hE : ∀ t, Emin ≤ E t) (hstep : ∀ t, E (t + 1) ≤ E t - eps) (heps : 0 < eps) (k : ℕ) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
   Hagi.top_level_termination Emin eps hE hstep heps k

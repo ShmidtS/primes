@@ -141,7 +141,11 @@ satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}: the
 waterfilling allocation is optimal — `hinterior` becomes a
 CONCLUSION, closing `designopt_interior_law` and
 `marginalValue_law` honestly (the interior condition is the
-optimality certificate, not an assumption). -/
+optimality certificate, not an assumption). HONEST BOUNDARY
+(R78): this is KKT ⟹ optimality ONLY — the EXISTENCE of an
+interior b* with equalized marginals is assumed (hinterior),
+not constructed; existence in the relevant domain remains
+open. -/
 theorem waterfilling_optimal {I : Type} [Fintype I]
     (c k : I → ℝ) (bstar b' : I → ℝ) (lam : ℝ)
     (hc : ∀ i, 0 ≤ c i)

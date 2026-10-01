@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
+import Hagi.Dynamics.Contraction
 import Hagi.Ensemble.GenCycle
 
 set_option linter.style.header false
@@ -203,25 +204,26 @@ theorem dQuad_nonneg (pW : V → ℝ) (d : V → ℝ)
   rw [hL, hR1, hR2, one_mul] at hcs
   exact hcs
 
-/-- **The interval equilibrium bracket (THEOREM, the honest
-upgrade of the point law).** Under the explicit noise model
-G_{t+1} = ρG_t + D + ξ_t with |ξ_t| ≤ δ, the closed-form
-bracket holds: for every t,
+/-- **The equilibrium upper bracket (R78 honesty fix: the
+REAL recurrence theorem, was a carrier lower≤upper).** Under
+the noise model G_{t+1} = ρG_t + D + ξ_t with ξ_t ≤ δ:
 
-`G_t ≤ ρ^t G_0 + (D+δ)(1−ρ^t)/(1−ρ)`  (the upper bracket),
+`G_t ≤ ρ^t G_0 + (D+δ)/(1−ρ)` for every t
 
-and the equilibrium is BRACKETED in
-[(D−δ)/(1−ρ), (D+δ)/(1−ρ)] in the limit — the honest form for
-the GROW/SATURATED/EXHAUSTED gates; the point law licenses
-only the limsup (the upper half). The formal statement is the
-bracket inequality on the closed forms. -/
-theorem equilibrium_bracket (rho D delta : ℝ)
-    (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hdelta : 0 ≤ delta) :
-    (D - delta) / (1 - rho) ≤ (D + delta) / (1 - rho) := by
-  have h1 : 0 < 1 - rho := by linarith
-  rw [div_le_div_iff₀ h1 h1]
-  apply mul_le_mul_of_nonneg_right _ (le_of_lt h1)
-  linarith
+— the closed-form upper bracket via contraction_limit. The
+liminf/limsup two-sided bracket and the noisy-sign lower
+bound (ξ_t ≥ −δ ⟹ G_t ≥ ρ^t G_0 + (D−δ)(1−ρ^t)/(1−ρ) for the
+mirrored recurrence) remain the docstring-level picture; the
+upper half is what the GROW/SATURATED gates consume. -/
+theorem equilibrium_bracket (G : ℕ → ℝ) (rho D delta : ℝ)
+    (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hdelta : 0 ≤ D + delta)
+    (hrec : ∀ t, G (t + 1) ≤ rho * G t + D + delta) (t : ℕ) :
+    G t ≤ rho ^ t * G 0 + (D + delta) / (1 - rho) :=
+  Hagi.contraction_limit (fun t => G t) rho (D + delta) hrho hrho1
+    (by linarith) (fun t => by
+      have h := hrec t
+      rw [add_assoc] at h
+      exact h) t
 
 end DBridge
 

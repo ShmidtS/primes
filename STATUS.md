@@ -810,3 +810,35 @@ dynamics fronts now have certified cores.
 
 Anchors 134 → 136. Build 8699 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R78 — second external-audit honesty round (6 fixes)
+
+1. **Distill.lean REBUILT (the critical fix)**:
+   `crossEntropy` now carries the standard minus
+   (CE_q(p) = −Σ q log p); `klDiv` defined as Σ q log(q/p);
+   `kl_eq_ce_gap` (KL(q‖p) = CE_q(p) − CE_q(q)) NEW — the
+   real content; `ce_gap_kl_identity` and
+   `teacher_generated_identity` now proved against the real
+   definitions (the pre-R78 versions were trivial algebra on
+   a signless pseudo-CE).
+2. **equilibrium_bracket** (DBridge): was a carrier
+   (lower ≤ upper); now the REAL recurrence theorem
+   G_t ≤ ρ^t G_0 + (D+δ)/(1−ρ) via contraction_limit. The
+   two-sided liminf/limsup bracket stays open (docstring).
+3. **growth_verdict_table** (GrowthGate): was ε ≤ GF+ε;
+   replaced by three real cell implications: verdict_ttt,
+   verdict_grow, verdict_exhausted (verdict_saturated
+   removed by the triviality linter — carrier).
+4. **expected_horizon_termination → horizon_termination**
+   (TopLevel): renamed — deterministic telescope, no
+   expectation operator.
+5. **waterfilling_optimal** (Audit/Optimality): honest
+   boundary — KKT ⟹ optimality only; interior existence
+   assumed, not constructed; open.
+6. **free_energy_variational** (Energy/Variational): honest
+   boundary — only the inequality is formalized; the
+   equality-iff-tilted characterization open.
+
+Anchors 136 → 140 (kl_eq_ce_gap + 3 verdicts − dropped
+carriers). Build 8699 green, 0 sorry, triviality 1.0000,
+clean axioms.

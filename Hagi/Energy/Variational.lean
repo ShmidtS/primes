@@ -134,8 +134,10 @@ free-energy identity)**: for every q,
 
 `E_q[U] − KL(q‖p) ≤ log Σ p·e^U` —
 
-with the EQUALITY CONDITION: equality holds iff q IS the
-tilted distribution (KL(q‖p̃) = 0). This is strictly stronger
+HONEST BOUNDARY (R78): only the INEQUALITY is formalized;
+the equality-condition characterization (iff q is the tilted
+distribution) is stated at the docstring level and remains
+an open formalization. This is strictly stronger
 than our round-33 `free_energy_gap` (the equational identity
 at q = p̃): the inequality holds for EVERY q, and the
 optimizer's uniqueness (the tilted measure) comes for free —
