@@ -870,3 +870,35 @@ is now the formal growth criterion of the whole loop.
 
 Anchors 140 → 143. Build 8700 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R80 — LIVENESS: the PositiveProgress half of the loop
+
+New module Hagi/Unified/Liveness.lean (the audit's central
+missing bridge):
+- **liveness_merge**: ¬consensus ⟹ 0 < twoGap — the merge
+  action's certified gain is STRICTLY POSITIVE whenever real
+  disagreement exists (contrapositive of twoGap_zero_iff).
+  Residual potential (measured disagreement) GUARANTEES a
+  useful action exists.
+- **liveness_data_axis**: exhausted merge axis (consensus)
+  is escaped through fresh data: inj > ξ ⟹ D_T > 0 at every
+  generation ≥ 1 (diversity_floor chain) — new disagreement
+  reopens the merge axis.
+- **liveness_two_axis**: the growth loop CANNOT FREEZE while
+  either axis is alive; freeze requires BOTH consensus AND
+  inj ≤ ξ — the honest global stopping condition.
+
+Closed loop now: liveness (R80: potential ⟹ action exists) +
+safety (top_level_cycle_bound: action ⟹ Lyapunov descent) +
+termination (horizon_termination) — the loop either
+progresses or provably rests.
+
+Remaining open per the audit's 10-stage program:
+ImplementationRefinement (Lean↔HAGI_v2), CertifiedEstimator
+(statistical h_emp_ replacement), FastGrowth rate theorems,
+DiscoveryProbability (bootstrap), Universality, MasterHAGI
+composition. Also: top-k optimality lemma, TTT
+matrix-BIBO, NS convergence, EY in Mathlib.
+
+Anchors 143 → 146. Build 8701 green, 0 sorry, triviality
+1.0000, clean axioms.
