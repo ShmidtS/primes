@@ -64,6 +64,10 @@ import Hagi.Unified.Unified
 import Hagi.Unified.GlobalConvergence
 import Hagi.Unified.MacroCycle
 import Hagi.Unified.RecursiveGrowth
+import Hagi.Dynamics.CurvatureSafe
+import Hagi.Dynamics.Contraction
+import Hagi.Autonomy.TTTStability
+import Hagi.Sparsity.SparseStep0
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum

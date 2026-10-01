@@ -366,3 +366,38 @@ Response to the round-59 synthesis review:
 
 Anchors 88 → 90. Build 8687 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R60 — Grand-unified roadmap: blocks I.1, I.2, II.1, III.2
+
+Four new modules (roadmap round-60):
+
+**Dynamics/CurvatureSafe.lean (I.2)**:
+- safeqp_second_order: L_i(w+d)−L_i(w) ≤ ε_i + (L_i/2)‖d‖²
+- safeqp_trust_region: ‖d*‖² ≤ 2ε/L ⟹ dL ≤ 2ε — explicit
+  trust-region radius, no learning-rate condition
+- safeqp_monotone_domain: conflict-free inner ≥ 0 + tight
+  region ⟹ domain loss non-increasing
+
+**Dynamics/Contraction.lean (I.1)**:
+- geom_sum_telescope + geom_sum_le_inv: (1−γ)S_t = 1−γ^t
+- contraction_limit: E_t ≤ γ^t·E_0 + δ/(1−γ) — the
+  generation operator as γ-contraction drives the energy
+  into the δ/(1−γ)-ball exponentially. Metric-abstract;
+  Wasserstein/Fisher forms declared open
+
+**Sparsity/SparseStep0.lean (II.1)**:
+- sparse_step0: tail energy < tol² ⟹ sparse merge within
+  tol of dense — certificate scales with the TAIL, not N;
+  composition of gating_tail_bound (R53)
+
+**Autonomy/TTTStability.lean (III.2)**:
+- ttt_bibo: |W^T·x| ≤ |x| for non-expansive W — BIBO core
+- ttt_chain_bounded: composition of per-layer TTT updates
+  with ρ ≤ 1 keeps hidden states bounded for EVERY depth T
+
+Declared out of reach (honest): TreeUAT (B s p q), Rademacher
+bounds, HJB/MasterAction, RouterEntropy exponential bound,
+Autophagy KL-iff-entropy, Wasserstein contraction.
+
+Anchors 90 → 100 (+10 theorems incl. helpers). Build 8691
+jobs green, 0 sorry, triviality 1.0000, clean axioms.
