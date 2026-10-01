@@ -460,3 +460,24 @@ for diversity_floor, self-modification separation theorem.
 
 Anchors 102 → 105. Build 8692 jobs green, 0 sorry,
 triviality 1.0000 (heuristic), clean axioms.
+
+## R63 — merge stage linked + anytime-valid skeleton
+
+New module Hagi/Unified/AnytimeValid.lean:
+- **merge_stage_linked** (+ _nonneg): the merge stage's
+  hypothesis is now the PROVEN token-level law
+  ensemble_ce_le_mean_general (Concat) aggregated with the
+  dataset measure w (the only h_emp_ input) — audit
+  round-62 item 1 closed; MacroCycle's merge stage rests on
+  the interpolation law, not a free inequality
+- **anytime_valid_budget**: the controller's false-alarm
+  skeleton — with geometric per-decision mass decay
+  delta_n = delta0*rho^n (h_emp_ schedule), the TOTAL
+  false-alarm mass over ANY horizon is ≤ delta0/(1-rho):
+  anytime validity via the union-of-geometric bound; every
+  controller verdict (admit/skip/stop) inherits it. The
+  full Ville e-process form (E[L_tau] <= 1, arbitrary
+  stopping) declared open.
+
+Anchors 105 → 108. Build 8693 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.
