@@ -572,3 +572,28 @@ theorem) remain the program.
 
 Anchors 114 → 116. Build 8694 jobs green, 0 sorry,
 triviality 1.0000, clean axioms.
+
+## R68 — M²/8 audit response: chord factors + honest negative finding
+
+The round-68 audit confirmed M²/8 is real and suggested the
+pair-factor route. Executed and recorded:
+
+- **chord_factor1 / chord_factor2** (proven): the exact
+  chord values of both marginal generating functions —
+  Σ p e^d ≤ (D−μ)/(2D)·e^{−D} + (μ+D)/(2D)·e^D and the
+  negated twin
+- **NEGATIVE FINDING (honest)**: the product of the two
+  chord bounds equals cosh²D + (μ/(2D))²·(e^D−e^{−D})²·…
+  which EXCEEDS cosh²D when μ ≠ 0 — the direct cosh²D
+  product route does NOT close. The sharp M²/8 requires the
+  full centered Hoeffding lemma (the transcendental
+  (b−a)²/8 log-sum step, absent from Mathlib): each centered
+  factor ≤ e^{M²/8} ⟹ twoGap ≤ M²/8. Declared OPEN with the
+  route documented; the chord factors are the first half of
+  that lemma.
+
+The audit's other items (2q floor improvement, semantic
+renames of overclaims) queued.
+
+Anchors 116 → 118. Build 8694 jobs green, 0 sorry,
+triviality 1.0000, clean axioms.

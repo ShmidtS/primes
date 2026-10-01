@@ -593,4 +593,86 @@ theorem ce_gap_bounded {k : Type} [Fintype k] [Nonempty k] (m d : k → ℝ) (t 
   rw [hid] at hbound
   linarith
 
+/-! ## The M²/8 infrastructure (round-68)
+
+The audit (round-68) confirmed the M²/8 sharp constant is a
+real consequence of pair_factor + the centered Hoeffding
+lemma. The two chord factors are now proven:
+
+- `chord_factor1`: Σ p e^d ≤ (D−μ)/(2D)·e^{−D} + (μ+D)/(2D)·e^D
+  with μ = Σ p d — the exact chord value of the marginal
+  generating function
+- `chord_factor2`: the same for Σ p e^{−d}
+
+**Negative finding (recorded)**: the product of the two
+chord bounds equals cosh²D + (μ/(2D))²·(e^D−e^{−D})²/4·…
+i.e. EXCEEDS cosh²D when μ ≠ 0 — the direct cosh²D product
+route does NOT close. The sharp M²/8 requires the full
+centered Hoeffding lemma (the transcendental (b−a)²/8 step,
+absent from Mathlib) applied to the centered deviations
+d − μ (range ≤ 2D = the pairwise diameter M, mean zero):
+each factor ≤ e^{M²/8}, product ≤ e^{M²/4}, twoGap ≤ M²/8.
+Declared OPEN — the factors above are the chord half of that
+lemma; the missing half is the log-sum bound of
+((b)e^a − (a)e^b)/(b−a) ≤ e^{(b−a)²/8}.
+-/
+/-- The sharp two-factor chord bound: factor 1. -/
+theorem chord_factor1 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
+    (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1) (hD : 0 < D)
+    (hbd : ∀ v, abs (d v) ≤ D) :
+    ∑ v, p v * Real.exp (d v)
+      ≤ (D - ∑ v, p v * d v) / (2 * D) * Real.exp (-D)
+        + (∑ v, p v * d v + D) / (2 * D) * Real.exp D := by
+  have hterm : ∀ v : V, p v * Real.exp (d v)
+      ≤ p v * ((D - d v) / (2 * D)) * Real.exp (-D)
+        + p v * ((d v + D) / (2 * D)) * Real.exp D := by
+    intro v
+    have hbdv := hbd v
+    rw [abs_le] at hbdv
+    have hc := Hagi.exp_chord (d v) D hD (by linarith [hbdv.1]) (by linarith [hbdv.2])
+    calc p v * Real.exp (d v)
+        ≤ p v * ((D - d v) / (2 * D) * Real.exp (-D) + (d v + D) / (2 * D) * Real.exp D) :=
+          mul_le_mul_of_nonneg_left hc (hp v)
+      _ = p v * ((D - d v) / (2 * D)) * Real.exp (-D)
+          + p v * ((d v + D) / (2 * D)) * Real.exp D := by ring
+  -- distribute the exp constants out of the sum
+  have hsumle : ∑ v, p v * Real.exp (d v)
+      ≤ ∑ v, (p v * ((D - d v) / (2 * D)) * Real.exp (-D)
+        + p v * ((d v + D) / (2 * D)) * Real.exp D) :=
+    Finset.sum_le_sum (fun v _ => hterm v)
+  have hdist : ∑ v, (p v * ((D - d v) / (2 * D)) * Real.exp (-D)
+        + p v * ((d v + D) / (2 * D)) * Real.exp D)
+      = (∑ v, p v * ((D - d v) / (2 * D))) * Real.exp (-D)
+        + (∑ v, p v * ((d v + D) / (2 * D))) * Real.exp D := by
+    have hinner : ∀ v : V, p v * ((D - d v) / (2 * D)) * Real.exp (-D)
+        + p v * ((d v + D) / (2 * D)) * Real.exp D
+        = Real.exp (-D) * (p v * ((D - d v) / (2 * D)))
+          + Real.exp D * (p v * ((d v + D) / (2 * D))) := fun v => by ring
+    rw [Finset.sum_congr rfl (fun v _ => hinner v), Finset.sum_add_distrib,
+      ← Finset.mul_sum, ← Finset.mul_sum, mul_comm (Real.exp (-D)),
+      mul_comm (Real.exp D)]
+  rw [hdist, (Hagi.chord_weighted p d D hsum).1, (Hagi.chord_weighted p d D hsum).2] at hsumle
+  exact hsumle
+
+/-- The sharp two-factor chord bound: factor 2 (negated d). -/
+theorem chord_factor2 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
+    (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1) (hD : 0 < D)
+    (hbd : ∀ v, abs (d v) ≤ D) :
+    ∑ v, p v * Real.exp (-(d v))
+      ≤ (D + ∑ v, p v * d v) / (2 * D) * Real.exp (-D)
+        + (D - ∑ v, p v * d v) / (2 * D) * Real.exp D := by
+  have hneg : ∀ v, abs (-(d v)) ≤ D := by
+    intro v
+    simpa [abs_neg] using hbd v
+  have h := chord_factor1 p (fun v => -(d v)) D hp hsum hD hneg
+  -- Σ p·e^{-d} with mean Σ p·(−d) = −mu
+  have hmean : ∑ v, p v * (-(d v)) = -(∑ v, p v * d v) := by
+    rw [← Finset.sum_neg_distrib]
+    exact Finset.sum_congr rfl (fun v _ => by ring)
+  rw [hmean] at h
+  -- h : Σ p e^{-d} ≤ (D + mu)/(2D) e^{-D} + (−mu + D)/(2D) e^{D}
+  rw [show (D - -(∑ v, p v * d v)) = D + ∑ v, p v * d v from by ring,
+      show (-(∑ v, p v * d v) + D) = D - ∑ v, p v * d v from by ring] at h
+  exact h
+
 end Hagi
