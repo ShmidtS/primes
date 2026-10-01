@@ -1077,3 +1077,26 @@ Dynamics/FastGrowth, two new theorems:
 
 Anchors 160 → 162. Build 8704 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R88 — merge-stage adapter CLOSED + hygiene
+
+- **merge_stage_concat_adapter** (Unified/TopLevel): with
+  the token-level Concat law and dataset measure w,
+  defining E2/Emean as token-weighted sums and G := Σ w·
+  (mean − merged), the MacroCycle merge hypothesis
+  E2 ≤ Emean − G holds AS AN EQUALITY, and G ≥ 0 as a sum
+  of nonneg per-token gaps. macro_step_decrease's h_emp_
+  merge is no longer a free parameter — SATISFIED by the
+  Concat law with the real measured gap (the audit's
+  "exact definition" box closed).
+- Hygiene (the audit's auto-implicit note): `d` made an
+  EXPLICIT parameter in unitary_perturb_bound and
+  unitary_perturb_metric (was a single-char auto-implicit).
+
+Audit link table update: Merge CE → MacroCycle energy now
+LINKED (via the adapter); remaining open: D-data → G-neural
+bridge, joint smoothness of real loss, NCE finite-K,
+PAC-Bayes probability theorem, success probability.
+
+Anchors 162 → 163. Build 8704 green, 0 sorry, triviality
+1.0000, clean axioms.

@@ -138,7 +138,7 @@ precision is additive in δ, not compounding — the
 RMSNorm-compensable regime. The hardware κ(d)·2^{-p}
 specialization needs float error models (declared open). -/
 theorem unitary_perturb_bound {E : Type*} [NormedAddCommGroup E]
-    (Q Qt Err : E → E) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
+    (Q Qt Err : E → E) (d : ℝ) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
     (hsum : ∀ x, Qt x = Q x + Err x)
     (hnorm : ∀ x, ‖Err x‖ ≤ d * ‖x‖) (x : E) :
     ‖Qt x‖ ≤ (1 + d) * ‖x‖ := by
@@ -157,7 +157,7 @@ the relative distortion of the perturbed isometry is at most
 renormalization after each layer keeps the effective factor
 at (1+δ) forever. -/
 theorem unitary_perturb_metric {E : Type*} [NormedAddCommGroup E]
-    (Q Qt Err : E → E) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
+    (Q Qt Err : E → E) (d : ℝ) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
     (hsum : ∀ x, Qt x = Q x + Err x)
     (hnorm : ∀ x, ‖Err x‖ ≤ d * ‖x‖) (x : E) :
     |‖Qt x‖ - ‖x‖| ≤ d * ‖x‖ := by

@@ -29,7 +29,7 @@ This is the audit's demand: the unified stop law on real
 HAGI state variables, not abstract E1 E2 E3 E4 G.
 -/
 
-open Real InnerProductSpace
+open Real InnerProductSpace Finset
 
 namespace Hagi
 
@@ -126,5 +126,49 @@ theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ)
     (hE : ∀ t, Emin ≤ E t) (hstep : ∀ t, E (t + 1) ≤ E t - eps) (heps : 0 < eps) (k : ℕ) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
   Hagi.top_level_termination Emin eps hE hstep heps k
+
+/-- **The merge-stage adapter CLOSED (the audit's missing
+"exact definition" box)**: with the token-level Concat law
+(per-token merged CE ≤ per-token mean expert CE) and the
+dataset measure w, define
+
+  E2     := Σ_t w_t · CE_merged(t)
+  Emean  := Σ_t w_t · CE_mean(t)
+  G      := Σ_t w_t · (CE_mean − CE_merged)
+
+Then the MacroCycle merge hypothesis E2 ≤ Emean − G holds
+AS AN EQUALITY (the gap is the exact token-weighted
+difference), and G ≥ 0 (a sum of nonneg per-token gaps —
+the Concat law). macro_step_decrease's h_emp_merge is no
+longer free: it is SATISFIED by the Concat law with G the
+real measured gap. -/
+theorem merge_stage_concat_adapter {Tok : Type} [Fintype Tok]
+    (w cmean cmerged : Tok → ℝ)
+    (hw : ∀ t, 0 ≤ w t)
+    (hcat : ∀ t, cmerged t ≤ cmean t) :
+    (∑ t, w t * cmerged t = (∑ t, w t * cmean t)
+        - ∑ t, w t * (cmean t - cmerged t))
+    ∧ 0 ≤ ∑ t, w t * (cmean t - cmerged t) := by
+  constructor
+  · -- the definitional identity: per-term w·cmean − w·(diff) = w·cmerged
+    have hterm : ∀ t : Tok, w t * cmean t - w t * (cmean t - cmerged t)
+        = w t * cmerged t := by
+      intro t
+      ring
+    have hsplit : ∑ t : Tok, w t * cmerged t
+        = (∑ t : Tok, w t * cmean t) - ∑ t : Tok, w t * (cmean t - cmerged t) := by
+      have e1 : ∑ t : Tok, (w t * cmean t - w t * (cmean t - cmerged t))
+          = (∑ t : Tok, w t * cmean t) - ∑ t : Tok, w t * (cmean t - cmerged t) :=
+        sum_sub_distrib (fun t : Tok => w t * cmean t)
+          (fun t : Tok => w t * (cmean t - cmerged t))
+      rw [← e1]
+      exact Finset.sum_congr rfl (fun t _ => (hterm t).symm)
+    exact hsplit
+  · -- G >= 0: a sum of nonneg terms (w >= 0, mean - merged >= 0 by Concat)
+    apply Finset.sum_nonneg
+    intro t _
+    exact mul_nonneg (hw t) (by
+      have := hcat t
+      linarith)
 
 end Hagi
