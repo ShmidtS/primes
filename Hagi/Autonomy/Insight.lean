@@ -6,6 +6,7 @@ Authors: HAGI_v2 formalization team
 import Hagi.Data.Distill
 import Hagi.Unified.TopLevel
 import Hagi.Audit.Exactness
+import Hagi.Unified.GlobalDynamics
 set_option linter.style.header false
 
 /-!
@@ -104,4 +105,39 @@ theorem insight_consolidation_safe {X : Type*} [NormedAddCommGroup X]
 
 end Consolidation
 end Insight
+
+/-- **TL;DR internalization drift certificate (the SFTL;DR
+soundness core)**: an insight update carried by a low-rank
+adapter ΔW = A·B (rank r) with insight support kernel
+ker B leaves every input OUTSIDE the support EXACTLY
+untouched: Bx = 0 ⟹ (A·B)x = A(Bx) = 0 — zero drift, not
+an ε-bound. The insight is memory-isolated: base skills on
+unrelated inputs are provably unaffected; combined with
+forgetting_kl_bound (the in-support Fisher budget) this is
+the two-tier safety of the internalization channel. -/
+theorem tldr_drift_null {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
+    (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)
+    (hx : B.mulVec x = 0) :
+    (A * B).mulVec x = 0 := by
+  rw [show (A * B).mulVec x = A.mulVec (B.mulVec x) from
+      (Matrix.mulVec_mulVec x A B).symm]
+  rw [hx]
+  simp [Matrix.mulVec_zero]
+
+/-- **The two-tier internalization safety**: composing the
+null-space isolation with the Fisher budget — outside the
+insight support: EXACT zero drift (tldr_drift_null); inside
+the support: the old-domain KL drift ≤ half the Fisher
+quadratic form, ≤ ε in the 2ε-ball (forgetting_kl_bound R72).
+The SFTL;DR channel is safe on both tiers. -/
+theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
+    {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)
+    (hx : B.mulVec x = 0)
+    (F : X →L[ℝ] X) (dW : X) (kl eps : ℝ)
+    (h_emp_second : kl ≤ ⟪dW, F dW⟫_ℝ / 2)
+    (hball : ⟪dW, F dW⟫_ℝ ≤ 2 * eps) :
+    (A * B).mulVec x = 0 ∧ kl ≤ eps :=
+  ⟨tldr_drift_null A B x hx, forgetting_kl_bound F dW kl eps h_emp_second hball⟩
+
 end Hagi

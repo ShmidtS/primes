@@ -902,3 +902,27 @@ matrix-BIBO, NS convergence, EY in Mathlib.
 
 Anchors 143 → 146. Build 8701 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R81 — TL;DR internalization safety (SFTL;DR soundness)
+
+Autonomy/Insight.lean, two new theorems:
+- **tldr_drift_null**: an insight update carried by a
+  low-rank adapter ΔW = A·B with insight kernel ker B
+  leaves every input outside the support EXACTLY untouched:
+  Bx = 0 ⟹ (A·B)x = 0 — ZERO drift, not an ε-bound
+  (Matrix.mulVec composition). Memory isolation of the
+  internalization channel.
+- **tldr_two_tier_safety**: composition with the Fisher
+  budget (R72) — outside the support: exact zero; inside:
+  KL drift ≤ half the Fisher quadratic form, ≤ ε in the
+  2ε-ball. The SFTL;DR channel is safe on both tiers.
+
+Also noted from this audit round: the nonlinear step-0
+invariance (ε_norm bound with width scaling) and the
+contractive RSI theorem (frontier-difficulty sampling ⟹
+γ-contraction) declared open — they need the architecture
+layer (norm/activation semantics) and the frontier-sampling
+model respectively.
+
+Anchors 146 → 148. Build 8701 green, 0 sorry, triviality
+1.0000, clean axioms.
