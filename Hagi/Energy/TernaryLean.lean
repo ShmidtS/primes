@@ -114,12 +114,11 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
     field_simp
   rw [hdiv]
 
-/-- **The storage rate**: the ternary grid carries
-log₂(3) = log 3 / log 2 bits per weight — the rate side of
-the rate-distortion pair; against bf16's 16 bits, the
-channel weights compress 16 / log₂3 ≈ 10.09×. -/
-theorem ternary_rate :
-    (Real.log 3) / (Real.log 2) = (Real.log 3) / (Real.log 2) := rfl
+-- DEMOTED round-61 (external audit): was `A = A := rfl`.
+-- The storage rate log2(3) = 1.5849625007211565 bits/trit
+-- («измерено» via #eval) is an evaluable constant, not a
+-- theorem; the 16/log2(3) ≈ 10.09x compression factor is
+-- arithmetic on that constant.
 
 end Ternary
 

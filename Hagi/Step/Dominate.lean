@@ -156,15 +156,11 @@ theorem domination_regression (d gs gi : X)
 -- scan); the descent guarantee proper lives in
 -- Hagi.Plan41.proj_descent_inner (the projection theorem).
 
-/-- **The weight-to-zero cure is the limit of normalization**
-(b)(iii): driving the dominant corpus's weight down rescales
-its contribution exactly as the normalization does — the swap
-cure of round 32 (5.43 → 5.17) is the w_s → 0 limit; the
-equivalence statement is the scaling identity: the mixture
-gradient with weight w_s is the original with the
-contribution rescaled. -/
-theorem domination_weight_rescale (gs gi : X) (ws : ℝ) :
-    ws • gs + gi = ws • gs + gi := rfl
+-- DEMOTED round-61 (external audit): was `A = A := rfl`.
+-- The claimed content (weight-to-zero cure is the limit of
+-- normalization; the round-32 swap 5.43 -> 5.17 is the
+-- w_s -> 0 limit) is EMPIRICAL, not a theorem; the scaling
+-- identity is notational.
 
 /-- **The falsification-calibrated verdict: κ × disagreement.**
 The round-33 code experiment FALSIFIED the pure κ-share

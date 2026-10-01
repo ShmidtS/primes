@@ -225,16 +225,20 @@ per-sample relative second moment is
 size K_eff = K • Z²/(Σ e^{2z}/q) ≤ 1/94 ≈ 0.011: LESS THAN
 ONE effective sample. For the unigram-of-the-mixture proposal
 (entropy 7.34, a well-conditioned q), K_eff is of order K —
-the delta ceiling is single-digit nats. **CONCLUSION (the
-theorem's decision content): the 47-nat gap is NOT sampling
-noise — the unbounded out-of-sample dynamics owns it** (the
-measured logit_scale drift 1.784 → 1.841, kl(p̂‖prior)
-37.6 → 47.8: the model calibrates ON the sampled positions
-and drifts on the unsampled ones). The PRESCRIPTION: do NOT
-raise K; anchor the out-of-sample regime (z_loss on sampled
-logits, logit_scale clamp, periodic exact-CE). The diagnostic
-is computable BEFORE training: Σ e^{2z}/q over the proposal
-is a one-time table statistic (the S₂ map of `Hagi.Step/NCEVar`). -/
+the delta ceiling is single-digit nats.
+
+**HONEST BOUNDARY (round-61 external audit)**: what Lean
+proves below is only the Cauchy–Schwarz lower bound
+E[W²]·1/K ≥ 1/K — NOT a ceiling on the sampling gap. The
+delta-method heuristic «gap ≈ E[W²]/(2K·Z²)» is FALSE at
+finite K (exact binomial at K=2048: gap 1.15 vs heuristic
+0.12 for a=1e-30; 11.5 at a=1e-300) and invalid precisely in
+the ESS < 1 regime. The 47-nat verdict therefore stands as
+EMPIRICAL judgment (logit_scale drift 1.784 → 1.841, kl
+37.6 → 47.8), consistent with an out-of-sample drift
+diagnosis, but NOT as a theorem. The PRESCRIPTION (anchor
+the out-of-sample regime: z_loss, logit_scale clamp,
+periodic exact-CE) remains empirically motivated. -/
 theorem ceGap_delta_ceiling (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
     -- the noise-explainable gap is AT MOST the per-sample

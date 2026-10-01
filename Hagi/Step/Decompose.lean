@@ -67,30 +67,15 @@ namespace Hagi
 
 section Decompose
 
-/-- **The decomposition identity**: the total generation gain
-is the sum of the ensemble step (the merge algebra's
-instant gain) and the joint step's own gain — the trivial
-identity that FIXES the accounting (the two channels are
-separately measurable, separately predicted, and the law of
-balance applies to the joint term). -/
-theorem decomposition_identity (dEns dJoint : ℝ) :
-    dEns + dJoint = dEns + dJoint := rfl
+-- DEMOTED round-61 (external audit): was `A = A := rfl`.
+-- The ens/joint increment decomposition is a notation, not
+-- a theorem; the accounting is definitional.
 
-/-- **The envelope theorem (the increment-discrepancy
-resolution)**: for the N-leaf ensemble gain, the
-exchangeable-symmetry law (GapLaw) is the LOWER envelope
-and the independent-deviations law (spread²/N) is the UPPER
-envelope; a measured increment strictly inside the envelope
-certifies the deviation regime as NEITHER fully exchangeable
-NOR independent — the mixture regime. The statement is the
-bracket: for every N-configuration, the measured gain
-satisfies the two-sided comparison when the deviation
-structure lies between the two extremes. -/
-theorem increment_envelope (gapLaw spreadN : ℝ)
-    (hlo : gapLaw ≤ spreadN) :
-    -- a point in the bracket is the mixture-regime verdict;
-    -- the bracket itself is the theorem's content
-    gapLaw ≤ spreadN := hlo
+-- DEMOTED round-61 (external audit): was `hlo -> hlo`.
+-- The envelope claim (GapLaw as the lower, spread^2/N as
+-- the upper envelope of the N-leaf increment) is an OPEN
+-- empirical hypothesis — NOT proven; STATUS references
+-- corrected. The mixture-regime diagnostic is empirical.
 
 end Decompose
 

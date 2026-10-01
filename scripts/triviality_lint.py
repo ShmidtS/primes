@@ -45,19 +45,35 @@ def sig_hyps_and_concl(sig):
 
 def findings(path, text):
     out = []
+    for m in THEO.finditer(text):
+        name = m.group(1)
+        # locate the proof body: scan forward from the theorem name for
+        # ':=' at binder depth 0, then take the first proof token
+        i = m.end()
+        depth = 0
+        proof_start = None
+        while i < len(text):
+            c = text[i]
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth -= 1
+            elif c == ":" and depth == 0 and text[i : i + 2] == ":=":
+                proof_start = i + 2
+                break
+            i += 1
+        if proof_start is not None:
+            token = re.match(r"\s*(rfl|trivial|sorry)", text[proof_start:])
+            if token:
+                out.append((path, name, "T1-BARE-TRIVIAL-PROOF", token.group(1)))
+        # T2 unchanged
+    # T2 pass (original signature-based)
     for name, sig in split_sigs(text):
         hyps, concl = sig_hyps_and_concl(sig)
         concl_norm = re.sub(r"\s+", "", concl).lstrip(":")
         hyp_norms = [re.sub(r"\s+", "", h) for h in hyps]
         if len(concl_norm) > 3 and concl_norm in hyp_norms:
             out.append((path, name, "T2-CONCLUSION-IS-HYPOTHESIS", concl_norm[:60]))
-        proof = sig[:0]  # placeholder
-        tail = text.split(name, 1)
-        # T1: bare trivial proof
-        m = re.search(re.escape(name) + r"[^:]*:=\s*(rfl|trivial|sorry)", text)
-        if m and m.group(1) in ("rfl", "trivial", "sorry"):
-            out.append((path, name, "T1-BARE-TRIVIAL-PROOF", m.group(1)))
-        del proof, tail
     return out
 
 
@@ -85,7 +101,7 @@ def main():
     for path, name, kind, detail in flagged:
         print(f"  {kind:32s} {os.path.relpath(path)} :: {name}  {detail}")
     share = 1 - (len(flagged) / total if total else 0)
-    print(f"non-trivial share (lower bound): {share:.4f}")
+    print(f"non-trivial share (lower bound of detected; heuristic, not complete): {share:.4f}")
 
 
 if __name__ == "__main__":

@@ -85,13 +85,11 @@ def sinkReceptiveField (W S i : ℕ) : Finset ℕ :=
 unbiased — the per-sample correction beats the global
 delta-ceiling for controller use: the bias is corrected at
 each sample, not bounded in aggregate. -/
-theorem nce_per_sample_correction (V : Type) [Fintype V] (f q : V → ℝ)
-    (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
-    -- the corrected per-sample estimator is exact on the q-expectation:
-    -- E_q[q·(f − log q)] = E_q[f] − E_q[q·log q]?? — recorded as the
-    -- structural identity; the correction term is per-sample, not global
-    ∑ v, q v * (f v - Real.log (q v))
-      = ∑ v, q v * (f v - Real.log (q v)) := rfl
+-- DEMOTED round-61 (external audit): was `A = A := rfl`.
+-- The per-sample correction identity is a NOTATION, not a
+-- theorem; recorded here as a definition-free comment.
+private noncomputable def nce_per_sample_corrected {V : Type} [Fintype V] (f q : V → ℝ) : ℝ :=
+  ∑ v, q v * (f v - Real.log (q v))
 
 end Upgrades
 

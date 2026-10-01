@@ -304,4 +304,48 @@ theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ
   have hgap0 : 0 ≤ Hagi.twoGap p d := Hagi.twoGap_nonneg hp hsum
   nlinarith [hb, hgap0, heta, heta1]
 
+/-- **Pair generating function factorization**: the double pair sum factorizes into the product of the marginal generating functions — the first step of the sharp M2/8 route (the mu-canceling product bound, in progress). -/
+theorem pair_factor {V : Type} [Fintype V] (p d : V → ℝ) :
+    ∑ u, ∑ v, p u * p v * Real.exp (d u - d v)
+      = (∑ u, p u * Real.exp (d u)) * (∑ v, p v * Real.exp (-(d v))) := by
+  have hsplit : ∀ u v : V, p u * p v * Real.exp (d u - d v)
+      = (p u * Real.exp (d u)) * (p v * Real.exp (-(d v))) := fun u v => by
+    rw [show Real.exp (d u - d v) = Real.exp (d u) * Real.exp (-(d v)) from by
+      rw [← Real.exp_add, show d u + -(d v) = d u - d v from by ring]]
+    ring
+  rw [Finset.sum_congr rfl (fun u _ => Finset.sum_congr rfl (fun v _ => hsplit u v))]
+  exact Eq.symm (Fintype.sum_mul_sum (fun u => p u * Real.exp (d u))
+    (fun v => p v * Real.exp (-(d v))))
+
+/-- The chord-sum helper: the weighted chord value with mean μ. -/
+theorem chord_weighted {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
+    (hsum : ∑ v, p v = 1) :
+    ∑ v, p v * ((D - d v) / (2 * D)) = (D - (∑ v, p v * d v)) / (2 * D) ∧
+    ∑ v, p v * ((d v + D) / (2 * D)) = ((∑ v, p v * d v) + D) / (2 * D) := by
+  constructor
+  · have hsplit : ∀ v : V, p v * ((D - d v) / (2 * D))
+        = (p v * D) / (2 * D) - (p v * d v) / (2 * D) := fun v => by ring
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v), Finset.sum_sub_distrib]
+    rw [show (∑ v, (p v * D) / (2 * D)) = (∑ v, p v * D) / (2 * D) from by
+      rw [← Finset.sum_div]]
+    rw [show (∑ v, (p v * d v) / (2 * D)) = (∑ v, p v * d v) / (2 * D) from by
+      rw [← Finset.sum_div]]
+    rw [show (∑ v, p v * D) = D * (∑ v, p v) from by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl (fun v _ => mul_comm (p v) D)]
+    rw [hsum, mul_one]
+    field_simp
+  · have hsplit : ∀ v : V, p v * ((d v + D) / (2 * D))
+        = (p v * d v) / (2 * D) + (p v * D) / (2 * D) := fun v => by ring
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v), Finset.sum_add_distrib]
+    rw [show (∑ v, (p v * D) / (2 * D)) = (∑ v, p v * D) / (2 * D) from by
+      rw [← Finset.sum_div]]
+    rw [show (∑ v, (p v * d v) / (2 * D)) = (∑ v, p v * d v) / (2 * D) from by
+      rw [← Finset.sum_div]]
+    rw [show (∑ v, p v * D) = D * (∑ v, p v) from by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl (fun v _ => mul_comm (p v) D)]
+    rw [hsum, mul_one]
+    field_simp
+
 end Hagi

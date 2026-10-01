@@ -401,3 +401,35 @@ Autophagy KL-iff-entropy, Wasserstein contraction.
 
 Anchors 90 → 100 (+10 theorems incl. helpers). Build 8691
 jobs green, 0 sorry, triviality 1.0000, clean axioms.
+
+## R61 — External audit response (5 findings, 4 closed)
+
+Audit findings and dispositions:
+1. **M²/8 sharp constant** — IN PROGRESS: pair_factor (the
+   double-sum factorization) + chord_weighted proven and
+   landed; the mu-canceling product bound (cosh²D) is the
+   remaining composition (route established; the empirical
+   max-ratio 0.5 confirmed by the auditor's 200k-pool check).
+2. **ceGap_delta_ceiling** — docstring rewritten as HONEST
+   BOUNDARY: Lean proves only the C-S bound 1/K; the
+   delta-method heuristic is false at finite K (K=2048:
+   1.15 vs 0.12); the 47-nat verdict is empirical, not a
+   theorem.
+3. **Five tautologies demoted**: increment_envelope,
+   decomposition_identity, domination_weight_rescale,
+   ternary_rate (deleted with absorbed docstrings; the
+   envelope claim is an OPEN empirical hypothesis, the tern
+   rate is a constant «измерено» 1.5849625007211565);
+   nce_per_sample_correction -> private noncomputable def.
+4. **Linter T1 fixed**: proof-body scan at ':=' (was
+   name-anchored regex that never fired); metric relabeled
+   as heuristic lower bound of detected triviality.
+5. **Stage hypotheses are free ℝ** — ACKNOWLEDGED: the
+   MacroCycle energies are h_emp_ by design; linking
+   inner/dnorm to safeQP_descent's real vectors is the next
+   round's task (joint_stage_linked). STATUS wording
+   'stage-decomposed' refers to the per-stage hypothesis
+   decomposition, not to derived dynamics.
+
+Anchors 100 → 102 (+pair_factor, +chord_weighted; −5
+tautologies). Build 8691 jobs green, 0 sorry.
