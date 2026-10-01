@@ -1025,3 +1025,29 @@ Dynamics/FastGrowth, two new theorems:
 
 Anchors 156 → 158. Build 8703 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R86 — the optimal controller policy, DERIVED
+
+New module Hagi/Dynamics/ControllerPolicy.lean:
+- **ratio_dominance**: the best certified-ratio action
+  Γ/K dominates every fixed alternative under a common
+  budget — the ΔI_certified/ΔT_wall principle as an
+  exchange lemma.
+- **budget_allocation_dominance**: concentrating the whole
+  budget on argmax Γ/K certifies total gain ≥ ANY split
+  allocation (per-term domination + sum telescoping) —
+  the waterfilling law for ACTIONS; the optimal certified
+  controller policy derived from the theorems alone.
+
+New document ALGORITHMS.md: the eight optimal algorithms
+of the HAGI controller, each derived from and referencing
+its machine-verified theorem (main loop, argmax Γ/K
+selection, SafeQP step with analytic η and the inactive
+case, the CE merge gate, domain-sibling tree structure,
+frontier data injection, TL;DR internalization with
+zero-drift, Hedge+tail-budget routing, ln-waterfilling
+budgets, the multiplicative meta-law C₀(1+α)^N; honest
+boundaries listed).
+
+Anchors 158 → 160. Build 8704 green, 0 sorry, triviality
+1.0000, clean axioms.
