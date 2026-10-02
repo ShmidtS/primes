@@ -37,6 +37,7 @@ import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Step.SafeQP
+import Hagi.Step.SafeQPStep
 import Hagi.Step.StochasticSafeQP
 import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
@@ -53,6 +54,7 @@ import Hagi.Data.SinkCost
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
 import Hagi.Energy.Variational
+import Hagi.Energy.PoEBound
 import Hagi.Step.Upgrades
 import Hagi.External.Diversity
 import Hagi.External.Transport

@@ -1903,3 +1903,97 @@ Build 8716 green, 0 sorry/admit/native_decide/custom axioms,
 triviality flags 0 (500 theorems scanned), clean axioms
 [propext, Classical.choice, Quot.sound] for all 8 new theorems
 (checked via #print axioms on a scratch copy, removed after).
+
+## R105 — SafeQP η_max: the derived safe step size (descent lemma, all domains simultaneously)
+
+New `Hagi.Step.SafeQPStep` (imported in Hagi.lean near SafeQP) —
+the non-asymptotic LR for the SafeQP step `θ − η·d*`, turning LR
+tuning into a derived quantity (audit theory-item #2):
+
+- **safeqpEtaMax** — the explicit window
+  `min(1, ⨅_i 2(ε_i + ⟪g_i, d*⟫)/(L_i·‖d*‖²))` from the descent
+  lemma for L_i-Lipschitz gradients (`h_lipline`:
+  `ΔL_i ≤ −η·⟪g_i,d*⟫ + (L_i/2)η²‖d*‖²` — the same
+  smoothness-hypothesis form as CurvatureSafe's h_emp_smooth /
+  Joint's hsmooth). HONEST CORRECTION to the audit's constant:
+  plugging the margin m_i := ε_i + ⟪g_i,d*⟫ into the descent
+  bound gives `ΔL_i ≤ η·ε_i + η((L_i/2)η‖d*‖² − m_i)`; the
+  bracket is ≤ 0 exactly at the audit's threshold, but the
+  leading `η·ε_i ≤ ε_i` additionally requires **η ≤ 1** — the
+  bare audit formula is exact only in the unit-step regime; the
+  formal η_max carries the (free, standard) unit clamp.
+- **safeqp_eta_max_domain** — the scalar core: full plugged
+  descent-lemma algebra with explicit constants.
+- **safeqp_eta_max** — for ANY `0 ≤ η ≤ η_max` (d* ≠ 0, L_i > 0,
+  ε_i ≥ 0): `ΔL_i ≤ ε_i` for ALL i simultaneously — no domain
+  regresses beyond budget.
+- **safeqp_eta_zero_direction** — the degenerate d* = 0 case:
+  the step is the identity, every ΔL_i ≤ 0 ≤ ε_i, any η works.
+- **safeqp_eta_max_conflict_free** + **safeqpEtaMaxConflictFree**
+  (+ `_pos`) — no-conflict case (⟪g_i,d*⟫ ≥ 0): the window
+  simplifies to `min(1, ⨅_i 2ε_i/(L_i‖d*‖²))`, strictly positive
+  for positive budgets — the controller's DERIVED LR; no inner
+  products needed, only (ε_i, L_i, ‖d*‖).
+
+Anchors incremented: safeqp_second_order / safeqp_trust_region
+(R60, CurvatureSafe) now have the η-form companion; the empirical
+LR sweep (0.01 → 0.001) is replaced by a formula of measured
+(ε_i, L_i, ‖d*‖, margins).
+
+Build 8717 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (507 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 9 new theorems
+(checked via #print axioms on a scratch copy, removed after).
+
+## R106 — PoE logZ second-order stability: sharp per-expert (1/8)·ΣwR² law; audit's pairwise ⅛ REFUTED (counterexample); honest pairwise constant ½
+
+Module `Hagi/Energy/PoEBound.lean` (imported in `Hagi.lean`). The task:
+certify the softmax-speed (linear-pool) approximation
+`log Z_approx = Σ_i w_i·log Z_i` of the PoE normalizer
+`Z_w = Σ_v exp(Σ_i w_i z_{i,v})`.
+
+**HONEST FINDING — the audit's claimed form is FALSE.** The audit
+claimed `|log Z_w − log Z_approx| ≤ (1/8)·Σ_{ij} w_i w_j D_ij²`
+(D = pairwise logit diameter). Counterexample z₁ = (1,−1),
+z₂ = (0,0), w = (½,½): true gap = ½·log[cosh(1)/cosh²(½)] ≈ 0.157
+> ⅛·ΣΣ ww D² = 0.0625. An earlier draft chased an exchangeable-
+midpoint assembly to prove the audit's 1/8 pairwise; the route
+was mathematically wrong and was DELETED.
+
+**The correct sharp law (proven, per-expert range form):**
+`poe_logZ_second_order` — `|log Z_w − log Z_approx| ≤
+(1/8)·Σ_i w_i (R i)²` with `R i` dominating the range of the
+centered deviation: `∀ u v, (z i u − μ u) − (z i v − μ v) ≤ R i`,
+μ = Σ_l w_l z_l. Proof is SIMPLE (this is why the midpoint route
+died): per-expert `lse_shift_upper` at x := μ, y := z i, weight,
+sum — the linear terms cancel EXACTLY after the sum swap
+(σ(μ)_v · Σ_i w_i (z_i v − μ v) = σ(μ)_v · 0, the centering
+identity `sum_w_center`); gap sign by `lse_shift_lower` (Jensen
+at the center via `weighted_center_le`). Asymptotically tight:
+z₁=(A,−A), z₂=(−A,A), equal weights, R=2A gives gap = log cosh A
+~ A²/2 = R²/8.
+
+Corollaries: `poe_softmax_speed` (uniform range M → error ≤
+M²/8 — the audit's per-token M²/8 form holds in this sense);
+`poe_logZ_pairwise` (HONEST pairwise constant ½: R i :=
+2·Σ_j w_j D_ij via the pairwise decomposition identity
+`sum_w_decomp` + weighted Cauchy–Schwarz `weighted_var_bound`,
+proven by double-sum expansion + (d_j−d_k)² ≥ 0);
+`poe_sequence_speed` (sequence composes by per-token summation,
+total ≤ (1/8)·Σ_t M_t², no cross-token cancellation claimed).
+
+Pillars salvaged from the previous (timed-out) draft, all kept
+and compiling: `bern_mgf_bound` (the transcendental (b−a)²/8
+step — closes the round-68 OPEN item), `exp_chord_ab`,
+`mgf_hoeffding_ab`, `mgf_hoeffding` (Hoeffding's lemma, finite
+range form), `smax` toolkit (`sum_exp_pos`, `smax_pos`,
+`smax_nonneg`, `smax_sum_one`, `sum_smax_exp`), `lse_shift_lower`,
+`lse_shift_upper`, `weighted_center_le`, `sum_w_center`.
+
+DELETED: the broken midpoint main theorem (mathematically wrong —
+see counterexample) and its helpers `sum_w_pair_mid`/`sum_ww_mid`.
+
+Build 8718 green, triviality flags 0 (538 theorems scanned),
+clean axioms [propext, Classical.choice, Quot.sound] for all 13
+public theorems (checked via #print axioms on a scratch copy,
+removed after). No sorry/admit/native_decide.
