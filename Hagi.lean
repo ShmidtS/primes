@@ -81,6 +81,7 @@ import Hagi.Autonomy.Insight
 import Hagi.Unified.Liveness
 import Hagi.Dynamics.CapabilityGain
 import Hagi.Dynamics.FastGrowth
+import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Dynamics.ControllerPolicy
 import Hagi.Probability.ConditionalSuccess
 import Hagi.Discovery.PPT
@@ -104,6 +105,7 @@ import Hagi.Growth.SeedOnly
 import Hagi.Spectral.SpectralProjector
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
+import Hagi.Unified.MasterHAGI
 
 set_option linter.style.header false
 

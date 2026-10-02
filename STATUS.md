@@ -2181,3 +2181,145 @@ triviality flags 0 (564 theorems scanned), clean axioms
 [propext, Classical.choice, Quot.sound] for all 15 public
 declarations (checked via #print axioms on a scratch copy,
 removed after).
+
+## R110 — wall-clock takeoff: per-cycle time-rate k ⟹ C(T_wall) ≥ C₀·exp(k·T_wall·(1−η/2)) + the cone/success composition with explicit k_eff
+
+Audit §18: growth must be measured against WALL-CLOCK time, not
+generation count or FLOPs. New file `Hagi/Dynamics/WallClockTakeoff.lean`
+(imports FastGrowth + ConditionalSuccess):
+
+- `per_cycle_time_rate` — the hypothesis form: each cycle t costs
+  τ_t wall-clock and multiplies capability by ≥ (1+k·τ_t); k per
+  unit time. Hypothesis, not derived (same honesty stance as R83's
+  capability_multiplicative — the composition law).
+- `log_one_add_ge_sub_half_sq` / `exp_le_one_add` — the honest
+  per-factor inequality log(1+x) ≥ x−x²/2 for ALL x ≥ 0 (NOT just
+  [0,1] as the audit sketched): self-contained derivative proof
+  (f' = t²/(1+t) ≥ 0, f(0)=0, via monotoneOn_of_deriv_nonneg);
+  mathlib has only the UPPER bound (prod_one_add_le_exp_sum), the
+  lower-with-slack bound is proved here.
+- `wallclock_takeoff_product` — C_T ≥ C₀·∏(1+kτ_t) (induction).
+- `wallclock_takeoff` (MAIN) — C_T ≥ C₀·exp(k·Στ_t −
+  (k²/2)·Στ_t²): exponent = k·T_wall minus EXPLICIT second-order
+  discretization slack (k²/2)Στ² (per-factor (kτ_t)²/2); derived
+  factor-wise then telescoped via Real.exp_sum.
+- `wallclock_takeoff_small_steps` — if k·τ_t ≤ η for all t, slack
+  ≤ (η/2)·k·T_wall, so C_T ≥ C₀·exp(k·T_wall·(1−η/2)): η → 0
+  (cheap cycles) recovers rate k exactly.
+- `counted_takeoff_exp` — exp-form twin of R83's
+  capability_takeoff_counted (C_T ≥ C₀·exp(a·Σs_t)); a ≥ 0 and
+  C₀ ≥ 0 premises turn out UNNECESSARY (exp factors ≥ 0 suffice).
+- `wallclock_rate_from_cone` — the composition: per-success
+  multiplier (1+α)^{s_t} (the R107 cone gate's output form) +
+  success floor Σs_t ≥ p₀T − Δ + CONSTANT cycle cost τ ⟹ at wall
+  time W = T·τ: C_T ≥ C₀·exp(k_eff·W − ln(1+α)·Δ) with EXPLICIT
+  k_eff = p₀·ln(1+α)/τ (the Δ→0, α→0 shadow is the continuous
+  dC/dT ≥ (p₀α/τ)C).
+- `wallclock_rate_from_cone_concentrated` — Δ := concDelta T δ =
+  √(2T·log(1/δ)) (R95's Hoeffding value): the √T penalty
+  ln(1+α)·√(2T·log(1/δ)) in the exponent.
+
+Honest gaps: (a) the per-cycle time-rate law is assumed (R102
+honesty note applies verbatim); (b) the success-count floor is a
+DETERMINISTIC hypothesis — the w.p. ≥ 1−δ guarantee is R95's
+success_count_lower_p0, conditioning on the good event is standard
+but not formalized here (would need a measure-theoretic wrapper);
+(c) constant τ per cycle (success or failure alike) — heterogeneous
+τ_t with success correlation is open; (d) hdelta/hdelta1 in the
+concentrated form kept for the uniform R95 signature, unused
+mathematically (linter notes it).
+
+Anchors: capability_takeoff_counted/floor (R83) supply the counted
+multiplicative core the composition re-derives in exp form;
+success_count_lower_p0/concDelta (R95) supply Δ; the R107 cone
+(frontier_cone_invariant) supplies the (1+α)-per-success gate at
+the dynamics level (not re-imported — the composition takes its
+output form as hypothesis).
+
+Build 8722 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (572 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 8 declarations
+(checked via #print axioms on a scratch copy, removed after).
+
+## R111 — MasterHAGI: the conditional capstone — safety + progress + renewal + generalization + budget + concentration in one invariant
+
+Audit §15-VII. New file `Hagi/Unified/MasterHAGI.lean` (imports
+ModeState + WallClockTakeoff; imported in Hagi.lean last among Hagi
+imports). NO new mathematics — the demanded composition, every
+premise named and traced to its source module, no hidden h_emp
+beyond the sources' own.
+
+- `CertifiedHAGIInvariant T risk phi cap budget spend genq epsReg
+  alpha Qfloor` — the five-component invariant structure (Prop):
+  risk_bound (cumulative forgetting ≤ Σ per-cycle SafeQP budgets),
+  phi_bound (Φ_HAGI nonincreasing), capability_growth
+  (C₀(1+α)^T ≤ C_T), budget_respected (EXACT account + nonneg),
+  gen_floor (Qgen ≥ Q_target − (Φ_HAGI(0) − E_min)/ν).
+- `CorePremises` — the one-cycle premise set as ONE named
+  predicate: conjuncts 1–13 are literally R91
+  growth_cycle_potential/certificate_sound's hypotheses (hgap,
+  h_emp_grow, h_emp_merge, hL, heta, heta0, hdescent, h_emp_smooth,
+  hkappa, hs, hdn, h_emp_dist, h_emp_lip); conjunct 14 (h_cycle)
+  is the bridging link "S' IS compress∘joint∘merge∘grow S" on the
+  three carriers (energy/protectedRisk/budget — definitional
+  plumbing, the composite's fields ARE the measured stage
+  outputs); conjunct 15 is R109's h_emp_G probe tolerance.
+- `MasterHAGICore` (Level 1, one cycle) — certificate_sound (R91)
+  SUPPLIES generalization_safe_step's (R109) fit hypothesis (the
+  real energy decrease dominates the certificate's decrease —
+  derived, not restated) and its risk hypothesis (the cycle's
+  risk increment IS the declared riskSpend); budget_account (R91)
+  supplies the exact budget conjunct. Conclusion: Φ_HAGI decreases
+  by (verify).decrease up to λ·riskSpend + ν·ε_Q; budget exact.
+- `MasterHAGI` (Level 2, horizon T) — assembles the full
+  invariant: safety via safeqp_eta_max (R105, per-domain window)
+  aggregated by safeqp_risk_bound_compose (R109) through the
+  per-domain decomposition h_sumdL; progress/gen via MasterHAGICore
+  telescoped under the NET premise h_net (certified decrease
+  covers λ·risk + ν·ε_Q); budget via budget_account telescoped
+  (solvency premise h_budget0); growth via
+  sustained_takeoff_from_production (R107 — the cone-supplied
+  gate, NO free h_emp_frontier_scaling); gen floor via
+  `hagi_gen_floor` (real algebra: the max(0,·) penalty absorbs at
+  most (Phibar − E_min)/ν of the probe gap).
+- `MasterHAGI_wallclock` — the exp form: `gate_success_multiplier`
+  (gate + renewal + indicator s_t ⟹ per-cycle multiplier
+  (1+α)^{s_t}) feeds wallclock_rate_from_cone (R110): with
+  constant τ and the R95 success-count floor Σs ≥ p₀T − Δ,
+  C_T ≥ C₀·exp(k_eff·W − ln(1+α)·Δ), k_eff = p₀ln(1+α)/τ. The
+  gate is taken in its output form (as R110 itself frames it);
+  hγ kept for the uniform cone signature (linter notes it unused).
+- `MasterHAGI_probability` — the R95 form:
+  log_bridge_from_multiplier (log_mul/log_exp algebra) feeds
+  takeoff_time_form (R95, a := ln(1+α), zero friction):
+  Pr[C_T ≥ C₀·exp(ln(1+α)(p₀T − Δ(T,δ)))] ≥ 1−δ under the R95
+  h_emp_ hypotheses (measurable/[0,1]/independent/mean-floor
+  success indicators + the per-ω multiplier law).
+
+Honest gaps (the h_emp inventory, all inherited from the sources,
+none hidden): h_emp_grow (no nonconvex training theorem),
+h_emp_merge (Concat adapter satisfies it, still measured),
+h_emp_smooth, h_emp_dist/h_emp_lip (ternary distortion/curvature),
+h_emp_G (probe telemetry), h_cycle (definitional plumbing), h_net
+(net certified decrease — the controller's per-cycle commitment),
+h_budget0 (solvency), the R107 dynamics h_dyn/hβ, the R95
+independence/p-floor, the wall-clock per-cycle multiplier law.
+Deriving these from the real runtime (Implementation Refinement)
+is the open frontier I — this module is the CONDITIONAL
+certificate of the LOOP given the measured premises.
+
+Anchors: growth_cycle_potential/certificate_sound/budget_account
+(R91) supply the cycle law and the account; safeqp_eta_max +
+safeqpEtaMax (R105) supply the per-domain safety window;
+generalization_safe_step/hagiPotential/safeqp_risk_bound_compose
+(R109) supply Φ_HAGI and the gen-safe step;
+sustained_takeoff_from_production (R107) supplies the derived
+gate/takeoff; takeoff_time_form/concDelta (R95) and
+wallclock_rate_from_cone (R110) supply the concentration and
+wall-clock forms. TopLevel's top_level_cycle_bound (R88) is the
+real-variable shadow of the R91 cycle law used here.
+
+Build 8723 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (583 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 9 declarations
+(checked via #print axioms on a scratch copy, removed after).
