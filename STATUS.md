@@ -1471,3 +1471,148 @@ Anchors 171 → 172. Build 8710 green, 0 sorry, triviality flags 0,
 non-trivial share 1.0000, clean axioms (propext, Classical.choice,
 Quot.sound) for all six new results (checked via #print axioms on a scratch
 copy, removed after).
+
+## R98 — PPT discovery layer (arXiv 2609.38104): power targets, MH stationarity, swaps, truncation bias, mixing, discovery gain
+
+New file `Hagi/Discovery/PPT.lean` (imported in Hagi.lean after
+Hagi.Probability.ConditionalSuccess): the concrete `discover` mechanism
+for HAGI's growth loop — parallel-tempering / power-target sampling over
+a FINITE sequence space (Seq : Fintype; everything beyond finite is out
+of scope, stated in the module docstring). This upgrades
+GrowthState.discover from a bare Candidate carrier to a sampling
+semantics: the discovered candidate is a sequence drawn from the power
+target π_α(x) ∝ p(x)^α.
+
+HONEST WARNING formalized in the module docstring: the power target is
+SEQUENCE-level sharpening (the power of the joint sequence probability),
+NOT tokenwise temperature — Hagi.Core/Concat's softmax-invariance law
+(softmax(cz) ≠ softmax(z)) does NOT transfer and NO equivalence between
+the two operations is claimed.
+
+Results (all with explicit constants; h_emp_* for empirical inputs):
+
+- **pptTarget / pptNorm** — π_α(x) = p(x)^α/Z_α with Z_α = Σ p^α;
+  `pptTarget_isProbability` (nonneg + sums to 1) and `pptTarget_pos`
+  (strict positivity — the nondegeneracy MH/swaps need).
+- **mh_stationary** — target preservation via detailed balance: a
+  stochastic kernel (pptKernel: nonneg rows summing to 1) satisfying
+  π(x)K(x,y) = π(y)K(y,x) (pptDetailedBalance) has Σ π(x)K(x,y) = π(y).
+  The concrete Metropolis proposal construction is external (stated as
+  the kernel's defining hypothesis — honest gap, entrywise MH-acceptance
+  kernel not formalized).
+- **pptSwapAccept / pptSwap_balance** — the replica-swap acceptance
+  A(x₁,x₂) = min(1, π₁(x₂)π₂(x₁)/(π₁(x₁)π₂(x₂))); the balance identity
+  Π(x)·A(x) = Π(swap x)·A(swap x) — the min-form compensation, case
+  split on which side is uphill.
+- **pptSwapKernel** (swap-with-prob-A-else-stay) — stochastic
+  (`pptSwapKernel_sum`), in detailed balance w.r.t. the product target
+  Π(x₁,x₂) = π₁(x₁)π₂(x₂) (`pptSwap_detailedBalance`: off-diagonal =
+  pptSwap_balance, diagonal trivial, rest zero), hence
+  `pptSwap_stationary`: swaps preserve the product stationary
+  distribution (`pptSwap_productProb`: Π sums to 1).
+- **truncation_bias** — THE WARNING THEOREM: a kernel confined to S
+  (transitions out of S have zero probability — the replay/experience-
+  memory compression regime) cannot preserve a target with mass outside
+  S (π(y₀) > 0, y₀ ∉ S ⇒ ¬stationary). The paper's structural-bias
+  floor made formal.
+- **pptMixing (sharp) / pptMixing_doeblin (paper-style)** — geometric
+  mixing under the Doeblin entrywise floor K ≥ ε: the SHARP one-step
+  contraction `ppt_tvContraction` gives TV(μK, π) ≤ (1 − |Seq|·ε)·TV(μ,π)
+  (elementary coupling-free L¹ argument: sign-split of μ−π, each part
+  stays ≥ ε·δ above zero, |P−Q| = P+Q−2min identity); induction gives
+  TV(μKⁿ, π) ≤ (1−|Seq|·ε)ⁿ·TV(μ,π), and since |Seq|·ε ≤ 1
+  (`ppt_card_eps_le_one` from row sums) and TV ≤ 1 (`tvDist_le_one`),
+  the textbook TV ≤ (1−ε)ⁿ follows (`pptMixing_doeblin`). Honest note:
+  the classic "1−ε" constant is WEAKER than the sharp 1−|Seq|·ε.
+- **ppt_discovery_gain** — Good = {V x ≥ γ} (`goodSet`); a chain sampled
+  at stationarity hits Good with exactly the stationary mass
+  (`discovery_prob_stationary`, via h_emp_fiber measurability of the
+  sampler's point fibers + h_emp_dist point-mass match); mass floor ≥ p
+  ⇒ probability ≥ p (`discovery_prob_lower`); γ·mass(Good) ≤ E_π[V]
+  (`stationary_value_ge`).
+- **pptSuccess / pptRejectGood / pptOverrun + pptSuccess_union_bound /
+  pptSuccess_lower** — the composite indicator S_t = 1 iff (γ-good
+  sample) ∧ (verifier accepts) ∧ (budget respected), as event sets with
+  named h_emp measurability hypotheses; the union bound
+  Pr[good] ≤ Pr[S=1] + Pr[reject-good] + Pr[overrun] and the composite
+  lower bound Pr[S=1] ≥ p − Pr[reject] − Pr[overrun]. Honest: the
+  verifier and budget events are hypotheses (no verifier theory exists
+  yet — same gap as GrowthState.verifier).
+
+Honest gaps left open: (1) continuous/infinite sequence spaces; (2) the
+α-ladder DESIGN (which powers to choose) — α is a free parameter; (3)
+adaptive ladders (α chosen online); (4) mixing only under the strong
+Doeblin entrywise floor — the spectral-gap route is open; (5) the
+concrete entrywise Metropolis proposal kernel; (6) S_t composition with
+R95's concentration (the success indicators here are single-step, not
+the T-step independent chain).
+
+Anchors 172 → 173. Build 8711 green, 0 sorry/admit/native_decide,
+triviality flags 0, non-trivial share 1.0000, clean axioms (propext,
+Classical.choice, Quot.sound) for all twenty-two new results (checked
+via #print axioms on a scratch copy, removed after).
+
+## R99 — synthetic pre-pretraining transfer (arXiv 2609.39827): time-to-capability, compute-gate dominance, task selection
+
+New file `Hagi/Pretraining/SyntheticPretrain.lean` (imported in Hagi.lean
+after Hagi.Discovery.PPT): the formalization of the synthetic
+pre-pretraining transfer theory in the GrowthGate / ComputeBudget style.
+Motivation (arXiv 2609.39827): short synthetic pretraining on
+RETRIEVAL-style tasks (k-Shuffle Dyck, MP-Struct, NCA — NOT set-tracking)
+reduces the time-to-capability of the subsequent main pretraining; the
+mechanism hypothesis is long-range retrieval, NOT a grammatical prior.
+
+Results:
+
+- **TimeToCapability / synthGain** — the first index a capability
+  trajectory C reaches threshold τ (Nat.find under a reaching hypothesis;
+  cast to ℝ only at the gain), and the measured step saving
+  synthGain = T_plain(τ) − T_synth(τ) between the plain-main and the
+  synthetic-then-main trajectories at the same threshold. The saving's
+  sign is EMPIRICAL (h_emp_retrieval_transfer): nothing in the module
+  forces it positive except measurement.
+- **time_to_capability_correct** — the first-crossing certificate: the
+  found index t* satisfies τ ≤ C t*, every earlier index is STRICTLY
+  below τ (Nat.find minimality), and under monotonicity of the
+  trajectory capability stays ≥ τ from t* on (permanence, monotone
+  induction). Non-vacuous for any monotone reaching trajectory.
+- **synth_investment_dominates** — THE GATE THEOREM: with the two
+  crossing times tied to TimeToCapability via explicit cast equations,
+  the ONLY empirical gate is h_emp_gate : synthGain·c_step > C_synth
+  (the measured saving priced at the per-step compute cost strictly
+  exceeds the synthetic phase's cost; sign hypotheses on τ, c_step,
+  C_synth, T_s are conventions — C_synth > 0 honestly excludes the
+  degenerate free-synthetic-phase case where the efficiency ratio is
+  undefined). Conclusion: the composite schedule's capability-per-compute
+  at the moment of reaching τ, τ/(C_synth + T_s·c_step), is STRICTLY
+  larger than the plain schedule's τ/(T_p·c_step). No free positive
+  hypotheses hide in the conclusion — the inequality is exactly the gate
+  re-denominated (div_lt_div_iff₀ + ring identity).
+- **task_selection_marginal** — the adaptive-task-choice corollary in
+  the ComputeBudget style: among finitely many candidate synthetic
+  tasks j with measured gains g_j and costs c_j, the argmax of g_j/c_j
+  EXISTS (Finite J, Nonempty J; Finset.exists_max_image) and its ratio
+  dominates every alternative's — the finite-argmax characterization
+  feeding marginalValue_law's active-set scan. Sign of g_j unconstrained:
+  a task with negative measured gain is dominated automatically.
+
+HONEST BOUNDARIES (stated in the module docstring, repeated here):
+(1) the transfer itself (retrieval-style synthetic pretraining
+accelerates the main run) is h_emp_retrieval_transfer — EMPIRICAL, a
+hypothesis on the measured trajectories, never a derived fact; (2) NO
+claim that retrieval ⇒ general capability is made or needed; (3) the
+paper's "Set task degraded" row is an EMPIRICAL WARNING, not a theorem —
+set-tracking's failure to transfer is observed, not proved here; (4) the
+gate is a COMPUTE gate only: it decides when the synthetic phase pays
+for itself in capability-per-compute at threshold τ, and says nothing
+about asymptotic capability ceilings or multi-threshold trajectories;
+(5) the trajectories are ℕ-indexed sequences — no tokenization, no
+model parametrization (the bridge to a training theorem is the same
+open gap as GrowthState's grow stage); (6) task selection assumes the
+per-task gains g_j measured in the SAME compute units c_j — cross-task
+gain comparability is a measurement-protocol assumption, not proved.
+
+Anchors 173 → 174. Build 8712 green, 0 sorry/admit/native_decide/
+custom axioms, triviality flags 0, non-trivial share 1.0000, clean
+axioms (propext, Classical.choice, Quot.sound) for all three theorems
+(checked via #print axioms on a scratch copy, removed after).

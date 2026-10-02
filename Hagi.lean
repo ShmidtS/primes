@@ -78,6 +78,8 @@ import Hagi.Dynamics.CapabilityGain
 import Hagi.Dynamics.FastGrowth
 import Hagi.Dynamics.ControllerPolicy
 import Hagi.Probability.ConditionalSuccess
+import Hagi.Discovery.PPT
+import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
 import Hagi.Unified.GrowthBridge
