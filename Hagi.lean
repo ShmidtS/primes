@@ -45,6 +45,7 @@ import Hagi.Step.Decompose
 import Hagi.Energy.FreeEnergy
 import Hagi.Growth.GrowthGate
 import Hagi.Growth.GainRenewal
+import Hagi.Growth.FrontierScaling
 import Hagi.Ensemble.MergeIdentity
 import Hagi.Energy.BranchScale
 import Hagi.Energy.TernaryLean

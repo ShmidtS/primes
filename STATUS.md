@@ -1997,3 +1997,59 @@ Build 8718 green, triviality flags 0 (538 theorems scanned),
 clean axioms [propext, Classical.choice, Quot.sound] for all 13
 public theorems (checked via #print axioms on a scratch copy,
 removed after). No sorry/admit/native_decide.
+
+## R107 — frontier scaling: the cone invariant D ≥ (α/γ)C derived from production dynamics — sustained takeoff without the free scaling hypothesis
+
+New `Hagi/Growth/FrontierScaling.lean` (imported in Hagi.lean after
+GainRenewal) — the audit front D proposal, algebra verified and
+proven. R104's `renewal_feeds_takeoff` carried the FREE hypothesis
+`h_emp_frontier_scaling : ∀ t, α·C_t ≤ γ·D_t`; R107 REPLACES it with
+a DERIVED dynamic invariant.
+
+The production dynamics (the new empirical content, measurable from
+Diversity/GapLaw telemetry): `D_{t+1} ≥ ρ·D_t + β·C_t − ξ_t` — the
+growing system itself produces new usable disagreement at rate β
+per unit capability (retention ρ, friction ξ_t) — plus the
+capability cap `C_{t+1} ≤ (1+α)·C_t` (growth at most the certified
+rate; NOTE: the cone step needs this UPPER bound on C_{t+1}, since
+a capability leaping ahead of (1+α) breaks the cone regardless of
+frontier production — the audit sketch's implicit assumption, made
+explicit).
+
+- **frontier_cone_inductive** — the step lemma: cone D_t ≥ k·C_t
+  (k := α/γ) + dynamics + cap + the EXACT threshold
+  `k·((1+α) − ρ) + ξ_t/C_t ≤ β` ⟹ cone at t+1. Threshold exact:
+  slack is precisely C_t·(β − k((1+α)−ρ)) − ξ_t.
+- **frontier_cone_invariant** — induction: cone at 0 + per-step
+  conditions ⟹ cone at EVERY t.
+- **sustained_takeoff_from_production** — the composition: cone
+  invariant SUPPLIES the gate α·C_t ≤ γ·D_t at every t, R104's
+  `renewal_feeds_takeoff` applies ⟹ C_T ≥ C₀·(1+α)^T for ALL T.
+  NO `h_emp_frontier_scaling` appears: premises are (ρ, β, ξ)
+  dynamics + cap + cone init + per-step threshold. Positivity of
+  C_t is proven SIMULTANEOUSLY with the cone (private
+  `cone_and_pos`): the threshold divides by C_t and positivity of
+  C_{t+1} comes from the cone at t (C_{t+1} = C_t + G_t ≥ (1+α)C_t).
+- **frontier_asymptotic** — the audit's asymptotic law made exact:
+  with PROPORTIONAL friction ξ_t ≤ ξ̄·C_t (the measured form) the
+  per-step threshold collapses to the CONSTANT
+  `β ≥ (α/γ)·((1+α) − ρ) + ξ̄` — the audit's β ≳ k(1+α−ρ) is the
+  ξ̄ → 0 shadow.
+
+Honest gaps (docstrings state them): (a) the production dynamics
+itself is the remaining empirical premise; (b) under renewal
+equality + derived gate + cap, G_t is pinned to α·C_t (the system
+rides exactly its certified rate — slack appears as cap
+violations, excluded by hypothesis); (c) iff-correction from R104
+stands: bounded frontier still kills sustained growth
+(`bounded_frontier_no_sustained_growth`); the cone condition is
+the EXACT boundary — unbounded-but-slow frontier fails it and
+hence the gate.
+
+Anchors: renewal_feeds_takeoff (R104) now has its derived-gate
+companion; sustained_takeoff_window_lift's semantics unchanged.
+
+Build 8719 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (543 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 4 public theorems
+(checked via #print axioms on a scratch copy, removed after).
