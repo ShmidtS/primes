@@ -100,19 +100,28 @@ satisfies
 — the audit-#1 form E[F_{t+1}] ≤ F_t − α‖∇F‖² realized
 modulo the three measured constants (m₀ batch noise, κ
 curvature, s grid). Positive stage sum ⟹ controlled descent
-per generation even under minibatch noise. -/
-theorem noisy_cycle_step (inner_true inner_est dnorm m0 eta L Emean E1 E2 E3 E4 G kappa s : ℝ)
+per generation even under minibatch noise. R102 honesty
+fix: hquant now carries the HONEST compression cost
+κ·‖w−q‖₂ (the residual norm over ALL n coordinates, as in
+the sibling top_level_cycle_bound), and the κ√n·s/2 form is
+DERIVED via quant_energy_bridge — the dimension factor √n
+is no longer hidden behind `Real.sqrt 1`. -/
+theorem noisy_cycle_step {n : ℕ} {w q : Fin n → ℝ}
+    (inner_true inner_est dnorm m0 eta L Emean E1 E2 E3 E4 G kappa s : ℝ)
     (hdescent : dnorm ^ 2 ≤ inner_true)
     (h_emp_conc : |inner_est - inner_true| ≤ m0)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
     (h_emp_smooth : E2 ≤ E1 - eta * inner_est + L * eta ^ 2 * dnorm ^ 2 / 2)
     (hE1 : E1 ≤ Emean - G)
-    (hquant : E4 - E3 ≤ kappa * Real.sqrt 1 * s / 2)
+    (hs0 : 0 ≤ s) (hres : ∀ i, |w i - q i| ≤ s / 2) (hkappa : 0 ≤ kappa)
+    (hquant : E4 - E3 ≤ kappa * Real.sqrt (∑ i, (w i - q i) ^ 2))
     (hE3 : E3 = E2) :
-    E4 ≤ Emean - (G + eta * dnorm ^ 2 / 2 - eta * m0 - kappa * Real.sqrt 1 * s / 2) := by
+    E4 ≤ Emean - (G + eta * dnorm ^ 2 / 2 - eta * m0
+      - kappa * Real.sqrt (n : ℝ) * s / 2) := by
   have hstoch := Hagi.stochastic_safeqp_descent inner_true inner_est dnorm m0 eta L E1 E2
     hdescent h_emp_conc hL heta heta0 h_emp_smooth
-  rw [hE3] at hquant
+  have hq := Hagi.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa hquant
+  rw [hE3] at hq
   linarith
 
 /-- **The horizon termination (roadmap #1 asymptotic; R78
@@ -121,7 +130,10 @@ expectation operator)**: if every generation's stage sum
 G + η‖d*‖²/2 − ηm₀ − κ√n·s/2 ≥ ε (measured per cycle), the
 expected energy reaches the ε-floor within (E₀−E_min)/ε
 generations — the infinite-horizon control guarantee: no
-oscillation, no divergence, the growing tree converges. -/
+oscillation, no divergence, the growing tree converges.
+R102 honesty note: this is the HORIZON-FORM RESTATEMENT of
+`top_level_termination` above (same Lyapunov telescope,
+delegated to it; no additional mathematical content). -/
 theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ)
     (hE : ∀ t, Emin ≤ E t) (hstep : ∀ t, E (t + 1) ≤ E t - eps) (heps : 0 < eps) (k : ℕ) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=

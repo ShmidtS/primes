@@ -84,9 +84,18 @@ section DBridge
 
 variable {V K : Type*} [Fintype V] [DecidableEq V] [Fintype K]
 
-/-- The Shannon entropy of a finite distribution
-(H(p) = −Σ p log p). -/
-noncomputable def entropy (p : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v)
+/-- The NEGATIVE Shannon entropy of a finite distribution:
+`negEntropy p = ∑ v, p v * log (p v) = −H(p)` with the
+standard H(p) = −Σ p log p. With this convention the
+data-divergence identity of `dfield_entropy_identity` reads
+D_data = Σ w_i · negEntropy(p_i) − negEntropy(p_w)
+     = H(p_w) − Σ w_i H(p_i) ≥ 0
+(the mixture entropy minus the weighted corpus entropies).
+R102 honesty fix: renamed from `entropy` — the body defines
+the NEGATIVE of the standard entropy, and that is now stated
+explicitly instead of being papered over by the H-semantics
+docstrings. -/
+noncomputable def negEntropy (p : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v)
 
 /-- **The entropy identity (Span 1, THEOREM).** The
 data-divergence field equals the mixture entropy minus the

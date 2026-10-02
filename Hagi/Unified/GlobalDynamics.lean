@@ -31,12 +31,14 @@ open Real InnerProductSpace
 
 namespace Hagi
 
-/-- **SafeQP is idle at zero gradient (roadmap #6)**: when
-the mixture gradient vanishes (g₀ = 0), the projection is
-exactly the zero step — the controller does nothing. Since
-0 ∈ C and dist(0, 0) = 0 is the absolute minimum, the unique
-minimizer (safeQP_exists_unique) IS 0: no update, no
-structural change, no forgetting. -/
+/-- **SafeQP is idle at zero gradient (roadmap #6; R102
+honesty fix)**: what is proved is the PLAIN statement that
+0 minimizes dist(·, 0) on the safe set C — dist(0,0) = 0 ≤
+dist d 0 for every d ∈ C. This is the g₀ = 0 SPECIALIZATION
+of the SafeQP objective (dist(d, g₀) with g₀ = 0); it does
+NOT by itself characterize the SafeQP solution d* for a
+general gradient — that characterization is the projection
+theorem (`safeQP_exists_unique`), a separate result. -/
 theorem safeqp_idle {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     [FiniteDimensional ℝ X] (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) :
     ∀ d ∈ C, dist (0:X) (0:X) ≤ dist d (0:X) := by

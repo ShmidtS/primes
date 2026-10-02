@@ -47,11 +47,15 @@ NOT a grammatical prior.
   hypotheses: everything except the h_emp_ gate and the sign
   conventions is derived.
 * `task_selection_marginal` — the adaptive-task-choice corollary
-  in the ComputeBudget style: among finitely many candidate
-  synthetic tasks j with measured gains g_j and costs c_j > 0,
-  the argmax of g_j/c_j exists and its ratio dominates every
-  alternative's (the finite argmax characterization feeding
-  `marginalValue_law`'s active-set scan).
+in the ComputeBudget style: among finitely many candidate
+synthetic tasks j with measured gains g_j and POSITIVE costs
+c_j > 0 (R102: hc — with nonpositive costs the ratio g/c is
+meaningless, and Lean's x/0 = 0 would let the argmax exist
+vacuously), the argmax of g_j/c_j exists and its ratio
+dominates every alternative's — with positive costs the
+ratio is the true gain-per-cost (the finite argmax
+characterization feeding `marginalValue_law`'s active-set
+scan).
 -/
 
 namespace Hagi
@@ -177,7 +181,7 @@ g_j are the measured per-task transfer gains; nothing here
 constrains their signs — a task with negative measured gain is
 dominated automatically). -/
 theorem task_selection_marginal (J : Type) [Finite J] [Nonempty J]
-    (g c : J → ℝ) :
+    (g c : J → ℝ) (hc : ∀ j, 0 < c j) :
     ∃ jmax : J, ∀ j : J, g j / c j ≤ g jmax / c jmax := by
   haveI : Fintype J := Fintype.ofFinite J
   have hne : (Finset.univ : Finset J).Nonempty := by

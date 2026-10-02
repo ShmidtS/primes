@@ -97,7 +97,12 @@ probability layer (success probability ≥ p per cycle,
 h_util Σp = ∞), N ~ Binomial(T, p) makes log C_T = Ω(T) —
 the true fast-growth form of the audit's Master theorem.
 The deterministic core is here; the stochastic half stays
-open. -/
+open.
+
+COMPOSITION LAW (R102 honesty note): the hypothesis IS the
+per-step multiplicative law (assumed, not derived); the
+conclusion is exactly its T-fold composition. This is not a
+derivation of the step law from deeper principles. -/
 theorem capability_multiplicative (C : ℕ → ℝ) (succ : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha) (hC0 : 0 ≤ C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha))

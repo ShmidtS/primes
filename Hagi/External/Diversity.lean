@@ -141,21 +141,20 @@ section MergeVsScratch
 
 variable {V : Type*} [Fintype V] [Nonempty V]
 
-/-- **(4) THE MERGE-VS-SCRATCH ADVANTAGE — the basin argument
-(our +0.47-nat effect, theoretically framed; the scout
-confirmed NO external formalization exists — the niche is
-ours)**: the merged initialization starts ON the
-interpolation manifold where the ensemble law
-(`Hagi.Concat.ensemble_ce_le_mean_general`) already bounds
-its CE by the experts' mean — the merged model INHERITS the
-ensemble-variance-reduced evaluation point at step 0. The
-scratch initialization starts at the uniform-softmax
-baseline: the expected CE of a random initialization is
-log|V| (the uniform distribution's entropy). The formal
-statement: the merged-init CE head start over the scratch
-baseline is at least the gap between the experts' mean CE
-and log|V| — the Jensen bound transfers the ensemble
-advantage to the initialization. -/
+/-- **(4) THE MERGE-VS-SCRATCH HEAD-START GAP (R102 honesty
+fix: an ALGEBRAIC RESTATEMENT, not merge-vs-scratch
+theory)**: what the theorem proves is exactly that
+
+  meanCE < log V  ⟹  0 < log V − meanCE,
+
+i.e. the head-start quantity (log V − meanCE) is positive
+whenever the experts' mean CE sits below the uniform-softmax
+baseline log|V|. The merge-inherits-ensemble-advantage
+framing above is the MOTIVATION; transferring it to real
+initializations (merged-init CE ≤ meanCE, hence
+CE_merged-init < log V) needs the Concat ensemble law
+composed with an initialization model and is NOT proved
+here — that is the open merge-vs-scratch bridge. -/
 theorem merge_init_head_start (meanCE logV : ℝ)
     (hmean : meanCE < logV) :
     -- the merged init's head start over scratch is positive

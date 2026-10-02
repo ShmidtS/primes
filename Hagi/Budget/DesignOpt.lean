@@ -122,12 +122,17 @@ theorem spectral_tail_mono (sigma : ℕ → ℝ) (m m' : ℕ)
   exact sum_le_sum_of_subset_of_nonneg hsub
     fun i _ _ => sq_nonneg (sigma i)
 
-/-- **The spectral rank exists**: for every precision
-budget ε_r > 0 the minimal rank r* with the tail ratio
-under ε_r exists (the tail ratio is monotone and reaches 0
-at r = max): the rank is DERIVED from the measured
-spectrum — no tail-shape assumption (the flat-spectra
-regime handled: r* is whatever the spectrum says). -/
+/-- **The spectral rank exists** (R102 honesty fix: an
+EXISTENCE theorem, not minimality): for every precision
+budget ε_r > 0 a rank r with tail ratio ≤ ε_r exists — the
+proof takes r = max(support)+1 where the tail is EMPTY
+(= 0 ≤ ε_r). The tail-ratio monotonicity suggests the
+MINIMAL rank r* = min{r : ρ(r) ≤ ε_r} is well-defined, but
+that minimality theorem is NOT proved here (it needs the
+monotone-descent argument on ρ, an open item); the rank is
+DERIVED from the measured spectrum in the existence sense
+only — no tail-shape assumption (the flat-spectra regime
+handled: the existing r is whatever the spectrum says). -/
 theorem spectral_rank_exists (sigma : ℕ → ℝ) (eps : ℝ)
     (heps : 0 < eps) (s : Finset ℕ) (hs : s.Nonempty) :
     ∃ r : ℕ, ∑ j ∈ s.filter (fun j => j ≥ r), (sigma j)^2
@@ -149,11 +154,14 @@ theorem spectral_rank_exists (sigma : ℕ → ℝ) (eps : ℝ)
   exact mul_nonneg (le_of_lt heps) (Finset.sum_nonneg
     fun j _ => sq_nonneg (sigma j))
 
-/-- **The adaptive NS budget exists** (under the NS
-contraction assumption — flagged): the orthogonality
-residual e(s) decreases with the iteration count, so for
-every ε_NS the minimal count s* exists — the per-matrix
-derived budget replacing the fixed 3–5 grid. -/
+/-- **The adaptive NS budget exists** (R102 honesty fix):
+the PROOF uses the strong assumption `e 100 = 0` — the
+residual vanishes at the fixed count 100 — so the exhibited
+budget is the constant s* = 100. This is NOT the
+NS-contraction argument advertised earlier: the proper
+bridge (e_{t+1} ≤ f(e_t) < e_t with f a contraction on an
+interval ⟹ ∃ t, e_t ≤ ε_NS, giving a per-matrix count s*)
+remains OPEN and is the honest version of this theorem. -/
 theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
     (heps : 0 ≤ eps) (he0 : e 100 = 0) :
     ∃ s : ℕ, e s ≤ eps := by

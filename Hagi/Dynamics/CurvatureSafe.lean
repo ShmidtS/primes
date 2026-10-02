@@ -53,20 +53,29 @@ theorem safeqp_trust_region (inner eps L dnorm dL : ℝ)
       _ = eps := by field_simp
   linarith
 
-/-- **Monotone per-domain safety**: if the trust region is
-tight (‖d*‖² ≤ 2ε/L AND the linearized inner product is
-nonnegative — the conflict-free case), the domain loss does
-not increase at all: the exact second-order certificate. -/
-theorem safeqp_monotone_domain (inner eps L dnorm dL : ℝ)
+/-- **Monotone per-domain safety (R102 convention fix)**: if
+the second-order slack is nonpositive — `slack ≤ 0` bounds
+the residual term L·‖d*‖²/2 from above by a NONPOSITIVE
+quantity, which together with the tight trust region forces
+the second-order term to vanish — and the linearized inner
+product is nonnegative (the conflict-free case), the domain
+loss does not increase at all. NOTE the convention:
+`slack` here is NOT a positive safety margin (the
+positive-margin convention of `safeqp_trust_region`'s ε);
+it is a regression bound on the second-order residual, and
+the hypothesis set (hrad with L > 0 plus slack ≤ 0) forces
+‖d*‖² = 0 — the theorem is the exact-certificate case of
+`safeqp_second_order`, not a margin argument. -/
+theorem safeqp_monotone_domain (inner slack L dnorm dL : ℝ)
     (hfeas : 0 ≤ inner) (hL : 0 < L)
     (h_emp_smooth : dL ≤ -inner + L * dnorm ^ 2 / 2)
-    (hrad : dnorm ^ 2 ≤ 2 * eps / L) (heps : eps ≤ 0) :
+    (hrad : dnorm ^ 2 ≤ 2 * slack / L) (hslack : slack ≤ 0) :
     dL ≤ 0 := by
-  -- direct: dL ≤ −inner + (L/2)‖d‖² ≤ 0 + eps ≤ 0
-  have h4 : L * dnorm ^ 2 / 2 ≤ eps := by
+  -- direct: dL ≤ −inner + (L/2)‖d‖² ≤ 0 + slack ≤ 0
+  have h4 : L * dnorm ^ 2 / 2 ≤ slack := by
     calc L * dnorm ^ 2 / 2 = (L / 2) * dnorm ^ 2 := by ring
-      _ ≤ (L / 2) * (2 * eps / L) := by
+      _ ≤ (L / 2) * (2 * slack / L) := by
           apply mul_le_mul_of_nonneg_left hrad (by linarith)
-      _ = eps := by field_simp
+      _ = slack := by field_simp
   linarith
 end Hagi

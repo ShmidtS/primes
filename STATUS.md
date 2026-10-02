@@ -1744,3 +1744,67 @@ custom axioms, triviality flags 0, non-trivial share 1.0000, clean
 axioms (propext, Classical.choice, Quot.sound) for all eight theorems
 of the module (checked via #print axioms on a scratch copy, removed
 after).
+
+## R102 — external-audit defect round: honest compression cost, entropy sign rename, argmax cost positivity, curvature eps convention, takeoff-window theorem, docstring honesty
+
+Six audit findings fixed, statements made honest, one new theorem
+converts the audit's vacuity criticism into a result:
+
+- **FIX 1 — TopLevel `noisy_cycle_step`**: `hquant` carried the
+  understated cost `kappa * Real.sqrt 1 * s / 2` (sqrt 1 = 1 — the
+  dimension factor hidden). Now matches the sibling
+  `top_level_cycle_bound`: implicit `{n : ℕ} {w q : Fin n → ℝ}` with
+  `hs0/hres/hkappa` and `hquant : E4 - E3 ≤ kappa *
+  Real.sqrt (∑ i, (w i - q i) ^ 2)` (the honest κ·‖w−q‖₂); the
+  conclusion's `kappa * Real.sqrt (n : ℝ) * s / 2` is DERIVED via
+  `quant_energy_bridge` (proof structure kept: one `have` + linarith).
+- **FIX 2 — DBridge `entropy` → `negEntropy`**: the def body
+  Σ p·log p is the NEGATIVE of the standard entropy H = −Σ p log p.
+  Renamed (body unchanged, sign NOT flipped), docstring states
+  explicitly `negEntropy p = −H(p)` and D_data = Σ w_i·negEntropy(p_i)
+  − negEntropy(p_w) = H(p_w) − Σ w_i H(p_i). No other users of the
+  def repo-wide (rg-verified).
+- **FIX 3 — SyntheticPretrain `task_selection_marginal`**: added
+  `hc : ∀ j, 0 < c j` — with zero/negative costs the g/c argmax exists
+  vacuously (Lean x/0 = 0); with positive costs the ratio is the true
+  gain-per-cost. Statement otherwise unchanged (proof unchanged).
+- **FIX 4 — CurvatureSafe `safeqp_monotone_domain`**: `heps : eps ≤ 0`
+  contradicted the positive-margin convention of `safeqp_trust_region`.
+  Reading matching the proof: the variable is a REGRESSION bound on
+  the second-order residual (L‖d*‖²/2), not a safety margin — renamed
+  `eps`→`slack`, `heps`→`hslack`, docstring makes the convention
+  explicit and notes the hypothesis set forces ‖d*‖² = 0 (the exact-
+  certificate case, not a margin argument).
+- **FIX 5 — GrowthBridge takeoff window (NEW THEOREM)**:
+  `growCycle_capability` (closed form C_t = C₀ + t·G, the additive law
+  iterated over the invariant gain) and
+  `growth_state_takeoff_window`: under the success gate
+  α·C_t ≤ G with G = growGain invariant, hgate0 : α·C₀ ≤ G (the t=0
+  gate instance), σ t ≤ 1: (1) every horizon T has success count
+  ≤ 1/α + 1 − C₀/G (an absolute window), (2) the certified takeoff
+  factor (1+α)^(Σσ) ≤ exp(1 + α − α·C₀/G) ≤ e·e^α — bounded by a
+  CONSTANT. Honest note in the docstring: the audit's e^{G/C₀} form
+  is NOT provable in this generality (for G/C₀ < 1+α it is smaller
+  than the true certified bound); the window above is the tight
+  provable form. Sustained takeoff requires capability-dependent
+  gain G_t ≥ α·C_t — the open bridge. `growth_state_takeoff`
+  docstring updated to point at the window theorem.
+- **FIX 6 — docstring honesty (no statement changes)**:
+  `capability_multiplicative` (composition law, not a derivation of
+  the step law); `spectral_rank_exists` (existence via empty tail,
+  minimal-rank open); `adaptive_ns_exists` (uses e(100) = 0, the
+  NS-contraction bridge open); `merge_init_head_start` (algebraic
+  restatement meanCE < log V ⇒ 0 < log V − meanCE); `safeqp_idle`
+  (the g₀ = 0 specialization — 0 minimizes dist(·,0) on C, not a
+  characterization of d*); `horizon_termination` (horizon-form
+  restatement of `top_level_termination`).
+
+Anchors 176 → 177. Build 8714 green, 0 sorry/admit/native_decide/
+custom axioms, triviality flags 0, non-trivial share 1.0000, clean
+axioms (propext, Classical.choice, Quot.sound) for all touched
+theorems: noisy_cycle_step, horizon_termination,
+top_level_cycle_bound, growCycle_capability,
+growth_state_takeoff_window, growth_state_takeoff,
+dfield_entropy_identity, task_selection_marginal,
+safeqp_monotone_domain (checked via #print axioms on a scratch copy,
+removed after).
