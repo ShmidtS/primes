@@ -103,6 +103,7 @@ import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
 import Hagi.Spectral.SpectralProjector
 import Hagi.Architecture.FactorizedMerge
+import Hagi.Generalization.ModeState
 
 set_option linter.style.header false
 

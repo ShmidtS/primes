@@ -2106,3 +2106,78 @@ triviality flags 0 (552 theorems scanned), clean axioms
 declarations (checked via #print axioms on a scratch copy,
 removed after). Note: Primes/ErdosProblems.lean carries
 pre-existing sorries untouched by this round.
+
+## R109 — generalization mode state: vector Q-certificate, Φ_HAGI,
+gen-safe step, Pareto checkpoint selection, Qgen→frontier bridge
+(arXiv 2609.33150)
+
+New `Hagi/Generalization/ModeState.lean` (imported in Hagi.lean
+after FactorizedMerge) — the formal layer for the audit's
+prescription that HAGI must optimize a two-level dynamics (fit +
+generalization) and no step is an improvement on CE grounds alone
+(the paper's mode-hopping: training CE improves while the
+generalization regime switches/degrades; checkpoint averaging
+doesn't fix it, data selection can).
+
+- **GenMetrics / Qvec / Qgen** — the GDsuite-style cheap probes
+  (transfer, shallowCue, truthSeeking, reflective, multiHop) as
+  MEASURED telemetry (h_emp_G, never derived); `Qvec` is the REAL
+  certificate object, `Qgen` the lossy weighted scalarization with
+  the honest anti-masking docstring (a surrogate sum can hide a
+  per-probe mode drop). `Qgen_drop_bound` does the bookkeeping
+  PER PROBE: pointwise Δ ≥ −ε_i ⟹ ΔQgen ≥ −Σ w_i ε_i.
+- **ModeDrop** — a PREDICATE, not a theorem (E↓ ⇏ Q↑ cannot be
+  proven, only named): E S' ≤ E S − ε_E ∧ Qgen S' ≤ Qgen S − ε_Q;
+  docstring cites the paper's answer+1 signature
+  (81% → 0% → 81.7%). `modeDrop_rejected`: a certified tolerance
+  ε_Q strictly below the drop threshold makes ModeDrop detectable
+  (contradiction with h_emp_G).
+- **hagiPotential** — Φ_HAGI := energy + λ·protectedRisk +
+  ν·max(0, Q_target − Qgen), the audit's extended Lyapunov object
+  on R91's GrowthState (extended by `GenState` with the `gen`
+  telemetry field).
+- **generalization_safe_step** (central, BOTH cases explicit,
+  the penalty never silently assumed down): the general case
+  bounds the hinge growth by ν·ε_Q via `relu_shift_le`
+  (a' ≥ a − ε ⟹ max(0, t−a') ≤ max(0, t−a) + ε), giving
+  Φ' ≤ Φ − ε_E + λ·budget + ν·ε_Q (h_risk is the SafeQP
+  guarantee; `safeqp_risk_bound_compose` aggregates `safeqp_
+  eta_max`'s per-domain budgets into it); the at-target case
+  (Qgen S' ≥ Q_target) makes the penalty INERT:
+  Φ' ≤ Φ − ε_E + λ·budget, no ν·ε_Q term.
+- **Checkpoint Pareto selection** — `dominates`/`IsPareto` on
+  (E↓, Q↑, cost↓) over a finite checkpoint set;
+  `scalarized_argmin_pareto`: the STRICTLY-POSITIVE-weighted
+  scalarized argmin IS Pareto (the provable direction of the
+  weighted-sum/Pareto duality; the converse needs convexity and
+  is stated OPEN); `pareto_frontier_nonempty` via the unit-weight
+  argmin; `selector_skips_dominated` (not_latest_is_best_allowed,
+  the real form): a strictly dominated LATEST checkpoint is never
+  returned by any strictly-positive scalarized selector —
+  recency is not a criterion.
+- **qgen_frontier_bridge** — the audit's §8 production law
+  inj_t ≥ β·C_t + η_Q·max(0, ΔQ_t) − ξ_t: the R107 cone threshold
+  is EASED to
+  β ≥ (α/γ)(1+α−ρ) + (ξ_t − η_Q·max(0,ΔQ_t))/C_t
+  (effective production rate β_eff = β + η_Q·max(0,ΔQ_t)/C_t —
+  exact identity when C_t > 0, then `frontier_cone_inductive`
+  applied); `qgen_frontier_bridge_invariant` lifts it to all t.
+
+Honest gaps: (a) the Pareto⟹∃weights duality direction needs
+convexity — open; (b) probes are pure telemetry — the paper's
+claim that data selection STEERS ΔQ > 0 enters as h_emp_dyn;
+(c) in `generalization_safe_step_at_target` the h_emp_G premise
+is not needed mathematically (kept for the uniform signature,
+linter notes it unused); same for hηQ in the bridge step lemma.
+
+Anchors: potential/GrowthState (R91) supply Φ's base and the
+state; safeqp_eta_max (R105) supplies the risk-budget guarantee;
+frontier_cone_inductive (R107) is the cone engine the bridge
+composes with; the surrogate-misleads precedent is R38's
+selection_hurts (Diversity).
+
+Build 8721 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (564 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 15 public
+declarations (checked via #print axioms on a scratch copy,
+removed after).
