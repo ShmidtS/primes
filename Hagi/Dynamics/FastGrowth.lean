@@ -19,6 +19,10 @@ set_option linter.style.header false
   risk reduction: the honest "fast" of the audit's program
   (ΔC/FLOPs ≥ c > 0).
 
+Bridge note: the GrowthState-level form of these laws (the additive→
+multiplicative reading of `grow`'s capability channel and the takeoff
+stated on the iterated state) is R96, `Hagi/Unified/GrowthBridge.lean`.
+
 The remaining audit fronts: ImplementationRefinement,
 CertifiedEstimator (probability layer), DiscoveryProbability
 (Borel–Cantelli side), RecursiveImprovement, Universality,

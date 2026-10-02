@@ -61,10 +61,11 @@ magnitude), K protected domains and confidence δ ∈ (0,1):
   ⟪g_i, d⟫ ≥ −(ε_i + ε_noise) for all i.
 
 **Honest boundary.** d is a FIXED direction here (the
-analysis conditions on the step direction; a d*(ω) measurably
-selected from the stochastic QP is not formalized — the
-feasibility theorem transfers safety for any fixed d, which
-covers the realized d* a posteriori). The mean-zero and
+analysis conditions on the step direction; the adaptively
+selected d*(ω) is NOT formalized in this module — see
+`Hagi.Step.AdaptiveSafeQP` (R97), which closes this gap by the
+covering-number route for any pointwise-D-bounded d*(ω) in
+`EuclideanSpace ℝ (Fin n)`). The mean-zero and
 boundedness of the noise are empirical hypotheses
 (h_emp_*). The i.i.d. structure across the batch enters only
 through per-domain independence + mean zero; identical

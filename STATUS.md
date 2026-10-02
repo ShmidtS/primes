@@ -1280,3 +1280,194 @@ for bounded stopping times only.
 
 Anchors 167 → 168. Build 8707 green, 0 sorry, triviality 1.0000,
 clean axioms (propext, Classical.choice, Quot.sound) for all six new theorems.
+
+## R94 — external-review audit fixes: top-k optimality proved, unused hGamma removed, pool weights honesty
+
+Three "docstring stronger than theorem" gaps from the external review closed.
+
+1. **Top-k routing optimality (Hagi/Unified/RecursiveGrowth.lean)**: new theorem
+`topk_routing_optimal` — for coefficients c, k-element subset s dominating every
+discarded coefficient in square (∀ i ∈ s, ∀ j ∉ s, c j² ≤ c i²), the tail energy
+Σ_{i∉s} c i² is minimal over all k-element subsets s'. Exchange argument via the
+minimum of s \ s' (exists_min_image) + complement arithmetic. The previously
+unproven "Top-k routing minimizes routing error" claim of `gating_tail_bound`'s
+docstring is now backed (docstring references the theorem).
+2. **Unused hypothesis (Hagi/Dynamics/CapabilityGain.lean)**: removed
+`(hGamma : 0 < Gamma)` from `capability_gain_transfer` (never used by the
+rw+linarith proof — theorem strictly stronger). No other file used that
+hypothesis form (doc mentions only). Docstring notes Γ > 0 belongs to the
+intended certificate chain, not to the algebra.
+3. **Honest pool weights (Hagi/Energy/FreeEnergy.lean)**: new corollary
+`geometric_pool_identity_nonneg` carrying (∀ i, 0 ≤ w i) alongside Σ w = 1 —
+the hypotheses the probabilistic consensus/weighted-geometric-pool reading
+needs; the parent `geometric_pool_identity` statement unchanged, docstring now
+notes the identity is purely algebraic (holds for negative weights too) and the
+pool interpretation requires the nonneg corollary.
+
+Anchors 168 → 169. Build green, 0 sorry, triviality flags 0,
+clean axioms (propext, Classical.choice, Quot.sound) for topk_routing_optimal,
+capability_gain_transfer, geometric_pool_identity(_nonneg).
+
+## R95 — conditional success probability → concentration → exponential capability growth
+
+The CENTRAL missing stochastic half of the fast-growth chain (roadmap §12–14,
+external review §10): `capability_takeoff_counted` (R87, FastGrowth.lean)
+proved C_T ≥ C₀·(1+α)^{Σs_t} — exponential in the success COUNT — but the
+probability layer turning the count into p·T was open. New file
+`Hagi/Probability/ConditionalSuccess.lean` closes the gap at the composition
+level via independent-but-not-identical successes (the honest middle).
+
+1. **`success_count_lower`** — Hoeffding concentration of the success count
+   (exact means): for T independent [0,1]-valued indicators S t (measurable,
+   `h_emp_indep : iIndepFun S μ`),
+   Pr[ Σ_{t<T} S t ≥ (Σ_{t<T} μ[S t]) − Δ(T,δ) ] ≥ 1 − δ with the EXPLICIT
+   Δ(T,δ) = √(2·T·log(1/δ)). Route: centered process X_t = μ[S t] − S_t
+   (independent by `iIndepFun.comp`, values in [−1,1], mean 0), Hoeffding's
+   lemma (`hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero`, sub-Gaussian
+   parameter ((1−(−1))/2)² = 1), then mathlib's
+   `measure_sum_range_ge_le_of_iIndepFun` over the T terms; exponent evaluates
+   to exactly δ. T = 0 case handled separately (event is certain).
+2. **`success_count_lower_p0`** — per-step floor form: μ[S t] ≥ p₀ for all t
+   gives Pr[ Σ_{t<T} S t ≥ p₀·T − Δ ] ≥ 1 − δ — the bridge form.
+3. **`log_growth`** — the composition: with the POINTWISE log-form capability
+   bridge log C_{t+1} − log C_t ≥ a·S_t − ε_t (a ≥ 0, ε_t explicit friction;
+   the bridge the deterministic side provides), telescoping per sample point
+   on the good event gives
+   Pr[ log C_T ≥ log C₀ + a·(p₀·T − Δ) − Σ_{t<T} ε_t ] ≥ 1 − δ.
+   No independence between S_t and C_t assumed beyond the pointwise bridge
+   (a = 0 degeneracy honestly requires a ≥ 0, stated).
+4. **`takeoff_time_form`** — the exponential corollary:
+   Pr[ C_T ≥ C₀·exp(a·(p₀·T − Δ(T,δ)) − Σ_{t<T} ε_t) ] ≥ 1 − δ. With p₀ > 0,
+   a > 0, constant friction ε̄ < a·p₀, the exponent is linear in T up to the
+   explicit √T·√(log 1/δ)·a concentration price — exponential takeoff.
+
+**Honest boundaries.** (1) The fully ADAPTED conditional formulation
+(μ({S t = 1} | 𝒩_t) ≥ p per step, Azuma–Hoeffding route) is NOT taken:
+mathlib has `measure_sum_ge_le_of_hasCondSubgaussianMGF` but no conditional
+Hoeffding lemma (bounded + conditionally mean zero ⇒ conditionally
+sub-Gaussian) — feeding it would need kernel-level MGF arguments. Independence
+of the S_t is the `h_emp_` hypothesis; the adapted case is the open upgrade.
+(2) Identical distribution is NOT assumed (per-step means may vary; only the
+uniform floor p₀ matters). (3) The `log_growth` bridge is pointwise in ω;
+measurability of C is not needed for the stated conclusion.
+
+Anchors 169 → 170. Build 8708 green, 0 sorry, triviality flags 0,
+clean axioms (propext, Classical.choice, Quot.sound) for all five new results
+(concDelta_nonneg, success_count_lower, success_count_lower_p0, log_growth,
+takeoff_time_form).
+
+## R96 — FastGrowth ↔ GrowthState bridge: multiplicative takeoff as a GrowthState theorem
+
+The external review (§8) flagged that the exponential-takeoff theorem
+(`capability_takeoff_counted`, R85) is about ABSTRACT scalars C : ℕ → ℝ while the
+real growth loop (`grow`, R91) updates capability ADDITIVELY — the takeoff law was
+not a theorem about the actual `GrowthState`. New file
+`Hagi/Unified/GrowthBridge.lean` closes the disconnect.
+
+1. **The additive→multiplicative definitional bridge**: `additive_as_multiplicative`
+   — `grow`'s capability update IS multiplicative in disguise: for S.capability > 0,
+   (grow S).capability = S.capability · (1 + S.growGain / S.capability). The growth
+   factor 1 + growGain/C is the natural relative-gain reading of the existing R91
+   fields (the measured increment normalized by the current capability) — no new
+   free parameter.
+2. **`growMul` / `growCycle`**: the success-gated grow transition (growMul := grow,
+   with the multiplicative reading of its capability channel) and its T-fold
+   iteration; `growMul_step_multiplicative` derives the per-cycle law
+   C·(1+α) ≤ growMul.capability from the state fields (success gate:
+   α·C ≤ growGain), not from an abstract hypothesis. `growCycle_growGain` /
+   `growCycle_capability_succ`: the gain field is invariant along the trajectory.
+3. **`growth_state_takeoff`** — the counted takeoff law ON GrowthState:
+   (growCycle T S).capability ≥ S.capability · (1+α)^{Σ_{t<T} σ t}, with σ t ≤ 1
+   the success indicators; the per-cycle multiplicative law is DERIVED from the
+   state semantics (success case: growMul_step_multiplicative; failure case:
+   gain ≥ 0 ⇒ non-decreasing, multiplier 1), then `capability_takeoff_counted`
+   (R85) is applied to the capability-field trajectory. The theorem signature
+   mentions GrowthState — the review's complaint resolved.
+4. **`growth_state_takeoff_probabilistic`** — the stochastic half (R95) composed at
+   the state level: with a random initial state S : Ω → GrowthState X, independent
+   [0,1]-indicators with per-cycle mean ≥ p₀ (h_emp_) and the pointwise log-bridge
+   along the growCycle trajectory,
+   Pr[(growCycle T S ω).capability ≥ S ω.capability · exp(a(p₀T − Δ(T,δ)) − Σε)]
+   ≥ 1 − δ (instantiation of `takeoff_time_form` with
+   C t ω := (growCycle t (S ω)).capability).
+
+**Honest gaps.** (1) The success gate is EXOGENOUS: `hsuccess` (α·C_t ≤ growGain on
+successful cycles) is an h_emp_-style hypothesis — no theorem yet derives the gain
+from a concrete expert-synthesis operation (the R91 implementation gap persists).
+(2) growMul = grow as a transition: the gating is in the theorems, not in a separate
+transition function — the smallest honest reading; a genuinely distinct stochastic
+transition (per-cycle random success INSIDE the state) would need a
+GrowthState-valued process, deferred. (3) Capability positivity along the
+trajectory (hCpos) is assumed, not derived. (4) FastGrowth.lean unchanged except a
+docstring pointer to this bridge.
+
+Anchors 170 → 171. Build 8709 green, 0 sorry, triviality flags 0,
+clean axioms (propext, Classical.choice, Quot.sound) for all five new results
+(additive_as_multiplicative, growMul_step_multiplicative, growCycle_growGain,
+growth_state_takeoff, growth_state_takeoff_probabilistic).
+
+## R97 — adaptive/selected direction in stochastic SafeQP (measurable selection)
+
+New module `Hagi/Step/AdaptiveSafeQP.lean` (imported from Hagi.lean after
+StochasticSafeQP) closes the R92 honest gap: the concentration now holds for a
+SELECTED, ω-dependent direction d*(ω) — the case of the real loop, where
+d* = d*(ω) is the projection solving the QP with the noisy minibatch
+gradients, adaptively coupled to the noise ξ(ω). GOAL A of the R97 task
+(the full covering-number route) landed; GOAL B (independence gating) was not
+needed — the covering route covers adaptive selection unconditionally.
+
+Route: explicit integer-lattice ε_dir-net of the direction ball in
+`EuclideanSpace ℝ (Fin n)` + per-net-point Hoeffding (R92's
+`minibatch_inner_tail`) + two-sided union bound over |K| × net + a pointwise
+σ-Lipschitz net→actual transfer. The coupling subtlety is handled honestly:
+for each FIXED net point v the projection ⟪ξ_{i,j}, v⟫ is noise-only (Hoeffding
+applies), and the net event is a SIMULTANEOUS intersection over all net
+points, so at each ω it holds at the net point v(ω) covering d*(ω) — the
+direction is evaluated at the same ω as the noise, no measurability of d*
+required.
+
+- **latticeNet n D epsDir M** — the concrete net: integer lattice with spacing
+  h = epsDir/√n over the box [-M, M]^n (M ≥ D√n/epsDir + 1), filtered to the
+  ball ‖v‖ ≤ D + epsDir. `latticeNet_covers`: every ‖x‖ ≤ D is within epsDir
+  of a net point (coordinatewise floor rounding); `latticeNet_norm_le`: net
+  points in the ball; `latticeNet_card_le`: |net| ≤ (2M+1)^n.
+- **adaptiveNoiseEps** — the explicit net margin:
+  ε_net = σ·(D + epsDir)·√(2·log(2·|K|·N_net/δ)/m), N_net = (2M+1)^n.
+- **adaptive_net_concentration** — uniform over the net:
+  Pr[∀ i, ∀ v ∈ net, |(1/m)·Σ_j ⟪ξ_{i,j}, v⟫| ≤ ε_net] ≥ 1 − δ.
+  Two-sided (factor 2 in the log), per-(i,v) failure ≤ δ/(|K|·N_net).
+- **adaptive_direction_concentration** — the GOAL A main theorem: for ANY
+  d* : Ω → X with ‖d*(ω)‖ ≤ D pointwise (measurability NOT hypothesized —
+  the net event is direction-uniform at each ω):
+  Pr[∀ i, |(1/m)·Σ_j ⟪ξ_{i,j}(ω), d*(ω)⟫| ≤ ε_net + σ·epsDir] ≥ 1 − δ.
+- **adaptive_safeQP_feasibility** — the R92 feasibility transfer for the
+  selected direction: with prob ≥ 1 − δ, IF the stochastic QP certified
+  d*(ω) against the minibatch gradients with budgets ε_i, THEN
+  ⟪g_i, d*(ω)⟫ ≥ −(ε_i + ε_net + σ·epsDir) for all i.
+
+Total adaptive margin, all constants written out:
+ε_noise^adaptive = σ·(D + epsDir)·√(2·log(2·|K|·(2M+1)^n/δ)/m) + σ·epsDir,
+with free resolution epsDir > 0 and M ≥ D√n/epsDir + 1 — the
+n·log(D/epsDir)-type price of adaptivity (covering number of the direction
+ball), replacing R92's fixed-d log|K|. Hypotheses are the R92 empirical
+conditions required for all v with ‖v‖ ≤ D + epsDir (net-scoped in the proof;
+the ball form is a clean sufficient condition).
+
+R92 honest-gap note in StochasticSafeQP.lean updated with a pointer.
+R93 gap (3) (d_t*(ω) not formalized) is closed for the per-step case by this
+module; the anytime composition with adaptive directions is future work.
+
+Honest gaps left open: (1) finite dimension only (EuclideanSpace ℝ (Fin n)) —
+no finite net exists in infinite dimensions; (2) the optimal epsDir choice
+(balancing ε_net against σ·epsDir) is left to the caller; (3) the
+infinite-dimensional/sub-Gaussian regimes and two-sided δ-splitting are open;
+(4) the independence-gating route (Goal B: d* measurable w.r.t. a σ-algebra
+independent of the noise — independent-validation-minibatch design) is not
+formalized (not needed on this route); (5) composing adaptive directions with
+the R93 anytime-martingale skeleton (adaptive d_t*(ω) inside
+anytime_safety_stochastic) is future work.
+
+Anchors 171 → 172. Build 8710 green, 0 sorry, triviality flags 0,
+non-trivial share 1.0000, clean axioms (propext, Classical.choice,
+Quot.sound) for all six new results (checked via #print axioms on a scratch
+copy, removed after).

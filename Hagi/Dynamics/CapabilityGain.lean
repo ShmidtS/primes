@@ -48,9 +48,10 @@ conditional level: residual potential (liveness) ⟹ useful
 action (twoGap) ⟹ internal descent (SafeQP/Lyapunov) ⟹
 EXTERNAL capability gain (this theorem). The h_emp_ inputs:
 estimator validity (CertifiedEstimator, open) and the
-KL-monotonicity of the actual gap. -/
+KL-monotonicity of the actual gap. (Positivity Γ > 0 is part
+of the intended certificate chain, not a hypothesis of this
+algebra.) -/
 theorem capability_gain_transfer (E1 E2 g1 g2 Rext1 Rext2 Gamma : ℝ)
-    (hGamma : 0 < Gamma)
     (hR1 : Rext1 = E1 + g1) (hR2 : Rext2 = E2 + g2)
     (hcert : E2 ≤ E1 - Gamma)
     (hgap : g2 ≤ g1) :

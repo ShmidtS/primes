@@ -174,7 +174,11 @@ Z_w = Σ_v Π_i p_i(v)^{w_i}):
 
 EXACT: the weighted reverse-KL against the individual
 experts EQUALS the reverse-KL against the geometric pool up
-to the normalization constant. The geometric pool is the
+to the normalization constant. (The identity is purely
+ALGEBRAIC — it holds for any real weights with Σ w_i = 1,
+including negative ones; the probabilistic consensus-pool
+reading additionally requires nonnegative weights, carried
+explicitly by `geometric_pool_identity_nonneg` below.) The geometric pool is the
 OPTIMAL reverse-mode consensus (the mode-extracting
 aggregation); the arithmetic pool (the current logit-mean
 merge) is the forward-mode counterpart. The domination law
@@ -274,6 +278,26 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
     rw [hsplit, ← hfold]
     ring
   rw [hLX, hRX]
+
+/-- **Nonneg-weights pool corollary (R94 honesty fix)**: the
+same product-of-experts law, stated under the hypotheses the
+PROBABILISTIC consensus/weighted-geometric-pool reading
+actually needs: weights w_i NONNEGATIVE with Σ w_i = 1 (a
+convex combination — p̃_w is then a genuine mixture in the
+log-domain and log Z_w ≤ 0 by weighted AM–GM). The parent
+`geometric_pool_identity` is purely algebraic and holds for
+any real weights summing to 1, including negative ones; only
+THIS corollary carries the pool interpretation. -/
+theorem geometric_pool_identity_nonneg (K : Type) [Fintype K] [Nonempty V]
+    (q : V → ℝ) (p : K → V → ℝ) (w : K → ℝ)
+    (hq : ∀ v, 0 < q v) (hp : ∀ i v, 0 < p i v)
+    (hq1 : ∑ v, q v = 1) (hw1 : ∑ i, w i = 1)
+    (hw : ∀ i, 0 ≤ w i) :
+    ∑ i, w i * kldiv (V := V) q (p i)
+      = kldiv (V := V) q (fun v =>
+          (∏ i, (p i v)^(w i)) / (∑ u, ∏ i, (p i u)^(w i)))
+        - Real.log (∑ u, ∏ i, (p i u)^(w i)) :=
+  geometric_pool_identity K q p w hq hp hq1 hw1
 
 -- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
 -- prescription carrier only. Demoted to the DEFINITION of the

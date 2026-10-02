@@ -70,7 +70,8 @@ orthonormal branch basis v (Hadamard-mixed leaves) and the
 token decomposed as x = Σ c_i v_i, routing to the subset s of
 branches leaves reconstruction error EXACTLY the tail energy
 Σ_{i∉s} c_i² — equality, not just a bound. Top-k routing by
-|c_i| therefore minimizes routing error for every k. -/
+|c_i| therefore minimizes routing error for every k
+(optimality now proved: `topk_routing_optimal` below). -/
 theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {ι : Type*} [Fintype ι] [DecidableEq ι] {v : ι → E} (hv : Orthonormal ℝ v)
     (c : ι → ℝ) (s : Finset ι) :
@@ -107,6 +108,65 @@ theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
       (f := fun j => c j ^ 2), hfil]
   rw [htail, htail2]
   exact horth
+
+/-- **Top-k routing optimality (roadmap #5b, optimality side)**:
+for coefficients c and a `k`-element subset s whose kept
+elements dominate every discarded coefficient in square (the
+top-k² set: ∀ i ∈ s, ∀ j ∉ s, c j² ≤ c i²), the tail energy
+Σ_{i∉s} c i² of s is MINIMAL among all k-element subsets s'.
+Combined with `gating_tail_bound` this proves that top-k
+routing by |c_i| minimizes the routing error for every k.
+Proof: exchange argument via the minimum of s \ s' — every
+swapped-in element of s' \ s is dominated by every kept
+element of s \ s'. -/
+theorem topk_routing_optimal {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (c : ι → ℝ) (k : ℕ) (s s' : Finset ι)
+    (hcard : s.card = k) (hcard' : s'.card = k)
+    (htop : ∀ i ∈ s, ∀ j ∉ s, c j ^ 2 ≤ c i ^ 2) :
+    ∑ i ∈ sᶜ, c i ^ 2 ≤ ∑ i ∈ s'ᶜ, c i ^ 2 := by
+  classical
+  -- cardinalities of the exchange parts agree
+  have hcc : s.card = s'.card := by rw [hcard, hcard']
+  have hcs : (s \ s').card = (s' \ s).card := by
+    rw [Finset.card_sdiff, Finset.card_sdiff,
+      Finset.inter_comm s s']
+    omega
+  -- exchange: sum over s' \ s ≤ sum over s \ s'
+  have key : ∑ i ∈ s' \ s, c i ^ 2 ≤ ∑ i ∈ s \ s', c i ^ 2 := by
+    rcases Finset.eq_empty_or_nonempty (s \ s') with hne | hne
+    · -- s \ s' = ∅ ⟹ s = s ∩ s' ⟹ s' \ s = ∅
+      have hne' : s' \ s = ∅ := by
+        have h0 : (s \ s').card = 0 := by rw [hne]; simp
+        have : (s' \ s).card = 0 := by omega
+        exact Finset.card_eq_zero.mp this
+      rw [hne, hne']
+    · obtain ⟨m, hm⟩ := (s \ s').exists_min_image (fun i => c i ^ 2) hne
+      have hms : m ∈ s := (Finset.mem_sdiff.1 hm.1).1
+      have hle : ∀ j ∈ s' \ s, c j ^ 2 ≤ c m ^ 2 := fun j hj =>
+        htop m hms j (Finset.mem_sdiff.1 hj).2
+      calc ∑ i ∈ s' \ s, c i ^ 2
+          ≤ ∑ i ∈ s' \ s, c m ^ 2 := Finset.sum_le_sum hle
+        _ = (s' \ s).card • (c m ^ 2) := Finset.sum_const _
+        _ = (s \ s').card • (c m ^ 2) := by rw [hcs]
+        _ = ∑ i ∈ s \ s', c m ^ 2 := (Finset.sum_const _).symm
+        _ ≤ ∑ i ∈ s \ s', c i ^ 2 := Finset.sum_le_sum hm.2
+  -- split off the common intersection and conclude via complements
+  have hsdi : s \ (s ∩ s') = s \ s' := by
+    ext i; simp [Finset.mem_sdiff, Finset.mem_inter]
+  have hsdi' : s' \ (s' ∩ s) = s' \ s := by
+    ext i; simp [Finset.mem_sdiff, Finset.mem_inter]
+  have hsub : s ∩ s' ⊆ s := fun _ h => (Finset.mem_inter.1 h).1
+  have hsub' : s' ∩ s ⊆ s' := fun _ h => (Finset.mem_inter.1 h).1
+  have hd1 := Finset.sum_sdiff (f := fun i => c i ^ 2) hsub
+  have hd2 := Finset.sum_sdiff (f := fun i => c i ^ 2) hsub'
+  rw [hsdi] at hd1
+  rw [hsdi'] at hd2
+  -- hd1 : ∑ (s \ s') + ∑ (s ∩ s') = ∑ s ; hd2 analogous
+  rw [Finset.inter_comm s s'] at hd1
+  rw [Finset.compl_eq_univ_sdiff s, Finset.compl_eq_univ_sdiff s']
+  have hu1 := Finset.sum_sdiff (f := fun i => c i ^ 2) (Finset.subset_univ s)
+  have hu2 := Finset.sum_sdiff (f := fun i => c i ^ 2) (Finset.subset_univ s')
+  linarith
 
 /-! ## Roadmap #4: Fisher null-space — no forgetting -/
 

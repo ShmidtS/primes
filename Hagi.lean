@@ -38,6 +38,7 @@ import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Step.SafeQP
 import Hagi.Step.StochasticSafeQP
+import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
 import Hagi.Step.Decompose
 import Hagi.Energy.FreeEnergy
@@ -76,8 +77,10 @@ import Hagi.Unified.Liveness
 import Hagi.Dynamics.CapabilityGain
 import Hagi.Dynamics.FastGrowth
 import Hagi.Dynamics.ControllerPolicy
+import Hagi.Probability.ConditionalSuccess
 import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
+import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeValid
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
