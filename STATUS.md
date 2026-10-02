@@ -1122,3 +1122,161 @@ Anchors 162 → 163. Build 8704 green, 0 sorry, triviality
 
 Anchors 163 → 164. Build 8704 green, 0 sorry, triviality
 1.0000, clean axioms.
+
+## R90 — RealF3 entry-level orthogonality CLOSED
+
+- **Hagi.RealF3.reUnitMat_mul_transpose** (new module
+  Core/RealF3Ortho): the production 6×6 real F₃ lift
+  (`_f3_real_column_matrix`) is ORTHOGONAL —
+  reUnitMat * reUnitMatᵀ = 1 (identity on Fin 3 × Fin 2).
+  The R89 block algebra (reBlock_mul_transpose) reduces each
+  entry to (1/√3)² · Σ_e reBlock (χ₃ ((c−a)·e)); the new
+  k = 1 character orthogonality sum_chi3_branch_eq_zero
+  collapses the off-diagonal branch sums to 0 and the diagonal
+  to 3, cancelling the F₃ normalization — exactly the route
+  documented in R89.
+- Supporting lemmas: sum_chi3_branch_eq_zero (branch character
+  sum, w ≠ 0), reBlock_sum (block additivity), branchZ_inj
+  (index coercion injective), chi3_two / chi3_four (character
+  values). The documented orthogonality route of
+  Core/RealF3.lean is now fully closed; the Lean↔production
+  row/column orientation convention note stays open as in R89.
+
+Anchors 164 → 165. Build 8705 green, 0 sorry, triviality
+1.0000, clean axioms (propext, Classical.choice, Quot.sound).
+
+## R91 — the unified growth-loop semantics (Phase 1)
+
+Hagi/Unified/GrowthState.lean extended (the module existed as the
+R62 stage-link home; the semantic hub is appended below it):
+
+- **StageParams / GrowthState X**: the state record aggregating the
+  meaningful carriers — params : X, experts, energy (the tokenKLTotal
+  / free_energy_gap reverse-KL certificate), protectedRisk
+  (protected_generation_budget), budget, gap (the R88 Concat-adapter
+  G), dataField (divField), capability (Γ), verifier, runtimeError,
+  stepDir/grad (the safeQP_descent quantities), plus the measured
+  per-stage effect fields (growGain/.../compressRisk).
+- **potential Φ := energy + protectedRisk** — the risk-penalized
+  free energy; docstring ties it to free_energy_gap /
+  geometric_pool_identity / protected_generation_budget.
+- **Transitions** grow / merge / joint / compress : GrowthState →
+  GrowthState (joint's parameter part CONCRETE: θ ↦ θ − η·d*).
+- **Observations** verify : GrowthState → Certificate,
+  measure : GrowthState → Metrics, discover : GrowthState → Candidate
+  (Gittins pair).
+- **Per-stage potential laws**: potential_grow (honest h_emp_grow
+  conditional — nonconvex training has no descent theorem),
+  potential_merge (merge_stage, adapter-satisfied), potential_joint
+  (joint_stage + safeQP descent inequality), potential_compress
+  (compress_stage; gain honestly ZERO).
+- **growth_cycle_potential**: the composed generation
+  grow→merge→joint→compress decreases Φ by the stage sum
+  growGain + G + η‖d*‖²/2 − κs/2 minus the risk spend —
+  the GrowthState-level macro_step_decrease.
+- **certificate_sound**: the verify map does not over-claim — the
+  real Φ-decrease dominates the emitted certificate.
+- **budget_account**: the composed budget equals initial budget
+  minus the certificate's budgetSpend.
+
+Honest gaps left open (next work items): grow-stage training-descent
+theorem (h_emp_grow stays empirical); verifier trust theory (bare
+field); concrete Fin-lift of ternary weight rounding in compress;
+candidate enumeration in discover (only the grow pair is returned).
+
+Anchors 165 → 166. Build 8705 green, 0 sorry, triviality 1.0000,
+clean axioms (propext, Classical.choice, Quot.sound).
+
+## R92 — stochastic SafeQP: minibatch gradients (Phase 3a)
+
+New module `Hagi/Step/StochasticSafeQP.lean` (imported from Hagi.lean
+next to SafeQP): the SafeQP controller's exact gradients g_i are
+replaced by minibatch estimates ĝ_i = g_i + (1/m)·Σ_j ξ_{i,j}, with
+a high-probability feasibility bound and EXPLICIT constants.
+
+- **Model**: bounded noise (‖ξ‖ ≤ σ per sample) + Hoeffding —
+  chosen over sub-Gaussian vectors because mathlib's
+  `ProbabilityTheory.HasSubgaussianMGF.measure_sum_ge_le_of_iIndepFun`
+  (Hoeffding for independent sub-Gaussian sums) +
+  `hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero` (Hoeffding's
+  lemma for bounded mean-zero variables) give the whole chain. The
+  noise enters the constraints only through projections ⟪ξ_{i,j}, d⟫,
+  so the statistical hypotheses (h_emp_noise_meas / _zero / _indep /
+  _bound) are stated on those projections; only per-domain batch
+  independence is needed (cross-domain independence is NOT used —
+  the union bound does not require it).
+- **noiseEps**: ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m) — batch size m,
+  noise radius σ, direction magnitude ‖d‖, |K| protected domains
+  via the union bound, confidence δ ∈ (0,1).
+- **minibatch_inner_tail**: per-domain one-sided Hoeffding tail
+  Pr[m·ε ≤ Σ_j (−N_j)] ≤ exp(−m·ε²/(2R²)), R = σ‖d‖ — the m in the
+  exponent is the minibatch variance reduction.
+- **minibatch_inner_concentration** (lower tail, the roadmap item):
+  Pr[∀ i, ⟪g_i,d⟫ − ε_noise ≤ ⟪ĝ_i,d⟫] ≥ 1 − δ — each per-domain
+  tail is exactly δ/|K| by the choice of ε_noise.
+  **minibatch_inner_concentration_upper**: the mirrored upper tail
+  Pr[∀ i, ⟪ĝ_i,d⟫ ≤ ⟪g_i,d⟫ + ε_noise] ≥ 1 − δ.
+- **stochastic_safeQP_feasibility**: with probability ≥ 1 − δ, IF
+  the realized stochastic constraints hold (d certified against the
+  ĝ_i with budgets ε_i — d ∈ safeSet ĝ(·) ε, what the stochastic QP
+  enforces by construction), THEN the TRUE gradients satisfy the
+  safety margin inflated by the explicit noise term:
+  ⟪g_i, d⟫ ≥ −(ε_i + ε_noise) for all i. No hidden constants.
+
+Honest gaps left open: d is a fixed direction (analysis conditions on
+the step direction; a measurably-selected d*(ω) from the stochastic
+QP is not formalized — the transfer covers the realized d*
+a posteriori); mean-zero/boundedness of noise are h_emp_ hypotheses;
+identical distribution across the batch is not needed and not
+assumed; two-sided concentration with δ-splitting and the unbounded
+sub-Gaussian regime are open.
+
+Anchors 166 → 167. Build 8706 green, 0 sorry, triviality 1.0000,
+clean axioms (propext, Classical.choice, Quot.sound).
+
+## R93 — Martingale anytime-valid control (Ville) + composed anytime safety (AnytimeMartingale.lean)
+
+New module `Hagi/Unified/AnytimeMartingale.lean` (imported in Hagi.lean) closes the
+bounded-horizon part of the R63 honest boundary ("Ville-martingale form remains open")
+and delivers the roadmap §9 target theorem:
+
+- **`eprocess_stopped_budget`** — optional stopping for e-process budgets: a
+  supermartingale L w.r.t. a filtration 𝒢 satisfies E[L_τ] ≤ E[L_0] for EVERY
+  bounded stopping time τ. Proof: `Supermartingale.neg` → Submartingale (−L), then
+  mathlib's `Submartingale.expected_stoppedValue_mono` between the constant 0 and τ.
+  Boundedness is stated honestly as a hypothesis (mathlib's optional stopping is the
+  bounded form); unbounded τ stays open.
+- **`ville_supermartingale`** — Ville's maximal inequality for nonnegative
+  supermartingales: Pr[∃ t ≤ n, c ≤ L_t] ≤ E[L_0]/c, with the constant INDEPENDENT
+  of n (anytime). Proof: τ = first crossing of level c stopped at n (constructed
+  via `Nat.find`, proved a stopping time by hand — {τ ≤ k} = crossage-≤k union ∪
+  no-crossage corner), stopped value ≥ c on the crossing event, Markov
+  (`setIntegral_ge_of_const_le_real`) + `eprocess_stopped_budget`.
+- **`ville_anytime_false_alarm`** — the δ-form: E[L_0] ≤ 1, c = 1/δ ⟹
+  Pr[∃ t ≤ n, L_t ≥ 1/δ] ≤ δ, uniformly in n.
+- **`anytime_failure_budget`** — the R63 geometric budget applied to measures
+  (pure outer union bound, no measurability needed).
+- **`anytime_safety`** — the good-event form: measurable per-step certificate
+  events with geometric failure schedule δₜ = δ₀ρᵗ and budget δ₀/(1−ρ) ≤ δ give
+  Pr[∀ t ≤ T, certificate valid] ≥ 1 − δ, uniformly in T.
+- **`anytime_safety_stochastic`** — the roadmap target composition: each step t
+  runs the stochastic SafeQP transfer (`stochastic_safeQP_feasibility`, R92) at
+  confidence δₜ = δ₀ρᵗ ∈ (0,1); then with probability ≥ 1 − δ, at EVERY step
+  t ≤ T, certification of d_t against the minibatch gradients ĝ implies the TRUE
+  gradient margin inflated by ε_noise(δₜ) = σ‖d_t‖√(2 log(|K|/δₜ)/m_t).
+  All empirical conditions inherited as per-step h_emp_* hypotheses; explicit
+  constants; global δ (not per-step).
+
+R63 honest-boundary note updated in AnytimeValid.lean accordingly.
+
+Honest gaps left open: (1) unbounded-horizon Ville (sup over all t ∈ ℕ, needs
+monotone convergence — the finite-horizon bound is already uniform in n, so this
+is the only missing step); (2) the per-step composition uses UNCONDITIONAL
+failure masses (union-bound skeleton); a fully conditional (filtration-adapted,
+per-step e-process) composition where each step's guarantee holds given the past
+is not formalized; (3) d_t fixed per step — a measurably selected d_t*(ω) from
+the stochastic QP is not formalized (as in R92); (4) optional stopping stated
+for bounded stopping times only.
+
+Anchors 167 → 168. Build 8707 green, 0 sorry, triviality 1.0000,
+clean axioms (propext, Classical.choice, Quot.sound) for all six new theorems.

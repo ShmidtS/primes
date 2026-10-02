@@ -26,8 +26,12 @@ Continuing the round-62 program (unity at the Lean level):
   mass decays geometrically by an h_emp_ factor), the total
   false-alarm mass across ANY number of sequential decisions
   is bounded by the geometric sum: anytime validity by the
-  union-of-geometric bound. The Ville-martingale form
-  (E[L_τ] ≤ 1) remains open.
+  union-of-geometric bound. The Ville-martingale form for
+  BOUNDED stopping times and finite horizons is now proven in
+  `Hagi.Unified.AnytimeMartingale` (R93:
+  `eprocess_stopped_budget`, `ville_supermartingale`,
+  `ville_anytime_false_alarm`); the unbounded-horizon form
+  (sup over all t ∈ ℕ) remains open.
 -/
 
 open Finset Real

@@ -20,6 +20,7 @@ import Hagi.Growth.Grow
 import Hagi.Ensemble.GapLaw
 import Hagi.Ensemble.Hoeffding
 import Hagi.Core.RealF3
+import Hagi.Core.RealF3Ortho
 import Hagi.Core.Element
 import Hagi.Step.Joint
 import Hagi.Ensemble.GenCycle
@@ -36,6 +37,7 @@ import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Step.SafeQP
+import Hagi.Step.StochasticSafeQP
 import Hagi.Step.Dominate
 import Hagi.Step.Decompose
 import Hagi.Energy.FreeEnergy
@@ -77,6 +79,7 @@ import Hagi.Dynamics.ControllerPolicy
 import Hagi.Sparsity.SparseStep0
 import Hagi.Unified.GrowthState
 import Hagi.Unified.AnytimeValid
+import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
 import Hagi.Unified.GlobalDynamics
 import Hagi.Energy.STEStep
