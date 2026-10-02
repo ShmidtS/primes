@@ -2053,3 +2053,56 @@ Build 8719 green, 0 sorry/admit/native_decide/custom axioms,
 triviality flags 0 (543 theorems scanned), clean axioms
 [propext, Classical.choice, Quot.sound] for all 4 public theorems
 (checked via #print axioms on a scratch copy, removed after).
+
+## R108 — recursive self-distillation entropy preservation: fresh-data mass ν ⟹ entropy floor H(data) − δ/ν (model collapse impossible)
+
+New `Hagi/Data/DistillRecursion.lean` (imported in Hagi.lean after
+Distill) — audit Block-1 item #2, the honest CONDITIONAL core of the
+model-collapse theorem. Setting: generation k+1 trains toward
+m_k = (1−ν)·p_k + ν·p_data (the fresh-data mass ν > 0 is THE
+anti-collapse knob; ν = 0 is exactly the collapse protocol).
+
+- **entropy_mix_ge** (CLAIM 1) — entropy concavity of the mixture:
+  H((1−ν)p + νd) ≥ (1−ν)H(p) + νH(d). Proved from the repo's
+  `kl_nonneg` (DField) via the Jensen–Shannon identity
+  H(m) − (1−ν)H(p) − νH(d) = (1−ν)KL(p‖m) + νKL(d‖m).
+- **entropy_kl_ce_identity** — the honest CLAIM 2: the TRUE
+  entropy–KL tradeoff is CE_m(q) = H(m) + KL(m‖q) (the Distill
+  master identity in H-form). The requested direction
+  "KL(m‖q) ≤ δ ⟹ H(q) ≥ H(m) − δ" is FALSE (explicit counterexample
+  in the docstring: m=(0.9,0.1), q=(0.99,0.01): KL=0.144 yet
+  H drops by 0.269 — entropy is not Lipschitz in KL at linear
+  rate); so the per-step entropy preservation enters as the
+  explicit hypothesis `hcert` (a strengthening of the h_emp_
+  training guarantee). This is the honest conditional form.
+- **distill_step_entropy** — per-generation inequality
+  H(p_{k+1}) ≥ (1−ν)H(p_k) + νH(d) − δ under hcert.
+- **distill_entropy_recurrence** (CLAIM 3, MAIN) — the exact
+  closed form (induction):
+  H(p_T) ≥ (1−ν)^T·H(p_0) + (1−(1−ν)^T)·(H(d) − δ/ν)
+  (fixed point of x ↦ (1−ν)x + νh − δ is h − δ/ν ✓).
+- **entropy_floor** — asymptotic form: H(p_T) ≥ (H(d) − δ/ν) −
+  (1−ν)^T·((H(d) − δ/ν) − H(p_0)): the distance to the floor
+  contracts by (1−ν) < 1 per generation.
+- **fresh_data_prevents_collapse** (CLAIM 4) — the invariant:
+  H(p_0) ≥ H(d) − δ/ν ⟹ H(p_T) ≥ H(d) − δ/ν for ALL T; uniform ε
+  form `fresh_data_prevents_collapse_uniform`: δ ≤ ν·ε ∧
+  H(p_0) ≥ H(d) − ε ⟹ H(p_T) ≥ H(d) − ε for all T.
+
+Honest gaps (docstrings state them): (a) the entropy–KL tradeoff is
+false at linear rate — the hcert hypothesis is the explicit
+strengthening of h_emp_ (the Pinsker-type sub-linear correction
+replacing hcert stays open); (b) the audit's stronger
+Wasserstein-contraction form with fixed point H(p*) ≥ H(data) − ε
+stays open.
+
+Anchors: kl_nonneg/kl_zero_iff_eq (DField) supply the KL engine;
+teacher_generated_identity (Distill) supplies the CE identity;
+negEntropy (DBridge) is the documented carrier of −H.
+
+Build 8720 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (552 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 10 public
+declarations (checked via #print axioms on a scratch copy,
+removed after). Note: Primes/ErdosProblems.lean carries
+pre-existing sorries untouched by this round.

@@ -36,6 +36,7 @@ import Hagi.Budget.ComputeBudget
 import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill
+import Hagi.Data.DistillRecursion
 import Hagi.Step.SafeQP
 import Hagi.Step.SafeQPStep
 import Hagi.Step.StochasticSafeQP
