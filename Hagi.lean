@@ -43,6 +43,7 @@ import Hagi.Step.Dominate
 import Hagi.Step.Decompose
 import Hagi.Energy.FreeEnergy
 import Hagi.Growth.GrowthGate
+import Hagi.Growth.GainRenewal
 import Hagi.Ensemble.MergeIdentity
 import Hagi.Energy.BranchScale
 import Hagi.Energy.TernaryLean
@@ -89,6 +90,7 @@ import Hagi.Unified.TopLevel
 import Hagi.Unified.GlobalDynamics
 import Hagi.Energy.STEStep
 import Hagi.Energy.QuantBridge
+import Hagi.Runtime.TernaryExact
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum

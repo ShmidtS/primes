@@ -1808,3 +1808,98 @@ growth_state_takeoff_window, growth_state_takeoff,
 dfield_entropy_identity, task_selection_marginal,
 safeqp_monotone_domain (checked via #print axioms on a scratch copy,
 removed after).
+
+## R103 — ternary saturation bridge: the actual quantizer's global error = in-range √n·s/2 + explicit saturation tail
+
+Audit §5 gap closed in the new `Hagi.Runtime.TernaryExact`
+(the quantization bridge `Hagi.Energy.QuantBridge` assumed
+`∀ i, |w i − q i| ≤ s/2`, which the ACTUAL saturating ternary
+quantizer `roundTern` violates exactly on coordinates with
+`|w i| > 3s/2` — their error is the clipped distance, not s/2):
+
+- **qTern / ternInRange / satTail** — the actual quantizer
+  `qTern s x = s·roundTern (x/s)`, the range predicate
+  `|x| ≤ 3s/2`, and the saturation tail
+  `satTail s w = Σ_{|w i|>3s/2} (|w i| − s)²` — the measured
+  saturation mass (pre-quantization diagnostic: compare
+  κ·√satTail with the cost of a rescale/clip policy).
+- **qTern_error_in** — in-range coordinates keep the s/2
+  guarantee (roundTern_error_scaled restated).
+- **qTern_error_out** — saturated coordinates have error
+  EXACTLY `|x| − s` (the audit's point: the R70 hypothesis
+  fails precisely here).
+- **ternary_split_bound** — the exact decomposition
+  ‖w − Q(w)‖² = Σ_in (w i − Q i)² + satTail s w (no assumption
+  on the weights; both parts named).
+- **ternary_inrange_bound / ternary_split_le** — the budget
+  forms: in-part ≤ n_in·(s/2)²; total ≤ n·(s/2)² + satTail.
+- **quant_energy_bridge_saturation** — the honest global
+  replacement for quant_energy_bridge's hypothesis: with NO
+  in-range assumption, ΔE ≤ κ·(√n·s/2 + √satTail) under the
+  measured κ-Lipschitz energy.
+- **no_saturation_recover** — the audit's gap closes exactly:
+  if all coordinates are in range (tail = 0), the old R70
+  hypothesis `∀ i, |w i − q i| ≤ s/2` is DERIVED (conjunction:
+  the old conclusion ΔE ≤ κ√n·s/2 plus the pointwise bound),
+  not assumed.
+- **sqrt_add_le** (private) — √-subadditivity on ℝ≥0 (the
+  plain two-term form absent from the current Mathlib surface).
+
+Anchors incremented: quant_residual_norm / quant_energy_bridge
+(R70) now have their honest global counterpart; the
+audit-§5 criticism (bridge hypothesis unsupported by the actual
+quantizer) is discharged. All new theorems: [propext,
+Classical.choice, Quot.sound] (checked via #print axioms on a
+scratch copy, removed after). triviality_lint: 0 flags
+(489 theorems scanned).
+
+## R104 — gain renewal: disagreement→gain production + diversity floor ⟹ stationary gain floor; sustained takeoff IFF frontier scales with capability
+
+The audit's central open bridge (R96/R102 docstring "sustained
+takeoff requires capability-dependent gain") is now a theorem
+chain in the new `Hagi.Growth.GainRenewal` (imported in Hagi.lean
+near the Growth modules):
+
+- **gainFromD γ D = γ·D** — the concrete gain producer (linear
+  harvest of usable disagreement at the measured harvest ratio γ;
+  GapLaw/twoGap telemetry is the measurement source).
+- **gain_renewal_recurrence** — DERIVED: if each generation's
+  gain is the produced harvest (γ·D_t ≤ G_t ≤ γ·D_t — the
+  harvest is the ONLY gain source, the exactness is essential:
+  with only the lower bound the recurrence is FALSE, a one-off
+  large gain satisfies γ·D ≤ G forever) and D obeys the
+  Diversity floor law D_{t+1} ≥ ρ·D_t + inj − ξ, then
+  G_{t+1} ≥ ρ·G_t + γ(inj − ξ).
+- **gain_renewal_growth** — the closed form (ρ<1):
+  G_t ≥ ρ^t·G₀ + γ(inj−ξ)(1−ρ^t)/(1−ρ); stationary gain floor
+  G_min = γ(inj−ξ)/(1−ρ) > 0 (gain_renewal_floor_pos) and the
+  uniform floor γ(inj−ξ) ≤ G_t for every t ≥ 1
+  (gain_renewal_floor — the quantitative liveness_data_axis);
+  ρ=1 case: G_t ≥ G₀ + γ(inj−ξ)·t (gain_renewal_growth_one).
+- **sustained_takeoff_window_lift** — the R102 bridge: under
+  renewal semantics (C_{t+1} = C_t + G_t, per-generation gain)
+  the success gate α·C_t ≤ G_t holding at EVERY t yields
+  C_T ≥ C₀·(1+α)^T for ALL T — the fixed-gain window bound is
+  lifted generation over generation.
+- **renewal_feeds_takeoff** — THE remaining empirical bridge,
+  named: `h_emp_frontier_scaling : α·C_t ≤ γ·D_t` (usable
+  disagreement scales with capability). Since C_t grows like
+  (1+α)^t, the frontier must grow geometrically — fresh
+  data/discovery must grow WITH the system; PPT's
+  discovery_prob_lower (stationary good-set mass) is the
+  candidate source, NOT yet wired to D_t (open bridge).
+- **bounded_frontier_no_sustained_growth** — the honest
+  converse (iff): bounded frontier (D_t ≤ D̄) + exact harvest +
+  gate ⟹ C_t ≤ γ·D̄/α forever. Sustained growth IFF the
+  frontier scales with capability.
+
+Anchors: growth_state_takeoff_window (R102) now has its
+companion chain — the fixed-gain bound is not the last word,
+the renewal mechanism discharges it conditionally on the
+frontier-scaling premise (which is empirical, named, and
+measurable via PPT/Diversity telemetry).
+
+Build 8716 green, 0 sorry/admit/native_decide/custom axioms,
+triviality flags 0 (500 theorems scanned), clean axioms
+[propext, Classical.choice, Quot.sound] for all 8 new theorems
+(checked via #print axioms on a scratch copy, removed after).
