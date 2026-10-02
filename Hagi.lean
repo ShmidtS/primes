@@ -95,6 +95,8 @@ import Hagi.Step.LazyAdamMomentum
 import Hagi.Step.SafeQPRobust
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
+import Hagi.Spectral.SpectralProjector
+import Hagi.Architecture.FactorizedMerge
 
 set_option linter.style.header false
 

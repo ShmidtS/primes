@@ -1616,3 +1616,131 @@ Anchors 173 → 174. Build 8712 green, 0 sorry/admit/native_decide/
 custom axioms, triviality flags 0, non-trivial share 1.0000, clean
 axioms (propext, Classical.choice, Quot.sound) for all three theorems
 (checked via #print axioms on a scratch copy, removed after).
+
+## R100 — spectral selection layer (arXiv 2609.39440 primitive): orthogonal projector, tail energy, three-stage budget, spectral SafeQP target
+
+New file `Hagi/Spectral/SpectralProjector.lean` (imported in Hagi.lean after
+the Budget imports): the spectral-SELECTION primitive layer motivated by
+arXiv 2609.39440 (PCR dominates monotone spectral filters — hard selection
+of informative spectral subspaces can beat smooth shrinkage). The paper's
+dominance theorem itself (linear-regression minimax over a monotone-filter
+class) is deliberately NOT formalized — stated as an honest boundary in the
+module docstring; what is built is the selection primitive + budget
+composition, dominance-agnostic.
+
+Results:
+
+- **OrthProjPair / proj_residual_identity** — the abstract orthogonal
+  projector as a hypothesis pair (idempotent + self-adjoint; the
+  Core/Element style: hypotheses, not a structure-carrier), and Pythagoras
+  for the complementary subspaces: ‖x − Px‖² = ‖x‖² − ‖Px‖², the cross term
+  killed by self-adjointness + idempotence (⟪x,Px⟫ = ⟪Px,Px⟫ = ‖Px‖²).
+- **proj_residual_nonneg / proj_monotone** — 0 ≤ ‖x‖² − ‖Px‖² (the tail
+  deficit, the form the budget chain consumes) and the contraction
+  ‖Px‖ ≤ ‖x‖ (via sqrt monotonicity on the squared identity).
+- **spectralProj + spectralProj_idempotent / spectralProj_selfAdj /
+  spectralProj_orth** — the concrete HARD selection onto a Finset subset of
+  an orthonormal family (keep coordinate i iff i ∈ s — no shrinkage
+  factors), proved to carry the OrthProjPair structure verbatim.
+- **spectral_tail_energy** — the exact tail-energy identity: under the
+  full-family expansion hypothesis (x in the span of the family — the
+  honest finite-span restriction, stated as a hypothesis, not derived in
+  infinite dimensions), ‖x − P_s x‖² = Σ_{i∉s} ⟪x, v i⟫² — the exact form
+  underlying RecursiveGrowth's gating_tail_bound (norm bound) and
+  topk_routing_optimal (top-k optimality): the tail is the COMPLEMENT of
+  the kept coordinates, not a shrunk version of them.
+- **three_stage_error_budget** — the Grow→select→compress chain:
+  ‖W − QA‖ ≤ ‖W − PW‖ (selection tail, spectral_tail_energy / RankBudget
+  residue) + ε_rank (low-rank gap of the selected part, Core/Element
+  delta_rank_le style) + ε_quant (ElementQuant grid rounding) — each term
+  NAMED in the hypotheses, composed by the triangle inequality with no
+  cross terms.
+- **filtered_step_cost + spectral_safeQP_target** — the composition with
+  SafeQP: the safe step from the DENOISED target P g0 exists (SafeQP's own
+  safeQP_exists_unique applied to P g0), dominates every safe alternative
+  in distance to P g0, and pays the filtering tail additively:
+  ‖d* − g0‖ ≤ ‖d* − Pg0‖ + ‖g0 − Pg0‖.
+
+HONEST BOUNDARIES (stated in the module docstring, repeated here): (1) the
+PCR-dominance theorem is NOT formalized — linear-regression-specific,
+monotone-filter competitor class, out of scope; the claim "hard selection
+beats shrinkage" stays empirical/external; (2) spectral_tail_energy needs
+the full-family expansion hypothesis (x in span) — Parseval in infinite
+dimensions is not derived here; (3) three_stage_error_budget is an
+elementary triangle chain — its value is the NAMED budget composition, not
+depth; (4) the safe-set instance uses safeSet g eps (the linearized
+half-space form of SafeQP.lean) — no closed-convex-set generality beyond
+what SafeQP already provides.
+
+Anchors 174 → 175. Build 8713 green, 0 sorry/admit/native_decide/
+custom axioms, triviality flags 0, non-trivial share 1.0000, clean
+axioms (propext, Classical.choice, Quot.sound) for all ten theorems
+of the module (checked via #print axioms on a scratch copy, removed
+after).
+
+## R101 — factorized merge (arXiv 2609.38597 structural principle): shared core + routed residuals, exact route equivalence, decomposition-error bounds, unified five-term budget
+
+New file `Hagi/Architecture/FactorizedMerge.lean` (imported in Hagi.lean after the
+Spectral import): the factorized-merge layer motivated by arXiv 2609.38597
+(PixelUMM: shared multimodal backbone + route-specific parameters + token
+routing). Only the STRUCTURAL principle is taken — a merge that decomposes
+each expert as `W_i = C + R_i` (shared core + specialist residual) with routed
+residuals, instead of collapsing the experts into one averaged model. The
+multimodality (attention, tokens, streams) is deliberately NOT formalized —
+stated as an honest boundary in the module docstring.
+
+Results (X a real normed space, ι a nonempty finite index):
+
+- **fullMerge / meanResidual / factorizedEval** — the three definitions: the
+  averaging merge `(1/N) Σ W_i`, the residual mean, and the routed evaluation
+  `C + R_{r(x)}` (r(x) a carrier — no routing-policy content).
+- **routed_eval_exact** (definitional invariant, labeled as such — the
+  Core/Merge step-0-exactness style): under the exact decomposition
+  `W i = C + R i`, the factorized route reproduces the expert verbatim — the
+  factorization loses NOTHING per route.
+- **merge_core_residual_identity** — for ANY core C (no decomposition
+  hypothesis): `fullMerge W = C + meanResidual (fun i => W i − C)` always —
+  the algebraic backbone of every bound below (N copies of C average to
+  exactly C; the content is the Finset sum manipulation).
+- **factorized_merge_exact** (definitional invariant): with the exact
+  decomposition the averaged model and the factorized form coincide exactly.
+- **mean_norm_le** — the norm of a mean is at most the mean of the norms
+  (`norm_sum_le` + `norm_smul`): the engine of every averaging bound.
+- **routed_approx_bound** — the per-route approximate-core bound: with stored
+  residuals fitting the shifts up to `‖R i − (W i − C)‖ ≤ δ i`, the factorized
+  route is δ_i-close to the expert (note the honest sign: the route gap is the
+  NEGATED residual gap; `module` tactic caught a wrong lemma statement here).
+- **factorized_error_bound** (central): the full merge vs the factorized form
+  `C + meanResidual R` differ by at most `(1/N) Σ δ_i` — the difference is
+  EXACTLY the mean of the gap vectors (identity above), then `mean_norm_le`
+  pointwise: the factorization error is controlled by Φ(δ) = mean of the
+  measured decomposition residuals, nothing else enters.
+- **factorized_budget** — the parameter accounting: N independent tables cost
+  `N·(V·d)`; the factorized pool costs `V·d + N·(r·(V+d))` (residuals rank ≤ r
+  per Core/Element `delta_rank_le` style), and the pool is cheaper exactly
+  under `N·r·(V+d) ≤ (N−1)·V·d` with N ≥ 2 (the saved-tables condition, stated
+  as a hypothesis, not hidden in arithmetic).
+- **unified_error_budget** — the five-term triangle composition mirroring R100
+  `three_stage_error_budget`: `‖W − S‖ ≤ e_shared + e_spectral + e_rank +
+  e_quant + e_routing`, each term NAMED by its hypothesis and sourced: e_shared
+  (this module, factorized_error_bound/routed_approx_bound), e_spectral (R100
+  spectral tail ‖R − P R‖), e_rank (Core/Element low-rank gap ‖P R − A‖),
+  e_quant (Budget/ElementQuant grid rounding ‖A − QA‖), e_routing (the routing
+  switch cost — an INPUT hypothesis; no routing-policy theorem exists). No
+  cross terms.
+
+HONEST BOUNDARIES (stated in the module docstring, repeated here): (1) PixelUMM
+itself is NOT formalized — no attention, no tokens, no multimodal streams; all
+merge-equivalence claims are linear-algebra level (normed-space arithmetic);
+(2) the routing map r(x) is a CARRIER only — no routing-policy theorem, no
+bound on routing mistakes; (3) the exact-decomposition lemmas are definitional
+invariants and labeled as such (the content is in the approximate-core bounds);
+(4) the core C and residuals R_i are inputs — no existence theorem for a good
+shared core (that is the measured go/no-go of Core/Element, rank measurement
+on checkpoints).
+
+Anchors 175 → 176. Build 8714 green, 0 sorry/admit/native_decide/
+custom axioms, triviality flags 0, non-trivial share 1.0000, clean
+axioms (propext, Classical.choice, Quot.sound) for all eight theorems
+of the module (checked via #print axioms on a scratch copy, removed
+after).
