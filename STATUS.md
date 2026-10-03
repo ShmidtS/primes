@@ -2482,3 +2482,31 @@ discovery-механизма), P0-6 (нелинейный merge refinement),
 P0-7 (looped-state), P0-8 (task-family семантика U) — открыты.
 
 Батарея: CI: PASS.
+
+## R120 — P1: DirectionalParetoController (SWE-2 Extended → HAGI)
+
+`Hagi/Autonomy/ParetoController.lean` — контроллер НАПРАВЛЕННОГО
+движения по Pareto frontier (audit R120 по SWE-2 Extended):
+вместо неявной политики `max gain/cost` — выбор направления ω и
+максимального сбалансированного уровня
+`dirTau u ω a = max{τ : ∀ i, u(a,i) ≥ ω_i·τ}` (sup'-форма).
+
+1. `dirTau_le` / `le_dirTau` / `dirTau_char` — эквивалентность
+   min-формы и системы неравенств (теорема 1 аудита).
+2. `pareto_validity` — τ(a) > 0 ⇒ строгое улучшение всех
+   координат (теорема 2).
+3. `dir_controller_find` — completeness: ∃ a₀ с τ ≥ g ⇒ argmax-τ
+   находит τ(a') ≥ g (теорема 3; направленный аналог R118).
+4. `noisy_pareto_select` — при поэлементной ε_i-концентрации
+   (R114): истинный τ(a*) ≥ τ(a₀) − 2·max_i(ε_i/ω_i) (теорема 4).
+
+Следствия архитектуры: Qvec-пробы — hard-constraints (safe-фильтр
+до контроллера), Pareto-направление — controller objective;
+единый action space {grow, merge, joint, compress, loop, TTT, ...}
+выбирается направленно, а не по одному ratio. `ratio_dominance`
+понижен до special case (двухкоординатный ω).
+
+Честные границы: локальный наклон frontier (λ/ω) — оценивается
+сертифицированно (R114), hard-констрейнты компонуются отдельно.
+
+Батарея: CI: PASS.
