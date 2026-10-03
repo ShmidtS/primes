@@ -2436,3 +2436,24 @@ triviality_lint 0 flags; DocLint PASS.
    моделью — честно premise (audit §9).
 
 Батарея: CI: PASS.
+
+## R118 — мост V: SelfDevelopment (controller находит положительный upgrade)
+
+`Hagi/Growth/SelfDevelopment.lean`:
+
+1. `controller_max_exists` — на конечном safe-наборе argmax
+   certified gain существует (`Finset.exists_max_image`).
+2. `self_development_find` — ядро моста V (audit §25): если в
+   safe-наборе есть кандидат с положительным gain, argmax-controller
+   выбирает положительный gain, не худший найденного (c = 1).
+3. `certified_gain_select` — статистическая оболочка: при
+   ε-концентрации измеренных gains (сертифицируемой R114 per-action)
+   argmax по измеренным даёт истинный gain ≥ g a₀ − 2ε; при
+   3ε < g a₀ найденный upgrade строго положителен ИСТИННО —
+   измерение не обманывает controller.
+4. `search_cost_bound` — бюджет поиска линеен по |safe|.
+
+Честные границы: полнота генератора кандидатов (upgrade вне
+candidate set не найден) — предпосылка safe-набора (audit §25).
+
+Батарея: CI: PASS.
