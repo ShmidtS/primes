@@ -68,12 +68,12 @@ finding fixed): the per-generation certified decrease
 hypothesis, fed by `macro_step_decrease`'s composition)
 enters `lyapunov_telescope`; the (E₀−E_min)/ε bound is
 applied, not restated. -/
-theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ)
-    (hE : ∀ t, Emin ≤ E t)
-    (hgen : ∀ t, E (t + 1) ≤ E t - eps)
-    (heps : 0 < eps) (k : ℕ) :
+theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t)
+    (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)
+    (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  lyapunov_termination Emin eps hE hgen heps k
+  lyapunov_termination_fin Emin eps k hE hgen heps
 
 /-! ## The protected error budget across generations -/
 

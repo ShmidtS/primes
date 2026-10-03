@@ -161,11 +161,11 @@ and the energy certificate is bounded below by E_min, the
 cycle terminates in at most (E₀ − E_min)/ε generations.
 This upgrades `lyapunov_termination` from a generic
 telescope to a stage-decomposed contraction. -/
-theorem macro_termination {E : ℕ → ℝ} (Emin eps : ℝ)
-    (hE : ∀ t, Emin ≤ E t)
-    (hstep : ∀ t, E (t+1) ≤ E t - eps)
-    (heps : 0 < eps) (k : ℕ) :
+theorem macro_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t)
+    (hstep : ∀ t < k, E (t+1) ≤ E t - eps)
+    (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  lyapunov_termination Emin eps hE hstep heps k
+  lyapunov_termination_fin Emin eps k hE hstep heps
 
 end Hagi

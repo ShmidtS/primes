@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Primes", "Hagi"]
+defaultTargets = ["Hagi"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`

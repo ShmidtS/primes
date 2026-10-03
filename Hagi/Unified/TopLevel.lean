@@ -79,12 +79,12 @@ real stage sum G + η‖d*‖²/2 − κ√n·s/2 ≥ ε > 0 (measured),
 then the cycle terminates within (E_mean0 − E_min)/ε
 generations — lyapunov_telescope applied to the real-variable
 cycle bound. The unified stop law, end to end. -/
-theorem top_level_termination {E : ℕ → ℝ} (Emin eps : ℝ)
-    (hE : ∀ t, Emin ≤ E t)
-    (hstep : ∀ t, E (t + 1) ≤ E t - eps)
-    (heps : 0 < eps) (k : ℕ) :
+theorem top_level_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t)
+    (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
+    (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  Hagi.lyapunov_termination Emin eps hE hstep heps k
+  Hagi.lyapunov_termination_fin Emin eps k hE hstep heps
 
 /-- **The noisy one-cycle Lyapunov step (roadmap #1; R75
 honesty fix: renamed from expected_cycle_step — this is a
@@ -134,10 +134,11 @@ oscillation, no divergence, the growing tree converges.
 R102 honesty note: this is the HORIZON-FORM RESTATEMENT of
 `top_level_termination` above (same Lyapunov telescope,
 delegated to it; no additional mathematical content). -/
-theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ)
-    (hE : ∀ t, Emin ≤ E t) (hstep : ∀ t, E (t + 1) ≤ E t - eps) (heps : 0 < eps) (k : ℕ) :
+theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t) (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
+    (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  Hagi.top_level_termination Emin eps hE hstep heps k
+  Hagi.top_level_termination Emin eps k hE hstep heps
 
 /-- **The merge-stage adapter CLOSED (the audit's missing
 "exact definition" box)**: with the token-level Concat law

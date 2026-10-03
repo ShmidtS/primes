@@ -1955,7 +1955,7 @@ certify the softmax-speed (linear-pool) approximation
 **HONEST FINDING — the audit's claimed form is FALSE.** The audit
 claimed `|log Z_w − log Z_approx| ≤ (1/8)·Σ_{ij} w_i w_j D_ij²`
 (D = pairwise logit diameter). Counterexample z₁ = (1,−1),
-z₂ = (0,0), w = (½,½): true gap = ½·log[cosh(1)/cosh²(½)] ≈ 0.157
+z₂ = (0,0), w = (½,½): true gap = ½·log[cosh(1)/cosh²(½)] ≈ 0.0968 (R115: было неверно 0.157)
 > ⅛·ΣΣ ww D² = 0.0625. An earlier draft chased an exchangeable-
 midpoint assembly to prove the audit's 1/8 pairwise; the route
 was mathematically wrong and was DELETED.

@@ -55,7 +55,7 @@ from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v
 pairwise law `|·| ≤ (1/8)·Σ_{i,j} w_i w_j D_{ij}²` with D the
 pairwise logit diameter. That form is FALSE — counterexample
 z₁ = (1,−1), z₂ = (0,0), w = (½,½): the true gap is
-½·log[cosh(1)/cosh²(½)] ≈ 0.157 > ⅛·ΣΣ w w D² = 0.0625. The
+½·log[cosh(1)/cosh²(½)] ≈ 0.0968 > ⅛·ΣΣ w w D² = 0.0625. The
 sharp law is the PER-EXPERT range form above (constant 1/8,
 asymptotically tight: z₁ = (A,−A), z₂ = (−A,A), equal weights,
 R = 2A gives gap = log cosh A ~ A²/2 = R²/8). Under a pairwise
@@ -900,7 +900,7 @@ square: `(2∑_j w_j D_ij)² ≤ 4∑_j w_j D_ij²`.
 
 **HONESTY NOTE — the audit's pairwise 1/8 constant is REFUTED**:
 for z₁ = (1,−1), z₂ = (0,0), w = (½,½), the true gap is
-`½·log[cosh(1)/cosh²(½)] ≈ 0.157` while
+`½·log[cosh(1)/cosh²(½)] ≈ 0.0968` (R115 numeric fix) while
 `⅛·∑_{ij} w_i w_j D_ij² = 0.0625` (with D = 1) — the claimed
 bound FAILS. The sharp law is the per-expert range form
 (`poe_logZ_second_order`, constant 1/8); ½ is the provable

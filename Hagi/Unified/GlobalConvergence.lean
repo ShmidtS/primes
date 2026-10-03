@@ -51,15 +51,36 @@ theorem lyapunov_telescope {E : ℕ → ℝ} (eps : ℝ)
       norm_num
       linarith
 
-/-- **The termination certificate**: with the energy bounded
-below by E_min and the per-step decrease ≥ ε > 0, the cycle
-terminates in at most (E₀ − E_min)/ε generations — the
-formal completeness of the growth program. -/
-theorem lyapunov_termination {E : ℕ → ℝ} (Emin eps : ℝ)
-    (hE : ∀ t, Emin ≤ E t) (hstep : ∀ t, E (t+1) ≤ E t - eps) (heps : 0 < eps) (k : ℕ) :
+/-- **The finite-horizon Lyapunov telescope** (R115, audit
+finding): the GLOBAL form `∀ t, E(t+1) ≤ E t − ε` together
+with `E ≥ E_min` is CONTRADICTORY for large k — the old
+`lyapunov_termination` was vacuously true. The honest form
+quantifies only up to the horizon k: if every step below k
+decreases by ≥ ε and E stays ≥ E_min up to k, then
+k ≤ (E₀ − E_min)/ε. -/
+theorem lyapunov_telescope_fin {E : ℕ → ℝ} (eps : ℝ)
+    (hstep : ∀ t < k, E (t+1) ≤ E t - eps) :
+    E k ≤ E 0 - k * eps := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+      have h1 := hstep k (by omega)
+      have hih := ih (fun t ht => hstep t (by omega))
+      norm_num at hih ⊢
+      linarith
+
+/-- **The termination certificate, finite-horizon form**
+(R115): with the energy bounded below by E_min UP TO k and
+per-step decrease ≥ ε > 0 BELOW k, at most
+(E₀ − E_min)/ε generations can occur. The global-quantifier
+version was vacuous (its hypotheses are contradictory for
+large k); this is the honest stop law. -/
+theorem lyapunov_termination_fin {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t) (hstep : ∀ t < k, E (t+1) ≤ E t - eps)
+    (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps := by
-  have htel := lyapunov_telescope eps hstep k
-  have hEk := hE k
+  have htel := lyapunov_telescope_fin eps hstep
+  have hEk := hE k (le_refl k)
   have hbound : E 0 - Emin ≥ (k:ℝ) * eps := by linarith
   rw [le_div_iff₀ heps]
   linarith
