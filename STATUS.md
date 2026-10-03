@@ -2531,3 +2531,26 @@ P0-7 (looped-state), P0-8 (task-family семантика U) — открыты.
 трюк рандомизированных алгоритмов.
 
 Батарея: CI: PASS.
+
+## R122 — P5: RecursiveSelfDevelopment + ClosedLoopTakeoff
+
+`Hagi/Growth/RecursiveSelfDevelopment.lean`:
+
+1. `opportunity_renewal` — P5-стрелка «success ⇒ renewal»: при
+   frontier-динамике D' ≥ ρD + βC − ξ и чистом производстве
+   βC − ξ ≥ (1−ρ)D + δ_O выполнено D' ≥ D + δ_O — успешный шаг
+   наращивает opportunity ((1−ρ)D — цена декея frontier).
+2. `recursive_self_development` — композиция с ростом capability.
+3. `multiplicative_growth` — аккумуляция C_{t+1} ≥ C_t·e^{αS_t−ε_t}
+   ⇒ C_T ≥ C₀·e^{αΣS − Σε} (индукция).
+4. `closed_loop_takeoff` — §21 аудита: композиция (3) с
+   adaptive_success_concentrated (R121): при условных
+   success-полах ≥ p₀ P[success-floor ⇒ C_n ≥ C₀·exp(α(n·p₀ −
+   √(n log(1/δ)/2)) − Σε)] ≥ 1−δ — стохастический takeoff
+   замкнутого контура (рост по РЕАЛИЗОВАННЫМ уровням успеха
+   realizedSuccess).
+
+Честные границы: frontier-динамика — измеряемая посылка (R117);
+стрелка «runtime ⇒ success» — P0-1/P3, открыто.
+
+Батарея: CI: PASS.
