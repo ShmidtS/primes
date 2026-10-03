@@ -18,7 +18,7 @@ NOT a grammatical prior.
 
 **Honest boundaries (the paper's claims we do and do NOT carry):**
 
-* `h_emp_retrieval_transfer` — the transfer itself (retrieval-style
+* `h_emp_retrieval_transfer_` — the transfer itself (retrieval-style
   synthetic pretraining accelerates the main run) is EMPIRICAL:
   it enters every theorem below as a measured hypothesis on the
   two trajectories, never as a derived fact. No claim that
@@ -74,7 +74,7 @@ noncomputable def TimeToCapability (τ : ℝ) (C : ℕ → ℝ)
 /-- **The measured synthetic gain**: the step saving
 T_plain(τ) − T_synth(τ) between the plain-main trajectory and
 the synthetic-then-main trajectory at the SAME threshold.
-Its sign is an EMPIRICAL quantity (`h_emp_retrieval_transfer`):
+Its sign is an EMPIRICAL quantity (`h_emp_retrieval_transfer_`):
 nothing here forces it positive except measurement. -/
 noncomputable def synthGain (τ : ℝ) (Cp Cs : ℕ → ℝ)
     (hp : ∃ n : ℕ, τ ≤ Cp n) (hs : ∃ n : ℕ, τ ≤ Cs n) : ℝ :=
@@ -122,7 +122,7 @@ then main run) at main-step T_s. The ONLY empirical gate is
 `h_emp_gate`: the measured saving synthGain = T_p − T_s, priced
 at the per-step compute cost c_step, strictly exceeds the cost
 of the synthetic phase (ΔT·c_step > C_synth — the
-`h_emp_retrieval_transfer` measurement of arXiv 2609.39827 in
+`h_emp_retrieval_transfer_` measurement of arXiv 2609.39827 in
 compute units). Then the composite schedule's
 capability-per-compute at the moment of reaching τ,
 

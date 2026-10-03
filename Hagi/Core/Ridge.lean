@@ -9,7 +9,7 @@ set_option linter.style.header false
 # Ridge re-solve: the optimality of the guarded normal equations
 
 This module formalizes the **W2 re-solve** step of the HAGI_v2
-terni4 recipe (`scripts/dsv4_refit_experts.py`, `ridge_solve_guarded`):
+terni4 recipe (`scripts/dsv4_refit_experts.py`, `ridge_solve_guarded_`):
 
 > before quantization W2 is re-solved in closed form (guarded ridge)
 > to best explain the expert's target outputs *at the already-
@@ -28,7 +28,7 @@ Formalized here:
 * `Hagi.ridge` — the ridge objective for one row: the squared
   residual against the drifted targets plus the squared weight.
 * `Hagi.ridgeNormalEq` — the normal equation as a vector identity
-  (exactly what `ridge_solve_guarded` solves: Gram `Xᵀ X + λ I`,
+  (exactly what `ridge_solve_guarded_` solves: Gram `Xᵀ X + λ I`,
   right-hand side `Xᵀ y`).
 * `Hagi.ridge_optimal` — **the normal equations are sufficient for
   global optimality**: if `w*` satisfies the normal equation, then
@@ -46,7 +46,7 @@ Formalized here:
 This is the closed-form half of "the error must be pushed out of
 W2": the re-solve provably extracts everything the (already
 quantized) upstream can explain, so whatever remains is genuinely
-fresh residual — the `r_l` of `Hagi.Core/ErrorProp`.
+fresh residual — the `r_l_` of `Hagi.Core/ErrorProp`.
 -/
 
 open scoped Matrix
@@ -69,7 +69,7 @@ variable {X : Matrix m n ℝ} {y : m → ℝ} {lam : ℝ}
 
 /-- The normal equation of the ridge problem, stated as a vector
 identity: `Xᵀ (X w₀ − y) + λ w₀ = 0` — the stationarity condition
-that `ridge_solve_guarded` solves (Gram `Xᵀ X + λ I`, right-hand
+that `ridge_solve_guarded_` solves (Gram `Xᵀ X + λ I`, right-hand
 side `Xᵀ y`). -/
 def ridgeNormalEq (X : Matrix m n ℝ) (y : m → ℝ) (lam : ℝ)
     (w : n → ℝ) : Prop :=
@@ -87,7 +87,7 @@ square terms are nonnegative (`λ ≥ 0`). This formalizes why the W2
 re-solve step of the terni4 recipe is safe to do *before*
 quantization: the re-solved `W2` provably explains everything the
 quantized upstream can carry, and the residual it leaves is the
-fresh `r_l` of the telescopic error budget. -/
+fresh `r_l_` of the telescopic error budget. -/
 theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
     (hne : ridgeNormalEq X y lam w₀) :
     ∀ w : n → ℝ, ridge X y lam w ≥ ridge X y lam w₀ := by

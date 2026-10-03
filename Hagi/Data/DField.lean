@@ -113,7 +113,7 @@ theorems). -/
 noncomputable def KLdiv (p q : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v / q v)
 
 /-- The mixture of corpora by weights w: the pointwise
-combination (nonneg, sums to 1 — `mixture_corpus`). -/
+combination (nonneg, sums to 1 — `mixtureCorpus`). -/
 def mixtureCorpus {K : Type*} [Fintype K] (p : K → Corpus V)
     (w : K → ℝ) : V → ℝ :=
   fun v => ∑ i, w i * (p i).dist v

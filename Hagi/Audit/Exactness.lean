@@ -117,7 +117,7 @@ decay of the whole trajectory. With a = 3.4445 (the measured
 polynomial coefficient) and the reviewer's numerical
 verification (k = ⌈ln(σ_target/σ₀)/ln a⌉ matches the actual
 counts 2..7 for σ₀ = 10⁻¹..10⁻⁴), the k(σ_min) rule for
-`newton_schulz` is exact. NOTE (the correction): the earlier
+`newton_schulz_` is exact. NOTE (the correction): the earlier
 "spread 74 → 890 in 3 steps ≈ 3.4445³" reading was WRONG
 (3.4445³ = 40.9 ≠ 12); the correct mechanism is the a-fold
 per-iteration contraction on the INVARIANT range, and at

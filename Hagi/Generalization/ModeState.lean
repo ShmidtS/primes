@@ -418,7 +418,7 @@ theorem pareto_frontier_nonempty (E Q cost : Ck → ℝ) :
     (by norm_num) (by norm_num) (by norm_num) x
     (fun y => hmin y (Finset.mem_univ y))⟩
 
-/-- **`not_latest_is_best_allowed`, the real form**: the selector
+/-- **`selector_skips_dominated`, the real form**: the selector
 output is characterized by the SCORE, not by recency. Concretely:
 if the LATEST checkpoint is strictly dominated (some y is at
 least as good on all three objectives and strictly better on

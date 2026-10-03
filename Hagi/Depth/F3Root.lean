@@ -28,7 +28,7 @@ the stream by the LEAF-MEAN (collapse to the diagonal) and
 writes back IDENTICALLY to every leaf (`_write_root`'s
 broadcast). The invariant: an identical addend in every leaf
 leaves each leaf's own RMS statistic UNCHANGED — the leaves
-stay equal, `BlockTreeNorm` sees the term as part of the
+stay equal, `BlockTreeNorm_` sees the term as part of the
 parent's signal, and the step-0 bit-exactness of the lift
 survives the cortex. The formal statement: the per-leaf
 second moment is invariant under adding the same vector to
@@ -38,7 +38,7 @@ every leaf.
 the common addend u, the per-leaf RMS shift is the same for
 every leaf — the relative statistics of the leaves are
 preserved (the leaves' DIFFERENCE structure, which
-`BlockTreeNorm` normalizes, is untouched by a common
+`BlockTreeNorm_` normalizes, is untouched by a common
 addend).
 
 `root_no_leaf_signal` — THE ACCESS BOUND: the root mode is
@@ -102,7 +102,7 @@ per-leaf statistics' equality.** Adding the SAME vector u to
 every leaf leaves the leaves' relative structure untouched:
 the per-leaf second moments shift identically — leaf i's
 statistic equals leaf j's after the addend iff it equaled
-before. The `BlockTreeNorm` invariant (the leaves stay
+before. The `BlockTreeNorm_` invariant (the leaves stay
 equal) is preserved by the root-write broadcast; the
 step-0 bit-exactness of the parent-preserving lift survives
 the cortex. -/

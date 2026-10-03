@@ -518,7 +518,7 @@ theorem potential_compress (S : GrowthState X)
 `macro_step_decrease`): one complete generation
 grow → merge → joint → compress decreases Φ by at least the total
 certified stage sum (growGain + G + η‖d*‖²/2 − κs/2) minus the
-accumulated protected-risk cost. The four `h_emp` inputs are chained
+accumulated protected-risk cost. The four `h_emp_` inputs are chained
 through the state's effect fields (each stage measured against the
 PREVIOUS stage's output); everything else is derived. -/
 theorem growth_cycle_potential (S : GrowthState X)

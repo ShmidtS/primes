@@ -2,3 +2,6 @@
 .omc/
 __pycache__/
 .context-mode/
+
+# generated Lean name pool for DocLint (36MB, regenerate: lake env lean --run scripts/NamePool.lean)
+scripts/namepool.txt

@@ -34,7 +34,7 @@ feeds growth is then bounded by NOISE, not corpus divergence.
 - **T1d `seed_only_grow_stop`**: when c·Λ²·s/(1−a) < ε (the
   floor ε = 0.0021), the GROW axis for seed-only siblings is
   certified EXHAUSTED in advance — via `Grow.grow_epsilon_stop`.
-  With identical corpora and mixture weights, `DField`'s
+  With identical corpora and mixture weights, `DField_`'s
   divField-zero law gives D_data = 0: the only feed is noise.
 - **T1e `delta_ratio_lt_two_iff`**: for the closed-form
   Δ_t = s(a^t−1)/(a−1), the two-point ratio test
@@ -175,7 +175,7 @@ seed-only gap bound c·Λ²·s/(1−a) is under the measured floor ε
 (0.0021), the growth axis for seed-only siblings is certified
 exhausted in advance: `grow_epsilon_stop` applies with the
 certified gain under ε. With identical corpora and mixture
-weights the D-field divergence is zero (`DField`: D = 0 ⟺
+weights the D-field divergence is zero (`DField_`: D = 0 ⟺
 clones), so the only feed is the noise s. -/
 theorem seed_only_grow_stop (c Lam a s eps gapInf : ℝ)
     (_hc : 0 ≤ c) (_hLam : 0 ≤ Lam) (_ha : 0 ≤ a) (_ha1 : a < 1) (_hs : 0 ≤ s)

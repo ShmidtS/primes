@@ -32,8 +32,8 @@ primitive* layer:
   and `topk_routing_optimal` the optimality statement);
 * the three-stage error budget `three_stage_error_budget`
   (Grow→select→compress): selection tail + rank error
-  (`RankBudget` waterfilling residue) + quantization error
-  (`ElementQuant` grid rounding) compose by the triangle
+  (`RankBudget_` waterfilling residue) + quantization error
+  (`ElementQuant_` grid rounding) compose by the triangle
   inequality — each term NAMED, matching the existing budget
   modules;
 * the spectral SafeQP target `spectral_safeQP_target` +
@@ -92,7 +92,7 @@ theorem proj_residual_identity (h : OrthProjPair P) (x : E) :
 nonnegativity of the tail). Equivalent to `0 ≤ ‖x − P x‖²` by
 the residual identity; stated as a deficit inequality because
 that is the form the budget chain consumes
-(`ElementQuant` tail style). -/
+(`ElementQuant_` tail style). -/
 theorem proj_residual_nonneg (h : OrthProjPair P) (x : E) :
     0 ≤ ‖x‖ ^ 2 - ‖P x‖ ^ 2 := by
   have hid := proj_residual_identity P h x
@@ -214,10 +214,10 @@ rank approximation `A` of the selected part with error
 `‖W − Q A‖ ≤ ‖W − P W‖ + ε_rank + ε_quant`
 
 — the SELECTION TAIL (the spectral residual, evaluated exactly
-by `spectral_tail_energy` / bounded by the `RankBudget`
+by `spectral_tail_energy` / bounded by the `RankBudget_`
 waterfilling residue), the RANK ERROR (the low-rank
 factorization gap of the selected part, `Core/Element`
-`delta_rank_le` style), and the QUANT ERROR (`ElementQuant`
+`delta_rank_le` style), and the QUANT ERROR (`ElementQuant_`
 grid rounding) add up by the triangle inequality. Each term is
 NAMED in the hypotheses; the chain is the composition
 certificate: the three budget modules' bounds compose without

@@ -67,7 +67,7 @@ theorem reBlock_sum {α : Type*} [Fintype α] (f : α → ℂ) :
     simp [reBlock, Matrix.sum_apply]
 
 /-- **The entry-level orthogonality of the real F₃ lift** (R89
-step 2): the production 6×6 matrix `_f3_real_column_matrix` is
+step 2): the production 6×6 matrix `_f3_real_column_matrix_` is
 orthogonal — `reUnitMat * reUnitMatᵀ = 1`. -/
 theorem reUnitMat_mul_transpose :
     reUnitMat * reUnitMatᵀ

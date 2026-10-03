@@ -41,8 +41,8 @@ applied per channel to the three parent branches. Formalized here:
 * `Hagi.diagonalAdd_preserves_equality` — the root-mode cortex
   invariant (ARCHITECTURE_V2 "Решение: кора ходит по root-моде"): if
   the three leaves are equal and the added contribution is the same in
-  every leaf (i.e. lies on the diagonal — exactly how `RootModeCortex`
-  writes), then the leaves remain equal, so `BlockTreeNorm` still sees
+  every leaf (i.e. lies on the diagonal — exactly how `RootModeCortex_`
+  writes), then the leaves remain equal, so `BlockTreeNorm_` still sees
   identical statistics and the identity invariant holds at
   initialization.
 -/
@@ -52,7 +52,7 @@ open scoped Matrix
 namespace Hagi
 
 /-- Entry table of the lift `Q(π/2)`, indexed by the first three
-naturals (`_PARENT_PRESERVING_TERNARY_Q` in `src/hagi/model/merge.py`). -/
+naturals (`_PARENT_PRESERVING_TERNARY_Q_` in `src/hagi/model/merge.py`). -/
 noncomputable def Qentry : ℕ → ℕ → ℝ
   | 0, 0 => (2 : ℝ) / 3
   | 0, 1 => -1 / 3
@@ -107,8 +107,8 @@ theorem parentPreservingQ_leafSub (v : Fin 3 → ℝ)
 
 /-- **The root-mode cortex invariant.** If the three leaves are equal
 and the added contribution is the same in every leaf (it lies on the
-diagonal — how `RootModeCortex` writes, unfolding one value to all
-leaves), then the leaves remain equal: `BlockTreeNorm` still sees
+diagonal — how `RootModeCortex_` writes, unfolding one value to all
+leaves), then the leaves remain equal: `BlockTreeNorm_` still sees
 identical statistics, and the lift's identity invariant survives the
 cortex at initialization. (A dense cortex, writing *different* values
 to the leaves, breaks this — hence `config.py:1356` rejecting it for
@@ -221,7 +221,7 @@ end MixerParam
 
 /-- **Provenance of the production angle (§9).** The
 parent-preserving lift `Q(π/2)` (the seed of the
-`_PARENT_PRESERVING_TERNARY_Q` digest) is a Rodrigues rotation
+`_PARENT_PRESERVING_TERNARY_Q_` digest) is a Rodrigues rotation
 about the root axis `(1,1,1)` by the angle `π/3`, not `π/2`: its
 trace is `2`, and for a 3D rotation `tr R = 1 + 2 cos θ`, so
 `cos θ = 1/2` — a 60° rotation of the contrast plane. The name

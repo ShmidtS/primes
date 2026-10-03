@@ -2344,3 +2344,30 @@ triviality lint 0 flags. Note: Lean 4.34's new `.olean.private` cache
 files: interrupted cache decompression yields flaky "failed to read"
 errors — fixed by `rm -rf .lake/packages/mathlib/.lake/build && lake exe
 cache get!`.
+
+## R113 — правила 4–5 автоматизированы (DocLint), битые ссылки в докстрингах исправлены
+
+Фаза 0 рецензии закрыта полностью: к «0 sorry + тривиальность» добавлен
+автоматический чекер правил 4–5.
+
+- `scripts/NamePool.lean` — дампит пул всех имён окружения (Hagi +
+  Mathlib + core, 784k констант) в `scripts/namepool.txt`
+  (в .gitignore; запуск: `lake env lean --run scripts/NamePool.lean`).
+- `scripts/DocLint.py` — правило 4: каждое `` `имя` `` в docstring
+  обязано существовать (пул: env ∪ объявления репо ∪ идентификаторы
+  файла; qualified-имена с точкой и тактики — легальны; суффикс `_` —
+  явный prose-escape для имён внешнего runtime-кода на Python).
+  Правило 5: числа в docstring — «измерено»/«measured»/`#eval`/literal
+  в коде (report-only; 0 находок). Маркер `DOCLINT: PASS`.
+- Реальные битые ссылки исправлены (2 переименования):
+  `not_latest_is_best_allowed` → `selector_skips_dominated`
+  (ModeState), `mixture_corpus` → `mixtureCorpus` (DField).
+  Внешние runtime-имена (merge.py `_f3_real_column_matrix`,
+  `ridge_solve_guarded`, `BlockTreeNorm` и др.) помечены prose-escape.
+- Полная батарея Фазы 0: `lake build` (9039 green) →
+  `scripts/TrivialLint.lean` (1142 thm, PASS) →
+  `scripts/triviality_lint.py` (0 flags) → `scripts/DocLint.py` (PASS).
+
+Пункт «0» рецензии (единая структура состояния) подтверждён уже
+реализованным: `GenState extends GrowthState` (R91), Φ = energy +
+protectedRisk — единый Lyapunov-носитель; MasterHAGI (R111) — capstone.
