@@ -91,6 +91,7 @@ import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Growth.RecursiveSelfDevelopment
+import Hagi.Growth.RatioTakeoff
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
