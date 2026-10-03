@@ -1,4 +1,4 @@
-# STATUS — реестр нетривиальности (round 41)
+# STATUS — реестр нетривиальности (обновляется; текущий раунд см. в конце)
 
 Метрика «0 sorry» недостаточна (тавтологии её проходят).
 Реестр: теорема → заявлено → статус. Правила приёмки:
@@ -19,11 +19,11 @@
   `GapLaw.twoGap_*`, `SafeQP.safeQP_*`, `FreeEnergy.geometric_pool_identity`
   и др. (полный список — по линтеру)
 
-## Реестр тавтологий (аудит round 41; статус после правки)
+## Реестр тавтологий (исторический аудит; итоговые статусы — последние строки каждой записи)
 
 | Теорема | Было | Действие |
 |---|---|---|
-| `DesignOpt.wall_clock_model` | `A = A := rfl` | носитель предписания; честная граница задокументирована — кандидат в `def` |
+| `DesignOpt.wall_clock_model` | `A = A := rfl` | (историч.; см. строку ниже — ИТОГ) |
 | `FreeEnergy.token_kl_decomposition` | `A = A := rfl` | кандидат в `def` |
 | `Upgrades.sink_receptive_field_exact` | `A = A := rfl` | кандидат в `def` |
 | `NCEExact.anchor_drift_bound` | `A = A := rfl` | **ЗАМЕНЕНО** на `Plan41.anchor_recurrence` |
@@ -2552,5 +2552,25 @@ P0-7 (looped-state), P0-8 (task-family семантика U) — открыты.
 
 Честные границы: frontier-динамика — измеряемая посылка (R117);
 стрелка «runtime ⇒ success» — P0-1/P3, открыто.
+
+Батарея: CI: PASS.
+
+## R123 — фиксы аудита R123: хрупкость takeoff подтверждена формально
+
+1. **`takeoff_edge_forced`** (FrontierScaling): гипотезы конус-метода
+   (h_step-равенство + γD ≤ G + конус + h_C_cap) ФОРСИРУЮТ тождества
+   G = αC, D = (α/γ)C, C' = (1+α)C — система ходит ровно по границе
+   конуса; находка аудита подтверждена Lean'ом. Следствие: сертификат
+   хрупкок (возмущение G < αC выводит из области теоремы);
+   направление — ratio-версия r = D/C без h_C_cap (открыто).
+2. **concDelta-расхождение задокументировано**: √(2T·log(1/δ))
+   (ConditionalSuccess) вдвое консервативнее точного Bernoulli-масштаба
+   √(T·log(1/δ)/2) (AdaptiveSuccess); унификация — tech-debt, шкалы
+   не смешивать.
+3. **STATUS-гигиена**: заголовок round 41 убран; дубль wall_clock_model
+   помечен историческим.
+4. **#print axioms** (проверено на сборке): MasterHAGI,
+   MasterHAGI_wallclock, capability_takeoff_state, closed_loop_takeoff,
+   takeoff_edge_forced — только [propext, Classical.choice, Quot.sound].
 
 Батарея: CI: PASS.

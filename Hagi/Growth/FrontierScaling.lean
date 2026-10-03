@@ -160,6 +160,56 @@ theorem frontier_cone_invariant (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
 
 /-! ## The composition with R104 -/
 
+/-- **R123 (audit «хрупкость takeoff»)**: гипотезы конус-метода
+ФОРСИРУЮТ равенство. При h_step (точное равенство), gain-законе
+γ·D ≤ G, конусе αC ≤ γ·D и верхней границе h_C_cap
+(C' ≤ (1+α)C) выполнены ТОЖДЕСТВА: G = α·C, D = (α/γ)·C,
+C' = (1+α)·C — система ходит РОВНО по границе конуса; малое
+возмущение (G чуть меньше αC) выводит её из области теоремы.
+Подтверждение ручной находки аудита; мотивация для ratio-версии
+(r = D/C без h_C_cap) — направление будущей работы. -/
+theorem takeoff_edge_forced (C G D : ℕ → ℝ) (α γ : ℝ)
+    (hγ : 0 < γ)
+    (h_step : ∀ t, C (t + 1) = C t + G t)
+    (h_gain_prod : ∀ t, γ * D t ≤ G t)
+    (h_cone : ∀ t, α / γ * C t ≤ D t)
+    (h_C_cap : ∀ t, C (t + 1) ≤ (1 + α) * C t)
+    (t : ℕ) :
+    G t = α * C t ∧ D t = α / γ * C t
+      ∧ C (t + 1) = (1 + α) * C t := by
+  have hg := h_gain_prod t
+  have hc := h_cone t
+  have hcap := h_C_cap t
+  have hstep := h_step t
+  have he : γ * (α / γ * C t) = α * C t := by
+    field_simp
+  -- конус ⇒ α·C ≤ G
+  have hchain : α * C t ≤ G t := by
+    have h1 : γ * (α / γ * C t) ≤ γ * D t :=
+      mul_le_mul_of_nonneg_left hc hγ.le
+    rw [he] at h1
+    exact le_trans h1 hg
+  -- зажатие C' = (1+α)C
+  have hkey : C t + G t = (1 + α) * C t := by
+    have hring : (1 + α) * C t = C t + α * C t := by ring
+    have hlow : (1 + α) * C t ≤ C t + G t := by
+      rw [hring]
+      linarith [hchain]
+    linarith [hlow]
+  -- G = αC
+  have hGeq : G t = α * C t := by
+    have hring : (1 + α) * C t = C t + α * C t := by ring
+    linarith [hkey, hring]
+  -- γD = αC (зажато с двух сторон) ⇒ D = (α/γ)C
+  have hpin : γ * D t = α * C t := by
+    rw [hGeq] at hg
+    exact le_antisymm hg
+      (by rw [← he]; exact mul_le_mul_of_nonneg_left hc hγ.le)
+  have hDeq : D t = α / γ * C t := by
+    field_simp
+    linarith [hpin]
+  exact ⟨hGeq, hDeq, hstep ▸ hkey⟩
+
 /-- **Simultaneous positivity + cone by induction** (private
 workhorse): under the composition hypotheses below,
 `0 < C_t ∧ (α/γ)·C_t ≤ D_t` holds at every t. Positivity
