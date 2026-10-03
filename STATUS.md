@@ -2457,3 +2457,28 @@ triviality_lint 0 flags; DocLint PASS.
 candidate set не найден) — предпосылка safe-набора (audit §25).
 
 Батарея: CI: PASS.
+
+## R119 — P0-2 (связывание теней с состоянием) + P0-3 (полнота кандидатов)
+
+`Hagi/Growth/StateBinding.lean`:
+
+1. **P0-2** `usableFrontier S := S.dataField` и
+   `capability_takeoff_state`: экспоненциальный takeoff (R107)
+   переэкземплярирован на НАСТОЯЩИЕ поля состояния —
+   C_t = (S t).capability, G_t = (S t).growGain,
+   D_t = usableFrontier (S t). Рост больше не shadow process:
+   `(S T).capability ≥ (S 0).capability·(1+α)^T`. Динамические
+   посылки остаются измеряемыми (R117 сертифицирует h_dyn).
+2. **P0-3** `CandidateComplete` (полнота генератора: ∃ safe a*
+   с gain ≥ g ⇒ генератор выдаёт safe a с gain ≥ g−ε — посылка)
+   и `candidate_completeness_find`: полнота + ∃ положительный
+   safe upgrade (gain > ε) ⇒ argmax-controller по сгенерированным
+   находит strictly-positive upgrade ≥ G(a₀)−ε. Цепочка
+   generation → verification → selection замкнута.
+
+Честные границы: P0-1 (runtime refinement), P0-4 (адаптивный
+success — martingale вместо i.i.d.), P0-5 (frontier из
+discovery-механизма), P0-6 (нелинейный merge refinement),
+P0-7 (looped-state), P0-8 (task-family семантика U) — открыты.
+
+Батарея: CI: PASS.
