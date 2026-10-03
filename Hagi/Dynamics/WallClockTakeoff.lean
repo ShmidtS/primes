@@ -398,4 +398,60 @@ theorem wallclock_rate_from_cone_concentrated (C : ℕ → ℝ) (s : ℕ → ℕ
   wallclock_rate_from_cone C s alpha tau p0 (concDelta T delta)
     halpha htau hC0 hmul T hcount
 
+
+/-- **R116 (audit §17): the wall-clock rate with VARIABLE cycle
+time**. The `wallclock_rate_from_cone` form assumed a constant
+τ per cycle; for a growing model the cycle cost τ_t changes.
+The honest finite-horizon form bounds only the AVERAGE cycle
+time: if the total wall-clock spent is W_T = Σ τ_t with
+Σ τ_t ≤ T·τ̄, and the success count has the p₀-floor, then
+C_T ≥ C₀·exp((p₀·ln(1+α)/τ̄)·W_T − ln(1+α)·Δ) — exponential
+in ACTUAL wall-clock, with the same fluctuation penalty. -/
+theorem wallclock_rate_avg_tau (C : ℕ → ℝ) (s : ℕ → ℕ) (tau : ℕ → ℝ)
+    (alpha tauBar p0 Delta : ℝ)
+    (halpha : 0 < alpha) (htauBar : 0 < tauBar) (hp0 : 0 ≤ p0)
+    (hC0 : 0 < C 0)
+    (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
+    (T : ℕ)
+    (htau : T ≠ 0)
+    (havg : ∑ t ∈ Finset.range T, tau t ≤ (T : ℝ) * tauBar)
+    (hcount : p0 * (T : ℝ) - Delta
+      ≤ ∑ t ∈ Finset.range T, (s t : ℝ)) :
+    C T ≥ C 0 * Real.exp ((p0 * Real.log (1 + alpha) / tauBar)
+      * (∑ t ∈ Finset.range T, tau t) - Real.log (1 + alpha) * Delta) := by
+  set L := Real.log (1 + alpha) with hL
+  have hLpos : 0 < L := Real.log_pos (by linarith)
+  set W : ℝ := ∑ t ∈ Finset.range T, tau t with hW
+  have hTw : W / tauBar ≤ (T : ℝ) := by
+    rw [div_le_iff₀ htauBar]
+    linarith
+  have hsumfloor : p0 * (W / tauBar) - Delta
+      ≤ ∑ t ∈ Finset.range T, (s t : ℝ) := by
+    have hpw : p0 * (W / tauBar) ≤ p0 * (T : ℝ) :=
+      mul_le_mul_of_nonneg_left hTw hp0
+    linarith
+  have hpowexp : ∀ t, (1 + alpha) ^ (s t) = Real.exp ((s t : ℝ) * L) := by
+    intro t
+    have h1 : Real.exp ((s t : ℝ) * L) = Real.exp (L) ^ (s t) := by
+      rw [← Real.exp_nat_mul L (s t)]
+    rw [h1, Real.exp_log (by linarith : (0:ℝ) < 1 + alpha)]
+  have hmul' : ∀ t, C (t + 1) ≥ C t * Real.exp (L * (s t : ℝ)) := by
+    intro t
+    have h := hmul t
+    rw [hpowexp t, mul_comm ((s t : ℝ)) L] at h
+    exact h
+  have hmain := counted_takeoff_exp C (fun t => (s t : ℝ)) L hmul' T
+  have hexpfloor : Real.exp (L * (p0 * (W / tauBar) - Delta))
+      ≤ Real.exp (L * ∑ t ∈ Finset.range T, (s t : ℝ)) :=
+    Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left hsumfloor hLpos.le)
+  have hexponent : (p0 * L / tauBar) * W - L * Delta
+      = L * (p0 * (W / tauBar) - Delta) := by
+    field_simp
+    try ring
+  rw [hexponent]
+  calc C T ≥ C 0 * Real.exp (L * ∑ t ∈ Finset.range T, (s t : ℝ)) := hmain
+    _ ≥ C 0 * Real.exp (L * (p0 * (W / tauBar) - Delta)) :=
+        mul_le_mul_of_nonneg_left hexpfloor hC0.le
+
 end Hagi
+

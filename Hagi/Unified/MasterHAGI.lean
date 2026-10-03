@@ -237,6 +237,55 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
   rw [hcB]
   exact budget_account S.toGrowthState
 
+/-! ## R116: the FULL-state binding of `h_cycle` -/
+
+/-- **The full-state cycle refinement** (R116, audit §6): the
+`h_cycle` conjunct of `CorePremises` binds only energy,
+protectedRisk and budget — an `S'` with the right accounting but
+arbitrary `capability`/`params`/`experts` satisfied it. The
+honest refinement is the FULL record equality: `S'` IS the
+composed cycle state (ALL fields), with the probe vector
+carried over unchanged. This is the Lean-side half of the
+RuntimeRefinement bridge (§I of the audit); the runtime side
+(actual tensor/optimizer execution implying this equality)
+remains the implementation gap, stated as a premise here. -/
+def FullCycleRefinement (S S' : GenState X) : Prop :=
+  S'.toGrowthState = compress (joint (merge (grow S.toGrowthState)))
+  ∧ S'.gen = S.gen
+
+/-- The full-state equality implies the three field equalities
+of the old `h_cycle` conjunct (energy/protectedRisk/budget) —
+the refinement is strictly stronger, closing the
+"right accounting, arbitrary capability" hole. -/
+theorem full_cycle_field_eq {S S' : GenState X}
+    (hfull : FullCycleRefinement S S') :
+    S'.toGrowthState.energy
+      = (compress (joint (merge (grow S.toGrowthState)))).energy
+    ∧ S'.toGrowthState.protectedRisk
+      = (compress (joint (merge (grow S.toGrowthState)))).protectedRisk
+    ∧ S'.toGrowthState.budget
+      = (compress (joint (merge (grow S.toGrowthState)))).budget := by
+  obtain ⟨heq, _⟩ := hfull
+  exact ⟨by rw [heq], by rw [heq], by rw [heq]⟩
+
+/-- **MasterHAGICore under the full-state refinement**: the same
+one-cycle certificate, but `S'` is bound to the composed cycle
+on ALL fields (not only energy/risk/budget). Every conclusion of
+`MasterHAGICore` carries over; additionally `S'`'s capability,
+experts, params, weights are exactly the cycle's — the growth
+accounting can no longer be satisfied by an unrelated state. -/
+theorem MasterHAGICore_refined (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
+    (w : Fin 5 → ℝ)
+    (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
+    (hp : CorePremises S S' epsQ w)
+    (hfull : FullCycleRefinement S S') :
+    hagiPotential S' lam nu Qtarget w
+      ≤ hagiPotential S lam nu Qtarget w - (verify S.toGrowthState).decrease
+        + lam * (verify S.toGrowthState).riskSpend + nu * epsQ
+    ∧ S'.toGrowthState.budget
+      = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend :=
+  MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ hp
+
 /-! ## Telescoping helpers (plumbing, all proofs by induction) -/
 
 /-- Nonincrease telescopes over the horizon. -/

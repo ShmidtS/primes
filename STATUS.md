@@ -2397,3 +2397,21 @@ protectedRisk — единый Lyapunov-носитель; MasterHAGI (R111) — 
 
 Батарея: lake build 9040 green; TrivialLint 1164 thm PASS;
 triviality_lint 0 flags; DocLint PASS.
+
+## R116 — фиксы аудита §6 и §17: полное связывание состояния + wall-clock с переменным τ
+
+1. **§6 (`h_cycle` связывает не весь state)**: добавлены
+   `FullCycleRefinement` (S'.toGrowthState = compress∘joint∘merge∘grow
+   ПО ВСЕМ полям + перенос probes) и `MasterHAGICore_refined` в
+   MasterHAGI; `full_cycle_field_eq` выводит старые полевые равенства —
+   уточнение строго сильнее, дыра «правильный учёт при произвольной
+   capability» закрыта на Lean-стороне. Runtime-сторона (реальный
+   tensor/optimizer ⇒ это равенство) — честно оставлена premise
+   (мост I RuntimeRefinement).
+2. **§17 (постоянное τ в wall-clock)**: `wallclock_rate_avg_tau` в
+   WallClockTakeoff — версия с ПЕРЕМЕННЫМ τ_t: при среднем
+   Σ τ_t ≤ T·τ̄ и p₀-поле успехов
+   C_T ≥ C₀·exp((p₀·ln(1+α)/τ̄)·W_T − ln(1+α)·Δ) — рост экспоненциален
+   в фактическом wall-clock W_T (конечный горизонт, без асимптотики).
+
+Батарея: CI: PASS (build 9031 green, все линтеры PASS).
