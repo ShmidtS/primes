@@ -89,6 +89,7 @@ import Hagi.Growth.FrontierProduction
 import Hagi.Growth.SelfDevelopment
 import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
+import Hagi.Probability.AdaptiveSuccess
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
