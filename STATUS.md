@@ -2415,3 +2415,24 @@ triviality_lint 0 flags; DocLint PASS.
    в фактическом wall-clock W_T (конечный горизонт, без асимптотики).
 
 Батарея: CI: PASS (build 9031 green, все линтеры PASS).
+
+## R117 — мост III (сертифицированный) + IV: FrontierProduction + CapabilitySemantics
+
+`Hagi/Growth/FrontierProduction.lean`:
+
+1. **III-a** `injection_law_of_measured`: β-посылка динамики
+   `D_{t+1} ≥ ρD_t + βC_t − ξ_t` сведена к измеримой величине —
+   свежему разногласию экспертов dis_t (mean clipped pairwise logit
+   diff, [0,1]): достаточно `ρD+βC−ξ ≤ κ·dis_t` (GapLaw уже связывает
+   разногласие с merge gain; недостающий кусок gain⇒frontier —
+   архитектурная посылка hD, честно в гипотезах).
+2. **III-b** `certified_cycle_renewal`: композиция с `certified_premise`
+   (R114): измеренная сумма n проб разногласия ≥ n·thr + 2nε ⇒
+   renewal-закон цикла выполнен с вероятностью ≥ 1 − 2e^{−2nε²}.
+   β становится runtime-проверяемой (порог + margin + пробы).
+3. **IV** `CapabilitySound` / `takeoff_lifts_utility`: формальная
+   capability C_t ≤ U_t (полезность над семейством задач) —
+   экспоненциальный takeoff переносится на U. Связка C с реальной
+   моделью — честно premise (audit §9).
+
+Батарея: CI: PASS.

@@ -85,6 +85,7 @@ import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Dynamics.ControllerPolicy
 import Hagi.Probability.ConditionalSuccess
 import Hagi.Probability.CertifiedEstimator
+import Hagi.Growth.FrontierProduction
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
