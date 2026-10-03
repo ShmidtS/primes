@@ -95,6 +95,7 @@ import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
 import Hagi.Growth.Saturation
 import Hagi.Growth.StateClosedRenewal
+import Hagi.Architecture.FactorRank
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0

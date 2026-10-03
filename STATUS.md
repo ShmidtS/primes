@@ -2676,3 +2676,32 @@ fresh-randomness модели R121:
 runtime-измерение; Freedman-усиление (дисперсионное) — открыто.
 
 Батарея: CI: PASS.
+
+## R128 — NMF gap-aware (2606.25715): безопасное ядро в FactorRank
+
+`Hagi/Architecture/FactorRank.lean` — по разбору статьи о
+неотрицательной факторизации и её стыковке с HAGI
+(FactorizedMerge / RankBudget / рост фактор-пространства):
+
+- `nonnegFactorization M k` / `nonnegRank` (sInf):
+  формализация r₊.
+- `rank_le_of_nonnegFactorization` + `rank_le_nonnegRank`:
+  rank(M) ≤ r₊(M) всегда ⇒ gap Δr = r₊ − r ≥ 0; Δr > 0
+  (factorGap) — законная мера дополнительной expert capacity
+  (Growth Gate, диагностический — НЕ теорема о loss).
+- `positive_measure_pos_prob`: ЧЕСТНАЯ вероятностная форма
+  (§12 разбора): μ(F) > 0 ⇒ P(success) > 0 (μ Fᶜ < 1), а НЕ
+  P = 1 — усиленное утверждение статьи в Lean НЕ
+  импортируется (positive measure ≠ full measure).
+- `regimeAFactor/regimeCFactor` + `regimeC_fractional`:
+  трёхрежимная классификация — режим C = ДРОБНЫЙ рост
+  capacity (r < rank W < r₊): рост не обязан быть
+  N → N+1 экспертов, возможны частичные новые направления.
+
+Честные границы: NMF-допущения не переносятся на signed
+transformer weights напрямую; blind factor search (§9) и
+Stiefel→Grassmannian quotient (§11) — вне Lean; для HAGI
+наиболее прямое применение — router/task-expert матрицы
+(M ≥ 0 естественно), а не signed weights (§7 разбора).
+
+Батарея: CI: PASS.
