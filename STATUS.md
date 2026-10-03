@@ -2371,3 +2371,29 @@ cache get!`.
 Пункт «0» рецензии (единая структура состояния) подтверждён уже
 реализованным: `GenState extends GrowthState` (R91), Φ = energy +
 protectedRisk — единый Lyapunov-носитель; MasterHAGI (R111) — capstone.
+
+## R114 — мост II: CertifiedEstimator (Hoeffding на конечных произведениях)
+
+`Hagi/Probability/CertifiedEstimator.lean` (+22 thm/def) — первый механизм
+сертификации `h_emp_`-посылок (рецензия, мост II): конечное произведение
+пространств (события — предикаты, Fintype-суммы, без MeasureTheory).
+
+Цепочка: факторизация MGF (`Finset.prod_univ_sum`) → конечный Markov →
+пер-координатная chord-лемма (из `mgf_hoeffding_ab`, линейный член
+центрирования = 0 — `coord_center_zero`) → Chernoff → оптимум λ=4t/n
+(−λt+nλ²/8 = −2t²/n) → хвосты среднего (замена X↦1−X для нижнего) →
+двусторонний (union bound) → **`certified_premise`**: измеренный margin
+ΣX̂_A + 2nε ≤ ΣX̂_B сертифицирует истинность μ_A ≤ μ_B с вероятностью
+≥ 1 − 2e^{−2nε²}. Это форма, в которую переводятся эмпирические посылки
+(γ, ρ, β, пороги) GainRenewal / FrontierScaling / SafeQPRobust.
+
+Инфраструктурное: `prod_le_prod_real` (ручная мультипликативная
+монотонность — MulLeftMono ℝ недоступен в Mathlib 4.34 module-изоляции);
+`prodPq_mono`/`prodPq_union_le`/`prodPq_compl` на предикатах
+(DecidablePred вместо DecidableEq-ада Finset-событий).
+
+Честная граница: репрезентативность выборки остаётся на стороне
+измерения; сертифицирована статистическая часть (концентрация + union).
+
+Батарея: lake build 9040 green; TrivialLint 1164 thm PASS;
+triviality_lint 0 flags; DocLint PASS.
