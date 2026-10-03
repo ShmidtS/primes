@@ -50,7 +50,7 @@ theorem liveness_merge {k : Type} [Fintype k] [Nonempty k]
     (hdis : ¬ ∃ c : ℝ, ∀ u, d u = c) :
     0 < twoGap p d := by
   by_contra h
-  push_neg at h
+  push Not at h
   have hz : twoGap p d = 0 := le_antisymm h (twoGap_nonneg hp hsum)
   obtain ⟨c, hc⟩ := (twoGap_zero_iff hp hsum).mp hz
   exact hdis ⟨c, hc⟩

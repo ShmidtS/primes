@@ -77,6 +77,8 @@ section NCE
 
 variable {V : Type*} [Fintype V]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The conditional-NCE decomposition is exact.** For any
 target density p and any proposal q with `q v > 0` wherever
 `p v > 0`, the pointwise identity `log p = log q + log(p/q)`
@@ -91,6 +93,8 @@ theorem nce_decomposition (p q : V → ℝ)
   rw [Real.log_div (by exact ne_of_gt hp) (by exact ne_of_gt hq)]
   ring
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The sampling weight is the normalized correction.** The
 importance ratio p/q (positive on the support) is the NCE
 sampling weight; its second moment under q governs the variance

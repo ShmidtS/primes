@@ -76,6 +76,8 @@ namespace Hagi
 
 section Admission
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The variance-admission criterion** (round 44; the niche
 confirmed unoccupied by the wave-5 scout): under the quadratic
 gap law (the empirical h_quad: every candidate's merge-gain

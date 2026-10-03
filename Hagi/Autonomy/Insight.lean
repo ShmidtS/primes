@@ -106,6 +106,8 @@ theorem insight_consolidation_safe {X : Type*} [NormedAddCommGroup X]
 end Consolidation
 end Insight
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **TL;DR internalization drift certificate (the SFTL;DR
 soundness core)**: an insight update carried by a low-rank
 adapter ΔW = A·B (rank r) with insight support kernel
@@ -124,6 +126,8 @@ theorem tldr_drift_null {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
   rw [hx]
   simp [Matrix.mulVec_zero]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The two-tier internalization safety**: composing the
 null-space isolation with the Fisher budget — outside the
 insight support: EXACT zero drift (tldr_drift_null); inside

@@ -126,7 +126,7 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
       simp only [Pi.neg_apply, Set.mem_Icc]
       constructor <;> linarith
     have hzero' : μ[-N j] = 0 := by
-      show ∫ (x : Ω), -(N j x) ∂μ = 0
+      change ∫ (x : Ω), -(N j x) ∂μ = 0
       rw [integral_neg, h_zero j]
       ring
     exact hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero
@@ -163,7 +163,7 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
     have hset : {ω : Ω | (m : ℝ) * ε ≤ ∑ j, -N j ω}
         = {ω : Ω | (m : ℝ) * ε ≤ -∑ j, N j ω} := by
       ext ω
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       constructor <;> intro h <;> simpa using h
     rw [hset]
     exact htail
@@ -313,10 +313,10 @@ theorem minibatch_inner_concentration {m : ℕ} (hm : 0 < m)
     intro i
     rw [hinner i]
     by_contra hcontra
-    push_neg at hcontra
+    push Not at hcontra
     have hnot := hω i
-    simp only [Set.mem_setOf_eq] at hnot
-    push_neg at hnot
+    simp only [Set.mem_ofPred_eq] at hnot
+    push Not at hnot
     have hmp : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
     have hneg : ∑ j, -(⟪xi i j ω, d⟫_ℝ) = -∑ j, ⟪xi i j ω, d⟫_ℝ := by
       simp [Finset.sum_neg_distrib]
@@ -459,10 +459,10 @@ theorem minibatch_inner_concentration_upper {m : ℕ} (hm : 0 < m)
     intro i
     rw [hinner i]
     by_contra hcontra
-    push_neg at hcontra
+    push Not at hcontra
     have hnot := hω i
-    simp only [Set.mem_setOf_eq] at hnot
-    push_neg at hnot
+    simp only [Set.mem_ofPred_eq] at hnot
+    push Not at hnot
     have hmp : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
     have h1 : ∑ j, ⟪xi i j ω, d⟫_ℝ
         < (m : ℝ) * noiseEps K sigma d m delta := by linarith

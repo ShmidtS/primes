@@ -119,7 +119,7 @@ rates, the sign of L_m − L_s is CONSTANT in C: the whole
 budget comparison reduces to the constant comparison
 d_m·exp(−u·C₀) < d_s. -/
 theorem budget_gap_sign_const (dM dS u C C0 : ℝ)
-    (hdM : 0 < dM) (hdS : 0 < dS) :
+    (_hdM : 0 < dM) (_hdS : 0 < dS) :
     dM * Real.exp (u * (C - C0)) < dS * Real.exp (u * C)
       ↔ dM * Real.exp (-(u * C0)) < dS := by
   have hpos : (0:ℝ) < Real.exp (u * C) := Real.exp_pos _
@@ -180,7 +180,7 @@ theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
       exact this
     · intro h
       by_contra hcon
-      push_neg at hcon
+      push Not at hcon
       have hge : Real.log (dS/dM) ≤ Real.log (c^(-(C0/kappa))) :=
         Real.log_le_log (by positivity) hcon
       rw [Real.log_rpow hc] at hge

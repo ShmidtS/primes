@@ -144,7 +144,7 @@ theorem jensen_log (q W : V → ℝ)
 unbiased.** The q-expectation of e^{z(v)}/q(v) is exactly Z
 (the proposal reweights the sum; no approximation). -/
 theorem partEst_unbiased (z q : V → ℝ)
-    (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
+    (hq : ∀ v, 0 < q v) (_hq1 : ∑ v, q v = 1) :
     ∑ v, q v * impW z q v = partZ z := by
   unfold partZ impW
   refine Finset.sum_congr rfl fun v _ => ?_

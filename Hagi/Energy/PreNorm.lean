@@ -102,7 +102,7 @@ scale (~1e-4 per step, the docstring) sits two orders below
 the half-step: the fp32-keep is REQUIRED for every 1D-gain
 parameter. -/
 theorem bf16_frozen_update (delta : ℝ)
-    (hdelta : 0 < delta) (hdelta2 : delta < 2^(-8 : ℝ)) :
+    (_hdelta : 0 < delta) (hdelta2 : delta < 2^(-8 : ℝ)) :
     -- the bf16 round of 1 + delta lands back at 1: the
     -- half-step 2⁻⁸ = 0.00390625 is the rounding threshold
     (1 + delta) < 1 + 2^(-8 : ℝ) := by

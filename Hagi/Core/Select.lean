@@ -185,11 +185,11 @@ theorem selection_hurts :
       rw [this, mACp]
     have hAB : ceOneHot 1 (ens zA zB) = Real.log 17 := by
       have c0 : (ens zA zB) 0 = Real.log 4 := by
-        show (zA 0 + zB 0) / 2 = Real.log 4
+        change (zA 0 + zB 0) / 2 = Real.log 4
         simp only [zA, zB, Matrix.cons_val_zero]
         exact mABp
       have c1 : (ens zA zB) 1 = -(Real.log 4) := by
-        show (zA 1 + zB 1) / 2 = -(Real.log 4)
+        change (zA 1 + zB 1) / 2 = -(Real.log 4)
         simp only [zA, zB, Matrix.cons_val_one]
         exact mABn
       unfold ceOneHot lse
@@ -201,11 +201,11 @@ theorem selection_hurts :
       linarith
     have hAC : ceOneHot 1 (ens zA zC) = Real.log 5 := by
       have c0 : (ens zA zC) 0 = Real.log 2 := by
-        show (zA 0 + zC 0) / 2 = Real.log 2
+        change (zA 0 + zC 0) / 2 = Real.log 2
         simp only [zA, zC, Matrix.cons_val_zero]
         exact mACp
       have c1 : (ens zA zC) 1 = -(Real.log 2) := by
-        show (zA 1 + zC 1) / 2 = -(Real.log 2)
+        change (zA 1 + zC 1) / 2 = -(Real.log 2)
         simp only [zA, zC, Matrix.cons_val_one]
         exact mACn
       unfold ceOneHot lse

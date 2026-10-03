@@ -39,7 +39,7 @@ theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
   have hgt := gating_tail_bound hv c s
   have hsq : ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ < tol := by
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     have hnn : 0 ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ := norm_nonneg _
     have hms : tol * tol ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ * ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ :=
       mul_self_le_mul_self htol hcon

@@ -84,16 +84,16 @@ theorem tern_distortion_round (x : ℝ) (hx : -(1:ℝ) ≤ x) (hx2 : x ≤ 1) :
     |x - tern x| ≤ 1/2 := by
   unfold tern
   rcases lt_or_ge x (-(1/2)) with h | h
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have hres : |x - (-1)| = x + 1 := by
       rw [sub_neg_eq_add]
       rw [abs_of_nonneg (by linarith : (0:ℝ) ≤ x + 1)]
     rw [hres]
     linarith
   · rcases lt_or_ge x (1/2) with h2 | h2
-    · rw [if_neg (by linarith : ¬(x < -(1/2))), if_pos h2]
+    · rw [ite_eq_right (by linarith : ¬(x < -(1/2))), ite_eq_left h2]
       exact abs_le.mpr (And.intro (by linarith) (by linarith))
-    · rw [if_neg (by linarith : ¬(x < -(1/2))), if_neg (by linarith : ¬(x < 1/2))]
+    · rw [ite_eq_right (by linarith : ¬(x < -(1/2))), ite_eq_right (by linarith : ¬(x < 1/2))]
       have hres : |x - 1| = 1 - x := by
         rw [abs_of_nonpos (by linarith : x - 1 ≤ 0)]
         ring

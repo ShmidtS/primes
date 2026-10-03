@@ -88,8 +88,8 @@ theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
   have hmulite : ∀ i : ι, (if i ∈ sᶜ then c i else 0) • v i
       = if i ∈ sᶜ then c i • v i else 0 := fun i => by
     by_cases h : i ∈ sᶜ
-    · rw [if_pos h, if_pos h]
-    · rw [if_neg h, if_neg h, zero_smul]
+    · rw [ite_eq_left h, ite_eq_left h]
+    · rw [ite_eq_right h, ite_eq_right h, zero_smul]
   have hfil : (Finset.univ : Finset ι).filter (fun j => j ∈ sᶜ) = sᶜ := by
     ext j; simp [Finset.mem_filter]
   have htail : ∑ i ∈ sᶜ, c i • v i = ∑ i, (if i ∈ sᶜ then c i else 0) • v i := by
@@ -99,8 +99,8 @@ theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
   have hsqite : ∀ i : ι, (if i ∈ sᶜ then c i else 0) ^ 2
       = if i ∈ sᶜ then c i ^ 2 else 0 := fun i => by
     by_cases h : i ∈ sᶜ
-    · rw [if_pos h, if_pos h]
-    · rw [if_neg h, if_neg h]
+    · rw [ite_eq_left h, ite_eq_left h]
+    · rw [ite_eq_right h, ite_eq_right h]
       norm_num
   have htail2 : ∑ i ∈ sᶜ, c i ^ 2 = ∑ i, (if i ∈ sᶜ then c i else 0) ^ 2 := by
     simp only [hsqite]
@@ -152,9 +152,9 @@ theorem topk_routing_optimal {ι : Type*} [Fintype ι] [DecidableEq ι]
         _ ≤ ∑ i ∈ s \ s', c i ^ 2 := Finset.sum_le_sum hm.2
   -- split off the common intersection and conclude via complements
   have hsdi : s \ (s ∩ s') = s \ s' := by
-    ext i; simp [Finset.mem_sdiff, Finset.mem_inter]
+    ext i; simp [Finset.mem_sdiff]
   have hsdi' : s' \ (s' ∩ s) = s' \ s := by
-    ext i; simp [Finset.mem_sdiff, Finset.mem_inter]
+    ext i; simp [Finset.mem_sdiff]
   have hsub : s ∩ s' ⊆ s := fun _ h => (Finset.mem_inter.1 h).1
   have hsub' : s' ∩ s ⊆ s' := fun _ h => (Finset.mem_inter.1 h).1
   have hd1 := Finset.sum_sdiff (f := fun i => c i ^ 2) hsub
@@ -317,7 +317,7 @@ the dual-feasibility structure not yet formalized.
 -/
 
 theorem safeqp_cumulative (E eta dn : ℕ → ℝ) (Emin : ℝ)
-    (hE : ∀ t, Emin ≤ E t)
+    (_hE : ∀ t, Emin ≤ E t)
     (hstep : ∀ t, E (t + 1) ≤ E t - eta t * dn t ^ 2 / 2)
     (n : ℕ) :
     (∑ t ∈ Finset.range n, eta t * dn t ^ 2) / 2 + E n ≤ E 0 := by

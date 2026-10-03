@@ -55,7 +55,7 @@ def chi2 (a : ZMod 2) : ℤ := if a = 0 then 1 else -1
 
 theorem chi2_zero : chi2 0 = 1 := rfl
 
-theorem chi2_one : chi2 1 = -1 := if_neg (by decide)
+theorem chi2_one : chi2 1 = -1 := ite_eq_right (by decide)
 
 theorem chi2_sq (a : ZMod 2) : chi2 a * chi2 a = 1 := by
   rcases zmod2_cases a with h | h <;> simp [chi2, h]
@@ -137,7 +137,7 @@ theorem sum_chi2_eq_zero {w : Fin k → ZMod 2} (hw : w ≠ 0) :
       rw [Finset.sum_eq_single l₀]
       · simp [hs, hl₀]
       · intro l _ hl
-        rw [hs, Pi.single_apply, if_neg hl, mul_zero]
+        rw [hs, Pi.single_apply, ite_eq_right hl, mul_zero]
       · intro h
         exact absurd (Finset.mem_univ l₀) h
     rw [h1, h2, hl₀, ← chi2_mul, chi2_one]

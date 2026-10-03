@@ -126,7 +126,7 @@ theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
 /-- **The linear compounding law.** If each cycle improves the
 mean by at least `c`, the mean after `k` cycles is at most
 `M₀ − k • c`. -/
-theorem genMean_compound (M₀ c : ℝ) (hc : 0 < c)
+theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
     (step : ℕ → ℝ → ℝ)
     (hstep : ∀ k M, step k M ≤ M - c)
     (iter : ℕ → ℝ) (hiter0 : iter 0 = M₀)
@@ -156,7 +156,7 @@ the recursion's stationary disagreement. The recursion dies
 exactly when `G* < ε` — the fresh leaves can no longer
 disagree above the floor. -/
 theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
-    (hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)
+    (_hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)
     (hstep : ∀ t, G (t + 1) ≤ ρ * G t + D) :
     ∀ t, G t ≤ ρ ^ t * G₀ + (D * (1 - ρ ^ t)) / (1 - ρ) := by
   intro t

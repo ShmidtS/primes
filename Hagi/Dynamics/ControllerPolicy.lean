@@ -25,7 +25,7 @@ open Real Finset
 namespace Hagi
 
 theorem ratio_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest j : ℕ) (B : ℝ)
-    (hK : ∀ i, 0 < K i)
+    (_hK : ∀ i, 0 < K i)
     (hratio : ∀ i, Gam i / K i ≤ Gam ibest / K ibest)
     (hB : 0 ≤ B) :
     Gam j * (B / K j) ≤ Gam ibest * (B / K ibest) := by

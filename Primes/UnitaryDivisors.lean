@@ -22,7 +22,7 @@ theorem prime_pow_dvd_of_unitary (n d p : ℕ) (hn : n ≠ 0) (hp : Nat.Prime p)
     exact hp.ne_one (Nat.eq_one_of_dvd_one hgcd)
   have hd_pos : 0 < d := by
     by_contra h
-    push_neg at h
+    push Not at h
     have hd0 : d = 0 := Nat.le_zero.mp h
     rw [hd0] at hd_dvd
     exact absurd (Nat.eq_zero_of_zero_dvd hd_dvd) hn
@@ -45,7 +45,7 @@ theorem prime_pow_dvd_of_unitary (n d p : ℕ) (hn : n ≠ 0) (hp : Nat.Prime p)
   rw [hp.pow_dvd_iff_le_factorization hd_ne0]; exact hd_fac_eq.ge
 
 theorem allUnitaryDivisors_mul_of_prime_pow_coprime
-    (p a m : ℕ) (hp : Nat.Prime p) (ha : 0 < a) (hm : 0 < m)
+    (p a m : ℕ) (hp : Nat.Prime p) (_ha : 0 < a) (hm : 0 < m)
     (hcop : Nat.Coprime (p ^ a) m) :
     allUnitaryDivisors (p ^ a * m) =
       allUnitaryDivisors m ∪ (allUnitaryDivisors m).image (fun d => p ^ a * d) := by
@@ -187,7 +187,7 @@ theorem sum_allUnitaryDivisors_even_of_odd (m : ℕ) (hm_odd : Odd m) (hm3 : 3 �
         ((Nat.not_even_iff_odd).mpr hm_odd)
     · exact (Nat.not_even_iff_odd).mp h_even
   have hP_odd : Odd P := by
-    show Odd (p ^ a)
+    change Odd (p ^ a)
     induction a with
     | zero => exact ⟨0, rfl⟩
     | succ a _ =>
@@ -197,7 +197,7 @@ theorem sum_allUnitaryDivisors_even_of_odd (m : ℕ) (hm_odd : Odd m) (hm3 : 3 �
   have hPm_eq : P * m' = m := Nat.mul_div_cancel' hP_dvd
   have hm'_pos : 0 < m' := by
     by_contra h
-    push_neg at h
+    push Not at h
     have hm'0 : m' = 0 := Nat.le_zero.mp h
     rw [hm'0, Nat.mul_zero] at hPm_eq
     omega
@@ -218,7 +218,7 @@ theorem sum_allUnitaryDivisors_even_of_odd (m : ℕ) (hm_odd : Odd m) (hm3 : 3 �
     have hp_dvd_m' : p ∣ m' := hp_dvd_gcd.trans (Nat.gcd_dvd_right P m')
     have this : p ^ (a + 1) ∣ m := by
       rw [Nat.pow_succ, ← hPm_eq]
-      show P * p ∣ P * m'
+      change P * p ∣ P * m'
       exact Nat.mul_dvd_mul_left P hp_dvd_m'
     rw [hp.pow_dvd_iff_le_factorization (by omega : m ≠ 0)] at this
     have ha_eq : a = m.factorization p := rfl
@@ -263,7 +263,7 @@ theorem sum_allUnitaryDivisors_even_of_odd (m : ℕ) (hm_odd : Odd m) (hm3 : 3 �
     have hm_eq : m = P * m' := hPm_eq.symm
     have hPP : P = p ^ a := rfl
     rw [hm_eq, hPP, h_sum]
-    show Even ((1 + P) * ∑ d ∈ allUnitaryDivisors m', d)
+    change Even ((1 + P) * ∑ d ∈ allUnitaryDivisors m', d)
     exact Nat.even_mul.mpr (Or.inl h1P_even)
 
 /-- For odd n with ≥ 2 prime factors, 4 ∣ sum of all unitary divisors. -/
@@ -294,7 +294,7 @@ theorem sum_allUnitaryDivisors_dvd4 (n : ℕ) (hn_odd : Odd n) (hn3 : 3 ≤ n)
         ((Nat.not_even_iff_odd).mpr hn_odd)
     · exact (Nat.not_even_iff_odd).mp h_even
   have hP_odd : Odd P := by
-    show Odd (p ^ a)
+    change Odd (p ^ a)
     induction a with
     | zero => exact ⟨0, rfl⟩
     | succ a _ =>
@@ -304,13 +304,13 @@ theorem sum_allUnitaryDivisors_dvd4 (n : ℕ) (hn_odd : Odd n) (hn3 : 3 ≤ n)
   have hPm_eq : P * m = n := Nat.mul_div_cancel' hP_dvd
   have hm_pos : 0 < m := by
     by_contra h
-    push_neg at h
+    push Not at h
     have hm0 : m = 0 := Nat.le_zero.mp h
     rw [hm0, Nat.mul_zero] at hPm_eq
     omega
   have hm3 : 3 ≤ m := by
     by_contra h
-    push_neg at h
+    push Not at h
     have : m ≤ 2 := by omega
     rcases (show m = 1 ∨ m = 2 by omega) with h1 | h2
     · rw [h1] at hPm_eq
@@ -343,7 +343,7 @@ theorem sum_allUnitaryDivisors_dvd4 (n : ℕ) (hn_odd : Odd n) (hn3 : 3 ≤ n)
     have hp_dvd_m : p ∣ m := hp_dvd_gcd.trans (Nat.gcd_dvd_right P m)
     have this : p ^ (a + 1) ∣ n := by
       rw [Nat.pow_succ, ← hPm_eq]
-      show P * p ∣ P * m
+      change P * p ∣ P * m
       exact Nat.mul_dvd_mul_left P hp_dvd_m
     rw [hp.pow_dvd_iff_le_factorization (by omega : n ≠ 0)] at this
     have ha_eq : a = n.factorization p := rfl

@@ -125,6 +125,8 @@ noncomputable def divField {K : Type*} [Fintype K] (p : K → Corpus V)
     (w : K → ℝ) : ℝ :=
   ∑ i, w i * KLdiv ((p i).dist) (mixtureCorpus p w)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **KL ≥ 0 with the equality condition** (the per-term log
 bound `log x ≤ x − 1` and its strictness). The D-field's
 building block: a weighted KL between two probability vectors
@@ -170,6 +172,8 @@ theorem log_eq_sub_one_iff_one {x : ℝ} (hx : 0 < x)
   rw [Real.exp_log hx] at h1
   linarith [h1, h2]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The mixture is strictly positive (each corpus positive,
 weights positive; the support is nonempty by hypothesis —
 recorded once, used by both mixture lemmas). -/
@@ -181,6 +185,8 @@ theorem mixtureCorpus_pos (p : K → Corpus V) (w : K → ℝ)
   unfold mixtureCorpus
   exact Finset.sum_pos (fun i _ => mul_pos (hw i) (hp i v)) hne
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The mixture sums to 1 (a probability vector). -/
 theorem mixtureCorpus_sum_one (p : K → Corpus V) (w : K → ℝ)
     (hsum : ∀ i, ∑ v, (p i).dist v = 1) (hw1 : ∑ i, w i = 1) :
@@ -204,6 +210,8 @@ theorem log_lt_sub_one' {x : ℝ} (hx : 0 < x) (hne : x ≠ 1) :
     linarith [h2]
   exact (Real.exp_lt_exp).mp h3
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **KL = 0 forces the distributions to coincide** (the
 strictness of the log bound at every point): the equality case
 of `kl_nonneg`. -/
@@ -270,6 +278,8 @@ theorem kl_zero_iff_eq (p q : V → ℝ)
   rw [hpe] at hstrict2
   linarith [hgv0, hstrict2]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **D = 0 iff all the corpora in the mixture are identical**
 (each equals the mixture — hence pairwise identical). The
 degenerate-mixture death: a mixture of clones replenishes
@@ -348,6 +358,8 @@ theorem log_ratio_add (a b c d : ℝ) (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) (hd
   have h1 : (a * b) / (c * d) = (a / c) * (b / d) := by field_simp
   rw [h1, Real.log_mul (by positivity) (by positivity)]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem kl_product {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
     (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
     (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1) :
@@ -395,6 +407,8 @@ theorem kl_product {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → �
   rw [hlast]
 
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Corollary (D_L ≥ D_1, product case)**: the KL divergence
 of a product distribution dominates the divergence of its
 marginals. Applied token-wise along a document, this shows the
@@ -404,7 +418,7 @@ closing the D_L ≥ D_1 gap for independent-position models
 theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
     (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
     (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1)
-    (hsumq1 : ∑ v, q1 v = 1) (hsumq2 : ∑ v, q2 v = 1) :
+    (_hsumq1 : ∑ v, q1 v = 1) (hsumq2 : ∑ v, q2 v = 1) :
     KLdiv p1 q1 ≤ KLdiv (fun uv : V × V => p1 uv.1 * p2 uv.2)
       (fun uv : V × V => q1 uv.1 * q2 uv.2) := by
   rw [kl_product p1 q1 p2 q2 hp1 hq1 hp2 hq2 hsum1 hsum2]
@@ -413,6 +427,8 @@ theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 
 
 end Product
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **DField smoothing (the support gap fix)**: mixing any
 nonnegative mass function p with the uniform u at rate
 α ∈ (0,1) yields a STRICTLY positive distribution —

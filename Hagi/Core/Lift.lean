@@ -193,7 +193,7 @@ theorem mixerQ_orthogonal (θ : ℝ) :
   ext i j
   fin_cases i <;> fin_cases j <;>
     simp [mixerQ, Matrix.mul_apply, Matrix.transpose_apply,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Matrix.cons_val_zero, Matrix.cons_val_one,
       Fin.sum_univ_three]
   all_goals linarith [key]
 
@@ -207,13 +207,13 @@ theorem mixerQ_root_fixed (θ : ℝ) :
   ext i
   fin_cases i
   · simp [mixerQ, Matrix.mulVec, dotProduct,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Matrix.cons_val_zero, Matrix.cons_val_one,
       Fin.sum_univ_three]
   · simp [mixerQ, Matrix.mulVec, dotProduct,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Matrix.cons_val_zero, Matrix.cons_val_one,
       Fin.sum_univ_three]
   · simp [mixerQ, Matrix.mulVec, dotProduct,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Matrix.cons_val_zero, Matrix.cons_val_one,
       Fin.sum_univ_three]
 
 end MixerParam

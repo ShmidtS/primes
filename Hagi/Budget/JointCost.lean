@@ -117,7 +117,7 @@ the parameters (V/(V + 6LH)) and any body speedup factor
 corollaries (V=32768, L=3): 1.0703 (H=128), 1.2108 (H=384),
 1.6329 (H=1152) — upper bounds BEFORE the shared attention
 cost. -/
-theorem amdahl_ceiling (f k : ℝ) (hf : 0 < f) (hf1 : f < 1) (hk : 0 < k) (hk1 : k ≤ 1) :
+theorem amdahl_ceiling (f k : ℝ) (hf : 0 < f) (hf1 : f < 1) (hk : 0 < k) (_hk1 : k ≤ 1) :
     1 / (f + (1 - f) * k) ≤ 1 / f := by
   have h1 : f + (1 - f) * k ≥ f := by nlinarith
   have h2 : (0:ℝ) < f + (1 - f) * k := by nlinarith

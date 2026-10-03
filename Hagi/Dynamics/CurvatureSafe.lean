@@ -29,7 +29,7 @@ linearized constraint ⟪g_i, d⟫ ≥ −ε_i (the SafeQP feasible
 set) and L_i-Lipschitz gradients (h_emp_smooth), the actual
 loss change on domain i is at most ε_i + (L_i/2)‖d‖². -/
 theorem safeqp_second_order (inner eps L dnorm dL : ℝ)
-    (hfeas : -eps ≤ inner) (hL : 0 ≤ L)
+    (hfeas : -eps ≤ inner) (_hL : 0 ≤ L)
     (h_emp_smooth : dL ≤ -inner + L * dnorm ^ 2 / 2) :
     dL ≤ eps + L * dnorm ^ 2 / 2 := by
   linarith

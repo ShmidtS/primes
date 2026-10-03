@@ -270,7 +270,7 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
   have hlogmono : Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
       ≤ Real.log (Real.exp (M ^ 2 / 2)) := Real.log_le_log hpos hle
   rw [Real.log_exp] at hlogmono
-  show (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
+  change (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
   nlinarith [hlogmono]
 
 /-- **The pre-gate skip certificate (R59)**: if the pool's
@@ -350,6 +350,8 @@ theorem chord_weighted {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
 
 variable {k : Type} [Fintype k] [Nonempty k] [DecidableEq k]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Domain-orthogonality guarantees the ensemble gap**
 (the tree-of-domains architecture theorem): if some token
 pair (u,v) carries pairwise disagreement |d_u − d_v| ≥ δ

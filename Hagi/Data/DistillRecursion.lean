@@ -101,6 +101,8 @@ def freshMix (ν : ℝ) (p d : V → ℝ) : V → ℝ :=
 
 /-! ### The mixture: positivity and normalization -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem freshMix_pos (ν : ℝ) (p d : V → ℝ) (hν : 0 ≤ ν) (hν1 : ν ≤ 1)
     (hp : ∀ v, 0 < p v) (hd : ∀ v, 0 < d v) :
     ∀ v, 0 < freshMix ν p d v := by
@@ -113,6 +115,8 @@ theorem freshMix_pos (ν : ℝ) (p d : V → ℝ) (hν : 0 ≤ ν) (hν1 : ν �
     norm_num
     exact hp v
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem freshMix_sum_one (ν : ℝ) (p d : V → ℝ)
     (hsp : ∑ v, p v = 1) (hsd : ∑ v, d v = 1) :
     ∑ v, freshMix ν p d v = 1 := by
@@ -122,6 +126,8 @@ theorem freshMix_sum_one (ν : ℝ) (p d : V → ℝ)
 
 /-! ### CLAIM 1: entropy concavity of the mixture -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Entropy concavity (CLAIM 1, THEOREM).** The training
 target's entropy is at least the weighted entropies:
 `H((1−ν)p + νd) ≥ (1−ν)·H(p) + ν·H(d)`. Entropy is gained by
@@ -194,6 +200,8 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
 
 /-! ### CLAIM 2 (the honest form): the true entropy–KL identity -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The true entropy–KL identity (CLAIM 2, honest form).**
 The student's cross-entropy against the target is EXACTLY the
 target entropy plus the divergence:
@@ -215,6 +223,8 @@ theorem entropy_kl_ce_identity (m q : V → ℝ)
 
 /-! ### The certified step -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The per-generation entropy inequality (CLAIM 1 + the
 certified step).** If generation k+1's entropy is certified
 within δ of its training target's (the `hcert` hypothesis — the
@@ -239,6 +249,8 @@ theorem distill_step_entropy (pNext pK d : V → ℝ) (ν δ : ℝ)
 
 /-! ### CLAIM 3: the closed-form recursive floor -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The recursive entropy floor (CLAIM 3, MAIN THEOREM).**
 For a generation sequence p_k where EVERY step is certified
 (each generation's entropy within δ of its fresh-mix target),
@@ -254,7 +266,7 @@ with δ small and ν fixed, the entropy CANNOT collapse below the
 floor — model collapse is impossible under certified recursive
 self-distillation with fresh data. -/
 theorem distill_entropy_recurrence (p : ℕ → V → ℝ) (d : V → ℝ) (ν δ : ℝ)
-    (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ)
+    (hν : 0 < ν) (hν1 : ν ≤ 1) (_hδ : 0 ≤ δ)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
     (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ
@@ -288,6 +300,8 @@ theorem distill_entropy_recurrence (p : ℕ → V → ℝ) (d : V → ℝ) (ν �
       rw [pow_succ (1 - ν) T, mul_comm ((1 - ν)^T) (1 - ν)]]
     linarith
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The entropy floor, asymptotic form (CLAIM 3).** The same
 closed form rewritten as "floor minus an exponentially
 vanishing correction":
@@ -317,6 +331,8 @@ theorem entropy_floor (p : ℕ → V → ℝ) (d : V → ℝ) (ν δ : ℝ)
 
 /-! ### CLAIM 4: fresh data prevents collapse -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Fresh data prevents collapse (CLAIM 4, the invariant
 form).** If the initial entropy is at or above the floor
 `H(p_0) ≥ H(p_data) − δ/ν`, then the entropy stays above the
@@ -344,6 +360,8 @@ theorem fresh_data_prevents_collapse (p : ℕ → V → ℝ) (d : V → ℝ) (ν
     mul_nonpos_of_nonneg_of_nonpos (pow_nonneg hc T) hB
   linarith
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Fresh data prevents collapse, uniform ε form (CLAIM 4).**
 With the certified error δ at most ν·ε and the initial entropy
 at least H(p_data) − ε, the entropy never falls below
@@ -353,7 +371,7 @@ any ε-prevention budget ε is met by certified training with
 error δ ≤ ν·ε. -/
 theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → ℝ)
     (ν δ ε : ℝ)
-    (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ) (hε : 0 ≤ ε)
+    (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ) (_hε : 0 ≤ ε)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
     (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ

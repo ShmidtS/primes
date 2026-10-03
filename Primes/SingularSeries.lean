@@ -14,6 +14,46 @@ open scoped BigOperators
 
 /-! ## Divisor correction product D(k) = ∏_{p|k, p>2} (p-1)/(p-2) -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
+/-- `Finset.one_le_prod` replacement for `ℝ` (mathlib 4.34 requires `MulLeftMono`,
+not satisfiable for `ℝ`). -/
+private lemma one_le_prod_real {ι : Type*} [DecidableEq ι] (s : Finset ι) (f : ι → ℝ)
+    (h : ∀ i ∈ s, 1 ≤ f i) : 1 ≤ ∏ i ∈ s, f i := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+      rw [Finset.prod_insert ha]
+      calc 1 = 1 * 1 := by ring
+        _ ≤ f a * 1 := mul_le_mul_of_nonneg_right (h a (Finset.mem_insert_self a s)) (by norm_num)
+        _ ≤ f a * ∏ i ∈ s, f i :=
+            mul_le_mul_of_nonneg_left (ih fun i hi => h i (Finset.mem_insert_of_mem hi))
+              (by linarith [h a (Finset.mem_insert_self a s)])
+
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
+/-- `Finset.prod_le_prod` replacement for `ℝ`. -/
+private lemma prod_le_prod_real {ι : Type*} [DecidableEq ι] (s : Finset ι) (f g : ι → ℝ)
+    (hnn : ∀ i ∈ s, 0 ≤ f i) (hfg : ∀ i ∈ s, f i ≤ g i) :
+    ∏ i ∈ s, f i ≤ ∏ i ∈ s, g i := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+      rw [Finset.prod_insert ha, Finset.prod_insert ha]
+      have ih' := ih (fun i hi => hnn i (Finset.mem_insert_of_mem hi))
+        (fun i hi => hfg i (Finset.mem_insert_of_mem hi))
+      have hnn_a := hnn a (Finset.mem_insert_self a s)
+      have hfg_a := hfg a (Finset.mem_insert_self a s)
+      have hpg : 0 ≤ ∏ i ∈ s, g i :=
+        Finset.prod_nonneg fun i hi =>
+          le_trans (hnn i (Finset.mem_insert_of_mem hi))
+            (hfg i (Finset.mem_insert_of_mem hi))
+      have hpfa : 0 ≤ ∏ i ∈ s, f i := Finset.prod_nonneg fun i hi =>
+        hnn i (Finset.mem_insert_of_mem hi)
+      have hpga : 0 ≤ g a := le_trans hnn_a hfg_a
+      exact mul_le_mul hfg_a ih' hpfa hpga
+
+
 def divisorCorrectionProduct (k : Nat) : ℝ :=
   (Finset.range (k + 1)).prod fun p =>
     if Nat.Prime p ∧ 2 < p ∧ p ∣ k then ((p : ℝ) - 1) / ((p : ℝ) - 2) else 1
@@ -72,7 +112,7 @@ theorem divisorCorrectionProduct_pow_two (a : Nat) :
 
 theorem divisorCorrectionProduct_ge_one (k : Nat) : 1 ≤ divisorCorrectionProduct k := by
   rw [divisorCorrectionProduct_eq_primeFactors]
-  apply Finset.one_le_prod
+  apply one_le_prod_real
   rintro p hp
   have hp_real : (2 : ℝ) < p := by exact_mod_cast (Finset.mem_filter.mp hp).2
   rw [le_div_iff₀ (by linarith : 0 < (p : ℝ) - 2)]; linarith
@@ -89,7 +129,7 @@ theorem divisorCorrectionProduct_primorial (m : Nat) (hm : 2 ≤ m) :
       ∀ y ∈ (Finset.range m).filter (fun i => 2 < Nat.nth Nat.Prime i),
       Nat.nth Nat.Prime x = Nat.nth Nat.Prime y → x = y := by
     intro x _ y _ hxy
-    exact (Nat.nth_strictMono Nat.infinite_setOf_prime).injective hxy
+    exact (Nat.nth_strictMono Nat.infinite_setOfPred_prime).injective hxy
   rw [Finset.prod_image hinj]
   congr 1; ext i
   simp only [Finset.mem_filter, Finset.mem_range]
@@ -101,7 +141,7 @@ theorem divisorCorrectionProduct_primorial (m : Nat) (hm : 2 ≤ m) :
     have h1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
     have hge : 1 ≤ i := by omega
     have hle : Nat.nth Nat.Prime 1 ≤ Nat.nth Nat.Prime i :=
-      (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge
+      (Nat.nth_strictMono Nat.infinite_setOfPred_prime).le_iff_le.mpr hge
     rw [h1] at hle; omega
 
 theorem nth_prime_ge_add_two (i : Nat) (hi : 2 ≤ i) :
@@ -112,7 +152,7 @@ theorem nth_prime_ge_add_two (i : Nat) (hi : 2 ≤ i) :
     by_cases hi2 : 2 ≤ i
     · have hpi : i + 2 ≤ Nat.nth Nat.Prime i := ih hi2
       have hpi_succ : Nat.nth Nat.Prime i < Nat.nth Nat.Prime (i + 1) :=
-        (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (by omega : i < i + 1)
+        (Nat.nth_strictMono Nat.infinite_setOfPred_prime).lt_iff_lt.mpr (by omega : i < i + 1)
       omega
     · have hi1 : i = 1 := by omega
       subst hi1
@@ -155,14 +195,14 @@ theorem divisorCorrectionProduct_primorial_bound (m : Nat) (hm : 2 ≤ m) :
   rw [divisorCorrectionProduct_primorial m (by omega)]
   trans ((Finset.range m).filter (fun i => 0 < i)).prod
       (fun i => ((i : ℝ) + 1) / (i : ℝ))
-  · apply Finset.prod_le_prod
+  · apply prod_le_prod_real
     · intro i hi
       have hi_pos : 0 < i := (Finset.mem_filter.mp hi).2
       have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
       have hpi_ge3 : (3 : ℝ) ≤ Nat.nth Nat.Prime i := by
         have hge1 : 1 ≤ i := by omega
         have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
-        have hle := (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr hge1
+        have hle := (Nat.nth_strictMono Nat.infinite_setOfPred_prime).le_iff_le.mpr hge1
         rw [hp1] at hle; exact_mod_cast hle
       exact div_nonneg (by linarith) (by linarith)
     · intro i hi

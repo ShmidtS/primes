@@ -245,7 +245,7 @@ def costJoint (S : GrowthState X) : ℝ := S.jointRisk
 
 /-- The compress-stage gain: ZERO by construction — compression buys
 INFERENCE cost, not Φ (honest: no energy gain is claimed). -/
-def gainCompress (S : GrowthState X) : ℝ := 0
+def gainCompress (_S : GrowthState X) : ℝ := 0
 
 /-- The compress-stage Φ-cost: the ternary distortion κ·s/2
 (`compress_stage`) plus protected risk. -/

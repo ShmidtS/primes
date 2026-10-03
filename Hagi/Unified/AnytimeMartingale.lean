@@ -133,7 +133,7 @@ theorem ville_supermartingale {L : ℕ → Ω → ℝ} (hL : Supermartingale L �
       have hrw : {ω | ∃ t, t ≤ k ∧ P ω t}
           = ⋃ t ∈ Finset.range (k + 1), {ω | P ω t} := by
         ext ω
-        simp only [Set.mem_iUnion, Finset.mem_range, Nat.lt_succ_iff, Set.mem_setOf_eq]
+        simp only [Set.mem_iUnion, Finset.mem_range, Nat.lt_succ_iff, Set.mem_ofPred_eq]
         constructor
         · rintro ⟨t, htk, ht⟩; exact ⟨t, htk, ht⟩
         · rintro ⟨t, htk, ht⟩; exact ⟨t, htk, ht⟩
@@ -153,33 +153,33 @@ theorem ville_supermartingale {L : ℕ → Ω → ℝ} (hL : Supermartingale L �
         MeasurableSet[𝒢 k] ({ω | ¬ ∃ t, P ω t} ∩ {ω | (n : ℕ∞) ≤ (k : ℕ∞)}) := by
       by_cases hnk : n ≤ k
       · have huk : {ω : Ω | (n : ℕ∞) ≤ (k : ℕ∞)} = Set.univ := by
-          ext ω; simp [ENat.coe_le_coe, hnk]
+          ext ω; simp [ hnk]
         rw [huk, Set.inter_univ]
         have hnc : {ω | ¬ ∃ t, P ω t}
             = (⋃ t ∈ Finset.range (n + 1), {ω | c ≤ L t ω})ᶜ := by
           ext ω
           simp only [Set.mem_compl_iff, Set.mem_iUnion, Finset.mem_range, Nat.lt_succ_iff,
-            Set.mem_setOf_eq, not_exists, not_and, hPdef]
+            Set.mem_ofPred_eq, not_exists, not_and, hPdef]
         rw [hnc]
         exact (𝒢.mono' hnk) _ (MeasurableSet.compl (Finset.measurableSet_biUnion _ fun t ht =>
           (𝒢.mono' (by simpa using ht)) _
             (measurableSet_le measurable_const (hL.stronglyMeasurable t).measurable)))
       · have huk : {ω : Ω | (n : ℕ∞) ≤ (k : ℕ∞)} = ∅ := by
-          ext ω; simp [ENat.coe_le_coe, hnk]
+          ext ω; simp [ hnk]
         rw [huk, Set.inter_empty]
         exact @MeasurableSet.empty Ω (𝒢 k)
     have hmem : {ω | τ ω ≤ (k : ℕ∞)}
         = {ω | ∃ t, t ≤ k ∧ P ω t} ∪ ({ω | ¬ ∃ t, P ω t} ∩ {ω | (n : ℕ∞) ≤ (k : ℕ∞)}) := by
       ext ω
-      simp only [hτdef, Set.mem_setOf_eq, Set.mem_union, Set.mem_inter_iff]
+      simp only [hτdef, Set.mem_ofPred_eq, Set.mem_union, Set.mem_inter_iff]
       by_cases hex : ∃ t, P ω t
-      · rw [dif_pos hex, ENat.coe_le_coe, Nat.find_le_iff hex]
+      · rw [dite_eq_left hex, ENat.natCast_le_natCast, Nat.find_le_iff hex]
         constructor
         · exact Or.inl
         · rintro (⟨t, htk, ht⟩ | h)
           · exact ⟨t, htk, ht⟩
           · exact absurd hex h.1
-      · rw [dif_neg hex]
+      · rw [dite_eq_right hex]
         constructor
         · intro h
           exact Or.inr ⟨hex, h⟩
@@ -193,7 +193,7 @@ theorem ville_supermartingale {L : ℕ → Ω → ℝ} (hL : Supermartingale L �
     rintro ω ⟨t, htmem, ht⟩
     have hex : ∃ s, P ω s := ⟨t, by simpa using Finset.mem_range.mp htmem, ht⟩
     have hval : τ ω = ((Nat.find hex : ℕ) : ℕ∞) := by simp [hτdef, hex]
-    show c ≤ L ((τ ω).untopA) ω
+    change c ≤ L ((τ ω).untopA) ω
     rw [hval]
     have hun : (((Nat.find hex : ℕ) : ℕ∞)).untopA = Nat.find hex :=
       untopD_coe_enat (Classical.arbitrary ℕ) _
@@ -297,8 +297,8 @@ theorem anytime_safety (delta0 rho : ℝ) (hdelta0 : 0 ≤ delta0) (hrho : 0 ≤
   have hcompl : ({ω | ∀ t ∈ Finset.range (T + 1), ω ∈ Good t} : Set Ω)ᶜ
       = ⋃ t ∈ Finset.range (T + 1), (Good t)ᶜ := by
     ext ω
-    simp only [Set.mem_compl_iff, Set.mem_setOf_eq, Set.mem_iUnion, Finset.mem_range,
-      not_forall, not_exists]
+    simp only [Set.mem_compl_iff, Set.mem_ofPred_eq, Set.mem_iUnion, Finset.mem_range,
+      not_forall]
   have hbad := anytime_failure_budget delta0 rho hdelta0 hrho hrho1
     (fun t => (Good t)ᶜ) h_step T
   have h1 : μ.real ({ω | ∀ t ∈ Finset.range (T + 1), ω ∈ Good t} : Set Ω)ᶜ
@@ -383,7 +383,7 @@ theorem anytime_safety_stochastic (m : ℕ → ℕ) (hm : ∀ t, 0 < m t)
         = {ω | -eps t i
             ≤ ⟪g t i, d t⟫_ℝ + (m t : ℝ)⁻¹ * ∑ j, ⟪xi t i j ω, d t⟫_ℝ} := by
       ext ω
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       rw [hinner t i ω]
     rw [hset]
     exact measurableSet_le measurable_const (hmeasA t i)
@@ -399,8 +399,7 @@ theorem anytime_safety_stochastic (m : ℕ → ℕ) (hm : ∀ t, 0 < m t)
           ∪ ⋂ i : K, {ω : Ω | -(eps t i + noiseEps K sigma (d t) (m t) (delta0 * rho ^ t))
             ≤ ⟪g t i, d t⟫_ℝ} := by
       ext ω
-      simp only [Set.mem_setOf_eq, Set.mem_compl_iff, Set.mem_iUnion, Set.mem_iInter,
-        Finset.mem_univ, Set.mem_union]
+      simp only [Set.mem_ofPred_eq, Set.mem_compl_iff, Set.mem_iInter, Set.mem_union]
       tauto
     rw [hEq2]
     refine MeasurableSet.union ?_ (MeasurableSet.iInter fun i => hMargin t i)

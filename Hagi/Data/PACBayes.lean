@@ -32,7 +32,7 @@ theorem log_weighted_jensen {ι : Type} [Fintype ι] [Nonempty ι] (q x : ι →
   have hmpos : 0 < m := by
     have h0 : (0:ℝ) ≤ ∑ i, q i * x i := Finset.sum_nonneg (fun i _ => mul_nonneg (hq i).le (hx i).le)
     by_contra hlt
-    push_neg at hlt
+    push Not at hlt
     rw [hm] at hlt
     have heq0 : ∑ i, q i * x i = 0 := le_antisymm hlt h0
     have hzero : ∀ i ∈ (Finset.univ : Finset ι), q i * x i = 0 :=
@@ -96,7 +96,7 @@ that last probabilistic step stays external (h_emp_). -/
 theorem gibbs_variational {ι : Type} [Fintype ι] [Nonempty ι]
     (q p : ι → ℝ) (f : ι → ℝ)
     (hq : ∀ i, 0 < q i) (hqs : ∑ i, q i = 1)
-    (hp : ∀ i, 0 < p i) (hps : ∑ i, p i = 1) :
+    (hp : ∀ i, 0 < p i) (_hps : ∑ i, p i = 1) :
     (∑ i, q i * f i)
       ≤ (∑ i, q i * Real.log (q i / p i))
         + Real.log (∑ i, p i * Real.exp (f i)) := by
@@ -125,7 +125,7 @@ theorem gibbs_variational {ι : Type} [Fintype ι] [Nonempty ι]
     have e1 : ∑ i : ι, q i * x i = ∑ i : ι, (p i * Real.exp (f i)) := by
       refine Finset.sum_congr rfl (fun i _ => ?_)
       rw [hx]
-      show q i * (p i * Real.exp (f i) / q i) = p i * Real.exp (f i)
+      change q i * (p i * Real.exp (f i) / q i) = p i * Real.exp (f i)
       rw [mul_div_assoc']
       exact mul_div_cancel_left₀ (p i * Real.exp (f i)) (hq i).ne'
     exact e1

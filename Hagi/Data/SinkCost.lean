@@ -117,10 +117,10 @@ theorem sink_cost_bound (V : Type) [Fintype V]
         p v * (d / (1 - d))) := by
     intro v
     by_cases h : dropped v
-    · rw [if_pos h, if_pos h, if_pos h, sub_zero,
+    · rw [ite_eq_left h, ite_eq_left h, ite_eq_left h, sub_zero,
         abs_of_nonneg (hp v)]
       ring
-    · rw [if_neg h, if_neg h, if_neg h]
+    · rw [ite_eq_right h, ite_eq_right h, ite_eq_right h]
       have hle : p v - p v / (1 - d) ≤ 0 := by
         have hw := hp v
         have hkey : p v ≤ p v / (1 - d) := by
@@ -148,7 +148,7 @@ theorem sink_cost_bound (V : Type) [Fintype V]
     exact Finset.sum_congr rfl fun v _ => by
       by_cases h : dropped v
       · simp [h]
-      · simp only [if_neg h]
+      · simp only [ite_eq_right h]
         ring
   rw [hpull, hread]
   have hcancel : (d / (1 - d)) * (1 - d) = d := by

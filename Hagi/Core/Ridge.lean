@@ -125,7 +125,7 @@ theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
   -- the cross term is the dot of the normal-equation residual with δ
   have hcross : ∑ i, ((X *ᵥ w₀) i - y i) * (X *ᵥ δ) i
       = (Xᵀ *ᵥ ((X *ᵥ w₀) - y)) ⬝ᵥ δ := by
-    show ((X *ᵥ w₀) - y) ⬝ᵥ (X *ᵥ δ)
+    change ((X *ᵥ w₀) - y) ⬝ᵥ (X *ᵥ δ)
       = (Xᵀ *ᵥ ((X *ᵥ w₀) - y)) ⬝ᵥ δ
     rw [Matrix.dotProduct_mulVec,
       ← Matrix.vecMul_transpose (A := Xᵀ) (x := ((X *ᵥ w₀) - y)),
@@ -145,7 +145,7 @@ theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
       rw [Finset.sum_congr rfl fun x _ => mul_assoc lam (w₀ x) (δ x),
         Finset.mul_sum]
     rw [h3] at h1
-    show ∑ j, (Xᵀ *ᵥ ((X *ᵥ w₀) - y)) j * δ j + lam * ∑ j, w₀ j * δ j = 0
+    change ∑ j, (Xᵀ *ᵥ ((X *ᵥ w₀) - y)) j * δ j + lam * ∑ j, w₀ j * δ j = 0
     linarith [h1]
   -- nonnegative remainders
   have hs2 : 0 ≤ ∑ i, (X *ᵥ δ) i * (X *ᵥ δ) i :=

@@ -148,7 +148,7 @@ theorem adaptiveK_bound (moment : ℝ) (hmoment : 0 ≤ moment)
     exact le_of_lt heps
   · have hKpos : 0 < (K : ℝ) := by
       by_contra h
-      push_neg at h
+      push Not at h
       have hK0 : (K : ℝ) = 0 := le_antisymm h (Nat.cast_nonneg K)
       rw [hK0] at hK
       have hcontra : 0 < moment / eps := div_pos hpos heps

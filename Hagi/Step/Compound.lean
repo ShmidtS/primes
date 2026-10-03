@@ -90,7 +90,7 @@ within ε of the limit α·D + J. The c-law stays an empirical
 premise; the THEOREM is the finite-horizon stabilization
 certificate. -/
 theorem compound_c_stabilizes (α G0 D a J ε : ℝ) (c G : ℕ → ℝ)
-    (hα : 0 < α) (hJ : 0 ≤ J) (hD : 0 ≤ D) (hG0D : D < G0)
+    (hα : 0 < α) (_hJ : 0 ≤ J) (_hD : 0 ≤ D) (hG0D : D < G0)
     (hε : 0 < ε)
     (h_emp_c : ∀ t, c t ≤ α * G t + J)
     (h_emp_gap : ∀ t : ℕ, G t ≤ D + (G0 - D) * a^t)
@@ -122,7 +122,7 @@ gain stabilizes at `α • D + J` — constant, as measured. The
 naive expectation of decay is wrong precisely when the data
 field is alive. -/
 theorem compound_constant_regime (α D J δ : ℝ)
-    (hα : 0 ≤ α) (hD : 0 ≤ D) (hJ : 0 ≤ J) (hδ : 0 ≤ δ)
+    (hα : 0 ≤ α) (_hD : 0 ≤ D) (_hJ : 0 ≤ J) (_hδ : 0 ≤ δ)
     (G cG : ℕ → ℝ) (hstab : ∀ t, 1 ≤ t → |G t - D| ≤ δ)
     (hdec : ∀ t, cG t ≤ α * G t + J) :
     ∀ t, 1 ≤ t → cG t ≤ α * (D + δ) + J := by
@@ -212,7 +212,7 @@ generation gate reports the triple (lo, point, hi) of
 α•D + J; the decision takes lo for continue and hi for fold;
 the middle band triggers another generation, not a coin
 flip. -/
-theorem compound_budget_interval (αlo Dlo Jlo εc : ℝ)
+theorem compound_budget_interval (αlo Dlo Jlo _εc : ℝ)
     (α D J : ℝ)
     (hαlo : 0 ≤ αlo) (hDlo : 0 ≤ Dlo)
     (hα : αlo ≤ α) (hD : Dlo ≤ D) (hJ : Jlo ≤ J) :
@@ -227,7 +227,7 @@ threshold, the recursion folds regardless of the noise — the
 certified stop. -/
 theorem compound_fold_interval (αhi Dlo Dhi Jlo Jhi εc : ℝ)
     (α D J : ℝ)
-    (hDlo : 0 ≤ Dlo) (hαlo : 0 ≤ α) (hαhi : 0 ≤ αhi)
+    (hDlo : 0 ≤ Dlo) (_hαlo : 0 ≤ α) (hαhi : 0 ≤ αhi)
     (hα : α ≤ αhi) (hD : Dlo ≤ D ∧ D ≤ Dhi) (hJ : Jlo ≤ J ∧ J ≤ Jhi)
     (hfold : αhi * Dhi + Jhi ≤ εc) :
     α * D + J ≤ εc := by

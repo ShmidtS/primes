@@ -149,10 +149,10 @@ re-mixing drives the transport rank toward 1) is η < 1 in
 the wild. Formally: any nonnegative captured energy,
 discounted by η ∈ [0,1], bounds the realized gain. -/
 theorem highway_gain_transport_bound (Ecapt eta gain : ℝ)
-    (hE : 0 ≤ Ecapt) (heta : 0 ≤ eta) (heta1 : eta ≤ 1)
+    (hE : 0 ≤ Ecapt) (_heta : 0 ≤ eta) (heta1 : eta ≤ 1)
     (hgain : gain ≤ Ecapt * eta) :
     gain ≤ Ecapt := by
-    nlinarith [hgain, heta1, hE, mul_nonneg hE heta]
+    nlinarith [hgain, heta1, hE, mul_nonneg hE _heta]
 
 end TransportEta
 

@@ -8,10 +8,15 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
+# Named hypotheses are part of the documented API contract of each R-round
+# theorem (h_emp_*, controller obligations) — intentionally kept even when a
+# particular proof does not use one directly.
+weak.linter.unusedHypotheses = false
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+rev = "v4.34.1"
 
 [[lean_lib]]
 name = "Primes"

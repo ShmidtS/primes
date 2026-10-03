@@ -54,7 +54,7 @@ theorem primeFactors_primorial (m : Nat) (hm : 0 < m) :
         have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
         have hpm : Nat.Prime (Nat.nth Nat.Prime m) := Nat.prime_nth_prime m
         have hlt : Nat.nth Nat.Prime i < Nat.nth Nat.Prime m :=
-          (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (Finset.mem_range.mp hi)
+          (Nat.nth_strictMono Nat.infinite_setOfPred_prime).lt_iff_lt.mpr (Finset.mem_range.mp hi)
         exact (Nat.coprime_primes hpi hpm).mpr (Nat.ne_of_lt hlt)
       rw [Nat.primeFactors_mul (primorial_pos m).ne' (Nat.prime_nth_prime m).pos.ne',
           ih hmpos]
@@ -97,7 +97,7 @@ theorem totient_primorial_explicit (m : Nat) :
       have hpi : Nat.Prime (Nat.nth Nat.Prime i) := Nat.prime_nth_prime i
       have hpm : Nat.Prime (Nat.nth Nat.Prime m) := Nat.prime_nth_prime m
       have hlt : Nat.nth Nat.Prime i < Nat.nth Nat.Prime m :=
-        (Nat.nth_strictMono Nat.infinite_setOf_prime).lt_iff_lt.mpr (Finset.mem_range.mp hi)
+        (Nat.nth_strictMono Nat.infinite_setOfPred_prime).lt_iff_lt.mpr (Finset.mem_range.mp hi)
       exact (Nat.coprime_primes hpi hpm).mpr (Nat.ne_of_lt hlt)
 
 theorem primorialWheelMeanGap_eq_euler_product (m : Nat) :

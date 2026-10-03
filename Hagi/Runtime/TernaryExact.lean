@@ -93,7 +93,7 @@ theorem qTern_error_out (s x : ℝ) (hs : 0 < s) (hx : ¬ ternInRange s x) :
       rw [abs_of_neg hx0] at hout; linarith
     have hsx : x / s < -1 / 2 := by
       rw [div_lt_iff₀ hs]; linarith
-    rw [if_neg (by linarith : ¬ (1 / 2 < x / s)), if_pos hsx]
+    rw [ite_eq_right (by linarith : ¬ (1 / 2 < x / s)), ite_eq_left hsx]
     push_cast
     rw [show x - s * (-1 : ℝ) = x + s by ring,
       show |x| = -x from abs_of_neg hx0,
@@ -105,7 +105,7 @@ theorem qTern_error_out (s x : ℝ) (hs : 0 < s) (hx : ¬ ternInRange s x) :
     have hxpos : 0 < x := by linarith
     have hsx : 1 / 2 < x / s := by
       rw [lt_div_iff₀ hs]; linarith
-    rw [if_pos hsx]
+    rw [ite_eq_left hsx]
     push_cast
     rw [show x - s * (1 : ℝ) = x - s by ring,
       show |x| = x from abs_of_pos hxpos,

@@ -174,8 +174,8 @@ the injection term refills each cycle. (Derived by harvesting
 the `diversity_floor` law through γ, not by a fresh induction.) -/
 theorem gain_renewal_growth (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
     (hγ : 0 < γ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
-    (hinj : ξ < inj) (hxi : 0 ≤ ξ) (hinj0 : 0 ≤ inj)
-    (hD0 : 0 ≤ D 0)
+    (_hinj : ξ < inj) (hxi : 0 ≤ ξ) (hinj0 : 0 ≤ inj)
+    (_hD0 : 0 ≤ D 0)
     (h_gain_prod : ∀ t, γ * D t ≤ G t)
     (h_gain_exact : ∀ t, G t ≤ γ * D t)
     (h_D_renew : ∀ t, D (t + 1) ≥ ρ * D t + inj - ξ)

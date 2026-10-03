@@ -117,7 +117,7 @@ value (`tern_distortion_round` scaled by the grid step), and
 the energy is κ-Lipschitz in the parameter sup-norm, the
 compression stage increases the energy by at most κ·s/2. -/
 theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
-    (hkappa : 0 ≤ kappa) (hs : 0 ≤ s) (hdn : 0 ≤ dnorm)
+    (hkappa : 0 ≤ kappa) (hs : 0 ≤ s) (_hdn : 0 ≤ dnorm)
     (h_emp_dist : dnorm ≤ 1 / 2)
     (h_emp_lip : E3 - E2pre ≤ kappa * s * dnorm) :
     E3 - E2pre ≤ kappa * s / 2 := by
@@ -137,7 +137,7 @@ G + η‖d*‖²/2 − κs/2 (the smooth-descent rate for the joint
 stage is η‖d*‖²/2, not η‖d*‖² — the honest strong-convexity
 constant). The three stage hypotheses are empirical
 (h_emp_-prefixed); the composition is a theorem. -/
-theorem macro_step_decrease (E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnormq : ℝ)
+theorem macro_step_decrease (_E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnormq : ℝ)
     (h_emp_merge : E2 ≤ Emean - G) (hgap : 0 ≤ G)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
     (hdescent : dnorm ^ 2 ≤ inner)

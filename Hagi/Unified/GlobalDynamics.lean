@@ -40,7 +40,7 @@ NOT by itself characterize the SafeQP solution d* for a
 general gradient — that characterization is the projection
 theorem (`safeQP_exists_unique`), a separate result. -/
 theorem safeqp_idle {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-    [FiniteDimensional ℝ X] (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) :
+    [FiniteDimensional ℝ X] (C : Set X) (_hconv : Convex ℝ C) (_h0 : (0:X) ∈ C) :
     ∀ d ∈ C, dist (0:X) (0:X) ≤ dist d (0:X) := by
   intro d hd
   simp

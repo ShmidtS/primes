@@ -2323,3 +2323,24 @@ Build 8723 green, 0 sorry/admit/native_decide/custom axioms,
 triviality flags 0 (583 theorems scanned), clean axioms
 [propext, Classical.choice, Quot.sound] for all 9 declarations
 (checked via #print axioms on a scratch copy, removed after).
+
+## R112 — toolchain upgrade: Lean v4.32.0-rc1 → v4.34.1, mathlib pinned v4.34.1
+
+Infra round (prep for SLT/FormalSLT dependency integration, see the
+related-works survey): lean-toolchain bumped to v4.34.1; lakefile mathlib
+require pinned to rev "v4.34.1". API breakages fixed:
+
+- mathlib 4.34 removed the instance path `Finset.one_le_prod` /
+  `Finset.prod_le_prod` relied on (`MulLeftMono ℝ` is NOT derivable —
+  ℝ is not an ordered monoid under *); replaced with hand-proven
+  ℝ-specific monotonicity lemmas:
+  - `Primes/SingularSeries.lean`: `one_le_prod_real`,
+    `prod_le_prod_real` (Finset.induction + mul_le_mul)
+  - `Hagi/Dynamics/WallClockTakeoff.lean`: private
+    `prod_exp_le_prod_one_add` (prod_range_succ induction + calc)
+
+Build 9039 jobs green; axioms [propext, Classical.choice, Quot.sound];
+triviality lint 0 flags. Note: Lean 4.34's new `.olean.private` cache
+files: interrupted cache decompression yields flaky "failed to read"
+errors — fixed by `rm -rf .lake/packages/mathlib/.lake/build && lake exe
+cache get!`.

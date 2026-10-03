@@ -123,11 +123,11 @@ theorem jl_inner_approx (q k Pq Pk : X) (e : ℝ) (he : 0 ≤ e)
     |⟪Pq,Pk⟫_ℝ - ⟪q,k⟫_ℝ| ≤ (3/2) * e * (‖q‖^2 + ‖k‖^2) := by
   have polP : 2 * ⟪Pq,Pk⟫_ℝ = ‖Pq + Pk‖^2 - ‖Pq‖^2 - ‖Pk‖^2 := by
     have ha := norm_add_pow_two (𝕜 := ℝ) Pq Pk
-    simp only [RCLike.inner_apply, RCLike.re_to_real] at ha
+    simp only [ RCLike.re_to_real] at ha
     nlinarith [ha]
   have polq : 2 * ⟪q,k⟫_ℝ = ‖q + k‖^2 - ‖q‖^2 - ‖k‖^2 := by
     have ha := norm_add_pow_two (𝕜 := ℝ) q k
-    simp only [RCLike.inner_apply, RCLike.re_to_real] at ha
+    simp only [ RCLike.re_to_real] at ha
     nlinarith [ha]
   have hnqk : ‖q + k‖^2 ≤ 2 * ‖q‖^2 + 2 * ‖k‖^2 := by
     have hc : ⟪q,k⟫_ℝ ≤ ‖q‖ * ‖k‖ := real_inner_le_norm q k
@@ -136,7 +136,7 @@ theorem jl_inner_approx (q k Pq Pk : X) (e : ℝ) (he : 0 ≤ e)
       have hnn : 0 ≤ ‖q‖ * ‖k‖ := mul_nonneg (norm_nonneg _) (norm_nonneg _)
       nlinarith
     have ha := norm_add_pow_two (𝕜 := ℝ) q k
-    simp only [RCLike.inner_apply, RCLike.re_to_real] at ha
+    simp only [ RCLike.re_to_real] at ha
     nlinarith
   have hprodU : e * ‖q + k‖^2 ≤ e * (2 * ‖q‖^2 + 2 * ‖k‖^2) :=
     mul_le_mul_of_nonneg_left hnqk he

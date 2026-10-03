@@ -67,6 +67,8 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 /-- The residual of tensor j at rank r: exponential tail. -/
 noncomputable def rankResidual (c κ r : ℝ) : ℝ := c * Real.exp (-κ * r)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The equalized-marginal optimality (the tangent bound,
 rank domain).** If the candidate allocations `(r*)` equalize the
 per-unit-cost marginals `c_j κ_j exp(−κ_j r*_j) = λ • (m_j+n_j)`
@@ -76,8 +78,8 @@ argument as `KVWater.waterfilling_bound`, with the *rank* in
 place of the bits and the per-tensor cost weights. -/
 theorem rankResidual_equalized
     (c κ m n : ι → ℝ) (rstar r : ι → ℝ) (lam : ℝ)
-    (hc : ∀ j, 0 < c j) (hk : ∀ j, 0 < κ j)
-    (hlam : 0 < lam)
+    (hc : ∀ j, 0 < c j) (_hk : ∀ j, 0 < κ j)
+    (_hlam : 0 < lam)
     (heq : ∀ j, c j * κ j * Real.exp (-κ j * rstar j)
       = lam * (m j + n j))
     (hbudget : ∑ j, rstar j * (m j + n j)
@@ -158,6 +160,8 @@ theorem rankResidual_equalized
   rw [hlin, add_zero] at hsum
   exact hsum
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The explicit allocation (the closed form, round-25
 kappa-corrected — the Lean file synced with the Python fix).**
 At the equalized point, the optimal rank of tensor j is
@@ -175,7 +179,7 @@ from the measured spectra. -/
 theorem rankResidual_allocation
     (c κ : ι → ℝ) (lam L : ℝ)
     (hc : ∀ j, 0 < c j) (hk : ∀ j, 0 < κ j)
-    (hlam : 0 < lam) (hL : 0 < L) :
+    (_hlam : 0 < lam) (hL : 0 < L) :
     ∀ j, (Real.log (c j * κ j) - Real.log L) / κ j
       = -(1/(κ j)) * Real.log (L / (c j * κ j)) := by
   intro j

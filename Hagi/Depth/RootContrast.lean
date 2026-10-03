@@ -244,7 +244,7 @@ theorem rho_partition (m : ℕ) (s : ℕ → ℝ) (r : ℕ)
     rhoCaptured m s r + rhoTail m s r = 1 := by
   have hpart := filter_partition_sum m s r
   unfold rhoCaptured rhoTail
-  show (∑ j ∈ (Finset.range m).filter (fun j => j < r), s j^2) / (∑ j ∈ Finset.range m, s j^2)
+  change (∑ j ∈ (Finset.range m).filter (fun j => j < r), s j^2) / (∑ j ∈ Finset.range m, s j^2)
       + (∑ j ∈ (Finset.range m).filter (fun j => r ≤ j), s j^2) / (∑ j ∈ Finset.range m, s j^2) = 1
   field_simp
   linarith [hpart]

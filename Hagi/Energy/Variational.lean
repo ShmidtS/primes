@@ -65,7 +65,7 @@ noncomputable def tilted (p U : V → ℝ) (v : V) : ℝ :=
   p v * Real.exp (U v) / (∑ w, p w * Real.exp (U w))
 
 theorem tilted_sum_one (p U : V → ℝ)
-    (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1) :
+    (hp : ∀ v, 0 < p v) (_hp1 : ∑ v, p v = 1) :
     ∑ v, tilted (V := V) p U v = 1 := by
   have hZ : 0 < ∑ w, p w * Real.exp (U w) :=
     Finset.sum_pos (fun w _ => mul_pos (hp w) (Real.exp_pos _))
@@ -84,7 +84,7 @@ transported): KL(q ‖ p̃) = KL(q‖p) − E_q[U] + log Z — the
 engine of the variational inequality. -/
 theorem kl_tilted_decompose (q p U : V → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
-    (hq1 : ∑ v, q v = 1) (hp1 : ∑ v, p v = 1) :
+    (hq1 : ∑ v, q v = 1) (_hp1 : ∑ v, p v = 1) :
     kldiv' (V := V) q (tilted (V := V) p U)
       = kldiv' (V := V) q p - ∑ v, q v * U v
           + Real.log (∑ w, p w * Real.exp (U w)) := by

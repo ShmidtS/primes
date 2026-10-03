@@ -179,6 +179,30 @@ theorem wallclock_takeoff_product (C τ : ℕ → ℝ) (k : ℝ)
 
 /-! ## The wall-clock exponent (MAIN) -/
 
+/-- Product monotonicity over `ℝ` factors (mathlib 4.34 `Finset.prod_le_prod`
+requires `MulLeftMono`, not satisfiable for `ℝ`). -/
+private lemma prod_exp_le_prod_one_add (τ : ℕ → ℝ) (k : ℝ) (n : ℕ)
+    (hk : 0 ≤ k) (hτ : ∀ t, 0 ≤ τ t) :
+    ∏ t ∈ Finset.range n, Real.exp (k * τ t - (k * τ t) ^ 2 / 2)
+      ≤ ∏ t ∈ Finset.range n, (1 + k * τ t) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      rw [Finset.prod_range_succ, Finset.prod_range_succ]
+      have hc := exp_le_one_add (mul_nonneg hk (hτ n))
+      have hzc : 0 ≤ 1 + k * τ n := by
+        have := exp_le_one_add (mul_nonneg hk (hτ n))
+        linarith [Real.exp_nonneg (k * τ n - (k * τ n) ^ 2 / 2)]
+      calc (∏ t ∈ Finset.range n, Real.exp (k * τ t - (k * τ t) ^ 2 / 2))
+            * Real.exp (k * τ n - (k * τ n) ^ 2 / 2)
+          ≤ (∏ t ∈ Finset.range n, Real.exp (k * τ t - (k * τ t) ^ 2 / 2))
+            * (1 + k * τ n) :=
+              mul_le_mul_of_nonneg_left hc
+                (Finset.prod_nonneg fun t _ => Real.exp_nonneg _)
+        _ ≤ (∏ t ∈ Finset.range n, (1 + k * τ t)) * (1 + k * τ n) :=
+              mul_le_mul_of_nonneg_right ih hzc
+
+
 /-- **The wall-clock takeoff (MAIN)**: if every cycle t costs τ_t ≥ 0
 wall-clock and multiplies capability by ≥ (1 + k·τ_t) with k ≥ 0
 (rate k per unit time), then after T cycles
@@ -204,7 +228,7 @@ theorem wallclock_takeoff (C τ : ℕ → ℝ) (k : ℝ)
     exp_le_one_add (mul_nonneg hk (hτ t))
   have hprod' : ∏ t ∈ Finset.range T, Real.exp (k * τ t - (k * τ t) ^ 2 / 2)
       ≤ ∏ t ∈ Finset.range T, (1 + k * τ t) :=
-    Finset.prod_le_prod (fun t _ => Real.exp_nonneg _) fun t ht => hf t ht
+    prod_exp_le_prod_one_add τ k T hk hτ
   rw [← Real.exp_sum] at hprod'
   -- the exponent collapses to k·Στ − (k²/2)·Στ²
   have hsum : ∑ t ∈ Finset.range T, (k * τ t - (k * τ t) ^ 2 / 2)
@@ -363,7 +387,7 @@ fluctuation penalty ln(1+α)·√(2T·log(1/δ)) in the exponent. -/
 theorem wallclock_rate_from_cone_concentrated (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha tau p0 delta : ℝ)
     (halpha : 0 < alpha) (htau : 0 < tau)
-    (hdelta : 0 < delta) (hdelta1 : delta < 1)
+    (_hdelta : 0 < delta) (_hdelta1 : delta < 1)
     (hC0 : 0 < C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
     (T : ℕ)

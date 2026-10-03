@@ -96,7 +96,7 @@ theorem jointStep_conflict_regression (g : n → ℝ) (L : ℝ)
     (hL : 0 < L) (hg : g ≠ 0)
     (hconflict : gc ⬝ᵥ g < 0)
     (hsmoothLo : ∀ v : n → ℝ, -L * (v ⬝ᵥ v) ≤ v ⬝ᵥ (Hc *ᵥ v))
-    (hsmooth : ∀ v : n → ℝ, v ⬝ᵥ (Hc *ᵥ v) ≤ L * (v ⬝ᵥ v))
+    (_hsmooth : ∀ v : n → ℝ, v ⬝ᵥ (Hc *ᵥ v) ≤ L * (v ⬝ᵥ v))
     {lr : ℝ} (hlr0 : 0 < lr)
     (hlr1 : lr < 2 * |gc ⬝ᵥ g| / (L * (g ⬝ᵥ g))) :
     0 < quadIncr gc Hc (fun i => -lr * g i) := by

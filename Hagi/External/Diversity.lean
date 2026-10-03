@@ -119,6 +119,8 @@ end ConfigCert
 
 section GittinsMarginal
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **(3) The Gittins-index acquisition** (PandoraBayesOpt —
 transported): the discrete-search counterpart of the shadow
 price λ. Each candidate mechanism j carries the marginal

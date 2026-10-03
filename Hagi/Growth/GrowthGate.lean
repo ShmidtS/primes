@@ -60,7 +60,7 @@ the marginal free-energy per cost j* = argmax ΔG_F/ΔC picks
 the cheapest mechanism; the joint channel stays closed until
 R drops). -/
 theorem verdict_grow (GF R eps : ℝ) (_heps : 0 < eps)
-    (h1 : eps ≤ GF) (h2 : eps < R) : 0 < R - eps := by linarith
+    (_h1 : eps ≤ GF) (h2 : eps < R) : 0 < R - eps := by linarith
 
 /-- Cell 4: gain below threshold AND repricing expensive —
 the EXHAUSTED verdict (stop: both channels dead; the Lyapunov

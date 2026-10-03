@@ -118,7 +118,42 @@ statements and are out of scope.
 | `Hagi.Audit/Optimality` | **Plan42 — the weak-formulation fixes.** `nce_estimator_unbiased`: the importance-weighted NCE estimator is EXACT — Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for q > 0 (the per-sample correction as the unbiased identity); `log_jensen_uniform` ((1/K)Σ log Z_j ≤ log((1/K)Σ Z_j) — the ceGap Jensen direction via weighted AM-GM); `exp_tangent` (exp a + exp a·(y−a) ≤ exp y — the tangent line of exp); **`waterfilling_optimal`** (the KVWater KKT form — HONEST BOUNDARY per R78: KKT ⟹ optimality only, interior existence assumed, not constructed); `head_start_timeshift` (the merge-vs-scratch head start under time-shifted trajectories). |
 | `Hagi.Audit/EqualBudget` | **The honest merge-vs-scratch comparison (round 47, T3).** `aitken_exact`/`aitken_consistency` (Aitken Δ² extrapolation is EXACT on geometric trajectories — the scratch-control extrapolation tool); **`headstart_pays_iff`** — the two-sided break-even C₀ < κ·ln(dS/dM)/ln(1/c) (T3d CLOSED; the r47 sign bug fixed — the exponent is −C₀/κ): the merged head start pays off under compute scaling IFF the initial gap is under the log-ratio threshold; `budget_gap_sign_const` (the budget-gap sign invariance). |
 
-Build: `lake build` (toolchain `leanprover/lean4:v4.32.0-rc1`, Mathlib
-cache included). Build 8723 green, 0 sorry, triviality lint clean,
+Build: `lake build` (toolchain `leanprover/lean4:v4.34.1`, Mathlib
+cache included). Build 9039 jobs green, 0 sorry, triviality lint clean
+(`scripts/TrivialLint.lean`: 1142/1142 `Hagi.*` theorems pass),
 #print axioms = [propext, Classical.choice, Quot.sound]. Every
 theorem is fully proved — no `sorry`.
+
+## Verification infrastructure (Phase 0)
+
+`scripts/TrivialLint.lean` — a runtime triviality + axiom linter over
+the imported `Hagi.*` environment. Run after `lake build`:
+
+    lake env lean --run scripts/TrivialLint.lean
+
+It scans every `ConstantInfo.thmInfo` declaration in namespace `Hagi.*`
+(1142 incl. private/auto-generated) for:
+
+- `TRIV_RFL` — the proof head is `Eq.refl`/`rfl` AND the conclusion's
+  sides are syntactically identical (a `rfl` that performs a definitional
+  unfolding and changes the statement is legitimate, not flagged);
+- `TRIV_AEQ_A` — the conclusion is `a = a` with syntactically identical
+  sides, regardless of the proof tactic;
+- `TRIV_PREM` — the conclusion is syntactically equal to one of the
+  theorem's own ∀-premises;
+- `BAD_AXIOM` — `Lean.collectAxioms` reports an axiom outside
+  {`propext`, `Classical.choice`, `Quot.sound`} (incl. `sorryAx`).
+
+Each run first plants known-bad (`trivRfl`/`trivAeqA`/`trivPrem`) and
+known-good (`okUnfold`/`okReal`) theorems and self-tests against them —
+`SELF-TEST: PASS` guards against a vacuous pass (the self-test caught
+two real linter bugs during development: `Expr.eq?` must target the
+conclusion after stripping the ∀-chain, and `rfl` elaborates to a
+lambda-headed term). The machine-readable CI gate is the last line
+`LINT: PASS`. Current state: 1142 scanned, 0 findings.
+
+`scripts/ProbeScan.lean` — environment diagnostic: 784570 constants,
+543688 theorems total, 1142 in `Hagi.*`. Key API note it established:
+after `importModules` the constants live in stage 1 of `Environment.constants`,
+so scans must use `SMap.fold`/`env.constants.fold` (both stages), not
+`map₂` iteration.

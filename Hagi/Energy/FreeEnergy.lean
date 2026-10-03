@@ -292,7 +292,7 @@ theorem geometric_pool_identity_nonneg (K : Type) [Fintype K] [Nonempty V]
     (q : V → ℝ) (p : K → V → ℝ) (w : K → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ i v, 0 < p i v)
     (hq1 : ∑ v, q v = 1) (hw1 : ∑ i, w i = 1)
-    (hw : ∀ i, 0 ≤ w i) :
+    (_hw : ∀ i, 0 ≤ w i) :
     ∑ i, w i * kldiv (V := V) q (p i)
       = kldiv (V := V) q (fun v =>
           (∏ i, (p i v)^(w i)) / (∑ u, ∏ i, (p i u)^(w i)))

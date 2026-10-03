@@ -125,6 +125,8 @@ def spectralProj (s : Finset ι) (x : E) : E :=
 
 variable {s : Finset ι}
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The spectral projector is idempotent.** Projecting twice
 keeps the same coordinates — the coefficients of P x at kept
 directions are unchanged (the family is orthonormal). -/
@@ -136,9 +138,11 @@ theorem spectralProj_idempotent (hv : Orthonormal ℝ v) (x : E) :
   rw [real_inner_comm (v i) (∑ j ∈ s, ⟪x, v j⟫_ℝ • v j),
     hv.inner_right_sum (fun j => ⟪x, v j⟫_ℝ) hi]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The spectral projector is self-adjoint** — the finitary
 sum interchange of the two coefficient inner products. -/
-theorem spectralProj_selfAdj (hv : Orthonormal ℝ v) (x y : E) :
+theorem spectralProj_selfAdj (_hv : Orthonormal ℝ v) (x y : E) :
     ⟪spectralProj (v := v) s x, y⟫_ℝ = ⟪x, spectralProj (v := v) s y⟫_ℝ := by
   unfold spectralProj
   rw [sum_inner, inner_sum]
@@ -146,6 +150,8 @@ theorem spectralProj_selfAdj (hv : Orthonormal ℝ v) (x y : E) :
   rw [real_inner_smul_left, real_inner_smul_right, real_inner_comm (v i) y]
   ring
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The spectral projector carries the `OrthProjPair` structure
 (idempotent + self-adjoint) — the abstract residual lemmas apply
 to it verbatim. -/
@@ -252,6 +258,8 @@ theorem filtered_step_cost (dstar g0 : X) (P : X → X) :
   rw [hsplit]
   exact (norm_add_le _ _).trans (add_le_add le_rfl (norm_sub_rev _ _).le)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The spectral SafeQP target (composition theorem).**
 Given the closed-convex safe set `safeSet g eps` of `SafeQP.lean`
 and the spectrally filtered target `P g0` (P a self-adjoint
@@ -267,7 +275,7 @@ SafeQP's own `safeQP_exists_unique` applied to the denoised
 target; the content here is the composition: a SAFE STEP from
 a DENOISED target, with the additive tail cost. -/
 theorem spectral_safeQP_target (g : K → X) (g0 : X) (eps : K → ℝ)
-    (heps : ∀ i, 0 ≤ eps i) (P : X → X) (h : OrthProjPair P)
+    (heps : ∀ i, 0 ≤ eps i) (P : X → X) (_h : OrthProjPair P)
     [FiniteDimensional ℝ X] :
     ∃ dstar : X, dstar ∈ safeSet g eps ∧
       (∀ c ∈ safeSet g eps, ‖dstar - P g0‖ ≤ ‖c - P g0‖) ∧

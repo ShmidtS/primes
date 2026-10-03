@@ -379,7 +379,7 @@ theorem lse_mean_le_mean_lse (z : Fin N → k → ℝ) :
       = (∑ a, lse (z a)) / N := by
     have h1 : ∀ a : Fin N, (1/(N:ℝ)) * Real.log (S a) = lse (z a) / N := by
       intro a
-      show (1/(N:ℝ)) * Real.log (∑ v, Real.exp (z a v))
+      change (1/(N:ℝ)) * Real.log (∑ v, Real.exp (z a v))
           = Real.log (∑ v, Real.exp (z a v)) / N
       rw [div_eq_mul_inv, mul_comm]
       field_simp

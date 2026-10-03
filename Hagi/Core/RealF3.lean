@@ -114,7 +114,7 @@ theorem interleave_char_mul (z : Fin 3 → ℂ) :
   ext ⟨a, p⟩
   fin_cases p
   · -- p = 0 (the re-coordinate)
-    show (∑ c, chi3 (-(branchZ a * branchZ c)) * z c).re
+    change (∑ c, chi3 (-(branchZ a * branchZ c)) * z c).re
       = ∑ cd : Fin 3 × Fin 2,
           reBlock (chi3 (-(branchZ a * branchZ (cd : Fin 3 × Fin 2).1))) 0 cd.2
             * interleave3 z cd
@@ -126,12 +126,12 @@ theorem interleave_char_mul (z : Fin 3 → ℂ) :
     rw [hsumre]
     refine Finset.sum_congr rfl fun c _ => ?_
     rw [Fin.sum_univ_two]
-    simp only [interleave3, interleave, Matrix.head_cons,
+    simp only [interleave3, interleave,
       Matrix.cons_val_one]
     simp [reBlock]
     ring
   · -- p = 1 (the im-coordinate)
-    show (∑ c, chi3 (-(branchZ a * branchZ c)) * z c).im
+    change (∑ c, chi3 (-(branchZ a * branchZ c)) * z c).im
       = ∑ cd : Fin 3 × Fin 2,
           reBlock (chi3 (-(branchZ a * branchZ (cd : Fin 3 × Fin 2).1))) 1 cd.2
             * interleave3 z cd
@@ -143,7 +143,7 @@ theorem interleave_char_mul (z : Fin 3 → ℂ) :
     rw [hsumim]
     refine Finset.sum_congr rfl fun c _ => ?_
     rw [Fin.sum_univ_two]
-    simp only [interleave3, interleave, Matrix.head_cons,
+    simp only [interleave3, interleave,
       Matrix.cons_val_one]
     simp [reBlock]
     ring
@@ -170,8 +170,7 @@ is the documented next step). -/
 theorem reBlock_mul_transpose (c d : ℂ) :
     (reBlock c : Matrix (Fin 2) (Fin 2) ℝ) * (reBlock d)ᵀ = reBlock (c * star d) := by
   ext i j
-  simp only [reBlock, Matrix.mul_apply, Matrix.transpose_apply,
-    Matrix.head_cons, Matrix.cons_val_one, Matrix.cons_val_zero]
+  simp only [reBlock, Matrix.mul_apply, Matrix.transpose_apply]
   fin_cases i <;> fin_cases j <;>
     simp [Complex.mul_re, Complex.mul_im] <;>
     ring

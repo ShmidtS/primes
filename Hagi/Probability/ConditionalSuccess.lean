@@ -182,12 +182,12 @@ theorem success_count_lower {S : ℕ → Ω → ℝ} {T : ℕ} {delta : ℝ}
   refine le_trans hAcompl ?_
   apply measureReal_mono _ (measure_ne_top μ _)
   intro ω hω
-  simp only [hA, Set.mem_compl_iff, Set.mem_setOf_eq, not_le] at hω
+  simp only [hA, Set.mem_compl_iff, Set.mem_ofPred_eq, not_le] at hω
   have hsumsplit : ∑ t ∈ Finset.range T, X t ω
       = (∑ t ∈ Finset.range T, μ[S t]) - ∑ t ∈ Finset.range T, S t ω := by
     simp only [hXdef, Finset.sum_sub_distrib]
   rw [hsumsplit] at hω
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   linarith
 
 /-- **The success-count concentration (per-step floor form)**:
@@ -218,7 +218,7 @@ theorem success_count_lower_p0 {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 : �
         ≥ (∑ t ∈ Finset.range T, μ[S t]) - concDelta T delta}
       ⊆ {ω | ∑ t ∈ Finset.range T, S t ω ≥ p0 * (T : ℝ) - concDelta T delta} := by
     intro ω hω
-    simp only [Set.mem_setOf_eq] at hω ⊢
+    simp only [Set.mem_ofPred_eq] at hω ⊢
     linarith
   exact le_trans hmain (measureReal_mono hsub (measure_ne_top μ _))
 
@@ -244,7 +244,7 @@ a·ΣS_t ≥ a·(p₀T − Δ) would flip. -/
 theorem log_growth {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} {eps : ℕ → ℝ}
     (hdelta : 0 < delta) (hdelta1 : delta < 1)
     (ha : 0 ≤ a)
-    (hCpos : ∀ t ω, 0 < C t ω)
+    (_hCpos : ∀ t ω, 0 < C t ω)
     (hbridge : ∀ t ω, Real.log (C (t + 1) ω) - Real.log (C t ω) ≥ a * S t ω - eps t)
     (h_emp_meas : ∀ t, Measurable (S t))
     (h_emp_01 : ∀ t ω, S t ω ∈ Set.Icc 0 1)
@@ -259,7 +259,7 @@ theorem log_growth {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} {eps : 
       ⊆ {ω | Real.log (C T ω) ≥ Real.log (C 0 ω)
         + a * (p0 * (T : ℝ) - concDelta T delta) - ∑ t ∈ Finset.range T, eps t} := by
     intro ω hω
-    simp only [Set.mem_setOf_eq] at hω ⊢
+    simp only [Set.mem_ofPred_eq] at hω ⊢
     -- telescope the log differences
     have h0 := Finset.sum_range_sub' (fun t => Real.log (C t ω)) T
     have htele : ∑ t ∈ Finset.range T,
@@ -314,7 +314,7 @@ theorem takeoff_time_form {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} 
       ⊆ {ω | C T ω ≥ C 0 ω * Real.exp
         (a * (p0 * (T : ℝ) - concDelta T delta) - ∑ t ∈ Finset.range T, eps t)} := by
     intro ω hω
-    simp only [Set.mem_setOf_eq] at hω ⊢
+    simp only [Set.mem_ofPred_eq] at hω ⊢
     -- the log-form bound on this sample point
     have h0 := Finset.sum_range_sub' (fun t => Real.log (C t ω)) T
     have htele : ∑ t ∈ Finset.range T,

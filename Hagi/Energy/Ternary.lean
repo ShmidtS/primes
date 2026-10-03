@@ -197,14 +197,14 @@ theorem roundTern_error (x : ℝ) (hx : |x| ≤ 3 / 2) :
   rw [abs_le] at hx ⊢
   unfold roundTern
   by_cases h1 : 1 / 2 < x
-  · rw [if_pos h1]
+  · rw [ite_eq_left h1]
     push_cast
     constructor <;> linarith
   · by_cases h2 : x < -1 / 2
-    · rw [if_neg h1, if_pos h2]
+    · rw [ite_eq_right h1, ite_eq_left h2]
       push_cast
       constructor <;> linarith
-    · rw [if_neg h1, if_neg h2]
+    · rw [ite_eq_right h1, ite_eq_right h2]
       push_cast
       constructor <;> linarith
 
@@ -232,11 +232,11 @@ theorem roundHalf_error (x : ℝ) : |x - (roundHalf x : ℝ)| ≤ 1 / 2 := by
   have hfu : x < (Int.floor x : ℝ) + 1 := Int.lt_floor_add_one x
   unfold roundHalf
   by_cases h : 1 / 2 ≤ x - (Int.floor x : ℝ)
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     push_cast
     rw [abs_le]
     constructor <;> linarith
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     rw [abs_le]
     constructor <;> linarith
 
@@ -343,6 +343,8 @@ quantizer's refresh loop cannot get worse.
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The Gram form of the functional LS scale: for the functional
 error `‖X w − s • (X q)‖²`, the optimal scale is `s* =
 (qᵀ H w)/(qᵀ H q)` with `H = Xᵀ X`, whenever `qᵀ H q > 0`. The
@@ -369,7 +371,7 @@ theorem lsScale_gram {m : Type*} [Fintype m]
       rw [Matrix.dotProduct_mulVec,
         ← Matrix.vecMul_transpose (A := Xᵀ) (x := (X *ᵥ w)),
         Matrix.transpose_transpose]
-    show (X *ᵥ w) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ w)) j)
+    change (X *ᵥ w) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ w)) j)
     rw [h1, dotProduct]
     exact Finset.sum_congr rfl fun j _ => mul_comm _ _
   have hBeq : B = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j) := by
@@ -379,7 +381,7 @@ theorem lsScale_gram {m : Type*} [Fintype m]
         ← Matrix.vecMul_transpose (A := Xᵀ) (x := (X *ᵥ q)),
         Matrix.transpose_transpose]
     rw [hB]
-    show (X *ᵥ q) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j)
+    change (X *ᵥ q) ⬝ᵥ (X *ᵥ q) = ∑ j, q j * ((Xᵀ *ᵥ (X *ᵥ q)) j)
     rw [h1, dotProduct]
     exact Finset.sum_congr rfl fun j _ => mul_comm _ _
   -- the cross term vanishes at the optimal scale

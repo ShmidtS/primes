@@ -57,7 +57,7 @@ theorem blockDiagonal'_mulVec_apply {m' n' : o → Type*} [∀ i, Fintype (n' i)
   rw [Fintype.sum_eq_single k]
   · simp
   · intro j' hj'
-    exact Finset.sum_eq_zero fun _ _ => by rw [dif_neg hj'.symm, zero_mul]
+    exact Finset.sum_eq_zero fun _ _ => by rw [dite_eq_right hj'.symm, zero_mul]
 
 /-- Stack the per-expert states `x : ∀ i, m' i → ℝ` into a single vector on
 the disjoint union `Σ i, m' i` (the merged model's wide state layout). -/

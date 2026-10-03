@@ -175,7 +175,7 @@ theorem sum_chi3_eq_zero {w : Fin k → ZMod 3} (hw : w ≠ 0) :
       rw [Finset.sum_eq_single l₀]
       · simp [ht, mul_inv_cancel₀ hl₀]
       · intro l _ hl
-        rw [ht, Pi.single_apply, if_neg hl, mul_zero]
+        rw [ht, Pi.single_apply, ite_eq_right hl, mul_zero]
       · intro h
         exact absurd (Finset.mem_univ l₀) h
     rw [h1, h2]

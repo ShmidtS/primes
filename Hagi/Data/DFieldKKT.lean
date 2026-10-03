@@ -75,6 +75,8 @@ noncomputable def divField_marginal (p : K → Corpus V)
     (w : K → ℝ) (i : K) : ℝ :=
   KLdiv ((p i).dist) (mixtureCorpus p w)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The first-order transfer test** (the honest half of the
 KKT): if corpus i has a STRICTLY HIGHER marginal divergence
 from the mixture than corpus j, then moving a small weight
@@ -87,11 +89,11 @@ structure of D in the weights (each weight's marginal is its
 own KL from the mixture); the pairwise neutrality of the
 optimum is exactly the equalization. -/
 theorem dfield_ascent_transfer (p : K → Corpus V) (w : K → ℝ)
-    (hp : ∀ i v, 0 < (p i).dist v)
-    (hw : ∀ i, 0 < w i) (hw1 : ∑ i, w i = 1)
-    (hsum : ∀ i, ∑ v, (p i).dist v = 1)
-    (hne : (Finset.univ : Finset K).Nonempty)
-    (i j : K) (hij : i ≠ j)
+    (_hp : ∀ i v, 0 < (p i).dist v)
+    (_hw : ∀ i, 0 < w i) (_hw1 : ∑ i, w i = 1)
+    (_hsum : ∀ i, ∑ v, (p i).dist v = 1)
+    (_hne : (Finset.univ : Finset K).Nonempty)
+    (i j : K) (_hij : i ≠ j)
     (hgt : divField_marginal p w j < divField_marginal p w i) :
     -- the transfer of ε from j to i is an ascent direction:
     -- the D-field of the perturbed weights exceeds D at w

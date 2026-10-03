@@ -215,7 +215,7 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
   have hrsc : (compress (joint (merge (grow S.toGrowthState)))).protectedRisk
       = S.toGrowthState.protectedRisk
         + (verify S.toGrowthState).riskSpend := by
-    simp [verify, potential, grow, merge, joint, compress]
+    simp [verify, grow, merge, joint, compress]
     ring
   rw [hp1, hp2, hrsc] at hcs
   -- the certified energy decrease (R91's output feeds R109's h_emp_fit)
@@ -580,7 +580,7 @@ theorem MasterHAGI_probability {Om : Type*} [MeasurableSpace Om]
   refine le_trans hmain ?_
   apply measureReal_mono _ (measure_ne_top mu _)
   intro om hom
-  simp only [Set.mem_setOf_eq] at hom ⊢
+  simp only [Set.mem_ofPred_eq] at hom ⊢
   rw [show ∑ t ∈ Finset.range T, ((0:ℝ)) = 0 from by simp] at hom
   simp only [sub_zero] at hom
   exact hom

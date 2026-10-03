@@ -67,7 +67,7 @@ theorem vonMangoldtTransition_sums_to_one (n : Nat) (hn : 2 ≤ n) :
   have hn_not_le_1 : ¬(n ≤ 1) := by omega
   have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       vonMangoldtTransition n q = (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n := by
-    intro q hq; rw [vonMangoldtTransition, if_neg hn_not_le_1]
+    intro q hq; rw [vonMangoldtTransition, ite_eq_right hn_not_le_1]
   rw [Finset.sum_congr rfl h_trans, ← Finset.sum_div]
   have h_sum : ∑ q ∈ Nat.divisors n, (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n :=
     ArithmeticFunction.vonMangoldt_sum
@@ -109,7 +109,7 @@ theorem chain_antichain_at_most_one (C : DivisibilityChain) (A : Finset Nat)
       rw [← hia_eq, ← hib_eq] at h_dvd; exact Or.inl h_dvd
     · have h_dvd := C.chain_prop ib.val ia.val hgt ia.isLt
       rw [← hib_eq, ← hia_eq] at h_dvd; exact Or.inr h_dvd
-  by_contra h_gt; push_neg at h_gt
+  by_contra h_gt; push Not at h_gt
   obtain ⟨a, ha_in, b, hb_in, habne⟩ := Finset.one_lt_card.mp h_gt
   rw [Finset.mem_filter] at ha_in hb_in
   obtain ⟨ha_A, ha_seq⟩ := ha_in; obtain ⟨hb_A, hb_seq⟩ := hb_in
@@ -123,7 +123,7 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
     erdosWeight n ≤ ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       erdosWeight (n / q) * vonMangoldtTransition n q := by
   have hn4 : 4 ≤ n := by
-    by_contra h; push_neg at h
+    by_contra h; push Not at h
     rcases (show n = 2 ∨ n = 3 by omega) with h2 | h3
     · exact absurd (h2 ▸ Nat.prime_two) hn_comp
     · exact absurd (h3 ▸ Nat.prime_three) hn_comp
@@ -139,10 +139,10 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
     exact Real.log_pos ((one_lt_div h2_pos).mpr hn_gt_2)
   have hΛn : (ArithmeticFunction.vonMangoldt n : ℝ) ≤ Real.log n / 2 := by
     by_cases hpp : IsPrimePow n
-    · rw [ArithmeticFunction.vonMangoldt_apply, if_pos hpp]
+    · rw [ArithmeticFunction.vonMangoldt_apply, ite_eq_left hpp]
       obtain ⟨p, k, hp, hk_pos, hn_eq⟩ := (isPrimePow_nat_iff n).mp hpp
       have hk2 : 2 ≤ k := by
-        by_contra h; push_neg at h; have hk1 : k = 1 := by omega
+        by_contra h; push Not at h; have hk1 : k = 1 := by omega
         rw [hk1, Nat.pow_one] at hn_eq; exact hn_comp (hn_eq ▸ hp)
       have hminFac : n.minFac = p := by
         have hmf_prime : n.minFac.Prime := Nat.minFac_prime (fun h => by omega)
@@ -158,13 +158,13 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
       have h2le : 2 * Real.log p ≤ k * Real.log p :=
         mul_le_mul_of_nonneg_right (Nat.cast_le.mpr hk2) hp_log.le
       linarith
-    · rw [ArithmeticFunction.vonMangoldt_apply, if_neg hpp]; positivity
+    · rw [ArithmeticFunction.vonMangoldt_apply, ite_eq_right hpp]; positivity
   have hsum_Λ : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       (ArithmeticFunction.vonMangoldt q : ℝ) = Real.log n := by
     have h := vonMangoldtTransition_sums_to_one n hn
     have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
         vonMangoldtTransition n q = (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n := by
-      intro q hq; rw [vonMangoldtTransition, if_neg hn_gt_1]
+      intro q hq; rw [vonMangoldtTransition, ite_eq_right hn_gt_1]
     have h_eq : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
         (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n = 1 := by
       rw [← Finset.sum_congr rfl h_trans]; exact h
@@ -235,7 +235,7 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
   have h_trans : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       erdosWeight (n / q) * vonMangoldtTransition n q =
       erdosWeight (n / q) * ((ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n) := by
-    intro q hq; rw [vonMangoldtTransition, if_neg hn_gt_1]
+    intro q hq; rw [vonMangoldtTransition, ite_eq_right hn_gt_1]
   rw [Finset.sum_congr rfl h_trans]
   have h_factor : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q),
       erdosWeight (n / q) * ((ArithmeticFunction.vonMangoldt q : ℝ) / Real.log n) =
@@ -257,13 +257,13 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
     have hq_pos : (0 : ℝ) < q := Nat.cast_pos.mpr (by omega)
     have hqle : q ≤ n := Nat.le_of_dvd (by omega) hqdvd
     by_cases hqlt : q < n
-    · rw [if_pos hqlt]
+    · rw [ite_eq_left hqlt]
       have hnq_pos : 0 < Real.log (n / q) :=
         Real.log_pos ((one_lt_div hq_pos).mpr (Nat.cast_lt.mpr hqlt))
       have h_cast : ((n / q : Nat) : ℝ) = (n : ℝ) / q := Nat.cast_div hqdvd (ne_of_gt hq_pos)
       unfold erdosWeight; rw [h_cast]; field_simp
     · have hqe : q = n := by omega
-      rw [if_neg hqlt, hqe]
+      rw [ite_eq_right hqlt, hqe]
       have h_nn : n / n = 1 := Nat.div_self (by omega)
       rw [h_nn]; unfold erdosWeight; simp only [Nat.cast_one, Real.log_one]; ring
   rw [Finset.sum_congr rfl h_term]
@@ -274,16 +274,16 @@ theorem erdosWeight_sub_invariant (n : Nat) (hn : 2 ≤ n) (hn_comp : ¬ Nat.Pri
   have h_filter : (Nat.divisors n).filter (fun q => 1 < q) =
       ((Nat.divisors n).filter (fun q => 1 < q ∧ q < n)) ∪ {n} := by
     rw [← Finset.sdiff_union_of_subset h_n_subset, hfilter_proper]
-  rw [h_filter, Finset.sum_union (by simp [Finset.disjoint_singleton]),
+  rw [h_filter, Finset.sum_union (by simp []),
       Finset.sum_singleton]
-  rw [if_neg (by omega : ¬(n < n)), add_zero]
+  rw [ite_eq_right (by omega : ¬(n < n)), add_zero]
   have h_all_lt : ∀ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n), q < n := by
     intro q hq; exact (Finset.mem_filter.mp hq).2.2
   have h_sum : ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n),
       (if q < n then (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) else 0) =
     ∑ q ∈ (Nat.divisors n).filter (fun q => 1 < q ∧ q < n),
       (q : ℝ) * (ArithmeticFunction.vonMangoldt q : ℝ) / Real.log (n / q) := by
-    exact Finset.sum_congr rfl (fun q hq => by rw [if_pos (h_all_lt q hq)])
+    exact Finset.sum_congr rfl (fun q hq => by rw [ite_eq_left (h_all_lt q hq)])
   rw [h_sum]; exact h_S_ge_1
 
 /-- W(n) ≤ ∑_{p|n, prime} W(p) for all n ≥ 2. -/
@@ -308,7 +308,7 @@ theorem erdosWeight_le_sum_prime_divisors (n : Nat) (hn : 2 ≤ n) :
       exact le_of_lt (hposW p hp2)
     linarith
   · have hn4 : 4 ≤ n := by
-      by_contra h; push_neg at h
+      by_contra h; push Not at h
       have : n = 2 ∨ n = 3 := by omega
       rcases this with h2 | h3
       · exact absurd (h2 ▸ Nat.prime_two) hprim

@@ -78,6 +78,8 @@ positivity). -/
 noncomputable def pptNorm (p : Seq → ℝ) (α : ℝ) : ℝ :=
   ∑ x, (p x) ^ α
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptNorm_pos (p : Seq → ℝ) (α : ℝ) (hp : ∀ x, 0 < p x) :
     0 < pptNorm p α :=
   Finset.sum_pos (fun x _ => Real.rpow_pos_of_pos (hp x) α)
@@ -89,6 +91,8 @@ sequence probability, NOT tokenwise temperature (see module docstring). -/
 noncomputable def pptTarget (p : Seq → ℝ) (α : ℝ) (x : Seq) : ℝ :=
   (p x) ^ α / pptNorm p α
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The power target is a probability vector: nonnegative and summing
 to one over the finite sequence space. -/
 theorem pptTarget_isProbability (p : Seq → ℝ) (α : ℝ) (hp : ∀ x, 0 < p x) :
@@ -99,6 +103,8 @@ theorem pptTarget_isProbability (p : Seq → ℝ) (α : ℝ) (hp : ∀ x, 0 < p 
       rw [← Finset.sum_div]
       exact div_self (pptNorm_pos p α hp).ne'⟩
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The power target is everywhere strictly positive (an α-power of a
 positive base, normalized by a positive constant) — the nondegeneracy the
 MH and swap kernels need. -/
@@ -114,6 +120,8 @@ current suffix.) -/
 def pptKernel (K : Seq → Seq → ℝ) : Prop :=
   (∀ x y, 0 ≤ K x y) ∧ (∀ x, ∑ y, K x y = 1)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptKernel_nonneg {K : Seq → Seq → ℝ} (hK : pptKernel K) (x y : Seq) :
     0 ≤ K x y := hK.1 x y
 
@@ -125,6 +133,8 @@ honest gap: not formalized entrywise). -/
 def pptDetailedBalance (pi : Seq → ℝ) (K : Seq → Seq → ℝ) : Prop :=
   ∀ x y, pi x * K x y = pi y * K y x
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **MH target preservation**: a stochastic kernel in detailed balance
 with pi has pi stationary — Σ_x pi(x)·K(x,y) = pi(y). This is the preservation
 half of the PPT loop: refinement steps do not drift off the power target.
@@ -148,6 +158,8 @@ product target. -/
 noncomputable def pptSwapAccept (pi1 pi2 : Seq → ℝ) (x : Seq × Seq) : ℝ :=
   min 1 (pi1 x.2 * pi2 x.1 / (pi1 x.1 * pi2 x.2))
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptSwapAccept_nonneg (pi1 pi2 : Seq → ℝ)
     (h1 : ∀ x, 0 < pi1 x) (h2 : ∀ x, 0 < pi2 x) (x : Seq × Seq) :
     0 ≤ pptSwapAccept pi1 pi2 x :=
@@ -155,14 +167,20 @@ theorem pptSwapAccept_nonneg (pi1 pi2 : Seq → ℝ)
     (div_nonneg (mul_nonneg (h1 x.2).le (h2 x.1).le)
       (mul_nonneg (h1 x.1).le (h2 x.2).le))
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptSwapAccept_le_one (pi1 pi2 : Seq → ℝ) (x : Seq × Seq) :
     pptSwapAccept pi1 pi2 x ≤ 1 := min_le_left _ _
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptSwapAccept_mem (pi1 pi2 : Seq → ℝ)
     (h1 : ∀ x, 0 < pi1 x) (h2 : ∀ x, 0 < pi2 x) (x : Seq × Seq) :
     pptSwapAccept pi1 pi2 x ∈ Set.Icc (0 : ℝ) 1 :=
   ⟨pptSwapAccept_nonneg pi1 pi2 h1 h2 x, pptSwapAccept_le_one pi1 pi2 x⟩
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The balance identity of the swap acceptance**: the swapped mass is
 symmetric — Π(x)·A(x) = Π(swap x)·A(swap x), where Π(x) = pi1(x₁)·pi2(x₂).
 This is exactly the detailed-balance content of min-acceptance: whichever
@@ -193,6 +211,8 @@ noncomputable def pptSwapKernel (pi1 pi2 : Seq → ℝ) (x y : Seq × Seq) : ℝ
   pptSwapAccept pi1 pi2 x * (if y = (x.2, x.1) then (1 : ℝ) else 0)
     + (1 - pptSwapAccept pi1 pi2 x) * (if y = x then (1 : ℝ) else 0)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem pptSwapKernel_nonneg (pi1 pi2 : Seq → ℝ)
     (h1 : ∀ x, 0 < pi1 x) (h2 : ∀ x, 0 < pi2 x) (x y : Seq × Seq) :
     0 ≤ pptSwapKernel pi1 pi2 x y := by
@@ -213,7 +233,7 @@ theorem pptSwapKernel_sum (pi1 pi2 : Seq → ℝ)
   have key : ∀ s : Seq × Seq,
       ∑ y : Seq × Seq, (if y = s then (1 : ℝ) else 0) = 1 := by
     intro s; simp
-  show ∑ y : Seq × Seq, (pptSwapAccept pi1 pi2 x
+  change ∑ y : Seq × Seq, (pptSwapAccept pi1 pi2 x
       * (if y = (x.2, x.1) then (1 : ℝ) else 0)
       + (1 - pptSwapAccept pi1 pi2 x) * (if y = x then (1 : ℝ) else 0)) = 1
   rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum, key, key]
@@ -224,6 +244,8 @@ theorem pptSwapKernel_isKernel (pi1 pi2 : Seq → ℝ)
     pptKernel (pptSwapKernel pi1 pi2) :=
   ⟨pptSwapKernel_nonneg pi1 pi2 h1 h2, pptSwapKernel_sum pi1 pi2 h1 h2⟩
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The swap kernel is in detailed balance w.r.t. the product target**
 Π(x₁,x₂) = π₁(x₁)·π₂(x₂): the off-diagonal swap move exchanges exactly
 compensating mass (`pptSwap_balance` — this is where the min-form of the
@@ -239,12 +261,12 @@ theorem pptSwap_detailedBalance (pi1 pi2 : Seq → ℝ)
   by_cases hy : y = (x.2, x.1)
   · subst hy
     have heta : ((x.2, x.1).2, (x.2, x.1).1) = x := by ext <;> simp
-    have e1 : (if ((x.2, x.1) = (x.2, x.1)) then (1 : ℝ) else 0) = 1 := if_pos rfl
-    have e2 : (if ((x.2, x.1) = x) then (1 : ℝ) else 0) = 0 := if_neg hyx
+    have e1 : (if ((x.2, x.1) = (x.2, x.1)) then (1 : ℝ) else 0) = 1 := ite_eq_left rfl
+    have e2 : (if ((x.2, x.1) = x) then (1 : ℝ) else 0) = 0 := ite_eq_right hyx
     have e3 : (if (x = ((x.2, x.1).2, (x.2, x.1).1)) then (1 : ℝ) else 0) = 1 :=
-      if_pos heta
+      ite_eq_left heta
     have e4 : (if (x = (x.2, x.1)) then (1 : ℝ) else 0) = 0 :=
-      if_neg fun h => hyx h.symm
+      ite_eq_right fun h => hyx h.symm
     rw [pptSwapKernel, pptSwapKernel, e1, e2, e3, e4]
     norm_num
     exact pptSwap_balance pi1 pi2 h1 h2 x
@@ -255,15 +277,17 @@ theorem pptSwap_detailedBalance (pi1 pi2 : Seq → ℝ)
       have hmk : ((x.2, x.1) : Seq × Seq) = (y.1, y.2) := by rw [h]
       have heta : ((y.1, y.2) : Seq × Seq) = y := rfl
       exact (hmk.trans heta).symm
-    show pi1 x.1 * pi2 x.2 * (pptSwapAccept pi1 pi2 x
+    change pi1 x.1 * pi2 x.2 * (pptSwapAccept pi1 pi2 x
         * (if y = (x.2, x.1) then (1 : ℝ) else 0)
         + (1 - pptSwapAccept pi1 pi2 x) * (if y = x then (1 : ℝ) else 0))
       = pi1 y.1 * pi2 y.2 * (pptSwapAccept pi1 pi2 y
         * (if x = (y.2, y.1) then (1 : ℝ) else 0)
         + (1 - pptSwapAccept pi1 pi2 y) * (if x = y then (1 : ℝ) else 0))
-    rw [if_neg hy, if_neg hyx, if_neg hne2, if_neg hne]
+    rw [ite_eq_right hy, ite_eq_right hyx, ite_eq_right hne2, ite_eq_right hne]
     ring
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The product target is a probability on the pair space.** -/
 theorem pptSwap_productProb (pi1 pi2 : Seq → ℝ)
     (hs1 : ∑ x, pi1 x = 1) (hs2 : ∑ x, pi2 x = 1) :
@@ -279,7 +303,7 @@ refinement steps (each `mh_stationary` for its own π_k) with swap steps
 (present theorem) keeps the product chain on the product power target. -/
 theorem pptSwap_stationary (pi1 pi2 : Seq → ℝ)
     (h1 : ∀ x, 0 < pi1 x) (h2 : ∀ x, 0 < pi2 x)
-    (hs1 : ∑ x, pi1 x = 1) (hs2 : ∑ x, pi2 x = 1) (y : Seq × Seq) :
+    (_hs1 : ∑ x, pi1 x = 1) (_hs2 : ∑ x, pi2 x = 1) (y : Seq × Seq) :
     ∑ z : Seq × Seq, (pi1 z.1 * pi2 z.2) * pptSwapKernel pi1 pi2 z y
       = pi1 y.1 * pi2 y.2 :=
   mh_stationary _ _ (pptSwapKernel_isKernel pi1 pi2 h1 h2)
@@ -287,6 +311,8 @@ theorem pptSwap_stationary (pi1 pi2 : Seq → ℝ)
 
 /-! ## 4. Truncation bias: the warning theorem -/
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The structural-bias floor (one-way truncation failure)**: if the
 kernel is CONFINED to a subset S (transitions to states outside S have
 zero probability — the replay / experience-memory compression regime),
@@ -309,6 +335,8 @@ theorem truncation_bias (K : Seq → Seq → ℝ) (pi : Seq → ℝ) (S : Set Se
 /-- Total variation distance on the finite space, as half the L¹ norm. -/
 noncomputable def tvDist (mu pi : Seq → ℝ) : ℝ := (∑ y, |mu y - pi y|) / 2
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem tvDist_nonneg (mu pi : Seq → ℝ) : 0 ≤ tvDist mu pi :=
   div_nonneg (Finset.sum_nonneg fun y _ => abs_nonneg _) (by norm_num)
 
@@ -331,9 +359,13 @@ def chainAt (mu : Seq → ℝ) (K : Seq → Seq → ℝ) : ℕ → Seq → ℝ
   | 0 => mu
   | n + 1 => vecMul (chainAt mu K n) K
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem chainAt_succ (mu : Seq → ℝ) (K : Seq → Seq → ℝ) (n : ℕ) :
     chainAt mu K (n + 1) = vecMul (chainAt mu K n) K := rfl
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem vecMul_sum (K : Seq → Seq → ℝ) (hK : pptKernel K) (mu : Seq → ℝ)
     (hmu : ∑ x, mu x = 1) : ∑ y, vecMul mu K y = 1 := by
   have h : ∑ y, vecMul mu K y = ∑ y, ∑ x, mu x * K x y := rfl
@@ -342,10 +374,14 @@ theorem vecMul_sum (K : Seq → Seq → ℝ) (hK : pptKernel K) (mu : Seq → �
       rw [← Finset.mul_sum, hK.2 x, mul_one],
     hmu]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem vecMul_nonneg (K : Seq → Seq → ℝ) (hK : pptKernel K) (mu : Seq → ℝ)
     (hnn : ∀ x, 0 ≤ mu x) (y : Seq) : 0 ≤ vecMul mu K y :=
   Finset.sum_nonneg fun x _ => mul_nonneg (hnn x) (hK.1 x y)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- The Doeblin floor is at most 1/|Seq|: the row sums force it. -/
 theorem ppt_card_eps_le_one (K : Seq → Seq → ℝ) (hK : pptKernel K)
     (eps : ℝ) (heps : ∀ x y, eps ≤ K x y) :
@@ -358,6 +394,8 @@ theorem ppt_card_eps_le_one (K : Seq → Seq → ℝ) (hK : pptKernel K)
   rw [h2, hK.2 a] at h1
   exact h1
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The one-step Doeblin contraction**: with every kernel entry ≥ ε and
 π stationary, TV(μK, π) ≤ (1 − |Seq|·ε)·TV(μ, π). The SHARP constant is
 1 − |Seq|·ε ≥ 1 − ε (`ppt_card_eps_le_one`); the textbook "1 − ε" is the
@@ -371,7 +409,7 @@ theorem ppt_tvContraction (K : Seq → Seq → ℝ) (hK : pptKernel K)
     (eps : ℝ) (heps : ∀ x y, eps ≤ K x y)
     (mu pi : Seq → ℝ)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
-    (hmunn : ∀ x, 0 ≤ mu x) (hpinn : ∀ x, 0 ≤ pi x)
+    (_hmunn : ∀ x, 0 ≤ mu x) (_hpinn : ∀ x, 0 ≤ pi x)
     (hstat : ∀ y, vecMul pi K y = pi y) :
     tvDist (vecMul mu K) pi
       ≤ (1 - (Fintype.card Seq : ℝ) * eps) * tvDist mu pi := by
@@ -481,7 +519,7 @@ theorem ppt_tvContraction (K : Seq → Seq → ℝ) (hK : pptKernel K)
       _ ≤ ∑ y, min (P y) (Q y) :=
           Finset.sum_le_sum fun y _ => le_min (hPge y) (hQge y)
   -- assemble
-  show (∑ y, |vecMul mu K y - pi y|) / 2
+  change (∑ y, |vecMul mu K y - pi y|) / 2
       ≤ (1 - (Fintype.card Seq : ℝ) * eps) * ((∑ y, |mu y - pi y|) / 2)
   calc (∑ y, |vecMul mu K y - pi y|) / 2
       = (∑ y, |P y - Q y|) / 2 := by
@@ -497,6 +535,8 @@ theorem ppt_tvContraction (K : Seq → Seq → ℝ) (hK : pptKernel K)
     _ = (1 - (Fintype.card Seq : ℝ) * eps) * ((∑ y, |mu y - pi y|) / 2) := by
         rw [hL1d]; ring
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem chainAt_isProb (K : Seq → Seq → ℝ) (hK : pptKernel K) (mu : Seq → ℝ)
     (hmu : ∑ x, mu x = 1) (hnn : ∀ x, 0 ≤ mu x) (n : ℕ) :
     ∑ y, chainAt mu K n y = 1 ∧ ∀ y, 0 ≤ chainAt mu K n y := by
@@ -506,6 +546,8 @@ theorem chainAt_isProb (K : Seq → Seq → ℝ) (hK : pptKernel K) (mu : Seq �
       rw [chainAt_succ]
       exact ⟨vecMul_sum K hK _ ih.1, fun y => vecMul_nonneg K hK _ ih.2 y⟩
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Geometric mixing under the Doeblin floor** (sharp constant):
 TV(μKⁿ, π) ≤ (1 − |Seq|·ε)ⁿ · TV(μ, π), for ANY start μ, when every
 kernel entry is ≥ ε and π is stationary. Induction on n with the
@@ -535,6 +577,8 @@ theorem pptMixing (K : Seq → Seq → ℝ) (hK : pptKernel K)
             mul_le_mul_of_nonneg_left ih hcnn
         _ = (1 - (Fintype.card Seq : ℝ) * eps) ^ (n + 1) * tvDist mu pi := by ring
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 theorem tvDist_le_one (mu pi : Seq → ℝ)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
     (hmunn : ∀ x, 0 ≤ mu x) (hpinn : ∀ x, 0 ≤ pi x) :
@@ -546,6 +590,8 @@ theorem tvDist_le_one (mu pi : Seq → ℝ)
   unfold tvDist
   linarith
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Geometric mixing under the Doeblin floor** (paper-style constant):
 if every kernel entry is ≥ ε and π is stationary, then ANY start μ
 satisfies TV(μKⁿ, π) ≤ (1 − ε)ⁿ. The sharp bound is the |Seq|·ε version
@@ -594,6 +640,8 @@ threshold γ (V is an h_emp_ input — the measured value oracle). -/
 noncomputable def goodSet (V : Seq → ℝ) (gamma : ℝ) : Finset Seq :=
   Finset.univ.filter fun x => gamma ≤ V x
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Discovery probability at stationarity**: if the sampler draws
 `sample` from the power target π (h_emp_dist: point masses match π;
 h_emp_meas: measurability; h_emp_single: singletons measurable on the
@@ -627,7 +675,7 @@ theorem discovery_prob_stationary (V : Seq → ℝ) (gamma : ℝ)
         have hdis : Disjoint {ω | sample ω = a} {ω | sample ω ∈ s} := by
           rw [Set.disjoint_iff]
           intro ω hω
-          simp only [Set.mem_inter_iff, Set.mem_setOf_eq] at hω
+          simp only [Set.mem_inter_iff, Set.mem_ofPred_eq] at hω
           exact absurd (hω.1 ▸ hω.2) ha
         have hru : nu.real ({ω | sample ω = a} ∪ {ω | sample ω ∈ s})
             = nu.real {ω | sample ω = a} + nu.real {ω | sample ω ∈ s} := by
@@ -637,10 +685,12 @@ theorem discovery_prob_stationary (V : Seq → ℝ) (gamma : ℝ)
         rw [hset, hru, h_emp_dist a, ih, Finset.sum_insert ha]
   have hgood : {ω | gamma ≤ V (sample ω)} = {ω | sample ω ∈ goodSet V gamma} := by
     ext ω
-    simp only [Set.mem_setOf_eq, goodSet, Finset.mem_filter, Finset.mem_univ,
+    simp only [Set.mem_ofPred_eq, goodSet, Finset.mem_filter, Finset.mem_univ,
       true_and]
   rw [hgood, hpreim (goodSet V gamma)]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The stationary-mass floor**: if the good set carries stationary
 mass ≥ p, then a chain sampled at stationarity finds a γ-good candidate
 with probability ≥ p. -/
@@ -654,13 +704,15 @@ theorem discovery_prob_lower (V : Seq → ℝ) (gamma : ℝ)
     h_emp_dist]
   exact hmass
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The γ-floor on stationary expected value**: with nonnegative
 measured values, the stationary expectation of V is at least γ times the
 discovery probability — the discovery gain is exactly the good-set mass
 scaled by the threshold. -/
 theorem stationary_value_ge (V : Seq → ℝ) (gamma : ℝ) (pi : Seq → ℝ)
     (hV : ∀ x, 0 ≤ V x) (hpinn : ∀ x, 0 ≤ pi x)
-    (hmu : ∑ x, pi x = 1) :
+    (_hmu : ∑ x, pi x = 1) :
     gamma * (∑ x ∈ goodSet V gamma, pi x) ≤ ∑ x, pi x * V x := by
   have hgood : ∀ x ∈ goodSet V gamma, gamma * pi x ≤ pi x * V x := by
     intro x hx
@@ -712,6 +764,8 @@ def pptOverrun (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → Seq)
     (budOK : Set Ω) : Set Ω :=
   {ω | gamma ≤ V (sample ω)} ∩ budOKᶜ
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The union-bound decomposition of the composite success**: the
 discovery (good-sample) event is contained in the union of the success
 event, the verifier-rejects-good event and the budget-overrun event —
@@ -720,8 +774,8 @@ explicit: every way a good sample fails to become a success is one of
 the two named failure channels. -/
 theorem pptSuccess_union_bound (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → Seq)
     (verOK budOK : Set Ω)
-    (h_emp_good : MeasurableSet {ω | gamma ≤ V (sample ω)})
-    (h_emp_ver : MeasurableSet verOK) (h_emp_bud : MeasurableSet budOK) :
+    (_h_emp_good : MeasurableSet {ω | gamma ≤ V (sample ω)})
+    (_h_emp_ver : MeasurableSet verOK) (_h_emp_bud : MeasurableSet budOK) :
     nu.real {ω | gamma ≤ V (sample ω)}
       ≤ nu.real (pptSuccess V gamma sample verOK budOK)
         + nu.real (pptRejectGood V gamma sample verOK)
@@ -747,7 +801,7 @@ theorem pptSuccess_union_bound (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → 
       rw [ENNReal.add_ne_top]
       exact ⟨measure_ne_top nu A, measure_ne_top nu B⟩
     have h2 := (ENNReal.toReal_le_toReal (measure_ne_top nu (A ∪ B)) htop).mpr hu
-    simp only [MeasureTheory.Measure.real,
+    simp only [
       ENNReal.toReal_add (measure_ne_top nu A) (measure_ne_top nu B)] at h2
     exact h2
   have h3 := key (pptSuccess V gamma sample verOK budOK)
@@ -757,6 +811,8 @@ theorem pptSuccess_union_bound (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → 
     (pptOverrun V gamma sample budOK)
   linarith
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The union-bound lower bound on composite success** (the honest
 composite form): if the good set carries stationary mass ≥ p, then
 Pr[S_t = 1] ≥ p − Pr[verifier rejects a good sample]

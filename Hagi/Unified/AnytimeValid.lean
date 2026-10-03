@@ -50,7 +50,7 @@ stage of MacroCycle now rests on the Concat interpolation
 law instead of a free inequality. -/
 theorem merge_stage_linked {k : Type} [Fintype k] [Nonempty k] {N : ℕ} [NeZero N]
     (z : Fin N → k → ℝ) (w : k → ℝ)
-    (hw : ∀ t, 0 ≤ w t) (hwsum : ∑ t, w t = 1) :
+    (hw : ∀ t, 0 ≤ w t) (_hwsum : ∑ t, w t = 1) :
     ∑ t, w t * ceOneHot t (fun v => (∑ a, z a v) / N)
       ≤ ∑ t, w t * ((∑ a, ceOneHot t (z a)) / N) := by
   refine Finset.sum_le_sum (fun t _ => ?_)

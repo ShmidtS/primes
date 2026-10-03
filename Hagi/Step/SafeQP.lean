@@ -90,7 +90,7 @@ preimage of a closed ray under the continuous linear functional
 theorem halfspace_convex (g : X) (eps : ℝ) :
     Convex ℝ {d : X | ⟪g, d⟫_ℝ ≥ -eps} := by
   intro x hx y hy a b ha hb hab
-  show ⟪g, a • x + b • y⟫_ℝ ≥ -eps
+  change ⟪g, a • x + b • y⟫_ℝ ≥ -eps
   have hlin : ⟪g, a • x + b • y⟫_ℝ
       = a * ⟪g, x⟫_ℝ + b * ⟪g, y⟫_ℝ := by
     rw [show ⟪g, a • x + b • y⟫_ℝ
@@ -106,6 +106,8 @@ theorem halfspace_convex (g : X) (eps : ℝ) :
     rw [h3, hab, one_mul]
   linarith [h1, h2]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The safety set is nonempty** (the zero direction is
 safe for nonnegative ε — the trivially safe step). -/
 theorem safeSet_nonempty (g : K → X) (eps : K → ℝ)
@@ -189,6 +191,8 @@ theorem halfspace_closed (g : X) (eps : ℝ) :
   rw [hpre]
   exact IsClosed.preimage hcont (isClosed_Ici : IsClosed (Set.Ici (-eps)))
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The safety set is closed** — a finite intersection of
 closed half-spaces. -/
 theorem safeSet_closed (g : K → X) (eps : K → ℝ) :
@@ -201,6 +205,8 @@ theorem safeSet_closed (g : K → X) (eps : K → ℝ) :
   exact isClosed_iInter
     (fun i => halfspace_closed (g i) (eps i))
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The safe QP has a unique solution** (existence +
 uniqueness of the projection; the finite-dimensional case).
 Existence: the distance function attains its minimum over the
@@ -252,6 +258,8 @@ theorem safeQP_exists_unique (g : K → X) (g0 : X) (eps : K → ℝ)
   exact convex_min_unique (safeSet g eps) hconv g0 m d2
     hmT.1 hd2mem (fun h => hne2 h.symm) hglobal hd2min
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The conflict-free case: the projection is inactive.**
 If the raw mixture direction g₀ already satisfies every
 constraint (⟨g_i, g₀⟩ ≥ 0 for all i — no corpus conflicts),
@@ -261,14 +269,16 @@ controller is INVISIBLE unless a conflict exists; it cannot
 disturb conflict-free training. (Uniqueness then forces
 d* = g₀ by `safeQP_exists_unique`.) -/
 theorem safeQP_noconflict (g : K → X) (g0 : X) (eps : K → ℝ)
-    (heps : ∀ i, 0 ≤ eps i)
-    (hsafe : g0 ∈ safeSet g eps) :
+    (_heps : ∀ i, 0 ≤ eps i)
+    (_hsafe : g0 ∈ safeSet g eps) :
     ∀ d ∈ safeSet g eps, dist g0 g0 ≤ dist d g0 := by
   intro d _
   simp
 
 end SafeQP
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **SafeQP inactive, explicit (the review's gap)**: when
 the raw gradient g0 already lies in the safe set, every
 minimizer of the projection IS g0 itself (distance 0 is the
@@ -276,7 +286,7 @@ absolute minimum) — the controller provably does nothing. -/
 theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     [FiniteDimensional ℝ X] {K : Type} [Fintype K]
     (g : K → X) (g0 : X) (eps : K → ℝ)
-    (heps : ∀ i, 0 ≤ eps i)
+    (_heps : ∀ i, 0 ≤ eps i)
     (ds : X)
     (hds : ds ∈ safeSet g eps ∧ ∀ d ∈ safeSet g eps, dist ds g0 ≤ dist d g0)
     (hsafe : g0 ∈ safeSet g eps) :

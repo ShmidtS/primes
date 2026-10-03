@@ -38,7 +38,7 @@ transferring Γ ≥ c > 0 accumulate external capability gain
 ≥ T·c (capability_gain_transfer telescoped) — the linear
 growth law of the loop. -/
 theorem capability_cumulative (Rext : ℕ → ℝ) (Gamma c : ℝ)
-    (hc : 0 < c)
+    (_hc : 0 < c)
     (hstep : ∀ t, Rext (t + 1) ≤ Rext t - Gamma)
     (hG : c ≤ Gamma) (T : ℕ) :
     Rext T ≤ Rext 0 - ∑ _t ∈ Finset.range T, c := by
@@ -58,7 +58,7 @@ of compute buys at least c/K of external capability. -/
 theorem growth_efficiency_lower (Rext : ℕ → ℝ) (Gamma c K : ℝ)
     (hc : 0 < c) (hK : 0 < K)
     (hstep : ∀ t, Rext (t + 1) ≤ Rext t - Gamma)
-    (hG : c ≤ Gamma) (T : ℕ) (hT : T ≠ 0) :
+    (hG : c ≤ Gamma) (T : ℕ) (_hT : T ≠ 0) :
     (Rext 0 - Rext T) * K ≥ (T:ℝ) * c * K := by
   have hcum := capability_cumulative Rext Gamma c hc hstep hG T
   have hsumT : ∑ _t ∈ Finset.range T, c = (T:ℝ) * c := by
@@ -103,8 +103,8 @@ COMPOSITION LAW (R102 honesty note): the hypothesis IS the
 per-step multiplicative law (assumed, not derived); the
 conclusion is exactly its T-fold composition. This is not a
 derivation of the step law from deeper principles. -/
-theorem capability_multiplicative (C : ℕ → ℝ) (succ : ℕ → ℕ)
-    (alpha : ℝ) (halpha : 0 < alpha) (hC0 : 0 ≤ C 0)
+theorem capability_multiplicative (C : ℕ → ℝ) (_succ : ℕ → ℕ)
+    (alpha : ℝ) (halpha : 0 < alpha) (_hC0 : 0 ≤ C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha))
     (T : ℕ) :
     C T ≥ C 0 * (1 + alpha) ^ T := by
@@ -188,7 +188,7 @@ most (1−β), β ∈ (0,1); failures are neutral. Then
 ε-floor is reached after finitely many certified
 successes (see risk_epsilon_floor for the explicit count). -/
 theorem risk_takeoff_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
-    (beta : ℝ) (hbeta : 0 < beta) (hbeta1 : beta < 1)
+    (beta : ℝ) (_hbeta : 0 < beta) (hbeta1 : beta < 1)
     (hmul : ∀ t, R (t + 1) ≤ R t * (1 - beta) ^ (s t))
     (T : ℕ) :
     R T ≤ R 0 * (1 - beta) ^ (∑ t ∈ Finset.range T, s t) := by
@@ -221,7 +221,7 @@ minimal number of successful cycles to reach the ε-floor is
 IN ADVANCE (given the measured β and the current risk) how
 many certified successes remain to the target. -/
 theorem risk_epsilon_floor (R0 eps beta : ℝ) (N : ℕ)
-    (heps : 0 < eps) (hR0pos : 0 < R0) (hR0e : eps ≤ R0)
+    (heps : 0 < eps) (hR0pos : 0 < R0) (_hR0e : eps ≤ R0)
     (hbeta : 0 < beta) (hbeta1 : beta < 1)
     (hN : Real.log (R0 / eps) / Real.log (1 / (1 - beta)) ≤ (N:ℝ)) :
     R0 * (1 - beta) ^ N ≤ eps := by

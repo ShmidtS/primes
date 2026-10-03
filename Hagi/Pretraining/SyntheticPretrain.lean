@@ -181,7 +181,7 @@ g_j are the measured per-task transfer gains; nothing here
 constrains their signs — a task with negative measured gain is
 dominated automatically). -/
 theorem task_selection_marginal (J : Type) [Finite J] [Nonempty J]
-    (g c : J → ℝ) (hc : ∀ j, 0 < c j) :
+    (g c : J → ℝ) (_hc : ∀ j, 0 < c j) :
     ∃ jmax : J, ∀ j : J, g j / c j ≤ g jmax / c jmax := by
   haveI : Fintype J := Fintype.ofFinite J
   have hne : (Finset.univ : Finset J).Nonempty := by

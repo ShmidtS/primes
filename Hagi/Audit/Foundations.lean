@@ -60,9 +60,9 @@ step retains at least the full norm of d* as alignment with
 the raw gradient — the descent guarantee. The proof is the
 variational inequality of the projection (`norm_eq_iInf_…`)
 evaluated at c = 0 ∈ C. -/
-theorem proj_descent_inner (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C)
+theorem proj_descent_inner (C : Set X) (_hconv : Convex ℝ C) (h0 : (0:X) ∈ C)
     (g dstar : X)
-    (hproj : ∀ w ∈ C, ⟪g - dstar, w - dstar⟫_ℝ ≤ 0) (hd : dstar ∈ C) :
+    (hproj : ∀ w ∈ C, ⟪g - dstar, w - dstar⟫_ℝ ≤ 0) (_hd : dstar ∈ C) :
     ‖dstar‖^2 ≤ ⟪g, dstar⟫_ℝ := by
   have h0v : ⟪g - dstar, (0:X) - dstar⟫_ℝ ≤ 0 := hproj 0 h0
   have hexp : ⟪g - dstar, (0:X) - dstar⟫_ℝ = ⟪g - dstar, -dstar⟫_ℝ := by
@@ -124,7 +124,7 @@ theorem gap_N_nonneg {A V : Type} [Fintype A] [Fintype V] [Nonempty A] [Nonempty
       refine Finset.sum_pos' hnn ?_
       obtain ⟨v, hv⟩ : ∃ v : V, 0 < p v := by
         by_contra hcon
-        push_neg at hcon
+        push Not at hcon
         have hle : ∑ v, p v ≤ 0 := Finset.sum_nonpos (fun v _ => hcon v)
         rw [hsum] at hle
         norm_num at hle

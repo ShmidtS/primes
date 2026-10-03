@@ -51,10 +51,10 @@ theorem prime_lt_nth_prime_dvd_primorial (m p : Nat)
     · have hge : Nat.nth Nat.Prime m ≤ p := by omega
       have hpm : Nat.Prime (Nat.nth Nat.Prime m) := Nat.prime_nth_prime m
       have hcount_pm : Nat.count Nat.Prime (Nat.nth Nat.Prime m + 1) = m + 1 :=
-        Nat.count_nth_succ_of_infinite Nat.infinite_setOf_prime m
+        Nat.count_nth_succ_of_infinite Nat.infinite_setOfPred_prime m
       have hpm1 := Nat.prime_nth_prime (m + 1)
       have hcount_pm1_plus1 : Nat.count Nat.Prime (Nat.nth Nat.Prime (m + 1) + 1) = m + 2 :=
-        Nat.count_nth_succ_of_infinite Nat.infinite_setOf_prime (m + 1)
+        Nat.count_nth_succ_of_infinite Nat.infinite_setOfPred_prime (m + 1)
       have hcount_p1_le : Nat.count Nat.Prime (p + 1) ≤ m + 1 := by
         have hstrict := count_strict_at_prime p (Nat.nth Nat.Prime (m + 1)) hplt hpm1; omega
       have hcount_p1_ge : Nat.count Nat.Prime (p + 1) ≥ m + 1 := by
@@ -66,7 +66,7 @@ theorem prime_lt_nth_prime_dvd_primorial (m p : Nat)
       rw [heq, primorial_succ]; exact ⟨primorial m, by ring⟩
 
 /-- **Primorial gives prime-free interval**: P_m + k composite for all k in [2, p_m - 1]. -/
-theorem primorial_prime_free_interval (m : Nat) (hm : 1 ≤ m) :
+theorem primorial_prime_free_interval (m : Nat) (_hm : 1 ≤ m) :
     PrimeFreeInterval (primorial m) ((Nat.nth Nat.Prime m) - 1) := by
   intro k hk1 hk2
   have hp_prime : Nat.Prime (Nat.minFac k) := Nat.minFac_prime (by omega : k ≠ 1)
@@ -96,14 +96,14 @@ theorem exists_prime_gap_ge_primorial_bound (m : Nat) (hm : 2 ≤ m) :
   classical
   have hp_m_ge3 : 3 ≤ Nat.nth Nat.Prime m := by
     have hp1 : Nat.nth Nat.Prime 1 = 3 := Nat.nth_prime_one_eq_three
-    have hge := (Nat.nth_strictMono Nat.infinite_setOf_prime).le_iff_le.mpr (by omega : 1 ≤ m)
+    have hge := (Nat.nth_strictMono Nat.infinite_setOfPred_prime).le_iff_le.mpr (by omega : 1 ≤ m)
     rw [hp1] at hge; omega
   have h_free : PrimeFreeInterval (primorial m) ((Nat.nth Nat.Prime m) - 1) :=
     primorial_prime_free_interval m (by omega)
   set S := (Finset.range (primorial m + 2)).filter Nat.Prime with hS_def
   have S_nonempty : S.Nonempty := by
     have h2mem : 2 ∈ S := by
-      show 2 ∈ (Finset.range (primorial m + 2)).filter Nat.Prime
+      change 2 ∈ (Finset.range (primorial m + 2)).filter Nat.Prime
       exact Finset.mem_filter.mpr
         ⟨Finset.mem_range.mpr (by linarith [primorial_pos m]), Nat.prime_two⟩
     exact ⟨2, h2mem⟩

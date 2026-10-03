@@ -68,7 +68,7 @@ theorem geom_shift (rho : ℝ) (T : ℕ) :
     nlinarith [h1, hexp]
 
 theorem diversity_floor (D : ℕ → ℝ) (rho inj xi : ℝ)
-    (hrho : 0 ≤ rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
+    (hrho : 0 ≤ rho) (_hinj : 0 ≤ inj) (_hxi : 0 ≤ xi)
     (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) :
     D T ≥ rho^T * D 0 + (inj - xi) * ∑ i ∈ Finset.range T, rho^i := by
   induction T with
@@ -102,7 +102,7 @@ that guarantees inj > ξ; without it (inj ≤ ξ) the floor
 degenerates and the collapse regime is admissible. -/
 theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
     (hrho : 0 < rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
-    (hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
+    (_hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
     (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) :
     D T ≥ (inj - xi) * ∑ i ∈ Finset.range T, rho ^ i := by
   have hf := Hagi.diversity_floor D rho inj xi hrho.le hinj hxi hstep T
@@ -114,9 +114,9 @@ theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
 generation T ≥ 1 the floor is strictly positive — collapse
 is EXCLUDED by strict injection dominance. -/
 theorem diversity_floor_strict_pos (D : ℕ → ℝ) (rho inj xi : ℝ)
-    (hrho : 0 ≤ rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
+    (hrho : 0 ≤ rho) (_hinj : 0 ≤ inj) (_hxi : 0 ≤ xi)
     (hinjgt : xi < inj)
-    (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) (hT : T ≠ 0) :
+    (_hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) (hT : T ≠ 0) :
     0 < (inj - xi) * ∑ i ∈ Finset.range T, rho ^ i := by
   have hdiff : 0 < inj - xi := by linarith
   have hsumpos : 0 < ∑ i ∈ Finset.range T, rho ^ i := by

@@ -218,7 +218,7 @@ UNIFORMLY over B > 0, with equality exactly at B = B* (the
 `amgm_equality`/`amgm_uniqueness` pair). The optimal batch is
 derived AND unique: B* = √(B_n·t₀/c) from the measured
 critical batch B_n and the throughput constants (t₀, c). -/
-theorem batch_T_min (S Bn t0 c B : ℝ) (hS : 0 < S) (hBn : 0 ≤ Bn)
+theorem batch_T_min (S Bn t0 c B : ℝ) (_hS : 0 < S) (hBn : 0 ≤ Bn)
     (ht0 : 0 ≤ t0) (hc : 0 ≤ c) (hB : 0 < B) :
     (1 + Bn / B) * (t0 + c * B)
       ≥ t0 + c * Bn + 2 * Real.sqrt (c * Bn * t0) := by

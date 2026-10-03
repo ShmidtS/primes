@@ -59,7 +59,7 @@ theorem top_level_cycle_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSp
     (L eta Emean E2 E3 E4 G kappa s : ℝ) {n : ℕ}
     {w q : Fin n → ℝ}
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
-    (hE2 : E2 ≤ Emean - G) (hG : 0 ≤ G)
+    (hE2 : E2 ≤ Emean - G) (_hG : 0 ≤ G)
     (h_emp_smooth : E3 ≤ E2 - eta * ⟪g0, ds⟫_ℝ + L * eta ^ 2 * ‖ds‖ ^ 2 / 2)
     (hs0 : 0 ≤ s) (hres : ∀ i, |w i - q i| ≤ s / 2) (hkappa : 0 ≤ kappa)
     (h_emp_lip : E4 - E3 ≤ kappa * Real.sqrt (∑ i, (w i - q i) ^ 2)) :

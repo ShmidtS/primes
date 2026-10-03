@@ -121,10 +121,10 @@ theorem skip_bound (s : B → ℝ) (unread : B → Prop) [DecidablePred unread]
         softmaxW s b * (d / (1 - d))) := by
     intro b
     by_cases h : unread b
-    · rw [if_pos h, if_pos h, if_pos h, sub_zero,
+    · rw [ite_eq_left h, ite_eq_left h, ite_eq_left h, sub_zero,
         abs_of_nonneg (hnonneg b)]
       ring
-    · rw [if_neg h, if_neg h, if_neg h]
+    · rw [ite_eq_right h, ite_eq_right h, ite_eq_right h]
       have hle : softmaxW s b - softmaxW s b / (1 - d) ≤ 0 := by
         have hw := hnonneg b
         have hkey : softmaxW s b ≤ softmaxW s b / (1 - d) := by
@@ -152,7 +152,7 @@ theorem skip_bound (s : B → ℝ) (unread : B → Prop) [DecidablePred unread]
     exact Finset.sum_congr rfl fun b _ => by
       by_cases h : unread b
       · simp [h]
-      · simp only [if_neg h]
+      · simp only [ite_eq_right h]
         ring
   rw [hpull, hread]
   have hcancel : (d / (1 - d)) * (1 - d) = d := by
@@ -160,6 +160,8 @@ theorem skip_bound (s : B → ℝ) (unread : B → Prop) [DecidablePred unread]
   rw [hcancel]
   linarith
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The optimal reading policy exists** (the finite argmax).
 Over the finite candidate set of readable blocks, the
 value-of-information functional (the expected loss reduction

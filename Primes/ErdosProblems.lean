@@ -79,7 +79,7 @@ private lemma weird_sum_eq_divisors (n : ℕ) (hn : 0 < n) :
 /-- **Prime powers are deficient**: σ(p^k) < 2·p^k, hence not weird.
 First formal proof that prime powers cannot be weird numbers.
 Step toward #470 (liddy_riedl): odd weird numbers need ≥ 6 prime factors. -/
-theorem prime_power_not_weird (p k : ℕ) (hp : Nat.Prime p) (hk : 0 < k) :
+theorem prime_power_not_weird (p k : ℕ) (hp : Nat.Prime p) (_hk : 0 < k) :
     ¬ IsWeird (p ^ k) := by
   intro h_weird
   obtain ⟨h_abundant, _⟩ := h_weird
@@ -96,7 +96,7 @@ theorem prime_power_not_weird (p k : ℕ) (hp : Nat.Prime p) (hk : 0 < k) :
       have h1 : p ≤ 2 * (p - 1) := by omega
       have h2 : p * p ^ k ≤ 2 * (p - 1) * p ^ k := Nat.mul_le_mul_right (p ^ k) h1
       have hpp : p ^ (k + 1) = p * p ^ k := by
-        show p ^ k.succ = p * p ^ k
+        change p ^ k.succ = p * p ^ k
         rw [Nat.pow_succ]; ring
       rw [hpp, show 2 * p ^ k * (p - 1) = 2 * (p - 1) * p ^ k from by ring]
       exact h2
@@ -130,7 +130,7 @@ theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := 
   have hsum : ∑ i ∈ properUnitaryDivisors n, i = n := hn.1
   by_cases hn1 : n = 1
   · have h_empty : properUnitaryDivisors 1 = ∅ := by
-      simp [properUnitaryDivisors, Finset.Ico_self]
+      simp [properUnitaryDivisors]
     rw [hn1] at hsum; rw [h_empty, Finset.sum_empty] at hsum; omega
   · have hn3 : 3 ≤ n := by
       have hge2 : 2 ≤ n := by omega
@@ -169,7 +169,7 @@ theorem even_of_unitary_perfect (n : ℕ) (hn : IsUnitaryPerfect n) : Even n := 
             have := Nat.div_mul_cancel hdvd
             exact mul_comm (p ^ k / d) d ▸ this
           have hquot_gt1 : 1 < p ^ k / d := by
-            by_contra hq; push_neg at hq
+            by_contra hq; push Not at hq
             -- hq : p ^ k / d ≤ 1
             by_cases h0 : p ^ k / d = 0
             · rw [h0, mul_zero] at hmul
@@ -338,7 +338,7 @@ theorem jacobsthal_lower_general (x : Nat) (hx : 2 ≤ x) :
         exact hq
       have h_n_mod : n % p = p - 1 := by omega
       have h_ap_mod : (p - 1) % p = p - 1 := Nat.mod_eq_of_lt (by omega : p - 1 < p)
-      show n % p = (p - 1) % p
+      change n % p = (p - 1) % p
       omega
   have h_in : (x - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval x y a } :=
     ⟨(fun p => p - 1), h_cover⟩
@@ -371,14 +371,14 @@ theorem jacobsthal_lower_general (x : Nat) (hx : 2 ≤ x) :
       have hlt := Nat.chineseRemainderOfFinset_lt_prod r (fun p => p) h_s_ne h_pp
       have h_prod : ∏ i ∈ t, (fun p => p) i = P := by simp [P, t]
       rw [h_prod] at hlt
-      show (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
+      change (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
       exact hlt
     have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
     have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
       intro p hp
       have hp_pr : Nat.Prime p := by simp [t] at hp; exact hp.2
       have hap : a p < p := ha.1 p hp_pr (by simp [t] at hp; omega)
-      show (a p + 1) % p ≠ a p
+      change (a p + 1) % p ≠ a p
       by_cases hlt : a p + 1 < p
       · rw [Nat.mod_eq_of_lt hlt]; omega
       · have : a p = p - 1 := by omega
@@ -429,21 +429,21 @@ theorem jacobsthal_lower_general (x : Nat) (hx : 2 ≤ x) :
   exact le_csSup h_bdd h_in
 
 /-- **Y(p_m) ≥ p_m - 1**: first formal proof of Jacobsthal lower bound via CRT. -/
-theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
+theorem jacobsthal_lower_from_primorial (m : Nat) (_hm : 2 ≤ m) :
     (Nat.nth Nat.Prime m) - 1 ≤ jacobsthalY (Nat.nth Nat.Prime m) := by
   set p_m := Nat.nth Nat.Prime m
   have h_cover : CoversInterval p_m (p_m - 1) (fun p => if p = p_m then 1 else 0) := by
     refine ⟨?_, ?_⟩
     · intro p hp hp_le
       by_cases h : p = p_m
-      · show (if p = p_m then (1:Nat) else 0) < p; rw [if_pos h]
+      · change (if p = p_m then (1:Nat) else 0) < p; rw [ite_eq_left h]
         have : 2 ≤ p_m := (Nat.prime_nth_prime m).two_le; omega
-      · show (if p = p_m then (1:Nat) else 0) < p; rw [if_neg h]
+      · change (if p = p_m then (1:Nat) else 0) < p; rw [ite_eq_right h]
         have : 2 ≤ p := hp.two_le; omega
     · intro n hn1 hn_le
       by_cases hn : n = 1
       · subst hn; refine ⟨p_m, Nat.prime_nth_prime m, le_rfl, ?_⟩
-        show 1 % p_m = (if p_m = p_m then (1:Nat) else 0) % p_m; rw [if_pos rfl]
+        change 1 % p_m = (if p_m = p_m then (1:Nat) else 0) % p_m; rw [ite_eq_left rfl]
       · have hn2 : 2 ≤ n := by omega
         set p := Nat.minFac n
         have hp_pr : Nat.Prime p := Nat.minFac_prime (by omega : n ≠ 1)
@@ -451,8 +451,8 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
         have hp_le_n : p ≤ n := Nat.le_of_dvd (by omega) hp_dvd
         have hp_lt : p < p_m := by omega
         refine ⟨p, hp_pr, le_of_lt hp_lt, ?_⟩
-        show n % p = (if p = p_m then (1:Nat) else 0) % p
-        rw [if_neg (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
+        change n % p = (if p = p_m then (1:Nat) else 0) % p
+        rw [ite_eq_right (ne_of_lt hp_lt)]; exact Nat.mod_eq_zero_of_dvd hp_dvd
   have h_in : (p_m - 1) ∈ { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } :=
     ⟨(fun p => if p = p_m then 1 else 0), h_cover⟩
   have h_bdd : BddAbove { y : Nat | ∃ (a : Nat → Nat), CoversInterval p_m y a } := by
@@ -483,14 +483,14 @@ theorem jacobsthal_lower_from_primorial (m : Nat) (hm : 2 ≤ m) :
       have hlt := Nat.chineseRemainderOfFinset_lt_prod r (fun p => p) h_s_ne h_pp
       have h_prod : ∏ i ∈ t, (fun p => p) i = P := by simp [P, t]
       rw [h_prod] at hlt
-      show (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
+      change (Nat.chineseRemainderOfFinset r (fun p => p) t h_s_ne h_pp).val < P
       exact hlt
     have h_n_mod : ∀ p ∈ t, h_crt.val ≡ r p [MOD p] := h_crt.prop
     have h_r_ne : ∀ p ∈ t, r p ≠ a p := by
       intro p hp
       have hp_pr : Nat.Prime p := by simp [t] at hp; exact hp.2
       have hap : a p < p := ha.1 p hp_pr (by simp [t] at hp; omega)
-      show (a p + 1) % p ≠ a p
+      change (a p + 1) % p ≠ a p
       by_cases hlt : a p + 1 < p
       · rw [Nat.mod_eq_of_lt hlt]; omega
       · have : a p = p - 1 := by omega
@@ -582,7 +582,7 @@ theorem f710_upper_bound (n : Nat) (hn : 1 ≤ n) : f710 n ≤ n^2 + 1 := by
 theorem f710_lower_bound (n : Nat) (hn : 1 ≤ n) :
     n ≤ f710 n := by
   by_contra h
-  push_neg at h
+  push Not at h
   have hF : f710 n < n := by omega
   have h_ne : { f | Placement n f }.Nonempty := by
     refine ⟨n^2 + 1, ?_⟩
@@ -650,7 +650,7 @@ theorem erdos_711 :
 
 /-- **Van Doorn's Lemma 2** [vD26]: kn + f(kn,kn) ≤ k²n + f(n,k²n).
 Key lemma resolving #711 part (b). First formalization. -/
-theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (hn : 1 ≤ n) :
+theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (_hn : 1 ≤ n) :
     k * n + f711 (k * n) (k * n) ≤ k^2 * n + f711 n (k^2 * n) := by
   set F := f711 n (k^2 * n)
   have hk2n : k * (k * n) = k^2 * n := by ring
@@ -680,7 +680,7 @@ theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (hn : 1 ≤ n) :
         linarith
       · have h2 : (i.val + 1) * (k^2 * n + 1) ≤ n * (k^2 * n + 1) :=
           Nat.mul_le_mul_right (k^2 * n + 1) hivn
-        show (i.val + 1) * (k^2 * n + 1) ≤ k^2 * n + n * (k^2 * n + 1)
+        change (i.val + 1) * (k^2 * n + 1) ≤ k^2 * n + n * (k^2 * n + 1)
         exact le_trans h2 (by omega)
   have hF_mem : PlacementM n (k^2 * n) F := Nat.sInf_mem h_ne
   obtain ⟨b, hb_div, hb_dist, hb_range⟩ := hF_mem
@@ -692,26 +692,26 @@ theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (hn : 1 ≤ n) :
     refine ⟨?_, ?_, ?_⟩
     · intro i; rw [ha]
       by_cases h : i.val < n
-      · rw [dif_pos h]; exact hb_div ⟨i.val, h⟩
-      · rw [dif_neg h]; exact dvd_mul_left (i.val + 1) k
+      · rw [dite_eq_left h]; exact hb_div ⟨i.val, h⟩
+      · rw [dite_eq_right h]; exact dvd_mul_left (i.val + 1) k
     · intro i j hij; rw [ha i, ha j]
       by_cases hi : i.val < n
       · by_cases hj : j.val < n
-        · rw [dif_pos hi, dif_pos hj]
+        · rw [dite_eq_left hi, dite_eq_left hj]
           exact hb_dist ⟨i.val, hi⟩ ⟨j.val, hj⟩
             (fun h => hij (Fin.ext ((@Fin.ext_iff n ⟨i.val, hi⟩ ⟨j.val, hj⟩).mp h)))
-        · rw [dif_pos hi, dif_neg hj]
+        · rw [dite_eq_left hi, dite_eq_right hj]
           have hb_gt : k^2 * n < b ⟨i.val, hi⟩ := (hb_range ⟨i.val, hi⟩).1
           have hjl : j.val + 1 ≤ k * n := by omega
           have hkj : k * (j.val + 1) ≤ k * (k * n) := Nat.mul_le_mul_left k hjl
           linarith
       · by_cases hj : j.val < n
-        · rw [dif_neg hi, dif_pos hj]
+        · rw [dite_eq_right hi, dite_eq_left hj]
           have hb_gt : k^2 * n < b ⟨j.val, hj⟩ := (hb_range ⟨j.val, hj⟩).1
           have hil : i.val + 1 ≤ k * n := by omega
           have hki : k * (i.val + 1) ≤ k * (k * n) := Nat.mul_le_mul_left k hil
           linarith
-        · rw [dif_neg hi, dif_neg hj]
+        · rw [dite_eq_right hi, dite_eq_right hj]
           have hiv : i.val ≠ j.val := fun h => hij (Fin.ext h)
           intro heq
           have hk0 : 0 < k := by omega
@@ -720,13 +720,13 @@ theorem vanDoorn_lemma2 (k n : Nat) (hk : 1 ≤ k) (hn : 1 ≤ n) :
           omega
     · intro i; rw [ha]
       by_cases h : i.val < n
-      · rw [dif_pos h]
+      · rw [dite_eq_left h]
         have hb_gt : k^2 * n < b ⟨i.val, h⟩ := (hb_range ⟨i.val, h⟩).1
         have hb_le : b ⟨i.val, h⟩ ≤ k^2 * n + F := (hb_range ⟨i.val, h⟩).2
         refine ⟨?_, ?_⟩
         · linarith
         · linarith
-      · rw [dif_neg h]
+      · rw [dite_eq_right h]
         have hil : i.val + 1 ≤ k * n := by omega
         refine ⟨?_, ?_⟩
         · exact Nat.mul_lt_mul_of_pos_left (by omega : n < i.val + 1) hk

@@ -38,6 +38,8 @@ theorem robust_feasibility (g d gdhat : ℝ) (eps m : ℝ)
     eps ≤ gdhat := by
   nlinarith [abs_le.mp hpert]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **Stochastic SafeQP: the safety certificate survives
 minibatch noise**. If the TRUE inner product on every domain
 clears the safety margin with the robust reserve
@@ -87,7 +89,7 @@ theorem stochastic_safeqp_descent (inner_true inner_est dnorm m0 eta L E1 E2 : �
     · have hd2 : 0 < dnorm ^ 2 := by
         have hnn : 0 ≤ dnorm ^ 2 := sq_nonneg dnorm
         by_contra hc
-        push_neg at hc
+        push Not at hc
         apply hd
         linarith
       have hsplit : L * eta ^ 2 * dnorm ^ 2 = (L * eta) * (eta * dnorm ^ 2) := by ring

@@ -97,6 +97,8 @@ explicitly instead of being papered over by the H-semantics
 docstrings. -/
 noncomputable def negEntropy (p : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v)
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The entropy identity (Span 1, THEOREM).** The
 data-divergence field equals the mixture entropy minus the
 weighted corpus entropies:
@@ -108,8 +110,8 @@ one-time table statistic (the KL-matrix or, equivalently, the
 per-corpus entropy tables). -/
 theorem dfield_entropy_identity (p : K → Corpus V) (w : K → ℝ)
     (hp : ∀ i v, 0 < (p i).dist v)
-    (hw : ∀ i, 0 < w i) (hw1 : ∑ i, w i = 1)
-    (hsum : ∀ i, ∑ v, (p i).dist v = 1)
+    (hw : ∀ i, 0 < w i) (_hw1 : ∑ i, w i = 1)
+    (_hsum : ∀ i, ∑ v, (p i).dist v = 1)
     (hne : (Finset.univ : Finset K).Nonempty) :
     divField p w
       = ∑ i, w i * ∑ v, (p i).dist v * Real.log ((p i).dist v)
@@ -181,6 +183,8 @@ theorem dfield_entropy_identity (p : K → Corpus V) (w : K → ℝ)
   unfold divField mixtureCorpus KLdiv
   rw [hL, hR]
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The quadratic field is nonneg (the softmax Hessian is
 PSD)**: the weighted-variance form
 dᵀ H_w d = Σ p_w d² − (Σ p_w d)² ≥ 0 — the Cauchy bound under

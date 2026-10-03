@@ -389,7 +389,7 @@ theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
     · subst hv0
       have hset : {ω : Ω | A < |(m : ℝ)⁻¹ * ∑ j, ⟪xi i j ω, 0⟫_ℝ|} = ∅ := by
         ext ω
-        simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, inner_zero_right,
+        simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, inner_zero_right,
           Finset.sum_const_zero, mul_zero, abs_zero]
         exact ⟨fun h => absurd h (not_lt.2 hAnn), fun h => h.elim⟩
       rw [hset, measureReal_empty]
@@ -428,7 +428,7 @@ theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
         have hseteq : {ω : Ω | (m : ℝ) * A ≤ ∑ j, -(-(⟪xi i j ω, v⟫_ℝ))}
             = {ω : Ω | (m : ℝ) * A ≤ ∑ j, ⟪xi i j ω, v⟫_ℝ} := by
           ext ω
-          simp only [Set.mem_setOf_eq, neg_neg]
+          simp only [Set.mem_ofPred_eq, neg_neg]
         rw [← hseteq]
         exact htail_up0
       -- weaken the exponent from Rv to Rmax (Rv ≤ Rmax)
@@ -447,7 +447,7 @@ theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
           ⊆ {ω : Ω | (m : ℝ) * A ≤ ∑ j, ⟪xi i j ω, v⟫_ℝ}
             ∪ {ω : Ω | (m : ℝ) * A ≤ ∑ j, -(⟪xi i j ω, v⟫_ℝ)} := by
         rintro ω hω
-        simp only [Set.mem_setOf_eq] at hω
+        simp only [Set.mem_ofPred_eq] at hω
         have hmp2 : (m : ℝ)⁻¹ * ∑ j, ⟪xi i j ω, v⟫_ℝ ≠ 0 := by
           intro h0
           rw [h0, abs_zero] at hω

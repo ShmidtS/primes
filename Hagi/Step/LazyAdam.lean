@@ -120,6 +120,8 @@ theorem lazyReplay_exact (beta2 vstale g : ℝ) (d : ℕ) :
 -- η_s) is the lazyDecay_exact-style identity; the accumulator
 -- is the implementation, not a theorem.
 
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
 /-- **The support-set bound**: the touched rows per step are
 at most the union of the input, target and negative rows —
 |S_t| ≤ |S_in| + |S_tgt| + |S_neg|; at the measured leaf,

@@ -87,7 +87,7 @@ a^i for EVERY a ≥ 0 (including the growth regime a ≥ 1).
 Generalizes `anchor_recurrence` (a < 1 case) and the GenCycle
 decay; at D(0) = 0, a < 1 the bound collapses to s/(1−a). -/
 theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
-    (ha : 0 ≤ a) (hs : 0 ≤ s)
+    (ha : 0 ≤ a) (_hs : 0 ≤ s)
     (hstep : ∀ t, D (t+1) ≤ a * D t + s) :
     ∀ t, D t ≤ a^t * D 0 + s * ∑ i ∈ Finset.range t, a^i := by
   intro t
@@ -178,7 +178,7 @@ certified gain under ε. With identical corpora and mixture
 weights the D-field divergence is zero (`DField`: D = 0 ⟺
 clones), so the only feed is the noise s. -/
 theorem seed_only_grow_stop (c Lam a s eps gapInf : ℝ)
-    (hc : 0 ≤ c) (hLam : 0 ≤ Lam) (ha : 0 ≤ a) (ha1 : a < 1) (hs : 0 ≤ s)
+    (_hc : 0 ≤ c) (_hLam : 0 ≤ Lam) (_ha : 0 ≤ a) (_ha1 : a < 1) (_hs : 0 ≤ s)
     (hbound : gapInf ≤ c * Lam^2 * s / (1 - a))
     (hfloor : c * Lam^2 * s / (1 - a) < eps) :
     gapInf < eps := by

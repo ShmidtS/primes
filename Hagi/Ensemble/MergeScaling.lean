@@ -104,7 +104,7 @@ rising (still before N*) or shrinks (past N*) — both
 outcomes are verdicts. The formal statement: the step
 function's sign structure (the unique critical point of
 the two-channel sum). -/
-theorem two_channel_step_law (a b : ℝ) (ha : 0 < a) (hb : 0 < b)
+theorem two_channel_step_law (a b : ℝ) (_ha : 0 < a) (hb : 0 < b)
     (N : ℝ) (hN : 0 < N) :
     (2 * a / N^3 - b = 0) ↔ (N^3 = 2 * a / b) := by
   have hN3 : 0 < N^3 := by positivity
