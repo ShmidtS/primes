@@ -3072,3 +3072,20 @@ swa_cost_bound + Classical.choice) ✓.
 архитектурное допущение (эмпирика 2609.34049), не теорема.
 
 Батарея: CI: PASS.
+
+## R143 — Phase B: causal transmit filter (lesson V26)
+
+Новый модуль `Hagi/Step/CausalFilter.lean` (план R136):
+- `causalConv` — каузальная свёртка с левым pad:
+  y t = Σ_{i≤t} w(t−i)·x i.
+- `causal_prefix_determined` — НУЛЕВАЯ УТЕЧКА БУДУЩЕГО:
+  совпадение входов на префиксе 0..t ⟹ совпадение
+  выходов в t (2607.20125, формально).
+- `centeredConv` + `leak_same_step` — КОНТРПРИМЕР:
+  centered (same-step) свёртка ЧИТАЕТ x(t+1): возмущение
+  c на x(t+1) меняет выход в t ровно на w(0)·c ≠ 0
+  (шаблон leakage-теста 2609.14191).
+Фиксация урока V26 против регрессий.
+Аксиомы: только стандартные ✓.
+
+Батарея: CI: PASS.

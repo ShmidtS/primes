@@ -109,6 +109,7 @@ import Hagi.Unified.ArchitectureTheorem
 import Hagi.Core.RoPE
 import Hagi.Core.GQA
 import Hagi.Core.SWA
+import Hagi.Step.CausalFilter
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
