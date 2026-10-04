@@ -3051,3 +3051,24 @@ RAG: 2609.32759 (карта экономии), 2607.12550 (near-lossless
 как граница, не теорема).
 
 Батарея: CI: PASS.
+
+## R142 — Phase B: Sliding window + relay
+
+Новый модуль `Hagi/Core/SWA.lean` (план §6 Phase B, R135):
+- `reach W L` — рецептивное поле L слоёв окна W:
+  L*(W−1)+1 (2609.34049).
+- `swa_reach_step` — рекурсия: +1 слой добавляет W−1
+  позиций.
+- `swa_reach_eq`/`swa_reach_mono` — замкнутая форма и
+  монотонность.
+- `swa_relay_full` — relay-слой (full attention) = окно T:
+  покрывает весь контекст.
+- `swa_cost_bound` — точная двухсторонняя оценка маски:
+  (T−W)·W ≤ |mask| ≤ T·W — линейность O(T·W) против
+  квадратичного T(T+1)/2 full-causal.
+Аксиомы: только стандартные (propext/Quot.sound;
+swa_cost_bound + Classical.choice) ✓.
+Граница честно: сохранность информации через relay —
+архитектурное допущение (эмпирика 2609.34049), не теорема.
+
+Батарея: CI: PASS.
