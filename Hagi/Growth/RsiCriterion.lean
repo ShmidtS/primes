@@ -1,0 +1,96 @@
+/-
+Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: HAGI_v2 formalization team
+-/
+import Mathlib
+set_option linter.style.header false
+
+/-!
+# R166b (R143-ревизия): структурное число воспроизводства
+# R_RSI — пошаговая честная форма
+
+Внешний документ 2026-10-05: «R_RSI = β·γ > (1−ρ)·ξ_t/C_t
+⟹ D_{t+1} − D_t > 0 (Self-Sustaining Regime)».
+
+Честная пошаговая форма (уровень 2, named premises):
+продукционная динамика D' ≥ ρD + βC − ξ сама по себе НЕ
+гарантирует рост фронтира без ВЕРХНЕЙ оценки D (при большом
+D член −(1−ρ)D доминирует). Достаточное условие шага:
+
+  β·C_t > ξ_t + (1−ρ)·D_t   ⟹   D_{t+1} > D_t.
+
+Связь с R_RSI: при конусе D_t ≤ (α/γ)·C_t·(γ/α)...
+безразмерная форма условия βγ > (1−ρ)ξ/C возникает при
+D-масштабировании — но требует конусной посылки; здесь
+дана точная пошаговая алгебра без скрытых посылок.
+
+Плюс связка с доказанным Cunningham-зажиганием R156
+(takeoff_elasticity): произведение эластичностей > 1.
+-/
+
+open Finset Real
+
+namespace Hagi
+
+/-- **Пошаговое условие самоподдержки RSI**: продукционная
+динамика D' ≥ ρD + βC − ξ при пошаговом превышении
+производства над затуханием β·C > ξ + (1−ρ)·D даёт
+СТРОГИЙ рост фронтира D_{t+1} > D_t. -/
+theorem rsi_step_growth (D C : ℕ → ℝ) (rho beta : ℝ) (xi : ℕ → ℝ)
+    (t : ℕ)
+    (hdyn : rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (hstep : xi t + (1 - rho) * D t < beta * C t) :
+    D t < D (t + 1) := by
+  have hE : D (t + 1) - D t
+      ≥ rho * D t + beta * C t - xi t - D t := by linarith
+  have hkey : rho * D t + beta * C t - xi t - D t
+      = beta * C t - xi t - (1 - rho) * D t := by ring
+  rw [hkey] at hE
+  linarith
+
+/-- **Беззнаковая форма R_RSI (уровень 2)**: при конусной
+оценке D_t ≤ (α/γ)·C_t (frontier-конус R107), C_t > 0,
+γ > 0, ρ ≤ 1 — пошаговый рост следует из безразмерного
+барьера
+
+  (1−ρ)·α + γ·ξ_t/C_t < β·γ
+
+(= R_RSI-условие βγ > (1−ρ)·α + γ·ξ/C в конусных
+координатах; все посылки — named, уровень 2). -/
+theorem rsi_cone_criterion (D C : ℕ → ℝ) (rho beta alpha gamma : ℝ)
+    (xi : ℕ → ℝ) (t : ℕ)
+    (hgamma : 0 < gamma) (hCpos : 0 < C t) (hrho : rho ≤ 1)
+    (hdyn : rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (hcone : D t ≤ alpha / gamma * C t)
+    (hcriterion : (1 - rho) * alpha + gamma * xi t / C t
+      < beta * gamma) :
+    D t < D (t + 1) := by
+  have hrho0 : (0:ℝ) ≤ 1 - rho := by linarith
+  -- конус ⟹ (1-rho)*D <= (1-rho)*(alpha/gamma)*C
+  have h1 : (1 - rho) * D t
+      ≤ (1 - rho) * (alpha / gamma * C t) :=
+    mul_le_mul_of_nonneg_left hcone hrho0
+  -- критерий ⟹ (умножение на C/gamma > 0)
+  have h2 : ((1 - rho) * alpha) * C t / gamma + xi t
+      < beta * C t := by
+    have hmul : ((1 - rho) * alpha + gamma * xi t / C t) * (C t / gamma)
+        < beta * gamma * (C t / gamma) :=
+      mul_lt_mul_of_pos_right hcriterion (by positivity)
+    have hsplit : ((1 - rho) * alpha + gamma * xi t / C t) * (C t / gamma)
+        = ((1 - rho) * alpha) * C t / gamma + xi t := by
+      field_simp
+    have hsplit2 : beta * gamma * (C t / gamma) = beta * C t := by
+      field_simp
+    rw [hsplit, hsplit2] at hmul
+    exact hmul
+  -- перегруппировка: (1-rho)*(alpha/gamma)*C = ((1-rho)*alpha)*C/gamma
+  have h3 : (1 - rho) * (alpha / gamma * C t)
+      = ((1 - rho) * alpha) * C t / gamma := by
+    field_simp
+  rw [h3] at h1
+  have hstep : xi t + (1 - rho) * D t < beta * C t := by
+    linarith
+  exact rsi_step_growth D C rho beta xi t hdyn hstep
+
+end Hagi
