@@ -3393,3 +3393,30 @@ compression-сертификат merged-моделей (комбинаторна
 k-sparse/sign-coherence часть R132 уже в T2 MergePrice
 (факт-R132). PAC-Bayes-мост — измеряемая посылка (h_emp_).
 Аксиомы: стандартные. CI: PASS. §8.2 R155 закрыт.
+
+## R157 — Fannes-дописка, часть 1: hmono снят (binEnt_mono)
+
+`Hagi/Data/BinEntMono.lean` — посылка `hmono` из T5
+(entropy_continuity_pinsker, AntiCollapse) стала ТЕОРЕМОЙ:
+
+- `binEnt_mono` — монотонность двоичной энтропии h2 на
+  [0, 1/2]: классический MVT-маршрут
+  (exists_hasDerivAt_eq_slope): производная
+  h2'(x) = log((1-x)/x) >= 0 на (0, 1/2]; непрерывность на
+  компакте [a,b] ⊂ (0,1) через Real.continuousOn_log.mono +
+  ContinuousOn.comp; наклон >= 0 ⟹ binEnt a <= binEnt b.
+  Граничный a = 0 через binEnt_nonneg;
+- `binEnt_nonneg` — 0 <= h2(b) на [0, 1/2]
+  (log_nonpos-обе стороны);
+- `entropy_continuity_pinsker'` — T5 БЕЗ посылки hmono
+  (усиление оригинала, оригинал сохранён для совместимости).
+
+Тех-урок: Pi-vs-lambda HasDerivAt-формы нормализуются
+rw [show ... from rfl] / funext t; simp; Real.log_nonpos —
+ДВЕ посылки (0 <= x, x <= 1); hasDerivAt_const — порядок
+(x-точка, потом c-константа); MVT exists_hasDerivAt_eq_slope —
+a b НЕЯВНЫЕ.
+
+Остаток R157: полная Fannes-граница (hbound) — измеряемая
+посылка (positive/negative-частное разложение p-q — вне
+текущего объёма). Аксиомы: стандартные. CI: PASS.
