@@ -94,6 +94,7 @@ import Hagi.Probability.Azuma
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
 import Hagi.Growth.Saturation
+import Hagi.Growth.GrowthCeiling
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
