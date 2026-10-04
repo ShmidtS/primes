@@ -3104,3 +3104,19 @@ swa_cost_bound + Classical.choice) ✓.
 Аксиомы: только стандартные ✓.
 
 Батарея: CI: PASS.
+
+## R145 — Phase B: QFormer bridge zero-init identity
+
+Новый модуль `Hagi/Ensemble/QFormerBridge.lean` (план R137,
+ViSTA 2609.31448):
+- `bridgeOut U A Wout` — мост: K learned-запросов, выход
+  через проекцию Wout.
+- `vista_bridge_zero` — zero-init Wout = 0 ⟹ выход моста
+  ТОЧНО нуль.
+- `vista_residual_identity` — включение в residual stream
+  НЕ МЕНЯЕТ функцию (function-preserving).
+Граница честно: сохранение качества при сжатии — эмпирика.
+Fixed-rate стоимость — определение.
+Аксиомы: только стандартные ✓.
+
+Батарея: CI: PASS.
