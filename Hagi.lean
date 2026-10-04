@@ -96,6 +96,7 @@ import Hagi.Growth.RatioTakeoff
 import Hagi.Growth.Saturation
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
+import Hagi.Ensemble.MergeCancellation
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0

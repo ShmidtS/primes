@@ -2705,3 +2705,28 @@ Stiefel→Grassmannian quotient (§11) — вне Lean; для HAGI
 (M ≥ 0 естественно), а не signed weights (§7 разбора).
 
 Батарея: CI: PASS.
+
+## R129 — Phase A старт: MergeCancellationIdentity (весовой фундамент γ-блокера)
+
+`Hagi/Ensemble/MergeCancellation.lean` — по FORMULIZATION_PLAN
+Phase A (R129). Модель: W_k = M + dev_k, Σ dev = 0.
+
+- `merge_is_mean`: M = (1/N)ΣW_k — merge-усреднение ТОЧНО.
+- `deviations_cancel`: для любого линейного f Σf(W_k) = N·f(M) —
+  усреднение гасит РОВНО сумму отклонений в любом измерении.
+- `pairwise_variance_identity`: Σ_{i,j}‖W_i−W_j‖² = 2N·Σ‖dev_k‖²
+  (закон полной дисперсии; всё рассеяние пула живёт в dev-канале —
+  весовая версия twoGap).
+- `orthogonal_energy_split` + `decompose_reconstruct`: при
+  ортогональных dev_k энергия локальна; (M, dev_k) восстанавливает
+  W_k ТОЧНО — потери merge происходят при СЖАТИИ dev, не при
+  усреднении M.
+- `anticorrelated_suppressed`: проекция M на любое направление =
+  средней проекции экспертов; антикоррелированная компонента
+  гасится ИМЕННО в M, но сохраняется в dev-канале (основа для
+  R130: distill-перенос dev — путь закрытия γ-дефицита 9×).
+
+Честная граница: «2.8e-16 машинная точность» — измерено
+(R102–R104 runtime), здесь точная алгебра над ℝ.
+
+Батарея: CI: PASS.
