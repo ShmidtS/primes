@@ -3120,3 +3120,18 @@ Fixed-rate стоимость — определение.
 Аксиомы: только стандартные ✓.
 
 Батарея: CI: PASS.
+
+## R146 — Phase B завершена: ChunkedCE + UnigramPrior
+
+Новый модуль `Hagi/Data/ChunkedCE.lean` (план R138, остаток):
+- `chunked_sum_exact` — ТОЧНОСТЬ кускового CE: при T = n·w
+  сумма по позициям = Σ по n кускам ширины w без потерь
+  (индукция + range/Ico-разбиение; 2609.32100 протокол).
+- `ce_prior_decomposition` — CE-декомпозиция unigram:
+  Σ p·log q = Σ p·log p + Σ p·log(q/p) (prior + KL-
+  поправка; proper-объективность 2607.10951/2609.36896).
+Phase B (R140–R146) полностью закрыта: RoPE, GQA, SWA,
+CausalFilter, PuncturedCE, QFormerBridge, ChunkedCE.
+Аксиомы: только стандартные ✓.
+
+Батарея: CI: PASS.
