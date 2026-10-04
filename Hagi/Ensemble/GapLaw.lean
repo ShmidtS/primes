@@ -305,8 +305,7 @@ theorem twoGap_zero_iff (hp : ∀ u, 0 < p u)
         rw [hcosheq]
         simp
       have h2 := (Real.cosh_le_cosh).mp hle
-      simp at h2
-      exact h2
+      simpa using h2
     linarith
   · -- a constant deviation is a shift: cosh 0 = 1 → S = 1 → gap = 0
     intro ⟨c, hc⟩

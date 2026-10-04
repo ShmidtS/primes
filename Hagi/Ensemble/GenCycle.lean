@@ -118,7 +118,7 @@ theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
   rw [Finset.sum_congr rfl fun i _ => hterm i]
   rw [show ((Fintype.card ι : ℝ) * (Fintype.card κ : ℝ))
       = ((Fintype.card (ι × κ) : ℝ)) from by
-    push_cast
+
     rw [Fintype.card_prod]
     push_cast
     rfl]

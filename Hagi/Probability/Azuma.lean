@@ -349,7 +349,7 @@ theorem azuma_mgf (q : V → ℝ)
         (Real.exp_pos _).le) ?_
       rw [← Real.exp_add, Real.exp_le_exp]
       norm_num
-      push_cast
+
       linarith
 
 /-- Линейность azumaSum по neg-семейству. -/

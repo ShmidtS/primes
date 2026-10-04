@@ -401,7 +401,7 @@ theorem hoeffding_mean_tail_low {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProb
       have hone : ∑ i : Fin n, (1:ℝ) = (n : ℝ) := by simp
       rw [hone]
     rw [hA, hB]
-    push_cast
+
     ring
   have hmono : prodPq p (fun ω => centeredSum p X ω ≤ - (n : ℝ) * eps)
       ≤ prodPq p (fun ω => (n : ℝ) * eps

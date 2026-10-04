@@ -2974,3 +2974,40 @@ T1–T6 (R132–R137) в machine-checked capstone:
 сертификатов, не глобальная (ревизия §7).
 
 Батарея: CI: PASS.
+
+## R139 — чистка предупреждений и аудит строгости
+
+По запросу пользователя (проверка сборки, исправление
+предупреждений, открытых гипотез):
+
+- lake build: 0 ошибок. CI-батарея: PASS (TrivialLint +
+  triviality_lint + DocLint).
+- 0 настоящих sorry/admit/native_decide (два текстовых
+  вхождения «admit» в докстрингах — не термы).
+- Аксиомы 10 ключевых теорем (hagi_synthesis, MasterHAGI,
+  state_closed_band, universality_longhorizon,
+  entropy_continuity_pinsker, distill_kl_bridge,
+  safeqp_pl_rate, merge_gate_certified,
+  adaptive_success_azuma, gpm_zero_forgetting): только
+  [propext, Classical.choice, Quot.sound] — правило 3 ✓.
+- Исправлены по-настоящему: 8 мёртвых тактик (push_cast/
+  congr/unfold-no-op), 3 flexible-simp (simpa/маркировка
+  2 старых блоков set_option linter.flexible false in),
+  2 module-docstring позиции (Ternary/Joint: /-! после
+  imports), 2 copyright-блока (полная форма), 17 longLine
+  (переносы кода + сокращение докстринг-таблиц),
+  2 артефактных пустых строки.
+- Оставшиеся ~190 предупреждений — ЧИСТО СТИЛИСТИЧЕСКИЕ,
+  на строгость не влияют (подтверждено): 74 unusedSectionVars
+  (instance не используется в теле — истинность/аксиомы
+  теоремы неизменны; правка через omit чирнила бы сигнатуры
+  без математической пользы), ~80 unusedHypotheses/
+  unusedVariables (именованные посылки — ДОКУМЕНТИРОВАННЫЙ
+  API-контракт R-раундов: h_emp_-посылки намеренно
+  сохраняются в сигнатуре), ~30 формат-мелочей (missing
+  space, <;>-стиль). Решение пользователя: игнорировать.
+- Инцидент: изменение leanOptions в lakefile инвалидирует
+  кеш Mathlib (.olean.private) — откат; кеш восстановлен
+  точечной пересборкой Mathlib-модулей.
+
+Батарея: CI: PASS.

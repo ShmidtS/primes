@@ -94,7 +94,8 @@ theorem sum_pair_const {V : Type} [Fintype V] (p : V → ℝ) (c : ℝ) (hsum : 
   -- outer: Σ_u p u * c = c
   have hterm2 : ∀ u : V, p u * c = c * p u := fun u => mul_comm _ _
   rw [Finset.sum_congr rfl (fun u _ => hinner u), Finset.sum_congr rfl (fun u _ => hterm2 u)]
-  calc ∑ u, c * p u = c * ∑ u, p u := (Finset.mul_sum (s := Finset.univ) (f := fun u => p u) (a := c)).symm
+  calc ∑ u, c * p u = c * ∑ u, p u :=
+    (Finset.mul_sum (s := Finset.univ) (f := fun u => p u) (a := c)).symm
     _ = c * 1 := by rw [hsum]
     _ = c := by ring
 
@@ -304,7 +305,8 @@ theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ
   have hgap0 : 0 ≤ Hagi.twoGap p d := Hagi.twoGap_nonneg hp hsum
   nlinarith [hb, hgap0, heta, heta1]
 
-/-- **Pair generating function factorization**: the double pair sum factorizes into the product of the marginal generating functions — the first step of the sharp M2/8 route (the mu-canceling product bound, in progress). -/
+/-- **Pair generating function factorization**: the double pair sum
+factorizes into the product of the marginal generating functions. -/
 theorem pair_factor {V : Type} [Fintype V] (p d : V → ℝ) :
     ∑ u, ∑ v, p u * p v * Real.exp (d u - d v)
       = (∑ u, p u * Real.exp (d u)) * (∑ v, p v * Real.exp (-(d v))) := by

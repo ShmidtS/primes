@@ -29,13 +29,13 @@ EXCHANGE-ЛЕММ (ratio_dominance: argmax Γ/K доминирует любую
 
 | Компонент | Теорема | Почему выведен |
 |---|---|---|
-| dense pre-norm тело + блочный merge | `perBlock_net_blockwise` (T1/R133) | нелинейный step-0: merged(concat) = ансамбль |
-| Hadamard/F₃-миксер, step-0 = ансамбль | `step0_equivalence` (Core) | function-preserving рост |
-| merge ПО ГЕЙТУ twoGap > Σprices + κ√n s/2 | `merge_gate_certified` (T2/R132) | цена в метрике активаций (Stärk Th.1/4) |
-| distill-перенос dev-канала | `distill_kl_bridge`, η (T3/R134) | единственный оператор T с η в натах |
-| SafeQP-шаг, η*=⟨g,d*⟩/(L‖d*‖²) | `safeqp_pl_rate` (T4/R135) | κ-налог конфликтов измерим, hpl_lo — следствие |
-| тернарное сжатие по satTail | `TernaryExact` (R103) | цена κ(√n s/2+√satTail) в сертификате merge |
-| Hedge-роутер по доменам | `universality_longhorizon` (T6/R137) | не хуже лучшего листа по каждому домену |
+| dense pre-norm + блочный merge | `perBlock_net_blockwise` (T1) | нелинейный step-0 |
+| Hadamard/F₃-миксер | `step0_equivalence` (Core) | step-0 = ансамбль |
+| merge-гейт twoGap > Σprices + κ√n·s/2 | `merge_gate_certified` (T2) | метрика активаций |
+| distill dev-канала | `distill_kl_bridge` (T3) | η в натах |
+| SafeQP-шаг η*=⟨g,d*⟩/(L‖d*‖²) | `safeqp_pl_rate` (T4) | κ-налог измерим |
+| тернарное сжатие | `TernaryExact` (R103) | цена по satTail |
+| Hedge-роутер | `universality_longhorizon` (T6) | не хуже лучшего листа |
 | якорь реальных данных ν>0 | `entropy_floor_tv` (T5/R136) | анти-коллапс через TV, не KL |
 | zero-init включение ветвей | `zero_init_identity` (T1) | function-preserving |
 | БЕЗ MoE/water-filling/IB/refinement | отрицательные результаты §0 | коллапс измерен |

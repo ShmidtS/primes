@@ -119,7 +119,7 @@ theorem sum_dist_mean_le {V : Type*} [NormedAddCommGroup V] [InnerProductSpace �
   set m : V := (1/(n:ℝ)) • ∑ i, x i with hmdef
   have hmsum : ((n:ℕ):ℝ) • m = ∑ i, x i := by
     rw [hmdef, smul_smul]
-    congr 1
+
     field_simp
     simp
   have hsumx : ∑ a, x a = ((n:ℕ):ℝ) • m := hmsum.symm

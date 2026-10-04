@@ -166,7 +166,7 @@ theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
   have hln1c : 0 < Real.log (1/c) := by linarith
   have hB : 0 < Real.log (dS / dM) :=
     Real.log_pos ((one_lt_div hdM).mpr hdSdM)
-  -- core: c^{−t} < dS/dM ↔ t·ln(1/c) < B   [log monotone, one-sided enough both ways via contraposition]
+  -- core: c^{−t} < dS/dM ↔ t·ln(1/c) < B  [log mono, both ways by contraposition]
   have key : c^(-(C0/kappa)) < dS / dM ↔ C0/kappa * Real.log (1/c) < Real.log (dS/dM) := by
     constructor
     · intro h

@@ -41,7 +41,8 @@ theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
     by_contra hcon
     push Not at hcon
     have hnn : 0 ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ := norm_nonneg _
-    have hms : tol * tol ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ * ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ :=
+    have hms : tol * tol ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖
+        * ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ :=
       mul_self_le_mul_self htol hcon
     have hn2 : tol ^ 2 ≤ ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ ^ 2 := by
       rw [sq, sq]

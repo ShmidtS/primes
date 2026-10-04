@@ -101,7 +101,7 @@ theorem root_sum_eq {n : ℕ} (hn : 0 < n) (x : Fin n → V) :
   rw [show n • (∑ i, x i) = ((n:ℕ):ℝ) • (∑ i, x i) from
       (Nat.cast_smul_eq_nsmul ℝ _ _).symm]
   rw [smul_smul]
-  congr 1
+
   field_simp
   simp
 

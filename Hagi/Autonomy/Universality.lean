@@ -137,7 +137,7 @@ theorem universality_longhorizon {T : ℕ}
   have hconst : ∑ t ∈ Finset.range T, best i
       = (T : ℝ) * best i := by
     rw [Finset.sum_const, Finset.card_range]
-    push_cast
+
     ring
   have hgeom := geometric_eps_sum ε0 ρ hε hρ hρ1 T
   rw [hsplit, hconst] at hsum

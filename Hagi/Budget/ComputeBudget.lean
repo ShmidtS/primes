@@ -26,11 +26,11 @@ flagged, NOT a theorem about the real transformer).
 
 | resource | law | status | live measurement |
 |----------|-----|-------|------------------|
-| LoRA rank r | A·e^{−κr} | **ASSUMPTION** (fit-hypothesis: the measured B-row spectrum 0.54–0.63 at r=16 is FLAT — the tail is NOT exponential at the measured scale; κ is NOT measurable from r=16 data; the r-sweep {32, 48} must run FIRST) |
-| NCE K | A/K | THEOREM (`Hagi.NCEVar.adaptiveK_bound`: the variance identity is exact) | K=2048 measured; S₂ per corpus to be attached |
-| CE keep-rate p | (1−p)/p | ASSUMPTION (the +27% throughput at keep=0.5 is measured; the variance side is NOT yet — flagged) | keep=0.5 → +27% |
-| experts N | G/(N²−1) | THEOREM-conditional (the ensemble-harvest model of `Hagi.Core/Concat`; the calibration N*≈4.6 from gen-1 gap 0.036 is a fit of the model, the law itself is derived) | gen-1 gap 0.036 → N*≈4.6 |
-| D-field w | KL-structure | THEOREM (`Hagi.Data/DField`: D = Σ w KL is a divergence; the optimum is the concave program) | D(canonical)=0.804; leave-one-out −slimpajama → 0.584 |
+| LoRA rank r | A·e^{−κr} | ASSUMPTION (measured B-row spectrum 0.54–0.63 at r=16: flat) |
+| NCE K | A/K | THEOREM (`adaptiveK_bound`; K=2048 measured, S₂ per corpus) |
+| CE keep-rate p | (1−p)/p | ASSUMPTION (throughput +27% at 0.5 measured; variance open) |
+| experts N | G/(N²−1) | THEOREM-conditional (Concat model; calibration N*≈4.6) |
+| D-field w | KL-structure | THEOREM (`DField`: D = Σ w KL; concave program) |
 
 **What the module proves:**
 

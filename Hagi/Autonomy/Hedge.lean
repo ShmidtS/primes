@@ -29,7 +29,8 @@ theorem exp_neg_le_quad (y : ℝ) (hy : 0 ≤ y) :
       HasDerivAt.sub h2 (hasDerivAt_id x)
     have hB : HasDerivAt (fun x : ℝ => 1 + (x ^ 2 / 2 - x)) (0 + (x - 1)) x :=
       HasDerivAt.add (hasDerivAt_const x (1 : ℝ)) hA
-    have hC : HasDerivAt (fun x : ℝ => 1 + (x ^ 2 / 2 - x) - Real.exp (-x)) ((0 + (x - 1)) - (-Real.exp (-x))) x := by
+    have hC : HasDerivAt (fun x : ℝ => 1 + (x ^ 2 / 2 - x) - Real.exp (-x))
+      ((0 + (x - 1)) - (-Real.exp (-x))) x := by
       have hE : HasDerivAt (fun x : ℝ => Real.exp (-x)) (-Real.exp (-x)) x := by
         have hE0 : HasDerivAt (fun x : ℝ => -x) (-1 : ℝ) x := (hasDerivAt_id x).neg
         have hE2 : HasDerivAt (fun x : ℝ => Real.exp (-x)) (Real.exp (-x) * -1) x :=

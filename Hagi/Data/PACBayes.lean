@@ -30,7 +30,8 @@ theorem log_weighted_jensen {ι : Type} [Fintype ι] [Nonempty ι] (q x : ι →
     ∑ i, q i * Real.log (x i) ≤ Real.log (∑ i, q i * x i) := by
   set m := ∑ i, q i * x i with hm
   have hmpos : 0 < m := by
-    have h0 : (0:ℝ) ≤ ∑ i, q i * x i := Finset.sum_nonneg (fun i _ => mul_nonneg (hq i).le (hx i).le)
+    have h0 : (0:ℝ) ≤ ∑ i, q i * x i :=
+      Finset.sum_nonneg fun i _ => mul_nonneg (hq i).le (hx i).le
     by_contra hlt
     push Not at hlt
     rw [hm] at hlt

@@ -82,6 +82,7 @@ variation, δ = the skipped mass. The CE-regression of the skip
 is first-order in the skipped ATTENTION MASS — the decision
 variable — not in the block count: the controller that skips
 low-mass blocks pays nothing; the mass map, not the block
+set_option linter.flexible false in
 count, is the cost. -/
 theorem skip_bound (s : B → ℝ) (unread : B → Prop) [DecidablePred unread]
     (hnonneg : ∀ b, 0 ≤ softmaxW s b)
@@ -97,8 +98,7 @@ theorem skip_bound (s : B → ℝ) (unread : B → Prop) [DecidablePred unread]
     apply Finset.sum_nonneg
     intro b _
     by_cases h : unread b
-    · simp [h]
-      exact hnonneg b
+    · simpa [h] using hnonneg b
     · simp [h]
   have hread : ∑ b, (if unread b then (0:ℝ) else softmaxW s b) = 1 - d := by
     have hterm : ∀ b : B, (if unread b then (0:ℝ) else softmaxW s b)

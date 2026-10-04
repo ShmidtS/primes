@@ -78,6 +78,7 @@ skip bound): the window-plus-sinks restriction perturbs the
 attention distribution by at most 2δ, δ = the full
 attention's own mass on the DROPPED set (the complement of
 window ∪ sinks) — the CE regression of the regime is
+set_option linter.flexible false in
 first-order in the dropped mass, not in T. -/
 theorem sink_cost_bound (V : Type) [Fintype V]
     (p : V → ℝ) (dropped : V → Prop) [DecidablePred dropped]
@@ -93,8 +94,7 @@ theorem sink_cost_bound (V : Type) [Fintype V]
     apply Finset.sum_nonneg
     intro v _
     by_cases h : dropped v
-    · simp [h]
-      exact hp v
+    · simpa [h] using hp v
     · simp [h]
   have hread : ∑ v, (if dropped v then (0:ℝ) else p v) = 1 - d := by
     have hterm : ∀ v : V, (if dropped v then (0:ℝ) else p v)

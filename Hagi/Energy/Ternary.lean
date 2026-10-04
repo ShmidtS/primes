@@ -1,10 +1,10 @@
 /-
-Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: HAGI_v2 formalization team
 -/
 import Mathlib
 
-open scoped Matrix
-set_option linter.style.header false
 
 
 /-!
@@ -26,6 +26,8 @@ ternary expert format (`scripts/dsv4_experts.py`,
   essential ("grids without it lose ~8 pp", README.md) — hence the
   symmetric thresholds at `±1/2`.
 -/
+open scoped Matrix
+set_option linter.style.header false
 
 namespace Hagi
 

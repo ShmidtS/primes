@@ -207,7 +207,7 @@ theorem partEst_gap_jensen (z q : V → ℝ)
   have hW : ∀ v, 0 < impW z q v := fun v => div_pos (Real.exp_pos _) (hq v)
   have hunb := partEst_unbiased z q hq hq1
   unfold impW at hW ⊢
-  unfold partEst_unbiased at hunb
+
   rw [← hunb]
   -- now: Σ q * log(exp z / q) <= log (Σ q * (exp z / q))
   refine jensen_log (V := V) q (fun v => Real.exp (z v) / q v) hq hq1 hW

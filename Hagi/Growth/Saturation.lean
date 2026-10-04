@@ -129,7 +129,7 @@ theorem saturation_limit (C : ℕ → ℝ) (Cstar σ : ℝ)
       have hcard : ∑ _i ∈ Finset.range N, σ * (1 - σ) ^ N
           = (N:ℝ) * (σ * (1 - σ) ^ N) := by
         rw [Finset.sum_const, Finset.card_range]
-        push_cast
+
         ring
       -- N·σ·(1−σ)^N ≤ Σ = 1 − (1−σ)^N ≤ 1
       have hsumle : ∑ i ∈ Finset.range N, σ * (1 - σ) ^ i ≤ 1 := by

@@ -1,11 +1,10 @@
 /-
-Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: HAGI_v2 formalization team
 -/
 import Mathlib
 
-open scoped Matrix
-
-set_option linter.style.header false
 
 /-!
 # The joint step: when fine-tuning from a merged prior helps and when it destroys
@@ -71,6 +70,10 @@ gradient: `δ = −lr • g`.
    which bounds every component by the geometry of the step,
    not by the luck of the direction.
 -/
+open scoped Matrix
+
+set_option linter.style.header false
+
 
 namespace Hagi
 
