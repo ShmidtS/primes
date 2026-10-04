@@ -27,5 +27,13 @@ step "DocLint (docstring names + numbers)"
 out=$(python scripts/DocLint.py 2>&1 | tail -1)
 echo "$out"; [ "$out" = "DOCLINT: PASS" ] || { echo "DOCLINT: FAIL"; fail=1; }
 
+step "LayerLint (imports only from lower layers)"
+out=$(python scripts/LayerLint.py 2>&1 | tail -1)
+echo "$out"; [ "$out" = "LAYERLINT: PASS" ] || { echo "LAYERLINT: FAIL"; fail=1; }
+
+step "StatusLint (doc identifiers exist in code, baseline-gated)"
+out=$(python scripts/StatusLint.py 2>&1 | tail -1)
+echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=1; }
+
 echo
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
