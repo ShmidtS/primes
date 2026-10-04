@@ -2847,3 +2847,31 @@ Prop M.1 (перестановки без знаков ухудшают midpoint
 знаковая свобода обязательна (докстринг).
 
 Батарея: CI: PASS.
+
+## R134 — T3 DistillTransfer: реальный оператор T в натах
+
+`Hagi/Ensemble/DistillTransfer.lean` — FORMALIZATION_PLAN §7.1
+T3 (P0, замена промежуточного R130 по ревизии):
+
+- `distill_kl_bridge` (ядро): CE_q(θ) − CE_q(E) ≤
+  KL(p_E‖p_θ) + M·‖q−p_E‖₁ при pointwise |log(p_E/p_θ)| ≤ M
+  (перегруппировка разности CE + треугольник; M-член может
+  превысить 0.05 нат → data-anchored таргет / second-order).
+- `distillEfficiency` + `distill_efficiency_pos`: КПД канала
+  η = (CE_leafmean − CE_student)/twoGap — В НАТАХ на единицу
+  зазора ансамбля (фикс безразмерного смешения R130);
+  η > 0 ⟺ студент лучше среднего листьев — сертифицированный
+  измеримый гейт оператора T.
+- `forwardKlTarget` / `reverseKlTarget`: closed-form цели
+  (2609.38666): forward KL → взвешенная арифметическая смесь
+  (универсальность); reverse KL → нормализованное
+  геометрическое среднее (модность; misleading teacher
+  подавляет верные ответы).
+
+Честные границы: cold-start collapse reverse-KL (2607.16955:
+свежий студент ~нулевая масса; merged-студент разделяет
+поддержку — риск ниже, on-policy фаза нужна); distillation
+floor (2607.15467); Õ(log T) regret обеих (2609.38666).
+RAG-корпус (277k чанков) опрошен: источники подтверждены.
+
+Батарея: CI: PASS.
