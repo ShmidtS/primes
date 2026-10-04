@@ -103,6 +103,7 @@ import Hagi.Ensemble.MergePrice
 import Hagi.Core.NonlinearStep0
 import Hagi.Ensemble.DistillTransfer
 import Hagi.Step.SafeQPPL
+import Hagi.Data.AntiCollapse
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0

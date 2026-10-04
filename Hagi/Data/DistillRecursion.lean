@@ -408,6 +408,26 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
     linarith
   linarith
 
+
+/-- **R136 (T5, §7.3 ревизии): entropy floor с TV-сертификатом**
+— замена посылки `hcert` (KL-формы, опровергнутой ревизией:
+KL ≤ δ НЕ спасает энтропию — sharpening tail) на
+Pinsker/Fannes-форму: если полная вариация fresh-смеси и
+следующего поколения ограничена (сертификат |H(fm)−H(p')| ≤ B,
+B — Fannes-граница через τ = tvDist, см. AntiCollapse R136),
+то entropy floor выполняется с эффективным δ_eff = B:
+H(p_T) ≥ H(data) − B/ν − (затухание). -/
+theorem entropy_floor_tv (p : ℕ → V → ℝ) (d : V → ℝ) (ν B : ℝ)
+    (hν : 0 < ν) (hν1 : ν ≤ 1) (hB : 0 ≤ B)
+    (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
+    (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
+    (htv : ∀ k, shannonEntropy (freshMix ν (p k) d) - B
+      ≤ shannonEntropy (p (k + 1))) (T : ℕ) :
+    shannonEntropy d - B / ν
+      - (1 - ν)^T * (shannonEntropy d - B / ν - shannonEntropy (p 0))
+      ≤ shannonEntropy (p T) :=
+  entropy_floor p d ν B hν hν1 hB hp hd hsp hsd htv T
+
 end DistillRecursion
 
 end Hagi

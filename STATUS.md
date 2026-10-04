@@ -2898,3 +2898,30 @@ hpl_lo ВЫВЕДЕНА из посылки в следствие (локаль�
 PL-регим); κ_t измеряем напрямую (‖d*‖, ‖g‖ логируются).
 
 Батарея: CI: PASS.
+
+## R136 — T5 AntiCollapse: честная непрерывность энтропии (фикс hcert)
+
+`Hagi/Data/AntiCollapse.lean` + `entropy_floor_tv` в
+DistillRecursion — FORMALIZATION_PLAN §7.1 T5 / §7.3:
+
+- entTV (полная вариация), binEnt (двоичная энтропия) — defs
+  (переименованы: tvDist конфликтовал с Discovery.PPT);
+  базовые леммы (nonneg/symm; binEnt_half = log 2).
+- `entropy_continuity_pinsker` (T5-композиция): Fannes-граница
+  (сертификат разложения) + Pinsker-мост τ ≤ √(KL/2) +
+  монотонность binEnt на [0,1/2] ⟹
+  |H(p)−H(q)| ≤ √(KL/2)·log(V−1) + binEnt(√(KL/2)).
+  Замена опровергнутой hcert: KL контролирует энтропию ТОЛЬКО
+  через τ — прямой «KL ⇒ энтропия не падает» ЛОЖЕН
+  (sharpening-tail контрпример ревизии).
+- `entropy_floor_tv` (DistillRecursion): entropy floor с
+  TV-сертификатом B вместо KL-hcert (переэкземпляриация:
+  hcert-форма с δ_eff = B) — §7.3 «удалить hcert из посылок»
+  выполнено добавлением TV-версии (старая оставлена как
+  условная, помечена в докстринге).
+
+Честные границы: Fannes-разложение и Pinsker-мост — measured
+premises (полный порт классического доказательства —
+многочасовая комбинаторика, отложена).
+
+Батарея: CI: PASS.
