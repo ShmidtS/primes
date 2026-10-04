@@ -76,6 +76,15 @@ plumbing, with `CorePremises` naming the exact source
 hypotheses) + `MasterHAGI` (horizon: adds R105 safety, R107
 renewal, telescoping) + `MasterHAGI_wallclock` /
 `MasterHAGI_probability` (the R110/R95 concentration forms).
+
+AUDIT 2026-10-04 (h_emp_ discipline): the growth premises
+here (h_step, h_gain_prod, h_dyn, h_C_cap, hβ) and the
+CorePremises modeling conjuncts (stage laws, Lipschitz
+windows) are EMPIRICAL — they lack the h_emp_ prefix for
+historical source-theorem compatibility. The
+horizon-truncated, h_emp_-named form is
+`Hagi/Unified/MasterHAGITrunc.lean` (`MasterHAGI_trunc`,
+`masterhagi_growth_witness`): prefer it for new use.
 -/
 
 open Real Finset InnerProductSpace MeasureTheory ProbabilityTheory

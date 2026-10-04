@@ -10,7 +10,7 @@ set_option linter.style.header false
 # R159: MasterHAGI-усечение — посылки роста только t < T
 
 Аудит 2026-10-04 (пункт №1 «что бы я сделал»): в `MasterHAGI`
-посылки роста h_step / h_gain_prod / h_dyn / h_C_cap / hβ
+посылки роста h_emp_step / h_emp_gain_prod / h_emp_dyn / h_emp_C_cap / h_emp_beta
 квантифицированы по ВСЕМ t — вместе с потолком C* (наш же
 Saturation) они противоречивы на длинном горизонте (тот же
 дефект, что был у hagi_synthesis до rev.2).
@@ -18,8 +18,10 @@ Saturation) они противоречивы на длинном горизон
 * `frontier_cone_trunc` — конус D >= (alpha/gamma) C при
   посылках ТОЛЬКО t < T (индукция через `frontier_cone_inductive`);
 * `sustained_takeoff_trunc` — C_T >= C0 (1+alpha)^T;
-* `MasterHAGI_trunc` — капстоун: growth-посылки t < T, потолок
-  C* ЯВНО как условие горизонта C0 (1+alpha)^T <= Cstar;
+* `MasterHAGI_trunc` — капстоун: growth-посылки t < T (с
+  h_emp_-именами: динамика производства, gate-порог,
+  ceiling — измеряемые), потолок C* ЯВНО как условие
+  горизонта C0 (1+alpha)^T <= Cstar;
 * `masterhagi_growth_witness` — числовой свидетель
   не-вакуозности: C = D = (3/2)^t, alpha = gamma = 1/2,
   rho = 0, beta = 3/4, xi = 0 (все усечённые посылки
@@ -41,26 +43,26 @@ theorem frontier_cone_trunc (C G D : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < C 0)
-    (h_cone0 : alpha / gamma * C 0 ≤ D 0)
-    (h_step : ∀ t < T, C (t + 1) = C t + G t)
-    (h_gain_prod : ∀ t < T, gamma * D t ≤ G t)
-    (h_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
-    (h_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
-    (hβ : ∀ t < T,
+    (h_emp_cone0 : alpha / gamma * C 0 ≤ D 0)
+    (h_emp_step : ∀ t < T, C (t + 1) = C t + G t)
+    (h_emp_gain_prod : ∀ t < T, gamma * D t ≤ G t)
+    (h_emp_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (h_emp_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
+    (h_emp_beta : ∀ t < T,
       alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta) :
     ∀ t, t ≤ T → 0 < C t ∧ alpha / gamma * C t ≤ D t := by
   intro t
   induction t with
   | zero =>
       intro _
-      exact ⟨hC0, h_cone0⟩
+      exact ⟨hC0, h_emp_cone0⟩
   | succ t ih =>
       intro hle
       have htlt : t < T := by omega
       obtain ⟨hpos, hcone⟩ := ih (by omega)
       refine ⟨?_, frontier_cone_inductive C D xi alpha gamma rho beta
-        hα hγ hρ t hpos hcone (h_dyn t htlt) (h_C_cap t htlt) (hβ t htlt)⟩
-      have hg := h_gain_prod t htlt
+        hα hγ hρ t hpos hcone (h_emp_dyn t htlt) (h_emp_C_cap t htlt) (h_emp_beta t htlt)⟩
+      have hg := h_emp_gain_prod t htlt
       have hgD : alpha * C t ≤ gamma * D t := by
         have hmul : gamma * (alpha / gamma * C t) ≤ gamma * D t :=
           mul_le_mul_of_nonneg_left hcone hγ.le
@@ -68,7 +70,7 @@ theorem frontier_cone_trunc (C G D : ℕ → ℝ)
         exact hmul
       have hGpos : (0:ℝ) < G t := by
         nlinarith [hgD, hα, hpos]
-      rw [h_step t htlt]
+      rw [h_emp_step t htlt]
       linarith
 
 
@@ -113,16 +115,16 @@ theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < C 0)
-    (h_cone0 : alpha / gamma * C 0 ≤ D 0)
-    (h_step : ∀ t < T, C (t + 1) = C t + G t)
-    (h_gain_prod : ∀ t < T, gamma * D t ≤ G t)
-    (h_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
-    (h_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
-    (hβ : ∀ t < T,
+    (h_emp_cone0 : alpha / gamma * C 0 ≤ D 0)
+    (h_emp_step : ∀ t < T, C (t + 1) = C t + G t)
+    (h_emp_gain_prod : ∀ t < T, gamma * D t ≤ G t)
+    (h_emp_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (h_emp_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
+    (h_emp_beta : ∀ t < T,
       alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta) :
     C 0 * (1 + alpha) ^ T ≤ C T := by
   have hcone := frontier_cone_trunc C G D alpha gamma rho beta xi T
-    hα hγ hρ hC0 h_cone0 h_step h_gain_prod h_dyn h_C_cap hβ
+    hα hγ hρ hC0 h_emp_cone0 h_emp_step h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta
   have hmain : ∀ t, t ≤ T → C 0 * (1 + alpha) ^ t ≤ C t := by
     intro t
     induction t with
@@ -130,8 +132,8 @@ theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
     | succ t ih =>
         intro hle
         have htlt : t < T := by omega
-        have hs := h_step t htlt
-        have hg := h_gain_prod t htlt
+        have hs := h_emp_step t htlt
+        have hg := h_emp_gain_prod t htlt
         have hgD : alpha * C t ≤ gamma * D t := by
           have hc := (hcone t (by omega)).2
           have hmul : gamma * (alpha / gamma * C t) ≤ gamma * D t :=
@@ -184,12 +186,12 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
     (C G D xi : ℕ → ℝ) (alpha gamma rho beta Cstar : ℝ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < C 0)
-    (h_cone0 : alpha / gamma * C 0 ≤ D 0)
-    (h_step : ∀ t < T, C (t + 1) = C t + G t)
-    (h_gain_prod : ∀ t < T, gamma * D t ≤ G t)
-    (h_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
-    (h_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
-    (hβ : ∀ t < T,
+    (h_emp_cone0 : alpha / gamma * C 0 ≤ D 0)
+    (h_emp_step : ∀ t < T, C (t + 1) = C t + G t)
+    (h_emp_gain_prod : ∀ t < T, gamma * D t ≤ G t)
+    (h_emp_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (h_emp_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
+    (h_emp_beta : ∀ t < T,
       alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta)
     (hCeil : C 0 * (1 + alpha) ^ T ≤ Cstar) :
     CertifiedHAGIInvariant T
@@ -245,7 +247,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
       (f := fun t => (S t).toGrowthState.budget)
       (c := fun t => (verify (S t).toGrowthState).budgetSpend) hbud_step
   have hcap := sustained_takeoff_trunc C G D alpha gamma rho beta xi T
-    hα hγ hρ hC0 h_cone0 h_step h_gain_prod h_dyn h_C_cap hβ
+    hα hγ hρ hC0 h_emp_cone0 h_emp_step h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta
   have hfloor := hagi_gen_floor (S T) lam nu Qtarget
     (hagiPotential (S 0) lam nu Qtarget w) Emin w hlam hnu h_Emin
     (h_risk_nn T) hphi_T
