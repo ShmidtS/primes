@@ -160,7 +160,9 @@ so scans must use `SMap.fold`/`env.constants.fold` (both stages), not
 
 ## Tiers (external audit 2026-10-04)
 
-- **Tier A — solid core** (usable as engineering laws without
+- **Tier A — solid core** (включая R162 `descent_step` —
+  первый НАСТОЯЩИЙ learning-step: гарантированный спуск CE
+  конкретной softmax-головы при η ≤ 2, без h_emp_-посылок) (usable as engineering laws without
   caveats): merge/step-0 orthogonality, ensemble CE law,
   twoGap theory, information identities, the SafeQP family,
   Ville/Hedge, GPM zero-forgetting, quantization laws.

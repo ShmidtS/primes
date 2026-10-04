@@ -101,6 +101,7 @@ import Hagi.Growth.TakeoffElasticity
 import Hagi.Ensemble.CompressionCert
 import Hagi.Data.BinEntMono
 import Hagi.Unified.MasterHAGITrunc
+import Hagi.Model.SoftmaxStep
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
