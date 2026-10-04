@@ -282,3 +282,32 @@ distill dev-канала с η в натах (T3) → SafeQP-шаг с κ-нал
 Честная граница: «оптимальный» — в смысле доказанных
 exchange-лемм (ratio_dominance) и полноты сертификатов, НЕ
 глобальная оптимальность (ревизия §7).
+
+## §15. Phase B–D: полная выведенная архитектура (R140–R150)
+
+Формализованные компоненты ЛУЧШЕЙ архитектуры (все — Lean,
+CI: PASS, аксиомы только стандартные):
+
+| Компонент | Теорема-ядро | Раунд |
+|---|---|---|
+| RoPE (позиции — только Δ) | `rope_score_delta` | R140 |
+| GQA (shared-KV эквивалентность, кэш ≤) | `gqa_shared_score` | R141 |
+| SWA+relay (reach L(W−1)+1, O(T·W)) | `swa_reach_step`, `swa_cost_bound` | R142 |
+| CausalFilter (нулевая утечка будущего) | `causal_prefix_determined` | R143 |
+| PuncturedCE (несмещённость маски) | `punctured_unbiased` | R144 |
+| QFormer-мост (zero-init identity) | `vista_residual_identity` | R145 |
+| ChunkedCE (точность + prior-декомпозиция) | `chunked_sum_exact` | R146 |
+| LRWidth (muP: не-инвариантность + фикс) | `grad_norm_grows`/`mup_grad_invariant` | R147 |
+| Muon (‖P‖≤1-контракт → PL-рейт) | `muon_step_bound` | R148 |
+| TernaryChinchilla (ёмкость log₂3) | `ternary_beats_binary` | R149 |
+| SupervisorSafety (resume-гейт, индукция) | `no_restore_without_checkpoint` | R150 |
+
+Итоговый алгоритм обучения HAGI (полностью выведен
+математически в Lean, capstone `hagi_synthesis` + §14/§15):
+dense pre-norm тело + блочный merge (perBlock) →
+RoPE/GQA/SWA + zero-init мосты (function-preserving рост) →
+merge по гейту twoGap > Σprices + κ√n·s/2 → distill
+dev-канала (η в натах) → SafeQP/Muon PL-шаги (κ-налог
+конфликтов) → тернарное сжатие по satTail → Hedge-роутер
+(универсальность) — под supervisor-гейтом (resume
+identity+monotone time).
