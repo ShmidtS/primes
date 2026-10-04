@@ -113,6 +113,7 @@ import Hagi.Step.CausalFilter
 import Hagi.Data.PuncturedCE
 import Hagi.Ensemble.QFormerBridge
 import Hagi.Data.ChunkedCE
+import Hagi.Step.LRWidth
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
