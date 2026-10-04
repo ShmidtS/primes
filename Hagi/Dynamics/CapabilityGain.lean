@@ -10,7 +10,12 @@ set_option linter.style.header false
 /-!
 # R82: capability gain — the internal→external transfer
 
-The audit's central missing bridge, conditional form:
+HONEST STATUS (audit 2026-10-04): `capability_gain_transfer`
+is BOOKKEEPING algebra (linarith on the decomposition
+R_ext = E_int + gap) — the real bridge (internal descent ⟹
+external gain) lives entirely in the h_emp_ premises
+(estimator validity, actual-gap monotonicity), which remain
+open. Conditional form:
 - `capability_gain_transfer`: R_ext = E_int + gap with the
   REAL gap; internal certificate Γ_t > 0 + non-degrading gap
   ⟹ R_ext decreases by Γ_t — the internal Lyapunov descent
@@ -29,9 +34,12 @@ open Real Finset
 
 namespace Hagi
 
-/-- **The external-risk transfer theorem (Certified
-Capability Gain, conditional form — the audit's central
-missing bridge)**: the external capability measure is the
+/-- **Декомпозиция внешнего риска (БУХГАЛТЕРСКАЯ ЛЕММА,
+linarith)**: при разложении R_ext = E_int + gap сертификат
+внутреннего спуска + неухудшение зазора переносятся на
+R_ext. Весь эмпирический смысл — в посылках hcert (спуск
+реального обучения) и hgap (монотонность РЕАЛЬНОГО зазора,
+h_emp_): это НЕ мост, а форма его условности. the external capability measure is the
 true risk R_ext(θ) = E_int(θ) + gap(θ) with the REAL
 generalization gap of the step (train→true). Then:
 

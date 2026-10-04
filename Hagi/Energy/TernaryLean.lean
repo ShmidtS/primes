@@ -100,14 +100,13 @@ theorem tern_distortion_round (x : ℝ) (hx : -(1:ℝ) ≤ x) (hx2 : x ≤ 1) :
       rw [hres]
       linarith
 
-/-- **The scale-invariance of the quantized map (THE
-SELF-STABILIZATION INVARIANT)**: the ternary map of W/s is
-invariant under a uniform rescaling of the master —
-(W·c)/(s·c) = W/s, so Q (and hence W~ = Q·(s·c)) rescales
-uniformly: the effective relative weight is unchanged. The
-drift of ‖W‖ under Muon cancels in the ratio — the ternary
-body needs no spectral cap (proved, was "verified by
-simulation"). -/
+/-- **Сокращение масштаба в тернарном отношении (алгебра
+деления)**: (W·c)/(s·c) = W/s при c > 0 — нормировка W/s
+инвариантна к равномерному масштабированию. Что из этого
+СЛЕДУЕТ для устойчивости обучения (нужен ли спектральный
+потолок) — НЕ теорема: утверждение «spectral cap не нужен» —
+инженерная позиция, требующая измерений ‖W‖-дрейфа (h_emp_),
+не вывод из этой леммы. -/
 theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
     tern ((w * c) / (s * c)) = tern (w / s) := by
   have hdiv : (w * c) / (s * c) = w / s := by
