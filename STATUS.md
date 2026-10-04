@@ -3545,3 +3545,34 @@ SafeQP-условная форма. MVT-константа грубее инте
 CI: PASS. Осталось перевести: ratio_takeoff,
 frontier_cone_invariant, GainRenewal-рекурренты,
 MasterHAGI.telescope_* (следующие порции).
+
+## R165 (§AW) — CertifiedArgmax: легитимность argmax Γ_i/K_i
+
+Рабочий список 2026-10-04, §5.2. `Hagi/Budget/
+CertifiedArgmax.lean`:
+
+- `argmax_pair_certified` — |Γ̂ k − Γ k| ≤ ε_Γ ∀k и зазор
+  Γ̂ i − Γ̂ j > 2ε_Γ ⟹ Γ j < Γ i (истинное упорядочение);
+- `argmax_select_certified` — максимайзер измерения Γ̂,
+  отделённый от всех конкурентов более чем на 2ε_Γ,
+  максимизирует истинное Γ;
+- `RequiresRandomSplit` (def-политика) + `tie_ambiguity` —
+  КОНТРПРИМЕР-конструкция: зазор 2ε−δ ≤ 2ε допускает две
+  конфигурации Γ (Γᴬ = [ε, δ−ε], Γᴮ = [−ε, δ−ε] против
+  Γ̂ = [0, −(2ε−δ)]), обе в ε-трубе, argmax противоположен —
+  случайный выбор при несертифицированном зазоре обоснован
+  формально.
+
+ε_Γ — split-half-измеряемая (h_emp_-слой). Аксиомы:
+стандартные. CI: PASS (StatusLint расширен: бэктикнутое
+имя Lean-файла легитимно).
+
+Остатки §5 рабочего списка:
+- §I LSL-стек (SupportGate/GateRetention/LocalSafeQP/
+  Consolidation) — нужна спецификация §I (в этом корпусе
+  отсутствует);
+- Freedman вместо Azuma (§AF/§AX) — следующая порция
+  (конечный порт по образцу Probability/Azuma.lean,
+  HasSum-мажорация ряда e^u);
+- Covariance-Projected GO — решать после gen7-вердикта;
+- полная Fannes — остаток R157.

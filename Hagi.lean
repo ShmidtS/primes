@@ -105,6 +105,7 @@ import Hagi.Model.SoftmaxStep
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
+import Hagi.Budget.CertifiedArgmax
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation

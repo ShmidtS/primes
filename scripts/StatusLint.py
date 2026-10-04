@@ -49,6 +49,10 @@ def is_skip(ident: str) -> bool:
     low = ident.lower()
     if low in SKIP_WORDS:
         return True
+    # a backticked name that is an actual Hagi/Primes module
+    if any((ident + ".lean") == f.name
+           for d in (HAGI, ROOT / "Primes") for f in d.rglob("*.lean")):
+        return True
     # hypothesis-pattern fragments and suffix references
     if ident.startswith("_") or ident.startswith("h_emp_")             or ident.startswith("h_model_") or ident == "h_emp_":
         return True
