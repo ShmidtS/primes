@@ -99,6 +99,7 @@ import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Step.GPM
+import Hagi.Ensemble.MergePrice
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
