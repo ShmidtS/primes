@@ -3210,3 +3210,17 @@ Lean (нужен torch-рантайм E:\HAGI_v2); модель решений �
 Аксиомы: только стандартные.
 
 Батарея: CI: PASS.
+
+## R150 (fix) — SupervisorSafety прошёл TrivialLint
+
+Переработка после отклонения TrivialLint (rfl-теоремы +
+deriving-генерированный тривиальный proof):
+- ValidHist — ИНДУКТИВНЫЙ предикат (не def-unfold).
+- `no_restore_without_checkpoint` — индукция по деривации
+  ValidHist: каждый restore в валидной истории имеет
+  matching-checkpoint той же identity с монотонным
+  временем (ядро resume-safety 2609.31150 + 2609.35366).
+- убран deriving DecidableEq (генерил Eq.refl-trivial).
+CI: PASS (TrivialLint ✓).
+
+Батарея: CI: PASS.
