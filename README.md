@@ -157,3 +157,24 @@ lambda-headed term). The machine-readable CI gate is the last line
 after `importModules` the constants live in stage 1 of `Environment.constants`,
 so scans must use `SMap.fold`/`env.constants.fold` (both stages), not
 `map₂` iteration.
+
+## Tiers (external audit 2026-10-04)
+
+- **Tier A — solid core** (usable as engineering laws without
+  caveats): merge/step-0 orthogonality, ensemble CE law,
+  twoGap theory, information identities, the SafeQP family,
+  Ville/Hedge, GPM zero-forgetting, quantization laws.
+- **Tier B — regression pins** (correct but trivial: kept as
+  CI pins against regressions, NOT as model properties):
+  `muon_step_bound`, supervisor resume forms, `swa_reach_eq`,
+  QFormerBridge (K=1), LRWidth (ones-init), GQA (card
+  counting). RoPE/CausalFilter are real but elementary.
+- **Tier C — conditional capstones** (algebra correct; the
+  empirical content lives in the premises): MasterHAGI,
+  `hagi_synthesis` (rev.2: horizon-only premises, Cstar/sigma
+  parameterized, `band_witness` non-vacuity catcher),
+  FastGrowth, GainRenewal, FrontierScaling, GrowthBridge.
+  Growth/self-development is NOT proven unconditionally: Lean
+  gives the ignition threshold (hsuff) and the saturation
+  branch; the measured gamma deficit (~9x) honestly predicts
+  NO ignition until an eta>0 operator appears.

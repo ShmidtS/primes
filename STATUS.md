@@ -3224,3 +3224,43 @@ deriving-генерированный тривиальный proof):
 CI: PASS (TrivialLint ✓).
 
 Батарея: CI: PASS.
+
+## Аудит 2026-10-04 (внешний разбор) + R138-rev.2 — честный капстоун
+
+Внешний аудит разделил корпус на ярусы:
+- **Ярус A** (твёрдое ядро, ~без оговорок): merge/step-0
+  ортогональность, ensemble_ce_le_mean_general, twoGap-теория,
+  информационные тождества, SafeQP-семейство, Ville/Hedge,
+  GPM-критерий, квантизация (tern_scale_invariance,
+  TernaryExact, bf16_frozen_update).
+- **Ярус B** (пины/регрессии — TrivialLint-чистые, но
+  математически тривиальные): muon_step_bound (вывод=посылка),
+  resume-формы, swa_reach_eq (rfl), QFormerBridge (K=1),
+  LRWidth (init из единиц), GQA (card-подсчёт), RoPE/Causal
+  (школьного уровня, но настоящие).
+- **Ярус C** (условные капстоуны): MasterHAGI, hagi_synthesis,
+  FastGrowth, GainRenewal, FrontierScaling, GrowthBridge —
+  алгебра верна, эмпирика сидит в посылках; 55 h_emp_-теорем
+  (~7.6%), из них 20 в Unified.
+
+**Главная находка аудита принята**: hagi_synthesis был ВАКУОЗЕН
+(посылки ∀t без горизонта + PL-потолок ⟹ противоречивый набор
+при γk>0). Ошибка спецификации, «0 sorry» не ловит.
+
+### R138-rev.2 (`Hagi/Unified/ArchitectureTheorem.lean`):
+- посылки HAGICert квантифицированы по t ∈ Finset.range T
+  (только горизонт);
+- Cstar и σ — ПАРАМЕТРЫ сертификата (0<Cstar, 0<σ≤1);
+- T3-оператор в НАТАХ: абстрактный измеряемый gain-поток
+  g : ℕ → ℝ (вместо проме-жуточного devEnergy R130, который
+  смешивал энергию весов с натами);
+- усечённые леммы cone_invariant_trunc / takeoff_lower_trunc
+  / pl_gap_upper_trunc / pl_gap_lower_trunc — полоса на T из
+  только горизонтных посылок;
+- **band_witness** — числовой свидетель не-вакуозности:
+  C t = 100−99·(1/2)^t, D t = 990·(1/2)^t, T=10, все
+  усечённые посылки выполнены (vacuity catcher).
+
+Аксиомы rev.2: только стандартные. CI: PASS.
+Счётчик «итого 48» — исторический (r48-аудит); текущий корпус
+1420+ теорем, из них ярус C — ~условные сертификаты.
