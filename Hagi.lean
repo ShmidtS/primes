@@ -106,6 +106,7 @@ import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Budget.CertifiedArgmax
+import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
