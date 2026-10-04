@@ -3372,3 +3372,24 @@ ignition-гейтом R124/R138 и Cunningham-формой в GainOperator):
   ⟹ x_T < x_0 (порог не пройден, петля гасит себя).
 
 Аксиомы: стандартные. CI: PASS. Позиция §8.2 R156 закрыта.
+
+## R155 — CertifiedMerge-остаток (план §8.2 R155, порт 2607.14506)
+
+`Hagi/Ensemble/CompressionCert.lean` — PAC-Bayes
+compression-сертификат merged-моделей (комбинаторная часть):
+
+- `TernSign`/`Delta`/`deltaCost` — тернарно-сжатые дельты
+  (позиция, знак), аддитивная бит-стоимость
+  log₂d + log₂3 на элемент;
+- `deltaCost_concat` — ТОЧНАЯ аддитивность: C(Δ₁++Δ₂) =
+  C(Δ₁)+C(Δ₂) — мультипликативный компаундинг бит-штрафа
+  невозможен по построению (ATTACK_VECTOR §2 закрыт
+  формально);
+- `deltaCost_sum` — K-дельта merge платит Σ_k C(Δ_k);
+- `merged_bound` — PAC-Bayes bridge: одношаговая посылка-
+  мост (риск ≤ +λC+μ) ⟹ K-шаговый композитинг ЛИНЕЕН:
+  риск ≤ prior + λΣC + Kμ (индукция; λ ≥ 0).
+
+k-sparse/sign-coherence часть R132 уже в T2 MergePrice
+(факт-R132). PAC-Bayes-мост — измеряемая посылка (h_emp_).
+Аксиомы: стандартные. CI: PASS. §8.2 R155 закрыт.
