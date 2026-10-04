@@ -100,5 +100,40 @@ theorem recurrence_upper (x : ℕ → ℝ) (T : ℕ)
   rw [hgeom] at h
   exact h
 
+/-- **Чистая рекуррента (c = 0)**: x_{t+1} <= rho * x_t при
+t < T и rho ∈ [0,1) ⟹ x T <= rho^T * x 0. -/
+theorem recurrence_pure (x : ℕ → ℝ) (T : ℕ)
+    (hrho : 0 ≤ rho) (hrho1 : rho < 1)
+    (hstep : ∀ t < T, x (t + 1) ≤ rho * x t) :
+    x T ≤ rho ^ T * x 0 := by
+  have hstep0 : ∀ t < T, x (t + 1) ≤ rho * x t + 0 :=
+    fun t ht => by simpa using hstep t ht
+  have h := recurrence_upper rho 0 x T hrho hrho1 hstep0
+  have hz : (0:ℝ) * ((1 - rho ^ T) / (1 - rho)) = 0 := by ring
+  linarith
+
+/-- **Нижняя рекуррента (c = 0, горизонт)**: x_{t+1} >= rho * x_t
+при t < T и rho >= 0 ⟹ rho^T * x 0 <= x T. -/
+theorem recurrence_lower (x : ℕ → ℝ) (T : ℕ)
+    (hrho : 0 ≤ rho)
+    (hstep : ∀ t < T, rho * x t ≤ x (t + 1)) :
+    rho ^ T * x 0 ≤ x T := by
+  have hmain : ∀ t : ℕ, t ≤ T → rho ^ t * x 0 ≤ x t := by
+    intro t
+    induction t with
+    | zero => intro _; simp
+    | succ t ih =>
+        intro hle
+        have hs := hstep t (by omega)
+        have hih := ih (by omega)
+        have hstepmul : rho ^ t * x 0 * rho ≤ x t * rho :=
+          mul_le_mul_of_nonneg_right hih hrho
+        rw [pow_succ]
+        calc rho ^ t * rho * x 0 = rho ^ t * x 0 * rho := by ring
+          _ ≤ x t * rho := hstepmul
+          _ = rho * x t := by ring
+          _ ≤ x (t + 1) := hs
+  exact hmain T (le_refl T)
+
 end Hagi.Foundations
 

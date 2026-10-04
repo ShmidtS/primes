@@ -3528,3 +3528,20 @@ SafeQP-условная форма. MVT-константа грубее инте
 
 Аксиомы: стандартные. CI: PASS (LayerLint + StatusLint
 зелёные с первого включения).
+
+## R164 — миграция шаг 2-2: первый потребитель на Foundations
+
+Дедупликация работает: `ArchitectureTheorem` переведён на
+канонические леммы:
+- `cone_invariant_trunc` := Foundations.cone_invariant_horizon
+  (тело-делегация, ~40 строк индукции удалены);
+- `takeoff_lower_trunc` := Foundations.takeoff_from_cone;
+- `pl_gap_lower_trunc` := Foundations.recurrence_lower
+  (в Foundations добавлена зеркальная НИЖНЯЯ рекуррента
+  rho^T * x 0 <= x T, горизонт t < T).
+
+Урок: направление pl_gap_lower — НИЖНЯЯ рекуррента (знак
+первой обёртки был ошибочен, поймано линarith-отказом).
+CI: PASS. Осталось перевести: ratio_takeoff,
+frontier_cone_invariant, GainRenewal-рекурренты,
+MasterHAGI.telescope_* (следующие порции).

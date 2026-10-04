@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Autonomy.Universality
+import Hagi.Foundations.ConeTakeoff
+import Hagi.Foundations.Recurrence
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Growth.Saturation
 import Hagi.Step.SafeQPPL
@@ -64,38 +66,8 @@ theorem cone_invariant_trunc (C D : ℕ → ℝ) (γ ρ β k : ℝ) (T : ℕ)
     (hrhogk : γ * k ≤ ρ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
     (hcone0 : k * C 0 ≤ D 0) :
-    ∀ t ∈ Finset.range (T + 1), k * C t ≤ D t := by
-  have hmain : ∀ t : ℕ, t ≤ T → k * C t ≤ D t := by
-    intro t
-    induction t with
-    | zero => intro _; exact hcone0
-    | succ t ih =>
-        intro hle
-        have htlt : t ∈ Finset.range T :=
-          Finset.mem_range.mpr (by omega)
-        have hs := hstep t htlt
-        have hd := hdyn t htlt
-        have hCp : 0 < C t := hCpos t
-          (Finset.mem_range.mpr (by omega))
-        have hkey : ρ * D t + β * C t - k * (C t + γ * D t)
-            = (ρ - γ * k) * (D t - k * C t)
-              + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
-          field_simp
-          ring
-        have hnn1 : (0:ℝ) ≤ (ρ - γ * k) * (D t - k * C t) :=
-          mul_nonneg (by linarith)
-            (by linarith [ih (by omega)])
-        have hnn2 : (0:ℝ)
-            ≤ (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t :=
-          mul_nonneg (by linarith) hCp.le
-        have hsum : (0:ℝ)
-            ≤ (ρ - γ * k) * (D t - k * C t)
-              + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t :=
-          add_nonneg hnn1 hnn2
-        rw [hs]
-        linarith [hd, hkey, hsum]
-  intro t ht
-  exact hmain t (Nat.lt_succ_iff.mp (Finset.mem_range.mp ht))
+    ∀ t ∈ Finset.range (T + 1), k * C t ≤ D t := Foundations.cone_invariant_horizon C D γ ρ β k T
+    hCpos hstep hdyn hrhogk hbeta hcone0
 
 /-- Truncated takeoff lower bound: C T >= C 0 * (1+gamma k)^T
 from horizon-only premises (steps t < T only). -/
@@ -104,55 +76,8 @@ theorem takeoff_lower_trunc (C D : ℕ → ℝ) (γ k : ℝ) (T : ℕ)
     (hstep : ∀ t ∈ Finset.range T,
       C (t + 1) = C t + γ * D t)
     (hcone : ∀ t ∈ Finset.range (T + 1), k * C t ≤ D t) :
-    C 0 * (1 + γ * k) ^ T ≤ C T := by
-  have hmain : ∀ t : ℕ, t ≤ T →
-      C 0 * (1 + γ * k) ^ t ≤ C t := by
-    intro t ht
-    induction t with
-    | zero => simpa using le_refl (C 0)
-    | succ t ih =>
-        have hs := hstep t (Finset.mem_range.mpr (by omega))
-        have hc := hcone t (Finset.mem_range.mpr (by omega))
-        have hγk : (0:ℝ) ≤ γ * k := by positivity
-        have hmul : (1 + γ * k) * C t
-            ≥ (1 + γ * k) * (C 0 * (1 + γ * k) ^ t) :=
-          mul_le_mul_of_nonneg_left (ih (by omega))
-            (by linarith)
-        have hsplit : C t + γ * (k * C t)
-            = (1 + γ * k) * C t := by ring
-        have hge : γ * D t ≥ γ * (k * C t) :=
-          mul_le_mul_of_nonneg_left hc hγ
-        rw [hs, pow_succ]
-        nlinarith [hmul, hsplit, hge]
-  exact hmain T (le_refl T)
-
-/-- Truncated saturation upper bound: from the PL window at
-steps t < T, Cstar - C T <= (1-sigma)^T * (Cstar - C 0). -/
-theorem pl_gap_upper_trunc (C : ℕ → ℝ) (Cstar σ : ℝ) (T : ℕ)
-    (hσ1 : σ ≤ 1)
-    (hpl_lo : ∀ t ∈ Finset.range T,
-      C t + σ * (Cstar - C t) ≤ C (t + 1)) :
-    Cstar - C T ≤ (1 - σ) ^ T * (Cstar - C 0) := by
-  have hmain : ∀ t : ℕ, t ≤ T →
-      Cstar - C t ≤ (1 - σ) ^ t * (Cstar - C 0) := by
-    intro t ht
-    induction t with
-    | zero => simp
-    | succ t ih =>
-        have h := hpl_lo t (Finset.mem_range.mpr (by omega))
-        have hstep : Cstar - C (t + 1)
-            ≤ (1 - σ) * (Cstar - C t) := by
-          have hE : (1 - σ) * (Cstar - C t)
-              = Cstar - C t - σ * (Cstar - C t) := by ring
-          linarith [hE]
-        rw [pow_succ]
-        calc Cstar - C (t + 1) ≤ (1 - σ) * (Cstar - C t) :=
-              hstep
-          _ ≤ (1 - σ) * ((1 - σ) ^ t * (Cstar - C 0)) :=
-              mul_le_mul_of_nonneg_left (ih (by omega))
-                (by linarith)
-          _ = (1 - σ) ^ t * (1 - σ) * (Cstar - C 0) := by ring
-  exact hmain T (le_refl T)
+    C 0 * (1 + γ * k) ^ T ≤ C T := Foundations.takeoff_from_cone C D γ k T
+    (mul_nonneg hγ hk) hγ hk hstep hcone
 
 /-- Truncated band UPPER bound: from the upper PL form at
 steps t < T, (1-sigma)^T * (Cstar - C 0) <= Cstar - C T,
@@ -162,26 +87,17 @@ theorem pl_gap_lower_trunc (C : ℕ → ℝ) (Cstar σ : ℝ) (T : ℕ)
     (hpl_up : ∀ t ∈ Finset.range T,
       C (t + 1) ≤ C t + σ * (Cstar - C t)) :
     (1 - σ) ^ T * (Cstar - C 0) ≤ Cstar - C T := by
-  have hmain : ∀ t : ℕ, t ≤ T →
-      (1 - σ) ^ t * (Cstar - C 0) ≤ Cstar - C t := by
-    intro t
-    induction t with
-    | zero => simp
-    | succ t ih =>
-        intro hle
-        have h := hpl_up t (Finset.mem_range.mpr (by omega))
-        have hstep : (1 - σ) * (Cstar - C t) ≤ Cstar - C (t + 1) := by
-          have hE : (1 - σ) * (Cstar - C t)
-              = Cstar - C t - σ * (Cstar - C t) := by ring
-          linarith [hE]
-        rw [pow_succ]
-        calc (1 - σ) ^ t * (1 - σ) * (Cstar - C 0)
-            = (1 - σ) * ((1 - σ) ^ t * (Cstar - C 0)) := by ring
-          _ ≤ (1 - σ) * (Cstar - C t) :=
-              mul_le_mul_of_nonneg_left (ih (by omega))
-                (by linarith)
-          _ ≤ Cstar - C (t + 1) := hstep
-  exact hmain T (le_refl T)
+  have hgapstep : ∀ t < T,
+      (1 - σ) * (Cstar - C t) ≤ Cstar - C (t + 1) := by
+    intro t ht
+    have h := hpl_up t (Finset.mem_range.mpr ht)
+    have hE : (1 - σ) * (Cstar - C t)
+        = Cstar - C t - σ * (Cstar - C t) := by ring
+    rw [hE]
+    linarith [h]
+  have hσ0 : (0:ℝ) ≤ 1 - σ := by linarith
+  exact Hagi.Foundations.recurrence_lower (1 - σ)
+    (fun t => Cstar - C t) T hσ0 hgapstep
 
 /-- Пошаговые сертификаты цикла HAGI НА ГОРИЗОНТЕ T (все
 измеряемы): рост (шаг состояния + оператор T3 в НАТАХ -
