@@ -3497,3 +3497,34 @@ CI: PASS.
 SafeQP-условная форма. MVT-константа грубее интегральной
 (L вместо L/2) — η-окно [0,2] вместо [0,4].
 Аксиомы: стандартные. CI: PASS.
+
+## R163 — миграция графа импортов, шаги 1–2 (аудит-2026-10-05)
+
+Шаг 1 (линты):
+- `LayerLint.py` в CI: правило «импорт только из слоёв ниже»;
+  5 известных нарушений в LAYER_EXCEPTIONS (список должен
+  СОКРАЩАТЬСЯ): Core/RoPE→Unified, Core/NonlinearStep0→
+  Ensemble/MergePrice, Energy/QuantBridge→Unified/MacroCycle,
+  Step/SafeQPRobust→Unified/Unified, Data/DField→Step/Compound;
+- `StatusLint.py` в CI: бэктикнутые идентификаторы
+  STATUS/README/ALGORITHMS обязаны существовать в коде
+  (Hagi/ + Primes/) или в RUNTIME_NAMES (6 рантайм-имён из
+  аудита), или в СОКРАЩАЮЩЕМСЯ baseline (67 имён — снапшот
+  doc/code-расхождений 2026-10-05, чинятся постепенно).
+
+Шаг 2 (Foundations/, только Mathlib, слой L0):
+- `Foundations/Recurrence.lean`: geom_telescope
+  ((1-rho)*sum = 1-rho^T) + recurrence_upper — КАНОНическая
+  рекуррента с горизонтом t < T (вместо 8 копий);
+- `Foundations/Telescope.lean`: telescope_le / telescope_sum_le
+  / telescope_sub_sum (вместо MasterHAGI-копий и
+  lyapunov/potential/hedge-вариантов);
+- `Foundations/ConeTakeoff.lean`: cone_invariant_horizon +
+  takeoff_from_cone — ЕДИНЫЙ конус-takeoff с горизонтом В
+  ЛЕММЕ (дефект глобальной квантификации по t не
+  воспроизводится). Перевод потребителей
+  (ratio_takeoff/frontier_cone_invariant/cone_invariant_trunc/
+  state_closed_band) — следующие порции.
+
+Аксиомы: стандартные. CI: PASS (LayerLint + StatusLint
+зелёные с первого включения).

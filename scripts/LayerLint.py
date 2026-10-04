@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 # layer assignment of Hagi/<Folder> (higher = later = may
 # import lower). Unification target per audit 2026-10-05.
 LAYERS = {
+    "Foundations": 0,
     "Audit": 0,          # de-facto foundations (to be split)
     "Core": 1,           # component algebra (Spec-to-be)
     "Spectral": 1,
