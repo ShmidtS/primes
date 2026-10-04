@@ -106,6 +106,7 @@ import Hagi.Step.SafeQPPL
 import Hagi.Data.AntiCollapse
 import Hagi.Autonomy.Universality
 import Hagi.Unified.ArchitectureTheorem
+import Hagi.Core.RoPE
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0

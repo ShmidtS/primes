@@ -3011,3 +3011,22 @@ T1–T6 (R132–R137) в machine-checked capstone:
   точечной пересборкой Mathlib-модулей.
 
 Батарея: CI: PASS.
+
+## R140 — Phase B: RoPE offset-equivariance
+
+Новый модуль `Hagi/Core/RoPE.lean` (план §6 Phase B, R133):
+- `rotVec θ m` — rotary-код: поворот j-й пары на θ_j·m
+  (noncomputable: Real.cos).
+- `pairInner` — поблочное внутреннее произведение.
+- `rot_norm` — унитарность поворота (cos²+sin²=1, nlinarith).
+- `rope_score_delta` — ГЛАВНАЯ (2607.18759, offset-
+  equivariance): ⟨rotVec θ m x, rotVec θ n y⟩ =
+  ⟨x, rotVec θ (n−m) y⟩ — score зависит ТОЛЬКО от Δ=n−m
+  (hmn : m ≤ n; тригонометрия cos_sub/sin_sub поблочно).
+- `rope_translation_shift` — сдвиг позиций не меняет score.
+Аксиомы всех трёх: [propext, Classical.choice, Quot.sound] ✓.
+RAG: 2607.18759 в корпусе (verified). Границы в докстринге:
+position-pinning (эмпирика), 2D-расщепление (2609.39604),
+групповой предел (2609.33804).
+
+Батарея: CI: PASS.
