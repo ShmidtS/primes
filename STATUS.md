@@ -3191,3 +3191,22 @@ A, B, α, β) — h_emp-данные, вне Lean; 2609.36437
 Аксиомы: только стандартные.
 
 Батарея: CI: PASS.
+
+## R150 — Phase D: SupervisorSafety (формальная модель ops-цикла)
+
+Новый модуль `Hagi/Autonomy/SupervisorSafety.lean` (план R145):
+- `RunId` — идентичность рана (method/seed/config/data).
+- `SupEv` — события супервизора: checkpoint/restore/kill/
+  crash.
+- `safeRestore` —.restore безопасен ⟺ identity совпали ∧
+  время монотонно (2609.31150 + 2609.35366).
+- `resume_safety` — формальное ядро: безопасный restore
+  ТРЕБУЕТ согласия identity и монотонности времени.
+- `kill_vs_crash` — чистый kill и crash — РАЗЛИЧИМЫ по
+  построению (SDC vs detectable, 2607.18342).
+R144 (Lean↔Runtime property-тесты) — заблокирован вне
+Lean (нужен torch-рантайм E:\HAGI_v2); модель решений —
+здесь, исполнение — рантайм.
+Аксиомы: только стандартные.
+
+Батарея: CI: PASS.

@@ -116,6 +116,7 @@ import Hagi.Data.ChunkedCE
 import Hagi.Step.LRWidth
 import Hagi.Step.Muon
 import Hagi.Data.TernaryChinchilla
+import Hagi.Autonomy.SupervisorSafety
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
