@@ -97,6 +97,7 @@ import Hagi.Growth.Saturation
 import Hagi.Growth.GrowthCeiling
 import Hagi.Deployment.ProxyGap
 import Hagi.Growth.PlasticityLedger
+import Hagi.Growth.TakeoffElasticity
 import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
