@@ -3030,3 +3030,24 @@ position-pinning (эмпирика), 2D-расщепление (2609.39604),
 групповой предел (2609.33804).
 
 Батарея: CI: PASS.
+
+## R141 — Phase B: GQA geometry
+
+Новый модуль `Hagi/Core/GQA.lean` (план §6 Phase B, R134):
+- `GQA Q KV` — структура группировки: kvOf : Q → KV,
+  surjective (каждая KV-голова используется).
+- `mhaCache`/`gqaCache`/`scoreOf`/`gqaScoreOf` — кэши и
+  attention-score (query-голова против shared-KV).
+- `gqa_shared_score` — при shared-ключах
+  (hshared : ∀ q, Km q = Kv (kvOf q)) GQA-score головы q
+  РАВЕН MHA-score — точная эквивалентность внимания.
+- `gqa_cache_card` — surjective группировка ⟹
+  card KV ≤ card Q — GQA-кэш на позицию не больше MHA
+  (экономия точная; фактор k = card Q / card KV при
+  равномерных группах — докстринг).
+Аксиомы: [propext, Classical.choice, Quot.sound] ✓.
+RAG: 2609.32759 (карта экономии), 2607.12550 (near-lossless
+2–3× зона, PPL-дрейф <0.2% — ЭМПИРИКА, в докстринге честно
+как граница, не теорема).
+
+Батарея: CI: PASS.
