@@ -94,6 +94,7 @@ import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
+import Hagi.Probability.NoiseTemperature
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
 import Hagi.Growth.Saturation
