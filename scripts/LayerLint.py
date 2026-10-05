@@ -43,14 +43,13 @@ LAYERS = {
 # known violations, to be removed one by one (audit list):
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
-    # (R169: 49 фактических; R170: 46; R171: 26)
+    # (R169: 49; R170: 46; R171: 26; R172: 24)
     ("Audit/EqualBudget.lean", "Budget/JointCost.lean"),
     ("Audit/Exactness.lean", "Step/SafeQP.lean"),
     ("Audit/Foundations.lean", "External/Transfer.lean"),
     ("Autonomy/Insight.lean", "Unified/TopLevel.lean"),
     ("Autonomy/Insight.lean", "Unified/GlobalDynamics.lean"),
     ("Budget/JointCost.lean", "Growth/SeedOnly.lean"),
-    ("Data/DBridge.lean", "Dynamics/Contraction.lean"),
     ("Data/DField.lean", "Step/Compound.lean"),
     ("Discovery/PPT.lean", "Unified/GrowthState.lean"),
     ("Energy/FreeEnergy.lean", "Data/DBridge.lean"),
@@ -66,7 +65,6 @@ LAYER_EXCEPTIONS = {
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     ("Step/Compound.lean", "Ensemble/GenCycle.lean"),
     ("Step/JointPreserve.lean", "Budget/ElementQuant.lean"),
-    ("Step/LazyAdamMomentum.lean", "Dynamics/Contraction.lean"),
     ("Step/SafeQPRobust.lean", "Unified/Unified.lean"),
     ("Step/SafeQPStep.lean", "Dynamics/CurvatureSafe.lean"),
     ("Step/Upgrades.lean", "Budget/DesignOpt.lean"),

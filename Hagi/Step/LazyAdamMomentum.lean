@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.SafeQPRobust
-import Hagi.Dynamics.Contraction
+import Hagi.Foundations.Recurrence
 
 set_option linter.style.header false
 
@@ -65,7 +65,7 @@ theorem lazy_momentum_bound (beta c : ℝ)
           Finset.sum_congr rfl (fun s _ => by ring)]
       exact (Finset.mul_sum (s := Finset.range d) (f := fun s => beta ^ s) (a := beta)).symm
     rw [hsplit]
-    have hsum := Hagi.geom_sum_le_inv beta hbeta.le hbeta1 d
+    have hsum := Hagi.Foundations.geom_sum_le_inv beta d hbeta.le hbeta1
     have hmul : beta * ∑ s ∈ Finset.range d, beta ^ s
         ≤ beta * (1 / (1 - beta)) :=
       mul_le_mul_of_nonneg_left hsum hbeta.le

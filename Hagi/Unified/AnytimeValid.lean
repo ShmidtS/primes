@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Unified.GrowthState
 import Hagi.Core.Concat
-import Hagi.Dynamics.Contraction
+import Hagi.Foundations.Recurrence
 set_option linter.style.header false
 
 /-!
@@ -93,8 +93,7 @@ theorem anytime_valid_budget (delta0 rho : ℝ) (T : ℕ)
     (hdelta0 : 0 ≤ delta0) (hrho : 0 ≤ rho) (hrho1 : rho < 1)
     (delta : ℕ → ℝ) (hdecay : ∀ n, delta n = delta0 * rho ^ n) :
     ∑ n ∈ Finset.range T, delta n ≤ delta0 / (1 - rho) := by
-  have hgeom := geom_sum_le_inv rho hrho hrho1 T
-  have hgeom := Hagi.geom_sum_le_inv rho hrho hrho1 T
+  have hgeom := Hagi.Foundations.geom_sum_le_inv rho T hrho hrho1
   rw [Finset.sum_congr rfl (fun n _ => hdecay n)]
   calc ∑ n ∈ Finset.range T, delta0 * rho ^ n
       = delta0 * ∑ n ∈ Finset.range T, rho ^ n := by

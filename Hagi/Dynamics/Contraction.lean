@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Mathlib
+import Hagi.Foundations.Recurrence
 set_option linter.style.header false
 
 /-!
@@ -26,67 +27,23 @@ open Finset
 
 namespace Hagi
 
-/-- The telescoping identity: (1−γ)·S_t = 1 − γ^t. -/
+/-- The telescoping identity (делегация Foundations, R172). -/
 theorem geom_sum_telescope (gamma : ℝ) (t : ℕ) :
-    (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i = 1 - gamma ^ t := by
-  induction t with
-  | zero => simp
-  | succ t ih =>
-    rw [Finset.sum_range_succ]
-    rw [show (1 - gamma) * (∑ i ∈ Finset.range t, gamma ^ i + gamma ^ t)
-        = (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i + (1 - gamma) * gamma ^ t from by ring]
-    rw [ih, pow_succ]
-    ring
+    (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i = 1 - gamma ^ t :=
+  Hagi.Foundations.geom_telescope gamma t
 
-/-- The geometric tail bound: for γ ∈ [0,1), the finite
-geometric sum is at most 1/(1−γ). -/
+/-- The geometric tail bound (делегация Foundations, R172). -/
 theorem geom_sum_le_inv (gamma : ℝ) (hg : 0 ≤ gamma) (hg1 : gamma < 1) (t : ℕ) :
-    ∑ i ∈ Finset.range t, gamma ^ i ≤ 1 / (1 - gamma) := by
-  have hpos : 0 < 1 - gamma := by linarith
-  have hid := geom_sum_telescope gamma t
-  have h1 : gamma ^ t ≥ 0 := by positivity
-  have hle : 1 - gamma ^ t ≤ 1 := by linarith
-  have hsplit : (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i ≤ 1 := by linarith
-  rw [le_div_iff₀ hpos]
-  have hfinal : (1 - gamma) * (1 / (1 - gamma)) = 1 := by field_simp
-  have hmono : (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i
-      ≤ (1 - gamma) * (1 / (1 - gamma)) := by
-    rw [hfinal]
-    exact hsplit
-  have hdiv : (1 / (1 - gamma)) * (1 - gamma) = 1 := by field_simp
-  nlinarith [hmono, hpos]
+    ∑ i ∈ Finset.range t, gamma ^ i ≤ 1 / (1 - gamma) :=
+  Hagi.Foundations.geom_sum_le_inv gamma t hg hg1
 
-/-- **The contraction limit theorem**: a γ-contraction with
-δ-remainder (E_{t+1} ≤ γE_t + δ, γ < 1) drives the energy
-into the δ/(1−γ)-ball around zero exponentially:
-E_t ≤ γ^t·E_0 + δ/(1−γ). The unique attractor generation
-lies in that ball. -/
+/-- **The contraction limit theorem** (делегация Foundations, R172):
+a γ-contraction with δ-remainder drives the energy into the
+δ/(1−γ)-ball exponentially: E_t ≤ γ^t·E_0 + δ/(1−γ). -/
 theorem contraction_limit (E : ℕ → ℝ) (gamma delta : ℝ)
     (hg : 0 ≤ gamma) (hg1 : gamma < 1) (hdelta : 0 ≤ delta)
     (hstep : ∀ t, E (t + 1) ≤ gamma * E t + delta) (t : ℕ) :
-    E t ≤ gamma ^ t * E 0 + delta / (1 - gamma) := by
-  have hexact : ∀ t : ℕ, E t ≤ gamma ^ t * E 0 + delta * ∑ i ∈ Finset.range t, gamma ^ i := by
-    intro t
-    induction t with
-    | zero => simp
-    | succ t ih =>
-        have h1 := hstep t
-        have hchain : E (t + 1)
-            ≤ gamma * (gamma ^ t * E 0 + delta * ∑ i ∈ Finset.range t, gamma ^ i) + delta := by
-          calc E (t + 1) ≤ gamma * E t + delta := h1
-            _ ≤ gamma * (gamma ^ t * E 0 + delta * ∑ i ∈ Finset.range t, gamma ^ i) + delta := by
-                have hmul := mul_le_mul_of_nonneg_left ih hg
-                linarith
-        rw [Finset.sum_range_succ, pow_succ]
-        -- the telescoping identity closes the geometric-difference gap
-        have htel := geom_sum_telescope gamma t
-        nlinarith [hchain, htel, hdelta]
-  have hsum := geom_sum_le_inv gamma hg hg1 t
-  have hfin := hexact t
-  have hdelta' : delta * ∑ i ∈ Finset.range t, gamma ^ i ≤ delta / (1 - gamma) := by
-    calc delta * ∑ i ∈ Finset.range t, gamma ^ i
-        ≤ delta * (1 / (1 - gamma)) := mul_le_mul_of_nonneg_left hsum hdelta
-      _ = delta / (1 - gamma) := by field_simp
-  linarith
+    E t ≤ gamma ^ t * E 0 + delta / (1 - gamma) :=
+  Hagi.Foundations.contraction_limit gamma E delta t hg hg1 hdelta hstep
 
 end Hagi

@@ -148,5 +148,58 @@ theorem recurrence_lower (x : ℕ → ℝ) (T : ℕ)
           _ ≤ x (t + 1) := hs
   exact hmain T (le_refl T)
 
+/-- Геометрическая хвостовая граница: для γ ∈ [0,1) конечная
+геометрическая сумма ≤ 1/(1−γ). Перенос из Dynamics/Contraction
+(R172); телескоп — канонический `geom_telescope`. -/
+theorem geom_sum_le_inv (T : ℕ)
+    (hrho : 0 ≤ rho) (hrho1 : rho < 1) :
+    ∑ i ∈ Finset.range T, rho ^ i ≤ 1 / (1 - rho) := by
+  have hpos : 0 < 1 - rho := by linarith
+  have hid := geom_telescope rho T
+  have h1 : rho ^ T ≥ 0 := by positivity
+  have hle : 1 - rho ^ T ≤ 1 := by linarith
+  have hsplit : (1 - rho) * ∑ i ∈ Finset.range T, rho ^ i ≤ 1 := by linarith
+  rw [le_div_iff₀ hpos]
+  have hfinal : (1 - rho) * (1 / (1 - rho)) = 1 := by field_simp
+  have hmono : (1 - rho) * ∑ i ∈ Finset.range T, rho ^ i
+      ≤ (1 - rho) * (1 / (1 - rho)) := by
+    rw [hfinal]
+    exact hsplit
+  have hdiv : (1 / (1 - rho)) * (1 - rho) = 1 := by field_simp
+  nlinarith [hmono, hpos]
+
+/-- **Предел сжатия**: γ-сжатие с δ-остатком
+(E_{t+1} ≤ γE_t + δ, γ < 1) загоняет энергию в δ/(1−γ)-шар
+экспоненциально: E T ≤ γ^T·E_0 + δ/(1−γ). Перенос из
+Dynamics/Contraction (R172); ∀t-форма сохранена. -/
+theorem contraction_limit (x : ℕ → ℝ) (delta : ℝ) (T : ℕ)
+    (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hdelta : 0 ≤ delta)
+    (hstep : ∀ t, x (t + 1) ≤ rho * x t + delta) :
+    x T ≤ rho ^ T * x 0 + delta / (1 - rho) := by
+  have hexact : ∀ t : ℕ, t ≤ T →
+      x t ≤ rho ^ t * x 0 + delta * ∑ i ∈ Finset.range t, rho ^ i := by
+    intro t
+    induction t with
+    | zero => intro _; simp
+    | succ t ih =>
+        intro hle
+        have h1 := hstep t
+        have hchain : x (t + 1)
+            ≤ rho * (rho ^ t * x 0 + delta * ∑ i ∈ Finset.range t, rho ^ i) + delta := by
+          calc x (t + 1) ≤ rho * x t + delta := h1
+            _ ≤ rho * (rho ^ t * x 0 + delta * ∑ i ∈ Finset.range t, rho ^ i) + delta := by
+                have hmul := mul_le_mul_of_nonneg_left (ih (by omega)) hrho
+                linarith
+        rw [Finset.sum_range_succ, pow_succ]
+        have htel := geom_telescope rho t
+        nlinarith [hchain, htel, hdelta]
+  have hsum := geom_sum_le_inv rho T hrho hrho1
+  have hfin := hexact T (le_refl T)
+  have hdelta' : delta * ∑ i ∈ Finset.range T, rho ^ i ≤ delta / (1 - rho) := by
+    calc delta * ∑ i ∈ Finset.range T, rho ^ i
+        ≤ delta * (1 / (1 - rho)) := mul_le_mul_of_nonneg_left hsum hdelta
+      _ = delta / (1 - rho) := by field_simp
+  linarith
+
 end Hagi.Foundations
 

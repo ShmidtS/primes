@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
-import Hagi.Dynamics.Contraction
+import Hagi.Foundations.Recurrence
 import Mathlib
 
 set_option linter.style.header false
@@ -232,11 +232,11 @@ theorem equilibrium_bracket (G : ℕ → ℝ) (rho D delta : ℝ)
     (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hdelta : 0 ≤ D + delta)
     (hrec : ∀ t, G (t + 1) ≤ rho * G t + D + delta) (t : ℕ) :
     G t ≤ rho ^ t * G 0 + (D + delta) / (1 - rho) :=
-  Hagi.contraction_limit (fun t => G t) rho (D + delta) hrho hrho1
+  Hagi.Foundations.contraction_limit rho (fun t => G t) (D + delta) t hrho hrho1
     (by linarith) (fun t => by
       have h := hrec t
       rw [add_assoc] at h
-      exact h) t
+      exact h)
 
 end DBridge
 
