@@ -42,12 +42,57 @@ LAYERS = {
 
 # known violations, to be removed one by one (audit list):
 LAYER_EXCEPTIONS = {
-
-    ("Core/RoPE.lean", "Unified/ArchitectureTheorem.lean"),
+    # сокращающийся baseline межпапочных рёбер (аудит 2026-10-05,
+    # 52 фактических; каждое разворачивается переносом лемм вниз)
+    ("Architecture/FactorRank.lean", "Unified/GrowthState.lean"),
+    ("Audit/EqualBudget.lean", "Budget/JointCost.lean"),
+    ("Audit/Exactness.lean", "Step/SafeQP.lean"),
+    ("Audit/Foundations.lean", "External/Transfer.lean"),
+    ("Audit/Foundations.lean", "Step/SafeQP.lean"),
+    ("Autonomy/Insight.lean", "Unified/GlobalDynamics.lean"),
+    ("Autonomy/Insight.lean", "Unified/TopLevel.lean"),
+    ("Budget/JointCost.lean", "Growth/SeedOnly.lean"),
     ("Core/NonlinearStep0.lean", "Ensemble/MergePrice.lean"),
-    ("Energy/QuantBridge.lean", "Unified/MacroCycle.lean"),
-    ("Step/SafeQPRobust.lean", "Unified/Unified.lean"),
+    ("Core/RoPE.lean", "Unified/ArchitectureTheorem.lean"),
+    ("Data/ChunkedCE.lean", "Ensemble/QFormerBridge.lean"),
+    ("Data/DBridge.lean", "Dynamics/Contraction.lean"),
+    ("Data/DBridge.lean", "Ensemble/GenCycle.lean"),
     ("Data/DField.lean", "Step/Compound.lean"),
+    ("Data/PuncturedCE.lean", "Step/CausalFilter.lean"),
+    ("Data/TernaryChinchilla.lean", "Step/Muon.lean"),
+    ("Depth/RootContrast.lean", "External/Layers.lean"),
+    ("Discovery/PPT.lean", "Unified/GrowthState.lean"),
+    ("Dynamics/CapabilityGain.lean", "Unified/TopLevel.lean"),
+    ("Energy/FreeEnergy.lean", "Data/DBridge.lean"),
+    ("Energy/FreeEnergy.lean", "Data/Distill.lean"),
+    ("Energy/PoEBound.lean", "Ensemble/Hoeffding.lean"),
+    ("Energy/QuantBridge.lean", "Unified/MacroCycle.lean"),
+    ("Ensemble/GenCycle.lean", "Step/Joint.lean"),
+    ("Ensemble/MergeCancellation.lean", "Step/SafeQP.lean"),
+    ("Ensemble/MergePrice.lean", "Step/GPM.lean"),
+    ("Ensemble/MergeScaling.lean", "Step/Decompose.lean"),
+    ("External/Diversity.lean", "Budget/DesignOpt.lean"),
+    ("External/Diversity.lean", "Step/Dominate.lean"),
+    ("External/Transport.lean", "Data/SinkCost.lean"),
+    ("Generalization/ModeState.lean", "Growth/FrontierScaling.lean"),
+    ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
+    ("Growth/GainRenewal.lean", "Unified/GrowthBridge.lean"),
+    ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
+    ("Growth/GrowthGate.lean", "Budget/ComputeBudget.lean"),
+    ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
+    ("Pretraining/SyntheticPretrain.lean", "Unified/GrowthState.lean"),
+    ("Probability/Azuma.lean", "Ensemble/Hoeffding.lean"),
+    ("Probability/CertifiedEstimator.lean", "Energy/PoEBound.lean"),
+    ("Probability/ConditionalSuccess.lean", "Dynamics/FastGrowth.lean"),
+    ("Probability/ConditionalSuccess.lean", "Step/StochasticSafeQP.lean"),
+    ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
+    ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
+    ("Step/Compound.lean", "Ensemble/GenCycle.lean"),
+    ("Step/JointPreserve.lean", "Budget/ElementQuant.lean"),
+    ("Step/LazyAdamMomentum.lean", "Dynamics/Contraction.lean"),
+    ("Step/SafeQPRobust.lean", "Unified/Unified.lean"),
+    ("Step/SafeQPStep.lean", "Dynamics/CurvatureSafe.lean"),
+    ("Step/Upgrades.lean", "Budget/DesignOpt.lean"),
 }
 
 IMPORT_RE = re.compile(r"^import\s+Hagi\.([A-Za-z0-9_.]+)\s*$", re.M)
@@ -65,12 +110,17 @@ def main() -> int:
             continue
         m = IMPORT_RE.search(f.read_text(encoding="utf-8"))
         for m in IMPORT_RE.finditer(f.read_text(encoding="utf-8")):
-            tgt = m.group(1) + ".lean"
-            tfolder = tgt.split("/")[0]
+            segs = m.group(1).split(".")
+            tgt = "/".join(segs) + ".lean"
+            tfolder = segs[0]
+            myfolder = src.split("/")[0]
             tl = LAYERS.get(tfolder)
             if tl is None:
                 continue
-            if tl >= my and (src, tgt) not in LAYER_EXCEPTIONS:
+            # правило: импорт только из СТРОГО НИЖНИХ слоёв;
+            # внутри своей папки (same folder) допустим DAG
+            violates = tl > my or (tl == my and tfolder != myfolder)
+            if violates and (src, tgt) not in LAYER_EXCEPTIONS:
                 bad.append(f"{src} -> {tgt} (import layer {tl} >= own {my})")
     if bad:
         print("LAYERLINT: FAIL")
