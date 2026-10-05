@@ -51,6 +51,7 @@ import Hagi.Ensemble.MergeIdentity
 import Hagi.Energy.BranchScale
 import Hagi.Energy.TernaryLean
 import Hagi.Energy.EntropyProduction
+import Hagi.Autonomy.SupervisorViability
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
