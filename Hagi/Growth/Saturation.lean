@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Growth.RatioTakeoff
+import Hagi.Foundations.Recurrence
 set_option linter.style.header false
 
 /-!
@@ -71,21 +72,14 @@ theorem pl_gap_geometric (C : ℕ → ℝ) (Cstar σ : ℝ)
     (hσ1 : σ ≤ 1)
     (hpl_lo : ∀ t, C t + σ * (Cstar - C t) ≤ C (t + 1))
     (t : ℕ) :
-    Cstar - C t ≤ (1 - σ) ^ t * (Cstar - C 0) := by
-  induction t with
-  | zero => simp
-  | succ t ih =>
-      have h := hpl_lo t
-      have hstep : Cstar - C (t + 1) ≤ (1 - σ) * (Cstar - C t) := by
-        have hE : (1 - σ) * (Cstar - C t)
-            = Cstar - C t - σ * (Cstar - C t) := by ring
-        linarith [hE]
-      have hcast : (1 - σ) ^ (t + 1) = (1 - σ) ^ t * (1 - σ) := by ring
-      rw [hcast]
-      calc Cstar - C (t + 1) ≤ (1 - σ) * (Cstar - C t) := hstep
-        _ ≤ (1 - σ) * ((1 - σ) ^ t * (Cstar - C 0)) :=
-            mul_le_mul_of_nonneg_left ih (by linarith)
-        _ = (1 - σ) ^ t * (1 - σ) * (Cstar - C 0) := by ring
+    Cstar - C t ≤ (1 - σ) ^ t * (Cstar - C 0) :=
+  Hagi.Foundations.recurrence_pure (1 - σ)
+    (fun s => Cstar - C s) t (show (0:ℝ) ≤ 1 - σ by linarith)
+    (fun s _ => by
+      have h := hpl_lo s
+      have hE : (1 - σ) * (Cstar - C s)
+          = Cstar - C s - σ * (Cstar - C s) := by ring
+      linarith [hE])
 
 /-- **Сходимость к ёмкости**: ∀ε>0 ∃T ∀t≥T: C_t ≥ C* − ε.
 Конструктивно: телескоп σ(1−σ)^i = (1−σ)^i − (1−σ)^{i+1}

@@ -101,16 +101,29 @@ theorem recurrence_upper (x : ℕ → ℝ) (T : ℕ)
   exact h
 
 /-- **Чистая рекуррента (c = 0)**: x_{t+1} <= rho * x_t при
-t < T и rho ∈ [0,1) ⟹ x T <= rho^T * x 0. -/
+t < T и rho ≥ 0 ⟹ x T <= rho^T * x 0. Требования rho < 1
+НЕ нужно (в отличие от recurrence_upper с c ≠ 0): случай
+rho = 1 — тривиальная нестрогая нерастущесть. -/
 theorem recurrence_pure (x : ℕ → ℝ) (T : ℕ)
-    (hrho : 0 ≤ rho) (hrho1 : rho < 1)
+    (hrho : 0 ≤ rho)
     (hstep : ∀ t < T, x (t + 1) ≤ rho * x t) :
     x T ≤ rho ^ T * x 0 := by
-  have hstep0 : ∀ t < T, x (t + 1) ≤ rho * x t + 0 :=
-    fun t ht => by simpa using hstep t ht
-  have h := recurrence_upper rho 0 x T hrho hrho1 hstep0
-  have hz : (0:ℝ) * ((1 - rho ^ T) / (1 - rho)) = 0 := by ring
-  linarith
+  have hmain : ∀ t : ℕ, t ≤ T →
+      x t ≤ rho ^ t * x 0 := by
+    intro t
+    induction t with
+    | zero => intro _; simp
+    | succ t ih =>
+        intro hle
+        have hs := hstep t (by omega)
+        have hih := ih (by omega)
+        have hmul : rho * x t ≤ rho * (rho ^ t * x 0) :=
+          mul_le_mul_of_nonneg_left hih hrho
+        rw [pow_succ]
+        calc x (t + 1) ≤ rho * x t := hs
+          _ ≤ rho * (rho ^ t * x 0) := hmul
+          _ = rho ^ t * rho * x 0 := by ring
+  exact hmain T (le_refl T)
 
 /-- **Нижняя рекуррента (c = 0, горизонт)**: x_{t+1} >= rho * x_t
 при t < T и rho >= 0 ⟹ rho^T * x 0 <= x T. -/
