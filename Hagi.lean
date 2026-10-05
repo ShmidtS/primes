@@ -120,6 +120,7 @@ import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Core.NonlinearStep0
 import Hagi.Ensemble.DistillTransfer
+import Hagi.Ensemble.RecursiveDistill
 import Hagi.Step.SafeQPPL
 import Hagi.Data.AntiCollapse
 import Hagi.Autonomy.Universality
