@@ -109,3 +109,21 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 - 841 theorem/lemma; 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
+
+## Бюджет-линия (R176, цикл 2026-10-06)
+
+- Hagi/Budget/BitAlloc: оптимальное распределение битов при
+  ограничении объёма — transfer_exact (маржинальный обмен:
+  перестановка бита меняет ошибку ровно на e_k − e_j/2),
+  two_layer_equalize (балансировка двух слоёв — water-
+  filling как теорема), imbalance_yields_gain +
+  stable_factor_two (фактор-2 инвариант на фикс-поинте
+  жадного цикла), distill_quant_composite (полный
+  сертификат поколения: S_n + n·g ≤ E_0 + δ_n +
+  totalError). Источники: 2609.38169, 2607.16097, 2607.16600.
+- Анализ цикла: формализуемые ядра темы «максимальное
+  качество при минимальном объёме» в корпусе исчерпаны
+  (Eckart–Young нет в Mathlib и в корпусе; width-скейлинг
+  2606.28242 покрыт tail-eigenvalue формой DesignOpt;
+  QAT/JL/superposition теорий нет). Дальше: R174c–e
+  термослой, R157-остаток Fannes, LSL после спецификации.
