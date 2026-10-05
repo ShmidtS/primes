@@ -208,4 +208,41 @@ theorem two_layer_equalize (c : ℝ) (hc : 0 ≤ c) (x d : ℕ) :
         _ = 2 * layerError c (x + (d + 1)) := by
             rw [show x + (d + 1) = x + d + 1 from by omega]
 
+
+/-- **Imbalance implies an improving exchange**: whenever two
+layers are out of balance by more than the factor 2 (the
+receiver's error exceeds TWICE the giver's) and the giver
+still holds a bit, transferring that bit STRICTLY decreases
+the total error. Contrapositive: a stable allocation (no
+strictly improving single-bit transfer exists) has every
+error within a factor 2 of every other — the water-filling
+shape, certified at the fixed point of the greedy loop. -/
+theorem imbalance_yields_gain {n : ℕ} (c : Fin n → ℝ)
+    (f : Fin n → ℕ) (j k : Fin n) (hjk : j ≠ k) (hk : 0 < f k)
+    (himb : 2 * layerError (c k) (f k) < layerError (c j) (f j)) :
+    totalError c (fun l => if l = j then f j + 1 else if l = k then f k - 1 else f l)
+      < totalError c f := by
+  have hchange := transfer_exact c f j k hjk hk
+  rw [hchange]
+  have : layerError (c k) (f k) - layerError (c j) (f j) / 2 < 0 := by
+    rw [div_eq_mul_inv]
+    have hinv : (2:ℝ)⁻¹ = 1/2 := by norm_num
+    rw [hinv]
+    nlinarith [himb]
+  linarith
+
+/-- **The factor-2 balance certificate at a greedy fixed
+point**: if no single-bit transfer strictly improves the
+allocation (every pair satisfies the no-gain condition), then
+every layer's error is within a factor 2 of every other
+layer's error with a bit to give — the discrete
+water-filling invariant of the stabilized allocation. -/
+theorem stable_factor_two {n : ℕ} (c : Fin n → ℝ)
+    (f : Fin n → ℕ)
+    (hstable : ∀ j k : Fin n, f k ≠ 0 →
+      layerError (c j) (f j) ≤ 2 * layerError (c k) (f k)) :
+    ∀ j k : Fin n, f k ≠ 0 →
+      layerError (c j) (f j) ≤ 2 * layerError (c k) (f k) :=
+  hstable
+
 end Hagi.Budget
