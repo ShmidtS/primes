@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.External.Diversity
-import Hagi.Data.SinkCost
+import Mathlib
 
 set_option linter.style.header false
 

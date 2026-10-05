@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Dynamics.FastGrowth
-import Hagi.Step.StochasticSafeQP
+import Mathlib
 import Mathlib.Probability.Moments.SubGaussian
 set_option linter.style.header false
 
