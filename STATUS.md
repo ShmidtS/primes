@@ -3630,3 +3630,55 @@ Machine-Checked / Named-Premises / Empirical), план п.1:
 
 Честно: сама динамика R107 — h_emp_-слой; теорема —
 условная алгебра барьера. Аксиомы: стандартные. CI: PASS.
+
+## R167 — Freedman: дисперсионно-адаптивная концентрация (§AF/§AX)
+
+`Hagi/Probability/Freedman.lean` (конечный порт, без
+measure-theory, по образцу Azuma):
+
+- `exp_tail_two` — e^u ≤ 1+u+(u²/2)e^{|u|} через ДВОЙНОЙ
+  MVT (exists_hasDerivAt_eq_slope; HasSum-путь отброшен —
+  моста NormedSpace.exp ↔ Real.exp в этой Mathlib нет);
+- `freedman_lemma_prefix` — условная лемма Бернштейна:
+  mgf шага ≤ exp((λ²σ²/2)·e^{λb}) при условном среднем-нуле,
+  диапазоне b и условной дисперсии σ²;
+- `freedman_mgf` / `freedman_tail_low` — мартингальный mgf и
+  хвост P[ΣX ≤ −Δ] ≤ exp(−Δ²/(2(nσ²+bΔ))) (λ = Δ/(nσ²+bΔ),
+  e^{λb} ≤ 1/(1−λb) через add_one_le_exp);
+- `cond_var_le_second` — Σq(S−m)² = ΣqS² − m² ≤ ΣqS²;
+- `adaptive_success_freedman` — ΣS ≥ np₀−Δ w.p. ≥
+  1−exp(−Δ²/(2(nσ²+Δ))) — дисперсионное усиление R127
+  (σ² = 1 воспроизводит Азуму, σ² < 1 — сильнее).
+
+Честно: σ² — измеряемая посылка (runtime), b —
+конструкторский диапазон; совместная и anytime-формы —
+открыты. Аксиомы: стандартные. CI: PASS.
+
+## R168–R173 — миграция графа импортов: разворот рёбер
+
+- R168: MasterHAGI private-телескопы удалены (делегация
+  Foundations); Foundations.recurrence_pure ослаблен (ρ<1
+  не нужен); Saturation.pl_gap_geometric — делегация.
+- R169: LayerLint-баг исправлен (tfolder парсился всегда в
+  None — линтер не проверял ничего; проверено инъекцией);
+  правило: строго ниже ИЛИ same-folder DAG; baseline 49.
+- R170: Foundations/Chord (exp_chord_ab, log_cosh_le) +
+  Foundations/Hoeffding (bern-ядро, mgf_hoeffding_ab/_);
+  Azuma/CertifiedEstimator переключены; мёртвые импорты
+  GlobalDynamics/PoEBound удалены. Baseline 46.
+- R171: свип мёртвых импортов — 20 рёбер заменены на прямые
+  import Mathlib (каждый файл скомпилирован индивидуально);
+  4 «почти-мёртвых» вскрыты анализом достижимости
+  (транзитивные потоки имён: JointCost→SeedOnly и др.).
+  Baseline 26.
+- R172: contraction-ядро (geom_sum_le_inv,
+  contraction_limit) → Foundations/Recurrence (реюз
+  geom_telescope); Dynamics/Contraction — делегации;
+  DBridge/LazyAdamMomentum/AnytimeValid — Foundations.
+  Baseline 24.
+- R173: Foundations/TakeoffCounted
+  (capability_takeoff_counted); ConditionalSuccess больше
+  не тянет Dynamics. Baseline 23.
+
+Аксиомы: стандартные. CI: PASS (TrivialLint+triviality+
+DocLint+LayerLint+StatusLint).
