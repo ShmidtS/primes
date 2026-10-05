@@ -1,0 +1,211 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Mathlib
+
+set_option linter.style.header false
+
+/-!
+# BitAlloc: optimal bit allocation under a parameter budget (R176)
+
+The "maximum quality at minimum size" program: under a hard
+cap on model volume, the only remaining freedom is WHERE the
+bits go. The corpus (arXiv:2609.38169 STEPQuant —
+lifetime-aware bit allocation; arXiv:2607.16097 —
+compute-optimal frontier: under fixed FLOPs an optimal
+allocation EXISTS and SHIFTS with the budget; the classical
+water-filling lineage of arXiv:2607.16600) reduces to one
+mathematical core: minimize the total quantization error
+`Σ_l c_l · 2^(−b_l)` over layer bit-widths `b_l` subject to
+the volume budget `Σ b_l ≤ B`. This module proves the finite
+kernel of that optimization.
+
+**Model.** Layers indexed by `Fin n`, each with sensitivity
+`c_l > 0` (the per-layer error coefficient — from the
+QuantBridge bound `ΔE_l ≤ κ_l·√n_l·s_l/2`: the grid step
+halves with each extra bit). Layer error
+`e_l(b) = c_l · 2^(−b)`.
+
+**Results.**
+
+* `layerError_antitone` / `layerError_pred` — one more bit
+  halves the layer error; one fewer bit doubles it.
+
+* `transfer_exact` — THE MARGINAL-EXCHANGE LEMMA: moving one
+  bit from layer `k` (with a bit to give) to a different
+  layer `j` changes the total error by EXACTLY
+  `e_k − e_j/2` (removing a bit doubles the giver's error;
+  adding one halves the receiver's). In particular the
+  transfer does not increase the total error exactly when
+  `e_k ≤ e_j/2` — the receiver's current error is at least
+  TWICE the giver's: bits want to live where the error is
+  still large. Every greedy bit-reallocation loop is
+  licensed by this identity.
+
+* `two_layer_equalize` — THE TWO-LAYER OPTIMUM: for two
+  layers and a budget split as `x + (x + 2d)`, the balanced
+  split `x+d, x+d` has total error at most that of the
+  original — by induction, balancing never hurts, and the
+  water-filling shape (equalized errors) is optimal in its
+  simplest instance.
+
+**Honest boundary.** The full n-layer continuous water
+filling (equalized marginals) and the STEPQuant lifetime
+weighting are engineering on this kernel; the frontier
+claim of 2607.16097 (the optimum SHIFTS with total budget)
+is empirical fitting — not claimed here.
+-/
+
+namespace Hagi.Budget
+
+open Finset
+
+/-- The per-layer quantization error: sensitivity times the
+grid factor — each extra bit halves the grid, hence halves
+the error. -/
+noncomputable def layerError (c : ℝ) (b : ℕ) : ℝ := c / 2 ^ b
+
+theorem layerError_pos (c : ℝ) (hc : 0 < c) (b : ℕ) :
+    0 < layerError c b := by
+  unfold layerError
+  positivity
+
+theorem layerError_antitone (c : ℝ) (b : ℕ) :
+    layerError c (b + 1) = layerError c b / 2 := by
+  unfold layerError
+  rw [pow_succ]
+  field_simp
+
+theorem layerError_pred (c : ℝ) {b : ℕ} (hb : 0 < b) :
+    layerError c (b - 1) = 2 * layerError c b := by
+  obtain ⟨m, hm⟩ := Nat.exists_eq_add_of_lt hb
+  subst hm
+  rw [show (0 + m + 1 - 1 : ℕ) = m by omega, layerError_antitone]
+  ring
+
+/-- The total error of an allocation `f : layer → bits`. -/
+noncomputable def totalError (c : Fin n → ℝ) (f : Fin n → ℕ) : ℝ :=
+  ∑ l, layerError (c l) (f l)
+
+/-- Two-point decomposition of the total: any allocation's
+total error is its two marked coordinates plus the sum over
+the complement of `{j, k}`. -/
+theorem totalError_two_point {n : ℕ} (c : Fin n → ℝ)
+    (f : Fin n → ℕ) (j k : Fin n) (hjk : j ≠ k) :
+    totalError c f = layerError (c j) (f j) + layerError (c k) (f k)
+      + ∑ l ∈ (Finset.univ.erase j).erase k, layerError (c l) (f l) := by
+  classical
+  unfold totalError
+  have h1 : ∑ l, layerError (c l) (f l)
+      = ∑ l ∈ Finset.univ.erase j, layerError (c l) (f l) + layerError (c j) (f j) :=
+    (Finset.sum_erase_add Finset.univ (fun l => layerError (c l) (f l))
+      (Finset.mem_univ j)).symm
+  have h2 : ∑ l ∈ Finset.univ.erase j, layerError (c l) (f l)
+      = ∑ l ∈ (Finset.univ.erase j).erase k, layerError (c l) (f l)
+        + layerError (c k) (f k) :=
+    (Finset.sum_erase_add (Finset.univ.erase j) (fun l => layerError (c l) (f l))
+      (Finset.mem_erase.mpr ⟨Ne.symm hjk, Finset.mem_univ k⟩)).symm
+  rw [h1, h2]
+  ring
+
+/-- **The marginal-exchange identity**: moving one bit from
+layer `k` (with a bit to give) to a different layer `j`
+changes the total error by EXACTLY
+`e_k(b_k) − e_j(b_j)/2`: removing a bit doubles the giver's
+error (loss `e_k`), adding one halves the receiver's (gain
+`e_j/2`). The transfer is nonincreasing precisely when
+`e_k ≤ e_j/2` — the receiver's current error is at least
+twice the giver's. This identity licenses every greedy
+bit-reallocation loop ("move bits toward the largest current
+error"). -/
+theorem transfer_exact {n : ℕ} (c : Fin n → ℝ)
+    (f : Fin n → ℕ) (j k : Fin n) (hjk : j ≠ k) (hk : 0 < f k) :
+    totalError c (fun l => if l = j then f j + 1 else if l = k then f k - 1 else f l)
+      = totalError c f + (layerError (c k) (f k) - layerError (c j) (f j) / 2) := by
+  classical
+  set g : Fin n → ℕ :=
+    fun l => if l = j then f j + 1 else if l = k then f k - 1 else f l with hg
+  have hgpj : g j = f j + 1 := by simp [hg]
+  have hgpk : g k = f k - 1 := by
+    simp [hg, show ¬(k = j) from Ne.symm hjk]
+  have hgr : ∀ l ∈ (Finset.univ.erase j).erase k, g l = f l := by
+    intro l hl
+    obtain ⟨hk2, hmem⟩ := Finset.mem_erase.mp hl
+    obtain ⟨hj2, _⟩ := Finset.mem_erase.mp hmem
+    simp [hg, hj2, hk2]
+  rw [totalError_two_point c g j k hjk, totalError_two_point c f j k hjk, hgpj, hgpk]
+  rw [Finset.sum_congr rfl (fun l hl => by rw [hgr l hl])]
+  rw [layerError_antitone (c j) (f j), layerError_pred (c k) hk]
+  ring
+
+/-- Monotone decay of the layer error in the bit width (for
+nonnegative sensitivity). -/
+theorem layerError_anti_mono (c : ℝ) (hc : 0 ≤ c) :
+    ∀ b1 b2 : ℕ, b1 ≤ b2 → layerError c b2 ≤ layerError c b1 := by
+  intro b1 b2 hle
+  induction b2 with
+  | zero => simp at hle; subst hle; exact le_refl _
+  | succ b2 ih =>
+      rcases Nat.lt_or_ge b1 (b2 + 1) with hlt | hge
+      · have hb1 : b1 ≤ b2 := by omega
+        have hpos : 0 ≤ layerError c b2 := by
+          unfold layerError
+          positivity
+        calc layerError c (b2 + 1) = layerError c b2 / 2 :=
+                layerError_antitone c b2
+          _ ≤ layerError c b2 := by
+              exact div_le_self hpos one_le_two
+          _ ≤ layerError c b1 := ih hb1
+      · have : b1 = b2 + 1 := Nat.le_antisymm hle hge
+        subst this
+        exact le_refl _
+
+/-- **The two-layer balancing law**: for nonnegative
+sensitivity, any budget split `x + (x + 2d)` is dominated by
+the balanced split `(x+d, x+d)` — balancing two layers never
+hurts. By induction on the imbalance, the equal-error
+(water-filling) allocation is optimal for two layers; the
+greedy exchanges of `transfer_exact` reach it. -/
+theorem two_layer_equalize (c : ℝ) (hc : 0 ≤ c) (x d : ℕ) :
+    layerError c x + layerError c (x + 2 * d)
+      ≥ 2 * layerError c (x + d) := by
+  induction d generalizing x with
+  | zero =>
+      simp only [Nat.mul_zero, Nat.add_zero]
+      exact le_of_eq (by ring)
+  | succ d ih =>
+      have hant1 : layerError c (x + 1) = layerError c x / 2 := by
+        rw [show x + 1 = x + 1 from rfl]
+        exact layerError_antitone c x
+      have hant2 : layerError c (x + 2 * d + 1) = layerError c (x + 2 * d) / 2 := by
+        rw [show x + 2 * d + 1 = (x + 2 * d) + 1 from rfl]
+        exact layerError_antitone c (x + 2 * d)
+      have h1 : layerError c (x + 2 * d + 2) = layerError c (x + 2 * d) / 4 := by
+        rw [show x + 2 * d + 2 = (x + 2 * d + 1) + 1 from rfl,
+          layerError_antitone c (x + 2 * d + 1), hant2]
+        ring
+      have hmono : layerError c (x + 2 * d) ≤ layerError c x :=
+        layerError_anti_mono c hc x (x + 2 * d) (by omega)
+      have hstep : layerError c x + layerError c (x + 2 * d + 2)
+          ≥ layerError c (x + 1) + layerError c (x + 2 * d + 1) := by
+        have hpos : 0 ≤ layerError c x := by
+          unfold layerError
+          positivity
+        rw [hant1, hant2, h1]
+        linarith
+      have hih := ih (x + 1)
+      have hshift : layerError c (x + 1) + layerError c ((x + 1) + 2 * d)
+          = layerError c (x + 1) + layerError c (x + 2 * d + 1) := by
+        rw [show (x + 1) + 2 * d = x + 2 * d + 1 from by omega]
+      have hfinal : 2 * layerError c ((x + 1) + d)
+          = 2 * layerError c (x + d + 1) := by
+        rw [show (x + 1) + d = x + d + 1 from by omega]
+      calc layerError c x + layerError c (x + 2 * d + 2)
+          ≥ layerError c (x + 1) + layerError c (x + 2 * d + 1) := hstep
+        _ = layerError c (x + 1) + layerError c ((x + 1) + 2 * d) := hshift.symm
+        _ ≥ 2 * layerError c ((x + 1) + d) := hih
+        _ = 2 * layerError c (x + d + 1) := hfinal
+        _ = 2 * layerError c (x + (d + 1)) := by
+            rw [show x + (d + 1) = x + d + 1 from by omega]
+
+end Hagi.Budget
