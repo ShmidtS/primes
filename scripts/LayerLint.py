@@ -43,7 +43,7 @@ LAYERS = {
 # known violations, to be removed one by one (audit list):
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
-    # (R169: 49; R170: 46; R171: 26; R172: 24)
+    # (R169: 49; R170: 46; R171: 26; R172: 24; R173: 23)
     ("Audit/EqualBudget.lean", "Budget/JointCost.lean"),
     ("Audit/Exactness.lean", "Step/SafeQP.lean"),
     ("Audit/Foundations.lean", "External/Transfer.lean"),
@@ -60,7 +60,6 @@ LAYER_EXCEPTIONS = {
     ("Growth/GainRenewal.lean", "Unified/GrowthBridge.lean"),
     ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
     ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
-    ("Probability/ConditionalSuccess.lean", "Dynamics/FastGrowth.lean"),
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     ("Step/Compound.lean", "Ensemble/GenCycle.lean"),
