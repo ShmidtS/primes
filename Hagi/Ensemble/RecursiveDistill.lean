@@ -248,4 +248,97 @@ theorem exhausted_when {rho gamma eps : ℝ} (n : ℕ)
     _ < gamma * (eps / gamma) := mul_lt_mul_of_pos_left hthin hgamma
     _ = eps := by field_simp
 
+
+/-! ## Optimal harvest scheduling up to step n -/
+
+/-- The field never goes negative: each extraction is bounded
+by `γ·D k`, so the unit-for-unit payment never overspends. -/
+theorem field_nonneg {D h : ℕ → ℝ} {gamma : ℝ}
+    (hgamma : 0 < gamma) (hgamma1 : gamma ≤ 1) (hD0 : 0 ≤ D 0)
+    (hextract : ∀ k, h k ≤ gamma * D k)
+    (hpay : ∀ k, D (k + 1) = D k - h k) :
+    ∀ t, 0 ≤ D t := by
+  intro t
+  induction t with
+  | zero => exact hD0
+  | succ t ih =>
+      have he : h t ≤ gamma * D t := hextract t
+      have hp : D (t + 1) = D t - h t := hpay t
+      have : gamma * D t ≤ D t := by
+        have := mul_le_of_le_one_right ih hgamma1
+        linarith
+      linarith
+
+/-- **The harvest accounting identity**: each cycle extracts
+`h t ≤ γ·D t` from the disagreement field and the field pays
+unit for unit (`D (t+1) = D t − h t`). The total harvest over
+any horizon telescopes to `D 0 − D n`: ALL certified gain
+comes from the field, nothing else. -/
+theorem harvest_accounting_identity {D h : ℕ → ℝ} {gamma : ℝ} (n : ℕ)
+    (hgamma : 0 < gamma) (hgamma1 : gamma ≤ 1) (hD0 : 0 ≤ D 0)
+    (hextract : ∀ k, h k ≤ gamma * D k)
+    (hpay : ∀ k, D (k + 1) = D k - h k) :
+    ∑ t ∈ Finset.range n, h t = D 0 - D n := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      have hp := hpay n
+      have hsplit : ∑ t ∈ Finset.range (n + 1), h t
+          = ∑ t ∈ Finset.range n, h t + h n := by
+        rw [Finset.sum_range_succ]
+      rw [hsplit, ih, hp]
+      ring
+
+/-- **The greedy field decay**: under the per-cycle extraction
+limit, the field can never fall below the geometric schedule
+`(1−γ)^t·D 0` — no schedule exhausts the field faster than
+the GREEDY one (extract the maximum `γ·D t` every cycle). -/
+theorem field_decay_lower {D h : ℕ → ℝ} {gamma : ℝ} (t : ℕ)
+    (hgamma : 0 < gamma) (hgamma1 : gamma ≤ 1) (hD0 : 0 ≤ D 0)
+    (hextract : ∀ k, h k ≤ gamma * D k)
+    (hpay : ∀ k, D (k + 1) = D k - h k) :
+    (1 - gamma) ^ t * D 0 ≤ D t := by
+  induction t with
+  | zero => simp [hD0]
+  | succ t iht =>
+      have hp := hpay t
+      have he := hextract t
+      have hge : (0:ℝ) ≤ 1 - gamma := by linarith
+      have hnn := field_nonneg hgamma hgamma1 hD0 hextract hpay t
+      calc (1 - gamma) ^ (t + 1) * D 0
+          = (1 - gamma) * ((1 - gamma) ^ t * D 0) := by rw [pow_succ]; ring
+        _ ≤ (1 - gamma) * D t := mul_le_mul_of_nonneg_left iht hge
+        _ = D t - gamma * D t := by ring
+        _ ≤ D t - h t := by
+            have : gamma * D t ≤ D t := by
+              have := mul_le_of_le_one_right hnn hgamma1
+              linarith
+            linarith
+        _ = D (t + 1) := hp.symm
+
+/-- **Greedy horizon optimality**: for ANY extraction schedule
+respecting the per-cycle limit `h t ≤ γ·D t` and the
+unit-for-unit field payment, the total certified harvest up
+to step n is at most `D 0·(1 − (1−γ)^n)` — the value achieved
+by the GREEDY schedule (extract the maximum every cycle).
+Up to any fixed horizon n the greedy cycle algorithm
+maximizes the harvested quality gain; the residual field
+after n greedy cycles is exactly `(1−γ)^n·D 0`, meeting the
+exhaustion criterion of `exhausted_when`. -/
+theorem greedy_horizon_optimal {D h : ℕ → ℝ} {gamma : ℝ} (n : ℕ)
+    (hgamma : 0 < gamma) (hgamma1 : gamma ≤ 1) (hD0 : 0 ≤ D 0)
+    (hextract : ∀ k, h k ≤ gamma * D k)
+    (hpay : ∀ k, D (k + 1) = D k - h k) :
+    ∑ t ∈ Finset.range n, h t ≤ D 0 * (1 - (1 - gamma) ^ n) := by
+  have hid := harvest_accounting_identity n hgamma hgamma1 hD0 hextract hpay
+  have hlow := field_decay_lower n hgamma hgamma1 hD0 hextract hpay
+  rw [hid]
+  have hge : (0:ℝ) ≤ 1 - gamma := by linarith
+  have hexp : 0 ≤ (1 - gamma) ^ n := pow_nonneg hge n
+  calc D 0 - D n
+      ≤ D 0 - (1 - gamma) ^ n * D 0 := by
+          have : (1 - gamma) ^ n * D 0 ≤ D n := hlow
+          linarith
+    _ = D 0 * (1 - (1 - gamma) ^ n) := by ring
+
 end Hagi.Ensemble
