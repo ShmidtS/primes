@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Ensemble.GapLaw
+import Hagi.Foundations.Chord
 set_option linter.style.header false
 
 /-!
@@ -221,13 +222,8 @@ theorem exp_prod_le_cosh {V : Type} [Fintype V] (p d : V → ℝ) (M : ℝ)
     _ = Real.cosh M := by
         rw [Real.cosh_eq M]
         ring
-theorem log_cosh_le (M : ℝ) : Real.log (Real.cosh M) ≤ M ^ 2 / 2 := by
-  have hc : Real.cosh M ≤ Real.exp (M ^ 2 / 2) := cosh_le_exp_half_sq M
-  have hpos : 0 < Real.cosh M := Real.cosh_pos M
-  have hlog : Real.log (Real.cosh M) ≤ Real.log (Real.exp (M ^ 2 / 2)) :=
-    Real.log_le_log hpos (cosh_le_exp_half_sq M)
-  rw [Real.log_exp] at hlog
-  exact hlog
+theorem log_cosh_le (M : ℝ) : Real.log (Real.cosh M) ≤ M ^ 2 / 2 :=
+  Hagi.Foundations.log_cosh_le M
 
 theorem half_log_cosh_le (M : ℝ) : Real.log (Real.cosh M) / 2 ≤ M ^ 2 / 4 := by
   have h := log_cosh_le M

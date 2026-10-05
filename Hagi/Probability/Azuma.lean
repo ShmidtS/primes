@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Probability.AdaptiveSuccess
-import Hagi.Ensemble.Hoeffding
+import Hagi.Foundations.Chord
 set_option linter.style.header false
 
 /-!
@@ -47,6 +47,7 @@ Freedman-усиление (дисперсионная адаптация) — о
 open Finset Real
 
 namespace Hagi
+open Hagi.Foundations
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
