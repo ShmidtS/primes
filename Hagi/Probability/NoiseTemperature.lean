@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Probability.CertifiedEstimator
+import Hagi.Foundations.Recurrence
 
 set_option linter.style.header false
 
@@ -375,6 +376,55 @@ theorem noise_scale_separation (eta theta : ℝ)
     (heta : 0 < eta) (heta1 : eta ≤ 1) (htheta : 0 ≤ theta) :
     eta * theta ≤ Real.sqrt eta * theta :=
   mul_le_mul_of_nonneg_right (Real.le_sqrt_self_iff.mpr heta1) htheta
+
+
+/-- **Annealing by batch growth (R174d kernel, the
+1711.00489 axis choice)**: growing the batch geometrically
+(`B_{t+1} = c·B_t`, `c > 1`) cools the noise reservoir
+geometrically (temperature `1/B_t`, `batch_variance_eq`), and
+the TOTAL noise injected over any horizon is bounded by the
+geometric cooling budget `σ²·c/(B₀·(c−1))` — finite and
+horizon-independent. Decaying the LR at fixed batch is the
+SAME mathematics on the other axis (the equivalence of
+1711.00489); the batch axis buys the cooling without
+shrinking the step size. -/
+theorem anneal_by_batch {sigma c : ℝ} (B : ℕ → ℝ) (n : ℕ)
+    (hsigma : 0 ≤ sigma) (hc1 : 1 < c) (hB0 : 0 < B 0)
+    (hgrow : ∀ t < n, B (t + 1) = c * B t) :
+    ∑ t ∈ Finset.range n, sigma ^ 2 / B t
+      ≤ sigma ^ 2 * c / (B 0 * (c - 1)) := by
+  -- geometric batch growth: B t = B 0 * c ^ t
+  have hB : ∀ t ≤ n, B t = B 0 * c ^ t := by
+    intro t ht
+    induction t with
+    | zero => rw [pow_zero, mul_one]
+    | succ t iht =>
+        rw [hgrow t (Nat.lt_of_succ_le ht)]
+        rw [iht (Nat.le_of_succ_le ht)]
+        rw [pow_succ]
+        ring
+  -- termwise bound: sigma^2 / B t = (sigma^2 / B 0) * (1/c)^t
+  have hterm : ∀ t < n, sigma ^ 2 / B t
+      = (sigma ^ 2 / B 0) * ((1 / c) ^ t) := by
+    intro t ht
+    rw [hB t (Nat.le_of_lt ht), one_div_pow]
+    field_simp
+  -- the geometric budget
+  have hgeo : ∑ t ∈ Finset.range n, (1 / c) ^ t ≤ 1 / (1 - 1 / c) := by
+    have hrc : 0 ≤ 1 / c := by positivity
+    have hrc1 : (1:ℝ) / c < 1 := by
+      rw [div_lt_iff₀ (by positivity : (0:ℝ) < c)]
+      linarith
+    exact Hagi.Foundations.geom_sum_le_inv (rho := 1 / c) n hrc hrc1
+  calc ∑ t ∈ Finset.range n, sigma ^ 2 / B t
+      = ∑ t ∈ Finset.range n, (sigma ^ 2 / B 0) * ((1 / c) ^ t) := by
+        exact Finset.sum_congr rfl fun t ht => hterm t (Finset.mem_range.mp ht)
+    _ = (sigma ^ 2 / B 0) * ∑ t ∈ Finset.range n, (1 / c) ^ t := by
+        rw [← Finset.mul_sum]
+    _ ≤ (sigma ^ 2 / B 0) * (1 / (1 - 1 / c)) :=
+        mul_le_mul_of_nonneg_left hgeo (by positivity)
+    _ = sigma ^ 2 * c / (B 0 * (c - 1)) := by
+        field_simp
 
 end Batch
 
