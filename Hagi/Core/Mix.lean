@@ -21,7 +21,8 @@ per-leaf columns); leaf `a` applies head `W_a` producing logits
 through the mixer Q. The merged logit is the mean of the `z_a`.
 
 **The invisibility condition.** The mixing is *logit-invisible* —
-the merged logits are exactly the un-mixed ensemble mean — iff the
+the merged logits are exactly the un-mixed ensemble mean — whenever
+(SUFFICIENCY; the converse is NOT proved) the
 column sums of Q reproduce each head:
 
 `∀ b, ∑_a Q a b • W_a = W_b`.
