@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Ensemble.RecursiveDistill
 
 set_option linter.style.header false
 
@@ -244,5 +245,32 @@ theorem stable_factor_two {n : ℕ} (c : Fin n → ℝ)
     ∀ j k : Fin n, f k ≠ 0 →
       layerError (c j) (f j) ≤ 2 * layerError (c k) (f k) :=
   hstable
+
+
+/-- **The full-generation quality-volume certificate**: the
+distillate of generation n, under the recursive-distill
+compound gain (`distill_compound_gain`) AND a bit-budget
+allocation `f` with nonnegative sensitivities `c` (the
+BitAlloc model), obeys the ADDITIVE composite bound — the
+distillate is better than the initial ensemble by the linear
+accumulation `n·g`, up to its own distillation slack and the
+total quantization error of the deployed bits. One inequality
+certifies the whole grow-compress-quantize pipeline of a
+generation against the parameter budget. -/
+theorem distill_quant_composite {E S delta c_seq : ℕ → ℝ}
+    {c : Fin m → ℝ} {f : Fin m → ℕ} {g : ℝ} (n : ℕ)
+    (hc : ∀ l, 0 ≤ c l)
+    (hdist : ∀ k ≤ n, S k ≤ E k + delta k)
+    (hgrow : ∀ k < n, E (k + 1) + c_seq k ≤ S k)
+    (hnet : ∀ k < n, g ≤ c_seq k - delta k) :
+    S n + n * g ≤ E 0 + delta n + totalError c f := by
+  have hcg := Hagi.Ensemble.distill_compound_gain (E := E) (S := S)
+    (delta := delta) (c := c_seq) n hdist hgrow hnet
+  have hq : 0 ≤ totalError c f := by
+    refine Finset.sum_nonneg fun l _ => ?_
+    have := hc l
+    unfold layerError
+    positivity
+  linarith
 
 end Hagi.Budget

@@ -341,4 +341,5 @@ theorem greedy_horizon_optimal {D h : ℕ → ℝ} {gamma : ℝ} (n : ℕ)
           linarith
     _ = D 0 * (1 - (1 - gamma) ^ n) := by ring
 
+
 end Hagi.Ensemble
