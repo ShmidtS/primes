@@ -59,6 +59,7 @@ import Hagi.Probability.StationaryFlatness
 import Hagi.Data.FannesSmooth
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
+import Hagi.Probability.KLSBridge
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
