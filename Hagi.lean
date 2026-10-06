@@ -59,6 +59,7 @@ import Hagi.Probability.StationaryFlatness
 import Hagi.Data.FannesSmooth
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
+import Hagi.Pretraining.DustCert
 import Hagi.Probability.KLSBridge
 import Hagi.Step.KLSSafeQP
 import Hagi.Architecture.CortexFiber
