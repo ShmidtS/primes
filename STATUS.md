@@ -107,7 +107,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 887 theorem/lemma; 0 sorry; LayerLint baseline: 23;
+- 891 theorem/lemma; 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
@@ -146,9 +146,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   носители prodE/expQ сварены; 1/B-закон один в трёх
   словарях). Мост D (биты↔спектр): арифметика покрыта
   (fiberParamCount), спектральная форма blocked (Eckart–Young
-  нет в Mathlib). Следующий кандидат: мост E — cos-закон
-  выравнивания Dust (Markov-форма из dustNoiseHalving +
-  геометрия ⟨g,ĝ⟩ ≥ (1−2δ)‖g‖‖ĝ‖ при ‖e‖ ≤ δ‖g‖).
+  нет в Mathlib). Мост E ЗАКРЫТ (R187 DustAlign, c43b6ef):
+  cos-закон выравнивания в Markov-форме — q-масса пар с
+  floor-выравниванием (1−2δ)·‖g‖·‖ĝ‖ ≤ ⟨g,ĝ⟩ не хуже
+  1 − V/(δ·‖g‖)², где V — гашёная энергия ошибки
+  (dustNoiseHalving); норма/CS/треугольник самодостаточны
+  (absDot_le, nrmTriangle, alignLower). Общий-K
+  дисперсионный закон Dust (доказан K=2) — следующий
+  кандидат (индукция по K, тяжёлый порт).
 - R177 WaterFilling (dac7e86): существование фактор-2
   сбалансированной аллокации — замыкание R176 (конечный
   argmin через Finset.min' + бюджет-сохраняющие переносы).
