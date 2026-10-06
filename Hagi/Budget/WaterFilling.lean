@@ -8,16 +8,18 @@ set_option linter.style.header false
 /-!
 # WaterFilling: the balanced allocation EXISTS (R177)
 
-The constructive closure of R176 (`BitAlloc`): the factor-2
+The existence closure of R176 (`BitAlloc`): the factor-2
 water-filling invariant was certified at any stable point —
 but does a stable point exist? Yes: on the FINITE set of
 budget-feasible bit allocations the total error attains its
 minimum, and at the minimum no strictly improving transfer
 can exist (it would stay inside the budget set, contradicting
 minimality), so `imbalance_yields_gain` contrapositive gives
-the factor-2 balance. The greedy reallocation loop therefore
-terminates at — and any minimizer is — a factor-2 balanced
-water-filling allocation.
+the factor-2 balance. HONEST BOUNDARY: this is an EXISTENCE
+proof (via `Finset.min'`), not a construction, and the
+TERMINATION OF THE GREEDY REALLOCATION LOOP is not formalized
+(a strictly-improving walk on a finite set must terminate,
+but that meta-argument is not a theorem here).
 
 **Result.** `exists_balanced_allocation`: for any layer
 sensitivities and any bit budget `B`, there EXISTS an

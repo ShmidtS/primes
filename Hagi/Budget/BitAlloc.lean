@@ -164,9 +164,12 @@ theorem layerError_anti_mono (c : ℝ) (hc : 0 ≤ c) :
 /-- **The two-layer balancing law**: for nonnegative
 sensitivity, any budget split `x + (x + 2d)` is dominated by
 the balanced split `(x+d, x+d)` — balancing two layers never
-hurts. By induction on the imbalance, the equal-error
-(water-filling) allocation is optimal for two layers; the
-greedy exchanges of `transfer_exact` reach it. -/
+hurts (even imbalance; the odd case is covered up to the
+factor-2 invariant of `stable_factor_two`). What is NOT
+proved here: that the greedy exchange loop converges to the
+balanced split (termination is existential via R177
+`exists_balanced_allocation`, not a construction), nor the
+n-layer continuous water-filling optimum. -/
 theorem two_layer_equalize (c : ℝ) (hc : 0 ≤ c) (x d : ℕ) :
     layerError c x + layerError c (x + 2 * d)
       ≥ 2 * layerError c (x + d) := by
