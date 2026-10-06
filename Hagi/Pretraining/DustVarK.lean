@@ -2,6 +2,7 @@
 Copyright (c) 2026. All rights reserved.
 -/
 import Hagi.Pretraining.Dust
+import Hagi.Probability.KLSBridge
 
 /-!
 # DustVarK — the general-K dispersion law (Dust §2.2)
@@ -247,5 +248,55 @@ theorem dustVarK (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
   apply Finset.sum_congr rfl
   intro i _
   field_simp
+
+/-! ### The uniform product measure on the K-fold hypercube -/
+
+/-- The uniform weight on the K-fold product hypercube. -/
+noncomputable def prodQ (d K : ℕ) (τ : Fin K → HC d) : ℝ :=
+  1 / ((2:ℝ) ^ d) ^ K
+
+theorem prodQ_nonneg (d K : ℕ) (τ : Fin K → HC d) :
+    0 ≤ prodQ d K τ := by
+  unfold prodQ
+  positivity
+
+theorem prodQ_isProb (d K : ℕ) :
+    ∑ τ : Fin K → HC d, prodQ d K τ = 1 := by
+  classical
+  have hcard : (Finset.univ : Finset (Fin K → HC d)).card = ((2:ℕ) ^ d) ^ K := by
+    simp [Fintype.card_pi, hcCard, Finset.prod_const]
+  unfold prodQ
+  have hsum : (∑ τ : Fin K → HC d, 1 / ((2:ℝ) ^ d) ^ K)
+      = ((2:ℝ) ^ d) ^ K * (1 / ((2:ℝ) ^ d) ^ K) := by
+    rw [show (∑ τ : Fin K → HC d, 1 / ((2:ℝ) ^ d) ^ K)
+        = #(Finset.univ : Finset (Fin K → HC d)) • (1 / ((2:ℝ) ^ d) ^ K) from by
+          rw [Finset.sum_const]]
+    simp
+  rw [hsum]
+  field_simp
+
+/-- The expected squared error energy of the K-draw averaged
+estimate under the uniform product weight, in expQ form. -/
+theorem dustVarK_expQ (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
+    (b : Fin d → ℝ) (x : Fin d → ℝ) (σ : ℝ) (hσ : σ ≠ 0)
+    (K : ℕ) (hK : 0 < K) :
+    KLS.expQ (prodQ d K) (fun τ => (∑ i,
+        ((∑ k, esEst d A b x σ (τ k) i) / K
+          - quadfGrad d A b x i) ^ 2))
+      = ((∑ u : HC d, ∑ i,
+          (esEst d A b x σ u i - quadfGrad d A b x i) ^ 2)
+          / ((2:ℝ) ^ d)) / K := by
+  unfold KLS.expQ prodQ
+  have hmul : (∑ τ : Fin K → HC d,
+      (1 / ((2:ℝ) ^ d) ^ K) * (∑ i,
+        ((∑ k, esEst d A b x σ (τ k) i) / K
+          - quadfGrad d A b x i) ^ 2))
+    = ((∑ τ : Fin K → HC d, ∑ i,
+        ((∑ k, esEst d A b x σ (τ k) i) / K
+          - quadfGrad d A b x i) ^ 2)) / ((2:ℝ) ^ d) ^ K := by
+    rw [Finset.sum_div]
+    exact Finset.sum_congr rfl fun τ _ => by field_simp
+  rw [hmul]
+  exact dustVarK d A b x σ hσ K hK
 
 end Hagi.Dust

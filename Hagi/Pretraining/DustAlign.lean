@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.DustCert
 import Hagi.Architecture.AlignedMerge
+import Hagi.Pretraining.DustVarK
 
 set_option linter.style.header false
 
@@ -283,5 +284,147 @@ theorem dustAlignment (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → 
     _ ≥ 1 - V / (δ * Nrm (quadfGrad d A b x)) ^ 2 := by
         have := hMarkov
         nlinarith [hMarkov, hpart, hprob, pairQ_nonneg d]
+
+/-- **The general-K alignment law**: on the K-fold product
+hypercube with the uniform weight prodQ d K, the mass of batch
+draws whose averaged estimate satisfies the alignment floor
+(1−2δ)·‖g‖·‖ĝ‖ ≤ g ⬝ ĝ is at least 1 − V/(K·(δ·‖g‖)²), where V
+is the single-draw mean square error. The K = 2 form is
+`dustAlignment`; the general case combines the general-K
+dispersion law (dustVarK_expQ: the averaged error energy is
+V/K) with the alignment floor geometry (alignLower) via
+Chebyshev on the product space. -/
+theorem dustAlignmentK (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
+    (b : Fin d → ℝ) (x : Fin d → ℝ) (σ : ℝ) (hσ : σ ≠ 0)
+    (K : ℕ) (hK : 0 < K) (δ : ℝ) (hδ : 0 < δ) (hδ1 : δ ≤ 1)
+    (hgN : 0 < Nrm (quadfGrad d A b x)) :
+    (∑ τ ∈ Finset.univ.filter (fun τ : Fin K → HC d =>
+        (1 - 2 * δ) * Nrm (quadfGrad d A b x)
+          * Nrm (fun i : Fin d => (∑ k, esEst d A b x σ (τ k) i) / K)
+        ≤ quadfGrad d A b x ⬝ᵥ
+          (fun i : Fin d => (∑ k, esEst d A b x σ (τ k) i) / K)),
+      prodQ d K τ)
+      ≥ 1 - (((∑ u : HC d, ∑ i,
+          (esEst d A b x σ u i - quadfGrad d A b x i) ^ 2)
+        / ((2:ℝ) ^ d)) / K) / (δ * Nrm (quadfGrad d A b x)) ^ 2 := by
+  -- the error field and its energy
+  set E : (Fin K → HC d) → ℝ := fun τ => Nrm (fun i : Fin d =>
+    (∑ k, esEst d A b x σ (τ k) i) / K - quadfGrad d A b x i) with hE
+  set V : ℝ := (∑ u : HC d, ∑ i,
+    (esEst d A b x σ u i - quadfGrad d A b x i) ^ 2)
+    / ((2:ℝ) ^ d) with hV
+  -- the energy identity: expQ prodQ (fun τ => (E τ)^2) = V / K
+  have hVform : KLS.expQ (prodQ d K) (fun τ => (E τ) ^ 2) = V / K := by
+    have hsq : ∀ τ : Fin K → HC d,
+        (E τ) ^ 2 = ∑ i : Fin d,
+          ((∑ k, esEst d A b x σ (τ k) i) / K
+            - quadfGrad d A b x i) ^ 2 := by
+      intro τ
+      unfold E Nrm
+      have hnn : 0 ≤ (fun i : Fin d =>
+          (∑ k, esEst d A b x σ (τ k) i) / K
+            - quadfGrad d A b x i)
+          ⬝ᵥ (fun i : Fin d =>
+          (∑ k, esEst d A b x σ (τ k) i) / K
+            - quadfGrad d A b x i) := by
+        rw [dotProduct]
+        apply Finset.sum_nonneg
+        intro i _
+        exact mul_self_nonneg _
+      rw [Real.sq_sqrt hnn]
+      rw [dotProduct]
+      apply Finset.sum_congr rfl
+      intro i _
+      ring
+    have hbase := dustVarK_expQ d A b x σ hσ K hK
+    unfold KLS.expQ at hbase ⊢
+    simp only [hsq]
+    exact hbase
+  -- Markov/Chebyshev
+  have hMarkov := KLS.klsChebyshev (prodQ d K) (prodQ_nonneg d K)
+    (V / K) (δ * Nrm (quadfGrad d A b x))
+    (mul_pos hδ hgN) E (le_of_eq hVform)
+  -- the bad set is contained in the complement of the aligned set
+  have hmono : (Finset.univ.filter (fun τ : Fin K → HC d =>
+        ¬(δ * Nrm (quadfGrad d A b x) ≤ |E τ|)))
+      ⊆ Finset.univ.filter (fun τ : Fin K → HC d =>
+        (1 - 2 * δ) * Nrm (quadfGrad d A b x)
+          * Nrm (fun i : Fin d => (∑ k, esEst d A b x σ (τ k) i) / K)
+        ≤ quadfGrad d A b x ⬝ᵥ
+          (fun i : Fin d => (∑ k, esEst d A b x σ (τ k) i) / K)) := by
+    intro τ hτ
+    rw [Finset.mem_filter] at hτ ⊢
+    refine ⟨Finset.mem_univ τ, ?_⟩
+    have hNrmE : E τ ≤ δ * Nrm (quadfGrad d A b x) := by
+      have hnot : ¬(δ * Nrm (quadfGrad d A b x) ≤ |E τ|) := hτ.2
+      push_neg at hnot
+      exact le_of_lt (lt_of_le_of_lt (le_abs_self _) hnot)
+    have halign := alignLower (quadfGrad d A b x)
+      (fun i : Fin d =>
+        (∑ k, esEst d A b x σ (τ k) i) / K - quadfGrad d A b x i)
+      δ (by linarith [hδ]) hδ1 hNrmE
+    -- pointwise identity: avg = g + err
+    have hfun : (fun i : Fin d => (∑ k, esEst d A b x σ (τ k) i) / K)
+        = quadfGrad d A b x
+          + (fun i : Fin d =>
+            (∑ k, esEst d A b x σ (τ k) i) / K - quadfGrad d A b x i) := by
+      funext i
+      rw [Pi.add_apply]
+      field_simp
+      ring
+    rw [hfun]
+    exact halign
+  -- assemble the mass bound
+  have hpart : (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        δ * Nrm (quadfGrad d A b x) ≤ |E w|), prodQ d K w)
+      + (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        ¬(δ * Nrm (quadfGrad d A b x) ≤ |E w|)), prodQ d K w)
+      = ∑ τ : Fin K → HC d, prodQ d K τ := by
+    rw [Finset.sum_filter_add_sum_filter_not]
+  have hdom : (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        ¬(δ * Nrm (quadfGrad d A b x) ≤ |E w|)), prodQ d K w)
+      ≤ (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        (1 - 2 * δ) * Nrm (quadfGrad d A b x)
+          * Nrm (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)
+        ≤ quadfGrad d A b x ⬝ᵥ
+          (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)),
+        prodQ d K w) := by
+    rw [Finset.sum_filter, Finset.sum_filter]
+    apply Finset.sum_le_sum
+    intro w _
+    by_cases h1 : δ * Nrm (quadfGrad d A b x) ≤ |E w|
+    · rw [if_neg (fun hc => hc h1)]
+      by_cases h2 : (1 - 2 * δ) * Nrm (quadfGrad d A b x)
+          * Nrm (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)
+        ≤ quadfGrad d A b x ⬝ᵥ
+          (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)
+      · rw [if_pos h2]
+        exact prodQ_nonneg d K w
+      · rw [if_neg h2]
+    · have hmem : w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+          ¬(δ * Nrm (quadfGrad d A b x) ≤ |E w|)) := by
+        rw [Finset.mem_filter]
+        exact ⟨Finset.mem_univ w, h1⟩
+      have hgood := hmono hmem
+      rw [Finset.mem_filter] at hgood
+      rw [if_pos hgood.2, if_pos h1]
+  -- final chain
+  have hprob : ∑ τ : Fin K → HC d, prodQ d K τ = 1 := prodQ_isProb d K
+  calc (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        (1 - 2 * δ) * Nrm (quadfGrad d A b x)
+          * Nrm (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)
+        ≤ quadfGrad d A b x ⬝ᵥ
+          (fun i : Fin d => (∑ k, esEst d A b x σ (w k) i) / K)),
+        prodQ d K w)
+      ≥ (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        ¬(δ * Nrm (quadfGrad d A b x) ≤ |E w|)), prodQ d K w) := hdom
+    _ = (∑ τ : Fin K → HC d, prodQ d K τ)
+        - (∑ w ∈ Finset.univ.filter (fun w : Fin K → HC d =>
+        δ * Nrm (quadfGrad d A b x) ≤ |E w|), prodQ d K w) := by
+        linarith [hpart, hprob]
+    _ ≥ 1 - (V / K) / (δ * Nrm (quadfGrad d A b x)) ^ 2 := by
+        nlinarith [hMarkov, prodQ_nonneg d K]
+
+
 
 end Hagi.Dust
