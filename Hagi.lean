@@ -62,6 +62,7 @@ import Hagi.Pretraining.Dust
 import Hagi.Pretraining.DustCert
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustVarK
+import Hagi.Omni.CrossModalGap
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.KLSSafeQP
