@@ -309,4 +309,14 @@ theorem esUnbiased (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → ℝ
   rw [hite]
   field_simp
 
+/-- **Pair orthogonality (Dust §2.2, §2.3)**: two independent
+draws of a zero-mean error are orthogonal in the mean — the
+interference between perturbations of different draws vanishes
+in expectation. -/
+theorem drawPairOrtho (d : ℕ) (φ : HC d → ℝ)
+    (hzero : ∑ u ∈ (Finset.univ : Finset (HC d)), φ u = 0) :
+    ∑ p : HC d × HC d, φ p.1 * φ p.2 = 0 := by
+  rw [Fintype.sum_prod_type, ← Finset.sum_mul_sum, hzero]
+  ring
+
 end Hagi.Dust
