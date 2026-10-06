@@ -107,7 +107,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 859 theorem/lemma; 0 sorry; LayerLint baseline: 23;
+- 860 theorem/lemma; 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

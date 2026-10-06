@@ -319,4 +319,122 @@ theorem drawPairOrtho (d : ℕ) (φ : HC d → ℝ)
   rw [Fintype.sum_prod_type, ← Finset.sum_mul_sum, hzero]
   ring
 
+/-- **Doubling the population halves the mean square error**
+(the population law, K = 2 case): the AVERAGE over independent
+draw pairs of the squared norm of the two-draw mean error is
+exactly half the single-draw average squared norm. The signal
+adds linearly in the population K; the noise adds as √K, so
+their ratio falls as √K — Dust §2.2, made a theorem. -/
+theorem varianceHalving (d : ℕ) (φ : HC d → Fin d → ℝ)
+    (hzero : ∀ i, ∑ u ∈ (Finset.univ : Finset (HC d)), φ u i = 0) :
+    (∑ p : HC d × HC d, ∑ i, (φ p.1 i + φ p.2 i) ^ 2) / (4 * 2 ^ d * 2 ^ d)
+      = (1 / 2) * (∑ u ∈ (Finset.univ : Finset (HC d)), ∑ i, (φ u i) ^ 2)
+          / 2 ^ d := by
+  classical
+  set X : ℝ := ∑ u ∈ (Finset.univ : Finset (HC d)), ∑ i, (φ u i) ^ 2 with hX
+  have hT1 : ∑ u : HC d, ∑ v : HC d, ∑ i, φ u i ^ 2 = 2 ^ d * X := by
+    have hconst : ∀ u : HC d,
+        (∑ v ∈ (Finset.univ : Finset (HC d)), ∑ i, φ u i ^ 2)
+          = 2 ^ d * ∑ i, φ u i ^ 2 := by
+      intro u
+      rw [show (∑ v ∈ (Finset.univ : Finset (HC d)), ∑ i, φ u i ^ 2)
+          = #(Finset.univ : Finset (HC d)) • ∑ i, φ u i ^ 2 from
+            Finset.sum_const (b := ∑ i, φ u i ^ 2),
+        show #(Finset.univ : Finset (HC d)) = 2 ^ d from hcCard d]
+      simp
+    calc ∑ u : HC d, ∑ v : HC d, ∑ i, φ u i ^ 2
+        = ∑ u : HC d, 2 ^ d * ∑ i, φ u i ^ 2 :=
+          Finset.sum_congr rfl (fun u _ => hconst u)
+      _ = 2 ^ d * ∑ u : HC d, ∑ i, φ u i ^ 2 := by rw [← Finset.mul_sum]
+      _ = 2 ^ d * X := by rw [hX]
+  have hT3 : ∑ u : HC d, ∑ v : HC d, ∑ i, φ v i ^ 2 = 2 ^ d * X := by
+    rw [Finset.sum_comm]
+    exact hT1
+  have hT2 : ∑ u : HC d, ∑ v : HC d, ∑ i, 2 * φ u i * φ v i = 0 := by
+    have hswap : ∀ i : Fin d,
+        (∑ u : HC d, ∑ v : HC d, 2 * φ u i * φ v i) = 0 := by
+      intro i
+      have e1 : (∑ u : HC d, ∑ v : HC d, 2 * φ u i * φ v i)
+          = ∑ u : HC d, 2 * φ u i * (∑ v : HC d, φ v i) := by
+        refine Finset.sum_congr rfl fun u _ => ?_
+        exact (Finset.mul_sum (s := (Finset.univ : Finset (HC d)))
+          (f := fun v => φ v i) (2 * φ u i)).symm
+      rw [e1, hzero i]
+      simp
+    have hperm : (∑ u : HC d, ∑ v : HC d, ∑ i, 2 * φ u i * φ v i)
+        = (∑ i, ∑ u : HC d, ∑ v : HC d, 2 * φ u i * φ v i) := by
+      calc (∑ u : HC d, ∑ v : HC d, ∑ i, 2 * φ u i * φ v i)
+          = (∑ v : HC d, ∑ u : HC d, ∑ i, 2 * φ u i * φ v i) := Finset.sum_comm
+        _ = (∑ v : HC d, ∑ i, ∑ u : HC d, 2 * φ u i * φ v i) :=
+              Finset.sum_congr rfl fun v _ => Finset.sum_comm
+        _ = (∑ i, ∑ v : HC d, ∑ u : HC d, 2 * φ u i * φ v i) := Finset.sum_comm
+        _ = (∑ i, ∑ u : HC d, ∑ v : HC d, 2 * φ u i * φ v i) :=
+              Finset.sum_congr rfl fun i _ => Finset.sum_comm
+    rw [hperm, Finset.sum_congr rfl (fun i _ => hswap i)]
+    simp
+  -- assemble: explicit splits at every level
+  have e1 : ∀ u v : HC d, (∑ i, (φ u i ^ 2 + 2 * φ u i * φ v i + φ v i ^ 2))
+      = (∑ i, φ u i ^ 2) + (∑ i, (2 * φ u i * φ v i + φ v i ^ 2)) := by
+    intro u v
+    rw [show (∑ i, (φ u i ^ 2 + 2 * φ u i * φ v i + φ v i ^ 2))
+        = ∑ i, (φ u i ^ 2 + (2 * φ u i * φ v i + φ v i ^ 2)) from
+          Finset.sum_congr rfl (fun i _ => by ring)]
+    exact Finset.sum_add_distrib (f := fun i => φ u i ^ 2)
+      (g := fun i => 2 * φ u i * φ v i + φ v i ^ 2)
+  have e2 : ∀ u v : HC d, (∑ i, (2 * φ u i * φ v i + φ v i ^ 2))
+      = (∑ i, 2 * φ u i * φ v i) + (∑ i, φ v i ^ 2) := fun u v =>
+        Finset.sum_add_distrib (f := fun i => 2 * φ u i * φ v i)
+          (g := fun i => φ v i ^ 2)
+  have e3 : ∀ u : HC d,
+      ((∑ v : HC d, ((∑ i, φ u i ^ 2) + (∑ i, (2 * φ u i * φ v i + φ v i ^ 2))))
+      = (∑ v : HC d, ∑ i, φ u i ^ 2)
+        + (∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2))) := fun u =>
+        Finset.sum_add_distrib (f := fun v => (∑ i, φ u i ^ 2))
+          (g := fun v => (∑ i, (2 * φ u i * φ v i + φ v i ^ 2)))
+  have e4 : ∀ u : HC d,
+      (∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2))
+      = (∑ v : HC d, ∑ i, 2 * φ u i * φ v i)
+        + (∑ v : HC d, ∑ i, φ v i ^ 2) := by
+    intro u
+    rw [Finset.sum_congr rfl (fun v _ => e2 u v)]
+    exact Finset.sum_add_distrib (f := fun v => (∑ i, 2 * φ u i * φ v i))
+      (g := fun v => (∑ i, φ v i ^ 2))
+  have hsplit : (∑ u : HC d, ∑ v : HC d,
+      ∑ i, (φ u i ^ 2 + 2 * φ u i * φ v i + φ v i ^ 2))
+      = (∑ u : HC d, ∑ v : HC d, ∑ i, φ u i ^ 2)
+        + ((∑ u : HC d, ∑ v : HC d, ∑ i, 2 * φ u i * φ v i)
+          + (∑ u : HC d, ∑ v : HC d, ∑ i, φ v i ^ 2)) := by
+    have hstep1 : (∑ u : HC d, ∑ v : HC d,
+        ∑ i, (φ u i ^ 2 + 2 * φ u i * φ v i + φ v i ^ 2))
+        = ∑ u : HC d, ∑ v : HC d, ((∑ i, φ u i ^ 2)
+          + (∑ i, (2 * φ u i * φ v i + φ v i ^ 2))) :=
+        Finset.sum_congr rfl (fun u _ => Finset.sum_congr rfl (fun v _ => e1 u v))
+    have hstep2 : ((∑ u : HC d, ∑ v : HC d, ((∑ i, φ u i ^ 2)
+          + (∑ i, (2 * φ u i * φ v i + φ v i ^ 2))))
+        = ∑ u : HC d, ((∑ v : HC d, ∑ i, φ u i ^ 2)
+          + (∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2)))) :=
+        Finset.sum_congr rfl (fun u _ => e3 u)
+    have hstep3 : ((∑ u : HC d, ((∑ v : HC d, ∑ i, φ u i ^ 2)
+          + (∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2))))
+        = (∑ u : HC d, ∑ v : HC d, ∑ i, φ u i ^ 2)
+          + (∑ u : HC d, ∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2))) :=
+        Finset.sum_add_distrib (f := fun u => (∑ v : HC d, ∑ i, φ u i ^ 2))
+          (g := fun u => (∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2)))
+    have hstep4 : (∑ u : HC d, ∑ v : HC d, ∑ i, (2 * φ u i * φ v i + φ v i ^ 2))
+        = ∑ u : HC d, ((∑ v : HC d, ∑ i, 2 * φ u i * φ v i)
+          + (∑ v : HC d, ∑ i, φ v i ^ 2)) :=
+        Finset.sum_congr rfl (fun u _ => e4 u)
+    rw [hstep1, hstep2, hstep3, hstep4,
+      Finset.sum_add_distrib (f := fun u => (∑ v : HC d, ∑ i, 2 * φ u i * φ v i))
+        (g := fun u => (∑ v : HC d, ∑ i, φ v i ^ 2))]
+  -- final assembly
+  rw [show (∑ x : HC d × HC d, ∑ i, (φ x.1 i + φ x.2 i) ^ 2)
+      = ∑ u : HC d, ∑ v : HC d, ∑ i, (φ u i ^ 2 + 2 * φ u i * φ v i + φ v i ^ 2) from by
+        rw [Fintype.sum_prod_type]
+        exact Finset.sum_congr rfl (fun u _ => Finset.sum_congr rfl
+          (fun v _ => Finset.sum_congr rfl (fun i _ => by ring))),
+    hsplit, hT1, hT2, hT3]
+  field_simp
+  ring
+
 end Hagi.Dust
