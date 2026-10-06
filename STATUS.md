@@ -107,7 +107,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 900 theorem/lemma; 0 sorry; LayerLint baseline: 23;
+- 911 theorem/lemma; 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
@@ -163,6 +163,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   полностью замкнута: энергия 1/K (R188) + выравнивание с
   вероятностью 1−V/(K·δ²‖g‖²) (R189) — формальный аналог
   эмпирического cos(K) = c_max/√(1+c/K) для всех K.
+- Цикл 2026-10-06 (Omni): Р190 CrossModalGap (ecfaf8f) — открыт
+  слой Hagi/Omni: G_xy = H(X)+H(Y)−H(X,Y) = KL(joint ‖ marg⊗marg)
+  (crossModalGap_eq_kl), G ≥ 0 (subadditivity), G = 0 ⟺
+  независимость (redundant-модальность не даёт gain). R191
+  OmniGrowth (740198f): omniStep = C+G_intra+G_cross−compress−risk,
+  omniGate_crossModal — строго зависимая пара модальностей +
+  bounded costs ⟹ строгий рост capability. Формальное ядро
+  omni-расширения HAGI («модальность = эксперт», Rho-1-inspired,
+  без копирования архитектуры Reka).
 - R177 WaterFilling (dac7e86): существование фактор-2
   сбалансированной аллокации — замыкание R176 (конечный
   argmin через Finset.min' + бюджет-сохраняющие переносы).

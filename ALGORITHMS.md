@@ -475,3 +475,22 @@ R155 линейный бит-счёт). Пластичность trunk'а пер
 локально достижимых распределений (R152), self-shift
 верификатора ограничен eps-бюджетом (R154). Вакует не
 ничего: расширения класса оплачиваются в битах линейно.
+
+## §21 Omni-слой (R190–R191)
+
+- Контракт omni-HAGI (по анализу Rho-1, без копирования):
+  модальность = expert leaf; shared geometric state; cross-modal
+  disagreement = источник роста; SafeQP = защита освоенных
+  модальностей; low-rank residual = дешёвое подключение.
+- R190 CrossModalGap: G_xy = H(X)+H(Y)−H(X,Y) = KL(p_xy ‖ px⊗py)
+  ≥ 0; G_xy = 0 ⟺ независимость. Новая модальность допустима
+  как источник роста ⟺ G_cross > 0.
+- R191 OmniGrowth: C' = C + G_intra + G_cross − C_compress −
+  C_risk; omniGate_crossModal — строгая зависимость пары +
+  bounded costs ⟹ строгий рост. Рост-закон GrowthState расширен
+  cross-modal компонентой.
+- Открыто (следующие Omni-модули): SharedStateComposition
+  (энергетический контракт fusion), CrossModalSafeQP (защита
+  освоенных модальностей при joint-обучении), OmniInvariant
+  (Φ-монотонность omni-цикла), TemporalState (S_{t+1}=F(S_t,a,o)
+  drift-границы).
