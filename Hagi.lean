@@ -58,6 +58,7 @@ import Hagi.Data.NessDissipation
 import Hagi.Probability.StationaryFlatness
 import Hagi.Data.FannesSmooth
 import Hagi.Budget.WaterFilling
+import Hagi.Pretraining.Dust
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
