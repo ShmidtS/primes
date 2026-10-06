@@ -437,4 +437,39 @@ theorem varianceHalving (d : ℕ) (φ : HC d → Fin d → ℝ)
   field_simp
   ring
 
+/-- **The zeroth-order noise-halving law**: averaging TWO
+independent Rademacher draws of the symmetric-difference
+estimator halves the mean square error of the gradient
+estimate. The two-draw average error is (φ₁+φ₂)/2 with
+φ = the centered coordinate error esEst − ∇f (centered by
+`esUnbiased`); the statement carries the (φ₁+φ₂)² form with
+the /4 absorbed into the outer denominator — exactly the
+`varianceHalving` instance for φ: the K = 2 case of the Dust
+population law for the ESTIMATOR ERROR itself (the bridge to
+the batch-noise chain: σ²_{ĝ} = σ²_g/K). -/
+theorem dustNoiseHalving (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → ℝ)
+    (x : Fin d → ℝ) (σ : ℝ) (hσ : σ ≠ 0) :
+    (∑ p : HC d × HC d, ∑ i, ((esEst d A b x σ p.1 i
+        - quadfGrad d A b x i)
+        + (esEst d A b x σ p.2 i - quadfGrad d A b x i)) ^ 2) / (4 * 2 ^ d * 2 ^ d)
+      = (1 / 2) * (∑ u, ∑ i, (esEst d A b x σ u i
+          - quadfGrad d A b x i) ^ 2) / 2 ^ d := by
+  -- the centered coordinate error is exactly the phi of varianceHalving,
+  -- with zero mean by exact unbiasedness
+  have hzero : ∀ i : Fin d,
+      ∑ u ∈ (Finset.univ : Finset (HC d)),
+        (esEst d A b x σ u i - quadfGrad d A b x i) = 0 := by
+    intro i
+    have hu := esUnbiased d A b x σ hσ i
+    unfold hcAvg at hu
+    field_simp at hu
+    rw [Finset.sum_sub_distrib]
+    rw [show (∑ u ∈ (Finset.univ : Finset (HC d)), quadfGrad d A b x i)
+        = 2 ^ d * quadfGrad d A b x i from by
+      rw [Finset.sum_const, hcCard d]
+      simp]
+    linarith
+  exact varianceHalving d
+    (fun u i => esEst d A b x σ u i - quadfGrad d A b x i) hzero
+
 end Hagi.Dust
