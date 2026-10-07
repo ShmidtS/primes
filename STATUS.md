@@ -107,7 +107,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 911 theorem/lemma; 0 sorry; LayerLint baseline: 23;
+- 918 theorem/lemma; 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
@@ -171,7 +171,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   omniGate_crossModal — строго зависимая пара модальностей +
   bounded costs ⟹ строгий рост capability. Формальное ядро
   omni-расширения HAGI («модальность = эксперт», Rho-1-inspired,
-  без копирования архитектуры Reka).
+  без копирования архитектуры Reka). R192 SharedStateComposition
+  (8601b1e): sharedStateEnergy (Pythagoras при UᵀV=0),
+  sharedStatePerturbed (цена рассогласования линейна по
+  frobSq(VᵀW)), sharedStateCostBound (k·r·d < d·d при k·r<d —
+  omni-состояние дешевле dense-слоя). R193 TemporalState
+  (18d09a0): driftTube/geom_sum_fin/drift_limit — контракт
+  дрейфа world-model: контракция ρ<1 держит дрейф в трубке
+  d0+e/(1−ρ) навсегда (long-horizon drift исключён); drift_zero —
+  точные наблюдения дают геометрическое затухание.
 - R177 WaterFilling (dac7e86): существование фактор-2
   сбалансированной аллокации — замыкание R176 (конечный
   argmin через Finset.min' + бюджет-сохраняющие переносы).
