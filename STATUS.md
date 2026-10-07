@@ -105,6 +105,18 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R214 (1fedd48+cacd62e): Heterarchy — гетерархический
+  слой (arXiv:2610.04643): dominatesIn (контекстозависимое
+  доминирование), no_global_ranking (обратное доминирование в
+  двух контекстах убивает ЛЮБОЕ линейное ранжирование),
+  cycle_breaks_ranking (3-цикл A→B→C→A), disagreement_
+  survives_configs (ответ на γ-дефицит 9×: среднее
+  уничтожает disagreement, конфигурации сохраняют его
+  энергию — Integrate = (cortex, fibers, context graph)).
+  Инциденты: коллизия имён Hagi.dominates (ModeState) →
+  dominatesIn; незаконные Ensemble-импорты из Architecture=2
+  (LayerLint поймал) → файл Mathlib-only; урок: `| tail -1`
+  маскирует exit-code CI → SSOT `> log; echo EXIT`.
 - R211–R213 (8fe3d3f, 2e27caa, 71dfab4): внешний анализ
   (MOPD / LOOM / Looped Models Done Right) встроен тремя
   кирпичами: (R211) policy-совместимость — гейт
