@@ -105,6 +105,18 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R215–R216 (1567f71, 750d38f+227e936): GainDecomposition —
+  GainOperator разложен на измеримые этапы: η = η_policy·η_state
+  (мультипликативно), zero_stage_kills_gain (необходимость
+  обоих этапов: нулевой этап с неотрицательным партнёром
+  убивает gain — у цепочки нет обхода), chain_ignition_
+  threshold (программа: измерить ОБЕ константы). UrgencyDepth
+  (перенесён Growth→Dynamics, LayerLint поймал слой):
+  shallow_misses_tube (срочность разменивает глубину на
+  точность), patient_configuration_reaches (достижение
+  трубки — вопрос времени, не архитектуры). Урок: `| tail -1`
+  в конвейере маскирует exit-code — дважды пропустил сломанный
+  коммит; SSOT: отдельный `echo EXIT=$?`.
 - R214 (1fedd48+cacd62e): Heterarchy — гетерархический
   слой (arXiv:2610.04643): dominatesIn (контекстозависимое
   доминирование), no_global_ranking (обратное доминирование в
