@@ -110,6 +110,7 @@ import Hagi.Unified.MacroCycle
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.CurvatureSafe
 import Hagi.Dynamics.Contraction
+import Hagi.Dynamics.EndpointContraction
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
 import Hagi.Data.PACBayes
