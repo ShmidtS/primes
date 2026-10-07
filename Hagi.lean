@@ -160,6 +160,7 @@ import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.IntegrationOrder
+import Hagi.Growth.RoundViability
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
