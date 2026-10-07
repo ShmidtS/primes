@@ -71,6 +71,8 @@ import Hagi.Omni.OmniInvariant
 import Hagi.Omni.CapabilityMatrix
 import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
+import Hagi.Information.MemoryCapacity
+import Hagi.Information.InformationRetention
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.KLSSafeQP
