@@ -105,6 +105,17 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R201 (704a0c2): GainRecoverability — disagreement EXTRACTABLE:
+  devEnergyF_pos_iff + recoverable_avg (E/N-пол) + devSignal_self
+  (self-readout > 0). Средний кирпич цепочки MergeCancellation →
+  [extractable] → GainOperator замкнут.
+- R202 (691c68f): RepresentationRate — repRate (retained/bits) +
+  трихотомия режимов под counting-капаситом (148 ratio-структура,
+  честная граница: динамика 148 не переносится).
+- Разведка: 143 (QuinticLienard) и 221 (DilutedSpin) в
+  ComparatorChallenges — statement-заглушки 46/154 строк, НЕ полные
+  доказательства; полный Lean есть у 140/119 (OAI/Probability,
+  InformationTheory/BooleanNoise).
 - R200 (b2f94b5): слой Hagi/Information — MemoryCapacity
   (separated_needs_capacity: K 2ε-разделённых задач ⟹
   |State| ≥ K — counting-флор памяти/точности, ядро
