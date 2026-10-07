@@ -166,6 +166,7 @@ import Hagi.Growth.GainCeiling
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
+import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
 import Hagi.Ensemble.DistillTransfer
 import Hagi.Ensemble.RecursiveDistill
