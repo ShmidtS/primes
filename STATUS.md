@@ -105,9 +105,29 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+## Гигиена-кампания (R197–R198, по внешнему аудиту 2026-10-07)
+
+- Страховка: scripts/inventory.lean — дамп всех Hagi.* констант
+  с хэшем типа (метапрограммно, быстро); каждая правка
+  проверяется 0-diff; уже поймал незапланированную потерю
+  noisy_cycle_step (восстановлена).
+- R197 дедуп: телескопы ×3 → Foundations; lyapunov-терминация
+  ×4 имени → lyapunov_termination_fin; exp_chord → Chord
+  (14 строк → 6); geo_sum_mul → geom_telescope.
+- R197 honesty: stable_factor_two переформулирован из
+  тавтологии в следствие imbalance_yields_gain (контрапозиция).
+- R198 Prelude.Info (слой −1): канонические klDef/entDef/tvDef/
+  softDef; KL ×4 → 1 (Variational/FreeEnergy/Distill/DField-
+  мост), энтропии ×2 → 1 (DBridge/DistillRecursion); мосты —
+  rfl-однострочники у потребителей; LayerLint: Prelude=−1.
+- README: PoE-число 0.157 → 0.0968 (пересчёт аудита подтверждён).
+- Инвентарь: 1550 констант; счётчик теорем после дедупа НЕ
+  завышаем (тела заменены делегированием, имена сохранены для
+  потребителей).
+
 ## Счётчик
 
-- 929 theorem/lemma; 0 sorry; LayerLint baseline: 23;
+- 932 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
