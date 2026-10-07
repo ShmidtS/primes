@@ -112,6 +112,7 @@ import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.CurvatureSafe
 import Hagi.Dynamics.Contraction
 import Hagi.Dynamics.EndpointContraction
+import Hagi.Dynamics.UrgencyDepth
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
 import Hagi.Data.PACBayes
@@ -153,7 +154,6 @@ import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
-import Hagi.Growth.UrgencyDepth
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
