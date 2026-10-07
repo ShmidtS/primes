@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
+import Hagi.Prelude.Info
 import Hagi.Foundations.Recurrence
 import Mathlib
 
@@ -95,7 +96,9 @@ R102 honesty fix: renamed from `entropy` — the body defines
 the NEGATIVE of the standard entropy, and that is now stated
 explicitly instead of being papered over by the H-semantics
 docstrings. -/
-noncomputable def negEntropy (p : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v)
+noncomputable def negEntropy (p : V → ℝ) : ℝ :=
+  -- R198: = -Prelude.entDef (historical name kept)
+  -Hagi.Prelude.entDef p
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
