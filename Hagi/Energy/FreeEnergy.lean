@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Data.DBridge
+import Hagi.Foundations.WeightedVar
 import Hagi.Prelude.Info
 
 set_option linter.style.header false
@@ -37,7 +37,7 @@ of ONE functional:
   expansion of the free energy at the ensemble mixture;
   the identity is stated at the level of the shared Hessian
   (both quadratic forms are H_p-weighted variances of the
-  logit deviation — `dQuad_nonneg` is the shared PSD core).
+  logit deviation — `Hagi.Foundations.dQuad_nonneg` is the shared PSD core).
   The honest boundary: the full Taylor remainder control is
   out of the algebraic scope (flagged, not proved).
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Energy.TernaryLean
-import Hagi.Unified.MacroCycle
+import Hagi.Foundations.StageCalculus
 set_option linter.style.header false
 
 /-!
@@ -55,7 +55,7 @@ with the energy κ-Lipschitz in the weight Euclidean norm
 n weights at grid step s costs at most
 ΔE ≤ κ·√n·s/2 — the concrete, architecture-level compression
 cost, chaining pointwise rounding (tern_distortion_round) →
-residual norm → energy. MacroCycle's abstract compress_stage
+residual norm → energy. MacroCycle's abstract Hagi.Foundations.compress_stage
 hypothesis is now grounded in the real ternary pipeline. -/
 theorem quant_energy_bridge {n : ℕ} (w q : Fin n → ℝ) (s kappa dE : ℝ)
     (hs : 0 ≤ s) (hres : ∀ i, |w i - q i| ≤ s / 2)

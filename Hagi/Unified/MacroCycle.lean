@@ -3,6 +3,7 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
+import Hagi.Foundations.StageCalculus
 import Hagi.Unified.GlobalConvergence
 import Hagi.Audit.Exactness
 import Hagi.Audit.Foundations
@@ -120,12 +121,9 @@ theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
     (hkappa : 0 ≤ kappa) (hs : 0 ≤ s) (_hdn : 0 ≤ dnorm)
     (h_emp_dist : dnorm ≤ 1 / 2)
     (h_emp_lip : E3 - E2pre ≤ kappa * s * dnorm) :
-    E3 - E2pre ≤ kappa * s / 2 := by
-  have h1 : kappa * s * dnorm ≤ kappa * s * (1/2) :=
-    mul_le_mul_of_nonneg_left h_emp_dist (by positivity)
-  have h3 : kappa * s * (1/2) = kappa * s / 2 := by ring
-  rw [h3] at h1
-  linarith
+    E3 - E2pre ≤ kappa * s / 2 :=
+  Hagi.Foundations.compress_stage kappa s dnorm E3 E2pre hkappa hs _hdn
+    h_emp_dist h_emp_lip
 
 /-! ## The macro-cycle contraction -/
 
