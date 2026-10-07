@@ -105,7 +105,7 @@ theorem kl_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
       nlinarith [hnmix, hpos v, hdm]
     exact Real.log_le_log (div_pos (hposP i v) (hpos v)) hratio
   -- сумма: Σ P log(P/mix) <= Σ P log n = log n
-  unfold klDiv
+  unfold klDiv Hagi.Prelude.klDef
   have hterm : ∀ v, P i v * Real.log (P i v / famMix P v)
       ≤ P i v * Real.log (Fintype.card I : ℝ) :=
     fun v => mul_le_mul_of_nonneg_left (hlog v) (hnn i v)

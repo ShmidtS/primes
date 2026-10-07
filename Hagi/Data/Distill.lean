@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -75,14 +76,15 @@ noncomputable def crossEntropy (q p : V → ℝ) : ℝ :=
 /-- The Kullback–Leibler divergence KL(q‖p) = Σ q log(q/p)
 (the real definition — R78 fix). -/
 noncomputable def klDiv (q p : V → ℝ) : ℝ :=
-  ∑ v, q v * Real.log (q v / p v)
+  -- R198: = Prelude.klDef (kept under the historical name)
+  Hagi.Prelude.klDef q p
 
 /-- **KL is the excess cross-entropy** over the entropy
 baseline: KL(q‖p) = CE_q(p) − CE_q(q) for strictly positive
 distributions (q a distribution, p positive). -/
 theorem kl_eq_ce_gap (q p : V → ℝ) (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
     klDiv q p = crossEntropy q p - crossEntropy q q := by
-  unfold klDiv crossEntropy
+  unfold klDiv crossEntropy Hagi.Prelude.klDef
   have hsplit : ∀ v : V, q v * Real.log (q v / p v)
       = q v * Real.log (q v) - q v * Real.log (p v) := by
     intro v
