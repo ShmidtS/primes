@@ -105,6 +105,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R204 (0ecbb18): п.6 начат — Telescope/Recurrence: import
+  Mathlib → Mathlib.Tactic (per-file, не механически; Chord
+  оставлен на полном импорте).
+- R205 (08344f9): п.7 — 5 мёртвых слоевых рёбер удалены
+  (UNUSED-детектор по прямому использованию имён); урок:
+  детектор видит только ПРЯМЫХ потребителей — JointPreserve
+  ел SeedOnly ТРАНЗИТИВНО через JointCost; починено честным
+  прямым импортом (новое объявленное исключение). Файлы без
+  прямого Mathlib-импорта сидели на транзит-носителях —
+  добавлен явный import Mathlib.Tactic. Исключения 23 → 19.
 - R203 (298190c): AdaptiveQuery (Hagi/Growth — LayerLint
   правильно указал слой: контроллерный кирпич): avgRadius
   e/√K + certified_gain_select_avg — порог отбора 3e → 3e/√K
