@@ -11,7 +11,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 174 Lean-модулей в 24 папках `Hagi/`, 887 theorem/lemma,
+- 194 Lean-модуля в 24+ папках `Hagi/`, 966 theorem/lemma (authority: inventory-проб, 1639 констант),
   0 sorry; `lake build` — зелёный (9094 jobs).
 - CI (`scripts/ci.sh`): TrivialLint + тривиальность +
   DocLint + LayerLint + StatusLint — PASS.

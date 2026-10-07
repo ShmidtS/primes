@@ -1,0 +1,41 @@
+# HAGI_v2 spec manifest — SSOT bindings (plan §1.2, R225-docs)
+# Linked authorities:
+# - inventory probe: scripts/inventory.lean (count authority)
+# - CI: bash scripts/ci.sh (exit 0 = PASS)
+# - layers: python scripts/LayerLint.py
+# - baseline: inventory_baseline.txt (regenerated per commit)
+
+[inventory]
+constant_count = 1639
+theorem_count = 966
+sorry_count = 0
+as_of_commit = "0e84fce"
+
+[layers]
+prelude = -1
+foundations = 0
+information = 1
+architecture = 2
+step = 3
+growth = 4
+dynamics = 5
+unified = 6
+
+[rounds]
+last_completed = "R226"
+open = [
+  "R225 MuonTwoLevel (exact vs NS-approx, 2609.36600 Thm 4.1)",
+  "R227 WaterFilling->MoE reduction (2607.17862, 2607.11015)",
+  "R228 MergePreservesMixtureOutput (2609.32821)",
+  "R229 HybridOptimizerStateSplit (2607.19058)",
+  "R230 SNR-aware NS-Transform (2607.16169)",
+  "T3 gamma_eff >= gamma_gate in configuration vocabulary",
+  "h2-Fannes port from E:/math Fam 276",
+  "Freedman joint+anytime port from E:/math Fam 188",
+  "BitAlloc greedy-transfer termination (R176 tail)",
+  "frontier_cone canonicalization",
+]
+
+[blocked]
+R158 = "torch runtime E:/HAGI_v2 (zero-init saddle check)"
+runtime_saddle = "same blocker, unlocks R158"
