@@ -105,6 +105,22 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R207–R209 (cc5ba41, f7c8b83, c1fd622): слоевые рёбра
+  закрываются foundations-извлечением с delegation-алиасами
+  (Hyrum: имена сохраняются): dQuad_nonneg → WeightedVar;
+  compress_stage + adaptive_ns_exists + compound_budget →
+  StageCalculus; genMean_compound/genGap_decay → Recurrence.
+  Исключения 14 → 9.
+- R210 (afb4596+e27b64b): RoutingCapacity — router_bits:
+  K разделённых задач через B-битный роутер ⟹ K ≤ 2^B
+  (экспоненциальная форма counting floor; 119-ядро для
+  роутинга). Собственный TrivialLint поймал тавтологию
+  router_bits_floor (hypothesis=conclusion) — удалена.
+- Архитектурный узел (отложен, требует плана): кластер
+  SafeQP — Audit(0) ест Step/SafeQP(3), External/Layers(2)
+  ест Audit.Exactness — перенос в любую сторону рвёт других
+  потребителей. SafeQP теперь Mathlib-only (мёртвый Joint-
+  импорт удалён) — кандидат в низкий слой после декомпозиции.
 - R204 (0ecbb18): п.6 начат — Telescope/Recurrence: import
   Mathlib → Mathlib.Tactic (per-file, не механически; Chord
   оставлен на полном импорте).
