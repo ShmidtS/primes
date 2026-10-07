@@ -116,6 +116,7 @@ import Hagi.Dynamics.CurvatureSafe
 import Hagi.Dynamics.Contraction
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.UrgencyDepth
+import Hagi.Dynamics.DistillationRate
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
 import Hagi.Data.PACBayes
