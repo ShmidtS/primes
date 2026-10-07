@@ -77,6 +77,7 @@ import Hagi.Information.MemoryCapacity
 import Hagi.Information.InformationRetention
 import Hagi.Information.GainRecoverability
 import Hagi.Information.RepresentationRate
+import Hagi.Information.RoutingCapacity
 import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
