@@ -69,6 +69,7 @@ import Hagi.Omni.TemporalState
 import Hagi.Omni.OmniSafeStep
 import Hagi.Omni.OmniInvariant
 import Hagi.Omni.CapabilityMatrix
+import Hagi.Prelude.Info
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.KLSSafeQP

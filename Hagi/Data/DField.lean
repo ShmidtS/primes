@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.Compound
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -111,6 +112,9 @@ structure Corpus (V : Type*) [Fintype V] where
 per-term log is handled under the positivity hypotheses of the
 theorems). -/
 noncomputable def KLdiv (p q : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v / q v)
+
+/-- R198 prelude bridge: KLdiv IS the canonical Prelude.klDef. -/
+theorem KLdiv_eq_klDef (p q : V → ℝ) : KLdiv p q = Hagi.Prelude.klDef p q := rfl
 
 /-- The mixture of corpora by weights w: the pointwise
 combination (nonneg, sums to 1 — `mixtureCorpus`). -/

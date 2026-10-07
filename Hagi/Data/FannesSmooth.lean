@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.AntiCollapse
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -41,8 +42,14 @@ variable {V : Type} [Fintype V] [Nonempty V]
 /-- The entropy of a probability vector. -/
 noncomputable def ent (p : V → ℝ) : ℝ := -∑ v, p v * Real.log (p v)
 
+/-- R198 prelude bridge: ent IS the canonical Prelude.entDef. -/
+theorem ent_eq_entDef (p : V → ℝ) : ent p = Hagi.Prelude.entDef p := rfl
+
 /-- Total variation distance (half-L1). -/
 noncomputable def tvDist (p q : V → ℝ) : ℝ := (∑ v, |p v - q v|) / 2
+
+/-- R198 prelude bridge: tvDist IS the canonical Prelude.tvDef. -/
+theorem tvDist_eq_tvDef (p q : V → ℝ) : tvDist p q = Hagi.Prelude.tvDef p q := rfl
 
 /-- **The log increment bound**: for positive `a ≤ b`,
 `log b − log a ≤ (b − a)/a` (the mean-value bound for log);
