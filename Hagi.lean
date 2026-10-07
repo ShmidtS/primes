@@ -151,6 +151,7 @@ import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
+import Hagi.Ensemble.PolicyCompatibility
 import Hagi.Core.NonlinearStep0
 import Hagi.Ensemble.DistillTransfer
 import Hagi.Ensemble.RecursiveDistill
