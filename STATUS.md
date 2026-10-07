@@ -105,6 +105,22 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R224–R229 (план §6/§2, Muon-серия): R224 MuonWD
+  (e3b7879) — weight decay + ортогонализованный шаг ВЫВОДЯТ
+  аксиому bounded-gradient: ‖θ_T‖ ≤ ρ^T‖θ₀‖ + C/λ без
+  ограничения градиентов; R226 GainCeiling (0e84fce) —
+  композиционный потолок: стек контракций ≤ q^L,
+  9×-усиление невозможно в полностью конtrakтивном стеке
+  (формальный gain-vs-stability tradeoff); R225 MuonTwoLevel
+  (debf070) — NS-gap бюджет: rank × worst pointwise
+  polynomial error; R229 HybridState — staleness-bias
+  tiered momentum: устаревший слот несёт систематический
+  bias ‖g_t − g_t0‖, свежий — ноль; граница тиров =
+  граница свежести. spec_manifest.toml создан (§1.2);
+  STATUS-шапка синхронизирована с inventory (966 theorems).
+  Собственный TrivialLint дважды поймал тавтологии в моих
+  черновиках (R210b, R225-диагональ-rfl) — удалены до
+  коммита.
 - R223: RoundViability — stop/continue-критерий цикла
   саморазвития: E_dev=0 ⟹ гарантированный маржинальный
   прирост ноль (честная остановка: повторное слияние
