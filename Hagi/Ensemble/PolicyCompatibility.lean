@@ -23,7 +23,7 @@ price/gap gate stands; this is the second, orthogonal gate):
 
 * `integration_net_gain` — the signed integration value:
   twoGap minus price;
-* `mopd_gate_open` — the two-clause gate: positive net gain
+* `MOPDApproved` — the two-clause gate: positive net gain
   AND policy divergence under the cap;
 * `integration_rejects_far_teacher` — the NEGATIVE result:
   divergence above the cap keeps the gate closed however

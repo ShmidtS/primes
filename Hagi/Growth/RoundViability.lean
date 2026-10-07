@@ -26,7 +26,7 @@ quantity E_dev of the fresh expert family:
   (η_p·η_s·E_dev ≥ cone cost, R215) AND the compatibility
   gate holds (R211), the round is viable: the cone step
   applies;
-* `cycle_monotone_viability`: one-line summary — round
+* `cycle_criterion`: one-line summary — round
   viability is exactly (E_dev > 0 ∧ gates ∧ threshold):
   the controller's decision reduces to the measured
   disagreement of the fresh family plus the two gates.

@@ -19,12 +19,7 @@ exact parameter accounting of that price — the
 * `config_storage_beats_dense`: when N·r < d the WHOLE family
   of N configurations is CHEAPER than ONE dense d×d expert —
   keeping the disagreement costs less than one full model;
-* `average_trade_explicit`: the exact trade — averaging saves
-  exactly N·r·d parameters and loses exactly the retained
-  disagreement energy (R214's 2‖d‖²): the saved parameters
-  are BOUGHT with capability; when N·r < d that purchase is
-  strictly dominated (a dense expert adds more parameters
-  AND cannot represent the switchable family).
+
 -/
 
 namespace Hagi

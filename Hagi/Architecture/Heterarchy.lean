@@ -25,13 +25,15 @@ fast inner layer):
   fact; it exists only per context;
 * `cycle_breaks_ranking` — the 3-cycle form (A→B→C→A in any
   contexts): the paper's cycle criterion, formalized;
-* `disagreement_survives_configs` — THE MERGE ANSWER: the
-  cancellation pair (d, −d) has ZERO mean (MergeCancellation:
-  averaging destroys it) but NONZERO retained configuration
-  energy — the answer to the γ 9x deficit is not better
-  averaging but NOT averaging: Integrate = (cortex, fibers,
-  context graph), the disagreement becomes a switchable
-  resource.
+* `disagreement_survives_configs` — the arithmetic core of
+  the merge answer (interpretation, not architecture proof):
+  the cancellation pair (d, −d) has EXACTLY ZERO sum (the
+  averaging failure mode) while its two retained norms are
+  strictly positive — keeping BOTH is a state where the
+  disagreement energy survives. The claim that this is what
+  HAGI SHOULD do (Integrate = (cortex, fibers, context
+  graph) instead of averaging) is a design position; the
+  theorem proves only the zero-sum/nonzero-energy contrast.
 -/
 
 namespace Hagi

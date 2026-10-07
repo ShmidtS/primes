@@ -11,8 +11,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 194 Lean-модуля в 24+ папках `Hagi/`, 966 theorem/lemma (authority: inventory-проб, 1639 констант),
-  0 sorry; `lake build` — зелёный (9094 jobs).
+- 210 Lean-модулей в 27 папках `Hagi/`, 966 theorem/lemma (authority:
+  inventory-проб, 1642 константы на 907ba5d), 0 sorry (единственный
+  текстовый «sorry» — в докстринге ArchitectureTheorem);
+  `lake build` — зелёный (9135 jobs).
 - CI (`scripts/ci.sh`): TrivialLint + тривиальность +
   DocLint + LayerLint + StatusLint — PASS.
 - Аксиомы: стандартные (проверено выборочно по капстоунам).
@@ -29,7 +31,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (`bern_mgf_bound`, `mgf_hoeffding_ab`, `mgf_hoeffding`),
   `TakeoffCounted` (`capability_takeoff_counted`).
 - Правило LayerLint: импорт только из строго нижних слоёв;
-  same-folder DAG допустим; baseline-исключений — 23
+  same-folder DAG допустим; baseline-исключений — 18
   (сокращающийся список в `scripts/LayerLint.py`).
 - Дедупликация: MasterHAGI-телескопы, Saturation
   (`pl_gap_geometric`), Dynamics/Contraction — делегации
@@ -105,6 +107,24 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R230-аудит (docstring honesty): сверка всех докстрингов с
+  кодом. Исправлены overclaim'ы: MuonTwoLevel (удалены ссылки
+  на недоказанные exact_ortho_norm/ns_gap_diagonal — уровень-1
+  переописан как контракт-посылка, не результат), MuonWD
+  (wd_absorbs_gradient_bursts — призрачный пункт удалён),
+  PolicyCompatibility (mopd_gate_open → MOPDApproved),
+  RoundViability (cycle_monotone_viability → cycle_criterion),
+  ConfigurationCost (average_trade_explicit — призрак после
+  дедупликации), HybridState (multi-step accumulation — НЕ
+  доказано, помечено), Heterarchy (disagreement_survives_
+  configs — «γ-deficit answer» смягчён до «arithmetic core,
+  interpretation not architecture proof»). Слой-исключения
+  LayerLint: висячие 5 записей удалены (23→18; реальное
+  закрытие рёбер было в R207-R209 файлах, записи не были
+  убраны — инцидент-урок «'removed' печатал без проверки»
+  повторился). ОТКРЫТЫЙ ДОЛГ: ~79 висячих докстринг-ссылок
+  в старых модулях (полный список в аудите R230) — лечение
+  раунд за раундом.
 - R224–R229 (план §6/§2, Muon-серия): R224 MuonWD
   (e3b7879) — weight decay + ортогонализованный шаг ВЫВОДЯТ
   аксиому bounded-gradient: ‖θ_T‖ ≤ ρ^T‖θ₀‖ + C/λ без

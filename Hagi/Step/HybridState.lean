@@ -13,15 +13,14 @@ The hybrid optimizer tiers its state: dense coordinates
 coordinates (updates rarely). The DESIGN QUESTION: what does
 momentum COST on the rare track? The answer formalized:
 
-* `stale_momentum_bias`: if a coordinate's momentum slot was
-  last written at time t₀ and the current gradient there is
-  g_t while the slot holds g_{t₀}, the momentum step
-  direction has a SYSTEMATIC BIAS of exactly
-  ‖g_t − g_{t₀}‖ — the stale slot pushes along the OLD
-  gradient, and the bias does not average out (it is
-  deterministic, not stochastic): the SkewAdam design
-  (first-order only on the sparse track) removes the bias
-  by removing the slot;
+* `stale_momentum_bias`: a momentum slot holding g₀ while
+  the current gradient is g_t decomposes as g_t + bias with
+  ‖bias‖ = ‖g₀ − g_t‖ EXACTLY — the single-step bias law
+  (the slot's content deviates from the current gradient by
+  the drift; single-step arithmetic, the multi-step
+  accumulation is NOT proved here). The SkewAdam design
+  (first-order only on the sparse track) avoids the term by
+  removing the slot;
 * `fresh_momentum_unbiased`: the converse — a FRESH slot
   (updated this step) has zero bias: the tier boundary is
   exactly the freshness boundary; momentum is safe exactly

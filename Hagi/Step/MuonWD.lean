@@ -28,10 +28,10 @@ assumed.
   C/λ: the stationary radius C/λ is INDEPENDENT of the
   gradient scale; the axiom is gone, the price is the
   explicit WD floor C/λ;
-* `wd_absorbs_gradient_bursts`: honesty note — an unbounded
-  gradient burst changes NOTHING in the recursion: the bound
-  uses only the uniform C, never ‖g_t‖: divergence is
-  structurally impossible while hC holds.
+* honesty note (no separate theorem): the bounds above use
+  only the uniform C, never ‖g_t‖ — while hC holds, the
+  gradient scale does not enter anywhere; a burst cannot
+  push the trajectory out of the bound.
 -/
 
 namespace Hagi

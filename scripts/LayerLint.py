@@ -52,10 +52,10 @@ LAYER_EXCEPTIONS = {
     ("Autonomy/Insight.lean", "Unified/TopLevel.lean"),
     ("Autonomy/Insight.lean", "Unified/GlobalDynamics.lean"),
     ("Budget/JointCost.lean", "Growth/SeedOnly.lean"),
-    ("Data/DField.lean", "Step/Compound.lean"),
+    
     ("Discovery/PPT.lean", "Unified/GrowthState.lean"),
-    ("Energy/FreeEnergy.lean", "Data/DBridge.lean"),
-    ("Energy/QuantBridge.lean", "Unified/MacroCycle.lean"),
+    
+    
     ("Ensemble/MergePrice.lean", "Step/GPM.lean"),
     ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
     ("Generalization/ModeState.lean", "Growth/FrontierScaling.lean"),
@@ -64,12 +64,12 @@ LAYER_EXCEPTIONS = {
     ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
-    ("Step/Compound.lean", "Ensemble/GenCycle.lean"),
+    
     ("Step/JointPreserve.lean", "Budget/ElementQuant.lean"),
     ("Step/JointPreserve.lean", "Growth/SeedOnly.lean"),
     ("Step/SafeQPRobust.lean", "Unified/Unified.lean"),
     ("Step/SafeQPStep.lean", "Dynamics/CurvatureSafe.lean"),
-    ("Step/Upgrades.lean", "Budget/DesignOpt.lean"),
+    
 }
 
 IMPORT_RE = re.compile(r"^import\s+Hagi\.([A-Za-z0-9_.]+)\s*$", re.M)

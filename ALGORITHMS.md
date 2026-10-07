@@ -346,17 +346,50 @@ merge: выровнять V_i → общий V, энергия аддитивн�
 
 A. Dust → SafeQP: esUnbiased/varianceHalving как источник
    некоррелированных нулевых ошибок ⟹ klsSafeQP-сертификация
-   zeroth-order шага (R181-кандидат).
+   zeroth-order шага (R181-кандидат). — ОТКРЫТ.
 B. NoiseTemperature ↔ KLSBridge: uniP-некоррелированность
    (batch_variance_eq) ⟹ expQ-гипотеза klsBatchNoise —
-   сведение двух формализаций 1/B-закона в одну.
+   сведение двух формализаций 1/B-закона в одну. — ОТКРЫТ.
 C. Термо-ось: anneal_by_batch (R174d) ↔ batch_variance_eq ↔
    klsBatchNoise — одна цепочка «геометрия → температура
    шума → охлаждение батчем» (сейчас три разрозненных
-   теоремы).
+   теоремы). — ОТКРЫТ.
 D. BitAlloc ↔ DesignOpt: битовый бюджет totalError в
    compute-optimal программу (λ-shadow-price не видит
-   параметрический объём — связка через distill_quant_composite).
+   параметрический объём — связка через
+   distill_quant_composite). — ОТКРЫТ.
+E. УСРЕДНЕНИЕ ↔ КОНФИГУРАЦИИ — ЗАКРЫТ (R214/R215/R217):
+   MergeCancellation (усреднение уничтожает disagreement) →
+   GainRecoverability (извлекаемость ≥ E/N) →
+   GainDecomposition (η = η_p·η_s, zero_stage_kills_gain) →
+   ConfigurationCost/Routing (хранить дешевле dense при
+   N·r < d; селектор log-масштаба). Мост «усреднение →
+   конфигурации» теперь теорема-цепочка, не гипотеза.
+F. GAIN ↔ ОБУЧЕНИЕ — ЧАСТИЧНО (R221–R223): выбор экспертов
+   (positive_selection_dominates) + бюджет дистилляции
+   (kl_contraction_budget/kl_half_steps — битовый счёт
+   rollout'ов) + стоп/continue (round_exhausted/round_viable
+   на E_dev). НЕ связано: численная связь η_p ↔
+   kl_contraction (какая константа контракции даёт какую
+   η_p — эмпирика, вне Lean).
+G. АРХИТЕКТУРА ↔ COMPUTE — ЗАКРЫТ (R219/R220):
+   fiber_params_floor (пол разделимости K·r_min·d) ↔
+   ActiveCompute (per-token (c+r)·d, N-кратный дивиденд
+   переключения) — тройная бухгалтерия (параметры/
+   вычисления/селектор) замкнута с обеих сторон.
+H. ОПТИМИЗАТОР ↔ КОНВЕРГЕНЦИЯ — ЧАСТИЧНО (R224/R226):
+   MuonWD выводит аксиому bounded-gradient (‖θ‖ ≤ ρ^T‖θ₀‖ +
+   C/λ без ограничения градиентов), GainCeiling зажимает
+   усиление сверху (q^L; 9× требует экспансивного слоя).
+   НЕ связано: MuonWD-граница ↔ шаги конуса GrowthDynamics
+   (обе стороны доказаны порознь, композиция не собрана).
+I. ГЕТЕРАРХИЯ ↔ СРОЧНОСТЬ — ЧАСТИЧНО (R214/R216):
+   no_global_ranking (конфигурации без босса) ↔
+   UrgencyDepth (shallow_misses_tube: срочность разменивает
+   глубину на точность). НЕ связано: кто ВЫБИРАЕТ
+   конфигурацию — RouterCapacity даёт пол бит, Heterarchy
+   даёт право переключаться, но механизм выбора (selector
+   policy) не формализован.
 
 ## 12. Мартингальные успехи вместо fresh-randomness (R127)
 
@@ -497,3 +530,54 @@ R155 линейный бит-счёт). Пластичность trunk'а пер
   освоенных модальностей при joint-обучении), OmniInvariant
   (Φ-монотонность omni-цикла), TemporalState (S_{t+1}=F(S_t,a,o)
   drift-границы).
+
+## §23. Единый пайплайн обучения (сборка R210–R229, статус мостов)
+
+Цикл формализован пофазно; ниже — конвейер с указанием, чем
+каждая фаза доказана и где мост условен:
+
+```
+[1] DISCOVER: новые эксперты (same-origin — MOPD-режим)
+[2] MEASURE: E_dev (devEnergy), twoGap, D_policy
+[3] SELECT: только positive-net (R221 positive_selection_
+    dominates; порядок свободен — sum_perm_invariant)
+[4] GATE: capability × compatibility (R211 MOPDApproved;
+    integration_rejects_far_teacher — дальний учитель
+    закрыт при ЛЮБОМ twoGap)
+[5] DISTILL: policy-KL ← контракция κ<1 (R222
+    kl_contraction_budget: бюджет логарифмичен; halving —
+    1 бит/rollout)                     [η_p — измеряемая]
+[6] CONSOLIDATE: волокна (R212 OrthoInjection: кора
+    нетронута, энергия ортогональна; R219 fiber_params_
+    floor: ≥ K·r_min·d)               [η_s — измеряемая]
+[7] IGNITE: η_p·η_s·E_dev ≥ порог конуса (R215
+    chain_ignition_threshold; R223 round_viable — шаг
+    конуса)                            [УСЛОВНО: обе η
+    эмпирические]
+[8] SAFE-UPDATE: SafeQP-проекция (σ-цены, R140-линия)
+[9] LOOP/COMPUTE: рекуррентная доработка до сходимости
+    (R213 endpoint_*: бюджет глубины явный; R216
+    shallow_misses_tube: срочность↔глубина)
+[10] STOP/CONTINUE: E_dev' > 0? (R223 round_exhausted:
+     E_dev=0 ⟹ гарантированный маржин ноль — цикл
+     исчерпан, рост только из новых данных/архитектур)
+[11] COMPRESS: бюджет-линия (R176–177), тернаризация,
+     KVWater; параметры: K·r_min·d ≤ bill ≤ K·r·d < d²
+     (R217/R219); compute: N-дивиденд (R220)
+[12] ROUTE: селектор ≤ log₂N бит (R218), пол задач
+     K ≤ 2^B (R210)
+```
+
+ОГРАНИЧЕНИЯ СБОРКИ (честные):
+- Шаги [5]/[7] условны: η_p, η_s — измеряемые константы,
+  не теоремы (программа измерений — chain_ignition_
+  threshold); λ≈5-скейлинг — h_emp_.
+- Гейт [4] добавлен к certified twoGap-гейту (R165-линия)
+  как вторая ортогональная поправка — оба нужны.
+- [9] требует контракции (предпосылка); 9×-усиление выше
+  потолка q^L невозможно без экспансивного слоя (R226
+  amplification_needs_expansion) — компромисс
+  усиление↔стабильность явный.
+- Selector-policy (кто переключает конфигурации) —
+  единственный немеханизированный мост (I выше): пол
+  есть, право есть, алгоритма выбора нет.

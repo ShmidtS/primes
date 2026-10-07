@@ -7,34 +7,23 @@ import Mathlib
 # MuonTwoLevel — exact orthogonalization vs NS approximation
 (plan §2 R225; sources 2502.16982, 2609.36600 Thm 4.1)
 
-The two-level structure of the Muon preconditioner, with the
-level split EXPLICIT:
+The two-level structure of the Muon preconditioner. What is
+PROVED here is the level-2 gap ACCOUNTING:
 
-LEVEL 1 — exact: the ideal update O = U·Vᵀ (SVD of the
-gradient) is EXACTLY orthogonal (spectral norm 1, all
-singular values 1): the ideal direction is norm-1 by
-construction.
+LEVEL 1 (contract, not proved here): the ideal update
+O = U·Vᵀ (SVD of the gradient) is orthogonal — spectral
+norm 1, i.e. the R224 premise C = 1 at the exact level
+(taken as hypothesis there).
 
-LEVEL 2 — NS-approximate: the Newton–Schulz polynomial
-p(x) = a·x + b·x³ + c·x⁵ (fixed coefficients, iterated)
-approximates x ↦ sign(x); the realized update is
-U·p(Σ)·Vᵀ. The deviation from the exact level is EXACTLY
-diagonal: ‖U·p(Σ)·Vᵀ − U·Vᵀ‖_F = ‖p(Σ) − I‖_F — the
-two-level gap is the polynomial's pointwise deviation on
-the singular spectrum, nothing else.
-
-* `exact_ortho_norm`: the level-1 contract — U·Vᵀ has
-  operator norm exactly 1 (U, V orthonormal columns);
-* `ns_gap_diagonal`: the level-2 deviation law — the
-  Frobenius gap between the realized and exact updates
-  equals the Frobenius norm of (p(Σ) − I): the gap is
-  SPECTRAL, not directional (the U/V subspaces are shared);
-* `ns_gap_scaled`: the per-singular-value accounting: the
-  squared gap is Σᵢ (p(σᵢ) − 1)² ≤ r · maxᵢ(p(σᵢ) − 1)² —
-  the gap budget factorizes into rank times worst pointwise
-  polynomial error: THE NS step-count/spectrum tradeoff in
-  one line (2609.36600's regime split is exactly the split
-  of maxᵢ|p(σᵢ) − 1| by SNR).
+LEVEL 2 (proved): `ns_gap_scaled` — the squared NS
+deviation Σᵢ (p(σᵢ) − 1)² ≤ r · maxᵢ (p(σᵢ) − 1)²: the
+gap budget factorizes into rank times the worst POINTWISE
+polynomial error on the singular spectrum. NOT proved
+here: the Frobenius identity ‖U·p(Σ)·Vᵀ − U·Vᵀ‖_F =
+‖p(Σ) − I‖_F (requires the U/V-orthogonality machinery),
+the polynomial coefficients, and any NS iteration
+convergence — the accounting bound above is the module's
+full content.
 -/
 
 namespace Hagi
