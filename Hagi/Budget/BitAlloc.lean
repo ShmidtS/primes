@@ -235,19 +235,39 @@ theorem imbalance_yields_gain {n : ℕ} (c : Fin n → ℝ)
     nlinarith [himb]
   linarith
 
-/-- **The factor-2 balance certificate at a greedy fixed
-point**: if no single-bit transfer strictly improves the
-allocation (every pair satisfies the no-gain condition), then
-every layer's error is within a factor 2 of every other
-layer's error with a bit to give — the discrete
-water-filling invariant of the stabilized allocation. -/
+/-- **The factor-2 balance certificate at a no-gain point**
+(R197 honesty reformulation — the former version restated its
+hypothesis verbatim): if NO single-bit transfer strictly improves
+the allocation, then every layer error is within factor 2 of every
+other layer error that still has a bit to give. This is now a
+GENUINE consequence of `imbalance_yields_gain` (its
+contrapositive): a factor-2 violation WOULD yield an improving
+transfer, so no-gain excludes the violation. Requires nonnegative
+sensitivities (for the j = k diagonal). -/
 theorem stable_factor_two {n : ℕ} (c : Fin n → ℝ)
-    (f : Fin n → ℕ)
-    (hstable : ∀ j k : Fin n, f k ≠ 0 →
-      layerError (c j) (f j) ≤ 2 * layerError (c k) (f k)) :
+    (f : Fin n → ℕ) (hc : ∀ i, 0 ≤ c i)
+    (hnogain : ∀ j k : Fin n, j ≠ k → 0 < f k →
+      ¬ totalError c (fun l => if l = j then f j + 1 else
+        if l = k then f k - 1 else f l) < totalError c f) :
     ∀ j k : Fin n, f k ≠ 0 →
-      layerError (c j) (f j) ≤ 2 * layerError (c k) (f k) :=
-  hstable
+      layerError (c j) (f j) ≤ 2 * layerError (c k) (f k) := by
+  intro j k hk
+  by_cases hjk : j = k
+  · subst hjk
+    -- diagonal: e_j ≤ 2·e_j reduces to layerError nonneg
+    have hnn : 0 ≤ layerError (c j) (f j) := by
+      unfold layerError
+      apply div_nonneg (hc j)
+      positivity
+    linarith
+  · -- contrapositive of imbalance_yields_gain
+    by_contra hviol
+    have himb : 2 * layerError (c k) (f k) < layerError (c j) (f j) := by
+      have : ¬ (layerError (c j) (f j) ≤ 2 * layerError (c k) (f k)) := hviol
+      linarith
+    have h0k : 0 < f k := Nat.pos_of_ne_zero hk
+    exact hnogain j k hjk h0k (imbalance_yields_gain c f j k hjk h0k himb)
+
 
 
 /-- **The full-generation quality-volume certificate**: the

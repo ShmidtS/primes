@@ -146,12 +146,9 @@ theorem gain_renewal_recurrence (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
 /-- Geometric-sum closed form: for ρ ≠ 1,
 Σ_{i<t} ρ^i = (1 − ρ^t)/(1 − ρ). -/
 private theorem geo_sum_mul (ρ : ℝ) (t : ℕ) :
-    (1 - ρ) * ∑ i ∈ Finset.range t, ρ ^ i = 1 - ρ ^ t := by
-  induction t with
-  | zero => simp
-  | succ t ih =>
-      rw [Finset.sum_range_succ (fun i => ρ ^ i) t, pow_succ]
-      linear_combination ih
+    (1 - ρ) * ∑ i ∈ Finset.range t, ρ ^ i = 1 - ρ ^ t :=
+  -- R197 dedup: = Foundations.Recurrence.geom_telescope
+  Hagi.Foundations.geom_telescope ρ t
 
 private theorem geo_sum_closed (ρ : ℝ) (hρ : ρ ≠ 1) (t : ℕ) :
     ∑ i ∈ Finset.range t, ρ ^ i = (1 - ρ ^ t) / (1 - ρ) := by
