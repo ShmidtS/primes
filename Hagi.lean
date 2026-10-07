@@ -68,6 +68,7 @@ import Hagi.Omni.SharedStateComposition
 import Hagi.Omni.TemporalState
 import Hagi.Omni.OmniSafeStep
 import Hagi.Omni.OmniInvariant
+import Hagi.Omni.CapabilityMatrix
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.KLSSafeQP
