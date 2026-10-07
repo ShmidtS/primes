@@ -442,8 +442,11 @@ CI: PASS, аксиомы только стандартные):
 | TernaryChinchilla (ёмкость log₂3) | `ternary_beats_binary` | R149 |
 | SupervisorSafety (resume-гейт, индукция) | `no_restore_without_checkpoint` | R150 |
 
-Итоговый алгоритм обучения HAGI (полностью выведен
-математически в Lean, capstone `hagi_synthesis` + §14/§15):
+Итоговый алгоритм обучения HAGI (выведен УСЛОВНО —
+математика шагов доказана в Lean при ПЕРЕЧИСЛЕННЫХ
+эмпирических посылках; capstone `hagi_synthesis` принимает их
+как гипотезы GrowthDynamics/h_emp_*, см. §21 и структуру
+GrowthDynamics):
 dense pre-norm тело + блочный merge (perBlock) →
 RoPE/GQA/SWA + zero-init мосты (function-preserving рост) →
 merge по гейту twoGap > Σprices + κ√n·s/2 → distill
