@@ -14,8 +14,6 @@ routing-state BITS: exponential form of the counting floor.
 
 Main results:
 
-* `router_bits_floor`: a router with B bits of state has at
-  most 2^B routes;
 * `router_capacity_bound`: K pairwise-separated task families
   served ε-well through such a router force K ≤ 2^B — the
   routing state must hold log₂ K bits: the top-k/quantization
@@ -25,11 +23,6 @@ Main results:
 namespace Hagi.Information
 
 open Finset
-
-/-- A B-bit routing state realizes at most 2^B routes. -/
-theorem router_bits_floor (B : ℕ) (Q : Type) [Fintype Q]
-    (hQ : Fintype.card Q ≤ 2 ^ B) :
-    Fintype.card Q ≤ 2 ^ B := hQ
 
 /-- **The router capacity bound**: if K pairwise 2ε-separated
 task families are each served ε-well through a deterministic
