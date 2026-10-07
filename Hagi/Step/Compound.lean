@@ -1,6 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+import Hagi.Foundations.StageCalculus
 import Hagi.Ensemble.GenCycle
 
 set_option linter.style.header false
@@ -161,13 +162,8 @@ recursion folds exactly when the data field dies (D → 0, the
 disagreement per `genGap_decay`), and no earlier. -/
 theorem compound_budget (α D J ε_c : ℝ)
     (hα : 0 ≤ α) (hpos : α * D + J ≤ ε_c) :
-    -- when the stabilized gain falls under the cycle cost, fold
-    ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c := by
-  intro G_next hG
-  calc α * G_next + J ≤ α * D + J := by
-        refine add_le_add_left ?_ J
-        exact mul_le_mul_of_nonneg_left hG hα
-    _ ≤ ε_c := hpos
+    ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c :=
+  Hagi.Foundations.compound_budget α D J ε_c hα hpos
 
 /-- The generational mean after k cycles with per-cycle bounds
 (the compounding bookkeeping linking to `genMean_compound`). -/

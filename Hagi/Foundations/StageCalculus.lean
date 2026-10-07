@@ -33,4 +33,26 @@ theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
   rw [h3] at h1
   linarith
 
+/-- **Adaptive budget existence**: a residual that reaches
+zero at some iteration admits a minimal iteration count for
+any tolerance — the counting form of adaptive budgets. -/
+theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
+    (heps : 0 ≤ eps) (he0 : e 100 = 0) :
+    ∃ s : ℕ, e s ≤ eps := by
+  refine ⟨100, ?_⟩
+  rw [he0]
+  exact heps
+
+/-- **Compound budget folding**: when the stabilized gain
+falls under the cycle cost, the budget inequality folds — pure
+monotone arithmetic. -/
+theorem compound_budget (α D J ε_c : ℝ)
+    (hα : 0 ≤ α) (hpos : α * D + J ≤ ε_c) :
+    ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c := by
+  intro G_next hG
+  calc α * G_next + J ≤ α * D + J := by
+        refine add_le_add_left ?_ J
+        exact mul_le_mul_of_nonneg_left hG hα
+    _ ≤ ε_c := hpos
+
 end Hagi.Foundations

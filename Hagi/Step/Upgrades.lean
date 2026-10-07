@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Energy.Variational
-import Hagi.Budget.DesignOpt
+import Hagi.Foundations.StageCalculus
 import Hagi.Data.SinkCost
 
 set_option linter.style.header false
@@ -16,7 +16,7 @@ Three upgrades from the found projects:
 certificates)**: under the per-step contraction
 e(s+1) ≤ ρ·e(s) with ρ < 1, the orthogonality residual
 obeys the geometric envelope e(s) ≤ ρ^s·e(0) — the
-CONVERGENCE half our `adaptive_ns_exists` lacked: the
+CONVERGENCE half our `Hagi.Foundations.adaptive_ns_exists` lacked: the
 per-matrix budget s* = min{s : e(s) ≤ ε} is now bounded
 above by ⌈log(ε/e(0))/log ρ⌉ — the iteration count is
 computable from the measured contraction, not searched.

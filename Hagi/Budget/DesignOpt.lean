@@ -1,6 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+import Hagi.Foundations.StageCalculus
 import Hagi.Budget.ComputeBudget
 import Hagi.Data.SinkCost
 import Hagi.Ensemble.MergeScaling
@@ -164,10 +165,8 @@ interval ⟹ ∃ t, e_t ≤ ε_NS, giving a per-matrix count s*)
 remains OPEN and is the honest version of this theorem. -/
 theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
     (heps : 0 ≤ eps) (he0 : e 100 = 0) :
-    ∃ s : ℕ, e s ≤ eps := by
-  refine ⟨100, ?_⟩
-  rw [he0]
-  exact heps
+    ∃ s : ℕ, e s ≤ eps :=
+  Hagi.Foundations.adaptive_ns_exists e eps heps he0
 
 -- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
 -- prescription carrier only. Demoted to the DEFINITION of the

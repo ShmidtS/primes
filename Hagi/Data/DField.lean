@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Step.Compound
+import Hagi.Foundations.StageCalculus
 import Hagi.Prelude.Info
 
 set_option linter.style.header false
@@ -85,7 +85,7 @@ the disagreement. All the ingredients are measurable
    (⟨g_i, g⟩ ≥ 0 for the kept corpora) — a concave program over
    the measured KL-table; the recursion budget closes:
    fold when `α • D(w*) ≤ ε_c` (the full data-side budget, the
-   `compound_budget` specialization to J = 0).
+   `Hagi.Foundations.compound_budget` specialization to J = 0).
 4. The replacement criterion ("double signal"): a corpus goes
    when its realized D-contribution is under the threshold AND
    its gradient conflicts — one signal alone does not justify
