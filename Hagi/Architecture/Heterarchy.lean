@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Ensemble.MergeCancellation
-import Hagi.Ensemble.PolicyCompatibility
+import Mathlib
 
 /-!
 # Heterarchy — control as a spectrum, not a chain of command
@@ -43,22 +42,22 @@ open Finset
 
 variable {C M : Type}
 
-/-- `dominates R c i j`: in context c, module i constrains
+/-- `dominatesIn R c i j`: in context c, module i constrains
 module j (positive influence). -/
-def dominates (R : C → M → M → ℝ) (c : C) (i j : M) : Prop :=
+def dominatesIn (R : C → M → M → ℝ) (c : C) (i j : M) : Prop :=
   0 < R c i j
 
 /-- A linear ranking r is consistent with the dominance
 relation if every positive dominance forces a strict rank
 drop: the "chain of command" hypothesis. -/
 def RankingConsistent (R : C → M → M → ℝ) (r : M → ℝ) : Prop :=
-  ∀ c i j, dominates R c i j → r i > r j
+  ∀ c i j, dominatesIn R c i j → r i > r j
 
 /-- **The configuration proof**: reversed dominance across two
 contexts kills EVERY linear ranking — control is a spectrum
 per context, not a global chain of command. -/
 theorem no_global_ranking (R : C → M → M → ℝ) (c₁ c₂ : C) (a b : M)
-    (hab : dominates R c₁ a b) (hba : dominates R c₂ b a)
+    (hab : dominatesIn R c₁ a b) (hba : dominatesIn R c₂ b a)
     (r : M → ℝ) : ¬ RankingConsistent R r := by
   intro hcons
   have h1 : r a > r b := hcons c₁ a b hab
@@ -71,9 +70,9 @@ every ranking — local chains of command do not compose into a
 global order. -/
 theorem cycle_breaks_ranking (R : C → M → M → ℝ)
     (c₁ c₂ c₃ : C) (a b c : M)
-    (hab : dominates R c₁ a b)
-    (hbc : dominates R c₂ b c)
-    (hca : dominates R c₃ c a)
+    (hab : dominatesIn R c₁ a b)
+    (hbc : dominatesIn R c₂ b c)
+    (hca : dominatesIn R c₃ c a)
     (r : M → ℝ) : ¬ RankingConsistent R r := by
   intro hcons
   have h1 : r a > r b := hcons c₁ a b hab
