@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Unified.MasterHAGI
+import Hagi.Foundations.GrowthDynamics
 set_option linter.style.header false
 
 /-!
@@ -95,6 +96,17 @@ private theorem telescope_sub_sum_h {f c : ℕ → ℝ} {T : ℕ}
     f T = f 0 - ∑ t ∈ Finset.range T, c t :=
   Hagi.Foundations.telescope_sub_sum h
 
+/-- R199 structured adapter: the same cone theorem taking the
+GrowthDynamics premise-bundle (ONE object instead of eleven
+positional hypotheses; the emp* fields make the conditionality
+visible in the signature). -/
+theorem frontier_cone_struct (C G D : ℕ → ℝ)
+    (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
+    (gd : Hagi.Foundations.GrowthDynamics C G D xi alpha gamma rho beta T) :
+    ∀ t, t ≤ T → 0 < C t ∧ alpha / gamma * C t ≤ D t :=
+  frontier_cone_trunc C G D alpha gamma rho beta xi T
+    gd.hα gd.hγ gd.hρ gd.hC0 gd.empCone0 gd.empStep gd.empGainProd
+    gd.empDyn gd.empCCap gd.empBeta
 /-- **Усечённый takeoff**: из усечённых посылок (только
 t < T) — C_T >= C0 * (1+alpha)^T. Совместимо с потолком C*:
 условие горизонта C0 (1+alpha)^T <= Cstar. -/
@@ -139,6 +151,16 @@ theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
         rw [pow_succ]
         nlinarith [hih, hstep', hα, hpos]
   exact hmain T (le_refl T)
+
+
+/-- R199 structured adapter for the takeoff form. -/
+theorem sustained_takeoff_struct (C G D : ℕ → ℝ)
+    (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
+    (gd : Hagi.Foundations.GrowthDynamics C G D xi alpha gamma rho beta T) :
+    C 0 * (1 + alpha) ^ T ≤ C T :=
+  sustained_takeoff_trunc C G D alpha gamma rho beta xi T
+    gd.hα gd.hγ gd.hρ gd.hC0 gd.empCone0 gd.empStep gd.empGainProd
+    gd.empDyn gd.empCCap gd.empBeta
 
 /-- **Усечённый капстоун MasterHAGI**: ВСЕ growth-посылки
 только при t < T; потолок ёмкости входит ЯВНО как условие
