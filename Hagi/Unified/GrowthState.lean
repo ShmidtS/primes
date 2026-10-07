@@ -73,7 +73,7 @@ theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)
     (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  lyapunov_termination_fin Emin eps k hE hgen heps
+  lyapunov_termination_fin Emin eps k hE hgen heps  -- same law as macro_termination (dedup R197)
 
 /-! ## The protected error budget across generations -/
 

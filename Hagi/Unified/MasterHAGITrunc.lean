@@ -75,38 +75,25 @@ theorem frontier_cone_trunc (C G D : ℕ → ℝ)
 
 
 
-/-- Nonincrease telescopes over the horizon (trunc-local). -/
+/-- Nonincrease telescopes over the horizon (trunc-local,
+now aliased to Foundations.telescope_le). -/
 private theorem telescope_le_h {f : ℕ → ℝ} {T : ℕ}
-    (h : ∀ t < T, f (t + 1) ≤ f t) : f T ≤ f 0 := by
-  induction T with
-  | zero => exact le_refl _
-  | succ T ih =>
-      exact le_trans (h T (Nat.lt_succ_self T))
-        (ih (fun t ht => h t (Nat.lt_trans ht (Nat.lt_succ_self T))))
+    (h : ∀ t < T, f (t + 1) ≤ f t) : f T ≤ f 0 :=
+  Hagi.Foundations.telescope_le h
 
-/-- Increment-sum telescoping (trunc-local). -/
+/-- Increment-sum telescoping (trunc-local,
+now aliased to Foundations.telescope_sum_le). -/
 private theorem telescope_sum_le_h {f c : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) - f t ≤ c t) :
-    f T - f 0 ≤ ∑ t ∈ Finset.range T, c t := by
-  induction T with
-  | zero => simp
-  | succ T ih =>
-      have hstep := h T (Nat.lt_succ_self T)
-      have hprev := ih (fun t ht => h t (Nat.lt_trans ht (Nat.lt_succ_self T)))
-      rw [Finset.sum_range_succ]
-      linarith
+    f T - f 0 ≤ ∑ t ∈ Finset.range T, c t :=
+  Hagi.Foundations.telescope_sum_le h
 
-/-- Exact account telescoping (trunc-local). -/
+/-- Exact account telescoping (trunc-local,
+now aliased to Foundations.telescope_sub_sum). -/
 private theorem telescope_sub_sum_h {f c : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) = f t - c t) :
-    f T = f 0 - ∑ t ∈ Finset.range T, c t := by
-  induction T with
-  | zero => simp
-  | succ T ih =>
-      have hprev := ih (fun t ht => h t (Nat.lt_trans ht (Nat.lt_succ_self T)))
-      have hstep := h T (Nat.lt_succ_self T)
-      rw [hstep, Finset.sum_range_succ]
-      linarith
+    f T = f 0 - ∑ t ∈ Finset.range T, c t :=
+  Hagi.Foundations.telescope_sub_sum h
 
 /-- **Усечённый takeoff**: из усечённых посылок (только
 t < T) — C_T >= C0 * (1+alpha)^T. Совместимо с потолком C*:

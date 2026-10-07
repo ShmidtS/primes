@@ -37,21 +37,14 @@ namespace Hagi
 
 theorem exp_chord (x M : ℝ) (hM : 0 < M) (hx : -M ≤ x) (hx2 : x ≤ M) :
     Real.exp x ≤ (M - x) / (2 * M) * Real.exp (-M)
-      + (x + M) / (2 * M) * Real.exp M := by
-  have hconv : ConvexOn ℝ Set.univ Real.exp := convexOn_exp
-  set a := (M - x) / (2 * M) with ha
-  set b := (x + M) / (2 * M) with hb
-  have haneg : 0 ≤ a := by apply div_nonneg <;> linarith
-  have hbneg : 0 ≤ b := by apply div_nonneg <;> linarith
-  have hsum : a + b = 1 := by
-    rw [ha, hb]; field_simp; ring_nf
-  have key := hconv.2 (Set.mem_univ (-M)) (Set.mem_univ M) haneg hbneg hsum
-  have hcomb : a • (-M) + b • M = x := by
-    simp only [smul_eq_mul]
-    rw [ha, hb]; field_simp; ring_nf
-  rw [hcomb] at key
-  simp only [smul_eq_mul] at key
-  exact key
+      + (x + M) / (2 * M) * Real.exp M :=
+  -- R197 dedup: the symmetric special case of Chord.exp_chord_ab at a = -M
+  by
+    have hlt : (-M:ℝ) < M := by linarith
+    have h := Hagi.Foundations.exp_chord_ab (-M) M x hlt hx hx2
+    rw [show (M:ℝ) - -M = 2 * M from by ring,
+      show x - (-M:ℝ) = x + M from by ring] at h
+    exact h
 
 theorem sum_pair_weights {V : Type} [Fintype V] (p : V → ℝ) (hsum : ∑ v, p v = 1) :
     ∑ u, ∑ v, p u * p v = 1 := by
