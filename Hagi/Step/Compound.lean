@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.StageCalculus
-import Hagi.Ensemble.GenCycle
+import Hagi.Foundations.Recurrence
 
 set_option linter.style.header false
 
@@ -38,13 +38,13 @@ two additive channels:
   `(G_t, J_t)` — if `c_t ≈ αG + J` holds with stable
   coefficients, the trajectory is predictable; the constant-c
   regime is then *explained* by `G_t` having stabilized at the
-  replenishment level D (the ρ-D-ε law of `genGap_decay`):
+  replenishment level D (the ρ-D-ε law of `Hagi.Foundations.genGap_decay`):
   once G_t ≈ D, `c_t ≈ αD + J` — constant, as measured.
 * `compound_trajectory` — the derived k-generation forecast:
   with `G_t` obeying the ρ-D recursion and the joint channel
   constant `J`, the mean CE after k generations is
   `M₀ − Σ_t (α • G_t + J)` with G_t given by the closed form of
-  `genGap_decay` — an explicit, falsifiable prediction BEFORE
+  `Hagi.Foundations.genGap_decay` — an explicit, falsifiable prediction BEFORE
   the GPU spend (the gen-3 test).
 * `compound_budget` — the derived stopping rule: the recursion
   is worth continuing while the *predicted next-cycle gain*
@@ -69,7 +69,7 @@ two additive channels:
    `G_2` from the ρ-D closed form — falsifiable BEFORE the run.
 3. The stopping verdict: continue while `αG_{t+1} + J > ε_c`
    (the cycle cost); when the data axis is exhausted (D → 0,
-   the disagreement dies per `genGap_decay`), the same
+   the disagreement dies per `Hagi.Foundations.genGap_decay`), the same
    inequality turns and the recursion folds — the derived
    replacement of the hand-made budget decision.
 -/
@@ -118,7 +118,7 @@ theorem compound_c_stabilizes (α G0 D a J ε : ℝ) (c G : ℕ → ℝ)
 /-- **The constant-c regime is the signature of
 replenishment.** If the disagreement has stabilized at the
 replenishment level (`G_t → D` per the ρ-D law of
-`genGap_decay`) and the joint channel is constant, the per-cycle
+`Hagi.Foundations.genGap_decay`) and the joint channel is constant, the per-cycle
 gain stabilizes at `α • D + J` — constant, as measured. The
 naive expectation of decay is wrong precisely when the data
 field is alive. -/
@@ -152,21 +152,21 @@ theorem compound_trajectory (ρ D G₀ α J : ℝ)
   refine Finset.sum_le_sum fun t _ => ?_
   refine add_le_add_left ?_ J
   refine mul_le_mul_of_nonneg_left ?_ hα
-  exact genGap_decay ρ D G₀ hρ hρ1 hD G hG0 hstep t
+  exact Hagi.Foundations.genGap_decay ρ D G₀ hρ hρ1 hD G hG0 hstep t
 
 /-- **The derived recursion budget.** The recursion is worth
 continuing while the predicted next-cycle gain exceeds the cycle
 cost ε_c; at stabilization the gain is `α • D + J`, so the
 budget inequality `α • D + J > ε_c` is the *data* verdict: the
 recursion folds exactly when the data field dies (D → 0, the
-disagreement per `genGap_decay`), and no earlier. -/
+disagreement per `Hagi.Foundations.genGap_decay`), and no earlier. -/
 theorem compound_budget (α D J ε_c : ℝ)
     (hα : 0 ≤ α) (hpos : α * D + J ≤ ε_c) :
     ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c :=
   Hagi.Foundations.compound_budget α D J ε_c hα hpos
 
 /-- The generational mean after k cycles with per-cycle bounds
-(the compounding bookkeeping linking to `genMean_compound`). -/
+(the compounding bookkeeping linking to `Hagi.Foundations.genMean_compound`). -/
 theorem compound_cumulative (M₀ : ℝ) (c : ℕ → ℝ) (k : ℕ)
     (hstep : ∀ t, c t ≤ C) :
     M₀ - ∑ t ∈ Finset.range k, c t ≥ M₀ - k * C := by

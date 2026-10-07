@@ -1,6 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+import Hagi.Foundations.Recurrence
 import Mathlib
 
 set_option linter.style.header false
@@ -123,74 +124,23 @@ theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
     push_cast
     rfl]
 
-/-- **The linear compounding law.** If each cycle improves the
-mean by at least `c`, the mean after `k` cycles is at most
-`M₀ − k • c`. -/
+/-- **The linear compounding law** (R209: proof lives in
+Foundations.Recurrence; delegation preserves the name). -/
 theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
     (step : ℕ → ℝ → ℝ)
     (hstep : ∀ k M, step k M ≤ M - c)
     (iter : ℕ → ℝ) (hiter0 : iter 0 = M₀)
     (hiterS : ∀ k, iter (k + 1) = step k (iter k)) :
-    ∀ k : ℕ, iter k ≤ M₀ - (k : ℝ) * c := by
-  intro k
-  induction k with
-  | zero => rw [hiter0]; norm_num
-  | succ n ih =>
-      have h1 := hstep n (iter n)
-      have h2 : iter (n + 1) ≤ iter n - c := by
-        rw [hiterS n]
-        exact h1
-      -- the goal: iter (n+1) <= M0 - (n+1)c
-      have hcast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 := by
-        push_cast
-        ring
-      have hgoal : iter n - c ≤ M₀ - ((n + 1 : ℕ) : ℝ) * c := by
-        rw [hcast]
-        linarith [ih]
-      linarith [h2, hgoal]
+    ∀ k : ℕ, iter k ≤ M₀ - (k : ℝ) * c :=
+  Hagi.Foundations.genMean_compound M₀ c _hc step hstep iter hiter0 hiterS
 
-/-- **The death law of the recursion.** If the sibling
-disagreement evolves as `G_{t+1} ≤ ρ G_t + D` with `0 ≤ ρ < 1`,
-then every `G_t` is bounded by the fixed point `G* = D/(1 − ρ)`:
-the recursion's stationary disagreement. The recursion dies
-exactly when `G* < ε` — the fresh leaves can no longer
-disagree above the floor. -/
+/-- **The death law of the recursion** (R209: proof lives in
+Foundations.Recurrence; delegation preserves the name). -/
 theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
     (_hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)
     (hstep : ∀ t, G (t + 1) ≤ ρ * G t + D) :
-    ∀ t, G t ≤ ρ ^ t * G₀ + (D * (1 - ρ ^ t)) / (1 - ρ) := by
-  intro t
-  induction t with
-  | zero =>
-      have hρ0 : (ρ : ℝ) ^ 0 = 1 := by simp
-      rw [hρ0]
-      norm_num
-      exact hG0
-  | succ t ih =>
-      have h1 := hstep t
-      have hexp : ρ * ρ ^ t = ρ ^ (t + 1) := by
-        rw [pow_succ]
-        ring
-      have hne : (1 - ρ) ≠ 0 := by
-        have := ne_of_lt hρ1
-        exact fun h => this (by linarith)
-      have h2 : ρ * (ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)) + D
-          = ρ ^ (t + 1) * G₀ + D * (1 - ρ ^ (t + 1)) / (1 - ρ) := by
-        rw [pow_succ]
-        field_simp
-        ring
-      have hcomb : ρ * G t + D
-          ≤ ρ * (ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)) + D := by
-        calc ρ * G t + D
-            ≤ ρ * (ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)) + D := by
-              refine add_le_add_left ?_ D
-              exact mul_le_mul_of_nonneg_left ih hρ
-          _ = ρ * (ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)) + D := rfl
-      -- the goal: G (t+1) <= ρ^{t+1} G0 + D(1-ρ^{t+1})/(1-ρ)
-      have hfinal : ρ * (ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)) + D
-          ≤ ρ ^ (t + 1) * G₀ + D * (1 - ρ ^ (t + 1)) / (1 - ρ) :=
-        le_of_eq h2
-      linarith [h1, hcomb, hfinal]
+    ∀ t, G t ≤ ρ ^ t * G₀ + (D * (1 - ρ ^ t)) / (1 - ρ) :=
+  Hagi.Foundations.genGap_decay ρ D G₀ hρ hρ1 _hD G hG0 hstep
 
 end GenCycle
 
