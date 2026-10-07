@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Energy.FreeEnergy
+import Hagi.Prelude.Info
 import Hagi.Foundations.Chord
 import Hagi.Foundations.Hoeffding
 
@@ -116,7 +117,8 @@ theorem mgf_hoeffding {V : Type} [Fintype V] [Nonempty V]
 
 /-- The softmax of the logits `x` over a finite vocabulary. -/
 noncomputable def smax {V : Type} [Fintype V] (x : V → ℝ) : V → ℝ :=
-  fun v => Real.exp (x v) / ∑ u, Real.exp (x u)
+  -- R198: = Prelude.softDef (historical name kept)
+  Hagi.Prelude.softDef x
 
 theorem sum_exp_pos {V : Type} [Fintype V] [Nonempty V] (x : V → ℝ) :
     0 < ∑ v, Real.exp (x v) :=
@@ -135,7 +137,7 @@ theorem smax_sum_one {V : Type} [Fintype V] [Nonempty V] (x : V → ℝ) :
   have hdiv : ∑ v, Real.exp (x v) / ∑ u, Real.exp (x u)
       = (∑ v, Real.exp (x v)) / ∑ u, Real.exp (x u) :=
     (Finset.sum_div _ _ _).symm
-  unfold smax
+  unfold smax Hagi.Prelude.softDef
   rw [hdiv, div_self (ne_of_gt (sum_exp_pos x))]
 
 theorem sum_smax_exp {V : Type} [Fintype V] [Nonempty V] {x : V → ℝ}
@@ -145,7 +147,7 @@ theorem sum_smax_exp {V : Type} [Fintype V] [Nonempty V] {x : V → ℝ}
   have hterm : ∀ v : V, smax x v * Real.exp (g v)
       = Real.exp (x v + g v) / (∑ u, Real.exp (x u)) := by
     intro v
-    unfold smax
+    unfold smax Hagi.Prelude.softDef
     rw [div_mul_eq_mul_div]
     congr 1
     rw [← Real.exp_add]

@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -420,7 +421,8 @@ variable {k : Type*} [Fintype k] [Nonempty k]
 
 /-- The softmax probability of a coordinate. -/
 noncomputable def softmaxP (z : k → ℝ) (a : k) : ℝ :=
-  Real.exp (z a) / ∑ l, Real.exp (z l)
+  -- R198: = Prelude.softDef (historical name kept)
+  Hagi.Prelude.softDef z a
 
 /-- **A top-1 logit gap bounds the mass ratio.** If the logit gap
 between coordinates `a` and `b` is at least `g`, then the softmax
@@ -446,7 +448,8 @@ miss most genuine ambiguities). -/
 theorem softmax_gap_mass_ratio (z : k → ℝ) (a b : k) (g : ℝ)
     (hz : z b + g ≤ z a) :
     softmaxP z a ≥ Real.exp g * softmaxP z b := by
-  unfold softmaxP
+  show Real.exp (z a) / ∑ l, Real.exp (z l)
+      ≥ Real.exp g * (Real.exp (z b) / ∑ l, Real.exp (z l))
   have hpos : (0:ℝ) < ∑ l, Real.exp (z l) := exp_sum_pos z
   have hA : Real.exp (z b + g) ≤ Real.exp (z a) :=
     Real.exp_le_exp.mpr hz

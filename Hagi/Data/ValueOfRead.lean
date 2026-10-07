@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -72,7 +73,8 @@ the decision variable of the policy. -/
 
 /-- The full softmax weights. -/
 noncomputable def softmaxW (s : B → ℝ) (b : B) : ℝ :=
-  Real.exp (s b) / (∑ b', Real.exp (s b'))
+  -- R198: = Prelude.softDef (historical name kept)
+  Hagi.Prelude.softDef s b
 
 /-- **The uniform-skip bound: the TV regression of skipping is
 at most twice the skipped mass.** Reading only the blocks
