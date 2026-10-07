@@ -156,6 +156,7 @@ import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
+import Hagi.Growth.FiberNecessity
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
