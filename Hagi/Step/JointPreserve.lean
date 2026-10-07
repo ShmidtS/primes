@@ -1,7 +1,10 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+
+import Hagi.Growth.SeedOnly
 import Hagi.Budget.ElementQuant
+import Mathlib.Tactic
 
 set_option linter.style.header false
 

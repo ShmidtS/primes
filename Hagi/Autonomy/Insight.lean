@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Data.Distill
-import Hagi.Unified.TopLevel
 import Hagi.Audit.Exactness
 import Hagi.Unified.GlobalDynamics
+import Mathlib.Tactic
+
 set_option linter.style.header false
 
 /-!
