@@ -105,6 +105,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R203 (298190c): AdaptiveQuery (Hagi/Growth — LayerLint
+  правильно указал слой: контроллерный кирпич): avgRadius
+  e/√K + certified_gain_select_avg — порог отбора 3e → 3e/√K
+  (139-ядро: адаптивные multi-query бьют одиночные измерения).
+  Приоритет-лист openai/math 1–5 ЗАКРЫТ ядрами: 140 ✓ 119 ✓
+  ProjectionMoments ✓ 148-структура ✓ 139 ✓.
 - R201 (704a0c2): GainRecoverability — disagreement EXTRACTABLE:
   devEnergyF_pos_iff + recoverable_avg (E/N-пол) + devSignal_self
   (self-readout > 0). Средний кирпич цепочки MergeCancellation →
