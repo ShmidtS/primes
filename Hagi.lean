@@ -85,6 +85,7 @@ import Hagi.Step.KLSSafeQP
 import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.FiberSplit
+import Hagi.Architecture.OrthoInjection
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
