@@ -88,6 +88,7 @@ import Hagi.Architecture.FiberSplit
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.ConfigurationCost
+import Hagi.Architecture.ConfigurationRouting
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
