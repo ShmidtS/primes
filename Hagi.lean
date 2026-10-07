@@ -180,6 +180,7 @@ import Hagi.Ensemble.QFormerBridge
 import Hagi.Data.ChunkedCE
 import Hagi.Step.LRWidth
 import Hagi.Step.Muon
+import Hagi.Step.MuonWD
 import Hagi.Data.TernaryChinchilla
 import Hagi.Autonomy.SupervisorSafety
 import Hagi.Discovery.PPT
