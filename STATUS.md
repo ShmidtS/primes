@@ -105,6 +105,17 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R200 (b2f94b5): слой Hagi/Information — MemoryCapacity
+  (separated_needs_capacity: K 2ε-разделённых задач ⟹
+  |State| ≥ K — counting-флор памяти/точности, ядро
+  openai/math 140 в самодостаточной HAGI-постановке) +
+  InformationRetention (no_free_recovery — data-processing;
+  quantized_separation_needs_range — range квантования =
+  валюта capability, ядро 119). Локальная копия openai/math
+  (E:/math, та же toolchain v4.34.1) разведана; импорт OAI-кода
+  отложен в пользу самодостаточных ядер (722 рукописи —
+  пересечение с HAGI: 140/119/ProjectionMoments/148/139).
+
 ## Гигиена-кампания (R197–R199, по внешнему аудиту 2026-10-07)
 
 - R199 GrowthDynamics: структура-пучок 11 посылок конуса/
