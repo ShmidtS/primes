@@ -90,6 +90,7 @@ import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.ConfigurationCost
 import Hagi.Budget.ActiveCompute
 import Hagi.Architecture.ConfigurationRouting
+import Hagi.Budget.FlopsEconomy
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
