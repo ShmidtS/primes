@@ -99,6 +99,7 @@ import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
 import Hagi.Budget.ThreeTermBudget
+import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
@@ -173,6 +174,7 @@ import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
+import Hagi.Growth.OptimizerStage
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.IntegrationOrder
 import Hagi.Growth.RoundViability
