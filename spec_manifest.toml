@@ -9,7 +9,7 @@
 constant_count = 1639
 theorem_count = 966
 sorry_count = 0
-as_of_commit = "0e84fce"
+as_of_commit = "7317685"
 
 [layers]
 prelude = -1
@@ -31,7 +31,8 @@ open = [
   "R230 SNR-aware NS-Transform (2607.16169)",
   "T3 gamma_eff >= gamma_gate in configuration vocabulary",
   "h2-Fannes port from E:/math Fam 276",
-  "Freedman joint+anytime port from E:/math Fam 188",
+  "Freedman two-sided joint port from E:/math Fam 188 (HistoryAdditive)",
+  "h2-Fannes port from E:/math Fam 276",
   "BitAlloc greedy-transfer termination (R176 tail)",
   "frontier_cone canonicalization",
 ]

@@ -107,6 +107,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R232 (7317685): ПОРТ Freedman из openai/math (Fam 188):
+  PmfMean (конечное PMF-ядро: pmfMean + вся алгебра) +
+  MarkovFreedman (pmfMean_exp_le — компенсированный MGF,
+  markovMean_potential_le — супермартингал, finite_freedman:
+  anytime P[X_j ≥ r, V_j ≤ v] ≤ exp(−r²/(4(v+cr))) на
+  time-inhomogeneous цепях). Доказательства перенесены
+  verbatim, аксиомы [propext, Classical.choice, Quot.sound].
+  Закрывает открытые Freedman-формы §1.2 (anytime-часть);
+  two-sided joint (HistoryAdditive: 2(T+1)·exp(...)) —
+  требует History-инфраструктуру, следующий порт-кандидат.
 - R228/R230/R227 (dc062f1, f1a7b22 + R227): Muon-серия §2
   ЗАКРЫТА. R228 MergeMixture: слияние сохраняет выход смеси
   ТОЧНО при фиксированном роутинге (линейность); дрейф роутера
