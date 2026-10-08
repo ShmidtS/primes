@@ -140,6 +140,7 @@ import Hagi.Probability.MarkovFreedman
 import Hagi.Probability.HistoryPath
 import Hagi.Probability.HistoryPastMean
 import Hagi.Probability.HistoryFreedman
+import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
