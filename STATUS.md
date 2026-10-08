@@ -119,6 +119,23 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Windows стираются/пишутся битыми — верифицировать размер
   файла перед выводом об успехе (Map≠Territory: пустой
   файл дал ложный PASS).
+- R242–R244 (66a2180): LittleBit/LittleBit-2 интеграция
+  (arXiv:2506.13771, PMLR v306) — не как binary-квантзация,
+  а как перестройка merge: (R242) LatentAlign-слой —
+  вращения бесплатны (rotated_factors_same_matrix),
+  sign-flip функционально эквивалентен, но наивный
+  latent-merge обнуляет перевёрнутые колонки —
+  латентное лицо MergeCancellation и кандидат-источник
+  mixer.gain=0.002; (R243) разделение residual'ов:
+  R_expert ≠ R_quant, экономический гейт ветви, теорема
+  «сжатие R_quant не возвращает специализацию»; (R244)
+  BPW-арифметика: sub-1-BPW ⟺ rank < (d²−32d)/(2log₂3·d+16)
+  — рост по латентной размерности вместо H→3H; якорь
+  d=4096, r=384 ≈ 0.305 BPW. Пайплайн merge зафиксирован:
+  factorize → latent-align → root/contrast → spectral
+  compress → F3. Указано: core_is_worth_it в
+  factorized_merge.py должен использовать измеренную ошибку
+  core (сейчас сводится к параметрам) — runtime-долг.
 - R241 (f3f8297): дискретная PMF-специализация Fannes:
   diagonal_posSemidef (через спектральные факторы D·Dᴴ,
   полностью доказано), канонический coupling-набор
