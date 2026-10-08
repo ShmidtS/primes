@@ -135,6 +135,8 @@ import Hagi.Growth.SelfDevelopment
 import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
+import Hagi.Probability.PmfMean
+import Hagi.Probability.MarkovFreedman
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
