@@ -137,6 +137,9 @@ import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.PmfMean
 import Hagi.Probability.MarkovFreedman
+import Hagi.Probability.HistoryPath
+import Hagi.Probability.HistoryPastMean
+import Hagi.Probability.HistoryFreedman
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
