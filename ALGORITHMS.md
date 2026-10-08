@@ -544,9 +544,16 @@ R155 линейный бит-счёт). Пластичность trunk'а пер
 [4] GATE: capability × compatibility (R211 MOPDApproved;
     integration_rejects_far_teacher — дальний учитель
     закрыт при ЛЮБОМ twoGap)
+[4b] WEIGHT: w_i,t — состояние контроллера (R238: равные
+    prompt-счёты ≠ равные веса; bias = Cov(T,g)/T̄ измеряем)
 [5] DISTILL: policy-KL ← контракция κ<1 (R222
     kl_contraction_budget: бюджет логарифмичен; halving —
     1 бит/rollout)                     [η_p — измеряемая]
+[5b] OPTIMIZE: этап оптимизатора (R239 OptimizerStage:
+     η_opt = D_update/D_grad — Adam first-moment ГАСИТ
+     teacher-disagreement (cos>0.83 с состоянием, ≈0 при
+     reset); β₁=0/reset на consolidation-сегменте —
+     указанный эксперимент; G_cap = η_p·η_opt·η_s·E_dev)
 [6] CONSOLIDATE: волокна (R212 OrthoInjection: кора
     нетронута, энергия ортогональна; R219 fiber_params_
     floor: ≥ K·r_min·d)               [η_s — измеряемая]
