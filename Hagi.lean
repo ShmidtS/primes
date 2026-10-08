@@ -232,6 +232,7 @@ import Hagi.Spectral.SpectralProjector
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.MasterHAGICoupled
 
 set_option linter.style.header false
 
