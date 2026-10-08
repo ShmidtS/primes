@@ -107,6 +107,23 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R236 (cdaa50b+c214dce): h₂-Fannes-кампания, слои 1–4/6:
+  EntropyDefs (спектральная энтропия, cfc), SpectralEntropy
+  (entropy_eq_sum, диагональная мажоризация, вогнутость),
+  LogDetEntropy (logDetShift-исчисление + дуальность Грама),
+  GramBasic (gram/mass-ядро) — слои 2–4 verbatim с первого
+  прогона. Слой 5 (StateEntropy) ЗАБЛОКИРОВАН расхождением
+  Mathlib API: источник собран на Mathlib, где IsHermitian —
+  структура с dot-полями (eigenvalues_nonneg,
+  eigenvectorUnitary-функция); наша v4.34.1 (rev d13f23b)
+  разворачивает IsHermitian в Eq (dot-проекций нет),
+  eigenvectorUnitary ∈ unitaryGroup (матрица, не функция),
+  eigenvalues_nonneg — имя отсутствует. Требуется АДАПТАЦИЯ
+  (не verbatim): And-разборка + префиксные имена +
+  переиндексация U j k. WIP-файл Hagi/Information/
+  StateEntropy.lean оставлен незакоммиченным; импорт
+  отсоединён (билд зелёный). Слой 6 (entropy_coupling_bound)
+  ждёт слой 5.
 - R235 (abb4fc9): ThreeTermBudget — оптимальный сплит
   данные/шаги: AM-GM-пол 2√(AC/B), явный оптимизатор
   N*=√(AB/C), K*=√(CB/A), оба растут как √B («оптимальный
