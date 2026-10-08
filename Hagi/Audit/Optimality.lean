@@ -26,7 +26,7 @@ from optimality: with equalized marginals
 c_i·κ_i·e^{−κ_i·b_i*} = λ and Σ b* = Σ b', ANY feasible b'
 satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*} — the
 waterfilling is optimal, DERIVED (convexity tangent + the
-budget identity), turning `hinterior` from a hypothesis into
+budget identity), turning hinterior from a hypothesis into
 a conclusion and closing the `shadow_price_sum_identity` family
 honestly.
 
@@ -138,7 +138,7 @@ program min Σ_i c_i·e^{−κ_i·b_i} s.t. Σ b_i = B, if the
 marginals equalize at b* (c_i·κ_i·e^{−κ_i·b_i*} = λ for all
 i) and b* is feasible, then EVERY feasible b' (Σ b' = Σ b*)
 satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}: the
-waterfilling allocation is optimal — `hinterior` becomes a
+waterfilling allocation is optimal — hinterior becomes a
 CONCLUSION, closing `shadow_price_sum_identity` and
 `marginalValue_law` honestly (the interior condition is the
 optimality certificate, not an assumption). HONEST BOUNDARY

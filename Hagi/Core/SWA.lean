@@ -17,12 +17,12 @@ average convolution, recency bias relayed to global layers).
 
 Theorems:
 
-* `swa_reach_closed` - closed form: after L window layers
+* swa_reach_closed - closed form: after L window layers
 of width W the receptive field is exactly L*(W-1)+1
 (induction: each layer adds W-1 positions).
-* `swa_reach_full` - a single relay (full-attention) layer
+* swa_reach_full - a single relay (full-attention) layer
 extends the reach to the whole sequence length T.
-* `swa_cost_card` - exact mask cardinality for T >= W:
+* `swa_cost_bound` - exact mask cardinality for T >= W:
 T*W - W*(W-1)/2 = O(T*W) against O(T^2) for full attention.
 
 Honest boundary: information PRESERVATION through the relay

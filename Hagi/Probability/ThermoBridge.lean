@@ -22,7 +22,7 @@ the SAME noise-cooling law:
 
 This module welds the interfaces:
 
-* `prodDens_uniP`: the uniform product density is the
+* prodDens_uniP: the uniform product density is the
   constant (1/card V)^B.
 * `prodE_as_expQ`: `prodE (uniP b)` IS `KLS.expQ` with the
   constant density — the two expectation operators coincide

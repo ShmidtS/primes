@@ -10,7 +10,7 @@ set_option linter.style.header false
 # R124: RatioTakeoff — устойчивый takeoff БЕЗ h_C_cap
 
 Аудит R123/124 (главная находка + приоритет №1): конус-метод
-(`sustained_takeoff_from_production`) с гипотезой `h_C_cap`
+(`sustained_takeoff_from_production`) с гипотезой h_C_cap
 зажимает систему ровно на границу конуса (`takeoff_edge_forced`:
 G = αC, D = (α/γ)C тождественно) — сертификат хрупкок.
 Правильная постановка — динамика ОТНОШЕНИЯ r = D/C:

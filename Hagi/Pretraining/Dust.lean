@@ -31,12 +31,12 @@ theory):
   ĝ(u) = ((f(x+σu) − f(x−σu))/(2σ)) • u is EXACTLY unbiased:
   its hypercube mean is ∇f(x) — third and higher orders vanish,
   no σ² bias term.
-* `drawOrtho`: two distinct draws are orthogonal in the mean —
+* drawOrtho: two distinct draws are orthogonal in the mean —
   the interference term of Dust §2.3 vanishes in expectation.
-* `dustVarianceDecay`: the mean square error of the K-draw
+* dustVarianceDecay: the mean square error of the K-draw
   average is EXACTLY (1/K) times the single-draw error — the
   population law: signal linear in K, noise as √K.
-* `cosBound`: deterministic geometry — cos(g, g+e) ≥
+* cosBound: deterministic geometry — cos(g, g+e) ≥
   1 − 2‖e‖/‖g‖.
 * `dustAlignment`: the alignment law — the K-draw estimate has
   cosine ≥ 1 − 2δ with the true gradient with probability ≥

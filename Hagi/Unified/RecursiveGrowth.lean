@@ -249,7 +249,7 @@ theorem unitary_perturb_metric {E : Type*} [NormedAddCommGroup E]
 
 /-! ## Roadmap #1.3: the curvature-aware analytic step
 
-The review (round-53/54) demands eliminating `learning_rate`
+The review (round-53/54) demands eliminating learning_rate
 as a hyperparameter class: the step must be COMPUTED from the
 measured curvature, in the spirit of the TorchLean Lyapunov
 controllers (lean-dojo/TorchLean, NN/MLTheory/CROWN/Lyapunov —

@@ -17,9 +17,9 @@ damped, so precision can be budgeted by contribution.
 Concretely, the attention output over stored values `v i` with softmax
 weights `p i` and per-entry quantization errors `e i` is
 `∑ i, p i • (v i + e i)`. The theorems below show that its deviation from
-the exact output `∑ i, p i • v i` is bounded by the `p`-weighted average
+the exact output `∑ i, p i • v i` is bounded by the p-weighted average
 of the individual error norms (`attention_error_damped_sum`), hence by
-their maximum when `p` is a probability distribution
+their maximum when p is a probability distribution
 (`attention_error_damped`), and hence by any uniform error bound `M`
 (`attention_error_damped'`). Distant tokens have small `p i`, so their
 low-precision (int4) storage errors enter the output damped; precision
@@ -44,7 +44,7 @@ theorem attention_error_damped_sum {ι : Type*} [Fintype ι] {E : Type*}
         Finset.sum_le_sum fun i _ =>
           le_of_eq (by rw [norm_smul, Real.norm_of_nonneg (hp i)])
 
-/-- Error damping, max form: if `p` is a probability distribution, the
+/-- Error damping, max form: if p is a probability distribution, the
 deviation of the softmax-weighted output from the exact output is at
 most the largest individual error norm `‖e i‖`. -/
 theorem attention_error_damped {ι : Type*} [Fintype ι] {E : Type*}

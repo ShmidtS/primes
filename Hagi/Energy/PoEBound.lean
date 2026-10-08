@@ -25,7 +25,7 @@ approximation by the SHARP second-order law
 
 `|log Z_w − log Z_approx| ≤ (1/8)·Σ_i w_i·(R_i)²`,
 
-where `R_i` dominates the range of expert `i`'s centered deviation
+where `R_i` dominates the range of expert i's centered deviation
 from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v − μ v) ≤ R i`
 (`poe_logZ_second_order`).
 
@@ -42,7 +42,7 @@ from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v
    OPEN item ("the transcendental (b−a)²/8 step, absent from
    Mathlib") in the direction needed here.
 2. **Log-sum-exp deviation bounds** (`lse_shift_lower`,
-   `lse_shift_upper`): the deviation of lse from `x` to `y` is
+   `lse_shift_upper`): the deviation of lse from `x` to y is
    `log E_{σ(x)}[e^{y−x}]`; pillar 1 gives the upper second-order
    bound, exp-Jensen the lower (supporting-hyperplane) bound.
 3. **The assembly** (`poe_logZ_second_order`): per-expert
@@ -260,7 +260,7 @@ theorem sum_w_center {K V : Type} [Fintype K] (z : K → V → ℝ) (w : K → �
 /-! ## The main theorem: the sharp per-expert (1/8)·ΣwR² law -/
 
 /-- **R106 main theorem: PoE logZ second-order stability, SHARP
-per-expert range form.** For logits `z i : V → ℝ` of experts `i`
+per-expert range form.** For logits `z i : V → ℝ` of experts i
 with pool weights `w` (nonnegative, summing to 1), let
 
 `Z_w = ∑ v exp(∑ i w i · z i v)` (the geometric-pool / PoE

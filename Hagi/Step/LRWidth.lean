@@ -25,7 +25,7 @@ gradient norm at the all-ones initialization grows
 linearly with the width m: a fixed LR is NOT
 width-invariant (the formal core of the CE 74.77
 incident).
-* `mup_step_invariant` - THE FIX: scaling the step by
+* mup_step_invariant - THE FIX: scaling the step by
 1/m makes the update norm independent of the width -
 the muP prescription.
 

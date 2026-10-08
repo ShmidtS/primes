@@ -27,7 +27,7 @@ every constant explicit. GOAL A of the R97 task landed.
    `h • z` with z ranging over the integer box `[-M, M]^n`,
    filtered to `∑ (h·z_k)² ≤ (D + epsDir)²`, for any integer
    `M ≥ D·√n/epsDir + 1`. Every point of the ball is within
-   `epsDir` of a net point (`latticeNet_covers`, coordinatewise
+   epsDir of a net point (`latticeNet_covers`, coordinatewise
    floor rounding), net points have norm ≤ D + epsDir
    (`latticeNet_norm_le`), and the net size is ≤ `(2M+1)^n`
    (`latticeNet_card_le`).
@@ -140,7 +140,7 @@ theorem latticeNet_norm_le {n : ℕ} {D epsDir : ℝ} (hDE : 0 ≤ D + epsDir) {
   rwa [abs_of_nonneg (norm_nonneg _)] at habs
 
 /-- **The covering property**: every point of the ball {‖x‖ ≤ D}
-is within `epsDir` of a lattice-net point. Proof: round every
+is within epsDir of a lattice-net point. Proof: round every
 coordinate DOWN to the nearest lattice multiple (floor); each
 coordinate error lies in [0, h], so the squared norm error is at
 most `n·h² = epsDir²`; the rounded point stays in the ball of

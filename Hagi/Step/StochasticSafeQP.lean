@@ -20,7 +20,7 @@ survives the noise, with EXPLICIT constants.
 over sub-Gaussian vectors: mathlib's
 `ProbabilityTheory.measure_sum_ge_le_of_iIndepFun`
 (Hoeffding for sums of independent sub-Gaussians) plus
-`hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero`
+hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero
 (Hoeffding's lemma for bounded mean-zero variables) give the
 whole chain. The noise enters the SafeQP constraints ONLY
 through the projections ⟪ξ_{i,j}, d*⟫ — so the statistical

@@ -37,12 +37,12 @@ gradient; the linearized domain-safety constraints).
   (no conflicts with the raw direction) and ε_i ≥ 0, then
   d* = g — the projection is INACTIVE; the controller is
   invisible unless a conflict exists.
-* `safeQP_regression_bound` — the domain-safety price: the
+* safeQP_regression_bound — the domain-safety price: the
   CE-regression of corpus i along d* is bounded by
   |lr|·‖g_i‖·‖g − d*‖ + (L/2)·lr²·‖d*‖² — the DISTANCE TO
   THE CONFLICT ‖g − d*‖ is the price of safety; with the
   measured Gram matrix it is computable before the step.
-* `safeQP_window_empty` — **the connection to the
+* safeQP_window_empty — **the connection to the
   joint-conflict window** (`Hagi.Step/Joint`): stepping along d*
   in the conflict case replaces the mandatory-regression
   window — the conflict term ⟨g_i, d*⟩ ≥ −ε_i is bounded by

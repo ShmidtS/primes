@@ -29,7 +29,7 @@ usable disagreement per unit of current capability — the model
 itself surfaces new disagreement as it grows), and ξ_t ≥ 0 the
 friction (absorption / consensus collapse / data loss). The
 capability grows at most the certified rate per cycle,
-C_{t+1} ≤ (1+α)·C_t (`h_C_cap`: the additive renewal law
+C_{t+1} ≤ (1+α)·C_t (h_C_cap: the additive renewal law
 C_{t+1} = C_t + G_t of R104 combined with the gate-certified
 factor — the model does not leap ahead of its own certified
 growth rate).
@@ -54,7 +54,7 @@ Results:
 * `sustained_takeoff_from_production` — the composition with
   R104: the cone invariant SUPPLIES the gate α·C_t ≤ γ·D_t at
   every t, so `renewal_feeds_takeoff` applies — NO
-  `h_emp_frontier_scaling` appears; the premises are the
+  h_emp_frontier_scaling appears; the premises are the
   dynamics (ρ, β, ξ), the cap, the cone initial condition and
   the per-step threshold. Conclusion: C_T ≥ C₀·(1+α)^T for ALL
   T — THE sustained takeoff now DERIVED from the production
@@ -142,7 +142,7 @@ holding at EVERY t (production dynamics, capability cap, and
 the exact threshold
 `α/γ·((1+α) − ρ) + ξ_t/C_t ≤ β`), the cone
 `D_t ≥ (α/γ)·C_t` holds at EVERY t. This is the dynamic
-invariant replacing R104's free `h_emp_frontier_scaling`. -/
+invariant replacing R104's free h_emp_frontier_scaling. -/
 theorem frontier_cone_invariant (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
     (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
     (hCpos : ∀ t, 0 < C t)
@@ -254,7 +254,7 @@ condition `(α/γ)·C₀ ≤ D₀`, and the exact per-step threshold
 
 the capability grows as C_T ≥ C₀·(1+α)^T for EVERY T.
 
-NO `h_emp_frontier_scaling` appears: the gate α·C_t ≤ γ·D_t is
+NO h_emp_frontier_scaling appears: the gate α·C_t ≤ γ·D_t is
 now the cone invariant `frontier_cone_invariant` DERIVED from
 the (ρ, β, ξ) dynamics, and `renewal_feeds_takeoff` (R104) is
 applied with the gate supplied. The remaining empirical

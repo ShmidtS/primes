@@ -24,7 +24,7 @@ mathematically for the loop to be worth running to step n:
 
 * **Linear accumulation of the net gain** (`distill_compound_gain`,
   the plan's `genMean_compound`): if every cycle combines a
-  certified growth gain `c_k` with a distillation slack `δ_k` and
+  certified growth gain c_k with a distillation slack `δ_k` and
   the net `c_k − δ_k ≥ g > 0`, the distillate of generation n
   beats the initial ensemble by at least `n·g`. Honest target:
   only «distillate gen_k beats distillate gen_{k−1}» is certified
@@ -45,7 +45,7 @@ mathematically for the loop to be worth running to step n:
   EXHAUSTED: switch corpus, not more cycles.
 
 All statements are conditional bookkeeping over ℝ-sequences with
-NAMED premises (`hdist`, `hgrow`, `hnet`, `hdecay`, `hgain`); no
+NAMED premises (hdist, hgrow, hnet, hdecay, hgain); no
 `h_emp_` premise hides inside. Sources: runtime plan §6b.1;
 single-cycle bridge R134 (2609.38666 / 2607.15467 / 2609.39436);
 geometric budget kernel R172 (`geom_sum_le_inv`).
@@ -100,7 +100,7 @@ theorem distill_chain_telescoping (n : ℕ)
             rw [hsum]; ring
 
 /-- **Linear descent of the ensembles**: under the per-cycle
-laws (`hgrow` in its improvement form + `hnet` positive net), each
+laws (hgrow in its improvement form + hnet positive net), each
 generation's ensemble is at least `g` better than the previous
 one — by induction, `E n + n·g ≤ E 0`. -/
 theorem ensemble_linear_descent (n : ℕ) {g : ℝ}
@@ -132,9 +132,9 @@ theorem ensemble_linear_descent (n : ℕ) {g : ℝ}
       exact hgoal
 
 /-- **Linear accumulation while the net is positive** (the
-plan's `genMean_compound`). Per cycle k < n: `hdist` (bridge
-slack `delta k`), `hgrow` (the next ensemble improves on the
-distillate by the certified gain `c k`), `hnet` (net
+plan's `genMean_compound`). Per cycle k < n: hdist (bridge
+slack `delta k`), hgrow (the next ensemble improves on the
+distillate by the certified gain `c k`), hnet (net
 `c k − delta k ≥ g > 0`). Then the distillate of generation n
 beats the initial ensemble by at least `n·g` up to its own
 one-cycle slack: `S n + n·g ≤ E 0 + delta n`. While the net

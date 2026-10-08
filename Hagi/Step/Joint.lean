@@ -24,7 +24,7 @@ is the quadratic expansion
 
 `f_c(θ₀ + δ) − f_c(θ₀) = ⟨g_c, δ⟩ + ½ δᵀ H_c δ`
 
-with the component gradient `g_c`, the component Hessian `H_c`
+with the component gradient g_c, the component Hessian `H_c`
 (PSD: the component is locally convex) and the smoothness bound
 `δᵀ H_c δ ≤ L ‖δ‖²`. The joint step moves along the *mixture*
 gradient: `δ = −lr • g`.

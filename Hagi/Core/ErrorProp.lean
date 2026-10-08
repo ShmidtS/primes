@@ -19,7 +19,7 @@ quantization error obeys the affine recursion
 `δ_{l+1} = J_l δ_l + r_l`,
 
 where `J_l` is the (effective) Jacobian of the already-compressed prefix
-and `r_l` the fresh per-layer residual. The measured per-layer gain is
+and r_l the fresh per-layer residual. The measured per-layer gain is
 `α = ‖J_l‖ ∈ [0.87, 0.99] < 1`, i.e. each compression step contracts the
 inherited error while contributing a bounded new residual. (Fitting on
 drifted activations re-centres each layer on the drifted distribution, so

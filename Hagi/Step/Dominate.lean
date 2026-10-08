@@ -38,7 +38,7 @@ corpus i's gradient is misaligned with g_s (the Gram entry
 threshold: the collateral damage is INEVITABLE for any lr
 large enough to move the dominant corpus.
 
-* `normalized_descent_preserved` — (b)(i) THE FIRST CURE AS A
+* normalized_descent_preserved — (b)(i) THE FIRST CURE AS A
 THEOREM: normalizing the contributions (scaling g_i to equal
 w_i‖g_i‖) preserves descent on the mixture when the
 normalized direction still aligns with the raw mixture
@@ -47,14 +47,14 @@ direction for the mixture objective iff the alignment
 survives the rescaling (the measured 94.8% domination is
 exactly the case where it does not).
 
-* `domination_price_bound` — (b)(ii) THE PRICE OF SAFETY: the
+* domination_price_bound — (b)(ii) THE PRICE OF SAFETY: the
 distance from the raw gradient to the safe-QP projection
 ‖g − d*‖ is bounded below by the violation depth of the
 constraints — the deeper the domination, the larger the
 projection's price; the bound is computable from the Gram
 matrix before the step.
 
-* `domination_weightThreshold` — (b)(iii) THE EQUIVALENCE:
+* domination_weightThreshold — (b)(iii) THE EQUIVALENCE:
 driving the corpus weight to zero (w_s → 0) is the limit of
 the normalization cure — the falsifiable κ-threshold: the
 joint step is SAFE WITHOUT GUARD when

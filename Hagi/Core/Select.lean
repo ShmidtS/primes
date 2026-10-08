@@ -16,7 +16,7 @@ direction.
 
 **Prescription for the code (the growth trigger).**
 
-1. The greedy-pool lemma (`ensembleBound_greedy`): under the
+1. The greedy-pool lemma (ensembleBound_greedy): under the
    ensemble bound `CE(ensemble) ≤ mean CE(children)`, adding one
    more leaf to the pool *never worsens the bound*: the merged CE
    is at most the mean of the enlarged family. In particular,

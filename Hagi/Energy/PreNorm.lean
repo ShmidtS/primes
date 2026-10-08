@@ -37,7 +37,7 @@ magnitude normalized to 1. Consequences:
   the theorem gives the exact-idealized form).
 
 **The gain's frozen-update bound (THEOREM — the
-`keep_fp32`-marker's arithmetic).** The docstring's claim:
+keep_fp32-marker's arithmetic).** The docstring's claim:
 "a gain at 1.0 receives gradients around 1e-4; the smallest
 bf16 step above 1.0 is ~0.0078, so under bf16 those updates
 round to zero and the layer is frozen". Formalized: the bf16
@@ -51,7 +51,7 @@ init for the whole run.
 
 **Prescription for the code.**
 
-1. The `keep_fp32` markers are load-bearing: any new
+1. The keep_fp32 markers are load-bearing: any new
    1D-gain parameter (norms, scales, gates) MUST carry the
    marker — the frozen-update bound is the failure mode of
    omitting it (the layer trains nothing at bf16).

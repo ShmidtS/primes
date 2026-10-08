@@ -118,16 +118,16 @@ per-stage potential laws derived from the stage theorems
 not restated as free parameters.
 
 **Connection of Φ to the existing KL/free-energy theory**: the
-`energy` field is the token-weighted reverse-KL certificate
+energy field is the token-weighted reverse-KL certificate
 (`tokenKLTotal`, `free_energy_gap` / `geometric_pool_identity`:
-the pool free energy IS the reverse KL), the `protectedRisk`
+the pool free energy IS the reverse KL), the protectedRisk
 field is the protected-domain regression budget of
 `protected_generation_budget`; Φ := energy + protectedRisk is the
 risk-penalized free energy these theorems already bound.
 
 **Honest gaps** (marked in place): the grow-stage descent (nonconvex
 training) and the verifier trust have no concrete operation in the
-theory yet — the grow stage lemma is conditional (`h_emp_grow`);
+theory yet — the grow stage lemma is conditional (h_emp_grow);
 compress has no concrete weight-rounding lift (the Ternary module
 has entry-level rounding only). -/
 
@@ -149,7 +149,7 @@ structure StageParams where
 
 /-- **The unified growth-loop state**: the semantic hub aggregating
 the existing meaningful carriers (NOT bare reals where a real object
-exists). `energy` is the token-weighted reverse-KL certificate
+exists). energy is the token-weighted reverse-KL certificate
 (`tokenKLTotal` / `free_energy_gap`); `gap` the Jensen gap G of the
 Concat adapter (`merge_stage_concat_adapter`); `dataField` the
 D-field divergence of the data mix (`Hagi.Data/DField.divField`);
@@ -216,11 +216,11 @@ structure GrowthState (X : Type*) [NormedAddCommGroup X]
   compressRisk : ℝ
 
 /-- **The potential** Φ := energy + protectedRisk — the
-risk-penalized free-energy certificate. Connection: `energy` is the
+risk-penalized free-energy certificate. Connection: energy is the
 reverse-KL certificate that `free_energy_gap` / `geometric_pool_
 identity` identify with the pool free energy, and the stage
 theorems (`merge_stage`, `joint_stage`, `compress_stage`) bound it;
-`protectedRisk` telescopes by `protected_generation_budget`. -/
+protectedRisk telescopes by `protected_generation_budget`. -/
 def potential (S : GrowthState X) : ℝ := S.energy + S.protectedRisk
 
 /-- The certified grow-stage gain.

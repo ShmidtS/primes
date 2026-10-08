@@ -9,7 +9,7 @@ set_option linter.style.header false
 # SeedOnly: the seed-only diversity bound (round 47, T1)
 
 **Motivation (measured)**: gen-≥2 siblings start from the same
-`init_from` and differ only by data seed (dbridge_leaf_s1..s3:
+init_from and differ only by data seed (dbridge_leaf_s1..s3:
 same corpora, same mixture weights). The ensemble gain that
 feeds growth is then bounded by NOISE, not corpus divergence.
 
@@ -24,9 +24,9 @@ feeds growth is then bounded by NOISE, not corpus divergence.
   squared deviation: Σ‖x_a − x̄‖² ≤ Σ‖x_a − y‖² for ANY y —
   the dispersion around the mean bounds the dispersion around
   the weight-average point f(θ̄).
-- **T1c `seed_only_gap_bound`** (the composition): under the
-  empirical hypotheses `h_emp_lip` (logits Λ-Lipschitz in the
-  parameters) and `h_emp_disp_step` (parameter dispersion
+- **T1c seed_only_gap_bound** (the composition): under the
+  empirical hypotheses h_emp_lip (logits Λ-Lipschitz in the
+  parameters) and h_emp_disp_step (parameter dispersion
   follows the T1b recurrence) with Δ(0) = 0 (same init), the
   logit dispersion — hence (given the gap-dispersion kernel,
   see Honest boundary) the ensemble gap — stays bounded by
@@ -36,16 +36,16 @@ feeds growth is then bounded by NOISE, not corpus divergence.
   certified EXHAUSTED in advance — via `Grow.grow_epsilon_stop`.
   With identical corpora and mixture weights, `DField_`'s
   divField-zero law gives D_data = 0: the only feed is noise.
-- **T1e `delta_ratio_lt_two_iff`**: for the closed-form
+- **T1e delta_ratio_lt_two_iff**: for the closed-form
   Δ_t = s(a^t−1)/(a−1), the two-point ratio test
   Δ_{2t}/Δ_t < 2 ⟺ a < 1 — the stand's cheap discriminator
   between decay and growth regimes on existing checkpoints.
 
 **Honest boundary**: the gap→dispersion KERNEL (T1a,
-`jensen_gap_le_dispersion` with c = 1/4 via Hoeffding) is NOT
+jensen_gap_le_dispersion with c = 1/4 via Hoeffding) is NOT
 proved: Mathlib's Hoeffding lemma
 (`Probability/Moments/SubGaussian.lean`,
-`hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero`) exists but
+hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero) exists but
 the finite-sum integration was not completed this round —
 T1c composes FROM the dispersion, and the kernel constant is
 cited, not proved. The theorem covers gen ≥ 2 ONLY: gen-1
@@ -147,9 +147,9 @@ theorem sum_dist_mean_le {V : Type*} [NormedAddCommGroup V] [InnerProductSpace �
   linarith
 
 /-- **T1c — the seed-only gap bound (the composition)**: with
-the empirical hypotheses `h_emp_lip` (the logit dispersion is
+the empirical hypotheses h_emp_lip (the logit dispersion is
 Λ²-bounded by the parameter dispersion — the Lipschitz
-channel) and `h_emp_disp_step` (the parameter dispersion
+channel) and h_emp_disp_step (the parameter dispersion
 follows the T1b recurrence from a common init, Δ(0) = 0), the
 sibling logit dispersion stays bounded by Λ²·s·Σ_{i<t} a^i at
 every step t. Combined with the (cited, unproven — see Honest

@@ -34,7 +34,7 @@ program is max D over the NON-CONFLICTING set.
 
 **What the module proves:**
 
-* `mixture_active_kkt` — the active-set KKT structure: at the
+* mixture_active_kkt — the active-set KKT structure: at the
   optimum of the concave program over the active corpora
   (strictly positive weights), the KL-from-mixture equalizes
   across the active set: KL(p_i ‖ p_w*) = KL(p_j ‖ p_w*) for

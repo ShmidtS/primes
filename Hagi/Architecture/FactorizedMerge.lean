@@ -51,7 +51,7 @@ vision/audio streams. All merge-equivalence claims are
 LINEAR-ALGEBRA level (normed-space arithmetic). The routing map
 `r(x)` is a CARRIER only: there is NO routing-policy theorem
 (no claim that any routing rule selects a good route, no bound
-on routing mistakes — `e_routing` in the unified budget is an
+on routing mistakes — e_routing in the unified budget is an
 input hypothesis about the switch, not a derived quantity).
 The exact-decomposition lemmas are definitional invariants and
 labeled as such; the approximate-core bounds carry the content.
@@ -270,7 +270,7 @@ with each term NAMED by its hypothesis and its source:
   (`Core/Element` `delta_rank_le` style);
 * `e_quant` — the grid rounding of the factors `‖A − QA‖`
   (`Budget/ElementQuant.factor_quant_error`);
-* `e_routing` — the routing switch cost `‖(C + QA) − S‖` (an
+* e_routing — the routing switch cost `‖(C + QA) − S‖` (an
   INPUT: no routing-policy theorem exists here — see the honest
   boundary).
 

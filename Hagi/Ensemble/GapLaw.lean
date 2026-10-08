@@ -27,7 +27,7 @@ is *exactly* (not approximately)
 
 `twoGap d = ½ · log ∑_u ∑_v p_u p_v · cosh(d_u − d_v)`
 
-where `p` is the softmax of the midpoint `m` (`twoGapRecenter`).
+where p is the softmax of the midpoint `m` (twoGapRecenter).
 This is the MGF of the *pairwise logit difference* under the
 softmax measure — the exact object behind the Hessian heuristic
 `½·Tr[H·Cov(d)]`:
@@ -42,10 +42,10 @@ the quadratic law).
 
 **What the module proves:**
 
-* `twoGap_recenter` — the gap depends only on the *difference* of
+* twoGap_recenter — the gap depends only on the *difference* of
   the deviations, not the midpoint: gap(m, d₁, d₂) =
-  gap(m, d₁−d₂, 0). The identity above with `p` the softmax of `m`.
-* `twoGap_zero_iff_shift` — the gap is zero *iff* the leaves are
+  gap(m, d₁−d₂, 0). The identity above with `pairVarEq` the softmax of `m`.
+* twoGap_zero_iff_shift — the gap is zero *iff* the leaves are
   shifts of each other (`d₁ = d₂`): consensus is the exact zero of
   the ensemble gain, the two-point form of
   `Hagi.consensus_no_gain`.
@@ -57,14 +57,14 @@ the quadratic law).
   normalization; with exchangeable leaves the gap of the pair is
   the softmax-MGF of `2·Var_p(d)`'s scale — the ~σ²/2 per-pair
   term behind the measured gap/N ~ 1/(2N).
-* `twoGap_cos` — the gap of the `Select.lean` counterexample's
+* `twoGap_cosh` — the gap of the `Select.lean` counterexample's
   regime: complementary leaves (anticorrelated deviations) have
   strictly positive gap — the divergent-leaf regime where ensemble
   ranking beats standalone ranking, from the law's viewpoint.
 
 **Prescription for the code.** The gap is computable *before the
 merge* from the leaves' logit deviations alone: one forward pass
-per leaf, the softmax `p` at the pooled midpoint, then the double
+per leaf, the softmax `pairVarEq` at the pooled midpoint, then the double
 sum `∑ p_u p_v cosh(d_u − d_v)` — `O(N·V)` once, versus measuring
 CE deltas by re-running. The Hessian heuristic `½Tr[H·Cov]` is the
 small-deviation limit; the exact identity has no approximation
@@ -95,7 +95,7 @@ variable {k : Type*} [Fintype k] [Nonempty k]
 /-- The two-point Jensen gap of a pair of leaves, as the MGF of
 their logit difference under the softmax measure of the midpoint:
 `twoGap m p d = ½·log ∑_u ∑_v p_u p_v · cosh(d_u − d_v)`, where
-`p` is the softmax at the midpoint (any positive measure
+`pairVarEq` is the softmax at the midpoint (any positive measure
 normalizing to 1). -/
 noncomputable def twoGap (p : k → ℝ) (d : k → ℝ) : ℝ :=
   (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))

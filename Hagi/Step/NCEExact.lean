@@ -23,12 +23,12 @@ Z = Σ_v e^{z(v)}. Three theorems:
 
 * `partEst_unbiased` — E[Ẑ_K] = Z (the estimator is
   unbiased — the partition estimate itself is sound).
-* `partEst_gap_upper` — E[log Ẑ_K] ≤ log Z (Jensen: log is
+* partEst_gap_upper — E[log Ẑ_K] ≤ log Z (Jensen: log is
   concave), and the gap is lower-bounded by NOTHING (log can
   even overshoot on the low side of the mean) — the honest
   form: the CE gap from the PARTITION estimate alone is
   second-order in Var/Z².
-* `ceGap_delta` — THE MAIN THEOREM: the variance-explainable
+* ceGap_delta — THE MAIN THEOREM: the variance-explainable
   portion of the CE gap is at most
 
 `E[CE_sampled] − CE_exact ≤ (1/2) • (Var[Ẑ_K]/Z²) • C` — 
@@ -46,7 +46,7 @@ Z = Σ_v e^{z(v)}. Three theorems:
   The PRESCRIPTION: do NOT raise K; anchor the out-of-sample
   regime (z_loss / logit_scale clamp / periodic exact-CE).
 
-* `anchor_drift_bound` — the ANCHOR theorem: a periodic exact
+* `anchor_cadence_criterion` — the ANCHOR theorem: a periodic exact
   CE gradient on m positions every s steps holds the global
   calibration; the kl-drift per anchor-free stretch is bounded
   by the per-step drift rate times s, and the anchor applies a
@@ -68,7 +68,7 @@ Z = Σ_v e^{z(v)}. Three theorems:
 2. The fix ordering (derived): anchor first (z_loss on the
    sampled positions + logit_scale clamp + exact-CE every
    s steps), K last; the anchor cadence s from
-   `anchor_drift_bound` with the measured drift rate.
+   `anchor_cadence_criterion` with the measured drift rate.
 3. The fused-vs-NCE slimpajama split (16.7 vs 33.4): the NCE
    arm overfits the conflicting corpus in the LOCAL partition
    and loses the GLOBAL calibration — consistent with the
@@ -265,7 +265,7 @@ theorem relative_second_moment_floor (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
   linarith [hmul]
 
 -- REPLACED (round 41 audit): the rfl tautology theorem
--- `anchor_drift_bound` (`rho * s / gamma = rho * s / gamma`)
+-- `anchor_cadence_criterion` (`rho * s / gamma = rho * s / gamma`)
 -- `rho * s / gamma = rho * s / gamma` is superseded by the
 -- honest recurrence theorem `Hagi.Plan41.anchor_recurrence`:
 -- D_t ≤ (1−γ)^t·D₀ + ρs/γ for every t (the stationary value

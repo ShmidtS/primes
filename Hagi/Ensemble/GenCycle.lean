@@ -21,14 +21,14 @@ specialization field replenishes it)?
 child CE `M` and the sibling disagreement `G` (the Jensen gap of
 the fresh leaves). One cycle applies two maps:
 
-* `mergeJoint`: the merge at 1/n + the joint step — by
+* mergeJoint: the merge at 1/n + the joint step — by
   `ensemble_ce_le_mean_general` the certified bound moves from
   `M` to the joint-finetuned `M'` (the measured improvement),
   and the disagreement of children *of the merged model* is
   born at most `G' ≤ ρ • G` with `ρ < 1` (the shared prior:
   sibling leaves start closer — `Hagi.consensus_no_gain` is the
   ρ = 0 endpoint);
-* `specialize`: fresh leaves diverge from the new prior — the
+* specialize: fresh leaves diverge from the new prior — the
   disagreement G'' is replenished by the data-diversity field
   `D ≥ 0` (the *only* external input).
 
@@ -43,7 +43,7 @@ the fresh leaves). One cycle applies two maps:
   merged == single` test is the N=9 instance).
 * `genMean_compound` — the compounding bound: if each cycle
   improves the mean by at least `c > 0` (the measured
-  5.875 → 5.694 regime), the mean after `k` generations is at
+  5.875 → 5.694 regime), the mean after k generations is at
   most `M₀ − k • c` — the linear compounding law (as long as
   the per-cycle improvement holds).
 * `genGap_decay` — the death law: if the replenishment is

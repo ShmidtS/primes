@@ -9,7 +9,7 @@ set_option linter.style.header false
 # The real 6x6 lift of the F3 transform: the interleaving isometry
 
 The production tree (`merge.py`, `_f3_real_column_matrix_`,
-`branch_major_pair_interleaved_`) applies the complex F₃ transform
+branch_major_pair_interleaved_) applies the complex F₃ transform
 through a real 6×6 matrix R on (re, im)-interleaved coordinates:
 each complex coordinate `z = x + i·y` becomes the real pair
 `(x, y)`, and R realizes the same change of basis as the complex
@@ -26,7 +26,7 @@ the conjugating isometry. What is proven here:
   inner product: `‖φ(z)‖ = ‖z‖` (the complex modulus), so
   unitarity of a real matrix R transported by φ is equivalent to
   unitarity of the conjugated complex matrix.
-* `reInterleave` — the canonical 6×6 real matrix built from the
+* reInterleave — the canonical 6×6 real matrix built from the
   character values `chi3` (the same entries as
   `_f3_real_column_matrix_`: s = 1/√3 blocks, ±b·s with
   b = √3/2), and the conjugation identity `φ (chi3 a • z) =
@@ -56,7 +56,7 @@ def interleave (z : ℂ) : Fin 2 → ℝ := ![z.re, z.im]
 
 /-- The branch-major, pair-interleaved lift of a complex 3-vector
 to ℝ⁶: coordinate `(a, p)` is `p = 0 → re`, `p = 1 → im` of branch
-`a`. This is the production layout `branch_major_pair_interleaved_`
+`a`. This is the production layout branch_major_pair_interleaved_
 of `_f3_real_column_matrix_`. -/
 def interleave3 (z : Fin 3 → ℂ) : Fin 3 × Fin 2 → ℝ :=
   fun ab => interleave (z ab.1) ab.2

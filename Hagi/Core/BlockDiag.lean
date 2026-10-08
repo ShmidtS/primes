@@ -19,19 +19,19 @@ for the other linear layers, e.g. `W_Q = diag(W_Q^1, …, W_Q^N)`).
 The key property is that at optimization step 0 the merged model computes
 *exactly* the N independent experts' outputs:
 
-* off-diagonal blocks of `W_merged` are zero, so expert `k`'s output block
+* off-diagonal blocks of `W_merged` are zero, so expert k's output block
   receives no contribution from any other expert's weights or states;
-* each diagonal block `W_k` reproduces expert `k`'s forward pass verbatim.
+* each diagonal block `W_k` reproduces expert k's forward pass verbatim.
 
 This is stated as `Hagi.step0_equivalence`: applying the merged linear layer
 `Matrix.blockDiagonal' W` to the stacked expert states
-(`Hagi.stackStates`) returns, in block `k`, exactly expert `k`'s output
+(`Hagi.stackStates`) returns, in block k, exactly expert k's output
 `(W k *ᵥ x k)`.
 
 Note on Mathlib: for matrix *multiplication* the Sigma-indexed analogue
 already exists as `Matrix.blockDiagonal'_mul`
 (`blockDiagonal' (fun k => M k * N k) = blockDiagonal' M * blockDiagonal' N`,
-Mathlib/Data/Matrix/Block.lean); the `mulVec` version below is its
+Mathlib/Data/Matrix/Block.lean); the mulVec version below is its
 vector-action companion, which is what a linear layer's forward pass needs.
 -/
 
@@ -45,8 +45,8 @@ variable {o : Type*} [Fintype o] [DecidableEq o]
 
 For a family of expert matrices `M : ∀ i, Matrix (m' i) (n' i) α`, the
 block-diagonal merge `blockDiagonal' M` acts on a stacked vector `v`
-block-wise: in block `k`, the merged layer's output equals expert `k`'s
-matrix `M k` applied to the `k`-th slice of `v`. Off-diagonal blocks
+block-wise: in block k, the merged layer's output equals expert k's
+matrix `M k` applied to the k-th slice of `v`. Off-diagonal blocks
 contribute nothing. -/
 theorem blockDiagonal'_mulVec_apply {m' n' : o → Type*} [∀ i, Fintype (n' i)]
     {α : Type*} [CommSemiring α]
@@ -68,7 +68,7 @@ def stackStates {m' : o → Type*} (x : ∀ i, m' i → ℝ) : (Σ i, m' i) → 
 
 At merge time (step 0), the merged linear layer `blockDiagonal' W`
 (the block-diagonal `diag(W₁, …, W_N)`) applied to the stacked expert
-states reproduces, in block `k`, exactly expert `k`'s forward pass:
+states reproduces, in block k, exactly expert k's forward pass:
 `(W k *ᵥ x k) i`. Off-diagonal blocks are zero and contribute nothing,
 so the merged model is *exactly* the N independent experts. -/
 theorem step0_equivalence {m' n' : o → Type*} [∀ i, Fintype (n' i)]

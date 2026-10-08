@@ -37,13 +37,13 @@ the disagreement. All the ingredients are measurable
   a genuine divergence — a mixture of clones generates zero
   replenishment (the death of the recursion by data uniformity,
   the formal restatement of "same corpus in, same corpus out").
-* `divField_le_logK` — D(w) ≤ log K for any mixture over K
+* divField_le_logK — D(w) ≤ log K for any mixture over K
   corpora: the replenishment budget is bounded by the entropy
   of the mixture — more distinct corpora, more headroom
   (the "effective number of sources" hypothesis: the bound is
   exactly log K, and it is achieved when the corpora are
   pairwise disjoint and the mixture is uniform).
-* `conflictCorpus_dfield_bound` — the slimpajama verdict: a
+* conflictCorpus_dfield_bound — the slimpajama verdict: a
   corpus whose gradient *conflicts* with the mixture direction
   (⟨g_c, g⟩ < 0, the `Hagi.Step/Joint` hypothesis) is a D-*sink*, not
   a D-source: its children learn to *avoid* it, and its
@@ -58,7 +58,7 @@ the disagreement. All the ingredients are measurable
   prediction: **replacing slimpajama with a non-conflicting
   corpus of the same volume RAISES the measured D** (the
   sink is removed), testable BEFORE the GPU.
-* `mixture_optimal_uniform_max` — the D-field is *maximized*
+* mixture_optimal_uniform_max — the D-field is *maximized*
   by spreading the weight towards the divergent, non-conflicting
   corpora: under the disjoint-support model (the corpora
   pairwise disjoint on their token supports), D(w) is

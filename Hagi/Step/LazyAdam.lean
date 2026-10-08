@@ -29,7 +29,7 @@ decoupled decay applies to w unconditionally:
 
 **What the module proves:**
 
-* `lazyAdam_exact` — THE EXACT EQUIVALENCE: maintaining, per
+* lazyAdam_exact — THE EXACT EQUIVALENCE: maintaining, per
   row, (i) the stale v_r, (ii) ONE SCALAR accumulator
   D_r = Π_{s in the missed steps}(1 − η_s λ) — the product of
   the decay factors over the missed steps — and replaying at

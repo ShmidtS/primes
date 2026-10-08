@@ -40,7 +40,7 @@ must eventually decay; the measured 0.105 → 0.206 is the
 rising limb; the N* of the turnover is
 predictable from the two fitted channels).
 
-* `edge_count_linear` — the cross-block edge count of the
+* edge_count_linear — the cross-block edge count of the
 block-diagonal merge is linear in N: the off-diagonal
 compositions the joint phase trains scale with the block
 count (N blocks → N(N−1)/2 directed pairs, but each

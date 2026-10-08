@@ -54,7 +54,7 @@ derived budgets (small/well-conditioned matrices → 3,
 complex → 5; the optimizer cost enters the compute
 objective explicitly).
 
-* `wall_clock_model` — THE TWO-COST STRUCTURE: the
+* wall_clock_model — THE TWO-COST STRUCTURE: the
 wall-clock of a step is NOT FLOPs/rate — on the ROCm
 consumer hardware with many small kernels,
 

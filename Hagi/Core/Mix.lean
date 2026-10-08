@@ -16,9 +16,9 @@ regime of `Hagi.Core/Lift`) can only help — or when it silently destroys
 the ensemble.
 
 **Setup.** N leaves read a shared hidden state `h` (the concat of
-per-leaf columns); leaf `a` applies head `W_a` producing logits
+per-leaf columns); leaf a applies head `W_a` producing logits
 `z_a = W_a ⬝ᵥ h_a` where `h_a = ∑_b Q a b • h_b` is the leaf's view
-through the mixer Q. The merged logit is the mean of the `z_a`.
+through the mixer Q. The merged logit is the mean of the z_a.
 
 **The invisibility condition.** The mixing is *logit-invisible* —
 the merged logits are exactly the un-mixed ensemble mean — whenever
@@ -54,7 +54,7 @@ namespace Hagi
 
 variable {k n : Type*} [Fintype k] [Fintype n]
 
-/-- The merged logits of the mixed ladder: leaf `a` reads
+/-- The merged logits of the mixed ladder: leaf a reads
 `∑_b Q a b • h_b` through head `W_a`, and the head averages. -/
 noncomputable def mixedLogits (Q : n → n → ℝ)
     (W : n → (k → ℝ)) (h : n → (k → ℝ)) : ℝ :=

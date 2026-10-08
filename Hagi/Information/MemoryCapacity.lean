@@ -32,7 +32,7 @@ Main results:
 * `bits_floor`: the information form — the retained mutual
   information (in bits) is at most log₂ |State|: I(task; state)
   ≤ log₂ |State| for deterministic encodings;
-* `capabilityPerBit`: the HAGI objective — useful capability
+* capabilityPerBit: the HAGI objective — useful capability
   per persistent bit is bounded by the encoding quality per
   state; the controller maximizes ΔI_task/(ΔT·ΔBits) exactly
   when it maximizes capability growth per resource.

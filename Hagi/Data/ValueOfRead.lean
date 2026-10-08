@@ -67,7 +67,7 @@ section VoI
 variable {B : Type*} [Fintype B]
 
 /- Model: scores s : B → ℝ; the full softmax weights `softmaxW`;
-the reading policy reads the complement of `unread` and
+the reading policy reads the complement of unread and
 renormalizes (the conditional softmax). The skipped mass is
 the decision variable of the policy. -/
 
@@ -78,7 +78,7 @@ noncomputable def softmaxW (s : B → ℝ) (b : B) : ℝ :=
 
 /-- **The uniform-skip bound: the TV regression of skipping is
 at most twice the skipped mass.** Reading only the blocks
-outside `unread` and renormalizing (the conditional softmax)
+outside unread and renormalizing (the conditional softmax)
 perturbs the attention distribution by at most 2δ in total
 variation, δ = the skipped mass. The CE-regression of the skip
 is first-order in the skipped ATTENTION MASS — the decision

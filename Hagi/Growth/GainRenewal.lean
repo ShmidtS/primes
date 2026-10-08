@@ -56,7 +56,7 @@ Results (the chain):
   `C_T ≥ C₀·(1+α)^T` for ALL T: the window constraint is lifted
   generation over generation.
 * `renewal_feeds_takeoff` — the honest empirical bridge: the
-  frontier-scaling hypothesis `h_emp_frontier_scaling`
+  frontier-scaling hypothesis h_emp_frontier_scaling
   (`α·C_t ≤ γ·D_t` at every t — usable disagreement scales with
   capability) is exactly what converts the renewal floor into
   the gate. THIS is the remaining empirical premise: since
@@ -84,9 +84,9 @@ The minimal extension of the loop semantics: each generation's
 gain is PRODUCED from that generation's measured usable
 disagreement by the concrete harvest map `gainFromD γ D = γ·D`
 (the linear harvest; γ the measured harvest ratio). The
-hypotheses below quantify this: `h_gain_prod` is the production
+hypotheses below quantify this: h_gain_prod is the production
 law (lower bound — the system may harvest more than γ·D, never
-less), `h_D_renew` is the Diversity floor law verbatim. -/
+less), h_D_renew is the Diversity floor law verbatim. -/
 
 /-- The concrete gain producer: the linear harvest of usable
 disagreement D at harvest ratio γ (the measured per-unit merge
@@ -100,9 +100,9 @@ noncomputable def gainFromD (γ D : ℝ) : ℝ := γ * D
 /-- **The renewal recurrence (DERIVED, not assumed per-step)**:
 if each generation's gain is produced from that generation's
 disagreement at harvest ratio γ — EXACTLY: the producer is the
-ONLY gain source, `γ·D_t ≤ G_t ≤ γ·D_t` (`h_gain_prod` /
+ONLY gain source, `γ·D_t ≤ G_t ≤ γ·D_t` (h_gain_prod /
 `h_gain_exact`) — and the disagreement obeys the Diversity floor
-law `D_{t+1} ≥ ρ·D_t + inj − ξ` (`h_D_renew`, ρ ≥ 0 retention),
+law `D_{t+1} ≥ ρ·D_t + inj − ξ` (h_D_renew, ρ ≥ 0 retention),
 then the produced gains satisfy
 
   G_{t+1} ≥ ρ·G_t + γ·(inj − ξ)
@@ -157,7 +157,7 @@ private theorem geo_sum_closed (ρ : ℝ) (hρ : ρ ≠ 1) (t : ℕ) :
   exact geo_sum_mul ρ t
 
 /-- **The renewal recurrence solved (ρ < 1)**: under
-`h_gain_prod` and `h_D_renew` with ρ ∈ [0, 1), strict injection
+h_gain_prod and h_D_renew with ρ ∈ [0, 1), strict injection
 dominance inj > ξ, and exact production
 (γ·D_t ≤ G_t ≤ γ·D_t — the harvest is the only gain source,
 the produced gains satisfy the geometric-floor closed form
@@ -361,7 +361,7 @@ the diversity is BOUNDED (`D_t ≤ D̄` — a stationary frontier),
 and the gate holds at every t, then capability is bounded
 FOREVER: `C_t ≤ γ·D̄/α`. So under the renewal semantics the
 certified takeoff is sustained IFF the frontier scales with
-capability (the `h_emp_frontier_scaling` of
+capability (the h_emp_frontier_scaling of
 `renewal_feeds_takeoff`) — this is the honest iff-form of
 "sustained growth". -/
 theorem bounded_frontier_no_sustained_growth (C G D : ℕ → ℝ)

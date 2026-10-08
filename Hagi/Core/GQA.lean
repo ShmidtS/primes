@@ -21,7 +21,7 @@ its shared KV head; uniform groups of size k.
 
 Theorems:
 
-* `gqa_group_card` - uniform grouping: card Q = card KV * k.
+* gqa_group_card - uniform grouping: card Q = card KV * k.
 * `gqa_cache_card` - exact cache accounting: the GQA cache
 holds card KV vectors per position, the MHA cache card Q;
 with uniform groups the ratio is exactly 1/k.

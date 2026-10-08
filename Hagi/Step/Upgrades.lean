@@ -21,13 +21,13 @@ per-matrix budget s* = min{s : e(s) ≤ ε} is now bounded
 above by ⌈log(ε/e(0))/log ρ⌉ — the iteration count is
 computable from the measured contraction, not searched.
 
-**2. `sink_receptive_field_exact` (from v-code01/blindband)**:
+**2. sink_receptive_field_exact (from v-code01/blindband)**:
 the window+sinks regime's receptive field is EXACTLY
 [0, S−1] ∪ [i−(W−1), i] per query i — a STRUCTURAL identity,
 sharper than the TV-2δ mass bound: the field is precisely
 known, the mass bound prices what the field misses.
 
-**3. `nce_per_sample_correction` (from the sampled-softmax
+**3. `nce_per_sample_corrected` (from the sampled-softmax
 survey, leimao/leimao)**: the per-sample log(K·q)
 correction — the estimator
 (1/K)Σ_j [1_{v_j=v}·K·q(v_j)·(f(v_j)−log(K·q(v_j)))]

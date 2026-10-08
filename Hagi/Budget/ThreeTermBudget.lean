@@ -19,7 +19,7 @@ STRUCTURAL CORE exactly (the AM-GM regime):
   total budget: the optimal batch/step count grows with the
   token budget (the law's central qualitative prediction,
   proved exactly here);
-* `suboptimal_slack`: any split deviating by factor s from
+* suboptimal_slack: any split deviating by factor s from
   the balanced one pays at least the s-slack in reducible
   error — the price of imbalance is explicit.
 

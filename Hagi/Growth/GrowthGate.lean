@@ -12,7 +12,7 @@ set_option linter.style.header false
 
 The last heuristic of the loop — the CE-plateau fork —
 replaced by a computable two-dimensional verdict. See the
-prescriptions in `growth_verdict_table`.
+prescriptions in growth_verdict_table.
 
 **Prescription for the code (growth_gate v5).**
 

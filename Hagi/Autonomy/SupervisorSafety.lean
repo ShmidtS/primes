@@ -24,14 +24,14 @@ event occurs at most once.
 
 Theorems:
 
-* `valid_snoc` - the inductive step: appending an event
+* valid_snoc - the inductive step: appending an event
 preserves validity iff the event is ADMISSIBLE against the
 prefix (an induction over histories, not a definition
 unfold).
-* `no_restore_before_checkpoint` - soundness: in a valid
+* `no_restore_without_checkpoint` - soundness: in a valid
 history every restore finds a matching earlier checkpoint
 of the same identity with monotone time.
-* `terminal_unique` - in a valid history at most one
+* terminal_unique - in a valid history at most one
 terminal event (kill XOR crash): the supervisor can always
 distinguish clean termination from a crash.
 

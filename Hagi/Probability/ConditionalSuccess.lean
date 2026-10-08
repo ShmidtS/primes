@@ -27,7 +27,7 @@ with per-step success means μ[S t] ≥ p₀. Then:
   Pr[ Σ_{t<T} S t ≥ (Σ_{t<T} μ[S t]) − Δ ] ≥ 1 − δ
   with the EXPLICIT Δ(T,δ) = √(2·T·log(1/δ)) (sub-Gaussian
   parameter 1 per step: Hoeffding's lemma +
-  `measure_sum_range_ge_le_of_iIndepFun` over the T
+  measure_sum_range_ge_le_of_iIndepFun over the T
   independent terms).
 * `success_count_lower_p0` — the per-step floor version:
   μ[S t] ≥ p₀ for all t gives
@@ -50,7 +50,7 @@ with per-step success means μ[S t] ≥ p₀. Then:
 **Honest boundaries.** (1) The fully ADAPTED conditional
 formulation — μ({S t = 1} | 𝒩_t) ≥ p per step w.r.t. a
 filtration, via Azuma–Hoeffding — is NOT taken here: mathlib
-has `measure_sum_ge_le_of_hasCondSubgaussianMGF` but no
+has measure_sum_ge_le_of_hasCondSubgaussianMGF but no
 conditional Hoeffding lemma (bounded + conditionally mean
 zero ⇒ conditionally sub-Gaussian) that would let us feed it
 without kernel-level MGF arguments. The adapted case is the
@@ -95,7 +95,7 @@ independent (`iIndepFun.comp`), takes values in [−1,1] with
 mean 0, hence is sub-Gaussian with parameter
 ((1−(−1))/2)² = 1 by Hoeffding's lemma
 (`hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero`);
-`measure_sum_range_ge_le_of_iIndepFun` gives the upper tail
+measure_sum_range_ge_le_of_iIndepFun gives the upper tail
 Pr[Δ ≤ ΣX_t] ≤ exp(−Δ²/(2T)) = δ, and we pass to the
 complement. -/
 theorem success_count_lower {S : ℕ → Ω → ℝ} {T : ℕ} {delta : ℝ}

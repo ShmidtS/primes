@@ -48,7 +48,7 @@ Contents:
 * `pptMixing` — Doeblin geometric contraction: if K ≥ ε entrywise, then
   TV(μ K^n, pi) ≤ (1 − |Seq|·ε)^n · TV(μ, pi) ≤ (1 − ε)^n (the sharp constant
   is 1 − |Seq|·ε; the paper-style 1 − ε is the weaker corollary).
-* `ppt_discovery_gain` — the discovery event Good = {V x ≥ γ} under the
+* ppt_discovery_gain — the discovery event Good = {V x ≥ γ} under the
   stationary power target: `discovery_prob_stationary`,
   `discovery_prob_lower`, `stationary_value_ge`, and the composite
   indicator `pptSuccess` with `pptSuccess_union_bound` /

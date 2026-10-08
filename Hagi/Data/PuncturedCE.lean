@@ -19,9 +19,9 @@ S b = sum b i * x i.
 
 Theorems:
 
-* `punctured_expectation` - UNBIASEDNESS up to the factor:
+* punctured_expectation - UNBIASEDNESS up to the factor:
 E[S b] = p * sum x i (independence + linearity).
-* `punctured_concentrates` - Hoeffding: the punctured sum
+* punctured_concentrates - Hoeffding: the punctured sum
 with bounded terms concentrates around its mean at the
 standard exp(-2 eps^2 / n) rate.
 

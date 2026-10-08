@@ -14,7 +14,7 @@ The four review items, closed:
 **1. `min_dist_to_vi` + `safeQP_descent`**: the SafeQP
 controller binding — the minimizer of dist(·, g0) over ANY
 convex C yields the variational inequality (via
-`norm_eq_iInf_iff_real_inner_le_zero` + dist↔norm), and
+norm_eq_iInf_iff_real_inner_le_zero + dist↔norm), and
 instantiated on the abstract statement this gives BOTH
 descent guarantees: ‖ds‖² ≤ ⟪g0, ds⟫ AND ‖g0−ds‖ ≤ ‖g0‖.
 The "guarantee instead of threshold" now rests on Lean: the
@@ -56,7 +56,7 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 the bridge): if ds minimizes dist(·, g0) over the convex set C
 (ds ∈ C), then ⟪g0 − ds, w − ds⟫ ≤ 0 for every w ∈ C — the
 first-order optimality translated into the inner-product VI
-via `norm_eq_iInf_iff_real_inner_le_zero` (the Mathlib
+via norm_eq_iInf_iff_real_inner_le_zero (the Mathlib
 projection lemma, exactly as prescribed). This is the missing
 link between `SafeQP.safeQP_exists_unique` (the minimizer
 exists) and `Plan41.proj_descent_inner` (the descent

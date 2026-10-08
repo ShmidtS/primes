@@ -25,7 +25,7 @@ cross-entropy
 **Теоремы (всё — о КОНКРЕТНОЙ функции, не посылки):**
 
 * `logitCE_deriv` — logitCE' w = −1/(1+e^w) (chain rule);
-* `logitCE_second_deriv` — производная градиента:
+* logitCE_second_deriv — производная градиента:
   (fun w => −1/(1+e^w))' = e^w/(1+e^w)²;
 * `sigmoid_sq_le_quarter` — e^w/(1+e^w)² ≤ 1/4 (ядро:
   0 ≤ (1−e^w)²);

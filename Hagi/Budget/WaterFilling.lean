@@ -23,7 +23,7 @@ but that meta-argument is not a theorem here).
 
 **Result.** `exists_balanced_allocation`: for any layer
 sensitivities and any bit budget `B`, there EXISTS an
-allocation `f` with `Σ f l ≤ B` such that every layer's error
+allocation f with `Σ f l ≤ B` such that every layer's error
 is within a factor 2 of every other layer holding a bit:
 
 `∀ j k, f k ≠ 0 → layerError (c j) (f j) ≤ 2 * layerError (c k) (f k)`.

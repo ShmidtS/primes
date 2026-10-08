@@ -27,7 +27,7 @@ those theorems plus honest telescoping/bridging algebra.
   domain within its budget (ΔL_i ≤ ε_i); aggregated to the
   risk-spend bound by `Hagi/Generalization/ModeState` (R109)
   `safeqp_risk_bound_compose` (per-domain sum = risk increment,
-  the `h_sumdL` link).
+  the h_sumdL link).
 * **Progress** — `Hagi/Unified/GrowthState` (R91)
   `growth_cycle_potential` / `certificate_sound` (whose
   real-variable form is `Hagi/Unified/TopLevel.lean`
@@ -37,11 +37,11 @@ those theorems plus honest telescoping/bridging algebra.
   `sustained_takeoff_from_production`: the cone invariant
   D_t ≥ (α/γ)C_t DERIVED from the production dynamics
   D_{t+1} ≥ ρD_t + βC_t − ξ_t supplies the gate, giving
-  C_T ≥ C₀(1+α)^T with NO free `h_emp_frontier_scaling`.
+  C_T ≥ C₀(1+α)^T with NO free h_emp_frontier_scaling.
 * **Generalization** — `Hagi/Generalization/ModeState` (R109)
   `generalization_safe_step`: Φ_HAGI decreases by the certified
   fit amount minus λ·(risk spend) minus ν·ε_Q (the probe
-  tolerance ε_Q is pure telemetry, `h_emp_G`).
+  tolerance ε_Q is pure telemetry, h_emp_G).
 * **Budget** — `Hagi/Unified/GrowthState` (R91)
   `budget_account`: the composed budget is EXACTLY the initial
   budget minus the declared budgetSpend; telescoped over T
@@ -57,14 +57,14 @@ those theorems plus honest telescoping/bridging algebra.
 ## The h_emp inventory (what stays measured, and why)
 
 The capstone hides NOTHING beyond what the sources already
-declare: `h_emp_grow` (nonconvex training descent — no training
-theorem exists), `h_emp_merge` (satisfied by the Concat adapter,
-R88, but still a measured stage law), `h_emp_smooth` (Lipschitz
-energy), `h_emp_dist`/`h_emp_lip` (ternary distortion /
-curvature), `h_emp_G` (probe telemetry), the R107 dynamics
+declare: h_emp_grow (nonconvex training descent — no training
+theorem exists), h_emp_merge (satisfied by the Concat adapter,
+R88, but still a measured stage law), h_emp_smooth (Lipschitz
+energy), h_emp_dist/h_emp_lip (ternary distortion /
+curvature), h_emp_G (probe telemetry), the R107 dynamics
 (h_dyn/hβ — measurable from Diversity/GapLaw telemetry), the
 R95 independence/p-floor hypotheses, and the per-cycle net
-premise `h_net` (the certified stage decrease covers the
+premise h_net (the certified stage decrease covers the
 λ-weighted risk and the ν-weighted probe slack). Deriving these
 from the real runtime (Implementation Refinement) is the open
 frontier I — this module is the CONDITIONAL certificate of the
@@ -150,7 +150,7 @@ instantiated at the pre-cycle state `S` and post-cycle state
   stage laws (h_emp_grow, h_emp_merge, h_emp_smooth,
   h_emp_dist, h_emp_lip), the SafeQP window (hL, heta, heta0,
   hdescent) and the compress constants (hkappa, hs, hdn);
-* conjunct 14 (`h_cycle`): the bridging link — `S'` IS the
+* conjunct 14 (h_cycle): the bridging link — `S'` IS the
   composed cycle `compress(joint(merge(grow S)))` on the three
   carriers the account and potential laws read (energy,
   protectedRisk, budget). This is definitional plumbing, not a
@@ -248,10 +248,10 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
   rw [hcB]
   exact budget_account S.toGrowthState
 
-/-! ## R116: the FULL-state binding of `h_cycle` -/
+/-! ## R116: the FULL-state binding of h_cycle -/
 
 /-- **The full-state cycle refinement** (R116, audit §6): the
-`h_cycle` conjunct of `CorePremises` binds only energy,
+h_cycle conjunct of `CorePremises` binds only energy,
 protectedRisk and budget — an `S'` with the right accounting but
 arbitrary `capability`/`params`/`experts` satisfied it. The
 honest refinement is the FULL record equality: `S'` IS the
@@ -265,7 +265,7 @@ def FullCycleRefinement (S S' : GenState X) : Prop :=
   ∧ S'.gen = S.gen
 
 /-- The full-state equality implies the three field equalities
-of the old `h_cycle` conjunct (energy/protectedRisk/budget) —
+of the old h_cycle conjunct (energy/protectedRisk/budget) —
 the refinement is strictly stronger, closing the
 "right accounting, arbitrary capability" hole. -/
 theorem full_cycle_field_eq {S S' : GenState X}
@@ -348,8 +348,8 @@ under (i) the per-cycle `CorePremises` (R91 stage laws + R109
 probe tolerance + the cycle link), (ii) the per-cycle SafeQP
 safety premises (R105: the derived window and per-domain
 descent bound, aggregated by R109's `safeqp_risk_bound_compose`
-via the per-domain risk decomposition `h_sumdL`), (iii) the
-per-cycle NET premise `h_net` (the certified stage decrease
+via the per-domain risk decomposition h_sumdL), (iii) the
+per-cycle NET premise h_net (the certified stage decrease
 covers the λ-weighted risk spend and the ν-weighted probe
 slack), (iv) the budget solvency `h_budget0`, and (v) the R107
 production-dynamics premises (the capability channel C, G, D, ξ

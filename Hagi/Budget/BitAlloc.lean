@@ -33,8 +33,8 @@ halves with each extra bit). Layer error
   halves the layer error; one fewer bit doubles it.
 
 * `transfer_exact` — THE MARGINAL-EXCHANGE LEMMA: moving one
-  bit from layer `k` (with a bit to give) to a different
-  layer `j` changes the total error by EXACTLY
+  bit from layer k (with a bit to give) to a different
+  layer j changes the total error by EXACTLY
   `e_k − e_j/2` (removing a bit doubles the giver's error;
   adding one halves the receiver's). In particular the
   transfer does not increase the total error exactly when
@@ -110,7 +110,7 @@ theorem totalError_two_point {n : ℕ} (c : Fin n → ℝ)
   ring
 
 /-- **The marginal-exchange identity**: moving one bit from
-layer `k` (with a bit to give) to a different layer `j`
+layer k (with a bit to give) to a different layer j
 changes the total error by EXACTLY
 `e_k(b_k) − e_j(b_j)/2`: removing a bit doubles the giver's
 error (loss `e_k`), adding one halves the receiver's (gain

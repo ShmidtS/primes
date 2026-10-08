@@ -15,10 +15,10 @@ cores of `src/hagi/model/ternary.py`:
 
 **The quantizer (THEOREM).** Per output channel:
 `s = mean(|W|, dim=1)`, `Q = round(clamp(W/s, −1, +1))`,
-`W~ = Q·s`. The zero bin is implicit: `round` sends
+`W~ = Q·s`. The zero bin is implicit: round sends
 |w/s| < 1/2 to 0.
 
-* `ternary_distortion_bound` — the rate-distortion core:
+* ternary_distortion_bound — the rate-distortion core:
 the per-weight error |W~ − W| is at most s (the clamp
 residues) and at most s/2 on the non-saturated mass (the
 round residues): the quantizer is the nearest-ternary
@@ -26,7 +26,7 @@ minimizer under the per-channel scale — the distortion is
 the channel's intrinsic noise, no artificial injection
 (the docstring's claim made a theorem).
 
-* `ternary_scale_invariance` — THE SELF-STABILIZATION
+* ternary_scale_invariance — THE SELF-STABILIZATION
 INVARIANT (the docstring's "verified by simulation over 20k
 Muon steps" — now proved): because s is the per-row absmean
 of the master, any uniform outward drift of ‖W‖ cancels in
@@ -35,7 +35,7 @@ The effective weight RMS is self-stabilizing — the ternary
 body needs no spectral cap (why Muon's 24× weight growth on
 the V31 run did not blow up the ternary body).
 
-* `ternary_rate` — the storage rate: each weight carries
+* `tern` — the storage rate: each weight carries
 log₂(3) ≈ 1.585 bits (three levels) — the rate side of the
 rate-distortion pair (against bf16's 16: the 10.09×
 compression of the channel weights).

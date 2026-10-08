@@ -21,7 +21,7 @@ it in the already-measured Gram matrix: a FREE byproduct of
 the domination-scan telemetry. Small D_grad = mergeable;
 beats the unigram-KL corpus divergence of `Hagi.Data/DField`.
 
-**2. `config_cert_constructive`** (from tum-pbs/ConFIG,
+**2. config_cert_constructive** (from tum-pbs/ConFIG,
 ICLR'25 Spotlight): if a conflict-free direction exists,
 it can be CONSTRUCTED — the dual of our κ×cos measurement:
 measure first (cheap), construct only on failure.

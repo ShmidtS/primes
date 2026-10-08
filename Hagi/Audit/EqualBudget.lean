@@ -26,7 +26,7 @@ joint.
   the window estimates agree at every shift — a measured
   disagreement FALSIFIES the PL/geometric model (mandatory:
   the WSD schedule makes curves non-geometric).
-- **T3c `budget_gap_sign_affine`**: under the two-curve model
+- **T3c `budget_gap_sign_const`**: under the two-curve model
   L_m(C) − L* = d_m·exp(u_m·(C−C₀)) and L_s(C) − L* =
   d_s·exp(u_s·C) (u's the log-decay rates), the sign of
   L_m − L_s equals the sign of the EXPLICIT affine function

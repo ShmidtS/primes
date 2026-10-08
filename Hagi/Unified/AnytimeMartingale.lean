@@ -46,7 +46,7 @@ roadmap's target anytime-safety theorem.
   ε_noise(δₜ). All empirical conditions inherited as h_emp_*.
 
 **Honest boundaries.** (1) Optional stopping here is for BOUNDED
-stopping times (mathlib's `expected_stoppedValue_mono`); the
+stopping times (mathlib's expected_stoppedValue_mono); the
 unbounded-horizon Ville form (sup over all t ∈ ℕ, via monotone
 convergence) is left open. (2) `anytime_safety_stochastic` uses
 per-step UNCONDITIONAL failure masses (the union-bound skeleton);
@@ -75,7 +75,7 @@ E[L_0] ≤ 1 this is the e-process budget E[L_τ] ≤ 1 — the
 Ville-martingale skeleton promised in R63, for bounded τ.
 
 Proof: `Supermartingale.neg` turns L into a submartingale −L;
-mathlib's optional stopping (`expected_stoppedValue_mono`) applied
+mathlib's optional stopping (expected_stoppedValue_mono) applied
 between the constant stopping time 0 and τ gives
 E[(−L)_0] ≤ E[(−L)_τ], i.e. E[L_τ] ≤ E[L_0]. -/
 theorem eprocess_stopped_budget {L : ℕ → Ω → ℝ} (hL : Supermartingale L 𝒢 μ)

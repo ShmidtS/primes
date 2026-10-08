@@ -14,7 +14,7 @@ The measured trajectory holds a constant per-cycle gain
 naive expectation of diminishing returns, even though the
 sibling disagreement itself decayed (0.30 → 0.036 → 0.051) and
 then stabilized near the replenished level D ≈ 0.045. This
-module gives the theory of the per-cycle gain `c_t` as a
+module gives the theory of the per-cycle gain c_t as a
 function of the measurable generational quantities, and the
 derived recursion budget.
 
@@ -32,9 +32,9 @@ two additive channels:
 
 **What the module proves:**
 
-* `compound_c_decompose` — the per-cycle bound: the certified
+* compound_c_decompose — the per-cycle bound: the certified
   improvement is at most `α • G_t + J_t`. This is the falsifiable
-  law: regress the measured `c_t` against the measured
+  law: regress the measured c_t against the measured
   `(G_t, J_t)` — if `c_t ≈ αG + J` holds with stable
   coefficients, the trajectory is predictable; the constant-c
   regime is then *explained* by `G_t` having stabilized at the
@@ -61,9 +61,9 @@ two additive channels:
 
 1. Per generation, log three scalars: the fresh-leaf
    disagreement `G_t` (the twoGap statistic), the realized
-   cycle gain `c_t` (the measured ΔCE), and the joint-step
+   cycle gain c_t (the measured ΔCE), and the joint-step
    improvement `J_t` (the measured ΔCE of the joint step alone).
-   Two-cycle regression of `c_t` on `(G_t, J_t)` fixes
+   Two-cycle regression of c_t on `(G_t, J_t)` fixes
    `(α, β)` — the law is then armed.
 2. The gen-3 prediction is `M_3 = M_2 − (α • G_2 + J_2)` with
    `G_2` from the ρ-D closed form — falsifiable BEFORE the run.

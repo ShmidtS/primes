@@ -17,7 +17,7 @@ safety half-spaces `⟪g_i, d⟫ ≥ −ε_i`). This module REPLACES
 the tuning with a formula: the descent lemma for L-Lipschitz
 gradients gives, per protected domain i,
 
-`ΔL_i ≤ −η·⟪g_i, d*⟫ + (L_i/2)·η²·‖d*‖²`,   (`h_lipline`)
+`ΔL_i ≤ −η·⟪g_i, d*⟫ + (L_i/2)·η²·‖d*‖²`,   (h_lipline)
 
 and with the SafeQP margin `m_i := ε_i + ⟪g_i, d*⟫ ≥ 0` the
 per-domain regression stays within the budget ε_i for every
@@ -46,7 +46,7 @@ and frees η; here η is DERIVED from the measured margins).
   measurable: ε_i the guard budgets, L_i the measured
   Lipschitz constants, ⟨g_i, d*⟩ one inner product per domain).
 * `safeqp_eta_max` — for ANY η ≤ η_max (with d* ≠ 0, L_i > 0,
-  ε_i ≥ 0 and the per-domain descent-lemma bound `h_lipline`),
+  ε_i ≥ 0 and the per-domain descent-lemma bound h_lipline),
   NO domain regresses beyond its budget:
   `ΔL_i ≤ ε_i` for ALL i simultaneously.
 * `safeqp_eta_zero_direction` — the degenerate case d* = 0:
@@ -102,7 +102,7 @@ theorem le_safeqpEtaMax_iff (g : K → X) (eps L : K → ℝ) (d : X) {eta : ℝ
 
 /-- **The per-domain descent-lemma window (the scalar core).**
 With the descent bound `dL ≤ −η·⟨g, d⟩ + (L/2)η²‖d‖²`
-(the `h_lipline` hypothesis — the descent lemma for an
+(the h_lipline hypothesis — the descent lemma for an
 L-Lipschitz gradient along the direction d at step η), a
 nonnegative budget ε, η in the unit window and under the
 margin threshold `2(ε + ⟨g, d⟩)/(L·‖d‖²)`, the regression is
@@ -143,7 +143,7 @@ theorem safeqp_eta_max_domain (inner eps L dsq eta dL : ℝ)
 /-- **The all-domains guarantee.** For the SafeQP direction
 `d ≠ 0`, measured Lipschitz constants `L i > 0` and budgets
 `ε i ≥ 0`, any step size `0 ≤ η ≤ safeqpEtaMax` under the
-per-domain descent bound (`h_lipline`: the descent lemma for
+per-domain descent bound (h_lipline: the descent lemma for
 L_i-Lipschitz gradients along d at step η) keeps EVERY
 protected domain within its budget:
 

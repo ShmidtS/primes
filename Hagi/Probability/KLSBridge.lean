@@ -15,13 +15,13 @@ independently verified, and its constant is NOT taken here).
 
 **Honest interface, not an imported constant.** We formalize
 the *shape* of the result: a Poincaré-type hypothesis on the
-data distribution (`hpoincare`: every direction's variance of
+data distribution (hpoincare: every direction's variance of
 the per-sample gradient projection is bounded by C times the
 expected squared sensitivity), an operator-style Jacobian
-bound (`hop`), and we derive, with NO dimension-dependent
+bound (hop), and we derive, with NO dimension-dependent
 factors:
 
-* `gradCovBound`: for every direction `a`,
+* `gradCovBound`: for every direction a,
   Var[⟪a, g(X)⟫] ≤ C·L²·‖a‖² — i.e. Cov(g) ⪯ C·L²·I in
   quadratic-form sense.
 * `uncorrMeanVar`: for B uncorrelated copies, the second

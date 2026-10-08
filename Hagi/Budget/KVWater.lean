@@ -14,7 +14,7 @@ piece — prescribed by the growth program — is the *optimal
 allocation* of a fixed precision budget across KV positions: the
 waterfilling analogue of `Hagi.Core/ErrorProp` for the attention branch.
 
-**The model.** Each position `i` carries a per-bit error
+**The model.** Each position i carries a per-bit error
 contribution `c i > 0` (the sensitivity: attention mass times the
 value norm, in the linearized regime) and a fixed bit cost; its
 residual after `b i` bits decays as `exp (-κ b i)` with a shared
@@ -24,17 +24,17 @@ rate `κ > 0` (the exponential regime of quantization SNR:
 **The theorem.** Among all allocations of a fixed budget `B` over
 the positions, the total residual `∑ c i * exp (-κ b i)` is
 minimized exactly when the *marginal* residuals are equal:
-`c i * exp (-κ b* i) = λ` for all `i` — each bit spent buys the
+`c i * exp (-κ b* i) = λ` for all i — each bit spent buys the
 same marginal error reduction everywhere.
 
 Two consequences, stated honestly:
 
 * **The tangent bound** (`waterfilling_bound`): for any feasible
-  allocation `b`, the total residual is at least the equalized one
+  allocation b, the total residual is at least the equalized one
   — the proof is the exponential tangent inequality
   `exp x ≥ 1 + x` applied to the deviations from the optimum.
 * **The allocation law** (in the docstring, not a theorem — it
-  requires the inverse of `exp`): equalizing gives
+  requires the inverse of exp): equalizing gives
   `b* i = (log (c i) - log λ) / κ` — the bits grow *logarithmically*
   in the sensitivity, `b* i - b* j = (log c i - log c j)/κ`. This
   is the honest correction to the naive "bits ∝ p_i·‖v_i‖": the
@@ -54,15 +54,15 @@ section Waterfilling
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The total KV residual of an allocation `b` under per-position
+/-- The total KV residual of an allocation b under per-position
 sensitivities `c` and decay rate `κ`. -/
 noncomputable def kvResidual (c : ι → ℝ) (kappa : ℝ) (b : ι → ℝ) : ℝ :=
   ∑ i, c i * Real.exp (-kappa * b i)
 
 /-- **The equalization lemma.** If two allocations `b*` (the
-candidate optimum) and `b` have the same total budget, and `b*`
+candidate optimum) and b have the same total budget, and `b*`
 equalizes the marginal residuals (`c i * exp (-κ b* i) = λ` for
-all i), then the residual of `b` is at least the residual of
+all i), then the residual of b is at least the residual of
 `b*`. The proof is the exponential tangent bound
 `exp x ≥ 1 + x`: writing `b i = b* i + d i` with `∑ d i = 0`,
 

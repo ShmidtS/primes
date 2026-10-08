@@ -8,8 +8,8 @@ set_option linter.style.header false
 /-!
 # SinkCost: the attention-sink budget — the round-27 config's formal core
 
-The `sink_len` attention (round 27, DA synthesis): the
-leading `sink_len` keys stay visible to every query — the
+The sink_len attention (round 27, DA synthesis): the
+leading sink_len keys stay visible to every query — the
 local window plus the sinks fused in ONE chunked pass,
 O(T·(W+S)) instead of the dense O(T²). The formal questions
 the config answers by tuning are: how MUCH sink mass can be
@@ -32,7 +32,7 @@ of the sink regime is first-order in the dropped mass, NOT
 in the sequence length: a config that drops a small mass
 far from the diagonal pays almost nothing regardless of T.
 
-* `sink_mass_tradeoff` — THE W-vs-S TRADEOFF STRUCTURE: at
+* sink_mass_tradeoff — THE W-vs-S TRADEOFF STRUCTURE: at
 fixed compute budget O(T·(W+S)) = C, every unit of sink
 width is a unit of window width — the allocation between
 the sinks (the global anchors) and the window (the local

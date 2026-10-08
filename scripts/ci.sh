@@ -9,7 +9,7 @@ fail=0
 step() { echo; echo "=== $1 ==="; }
 
 step "lake build (default target: Hagi)"
-lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
+LAKE_JOBS=2 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
   || { echo "BUILD: FAIL"; fail=1; }
 
 step "TrivialLint (kernel-level: rfl/A=A/premise=conclusion/axioms)"

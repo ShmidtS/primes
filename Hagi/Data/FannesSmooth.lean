@@ -15,7 +15,7 @@ rearrangement machinery absent from Mathlib). This module
 closes the SMOOTH part of the remainder: on the interior of
 the simplex (both distributions δ-separated from the
 boundary), entropy is Lipschitz in total variation with an
-EXPLICIT constant — via the mean-value bound for `log`.
+EXPLICIT constant — via the mean-value bound for log.
 
 **Results.**
 

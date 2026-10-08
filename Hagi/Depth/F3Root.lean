@@ -9,7 +9,7 @@ set_option linter.style.header false
 # F3Root: the tree-vs-flat tradeoff — the go/no-go theory of the first F3 run
 
 The project's founding hypothesis — growth in DEPTH (the
-ternary tree) — has never been run (`merge_recursive_f3`:
+ternary tree) — has never been run (merge_recursive_f3:
 zero training runs; the four blockers fixed, the root-mode
 cortex designed, `docs/ARCHITECTURE_V2.md` written). The
 formal question the first run must answer:

@@ -34,7 +34,7 @@ update does not distort the mergeability metric; the
 variance-reduction question is orthogonal to the
 mergeability-prediction question.
 
-**4. `head_start_persists` (from sbintuitions/sparse-upcycling-
+**4. head_start_persists (from sbintuitions/sparse-upcycling-
 scaling-laws — the critical-ratio analog)**: under equal descent
 rates the merge-vs-scratch head start is CONSTANT in time — the
 upcycling critical token ratio: merge wins for every budget

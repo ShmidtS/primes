@@ -15,7 +15,7 @@ improvement-per-cost; the water-filling power budget ↔ the
 training-compute budget across experts. The dictionary is
 exact and the classical law transfers:
 
-* `effective_capacity`: the expert's effective channel gain
+* `effectiveCapacity`: the expert's effective channel gain
   is improvement ℓ divided by cost p — the SNR-per-watt of
   the channel analogy;
 * the KKT structure needs NO new theorem: `marginalValue_law`

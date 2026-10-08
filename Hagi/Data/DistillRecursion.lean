@@ -48,7 +48,7 @@ et al.: model → model → model with no anchor).
   identity in H-form): `CE_m(q) = H(m) + KL(m‖q)` — the KL
   certification bounds the student's CROSS-entropy against the
   target, exactly. Hence the per-step entropy preservation
-  enters as the EXPLICIT hypothesis `hcert` (a strengthening of
+  enters as the EXPLICIT hypothesis hcert (a strengthening of
   the h_emp_ training guarantee: not only KL ≤ δ but entropy
   within δ) — this file's results are conditional on it, and
   that is the honest form.
@@ -76,7 +76,7 @@ et al.: model → model → model with no anchor).
 **Open (flagged, not proved):** the audit's full ask —
 Wasserstein contraction of the generation map with fixed point
 p* satisfying H(p*) ≥ H(data) − ε — stays open; the
-KL-certification-only entropy floor (replacing `hcert` by a
+KL-certification-only entropy floor (replacing hcert by a
 Pinsker-type sub-linear correction) stays open.
 -/
 
@@ -213,7 +213,7 @@ identity `teacher_generated_identity` restated with
 buy `H(q) ≥ H(m) − δ` (that direction is FALSE — see the module
 docstring for the explicit counterexample), so the per-step
 entropy preservation is carried below as the explicit
-hypothesis `hcert`. -/
+hypothesis hcert. -/
 theorem entropy_kl_ce_identity (m q : V → ℝ)
     (hm : ∀ v, 0 < m v) (hq : ∀ v, 0 < q v) :
     crossEntropy m q = shannonEntropy m + klDiv m q := by
@@ -228,7 +228,7 @@ set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
 /-- **The per-generation entropy inequality (CLAIM 1 + the
 certified step).** If generation k+1's entropy is certified
-within δ of its training target's (the `hcert` hypothesis — the
+within δ of its training target's (the hcert hypothesis — the
 honest strengthening of the h_emp_ KL guarantee; see
 `entropy_kl_ce_identity` for why KL alone does not suffice),
 then
@@ -411,7 +411,7 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
 
 
 /-- **R136 (T5, §7.3 ревизии): entropy floor с TV-сертификатом**
-— замена посылки `hcert` (KL-формы, опровергнутой ревизией:
+— замена посылки hcert (KL-формы, опровергнутой ревизией:
 KL ≤ δ НЕ спасает энтропию — sharpening tail) на
 Pinsker/Fannes-форму: если полная вариация fresh-смеси и
 следующего поколения ограничена (сертификат |H(fm)−H(p')| ≤ B,

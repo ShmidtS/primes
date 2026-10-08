@@ -20,7 +20,7 @@ of ONE functional:
   τ·KL(q ‖ p) — exact, no approximations. Every mechanism
   that lowers F is a KL-descent; the loop's currency is τ·KL.
 
-* `token_kl_decomposition` — (P1b) THE AUTOREGRESSIVE SPLIT:
+* token_kl_decomposition — (P1b) THE AUTOREGRESSIVE SPLIT:
   the reverse-KL decomposes over tokens exactly —
 
   `KL(q ‖ p) = Σ_t E_{y<t ~ q}[KL(q(·|s_t) ‖ p(·|s_t))]` —
@@ -30,7 +30,7 @@ of ONE functional:
   token-sum of the same descent — the formal license of the
   RKL-distillation recipe.
 
-* `fisher_quad_identity` — (P1c) THE LOCAL LINK: the
+* fisher_quad_identity — (P1c) THE LOCAL LINK: the
   Fisher-geometry quadratic form (the fisher_novelty
   diagnostic) and the DBridge softmax-Hessian quadratic
   dᵀH_w d are the SAME local object — the second-order
@@ -90,7 +90,7 @@ slimpajama domination, testable WITHOUT swapping the corpus.
    top-K / exact KL on the student prefixes (V = 32k: exact
    KL is a one-pass computation, no sampling needed).
 4. (P3) The growth verdict (G_F, R_repr) — see the module's
-   `growth_verdict` — replaces the CE-plateau fork.
+   growth_verdict — replaces the CE-plateau fork.
 -/
 
 open Finset

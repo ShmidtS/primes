@@ -18,7 +18,7 @@ controlled tube of the true state; unbounded drift is the
 long-horizon failure mode reported for real omni models.
 
 Main results:
-* `drift_bound`: a contraction F with factor ρ and observation
+* drift_bound: a contraction F with factor ρ and observation
   error bounded by e gives predicted-state drift
   ‖Ŝ_t − S_t‖ ≤ ρ^t·‖Ŝ_0 − S_0‖ + e·(1−ρ^t)/(1−ρ) — the
   geometric tube;

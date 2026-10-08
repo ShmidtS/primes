@@ -23,7 +23,7 @@ merged-моделей: prior = base-чекпойнт, posterior = merged,
   конкатенации K дельт РАВНА сумме стоимостей
   (C(Δ₁ ++ Δ₂) = C(Δ₁) + C(Δ₂)): K-дельта merge платит ровно
   сумму, без мультипликативного штрафа;
-* `deltaCost_le_card_bits` — верхняя граница: стоимость
+* deltaCost_le_card_bits — верхняя граница: стоимость
   K дельт ≤ (Σ k, |Δ_k|)·(log₂ d + log₂ 3) — биты
   компрессии входят линейно в PAC-Bayes-штраф;
 * `merged_bound` — PAC-Bayes compression bridge: при

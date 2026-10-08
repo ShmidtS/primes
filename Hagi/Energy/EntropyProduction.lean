@@ -41,7 +41,7 @@ functions `p p† : α → ℝ`. The entropy production of trajectory
 **Honest boundary.** On a finite ensemble with a strictly
 positive reference this is the classical `KL(p ‖ p†) ≥ 0`
 repackaged in fluctuation-theorem clothes:
-`E_p[Σ] = KL(p ‖ p†)` (see `entropy_production_eq`).
+`E_p[Σ] = KL(p ‖ p†)` (see `entropyProduction`).
 The theorems prove the exponential identity, not the
 thermodynamic interpretation; the mapping SGD-noise ↔
 reservoir temperature (R174b) is NOT part of this module

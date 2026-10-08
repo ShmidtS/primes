@@ -75,7 +75,7 @@ audit extracts and this module formalizes:
 ## Honest gaps
 
 * The probes are telemetry: every theorem that consumes them
-  carries an `h_emp_G` hypothesis; nothing about their dynamics
+  carries an h_emp_G hypothesis; nothing about their dynamics
   is derived.
 * The Pareto⟹∃weights direction of the duality needs a convex
   objective space — open (finite checkpoint sets are generic).

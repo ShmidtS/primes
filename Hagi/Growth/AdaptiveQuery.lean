@@ -11,7 +11,7 @@ ADAPTIVE multi-query estimation beats single evaluation),
 specialized to the HAGI controller vocabulary: the selection
 penalty of `certified_gain_select` scales LINEARLY with the
 estimation radius ε, and the K-draw averaging radius shrinks
-as ε/√K (the Dust population law `dustVarianceDecay`). Hence
+as ε/√K (the Dust population law dustVarianceDecay). Hence
 spending K queries per candidate buys a √K reduction of the
 selection threshold — the adaptive-search brick: the
 controller should not trust single measurements.

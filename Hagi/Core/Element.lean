@@ -22,7 +22,7 @@ element is *safe* (step-0 equivalent) and when the low rank is
 
 **Prescription for the code.**
 
-1. `rankZero_step0` — the safe start: with rank-0 deltas the
+1. rankZero_step0 — the safe start: with rank-0 deltas the
    redesigned leaf is *definitionally* the original one, so any
    training run can start from the pretrained leaf with zero
    residual parameters and cannot lose anything at step 0 (the

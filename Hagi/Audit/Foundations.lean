@@ -15,7 +15,7 @@ decision theorems + the two training-speed theorems):
 SafeQP descent: the projection of g onto the closed convex
 conflict set C ∋ 0 satisfies (variational inequality at c=0):
 ⟪g,d*⟫ ≥ ‖d*‖², and ‖g−d*‖ ≤ ‖g‖. From
-`norm_eq_iInf_iff_real_inner_le_zero` (the Mathlib projection
+norm_eq_iInf_iff_real_inner_le_zero (the Mathlib projection
 VI, as prescribed).
 
 **Phase 1.2 — `exp_jensen` + `gap_N_nonneg`**: the ensemble

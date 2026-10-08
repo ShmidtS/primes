@@ -10,7 +10,7 @@ set_option linter.style.header false
 /-!
 # R72: global-dynamics roadmap — items #2, #6
 
-- `safeqp_idle` + `idle_identity` (#6 Identity under Idle):
+- `safeqp_idle` + idle_identity (#6 Identity under Idle):
   at zero mixture gradient the SafeQP step is exactly 0, at
   consensus logits the merge gap is exactly 0 — the macro
   cycle is an IDENTITY on mastered/no-signal data: the model

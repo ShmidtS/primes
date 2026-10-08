@@ -18,7 +18,7 @@ set_option linter.style.header false
 
 **III-a (детерминированная редукция)**: `injection_law_of_measured` —
 закон обновления следует, если измеренное свежее разногласие
-экспертов `dis_t` (среднее клиппированных попарных разностей
+экспертов dis_t (среднее клиппированных попарных разностей
 логитов, [0,1]) покрывает потребность обновления:
 `ρD_t + βC_t − ξ_t ≤ κ·dis_t`. β-посылка сведена к ИЗМЕРИМОЙ
 величине (GapLaw уже связывает разногласие с merge gain).
@@ -36,7 +36,7 @@ set_option linter.style.header false
 переносит экспоненциальный рост C на U. Честная граница:
 связка C с реальной моделью остаётся premise (audit §9).
 
-**Честные границы**: (1) `hD` (разногласие ⇒ frontier) —
+**Честные границы**: (1) hD (разногласие ⇒ frontier) —
 архитектурная посылка, не выведена из GapLaw (GapLaw даёт
 разногласие ⇒ merge gain, недостающий кусок — gain ⇒ следующий
 frontier); (2) многoцикловая версия требует union bound по
@@ -54,7 +54,7 @@ def InjectionLaw (D C xi : ℕ → ℝ) (rho beta : ℝ) : Prop :=
   ∀ t, D (t + 1) ≥ rho * D t + beta * C t - xi t
 
 /-- **β-посылка сведена к измеримому разногласию**: если свежее
-разногласие экспертов `dis_t` (mean clipped pairwise logit diff)
+разногласие экспертов dis_t (mean clipped pairwise logit diff)
 покрывает потребность обновления, закон производства выполнен. -/
 theorem injection_law_of_measured (D C dis xi : ℕ → ℝ) (kappa rho beta : ℝ)
     (hD : ∀ t, D (t + 1) ≥ kappa * dis t)

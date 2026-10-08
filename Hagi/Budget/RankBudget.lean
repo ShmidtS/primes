@@ -32,7 +32,7 @@ ranks is `r_j • (m_j + n_j)` (the low-rank factor parameters).
   residual at least as large — the tangent-bound argument of
   `KVWater` transported to the rank domain (the exponential
   convexity gives the same one-sided inequality).
-* `rankResidual_allocaion` — the explicit form: at the
+* rankResidual_allocaion — the explicit form: at the
   equalized point, `r_j* = (log c_j − log(λ (m_j + n_j)))/κ_j` —
   the ranks grow *logarithmically* in the tail scale c_j and
   *inversely* in the decay rate κ_j: tensors with slow-decaying

@@ -17,13 +17,13 @@ prose.
 
 Fields (the measured laws of one growth step):
 * `hα hγ hρ` — sign hypotheses on the rates;
-* `hC0` — the seed capability is positive;
-* `empCone0` — the initial cone condition (α/γ)·C₀ ≤ D₀;
-* `empStep` — the capability update law C_{t+1} = C_t + G_t;
-* `empGainProd` — production: γ·D_t ≤ G_t;
-* `empDyn` — the D-dynamics with loss ξ: ρ·D + β·C − ξ ≤ D′;
-* `empCCap` — the multiplicative capability cap;
-* `empBeta` — the cone-sustaining β bound.
+* hC0 — the seed capability is positive;
+* empCone0 — the initial cone condition (α/γ)·C₀ ≤ D₀;
+* empStep — the capability update law C_{t+1} = C_t + G_t;
+* empGainProd — production: γ·D_t ≤ G_t;
+* empDyn — the D-dynamics with loss ξ: ρ·D + β·C − ξ ≤ D′;
+* empCCap — the multiplicative capability cap;
+* empBeta — the cone-sustaining β bound.
 -/
 
 namespace Hagi.Foundations
