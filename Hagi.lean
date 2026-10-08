@@ -184,6 +184,7 @@ import Hagi.Growth.DisagreementChain
 import Hagi.Growth.ChainToCone
 import Hagi.Growth.ChainUnification
 import Hagi.Growth.T3Ignition
+import Hagi.Growth.NonlinearCone
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.IntegrationOrder
 import Hagi.Growth.RoundViability
