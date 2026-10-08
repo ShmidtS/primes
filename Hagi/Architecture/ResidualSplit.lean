@@ -25,7 +25,7 @@ Lean-model level:
 
 * `ResidualSplit` — the exact three-way bookkeeping
   W = W_shared + R_expert + R_quant;
-* `residual_gate` — the economic gate for the quantization
+* `residual_gate_two_sided` — the economic gate for the quantization
   residual branch: enabled iff η_r·E_r > C_r + P_quant —
   exactly the LittleBit empirical exception, formalized as a
   decision rule rather than a constant;

@@ -16,10 +16,12 @@ minimum, and at the minimum no strictly improving transfer
 can exist (it would stay inside the budget set, contradicting
 minimality), so `imbalance_yields_gain` contrapositive gives
 the factor-2 balance. HONEST BOUNDARY: this is an EXISTENCE
-proof (via `Finset.min'`), not a construction, and the
-TERMINATION OF THE GREEDY REALLOCATION LOOP is not formalized
-(a strictly-improving walk on a finite set must terminate,
-but that meta-argument is not a theorem here).
+proof (via `Finset.min'`), not a construction; the
+TERMINATION OF THE GREEDY REALLOCATION LOOP is now
+formalized separately in `BitAllocTermination.
+no_infinite_improving_chain` (R248: a strictly-improving
+walk on the finite fixed-budget allocation space cannot
+continue forever).
 
 **Result.** `exists_balanced_allocation`: for any layer
 sensitivities and any bit budget `B`, there EXISTS an

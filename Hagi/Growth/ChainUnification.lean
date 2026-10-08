@@ -22,12 +22,12 @@ They are not rivals: the measurement chain OPERATES the
 object the training chain describes. This module pins the
 composite:
 
-* `composite_seven_factor` — the full product law: both
-chains hold simultaneously ⟹ G_cap is the SEVEN-factor
-product α_align·α_trunc·α_safe·(η_p·η_o·η_s as the training
-core acting on E_dev)·E_raw — with the consistency
-constraint that the training core's E_dev IS the aligned
-measurement E_aligned up to the pipeline factors;
+* `training_core_is_measurement_tail` — the tail
+coincidence: with E_dev = E_aligned ≠ 0 the training core
+η_p·η_o·η_s EQUALS the measurement tail α_trunc·α_safe·
+α_cap (the two chains constrain each other; a naive
+seven-factor composition is FALSE and was caught during
+proving);
 * `deficit_factorizes` — THE 9× ARITHMETIC: the observed
 deficit ratio γ_req/γ_meas equals the product of the seven
 stage-factor ratios (required over measured) — a violated
