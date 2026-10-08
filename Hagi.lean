@@ -99,6 +99,9 @@ import Hagi.Budget.ActiveCompute
 import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
+import Hagi.Architecture.LatentAlign
+import Hagi.Architecture.ResidualSplit
+import Hagi.Budget.FactorizedBPW
 import Hagi.Budget.ThreeTermBudget
 import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
