@@ -77,7 +77,6 @@ import Hagi.Information.EntropyDefs
 import Hagi.Information.GramBasic
 import Hagi.Information.SpectralEntropy
 import Hagi.Information.LogDetEntropy
-import Hagi.Information.StateEntropy
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.InformationRetention
 import Hagi.Information.GainRecoverability
