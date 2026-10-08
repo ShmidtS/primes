@@ -107,6 +107,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R235 (abb4fc9): ThreeTermBudget — оптимальный сплит
+  данные/шаги: AM-GM-пол 2√(AC/B), явный оптимизатор
+  N*=√(AB/C), K*=√(CB/A), оба растут как √B («оптимальный
+  batch растёт с токен-бюджетом» — ядро 2607.01487,
+  α=β=1-режим, доказано точно). h₂-Fannes-порт: разведка
+  каскада (Model→GramMatrices→Pinching→...→EntropyContinuity
+  ~10 файлов квантовой инфраструктуры) — кампания отдельного
+  хода; зависимости отображены (масса в GramMatrices,
+  спектральные — в StateEntropy/PureRecursion).
 - R233–R234 (0ca02bf, f346146): Freedman-программа §1.2
   ПОЛНОСТЬЮ закрыта: R233 — порт History-каскада
   (HistoryPath: path-space lift; HistoryPastMean:
