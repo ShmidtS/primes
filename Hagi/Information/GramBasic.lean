@@ -20,7 +20,7 @@ namespace Hagi.Quantum
 universe u_1 u_2
 
 noncomputable section
-open scoped BigOperators Matrix.Norms.Elementwise
+open scoped BigOperators Matrix.Norms.Elementwise ComplexOrder
 open Matrix
 
 namespace GAD
@@ -32,6 +32,10 @@ def gram (A : Matrix ι κ ℂ) : Matrix ι ι ℂ := A * Aᴴ
 def mass (A : Matrix ι κ ℂ) : ℝ := (gram A).trace.re
 
 def logGram (A : Matrix ι κ ℂ) : ℝ := Real.log ‖(1+gram A).det‖
+
+omit [DecidableEq ι] [DecidableEq κ] in
+theorem mass_nonneg (A : Matrix ι κ ℂ) : 0 ≤ mass A :=
+  (Complex.nonneg_iff.mp (Matrix.posSemidef_self_mul_conjTranspose A).trace_nonneg).1
 
 
 end GAD
