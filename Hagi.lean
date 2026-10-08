@@ -38,6 +38,7 @@ import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Data.DistillRecursion
 import Hagi.Step.SafeQP
+import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
 import Hagi.Step.StochasticSafeQP
 import Hagi.Step.AdaptiveSafeQP

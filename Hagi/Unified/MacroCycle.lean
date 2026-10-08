@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.StageCalculus
 import Hagi.Unified.GlobalConvergence
-import Hagi.Audit.Exactness
+import Hagi.Step.ProjectionDescent
 import Hagi.Audit.Foundations
 import Hagi.Energy.TernaryLean
 set_option linter.style.header false
