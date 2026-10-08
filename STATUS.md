@@ -107,6 +107,18 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R233–R234 (0ca02bf, f346146): Freedman-программа §1.2
+  ПОЛНОСТЬЮ закрыта: R233 — порт History-каскада
+  (HistoryPath: path-space lift; HistoryPastMean:
+  past-measurability + union bound; HistoryFreedman: joint
+  anytime maximal P[∃j≤T: S_j ≥ r, V_j ≤ V] ≤ (T+1)·exp(−r²/
+  (4(V+cr)))), все три файла verbatim с первого прогона;
+  R234 — two-sided следствие Hagi: P[|S_j| ≥ r] ≤ 2(T+1)·
+  exp(...) (S и −S + union bound; ключевой приём —
+  congrFun-перепись negated-функционала под ∃-биндером).
+  Аксиомы стандартные. Инцидент-урок R234: 6 итераций из-за
+  classical-if-инстансов — if-термы сравнивать только в
+  одном лямбда-контексте, не между отдельными pmfMean.
 - R232 (7317685): ПОРТ Freedman из openai/math (Fam 188):
   PmfMean (конечное PMF-ядро: pmfMean + вся алгебра) +
   MarkovFreedman (pmfMean_exp_le — компенсированный MGF,
