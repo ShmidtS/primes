@@ -119,6 +119,24 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Windows стираются/пишутся битыми — верифицировать размер
   файла перед выводом об успехе (Map≠Territory: пустой
   файл дал ложный PASS).
+- R256 (0f30894): архитектурный аудит (внешний, полный
+  проход 241 файла) принят как программа: главная проблема
+  не «теория не доказана», а ОДНА теория в 3–5 разных API
+  (KL/entropy/TV, recurrence, SafeQP, merge/gap, cone/
+  takeoff, концентрация + перегруженный GrowthState/
+  CorePremises). Начат Этап 0/1 (P0-1): канонический
+  Information-слой — Canonical.{KL,H,TV,CE} = Prelude-формы
+  + ВСЕ варианты помолены (klDiv/KLdiv/kldiv/shannonEntropy/
+  shannon/tvDist/tvHalf; новый kldiv-мост посажен прямо в
+  FreeEnergy из-за same-layer правила); kl_excess_cross_
+  entropy в канонической форме (positivity-посылки явно);
+  матричная энтропия СОЗНАТЕЛЬНО не склеивается (другой
+  объект). Ничего не удалено (Этап 0). LayerLint-урок:
+  канонические модули-мосты обязаны жить на слое ≥ самого
+  высокого мостимого (Data+Energy ⟹ Data/Energy-сплит).
+  Дальше по аудиту: P0-2 Recurrence-обёртки, P0-3 SafeQP-
+  извлечение из Audit, P0-4/5 композициональный state +
+  сертификаты, P1 cone-унификация.
 - R255 (cbb3d9f): NoiseDisentangle — трёхчастный merge с
   доказуемой обработкой шума (автономная цель):
   orthogonal_noise_averaging — ЗАКОН ДЕНОЙЗА: попарно-
