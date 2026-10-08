@@ -243,6 +243,7 @@ import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.GrandSynthesis
+import Hagi.Unified.Certificates
 
 set_option linter.style.header false
 
