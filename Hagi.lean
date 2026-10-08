@@ -92,6 +92,7 @@ import Hagi.Budget.ActiveCompute
 import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
+import Hagi.Budget.ThreeTermBudget
 import Hagi.Ensemble.MergeScaling
 import Hagi.Depth.F3Root
 import Hagi.Data.SinkCost
