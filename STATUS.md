@@ -107,6 +107,22 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
 
+- R237 (c4f6e44): h₂-Fannes-кампания ЗАВЕРШЕНА —
+  entropy_coupling_bound перенесён: PSD-coupled состояния
+  A+U=B+V, tr U=tr V=t ⟹ S(A)−S(B) ≤ t·log d +
+  (1+t)·h₂(t/(1+t)) — уточнённая Zhang/Shirokov-
+  непрерывность, zero-eigenvalue-safe. Остаток R157 закрыт
+  (квантовая форма). Слои 5–6 адаптированы под нашу
+  Mathlib (PosSemidef.eigenvalues_nonneg напрямую;
+  GAD-namespace унификация; mass_nonneg восстановлен в
+  GramBasic). Аксиомы стандартные. Дискретная PMF-
+  специализация (диагональный случай) — прямой
+  follow-up-кандидат. Урок R236→R237: «блокировка API»
+  оказалась частично ложной — isHermitian/eigenvalues-
+  dot-формы работают от PosSemidef-биндеров; реально
+  отсутствовало только eigenvalues_nonneg (решается
+  PSD-прямым доступом) — проверять минимальным scratch-
+  тестом ДО вывода о блокировке.
 - R236 (cdaa50b+c214dce): h₂-Fannes-кампания, слои 1–4/6:
   EntropyDefs (спектральная энтропия, cfc), SpectralEntropy
   (entropy_eq_sum, диагональная мажоризация, вогнутость),

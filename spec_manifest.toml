@@ -9,7 +9,7 @@
 constant_count = 1639
 theorem_count = 966
 sorry_count = 0
-as_of_commit = "f346146"
+as_of_commit = "c4f6e44"
 
 [layers]
 prelude = -1
@@ -22,7 +22,7 @@ dynamics = 5
 unified = 6
 
 [rounds]
-last_completed = "R234"
+last_completed = "R237"
 open = [
   "R225 MuonTwoLevel (exact vs NS-approx, 2609.36600 Thm 4.1)",
   "R227 WaterFilling->MoE reduction (2607.17862, 2607.11015)",
@@ -30,8 +30,8 @@ open = [
   "R229 HybridOptimizerStateSplit (2607.19058)",
   "R230 SNR-aware NS-Transform (2607.16169)",
   "T3 gamma_eff >= gamma_gate in configuration vocabulary",
-  "h2-Fannes port from E:/math Fam 276",
-  "h2-Fannes port from E:/math Fam 276",
+  "discrete PMF specialization of entropy_coupling_bound (R237 follow-up)",
+  "discrete PMF specialization of entropy_coupling_bound (R237 follow-up)",
   "BitAlloc greedy-transfer termination (R176 tail)",
   "frontier_cone canonicalization",
 ]
