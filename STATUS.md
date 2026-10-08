@@ -11,7 +11,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 210 Lean-модулей в 27 папках `Hagi/`, 966 theorem/lemma (authority:
+- 240 Lean-модулей в `Hagi/`, ~1100 theorem/lemma (authority:
   inventory-проб, 1642 константы на 907ba5d), 0 sorry (единственный
   текстовый «sorry» — в докстринге ArchitectureTheorem);
   `lake build` — зелёный (9135 jobs).
