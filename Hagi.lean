@@ -247,6 +247,7 @@ import Hagi.Unified.GrandSynthesis
 import Hagi.Unified.Certificates
 import Hagi.Unified.Nonvacuity
 import Hagi.Unified.Assumptions
+import Hagi.Unified.MergeBridge
 
 set_option linter.style.header false
 
