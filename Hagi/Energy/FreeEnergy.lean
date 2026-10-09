@@ -2,8 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Foundations.WeightedVar
-import Hagi.Prelude.Info
 
 set_option linter.style.header false
 

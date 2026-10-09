@@ -5,7 +5,6 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Ensemble.GapLaw
 import Hagi.Step.JointPreserve
-import Hagi.Unified.TopLevel
 set_option linter.style.header false
 
 /-!

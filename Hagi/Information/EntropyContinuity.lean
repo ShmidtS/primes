@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Information.StateEntropy
-import Hagi.Information.GramBasic
 
 /-!
 # EntropyContinuity — the refined Fannes bound with the

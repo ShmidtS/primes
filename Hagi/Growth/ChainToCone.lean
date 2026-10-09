@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.DisagreementChain
-import Hagi.Foundations.ConeTakeoff
 
 /-!
 # ChainToCone — the measured disagreement chain FEEDS the

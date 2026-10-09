@@ -5,6 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Generalization.ModeState
 import Hagi.Dynamics.WallClockTakeoff
+import Hagi.Step.SafeQPStep
 import Hagi.Foundations.Telescope
 set_option linter.style.header false
 

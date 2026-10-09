@@ -2,11 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.StageCalculus
-import Hagi.Budget.ComputeBudget
-import Hagi.Data.SinkCost
-import Hagi.Ensemble.MergeScaling
-import Hagi.Depth.F3Root
-import Hagi.Step.SafeQP
 
 set_option linter.style.header false
 

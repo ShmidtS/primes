@@ -6,3 +6,6 @@ __pycache__/
 # generated Lean name pool for DocLint (36MB, regenerate: lake env lean --run scripts/NamePool.lean)
 scripts/namepool.txt
 FORMALIZATION_PLAN.md
+scripts/prune_log.txt
+inventory_baseline.txt
+declarations.lock

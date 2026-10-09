@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Information.MemoryCapacity
-import Hagi.Architecture.ConfigurationCost
 
 /-!
 # FiberNecessity — the parameter floor of separability

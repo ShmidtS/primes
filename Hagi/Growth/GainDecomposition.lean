@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.GainOperator
-import Hagi.Information.GainRecoverability
 
 /-!
 # GainDecomposition — the measurable GainOp chain

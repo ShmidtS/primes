@@ -1,9 +1,8 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Unified.GrowthState
 import Hagi.Growth.FrontierScaling
-import Hagi.Step.SafeQPStep
+import Hagi.Unified.GrowthState
 
 set_option linter.style.header false
 set_option linter.unusedFintypeInType false

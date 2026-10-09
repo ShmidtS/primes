@@ -1,9 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Ensemble.DistillTransfer
 import Hagi.Foundations.Recurrence
-import Hagi.Foundations.Telescope
 
 set_option linter.style.header false
 

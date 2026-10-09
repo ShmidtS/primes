@@ -6,6 +6,7 @@ Authors: HAGI_v2 formalization team
 import Hagi.Unified.GrowthState
 import Hagi.Unified.AnytimeValid
 import Hagi.Energy.QuantBridge
+import Hagi.Step.SafeQPRobust
 set_option linter.style.header false
 
 /-!

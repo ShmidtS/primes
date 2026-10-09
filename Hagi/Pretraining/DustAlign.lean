@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Pretraining.Dust
 import Hagi.Pretraining.DustCert
 import Hagi.Architecture.AlignedMerge
 import Hagi.Pretraining.DustVarK

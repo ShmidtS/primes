@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
-import Hagi.Prelude.Info
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.WeightedVar
 import Mathlib

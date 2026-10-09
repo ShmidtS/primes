@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Architecture.ConfigurationCost
-import Hagi.Information.RoutingCapacity
 
 /-!
 # ConfigurationRouting — the selector bill

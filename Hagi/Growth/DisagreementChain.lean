@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Architecture.LatentAlign
 import Hagi.Growth.OptimizerStage
 
 /-!

@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.ChainToCone
-import Hagi.Growth.GainDecomposition
 
 /-!
 # T3Ignition — the T3 theorem: the measured chain IGNITES
