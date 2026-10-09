@@ -30,7 +30,7 @@ makes that gap exact:
   the MARGINAL per-round cost of growth-by-fibers beats the
   monolith's d² — the skeptic's 1.5H may win a one-shot race
   (empirical), but a MANY-round growth program pays fibers,
-  not monoliths (conditional on round viability, R223).
+  not monoliths (conditional on round viability,).
 -/
 
 namespace Hagi
@@ -50,7 +50,7 @@ IFF ΔP ≥ ΔB — the whole FLOPs-economics race reduces to
 comparing two net gains; ΔB is an empirical premise (no
 theorem lower-bounds dense-from-scratch scaling), ΔP is the
 certified-conditional pipeline gain (η_p·η_s·E_dev − price,
-the R215 vocabulary). Lean does not decide the race; it
+the vocabulary). Lean does not decide the race; it
 reduces the race to one measurable inequality. -/
 theorem pipeline_beats_baseline_iff (Q₀ ΔP ΔB : ℝ) :
     Q₀ + ΔP ≥ Q₀ + ΔB ↔ ΔP ≥ ΔB := by
@@ -65,9 +65,9 @@ of the switchable architecture by one fiber family costs
 N·r·d parameters — strictly cheaper than the monolith's d²
 when N·r < d. A many-round growth program pays FIBERS per
 round, not monoliths: the marginal cost of round r is the
-fiber bill (R217), and this advantage is PROVEN, not
+fiber bill, and this advantage is proven, not
 empirical (the round's viability — E_dev > 0 — remains the
-R223 conditional). -/
+ conditional). -/
 theorem amortized_growth_cheaper (d r N : ℕ)
     (h : N * r < d) (hd : 0 < d) :
     (N * r) * d < d * d :=

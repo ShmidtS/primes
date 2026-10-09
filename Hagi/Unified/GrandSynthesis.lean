@@ -5,42 +5,19 @@ import Hagi.Growth.ChainToCone
 import Hagi.Unified.MasterHAGICoupled
 
 /-!
-# GrandSynthesis — the single capstone tying the measured
-chain, the growth cone, and the coupled contract together
-(R250; the "единое целое" refactor)
+# GrandSynthesis — the composed capstone
 
-The repository now has three towers that were proved
-separately:
-
-* the MEASUREMENT tower (R245 `DisagreementChain`, R249
-  `ChainUnification`): the gain factors into measured
-  stage conversions;
-* the GROWTH tower (R247 `ChainToCone`): a two-sided
-  runtime certificate feeds the cone and yields takeoff;
-* the CONTRACT tower (R246 `MasterHAGICoupled`): the
-  capstone invariant with state-capability coupling, a
-  physical ledger and a vector generalization floor.
-
-This module composes them into ONE statement:
-`grand_synthesis` — for a state trajectory on which
-  (a) every cycle's conversions are certified (all four
-      α's ≥ β, increment pinned in [γ·D, γ̄·D]),
-  (b) the frontier dynamics hold (ρ, β_C measured),
-  (c) the risk/spend ledger is physical and the probe
-      vector holds its floors,
-
-ALL FOUR conclusions hold SIMULTANEOUSLY on the SAME
-trajectory:
-
-  1. takeoff: C₀(1+γk)^T ≤ C_T with γ = β⁴κ;
-  2. safety: the protected-risk telescoped bound;
-  3. budget: the exact nonincreasing account;
-  4. generalization: every probe component above its
-     floor.
-
-The hypotheses are exactly the runtime measurement
-program (audit §41): nothing is assumed that a
-certificate-producing runtime could not measure.
+`grand_synthesis` composes the measurement chain
+(`DisagreementChain`/`ChainUnification`), the cone bridge
+(`ChainToCone`), and the coupled capstone
+(`MasterHAGICoupled`) into one statement about a single
+trajectory: under certified stage conversions, frontier
+dynamics, a physical risk/spend ledger, and probe-vector
+floors, the trajectory simultaneously satisfies (1)
+takeoff `C 0 * (1 + γ·k) ^ T ≤ C T` with `γ = beta^4 * kappa`,
+(2) the telescoped risk bound, (3) the exact nonincreasing
+budget account, and (4) every probe component above its
+floor.
 -/
 
 open scoped BigOperators
@@ -50,13 +27,13 @@ namespace Hagi.Master
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- **THE GRAND SYNTHESIS**: one trajectory, one
-certificate set, four conclusions — exponential capability
-growth on the STATES (not a free channel), telescoped
-safety, a physical budget account, and a componentwise
-generalization floor. This is the single entry point that
-ties the measurement chain (R245/R249), the cone bridge
-(R247) and the coupled capstone (R246) into one theorem. -/
+/-- Under the stated measured premises (certified stage
+conversions, frontier dynamics, cone initialization, risk
+and spend ledgers, probe floors), one trajectory
+simultaneously yields: takeoff `C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`,
+the telescoped risk bound, the exact nonincreasing budget
+`C T = C 0 − ∑ spend t`, and `qfloor i ≤ qvec T i` for every
+probe `i`. -/
 theorem grand_synthesis
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa gbar rho cbeta k : ℝ)

@@ -20,7 +20,7 @@ OAI.InformationTheory.AmplitudeDamping.EntropyContinuity
 * the Frobenius-vector and projection mass lemmas on the
   path (frobVector, mass calculus).
 
-This closes the R157 residual (the singular h2 Fannes
+This closes the residual (the singular h2 Fannes
 boundary) of the HAGI plan — in the quantum-state form; the
 discrete PMF specialization is a direct corollary of the
 diagonal (commuting) case.

@@ -14,7 +14,7 @@ here in the finite, self-contained HAGI vocabulary (no
 measure theory): the COUNTING core that every such bound
 shares.
 
-The model: a persistent state is a function m : Task → State
+The model: a persistent state is a function m: Task → State
 (an encoding of each task's required content); a decoder reads
 the state and produces an answer. If the answer space contains
 K answers that are pairwise 2ε-separated (in the sense that no

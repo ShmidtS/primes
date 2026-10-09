@@ -7,26 +7,13 @@ import Hagi.Data.FannesSmooth
 /-!
 # CrossModalGap — the cross-modal information gain
 
-The omni-extension of the HAGI disagreement theory: a modality
-pair (X, Y) carries genuinely joint information exactly when the
-joint distribution is NOT the product of its marginals. The gap
-
-  G(X;Y) := H(X) + H(Y) − H(X,Y) = KL(p_xy ‖ px ⊗ py)
-
-is the mutual information: the part of the joint state that no
-single modality can supply. This is the formal counterpart of
-the omni-HAGI principle "a new modality is admissible as a
-growth source only if it brings positive cross-modal gain".
-
-Main results:
-* `crossModalGap_eq_kl`: the loss/entropy form of the gap IS
-  the KL-divergence between the joint and the product of
-  marginals;
-* `crossModalGap_nonneg`: G ≥ 0 — merging modalities into one
-  state never destroys predictive information (subadditivity);
-* `crossModalGap_zero_iff_indep`: G = 0 exactly when the two
-  modalities are independent — a redundant modality brings no
-  cross-modal gain.
+For a positive normalized joint law `p` on `X × Y`, the gap
+`crossModalGap p = H(margX p) + H(margY p) − H(p)` is the
+mutual information. Results: the gap equals the KL divergence
+of `p` against the product of its marginals
+(`crossModalGap_eq_kl`), is nonnegative
+(`crossModalGap_nonneg`), and is zero exactly at independence
+(`crossModalGap_zero_iff_indep`).
 -/
 
 namespace Hagi.Omni
@@ -49,9 +36,8 @@ noncomputable def crossModalGap (p : X × Y → ℝ) : ℝ :=
 
 /-! ### The entropy form IS the KL form -/
 
-/-- The joint-to-product identity: the gap in entropy form
-equals the KL divergence of the joint against the product of
-marginals — the mutual information. -/
+/-- For a positive normalized `p`: `crossModalGap p =
+KLdiv p (margX p · * margY p ·)`. -/
 theorem crossModalGap_eq_kl (p : X × Y → ℝ)
     (hp : ∀ z : X × Y, 0 < p z)
     (hsum : ∑ z : X × Y, p z = 1) :
@@ -154,9 +140,7 @@ theorem prodMarg_sum_one (p : X × Y → ℝ) (hp : ∀ z, 0 < p z)
   rw [margX_sum_one p hsum, one_mul]
   exact margY_sum_one p hsum
 
-/-- **The cross-modal gain is nonnegative**: merging two
-modalities into one shared state never destroys predictive
-information — the entropy form of subadditivity. -/
+/-- For a positive normalized `p`: `0 ≤ crossModalGap p`. -/
 theorem crossModalGap_nonneg (p : X × Y → ℝ)
     (hp : ∀ z, 0 < p z) (hsum : ∑ z, p z = 1) :
     0 ≤ crossModalGap p := by
@@ -165,10 +149,8 @@ theorem crossModalGap_nonneg (p : X × Y → ℝ)
     hp (fun z => mul_pos (margX_pos p hp z.1) (margY_pos p hp z.2))
     hsum (prodMarg_sum_one p hp hsum)
 
-/-- **Zero gap ⟺ modal independence**: the cross-modal gain
-vanishes exactly when the joint distribution is the product of
-its marginals — an independent (redundant) modality brings no
-new cross-modal information. -/
+/-- For a positive normalized `p`: `crossModalGap p = 0` iff
+`p (x, y) = margX p x * margY p y` for all `x, y`. -/
 theorem crossModalGap_zero_iff_indep (p : X × Y → ℝ)
     (hp : ∀ z, 0 < p z) (hsum : ∑ z, p z = 1) :
     crossModalGap p = 0

@@ -6,74 +6,23 @@ import Hagi.Step.NCEVar
 set_option linter.style.header false
 
 /-!
-# NCEExact: the sampled receiver's exact-CE gap, closed
+# NCEExact — зазор sampled-оценки до точного CE
 
-The measured catastrophe (rounds 28–29): train-NCE loss 1.6–1.7
-but exact CE 53.39 against the fused arm's 5.95 — a 47-nat
-gap. This module is the mathematical autopsy: WHICH part of
-the gap the sampling estimator's variance CAN explain, and
-the certified conclusion that the bulk CANNOT come from
-sampling noise — the unbounded out-of-sample dynamics
-(the logit_scale drift 1.784 → 1.841, kl(p̂‖prior) 37.6 → 47.8)
-is the driver, and the fix is anchoring, not K.
+Оценка статистической суммы `Ẑ_K = (1/K)Σⱼ e^{z(vⱼ)}/q(vⱼ)`
+для `Z = Σ_v e^{z(v)}`.
 
-**The model.** The sampled partition estimate
-Ẑ_K = (1/K) Σ_j e^{z(v_j)}/q(v_j), v_j ~ q, estimates
-Z = Σ_v e^{z(v)}. Three theorems:
+* `partEst_unbiased`: `Σ_v q v·(e^{z v}/q v) = Z` — оценка
+  несмещённая;
+* `secondMomentW_ge_sq`: `Z² ≤ secondMomentW` (Cauchy–Schwarz);
+* `partEst_gap_jensen`: `Σ q·log(impW) ≤ log Z` (Jensen);
+* `relative_second_moment_floor`:
+  `(1/2K)·(secondMomentW/Z²) ≥ 1/(2K)`;
+* `anchor_cadence_criterion`: при `s ≤ γ·ε/ρ` —
+  `ρ·s/γ ≤ ε` (критерий каденса точной калибровки).
 
-* `partEst_unbiased` — E[Ẑ_K] = Z (the estimator is
-  unbiased — the partition estimate itself is sound).
-* partEst_gap_upper — E[log Ẑ_K] ≤ log Z (Jensen: log is
-  concave), and the gap is lower-bounded by NOTHING (log can
-  even overshoot on the low side of the mean) — the honest
-  form: the CE gap from the PARTITION estimate alone is
-  second-order in Var/Z².
-* ceGap_delta — THE MAIN THEOREM: the variance-explainable
-  portion of the CE gap is at most
-
-`E[CE_sampled] − CE_exact ≤ (1/2) • (Var[Ẑ_K]/Z²) • C` — 
-
-  with C the curvature scale of log at the relevant point; in
-  the CRUCIAL quantitative direction: IF the delta-bound holds
-  numerically, the 47-nat gap requires Var/Z² ≥ 94/C — i.e.
-  the observed gap is sampling-explainable ONLY IF the
-  normalized second moment Σ e^{2z}/q / Z² is enormous
-  (the effective sample size K_eff = K•Z²/Σ(e^{2z}/q) ≤ C/94);
-  for the measured (K = 2048, V = 32768, z-scale 1.84‖h‖‖w‖)
-  this certifies: unless the tail is pathological, the gap is
-  NOT sampling noise — the training dynamics (the
-  out-of-sample logits, unregularized) own the 47 nats.
-  The PRESCRIPTION: do NOT raise K; anchor the out-of-sample
-  regime (z_loss / logit_scale clamp / periodic exact-CE).
-
-* `anchor_cadence_criterion` — the ANCHOR theorem: a periodic exact
-  CE gradient on m positions every s steps holds the global
-  calibration; the kl-drift per anchor-free stretch is bounded
-  by the per-step drift rate times s, and the anchor applies a
-  restoring gradient on the anchored positions — the net
-  drift over the T-step run is bounded when the anchor rate
-  1/s beats the drift rate. The honest form: the bound
-  certifies the SIGN of the trade (frequent-enough anchor
-  wins), the constants (drift rate 37.6→47.8 over 200 steps,
-  i.e. ~0.051 nats/step measured) plug in as measurements.
-
-**Prescription for the code.**
-
-1. Compute the diagnostic K_eff = K•Z²/Σ(e^{2z}/q) on ONE
-   batch (all measurable from the forward pass); if K_eff is
-   of order K (a well-conditioned proposal — the unigram of
-   the mixture, entropy 7.34), the delta-bound gives a gap of
-   order (1/2K)•(Σ e^{2z}/q / Z²) — single-digit nats at
-   worst, NOT 47. The 47-nat verdict: the dynamics.
-2. The fix ordering (derived): anchor first (z_loss on the
-   sampled positions + logit_scale clamp + exact-CE every
-   s steps), K last; the anchor cadence s from
-   `anchor_cadence_criterion` with the measured drift rate.
-3. The fused-vs-NCE slimpajama split (16.7 vs 33.4): the NCE
-   arm overfits the conflicting corpus in the LOCAL partition
-   and loses the GLOBAL calibration — consistent with the
-   dynamics diagnosis (the local task is solved, loss 1.6–1.7;
-   the global softmax is where the 47 nats live).
+Дельта-метод потолок зазора и «47-натный вердикт» —
+эмпирические суждения, не теоремы (см. докстринг
+`relative_second_moment_floor`).
 -/
 
 open Finset
@@ -84,20 +33,20 @@ section NCEExact
 
 variable {V : Type*} [Fintype V]
 
-/- The logit field z : V → ℝ (the head applied to the hidden
-state, per token v). -/
+/- Логит-поле z : V → ℝ (голова, применённая к скрытому
+состоянию, по токену v). -/
 
-/-- The exact partition: Z = Σ_v e^{z(v)}. -/
+/-- Точная статистическая сумма: `partZ z = Σ_v e^{z v}`. -/
 noncomputable def partZ (z : V → ℝ) : ℝ := ∑ v, Real.exp (z v)
 
-/-- The importance weights: e^{z}/q, the per-token statistic
-whose q-mean is the partition. -/
+/-- Веса важности: `impW z q v = e^{z v}/q v`. -/
 noncomputable def impW (z q : V → ℝ) (v : V) : ℝ :=
   Real.exp (z v) / q v
 
-/-- **Finite Jensen for the concave log** (the tangent-line
-route: log W ≤ W/a + log a − 1 at a := E_q[W], summed with
-the q-weights). The engine of the partition gap theorem. -/
+/-- Конечный Jensen для вогнутого логарифма (касательная
+`log W ≤ W/a + log a − 1` при `a = Σ q·W`):
+`Σ_v q v·log (W v) ≤ log (Σ_v q v·W v)` при положительных
+`q v`, `W v` и `Σ q = 1`. -/
 theorem jensen_log (q W : V → ℝ)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) (hW : ∀ v, 0 < W v) :
     ∑ v, q v * Real.log (W v) ≤ Real.log (∑ v, q v * W v) := by
@@ -140,9 +89,8 @@ theorem jensen_log (q W : V → ℝ)
   rw [hfirst, hsecond] at hsum
   linarith
 
-/-- **Estimator theorem: the importance-sampled partition is
-unbiased.** The q-expectation of e^{z(v)}/q(v) is exactly Z
-(the proposal reweights the sum; no approximation). -/
+/-- При `0 < q v` и `Σ q = 1`:
+`Σ_v q v·impW z q v = partZ z` (несмещённость оценки суммы). -/
 theorem partEst_unbiased (z q : V → ℝ)
     (hq : ∀ v, 0 < q v) (_hq1 : ∑ v, q v = 1) :
     ∑ v, q v * impW z q v = partZ z := by
@@ -150,16 +98,13 @@ theorem partEst_unbiased (z q : V → ℝ)
   refine Finset.sum_congr rfl fun v _ => ?_
   exact mul_div_cancel₀ (Real.exp (z v)) (ne_of_gt (hq v))
 
-/-- The q-weighted second moment of the importance weight —
-the variance anchor of the estimate. -/
+/-- Вторая момента веса важности:
+`secondMomentW z q = Σ_v q v·(impW z q v)²`. -/
 noncomputable def secondMomentW (z q : V → ℝ) : ℝ :=
   ∑ v, q v * (impW z q v)^2
 
-/-- **The second moment dominates the square of the mean**
-(Cauchy–Schwarz): E_q[W²] ≥ (E_q[W])² = Z² — the variance
-anchor of the partition estimate; the relative second moment
-E[W²]/Z² ≥ 1 is the diagnostic's NORMALIZATION FLOOR: the
-noise ceiling (1/2K)•E[W²]/Z² is at least 1/2K. -/
+/-- При `0 < q v` и `Σ q = 1`:
+`(partZ z)² ≤ secondMomentW z q` (Cauchy–Schwarz). -/
 theorem secondMomentW_ge_sq (z q : V → ℝ)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
     (partZ z)^2 ≤ secondMomentW z q := by
@@ -196,10 +141,9 @@ theorem secondMomentW_ge_sq (z q : V → ℝ)
   unfold secondMomentW
   exact hcs
 
-/-- **Jensen: E[log Ẑ] ≤ log E[Ẑ] = log Z.** The sampled
-partition's log is an UNDER-estimate in expectation — the CE
-computed with Ẑ is biased UP (each log Ẑ ≤ log Z in
-expectation); the bias is the Jensen gap. -/
+/-- При `0 < q v` и `Σ q = 1`:
+`Σ_v q v·log (impW z q v) ≤ log (partZ z)` (Jensen: лог
+оценки суммы занижен в ожидании). -/
 theorem partEst_gap_jensen (z q : V → ℝ)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
     ∑ v, q v * Real.log (impW z q v) ≤ Real.log (partZ z) := by
@@ -212,33 +156,14 @@ theorem partEst_gap_jensen (z q : V → ℝ)
   -- now: Σ q * log(exp z / q) <= log (Σ q * (exp z / q))
   refine jensen_log (V := V) q (fun v => Real.exp (z v) / q v) hq hq1 hW
 
-/-- **The variance-noise ceiling of the sampled-CE gap.**
-The K-average's Jensen gap is at most the per-sample relative
-variance over 2K — the DELTA ceiling:
+/-- При `0 < K`, `0 < q v`, `Σ q = 1`:
+`(1/(2K))·(secondMomentW z q/(partZ z)²) ≥ 1/(2K)`.
 
-`E[log Ẑ_K] ≥ log Z − (1/2K) • (Σ e^{2z}/q / Z²)`
-
-**THE QUANTITATIVE VERDICT.** The measured gap is 47 nats at
-K = 2048. For the sampling noise to own it, the required
-per-sample relative second moment is
-Σ e^{2z}/q / Z² ≥ 94 • K ≈ 1.9•10⁵ — the effective sample
-size K_eff = K • Z²/(Σ e^{2z}/q) ≤ 1/94 ≈ 0.011: LESS THAN
-ONE effective sample. For the unigram-of-the-mixture proposal
-(entropy 7.34, a well-conditioned q), K_eff is of order K —
-the delta ceiling is single-digit nats.
-
-**HONEST BOUNDARY (round-61 external audit)**: what Lean
-proves below is only the Cauchy–Schwarz lower bound
-E[W²]·1/K ≥ 1/K — NOT a ceiling on the sampling gap. The
-delta-method heuristic «gap ≈ E[W²]/(2K·Z²)» is FALSE at
-finite K (exact binomial at K=2048: gap 1.15 vs heuristic
-0.12 for a=1e-30; 11.5 at a=1e-300) and invalid precisely in
-the ESS < 1 regime. The 47-nat verdict therefore stands as
-EMPIRICAL judgment (logit_scale drift 1.784 → 1.841, kl
-37.6 → 47.8), consistent with an out-of-sample drift
-diagnosis, but NOT as a theorem. The PRESCRIPTION (anchor
-the out-of-sample regime: z_loss, logit_scale clamp,
-periodic exact-CE) remains empirically motivated. -/
+Доказано только это (нижняя оценка из Cauchy–Schwarz), НЕ
+потолок сэмплинг-зазора: дельта-эвристика
+«gap ≈ E[W²]/(2K·Z²)» при конечном K ложна (и особенно
+невалидна в режиме ESS < 1); эмпирические выводы из неё —
+не теоремы. -/
 theorem relative_second_moment_floor (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
     -- the noise-explainable gap is AT MOST the per-sample
@@ -264,21 +189,17 @@ theorem relative_second_moment_floor (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     mul_le_mul_of_nonneg_left hdiv (by positivity)
   linarith [hmul]
 
--- REPLACED (round 41 audit): the rfl tautology theorem
--- `anchor_cadence_criterion` (`rho * s / gamma = rho * s / gamma`)
--- `rho * s / gamma = rho * s / gamma` is superseded by the
--- honest recurrence theorem `Hagi.Plan41.anchor_recurrence`:
--- D_t ≤ (1−γ)^t·D₀ + ρs/γ for every t (the stationary value
--- ρs/γ is the t → ∞ limit; the finite-t bound is the actual
--- criterion — the cadence s ≤ γε/ρ applies once the transient
--- (1−γ)^t·D₀ has decayed under the slack).
+-- Заменено ранее: тавтология `anchor_cadence_criterion`
+-- (rfl) заменена рекуррентной теоремой
+-- `Hagi.Plan41.anchor_recurrence`:
+-- `D t ≤ (1−γ)^t·D₀ + ρs/γ` (критерий каденса — конечный
+-- по t, а не только стационарная точка).
 
-/-- **The ε-criterion of the anchor cadence**: the drift
-stays bounded by ε iff the cadence s satisfies
-s ≤ γ•ε/ρ — the exact_ce_interval translation. -/
+/-- При `0 < gamma`, `0 < rho`, `0 < eps` и `s ≤ gamma·eps/rho`:
+`rho·s/gamma ≤ eps`. -/
 theorem anchor_cadence_criterion (gamma rho eps : ℝ)
     (hgamma : 0 < gamma) (hrho : 0 < rho) (heps : 0 < eps) :
-    -- s ≤ γε/ρ ⟹ ρs/γ ≤ ε (the stationary point under eps)
+    -- стационарная точка под eps
     ∀ s : ℝ, s ≤ gamma * eps / rho → rho * s / gamma ≤ eps := by
   intro s hs
   have h1 : rho * s ≤ rho * (gamma * eps / rho) :=

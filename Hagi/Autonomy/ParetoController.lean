@@ -7,40 +7,23 @@ import Hagi.Growth.SelfDevelopment
 set_option linter.style.header false
 
 /-!
-# P1: DirectionalParetoController — направленный Pareto-контроллер
+# DirectionalParetoController
 
-Аудит R120 (SWE-2 Extended, anishlk.com/swe-2-extended): выбор
-действия по `max gain/cost` неявно фиксирует одну точку зрения —
-«максимизировать прирост на единицу ресурса». Нужен контроллер,
-который выбирает НАПРАВЛЕНИЕ движения по Pareto frontier:
-α=1 — прирост capability при сохранении cost, α=0 — снижение
-cost при сохранении performance, промежуточные — баланс.
+Направленный Pareto-контроллер: действие `a` оценивается
+сбалансированным уровнем `dirTau u omega a` — максимальным
+`tau` с `tau * omega i <= u a i` для всех координат `i`
+(`omega i > 0` — веса направления).
 
-**Формализация** (векторная, n координат; SWE-2 — случай n=2):
-
-* `u a i` — нормированный прирост i-й координаты действием a
-  (capability-гейн, минус wall-clock, минус risk, ...).
-* `omega i > 0` — желаемое направление (Σω = 1 не существенно).
-* `dirTau u omega a` — максимальный сбалансированный уровень
-  τ: `∀ i, u(a,i) ≥ ω_i·τ` (sup'-форма `−sup'_i(−u a i/ω i)`).
-
-**Теоремы (§7 аудита):**
-
-1. `dirTau_le`, `le_dirTau`, `dirTau_char` — эквивалентность
-   min-формы и системы неравенств.
-2. `pareto_validity` — τ(a) > 0 ⇒ a строго улучшает каждую
-   координату (направленный Pareto-шаг).
-3. `dir_controller_find` — completeness: ∃ a₀ с τ(a₀) ≥ g ⇒
-   argmax-τ контроллер выбирает a* с τ(a*) ≥ g (направленный
-   аналог `self_development_find` R118).
-4. `noisy_pareto_select` — при поэлементной ε_i-концентрации
-   измерений (R114): argmax по измеренным даёт истинный
-   τ(a*) ≥ τ(a₀) − 2·max_i(ε i/ω i).
-
-**Честные границы**: (1) оценка локального наклона frontier —
-отдельная сертифицируемая задача (audit §14); (2) hard-
-констрейнты (ΔQ_j ≥ −ε_j, ΔR ≤ ε_R, B ≥ 0) — safe-фильтр ДО
-контроллера (компонуется с `safeCandidates` R118).
+Основные результаты:
+* `dirTau_le`, `le_dirTau`, `dirTau_char` — характеризация
+  `dirTau` системой неравенств.
+* `pareto_validity` — `dirTau > 0` влечёт `u a i > 0` для
+  каждой координаты.
+* `dir_controller_find` — если ∃ `a₀` с `dirTau a₀ >= g`,
+  argmax-контроллер выбирает `a'` с `dirTau a' >= g`.
+* `noisy_pareto_select` — при |û a i - u a i| <= eps i
+  argmax по измеренному `dirTau` даёт истинный уровень
+  `>= dirTau a₀ - 2 * max_i (eps i / omega i)`.
 -/
 
 open Finset
@@ -82,8 +65,8 @@ theorem le_dirTau (u : A → Fin n → ℝ) (omega : Fin n → ℝ) (a : A)
   unfold dirTau
   linarith
 
-/-- Эквивалентность min-формы и системы неравенств (audit §7,
-теорема 1): τ ≤ dirTau a ↔ (∀ i, τ·ω i ≤ u a i) при ω > 0. -/
+/-- При `omega i > 0`: `tau <= dirTau u omega a` ↔
+`∀ i, tau * omega i <= u a i`. -/
 theorem dirTau_char (u : A → Fin n → ℝ) (omega : Fin n → ℝ)
     (hw : ∀ i, 0 < omega i) (a : A) (tau : ℝ) :
     tau ≤ dirTau u omega a ↔ ∀ i, tau * omega i ≤ u a i := by
@@ -97,9 +80,7 @@ theorem dirTau_char (u : A → Fin n → ℝ) (omega : Fin n → ℝ)
       rw [le_div_iff₀ (hw i)]
       exact h i)
 
-/-- **Pareto validity** (audit §7, теорема 2): если
-направленный уровень положителен, действие строго улучшает
-каждую координату. -/
+/-- Если `dirTau u omega a > 0` и `omega i > 0`, то `u a i > 0`. -/
 theorem pareto_validity (u : A → Fin n → ℝ) (omega : Fin n → ℝ)
     (hw : ∀ i, 0 < omega i) (a : A)
     (hpos : 0 < dirTau u omega a) (i : Fin n) :
@@ -109,10 +90,8 @@ theorem pareto_validity (u : A → Fin n → ℝ) (omega : Fin n → ℝ)
   have h2 : 0 < omega i * dirTau u omega a := mul_pos (hw i) hpos
   linarith
 
-/-- **Controller completeness** (audit §7, теорема 3):
-направленный аналог `self_development_find` — если существует
-действие с направленным уровнем ≥ g, argmax-τ контроллер
-выбирает действие с уровнем ≥ g. -/
+/-- Если `g <= dirTau u omega a₀`, то существует `a'` с
+`g <= dirTau u omega a'`, максимизирующий `dirTau`. -/
 theorem dir_controller_find (u : A → Fin n → ℝ) (omega : Fin n → ℝ)
     (a₀ : A) (g : ℝ)
     (hg : g ≤ dirTau u omega a₀) :
@@ -139,11 +118,9 @@ private theorem sup_stab {m : ℕ} [Nonempty (Fin m)] (f g : Fin m → ℝ)
     linarith [h i, h1 i]
   exact Finset.sup'_le Finset.univ_nonempty f (fun i _ => hkey i)
 
-/-- **Noisy Pareto selection** (audit §7, теорема 4): при
-поэлементной ε_i-концентрации измеренных приростов û
-(|û a i − u a i| ≤ ε i, сертифицируемо R114) argmax по
-ИЗМЕРЕННОМУ dirTau даёт истинный уровень
-≥ dirTau(a₀) − 2·max_i(ε i/ω i). -/
+/-- Если `|uhat a i - u a i| <= eps i` для всех `a, i`, то
+argmax по `dirTau uhat` даёт `a'` с `dirTau u omega a' >=
+dirTau u omega a₀ - 2 * max_i (eps i / omega i)`. -/
 theorem noisy_pareto_select (u uhat : A → Fin n → ℝ)
     (omega : Fin n → ℝ) (hw : ∀ i, 0 < omega i)
     (eps : Fin n → ℝ)

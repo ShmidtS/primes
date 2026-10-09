@@ -7,39 +7,33 @@ import Hagi.Step.SafeQP
 set_option linter.style.header false
 
 /-!
-# R60: curvature-aware SafeQP (trust region)
+# CurvatureSafe — учитывающий кривизну SafeQP (trust region)
 
-Block I.2 of the grand-unified roadmap: the linearized safety
-constraint ⟨g_i, d⟩ ≥ −ε_i is only a first-order certificate.
-With L_i-Lipschitz gradients the actual per-domain loss
-change obeys the second-order bound
+Второпорядковая оценка при L-Lipschitz градиентах:
+`L_i(w+d) − L_i(w) ≤ −⟪g i, d⟫ + (L_i/2)·‖d‖²`.
 
-  L_i(w + d) − L_i(w) ≤ −⟪g_i, d⟫ + (L_i/2)‖d‖² ≤ ε_i + (L_i/2)‖d‖²,
-
-and the step is monotonically safe on EVERY domain whenever
-‖d*‖² ≤ 2·min_i(ε_i/L_i) — an explicit trust-region radius
-computable from the measured Lipschitz constants and the
-safety margins. No learning-rate condition involved.
+* `safeqp_second_order`: при `−eps ≤ inner` и гладкости —
+  `dL ≤ eps + L·dnorm²/2`;
+* `safeqp_trust_region`: при `dnorm² ≤ 2·eps/L` —
+  `dL ≤ 2·eps` (явный радиус trust-региона);
+* `safeqp_monotone_domain`: при `0 ≤ inner`, `L > 0`,
+  `dnorm² ≤ 2·slack/L` и `slack ≤ 0` — `dL ≤ 0`
+  (точный сертификат, вырожденный случай: посылки влекут
+  `‖d‖² = 0`).
 -/
 
 namespace Hagi
 
-/-- **Second-order safety of the SafeQP step**: with the
-linearized constraint ⟪g_i, d⟫ ≥ −ε_i (the SafeQP feasible
-set) and L_i-Lipschitz gradients (h_emp_smooth), the actual
-loss change on domain i is at most ε_i + (L_i/2)‖d‖². -/
+/-- При `−eps ≤ inner` и `dL ≤ −inner + L·dnorm²/2` —
+`dL ≤ eps + L·dnorm²/2`. -/
 theorem safeqp_second_order (inner eps L dnorm dL : ℝ)
     (hfeas : -eps ≤ inner) (_hL : 0 ≤ L)
     (h_emp_smooth : dL ≤ -inner + L * dnorm ^ 2 / 2) :
     dL ≤ eps + L * dnorm ^ 2 / 2 := by
   linarith
 
-/-- **The explicit trust-region radius**: if the SafeQP step
-norm obeys ‖d*‖² ≤ 2·ε/L (with ε the safety margin and L the
-Lipschitz constant), the second-order bound collapses to
-dL ≤ 2·ε — and with the margin ε′ := 2ε the step is
-certifiably non-catastrophic on that domain regardless of
-the learning rate. -/
+/-- При `0 < L`, `−eps ≤ inner`, гладкости и
+`dnorm² ≤ 2·eps/L` — `dL ≤ 2·eps`. -/
 theorem safeqp_trust_region (inner eps L dnorm dL : ℝ)
     (hfeas : -eps ≤ inner) (hL : 0 < L)
     (h_emp_smooth : dL ≤ -inner + L * dnorm ^ 2 / 2)
@@ -53,19 +47,9 @@ theorem safeqp_trust_region (inner eps L dnorm dL : ℝ)
       _ = eps := by field_simp
   linarith
 
-/-- **Monotone per-domain safety (R102 convention fix)**: if
-the second-order slack is nonpositive — `slack ≤ 0` bounds
-the residual term L·‖d*‖²/2 from above by a NONPOSITIVE
-quantity, which together with the tight trust region forces
-the second-order term to vanish — and the linearized inner
-product is nonnegative (the conflict-free case), the domain
-loss does not increase at all. NOTE the convention:
-`slack` here is NOT a positive safety margin (the
-positive-margin convention of `safeqp_trust_region`'s ε);
-it is a regression bound on the second-order residual, and
-the hypothesis set (hrad with L > 0 plus slack ≤ 0) forces
-‖d*‖² = 0 — the theorem is the exact-certificate case of
-`safeqp_second_order`, not a margin argument. -/
+/-- При `0 ≤ inner`, `0 < L`, `dnorm² ≤ 2·slack/L` и
+`slack ≤ 0` — `dL ≤ 0`. Посылки вынуждают `dnorm² = 0`
+(вырожденный точный случай, не аргумент о марже). -/
 theorem safeqp_monotone_domain (inner slack L dnorm dL : ℝ)
     (hfeas : 0 ≤ inner) (hL : 0 < L)
     (h_emp_smooth : dL ≤ -inner + L * dnorm ^ 2 / 2)

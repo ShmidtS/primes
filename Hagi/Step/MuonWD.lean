@@ -4,33 +4,18 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Foundations.Recurrence
 
 /-!
-# MuonWD — weight decay replaces the bounded-gradient axiom
+# MuonWD — weight decay заменяет аксиому ограниченного градиента
 
-The R224 core (source: arXiv:2507.01598): the Muon update is
-ORTHOGONALIZED — its norm is bounded by CONSTRUCTION
-(spectral normalization: the msign/NS preconditioner maps
-ANY gradient to a direction of uniformly bounded norm ≤ C),
-INDEPENDENT of the gradient magnitude. With weight decay the
-parameter recursion
+Рекурсия `θ_{t+1} = (1 − ηλ)·θ_t − η·U_t` с равномерно
+ограниченным ортогонализованным шагом `‖U_t‖ ≤ C`
+(независимо от величины градиента).
 
-  θ_{t+1} = (1 − ηλ)·θ_t − η·U_t,   ‖U_t‖ ≤ C
-
-is a contraction with a uniformly bounded additive term:
-‖θ_t‖ stays bounded FOREVER, WITHOUT any assumption that the
-gradients are bounded. The bounded-gradient axiom (§3) is
-discharged by (orthogonalized update + weight decay), not
-assumed.
-
-* `muon_wd_recursion`: the WD+Muon recursion is exactly the
-  contraction form ρ·x + δ with ρ = 1 − ηλ, δ = η·C;
-* `wd_boundedness`: the FOREVER bound — ‖θ_t‖ ≤ ρ^t·‖θ₀‖ +
-  C/λ: the stationary radius C/λ is INDEPENDENT of the
-  gradient scale; the axiom is gone, the price is the
-  explicit WD floor C/λ;
-* honesty note (no separate theorem): the bounds above use
-  only the uniform C, never ‖g_t‖ — while hC holds, the
-  gradient scale does not enter anywhere; a burst cannot
-  push the trajectory out of the bound.
+* `muon_wd_recursion`: шаг нормы —
+  `‖θ_{t+1}‖ ≤ (1 − ηλ)·‖θ_t‖ + η·C`;
+* `wd_boundedness`: при `0 < ηλ ≤ 1` —
+  `‖θ_T‖ ≤ (1 − ηλ)^T·‖θ_0‖ + C/λ`: стационарный радиус C/λ
+  не зависит от масштаба градиентов (аксиома ограниченности
+  градиентов не нужна; цена — явный WD-пол).
 -/
 
 namespace Hagi
@@ -39,11 +24,10 @@ open Finset
 
 variable {W : Type} [NormedAddCommGroup W] [NormedSpace ℝ W]
 
-/-- **The WD+Muon recursion is a contraction**: with the
-orthogonalized update uniformly bounded (hC — the spectral
-normalization contract, source 2507.01598), η ≥ 0,
-0 ≤ ηλ ≤ 1, the norm recursion is exactly ρ·x + δ with
-ρ = 1 − ηλ, δ = η·C — regardless of gradient magnitudes. -/
+/-- При `0 ≤ eta`, `0 ≤ eta·lam ≤ 1`, шаге
+`θ (t+1) = (1 − eta·lam) • θ t − eta • U t` и
+`‖U s‖ ≤ C` для всех s —
+`‖θ (t+1)‖ ≤ (1 − eta·lam)·‖θ t‖ + eta·C`. -/
 theorem muon_wd_recursion (theta : ℕ → W) (U : ℕ → W)
     (eta lam C : ℝ) (t : ℕ)
     (heta : 0 ≤ eta) (hlam0 : 0 ≤ eta * lam)
@@ -61,10 +45,10 @@ theorem muon_wd_recursion (theta : ℕ → W) (U : ℕ → W)
     Real.norm_eq_abs, abs_of_nonneg heta] at htri
   exact le_trans htri (by linarith)
 
-/-- **The forever bound**: under the WD+Muon recursion with
-0 ≤ ηλ < 1, the parameter norm NEVER exceeds the geometric
-tail plus the stationary radius C/λ — no bounded-gradient
-assumption anywhere; the price is the explicit WD floor. -/
+/-- При `0 ≤ eta`, `0 < eta·lam ≤ 1`, шаге
+`θ (t+1) = (1 − eta·lam) • θ t − eta • U t` и
+`‖U s‖ ≤ C` —
+`‖θ T‖ ≤ (1 − eta·lam)^T·‖θ 0‖ + C/lam`. -/
 theorem wd_boundedness (theta : ℕ → W) (U : ℕ → W)
     (eta lam C : ℝ) (T : ℕ)
     (heta : 0 ≤ eta) (hpos : 0 < eta * lam)

@@ -9,23 +9,17 @@ open Finset
 /-!
 # OrthoInjection — geometric capability injection
 
-The user-facing principle (the HAGI reading of orthogonal
-input injection): a NEW information channel must not compete
-geometrically with the carried-over state. Applied to
-capability fibers: a new skill residual is injected only into
-the subspace orthogonal to the retained cortex state:
+A new skill residual is injected only into the subspace
+orthogonal to the retained cortex state:
+`h' = h + (A - U * (Uᵀ * A)) *ᵥ x`.
 
-  h' = h + P_⊥ (A x),   P_⊥ = I − U Uᵀ.
-
-Main results:
-
-* `fiber_cortex_zero`: the injected fiber has ZERO cortex
-  coordinates (matrix form of `fiberSplitOrtho`);
-* `fiber_injection_preserves_cortex`: the cortex coordinates
-  of the state are UNCHANGED by the injection — the retained
-  representation is untouched, whatever the skill payload x;
-* `fiber_injection_norm_split`: the injected energy adds
-  orthogonally (no cancellation against the carried state).
+* `fiber_cortex_zero` — the injected fiber has zero cortex
+  coordinates.
+* `fiber_injection_preserves_cortex` — the cortex coordinates
+  of the state are unchanged by the injection, for any
+  payload `x`.
+* `fiber_injection_norm_split` — the injected energy adds
+  orthogonally to the cortex component.
 -/
 
 namespace Hagi.Cortex
@@ -42,9 +36,8 @@ theorem fiber_cortex_zero {d c r : ℕ}
   have h2 : Uᵀ * U = 1 := hU
   rw [h1, h2, Matrix.one_mul, sub_self]
 
-/-- **Capability injection preserves the cortex state**: the
-cortex coordinates of the state are exactly what they were
-before the injection — for ANY skill payload x. -/
+/-- The cortex coordinates of the state are unchanged by the
+injection, for any payload `x`. -/
 theorem fiber_injection_preserves_cortex {d c r : ℕ}
     (U : Matrix (Fin d) (Fin c) ℝ) (hU : IsOrthoCol U)
     (A : Matrix (Fin d) (Fin r) ℝ)
@@ -57,10 +50,9 @@ theorem fiber_injection_preserves_cortex {d c r : ℕ}
     rw [Matrix.mulVec_mulVec, hz, Matrix.zero_mulVec]
   rw [Matrix.mulVec_add, h1, add_zero]
 
-/-- **Orthogonal energy split**: the injected skill energy
-adds without interfering with the cortex component of the
-carried state (no cancellation: growth is never paid for by
-destroying carried structure). -/
+/-- The injected energy adds orthogonally to the cortex
+component of the state: the total splits without a cross
+term. -/
 theorem fiber_injection_norm_split {d c r : ℕ}
     (U : Matrix (Fin d) (Fin c) ℝ) (hU : IsOrthoCol U)
     (A : Matrix (Fin d) (Fin r) ℝ)

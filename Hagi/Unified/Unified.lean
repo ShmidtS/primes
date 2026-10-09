@@ -6,64 +6,20 @@ import Hagi.Depth.RootContrast
 set_option linter.style.header false
 
 /-!
-# Unified: the single structure — two recursions, one currency (round 48)
+# Unified — two recursions, one currency
 
-The unification of ALL Hagi theories into one architecture:
-**recursive growth in parameter space + recursive refinement
-in state space**, selected by ONE index: ΔI_eff·η/ΔT_wall.
-
-**1. `uncertainty_contraction`** (from LDT's lattice
-deduction): a refinement operator P on a preorder (P x ≤ x:
-the update only adds information) contracts every isotone
-uncertainty measure U: U(P x) ≤ U(x). The LDT laws
-(contracting, idempotent, monotone) are the state-space
-mirror of our weight-space projections: `root_idem` /
-`contrast_of_root` (RootContrast) and `safeQP_descent`
-(Plan43) are instances of the same shape.
-
-**2. `finite_termination`**: if every non-fixed step of P
-strictly decreases a ℕ-rank, then after k non-fixed steps
-rank(P^[k] x₀) + k ≤ rank(x₀) — the chain must reach a fixed
-point within rank(x₀) steps: the LDT solve loop terminates;
-our `dead_layer_stop` / `seed_only_grow_stop` /
-`grow_epsilon_stop` are the same rank argument in different
-coordinates.
-
-**3. `traininfer_critical`** (the LDT trade-off): the total
-cost J(T) = T + C_step·(N∞ + a·e^{−kT}) (train budget + the
-inference loop count it leaves behind) has its critical point
-exactly at T* = log(C_step·a·k)/k — when to train more vs
-iterate longer is a closed formula. The training budget
-buys down the solve depth exponentially; the optimum
-equalizes the marginal cost of each.
-
-**4. `highway_gain_transport_bound`** (the DepthBench η):
-the highway gain identity of RootContrast is an UPPER bound
-once the residual transport through depth is lossy:
-ΔCE ≤ E_captured·η(L) with η = rank_eff(J_highway)/
-rank_eff(J_ideal) ∈ [0,1] — the measured mHC collapse
-(uniform re-mixing → effective transport rank 1.4–1.7 vs
-2.5–2.8 for HC) is exactly η < 1. This completes the T2
-falsification model: the blind prediction ρ_c may
-OVERSHOOT by the factor η.
-
-**The unified architecture (documented)**:
-```
-experts ──► F3 merge ──► root ⊕ contrast ──► multi-stream
-   │                                    residual transport (η)
-   ▼                                            ▼
-weight-space growth                      layer stack ──► parent
-(merge/joint/LoRA — Gittins)                    │
-                                                ▼
-                          state-space refinement (P — lattice)
-                          x_{t+1} = P(F_θ(x_t)), terminal ≤ rank(x₀)
-```
-ONE controller: every candidate action (new expert, new
-generation, new layer, more rank, more train, more
-inference depth, state-refinement step) is ranked by
-ΔI_eff·η_transport/ΔT_wall; every axis has its own stop law
-(dead_layer, seed_only_grow, channel_switch, finite_termination,
-grow_epsilon_stop).
+* `uncertainty_contraction`: a contracting operator
+  (`P x ≤ x`) contracts every isotone uncertainty measure:
+  `U (P x) ≤ U x`.
+* `finite_termination`: if every non-fixed step of `P`
+  strictly decreases a ℕ-rank, then `rank ((P^[k]) x0) + k ≤
+  rank x0` after `k` non-fixed steps — the chain reaches a
+  fixed point within `rank x0` steps.
+* `traininfer_critical`: the cost `J(T) = T + C·(N∞ +
+  a·e^{−kT})` has its critical point at
+  `T* = log (C·a·k) / k`.
+* `highway_gain_transport_bound`: a gain bounded by
+  `E_capt · η` with `η ≤ 1` is bounded by `E_capt`.
 -/
 
 open Finset Real
@@ -72,11 +28,8 @@ namespace Hagi
 
 section StateLattice
 
-/-- **The uncertainty contraction** (LDT's sound deduction
-law, weight-space-agnostic): a contracting refinement
-operator (P x ≤ x in the information preorder) contracts
-every isotone uncertainty measure: U(P x) ≤ U(x). The
-state-space mirror of our projection theorems. -/
+/-- If `P x ≤ x` for all `x` and `U` is isotone, then
+`U (P x) ≤ U x` for all `x`. -/
 theorem uncertainty_contraction {α β : Type} [Preorder α] [Preorder β]
     (P : α → α) (U : α → β)
     (hmono : ∀ x y, x ≤ y → U x ≤ U y) (hcontract : ∀ x, P x ≤ x) :
@@ -84,13 +37,9 @@ theorem uncertainty_contraction {α β : Type} [Preorder α] [Preorder β]
   intro x
   exact hmono _ _ (hcontract x)
 
-/-- **The finite termination of the solve loop**: if every
-non-fixed refinement step strictly decreases a natural rank,
-then k non-fixed steps cost at least k rank units from x₀ —
-the chain reaches a fixed point within rank(x₀) steps. The
-common skeleton of dead_layer_stop, seed_only_grow_stop and
-grow_epsilon_stop, now at the abstraction level of ANY
-iterative refinement. -/
+/-- If every non-fixed step of `P` strictly decreases `rank`
+and the first `k` iterates from `x0` are all non-fixed, then
+`rank ((P^[k]) x0) + k ≤ rank x0`. -/
 theorem finite_termination {α : Type} (rank : α → ℕ) (P : α → α)
     (hstrict : ∀ x, P x ≠ x → rank (P x) < rank x) (x0 : α) (k : ℕ)
     (hchain : ∀ i < k, (P^[i]) x0 ≠ (P^[i+1]) x0) :
@@ -117,14 +66,10 @@ end StateLattice
 
 section TrainInfer
 
-/-- **The train-vs-infer optimum** (the LDT trade-off): with
-the total cost J(T) = T + C_step·(N∞ + a·e^{−kT}) — train
-budget plus the expected inference loop count it leaves —
-the critical point is EXACTLY T* = log(C_step·a·k)/k: the
-marginal train step costs 1 and buys C_step·a·k·e^{−kT}
-expected solve iterations; at T* they balance. When to
-train longer vs iterate deeper is a closed formula — the
-train/infer axis joins the one-currency controller. -/
+/-- For `C, a, k > 0` with `1 < C * a * k`, the derivative
+of `J(T) = T + C·(N∞ + a·e^{−kT})` vanishes at
+`T* = log (C * a * k) / k`: the stated identity
+`1 − C·a·k·e^{−k·T*} = 0` holds. -/
 theorem traininfer_critical (C a k : ℝ) (hC : 0 < C) (ha : 0 < a) (hk : 0 < k)
     (harg : 1 < C * a * k) :
     1 - C * a * k * Real.exp (-(k * (Real.log (C * a * k) / k))) = 0 := by
@@ -138,15 +83,8 @@ end TrainInfer
 
 section TransportEta
 
-/-- **The η-transport bound** (the DepthBench correction to
-the highway gain): the captured-energy gain of the contrast
-highway (RootContrast T2) is an UPPER bound whenever the
-residual transport through depth is lossy — gain ≤
-E_captured·η with the measured η = rank_eff(J_highway)/
-rank_eff(J_ideal) ∈ [0,1]. The mHC collapse (uniform
-re-mixing drives the transport rank toward 1) is η < 1 in
-the wild. Formally: any nonnegative captured energy,
-discounted by η ∈ [0,1], bounds the realized gain. -/
+/-- If `0 ≤ Ecapt`, `eta ≤ 1`, and `gain ≤ Ecapt * eta`,
+then `gain ≤ Ecapt`. -/
 theorem highway_gain_transport_bound (Ecapt eta gain : ℝ)
     (hE : 0 ≤ Ecapt) (_heta : 0 ≤ eta) (heta1 : eta ≤ 1)
     (hgain : gain ≤ Ecapt * eta) :

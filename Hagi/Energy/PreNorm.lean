@@ -13,7 +13,7 @@ Every block of the architecture is pre-norm
 every seam, QK-norm on every head, fp32 variance accumulators
 and fp32-kept gains. The formal cores:
 
-**The direction-preservation property (THEOREM).** RMSNorm
+**The direction-preservation property (theorem).** RMSNorm
 sends x to x/RMS(x) (per-dim gain aside): the map is a
 POSITIVE-RADIAL map — the direction of x is preserved, the
 magnitude normalized to 1. Consequences:
@@ -36,7 +36,7 @@ magnitude normalized to 1. Consequences:
   "numerically identical for the value ranges seen here" —
   the theorem gives the exact-idealized form).
 
-**The gain's frozen-update bound (THEOREM — the
+**The gain's frozen-update bound (theorem — the
 keep_fp32-marker's arithmetic).** The docstring's claim:
 "a gain at 1.0 receives gradients around 1e-4; the smallest
 bf16 step above 1.0 is ~0.0078, so under bf16 those updates

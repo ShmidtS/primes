@@ -7,36 +7,39 @@ import Hagi.Foundations.TakeoffCounted
 set_option linter.style.header false
 
 /-!
-# R83: fast growth — the compute-normalized capability law
+# FastGrowth — нормированный на compute закон прироста capability
 
-- `capability_cumulative`: T certified cycles each
-  transferring Γ ≥ c > 0 accumulate external gain ≥ T·c
-  (capability_gain_transfer telescoped).
-- `growth_efficiency_lower`: the mul-form — (R0 − RT)·K ≥
-  T·c·K.
-- `growth_efficiency_div`: the division form — every unit of
-  compute (FLOP budget K per cycle) buys ≥ c/K of external
-  risk reduction: the honest "fast" of the audit's program
-  (ΔC/FLOPs ≥ c > 0).
+* `capability_cumulative`: при `Rext (t+1) ≤ Rext t − Gamma`
+  и `c ≤ Gamma` — `Rext T ≤ Rext 0 − T·c`;
+* `growth_efficiency_lower` / `growth_efficiency_div`:
+  риск-снижение на единицу compute ≥ c/K
+  (муль- и деление-формы);
+* `capability_multiplicative`: при `C (t+1) ≥ C t·(1+α)` —
+  `C T ≥ C 0·(1+α)^T` (T-кратная композиция пошагового
+  закона — посылка, не вывод);
+* `capability_takeoff_counted`: при
+  `C (t+1) ≥ C t·(1+α)^(s t)` —
+  `C T ≥ C 0·(1+α)^(Σ s t)` (экспонента по числу успехов);
+* `capability_takeoff_floor`: при `N ≤ Σ s t` —
+  `C T ≥ C 0·(1+α)^N`;
+* `risk_takeoff_counted`: при
+  `R (t+1) ≤ R t·(1−β)^(s t)` —
+  `R T ≤ R 0·(1−β)^(Σ s t)`;
+* `risk_epsilon_floor`: при
+  `log(R0/eps)/log(1/(1−β)) ≤ N` —
+  `R0·(1−β)^N ≤ eps` (замкнутая форма счётчика успехов
+  до ε-пола).
 
-Bridge note: the GrowthState-level form of these laws (the additive→
-multiplicative reading of `grow`'s capability channel and the takeoff
-stated on the iterated state) is R96, `Hagi/Unified/GrowthBridge.lean`.
-
-The remaining audit fronts: ImplementationRefinement,
-CertifiedEstimator (probability layer), DiscoveryProbability
-(Borel–Cantelli side), RecursiveImprovement, Universality,
-MasterHAGI.
+Стохастическая половина (вероятностный слой успеха) —
+открыта.
 -/
 
 open Real Finset
 
 namespace Hagi
 
-/-- **Cumulative capability gain**: T certified cycles each
-transferring Γ ≥ c > 0 accumulate external capability gain
-≥ T·c (capability_gain_transfer telescoped) — the linear
-growth law of the loop. -/
+/-- При `Rext (t+1) ≤ Rext t − Gamma` и `c ≤ Gamma`:
+`Rext T ≤ Rext 0 − Σ_{t<T} c`. -/
 theorem capability_cumulative (Rext : ℕ → ℝ) (Gamma c : ℝ)
     (_hc : 0 < c)
     (hstep : ∀ t, Rext (t + 1) ≤ Rext t - Gamma)
@@ -51,10 +54,8 @@ theorem capability_cumulative (Rext : ℕ → ℝ) (Gamma c : ℝ)
         _ ≤ (Rext 0 - ∑ _t ∈ Finset.range T, c) - Gamma := by linarith
         _ ≤ Rext 0 - (∑ _t ∈ Finset.range T, c + c) := by linarith
 
-/-- **Compute-normalized growth efficiency (the honest
-"fast")**: T cycles at cost ≤ K each, each transferring
-Γ ≥ c, give risk-reduction-per-compute ≥ c/K — every unit
-of compute buys at least c/K of external capability. -/
+/-- При посылках `capability_cumulative`, `0 < K` и
+`T ≠ 0`: `(Rext 0 − Rext T)·K ≥ T·c·K`. -/
 theorem growth_efficiency_lower (Rext : ℕ → ℝ) (Gamma c K : ℝ)
     (hc : 0 < c) (hK : 0 < K)
     (hstep : ∀ t, Rext (t + 1) ≤ Rext t - Gamma)
@@ -68,9 +69,8 @@ theorem growth_efficiency_lower (Rext : ℕ → ℝ) (Gamma c K : ℝ)
     mul_le_mul_of_nonneg_right (by linarith) hK.le
   linarith
 
-/-- In the division form: risk-reduction per unit compute
-is at least c/K — every FLOP buys ≥ c/K of external risk
-reduction (K > 0, T > 0). -/
+/-- При посылках `capability_cumulative`, `0 < K < ∞` и
+`0 < T`: `c/K ≤ (Rext 0 − Rext T)/(T·K)`. -/
 theorem growth_efficiency_div (Rext : ℕ → ℝ) (Gamma c K : ℝ)
     (hc : 0 < c) (hK : 0 < K)
     (hstep : ∀ t, Rext (t + 1) ≤ Rext t - Gamma)
@@ -84,25 +84,9 @@ theorem growth_efficiency_div (Rext : ℕ → ℝ) (Gamma c K : ℝ)
   rw [div_le_div_iff₀ hK (mul_pos hT hK)]
   nlinarith [hmain, hK, hT]
 
-/-- **The multiplicative capability law (the audit's
-exponential takeoff core, deterministic half)**: if every
-SUCCESSFUL event multiplies capability by ≥ (1+α) with
-α > 0 (and failures never decrease it), then after T cycles
-of which N are successful,
-
-  C_T ≥ C_0 · (1 + α)^N
-
-— exponential growth in the number of successes. With the
-probability layer (success probability ≥ p per cycle,
-h_util Σp = ∞), N ~ Binomial(T, p) makes log C_T = Ω(T) —
-the true fast-growth form of the audit's Master theorem.
-The deterministic core is here; the stochastic half stays
-open.
-
-COMPOSITION LAW (R102 honesty note): the hypothesis IS the
-per-step multiplicative law (assumed, not derived); the
-conclusion is exactly its T-fold composition. This is not a
-derivation of the step law from deeper principles. -/
+/-- При `0 < α` и `C (t+1) ≥ C t·(1+α)` для всех t:
+`C T ≥ C 0·(1+α)^T` (пошаговый мультипликативный закон —
+посылка; заключение — его T-кратная композиция). -/
 theorem capability_multiplicative (C : ℕ → ℝ) (_succ : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha) (_hC0 : 0 ≤ C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha))
@@ -121,19 +105,8 @@ theorem capability_multiplicative (C : ℕ → ℝ) (_succ : ℕ → ℕ)
             linarith
         _ = C 0 * ((1 + alpha) ^ T * (1 + alpha)) := by ring
 
-/-- **The counted takeoff law (the audit's fast-growth
-Master theorem, deterministic core complete)**: each cycle
-t multiplies capability by ≥ (1+α)^(s_t) where s_t is the
-success indicator (1 = certified success, 0 = no harm).
-Then
-
-  C_T ≥ C_0 · (1+α)^(Σ_t s_t)
-
-— exponential in the SUCCESS COUNT. With the probability
-layer (P(s_t = 1) ≥ p, the DiscoveryProbability front),
-Σs_t ~ pT gives log C_T = Ω(T): exponential takeoff.
-Failures are neutral (s_t = 0 multiplies by 1) — safety and
-growth in one law. -/
+/-- При `0 < α` и `C (t+1) ≥ C t·(1+α)^(s t)` для всех t:
+`C T ≥ C 0·(1+α)^(Σ_{t<T} s t)` (делегация Foundations). -/
 theorem capability_takeoff_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
@@ -141,12 +114,8 @@ theorem capability_takeoff_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
     C T ≥ C 0 * (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
   Hagi.Foundations.capability_takeoff_counted C s alpha halpha hmul T
 
-/-- **Takeoff under a success-count floor (the bridge to the
-probability layer)**: if the success count over T cycles is
-at least N (h_emp_ — e.g. from DiscoveryProbability:
-P(s_t=1) ≥ p concentrated to N ≥ ⌊pT⌋), the counted law
-gives C_T ≥ C_0·(1+α)^N — exponential takeoff conditional
-on the measured discovery rate. -/
+/-- При `0 < α`, `0 ≤ C 0`, `C (t+1) ≥ C t·(1+α)^(s t)` и
+`N ≤ Σ_{t<T} s t` — `C T ≥ C 0·(1+α)^N`. -/
 theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha) (hC0 : 0 ≤ C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
@@ -160,15 +129,8 @@ theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
     mul_le_mul_of_nonneg_left hmono hC0
   linarith
 
-/-- **The risk-side takeoff (dual of capability_takeoff)**:
-each successful cycle multiplies the external RISK by at
-most (1−β), β ∈ (0,1); failures are neutral. Then
-
-  R_T ≤ R_0 · (1−β)^(Σ s_t)
-
-— exponential risk decay in the success count: the
-ε-floor is reached after finitely many certified
-successes (see risk_epsilon_floor for the explicit count). -/
+/-- При `β < 1` и `R (t+1) ≤ R t·(1−β)^(s t)`:
+`R T ≤ R 0·(1−β)^(Σ_{t<T} s t)`. -/
 theorem risk_takeoff_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
     (beta : ℝ) (_hbeta : 0 < beta) (hbeta1 : beta < 1)
     (hmul : ∀ t, R (t + 1) ≤ R t * (1 - beta) ^ (s t))
@@ -193,15 +155,9 @@ theorem risk_takeoff_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
         _ = R 0 * ((1 - beta) ^ (∑ t ∈ Finset.range T, s t) * (1 - beta) ^ (s T)) := by
             ring
 
-/-- **The ε-floor certificate with the explicit success
-count**: with risk decaying geometrically per success, the
-minimal number of successful cycles to reach the ε-floor is
-
-  N ≥ ln(R_0/ε) / ln(1/(1−β))
-
-— a closed-form stopping certificate: the controller knows
-IN ADVANCE (given the measured β and the current risk) how
-many certified successes remain to the target. -/
+/-- При `0 < eps`, `0 < R0`, `0 < β < 1` и
+`log(R0/eps)/log(1/(1−β)) ≤ N` —
+`R0·(1−β)^N ≤ eps`. -/
 theorem risk_epsilon_floor (R0 eps beta : ℝ) (N : ℕ)
     (heps : 0 < eps) (hR0pos : 0 < R0) (_hR0e : eps ≤ R0)
     (hbeta : 0 < beta) (hbeta1 : beta < 1)

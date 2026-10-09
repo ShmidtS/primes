@@ -7,36 +7,16 @@ import Hagi.Data.TernaryChinchilla
 set_option linter.style.header false
 
 /-!
-# R150: supervisor safety - the ops-cycle formal model
+# Supervisor safety — the ops-cycle decision model
 
-Phase D (R145 of the plan). Sources: 2609.31150 (resume
-requires method/seed/config/data identity agreement;
-best-state is not latest-state), 2609.35366 (statepoints +
-monotonic-time guard), 2607.16109 (protocol agreement vs
-semantic validity vs execution safety), 2607.18342 (SDC vs
-detectable failure - kill-vs-crash).
+A run has an identity (`RunId`); the supervisor emits events
+(`SupEv`). A history is valid (`ValidHist`) iff every restore
+matches an earlier checkpoint of the same identity with
+monotone time, and every kill follows a checkpoint.
 
-Model: a run has an IDENTITY; the supervisor emits EVENTS
-(checkpoint, restore, kill, crash). A HISTORY is VALID iff
-every restore matches an EARLIER checkpoint of the SAME
-identity, every kill follows a checkpoint, and a terminal
-event occurs at most once.
-
-Theorems:
-
-* valid_snoc - the inductive step: appending an event
-preserves validity iff the event is ADMISSIBLE against the
-prefix (an induction over histories, not a definition
-unfold).
-* `no_restore_without_checkpoint` - soundness: in a valid
-history every restore finds a matching earlier checkpoint
-of the same identity with monotone time.
-* terminal_unique - in a valid history at most one
-terminal event (kill XOR crash): the supervisor can always
-distinguish clean termination from a crash.
-
-Honest boundary: runtime enforcement lives in the runtime
-repo; Lean carries the decision model.
+`no_restore_without_checkpoint`: in a valid history every
+restore has a matching earlier checkpoint of the same
+identity with `t' <= t`.
 -/
 
 namespace Hagi
@@ -75,11 +55,8 @@ inductive ValidHist : List SupEv → Prop
       (hv : ValidHist h) (ha : admissibleIn e h) :
       ValidHist (h ++ [e])
 
-/-- SOUNDNESS: in a valid history every restore finds a
-matching checkpoint of the same identity with monotone
-time - the formal core of resume safety (2609.31150
-identity agreement + 2609.35366 monotone clock). Proved by
-induction on the ValidHist derivation. -/
+/-- In a valid history, every restore event `restore t id`
+has a matching earlier `checkpoint t' id` with `t' <= t`. -/
 theorem no_restore_without_checkpoint (h : List SupEv)
     (hv : ValidHist h) (t : Nat) (id : RunId)
     (hmem : SupEv.restore t id ∈ h) :

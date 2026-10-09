@@ -9,20 +9,18 @@ set_option linter.style.header false
 /-!
 # Foundations.Chord — хорда exp и cosh-граница
 
-Миграция-2026-10-05 (R170): канонический дом чистых calculus-лемм
-без Hagi-зависимостей: хорда exp на [a,b] и квадратичная
-cosh-граница. Перенесены из Energy/PoEBound (exp_chord_ab) и
-Ensemble/Hoeffding (log_cosh_le) — потребители Probability
-(Azuma/Freedman/CertifiedEstimator) и Energy/Ensemble больше
-не тянут верхние слои ради этих лемм.
+Чистые calculus-леммы без Hagi-зависимостей: хорда exp на
+[a,b] (`exp_chord_ab`) и квадратичная cosh-граница
+(`log_cosh_le`).
 -/
 
 open Finset Real
 
 namespace Hagi.Foundations
 
-/-- **Хорда exp на [a, b]**: выпуклость exp даёт поточечную
-мажорацию хордой между концами. -/
+/-- Выпуклость exp даёт поточечную мажорацию хордой на
+`[a, b]`: при `a < b`, `a ≤ x ≤ b` выполнено
+`exp x ≤ (b - x) / (b - a) * exp a + (x - a) / (b - a) * exp b`. -/
 theorem exp_chord_ab (a b x : ℝ) (hab : a < b) (hax : a ≤ x) (hxb : x ≤ b) :
     Real.exp x ≤ (b - x) / (b - a) * Real.exp a
       + (x - a) / (b - a) * Real.exp b := by
@@ -47,8 +45,7 @@ theorem exp_chord_ab (a b x : ℝ) (hab : a < b) (hax : a ≤ x) (hxb : x ≤ b)
   rw [hcomb] at key
   exact key
 
-/-- **Квадратичная cosh-граница**: log cosh M ≤ M²/2
-(Mathlib cosh_le_exp_half_sq + монотонность log). -/
+/-- Квадратичная cosh-граница: `log (cosh M) ≤ M ^ 2 / 2`. -/
 theorem log_cosh_le (M : ℝ) : Real.log (Real.cosh M) ≤ M ^ 2 / 2 := by
   have hpos : 0 < Real.cosh M := Real.cosh_pos M
   have hlog : Real.log (Real.cosh M) ≤ Real.log (Real.exp (M ^ 2 / 2)) :=

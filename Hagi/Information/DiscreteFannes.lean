@@ -5,7 +5,7 @@ import Hagi.Information.EntropyContinuity
 
 /-!
 # DiscreteFannes — PMF specialization of the coupling entropy
-bound (R241)
+bound
 
 The quantum coupling bound `entropy_coupling_bound`
 (S(A) − S(B) ≤ t log d + (1+t) h₂(t/(1+t)) for PSD
@@ -15,7 +15,7 @@ distributions, expert occupancy, token counts), so this
 module transports the bound to probability vectors through
 the DIAGONAL embedding p ↦ diagonal p.
 
-The transport needs one bridge, stated as an EXPLICIT
+The transport needs one bridge, stated as an explicit
 hypothesis of the main theorem: the spectral entropy of a
 nonnegative diagonal matrix equals the Shannon entropy of
 the vector (`entropy (diagonal r) = ∑ negMulLog r i`).

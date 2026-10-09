@@ -7,37 +7,20 @@ import Hagi.Data.AntiCollapse
 set_option linter.style.header false
 
 /-!
-# R137: T6 Universality + LongHorizonSafety
+# Универсальность и long-horizon safety
 
-FORMALIZATION_PLAN §7.1 T6 (P1–P2): «универсальность» как
-ТЕОРЕМА (ревизия §7.7: было — только доменные бюджеты и
-Hedge-регрет, нет единого «не хуже лучшего листа по каждому
-домену»). Форма:
+Форма результата: risk домена `i` за `T` циклов ≤
+`T * min_k risk_i(leaf_k) + R + ε0/(1 - ρ)`, где `R` —
+regret-бюджет роутера (measured premise), `ε0, ρ` — параметры
+геометрического бюджета дрейфа.
 
-  risk_i(θ_T) ≤ min_k risk_i(leaf_k) + Σ_t ε_t
-
-при суммируемых ε_t = ε₀·ρ^t и Hedge-роутере.
-
-**Теоремы:**
-
-* `geometric_eps_sum` — суммируемость бюджета безопасности:
-  Σ_{t<T} ε₀·ρ^t ≤ ε₀/(1−ρ) при 0 ≤ ρ < 1 (конечный
-  суммарный дрейф на БЕСКОНЕЧНОМ горизонте — фикс ревизии
-  §7.5: линейный T·ε недопустим).
-* `hedge_domain_guarantee` — Hedge-доменная гарантия:
-  если per-step риск домена i ограничен лучшим листом +
-  regret-член r_t (Hedge-сертификат роутера,
-  `router_regret_bound` R(T) ≤ 2√(T ln K) в пределе),
-  то суммарный риск ≤ T·best_k(i) + Σ r_t.
-* `universality_longhorizon` — ГЛАВНАЯ (T6):
-  risk на домене i за T циклов ≤ T·min_k risk_i(leaf_k) +
-  R + ε₀/(1−ρ): система не хуже лучшего листа по КАЖДОМУ
-  домену (универсальность) с конечным бюджетом дрейфа
-  (long-horizon safety). Amortized: excess/T → 0.
-
-**Честные границы:** r_t/Hedge-гарантия — measured premise
-(сертификат роутера); ε₀, ρ — параметры бюджета (измеряемые);
-«лучший лист» — oracle-сравнение (posterior-измеримо).
+Теоремы:
+* `geometric_eps_sum` — Σ_{t<T} ε0·ρ^t ≤ ε0/(1−ρ) при 0 ≤ ρ < 1.
+* `hedge_domain_guarantee` — если risk t i ≤ best i + r t на
+  каждом шаге, то Σ risk ≤ T·best i + Σ r t.
+* `universality_longhorizon` — суммарный риск ≤ T·best i +
+  R + ε0/(1−ρ); amortized excess/T → 0 при фиксированных
+  R и ε0/(1−ρ).
 -/
 
 open Finset
@@ -46,10 +29,8 @@ namespace Hagi
 
 variable {I K : ℕ}
 
-/-- **Суммируемость бюджета безопасности**: геометрический
-график ε_t = ε₀·ρ^t даёт Σ_{t<T} ≤ ε₀/(1−ρ) — суммарный
-дрейф КОНЕЧЕН на любом горизонте (фикс ревизии §7.5:
-линейный T·ε бюджет недопустим для длинных горизонтов). -/
+/-- При `0 ≤ ε0`, `0 ≤ ρ < 1` и любом `T`:
+Σ_{t<T} ε0·ρ^t ≤ ε0/(1−ρ). -/
 theorem geometric_eps_sum (ε0 ρ : ℝ) (hε : 0 ≤ ε0)
     (hρ : 0 ≤ ρ) (hρ1 : ρ < 1) (T : ℕ) :
     ∑ t ∈ Finset.range T, ε0 * ρ ^ t ≤ ε0 / (1 - ρ) := by
@@ -76,10 +57,8 @@ theorem geometric_eps_sum (ε0 ρ : ℝ) (hε : 0 ≤ ε0)
         mul_le_mul_of_nonneg_left h2 hε
     _ = ε0 := mul_one ε0
 
-/-- **Hedge-доменная гарантия**: если на каждом шаге t риск
-домена i не хуже лучшего для i листа + regret-член r_t
-(сертификат Hedge-роутера), то суммарный риск за T шагов ≤
-T·best_i + Σ r_t. -/
+/-- Если `risk t i ≤ best i + r t` для всех `t < T`, то
+Σ_{t<T} risk t i ≤ T * best i + Σ_{t<T} r t. -/
 theorem hedge_domain_guarantee {T : ℕ}
     (risk : ℕ → Fin I → ℝ) (best : Fin I → ℝ) (r : ℕ → ℝ)
     (i : Fin I)
@@ -103,18 +82,9 @@ theorem hedge_domain_guarantee {T : ℕ}
   rw [hsum, hconst, hcard] at hsplit
   linarith
 
-/-- **T6: Universality + LongHorizonSafety** — риск домена i
-за T циклов ≤ T·(лучший лист для i) + R + ε₀/(1−ρ):
-
-* универсальность: не хуже лучшего листа по КАЖДОМУ домену
-  (Hedge-гарантия против oracle-листа);
-* long-horizon safety: суммарный excess КОНЕЧЕН
-  (R — regret-бюджет, ε₀/(1−ρ) — суммируемый дрейф);
-* amortized: excess/T → 0 — система приближается к лучшему
-  листу на каждом домене одновременно.
-
-Заменяет перечисление «оставшихся фронтов» единой
-теоремой (ревизия §7.7). -/
+/-- Если `risk t i ≤ best i + r t + ε0·ρ^t` для всех `t < T`,
+`Σ r t ≤ R`, `0 ≤ ρ < 1`, то Σ_{t<T} risk t i ≤
+T * best i + R + ε0/(1−ρ). -/
 theorem universality_longhorizon {T : ℕ}
     (risk : ℕ → Fin I → ℝ) (best : Fin I → ℝ)
     (r : ℕ → ℝ) (i : Fin I) (R ε0 ρ : ℝ)

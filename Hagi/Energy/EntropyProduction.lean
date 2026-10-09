@@ -6,10 +6,10 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# EntropyProduction: the integral fluctuation theorem and the second law (R174a)
+# EntropyProduction: the integral fluctuation theorem and the second law
 
 The first module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round R174a). Port of the stochastic-
+FORMALIZATION_PLAN.md, round). Port of the stochastic-
 thermodynamics core — Seifert's integral fluctuation theorem,
 arXiv:2607.13391 Thm 12.9 — as PURE MATH: no `h_emp_`
 premises, no runtime.
@@ -17,14 +17,14 @@ premises, no runtime.
 **The physical dictionary (finite version).** A trajectory
 ensemble is a finite type `α`; the "process" and its time-
 reversed "reference" are strictly positive probability mass
-functions `p p† : α → ℝ`. The entropy production of trajectory
+functions `p p†: α → ℝ`. The entropy production of trajectory
 `x` is
 
 `Σ x = log (p x / p† x) = log (dP/dP†)(x)` (Def 12.8).
 
 **The two theorems.**
 
-* `ift_normalization` — THE INTEGRAL FLUCTUATION THEOREM
+* `ift_normalization` — THE INTEGRAL FLUCTUATION theorem
   (Thm 12.9, first half): `E_p[exp(−Σ)] = 1`. The exponential
   moment of minus the entropy production is EXACTLY one —
   the trajectory weights of the reversed process re-normalize
@@ -44,7 +44,7 @@ repackaged in fluctuation-theorem clothes:
 `E_p[Σ] = KL(p ‖ p†)` (see `entropyProduction`).
 The theorems prove the exponential identity, not the
 thermodynamic interpretation; the mapping SGD-noise ↔
-reservoir temperature (R174b) is NOT part of this module
+reservoir temperature is not part of this module
 and carries no Lean claim.
 
 Sources: arXiv:2607.13391 (Def 12.8, Thm 12.9);

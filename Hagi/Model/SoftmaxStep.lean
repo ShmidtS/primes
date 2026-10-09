@@ -7,42 +7,24 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R162: SoftmaxStep — НАСТОЯЩИЙ learning-step мини-модели
+# SoftmaxStep — learning-step мини-модели
 
-Аудит-2026-10-04, пункт №4: «взять одну маленькую конкретную
-модель и доказать про неё настоящее утверждение о шаге
-обучения».
+Модель: одно-параметрическая softmax-голова на одном примере
+(2 класса), `logitCE w = log (1 + exp (-w))`, градиентный шаг
+`w' = w + η / (1 + e^w)`.
 
-Модель: одно-параметрическая softmax-голова на ОДНОМ примере
-(2 класса): margin w = (логит прав. класса − логит ошибки),
-cross-entropy
+* `logitCE_deriv` — `logitCE' w = -1 / (1 + e^w)`.
+* `logitGrad_deriv` — производная градиента равна
+  `e^w / (1 + e^w)²`.
+* `sigmoid_sq_le_quarter` — `e^w / (1 + e^w)² ≤ 1/4`.
+* `grad_lipschitz` — градиент 1/4-липшицев.
+* `logitCE_descent_lemma` — одномерная descent lemma.
+* `descent_step` — при `0 < η ≤ 2` шаг гарантирует
+  `logitCE w' ≤ logitCE w - (η/2) * (1/(1+e^w))²`.
+* `descent_example` — числовой пример `w = 0`, `η = 2`.
 
-  logitCE w = log(1 + exp(−w)),
-
-градиентный шаг подъёма прав. класса w' = w + η/(1+e^w)
-(эквивалентен w − η·logitCE').
-
-**Теоремы (всё — о КОНКРЕТНОЙ функции, не посылки):**
-
-* `logitCE_deriv` — logitCE' w = −1/(1+e^w) (chain rule);
-* logitCE_second_deriv — производная градиента:
-  (fun w => −1/(1+e^w))' = e^w/(1+e^w)²;
-* `sigmoid_sq_le_quarter` — e^w/(1+e^w)² ≤ 1/4 (ядро:
-  0 ≤ (1−e^w)²);
-* `grad_lipschitz` — |g a − g b| ≤ (1/4)|a−b| (MVT);
-* `descent_step` — ГЛАВНОЕ: при 0 < η ≤ 4 (обратная
-  гладкость L = 1/4)
-
-    logitCE (w + η/(1+e^w)) ≤ logitCE w − (η/2)·(1/(1+e^w))²
-
-  — НАСТОЯЩИЙ гарантированный спуск CE на шаге градиента
-  мини-модели (одномерная descent lemma, двойной MVT);
-* `descent_example` — числовой пример w = 0, η = 2:
-  logitCE 2 ≤ logitCE 0 − 1/4.
-
-**Честные границы**: это ОДНОМЕРНАЯ модель (один пример,
-один параметр) — мультипараметрический/стохастический
-случай не покрывается (см. SafeQP для условной формы).
+Модель одномерная (один пример, один параметр);
+мультипараметрический/стохастический случай не покрывается.
 -/
 
 open Real Set
@@ -182,13 +164,9 @@ theorem grad_lipschitz (a b : ℝ) :
     rw [abs_of_nonneg hcpos, abs_sub_comm b a, abs_of_pos hd, hs]
     nlinarith [hq, Real.exp_pos c]
 
-/-- **Одномерная descent lemma для logitCE** (двойной MVT):
-при кривизне <= 1/4 для любых x y
-
-  logitCE y <= logitCE x + g x * (y - x) + (1/4) * (y - x)^2.
-
-Это НЕ посылка — доказано для КОНКРЕТНОЙ функции (MVT на
-logitCE + MVT-липшиц градиента `grad_lipschitz`). -/
+/-- Одномерная descent lemma: для любых `x y`,
+`logitCE y ≤ logitCE x + logitGrad x * (y - x) +
+(1/4) * (y - x) ^ 2` (MVT + `grad_lipschitz`). -/
 theorem logitCE_descent_lemma (x y : ℝ) :
     logitCE y ≤ logitCE x + logitGrad x * (y - x)
       + (1/4) * (y - x)^2 := by
@@ -261,16 +239,9 @@ theorem logitCE_descent_lemma (x y : ℝ) :
       _ = logitCE x + logitGrad x * (y - x)
           + (1/4) * (y - x)^2 := by ring
 
-/-- **ГЛАВНОЕ: гарантированный спуск CE на градиентном шаге
-мини-модели**. Шаг подъёма правого класса
-w' = w + eta/(1+e^w) = w - eta * logitGrad w при
-0 < eta <= 2 (обратная гладкость L = 1/4) даёт
-
-  logitCE w' <= logitCE w - (eta/2) * (1/(1+e^w))^2,
-
-то есть СТРОГОЕ уменьшение cross-entropy на шаге —
-настоящее утверждение об обучении конкретной модели, без
-измеряемых посылок. -/
+/-- Гарантированный спуск: при `0 < eta ≤ 2` шаг
+`w' = w + eta / (1 + e^w)` даёт
+`logitCE w' ≤ logitCE w - (eta/2) * (1 / (1 + e^w)) ^ 2`. -/
 theorem descent_step (w eta : ℝ)
     (heta : 0 < eta) (heta2 : eta ≤ 2) :
     logitCE (w + eta / (1 + Real.exp w))
@@ -298,11 +269,8 @@ theorem descent_step (w eta : ℝ)
       ≤ eta^2 * (1/(1 + Real.exp w))^2 := by positivity
   nlinarith [hlem, heta, heta2, hq2, hprod, sq_nonneg eta]
 
-/-- **Числовой пример** (vacuity catcher): w = 0, eta = 2:
-logitCE 2 <= logitCE 0 - 1/4 — конкретное проверяемое
-неравенство (измерено: logitCE 0 = log 2 ≈ 0.6931,
-logitCE 2 = log(1 + e^-2) ≈ 0.1269, разность ≈ 0.5662 >= 1/4).
--/
+/-- Числовой пример: при `w = 0`, `eta = 2`,
+`logitCE (0 + 2 / (1 + e^0)) ≤ logitCE 0 - 1/4`. -/
 theorem descent_example :
     logitCE (0 + 2 / (1 + Real.exp 0))
       ≤ logitCE 0 - (2/2) * (1 / (1 + Real.exp 0))^2 :=

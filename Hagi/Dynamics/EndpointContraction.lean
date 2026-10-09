@@ -4,39 +4,27 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Dynamics.Contraction
 
 /-!
-# EndpointContraction — the looped-model fixed-point budget
+# EndpointContraction — бюджет фиксированной точки looped-моделей
 
-The HAGI reading of "looped models done right": a contractive
-recurrent map with drifting inputs obeys the BIVARIATE
-contraction law
+Бивариантная контракция `x (t+1) ≤ κ·x t + β·c t`
+(x — расстояние состояния до endpoint, c — дрейф входов).
 
-  x_{t+1} ≤ κ · x_t + β · c_t,
-
-where x_t is the state-to-endpoint distance and c_t the
-per-step input/config drift. The finite-depth error then splits
-into a VANISHING initial-condition part (κ^T) and an
-ACCUMULATED input part — geometric memory with exponential
-forgetting of the start:
-
-* `endpoint_bivariate_bound`: the general law — κ^T · x₀ plus
-  the κ-weighted reversed sum of the input drifts;
-* `endpoint_geometric_tail`: if the input drift is bounded
-  (c_t ≤ cbar), the endpoint error is at most κ^T · x₀ +
-  β·cbar/(1 − κ): depth beyond log(1/ε) buys nothing — the
-  truncated-depth and endpoint views coincide;
-* `endpoint_depth_budget`: to push the initial-condition part
-  under ε it suffices to run T ≥ log(1/ε)/log(1/κ) steps —
-  the explicit loop-count budget (the "when to stop looping"
-  answer, conditional on the contraction premises).
+* `endpoint_bivariate_bound`:
+  `x T ≤ κ^T·x 0 + β·Σ_{i<T} κ^i·c (T−1−i)`;
+* `endpoint_geometric_tail`: при `c t ≤ cbar` —
+  `x T ≤ κ^T·x 0 + β·cbar/(1−κ)`;
+* `endpoint_depth_budget`: при `0 < ε` и
+  `x 0/ε ≤ (1/κ)^T` — `x T ≤ β·cbar/(1−κ) + ε`
+  (явный бюджет числа итераций — условный на посылки
+  контракции).
 -/
 
 namespace Hagi
 
 open Finset
 
-/-- **The bivariate contraction law**: state error to the
-endpoint under drifting inputs — vanishing initial part plus
-κ-weighted accumulated input drift. -/
+/-- При `0 ≤ κ < 1`, `0 ≤ β` и `x (t+1) ≤ κ·x t + β·c t`:
+`x T ≤ κ^T·x 0 + β·Σ_{i<T} κ^i·c (T−1−i)`. -/
 theorem endpoint_bivariate_bound (x c : ℕ → ℝ) (κ β : ℝ)
     (T : ℕ) (hκ : 0 ≤ κ) (hκ1 : κ < 1) (hβ : 0 ≤ β)
     (hstep : ∀ t, x (t + 1) ≤ κ * x t + β * c t) :
@@ -81,10 +69,8 @@ theorem endpoint_bivariate_bound (x c : ℕ → ℝ) (κ β : ℝ)
   exact hexact T
 
 
-/-- **The geometric tail**: bounded input drift caps the
-endpoint error at κ^T · x₀ + β·cbar/(1 − κ) — depth beyond the
-geometric scale buys nothing; truncated depth and the endpoint
-view coincide. -/
+/-- При посылках `endpoint_bivariate_bound` и `c t ≤ cbar`:
+`x T ≤ κ^T·x 0 + β·cbar/(1−κ)`. -/
 theorem endpoint_geometric_tail (x c : ℕ → ℝ) (κ β cbar : ℝ)
     (T : ℕ) (hκ : 0 ≤ κ) (hκ1 : κ < 1) (hβ : 0 ≤ β)
     (hcbar : 0 ≤ cbar) (hcbound : ∀ t, c t ≤ cbar)
@@ -113,11 +99,9 @@ theorem endpoint_geometric_tail (x c : ℕ → ℝ) (κ β cbar : ℝ)
       ≤ β * (cbar / (1 - κ)) := mul_le_mul_of_nonneg_left hsum hβ
   linarith
 
-/-- **The explicit loop-count budget**: to push the
-initial-condition part of the endpoint error under ε it
-suffices to run T steps with (1/κ)^T ≥ x₀/ε — the "when to
-stop looping" answer, conditional on the contraction premises
-(the looped-model truncated-depth certificate). -/
+/-- При посылках `endpoint_geometric_tail`, `0 < κ < 1`,
+`0 < ε` и `x 0/ε ≤ (1/κ)^T`:
+`x T ≤ β·cbar/(1−κ) + ε`. -/
 theorem endpoint_depth_budget (x c : ℕ → ℝ) (κ β cbar ε : ℝ)
     (T : ℕ) (hκ : 0 < κ) (hκ1 : κ < 1) (hβ : 0 ≤ β)
     (hcbar : 0 ≤ cbar) (hcbound : ∀ t, c t ≤ cbar)

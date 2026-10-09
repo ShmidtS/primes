@@ -5,7 +5,7 @@ import Hagi.Probability.HistoryFreedman
 
 /-!
 # FreedmanTwoSided — the |S| form of the joint maximal
-Freedman (R234: the Hagi corollary closing the plan's
+Freedman (: the Hagi corollary closing the plan's
 "two-sided anytime joint" line)
 
 The plan (§1.2) asks for

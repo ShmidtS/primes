@@ -7,33 +7,28 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# SafeQPRobust: perturbation-robust feasibility (round 49, block 1.1)
+# SafeQPRobust — устойчивая к возмущениям допустимость
 
-The stochastic-Gram core: the batch-estimated inner product
-⟨ĝ_i, d̂⟩ differs from the exact ⟨g_i, d⟩ by at most m (the
-sub-Gaussian batch noise bound). Theorem: if the TRUE margin
-is eps + m (the guard set one noise-bound tighter), the
-NOISY check still certifies eps — the adaptive protective
-threshold: run the QP with ε_i + m and the step is safe
-under batch noise.
+* `robust_feasibility`: при `eps + m ≤ g*d` и
+  `|g*d − gdhat| ≤ m` — `eps ≤ gdhat` (запас eps + m
+  поглощает шум батча);
+* `stochastic_safeqp_feasible`: построчная версия для всех
+  доменов i;
+* `stochastic_safeqp_descent`: при `dnorm² ≤ inner_true`,
+  `|inner_est − inner_true| ≤ m0`, `0 < L`, `eta ≤ 1/L` и
+  гладкости — `E₂ ≤ E₁ − eta·dnorm²/2 + eta·m0`
+  (чистый спуск при `m0 < dnorm²`).
 
-NOT PROVED this round (reported, not assumed): the full
-projection-perturbation bound ‖d̂*−d*‖ ≤ C·σ/(√B·σ_min(G))
-— requires matrix perturbation theory for projections.
-
-**Prescription**: set the QP margins to ε_i + m with
-m = c·σ/√B from the measured gradient noise (two-batch
-estimator); the safety guarantee survives the noise.
+Полная проекционно-возмущенческая оценка `‖d̂*−d*‖` — не
+доказана (матричная теория возмущений).
 -/
 
 open Finset
 
 namespace Hagi
 
-/-- **The robust-feasibility margin theorem**: with the true
-inner product at least ε + m above zero and the estimation
-error at most m, the noisy inner product still certifies ε —
-the guard threshold ε + m absorbs the batch noise. -/
+/-- При `eps + m ≤ g*d` и `|g*d − gdhat| ≤ m`:
+`eps ≤ gdhat`. -/
 theorem robust_feasibility (g d gdhat : ℝ) (eps m : ℝ)
     (htrue : eps + m ≤ g * d) (hpert : |g * d - gdhat| ≤ m) :
     eps ≤ gdhat := by
@@ -41,14 +36,9 @@ theorem robust_feasibility (g d gdhat : ℝ) (eps m : ℝ)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **Stochastic SafeQP: the safety certificate survives
-minibatch noise**. If the TRUE inner product on every domain
-clears the safety margin with the robust reserve
-(⟪gᵢ,d⟫ ≥ εᵢ + mᵢ) and the minibatch estimate is within mᵢ
-of the truth (the h_emp_ concentration radius — the
-subgaussian form m = σ·√(2·log(K/δ)/B)), then EVERY domain's
-estimated inner product still clears its margin: the QP
-feasibility check on estimated Gram rows is sound. -/
+/-- Если для всех i выполнено `eps i + m i ≤ g i * d i` и
+`|g i * d i − gdhat i| ≤ m i`, то `eps i ≤ gdhat i` для
+всех i. -/
 theorem stochastic_safeqp_feasible {K : Type} [Fintype K]
     (g d gdhat : K → ℝ) (eps m : K → ℝ)
     (htrue : ∀ i, eps i + m i ≤ g i * d i)
@@ -57,16 +47,10 @@ theorem stochastic_safeqp_feasible {K : Type} [Fintype K]
   fun i => Hagi.robust_feasibility (g i) (d i) (gdhat i) (eps i) (m i)
     (htrue i) (h_emp_conc i)
 
-/-- **Noisy SafeQP: the descent certificate degrades
-gracefully (R75 honesty fix)**. The certified descent
-⟪g₀,d*⟫ ≥ ‖d*‖² holds for the TRUE inner product; the
-minibatch ESTIMATE deviates by at most m₀ (the concentration
-radius, h_emp_conc — a REAL two-quantity hypothesis, not the
-degenerate |x−x| of the pre-R75 version). The smooth lemma
-applied at the estimated inner product then gives
-E₂ ≤ E₁ − η‖d*‖²/2 + η·m₀. Net descent whenever m₀ < ‖d*‖²;
-the batch condition B ≥ 2σ²·log(1/δ)/‖d*‖⁴ supplies the
-concentration radius (external subgaussian form, h_emp_). -/
+/-- При `dnorm² ≤ inner_true`, `|inner_est − inner_true| ≤ m0`,
+`0 < L`, `0 ≤ eta ≤ 1/L` и гладкости
+`E₂ ≤ E₁ − eta·inner_est + L·eta²·dnorm²/2` —
+`E₂ ≤ E₁ − eta·dnorm²/2 + eta·m0`. -/
 theorem stochastic_safeqp_descent (inner_true inner_est dnorm m0 eta L E1 E2 : ℝ)
     (hdescent : dnorm ^ 2 ≤ inner_true)
     (h_emp_conc : |inner_est - inner_true| ≤ m0)

@@ -6,24 +6,14 @@ set_option linter.style.header false
 
 
 /-!
-# Softmax-weighted error damping (KV precision pyramid of HAGI_v2)
+# Softmax-weighted error damping
 
-This file formalizes the principle behind the KV precision pyramid of
-HAGI_v2 (README.md, "Target KV design"): an error entering the attention
-output weighted by softmax probability `p i` contributes at most
-`max ‖e i‖` — nearby tokens matter more, distant tokens' errors enter
-damped, so precision can be budgeted by contribution.
-
-Concretely, the attention output over stored values `v i` with softmax
-weights `p i` and per-entry quantization errors `e i` is
-`∑ i, p i • (v i + e i)`. The theorems below show that its deviation from
-the exact output `∑ i, p i • v i` is bounded by the p-weighted average
-of the individual error norms (`attention_error_damped_sum`), hence by
-their maximum when p is a probability distribution
-(`attention_error_damped`), and hence by any uniform error bound `M`
-(`attention_error_damped'`). Distant tokens have small `p i`, so their
-low-precision (int4) storage errors enter the output damped; precision
-can be budgeted by contribution.
+For weights `p i ≥ 0`, the deviation of the weighted output
+`∑ i, p i • (v i + e i)` from the exact output `∑ i, p i • v i` is
+bounded by the weighted average `∑ i, p i * ‖e i‖` of the error
+norms (`attention_error_damped_sum`), by their maximum when `p` is
+a probability distribution (`attention_error_damped`), and by any
+uniform bound `M` (`attention_error_damped'`).
 -/
 
 namespace Hagi

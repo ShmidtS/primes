@@ -43,7 +43,7 @@ predictable from the two fitted channels).
 block-diagonal merge is linear in N: the off-diagonal
 compositions the joint phase trains scale with the block
 count (N blocks → N(N−1)/2 directed pairs, but each
-SwiGLU mixer layer trains against the FULL stream — the
+SwiGLU mixer layer trains against the full stream — the
 per-layer edge count is N, the mixer count is the depth;
 the joint-channel gain ∝ depth × N at fixed width H_total:
 H_total = N·H_leaf fixed, so MORE blocks = MORE mixer
@@ -87,7 +87,7 @@ namespace Hagi
 
 section MergeScaling
 
--- NOT A THEOREM (round-41 audit): `N ≤ N*1` is trivial.
+-- not A theorem (round-41 audit): `N ≤ N*1` is trivial.
 -- The honest content of the edge-count law is the LINEAR
 -- mixer-cost O(N) (documented in the module header); the
 -- count is a measured quantity, not a theorem.

@@ -7,54 +7,30 @@ import Mathlib.Probability.Martingale.OptionalStopping
 set_option linter.style.header false
 
 /-!
-# R93: martingale anytime-valid control (Ville form) + the composed anytime safety theorem
+# Martingale anytime-valid control (Ville form)
 
-Round-63's honest boundary said: the union-of-geometric skeleton
-`anytime_valid_budget` is proven, but the Ville-martingale e-process
-form (E[L_τ] ≤ 1 for stopping times) remains open. This module
-closes the bounded-stopping-time form of that boundary, using
-mathlib's optional stopping theorem
-(`MeasureTheory.Submartingale.expected_stoppedValue_mono`), and then
-composes the stochastic SafeQP per-step concentration
-(`Hagi.Step.StochasticSafeQP`) with the geometric budget into the
-roadmap's target anytime-safety theorem.
+* `eprocess_stopped_budget`: a supermartingale `L` satisfies
+  E[L_τ] ≤ E[L_0] for every stopping time `τ` bounded by a
+  constant (optional stopping via mathlib).
+* `ville_supermartingale`: for a nonnegative supermartingale
+  and `c > 0`,
+  Pr[∃ t ≤ n, c ≤ L_t] ≤ E[L_0]/c — independent of `n`.
+* `ville_anytime_false_alarm`: with `E[L_0] ≤ 1` and
+  `c = 1/δ`: Pr[∃ t ≤ n, L_t ≥ 1/δ] ≤ δ, uniformly in `n`.
+* `anytime_failure_budget`: the union-of-geometric bound over
+  failure-event measures.
+* `anytime_safety`: failure masses on a geometric schedule
+  give Pr[all certificates valid up to T] ≥ 1 − δ,
+  uniformly in `T`.
+* `anytime_safety_stochastic`: composes the per-step
+  stochastic SafeQP feasibility with the geometric schedule;
+  all statistical conditions are h_emp_ hypotheses.
 
-* `eprocess_stopped_budget` — a nonnegative supermartingale L
-  satisfies E[L_τ] ≤ E[L_0] for EVERY bounded stopping time τ
-  (optional stopping; the bound is honest about boundedness —
-  unbounded τ is left open).
-* `ville_supermartingale` — Ville's inequality for nonnegative
-  supermartingales over any FINITE horizon n, with the constant
-  INDEPENDENT of n (hence anytime-valid):
-  Pr[∃ t ≤ n, c ≤ L_t] ≤ E[L_0]/c.  Markov + the stopped process
-  at the first crossing of level c, stopped at n.
-* `ville_anytime_false_alarm` — the e-process budget corollary:
-  E[L_0] ≤ 1 and c = 1/δ gives Pr[∃ t ≤ n, L_t ≥ 1/δ] ≤ δ,
-  uniformly in n.
-* `anytime_failure_budget` — the union-of-geometric budget over
-  failure events (no measurability needed: pure outer union bound).
-* `anytime_safety` — the good-event form: measurable certificate
-  events whose per-step failure mass obeys the geometric schedule
-  δₜ = δ₀·ρᵗ with δ₀/(1−ρ) ≤ δ satisfy
-  Pr[∀ t ≤ T, certificate valid] ≥ 1 − δ, uniformly in T.
-* `anytime_safety_stochastic` — the roadmap target: each step t
-  uses the stochastic SafeQP transfer
-  (`stochastic_safeQP_feasibility`) at confidence δₜ = δ₀·ρᵗ;
-  then with probability ≥ 1 − δ, at EVERY step t ≤ T, if the
-  realized stochastic constraints certify d_t against ĝ, then the
-  TRUE gradients satisfy the safety margin inflated by
-  ε_noise(δₜ). All empirical conditions inherited as h_emp_*.
-
-**Honest boundaries.** (1) Optional stopping here is for BOUNDED
-stopping times (mathlib's expected_stoppedValue_mono); the
-unbounded-horizon Ville form (sup over all t ∈ ℕ, via monotone
-convergence) is left open. (2) `anytime_safety_stochastic` uses
-per-step UNCONDITIONAL failure masses (the union-bound skeleton);
-the fully conditional (filtration-adapted, e-process-per-step)
-composition — where each step's guarantee holds conditionally on
-the past, matching the martingale route — is left open. (3) d_t
-is a fixed per-step direction (as in StochasticSafeQP); a
-data-dependent measurable selection d_t*(ω) is not formalized.
+Boundaries: bounded stopping times only (unbounded-horizon
+Ville via monotone convergence is open); the safety
+composition uses per-step unconditional failure masses (the
+filtration-adapted per-step e-process form is open); `d t`
+is a fixed direction, not a data-dependent selection.
 -/
 
 open Finset Real MeasureTheory ProbabilityTheory
@@ -67,17 +43,8 @@ section Ville
 variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
   {𝒢 : Filtration ℕ m0}
 
-/-- **The e-process stopped budget (optional stopping, bounded
-stopping times)**: if L is a supermartingale w.r.t. the filtration
-𝒢, then for any stopping time τ bounded by N, the expected
-stopped value is at most the initial expectation E[L_0]. With
-E[L_0] ≤ 1 this is the e-process budget E[L_τ] ≤ 1 — the
-Ville-martingale skeleton promised in R63, for bounded τ.
-
-Proof: `Supermartingale.neg` turns L into a submartingale −L;
-mathlib's optional stopping (expected_stoppedValue_mono) applied
-between the constant stopping time 0 and τ gives
-E[(−L)_0] ≤ E[(−L)_τ], i.e. E[L_τ] ≤ E[L_0]. -/
+/-- If `L` is a supermartingale and `τ` is a stopping time
+bounded by a constant, then `μ[stoppedValue L τ] ≤ μ[L 0]`. -/
 theorem eprocess_stopped_budget {L : ℕ → Ω → ℝ} (hL : Supermartingale L 𝒢 μ)
     {τ : Ω → ℕ∞} (hτ : IsStoppingTime 𝒢 τ) {N : ℕ} (hτbdd : ∀ ω, τ ω ≤ N) :
     μ[stoppedValue L τ] ≤ μ[L 0] := by
@@ -228,15 +195,10 @@ theorem ville_supermartingale {L : ℕ → Ω → ℝ} (hL : Supermartingale L �
   nlinarith [hM, hMono, hbud]
 
 
-/-- **The anytime false-alarm bound (Ville, e-process budget form)**:
-a nonnegative supermartingale likelihood ratio L with E[L_0] ≤ 1
-gives, at level δ ∈ (0,1),
-
-  Pr[ ∃ t ≤ n, L_t ≥ 1/δ ] ≤ δ
-
-for EVERY horizon n at once (the constant does not depend on n) —
-anytime validity without any correction beyond the e-process
-budget itself. -/
+/-- For a nonnegative supermartingale `L` with `μ[L 0] ≤ 1` and
+`0 < delta`:
+`μ.real {ω | ∃ t ≤ n, delta⁻¹ ≤ L t ω} ≤ delta`, for every
+horizon `n` at once. -/
 theorem ville_anytime_false_alarm {L : ℕ → Ω → ℝ} (hL : Supermartingale L 𝒢 μ)
     (hLnn : 0 ≤ L) (hL0 : μ[L 0] ≤ 1) (n : ℕ) {delta : ℝ} (hdelta : 0 < delta) :
     μ.real {ω | ∃ t ∈ Finset.range (n + 1), delta⁻¹ ≤ L t ω} ≤ delta := by
@@ -252,12 +214,10 @@ section Composition
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
 
-/-- **The union-of-geometric budget over failure events** (no
-measurability needed — a pure outer union bound): if the
-per-step failure events Bad t have masses obeying the geometric
-schedule δₜ = δ₀·ρᵗ (ρ < 1), the total failure mass over ANY
-horizon T is at most δ₀/(1−ρ), uniformly in T. This is
-`anytime_valid_budget` (R63) applied to measures. -/
+/-- If `μ.real (Bad t) ≤ delta0 * rho ^ t` for all `t`, with
+`0 ≤ rho < 1`, then
+`μ.real (⋃ t ≤ T, Bad t) ≤ delta0 / (1 - rho)` for every `T`
+(union bound, no measurability needed). -/
 theorem anytime_failure_budget (delta0 rho : ℝ) (hdelta0 : 0 ≤ delta0) (hrho : 0 ≤ rho)
     (hrho1 : rho < 1) (Bad : ℕ → Set Ω)
     (h_step : ∀ t, μ.real (Bad t) ≤ delta0 * rho ^ t) (T : ℕ) :
@@ -271,19 +231,10 @@ theorem anytime_failure_budget (delta0 rho : ℝ) (hdelta0 : 0 ≤ delta0) (hrho
         anytime_valid_budget delta0 rho (T + 1) hdelta0 hrho hrho1
           (fun n => delta0 * rho ^ n) (fun n => rfl)
 
-/-- **The anytime safety theorem (the roadmap's target shape)**:
-if each step t has a measurable certificate event Good t whose
-failure mass obeys the geometric schedule δₜ = δ₀·ρᵗ, and the
-geometric budget δ₀/(1−ρ) fits the global δ, then with
-probability ≥ 1 − δ EVERY certificate up to any horizon T is
-valid — uniformly in T:
-
-  Pr[ ∀ t ≤ T, certificate valid at t ] ≥ 1 − δ.
-
-This composes per-step stochastic guarantees (e.g. the SafeQP
-concentration of `Hagi.Step.StochasticSafeQP`) with the
-union-of-geometric budget: no multiple-testing correction beyond
-the schedule itself. -/
+/-- If each `Good t` is measurable with
+`μ.real (Good t)ᶜ ≤ delta0 * rho ^ t` (`0 ≤ rho < 1`) and
+`delta0 / (1 - rho) ≤ delta`, then
+`μ.real {ω | ∀ t ≤ T, ω ∈ Good t} ≥ 1 - delta` for every `T`. -/
 theorem anytime_safety (delta0 rho : ℝ) (hdelta0 : 0 ≤ delta0) (hrho : 0 ≤ rho)
     (hrho1 : rho < 1) (Good : ℕ → Set Ω) (hGood : ∀ t, MeasurableSet (Good t))
     (h_step : ∀ t, μ.real (Good t)ᶜ ≤ delta0 * rho ^ t)
@@ -315,22 +266,15 @@ open InnerProductSpace
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 variable {K : Type*} [Fintype K] [Nonempty K]
 
-/-- **The composed anytime safety theorem (roadmap §9 target)**:
-the controller runs stochastic SafeQP steps; step t certifies the
-direction d_t against the minibatch gradients ĝ_{t,i} with
-budgets ε_{t,i} at confidence δₜ = δ₀·ρᵗ (the geometric
-anytime-valid schedule, δ₀/(1−ρ) ≤ δ). Then, with probability
-≥ 1 − δ, at EVERY step t ≤ T (uniformly in T): whenever the
-stochastic constraints certify d_t (the premise the stochastic
-QP enforces by construction), the TRUE gradients satisfy the
-safety margin inflated by the explicit noise term
-
-  ε_noise(δₜ) = σ·‖d_t‖·√(2·log(|K|/δₜ)/m_t).
-
-Per step this is `stochastic_safeQP_feasibility` (R92); the
-"every step at once" is `anytime_safety` with the geometric
-budget. All statistical conditions are inherited as h_emp_*
-hypotheses, per step. -/
+/-- With the h_emp_ noise hypotheses (measurable, zero-mean,
+independent, `‖xi t i j ω‖ ≤ sigma`), the geometric schedule
+`delta0 * rho ^ t` (`0 < rho < 1`) with budget
+`delta0 / (1 - rho) ≤ delta ∈ (0,1)`, the event that at every
+step `t ≤ T` the certified stochastic constraints imply the
+true-gradient margins inflated by
+`noiseEps K sigma (d t) (m t) (delta0 * rho ^ t)` has
+probability ≥ `1 - delta`. Per step this is
+`stochastic_safeQP_feasibility`; uniformity is `anytime_safety`. -/
 theorem anytime_safety_stochastic (m : ℕ → ℕ) (hm : ∀ t, 0 < m t)
     (g : ℕ → K → X) (d : ℕ → X) (hd : ∀ t, d t ≠ 0)
     (sigma : ℝ) (hsigma : 0 < sigma)

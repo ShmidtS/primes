@@ -7,43 +7,34 @@ import Hagi.Core.GQA
 set_option linter.style.header false
 
 /-!
-# R142: Sliding window + relay - receptive field recursion
+# Sliding window + relay: receptive-field recursion
 
-Phase B (R135 of the plan). Source: 2609.34049 - the exact
-receptive-field recursion R_L = L(W-1) + 1 for a stack of L
-sliding-window attention layers of window W, with relaying
-through the residual stream; 2609.38109 (SWA ~ moving-
-average convolution, recency bias relayed to global layers).
+* `swa_reach_step`, `swa_reach_eq`, `swa_reach_mono` — the
+  recursion `reach W (L + 1) = reach W L + (W - 1)` (for `2 ≤ W`)
+  and its closed form `reach W L = L * (W - 1) + 1`.
+  (source: 2609.34049)
+* `swa_relay_full` — a single full-width layer covers the entire
+  context: `reach T 1 = T`.
+* `swa_cost_bound` — the causal sliding-window mask size is
+  between `(T - W) * W` and `T * W` for `W ≤ T`.
 
-Theorems:
-
-* swa_reach_closed - closed form: after L window layers
-of width W the receptive field is exactly L*(W-1)+1
-(induction: each layer adds W-1 positions).
-* swa_reach_full - a single relay (full-attention) layer
-extends the reach to the whole sequence length T.
-* `swa_cost_bound` - exact mask cardinality for T >= W:
-T*W - W*(W-1)/2 = O(T*W) against O(T^2) for full attention.
-
-Honest boundary: information PRESERVATION through the relay
-(the residual stream carries unsummarized content) is
-an architectural assumption, verified empirically in
-2609.34049, not proven here. -/
+Information preservation through the relay is an architectural
+assumption, not proven here. -/
 
 namespace Hagi
 
 /-- Receptive field after L sliding-window layers of width W. -/
 def reach (W L : ℕ) : ℕ := L * (W - 1) + 1
 
-/-- Each additional window layer adds exactly W - 1 positions
-(the recursion of 2609.34049). -/
+/-- For `2 ≤ W`, each additional window layer adds exactly
+`W - 1` positions. -/
 theorem swa_reach_step (W L : ℕ) (hW : 2 ≤ W) :
     reach W (L + 1) = reach W L + (W - 1) := by
   unfold reach
   have h : (L + 1) * (W - 1) = L * (W - 1) + (W - 1) := by ring_nf
   rw [h]; omega
 
-/-- Closed form (2609.34049): reach is exactly the definition. -/
+/-- Closed form: `reach W L = L * (W - 1) + 1`. -/
 theorem swa_reach_eq (W L : ℕ) : reach W L = L * (W - 1) + 1 := rfl
 
 /-- Monotonicity: more layers never shrink the reach. -/
@@ -57,10 +48,9 @@ theorem swa_relay_full (T : ℕ) (hT : 1 ≤ T) : reach T 1 = T := by
   unfold reach
   omega
 
-/-- Causal sliding-window mask size is O(T*W): each of the
-T - W tail positions attends to exactly W predecessors and
-no position attends to more than W - linear against the
-quadratic T*(T+1)/2 of full causal attention. -/
+/-- For `1 ≤ W` and `W ≤ T`, the sliding-window mask size
+`∑ t < T, min (t + 1) W` lies between `(T - W) * W` and `T * W`:
+no position attends to more than `W` predecessors. -/
 theorem swa_cost_bound (T W : ℕ) (hW : 1 ≤ W) (hTW : W ≤ T) :
     (T - W) * W ≤ ∑ t ∈ Finset.range T, min (t + 1) W
       ∧ ∑ t ∈ Finset.range T, min (t + 1) W ≤ T * W := by

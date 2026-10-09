@@ -4,47 +4,29 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.DisagreementChain
 
 /-!
-# ChainToCone — the measured disagreement chain FEEDS the
-growth cone (R247; the audit-§41 bridge, chain side)
+# ChainToCone — from the disagreement chain to the growth cone
 
-The external audit's central demand: connect the measurable
-conversion chain (E_dev → G_cap) to the growth-theory
-premises, so that a runtime γ̂-certificate plugs into the
-cone. This module provides the chain side of that bridge:
-
-* `chain_feeds_cone` — if the four conversion factors each
-  clear a floor β (runtime certificate), and raw
-  disagreement energy is at least a κ-share of the frontier
-  (measured premise: diversity tracks headroom), then the
-  cone gain premise holds with γ := β⁴·κ:
-
-    γ · D ≤ G_cap
-
-  — the disagreement chain is not just diagnostic, it IS
-  the fuel line of the growth cone.
-
-* `cone_two_sided_certificate` — the cone survives a
-  CERTIFIED step: the increment G_t is pinned from BOTH
-  sides (γ·D_t ≤ G_t ≤ γ̄·D_t, both sides measured), and
-  the cone condition uses γ̄ for preservation. A one-sided
-  (lower-bound-only) certificate does NOT preserve the
-  cone — a too-large realized increment can overshoot
-  k·C ≤ D; honesty note recorded in the docstring.
-
-* `takeoff_from_certificate` — the full audit-§41 arc for
-  the chain side: per-step two-sided certificates + cone
-  dynamics ⟹ C₀(1+γk)^T ≤ C_T. The runtime measures the
-  α's, Lean concludes takeoff.
+* `chain_feeds_cone`: if each conversion factor of `s` is at least
+  `β` and `κ * D ≤ s.E_raw` (all with `0 ≤ β`, `0 ≤ κ`, `0 ≤ D`),
+  then `(β^4 * κ) * D ≤ s.G_cap`.
+* `cone_two_sided_certificate`: if for all steps `gamma * D t ≤ G t ≤
+  gbar * D t`, the step law `C (t+1) = C t + G t` holds, and the cone
+  dynamics `rho * D t + beta * C t ≤ D (t+1)` hold with `gbar * k ≤ rho`
+  and `gbar * k^2 + (1 - rho) * k ≤ beta`, then the cone invariant
+  `k * C t ≤ D t` is preserved up to `T`.
+  A one-sided lower certificate alone is not sufficient for this
+  proof (the upper bound `G t ≤ gbar * D t` is a hypothesis).
+* `takeoff_from_certificate`: combining per-step lower certificates
+  via `chain_feeds_cone` with `cone_two_sided_certificate` yields
+  `C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`.
 -/
 
 open scoped BigOperators
 
 namespace Hagi.Growth
 
-/-- **The chain feeds the cone**: with a runtime
-certificate that each conversion factor is at least β, and
-the diversity-tracks-frontier premise E_raw ≥ κ·D, the cone
-gain premise holds with γ := β⁴·κ. -/
+/-- If each conversion factor of `s` is at least `β`, `0 ≤ κ`,
+`0 ≤ D`, and `κ * D ≤ s.E_raw`, then `(β^4 * κ) * D ≤ s.G_cap`. -/
 theorem chain_feeds_cone (s : DisagreementStages)
     {β κ D : ℝ} (hβ : 0 ≤ β) (hκ : 0 ≤ κ) (hD : 0 ≤ D)
     (hcert : β ≤ s.α_align ∧ β ≤ s.α_trunc
@@ -78,17 +60,14 @@ theorem chain_feeds_cone (s : DisagreementStages)
   rw [hchain]
   nlinarith [hfinal, hrew]
 
-/-- **Cone invariant under a two-sided certified step**: the
-realized increment G_t is pinned from BOTH sides,
-
-  γ·D_t ≤ G_t ≤ γ̄·D_t,
-
-the step law is exact (C_{t+1} = C_t + G_t), and the cone
-constant uses the UPPER certificate γ̄ (k·γ̄ ≤ ρ). A
-one-sided lower certificate alone does NOT preserve the
-cone: an increment larger than (ρ/k)·D_t can overshoot
-k·C ≤ D — recorded here so the runtime certificate must be
-two-sided. -/
+/-- Cone invariant preservation under a two-sided certified
+step: assuming `gamma * D t ≤ G t ≤ gbar * D t` for each step,
+the exact step law `C (t + 1) = C t + G t`, nonnegativity of
+`C` and `D`, the cone dynamics `rho * D t + beta * C t ≤ D (t+1)`,
+and the parameter conditions `gbar * k ≤ rho`,
+`gbar * k ^ 2 + (1 - rho) * k ≤ beta`, the invariant
+`k * C t ≤ D t` (assumed at `t = 0`) is preserved for all
+`t ≤ T`. -/
 theorem cone_two_sided_certificate (C D G : ℕ → ℝ)
     (gamma gbar rho beta k : ℝ) (T : ℕ)
     (hk : 0 ≤ k)
@@ -145,17 +124,12 @@ theorem cone_two_sided_certificate (C D G : ℕ → ℝ)
   intro t ht
   exact hmain t (by rw [Finset.mem_range] at ht; omega)
 
-/-- **Takeoff from per-step two-sided certificates**: the
-full audit-§41 arc, chain side. If at every step the four
-conversion factors clear the floor β (lower certificate),
-the realized increment is pinned above by γ̄ (upper
-certificate), the step law is exact and the cone dynamics
-hold, capability grows exponentially with γ = β⁴κ:
-
-  C₀(1 + β⁴κ·k)^T ≤ C_T.
-
-The runtime measures the α's and the increment band; Lean
-concludes takeoff. -/
+/-- Takeoff from per-step certificates: if at every step the
+conversion factors of `stages t` are at least `beta`,
+`kappa * D t ≤ (stages t).E_raw`, `(stages t).G_cap = G t`,
+the increments satisfy `G t ≤ gbar * D t`, and the hypotheses
+of `cone_two_sided_certificate` hold, then
+`C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`. -/
 theorem takeoff_from_certificate
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa gbar rho cbeta k : ℝ)

@@ -28,7 +28,7 @@ residual's singular spectrum σ_j, the tail-energy ratio
 shrinks as the rank grows), so for every precision budget
 ε_r the minimal rank
 
-`r* = min{r : ρ(r) ≤ ε_r}`
+`r* = min{r: ρ(r) ≤ ε_r}`
 
 EXISTS — the rank is read directly off the measured
 spectrum, no tail-shape assumption (the flat measured
@@ -42,7 +42,7 @@ the orthogonality residual e(s) = ‖U_sᵀU_s − I‖_F/‖I‖_F is
 decreasing in the iteration count s, so for every ε_NS the
 minimal iteration count
 
-`s_j* = min{s : e_j(s) ≤ ε_NS}`
+`s_j* = min{s: e_j(s) ≤ ε_NS}`
 
 EXISTS — the 3–5 fixed NS iterations become per-matrix
 derived budgets (small/well-conditioned matrices → 3,
@@ -50,7 +50,7 @@ complex → 5; the optimizer cost enters the compute
 objective explicitly).
 
 * wall_clock_model — THE TWO-COST STRUCTURE: the
-wall-clock of a step is NOT FLOPs/rate — on the ROCm
+wall-clock of a step is not FLOPs/rate — on the ROCm
 consumer hardware with many small kernels,
 
 `T_step ≈ max(F/R_compute, B/R_BW) + T_launch + T_IO` —
@@ -61,8 +61,8 @@ be wall-clock-slower than a small GEMM (the measured
 Hadamard-vs-matmul anomaly) — the optimizer must optimize
 the wall-clock surrogate, not the FLOP count.
 
-* `shadow_price_sum_identity` — the shadow-price sum law (R89
-rename: NOT a KKT-optimality theorem — the optimization
+* `shadow_price_sum_identity` — the shadow-price sum law (
+rename: not a KKT-optimality theorem — the optimization
 problem itself is not formalized; this is the arithmetic
 identity the interior KKT program builds on) (the
 interior optimality): at the compute-optimal design, every
@@ -118,13 +118,13 @@ theorem spectral_tail_mono (sigma : ℕ → ℝ) (m m' : ℕ)
   exact sum_le_sum_of_subset_of_nonneg hsub
     fun i _ _ => sq_nonneg (sigma i)
 
-/-- **The spectral rank exists** (R102 honesty fix: an
-EXISTENCE theorem, not minimality): for every precision
+/-- **The spectral rank exists** ( honesty fix: an
+existence theorem, not minimality): for every precision
 budget ε_r > 0 a rank r with tail ratio ≤ ε_r exists — the
 proof takes r = max(support)+1 where the tail is EMPTY
 (= 0 ≤ ε_r). The tail-ratio monotonicity suggests the
-MINIMAL rank r* = min{r : ρ(r) ≤ ε_r} is well-defined, but
-that minimality theorem is NOT proved here (it needs the
+MINIMAL rank r* = min{r: ρ(r) ≤ ε_r} is well-defined, but
+that minimality theorem is not proved here (it needs the
 monotone-descent argument on ρ, an open item); the rank is
 DERIVED from the measured spectrum in the existence sense
 only — no tail-shape assumption (the flat-spectra regime
@@ -150,26 +150,26 @@ theorem spectral_rank_exists (sigma : ℕ → ℝ) (eps : ℝ)
   exact mul_nonneg (le_of_lt heps) (Finset.sum_nonneg
     fun j _ => sq_nonneg (sigma j))
 
-/-- **The adaptive NS budget exists** (R102 honesty fix):
+/-- **The adaptive NS budget exists**:
 the PROOF uses the strong assumption `e 100 = 0` — the
 residual vanishes at the fixed count 100 — so the exhibited
-budget is the constant s* = 100. This is NOT the
+budget is the constant s* = 100. This is not the
 NS-contraction argument advertised earlier: the proper
 bridge (e_{t+1} ≤ f(e_t) < e_t with f a contraction on an
 interval ⟹ ∃ t, e_t ≤ ε_NS, giving a per-matrix count s*)
-remains OPEN and is the honest version of this theorem. -/
+remains open and is the honest version of this theorem. -/
 theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
     (heps : 0 ≤ eps) (he0 : e 100 = 0) :
     ∃ s : ℕ, e s ≤ eps :=
   Hagi.Foundations.adaptive_ns_exists e eps heps he0
 
--- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- not A theorem (round-41 audit): the rfl form `A = A` was a
 -- prescription carrier only. Demoted to the DEFINITION of the
 -- wall-clock model; the two-cost structure is the object.
 noncomputable def wallClock (F B Rc Rb Tl : ℝ) : ℝ :=
     max (F / Rc) (B / Rb) + Tl
 
-/-- **THE MAIN THEOREM (the interior optimality of the
+/-- **THE main theorem (the interior optimality of the
 compute-optimal design)**: at the optimum of the constrained
 program, every interior mechanism's marginal
 quality-gain-per-compute equals the shadow price λ (the KKT

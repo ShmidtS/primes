@@ -4,35 +4,29 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Architecture.CortexFiber
 
 /-!
-# ConfigurationCost — store or average: the parameter bill
+# ConfigurationCost — the parameter bill of storing configurations
 
-The R214 answer (keep disagreement as switchable
-configurations, don't average it away) has a PRICE: each
-configuration lives on its own fiber. This module is the
-exact parameter accounting of that price — the
-"maximal quality at minimal volume" ledger:
+Parameter accounting for N experts stored as rank-r fibers
+over a shared d-dim cortex:
 
-* `fiber_family_cost`: N experts as rank-r fibers over a
-  shared d-dim cortex cost exactly N·r·d parameters (against
-  N·d² for N independent dense experts and 0 extra for the
-  destructive average that loses the disagreement);
-* `config_storage_beats_dense`: when N·r < d the WHOLE family
-  of N configurations is CHEAPER than ONE dense d×d expert —
-  keeping the disagreement costs less than one full model;
-
+* `fiber_family_cost` — the family costs `N * r * d`
+  coordinates (reassociation of `N * (r * d)`).
+* `config_storage_beats_dense` — if `N * r < d` and `0 < d`,
+  the whole family `(N * r) * d` is cheaper than one dense
+  `d * d` expert.
 -/
 
 namespace Hagi
 
-/-- **The family cost**: N rank-r fibers over a shared d-dim
-cortex cost exactly N·r·d coordinates in total. -/
+/-- N rank-r fibers over a shared d-dim cortex cost
+`N * r * d` coordinates in total. -/
 theorem fiber_family_cost (d r N : ℕ) (hr : 0 < r) (hd : 0 < d)
     (hN : 0 < N) :
     N * (r * d) = (N * r) * d := by ring
 
-/-- **Storage beats dense**: if the family footprint N·r stays
-under the cortex dimension d, the N configurations together
-cost FEWER parameters than ONE dense d×d expert. -/
+/-- If `N * r < d` and `0 < d`, the family of N
+configurations costs fewer parameters than one dense `d × d`
+expert. -/
 theorem config_storage_beats_dense (d r N : ℕ)
     (h : N * r < d) (hd : 0 < d) :
     (N * r) * d < d * d :=

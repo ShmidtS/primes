@@ -5,7 +5,7 @@ import Hagi.Probability.HistoryPastMean
 
 /-!
 # HistoryFreedman — the JOINT ANYTIME maximal Freedman on
-paths (R233 port — closes the last open Freedman form of
+paths ( port — closes the last open Freedman form of
 plan section 1.2)
 
 Ported verbatim from openai/math,

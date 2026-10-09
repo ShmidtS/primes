@@ -6,69 +6,33 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# SupervisorViability: when can a monitor class police itself (R153)
+# Supervisor viability: halving monitors and majority persistence
 
-The last open core round of FORMALIZATION_PLAN.md (§6 item 3):
-the supervisor of the F3 loop must catch its own mistakes, and
-the source theorem (arXiv:2609.36049) says co-trained monitors
-achieve vanishing monitoring error iff the monitor class has
-finite Littlestone dimension — while majority-vote
-self-training does NOT invert wrong verdicts, making an
-external verdict anchor (the Red-Queen scheme of
-arXiv:2606.26294) mandatory.
+Definitions: `LittlestoneDim` (shattered binary instance
+trees; definition only, no property claimed), the version
+space, the halving verdict, and the mistake count.
 
-**What is proved here (finite core, pure math, no `h_emp_`).**
+Results:
+* `halving_mistake_halves` — a wrong halving verdict at least
+  halves the version space.
+* `halving_mistake_bound` — for any sequence realizable by
+  `H`, `2 ^ mistakeCount H L <= H.card`.
+* `majority_wrong_verdict` — a strict wrong majority forces a
+  wrong majority verdict.
+* `majority_wrong_persists` — an injective class rebuild that
+  preserves verdicts on `x` transports a strict wrong
+  majority to the new class.
 
-* `LittlestoneDim` — the Littlestone dimension of a finite
-  hypothesis class, defined by shattering of binary instance
-  trees. DEFINITION ONLY in this round: the mistake–dimension
-  equivalence of 2609.36049 is future work and claimed
-  nowhere.
-
-* `halving_mistake_halves` — THE HALVING LEMMA: if the
-  majority-vote (halving) monitor over the version space is
-  wrong on a labeled example, the surviving version space at
-  least halves: `2·|VS'| ≤ |VS|`.
-
-* `halving_mistake_bound` — VIABILITY, finite ⟸ direction of
-  2609.36049: for ANY realizable labeled sequence, the number
-  `M` of halving-monitor mistakes satisfies `2 ^ M ≤ |H|` —
-  a finite, horizon-independent mistake budget. A finite
-  monitor class can police itself to vanishing error on
-  realizable data.
-
-* `majority_wrong_verdict` — vote counting: a strict wrong
-  majority forces a wrong majority verdict.
-
-* `majority_wrong_persists` — the impossibility kernel of
-  "majority-vote self-training does not invert wrong
-  verdicts": a self-training round that rebuilds the class by
-  an injection preserving every member's verdict on `x`
-  transports a strict wrong majority to the new class.
-  Correcting the verdict requires changing class membership
-  against an EXTERNAL anchor — the Red-Queen rule is a
-  necessity, not a style choice.
-
-**Honest boundary.** Only the sufficiency direction (finite
-class ⟹ bounded mistakes) is proved; the converse (vanishing
-error ⟹ finite Ldim, via adversarial trees) is open. The
-Red-Queen evaluator-switching policy is a runtime protocol,
-not a Lean object.
-
-Sources: arXiv:2609.36049 (co-trained monitors, Littlestone
-characterisation); arXiv:2606.26294 (Red-Queen evaluator
-switching); the halving algorithm is classical (Littlestone
-'88).
+Only the finite-⟸ direction is proved; the converse
+(vanishing error ⟹ finite Littlestone dimension) is open.
+(Sources: arXiv:2609.36049, arXiv:2606.26294.)
 -/
 
 namespace Hagi.Autonomy
 
 variable {X : Type*} [Fintype X] [DecidableEq X]
 
-/-! ## Binary instance trees and the Littlestone dimension
-
-Definition only (this round): the shattering predicate and the
-dimension. No property of `LittlestoneDim` is claimed. -/
+/-! ## Binary instance trees and the Littlestone dimension -/
 
 /-- `H` shatters a binary instance tree `t` of depth `d` (the
 instance at each internal node as a function of the binary
@@ -80,10 +44,8 @@ def Shatters (H : Finset (X → Bool)) (d : ℕ) (t : List Bool → X) : Prop :=
     ∃ h ∈ H, ∀ i : ℕ, ∀ hi : i < d,
       h (t (path.take i)) = path.get ⟨i, hpath ▸ hi⟩
 
-/-- The Littlestone dimension of a finite class: the supremum
-of shattered tree depths (`0` when no positive-depth tree is
-shattered). DEFINITION ONLY in this module; the
-mistake–dimension equivalence is future work. -/
+/-- The supremum of shattered tree depths (`0` when no
+positive-depth tree is shattered). Definition only. -/
 noncomputable def LittlestoneDim (H : Finset (X → Bool)) : ℕ :=
   sSup {d : ℕ | ∃ t : List Bool → X, Shatters H d t}
 
@@ -135,10 +97,8 @@ theorem versionSpace_append_singleton (H : Finset (X → Bool))
     · exact hall p hp
     · simpa using hxy
 
-/-- **The halving lemma.** A wrong halving verdict at least
-halves the version space: the members that voted with the
-wrong majority are eliminated by consistency, and they are at
-least half of the survivors. -/
+/-- A wrong halving verdict on `(x, y)` at least halves the
+version space: `2 * |VS (L ++ [(x, y)])| <= |VS L|`. -/
 theorem halving_mistake_halves (H : Finset (X → Bool))
     (L : List (X × Bool)) (x : X) (y : Bool)
     (hm : IsMistake H L (x, y)) :
@@ -224,13 +184,9 @@ theorem mistakesAux_bound (H : Finset (X → Bool)) :
           Finset.card_le_card hmono2
         exact Nat.le_trans hih hcard2
 
-/-- **Viability of the halving supervisor** (finite ⟸
-direction of 2609.36049). For any labeled sequence realizable
-by `H`, the number `M` of halving-monitor mistakes satisfies
-`2 ^ M ≤ |H|`: a finite, horizon-independent mistake budget.
-The realizable witness stays in every version space, so the
-monitor's residual error on realizable data vanishes after
-finitely many verified mistakes. -/
+/-- For any labeled sequence `L` realizable by `H` (some
+`h ∈ H` is consistent with `L`), the halving-monitor mistake
+count satisfies `2 ^ mistakeCount H L <= H.card`. -/
 theorem halving_mistake_bound (H : Finset (X → Bool))
     (L : List (X × Bool))
     (hreal : ∃ h ∈ H, ConsistentWith h L) :
@@ -255,12 +211,11 @@ theorem halving_mistake_bound (H : Finset (X → Bool))
     simpa using h1
   exact Nat.le_trans h2 hkey
 
-/-! ## The no-self-correction lemma (the Red-Queen anchor) -/
+/-! ## Persistence of wrong majorities -/
 
 omit [Fintype X] [DecidableEq X] in
-/-- **A wrong majority votes wrong** (vote counting). If a
-strict majority of `H` is wrong on `x` (true label `y`), the
-majority verdict on `x` is not `y`. -/
+/-- If a strict majority of `H` answers differently from `y`
+on `x`, the majority verdict on `x` is not `y`. -/
 theorem majority_wrong_verdict (H : Finset (X → Bool)) (x : X) (y : Bool)
     (hmaj : 2 * (H.filter (fun h => h x ≠ y)).card > H.card) :
     halvingVerdict H [] x ≠ y := by
@@ -289,16 +244,10 @@ theorem majority_wrong_verdict (H : Finset (X → Bool)) (x : X) (y : Bool)
       omega
 
 omit [Fintype X] [DecidableEq X] in
-/-- **Majority-vote self-training does not invert wrong
-verdicts** (2609.36049, finite transport form). Suppose the
-self-training round rebuilds the class by a map `φ` that
-(a) carries `H` into the new class `H'`, (b) is injective on
-`H`, and (c) preserves every member's verdict on `x`. Then a
-strict wrong majority of `H` on `x` transports to a strict
-wrong majority of `H'` on `x`: the wrong majority verdict
-persists. Flipping the verdict requires changing class
-membership against an EXTERNAL anchor (the Red-Queen ground
-truth), not more voting. -/
+/-- If `φ` maps `H` injectively into `H'` preserving every
+member's verdict on `x`, `|H'| <= |H|`, and a strict majority
+of `H` answers differently from `y` on `x`, then a strict
+majority of `H'` also answers differently from `y` on `x`. -/
 theorem majority_wrong_persists (H H' : Finset (X → Bool)) (x : X) (y : Bool)
     (φ : (X → Bool) → (X → Bool))
     (hmap : ∀ h ∈ H, φ h ∈ H')

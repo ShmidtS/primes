@@ -9,9 +9,8 @@ set_option linter.style.header false
 /-!
 # Recursive self-distillation: the entropy floor of model collapse
 
-R108, audit Block-1 item #2 ("Динамическая устойчивость
-рекурсивной самодистилляции") — the honest CONDITIONAL core of
-the model-collapse / entropy-preservation theorem.
+The conditional core of the model-collapse /
+entropy-preservation theorem.
 
 **The setting.** Recursive self-distillation across generations:
 generation k+1 trains toward the target mixture
@@ -27,14 +26,14 @@ et al.: model → model → model with no anchor).
 
 **The honest engine (what is proved, what is assumed).**
 
-* CLAIM 1 (THEOREM, `entropy_mix_ge`): entropy concavity —
+* CLAIM 1 (theorem, `entropy_mix_ge`): entropy concavity —
   `H(m_k) ≥ (1−ν)·H(p_k) + ν·H(p_data)`. Proved from the repo's
   `kl_nonneg` (`Hagi.Data/DField`) via the Jensen–Shannon
   identity `H(m) − (1−ν)H(p) − νH(q) = (1−ν)·KL(p‖m) + ν·KL(q‖m)`
   (the same span-1 identity as `dfield_entropy_identity`).
 
-* CLAIM 2 (HONEST GAP — the entropy–KL tradeoff is FALSE as
-  stated): `KL(m‖q) ≤ δ ⟹ H(q) ≥ H(m) − δ` does NOT hold in
+* CLAIM 2 (honest GAP — the entropy–KL tradeoff is FALSE as
+  stated): `KL(m‖q) ≤ δ ⟹ H(q) ≥ H(m) − δ` does not hold in
   general. Explicit counterexample (binary alphabet):
   m = (0.9, 0.1), q = (0.99, 0.01): KL(m‖q) = 0.1445 ≤ δ, yet
   H(m) − δ = 0.1806 > H(q) = 0.0560. A small divergence bounds
@@ -47,24 +46,24 @@ et al.: model → model → model with no anchor).
   identity in H-form): `CE_m(q) = H(m) + KL(m‖q)` — the KL
   certification bounds the student's CROSS-entropy against the
   target, exactly. Hence the per-step entropy preservation
-  enters as the EXPLICIT hypothesis hcert (a strengthening of
+  enters as the explicit hypothesis hcert (a strengthening of
   the h_emp_ training guarantee: not only KL ≤ δ but entropy
   within δ) — this file's results are conditional on it, and
   that is the honest form.
 
-* CLAIM 3 (THEOREM, `distill_entropy_recurrence`,
+* CLAIM 3 (theorem, `distill_entropy_recurrence`,
   `entropy_floor`): under the certified steps,
   `H(p_T) ≥ (1−ν)^T·H(p_0) + (1−(1−ν)^T)·(H(p_data) − δ/ν)`
   — the exact closed form (geometric interpolation between the
   initial entropy and the fixed point h − δ/ν of
   x ↦ (1−ν)x + νh − δ; fixed-point algebra:
   x* = (νh−δ)/ν = h − δ/ν ✓). As T grows the bound approaches
-  H(p_data) − δ/ν: THE ENTROPY FLOOR. With δ small and ν fixed,
+  H(p_data) − δ/ν: THE ENTROPY floor. With δ small and ν fixed,
   collapse below the floor is impossible.
 
-* CLAIM 4 (THEOREM, `fresh_data_prevents_collapse`): the
+* CLAIM 4 (theorem, `fresh_data_prevents_collapse`): the
   invariant form — if `H(p_0) ≥ H(p_data) − δ/ν` then the
-  entropy stays above `H(p_data) − δ/ν` at EVERY generation.
+  entropy stays above `H(p_data) − δ/ν` at every generation.
   Uniform ε form (`fresh_data_prevents_collapse_uniform`):
   with `δ ≤ ν·ε` and `H(p_0) ≥ H(p_data) − ε`, entropy never
   falls below `H(p_data) − ε`. The fresh-data mass ν > 0 is
@@ -128,7 +127,7 @@ theorem freshMix_sum_one (ν : ℝ) (p d : V → ℝ)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **Entropy concavity (CLAIM 1, THEOREM).** The training
+/-- **Entropy concavity (CLAIM 1, theorem).** The training
 target's entropy is at least the weighted entropies:
 `H((1−ν)p + νd) ≥ (1−ν)·H(p) + ν·H(d)`. Entropy is gained by
 mixing — the fresh-data blend RAISES the target entropy above
@@ -208,7 +207,7 @@ target entropy plus the divergence:
 `CE_m(q) = H(m) + KL(m‖q)` — the `Hagi.Data/Distill` master
 identity `teacher_generated_identity` restated with
 `shannonEntropy`. This is what the h_emp_ KL certification
-`KL(m‖q) ≤ δ` really buys: `CE_m(q) ≤ H(m) + δ`. It does NOT
+`KL(m‖q) ≤ δ` really buys: `CE_m(q) ≤ H(m) + δ`. It does not
 buy `H(q) ≥ H(m) − δ` (that direction is FALSE — see the module
 docstring for the explicit counterexample), so the per-step
 entropy preservation is carried below as the explicit
@@ -251,8 +250,8 @@ theorem distill_step_entropy (pNext pK d : V → ℝ) (ν δ : ℝ)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The recursive entropy floor (CLAIM 3, MAIN THEOREM).**
-For a generation sequence p_k where EVERY step is certified
+/-- **The recursive entropy floor (CLAIM 3, main theorem).**
+For a generation sequence p_k where every step is certified
 (each generation's entropy within δ of its fresh-mix target),
 the exact closed form holds for every horizon T:
 
@@ -336,7 +335,7 @@ set_option linter.unusedDecidableInType false in
 /-- **Fresh data prevents collapse (CLAIM 4, the invariant
 form).** If the initial entropy is at or above the floor
 `H(p_0) ≥ H(p_data) − δ/ν`, then the entropy stays above the
-floor at EVERY generation — forever, uniformly in T. The
+floor at every generation — forever, uniformly in T. The
 correction term in `entropy_floor` is then non-positive and
 drops out. With δ small and ν fixed, collapse below
 H(p_data) − δ/ν is impossible: the fresh-data mass ν is the
@@ -409,12 +408,12 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
   linarith
 
 
-/-- **R136 (T5, §7.3 ревизии): entropy floor с TV-сертификатом**
+/-- ** (T5, §7.3 ревизии): entropy floor с TV-сертификатом**
 — замена посылки hcert (KL-формы, опровергнутой ревизией:
 KL ≤ δ НЕ спасает энтропию — sharpening tail) на
 Pinsker/Fannes-форму: если полная вариация fresh-смеси и
 следующего поколения ограничена (сертификат |H(fm)−H(p')| ≤ B,
-B — Fannes-граница через τ = tvDist, см. AntiCollapse R136),
+B — Fannes-граница через τ = tvDist, см. AntiCollapse),
 то entropy floor выполняется с эффективным δ_eff = B:
 H(p_T) ≥ H(data) − B/ν − (затухание). -/
 theorem entropy_floor_tv (p : ℕ → V → ℝ) (d : V → ℝ) (ν B : ℝ)

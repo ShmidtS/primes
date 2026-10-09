@@ -7,39 +7,20 @@ import Hagi.Step.SafeQP
 set_option linter.style.header false
 
 /-!
-# R135: T4 SafeQP-PL rate — налог конфликтов в скорости сходимости
+# SafeQPPL — PL-скорость SafeQP с налогом конфликтов
 
-FORMALIZATION_PLAN §7.1 T4 (P1): выводит hpl_lo из ПОСЫЛКИ в
-СЛЕДСТВИЕ (раньше локальная линейная сходимость joint-фазы
-была гипотезой). Источник: 2606.29521 (PCD: методы,
-застревающие в conflict equilibria, платят √(K−1)-налог;
-SafeQP структурно = priority-constrained descent с
-closed-form), 2606.30559 (CL-гомогенные сети = последовательные
-проекции маржи).
+Модель: L-гладкость (десцент-лемма — посылка), SafeQP-свойство
+`‖d‖² ≤ ⟪g, d⟫`, PL-условие `‖g‖² ≥ 2μ(E − E*)`.
 
-**Модель:** L-гладкая f (десцент-лемма как посылка),
-SafeQP-шаг d* с ‖d*‖² ≤ ⟨g₀, d*⟩ (доказано R84:
-`safeQP_descent`-свойство проекции), PL-условие μ:
+* `safeqp_pl_descent`: при `η = 1/L` —
+  `f (x − (1/L)·d) ≤ f x − ‖d‖²/(2L)`;
+* `safeqp_pl_rate`:
+  `E' − E* ≤ (1 − μ·κ/L)·(E − E*)`, где
+  `κ = ‖d‖²/‖g‖²` — измеримый коэффициент конфликтности;
+* `pl_rate_noconflict`: при `d = g` — классический темп
+  `1 − μ/L`.
 
-  ‖∇f(x)‖² ≥ 2μ·(f(x) − f*).
-
-**Теоремы:**
-
-* `safeqp_pl_descent` — при η = 1/L и SafeQP-неравенстве
-  ⟨g, d*⟩ ≥ ‖d*‖² спад за шаг ≥ ‖d*‖²/(2L).
-* `safeqp_pl_rate` — PL-скорость с НАЛОГОМ КОНФЛИКТОВ:
-  E_{t+1} − E* ≤ (1 − μ·κ_t/L)·(E_t − E*), где
-  κ_t = ‖d*‖²/‖g‖² ∈ [0,1] — измеримый коэффициент
-  конфликтности шага (κ=1 — noconflict-режим; κ→0 — шаг
-  зажат ограничениями).
-* `pl_rate_noconflict` — при κ=1 классический темп
-  1 − μ/L (связка со `safeqp_inactive`: g₀ ∈ C ⟹ d* = g₀
-  ⟹ κ=1) — fix гипотезы hpl_lo.
-
-**Честные границы:** десцент-лемма и PL — посылки (в
-терминологии проекта: h_emp_smooth + PL-регим); κ_t измеряем
-на каждом шаге напрямую (‖d*‖ и ‖g‖ уже логируются в
-SafeQP-сканах).
+Десцент-лемма и PL — посылки; κ измерим на каждом шаге.
 -/
 
 open Finset InnerProductSpace
@@ -48,8 +29,8 @@ namespace Hagi
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- **Шаг SafeQP при η = 1/L**: L-гладкость (десцент-лемма)
-+ SafeQP-свойство ⟨g,d*⟩ ≥ ‖d*‖² дают спад ≥ ‖d*‖²/(2L). -/
+/-- При `0 < L`, десцент-лемме `hdescent` и `‖d‖² ≤ ⟪g, d⟫`:
+`f (x − (1/L) • d) ≤ f x − ‖d‖²/(2L)`. -/
 theorem safeqp_pl_descent (f : X → ℝ) (x : X) (d : X)
     (g : X) (L : ℝ) (hL : 0 < L)
     (hdescent : ∀ η (u : X), 0 ≤ η →
@@ -87,14 +68,10 @@ theorem safeqp_pl_descent (f : X → ℝ) (x : X) (d : X)
           ring
         rw [hcalc]
 
-/-- **PL-скорость SafeQP с налогом конфликтов**:
-при PL-условии μ (‖g‖² ≥ 2μ(E − E*)) и κ = ‖d*‖²/‖g‖²
-
-  E_{t+1} − E* ≤ (1 − μ·κ/L)·(E_t − E*).
-
-κ — измеримый налог конфликтов: κ=1 — noconflict-режим,
-κ→0 — шаг зажат ограничениями (структурный предел скорости,
-не гиперпараметр). -/
+/-- При посылках `safeqp_pl_descent`, PL-условии
+`2μ·(f x − fstar) ≤ ‖g‖²` и `‖g‖² ≠ 0`:
+`f (x − (1/L) • d) − fstar
+≤ (1 − μ·(‖d‖²/‖g‖²)/L)·(f x − fstar)`. -/
 theorem safeqp_pl_rate (f : X → ℝ) (x : X) (d g : X)
     (fstar L μ : ℝ) (hL : 0 < L) (hμ : 0 < μ)
     (hdescent : ∀ η (u : X), 0 ≤ η →
@@ -134,11 +111,8 @@ theorem safeqp_pl_rate (f : X → ℝ) (x : X) (d g : X)
     field_simp
   linarith [h1, h2, hexp]
 
-/-- **Noconflict-режим = классический темп**: при d = g
-(κ = ‖g‖²/‖g‖² = 1) скорость PL SafeQP — 1 − μ/L
-(связка со `safeqp_inactive`: g₀ ∈ C ⟹ d* = g₀).
-Фикс гипотезы hpl_lo: локальная линейная сходимость
-joint-фазы — СЛЕДСТВИЕ условий, не посылка. -/
+/-- При тех же посылках, `d = g` и `⟪g, g⟫ = ‖g‖²`:
+`f (x − (1/L) • g) − fstar ≤ (1 − μ/L)·(f x − fstar)`. -/
 theorem pl_rate_noconflict (f : X → ℝ) (x : X) (g : X)
     (fstar L μ : ℝ) (hL : 0 < L) (hμ : 0 < μ)
     (hdescent : ∀ η (u : X), 0 ≤ η →

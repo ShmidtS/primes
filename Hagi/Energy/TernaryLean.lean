@@ -13,7 +13,7 @@ foundation — 1.585 bits/weight against bf16's 16 — yet no
 theorem covered it. This module fixes the three formal
 cores of `src/hagi/model/ternary.py`:
 
-**The quantizer (THEOREM).** Per output channel:
+**The quantizer (theorem).** Per output channel:
 `s = mean(|W|, dim=1)`, `Q = round(clamp(W/s, −1, +1))`,
 `W~ = Q·s`. The zero bin is implicit: round sends
 |w/s| < 1/2 to 0.
@@ -42,7 +42,7 @@ compression of the channel weights).
 
 **The STE (documented, the identity).** The straight-through
 estimator is the identity on the master — saturated entries
-are NOT zeroed: zeroing would erase the gradient of the
+are not zeroed: zeroing would erase the gradient of the
 largest-magnitude weights, exactly where a matrix-sign
 optimizer gets its signal. The cached form (one quantization
 per optimizer step, the OFDM coherence interval) preserves
@@ -113,7 +113,7 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
     field_simp
   rw [hdiv]
 
--- DEMOTED round-61 (external audit): was `A = A := rfl`.
+-- DEMOTED round-61 (external audit): was `A = A:= rfl`.
 -- The storage rate log2(3) = 1.5849625007211565 bits/trit
 -- («измерено» via #eval) is an evaluable constant, not a
 -- theorem; the 16/log2(3) ≈ 10.09x compression factor is

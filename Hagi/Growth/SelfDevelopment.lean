@@ -7,38 +7,20 @@ import Hagi.Probability.CertifiedEstimator
 set_option linter.style.header false
 
 /-!
-# Мост V: SelfDevelopment — controller находит положительный upgrade
+# SelfDevelopment — детерминированное ядро поиска upgrade и статистическая оболочка
 
-Аудит §25: для саморазвития нужно доказать минимальную
-теорему вида «если существует безопасный upgrade a с
-Gain(a) > 0, то controller за конечное число действий находит
-upgrade a' с Gain(a') ≥ c·Gain(a) при ограниченном cost».
+* `controller_max_exists`: на непустом safe-наборе существует
+  argmax certified gain;
+* `self_development_find`: если в safe-наборе есть кандидат с
+  `0 < G a₀`, то argmax-кандидат `a'` удовлетворяет
+  `0 < G a'` и `G a₀ ≤ G a'`;
+* `certified_gain_select`: если `|Ghat a − g a| ≤ eps` для
+  всех a и `3·eps < g a₀`, то найденный argmax-кандидат
+  удовлетворяет `0 < g a'` и `g a₀ − 2·eps ≤ g a'`;
+* `search_cost_bound`: сумма стоимостей измерений равна
+  `card · cMeas`.
 
-Этот модуль формализует детерминированное ядро и его
-статистическую оболочку:
-
-* `controller_max_exists` — на конечном множестве кандидатов
-  (фильтр safe-предиката) argmax certified gain существует
-  (`Finset.exists_max_image`).
-* `self_development_find` — **ядро моста**: если в safe-наборе
-  есть кандидат с положительным certified gain, то выбранный
-  argmax-кандидат тоже положителен и не хуже него
-  (c = 1 на candidate set).
-* `certified_gain_select` — статистическая оболочка: если
-  измеренные gains отклоняются от истинных не более чем на ε
-  (R114-сертифицированные оценки), то argmax по измеренным
-  даёт истинный gain ≥ Gain(a₀) − 2ε; при Gain(a₀) ≥ 3ε
-  найденный upgrade строго положителен ИСТИННО, а не только
-  по измерению.
-* `search_cost_bound` — бюджет поиска линеен: суммарная
-  стоимость измерений ≤ |A|·c_meas (конечность — суть
-  «за ограниченный ресурс»).
-
-**Честные границы**: (1) полнота пространства кандидатов
-(существующий вне candidate set upgrade не найден — audit §25
-требует именно «достаточно полного» генератора, это
-предпосылка safe-набора); (2) ε-концентрация оценок —
-посылка, сертифицируемая R114 на каждое действие.
+Полнота candidate set и ε-концентрация оценок — посылки.
 -/
 
 open Finset
@@ -47,20 +29,21 @@ namespace Hagi
 
 variable {A : Type} [Fintype A] [Nonempty A]
 
-/-- Safe-подмножество кандидатов (decidable). -/
+/-- Safe-подмножество кандидатов: фильтр `Finset.univ` по
+`safe` (decidable). -/
 def safeCandidates (safe : A → Prop) [DecidablePred safe] : Finset A :=
   Finset.univ.filter safe
 
-/-- На safe-наборе существует argmax certified gain. -/
+/-- Если safe-набор непуст, то существует
+`a' ∈ safeCandidates safe` с `G a ≤ G a'` для всех
+`a ∈ safeCandidates safe`. -/
 theorem controller_max_exists (G : A → ℝ) (safe : A → Prop)
     [DecidablePred safe] (hne : (safeCandidates safe).Nonempty) :
     ∃ a' ∈ safeCandidates safe, ∀ a ∈ safeCandidates safe, G a ≤ G a' :=
   Finset.exists_max_image (safeCandidates safe) G hne
 
-/-- **Ядро моста V**: если в safe-наборе есть кандидат с
-положительным certified gain, controller (argmax) выбирает
-кандидат с положительным gain, не худшим найденного
-(аппроксимация c = 1 на candidate set). -/
+/-- Если `a₀ ∈ safeCandidates safe` и `0 < G a₀`, то существует
+`a' ∈ safeCandidates safe` с `0 < G a'` и `G a₀ ≤ G a'`. -/
 theorem self_development_find (G : A → ℝ) (safe : A → Prop)
     [DecidablePred safe]
     (a₀ : A) (h₀ : a₀ ∈ safeCandidates safe) (hpos : 0 < G a₀) :
@@ -70,13 +53,10 @@ theorem self_development_find (G : A → ℝ) (safe : A → Prop)
   obtain ⟨a', ha'mem, hmax⟩ := controller_max_exists G safe hne
   exact ⟨a', ha'mem, ⟨hpos.trans_le (hmax a₀ h₀), hmax a₀ h₀⟩⟩
 
-/-- **Статистическая оболочка**: измеренные gains Ĝ отклоняются
-от истинных g не более чем на ε (посылка, сертифицируемая
-`certified_premise`/`cert_upper`-`cert_lower` на каждое
-действие). Тогда argmax по измеренным даёт истинный gain
-≥ g a₀ − 2ε; при g a₀ ≥ 3ε найденный upgrade строго
-положителен по ИСТИННОМУ gain — измерение не обмануло
-controller. -/
+/-- Если `|Ghat a − g a| ≤ eps` для всех a,
+`a₀ ∈ safeCandidates safe` и `3·eps < g a₀`, то существует
+`a' ∈ safeCandidates safe` с `0 < g a'` и
+`g a₀ − 2·eps ≤ g a'`. -/
 theorem certified_gain_select (g Ghat : A → ℝ) (safe : A → Prop)
     [DecidablePred safe] (eps : ℝ) (heps : 0 ≤ eps)
     (hconc : ∀ a, |Ghat a - g a| ≤ eps)
@@ -111,8 +91,8 @@ theorem certified_gain_select (g Ghat : A → ℝ) (safe : A → Prop)
       linarith [abs_le.mp ha'c |>.1, abs_le.mp ha'c |>.2]
     linarith
 
-/-- Бюджет поиска: суммарная стоимость измерения всех кандидатов
-линейна по размеру safe-набора — «за ограниченный ресурс». -/
+/-- Сумма стоимостей измерения всех кандидатов равна
+`card · cMeas`. -/
 theorem search_cost_bound (cMeas : ℝ) (hc : 0 ≤ cMeas) (safe : A → Prop)
     [DecidablePred safe] :
     (∑ a ∈ safeCandidates safe, cMeas) = ((safeCandidates safe).card : ℝ) * cMeas := by

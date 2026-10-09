@@ -10,7 +10,7 @@ set_option linter.style.header false
 
 The GitHub scout (round 37) found hawkrobe/linglib's
 `GibbsVariational.lean` strictly stronger than our round-33
-equational identity: the free-energy bound holds for EVERY q
+equational identity: the free-energy bound holds for every q
 (the variational inequality), and the optimizer (the tilted
 measure) is UNIQUE. This module transports the technique to
 our finite-support setting:
@@ -31,7 +31,7 @@ fixed point.
   tilted measure decomposes exactly; the variational
   inequality reads off KL ≥ 0.
 * `free_energy_variational` — THE VARIATIONAL INEQUALITY:
-  E_q[U] − KL(q‖p) ≤ log Z for EVERY q — strictly stronger
+  E_q[U] − KL(q‖p) ≤ log Z for every q — strictly stronger
   than the round-33 `free_energy_gap` (the equality at
   q = p̃ only): now the whole free-energy landscape is
   bounded, and the descent's target unique.
@@ -134,12 +134,12 @@ free-energy identity)**: for every q,
 
 `E_q[U] − KL(q‖p) ≤ log Σ p·e^U` —
 
-HONEST BOUNDARY (R78): only the INEQUALITY is formalized;
+honest boundary: only the INEQUALITY is formalized;
 the equality-condition characterization (iff q is the tilted
 distribution) is stated at the docstring level and remains
 an open formalization. This is strictly stronger
 than our round-33 `free_energy_gap` (the equational identity
-at q = p̃): the inequality holds for EVERY q, and the
+at q = p̃): the inequality holds for every q, and the
 optimizer's uniqueness (the tilted measure) comes for free —
 the free-energy descent's target is unique. -/
 theorem free_energy_variational (q p U : V → ℝ)

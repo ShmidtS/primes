@@ -4,37 +4,26 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# MuonTwoLevel — exact orthogonalization vs NS approximation
-(plan §2 R225; sources 2502.16982, 2609.36600 Thm 4.1)
+# MuonTwoLevel — точная ортогонализация против NS-аппроксимации
 
-The two-level structure of the Muon preconditioner. What is
-PROVED here is the level-2 gap ACCOUNTING:
+Уровень 1 (контракт, не доказан здесь): идеальный шаг
+`O = U·Vᵀ` (SVD градиента) ортогонален — спектральная
+норма 1.
 
-LEVEL 1 (contract, not proved here): the ideal update
-O = U·Vᵀ (SVD of the gradient) is orthogonal — spectral
-norm 1, i.e. the R224 premise C = 1 at the exact level
-(taken as hypothesis there).
-
-LEVEL 2 (proved): `ns_gap_scaled` — the squared NS
-deviation Σᵢ (p(σᵢ) − 1)² ≤ r · maxᵢ (p(σᵢ) − 1)²: the
-gap budget factorizes into rank times the worst POINTWISE
-polynomial error on the singular spectrum. NOT proved
-here: the Frobenius identity ‖U·p(Σ)·Vᵀ − U·Vᵀ‖_F =
-‖p(Σ) − I‖_F (requires the U/V-orthogonality machinery),
-the polynomial coefficients, and any NS iteration
-convergence — the accounting bound above is the module's
-full content.
+Уровень 2 (доказан): `ns_gap_scaled` —
+`Σᵢ (p(σᵢ) − 1)² ≤ r·maxᵢ (p(σᵢ) − 1)²`:
+бюджет отклонения факторизуется в ранг × худшую поточечную
+ошибку полинома. Frobenius-тождество, коэффициенты полинома
+и сходимость NS-итераций — не доказаны.
 -/
 
 namespace Hagi
 
 open Finset
 
-/-- **The per-singular-value accounting**: the squared NS
-gap Σᵢ (p(σᵢ) − 1)² ≤ r · maxᵢ (p(σᵢ) − 1)²: the gap budget
-factorizes into rank × worst pointwise polynomial error —
-the NS step-count/spectrum tradeoff in one line (the
-2609.36600 SNR regime split is the split of the max term). -/
+/-- При `0 ≤ M` и `(dev i)² ≤ M` для всех i:
+`Σ_i (dev i)² ≤ r·M` (бюджет отклонения = ранг ×
+худший поточечный член). -/
 theorem ns_gap_scaled (r : ℕ) (dev : Fin r → ℝ)
     (M : ℝ) (hM : 0 ≤ M) (hdev : ∀ i, (dev i)^2 ≤ M) :
     ∑ i, (dev i)^2 ≤ r * M := by

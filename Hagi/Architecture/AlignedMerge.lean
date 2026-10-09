@@ -6,29 +6,21 @@ import Hagi.Architecture.CortexFiber
 set_option linter.style.header false
 
 /-!
-# AlignedMerge: the misalignment penalty (R182)
+# AlignedMerge: the misalignment penalty
 
-The quantitative completion of R181 (`CortexFiber`): the
-aligned merge is Pythagorean (zero cross term), and a
-misaligned merge pays EXACTLY the cross term, bounded by the
-Frobenius norm of the misalignment Gram matrix VᵀW:
+* `dotCS` — Cauchy-Schwarz for `dotProduct`, squared form.
+* `frobSubord` — the Frobenius norm is subordinated:
+  `(M *ᵥ w) ⬝ᵥ (M *ᵥ w) ≤ frobSq M * (w ⬝ᵥ w)`.
+* `misalignCross` — the merge cross term satisfies
+  `((V *ᵥ r) ⬝ᵥ (W *ᵥ s)) ^ 2 ≤
+  frobSq (Vᵀ * W) * (r ⬝ᵥ r) * (s ⬝ᵥ s)`.
+* `mergeEnergyPerturbed` — with orthonormal `V`, `W`, the
+  merged energy deviates from the Pythagorean value
+  `(r ⬝ᵥ r) + (s ⬝ᵥ s)` by at most
+  `2 * (frobSq (Vᵀ * W)).sqrt * (r ⬝ᵥ r).sqrt * (s ⬝ᵥ s).sqrt`.
 
-* `dotCS`: Cauchy–Schwarz for dotProduct in squared form.
-* `frobSubord`: the Frobenius norm is subordinated —
-  ‖M w‖² ≤ frobSq(M)·‖w‖² (per-row Cauchy–Schwarz).
-* `misalignCross`: the merge cross term satisfies
-  ⟨V r, W s⟩² ≤ frobSq(VᵀW)·‖r‖²·‖s‖² — the price of merging
-  fibers whose bases are misaligned by frobSq(VᵀW) = δ².
-* `mergeEnergyPerturbed`: with orthonormal V, W, the merged
-  energy ‖V r + W s‖² deviates from the Pythagorean value
-  ‖r‖²+‖s‖² by at most 2√(frobSq(VᵀW))·‖r‖·‖s‖ — the
-  δ-perturbed Pythagoras: aligned (δ=0) merges are exactly
-  additive (R181 `fiberPythagoras`), and the penalty is
-  LINEAR in the misalignment.
-
-This is the formal half of the subspace-merge lemma: the
-principal-angle bound (spectral E_r version tied to
-Eckart–Young) remains open — Mathlib lacks Eckart–Young.
+The principal-angle (spectral) version remains open — Mathlib
+lacks Eckart-Young.
 -/
 
 namespace Hagi.Cortex
@@ -75,12 +67,9 @@ theorem frobSubord {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℝ)
     _ = (∑ i, ∑ j, M i j * M i j) * (∑ j, w j * w j) := by
         rw [← Finset.sum_mul]
 
-/-- **The misalignment penalty**: the merge cross term
-between two fibers satisfies
-⟨V r, W s⟩² ≤ frobSq(VᵀW)·(r ⬝ᵥ r)·(s ⬝ᵥ s) — the price of
-merging misaligned bases is LINEAR in the misalignment
-frobSq(VᵀW); aligned fibers (VᵀW = 0) pay exactly nothing
-(recovering R181 `fiberCross`). -/
+/-- The merge cross term between two fibers satisfies
+`((V *ᵥ r) ⬝ᵥ (W *ᵥ s)) ^ 2 ≤ frobSq (Vᵀ * W) * (r ⬝ᵥ r) * (s ⬝ᵥ s)`;
+aligned fibers (`Vᵀ * W = 0`) pay nothing. -/
 theorem misalignCross {d r1 r2 : ℕ} (V : Matrix (Fin d) (Fin r1) ℝ)
     (W : Matrix (Fin d) (Fin r2) ℝ)
     (r : Fin r1 → ℝ) (s : Fin r2 → ℝ) :
@@ -114,12 +103,10 @@ theorem misalignCross {d r1 r2 : ℕ} (V : Matrix (Fin d) (Fin r1) ℝ)
           mul_le_mul_of_nonneg_left h2 hr
     _ = frobSq (Vᵀ * W) * (r ⬝ᵥ r) * (s ⬝ᵥ s) := by ring
 
-/-- **The δ-perturbed Pythagoras**: with orthonormal fiber
-bases V and W, the merged energy deviates from the
-Pythagorean value ‖r‖²+‖s‖² by at most
-2·√(frobSq(VᵀW))·‖r‖·‖s‖ — aligned merges are exactly
-additive (R181), and the deviation is linear in the
-misalignment δ = √frobSq(VᵀW). -/
+/-- With orthonormal fiber bases `V` and `W`, the merged
+energy deviates from the Pythagorean value `(r ⬝ᵥ r) + (s ⬝ᵥ s)`
+by at most `2 * (frobSq (Vᵀ * W)).sqrt * (r ⬝ᵥ r).sqrt *
+(s ⬝ᵥ s).sqrt`. -/
 theorem mergeEnergyPerturbed {d r1 r2 : ℕ} (V : Matrix (Fin d) (Fin r1) ℝ)
     (W : Matrix (Fin d) (Fin r2) ℝ)
     (hV : IsOrthoCol V) (hW : IsOrthoCol W)

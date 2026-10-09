@@ -7,7 +7,7 @@ import Hagi.Energy.TernaryLean
 set_option linter.style.header false
 
 /-!
-# R65: the STE step model (the optimizer that actually runs)
+# the STE step model (the optimizer that actually runs)
 
 Round-62 program item 4: the descent theorems describe
 gradient steps, while training runs Muon / LazyAdam /

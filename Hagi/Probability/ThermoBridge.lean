@@ -7,12 +7,12 @@ import Hagi.Probability.KLSBridge
 set_option linter.style.header false
 
 /-!
-# ThermoBridge: one 1/B law — two interfaces (R186, bridge C)
+# ThermoBridge: one 1/B law — two interfaces
 
 The thermodynamic axis of HAGI now has two formalizations of
 the SAME noise-cooling law:
 
-* `batch_variance_eq` (NoiseTemperature): the EXACT identity
+* `batch_variance_eq` (NoiseTemperature): the exact identity
   Var(batchMean) = Var(g)/B on the product-probability
   interface (`prodE`/`uniP`) — no hypotheses beyond the
   uniform product system.
@@ -31,7 +31,7 @@ This module welds the interfaces:
   into the `expQ` carrier — the SAME law both formalizations
   compute; `uncorrMeanVar` (the klsBatchNoise core) and
   `batch_variance_eq` are one theorem in two vocabularies,
-  and the R174d annealing budget σ²·c/(B₀(c−1)) is the same
+  and the annealing budget σ²·c/(B₀(c−1)) is the same
   quantity both chains bound.
 -/
 

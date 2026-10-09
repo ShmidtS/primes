@@ -4,55 +4,29 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.ChainToCone
 
 /-!
-# T3Ignition — the T3 theorem: the measured chain IGNITES
-the cone exactly when the effective conversion clears the
-gate (R251; FORMALIZATION_PLAN §5.1)
+# T3Ignition — условие зажигания конуса через эффективную конверсию
 
-T3 (the plan's top remaining open item): a condition on the
-conversion chain of the form
-
-  γ_eff ≥ γ_gate
-
-formulated in the configuration vocabulary (R201/R214/R215)
-with the R245/R247 disagreement→cone bridge as the frame.
-
-**Vocabulary.** γ_eff is the EFFECTIVE conversion the
-runtime certificate delivers: γ_eff := β⁴·κ (four measured
-stage floors × the diversity-tracks-frontier share —
-`chain_feeds_cone`). γ_gate is the IGNITION THRESHOLD:
-STRICT positivity (γ_eff > 0 — a zero conversion never
-grows) together with the cone's two UPPER bounds on the
-rate (support γ·k ≤ ρ and curvature γ·k² + (1−ρ)k ≤ β_C
-of `cone_two_sided_certificate`) — the feasible ignition
-rates form (0, min(ρ/k, (β_C−(1−ρ)k)/k²)], the ignition
-CEILING.
-
-**Result.** `T3_ignition`: if the certificate clears the
-gate (γ_eff ≥ γ_gate) AND the upper increment band uses the
-same γ_eff (γ̄ = γ_eff, i.e. the runtime certifies the
-conversion TIGHTLY — the two-sided band collapses to the
-exact certified rate), then the cone ignites and takeoff
-follows on the state trajectory. With `chain_ignition_
-threshold`'s stage decomposition (R215) as the reading of
-γ_eff's factors, and `deficit_factorizes` (R249) as the
-locating tool, T3 closes the plan's §5.1 in the chain
-vocabulary: the 9× question "why does the mixer not
-ignite" becomes "which measured factor drops β⁴κ below
-γ_gate" — a division, not a mystery.
+* `ignitionGate`: `(cbeta − (1−ρ)k)/k²`; `ignitionGate_nonneg` —
+  неотрицательность при `0 < k` и `(1−ρ)k ≤ cbeta`;
+* `ignitionCeiling`: `min(ρ/k, (cbeta − (1−ρ)k)/k²)`;
+  `ignitionCeiling_pos` — положительность при `0 < k`,
+  `0 < ρ`, `(1−ρ)k < cbeta`;
+* `T3_ignition`: если `β⁴·κ ≤ ignitionCeiling` и выполнены
+  сертификаты `takeoff_from_certificate` (стадийные полы β,
+  κ-доля, шаг, верхняя лента прироста на той же ставке
+  `β⁴κ`, динамика), то `C 0·(1 + β⁴κ·k)^T ≤ C T`.
 -/
 
 open scoped BigOperators
 
 namespace Hagi.Growth
 
-/-- The ignition gate: the smallest γ satisfying both cone
-conservation conditions (support and curvature), for k > 0.
-When (1−ρ)·k ≤ β_C this is nonnegative. -/
+/-- `ignitionGate rho cbeta k = (cbeta − (1−ρ)k)/k²`. -/
 noncomputable def ignitionGate (rho cbeta k : ℝ) : ℝ :=
   (cbeta - (1 - rho) * k) / k ^ 2
 
-/-- The gate is nonnegative when the curvature budget
-dominates the survival term. -/
+/-- При `0 < k` и `(1−ρ)·k ≤ cbeta` выполнено
+`0 ≤ ignitionGate rho cbeta k`. -/
 theorem ignitionGate_nonneg (rho cbeta k : ℝ)
     (hk : 0 < k) (hdom : (1 - rho) * k ≤ cbeta) :
     0 ≤ ignitionGate rho cbeta k := by
@@ -60,13 +34,7 @@ theorem ignitionGate_nonneg (rho cbeta k : ℝ)
   apply div_nonneg _ (by positivity)
   linarith
 
-/-- The ignition interval: the cone law demands BOTH upper
-bounds on the certified rate γ (support γ·k ≤ ρ and
-curvature γ·k² + (1−ρ)k ≤ β_C), while ignition demands
-γ > 0 strictly (a zero conversion never grows). The
-feasible ignition rates form the interval
-(0, min(ρ/k, (β_C − (1−ρ)k)/k²)] — nonempty iff
-(1−ρ)k < β_C. -/
+/-- `ignitionCeiling rho cbeta k = min(ρ/k, (cbeta − (1−ρ)k)/k²)`. -/
 noncomputable def ignitionCeiling (rho cbeta k : ℝ) : ℝ :=
     min (rho / k) ((cbeta - (1 - rho) * k) / k ^ 2)
 
@@ -81,21 +49,8 @@ theorem ignitionCeiling_pos (rho cbeta k : ℝ)
     nlinarith
   exact lt_min_iff.mpr ⟨h1, h2⟩
 
-/-- **THE T3 THEOREM (γ_eff ≥ γ_gate ⟹ ignition)**: the
-plan's §5.1 item, closed in the chain vocabulary. γ_gate is
-the ignition threshold — STRICT positivity of the effective
-conversion (γ_eff = β⁴κ, the runtime certificate's rate);
-γ_eff must additionally sit UNDER the ignition ceiling (the
-cone's support and curvature bounds — R247's two-sided
-honesty). Under both, the cone ignites and takeoff follows
-on the state trajectory at the MEASURED rate β⁴κ·k.
-
-Reading with R215 (`chain_ignition_threshold`) and R249
-(`deficit_factorizes`): the 9× question "why does the mixer
-not ignite" factors into (a) γ_eff = 0 — some measured α is
-zero (division locates which), or (b) γ_eff above the
-ceiling — the realized increments outrun the frontier's
-replenishment (the R247 overshoot warning). -/
+/-- При `0 < k`, `0 < ρ` и `(1−ρ)·k < cbeta` выполнено
+`0 < ignitionCeiling rho cbeta k`. -/
 theorem T3_ignition
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa rho cbeta k : ℝ)
@@ -118,7 +73,7 @@ theorem T3_ignition
       rho * D t + cbeta * C t ≤ D (t + 1))
     (hcone0 : k * C 0 ≤ D 0) :
     C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T := by
-  -- unpack the ceiling into the two cone conditions
+  -- распаковка потолка в два условия конуса
   have hγpos : 0 < beta^4 * kappa := by positivity
   unfold ignitionCeiling at hceiling
   have hsupport : (beta^4 * kappa) * k ≤ rho := by
@@ -138,7 +93,7 @@ theorem T3_ignition
       mul_le_mul_of_nonneg_right h3 hk2.le
     rw [div_mul_eq_mul_div, mul_div_cancel_right₀ _ hk20] at h4
     linarith
-  -- apply the R247 cone bridge with the tight band
+  -- применяем конус-мост с точной лентой
   exact takeoff_from_certificate C D G stages T
     beta kappa (beta^4 * kappa) rho cbeta k
     hβ.le hκ.le hk.le hD hC hcert hdiv hstep hG hup hdyn

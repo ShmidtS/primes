@@ -6,7 +6,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Dust: the population law of zeroth-order gradient estimators (R178)
+# Dust: the population law of zeroth-order gradient estimators
 
 Source: "Dust: Pretraining Transformers Without Backpropagation"
 (Dahal, Mandal, Gülbahar, Vegesna; Q Labs, 2026,
@@ -20,7 +20,7 @@ The paper's central structural claim — "the gradient adds up
 linearly over draws while the errors add up as the square root,
 so their ratio falls as the population grows" (§2.2) and the
 measured alignment law cos(K) = c_max/√(1+c/K) (Eq. 5, Fig. 5) —
-is here a THEOREM about the abstract estimator, in the
+is here a theorem about the abstract estimator, in the
 Rademacher (±1) hypercube model with finite sums (no measure
 theory):
 
@@ -116,7 +116,7 @@ lemma hcDelta (d : ℕ) (i j : Fin d) :
       exact hzero
 
 /-- The quadratic model loss: f(x) = Σ_ij A_ij x_i x_j + b·x.
-The double-sum form is ALWAYS symmetric in effect (equals
+The double-sum form is always symmetric in effect (equals
 xᵀ((A+Aᵀ)/2)x), so no symmetry hypothesis is ever needed. -/
 def quadf (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → ℝ)
     (x : Fin d → ℝ) : ℝ :=

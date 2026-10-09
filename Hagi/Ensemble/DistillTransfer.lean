@@ -7,10 +7,10 @@ import Hagi.Data.Distill
 set_option linter.style.header false
 
 /-!
-# R134: T3 DistillTransfer — реальный оператор T (замена R130)
+# T3 DistillTransfer — реальный оператор T (замена)
 
 FORMALIZATION_PLAN §7.1 T3 (P0): ревизия объявила GainOperator
-(R130) промежуточным — η-метрика безразмерно смешивала
+ промежуточным — η-метрика безразмерно смешивала
 энергию весов и наты. Здесь — дистилл-канал в НАТАХ:
 
   CE_q(θ) − CE_q(E) ≤ KL(p_E‖p_θ) + M·‖q − p_E‖₁
@@ -31,7 +31,7 @@ twoGap — в натах на единицу зазора ансамбля, бе
   data-anchored таргет или second-order оценка.
 * `distill_efficiency_pos` — КПД канала η > 0 ⟺ студент
   лучше среднего листьев: сертифицированный измеримый гейт
-  оператора T (замена γ_eff из R130).
+  оператора T (замена γ_eff из).
 * `forwardKlTarget` / `reverseKlTarget` — closed-form
   цели дистилляции (2609.38666): forward KL → взвешенная
   арифметическая смесь учителей (сохраняет вклад каждого
@@ -122,7 +122,7 @@ theorem distill_kl_bridge (q pE pθ : V → ℝ)
   linarith [hbound]
 
 /-- Измеримый КПД дистилл-канала: η в НАТАХ на единицу зазора
-ансамбля (замена безразмерного γ_eff R130 по ревизии T3). -/
+ансамбля (замена безразмерного γ_eff по ревизии T3). -/
 noncomputable def distillEfficiency (ceLeafmean ceStudent twoGap : ℝ) :
     ℝ := (ceLeafmean - ceStudent) / twoGap
 

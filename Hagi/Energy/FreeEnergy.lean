@@ -76,11 +76,11 @@ slimpajama domination, testable WITHOUT swapping the corpus.
    pool. Falsifiable: geometric ≥ arithmetic by CE — or the
    diagnostic of why not (the forward term's preference).
 2. (P1b-i) On-policy RKL distillation: the teacher evaluates
-   ONLY the student's visited states (the token-split makes
+   only the student's visited states (the token-split makes
    the objective exact on those states — no off-policy
    correction needed).
 3. (P1b-ii) THE NCE WARNING (consistent with rounds 28/30):
-   do NOT estimate reverse-KL with the prior-NCE sampler —
+   do not estimate reverse-KL with the prior-NCE sampler —
    the sampled estimator is consistent on a frozen model,
    but the OPTIMIZATION dynamics diverged (the 47-nat
    autopsy: gap(K) diagnostics certified the estimator, the
@@ -171,7 +171,7 @@ Z_w = Σ_v Π_i p_i(v)^{w_i}):
 
 `Σ_i w_i·KL(q ‖ p_i) = KL(q ‖ p̃_w) − log Z_w` —
 
-EXACT: the weighted reverse-KL against the individual
+exact: the weighted reverse-KL against the individual
 experts EQUALS the reverse-KL against the geometric pool up
 to the normalization constant. (The identity is purely
 ALGEBRAIC — it holds for any real weights with Σ w_i = 1,
@@ -278,7 +278,7 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
     ring
   rw [hLX, hRX]
 
-/-- **Nonneg-weights pool corollary (R94 honesty fix)**: the
+/-- **Nonneg-weights pool corollary**: the
 same product-of-experts law, stated under the hypotheses the
 PROBABILISTIC consensus/weighted-geometric-pool reading
 actually needs: weights w_i NONNEGATIVE with Σ w_i = 1 (a
@@ -298,7 +298,7 @@ theorem geometric_pool_identity_nonneg (K : Type) [Fintype K] [Nonempty V]
         - Real.log (∑ u, ∏ i, (p i u)^(w i)) :=
   geometric_pool_identity K q p w hq hp hq1 hw1
 
--- NOT A THEOREM (round-41 audit): the rfl form `A = A` was a
+-- not A theorem (round-41 audit): the rfl form `A = A` was a
 -- prescription carrier only. Demoted to the DEFINITION of the
 -- per-token KL total; the honest boundary is documented above.
 def tokenKLTotal {T : Type} [Fintype T] (kl : T → ℝ) : ℝ := ∑ t, kl t

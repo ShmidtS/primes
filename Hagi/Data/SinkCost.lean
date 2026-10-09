@@ -28,7 +28,7 @@ exactly `Hagi.ValueOfRead.skip_bound` transported: the
 dropped mass δ is the full attention's own weight on that
 complement — computable from the full attention's mass map
 BEFORE committing to the window config). The CE-regression
-of the sink regime is first-order in the dropped mass, NOT
+of the sink regime is first-order in the dropped mass, not
 in the sequence length: a config that drops a small mass
 far from the diagonal pays almost nothing regardless of T.
 
@@ -40,7 +40,7 @@ context) is the ComputeBudget marginal law in the attention
 geometry domain: the optimal split equalizes the marginal
 CE-reduction per unit of (W+S) between the two regions.
 The sinks' marginal is measured by the mass the leading
-keys carry in the FULL attention (the sink mass map — one
+keys carry in the full attention (the sink mass map — one
 measurement on an existing checkpoint); the window's
 marginal is the local decay rate of the attention mass
 (the measured off-diagonal falloff).

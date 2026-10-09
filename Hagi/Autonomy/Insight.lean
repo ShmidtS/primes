@@ -11,24 +11,12 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# R79: the insight channel (the RLTL;DR bridge)
+# The insight channel
 
-Self-generated feedback (failed rollout → compressed insight
-→ retry → internalize) as a FORMALLY PERMITTED growth channel
-of the HAGI loop:
-
-- `insight_kl_descent`: internalization IS KL-descent — the
-  insight-conditioned behavior is the teacher; the residual
-  gap is exactly the KL gap (the R78 master identity at
-  p_E := p_insight). One currency with the distill axis.
-- `insight_consolidation_safe`: the insight gradient through
-  the SafeQP filter — certified alignment + per-domain
-  linearized drift guard (old skills protected by ε).
-- `experience_cycle_bound`: the ExperienceGate inequality —
-  E_next ≤ E_t − (G_insight + G_merge + η‖d*‖²/2 − C_exp −
-  C_quant); internalize vs grow vs stop share ONE Lyapunov
-  currency. The RLTL;DR token measurements feed C_exp
-  (rollout exploration dominates: 720M vs 2.9M forward).
+* `insight_kl_descent`: the CE gap between student and insight-teacher equals the corresponding KL gap.
+* `insight_consolidation_safe`: SafeQP consolidation gives per-domain drift bounded by `ε` and preserved descent.
+* `experience_cycle_bound`: a one-cycle Lyapunov budget inequality for the experience gate.
+* `tldr_drift_null`, `tldr_two_tier_safety`: low-rank insight adapters act as zero on the adapter's kernel; combined with the Fisher KL budget this gives two-tier safety.
 -/
 
 open Real Finset InnerProductSpace
@@ -39,40 +27,18 @@ section Insight
 
 variable {V : Type*} [Fintype V]
 
-/-- **Internalization is KL-descent (the RLTL;DR bridge)**:
-the insight-conditioned behavior p_I (task + insight) is the
-teacher; internalizing it into the plain-context student
-p_θ' means driving the student's CE toward the teacher's —
-and the residual gap is EXACTLY the KL gap:
-
-  CE_q(p_θ') − CE_q(p_I) = KL(q‖p_θ') − KL(q‖p_I)
-
-(the R78 master identity instantiated at p_E := p_insight).
-The distillable insight-value on data q is the divergence
-KL(q‖p_I) the student must close — the same currency as the
-distill axis; internalization progress = KL decrease. -/
+/-- For strictly positive distributions q, pI, pTheta:
+crossEntropy q pTheta − crossEntropy q pI
+= klDiv q pTheta − klDiv q pI.
+-/
 theorem insight_kl_descent (q pI pTheta' : V → ℝ)
     (hq : ∀ v, 0 < q v) (hI : ∀ v, 0 < pI v) (hT : ∀ v, 0 < pTheta' v) :
     crossEntropy q pTheta' - crossEntropy q pI
       = klDiv q pTheta' - klDiv q pI :=
   ce_gap_kl_identity q pI pTheta' hq hI hT
 
-/-- **The experience-budget cycle bound (ExperienceGate)**:
-one self-improvement cycle — insight generation
-(gains G_insight on fresh failures), merge (G_merge, the
-Jensen gap), safe joint update (η‖d*‖²/2) — against the
-costs: exploration (C_exp: rollouts dominate — the RLTL;DR
-measure), quantization (κ√n s/2), memory — obeys
-
-  E_next ≤ E_t − (G_insight + G_merge + η‖d*‖²/2
-                  − C_exp − κ√n s/2)
-
-and growth/internalize/stop is decided by the sign of the
-bracket: all three actions share ONE Lyapunov currency. The
-h_emp_ inputs are the measured stage quantities (the
-RLTL;DR token counts feed C_exp: 720M/12M vs 2.9M/292k —
-dedup internalization is 100× cheaper than rollout
-exploration). -/
+/-- Given the stage inequality `Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp`, the next-cycle energy satisfies `Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant)`.
+-/
 theorem experience_cycle_bound (Et Enext Gins Gmerge dnorm2 eta Cexp Cquant : ℝ)
     (hstage : Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp) :
     Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant) := by
@@ -81,19 +47,8 @@ theorem experience_cycle_bound (Et Enext Gins Gmerge dnorm2 eta Cexp Cquant : �
 
 section Consolidation
 
-/-- **Insight consolidation through the SafeQP filter**: the
-insight gradient g_I (the internalization direction) may
-conflict with old domains (⟪g_i, g_I⟫ < 0). The SafeQP
-projection d* = Π_C(g_I) onto the safe cone
-C = {d : ⟪g_i,d⟫ ≥ −ε_i} guarantees (a) the certified
-alignment ‖d*‖² ≤ ⟪g_I,d*⟫ (descent signal preserved) and
-(b) EVERY old domain's linearized drift is bounded by its
-ε_i — the internalized insight cannot destroy old skills
-beyond the declared budget. This is the RLTL;DR
-internalization step made conflict-safe: the h_emp_ input is
-the smoothness for the second-order remainder. -/
--- the real form: composition with safeQP_descent over the
--- safe cone, plus the per-domain linearized drift guard
+/-- If `ds` minimizes the distance to `gI` over a convex set `C ∋ 0` contained in the cone `{d | ⟨gold, d⟫ ≥ -heps}`, then `⟨gold, ds⟫ ≥ -heps` and `‖ds‖ ^ 2 ≤ ⟨gI, ds⟫`.
+-/
 theorem insight_consolidation_safe {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X]
     (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C)
@@ -109,15 +64,7 @@ end Insight
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **TL;DR internalization drift certificate (the SFTL;DR
-soundness core)**: an insight update carried by a low-rank
-adapter ΔW = A·B (rank r) with insight support kernel
-ker B leaves every input OUTSIDE the support EXACTLY
-untouched: Bx = 0 ⟹ (A·B)x = A(Bx) = 0 — zero drift, not
-an ε-bound. The insight is memory-isolated: base skills on
-unrelated inputs are provably unaffected; combined with
-forgetting_kl_bound (the in-support Fisher budget) this is
-the two-tier safety of the internalization channel. -/
+/-- If `B.mulVec x = 0` then `(A * B).mulVec x = 0`: a low-rank adapter acts as zero on the kernel of `B`. -/
 theorem tldr_drift_null {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
     (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)
     (hx : B.mulVec x = 0) :
@@ -129,12 +76,7 @@ theorem tldr_drift_null {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The two-tier internalization safety**: composing the
-null-space isolation with the Fisher budget — outside the
-insight support: EXACT zero drift (tldr_drift_null); inside
-the support: the old-domain KL drift ≤ half the Fisher
-quadratic form, ≤ ε in the 2ε-ball (forgetting_kl_bound R72).
-The SFTL;DR channel is safe on both tiers. -/
+/-- Combines `tldr_drift_null` with `forgetting_kl_bound`: under `B.mulVec x = 0`, `kl ≤ ⟨dW, F dW⟫ / 2`, and `⟨dW, F dW⟫ ≤ 2 * eps`, the adapter output on `x` is zero and `kl ≤ eps`. -/
 theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
     {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)

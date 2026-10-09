@@ -7,7 +7,10 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R74: exponential-weights routing (roadmap #4, step 1)
+# Exponential-weights routing
+
+The per-step potential bound for Hedge routing, the product
+telelescope, and the router regret bound.
 -/
 
 open Real Finset Set
@@ -64,12 +67,9 @@ theorem exp_neg_le_quad (y : ℝ) (hy : 0 ≤ y) :
 
 open Finset
 
-/-- **Hedge per-step bound (roadmap #4, step 1)**: for losses
-l ∈ [0,1], any mixed weight p with Σp = 1, and η ∈ [0,1]:
-Σ_i p_i e^{−ηl_i} ≤ 1 − η⟨p,l⟩ + η²/2 — the exp_neg quad
-bound averaged against the weights, with l² ≤ 1. This is
-the multiplicative potential drop of exponential-weights
-routing: the router's potential never collapses. -/
+/-- For losses `l i ∈ [0, 1]`, weights `p` with `p i ≥ 0` and
+`Σ p = 1`, and `η ∈ [0, 1]`:
+`Σ p i * exp (-η * l i) ≤ 1 - η * Σ p i * l i + η ^ 2 / 2`. -/
 theorem hedge_step {ι : Type} [Fintype ι] (p l : ι → ℝ) (eta : ℝ)
     (hp : ∀ i, 0 ≤ p i) (hsum : ∑ i, p i = 1)
     (hl : ∀ i, 0 ≤ l i ∧ l i ≤ 1) (heta : 0 ≤ eta ∧ eta ≤ 1) :
@@ -143,18 +143,10 @@ theorem hedge_telescope (u : ℕ → ℝ) (hnn : ∀ t, (0:ℝ) ≤ 1 + u t) (T 
       _ = Real.exp (∑ t ∈ Finset.range (T+1), u t) := by
           rw [Finset.sum_range_succ]
 
-/-- **The router regret bound (roadmap #4 COMPLETE)**: if
-the Hedge potential satisfies both the per-step telescope
-(upper: W_T ≤ exp(−ηA + Tη²/2), A the router's cumulative
-loss) and the survivor lower bound (W_T ≥ e^{−ηL*}/K, the
-best expert's weight, K the expert count), then
-
-  A − L* ≤ ln K/η + ηT/2
-
-and at the balanced rate η = √(ln K/T): R(T) ≤ 2√(T·ln K) —
-sublinear regret: the router asymptotically matches the
-best fixed expert. Roadmap #4 closed (with hedge_step +
-hedge_telescope as the per-step machinery). -/
+/-- Assuming the survivor bound `(1/K) * exp (-η * Lstar) ≤
+exp (-η * A + T * η ^ 2 / 2)` with `η > 0` and `K > 0`, the
+cumulative-loss gap satisfies `A - Lstar ≤ log K / η + η * T / 2`.
+At `η = √(ln K / T)` this is `2√(T * ln K)`. -/
 theorem router_regret_bound (K T : ℕ) (eta A Lstar : ℝ)
     (hK : 0 < K) (heta : 0 < eta)
     (hsurv : (1:ℝ) / K * Real.exp (-eta * Lstar)

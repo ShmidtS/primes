@@ -263,7 +263,7 @@ theorem twoGap_zero_iff (hp : ∀ u, 0 < p u)
       rw [Finset.sum_congr rfl fun u _ => hinner u,
         Finset.sum_add_distrib] at hsplit
       rw [h11] at hsplit
-      -- hsplit : ∑∑(cosh-1) + 1 = S; with S = 1 this gives ∑∑(cosh-1) = 0
+      -- hsplit: ∑∑(cosh-1) + 1 = S; with S = 1 this gives ∑∑(cosh-1) = 0
       rw [hS] at hsplit
       linarith
     -- nonneg terms summing to 0: each is 0

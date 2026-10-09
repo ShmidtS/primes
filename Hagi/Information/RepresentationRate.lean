@@ -11,7 +11,7 @@ The entropy-rate/contraction analogy of openai/math result 148
 rate over the contraction rate), lifted to HAGI as an exact
 finite statement about representations:
 
-  ρ_info := retained information / representation bits.
+  ρ_info:= retained information / representation bits.
 
 Three regimes (proved as a total trichotomy):
 

@@ -5,13 +5,13 @@ import Mathlib
 
 /-!
 # FactorizedBPW — bits-per-weight arithmetic of the
-factorized ternary branch (R244; LittleBit scheme,
+factorized ternary branch (; LittleBit scheme,
 ternary body, FP16 scales)
 
 A square d×d layer is replaced by a factorized branch
 W ≈ diag(h)·T(U)·diag(ℓ)·T(V)ᵀ·diag(g) with latent rank r:
 ternary factors (log₂3 bits/entry, 2·d·r entries) plus
-three FP16 scale vectors (h : d, g : d, ℓ : r — 16 bits
+three FP16 scale vectors (h: d, g: d, ℓ: r — 16 bits
 each). The bits-per-original-weight of ONE branch is
 
   b₁ = (log₂3 · 2·d·r + 16·(2d + r)) / d².
@@ -29,7 +29,7 @@ This module fixes that arithmetic exactly:
   "HAGI grows by effective latent dimension, not width":
   r can scale with d while the layer stays sub-1-BPW.
 
-Numerical anchor (NOT a theorem — arithmetic of the scheme
+Numerical anchor (not a theorem — arithmetic of the scheme
 with ternary factors): d = 4096, r = 384 gives
 b₁ ≈ 0.305 BPW, two branches ≈ 0.611 BPW.
 -/

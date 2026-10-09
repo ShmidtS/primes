@@ -6,17 +6,11 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# WeightedVar — the weighted-variance core (foundations level)
+# WeightedVar — the weighted-variance core
 
-`dQuad_nonneg`: for any probability weights pW and deviation
-field d, the squared weighted mean never exceeds the weighted
-second moment — the PSD core of the softmax-Hessian quadratic
-form (diag(p) − ppᵀ ⪰ 0), in its general self-contained form.
-
-Extracted from Data/DBridge (R207 layer-hygiene): the fact is
-layer-0 mathematics (weighted Cauchy–Schwarz), consumed by both
-Data (2) and Energy (2); the old same-layer edge
-Energy/FreeEnergy → Data/DBridge is thereby removed.
+`dQuad_nonneg`: for probability weights and any deviation
+field, the squared weighted mean never exceeds the weighted
+second moment (weighted Cauchy-Schwarz).
 -/
 
 namespace Hagi.Foundations
@@ -25,9 +19,8 @@ open Finset
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
-/-- **Weighted variance nonnegativity** (weighted
-Cauchy–Schwarz): (Σ pW·d)² ≤ Σ pW·d² for probability weights —
-the PSD core of every second-order gap bound. -/
+/-- Weighted variance nonnegativity: for probability
+weights `pW`, `(∑ v, pW v * d v) ^ 2 ≤ ∑ v, pW v * d v ^ 2`. -/
 theorem dQuad_nonneg (pW : V → ℝ) (d : V → ℝ)
     (hpW : ∀ v, 0 ≤ pW v) (hpW1 : ∑ v, pW v = 1) :
     (∑ v, pW v * d v)^2 ≤ ∑ v, pW v * d v^2 := by

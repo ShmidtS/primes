@@ -16,7 +16,7 @@ grid rounding of the factors) — and the GO/NO-GO: the
 factor-then-quantize route beats direct quantization IFF
 tail + qerr(r) < qdirect.
 
-NOT PROVED: the closed form of qerr(r) for ternary grids in
+not PROVED: the closed form of qerr(r) for ternary grids in
 terms of r, s and the factor spectra (the nearest-3-level
 rounding bound per entry — elementary but not assembled).
 

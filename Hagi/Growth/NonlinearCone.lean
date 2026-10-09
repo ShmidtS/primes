@@ -4,62 +4,33 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# NonlinearCone — the concave-gain cone: polynomial takeoff
-WITHOUT an exogenous ceiling (R252)
+# NonlinearCone — вогнутый (корневой) конус: полиномиальный takeoff
 
-The linear cone (`ConeTakeoff`) demands the EXACT rate law
-C' = C + γ·D and yields EXPONENTIAL takeoff — which the
-external audit (§19) showed is structurally incompatible
-with any finite saturation ceiling over an unbounded
-horizon (the old global form was vacuously satisfiable;
-`MasterHAGITrunc` fixed it by an exogenous horizon T).
+Закон прироста `G(C) = γ·√(k·C)` вместо линейного.
 
-The nonlinear repair: the gain is CONCAVE in the frontier —
-the canonical form G = γ·√(k·C) (diminishing returns in the
-usable frontier; every larger α ∈ (0,1) lies between this
-and the linear case). No exact-rate law, no exponential:
+* `sqrt_gain_step`: при `0 < γ`, `0 < k`, `0 < x` —
+  `√x + γ√k/(2 + γ√k/√x) ≤ √(x + γ√(k·x))` — прирост `√C`
+  ограничен снизу константой;
+* `sqrt_gain_takeoff`: если `C (t+1) = C t + sqrtGain γ k (C t)`
+  и `C t > 0`, то `C T ≥ (√C₀ + c₀·T)²`, где
+  `c₀ = γ√k/(2 + γ√k/√C₀)` — квадратичный рост;
+* `nonlinear_zero_kill`: если `0 ≤ phiE` и `η ≤ 0`, то
+  `η·phiE ≤ 0`.
 
-* `sqrt_gain_step` — the per-step increment of the
-  SQUARE ROOT capability: √C grows by at least a strictly
-  positive constant c₀ = γ√k/(2 + γ√k/√C₀) at EVERY step —
-  the frontier's diminishing returns enter only through
-  the denominator;
-* `sqrt_gain_takeoff` — POLYNOMIAL takeoff:
-  C_T ≥ (√C₀ + c₀·T)², so capability grows quadratically
-  in T — sub-exponential, hence CONSISTENT with smooth
-  saturation of every scale, with no exogenous horizon
-  constant to impose;
-* `nonlinear_zero_kill` — the R215 zero-stage law SURVIVES
-  the nonlinearity: a nonpositive conversion kills the
-  gain for every concave (in particular square-root) gain
-  law — the necessity results do not depend on the linear
-  idealization.
-
-Empirical-assumption note (honest): the h_emp_ premises are
-measurement contracts by design and are NOT eliminable in
-Lean — what this module removes is the LINEAR idealization
-of the rate law, replacing it with a one-parameter concave
-family whose limiting case α = 1 recovers the linear cone.
+h_emp_-посылки (измеримость γ, k) остаются — устранена только
+линейная идеализация закона прироста.
 -/
 
 open scoped BigOperators
 
 namespace Hagi.Growth
 
-/-- The concave (square-root) gain: G(C) = γ·√(k·C) —
-diminishing returns in the usable frontier. -/
+/-- Вогнутый (корневой) прирост: `sqrtGain γ k C = γ·√(k·C)`. -/
 noncomputable def sqrtGain (γ k C : ℝ) : ℝ := γ * Real.sqrt (k * C)
 
-/-- **The per-step square-root increment**: under the
-square-root gain law C' = C + γ√(kC), the square root of
-capability grows by at least the constant
-
-  c₀ = γ√k / (2 + γ√k/√C₀)
-
-at EVERY step (all later states dominate C₀). The
-nonlinearity enters only through the denominator —
-diminishing returns slow the √-scale growth by a bounded
-factor, never stop it. -/
+/-- При `0 < γ`, `0 < k`, `0 < x`:
+`√x + γ√k/(2 + γ√k/√x) ≤ √(x + γ√(k·x))` — прирост `√x`
+за шаг ограничен снизу константой. -/
 theorem sqrt_gain_step (γ k x : ℝ) (hγ : 0 < γ) (hk : 0 < k)
     (hx : 0 < x) :
     Real.sqrt x + γ * Real.sqrt k / (2 + γ * Real.sqrt k / Real.sqrt x)
@@ -160,17 +131,10 @@ theorem sqrt_gain_step (γ k x : ℝ) (hγ : 0 < γ) (hk : 0 < k)
     nlinarith [hc, hsum]
   linarith
 
-/-- **POLYNOMIAL TAKEOFF under the concave gain**: with the
-square-root law C_{t+1} = C_t + γ√(k·C_t) from a positive
-initial capability, capability grows at least
-quadratically:
-
-  C_T ≥ (√C₀ + c₀·T)²,  c₀ = γ√k/(2 + γ√k/√C₀).
-
-Sub-exponential growth is CONSISTENT with smooth saturation
-of any scale — the audit §19 cone/ceiling incompatibility
-dissolves without any exogenous horizon constant. The
-linear cone is the limiting case α → 1 of this family. -/
+/-- Если `0 < γ`, `0 < k`, `0 < C 0`, `0 < C t` при всех t и
+`C (t+1) = C t + sqrtGain γ k (C t)`, то при всех T
+`(√(C 0) + c₀·T)² ≤ C T`, где
+`c₀ = γ√k/(2 + γ√k/√(C 0))`. -/
 theorem sqrt_gain_takeoff (C : ℕ → ℝ) (γ k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k) (hC0 : 0 < C 0)
     (hmono : ∀ t, 0 < C t)
@@ -286,11 +250,7 @@ theorem sqrt_gain_takeoff (C : ℕ → ℝ) (γ k : ℝ)
         rw [← pow_two (Real.sqrt (C T))]
         exact this
 
-/-- **Zero-stage necessity SURVIVES the nonlinearity**:
-for a nonnegative disagreement measure φ(E) ≥ 0 and a gain
-G = η·φ(E), a nonpositive conversion stage kills the gain —
-the R215 necessity does not depend on the linear
-idealization of the rate law. -/
+/-- Если `0 ≤ phiE` и `η ≤ 0`, то `η·phiE ≤ 0`. -/
 theorem nonlinear_zero_kill (η phiE : ℝ) (hφ : 0 ≤ phiE)
     (hη : η ≤ 0) :
     η * phiE ≤ 0 :=

@@ -8,35 +8,32 @@ import Hagi.Step.ProjectionDescent
 set_option linter.style.header false
 
 /-!
-# R53: Recursive-growth roadmap — first three closures
+# Recursive growth: sparse gating, Fisher null space, isometry
+perturbation, analytic steps, SafeQP descent budget
 
-The unified recursive growth roadmap (external review, round-53)
-names six theory gaps. This module closes the three that the
-current apparatus reaches:
+* `ortho_norm_sq` / `gating_tail_bound` / `topk_routing_optimal`:
+  Parseval identity for orthonormal coefficients; the routing
+  error equals the tail energy `Σ_{i∉s} c i ^ 2`; a top-k set
+  minimizes the tail among k-element subsets.
+* `fisher_nullspace`: a step in the Fisher kernel with the
+  h_emp_ quadratic bound has `dL ≤ 0`.
+* `unitary_perturb_bound` / `unitary_perturb_metric`: a
+  δ-perturbed isometry satisfies `‖Q̃x‖ ≤ (1+δ)‖x‖` and
+  `|‖Q̃x‖ − ‖x‖| ≤ δ‖x‖`.
+* `optimal_step_*`: the guaranteed-descent quadratic
+  `g(η) = η·inner − L·dn2·η²/2` is maximized at
+  `η* = inner/(L·dn2)` with value `inner²/(2·L·dn2)`.
+* `safeqp_cumulative` / `safeqp_total_descent` /
+  `safeqp_eps_critical`: per-step decrease ≥ `η_t·dn_t²/2`
+  gives `Σ η_t·dn_t² ≤ 2(E 0 − Emin)` and an ε-criticality
+  step bound.
+* `gram_cone_inner` / `safeqp_pareto_orthogonality`: a
+  nonnegative gradient mixture is nonnegative on the safe
+  cone; a zero SafeQP step forces exact orthogonality of the
+  mixture gradient to every safe direction.
 
-* **#5b Sparse gating (Hadamard MoE)**: `ortho_norm_sq` +
-  `gating_tail_bound` — the error of dropping branches equals
-  EXACTLY the tail energy of the orthonormal (Hadamard)
-  decomposition: ‖x − Σ_{i∈s} c_i·v_i‖² = Σ_{i∉s} c_i². The
-  dynamic-MoE certificate: route to branch set s and pay
-  exactly the tail.
-* **#4 Fisher null-space (no forgetting)**: `fisher_nullspace`
-  — if the weight update lies in the kernel of the Fisher
-  operator (the h_emp_ second-order bound couples loss change
-  to the quadratic form), the old-task regression is ≤ 0:
-  orthogonalized (Hadamard-mixed) updates provably do not
-  disturb frozen skills.
-* **#6a Unitarity perturbation (Wilkinson-type)**:
-  `unitary_perturb_bound` — a δ-perturbation of an isometry Q
-  (Hadamard mixer in finite precision) keeps ‖Q̃Q̃* x − x‖
-  ≤ (2δ + δ²)‖x‖: the RMSNorm-compensable bound. The
-  κ(d)·2^{-p} hardware form needs float error models —
-  honestly declared open.
-
-**Honest boundary**: #1 (Lyapunov/Pareto for nonconvex SafeQP
-iterations), #2 (free probability, "why 3"), #3 (verifier
-bootstrap entropy floor) are beyond the current apparatus —
-declared open, not conjectured.
+Not claimed: the Farkas equivalence, the O(ε)
+Pareto-stationarity rate, and float-error specializations.
 -/
 
 open Finset Real InnerProductSpace
@@ -66,13 +63,9 @@ theorem ortho_norm_sq {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ 
   exact key i
 
 
-/-- **Sparse gating certificate (roadmap #5b)**: with an
-orthonormal branch basis v (Hadamard-mixed leaves) and the
-token decomposed as x = Σ c_i v_i, routing to the subset s of
-branches leaves reconstruction error EXACTLY the tail energy
-Σ_{i∉s} c_i² — equality, not just a bound. Top-k routing by
-|c_i| therefore minimizes routing error for every k
-(optimality now proved: `topk_routing_optimal` below). -/
+/-- For orthonormal `v`, the squared reconstruction error of
+routing to `s` equals the tail energy:
+`‖(∑ i, c i • v i) − ∑ i ∈ s, c i • v i‖ ^ 2 = ∑ i ∈ sᶜ, c i ^ 2`. -/
 theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {ι : Type*} [Fintype ι] [DecidableEq ι] {v : ι → E} (hv : Orthonormal ℝ v)
     (c : ι → ℝ) (s : Finset ι) :
@@ -110,16 +103,10 @@ theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
   rw [htail, htail2]
   exact horth
 
-/-- **Top-k routing optimality (roadmap #5b, optimality side)**:
-for coefficients c and a `k`-element subset s whose kept
-elements dominate every discarded coefficient in square (the
-top-k² set: ∀ i ∈ s, ∀ j ∉ s, c j² ≤ c i²), the tail energy
-Σ_{i∉s} c i² of s is MINIMAL among all k-element subsets s'.
-Combined with `gating_tail_bound` this proves that top-k
-routing by |c_i| minimizes the routing error for every k.
-Proof: exchange argument via the minimum of s \ s' — every
-swapped-in element of s' \ s is dominated by every kept
-element of s \ s'. -/
+/-- If `s` has `k` elements and every kept coefficient
+dominates every discarded one in square
+(`∀ i ∈ s, ∀ j ∉ s, c j ^ 2 ≤ c i ^ 2`), then the tail
+`∑ i ∈ sᶜ, c i ^ 2` is minimal among all k-element subsets. -/
 theorem topk_routing_optimal {ι : Type*} [Fintype ι] [DecidableEq ι]
     (c : ι → ℝ) (k : ℕ) (s s' : Finset ι)
     (hcard : s.card = k) (hcard' : s'.card = k)
@@ -171,13 +158,8 @@ theorem topk_routing_optimal {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 /-! ## Roadmap #4: Fisher null-space — no forgetting -/
 
-/-- **Fisher null-space invariance (roadmap #4)**: if the
-generation-(k+1) weight update dW lies in the kernel of the
-Fisher operator F of the frozen tasks (F dW = 0), and the
-old-task loss change obeys the second-order bound dL ≤
-⟪dW, F dW⟫ (h_emp_quad — measured curvature), then the
-old-task loss does not increase. The Hadamard-mixer gradient
-decomposition is the practical source of ker-F updates. -/
+/-- If `dL ≤ ⟪dW, F dW⟫` (h_emp_quad) and `F dW = 0`, then
+`dL ≤ 0`. -/
 theorem fisher_nullspace {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (F : E →L[ℝ] E) (dW : E) (dL : ℝ)
     (h_emp_quad : dL ≤ inner ℝ dW (F dW))
@@ -189,15 +171,8 @@ theorem fisher_nullspace {E : Type*} [NormedAddCommGroup E] [InnerProductSpace �
 
 /-! ## Roadmap #6a: unitarity perturbation — Wilkinson bound -/
 
-/-- **Isometry perturbation bound (roadmap #6a)**: if Q is an
-isometry of the normed space (the exact Hadamard mixer) and
-Q̃ = Q + Err with ‖Err x‖ ≤ δ‖x‖ pointwise, then Q̃ is an
-approximate isometry: ‖Q̃ x‖ ≤ (1+δ)‖x‖ for every x, and the
-metric distortion of a single layer obeys
-|‖Q̃ x‖ − ‖x‖| ≤ δ‖x‖. The first-order cost of finite
-precision is additive in δ, not compounding — the
-RMSNorm-compensable regime. The hardware κ(d)·2^{-p}
-specialization needs float error models (declared open). -/
+/-- If `Q` is an isometry, `Qt x = Q x + Err x`, and
+`‖Err x‖ ≤ d * ‖x‖` for all `x`, then `‖Qt x‖ ≤ (1 + d) * ‖x‖`. -/
 theorem unitary_perturb_bound {E : Type*} [NormedAddCommGroup E]
     (Q Qt Err : E → E) (d : ℝ) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
     (hsum : ∀ x, Qt x = Q x + Err x)
@@ -211,12 +186,8 @@ theorem unitary_perturb_bound {E : Type*} [NormedAddCommGroup E]
       linarith
     _ = (1 + d) * ‖x‖ := by ring
 
-/-- **Metric distortion bound (roadmap #6a, second form)**:
-the relative distortion of the perturbed isometry is at most
-δ per layer: |‖Q̃ x‖ − ‖x‖| ≤ δ‖x‖. Composing L layers gives
-(1+δ)^L — geometric, not catastrophic, growth; RMSNorm
-renormalization after each layer keeps the effective factor
-at (1+δ) forever. -/
+/-- Under the hypotheses of `unitary_perturb_bound`:
+`|‖Qt x‖ − ‖x‖| ≤ d * ‖x‖`. -/
 theorem unitary_perturb_metric {E : Type*} [NormedAddCommGroup E]
     (Q Qt Err : E → E) (d : ℝ) (hQ : ∀ x, ‖Q x‖ = ‖x‖)
     (hsum : ∀ x, Qt x = Q x + Err x)
@@ -248,28 +219,17 @@ theorem unitary_perturb_metric {E : Type*} [NormedAddCommGroup E]
   · linarith
   · linarith
 
-/-! ## Roadmap #1.3: the curvature-aware analytic step
+/-! ## The curvature-aware analytic step
 
-The review (round-53/54) demands eliminating learning_rate
-as a hyperparameter class: the step must be COMPUTED from the
-measured curvature, in the spirit of the TorchLean Lyapunov
-controllers (lean-dojo/TorchLean, NN/MLTheory/CROWN/Lyapunov —
-verified landscape, round-54). With the smooth-descent bound
-E₂ ≤ E₁ − η·inner + L·dn²·η²/2, the guaranteed decrease
-g(η) = η·inner − L·dn²·η²/2 is a concave quadratic: its
-maximum is ANALYTIC — η* = inner/(L·dn²), value
-inner²/(2·L·dn²) — no LR tuning; in the certified SafeQP
-regime (inner ≥ dn²) the analytic step is at least 1/L, so
-the safe clip is η = min(1/L, η*) = 1/L exactly when the
-direction is fully certified (inner = dn²).
-
+The guaranteed decrease `g(η) = η·inner − L·dn2·η²/2` is a
+concave quadratic maximized at `η* = inner/(L·dn2)`.
 -/
 
-/-- Curvature-aware optimal step (roadmap #1.3): the guaranteed
-descent g(η) = η·inner − L·dn²·η²/2 is a concave quadratic;
-its maximum over ALL η is at η* = inner/(L·dn²) with value
-inner²/(2·L·dn²) — an ANALYTIC step size, no LR hyperparameter.
-Moreover η* ≥ 1/L when inner ≥ dn² (the certified SafeQP regime). -/
+/-- For `0 < L` and `0 < dn2`, every `η'` satisfies
+`η' * inner − L * dn2 * η' ^ 2 / 2 ≤ inner ^ 2 / (2 * L * dn2)`;
+the maximum is attained at `η* = inner / (L * dn2)`
+(`optimal_step_value`), and `1 / L ≤ η*` when `dn2 ≤ inner`
+(`optimal_step_ge_recip`). -/
 theorem optimal_step_unconstrained (L dn2 inner : ℝ)
     (hL : 0 < L) (hdn : 0 < dn2) :
     ∀ η' : ℝ, η' * inner - L * dn2 * η' ^ 2 / 2
@@ -298,23 +258,16 @@ theorem optimal_step_ge_recip (L dn2 inner : ℝ)
   have hkey : 1 / L * (L * dn2) = dn2 := by field_simp
   nlinarith [hin]
 
-/-! ## Roadmap #1: nonconvex SafeQP iterations — the descent budget
+/-! ## SafeQP iterations — the descent budget
 
-The first machine-checked piece of the Lyapunov-stability gap
-(#1): even on a NONCONVEX landscape, the SafeQP iteration with
-certified per-step decrease ≥ η_t·‖d*_t‖²/2 has a FINITE total
-descent budget: Σ η_t·‖d*_t‖² ≤ 2(E₀ − E_min). With a uniform
-step floor η_min and activity ‖d*_t‖² ≥ ε², the iteration
-MUST reach an ε-critical point within 2(E₀−E_min)/(η_min·ε²)
-steps — no limit cycles, no paralysis away from criticality
-(the optimizer-paralysis fear of the review is bounded to
-exactly this budget).
-
-**Honest boundary**: the link ‖d*_t‖ → 0 ⇒ Pareto
-ε-stationarity (min_α ‖Σαᵢ∇Lᵢ‖ ≤ O(ε)) for the multi-domain
-Gram geometry remains open — the CAGrad-style argument needs
-the dual-feasibility structure not yet formalized.
-
+With per-step decrease `E (t+1) ≤ E t − eta t * dn t ^ 2 / 2`
+and `E ≥ Emin`: `safeqp_cumulative` telescopes,
+`safeqp_total_descent` gives
+`Σ eta t * dn t ^ 2 ≤ 2 (E 0 − Emin)`, and
+`safeqp_eps_critical` bounds the number of steps with
+`eta t ≥ etamin` and `dn t ^ 2 ≥ eps ^ 2` by
+`2 (E 0 − Emin) / (etamin * eps ^ 2)`. The Pareto
+ε-stationarity link is not claimed.
 -/
 
 theorem safeqp_cumulative (E eta dn : ℕ → ℝ) (Emin : ℝ)
@@ -362,42 +315,19 @@ theorem safeqp_eps_critical (E eta dn : ℕ → ℝ) (Emin etamin eps : ℝ)
   rw [le_div_iff₀ hpos]
   linarith
 
-/-! ## Roadmap #1: the Pareto link (Gram duality, closed)
+/-! ## The Pareto link (Gram duality)
 
-The final piece of the nonconvex SafeQP roadmap: the
-characterization of controller paralysis.
-
-- `gram_cone_inner`: a nonnegative combination Σλᵢgᵢ of the
-  domain gradients makes a nonnegative inner product with
-  every common-ascent direction d (⟪gᵢ,d⟫ ≥ 0 ∀i ⟹
-  ⟪Σλᵢgᵢ, d⟫ ≥ 0). Contrapositive: any safe direction with
-  ⟪g0,d⟫ < 0 certifies the mixture is OUTSIDE the Gram cone.
-- `safeqp_pareto_orthogonality`: if the SafeQP projection
-  returns exactly 0 (the controller does nothing), then the
-  VI gives ⟪g0,d⟫ ≤ 0 on all safe directions while the
-  mixture representation gives ≥ 0 — hence EXACTLY ZERO:
-  paralysis happens iff every common-ascent direction is
-  orthogonal to the mixture gradient. Contrapositive: any
-  safe d with ⟪g0,d⟫ ≠ 0 forces a nonzero certified step —
-  the non-stall certificate. Together with
-  `safeqp_eps_critical` (R55) this closes the honest core of
-  roadmap #1: the SafeQP iteration provably reaches
-  ε-criticality, and the only way it stops earlier is the
-  exact-orthogonality degenerate case.
-
-**Honest boundary**: the full Farkas equivalence (0 ∈
-conv{gᵢ} ↔ polar emptiness) and the O(ε) Pareto-stationarity
-rate are not claimed.
-
+`gram_cone_inner`: a nonnegative mixture of gradients is
+nonnegative on the safe cone. `safeqp_pareto_orthogonality`:
+a zero SafeQP step forces the mixture gradient to be exactly
+orthogonal to every safe direction. The Farkas equivalence
+and the O(ε) Pareto-stationarity rate are not claimed.
 -/
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- **Gram-cone certificate (roadmap #1, Pareto piece 1)**:
-a nonnegative combination of the domain gradients makes an
-obtuse-or-right angle with every common-ascent direction.
-Contrapositive: if SOME common-ascent direction has
-⟪g0, d⟫ > 0, the mixture gradient g0 is NOT in the Gram cone. -/
+/-- If `lam i ≥ 0` and `0 ≤ ⟪g i, d⟫_ℝ` for all `i`, then
+`0 ≤ ⟪∑ i, lam i • g i, d⟫_ℝ`. -/
 theorem gram_cone_inner {K : Type} [Fintype K] (g : K → X) (lam : K → ℝ) (d : X)
     (hlam : ∀ i, 0 ≤ lam i) (hsafe : ∀ i, 0 ≤ ⟪g i, d⟫_ℝ) :
     0 ≤ ⟪∑ i, lam i • g i, d⟫_ℝ := by
@@ -406,16 +336,10 @@ theorem gram_cone_inner {K : Type} [Fintype K] (g : K → X) (lam : K → ℝ) (
   rw [real_inner_smul_right, real_inner_comm]
   exact mul_nonneg (hlam i) (hsafe i)
 
-/-- **SafeQP paralysis characterization (roadmap #1, Pareto
-piece 2)**: if the projected step is exactly zero (the
-controller does nothing), then (a) the mixture gradient makes
-a nonpositive inner product with EVERY safe direction (the
-VI), and (b) — since the mixture gradient is a nonnegative
-combination Σwᵢgᵢ, piece 1 — the inner product with every
-safe direction is EXACTLY ZERO: every common-ascent direction
-is orthogonal to the mixture gradient. The contrapositive is
-the non-stall certificate: any safe d with ⟪g0,d⟫ ≠ 0 forces
-a nonzero certified step. -/
+/-- If 0 minimizes the distance to `g0` over a convex safe
+cone on which every gradient `g i` is nonnegative, `g0` is
+the nonnegative mixture `∑ w i • g i`, and `d` is safe, then
+`⟪g0, d⟫_ℝ = 0`. -/
 theorem safeqp_pareto_orthogonality {K : Type} [Fintype K]
     (C : Set X) (hconv : Convex ℝ C) (g : K → X) (w : K → ℝ) (g0 : X)
     (hw : ∀ i, 0 ≤ w i)

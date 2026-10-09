@@ -9,25 +9,18 @@ set_option linter.style.header false
 /-!
 # Foundations.TakeoffCounted — считанный takeoff
 
-Миграция-2026-10-05 (R173): канонический детерминированный
-кластер takeoff-подсчёта из Dynamics/FastGrowth — чистая
-индукция (телескоп произведения по показателям-успехам),
-без Hagi-зависимостей. Потребители Probability
-(ConditionalSuccess), Dynamics (FastGrowth, WallClockTakeoff),
-Unified (GrowthBridge) тянут только Foundations.
+Каноническое детерминированное ядро takeoff-подсчёта: чистая
+индукция без Hagi-зависимостей.
 -/
 
 open Finset
 
 namespace Hagi.Foundations
 
-/-- **Считанный takeoff (детерминированное ядро)**: каждый
-цикл t умножает capability на ≥ (1+α)^(s_t), s_t ∈ ℕ —
-индикатор/счётчик успеха (0 = нейтрально). Тогда
-
-  C T ≥ C 0 · (1+α)^(Σ_{t<T} s t)
-
-— экспонента по ЧИСЛУ успехов; неуспехи безопасно нейтральны. -/
+/-- Если каждый цикл даёт `C (t + 1) ≥ C t * (1 + alpha) ^ (s t)`
+со счётчиками `s t ∈ ℕ`, то
+`C T ≥ C 0 * (1 + alpha) ^ (∑ t < T, s t)`: рост
+экспоненциален по числу успехов, неуспехи нейтральны. -/
 theorem capability_takeoff_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))

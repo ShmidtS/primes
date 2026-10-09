@@ -5,7 +5,7 @@ import Hagi.Probability.MarkovFreedman
 
 /-!
 # HistoryPath — the path-space lift of a Markov chain
-(R233 port, part 1/2 of the two-sided joint Freedman)
+
 
 Ported verbatim from openai/math,
 OAI.Combinatorics.TriangleRemoval.Process.History (the

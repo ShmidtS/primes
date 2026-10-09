@@ -4,26 +4,14 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Omni.OmniSafeStep
 
 /-!
-# OmniInvariant — the Φ-monotonicity of the omni cycle
+# OmniInvariant — Φ-monotonicity of the omni cycle
 
-The invariant module of the omni layer: the composite omni
-cycle (admit a modality → merge into the shared state → train
-jointly under the consensus guard) preserves the HAGI
-invariant's core conjuncts. The potential view: Φ_omni = risk −
-capability (lower is better). The capability cost of the cycle
-(cComp + cRisk) is paid INSIDE omniStep; the risk increment
-(eps, the SafeQP budget of the joint step) is covered by the
-intra-modal gain.
-
-Main results:
-* `omniPhi_step`: Φ_omni is nonincreasing across an
-  admitted-modality cycle when the SafeQP risk budget eps is
-  covered by the intra gain (eps ≤ gIntra + G_cross − costs);
-* `omniPhi_strict`: Φ strictly decreases when the coverage is
-  strict — permanent progress;
-* `omniInvariant_preserved`: the composite certificate — Φ
-  nonincreasing, capability strictly growing, risk bounded by
-  the SafeQP budget, budget nonnegative.
+The potential `omniPhi risk cap = risk - cap`. Results: the
+potential is nonincreasing (`omniPhi_step`) / strictly
+decreasing (`omniPhi_strict`) across an admitted-modality cycle
+when the risk increment `eps` is covered by the net capability
+gain; `omniInvariant_preserved` combines this with strict
+capability growth and a nonnegative remaining budget.
 -/
 
 namespace Hagi.Omni
@@ -36,8 +24,8 @@ the capability cost of the cycle is paid inside omniStep, the
 budget account is tracked separately). -/
 def omniPhi (risk cap : ℝ) : ℝ := risk - cap
 
-/-- Strict positivity of the cross-modal gap of a strictly
-dependent pair (the R190 certificate, packaged). -/
+/-- If `p` is not the product of its marginals then
+`0 < crossModalGap p`. -/
 theorem crossModalGap_pos_of_dep {Y1 Y2 : Type} [Fintype Y1]
     [DecidableEq Y1] [Nonempty Y1] [Fintype Y2] [DecidableEq Y2]
     [Nonempty Y2] (p : Y1 × Y2 → ℝ) (hp : ∀ z, 0 < p z)
@@ -50,10 +38,9 @@ theorem crossModalGap_pos_of_dep {Y1 Y2 : Type} [Fintype Y1]
     linarith [this, hle]
   exact hdep ((crossModalGap_zero_iff_indep p hp hsum).mp h0)
 
-/-- **Φ-monotonicity across an admitted modality**: if the
-SafeQP risk budget eps of the joint step is covered by the NET
-capability gain (gIntra + G_cross − costs), the omni potential
-does not increase across the cycle. -/
+/-- If `p` is dependent and
+`eps ≤ gIntra + crossModalGap p - cComp - cRisk`, then
+`omniPhi (risk + eps) (omniStep cap gIntra (crossModalGap p) cComp cRisk) ≤ omniPhi risk cap`. -/
 theorem omniPhi_step {Y1 Y2 : Type} [Fintype Y1] [DecidableEq Y1]
     [Nonempty Y1] [Fintype Y2] [DecidableEq Y2] [Nonempty Y2]
     (p : Y1 × Y2 → ℝ) (hp : ∀ z, 0 < p z) (hsum : ∑ z, p z = 1)
@@ -67,8 +54,9 @@ theorem omniPhi_step {Y1 Y2 : Type} [Fintype Y1] [DecidableEq Y1]
   unfold omniPhi omniStep
   linarith
 
-/-- **Strict Φ-decrease**: strict coverage strictly lowers the
-omni potential — permanent progress of the omni cycle. -/
+/-- As `omniPhi_step` with strict coverage
+`eps < gIntra + crossModalGap p - cComp - cRisk`: the potential
+strictly decreases. -/
 theorem omniPhi_strict {Y1 Y2 : Type} [Fintype Y1] [DecidableEq Y1]
     [Nonempty Y1] [Fintype Y2] [DecidableEq Y2] [Nonempty Y2]
     (p : Y1 × Y2 → ℝ) (hp : ∀ z, 0 < p z) (hsum : ∑ z, p z = 1)
@@ -82,13 +70,10 @@ theorem omniPhi_strict {Y1 Y2 : Type} [Fintype Y1] [DecidableEq Y1]
   unfold omniPhi omniStep
   linarith
 
-/-- **The composite omni invariant**: across a full
-admitted-modality cycle — strict cross-modal gain (R190),
-strict capability growth (R191), the risk increment bounded by
-the SafeQP budget with coverage (R194 + this module), and the
-budget staying nonnegative — the omni invariant holds:
-Φ nonincreasing, capability strictly growing, risk bounded,
-budget nonnegative. -/
+/-- Under the stated hypotheses (dependent `p`, nonnegative
+`gIntra`, covered costs, covered `eps`, nonnegative remaining
+budget): Φ is nonincreasing, capability strictly grows, the
+coverage bound holds, and the budget remainder is nonnegative. -/
 theorem omniInvariant_preserved {Y1 Y2 : Type} [Fintype Y1]
     [DecidableEq Y1] [Nonempty Y1] [Fintype Y2] [DecidableEq Y2]
     [Nonempty Y2] (p : Y1 × Y2 → ℝ) (hp : ∀ z, 0 < p z)

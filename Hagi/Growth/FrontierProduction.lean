@@ -7,39 +7,21 @@ import Hagi.Probability.CertifiedEstimator
 set_option linter.style.header false
 
 /-!
-# Мост III+IV: FrontierProduction (сертифицированный) + CapabilitySemantics
+# FrontierProduction — сертифицированное производство frontier и семантика capability
 
-Аудит §23–24: абстрактная динамика
-`D_{t+1} ≥ ρD_t + βC_t − ξ_t` (FrontierScaling/GainRenewal)
-держит β как ГЛАВНУЮ недоказанную гипотезу — «система порождает
-новый usable frontier пропорционально capability». Этот модуль
-делает два шага к её закрытию:
-
-**III-a (детерминированная редукция)**: `injection_law_of_measured` —
-закон обновления следует, если измеренное свежее разногласие
-экспертов dis_t (среднее клиппированных попарных разностей
-логитов, [0,1]) покрывает потребность обновления:
-`ρD_t + βC_t − ξ_t ≤ κ·dis_t`. β-посылка сведена к ИЗМЕРИМОЙ
-величине (GapLaw уже связывает разногласие с merge gain).
-
-**III-b (статистическая сертификация)**:
-`certified_cycle_renewal` — композиция с `certified_premise`
-(R114): если измеренная сумма проб разногласия цикла t превышает
-порог n·thr + 2nε, то истинное среднее разногласие ≥ thr с
-вероятностью ≥ 1 − 2e^{−2nε²}; при архитектурной посылке
-`hD : D_{t+1} ≥ κ·disMean` это даёт renewal-закон на хорошем
-событии. β становится runtime-проверяемой, а не декоративной.
-
-**IV (CapabilitySemantics)**: `CapabilitySound C U` — C_t ≤ U_t,
-где U — полезность над семейством задач; `takeoff_lifts_utility`
-переносит экспоненциальный рост C на U. Честная граница:
-связка C с реальной моделью остаётся premise (audit §9).
-
-**Честные границы**: (1) hD (разногласие ⇒ frontier) —
-архитектурная посылка, не выведена из GapLaw (GapLaw даёт
-разногласие ⇒ merge gain, недостающий кусок — gain ⇒ следующий
-frontier); (2) многoцикловая версия требует union bound по
-независимым циклам — сформулирована для одного цикла.
+* `injection_law_of_measured` (III-a): если `D (t+1) ≥ κ·dis t`
+  и потребность обновления `ρ·D t + β·C t − ξ t ≤ κ·dis t`, то
+  выполнен `InjectionLaw D C xi rho beta`.
+* `certified_cycle_renewal` (III-b): если измеренная сумма n
+  проб разногласия в [0,1] превышает `n·thr + 2n·ε` и
+  `D (t+1) ≥ κ·disMean`, то renewal-закон одного цикла выполнен
+  на этом событии с вероятностью `≥ 1 − 2e^{−2nε²}`.
+  Посылка `hD` (разногласие ⇒ frontier) — архитектурная, не
+  выводится здесь; многoцикловая версия не формализована.
+* `CapabilitySound` (IV): `C t ≤ U t` для всех t; связка C с
+  реальной моделью — посылка.
+* `takeoff_lifts_utility`: если `CapabilitySound C U` и
+  `C 0 * (1 + alpha) ^ T ≤ C T`, то `C 0 * (1 + alpha) ^ T ≤ U T`.
 -/
 
 open Finset Real
@@ -48,13 +30,14 @@ namespace Hagi
 
 /-! ## III-a: детерминированная редукция β-посылки -/
 
-/-- Абстрактный закон производства frontier (audit §23). -/
+/-- Абстрактный закон производства frontier:
+`∀ t, D (t+1) ≥ ρ·D t + β·C t − ξ t`. -/
 def InjectionLaw (D C xi : ℕ → ℝ) (rho beta : ℝ) : Prop :=
   ∀ t, D (t + 1) ≥ rho * D t + beta * C t - xi t
 
-/-- **β-посылка сведена к измеримому разногласию**: если свежее
-разногласие экспертов dis_t (mean clipped pairwise logit diff)
-покрывает потребность обновления, закон производства выполнен. -/
+/-- Если `D (t+1) ≥ κ·dis t` для всех t и
+`ρ·D t + β·C t − ξ t ≤ κ·dis t` для всех t, то
+`InjectionLaw D C xi rho beta`. -/
 theorem injection_law_of_measured (D C dis xi : ℕ → ℝ) (kappa rho beta : ℝ)
     (hD : ∀ t, D (t + 1) ≥ kappa * dis t)
     (h : ∀ t, rho * D t + beta * C t - xi t ≤ kappa * dis t) :
@@ -65,7 +48,7 @@ theorem injection_law_of_measured (D C dis xi : ℕ → ℝ) (kappa rho beta : �
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
-/-- Истинное среднее разногласие по n пробам (в [0,1]). -/
+/-- Среднее по n пробам координатных средних (значения в [0,1]). -/
 noncomputable def disMean {n : ℕ} (p : Fin n → V → ℝ) (Y : Fin n → V → ℝ) : ℝ :=
   (∑ i, coordMean p Y i) / (n : ℝ)
 
@@ -79,13 +62,13 @@ theorem const_probe_sum {n : ℕ} (c : ℝ) (ω : Fin n → V) :
     ∑ i, (fun _ _ => c) i (ω i) = (n : ℝ) * c := by
   simp [Finset.sum_const, Finset.card_univ, Fintype.card_fin]
 
-/-- **Сертифицированное обновление frontier одного цикла**:
-пусть `thr` — требуемый уровень свежего разногласия
-(достаточный для renewal: `κ·thr ≥ ρD_t + βC_t − ξ_t`), Y — n
-парных проб разногласия в [0,1]. Если ИЗМЕРЕННАЯ сумма проб
-превышает порог с margin 2nε, то renewal-закон цикла t выполнен
-с вероятностью ≥ 1 − 2e^{−2nε²}. Бета-механизм становится
-runtime-проверяемым: порог + margin + n проб ⇒ гарантия. -/
+/-- Сертифицированное обновление одного цикла: при пробах
+разногласия `Y` в [0,1], пороге `thr ∈ [0,1]`, `κ ≥ 0` и
+посылках `D (t+1) ≥ κ·disMean p Y` и
+`ρ·D t + β·C t − ξ t ≤ κ·thr`: с вероятностью
+`≥ 1 − 2e^{−2nε²}` из измеренного события
+`n·thr + 2n·ε ≤ Σ Y i (ω i)` следует
+`D (t+1) ≥ ρ·D t + β·C t − ξ t`. -/
 theorem certified_cycle_renewal {n : ℕ} (p : Fin n → V → ℝ)
     (hp : IsProbSys p)
     (Y : Fin n → V → ℝ) (hY : ∀ i v, 0 ≤ Y i v ∧ Y i v ≤ 1)
@@ -142,15 +125,13 @@ theorem certified_cycle_renewal {n : ℕ} (p : Fin n → V → ℝ)
 
 /-! ## IV: CapabilitySemantics -/
 
-/-- **CapabilitySemantics** (audit §24): формальная C_t — нижняя
-грань полезности U_t над семейством задач. Связка с реальной
-моделью — premise; без неё capability остаётся certificate
-variable (audit §9 это признаёт). -/
+/-- `CapabilitySound C U` означает `C t ≤ U t` для всех t
+(`U` — полезность над семейством задач; связка с реальной
+моделью остаётся посылкой). -/
 def CapabilitySound (C U : ℕ → ℝ) : Prop := ∀ t, C t ≤ U t
 
-/-- Экспоненциальный takeoff формальной capability переносится
-на полезность: `C_T ≥ C₀(1+α)^T ∧ CapabilitySound C U ⇒
-U_T ≥ C₀(1+α)^T`. -/
+/-- Если `CapabilitySound C U` и `C 0 * (1 + alpha) ^ T ≤ C T`,
+то `C 0 * (1 + alpha) ^ T ≤ U T`. -/
 theorem takeoff_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : ℕ)
     (hsnd : CapabilitySound C U)
     (hgr : C 0 * (1 + alpha) ^ T ≤ C T) :

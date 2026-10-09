@@ -8,54 +8,41 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# JointPreserve: diversity non-collapse under SafeQP steps (round 49, block 3)
+# JointPreserve — не-коллапс разнообразия при SafeQP-шагах
 
-The composition: IF each SafeQP joint step contracts the
-cross-expert diversity by at most factor a and injects at
-most s (the h_emp hypotheses — measured on the Gram
-telemetry), THEN the diversity after T steps obeys the
-general recurrence bound (SeedOnly.disp_recurrence_general):
-bounded above by a^T·D₀ + s·Σa^i — the non-collapse
-certificate: the Jensen gain CANNOT shrink below its floor
-unless a ≥ 1 (the measured regime decides).
+* `diversity_noncollapse` (верхняя оценка): при сжатии
+  за шаг ≤ a и инъекции ≤ s —
+  `D T ≤ a^T·D 0 + s·Σa^i`; сама по себе совместима с
+  полным коллапсом (s = 0);
+* `diversity_floor` (нижняя оценка): при удержании ≥ ρ,
+  инъекции ≥ inj и утечке ≤ ξ —
+  `D T ≥ ρ^T·D 0 + (inj − ξ)·Σρ^i` — исключает коллапс при
+  `inj > ξ`;
+* `diversity_floor_fresh`: при `ρ > 0`, `inj > ξ`,
+  `0 ≤ D 0` — `D T ≥ (inj − ξ)·Σρ^i`;
+* `diversity_floor_strict_pos`: при `ρ ≥ 0`, `inj > ξ` и
+  `T ≠ 0` — `0 < (inj − ξ)·Σ_{i<T}ρ^i`.
 
-NOT PROVED: deriving h_emp per-step (a, s) from the SafeQP
-geometry itself (the dynamics of the projected steps on the
-representation covariance) — the hypotheses remain empirical
-inputs from the Gram logs.
-
-**Prescription**: log the per-step diversity ratio on the
-joint phase; a < 1 with small s certifies non-collapse in
-advance; a ≥ 1 flags the collapse regime for the schedule
-program (Wave3) to intervene.
+Пошаговые (a, s) / (ρ, inj, ξ) — эмпирические посылки
+(Gram-телеметрия), из геометрии SafeQP не выводятся.
 -/
 
 open Finset
 
 namespace Hagi
 
-/-- **The diversity upper bound** (was mislabeled
-"non-collapse"): with per-step contraction ≤ a and injection
-≤ s, diversity after T steps is AT MOST a^T·D₀ + s·Σa^i.
-NOTE (external review, round-51): this bound alone is
-compatible with total collapse (take s = 0). The
-collapse-excluding theorem of the opposite sign is
-`diversity_floor` below. -/
+/-- Верхняя оценка: при `0 ≤ a`, `0 ≤ s` и
+`D (t+1) ≤ a·D t + s` — `D T ≤ a^T·D 0 + s·Σa^i`. Совместима с
+полным коллапсом (s = 0); нижняя оценка противоположного
+знака — `diversity_floor`. -/
 theorem diversity_noncollapse (D : ℕ → ℝ) (a s : ℝ)
     (ha : 0 ≤ a) (hs : 0 ≤ s)
     (hstep : ∀ t, D (t+1) ≤ a * D t + s) (T : ℕ) :
     D T ≤ a^T * D 0 + s * ∑ i ∈ Finset.range T, a^i :=
   disp_recurrence_general ha hs hstep T
 
-/-- **The diversity floor (lower bound)**: with per-step
-retention ≥ ρ, injection ≥ inj and leakage ≤ ξ, the
-cross-expert diversity after T steps is AT LEAST
-ρ^T·D₀ + (inj − ξ)·Σρ^i. This is the theorem of the sign the
-architecture needs: it rules OUT collapse when inj > ξ,
-rather than merely bounding diversity from above. The
-companion `diversity_noncollapse` above is an UPPER bound and
-by itself is compatible with total collapse — pointed out in
-external review, 2025-round-51. -/
+/-- Тождество для суммы геометрической прогрессии:
+`ρ·Σ_{i<T}ρ^i + 1 = Σ_{i<T}ρ^i + ρ^T`. -/
 theorem geom_shift (rho : ℝ) (T : ℕ) :
     rho * ∑ i ∈ Finset.range T, rho^i + 1 = ∑ i ∈ Finset.range T, rho^i + rho^T := by
   induction T with
@@ -93,15 +80,10 @@ theorem diversity_floor (D : ℕ → ℝ) (rho inj xi : ℝ)
       _ ≥ rho * (rho^T * D 0 + (inj - xi) * S) + (inj - xi) := hsplit
       _ = rho^(T+1) * D 0 + (inj - xi) * (S + rho^T) := halg
 
-/-- **The fresh-data condition for a nondegenerate diversity
-floor** (round-62 program item 5): with per-step retention
-ρ > 0 and STRICT injection dominance inj > ξ (the fresh-data
-schedule condition — the fraction of fresh external data per
-generation must more than cover the leakage), the floor of
-`diversity_floor` is strictly positive: D_T ≥ (inj−ξ)·Σ_{i<T}ρⁱ
-> 0. The FRESH-DATA FRACTION is exactly the control knob
-that guarantees inj > ξ; without it (inj ≤ ξ) the floor
-degenerates and the collapse regime is admissible. -/
+/-- Усиление `diversity_floor` при `0 < ρ`, `ξ < inj`,
+`0 ≤ inj`, `0 ≤ ξ`, `0 ≤ D 0` и той же динамике:
+`D T ≥ (inj − ξ)·Σ_{i<T}ρ^i` (нижняя оценка без члена
+`ρ^T·D 0`). -/
 theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
     (hrho : 0 < rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
     (_hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
@@ -112,9 +94,9 @@ theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
     mul_nonneg (pow_nonneg hrho.le T) hD0
   linarith
 
-/-- **Strict positivity of the fresh floor**: for any
-generation T ≥ 1 the floor is strictly positive — collapse
-is EXCLUDED by strict injection dominance. -/
+/-- При `0 ≤ ρ`, `ξ < inj` и `T ≠ 0` —
+`0 < (inj − ξ)·Σ_{i<T}ρ^i`: строго положительный пол —
+коллапс исключён при строгом доминировании инъекции. -/
 theorem diversity_floor_strict_pos (D : ℕ → ℝ) (rho inj xi : ℝ)
     (hrho : 0 ≤ rho) (_hinj : 0 ≤ inj) (_hxi : 0 ≤ xi)
     (hinjgt : xi < inj)

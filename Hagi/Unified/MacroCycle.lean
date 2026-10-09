@@ -8,43 +8,21 @@ import Hagi.Unified.GlobalConvergence
 set_option linter.style.header false
 
 /-!
-# R52: the per-stage Lyapunov decomposition
+# The per-stage Lyapunov decomposition of the macro cycle
 
-The external review (round-51) correctly observed that
-`lyapunov_telescope` is a *generic* telescope: it assumes
-E_{k+1} ≤ E_k − ε but does not prove the macro-cycle
-Grow → Merge → Joint → Compress itself delivers such a step.
+Each stage of Grow → Merge → Joint → Compress is bounded
+separately: `merge_stage` (merged energy ≤ mean expert
+energy, via the nonnegative Jensen gap), `joint_stage` (an
+L-smooth SafeQP step with `eta ≤ 1/L` decreases energy by at
+least `eta * ‖d*‖² / 2`), `compress_stage` (ternary rounding
+costs at most `kappa * s / 2`). `macro_step_decrease`
+composes them into one decrease of at least
+`G + eta * ‖d*‖² / 2 − kappa * s / 2`; `macro_termination`
+turns a per-step decrease ≥ ε into the horizon bound.
 
-This module closes that gap at the level the current theory
-supports: each STAGE of the macro-cycle is bound separately,
-with the stage's own honesty conditions made explicit:
-
-* **Merge stage** (`merge_stage`): the merged model's energy
-  is bounded by the mean expert energy MINUS the Jensen gap.
-  The stage never increases the pool's energy certificate —
-  the gap is the reward for diversity, `gap_N_nonneg` is the
-  sign theorem.
-* **Joint stage** (`joint_stage`): one SafeQP-certified step
-  decreases energy by at least η·‖d*‖² given L-smoothness and
-  step size η ≤ 1/L — composed from `safeQP_descent`
-  (⟪g, d*⟫ ≥ ‖d*‖², the certified descent direction).
-* **Compress stage** (`compress_stage`): ternary rounding of
-  a residual inside the unit band adds at most s/2 per entry;
-  scaled by the residual Lipschitz constant of energy, the
-  stage increases energy by at most κ·s/2.
-* **Macro-cycle** (`macro_step_decrease`, `macro_termination`):
-  the composed step decreases the energy certificate by at
-  least (Jensen gap + η·‖d*‖² − κ·s/2); when that exceeds ε,
-  the generic telescope finally rests on stage-level theorems
-  — the unified structure's stop law.
-
-**Honest boundary**: the per-stage hypotheses (L-smoothness,
-κ-energy sensitivity to quantization, and the smoothness of
-the merged-init energy in the gap) are empirical inputs (to
-be measured on the stand), not theorems. What is proven is
-the DECOMPOSITION: if each stage's certificate holds, the
-macro-cycle is a contraction and terminates in
-(E₀ − E_min)/ε generations.
+The per-stage hypotheses (smoothness, Lipschitz curvature,
+merge tracking) are h_emp_ premises; what is proved is the
+decomposition.
 -/
 
 open Finset Real
@@ -53,31 +31,24 @@ namespace Hagi
 
 /-! ## Stage 1: Merge — the Jensen gap buys energy -/
 
-/-- **Merge stage bound**: the merged model's energy is at
-most the mean expert energy minus the (nonnegative) Jensen
-gap `G ≥ 0`. Conditional on the empirical hypothesis that
-the merged energy certificate tracks the LSE pooling gap
-(h_merge); the SIGN comes from `gap_N_nonneg`: G ≥ 0 always,
-so the merge stage never increases the certificate. -/
+/-- If `Em ≤ Emean − G` (h_emp_merge) and `0 ≤ G`, then
+`Em ≤ Emean`. -/
 theorem merge_stage (Emean G Em : ℝ)
     (h_emp_merge : Em ≤ Emean - G) (hgap : 0 ≤ G) :
     Em ≤ Emean := by linarith
 
-/-- **Merge stage strict decrease**: when the pool is
-genuinely diverse (G > 0), the merge stage strictly
-decreases the energy certificate by G. -/
+/-- If `Em ≤ Emean − G` (h_emp_merge) and `0 < G`, then
+`Em < Emean`. -/
 theorem merge_stage_decrease (Emean G Em : ℝ)
     (h_emp_merge : Em ≤ Emean - G) (hgap : 0 < G) :
     Em < Emean := by linarith
 
 /-! ## Stage 2: Joint — the SafeQP step is certified descent -/
 
-/-- **Joint stage bound**: with L-smooth energy, step η ≤ 1/L
-along the SafeQP direction d*, the energy decreases by at
-least η·‖d*‖². Proof: smooth descent lemma
-E(θ−ηd*) ≤ E(θ) − η⟪g,d*⟫ + Lη²‖d*‖²/2, then the certified
-inner product ⟪g,d*⟫ ≥ ‖d*‖² from `safeQP_descent`, then
-η ≤ 1/L folds the second-order term into the first. -/
+/-- With `0 < L`, `0 ≤ eta ≤ 1/L`, certified descent
+`dnorm² ≤ inner`, and the smoothness premise
+`E2 ≤ E1 − eta * inner + L * eta² * dnorm² / 2` (h_emp_),
+one gets `E2 ≤ E1 − eta * dnorm² / 2`. -/
 theorem joint_stage (L eta dnorm inner E2 E1 : ℝ)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
     (hdescent : dnorm ^ 2 ≤ inner)
@@ -109,11 +80,10 @@ theorem joint_stage (L eta dnorm inner E2 E1 : ℝ)
 
 /-! ## Stage 3: Compress — ternary rounding costs at most κs/2 -/
 
-/-- **Compress stage bound**: if every rounded entry of the
-compressed residual stays within s/2 of its pre-rounding
-value (`tern_distortion_round` scaled by the grid step), and
-the energy is κ-Lipschitz in the parameter sup-norm, the
-compression stage increases the energy by at most κ·s/2. -/
+/-- If the per-entry distortion is at most `1/2` (h_emp_dist)
+and the energy increment satisfies
+`E3 − E2pre ≤ kappa * s * dnorm` (h_emp_lip), then
+`E3 − E2pre ≤ kappa * s / 2`. -/
 theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
     (hkappa : 0 ≤ kappa) (hs : 0 ≤ s) (_hdn : 0 ≤ dnorm)
     (h_emp_dist : dnorm ≤ 1 / 2)
@@ -124,14 +94,9 @@ theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
 
 /-! ## The macro-cycle contraction -/
 
-/-- **The macro step is a contraction** (conditional
-composition): with the merge gap G ≥ 0, one SafeQP step of
-size η ≤ 1/L along d*, and a compression cost ≤ κs/2, the
-macro cycle decreases the energy certificate by at least
-G + η‖d*‖²/2 − κs/2 (the smooth-descent rate for the joint
-stage is η‖d*‖²/2, not η‖d*‖² — the honest strong-convexity
-constant). The three stage hypotheses are empirical
-(h_emp_-prefixed); the composition is a theorem. -/
+/-- Composing the three stage bounds (each h_emp_): the macro
+step satisfies
+`E4 ≤ Emean − (G + eta * dnorm² / 2 − kappa * s / 2)`. -/
 theorem macro_step_decrease (_E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnormq : ℝ)
     (h_emp_merge : E2 ≤ Emean - G) (hgap : 0 ≤ G)
     (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
@@ -149,13 +114,9 @@ theorem macro_step_decrease (_E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnor
   have hchain : E4 ≤ Emean - eta * dnorm ^ 2 / 2 + kappa * s / 2 := by linarith
   linarith
 
-/-- **Macro termination** — the unified stop law resting on
-stage-level certificates: if every macro generation delivers
-its certified decrease (gap + step − compression ≥ ε > 0)
-and the energy certificate is bounded below by E_min, the
-cycle terminates in at most (E₀ − E_min)/ε generations.
-This upgrades `lyapunov_termination` from a generic
-telescope to a stage-decomposed contraction. -/
+/-- If `Emin ≤ E t` for `t ≤ k` and each step decreases by
+at least `eps > 0`, then `k ≤ (E 0 − Emin) / eps`
+(delegation to `lyapunov_termination_fin`). -/
 theorem macro_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hstep : ∀ t < k, E (t+1) ≤ E t - eps)

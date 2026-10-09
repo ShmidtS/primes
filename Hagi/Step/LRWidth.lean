@@ -7,45 +7,33 @@ import Hagi.Data.ChunkedCE
 set_option linter.style.header false
 
 /-!
-# R147: LR-vs-width - the non-invariance warning + the muP fix
+# LRWidth — неинвариантность LR по ширине и muP-скейлинг
 
-Phase C (R139 of the plan). Sources: Tensor Programs V
-(muP LR transfer; the CE 74.77 incident), 2607.05609
-(muP vs NTP sweeps: LR transfers under muP, shifts under
-NTP), 2609.37702 (normalized-loss trigger for width
-expansion).
+Модель: линейный слой W (m строк) на квадратичной потере
+`L = ½·‖W·1‖²`.
 
-Model: a linear layer W with m rows trained on the
-quadratic loss L = (1/2) * ||W x||^2 with x = ones.
+* `grad_norm_grows`: при all-ones инициализации квадрат
+  нормы градиента равен `m·d³` — растёт линейно по ширине m
+  (фиксированный LR не инвариантен по ширине);
+* `mup_grad_invariant`: при скейлинге `W i j = 1/√m` квадрат
+  нормы градиента равен `d³` — не зависит от ширины
+  (muP-предписание для этого слоя).
 
-Theorems:
-
-* `grad_norm_grows` - WARNING (non-invariance): the
-gradient norm at the all-ones initialization grows
-linearly with the width m: a fixed LR is NOT
-width-invariant (the formal core of the CE 74.77
-incident).
-* mup_step_invariant - THE FIX: scaling the step by
-1/m makes the update norm independent of the width -
-the muP prescription.
-
-Honest boundary: full muP transfer (all layers, Adam
-moments) is empirical (2607.05609); here the exact
-statement is for the quadratic linear-layer model. -/
+Полный muP-перенос (все слои, моменты Adam) — эмпирический;
+здесь — точное утверждение для квадратичной линейной модели.
+-/
 
 namespace Hagi
 open Finset
 
-/-- Gradient entry of the quadratic loss L = (1/2) Σ_i
-(Σ_j W i j)^2 w.r.t. W i j (the closed analytic form). -/
+/-- Компонент градиента потери `L = ½·Σ_i (Σ_j W i j)²`:
+`gradEntry W i j = Σ_j' W i j'`. -/
 def gradEntry {m d : ℕ} (W : Fin m → Fin d → ℝ) (i : Fin m) (j : Fin d) : ℝ :=
   ∑ j', W i j'
 
-/-- WARNING (non-invariance): at the ALL-ONES init the
-squared gradient norm is exactly m * d^3 - it GROWS
-linearly in the width m: a fixed LR step is not
-width-invariant (the formal core of the CE 74.77
-incident). -/
+/-- При `Wones i j = 1` для всех i j:
+`Σ_i Σ_j (gradEntry Wones i j)² = m·d³` — линейный рост
+по m (фиксированный LR не инвариантен по ширине). -/
 theorem grad_norm_grows (m d : ℕ)
     (Wones : Fin m → Fin d → ℝ) (hones : ∀ i j, Wones i j = 1) :
     ∑ i, ∑ j, (gradEntry Wones i j)^2 = (m : ℝ) * (d : ℝ)^3 := by
@@ -62,10 +50,9 @@ theorem grad_norm_grows (m d : ℕ)
   push_cast
   ring
 
-/-- THE FIX (muP-style scaling): at the width-scaled init
-W i j = 1/sqrt(m) the squared gradient norm is exactly
-d^3 - INDEPENDENT of the width: the SGD step size is
-width-invariant. -/
+/-- При `1 ≤ m` и `Wmup i j = 1/√m` для всех i j:
+`Σ_i Σ_j (gradEntry Wmup i j)² = d³` — не зависит от
+ширины (muP-скейлинг). -/
 theorem mup_grad_invariant (m d : ℕ) (hm : 1 ≤ m)
     (Wmup : Fin m → Fin d → ℝ)
     (hmup : ∀ i j, Wmup i j = 1 / Real.sqrt (m : ℝ)) :

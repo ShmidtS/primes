@@ -6,7 +6,7 @@ import Mathlib.Probability.Moments.SubGaussian
 set_option linter.style.header false
 
 /-!
-# R95: conditional success probability → concentration → exponential capability growth
+# conditional success probability → concentration → exponential capability growth
 
 The CENTRAL missing stochastic half of the fast-growth chain
 (roadmap §12–14, external review §10): `Hagi.Dynamics.FastGrowth`
@@ -17,14 +17,14 @@ p·T was open. This module closes that gap at the composition
 level.
 
 **Route (independent-but-not-identical successes, the honest
-middle).** S : ℕ → Ω → ℝ are [0,1]-valued success indicators
+middle).** S: ℕ → Ω → ℝ are [0,1]-valued success indicators
 (Bernoulli included), MEASURABLE and INDEPENDENT (h_emp_*),
 with per-step success means μ[S t] ≥ p₀. Then:
 
 * `success_count_lower` — Hoeffding concentration of the
   success count (exact means version):
   Pr[ Σ_{t<T} S t ≥ (Σ_{t<T} μ[S t]) − Δ ] ≥ 1 − δ
-  with the EXPLICIT Δ(T,δ) = √(2·T·log(1/δ)) (sub-Gaussian
+  with the explicit Δ(T,δ) = √(2·T·log(1/δ)) (sub-Gaussian
   parameter 1 per step: Hoeffding's lemma +
   measure_sum_range_ge_le_of_iIndepFun over the T
   independent terms).
@@ -48,14 +48,14 @@ with per-step success means μ[S t] ≥ p₀. Then:
 
 **Honest boundaries.** (1) The fully ADAPTED conditional
 formulation — μ({S t = 1} | 𝒩_t) ≥ p per step w.r.t. a
-filtration, via Azuma–Hoeffding — is NOT taken here: mathlib
+filtration, via Azuma–Hoeffding — is not taken here: mathlib
 has measure_sum_ge_le_of_hasCondSubgaussianMGF but no
 conditional Hoeffding lemma (bounded + conditionally mean
 zero ⇒ conditionally sub-Gaussian) that would let us feed it
 without kernel-level MGF arguments. The adapted case is the
 open upgrade; independence here is the h_emp_ hypothesis.
 (2) Independence of the S_t themselves is assumed; identical
-distribution is NOT (per-step means μ[S t] may vary, only the
+distribution is not (per-step means μ[S t] may vary, only the
 uniform floor p₀ matters). (3) The bridge hypothesis of
 `log_growth` is pointwise in ω — no measurability of C is
 needed for the conclusion as stated.
@@ -87,7 +87,7 @@ S t (measurable, independent — h_emp_) satisfy
 
   Pr[ Σ_{t<T} S t ≥ (Σ_{t<T} μ[S t]) − Δ(T,δ) ] ≥ 1 − δ
 
-with the EXPLICIT Δ(T,δ) = √(2·T·log(1/δ)).
+with the explicit Δ(T,δ) = √(2·T·log(1/δ)).
 
 Proof: the centered process X_t = μ[S t] − S_t is measurable,
 independent (`iIndepFun.comp`), takes values in [−1,1] with

@@ -7,70 +7,28 @@ import Mathlib.Probability.Moments.SubGaussian
 set_option linter.style.header false
 
 /-!
-# Stochastic SafeQP: minibatch gradients + high-probability feasibility
+# StochasticSafeQP — минибатч-градиенты и допустимость с высокой вероятностью
 
-Phase 3a of the roadmap: the SafeQP controller of
-`Hagi.Step.SafeQP` assumed the per-corpus gradients g_i are
-EXACT. Real training estimates them by minibatches:
-`ĝ_i = g_i + (1/m)·Σ_j ξ_{i,j}` with ξ_{i,j} the per-sample
-noise vectors. This module proves that the safety margin
-survives the noise, with EXPLICIT constants.
+Минибатч-оценка `ĝ_i = g_i + (1/m)·Σⱼ ξ_{i,j}`; шум входит в
+ограничения только через проекции `⟪ξ_{i,j}, d⟫`.
+Явная константа:
+`ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m)`.
 
-**Model (bounded noise + Hoeffding).** Chosen deliberately
-over sub-Gaussian vectors: mathlib's
-`ProbabilityTheory.measure_sum_ge_le_of_iIndepFun`
-(Hoeffding for sums of independent sub-Gaussians) plus
-hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero
-(Hoeffding's lemma for bounded mean-zero variables) give the
-whole chain. The noise enters the SafeQP constraints ONLY
-through the projections ⟪ξ_{i,j}, d*⟫ — so the statistical
-hypotheses are stated on those projections (honest: they
-follow from i.i.d. mean-zero vectors with ‖ξ‖ ≤ σ, the
-i.i.d. structure itself stays an h_emp_ hypothesis; only the
-per-domain independence of the m batch terms is needed, no
-cross-domain independence — the union bound does not
-require it).
+* `minibatch_inner_tail`: односторонний хвост Hoeffding —
+  `μ{m·ε ≤ Σⱼ (−Nⱼ)} ≤ exp(−m·ε²/(2R²))` для измеримых,
+  средне-нулевых независимых `|Nⱼ| ≤ R`;
+* `minibatch_inner_concentration` (нижний хвост) и
+  `minibatch_inner_concentration_upper` (верхний): с
+  вероятностью ≥ 1 − δ для всех i
+  `⟪g i, d⟫ − ε_noise ≤ ⟪ĝ i, d⟫ ≤ ⟪g i, d⟫ + ε_noise`;
+* `stochastic_safeQP_feasibility`: с вероятностью ≥ 1 − δ
+  из стохастической сертификации d по ĝ_i с бюджетами
+  `eps i` следует `⟪g i, d⟫ ≥ −(eps i + ε_noise)` для всех i.
 
-**The explicit constants.** With batch size m, per-sample
-noise radius σ, step direction d (‖d‖ the effective
-magnitude), K protected domains and confidence δ ∈ (0,1):
-
-  ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m).
-
-**What the module proves:**
-
-* `minibatch_inner_tail` — the per-domain one-sided tail:
-  Pr[ m·ε ≤ Σ_j (−⟪ξ_{i,j}, d⟩) ] ≤ exp(−m·ε²/(2·σ²‖d‖²))
-  — the m in the exponent is the minibatch variance
-  reduction (Hoeffding for the m independent bounded terms).
-* `minibatch_inner_concentration` — the simultaneous
-  bound (lower tail): with probability ≥ 1 − δ, EVERY
-  domain's stochastic constraint value is within ε_noise
-  of the exact one:
-  Pr[ ∀ i, ⟪g_i, d⟫ − ε_noise ≤ ⟪ĝ_i, d⟫ ] ≥ 1 − δ.
-  The |K| enters through the union bound (the log(|K|/δ)).
-  `minibatch_inner_concentration_upper` is the mirrored
-  UPPER tail (Pr[ ⟪ĝ_i, d⟫ ≤ ⟪g_i, d⟫ + ε_noise ] ≥ 1 − δ)
-  — the direction the feasibility transfer needs.
-* `stochastic_safeQP_feasibility` — the high-probability
-  feasibility transfer: with probability ≥ 1 − δ, IF the
-  realized stochastic constraints hold (d certified against
-  the ĝ_i, i.e. d ∈ safeSet ĝ(·) ε as solved by the
-  stochastic QP at that ω), THEN the TRUE gradients also
-  satisfy the safety margin inflated by ε_noise:
-  ⟪g_i, d⟫ ≥ −(ε_i + ε_noise) for all i.
-
-**Honest boundary.** d is a FIXED direction here (the
-analysis conditions on the step direction; the adaptively
-selected d*(ω) is NOT formalized in this module — see
-`Hagi.Step.AdaptiveSafeQP` (R97), which closes this gap by the
-covering-number route for any pointwise-D-bounded d*(ω) in
-`EuclideanSpace ℝ (Fin n)`). The mean-zero and
-boundedness of the noise are empirical hypotheses
-(h_emp_*). The i.i.d. structure across the batch enters only
-through per-domain independence + mean zero; identical
-distribution is not needed. Two-sided bounds and the
-sub-Gaussian (unbounded) noise regime are left open.
+d — фиксированное направление (адаптивный выбор — в
+`Hagi.Step.AdaptiveSafeQP`); среднее-нулевость, ограниченность
+`‖ξ‖ ≤ σ` и поштучная независимость — эмпирические
+посылки; двусторонние/sub-Gaussian режимы — открыто.
 -/
 
 open Finset Real MeasureTheory ProbabilityTheory InnerProductSpace
@@ -84,26 +42,14 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasu
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 variable {K : Type*} [Fintype K] [Nonempty K]
 
-/-- The explicit minibatch noise margin:
-`ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m)` — the price of using a
-batch of size m instead of the exact gradient, at confidence
-δ over K protected domains. -/
+/-- Явный шумовой порог минибатча:
+`noiseEps K sigma d m delta = σ·‖d‖·√(2·log(|K|/δ)/m)`. -/
 noncomputable def noiseEps (K : Type*) [Fintype K] (sigma : ℝ) (d : X) (m : ℕ) (delta : ℝ) : ℝ :=
   sigma * ‖d‖ * Real.sqrt (2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ))
 
-/-- **The per-domain one-sided Hoeffding tail** for the
-minibatch inner product. N j is the j-th batch-sample noise
-projection ⟪ξ_j, d⟫ (measurable, mean zero, |·| ≤ R, the m
-projections independent). Then the DOWNWARD deviation of the
-batch sum obeys the Hoeffding bound with the m-fold variance
-reduction:
-
-  Pr[ m·ε ≤ Σ_j (−N_j) ] ≤ exp(−m·ε²/(2·R²)).
-
-Proof: Hoeffding's lemma (bounded mean-zero ⇒ sub-Gaussian
-with parameter ((2R)/2)² = R²) applied to each −N_j, then
-`measure_sum_ge_le_of_iIndepFun` over the m independent
-terms: ∑c = m·R², ε' = m·ε. -/
+/-- Односторонний хвост Hoeffding: если `N j` измеримы,
+независимы, средне-нулевые с `|N j ω| ≤ R` и `0 ≤ ε`, то
+`μ.real {ω | m·ε ≤ Σⱼ −N j ω} ≤ exp(−m·ε²/(2R²))`. -/
 theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
     (N : Fin m → Ω → ℝ) (R : ℝ) (hR : 0 < R)
     (h_meas : ∀ j, Measurable (N j))
@@ -174,25 +120,12 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
         field_simp
 
 
-/-- **The simultaneous minibatch concentration (the main
-stochastic-SafeQP noise bound)**: with the explicit margin
-
-  ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m),
-
-with probability ≥ 1 − δ EVERY protected domain's stochastic
-inner product is within ε_noise below the exact one:
-
-  Pr[ ∀ i, ⟪g_i, d⟫ − ε_noise ≤ ⟪ĝ_i, d⟫ ] ≥ 1 − δ,
-  ĝ_i = g_i + (1/m)·Σ_j ξ_{i,j}.
-
-Hypotheses (honest, empirical): the per-sample noise vectors
-are bounded (‖ξ‖ ≤ σ), their d-projections are measurable and
-mean zero, and the m batch terms are independent per domain
-(cross-domain independence is NOT needed — the union bound
-does not use it). Proof: `minibatch_inner_tail` per domain
-(Hoeffding), then the union bound over the |K| domains — the
-|K| enters through log(|K|/δ) inside ε_noise, making each
-per-domain tail exactly δ/|K|. -/
+/-- При `d ≠ 0`, `0 < σ`, статистических посылках на
+проекции шума (измеримость, среднее нулевое, поштучная
+независимость, `‖ξ‖ ≤ σ`) и `δ ∈ (0,1)`:
+с вероятностью ≥ 1 − δ для всех i
+`⟪g i, d⟫ − noiseEps ≤ ⟪g i + (1/m)·Σⱼ ξ_{i,j}, d⟫`
+(нижний хвост; |K| — через union bound). -/
 theorem minibatch_inner_concentration {m : ℕ} (hm : 0 < m)
     (g : K → X) (d : X) (hd : d ≠ 0) (sigma : ℝ) (hsigma : 0 < sigma)
     (xi : K → Fin m → Ω → X)
@@ -476,20 +409,10 @@ theorem minibatch_inner_concentration_upper {m : ℕ} (hm : 0 < m)
     _ ≤ μ.real {ω | ∀ i, ⟪g i + (m : ℝ)⁻¹ • ∑ j, xi i j ω, d⟫_ℝ
         ≤ ⟪g i, d⟫_ℝ + noiseEps K sigma d m delta} := measureReal_mono hsub
 
-/-- **The high-probability feasibility transfer (the
-stochastic SafeQP margin)**: with probability ≥ 1 − δ, IF the
-stochastic constraints hold for the realized minibatch
-gradients (d certified against ĝ_i with budgets ε_i —
-d ∈ safeSet ĝ(·) ε, what the stochastic QP enforces by
-construction), THEN the TRUE gradients satisfy the same
-constraints with the margin inflated by the explicit noise
-term ε_noise = σ·‖d‖·√(2·log(|K|/δ)/m):
-
-  ⟪g_i, d⟫ ≥ −(ε_i + ε_noise) for all i.
-
-This is the feasibility guarantee of the stochastic SafeQP
-step: the safety budgets pay for the gradient noise
-explicitly, with no hidden constants. -/
+/-- При тех же посылках и бюджетах `eps`: с вероятностью
+≥ 1 − δ, если `−eps i ≤ ⟪g i + (1/m)·Σⱼ ξ_{i,j}, d⟫` для
+всех i, то
+`−(eps i + noiseEps) ≤ ⟪g i, d⟫` для всех i`. -/
 theorem stochastic_safeQP_feasibility {m : ℕ} (hm : 0 < m)
     (g : K → X) (d : X) (hd : d ≠ 0) (sigma : ℝ) (hsigma : 0 < sigma)
     (xi : K → Fin m → Ω → X)

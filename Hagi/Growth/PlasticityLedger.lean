@@ -7,38 +7,20 @@ import Hagi.Data.Distill
 set_option linter.style.header false
 
 /-!
-# R152: PlasticityLedger — локальная избыточность как
-# сертификат пластичности
+# PlasticityLedger — information radius как сертификат пластичности
 
-Порт 2607.13432 ("Local Redundancy: An Information-Theoretic
-Measure of Plasticity from Synthetic Memorization"),
-абстрактная форма.
+Радиус `plasticityRadius P = Σ_i KL(P i ‖ famMix P)`, где
+`famMix P` — равномерная смесь семейства условных
+распределений `P`.
 
-Контракт: пластичность trunk'а = information radius
-локально достижимых распределений (один градиентный шаг
-порождает семейство условных распределений P i). Радиус
-реализуется смесевым центром: plasticityRadius P
-= sup_i KL(P i || mix P), mix P = равномерная смесь
-семейства.
+* `kl_le_log_card`: при положительных `P i v` и `famMix P v`
+  каждый `KL(P i ‖ famMix P) ≤ log |I|`;
+* `radius_le_log_card`: `plasticityRadius P ≤ |I|·log |I|`;
+* `radius_zero_of_eq`: если все `P i` равны (и положительны),
+  радиус равен 0.
 
-**Теоремы:**
-
-* `kl_le_log_card` — ЯДРО (смесь-центр): KL(P i || mix P)
-  <= log |I|: равномерная смесь накрывает всё семейство
-  KL-шаром радиуса log числа направлений;
-* `radius_le_log_card` — следствие: радиус <= log |I|;
-* `radius_zero_of_eq` — вырожденное семейство (все модели
-  совпадают): радиус 0 — мёртвый trunk;
-* ГЕЙТ (практика): радиус ниже порога theta — лист НЕ
-  добавляется (trunk насыщен; нужно событие расширения
-  класса — см. GrowthCeiling `expansion_required`);
-  связка «норма градиента => радиус» (Thm 3.4 статьи) —
-  измеряемая посылка h_emp_-слоя, НЕ теорема здесь.
-
-**Честные границы**: связка "норма градиента => радиус"
-(Thm 3.4 статьи) — ИЗМЕРЯЕМАЯ посылка hcert (h_emp_-слой);
-формализованы только information-части (без вероятностной
-механики synthetic memorization).
+Связка «норма градиента ⇒ радиус» — измеряемая посылка,
+здесь не формализована.
 -/
 
 open Finset Real
@@ -47,24 +29,21 @@ namespace Hagi
 
 variable {I V : Type*} [Fintype I] [DecidableEq I] [Fintype V]
 
-/-- Равномерная смесь семейства условных распределений. -/
+/-- Равномерная смесь: `famMix P v = |I|⁻¹ * Σ_i P i v`. -/
 noncomputable def famMix (P : I → V → ℝ) (v : V) : ℝ :=
   (Fintype.card I : ℝ)⁻¹ * ∑ i, P i v
 
-/-- Радиус пластичности: sup KL(P i || mix P) — KL-шар
-смесевого центра, накрывающий локально достижимое
-семейство. -/
+/-- Радиус пластичности: `plasticityRadius P = Σ_i klDiv (P i) (famMix P)`. -/
 noncomputable def plasticityRadius (P : I → V → ℝ) : ℝ :=
   ∑ i, klDiv (P i) (famMix P)
 
-/-- Семейство вероятностных распределений. -/
+/-- `IsProbs P`: все значения неотрицательны и каждое `P i`
+суммируется в 1. -/
 def IsProbs (P : I → V → ℝ) : Prop :=
   (∀ i v, 0 ≤ P i v) ∧ (∀ i, ∑ v, P i v = 1)
 
-/-- **ЯДРО (смесь-центр)**: KL(P i || mix P) <= log |I| —
-равномерная смесь накрывает семейство KL-шаром радиуса
-log числа направлений (одношаговая градиентная
-досягаемость: |I| направлений ⟹ log |I| бит пластичности). -/
+/-- Если `IsProbs P`, все `P i v > 0` и все `famMix P v > 0`,
+то `klDiv (P i) (famMix P) ≤ log |I|`. -/
 theorem kl_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
     (hposP : ∀ i v, 0 < P i v)
     (hpos : ∀ v, 0 < famMix P v) (i : I) :
@@ -123,9 +102,8 @@ theorem kl_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
   linarith [hsumle, hrew, hfin2]
 
 
-/-- **Радиус <= log |I|**: средний по направлениям
-KL-радиус смеси накрывается log числа направлений —
-ёмкость пластичности локального шага. -/
+/-- Если `IsProbs P`, все значения `P i v` и `famMix P v`
+положительны, то `plasticityRadius P ≤ |I|·log |I|`. -/
 theorem radius_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
     (hposP : ∀ i v, 0 < P i v)
     (hpos : ∀ v, 0 < famMix P v)
@@ -142,9 +120,8 @@ theorem radius_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
     _ = (Fintype.card I : ℝ) * Real.log (Fintype.card I : ℝ) := by
         simp [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
 
-/-- **Мёртвый trunk**: вырожденное семейство (все локально
-достижимые распределения совпадают) имеет нулевой радиус —
-пластичность потеряна, Ledger обнуляется. -/
+/-- Если все `P i v > 0` и все `P i` равны, то
+`plasticityRadius P = 0`. -/
 theorem radius_zero_of_eq (P : I → V → ℝ)
     (hposP : ∀ i v, 0 < P i v)
     (hdeg : ∀ i j, P i = P j) :

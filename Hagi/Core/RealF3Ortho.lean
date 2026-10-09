@@ -8,9 +8,9 @@ set_option linter.style.header false
 /-!
 # Entry-level orthogonality of the real 6×6 F₃ lift
 
-Step 2 of the documented orthogonality route (STATUS.md R89):
-the block algebra `reBlock_mul_transpose` plus the character
-orthogonality collapse `reUnitMat * reUnitMatᵀ = 1`.
+`reUnitMat_mul_transpose`: the block algebra `reBlock_mul_transpose`
+plus the character orthogonality collapse to
+`reUnitMat * reUnitMatᵀ = 1`.
 -/
 
 open scoped Matrix
@@ -20,15 +20,14 @@ namespace Hagi.RealF3
 
 open Hagi
 
-/-- The character sum over the three branches vanishes for a
-nonzero frequency `w` (the `k = 1` instance of the character
-orthogonality `Hagi.sum_chi3_eq_zero`). -/
 theorem chi3_two : chi3 (2 : ZMod 3) = omega ^ 2 := by
   rw [chi3, show ((2 : ZMod 3).val = 2) from rfl]
 
 theorem chi3_four : chi3 (4 : ZMod 3) = omega := by
   rw [chi3, show ((4 : ZMod 3).val = 1) from rfl, pow_one]
 
+/-- The character sum over the three branches vanishes for a
+nonzero frequency `w`. -/
 theorem sum_chi3_branch_eq_zero {w : ZMod 3} (hw : w ≠ 0) :
     ∑ e : Fin 3, chi3 (w * branchZ e) = 0 := by
   have hv : w.val < 3 := ZMod.val_lt w
@@ -66,9 +65,8 @@ theorem reBlock_sum {α : Type*} [Fintype α] (f : α → ℂ) :
   fin_cases i <;> fin_cases j <;>
     simp [reBlock, Matrix.sum_apply]
 
-/-- **The entry-level orthogonality of the real F₃ lift** (R89
-step 2): the production 6×6 matrix `_f3_real_column_matrix_` is
-orthogonal — `reUnitMat * reUnitMatᵀ = 1`. -/
+/-- The real 6×6 F₃ lift is orthogonal:
+`reUnitMat * reUnitMatᵀ = 1`. -/
 theorem reUnitMat_mul_transpose :
     reUnitMat * reUnitMatᵀ
       = (1 : Matrix (Fin 3 × Fin 2) (Fin 3 × Fin 2) ℝ) := by

@@ -6,47 +6,22 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# Ridge re-solve: the optimality of the guarded normal equations
+# Ridge re-solve: optimality of the guarded normal equations
 
-This module formalizes the **W2 re-solve** step of the HAGI_v2
-terni4 recipe (`scripts/dsv4_refit_experts.py`, `ridge_optimal`):
-
-> before quantization W2 is re-solved in closed form (guarded ridge)
-> to best explain the expert's target outputs *at the already-
-> quantized W13* — a functional fit, not a weight fit.
-
-The row-wise problem solved by the guarded ridge is
+The row-wise ridge problem is
 
 `min_w  ‖X w − y‖² + λ ‖w‖²`,
 
-whose stationary point is given by the normal equations
+with the normal equation `Xᵀ (X w₀ − y) + λ w₀ = 0`
+(`ridgeNormalEq`).
 
-`Xᵀ (X w₀ − y) + λ w₀ = 0`.
-
-Formalized here:
-
-* `Hagi.ridge` — the ridge objective for one row: the squared
-  residual against the drifted targets plus the squared weight.
-* `Hagi.ridgeNormalEq` — the normal equation as a vector identity
-  (exactly what `ridge_optimal` solves: Gram `Xᵀ X + λ I`,
-  right-hand side `Xᵀ y`).
-* `Hagi.ridge_optimal` — **the normal equations are sufficient for
-  global optimality**: if `w*` satisfies the normal equation, then
-  for every `w`, `ridge w ≥ ridge w*`. The proof is the
-  complete-the-square decomposition: with `δ = w − w*`,
-
-  `ridge w = ridge w₀ + ‖X δ‖² + λ‖δ‖²`
-
-  — the cross term vanishes exactly by the normal equation, and the
-  two square terms are nonnegative (`λ ≥ 0`). The guard (pinv
-  fallback on a singular Gram) plays no role in optimality: any
-  solution of the normal equation is a global minimizer; the guard
-  only guarantees *existence* on ill-conditioned Grams.
-
-This is the closed-form half of "the error must be pushed out of
-W2": the re-solve provably extracts everything the (already
-quantized) upstream can explain, so whatever remains is genuinely
-fresh residual — the r_l_ of `Hagi.Core/ErrorProp`.
+* `ridge` — the objective: squared residual plus `λ` times the
+  squared weight.
+* `ridge_optimal` — the normal equations are sufficient for
+  global optimality: if `w₀` satisfies `ridgeNormalEq` and
+  `0 ≤ λ`, then `ridge X y lam w ≥ ridge X y lam w₀` for every
+  `w`. The proof is the complete-the-square decomposition with
+  `δ = w − w₀`; the cross term vanishes by the normal equation.
 -/
 
 open scoped Matrix
@@ -55,39 +30,25 @@ namespace Hagi
 
 variable {m n : Type*} [Fintype m] [Fintype n]
 
-/-- The ridge objective for one row of the re-solve: the squared
-residual of `X w` against the (drifted) target `y`, plus the
-squared weight. `X` collects the activations *as seen through the
-already-quantized upstream* (`dsv4_collect_seq.py`), `y` the
-expert's original outputs — the functional fit of the terni4
-recipe. -/
+/-- The ridge objective for one row: the squared residual of
+`X *ᵥ w` against the target `y`, plus `lam` times the squared
+weight. -/
 noncomputable def ridge (X : Matrix m n ℝ) (y : m → ℝ) (lam : ℝ)
     (w : n → ℝ) : ℝ :=
   ∑ i, ((X *ᵥ w) i - y i) ^ 2 + lam * ∑ j, w j * w j
 
 variable {X : Matrix m n ℝ} {y : m → ℝ} {lam : ℝ}
 
-/-- The normal equation of the ridge problem, stated as a vector
-identity: `Xᵀ (X w₀ − y) + λ w₀ = 0` — the stationarity condition
-that `ridge_optimal` solves (Gram `Xᵀ X + λ I`, right-hand
-side `Xᵀ y`). -/
+/-- The ridge normal equation `Xᵀ (X w − y) + λ • w = 0`. -/
 def ridgeNormalEq (X : Matrix m n ℝ) (y : m → ℝ) (lam : ℝ)
     (w : n → ℝ) : Prop :=
   Xᵀ *ᵥ ((X *ᵥ w) - y) + lam • w = 0
 
-/-- **The normal equations are sufficient for global optimality.**
-If `w*` satisfies the ridge normal equation, then every `w` has
-`ridge w ≥ ridge w*`. The proof is the complete-the-square
-decomposition
-
-`ridge w = ridge w₀ + ‖X (w − w₀)‖² + λ‖w − w*‖²`
-
-whose cross term vanishes exactly by the normal equation; the two
-square terms are nonnegative (`λ ≥ 0`). This formalizes why the W2
-re-solve step of the terni4 recipe is safe to do *before*
-quantization: the re-solved `W2` provably explains everything the
-quantized upstream can carry, and the residual it leaves is the
-fresh r_l_ of the telescopic error budget. -/
+/-- The normal equations are sufficient for global optimality:
+if `0 ≤ lam` and `w₀` satisfies `ridgeNormalEq X y lam w₀`, then
+`ridge X y lam w ≥ ridge X y lam w₀` for every `w`, by the
+complete-the-square decomposition (the cross term vanishes by the
+normal equation). -/
 theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
     (hne : ridgeNormalEq X y lam w₀) :
     ∀ w : n → ℝ, ridge X y lam w ≥ ridge X y lam w₀ := by

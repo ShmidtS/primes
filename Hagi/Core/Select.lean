@@ -8,44 +8,13 @@ set_option linter.style.header false
 /-!
 # Leaf selection: when ranking by standalone CE helps, and when it hurts
 
-The growth trigger of the concat ladder currently ranks *pool*
-candidates by standalone quality. This module fixes the two
-theoretical facts that the trigger must know, in the honest
-(positive-results) direction and in the negative (counterexample)
-direction.
-
-**Prescription for the code (the growth trigger).**
-
-1. The greedy-pool lemma (ensembleBound_greedy): under the
-   ensemble bound `CE(ensemble) ≤ mean CE(children)`, adding one
-   more leaf to the pool *never worsens the bound*: the merged CE
-   is at most the mean of the enlarged family. In particular,
-   pruning the pool by standalone CE cannot be justified by the
-   bound alone — the bound is monotone in the pool size, and
-   selection by CE is exactly the operation the bound does not
-   control.
-2. The counterexample (`selection_hurts`): ranking by standalone CE
-   can be *strictly harmful*. Three leaves over a two-token vocab,
-   targets balanced; leaf B perfectly calibrated on one token and
-   anti-calibrated on the other (`±log 8`), leaf C balanced-mild
-   (`±log 2`). The ensemble of B with a third leaf is strictly
-   worse than the ensemble of C with the same leaf — yet B has
-   *better standalone CE* than C in one of the positions. A pool
-   rule "keep the best standalone CE" would pick B over C and
-   strictly degrade the ensemble. Divergent leaves (high standalone
-   quality achieved by extreme, complementary logit patterns) are
-   the danger zone: their standalone CE rank is *uncorrelated* with
-   their ensemble contribution, and can be anti-correlated.
-
-So the trigger's rule must be: rank candidates by the *ensemble*
-criterion (run the merge, measure), not by standalone CE; the
-standalone CE is only a valid proxy in the regime where leaf
-errors are positively correlated and mild. The formal statement
-of that regime is the content of the `lse`-Jensen theory
-(`Hagi.ensemble_ce_le_mean`): the bound is controlled by the mean
-child CE — which is *independent of which leaves are chosen* —
-and the tightness gap (the Jensen gap) is what standalone ranking
-provably cannot see.
+* `meanBound_greedy` — adding a newcomer whose standalone CE is at
+  most the pool mean does not raise the mean-CE bound.
+* `selection_hurts` — counterexample: leaves `zB`, `zC` and
+  partner `zA` over a two-token vocab with
+  `ceOneHot t₁ zB < ceOneHot t₁ zC` (better standalone CE for
+  `zB`) yet `ceOneHot t₂ (ens zA zB) > ceOneHot t₂ (ens zA zC)`:
+  ranking by standalone CE can strictly hurt the ensemble.
 -/
 
 open scoped Matrix
@@ -85,40 +54,18 @@ end SelectionCounterexample
 section
 open SelectionCounterexample
 
-/-- **The greedy-pool lemma (mean-CE bookkeeping).** Adding a
-newcomer leaf to a pool of `N` leaves does not raise the mean-CE
-bound whenever the newcomer's standalone CE is at most the pool
-mean:
-
-`(pool mean - newcomer)/ (N+1) ≤ 0` iff `newcomer ≤ pool mean`.
-
-Combined with `ensemble_ce_le_mean` this is the *positive* half of
-the selection rule: growing the pool is certified-safe when the
-candidate is not worse than the current average; the bound is
-monotone in pool size and never certifies *pruning*. What the bound
-cannot see is the Jensen gap — and that is where selection by
-standalone CE can strictly hurt (`selection_hurts` below). -/
+/-- If `newcomer ≤ mean`, then `(N * mean + newcomer) / (N + 1)
+≤ mean`: adding the newcomer does not raise the mean. -/
 theorem meanBound_greedy {N : ℕ} (mean newcomer : ℝ)
     (h : newcomer ≤ mean) :
     (N * mean + newcomer) / (N + 1) ≤ mean := by
   field_simp
   linarith
 
-/-- **Selection by standalone CE can strictly hurt the ensemble.**
-There is a pool of two candidate leaves (`zB`, `zC`) and a fixed
-partner (`zA`) such that:
-
-* the standalone CE of `zB` is *better* (smaller) than that of
-  `zC` on position 1 — the ranking says: keep `zB`, prune `zC`;
-* and yet the ensemble `ens zA zB` has *strictly larger* CE than
-  `ens zA zC` on position 2 — executing the ranking degrades the
-  ensemble.
-
-So a "keep the best standalone CE" rule is not even *weakly*
-optimal: the standalone rank and the ensemble contribution are
-uncorrelated, and the anti-correlated (divergent-leaf) regime
-exists. The trigger must rank by the ensemble criterion, not the
-standalone one. See the module docstring for the prescription. -/
+/-- Counterexample to selection by standalone CE: `zB` has
+strictly better standalone CE than `zC` on position 1, yet the
+ensemble of `zB` with the partner `zA` has strictly worse CE than
+the ensemble of `zC` with the same partner on position 2. -/
 theorem selection_hurts :
     ceOneHot t₁ zB < ceOneHot t₁ zC ∧
     ceOneHot t₂ (ens zA zB) > ceOneHot t₂ (ens zA zC) := by

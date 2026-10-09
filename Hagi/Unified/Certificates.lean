@@ -5,49 +5,20 @@ import Mathlib
 import Hagi.Foundations.Potential
 
 /-!
-# Certificates — per-stage certificates instead of the
-CorePremises conjunction (R258; architecture audit P0-4/5,
-stage 0 — "the most important theoretical upgrade")
+# Certificates — typed per-stage certificates
 
-The audit's central architectural demand: replace the giant
-`CorePremises` conjunction with TYPED per-stage
-certificates, so the end-to-end chain becomes
+Per-stage measured (h_emp_-contract) structures:
+`GrowCertificate`, `MergeCertificate`, `JointCertificate`
+(SafeQP alignment + quadratic slack), `CompressionCertificate`
+(energy increases by at most `kappa * qerr`),
+`GeneralizationCertificate` (probe drop `epsQ ≥ 0`), and the
+chained bundle `CycleCertificate` (each stage's pre-state is
+the previous stage's post-state).
 
-  implementation → local certificate → cycle certificate
-  → global invariant
-
-instead of "premise is assumed → global theorem". Stage 0:
-this module defines the certificate structures alongside
-the existing CorePremises (nothing deleted); MasterHAGI
-migrates onto them in a later stage.
-
-Structures (each field is a MEASURED contract — the
-h_emp_ layer — now with a name and a type):
-
-* `GrowCertificate` — the grow stage: nonneg capability
-  gain, energy drop by the gain, nonneg risk;
-* `MergeCertificate` — the merge stage: gap ≥ 0, energy
-  drop by the gap, nonneg risk;
-* `JointCertificate` — the safe joint step: the SafeQP
-  alignment (‖d‖² ≤ ⟪g,d⟫) and the quadratic-model slack;
-* `CompressionCertificate` — the compress stage: the
-  quantization error with the κ-slack (compression ADDS
-  at most κ·qerr of energy);
-* `GeneralizationCertificate` — the probe drop ε_Q ≥ 0;
-* `CycleCertificate` — the bundle + the stage-chaining
-  fields (each certificate's pre-state IS the previous
-  stage's post-state — definitional plumbing).
-
-Main theorem:
-
-* `cycle_certificate_sound` — ONE certified cycle
-  decreases the HAGI potential Φ = E + λR +
-  ν·max(0, Q_target − Q) whenever the risk/quality price
-  is covered by the certified net decrease:
-
-    λ·(total risk) + ν·ε_Q ≤ dec  ⟹  Φ' ≤ Φ,
-
-  where dec = gap + η·⟪g,d⟫ − (L/2)η²‖d‖² − κ·qerr.
+`cycle_certificate_sound`: one certified cycle decreases the
+potential Φ = E + λR + ν·max(0, Q_target − Q) whenever
+`λ·(total risk) + ν·ε_Q ≤ dec` with
+`dec = gap + η·⟪g,d⟫ − (L/2)η²‖d‖² − κ·qerr`.
 -/
 
 open scoped BigOperators
@@ -147,17 +118,11 @@ lemma penalty_drop_bound (qTarget q q' epsQ : ℝ)
   · rw [max_eq_right h]; exact hkey
   · rw [max_eq_left h]; positivity
 
-/-- **CYCLE CERTIFICATE SOUNDNESS**: one certified cycle
-decreases the HAGI potential Φ = E + λR + ν·max(0,Q_target−Q)
-whenever the risk/quality price is covered by the
-certified net decrease dec = gap + η·⟪g,d⟫ − (L/2)η²‖d‖²
-− κ·qerr:
-
-  λ·(total risk) + ν·ε_Q ≤ dec  ⟹  Φ' ≤ Φ.
-
-The end-to-end contract of the audit's stage-6 upgrade: an
-implementation supplies the five LOCAL certificates; the
-global theory does the rest. -/
+/-- For a chained `CycleCertificate` with `lam, nu ≥ 0` and
+price coverage `lam·(grow.risk + merge.risk + joint.risk) +
+nu·epsQ ≤ dec` (dec as in the statement), the post-cycle
+potential satisfies Φ' ≤ Φ for
+`hagiPotential E R nu qTarget q lam`. -/
 theorem cycle_certificate_sound
     (cert : CycleCertificate)
     (lam nu qTarget q R : ℝ)

@@ -9,18 +9,9 @@ set_option linter.style.header false
 /-!
 # Foundations.Recurrence — каноническая рекуррентная лемма
 
-Миграция-2026-10-05 (аудит графа импортов): одна пара лемм
-для линейной рекурренты x_{t+1} <= rho * x_t + c на ГОРИЗОНТЕ
-t < T — вместо 8+ разрозненных копий (Audit.Foundations.
-anchor_recurrence, Dynamics.Contraction, Data.DistillRecursion,
-JointPreserve.diversity_floor, Growth.SeedOnly.disp_recurrence_,
-Saturation.pl_gap_geometric, GainRenewal.gain_renewal_recurrence,
-Energy.FreeEnergy.geometric_pool_identity — переводятся
-постепенно).
-
-Горизонт T — В САМОЙ ЛЕММЕ (посылки только при t < T):
-ошибка квантификации по всем t не воспроизводится в новых
-капстоунах.
+Канонические леммы для линейной рекурренты
+`x_{t+1} ≤ rho * x_t + c` на горизонте `t < T`: посылки
+только при `t < T`, горизонт `T` — в самой лемме.
 -/
 
 open Finset Real
@@ -148,9 +139,8 @@ theorem recurrence_lower (x : ℕ → ℝ) (T : ℕ)
           _ ≤ x (t + 1) := hs
   exact hmain T (le_refl T)
 
-/-- Геометрическая хвостовая граница: для γ ∈ [0,1) конечная
-геометрическая сумма ≤ 1/(1−γ). Перенос из Dynamics/Contraction
-(R172); телескоп — канонический `geom_telescope`. -/
+/-- Геометрическая хвостовая граница: для `rho ∈ [0,1)`
+конечная геометрическая сумма `∑ i < T, rho ^ i ≤ 1 / (1 - rho)`. -/
 theorem geom_sum_le_inv (T : ℕ)
     (hrho : 0 ≤ rho) (hrho1 : rho < 1) :
     ∑ i ∈ Finset.range T, rho ^ i ≤ 1 / (1 - rho) := by
@@ -168,10 +158,8 @@ theorem geom_sum_le_inv (T : ℕ)
   have hdiv : (1 / (1 - rho)) * (1 - rho) = 1 := by field_simp
   nlinarith [hmono, hpos]
 
-/-- **Предел сжатия**: γ-сжатие с δ-остатком
-(E_{t+1} ≤ γE_t + δ, γ < 1) загоняет энергию в δ/(1−γ)-шар
-экспоненциально: E T ≤ γ^T·E_0 + δ/(1−γ). Перенос из
-Dynamics/Contraction (R172); ∀t-форма сохранена. -/
+/-- Предел сжатия: если `x (t + 1) ≤ rho * x t + delta` для
+всех `t` и `rho < 1`, то `x T ≤ rho ^ T * x 0 + delta / (1 - rho)`. -/
 theorem contraction_limit (x : ℕ → ℝ) (delta : ℝ) (T : ℕ)
     (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hdelta : 0 ≤ delta)
     (hstep : ∀ t, x (t + 1) ≤ rho * x t + delta) :
@@ -227,12 +215,9 @@ theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
         linarith [ih]
       linarith [h2, hgoal]
 
-/-- **The death law of the recursion.** If the sibling
-disagreement evolves as `G_{t+1} ≤ ρ G_t + D` with `0 ≤ ρ < 1`,
-then every `G_t` is bounded by the fixed point `G* = D/(1 − ρ)`:
-the recursion's stationary disagreement. The recursion dies
-exactly when `G* < ε` — the fresh leaves can no longer
-disagree above the floor. -/
+/-- If `G (t + 1) ≤ ρ * G t + D` for all `t` with
+`0 ≤ ρ < 1` and `G 0 ≤ G₀`, then
+`G t ≤ ρ ^ t * G₀ + D * (1 - ρ ^ t) / (1 - ρ)` for every `t`. -/
 theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
     (_hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)
     (hstep : ∀ t, G (t + 1) ≤ ρ * G t + D) :

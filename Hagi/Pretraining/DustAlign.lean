@@ -8,7 +8,7 @@ import Hagi.Pretraining.DustVarK
 set_option linter.style.header false
 
 /-!
-# DustAlign: the alignment law (R187 — bridge E)
+# DustAlign: the alignment law
 
 The theoretical form of Dust's measured cosine law
 cos(K) = c_max/√(1+c/K) (Fig. 5): the two-draw averaged
@@ -18,19 +18,19 @@ explicitly bounded failure probability.
 Geometry (dotProduct norms, no matrix machinery):
 
 * `absDot_le`: |⟨a,b⟩| ≤ ‖a‖·‖b‖ (Cauchy–Schwarz in
-  square-root form — from the squared CS of R182).
+  square-root form — from the squared CS of).
 * `nrmTriangle`: ‖a+b‖ ≤ ‖a‖+‖b‖.
 * `alignLower`: if the error is relatively small
   (‖e‖ ≤ δ·‖g‖, δ ≤ 1), the alignment dominates its floor:
   ⟨g, g+e⟩ ≥ (1−2δ)·‖g‖·‖g+e‖ — the multiplicative
   cosine bound without ever dividing by norms.
 
-Probability (Markov on the pair space, welded by R185):
+Probability (Markov on the pair space, welded by):
 
 * `dustAlignment`: on the two-draw pair space, the averaged
   estimate ĝ satisfies ⟨g, ĝ⟩ ≥ (1−2δ)‖g‖‖ĝ‖ except on a
   pair set of q-mass ≤ V/(δ²·‖g‖²), where V = E‖ĝ−g‖² is
-  the (halved, R184) estimator error energy. Failure decays
+  the (halved,) estimator error energy. Failure decays
   as 1/K in the population — the proved shape of Fig. 5.
 -/
 
@@ -135,7 +135,7 @@ theorem alignLower {n : ℕ} (g e : Fin n → ℝ) (δ : ℝ)
 /-- **The alignment law (bridge E)**: on the two-draw pair
 space, the averaged zeroth-order estimate ĝ satisfies the
 alignment floor ⟨g, ĝ⟩ ≥ (1−2δ)·‖g‖·‖ĝ‖ except on a pair set
-of q-mass ≤ V/(δ²·‖g‖²), where V = E‖ĝ−g‖² — by R184 the
+of q-mass ≤ V/(δ²·‖g‖²), where V = E‖ĝ−g‖² — by the
 (halved) single-draw error energy. Failure probability decays
 as 1/K in the population: the proved shape of Dust's
 cos(K) = c_max/√(1+c/K) law. -/

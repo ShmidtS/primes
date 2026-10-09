@@ -111,7 +111,7 @@ section NSIter
 /-- **The NS iteration bound** (review item 2): the per-step
 contraction σ_{k+1} ≤ a·σ_k (the composition of
 `Plan41.ns_poly_bound` with the [0,1]-invariant on the
-iterate) implies σ_k ≤ a^k·σ₀ for EVERY k — the geometric
+iterate) implies σ_k ≤ a^k·σ₀ for every k — the geometric
 decay of the whole trajectory. With a = 3.4445 (the measured
 polynomial coefficient) and the reviewer's numerical
 verification (k = ⌈ln(σ_target/σ₀)/ln a⌉ matches the actual
@@ -120,7 +120,7 @@ counts 2..7 for σ₀ = 10⁻¹..10⁻⁴), the k(σ_min) rule for
 "spread 74 → 890 in 3 steps ≈ 3.4445³" reading was WRONG
 (3.4445³ = 40.9 ≠ 12); the correct mechanism is the a-fold
 per-iteration contraction on the INVARIANT range, and at
-ns_steps = 5 the directions with σ_i/‖X‖_F ≲ 10⁻³ do NOT
+ns_steps = 5 the directions with σ_i/‖X‖_F ≲ 10⁻³ do not
 reach 0.5 (σ₀ = 10⁻³ gives 0.47) — the per-matrix ρ audit
 prescription stands. -/
 theorem ns_iter_bound (a : ℝ) (sigma : ℕ → ℝ) (ha : 0 < a)

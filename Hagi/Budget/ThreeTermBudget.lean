@@ -9,7 +9,7 @@ the three-term law 2607.01487's structural core)
 
 The three-term law L = E + A/N^α + B/M^β + C/K^γ predicts
 optimal budget splits. This module proves the α = β = 1
-STRUCTURAL CORE exactly (the AM-GM regime):
+STRUCTURAL core exactly (the AM-GM regime):
 
 * `two_term_amgm`: for positive A, C and budgets N, K with
   N·K = B: the reducible error A/N + C/K ≥ 2·√(AC/B), with
@@ -24,7 +24,7 @@ STRUCTURAL CORE exactly (the AM-GM regime):
   error — the price of imbalance is explicit.
 
 Honest boundary: the exponents α ≠ β regimes (the full
-three-term fit with model size M) are NOT proved — the
+three-term fit with model size M) are not proved — the
 module covers the two-term data/steps tradeoff only.
 -/
 

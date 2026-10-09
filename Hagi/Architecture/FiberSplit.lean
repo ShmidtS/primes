@@ -6,53 +6,35 @@ import Hagi.Architecture.CortexFiber
 set_option linter.style.header false
 
 /-!
-# FiberSplit: every expert fiber decomposes into a cortex
-part and a genuinely new direction (R183)
+# FiberSplit: the cortex ⊕ new-direction decomposition of a fiber
 
-The geometric Grow law of the cortex⊕fiber architecture: for
-any expert fiber matrix A and any shared cortex basis U
-(orthonormal columns), the projection identity
+For an orthonormal cortex basis `U` and any fiber matrix `A`,
+the projection identity
+`A = U * (Uᵀ * A) + (A - U * (Uᵀ * A))` splits the fiber into a
+cortex-embedded part and a residual:
 
-  A = U · (Uᵀ A) + R,   where R = A − U·(UᵀA),
-
-splits the fiber into a cortex-embedded part U·(UᵀA) and a
-residual R whose cortex coordinates are EXACTLY zero:
-
-* `fiberSplitOrtho`: Uᵀ R = 0 — the residual is orthogonal to
-  the cortex by construction (the "expert either uses existing
-  cortex directions or adds a genuinely new orthogonal
-  subspace" law, as a theorem, no hypothesis beyond IsOrthoCol
-  U).
-* `fiberActionNoInterference`: the ACTION decomposition
-  inherits the no-cross-talk law: ⟨U z, R x⟩ = 0 for all
-  z, x — the cortex part and the new-direction part of the
-  expert's action never interfere (R181 `fiberCross`
-  instantiated at the split); by `fiberPythagoras` their
-  energies add exactly.
-
-Grow = adding R-directions; Merge = moving UᵀA-parts into the
-cortex and aligning residuals — the algebraic skeleton of the
-HAGI cycle.
+* `fiberSplitOrtho` — the residual is orthogonal to the cortex:
+  `Uᵀ * (A - U * (Uᵀ * A)) = 0`.
+* `fiberActionNoInterference` — the two parts of the action
+  never interfere: `(U *ᵥ z) ⬝ᵥ ((A - U * (Uᵀ * A)) *ᵥ x) = 0`.
+* `fiberSplitEnergy` — the energies add exactly, with no cross
+  term.
 -/
 
 namespace Hagi.Cortex
 
 open Finset Matrix
 
-/-- **The cortex split**: the residual of the cortex
-projection is orthogonal to the cortex exactly — Uᵀ(A −
-U·(UᵀA)) = 0. Every expert fiber is a cortex part plus a
-genuinely new direction; nothing leaks. -/
+/-- The residual of the cortex projection is orthogonal to
+the cortex: `Uᵀ * (A - U * (Uᵀ * A)) = 0`. -/
 theorem fiberSplitOrtho {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (hU : IsOrthoCol U) (A : Matrix (Fin d) (Fin r) ℝ) :
     Uᵀ * (A - U * (Uᵀ * A)) = 0 := by
   rw [Matrix.mul_sub, ← Matrix.mul_assoc, ← Matrix.mul_assoc, hU,
     Matrix.one_mul, sub_self]
 
-/-- **No interference at the split**: the cortex part and the
-new-direction part of the expert action have exactly zero
-cross inner product — Grow adds directions that the cortex
-never fights. -/
+/-- The cortex part and the residual part of the action have
+zero cross inner product. -/
 theorem fiberActionNoInterference {d c r : ℕ}
     (U : Matrix (Fin d) (Fin c) ℝ) (hU : IsOrthoCol U)
     (A : Matrix (Fin d) (Fin r) ℝ)
@@ -61,13 +43,9 @@ theorem fiberActionNoInterference {d c r : ℕ}
   refine fiberCross U (A - U * (Uᵀ * A)) ?_ z x
   exact fiberSplitOrtho U hU A
 
-/-- **The split energy law**: the expert's action energy
-decomposes EXACTLY as
-‖A x‖² = ‖(UᵀA) x‖² + ‖(A − U·(UᵀA)) x‖² — the cortex
-coordinate part plus the new-direction part, no cross term
-(the Grow bookkeeping: what the expert does inside the cortex
-and what it adds outside are exactly separable; merging the
-cortex part back is free by construction). -/
+/-- The action energy decomposes without a cross term:
+`(A *ᵥ x) ⬝ᵥ (A *ᵥ x) = ((Uᵀ * A) *ᵥ x) ⬝ᵥ ((Uᵀ * A) *ᵥ x) +
+((A - U * (Uᵀ * A)) *ᵥ x) ⬝ᵥ ((A - U * (Uᵀ * A)) *ᵥ x)`. -/
 theorem fiberSplitEnergy {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (hU : IsOrthoCol U) (A : Matrix (Fin d) (Fin r) ℝ)
     (x : Fin r → ℝ) :

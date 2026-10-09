@@ -6,24 +6,16 @@ set_option linter.style.header false
 
 
 /-!
-# Sylvester (Walsh) Hadamard matrices of the HAGI cross-expert mixer
+# Sylvester (Walsh) Hadamard matrices
 
-This module formalizes the Hadamard part of the HAGI_v2 merge mechanism
-(`src/hagi/model/merge.py`, GROWING_HYPOTHESIS.md Part V "Hadamard
-Cross-Expert Mixer"):
+The Sylvester Hadamard matrix of order `2^k` in Walsh character form
+on bit vectors `Fin k → ZMod 2` (equivalent to the recursive
+definition `H_1 = [1]`, `H_{2n} = [[H_n, H_n], [H_n, -H_n]]`, up to
+the canonical reindexing `Fin (2^k) ≃ (Fin k → ZMod 2)`):
 
-* the Sylvester Hadamard matrix `H` of order `2^k` (Walsh character form,
-  indexed by bit vectors `Fin k → ZMod 2`, the canonical reindexing of
-  `Fin (2^k)`) satisfies `H * Hᵀ = 2^k • 1`, hence `H / √(2^k)` is an
-  orthonormal matrix — "a pure permutation of the expert axis … it adds
-  no information, only re-mixes it";
-* every entry has modulus `1 / √(2^k)` — uniform mixing, no blind
-  channels.
-
-The Python definition is the recursion
-`H_1 = [1]`, `H_{2n} = [[H_n, H_n], [H_n, -H_n]]`; here we use the
-equivalent closed (character) form `H i j = (-1)^{⟨i, j⟩}` with the
-`ZMod 2` dot product `⟨i, j⟩ = ∑ l, i l * j l`.
+* `sylvester_mul_transpose` — `H * Hᵀ = 2^k • 1`;
+* `hadamardOrthonormal_mul_transpose` — hence
+  `H / √(2^k)` is orthonormal.
 -/
 
 open scoped Matrix
@@ -69,9 +61,8 @@ theorem chi2_mul (a b : ZMod 2) : chi2 a * chi2 b = chi2 (a + b) := by
 variable (k : ℕ)
 
 /-- The Sylvester Hadamard matrix of order `2^k` in Walsh (character)
-form: `H i j = χ (⟨i, j⟩)` where `⟨i, j⟩ = ∑ l, i l * j l` in `ZMod 2`.
-Equivalent to the recursive `H_{2n} = [[H_n, H_n], [H_n, -H_n]]`
-definition used in `src/hagi/model/merge.py` (up to the canonical
+form: `H i j = chi2 (∑ l, i l * j l)`. Equivalent to the recursive
+`H_{2n} = [[H_n, H_n], [H_n, -H_n]]` definition (up to the canonical
 reindexing `Fin (2^k) ≃ (Fin k → ZMod 2)`). -/
 def sylvester : Matrix (Fin k → ZMod 2) (Fin k → ZMod 2) ℤ :=
   fun i j => chi2 (∑ l, i l * j l)
@@ -152,9 +143,8 @@ theorem sum_chi2_eq_zero {w : Fin k → ZMod 2} (hw : w ≠ 0) :
     linarith
   exact (mul_eq_zero.mp hzero).resolve_left (by norm_num)
 
-/-- **Sylvester orthogonality**: `H * Hᵀ = 2^k • 1`, so `H / √(2^k)` is
-an orthonormal matrix. This is the mathematical core of the Hadamard
-cross-expert mixer (`Q = H_n / √n` in GROWING_HYPOTHESIS.md Part V). -/
+/-- Sylvester orthogonality: `sylvester k * (sylvester k)ᵀ =
+(2 ^ k : ℤ) • 1`, so `H / √(2^k)` is orthonormal. -/
 theorem sylvester_mul_transpose :
     sylvester k * (sylvester k)ᵀ = (2 ^ k : ℤ) • 1 := by
   ext i j
@@ -220,8 +210,8 @@ theorem smul_orthonormal {m : Type*} [Fintype m] [DecidableEq m]
   rw [Matrix.smul_mul, Matrix.transpose_smul, Matrix.mul_smul, smul_smul,
     hd, smul_smul, hc, one_smul]
 
-/-- **The mixer matrix is orthonormal**: `Q * Qᵀ = 1` for
-`Q = H / √(2^k)`. Uniform mixing with no blind channels. -/
+/-- The scaled matrix `H / √(2^k)` is orthonormal:
+`hadamardOrthonormal k * (hadamardOrthonormal k)ᵀ = 1`. -/
 theorem hadamardOrthonormal_mul_transpose :
     hadamardOrthonormal k * (hadamardOrthonormal k)ᵀ = 1 := by
   have hpos : 0 < (2 ^ k : ℝ) := pow_pos (by norm_num) _

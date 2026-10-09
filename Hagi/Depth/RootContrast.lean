@@ -8,70 +8,20 @@ set_option linter.style.header false
 /-!
 # RootContrast: the lossless hierarchical channel root ⊕ contrast
 
-The depth-1 F3 loss (+0.028 nats vs flat, the only measured
-tree-vs-flat point) decomposed: root_share = 0.796 measured
-(anova_split), so 0.204 of the energy lives in the contrast
-subspace the root cortex CANNOT see (F3Root: the root cortex
-is literally mean(x₁,…,x_n); the contrast part is destroyed
-by construction). The question: is a contrast-HIGHWAY worth
-it? Three theorems + one certificate.
+The root/contrast split: `rootPart x` is the constant mean
+family, `contrastPart x = x - rootPart x` the centered part.
 
-**T1 — `root_idem`, `contrast_zero_sum`, `contrast_of_root`,
-`root_contrast_orth_total`, `root_contrast_pythagoras`**:
-the root/contrast split (rootPart x = the constant mean
-family; contrastPart x = x − rootPart x) is a LOSSLESS pair
-of complementary projections: root is idempotent, contrast
-sums to zero (the centering), contrast kills root, the two
-parts are ORTHOGONAL in total (Σᵢ⟨rᵢ,cᵢ⟩ = 0), and the
-energy splits exactly (Pythagoras: Σ‖xᵢ‖² = Σ‖r‖² + Σ‖c‖²).
-No information is lost by the (z_root, z_contrast) pair —
-the +0.028 loss is NOT the split's fault: it is the root-only
-CORK'S fault (T2 quantifies exactly this).
-
-**T2 — `highway_gain_identity`**: with the contrast spectrum
-(σ_j) measured, the highway's advantage over root-only at the
-same rank budget is EXACTLY the captured contrast energy:
-E_rootonly(r) − E_highway(r) = Σ_{j≤r_c} σ_j² (the
-complement of the spectral tail ρ_c(r_c)). The identity is
-the finite-sum partition (filter_partition_sum); the tail
-monotonicity is `DesignOpt.spectral_tail_mono`.
-
-**T3 — the two-block rank rule (documented corollary of
-`waterfilling_optimal`)**: at fixed r = r_root + r_c the
-optimal allocation equalizes the σ-marginals ACROSS blocks;
-the extreme cases: a FLAT contrast tail near r (the
-ComputeBudget observation) sends all rank to root (highway
-useless); a sharp knee makes the highway MANDATORY.
-
-**C — the go/no-go certificate (definition + the link)**:
-measure the spectra of Σ_leaves = [h₁−h̄ | … | h_n−h̄] on a
-calibration batch (one inference pass, no training). SEMANTICS
-FIXED (round 46): ρ has TWO distinct normalized quantities —
-`rhoTail r = E_tail(r)/E_total` (the UNCAPTURED fraction) and
-`rhoCaptured r = E_captured(r)/E_total = 1 − rhoTail` — and
-the highway gain is `E_total · rhoCaptured(r_c)`, NOT the
-tail ratio. GO ⟺ E_total·rhoCaptured(64) ≥ ε_move (the
-captured energy exceeds the movement cost threshold); the
-earlier note "ρ_c=0.1701 → GO because ρ_c > 0.028" mixed the
-two: 0.1701 is rhoTail(64), so captured = 0.8299·E_total —
-the GO verdict stands but through the correct quantity.
-
-**Falsification (mandatory)**: the blind prediction for the
-depth-1-highway run: Δ(F3-highway − F3-root-only) ≈ ρ_c(r_c)
-in nats (T2). If the measured gain is < half the prediction
-at nonzero ρ_c, T2 fails in this form — audit the
-multi-layer channel interaction (the ErrorProp α-decay
-between cortex levels is the likely hole).
-
-**Prescription for the code.**
-1. merge.py: the contrast-highway RecursiveF3HAGI variant —
-   cortex takes (z_root, z_contrast) with separate low-rank
-   channels; ranks from the measured spectrum (T3), not tuned.
-2. The certificate BEFORE any GPU: ρ_c(64) from one
-   calibration inference; GO ⟺ ρ_c(64) ≤ 0.028.
-3. Q-parametrization P_root + P_contrast·e^K (K
-   skew-symmetric, low-rank) if trainable contrast rotations
-   are needed: automatic orthogonality + root preservation.
+* T1 (`root_idem`, `contrast_zero_sum`, `contrast_of_root`,
+  `root_contrast_orth_total`, `root_contrast_pythagoras`) —
+  the split is a lossless pair of complementary projections:
+  root idempotent, contrast zero-sum, parts orthogonal, energy
+  splits exactly (Pythagoras).
+* T2 (`filter_partition_sum`, `highway_gain_identity`) — the
+  highway's advantage over root-only at the same rank budget
+  is exactly the captured contrast energy
+  `∑_{j < r_c} s j ^ 2`.
+* `rhoCaptured` / `rhoTail` / `rho_partition` — the captured
+  and tail fractions of the contrast spectral energy sum to 1.
 -/
 
 open Finset InnerProductSpace Real
@@ -196,17 +146,10 @@ theorem filter_partition_sum (m : ℕ) (s : ℕ → ℝ) (r : ℕ) :
     rw [heq] at ha
     omega
 
-/-- **T2 — the highway gain identity**: with the contrast
-spectrum (s j) (the σ-values of Σ_leaves, measured), the
-root-only error at budget r is E_root(r) + C_total (the
-ENTIRE contrast energy is error — root cannot see it), and
-the highway error is E_root(r) + tail(r_c). The GAIN is
-EXACTLY the captured contrast energy:
-
-  E_rootonly(r) − E_highway(r) = Σ_{j<r_c} s_j²  (= C_total − ρ_c(r_c)).
-
-The blind prediction: Δ(F3-highway − F3-root-only) ≈
-captared(r_c) in nats — the mandatory falsification test. -/
+/-- The highway gain identity: the root-only error
+`E_root r_root + ∑ s j ^ 2` minus the highway error
+`E_root r_root + tail(r_c)` equals exactly the captured
+contrast energy `∑_{j < r_c} s j ^ 2`. -/
 theorem highway_gain_identity (m : ℕ) (s : ℕ → ℝ) (E_root : ℕ → ℝ)
     (r_root r_c : ℕ)
     -- E_root: the root block's own best-approx error (measured input)
@@ -234,11 +177,8 @@ noncomputable def rhoTail (m : ℕ) (s : ℕ → ℝ) (r : ℕ) : ℝ :=
   (∑ j ∈ (Finset.range m).filter (fun j => r ≤ j), s j^2)
     / (∑ j ∈ Finset.range m, s j^2)
 
-/-- **The ρ-partition (the round-46 semantics fix)**: the two
-normalized fractions sum to exactly 1 — captured + tail =
-total. The highway gain of T2 is E_total·rhoCaptured(r_c);
-rhoTail is the residual loss. GO ⟺ E_total·rhoCaptured ≥
-ε_move — never the tail ratio against the threshold. -/
+/-- The two normalized fractions sum to one:
+`rhoCaptured m s r + rhoTail m s r = 1`. -/
 theorem rho_partition (m : ℕ) (s : ℕ → ℝ) (r : ℕ)
     (hpos : (0:ℝ) < ∑ j ∈ Finset.range m, s j^2) :
     rhoCaptured m s r + rhoTail m s r = 1 := by

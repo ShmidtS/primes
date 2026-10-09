@@ -7,7 +7,7 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R77: the PAC-Bayes core (roadmap #5) — Gibbs variational inequality
+# the PAC-Bayes core (roadmap #5) — Gibbs variational inequality
 
 The change-of-measure lemma underlying every PAC-Bayes bound,
 proved DETERMINISTICALLY on a finite hypothesis class:

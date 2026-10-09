@@ -8,7 +8,7 @@ set_option linter.style.header false
 
 /-!
 # DustCert: the batch-noise chain closes on the zeroth-order
-estimator (R185 — bridge A, second half)
+estimator
 
 The KLS batch-noise theorem (`klsBatchNoise`) takes two
 statistical hypotheses: centeredness and pairwise
@@ -29,7 +29,7 @@ relevant pieces are THEOREMS:
   centeredness of the estimator error is `esUnbiased`).
 
 Honest boundary: the Poincaré premise and the sensitivity
-bound of the KLS interface remain hypotheses (R179); the
+bound of the KLS interface remain hypotheses; the
 quadratic-model restriction is inherited from `esUnbiased`.
 -/
 
@@ -103,7 +103,7 @@ centered error field is uncorrelated with ANY second field
 under the pair measure — E[φ(u)·ψ(v)] = 0 whenever Σφ = 0.
 For the zeroth-order estimator the centeredness of the
 coordinate error is `esUnbiased`; this is the huncorr
-hypothesis of `klsBatchNoise` promoted to a THEOREM. -/
+hypothesis of `klsBatchNoise` promoted to a theorem. -/
 theorem dustUncorrPair (d : ℕ) (φ ψ : HC d → ℝ)
     (hφ : ∑ u ∈ (Finset.univ : Finset (HC d)), φ u = 0) :
     KLS.expQ (pairQ d) (fun p => φ p.1 * ψ p.2) = 0 := by

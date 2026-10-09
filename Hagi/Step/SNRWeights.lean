@@ -4,27 +4,16 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# SNRWeights — uniform orthogonalization overweights noise
-(plan §2 R230; source 2607.16169 HTMuon/Pion; analysis link
-R225: the SNR regime split of the NS polynomial error)
+# SNRWeights — равномерная ортогонализация перевешивает шум
 
-Uniform (msign) orthogonalization treats every singular
-direction equally: a noise direction with tiny signal gets
-the SAME weight as a clean direction. The SNR-aware
-transform weights directions by confidence. The accounting:
-
-* `uniform_is_mean`: uniform weighting (1/r each) achieves
-  exactly the MEAN squared deviation — the noise floor of
-  uniform orthogonalization;
-* `focused_beats_uniform`: concentrating the weight on the
-  below-mean directions gives a weighted deviation STRICTLY
-  under the uniform mean (whenever some direction is
-  strictly below mean) — the existence statement: SNR-aware
-  weighting is never worse and strictly better when the
-  spectrum is non-degenerate. NOT proved here: which
-  weighting an implementable transform realizes (the
-  polynomial design); this module proves the TARGET is
-  better, i.e. the motivation, not the mechanism.
+* `uniform_is_mean`: при равных весах `1/r` взвешенная сумма
+  квадратов отклонений равна среднему;
+* `focused_beats_uniform`: если у какого-то направления j
+  отклонение строго ниже среднего, существует распределение
+  веса `v` (неотрицательное, суммирующееся в 1) с
+  `Σ v i·(dev i)² < Σ (dev i)²/r` — целевой SNR-вес строго
+  лучше равномерного. Реализуемость такого веса конкретным
+  преобразованием (полиномиальный дизайн) — не доказана.
 -/
 
 namespace Hagi
@@ -33,21 +22,17 @@ open Finset
 
 variable {r : ℕ} [NeZero r]
 
-/-- **Uniform weighting is the mean**: with equal weights
-1/r the weighted squared deviation is exactly the arithmetic
-mean — the noise floor of uniform (msign)
-orthogonalization. -/
+/-- `Σ_i (1/r)·(dev i)² = (Σ_i (dev i)²)/r` — равномерный вес
+даёт точно среднее. -/
 theorem uniform_is_mean (dev : Fin r → ℝ) :
     ∑ i, (1 / (r : ℝ)) * (dev i)^2
       = (∑ i, (dev i)^2) / r := by
   rw [← Finset.mul_sum]
   field_simp
 
-/-- **Focused weighting beats uniform**: if some direction j
-has deviation strictly below the mean, concentrating weight
-on j gives weighted deviation strictly under the uniform
-mean — the SNR-aware target strictly dominates the uniform
-floor whenever the spectrum is non-degenerate. -/
+/-- Если `(dev j)² < mean = (Σ (dev i)²)/r`, то существует
+`v : Fin r → ℝ` с `0 ≤ v i`, `Σ v i = 1` и
+`Σ v i·(dev i)² < (Σ (dev i)²)/r`. -/
 theorem focused_beats_uniform (dev : Fin r → ℝ)
     (hdev : ∀ i, 0 ≤ (dev i)^2)
     (mean : ℝ) (hmean : mean = (∑ i, (dev i)^2) / r)

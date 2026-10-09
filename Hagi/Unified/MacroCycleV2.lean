@@ -6,54 +6,20 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# MacroCycleV2: the engineering upgrades, licensed by kernels (R175)
+# MacroCycleV2 — mathematical kernels for engineering upgrades
 
-The MacroCycle v2.0 proposal (2026-10-05): five engineering
-upgrades that bridge the Lean corpus to GPU practice. This
-module formalizes the MATHEMATICAL KERNELS that license each
-upgrade; the runtime engineering itself lives in E:\HAGI_v2
-and carries no Lean claim here.
-
-* **Variance-gated merging (`SmartMerge`)** —
-  `logitRange_scale` + `variance_gate_contract`: the logit
-  range of an expert scales LINEARLY under temperature
-  division (`R(d/τ) = R(d)/τ`), so the PoE second-order bound
-  `R²/8` contracts QUADRATICLY: a range overshoot `R > R̄` is
-  repaired exactly to `R̄²/8` by `τ = R/R̄`. The hybrid
-  linear/geometric split inherits both the proven linear
-  bound (in-range experts) and exactness (out-of-range
-  experts pooled geometrically) — no new math needed.
-
-* **Trust-region safety (`FastSafeStep`)** —
-  `trust_region_proj_norm` + `trust_region_nearest`: for an
-  AdamW step `x` overshooting the safety radius `R`, the
-  rescaled step `(R/‖x‖)•x` has norm EXACTLY `R` and is the
-  NEAREST point of the safety ball to `x` (the metric
-  projection onto the ball — reverse triangle inequality, no
-  QP). Replacing the exact SafeQP solve by this scaling for
-  the 99% non-critical weights LOSES NOTHING relative to the
-  ball-constraint semantics; the 1% critical-weight QP split
-  is an engineering heuristic with no formal claim.
-
-* **Dynamic routing scale (`DynamicRoutingScale`)** —
-  `dynamic_branch_variance`: with per-branch scale
-  `s = 1/√(2·L_eff)`, the TOTAL variance injected over the
-  token's effective path is `v/2` INDEPENDENT of `L_eff` —
-  the BranchScale variance recursion stays O(1) on short and
-  long paths alike. No gradient-clipping folklore needed.
-
-**Honest boundary (what is NOT claimed).** The FreeEnergy
-loss upgrade reuses the existing variational core
-(`Hagi.Energy.Variational.gibbs_variational`:
-the minimizer of `F[q] = E_q[U] − τH(q)` is the tilted
-measure, existence/uniqueness included) — the
-anti-hallucination READING is runtime interpretation, not a
-theorem here. The heterogeneous quantization budget
-(`HeteroQuant`) is additivity of the per-layer bounds — the
-already-proven telescopic budgets (R143/R155 style) — plus a
-knapsack choice with no closed-form theorem claimed. Numbers
-like "1% weights", "10× memory", "99% abilities" are
-engineering targets, not Lean content.
+* Variance gating: the logit range scales linearly under
+  temperature division (`logitRange_scale`), so the `R²/8`
+  bound contracts quadratically (`variance_gate_contract`)
+  and an overshoot `R ≥ R̄` is repaired exactly by
+  `τ = R/R̄` (`variance_gate_normalize`).
+* Trust region: for `‖x‖ ≥ R > 0`, the rescaled step
+  `(R/‖x‖) • x` has norm exactly `R`
+  (`trust_region_proj_norm`) and is the nearest point of the
+  R-ball to `x` (`trust_region_nearest`).
+* Dynamic routing: with per-branch scale `1/√(2L)`, the
+  total injected variance is `v/2`, independent of the path
+  depth (`dynamic_branch_variance`).
 -/
 
 namespace Hagi.Unified
@@ -95,10 +61,8 @@ theorem sup_div (f : V → ℝ) {tau : ℝ} (htau : 0 < tau) :
     calc f v ≤ tau * Finset.sup' Finset.univ univNE (fun v => f v / tau) := h1
       _ = Finset.sup' Finset.univ univNE (fun v => f v / tau) * tau := by ring
 
-/-- **The range scales linearly under temperature division**:
-`R(d/τ) = R(d)/τ` for `τ > 0` — temperature scaling of an
-overconfident expert shrinks its logit range exactly by the
-temperature factor. -/
+/-- For `tau > 0`:
+`logitRange (fun v => f v / tau) = logitRange f / tau`. -/
 theorem logitRange_scale (f : V → ℝ) {tau : ℝ} (htau : 0 < tau) :
     logitRange (fun v => f v / tau) = logitRange f / tau := by
   have hneg : Finset.sup' Finset.univ univNE (fun v => -(f v / tau))
@@ -124,10 +88,8 @@ theorem logitRange_scale (f : V → ℝ) {tau : ℝ} (htau : 0 < tau) :
   rw [logitRange, logitRange, sup_div f htau, hneg]
   ring
 
-/-- **The variance gate contracts the PoE bound
-quadratically**: with the second-order PoE slack `R²/8` in
-the expert's range, temperature division by `τ ≥ 1` shrinks
-the bound by the factor `1/τ²`. -/
+/-- For `tau ≥ 1`:
+`(logitRange (· / tau)) ^ 2 / 8 ≤ (logitRange f) ^ 2 / 8`. -/
 theorem variance_gate_contract (f : V → ℝ) {tau : ℝ}
     (htau : 1 ≤ tau) :
     (logitRange (fun v => f v / tau)) ^ 2 / 8
@@ -151,11 +113,9 @@ theorem variance_gate_contract (f : V → ℝ) {tau : ℝ}
   have h8 : (0:ℝ) < 8 := by norm_num
   exact (div_le_div_iff_of_pos_right h8).mpr hsq
 
-/-- **The variance gate normalizes an overshoot exactly**: an
-expert whose range `R` overshoots the certified admission
-threshold `R̄` is repaired by `τ = R/R̄`: its range becomes
-exactly `R̄` and its PoE slack exactly `R̄²/8` — the boundary
-of the certified merge admission. -/
+/-- If `0 < Rbar ≤ logitRange f`, then `τ := logitRange f / Rbar`
+satisfies `1 ≤ τ` and
+`logitRange (fun v => f v / τ) = Rbar`. -/
 theorem variance_gate_normalize (f : V → ℝ) {Rbar : ℝ}
     (hRbar : 0 < Rbar) (hover : Rbar ≤ logitRange f) :
     1 ≤ logitRange f / Rbar ∧
@@ -173,24 +133,16 @@ theorem variance_gate_normalize (f : V → ℝ) {Rbar : ℝ}
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- **The rescaled step has norm exactly the safety radius**:
-for an AdamW step `x` overshooting the safety ball (`‖x‖ ≥
-R > 0`), the trust-region scaling `(R/‖x‖) • x` lands EXACTLY
-on the boundary of the ball. -/
+/-- If `0 < R ≤ ‖x‖` then `‖(R / ‖x‖) • x‖ = R`. -/
 theorem trust_region_proj_norm (x : E) {R : ℝ} (hR : 0 < R) (hxR : R ≤ ‖x‖) :
     ‖(R / ‖x‖) • x‖ = R := by
   have hx0 : (0:ℝ) < ‖x‖ := lt_of_lt_of_le hR hxR
   rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (by positivity),
     div_mul_cancel₀ _ (ne_of_gt hx0)]
 
-/-- **The ball projection is the NEAREST safe point**: for
-any step `x` outside the safety ball and ANY safe direction
-`y` (‖y‖ ≤ R), the rescaled step `(R/‖x‖)•x` is at least as
-close to `x` as `y`. Replacing the exact SafeQP solve on the
-non-critical weights by this one-line scaling LOSES NOTHING
-relative to the ball-constraint semantics — the projection
-IS the metric projection onto the ball (reverse triangle
-inequality; no QP solver, no inner products). -/
+/-- If `0 < R ≤ ‖x‖` and `‖y‖ ≤ R`, then
+`‖x − (R/‖x‖) • x‖ ≤ ‖x − y‖`: the rescaled step is the
+nearest point of the closed R-ball to `x`. -/
 theorem trust_region_nearest (x y : E) {R : ℝ} (hR : 0 < R)
     (hxR : R ≤ ‖x‖) (hy : ‖y‖ ≤ R) :
     ‖x - (R / ‖x‖) • x‖ ≤ ‖x - y‖ := by
@@ -224,12 +176,9 @@ theorem trust_region_nearest (x y : E) {R : ℝ} (hR : 0 < R)
 
 /-! ## 3. Dynamic routing scale: path-invariant variance -/
 
-/-- **The dynamic-branch scale makes the injected variance
-path-invariant**: with per-branch scale `s = 1/√(2·L_eff)`,
-the total variance injected over the token's effective path
-of depth `L_eff` is `v/2` — INDEPENDENT of `L_eff`. Early
-exit and short paths keep exactly the same O(1) variance
-recursion as the full-depth path; no clipping folklore. -/
+/-- For `0 < L` and `0 ≤ v`:
+`∑ _l < L, ((√(2L))⁻¹)² * v = v / 2`, independent of the
+path depth `L`. -/
 theorem dynamic_branch_variance (L : ℕ) (v : ℝ)
     (hL : 0 < L) (hv : 0 ≤ v) :
     (∑ _l ∈ Finset.range L, ((Real.sqrt (2 * (L : ℝ))) ⁻¹) ^ 2 * v) = v / 2 := by

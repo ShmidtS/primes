@@ -16,14 +16,14 @@ closed into a computable recipe: from the corpus mixture w to
 the PREDICTED equilibrium sibling gap, before any GPU. The
 bridge has three spans:
 
-**Span 1 — the entropy identity (THEOREM).**
+**Span 1 — the entropy identity (theorem).**
 `D_data(w) = Σ w_i KL(p_i ‖ p_w)` equals
 `H(p_w) − Σ w_i H(p_i)` — the weighted cross-corpus
 divergence IS the entropy the mixture gains over its parts
 (a generalized Jensen–Shannon divergence). Consequences:
 0 ≤ D_data(w) ≤ H(w) ≤ log K — the tight bracket.
 
-**Span 2 — the logit Jensen field (THEOREM, the local
+**Span 2 — the logit Jensen field (theorem, the local
 gap geometry).** The sibling gap — the ensemble's average CE
 minus the mixture's CE — is the Jensen gap of the softmax at
 the mixture weights; to second order it is the weighted
@@ -47,7 +47,7 @@ the model. The prediction:
 
 `Ĝ_eq(w) = c • D_data(w)/(1 − ρ)`  with c = κ_D/2.
 
-**The equilibrium law, upgraded to intervals (THEOREM).**
+**The equilibrium law, upgraded to intervals (theorem).**
 The point recurrence G_{t+1} ≤ ρG_t + D only gives
 limsup ≤ D/(1−ρ); with the explicit noise model
 G_{t+1} = ρG_t + D + ξ_t, |ξ| ≤ δ, the equilibrium is
@@ -92,17 +92,17 @@ data-divergence identity of `dfield_entropy_identity` reads
 D_data = Σ w_i · negEntropy(p_i) − negEntropy(p_w)
      = H(p_w) − Σ w_i H(p_i) ≥ 0
 (the mixture entropy minus the weighted corpus entropies).
-R102 honesty fix: renamed from `entropy` — the body defines
+ honesty fix: renamed from `entropy` — the body defines
 the NEGATIVE of the standard entropy, and that is now stated
 explicitly instead of being papered over by the H-semantics
 docstrings. -/
 noncomputable def negEntropy (p : V → ℝ) : ℝ :=
-  -- R198: = -Prelude.entDef (historical name kept)
+  --: = -Prelude.entDef (historical name kept)
   -Hagi.Prelude.entDef p
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The entropy identity (Span 1, THEOREM).** The
+/-- **The entropy identity (Span 1, theorem).** The
 data-divergence field equals the mixture entropy minus the
 weighted corpus entropies:
 
@@ -198,7 +198,7 @@ theorem dQuad_nonneg (pW : V → ℝ) (d : V → ℝ)
     (∑ v, pW v * d v)^2 ≤ ∑ v, pW v * d v^2 :=
   Hagi.Foundations.dQuad_nonneg pW d hpW hpW1
 
-/-- **The equilibrium upper bracket (R78 honesty fix: the
+/-- **The equilibrium upper bracket ( honesty fix: the
 REAL recurrence theorem, was a carrier lower≤upper).** Under
 the noise model G_{t+1} = ρG_t + D + ξ_t with ξ_t ≤ δ:
 

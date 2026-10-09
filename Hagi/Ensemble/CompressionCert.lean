@@ -7,11 +7,11 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R155: CertifiedMerge-остаток — PAC-Bayes compression
+# CertifiedMerge-остаток — PAC-Bayes compression
 
 Порт 2607.14506 (PAC-Bayes compression certificate для
 merged-моделей: prior = base-чекпойнт, posterior = merged,
-штраф C(Δ) в битах тернарно-сжатых дельт), часть R132.
+штраф C(Δ) в битах тернарно-сжатых дельт), часть.
 
 Контракт: дельта-апдейт — список (позиция, тернарный знак);
 стоимость в битах АДДИТИВНА по элементам (для каждой позиции

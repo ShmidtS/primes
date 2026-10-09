@@ -7,17 +7,12 @@ import Hagi.Unified.RecursiveGrowth
 set_option linter.style.header false
 
 /-!
-# R60: sparse step-0 preservation
+# Sparse step-0 preservation
 
-Block II.1 of the grand-unified roadmap: at inference scale
-(thousands of specialists), HAGI must route each token to a
-few branches. The certificate: with the orthonormal (Hadamard)
-branch basis, dropping branches changes the output by EXACTLY
-the tail energy (`gating_tail_bound`, R53). This module adds
-the decision form: routing to the top-k coefficients with
-tail energy below tol² keeps the merged output within tol of
-the dense merge — the sparse step-0 preservation certificate,
-independent of the number of dropped branches.
+`sparse_step0`: if the tail energy of the routed-out
+coefficients is below `tol²`, the sparse merge approximates the
+dense merge within `tol`, for any number of dropped branches
+(the tail bound is `gating_tail_bound`).
 -/
 
 open Finset Real
@@ -27,11 +22,9 @@ namespace Hagi
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- **Sparse step-0 preservation**: if the tail energy of the
-routed-out coefficients is below tol², the sparse merge
-approximates the dense merge within tol — for ANY number of
-dropped branches (the certificate scales with the tail, not
-with N). -/
+/-- If `∑ i ∈ sᶜ, c i ^ 2 < tol ^ 2`, then the sparse merge
+is within `tol` of the dense merge:
+`‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ < tol`. -/
 theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
     (c : ι → ℝ) (s : Finset ι) (tol : ℝ) (htol : 0 ≤ tol)
     (htail : ∑ i ∈ sᶜ, c i ^ 2 < tol ^ 2) :

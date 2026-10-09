@@ -6,20 +6,20 @@ import Hagi.Budget.BitAlloc
 set_option linter.style.header false
 
 /-!
-# WaterFilling: the balanced allocation EXISTS (R177)
+# WaterFilling: the balanced allocation EXISTS
 
-The existence closure of R176 (`BitAlloc`): the factor-2
+The existence closure of (`BitAlloc`): the factor-2
 water-filling invariant was certified at any stable point —
 but does a stable point exist? Yes: on the FINITE set of
 budget-feasible bit allocations the total error attains its
 minimum, and at the minimum no strictly improving transfer
 can exist (it would stay inside the budget set, contradicting
 minimality), so `imbalance_yields_gain` contrapositive gives
-the factor-2 balance. HONEST BOUNDARY: this is an EXISTENCE
+the factor-2 balance. honest boundary: this is an existence
 proof (via `Finset.min'`), not a construction; the
 TERMINATION OF THE GREEDY REALLOCATION LOOP is now
 formalized separately in `BitAllocTermination.
-no_infinite_improving_chain` (R248: a strictly-improving
+no_infinite_improving_chain` (: a strictly-improving
 walk on the finite fixed-budget allocation space cannot
 continue forever).
 
@@ -34,8 +34,8 @@ is within a factor 2 of every other layer holding a bit:
 finite type `Fin m → Fin (B+1)` (a layer never needs more
 than the whole budget), the budget slice is a filtered Finset,
 nonempty (the all-zero allocation); `Finset.min'` picks the
-minimizer of the total error; any improving transfer of R176
-preserves the budget, so minimality forbids it — the R176
+minimizer of the total error; any improving transfer of
+preserves the budget, so minimality forbids it — the
 contrapositive closes the factor-2 balance.
 -/
 

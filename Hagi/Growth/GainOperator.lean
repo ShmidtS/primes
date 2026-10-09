@@ -9,54 +9,25 @@ import Hagi.Growth.StateBinding
 set_option linter.style.header false
 
 /-!
-# R130: GainOperator — оператор превращения disagreement в прирост
+# GainOperator — оператор превращения disagreement в прирост
 
-FORMALIZATION_PLAN Phase A (R130), главный блокер: дефицит γ = 9×
-(γ = 0.002 против требуемых 0.018). R129 показал: merge-усреднение
-ТОЧНО, антикоррелированная компонента СОХРАНЕНА в dev-канале;
-узкое место — оператор T превращения dev-энергии в прирост
-frontier. Этот модуль — теорема-условие на T.
+Модель цикла: dev-энергия `devEnergy dev = ∑‡dev_k‡²`; оператор
+с эффективностью η (`GainOp`: `D' ≥ ρ·D + η·E_dev − ξ`);
+производство `C' = C + γ·D`.
 
-**Модель цикла** (все величины измеряемы):
-- пул экспертов: `mergeDecomp W M dev` (R129), dev-энергия
-  E_dev = Σ‖dev_k‖²;
-- оператор T с эффективностью η: D_{t+1} ≥ ρ·D_t + η·E_dev − ξ
-  (T превращает долю η dev-энергии в frontier; кандидаты из
-  плана: distill-перенос dev, mixer.gain с certified-обучением);
-- производство: C_{t+1} = C_t + γ·D_t.
+* `gainop_cone_step`: при точном шаге, `GainOp`, `ρ ≥ γk`,
+  конусе `kC ≤ D` и пороге
+  `γk²·C + (1−ρ)k·C + ξ ≤ η·E_dev` следует `kC' ≤ D'`;
+* `gainop_pairwise_bridge`: тот же вывод с порогом в попарной
+  форме `η·(∑_{i,j}‡W_i − W_j‡²)/(2N)` (тождество
+  `pairwise_variance_identity`);
+* `gainop_ignition`: если условия выполнены на каждом цикле и
+  старт в конусе, то `ConeRatio` инвариантен и
+  `C₀·(1+γk)^T ≤ C_T` (композиция с `ratio_takeoff`).
 
-**Теоремы:**
-
-* `gainop_cone_step` — ДОСТАТОЧНОЕ ИЗМЕРЯЕМОЕ УСЛОВИЕ Зажигания:
-  η·E_dev ≥ γk²·C + (1−ρ)k·C + ξ  и  ρ ≥ γk  ⟹  шаг конуса
-  kC' ≤ D' (ξ-компенсация точная, алгебра R124/R126).
-  Эффективная ставка γ_eff = η·E_dev/C — заменяет свободный
-  гиперпараметр β сертифицированным измерением.
-* `gainop_pairwise_bridge` — то же в терминах ИЗМЕРЯЕМОГО
-  попарного рассеяния (R129: Σ_{i,j}‖W_i−W_j‖² = 2N·E_dev):
-  порог в pairwise-форме — прямой сигнал GapLaw/twoGap.
-* `gainop_ignition` — если операторное условие держится на
-  каждом цикле и старт в конусе — ConeRatio инвариантен и
-  C_T ≥ C₀(1+γk)^T (composition с `ratio_takeoff` R124):
-  γ-дефицит закрыт конструкцией T, а не гиперпараметром.
-
-**Cunningham-форма** (2609.15802, план §1): операторное условие
-есть произведение эластичностей петли: ε_T·ε_γ ≥ порога, где
-ε_T = η·E_dev/C (эластичность frontier по disagreement) и
-ε_γ = γk (эластичность capability по frontier); зажигание ⟺
-произведение превышает порог затухания γk²+(1−ρ)k+ξ/C —
-самоподдержка по Cunningham как частный случай R124.
-
-**Честные границы:** существование оператора T с η > 0 на
-реальном runtime — measured premise (R104: mixer.gain → 0 —
-оператор сам выключает канал); дистилляция dev — кандидат с
-теоретической поддержкой (teacher_generated_identity R109:
-ре-микс не добавляет информации, перенос — да).
-R131-REV STATUS: по ревизии плана §7 η-метрика БЕЗРАЗМЕРНО
-смешана (E_dev в энергии весов, C/D в натах) — модуль объявлен
-ПРОМЕЖУТОЧНЫМ: заменяется теоремой T3 DistillTransfer
-(измеримый КПД η = (CE_leafmean − CE_student)/twoGap в натах);
-смотрите MergePrice (T2) для содержательной версии R129.
+Существование оператора с `η > 0` на реальном runtime — посылка
+(в модуле он не строится); метрика η здесь безразмерно смешивает
+энергии весов и наты.
 -/
 
 open Finset InnerProductSpace
@@ -66,24 +37,17 @@ namespace Hagi
 variable {N : ℕ} [NeZero N] {V : Type*}
   [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
-/-- Энергия dev-канала: E_dev = Σ_k ‖dev_k‖². -/
+/-- Энергия dev-канала: `devEnergy dev = Σ_k ‖dev k‖^2`. -/
 def devEnergy (dev : Fin N → V) : ℝ := ∑ k, ‖dev k‖ ^ 2
 
-/-- **Оператор gain**: превращает долю η dev-энергии в
-frontier: D' ≥ ρD + η·E_dev − ξ (measured premise —
-эффективность оператора T на цикле). -/
+/-- `GainOp D D' dev ρ η ξ` означает
+`ρ·D + η·devEnergy dev − ξ ≤ D'`. -/
 def GainOp (D D' : ℝ) (dev : Fin N → V) (ρ η ξ : ℝ) : Prop :=
   ρ * D + η * devEnergy dev - ξ ≤ D'
 
-/-- **Шаг конуса от оператора**: если оператор превращает
-dev-энергию в frontier с эффективностью η и выполняется
-ИЗМЕРЯЕМОЕ пороговое условие
-
-  η·E_dev ≥ γk²·C + (1−ρ)k·C + ξ
-
-(эквивалентно γ_eff = η·E_dev/C ≥ γk² + (1−ρ)k + ξ/C), и
-ρ ≥ γk, то шаг конуса k·C' ≤ D' выполняется: ξ-компенсация
-точная. Замыкает γ-дефицит измерением вместо гиперпараметра. -/
+/-- Если `C' = C + γ·D`, `GainOp D D' dev ρ η ξ`, `γ·k ≤ ρ`,
+`k·C ≤ D` и `γ·k²·C + (1−ρ)·k·C + ξ ≤ η·devEnergy dev`,
+то `k·C' ≤ D'`. -/
 theorem gainop_cone_step (C D C' D' : ℝ) (γ ρ k ξ η : ℝ)
     (dev : Fin N → V)
     (hstep : C' = C + γ * D)
@@ -94,7 +58,7 @@ theorem gainop_cone_step (C D C' D' : ℝ) (γ ρ k ξ η : ℝ)
       ≤ η * devEnergy dev) :
     k * C' ≤ D' := by
   have hD : ρ * D + η * devEnergy dev - ξ ≤ D' := hop
-  -- та же ключевая алгебра R124: D' − kC' ≥ (ρ−γk)(D−kC) ≥ 0
+  -- ключевая алгебра: D' − kC' ≥ (ρ−γk)(D−kC) ≥ 0
   have hkey : ρ * D + η * devEnergy dev - ξ - k * (C + γ * D)
       = (ρ - γ * k) * (D - k * C)
         + (η * devEnergy dev - (γ * k ^ 2 * C
@@ -121,13 +85,10 @@ theorem gainop_cone_step (C D C' D' : ℝ) (γ ρ k ξ η : ℝ)
     linarith [hkey', hD]
   linarith
 
-/-- **Мост к измеримому рассеянию**: то же пороговое условие
-в терминах попарного рассеяния пула
-
-  P = Σ_{i,j}‖W_i − W_j‖² = 2N·E_dev (R129),
-
-напрямую измеряемого на тензорах (GapLaw/twoGap-сигнал):
-η·P/(2N) ≥ γk²·C + (1−ρ)k·C + ξ. -/
+/-- Тот же вывод, что `gainop_cone_step`, с порогом в
+попарной форме: если `mergeDecomp W M dev` и
+`γ·k²·C + (1−ρ)·k·C + ξ
+≤ η·((Σ_i Σ_j ‖W i − W j‖^2)/(2N))`, то `k·C' ≤ D'`. -/
 theorem gainop_pairwise_bridge (C D C' D' : ℝ) (γ ρ k ξ η : ℝ)
     (W : Fin N → V) (M : V) (dev : Fin N → V)
     (hd : mergeDecomp W M dev)
@@ -161,13 +122,10 @@ theorem gainop_pairwise_bridge (C D C' D' : ℝ) (γ ρ k ξ η : ℝ)
 
 /-! ### Инвариант и takeoff от оператора -/
 
-/-- **Зажигание от оператора gain**: если на КАЖДОМ цикле
-пул имеет merge-разложение, оператор T с эффективностью η
-превращает dev-энергию в frontier (пороговое условие
-выполнено) и ρ ≥ γk, то конус D ≥ kC инвариантен и
-C_T ≥ C₀(1+γk)^T — γ-дефицит (9×) закрыт КОНСТРУКЦИЕЙ
-оператора, а не гиперпараметром: γ_eff = η·E_dev/C
-сертифицированно превышает порог затухания. -/
+/-- Если на каждом цикле выполнены точный шаг, `GainOp`,
+`ρ ≥ γk`, порог из `gainop_cone_step` и старт в конусе,
+то `ConeRatio` инвариантен и
+`(S 0).capability * (1 + γ·k) ^ T ≤ (S T).capability`. -/
 theorem gainop_ignition {Xs : Type*}
     [NormedAddCommGroup Xs] [InnerProductSpace ℝ Xs]
     (S : ℕ → GrowthState Xs)

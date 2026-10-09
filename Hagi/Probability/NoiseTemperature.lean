@@ -7,10 +7,10 @@ import Hagi.Foundations.Recurrence
 set_option linter.style.header false
 
 /-!
-# NoiseTemperature: the gradient noise is a reservoir at temperature 1/B (R174b)
+# NoiseTemperature: the gradient noise is a reservoir at temperature 1/B
 
 The second module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round R174b). Port of the two pure-math
+FORMALIZATION_PLAN.md, round). Port of the two pure-math
 cores behind the "SGD noise = reservoir temperature" reading:
 
 * **Unbiasedness + temperature (arXiv:2606.30789 Lemma 6,
@@ -55,7 +55,7 @@ cores behind the "SGD noise = reservoir temperature" reading:
 Brownian noise O(√η) in the CLT limit), the equivalence
 LR-decay ≡ batch-increase (1711.00489), and the
 group-size ↔ temperature mapping for parallel-data training
-are NOT formalized and carry no Lean claim here. This module
+are not formalized and carry no Lean claim here. This module
 is the finite kernel those interpretations reference.
 -/
 
@@ -378,7 +378,7 @@ theorem noise_scale_separation (eta theta : ℝ)
   mul_le_mul_of_nonneg_right (Real.le_sqrt_self_iff.mpr heta1) htheta
 
 
-/-- **Annealing by batch growth (R174d kernel, the
+/-- **Annealing by batch growth ( kernel, the
 1711.00489 axis choice)**: growing the batch geometrically
 (`B_{t+1} = c·B_t`, `c > 1`) cools the noise reservoir
 geometrically (temperature `1/B_t`, `batch_variance_eq`), and

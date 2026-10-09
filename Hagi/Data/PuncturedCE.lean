@@ -7,9 +7,9 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R144: punctured CE - unbiased Bernoulli masking
+# punctured CE - unbiased Bernoulli masking
 
-Phase B (R138 of the plan). Sources: 2609.34475 (PAD
+Phase B. Sources: 2609.34475 (PAD
 discipline), 2607.18042 (bridge tokens); the masking
 unbiasedness is the standard Bernoulli subsampling identity.
 

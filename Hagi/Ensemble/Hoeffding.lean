@@ -8,7 +8,7 @@ import Hagi.Foundations.Chord
 set_option linter.style.header false
 
 /-!
-# R56: T1a — the Hoeffding kernel (chord route)
+# T1a — the Hoeffding kernel (chord route)
 
 The admission-criterion core (open since round-47): for a
 pool of experts with probability weights p and logit
@@ -38,7 +38,7 @@ namespace Hagi
 theorem exp_chord (x M : ℝ) (hM : 0 < M) (hx : -M ≤ x) (hx2 : x ≤ M) :
     Real.exp x ≤ (M - x) / (2 * M) * Real.exp (-M)
       + (x + M) / (2 * M) * Real.exp M :=
-  -- R197 dedup: the symmetric special case of Chord.exp_chord_ab at a = -M
+  -- dedup: the symmetric special case of Chord.exp_chord_ab at a = -M
   by
     have hlt : (-M:ℝ) < M := by linarith
     have h := Hagi.Foundations.exp_chord_ab (-M) M x hlt hx hx2
@@ -263,7 +263,7 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
   change (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
   nlinarith [hlogmono]
 
-/-- **The pre-gate skip certificate (R59)**: if the pool's
+/-- **The pre-gate skip certificate**: if the pool's
 disagreement diameter M obeys M²/4 < ε (the T1a quadratic
 gate), then the entire ensemble gain available from ANY merge
 of this pool is below ε — skipping the GPU merge cycle loses
@@ -353,7 +353,7 @@ Jensen gap is bounded BELOW:
 
   twoGap ≥ ½·log(1 + q·(cosh δ − 1)) > 0 for δ > 0.
 
-Contrapositive = the R66/67 diagnosis made mathematical:
+Contrapositive = the/67 diagnosis made mathematical:
 siblings on the SAME mix drive every pairwise disagreement
 to 0 (collapse); siblings on ORTHOGONAL domains keep a
 guaranteed floor. The correct HAGI tree is
@@ -554,7 +554,7 @@ theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
   unfold Hagi.twoGap
   rw [hpair, Real.log_mul (ne_of_gt hposf1) (ne_of_gt hposf2), hlog1, hlog2]
   -- RHS: (ceOneHot t (m+d) + ceOneHot t (m−d))/2 − ceOneHot t m
-  --    = (lse(m+d) + lse(m−d) − 2·log S + 2·log S)/2 ... assemble:
+  --    = (lse(m+d) + lse(m−d) − 2·log S + 2·log S)/2... assemble:
   unfold Hagi.ceOneHot Hagi.lse
   have hcancel : (fun v => m v + d v) t + (fun v => m v - d v) t = 2 * m t := by ring_nf
   -- targets: z1 t + z2 t = 2 m t, cancels with −m t twice
@@ -568,7 +568,7 @@ theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
 
 /-- **The REAL CE admission gate** (composition of the exact
 identity with the quadratic bound): for experts z1 = m+d,
-z2 = m−d with softmax-midpoint weights, the TRUE
+z2 = m−d with softmax-midpoint weights, the true
 cross-entropy Jensen gap — the merge-cycle's actual expected
 loss reduction — is bounded by M²/4 whenever the per-PAIR
 half-deviation diameter obeys |d_u − d_v| ≤ M. One scalar
@@ -600,12 +600,12 @@ lemma. The two chord factors are now proven:
 **Negative finding (recorded)**: the product of the two
 chord bounds equals cosh²D + (μ/(2D))²·(e^D−e^{−D})²/4·…
 i.e. EXCEEDS cosh²D when μ ≠ 0 — the direct cosh²D product
-route does NOT close. The sharp M²/8 requires the full
+route does not close. The sharp M²/8 requires the full
 centered Hoeffding lemma (the transcendental (b−a)²/8 step,
 absent from Mathlib) applied to the centered deviations
 d − μ (range ≤ 2D = the pairwise diameter M, mean zero):
 each factor ≤ e^{M²/8}, product ≤ e^{M²/4}, twoGap ≤ M²/8.
-Declared OPEN — the factors above are the chord half of that
+Declared open — the factors above are the chord half of that
 lemma; the missing half is the log-sum bound of
 ((b)e^a − (a)e^b)/(b−a) ≤ e^{(b−a)²/8}.
 -/
@@ -663,14 +663,14 @@ theorem chord_factor2 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
     rw [← Finset.sum_neg_distrib]
     exact Finset.sum_congr rfl (fun v _ => by ring)
   rw [hmean] at h
-  -- h : Σ p e^{-d} ≤ (D + mu)/(2D) e^{-D} + (−mu + D)/(2D) e^{D}
+  -- h: Σ p e^{-d} ≤ (D + mu)/(2D) e^{-D} + (−mu + D)/(2D) e^{D}
   rw [show (D - -(∑ v, p v * d v)) = D + ∑ v, p v * d v from by ring,
       show (-(∑ v, p v * d v) + D) = D - ∑ v, p v * d v from by ring] at h
   exact h
 
 /-- **The certified pruning/merge certificate (roadmap #3)**:
 merging two leaves whose logits differ by at most delta at
-EVERY token (the centroid-closeness / high-mutual-
+every token (the centroid-closeness / high-mutual-
 information regime) increases the cross-entropy by at most
 delta²/4 — the exact twoGap bound instantiated at the
 half-deviation diameter M = delta. The tree can BREATHE:

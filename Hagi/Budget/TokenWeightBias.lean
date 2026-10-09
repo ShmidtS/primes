@@ -8,7 +8,7 @@ import Mathlib
 (source arXiv:2610.02179v1 Eq. (5))
 
 The multi-teacher loss with token-count weights Tᵢ and
-domain gradients gᵢ has the EXACT decomposition:
+domain gradients gᵢ has the exact decomposition:
 
   (∑ Tᵢ gᵢ) / (∑ Tᵢ) = ḡ + Cov(T, g) / T̄
 
@@ -20,7 +20,7 @@ global-token averaging vs 25% under domain-balanced).
 
 * `token_weight_decomposition`: the exact identity (finite
   sums, no asymptotics) — the controller-relevant content:
-  equal prompt counts do NOT mean equal domain weights;
+  equal prompt counts do not mean equal domain weights;
   the bias term is exactly Cov(T,g)/T̄;
 * `zero_bias_iff_uncorrelated`: the bias vanishes EXACTLY
   when the token counts are uncorrelated with the gradients

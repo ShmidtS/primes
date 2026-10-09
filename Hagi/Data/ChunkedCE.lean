@@ -7,9 +7,9 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R146: chunked CE - exact piecewise summation + prior decomposition
+# chunked CE - exact piecewise summation + prior decomposition
 
-Phase B (R138 of the plan, remainder). Sources: 2609.32100
+Phase B. Sources: 2609.32100
 (exact definition of valid token positions + protocol),
 2607.16666 (subsampling with rate correction),
 2607.10951 (one-sample unbiasedness transfer).

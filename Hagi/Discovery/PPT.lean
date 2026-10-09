@@ -7,7 +7,7 @@ import Mathlib.Probability.Moments.SubGaussian
 set_option linter.style.header false
 
 /-!
-# R98: the PPT discovery layer (arXiv 2609.38104, "Explore Broadly, Reason Sharply")
+# the PPT discovery layer (arXiv 2609.38104, "Explore Broadly, Reason Sharply")
 
 The concrete `discover` mechanism for HAGI's growth loop: parallel-tempering /
 power-target sampling over a FINITE sequence space. This module upgrades
@@ -22,7 +22,7 @@ generality beyond finite state spaces is OUT OF SCOPE here (no topological
 or measure-theoretic structure on `Seq` is assumed beyond a hypothesis that
 singletons are measurable where needed).
 
-**WARNING — sequence-level sharpening is NOT tokenwise temperature.** The
+**WARNING — sequence-level sharpening is not tokenwise temperature.** The
 power target pi_α(x) ∝ p(x)^α raises the JOINT sequence probability to a
 power. This is a DIFFERENT operation from temperature / softmax scaling of
 token logits: Hagi.Core/Concat's softmax-invariance law (softmax(cz) ≠
@@ -86,7 +86,7 @@ theorem pptNorm_pos (p : Seq → ℝ) (α : ℝ) (hp : ∀ x, 0 < p x) :
 
 /-- **The power target** pi_α(x) = p(x)^α / Z_α — sequence-level sharpening
 of the base model p by the power α. WARNING: this is the power of the JOINT
-sequence probability, NOT tokenwise temperature (see module docstring). -/
+sequence probability, not tokenwise temperature (see module docstring). -/
 noncomputable def pptTarget (p : Seq → ℝ) (α : ℝ) (x : Seq) : ℝ :=
   (p x) ^ α / pptNorm p α
 
@@ -316,7 +316,7 @@ set_option linter.unusedDecidableInType false in
 kernel is CONFINED to a subset S (transitions to states outside S have
 zero probability — the replay / experience-memory compression regime),
 then any stationary distribution for it puts ZERO mass outside S. Hence
-a target π with π(y₀) > 0 for some y₀ ∉ S is NOT stationary for the
+a target π with π(y₀) > 0 for some y₀ ∉ S is not stationary for the
 confined kernel: one-way truncation irreversibly biases the sampler off
 the true target. This is the paper's truncation-bias floor made formal. -/
 theorem truncation_bias (K : Seq → Seq → ℝ) (pi : Seq → ℝ) (S : Set Seq)
@@ -396,7 +396,7 @@ theorem ppt_card_eps_le_one (K : Seq → Seq → ℝ) (hK : pptKernel K)
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
 /-- **The one-step Doeblin contraction**: with every kernel entry ≥ ε and
-π stationary, TV(μK, π) ≤ (1 − |Seq|·ε)·TV(μ, π). The SHARP constant is
+π stationary, TV(μK, π) ≤ (1 − |Seq|·ε)·TV(μ, π). The sharp constant is
 1 − |Seq|·ε ≥ 1 − ε (`ppt_card_eps_le_one`); the textbook "1 − ε" is the
 weaker corollary `pptMixing_doeblin`. Elementary, coupling-free proof:
 split the signed difference μ − π into its positive part (on A) and

@@ -7,7 +7,7 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R165 (§AW): CertifiedArgmax — легитимность argmax на
+# (§AW): CertifiedArgmax — легитимность argmax на
 # Γ-оценках ComputeBudget
 
 Рабочий список 2026-10-04, §5.2: выбор argmax Γ_i/K_i в

@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# PmfMean — finite PMF expectations (R232 port)
+# PmfMean — finite PMF expectations
 
 Ported verbatim (proofs unchanged) from openai/math,
 OAI.Combinatorics.TriangleRemoval.Probability.FiniteMean

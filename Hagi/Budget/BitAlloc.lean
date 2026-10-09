@@ -7,7 +7,7 @@ import Hagi.Ensemble.RecursiveDistill
 set_option linter.style.header false
 
 /-!
-# BitAlloc: optimal bit allocation under a parameter budget (R176)
+# BitAlloc: optimal bit allocation under a parameter budget
 
 The "maximum quality at minimum size" program: under a hard
 cap on model volume, the only remaining freedom is WHERE the
@@ -84,7 +84,7 @@ theorem layerError_pred (c : ℝ) {b : ℕ} (hb : 0 < b) :
   rw [show (0 + m + 1 - 1 : ℕ) = m by omega, layerError_antitone]
   ring
 
-/-- The total error of an allocation `f : layer → bits`. -/
+/-- The total error of an allocation `f: layer → bits`. -/
 noncomputable def totalError (c : Fin n → ℝ) (f : Fin n → ℕ) : ℝ :=
   ∑ l, layerError (c l) (f l)
 
@@ -166,10 +166,10 @@ sensitivity, any budget split `x + (x + 2d)` is dominated by
 the balanced split `(x+d, x+d)` — balancing two layers never
 hurts (even imbalance; the odd case is covered up to the
 factor-2 invariant of `stable_factor_two`). The greedy
-exchange loop TERMINATES (R248 `BitAllocTermination.
+exchange loop TERMINATES ( `BitAllocTermination.
 no_infinite_improving_chain`: finite allocation space +
 strict improvement ⟹ pigeonhole), and at the stop point
-`stable_factor_two` certifies factor-2 balance. Still NOT
+`stable_factor_two` certifies factor-2 balance. Still not
 proved here: the n-layer continuous water-filling optimum. -/
 theorem two_layer_equalize (c : ℝ) (hc : 0 ≤ c) (x d : ℕ) :
     layerError c x + layerError c (x + 2 * d)
@@ -237,7 +237,7 @@ theorem imbalance_yields_gain {n : ℕ} (c : Fin n → ℝ)
   linarith
 
 /-- **The factor-2 balance certificate at a no-gain point**
-(R197 honesty reformulation — the former version restated its
+( honesty reformulation — the former version restated its
 hypothesis verbatim): if NO single-bit transfer strictly improves
 the allocation, then every layer error is within factor 2 of every
 other layer error that still has a bit to give. This is now a

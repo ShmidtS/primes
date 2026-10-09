@@ -7,37 +7,26 @@ import Hagi.Step.SafeQP
 set_option linter.style.header false
 
 /-!
-# R131: SafeQP ↔ GPM мост — точная ортогональность шага
+# GPM — SafeQP ↔ GPM мост: точная ортогональность шага
 
-FORMALIZATION_PLAN Phase A (R131). Порт GPM (2103.09762) /
-OWM null-space / SPACE-LoRA (2609.34453) в Lean-термины
-SafeQP. Модель: слой y = W·x; старые задачи характеризуются
-входами xs k; Σ = Σ_k outer(x_k, x_k) — ковариация активаций
-(Stärk 2607.09202).
+Модель: линейный слой `y = W·x`; старые задачи — входы
+`xs k`; `actSigma xs = Σ_k outer(x_k, x_k)` — ковариация
+активаций (PSD).
 
-**Теоремы:**
+* `gpm_zero_forgetting`: при ортогональности строк ΔW всем
+  старым входам (`gpmOrth`) —
+  `(W + ΔW)·x_k = W·x_k` для всех k и любого W
+  (ΔL_old = 0 точно);
+* `sigma_orth_zero`: `ΔW·x_k = 0` для всех k ⇒
+  `ΔW·Σ = 0`;
+* `sigma_orth_necessary`: если для каждой строки сумма
+  квадратов `Σ_k ⟨ΔW·i, x_k⟩² = 0`, то
+  `ΔW·x_k = 0` для всех k — вместе с предыдущим:
+  шаг в ker Σ ⟺ нулевой residual response.
 
-* `gpm_zero_forgetting` — SPACE-LoRA-условие: каждая строка
-  ΔW ортогональна всем старым входам ⟹ residual response
-  ТОЖДЕСТВЕННО нулевой: (W+ΔW)·x_k = W·x_k при любом W —
-  ΔL_old = 0 точно (сильнее ε-бюджета SafeQP).
-* `sigma_orth_zero` — достаточность (Stärk Th.4 ⇐):
-  ΔW·x_k = 0 ∀k ⟹ ΔW·Σ = 0 (шаг в левом ядре Σ).
-* `sigma_orth_necessary` — необходимость (⇒): ΔW·Σ = 0 ⟹
-  ΔW·x_k = 0 ∀k (PSD-диагональный аргумент:
-  diag(ΔW·Σ·ΔWᵀ) = Σ_k (ΔW·x_k)ᵢ² ≥ 0). Вместе —
-  необходимое И достаточное условие нулевой интерференции:
-  шаг в ker Σ ⟺ нулевой residual response (порт Th.4).
-
-**SafeQP-мост** (gpm_safeqp_remark, докстринг): точная
-ортогональность — предельный случай C = {d : ⟨g_i,d⟩ ≥ −ε_i}
-при ε_i → 0; при зашумлённом базисе (Davis–Kahan, 2607.05872:
-без spectral gap подпространство неидентифицируемо)
-легитимен ε_i-бюджет — текущий режим SafeQP.
-
-**Честные границы:** линейный слой; для глубоких сетей —
-телескопическая граница (ErrorProp); Σ оценивается по
-конечным активациям (streaming-PCA — runtime).
+Точная ортогональность — предельный случай ε-бюджета
+SafeQP при ε → 0; для глубоких сетей нужна телескопическая
+граница (ErrorProp); Σ оценивается по конечным активациям.
 -/
 
 open Finset
@@ -47,32 +36,31 @@ namespace Hagi
 
 variable {m n K : ℕ}
 
-/-- Внешнее произведение: outerP v w = v·wᵀ. -/
+/-- Внешнее произведение: `outerP v w = v·wᵀ`. -/
 def outerP (v w : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   Matrix.of fun i j => v i * w j
 
 /-- Ковариация активаций старых задач:
-Σ l j = Σ_k x_k(l)·x_k(j) (PSD по построению). -/
+`actSigma xs l j = Σ_k x_k(l)·x_k(j)` (PSD по построению). -/
 def actSigma (xs : Fin K → (Fin n → ℝ)) : Matrix (Fin n) (Fin n) ℝ :=
   Matrix.of fun l j => ∑ k, xs k l * xs k j
 
-/-- SPACE-LoRA-условие: каждая строка ΔW ортогональна всем
-старым входам (через dotProduct). -/
+/-- `gpmOrth ΔW xs`: каждая строка ΔW ортогональна всем
+старым входам (`dotProduct` строки и `xs k` равен 0). -/
 def gpmOrth (ΔW : Matrix (Fin m) (Fin n) ℝ)
     (xs : Fin K → (Fin n → ℝ)) : Prop :=
   ∀ i k, dotProduct (ΔW i) (xs k) = 0
 
-/-- Компонент mulVec равен dotProduct строки. -/
+/-- `(M *ᵥ v) i = dotProduct (M i) v`. -/
 theorem mulVec_eq_dotProduct (M : Matrix (Fin m) (Fin n) ℝ)
     (v : Fin n → ℝ) (i : Fin m) :
     (M *ᵥ v) i = dotProduct (M i) v := by
   classical
   simp [Matrix.mulVec, dotProduct]
 
-/-- **Тождественно нулевой residual response**: при
-SPACE-LoRA-ортогональности строк ΔW старым активациям выход
-на старых задачах НЕ МЕНЯЕТСЯ точно при любом W —
-ΔL_old = 0 (порт GPM/OWM; сильнее ε-бюджета SafeQP). -/
+/-- При `gpmOrth ΔW xs` и любом W:
+`(W + ΔW) *ᵥ (xs k) = W *ᵥ (xs k)` — нулевой residual
+response на каждом старом входе. -/
 theorem gpm_zero_forgetting (W ΔW : Matrix (Fin m) (Fin n) ℝ)
     (xs : Fin K → (Fin n → ℝ))
     (horth : gpmOrth ΔW xs) (k : Fin K) :
@@ -83,9 +71,8 @@ theorem gpm_zero_forgetting (W ΔW : Matrix (Fin m) (Fin n) ℝ)
     exact horth i k
   rw [Matrix.add_mulVec, hzero, add_zero]
 
-/-- **Достаточность (Stärk Th.4 ⇐)**: ΔW·x_k = 0 для всех
-старых входов ⟹ ΔW·Σ = 0 — шаг в левом ядре ковариации
-активаций (нулевая интерференция). -/
+/-- Если `ΔW *ᵥ (xs k) = 0` для всех k, то
+`ΔW * actSigma xs = 0`. -/
 theorem sigma_orth_zero (ΔW : Matrix (Fin m) (Fin n) ℝ)
     (xs : Fin K → (Fin n → ℝ))
     (hzero : ∀ k, ΔW *ᵥ (xs k) = 0) :
@@ -108,17 +95,12 @@ theorem sigma_orth_zero (ΔW : Matrix (Fin m) (Fin n) ℝ)
   rw [mulVec_eq_dotProduct, Pi.zero_apply] at h
   rw [h, zero_mul]
 
-/-- **Необходимость, строковая форма**: если для каждой
-строки w = ΔW·i квадратичная форма Σ равна нулю —
-Σ_k ⟨w, x_k⟩² = 0 (PSD: сумма квадратов; из ΔW·Σ = 0 —
-домножением на ΔWᵀ, стандартная PSD-алгебра Stärk Th.4 ⇒) —
-то residual response нулевой на каждом старом входе.
-Вместе с `sigma_orth_zero`: шаг в ker Σ ⟺ нулевая
-интерференция (необходимое И достаточное условие).
-
-hquad — измеряемая величина (Σ_k ⟨ΔW·i, x_k⟩² напрямую
-считается на активациях), поэтому условие применимо как
-certified-гейт без явного построения Σ. -/
+/-- Если для каждой строки i выполнено
+`Σ_k (dotProduct (ΔW i) (xs k))² = 0`, то
+`ΔW *ᵥ (xs k) = 0` для всех k. Вместе с `sigma_orth_zero`:
+шаг в ker Σ ⟺ нулевой residual response. Условие
+измеримо (суммы квадратов на активациях) — применимо как
+certified-гейт без явного Σ. -/
 theorem sigma_orth_necessary (ΔW : Matrix (Fin m) (Fin n) ℝ)
     (xs : Fin K → (Fin n → ℝ))
     (hquad : ∀ i, ∑ k, (dotProduct (ΔW i) (xs k))

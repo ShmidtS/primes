@@ -6,7 +6,7 @@ import Hagi.Foundations.Hoeffding
 
 set_option linter.style.header false
 /-!
-# R106: PoE logZ second-order stability — the sharp per-expert (1/8)·ΣwR² law
+# PoE logZ second-order stability — the sharp per-expert (1/8)·ΣwR² law
 
 For the product-of-experts normalizer
 
@@ -19,7 +19,7 @@ with per-expert normalizers `Z_i = Σ_v exp(z_{i,v})`), the
 `Z_approx = Π_i Z_i^{w_i}`  (log Z_approx = Σ_i w_i·log Z_i),
 
 which needs only softmax-speed arithmetic. This module certifies the
-approximation by the SHARP second-order law
+approximation by the sharp second-order law
 
 `|log Z_w − log Z_approx| ≤ (1/8)·Σ_i w_i·(R_i)²`,
 
@@ -32,26 +32,26 @@ from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v
 1. **Hoeffding's lemma, finite form** (`mgf_hoeffding_ab`,
    `mgf_hoeffding`): for a probability vector `q` and `h` with
    range ≤ D, `log E_q[e^h] ≤ E_q[h] + D²/8`. Proof: the chord
-   bound of exp (convexity on [a,b] — the R56 route) reduces to
+   bound of exp (convexity on [a,b] — the route) reduces to
    the two-point Bernoulli MGF `1 − θ + θ·e^s ≤ e^{θs + s²/8}`
    (`bern_mgf_bound`), proven by calculus: F(s) = θs + s²/8 −
    log(1−θ+θeˢ) has F(0) = F'(0) = 0 and slope monotone by the
    Bernoulli-variance bound ρ(1−ρ) ≤ ¼. This closes the round-68
-   OPEN item ("the transcendental (b−a)²/8 step, absent from
+   open item ("the transcendental (b−a)²/8 step, absent from
    Mathlib") in the direction needed here.
 2. **Log-sum-exp deviation bounds** (`lse_shift_lower`,
    `lse_shift_upper`): the deviation of lse from `x` to y is
    `log E_{σ(x)}[e^{y−x}]`; pillar 1 gives the upper second-order
    bound, exp-Jensen the lower (supporting-hyperplane) bound.
 3. **The assembly** (`poe_logZ_second_order`): per-expert
-   `lse_shift_upper` at x := μ (the POOLED MEAN), y := z i, then
+   `lse_shift_upper` at x:= μ (the POOLED MEAN), y:= z i, then
    weight by w i and sum — the linear terms cancel EXACTLY
    (after the sum swap each is σ(μ)_v · Σ_i w_i(z_i v − μ v) =
    σ(μ)_v · 0, the centering identity `sum_w_center`). The gap's
    sign is `lse_shift_lower` (Jensen at the center via
    `weighted_center_le`).
 
-**HONEST CORRECTION of the audit's form.** The audit claimed the
+**honest CORRECTION of the audit's form.** The audit claimed the
 pairwise law `|·| ≤ (1/8)·Σ_{i,j} w_i w_j D_{ij}²` with D the
 pairwise logit diameter. That form is FALSE — counterexample
 z₁ = (1,−1), z₂ = (0,0), w = (½,½): the true gap is
@@ -60,7 +60,7 @@ sharp law is the PER-EXPERT range form above (constant 1/8,
 asymptotically tight: z₁ = (A,−A), z₂ = (−A,A), equal weights,
 R = 2A gives gap = log cosh A ~ A²/2 = R²/8). Under a pairwise
 diameter hypothesis the provable constant is ½
-(`poe_logZ_pairwise`, via R i := 2·Σ_j w_j D_ij and the weighted
+(`poe_logZ_pairwise`, via R i:= 2·Σ_j w_j D_ij and the weighted
 Cauchy–Schwarz `weighted_var_bound`). The audit's M²/8 per-token
 form holds as `poe_softmax_speed` — when each expert's spread
 around μ is ≤ M (the K = 2 case has μ = the midpoint, recovering
@@ -85,7 +85,7 @@ open Finset Real
 
 namespace Hagi
 
-/-! ## Pillars 0-1b: делегация Foundations.Hoeffding (R170) -/
+/-! ## Pillars 0-1b: делегация Foundations.Hoeffding -/
 
 /-- The Bernoulli MGF step (Hoeffding's nugget): for theta in [0,1],
 1 - theta + theta e^s <= e^{theta s + s^2/8} (Foundations). -/
@@ -115,7 +115,7 @@ theorem mgf_hoeffding {V : Type} [Fintype V] [Nonempty V]
 
 /-- The softmax of the logits `x` over a finite vocabulary. -/
 noncomputable def smax {V : Type} [Fintype V] (x : V → ℝ) : V → ℝ :=
-  -- R198: = Prelude.softDef (historical name kept)
+  --: = Prelude.softDef (historical name kept)
   Hagi.Prelude.softDef x
 
 theorem sum_exp_pos {V : Type} [Fintype V] [Nonempty V] (x : V → ℝ) :
@@ -257,8 +257,8 @@ theorem sum_w_center {K V : Type} [Fintype K] (z : K → V → ℝ) (w : K → �
 
 /-! ## The main theorem: the sharp per-expert (1/8)·ΣwR² law -/
 
-/-- **R106 main theorem: PoE logZ second-order stability, SHARP
-per-expert range form.** For logits `z i : V → ℝ` of experts i
+/-- ** main theorem: PoE logZ second-order stability, sharp
+per-expert range form.** For logits `z i: V → ℝ` of experts i
 with pool weights `w` (nonnegative, summing to 1), let
 
 `Z_w = ∑ v exp(∑ i w i · z i v)` (the geometric-pool / PoE
@@ -269,7 +269,7 @@ partition function of `geometric_pool_identity`) and
 ∑ i w i · log Z_i`).
 
 Then the softmax-speed approximation error is bounded by the
-SHARP second-order law
+sharp second-order law
 
 `|log Z_w − log Z_approx| ≤ (1/8)·∑_i w_i·(R i)²`,
 
@@ -279,7 +279,7 @@ where each `R i` dominates the RANGE of the centered deviation
 
 Route (deliberately without midpoints — see the module header):
 the per-expert second-order bound `lse_shift_upper` at the POOLED
-MEAN `x := μ, y := z i` gives
+MEAN `x:= μ, y:= z i` gives
 `lse(z i) ≤ lse(μ) + ⟨σ(μ), z i − μ⟩ + (R i)²/8`; weighting by
 `w i` and summing, the linear terms cancel EXACTLY — after the
 sum swap, each is `σ(μ)_v · ∑_i w_i (z i v − μ v) = σ(μ)_v · 0`
@@ -482,13 +482,13 @@ theorem weighted_var_bound {K : Type} [Fintype K] (w : K → ℝ)
     _ ≤ ∑ j, ∑ k, w j * w k * ((d j) ^ 2 + (d k) ^ 2) / 2 := hsumle
     _ = Q := hfinal
 
-/-- **R106 pairwise corollary — the HONEST constant ½.** With
+/-- ** pairwise corollary — the honest constant ½.** With
 `D` dominating the pairwise logit diameters
 (`∀ v, |z i v − z j v| ≤ D i j`),
 
 `|log Z_w − log Z_approx| ≤ (1/2)·∑_{i,j} w_i w_j·(D_ij)²`.
 
-Route: `R i := 2·∑_j w_j D_ij` dominates the range of the
+Route: `R i:= 2·∑_j w_j D_ij` dominates the range of the
 centered deviation via the identity
 `(z i u − μ u) − (z i v − μ v) = ∑_j w_j[(z i u − z j u) − (z i v − z j v)]`
 (each bracket ≤ 2·D_ij by the triangle inequality), then the
@@ -497,7 +497,7 @@ square: `(2∑_j w_j D_ij)² ≤ 4∑_j w_j D_ij²`.
 
 **HONESTY NOTE — the audit's pairwise 1/8 constant is REFUTED**:
 for z₁ = (1,−1), z₂ = (0,0), w = (½,½), the true gap is
-`½·log[cosh(1)/cosh²(½)] ≈ 0.0968` (R115 numeric fix) while
+`½·log[cosh(1)/cosh²(½)] ≈ 0.0968` while
 `⅛·∑_{ij} w_i w_j D_ij² = 0.0625` (with D = 1) — the claimed
 bound FAILS. The sharp law is the per-expert range form
 (`poe_logZ_second_order`, constant 1/8); ½ is the provable
@@ -567,7 +567,7 @@ theorem poe_logZ_pairwise {V K : Type} [Fintype V] [Nonempty V] [Fintype K]
   rw [hsplit, hsplit2]
   exact Finset.sum_le_sum (fun i _ => hterm i)
 
-/-- **R106 sequence form**: the full-sequence product composes by
+/-- ** sequence form**: the full-sequence product composes by
 summing per-token gaps — total normalizer error ≤ (1/8)·Σ_t M_t²
 when every token's experts have centered range ≤ M_t. No
 cross-token cancellation is claimed (honest per-token budget). -/

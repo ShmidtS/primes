@@ -7,51 +7,26 @@ import Hagi.Probability.ConditionalSuccess
 set_option linter.style.header false
 
 /-!
-# R96: FastGrowth ↔ GrowthState — the multiplicative takeoff as a GrowthState theorem
+# FastGrowth ↔ GrowthState — the takeoff laws on the growth state
 
-The external review (§8) flagged that `capability_takeoff_counted`
-(R85, FastGrowth.lean) is a theorem about ABSTRACT scalars C : ℕ → ℝ,
-while the real growth loop (`grow`, R91) updates capability
-ADDITIVELY: capability_{t+1} = capability_t + growGain. The
-exponential-takeoff law was therefore not a theorem about the actual
-`GrowthState`. This module is the bridge.
+The bridge from the additive `grow` update to multiplicative
+takeoff: `additive_as_multiplicative` reads the additive
+capability increment as the factor `1 + growGain / capability`;
+`growMul`/`growCycle` iterate the transition; `growCycle_capability`
+gives the exact closed form `C₀ + t·G` (G invariant).
 
-**The additive→multiplicative reading.** `grow`'s additive increment
-`capability + growGain` IS a multiplicative update in disguise: with
-capability > 0,
-
-  capability + growGain = capability · (1 + growGain / capability),
-
-i.e. the per-cycle growth factor is 1 + α_t with the FIELD-COMPUTED
-α_t := growGain / capability (the measured increment normalized by the
-current capability — the natural relative-gain reading of the existing
-state fields; no new free parameter). `additive_as_multiplicative`
-is this definitional bridge lemma; `growMul` is the success-gated form
-of `grow` whose capability channel is literally the multiplicative
-law of `capability_multiplicative`/`capability_takeoff_counted`.
-
-Results:
-* `additive_as_multiplicative` — (grow S).capability =
-  S.capability * (1 + S.growGain / S.capability) for S.capability > 0.
-* `growMul` — the success-gated grow transition: on a successful
-  cycle (indicator σ t = 1) the multiplicative law C·(1+α) is
-  certified; on failure capability is merely non-decreasing
-  (gain ≥ 0), the neutral multiplier 1 — the semantics
-  capability_takeoff_counted iterates.
-* `growth_state_takeoff` — the counted takeoff law ON GrowthState:
-  iterating `growMul` for T cycles,
-  (growCycle T S).capability ≥ S.capability · (1+α)^{Σ_{t<T} σ t},
-  transported from `capability_takeoff_counted` with
-  C t := (growCycle t S).capability — the takeoff theorem now
-  mentions GrowthState, resolving the review's complaint.
-* `growth_state_takeoff_probabilistic` — the stochastic half
-  composed at the GrowthState level: with a random initial state
-  S : Ω → GrowthState X, independent [0,1]-success indicators
-  (mean ≥ p₀) and the pointwise log-bridge along the growMul
-  trajectory, Pr[(growCycle T S ω).capability ≥ S ω.capability ·
-  exp(a(p₀T − Δ(T,δ)) − Σε)] ≥ 1 − δ (an instantiation of
-  `takeoff_time_form`, R95, with the capability read from the
-  GrowthState trajectory).
+* `growth_state_takeoff`: with success indicators `sigma t ≤ 1`
+  and per-cycle gate `alpha * C_t ≤ G` on successes,
+  `(growCycle T S).capability ≥ S.capability * (1+alpha) ^ Σσ`.
+* `growth_state_takeoff_window`: with a fixed gain, the success
+  count and the certified factor are bounded by constants
+  (`Σσ ≤ 1/alpha + 1 − C₀/G`, factor ≤ exp(1 + alpha −
+  alpha·C₀/G)); sustained takeoff needs a capability-dependent
+  gain and is not claimed here.
+* `growth_state_takeoff_probabilistic`: with h_emp_ independent
+  [0,1]-success indicators (mean ≥ p0) and a pointwise log-bridge,
+  Pr[(growCycle T S ω).capability ≥ S ω.capability *
+  exp(a·(p0·T − Δ(T,δ)) − Σε)] ≥ 1 − δ.
 -/
 
 open Real Finset MeasureTheory ProbabilityTheory
@@ -62,11 +37,8 @@ noncomputable section GrowthBridge
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- **The definitional bridge**: `grow`'s additive capability update
-is the multiplicative update with the field-computed growth factor
-1 + growGain / capability — the measured increment normalized by the
-current capability (the relative-gain reading of the R91 fields;
-requires capability > 0). -/
+/-- For `0 < S.capability`:
+`(grow S).capability = S.capability * (1 + S.growGain / S.capability)`. -/
 theorem additive_as_multiplicative (S : GrowthState X)
     (hC : 0 < S.capability) :
     (grow S).capability
@@ -74,15 +46,10 @@ theorem additive_as_multiplicative (S : GrowthState X)
   change S.capability + S.growGain = _
   field_simp
 
-/-- **The success-gated grow transition**: on a SUCCESSFUL cycle
-(σ = 1) the capability channel is certified multiplicative with the
-explicit factor 1 + α (α the design growth rate, certified against
-the state's measured gain via hgain); on failure (σ = 0) capability
-is merely non-decreasing (hgnonneg: the measured gain is ≥ 0) —
-exactly the per-cycle semantics that `capability_takeoff_counted`
-iterates. The transition itself is `grow` (all other fields update
-as in R91); the multiplicative reading of its capability channel is
-`additive_as_multiplicative`. -/
+/-- The grow transition, to be read through
+`growMul_step_multiplicative`: on a certified-success cycle the
+capability multiplier is `1 + alpha`; otherwise capability is
+non-decreasing. -/
 def growMul (S : GrowthState X) : GrowthState X := grow S
 
 theorem growMul_eq_grow (S : GrowthState X) : growMul S = grow S := rfl
@@ -97,12 +64,8 @@ theorem growCycle_succ (t : ℕ) (S : GrowthState X) :
 
 theorem growCycle_zero (S : GrowthState X) : growCycle 0 S = S := rfl
 
-/-- The per-cycle multiplicative law along the growMul trajectory:
-on success (σ t = 1) the measured gain certifies the multiplier
-(1 + α); on failure the trajectory is non-decreasing. This is the
-`hmul` hypothesis of `capability_takeoff_counted`, derived from the
-GrowthState semantics (additive gain + nonneg + success gate), not
-assumed on abstract scalars. -/
+/-- If `0 < S.capability` and `alpha * S.capability ≤ S.growGain`,
+then `S.capability * (1 + alpha) ≤ (growMul S).capability`. -/
 theorem growMul_step_multiplicative (S : GrowthState X) (alpha : ℝ)
     (hCpos : 0 < S.capability)
     (hsuccess : alpha * S.capability ≤ S.growGain) :
@@ -129,33 +92,20 @@ theorem growCycle_capability_succ (t : ℕ) (S : GrowthState X) :
       = (growCycle t S).capability + S.growGain := by
   rw [growCycle_succ, growMul, grow, growCycle_growGain]
 
-/-- **The closed form of the capability channel** (R102): the
-additive law iterated — `growCycle t S` has capability exactly
-`C₀ + t·G` with G the INVARIANT gain (`growCycle_growGain`).
-This exact formula is the basis of `growth_state_takeoff_window`. -/
+/-- `(growCycle t S).capability = S.capability + t * S.growGain`
+(the gain field is invariant under `grow`). -/
 theorem growCycle_capability (t : ℕ) (S : GrowthState X) :
     (growCycle t S).capability = S.capability + (t : ℝ) * S.growGain := by
   induction t with
   | zero => rw [growCycle_zero]; ring
   | succ t ih => rw [growCycle_capability_succ, ih]; push_cast; ring
 
-/-- **The counted takeoff law ON GrowthState** (R85 transported to
-the real growth-loop state, the review §8 fix): iterating the
-success-gated grow transition for T cycles, with σ t the success
-indicator (σ t ≤ 1) of cycle t, the capability FIELD of the iterated
-state obeys
-
-  (growCycle T S).capability ≥ S.capability · (1+α)^{Σ_{t<T} σ t}
-
-— exponential in the success count, with the capability read from
-the GrowthState. The per-cycle multiplicative law is DERIVED from
-the state semantics (`growMul_step_multiplicative` from the additive
-gain fields), then `capability_takeoff_counted` (R85) is applied to
-the scalar trajectory C t := (growCycle t S).capability.
-See `growth_state_takeoff_window` (R102) for the honest
-companion: with a FIXED gain the certified exponential
-takeoff is BOUNDED — read that window theorem before
-reading unbounded exponential growth into this law. -/
+/-- With `0 < alpha`, `sigma t ≤ 1`, positive capability along the
+trajectory, and the success gate `alpha * C_t ≤ S.growGain` on
+every successful cycle:
+`(growCycle T S).capability ≥ S.capability * (1 + alpha) ^ Σσ`.
+See `growth_state_takeoff_window`: with a fixed gain the
+certified takeoff is bounded. -/
 theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hgnonneg : 0 ≤ S.growGain)
@@ -194,33 +144,15 @@ theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
   [IsProbabilityMeasure μ]
 
-/-- **The certified-takeoff WINDOW (R102; the external audit's
-vacuity finding converted into a theorem)**. With the gain
-field G = growGain INVARIANT under grow (`growCycle_growGain`)
-and the success gate α·C_t ≤ G (the `hsuccess` hypothesis of
-`growth_state_takeoff`, evaluated along the exact additive
-trajectory C_t = C₀ + t·G of `growCycle_capability`), the
-certified exponential takeoff CANNOT run forever:
-
-- every successful cycle's time index obeys
-  t ≤ 1/α − C₀/G, so the success count over any horizon T is
-  at most 1/α + 1 − C₀/G (an ABSOLUTE window, independent of
-  T);
-- hence the certified multiplicative factor
-  (1+α)^(Σσ) ≤ exp(1 + α − α·C₀/G) ≤ e·e^α — bounded by a
-  CONSTANT, however long the loop runs.
-
-The audit's suggested e^{G/C₀} form is NOT provable in this
-generality (for G/C₀ small the constant e·e^α bound is
-larger than e^{G/C₀}); the window above is the honest tight
-form. Consequence, stated plainly: with a FIXED gain the
-certified takeoff is a bounded transient; SUSTAINED takeoff
-requires a capability-dependent gain G_t ≥ α·C_t at every
-cycle — the open bridge (a gain-growth law tied to the
-capability field), not a theorem of the current state
-model. The hypothesis `hgate0 : α·C₀ ≤ G` is the t = 0
-instance of the gate: without it no cycle can ever succeed
-(the window is then empty and the takeoff count is 0). -/
+/-- With `0 < alpha`, `0 < S.growGain`, the t = 0 gate
+`alpha * C₀ ≤ G`, and the gate `alpha * C_t ≤ G` on every
+successful cycle (evaluated along the exact trajectory
+`C_t = C₀ + t·G`): the success count obeys
+`Σσ ≤ 1/alpha + 1 − C₀/G` and the certified factor obeys
+`(1+alpha) ^ Σσ ≤ exp(1 + alpha − alpha·C₀/G)`. With a fixed
+gain the certified takeoff is a bounded transient; sustained
+takeoff would need a capability-dependent gain and is not
+claimed. -/
 theorem growth_state_takeoff_window (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hG : 0 < S.growGain)
@@ -370,20 +302,13 @@ theorem growth_state_takeoff_window (S : GrowthState X) (sigma : ℕ → ℕ)
     exact hmul
   exact le_trans hN (Real.exp_le_exp.mpr hNle)
 
-/-- **The stochastic takeoff ON GrowthState** (R95 composed at the
-state level): with a random initial state S : Ω → GrowthState X,
-independent [0,1]-valued success indicators with per-cycle mean ≥ p₀
-(h_emp_), and the POINTWISE log-bridge along the growMul trajectory
-(log C_{t+1} − log C_t ≥ a·S_t − ε_t, C t the capability field of
-the iterated state), then with probability ≥ 1 − δ the capability
-FIELD of the T-cycled state obeys the exponential law
-
-  (growCycle T S ω).capability
-    ≥ S ω.capability · exp(a·(p₀·T − Δ(T,δ)) − Σ_{t<T} ε_t),
-
-Δ(T,δ) = √(2·T·log(1/δ)). Instantiates `takeoff_time_form` (R95)
-with C t ω := (growCycle t (S ω)).capability — the stochastic half
-of the takeoff theorem now also about GrowthState. -/
+/-- With h_emp_ measurable independent [0,1]-valued indicators
+`s t` (mean ≥ p0), positive capability along every trajectory, and
+the pointwise log-bridge `log C_{t+1} − log C_t ≥ a·s t − eps t`,
+the event
+`(growCycle T S ω).capability ≥ S ω.capability *
+exp(a·(p0·T − concDelta T delta) − Σ eps t)` has probability
+≥ `1 − delta` (instantiates `takeoff_time_form`). -/
 theorem growth_state_takeoff_probabilistic
     (S : Ω → GrowthState X) (s : ℕ → Ω → ℝ)
     {T : ℕ} {delta p0 a : ℝ} {eps : ℕ → ℝ}

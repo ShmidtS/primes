@@ -125,7 +125,7 @@ section Phase
 timaeus-research/devinterp — the LLC phase apparatus,
 transported): if the generation-over-generation phase metric
 (the LLC, or our interval-verdict bracket) is monotone
-decreasing, then EVERY later phase is ordered below EVERY
+decreasing, then every later phase is ordered below every
 earlier one — ∀ i ≤ j, a j ≤ a i. No phase oscillation. The
 diagnostic: a measured oscillation (a (k+1) > a k for some k)
 falsifies the monotone-phase hypothesis — the growth loop is

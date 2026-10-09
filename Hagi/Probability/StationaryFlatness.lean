@@ -6,10 +6,10 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# StationaryFlatness: subquadratic tails bound the flatness moment (R174e)
+# StationaryFlatness: subquadratic tails bound the flatness moment
 
 The last module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round R174e). Source arXiv:2607.16384:
+FORMALIZATION_PLAN.md, round). Source arXiv:2607.16384:
 for constant-stepsize SGD the STATIONARY MEASURE has
 subquadratic tails near flat minima — the measurable
 replacement of the folklore "flat minima generalize".
@@ -38,7 +38,7 @@ has a finite mean controlled by the tail constant.
   and measurable from the tail.
 
 **Honest boundary.** No claim here connects the bound to
-GENERALIZATION (that link is PAC-Bayes territory, R155); the
+GENERALIZATION (that link is PAC-Bayes territory,); the
 constant-stepsize SGD provenance of the tail hypothesis is
 runtime interpretation — only the tail-to-moment calculus is
 a theorem.

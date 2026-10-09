@@ -6,11 +6,11 @@ import Hagi.Ensemble.MergePrice
 /-!
 # PolicyCompatibility — the MOPD amendment to the merge gate
 
-Empirical source (flagged, NOT proved): MOPD (multi-teacher
+Empirical source (flagged, not proved): MOPD (multi-teacher
 on-policy distillation). When a much stronger teacher with a
 large policy-distribution gap was attached, the initial KL was
 ~5x larger, policy-gradient variants degraded, and top-k
-variants diverged. Integration value is NOT capability alone:
+variants diverged. Integration value is not capability alone:
 
   capability gain × compatibility
 

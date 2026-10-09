@@ -11,7 +11,7 @@ set_option linter.style.header false
 The joint channel is exhausted (gen-3 joint improves the prior
 at no LR; the slimpajama conflict is geometry, `Hagi.Step/Joint`). The
 growth law is now `c = α • D + 0` — the single lever is the
-D-field of the data: how much NEW disagreement the children,
+D-field of the data: how much new disagreement the children,
 trained on the mixture w with a shared prior, generate per
 generation. This module is the theory of D as a function of the
 mixture.
@@ -112,7 +112,7 @@ per-term log is handled under the positivity hypotheses of the
 theorems). -/
 noncomputable def KLdiv (p q : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v / q v)
 
-/-- R198 prelude bridge: KLdiv IS the canonical Prelude.klDef. -/
+/-- prelude bridge: KLdiv IS the canonical Prelude.klDef. -/
 theorem KLdiv_eq_klDef (p q : V → ℝ) : KLdiv p q = Hagi.Prelude.klDef p q := rfl
 
 /-- The mixture of corpora by weights w: the pointwise

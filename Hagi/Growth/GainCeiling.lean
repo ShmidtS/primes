@@ -4,30 +4,14 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# GainCeiling — the compositional ceiling of contractive
-gain operators (plan §1.1/R226, sources 2607.18829 Prop.3,
-2607.16329 Lipschitz review, 2609.33540 fixed-point models)
+# GainCeiling — композиционый потолок gain-операторов
 
-If the GainOperator is implemented by layers chosen
-CONTRACTIVE (for stability), the total gain of an L-deep
-stack is bounded by the PRODUCT of the layer gains — a
-compositional ceiling: depth cannot buy unbounded
-amplification. The γ = 9× deficit question is thereby
-CLAMPED FROM ABOVE: whatever the measured γ, it must sit
-below Πᵢ‖Tᵢ‖ — either γ is shown under the ceiling, or some
-layer is not contractive (the gain-vs-stability tradeoff
-made explicit).
-
-* `gain_product_bound`: the two-layer form — operator
-  submultiplicativity (the Mathlib core);
-* `gain_stack_ceiling`: an all-contractive stack (every
-  ‖Tᵢ‖ ≤ q < 1) has composite gain ≤ q^L — stacking deep
-  never amplifies;
-* `amplification_needs_expansion`: the contrapositive clamp:
-  an end-to-end amplification γ_eff > q^L forces SOME layer
-  to exceed q — a 9× amplification is IMPOSSIBLE in an
-  all-contractive stack (the formal gain-vs-stability
-  tradeoff).
+* `gain_product_bound`: субмультипликативность нормы
+  композиции двух операторов;
+* `gain_stack_ceiling`: если каждая норма в стеке `Ts` ≤ q
+  (0 ≤ q), то норма композиции ≤ q ^ Ts.length;
+* `amplification_needs_expansion`: если `q ^ Ts.length < ‖stackComp Ts‖`,
+  то какой-то слой имеет норму > q.
 -/
 
 namespace Hagi
@@ -37,8 +21,7 @@ open ContinuousLinearMap
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
   [NontrivialTopology V]
 
-/-- **The two-layer ceiling**: the composite gain never
-exceeds the product of the layer gains. -/
+/-- `‖T₂.comp T₁‖ ≤ ‖T₂‖ * ‖T₁‖`. -/
 theorem gain_product_bound (T₁ T₂ : V →L[ℝ] V) :
     ‖T₂.comp T₁‖ ≤ ‖T₂‖ * ‖T₁‖ :=
   opNorm_comp_le T₂ T₁
@@ -52,9 +35,8 @@ theorem stackComp_cons (T : V →L[ℝ] V) (Ts : List (V →L[ℝ] V)) :
     stackComp (T :: Ts)
       = T.comp (stackComp Ts) := rfl
 
-/-- **The stack ceiling**: composition of a list of layers,
-each of operator norm ≤ q, has norm ≤ q^(list length) —
-contractive stacking decays with depth. -/
+/-- Если `0 ≤ q` и каждая норма в списке `Ts` ≤ q, то
+`‖stackComp Ts‖ ≤ q ^ Ts.length`. -/
 theorem gain_stack_ceiling (Ts : List (V →L[ℝ] V))
     (q : ℝ) (hq : 0 ≤ q)
     (hT : ∀ T ∈ Ts, ‖T‖ ≤ q) :
@@ -84,13 +66,8 @@ theorem gain_stack_ceiling (Ts : List (V →L[ℝ] V))
         _ = q ^ (Ts.length + 1) := by
             rw [pow_succ, mul_comm (q ^ Ts.length) q]
 
-/-- **Amplification needs expansion**: if the end-to-end
-composite norm EXCEEDS q^L, some layer exceeds q — the
-contrapositive of the ceiling. A large amplification
-(the measured γ = 9× regime) is impossible in an
-all-q-contractive stack: at least one layer must be
-expansive (norm > q) — the formal gain-vs-stability
-tradeoff of 2607.18829 Prop.3. -/
+/-- Если `0 ≤ q` и `q ^ Ts.length < ‖stackComp Ts‖`, то
+существует `T ∈ Ts` с `q < ‖T‖`. -/
 theorem amplification_needs_expansion (Ts : List (V →L[ℝ] V))
     (q : ℝ) (hq : 0 ≤ q)
     (hbig : q ^ Ts.length < ‖stackComp Ts‖) :

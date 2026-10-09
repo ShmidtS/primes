@@ -6,16 +6,16 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R99: synthetic pre-pretraining transfer (arXiv 2609.39827)
+# synthetic pre-pretraining transfer (arXiv 2609.39827)
 
 The formalization of the synthetic pre-pretraining theory, in
 the GrowthGate / ComputeBudget style: short synthetic
 pretraining on RETRIEVAL-style tasks (k-Shuffle Dyck, MP-Struct,
 NCA) reduces the TIME-TO-CAPABILITY of the subsequent main
 pretraining; the mechanism hypothesis is long-range retrieval,
-NOT a grammatical prior.
+not a grammatical prior.
 
-**Honest boundaries (the paper's claims we do and do NOT carry):**
+**Honest boundaries (the paper's claims we do and do not carry):**
 
 * h_emp_retrieval_transfer_ — the transfer itself (retrieval-style
   synthetic pretraining accelerates the main run) is EMPIRICAL:
@@ -37,7 +37,7 @@ NOT a grammatical prior.
 * `time_to_capability_correct` — well-formedness: the found
   index is a genuine first crossing (C ≥ τ there, C < τ strictly
   before), and under monotonicity capability stays ≥ τ after it.
-* `synth_investment_dominates` — THE GATE THEOREM: if the
+* `synth_investment_dominates` — THE gate theorem: if the
   measured saving, priced at the per-step compute cost, exceeds
   the cost of the synthetic phase (ΔT·c_step > C_synth — the
   only empirical gate), then the composite (synthetic-then-main)
@@ -48,7 +48,7 @@ NOT a grammatical prior.
 * `task_selection_marginal` — the adaptive-task-choice corollary
 in the ComputeBudget style: among finitely many candidate
 synthetic tasks j with measured gains g_j and POSITIVE costs
-c_j > 0 (R102: hc — with nonpositive costs the ratio g/c is
+c_j > 0 (: hc — with nonpositive costs the ratio g/c is
 meaningless, and Lean's x/0 = 0 would let the argmax exist
 vacuously), the argmax of g_j/c_j exists and its ratio
 dominates every alternative's — with positive costs the
@@ -114,10 +114,10 @@ theorem time_to_capability_correct (τ : ℝ) (C : ℕ → ℝ)
 
 /-! ### The gate theorem -/
 
-/-- **THE GATE THEOREM (compute-aware GrowthGate comparison)**:
+/-- **THE gate theorem (compute-aware GrowthGate comparison)**:
 two schedules reach the same threshold τ — the plain main run
 at step T_p, the composite (synthetic phase of cost C_synth,
-then main run) at main-step T_s. The ONLY empirical gate is
+then main run) at main-step T_s. The only empirical gate is
 `h_emp_gate`: the measured saving synthGain = T_p − T_s, priced
 at the per-step compute cost c_step, strictly exceeds the cost
 of the synthetic phase (ΔT·c_step > C_synth — the

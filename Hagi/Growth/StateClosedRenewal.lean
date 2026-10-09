@@ -8,35 +8,22 @@ import Hagi.Growth.StateBinding
 set_option linter.style.header false
 
 /-!
-# R126: StateClosedRenewal — state-closed замыкание C→D→G→S
+# StateClosedRenewal — state-closed замыкание C→D→G→S
 
-Аудит R126 (§6, §31): центральная нерешённая теорема системы —
-state-bound рост без shadow-последовательностей:
+Динамика на полях состояния:
+`C t = (S t).capability`, `D t = usableFrontier (S t)`.
 
-  C_t = (S t).capability,  D_t = usableFrontier (S t).
+* `state_closed_takeoff`: при шаге
+  `C' = C + γ·D`, динамике `D' ≥ ρ·D + β·C`, `ρ ≥ γk`, пороге
+  `β ≥ γk² + (1−ρ)k` и старте в конусе —
+  `(S 0).capability·(1+γk)^T ≤ (S T).capability`;
+* `state_closed_renewal_step`: то же с трением ξ и усиленным
+  порогом `β ≥ γk² + (1−ρ)k + ξ/C t` — шаг конуса на полях
+  состояния;
+* `state_closed_band`: двусторонняя полоса
+  `C₀(1+γk)^T ≤ (S T).capability ≤ C* − (1−σ)^T·(C* − C₀)`.
 
-Настоящий модуль замыкает контур на полях состояния,
-композируя РОБАСТНЫЙ ratio-конус (R124, без h_C_cap) с
-динамикой frontier и насыщением (R125):
-
-* `state_closed_takeoff` — при динамике состояния
-  C' = C + γ·D, D' ≥ ρD + βC, полю зажигания
-  β ≥ γk² + (1−ρ)k и ρ ≥ γk — экспоненциальный рост
-  НАСТОЯЩЕГО поля (S t).capability: (1+γk)^T-мультипликатор.
-  Никаких отдельных C G D : ℕ → ℝ: конус и шаг проверяются на
-  измеряемых полях состояния на каждом цикле.
-* `state_closed_renewal_step` — пошаговое замыкание контура
-  при трении ξ: полю β ≥ γk² + (1−ρ)k + ξ/C_t (ξ-компенсация
-  R124-наброска, теперь формально на состоянии): ξ сокращается
-  точно, шаг конуса односторонний.
-* `state_closed_band` — двусторонняя полоса на состоянии
-  (взлёт ↔ ёмкость, R125): (1+γk)^T снизу, PL-окно сверху.
-
-**Честные границы**: полю β — измеряемое (R117 сертифицирует
-по разногласию экспертов); PL-окно и ρ ≥ γk — пошаговые
-измеряемые посылки (h_emp_-слой); «runtime ⇒ success»-стрелка
-и генератор frontier (CandidateComplete) остаются открытыми
-(P0-1, P0-5 аудита).
+Полю β, PL-окно и `ρ ≥ γk` — пошаговые измеряемые посылки.
 -/
 
 open Finset Real
@@ -45,13 +32,11 @@ namespace Hagi
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- **State-closed takeoff**: экспоненциальный рост
-НАСТОЯЩЕГО поля (S t).capability. Все посылки — пошаговые
-сертификаты на измеряемых полях состояния
-((S t).capability, usableFrontier (S t) = (S t).dataField);
-никаких shadow-последовательностей C G D : ℕ → ℝ.
-Контур: конус {D ≥ kC} инвариантен (R124) ⇒ каждый шаг
-умножает capability на (1+γk). -/
+/-- При `0 < γ`, `0 < k`, `0 < (S t).capability`, шаге
+`C' = C + γ·usableFrontier`, динамике `D' ≥ ρ·D + β·C`,
+`ρ ≥ γk`, пороге `β ≥ γk² + (1−ρ)k` и старте в конусе —
+`(S 0).capability·(1+γk)^T ≤ (S T).capability`
+(композиция `ratio_takeoff` и `cone_ratio_invariant`). -/
 theorem state_closed_takeoff (S : ℕ → GrowthState X)
     (γ ρ β k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k)
@@ -71,13 +56,11 @@ theorem state_closed_takeoff (S : ℕ → GrowthState X)
       (fun t => usableFrontier (S t)) γ ρ β k hCpos hstep hdyn
       hrhogk hbeta hcone0) T
 
-/-- **State-closed шаг конуса с трением ξ**: при полю зажигания,
-усиленном на ξ_t/C_t (трение конечных данных), шаг конуса
-D ≥ kC ⇒ D' ≥ kC' выполняется на полях состояния; ξ-слагаемое
-компенсируется ТОЧНО (алгебра R124: D'−kC' ≥ (ρ−γk)(D−kC) ≥ 0).
-Это пошаговая переэкземпляриация `cone_ratio_step` на
-состоянии — контроллер перепроверяет конус по измерениям
-каждого цикла, а не доверяет глобальному сертификату. -/
+/-- Шаг конуса с трением: при шаге `C' = C + γ·D`, динамике
+`ρ·D + β·C − ξ t ≤ D'`, `ρ ≥ γk`, пороге
+`γk² + (1−ρ)k + ξ t/C t ≤ β`, `0 < C t` и конусе
+`k·C t ≤ D t` следует
+`k·(S (t+1)).capability ≤ usableFrontier (S (t+1))`. -/
 theorem state_closed_renewal_step (S : ℕ → GrowthState X)
     (γ ρ β k : ℝ) (xi : ℕ → ℝ)
     (hstep : ∀ t, (S (t + 1)).capability
@@ -99,7 +82,7 @@ theorem state_closed_renewal_step (S : ℕ → GrowthState X)
   set C' := (S (t + 1)).capability with hC'
   set D' := usableFrontier (S (t + 1)) with hD'
   -- ключевая алгебра: D' − kC' ≥ (ρ−γk)(D−kC) + margin·C,
-  -- где margin = β − γk² − (1−ρ)k − ξ/C ≥ 0, а ξ входит в D'
+  -- margin = β − γk² − (1−ρ)k − ξ/C ≥ 0
   have hkey : ρ * D + β * C - xi t - k * (C + γ * D)
       = (ρ - γ * k) * (D - k * C)
         + (β - (γ * k ^ 2 + (1 - ρ) * k + xi t / C)) * C := by
@@ -118,14 +101,10 @@ theorem state_closed_renewal_step (S : ℕ → GrowthState X)
     linarith [hkey, hd]
   linarith
 
-/-- **State-closed двусторонняя полоса**: взлёт (R124-конус)
-и насыщение (R125 PL-окно) вместе на полях состояния:
-
-  C₀(1+γk)^T ≤ (S T).capability
-    ≤ C* − (1−σ)^T·(C* − C₀).
-
-Полный state-closed контракт роста HAGI: измеряемые поля,
-пошаговые сертификаты, никаких shadow-последовательностей. -/
+/-- При посылках `state_closed_takeoff` и обеих PL-формах с
+`(S 0).capability ≤ Cstar` выполнено
+`(S 0).capability·(1+γk)^T ≤ (S T).capability
+≤ Cstar − (1−σ)^T·(Cstar − (S 0).capability)`. -/
 theorem state_closed_band (S : ℕ → GrowthState X)
     (γ ρ β k Cstar σ : ℝ)
     (hγ : 0 < γ) (hk : 0 < k) (hσ1 : σ ≤ 1)

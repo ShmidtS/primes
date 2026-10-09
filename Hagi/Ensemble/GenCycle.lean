@@ -124,7 +124,7 @@ theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
     push_cast
     rfl]
 
-/-- **The linear compounding law** (R209: proof lives in
+/-- **The linear compounding law** (: proof lives in
 Foundations.Recurrence; delegation preserves the name). -/
 theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
     (step : ℕ → ℝ → ℝ)
@@ -134,7 +134,7 @@ theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
     ∀ k : ℕ, iter k ≤ M₀ - (k : ℝ) * c :=
   Hagi.Foundations.genMean_compound M₀ c _hc step hstep iter hiter0 hiterS
 
-/-- **The death law of the recursion** (R209: proof lives in
+/-- **The death law of the recursion** (: proof lives in
 Foundations.Recurrence; delegation preserves the name). -/
 theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
     (_hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)

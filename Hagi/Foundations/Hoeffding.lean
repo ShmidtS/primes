@@ -7,13 +7,10 @@ import Hagi.Foundations.Chord
 set_option linter.style.header false
 
 /-!
-# Foundations.Hoeffding — конечная лемма Хёфдинга (R170)
+# Foundations.Hoeffding — конечная лемма Хёфдинга
 
-Миграция-2026-10-05: скалярное Bernoulli-MGF-ядро (b−a)²/8 и
-взвешенная лемма Хёфдинга (finite/range формы) — чистый calculus
-+ Fintype-суммы, без Hagi-зависимостей (кроме Chord). Перенесены
-из Energy/PoEBound (Pillar 0/1/1b): потребители Probability
-(CertifiedEstimator) и Energy не тянут верхние слои.
+Скалярное Bernoulli-MGF-ядро `(b−a)²/8` и лемма Хёфдинга в
+конечной и range-формах; зависимости — только Chord.
 -/
 
 open Finset Real
@@ -222,11 +219,10 @@ private theorem bernF_nonneg {θ : ℝ} (h0 : 0 < θ) (h1 : θ < 1) :
     have hF0 := bernF_zero h0 h1
     linarith
 
-/-- **The Bernoulli MGF step** (Hoeffding's nugget): for θ ∈ [0,1]
-and any s, `1 − θ + θ·eˢ ≤ e^{θs + s²/8}`. Route: F(s) = θs + s²/8 −
-log(1−θ+θeˢ) lies above its tangent at 0 (F(0) = F'(0) = 0, slope
-monotone by the Bernoulli-variance bound ρ(1−ρ) ≤ 1/4). This is
-the transcendental (b−a)²/8 step that round-68 recorded as absent. -/
+/-- The Bernoulli MGF step: for `θ ∈ [0,1]` and any `s`,
+`1 - θ + θ * exp s ≤ exp (θ * s + s ^ 2 / 8)`. Route: the
+surplus `F(s) = θs + s²/8 − log(1−θ+θeˢ)` lies above its
+tangent at 0 (slope monotone by `ρ(1−ρ) ≤ 1/4`). -/
 theorem bern_mgf_bound (θ s : ℝ) (hθ0 : 0 ≤ θ) (hθ1 : θ ≤ 1) :
     1 - θ + θ * Real.exp s ≤ Real.exp (θ * s + s ^ 2 / 8) := by
   rcases eq_or_lt_of_le hθ0 with rfl | h0

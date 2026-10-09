@@ -5,7 +5,7 @@ import Hagi.Probability.HistoryPath
 
 /-!
 # HistoryPastMean — past-measurability and the union bound
-(R233 port, part 2/2 of the two-sided joint Freedman)
+
 
 Ported verbatim from openai/math,
 OAI.Combinatorics.TriangleRemoval.Probability.

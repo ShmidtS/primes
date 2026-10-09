@@ -9,18 +9,15 @@ set_option linter.style.header false
 /-!
 # Foundations.Telescope — канонические телескопы
 
-Миграция-2026-10-05: единые горизонтные телескопы (t < T)
-вместо копий в MasterHAGI.telescope_*, GlobalConvergence.
-lyapunov_telescope, GrowthCeiling.potential_telescope,
-Probability hedge-телескопов. Перевод потребителей —
-постепенно (совместимость через импорт).
+Единые горизонтные телескопы (`t < T`): `telescope_le`,
+`telescope_sum_le`, `telescope_sub_sum`.
 -/
 
 open Finset Real
 
 namespace Hagi.Foundations
 
-/-- Нейвозрастание телескопируется по горизонту. -/
+/-- Если `f (t + 1) ≤ f t` при всех `t < T`, то `f T ≤ f 0`. -/
 theorem telescope_le {f : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) ≤ f t) : f T ≤ f 0 := by
   induction T with
@@ -29,7 +26,8 @@ theorem telescope_le {f : ℕ → ℝ} {T : ℕ}
       exact le_trans (h T (Nat.lt_succ_self T))
         (ih (fun t ht => h t (Nat.lt_trans ht (Nat.lt_succ_self T))))
 
-/-- Инкрементная сумма с пошаговыми границами. -/
+/-- Если `f (t + 1) - f t ≤ c t` при всех `t < T`, то
+`f T - f 0 ≤ ∑ t < T, c t`. -/
 theorem telescope_sum_le {f c : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) - f t ≤ c t) :
     f T - f 0 ≤ ∑ t ∈ Finset.range T, c t := by
@@ -42,7 +40,8 @@ theorem telescope_sum_le {f c : ℕ → ℝ} {T : ℕ}
       rw [Finset.sum_range_succ]
       linarith
 
-/-- Точный счёт телескопируется вычитанием. -/
+/-- Если `f (t + 1) = f t - c t` при всех `t < T`, то
+`f T = f 0 - ∑ t < T, c t`. -/
 theorem telescope_sub_sum {f c : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) = f t - c t) :
     f T = f 0 - ∑ t ∈ Finset.range T, c t := by

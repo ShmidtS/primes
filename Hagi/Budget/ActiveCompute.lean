@@ -6,7 +6,7 @@ import Hagi.Architecture.ConfigurationCost
 /-!
 # ActiveCompute — the compute bill of switching
 
-The heterarchy dividend (R214) priced in FLOPs: the
+The heterarchy dividend priced in FLOPs: the
 switchable architecture runs ONE active configuration at a
 time (context switching, not summation) — the per-token
 compute bill is the CORTEX plus the ACTIVE fiber, while the

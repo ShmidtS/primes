@@ -6,30 +6,29 @@ import Hagi.Prelude.Info
 set_option linter.style.header false
 
 /-!
-# FannesSmooth: entropy continuity in the non-singular regime (R157 remainder, part 2)
+# FannesSmooth: entropy continuity in the non-singular regime
 
-The FULL Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)`
+The full Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)`
 remains open (the singular h₂ term needs the zero-mass
 rearrangement machinery absent from Mathlib). This module
-closes the SMOOTH part of the remainder: on the interior of
+closes the smooth part of the remainder: on the interior of
 the simplex (both distributions δ-separated from the
 boundary), entropy is Lipschitz in total variation with an
-EXPLICIT constant — via the mean-value bound for log.
+explicit constant — via the mean-value bound for log.
 
 **Results.**
 
 * `abs_log_sub_le` — the log increment bound:
   `|log a − log b| ≤ |a − b| / min a b` for positive `a, b`.
 
-* `entropy_lipschitz_smooth` — SMOOTH FANNES: for
-  probability vectors `p, q` on `V` with all masses in
+* `entropy_lipschitz_smooth` — under the hypothesis that
+  probability vectors `p, q` on `V` have all masses in
   `[δ, 1]` (δ > 0),
 
   `|H(p) − H(q)| ≤ (2/δ + 2·log(1/δ)) · TV(p, q)`.
 
-  Combined with the Pinsker routing already in the corpus
-  (R157 part 1), the Fannes program is complete EXCEPT the
-  singular-boundary h₂ term — the honest boundary, unchanged.
+  The full Fannes bound with the singular `h₂(τ)` term is
+  not proven here.
 -/
 
 namespace Hagi.Data
@@ -41,13 +40,13 @@ variable {V : Type} [Fintype V] [Nonempty V]
 /-- The entropy of a probability vector. -/
 noncomputable def ent (p : V → ℝ) : ℝ := -∑ v, p v * Real.log (p v)
 
-/-- R198 prelude bridge: ent IS the canonical Prelude.entDef. -/
+/-- prelude bridge: ent IS the canonical Prelude.entDef. -/
 theorem ent_eq_entDef (p : V → ℝ) : ent p = Hagi.Prelude.entDef p := rfl
 
 /-- Total variation distance (half-L1). -/
 noncomputable def tvDist (p q : V → ℝ) : ℝ := (∑ v, |p v - q v|) / 2
 
-/-- R198 prelude bridge: tvDist IS the canonical Prelude.tvDef. -/
+/-- prelude bridge: tvDist IS the canonical Prelude.tvDef. -/
 theorem tvDist_eq_tvDef (p q : V → ℝ) : tvDist p q = Hagi.Prelude.tvDef p q := rfl
 
 /-- **The log increment bound**: for positive `a ≤ b`,

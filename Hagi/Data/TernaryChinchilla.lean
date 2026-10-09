@@ -7,9 +7,9 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R149: ternary Chinchilla - capacity-scaled scaling law
+# ternary Chinchilla - capacity-scaled scaling law
 
-Phase C (R141 of the plan, external gap no. 2).
+Phase C.
 Sources: Chinchilla law L = E + A/N^alpha + B/D^beta;
 2609.36437 (bit-sensitivity split: weights tolerate fewer
 bits, activations need 12-14 bits - the b-member is
@@ -26,7 +26,7 @@ capacity member strictly decreases as b grows.
 * `ternary_beats_binary` - instantiated: ternary capacity
 b = log2(3) beats binary b = 1 in the parameter term.
 
-Honest boundary: the FULL compute-optimal shift (the N*/D*
+Honest boundary: the full compute-optimal shift (the N*/D*
 rebalance at a fixed budget) requires joint first-order
 conditions with the empirical constants A, B, alpha, beta
 (h_emp data, out of Lean scope); here the exact statement

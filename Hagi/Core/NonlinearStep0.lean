@@ -7,47 +7,26 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R133: T1 NonlinearStep0 — нелинейная step-0 эквивалентность
+# NonlinearStep0: нелинейная step-0 эквивалентность
 
-FORMALIZATION_PLAN §7.1 T1 (P0, закрывает P0-6): R129-алгебра
-и существующий `step0_equivalence` (Core) доказаны для
-ЛИНЕЙНОГО слоя и голов; реальный merge-блок содержит
-per-block RMSNorm, per-head attention, SwiGLU, residual +
-BranchScale, zero-init Q-Former — НЕЛИНЕЙНЫЕ модули.
+Модель: широкая сеть на блочном пространстве `Fin N → V`;
+гейдж-семейство `g : Fin N → (V → V)` действует поблочно
+(`blockMap`); слой гейдж-эквивариантен (`GaugeEquiv`), если
+коммутирует с этим действием.
 
-**Ядро T1** (источник 2606.31963: Th.2.1 — максимальная
-нативная калибровочная группа RMSNorm = B_d, знаковые
-перестановки; Lemma B.2/B.3 — правила трансформации модулей):
-класс БЛОКОВО-ЭКВИВАРИАНТНЫХ слоёв замкнут относительно
-композиции ⟹ merged(concat) = ансамбль ПО ИНДУКЦИИ ПО
-ГЛУБИНЕ.
-
-**Модель:** широкая сеть на блочном пространстве
-`Fin N → V`; гейдж-преобразование g — семейство биекций
-блоков `Fin N → (V → V)`; слой L гейдж-эквивариантен, если
-L ∘ (g-действие) = (g-действие) ∘ L.
-
-**Теоремы:**
-
-* `gauge_equiv_comp` — замыкание класса по композиции
-  (индукция по глубине — механизм T1).
-* `perBlock_gauge_equiv` — поблочный слой (per-block RMSNorm,
-  SwiGLU, per-head структура) эквивариантен, если каждый
-  блочный модуль коммутирует со своим гейджем.
+* `gauge_equiv_comp` — гейдж-эквивариантные слои замкнуты
+  относительно композиции.
+* `perBlock_gauge_equiv` — поблочный слой (`PerBlockLayer`)
+  эквивариантен, если каждый блочный модуль коммутирует со
+  своим гейджем.
 * `perBlock_net_blockwise` — сеть из поблочных слоёв действует
-  ПОБЛОЧНО: DeepNet(x)_i = DeepExpert_i(x_i) — индукция по
-  глубине (нелинейный step-0: merged(concat) = ансамбль).
-* `zero_init_identity` — zero-init up-проекция: слой
-  x ↦ x + 0 • f(x) — ТОЖДЕСТВО (function-preserving,
-  2607.16888/2609.34972).
+  поблочно: `DeepNet (ℓs.map PerBlockLayer) x i =
+  DeepNetV (ℓs.map fun ℓ => ℓ i) (x i)`.
+* `zero_init_identity` — zero-init up-проекция
+  `x ↦ x + P (0 • f x)` — тождество.
 
-**Честные границы:** гейдж-коммутация отдельных модулей
-(RMSNorm с знаковой группой B_d и т.д.) — measured premises
-(правила B.2/B.3 источника); per-head attention как
-блочная структура (головы = блоки) — та же схема;
-контрпример Prop M.1 (перестановки БЕЗ знаков ухудшают
-midpoint-лосс) и более узкая группа LayerNorm (±P) —
-в докстринге: знаковая свобода обязательна.
+Гейдж-коммутация конкретных модулей (RMSNorm и т.п.) —
+гипотезы, здесь не доказываются.
 -/
 
 namespace Hagi
@@ -83,9 +62,8 @@ def PerBlockLayer (ℓ : Fin N → (V → V)) :
     (Fin N → V) → (Fin N → V) :=
   fun x i => ℓ i (x i)
 
-/-- **Поблочный слой эквивариантен**, если каждый блочный
-модуль коммутирует со своим гейджем (правила B.2/B.3
-источника для конкретных модулей — measured premises). -/
+/-- Поблочный слой эквивариантен, если каждый блочный модуль
+коммутирует со своим гейджем (`hcomm`). -/
 theorem perBlock_gauge_equiv (ℓ : Fin N → (V → V))
     (g : Fin N → (V → V))
     (hcomm : ∀ i x, ℓ i (g i x) = g i (ℓ i x)) :
@@ -104,13 +82,9 @@ def DeepNet (layers : List ((Fin N → V) → (Fin N → V))) :
 def DeepNetV (layers : List (V → V)) : V → V :=
   fun x => layers.foldr (fun L acc => L acc) x
 
-/-- **Нелинейный step-0 (T1, ядро)**: сеть из ПОБЛОЧНЫХ слоёв
-действует поблочно: выход блока i сети = выходу экспертной
-подсети (композиции модулей блока i) на входе блока i —
-merged(concat) = ансамбль, ИНДУКЦИЯ ПО ГЛУБИНЕ. Каждый
-нелинейный модуль (per-block RMSNorm, SwiGLU, per-head
-attention-структура) входит как блочный ℓ_i; эквивариантность
-композиции — `gauge_equiv_comp`. -/
+/-- Сеть из поблочных слоёв действует поблочно: выход сети в
+блоке `i` равен выходу экспертной подсети (композиции модулей
+блока `i`) на входе блока `i`. Индукция по глубине. -/
 theorem perBlock_net_blockwise
     (ℓs : List (Fin N → (V → V))) (x : Fin N → V) (i : Fin N) :
     DeepNet (ℓs.map PerBlockLayer) x i
@@ -123,11 +97,8 @@ theorem perBlock_net_blockwise
         = ℓ i (DeepNetV (rest.map fun ℓ' => ℓ' i) (x i))
       rw [PerBlockLayer, ih x]
 
-/-- **Zero-init up-проекция — тождество**: слой
-x ↦ x + P(0 • f(x)) точно сохраняет функцию
-(function-preserving; 2607.16888 / 2609.34972: zero-init
-output-проекции включают модуль без изменения поведения —
-условие включения Q-Former/новых ветвей на шаге 0). -/
+/-- Zero-init up-проекция — тождество: слой
+`x ↦ x + P (0 • f x)` точно сохраняет вход. -/
 theorem zero_init_identity [AddCommGroup V] [Module ℝ V]
     (f : (Fin N → V) → (Fin N → V))
     (P : ((Fin N → V) →ₗ[ℝ] (Fin N → V))) (x : Fin N → V) :

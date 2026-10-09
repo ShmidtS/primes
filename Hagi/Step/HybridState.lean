@@ -4,45 +4,28 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# HybridState — the staleness bias of tiered momentum
-(plan §2 R229; source 2607.19058 SkewAdam, tiered optimizer
-state)
+# HybridState — смещение устаревшего момента в тиражном оптимизаторе
 
-The hybrid optimizer tiers its state: dense coordinates
-(gradients every step — full momentum) vs expert/sparse
-coordinates (updates rarely). The DESIGN QUESTION: what does
-momentum COST on the rare track? The answer formalized:
+Гибридный оптимизатор тиражирует состояние: плотные
+координаты (градиенты каждый шаг) против редких/разреженных.
 
-* `stale_momentum_bias`: a momentum slot holding g₀ while
-  the current gradient is g_t decomposes as g_t + bias with
-  ‖bias‖ = ‖g₀ − g_t‖ EXACTLY — the single-step bias law
-  (the slot's content deviates from the current gradient by
-  the drift; single-step arithmetic, the multi-step
-  accumulation is NOT proved here). The SkewAdam design
-  (first-order only on the sparse track) avoids the term by
-  removing the slot;
-* `fresh_momentum_unbiased`: the converse — a FRESH slot
-  (updated this step) has zero bias: the tier boundary is
-  exactly the freshness boundary; momentum is safe exactly
-  as long as it is dense.
-
-This is the correctness core of the split: dense track
-keeps momentum (fresh every step), expert track drops it
-(stale by construction) — the split is not an optimization
-trick but the bias-avoidance structure.
+* `stale_momentum_bias`: слот момента, хранящий `g0` при
+  текущем градиенте `gt`, разлагается как `gt + bias` с
+  `‖bias‖ = ‖g0 − gt‖` в точности (одношаговая арифметика;
+  многошаговая аккумуляция не доказана);
+* `fresh_momentum_unbiased`: свежий слот (`slot = gt`)
+  имеет нулевое смещение — граница тиража совпадает с
+  границей свежести момента.
 -/
 
 namespace Hagi
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℝ V]
 
-/-- **The staleness bias law**: a momentum slot last
-written at t₀ with value g_{t₀}, applied at time t where
-the true gradient is g_t, contributes the direction
-g_{t₀} = g_t + (g_{t₀} − g_t): the bias term is exactly
-the gradient drift ‖g_t − g_{t₀}‖ — deterministic, not
-noise; it does NOT average out over steps (each stale step
-repeats it). -/
+/-- Если `slot = g0`, то существует `bias` с
+`slot = gt + bias` и `‖bias‖ = ‖g0 − gt‖` (смещение равно
+дрейфу градиента; не усредняется по шагам — каждый устаревший
+шаг его повторяет). -/
 theorem stale_momentum_bias (g0 gt : V)
     (slot : V) (hslot : slot = g0) :
     ∃ bias : V, slot = gt + bias ∧ ‖bias‖ = ‖g0 - gt‖ := by
@@ -51,10 +34,8 @@ theorem stale_momentum_bias (g0 gt : V)
     abel
   · rfl
 
-/-- **The freshness boundary**: a FRESH slot (written this
-step: slot = g_t) has ZERO bias — momentum is safe exactly
-as long as it is fresh; the tier boundary (dense vs expert)
-IS the freshness boundary. -/
+/-- Если `slot = gt`, то существует `bias` с
+`slot = gt + bias` и `‖bias‖ = 0`. -/
 theorem fresh_momentum_unbiased (gt : V)
     (slot : V) (hslot : slot = gt) :
     ∃ bias : V, slot = gt + bias ∧ ‖bias‖ = 0 := by

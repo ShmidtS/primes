@@ -28,12 +28,12 @@ swap. The general-N backbone behind `Hagi.GapLaw.twoGap`.
 with 0 < γ ≤ 1 implies D_t ≤ (1−γ)^t·D₀ + ρs/γ — the honest
 replacement of the `rfl`-line in `Hagi.NCEExact.anchor_drift_bound`.
 
-**Phase 3.1 — `ns_poly_bound`** (R75 honesty fix): the NS
+**Phase 3.1 — `ns_poly_bound`**: the NS
 polynomial p(σ) = aσ+bσ³+cσ⁵ with a = 3.4445 satisfies
 p(σ) ≤ aσ on [0,1] whenever b ≤ 0 and b+c ≤ 0. NOTE: since
-a > 1 this is NOT a contraction in σ; the true NS
+a > 1 this is not a contraction in σ; the true NS
 contraction is nonlinear (the higher-order terms), and the
-actual convergence theorem remains OPEN — this lemma is
+actual convergence theorem remains open — this lemma is
 only the polynomial dominance step of that future proof.
 
 **Phase 3.2 — `amgm_batch_bound`**: cB + B_n·t₀/B ≥
@@ -203,13 +203,9 @@ section NSSteps
 /-- **The NS polynomial bound** (Phase 3.1): the Newton–Schulz
 iteration polynomial p(σ) = aσ + bσ³ + cσ⁵ with the actual
 coefficient signs (b ≤ 0, b + c ≤ 0) satisfies p(σ) ≤ aσ on
-[0,1]. HONEST BOUNDARY (R75): with a = 3.4445 > 1 this is a
-growth-factor bound, NOT a contraction — ns_iter_bound's
-σ_k ≤ a^k σ₀ DIVERGES as k → ∞. The actual Newton–Schulz
-contraction (via the nonlinear map f(σ) = aσ+bσ³+cσ⁵ with
-f(σ) < σ on an invariant interval) remains OPEN; this lemma
-is the polynomial-dominance ingredient of that future
-proof. -/
+[0,1]. With a = 3.4445 > 1 this is a growth-factor bound,
+not a contraction. The Newton–Schulz contraction on an
+invariant interval is not proven here. -/
 theorem ns_poly_bound (a b c x : ℝ) (hb : b ≤ 0) (hbc : b + c ≤ 0)
     (hx : 0 ≤ x) (hx1 : x ≤ 1) :
     a * x + b * x^3 + c * x^5 ≤ a * x := by

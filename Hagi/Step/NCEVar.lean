@@ -6,56 +6,19 @@ import Hagi.Step.NCE
 set_option linter.style.header false
 
 /-!
-# The K-negative variance: the exact identity and the derived adaptive-K
+# NCEVar — точное тождество дисперсии K-негативной оценки и адаптивный K
 
-The sampled receiver's variance theory (the §7/§9 completion).
-The K-negative importance-sampling estimate of the NCE
-correction has an EXACT variance identity — no concentration
-machinery needed for the decision-relevant half.
+Оценка — среднее K i.i.d. копий статистики f из предложения q.
 
-**The model.** The estimate averages K i.i.d. draws from the
-proposal q of the per-draw statistic f (the correction
-contribution); the exact variance of the mean is
-
-`Var[μ̂] = (1/K) • (E_q[f²] − μ²)`
-
-with μ = E_q[f] the estimand. Everything on the right is a
-*table statistic of the corpus* (computable once from the
-tokenized corpora — Σ p²/q is the second-moment anchor of
-`Hagi.Step/NCE`).
-
-**What the module proves:**
-
-* `nce_var_identity` — the exact variance identity above, as
-  an algebraic fact about the mean of K i.i.d. copies: the
-  variance of the K-sample mean is the single-draw central
-  second moment divided by K. The tail behavior enters only
-  through E_q[f²] = Σ f²/q.
-* `adaptiveK_bound` — the derived sampling rule: to force
-  Var[μ̂] ≤ ε_var it suffices to take
-
-`K ≥ (Σ f²/q − μ²) / ε_var` —
-
-  the *derived* adaptive-K (the ε_var comes from the
-  calibration budget, not from a sweep). Per-token K follows
-  by the same identity applied per bucket: the buckets where
-  p/q is large (the §9 weak spots — the model's tails against
-  the unigram) are exactly where Σ f²/q forces a larger K.
-
-**Prescription for the code.**
-
-1. One-time measurement per corpus: S₂ := Σ_v p_v²/q_v (the
-   second-moment anchor) and μ — both table statistics of the
-   tokenized corpus; no training involved.
-2. The adaptive K per bucket: K(bucket) =
-   ceil((S₂(bucket) − μ²)/ε_var) — a per-bucket lookup, not a
-   sweep; the head-vs-tail allocation of the sampling budget
-   falls out of the measured S₂ map.
-3. The calibration interval s: the sampled objective runs s
-   steps; the bias accumulated is bounded by the variance
-   budget s • ε_var ≤ ε — the derived s (the wall-time-to-CE
-   prediction: (K, s) enter as measured quantities, the A/B
-   verifies the predicted CE, not the other way round).
+* `secondMoment` / `qMean`: `E_q[f²] = Σ q·f²` и `μ = Σ q·f`;
+* `nce_var_identity`: алгебраическое тождество
+  `(E_q[f²] − μ²)/K = (1/K)·(E_q[f²] − μ²)`;
+* `secondMoment_ge_mean_sq`: при `0 ≤ q v`, `Σ q = 1` —
+  `μ² ≤ E_q[f²]` (Cauchy–Schwarz);
+* `adaptiveK_bound`: при `0 ≤ moment`, `0 < eps` и
+  `moment/eps ≤ K` — `(1/K)·moment ≤ eps` (правило выбора K
+  под бюджет дисперсии; moment — измеренная центральная
+  вторая момента, табличная статистика корпуса).
 -/
 
 open Finset
@@ -66,32 +29,25 @@ section NCEVar
 
 variable {V : Type*} [Fintype V]
 
-/-- The single-draw second moment of the correction statistic
-under the proposal: E_q[f²] = Σ f(v)² (the density-weighted
-form; the divergence anchor of `Hagi.Step/NCE` appears when
-f = p·(correction)). -/
+/-- Вторая момента статистики под предложением:
+`secondMoment q f = Σ_v q v·(f v)²`. -/
 noncomputable def secondMoment (q : V → ℝ) (f : V → ℝ) : ℝ :=
   ∑ v, q v * (f v)^2
 
-/-- The mean of the statistic under the proposal. -/
+/-- Среднее статистики под предложением:
+`qMean q f = Σ_v q v·f v`. -/
 noncomputable def qMean (q : V → ℝ) (f : V → ℝ) : ℝ :=
   ∑ v, q v * f v
 
-/-- **The exact variance identity for the K-sample mean.**
-For the mean of K i.i.d. copies of the statistic f under q,
-the variance of the mean is the single-draw central second
-moment divided by K:
-
-`Var[mean] = (1/K) • (E_q[f²] − μ²)`. -/
+/-- `(secondMoment q f − (qMean q f)²)/K
+= (1/K)·(secondMoment q f − (qMean q f)²)`. -/
 theorem nce_var_identity (q f : V → ℝ) (K : ℕ) (hK : 0 < K) :
     (secondMoment q f - (qMean q f)^2) / K
       = (1 / (K : ℝ)) * (secondMoment q f - (qMean q f)^2) := by
   field_simp
 
-/-- **The central second moment is nonneg** (Cauchy–Schwarz on
-the finite support: E_q[f²] ≥ μ² — the variance anchor). The
-q-weighted mean of f is a mean under a probability vector;
-its square is at most the q-weighted second moment. -/
+/-- При `0 ≤ q v` для всех v и `Σ q = 1`:
+`(qMean q f)² ≤ secondMoment q f` (Cauchy–Schwarz). -/
 theorem secondMoment_ge_mean_sq (q f : V → ℝ)
     (hq : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1) :
     (qMean q f)^2 ≤ secondMoment q f := by
@@ -126,18 +82,8 @@ theorem secondMoment_ge_mean_sq (q f : V → ℝ)
   rw [one_mul] at hcs
   exact hcs
 
-/-- **The derived adaptive-K.** To force the variance of the
-K-sample mean under the ε_var budget, it suffices to take
-
-`K ≥ (E_q[f²] − μ²) / ε_var` —
-
-the sampling rule derived from the exact variance identity: no
-sweep, no tuned constant; the budget ε_var comes from the
-calibration interval (s • ε_var ≤ ε), and the per-bucket K map
-is the same identity applied per bucket. The premise is the
-measured central second moment (the table statistic of the
-corpus — the honest form: the measured moment, not the
-unknown distribution). -/
+/-- При `0 ≤ moment`, `0 < eps` и `moment/eps ≤ (K:ℝ)`:
+`(1/K)·moment ≤ eps`. -/
 theorem adaptiveK_bound (moment : ℝ) (hmoment : 0 ≤ moment)
     (eps : ℝ) (heps : 0 < eps) (K : ℕ)
     (hK : moment / eps ≤ (K : ℝ)) :

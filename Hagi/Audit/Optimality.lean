@@ -51,7 +51,7 @@ section NCEUnbiased
 (phase 2.2): Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for q > 0 —
 the expectation of the per-sample estimator f(v)/q(v) under
 v ~ q is exactly Σ f: no bias, no delta-ceiling needed. The
-controller's per-sample correction is EXACT; the earlier
+controller's per-sample correction is exact; the earlier
 global delta form was the aggregate shadow. -/
 theorem nce_estimator_unbiased {V : Type} [Fintype V]
     (q f : V → ℝ) (hq : ∀ v, q v ≠ 0) :
@@ -136,16 +136,12 @@ theorem exp_tangent (a y : ℝ) : Real.exp a + Real.exp a * (y - a) ≤ Real.exp
 bound** (phase 2.4 — the KKT from optimality): for the
 program min Σ_i c_i·e^{−κ_i·b_i} s.t. Σ b_i = B, if the
 marginals equalize at b* (c_i·κ_i·e^{−κ_i·b_i*} = λ for all
-i) and b* is feasible, then EVERY feasible b' (Σ b' = Σ b*)
-satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}: the
-waterfilling allocation is optimal — hinterior becomes a
-CONCLUSION, closing `shadow_price_sum_identity` and
-`marginalValue_law` honestly (the interior condition is the
-optimality certificate, not an assumption). HONEST BOUNDARY
-(R78): this is KKT ⟹ optimality ONLY — the EXISTENCE of an
-interior b* with equalized marginals is assumed (hinterior),
-not constructed; existence in the relevant domain remains
-open. -/
+i) and b* is feasible, then every feasible b' (Σ b' = Σ b*)
+satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}:
+the waterfilling allocation is optimal. The equalized-
+marginal condition `hmarg` and feasibility `hfeas` are
+hypotheses; the existence of such a `b*` is not
+constructed. -/
 theorem waterfilling_optimal {I : Type} [Fintype I]
     (c k : I → ℝ) (bstar b' : I → ℝ) (lam : ℝ)
     (hc : ∀ i, 0 ≤ c i)

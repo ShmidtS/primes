@@ -4,46 +4,25 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.OptimizerStage
 
 /-!
-# DisagreementChain — the 9× diagnostic pipeline (R245)
+# DisagreementChain — the conversion pipeline as a product law
 
-The measured mixer.gain ≈ 0.002 against the required
-≈ 0.018 (a 9× deficit) is not one bug but a CHAIN of
-conversions, each individually measurable:
+The pipeline `E_raw → E_aligned → E_kept → G_safe → G_cap` is
+formalized as a multiplicative composition of conversion factors:
 
-  E_raw → (latent-align) → E_aligned → (spectral trunc)
-  → E_kept → (SafeQP) → G_safe → (capability) → G_cap
-
-This module formalizes the chain as a multiplicative
-composition of conversion factors (matching the gain chain
-of `OptimizerStage`), plus the alignment step's key
-property:
-
-* `disagreement_chain` — the full product law: each stage
-  contributes a factor, the deficit factors EXACTLY —
-  if the product of stage factors equals γ_req/γ_meas,
-  no single stage needs to be the whole story;
-* `deficit_localizes` — if the total conversion is below
-  the required threshold, AT LEAST ONE stage factor is
-  below its required share (pigeonhole on the product) —
-  the formal license to measure the chain stage-by-stage
-  instead of guessing;
-* `alignment_factor_le_one` — alignment compresses the
-  MEASURED latent disagreement (the flip share of
-  R242 is exactly the difference between raw and aligned
-  readings); the raw reading overestimates the loss the
-  merge will actually suffer.
-
-Empirical anchors (flagged): E_raw etc. are measured on
-real expert matrices; γ_meas ≈ 0.002, γ_req ≈ 0.018 are
-scale-specific observations, NOT constants of nature.
+* `disagreement_chain`: `G_cap` equals the product of the four
+  stage factors times `E_raw`;
+* `deficit_localizes`: if the product of the four factors is below
+  `ρ = β^4` (with `0 ≤ β`), then at least one factor is below `β`;
+* `alignment_factor_le_one`: if `α_align ≤ 1` and `0 ≤ E_raw`, then
+  `E_aligned ≤ E_raw`.
 -/
 
 open scoped BigOperators
 
 namespace Hagi.Growth
 
-/-- The five observable stages of the disagreement
-pipeline, each with its own conversion factor. -/
+/-- The five observable stages of the disagreement pipeline,
+each with its own conversion factor. -/
 structure DisagreementStages where
   E_raw : ℝ
   E_aligned : ℝ
@@ -59,10 +38,8 @@ structure DisagreementStages where
   h3 : G_safe = α_safe * E_kept
   h4 : G_cap = α_cap * G_safe
 
-/-- **The full product law**: the capability gain factors
-into the four measurable stage conversions times the raw
-disagreement energy — the diagnostic chain is exact, no
-hidden slack. -/
+/-- For any `s : DisagreementStages`,
+`s.G_cap = s.α_align * s.α_trunc * s.α_safe * s.α_cap * s.E_raw`. -/
 theorem disagreement_chain (s : DisagreementStages) :
     s.G_cap = s.α_align * s.α_trunc * s.α_safe * s.α_cap * s.E_raw := by
   have hA : s.E_aligned = s.α_align * s.E_raw := s.h1
@@ -73,13 +50,9 @@ theorem disagreement_chain (s : DisagreementStages) :
   rw [s.h4, hC]
   ring
 
-/-- **Deficit localization**: if the total conversion
-product is below the required threshold ρ, then at least
-one stage factor is below the FOURTH ROOT of ρ (if every
-factor were ≥ ρ^{1/4}, the product would be ≥ ρ) — the
-pigeonhole license to measure stages individually: SOME
-stage is below its geometric share, no need to audit all
-four exhaustively before finding a culprit. -/
+/-- If `0 ≤ ρ`, `0 ≤ β`, `β^4 = ρ`, and the product of the
+four stage factors is `< ρ`, then at least one factor is
+strictly below `β`. -/
 theorem deficit_localizes (s : DisagreementStages)
     {ρ β : ℝ} (hρ : 0 ≤ ρ) (hβ : 0 ≤ β) (hβ4 : β^4 = ρ)
     (hdef : s.α_align * s.α_trunc * s.α_safe * s.α_cap < ρ) :
@@ -104,13 +77,8 @@ theorem deficit_localizes (s : DisagreementStages)
   rw [hβ4] at hprod
   exact absurd hdef (not_lt.mpr hprod)
 
-/-- **Alignment compresses the measured disagreement**: the
-aligned reading never exceeds the raw one when the
-alignment factor is at most one (flipped columns are
-excluded from the loss the merge will suffer). The raw
-reading OVERESTIMATES the merge-induced destruction by
-exactly the flip share — measuring E_aligned is the first
-diagnostic of the chain. -/
+/-- If `s.α_align ≤ 1` and `0 ≤ s.E_raw`, then
+`s.E_aligned ≤ s.E_raw`. -/
 theorem alignment_factor_le_one (s : DisagreementStages)
     (hα : s.α_align ≤ 1) (hE : 0 ≤ s.E_raw) :
     s.E_aligned ≤ s.E_raw := by

@@ -6,53 +6,20 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# HAGI_v2: telescopic error propagation of the sequential compression pass
+# Telescopic error propagation of the sequential compression pass
 
-This file formalizes the error-accumulation laws of the **sequential
-(telescopic) expert-compression pass** of HAGI_v2 (see `README.md`,
-"telescopic fitting").
+The error of a sequential (telescopic) compression pass obeys the
+affine recursion `δ_{l+1} = J_l δ_l + r_l`, folded by `propagate`.
 
-HAGI_v2 compresses the MoE layers of DeepSeek-V4 one layer at a time:
-layer `l + 1` is fitted *through* the already-compressed prefix, so the
-quantization error obeys the affine recursion
-
-`δ_{l+1} = J_l δ_l + r_l`,
-
-where `J_l` is the (effective) Jacobian of the already-compressed prefix
-and r_l the fresh per-layer residual. The measured per-layer gain is
-`α = ‖J_l‖ ∈ [0.87, 0.99] < 1`, i.e. each compression step contracts the
-inherited error while contributing a bounded new residual. (Fitting on
-drifted activations re-centres each layer on the drifted distribution, so
-the propagated error is absorbed into the fit and only the fresh residual
-remains.)
-
-## Worst-case (norm) law
-
-The main result `Hagi.propagate_bound` is the telescopic bound: if
-`‖J_l‖ ≤ α` for every layer and `‖r_l‖ ≤ ρ`, then after `L` layers
-
-`‖δ_L‖ ≤ α^L · ‖δ₀‖ + ρ · Σ_{i < L} αⁱ`.
-
-The README models the expected accumulated error as a plain *sum* over
-layers, which is the stochastic-independence model: the residuals are
-treated as independent, so no cross-cancellation is assumed and only the
-triangle inequality is used. `Hagi.propagate_bound_contractive` recovers
-exactly this Σ-accumulation law in the borderline case `α = 1`, where the
-contraction term degenerates and the bound becomes the pure sum
-`‖δ_L‖ ≤ ‖δ₀‖ + L · ρ`.
-
-## Second-moment (weighted) law and the bit budget
-
-The variance-style analogue `Hagi.propagate_sq_bound` mirrors the
-README's formula: under an orthogonality hypothesis on the fresh residual
-(the deterministic stand-in for stochastic independence) the *squared*
-error accumulates with layer weights `w_l = Π_{k>l} α_k²` — early-layer
-residuals are damped by every later contraction, so the error budget
-(bit allocation, "waterfilling") must minimize `Σ w_l·ρ_l²`, not the
-unweighted `Σ ρ_l`; for `α ≈ 0.87` the damping is strong and the budget
-shifts to the later layers; the weights are read directly off the
-recursive definition of `Hagi.weightedResidual` (head layer weight
-`α^(2·#rest)`, tail by recursion).
+* `propagate_bound` — if `‖J_l‖ ≤ α` and `‖r_l‖ ≤ ρ` for every
+  layer, then `‖δ_L‖ ≤ α^L ‖δ₀‖ + ρ Σ_{i<L} αⁱ`.
+* `propagate_bound_contractive` — at `α = 1` this degenerates to
+  the plain sum `‖δ_L‖ ≤ ‖δ₀‖ + L ρ`.
+* `propagate_sq_bound` — under a quadratic `α`-contraction
+  hypothesis on each `J_l` and orthogonality of each fresh
+  residual, the squared error satisfies
+  `‖δ_L‖² ≤ α^(2L) ‖δ₀‖² + Σ_l w_l ρ_l²` with the layer weights
+  `w_l = Π_{k>l} α_k²` given by `weightedResidual`.
 -/
 
 namespace Hagi
@@ -74,12 +41,9 @@ theorem propagate_cons {n : Type*} [Fintype n] [DecidableEq n]
     (δ₀ : n → ℝ) :
     propagate (p :: L) δ₀ = propagate L (p.1 *ᵥ δ₀ + p.2) := rfl
 
-/-- **Telescopic error-accumulation law (worst case).** If every layer's
-Jacobian has operator norm (`‖·‖∞`, the `Matrix.Norms.Operator` norm) at
-most `α` and every residual has norm at most `ρ`, then the propagated
-error satisfies
-
-`‖δ_L‖ ≤ α^L · ‖δ₀‖ + ρ · Σ_{i < L} αⁱ`. -/
+/-- If `‖p.1‖ ≤ α` (operator norm) and `‖p.2‖ ≤ ρ` for every layer
+`p` of `L`, then `‖propagate L δ₀‖ ≤ α ^ L.length * ‖δ₀‖ +
+(∑ i ∈ Finset.range L.length, α ^ i) * ρ`. -/
 theorem propagate_bound {n : Type*} [Fintype n] [DecidableEq n] (α ρ : ℝ)
     (hα : 0 ≤ α) (L : List (Matrix n n ℝ × (n → ℝ))) (δ₀ : n → ℝ)
     (hJ : ∀ p ∈ L, ‖p.1‖ ≤ α) (hr : ∀ p ∈ L, ‖p.2‖ ≤ ρ) :
@@ -106,12 +70,8 @@ theorem propagate_bound {n : Type*} [Fintype n] [DecidableEq n] (α ρ : ℝ)
     rw [Finset.sum_range_succ, pow_succ]
     exact le_of_eq (by ring)
 
-/-- **Contractive (Σ-accumulation) corollary.** In the borderline
-non-contracting case `α = 1` the telescopic bound degenerates to the
-stochastic-independence model of the README: the expected error
-accumulates as a plain sum over layers,
-
-`‖δ_L‖ ≤ ‖δ₀‖ + L · ρ`. -/
+/-- If `‖p.1‖ ≤ 1` and `‖p.2‖ ≤ ρ` for every layer, then
+`‖propagate L δ₀‖ ≤ ‖δ₀‖ + L.length * ρ`. -/
 theorem propagate_bound_contractive {n : Type*} [Fintype n] [DecidableEq n]
     (ρ : ℝ) (L : List (Matrix n n ℝ × (n → ℝ))) (δ₀ : n → ℝ)
     (hα : ∀ p ∈ L, ‖p.1‖ ≤ 1) (hr : ∀ p ∈ L, ‖p.2‖ ≤ ρ) :
@@ -128,27 +88,20 @@ section SecondMoment
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
-/-- The weighted squared-residual budget of a sequential compression
-pass: the fresh squared residual of layer `l`, damped by the squared
-contractions of all later layers (`w_l = Π_{k>l} α_k²`; uniform `α`:
-`α ^ (2·(#layers after l))`). Minimizing this quantity is the correct
-"waterfilling" objective for allocating quantization bits across
-layers. -/
+/-- The weighted squared-residual budget of a compression pass:
+the fresh squared residual of each layer damped by the squared
+contractions `α²` of all later layers,
+`weightedResidual α (p :: L) = α ^ (2 * L.length) * (p.2 ⬝ᵥ p.2) +
+weightedResidual α L`. -/
 def weightedResidual (α : ℝ) : List (Matrix n n ℝ × (n → ℝ)) → ℝ
   | [] => 0
   | p :: L => α ^ (2 * L.length) * (p.2 ⬝ᵥ p.2) + weightedResidual α L
 
-/-- **Weighted second-moment telescopic bound.** If every layer's
-Jacobian is a quadratic `α`-contraction (`‖Jδ‖² ≤ α²‖δ‖²` in the dot
-product) and every fresh residual is orthogonal to the propagated error
-(the deterministic stand-in for the stochastic-independence model of
-the README), then the squared error after `L` layers satisfies
-
-`‖δ_L‖² ≤ α^(2L)·‖δ₀‖² + Σ_l w_l·ρ_l²`,  `w_l = Π_{k>l} α_k²`.
-
-This is the formal basis for layer-weighted bit allocation: the budget
-to minimize is `Σ w_l ρ_l²`, with early (low) layers damped hardest by
-the trailing contractions. -/
+/-- If every layer's Jacobian is a quadratic `α`-contraction
+(`(J *ᵥ δ) ⬝ᵥ (J *ᵥ δ) ≤ α ^ 2 * (δ ⬝ᵥ δ)`) and every fresh residual
+is orthogonal to the propagated error, then the squared error
+satisfies `(propagate L δ₀) ⬝ᵥ (propagate L δ₀) ≤ α ^ (2 * L.length) *
+(δ₀ ⬝ᵥ δ₀) + weightedResidual α L`. -/
 theorem propagate_sq_bound (α : ℝ) (hα : 0 ≤ α)
     (L : List (Matrix n n ℝ × (n → ℝ))) (δ₀ : n → ℝ)
     (hJ : ∀ p ∈ L, ∀ δ, (p.1 *ᵥ δ) ⬝ᵥ (p.1 *ᵥ δ) ≤ α ^ 2 * (δ ⬝ᵥ δ))

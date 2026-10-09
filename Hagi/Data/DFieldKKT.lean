@@ -28,7 +28,7 @@ resolved: the naive D(w) treats all divergence as
 replenishment; the CONFLICT corpus's divergence is a D-sink
 (its children learn to avoid it — the realized harvest is
 negative). The formal fix is the CONSTRAINT: slimpajama is
-excluded NOT because its KL is low (it is high) but because
+excluded not because its KL is low (it is high) but because
 its gradient conflicts — the constraint carves it out; the
 program is max D over the NON-CONFLICTING set.
 

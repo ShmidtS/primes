@@ -8,42 +8,24 @@ import Hagi.Step.JointPreserve
 set_option linter.style.header false
 
 /-!
-# R80: liveness — the PositiveProgress half of the loop
+# Liveness — existence of a useful action
 
-The audit's central missing bridge: the conditional side
-(action ⟹ descent) is complete; this module adds the LIVENESS
-side — residual potential GUARANTEES a useful action exists:
-
-- `liveness_merge`: disagreement (¬consensus) ⟹ the merge
-  action's certified gain twoGap > 0 (contrapositive of
-  twoGap_zero_iff).
-- `liveness_data_axis`: exhausted merge axis (consensus) is
-  escaped through fresh data: inj > ξ ⟹ D_T > 0 at every
-  generation ≥ 1 — new disagreement reopens the merge axis.
-- `liveness_two_axis`: the loop CANNOT FREEZE while either
-  axis is alive; freeze requires BOTH consensus AND inj ≤ ξ
-  — the honest global stopping condition.
-
-With top_level_cycle_bound + horizon_termination (safety),
-the loop either progresses or provably rests.
+* `liveness_merge`: non-consensus implies `0 < twoGap p d`
+  (contrapositive of `twoGap_zero_iff`).
+* `liveness_data_axis`: with injection dominance
+  `xi < inj` and `D (t+1) ≥ rho * D t + inj − xi`, one has
+  `0 < D T` for every `T ≠ 0`.
+* `liveness_two_axis`: both conclusions together; freezing
+  requires consensus and `inj ≤ xi`.
 -/
 
 open Real Finset
 
 namespace Hagi
 
-/-- **Merge-axis liveness (the PositiveProgress core)**: if
-the experts are NOT in consensus (no common shift c with
-d = c·1 — i.e. real disagreement exists), then the merge
-action's certified stage gain is STRICTLY POSITIVE:
-
-  ¬consensus ⟹ 0 < twoGap
-
-via the contrapositive of twoGap_zero_iff. This is the
-liveness half of the growth loop: residual potential
-(measured disagreement) GUARANTEES the existence of a useful
-action (merge), with the gain exactly the Jensen gap. The
-safe half (action ⟹ descent) is top_level_cycle_bound. -/
+/-- If the deviations `d` are not all equal to a common
+constant (non-consensus), then `0 < twoGap p d`, by the
+contrapositive of `twoGap_zero_iff`. -/
 theorem liveness_merge {k : Type} [Fintype k] [Nonempty k]
     (p d : k → ℝ) (hp : ∀ u, 0 < p u) (hsum : ∑ u, p u = 1)
     (hdis : ¬ ∃ c : ℝ, ∀ u, d u = c) :
@@ -54,16 +36,9 @@ theorem liveness_merge {k : Type} [Fintype k] [Nonempty k]
   obtain ⟨c, hc⟩ := (twoGap_zero_iff hp hsum).mp hz
   exact hdis ⟨c, hc⟩
 
-/-- **Data-axis liveness (the EXHAUSTED-growth escape)**:
-when the merge axis is exhausted (consensus reached, gap 0),
-growth continues through FRESH DATA: strict injection
-dominance (inj > ξ — new independent data arrives faster
-than leakage) guarantees D_T > 0 at every generation T ≥ 1
-(diversity_floor_strict_pos) — new disagreement is injected,
-and by liveness_merge the NEXT merge action again has a
-strictly positive certified gain. The two-axis liveness:
-merge while diverse, inject when exhausted; the loop cannot
-freeze while inj > ξ. -/
+/-- If `0 < rho`, `0 ≤ inj`, `0 ≤ xi`, `xi < inj`, `0 ≤ D 0`,
+and `D (t+1) ≥ rho * D t + inj − xi` for all `t`, then
+`0 < D T` for every `T ≠ 0`. -/
 theorem liveness_data_axis (D : ℕ → ℝ) (rho inj xi : ℝ)
     (hrho : 0 < rho) (hinj : 0 ≤ inj) (hxi : 0 ≤ xi)
     (hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
@@ -74,17 +49,9 @@ theorem liveness_data_axis (D : ℕ → ℝ) (rho inj xi : ℝ)
     hstep T hT
   linarith
 
-/-- **Two-axis liveness (the closed-loop PositiveProgress)**:
-the growth loop CANNOT FREEZE while EITHER axis is alive —
-- merge axis: disagreement ⟹ certified merge gain > 0
-  (liveness_merge);
-- data axis: inj > ξ ⟹ D_T > 0 (liveness_data_axis) — fresh
-  disagreement is injected, reopening the merge axis.
-Freeze requires BOTH consensus (G = 0) AND inj ≤ ξ — the
-honest global stopping condition. This is the liveness half;
-the safety half (certified action ⟹ Lyapunov descent ⟹
-termination) is top_level_cycle_bound + horizon_termination.
-Together: the loop either progresses or provably rests. -/
+/-- Combines `liveness_merge` and `liveness_data_axis`: under
+non-consensus and injection dominance, both `0 < twoGap p d`
+and `0 < D T` (for `T ≠ 0`). -/
 theorem liveness_two_axis {k : Type} [Fintype k] [Nonempty k]
     (p d : k → ℝ) (hp : ∀ u, 0 < p u) (hsum : ∑ u, p u = 1)
     (hcons : ¬ ∃ c : ℝ, ∀ u, d u = c)

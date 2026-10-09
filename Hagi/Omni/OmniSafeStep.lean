@@ -7,27 +7,11 @@ import Hagi.Omni.OmniGrowth
 /-!
 # OmniSafeStep — protecting acquired modalities under joint training
 
-The safety half of the omni contract: modalities share one state
-and one update stream, so a joint step must not destroy an
-already-acquired modality channel. The mechanism is the
-SAFE_CONSENSUS law (R-Dominate) lifted to the modality setting:
-
-  if every modality gradient gi has nonnegative alignment with
-  the consensus direction d (d = c•gs, c ≥ 0), then every
-  modality DESCENDS along d — the joint step is first-order
-  harmless for every acquired channel simultaneously.
-
-Main results:
-* `omniSafeStep`: a consensus step with nonneg pairwise
-  alignments ⟨gi, gs⟩ ≥ 0 is harmless for ALL modality
-  gradients at once — the acquired-modalities protection;
-* `omniSafeStep_sum`: the total (aggregated) descent
-  ⟨Σgi, d⟩ ≥ 0 — the joint objective decreases;
-* `omniGate_complete`: the full omni admission cycle: positive
-  cross-modal gap (R190) + strict growth (R191) + cheap leaf
-  (R192) + harmless joint step (this module) — the complete
-  formal contract for "a new modality is a certified growth
-  source that does not damage what is already learned".
+If every modality gradient `gi` has nonnegative alignment with
+the consensus direction `gs` and `d = c • gs` with `c ≥ 0`, then
+every modality descends along `d` (`omniSafeStep`) and so does
+their sum (`omniSafeStep_sum`); `omniGate_complete` combines
+this with the strict capability growth of `omniGate_crossModal`.
 -/
 
 namespace Hagi.Omni
@@ -38,10 +22,8 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-! ### Harmlessness of the consensus step -/
 
-/-- **The acquired-modalities protection**: a consensus step
-d = c•gs is first-order harmless for every modality gradient
-with nonnegative alignment to the consensus — no acquired
-channel is damaged by the joint update. -/
+/-- If `d = c • gs` with `c ≥ 0` and `0 ≤ ⟪gis i, gs⟫` for
+every `i`, then `0 ≤ ⟪gis i, d⟫` for every `i`. -/
 theorem omniSafeStep (d gs : X) (c : ℝ) (hc : 0 ≤ c)
     (hd : d = c • gs) {k : ℕ} (gis : Fin k → X)
     (halign : ∀ i, 0 ≤ ⟪gis i, gs⟫_ℝ) :
@@ -50,9 +32,8 @@ theorem omniSafeStep (d gs : X) (c : ℝ) (hc : 0 ≤ c)
   exact Hagi.safe_consensus_harmless d gs (gis i) (halign i)
     ⟨c, hc, hd⟩
 
-/-- **The aggregated descent**: under the same consensus
-hypotheses, the SUM of modality gradients also descends along d
-— the joint omni objective improves. -/
+/-- Under the hypotheses of `omniSafeStep`:
+`0 ≤ ⟪∑ i, gis i, d⟫`. -/
 theorem omniSafeStep_sum (d gs : X) (c : ℝ) (hc : 0 ≤ c)
     (hd : d = c • gs) {k : ℕ} (gis : Fin k → X)
     (halign : ∀ i, 0 ≤ ⟪gis i, gs⟫_ℝ) :
@@ -64,16 +45,11 @@ theorem omniSafeStep_sum (d gs : X) (c : ℝ) (hc : 0 ≤ c)
 
 /-! ### The complete omni admission cycle -/
 
-/-- **The complete omni gate**: the composite contract under
-which a new modality is a certified growth source:
-(1) the cross-modal gap is strictly positive (the pair carries
-    genuinely joint information — R190/R191);
-(2) the new leaf is cheap: k·r·d entries, sub-quadratic in d
-    (R192);
-(3) the joint consensus step is harmless for every acquired
-    modality gradient (this module).
-Together: capability strictly grows, the volume cost is
-controlled, and nothing already learned is damaged. -/
+/-- Combines `omniGate_crossModal` with `omniSafeStep` and
+`omniSafeStep_sum`: under a dependent `p`, nonnegative
+`gIntra`, costs covered by `gIntra`, and nonnegative alignments
+with the consensus, capability strictly grows and every modality
+gradient (and their sum) has nonnegative alignment with `d`. -/
 theorem omniGate_complete {X' : Type*} [NormedAddCommGroup X']
     [InnerProductSpace ℝ X']
     (d gs : X') (c : ℝ) (hc : 0 ≤ c) {k : ℕ} (gis : Fin k → X')

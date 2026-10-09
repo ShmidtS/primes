@@ -7,67 +7,22 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# SafeQP: the linearized domain-safety projection for the joint step
+# SafeQP — линеаризованная проекция доменной безопасности для joint-шага
 
-The last "manual" mechanism of the loop — the empirical
-LR/guard-weight tuning (0.01 → 0.001 → guard 0.2232 → 0.05)
-that softens but does not cure the slimpajama conflict — is
-replaced by a theorem with measurable inputs: the joint step
-direction is the PROJECTION of the mixture gradient g onto
-the intersection of the per-corpus safety half-spaces
+Направление joint-шага — проекция градиента смеси g на
+пересечение полупространств безопасности
+`K_safe = {d | ⟪g i, d⟫ ≥ −ε i для всех i}`.
 
-`K_safe = {d : ⟨g_i, d⟩ ≥ −ε_i for all i}` —
+* `safeQP_exists_unique`: при `0 ≤ ε i` и конечномерном X
+  проекция на `safeSet` существует и единственна;
+* `safeQP_noconflict`: если `g0 ∈ safeSet`, то g0 минимизирует
+  расстояние до себя (контроллер неактивен без конфликта);
+* `safeqp_inactive`: при `g0 ∈ safeSet` любой минимизатор ds
+  равен g0.
 
-the minimal QP of the review: d* = argmin ½‖d − g‖² over
-K_safe (the closest safe direction to the raw mixture
-gradient; the linearized domain-safety constraints).
-
-**What the module proves:**
-
-* `safeQP_exists_unique` — the projection EXISTS and is
-  UNIQUE: K_safe is closed and convex (an intersection of
-  half-spaces), nonempty (0 ∈ K_safe), and in the
-  finite-dimensional inner-product space the strictly convex
-  objective ½‖d−g‖² has a unique minimizer over a closed
-  convex set. The QP is tiny — the K ≤ 8 corpora enter
-  through the K×K Gram matrix G_ij = ⟨g_i, g_j⟩ (measurable:
-  one accumulator per pair).
-* `safeQP_noconflict` — **the safe QP does not disturb
-  conflict-free training**: if ⟨g_i, g⟩ ≥ 0 for every i
-  (no conflicts with the raw direction) and ε_i ≥ 0, then
-  d* = g — the projection is INACTIVE; the controller is
-  invisible unless a conflict exists.
-* safeQP_regression_bound — the domain-safety price: the
-  CE-regression of corpus i along d* is bounded by
-  |lr|·‖g_i‖·‖g − d*‖ + (L/2)·lr²·‖d*‖² — the DISTANCE TO
-  THE CONFLICT ‖g − d*‖ is the price of safety; with the
-  measured Gram matrix it is computable before the step.
-* safeQP_window_empty — **the connection to the
-  joint-conflict window** (`Hagi.Step/Joint`): stepping along d*
-  in the conflict case replaces the mandatory-regression
-  window — the conflict term ⟨g_i, d*⟩ ≥ −ε_i is bounded by
-  the constraint, so the window argument (regression forced
-  by ⟨g_c, g⟩ < 0) does not open: the projection removes the
-  mechanism that killed the gen-3 joint channel.
-
-**Prescription for the code.**
-
-1. Per step: collect the K per-corpus gradients (the
-   grad_norms already exist; add the pairwise inner products
-   — K×K/2 accumulators, ~28 scalars at K = 8), solve the
-   tiny QP (any convex QP solver; the problem is the
-   projection onto ≤ 8 half-spaces in ℝ^K — closed-form
-   active-set or a micro-solver), step along d*.
-2. The ε_i are the MEASURED domain-safety budgets: set
-   ε_i = the per-corpus guard level (the 0.05 that was tuned
-   empirically becomes a named, measured parameter of the
-   theorem — the tuning disappears into the constraint).
-3. The gen-3 joint channel (dead at H=1152 under the raw
-   direction — the conflict is the only cause) is the
-   falsifiable prediction: with the QP direction, the
-   conflict constraint is enforced by construction; if the
-   channel stays dead, the cause is NOT the conflict and the
-   death is structural (the honest alternative verdict).
+Вспомогательные: `safeSet`, `halfspace_convex`,
+`safeSet_nonempty`, `convex_min_unique`, `halfspace_closed`,
+`safeSet_closed`.
 -/
 
 open Finset InnerProductSpace Metric
@@ -79,15 +34,13 @@ section SafeQP
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 variable {K : Type*} [Fintype K]
 
-/-- The safety set: the directions that respect every
-corpus's linearized domain constraint. -/
+/-- Множество безопасности: направления, уважающие каждое
+линеаризованное ограничение корпуса. -/
 def safeSet (g : K → X) (eps : K → ℝ) : Set X :=
   {d : X | ∀ i, ⟪g i, d⟫_ℝ ≥ -eps i}
 
-/-- **The safety set is convex** — an intersection of
-half-spaces: each {d : ⟨g_i, d⟩ ≥ −ε_i} is convex (the
-preimage of a closed ray under the continuous linear functional
-⟨g_i, ·⟩), and intersections preserve convexity. -/
+/-- `{d | ⟪g, d⟫_ℝ ≥ −eps}` выпукло (пересечение
+полупространств). -/
 theorem halfspace_convex (g : X) (eps : ℝ) :
     Convex ℝ {d : X | ⟪g, d⟫_ℝ ≥ -eps} := by
   intro x hx y hy a b ha hb hab
@@ -109,8 +62,7 @@ theorem halfspace_convex (g : X) (eps : ℝ) :
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The safety set is nonempty** (the zero direction is
-safe for nonnegative ε — the trivially safe step). -/
+/-- При `0 ≤ eps i` для всех i: `0 ∈ safeSet g eps`. -/
 theorem safeSet_nonempty (g : K → X) (eps : K → ℝ)
     (heps : ∀ i, 0 ≤ eps i) :
     (0:X) ∈ safeSet g eps := by
@@ -119,11 +71,9 @@ theorem safeSet_nonempty (g : K → X) (eps : K → ℝ)
   rw [inner_zero_right]
   linarith [heps i]
 
-/-- **The uniqueness engine**: two distinct minimizers of the
-distance to g₀ over a convex set contradict the strict
-convexity of the inner-product norm (the parallelogram
-identity: the midpoint is strictly closer when the minimizers
-differ). -/
+/-- Два различных минимизатора расстояния до g0 над
+выпуклым S дают противоречие (строгая выпуклость нормы,
+параллелограммное тождество). -/
 theorem convex_min_unique (S : Set X) (hS : Convex ℝ S)
     (g0 x1 x2 : X) (h1 : x1 ∈ S) (h2 : x2 ∈ S) (hne : x1 ≠ x2)
     (r1 : ∀ d ∈ S, dist x1 g0 ≤ dist d g0)
@@ -180,8 +130,8 @@ theorem convex_min_unique (S : Set X) (hS : Convex ℝ S)
     nlinarith [h]
   linarith [hstrict, hsq]
 
-/-- **The half-space is closed** — the preimage of a closed
-ray under the continuous linear functional ⟨g, ·⟩. -/
+/-- `{d | ⟪g, d⟫_ℝ ≥ −eps}` замкнуто (прообраз замкнутого
+луча под непрерывным функционалом). -/
 theorem halfspace_closed (g : X) (eps : ℝ) :
     IsClosed {d : X | ⟪g, d⟫_ℝ ≥ -eps} := by
   have hcont : Continuous fun d => ⟪g, d⟫_ℝ :=
@@ -194,8 +144,8 @@ theorem halfspace_closed (g : X) (eps : ℝ) :
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The safety set is closed** — a finite intersection of
-closed half-spaces. -/
+/-- `safeSet g eps` замкнуто (конечное пересечение
+замкнутых полупространств). -/
 theorem safeSet_closed (g : K → X) (eps : K → ℝ) :
     IsClosed (safeSet g eps) := by
   have hEq : safeSet g eps
@@ -208,13 +158,10 @@ theorem safeSet_closed (g : K → X) (eps : K → ℝ) :
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The safe QP has a unique solution** (existence +
-uniqueness of the projection; the finite-dimensional case).
-Existence: the distance function attains its minimum over the
-closed safety set intersected with a sufficiently large ball
-(compact in the finite-dimensional space); uniqueness: the
-`convex_min_unique` engine. The QP is tiny — the K ≤ 8
-corpora enter through the K×K Gram matrix. -/
+/-- При `0 ≤ eps i` и конечномерном X существует
+единственный `ds ∈ safeSet g eps`, минимизирующий
+расстояние до g0 (существование — компактификация,
+единственность — `convex_min_unique`). -/
 theorem safeQP_exists_unique (g : K → X) (g0 : X) (eps : K → ℝ)
     (heps : ∀ i, 0 ≤ eps i) [FiniteDimensional ℝ X] :
     ∃! ds : X, ds ∈ safeSet g eps ∧
@@ -261,14 +208,8 @@ theorem safeQP_exists_unique (g : K → X) (g0 : X) (eps : K → ℝ)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The conflict-free case: the projection is inactive.**
-If the raw mixture direction g₀ already satisfies every
-constraint (⟨g_i, g₀⟩ ≥ 0 for all i — no corpus conflicts),
-then g₀ is the safe-QP minimizer: dist g₀ g₀ = 0 is the
-global minimum of d ↦ dist d g₀, and g₀ is safe — the
-controller is INVISIBLE unless a conflict exists; it cannot
-disturb conflict-free training. (Uniqueness then forces
-d* = g₀ by `safeQP_exists_unique`.) -/
+/-- Для любых d из safeSet: `dist g0 g0 ≤ dist d g0`
+(тривиально: g0 минимизирует расстояние до себя). -/
 theorem safeQP_noconflict (g : K → X) (g0 : X) (eps : K → ℝ)
     (_heps : ∀ i, 0 ≤ eps i)
     (_hsafe : g0 ∈ safeSet g eps) :
@@ -280,10 +221,8 @@ end SafeQP
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **SafeQP inactive, explicit (the review's gap)**: when
-the raw gradient g0 already lies in the safe set, every
-minimizer of the projection IS g0 itself (distance 0 is the
-absolute minimum) — the controller provably does nothing. -/
+/-- Если `ds` — минимизатор проекции и `g0 ∈ safeSet g eps`,
+то `ds = g0` (расстояние 0 — абсолютный минимум). -/
 theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     [FiniteDimensional ℝ X] {K : Type} [Fintype K]
     (g : K → X) (g0 : X) (eps : K → ℝ)

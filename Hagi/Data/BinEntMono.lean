@@ -7,7 +7,7 @@ import Hagi.Data.AntiCollapse
 set_option linter.style.header false
 
 /-!
-# R157 (часть 1): монотонность binEnt на [0, 1/2]
+# (часть 1): монотонность binEnt на [0, 1/2]
 
 Снятие посылки hmono из T5 (`entropy_continuity_pinsker`,
 AntiCollapse): монотонность двоичной энтропии на [0, 1/2] —
@@ -17,7 +17,7 @@ AntiCollapse): монотонность двоичной энтропии на [
 производная h2'(x) = log((1-x)/x) >= 0 на (0, 1/2] (аргумент
 log >= 1), непрерывность на компакте [a, b] ⊂ (0, 1).
 
-**Остаток R157**: полная Fannes-граница (hbound в T5)
+**Остаток**: полная Fannes-граница (hbound в T5)
 остаётся измеряемой посылкой — см. STATUS.
 -/
 

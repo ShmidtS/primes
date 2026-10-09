@@ -14,36 +14,18 @@ import Hagi.Ensemble.DistillTransfer
 set_option linter.style.header false
 
 /-!
-# R138 (rev.2): HAGI Synthesis — honest-horizon capstone
+# HAGI Synthesis — horizon-form capstone
 
-REVISION (audit 2026-10-04): the original capstone quantified
-step premises over ALL t while C*=100 and sigma=1/2 were
-hardcoded. Combined with the PL-window this made the premise
-set UNSATISFIABLE for gamma*k > 0 (the takeoff cone forces
-C_t >= C0*(1+gamma*k)^t to infinity against C_t <= Cstar):
-the theorem was TRUE BUT VACUOUS - a specification defect
-that "0 sorry" does not catch. This revision fixes it:
-
-* all step premises are quantified over the HORIZON ONLY
-  (t ∈ Finset.range T);
-* Cstar and sigma are certificate PARAMETERS (with window
-  hypotheses 0 < sigma, sigma <= 1, 0 < Cstar);
-* the T3 operator premise is stated in the NAT metric of
-  R134 (distillEfficiency): an abstract measurable gain
-  stream `g : ℕ → ℝ` in nats/step, replacing the weight-space
-  devEnergy of the INTERIM R130 (deprecated per plan §7);
-* truncated band lemmas below prove the growth band at T
-  from horizon-only premises - no shadow global assumptions;
-* `band_witness` - a CONCRETE numeric sequence pair
-  (C t = 100 - 99*(1/2)^t, D t = 990*(1/2)^t at
-  Cstar=100, sigma=1/2, gamma=1/20, k=1/1000, T=10)
-  satisfying every truncated premise - the certificate is
-  demonstrably NON-vacuous.
-
-The band interpretation stays per the R132-REV FREEZE: the
-certificate is usable exactly while
-C0*(1+gamma*k)^T <= Cstar, i.e.
-T <= T* = ln(Cstar/C0)/ln(1+gamma*k).
+All step premises are quantified over the horizon only
+(`t ∈ Finset.range T`); `Cstar` and `sigma` are certificate
+parameters. The T3 operator premise is an abstract measured
+gain stream `g : ℕ → ℝ` (nats/step). Truncated band lemmas
+(`cone_invariant_trunc`, `takeoff_lower_trunc`,
+`pl_gap_lower_trunc`) prove the growth band from
+horizon-only premises; `band_witness` exhibits a concrete
+numeric pair satisfying the truncated band premises, so
+`hagi_synthesis` is not vacuous. The certificate is usable
+while `C0 * (1 + gamma * k) ^ T ≤ Cstar`.
 -/
 
 open Finset
@@ -99,18 +81,13 @@ theorem pl_gap_lower_trunc (C : ℕ → ℝ) (Cstar σ : ℝ) (T : ℕ)
   exact Hagi.Foundations.recurrence_lower (1 - σ)
     (fun t => Cstar - C t) T hσ0 hgapstep
 
-/-- Пошаговые сертификаты цикла HAGI НА ГОРИЗОНТЕ T (все
-измеряемы): рост (шаг состояния + оператор T3 в НАТАХ -
-абстрактный измеряемый gain-поток g : N -> R, нат/шаг;
-мотивация - distillEfficiency R134), ёмкость (PL-окно с
-ПАРАМЕТРАМИ Cstar и sigma), универсальность/безопасность
-(Hedge + суммируемый дрейф).
-
-Каждая пошаговая посылка квантифицирована по
-t ∈ Finset.range T - ТОЛЬКО горизонт, никаких глобальных
-посылок: сертификат выполним ровно пока
-C0*(1+gamma*k)^T <= Cstar (см. band_witness ниже -
-не-вакуозный числовой свидетель). -/
+/-- Пошаговые сертификаты цикла HAGI на горизонте `T`
+(измеряемые h_emp_-посылки): рост (шаг состояния и динамика
+фронтира с gain-потоком `g`), конус, PL-окно с параметрами
+`Cstar` и `sigma`, Hedge-универсальность и суммируемый
+дрейф. Все посылки квантифицированы только по
+`t < T`; выполнимость — пока
+`C0 * (1 + gamma * k) ^ T ≤ Cstar` (см. `band_witness`). -/
 structure HAGICert (S : ℕ → GrowthState Xs)
     (g : ℕ → ℝ)
     (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
@@ -141,18 +118,9 @@ structure HAGICert (S : ℕ → GrowthState Xs)
   hρe : 0 ≤ ρe
   hρe1 : ρe < 1
 
-/-- **CAPSTONE (горизонт-форма)**: при живых пошаговых
-сертификатах НА ГОРИЗОНТЕ T цикл HAGI ОДНОВРЕМЕННО даёт:
-
-1. РОСТ с ёмкостью: C₀(1+γk)^T ≤ C_T
-   ≤ C* − (1−σ)^T·(C* − C₀) - все посылки только при
-   t < T (усечённые леммы выше), C* и σ - параметры;
-2. УНИВЕРСАЛЬНОСТЬ + LONG-HORIZON SAFETY: Σ risk ≤ T·best +
-   R + ε₀/(1−ρe).
-
-Выполнимость сертификата = условие горизонта
-C₀(1+γk)^T ≤ C*; band_witness предъявляет конкретные
-числа (T = 10, C* = 100): НЕ вакуозно. -/
+/-- При сертификате `HAGICert` на горизонте `T` одновременно:
+`C0 * (1 + γk) ^ T ≤ C_T ≤ Cstar − (1−σ)^T · (Cstar − C0)`
+и `Σ risk ≤ T * best + R + ε0 / (1 − ρe)`. -/
 theorem hagi_synthesis (S : ℕ → GrowthState Xs)
     (g : ℕ → ℝ)
     (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
@@ -224,15 +192,12 @@ theorem half_pow_anti (t s : ℕ) (h : s ≤ t) :
       · have hseq : s = t + 1 := by omega
         rw [hseq]
 
-/-- **Vacuity catcher**: a CONCRETE numeric witness of the
-truncated band premises -
-C t = 100 - 99*(1/2)^t, D t = 990*(1/2)^t with
-Cstar = 100, sigma = 1/2, gamma = 1/20, k = 1/1000,
-rho = gamma*k = 1/20000, T = 10 (any T <= 10): step,
-dynamics, cone and the PL window ALL hold. The horizon
-certificate is satisfiable - hagi_synthesis is NOT
-vacuous. (The risk/Hedge side of HAGICert is supplied by
-the runtime h_emp layer; here the band core is witnessed.) -/
+/-- A concrete witness of the truncated band premises
+(`C t = 100 − 99·(1/2)^t`, `D t = 990·(1/2)^t`,
+`Cstar = 100`, `sigma = 1/2`, `gamma = 1/20`,
+`k = 1/1000`, any `T ≤ 10`): step, dynamics, cone, and PL
+window all hold, so the horizon certificate is satisfiable.
+The risk/Hedge side is supplied by the measured layer. -/
 theorem band_witness :
     (∀ T ≤ 10,
       (∀ t ∈ Finset.range T,

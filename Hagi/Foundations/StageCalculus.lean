@@ -8,20 +8,14 @@ set_option linter.style.header false
 /-!
 # StageCalculus — pure stage-arithmetic of the macro cycle
 
-`compress_stage`: if the empirical distortion is bounded by
-1/2 and the third-order span obeys the Lipschitz empirical
-law, then the compress-stage energy increase is at most
-kappa·s/2 — pure arithmetic, no dependencies.
-
-Extracted from Unified/MacroCycle (R207 layer-hygiene): the
-fact is layer-0 arithmetic consumed by Energy/QuantBridge (2);
-the old edge Energy → Unified is thereby removed.
+Layer-0 arithmetic lemmas with no Hagi dependencies:
+`compress_stage`, `adaptive_ns_exists`, `compound_budget`.
 -/
 
 namespace Hagi.Foundations
 
-/-- **Compress stage arithmetic**: distortion ≤ 1/2 and the
-empirical Lipschitz span law give the compress-stage bound. -/
+/-- If `dnorm ≤ 1/2` and `E3 - E2pre ≤ kappa * s * dnorm`,
+then `E3 - E2pre ≤ kappa * s / 2`. -/
 theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
     (hkappa : 0 ≤ kappa) (hs : 0 ≤ s) (_hdn : 0 ≤ dnorm)
     (h_emp_dist : dnorm ≤ 1 / 2)
@@ -33,9 +27,7 @@ theorem compress_stage (kappa s dnorm E3 E2pre : ℝ)
   rw [h3] at h1
   linarith
 
-/-- **Adaptive budget existence**: a residual that reaches
-zero at some iteration admits a minimal iteration count for
-any tolerance — the counting form of adaptive budgets. -/
+/-- If `e 100 = 0` and `0 ≤ eps`, then `∃ s, e s ≤ eps`. -/
 theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
     (heps : 0 ≤ eps) (he0 : e 100 = 0) :
     ∃ s : ℕ, e s ≤ eps := by
@@ -43,9 +35,8 @@ theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
   rw [he0]
   exact heps
 
-/-- **Compound budget folding**: when the stabilized gain
-falls under the cycle cost, the budget inequality folds — pure
-monotone arithmetic. -/
+/-- If `α * D + J ≤ ε_c` and `G_next ≤ D`, then
+`α * G_next + J ≤ ε_c`. -/
 theorem compound_budget (α D J ε_c : ℝ)
     (hα : 0 ≤ α) (hpos : α * D + J ≤ ε_c) :
     ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c := by

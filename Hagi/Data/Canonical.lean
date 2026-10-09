@@ -10,11 +10,11 @@ import Hagi.Information.DiscreteFannes
 
 /-!
 # Canonical — ONE definition per information-theoretic
-concept (R256; architecture audit P0-1, stage 0/1;
+concept (; architecture audit P0-1, stage 0/1;
 lives in Data for LayerLint reasons: bridges Data+Energy)
 
 The audit found the same mathematical objects under 3–4
-names (KL, entropy, TV). The R198 pass already bridged some
+names (KL, entropy, TV). The pass already bridged some
 (Distill.klDiv delegates, DField/FannesSmooth have rfl
 bridges); this module COMPLETES the canonicalization:
 canonical names in ONE namespace, every historical variant
@@ -31,15 +31,15 @@ the oldest and most widely consumed):
 
 Bridged variants (each `..._eq_canonical`):
 
-* KL:  Data.Distill.klDiv (delegate, R198),
-       Data.DField.KLdiv (rfl, R198),
-       Energy.FreeEnergy.kldiv (NEW bridge below);
-* H:   Data.DistillRecursion.shannonEntropy (NEW),
-       Information.DiscreteFannes.shannon (NEW);
-* TV:  Data.FannesSmooth.tvDist (rfl, R198),
-       Information.DiscreteFannes.tvHalf (NEW).
+* KL:  Data.Distill.klDiv (delegate,),
+       Data.DField.KLdiv (rfl,),
+       Energy.FreeEnergy.kldiv (new bridge below);
+* H:   Data.DistillRecursion.shannonEntropy (new),
+       Information.DiscreteFannes.shannon (new);
+* TV:  Data.FannesSmooth.tvDist (rfl,),
+       Information.DiscreteFannes.tvHalf (new).
 
-NOT unified (deliberately, per the audit §2/§24): the
+not unified (deliberately, per the audit §2/§24): the
 matrix/spectral entropy `Information.EntropyDefs.entropy`
 is a different mathematical object (cfc of a PSD matrix);
 it is related to the classical H only through the
@@ -107,7 +107,7 @@ theorem crossEntropy_eq_canonical (q p : V → ℝ) :
 /-! ## The canonical identity block (one place) -/
 
 /-- KL is the excess cross-entropy over the entropy
-baseline — the canonical form of the R198 law. -/
+baseline — the canonical form of the law. -/
 theorem kl_excess_cross_entropy (q p : V → ℝ)
     (hq : ∀ v, q v ≠ 0) (hp : ∀ v, p v ≠ 0) :
     KL q p = CE q p - CE q q := by

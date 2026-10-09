@@ -5,7 +5,7 @@ import Hagi.Budget.ComputeBudget
 
 /-!
 # WaterFillingMoE — the expert↔channel reduction
-(plan §2 R227; sources 2607.17862 truncated water-filling,
+(plan §2; sources 2607.17862 truncated water-filling,
 2607.11015 modified WF under binding constraints; the corpus
 bridge OMP-MoE 2609.31631 is WEAK — the reduction is proven
 here on its own)
@@ -23,7 +23,7 @@ exact and the classical law transfers:
   (marginal improvement = shadow price × cost); the
   dictionary maps its terms — channel ↔ expert, power ↔
   training compute, capacity ↔ improvement-per-cost;
-* `honest boundary`: what is NOT proven — the concavity of
+* `honest boundary`: what is not proven — the concavity of
   real expert improvement curves (needed for the equalized
   point to be a MAXIMUM, not a stationarity point) and any
   load-balance constraint handling (the modified-WF

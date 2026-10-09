@@ -6,10 +6,10 @@ import Hagi.Data.DField
 set_option linter.style.header false
 
 /-!
-# NessDissipation: detailed balance and the entropy-production gap (R174c)
+# NessDissipation: detailed balance and the entropy-production gap
 
 The third module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round R174c). The plan's γ-deficit
+FORMALIZATION_PLAN.md, round). The plan's γ-deficit
 reframe: "the unreachable equilibrium as the measure of
 unfinished gain" (arXiv:2607.17146: the breakdown of detailed
 balance marks a NESS — a nonequilibrium steady state; the
@@ -34,7 +34,7 @@ Markov chain:
 * `ep_zero_implies_db` — THE CONVERSE (NESS characterization,
   finite form): a zero entropy production rate forces
   detailed balance on every edge with positive flow — zero
-  dissipation exists ONLY at equilibrium.
+  dissipation exists only at equilibrium.
 
 Together: detailed balance ⟺ zero entropy production — the
 NESS/dissipation dictionary of the γ-deficit, in its exact
@@ -94,10 +94,10 @@ theorem detailed_balance_zero_ep (P : V → V → ℝ) (pi : V → ℝ)
   rw [div_self (ne_of_gt hB), Real.log_one, mul_zero]
 
 
-/-- **Zero dissipation exists ONLY at equilibrium** (the NESS
+/-- **Zero dissipation exists only at equilibrium** (the NESS
 characterization, finite form): if the entropy production
 rate of the chain is zero (with everywhere-positive flows and
-stochastic rows), then detailed balance holds on EVERY edge.
+stochastic rows), then detailed balance holds on every edge.
 Combined with `detailed_balance_zero_ep`: detailed balance ⟺
 zero entropy production — the dissipation/equilibrium
 dictionary of the γ-deficit, exact on finite chains. -/

@@ -6,72 +6,28 @@ import Hagi.Foundations.Recurrence
 set_option linter.style.header false
 
 /-!
-# R104: gain renewal — disagreement→gain production + diversity floor ⟹ sustained takeoff
+# GainRenewal — renewal gains and sustained takeoff
 
-R102 proved `growth_state_takeoff_window`: with the gain field G
-INVARIANT under `grow` (`growCycle_growGain`), the certified
-exponential takeoff is a BOUNDED transient (success count ≤
-1/α + 1 − C₀/G; certified factor ≤ exp(1 + α − αC₀/G)). The
-audit's conclusion: sustained exponential growth requires GAIN
-RENEWAL — a mechanism making the next gain PROPORTIONAL to the
-current measured usable disagreement, so the success gate
-α·C_t ≤ G_t is re-supplied every generation instead of being
-spent once.
+Under renewal semantics (each generation's gain `G t` produced
+from its usable disagreement `D t`, `γ·D t ≤ G t ≤ γ·D t`;
+`D (t+1) ≥ ρ·D t + inj − ξ`):
 
-This module is that mechanism, as a conditional theorem chain
-whose premises are the quantities the system already measures:
-
-* **γ (harvest ratio)** — the produced gain per unit of usable
-  disagreement: `γ·D_t ≤ G_t ≤ γ·D_t` (h_gain_prod +
-  h_gain_exact — the harvest is the ONLY gain source). The Liveness chain
-  (`liveness_merge`: ¬consensus ⇒ twoGap > 0) is the qualitative
-  ancestor; γ is its quantitative form, measurable from the
-  GapLaw/twoGap telemetry (the per-generation certified merge
-  gain divided by the disagreement mass that produced it).
-* **inj / ξ (fresh-data injection / leakage)** — from the
-  Diversity telemetry, exactly the `diversity_floor` hypotheses:
-  `D_{t+1} ≥ ρ·D_t + inj − ξ` with inj > ξ (h_D_renew).
-* **ρ (retention)** — the fraction of usable disagreement that
-  survives one generation.
-
-Results (the chain):
-
-* `gain_renewal_recurrence` — DERIVED, not assumed: under
-  h_gain_prod and h_D_renew the produced gains satisfy the
-  renewal recurrence `G_{t+1} ≥ ρ·G_t + γ(inj − ξ)`.
-* `gain_renewal_growth` — the closed-form solution for ρ < 1:
-  `G_t ≥ ρ^t·G₀ + γ(inj−ξ)(1−ρ^t)/(1−ρ)` — gains do NOT die;
-  the stationary gain floor is `G_min = γ(inj−ξ)/(1−ρ) > 0`
-  (`gain_renewal_floor_pos`, `gain_renewal_floor`: every
-  generation t ≥ 1 has `G_t ≥ γ(inj−ξ)`, a strictly positive
-  uniform floor — the quantitative `liveness_data_axis`).
-* `gain_renewal_growth_one` — the ρ = 1 case: gains grow
-  linearly, `G_t ≥ G₀ + γ(inj−ξ)·t`.
-* `sustained_takeoff_window_lift` — the connection to R102: the
-  window bound applies to a stretch where G is CONSTANT because
-  the gate α·C_t ≤ G is spent once; under renewal semantics
-  (`C_{t+1} = C_t + G_t`, the per-generation additive law with a
-  PER-GENERATION gain) the gate hypothesis holds at EVERY t
-  precisely while the produced gain covers it — and then
-  `C_T ≥ C₀·(1+α)^T` for ALL T: the window constraint is lifted
-  generation over generation.
-* `renewal_feeds_takeoff` — the honest empirical bridge: the
-  frontier-scaling hypothesis h_emp_frontier_scaling
-  (`α·C_t ≤ γ·D_t` at every t — usable disagreement scales with
-  capability) is exactly what converts the renewal floor into
-  the gate. THIS is the remaining empirical premise: since
-  C_t itself grows like (1+α)^t, the frontier must grow
-  geometrically too — fresh data/discovery must grow WITH the
-  system. PPT's `discovery_prob_lower` (stationary mass of the
-  good set) is the candidate source of that scaling, not yet
-  wired to D_t (open bridge, stated honestly).
-* `bounded_frontier_no_sustained_growth` — the converse
-  direction making the iff honest: if the frontier is BOUNDED
-  (D_t ≤ D̄) and the gain is exactly the produced gain
-  (γ·D_t ≤ G_t ≤ γ·D_t), then the gate forces
-  `C_t ≤ γ·D̄/α` FOREVER — without frontier scaling there is no
-  sustained takeoff. Sustained growth holds IFF the frontier
-  (usable disagreement) scales with capability.
+* `gain_renewal_recurrence`: `G (t+1) ≥ ρ·G t + γ·(inj − ξ)`;
+* `gain_renewal_growth`: for `ρ < 1`, the closed form
+  `G t ≥ ρ^t·G 0 + γ(inj − ξ)(1 − ρ^t)/(1 − ρ)`;
+* `gain_renewal_floor_pos` / `gain_renewal_floor`: the stationary
+  floor `γ(inj − ξ)/(1 − ρ) > 0`; every `t ≥ 1` has
+  `G t ≥ γ(inj − ξ)`;
+* `gain_renewal_growth_one`: for `ρ = 1`, linear growth
+  `G t ≥ G 0 + γ(inj − ξ)·t`;
+* `sustained_takeoff_window_lift`: with the additive step
+  `C (t+1) = C t + G t` and gate `α·C t ≤ G t` at every t,
+  `C 0·(1+α)^T ≤ C T`;
+* `renewal_feeds_takeoff`: the same conclusion from the
+  frontier-scaling hypothesis `α·C t ≤ γ·D t` (an empirical
+  premise, not derived here);
+* `bounded_frontier_no_sustained_growth`: if `G t ≤ γ·D t`,
+  `D t ≤ D̄`, and the gate holds, then `C t ≤ γ·D̄/α`.
 -/
 
 open Real Finset
@@ -80,45 +36,23 @@ namespace Hagi
 
 /-! ## The renewal semantics
 
-The minimal extension of the loop semantics: each generation's
-gain is PRODUCED from that generation's measured usable
-disagreement by the concrete harvest map `gainFromD γ D = γ·D`
-(the linear harvest; γ the measured harvest ratio). The
-hypotheses below quantify this: h_gain_prod is the production
-law (lower bound — the system may harvest more than γ·D, never
-less), h_D_renew is the Diversity floor law verbatim. -/
+Each generation's gain is produced from that generation's
+measured usable disagreement by the linear harvest
+`gainFromD γ D = γ·D`. The hypotheses quantify this:
+`h_gain_prod` (lower bound), `h_gain_exact` (upper bound),
+`h_D_renew` (the `diversity_floor` law). -/
 
-/-- The concrete gain producer: the linear harvest of usable
-disagreement D at harvest ratio γ (the measured per-unit merge
-gain — `twoGap` per unit disagreement mass, from the GapLaw
-telemetry). Kept concrete (no homogeneity/monotonicity axiom
-layer): the theorems only ever use `G ≥ γ·D` and `G ≤ γ·D`. -/
+/-- The linear harvest `gainFromD γ D = γ·D`; the theorems only
+use the bounds `γ·D ≤ G` and `G ≤ γ·D`. -/
 noncomputable def gainFromD (γ D : ℝ) : ℝ := γ * D
 
 /-! ## The renewal recurrence -/
 
-/-- **The renewal recurrence (DERIVED, not assumed per-step)**:
-if each generation's gain is produced from that generation's
-disagreement at harvest ratio γ — EXACTLY: the producer is the
-ONLY gain source, `γ·D_t ≤ G_t ≤ γ·D_t` (h_gain_prod /
-`h_gain_exact`) — and the disagreement obeys the Diversity floor
-law `D_{t+1} ≥ ρ·D_t + inj − ξ` (h_D_renew, ρ ≥ 0 retention),
-then the produced gains satisfy
-
-  G_{t+1} ≥ ρ·G_t + γ·(inj − ξ)
-
-— each generation's gain floor is a constant fraction ρ of the
-previous plus the harvested fresh injection γ(inj − ξ). This is
-the quantitative form of the Liveness chain (D > 0 ⇒ G > 0):
-now the gain is a recurrent quantity with an explicit floor
-dynamics, not a one-off positivity statement.
-
-**Why exactness is needed**: with only the LOWER bound the
-recurrence is FALSE — a one-off large gain satisfies `γ·D ≤ G`
-forever while decaying in relative terms; the floor propagates
-only if the gain is REPRODUCED each generation (the harvest is
-the only gain source). This is the renewal mechanism's content,
-not a technicality. -/
+/-- If `0 < γ`, `0 ≤ ρ`, `γ·D t ≤ G t ≤ γ·D t` at every t, and
+`D (t+1) ≥ ρ·D t + inj − ξ`, then
+`ρ·G t + γ·(inj − ξ) ≤ G (t+1)`. Both bounds on `G` are
+needed: with the lower bound alone the recurrence fails (a
+one-off large gain satisfies `γ·D ≤ G` while decaying). -/
 theorem gain_renewal_recurrence (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
     (hγ : 0 < γ) (hρ : 0 ≤ ρ)
     (h_gain_prod : ∀ t, γ * D t ≤ G t)
@@ -156,19 +90,9 @@ private theorem geo_sum_closed (ρ : ℝ) (hρ : ρ ≠ 1) (t : ℕ) :
   rw [mul_comm]
   exact geo_sum_mul ρ t
 
-/-- **The renewal recurrence solved (ρ < 1)**: under
-h_gain_prod and h_D_renew with ρ ∈ [0, 1), strict injection
-dominance inj > ξ, and exact production
-(γ·D_t ≤ G_t ≤ γ·D_t — the harvest is the only gain source,
-the produced gains satisfy the geometric-floor closed form
-
-  G_t ≥ ρ^t·G₀ + γ(inj − ξ)·(1 − ρ^t)/(1 − ρ),
-
-i.e. `G_t ≥ ρ^t·G₀ + G_min·(1 − ρ^t)` with the STATIONARY GAIN
-FLOOR `G_min = γ(inj − ξ)/(1 − ρ)`. Gains do NOT die: however
-many generations pass, the gain never falls below the level
-the injection term refills each cycle. (Derived by harvesting
-the `diversity_floor` law through γ, not by a fresh induction.) -/
+/-- If `0 < γ`, `0 ≤ ρ < 1`, `ξ ≤ inj`, `0 ≤ ξ`, `0 ≤ inj`,
+`γ·D t ≤ G t ≤ γ·D t`, and `D (t+1) ≥ ρ·D t + inj − ξ`, then
+`ρ^t·G 0 + γ·(inj − ξ)·(1 − ρ^t)/(1 − ρ) ≤ G t`. -/
 theorem gain_renewal_growth (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
     (hγ : 0 < γ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
     (_hinj : ξ < inj) (hxi : 0 ≤ ξ) (hinj0 : 0 ≤ inj)
@@ -197,12 +121,8 @@ theorem gain_renewal_growth (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
   rw [← mul_div_assoc] at hgeom
   exact hgeom
 
-/-- **The stationary gain floor is strictly positive**: with
-strict injection dominance (inj > ξ, the Diversity telemetry
-condition of `liveness_data_axis`), ρ ∈ [0,1) and γ > 0, the
-limiting gain level `G_min = γ(inj − ξ)/(1 − ρ)` is strictly
-positive — the renewal mechanism never lets the produced gain
-decay to zero. -/
+/-- If `0 < γ`, `ρ < 1`, and `ξ < inj`, then
+`0 < γ·(inj − ξ)/(1 − ρ)`. -/
 theorem gain_renewal_floor_pos (γ ρ inj ξ : ℝ)
     (hγ : 0 < γ) (hρ1 : ρ < 1) (hinj : ξ < inj) :
     0 < γ * (inj - ξ) / (1 - ρ) := by
@@ -224,11 +144,9 @@ private theorem geo_sum_ge_one (ρ : ℝ) (hρ : 0 ≤ ρ) :
         fun i _ => pow_nonneg hρ i
       simpa using Finset.single_le_sum hnn hmem
 
-/-- **The uniform renewal floor**: every generation t ≥ 1
-produces gain at least `γ(inj − ξ)` — a strictly positive
-CONSTANT, independent of t and of D₀. This is the quantitative
-`liveness_data_axis`: not merely D_T > 0, but a uniform
-harvestable floor at every generation. -/
+/-- If `0 < γ`, `0 ≤ ρ`, `ξ < inj`, `0 ≤ ξ`, `0 ≤ inj`,
+`0 ≤ D 0`, `γ·D t ≤ G t`, `D (t+1) ≥ ρ·D t + inj − ξ`, and
+`t ≠ 0`, then `γ·(inj − ξ) ≤ G t`. -/
 theorem gain_renewal_floor (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
     (hγ : 0 < γ) (hρ : 0 ≤ ρ)
     (hinj : ξ < inj) (hxi : 0 ≤ ξ) (hinj0 : 0 ≤ inj)
@@ -256,10 +174,9 @@ theorem gain_renewal_floor (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
           mul_le_mul_of_nonneg_left hge1 hc
   linarith [hgd, e1, e2, e3]
 
-/-- **The renewal recurrence solved (ρ = 1)**: with full
-retention, the produced gains grow LINEARLY —
-`G_t ≥ G₀ + γ(inj − ξ)·t` — the injection term accumulates
-instead of saturating. -/
+/-- If `0 < γ`, `γ·D t ≤ G t ≤ γ·D t`, and
+`D (t+1) ≥ 1·D t + inj − ξ`, then
+`G 0 + γ·(inj − ξ)·t ≤ G t`. -/
 theorem gain_renewal_growth_one (G D : ℕ → ℝ) (γ inj ξ : ℝ)
     (hγ : 0 < γ)
     (h_gain_prod : ∀ t, γ * D t ≤ G t)
@@ -280,26 +197,8 @@ theorem gain_renewal_growth_one (G D : ℕ → ℝ) (γ inj ξ : ℝ)
 
 /-! ## The R102 window lift -/
 
-/-- **The window constraint LIFTED (the R102 bridge)**: R102's
-`growth_state_takeoff_window` bounds the certified takeoff
-because a FIXED gain G is spent once by the gate α·C_t ≤ G.
-Under the RENEWAL loop semantics — the per-generation additive
-law `C_{t+1} = C_t + G_t` with each generation's gain G_t
-PRODUCED (not inherited) — the gate hypothesis
-
-  h_gate : α·C_t ≤ G_t  (every t)
-
-is re-supplied every generation, and then the certified
-takeoff factor is `(1+α)^T` for EVERY horizon T:
-
-  C_T ≥ C₀·(1 + α)^T.
-
-No window, no bound: the multiplicative law applies at every
-cycle because each cycle's gate is paid for by that cycle's
-produced gain. (The gate itself is not free — see
-`renewal_feeds_takeoff` for when renewal supplies it, and
-`bounded_frontier_no_sustained_growth` for when its supply
-provably runs out.) -/
+/-- If `0 < α`, `C (t+1) = C t + G t`, and `α·C t ≤ G t` at
+every t, then `C 0·(1 + α)^T ≤ C T`. -/
 theorem sustained_takeoff_window_lift (C G : ℕ → ℝ) (α : ℝ)
     (hα : 0 < α)
     (h_step : ∀ t, C (t + 1) = C t + G t)
@@ -322,28 +221,12 @@ theorem sustained_takeoff_window_lift (C G : ℕ → ℝ) (α : ℝ)
       rw [pow_succ (1 + α) T]
       nlinarith
 
-/-- **The frontier-scaling bridge (THE remaining empirical
-premise, named)**: composing the renewal production
-`h_gain_prod : γ·D_t ≤ G_t` with the FRONTIER-SCALING
-hypothesis
-
-  h_emp_frontier_scaling : α·C_t ≤ γ·D_t  (every t)
-
-— usable disagreement scales with capability, i.e. the
-stationary frontier level covers the gate's demand — yields the
-gate of `sustained_takeoff_window_lift`, hence
-`C_T ≥ C₀·(1+α)^T` for ALL T: sustained exponential growth.
-
-**Honesty of the premise**: since C_t grows like (1+α)^t, the
-frontier D_t must grow geometrically too (`D_t ≥ (α/γ)·C_t`):
-fresh data / discovery must GROW WITH THE SYSTEM. A stationary
-frontier (bounded D) does NOT satisfy it — and then
-`bounded_frontier_no_sustained_growth` shows sustained takeoff
-is impossible. PPT's `discovery_prob_lower` (the stationary
-mass of the good discovery set) is the CANDIDATE source of the
-scaling — connecting that mass to D_t is the open empirical
-bridge, NOT a theorem here. Growth is sustained IFF the
-frontier scales with capability. -/
+/-- If `0 < α`, `C (t+1) = C t + G t`, `γ·D t ≤ G t`, and the
+frontier-scaling hypothesis `α·C t ≤ γ·D t` holds at every t,
+then `C 0·(1 + α)^T ≤ C T`. The scaling hypothesis is an
+empirical premise, not derived here (see
+`bounded_frontier_no_sustained_growth` for the converse under
+a bounded frontier). -/
 theorem renewal_feeds_takeoff (C G D : ℕ → ℝ) (α γ : ℝ)
     (hα : 0 < α)
     (h_step : ∀ t, C (t + 1) = C t + G t)
@@ -354,16 +237,8 @@ theorem renewal_feeds_takeoff (C G D : ℕ → ℝ) (α γ : ℝ)
   sustained_takeoff_window_lift C G α hα h_step
     (fun t => le_trans (h_emp_frontier_scaling t) (h_gain_prod t)) T
 
-/-- **The converse: no frontier scaling, no sustained takeoff**.
-If the gain is exactly the produced harvest
-(`γ·D_t ≤ G_t ≤ γ·D_t` — the producer is the only gain source),
-the diversity is BOUNDED (`D_t ≤ D̄` — a stationary frontier),
-and the gate holds at every t, then capability is bounded
-FOREVER: `C_t ≤ γ·D̄/α`. So under the renewal semantics the
-certified takeoff is sustained IFF the frontier scales with
-capability (the h_emp_frontier_scaling of
-`renewal_feeds_takeoff`) — this is the honest iff-form of
-"sustained growth". -/
+/-- If `0 < α`, `G t ≤ γ·D t`, `D t ≤ D̄`, and `α·C t ≤ G t`,
+then `C t ≤ γ·D̄/α`. -/
 theorem bounded_frontier_no_sustained_growth (C G D : ℕ → ℝ)
     (α γ Dbar : ℝ)
     (hα : 0 < α) (hγ : 0 < γ)

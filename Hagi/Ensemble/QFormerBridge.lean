@@ -7,9 +7,9 @@ import Hagi.Data.PuncturedCE
 set_option linter.style.header false
 
 /-!
-# R145: QFormer bridge - zero-init identity (function-preserving)
+# QFormer bridge - zero-init identity (function-preserving)
 
-Phase B (R137 of the plan). Sources: 2609.31448 (ViSTA:
+Phase B. Sources: 2609.31448 (ViSTA:
 learned queries U, zero-init output projection => Z = V
 exactly - the bridge is INCLUDED without changing the
 behavior), 2609.34598 (fixed summary-token count as KV),

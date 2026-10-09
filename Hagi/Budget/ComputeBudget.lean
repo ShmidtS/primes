@@ -14,20 +14,20 @@ the loop is the same first-order condition
 `−w_j • E'_j(x_j) = λ • c_j` —
 
 the marginal error reduction per unit cost equals the shadow
-price. Each measured instance below is either a THEOREM
+price. Each measured instance below is either a theorem
 (derived from the law under proved hypotheses) or an
 ASSUMPTION (a fit-hypothesis on the measured spectra —
-flagged, NOT a theorem about the real transformer).
+flagged, not a theorem about the real transformer).
 
 **The instances (measured HAGI_v2 data):**
 
 | resource | law | status | live measurement |
 |----------|-----|-------|------------------|
 | LoRA rank r | A·e^{−κr} | ASSUMPTION (measured B-row spectrum 0.54–0.63 at r=16: flat) |
-| NCE K | A/K | THEOREM (`adaptiveK_bound`; K=2048 measured, S₂ per corpus) |
+| NCE K | A/K | theorem (`adaptiveK_bound`; K=2048 measured, S₂ per corpus) |
 | CE keep-rate p | (1−p)/p | ASSUMPTION (throughput +27% at 0.5 measured; variance open) |
-| experts N | G/(N²−1) | THEOREM-conditional (Concat model; calibration N*≈4.6) |
-| D-field w | KL-structure | THEOREM (`DField`: D = Σ w KL; concave program) |
+| experts N | G/(N²−1) | theorem-conditional (Concat model; calibration N*≈4.6) |
+| D-field w | KL-structure | theorem (`DField`: D = Σ w KL; concave program) |
 
 **What the module proves:**
 
@@ -35,7 +35,7 @@ flagged, NOT a theorem about the real transformer).
   condition: at the optimum of Σ E_j(x_j) under the cost
   budget Σ c_j x_j ≤ B, every interior x_j satisfies
   −w_j E'_j = λ c_j; the active set is where the marginal
-  value at x_j = 0 beats the price. THE THEOREM IS THE LAW;
+  value at x_j = 0 beats the price. THE theorem IS THE LAW;
   the instances inherit their status from their tail
   hypotheses.
 
@@ -80,7 +80,7 @@ theorem marginalValue_law (marg : J → ℝ) (c : J → ℝ) (lam : ℝ)
 /-- **The active-set structure**: the resources with
 marginal-at-zero above the price enter; the ones under exit.
 The finite KKT complementarity in the two-sided form: the
-allocated set is exactly {j : marg₀_j > λ c_j}, and on it the
+allocated set is exactly {j: marg₀_j > λ c_j}, and on it the
 marginals equalize. This is the STRUCTURE theorem — the
 enumeration of the active set is a lookup over the measured
 table, not a search. -/

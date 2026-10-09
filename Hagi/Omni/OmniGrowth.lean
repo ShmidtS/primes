@@ -4,25 +4,14 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Omni.CrossModalGap
 
 /-!
-# OmniGrowth — the omni capability growth law
+# Omni capability growth
 
-The growth-law composition of the omni-HAGI cycle: a new
-capability (e.g. a new modality) is admitted when its gains
-exceed its costs:
-
-  C_{t+1} = C_t + G_intra + G_cross − C_compress − C_risk.
-
-Main results:
-* `omniGrowth_admits`: if the net gain is nonnegative
-  (G_intra + G_cross ≥ compression cost + risk cost), capability
-  does not decrease;
-* `omniGrowth_positive`: if the inequality is strict, capability
-  strictly increases — the omni gate for admitting a modality;
-* `omniGate_crossModal`: combining with CrossModalGap — a strictly
-  dependent modality pair (G_cross > 0) with positive intra gain
-  and bounded costs strictly grows capability: the formal version
-  of "a new modality is a legitimate growth source exactly when it
-  brings genuinely joint information".
+The one-step capability update `omniStep C gIntra gCross cComp
+cRisk = C + gIntra + gCross - cComp - cRisk` with admission
+gates: nonnegative net gain preserves capability, strict net
+gain strictly increases it, and a strictly dependent modality
+pair (non-product joint law) with nonnegative intra gain and
+costs bounded by the gains strictly grows capability.
 -/
 
 namespace Hagi.Omni
@@ -33,29 +22,26 @@ risk cost. -/
 def omniStep (C gIntra gCross cComp cRisk : ℝ) : ℝ :=
   C + gIntra + gCross - cComp - cRisk
 
-/-- **The admission gate (non-strict)**: net gain nonnegative
-⟹ capability does not decrease. -/
+/-- If `cComp + cRisk ≤ gIntra + gCross` then
+`C ≤ omniStep C gIntra gCross cComp cRisk`. -/
 theorem omniGrowth_admits (C gIntra gCross cComp cRisk : ℝ)
     (hnet : cComp + cRisk ≤ gIntra + gCross) :
     C ≤ omniStep C gIntra gCross cComp cRisk := by
   unfold omniStep
   linarith
 
-/-- **The admission gate (strict)**: net gain positive ⟹
-capability strictly increases — the gate through which a new
-modality (or any capability source) enters the omni state. -/
+/-- If `cComp + cRisk < gIntra + gCross` then
+`C < omniStep C gIntra gCross cComp cRisk`. -/
 theorem omniGrowth_positive (C gIntra gCross cComp cRisk : ℝ)
     (hnet : cComp + cRisk < gIntra + gCross) :
     C < omniStep C gIntra gCross cComp cRisk := by
   unfold omniStep
   linarith
 
-/-- **The cross-modal admission theorem**: if the new modality
-pair carries strictly positive cross-modal information
-(G_cross > 0, certified e.g. by crossModalGap_nonneg being
-strict — see crossModalGap_zero_iff_indep for the degenerate
-case), the intra-modal gain is nonnegative, and the costs are
-bounded by the gains, then capability strictly grows. -/
+/-- If the joint law `p` is not a product of its marginals
+(so `crossModalGap p > 0` by `crossModalGap_zero_iff_indep`),
+`0 ≤ gIntra`, and `cComp + cRisk ≤ gIntra`, then
+`C < omniStep C gIntra (crossModalGap p) cComp cRisk`. -/
 theorem omniGate_crossModal {X Y : Type} [Fintype X] [DecidableEq X]
     [Nonempty X] [Fintype Y] [DecidableEq Y] [Nonempty Y]
     (p : X × Y → ℝ) (hp : ∀ z, 0 < p z) (hsum : ∑ z, p z = 1)

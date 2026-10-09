@@ -7,22 +7,17 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R60: BIBO stability of test-time training
+# BIBO stability of test-time training
 
-Block III.2 of the grand-unified roadmap: the TTT loop
-adapts hidden states by gradient steps during inference. If
-the adaptation operator W is non-expansive (‖W x‖ ≤ ‖x‖ for
-all x — the h_emp_ spectral condition ρ(W) ≤ 1 in operator
-norm), then NO adaptation chain of any length T can blow up
-the hidden state: ‖W^T x‖ ≤ ‖x‖ for every T. BIBO stability
-of the infinite-context adaptation loop, independent of T.
+If the adaptation operator is non-expansive (`abs W ≤ 1`),
+then `abs (W ^ T * x) ≤ abs x` for every `T`, and the same
+holds for any length-`T` composition of such operators.
 -/
 
 namespace Hagi
 
-/-- **BIBO core**: a non-expansive operator's iterates never
-amplify the state — ‖W^T x‖ ≤ ‖x‖ for all T, by induction on
-the composition bound. -/
+/-- If `abs W ≤ 1` then `abs (W ^ T * x) ≤ abs x` for every
+`T`. -/
 theorem ttt_bibo (W : ℝ) (hW : abs W ≤ 1) (x : ℝ) (T : ℕ) :
     abs (W ^ T * x) ≤ abs x := by
   have hpow : abs (W ^ T) ≤ 1 := by
@@ -40,10 +35,9 @@ theorem ttt_bibo (W : ℝ) (hW : abs W ≤ 1) (x : ℝ) (T : ℕ) :
         apply mul_le_mul_of_nonneg_right hpow (abs_nonneg _)
     _ = abs x := by ring
 
-/-- **The TTT adaptation chain is bounded for every depth**:
-composing non-expansive adaptation operators (per-layer TTT
-updates with ρ ≤ 1) keeps the hidden state within its initial
-norm — infinite-context adaptation cannot diverge. -/
+/-- For a sequence of operators with `abs (W t) ≤ 1` for all
+`t`, the product of any first `T` of them applied to `x`
+satisfies `abs (… * x) ≤ abs x`. -/
 theorem ttt_chain_bounded (W : ℕ → ℝ) (hW : ∀ t, abs (W t) ≤ 1)
     (x : ℝ) (T : ℕ) :
     abs ((List.map W (List.range T)).foldr (· * ·) 1 * x) ≤ abs x := by

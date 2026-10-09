@@ -7,67 +7,42 @@ import Hagi.Probability.ConditionalSuccess
 set_option linter.style.header false
 
 /-!
-# R110: wall-clock takeoff — per-cycle time-rate k ⟹ exponential in WALL-CLOCK time
+# WallClockTakeoff — takeoff в астрономическом (wall-clock) времени
 
-The audit's §18 ask: growth must be measured against WALL-CLOCK
-time, not generation count or FLOPs. If every cycle t costs τ_t of
-wall-clock and multiplies capability by ≥ (1 + k·τ_t) — the
-per-cycle multiplicative law with rate k per unit time — then the
-capability at accumulated wall time T_wall = Στ is exponential in
-T_wall with rate k (up to explicit second-order slack).
+Пер-цикловый закон (посылка): цикл t стоит τ_t wall-clock и
+умножает capability на `≥ (1 + k·τ_t)`.
 
-Results:
-
-* `log_one_add_ge_sub_half_sq` — the honest per-factor
-  inequality: log(1+x) ≥ x − x²/2 for ALL x ≥ 0 (derivative
-  analysis: d/dt[log(1+t) − t + t²/2] = t²/(1+t) ≥ 0, f(0)=0).
-  The audit's x ∈ [0,1] restriction is NOT needed — the bound
-  holds on the whole nonneg half-line.
-* `exp_le_one_add` — the exponentiated form exp(x − x²/2) ≤ 1+x.
-* `wallclock_takeoff_product` — the product law: C_T ≥
-  C₀·∏_{t<T}(1 + k·τ_t) (induction, the per-cycle law composed).
-* `wallclock_takeoff` (MAIN) — C_T ≥ C₀·exp(k·Στ_t −
-  (k²/2)·Στ_t²): the exponent is k·T_wall minus the EXPLICIT
-  second-order slack (k²/2)Στ² — the price of discretization,
-  paid only by long cycles.
-* `wallclock_takeoff_small_steps` — the regime corollary: if
-  k·τ_t ≤ η for all t, the slack collapses to (η/2)·k·T_wall and
-  C_T ≥ C₀·exp(k·T_wall·(1 − η/2)). As η → 0 (cheap cycles) the
-  effective rate approaches k exactly — the audit's "dC/dT ≥ kC
-  ⟹ exp(kT)" in honest discrete form.
-* `counted_takeoff_exp` — the exp-form twin of R83's
-  `capability_takeoff_counted` (needed for the composition).
-* `wallclock_rate_from_cone` (composition) — under the R107
-  cone/success machinery (per-SUCCESS multiplier (1+α), success
-  count concentrated at p₀T − Δ per R95), with CONSTANT cycle
-  cost τ, the wall-clock rate constant is exactly
-
-  k_eff = p₀·ln(1+α)/τ
-
-  with the explicit concentration correction −ln(1+α)·Δ:
-  C_T ≥ C₀·exp(k_eff·W − ln(1+α)·Δ), W = T·τ.
-* `wallclock_rate_from_cone_concentrated` — instantiates Δ with
-  R95's Hoeffding value √(2T·log(1/δ)).
-
-Honesty notes: (a) the per-cycle law C_{t+1} ≥ (1+kτ_t)·C_t is a
-HYPOTHESIS (as in R83's capability_multiplicative — the composition
-law, not a derivation); what THIS module derives is the wall-clock
-exponent: the second-order slack algebra and the k_eff composition.
-(b) the success-count floor in the composition is given as a
-deterministic hypothesis; the probabilistic guarantee that it holds
-w.p. ≥ 1−δ is R95's `success_count_lower_p0`, NOT reproved here.
+* `log_one_add_ge_sub_half_sq` / `exp_le_one_add`:
+  `x − x²/2 ≤ log(1+x)` и `exp(x − x²/2) ≤ 1 + x` при x ≥ 0
+  (без ограничения x ≤ 1);
+* `per_cycle_time_rate`: определение гипотезы;
+* `wallclock_takeoff_product`: `C T ≥ C 0·∏(1 + k·τ t)`;
+* `wallclock_takeoff`: `C T ≥ C 0·exp(k·Στ − (k²/2)·Στ²)` —
+  экспонента с явным второпорядковым слэком;
+* `wallclock_takeoff_small_steps`: при `k·τ t ≤ η` —
+  `C T ≥ C 0·exp(k·T_wall·(1 − η/2))`;
+* `counted_takeoff_exp`: при
+  `C (t+1) ≥ C t·exp(a·s t)` — `C T ≥ C 0·exp(a·Σs t)`;
+* `wallclock_rate_from_cone`: при пер-цикловом множителе
+  `(1+α)^(s t)`, полу успеха `p₀·T − Δ ≤ Σ s t` и константном τ:
+  `C T ≥ C 0·exp(k_eff·W − ln(1+α)·Δ)`,
+  `k_eff = p₀·ln(1+α)/τ`, `W = T·τ`;
+* `wallclock_rate_from_cone_concentrated`: Δ :=
+  `concDelta T δ = √(2T·log(1/δ))` (гипотеза — концентрация
+  R95, здесь не перепроверяется);
+* `wallclock_rate_avg_tau`: версия с переменным τ_t при
+  `Σ τ t ≤ T·τ̄`.
 -/
 
 open Real Finset
 
 namespace Hagi
 
-/-! ## The per-factor inequality -/
+/-! ## Пер-факторное неравенство -/
 
-/-- **The honest per-factor inequality**: log(1+x) ≥ x − x²/2 for
-ALL x ≥ 0. Proof: f(t) := log(1+t) − t + t²/2 has
-f'(t) = t²/(1+t) ≥ 0 on t > 0 and f(0) = 0, so f is monotone on
-[0,x]. The audit's x ∈ [0,1] restriction is not needed. -/
+/-- При `0 ≤ x`: `x − x²/2 ≤ log(1 + x)` (f(t) = log(1+t) − t
++ t²/2 монотонна, f(0) = 0; верно на всей неотрицательной
+полупрямой). -/
 theorem log_one_add_ge_sub_half_sq {x : ℝ} (hx : 0 ≤ x) :
     x - x ^ 2 / 2 ≤ Real.log (1 + x) := by
   -- the derivative fact: f' t = t²/(1+t) for t ≥ 0
@@ -130,32 +105,24 @@ theorem log_one_add_ge_sub_half_sq {x : ℝ} (hx : 0 ≤ x) :
   rw [hzero] at hfx
   linarith
 
-/-- **The exponentiated per-factor bound**: exp(x − x²/2) ≤ 1 + x
-for all x ≥ 0 — each multiplicative factor (1+x) dominates its
-first-order exponent minus the second-order slack. -/
+/-- При `0 ≤ x`: `exp(x − x²/2) ≤ 1 + x`. -/
 theorem exp_le_one_add {x : ℝ} (hx : 0 ≤ x) :
     Real.exp (x - x ^ 2 / 2) ≤ 1 + x := by
   have h2 : Real.exp (x - x ^ 2 / 2) ≤ Real.exp (Real.log (1 + x)) :=
     Real.exp_le_exp.mpr (log_one_add_ge_sub_half_sq hx)
   exact h2.trans_eq (Real.exp_log (by linarith : (0:ℝ) < 1 + x))
 
-/-! ## The per-cycle time-rate hypothesis -/
+/-! ## Гипотеза пер-цикловой ставки -/
 
-/-- **The per-cycle time-rate law (hypothesis form)**: each cycle
-t costs τ_t of wall-clock and multiplies capability by ≥ (1 + k·τ_t)
-— the multiplicative law with rate k per unit of wall-clock time.
-This is the HYPOTHESIS the takeoff theorems below compose (as in
-R83's `capability_multiplicative`: the composition law, not a
-derivation from deeper principles). -/
+/-- `per_cycle_time_rate C τ k`:
+`∀ t, C (t+1) ≥ C t·(1 + k·τ t)` — гипотеза, композируемая
+нижеследующими теоремами (не выводится здесь). -/
 def per_cycle_time_rate (C τ : ℕ → ℝ) (k : ℝ) : Prop :=
   ∀ t, C (t + 1) ≥ C t * (1 + k * τ t)
 
-/-! ## The product law -/
-/-- **The product form of the per-cycle time-rate law**: if every
-cycle t multiplies capability by ≥ (1 + k·τ_t) with k, τ_t ≥ 0,
-then after T cycles C_T ≥ C₀·∏_{t<T}(1 + k·τ_t) — the T-fold
-composition (induction, as in `capability_multiplicative` but
-with the time-indexed factor). -/
+/-! ## Закон произведения -/
+/-- При `0 ≤ k`, `0 ≤ τ t` и `per_cycle_time_rate C τ k`:
+`C T ≥ C 0·∏_{t<T}(1 + k·τ t)` (индукция). -/
 theorem wallclock_takeoff_product (C τ : ℕ → ℝ) (k : ℝ)
     (hk : 0 ≤ k) (hτ : ∀ t, 0 ≤ τ t)
     (hstep : per_cycle_time_rate C τ k)
@@ -176,10 +143,10 @@ theorem wallclock_takeoff_product (C τ : ℕ → ℝ) (k : ℝ)
         _ = C 0 * ((∏ t ∈ Finset.range T, (1 + k * τ t)) * (1 + k * τ T)) := by
             ring
 
-/-! ## The wall-clock exponent (MAIN) -/
+/-! ## Экспонента wall-clock (главная) -/
 
-/-- Product monotonicity over `ℝ` factors (mathlib 4.34 `Finset.prod_le_prod`
-requires `MulLeftMono`, not satisfiable for `ℝ`). -/
+/-- Монотонность произведения (в mathlib 4.34 `Finset.prod_le_prod`
+требует `MulLeftMono`, недоступного для `ℝ`). -/
 private lemma prod_exp_le_prod_one_add (τ : ℕ → ℝ) (k : ℝ) (n : ℕ)
     (hk : 0 ≤ k) (hτ : ∀ t, 0 ≤ τ t) :
     ∏ t ∈ Finset.range n, Real.exp (k * τ t - (k * τ t) ^ 2 / 2)
@@ -202,18 +169,10 @@ private lemma prod_exp_le_prod_one_add (τ : ℕ → ℝ) (k : ℝ) (n : ℕ)
               mul_le_mul_of_nonneg_right ih hzc
 
 
-/-- **The wall-clock takeoff (MAIN)**: if every cycle t costs τ_t ≥ 0
-wall-clock and multiplies capability by ≥ (1 + k·τ_t) with k ≥ 0
-(rate k per unit time), then after T cycles
-
-  C_T ≥ C₀ · exp(k·Στ_t − (k²/2)·Στ_t²).
-
-The exponent is k·T_wall (T_wall = Στ the accumulated wall-clock
-time) minus the EXPLICIT second-order slack (k²/2)·Στ² — the price
-of discretization, paid only by long cycles (slack per factor is
-(kτ_t)²/2). Derived from the per-factor bound
-exp(x − x²/2) ≤ 1+x (valid for ALL x ≥ 0 — no [0,1] cap needed)
-applied factor-wise and telescoped via exp(Σ) = ∏exp. -/
+/-- При `0 ≤ k`, `0 ≤ C 0`, `0 ≤ τ t` и `per_cycle_time_rate`:
+`C T ≥ C 0·exp(k·Στ − (k²/2)·Στ²)` — экспонента с явным
+второпорядковым слэком (из `exp_le_one_add` пофакторно и
+`exp(Σ) = ∏exp`). -/
 theorem wallclock_takeoff (C τ : ℕ → ℝ) (k : ℝ)
     (hk : 0 ≤ k) (hC0 : 0 ≤ C 0) (hτ : ∀ t, 0 ≤ τ t)
     (hstep : per_cycle_time_rate C τ k)
@@ -251,18 +210,10 @@ theorem wallclock_takeoff (C τ : ℕ → ℝ) (k : ℝ)
         - (k ^ 2 / 2) * ∑ t ∈ Finset.range T, (τ t) ^ 2) :=
         mul_le_mul_of_nonneg_left hprod' hC0
 
-/-! ## The small-steps regime -/
+/-! ## Режим малых шагов -/
 
-/-- **The small-steps regime corollary**: if every cycle's scaled
-cost satisfies k·τ_t ≤ η, the second-order slack collapses:
-(k²/2)Στ² = (k/2)Σ(kτ_t)·τ_t ≤ (η/2)·k·Στ_t, giving
-
-  C_T ≥ C₀ · exp(k·T_wall·(1 − η/2)),
-
-T_wall = Στ_t. As η → 0 (cheap cycles) the effective rate
-approaches k exactly — the audit's "dC/dT_wall ≥ kC ⟹ exponential
-rate k" in honest discrete form, with the explicit (1−η/2) rate
-discount for finite cycles. -/
+/-- При посылках `wallclock_takeoff` и `k·τ t ≤ η` для всех t:
+`C T ≥ C 0·exp(k·(Στ)·(1 − η/2))`. -/
 theorem wallclock_takeoff_small_steps (C τ : ℕ → ℝ) (k η : ℝ)
     (hk : 0 ≤ k) (hC0 : 0 ≤ C 0) (hτ : ∀ t, 0 ≤ τ t)
     (hη : ∀ t, k * τ t ≤ η)
@@ -298,13 +249,11 @@ theorem wallclock_takeoff_small_steps (C τ : ℕ → ℝ) (k η : ℝ)
     _ ≥ C 0 * Real.exp (k * (∑ t ∈ Finset.range T, τ t) * (1 - η / 2)) :=
         mul_le_mul_of_nonneg_left hexp hC0
 
-/-! ## The composition with the cone/success machinery -/
+/-! ## Композиция с конус/успех-механизмом -/
 
-/-- **The counted takeoff in exponent form** (real success
-sequence): if each cycle multiplies capability by ≥ exp(a·s_t)
-with a ≥ 0, then C_T ≥ C₀·exp(a·Σs_t) — the exp-factor
-composition (the exp twin of `capability_takeoff_counted`;
-failures s_t = 0 are neutral). -/
+/-- При `C (t+1) ≥ C t·exp(a·s t)` для всех t:
+`C T ≥ C 0·exp(a·Σ s t)` (экспоненциальный двойник
+`capability_takeoff_counted`; s t = 0 нейтрально). -/
 theorem counted_takeoff_exp (C s : ℕ → ℝ) (a : ℝ)
     (hmul : ∀ t, C (t + 1) ≥ C t * Real.exp (a * s t))
     (T : ℕ) :
@@ -320,25 +269,9 @@ theorem counted_takeoff_exp (C s : ℕ → ℝ) (a : ℝ)
         _ = C 0 * (Real.exp (a * ∑ t ∈ Finset.range T, s t) * Real.exp (a * s T)) := by
             ring
 
-/-- **The composed wall-clock rate (cone + success concentration
-+ constant cycle cost)**: if each cycle t multiplies capability by
-(1+α)^(s_t) (s_t the success indicator — supplied by the R107 cone
-invariant via the gate: cone ⟹ C_{t+1} ≥ (1+α)·C_t on successes),
-the success count over T cycles is at least p₀·T − Δ (R95's
-concentration floor; Δ = 0 is the deterministic all-success case),
-and every cycle costs the SAME wall-clock τ, then at accumulated
-wall time W = T·τ
-
-  C_T ≥ C₀ · exp(k_eff · W − ln(1+α) · Δ),
-
-with the explicit wall-clock rate constant
-
-  k_eff = p₀ · ln(1+α) / τ
-
-— capability grows exponentially in WALL-CLOCK time at rate
-p₀·ln(1+α)/τ, corrected by the concentration deficit
-ln(1+α)·Δ. The Δ → 0, α → 0 shadow recovers the continuous
-dC/dT ≥ (p₀α/τ)·C: the audit's effective time-rate. -/
+/-- При `0 < α`, `0 < τ`, `0 < C 0`, пер-цикловом множителе
+`(1+α)^(s t)` и `p₀·T − Δ ≤ Σ (s t:ℝ)`:
+`C T ≥ C 0·exp((p₀·log(1+α)/τ)·(T·τ) − log(1+α)·Δ)`. -/
 theorem wallclock_rate_from_cone (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha tau p0 Delta : ℝ)
     (halpha : 0 < alpha) (htau : 0 < tau) (hC0 : 0 < C 0)
@@ -376,13 +309,10 @@ theorem wallclock_rate_from_cone (C : ℕ → ℝ) (s : ℕ → ℕ)
     _ ≥ C 0 * Real.exp ((p0 * L / tau) * ((T : ℝ) * tau) - L * Delta) :=
         mul_le_mul_of_nonneg_left hexp hC0.le
 
-/-- **The instantiation with R95's Hoeffding concentration**: the
-success-count floor Δ = concDelta T δ = √(2T·log(1/δ)) holds with
-probability ≥ 1−δ by `success_count_lower_p0` (R95, NOT reproved
-here — this theorem takes the concentrated floor as a deterministic
-hypothesis, the standard conditioning step on the good event). With
-it, the composed wall-clock rate law holds with the explicit √T
-fluctuation penalty ln(1+α)·√(2T·log(1/δ)) in the exponent. -/
+/-- При посылках `wallclock_rate_from_cone` с Δ :=
+`concDelta T δ` (концентрированный полу успеха — гипотеза;
+вероятностная гарантия — `success_count_lower_p0`, не здесь):
+`C T ≥ C 0·exp((p₀·log(1+α)/τ)·(T·τ) − log(1+α)·concDelta T δ)`. -/
 theorem wallclock_rate_from_cone_concentrated (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha tau p0 delta : ℝ)
     (halpha : 0 < alpha) (htau : 0 < tau)
@@ -398,14 +328,11 @@ theorem wallclock_rate_from_cone_concentrated (C : ℕ → ℝ) (s : ℕ → ℕ
     halpha htau hC0 hmul T hcount
 
 
-/-- **R116 (audit §17): the wall-clock rate with VARIABLE cycle
-time**. The `wallclock_rate_from_cone` form assumed a constant
-τ per cycle; for a growing model the cycle cost τ_t changes.
-The honest finite-horizon form bounds only the AVERAGE cycle
-time: if the total wall-clock spent is W_T = Σ τ_t with
-Σ τ_t ≤ T·τ̄, and the success count has the p₀-floor, then
-C_T ≥ C₀·exp((p₀·ln(1+α)/τ̄)·W_T − ln(1+α)·Δ) — exponential
-in ACTUAL wall-clock, with the same fluctuation penalty. -/
+/-- При `0 < α`, `0 < τ̄`, `0 ≤ p₀`, `0 < C 0`, пер-цикловом
+множителе `(1+α)^(s t)`, `T ≠ 0`, `Σ τ t ≤ T·τ̄` и
+`p₀·T − Δ ≤ Σ (s t:ℝ)`:
+`C T ≥ C 0·exp((p₀·log(1+α)/τ̄)·(Σ τ t) − log(1+α)·Δ)`
+(версия с переменным временем цикла). -/
 theorem wallclock_rate_avg_tau (C : ℕ → ℝ) (s : ℕ → ℕ) (tau : ℕ → ℝ)
     (alpha tauBar p0 Delta : ℝ)
     (halpha : 0 < alpha) (htauBar : 0 < tauBar) (hp0 : 0 ≤ p0)

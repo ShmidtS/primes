@@ -7,7 +7,7 @@ import Hagi.Foundations.StageCalculus
 set_option linter.style.header false
 
 /-!
-# R70: the quantization-to-energy bridge (audit bridge #4)
+# the quantization-to-energy bridge (audit bridge #4)
 
 The round-67 audit found the missing edge: MacroCycle's
 compress stage assumed an abstract dnorm ≤ 1/2 without

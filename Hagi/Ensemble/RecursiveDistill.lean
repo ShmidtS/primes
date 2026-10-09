@@ -15,7 +15,7 @@ The recursive-distillation program of the runtime plan (2026-10-05,
 mathematically for the loop to be worth running to step n:
 
 * **The telescoping bridge** (`distill_chain_telescoping`): the
-  single-cycle bridge `CE_q(θ) − CE_q(E) ≤ KL + M‖q−p_E‖₁` (R134
+  single-cycle bridge `CE_q(θ) − CE_q(E) ≤ KL + M‖q−p_E‖₁` (
   `distill_kl_bridge`) composes over generations by telescoping —
   the accumulated slack is ADDITIVE: after n cycles the distillate
   sits at most `Σ δ_k` above the FIRST ensemble.
@@ -32,7 +32,7 @@ mathematically for the loop to be worth running to step n:
 * **The leak gate** (`distill_leak_gate`): a cycle with
   `c ≤ δ` has nonpositive net — the chain cannot improve through
   it; the loop must STOP (runtime: the per-cycle η-gate on
-  the R134 distill efficiency, in efficiency, in nats).
+  the distill efficiency, in efficiency, in nats).
 
 * **Exhaustion of the disagreement field** (`harvest_budget`,
   `exhausted_when`): the disagreement D feeding growth decays
@@ -45,8 +45,8 @@ mathematically for the loop to be worth running to step n:
 All statements are conditional bookkeeping over ℝ-sequences with
 NAMED premises (hdist, hgrow, hnet, hdecay, hgain); no
 `h_emp_` premise hides inside. Sources: runtime plan §6b.1;
-single-cycle bridge R134 (2609.38666 / 2607.15467 / 2609.39436);
-geometric budget kernel R172 (`geom_sum_le_inv`).
+single-cycle bridge (2609.38666 / 2607.15467 / 2609.39436);
+geometric budget kernel (`geom_sum_le_inv`).
 -/
 
 namespace Hagi.Ensemble
@@ -59,13 +59,13 @@ variable {E S delta c : ℕ → ℝ}
 
 /-- **The telescoping bridge** (§6b.1: the `distill_kl_bridge`
 chain over generations). Cycle k: ensemble `E k` is distilled
-into student `S k` (slack `delta k` — the single-cycle R134
+into student `S k` (slack `delta k` — the single-cycle
 bridge `KL_k + M_k‖q−p_E‖₁`), and the next ensemble `E (k+1)`
 is grown FROM the distillate (no free relabeling gain). For
 every k ≤ n and k < n respectively:
 
-* `hdist k` : `S k ≤ E k + delta k`;
-* `hgrow k` : `E (k + 1) ≤ S k`.
+* `hdist k`: `S k ≤ E k + delta k`;
+* `hgrow k`: `E (k + 1) ≤ S k`.
 
 Then the distillate of generation n sits at most
 `Σ_{k≤n} delta k` above the INITIAL ensemble: the bridge slack
@@ -159,7 +159,7 @@ does not exceed the certified growth gain
 then the next distillate does not regress against the current
 one: `S (n+1) ≤ S n`. When the slack EXCEEDS the gain the
 guarantee is void — the chain may degrade, and the loop must
-STOP (runtime: the per-cycle η-gate on the R134 distill
+STOP (runtime: the per-cycle η-gate on the distill
 nats). -/
 theorem distill_leak_gate (n : ℕ)
     (hdist : S (n + 1) ≤ E (n + 1) + delta (n + 1))
@@ -223,7 +223,7 @@ theorem harvest_budget {rho gamma : ℝ} (n : ℕ)
 disagreement field `rho^n * D 0` falls below the per-cycle
 threshold `ε/γ` (with `γ > 0`), no future cycle can certify a
 gain of `ε` — the recursion is EXHAUSTED; the next meaningful
-move is a NEW CORPUS (fresh disagreement), not more cycles. -/
+move is a new CORPUS (fresh disagreement), not more cycles. -/
 theorem exhausted_when {rho gamma eps : ℝ} (n : ℕ)
     (hrho : 0 ≤ rho) (hrho1 : rho < 1) (hgamma : 0 < gamma)
     (heps : 0 < eps) (hD0 : 0 ≤ D 0)

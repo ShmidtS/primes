@@ -7,7 +7,7 @@ open scoped Matrix
 
 /-!
 # MergeMixture — merging preserves the mixture output under
-stable routing (plan §2 R228; source 2609.32821)
+stable routing (plan §2; source 2609.32821)
 
 The empirical finding (cosine 0.896–0.976 across 6 settings
 with bootstrap CI): merging MoE weights preserves the
@@ -36,7 +36,7 @@ variable {d m : ℕ} (W : Fin m → Matrix (Fin d) (Fin d) ℝ)
 /-- **Exact preservation under fixed routing**: the merged
 matrix Σ wᵢ • Wᵢ applied to x equals the mixture output
 Σ wᵢ • (Wᵢ x) exactly — merge commutes with the mixture;
-whatever the disagreement story (R214), the mixture OUTPUT
+whatever the disagreement story, the mixture OUTPUT
 is preserved by the merge itself. -/
 theorem merged_output_exact (w : Fin m → ℝ) (x : Fin d → ℝ) :
     (∑ i, w i • W i) *ᵥ x = ∑ i, w i • (W i *ᵥ x) := by

@@ -4,13 +4,10 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# R263 (audit §2.4): the canonical scalar HAGI potential
+# The canonical scalar HAGI potential
 
-One definition of Φ_HAGI = E + λR + ν·max(0, Q_target − Q)
-(audit: `hagiPotential` was defined twice with different
-signatures — `ModeState` and `Certificates`). Both callers
-delegate here; the state-level `ModeState.hagiPotential`
-projects a `GenState` onto these scalars.
+The single definition of `Φ_HAGI = E + λR + ν·max(0, Q_target − Q)`
+(`hagiPotential`); callers delegate here.
 -/
 
 open Real
@@ -23,9 +20,9 @@ penalty inert above target and active below. -/
 noncomputable def hagiPotential (E R nu qTarget q : ℝ) (lam : ℝ) : ℝ :=
   E + lam * R + nu * max 0 (qTarget - q)
 
-/-- β is a monotone functional of the potential: the penalty
-drop bound used by every caller (moved from Certificates so
-the canonical module carries the law, not just the def). -/
+/-- Monotonicity of the penalty term in `q`: if
+`q - epsQ ≤ q'` with `0 ≤ epsQ`, then
+`max 0 (qTarget - q') ≤ max 0 (qTarget - q) + epsQ`. -/
 lemma hagiPotential_penalty_drop (qTarget q q' epsQ : ℝ)
     (heps : 0 ≤ epsQ) (hdrop : q - epsQ ≤ q') :
     max 0 (qTarget - q') ≤ max 0 (qTarget - q) + epsQ := by

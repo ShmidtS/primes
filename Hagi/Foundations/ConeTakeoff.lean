@@ -9,24 +9,21 @@ set_option linter.style.header false
 /-!
 # Foundations.ConeTakeoff — канонический конус-takeoff
 
-Миграция-2026-10-05: ЕДИНАЯ лемма инвариантного конуса
-D_t >= k * C_t с горизонтом t < T (усечённые посылки), из
-которой ratio_takeoff / frontier_cone_invariant /
-cone_invariant_trunc / state_closed_band — частные случаи.
-Каноническая форма содержит горизонт T в САМОЙ лемме:
-капстоуны не могут вернуть глобальную квантификацию по t.
+Канонические формы с горизонтом `T` в самой лемме:
 
-Контракт: шаг C' = C + gamma*D, gate gamma*k <= производящая
-часть динамики, порог бета покрывает остаток.
+* `cone_invariant_horizon` — инвариантность конуса
+  `k * C t ≤ D t` на `0..T` при усечённых посылках.
+* `takeoff_from_cone` — из конуса и шага
+  `C (t+1) = C t + gamma * D t` следует
+  `C 0 * (1 + gamma * k) ^ T ≤ C T`.
 -/
 
 open Finset Real
 
 namespace Hagi.Foundations
 
-/-- **Канонический конус (горизонтная форма)**: при
-посылках только при t < T конус k*C_t <= D_t инвариантен на
-0..T. Это cone-ядро всех takeoff-вариантов. -/
+/-- Если посылки выполнены при `t < T` и `k * C 0 ≤ D 0`,
+то конус `k * C t ≤ D t` инвариантен на всём `0..T`. -/
 theorem cone_invariant_horizon (C D : ℕ → ℝ)
     (gamma rho beta k : ℝ) (T : ℕ)
     (hCpos : ∀ t ∈ Finset.range (T + 1), 0 < C t)
@@ -65,9 +62,9 @@ theorem cone_invariant_horizon (C D : ℕ → ℝ)
   intro t ht
   exact hmain t (Nat.lt_succ_iff.mp (Finset.mem_range.mp ht))
 
-/-- **Канонический takeoff из конуса (горизонтная форма)**:
-конус + шаг C' = C + gamma*D + gate gamma*k <= gamma ⟹
-C T >= C 0 * (1 + gamma * k)^T. -/
+/-- При конусе `k * C t ≤ D t` на `0..T` и шаге
+`C (t + 1) = C t + gamma * D t` выполнено
+`C 0 * (1 + gamma * k) ^ T ≤ C T`. -/
 theorem takeoff_from_cone (C D : ℕ → ℝ)
     (gamma k : ℝ) (T : ℕ)
     (hgk : 0 ≤ gamma * k) (hg : 0 ≤ gamma) (hk : 0 ≤ k)

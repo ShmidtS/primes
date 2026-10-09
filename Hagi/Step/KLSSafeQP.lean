@@ -6,31 +6,26 @@ import Hagi.Probability.KLSBridge
 set_option linter.style.header false
 
 /-!
-# KLSSafeQP: the composed certification (R180)
+# KLSSafeQP — композиция KLS/Poincaré-шума с SafeQP-запасом
 
-The composition bridge of R179: the KLS/Poincaré noise chain
-(Var[⟪a, ĝ_B⟫] ≤ C·L²·‖a‖²/B) feeds the SafeQP robust margin
-(`robust_feasibility`: a guard set one noise-bound tighter
-absorbs the perturbation). Theorem `klsSafeQP_certified`: with
-the true margin at least ε + t and the batch second moment at
-most V = C·L²·‖a‖²/B, the NOISY inner-product check
-certifies ε on an event of q-probability at least 1 − V/t².
-
-geometry of data → variance → batch noise → SafeQP margin →
-CERTIFIED STEP with explicit failure probability.
+Цепочка: KLS/Poincaré ограничивает дисперсию проекции
+минибатча `V = C·L²·‖a‖²/B`; Chebyshev даёт событие
+q-вероятности ≥ 1 − V/t². Теорема `klsSafeQP_certified`:
+при истинном запасе `ε + |gd|·t` и той же оценке V
+зашумлённая проверка сертифицирует ε на событии
+q-массы ≥ 1 − V/t².
 -/
 
 namespace Hagi
 
 open Finset
 
-/-- **The composed KLS→SafeQP certification**: if the true
-inner product exceeds the guard ε + t, and the KLS chain
-bounds the centered batch projection's second moment by V
-(e.g. V = C·L²·‖a‖²/B from `klsBatchNoise`), then the noisy
-check certifies ε except on an event of q-mass ≤ V/t². The
-SafeQP prescription (margins ε + m with m = t) now has a
-theoretical noise budget instead of a measured constant. -/
+/-- При статистических посылках KLS (Poincaré,
+чувствительность, некоррелированность батча), точной
+девиации `estInner − trueInner` (hdev), `0 < t` и запасе
+`ε + |gd|·t ≤ gd·trueInner x` для всех x —
+множество `{x | ε ≤ gd·estInner x}` имеет q-массу
+≥ 1 − (C·L²·‖a‖²/B)/t². -/
 theorem klsSafeQP_certified {n : ℕ} {Ω : Type*} [Fintype Ω] [Nonempty Ω]
     (q : Ω → ℝ) (hq0 : ∀ x, 0 ≤ q x) (hq1 : ∑ x, q x = 1)
     (C L : ℝ) (hC : 0 ≤ C)

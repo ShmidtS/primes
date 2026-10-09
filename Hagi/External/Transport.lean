@@ -18,12 +18,12 @@ is approximated within (3/2)ε(‖q‖²+‖k‖²). Sharper formal
 guarantee than the TV-2δ bound for the compressed cache.
 
 **2. `schedule_descent` + `schedule_conflict_step` (the skill-it
-synthesis — from HazyResearch/skill-it, the ONLY external
+synthesis — from HazyResearch/skill-it, the only external
 competitor to our w_t-schedule niche)**: the mixture SCHEDULE as
 a program: the skill-loss ODE dL/dt = −Σ_j w_j g_ij discretized
 — with nonneg cross-terms the descent is monotone; our
 conflict-constraint ⟨g_i, d⟩ ≥ 0 lifts to the schedule: a
-conflict-free step is descent for EVERY corpus simultaneously.
+conflict-free step is descent for every corpus simultaneously.
 
 **3. `orthogonal_preserves_grad_dist` (from MaeChd/MUON-MVR —
 variance under orthogonalization)**: an exact orthogonalizer is
@@ -52,7 +52,7 @@ step 0 persists to every step t (equal-slope regime).
 2. The schedule program: the corpus mixture w_t is a SCHEDULE,
    not a vector — each step's mixture must satisfy the
    conflict-constraint (the κ×cos scan of the step's gradients);
-   a conflict-free step is certified descent for EVERY corpus;
+   a conflict-free step is certified descent for every corpus;
    dominated steps get the ConFIG construction (Wave2) or the
    mixture re-weighted until conflict-free.
 3. The mergeability telemetry is orthogonalization-invariant:
@@ -60,7 +60,7 @@ step 0 persists to every step t (equal-slope regime).
    orthogonalize before measuring mergeability.
 4. The merge-vs-scratch benchmark: the head start measured at
    step 0 (the Jensen init advantage) is the prediction for
-   EVERY equal-slope step — a flat gap in time is the
+   every equal-slope step — a flat gap in time is the
    confirmation signature; a shrinking gap means the scratch
    rate is faster (the critical-ratio regime).
 -/
@@ -87,7 +87,7 @@ theorem schedule_descent (L c w r : ℝ)
 
 /-- **The conflict-free schedule step** (our constraint lifted
 to the schedule): a step direction d with nonnegative inner
-product against EVERY corpus gradient is a simultaneous descent
+product against every corpus gradient is a simultaneous descent
 for every corpus's loss — the schedule's conflict-constraint.
 With conflict ⟨g_i, d⟩ ≥ 0 and positive rate, no corpus is
 sacrificed by the step. -/
@@ -165,7 +165,7 @@ end Orthogonal
 
 section HeadStart
 
--- NOT A THEOREM (round-41 audit): the ring-trivial equal-rate
+-- not A theorem (round-41 audit): the ring-trivial equal-rate
 -- gap identity. REPLACED by the honest PL-contraction form
 -- `Hagi.Plan42.head_start_timeshift`: under geometric decay
 -- L−L* = Δ·c^t, the merge head start is a TIME SHIFT

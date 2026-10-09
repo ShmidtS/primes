@@ -7,15 +7,16 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R140: RoPE - rotary kernel depends only on relative position
+# RoPE: rotary kernel depends only on relative position
 
-Phase B (R133 of the plan). Sources: 2607.18759
-(offset-equivariance + position-pinning counterexample),
-2609.30576 (T-RoPE), 2609.33804 (group-representation limit),
-2609.39604 (1D-RoPE loses 2D neighborhood).
-
-Main theorem: rope_score_delta - rotary score
-depends ONLY on the position difference. -/
+* `rope_score_delta` — for `m ≤ n`, the rotary score
+  `pairInner (rotVec θ m x) (rotVec θ n y)` equals
+  `pairInner x (rotVec θ (n - m) y)`: it depends only on the
+  position difference. (source: 2607.18759)
+* `rope_translation_shift` — shifting both positions by `k`
+  leaves the rotary score unchanged.
+* `rot_norm` — the rotation preserves the pairwise-block inner
+  product. -/
 
 open Finset
 
@@ -42,9 +43,10 @@ theorem rot_norm (θ : Fin d → ℝ) (m : ℕ) (x : Fin d → ℝ × ℝ) :
   have h := Real.cos_sq_add_sin_sq (θ j * m)
   nlinarith [h]
 
-/-- MAIN (offset-equivariance, 2607.18759): the rotary score
-⟨rotVec θ m x, rotVec θ n y⟩ equals ⟨x, rotVec θ (n-m) y⟩ --
-it depends ONLY on the position difference n - m. -/
+/-- For `m ≤ n`, the rotary score
+`pairInner (rotVec θ m x) (rotVec θ n y)` equals
+`pairInner x (rotVec θ (n - m) y)`: it depends only on the
+position difference. -/
 theorem rope_score_delta (θ : Fin d → ℝ) (m n : ℕ) (hmn : m ≤ n)
     (x y : Fin d → ℝ × ℝ) :
     pairInner (rotVec θ m x) (rotVec θ n y)

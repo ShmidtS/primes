@@ -4,40 +4,20 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# LatentAlign — the missing layer between factorization and
-root/contrast merge (R242; source: LittleBit / LittleBit-2,
-arXiv:2506.13771, PMLR v306 — latent geometry misalignment)
+# LatentAlign — latent misalignment between factorized experts
 
-Two independently trained experts may carry FUNCTIONALLY
-EQUIVALENT low-rank factorizations W = U Vᵀ whose latent
-coordinates do not correspond: the second expert's basis can
-be any orthogonal transform (rotation/sign flip) of the
-first's. Averaging latents across experts then annihilates
-columns — the latent-space face of `MergeCancellation` —
-even though the expert MATRICES are equal or nearly equal.
+Two independently trained experts may carry functionally
+equivalent factorizations `W = U * Vᵀ` whose latent
+coordinates differ by an orthogonal transform. (source:
+arXiv:2506.13771)
 
-LittleBit-2 fixes this with Internal Latent Rotation +
-Joint-ITQ (a geometric preconditioner) BEFORE low-bit
-quantization. For HAGI the merge pipeline becomes:
-
-  factorize → latent-align → root/contrast → spectral
-  compress → F3 merge
-
-This module formalizes the three alignment facts that make
-that pipeline sound:
-
-* `rotated_factors_same_matrix` — INVARIANCE: the map
-  (U, V) ↦ (U Q, V Q) over an orthogonal Q preserves W
-  exactly — alignment costs nothing in function;
-* `sign_flip_functional_equiv` — the canonical
-  misalignment: per-column sign flips S (S² = 1) keep W
-  identical while making the latents maximally opposed;
-* `naive_latent_merge_kills_flipped` — THE CANCELLATION:
-  averaging the latents of two functionally-equivalent
-  experts zeroes exactly the flipped columns — the
-  0.5·(U + U S) operator keeps only the unflipped block,
-  so E_dev measured on raw latents overestimates the
-  mergeable signal by the flipped share.
+* `rotated_factors_same_matrix` — the map `(U, V) ↦ (U * Q,
+  V * Q)` with orthogonal `Q` preserves the product exactly.
+* `sign_flip_functional_equiv` — per-column sign flips keep
+  `U * Vᵀ` identical while flipping the latents.
+* `naive_latent_merge_kills_flipped` — averaging the latents
+  of two functionally-equivalent experts zeroes exactly the
+  flipped columns.
 -/
 
 open scoped BigOperators
@@ -88,19 +68,17 @@ theorem signMatrix_mul_self (s : Fin r → ℝ)
     rcases this with h | h <;> simp [h]
   · simp [hij]
 
-/-- **Functional equivalence under maximal latent
-misalignment**: flipping the sign of latent column j in BOTH
-factors leaves the matrix W = U Vᵀ untouched. -/
+/-- Flipping the sign of latent columns in both factors
+leaves the product `U * Vᵀ` untouched. -/
 theorem sign_flip_functional_equiv
     (U V : Matrix (Fin d) (Fin r) ℝ) (s : Fin r → ℝ)
     (hs : ∀ i, s i = 1 ∨ s i = -1) :
     (U * signMatrix s hs) * (V * signMatrix s hs)ᵀ = U * Vᵀ := by
   rw [rotated_factors_same_matrix _ _ _ (signMatrix_orthogonal s hs)]
 
-/-- **The latent cancellation**: averaging the latents of two
-functionally-equivalent experts zeroes exactly the flipped
-columns — the naive latent merge keeps only the unflipped
-block and destroys the flipped disagreement outright. -/
+/-- Averaging `U` with its sign-flipped copy zeroes exactly
+the flipped columns: the mean maps `Pi.single j 1` to `0` for
+every `j` with `s j = -1`. -/
 theorem naive_latent_merge_kills_flipped
     (U : Matrix (Fin d) (Fin r) ℝ) (s : Fin r → ℝ)
     (hs : ∀ i, s i = 1 ∨ s i = -1) (j : Fin r) (hj : s j = -1) :

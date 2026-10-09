@@ -4,29 +4,19 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.SelfDevelopment
 
 /-!
-# AdaptiveQuery — averaging shrinks the controller's selection penalty
+# AdaptiveQuery — averaged selection radius
 
-The openai/math 139 core (subpolynomial queries suffice:
-ADAPTIVE multi-query estimation beats single evaluation),
-specialized to the HAGI controller vocabulary: the selection
-penalty of `certified_gain_select` scales LINEARLY with the
-estimation radius ε, and the K-draw averaging radius shrinks
-as ε/√K (the Dust population law dustVarianceDecay). Hence
-spending K queries per candidate buys a √K reduction of the
-selection threshold — the adaptive-search brick: the
-controller should not trust single measurements.
+Given a per-query error bound `e`, `avgRadius e K = e / √K` is the
+radius used when K queries per candidate are averaged.
 
 Main results:
 
-* `avgRadius`: the averaged-estimator radius e/√K — the
-  query-allocation function (decreasing in K);
-* `avgRadius_shrinks`: K ≥ 1 queries never increase the
-  radius, and the radius is the single-draw error exactly at
-  K = 1;
-* `certified_gain_select_avg`: `certified_gain_select`
-  instantiated at the averaged radius: a candidate pool
-  served with K queries per candidate admits certified
-  selection at threshold 3e/√K — the 139-style saving.
+* `avgRadius_shrinks`: if `0 ≤ e` and `0 < K ≤ L`, then
+  `avgRadius e L ≤ avgRadius e K` and `avgRadius e 1 = e`;
+* `certified_gain_select_avg`: if every estimate deviates from the
+  true gain by at most `avgRadius e K` and some safe candidate `a₀`
+  has gain above `3 * avgRadius e K`, then some safe candidate has
+  positive gain within `2 * avgRadius e K` of `g a₀`.
 -/
 
 namespace Hagi.Growth
@@ -36,9 +26,8 @@ open Finset
 /-- The averaged-estimator radius: e/√K for K queries. -/
 noncomputable def avgRadius (e : ℝ) (K : ℕ) : ℝ := e / Real.sqrt K
 
-/-- The radius function is 1-anchored (K = 1 recovers the
-single-draw error) and nonincreasing in K over the positive
-integers. -/
+/-- The radius function is nonincreasing in `K` over positive
+integers and `avgRadius e 1 = e` (given `0 ≤ e`). -/
 theorem avgRadius_shrinks (e : ℝ) (he : 0 ≤ e) (K L : ℕ)
     (hK : 0 < K) (hKL : K ≤ L) :
     avgRadius e L ≤ avgRadius e K ∧
@@ -51,12 +40,11 @@ theorem avgRadius_shrinks (e : ℝ) (he : 0 ≤ e) (K L : ℕ)
   · unfold avgRadius
     norm_num
 
-/-- **Averaged certified selection**: with K queries per
-candidate the averaged measurements deviate by at most
-e/√K (premise — the Dust population law), so the controller
-selects a strictly positive TRUE gain whenever some safe
-candidate has g ≥ 3e/√K: the selection threshold shrinks by
-√K against the single-query controller. -/
+/-- Averaged certified selection: assuming every estimate
+`Ghat a` deviates from `g a` by at most `avgRadius e K`, if the
+safe candidate `a₀` has `3 * avgRadius e K < g a₀`, then some
+safe candidate `a'` satisfies `0 < g a'` and
+`g a₀ - 2 * avgRadius e K ≤ g a'`. -/
 theorem certified_gain_select_avg {A : Type} [Fintype A] [Nonempty A]
     (g Ghat : A → ℝ) (safe : A → Prop) [DecidablePred safe]
     (e : ℝ) (he : 0 ≤ e) (K : ℕ) (hK : 0 < K)

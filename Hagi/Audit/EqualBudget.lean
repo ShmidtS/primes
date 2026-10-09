@@ -20,7 +20,7 @@ joint.
 - **T3a `aitken_exact`**: for the geometric trajectory
   L_i = L* + d·c^i, the Aitken estimates
   L* = (L₀L₂ − L₁²)/(L₀ + L₂ − 2L₁) and c = (L₂−L₁)/(L₁−L₀)
-  are EXACT — L* and c recoverable from three equidistant
+  are exact — L* and c recoverable from three equidistant
   points without knowing L*.
 - **T3b `aitken_consistency`**: on a true geometric sequence
   the window estimates agree at every shift — a measured
@@ -29,7 +29,7 @@ joint.
 - **T3c `budget_gap_sign_const`**: under the two-curve model
   L_m(C) − L* = d_m·exp(u_m·(C−C₀)) and L_s(C) − L* =
   d_s·exp(u_s·C) (u's the log-decay rates), the sign of
-  L_m − L_s equals the sign of the EXPLICIT affine function
+  L_m − L_s equals the sign of the explicit affine function
   (u_m − u_s)·C + (log(d_m/d_s) − u_m·C₀) — single crossover
   when the slopes differ, constant sign when equal.
 - **T3d `headstart_pays_iff`**: at equal rates (the
@@ -82,7 +82,7 @@ theorem aitken_exact (Lstar d c L0 L1 L2 : ℝ)
 
 /-- **T3b — the Aitken window consistency**: on a true
 geometric trajectory the c-estimate
-(L_{n+2}−L_{n+1})/(L_{n+1}−L_n) equals c at EVERY window —
+(L_{n+2}−L_{n+1})/(L_{n+1}−L_n) equals c at every window —
 measured disagreement falsifies the geometric model (the WSD
 schedule does by design; this test is mandatory before
 applying T3c/T3d). -/
@@ -134,7 +134,7 @@ theorem budget_gap_sign_const (dM dS u C C0 : ℝ)
   rw [hsplit]
   exact mul_lt_mul_iff_of_pos_right hpos
 
--- T3d (the head-start break-even iff) is NOT proved this
+-- T3d (the head-start break-even iff) is not proved this
 -- round: the two-sided sign case analysis (k = log(dS/dM)/
 -- log c with log c < 0, the dM-vs-dS case split) exceeded
 -- the attempt budget. Documented form (see the module
@@ -198,12 +198,12 @@ theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
       linarith
     have h2 := (key.mp h1)
     -- h2: (C0/κ)·L < B  ⟹ C0 < κ·B/L
-    -- goal: C0 < (B/L)·κ ; have h2: (C0/κ)·L < B ; L>0, κ>0
+    -- goal: C0 < (B/L)·κ; have h2: (C0/κ)·L < B; L>0, κ>0
     have hrew : Real.log (dS/dM) / Real.log (1/c) * kappa
         = Real.log (dS/dM) * kappa / Real.log (1/c) := by
       rw [div_mul_eq_mul_div]
     rw [hrew, lt_div_iff₀ hln1c]
-    -- now: C0*L < B*κ ; from h2 : (C0/κ)·L < B multiply by κ
+    -- now: C0*L < B*κ; from h2: (C0/κ)·L < B multiply by κ
     have hkey : C0 / kappa * Real.log (1/c) * kappa = C0 * Real.log (1/c) := by
       rw [div_mul_eq_mul_div]
       rw [show C0 * Real.log (1/c) / kappa * kappa = C0 * Real.log (1/c) from by

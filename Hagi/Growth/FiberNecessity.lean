@@ -4,36 +4,26 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Information.MemoryCapacity
 
 /-!
-# FiberNecessity — the parameter floor of separability
+# FiberNecessity — parameter floor of separability
 
-The LOWER side of the minimal-sufficient-size program,
-closed for the configuration architecture: pairwise
-2ε-separated task families cannot share configurations —
-separability is paid in FIBERS.
-
-* `configs_injective_on_separated`: the config router is
-  INJECTIVE on a separated family served ε-well (two
-  separated tasks cannot share a configuration: the shared
-  serve output would be good for both, violating the 2ε
-  separation);
-* `used_configs_lower_bound`: the used-config count is at
-  least the task count (the R200 counting floor, config
-  form);
-* `fiber_params_floor`: with rank ≥ r_min per used
-  configuration over a d-dim cortex, the total fiber bill
-  ≥ K·r_min·d — separability is paid linearly in the number
-  of separated task families: the necessity floor of the
-  switchable architecture.
+* `configs_injective_on_separated`: on a pairwise
+  2ε-separated family where every task is served ε-well by its
+  routed configuration, the config map is injective on the family
+  (two tasks sharing a configuration is contradictory);
+* `used_configs_lower_bound`: the number of used configurations is
+  at least the task count;
+* `fiber_params_floor`: if every used configuration has rank at
+  least `rmin` over a `d`-dim cortex, the total fiber parameter sum
+  is at least `tasks.card * rmin * d`.
 -/
 
 namespace Hagi
 
 open Finset
 
-/-- **Separation forbids sharing**: on a pairwise separated
-family where every task is served ε-well by its routed
-configuration, the config map is injective — two separated
-tasks cannot land on the same configuration. -/
+/-- On a pairwise 2ε-separated family where every task is
+served ε-well by its routed configuration, two distinct
+tasks in the family cannot have equal `cfg` values. -/
 theorem configs_injective_on_separated {A Q : Type}
     (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
     (hsep : Hagi.Information.SepSeparated eps good tasks)
@@ -47,8 +37,8 @@ theorem configs_injective_on_separated {A Q : Type}
   rw [hcfg] at hbad
   exact hbad (hcover y hy)
 
-/-- **Used-config count floor**: the used configurations
-number at least the separated task count. -/
+/-- Under the hypotheses of `configs_injective_on_separated`,
+`tasks.card ≤ (Finset.image cfg tasks).card`. -/
 theorem used_configs_lower_bound {A Q : Type} [DecidableEq Q]
     (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
     (hsep : Hagi.Information.SepSeparated eps good tasks)
@@ -64,11 +54,9 @@ theorem used_configs_lower_bound {A Q : Type} [DecidableEq Q]
       serve hcover hx' hy' hne hxy
   exact (Finset.card_image_of_injOn hinj).ge
 
-/-- **The fiber parameter floor**: K pairwise separated
-tasks, every used configuration carrying a fiber of rank
-≥ rmin over a d-dim cortex, force the total fiber parameter
-bill ≥ K·rmin·d — separability is paid in fibers, linearly
-in the number of separated task families. -/
+/-- Under the hypotheses of `configs_injective_on_separated`,
+if every used configuration has `rmin ≤ rank q`, then
+`tasks.card * rmin * d ≤ ∑ q, rank q * d`. -/
 theorem fiber_params_floor {A Q : Type} [DecidableEq Q]
     (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
     (hsep : Hagi.Information.SepSeparated eps good tasks)

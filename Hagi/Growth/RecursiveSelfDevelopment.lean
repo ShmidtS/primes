@@ -7,46 +7,32 @@ import Hagi.Probability.AdaptiveSuccess
 set_option linter.style.header false
 
 /-!
-# P5: RecursiveSelfDevelopment — обновление opportunity + замкнутый takeoff
+# RecursiveSelfDevelopment — обновление opportunity и замкнутый takeoff
 
-Аудит R122 (§22, §26-P5, §21): ключевая недостающая стрелка
-саморазвития — не «найти upgrade» (R118), а
+* `opportunity_renewal`: при `ρ·D + β·C − ξ ≤ D'` и
+  `(1−ρ)·D + δ_O ≤ β·C − ξ` следует `D + δ_O ≤ D'`;
+* `recursive_self_development`: то же плюс `C ≤ C'`, `0 ≤ D`,
+  `0 < δ_O` — влечёт `D + δ_O ≤ D' ∧ 0 < D'`;
+* `multiplicative_growth`: если
+  `C (t+1) ≥ C t·exp(α·S t − ε t)` при всех t, то
+  `C 0·exp(α·ΣS − Σε) ≤ C T`;
+* `closed_loop_takeoff`: композиция с
+  `adaptive_success_concentrated` — при условных success-полах
+  ≥ p₀ с вероятностью ≥ 1−δ выполнено
+  `C 0·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σε) ≤ C n`.
 
-  Success_t ⇒ Opportunity_{t+1} ≥ Opportunity_t + δ_O
-
-— успешный upgrade РАСШИРЯЕТ пространство будущих улучшений.
-Без этого система — repeated fine-tuning, не recursive growth.
-
-**Теоремы:**
-
-* `opportunity_renewal` — из динамики frontier
-  (D' ≥ ρ·D + β·C − ξ) при ρ ≤ 1: D' ≥ D + δ_O, где
-  δ_O ≤ β·C − ξ — успешный шаг (capability не убывает)
-  наращивает opportunity.
-* `multiplicative_growth` — детерминированная аккумуляция:
-  C_{t+1} ≥ C_t·exp(α·S_t − ε_t) ⇒
-  C_T ≥ C₀·exp(α·ΣS − Σε) (индукция).
-* `closed_loop_takeoff` — §21 аудита: композиция с
-  `adaptive_success_concentrated` (R121): при условных
-  success-полах ≥ p₀ выполнено
-  P[C_T ≥ C₀·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σε)] ≥ 1−δ.
-
-**Честные границы**: frontier-динамика — измеряемая посылка
-(R117 сертифицирует её по разногласию экспертов); стрелка
-«runtime ⇒ success» — P0-1/P3, открыто.
+Frontier-динамика и стрелка «runtime ⇒ success» — посылки,
+здесь не выводятся.
 -/
 
 open Finset Real
 
 namespace Hagi
 
-/-! ## Обновление opportunity (P5) -/
+/-! ## Обновление opportunity -/
 
-/-- **P5-стрелка**: при frontier-динамике D' ≥ ρ·D + β·C − ξ
-и достаточном производстве
-β·C − ξ ≥ (1−ρ)·D + δ_O успешный шаг наращивает opportunity:
-D' ≥ D + δ_O. Член (1−ρ)·D — цена декея старого frontier;
-δ_O — ЧИСТЫЙ прирост возможности улучшений. -/
+/-- Если `ρ·D + β·C − ξ ≤ D'` и
+`(1−ρ)·D + δ_O ≤ β·C − ξ`, то `D + δ_O ≤ D'`. -/
 theorem opportunity_renewal (D D' C : ℝ) (rho beta xi deltaO : ℝ)
     (hdyn : rho * D + beta * C - xi ≤ D')
     (hfloor : (1 - rho) * D + deltaO ≤ beta * C - xi) :
@@ -55,11 +41,8 @@ theorem opportunity_renewal (D D' C : ℝ) (rho beta xi deltaO : ℝ)
     ring
   linarith [hdyn, hfloor, hsplit]
 
-/-- **Recursive self-development (P5)**: успешный шаг
-(capability растёт: C ≤ C', производство β·C − ξ измерено по
-исходному C) при положительном чистом производстве
-δ_O > 0 наращивает opportunity: D + δ_O ≤ D' — формальная
-стрелка «success ⇒ renewal» (audit §22). -/
+/-- При посылках `opportunity_renewal`, а также `C ≤ C'`,
+`0 ≤ D` и `0 < δ_O` выполнено `D + δ_O ≤ D' ∧ 0 < D'`. -/
 theorem recursive_self_development (D D' C C' : ℝ)
     (rho beta xi deltaO : ℝ)
     (hdyn : rho * D + beta * C - xi ≤ D')
@@ -75,9 +58,8 @@ theorem recursive_self_development (D D' C C' : ℝ)
 
 /-! ## Мультипликативная аккумуляция -/
 
-/-- Аккумуляция мультипликативного роста: если каждый цикл даёт
-C_{t+1} ≥ C_t·exp(α·S_t − ε_t) (S_t — уровень успеха [0,1],
-ε_t — утечка), то C_T ≥ C₀·exp(α·ΣS − Σε). -/
+/-- Если `C (t+1) ≥ C t·exp(α·S t − ε t)` при всех t, то
+`C 0·exp(α·ΣS − Σε) ≤ C T`. -/
 theorem multiplicative_growth (C : ℕ → ℝ) (S eps : ℕ → ℝ)
     (alpha : ℝ)
     (hstep : ∀ t, C (t + 1) ≥ C t * Real.exp (alpha * S t - eps t))
@@ -114,11 +96,12 @@ theorem multiplicative_growth (C : ℕ → ℝ) (S eps : ℕ → ℝ)
             mul_le_mul_of_nonneg_right ih (by positivity)
         _ ≤ C (T + 1) := h1
 
-/-! ## Замкнутый takeoff (§21 аудита) -/
+/-! ## Замкнутый takeoff -/
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
-/-- Реализованный уровень успеха цикла t (0 за горизонтом n). -/
+/-- Реализованный уровень успеха цикла t
+(0 за горизонтом n). -/
 noncomputable def realizedSuccess {n : ℕ} (Y : Fin n → V → ℝ)
     (omega : Fin n → V) (t : ℕ) : ℝ :=
   if h : t < n then Y ⟨t, h⟩ (omega ⟨t, h⟩) else 0
@@ -133,14 +116,11 @@ theorem sum_realized {n : ℕ} (Y : Fin n → V → ℝ) (omega : Fin n → V) :
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [dif_pos (Fin.isLt i)]
 
-/-- **Closed-loop takeoff (audit §21)**: композиция
-мультипликативного роста (по реализованным уровням успеха
-`realizedSuccess Y ω t`) и адаптивных success-полов (R121):
-при per-cycle условных полах ≥ p₀ и законе роста
-C_{t+1} ≥ C_t·exp(α·S_t − ε_t) (для всех t; за горизонтом
-константное продолжение C делает это тривиальным) с
-вероятностью ≥ 1−δ: если success-floor держится, то
-C_n ≥ C₀·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σ_{t<n} ε_t). -/
+/-- При per-cycle условных полах `SuccessFloor p Y p0`,
+законе роста `C (t+1) ≥ C t·exp(α·realizedSuccess Y ω t − ε t)`
+и `0 < δ < 1`: с вероятностью ≥ 1−δ из события
+`n·p₀ − √(n log(1/δ)/2) ≤ Σ Y i (ω i)` следует
+`C 0·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σ_{t<n} ε t) ≤ C n`. -/
 theorem closed_loop_takeoff {n : ℕ} (p : Fin n → V → ℝ)
     (hp : IsProbSys p)
     (Y : Fin n → V → ℝ) (hY : ∀ i v, 0 ≤ Y i v ∧ Y i v ≤ 1)
@@ -181,7 +161,7 @@ theorem closed_loop_takeoff {n : ℕ} (p : Fin n → V → ℝ)
         (add_le_add
           (mul_le_mul_of_nonneg_left hfl halpha) (le_refl _))
     exact le_trans hmono hacc
-  -- вероятностный перенос (R121 + монотонность)
+  -- вероятностный перенос + монотонность
   have hconc := adaptive_success_concentrated p hp Y hY p0 hfloor
     hn delta hdelta hdelta1
   have hmono : prodPq p (fun omega =>

@@ -5,14 +5,14 @@ import Hagi.Probability.PmfMean
 
 /-!
 # MarkovFreedman — the full discrete time-inhomogeneous
-Freedman inequality (R232 port, closes the open Freedman
+Freedman inequality ( port, closes the open Freedman
 forms of plan section 1.2)
 
 Ported verbatim (proofs unchanged) from openai/math,
 OAI.Combinatorics.TriangleRemoval.Probability.MarkovLaw
 (the E:/math audit, Fam 188). On a finite-state
-time-inhomogeneous Markov chain (initial : PMF α, kernels
-K : ℕ → α → PMF α) with a process X, a predictable variance
+time-inhomogeneous Markov chain (initial: PMF α, kernels
+K: ℕ → α → PMF α) with a process X, a predictable variance
 counter V and uniform step bound c:
 
 * `pmfMean_exp_le` — the compensated MGF bound (the

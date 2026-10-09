@@ -8,39 +8,21 @@ set_option linter.style.header false
 /-!
 # The real 6x6 lift of the F3 transform: the interleaving isometry
 
-The production tree (`merge.py`, `_f3_real_column_matrix_`,
-branch_major_pair_interleaved_) applies the complex F₃ transform
-through a real 6×6 matrix R on (re, im)-interleaved coordinates:
-each complex coordinate `z = x + i·y` becomes the real pair
-`(x, y)`, and R realizes the same change of basis as the complex
-`F₃` of `Hagi.Core/DFT3` on the corresponding (ZMod 3) rows.
+The complex F₃ transform of `Hagi.Core.DFT3` transported to real
+(re, im)-interleaved coordinates: `interleave z = ![z.re, z.im]`,
+lifted branch-major to `interleave3 : (Fin 3 → ℂ) → (Fin 3 × Fin 2 → ℝ)`.
 
-This module closes the formalization gap: the digest tests pin the
-*behavior* of R, but the equivalence to the formal object needs
-the conjugating isometry. What is proven here:
+* `interleave_norm` — the lift is an isometry: the real inner
+  product of the interleaved images equals `∑ a, ‖z a‖ ^ 2`.
+* `reCharMat` — the canonical 6×6 real character matrix built
+  from `chi3`, with the conjugation identity `interleave_char_mul`:
+  the interleaved image of the character multiplication equals
+  `reCharMat *ᵥ interleave3 z`; `reUnitMat` is its scaling by
+  `1 / Real.sqrt 3`.
+* `reBlock_mul_transpose` — block algebra
+  `reBlock c * (reBlock d)ᵀ = reBlock (c * star d)`.
 
-* `interleave` — the canonical injection ℂ → ℝ², `z ↦ (z.re, z.im)`,
-  and its coordinatewise lift ℂ³ → ℝ⁶ (branch-major,
-  pair-interleaved, exactly the production layout).
-* `interleave_norm` — the injection is an isometry for the real
-  inner product: `‖φ(z)‖ = ‖z‖` (the complex modulus), so
-  unitarity of a real matrix R transported by φ is equivalent to
-  unitarity of the conjugated complex matrix.
-* reInterleave — the canonical 6×6 real matrix built from the
-  character values `chi3` (the same entries as
-  `_f3_real_column_matrix_`: s = 1/√3 blocks, ±b·s with
-  b = √3/2), and the conjugation identity `φ (chi3 a • z) =
-  reInterleave a • φ z` — the real matrix realizes the complex
-  character action on every branch.
-
-**Prescription for the code.** The digest-pinned R is the *right*
-object: it is the transported character action, its unitarity
-follows from `DFT3.unitary` (charMat) through the isometry, and the
-staged row-action (per-level application via reshape) is the
-Kronecker flattening of `F₃^k` in the interleaved order — the
-formal side now certifies what the digests pin. No code change;
-this closes the audit item "digest tests pin behavior, not
-equivalence".
+The orthogonality of `reUnitMat` is not yet proven here.
 -/
 
 open scoped Matrix
@@ -56,8 +38,7 @@ def interleave (z : ℂ) : Fin 2 → ℝ := ![z.re, z.im]
 
 /-- The branch-major, pair-interleaved lift of a complex 3-vector
 to ℝ⁶: coordinate `(a, p)` is `p = 0 → re`, `p = 1 → im` of branch
-`a`. This is the production layout branch_major_pair_interleaved_
-of `_f3_real_column_matrix_`. -/
+`a`. -/
 def interleave3 (z : Fin 3 → ℂ) : Fin 3 × Fin 2 → ℝ :=
   fun ab => interleave (z ab.1) ab.2
 
@@ -97,9 +78,8 @@ noncomputable def reCharMat : Matrix (Fin 3 × Fin 2) (Fin 3 × Fin 2) ℝ :=
   fun ab cd =>
     reBlock (chi3 (-(branchZ ab.1 * branchZ cd.1))) ab.2 cd.2
 
-/-- The real 6×6 *unitary* transport: the character matrix scaled
-by the F₃ normalization `1/√3` — the entries of the production
-`_f3_real_column_matrix_`. -/
+/-- The real 6×6 transport scaled by the F₃ normalization
+`1 / Real.sqrt 3`. -/
 noncomputable def reUnitMat : Matrix (Fin 3 × Fin 2) (Fin 3 × Fin 2) ℝ :=
   (1 / Real.sqrt 3) • reCharMat
 
@@ -149,24 +129,15 @@ theorem interleave_char_mul (z : Fin 3 → ℂ) :
     ring
 
 /-!
-**The orthogonality of `reUnitMat` (documented, not yet proven
-here).** The block algebra `reBlock c * (reBlock d)ᵀ =
-reBlock (c * conj d)` reduces `(R Rᵀ)` to `(1/3) ∑_c
-reBlock (chi3 (c * (a - b)))`, and the character orthogonality
-(`Hagi.sum_chi3_eq_zero`, the engine of `DFT3.charMat_mul_conjTranspose`)
-collapses the sum to `3` at `a = b` and `0` otherwise — hence
-`R Rᵀ = 1`. The formal statement is left as the next step of this
-module; the isometry (`interleave_norm`) and the conjugation
-identity (`interleave_char_mul`) above are the two halves of the
-transport, and the block computation is the remaining glue.
+The orthogonality of `reUnitMat` is documented here but not yet
+proven: the block algebra reduces `R Rᵀ` to
+`(1/3) ∑_c reBlock (chi3 (c * (a - b)))`, and the character
+orthogonality (`sum_chi3_eq_zero`) collapses the sum to `3` at
+`a = b` and `0` otherwise, giving `R Rᵀ = 1`.
 -/
 
-/-- **The block algebra (R89, step 1 of the orthogonality
-route)**: reBlock c * (reBlock d)ᵀ = reBlock (c * star d) —
-the 2×2 real blocks compose under complex multiplication;
-combined with character orthogonality this closes to
-reUnitMat * reUnitMatᵀ = I (the remaining entry-level sum
-is the documented next step). -/
+/-- Block algebra: `reBlock c * (reBlock d)ᵀ = reBlock (c * star d)`
+— the 2×2 real blocks compose under complex multiplication. -/
 theorem reBlock_mul_transpose (c d : ℂ) :
     (reBlock c : Matrix (Fin 2) (Fin 2) ℝ) * (reBlock d)ᵀ = reBlock (c * star d) := by
   ext i j

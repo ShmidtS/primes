@@ -7,39 +7,30 @@ import Hagi.Core.SWA
 set_option linter.style.header false
 
 /-!
-# R143: causal transmit filter - zero future leakage under left pad
+# CausalFilter — каузальная свёртка: нулевая утечка из будущего при левом паддинге
 
-Phase B (R136 of the plan; lesson V26). Sources: 2607.20125
-(block-causal mask "blocks leakage from future frames"),
-2609.14191 (leakage-test template: the STANDARD mask lets
-same-step neighbors through), 2609.34475 (PAD discipline:
-average only over non-padding entries).
+Каузальная свёртка с левым паддингом
+`y t = Σ_{i ≤ t} w (t−i) · x i` — выход в t зависит только от
+префикса `x 0..t`.
 
-Model: causal convolution with LEFT padding -
-y t = sum_{i <= t} w (t - i) * x i: the output at t is a
-function of the prefix x 0..t ONLY.
-
-Theorems:
-
-* `causal_prefix_determined` - if two inputs agree on the
-prefix 0..t then the outputs agree at t: ZERO future
-leakage (the formal content of the left-pad discipline).
-* `leak_same_step` - COUNTEREXAMPLE: a centered (same)
-convolution y t = ... + w 0 * x (t+1) + ... DOES leak:
-changing x (t+1) alone changes the output at t.
-
-This pins lesson V26 against regressions. -/
+* `causal_prefix_determined`: если входы совпадают на префиксе
+  `0..t`, выходы совпадают в t — нулевая утечка из будущего;
+* `leak_same_step`: контрпример — центрированная свёртка
+  (читающая `x (t+1)`) протекает: изменение `x (t+1)` на c
+  меняет выход в t на `w 0 · c` (при `w 0 ≠ 0`).
+-/
 
 namespace Hagi
 open Finset
 
-/-- Causal convolution with left padding: the output at t
-depends only on the prefix x 0..t. -/
+/-- Каузальная свёртка с левым паддингом:
+`causalConv w x t = Σ_{i ≤ t} w (t−i)·x i` — выход в t зависит
+только от префикса `x 0..t`. -/
 def causalConv (w x : ℕ → ℝ) (t : ℕ) : ℝ :=
   ∑ i ∈ Finset.range (t + 1), w (t - i) * x i
 
-/-- ZERO FUTURE LEAKAGE: if two inputs agree on the prefix
-0..t, the causal outputs agree at t. -/
+/-- Если `x i = y i` для всех `i ≤ t`, то
+`causalConv w x t = causalConv w y t`. -/
 theorem causal_prefix_determined (w x y : ℕ → ℝ) (t : ℕ)
     (hagree : ∀ i ≤ t, x i = y i) :
     causalConv w x t = causalConv w y t := by
@@ -49,13 +40,13 @@ theorem causal_prefix_determined (w x y : ℕ → ℝ) (t : ℕ)
   have : x i = y i := hagree i (by omega)
   rw [this]
 
-/-- Centered convolution reads one step AHEAD (the standard
-mask leaking same-step neighbors, 2609.14191). -/
+/-- Центрированная свёртка: читает на шаг вперёд
+(`Σ_{i ≤ t+1} w (t+1−i)·x i`). -/
 def centeredConv (w x : ℕ → ℝ) (t : ℕ) : ℝ :=
   ∑ i ∈ Finset.range (t + 2), w (t + 1 - i) * x i
 
-/-- COUNTEREXAMPLE: the centered form DOES leak the future -
-changing x (t+1) alone changes the output at t by w 0 * c. -/
+/-- При `w 0 ≠ 0` изменение `x (t+1)` на c меняет выход
+центрированной свёртки в t ровно на `w 0 · c`. -/
 theorem leak_same_step (w x : ℕ → ℝ) (t : ℕ) (hw : w 0 ≠ 0)
     (c : ℝ) :
     centeredConv w (fun i => if i = t + 1 then x i + c else x i) t

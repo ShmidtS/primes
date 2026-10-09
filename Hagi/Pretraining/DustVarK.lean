@@ -9,7 +9,7 @@ import Hagi.Probability.KLSBridge
 
 The K = 2 case (`varianceHalving`) says: averaging two draws
 halves the mean square error. This module proves the law for
-EVERY batch size K:
+every batch size K:
 
 * `hcVarK`: for a centered field (Σ φ = 0) on the hypercube,
   the uniform mean over K independent draws of the squared
@@ -143,7 +143,7 @@ theorem hcVarKTotal (d : ℕ) (φ : HC d → ℝ) (hC : ∑ u, φ u = 0) :
 /-- **The general-K 1/K dispersion law (scalar form).** For a centered
 field on the hypercube, the uniform mean over the K-fold product
 hypercube of the squared batch average equals the single-draw mean
-square divided by K — for EVERY K ≥ 1, not just K = 2. -/
+square divided by K — for every K ≥ 1, not just K = 2. -/
 theorem hcVarK (d : ℕ) (φ : HC d → ℝ) (hC : ∑ u, φ u = 0) (K : ℕ)
     (hK : 0 < K) :
     (∑ τ : Fin K → HC d, ((∑ k, φ (τ k)) / K) ^ 2) / ((2:ℝ) ^ d) ^ K

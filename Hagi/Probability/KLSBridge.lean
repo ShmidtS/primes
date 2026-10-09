@@ -6,12 +6,12 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# KLSBridge: dimension-free gradient noise from a Poincaré interface (R179)
+# KLSBridge: dimension-free gradient noise from a Poincaré interface
 
 Source context: the KLS conjecture program (Kannan–Lovász–
 Simonovits; the Oct 2026 preprint arXiv:2610.01447v2 claims an
-O(1) bound for isotropic log-concave measures — NOT yet
-independently verified, and its constant is NOT taken here).
+O(1) bound for isotropic log-concave measures — not yet
+independently verified, and its constant is not taken here).
 
 **Honest interface, not an imported constant.** We formalize
 the *shape* of the result: a Poincaré-type hypothesis on the
@@ -37,7 +37,7 @@ factors:
 * `klsChebyshev`: P[|F| ≥ t] ≤ V/t² — the σ-link into SafeQP
   robustness.
 
-The log-concavity of real HAGI data is NOT claimed: the
+The log-concavity of real HAGI data is not claimed: the
 Poincaré property enters as an explicit hypothesis, exactly
 like the empirical `h_emp_` premises elsewhere in HAGI.
 -/

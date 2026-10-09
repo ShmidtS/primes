@@ -7,13 +7,13 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R154: ProxyDeploymentGap — self-shift в eps-бюджете
+# ProxyDeploymentGap — self-shift в eps-бюджете
 
 Порт 2609.32677 (certified thresholds при self-induced
 distribution shift), абстрактная бюджетная форма.
 
-Контракт: верификатор F3-петли выдаёт пороги (R114/R127-
-стиль certified thresholds). Каждая итерация самообучения
+Контракт: верификатор F3-петли выдаёт пороги
+(certified thresholds). Каждая итерация самообучения
 сдвигает распределение, на котором верификатор измерял свой
 порог: измеримый зазор proxy-deployment delta_t входит в
 eps-бюджет как ДОПОЛНИТЕЛЬНЫЙ член рядом со статистической
@@ -59,7 +59,7 @@ theorem budget_consumed (e delta : ℕ → ℝ) (eps : ℝ) (T : ℕ)
 
 /-- **Предел скорости самообновления**: если каждый шаг
 потребляет не менее c > 0 бюджета, то горизонт живости
-ограничен eps: (T : R) * c <= eps. Self-induced shift
+ограничен eps: (T: R) * c <= eps. Self-induced shift
 ограничивает частоту самообновлений верификатора. -/
 theorem guarantee_horizon_bound (e delta : ℕ → ℝ) (eps c : ℝ)
     (hc : 0 < c)

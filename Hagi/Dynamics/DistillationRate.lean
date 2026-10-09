@@ -4,32 +4,22 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Dynamics.EndpointContraction
 
 /-!
-# DistillationRate — the rollout budget of policy KL
+# DistillationRate — бюджет rollout-ов для policy KL
 
-The E_dev → G_policy stage (η_policy, R215) priced in
-COMPUTE: if each on-policy distillation step contracts the
-teacher-student KL by a factor κ_KL < 1 (the measured MOPD
-regime — flagged premise), the KL trajectory IS the
-endpoint-contraction sequence (R213) with zero input drift:
+Стадия E_dev → G_policy при пошаговой контракции KL
+`kl (t+1) ≤ κ_KL·kl t` (измеряемая посылка MOPD-режима).
 
-  KL_{t+1} ≤ κ_KL · KL_t.
-
-* `kl_contraction_budget`: to push the KL under δ it
-  suffices that (1/κ_KL)^T ≥ KL₀/δ — the rollout budget is
-  LOGARITHMIC in the initial gap: distillation compute pays
-  only for the exponent, not for the gap itself;
-* `kl_half_steps`: the halving special case κ_KL = 1/2:
-  T steps halve T times — KL_T ≤ KL₀/2^T: each additional
-  rollout buys one bit of closeness — the bit account of
-  distillation.
+* `kl_contraction_budget`: при `0 < κ_KL < 1`, `0 < δ` и
+  `kl 0/δ ≤ (1/κ_KL)^T` — `kl T ≤ δ` (бюджет логарифмичен
+  в начальном зазоре);
+* `kl_half_steps`: при `κ_KL = 1/2` —
+  `kl T ≤ KL₀·(1/2)^T` (каждый rollout — бит близости).
 -/
 
 namespace Hagi
 
-/-- **The KL rollout budget**: under per-step KL contraction
-(flagged empirical premise of the on-policy distillation
-regime), (1/κ_KL)^T ≥ KL₀/δ steps suffice — the budget is
-logarithmic in the initial teacher-student gap. -/
+/-- При `0 < κ_KL < 1`, `0 < δ`, `kl (t+1) ≤ κ_KL·kl t` и
+`kl 0/δ ≤ (1/κ_KL)^T` — `kl T ≤ δ`. -/
 theorem kl_contraction_budget (kl : ℕ → ℝ) (κ_KL δ : ℝ)
     (T : ℕ) (hκ : 0 < κ_KL) (hκ1 : κ_KL < 1)
     (hδ : 0 < δ)
@@ -41,10 +31,8 @@ theorem kl_contraction_budget (kl : ℕ → ℝ) (κ_KL δ : ℝ)
     (fun t => by simpa using hstep t) hδ hneed
   simpa using h
 
-/-- **The bit account of distillation**: with κ_KL = 1/2
-(the halving regime), T rollouts give KL_T ≤ KL₀/2^T —
-every additional rollout buys exactly one bit of
-teacher-student closeness. -/
+/-- При `kl 0 ≤ KL₀` и `kl (t+1) ≤ (1/2)·kl t` —
+`kl T ≤ KL₀·(1/2)^T`. -/
 theorem kl_half_steps (kl : ℕ → ℝ) (KL₀ : ℝ) (T : ℕ)
     (h0 : kl 0 ≤ KL₀) (_hKL₀ : 0 ≤ KL₀)
     (hstep : ∀ t, kl (t + 1) ≤ (1 / 2 : ℝ) * kl t) :

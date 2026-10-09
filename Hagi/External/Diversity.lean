@@ -108,7 +108,7 @@ end GradMerge
 
 section ConfigCert
 
--- NOT A THEOREM (round-41 audit): the statement was
+-- not A theorem (round-41 audit): the statement was
 -- conclusion ≡ hypothesis (an identity restatement). The
 -- PRESCRIPTION stands (measure → construct → only then QP);
 -- the honest constructive content lives in the ConFIG
@@ -142,7 +142,7 @@ section MergeVsScratch
 
 variable {V : Type*} [Fintype V] [Nonempty V]
 
-/-- **(4) THE MERGE-VS-SCRATCH HEAD-START GAP (R102 honesty
+/-- **(4) THE MERGE-VS-SCRATCH HEAD-START GAP ( honesty
 fix: an ALGEBRAIC RESTATEMENT, not merge-vs-scratch
 theory)**: what the theorem proves is exactly that
 
@@ -154,7 +154,7 @@ baseline log|V|. The merge-inherits-ensemble-advantage
 framing above is the MOTIVATION; transferring it to real
 initializations (merged-init CE ≤ meanCE, hence
 CE_merged-init < log V) needs the Concat ensemble law
-composed with an initialization model and is NOT proved
+composed with an initialization model and is not proved
 here — that is the open merge-vs-scratch bridge. -/
 theorem merge_init_head_start (meanCE logV : ℝ)
     (hmean : meanCE < logV) :

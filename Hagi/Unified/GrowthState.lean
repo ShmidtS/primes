@@ -8,33 +8,21 @@ import Hagi.Step.ProjectionDescent
 set_option linter.style.header false
 
 /-!
-# R62: the unified structure AT THE LEAN LEVEL
+# The unified growth-loop structure
 
-The round-61 audit's central demand: unity must not live in
-docstrings. This module binds the stage lemmas to the real
-objects they describe:
+`joint_stage_linked`: the joint-stage descent with the real
+inner product and norm from `safeQP_descent`; only smoothness
+is h_emp_. `macro_termination_derived`: the Lyapunov telescope
+applied to the per-generation certified decrease.
+`protected_generation_budget`: per-generation regression ≤ ε
+and spend ≤ b accumulate to at most `T·ε` and `T·b` over `T`
+generations.
 
-* `joint_stage_linked`: inner and dnorm are no longer free ℝ —
-  they are the REAL ⟪g₀, d*⟫_ℝ and ‖d*‖ produced by
-  `safeQP_descent` on an inner-product space; the descent
-  hypothesis is DERIVED from the projection theorem, and only
-  the L-smoothness of the energy remains empirical.
-* `macro_termination_derived`: the termination certificate is
-  explicitly the telescope applied to the per-generation
-  certified decrease (the round-61 finding: it must not be a
-  restated hypothesis — it is now marked as the composition
-  point where the stage sum G + η‖d*‖²/2 − κs/2 ≥ ε enters).
-* `protected_generation_budget`: the target-theorem skeleton —
-  if each generation regresses protected quantities by at
-  most ε and spends at most b, then T generations accumulate
-  at most T·ε and T·b: the error budget telescopes across the
-  whole growth history.
-
-**Honest boundary**: energies Φ and Lipschitz constants remain
-h_emp_ (measured); the merge-stage link to
-`ensemble_ce_le_mean_general` (token-level instantiation) and
-the multi-monitor simultaneous theorem (anytime validity,
-e-processes) are open.
+The `GrowthLoop` section below defines the growth-loop state,
+the potential `Φ = energy + protectedRisk`, the four stage
+transitions, and per-stage/composed potential laws derived
+from the MacroCycle stage theorems. Grow-stage descent and
+compress-stage weight-rounding lifts remain h_emp_ inputs.
 -/
 
 open Finset Real InnerProductSpace
@@ -43,13 +31,10 @@ namespace Hagi
 
 /-! ## Stage 2 linked: the joint step with real vectors -/
 
-/-- **The joint stage with real objects**: for the SafeQP
-minimizer d* over a convex safe set (via `safeQP_descent`:
-⟪g₀,d*⟫ ≥ ‖d*‖²), an L-smooth energy along the step obeys the
-half-rate descent E(θ−ηd*) ≤ E(θ) − η‖d*‖²/2. Only the
-smoothness of the real energy is empirical (h_emp_smooth);
-the descent direction and the step norm are the projection
-theorem's output, not free numbers. -/
+/-- With `ds` the minimizer of the distance to `g0` over a
+convex set (so `‖ds‖² ≤ ⟪g0, ds⟫` by `safeQP_descent`),
+`0 < L`, `0 ≤ eta ≤ 1/L`, and the smoothness premise
+(h_emp_), `E2 ≤ E1 − eta * ‖ds‖² / 2`. -/
 theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) (g0 ds : X)
     (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0)
@@ -62,12 +47,10 @@ theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace
 
 /-! ## The macro termination derived -/
 
-/-- **Termination as the applied telescope** (round-61
-finding fixed): the per-generation certified decrease
-(the stage sum G + η‖d*‖²/2 − κs/2 ≥ ε — the h_gen
-hypothesis, fed by `macro_step_decrease`'s composition)
-enters `lyapunov_telescope`; the (E₀−E_min)/ε bound is
-applied, not restated. -/
+/-- If `Emin ≤ E t` for `t ≤ k` and each generation decreases
+`E` by at least `eps > 0`, then
+`k ≤ (E 0 − Emin) / eps` (delegation to
+`lyapunov_termination_fin`). -/
 theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)
@@ -77,11 +60,9 @@ theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
 
 /-! ## The protected error budget across generations -/
 
-/-- **The target-theorem skeleton**: if every generation
-regresses a protected quantity by at most ε and spends at
-most b, then T generations accumulate at most T·ε regression
-and T·b spend — the error budget telescopes across the whole
-growth history. -/
+/-- If `reg (t+1) − reg t ≤ epsReg` and
+`spend (t+1) − spend t ≤ b` for all `t < T`, then
+`reg T − reg 0 ≤ T * epsReg` and `spend T − spend 0 ≤ T * b`. -/
 theorem protected_generation_budget (T : ℕ) (epsReg b : ℝ)
     (reg spend : ℕ → ℝ)
     (hreg : ∀ t, t < T → reg (t + 1) - reg t ≤ epsReg)
@@ -107,29 +88,16 @@ theorem protected_generation_budget (T : ℕ) (epsReg b : ℝ)
   · exact hsum T reg epsReg hreg
   · exact hsum T spend b hspend
 
-/-! ## R91: the unified growth-loop semantics (Phase 1)
+/-! ## The growth-loop semantics
 
-The semantic hub of the growth loop: ONE state record aggregating
-the meaningful carriers of the existing theories, ONE potential Φ,
-the four stage transitions (grow → merge → joint → compress) and
-the three observation maps (verify / measure / discover), with the
-per-stage potential laws derived from the stage theorems
-(`merge_stage`, `joint_stage`, `compress_stage` of MacroCycle) —
-not restated as free parameters.
-
-**Connection of Φ to the existing KL/free-energy theory**: the
-energy field is the token-weighted reverse-KL certificate
-(`tokenKLTotal`, `free_energy_gap` / `geometric_pool_identity`:
-the pool free energy IS the reverse KL), the protectedRisk
-field is the protected-domain regression budget of
-`protected_generation_budget`; Φ := energy + protectedRisk is the
-risk-penalized free energy these theorems already bound.
-
-**Honest gaps** (marked in place): the grow-stage descent (nonconvex
-training) and the verifier trust have no concrete operation in the
-theory yet — the grow stage lemma is conditional (h_emp_grow);
-compress has no concrete weight-rounding lift (the Ternary module
-has entry-level rounding only). -/
+The state record `GrowthState` with the potential
+`Φ = energy + protectedRisk` (energy = the token-weighted
+reverse-KL certificate; protectedRisk = the protected-domain
+regression budget), the four stage transitions, and the
+observation maps verify / measure / discover. The per-stage
+potential laws derive from the MacroCycle stage theorems.
+Grow-stage descent and the compress rounding lift remain
+h_emp_ inputs (no training or verifier theorem here). -/
 
 noncomputable section GrowthLoop
 
@@ -147,18 +115,11 @@ structure StageParams where
   /-- Ternary grid step s. -/
   s : ℝ
 
-/-- **The unified growth-loop state**: the semantic hub aggregating
-the existing meaningful carriers (NOT bare reals where a real object
-exists). energy is the token-weighted reverse-KL certificate
-(`tokenKLTotal` / `free_energy_gap`); `gap` the Jensen gap G of the
-Concat adapter (`merge_stage_concat_adapter`); `dataField` the
-D-field divergence of the data mix (`Hagi.Data/DField.divField`);
-`capability` the certificate Γ of `capability_gain_transfer`;
-`runtimeError` the ErrorProp telescope bound; `verifier` the
-verifier trust -- implementation gap: no verifier theory yet.
-The `*Energy`/`*Risk`/`*Cost` fields are the MEASURED per-stage
-effects (the empirical inputs of the stage theorems, now carried by
-the state instead of floating hypotheses). -/
+/-- The growth-loop state: weights, parameters, expert count,
+the measured energy (token-weighted reverse-KL certificate),
+protected risk, budget, the Jensen gap, and the measured
+per-stage energy/risk/cost effect fields (the h_emp_ inputs of
+the stage theorems). -/
 structure GrowthState (X : Type*) [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] where
   /-- Compressed weight count. -/
@@ -215,16 +176,11 @@ structure GrowthState (X : Type*) [NormedAddCommGroup X]
   compressEnergy : ℝ
   compressRisk : ℝ
 
-/-- **The potential** Φ := energy + protectedRisk — the
-risk-penalized free-energy certificate. Connection: energy is the
-reverse-KL certificate that `free_energy_gap` / `geometric_pool_
-identity` identify with the pool free energy, and the stage
-theorems (`merge_stage`, `joint_stage`, `compress_stage`) bound it;
-protectedRisk telescopes by `protected_generation_budget`. -/
+/-- The potential `Φ := energy + protectedRisk`. -/
 def potential (S : GrowthState X) : ℝ := S.energy + S.protectedRisk
 
-/-- The certified grow-stage gain.
--- implementation gap: measured effect field, no training theorem. -/
+/-- The certified grow-stage gain (measured field; no
+training theorem backs it). -/
 def gainGrow (S : GrowthState X) : ℝ := S.growGain
 
 /-- The grow-stage Φ-cost (protected risk; budget is outside Φ). -/
@@ -236,19 +192,16 @@ def gainMerge (S : GrowthState X) : ℝ := S.gap
 /-- The merge-stage Φ-cost (protected risk). -/
 def costMerge (S : GrowthState X) : ℝ := S.mergeRisk
 
-/-- The certified joint-stage gain: the SafeQP half-rate η‖d*‖²/2
-(`joint_stage`). -/
+/-- The joint-stage gain `eta * ‖stepDir‖² / 2`. -/
 def gainJoint (S : GrowthState X) : ℝ := S.sp.eta * ‖S.stepDir‖ ^ 2 / 2
 
 /-- The joint-stage Φ-cost (protected risk). -/
 def costJoint (S : GrowthState X) : ℝ := S.jointRisk
 
-/-- The compress-stage gain: ZERO by construction — compression buys
-INFERENCE cost, not Φ (honest: no energy gain is claimed). -/
+/-- The compress-stage gain: zero (no energy gain claimed). -/
 def gainCompress (_S : GrowthState X) : ℝ := 0
 
-/-- The compress-stage Φ-cost: the ternary distortion κ·s/2
-(`compress_stage`) plus protected risk. -/
+/-- The compress-stage cost `kappa * s / 2 + compressRisk`. -/
 def costCompress (S : GrowthState X) : ℝ :=
   S.sp.kappa * S.sp.s / 2 + S.compressRisk
 
@@ -439,12 +392,9 @@ def discover (S : GrowthState X) : Candidate where
 
 /-! ### The per-stage potential laws -/
 
-/-- **Grow-stage potential** — honest conditional form: IF the
-measured post-training energy certificate descends by the grow gain
-(implementation gap: nonconvex training has no descent theorem
-here), THEN Φ decreases by gainGrow minus the protected-risk cost.
-The capability channel (capability + growGain, `capability_gain_
-transfer`'s certificate) is outside Φ. -/
+/-- If the measured grow-stage energy descends by the gain
+(h_emp_grow), then Φ decreases by at least
+`gainGrow − costGrow`. -/
 theorem potential_grow (S : GrowthState X)
     (h_emp_grow : S.growEnergy ≤ S.energy - gainGrow S) :
     potential (grow S) - potential S ≤ -gainGrow S + costGrow S := by
@@ -455,11 +405,9 @@ theorem potential_grow (S : GrowthState X)
   have hcg : costGrow S = S.growRisk := rfl
   linarith
 
-/-- **Merge-stage potential**: derived from `merge_stage` (with the
-gap sign G ≥ 0) — the merged pool's Φ decreases by the Jensen gap
-minus the protected-risk cost. `h_emp_merge` is no longer free: the
-Concat adapter (`merge_stage_concat_adapter`, R88) satisfies it
-with G the measured token-weighted gap. -/
+/-- If the measured merge-stage energy descends by the gap
+(h_emp_merge), then Φ decreases by at least
+`gainMerge − costMerge`. -/
 theorem potential_merge (S : GrowthState X)
     (h_emp_merge : S.mergeEnergy ≤ S.energy - gainMerge S) :
     potential (merge S) - potential S ≤ -gainMerge S + costMerge S := by
@@ -472,11 +420,9 @@ theorem potential_merge (S : GrowthState X)
   have hcm : costMerge S = S.mergeRisk := rfl
   linarith
 
-/-- **Joint-stage potential**: derived from `joint_stage` composed
-with the SafeQP descent inequality ‖d*‖² ≤ ⟪g₀,d*⟫ (`safeQP_
-descent`'s output, supplied as hypothesis here): one certified
-refinement step decreases Φ by the half-rate η‖d*‖²/2 minus the
-protected-risk cost. -/
+/-- With `0 < L`, `0 ≤ eta ≤ 1/L`, the SafeQP descent
+hypothesis, and the smoothness premise (h_emp_), Φ decreases
+by at least `gainJoint − costJoint`. -/
 theorem potential_joint (S : GrowthState X)
     (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
     (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
@@ -492,10 +438,9 @@ theorem potential_joint (S : GrowthState X)
   have hcj : costJoint S = S.jointRisk := rfl
   linarith
 
-/-- **Compress-stage potential**: derived from `compress_stage` —
-ternary rounding costs at most κs/2 of Φ (plus protected risk);
-the gain side is honestly ZERO (compression buys inference cost,
-not energy). -/
+/-- With the compress-stage premises (h_emp_ distortion and
+Lipschitz bounds), Φ increases by at most
+`costCompress` (gain side zero). -/
 theorem potential_compress (S : GrowthState X)
     (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.quantErr)
     (h_emp_dist : S.quantErr ≤ 1 / 2)
@@ -514,13 +459,11 @@ theorem potential_compress (S : GrowthState X)
 
 /-! ### The composed generation -/
 
-/-- **The full-generation potential law** (the GrowthState-level
-`macro_step_decrease`): one complete generation
-grow → merge → joint → compress decreases Φ by at least the total
-certified stage sum (growGain + G + η‖d*‖²/2 − κs/2) minus the
-accumulated protected-risk cost. The four `h_emp_` inputs are chained
-through the state's effect fields (each stage measured against the
-PREVIOUS stage's output); everything else is derived. -/
+/-- Under the chained stage premises (h_emp_ per stage, measured
+against the previous stage's output), one full generation
+grow → merge → joint → compress satisfies
+`Φ' − Φ ≤ −(growGain + gap + eta·‖stepDir‖²/2) +
+(growRisk + mergeRisk + jointRisk + costCompress)`. -/
 theorem growth_cycle_potential (S : GrowthState X)
     (hgap : 0 ≤ S.gap)
     (h_emp_grow : S.growEnergy ≤ S.energy - S.growGain)
@@ -559,10 +502,9 @@ theorem growth_cycle_potential (S : GrowthState X)
   have hgm : gainMerge S = S.gap := rfl
   linarith
 
-/-- **The emitted certificate is sound**: whenever the generation's
-stage hypotheses hold, the REAL Φ-decrease dominates the `verify`
-certificate's decrease (plus its declared risk spend). The
-observation map does not over-claim. -/
+/-- Under the same stage premises as `growth_cycle_potential`,
+the real Φ-decrease dominates the `verify` certificate's
+`decrease` minus its declared `riskSpend`. -/
 theorem certificate_sound (S : GrowthState X)
     (hgap : 0 ≤ S.gap)
     (h_emp_grow : S.growEnergy ≤ S.energy - S.growGain)
@@ -588,9 +530,8 @@ theorem certificate_sound (S : GrowthState X)
   have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.compressRisk := rfl
   linarith
 
-/-- **The budget account of one generation**: the composed budget
-is EXACTLY the initial budget minus the declared budgetSpend —
-the observation map charges what the transitions spend. -/
+/-- The composed budget after one generation equals
+`S.budget − (verify S).budgetSpend`. -/
 theorem budget_account (S : GrowthState X) :
     (compress (joint (merge (grow S)))).budget
       = S.budget - (verify S).budgetSpend := by

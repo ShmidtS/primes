@@ -7,32 +7,19 @@ import Hagi.Core.RoPE
 set_option linter.style.header false
 
 /-!
-# R141: GQA geometry - exact KV-cache compression under shared keys
+# GQA geometry: exact KV-cache compression under shared keys
 
-Phase B (R134 of the plan). Sources: 2609.32759 (GQA/MLA/
-YOCO/LCKV/CLA map with exact savings coefficients),
-2607.12550 (near-lossless zone 2-3x at PPL drift <0.2%;
-RoPE preserves the Frobenius norm - the rotor is unitary,
-see R140 rot_norm), 2609.36835 (uncompressed prefix +
-compressed tail - bridge to R142).
+Model: a surjective grouping map `kvOf : Q → KV` assigns each
+query head its shared KV head (`GQA`).
 
-Model: kvOf : QueryHead -> KVHead maps each query head to
-its shared KV head; uniform groups of size k.
+* `gqa_shared_score` — if the MHA key projections agree inside
+  each group, the GQA attention score of a head equals the MHA
+  score with the delegated key.
+* `gqa_cache_card` — a surjective grouping forces
+  `Fintype.card KV ≤ Fintype.card Q`: the per-position GQA cache
+  is never larger than the MHA cache.
 
-Theorems:
-
-* gqa_group_card - uniform grouping: card Q = card KV * k.
-* `gqa_cache_card` - exact cache accounting: the GQA cache
-holds card KV vectors per position, the MHA cache card Q;
-with uniform groups the ratio is exactly 1/k.
-* `gqa_shared_score` - if the MHA key projections agree
-inside each group (hshared), the GQA attention score of
-head q equals the MHA score of the delegated key.
-
-Honest boundary: the near-lossless claim (PPL drift <0.2%
-in the 2-3x zone) is EMPIRICAL (2607.12550) - not proven
-here; the exact statement is about cache size and score
-identity under shared projections. -/
+Any near-lossless claim is empirical and not proven here. -/
 
 open Finset
 

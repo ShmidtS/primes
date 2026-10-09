@@ -4,24 +4,17 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Architecture.AlignedMerge
 
 /-!
-# SharedStateComposition — the energy contract of omni fusion
+# SharedStateComposition — energy and parameter cost of omni fusion
 
-The SharedStateComposition module of the omni layer: modalities
-enter the shared geometric state as fiber contributions, and the
-fusion cost is governed by the R181–R183 geometry.
-
-Main results:
-* `sharedStateEnergy`: the energy of the composed state of two
-  orthogonal aligned leaves is the EXACT sum of the leaf
-  energies — no fusion loss at full alignment (the direct
-  restatement of fiberPythagoras in omni vocabulary);
-* `omniParamCost`: adding k rank-r leaves to a d-dim cortex
-  costs exactly k·r·d entries — sub-quadratic in d: a modality
-  is a cheap deformation of the shared geometry, not a second
-  model (the fiberParamCount arithmetic, summed over leaves);
-* `sharedStateCostBound`: the total parameter bill of the omni
-  state (cortex + k leaves) against the d×d budget: with
-  k·r < d the whole omni state costs less than one dense layer.
+* `sharedStateEnergy`: for orthonormal leaves with `Uᵀ * V = 0`
+  the composed-state energy is the exact sum of the leaf
+  energies.
+* `omniParamCost` / `sharedStateCostBound`: k rank-r leaves
+  over a d-dim cortex cost `k·r·d` entries, below `d·d` when
+  `k·r < d`.
+* `sharedStatePerturbed`: the composed energy exceeds the
+  Pythagorean sum by at most a term linear in the residual
+  misalignment `frobSq (Vᵀ * W)`.
 -/
 
 namespace Hagi.Omni
@@ -30,10 +23,8 @@ open Matrix
 
 /-! ### Exact composition at full alignment -/
 
-/-- **Pythagorean composition of aligned leaves**: for
-orthonormal modality leaves with UᵀV = 0, the shared-state
-energy is the exact sum of the leaf energies — fusion at full
-alignment is loss-free (fiberPythagoras in omni vocabulary). -/
+/-- For orthonormal `U`, `V` with `Uᵀ * V = 0`:
+`(U *ᵥ z + V *ᵥ w) ⬝ᵥ (U *ᵥ z + V *ᵥ w) = z ⬝ᵥ z + w ⬝ᵥ w`. -/
 theorem sharedStateEnergy {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (V : Matrix (Fin d) (Fin r) ℝ)
     (hU : Hagi.Cortex.IsOrthoCol U) (hV : Hagi.Cortex.IsOrthoCol V)
@@ -54,31 +45,23 @@ theorem omniLeafCost {d r : ℕ} (V : Matrix (Fin d) (Fin r) ℝ) :
   unfold entryCount
   exact Nat.mul_comm d r
 
-/-- **The omni parameter bill**: k modality leaves of width r
-over a d-dim cortex cost k·r·d entries in total. -/
+/-- `∑ i : Fin k, r * d = k * (r * d)`. -/
 theorem omniParamCost (k r d : ℕ) :
     ∑ i : Fin k, r * d = k * (r * d) := by
   rw [Finset.sum_const]
   simp
 
-/-- **The budget theorem**: if k leaves of rank r satisfy
-k·r ≤ c ≤ d (the total new directions fit into the cortex
-budget), the whole omni state costs strictly less than one
-dense d×d layer — the "max quality at min volume" arithmetic of
-the omni design: new modalities are cheap deformations, not new
-models. -/
+/-- If `0 < d` and `k * r < d` then the k-leaf parameter
+count `k * (r * d)` is strictly below `d * d`. -/
 theorem sharedStateCostBound (k r d : ℕ) (hd : 0 < d)
     (hkr : k * r < d) :
     ∑ i : Fin k, r * d < d * d := by
   rw [omniParamCost k r d]
   nlinarith [hkr, hd, Nat.succ_le_of_lt hd]
 
-/-- **The misalignment price of omni fusion**: for two
-orthonormal modality leaves, the composed shared-state energy is
-at most the diagonal (loss-free) sum plus 2·√frobSq(VᵀW)·‖r‖·‖s‖
-— the price of merging misaligned leaves is LINEAR in the
-residual misalignment frobSq(VᵀW); at VᵀW = 0 the composition is
-exactly Pythagorean (sharedStateEnergy). -/
+/-- For orthonormal `V`, `W`: the composed energy is at most
+`r ⬝ᵥ r + s ⬝ᵥ s + 2 * √(frobSq (Vᵀ * W)) * ‖r‖ * ‖s‖`; at
+`Vᵀ * W = 0` this is the equality of `sharedStateEnergy`. -/
 theorem sharedStatePerturbed {d r1 r2 : ℕ}
     (V : Matrix (Fin d) (Fin r1) ℝ) (W : Matrix (Fin d) (Fin r2) ℝ)
     (hV : Hagi.Cortex.IsOrthoCol V) (hW : Hagi.Cortex.IsOrthoCol W)

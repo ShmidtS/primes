@@ -5,13 +5,13 @@ import Hagi.Budget.BitAlloc
 
 /-!
 # BitAllocTermination — the greedy exchange loop
-TERMINATES (R248; closing the declared tail of BitAlloc)
+TERMINATES
 
 `BitAlloc.two_layer_equalize` proved balancing never hurts,
 and `imbalance_yields_gain` proved a factor-2 violation
 strictly improves — but the module's own docstring flagged
 the missing piece: "the greedy exchange loop converging to
-the balanced split (termination is existential via R177,
+the balanced split (termination is existential via,
 not a construction)".
 
 The termination argument does not need a potential function

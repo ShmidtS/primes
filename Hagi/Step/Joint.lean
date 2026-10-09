@@ -7,68 +7,22 @@ import Mathlib
 
 
 /-!
-# The joint step: when fine-tuning from a merged prior helps and when it destroys
+# Joint — joint-шаг: когда fine-tune с merged prior помогает и когда разрушает
 
-The joint step (fine-tune from the merged prior on the corpus
-mixture) is the last hand-tuned operation of the loop. The
-measured facts demanding theory:
+Модель: первопорядковое квадратичное приращение
+компонентной (по корпусам) потери у prior:
+`quadIncr gc Hc δ = ⟨gc, δ⟩ + ½ δᵀHcδ`, шаг по градиенту
+смеси `δ = −lr·g`, гладкость `vᵀHc v ≤ L‖v‖²`.
 
-* at `lr = 0.01` the joint step *degrades* the merged model
-  (5.929 → 6.054); at `lr = 0.001` it improves (→ 5.694);
-* even at the "right" LR, one corpus degrades catastrophically
-  (slimpajama 16.8 against ~4–5 for the others) — the average
-  improves while a component collapses.
-
-**The model.** A component (per-corpus) loss near the prior θ₀
-is the quadratic expansion
-
-`f_c(θ₀ + δ) − f_c(θ₀) = ⟨g_c, δ⟩ + ½ δᵀ H_c δ`
-
-with the component gradient g_c, the component Hessian `H_c`
-(PSD: the component is locally convex) and the smoothness bound
-`δᵀ H_c δ ≤ L ‖δ‖²`. The joint step moves along the *mixture*
-gradient: `δ = −lr • g`.
-
-**What the module proves:**
-
-* `jointStep_conflict_regression` — if the component gradient
-  *conflicts* with the mixture direction (`⟨g_c, g⟩ < 0`), then
-  the component loss *must* rise for every step size in the
-  window `0 < lr < 2|⟨g_c, g⟩| / (L ‖g‖²)`: the regression is
-  not an accident of optimization, it is forced by the
-  first-order geometry. This is the formal content of the
-  slimpajama catastrophe: the corpus whose gradient fights the
-  mixture *cannot* be spared by any small-LR schedule — only by
-  a guard or a proximal constraint.
-* `jointStep_regression_bound` — the general (non-conflicting)
-  bound: the per-corpus regression is at most
-  `lr • ‖g_c‖‖g‖ + (L/2) lr² ‖g‖²` — *linear in lr* for small
-  steps. The measured LR cliff (0.01 destroys, 0.001 helps) is
-  the linear bound crossing zero: the derived acceptance test
-  for a joint step is `lr ≤ ε / (‖g_c‖‖g‖ + (L/2)‖g‖²)` per
-  corpus — or, equivalently, a per-corpus guard: reject the
-  step if any component regresses more than the bound.
-* `trustRegion_bound` — the proximal cure: if the step is
-  constrained to a trust region `‖δ‖ ≤ R` (the functional
-  equivalent of the ridge-to-prior penalty `λ‖θ−θ₀‖²`, with the
-  dictionary `R ≈ ‖g‖/λ`), the per-corpus regression is at most
-  `‖g_c‖ R + (L/2) R²` — *independent of the step direction*.
-  A proximal joint step cannot destroy a corpus faster than the
-  trust radius allows: the formal backing for the ridge-to-prior
-  (`Hagi.Core/Ridge`) as the catastrophe cure.
-
-**Prescription for the code.**
-
-1. The joint LR is not a free constant: accept
-   `lr ≤ ε_j / (‖g_c‖ ‖g‖ + (L/2) ‖g‖²)` with ε_j the measured
-   resolution floor (0.0021) — or run the joint step with a
-   per-corpus guard `ΔCE_c ≤ bound(lr)` and roll back on
-   violation (the derived version of the empirical 0.001).
-2. The slimpajama regime is *not* an LR problem: conflicting
-   corpus gradients force regression at every small LR; the
-   cure is the proximal/ridge form (trust region to the prior),
-   which bounds every component by the geometry of the step,
-   not by the luck of the direction.
+* `jointStep_conflict_regression`: при конфликте
+  `⟨gc, g⟩ < 0` любой шаг `0 < lr < 2|⟨gc, g⟩|/(L‖g‖²)`
+  строго увеличивает компонентную потерю;
+* `jointStep_regression_bound`: для любого lr —
+  `quadIncr ≤ |lr|·‖gc‖·‖g‖ + (L/2)·lr²·‖g‖²` (линейно
+  по lr при малых шагах);
+* `trustRegion_bound`: при `‖δ‖ ≤ R` —
+  `quadIncr ≤ ‖gc‖·R + (L/2)·R²` независимо от направления
+  шага (обоснование proximal/ridge-формы).
 -/
 open scoped Matrix
 
@@ -81,20 +35,19 @@ section JointStep
 
 variable {n : Type*} [Fintype n]
 
-/-- The first-order quadratic increase of a component loss at
-the prior: `quadIncr g_c H_c δ = ⟨g_c, δ⟩ + ½ δᵀ H_c δ`. -/
+/-- `quadIncr gc Hc δ = gc ⬝ᵥ δ + ½·δ ⬝ᵥ (Hc *ᵥ δ)` —
+квадратичное приращение компонентной потери. -/
 noncomputable def quadIncr (gc : n → ℝ) (Hc : Matrix n n ℝ)
     (δ : n → ℝ) : ℝ :=
   gc ⬝ᵥ δ + (1/2) * (δ ⬝ᵥ (Hc *ᵥ δ))
 
 variable {gc : n → ℝ} {Hc : Matrix n n ℝ}
 
-/-- **Conflicting gradients force regression.** If the component
-gradient conflicts with the joint direction (`⟨g_c, g⟩ < 0`)
-and the component is smooth (`vᵀH_c v ≤ L‖v‖²` with `L > 0`),
-then every joint step of size `0 < lr < 2|⟨g_c, g⟩|/(L‖g‖²)`
-*strictly increases* the component loss: the catastrophe is
-first-order geometry, not an optimization accident. -/
+/-- При `0 < L`, `g ≠ 0`, `gc ⬝ᵥ g < 0`,
+`−L·(v⬝ᵥv) ≤ v ⬝ᵥ (Hc *ᵥ v)` и
+`0 < lr < 2·|gc ⬝ᵥ g|/(L·(g ⬝ᵥ g))` выполнено
+`0 < quadIncr gc Hc (fun i => −lr·g i)` — конфлитный
+компонентный градиент строго растит потерю. -/
 theorem jointStep_conflict_regression (g : n → ℝ) (L : ℝ)
     (hL : 0 < L) (hg : g ≠ 0)
     (hconflict : gc ⬝ᵥ g < 0)
@@ -154,15 +107,9 @@ theorem jointStep_conflict_regression (g : n → ℝ) (L : ℝ)
     linarith [hqlo]
   linarith [this, hhalf]
 
-/-- **The per-corpus regression bound (the LR law).** For any
-joint step size `lr` and any component (L-smooth above), the
-component regression is at most linear in the step size:
-
-`Δf_c ≤ |lr| • √(gc⬝ᵥgc) √(g⬝ᵥg) + (L/2) • lr² • (g⬝ᵥg)`.
-
-At small LR the bound is linear: the acceptance criterion
-`lr ≤ ε / (‖g_c‖‖g‖ + (L/2)‖g‖²)` keeps every corpus within ε
-of the prior — the derived joint-LR schedule. -/
+/-- При `v ⬝ᵥ (Hc *ᵥ v) ≤ L·(v ⬝ᵥ v)` для всех v и любом lr:
+`quadIncr gc Hc (fun i => −lr·g i)
+≤ |lr|·√(gc⬝ᵥgc)·√(g⬝ᵥg) + (L/2)·lr²·(g⬝ᵥg)`. -/
 theorem jointStep_regression_bound (g : n → ℝ) (L : ℝ)
     (hsmooth : ∀ v : n → ℝ, v ⬝ᵥ (Hc *ᵥ v) ≤ L * (v ⬝ᵥ v))
     (lr : ℝ) :
@@ -222,17 +169,9 @@ theorem jointStep_regression_bound (g : n → ℝ) (L : ℝ)
           mul_le_mul_of_nonneg_left hcs (abs_nonneg lr)
   linarith [hle1, hq]
 
-/-- **The trust-region (proximal) bound.** Whatever direction
-the joint step takes, if it stays within radius `R` of the
-prior (‖δ‖ ≤ R in the sqrt metric), no component (L-smooth
-above) can regress by more than
-
-`Δf_c ≤ √(gc⬝ᵥgc) R + (L/2) R²`.
-
-The ridge-to-prior penalty λ‖θ−θ₀‖² is the functional form of
-this constraint (dictionary `R ≈ ‖g‖/λ`): the proximal joint
-step bounds every corpus *geometrically* — the slimpajama
-catastrophe is impossible by construction. -/
+/-- При `0 ≤ L`, гладкости и `√(δ ⬝ᵥ δ) ≤ R`:
+`quadIncr gc Hc δ ≤ √(gc⬝ᵥgc)·R + (1/2)·L·R²`
+независимо от направления δ. -/
 theorem trustRegion_bound (L R : ℝ) (hL : 0 ≤ L)
     (hsmooth : ∀ v : n → ℝ, v ⬝ᵥ (Hc *ᵥ v) ≤ L * (v ⬝ᵥ v))
     (δ : n → ℝ) (hδ : Real.sqrt (δ ⬝ᵥ δ) ≤ R) :

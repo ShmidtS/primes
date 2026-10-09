@@ -10,79 +10,39 @@ set_option linter.unusedFintypeInType false
 set_option linter.unusedSectionVars false
 
 /-!
-# R109: generalization mode state — vector Q-certificate, Φ_HAGI,
-the gen-safe step, Pareto checkpoint selection, Qgen→frontier bridge
+# Generalization mode state
 
-Motivated by arXiv:2609.33150 ("Generalization Dynamics of LM
-Pre-training"): training CE can improve while the generalization
-REGIME (shallow-cue computation vs transferable computation)
-switches or degrades — the mode-hopping phenomenon. The paper's
-empirical signature is the answer+1 probe: a checkpoint family
-scores 81% → 0% → 81.7% on the same probe across consecutive
-checkpoints while CE monotonically improves. Two consequences the
-audit extracts and this module formalizes:
+Definitions: `GenMetrics`/`Qvec`/`Qgen` (a five-probe
+generalization telemetry vector, all values measured —
+h_emp_G — and its nonnegative-weight scalarization), `GenState`
+(`GrowthState` plus the probe vector), the Lyapunov object
+`hagiPotential` = energy + lam * protectedRisk +
+nu * max(0, Qtarget - Qgen), and the predicate `ModeDrop`
+(energy improves while `Qgen` drops).
 
-1. **No step is an improvement on CE grounds alone.** The
-   controller state must carry a SECOND level — cheap
-   generalization probes — and the Lyapunov object must be the
-   two-level potential Φ_HAGI (fit + protected risk + a
-   generalization-gap penalty), not the energy alone.
-2. **Checkpoint averaging does not fix mode-hopping; selection
-   can.** The checkpoint choice must be a Pareto selection over
-   (E ↓, Q ↑, cost ↓) — never a default to the latest checkpoint.
+Results:
+* `Qgen_le`, `Qgen_drop_bound` — componentwise monotonicity
+  and per-probe drop bookkeeping of the scalarization.
+* `generalization_safe_step`,
+  `generalization_safe_step_at_target` — Φ_HAGI decreases by
+  the fit amount minus `lam * budget` minus (general case)
+  `nu * ε_Q`, under measured fit/probe premises and a bounded
+  protected-risk regression.
+* `modeDrop_rejected` — a certified probe tolerance strictly
+  below the mode-drop threshold contradicts `ModeDrop`.
+* Pareto checkpoint selection (`scalarized_argmin_pareto`,
+  `pareto_frontier_nonempty`, `selector_skips_dominated`) —
+  strictly-positive weighted scalarized argmins are
+  Pareto-optimal and never return a strictly dominated
+  checkpoint. The converse direction needs convexity and is
+  not claimed.
+* `qgen_frontier_bridge`(_invariant) — the cone step/invariant
+  under ΔQ-boosted injection dynamics with the eased
+  β-threshold.
 
-## Contents
-
-* `GenMetrics` / `Qvec` / `Qgen` — the GDsuite-style cheap probe
-  vector (transfer, shallowCue, truthSeeking, reflective,
-  multiHop) and its weighted scalarization. **Honest note**: the
-  VECTOR certificate `Qvec` is the real object; `Qgen` is a
-  lossy scalarization — a weighted sum can hide a mode drop on
-  one probe behind gains on others (this is exactly why the
-  `ModeDrop` predicate and the per-probe bookkeeping of
-  `Qgen_drop_bound` are stated componentwise). All probe values
-  are MEASURED telemetry (h_emp_G), never derived.
-* `ModeDrop` — a PREDICATE, not a theorem: the empirical fact
-  "E↓ does not imply Q↑" cannot be proven, only named. It names
-  the situation the controller must detect and reject.
-* `hagiPotential` — Φ_HAGI S := energy + λ·protectedRisk +
-  ν·max(0, Q_target − Qgen S): the audit's extended Lyapunov
-  object on top of R91's `potential` (energy + protectedRisk).
-* `generalization_safe_step` (both cases, max(0,·) case
-  analysis done explicitly): above target the penalty is inert
-  and Φ decreases by the fit + risk amounts; below/at-dip the
-  penalty growth is bounded by ν·ε_Q. The theorem NEVER silently
-  assumes the penalty decreases.
-* `scalarized_argmin_pareto` / `pareto_frontier_nonempty` /
-  `selector_skips_dominated` — checkpoint Pareto selection over
-  a finite checkpoint set. The PROVABLE direction of the
-  weighted-sum/Pareto duality: the strictly-positive-weighted
-  scalarized argmin IS Pareto-optimal. The converse (Pareto ⟹
-  ∃ weights) needs convexity and is stated as OPEN, not faked.
-  `selector_skips_dominated`: a strictly dominated checkpoint —
-  in particular a dominated LATEST one — is never returned by
-  any strictly-positive scalarized selector: recency is not a
-  criterion.
-* `qgen_frontier_bridge` — the audit's §8 production law
-  inj_t ≥ β·C_t + η_Q·max(0, ΔQ_t) − ξ_t: data selection
-  targeting a generalization-probe gain ΔQ > 0 adds to the
-  frontier injection. The composition lemma: with this inj form
-  the R107 cone condition's β-threshold
-  `β ≥ (α/γ)(1+α−ρ) + ξ_t/C_t` is EASED to
-  `β ≥ (α/γ)(1+α−ρ) + (ξ_t − η_Q·max(0,ΔQ_t))/C_t`
-  — the effective production rate is β + η_Q·max(0,ΔQ_t)/C_t.
-
-## Honest gaps
-
-* The probes are telemetry: every theorem that consumes them
-  carries an h_emp_G hypothesis; nothing about their dynamics
-  is derived.
-* The Pareto⟹∃weights direction of the duality needs a convex
-  objective space — open (finite checkpoint sets are generic).
-* `ModeDrop` is detectable but not predictable: the predicate
-  names the failure mode; the paper's claim that data selection
-  steers ΔQ > 0 enters `qgen_frontier_bridge` as the h_emp_dyn
-  hypothesis on the measured ΔQ_t.
+Open: the Pareto ⟹ ∃ weights direction (needs a convex
+objective space); probe dynamics are not derived — every
+consumer carries an h_emp_G/h_emp_dyn premise.
 -/
 
 open Real Finset
@@ -95,13 +55,9 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-! ## The probe vector and its scalarization -/
 
-/-- **The GDsuite-style cheap probe vector** — five scalar probes
-of the generalization regime: `transfer` (held-out transfer),
-`shallowCue` (shortcut-probe reliance — the shallow-regime
-marker), `truthSeeking`, `reflective`, `multiHop`. ALL FIELDS ARE
-MEASURED TELEMETRY (h_emp_G): they are carriers of an empirical
-measurement, not derived quantities. The real certificate object
-is the VECTOR `Qvec`; `Qgen` below is the lossy scalarization. -/
+/-- Five measured generalization probes: `transfer`,
+`shallowCue`, `truthSeeking`, `reflective`, `multiHop`. All
+fields are measured telemetry (h_emp_G), not derived. -/
 structure GenMetrics where
   /-- Transfer-probe score (measured). -/
   transfer : ℝ
@@ -114,19 +70,15 @@ structure GenMetrics where
   /-- Multi-hop probe score (measured). -/
   multiHop : ℝ
 
-/-- The raw probe vector — the REAL certificate object (the
-scalarization `Qgen` can hide a per-probe mode drop behind
-compensating gains on other probes; see `ModeDrop`). -/
+/-- The probe vector of `m`; per-probe bookkeeping (see
+`Qgen_drop_bound`, `ModeDrop`) uses this, since the
+scalarization `Qgen` can hide a single probe's drop. -/
 def Qvec (m : GenMetrics) : Fin 5 → ℝ :=
   ![m.transfer, m.shallowCue, m.truthSeeking, m.reflective, m.multiHop]
 
-/-- **The weighted scalarization** of the probe vector with
-nonnegative weights. HONEST NOTE: this is a bookkeeping
-convenience for the Φ_HAGI penalty term; the VECTOR `Qvec` is
-the real object — a weighted sum is exactly the kind of surrogate
-that can mask mode-hopping (the repo's `selection_hurts`
-precedent: a surrogate metric misleads when it is treated as the
-target). -/
+/-- The weighted scalarization ∑ w i * Qvec m i with
+nonnegative weights; a weighted sum can hide a single probe's
+drop (see `Qvec`). -/
 def Qgen (m : GenMetrics) (w : Fin 5 → ℝ) : ℝ :=
   ∑ i, w i * Qvec m i
 
@@ -138,12 +90,9 @@ theorem Qgen_le {m m' : GenMetrics} {w : Fin 5 → ℝ}
     Qgen m w ≤ Qgen m' w :=
   Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (h i) (hw i)
 
-/-- **Componentwise drop bookkeeping** (the anti-masking lemma):
-if every probe drops by at most ε_i (measured, h_emp_G), then
-the scalarization drops by at most Σ_i w_i·ε_i — with the bound
-computed PER PROBE, so no single probe's drop can hide. This is
-the honest form: the controller certifies ΔQ ≥ −ε_Q with
-ε_Q := Σ w_i ε_i for the DECLARED per-probe tolerances. -/
+/-- If `Qvec m i - ε i ≤ Qvec m' i` for every probe `i`
+(measured, h_emp_G) and weights are nonnegative, then
+`Qgen m w - ∑ w i * ε i ≤ Qgen m' w`. -/
 theorem Qgen_drop_bound {m m' : GenMetrics} {w : Fin 5 → ℝ}
     {ε : Fin 5 → ℝ} (hw : ∀ i, 0 ≤ w i)
     (h_emp_G : ∀ i, Qvec m i - ε i ≤ Qvec m' i) :
@@ -160,21 +109,15 @@ theorem Qgen_drop_bound {m m' : GenMetrics} {w : Fin 5 → ℝ}
 
 /-! ## The state and Φ_HAGI -/
 
-/-- **The growth-loop state extended with the generalization
-telemetry**: R91's `GrowthState` (energy = the reverse-KL/CE
-certificate, protectedRisk = the protected-domain regression
-budget) plus the measured probe vector `gen`. -/
+/-- `GrowthState` extended with the measured generalization
+probe vector `gen`. -/
 structure GenState (X : Type*) [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] extends GrowthState X where
   /-- The measured generalization-probe vector (h_emp_G). -/
   gen : GenMetrics
 
-/-- **The extended Lyapunov object** (the audit's Φ_HAGI):
-R91's `potential` (energy + protectedRisk) with the risk weight
-λ and the generalization-gap penalty ν·max(0, Q_target − Qgen).
-The max(0,·) makes the penalty INERT above target and ACTIVE
-below — the gen-safe step theorem does this case analysis
-explicitly. -/
+/-- The Lyapunov potential `energy + lam * protectedRisk +
+nu * max(0, Qtarget - Qgen S.gen w)`. -/
 noncomputable def hagiPotential (S : GenState X) (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ) : ℝ :=
   -- R263 dedup: the canonical scalar potential (Foundations.Potential)
   -- applied to the projected state fields.
@@ -183,22 +126,11 @@ noncomputable def hagiPotential (S : GenState X) (lam nu Qtarget : ℝ) (w : Fin
 
 /-! ## ModeDrop: the named failure mode -/
 
-/-- **The mode-drop predicate** — NOT a theorem: the empirical
-fact "training CE improves ⇏ generalization improves" cannot be
-proven, only NAMED. `ModeDrop S S' ε_E ε_Q w` holds when the fit
-improved by at least ε_E (E S' ≤ E S − ε_E) while the
-scalarized generalization probe DROPPED by at least ε_Q. This is
-the situation the controller must DETECT and REJECT (see
-`modeDrop_rejected`: a certified ΔQ ≥ −ε_Q tolerance strictly
-below ε_Q^mode makes the mode drop impossible to miss).
-
-Empirical signature (arXiv:2609.33150, the answer+1 example):
-consecutive checkpoints score 81% → 0% → 81.7% on the answer+1
-probe while CE improves throughout — the middle checkpoint is a
-`ModeDrop` (the shallow regime took over the probe), and the
-paper's finding is that checkpoint AVERAGING does not repair it
-while data SELECTION does — hence the Pareto selector below and
-the ΔQ-targeted frontier injection of `qgen_frontier_bridge`. -/
+/-- Predicate: the energy improves by at least `ε_E` while the
+scalarized probe drops by at least `ε_Q`. A named failure mode,
+not a theorem; a controller certifying `ΔQ ≥ −ε_Q` with
+`ε_Q < ε_Q^mode` rules it out (`modeDrop_rejected`).
+(source: arXiv:2609.33150) -/
 def ModeDrop (S S' : GenState X) (ε_E ε_Q : ℝ) (w : Fin 5 → ℝ) : Prop :=
   S'.toGrowthState.energy ≤ S.toGrowthState.energy - ε_E
     ∧ Qgen S'.gen w ≤ Qgen S.gen w - ε_Q
@@ -221,21 +153,11 @@ private theorem relu_shift_le (t a a' ε : ℝ) (hε : 0 ≤ ε) (h : a - ε ≤
       · rw [max_eq_left hy, max_eq_left hx]; linarith
   linarith
 
-/-- **THE GEN-SAFE STEP (general case — the honest bound).**
-If the fit improves by at least ε_E (h_emp_fit: the measured
-post-step energy certificate), the protected-risk regression is
-bounded by the budget (h_risk: the SafeQP guarantee —
-`safeqp_eta_max` supplies exactly this per-domain budget,
-composed into aggregate form by `safeqp_risk_bound_compose`
-below), and the generalization probe is certified within
-tolerance (h_emp_G: ΔQ ≥ −ε_Q, MEASURED telemetry), then Φ_HAGI
-decreases up to the honest error terms: the fit amount minus
-the risk spend minus the worst-case penalty growth ν·ε_Q.
-
-The max(0,·) is handled WITHOUT assuming the penalty decreases:
-`relu_shift_le` bounds the penalty growth by ν·ε_Q in ALL cases
-(including the below-target dip). The clean at-target form is
-`generalization_safe_step_at_target`. -/
+/-- If the measured fit improves by `ε_E` (h_emp_fit), the
+protected-risk regression is at most `budget` (h_risk), and the
+probe is certified `Qgen S.gen w - ε_Q ≤ Qgen S'.gen w`
+(h_emp_G, with `ε_Q ≥ 0`), then Φ_HAGI decreases by at least
+`ε_E - lam * budget - nu * ε_Q`. -/
 theorem generalization_safe_step (S S' : GenState X)
     (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
@@ -263,15 +185,9 @@ theorem generalization_safe_step (S S' : GenState X)
   unfold hagiPotential Hagi.Foundations.hagiPotential
   linarith
 
-/-- **THE GEN-SAFE STEP (at-target case — the penalty is
-inert).** With the SAME fit/risk/probe hypotheses, if the
-post-step probe stays at or above target (Qgen S' ≥ Q_target),
-the penalty term contributes ZERO at S' and is nonnegative at
-S, so Φ_HAGI decreases by the certified fit amount minus the
-risk spend — NO ν·ε_Q term: the penalty never bites while the
-probe is above target. This and `generalization_safe_step` are
-the two cases of the case analysis; neither silently assumes
-the other's regime. -/
+/-- As `generalization_safe_step`, but assuming additionally
+`Qtarget ≤ Qgen S'.gen w`: the penalty is zero at `S'`, so the
+bound drops the `nu * ε_Q` term. -/
 theorem generalization_safe_step_at_target (S S' : GenState X)
     (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
@@ -299,11 +215,9 @@ theorem generalization_safe_step_at_target (S S' : GenState X)
     mul_le_mul_of_nonneg_left hrisks hlam
   linarith
 
-/-- **The SafeQP composition**: the per-domain budget guarantee
-of `safeqp_eta_max` (ΔL_i ≤ ε_i for every protected domain i)
-aggregates to the protectedRisk budget of the gen-safe step when
-the accumulated risk is the per-domain sum — the h_risk
-hypothesis is the SafeQP guarantee in aggregate form. -/
+/-- If the accumulated risk is `S'.protectedRisk =
+S.protectedRisk + ∑ dL i` with `dL i ≤ eps i` for every `i`,
+then the risk regression is at most `∑ eps i`. -/
 theorem safeqp_risk_bound_compose {K : Type*} [Fintype K]
     (S S' : GenState X) (dL eps : K → ℝ)
     (hacc : S'.toGrowthState.protectedRisk
@@ -317,12 +231,9 @@ theorem safeqp_risk_bound_compose {K : Type*} [Fintype K]
   simp only [add_sub_cancel_left]
   exact hle
 
-/-- **The controller's detection guarantee**: a certified probe
-tolerance ε_Q strictly below the mode-drop threshold ε_Q^mode
-makes `ModeDrop` IMPOSSIBLE to coexist with the certificate —
-the predicate situation is DETECTED (contradiction), not
-swallowed. The ε_E side is untouched: the fit improvement is
-exactly what makes the mode drop dangerous (E↓ while Q↓↓). -/
+/-- A `ModeDrop` with threshold `ε_Qmode` contradicts a
+certificate `Qgen S.gen w - ε_Q ≤ Qgen S'.gen w` whenever
+`ε_Q < ε_Qmode`. -/
 theorem modeDrop_rejected (S S' : GenState X) (ε_E ε_Q ε_Qmode : ℝ)
     (w : Fin 5 → ℝ)
     (hmd : ModeDrop S S' ε_E ε_Qmode w)
@@ -356,12 +267,9 @@ w_E·E − w_Q·Q + w_C·cost with w_E, w_Q, w_C > 0. -/
 private def scalarScore (E Q cost : Ck → ℝ) (wE wQ wC : ℝ) (x : Ck) : ℝ :=
   wE * E x - wQ * Q x + wC * cost x
 
-/-- **The PROVABLE direction of the weighted-sum/Pareto duality**:
-any minimizer of a STRICTLY-POSITIVE weighted scalarization is
-Pareto-optimal. (The converse — every Pareto point maximizes
-some nonnegative scalarization — needs convexity of the
-achievable objective set and is OPEN here; finite checkpoint
-sets are generic, so only this direction is honest.) -/
+/-- Any minimizer of the strictly-positive weighted score
+`scalarScore` is Pareto-optimal. The converse needs convexity
+and is not claimed. -/
 theorem scalarized_argmin_pareto (E Q cost : Ck → ℝ) (wE wQ wC : ℝ)
     (hwE : 0 < wE) (hwQ : 0 < wQ) (hwC : 0 < wC) (x : Ck)
     (hmin : ∀ y, scalarScore E Q cost wE wQ wC x
@@ -420,13 +328,9 @@ theorem pareto_frontier_nonempty (E Q cost : Ck → ℝ) :
     (by norm_num) (by norm_num) (by norm_num) x
     (fun y => hmin y (Finset.mem_univ y))⟩
 
-/-- **`selector_skips_dominated`, the real form**: the selector
-output is characterized by the SCORE, not by recency. Concretely:
-if the LATEST checkpoint is strictly dominated (some y is at
-least as good on all three objectives and strictly better on
-one), then NO strictly-positive scalarized selector ever returns
-it — recency alone is never a tiebreak, and a dominated latest
-checkpoint is structurally excluded. -/
+/-- If `last` is strictly dominated by `y` (weakly on all
+three objectives, strictly on one), no minimizer `x` of a
+strictly-positive weighted score equals `last`. -/
 theorem selector_skips_dominated (E Q cost : Ck → ℝ) (wE wQ wC : ℝ)
     (hwE : 0 < wE) (hwQ : 0 < wQ) (hwC : 0 < wC)
     (last y : Ck)
@@ -455,25 +359,15 @@ end CheckpointPareto
 
 section QgenFrontier
 
-/-! The audit's §8 production law: the frontier injection is
-`inj_t ≥ β·C_t + η_Q·max(0, ΔQ_t) − ξ_t` — data selection
-targeting a positive generalization-probe change ΔQ_t > 0 ADDS
-to the injection rate. The R107 cone condition's β-threshold is
-then EASED: the effective production rate is
-`β_eff,t = β + η_Q·max(0, ΔQ_t)/C_t`, and the exact threshold
-`α/γ·((1+α) − ρ) + ξ_t/C_t ≤ β` becomes
-`α/γ·((1+α) − ρ) + (ξ_t − η_Q·max(0,ΔQ_t))/C_t ≤ β`. -/
+/-! The ΔQ-boosted injection dynamics ease the cone
+condition's β-threshold: with injection
+`ρ·D_t + β·C_t + η_Q·max(0, ΔQ_t) − ξ_t ≤ D_{t+1}`, the
+threshold `α/γ·((1+α) − ρ) + ξ_t/C_t ≤ β` becomes
+`α/γ·((1+α) − ρ) + (ξ_t − η_Q·max(0, ΔQ_t))/C_t ≤ β`. -/
 
-/-- **The bridge step lemma**: with the ΔQ-boosted injection
-dynamics `D_{t+1} ≥ ρ·D_t + β·C_t + η_Q·max(0, ΔQ_t) − ξ_t`
-(h_emp_dyn: the dynamics including the MEASURED probe change
-ΔQ_t), the R107 cone step holds under the EASED threshold
-`α/γ·((1+α) − ρ) + (ξ_t − η_Q·max(0,ΔQ_t))/C_t ≤ β` —
-i.e. a sustained ΔQ_t > 0 at rate η_Q buys exactly
-η_Q·max(0,ΔQ_t)/C_t of production rate. Proof: rewrite the
-dynamics as R107's form with β_eff := β + η_Q·max(0,ΔQ_t)/C_t
-(an exact identity when C_t > 0) and apply
-`frontier_cone_inductive`. -/
+/-- One cone step under the ΔQ-boosted dynamics: given
+`h_emp_dyn`, `h_C_cap`, `0 < C t`, and the eased threshold
+`hβ_eased`, the cone `α/γ * C (t+1) ≤ D (t+1)` holds. -/
 theorem qgen_frontier_bridge (C D ξ ΔQ : ℕ → ℝ) (α γ ρ β ηQ : ℝ)
     (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ) (hηQ : 0 ≤ ηQ)
     (t : ℕ) (hCpos : 0 < C t)
@@ -504,12 +398,9 @@ theorem qgen_frontier_bridge (C D ξ ΔQ : ℕ → ℝ) (α γ ρ β ηQ : ℝ)
     (β + ηQ * max 0 (ΔQ t) / C t)
     hα hγ hρ t hCpos hcone h_dyn_eff h_C_cap hβ_eff
 
-/-- **The bridge invariant**: the cone holds at EVERY t under
-the ΔQ-boosted dynamics with the per-step eased threshold —
-sustained ΔQ > 0 keeps the cone invariant with a β that R107
-alone would reject (any β ≥ (α/γ)(1+α−ρ) +
-(ξ_t − η_Q·max(0,ΔQ_t))/C_t suffices, versus R107's ξ_t/C_t
-term). -/
+/-- If the cone holds at `t = 0` and the hypotheses of
+`qgen_frontier_bridge` hold at every `t`, then
+`α/γ * C t ≤ D t` for every `t`. -/
 theorem qgen_frontier_bridge_invariant (C D ξ ΔQ : ℕ → ℝ)
     (α γ ρ β ηQ : ℝ)
     (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ) (hηQ : 0 ≤ ηQ)

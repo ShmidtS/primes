@@ -20,12 +20,12 @@ confirmed the niche ΔVar/ΔC UNOCCUPIED): under the quadratic gap
 law (ΔGap = ½·ΔVar, the empirical hypothesis behind pairVarEq /
 twoGap's cosh form), the argmax of the variance-per-cost index
 IS the argmax of the gap-per-cost index — the next-expert
-admission rule: maximize NEW logit-space variance per compute,
+admission rule: maximize new logit-space variance per compute,
 not minimize standalone loss (selection_hurts already proved
 the latter fails).
 
 **2. `branchscale_minmax`** (the reviewer's S_l²·v_l ≈ const,
-now a THEOREM): for any scale allocation with Σ s_l² = B, the
+now a theorem): for any scale allocation with Σ s_l² = B, the
 worst per-layer variance contribution satisfies
 max_l s_l²·v_l ≥ B / Σ(1/v_l) — the min-max floor, achieved when
 s_l²·v_l is uniform across layers: per-layer residual scales
@@ -35,8 +35,8 @@ is provably suboptimal whenever v_l varies).
 **3. `dead_layer_stop`** (the DepthBench adaptive-depth rule):
 with monotone decreasing layer values
 V_l = ΔQ_remove(l)/T_l, if layer L's value drops under ε then
-EVERY later layer's value does — the stop rule for adaptive
-depth L* = max{L : V_L > λ}; layer pruning = marginal-value
+every later layer's value does — the stop rule for adaptive
+depth L* = max{L: V_L > λ}; layer pruning = marginal-value
 optimization (the DesignOpt principle at intra-model scale).
 Composed from `Wave4.phase_metric_monotone`.
 
@@ -56,7 +56,7 @@ lives in Matrix.rank and is not re-proved here.
 
 1. The admission scan: for each candidate expert, one forward
    per leaf gives the pooled-softmax Var_p(z_new − z_pool);
-   admit argmax ΔVar/ΔC — NOT min-CE (selection_hurts).
+   admit argmax ΔVar/ΔC — not min-CE (selection_hurts).
 2. The per-layer scale audit: log v_l (branch variance) per
    layer; set s_l² ∝ 1/v_l (the min-max floor) instead of a
    uniform residual scale.
@@ -85,7 +85,7 @@ increment equals half its new logit-variance — the small-delta
 regime of `twoGap`/`pairVarEq`), the candidate maximizing the
 variance-per-cost index ΔVar/ΔC also maximizes the
 gap-per-cost index ΔGap/ΔC — the admission rule: the next
-expert is chosen for NEW INFORMATION per compute, not for
+expert is chosen for new INFORMATION per compute, not for
 standalone loss (`selection_hurts` proved that criterion
 fails). The composition is exact: the ½ factor commutes with
 the ratio ordering. -/
@@ -107,13 +107,13 @@ end Admission
 section BranchUniformity
 
 /-- **The BranchScale min-max floor** (the reviewer's
-S_l²·v_l ≈ const as a theorem; R75 honesty fix): for ANY
+S_l²·v_l ≈ const as a theorem; honesty fix): for ANY
 allocation of residual scales with total budget Σ s_l² = B
 over branches with variances v_l > 0, the worst per-layer
-variance contribution is at least B / Σ_l (1/v_l). HONEST
-BOUNDARY: only the LOWER bound is formalized; the
+variance contribution is at least B / Σ_l (1/v_l). honest
+boundary: only the LOWER bound is formalized; the
 attainability direction (the uniform allocation
-s_l²·v_l = const achieves the floor) is stated but NOT
+s_l²·v_l = const achieves the floor) is stated but not
 proven here — it remains an open construction. A single
 global scale s is provably suboptimal whenever the v_l
 vary. (The exchange argument: s_l² ≤ M·v_l⁻¹ summed over l
@@ -148,8 +148,8 @@ law): with monotone decreasing layer values
 V_l = ΔQ_remove(l)/T_l (the healthy regime — DepthBench's
 finding is that Pre-LN's late layers DEPART from it, their
 values collapsing toward zero), the stop rule is sound: once
-layer L's value drops under ε, EVERY later layer's value is
-under ε — depth L* = max{L : V_L > λ} is well-defined and the
+layer L's value drops under ε, every later layer's value is
+under ε — depth L* = max{L: V_L > λ} is well-defined and the
 layers beyond it are economically dead (marginal value below
 cost). Composed from `Wave4.phase_metric_monotone` — the same
 monotone-certificate structure serves both the phase tracker

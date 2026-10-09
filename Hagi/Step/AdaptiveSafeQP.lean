@@ -7,88 +7,31 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 set_option linter.style.header false
 
 /-!
-# Adaptive SafeQP: concentration for a SELECTED direction d*(ω)
+# AdaptiveSafeQP — концентрация для адаптивно выбранного направления d*(ω)
 
-R92 (`Hagi.Step.StochasticSafeQP`) proved the minibatch-gradient
-concentration only for a FIXED direction d. The real loop selects
-d* = d*(ω) from the noisy gradients themselves (the projection
-solving the QP with ĝ) — an adaptively chosen, ω-dependent
-direction, and the naive per-direction Hoeffding route breaks
-because d*(ω) couples with the noise ξ(ω). This module (R97)
-closes that gap by the standard covering-number argument, with
-every constant explicit. GOAL A of the R97 task landed.
+Концентрация минибатч-градиента (`StochasticSafeQP` — только
+фиксированное направление d) обобщается на ω-зависимое
+направление d*(ω) через явную решётчатую ε-сеть.
 
-**The route.**
+1. `latticeNet n D epsDir M` — конечная ε_dir-сеть шара
+   `{‖x‖ ≤ D}` в `EuclideanSpace ℝ (Fin n)`: точки решётки с
+   шагом `h = epsDir/√n`, нормы ≤ D + epsDir; покрывает шар
+   (`latticeNet_covers`), размер ≤ `(2M+1)^n`
+   (`latticeNet_card_le`) при `M ≥ D·√n/epsDir + 1`;
+2. `adaptive_net_concentration` — равномерная по сети и всем
+   доменам i концентрация с вероятностью ≥ 1−δ при пороге
+   `ε_net = σ(D+epsDir)√(2 log(2|K|N_net/δ)/m)`;
+3. `adaptive_direction_concentration` — перенос на любое
+   `d* : Ω → X` с `‖d*ω‖ ≤ D` (без измеримости d*):
+   `|(1/m)Σⱼ ⟪ξ_{i,j}, d*⟫| ≤ ε_net + σ·epsDir`;
+4. `adaptive_safeQP_feasibility` — если стохастический QP
+   сертифицировал d*(ω) по минибатч-градиентам с бюджетами
+   `eps i`, то истинные градиенты удовлетворяют
+   `⟪g i, d*⟫ ≥ −(eps i + ε_net + σ·epsDir)`.
 
-1. `latticeNet n D epsDir M` — a CONCRETE finite ε_dir-net of the
-   direction ball {‖x‖ ≤ D} in `EuclideanSpace ℝ (Fin n)`: the
-   integer lattice with spacing `h = epsDir/√n`, restricted to
-   lattice points of norm ≤ D + epsDir. Concretely the vectors
-   `h • z` with z ranging over the integer box `[-M, M]^n`,
-   filtered to `∑ (h·z_k)² ≤ (D + epsDir)²`, for any integer
-   `M ≥ D·√n/epsDir + 1`. Every point of the ball is within
-   epsDir of a net point (`latticeNet_covers`, coordinatewise
-   floor rounding), net points have norm ≤ D + epsDir
-   (`latticeNet_norm_le`), and the net size is ≤ `(2M+1)^n`
-   (`latticeNet_card_le`).
-
-2. `adaptive_net_concentration` — UNIFORM concentration over the
-   net. For each FIXED net point v, `⟪ξ_{i,j}, v⟫` is a function
-   of the noise only, so R92's `minibatch_inner_tail` (Hoeffding)
-   applies per net point; a two-sided union bound over |K|
-   domains × ≤ (2M+1)^n net points gives, with probability
-   ≥ 1 − δ, simultaneously for ALL i and ALL net v:
-
-     |(1/m)·Σ_j ⟪ξ_{i,j}, v⟫| ≤ ε_net,
-
-     ε_net = σ·(D + epsDir)·√(2·log(2·|K|·N_net/δ)/m),
-     N_net = (2M+1)^n.
-
-3. `adaptive_direction_concentration` — the net→actual transfer.
-   The honest handling of the coupling: the net event of (2) is a
-   SIMULTANEOUS intersection over all net points, so at each ω
-   where it holds it holds at v(ω) := the net point covering
-   d*(ω). Since ⟪ξ_avg(ω), ·⟫ is σ-Lipschitz on the ball
-   (Cauchy–Schwarz; ‖ξ_avg(ω)‖ ≤ σ and ‖d*(ω) − v(ω)‖ ≤ epsDir),
-   for ANY d* : Ω → X with ‖d*(ω)‖ ≤ D — no measurability of d*
-   is needed, the direction is evaluated at the SAME ω as the
-   noise:
-
-     |(1/m)·Σ_j ⟪ξ_{i,j}(ω), d*(ω)⟫| ≤ ε_net + σ·epsDir.
-
-4. `adaptive_safeQP_feasibility` — the R92 feasibility transfer
-   for the SELECTED direction: with probability ≥ 1 − δ, if the
-   stochastic QP certified d*(ω) against the minibatch gradients
-   (the premise the QP enforces by construction), then the TRUE
-   gradients satisfy ⟪g_i, d*(ω)⟫ ≥ −(ε_i + ε_net + σ·epsDir).
-
-**Total adaptive margin** (all constants written out):
-
-  ε_noise^adaptive = σ·(D + epsDir)·√(2·log(2·|K|·(2M+1)^n/δ)/m)
-                     + σ·epsDir,
-
-with free resolution parameter epsDir > 0 and any integer
-M ≥ D·√n/epsDir + 1. The `n·log(D/epsDir)`-type price of
-adaptivity (the covering number of the direction ball) replaces
-R92's fixed-d `log|K|`.
-
-**Honest boundaries.** (1) The space must be finite-dimensional
-(`EuclideanSpace ℝ (Fin n)`): a finite-cardinality net only
-exists in finite dimensions. (2) The statistical hypotheses are
-required for all v in the ball ‖v‖ ≤ D + epsDir — the proof only
-uses them on net points; the ball form is a clean sufficient
-condition (automatic when the noise vectors are measurable with
-mean-zero projections in every direction). (3) d* needs only the
-pointwise norm bound; measurability is NOT hypothesized because
-the net event is direction-uniform at each ω — the price is the
-Lipschitz slack σ·epsDir and the net cardinality in the exponent.
-(4) The optimal epsDir choice (balancing the two terms of the
-margin) and the infinite-dimensional / sub-Gaussian regimes are
-left open. (5) The independence-gating route (Goal B: d*
-measurable w.r.t. a σ-algebra independent of the noise — the
-independent-validation-minibatch design) is not needed on this
-route and remains unformalized; the covering route covers
-adaptive selection unconditionally.
+Ограничения: конечномерность; статистические посылки требуются
+на всём шаре `‖v‖ ≤ D + epsDir`; выбор оптимального epsDir и
+бесконечномерный режим — открыто.
 -/
 
 open Finset Real MeasureTheory ProbabilityTheory InnerProductSpace
@@ -103,25 +46,23 @@ variable {K : Type*} [Fintype K] [Nonempty K]
 
 /-! ### The explicit lattice ε-net -/
 
-/-- The lattice spacing `h = epsDir / √n` — the net resolution in
-each of the n coordinates. -/
+/-- Шаг решётки `h = epsDir/√n` — разрешение сети по каждой
+из n координат. -/
 noncomputable def latticeStep (n : ℕ) (epsDir : ℝ) : ℝ := epsDir / Real.sqrt n
 
 open Classical in
-/-- The explicit integer-lattice ε_dir-net of the direction ball
-{‖x‖ ≤ D} in `EuclideanSpace ℝ (Fin n)`: all lattice points
-`h • z` (z an integer vector in the box `[-M, M]^n`, spacing
-`h = epsDir/√n`) that lie in the ball of radius `D + epsDir`. -/
+/-- Явная целочисленно-решётчатая ε_dir-сеть шара `{‖x‖ ≤ D}` в
+`EuclideanSpace ℝ (Fin n)`: точки `h • z` с шагом
+`h = epsDir/√n`, отфильтрованные условием
+`∑ (h·z_k)² ≤ (D + epsDir)²`. -/
 noncomputable def latticeNet (n : ℕ) (D epsDir : ℝ) (M : ℕ) :
     Finset (EuclideanSpace ℝ (Fin n)) :=
   ((Fintype.piFinset fun _ : Fin n => Finset.Icc (-(M : ℤ)) M).filter
       fun z => ∑ k, (latticeStep n epsDir * (z k : ℝ)) ^ 2 ≤ (D + epsDir) ^ 2).image
     fun z => WithLp.toLp 2 fun k => latticeStep n epsDir * (z k : ℝ)
 
-/-- Net points live in the ball of radius `D + epsDir` (the
-filter condition unpacked through the Euclidean norm formula;
-requires `D + epsDir ≥ 0`, automatic in the intended regime
-`D ≥ 0`, `epsDir > 0`). -/
+/-- Точки сети лежат в шаре радиуса `D + epsDir`
+(при `0 ≤ D + epsDir`). -/
 theorem latticeNet_norm_le {n : ℕ} {D epsDir : ℝ} (hDE : 0 ≤ D + epsDir) {M : ℕ}
     {v : EuclideanSpace ℝ (Fin n)} (hv : v ∈ latticeNet n D epsDir M) :
     ‖v‖ ≤ D + epsDir := by
@@ -139,13 +80,10 @@ theorem latticeNet_norm_le {n : ℕ} {D epsDir : ℝ} (hDE : 0 ≤ D + epsDir) {
   have habs := abs_le_of_sq_le_sq hsum hDE
   rwa [abs_of_nonneg (norm_nonneg _)] at habs
 
-/-- **The covering property**: every point of the ball {‖x‖ ≤ D}
-is within epsDir of a lattice-net point. Proof: round every
-coordinate DOWN to the nearest lattice multiple (floor); each
-coordinate error lies in [0, h], so the squared norm error is at
-most `n·h² = epsDir²`; the rounded point stays in the ball of
-radius `D + epsDir` by the triangle inequality, and its integer
-coordinates are bounded by `M ≥ D·√n/epsDir + 1`. -/
+/-- Покрытие: при `0 < n`, `0 ≤ D`, `0 < epsDir` и
+`M ≥ D·√n/epsDir + 1` каждая точка x шара `‖x‖ ≤ D` лежит
+в epsDir-окрестности некоторой точки сети (покоординатное
+округление вниз). -/
 theorem latticeNet_covers {n : ℕ} (hn : 0 < n) {D epsDir : ℝ} (hD : 0 ≤ D)
     (hepsDir : 0 < epsDir) {M : ℕ} (hM : D * Real.sqrt n / epsDir + 1 ≤ (M : ℝ))
     (x : EuclideanSpace ℝ (Fin n)) (hx : ‖x‖ ≤ D) :
@@ -256,8 +194,7 @@ theorem latticeNet_covers {n : ℕ} (hn : 0 < n) {D epsDir : ℝ} (hD : 0 ≤ D)
     rw [hcalc]
     exact sq_le_sq' (by linarith [norm_nonneg v]) hvnorm
 
-/-- **The net-size bound**: the lattice net has at most
-`(2M+1)^n` points (the size of the integer box). -/
+/-- `(latticeNet n D epsDir M).card ≤ (2 * M + 1) ^ n`. -/
 theorem latticeNet_card_le (n : ℕ) (D epsDir : ℝ) (M : ℕ) :
     (latticeNet n D epsDir M).card ≤ (2 * M + 1) ^ n := by
   classical
@@ -284,32 +221,20 @@ theorem latticeNet_card_le (n : ℕ) (D epsDir : ℝ) (M : ℕ) :
 
 /-! ### Uniform concentration over the net -/
 
-/-- The explicit net-uniform noise margin:
-
-  ε_net = σ·(D + epsDir)·√(2·log(2·|K|·N_net/δ)/m),  N_net = (2M+1)^n,
-
-— the price of certifying the minibatch gradient simultaneously
-over ALL net directions and all K domains, at confidence δ. -/
+/-- Явный сетевой шумовой порог
+`ε_net = σ(D+epsDir)√(2·log(2|K|·(2M+1)^n/δ)/m)`. -/
 noncomputable def adaptiveNoiseEps (K : Type*) [Fintype K] (n : ℕ) (D epsDir : ℝ) (M : ℕ)
     (sigma : ℝ) (m : ℕ) (delta : ℝ) : ℝ :=
   sigma * (D + epsDir) *
     Real.sqrt (2 * Real.log (2 * (Fintype.card K : ℝ) * ((2 * M + 1) ^ n : ℝ) / delta) / (m : ℝ))
 
-/-- **Uniform (net-wise) minibatch concentration** — the
-covering-number core of the adaptive result: with probability
-≥ 1 − δ, simultaneously for EVERY protected domain i and EVERY
-lattice-net direction v,
-
-  |(1/m)·Σ_j ⟪ξ_{i,j}, v⟫| ≤ ε_net.
-
-For each FIXED net point v the projection ⟪ξ_{i,j}, v⟫ is a
-function of the noise only, so R92's `minibatch_inner_tail`
-(Hoeffding) applies per net point; the two-sided union bound over
-|K| domains × |net| ≤ (2M+1)^n points produces the
-log(2·|K|·(2M+1)^n/δ) in the exponent. Hypotheses are the R92
-empirical conditions, required for all v in the ball
-‖v‖ ≤ D + epsDir (a clean sufficient condition covering "all net
-points"). -/
+/-- Равномерная по сети концентрация: при статистических
+посылках на шаре `‖v‖ ≤ D + epsDir` (измеримость,
+средние нулевые, независимость, `‖ξ‖ ≤ σ`) с вероятностью
+`≥ 1 − δ` одновременно для всех i и всех точек сети v
+выполнено `|(1/m)Σⱼ ⟪ξ_{i,j}, v⟫| ≤ adaptiveNoiseEps`.
+Доказательство: пер-точечный Hoeffding (`minibatch_inner_tail`)
++ двусторонний union bound по |K| × |net| ≤ (2M+1)^n. -/
 theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
     (sigma : ℝ) (hsigma : 0 < sigma) (D : ℝ) (hD : 0 ≤ D) (epsDir : ℝ) (hepsDir : 0 < epsDir)
     {M : ℕ}
@@ -542,24 +467,12 @@ theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
     exact h1 i v hv
   simpa using not_lt.mp hnot
 
-/-- **The adaptive-direction concentration (Goal A of R97, main
-theorem)**: for ANY selected direction d* : Ω → X with
-‖d*(ω)‖ ≤ D pointwise — measurability of d* is NOT needed, the
-direction is evaluated at the same ω as the noise — with
-probability ≥ 1 − δ, simultaneously for all K domains,
-
-  |(1/m)·Σ_j ⟪ξ_{i,j}(ω), d*(ω)⟫| ≤ ε_net + σ·epsDir,
-
-  ε_net = σ·(D + epsDir)·√(2·log(2·|K|·(2M+1)^n/δ)/m).
-
-Proof: the net event of `adaptive_net_concentration` holds at ALL
-net points simultaneously; cover d*(ω) by a net point v(ω) within
-epsDir (`latticeNet_covers`) and use that ⟪ξ_avg(ω), ·⟫ is
-σ-Lipschitz (Cauchy–Schwarz, ‖ξ_avg‖ ≤ σ). This is exactly the
-standard covering-number argument for adaptively chosen
-directions — the coupling of d* with the noise is paid for by the
-net cardinality (2M+1)^n in the exponent plus the Lipschitz
-slack σ·epsDir, both explicit. -/
+/-- Для любого `dstar : Ω → EuclideanSpace ℝ (Fin n)` с
+`‖dstar ω‖ ≤ D` (измеримость не требуется): при статистических
+посылках `adaptive_net_concentration` с вероятностью `≥ 1 − δ`
+одновременно для всех i выполнено
+`|(1/m)Σⱼ ⟪ξ_{i,j}(ω), dstar ω⟫| ≤ adaptiveNoiseEps + σ·epsDir`
+(покрытие d* точкой сети + σ-липшицевость ⟪ξ_avg, ·⟫). -/
 theorem adaptive_direction_concentration {m : ℕ} (hm : 0 < m) {n : ℕ} (hn : 0 < n)
     (sigma : ℝ) (hsigma : 0 < sigma) (D : ℝ) (hD : 0 ≤ D) (epsDir : ℝ) (hepsDir : 0 < epsDir)
     {M : ℕ} (hM : D * Real.sqrt n / epsDir + 1 ≤ (M : ℝ))
@@ -630,23 +543,12 @@ theorem adaptive_direction_concentration {m : ℕ} (hm : 0 < m) {n : ℕ} (hn : 
         abs_add_le _ _
     _ ≤ adaptiveNoiseEps K n D epsDir M sigma m delta + sigma * epsDir := by linarith
 
-/-- **The adaptive SafeQP feasibility transfer (Goal A of R97)**:
-with probability ≥ 1 − δ, IF the realized stochastic constraints
-certify the SELECTED direction d*(ω) against the minibatch
-gradients ĝ_i = g_i + (1/m)Σ_j ξ_{i,j} with budgets ε_i (what the
-stochastic QP enforces by construction, for the ω-dependent
-solution d*), THEN the TRUE gradients satisfy the safety margin
-inflated by the explicit adaptive noise term:
-
-  ⟪g_i, d*(ω)⟫ ≥ −(ε_i + ε_net + σ·epsDir) for all i,
-
-  ε_net = σ·(D + epsDir)·√(2·log(2·|K|·(2M+1)^n/δ)/m).
-
-This is R92's `stochastic_safeQP_feasibility` with the fixed d
-replaced by any pointwise-D-bounded selected direction d*(ω);
-the price of adaptivity is the net cardinality (2M+1)^n in the
-exponent plus the Lipschitz slack σ·epsDir — both explicit, no
-hidden dimension absorption. -/
+/-- При посылках `adaptive_direction_concentration`:
+с вероятностью `≥ 1 − δ`, если стохастические ограничения
+сертифицировали d*(ω) по минибатч-градиентам
+(`−eps i ≤ ⟪g i + (1/m)Σⱼ ξ_{i,j}, d*⟫` для всех i),
+то `⟪g i, dstar ω⟫ ≥ −(eps i + adaptiveNoiseEps + σ·epsDir)`
+для всех i. -/
 theorem adaptive_safeQP_feasibility {m : ℕ} (hm : 0 < m) {n : ℕ} (hn : 0 < n)
     (sigma : ℝ) (hsigma : 0 < sigma) (D : ℝ) (hD : 0 ≤ D) (epsDir : ℝ) (hepsDir : 0 < epsDir)
     {M : ℕ} (hM : D * Real.sqrt n / epsDir + 1 ≤ (M : ℝ))

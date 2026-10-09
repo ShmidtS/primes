@@ -6,40 +6,23 @@ set_option linter.style.header false
 set_option linter.style.openClassical false
 
 /-!
-# R103: the ternary saturation bridge — the actual quantizer's
-global error, honestly
+# The ternary saturation bridge — the actual quantizer's global error
 
-The external audit (§5) found the gap in the R70 chain
-(`Hagi.Energy.QuantBridge`): `quant_energy_bridge` ASSUMES
-`∀ i, |w i − q i| ≤ s/2` — per-coordinate rounding error ≤ half
-step. The ACTUAL ternary quantizer
-(`Hagi.Energy.Ternary.roundTern`: nearest-grid rounding on
-`{-1, 0, +1}·s`, which SATURATES — a coordinate with
-`|w i| > 3s/2` clips to `±s`) does not guarantee this: a
-saturated coordinate's error is its distance to the clipped
-endpoint `|w i| − s`, not `≤ s/2`.
+The actual ternary quantizer `qTern` (nearest-grid rounding on
+`{-1, 0, +1}·s`, saturating: `|x| > 3s/2` clips to `±s`) splits
+the error budget:
 
-This module closes the gap by splitting the error budget:
+* in-range coordinates (`|x| ≤ 3s/2`): error `≤ s/2`
+  (`qTern_error_in`);
+* out-of-range coordinates: error exactly `|x| − s`
+  (`qTern_error_out`), collected in the saturation tail
+  `satTail`.
 
-* **in-range** coordinates (`|w i| ≤ 3s/2`): rounding error
-  `≤ s/2` (`qTern_error_in`, from `roundTern_error_scaled`) —
-  the part the old bridge assumed for ALL coordinates;
-* **out-of-range** coordinates: error exactly `|w i| − s`
-  (`qTern_error_out`) — the explicit saturation tail
-  `satTail s w = Σ_out (|w i| − s)²`.
-
-`ternary_split_bound` is the exact decomposition of the total
-squared quantization error into these two named parts;
-`quant_energy_bridge_saturation` is the honest global energy
-bound `ΔE ≤ κ·(√n·s/2 + √satTail)` with NO in-range assumption;
-`no_saturation_recover` shows that when the tail vanishes the
-old R70 hypothesis is DERIVED, not assumed.
-
-**Runtime mapping.** `satTail` is the pre-quantization
-diagnostic: per tensor, measure `Σ overshoot² = Σ (|w| − s)²`
-over coordinates outside `3s/2` (computable from a checkpoint);
-compare `κ·√satTail` against the cost of a rescale/clip policy
-(widen s, clip, or split the group) and pick the cheaper side.
+`ternary_split_bound` decomposes the total squared error
+exactly; `quant_energy_bridge_saturation` gives the global
+bound `ΔE ≤ κ·(√n·s/2 + √satTail)` with no in-range assumption;
+`no_saturation_recover` derives the half-step hypothesis when
+nothing saturates.
 -/
 
 namespace Hagi
@@ -77,11 +60,8 @@ theorem qTern_error_in (s x : ℝ) (hs : 0 < s) (hx : ternInRange s x) :
     |x - qTern s x| ≤ s / 2 :=
   roundTern_error_scaled s x hs hx
 
-/-- **Saturated coordinates have EXACTLY the clipped distance as
-error**: for `|x| > 3s/2` the quantizer returns the endpoint
-`±s`, so the error is `|x| − s` — the overshoot, not `≤ s/2`.
-This is the point the audit flagged: the R70 hypothesis fails
-precisely here. -/
+/-- For `|x| > 3s/2` the quantizer clips to the endpoint `±s`,
+so the error is exactly `|x| - s`. -/
 theorem qTern_error_out (s x : ℝ) (hs : 0 < s) (hx : ¬ ternInRange s x) :
     |x - qTern s x| = |x| - s := by
   have hout : 3 * s / 2 < |x| := not_le.mp hx
@@ -112,11 +92,9 @@ theorem qTern_error_out (s x : ℝ) (hs : 0 < s) (hx : ¬ ternInRange s x) :
 
 /-! ## The exact split of the total squared error -/
 
-/-- **`ternary_split_bound`** — the exact decomposition of the
-total squared quantization error of the ACTUAL quantizer into
-its two named parts: the in-range (rounding) part and the
-saturation tail. No inequality, no assumption on the weights:
-`‖w − Q(w)‖² = Σ_in (w i − Q i)² + satTail s w`. -/
+/-- The exact decomposition of the total squared error into
+the in-range part and the saturation tail:
+`∑ i, (w i - qTern s (w i)) ^ 2 = Σ_in … + satTail s w`. -/
 theorem ternary_split_bound (s : ℝ) {n : ℕ} (hs : 0 < s) (w : Fin n → ℝ) :
     ∑ i, (w i - qTern s (w i)) ^ 2
       = ∑ i ∈ Finset.univ.filter (fun i => ternInRange s (w i)),
@@ -165,11 +143,8 @@ theorem ternary_inrange_bound (s : ℝ) {n : ℕ} (hs : 0 < s) (w : Fin n → �
     _ = (Finset.univ.filter (fun i => ternInRange s (w i))).card * (s / 2) ^ 2 := by
         rw [Finset.sum_const, Finset.card_filter, nsmul_eq_mul]
 
-/-- **The budget form of the split**: the total squared error of
-the actual quantizer is at most `n·(s/2)² + satTail` — the
-in-range rounding budget plus the EXPLICIT saturation tail
-(in-range count bounded by the full `n`, so the bound is
-computable without the split). -/
+/-- The total squared error is at most
+`(n : ℝ) * (s / 2) ^ 2 + satTail s w`. -/
 theorem ternary_split_le (s : ℝ) {n : ℕ} (hs : 0 < s) (w : Fin n → ℝ) :
     ∑ i, (w i - qTern s (w i)) ^ 2 ≤ (n : ℝ) * (s / 2) ^ 2 + satTail s w := by
   have hsplit := ternary_split_bound s hs w
@@ -212,19 +187,10 @@ private theorem sqrt_add_le (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) :
 
 /-! ## The honest global energy bridge -/
 
-/-- **`quant_energy_bridge_saturation`** — the audit-§5 fix: the
-global replacement for `QuantBridge.quant_energy_bridge`'s
-hypothesis `∀ i, |w i − q i| ≤ s/2`, with NO assumption that the
-coordinates are in range. The energy cost of quantizing `n`
-weights with the ACTUAL saturating ternary quantizer at scale
-`s`, under the measured κ-Lipschitz constant of the energy in
-the weight Euclidean norm, is at most
-
-  ΔE ≤ κ·(√n·s/2 + √(satTail s w))
-
-— the old `κ√n·s/2` plus the honest, measurable saturation term
-`√(Σ_out (|w i| − s)²)`, computable from a checkpoint as the sum
-of squared overshoots. -/
+/-- If `dE ≤ kappa * √(Σ quantization squares)`, then
+`dE ≤ kappa * (√n * s / 2 + √(satTail s w))`: the energy cost
+is bounded by the rounding term plus the saturation tail, with
+no in-range assumption. -/
 theorem quant_energy_bridge_saturation {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
     (hs : 0 < s) (hkappa : 0 ≤ kappa)
     (h_emp_lip : dE ≤ kappa * Real.sqrt (∑ i, (w i - qTern s (w i)) ^ 2)) :
@@ -248,15 +214,9 @@ theorem quant_energy_bridge_saturation {n : ℕ} (w : Fin n → ℝ) (s kappa dE
 
 /-! ## Recovery of the old bridge when nothing saturates -/
 
-/-- **`no_saturation_recover`** — the audit's gap closes
-exactly: if ALL coordinates are in range (`|w i| ≤ 3s/2`, i.e.
-the saturation tail vanishes: no coordinate overshoots the
-grid), the old R70 hypothesis `∀ i, |w i − q i| ≤ s/2` is
-DERIVED (`qTern_error_in` holds for every `i` — not assumed),
-and the old bridge's conclusion `ΔE ≤ κ·√n·s/2` follows from
-the saturation bridge with `√satTail = 0`. The half-step
-hypothesis of `Hagi.Energy.QuantBridge` is now a corollary of
-the actual quantizer's geometry, not an external assumption. -/
+/-- If all coordinates are in range, the saturation tail
+vanishes: the half-step bound `|w i - qTern s (w i)| ≤ s / 2`
+holds for every `i`, and `dE ≤ kappa * √n * s / 2`. -/
 theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
     (hs : 0 < s) (hkappa : 0 ≤ kappa)
     (hall : ∀ i, ternInRange s (w i))

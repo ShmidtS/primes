@@ -6,28 +6,22 @@ set_option linter.style.header false
 
 
 /-!
-# The ternary DFT-3 (F₃) mixer of the recursive growth cycle
+# The ternary DFT-3 (F₃) mixer
 
-HAGI_v2 grows models by merging experts in **groups of three** via the
-complex DFT-3 mixer (README.md "Growth cycle algorithm"):
+Character form of the k-fold DFT-3 mixer on the index type
+`Fin k → ZMod 3` (the flattening of the Kronecker recursion
+`F₃ ⊗ₖ F₃ᵏ⁻¹`; the binary Kronecker algebra is in
+`Hagi.Core.Kronecker`):
 
-> Merge three experts via the ternary DFT-3 mixer … recombines them
-> with a unitary F₃ ⊗ I mixer. F₃ is unitary, every entry has modulus
-> 1/√3 — uniform mixing with no blind channels. Groups of size 3ᵏ
-> (3, 9, 27, …) are supported via Kronecker recursion F₃ᵏ.
-
-This module formalizes, in the character form on the index type
-`Fin k → ZMod 3` (the canonical flattening of the Kronecker recursion
-`F₃ ⊗ₖ F₃ᵏ⁻¹`; the binary Kronecker algebra is proved in
-`Hagi.Core/Kronecker`):
-
-* `omega` = e^{2πi/3}: `ω³ = 1`, `ω ≠ 1`, `ω² + ω + 1 = 0`, `‖ω‖ = 1`;
-* `chi3 : ZMod 3 → ℂ` the multiplicative character: `χ₃ a * χ₃ b =
-  χ₃ (a + b)`, `conj (χ₃ x) = χ₃ (-x)`, `‖χ₃ x‖ = 1`;
-* **orthogonality of nontrivial characters** on `(ZMod 3)^k`;
-* `dftPow k`, the k-fold mixer: unitary (`F₃ᵏ * (F₃ᵏ)ᴴ = 1`) with
-  every entry of modulus `1 / √(3^k)` — uniform mixing, no blind
-  channels.
+* `omega` = e^{2πi/3}: `omega ^ 3 = 1`, `omega ≠ 1`,
+  `omega ^ 2 + omega + 1 = 0`, `‖omega‖ = 1`;
+* `chi3 : ZMod 3 → ℂ` the multiplicative character:
+  `chi3 a * chi3 b = chi3 (a + b)`, `conj (chi3 x) = chi3 (-x)`,
+  `‖chi3 x‖ = 1`;
+* `sum_chi3_eq_zero` — orthogonality of the nontrivial character on
+  `(ZMod 3)^k`;
+* `dftPow_mul_conjTranspose` — `dftPow k` is unitary;
+  `dftPow_entry_modulus` — every entry has modulus `1 / √(3^k)`.
 -/
 
 open scoped Matrix
@@ -258,8 +252,7 @@ theorem charMat_mul_conjTranspose :
   · rw [sum_chi3_eq_zero (fun hcon => h (sub_eq_zero.mp hcon))]
     simp [Matrix.smul_apply, h]
 
-/-- **The DFT-3 mixer is unitary**: `F₃ᵏ * (F₃ᵏ)ᴴ = 1` — "F₃ is
-unitary … uniform mixing with no blind channels" (README.md). -/
+/-- The k-fold mixer is unitary: `dftPow k * (dftPow k)ᴴ = 1`. -/
 theorem dftPow_mul_conjTranspose : dftPow k * (dftPow k)ᴴ = 1 := by
   set c : ℂ := ((Real.sqrt (3 ^ k : ℝ)) : ℂ)⁻¹ with hc
   have hconj : conj c = c := by
@@ -280,8 +273,7 @@ theorem dftPow_mul_conjTranspose : dftPow k * (dftPow k)ᴴ = 1 := by
   rw [hdft, hconjT, Matrix.smul_mul, Matrix.mul_smul, smul_smul,
     charMat_mul_conjTranspose, smul_smul, hd, one_smul]
 
-/-- **Every entry has modulus `1/√(3^k)`** — uniform mixing with no
-blind channels (README.md). -/
+/-- Every entry of `dftPow k` has modulus `(Real.sqrt (3 ^ k : ℝ))⁻¹`. -/
 theorem dftPow_entry_modulus (i j : Fin k → ZMod 3) :
     ‖dftPow k i j‖ = (Real.sqrt (3 ^ k : ℝ))⁻¹ := by
   rw [dftPow_apply, norm_mul, chi3_norm, mul_one, norm_inv,

@@ -6,32 +6,26 @@ import Mathlib
 /-!
 # GrowthDynamics — the single bundle of growth-premises
 
-The R199 premise-deduplication (audit point 3): the growth
-cone/takeoff family (`frontier_cone_*`, `sustained_takeoff_*`,
-`MasterHAGI_trunc`, `hagi_synthesis`) all consume the SAME
-8-premise bundle, previously restated verbatim at every site.
-Here the bundle is ONE structure; the empirical nature of each
-field is visible in its name (`emp*`) — conditional results now
-carry their conditionality in the SIGNATURE, not in docstring
-prose.
+One structure collecting the 8-premise bundle consumed by the
+cone/takeoff family. The empirical nature of each field is
+visible in its name (`emp*`): conditional results carry their
+conditionality in the signature.
 
-Fields (the measured laws of one growth step):
 * `hα hγ hρ` — sign hypotheses on the rates;
-* hC0 — the seed capability is positive;
-* empCone0 — the initial cone condition (α/γ)·C₀ ≤ D₀;
-* empStep — the capability update law C_{t+1} = C_t + G_t;
-* empGainProd — production: γ·D_t ≤ G_t;
-* empDyn — the D-dynamics with loss ξ: ρ·D + β·C − ξ ≤ D′;
-* empCCap — the multiplicative capability cap;
-* empBeta — the cone-sustaining β bound.
+* `hC0` — the seed capability is positive;
+* `empCone0` — the initial cone condition `(α/γ)·C₀ ≤ D₀`;
+* `empStep` — the capability update law `C_{t+1} = C_t + G_t`;
+* `empGainProd` — production `γ·D_t ≤ G_t`;
+* `empDyn` — the D-dynamics with loss ξ: `ρ·D + β·C − ξ ≤ D′`;
+* `empCCap` — the multiplicative capability cap;
+* `empBeta` — the cone-sustaining β bound.
 -/
 
 namespace Hagi.Foundations
 
-/-- The growth-dynamics premise bundle: ONE object instead of
-eight positional hypotheses restated at every cone/takeoff
-site. All `emp*` fields are MEASURED/EMPIRICAL laws (the
-conditional content of every consumer theorem). -/
+/-- The growth-dynamics premise bundle: one object instead of
+eight positional hypotheses. All `emp*` fields are empirical
+laws, not derived facts. -/
 structure GrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (T : ℕ) : Prop where
   /-- the growth rate is positive -/

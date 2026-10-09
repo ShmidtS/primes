@@ -4,52 +4,29 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.GainDecomposition
 
 /-!
-# OptimizerStage — the optimizer transformation as a separate
-conversion stage (source arXiv:2610.02179v1)
+# OptimizerStage — оптимизатор как отдельная стадия конверсии
 
-The multi-teacher experiment: teacher gradients g₁ ≉ g₂ can
-become nearly-identical UPDATES after the optimizer (cosine
-> 0.83 with preserved Adam state, ≈ 0 after first-moment
-reset; the current teacher-specific displacements themselves
-are nearly orthogonal, cos < 0.01). The disagreement chain
-must therefore pass through an OPTIMIZER bottleneck:
+Цепочка
+`E_dev →η_p→ G_policy →η_o→ G_update →η_s→ G_cap`.
 
-  E_dev --η_policy--> G_policy --η_opt--> G_update
-      --η_state--> G_cap
-
-* `etaOpt` — the optimizer conversion ratio: how much of the
-  gradient-space disagreement survives the optimizer
-  transformation (measured as update-space disagreement over
-  gradient-space disagreement);
-* `gain_chain_opt` — the three-stage composition law:
-  G_cap = η_state·η_opt·η_policy·E_dev — the multiplicative
-  chain, each factor separately measurable;
-* `any_stage_kills_gain` — the necessity result extended:
-  a nonpositive stage with nonnegative partners kills the
-  total gain — the γ = 9× deficit question now has THREE
-  separately diagnosable bottlenecks (policy/distill,
-  optimizer, consolidation) plus the merge price.
-
-Empirical anchors (flagged, NOT constants of nature —
-Qwen3-1.7B-scale measurements): Adam first-moment ≈ aligns
-teacher updates (η_opt ↓), momentum-free SGD preserved more
-of the disagreement (higher scores DR 39.94 vs 38.91); the
-β₁ = 0 / first-moment-reset regime on the consolidation
-segment is the indicated experiment.
+* `etaOpt`: `etaOpt D_grad D_update = D_update / D_grad`;
+* `gain_chain_opt`: если `G_policy = η_p·E_dev`,
+  `G_update = η_o·G_policy`, `G_cap = η_s·G_update`, то
+  `G_cap = (η_p·η_o·η_s)·E_dev`;
+* `any_stage_kills_gain`: при `0 ≤ E_dev` и тех же посылках,
+  если одна из η ≤ 0 при неотрицательных остальных, то
+  `G_cap ≤ 0`.
 -/
 
 namespace Hagi
 
-/-- The optimizer conversion ratio: update-space
-disagreement over gradient-space disagreement — how much
-disagreement the optimizer TRANSPORTS rather than cancels. -/
+/-- Отношение конверсии оптимизатора:
+`etaOpt D_grad D_update = D_update / D_grad`. -/
 noncomputable def etaOpt (D_grad D_update : ℝ) : ℝ :=
   D_update / D_grad
 
-/-- **The three-stage chain**: if all three conversions hold
-(policy → gradient-space gain → optimizer transport →
-state consolidation), the total conversion is the PRODUCT of
-three separately measurable factors. -/
+/-- Если `G_policy = η_p·E_dev`, `G_update = η_o·G_policy` и
+`G_cap = η_s·G_update`, то `G_cap = (η_p·η_o·η_s)·E_dev`. -/
 theorem gain_chain_opt (E_dev G_policy G_update G_cap
     η_p η_o η_s : ℝ)
     (h1 : G_policy = η_p * E_dev)
@@ -61,10 +38,9 @@ theorem gain_chain_opt (E_dev G_policy G_update G_cap
   rw [h3]
   ring
 
-/-- **Necessity of every stage (extended)**: a nonpositive
-stage with nonnegative partners kills the total gain — the
-chain has no bypass through ANY of the three stages; the
-γ-deficit localizes to whichever η is small. -/
+/-- Если `0 ≤ E_dev`, выполняются посылки `gain_chain_opt` и
+одна из `η_p`, `η_o`, `η_s` ≤ 0 при неотрицательных
+остальных, то `G_cap ≤ 0`. -/
 theorem any_stage_kills_gain (E_dev G_policy G_update G_cap
     η_p η_o η_s : ℝ)
     (hE : 0 ≤ E_dev)

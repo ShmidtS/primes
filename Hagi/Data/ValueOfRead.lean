@@ -38,7 +38,7 @@ output perturbation is controlled by it).
   signal is the measured per-segment gain, the policy is its
   argmax — no search at inference time).
 
-**Prescription for the code (long-context phase ONLY).**
+**Prescription for the code (long-context phase only).**
 
 1. The controller trains on the measured trade-off: the
    segment-gain table (the loss reduction from adding a
@@ -51,7 +51,7 @@ output perturbation is controlled by it).
    measured, not tuned.
 3. **Honesty condition**: the bounds are conditional on the
    block-savings being material (T above the threshold where
-   the mass skipped is a small fraction of the total); DO NOT
+   the mass skipped is a small fraction of the total); DO not
    port to the code before the long-context phase — the
    constants of the softmax Lipschitz bound are the classical
    ones and the module only fixes the STRUCTURE (mass, not
@@ -73,7 +73,7 @@ the decision variable of the policy. -/
 
 /-- The full softmax weights. -/
 noncomputable def softmaxW (s : B → ℝ) (b : B) : ℝ :=
-  -- R198: = Prelude.softDef (historical name kept)
+  --: = Prelude.softDef (historical name kept)
   Hagi.Prelude.softDef s b
 
 /-- **The uniform-skip bound: the TV regression of skipping is

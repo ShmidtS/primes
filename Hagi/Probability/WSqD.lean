@@ -4,14 +4,14 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Probability.NoiseTemperature
 
 /-!
-# WSqD — the full warm-stable-decay noise budget (R254;
+# WSqD — the full warm-stable-decay noise budget (;
 plan §5.4, source 2607.10959 + 1711.00489)
 
 The WSqD scheduler runs THREE phases: warmup, a long
 STABLE phase at constant batch B₀, and a DECAY phase with
 geometrically growing batch (the "cooldown"). The
 literature's full theorem (quality of WSqD ≥ WSD at equal
-budget) is empirical-plus-optimizer-theoretic and NOT
+budget) is empirical-plus-optimizer-theoretic and not
 formalizable end-to-end here; what IS formalizable — and
 what the recipe actually exploits — is the NOISE BUDGET
 accounting of the composition:
@@ -21,7 +21,7 @@ accounting of the composition:
   the phase length;
 * `cooldown_tail_constant`: the ENTIRE decay phase — of ANY
   length — costs at most σ²·c/(B₀(c−1)), the geometric
-  bound of `anneal_by_batch` (R174d): an unboundedly long
+  bound of `anneal_by_batch`: an unboundedly long
   cooldown is nearly free in noise;
 * `wsqd_noise_budget`: the composed budget is the linear
   stable term plus the constant cooldown tail —
@@ -50,7 +50,7 @@ theorem stable_phase_noise {sigma : ℝ} (B0 : ℝ)
 
 /-- **The cooldown tail is CONSTANT**: the entire decay
 phase — of ANY length — contributes at most the geometric
-bound σ²·c/(B₀(c−1)) (`anneal_by_batch`, R174d). An
+bound σ²·c/(B₀(c−1)) (`anneal_by_batch`,). An
 unboundedly long cooldown is nearly free in noise. -/
 theorem cooldown_tail_constant {sigma : ℝ}
     (B : ℕ → ℝ) (n_d : ℕ) (hsigma : 0 ≤ sigma)

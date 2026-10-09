@@ -8,34 +8,26 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# R128: FactorRank — неотрицательный ранг vs обычный (gap-aware)
+# FactorRank — неотрицательный ранг vs обычный (gap-aware)
 
-По разбору статьи «Gap-Aware Exact Nonnegative Matrix
-Factorization» (2606.25715) и её стыковке с HAGI
-(FactorizedMerge / RankBudget / рост фактор-пространства).
+По статье «Gap-Aware Exact Nonnegative Matrix Factorization»
+(source: 2606.25715).
 
-**Безопасное ядро, формализуемое без споров статьи:**
+* `nonnegFactorization M k` — `M = W * H` с `W, H ≥ 0` и
+  внутренней размерностью `k`; `nonnegRank` — минимальная
+  такая `k`.
+* `rank_le_nonnegRank` — при существовании факторизации
+  `rank(M) ≤ nonnegRank(M)`: gap `r₊ − r ≥ 0` всегда.
+* `factorGap` — `rank(M) < nonnegRank(M)` (диагностический
+  предикат, не теорема о loss).
+* `positive_measure_pos_prob` — из `μ F > 0` следует лишь
+  `μ Fᶜ < 1`, а не `μ Fᶜ = 0`.
+* `regimeAFactor` / `regimeCFactor` / `regimeC_fractional` —
+  классификация фактора `W` и дробный рост capacity в
+  режиме C.
 
-* `nonnegFactorization M k` — M = W·H с W, H ≥ 0 и
-  внутренней размерностью k.
-* `rank_le_nonnegRank` — rank(M) ≤ r₊(M): обычный ранг
-  никогда не превосходит неотрицательного. Следствие:
-  gap Δr = r₊ − r ≥ 0 всегда, и Δr > 0 — законная мера
-  дополнительной expert capacity (Growth Gate по §3 разбора).
-* `positive_measure_pos_prob` — ЧЕСТНАЯ вероятностная
-  форма (§12 разбора): μ(F) > 0 даёт лишь P(success) > 0
-  (μ(Fᶜ) < 1), а НЕ P = 1; усиленная версия статьи в Lean
-  не импортируется.
-* `FactorRegime` A/B/C — трёхрежимная классификация
-  (§5): полный новый subspace / переиспользование базиса /
-  дробный рост.
-* `factorGap` — Δr > 0 как диагностический гейт расширения
-  expert space (не теорема о loss — честная граница §3).
-
-**Честные границы**: NMF-допущения не переносятся на signed
-transformer weights напрямую (разбор §18); слепой поиск
-факторов (blind solver, §9) — вне Lean; Stiefel→Grassmannian
-quotient (§11) — направление, здесь не формализуется.
+NMF-допущения на signed transformer weights не переносятся;
+это здесь не формализуется.
 -/
 
 open Matrix MeasureTheory Finset
@@ -51,11 +43,8 @@ def nonnegFactorization (M : Matrix m n ℝ) (k : ℕ) : Prop :=
   ∃ (W : Matrix m (Fin k) ℝ) (H : Matrix (Fin k) n ℝ),
     (∀ i j, 0 ≤ W i j) ∧ (∀ i j, 0 ≤ H i j) ∧ M = W * H
 
-/-- **rank ≤ r₊**: обычный ранг произведения ≤ ранга любого
-фактора ≤ ширины фактора; в частности rank(M) ≤ r₊(M) для
-минимальной внутренней размерности. Gap Δr = r₊ − r ≥ 0
-всегда; Δr > 0 — законная мера дополнительной expert
-capacity. -/
+/-- Если `M` имеет неотрицательную факторизацию внутренней
+размерности `k`, то `M.rank ≤ k`. -/
 theorem rank_le_of_nonnegFactorization (M : Matrix m n ℝ) (k : ℕ)
     (hf : nonnegFactorization M k) :
     M.rank ≤ k := by
@@ -74,8 +63,8 @@ theorem rank_le_of_nonnegFactorization (M : Matrix m n ℝ) (k : ℕ)
 noncomputable def nonnegRank (M : Matrix m n ℝ) : ℕ :=
   sInf {k | nonnegFactorization M k}
 
-/-- **rank(M) ≤ nonnegRank(M)** при существовании хотя бы
-одной факторизации (gap Δr = r₊ − r ≥ 0 всегда). -/
+/-- Если существует хоть одна неотрицательная факторизация,
+то `M.rank ≤ nonnegRank M`. -/
 theorem rank_le_nonnegRank (M : Matrix m n ℝ)
     (hexists : ∃ k, nonnegFactorization M k) :
     M.rank ≤ nonnegRank M := by
@@ -86,9 +75,7 @@ theorem rank_le_nonnegRank (M : Matrix m n ℝ)
   show M.rank ≤ sInf {j | nonnegFactorization M j}
   exact rank_le_of_nonnegFactorization M _ hmem
 
-/-- **Gap-факторизация**: r₊ > r — есть структурный аргумент
-в пользу расширения expert space (диагностический гейт,
-НЕ теорема о loss — честная граница разбора §3). -/
+/-- Gap-предикат: `M.rank < nonnegRank M`. -/
 def factorGap (M : Matrix m n ℝ) : Prop :=
   M.rank < nonnegRank M
 
@@ -96,12 +83,8 @@ def factorGap (M : Matrix m n ℝ) : Prop :=
 
 variable {Ω : Type} [MeasurableSpace Ω]
 
-/-- **μ(F) > 0 ⇒ лишь P(success) > 0, а НЕ P = 1**:
-положительная мера множества допустимых gauges даёт
-положительную вероятность успеха и вероятность неудачи
-< 1. Сильная форма «вероятность один» требует отдельного
-доказательства μ(Fᶜ) = 0 — в Lean НЕ импортируется
-(предостережение §12 разбора статьи). -/
+/-- Если `F` измеримо и `0 < μ F`, то `μ Fᶜ < 1`.
+Сильная форма (`μ Fᶜ = 0`) здесь не доказывается. -/
 theorem positive_measure_pos_prob (μ : Measure Ω)
     [IsProbabilityMeasure μ] (F : Set Ω) (hF : MeasurableSet F)
     (hpos : 0 < μ F) :
@@ -129,24 +112,16 @@ theorem positive_measure_pos_prob (μ : Measure Ω)
 
 /-! ## Три режима (§5 разбора) -/
 
-/-- Классификация ФАКТОРА W при M = W·H, rank(M) = r,
-внутренняя размерность k = r₊:
-
-* `regimeAFactor` — rank W = k: полноценный новый expert
-  subspace (все k направлений используются);
-* `regimeCFactor` — r < rank W < k: ДРОБНЫЙ рост — новый
-  эксперт получает только часть новой subspace capacity
-  (самый интересный режим для HAGI-роста, §5);
-* режим B (rank = r, переиспользование базиса) — это
-  rank W = r при k > r. -/
+/-- Режим A: фактор `W` использует всю внутреннюю
+размерность (`W.rank = k`). Режим C (`regimeCFactor`) —
+дробный рост: `r < W.rank < k`. -/
 def regimeAFactor (W : Matrix m (Fin k) ℝ) : Prop :=
   W.rank = k
 
 def regimeCFactor (W : Matrix m (Fin k) ℝ) (r : ℕ) : Prop :=
   r < W.rank ∧ W.rank < k
 
-/-- Режим C даёт дробный рост capacity: k − r новых
-направлений, из которых задействовано rank W − r ∈ (0, k−r). -/
+/-- В режиме C: `0 < W.rank - r` и `W.rank - r < k - r`. -/
 theorem regimeC_fractional {W : Matrix m (Fin k) ℝ} {r : ℕ}
     (hC : regimeCFactor W r) :
     0 < W.rank - r ∧ W.rank - r < k - r := by

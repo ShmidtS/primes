@@ -9,10 +9,10 @@ set_option linter.style.header false
 /-!
 # Distill: the exact CE/KL identities of the distillation axis
 
-R78 honesty fix: `crossEntropy` now carries the standard
+ honesty fix: `crossEntropy` now carries the standard
 minus sign (CE_q(p) = −Σ q log p), `klDiv` is defined as
 Σ q log(q/p), and the two identities are proved against
-these REAL definitions (the pre-R78 versions were trivial
+these REAL definitions (the pre- versions were trivial
 algebra on a signless pseudo-CE).
 
 **The exact identities (THEOREMS):**
@@ -41,7 +41,7 @@ algebra on a signless pseudo-CE).
   the teacher-student divergence; the distillable gap is
   EXACTLY the divergence.
 
-**The expressivity hypothesis (NOT a theorem).** Whether an
+**The expressivity hypothesis (not a theorem).** Whether an
 H=384 student can drive E[KL(p_E‖p_θ)] ≤ δ is the open
 expressivity question (round 22 P4): recorded as the
 explicit hypothesis DistillExpressivity(H, δ) with the
@@ -69,14 +69,14 @@ section Distill
 variable {V : Type*} [Fintype V]
 
 /-- The cross-entropy of model p against distribution q:
-CE_q(p) = −Σ q log p (the standard sign — R78 fix). -/
+CE_q(p) = −Σ q log p (the standard sign — fix). -/
 noncomputable def crossEntropy (q p : V → ℝ) : ℝ :=
   -∑ v, q v * Real.log (p v)
 
 /-- The Kullback–Leibler divergence KL(q‖p) = Σ q log(q/p)
-(the real definition — R78 fix). -/
+(the real definition — fix). -/
 noncomputable def klDiv (q p : V → ℝ) : ℝ :=
-  -- R198: = Prelude.klDef (kept under the historical name)
+  --: = Prelude.klDef (kept under the historical name)
   Hagi.Prelude.klDef q p
 
 /-- **KL is the excess cross-entropy** over the entropy
@@ -99,7 +99,7 @@ theorem kl_eq_ce_gap (q p : V → ℝ) (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p 
         (fun v : V => q v * Real.log (p v))]
   ring
 
-/-- **The master identity (THEOREM, R78 real version).**
+/-- **The master identity (theorem, real version).**
 For any data distribution q and models p_E, p_θ (all
 positive):
 
@@ -117,7 +117,7 @@ theorem ce_gap_kl_identity (q pE pTheta : V → ℝ)
   ring
 
 /-- **The teacher-generated distillation identity
-(THEOREM, R78 real version).** When the targets are the
+(theorem, real version).** When the targets are the
 teacher's own distribution (the soft-target protocol,
 q = p_E):
 

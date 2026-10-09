@@ -7,17 +7,16 @@ import Hagi.Dynamics.FastGrowth
 set_option linter.style.header false
 
 /-!
-# R86: the optimal controller policy — derived
+# ControllerPolicy — выведенная оптимальная политика контроллера
 
-The action-selection theorems the HAGI controller runs on:
-- `ratio_dominance`: the best certified-ratio action
-  Γ/K dominates every fixed alternative under a common
-  budget — the ΔI_certified/ΔT_wall principle as an
-  exchange lemma.
-- `budget_allocation_dominance`: concentrating compute on
-  argmax Γ/K certifies total gain ≥ ANY split allocation —
-  the waterfilling law for ACTIONS; the optimal certified
-  controller policy, derived from the theorems alone.
+* `ratio_dominance`: при максимальном сертифицированном
+  отношении `Γ ibest/K ibest` и бюджете B —
+  `Gam j·(B/K j) ≤ Gam ibest·(B/K ibest)`;
+* `budget_allocation_dominance`: при неотрицательных
+  `alloc` с `Σ alloc a·K (idx a) ≤ B` —
+  `Σ Gam (idx a)·alloc a ≤ (Gam ibest/K ibest)·B` —
+  концентрация бюджета на лучшем отношении доминирует
+  любое разбиение.
 -/
 
 open Real Finset
@@ -37,11 +36,9 @@ theorem ratio_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest j : ℕ) (B
   rw [e1, e2] at hmul
   exact hmul
 
-/-- **The budget allocation law (waterfilling for actions)**:
-under a common budget B, concentrating ALL compute on the
-best-ratio action certifies total gain >= the certified
-gain of ANY split allocation. The optimal ACTION-SELECTION
-policy of the HAGI controller, derived from certificates. -/
+/-- При `0 < K i`, максимальном отношении
+`Gam i/K i ≤ Gam ibest/K ibest` и `0 ≤ B`:
+`Gam j·(B/K j) ≤ Gam ibest·(B/K ibest)`. -/
 theorem budget_allocation_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest : ℕ)
     {iota : Type} [Fintype iota] (idx : iota → ℕ) (alloc : iota → ℝ) (B : ℝ)
     (hK : ∀ i, 0 < K i) (hGam : ∀ i, 0 ≤ Gam i)
