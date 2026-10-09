@@ -39,6 +39,7 @@ LAYERS = {
     "Pretraining": 5,
     "Discovery": 5,
     "Autonomy": 5,
+    "Omni": 5,
     "Unified": 6,
 }
 
@@ -46,28 +47,19 @@ LAYERS = {
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
     # (R169: 49; R170: 46; R171: 26; R172: 24; R173: 23)
-    ("Audit/EqualBudget.lean", "Budget/JointCost.lean"),
-    ("Audit/Exactness.lean", "Step/SafeQP.lean"),
-    ("Audit/Foundations.lean", "External/Transfer.lean"),
-    ("Autonomy/Insight.lean", "Unified/TopLevel.lean"),
     ("Autonomy/Insight.lean", "Unified/GlobalDynamics.lean"),
-    ("Budget/JointCost.lean", "Growth/SeedOnly.lean"),
     
-    ("Discovery/PPT.lean", "Unified/GrowthState.lean"),
     
     
     ("Ensemble/MergePrice.lean", "Step/GPM.lean"),
     ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
     ("Generalization/ModeState.lean", "Growth/FrontierScaling.lean"),
-    ("Growth/GainRenewal.lean", "Unified/GrowthBridge.lean"),
     ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
     ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     
-    ("Step/JointPreserve.lean", "Budget/ElementQuant.lean"),
     ("Step/JointPreserve.lean", "Growth/SeedOnly.lean"),
-    ("Step/SafeQPRobust.lean", "Unified/Unified.lean"),
     ("Step/SafeQPStep.lean", "Dynamics/CurvatureSafe.lean"),
     
 }
