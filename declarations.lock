@@ -25,7 +25,7 @@ GQA	12c32d4b0f8a89f3
 GainOp	9f4bf8b235d2585c
 GaugeEquiv	769b078eea90c366
 GenMetrics	c0741658d2cd6240
-GenState	5c732e12d509503d
+GenState	f74bccf6eaa8aec4
 GeneralizationCertificate	3249edc17cddd50e
 GrowCertificate	6208c906e8907745
 GrowthDynamics	f4ae5e5213f2e424
@@ -638,8 +638,10 @@ hadamardOrthonormal	f712fb1a9b660fca
 hadamardOrthonormal_mul_transpose	e10980938a076174
 hadamardReal	3b294d523ff7e784
 hadamardReal_mul_transpose	4c788d2a6c7ae9b8
-hagiPotential	25c9412e4b40cd3d
 hagiPotential	9b2da52a794089c3
+hagiPotential	9b2da52a794089c3
+hagiPotential	9d53f2b61739bcad
+hagiPotential_penalty_drop	42856caa5cc1a8cd
 hagi_gen_floor	6e713ee05caa47a7
 hagi_synthesis	f7cfee0b2723c5a6
 half_log_cosh_le	02238dc05779219b

@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Foundations.Potential
 
 /-!
 # Certificates — per-stage certificates instead of the
@@ -130,7 +131,8 @@ structure CycleCertificate where
 
 /-- The HAGI potential Φ = E + λR + ν·max(0, Q_target−Q). -/
 noncomputable def hagiPotential (E R nu qTarget q : ℝ) (lam : ℝ) : ℝ :=
-  E + lam * R + nu * max 0 (qTarget - q)
+  -- R263 dedup: canonical form in Foundations.Potential
+  Hagi.Foundations.hagiPotential E R nu qTarget q lam
 
 /-- The penalty term grows by at most the probe drop. -/
 lemma penalty_drop_bound (qTarget q q' epsQ : ℝ)
@@ -203,7 +205,7 @@ theorem cycle_certificate_sound
     _ = nu * max 0 (qTarget - cert.generalization.q)
         + nu * cert.generalization.epsQ := by ring
   -- combine (all products are atoms now; pure linear algebra)
-  unfold hagiPotential
+  unfold hagiPotential Hagi.Foundations.hagiPotential
   have hs : lam * (R + cert.grow.risk + cert.merge.risk
       + cert.joint.risk) = lam * R
       + lam * (cert.grow.risk + cert.merge.risk

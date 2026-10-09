@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.FrontierScaling
+import Hagi.Foundations.Potential
 import Hagi.Unified.GrowthState
 
 set_option linter.style.header false
@@ -174,9 +175,11 @@ R91's `potential` (energy + protectedRisk) with the risk weight
 The max(0,·) makes the penalty INERT above target and ACTIVE
 below — the gen-safe step theorem does this case analysis
 explicitly. -/
-def hagiPotential (S : GenState X) (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ) : ℝ :=
-  S.toGrowthState.energy + lam * S.toGrowthState.protectedRisk
-    + nu * max 0 (Qtarget - Qgen S.gen w)
+noncomputable def hagiPotential (S : GenState X) (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ) : ℝ :=
+  -- R263 dedup: the canonical scalar potential (Foundations.Potential)
+  -- applied to the projected state fields.
+  Hagi.Foundations.hagiPotential S.toGrowthState.energy
+    S.toGrowthState.protectedRisk nu Qtarget (Qgen S.gen w) lam
 
 /-! ## ModeDrop: the named failure mode -/
 
@@ -257,7 +260,7 @@ theorem generalization_safe_step (S S' : GenState X)
   have hlamM : lam * S'.toGrowthState.protectedRisk
       ≤ lam * (S.toGrowthState.protectedRisk + budget) :=
     mul_le_mul_of_nonneg_left hrisks hlam
-  unfold hagiPotential
+  unfold hagiPotential Hagi.Foundations.hagiPotential
   linarith
 
 /-- **THE GEN-SAFE STEP (at-target case — the penalty is
@@ -285,7 +288,7 @@ theorem generalization_safe_step_at_target (S S' : GenState X)
     max_eq_left (by linarith)
   have hge : (0:ℝ) ≤ max 0 (Qtarget - Qgen S.gen w) :=
     le_max_left 0 _
-  unfold hagiPotential
+  unfold hagiPotential Hagi.Foundations.hagiPotential
   rw [h0, mul_zero, add_zero]
   have hνm : (0:ℝ) ≤ nu * max 0 (Qtarget - Qgen S.gen w) :=
     mul_nonneg hnu hge

@@ -327,7 +327,7 @@ theorem hagi_gen_floor (S : GenState X) (lam nu Qtarget Phibar Emin : ℝ)
       ≤ Phibar - S.toGrowthState.energy
         - lam * S.toGrowthState.protectedRisk := by
     have := hphi
-    unfold hagiPotential at this
+    unfold hagiPotential Hagi.Foundations.hagiPotential at this
     linarith
   have hnu3 : nu * (Qtarget - Qgen S.gen w) ≤ Phibar - Emin := by
     calc nu * (Qtarget - Qgen S.gen w)
