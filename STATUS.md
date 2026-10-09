@@ -119,6 +119,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Windows стираются/пишутся битыми — верифицировать размер
   файла перед выводом об успехе (Map≠Territory: пустой
   файл дал ложный PASS).
+- R260: P1-unifikaciya audita otkryta — ConeDynamics: odna abstraktnaya struktura ConeData (C, D, forcing xi, konstanty) + obschiy zakon cone_data_invariant s forcing-chlenom (nulevaya oshibka = sledstvie pri xi=0) + MOST frontier_cone_inductive_is_cone_data: teorema FrontierScaling EST abstraktnyy zakon pri k=alpha/gamma (tonkaya instanciaciya). Uroki: structure-polya tolko po odnomu na stroke; `:= have ... exact ...` v tele theorem — term-mode, obertyvat v `by`.
 - R259: README/докстринг-консистентность по цели:
   (а) fiber_merge_denoise ДОКАЗАН (был фантомом в
   докстринге R255): ошибка fiber-merge для эксперта i =
