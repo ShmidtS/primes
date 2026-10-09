@@ -134,4 +134,56 @@ theorem disagreement_convergence_floor (κ σ : ℝ) (N : ℕ)
   Hagi.Foundations.genGap_decay κ (σ ^ 2 / N) D₀ hκ hκ1
     (by positivity) Dseq hD0 hstep
 
+/-- The ensemble average of a vector family. -/
+noncomputable def avgVec {N : ℕ} (v : Fin N → V) : V :=
+  ((N : ℝ))⁻¹ • ∑ i, v i
+
+/-- **THE FIBER-MERGE DENOISE ALGORITHM**: the three-part
+merge keeps each expert's fiber (useful disagreement u i)
+EXACTLY and averages only the shared part. With W i =
+M + u i + n i, the merged weight is M̂ + u i (M̂ = M + n̄),
+so expert i's merge error is EXACTLY n̄ − n i (the fiber
+part cancels identically) — and under the
+orthogonal-equal-energy noise model its energy is EXACTLY
+
+  ‖n̄ − n i‖² = σ²·(1 − 1/N)  <  σ²:
+
+the fiber merge returns every expert a LESS noisy version
+of itself — the useful disagreement untouched, the noise
+provably reduced by the ensemble factor, at no cost to the
+signal. -/
+theorem fiber_merge_denoise {N : ℕ} [NeZero N]
+    (σ : ℝ) (n : Fin N → V)
+    (hortho : ∀ i j, i ≠ j → ⟪n i, n j⟫_ℝ = 0)
+    (henergy : ∀ i, ‖n i‖ ^ 2 = σ ^ 2)
+    (M : V) (u : Fin N → V) (i : Fin N) :
+    -- the merge error IS the noise residue
+    (M + avgVec n + u i) - (M + u i + n i) = avgVec n - n i
+    -- and its energy is EXACTLY sigma^2 * (1 - 1/N)
+    ∧ ‖avgVec n - n i‖ ^ 2 = σ ^ 2 * (1 - 1 / (N : ℝ)) := by
+  constructor
+  · simp only [avgVec]
+    abel
+  · -- inner cross term: <n-bar, n i> = sigma^2 / N
+    have hcross : ⟪avgVec n, n i⟫_ℝ = σ ^ 2 / (N : ℝ) := by
+      simp only [avgVec, inner_smul_left, smul_eq_mul, map_inv,
+        RCLike.conj_to_real]
+      rw [real_inner_comm (n i) (∑ i, n i), inner_sum]
+      rw [Finset.sum_eq_single i]
+      · rw [real_inner_self_eq_norm_sq, henergy i]
+        field_simp
+      · intro j _ hij
+        rw [real_inner_comm, hortho j i hij]
+      · intro hcon
+        exact absurd (Finset.mem_univ i) hcon
+    -- energy by expansion
+    have hnb : ‖avgVec n‖ ^ 2 = σ ^ 2 / (N : ℝ) :=
+      orthogonal_noise_averaging σ n hortho henergy
+    have hexp : ‖avgVec n - n i‖ ^ 2
+        = ‖avgVec n‖ ^ 2 - 2 * ⟪avgVec n, n i⟫_ℝ + ‖n i‖ ^ 2 :=
+      norm_sub_pow_two_real (avgVec n) (n i)
+    rw [hexp, hnb, hcross, henergy i]
+    field_simp
+    ring
+
 end Hagi.Growth
