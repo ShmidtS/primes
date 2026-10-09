@@ -130,4 +130,71 @@ theorem frontier_cone_inductive_is_cone_data
     (div_nonneg hα.le hγ.le)
     hγ.le hρ hCpos hcone h_dyn hcap hthr
 
+
+/-! ## The unified reinvest law (R261) -/
+
+/-- **THE RATIO-FAMILY CONE LAW** (reinvestment form, R261):
+canonical for the ratio family — the exact step
+C' = C + γD (RatioTakeoff, StateClosedRenewal) is the
+equality case of the reinvest cap C' ≤ C + γD. Threshold
+γk² + (1−ρ)k ≤ β (algebraically = k((1+γk) − ρ)), retention
+ρ ≥ γk, and k ≥ 0 (the meaningful cone regime; needed to
+scale the cap by k — the exact-step original did not).
+NOT a subsumption of the R260 cap-form law: the cap form
+(frontier family, C' ≤ (1+γk)C) trades the ρ ≥ γk premise
+away, and its cap does NOT imply the reinvest cap from the
+cone alone in this direction. Two canonical laws, two
+hypothesis economies — documented, not conflated.
+Key algebra: D' − kC' ≥ (ρ−γk)(D − kC) ≥ 0. -/
+theorem cone_reinvest_invariant (C D : ℕ → ℝ) (γ ρ β k : ℝ)
+    (t : ℕ) (hCpos : 0 < C t) (hk : 0 ≤ k)
+    (hrho : γ * k ≤ ρ)
+    (hcone : k * C t ≤ D t)
+    (h_dyn : ρ * D t + β * C t - 0 ≤ D (t + 1))
+    (h_cap : C (t + 1) ≤ C t + γ * D t)
+    (hβ : γ * k ^ 2 + (1 - ρ) * k ≤ β) :
+    k * C (t + 1) ≤ D (t + 1) := by
+  have hkey : ρ * D t + β * C t - k * (C t + γ * D t)
+      = (ρ - γ * k) * (D t - k * C t)
+        + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
+    field_simp
+    ring
+  have h1 : (0:ℝ) ≤ (ρ - γ * k) * (D t - k * C t) := by
+    have hsub : (0:ℝ) ≤ D t - k * C t := by linarith [hcone]
+    exact mul_nonneg (by linarith [hrho]) hsub
+  have h2 : (0:ℝ) ≤ (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t :=
+    mul_nonneg (by linarith [hβ]) hCpos.le
+  have hkC : k * C (t + 1) ≤ k * (C t + γ * D t) :=
+    mul_le_mul_of_nonneg_left h_cap hk
+  have h3 : D (t + 1) - k * C (t + 1)
+      ≥ (ρ - γ * k) * (D t - k * C t)
+        + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
+    linarith [h_dyn, hkey, hkC]
+  linarith
+
+/-- **The ratio family IS the reinvest law**:
+RatioTakeoff's `cone_ratio_step` (exact step
+C' = C + γD, zero forcing) is the equality case of
+`cone_reinvest_invariant` — same hypotheses, same
+conclusion, thin instantiation. Together with the R260 cap
+form (`cone_data_invariant`) this makes the Growth layer's
+cone APIs a two-line family: ONE reinvest law (ratio
+family, threshold γk²+(1−ρ)k ≤ β, needs ρ ≥ γk) and ONE
+cap law (frontier family, threshold k((1+γk)−ρ)+ξ/C ≤ β,
+no retention premise). The cap form trades the ρ ≥ γk
+premise for the (1+γk)-cap; the reinvest form trades the
+cap for retention — genuinely different hypothesis
+economies, each canonical for its family. -/
+theorem cone_ratio_step_is_reinvest (C D : ℕ → ℝ)
+    (γ ρ β k : ℝ) {t : ℕ} (hk : 0 ≤ k)
+    (hstep : C (t + 1) = C t + γ * D t)
+    (hdyn : ρ * D t + β * C t ≤ D (t + 1))
+    (hrhogk : γ * k ≤ ρ)
+    (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
+    (hCpos : 0 < C t) (hcone : k * C t ≤ D t) :
+    k * C (t + 1) ≤ D (t + 1) :=
+  cone_reinvest_invariant C D γ ρ β k t hCpos
+    hk hrhogk hcone
+    (by linarith [hdyn]) (le_of_eq hstep) hbeta
+
 end Hagi.Growth

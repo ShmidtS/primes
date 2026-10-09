@@ -119,6 +119,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Windows стираются/пишутся битыми — верифицировать размер
   файла перед выводом об успехе (Map≠Territory: пустой
   файл дал ложный PASS).
+- R261: ratio-semeynaya unifikaciya — cone_reinvest_invariant (kanonicheskiy zakon reinvest-formy: tochnyy shag C'=C+gamma*D — chastichnyy sluchay capa C'<=C+gamma*D; porog gamma*k^2+(1-rho)*k, retention rho>=gamma*k, k>=0) + most cone_ratio_step_is_reinvest. ChESTNAYA granica: NE pogloschenie cap-formy R260 (ona torguet posylku rho>=gamma*k; dve ekonomii gipotez zafiksirovany, ne slitly). Uroki: masshtabirovanie neravenstva capa na k trebuet znak k (v tochnoy versiiRatioTakeoff eto ne nuzhno); linarith ne masshtabiruet — davat' umnozhennuyu versiyu kak mul_le_mul_of_nonneg_left.
 - R260: P1-unifikaciya audita otkryta — ConeDynamics: odna abstraktnaya struktura ConeData (C, D, forcing xi, konstanty) + obschiy zakon cone_data_invariant s forcing-chlenom (nulevaya oshibka = sledstvie pri xi=0) + MOST frontier_cone_inductive_is_cone_data: teorema FrontierScaling EST abstraktnyy zakon pri k=alpha/gamma (tonkaya instanciaciya). Uroki: structure-polya tolko po odnomu na stroke; `:= have ... exact ...` v tele theorem — term-mode, obertyvat v `by`.
 - R259: README/докстринг-консистентность по цели:
   (а) fiber_merge_denoise ДОКАЗАН (был фантомом в
