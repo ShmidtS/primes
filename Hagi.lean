@@ -245,6 +245,7 @@ import Hagi.Unified.MasterHAGI
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.GrandSynthesis
 import Hagi.Unified.Certificates
+import Hagi.Unified.Nonvacuity
 
 set_option linter.style.header false
 
