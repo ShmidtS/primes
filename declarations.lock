@@ -195,6 +195,7 @@ blockCols	7d94167d66b3a6f0
 blockCols_mulVec_sum	80e938cf06e37764
 blockCost	fa506fcc264cbd0d
 blockDiagonal'_mulVec_apply	4b5c0e342c394756
+blockList	64e2f3370d965beb
 blockMap	3af3ed706aadaa1e
 block_lowrank_lt_dense_iff	f58b98922fe442c0
 block_rank_le	dfbaa1387bdca3d2
@@ -307,6 +308,7 @@ conjTranspose_kronecker_mul	6992ac55d3877f88
 conj_chi3	873005f7289689e6
 conj_omega	fd8ba435607b0d82
 consensus_no_gain	19ea6218e897d943
+consolidate_budget	5fc3d667f277fce7
 const_probe_sum	162940943e5b399f
 constructive_scale	3e5ae6fb035d4755
 continuousOn_logEntropyPrimitive	790e69d011b087e4
@@ -433,6 +435,7 @@ effectiveWeights	b96e4609f358a536
 effective_addBlock	038e6fe29cceeb98
 effective_fold	b83e9a1177990c5a
 effective_fromHistory	02962f11ea758571
+effective_replaceBlocks	8ecc2e3dde68395c
 elasticity_chain	02f9a3f06696cb4f
 encode_lt_aux	400aa523432d7fb3
 endpoint_bivariate_bound	34cf39ef1e975145
@@ -553,6 +556,7 @@ freshMix_sum_one	a3bbe001fcac5a90
 fresh_data_prevents_collapse	3c6d5dd61512fc7b
 fresh_data_prevents_collapse_uniform	113f7551d02b04f3
 fresh_momentum_unbiased	f05ccb8735705395
+frob	506c518352d7ae23
 frobSq	d0f79674d3b954e3
 frobSubord	2b05a43bed130521
 frobVector	cafa1c4cea50c7a1
@@ -560,6 +564,7 @@ frobVector_add	3dba74ca2fb9dd2b
 frobVector_inner	99bb021cb27316f9
 frobVector_norm	e303f3bea419dda9
 frobVector_sub	a5262ef3588dcb0e
+frob_sum_le	94a87550e823b66c
 fromHistory	c668f9bdae20aba0
 fromPMF	409d22c1797d1b82
 fromPMF_sum	428bc54091178be3
@@ -1220,6 +1225,7 @@ relu_shift_le	eacd57f5abf8d686
 renewal_feeds_takeoff	4134214dea1e58ea
 repRate	b65f90f7c23b9eb9
 repRate_trichotomy	545e50097d5c3ca6
+replaceBlocks	f9cc61d96dbd7cf6
 requires	04ed923299103f5e
 residualLeaf	c4358e15e090e0f5
 residualLeaf_zero	f1d3ff3a3ef0bd3d
@@ -1414,6 +1420,8 @@ sum_pow2_inv_le	af247f573561d98f
 sum_prod_factor	73a79d676c7fa569
 sum_realized	a882faa2b2642095
 sum_smax_exp	c6d5687b802af803
+sum_sub_eq	0695a750f5ef73e4
+sum_sub_family	c62528164927bd13
 sum_two_point	ae596d408965d1e7
 sum_two_pow	9697f6207fc981d6
 sum_w_center	00149ab920319642
@@ -1590,6 +1598,7 @@ zC	3869fd1cde3197a3
 zero_bias_iff_uncorrelated	76e69e7f32a29743
 zero_init_identity	8f96b07f641956e8
 zero_stage_kills_gain	e4abbb5db50bf26a
+zip_map_prod_diff	d0696d19c3ef36f2
 zmod2_add_self	70c87cbd5be0bb3e
 zmod2_cases	4bf254f87026fb6b
 zmod2_neg_eq_self	aa00bc8f6ca5ba7f
