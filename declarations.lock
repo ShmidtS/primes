@@ -48,6 +48,8 @@ IsProjection	53a7e89ffcb7bb7f
 IsProjection	63e6f648197f9188
 IsProjection	bfff62d0d930dbcd
 IsState	eb2189a68d4f41a0
+J3	b6865422d92cf484
+J3_nonincreasing	01f418cf6f96e79b
 JointCertificate	86ca8abab9f91e9d
 KL	e8d4339f41e16a2a
 KL_product_ge_marginal	3e394553d8c4fdd2
@@ -354,6 +356,7 @@ cycle_decay_mono	c40222f02640a129
 cycle_decay_ratio	9998627982510dc6
 dQuad_nonneg	84aa647053d1606c
 dQuad_nonneg	84aa647053d1606c
+dataCodeLen	ec63472666b8219c
 dead_layer_stop	c4b93a9d62ccce6e
 decay_elasticity	c1c1a85e9a0e3135
 decompose_reconstruct	5a6dd0452c0bbfb3
@@ -424,6 +427,7 @@ domination_decompose	c73bde37973b0d03
 domination_regression	0785199fed7bacf2
 dotCS	555b0ab715dc02d8
 dotSelf_nonneg	88e54597af1bf49a
+double_counting_identified	46ce4d8574fb4155
 drawPairOrtho	ee16536f5febe4d4
 driftTube	e7808294658cf36e
 driftTube_closed	dd7630465a1ed178
@@ -974,6 +978,7 @@ negPart_nonneg	77e6dd6cb9008574
 negative_expert_hurts_any_order	12271203d5a7ac5a
 never_overshoot	e331afb3768f1d92
 newBound	8711427a86b81660
+no_compression_below_entropy	a1cce1a9d9b9e87e
 no_free_recovery	adb5de9351505995
 no_global_ranking	1dd3a28f200b6b03
 no_infinite_improving_chain	9690e6666bbda7f6
@@ -1374,6 +1379,7 @@ softmaxP	e008297f8cbac223
 softmaxW	754ec0c4b0c9f727
 softmax_gap_mass_ratio	1bfc2ca6058f2b0e
 softmax_shift_invariance	232b6b25e6e9d6f4
+sourceEntropy	bcec69205c99390d
 sparse_step0	199c2a5e5fde03be
 spectralFactor	9b2822b4a70aabb3
 spectralFactor_column	cfc68addd60a9f7b
