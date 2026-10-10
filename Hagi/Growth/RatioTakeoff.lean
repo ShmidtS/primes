@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Growth.FrontierScaling
+import Hagi.Foundations.ConeTakeoff
 set_option linter.style.header false
 
 /-!
@@ -44,26 +45,10 @@ theorem cone_ratio_step (C D : ℕ → ℝ) (γ ρ β k : ℝ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
     {t : ℕ}
     (hCpos : 0 < C t) (h_emp_cone : k * C t ≤ D t) :
-    k * C (t + 1) ≤ D (t + 1) := by
-  have hd := h_emp_dyn t
-  have hb := hbeta
-  have hs := h_emp_step t
-  have hkey : ρ * D t + β * C t - k * (C t + γ * D t)
-      = (ρ - γ * k) * (D t - k * C t)
-        + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
-    field_simp
-    ring
-  have h1 : (0:ℝ) ≤ (ρ - γ * k) * (D t - k * C t) := by
-    have hsub : (0:ℝ) ≤ D t - k * C t := by linarith [h_emp_cone]
-    exact mul_nonneg (by linarith [hrhogk]) hsub
-  have h2 : (0:ℝ) ≤ (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t :=
-    mul_nonneg (by linarith [hb]) hCpos.le
-  have h3 : D (t + 1) - k * C (t + 1)
-      ≥ (ρ - γ * k) * (D t - k * C t)
-        + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
-    rw [hs]
-    linarith [hd, hkey]
-  linarith
+    k * C (t + 1) ≤ D (t + 1) :=
+  -- dedup R291: delegation to the canonical Foundations.cone_step
+  Hagi.Foundations.cone_step C D γ ρ β k t hCpos
+    (h_emp_step t) (h_emp_dyn t) hrhogk hbeta h_emp_cone
 
 /-- Если `0 < C t` при всех t, выполнены посылки
 `cone_ratio_step` и `k·C 0 ≤ D 0`, то `ConeRatio C D k`. -/

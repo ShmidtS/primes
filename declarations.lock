@@ -314,6 +314,7 @@ cone_ratio_invariant	11b29b6b4df35355
 cone_ratio_step	f043c5cc23952740
 cone_ratio_step_is_reinvest	49ec9c756d4591b9
 cone_reinvest_invariant	b6dc831f3add6633
+cone_step	10f7ed5675f4e714
 cone_two_sided_certificate	a707cf28f8cc0296
 config_storage_beats_dense	7e842d2182121ffe
 configs_injective_on_separated	d7af41384e5e0c69

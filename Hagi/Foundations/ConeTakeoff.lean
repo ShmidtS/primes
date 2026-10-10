@@ -22,6 +22,35 @@ open Finset Real
 
 namespace Hagi.Foundations
 
+--
+/-- **Канонический одношаговый конус-лемма (R291)**: при
+точном шаге `C (t+1) = C t + γ·D t`, динамике
+`ρ·D t + β·C t ≤ D (t+1)`, `0 < C t`, конусе `k·C t ≤ D t`,
+`γ·k ≤ ρ` и `β ≥ γ·k² + (1−ρ)·k` — конус сохраняется на
+следующем шаге. Единственная копия hkey-тождества;
+`cone_invariant_horizon` и `RatioTakeoff.cone_ratio_step`
+делегируют сюда. -/
+theorem cone_step (C D : ℕ → ℝ) (gamma rho beta k : ℝ) (t : ℕ)
+    (hCpos : 0 < C t)
+    (hs : C (t + 1) = C t + gamma * D t)
+    (hd : rho * D t + beta * C t ≤ D (t + 1))
+    (hrhogk : gamma * k ≤ rho)
+    (hbeta : gamma * k ^ 2 + (1 - rho) * k ≤ beta)
+    (hcone : k * C t ≤ D t) :
+    k * C (t + 1) ≤ D (t + 1) := by
+  have hkey : rho * D t + beta * C t - k * (C t + gamma * D t)
+      = (rho - gamma * k) * (D t - k * C t)
+        + (beta - (gamma * k ^ 2 + (1 - rho) * k)) * C t := by
+    field_simp
+    ring
+  have hnn1 : (0:ℝ) ≤ (rho - gamma * k) * (D t - k * C t) :=
+    mul_nonneg (sub_nonneg.mpr hrhogk) (sub_nonneg.mpr hcone)
+  have hnn2 : (0:ℝ)
+      ≤ (beta - (gamma * k ^ 2 + (1 - rho) * k)) * C t :=
+    mul_nonneg (sub_nonneg.mpr hbeta) hCpos.le
+  rw [hs]
+  linarith
+
 /-- Если посылки выполнены при `t < T` и `k * C 0 ≤ D 0`,
 то конус `k * C t ≤ D t` инвариантен на всём `0..T`. -/
 theorem cone_invariant_horizon (C D : ℕ → ℝ)
@@ -47,18 +76,8 @@ theorem cone_invariant_horizon (C D : ℕ → ℝ)
         have hd := hdyn t htlt
         have hCp : 0 < C t := hCpos t
           (Finset.mem_range.mpr (by omega))
-        have hkey : rho * D t + beta * C t - k * (C t + gamma * D t)
-            = (rho - gamma * k) * (D t - k * C t)
-              + (beta - (gamma * k ^ 2 + (1 - rho) * k)) * C t := by
-          field_simp
-          ring
-        have hnn1 : (0:ℝ) ≤ (rho - gamma * k) * (D t - k * C t) :=
-          mul_nonneg (sub_nonneg.mpr hrhogk) (sub_nonneg.mpr (ih (by omega)))
-        have hnn2 : (0:ℝ)
-            ≤ (beta - (gamma * k ^ 2 + (1 - rho) * k)) * C t :=
-          mul_nonneg (sub_nonneg.mpr hbeta) hCp.le
-        rw [hs]
-        linarith
+        exact cone_step C D gamma rho beta k t hCp hs hd hrhogk hbeta
+          (ih (by omega))
   intro t ht
   exact hmain t (Nat.lt_succ_iff.mp (Finset.mem_range.mp ht))
 
