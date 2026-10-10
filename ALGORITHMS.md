@@ -325,6 +325,7 @@ failure budget: V/t² = δ  ⟹  t = √(C·L²/(B·δ))
 | LR-decay ≡ batch-increase (оси = одна математика) | `noise_budget_axes_equal` | R282 |
 | LMO-каркас: SafeQP и Muon — одна геометрия | `lmo_attained` | R283 |
 | RoPE-предел: дихотомия + необратимость | `rope_context_dichotomy` | R284 |
+| RoPE-вариация: |Σ S²/M − 1/2| ≤ κ(1+2M)/2 (контракт на C) | `rope_var_bound` | R287 |
 | Батч-план сатурирует на критическом | `batchCapSaturates` | R285 |
 
 Алгоритм управления памятью (выведен из §24):

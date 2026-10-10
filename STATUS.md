@@ -677,9 +677,23 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   завышаем (тела заменены делегированием, имена сохранены для
   потребителей).
 
+## R287 — RoPE Proposition 1 (контрактная форма)
+
+- Hagi/Core/RoPEMoments: rope_var_bound — вариация
+  высокочастотного счёта S(m) около уровня 1/2:
+  |Σ_m S(m)²/M − 1/2| ≤ κ(1+2M)/2 при частотных контрактах
+  |C(2ω_n)| ≤ κM, |C(ω_n±ω_k)| ≤ κM (n≠k), Σz²=1. Разбиение
+  ΣΣ → диагональ (κM) + кросс (Коши–Буняковский (Σ|z|)² ≤ M,
+  даёт 2κM²). С R284 замыкает каркас Theorem 0 (RoPE at the
+  End of Its Rope, arXiv:2609.39929): позиционная точность
+  выше порога недостижима в пределе — вариация неминуема.
+  Вспомогательные: cosSum_zero, sum_diag_off (erase-сплит),
+  sum_singleton_rest. Аксиомы: propext/Classical.choice/
+  Quot.sound.
+
 ## Счётчик
 
-- 932 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 936 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
