@@ -691,9 +691,40 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   sum_singleton_rest. Аксиомы: propext/Classical.choice/
   Quot.sound.
 
+## R288–R291 — внешний аудит 2026-10-09 (ядро вместо новых
+глобальных теорем)
+
+- Аудит-триаж против дерева da50827: пункты 2.4 (Hoeffding/
+  Recurrence-дубли) и частично 2.3 уже закрыты дедуп-кампаниями
+  R163/R265–R270 (тонкие делегирующие адаптеры).
+- R288 (441a84e): удалены safeQP_noconflict (SafeQP.lean) и
+  safeqp_idle (GlobalDynamics.lean) — лишь dist_nonneg/
+  dist_self, имена вводили в заблуждение (аудит 2.7);
+  потребителей нет; Freeze --update 1665→1663.
+- R289 (e0cc62b): GainRenewal — фантомный импорт
+  Unified.Liveness заменён на Step.JointPreserve
+  (действительный источник diversity_floor); инверсия слоёв
+  Growth→Unified устранена (аудит §3).
+- R290 (73bcd96): MasterHAGICore_refined — удалена
+  неиспользуемая посылка hfull : FullCycleRefinement
+  (аудит 2.1); тело — честный thin wrapper к MasterHAGICore.
+- R291 (24e9ba5): канонический cone_step в
+  Foundations/ConeTakeoff — единственная копия hkey-тождества
+  (ρD+βC−k(C+γD) = (ρ−γk)(D−kC) + (β−(γk²+(1−ρ)k))C);
+  cone_invariant_horizon и RatioTakeoff.cone_ratio_step
+  делегируют (аудит 2.3, конус-унификация). FrontierScaling —
+  возмущённое (ξ + cap) расширение, оставлено отдельной
+  теоремой по классификации аудита.
+- Открыто из аудита: R292 (GrowthState ModelState/
+  StageCertificate-разделение — многоходовый), R294
+  (канонические Entropy/KL/TV), unusedHypotheses-включение,
+  Nonvacuity-нетривиальные свидетели, верхнеуровневая
+  композиция HAGICycleSoundness/HAGIFiniteHorizon/
+  HAGIConditionalTakeoff.
+
 ## Счётчик
 
-- 936 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 937 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
