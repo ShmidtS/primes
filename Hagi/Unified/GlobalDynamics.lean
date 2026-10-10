@@ -21,15 +21,6 @@ open Real InnerProductSpace
 
 namespace Hagi.Unified
 
-/-- `dist 0 0 ≤ dist d 0` for every `d ∈ C`; the `g₀ = 0`
-specialization of the SafeQP objective. Not a
-characterization of the solution for a general gradient. -/
-theorem safeqp_idle {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-    [FiniteDimensional ℝ X] (C : Set X) (_hconv : Convex ℝ C) (_h0 : (0:X) ∈ C) :
-    ∀ d ∈ C, dist (0:X) (0:X) ≤ dist d (0:X) := by
-  intro d hd
-  simp
-
 /-- At a softmax distribution with all pairwise logit
 deviations 0, `twoGap` is exactly 0. The compression stage's
 idle behavior is not formalized here. -/
@@ -52,5 +43,5 @@ theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpac
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (safeqp_idle idle_merge_zero_gap forgetting_kl_bound)
+export Hagi.Unified (idle_merge_zero_gap forgetting_kl_bound)
 end Hagi

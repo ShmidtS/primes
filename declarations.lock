@@ -341,6 +341,7 @@ coord_mgf_bound	c42d5fd837e5c4e0
 corePremises_nonvacuous	ee014b4b4dae0077
 corePremises_of_full_refinement	05df74ae1b08a95f
 cosSum	bbc516c6c185a856
+cosSum_zero'	025890db24ead754
 costCompress	ec59ec8f3db89160
 costGrow	de60df8e7a177cdc
 costJoint	833a33c01ba2b9a4
@@ -1299,6 +1300,7 @@ rope_mean_sum	fe03673860cf9312
 rope_score_delta	98420415d74f2980
 rope_second_moment_sum	804fdb1c64d1a5f6
 rope_translation_shift	e4f633287a129a7c
+rope_var_bound	24aaf5c6120669b8
 rotVec	ab36dee4c9bf0120
 rot_norm	5d95e2c789a8d50f
 rotated_factors_same_matrix	dd44fde9b46b87d3
@@ -1321,7 +1323,6 @@ safeCandidates	65561a0a5f3e5e45
 safeQP_descent	d830f6ee95e012d5
 safeQP_descent	d830f6ee95e012d5
 safeQP_exists_unique	596ebb3bf4917520
-safeQP_noconflict	04388f57dd4dfbc3
 safeSet	f4bc6f7f142b971e
 safeSet_closed	ca52edf07ca0b019
 safeSet_nonempty	584d08dc915d64a1
@@ -1336,7 +1337,6 @@ safeqp_eta_max	6477c42f153087f3
 safeqp_eta_max_conflict_free	ee60b238f7062e20
 safeqp_eta_max_domain	77acb0204cf8db04
 safeqp_eta_zero_direction	1cf8905f890f37c1
-safeqp_idle	96b77eb98cebbd48
 safeqp_inactive	38fe5aa1cd55f24a
 safeqp_monotone_domain	9c1eca342914192f
 safeqp_pareto_orthogonality	820ad030c6751908
@@ -1456,6 +1456,7 @@ sum_chi2_eq_zero	637e87a33f6e1911
 sum_chi3_branch_eq_zero	70afac8130766900
 sum_chi3_eq_zero	20689e0a28965b07
 sum_coord	4f84fcb2bf2834f9
+sum_diag_off'	d4289c25493eed92
 sum_dist_mean_le	c16b24145594a1d9
 sum_exp_pos	355df538a341a594
 sum_injective_aux	c2fab820e7320b90
@@ -1468,6 +1469,7 @@ sum_perm_invariant	de44bf8a79f21627
 sum_pow2_inv_le	af247f573561d98f
 sum_prod_factor	73a79d676c7fa569
 sum_realized	a882faa2b2642095
+sum_singleton_rest	fea0c415faf21b80
 sum_smax_exp	c6d5687b802af803
 sum_sub_eq	0695a750f5ef73e4
 sum_sub_family	c62528164927bd13

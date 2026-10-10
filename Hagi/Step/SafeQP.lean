@@ -15,8 +15,6 @@ set_option linter.style.header false
 
 * `safeQP_exists_unique`: при `0 ≤ ε i` и конечномерном X
   проекция на `safeSet` существует и единственна;
-* `safeQP_noconflict`: если `g0 ∈ safeSet`, то g0 минимизирует
-  расстояние до себя (контроллер неактивен без конфликта);
 * `safeqp_inactive`: при `g0 ∈ safeSet` любой минимизатор ds
   равен g0.
 
@@ -206,17 +204,6 @@ theorem safeQP_exists_unique (g : K → X) (g0 : X) (eps : K → ℝ)
   exact convex_min_unique (safeSet g eps) hconv g0 m d2
     hmT.1 hd2mem (fun h => hne2 h.symm) hglobal hd2min
 
-set_option linter.unusedDecidableInType false in
--- hypothesis kept: documented API premise
-/-- Для любых d из safeSet: `dist g0 g0 ≤ dist d g0`
-(тривиально: g0 минимизирует расстояние до себя). -/
-theorem safeQP_noconflict (g : K → X) (g0 : X) (eps : K → ℝ)
-    (_heps : ∀ i, 0 ≤ eps i)
-    (_hsafe : g0 ∈ safeSet g eps) :
-    ∀ d ∈ safeSet g eps, dist g0 g0 ≤ dist d g0 := by
-  intro d _
-  simp
-
 end SafeQP
 
 set_option linter.unusedDecidableInType false in
@@ -240,5 +227,5 @@ theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace �
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeQP_noconflict safeqp_inactive)
+export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeqp_inactive)
 end Hagi
