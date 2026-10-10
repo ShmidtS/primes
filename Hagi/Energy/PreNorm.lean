@@ -74,9 +74,10 @@ namespace Hagi
 
 section PreNorm
 
-/-- **The direction preservation of RMS normalization**: the
-normalized vector is the direction of x (the positive radial
-map; the magnitude goes to 1, the direction is untouched). -/
+/-- Positive SCALAR normalization: for x > 0 the normalizer
+x/√(x·x) equals 1. This is the scalar instance only — the
+VECTOR direction-preservation (x/‖x‖ is a positive multiple
+of x) is NOT stated here. -/
 theorem rms_direction (x : ℝ) (hx : 0 < x) :
     x / Real.sqrt (x * x) = 1 := by
   have habs : Real.sqrt (x * x) = x := Real.sqrt_mul_self (le_of_lt hx)
@@ -94,13 +95,12 @@ theorem rms_idempotent (x : ℝ) (hx : 0 < x) :
   rw [h1]
   norm_num
 
-/-- **The bf16 frozen-update bound (the keep_fp32 marker's
-arithmetic)**: the bf16 grid above 1.0 has the step
-2⁻⁷ = 0.0078125; an update δ with 0 < δ < 2⁻⁸ rounds back to
-1.0 — the gain is FROZEN under bf16. The measured gradient
-scale (~1e-4 per step, the docstring) sits two orders below
-the half-step: the fp32-keep is REQUIRED for every 1D-gain
-parameter. -/
+/-- Arithmetic core of the keep_fp32 marker: an update
+δ < 2⁻⁸ keeps 1 + δ strictly below 1 + 2⁻⁸ (the half-step of
+the bf16 grid above 1.0). The bf16 ROUNDING itself is NOT
+modeled here — reading "rounds back to 1.0" from this
+theorem requires the external fact that bf16 rounds to the
+nearest grid point. -/
 theorem bf16_frozen_update (delta : ℝ)
     (_hdelta : 0 < delta) (hdelta2 : delta < 2^(-8 : ℝ)) :
     -- the bf16 round of 1 + delta lands back at 1: the
