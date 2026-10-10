@@ -553,6 +553,9 @@ frobVector_add	3dba74ca2fb9dd2b
 frobVector_inner	99bb021cb27316f9
 frobVector_norm	e303f3bea419dda9
 frobVector_sub	a5262ef3588dcb0e
+fromPMF	409d22c1797d1b82
+fromPMF_sum	428bc54091178be3
+fromPMF_toPMF	7616c4e1bdf114d0
 frontier_asymptotic	560d22e84209b9f1
 frontier_cone_inductive	5439b71f7754629d
 frontier_cone_inductive_is_cone_data	5612efb2c343eb0d
@@ -968,6 +971,7 @@ ns_poly_bound	8d5f87669628be74
 null_effect	1d98a15abde95bb0
 of	45227268f72e857a
 of	dd5dbadea78f5427
+ofReal_finset_sum	940a1586b5e7d0c2
 offdiag_pythagoras	658e47256acf0c93
 omega	73481c75d637f5bb
 omega_cubed	e025a1a2a03fc76f
@@ -1056,6 +1060,7 @@ pmfMean_sq_le	fbf527c872eb6054
 pmfMean_sq_sub	f6ebb86f1cbde8e9
 pmfMean_sub	fb32f13b1ec767c2
 pmfMean_uniformOfFinset	c26e18bd2382f048
+pmfWeight_le_one	fb6a220c77d2de8e
 pmf_weight_sum	8db8b0e84bba5b04
 poe_logZ_pairwise	3284a87c41c9421e
 poe_logZ_second_order	78c1f42f96eba39d
@@ -1459,6 +1464,9 @@ tilted_sum_one	1561ddcd13e9b443
 time_to_capability_correct	e741c03a0efeae9c
 tldr_drift_null	2d4a772525946f4e
 tldr_two_tier_safety	4b9010201de9d9ab
+toPMF	99a1e1e64c50724b
+toPMF_apply	84c5763ee0179594
+toPMF_fromPMF	c8f6efa615a6bd74
 tokenKLTotal	4a2276a7611b29ce
 token_weight_decomposition	beaee23940cc81c2
 top_level_cycle_bound	4f41b44dd1e351c1
