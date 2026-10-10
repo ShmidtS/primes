@@ -15,7 +15,7 @@ merged CE equals the CE of the shared child at the mean shift, so
 the ensemble bound `ensemble_ce_le_mean_general` is tight.
 -/
 
-namespace Hagi
+namespace Hagi.Core
 
 section Ambiguity
 
@@ -65,4 +65,8 @@ theorem consensus_no_gain {N : ℕ} [NeZero N] (z₀ : k → ℝ)
 
 end Ambiguity
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (lse_shift consensus_no_gain)
 end Hagi

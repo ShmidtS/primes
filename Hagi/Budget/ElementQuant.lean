@@ -27,7 +27,7 @@ one-line certificate before any GPU run.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 /-- **The commutation triangle**: the reconstruction error of
 factor-then-quantize is at most tail + qerr — the exact
@@ -58,4 +58,8 @@ theorem factor_quant_go {X : Type*} [NormedAddCommGroup X]
   calc ‖dE - QAB‖ ≤ tail + qerr := h3
     _ < qdirect := hgain
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (factor_quant_error factor_quant_go)
 end Hagi

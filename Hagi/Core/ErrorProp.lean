@@ -22,7 +22,7 @@ affine recursion `δ_{l+1} = J_l δ_l + r_l`, folded by `propagate`.
   `w_l = Π_{k>l} α_k²` given by `weightedResidual`.
 -/
 
-namespace Hagi
+namespace Hagi.Core
 
 open scoped Matrix Matrix.Norms.Operator
 
@@ -149,4 +149,8 @@ theorem propagate_sq_bound (α : ℝ) (hα : 0 ≤ α)
 
 end SecondMoment
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (propagate propagate_cons propagate_bound propagate_bound_contractive weightedResidual propagate_sq_bound)
 end Hagi

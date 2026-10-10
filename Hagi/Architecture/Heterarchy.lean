@@ -21,7 +21,7 @@ Model: a context-dependent influence relation `R : C → M → M → ℝ`
   is strictly positive.
 -/
 
-namespace Hagi
+namespace Hagi.Architecture
 
 open Finset
 
@@ -84,4 +84,8 @@ theorem disagreement_survives_configs (d : X) (hd : d ≠ 0) :
     rw [h2]
     linarith
 
+end Hagi.Architecture
+
+namespace Hagi
+export Hagi.Architecture (dominatesIn RankingConsistent no_global_ranking cycle_breaks_ranking disagreement_survives_configs)
 end Hagi

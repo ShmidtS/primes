@@ -58,7 +58,7 @@ flagged, not a theorem about the real transformer).
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 section ComputeBudget
 
@@ -99,4 +99,8 @@ theorem activeSet_structure (marg0 : J → ℝ) (c : J → ℝ) (lam : ℝ)
 
 end ComputeBudget
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (marginalValue_law activeSet_structure)
 end Hagi

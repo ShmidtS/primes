@@ -15,7 +15,7 @@ telelescope, and the router regret bound.
 
 open Real Finset Set
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 theorem exp_neg_le_quad (y : ℝ) (hy : 0 ≤ y) :
     Real.exp (-y) ≤ 1 - y + y ^ 2 / 2 := by
@@ -169,4 +169,8 @@ theorem router_regret_bound (K T : ℕ) (eta A Lstar : ℝ)
   field_simp
   linarith
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (exp_neg_le_quad hedge_step hedge_telescope router_regret_bound)
 end Hagi

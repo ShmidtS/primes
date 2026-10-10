@@ -50,7 +50,7 @@ both belong in the report.
 
 open Real
 
-namespace Hagi
+namespace Hagi.Audit
 
 section EqualBudget
 
@@ -231,4 +231,8 @@ theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
 
 end EqualBudget
 
+end Hagi.Audit
+
+namespace Hagi
+export Hagi.Audit (aitken_exact aitken_consistency budget_gap_sign_const headstart_pays_iff)
 end Hagi

@@ -43,7 +43,7 @@ equal-rate gap identity).
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Audit
 
 section NCEUnbiased
 
@@ -216,4 +216,8 @@ theorem head_start_timeshift (Lm Ls Lstar : ℝ → ℝ) (dm ds c : ℝ) (k t : 
 
 end TimeShift
 
+end Hagi.Audit
+
+namespace Hagi
+export Hagi.Audit (nce_estimator_unbiased log_jensen_uniform exp_tangent waterfilling_optimal head_start_timeshift)
 end Hagi

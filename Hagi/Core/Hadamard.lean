@@ -20,7 +20,7 @@ the canonical reindexing `Fin (2^k) ≃ (Fin k → ZMod 2)`):
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 /-! ## Small `ZMod 2` facts -/
 
@@ -221,4 +221,8 @@ theorem hadamardOrthonormal_mul_transpose :
       inv_mul_cancel₀ (pow_ne_zero _ (by norm_num))]
   exact smul_orthonormal hadamardReal_mul_transpose hc2
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (zmod2_add_self zmod2_neg_eq_self zmod2_one_add_one zmod2_cases chi2 chi2_zero chi2_one chi2_sq chi2_mul sylvester sylvester_apply sylvester_transpose sylvester_mem inner2_add_left sum_chi2_eq_zero sylvester_mul_transpose hadamardReal hadamardOrthonormal hadamardReal_mul_transpose smul_orthonormal hadamardOrthonormal_mul_transpose)
 end Hagi

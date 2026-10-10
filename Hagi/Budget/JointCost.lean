@@ -50,7 +50,7 @@ share of the step at H=384/1152.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 section JointCost
 
@@ -144,4 +144,8 @@ theorem offdiag_pythagoras {m n : ℕ} (Wbd Woff : Fin m → Fin n → ℝ)
 
 end JointCost
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (block_lowrank_lt_dense_iff nsIter nsIter_scale nsIter_block_le amdahl_ceiling offdiag_pythagoras)
 end Hagi

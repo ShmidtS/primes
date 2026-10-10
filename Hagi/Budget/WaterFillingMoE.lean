@@ -31,7 +31,7 @@ exact and the classical law transfers:
   interior structure only.
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 /-- **The effective capacity dictionary**: an expert with
 improvement ℓ and cost p behaves in the water-filling
@@ -39,4 +39,8 @@ picture as a channel with gain ℓ/p — improvement per unit
 cost, the SNR-per-watt of the analogy. -/
 noncomputable def effectiveCapacity (ℓ p : ℝ) : ℝ := ℓ / p
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (effectiveCapacity)
 end Hagi

@@ -25,7 +25,7 @@ here; only exact representability is certified.
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 section Element
 
@@ -82,4 +82,8 @@ theorem params_count (N V d r : ℕ) :
 
 end Element
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (residualLeaf residualLeaf_zero residualLeaf_zero_apply delta_rank_le delta_exact_rank_bound params_count)
 end Hagi

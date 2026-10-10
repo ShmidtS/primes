@@ -36,7 +36,7 @@ argmax невозможен: обе конфигурации измерения 
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 variable {I : Type*} [Fintype I] [DecidableEq I]
 
@@ -109,4 +109,8 @@ theorem tie_ambiguity (eps delta : ℝ)
   · simp
     linarith
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (argmax_pair_certified argmax_select_certified RequiresRandomSplit tie_ambiguity)
 end Hagi

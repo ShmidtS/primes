@@ -32,7 +32,7 @@ NMF-допущения на signed transformer weights не переносятс
 
 open Matrix MeasureTheory Finset
 
-namespace Hagi
+namespace Hagi.Architecture
 
 variable {m n : Type} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
 
@@ -128,4 +128,8 @@ theorem regimeC_fractional {W : Matrix m (Fin k) ℝ} {r : ℕ}
   obtain ⟨h1, h2⟩ := hC
   constructor <;> omega
 
+end Hagi.Architecture
+
+namespace Hagi
+export Hagi.Architecture (nonnegFactorization rank_le_of_nonnegFactorization nonnegRank rank_le_nonnegRank factorGap positive_measure_pos_prob regimeAFactor regimeCFactor regimeC_fractional)
 end Hagi

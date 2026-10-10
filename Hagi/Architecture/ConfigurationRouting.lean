@@ -15,7 +15,7 @@ import Hagi.Architecture.ConfigurationCost
   `N * d * d`.
 -/
 
-namespace Hagi
+namespace Hagi.Architecture
 
 /-- If `N ≤ 2 ^ B` and `N * r < d`, then
 `(N * r) * d < d * d` (and `N ≤ 2 ^ B`). -/
@@ -33,4 +33,8 @@ theorem switchable_beats_naive_dense (d r N : ℕ)
     _ ≤ N * (d * d) := Nat.mul_le_mul_left N (Nat.mul_le_mul_right d hrd)
     _ = N * d * d := by ring
 
+end Hagi.Architecture
+
+namespace Hagi
+export Hagi.Architecture (selector_never_flips_verdict switchable_beats_naive_dense)
 end Hagi

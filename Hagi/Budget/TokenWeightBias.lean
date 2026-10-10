@@ -32,7 +32,7 @@ of the controller state, and this law is the measurable
 reason fixed averaging is not neutral transport.
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 open Finset
 
@@ -129,4 +129,8 @@ theorem zero_bias_iff_uncorrelated (T g : Fin n → ℝ)
     rw [hdec, h, zero_div, zero_div, add_zero]
 
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (token_weight_decomposition zero_bias_iff_uncorrelated)
 end Hagi

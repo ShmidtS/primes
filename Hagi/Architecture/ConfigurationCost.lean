@@ -16,7 +16,7 @@ over a shared d-dim cortex:
   `d * d` expert.
 -/
 
-namespace Hagi
+namespace Hagi.Architecture
 
 /-- N rank-r fibers over a shared d-dim cortex cost
 `N * r * d` coordinates in total. -/
@@ -32,4 +32,8 @@ theorem config_storage_beats_dense (d r N : ℕ)
     (N * r) * d < d * d :=
   Nat.mul_lt_mul_of_pos_right h hd
 
+end Hagi.Architecture
+
+namespace Hagi
+export Hagi.Architecture (fiber_family_cost config_storage_beats_dense)
 end Hagi

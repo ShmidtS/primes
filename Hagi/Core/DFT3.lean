@@ -27,7 +27,7 @@ Character form of the k-fold DFT-3 mixer on the index type
 open scoped Matrix
 open scoped ComplexConjugate
 
-namespace Hagi
+namespace Hagi.Core
 
 /-! ## The primitive cube root of unity -/
 
@@ -280,4 +280,8 @@ theorem dftPow_entry_modulus (i j : Fin k → ZMod 3) :
     Complex.norm_real, Real.norm_eq_abs,
     abs_of_nonneg (Real.sqrt_nonneg _)]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (omega sq3 sq3c omega_sq_add_add omega_cubed conj_omega omega_ne_one norm_omega omega_pow_mod chi3 chi3_zero chi3_one chi3_mul zmod3_two_add_eq_neg chi3_sq_neg conj_chi3 chi3_norm chi3_ne_one sum_chi3_eq_zero charMat dftPow dftPow_apply charMat_mul_conjTranspose dftPow_mul_conjTranspose dftPow_entry_modulus)
 end Hagi

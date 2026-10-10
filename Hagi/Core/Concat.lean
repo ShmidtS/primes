@@ -22,7 +22,7 @@ set_option linter.style.header false
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 section Concat
 
@@ -364,4 +364,8 @@ theorem softmax_gap_mass_ratio (z : k → ℝ) (a b : k) (g : ℝ)
 
 end HeadMultiplicity
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (concatCols concatCols_identical concatCols_identical_apply concat_unique_identity_scale temperature_softmax_eq_forces_const temperature_changes_softmax lse exp_sum_pos lse_midpoint_le ceOneHot ensemble_ce_le_mean lse_mean_le_mean_lse ensemble_ce_le_mean_general softmaxP softmax_gap_mass_ratio)
 end Hagi

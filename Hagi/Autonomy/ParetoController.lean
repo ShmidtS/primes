@@ -28,7 +28,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 variable {A : Type} [Fintype A] [Nonempty A]
 
@@ -186,4 +186,8 @@ theorem noisy_pareto_select (u uhat : A → Fin n → ℝ)
 
 end Directional
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (dirTau dirTau_le le_dirTau dirTau_char pareto_validity dir_controller_find noisy_pareto_select)
 end Hagi

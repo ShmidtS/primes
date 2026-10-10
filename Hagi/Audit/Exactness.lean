@@ -45,7 +45,7 @@ growth-verdict function are handled in their modules.
 
 open Finset Real InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Audit
 
 section SafeQPDescent
 
@@ -232,4 +232,8 @@ theorem batch_T_min (S Bn t0 c B : ℝ) (_hS : 0 < S) (hBn : 0 ≤ Bn)
 
 end BatchExact
 
+end Hagi.Audit
+
+namespace Hagi
+export Hagi.Audit (min_dist_to_vi safeQP_descent ns_iter_bound amgm_equality amgm_uniqueness batch_T_min)
 end Hagi

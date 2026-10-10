@@ -14,7 +14,7 @@ then `abs (W ^ T * x) ≤ abs x` for every `T`, and the same
 holds for any length-`T` composition of such operators.
 -/
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 /-- If `abs W ≤ 1` then `abs (W ^ T * x) ≤ abs x` for every
 `T`. -/
@@ -64,4 +64,8 @@ theorem ttt_chain_bounded (W : ℕ → ℝ) (hW : ∀ t, abs (W t) ≤ 1)
         = W T * ((List.map W (List.range T)).foldr (· * ·) 1 * x) from by ring]
     exact hstep
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (ttt_bibo ttt_chain_bounded)
 end Hagi

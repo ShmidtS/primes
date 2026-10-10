@@ -20,7 +20,7 @@ set_option linter.style.header false
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
@@ -64,4 +64,8 @@ theorem mulVec_dotProduct_mulVec (Q : Matrix n n ℝ) (hQ : Q * Qᵀ = 1)
   rw [← Matrix.dotProduct_transpose_mulVec, Matrix.mulVec_mulVec, hQ',
     Matrix.one_mulVec, dotProduct_comm]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (head_prerotation blockCols blockCols_mulVec_sum mulVec_dotProduct_mulVec)
 end Hagi

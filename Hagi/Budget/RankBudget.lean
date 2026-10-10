@@ -58,7 +58,7 @@ ranks is `r_j • (m_j + n_j)` (the low-rank factor parameters).
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 section RankBudget
 
@@ -200,4 +200,8 @@ end RankBudget
 
 
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (rankResidual rankResidual_equalized rankResidual_allocation)
 end Hagi

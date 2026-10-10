@@ -19,7 +19,7 @@ acting on the stacked states `stackStates x`.
   model computes exactly the `N` independent experts.
 -/
 
-namespace Hagi
+namespace Hagi.Core
 
 open Matrix
 
@@ -52,4 +52,8 @@ theorem step0_equivalence {m' n' : o → Type*} [∀ i, Fintype (n' i)]
     (blockDiagonal' W *ᵥ stackStates x) ⟨k, i⟩ = (W k *ᵥ x k) i :=
   blockDiagonal'_mulVec_apply W (stackStates x) k i
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (blockDiagonal'_mulVec_apply stackStates step0_equivalence)
 end Hagi

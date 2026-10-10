@@ -48,7 +48,7 @@ Two consequences, stated honestly:
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 section Waterfilling
 
@@ -161,4 +161,8 @@ theorem waterfilling_inactive_clamp (c_i lam kappa : ℝ)
 
 end Waterfilling
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (kvResidual waterfilling_bound waterfilling_inactive_clamp)
 end Hagi

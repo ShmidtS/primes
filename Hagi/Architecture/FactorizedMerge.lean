@@ -37,7 +37,7 @@ theorem is claimed (`e_routing` is a hypothesis).
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Architecture
 
 section Factorized
 
@@ -226,4 +226,8 @@ theorem unified_error_budget (W C R A QA S : X) (P : X → X)
 
 end Unified
 
+end Hagi.Architecture
+
+namespace Hagi
+export Hagi.Architecture (fullMerge meanResidual factorizedEval routed_eval_exact merge_core_residual_identity factorized_merge_exact mean_norm_le routed_approx_bound factorized_error_bound factorized_budget unified_error_budget)
 end Hagi

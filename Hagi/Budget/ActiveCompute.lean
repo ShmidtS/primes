@@ -26,7 +26,7 @@ token (or must run N experts to cover the context).
   than the monolith, at any context entropy.
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 /-- **The active bill**: cortex c columns + active fiber of
 rank r over a d-dim state: (c + r)·d multiply–adds per
@@ -56,4 +56,8 @@ theorem active_beats_dense_family (c r d N : ℕ)
       (switching_never_exceeds_dense c r d hcr)
   · nlinarith [hN]
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (active_flops switching_never_exceeds_dense active_beats_dense_family)
 end Hagi

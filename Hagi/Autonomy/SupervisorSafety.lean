@@ -19,7 +19,7 @@ restore has a matching earlier checkpoint of the same
 identity with `t' <= t`.
 -/
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 /-- Run identity: method, seed, config, data must all
 agree for a safe restore. -/
@@ -85,4 +85,8 @@ theorem no_restore_without_checkpoint (h : List SupEv)
           simp only [List.mem_singleton] at hin'
           exact SupEv.noConfusion hin'
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (RunId SupEv admissibleIn ValidHist no_restore_without_checkpoint)
 end Hagi

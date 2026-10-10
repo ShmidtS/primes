@@ -16,7 +16,7 @@ a probability distribution (`attention_error_damped`), and by any
 uniform bound `M` (`attention_error_damped'`).
 -/
 
-namespace Hagi
+namespace Hagi.Core
 
 /-- Error damping, weighted form: the deviation of the softmax-weighted
 output `∑ i, p i • (v i + e i)` from the exact output `∑ i, p i • v i` is
@@ -76,4 +76,8 @@ theorem attention_error_damped' {ι : Type*} [Fintype ι] {E : Type*}
         Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (hM i) (hp i)
     _ = M := by rw [← Finset.sum_mul, hp1, one_mul]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (attention_error_damped_sum attention_error_damped attention_error_damped')
 end Hagi

@@ -23,7 +23,7 @@ Any near-lossless claim is empirical and not proven here. -/
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {Q KV : Type} [Fintype Q] [Fintype KV] [DecidableEq Q] [DecidableEq KV]
 
@@ -69,4 +69,8 @@ theorem gqa_cache_card (g : GQA Q KV) :
   refine Fintype.card_le_of_injective s fun a b hab => ?_
   rw [← hs a, ← hs b, hab]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (GQA mhaCache gqaCache scoreOf gqaScoreOf gqa_shared_score gqa_cache_card)
 end Hagi

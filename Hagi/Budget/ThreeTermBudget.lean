@@ -28,7 +28,7 @@ three-term fit with model size M) are not proved — the
 module covers the two-term data/steps tradeoff only.
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 /-- **The AM-GM floor**: for positive A, C, N, K with
 N·K = B, the reducible error A/N + C/K is at least
@@ -103,4 +103,8 @@ theorem optimal_split (A C B : ℝ) (hA : 0 < A) (hC : 0 < C)
 
 
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (two_term_amgm optimal_split)
 end Hagi

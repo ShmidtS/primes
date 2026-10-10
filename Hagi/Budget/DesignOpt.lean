@@ -97,7 +97,7 @@ stopping criterion — the CE-plateau replaced by
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Budget
 
 section DesignOpt
 
@@ -185,4 +185,8 @@ theorem shadow_price_sum_identity (ι : Type) [Fintype ι]
 
 end DesignOpt
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (spectral_tail_mono spectral_rank_exists adaptive_ns_exists wallClock shadow_price_sum_identity)
 end Hagi

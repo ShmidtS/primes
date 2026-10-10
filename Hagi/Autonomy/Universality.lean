@@ -25,7 +25,7 @@ regret-бюджет роутера (measured premise), `ε0, ρ` — парам�
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 variable {I K : ℕ}
 
@@ -113,4 +113,8 @@ theorem universality_longhorizon {T : ℕ}
   rw [hsplit, hconst] at hsum
   nlinarith [hsum, hregret, hgeom]
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (geometric_eps_sum hedge_domain_guarantee universality_longhorizon)
 end Hagi

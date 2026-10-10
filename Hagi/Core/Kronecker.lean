@@ -20,7 +20,7 @@ products follow by induction.
 open scoped Matrix
 open scoped Kronecker
 
-namespace Hagi
+namespace Hagi.Core
 
 section Complex
 
@@ -67,4 +67,8 @@ theorem transpose_kronecker_mul {A : Matrix m m ℝ} {B : Matrix n n ℝ}
 
 end Real
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (kronecker_mul_conjTranspose conjTranspose_kronecker_mul kronecker_mul_transpose transpose_kronecker_mul)
 end Hagi

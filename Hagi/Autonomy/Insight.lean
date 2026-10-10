@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 open Real Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Autonomy
 
 section Insight
 
@@ -87,4 +87,8 @@ theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
     (A * B).mulVec x = 0 ∧ kl ≤ eps :=
   ⟨tldr_drift_null A B x hx, forgetting_kl_bound F dW kl eps h_emp_second hball⟩
 
+end Hagi.Autonomy
+
+namespace Hagi
+export Hagi.Autonomy (insight_kl_descent experience_cycle_bound insight_consolidation_safe tldr_drift_null tldr_two_tier_safety)
 end Hagi

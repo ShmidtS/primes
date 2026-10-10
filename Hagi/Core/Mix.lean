@@ -20,7 +20,7 @@ head. This is a sufficient condition; the converse is not proved.
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {k n : Type*} [Fintype k] [Fintype n]
 
@@ -70,4 +70,8 @@ theorem mixed_invisible {Q : n → n → ℝ} {W : n → (k → ℝ)}
   rw [hstep]
   simp only [hinv]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (mixedLogits plainLogits mixed_invisible)
 end Hagi

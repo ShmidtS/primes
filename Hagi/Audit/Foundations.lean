@@ -46,7 +46,7 @@ All empirical constants stay explicit hypotheses.
 
 open Finset Real InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Audit
 
 section ProjDescent
 
@@ -268,4 +268,8 @@ theorem amgm_batch_bound (Bn t0 c B : ℝ)
 
 end BatchOpt
 
+end Hagi.Audit
+
+namespace Hagi
+export Hagi.Audit (proj_descent_inner proj_no_farther exp_jensen gap_N_nonneg anchor_recurrence ns_poly_bound amgm_batch_bound)
 end Hagi

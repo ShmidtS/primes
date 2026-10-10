@@ -33,7 +33,7 @@ makes that gap exact:
   not monoliths (conditional on round viability,).
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 /-- **The equal-budget race is well-posed**: total F, dense
 baseline per-step cost f_B > 0: the baseline trains for
@@ -73,4 +73,8 @@ theorem amortized_growth_cheaper (d r N : ℕ)
     (N * r) * d < d * d :=
   config_storage_beats_dense d r N h hd
 
+end Hagi.Budget
+
+namespace Hagi
+export Hagi.Budget (equal_budget_baseline pipeline_beats_baseline_iff amortized_growth_cheaper)
 end Hagi
