@@ -340,6 +340,7 @@ coord_center_zero	e8fa6b0d539c65d5
 coord_mgf_bound	c42d5fd837e5c4e0
 corePremises_nonvacuous	ee014b4b4dae0077
 corePremises_of_full_refinement	05df74ae1b08a95f
+cosSum	bbc516c6c185a856
 costCompress	ec59ec8f3db89160
 costGrow	de60df8e7a177cdc
 costJoint	833a33c01ba2b9a4
@@ -1291,9 +1292,12 @@ root_idem	cc79d347f8d11410
 root_invariance	6717ee8a660f1e1e
 root_no_leaf_signal	28d08cda5c62da64
 root_sum_eq	2e9e961093d3c611
+ropeScore	99fbd17d13a9e9ae
 rope_context_dichotomy	16ab2e83a30a2964
 rope_limit_irreversible	82b8176ba1472e81
+rope_mean_sum	fe03673860cf9312
 rope_score_delta	98420415d74f2980
+rope_second_moment_sum	804fdb1c64d1a5f6
 rope_translation_shift	e4f633287a129a7c
 rotVec	ab36dee4c9bf0120
 rot_norm	5d95e2c789a8d50f

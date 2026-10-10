@@ -212,6 +212,7 @@ import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
 import Hagi.Core.RoPE
 import Hagi.Core.RoPELimit
+import Hagi.Core.RoPEMoments
 import Hagi.Core.GQA
 import Hagi.Core.SWA
 import Hagi.Step.CausalFilter
