@@ -52,6 +52,7 @@ KLdiv	609e8a94a84202da
 KLdiv_eq_canonical	da59cb16f9e6a2b3
 KLdiv_eq_klDef	ec6679ae88e0ed09
 LittlestoneDim	75d9c14044d7ec96
+LiveDelta	88ee5cdf6f63a084
 MOPDApproved	1995a138f8c82cd2
 MasterHAGI	217018eb100d2a88
 MasterHAGICore	527161ed4898378b
@@ -112,6 +113,7 @@ adaptive_success_azuma	03a164e58756d7f9
 adaptive_success_concentrated	8c70c54c36d4d7cf
 adaptive_success_count_floor	862b9939c8bfd72d
 adaptive_success_freedman	5c9152a7d53d4266
+addBlock	d9ba5bb7bc1aa5fe
 additive_as_multiplicative	a10210687ff2a9bd
 admissibleIn	c9e9f3302c5ba0c6
 admissionChain	e143403951bc766e
@@ -186,9 +188,12 @@ binEnt_nonneg	dc9aa9a7f8600366
 bits_floor	460decc60083e8af
 blockCols	7d94167d66b3a6f0
 blockCols_mulVec_sum	80e938cf06e37764
+blockCost	fa506fcc264cbd0d
 blockDiagonal'_mulVec_apply	4b5c0e342c394756
 blockMap	3af3ed706aadaa1e
 block_lowrank_lt_dense_iff	f58b98922fe442c0
+block_rank_le	dfbaa1387bdca3d2
+blocks_cost	8b31a7b5da64e694
 bounded_frontier_no_sustained_growth	1f42a7f83dedd8dc
 bpw	5a1d7112d3caa4f7
 bpw_lt_one_bound	c19eac38dcd4498d
@@ -416,6 +421,7 @@ dustVarK_expQ	ca7961883725e4f3
 dynamic_branch_variance	c3220d476bb9bb0c
 edge_total_bound	8542ff5849eefdc0
 effectiveCapacity	332c3dceccd57df3
+effectiveWeights	b96e4609f358a536
 elasticity_chain	02f9a3f06696cb4f
 encode_lt_aux	400aa523432d7fb3
 endpoint_bivariate_bound	34cf39ef1e975145
@@ -953,6 +959,7 @@ ns_gap_scaled	de664521f6ad626a
 ns_geometric_envelope	798fa164b24717d3
 ns_iter_bound	e5d5d53ed96521b0
 ns_poly_bound	8d5f87669628be74
+null_effect	1d98a15abde95bb0
 of	45227268f72e857a
 of	dd5dbadea78f5427
 offdiag_pythagoras	658e47256acf0c93
@@ -1202,6 +1209,8 @@ risk_takeoff_counted	94ec5be21b5e3b41
 rms_direction	5e78d24ee9e22687
 rms_idempotent	101146fb4531c7a9
 robust_feasibility	09762efa22657702
+rollback	d82557325d03ea09
+rollback_addBlock	32055558ad90cf4b
 rootPart	45e161b7b96c72bc
 rootProj	f449b56b5322b234
 rootProj_is_mean	238cfee4c2504f26
