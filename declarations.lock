@@ -1251,6 +1251,7 @@ safeSet	f4bc6f7f142b971e
 safeSet_closed	ca52edf07ca0b019
 safeSet_nonempty	584d08dc915d64a1
 safe_consensus_harmless	87e593e8012ef125
+safe_update_window	ea2cd9bb57235b66
 safeqpEtaMax	132d89c958de1233
 safeqpEtaMaxConflictFree	cb6a9842eed29044
 safeqpEtaMaxConflictFree_pos	3d02be7ba3375f97
@@ -1509,6 +1510,11 @@ unitary_perturb_metric	5f2e6e826efde7f8
 unitary_row_sq_sum	d3dbb51fcab231be
 univNE	88ce05ebb0eecc52
 universality_longhorizon	f006ddf256928038
+updateNewest	9f34bfa411278dbb
+updateNewest_base	ce2d3029a4f15c3e
+updateNewest_cost	c0cd80de7768dd88
+updateNewest_length	02812be9856445c6
+updateNewest_tail	90d071ee4bff4bf8
 usableFrontier	5527ef71e6d4923b
 used_configs_lower_bound	542dac7798f6adba
 var_recursion	26af72128127748d

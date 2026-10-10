@@ -251,6 +251,7 @@ import Hagi.Unified.MergeBridge
 import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
+import Hagi.Step.LiveDeltaSafe
 import Hagi.Step.MDLObjective
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP
