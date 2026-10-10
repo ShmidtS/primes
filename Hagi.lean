@@ -34,6 +34,7 @@ import Hagi.Data.ValueOfRead
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
 import Hagi.Budget.ComputeBudget
+import Hagi.Budget.CriticalBatch
 import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill

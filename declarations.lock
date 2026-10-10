@@ -343,6 +343,8 @@ costJoint	833a33c01ba2b9a4
 costMerge	5f8982c8c21ab16e
 counted_takeoff_exp	4a8da2badf51a079
 covered	c317174677fd9505
+criticalS	ccdf31cf52faa5cc
+critical_batch_lower	d8d423537306370e
 crossDiff	cf6207253121ab12
 crossEntropy	0b5c2f949310d1d7
 crossEntropy_eq_canonical	1051409efdc48524
@@ -1350,6 +1352,9 @@ selector_never_flips_verdict	2c52cba4661bb264
 selector_skips_dominated	20e969c70d59457d
 self_development_find	64b462413bdefa2e
 separated_needs_capacity	eb45b65653afb85e
+sfoCost	7c58bd38e115d25b
+sfo_global_min	832c53ff73bc9335
+sfo_min_core	320d680a76bd4688
 shadow_price_sum_identity	19e188a91fe9f21f
 shallow_misses_tube	05c5a3b8b9668a2a
 shannon	45218543b84d714a
