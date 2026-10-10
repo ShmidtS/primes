@@ -22,7 +22,7 @@ Detailed per-round history: `STATUS.md`.
 | Budget | Bit allocation (marginal exchange, factor-2 balance, termination), water-filling, KV allocation, compute budget laws. |
 | Growth | Cone/takeoff family: frontier-scaling invariant (sustained takeoff from production dynamics), gain renewal, disagreement chains, gain-operator chain, cone unification. |
 | Dynamics, External, Deployment, Discovery, Autonomy, Omni, Pretraining | Contraction/endpoint budgets; imported laws (μP, vocab critical point, phase metric); proxy-shift budget; PPT discovery (MH kernels, truncation bias); exponential-weights routing, supervisor viability (halving), insight channel; omni (cross-modal gap = mutual information, capability gates, Φ-monotonicity). |
-| Unified | The state-and-cycle layer: `GrowthState` (the measured stage ledger), stage theorems, macro-cycle, the conditional capstones (`MasterHAGI*`, `GrandSynthesis`), `CertifiedHAGIInvariant`, the nonvacuity witness, the assumptions record, the merge bridge. |
+| Unified | The state-and-cycle layer: `GrowthState` (the measured stage ledger), stage theorems, macro-cycle, the conditional capstones (`MasterHAGI*`, `GrandSynthesis`), `CertifiedHAGIInvariant`, the nonvacuity witness, the assumptions record, the merge bridge, the state-level takeoff, the end-to-end live-weights cycle. |
 | Model, Generalization, Runtime | Gap-law model; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. |
 
 ## The three layers (honest status)
