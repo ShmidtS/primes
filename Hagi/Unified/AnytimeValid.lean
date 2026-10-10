@@ -24,7 +24,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-! ## The merge stage linked to the Concat law -/
 
@@ -69,4 +69,7 @@ theorem anytime_valid_budget (delta0 rho : ℝ) (T : ℕ)
     _ ≤ delta0 * (1 / (1 - rho)) := mul_le_mul_of_nonneg_left hgeom hdelta0
     _ = delta0 / (1 - rho) := by field_simp
 
+end Hagi.Unified
+namespace Hagi
+export Hagi.Unified (merge_stage_linked merge_stage_linked_nonneg anytime_valid_budget)
 end Hagi

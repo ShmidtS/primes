@@ -20,7 +20,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Growth
 
 section GrowthGate
 
@@ -45,4 +45,8 @@ theorem verdict_exhausted (GF R eps : ℝ) (_heps : 0 < eps)
 
 end GrowthGate
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (verdict_ttt verdict_grow verdict_exhausted)
 end Hagi

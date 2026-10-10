@@ -27,7 +27,7 @@ hypothesis from the token-level Concat law.
 
 open Real InnerProductSpace Finset
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-- Under the stated premises (SafeQP minimality, smoothness
 h_emp_, per-entry distortion ≤ s/2, Lipschitz h_emp_), one
@@ -95,7 +95,7 @@ theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t) (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
     (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  Hagi.top_level_termination Emin eps k hE hstep heps
+  top_level_termination Emin eps k hE hstep heps
 
 /-- For nonnegative weights `w` and per-token Concat law
 `cmerged t ≤ cmean t`: the token-weighted merge identity
@@ -131,4 +131,8 @@ theorem merge_stage_concat_adapter {Tok : Type} [Fintype Tok]
       have := hcat t
       linarith)
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (top_level_cycle_bound top_level_termination noisy_cycle_step horizon_termination merge_stage_concat_adapter)
 end Hagi

@@ -33,7 +33,7 @@ criterion uses the exact ½·log cosh M bound.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 theorem exp_chord (x M : ℝ) (hM : 0 < M) (hx : -M ≤ x) (hx2 : x ≤ M) :
     Real.exp x ≤ (M - x) / (2 * M) * Real.exp (-M)
@@ -230,14 +230,14 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
     (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1)
     (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M) :
     Hagi.twoGap p d ≤ M ^ 2 / 4 := by
-  have hcosh := Hagi.exp_prod_le_cosh p d M hp hsum hM hD
+  have hcosh := exp_prod_le_cosh p d M hp hsum hM hD
   have hquad : Real.cosh M ≤ Real.exp (M ^ 2 / 2) := cosh_le_exp_half_sq M
   have hle : ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) ≤ Real.exp (M ^ 2 / 2) :=
     le_trans hcosh hquad
   -- twoGap = ½ log (sum) ≤ ½ log (exp(M²/2)) = M²/4
   have hpos : 0 < ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
     -- every term ≥ p_u p_v · e^{−M}, so the sum ≥ e^{−M}·ΣΣ p p = e^{−M} > 0
-    have hone : ∑ u, ∑ v, p u * p v = 1 := Hagi.sum_pair_weights p hsum
+    have hone : ∑ u, ∑ v, p u * p v = 1 := sum_pair_weights p hsum
     have hge : ∀ (u : V) (v : V),
         p u * p v * Real.exp (-M) ≤ p u * p v * Real.exp (d u - d v) := by
       intro u v
@@ -251,7 +251,7 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
         ≤ ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
       calc (∑ u, ∑ v, p u * p v) * Real.exp (-M)
           = ∑ u, ∑ v, p u * p v * Real.exp (-M) := by
-              rw [mul_comm, ← Hagi.sum2_mul (f := fun u v => p u * p v) (c := Real.exp (-M))]
+              rw [mul_comm, ← sum2_mul (f := fun u v => p u * p v) (c := Real.exp (-M))]
               exact Finset.sum_congr rfl (fun u _ => Finset.sum_congr rfl (fun v _ => by ring))
         _ ≤ ∑ u, ∑ v, p u * p v * Real.exp (d u - d v) := by
           refine Finset.sum_le_sum (fun u _ => Finset.sum_le_sum (fun v _ => hge u v))
@@ -274,7 +274,7 @@ theorem merge_skip_certificate (V : Type) [Fintype V] [Nonempty V] (p d : V → 
     (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M)
     (hgate : M ^ 2 / 4 < eps) :
     Hagi.twoGap p d < eps := by
-  have hb := Hagi.twoGap_bounded V p d M hp hsum hM hD
+  have hb := twoGap_bounded V p d M hp hsum hM hD
   linarith
 
 /-- **The materialized-gain ceiling through transport**: the
@@ -290,7 +290,7 @@ theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ
     (heta : 0 ≤ eta) (heta1 : eta ≤ 1) :
     eta * Hagi.twoGap p d ≤ M ^ 2 / 4 := by
   have hb : Hagi.twoGap p d ≤ M ^ 2 / 4 :=
-    Hagi.twoGap_bounded V p d M (fun v => le_of_lt (hp v)) hsum hM hD
+    twoGap_bounded V p d M (fun v => le_of_lt (hp v)) hsum hM hD
   have hgap0 : 0 ≤ Hagi.twoGap p d := Hagi.twoGap_nonneg hp hsum
   nlinarith [hb, hgap0, heta, heta1]
 
@@ -429,7 +429,7 @@ theorem domain_disagreement_floor (p d : k → ℝ)
       rw [← Finset.sum_erase_add Finset.univ
         (fun b => p u * p b) (Finset.mem_univ v)]]
     ring
-  have hpairsum : ∑ a, ∑ b, p a * p b = 1 := Hagi.sum_pair_weights p hsum
+  have hpairsum : ∑ a, ∑ b, p a * p b = 1 := sum_pair_weights p hsum
   -- assemble: sum ≥ q·coshδ + (1 − q), purely by linear arithmetic on atoms
   have hlower : 1 + p u * p v * (Real.cosh delta - 1)
       ≤ ∑ a, ∑ b, p a * p b * Real.cosh (d a - d b) := by
@@ -550,7 +550,7 @@ theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
   have hposf2 : 0 < ∑ v, p v * Real.exp (-(d v)) := by
     rw [hf2]
     exact div_pos hsum2pos hSpos
-  have hpair := Hagi.pair_factor p d
+  have hpair := pair_factor p d
   unfold Hagi.twoGap
   rw [hpair, Real.log_mul (ne_of_gt hposf1) (ne_of_gt hposf2), hlog1, hlog2]
   -- RHS: (ceOneHot t (m+d) + ceOneHot t (m−d))/2 − ceOneHot t m
@@ -580,9 +580,9 @@ theorem ce_gap_bounded {k : Type} [Fintype k] [Nonempty k] (m d : k → ℝ) (t 
     Hagi.ceOneHot t (fun v => m v + d v) / 2
       + Hagi.ceOneHot t (fun v => m v - d v) / 2
       - Hagi.ceOneHot t m ≤ M ^ 2 / 4 := by
-  have hid := Hagi.twoGap_ce_identity m d t
+  have hid := twoGap_ce_identity m d t
   have hbound : Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) d ≤ M ^ 2 / 4 :=
-    Hagi.twoGap_bounded k _ d M (fun v => (hp v).le) hsum hM hD
+    twoGap_bounded k _ d M (fun v => (hp v).le) hsum hM hD
   rw [hid] at hbound
   linarith
 
@@ -622,7 +622,7 @@ theorem chord_factor1 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
     intro v
     have hbdv := hbd v
     rw [abs_le] at hbdv
-    have hc := Hagi.exp_chord (d v) D hD (by linarith [hbdv.1]) (by linarith [hbdv.2])
+    have hc := exp_chord (d v) D hD (by linarith [hbdv.1]) (by linarith [hbdv.2])
     calc p v * Real.exp (d v)
         ≤ p v * ((D - d v) / (2 * D) * Real.exp (-D) + (d v + D) / (2 * D) * Real.exp D) :=
           mul_le_mul_of_nonneg_left hc (hp v)
@@ -644,7 +644,7 @@ theorem chord_factor1 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
     rw [Finset.sum_congr rfl (fun v _ => hinner v), Finset.sum_add_distrib,
       ← Finset.mul_sum, ← Finset.mul_sum, mul_comm (Real.exp (-D)),
       mul_comm (Real.exp D)]
-  rw [hdist, (Hagi.chord_weighted p d D hsum).1, (Hagi.chord_weighted p d D hsum).2] at hsumle
+  rw [hdist, (chord_weighted p d D hsum).1, (chord_weighted p d D hsum).2] at hsumle
   exact hsumle
 
 /-- The sharp two-factor chord bound: factor 2 (negated d). -/
@@ -685,6 +685,10 @@ theorem prune_certificate {k : Type} [Fintype k] [Nonempty k]
     Hagi.ceOneHot t (fun v => m v + d v) / 2
       + Hagi.ceOneHot t (fun v => m v - d v) / 2
       - Hagi.ceOneHot t m ≤ delta ^ 2 / 4 :=
-  Hagi.ce_gap_bounded m d t delta hp hsum hdelta hclose
+  ce_gap_bounded m d t delta hp hsum hdelta hclose
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi

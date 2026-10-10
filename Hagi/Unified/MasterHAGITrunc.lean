@@ -32,7 +32,7 @@ Saturation) они противоречивы на длинном горизон
 
 open Real Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Unified
 
 section Trunc
 
@@ -331,4 +331,8 @@ theorem masterhagi_growth_witness :
     exact hfinal
 
 end Trunc
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (frontier_cone_trunc frontier_cone_struct sustained_takeoff_trunc sustained_takeoff_struct MasterHAGI_trunc masterhagi_growth_witness)
 end Hagi

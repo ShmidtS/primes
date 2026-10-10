@@ -47,7 +47,7 @@ consumer carries an h_emp_G/h_emp_dyn premise.
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Generalization
 
 section ModeState
 
@@ -421,4 +421,8 @@ theorem qgen_frontier_bridge_invariant (C D ξ ΔQ : ℕ → ℝ)
 
 end QgenFrontier
 
+end Hagi.Generalization
+
+namespace Hagi
+export Hagi.Generalization (GenMetrics Qvec Qgen Qgen_le Qgen_drop_bound GenState hagiPotential ModeDrop generalization_safe_step generalization_safe_step_at_target safeqp_risk_bound_compose modeDrop_rejected dominates IsPareto scalarized_argmin_pareto pareto_frontier_nonempty selector_skips_dominated qgen_frontier_bridge qgen_frontier_bridge_invariant)
 end Hagi

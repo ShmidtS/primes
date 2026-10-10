@@ -48,7 +48,7 @@ merge. Цена измеряется в
 open Finset
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 variable {n N K : ℕ}
 
@@ -148,4 +148,8 @@ theorem merge_gate_certified {twoGap : ℝ}
     (∑ i, w i * sigmaPrice (xs i) (devs i)) + κ * (n' * s) / 2
       < twoGap := hgate
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (sigmaPrice QuadModel sigmaPrice_neg merge_price_quad price_zero_iff_ker MergeApproved merge_gate_certified)
 end Hagi

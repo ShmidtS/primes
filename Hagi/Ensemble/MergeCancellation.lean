@@ -53,7 +53,7 @@ cos(dev) ≈ −0.3…−0.6); дефицит γ = 9×. Этот модуль �
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 variable {N : ℕ} [NeZero N] {V : Type*}
   [NormedAddCommGroup V] [InnerProductSpace ℝ V]
@@ -247,4 +247,8 @@ theorem anticorrelated_suppressed (W : Fin N → V) (M : V)
     rw [h0, hsum]
     simp
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (mergeDecomp merge_is_mean deviations_cancel pairwise_variance_identity orthogonal_energy_split decompose_reconstruct anticorrelated_suppressed)
 end Hagi

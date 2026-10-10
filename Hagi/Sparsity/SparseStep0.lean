@@ -17,7 +17,7 @@ dense merge within `tol`, for any number of dropped branches
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Sparsity
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -44,4 +44,8 @@ theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
     exact absurd hn2 (not_le.mpr htail)
   exact hsq
 
+end Hagi.Sparsity
+
+namespace Hagi
+export Hagi.Sparsity (sparse_step0)
 end Hagi

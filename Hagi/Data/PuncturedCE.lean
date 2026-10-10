@@ -29,7 +29,7 @@ Honest boundary: CE-level unbiasedness of the LOSS (not
 just the sum) additionally requires reweighting by 1/p -
 stated in the docstring, not formalized. -/
 
-namespace Hagi
+namespace Hagi.Data
 open Finset
 
 /-- Punctured sum: keep index i iff the Bernoulli flip b i
@@ -102,4 +102,8 @@ theorem punctured_unbiased {n : ℕ} (x : Fin n → ℝ)
   simp
 
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (puncturedSum punctured_unbiased)
 end Hagi

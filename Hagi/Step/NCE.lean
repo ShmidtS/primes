@@ -27,7 +27,7 @@ set_option linter.style.header false
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Step
 
 section NCE
 
@@ -58,4 +58,8 @@ theorem nce_correction_pos (p q : V → ℝ)
 
 end NCE
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (nce_decomposition nce_correction_pos)
 end Hagi

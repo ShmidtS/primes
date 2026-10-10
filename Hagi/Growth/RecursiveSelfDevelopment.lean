@@ -27,7 +27,7 @@ Frontier-динамика и стрелка «runtime ⇒ success» — посы
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-! ## Обновление opportunity -/
 
@@ -176,4 +176,8 @@ theorem closed_loop_takeoff {n : ℕ} (p : Fin n → V → ℝ)
     prodPq_mono p hp _ _ (fun omega hfl hfl' => hgrowth omega hfl')
   exact le_trans hconc hmono
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (opportunity_renewal recursive_self_development multiplicative_growth realizedSuccess sum_realized closed_loop_takeoff)
 end Hagi

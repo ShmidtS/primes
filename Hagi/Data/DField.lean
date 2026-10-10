@@ -94,7 +94,7 @@ the disagreement. All the ingredients are measurable
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section DField
 
@@ -450,4 +450,8 @@ theorem dfield_smoothing {V : Type} [Fintype V] [Nonempty V]
   have h2 : (0:ℝ) < alpha * u v := mul_pos halpha (hu v)
   linarith
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (Corpus KLdiv KLdiv_eq_klDef mixtureCorpus divField kl_nonneg log_eq_sub_one_iff_one mixtureCorpus_pos mixtureCorpus_sum_one log_lt_sub_one' kl_zero_iff_eq divField_zero_iff log_ratio_add kl_product KL_product_ge_marginal dfield_smoothing)
 end Hagi

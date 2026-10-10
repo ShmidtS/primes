@@ -16,7 +16,7 @@ import Hagi.Dynamics.EndpointContraction
   `kl T ≤ KL₀·(1/2)^T` (каждый rollout — бит близости).
 -/
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- При `0 < κ_KL < 1`, `0 < δ`, `kl (t+1) ≤ κ_KL·kl t` и
 `kl 0/δ ≤ (1/κ_KL)^T` — `kl T ≤ δ`. -/
@@ -54,4 +54,8 @@ theorem kl_half_steps (kl : ℕ → ℝ) (KL₀ : ℝ) (T : ℕ)
     _ ≤ (1 / 2 : ℝ) ^ T * KL₀ := hhalf
     _ = KL₀ * (1 / 2 : ℝ) ^ T := by ring
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (kl_contraction_budget kl_half_steps)
 end Hagi

@@ -24,7 +24,7 @@ point.
 
 open Real
 
-namespace Hagi
+namespace Hagi.Energy
 
 /-- **STE descent residual** (round-62 program: model the
 optimizer that runs): the straight-through update's
@@ -49,4 +49,8 @@ theorem ste_step_residual (gradStep s wdelta : ℝ)
 -- a conclusion-equals-hypothesis restatement; the terminal-ball
 -- content lives in ste_step_residual's docstring and bound.)
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (ste_step_residual)
 end Hagi

@@ -31,7 +31,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Growth
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -107,4 +107,8 @@ theorem candidate_completeness_find
   · exact ((Finset.mem_filter.mp ha'mem).2).2
   · linarith
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (usableFrontier capability_takeoff_state CandidateComplete candidate_completeness_find)
 end Hagi

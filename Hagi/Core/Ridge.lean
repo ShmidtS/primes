@@ -26,7 +26,7 @@ with the normal equation `Xᵀ (X w₀ − y) + λ w₀ = 0`
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {m n : Type*} [Fintype m] [Fintype n]
 
@@ -120,4 +120,8 @@ theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
   rw [← hdots] at hdot ⊢
   linarith
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (ridge ridgeNormalEq ridge_optimal)
 end Hagi

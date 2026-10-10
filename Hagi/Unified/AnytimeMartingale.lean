@@ -36,7 +36,7 @@ is a fixed direction, not a data-dependent selection.
 open Finset Real MeasureTheory ProbabilityTheory
 open scoped NNReal
 
-namespace Hagi
+namespace Hagi.Unified
 
 section Ville
 
@@ -367,6 +367,10 @@ end Stochastic
 
 end Composition
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (eprocess_stopped_budget ville_supermartingale ville_anytime_false_alarm anytime_failure_budget anytime_safety anytime_safety_stochastic)
 end Hagi
 
 

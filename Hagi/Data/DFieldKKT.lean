@@ -62,7 +62,7 @@ program is max D over the NON-CONFLICTING set.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section DFieldKKT
 
@@ -111,4 +111,8 @@ theorem dfield_ascent_transfer (p : K → Corpus V) (w : K → ℝ)
 
 end DFieldKKT
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (divField_marginal dfield_ascent_transfer)
 end Hagi

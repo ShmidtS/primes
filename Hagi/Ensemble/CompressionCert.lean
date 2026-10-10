@@ -40,7 +40,7 @@ merged-моделей: prior = base-чекпойнт, posterior = merged,
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 /-- Тернарный знак: −1, 0, +1. -/
 inductive TernSign where
@@ -124,4 +124,8 @@ theorem merged_bound {d : ℕ} (risk : Delta d → ℝ)
         mul_le_mul_of_nonneg_left hcost hcoeff
       linarith [ih, hstep, hmul, one_mul mu]
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (TernSign Delta deltaCost deltaCost_concat deltaCost_sum merged_bound)
 end Hagi

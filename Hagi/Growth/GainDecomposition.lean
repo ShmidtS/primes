@@ -18,7 +18,7 @@ import Hagi.Growth.GainOperator
   то он ≤ `η * devEnergy dev` для `η = η_p * η_s`.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 open Finset
 
@@ -77,4 +77,8 @@ theorem chain_ignition_threshold (C D C' D' : ℝ)
       ≤ η * devEnergy dev ∧ η = η_p * η_s :=
   ⟨η_p * η_s, hprod, rfl⟩
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (etaPolicy etaState gain_chain zero_stage_kills_gain chain_ignition_threshold)
 end Hagi

@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Growth
 
 variable {A : Type} [Fintype A] [Nonempty A]
 
@@ -98,4 +98,8 @@ theorem search_cost_bound (cMeas : ℝ) (hc : 0 ≤ cMeas) (safe : A → Prop)
     (∑ a ∈ safeCandidates safe, cMeas) = ((safeCandidates safe).card : ℝ) * cMeas := by
   simp [Finset.sum_const]
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (safeCandidates controller_max_exists self_development_find certified_gain_select search_cost_bound)
 end Hagi

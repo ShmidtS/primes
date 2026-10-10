@@ -30,7 +30,7 @@ set_option linter.style.header false
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Step
 
 section Dominate
 
@@ -120,4 +120,8 @@ theorem guard_weight_parity (ns nr : ℝ) (hns : 0 < ns) (hnr : 0 < nr) :
 
 end Dominate
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (domination_decompose domination_regression safe_consensus_harmless dominated_collateral_bound guard_weight_parity)
 end Hagi

@@ -44,7 +44,7 @@ Hoeffding bound на КОНЕЧНОМ произведении простран�
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Probability
 open Hagi.Foundations
 
 variable {V : Type} [Fintype V] [Nonempty V]
@@ -538,3 +538,8 @@ theorem certified_premise {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
       exact h ⟨hM, not_le.mp hcon⟩)
   rw [hcompl] at hmono
   linarith
+
+end Hagi.Probability
+namespace Hagi
+export Hagi.Probability (prodDens prodE prodPq IsProbSys prodDens_nonneg sum_prod_factor prodE_one prodPq_le_one prodPq_compl prodPq_mono prodPq_union_le prodE_exp_sum markov_ge coordMean centeredSum coord_center_zero coord_mgf_bound sum_mgf_bound hoeffding_chernoff hoeffding_tail hoeffding_mean_tail hoeffding_mean_tail_low hoeffding_two_sided cert_upper cert_lower certified_premise)
+end Hagi

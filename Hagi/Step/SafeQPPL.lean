@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -129,4 +129,8 @@ theorem pl_rate_noconflict (f : X → ℝ) (x : X) (g : X)
   rw [hκ, mul_one] at hrate
   exact hrate
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (safeqp_pl_descent safeqp_pl_rate pl_rate_noconflict)
 end Hagi

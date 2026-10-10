@@ -27,7 +27,7 @@ decomposition.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-! ## Stage 1: Merge — the Jensen gap buys energy -/
 
@@ -124,4 +124,8 @@ theorem macro_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
   lyapunov_termination_fin Emin eps k hE hstep heps
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (merge_stage merge_stage_decrease joint_stage compress_stage macro_step_decrease macro_termination)
 end Hagi

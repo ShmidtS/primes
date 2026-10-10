@@ -50,7 +50,7 @@ form is the shift-invariant class.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 section MergeIdentity
 
@@ -109,4 +109,8 @@ theorem geometric_mean_logit_mean (V K : Type)
 
 end MergeIdentity
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (softmax_shift_invariance geometric_mean_logit_mean)
 end Hagi

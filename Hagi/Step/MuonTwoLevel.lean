@@ -17,7 +17,7 @@ import Mathlib
 и сходимость NS-итераций — не доказаны.
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 open Finset
 
@@ -34,4 +34,8 @@ theorem ns_gap_scaled (r : ℕ) (dev : Fin r → ℝ)
   exact h1
 
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (ns_gap_scaled)
 end Hagi

@@ -36,7 +36,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- При `Rext (t+1) ≤ Rext t − Gamma` и `c ≤ Gamma`:
 `Rext T ≤ Rext 0 − Σ_{t<T} c`. -/
@@ -196,4 +196,8 @@ theorem risk_epsilon_floor (R0 eps beta : ℝ) (N : ℕ)
     linarith
   exact (Real.log_le_log_iff (by positivity : (0:ℝ) < R0 * (1 - beta) ^ N) heps).mp hlogle
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (capability_cumulative growth_efficiency_lower growth_efficiency_div capability_multiplicative capability_takeoff_counted capability_takeoff_floor risk_takeoff_counted risk_epsilon_floor)
 end Hagi

@@ -38,7 +38,7 @@ Pareto-stationarity rate, and float-error specializations.
 
 open Finset Real InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Unified
 
 theorem ortho_norm_sq {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     {ι : Type*} [Fintype ι] {v : ι → E} (hv : Orthonormal ℝ v) (c : ι → ℝ) :
@@ -356,4 +356,8 @@ theorem safeqp_pareto_orthogonality {K : Type} [Fintype K]
     exact gram_cone_inner g w d hw (hsafecone d hd)
   exact le_antisymm hvi hge
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (ortho_norm_sq gating_tail_bound topk_routing_optimal fisher_nullspace unitary_perturb_bound unitary_perturb_metric optimal_step_unconstrained optimal_step_value optimal_step_ge_recip safeqp_cumulative safeqp_total_descent safeqp_eps_critical gram_cone_inner safeqp_pareto_orthogonality)
 end Hagi

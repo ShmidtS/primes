@@ -64,7 +64,7 @@ needed for the conclusion as stated.
 open Finset Real MeasureTheory ProbabilityTheory
 open scoped NNReal
 
-namespace Hagi
+namespace Hagi.Probability
 
 section ConditionalSuccess
 
@@ -351,4 +351,8 @@ theorem takeoff_time_form {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} 
 
 end ConditionalSuccess
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (concDelta concDelta_nonneg success_count_lower success_count_lower_p0 log_growth takeoff_time_form)
 end Hagi

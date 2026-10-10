@@ -19,7 +19,7 @@ import Hagi.Dynamics.Contraction
   контракции).
 -/
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 open Finset
 
@@ -126,5 +126,9 @@ theorem endpoint_depth_budget (x c : ℕ → ℝ) (κ β cbar ε : ℝ)
       rwa [le_div_iff₀ hx] at hinv
   linarith
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (endpoint_bivariate_bound endpoint_geometric_tail endpoint_depth_budget)
 end Hagi
 

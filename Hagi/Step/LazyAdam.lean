@@ -29,7 +29,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 section LazyAdam
 
@@ -78,4 +78,8 @@ theorem supportSet_bound {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 end LazyAdam
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (lazyDecay_exact lazyReplay_exact supportSet_bound)
 end Hagi

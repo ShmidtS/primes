@@ -19,7 +19,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 section Upgrades
 
@@ -54,4 +54,8 @@ private noncomputable def nce_per_sample_corrected {V : Type} [Fintype V] (f q :
 
 end Upgrades
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (ns_geometric_envelope sinkReceptiveField)
 end Hagi

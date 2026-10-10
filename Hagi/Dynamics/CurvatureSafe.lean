@@ -22,7 +22,7 @@ set_option linter.style.header false
   `‖d‖² = 0`).
 -/
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- При `−eps ≤ inner` и `dL ≤ −inner + L·dnorm²/2` —
 `dL ≤ eps + L·dnorm²/2`. -/
@@ -62,4 +62,8 @@ theorem safeqp_monotone_domain (inner slack L dnorm dL : ℝ)
           apply mul_le_mul_of_nonneg_left hrad (by linarith)
       _ = slack := by field_simp
   linarith
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (safeqp_second_order safeqp_trust_region safeqp_monotone_domain)
 end Hagi

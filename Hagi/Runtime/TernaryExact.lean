@@ -25,7 +25,7 @@ bound `ΔE ≤ κ·(√n·s/2 + √satTail)` with no in-range assumption;
 nothing saturates.
 -/
 
-namespace Hagi
+namespace Hagi.Runtime
 
 open Finset Real
 open scoped Classical
@@ -238,4 +238,8 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
   rw [heq]
   exact hmain
 
+end Hagi.Runtime
+
+namespace Hagi
+export Hagi.Runtime (qTern ternInRange satTail qTern_error_in qTern_error_out ternary_split_bound ternary_inrange_bound ternary_split_le satTail_nonneg quant_energy_bridge_saturation no_saturation_recover)
 end Hagi

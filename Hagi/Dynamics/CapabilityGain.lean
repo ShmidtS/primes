@@ -24,7 +24,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- При `Rext1 = E1 + g1`, `Rext2 = E2 + g2`, `E2 ≤ E1 − Gamma`
 и `g2 ≤ g1` — `Rext2 ≤ Rext1 − Gamma` (бухгалтерская
@@ -42,4 +42,8 @@ theorem pb_gap_bound_mono (KL1 KL2 base : ℝ)
     (hKL : KL2 ≤ KL1) :
     KL2 + base ≤ KL1 + base := by linarith
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (capability_gain_transfer pb_gap_bound_mono)
 end Hagi

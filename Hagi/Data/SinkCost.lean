@@ -69,7 +69,7 @@ marginal is the local decay rate of the attention mass
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section SinkCost
 
@@ -165,4 +165,8 @@ theorem sink_window_substitutes (W S C T : ℝ)
 
 end SinkCost
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (sink_cost_bound sink_window_substitutes)
 end Hagi

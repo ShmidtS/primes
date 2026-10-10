@@ -67,7 +67,7 @@ step 0 persists to every step t (equal-slope regime).
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.External
 
 section Schedule
 
@@ -174,4 +174,8 @@ section HeadStart
 
 end HeadStart
 
+end Hagi.External
+
+namespace Hagi
+export Hagi.External (schedule_descent schedule_conflict_step jl_inner_approx orthogonal_preserves_grad_dist)
 end Hagi

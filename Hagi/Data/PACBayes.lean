@@ -20,7 +20,7 @@ generalization; that last probabilistic step stays external
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Data
 
 /-- Weighted Jensen for log (tangent route): ln y ≤ y/m − 1
 + ln m at m > 0; weighted sum with Σq = 1 gives
@@ -144,4 +144,8 @@ theorem gibbs_variational {ι : Type} [Fintype ι] [Nonempty ι]
   rw [hswitch] at hsplit
   linarith
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (log_weighted_jensen gibbs_variational)
 end Hagi

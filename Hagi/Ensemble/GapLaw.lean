@@ -85,7 +85,7 @@ threshold replacing the empirical TOL_GAP.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 section GapLaw
 
@@ -372,4 +372,8 @@ theorem pairVarEq (hsum : ∑ u, p u = 1) :
 
 end GapLaw
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (twoGap twoGap_pos_measure twoGap_cosh twoGap_nonneg twoGap_zero_iff pairVarEq)
 end Hagi

@@ -83,7 +83,7 @@ verdicts, not noise.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 section MergeScaling
 
@@ -120,4 +120,8 @@ theorem two_channel_step_law (a b : ℝ) (_ha : 0 < a) (hb : 0 < b)
 
 end MergeScaling
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (two_channel_step_law)
 end Hagi

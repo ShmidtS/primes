@@ -59,7 +59,7 @@ are not formalized and carry no Lean claim here. This module
 is the finite kernel those interpretations reference.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 open Finset
 
@@ -428,4 +428,8 @@ theorem anneal_by_batch {sigma c : ℝ} (B : ℕ → ℝ) (n : ℕ)
 
 end Batch
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (popMean popVar centered popVar_eq sum_centered card_pos_of_nonempty prod_two_sel sum_coord sum_pair uniP uniP_isProb uniP_dens batchMean batchMean_unbiased batch_variance_eq noise_scale_separation anneal_by_batch)
 end Hagi

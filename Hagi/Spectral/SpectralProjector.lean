@@ -30,7 +30,7 @@ NOT formalized here; only the selection primitives:
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Spectral
 
 section OrthProj
 
@@ -218,4 +218,8 @@ theorem spectral_safeQP_target (g : K → X) (g0 : X) (eps : K → ℝ)
 
 end SafeQPComposition
 
+end Hagi.Spectral
+
+namespace Hagi
+export Hagi.Spectral (OrthProjPair proj_residual_identity proj_residual_nonneg proj_monotone spectralProj spectralProj_idempotent spectralProj_selfAdj spectralProj_orth spectral_tail_energy three_stage_error_budget filtered_step_cost spectral_safeQP_target)
 end Hagi

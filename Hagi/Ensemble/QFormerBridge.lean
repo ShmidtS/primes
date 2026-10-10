@@ -27,7 +27,7 @@ regardless of input length) is definitional; the CLAIM
 that this preserves downstream quality while compressing
 is empirical (2609.31448), not proven. -/
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 /-- The bridge: K learned queries attend to the value V and
 project through Wout into the residual stream. -/
@@ -51,4 +51,8 @@ theorem vista_residual_identity {d : ℕ} (U : Fin 1 → (Fin d → ℝ))
   rw [vista_bridge_zero]
   ring
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (bridgeOut vista_bridge_zero vista_residual_identity)
 end Hagi

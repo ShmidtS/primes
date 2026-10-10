@@ -60,7 +60,7 @@ output perturbation is controlled by it).
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section VoI
 
@@ -182,4 +182,8 @@ theorem readPolicy_exists (B' : Type) [Fintype B'] [Nonempty B']
 
 end VoI
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (softmaxW skip_bound readPolicy_exists)
 end Hagi

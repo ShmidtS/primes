@@ -23,7 +23,7 @@ log >= 1), непрерывность на компакте [a, b] ⊂ (0, 1).
 
 open Real Set
 
-namespace Hagi
+namespace Hagi.Data
 
 theorem binEnt_mono (a b : ℝ) (ha : 0 < a) (hab : a ≤ b) (hb : b ≤ 1/2) :
     binEnt a ≤ binEnt b := by
@@ -169,4 +169,8 @@ theorem entropy_continuity_pinsker'
     · exact binEnt_mono a b hpos hab hb2
   exact entropy_continuity_pinsker p q τ kl hτ hτ2 hbound hpinsker hsq hmono' hV
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (binEnt_mono binEnt_nonneg entropy_continuity_pinsker')
 end Hagi

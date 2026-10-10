@@ -35,7 +35,7 @@ eps-бюджет как ДОПОЛНИТЕЛЬНЫЙ член рядом со с
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Deployment
 
 /-- Пошаговый контракт бюджета: guarantee-предикат жив,
 пока накопленное потребление (стат-погрешность + зазор
@@ -104,4 +104,8 @@ theorem shift_paid_from_budget (e delta : ℕ → ℝ) (eps : ℝ)
   have h3 := halive
   exact le_trans h1 (le_trans h2 h3)
 
+end Hagi.Deployment
+
+namespace Hagi
+export Hagi.Deployment (BudgetAlive budget_consumed guarantee_horizon_bound shift_paid_from_budget)
 end Hagi

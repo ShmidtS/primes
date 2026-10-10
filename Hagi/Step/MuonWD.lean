@@ -18,7 +18,7 @@ import Hagi.Foundations.Recurrence
   градиентов не нужна; цена — явный WD-пол).
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 open Finset
 
@@ -107,4 +107,8 @@ theorem wd_boundedness (theta : ℕ → W) (U : ℕ → W)
   linarith [hmain, hsplit]
 
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (muon_wd_recursion wd_boundedness)
 end Hagi

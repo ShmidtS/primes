@@ -29,7 +29,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-! ## The cone step -/
 
@@ -236,4 +236,8 @@ theorem frontier_asymptotic (C G D ξ : ℕ → ℝ)
     linarith
   exact renewal_feeds_takeoff C G D α γ hα h_step h_gain_prod hgate T
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (frontier_cone_inductive frontier_cone_invariant takeoff_edge_forced sustained_takeoff_from_production frontier_asymptotic)
 end Hagi

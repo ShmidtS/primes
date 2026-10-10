@@ -23,7 +23,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 section NCEVar
 
@@ -111,4 +111,8 @@ theorem adaptiveK_bound (moment : ℝ) (hmoment : 0 ≤ moment)
 
 end NCEVar
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (secondMoment qMean nce_var_identity secondMoment_ge_mean_sq adaptiveK_bound)
 end Hagi

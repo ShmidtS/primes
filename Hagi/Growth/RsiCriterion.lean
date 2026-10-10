@@ -22,7 +22,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- Если `ρ·D t + β·C t − ξ t ≤ D (t+1)` и
 `ξ t + (1−ρ)·D t < β·C t`, то `D t < D (t+1)`. -/
@@ -76,4 +76,8 @@ theorem rsi_cone_criterion (D C : ℕ → ℝ) (rho beta alpha gamma : ℝ)
     linarith
   exact rsi_step_growth D C rho beta xi t hdyn hstep
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (rsi_step_growth rsi_cone_criterion)
 end Hagi

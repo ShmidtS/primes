@@ -29,7 +29,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 /-- Верхняя оценка: при `0 ≤ a`, `0 ≤ s` и
 `D (t+1) ≤ a·D t + s` — `D T ≤ a^T·D 0 + s·Σa^i`. Совместима с
@@ -89,7 +89,7 @@ theorem diversity_floor_fresh (D : ℕ → ℝ) (rho inj xi : ℝ)
     (_hinjgt : xi < inj) (hD0 : 0 ≤ D 0)
     (hstep : ∀ t, D (t+1) ≥ rho * D t + inj - xi) (T : ℕ) :
     D T ≥ (inj - xi) * ∑ i ∈ Finset.range T, rho ^ i := by
-  have hf := Hagi.diversity_floor D rho inj xi hrho.le hinj hxi hstep T
+  have hf := diversity_floor D rho inj xi hrho.le hinj hxi hstep T
   have hnn : 0 ≤ rho ^ T * D 0 :=
     mul_nonneg (pow_nonneg hrho.le T) hD0
   linarith
@@ -112,4 +112,8 @@ theorem diversity_floor_strict_pos (D : ℕ → ℝ) (rho inj xi : ℝ)
       omega
   positivity
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (diversity_noncollapse geom_shift diversity_floor diversity_floor_fresh diversity_floor_strict_pos)
 end Hagi

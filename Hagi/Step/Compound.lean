@@ -31,7 +31,7 @@ set_option linter.style.header false
 конец доверительной области).
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 section Compound
 
@@ -151,4 +151,8 @@ theorem compound_fold_interval (αhi Dlo Dhi Jlo Jhi εc : ℝ)
 
 end Interval
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (compound_c_stabilizes compound_constant_regime compound_trajectory compound_budget compound_cumulative compound_budget_interval compound_fold_interval)
 end Hagi

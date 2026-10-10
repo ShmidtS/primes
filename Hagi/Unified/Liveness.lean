@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-- If the deviations `d` are not all equal to a common
 constant (non-consensus), then `0 < twoGap p d`, by the
@@ -63,4 +63,8 @@ theorem liveness_two_axis {k : Type} [Fintype k] [Nonempty k]
   ⟨liveness_merge p d hp hsum hcons,
     liveness_data_axis D rho inj xi hrho hinj hxi hinjgt hD0 hstep T hT⟩
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (liveness_merge liveness_data_axis liveness_two_axis)
 end Hagi

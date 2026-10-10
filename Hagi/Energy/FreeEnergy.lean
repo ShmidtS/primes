@@ -93,7 +93,7 @@ slimpajama domination, testable WITHOUT swapping the corpus.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Energy
 
 section FreeEnergy
 
@@ -305,4 +305,8 @@ def tokenKLTotal {T : Type} [Fintype T] (kl : T → ℝ) : ℝ := ∑ t, kl t
 
 end FreeEnergy
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (kldiv free_energy_gap geometric_pool_identity geometric_pool_identity_nonneg tokenKLTotal)
 end Hagi

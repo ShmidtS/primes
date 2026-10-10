@@ -32,7 +32,7 @@ set_option linter.style.header false
 
 open Finset InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Growth
 
 variable {N : ℕ} [NeZero N] {V : Type*}
   [NormedAddCommGroup V] [InnerProductSpace ℝ V]
@@ -157,6 +157,10 @@ theorem gainop_ignition {Xs : Type*}
   exact ⟨hcone, ratio_takeoff (fun t => (S t).capability)
     (fun t => usableFrontier (S t)) γ k hγ hk hstep hcone T⟩
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (devEnergy GainOp gainop_cone_step gainop_pairwise_bridge gainop_ignition)
 end Hagi
 
 

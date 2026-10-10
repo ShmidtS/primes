@@ -52,7 +52,7 @@ fresh-randomness-per-cycle, стандартному трюку рандомиз
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Probability
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
@@ -152,4 +152,8 @@ theorem adaptive_success_concentrated {n : ℕ} (p : Fin n → V → ℝ)
   rw [hexpe] at hmain
   exact hmain
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (SuccessFloor adaptive_success_count_floor adaptive_success_concentrated)
 end Hagi

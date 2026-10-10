@@ -33,7 +33,7 @@ conditions with the empirical constants A, B, alpha, beta
 is the capacity-member comparison.
 -/
 
-namespace Hagi
+namespace Hagi.Data
 
 /-- The capacity-scaled parameter member of the Chinchilla
 law: A / (b * N)^alpha. -/
@@ -69,4 +69,8 @@ theorem ternary_beats_binary (A N alpha : ℝ)
   exact Real.log_lt_log (by norm_num : (0:ℝ) < 2)
     (by norm_num)
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (capMember capacity_member_mono ternary_beats_binary)
 end Hagi

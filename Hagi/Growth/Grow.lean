@@ -28,7 +28,7 @@ is not the bound (`selection_hurts` shows the ensemble ranking can
 invert); nothing here claims convergence to an optimum.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 section Grow
 
@@ -104,4 +104,8 @@ theorem pl_stop_certificate (Lw Lstar mu gnorm : ℝ)
   rw [le_div_iff₀ (by linarith : (0:ℝ) < 2 * mu)]
   nlinarith [h_emp_pl]
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (certifiedGain newBound certifiedGain_monotone grow_epsilon_stop certifiedGain_positive pl_stop_certificate)
 end Hagi

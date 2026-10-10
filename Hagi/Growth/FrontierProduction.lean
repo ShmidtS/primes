@@ -26,7 +26,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-! ## III-a: детерминированная редукция β-посылки -/
 
@@ -50,12 +50,12 @@ variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- Среднее по n пробам координатных средних (значения в [0,1]). -/
 noncomputable def disMean {n : ℕ} (p : Fin n → V → ℝ) (Y : Fin n → V → ℝ) : ℝ :=
-  (∑ i, coordMean p Y i) / (n : ℝ)
+  (∑ i, Hagi.coordMean p Y i) / (n : ℝ)
 
 @[simp]
-theorem coordMean_const {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
-    (c : ℝ) (i : Fin n) : coordMean p (fun _ _ => c) i = c := by
-  unfold coordMean
+theorem coordMean_const {n : ℕ} (p : Fin n → V → ℝ) (hp : Hagi.IsProbSys p)
+    (c : ℝ) (i : Fin n) : Hagi.coordMean p (fun _ _ => c) i = c := by
+  unfold Hagi.coordMean
   rw [← Finset.sum_mul, (hp i).2, one_mul]
 
 theorem const_probe_sum {n : ℕ} (c : ℝ) (ω : Fin n → V) :
@@ -70,7 +70,7 @@ theorem const_probe_sum {n : ℕ} (c : ℝ) (ω : Fin n → V) :
 `n·thr + 2n·ε ≤ Σ Y i (ω i)` следует
 `D (t+1) ≥ ρ·D t + β·C t − ξ t`. -/
 theorem certified_cycle_renewal {n : ℕ} (p : Fin n → V → ℝ)
-    (hp : IsProbSys p)
+    (hp : Hagi.IsProbSys p)
     (Y : Fin n → V → ℝ) (hY : ∀ i v, 0 ≤ Y i v ∧ Y i v ≤ 1)
     (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
     (D C : ℕ → ℝ) (kappa rho beta : ℝ) (xi : ℕ → ℝ) (t : ℕ) (thr : ℝ)
@@ -89,15 +89,15 @@ theorem certified_cycle_renewal {n : ℕ} (p : Fin n → V → ℝ)
   -- измеренная сумма константных проб = n·thr; их среднее тоже
   have hsumX : ∀ ω : Fin n → V, ∑ i, X i (ω i) = (n : ℝ) * thr :=
     fun ω => const_probe_sum thr ω
-  have hmuX : (∑ i, coordMean p X i) = (n : ℝ) * thr := by
+  have hmuX : (∑ i, Hagi.coordMean p X i) = (n : ℝ) * thr := by
     rw [hXdef]
     simp [coordMean_const p hp thr]
   -- μ-формула disMean
-  have hdis : disMean p Y = (∑ i, coordMean p Y i) / (n : ℝ) := rfl
+  have hdis : disMean p Y = (∑ i, Hagi.coordMean p Y i) / (n : ℝ) := rfl
   -- на хорошем событии hc: требование выполнено
   have hmono : prodPq p (fun ω =>
         ∑ i, X i (ω i) + 2 * (n : ℝ) * eps ≤ ∑ i, Y i (ω i)
-          → ∑ i, coordMean p X i ≤ ∑ i, coordMean p Y i)
+          → ∑ i, Hagi.coordMean p X i ≤ ∑ i, Hagi.coordMean p Y i)
       ≤ prodPq p (fun ω =>
         (n : ℝ) * thr + 2 * (n : ℝ) * eps ≤ ∑ i, Y i (ω i)
           → D (t + 1) ≥ rho * D t + beta * C t - xi t) :=
@@ -138,4 +138,8 @@ theorem takeoff_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : ℕ)
     C 0 * (1 + alpha) ^ T ≤ U T :=
   le_trans hgr (hsnd T)
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (InjectionLaw injection_law_of_measured disMean coordMean_const const_probe_sum certified_cycle_renewal CapabilitySound takeoff_lifts_utility)
 end Hagi

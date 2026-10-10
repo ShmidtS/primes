@@ -29,7 +29,7 @@ set_option linter.style.header false
 гипотезы, здесь не доказываются.
 -/
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {N : ℕ} {V : Type*}
 
@@ -105,4 +105,8 @@ theorem zero_init_identity [AddCommGroup V] [Module ℝ V]
     (fun y => y + P ((0 : ℝ) • f y)) x = x := by
   simp [zero_smul, map_zero, add_zero]
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (blockMap GaugeEquiv gauge_equiv_comp PerBlockLayer perBlock_gauge_equiv DeepNet DeepNetV perBlock_net_blockwise zero_init_identity)
 end Hagi

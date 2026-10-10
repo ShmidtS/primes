@@ -25,7 +25,7 @@ OAI.Combinatorics.TriangleRemoval.Process.HistoryAdditive
 0 sorry in the source, 0 here; axioms standard.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 section
 open scoped BigOperators Topology
@@ -172,4 +172,8 @@ theorem history_additive_freedman_maximal {α : Type*} [Fintype α]
 
 end
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (historyAdditive historyAdditive_update historyAdditive_zero historyAdditive_frozen history_additive_freedman historyAdditive_past history_additive_freedman_maximal)
 end Hagi

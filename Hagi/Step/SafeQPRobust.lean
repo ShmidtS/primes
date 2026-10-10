@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 /-- При `eps + m ≤ g*d` и `|g*d − gdhat| ≤ m`:
 `eps ≤ gdhat`. -/
@@ -44,7 +44,7 @@ theorem stochastic_safeqp_feasible {K : Type} [Fintype K]
     (htrue : ∀ i, eps i + m i ≤ g i * d i)
     (h_emp_conc : ∀ i, |g i * d i - gdhat i| ≤ m i) :
     ∀ i, eps i ≤ gdhat i :=
-  fun i => Hagi.robust_feasibility (g i) (d i) (gdhat i) (eps i) (m i)
+  fun i => robust_feasibility (g i) (d i) (gdhat i) (eps i) (m i)
     (htrue i) (h_emp_conc i)
 
 /-- При `dnorm² ≤ inner_true`, `|inner_est − inner_true| ≤ m0`,
@@ -91,4 +91,8 @@ theorem stochastic_safeqp_descent (inner_true inner_est dnorm m0 eta L E1 E2 : �
         _ = eta * dnorm ^ 2 / 2 := by ring
   nlinarith [h_emp_smooth, heff, hsecond, heta0]
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (robust_feasibility stochastic_safeqp_feasible stochastic_safeqp_descent)
 end Hagi

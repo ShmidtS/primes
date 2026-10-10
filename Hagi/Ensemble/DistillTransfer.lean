@@ -50,7 +50,7 @@ argmax передаёт минимум, избыточен только dark kno
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 variable {V : Type*} [Fintype V]
 
@@ -159,4 +159,8 @@ noncomputable def reverseKlTarget {N : ℕ} (w : Fin N → ℝ)
   fun v => (∏ k, (ps k v) ^ (w k))
     / (∑ v', ∏ k, (ps k v') ^ (w k))
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (l1Norm distill_kl_bridge distillEfficiency distill_efficiency_pos forwardKlTarget reverseKlTarget)
 end Hagi

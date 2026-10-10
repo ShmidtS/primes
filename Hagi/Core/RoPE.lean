@@ -20,7 +20,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Core
 
 variable {d : ℕ}
 
@@ -76,4 +76,8 @@ theorem rope_translation_shift (θ : Fin d → ℝ) (m n k : ℕ) (hmn : m ≤ n
   congr 2
   omega
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (rotVec pairInner rot_norm rope_score_delta rope_translation_shift)
 end Hagi

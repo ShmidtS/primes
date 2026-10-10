@@ -80,7 +80,7 @@ element theory (`Hagi.Core/Element`) covers the parameter side
 the distillate must reach. Marked as the honest boundary.
 -/
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 section GenCycle
 
@@ -145,4 +145,8 @@ theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
 end GenCycle
 
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (genMean genMean_assoc genMean_compound genGap_decay)
 end Hagi

@@ -61,7 +61,7 @@ test.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Energy
 
 section BranchScale
 
@@ -108,4 +108,8 @@ theorem constructive_scale (L : ℕ) (v : ℝ)
 
 end BranchScale
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (var_recursion constructive_scale)
 end Hagi

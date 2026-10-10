@@ -62,7 +62,7 @@ practical go/no-go — the distill run's plateau behavior
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section Distill
 
@@ -135,4 +135,8 @@ theorem teacher_generated_identity (pE pTheta : V → ℝ)
 
 end Distill
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (crossEntropy klDiv kl_eq_ce_gap ce_gap_kl_identity teacher_generated_identity)
 end Hagi

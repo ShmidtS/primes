@@ -32,7 +32,7 @@ from its usable disagreement `D t`, `γ·D t ≤ G t ≤ γ·D t`;
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-! ## The renewal semantics
 
@@ -253,4 +253,8 @@ theorem bounded_frontier_no_sustained_growth (C G D : ℕ → ℝ)
     mul_le_mul_of_nonneg_left (h_D_bound t) hγ.le
   exact (le_div_iff₀ hα).mpr (by linarith)
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (gainFromD gain_renewal_recurrence gain_renewal_growth gain_renewal_floor_pos gain_renewal_floor gain_renewal_growth_one sustained_takeoff_window_lift renewal_feeds_takeoff bounded_frontier_no_sustained_growth)
 end Hagi

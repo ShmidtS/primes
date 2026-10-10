@@ -23,7 +23,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- Телескопическое тождество:
 `(1 − γ)·Σ_{i<t} γ^i = 1 − γ^t` (делегация Foundations). -/
@@ -45,4 +45,8 @@ theorem contraction_limit (E : ℕ → ℝ) (gamma delta : ℝ)
     E t ≤ gamma ^ t * E 0 + delta / (1 - gamma) :=
   Hagi.Foundations.contraction_limit gamma E delta t hg hg1 hdelta hstep
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (geom_sum_telescope geom_sum_le_inv contraction_limit)
 end Hagi

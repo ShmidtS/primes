@@ -19,7 +19,7 @@ set_option linter.style.header false
 
 open Real InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-- `dist 0 0 ≤ dist d 0` for every `d ∈ C`; the `g₀ = 0`
 specialization of the SafeQP objective. Not a
@@ -49,4 +49,8 @@ theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpac
     kl ≤ eps := by
   linarith
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (safeqp_idle idle_merge_zero_gap forgetting_kl_bound)
 end Hagi

@@ -27,7 +27,7 @@ Honest boundary: the valid-position protocol (masking of
 padding) follows 2609.32100; here positions are all valid.
 -/
 
-namespace Hagi
+namespace Hagi.Data
 open Finset
 
 /-- EXACTNESS of chunked summation: with T = n * w the sum
@@ -79,4 +79,8 @@ theorem ce_prior_decomposition {V : Type} [Fintype V]
     Finset.sum_sub_distrib]
   ring
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (chunked_sum_exact ce_prior_decomposition)
 end Hagi

@@ -36,7 +36,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-! ## Пер-факторное неравенство -/
 
@@ -379,5 +379,9 @@ theorem wallclock_rate_avg_tau (C : ℕ → ℝ) (s : ℕ → ℕ) (tau : ℕ �
     _ ≥ C 0 * Real.exp (L * (p0 * (W / tauBar) - Delta)) :=
         mul_le_mul_of_nonneg_left hexpfloor hC0.le
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (log_one_add_ge_sub_half_sq exp_le_one_add per_cycle_time_rate wallclock_takeoff_product wallclock_takeoff wallclock_takeoff_small_steps counted_takeoff_exp wallclock_rate_from_cone wallclock_rate_from_cone_concentrated wallclock_rate_avg_tau)
 end Hagi
 

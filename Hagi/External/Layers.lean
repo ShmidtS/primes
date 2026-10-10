@@ -72,7 +72,7 @@ lives in Matrix.rank and is not re-proved here.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.External
 
 section Admission
 
@@ -163,4 +163,8 @@ theorem dead_layer_stop (val : ℕ → ℝ) (hmono : ∀ k, val (k+1) ≤ val k)
 
 end DeadLayer
 
+end Hagi.External
+
+namespace Hagi
+export Hagi.External (admission_var_criterion branchscale_minmax dead_layer_stop)
 end Hagi

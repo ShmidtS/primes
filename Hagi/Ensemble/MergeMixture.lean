@@ -29,7 +29,7 @@ mixture output up to ROUTING drift. The exact structure:
   gap is entirely the routing drift, not the merge itself.
 -/
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 variable {d m : ℕ} (W : Fin m → Matrix (Fin d) (Fin d) ℝ)
 
@@ -73,4 +73,8 @@ theorem routing_drift_bound (w w' : Fin m → ℝ)
           _ ≤ |w' i - w i| * B :=
               mul_le_mul_of_nonneg_left (hnorm i) (abs_nonneg _)
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (merged_output_exact routing_drift_bound)
 end Hagi

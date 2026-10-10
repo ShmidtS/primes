@@ -16,7 +16,7 @@ import Hagi.Dynamics.EndpointContraction
   (композиция с `endpoint_depth_budget`).
 -/
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 /-- При `0 < δ` и `(T:ℝ)·δ ≤ τ`: `(T:ℝ) ≤ τ/δ`. -/
 theorem depth_capped_by_time (τ δ : ℝ) (T : ℕ)
@@ -52,4 +52,8 @@ theorem patient_configuration_reaches (x c : ℕ → ℝ)
   endpoint_depth_budget x c κ β cbar ε T₀ hκ hκ1 hβ hcbar
     hcbound hstep heps hneed
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (depth_capped_by_time shallow_misses_tube patient_configuration_reaches)
 end Hagi

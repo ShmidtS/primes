@@ -28,7 +28,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- Если `V t ≥ 0` и `V (t+1) ≤ V t − eps t + b t` при всех t, то
 `V T + Σ_{t<T} eps t ≤ V 0 + Σ_{t<T} b t`. -/
@@ -118,4 +118,8 @@ theorem growth_dichotomy (V eps b : ℕ → ℝ)
     exact absurd ⟨B, hcon⟩ hB
 
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (potential_telescope edge_total_bound frozen_saturation expansion_required growth_dichotomy)
 end Hagi

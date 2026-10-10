@@ -23,7 +23,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- Если `(1 + e t)·x t ≤ x (t+1)` при всех t и `1 + e t > 0`
 для `t < T`, то `x 0·∏_{t<T}(1 + e t) ≤ x T`. -/
@@ -92,4 +92,8 @@ theorem decay_elasticity (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
   have hbound := hmain T (le_refl T)
   nlinarith
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (elasticity_chain takeoff_elasticity decay_elasticity)
 end Hagi

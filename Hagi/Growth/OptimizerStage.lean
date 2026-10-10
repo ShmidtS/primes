@@ -18,7 +18,7 @@ import Hagi.Growth.GainDecomposition
   `G_cap ≤ 0`.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- Отношение конверсии оптимизатора:
 `etaOpt D_grad D_update = D_update / D_grad`. -/
@@ -65,4 +65,8 @@ theorem any_stage_kills_gain (E_dev G_policy G_update G_cap
       nlinarith [mul_nonneg hp ho]
     nlinarith [hchain, hE, hprod]
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (etaOpt gain_chain_opt any_stage_kills_gain)
 end Hagi

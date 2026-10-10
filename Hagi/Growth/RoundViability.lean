@@ -19,7 +19,7 @@ import Hagi.Growth.GainDecomposition
   `round_exhausted`.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 open Finset
 
@@ -62,4 +62,8 @@ theorem cycle_criterion (D D' : ℝ) (ρ η ξ : ℝ) (dev : Fin N → V)
   fun hzero => round_exhausted D D' ρ η ξ dev hzero hop
 
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (round_exhausted round_viable cycle_criterion)
 end Hagi

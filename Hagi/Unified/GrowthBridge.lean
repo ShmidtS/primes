@@ -31,7 +31,7 @@ gives the exact closed form `C₀ + t·G` (G invariant).
 
 open Real Finset MeasureTheory ProbabilityTheory
 
-namespace Hagi
+namespace Hagi.Unified
 
 noncomputable section GrowthBridge
 
@@ -336,4 +336,7 @@ theorem growth_state_takeoff_probabilistic
 
 end GrowthBridge
 
+end Hagi.Unified
+namespace Hagi
+export Hagi.Unified (additive_as_multiplicative growMul growMul_eq_grow growCycle growCycle_succ growCycle_zero growMul_step_multiplicative growCycle_growGain growCycle_capability_succ growCycle_capability growth_state_takeoff growth_state_takeoff_window growth_state_takeoff_probabilistic)
 end Hagi

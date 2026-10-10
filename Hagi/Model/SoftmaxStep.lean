@@ -29,7 +29,7 @@ set_option linter.style.header false
 
 open Real Set
 
-namespace Hagi
+namespace Hagi.Model
 
 /-- CE одно-параметрической softmax-головы (margin w). -/
 noncomputable def logitCE (w : ℝ) : ℝ :=
@@ -276,4 +276,8 @@ theorem descent_example :
       ≤ logitCE 0 - (2/2) * (1 / (1 + Real.exp 0))^2 :=
   descent_step 0 2 (by norm_num) (by norm_num)
 
+end Hagi.Model
+
+namespace Hagi
+export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example)
 end Hagi

@@ -32,7 +32,7 @@ SafeQP при ε → 0; для глубоких сетей нужна телес
 open Finset
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Step
 
 variable {m n K : ℕ}
 
@@ -132,4 +132,8 @@ theorem sigma_orth_necessary (ΔW : Matrix (Fin m) (Fin n) ℝ)
   have h0 := hquad i
   linarith
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (outerP actSigma gpmOrth mulVec_eq_dotProduct gpm_zero_forgetting sigma_orth_zero sigma_orth_necessary)
 end Hagi

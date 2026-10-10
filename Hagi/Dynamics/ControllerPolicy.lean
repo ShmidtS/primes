@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi
+namespace Hagi.Dynamics
 
 theorem ratio_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest j : ℕ) (B : ℝ)
     (_hK : ∀ i, 0 < K i)
@@ -72,4 +72,8 @@ theorem budget_allocation_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest
     _ ≤ (Gam ibest / K ibest) * B :=
         mul_le_mul_of_nonneg_left hsum (div_nonneg (hGam ibest) (hK ibest).le)
 
+end Hagi.Dynamics
+
+namespace Hagi
+export Hagi.Dynamics (ratio_dominance budget_allocation_dominance)
 end Hagi

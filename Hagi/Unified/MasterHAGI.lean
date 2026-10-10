@@ -91,7 +91,7 @@ horizon-truncated, h_emp_-named form is
 
 open Real Finset InnerProductSpace MeasureTheory ProbabilityTheory
 
-namespace Hagi
+namespace Hagi.Unified
 open Hagi.Foundations
 
 section MasterHAGI
@@ -618,4 +618,8 @@ theorem MasterHAGI_probability {Om : Type*} [MeasurableSpace Om]
 
 end MasterHAGI
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq MasterHAGICore_refined hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
 end Hagi

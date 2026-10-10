@@ -20,7 +20,7 @@ import Mathlib
 рассматриваются.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 open Finset
 
@@ -50,4 +50,8 @@ theorem positive_selection_dominates {N : ℕ}
   rw [← h]
   linarith
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (sum_perm_invariant negative_expert_hurts_any_order positive_selection_dominates)
 end Hagi

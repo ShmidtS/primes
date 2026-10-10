@@ -239,7 +239,7 @@ certificate_sound	e423e0b277c01bab
 certifiedGain	292988191aa9e4bd
 certifiedGain_monotone	f329d0162718973c
 certifiedGain_positive	5a589f4c7a117db5
-certified_cycle_renewal	a76e1adb947d5310
+certified_cycle_renewal	3af0305e767b8b44
 certified_gain_select	17e9af3991333789
 certified_gain_select_avg	b42046be79ad03f8
 certified_premise	5615a8cce592c3db
@@ -318,7 +318,7 @@ controller_max_exists	91aba5569f73db5d
 convex_min_unique	dd4876cb97ac073e
 cooldown_tail_constant	664233c5c7104f99
 coordMean	fe7b5ec7ce3e6044
-coordMean_const	3c3b03a6e7678fc6
+coordMean_const	d134da9cbc5529e2
 coord_center_zero	e8fa6b0d539c65d5
 coord_mgf_bound	c42d5fd837e5c4e0
 corePremises_nonvacuous	ee014b4b4dae0077
@@ -328,7 +328,7 @@ costGrow	de60df8e7a177cdc
 costJoint	833a33c01ba2b9a4
 costMerge	5f8982c8c21ab16e
 counted_takeoff_exp	4a8da2badf51a079
-covered	2efd5d7ef5742f7f
+covered	c317174677fd9505
 crossDiff	cf6207253121ab12
 crossEntropy	0b5c2f949310d1d7
 crossEntropy_eq_canonical	1051409efdc48524
@@ -479,7 +479,7 @@ etaOpt	5590a05f56995156
 etaPolicy	0e477c8d3c4a37a9
 etaState	8d5423d3e9d5e755
 exhausted_when	d4020f627de11bf6
-exists	6d32fd75800bd1b4
+exists	4229d659ec96e962
 exists_balanced_allocation	83b40726dc03d547
 exists_projected_factor	de1caa2c61133c30
 expQ	a5734e7360e97bab
@@ -756,7 +756,7 @@ interleave3	49c0668e98b493bb
 interleave_char_mul	7e60a4a99818e849
 interleave_norm	9348738778aee381
 inv_sq_le_sub_inv	4c93ad6534d766ad
-is	e633013313d20a53
+is	139f7fbe21e172a5
 jensenGap	273241ea57291f24
 jensenGap_nonneg	7d8c6227b4905805
 jensen_log	9821ac4a14e98c83

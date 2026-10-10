@@ -23,7 +23,7 @@ an h_emp premise.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Unified
 
 /-- If `E (t+1) ≤ E t − eps` for all `t`, then
 `E k ≤ E 0 − k * eps`. -/
@@ -63,4 +63,8 @@ theorem lyapunov_termination_fin {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
   rw [le_div_iff₀ heps]
   linarith
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (lyapunov_telescope lyapunov_telescope_fin lyapunov_termination_fin)
 end Hagi

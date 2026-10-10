@@ -37,7 +37,7 @@ set_option linter.style.header false
 open Finset Real MeasureTheory ProbabilityTheory InnerProductSpace
 open scoped NNReal
 
-namespace Hagi
+namespace Hagi.Step
 
 section AdaptiveSafeQP
 
@@ -589,4 +589,8 @@ theorem adaptive_safeQP_feasibility {m : ℕ} (hm : 0 < m) {n : ℕ} (hn : 0 < n
 
 end AdaptiveSafeQP
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (latticeStep latticeNet latticeNet_norm_le latticeNet_covers latticeNet_card_le adaptiveNoiseEps adaptive_net_concentration adaptive_direction_concentration adaptive_safeQP_feasibility)
 end Hagi

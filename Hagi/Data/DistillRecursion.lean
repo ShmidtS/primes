@@ -80,7 +80,7 @@ Pinsker-type sub-linear correction) stays open.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section DistillRecursion
 
@@ -429,4 +429,8 @@ theorem entropy_floor_tv (p : ℕ → V → ℝ) (d : V → ℝ) (ν B : ℝ)
 
 end DistillRecursion
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (shannonEntropy freshMix freshMix_pos freshMix_sum_one entropy_mix_ge entropy_kl_ce_identity distill_step_entropy distill_entropy_recurrence entropy_floor fresh_data_prevents_collapse fresh_data_prevents_collapse_uniform entropy_floor_tv)
 end Hagi

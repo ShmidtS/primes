@@ -70,7 +70,7 @@ init for the whole run.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Energy
 
 section PreNorm
 
@@ -110,4 +110,8 @@ theorem bf16_frozen_update (delta : ℝ)
 
 end PreNorm
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (rms_direction rms_idempotent bf16_frozen_update)
 end Hagi

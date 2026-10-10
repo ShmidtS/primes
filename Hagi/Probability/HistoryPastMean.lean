@@ -17,7 +17,7 @@ the history_noise_freedman_maximal corollaries — the
 prerequisites for the joint two-sided maximal Freedman.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 section
 open scoped BigOperators Topology
@@ -152,4 +152,8 @@ theorem history_noise_freedman_maximal {α : Type*} [Fintype α]
 
 end
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (historyLaw_past_mean historyNoise_past historyCounter_past pmfMean_finset_sum pmfMean_event_union history_noise_freedman_maximal)
 end Hagi

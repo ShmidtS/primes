@@ -40,7 +40,7 @@ Pinsker + явная непрерывность энтропии (Fannes-фор�
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
@@ -112,4 +112,8 @@ theorem entropy_continuity_pinsker (p q : V → ℝ)
   have hmono' := hmono τ (Real.sqrt (kl / 2)) hτ hpinsker hsq
   linarith [hbound, hlin, hmono']
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (entTV binEnt FannesDecomp entTV_nonneg entTV_symm binEnt_half entropy_continuity_pinsker)
 end Hagi

@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- Конус отношения: `ConeRatio C D k` означает
 `∀ t, k·C t ≤ D t` (без деления). -/
@@ -127,4 +127,8 @@ theorem frontier_decay_no_growth (D : ℕ → ℝ) (ρ : ℝ)
             mul_le_mul_of_nonneg_left ih hrho
         _ = ρ ^ (T + 1) * D 0 := h2.symm
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (ConeRatio cone_ratio_step cone_ratio_invariant ratio_takeoff frontier_decay_no_growth)
 end Hagi

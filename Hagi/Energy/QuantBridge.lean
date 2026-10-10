@@ -24,7 +24,7 @@ MacroCycle's compress hypothesis is now architecture-level.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Energy
 
 /-- **The ternary residual norm bound** (audit bridge #4,
 step 1): if every weight's ternary rounding residue is at
@@ -74,4 +74,8 @@ theorem quant_energy_bridge {n : ℕ} (w q : Fin n → ℝ) (s kappa dE : ℝ)
                 mul_le_mul_of_nonneg_left hsq hkappa
     _ = kappa * Real.sqrt (n : ℝ) * s / 2 := by ring
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (quant_residual_norm quant_energy_bridge)
 end Hagi

@@ -26,7 +26,7 @@ gen ≥ 2 (одинаковый init). Режим a < 1 решается изм�
 
 open Finset Real InnerProductSpace
 
-namespace Hagi
+namespace Hagi.Growth
 
 section SeedOnly
 
@@ -132,4 +132,8 @@ theorem seed_only_grow_stop (c Lam a s eps gapInf : ℝ)
 
 end SeedOnly
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (geom_range_identity disp_recurrence_general sum_dist_mean_le seed_only_disp_bound seed_only_grow_stop)
 end Hagi

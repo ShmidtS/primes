@@ -21,7 +21,7 @@ set_option linter.style.header false
 Information preservation through the relay is an architectural
 assumption, not proven here. -/
 
-namespace Hagi
+namespace Hagi.Core
 
 /-- Receptive field after L sliding-window layers of width W. -/
 def reach (W L : ℕ) : ℕ := L * (W - 1) + 1
@@ -95,4 +95,8 @@ theorem swa_cost_bound (T W : ℕ) (hW : 1 ≤ W) (hTW : W ≤ T) :
           rw [Finset.sum_const, Finset.card_range]
           simp
 
+end Hagi.Core
+
+namespace Hagi
+export Hagi.Core (reach swa_reach_step swa_reach_eq swa_reach_mono swa_relay_full swa_cost_bound)
 end Hagi

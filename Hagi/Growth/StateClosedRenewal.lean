@@ -28,7 +28,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -131,4 +131,8 @@ theorem state_closed_band (S : ℕ → GrowthState X)
       (fun t => usableFrontier (S t)) γ ρ β k hCpos h_emp_step h_emp_dyn
       hrhogk hbeta h_emp_cone0) hC0 T
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (state_closed_takeoff state_closed_renewal_step state_closed_band)
 end Hagi

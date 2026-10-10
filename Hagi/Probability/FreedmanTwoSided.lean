@@ -18,7 +18,7 @@ finite union bound (pmfMean_event_union) doubles the
 one-sided bound.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 open scoped BigOperators
 
@@ -160,4 +160,8 @@ theorem history_additive_freedman_two_sided
         add_le_add h1 h2
     _ = 2 * ((T : ℝ) + 1) * Real.exp (-r^2/(4*(V+c*r))) := by ring
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (history_additive_freedman_two_sided)
 end Hagi

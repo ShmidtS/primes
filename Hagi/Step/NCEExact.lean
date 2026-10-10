@@ -27,7 +27,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 section NCEExact
 
@@ -216,4 +216,8 @@ theorem anchor_cadence_criterion (gamma rho eps : ℝ)
 
 end NCEExact
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (partZ impW jensen_log partEst_unbiased secondMomentW secondMomentW_ge_sq partEst_gap_jensen relative_second_moment_floor anchor_cadence_criterion)
 end Hagi

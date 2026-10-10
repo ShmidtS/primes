@@ -51,7 +51,7 @@ fixed point.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Energy
 
 section Variational
 
@@ -199,4 +199,8 @@ theorem free_energy_variational (q p U : V → ℝ)
 
 end Variational
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (kldiv' tilted tilted_sum_one tilted_pos kl_tilted_decompose free_energy_variational)
 end Hagi

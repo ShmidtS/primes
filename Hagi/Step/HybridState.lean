@@ -18,7 +18,7 @@ import Mathlib
   границей свежести момента.
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℝ V]
 
@@ -45,4 +45,8 @@ theorem fresh_momentum_unbiased (gt : V)
   · exact norm_zero
 
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (stale_momentum_bias fresh_momentum_unbiased)
 end Hagi

@@ -57,7 +57,7 @@ characterization feeding `marginalValue_law`'s active-set
 scan).
 -/
 
-namespace Hagi
+namespace Hagi.Pretraining
 
 section SyntheticPretrain
 
@@ -193,4 +193,8 @@ theorem task_selection_marginal (J : Type) [Finite J] [Nonempty J]
 
 end SyntheticPretrain
 
+end Hagi.Pretraining
+
+namespace Hagi
+export Hagi.Pretraining (TimeToCapability synthGain time_to_capability_correct synth_investment_dominates task_selection_marginal)
 end Hagi

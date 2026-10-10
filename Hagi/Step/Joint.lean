@@ -29,7 +29,7 @@ open scoped Matrix
 set_option linter.style.header false
 
 
-namespace Hagi
+namespace Hagi.Step
 
 section JointStep
 
@@ -238,4 +238,8 @@ end JointStep
 
 
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (quadIncr jointStep_conflict_regression jointStep_regression_bound trustRegion_bound)
 end Hagi

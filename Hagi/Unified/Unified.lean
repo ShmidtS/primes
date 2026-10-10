@@ -24,7 +24,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Unified
 
 section StateLattice
 
@@ -93,4 +93,8 @@ theorem highway_gain_transport_bound (Ecapt eta gain : ℝ)
 
 end TransportEta
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (uncertainty_contraction finite_termination traininfer_critical highway_gain_transport_bound)
 end Hagi

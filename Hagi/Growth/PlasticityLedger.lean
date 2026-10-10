@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 variable {I V : Type*} [Fintype I] [DecidableEq I] [Fintype V]
 
@@ -152,4 +152,8 @@ theorem radius_zero_of_eq (P : I → V → ℝ)
   have hself : P i v / P i v = 1 := div_self (ne_of_gt (hposP i v))
   rw [hself, Real.log_one, mul_zero]
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (famMix plasticityRadius IsProbs kl_le_log_card radius_le_log_card radius_zero_of_eq)
 end Hagi

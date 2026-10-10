@@ -35,7 +35,7 @@ price/gap gate stands; this is the second, orthogonal gate):
   down by the same factor.
 -/
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 /-- The signed integration value: ensemble gap minus total
 price (the quantity the certified gate compares to zero). -/
@@ -80,4 +80,8 @@ theorem mopd_kl_scaling_warning {Dbase Dpolicy : ℝ}
   rw [le_div_iff₀ heps]
   linarith
 
+end Hagi.Ensemble
+
+namespace Hagi
+export Hagi.Ensemble (integration_net_gain MOPDApproved integration_net_gain_pos integration_rejects_far_teacher mopd_kl_scaling_warning)
 end Hagi

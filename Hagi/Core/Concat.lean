@@ -50,7 +50,7 @@ theorem concatCols_identical (n : ℕ) (W : Matrix o m ℝ) (x : m → ℝ) :
   simp [Matrix.mulVec, dotProduct]
 
 omit [Fintype o] in
-/-- Pointwise form of `Hagi.concatCols_identical`. -/
+/-- Pointwise form of `concatCols_identical`. -/
 theorem concatCols_identical_apply (n : ℕ) (W : Matrix o m ℝ) (x : m → ℝ)
     (j : o) :
     (concatCols n W *ᵥ (fun p => x p.2)) j = (n : ℝ) * (W *ᵥ x) j := by

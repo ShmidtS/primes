@@ -20,7 +20,7 @@ set_option linter.style.header false
   меняет выход в t на `w 0 · c` (при `w 0 ≠ 0`).
 -/
 
-namespace Hagi
+namespace Hagi.Step
 open Finset
 
 /-- Каузальная свёртка с левым паддингом:
@@ -77,4 +77,8 @@ theorem leak_same_step (w x : ℕ → ℝ) (t : ℕ) (hw : w 0 ≠ 0)
       omega
   rw [hlast]
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (causalConv causal_prefix_determined centeredConv leak_same_step)
 end Hagi

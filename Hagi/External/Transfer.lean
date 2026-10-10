@@ -67,7 +67,7 @@ observable has no dynamics.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.External
 
 section MuP
 
@@ -162,4 +162,8 @@ theorem frozen_norm_no_dynamics {W : Type*} [NormedAddCommGroup W]
 
 end Slingshot
 
+end Hagi.External
+
+namespace Hagi
+export Hagi.External (mup_scale_invariance vocab_critical_point phase_metric_monotone frozen_norm_no_dynamics)
 end Hagi

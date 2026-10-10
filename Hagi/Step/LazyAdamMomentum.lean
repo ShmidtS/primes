@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 /-- При `m (t+1) = β₁·m t` для всех t: `m k = β₁^k·m 0`
 (геометрический декей незатронутой строки). -/
@@ -63,3 +63,8 @@ theorem lazy_momentum_bound (beta c : ℝ)
     have hconv : beta * (1 / (1 - beta)) = beta / (1 - beta) := by field_simp
     linarith
   exact mul_le_mul_of_nonneg_left hgeom hc
+
+end Hagi.Step
+namespace Hagi
+export Hagi.Step (dense_m_decay lazy_moment_drift lazy_momentum_bound)
+end Hagi

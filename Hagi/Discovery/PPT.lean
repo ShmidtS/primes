@@ -63,7 +63,7 @@ verifier theory exists yet (same gap as `GrowthState.verifier`). -/
 
 open Finset Real MeasureTheory
 
-namespace Hagi
+namespace Hagi.Discovery
 
 section PPT
 
@@ -831,4 +831,8 @@ theorem pptSuccess_lower (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → Seq)
 end Success
 
 end PPT
+end Hagi.Discovery
+
+namespace Hagi
+export Hagi.Discovery (pptNorm pptNorm_pos pptTarget pptTarget_isProbability pptTarget_pos pptKernel pptKernel_nonneg pptDetailedBalance mh_stationary pptSwapAccept pptSwapAccept_nonneg pptSwapAccept_le_one pptSwapAccept_mem pptSwap_balance pptSwapKernel pptSwapKernel_nonneg pptSwapKernel_sum pptSwapKernel_isKernel pptSwap_detailedBalance pptSwap_productProb pptSwap_stationary truncation_bias tvDist tvDist_nonneg abs_sub_eq_add_sub_two_min vecMul chainAt chainAt_succ vecMul_sum vecMul_nonneg ppt_card_eps_le_one ppt_tvContraction chainAt_isProb pptMixing tvDist_le_one pptMixing_doeblin goodSet discovery_prob_stationary discovery_prob_lower stationary_value_ge pptSuccess pptRejectGood pptOverrun pptSuccess_union_bound pptSuccess_lower)
 end Hagi

@@ -30,7 +30,7 @@ set_option linter.style.header false
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 /-- При `0 ≤ σ ≤ 1`, `C (t+1) ≤ C t + σ·(Cstar − C t)` и
 `C 0 ≤ Cstar` выполнено `C t ≤ Cstar` при всех t. -/
@@ -210,4 +210,8 @@ theorem takeoff_with_saturation (C D : ℕ → ℝ)
   refine ⟨ratio_takeoff C D γ k hγ hk hstep hcone T, ?_⟩
   linarith [pl_gap_geometric_lo C Cstar σ hσ1 hpl_up hC0 T]
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (never_overshoot pl_gap_geometric saturation_limit pl_gap_geometric_lo takeoff_with_saturation)
 end Hagi

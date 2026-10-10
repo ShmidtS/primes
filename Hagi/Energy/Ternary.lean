@@ -16,20 +16,20 @@ ternary expert format (`scripts/dsv4_experts.py`,
 
 * **5 trits per byte**: ternary codes `{0,1,2}^5` are stored base-3 in
   a single byte — `3⁵ = 243 ≤ 2⁸ = 256`, so the encoding
-  `t ↦ ∑ tᵢ · 3ⁱ` is injective (`Hagi.tritEncode_injective`).
+  `t ↦ ∑ tᵢ · 3ⁱ` is injective (`tritEncode_injective`).
 * **Grid rounding**: quantizing a value to the ternary grid
   `{-1, 0, +1}` (with per-group scale `s`) by nearest-grid rounding
   has error at most half a grid step on the covered range
-  (`Hagi.roundTern_error`, `Hagi.roundTern_error_scaled`); likewise
-  for the int4 `±7` grid (`Hagi.roundHalf_error`,
-  `Hagi.clampInt4_error`). The zero level of the ternary grid is
+  (`roundTern_error`, `roundTern_error_scaled`); likewise
+  for the int4 `±7` grid (`roundHalf_error`,
+  `clampInt4_error`). The zero level of the ternary grid is
   essential ("grids without it lose ~8 pp", README.md) — hence the
   symmetric thresholds at `±1/2`.
 -/
 open scoped Matrix
 set_option linter.style.header false
 
-namespace Hagi
+namespace Hagi.Energy
 
 /-! ## Base-3 packing of 5 trits into a byte -/
 
@@ -446,4 +446,8 @@ theorem lsScale_gram {m : Type*} [Fintype m]
 end FunctionalLS
 
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (tritEncode three_pow_five trits_fit_byte tritEncode_lt tritEncode_injective roundTern roundTern_error roundTern_error_scaled roundHalf roundHalf_error clampInt4 clampInt4_error lsScale_optimal lsScale_gram)
 end Hagi

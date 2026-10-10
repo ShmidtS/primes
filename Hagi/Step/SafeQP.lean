@@ -27,7 +27,7 @@ set_option linter.style.header false
 
 open Finset InnerProductSpace Metric
 
-namespace Hagi
+namespace Hagi.Step
 
 section SafeQP
 
@@ -237,4 +237,8 @@ theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace â„
   have hdseq0 : dist ds g0 = 0 := le_antisymm h0min dist_nonneg
   exact eq_of_dist_eq_zero hdseq0
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeQP_noconflict safeqp_inactive)
 end Hagi

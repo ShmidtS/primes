@@ -46,7 +46,7 @@ iid); b — конструкторский диапазон приращений
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Probability
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
@@ -743,4 +743,8 @@ theorem adaptive_success_freedman (q : V → ℝ)
           prodPq_mono (fun _ => q) hisprob _ _
             (fun ω hω => not_lt.mp hω)
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (exp_tail_two freedman_lemma_prefix freedman_mgf freedman_tail_low cond_var_le_second adaptive_success_freedman)
 end Hagi

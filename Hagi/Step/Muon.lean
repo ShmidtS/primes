@@ -19,7 +19,7 @@ set_option linter.style.header false
 (полярное разложение — вне этого модуля).
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 variable {V : Type} [NormedAddCommGroup V]
 
@@ -44,4 +44,8 @@ theorem muon_pl_rate {W : Type} [NormedAddCommGroup W]
   rw [sq, sq]
   exact mul_self_le_mul_self (norm_nonneg _) (hP g)
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (muonDir muon_step_bound muon_pl_rate)
 end Hagi

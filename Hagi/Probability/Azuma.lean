@@ -45,7 +45,7 @@ Freedman-усиление (дисперсионная адаптация) — о
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Probability
 open Hagi.Foundations
 
 variable {V : Type} [Fintype V] [Nonempty V]
@@ -654,4 +654,8 @@ theorem adaptive_success_azuma (q : V → ℝ)
           prodPq_mono (fun _ => q) hisprob _ _
             (fun ω hω => not_lt.mp hω)
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (hoeffding_lemma_prefix prodE_snoc azumaSum azumaSum_congr azumaSum_snoc azuma_mgf azumaSum_neg azuma_tail_low azumaSum_sub azumaSum_lower azumaSum_ext adaptive_success_azuma)
 end Hagi

@@ -67,7 +67,7 @@ the gradient flows to the master as the identity.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Energy
 
 section Ternary
 
@@ -121,4 +121,8 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
 
 end Ternary
 
+end Hagi.Energy
+
+namespace Hagi
+export Hagi.Energy (tern tern_distortion_round tern_scale_invariance)
 end Hagi

@@ -20,7 +20,7 @@ spread²/N как верхняя) — эмпирические гипотезы,
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Step
 
 section Decompose
 
@@ -33,4 +33,4 @@ section Decompose
 
 end Decompose
 
-end Hagi
+end Hagi.Step

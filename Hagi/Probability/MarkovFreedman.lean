@@ -31,7 +31,7 @@ counter V and uniform step bound c:
 0 sorry in the source, 0 here; axioms standard.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 section
 open scoped BigOperators Topology
@@ -197,4 +197,8 @@ theorem finite_freedman {α : Type*} [Fintype α]
 
 end
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (pmfMean_exp_le markovLaw markovMean_potential_le markovMean_exp_compensated_le pmfMean_compensated_tail finite_freedman)
 end Hagi

@@ -15,7 +15,7 @@ inequality (MarkovFreedman): pmfMean and its algebra
 source, 0 here.
 -/
 
-namespace Hagi
+namespace Hagi.Probability
 
 open Filter
 open scoped BigOperators Topology
@@ -137,4 +137,8 @@ theorem pmfMean_uniformOfFinset {α : Type*} [Fintype α]
   simp only [div_eq_mul_inv, mul_comm, Finset.sum_mul]
 
 
+end Hagi.Probability
+
+namespace Hagi
+export Hagi.Probability (pmfMean pmf_weight_sum pmfMean_const pmfMean_congr pmfMean_add pmfMean_sub pmfMean_mul_const pmfMean_const_mul pmfMean_nonneg pmfMean_mono pmfMean_sq_sub pmfMean_sq_le pmfMean_markov_sq pmfMean_pure pmfMean_bind pmfMean_map pmfMean_uniformOfFinset)
 end Hagi

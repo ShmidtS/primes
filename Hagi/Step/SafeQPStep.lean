@@ -31,7 +31,7 @@ set_option linter.unusedSectionVars false
   при `eps i > 0`, `d ≠ 0`).
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 open Real InnerProductSpace
 
@@ -217,4 +217,8 @@ theorem safeqp_eta_max_conflict_free (g : K → X) (eps L : K → ℝ)
 
 end SafeQPStep
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (safeqpEtaMax le_safeqpEtaMax_iff safeqp_eta_max_domain safeqp_eta_max safeqp_eta_zero_direction safeqpEtaMaxConflictFree le_safeqpEtaMaxConflictFree_iff safeqpEtaMaxConflictFree_pos safeqp_eta_max_conflict_free)
 end Hagi

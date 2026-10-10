@@ -14,7 +14,7 @@ import Mathlib
   то какой-то слой имеет норму > q.
 -/
 
-namespace Hagi
+namespace Hagi.Growth
 
 open ContinuousLinearMap
 
@@ -76,4 +76,8 @@ theorem amplification_needs_expansion (Ts : List (V →L[ℝ] V))
   push_neg at hnone
   exact absurd (gain_stack_ceiling Ts q hq hnone) (not_le.2 hbig)
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (gain_product_bound stackComp stackComp_cons gain_stack_ceiling amplification_needs_expansion)
 end Hagi

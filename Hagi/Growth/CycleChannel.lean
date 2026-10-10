@@ -30,7 +30,7 @@ this model.
 
 open Finset Real
 
-namespace Hagi
+namespace Hagi.Growth
 
 section CycleDecay
 
@@ -101,4 +101,8 @@ theorem channel_switch (F k s b Cm Cr : ℝ)
 
 end ChannelBudget
 
+end Hagi.Growth
+
+namespace Hagi
+export Hagi.Growth (cycle_decay_mono cycle_decay_ratio channel_switch)
 end Hagi

@@ -30,7 +30,7 @@ while `C0 * (1 + gamma * k) ^ T ≤ Cstar`.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Unified
 
 variable {Xs V : Type*} [NormedAddCommGroup Xs]
   [InnerProductSpace ℝ Xs]
@@ -266,4 +266,8 @@ theorem band_witness :
       have h0 := (half_pow_bounds t).1
       linarith
 
+end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis half_pow_bounds half_pow_anti band_witness)
 end Hagi

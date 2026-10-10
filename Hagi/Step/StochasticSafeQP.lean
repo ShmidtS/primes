@@ -34,7 +34,7 @@ d — фиксированное направление (адаптивный в
 open Finset Real MeasureTheory ProbabilityTheory InnerProductSpace
 open scoped NNReal
 
-namespace Hagi
+namespace Hagi.Step
 
 section StochasticSafeQP
 
@@ -433,4 +433,8 @@ theorem stochastic_safeQP_feasibility {m : ℕ} (hm : 0 < m)
 
 end StochasticSafeQP
 
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (noiseEps minibatch_inner_tail minibatch_inner_concentration minibatch_inner_concentration_upper stochastic_safeQP_feasibility)
 end Hagi

@@ -16,7 +16,7 @@ q-вероятности ≥ 1 − V/t². Теорема `klsSafeQP_certified`:
 q-массы ≥ 1 − V/t².
 -/
 
-namespace Hagi
+namespace Hagi.Step
 
 open Finset
 
@@ -112,4 +112,8 @@ theorem klsSafeQP_certified {n : ℕ} {Ω : Type*} [Fintype Ω] [Nonempty Ω]
         linarith
     _ ≥ 1 - V / t ^ 2 := by
         linarith [hbad]
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (klsSafeQP_certified)
 end Hagi

@@ -79,7 +79,7 @@ no re-fitting on the second point.
 
 open Finset
 
-namespace Hagi
+namespace Hagi.Data
 
 section DBridge
 
@@ -221,4 +221,8 @@ theorem equilibrium_bracket (G : ℕ → ℝ) (rho D delta : ℝ)
 
 end DBridge
 
+end Hagi.Data
+
+namespace Hagi
+export Hagi.Data (negEntropy dfield_entropy_identity dQuad_nonneg equilibrium_bracket)
 end Hagi

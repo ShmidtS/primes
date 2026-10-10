@@ -23,7 +23,7 @@ set_option linter.style.header false
 здесь — точное утверждение для квадратичной линейной модели.
 -/
 
-namespace Hagi
+namespace Hagi.Step
 open Finset
 
 /-- Компонент градиента потери `L = ½·Σ_i (Σ_j W i j)²`:
@@ -78,4 +78,8 @@ theorem mup_grad_invariant (m d : ℕ) (hm : 1 ≤ m)
   rw [hkey]
   simp
   field_simp
+end Hagi.Step
+
+namespace Hagi
+export Hagi.Step (gradEntry grad_norm_grows mup_grad_invariant)
 end Hagi
