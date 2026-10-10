@@ -1288,6 +1288,8 @@ root_idem	cc79d347f8d11410
 root_invariance	6717ee8a660f1e1e
 root_no_leaf_signal	28d08cda5c62da64
 root_sum_eq	2e9e961093d3c611
+rope_context_dichotomy	16ab2e83a30a2964
+rope_limit_irreversible	82b8176ba1472e81
 rope_score_delta	98420415d74f2980
 rope_translation_shift	e4f633287a129a7c
 rotVec	ab36dee4c9bf0120
