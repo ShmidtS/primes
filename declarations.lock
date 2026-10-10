@@ -312,6 +312,7 @@ coordMean_const	3c3b03a6e7678fc6
 coord_center_zero	e8fa6b0d539c65d5
 coord_mgf_bound	c42d5fd837e5c4e0
 corePremises_nonvacuous	ee014b4b4dae0077
+corePremises_of_full_refinement	05df74ae1b08a95f
 costCompress	ec59ec8f3db89160
 costGrow	de60df8e7a177cdc
 costJoint	833a33c01ba2b9a4
@@ -1184,6 +1185,7 @@ relu_shift_le	eacd57f5abf8d686
 renewal_feeds_takeoff	4134214dea1e58ea
 repRate	b65f90f7c23b9eb9
 repRate_trichotomy	545e50097d5c3ca6
+requires	04ed923299103f5e
 residualLeaf	c4358e15e090e0f5
 residualLeaf_zero	f1d3ff3a3ef0bd3d
 residualLeaf_zero_apply	dbe45488c1f12f07

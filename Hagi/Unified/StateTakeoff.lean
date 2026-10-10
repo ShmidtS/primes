@@ -82,4 +82,41 @@ theorem state_capability_takeoff (S : ℕ → Hagi.GenState X)
     D alpha gamma rho beta xi T hα hγ hρ hC0 h_emp_cone0 hstep
     h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta
 
+/-- **FullCycleRefinement как основание CorePremises** (аудит,
+проблема №2): старая конъюнкта h_cycle связывает только
+energy/protectedRisk/budget; при полной связи состояний она
+ВЫВОДИТСЯ из FullCycleRefinement (full_cycle_field_eq), а
+остальные 14 конъюнкт — те же измеряемые посылки стадий. -/
+theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
+    (epsQ : ℝ) (w : Fin 5 → ℝ)
+    (hfull : FullCycleRefinement S S')
+    (h1 : 0 ≤ S.toGrowthState.gap)
+    (h2 : S.toGrowthState.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.growGain)
+    (h3 : S.toGrowthState.mergeEnergy
+      ≤ S.toGrowthState.growEnergy - S.toGrowthState.gap)
+    (h4 : 0 < S.toGrowthState.sp.L)
+    (h5 : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
+    (h6 : 0 ≤ S.toGrowthState.sp.eta)
+    (h7 : ‖S.toGrowthState.stepDir‖ ^ 2
+      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (h8 : S.toGrowthState.jointEnergy
+      ≤ S.toGrowthState.mergeEnergy
+        - S.toGrowthState.sp.eta
+          * ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ
+        + S.toGrowthState.sp.L * S.toGrowthState.sp.eta ^ 2
+          * ‖S.toGrowthState.stepDir‖ ^ 2 / 2)
+    (h9 : 0 ≤ S.toGrowthState.sp.kappa)
+    (h10 : 0 ≤ S.toGrowthState.sp.s)
+    (h11 : 0 ≤ S.toGrowthState.quantErr)
+    (h12 : S.toGrowthState.quantErr ≤ 1 / 2)
+    (h13 : S.toGrowthState.compressEnergy - S.toGrowthState.jointEnergy
+      ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
+        * S.toGrowthState.quantErr)
+    (h15 : Qgen S.gen w - epsQ ≤ Qgen S'.gen w) :
+    CorePremises S S' epsQ w := by
+  refine ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,
+    h13, ?_, h15⟩
+  exact full_cycle_field_eq hfull
+
 end Hagi.StateTakeoff
