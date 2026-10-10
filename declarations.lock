@@ -1,3 +1,4 @@
+AuditTolerance	62d9559f3a6633e5
 Basis	137bfbf500c80032
 BudgetAlive	9aec6a9a215610ad
 CE	eee82b7395061eea
@@ -18,6 +19,7 @@ DeepNet	db9f5e802c5443a3
 DeepNetV	bb369e4b271658a8
 Delta	bde26f0f1f4f313a
 DisagreementStages	125f76ed7d8d8bed
+DynTelemetry	285a3dbe25bd7b35
 FannesDecomp	bd4590ddec854c63
 FluctuationSetup	b398b3ad1aa7cc25
 FullCycleRefinement	f35026a7b4fefcf7
@@ -148,6 +150,9 @@ at	d758bb8688ce9c31
 attention_error_damped	87bc66bb57cadbb6
 attention_error_damped'	47d7240faa1538c4
 attention_error_damped_sum	999c6d1355d3baad
+auditAccept	70234ab3f1c9b4da
+audit_chain	5d0d442a7fe168cc
+audit_violation_witness	b4e20d1da20a8ca3
 avgRadius	0a4f8caf2404b26e
 avgRadius_shrinks	320bc71309e63a2b
 avgVec	881d70494b259dd6
@@ -1468,6 +1473,7 @@ training_core_is_measurement_tail	118450879039ef13
 transfer_exact	ab429473ba0c9f8d
 transportedGrad	f3f36258760d79b9
 transpose_kronecker_mul	7873568efb7ae372
+tri	120325a9b041cc24
 tritEncode	94dce514e00f48c3
 tritEncode_injective	9635bc9434da3b80
 tritEncode_lt	dec1f9b820d2c504
