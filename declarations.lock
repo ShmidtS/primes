@@ -140,6 +140,8 @@ anytime_safety_stochastic	060f660438be6b64
 anytime_valid_budget	0d824386b0ed0116
 argmax_pair_certified	3cf2819c8cc12f10
 argmax_select_certified	1c1cbe3251bb248a
+armijo_step_size	955d5538ee439a0b
+armijo_sufficient_decrease	e447564007412e1b
 at	d758bb8688ce9c31
 attention_error_damped	87bc66bb57cadbb6
 attention_error_damped'	47d7240faa1538c4
@@ -725,6 +727,7 @@ impW	e093db15cf97b8e2
 improving_chain_injective	8709e8dbd15603c1
 injection_law_of_measured	29717ea972757091
 inner2_add_left	a5241946223944e2
+inner_transport	9a982635695d2aa5
 insight_consolidation_safe	1c8ea6b737c86e95
 insight_kl_descent	ebdcd67a76a0b21e
 integration_net_gain	f8a5464374d8813d
@@ -825,6 +828,9 @@ lse_shift_upper	27a4f894d60639f0
 lyapunov_telescope	f3b9d8337a1ff16d
 lyapunov_telescope_fin	9ed1c95231b26cb0
 lyapunov_termination_fin	f4127f0391215ca2
+mDist	331af0d43253a1af
+mDist_eq	5ece58989a0aa426
+mProject_exists_unique	3d6bcec102d575a7
 macro_step_decrease	d8f1a5330d9bb999
 macro_termination	4660677d32c7b34f
 macro_termination_derived	91e32f67238462f0
@@ -850,6 +856,12 @@ mass_real_smul	14ac98222eb59b14
 mass_sub	583f96eaa397ee38
 masterhagi_growth_witness	3979befdd7a4892b
 masterhagi_trunc_of_assumptions	4c49febfbdd3e4a6
+mdlObjective	1eebc5524f6509a8
+mdlObjective_delta	a3df25492a70e146
+mdlObjective_lambda_zero	89ccf91306a737c2
+mdlObjective_neg_lambda_forbidden	81372e2f0dbd1892
+mdlObjective_nonincreasing	ff9c36029796bc9c
+mdlObjective_tradeoff	c440a0a2ec288f34
 meanBound_greedy	25ac7c74290d4681
 meanResidual	71fe0b042a0a786f
 mean_norm_le	44489ac5ddc10a0c
@@ -1078,6 +1090,8 @@ pptTarget_isProbability	2265322ca8d02c1f
 pptTarget_pos	c428492a508d6160
 ppt_card_eps_le_one	90046e606898df2a
 ppt_tvContraction	f05e02dcee21d5f9
+preconditioned_descent	0a667b3b56fc6a22
+preconditioned_step_size	a41eadb8b1543b4c
 price_zero_iff_ker	9b06a0f8d5a3e0e1
 probGe	85e54ddae6c510fa
 prodDens	82a21d169d5388ab
@@ -1435,6 +1449,7 @@ trace_unitary_conj	2141f0c89dad9e91
 traininfer_critical	a097a0451e9a2de7
 training_core_is_measurement_tail	118450879039ef13
 transfer_exact	ab429473ba0c9f8d
+transportedGrad	f3f36258760d79b9
 transpose_kronecker_mul	7873568efb7ae372
 tritEncode	94dce514e00f48c3
 tritEncode_injective	9635bc9434da3b80
