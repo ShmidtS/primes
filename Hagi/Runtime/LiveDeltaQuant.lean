@@ -50,9 +50,10 @@ theorem quantMat_sq_bound (s : ℝ) (hs : 0 < s) (M : Matrix m n ℝ)
     intro i _ j _
     have h := quantMat_entry s hs M i j (hin i j)
     have e2 : (M i j - quantMat s M i j) ^ 2
-        = |M i j - quantMat s M i j| ^ 2 := sq_abs _
-    rw [e2]
-    exact pow_le_pow_left h (abs_nonneg _) 2
+        = |M i j - quantMat s M i j| ^ 2 := (sq_abs _).symm
+    rw [e2, pow_two, pow_two]
+    have hs2 : 0 ≤ s / 2 := by positivity
+    exact mul_le_mul h h (abs_nonneg _) hs2
   calc ∑ i, ∑ j, (M i j - quantMat s M i j) ^ 2
       ≤ ∑ i, ∑ j ∈ Finset.univ, (s / 2) ^ 2 :=
         Finset.sum_le_sum fun i _ =>
