@@ -11,10 +11,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 244 Lean-модуля в `Hagi/`, ~1164 theorem/lemma (authority:
-  inventory-проб, 1642 константы на 907ba5d), 0 sorry (единственный
-  текстовый «sorry» — в докстринге ArchitectureTheorem);
-  `lake build` — зелёный (9135 jobs).
+- 263 Lean-модуля в `Hagi/`, 1182 theorem/lemma (authority:
+  rg-счёт 2026-10-09), 1585 деклараций в declarations.lock
+  (Freeze), 0 sorry (текстовые «sorry» — только в докстрингах);
+  `lake build Hagi` — зелёный (9188 jobs); 27 per-directory
+  lean_lib-пакетов (R270) для инкрементальных сборок.
+- Namespace-кампания (R269) завершена: 0 плоских
+  `namespace Hagi`; все модули в `namespace Hagi.<Dir>` с
+  легаси-алиас-экспортами (старые полные имена `Hagi.foo`
+  резолвятся).
 - CI (`scripts/ci.sh`): TrivialLint + тривиальность +
   DocLint + LayerLint + StatusLint — PASS.
 - Аксиомы: стандартные (проверено выборочно по капстоунам).
@@ -97,6 +102,23 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - `frontier_cone_invariant` — структурно отличен от
   Foundations-конуса (ξ-член, cap вместо равенства шага);
   канонизация — будущая работа.
+
+## Раунды R265–R270 (сводка)
+
+- R265–R268 (аудиты + план): GrandSynthesis budget-split
+  (бюджет и capability — отдельные последовательности);
+  StateTakeoff (h_emp_step ВЫВОДИТСЯ из FullCycleRefinement,
+  C-канал = поле состояния); LiveDelta-стек (Architecture/
+  LiveDelta, Step/LiveDeltaSafe, Runtime/LiveDeltaQuant,
+  LiveDeltaAudit, Unified/LiveDeltaCycle — квантованные
+  инкрементальные апдейты с rollback + аудит-телеметрия);
+  Probability/PMFBridge (V→ℝ ↔ PMF, оба пути); HAGICertWitness
+  (горизонт-1 неразрывности HAGICert, все 17 полей);
+  Freeze: хэш структур обрезается на ближайшем ':='/'where'.
+- R269: namespace-кампания — 178 изолированных модулей →
+  `namespace Hagi.<Dir>` + легаси-экспорты (срезы 40+138).
+- R270: 27 per-directory lean_lib-пакетов (`globs =
+  "Hagi.<Dir>.+"`), defaultTargets не тронут.
 
 ## Миграция — оставшиеся шаги
 
