@@ -315,6 +315,7 @@ conj_chi3	873005f7289689e6
 conj_omega	fd8ba435607b0d82
 consensus_no_gain	19ea6218e897d943
 consolidate_budget	5fc3d667f277fce7
+consolidation_quality_bound	d5f03a97243221e9
 const_probe_sum	162940943e5b399f
 constructive_scale	3e5ae6fb035d4755
 continuousOn_logEntropyPrimitive	790e69d011b087e4
@@ -563,6 +564,7 @@ fresh_data_prevents_collapse	3c6d5dd61512fc7b
 fresh_data_prevents_collapse_uniform	113f7551d02b04f3
 fresh_momentum_unbiased	f05ccb8735705395
 frob	506c518352d7ae23
+frobNorm	5c7d332cc8b4314a
 frobSq	d0f79674d3b954e3
 frobSubord	2b05a43bed130521
 frobVector	cafa1c4cea50c7a1
@@ -907,6 +909,7 @@ meanBound_greedy	25ac7c74290d4681
 meanResidual	71fe0b042a0a786f
 mean_norm_le	44489ac5ddc10a0c
 measure	857cc5be8963fd77
+memory_cycle_quality	c2554c0c6011e8db
 merge	aa8038f8edcaa9e0
 mergeDecomp	ca8010c3cf0cb414
 mergeEnergyPerturbed	6d6c7382d28867dc

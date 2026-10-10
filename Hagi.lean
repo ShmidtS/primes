@@ -256,6 +256,7 @@ import Hagi.Step.LiveDeltaSafe
 import Hagi.Step.DeltaHistory
 import Hagi.Step.DeltaConsolidate
 import Hagi.Growth.MemoryController
+import Hagi.Unified.MemoryCycle
 import Hagi.Runtime.LiveDeltaAudit
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
