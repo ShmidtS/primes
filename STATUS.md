@@ -11,11 +11,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 263 Lean-модуля в `Hagi/`, 1182 theorem/lemma (authority:
-  rg-счёт 2026-10-09), 1585 деклараций в declarations.lock
-  (Freeze), 0 sorry (текстовые «sorry» — только в докстрингах);
-  `lake build Hagi` — зелёный (9188 jobs); 27 per-directory
-  lean_lib-пакетов (R270) для инкрементальных сборок.
+- 263 Lean-модуля в `Hagi/`, 1585+46=1631 деклараций в
+  declarations.lock (Freeze, 2026-10-10), 0 sorry; `lake build
+  Hagi` — зелёный (9194 jobs); 27 per-directory lean_lib-пакетов
+  (R270).
 - Namespace-кампания (R269) завершена: 0 плоских
   `namespace Hagi`; все модули в `namespace Hagi.<Dir>` с
   легаси-алиас-экспортами (старые полные имена `Hagi.foo`
@@ -36,7 +35,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (`bern_mgf_bound`, `mgf_hoeffding_ab`, `mgf_hoeffding`),
   `TakeoffCounted` (`capability_takeoff_counted`).
 - Правило LayerLint: импорт только из строго нижних слоёв;
-  same-folder DAG допустим; baseline-исключений — 18
+  same-folder DAG допустим; baseline-исключений — 10
   (сокращающийся список в `scripts/LayerLint.py`).
 - Дедупликация: MasterHAGI-телескопы, Saturation
   (`pl_gap_geometric`), Dynamics/Contraction — делегации
@@ -128,6 +127,8 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   GrowthState ← DField/Merge.
 - git mv папок по слоям, spec_manifest.toml, регенерация
   STATUS скриптом (шаги 4, 6, 7 плана миграции).
+  LayerLint-исключения: авторитет — scripts/LayerLint.py
+  (10 рёбер; записи «18»/«23» в старых блоках устарели).
 
 - R240 (d934f0e): кампания честности докстрингов — 162
   висячие ссылки разрешены (~90 модулей): переименования к
