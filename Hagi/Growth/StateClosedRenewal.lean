@@ -41,20 +41,20 @@ theorem state_closed_takeoff (S : ℕ → GrowthState X)
     (γ ρ β k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k)
     (hCpos : ∀ t, 0 < (S t).capability)
-    (hstep : ∀ t, (S (t + 1)).capability
+    (h_emp_step : ∀ t, (S (t + 1)).capability
       = (S t).capability + γ * usableFrontier (S t))
-    (hdyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
+    (h_emp_dyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
       ≤ usableFrontier (S (t + 1)))
     (hrhogk : γ * k ≤ ρ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
-    (hcone0 : k * (S 0).capability ≤ usableFrontier (S 0))
+    (h_emp_cone0 : k * (S 0).capability ≤ usableFrontier (S 0))
     (T : ℕ) :
     (S 0).capability * (1 + γ * k) ^ T ≤ (S T).capability := by
   exact ratio_takeoff (fun t => (S t).capability)
-    (fun t => usableFrontier (S t)) γ k hγ hk hstep
+    (fun t => usableFrontier (S t)) γ k hγ hk h_emp_step
     (cone_ratio_invariant (fun t => (S t).capability)
-      (fun t => usableFrontier (S t)) γ ρ β k hCpos hstep hdyn
-      hrhogk hbeta hcone0) T
+      (fun t => usableFrontier (S t)) γ ρ β k hCpos h_emp_step h_emp_dyn
+      hrhogk hbeta h_emp_cone0) T
 
 /-- Шаг конуса с трением: при шаге `C' = C + γ·D`, динамике
 `ρ·D + β·C − ξ t ≤ D'`, `ρ ≥ γk`, пороге
@@ -63,20 +63,20 @@ theorem state_closed_takeoff (S : ℕ → GrowthState X)
 `k·(S (t+1)).capability ≤ usableFrontier (S (t+1))`. -/
 theorem state_closed_renewal_step (S : ℕ → GrowthState X)
     (γ ρ β k : ℝ) (xi : ℕ → ℝ)
-    (hstep : ∀ t, (S (t + 1)).capability
+    (h_emp_step : ∀ t, (S (t + 1)).capability
       = (S t).capability + γ * usableFrontier (S t))
-    (hdyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
+    (h_emp_dyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
       - xi t ≤ usableFrontier (S (t + 1)))
     (hrhogk : γ * k ≤ ρ)
     (hbeta : ∀ t, γ * k ^ 2 + (1 - ρ) * k
       + xi t / (S t).capability ≤ β)
     {t : ℕ}
     (hCpos : 0 < (S t).capability)
-    (hcone : k * (S t).capability ≤ usableFrontier (S t)) :
+    (h_emp_cone : k * (S t).capability ≤ usableFrontier (S t)) :
     k * (S (t + 1)).capability ≤ usableFrontier (S (t + 1)) := by
-  have hd := hdyn t
+  have hd := h_emp_dyn t
   have hb := hbeta t
-  have hs := hstep t
+  have hs := h_emp_step t
   set C := (S t).capability with hC
   set D := usableFrontier (S t) with hD
   set C' := (S (t + 1)).capability with hC'
@@ -89,7 +89,7 @@ theorem state_closed_renewal_step (S : ℕ → GrowthState X)
     field_simp
     ring
   have h1 : (0:ℝ) ≤ (ρ - γ * k) * (D - k * C) := by
-    have hsub : (0:ℝ) ≤ D - k * C := by linarith [hcone]
+    have hsub : (0:ℝ) ≤ D - k * C := by linarith [h_emp_cone]
     exact mul_nonneg (by linarith [hrhogk]) hsub
   have h2 : (0:ℝ)
       ≤ (β - (γ * k ^ 2 + (1 - ρ) * k + xi t / C)) * C :=
@@ -109,13 +109,13 @@ theorem state_closed_band (S : ℕ → GrowthState X)
     (γ ρ β k Cstar σ : ℝ)
     (hγ : 0 < γ) (hk : 0 < k) (hσ1 : σ ≤ 1)
     (hCpos : ∀ t, 0 < (S t).capability)
-    (hstep : ∀ t, (S (t + 1)).capability
+    (h_emp_step : ∀ t, (S (t + 1)).capability
       = (S t).capability + γ * usableFrontier (S t))
-    (hdyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
+    (h_emp_dyn : ∀ t, ρ * usableFrontier (S t) + β * (S t).capability
       ≤ usableFrontier (S (t + 1)))
     (hrhogk : γ * k ≤ ρ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
-    (hcone0 : k * (S 0).capability ≤ usableFrontier (S 0))
+    (h_emp_cone0 : k * (S 0).capability ≤ usableFrontier (S 0))
     (hpl_up : ∀ t, (S (t + 1)).capability
       ≤ (S t).capability + σ * (Cstar - (S t).capability))
     (hpl_lo : ∀ t, (S t).capability
@@ -125,10 +125,10 @@ theorem state_closed_band (S : ℕ → GrowthState X)
       ∧ (S T).capability
         ≤ Cstar - (1 - σ) ^ T * (Cstar - (S 0).capability) := by
   exact takeoff_with_saturation (fun t => (S t).capability)
-    (fun t => usableFrontier (S t)) γ k Cstar σ hγ hk hσ1 hstep
+    (fun t => usableFrontier (S t)) γ k Cstar σ hγ hk hσ1 h_emp_step
     hpl_up hpl_lo
     (cone_ratio_invariant (fun t => (S t).capability)
-      (fun t => usableFrontier (S t)) γ ρ β k hCpos hstep hdyn
-      hrhogk hbeta hcone0) hC0 T
+      (fun t => usableFrontier (S t)) γ ρ β k hCpos h_emp_step h_emp_dyn
+      hrhogk hbeta h_emp_cone0) hC0 T
 
 end Hagi

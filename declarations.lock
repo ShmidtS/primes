@@ -285,8 +285,8 @@ cone_and_pos	da698ec369d91352
 cone_data_invariant	4063228be66117cc
 cone_invariant_horizon	794993bf4d8bb1d7
 cone_invariant_trunc	abcef82893de4f38
-cone_ratio_invariant	38c0575841250e7b
-cone_ratio_step	175a4e4bbf00961c
+cone_ratio_invariant	11b29b6b4df35355
+cone_ratio_step	f043c5cc23952740
 cone_ratio_step_is_reinvest	49ec9c756d4591b9
 cone_reinvest_invariant	b6dc831f3add6633
 cone_two_sided_certificate	a707cf28f8cc0296
@@ -547,7 +547,7 @@ frontier_cone_inductive_is_cone_data	5612efb2c343eb0d
 frontier_cone_invariant	59443ecab4d2bdc9
 frontier_cone_struct	ad4365d1da85473e
 frontier_cone_trunc	49a419d435d4b0bb
-frontier_decay_no_growth	23039c2cf6214eab
+frontier_decay_no_growth	59f9faf7510c4ffe
 frozen_norm_no_dynamics	68f6db9511489873
 frozen_saturation	155d26027fceef46
 fullMerge	6c7e96ee5d096648
@@ -1161,7 +1161,7 @@ rankResidual_equalized	f2c4b588de7899ee
 rank_le_nonnegRank	2628980021fcf304
 rank_le_of_nonnegFactorization	950f6432d2c9e7e5
 ratio_dominance	44f3a1f33a438484
-ratio_takeoff	782abecc7b152b69
+ratio_takeoff	02242756c02e3f7d
 reBlock	a5b8b3ceb98a3d4c
 reBlock_mul_transpose	1a2d6e10cd5cbe6e
 reBlock_sum	507f85d9ce22f9f8
@@ -1342,9 +1342,9 @@ stackComp_cons	fe924a1b0af5e1a6
 stackStates	f9839879664977c9
 stale_momentum_bias	842bc0de6a66478d
 state_capability_takeoff	f292268849ee10ae
-state_closed_band	53677fc4acd0bc75
-state_closed_renewal_step	4dea72377f16c573
-state_closed_takeoff	d8ea99232f012dbd
+state_closed_band	5f3d67f484efd122
+state_closed_renewal_step	a221e39d1fada472
+state_closed_takeoff	f2e32a661e35ee2e
 state_mixture	2ef624469bf7cd41
 state_normalize_trace	38acab9210194db8
 stationary_value_ge	c67c336a7fe73e98

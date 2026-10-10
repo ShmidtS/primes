@@ -38,23 +38,23 @@ def ConeRatio (C D : ℕ → ℝ) (k : ℝ) : Prop :=
 `k·C (t+1) ≤ D (t+1)`. При ξ ≠ 0 полю усиливается до
 `β ≥ γk² + (1−ρ)k + ξ/C`. -/
 theorem cone_ratio_step (C D : ℕ → ℝ) (γ ρ β k : ℝ)
-    (hstep : ∀ t, C (t + 1) = C t + γ * D t)
-    (hdyn : ∀ t, ρ * D t + β * C t ≤ D (t + 1))
+    (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
+    (h_emp_dyn : ∀ t, ρ * D t + β * C t ≤ D (t + 1))
     (hrhogk : γ * k ≤ ρ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
     {t : ℕ}
-    (hCpos : 0 < C t) (hcone : k * C t ≤ D t) :
+    (hCpos : 0 < C t) (h_emp_cone : k * C t ≤ D t) :
     k * C (t + 1) ≤ D (t + 1) := by
-  have hd := hdyn t
+  have hd := h_emp_dyn t
   have hb := hbeta
-  have hs := hstep t
+  have hs := h_emp_step t
   have hkey : ρ * D t + β * C t - k * (C t + γ * D t)
       = (ρ - γ * k) * (D t - k * C t)
         + (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t := by
     field_simp
     ring
   have h1 : (0:ℝ) ≤ (ρ - γ * k) * (D t - k * C t) := by
-    have hsub : (0:ℝ) ≤ D t - k * C t := by linarith [hcone]
+    have hsub : (0:ℝ) ≤ D t - k * C t := by linarith [h_emp_cone]
     exact mul_nonneg (by linarith [hrhogk]) hsub
   have h2 : (0:ℝ) ≤ (β - (γ * k ^ 2 + (1 - ρ) * k)) * C t :=
     mul_nonneg (by linarith [hb]) hCpos.le
@@ -69,31 +69,31 @@ theorem cone_ratio_step (C D : ℕ → ℝ) (γ ρ β k : ℝ)
 `cone_ratio_step` и `k·C 0 ≤ D 0`, то `ConeRatio C D k`. -/
 theorem cone_ratio_invariant (C D : ℕ → ℝ) (γ ρ β k : ℝ)
     (hCpos : ∀ t, 0 < C t)
-    (hstep : ∀ t, C (t + 1) = C t + γ * D t)
-    (hdyn : ∀ t, ρ * D t + β * C t ≤ D (t + 1))
+    (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
+    (h_emp_dyn : ∀ t, ρ * D t + β * C t ≤ D (t + 1))
     (hrhogk : γ * k ≤ ρ)
     (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
-    (hcone0 : k * C 0 ≤ D 0) :
+    (h_emp_cone0 : k * C 0 ≤ D 0) :
     ConeRatio C D k := by
   intro t
   induction t with
-  | zero => exact hcone0
+  | zero => exact h_emp_cone0
   | succ t ih =>
-      exact cone_ratio_step C D γ ρ β k hstep hdyn hrhogk hbeta
+      exact cone_ratio_step C D γ ρ β k h_emp_step h_emp_dyn hrhogk hbeta
         (hCpos t) ih
 
 /-- Если `0 < γ`, `0 < k`, `C (t+1) = C t + γ·D t` и
 `ConeRatio C D k`, то `C 0·(1+γk)^T ≤ C T`. -/
 theorem ratio_takeoff (C D : ℕ → ℝ) (γ k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k)
-    (hstep : ∀ t, C (t + 1) = C t + γ * D t)
-    (hcone : ConeRatio C D k) (T : ℕ) :
+    (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
+    (h_emp_cone : ConeRatio C D k) (T : ℕ) :
     C 0 * (1 + γ * k) ^ T ≤ C T := by
   induction T with
   | zero => simp
   | succ T ih =>
-      have hc := hcone T
-      have hs := hstep T
+      have hc := h_emp_cone T
+      have hs := h_emp_step T
       have hgrow : (1 + γ * k) * C T ≤ C (T + 1) := by
         rw [hs]
         have hring : C T + γ * k * C T = (1 + γ * k) * C T := by ring
@@ -115,12 +115,12 @@ theorem ratio_takeoff (C D : ℕ → ℝ) (γ k : ℝ)
 `D T ≤ ρ^T·D 0`. -/
 theorem frontier_decay_no_growth (D : ℕ → ℝ) (ρ : ℝ)
     (hrho : 0 ≤ ρ)
-    (hdyn : ∀ t, D (t + 1) ≤ ρ * D t) (T : ℕ) :
+    (h_emp_dyn : ∀ t, D (t + 1) ≤ ρ * D t) (T : ℕ) :
     D T ≤ ρ ^ T * D 0 := by
   induction T with
   | zero => simp
   | succ T ih =>
-      have h1 := hdyn T
+      have h1 := h_emp_dyn T
       have h2 : ρ ^ (T + 1) * D 0 = ρ * (ρ ^ T * D 0) := by ring
       calc D (T + 1) ≤ ρ * D T := h1
         _ ≤ ρ * (ρ ^ T * D 0) :=
