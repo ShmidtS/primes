@@ -173,6 +173,9 @@ azumaSum_sub	4cf6f830c5a2bfb9
 azuma_mgf	4508b298015b3b09
 azuma_tail_low	32f8552dc11a1015
 band_witness	84a39a54ce37c0a9
+batchCapMonotone	dbb1ed200c7cb9c7
+batchCapSaturates	9eb419d7ef0a6515
+batchEff	7356a76e12fe17cd
 batchMean	f59eac9b732512e5
 batchMean_unbiased	93777a71f33f7df8
 batchVar_expQ	007b96c7450fb301
