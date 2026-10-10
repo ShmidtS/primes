@@ -282,21 +282,21 @@ theorem full_cycle_field_eq {S S' : GenState X}
 
 /-- **MasterHAGICore under the full-state refinement**: the same
 one-cycle certificate, but `S'` is bound to the composed cycle
-on ALL fields (not only energy/risk/budget). Every conclusion of
-`MasterHAGICore` carries over; additionally `S'`'s capability,
-experts, params, weights are exactly the cycle's — the growth
-accounting can no longer be satisfied by an unrelated state. -/
+Thin wrapper: identical conclusion to `MasterHAGI`.
+(The former unused premise `hfull : FullCycleRefinement S S'`
+was removed — audit R290: the body never used it and no
+consumer passes it; StateTakeoff uses FullCycleRefinement
+itself.) -/
 theorem MasterHAGICore_refined (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
     (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
-    (hp : CorePremises S S' epsQ w)
-    (hfull : FullCycleRefinement S S') :
+    (hp : CorePremises S S' epsQ w) :
     hagiPotential S' lam nu Qtarget w
       ≤ hagiPotential S lam nu Qtarget w - (verify S.toGrowthState).decrease
         + lam * (verify S.toGrowthState).riskSpend + nu * epsQ
-    ∧ S'.toGrowthState.budget
+      ∧ S'.toGrowthState.budget
       = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend :=
-  MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ hp
+MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ hp
 
 /-! ## Telescoping helpers — делегация Foundations (R163)
 
