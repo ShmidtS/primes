@@ -1497,7 +1497,9 @@ ternInRange	58c871726f4bed6a
 tern_distortion_round	b1d93f4e9b9a94b6
 tern_scale_invariance	cf3ae0ff65a790de
 ternary_beats_binary	4a9a0f129ccfad22
+ternary_factor_qerr_bound	d686340d50992b43
 ternary_inrange_bound	a064bd1606974d72
+ternary_pair_qerr_sum	41584bf02e0672ac
 ternary_split_bound	b2dd1e9f8a59d699
 ternary_split_le	65cab769869187a8
 three_pow_five	53db864090d4db8a

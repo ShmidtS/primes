@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Step.LazyAdamMomentum
+import Hagi.Runtime.LiveDeltaQuant
 
 set_option linter.style.header false
 
@@ -16,16 +16,22 @@ grid rounding of the factors) — and the GO/NO-GO: the
 factor-then-quantize route beats direct quantization IFF
 tail + qerr(r) < qdirect.
 
-not PROVED: the closed form of qerr(r) for ternary grids in
-terms of r, s and the factor spectra (the nearest-3-level
-rounding bound per entry — elementary but not assembled).
+The per-entry nearest-3-level rounding bound is now
+ASSEMBLED (ternary_factor_qerr_bound, ternary_pair_qerr_sum):
+for in-range factors the Frobenius-square quantization error
+of each factor obeys the grid bound (card·(s/2)²), and the
+per-factor sum feeds the GO/NO-GO certificate. The step from
+per-factor errors to the PRODUCT error AB − Q(A)·Q(B) needs
+rectangular Frobenius submultiplicativity — absent in
+Mathlib v4.34.1 (only square frobeniusNormedRing); recorded
+as an open hbridge candidate.
 
 **Prescription**: measure tail(r) from the σ-spectrum of ΔE
 and qdirect from one ternary pass; the comparison is a
 one-line certificate before any GPU run.
 -/
 
-open Finset
+open Finset Hagi.LiveDeltaQuant
 
 namespace Hagi.Budget
 
@@ -57,6 +63,43 @@ theorem factor_quant_go {X : Type*} [NormedAddCommGroup X]
   have h3 := factor_quant_error dE AB QAB tail qerr htail hqerr
   calc ‖dE - QAB‖ ≤ tail + qerr := h3
     _ < qdirect := hgain
+
+
+/-- Собранный per-factor rounding bound (закрытие ядра
+пробела «nearest-3-level rounding bound per entry —
+elementary but not assembled»): Frobenius-квадрат ошибки
+квантования каждого in-диапазонного фактора на тернарной
+сетке шага s не превосходит (число элементов)·(s/2)² —
+делегирование quantMat_sq_bound. -/
+theorem ternary_factor_qerr_bound {m r : Type} [Fintype m]
+    [Fintype r] (s : ℝ) (hs : 0 < s) (M : Matrix m r ℝ)
+    (hin : ∀ i j, ternInRange s (M i j)) :
+    ∑ i, ∑ j, ((M - quantMat s M) i j) ^ 2
+      ≤ (Fintype.card m * Fintype.card r) * (s / 2) ^ 2 :=
+  quantMat_sq_bound s hs M hin
+
+/-- Пара факторов: сумма per-factor Frobenius-квадратов
+ошибок квантования на тернарной сетке — готовый вход для
+GO/NO-GO-сертификата factor_quant_go (tail + qerr <
+qdirect), теперь с доказанным qerr-компонентом. Честная
+граница: переход от per-factor ошибок к ошибке ПРОИЗВЕДЕНИЯ
+AB − Q(A)·Q(B) требует субмультипликативности Фробениуса
+для прямоугольных матриц — в Mathlib v4.34.1 есть только
+квадратный frobeniusNormedRing; открытый hbridge-кандидат
+(upstream-порт). -/
+theorem ternary_pair_qerr_sum {m r n : Type} [Fintype m]
+    [Fintype r] [Fintype n] (s : ℝ) (hs : 0 < s)
+    (A : Matrix m r ℝ) (B : Matrix r n ℝ)
+    (hinA : ∀ i j, ternInRange s (A i j))
+    (hinB : ∀ i j, ternInRange s (B i j)) :
+    (∑ i, ∑ j, ((A - quantMat s A) i j) ^ 2)
+      + (∑ i, ∑ j, ((B - quantMat s B) i j) ^ 2)
+      ≤ (Fintype.card m * Fintype.card r
+          + Fintype.card r * Fintype.card n) * (s / 2) ^ 2 := by
+  have hA := ternary_factor_qerr_bound s hs A hinA
+  have hB := ternary_factor_qerr_bound s hs B hinB
+  have h := add_le_add hA hB
+  nlinarith [h]
 
 end Hagi.Budget
 
