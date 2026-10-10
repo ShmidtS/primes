@@ -468,6 +468,7 @@ entryCount	8c565852807dd0b3
 epRate	eb25ca05d9cc9719
 ep_zero_implies_db	c96a9e84184c9287
 eprocess_stopped_budget	f42c814848bf4e97
+eq_zero_of_mem_range_one	09de996a442ba40f
 equal_budget_baseline	e0fa7091a539c54e
 equilibrium_bracket	e0b6076e71603908
 error_chain_descends	b3737d9a43afe13d
@@ -668,6 +669,7 @@ hagiPotential	9d53f2b61739bcad
 hagiPotential_penalty_drop	42856caa5cc1a8cd
 hagi_gen_floor	6e713ee05caa47a7
 hagi_synthesis	f7cfee0b2723c5a6
+hagicert_nonvacuous	10e22c7cf9f18801
 half_log_cosh_le	02238dc05779219b
 half_pow_anti	c7b359ed775e5725
 half_pow_bounds	7d07e0401b217011
@@ -1566,6 +1568,8 @@ wd_boundedness	ae691fed28008c25
 weightedResidual	7acca7903ddb810e
 weighted_center_le	9d35568e9d55c21d
 weighted_var_bound	1056c18ade459ed0
+witnessState	777edfc4ac822dcf
+witnessTraj	20f69bc948169149
 witness_quantErr_bounded	63240ef60646d47a
 wsqd_noise_budget	d49a3d7f1cac2292
 zA	dfb5e0a964c92f21
