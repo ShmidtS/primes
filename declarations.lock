@@ -1,3 +1,4 @@
+AdmissionChecks	121dc8ea4d684c83
 AuditTolerance	d3e5f1fc2fd031d8
 Basis	137bfbf500c80032
 BudgetAlive	9aec6a9a215610ad
@@ -62,6 +63,7 @@ MasterHAGICore_refined	8d300b14770069e2
 MasterHAGI_probability	84e7e5d261bcb56e
 MasterHAGI_trunc	34e12dad1d3f4a8b
 MasterHAGI_wallclock	b3d00af57b6f4e3a
+MemBlock	e3f56252d8eb81d1
 MergeApproved	7a09f4d9b890cb28
 MergeCertificate	1b2cb0b9cd7761d6
 Metrics	86351d48e70ab510
@@ -120,6 +122,8 @@ additive_as_multiplicative	a10210687ff2a9bd
 admissibleIn	c9e9f3302c5ba0c6
 admissionChain	e143403951bc766e
 admission_var_criterion	930e2f87b1100d01
+admit	a28fdbbd1860b666
+admits_satisfy_checks	7dc413c5a8712f00
 aitken_consistency	f61f004ab8d2f59d
 aitken_exact	c234e7b2868af4a2
 alignLower	7b39d62abdb71775
@@ -142,6 +146,7 @@ anytime_failure_budget	0b25b5d7290125b7
 anytime_safety	d24b592bc08d16cd
 anytime_safety_stochastic	060f660438be6b64
 anytime_valid_budget	0d824386b0ed0116
+applyDecision	1b26951d5e73362e
 argmax_pair_certified	3cf2819c8cc12f10
 argmax_select_certified	1c1cbe3251bb248a
 armijo_step_size	955d5538ee439a0b
@@ -200,6 +205,7 @@ blockMap	3af3ed706aadaa1e
 block_lowrank_lt_dense_iff	f58b98922fe442c0
 block_rank_le	dfbaa1387bdca3d2
 blocks_cost	8b31a7b5da64e694
+blocks_grow_only_on_admit	f594321cd560dff3
 blocks_length_fold	8727c9f74996eca5
 bounded_frontier_no_sustained_growth	1f42a7f83dedd8dc
 bpw	5a1d7112d3caa4f7
@@ -586,6 +592,7 @@ gainFromD	92afaf5b8fc78c18
 gainGrow	804b8419f76219ee
 gainJoint	49af9536981046d3
 gainMerge	085fe28dc22f02a2
+gainOk	d803dfdc164689b7
 gain_chain	8a3d30f79aec8569
 gain_chain_opt	7612b163e6fcf5d9
 gain_product_bound	64f8cbadd270dbba
@@ -595,6 +602,7 @@ gain_renewal_growth	ee12f7cfb17bc08b
 gain_renewal_growth_one	5e81fa20dfd79f66
 gain_renewal_recurrence	7c1fca24304c2e2b
 gain_stack_ceiling	aa173fad64e41e1b
+gain_without_novelty_rejects	0a76601689ebe472
 gainop_cone_step	cf5129d1ce0d1e11
 gainop_ignition	ccfb9fa6a9a798b8
 gainop_pairwise_bridge	7bbb47552d50b196
@@ -976,6 +984,8 @@ nonlinear_zero_kill	f1c8825c3fbdbf88
 nonnegFactorization	95e5c29d8d580d93
 nonnegRank	28d9122520bbf309
 norm_omega	9767b95da481ba07
+noveltyOk	294c3c0b87551ded
+novelty_without_gain_rejects	9f7190b5dd5a5efa
 nrmTriangle	38b095b8c34b3864
 nsIter	428eddc74fb635f8
 nsIter_block_le	1fc56060b17e9e0b
@@ -1220,6 +1230,7 @@ recursive_self_development	690602bfb3ca2108
 regimeAFactor	399ddc5fa9a20c53
 regimeCFactor	ed5568498ade3487
 regimeC_fractional	f31cb6f50c58a7f1
+rejected_no_growth	e5e396c67ea41a81
 relative_second_moment_floor	5fb782c67975a7d7
 relu_shift_le	eacd57f5abf8d686
 renewal_feeds_takeoff	4134214dea1e58ea
@@ -1273,6 +1284,7 @@ router_regret_bound	d8504c972712e225
 routing_drift_bound	cb003c212ad5cfe7
 rsi_cone_criterion	0a22bea0363cea80
 rsi_step_growth	8b9d6665de96019e
+runDecisions	f3a238b3f2938e6d
 safeCandidates	65561a0a5f3e5e45
 safeQP_descent	d830f6ee95e012d5
 safeQP_descent	d830f6ee95e012d5
