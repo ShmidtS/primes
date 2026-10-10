@@ -32,7 +32,9 @@ conversions, frontier dynamics, cone initialization, risk
 and spend ledgers, probe floors), one trajectory
 simultaneously yields: takeoff `C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`,
 the telescoped risk bound, the exact nonincreasing budget
-`C T = C 0 − ∑ spend t`, and `qfloor i ≤ qvec T i` for every
+`budget T = budget 0 − ∑ spend t` (the budget is its OWN
+sequence — the R265 audit fix separates it from the
+capability channel), and `qfloor i ≤ qvec T i` for every
 probe `i`. -/
 theorem grand_synthesis
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
@@ -55,21 +57,26 @@ theorem grand_synthesis
     (hrhogk : gbar * k ≤ rho)
     (hbeta' : gbar * k ^ 2 + (1 - rho) * k ≤ cbeta)
     (hcone0 : k * C 0 ≤ D 0)
-    -- the contract-side inputs
+    -- the contract-side inputs; the budget is its OWN sequence
+    -- (R265 audit fix: using C for both capability growth and
+    -- the spend ledger made the premises contradictory —
+    -- C T ≥ C 0 (1+r)^T with r > 0 vs C T = C 0 − Σ spend ≤ C 0)
     (risk spend : ℕ → ℝ)
+    (budget : ℕ → ℝ)
     (qvec : ℕ → Fin 5 → ℝ) (qfloor : Fin 5 → ℝ)
     (hrisk_bound : C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t)
     (hspend : ∀ t ∈ Finset.range T, 0 ≤ spend t)
     (hrisk : ∀ t ∈ Finset.range T, 0 ≤ risk t)
-    (hbudget : C T = C 0 - ∑ t ∈ Finset.range T, spend t
-      ∧ 0 ≤ C T)
+    (hbudget : budget T = budget 0 - ∑ t ∈ Finset.range T, spend t
+      ∧ 0 ≤ budget T)
     (hqvec : ∀ i, qfloor i ≤ qvec T i) :
     -- 1. takeoff on the trajectory
     C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T
     -- 2. safety telescoped
     ∧ C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t
-    -- 3. budget: physical and exact
-    ∧ C T ≤ C 0 ∧ C T = C 0 - ∑ t ∈ Finset.range T, spend t
+    -- 3. budget (its own sequence): nonincreasing and exact
+    ∧ budget T ≤ budget 0
+      ∧ budget T = budget 0 - ∑ t ∈ Finset.range T, spend t
     -- 4. vector generalization floor
     ∧ ∀ i, qfloor i ≤ qvec T i := by
   constructor

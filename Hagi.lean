@@ -248,6 +248,7 @@ import Hagi.Unified.Certificates
 import Hagi.Unified.Nonvacuity
 import Hagi.Unified.Assumptions
 import Hagi.Unified.MergeBridge
+import Hagi.Unified.StateTakeoff
 import Hagi.Step.MDLObjective
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP

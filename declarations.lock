@@ -551,6 +551,7 @@ frontier_decay_no_growth	23039c2cf6214eab
 frozen_norm_no_dynamics	68f6db9511489873
 frozen_saturation	155d26027fceef46
 fullMerge	6c7e96ee5d096648
+full_cycle_capability_step	8af87db407763011
 full_cycle_field_eq	1f5965efa364791e
 gainCompress	7e388da02ecc6f32
 gainFromD	92afaf5b8fc78c18
@@ -617,7 +618,7 @@ gram	b7677b3e41d21aa0
 gram_cone_inner	ab113489a4eba7eb
 gram_posSemidef	d7342a14835e7ebf
 gram_trace	245499281cc6a6c6
-grand_synthesis	b60a870107c73792
+grand_synthesis	1b85ceb287bb196e
 greedy_horizon_optimal	588f0aced185bfbd
 groupGap_nonneg	b96b446335a28fce
 groupGap_zero_iff_indep	0c9d24580d11fbf2
@@ -1340,6 +1341,7 @@ stackComp	a958feacfe77b080
 stackComp_cons	fe924a1b0af5e1a6
 stackStates	f9839879664977c9
 stale_momentum_bias	842bc0de6a66478d
+state_capability_takeoff	f292268849ee10ae
 state_closed_band	53677fc4acd0bc75
 state_closed_renewal_step	4dea72377f16c573
 state_closed_takeoff	d8ea99232f012dbd
