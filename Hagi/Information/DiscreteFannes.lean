@@ -136,7 +136,12 @@ through the diagonal embedding:
 Shannon(p) − Shannon(q) ≤ t log d + (1+t) h₂(t/(1+t)).
 The diagonal-entropy bridge (spectral entropy of diagonal =
 Shannon) is an explicit hypothesis — the single deferred
-link, everything else proven outright. -/
+link, everything else proven outright. Derivation status
+(R268 audit trail): entropy_eq_sum (SpectralEntropy) reduces
+the bridge to ∑ negMulLog (eigenvalues (diagonal r))
+= ∑ negMulLog (r i), which needs eigenvalues-of-diagonal as a
+SORTED-roots multiset identity — absent from Mathlib v4.34.1;
+open. -/
 theorem discrete_fannes_coupling [Nonempty ι] (p q : ι → ℝ)
     (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
     (hps : ∑ i, p i = 1) (hqs : ∑ i, q i = 1)
