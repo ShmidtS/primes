@@ -8,8 +8,14 @@
 [inventory]
 constant_count = 1639
 theorem_count = 966
+# R268 (review §2.4): theorem_count rewards aliases — the honest
+# metric is DISTINCT statements, computed from declarations.lock
+# (name<TAB>hash; authority: python scripts/Freeze.py).
+declaration_count = 1585
+distinct_statement_count = 1571
+alias_entries = 23
 sorry_count = 0
-as_of_commit = "c4f6e44"
+as_of_commit = "9e19985"
 
 [layers]
 prelude = -1
