@@ -845,6 +845,9 @@ live_delta_cycle	612498a8dc44a7cc
 liveness_data_axis	1d16e9b9214682f7
 liveness_merge	62eeeade4ca714ea
 liveness_two_axis	f3a574bf78e5aae3
+lmo_attained	a52822f0dc9398ba
+lmo_descent_direction	531bbe98c3e0464a
+lmo_lower_bound	ab290f2ed7c06362
 log2_3	bb47234e0bdeceb6
 logDetShift	ad2a98e2ca7c7363
 logDetShift_eq_sum	a4d07980b018d81f

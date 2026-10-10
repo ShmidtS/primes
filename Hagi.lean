@@ -268,6 +268,7 @@ import Hagi.Step.MDLObjective
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule
 import Hagi.Step.MuonStableLR
+import Hagi.Step.FrobeniusLMO
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP
 import Hagi.Step.ArmijoAcceptance
