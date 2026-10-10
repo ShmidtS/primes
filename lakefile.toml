@@ -23,3 +23,138 @@ name = "Primes"
 
 [[lean_lib]]
 name = "Hagi"
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Architecture"
+globs = ["Hagi.Architecture.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Audit"
+globs = ["Hagi.Audit.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Autonomy"
+globs = ["Hagi.Autonomy.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Budget"
+globs = ["Hagi.Budget.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Core"
+globs = ["Hagi.Core.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Data"
+globs = ["Hagi.Data.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Deployment"
+globs = ["Hagi.Deployment.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Depth"
+globs = ["Hagi.Depth.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Discovery"
+globs = ["Hagi.Discovery.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Dynamics"
+globs = ["Hagi.Dynamics.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Energy"
+globs = ["Hagi.Energy.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Ensemble"
+globs = ["Hagi.Ensemble.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.External"
+globs = ["Hagi.External.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Foundations"
+globs = ["Hagi.Foundations.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Generalization"
+globs = ["Hagi.Generalization.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Growth"
+globs = ["Hagi.Growth.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Information"
+globs = ["Hagi.Information.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Model"
+globs = ["Hagi.Model.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Omni"
+globs = ["Hagi.Omni.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Prelude"
+globs = ["Hagi.Prelude.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Pretraining"
+globs = ["Hagi.Pretraining.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Probability"
+globs = ["Hagi.Probability.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Runtime"
+globs = ["Hagi.Runtime.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Sparsity"
+globs = ["Hagi.Sparsity.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Spectral"
+globs = ["Hagi.Spectral.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Step"
+globs = ["Hagi.Step.+"]
+
+# Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Unified"
+globs = ["Hagi.Unified.+"]
