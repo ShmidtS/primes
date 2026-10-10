@@ -1156,6 +1156,9 @@ quad_form_factorization	534b6fc2b0e50877
 quad_form_zero_iff	2492b42edf0edb32
 quadf	1cf9a04a218b5333
 quadfGrad	55ccf3acd8cb04d4
+quantMat	6df8d365d0cdde42
+quantMat_entry	ea8a6b9800555881
+quantMat_sq_bound	8bb3970e08cf295c
 quant_energy_bridge	d410165a8676b25f
 quant_energy_bridge_saturation	442043b77bcb69b7
 quant_residual_norm	430c4ec240af72f7
