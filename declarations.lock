@@ -993,6 +993,8 @@ no_infinite_improving_chain	9690e6666bbda7f6
 no_restore_without_checkpoint	3294840bb9bc6b50
 no_saturation_recover	653590b3a8363984
 noiseEps	088c1654bd00b8eb
+noise_axes_coincide	3abc1d30569db55d
+noise_budget_axes_equal	ddd80cd10583248f
 noise_scale_separation	d296bd4e209c882b
 noisy_cycle_step	8797062af07cee26
 noisy_pareto_select	8f33cce58f11db15

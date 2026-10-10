@@ -161,6 +161,7 @@ import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
+import Hagi.Probability.ThermoAxes
 import Hagi.Probability.WSqD
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
