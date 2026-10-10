@@ -239,7 +239,9 @@ causal_prefix_determined	40578c807d541fa7
 ceOneHot	5eaf874097f23d95
 ce_gap_bounded	adc7359404d5d870
 ce_gap_kl_identity	924fd0011956c743
+ce_ge_entropy	1b5bfed0f9bc62fa
 ce_prior_decomposition	b26a73d5667c16d9
+ce_self_eq_entropy	d7052836af8b2d40
 centered	99190af1a7504fe4
 centeredConv	25cf76bc2028e7a2
 centeredSum	29139e8c5991853e
@@ -771,6 +773,8 @@ ignitionGate_nonneg	ec052c68c13ada5b
 imbalance_yields_gain	e239fe02ab5e638b
 impW	e093db15cf97b8e2
 improving_chain_injective	8709e8dbd15603c1
+infonce_gap_is_kl	97daeeb770bc3e25
+infonce_never_overestimates	c332c2b83a31b6d8
 injection_law_of_measured	29717ea972757091
 inner2_add_left	a5241946223944e2
 inner_transport	9a982635695d2aa5

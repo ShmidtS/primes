@@ -29,6 +29,7 @@ import Hagi.Budget.RankBudget
 import Hagi.Step.NCE
 import Hagi.Step.NCEVar
 import Hagi.Data.DField
+import Hagi.Data.InfoNCE
 import Hagi.Data.ValueOfRead
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
