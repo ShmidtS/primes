@@ -715,16 +715,20 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   делегируют (аудит 2.3, конус-унификация). FrontierScaling —
   возмущённое (ξ + cap) расширение, оставлено отдельной
   теоремой по классификации аудита.
+- R294: канонические Entropy/KL/TV — Prelude.klDef/entDef/
+  tvDef уже SSOT; все Data-версии делегировали кроме
+  AntiCollapse.entTV (собственное тело (1/2)·Σ|p−q|) —
+  переведён на Prelude.tvDef + rfl-мост entTV_eq_tvDef.
+  Матричная энтропия — отдельный объект (верно).
 - Открыто из аудита: R292 (GrowthState ModelState/
-  StageCertificate-разделение — многоходовый), R294
-  (канонические Entropy/KL/TV), unusedHypotheses-включение,
-  Nonvacuity-нетривиальные свидетели, верхнеуровневая
-  композиция HAGICycleSoundness/HAGIFiniteHorizon/
-  HAGIConditionalTakeoff.
+  StageCertificate-разделение — многоходовый),
+  unusedHypotheses-включение, Nonvacuity-нетривиальные
+  свидетели, верхнеуровневая композиция HAGICycleSoundness/
+  HAGIFiniteHorizon/HAGIConditionalTakeoff.
 
 ## Счётчик
 
-- 937 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 938 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
