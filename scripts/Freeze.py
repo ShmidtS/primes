@@ -42,9 +42,21 @@ def collect():
                 sys.exit(1)
             for m in DECL_RE.finditer(t):
                 kind, name = m.group(1), m.group(2)
-                # statement = text from decl start to the := that opens the body
+                # statement = text from decl start to the body opener.
+                # For structure/inductive the body opens with `where`
+                # (or `:=`); cutting only at `:=` swallowed the text of
+                # FOLLOWING declarations' docstrings (R265 artifact) —
+                # any docstring edit shifted structure hashes.
                 rest = t[m.start():]
-                stmt = rest.split(':=', 1)[0]
+                if kind in ('structure', 'inductive'):
+                    cut = len(rest)
+                    for opener in (':=', 'where'):
+                        p = rest.find(opener)
+                        if p != -1:
+                            cut = min(cut, p)
+                    stmt = rest[:cut]
+                else:
+                    stmt = rest.split(':=', 1)[0]
                 stmt = ' '.join(stmt.split())
                 h = hashlib.sha256(
                     (kind + '|' + name + '|' + stmt).encode('utf-8')
