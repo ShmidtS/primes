@@ -199,6 +199,7 @@ blockMap	3af3ed706aadaa1e
 block_lowrank_lt_dense_iff	f58b98922fe442c0
 block_rank_le	dfbaa1387bdca3d2
 blocks_cost	8b31a7b5da64e694
+blocks_length_fold	8727c9f74996eca5
 bounded_frontier_no_sustained_growth	1f42a7f83dedd8dc
 bpw	5a1d7112d3caa4f7
 bpw_lt_one_bound	c19eac38dcd4498d
@@ -356,6 +357,8 @@ delta_exact_rank_bound	85c3b01e86dacbd2
 delta_rank_le	9b6f10c95191f768
 dense_m_decay	c0fe7bc456eaa430
 depth_capped_by_time	fdc7ec96f0aefd4a
+descentFold	196340f3cecf09d9
+descentFold_eq_effective	59cf87d0ec71971f
 descent_example	45050f2b49c0234e
 descent_step	c58900a225317276
 det_unitary_conj	0cbc5219736afe20
@@ -427,6 +430,9 @@ dynamic_branch_variance	c3220d476bb9bb0c
 edge_total_bound	8542ff5849eefdc0
 effectiveCapacity	332c3dceccd57df3
 effectiveWeights	b96e4609f358a536
+effective_addBlock	038e6fe29cceeb98
+effective_fold	b83e9a1177990c5a
+effective_fromHistory	02962f11ea758571
 elasticity_chain	02f9a3f06696cb4f
 encode_lt_aux	400aa523432d7fb3
 endpoint_bivariate_bound	34cf39ef1e975145
@@ -554,6 +560,7 @@ frobVector_add	3dba74ca2fb9dd2b
 frobVector_inner	99bb021cb27316f9
 frobVector_norm	e303f3bea419dda9
 frobVector_sub	a5262ef3588dcb0e
+fromHistory	c668f9bdae20aba0
 fromPMF	409d22c1797d1b82
 fromPMF_sum	428bc54091178be3
 fromPMF_toPMF	7616c4e1bdf114d0
@@ -695,6 +702,7 @@ hedge_step	05db161a22f6164c
 hedge_telescope	fcd600b07b9c377d
 highway_gain_identity	3d40fa9abdd9f711
 highway_gain_transport_bound	4879c919a3283ed2
+histStep	174da7a91df31441
 historyAdditive	001b0277e87f66ee
 historyAdditive_frozen	45df4bc6531e006d
 historyAdditive_past	7af3c8c6f5559d0c
@@ -727,6 +735,7 @@ history_additive_freedman_maximal	b2d9a5e17546dc59
 history_additive_freedman_two_sided	4da41a50e9a62a2b
 history_noise_freedman	9cd3f3fd711accd3
 history_noise_freedman_maximal	82780a5b23c63d6e
+history_storage_cost	3508baf3344af741
 hoeffding_chernoff	951c695e9d29bcbb
 hoeffding_lemma_prefix	0f176e6845191125
 hoeffding_mean_tail	b54ca5e55db93514
@@ -1004,6 +1013,7 @@ orthogonal_energy_split	0ee52d5cf3dde76a
 orthogonal_noise_averaging	d02ebf153d39f656
 orthogonal_preserves_grad_dist	6a9d5751515dec92
 outerP	f5718a4e8102f8a7
+outerProd	76729dc63a64e599
 pairExpFirst	d4c545bb4db7cabb
 pairExpProd	94d6423fed190ee9
 pairInner	9168902e948466a5
@@ -1179,6 +1189,8 @@ quantized_separation_needs_range	c4b52fba7e07fc6d
 qvec_floor_implies_scalar	a79884f25a0cea53
 radius_le_log_card	51a05d100e6a7911
 radius_zero_of_eq	8eacc441e77655dc
+rank1Block	59a9585d0965b394
+rank1Block_eq_outer	97efe0ce2507c885
 rankResidual	2076c62d5b79fa6c
 rankResidual_allocation	b64fd6411363006f
 rankResidual_equalized	f2c4b588de7899ee

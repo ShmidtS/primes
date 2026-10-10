@@ -253,6 +253,7 @@ import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
 import Hagi.Step.LiveDeltaSafe
+import Hagi.Step.DeltaHistory
 import Hagi.Runtime.LiveDeltaAudit
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
