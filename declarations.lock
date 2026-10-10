@@ -968,7 +968,9 @@ mulVec_eq_dotProduct	d7703d186d5fa42f
 mulVec_vecMul_gram	a48f7b7a17af9a38
 multiplicative_growth	e298d2ae48156a9f
 muonDir	93f9800928c20d5a
+muon_avg_not_max	35bdd84774b629eb
 muon_pl_rate	724c6c56a1b15c25
+muon_stable_step	dd3ed1bd04354d6e
 muon_step_bound	c867da40c63136df
 muon_wd_recursion	e3c01343057a6cd9
 mup_grad_invariant	1f854806df238d1e
@@ -1355,6 +1357,7 @@ separated_needs_capacity	eb45b65653afb85e
 sfoCost	7c58bd38e115d25b
 sfo_global_min	832c53ff73bc9335
 sfo_min_core	320d680a76bd4688
+sgd_stable_step	296c958d4970ce00
 shadow_price_sum_identity	19e188a91fe9f21f
 shallow_misses_tube	05c5a3b8b9668a2a
 shannon	45218543b84d714a
