@@ -781,6 +781,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   L2-opNorm). TightBounds НЕ портирован: 2 бага оригинала
   (недоказуемая ветка rank ≤ k при k < min; TODO-теорема
   μ→1) — честно исключён. Freeze 1985→2162 (+177 деклараций).
+- R304: MDLRank — первый HAGI-специфичный потребитель
+  FLYWHEEL-стека: mdlErr_antitone (ошибка rank-k усечения
+  антимонотонна — прямое следствие Eckart–Young),
+  mdlErr_zero_of_ge (полное усечение при k ≥ n),
+  mdlJ_argmin_exists (MDL-функционал J = err + λ·c·k
+  достигает глобального минимума: оптимальный ранг сжатия
+  существует). Ядро: err-через-@-норму (instance-whnf-
+  зацикл лечится явным frobeniusSeminormedAddCommGroup),
+  pow_le_pow_left₀, Finset.exists_min_image на Icc.
+  Freeze 2162→2167. Аксиомы чистые.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -789,7 +799,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1173 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1176 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

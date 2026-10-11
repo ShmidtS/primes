@@ -128,6 +128,7 @@ import Hagi.External.Flywheel.KroneckerRearrangement
 import Hagi.External.Flywheel.MatrixNormRelations
 import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
+import Hagi.External.Flywheel.MDLRank
 import Hagi.Audit.Foundations
 import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness
