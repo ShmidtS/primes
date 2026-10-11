@@ -760,6 +760,17 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   1673→1670). frontier_cone_inductive_is_cone_data из аудита
   уже отсутствует. Орто-разложение×13 исследовано —
   многоходовая унификация, отложено (план R302).
+- R302: FLYWHEEL-порт ЗАВЕРШЁН (Hagi/External/Flywheel/):
+  SVD (4117 строк) + CourantFischer + WeylInequality + FrobeniusNorm
+  переведены v4.26→v4.34 (domRestrict-ренейм, List.Sorted→Pairwise,
+  quasispectrum-мост, toEuclideanLin_apply-rfl-мосты, 2 незакрытых
+  коммента-ломы оригинала). ИЗВИНЕНИЕ SVD:2080 ЗАКРЫТО архитектурно:
+  eigenvaluesBijection/embedMinToN переопределены через
+  (Fintype.equivOfCardEq (card_fin _)).symm (Mathlib-форма), мост
+  equivFin↔equivOfCardEq удалён — ВСЯ цепочка 0 sorry, ~50 новых
+  деклараций (Freeze 1670→1985), включая eckart_young_frobenius,
+  frobenius_norm_sq_eq_trace, Weyl, Courant-Fischer, Thompson
+  interlacing — аксиомы чистые.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -768,7 +779,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 946 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 996 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

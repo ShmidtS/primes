@@ -122,6 +122,7 @@ import Hagi.Step.Upgrades
 import Hagi.External.Diversity
 import Hagi.External.Transport
 import Hagi.External.Transfer
+import Hagi.External.Flywheel.FrobeniusNorm
 import Hagi.Audit.Foundations
 import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness
