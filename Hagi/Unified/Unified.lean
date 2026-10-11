@@ -18,7 +18,6 @@ set_option linter.style.header false
 * `traininfer_critical`: the cost `J(T) = T + C·(N∞ +
   a·e^{−kT})` has its critical point at
   `T* = log (C·a·k) / k`.
-* `highway_gain_transport_bound`: a gain bounded by
   `E_capt · η` with `η ≤ 1` is bounded by `E_capt`.
 -/
 
@@ -83,18 +82,10 @@ end TrainInfer
 
 section TransportEta
 
-/-- If `0 ≤ Ecapt`, `eta ≤ 1`, and `gain ≤ Ecapt * eta`,
-then `gain ≤ Ecapt`. -/
-theorem highway_gain_transport_bound (Ecapt eta gain : ℝ)
-    (hE : 0 ≤ Ecapt) (_heta : 0 ≤ eta) (heta1 : eta ≤ 1)
-    (hgain : gain ≤ Ecapt * eta) :
-    gain ≤ Ecapt := by
-    nlinarith [hgain, heta1, hE, mul_nonneg hE _heta]
-
 end TransportEta
 
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (uncertainty_contraction finite_termination traininfer_critical highway_gain_transport_bound)
+export Hagi.Unified (uncertainty_contraction finite_termination traininfer_critical)
 end Hagi

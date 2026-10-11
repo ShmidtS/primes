@@ -9,7 +9,6 @@ import Hagi.Architecture.CortexFiber
 Parameter accounting for N experts stored as rank-r fibers
 over a shared d-dim cortex:
 
-* `fiber_family_cost` — the family costs `N * r * d`
   coordinates (reassociation of `N * (r * d)`).
 * `config_storage_beats_dense` — if `N * r < d` and `0 < d`,
   the whole family `(N * r) * d` is cheaper than one dense
@@ -17,12 +16,6 @@ over a shared d-dim cortex:
 -/
 
 namespace Hagi.Architecture
-
-/-- N rank-r fibers over a shared d-dim cortex cost
-`N * r * d` coordinates in total. -/
-theorem fiber_family_cost (d r N : ℕ) (hr : 0 < r) (hd : 0 < d)
-    (hN : 0 < N) :
-    N * (r * d) = (N * r) * d := by ring
 
 /-- If `N * r < d` and `0 < d`, the family of N
 configurations costs fewer parameters than one dense `d × d`
@@ -35,5 +28,5 @@ theorem config_storage_beats_dense (d r N : ℕ)
 end Hagi.Architecture
 
 namespace Hagi
-export Hagi.Architecture (fiber_family_cost config_storage_beats_dense)
+export Hagi.Architecture (config_storage_beats_dense)
 end Hagi

@@ -262,7 +262,6 @@ chainAt	61382f490ac67904
 chainAt_isProb	396c7598e65c92ec
 chainAt_succ	65fb46250cb65318
 chain_feeds_cone	d05569654b3beccc
-chain_ignition_threshold	cd97a5dc455a7c37
 channel_switch	825ccf4ea293cde6
 charMat	947e5ef0f621265f
 charMat_mul_conjTranspose	da1185ad3cb6f931
@@ -548,7 +547,6 @@ fiberPythagoras	75c60a15ae88126d
 fiberSplitEnergy	1e08dfd5b8fb4aa9
 fiberSplitOrtho	a75e2ed9c51979b1
 fiber_cortex_zero	c5a7153b6d5dab64
-fiber_family_cost	eeb8308c9e055a0d
 fiber_injection_norm_split	6533a0eb453ef503
 fiber_injection_preserves_cortex	c6d360517015a535
 fiber_merge_denoise	41bd6cb81cf66a59
@@ -735,7 +733,6 @@ hedge_domain_guarantee	125cb0579e8eec3e
 hedge_step	05db161a22f6164c
 hedge_telescope	fcd600b07b9c377d
 highway_gain_identity	3d40fa9abdd9f711
-highway_gain_transport_bound	4879c919a3283ed2
 histStep	174da7a91df31441
 historyAdditive	001b0277e87f66ee
 historyAdditive_frozen	45df4bc6531e006d

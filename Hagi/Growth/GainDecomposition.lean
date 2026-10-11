@@ -13,7 +13,6 @@ import Hagi.Growth.GainOperator
   `G_cap = η_s * G_policy`, то `G_cap = (η_p * η_s) * E_dev`;
 * `zero_stage_kills_gain`: при `0 ≤ E_dev` и тех же посылках,
   если одна из `η_p`, `η_s` ≤ 0, а другая ≥ 0, то `G_cap ≤ 0`;
-* `chain_ignition_threshold`: порог зажигания в терминах
   произведения `η_p * η_s`: если он ≤ `(η_p * η_s) * devEnergy dev`,
   то он ≤ `η * devEnergy dev` для `η = η_p * η_s`.
 -/
@@ -64,21 +63,8 @@ theorem zero_stage_kills_gain (E_dev G_policy G_cap η_p η_s : ℝ)
     simp at h2'
     linarith
 
-/-- Если `γ * k ^ 2 * C + (1 - ρ) * k * C + ξ
-≤ (η_p * η_s) * devEnergy dev`, то существует `η`
-(а именно `η_p * η_s`) с тем же неравенством. -/
-theorem chain_ignition_threshold (C D C' D' : ℝ)
-    (γ ρ k ξ η_p η_s : ℝ) (dev : Fin N → V)
-    (hstep : C' = C + γ * D)
-    (hrhogk : γ * k ≤ ρ) (hcone : k * C ≤ D)
-    (hprod : γ * k ^ 2 * C + (1 - ρ) * k * C + ξ
-      ≤ (η_p * η_s) * devEnergy dev) :
-    ∃ η, γ * k ^ 2 * C + (1 - ρ) * k * C + ξ
-      ≤ η * devEnergy dev ∧ η = η_p * η_s :=
-  ⟨η_p * η_s, hprod, rfl⟩
-
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (etaPolicy etaState gain_chain zero_stage_kills_gain chain_ignition_threshold)
+export Hagi.Growth (etaPolicy etaState gain_chain zero_stage_kills_gain)
 end Hagi
