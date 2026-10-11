@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.JointPreserve
+import Hagi.Foundations.Telescope
 
 set_option linter.style.header false
 
@@ -42,13 +43,14 @@ theorem lyapunov_telescope {E : ℕ → ℝ} (eps : ℝ)
 theorem lyapunov_telescope_fin {E : ℕ → ℝ} (eps : ℝ)
     (hstep : ∀ t < k, E (t+1) ≤ E t - eps) :
     E k ≤ E 0 - k * eps := by
-  induction k with
-  | zero => simp
-  | succ k ih =>
-      have h1 := hstep k (by omega)
-      have hih := ih (fun t ht => hstep t (by omega))
-      norm_num at hih ⊢
-      linarith
+  -- dedup R299: delegation to Foundations.telescope_sum_le
+  have h := Hagi.Foundations.telescope_sum_le
+    (c := fun _ => -eps) (h := fun t ht => by
+      have := hstep t ht
+      linarith)
+  rw [Finset.sum_const] at h
+  simp at h
+  linarith
 
 /-- If `Emin ≤ E t` for all `t ≤ k`, `E (t+1) ≤ E t − eps`
 for all `t < k`, and `0 < eps`, then

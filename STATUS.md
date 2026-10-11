@@ -743,6 +743,11 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   FannesSmooth уже имел ent_eq_entDef — дубль убран);
   Discovery.PPT.tvDist → Prelude.tvDef (мост
   tvDist_eq_tvDef). Единый SSOT: Prelude.Info для KL/H/TV.
+- R299: lyapunov_telescope_fin — единственная собственная
+  индукция termination-семейства — переведена на делегирование
+  Foundations.telescope_sum_le (Σ(−eps)-форма); вся цепь
+  termination×5 (top_level/macro/macro_derived/
+  lyapunov_termination_fin) теперь на одном телескоп-ядре.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
