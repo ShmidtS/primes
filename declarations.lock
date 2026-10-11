@@ -819,6 +819,7 @@ gainop_cone_step	cf5129d1ce0d1e11
 gainop_ignition	ccfb9fa6a9a798b8
 gainop_pairwise_bridge	7bbb47552d50b196
 gap_N_nonneg	e5dfa42de1ab8b60
+gate_retention	851bc019f220d45a
 gate_success_multiplier	bf857dc552c45c00
 gating_tail_bound	f13f64426ceafb59
 gauge_equiv_comp	d12dccddf7777777

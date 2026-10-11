@@ -59,6 +59,32 @@ theorem insight_consolidation_safe {X : Type*} [NormedAddCommGroup X]
     ⟪gold, ds⟫_ℝ ≥ -heps ∧ ‖ds‖^2 ≤ ⟪gI, ds⟫_ℝ := by
   exact ⟨hcone hs, (Hagi.safeQP_descent C hconv h0 gI ds hs hmin).1⟩
 
+
+/-- **GateRetention** (единый план §6.3,
+LSL-мост): сертификат сохранения
+знаний при многошаговой консолидации:
+если каждый шаг лежит в гейт-конусе
+(⟪gold, d⟫ ≥ −ε), суммарный дрейф по
+золотому направлению на T шагах
+ограничен линейно: ∑ ⟪gold, ds_t⟫ ≥ −T·ε.
+Шаговая версия — insight_consolidation_safe. -/
+theorem gate_retention {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X]
+    (Cst : ℕ → Set X) (ds : ℕ → X) (gold : X) (heps : ℝ) (T : ℕ)
+    (hcone : ∀ t < T, Cst t ⊆ {d : X | ⟪gold, d⟫_ℝ ≥ -heps})
+    (hin : ∀ t < T, ds t ∈ Cst t) :
+    ∑ t ∈ Finset.range T, ⟪gold, ds t⟫_ℝ ≥ -T * heps := by
+  have hterm : ∀ t ∈ Finset.range T,
+      (-heps : ℝ) ≤ ⟪gold, ds t⟫_ℝ := by
+    intro t ht
+    exact hcone t (Finset.mem_range.mp ht) (hin t (Finset.mem_range.mp ht))
+  calc ∑ t ∈ Finset.range T, ⟪gold, ds t⟫_ℝ
+      ≥ ∑ t ∈ Finset.range T, (-heps : ℝ) :=
+        Finset.sum_le_sum (fun t ht => hterm t ht)
+    _ = T * (-heps) := by
+        rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+    _ = -T * heps := by ring
+
 end Consolidation
 end Insight
 

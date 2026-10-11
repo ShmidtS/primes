@@ -901,6 +901,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (frobenius_error_truncatedSVD, sqrt-мост). MDL-стек
   полон: antitone + step + argmin + first_order + CE-цена.
   Freeze 2179→2180.
+- R317 (план §6.3, LSL): gate_retention (Insight) —
+  сертификат сохранения знаний при многошаговой
+  консолидации: каждый шаг в гейт-конусе
+  (⟪gold, d⟫ ≥ −ε) ⇒ суммарный дрейф по золотому
+  направлению на T шагах линеен: Σ⟪gold, ds_t⟫ ≥ −T·ε
+  (шаговая версия — insight_consolidation_safe).
+  Freeze 2180→2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -910,7 +917,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1188 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1189 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
