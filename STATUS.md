@@ -830,6 +830,17 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   делегаты по дизайну FLYWHEEL (frobenius_error_
   truncatedSVD делегирует канону). Семантических дублей
   для слияния НЕТ — пункт плана закрыт проверкой.
+- R308: mdlJ_first_order — first-order критерий MDL-
+  оптимального ранга (замыкает теорию сжатия): при
+  σ_{k*}² ≤ λ·c и (k* = 0 ∨ λ·c < σ_{k*−1}²) точка k* —
+  ГЛОБАЛЬНЫЙ минимум J = err + λ·c·k. Ядро: mdlDj_eq
+  (прирост J = λc − σ_k²), mdlDj_ge_card (за пределами
+  err=0, прирост = λc); дискретная выпуклость из
+  антимонотонности σ (pow_le_pow_left₀); две
+  индукции (после k*: приросты ≥ 0; до k*: приросты < 0
+  через Nat.le_pred_of_lt). Практический смысл:
+  сжатие выгодно пока σ² > λ·c — проверяемый критерий
+  truncation-политики. Freeze 2168→2172.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -838,7 +849,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1177 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1180 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

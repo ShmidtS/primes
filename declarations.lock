@@ -1204,12 +1204,16 @@ matrix_charpoly_zero	31a6f28652f5eefb
 maxSingularValue	4e1872cbdfa69ac7
 max_singularValue_sq_le_sum_rect	511b38a108a0d1ac
 max_truncatedSingularValues_tail	74bea7f782932705
+mdlDj	ebeffa86fe6e0d9d
+mdlDj_eq	b429ec875c2fb562
+mdlDj_ge_card	19ac61cc6f2daee6
 mdlErr	0e8d78fbfe48dc4a
 mdlErr_antitone	1fa0ff5abe7a5bb5
 mdlErr_step	89011c677752006e
 mdlErr_zero_of_ge	6b6f57db2909c76b
 mdlJ	f37cfc7b7b191e91
 mdlJ_argmin_exists	190cc16ca9d35763
+mdlJ_first_order	55537e15b6455caa
 mdlObjective	1eebc5524f6509a8
 mdlObjective_delta	a3df25492a70e146
 mdlObjective_lambda_zero	89ccf91306a737c2
