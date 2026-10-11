@@ -808,6 +808,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (без Classical.choose), заглушка frobeniusOptimalKronecker
   (неиспользуемая := A) удалена. 0 аксиом / 0 sorry во всей
   библиотеке Hagi. Freeze 2168→2169.
+- R306b (Фаза 0.2 плана): аксиомный аудит главных теорем
+  через #print axioms — hagi_synthesis, MasterHAGI,
+  MasterHAGI_trunc, top_level_cycle_bound, grand_synthesis
+  (Hagi.Master), cert_horizon_bound, eckart_young_
+  frobenius, mdlErr_step — ВСЕ зависят только от
+  propext/Classical.choice/Quot.sound. Доверительная база
+  подтверждена: 0 пользовательских аксиом, 0 sorry,
+  2169 деклараций, сборка 9214 jobs зелёная.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
