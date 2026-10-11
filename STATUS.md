@@ -868,15 +868,24 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   путь cert_horizon_bound R300, куда верхняя граница
   входит содержательно). Assumptions-адаптер обновлён.
   Freeze 2175, сигнатуры честные.
+- R313 (план §6.1, nonvacuity): cert_horizon_witness —
+  траектория C t = 2 − (1/2)^t, F t = (1/2)^t,
+  γ = k = σ = 1/2, Cstar = 2, T = 1: ВСЕ посылки
+  cert_horizon_bound выполняются одновременно с ненулевым
+  ростом (C0 = 1 < C1 = 3/2 < 2); при t = 1 конус уже
+  нарушен (3/4 > 1/2) — совместимость взлёта и насыщения
+  живёт лишь на коротком горизонте, ровно как требует
+  cert_horizon_bound. Freeze 2176.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
-  unusedHypotheses-включение, Nonvacuity-нетривиальные
-  свидетели, верхнеуровневая композиция HAGICycleSoundness/
+  unusedHypotheses-включение, Nonvacuity-параметрические
+  свидетели полного HAGICert (базовый закрыт R313),
+  верхнеуровневая композиция HAGICycleSoundness/
   HAGIFiniteHorizon/HAGIConditionalTakeoff.
 
 ## Счётчик
 
-- 1183 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1184 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
