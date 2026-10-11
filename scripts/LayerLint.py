@@ -52,7 +52,6 @@ LAYER_EXCEPTIONS = {
     
     
     ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
-    ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
     ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
     
