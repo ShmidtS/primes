@@ -816,6 +816,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   propext/Classical.choice/Quot.sound. Доверительная база
   подтверждена: 0 пользовательских аксиом, 0 sorry,
   2169 деклараций, сборка 9214 jobs зелёная.
+- R307 (Фаза 1, алиасы): MasterHAGICore_refined удалена —
+  тонкая обёртка MasterHAGICore без потребителей (экспорт
+  сокращён). Хёффдинг-дубли Energy.PoEBound подтверждены
+  адаптерами Foundations (R294) — пункт плана закрыт.
+  instCStarAlgebraMatrix: SVD уже на локальном инстансе,
+  глобальный стабилен — отложено без риска. Freeze 2169→2168.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -824,7 +830,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1178 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1177 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

@@ -280,23 +280,6 @@ theorem full_cycle_field_eq {S S' : GenState X}
   obtain ⟨heq, _⟩ := hfull
   exact ⟨by rw [heq], by rw [heq], by rw [heq]⟩
 
-/-- **MasterHAGICore under the full-state refinement**: the same
-one-cycle certificate, but `S'` is bound to the composed cycle
-Thin wrapper: identical conclusion to `MasterHAGI`.
-(The former unused premise `hfull : FullCycleRefinement S S'`
-was removed — audit R290: the body never used it and no
-consumer passes it; StateTakeoff uses FullCycleRefinement
-itself.) -/
-theorem MasterHAGICore_refined (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
-    (w : Fin 5 → ℝ)
-    (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
-    (hp : CorePremises S S' epsQ w) :
-    hagiPotential S' lam nu Qtarget w
-      ≤ hagiPotential S lam nu Qtarget w - (verify S.toGrowthState).decrease
-        + lam * (verify S.toGrowthState).riskSpend + nu * epsQ
-      ∧ S'.toGrowthState.budget
-      = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend :=
-MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ hp
 
 /-! ## Telescoping helpers — делегация Foundations (R163)
 
@@ -621,5 +604,5 @@ end MasterHAGI
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq MasterHAGICore_refined hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
+export Hagi.Unified (CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
 end Hagi
