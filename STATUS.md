@@ -893,6 +893,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   при зазоре ≤ ε существуют ε-точные оценки со СМЕЩЁННЫМ
   argmax — гарантии нет, нужна обработка неоднозначности).
   Freeze 2177→2179.
+- R316 (план §6.3, mdl_rank_ce): условная CE-цена rank-k
+  усечения через ЯВНУЮ κ_F-липшицевость ℓ по норме
+  Фробениуса (не прямое отождествление весовых и CE-единиц):
+  |ℓ(A) − ℓ(A_k)| ≤ κ_F·√(Σ_{i≥k} σ_i²) — композиция
+  липшицевости с точным тождеством хвостов
+  (frobenius_error_truncatedSVD, sqrt-мост). MDL-стек
+  полон: antitone + step + argmin + first_order + CE-цена.
+  Freeze 2179→2180.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -902,7 +910,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1187 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1188 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

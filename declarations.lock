@@ -1224,6 +1224,7 @@ mdlObjective_lambda_zero	89ccf91306a737c2
 mdlObjective_neg_lambda_forbidden	81372e2f0dbd1892
 mdlObjective_nonincreasing	ff9c36029796bc9c
 mdlObjective_tradeoff	c440a0a2ec288f34
+mdl_rank_ce	f3e99480d93b9d8a
 meanBound_greedy	25ac7c74290d4681
 meanResidual	71fe0b042a0a786f
 mean_norm_le	44489ac5ddc10a0c

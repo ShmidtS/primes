@@ -244,5 +244,38 @@ theorem mdlJ_first_order (A : Matrix n n ℂ) (lam c : ℝ) (hlamc : 0 < lam * c
   · exact before (kstar - k) k (by omega)
   · exact after k hge
 
+
+/-- **MDL-ранг в единицах кросс-энтропии** (единый
+план §6.3, mdl_rank_ce): условная цена rank-k
+усечения в единицах функции потерь —
+через ЯВНУЮ липшицевость ℓ по норме
+Фробениуса (а не путём прямого
+отождествления цены ранга в весовых
+единицах с ценой ошибки в единицах CE):
+
+  |ℓ(A) − ℓ(A_k)| ≤ κ_F · ‖A − A_k‖_F
+                   = κ_F · √(∑_{i≥k} σ_i²)
+
+— соединяет липшицевость с точным тождеством
+хвостов (frobenius_error_truncatedSVD). -/
+theorem mdl_rank_ce (A : Matrix n n ℂ) (k : ℕ)
+    (ell : Matrix n n ℂ → ℝ) (kappaF : ℝ)
+    (hkF : 0 ≤ kappaF)
+    (hlip : ∀ X Y : Matrix n n ℂ,
+      |ell X - ell Y|
+        ≤ kappaF * @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (X - Y)) :
+    |ell A - ell (SVD.truncatedSVD A k)|
+      ≤ kappaF * Real.sqrt
+        (∑ i, SVD.truncatedSingularValues_tail A k i ^ 2) := by
+  have h := hlip A (SVD.truncatedSVD A k)
+  have hE := FrobeniusNorm.frobenius_error_truncatedSVD A k
+  have hnorm : @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
+      (A - SVD.truncatedSVD A k)
+      = Real.sqrt (∑ i, SVD.truncatedSingularValues_tail A k i ^ 2) := by
+    rw [← hE]
+    exact (Real.sqrt_sq (norm_nonneg (A - SVD.truncatedSVD A k))).symm
+  rw [hnorm] at h
+  exact h
+
 end Hagi.MDL.Rank
 
