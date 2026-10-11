@@ -946,6 +946,9 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (filtered_step_cost + spectral_safeQP_target) перенесена из
   Spectral/SpectralProjector в Step/SafeQP; инверсия
   Spectral←Step устранена; exception удалён. Freeze 2181.
+- R325: Ensemble/MergePrice — неиспользуемый import Step.GPM заменён на
+  Mathlib; exception удалён. Осталось 6 LayerLint-исключений
+  (все — связаны с GrowthState-декомпозицией, Фаза 4). Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

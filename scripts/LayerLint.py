@@ -51,7 +51,6 @@ LAYER_EXCEPTIONS = {
     
     
     
-    ("Ensemble/MergePrice.lean", "Step/GPM.lean"),
     ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
     ("Generalization/ModeState.lean", "Growth/FrontierScaling.lean"),
     ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
