@@ -76,26 +76,6 @@ theorem frontier_cone_trunc (C G D : ℕ → ℝ)
 
 
 
-/-- Nonincrease telescopes over the horizon (trunc-local,
-now aliased to Foundations.telescope_le). -/
-private theorem telescope_le_h {f : ℕ → ℝ} {T : ℕ}
-    (h : ∀ t < T, f (t + 1) ≤ f t) : f T ≤ f 0 :=
-  Hagi.Foundations.telescope_le h
-
-/-- Increment-sum telescoping (trunc-local,
-now aliased to Foundations.telescope_sum_le). -/
-private theorem telescope_sum_le_h {f c : ℕ → ℝ} {T : ℕ}
-    (h : ∀ t < T, f (t + 1) - f t ≤ c t) :
-    f T - f 0 ≤ ∑ t ∈ Finset.range T, c t :=
-  Hagi.Foundations.telescope_sum_le h
-
-/-- Exact account telescoping (trunc-local,
-now aliased to Foundations.telescope_sub_sum). -/
-private theorem telescope_sub_sum_h {f c : ℕ → ℝ} {T : ℕ}
-    (h : ∀ t < T, f (t + 1) = f t - c t) :
-    f T = f 0 - ∑ t ∈ Finset.range T, c t :=
-  Hagi.Foundations.telescope_sub_sum h
-
 /-- R199 structured adapter: the same cone theorem taking the
 GrowthDynamics premise-bundle (ONE object instead of eleven
 positional hypotheses; the emp* fields make the conditionality
@@ -233,7 +213,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
     exact le_trans h (by linarith [h_net t ht])
   have hphi_T : hagiPotential (S T) lam nu Qtarget w
       ≤ hagiPotential (S 0) lam nu Qtarget w :=
-    telescope_le_h (f := fun t => hagiPotential (S t) lam nu Qtarget w) hphi_step
+    Hagi.Foundations.telescope_le (f := fun t => hagiPotential (S t) lam nu Qtarget w) hphi_step
   have hdLb : ∀ t < T, ∀ i, dL t i ≤ eps t i := by
     intro t ht i
     exact safeqp_eta_max (g t) (eps t) (L t) (S t).toGrowthState.stepDir
@@ -252,7 +232,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
   have hbud_T : (S T).toGrowthState.budget
       = (S 0).toGrowthState.budget
         - ∑ t ∈ Finset.range T, (verify (S t).toGrowthState).budgetSpend :=
-    telescope_sub_sum_h
+    Hagi.Foundations.telescope_sub_sum
       (f := fun t => (S t).toGrowthState.budget)
       (c := fun t => (verify (S t).toGrowthState).budgetSpend) hbud_step
   have hcap := sustained_takeoff_trunc C G D alpha gamma rho beta xi T
@@ -261,7 +241,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
     (hagiPotential (S 0) lam nu Qtarget w) Emin w hlam hnu h_Emin
     (h_risk_nn T) hphi_T
   refine ⟨?_, hphi_T, hcap, ⟨hbud_T, ?_⟩, hfloor⟩
-  · exact telescope_sum_le_h
+  · exact Hagi.Foundations.telescope_sum_le
       (f := fun t => (S t).toGrowthState.protectedRisk)
       (c := fun t => ∑ i, eps t i) hrisk_step
   · linarith [h_budget0]
