@@ -377,8 +377,43 @@ theorem cert_horizon_witness :
     interval_cases t
     norm_num
 
+/-- **Граница горизонта для HAGICert-траектории**
+(единый план §5.6, композиция):
+из полей сертификата hstep + hpl_up + hpl_lo
+следует точное равенство насыщения,
+и при конусе на всём горизонте
+cert_horizon_bound даёт логарифмическую
+оценку совместимости взлёта и
+насыщения напрямую для capability-поля
+состояний. -/
+theorem hagi_horizon_bound (S : ℕ → GrowthState Xs)
+    (g : ℕ → ℝ)
+    (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
+    (γ ρ k ξ ηT Cstar σ ε0 ρe R : ℝ) (T : ℕ)
+    (hγ : 0 < γ) (hk : 0 < k)
+    (cert : HAGICert S g risk best r
+      γ ρ k ξ ηT Cstar σ ε0 ρe R T)
+    (hcone : ∀ t ∈ Finset.range T,
+      k * (S t).capability ≤ usableFrontier (S t))
+    (hT1 : 1 ≤ T) :
+    (1 + γ * k) ^ (T - 1)
+      ≤ σ * Cstar / ((γ * k + σ) * (S 0).capability) := by
+  refine cert_horizon_bound
+    (C := fun t => (S t).capability)
+    (F := fun t => usableFrontier (S t))
+    γ k σ Cstar T hγ hk cert.hσ0 cert.hCstar ?_ hT1 ?_ ?_ ?_
+  · exact cert.hCpos 0 (Finset.mem_range.mpr (Nat.lt_succ_of_le (Nat.zero_le T)))
+  · intro t ht
+    exact cert.hstep t (Finset.mem_range.mpr ht)
+  · intro t ht
+    exact le_antisymm
+      (cert.hpl_up t (Finset.mem_range.mpr ht))
+      (cert.hpl_lo t (Finset.mem_range.mpr ht))
+  · intro t ht
+    exact hcone t (Finset.mem_range.mpr ht)
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
 end Hagi

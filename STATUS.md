@@ -876,6 +876,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   нарушен (3/4 > 1/2) — совместимость взлёта и насыщения
   живёт лишь на коротком горизонте, ровно как требует
   cert_horizon_bound. Freeze 2176.
+- R314 (план §5.6, композиция): hagi_horizon_bound — мост
+  cert_horizon_bound → HAGICert-мир: из полей сертификата
+  (hstep + hpl_up + hpl_lo ⇒ ТОЧНОЕ равенство насыщения
+  через le_antisymm) и конуса на всём горизонте —
+  логарифмическая оценка совместимости взлёта и насыщения
+  непосредственно для capability-траектории состояний:
+  (1+γk)^(T−1) ≤ σC*/((γk+σ)·C₀). §6.3-дистилляция:
+  телескопирование CE/KL уже покрыто (distill_entropy_
+  recurrence — точная замкнутая форма + entropy_kl_ce_
+  identity). Freeze 2176→2177.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -885,7 +895,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1184 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1185 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

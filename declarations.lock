@@ -898,6 +898,7 @@ hagiPotential	9b2da52a794089c3
 hagiPotential	9d53f2b61739bcad
 hagiPotential_penalty_drop	42856caa5cc1a8cd
 hagi_gen_floor	6e713ee05caa47a7
+hagi_horizon_bound	6f1252286ada5e23
 hagi_synthesis	f7cfee0b2723c5a6
 hagicert_nonvacuous	10e22c7cf9f18801
 half_log_cosh_le	02238dc05779219b
