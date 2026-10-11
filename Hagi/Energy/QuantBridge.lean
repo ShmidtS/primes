@@ -228,10 +228,159 @@ theorem quant_frob_loss {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
     _ = kappaF * D * Real.sqrt (m * n) := by ring
 
 
+
+/-- **Minkowski для двойных сумм** (вспомогательная):
+‖X+Y‖_F ≤ ‖X‖_F + ‖Y‖_F на Fin×Fin. -/
+theorem frob_minkowski {m n : ℕ} (X Y : Matrix (Fin m) (Fin n) ℝ) :
+    Real.sqrt (∑ i, ∑ j, (X i j + Y i j) ^ 2)
+      ≤ Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) := by
+  have hA : (0:ℝ) ≤ ∑ i, ∑ j, (X i j) ^ 2 := by positivity
+  have hB : (0:ℝ) ≤ ∑ i, ∑ j, (Y i j) ^ 2 := by positivity
+  -- строчный КШ
+  have hrow : ∀ i : Fin m, ∑ j, X i j * Y i j
+      ≤ Real.sqrt (∑ j, (X i j) ^ 2) * Real.sqrt (∑ j, (Y i j) ^ 2) := by
+    intro i
+    have hpx : (0:ℝ) ≤ ∑ j, (X i j) ^ 2 := by positivity
+    have hpy : (0:ℝ) ≤ ∑ j, (Y i j) ^ 2 := by positivity
+    have hcs := sum_mul_sq_le_sq_mul_sq Finset.univ (X i) (Y i)
+    calc ∑ j, X i j * Y i j ≤ |∑ j, X i j * Y i j| := le_abs_self _
+      _ = Real.sqrt ((∑ j, X i j * Y i j) ^ 2) :=
+          (Real.sqrt_sq_eq_abs _).symm
+      _ ≤ Real.sqrt ((∑ j, (X i j) ^ 2) * ∑ j, (Y i j) ^ 2) :=
+          Real.sqrt_le_sqrt hcs
+      _ = Real.sqrt (∑ j, (X i j) ^ 2) * Real.sqrt (∑ j, (Y i j) ^ 2) :=
+          Real.sqrt_mul hpx (∑ j, (Y i j) ^ 2)
+  -- сумма по строкам + КШ по i
+  have hcross : ∑ i, ∑ j, X i j * Y i j
+      ≤ Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        * Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) := by
+    have hcs := sum_mul_sq_le_sq_mul_sq (Finset.univ : Finset (Fin m))
+      (fun i => Real.sqrt (∑ j, (X i j) ^ 2))
+      (fun i => Real.sqrt (∑ j, (Y i j) ^ 2))
+    have hax : ∑ i, (Real.sqrt (∑ j, (X i j) ^ 2)) ^ 2
+        = ∑ i, ∑ j, (X i j) ^ 2 := by
+      exact Finset.sum_congr rfl fun i _ => Real.sq_sqrt (by positivity)
+    have hbx : ∑ i, (Real.sqrt (∑ j, (Y i j) ^ 2)) ^ 2
+        = ∑ i, ∑ j, (Y i j) ^ 2 := by
+      exact Finset.sum_congr rfl fun i _ => Real.sq_sqrt (by positivity)
+    calc ∑ i, ∑ j, X i j * Y i j
+        ≤ ∑ i, (Real.sqrt (∑ j, (X i j) ^ 2)
+            * Real.sqrt (∑ j, (Y i j) ^ 2)) :=
+          Finset.sum_le_sum (fun i _ => hrow i)
+      _ ≤ |∑ i, (Real.sqrt (∑ j, (X i j) ^ 2)
+            * Real.sqrt (∑ j, (Y i j) ^ 2))| := le_abs_self _
+      _ = Real.sqrt ((∑ i, (Real.sqrt (∑ j, (X i j) ^ 2)
+            * Real.sqrt (∑ j, (Y i j) ^ 2))) ^ 2) :=
+          (Real.sqrt_sq_eq_abs _).symm
+      _ ≤ Real.sqrt ((∑ i, (Real.sqrt (∑ j, (X i j) ^ 2)) ^ 2)
+          * (∑ i, (Real.sqrt (∑ j, (Y i j) ^ 2)) ^ 2)) :=
+          Real.sqrt_le_sqrt hcs
+      _ = Real.sqrt ((∑ i, ∑ j, (X i j) ^ 2)
+          * ∑ i, ∑ j, (Y i j) ^ 2) := by
+          rw [hax, hbx]
+      _ = Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+          * Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) :=
+          Real.sqrt_mul hA (∑ i, ∑ j, (Y i j) ^ 2)
+  -- разложение квадрата
+  have hexp : ∑ i, ∑ j, (X i j + Y i j) ^ 2
+      = (∑ i, ∑ j, (X i j) ^ 2) + 2 * (∑ i, ∑ j, X i j * Y i j)
+        + (∑ i, ∑ j, (Y i j) ^ 2) := by
+    have hterm : ∀ i : Fin m, ∑ j, (X i j + Y i j) ^ 2
+        = (∑ j, (X i j) ^ 2) + 2 * (∑ j, X i j * Y i j)
+          + (∑ j, (Y i j) ^ 2) := by
+      intro i
+      calc (∑ j, (X i j + Y i j) ^ 2)
+          = ∑ j, ((X i j) ^ 2 + (2 * (X i j * Y i j) + (Y i j) ^ 2)) :=
+            Finset.sum_congr rfl (fun j _ => by ring)
+        _ = (∑ j, (X i j) ^ 2)
+            + ∑ j, (2 * (X i j * Y i j) + (Y i j) ^ 2) :=
+            Finset.sum_add_distrib
+        _ = (∑ j, (X i j) ^ 2)
+            + ((∑ j, 2 * (X i j * Y i j)) + ∑ j, (Y i j) ^ 2) := by
+            rw [Finset.sum_add_distrib]
+        _ = (∑ j, (X i j) ^ 2) + 2 * (∑ j, X i j * Y i j)
+            + (∑ j, (Y i j) ^ 2) := by
+            rw [Finset.mul_sum]
+            ring
+    calc (∑ i, ∑ j, (X i j + Y i j) ^ 2)
+        = ∑ i, ((∑ j, (X i j) ^ 2)
+            + (2 * (∑ j, X i j * Y i j) + ∑ j, (Y i j) ^ 2)) :=
+          Finset.sum_congr rfl (fun i _ => by rw [hterm i]; ring)
+      _ = (∑ i, ∑ j, (X i j) ^ 2)
+          + ∑ i, (2 * (∑ j, X i j * Y i j) + ∑ j, (Y i j) ^ 2) :=
+          Finset.sum_add_distrib
+      _ = (∑ i, ∑ j, (X i j) ^ 2)
+          + ((∑ i, 2 * (∑ j, X i j * Y i j))
+              + ∑ i, ∑ j, (Y i j) ^ 2) := by
+          rw [Finset.sum_add_distrib]
+      _ = (∑ i, ∑ j, (X i j) ^ 2) + 2 * (∑ i, ∑ j, X i j * Y i j)
+          + (∑ i, ∑ j, (Y i j) ^ 2) := by
+          rw [Finset.mul_sum]
+          ring
+  have hsqAB : (Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+      + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2)) ^ 2
+      = (∑ i, ∑ j, (X i j) ^ 2) + 2 * (Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        * Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2))
+      + (∑ i, ∑ j, (Y i j) ^ 2) := by
+    have e : (Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2)) ^ 2
+        = (Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)) ^ 2
+          + 2 * (Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+            * Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2))
+          + (Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2)) ^ 2 := by ring
+    rw [e, Real.sq_sqrt hA, Real.sq_sqrt hB]
+  calc Real.sqrt (∑ i, ∑ j, (X i j + Y i j) ^ 2)
+      ≤ Real.sqrt ((Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+          + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2)) ^ 2) := by
+          apply Real.sqrt_le_sqrt
+          rw [hexp, hsqAB]
+          linarith
+    _ = Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) :=
+        Real.sqrt_sq (by positivity)
+
+/-- **Полная цена двухстадийного сжатия**
+(единый план §6.2, замыкание цепочки):
+если первая стадия сжатия (напр.
+rank-k усечение) удаляет веса
+на δ₁ (Фробениус), вторая (квантование)
+— ещё на δ₂, то при κ_F-липшицевости
+потери полная цена аддитивна:
+
+  |ℓ(W) − ℓ(W'')| ≤ κ_F · (δ₁ + δ₂). -/
+theorem compress_chain_cost {m n : ℕ} (W W1 W2 : Matrix (Fin m) (Fin n) ℝ)
+    (ell : Matrix (Fin m) (Fin n) ℝ → ℝ) (kappaF d1 d2 : ℝ)
+    (hkF : 0 ≤ kappaF)
+    (h1 : Real.sqrt (∑ i, ∑ j, (W1 i j - W i j) ^ 2) ≤ d1)
+    (h2 : Real.sqrt (∑ i, ∑ j, (W2 i j - W1 i j) ^ 2) ≤ d2)
+    (hlip : ∀ X Y : Matrix (Fin m) (Fin n) ℝ,
+      |ell X - ell Y|
+        ≤ kappaF * Real.sqrt (∑ i, ∑ j, (X i j - Y i j) ^ 2)) :
+    |ell W - ell W2| ≤ kappaF * (d1 + d2) := by
+  have h := hlip W2 W
+  rw [abs_sub_comm] at h
+  have hM := frob_minkowski
+    (fun i j => W1 i j - W i j) (fun i j => W2 i j - W1 i j)
+  have hsum_eq : ∑ i, ∑ j, ((W1 i j - W i j) + (W2 i j - W1 i j)) ^ 2
+      = ∑ i, ∑ j, (W2 i j - W i j) ^ 2 :=
+    Finset.sum_congr rfl fun i _ =>
+      Finset.sum_congr rfl fun j _ => by ring
+  rw [hsum_eq] at hM
+  have h12 : Real.sqrt (∑ i, ∑ j, (W1 i j - W i j) ^ 2)
+      + Real.sqrt (∑ i, ∑ j, (W2 i j - W1 i j) ^ 2) ≤ d1 + d2 :=
+    add_le_add h1 h2
+  calc |ell W - ell W2|
+      ≤ kappaF * Real.sqrt (∑ i, ∑ j, (W2 i j - W i j) ^ 2) := h
+    _ ≤ kappaF * (d1 + d2) := by
+        refine mul_le_mul_of_nonneg_left ?_ hkF
+        exact le_trans hM h12
+
 end Hagi.Energy
 
 
 namespace Hagi
 export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb
-  quant_matrix_perturb_norm quant_loss_bridge quant_frob_loss)
+  quant_matrix_perturb_norm quant_loss_bridge quant_frob_loss
+  frob_minkowski compress_chain_cost)
 end Hagi

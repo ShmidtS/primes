@@ -915,6 +915,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   mdl_rank_ce; для rank-усечения √(Σσ²) вместо D√(mn)).
   §6.2-цепочка замкнута на обоих уровнях: выход слоя
   (R309/R310) и веса (R318). Freeze 2181→2182.
+- R319 (QuantBridge): frob_minkowski — Минковский для двойных сумм (Коши–Буняковского построчно + суммирование по строкам
+  + асимптота квадрата суммы); compress_chain_cost — полная цена
+  двухстадийного сжатия |ℓ(W)−ℓ(W'')| ≤ κ_F·(δ₁+δ₂) через
+  Минковского. Аксиомы чистые. Freeze 2184.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -924,7 +928,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1190 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1192 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

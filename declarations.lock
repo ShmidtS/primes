@@ -371,6 +371,7 @@ compound_cumulative	741243317cd1c598
 compound_fold_interval	711abef5460827ae
 compound_trajectory	94624530e128babd
 compress	1d8c65ee5d19c88a
+compress_chain_cost	d059809f27c4793f
 compress_stage	90586588fca9cbb5
 compress_stage	90586588fca9cbb5
 concDelta	53f1ab3695ab9db4
@@ -752,6 +753,7 @@ frobVector_add	3dba74ca2fb9dd2b
 frobVector_inner	99bb021cb27316f9
 frobVector_norm	e303f3bea419dda9
 frobVector_sub	a5262ef3588dcb0e
+frob_minkowski	43df997112888e3f
 frob_sum_le	94a87550e823b66c
 frobeniusNorm'	52419e50bf85d24b
 frobeniusNorm''	3412bc3fb8b066f9
