@@ -580,7 +580,9 @@ fresh_data_prevents_collapse_uniform	113f7551d02b04f3
 fresh_momentum_unbiased	f05ccb8735705395
 frob	506c518352d7ae23
 frobNorm	5c7d332cc8b4314a
+frobSq	3a34332b5bbeac9d
 frobSq	d0f79674d3b954e3
+frobSq_outer_orthonormal	f65f6f3fd474b276
 frobSubord	2b05a43bed130521
 frobVector	cafa1c4cea50c7a1
 frobVector_add	3dba74ca2fb9dd2b
@@ -1055,6 +1057,7 @@ ortho_norm_sq	ce812ec757d677b2
 orthogonal_energy_split	0ee52d5cf3dde76a
 orthogonal_noise_averaging	d02ebf153d39f656
 orthogonal_preserves_grad_dist	6a9d5751515dec92
+outer	5b55f2b87bfd754c
 outerP	f5718a4e8102f8a7
 outerProd	76729dc63a64e599
 pairExpFirst	d4c545bb4db7cabb

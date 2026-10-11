@@ -720,6 +720,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   AntiCollapse.entTV (собственное тело (1/2)·Σ|p−q|) —
   переведён на Prelude.tvDef + rfl-мост entTV_eq_tvDef.
   Матричная энтропия — отдельный объект (верно).
+- R295: Hagi/Core/FrobOuter — frobSq_outer_orthonormal:
+  Frobenius-квадрат Σ σ_i·(u_i⊗v_i) при ортонормальных
+  семействах u, v равен точно Σ σ_i² (квадрат суммы, кросс
+  исчезают через (Σu_c u_d)(Σv_c v_d) = δ_cd·δ_cd). Верхняя
+  часть Eckart–Young–Мирского (достижимость усечения) без
+  спектральных посылок — SVD в Mathlib v4.34 отсутствует;
+  нижняя оптимальность (Weyl) — открытый фронт.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -728,7 +735,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 938 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 939 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

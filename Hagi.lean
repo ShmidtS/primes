@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Core.Hadamard
+import Hagi.Core.FrobOuter
 import Hagi.Core.Kronecker
 import Hagi.Core.DFT3
 import Hagi.Core.BlockDiag
