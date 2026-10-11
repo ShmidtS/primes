@@ -1207,6 +1207,7 @@ max_singularValue_sq_le_sum_rect	511b38a108a0d1ac
 max_truncatedSingularValues_tail	74bea7f782932705
 mdlErr	0e8d78fbfe48dc4a
 mdlErr_antitone	1fa0ff5abe7a5bb5
+mdlErr_step	89011c677752006e
 mdlErr_zero_of_ge	6b6f57db2909c76b
 mdlJ	f37cfc7b7b191e91
 mdlJ_argmin_exists	190cc16ca9d35763

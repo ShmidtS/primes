@@ -48,6 +48,43 @@ theorem mdlErr_zero_of_ge (A : Matrix n n ℂ) {k : ℕ}
   unfold mdlErr
   rw [SVD.truncatedSVD_full A k hk, sub_self, norm_zero, zero_pow (by norm_num)]
 
+/-- Прирост качества на шаге ранга: err k − err (k+1) = σₖ²
+(следующий сингулярный шум определяет весь выигрыш). -/
+theorem mdlErr_step (A : Matrix n n ℂ) {k : ℕ}
+    (hk : k < Fintype.card n) :
+    mdlErr A k - mdlErr A (k + 1)
+      = (SVD.singularValues₀ A ⟨k, hk⟩) ^ 2 := by
+  have hE1 := FrobeniusNorm.frobenius_error_truncatedSVD A k
+  have hE2 := FrobeniusNorm.frobenius_error_truncatedSVD A (k+1)
+  unfold mdlErr
+  rw [hE1, hE2]
+  rw [← Finset.sum_sub_distrib]
+  set E : n ≃ Fin (Fintype.card n) :=
+    (Fintype.equivOfCardEq (Fintype.card_fin (Fintype.card n))).symm with hE
+  set i0 : n := E.symm ⟨k, hk⟩ with hi0
+  have hii : E i0 = ⟨k, hk⟩ := E.apply_symm_apply ⟨k, hk⟩
+  rw [Finset.sum_eq_single i0]
+  · -- в точке i0: tail k = σ, tail (k+1) = 0
+    show (if k ≤ (E i0).val then SVD.singularValues₀ A (E i0) else 0) ^ 2
+        - (if k + 1 ≤ (E i0).val then SVD.singularValues₀ A (E i0) else 0) ^ 2
+      = SVD.singularValues₀ A ⟨k, hk⟩ ^ 2
+    simp [hii]
+  · -- вне i0 разность нулевая
+    intro b _ hbi
+    simp only [SVD.truncatedSingularValues_tail]
+    rw [← hE]
+    by_cases hb : E b = ⟨k, hk⟩
+    · exact absurd (E.injective (hb.trans hii.symm)) hbi
+    · have hbk : (E b).val ≠ k := by
+        intro heq
+        exact hb (Fin.ext heq)
+      by_cases hlt : k ≤ (E b).val
+      · have h2 : k < (E b).val := by omega
+        simp [hlt, h2]
+      · have h2 : ¬(k + 1 ≤ (E b).val) := by omega
+        simp [hlt, h2]
+  · simp
+
 /-- MDL-функционал: ошибка + линейная цена ранга
 (λ > 0 — цена параметра, c > 0 — параметров на единицу ранга,
 например c = m + n + 1 для факторизованной формы). -/

@@ -791,6 +791,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   зацикл лечится явным frobeniusSeminormedAddCommGroup),
   pow_le_pow_left₀, Finset.exists_min_image на Icc.
   Freeze 2162→2167. Аксиомы чистые.
+- R305: mdlErr_step — прирост качества на шаге ранга
+  ТОЖДЕСТВЕНЕН следующему сингулярному числу:
+  err k − err(k+1) = σ_k² (через frobenius_error_
+  truncatedSVD + Finset.sum_eq_single по биекции
+  equivOfCardEq). MDL-теория ранга замкнута: вместе с
+  antitone/argmin_exists даёт полную основу first-order
+  критерия σ_{k+1}² ≤ λ·c. Freeze 2167→2168.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -799,7 +806,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1176 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1177 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
