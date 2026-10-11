@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Hagi.Growth.SeedOnly
+import Hagi.Foundations.Recurrence
 import Mathlib.Tactic
 
 set_option linter.style.header false
@@ -39,7 +39,7 @@ theorem diversity_noncollapse (D : ℕ → ℝ) (a s : ℝ)
     (ha : 0 ≤ a) (hs : 0 ≤ s)
     (hstep : ∀ t, D (t+1) ≤ a * D t + s) (T : ℕ) :
     D T ≤ a^T * D 0 + s * ∑ i ∈ Finset.range T, a^i :=
-  disp_recurrence_general ha hs hstep T
+  Hagi.Foundations.disp_recurrence_general ha hs hstep T
 
 /-- Тождество для суммы геометрической прогрессии:
 `ρ·Σ_{i<T}ρ^i + 1 = Σ_{i<T}ρ^i + ρ^T`. -/

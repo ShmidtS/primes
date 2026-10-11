@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.CycleChannel
+import Hagi.Foundations.Recurrence
 
 set_option linter.style.header false
 
@@ -29,45 +30,6 @@ open Finset Real InnerProductSpace
 namespace Hagi.Growth
 
 section SeedOnly
-
-/-- Конечная геометрическая сумма:
-`(a − 1)·Σ_{i<n} a^i = a^n − 1` (любое a). -/
-theorem geom_range_identity (a : ℝ) (n : ℕ) :
-    (a - 1) * ∑ i ∈ Finset.range n, a^i = a^(n:ℕ) - 1 := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-      rw [Finset.sum_range_succ, pow_succ a n]
-      have e1 : (a - 1) * a^n = a^n * a - a^n := by ring
-      have e2 : (a - 1) * (∑ x ∈ Finset.range n, a ^ x + a ^ n)
-          = (a - 1) * ∑ x ∈ Finset.range n, a ^ x + (a - 1) * a ^ n := by ring
-      rw [e2, ih, e1]
-      ring
-
-/-- Если `0 ≤ a`, `0 ≤ s` и `D (t+1) ≤ a·D t + s` при всех t,
-то `D t ≤ a^t·D 0 + s·Σ_{i<t} a^i` (любое a ≥ 0;
-при `D 0 = 0` и `a < 1` — `D t ≤ s/(1−a)`). -/
-theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
-    (ha : 0 ≤ a) (_hs : 0 ≤ s)
-    (hstep : ∀ t, D (t+1) ≤ a * D t + s) :
-    ∀ t, D t ≤ a^t * D 0 + s * ∑ i ∈ Finset.range t, a^i := by
-  intro t
-  induction t with
-  | zero => simp
-  | succ t ih =>
-      have h1 := hstep t
-      have hgeom := geom_range_identity a t
-      have hsum : ∑ i ∈ Finset.range (t+1), a^i = 1 + a * ∑ i ∈ Finset.range t, a^i := by
-        rw [Finset.sum_range_succ]
-        nlinarith [hgeom]
-      calc D (t+1) ≤ a * D t + s := h1
-        _ ≤ a * (a^t * D 0 + s * ∑ i ∈ Finset.range t, a^i) + s := by
-            refine add_le_add ?_ (le_refl s)
-            exact mul_le_mul_of_nonneg_left ih ha
-        _ = a^(t+1) * D 0 + s * (a * ∑ i ∈ Finset.range t, a^i) + s := by
-            rw [pow_succ]; ring
-        _ = a^(t+1) * D 0 + s * ∑ i ∈ Finset.range (t+1), a^i := by
-            rw [hsum]; ring
 
 /-- При `0 < n` и любом y:
 `Σ‖x a − x̄‖² ≤ Σ‖x a − y‖²`, где `x̄` — среднее. -/
@@ -114,7 +76,7 @@ theorem seed_only_disp_bound (Lam a s : ℝ)
     (h_emp_disp_step : ∀ t, dispP (t+1) ≤ a * dispP t + s)
     (hd0 : dispP 0 = 0) (t : ℕ) :
     dispL t ≤ Lam^2 * s * ∑ i ∈ Finset.range t, a^i := by
-  have hP := disp_recurrence_general (D := dispP) ha hs h_emp_disp_step t
+  have hP := Hagi.Foundations.disp_recurrence_general (D := dispP) ha hs h_emp_disp_step t
   rw [hd0, mul_zero, zero_add] at hP
   calc dispL t ≤ Lam^2 * dispP t := h_emp_lip t
     _ ≤ Lam^2 * (s * ∑ i ∈ Finset.range t, a^i) := by
@@ -135,5 +97,5 @@ end SeedOnly
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (geom_range_identity disp_recurrence_general sum_dist_mean_le seed_only_disp_bound seed_only_grow_stop)
+export Hagi.Growth (sum_dist_mean_le seed_only_disp_bound seed_only_grow_stop)
 end Hagi

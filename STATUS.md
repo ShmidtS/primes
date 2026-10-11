@@ -937,6 +937,11 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   в Step/ (теория кривизны и trust region — в оптимизационном слое;
   инверсия Step←Dynamics устранена; exception удалён из LayerLint
   allowlist. Freeze 2181.
+- R323 (аудит v3 §2.2 + §1.1): geom_range_identity +
+  disp_recurrence_general перенесены из Growth/SeedOnly в
+  Foundations/Recurrence (единый рекуррентный канон); инверсия
+  Step/JointPreserve←Growth/SeedOnly устранена (import →
+  Foundations.Recurrence); exception удалён. Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

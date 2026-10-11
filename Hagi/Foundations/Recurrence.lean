@@ -256,5 +256,44 @@ theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
       linarith [h1, hcomb, hfinal]
 
 
+/-- Конечная геометрическая сумма:
+`(a − 1)·Σ_{i<n} a^i = a^n − 1` (любое a). -/
+theorem geom_range_identity (a : ℝ) (n : ℕ) :
+    (a - 1) * ∑ i ∈ Finset.range n, a^i = a^(n:ℕ) - 1 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      rw [Finset.sum_range_succ, pow_succ a n]
+      have e1 : (a - 1) * a^n = a^n * a - a^n := by ring
+      have e2 : (a - 1) * (∑ x ∈ Finset.range n, a ^ x + a ^ n)
+          = (a - 1) * ∑ x ∈ Finset.range n, a ^ x + (a - 1) * a ^ n := by ring
+      rw [e2, ih, e1]
+      ring
+
+/-- Если `0 ≤ a`, `0 ≤ s` и `D (t+1) ≤ a·D t + s` при всех t,
+то `D t ≤ a^t·D 0 + s·Σ_{i<t} a^i` (любое a ≥ 0;
+при `D 0 = 0` и `a < 1` — `D t ≤ s/(1−a)`). -/
+theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
+    (ha : 0 ≤ a) (_hs : 0 ≤ s)
+    (hstep : ∀ t, D (t+1) ≤ a * D t + s) :
+    ∀ t, D t ≤ a^t * D 0 + s * ∑ i ∈ Finset.range t, a^i := by
+  intro t
+  induction t with
+  | zero => simp
+  | succ t ih =>
+      have h1 := hstep t
+      have hgeom := geom_range_identity a t
+      have hsum : ∑ i ∈ Finset.range (t+1), a^i = 1 + a * ∑ i ∈ Finset.range t, a^i := by
+        rw [Finset.sum_range_succ]
+        nlinarith [hgeom]
+      calc D (t+1) ≤ a * D t + s := h1
+        _ ≤ a * (a^t * D 0 + s * ∑ i ∈ Finset.range t, a^i) + s := by
+            refine add_le_add ?_ (le_refl s)
+            exact mul_le_mul_of_nonneg_left ih ha
+        _ = a^(t+1) * D 0 + s * (a * ∑ i ∈ Finset.range t, a^i) + s := by
+            rw [pow_succ]; ring
+        _ = a^(t+1) * D 0 + s * ∑ i ∈ Finset.range (t+1), a^i := by
+            rw [hsum]; ring
+
 end Hagi.Foundations
 

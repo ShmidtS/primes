@@ -59,7 +59,6 @@ LAYER_EXCEPTIONS = {
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     
-    ("Step/JointPreserve.lean", "Growth/SeedOnly.lean"),
     
 }
 
