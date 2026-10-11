@@ -266,8 +266,86 @@ theorem band_witness :
       have h0 := (half_pow_bounds t).1
       linarith
 
+/-- Конечный горизонт взлёта+насыщения: точный шаг, точное
+насыщение и конус совместимы лишь ограниченное время:
+(1+γk)^T ≤ σC*/((γk+σ)·C 0). -/
+theorem cert_horizon_bound (C F : ℕ → ℝ)
+    (γ k σ Cstar : ℝ) (T : ℕ)
+    (hγ : 0 < γ) (hk : 0 < k) (hσ : 0 < σ) (hCstar : 0 < Cstar)
+    (hC0 : 0 < C 0) (hT1 : 1 ≤ T)
+    (hstep : ∀ t < T, C (t + 1) = C t + γ * F t)
+    (hpl : ∀ t < T, C (t + 1) = C t + σ * (Cstar - C t))
+    (hcone : ∀ t < T, k * C t ≤ F t) :
+    (1 + γ * k) ^ (T - 1)
+      ≤ σ * Cstar / ((γ * k + σ) * C 0) := by
+  -- ключ: γ·F t = σ(Cstar − C t) из двух точных шагов
+  have hgf : ∀ t < T, γ * F t = σ * (Cstar - C t) := by
+    intro t ht
+    have h1 := hstep t ht
+    have h2 := hpl t ht
+    rw [h1] at h2
+    exact add_left_cancel h2
+  -- конус + ключ: (γk+σ)·C t ≤ σ·Cstar
+  have hkey : ∀ t < T,
+      (γ * k + σ) * C t ≤ σ * Cstar := by
+    intro t ht
+    have hcone' := hcone t ht
+    have hgf' := hgf t ht
+    have h1 : γ * (k * C t) ≤ γ * F t :=
+      mul_le_mul_of_nonneg_left hcone' hγ.le
+    rw [hgf'] at h1
+    have h2 : γ * k * C t + σ * C t ≤ σ * Cstar := by
+      calc γ * k * C t + σ * C t
+          = γ * (k * C t) + σ * C t := by ring
+        _ ≤ σ * (Cstar - C t) + σ * C t := by
+            exact add_le_add h1 (le_refl _)
+        _ = σ * Cstar := by ring
+    linarith
+  -- взлёт: C t+1 ≥ (1+γk)·C t, индукция: C T ≥ (1+γk)^T·C 0
+  have hgrow : ∀ t ≤ T, C 0 * (1 + γ * k) ^ t ≤ C t := by
+    intro t
+    induction t with
+    | zero => simp
+    | succ t ih =>
+        intro _
+        have hstep' := hstep t (by omega)
+        have hcone' := hcone t (by omega)
+        have hge : (1 + γ * k) * C t ≤ C (t + 1) := by
+          have hmul : γ * (k * C t) ≤ γ * F t :=
+            mul_le_mul_of_nonneg_left hcone' hγ.le
+          rw [hstep']
+          calc (1 + γ * k) * C t
+              = C t + γ * (k * C t) := by ring
+            _ ≤ C t + γ * F t := by
+                exact add_le_add_right hmul (C t)
+            _ = C t + γ * F t := by rfl
+        have hpos : (0:ℝ) ≤ 1 + γ * k := by nlinarith [hγ, hk]
+        calc C 0 * (1 + γ * k) ^ (t + 1)
+            = C 0 * (1 + γ * k) ^ t * (1 + γ * k) := by ring
+          _ ≤ C t * (1 + γ * k) := by
+              exact mul_le_mul_of_nonneg_right (ih (by omega)) hpos
+          _ = (1 + γ * k) * C t := by ring
+          _ ≤ C (t + 1) := hge
+  -- сборка (на T−1: hkey доступен для t < T)
+  have hT := hkey (T - 1) (by omega)
+  have hgrowT := hgrow (T - 1) (by omega)
+  have hpos1 : (0:ℝ) < γ * k + σ := by nlinarith [hγ, hk, hσ]
+  have hmul : (γ * k + σ) * (C 0 * (1 + γ * k) ^ (T - 1))
+      ≤ (γ * k + σ) * C (T - 1) :=
+    mul_le_mul_of_nonneg_left hgrowT (le_of_lt hpos1)
+  have hfinal : (γ * k + σ) * C 0 * (1 + γ * k) ^ (T - 1)
+      ≤ σ * Cstar := by
+    calc (γ * k + σ) * C 0 * (1 + γ * k) ^ (T - 1)
+        = (γ * k + σ) * (C 0 * (1 + γ * k) ^ (T - 1)) := by ring
+      _ ≤ (γ * k + σ) * C (T - 1) := hmul
+      _ ≤ σ * Cstar := hT
+  rw [le_div_iff₀ (by positivity : (0:ℝ) < (γ * k + σ) * C 0)]
+  calc (1 + γ * k) ^ (T - 1) * ((γ * k + σ) * C 0)
+      = (γ * k + σ) * C 0 * (1 + γ * k) ^ (T - 1) := by ring
+    _ ≤ σ * Cstar := hfinal
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound half_pow_bounds half_pow_anti band_witness)
 end Hagi

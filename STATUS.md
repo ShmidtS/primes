@@ -748,6 +748,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Foundations.telescope_sum_le (Σ(−eps)-форма); вся цепь
   termination×5 (top_level/macro/macro_derived/
   lyapunov_termination_fin) теперь на одном телескоп-ядре.
+- R300: cert_horizon_bound (ArchitectureTheorem) — НОВАЯ
+  теорема из аудита §2.3: точный шаг C' = C + γF, точное
+  насыщение C' = C + σ(C*−C) и конус kC ≤ F совместно
+  возможны лишь на логарифмически ограниченном горизонте:
+  (1+γk)^(T−1) ≤ σC*/((γk+σ)·C₀). «Взлёт+насыщение» на одном
+  окне — короткий переходный режим, не вечная фаза
+  (фазовая модель: взлёт → τ → насыщение).
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -756,7 +763,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 945 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 946 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
