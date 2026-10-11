@@ -297,6 +297,7 @@ centered	99190af1a7504fe4
 centeredConv	25cf76bc2028e7a2
 centeredSum	29139e8c5991853e
 cert_horizon_bound	0fba6fbe65e4c24e
+cert_horizon_witness	2caf89a6f5fba3cb
 cert_lower	340d841fd4fec255
 cert_upper	072d3560c9563323
 certificate_sound	e423e0b277c01bab

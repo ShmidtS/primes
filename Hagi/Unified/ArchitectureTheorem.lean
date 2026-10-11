@@ -344,8 +344,41 @@ theorem cert_horizon_bound (C F : ℕ → ℝ)
       = (γ * k + σ) * C 0 * (1 + γ * k) ^ (T - 1) := by ring
     _ ≤ σ * Cstar := hfinal
 
+/-- **Нетривиальный witness для cert_horizon_bound** (nonvacuity,
+единый план §6.1): конкретная траектория, на которой ВСЕ
+посылки cert_horizon_bound выполняются одновременно с
+ненулевым ростом (T = 1, C 0 = 1 < C 1 = 3/2 < Cstar = 2):
+
+  C t = 2 − (1/2)^t, F t = (1/2)^t, γ = k = σ = 1/2, Cstar = 2,
+
+т.е. точное насыщение C' = C + σ(Cstar − C) и конус
+k·C ≤ F на t = 0. Заметим: при t = 1 конус уже нарушен
+(3/4 > 1/2) — совместимость взлёта и насыщения живёт лишь на коротком
+горизонте, в точности как требует cert_horizon_bound:
+(1 + γk)^(T−1) = 1 ≤ σ·Cstar/((γk+σ)·C 0) = 4/3. -/
+theorem cert_horizon_witness :
+    ∃ (C F : ℕ → ℝ) (γ k σ Cstar : ℝ) (T : ℕ),
+      0 < γ ∧ 0 < k ∧ 0 < σ ∧ 0 < Cstar ∧ 0 < C 0 ∧ 1 ≤ T
+        ∧ (∀ t < T, C (t + 1) = C t + γ * F t)
+        ∧ (∀ t < T, C (t + 1) = C t + σ * (Cstar - C t))
+        ∧ (∀ t < T, k * C t ≤ F t)
+        ∧ C 0 < C T ∧ C T < Cstar := by
+  refine ⟨fun t => 2 - (1 / 2 : ℝ) ^ t, fun t => (1 / 2 : ℝ) ^ t,
+    1 / 2, 1 / 2, 1 / 2, 2, 1,
+    by norm_num, by norm_num, by norm_num, by norm_num, by norm_num, by norm_num,
+    ?_, ?_, ?_, by norm_num, by norm_num⟩
+  · intro t ht
+    interval_cases t
+    norm_num
+  · intro t ht
+    interval_cases t
+    norm_num
+  · intro t ht
+    interval_cases t
+    norm_num
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness half_pow_bounds half_pow_anti band_witness)
 end Hagi
