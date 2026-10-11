@@ -933,6 +933,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Step/ProjectionDescent убран (теперь только Mathlib);
   Insight переключён на Step.ProjectionDescent.
   Аксиомы чистые. Freeze 2181.
+- R322 (аудит v3 §2.2, Фаза 2): CurvatureSafe перенесён из Dynamics/
+  в Step/ (теория кривизны и trust region — в оптимизационном слое;
+  инверсия Step←Dynamics устранена; exception удалён из LayerLint
+  allowlist. Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

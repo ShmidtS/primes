@@ -60,7 +60,6 @@ LAYER_EXCEPTIONS = {
     ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     
     ("Step/JointPreserve.lean", "Growth/SeedOnly.lean"),
-    ("Step/SafeQPStep.lean", "Dynamics/CurvatureSafe.lean"),
     
 }
 

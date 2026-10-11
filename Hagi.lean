@@ -141,7 +141,7 @@ import Hagi.Unified.Unified
 import Hagi.Unified.GlobalConvergence
 import Hagi.Unified.MacroCycle
 import Hagi.Unified.RecursiveGrowth
-import Hagi.Dynamics.CurvatureSafe
+import Hagi.Step.CurvatureSafe
 import Hagi.Dynamics.Contraction
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.UrgencyDepth

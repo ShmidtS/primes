@@ -3,11 +3,15 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Step.SafeQP
+import Mathlib.Tactic
+
 set_option linter.style.header false
 
 /-!
 # CurvatureSafe — учитывающий кривизну SafeQP (trust region)
+
+(R322: перенесён из Dynamics/ в Step/ — аудит v3 §2.2: теория
+кривизны и ограничения размера шага живёт в оптимизационном слое.)
 
 Второпорядковая оценка при L-Lipschitz градиентах:
 `L_i(w+d) − L_i(w) ≤ −⟪g i, d⟫ + (L_i/2)·‖d‖²`.
@@ -22,7 +26,7 @@ set_option linter.style.header false
   `‖d‖² = 0`).
 -/
 
-namespace Hagi.Dynamics
+namespace Hagi.Step
 
 /-- При `−eps ≤ inner` и `dL ≤ −inner + L·dnorm²/2` —
 `dL ≤ eps + L·dnorm²/2`. -/
@@ -62,8 +66,8 @@ theorem safeqp_monotone_domain (inner slack L dnorm dL : ℝ)
           apply mul_le_mul_of_nonneg_left hrad (by linarith)
       _ = slack := by field_simp
   linarith
-end Hagi.Dynamics
+end Hagi.Step
 
 namespace Hagi
-export Hagi.Dynamics (safeqp_second_order safeqp_trust_region safeqp_monotone_domain)
+export Hagi.Step (safeqp_second_order safeqp_trust_region safeqp_monotone_domain)
 end Hagi
