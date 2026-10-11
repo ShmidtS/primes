@@ -38,10 +38,11 @@ open Finset Real
 variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- The entropy of a probability vector. -/
-noncomputable def ent (p : V → ℝ) : ℝ := -∑ v, p v * Real.log (p v)
+noncomputable def ent (p : V → ℝ) : ℝ := Hagi.Prelude.entDef p
 
 /-- prelude bridge: ent IS the canonical Prelude.entDef. -/
-theorem ent_eq_entDef (p : V → ℝ) : ent p = Hagi.Prelude.entDef p := rfl
+theorem ent_eq_entDef (p : V → ℝ) :
+    ent p = Hagi.Prelude.entDef p := rfl
 
 /-- Total variation distance (half-L1). -/
 noncomputable def tvDist (p q : V → ℝ) : ℝ := (∑ v, |p v - q v|) / 2
@@ -111,7 +112,7 @@ theorem entropy_lipschitz_smooth (p q : V → ℝ) (delta : ℝ) (hdelta : 0 < d
   have hdecomp : ent p - ent q
       = (∑ v, (q v - p v) * Real.log (q v))
         + (∑ v, p v * (Real.log (q v) - Real.log (p v))) := by
-    unfold ent
+    unfold ent Hagi.Prelude.entDef
     rw [neg_sub_neg (a := ∑ v, p v * Real.log (p v)) (b := ∑ v, q v * Real.log (q v)),
       ← Finset.sum_sub_distrib, ← Finset.sum_add_distrib]
     exact Finset.sum_congr rfl fun v _ => by ring

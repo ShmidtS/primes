@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Mathlib.Probability.Moments.SubGaussian
+import Hagi.Prelude.Info
 set_option linter.style.header false
 
 /-!
@@ -331,8 +332,14 @@ theorem truncation_bias (K : Seq → Seq → ℝ) (pi : Seq → ℝ) (S : Set Se
 
 /-! ## 5. Doeblin mixing -/
 
-/-- Total variation distance on the finite space, as half the L¹ norm. -/
-noncomputable def tvDist (mu pi : Seq → ℝ) : ℝ := (∑ y, |mu y - pi y|) / 2
+/-- Total variation distance (half L1) — delegation to the
+canonical Prelude.tvDef (dedup R297). -/
+noncomputable def tvDist (mu pi : Seq → ℝ) : ℝ :=
+  Hagi.Prelude.tvDef mu pi
+
+/-- prelude bridge: tvDist IS the canonical Prelude.tvDef. -/
+theorem tvDist_eq_tvDef (mu pi : Seq → ℝ) :
+    tvDist mu pi = Hagi.Prelude.tvDef mu pi := rfl
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
@@ -586,7 +593,7 @@ theorem tvDist_le_one (mu pi : Seq → ℝ)
     Finset.sum_le_sum fun y _ => abs_le.2 ⟨by linarith [hmunn y, hpinn y],
       by linarith [hmunn y, hpinn y]⟩
   rw [Finset.sum_add_distrib, hmu, hpi] at h1
-  unfold tvDist
+  unfold tvDist Hagi.Prelude.tvDef
   linarith
 
 set_option linter.unusedDecidableInType false in

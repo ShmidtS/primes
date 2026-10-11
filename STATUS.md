@@ -736,6 +736,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   известные sorry: equivFin-мост (SVD.lean:2070), TightBounds —
   вне EY-цепочки. Правило: перед формализацией ВСЕГДА искать
   готовые решения.
+- R297 (аудит-волна 2026-10-11): KL/энтропия/TV-дедуп —
+  Energy.Variational.kldiv' и Energy.FreeEnergy.kldiv →
+  Prelude.klDef (rfl-мосты); FannesSmooth.ent и
+  DistillRecursion.shannonEntropy → Prelude.entDef (мосты;
+  FannesSmooth уже имел ent_eq_entDef — дубль убран);
+  Discovery.PPT.tvDist → Prelude.tvDef (мост
+  tvDist_eq_tvDef). Единый SSOT: Prelude.Info для KL/H/TV.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -744,7 +751,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 941 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 945 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

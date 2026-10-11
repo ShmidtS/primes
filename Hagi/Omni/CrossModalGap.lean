@@ -70,7 +70,7 @@ theorem crossModalGap_eq_kl (p : X × Y → ℝ)
     have hpair : ∀ x : X, (x, y).2 = y := fun _ => rfl
     rw [Finset.sum_congr rfl (fun x _ => by rw [hpair x]), ← Finset.sum_mul, margY]
   -- unfold both sides and match
-  unfold crossModalGap Hagi.Data.ent Hagi.KLdiv
+  unfold crossModalGap Hagi.Data.ent Hagi.Prelude.entDef Hagi.KLdiv
   -- split the log of the ratio
   have hsplit : ∀ z : X × Y,
       Real.log (p z / (margX p z.1 * margY p z.2))

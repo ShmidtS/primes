@@ -826,6 +826,8 @@ kl_tilted_decompose	0ce7f4904c437b46
 kl_zero_iff_eq	7d8f72f0b3dc6c2f
 kldiv	1a4c69b547314b09
 kldiv'	ee9c5920b3658f2a
+kldiv'_eq_klDef	082e14c8d0188d36
+kldiv_eq_klDef	1959aa867496c9d8
 klsBatchNoise	69e5cde10fd3a085
 klsChebyshev	1d778f6543286736
 klsSafeQP_certified	6a9897d20fccff9c
@@ -1385,6 +1387,7 @@ shallow_misses_tube	05c5a3b8b9668a2a
 shannon	45218543b84d714a
 shannonEntropy	90a4af2a6c62d4b4
 shannonEntropy_eq_canonical	8b6fb66428fd5549
+shannonEntropy_eq_entDef	ebe11ebc09215591
 shannon_eq_canonical	223a8b0d697dee9c
 shannon_le_log_card	8110882533fd7644
 sharedStateCostBound	2ec47db7d5c957d0
@@ -1580,6 +1583,7 @@ tvDef	6a4960300ebcdc21
 tvDist	26440c44cbf348eb
 tvDist	b040d050bcfeb910
 tvDist_eq_canonical	8386c937109c3f92
+tvDist_eq_tvDef	2e37d24aa1a00c1f
 tvDist_eq_tvDef	aa681c583635256b
 tvDist_le_one	8ef828aeb2204aab
 tvDist_nonneg	37c3d6872ae87188

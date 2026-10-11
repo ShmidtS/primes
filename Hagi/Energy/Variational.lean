@@ -58,7 +58,11 @@ section Variational
 variable {V : Type*} [Fintype V] [Nonempty V]
 
 noncomputable def kldiv' (q p : V → ℝ) : ℝ :=
-  ∑ v, q v * Real.log (q v / p v)
+  Hagi.Prelude.klDef q p
+
+/-- prelude bridge: kldiv' IS the canonical Prelude.klDef. -/
+theorem kldiv'_eq_klDef (q p : V → ℝ) :
+    kldiv' q p = Hagi.Prelude.klDef q p := rfl
 
 /-- The tilted distribution: p tilted by U, normalized. -/
 noncomputable def tilted (p U : V → ℝ) (v : V) : ℝ :=
@@ -108,7 +112,7 @@ theorem kl_tilted_decompose (q p U : V → ℝ)
       ring
     rw [hdiv, hlog]
     ring
-  unfold kldiv' tilted
+  unfold kldiv' Hagi.Prelude.klDef tilted
   rw [Finset.sum_congr rfl fun v _ => hper v]
   have hsplit3 : ∑ v, (q v * Real.log (q v / p v) - q v * U v
       + q v * Real.log Z)

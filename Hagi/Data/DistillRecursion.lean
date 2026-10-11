@@ -90,7 +90,11 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 distribution (the negative of `negEntropy`, `Hagi.Data/DBridge`;
 defined here directly to keep the module elementary). -/
 noncomputable def shannonEntropy (p : V → ℝ) : ℝ :=
-  -∑ v, p v * Real.log (p v)
+  Hagi.Prelude.entDef p
+
+/-- prelude bridge: shannonEntropy IS the canonical Prelude.entDef. -/
+theorem shannonEntropy_eq_entDef (p : V → ℝ) :
+    shannonEntropy p = Hagi.Prelude.entDef p := rfl
 
 /-- The recursive-distillation training target: the previous
 model's distribution blended with the fresh-data mass ν:
@@ -188,7 +192,7 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
     have e4 : (1 - ν) * (∑ v, p v * Real.log (freshMix ν p d v))
         + ν * (∑ v, d v * Real.log (freshMix ν p d v))
         = ∑ v, freshMix ν p d v * Real.log (freshMix ν p d v) := hfold
-    unfold shannonEntropy
+    unfold shannonEntropy Hagi.Prelude.entDef
     ring_nf
     linarith [hfold]
   have hwnn : 0 ≤ (1 - ν) * KLdiv p (freshMix ν p d)
@@ -217,7 +221,7 @@ theorem entropy_kl_ce_identity (m q : V → ℝ)
     crossEntropy m q = shannonEntropy m + klDiv m q := by
   have h := teacher_generated_identity m q hm hq
   unfold crossEntropy at h
-  unfold shannonEntropy crossEntropy
+  unfold shannonEntropy Hagi.Prelude.entDef crossEntropy
   linarith
 
 /-! ### The certified step -/

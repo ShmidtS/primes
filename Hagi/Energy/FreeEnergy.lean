@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -105,7 +106,11 @@ reused from `Hagi.Distill.crossEntropy`. -/
 /-- The KL-divergence (the finite-support form of
 `Hagi.DField.KLdiv`). -/
 noncomputable def kldiv (q p : V → ℝ) : ℝ :=
-  ∑ v, q v * Real.log (q v / p v)
+  Hagi.Prelude.klDef q p
+
+/-- prelude bridge: kldiv IS the canonical Prelude.klDef. -/
+theorem kldiv_eq_klDef (q p : V → ℝ) :
+    kldiv q p = Hagi.Prelude.klDef q p := rfl
 
 /-- **(P1a) The free-energy gap identity** — exact: with the
 potential U = −τ·log p + C, the free energy
@@ -222,7 +227,7 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
       = ∑ v, w i * (q v * Real.log (q v)
           - q v * Real.log (p i v)) := by
     intro i
-    unfold kldiv
+    unfold kldiv Hagi.Prelude.klDef
     rw [Finset.mul_sum]
     refine Finset.sum_congr rfl fun v _ => ?_
     rw [Real.log_div (ne_of_gt (hq v)) (ne_of_gt (hp i v))]
@@ -243,7 +248,7 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
       - q v * Real.log (p i v)) :=
     Finset.sum_comm
   rw [hswap]
-  unfold kldiv
+  unfold kldiv Hagi.Prelude.klDef
   rw [Finset.sum_congr rfl fun v _ => hRper v]
   set X := ∑ v, (q v * Real.log (q v)
       - q v * (∑ i, w i * Real.log (p i v))) with hX
