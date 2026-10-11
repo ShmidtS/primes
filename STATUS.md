@@ -925,6 +925,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   configs_injective_on_separated, used_configs_lower_bound,
   fiber_params_floor) — ε-точность закодирована в выборе good
   (аудит v3 §3.3). Батарея зелёная, Freeze 2184.
+- R321 (аудит v3 §2.2, Фаза 2): устранена инверсия Step←Audit.
+  Каноническая теория проекции (proj_descent_inner, min_dist_to_vi,
+  safeQP_descent) перенесена в Step/ProjectionDescent
+  (с полными доказательствами); дубли из Audit/Foundations
+  и Audit/Exactness удалены; импорт Audit.Exactness из
+  Step/ProjectionDescent убран (теперь только Mathlib);
+  Insight переключён на Step.ProjectionDescent.
+  Аксиомы чистые. Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -934,7 +942,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1192 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1190 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

@@ -47,65 +47,6 @@ open Finset Real InnerProductSpace
 
 namespace Hagi.Audit
 
-section SafeQPDescent
-
-variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-
-/-- **The minimizer's variational inequality** (review item 1,
-the bridge): if ds minimizes dist(·, g0) over the convex set C
-(ds ∈ C), then ⟪g0 − ds, w − ds⟫ ≤ 0 for every w ∈ C — the
-first-order optimality translated into the inner-product VI
-via norm_eq_iInf_iff_real_inner_le_zero (the Mathlib
-projection lemma, exactly as prescribed). This is the missing
-link between `SafeQP.safeQP_exists_unique` (the minimizer
-exists) and `Plan41.proj_descent_inner` (the descent
-guarantee). -/
-theorem min_dist_to_vi (C : Set X) (hconv : Convex ℝ C) (g0 ds : X)
-    (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0) :
-    ∀ w ∈ C, ⟪g0 - ds, w - ds⟫_ℝ ≤ 0 := by
-  have hkey : ‖g0 - ds‖ ≤ ⨅ w : C, ‖g0 - (w : X)‖ := by
-    have hCne : Nonempty C := ⟨ds, hs⟩
-    exact le_ciInf (f := fun w : C => ‖g0 - (w : X)‖)
-      (fun w => by
-        have hw := hmin (w : X) w.2
-        rw [dist_eq_norm, dist_eq_norm] at hw
-        rw [norm_sub_rev] at hw
-        rw [norm_sub_rev g0 (w : X)]
-        exact hw)
-  have hkey2 : (⨅ w : C, ‖g0 - (w : X)‖) ≤ ‖g0 - ds‖ := by
-    have hbdd : BddBelow (Set.range fun w : C => ‖g0 - (w : X)‖) :=
-      ⟨(0:ℝ), by
-        rintro y ⟨w, rfl⟩
-        exact norm_nonneg _⟩
-    exact ciInf_le hbdd (⟨ds, hs⟩ : C)
-  have hkeyE : ‖g0 - ds‖ = ⨅ w : C, ‖g0 - (w : X)‖ :=
-    le_antisymm hkey hkey2
-  exact (norm_eq_iInf_iff_real_inner_le_zero hconv hs).mp hkeyE
-
-/-- **The SafeQP descent — the controller guarantee** (review
-item 1, the instantiation): for the safe-QP minimizer ds (the
-`SafeQP.safeQP_exists_unique` output, abstractly: the dist-
-minimizer over the convex C ∋ 0), BOTH descent guarantees
-hold: ⟪g0, ds⟫ ≥ ‖ds‖² (the alignment retention) and
-‖g0−ds‖ ≤ ‖g0‖ (the contraction toward g0). The measured
-κ×cos scan SELECTS when to invoke the QP; THIS theorem is
-what the invocation buys — a certified descent step, not a
-thresholded hope. -/
-theorem safeQP_descent (C : Set X) (hconv : Convex ℝ C)
-    (h0 : (0:X) ∈ C) (g0 ds : X)
-    (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0) :
-    ‖ds‖^2 ≤ ⟪g0, ds⟫_ℝ ∧ ‖g0 - ds‖ ≤ ‖g0‖ := by
-  refine ⟨?_, ?_⟩
-  · exact proj_descent_inner C hconv h0 g0 ds (min_dist_to_vi C hconv g0 ds hs hmin) hs
-  · have h := hmin 0 h0
-    rw [dist_eq_norm, dist_eq_norm] at h
-    have h2 : ‖0 - g0‖ = ‖g0‖ := by rw [zero_sub, norm_neg]
-    have h3 : ‖ds - g0‖ = ‖g0 - ds‖ := norm_sub_rev _ _
-    rw [h2, h3] at h
-    exact h
-
-end SafeQPDescent
-
 section NSIter
 
 /-- **The NS iteration bound** (review item 2): the per-step
@@ -235,5 +176,5 @@ end BatchExact
 end Hagi.Audit
 
 namespace Hagi
-export Hagi.Audit (min_dist_to_vi safeQP_descent ns_iter_bound amgm_equality amgm_uniqueness batch_T_min)
+export Hagi.Audit (ns_iter_bound amgm_equality amgm_uniqueness batch_T_min)
 end Hagi

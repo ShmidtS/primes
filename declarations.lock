@@ -1260,7 +1260,6 @@ mh_stationary	a52bb12ee3cc68cb
 mhaCache	f371e6ed366f2687
 minEigenvalueIdx	1a155132c26fc2d7
 min_dist_to_vi	5ac3b9906f21c1f7
-min_dist_to_vi	5ac3b9906f21c1f7
 minibatch_inner_concentration	d0756438590ef94a
 minibatch_inner_concentration_upper	a1eb0347a767e560
 minibatch_inner_tail	8a68587d7754efac
@@ -1536,7 +1535,6 @@ prod_two_sel	d34abc8af9b01b15
 proj	5f46625761aa7967
 proj_descent_inner	439f321bc0e5b233
 proj_monotone	e96675040dab5c21
-proj_no_farther	8fab86997923b3fb
 proj_residual_identity	6542db4288d3dc67
 proj_residual_nonneg	5bdba1b8ba248e9a
 projection_inner	e5c37adc91fe0020
@@ -1725,7 +1723,6 @@ rsi_cone_criterion	0a22bea0363cea80
 rsi_step_growth	8b9d6665de96019e
 runDecisions	f3a238b3f2938e6d
 safeCandidates	65561a0a5f3e5e45
-safeQP_descent	d830f6ee95e012d5
 safeQP_descent	d830f6ee95e012d5
 safeQP_exists_unique	596ebb3bf4917520
 safeSet	f4bc6f7f142b971e

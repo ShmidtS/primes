@@ -48,48 +48,6 @@ open Finset Real InnerProductSpace
 
 namespace Hagi.Audit
 
-section ProjDescent
-
-variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-
-/-- **The SafeQP descent — the inner bound** (Phase 1.1a):
-the projection d* of g onto the closed convex conflict set
-C (containing 0) satisfies ⟪g,d*⟫ ≥ ‖d*‖²: the projected
-step retains at least the full norm of d* as alignment with
-the raw gradient — the descent guarantee. The proof is the
-variational inequality of the projection (`norm_eq_iInf_…`)
-evaluated at c = 0 ∈ C. -/
-theorem proj_descent_inner (C : Set X) (_hconv : Convex ℝ C) (h0 : (0:X) ∈ C)
-    (g dstar : X)
-    (hproj : ∀ w ∈ C, ⟪g - dstar, w - dstar⟫_ℝ ≤ 0) (_hd : dstar ∈ C) :
-    ‖dstar‖^2 ≤ ⟪g, dstar⟫_ℝ := by
-  have h0v : ⟪g - dstar, (0:X) - dstar⟫_ℝ ≤ 0 := hproj 0 h0
-  have hexp : ⟪g - dstar, (0:X) - dstar⟫_ℝ = ⟪g - dstar, -dstar⟫_ℝ := by
-    congr 1
-    abel
-  rw [hexp] at h0v
-  rw [inner_sub_left, inner_neg_right, inner_neg_right] at h0v
-  have hself : ⟪dstar, dstar⟫_ℝ = ‖dstar‖^2 := by
-    have := inner_self_eq_norm_sq (𝕜 := ℝ) dstar
-    simpa [RCLike.inner_apply, RCLike.re_to_real] using this
-  rw [hself] at h0v
-  linarith
-
-/-- **The SafeQP descent — the distance bound** (Phase 1.1b):
-the projection is no farther from g than the origin is:
-‖g−d*‖ ≤ ‖g‖ — the projected step never increases the
-distance to the raw gradient; the QP step is a contraction
-toward g. -/
-theorem proj_no_farther (C : Set X) (h0 : (0:X) ∈ C) (g dstar : X)
-    (hmin : ∀ w ∈ C, ‖g - dstar‖ ≤ ‖g - w‖) :
-    ‖g - dstar‖ ≤ ‖g‖ := by
-  have h := hmin 0 h0
-  simpa using h
-
-end ProjDescent
-
-section GapN
-
 /-- **The Jensen inequality for exp over a finitely-supported
 probability** (Phase 1.2, the brick): exp(Σ p δ) ≤ Σ p·exp(δ)
 for p ≥ 0 with Σ p = 1 — `ConvexOn.map_sum_le` specialized. -/
@@ -154,7 +112,6 @@ theorem gap_N_nonneg {A V : Type} [Fintype A] [Fintype V] [Nonempty A] [Nonempty
   rw [hsplit, le_div_iff₀ hcard]
   linarith
 
-end GapN
 
 section AnchorRecurrence
 
@@ -271,5 +228,5 @@ end BatchOpt
 end Hagi.Audit
 
 namespace Hagi
-export Hagi.Audit (proj_descent_inner proj_no_farther exp_jensen gap_N_nonneg anchor_recurrence ns_poly_bound amgm_batch_bound)
+export Hagi.Audit (exp_jensen gap_N_nonneg anchor_recurrence ns_poly_bound amgm_batch_bound)
 end Hagi
