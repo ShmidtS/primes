@@ -798,6 +798,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   equivOfCardEq). MDL-теория ранга замкнута: вместе с
   antitone/argmin_exists даёт полную основу first-order
   критерия σ_{k+1}² ≤ λ·c. Freeze 2167→2168.
+- R306 (единый план, Фаза 1): аксиома FLYWHEEL
+  exists_spectral_minimizer_rank1 (CoherenceCharacterization)
+  ЗАМЕНЕНА доказанной теоремой — rank-1 truncatedSVD сам
+  спектральный минимизатор: σ₂(A) = ‖A−trunc1‖₂ ≤ σ₁(A−N) =
+  ‖A−N‖₂ (Rectangular.spectral_error + Weyl interlacing +
+  spectral_norm_eq_singularValues₀_zero); ветка card ≤ 1 —
+  truncatedSVD_full. spectralOptimalRank1 := truncatedSVD A 1
+  (без Classical.choose), заглушка frobeniusOptimalKronecker
+  (неиспользуемая := A) удалена. 0 аксиом / 0 sorry во всей
+  библиотеке Hagi. Freeze 2168→2169.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -806,7 +816,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1177 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1178 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

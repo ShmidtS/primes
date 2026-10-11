@@ -1743,41 +1743,55 @@ theorem spectralGap_nonneg (A : Matrix n n ℂ) : 0 ≤ spectralGap A := by
   · -- Case: card n ≤ 1
     exact SVD.singularValues₀_nonneg A _
 
-/-- The Frobenius-optimal rank-1 Kronecker approximation.
-    This is R⁻¹ applied to the rank-1 truncated SVD of R(A).
+/-- **Existence of Spectral-Optimal Solution** (v4.34 port: proved).
 
-    In the Kronecker setting where A is a block matrix:
-    - R(A) transforms it to a matrix where Kronecker products become rank-1
-    - truncatedSVD gives the best Frobenius approximation
-    - R⁻¹ transforms back to the original block structure -/
-noncomputable def frobeniusOptimalKronecker
-    (A : Matrix (m × p) (n × q) ℂ) : Matrix (m × p) (n × q) ℂ :=
-  -- Note: We need square R(A) for truncatedSVD, so we work with the composed space
-  -- For now, we define this for the case where R(A) is square
-  A  -- Placeholder: actual implementation requires rectangular truncatedSVD
+Rank-1 truncated SVD is itself the spectral-norm minimizer:
+σ₂(A) = ‖A - trunc1‖ ≤ σ₁(A - N) = ‖A - N‖ for rank N ≤ 1
+(spectral error identity + Weyl low-rank interlacing). -/
+private theorem trunc1_spectral_optimal_aux (A : Matrix n n ℂ)
+    (N : Matrix n n ℂ) (hN : N.rank ≤ 1) :
+    ‖A - SVD.truncatedSVD A 1‖ ≤ ‖A - N‖ := by
+  by_cases hcard : 1 < Fintype.card n
+  · have h1 : ‖A - SVD.truncatedSVD A 1‖
+        = SVD.singularValues₀ A ⟨1, hcard⟩ :=
+      Matrix.SVD.Rectangular.spectral_error_truncatedSVD A 1 hcard
+    have h2 : SVD.singularValues₀ A ⟨1, hcard⟩
+        ≤ SVD.singularValues₀ (A - N) ⟨0, by omega⟩ :=
+      Matrix.WeylInequality.interlacing_low_rank_subtraction A N 1 hN
+        ⟨1, hcard⟩ (le_refl 1)
+    have h3 : SVD.singularValues₀ (A - N) ⟨0, by omega⟩ = ‖A - N‖ :=
+      (Matrix.SVD.Rectangular.spectral_norm_eq_singularValues₀_zero (A - N)).symm
+    rw [h1, ← h3]
+    exact h2
+  · -- card n ≤ 1: trunc1 = A (full), error 0
+    have hfull : SVD.truncatedSVD A 1 = A :=
+      SVD.truncatedSVD_full A 1 (by
+        have : Fintype.card n ≤ 1 := by omega
+        simpa using this)
+    rw [hfull, sub_self, norm_zero]
+    exact norm_nonneg _
 
-/-- **Existence of Spectral-Optimal Solution**
+/-- **Existence of Spectral-Optimal Solution** (v4.34 port: proved).
 
-For any matrix A, there exists a rank-1 matrix M* in the rearranged space
-that minimizes the spectral norm ‖R(A) - M‖₂ over all rank-1 matrices M.
+For any matrix A there exists a rank-1 matrix M minimizing the spectral
+norm error: rank-1 truncated SVD is such a minimizer. -/
+theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
+    ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
+      ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖ :=
+  ⟨SVD.truncatedSVD A 1, SVD.truncatedSVD_rank_le A 1,
+    fun N hN => trunc1_spectral_optimal_aux A N hN⟩
 
-This follows from:
-1. The set of rank-1 matrices with bounded norm is compact
-2. The spectral norm is continuous
-3. Extreme value theorem (continuous function on compact set attains minimum) -/
-axiom exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
-  ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
-    ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖
-
-/-- The spectral-optimal rank-1 approximation (chosen via axiom of choice). -/
+/-- The spectral-optimal rank-1 approximation:
+rank-1 truncated SVD (v4.34 port: definitional, no axiom of choice). -/
 noncomputable def spectralOptimalRank1 (A : Matrix n n ℂ) : Matrix n n ℂ :=
-  Classical.choose (exists_spectral_minimizer_rank1 A)
+  SVD.truncatedSVD A 1
 
 /-- The spectral-optimal approximation achieves the minimum. -/
 theorem spectralOptimalRank1_is_optimal (A : Matrix n n ℂ) :
     (spectralOptimalRank1 A).rank ≤ 1 ∧
-    ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - spectralOptimalRank1 A‖ ≤ ‖A - N‖ :=
-  Classical.choose_spec (exists_spectral_minimizer_rank1 A)
+    ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - spectralOptimalRank1 A‖ ≤ ‖A - N‖ := by
+  refine ⟨SVD.truncatedSVD_rank_le A 1, fun N hN =>
+    trunc1_spectral_optimal_aux A N hN⟩
 
 /-! ### Main Distance Bound -/
 
