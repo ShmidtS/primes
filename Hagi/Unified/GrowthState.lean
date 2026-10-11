@@ -345,7 +345,13 @@ structure Certificate where
   decrease : ℝ
   /-- Protected-risk spent in the generation. -/
   riskSpend : ℝ
-  /-- Compute budget spent in the generation. -/
+  /-- Compute budget spent in the generation.
+  Accounting semantics (unified plan §5.4, R312):
+  covers ONLY the growth and joint stages
+  (`growCost + jointCost`); the compression cost
+  `costCompress` is deliberately NOT a budget spend
+  — it enters the Φ-potential through `riskSpend`/
+  `potential_compress` (a penalty, not a resource). -/
   budgetSpend : ℝ
 
 /-- The measurement record: the observable energy/step/gap/risk/
