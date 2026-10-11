@@ -172,7 +172,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
       ≤ (S 0).toGrowthState.budget)
     (h_risk_nn : ∀ t, 0 ≤ (S t).toGrowthState.protectedRisk)
     (h_Emin : Emin ≤ (S T).toGrowthState.energy)
-    (C G D xi : ℕ → ℝ) (alpha gamma rho beta Cstar : ℝ)
+    (C G D xi : ℕ → ℝ) (alpha gamma rho beta : ℝ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < C 0)
     (h_emp_cone0 : alpha / gamma * C 0 ≤ D 0)
@@ -181,8 +181,7 @@ theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
     (h_emp_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
     (h_emp_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
     (h_emp_beta : ∀ t < T,
-      alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta)
-    (hCeil : C 0 * (1 + alpha) ^ T ≤ Cstar) :
+      alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta) :
     CertifiedHAGIInvariant T
       (fun t => (S t).toGrowthState.protectedRisk)
       (fun t => hagiPotential (S t) lam nu Qtarget w)

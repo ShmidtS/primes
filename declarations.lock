@@ -76,7 +76,7 @@ MOPDApproved	1995a138f8c82cd2
 MasterHAGI	217018eb100d2a88
 MasterHAGICore	527161ed4898378b
 MasterHAGI_probability	84e7e5d261bcb56e
-MasterHAGI_trunc	34e12dad1d3f4a8b
+MasterHAGI_trunc	4b3dd754c58ecd48
 MasterHAGI_wallclock	b3d00af57b6f4e3a
 Matrix	0a524bc72549ce87
 Matrix	3f5a68c8c48a78de
@@ -1199,7 +1199,7 @@ mass_nonneg	c55eac68d1b0069e
 mass_real_smul	14ac98222eb59b14
 mass_sub	583f96eaa397ee38
 masterhagi_growth_witness	3979befdd7a4892b
-masterhagi_trunc_of_assumptions	4c49febfbdd3e4a6
+masterhagi_trunc_of_assumptions	696fdf38f879dc51
 matrix_charpoly_zero	31a6f28652f5eefb
 maxSingularValue	4e1872cbdfa69ac7
 max_singularValue_sq_le_sum_rect	511b38a108a0d1ac

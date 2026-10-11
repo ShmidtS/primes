@@ -74,7 +74,7 @@ theorem masterhagi_trunc_of_assumptions
         ≤ safeqpEtaMax (g t) (eps t) (L t) (S t).toGrowthState.stepDir)
     (h_sumdL : ∀ t < T, (S (t + 1)).toGrowthState.protectedRisk
         = (S t).toGrowthState.protectedRisk + ∑ i, dL t i)
-    (C G D xi : ℕ → ℝ) (alpha gamma rho beta Cstar : ℝ)
+    (C G D xi : ℕ → ℝ) (alpha gamma rho beta : ℝ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < C 0)
     (h_emp_cone0 : alpha / gamma * C 0 ≤ D 0)
@@ -83,8 +83,7 @@ theorem masterhagi_trunc_of_assumptions
     (h_emp_dyn : ∀ t < T, rho * D t + beta * C t - xi t ≤ D (t + 1))
     (h_emp_C_cap : ∀ t < T, C (t + 1) ≤ (1 + alpha) * C t)
     (h_emp_beta : ∀ t < T,
-      alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta)
-    (hCeil : C 0 * (1 + alpha) ^ T ≤ Cstar) :
+      alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta) :
     CertifiedHAGIInvariant T
       (fun t => (S t).toGrowthState.protectedRisk)
       (fun t => hagiPotential (S t) lam nu Qtarget gd.w)
@@ -98,7 +97,7 @@ theorem masterhagi_trunc_of_assumptions
   MasterHAGI_trunc S lam nu Qtarget Emin gd.w gd.hlam gd.hnu gd.epsQ
     gd.h_epsQ T g dL eps L etaq hLq hepsq hetaq hd h_lipline h_eta h_sumdL
     gd.h_core gd.h_net gd.h_budget0 gd.h_risk_nn gd.h_Emin
-    C G D xi alpha gamma rho beta Cstar hα hγ hρ hC0 h_emp_cone0
-    h_emp_step h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta hCeil
+    C G D xi alpha gamma rho beta hα hγ hρ hC0 h_emp_cone0
+    h_emp_step h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta
 
 end Hagi.Assumptions
