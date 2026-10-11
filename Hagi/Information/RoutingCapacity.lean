@@ -30,14 +30,14 @@ router with B bits of state (at most 2^B routes), then
 K ≤ 2^B: preserving K separated capabilities requires
 log₂ K routing bits. -/
 theorem router_capacity_bound {A Q : Type} [Fintype Q]
-    [DecidableEq Q] (eps : ℝ) (good : A → A → Prop)
-    (tasks : Finset A) (hsep : SepSeparated eps good tasks)
+    [DecidableEq Q] (good : A → A → Prop)
+    (tasks : Finset A) (hsep : SepSeparated good tasks)
     (encode : A → Q) (decode : Q → A)
     (hcover : ∀ x ∈ tasks, ∃ w : A, good (decode (encode w)) x)
     (B : ℕ) (hQ : Fintype.card Q ≤ 2 ^ B) :
     tasks.card ≤ 2 ^ B := by
   have h1 : tasks.card ≤ Fintype.card Q :=
-    quantized_separation_needs_range eps good tasks hsep encode
+    quantized_separation_needs_range good tasks hsep encode
       decode hcover
   exact le_trans h1 hQ
 

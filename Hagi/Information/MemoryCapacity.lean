@@ -44,10 +44,11 @@ open Finset
 
 /-! ### The counting floor -/
 
-/-- A family of tasks is 2ε-separated if no single answer is
-ε-good for two distinct tasks (recovering one within ε rules
-out the other). -/
-def SepSeparated {A : Type} (eps : ℝ) (good : A → A → Prop)
+/-- A family of tasks is separated w.r.t. `good` if no single
+answer is good for two distinct tasks (recovering one rules
+out the other). The ε-precision lives in the choice of `good`
+(ε-good answers), not in this predicate. -/
+def SepSeparated {A : Type} (good : A → A → Prop)
     (tasks : Finset A) : Prop :=
   ∀ x ∈ tasks, ∀ y ∈ tasks, x ≠ y →
     ∀ a : A, good a x → ¬ good a y
@@ -58,8 +59,8 @@ state space misses some task by more than ε. THE memory/
 precision trade-off in its finite core: half-precision memory
 halves the distinguishable capability space. -/
 theorem separated_needs_capacity {A S : Type} [Fintype S] [DecidableEq S]
-    (eps : ℝ) (good : A → A → Prop)
-    (tasks : Finset A) (hsep : SepSeparated eps good tasks)
+    (good : A → A → Prop)
+    (tasks : Finset A) (hsep : SepSeparated good tasks)
     (decode : S → A)
     (hcover : ∀ x ∈ tasks, ∃ s : S, good (decode s) x) :
     tasks.card ≤ Fintype.card S := by

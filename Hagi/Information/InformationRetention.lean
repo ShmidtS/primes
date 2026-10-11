@@ -47,8 +47,8 @@ the capability currency — the pipeline cannot preserve more
 separated capabilities than it has compressed states. -/
 theorem quantized_separation_needs_range
     {A Q : Type} [Fintype Q] [DecidableEq Q]
-    (eps : ℝ) (good : A → A → Prop)
-    (tasks : Finset A) (hsep : SepSeparated eps good tasks)
+    (good : A → A → Prop)
+    (tasks : Finset A) (hsep : SepSeparated good tasks)
     (encode : A → Q) (decode : Q → A)
     (hcover : ∀ x ∈ tasks, ∃ w : A, good (decode (encode w)) x) :
     tasks.card ≤ Fintype.card Q := by
@@ -57,6 +57,6 @@ theorem quantized_separation_needs_range
     intro x hx
     obtain ⟨w, hw⟩ := hcover x hx
     exact ⟨encode w, hw⟩
-  exact separated_needs_capacity eps good tasks hsep decode hcover'
+  exact separated_needs_capacity good tasks hsep decode hcover'
 
 end Hagi.Information

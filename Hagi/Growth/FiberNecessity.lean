@@ -25,8 +25,8 @@ open Finset
 served ε-well by its routed configuration, two distinct
 tasks in the family cannot have equal `cfg` values. -/
 theorem configs_injective_on_separated {A Q : Type}
-    (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
-    (hsep : Hagi.Information.SepSeparated eps good tasks)
+    (good : A → A → Prop) (tasks : Finset A)
+    (hsep : Hagi.Information.SepSeparated good tasks)
     (cfg : A → Q) (serve : Q → A)
     (hcover : ∀ x ∈ tasks, good (serve (cfg x)) x)
     {x y : A} (hx : x ∈ tasks) (hy : y ∈ tasks)
@@ -40,8 +40,8 @@ theorem configs_injective_on_separated {A Q : Type}
 /-- Under the hypotheses of `configs_injective_on_separated`,
 `tasks.card ≤ (Finset.image cfg tasks).card`. -/
 theorem used_configs_lower_bound {A Q : Type} [DecidableEq Q]
-    (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
-    (hsep : Hagi.Information.SepSeparated eps good tasks)
+    (good : A → A → Prop) (tasks : Finset A)
+    (hsep : Hagi.Information.SepSeparated good tasks)
     (cfg : A → Q) (serve : Q → A)
     (hcover : ∀ x ∈ tasks, good (serve (cfg x)) x) :
     tasks.card ≤ (Finset.image cfg tasks).card := by
@@ -50,7 +50,7 @@ theorem used_configs_lower_bound {A Q : Type} [DecidableEq Q]
     by_contra hne
     have hx' : x ∈ tasks := by simpa using hx
     have hy' : y ∈ tasks := by simpa using hy
-    exact configs_injective_on_separated eps good tasks hsep cfg
+    exact configs_injective_on_separated good tasks hsep cfg
       serve hcover hx' hy' hne hxy
   exact (Finset.card_image_of_injOn hinj).ge
 
@@ -58,8 +58,8 @@ theorem used_configs_lower_bound {A Q : Type} [DecidableEq Q]
 if every used configuration has `rmin ≤ rank q`, then
 `tasks.card * rmin * d ≤ ∑ q, rank q * d`. -/
 theorem fiber_params_floor {A Q : Type} [DecidableEq Q]
-    (eps : ℝ) (good : A → A → Prop) (tasks : Finset A)
-    (hsep : Hagi.Information.SepSeparated eps good tasks)
+    (good : A → A → Prop) (tasks : Finset A)
+    (hsep : Hagi.Information.SepSeparated good tasks)
     (cfg : A → Q) (serve : Q → A)
     (hcover : ∀ x ∈ tasks, good (serve (cfg x)) x)
     (rank : Q → ℕ) (rmin d : ℕ)
@@ -69,7 +69,7 @@ theorem fiber_params_floor {A Q : Type} [DecidableEq Q]
   have hcount : tasks.card * rmin * d
       ≤ (Finset.image cfg tasks).card * rmin * d :=
     Nat.mul_le_mul (Nat.mul_le_mul
-      (used_configs_lower_bound eps good tasks hsep cfg serve
+      (used_configs_lower_bound good tasks hsep cfg serve
         hcover) (le_refl rmin)) (le_refl d)
   have hsum : (Finset.image cfg tasks).card * rmin * d
       ≤ ∑ q ∈ Finset.image cfg tasks, rank q * d := by

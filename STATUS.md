@@ -919,6 +919,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   + асимптота квадрата суммы); compress_chain_cost — полная цена
   двухстадийного сжатия |ℓ(W)−ℓ(W'')| ≤ κ_F·(δ₁+δ₂) через
   Минковского. Аксиомы чистые. Freeze 2184.
+- R320 (MemoryCapacity/цепочка): убран фантомный параметр eps из SepSeparated
+  и всех 5 потребителей (separated_needs_capacity,
+  quantized_separation_needs_range, router_capacity_bound,
+  configs_injective_on_separated, used_configs_lower_bound,
+  fiber_params_floor) — ε-точность закодирована в выборе good
+  (аудит v3 §3.3). Батарея зелёная, Freeze 2184.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
