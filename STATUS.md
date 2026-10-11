@@ -822,6 +822,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   адаптерами Foundations (R294) — пункт плана закрыт.
   instCStarAlgebraMatrix: SVD уже на локальном инстансе,
   глобальный стабилен — отложено без риска. Freeze 2169→2168.
+- R307b (Фаза 1, дубли Flywheel): аудит 11 кросс-файловых
+  пар — 6 private+private (файл-локальны, безвредны),
+  3 SVD-private vs MNR-public (нет конфликта имён),
+  2 public-public в РАЗНЫХ namespaces (Matrix.FrobeniusNorm
+  vs Matrix.SVD.Rectangular) — namespaced-реэкспорты/
+  делегаты по дизайну FLYWHEEL (frobenius_error_
+  truncatedSVD делегирует канону). Семантических дублей
+  для слияния НЕТ — пункт плана закрыт проверкой.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
