@@ -949,6 +949,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 - R325: Ensemble/MergePrice — неиспользуемый import Step.GPM заменён на
   Mathlib; exception удалён. Осталось 6 LayerLint-исключений
   (все — связаны с GrowthState-декомпозицией, Фаза 4). Freeze 2181.
+- R326 (аудит v3 §1.1/§2.1): frontier_cone_inductive +
+  frontier_cone_invariant → Foundations/ConeTakeoff (конусный канон в
+  низком слое); инверсия ModeState←FrontierScaling
+  устранена (ModeState → Foundations); MasterHAGI — явный
+  import FrontierScaling (был транзитивным через ModeState).
+  LayerLint exceptions осталось 5. Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

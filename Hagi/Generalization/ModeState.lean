@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Growth.FrontierScaling
+import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.Potential
 import Hagi.Unified.GrowthState
 
@@ -394,7 +394,7 @@ theorem qgen_frontier_bridge (C D ξ ΔQ : ℕ → ℝ) (α γ ρ β ηQ : ℝ)
       ≤ β + ηQ * max 0 (ΔQ t) / C t := by
     rw [hdiv] at hβ_eased
     linarith
-  exact frontier_cone_inductive C D ξ α γ ρ
+  exact Hagi.frontier_cone_inductive C D ξ α γ ρ
     (β + ηQ * max 0 (ΔQ t) / C t)
     hα hγ hρ t hCpos hcone h_dyn_eff h_C_cap hβ_eff
 

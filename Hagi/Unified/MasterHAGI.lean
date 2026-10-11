@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Generalization.ModeState
+import Hagi.Growth.FrontierScaling
 import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Step.SafeQPStep
 import Hagi.Foundations.Telescope

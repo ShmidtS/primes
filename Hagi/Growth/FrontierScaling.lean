@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.GainRenewal
+import Hagi.Foundations.ConeTakeoff
 set_option linter.style.header false
 
 /-!
@@ -11,9 +12,8 @@ set_option linter.style.header false
 посылками: динамика производства `D (t+1) ≥ ρ·D t + β·C t − ξ t`,
 кап на рост `C (t+1) ≤ (1+α)·C t`, конус в нуле и порог на `β`.
 
-* `frontier_cone_inductive`: шаг конуса `D ≥ (α/γ)·C` при
   пороге `(α/γ)·((1+α) − ρ) + ξ t / C t ≤ β` (нужно `0 < C t`);
-* `frontier_cone_invariant`: индукция — конус при всех t;
+(Конусный шаг/инвариант перенесён в Foundations/ConeTakeoff — R326.)
 * `takeoff_edge_forced`: при точном шаге, gain-законе, конусе
   и капе выполнены тождества `G = α·C`, `D = (α/γ)·C`,
   `C' = (1+α)·C` — модель ПОЛНОСТЬЮ НАСЫЩЕННОГО режима
@@ -36,63 +36,6 @@ open Real Finset
 namespace Hagi.Growth
 
 /-! ## The cone step -/
-
-/-- Шаг конуса: при `0 < α`, `0 < γ`, `0 ≤ ρ`, `0 < C t`,
-конусе `α/γ·C t ≤ D t`, динамике
-`ρ·D t + β·C t − ξ t ≤ D (t+1)`, капе
-`C (t+1) ≤ (1+α)·C t` и пороге
-`α/γ·((1+α) − ρ) + ξ t / C t ≤ β` следует
-`α/γ·C (t+1) ≤ D (t+1)`. -/
-theorem frontier_cone_inductive (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
-    (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ) (t : ℕ)
-    (hCpos : 0 < C t)
-    (hcone : α / γ * C t ≤ D t)
-    (h_dyn : ρ * D t + β * C t - ξ t ≤ D (t + 1))
-    (h_C_cap : C (t + 1) ≤ (1 + α) * C t)
-    (hβ : α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β) :
-    α / γ * C (t + 1) ≤ D (t + 1) := by
-  -- the cone lower-bounds the retained part
-  have h1 : ρ * (α / γ * C t) ≤ ρ * D t :=
-    mul_le_mul_of_nonneg_left hcone hρ
-  -- the threshold, cleared of denominators (C_t > 0)
-  have h2 : (α / γ * ((1 + α) - ρ)) * C t + ξ t ≤ β * C t := by
-    have hm := mul_le_mul_of_nonneg_right hβ hCpos.le
-    have e : (α / γ * ((1 + α) - ρ) + ξ t / C t) * C t
-        = (α / γ * ((1 + α) - ρ)) * C t + ξ t := by
-      field_simp
-    rw [← e]
-    exact hm
-  -- the cap upper-bounds the demand by k·(1+α)·C_t
-  have hk : 0 ≤ α / γ := div_nonneg hα.le hγ.le
-  have h3 : α / γ * C (t + 1) ≤ α / γ * ((1 + α) * C t) :=
-    mul_le_mul_of_nonneg_left h_C_cap hk
-  -- k·(1+α)·C_t = k·((1+α)−ρ)·C_t + ρ·(k·C_t)
-  have h4 : α / γ * ((1 + α) * C t)
-      = (α / γ * ((1 + α) - ρ)) * C t + ρ * (α / γ * C t) := by
-    ring
-  linarith
-
-/-! ## The cone invariant -/
-
-/-- Индукция шага: если конус выполнен при `t = 0`, `0 < C t`
-при всех t и посылки `frontier_cone_inductive` выполнены при
-каждом t, то `α/γ·C t ≤ D t` при всех t. -/
-theorem frontier_cone_invariant (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
-    (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
-    (hCpos : ∀ t, 0 < C t)
-    (h_cone0 : α / γ * C 0 ≤ D 0)
-    (h_dyn : ∀ t, ρ * D t + β * C t - ξ t ≤ D (t + 1))
-    (h_C_cap : ∀ t, C (t + 1) ≤ (1 + α) * C t)
-    (hβ : ∀ t, α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β) :
-    ∀ t, α / γ * C t ≤ D t := by
-  intro t
-  induction t with
-  | zero => exact h_cone0
-  | succ t ih =>
-      exact frontier_cone_inductive C D ξ α γ ρ β hα hγ hρ t
-        (hCpos t) ih (h_dyn t) (h_C_cap t) (hβ t)
-
-/-! ## The composition with R104 -/
 
 /-- При `0 < γ`, точном шаге `C (t+1) = C t + G t`,
 gain-законе `γ·D t ≤ G t`, конусе `α/γ·C t ≤ D t` и капе
@@ -166,7 +109,7 @@ private theorem cone_and_pos (C G D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
         field_simp
       rw [e] at hg
       have hA : 0 < α * C t := by positivity
-      refine ⟨?_, frontier_cone_inductive C D ξ α γ ρ β hα hγ hρ t
+      refine ⟨?_, Hagi.Foundations.frontier_cone_inductive C D ξ α γ ρ β hα hγ hρ t
         hpos hcone (h_dyn t) (h_C_cap t) (hβ t hpos)⟩
       rw [h_step t]
       linarith
@@ -194,7 +137,7 @@ theorem sustained_takeoff_from_production (C G D ξ : ℕ → ℝ)
   have hcp := cone_and_pos C G D ξ α γ ρ β hα hγ hρ hC0 h_cone0
     h_step h_gain_prod h_dyn h_C_cap (fun t _ => hβ t)
   have hCpos : ∀ t, 0 < C t := fun t => (hcp t).1
-  have hcone := frontier_cone_invariant C D ξ α γ ρ β hα hγ hρ hCpos
+  have hcone := Hagi.Foundations.frontier_cone_invariant C D ξ α γ ρ β hα hγ hρ hCpos
     h_cone0 h_dyn h_C_cap hβ
   -- the gate, DERIVED from the cone: α·C_t = γ·((α/γ)·C_t) ≤ γ·D_t
   have hgate : ∀ t, α * C t ≤ γ * D t := by
@@ -243,5 +186,5 @@ theorem frontier_asymptotic (C G D ξ : ℕ → ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (frontier_cone_inductive frontier_cone_invariant takeoff_edge_forced sustained_takeoff_from_production frontier_asymptotic)
+export Hagi.Growth (takeoff_edge_forced sustained_takeoff_from_production frontier_asymptotic)
 end Hagi
