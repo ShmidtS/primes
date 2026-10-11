@@ -886,6 +886,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   телескопирование CE/KL уже покрыто (distill_entropy_
   recurrence — точная замкнутая форма + entropy_kl_ce_
   identity). Freeze 2176→2177.
+- R315 (план §6.3): новый модуль Data/CertifiedArgmax —
+  certified_argmax_strict (отрыв истинного максимума > 2ε
+  при оценках с ошибкой ≤ ε ⇒ argmax оценок гарантированно
+  истинный) + certified_argmax_ambiguity (честная граница:
+  при зазоре ≤ ε существуют ε-точные оценки со СМЕЩЁННЫМ
+  argmax — гарантии нет, нужна обработка неоднозначности).
+  Freeze 2177→2179.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -895,7 +902,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1185 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1187 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

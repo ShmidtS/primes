@@ -41,6 +41,7 @@ import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Data.DistillRecursion
+import Hagi.Data.CertifiedArgmax
 import Hagi.Step.SafeQP
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
