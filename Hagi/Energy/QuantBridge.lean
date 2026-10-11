@@ -74,8 +74,77 @@ theorem quant_energy_bridge {n : ℕ} (w q : Fin n → ℝ) (s kappa dE : ℝ)
                 mul_le_mul_of_nonneg_left hsq hkappa
     _ = kappa * Real.sqrt (n : ℝ) * s / 2 := by ring
 
+
+/-- **The quantization→layer-output perturbation** (unified plan
+§6.2, step 2): if every weight of an m×n layer is rounded
+with componentwise error at most D (e.g. D = Δ/2 for the grid
+step Δ), then the output perturbation obeys the
+dimension-correct bound
+
+  ‖(Ŵ − W) x‖₂ ≤ D · √(m·n) · ‖x‖₂,
+
+with BOTH d_in and d_out under the root (the plan's audit
+correction: the √d_in-only form holds for the componentwise
+max-norm of the output, not for the Euclidean norm of the
+whole vector). -/
+theorem quant_matrix_perturb {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
+    (x : Fin n → ℝ) (D : ℝ) (hD : 0 ≤ D)
+    (hres : ∀ i j, |Wq i j - W i j| ≤ D) :
+    ∑ i, ((Wq - W).mulVec x i) ^ 2 ≤ (m * n) * D ^ 2 * (∑ j, x j ^ 2) := by
+  set E : Matrix (Fin m) (Fin n) ℝ := Wq - W with hE
+  have hmul : ∀ i, (E.mulVec x i) = ∑ j, E i j * x j := by
+    intro i
+    rfl
+  have hsq : ∀ i, (E.mulVec x i) ^ 2 ≤ n * D ^ 2 * (∑ j, x j ^ 2) := by
+    intro i
+    rw [hmul i]
+    have hcs := sum_mul_sq_le_sq_mul_sq Finset.univ (fun j => E i j) x
+    have hEin : (∑ j, E i j ^ 2) ≤ n * D ^ 2 := by
+      have hle : ∀ j : Fin n, E i j ^ 2 ≤ D ^ 2 := by
+        intro j
+        have hr := hres i j
+        rw [abs_le] at hr
+        have hEij : E i j = Wq i j - W i j := by rw [hE]; rfl
+        rw [hEij]
+        nlinarith [hr.1, hr.2]
+      calc (∑ j, E i j ^ 2) ≤ ∑ j : Fin n, D ^ 2 :=
+            Finset.sum_le_sum (fun j _ => hle j)
+        _ = n * D ^ 2 := by
+            rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+            simp
+    calc (∑ j, E i j * x j) ^ 2 ≤ (∑ j, E i j ^ 2) * (∑ j, x j ^ 2) := hcs
+      _ ≤ (n * D ^ 2) * (∑ j, x j ^ 2) := by
+          exact mul_le_mul_of_nonneg_right hEin (by positivity)
+  calc ∑ i, (E.mulVec x i) ^ 2 ≤ ∑ i, n * D ^ 2 * (∑ j, x j ^ 2) :=
+        Finset.sum_le_sum (fun i _ => hsq i)
+    _ = m * (n * D ^ 2 * (∑ j, x j ^ 2)) := by
+        rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+        simp
+    _ = (m * n) * D ^ 2 * (∑ j, x j ^ 2) := by ring
+
+/-- Корневая (нормовая) форма: ‖(Ŵ−W)x‖₂ ≤ D·√(m·n)·‖x‖₂. -/
+theorem quant_matrix_perturb_norm {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
+    (x : Fin n → ℝ) (D : ℝ) (hD : 0 ≤ D)
+    (hres : ∀ i j, |Wq i j - W i j| ≤ D) :
+    Real.sqrt (∑ i, ((Wq - W).mulVec x i) ^ 2)
+      ≤ D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by
+  have key := quant_matrix_perturb W Wq x D hD hres
+  have hpos : (0:ℝ) ≤ D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by
+    positivity
+  have hR : (m * n) * D ^ 2 * (∑ j, x j ^ 2)
+      = (D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2)) ^ 2 := by
+    rw [mul_pow, mul_pow,
+      Real.sq_sqrt (by positivity : (0:ℝ) ≤ m * n),
+      Real.sq_sqrt (by positivity : (0:ℝ) ≤ ∑ j, x j ^ 2)]
+    ring
+  rw [hR] at key
+  calc Real.sqrt (∑ i, ((Wq - W).mulVec x i) ^ 2)
+      ≤ Real.sqrt ((D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2)) ^ 2) :=
+        Real.sqrt_le_sqrt key
+    _ = D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := Real.sqrt_sq hpos
+
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (quant_residual_norm quant_energy_bridge)
+export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb quant_matrix_perturb_norm)
 end Hagi

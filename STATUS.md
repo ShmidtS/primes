@@ -841,6 +841,17 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   через Nat.le_pred_of_lt). Практический смысл:
   сжатие выгодно пока σ² > λ·c — проверяемый критерий
   truncation-политики. Freeze 2168→2172.
+- R309 (план §6.2, шаг 2): quant_matrix_perturb +
+  quant_matrix_perturb_norm (QuantBridge) —
+  размерностно-корректная граница возмущения выхода
+  слоя при покомпонентной ошибке квантования ≤ D:
+  ‖(Ŵ−W)x‖₂ ≤ D·√(m·n)·‖x‖₂ (ОБЕ размерности под корнем —
+  поправка аудита: √d_in-форма верна лишь для max-нормы
+  выхода). Доказательство: Коши–Шварц по строкам
+  (sum_mul_sq_le_sq_mul_sq) + |E_ij|² ≤ D² + суммирование
+  по выходам. Цепочка моста §6.2 теперь: округление →
+  выход слоя (новое) → энергия (quant_energy_bridge).
+  Freeze 2172→2174.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -849,7 +860,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1180 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1182 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
