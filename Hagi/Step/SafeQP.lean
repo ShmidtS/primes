@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib
+import Hagi.Spectral.SpectralProjector
 
 set_option linter.style.header false
 
@@ -223,9 +224,43 @@ theorem safeqp_inactive {X : Type*} [NormedAddCommGroup X] [InnerProductSpace �
   rw [dist_self] at h0min
   have hdseq0 : dist ds g0 = 0 := le_antisymm h0min dist_nonneg
   exact eq_of_dist_eq_zero hdseq0
+section SafeQPComposition
+
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+variable {K : Type*} [Fintype K]
+
+/-- For any `dstar`, `g0` and filter `P`:
+`‖dstar - g0‖ ≤ ‖dstar - P g0‖ + ‖g0 - P g0‖` — acting from
+the filtered target pays the filtering tail additively. -/
+theorem filtered_step_cost (dstar g0 : X) (P : X → X) :
+    ‖dstar - g0‖ ≤ ‖dstar - P g0‖ + ‖g0 - P g0‖ := by
+  have hsplit : dstar - g0 = (dstar - P g0) + (P g0 - g0) := by abel
+  rw [hsplit]
+  exact (norm_add_le _ _).trans (add_le_add le_rfl (norm_sub_rev _ _).le)
+
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
+/-- There exists a step `dstar` in the safe set `safeSet g eps`
+that is the projection (in the `safeQP_exists_unique` sense) of
+the filtered target `P g0`, and its distance to the raw `g0` is
+at most `‖dstar - P g0‖ + ‖g0 - P g0‖`. -/
+theorem spectral_safeQP_target (g : K → X) (g0 : X) (eps : K → ℝ)
+    (heps : ∀ i, 0 ≤ eps i) (P : X → X) (_h : OrthProjPair P)
+    [FiniteDimensional ℝ X] :
+    ∃ dstar : X, dstar ∈ safeSet g eps ∧
+      (∀ c ∈ safeSet g eps, ‖dstar - P g0‖ ≤ ‖c - P g0‖) ∧
+      ‖dstar - g0‖ ≤ ‖dstar - P g0‖ + ‖g0 - P g0‖ := by
+  obtain ⟨dstar, ⟨hdmem, hdmin⟩, -⟩ :=
+    safeQP_exists_unique g (P g0) eps heps
+  refine ⟨dstar, hdmem, ?_, filtered_step_cost dstar g0 P⟩
+  intro c hc
+  have hle := hdmin c hc
+  simpa only [dist_eq_norm] using hle
+
+end SafeQPComposition
 
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeqp_inactive)
+export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeqp_inactive filtered_step_cost spectral_safeQP_target)
 end Hagi

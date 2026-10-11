@@ -942,6 +942,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Foundations/Recurrence (единый рекуррентный канон); инверсия
   Step/JointPreserve←Growth/SeedOnly устранена (import →
   Foundations.Recurrence); exception удалён. Freeze 2181.
+- R324 (аудит v3 §2.2, Фаза 2): SafeQPComposition-секция
+  (filtered_step_cost + spectral_safeQP_target) перенесена из
+  Spectral/SpectralProjector в Step/SafeQP; инверсия
+  Spectral←Step устранена; exception удалён. Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

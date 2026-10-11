@@ -57,7 +57,6 @@ LAYER_EXCEPTIONS = {
     ("Growth/GainRenewal.lean", "Unified/Liveness.lean"),
     ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
     ("Sparsity/SparseStep0.lean", "Unified/RecursiveGrowth.lean"),
-    ("Spectral/SpectralProjector.lean", "Step/SafeQP.lean"),
     
     
 }
