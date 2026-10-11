@@ -123,6 +123,11 @@ import Hagi.External.Diversity
 import Hagi.External.Transport
 import Hagi.External.Transfer
 import Hagi.External.Flywheel.FrobeniusNorm
+import Hagi.External.Flywheel.TruncatedSVDRank1
+import Hagi.External.Flywheel.KroneckerRearrangement
+import Hagi.External.Flywheel.MatrixNormRelations
+import Hagi.External.Flywheel.SpectralNormGap
+import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.Audit.Foundations
 import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness

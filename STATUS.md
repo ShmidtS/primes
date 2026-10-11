@@ -771,6 +771,16 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   деклараций (Freeze 1670→1985), включая eckart_young_frobenius,
   frobenius_norm_sq_eq_trace, Weyl, Courant-Fischer, Thompson
   interlacing — аксиомы чистые.
+- R303: FLYWHEEL-порт слайс 2 — KroneckerRearrangement +
+  TruncatedSVDRank1 + MatrixNormRelations (кронекер-ошибки
+  аппроксимации через F-нормы) + SpectralNormGap
+  (спектральные зазоры, kronecker_spectral_error) +
+  CoherenceCharacterization (коэренс-фактор μ = ‖E‖_F/(√r·‖E‖₂),
+  characterization tight/loose; 2 ломы докстрингов оригинала
+  закрыты; @-инстанс-мости norm_zero/norm_nonneg для
+  L2-opNorm). TightBounds НЕ портирован: 2 бага оригинала
+  (недоказуемая ветка rank ≤ k при k < min; TODO-теорема
+  μ→1) — честно исключён. Freeze 1985→2162 (+177 деклараций).
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -779,7 +789,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 996 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1173 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
