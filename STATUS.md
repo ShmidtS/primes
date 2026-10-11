@@ -908,6 +908,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   направлению на T шагах линеен: Σ⟪gold, ds_t⟫ ≥ −T·ε
   (шаговая версия — insight_consolidation_safe).
   Freeze 2180→2181.
+- R318 (план §6.2/§6.3): quant_frob_loss — весовой
+  уровень цены квантования: при покомпонентной ошибке ≤ D
+  и κ_F-липшицевости ℓ по норме Фробениуса:
+  |ℓ(W) − ℓ(Ŵ)| ≤ κ_F·D·√(m·n) (весовой аналог
+  mdl_rank_ce; для rank-усечения √(Σσ²) вместо D√(mn)).
+  §6.2-цепочка замкнута на обоих уровнях: выход слоя
+  (R309/R310) и веса (R318). Freeze 2181→2182.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
@@ -917,7 +924,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1189 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1190 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)

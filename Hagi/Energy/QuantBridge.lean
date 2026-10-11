@@ -174,9 +174,64 @@ theorem quant_loss_bridge {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
         mul_le_mul_of_nonneg_left hpert hk
     _ = kappa * D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by ring
 
+set_option maxHeartbeats 8000000 in
+/-- **Frobenius-уровень цены квантования**
+(единый план §6.2/§6.3):
+при покомпонентной ошибке ≤ D
+и κ_F-липшицевости потери ℓ по
+норме Фробениуса (явная sqrt-форма):
+
+  |ℓ(W) − ℓ(Ŵ)| ≤ κ_F · D · √(m·n)
+
+— весовой аналог mdl_rank_ce (для
+rank-k усечения √(∑σ²) вместо D·√(mn)). -/
+theorem quant_frob_loss {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
+    (ell : Matrix (Fin m) (Fin n) ℝ → ℝ) (kappaF D : ℝ)
+    (hkF : 0 ≤ kappaF) (hD : 0 ≤ D)
+    (hres : ∀ i j, |Wq i j - W i j| ≤ D)
+    (hlip : ∀ X Y : Matrix (Fin m) (Fin n) ℝ,
+      |ell X - ell Y|
+        ≤ kappaF * Real.sqrt (∑ i, ∑ j, (X i j - Y i j) ^ 2)) :
+    |ell W - ell Wq| ≤ kappaF * D * Real.sqrt (m * n) := by
+  have hrow : ∀ i : Fin m,
+      (∑ j, (Wq i j - W i j) ^ 2) ≤ n * D ^ 2 := by
+    intro i
+    have hle : ∀ j : Fin n, (Wq i j - W i j) ^ 2 ≤ D ^ 2 := by
+      intro j
+      have hr := hres i j
+      rw [abs_le] at hr
+      nlinarith [hr.1, hr.2]
+    calc (∑ j, (Wq i j - W i j) ^ 2) ≤ ∑ j : Fin n, D ^ 2 :=
+          Finset.sum_le_sum (fun j _ => hle j)
+      _ = n * D ^ 2 := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+          simp
+  have hsum : (∑ i, ∑ j, (Wq i j - W i j) ^ 2) ≤ m * n * D ^ 2 := by
+    calc (∑ i, ∑ j, (Wq i j - W i j) ^ 2)
+        ≤ ∑ i, n * D ^ 2 :=
+          Finset.sum_le_sum (fun i _ => hrow i)
+      _ = m * n * D ^ 2 := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+          simp
+          ring
+  have h2 : Real.sqrt (∑ i, ∑ j, (Wq i j - W i j) ^ 2)
+      ≤ D * Real.sqrt (m * n) := by
+    have h1 := Real.sqrt_le_sqrt hsum
+    rwa [Real.sqrt_mul (by positivity : (0:ℝ) ≤ m * n),
+      Real.sqrt_sq hD, mul_comm] at h1
+  have h := hlip Wq W
+  rw [abs_sub_comm] at h
+  calc |ell W - ell Wq|
+      ≤ kappaF * Real.sqrt (∑ i, ∑ j, (Wq i j - W i j) ^ 2) := h
+    _ ≤ kappaF * (D * Real.sqrt (m * n)) :=
+        mul_le_mul_of_nonneg_left h2 hkF
+    _ = kappaF * D * Real.sqrt (m * n) := by ring
+
+
 end Hagi.Energy
+
 
 namespace Hagi
 export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb
-  quant_matrix_perturb_norm quant_loss_bridge)
+  quant_matrix_perturb_norm quant_loss_bridge quant_frob_loss)
 end Hagi
