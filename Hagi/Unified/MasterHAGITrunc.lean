@@ -21,8 +21,9 @@ Saturation) они противоречивы на длинном горизон
 * `sustained_takeoff_trunc` — C_T >= C0 (1+alpha)^T;
 * `MasterHAGI_trunc` — капстоун: growth-посылки t < T (с
   h_emp_-именами: динамика производства, gate-порог,
-  ceiling — измеряемые), потолок C* ЯВНО как условие
-  горизонта C0 (1+alpha)^T <= Cstar;
+  ceiling — измеряемые); условие потолка C* удалено
+  (R311: не участвовало в выводе; насыщение —
+  cert_horizon_bound в ArchitectureTheorem);
 * `masterhagi_growth_witness` — числовой свидетель
   не-вакуозности: C = D = (3/2)^t, alpha = gamma = 1/2,
   rho = 0, beta = 3/4, xi = 0 (все усечённые посылки
@@ -88,8 +89,9 @@ theorem frontier_cone_struct (C G D : ℕ → ℝ)
     gd.hα gd.hγ gd.hρ gd.hC0 gd.empCone0 gd.empStep gd.empGainProd
     gd.empDyn gd.empCCap gd.empBeta
 /-- **Усечённый takeoff**: из усечённых посылок (только
-t < T) — C_T >= C0 * (1+alpha)^T. Совместимо с потолком C*:
-условие горизонта C0 (1+alpha)^T <= Cstar. -/
+t < T) — C_T >= C0 * (1+alpha)^T. Совместимость с потолком C*
+(если C* < C0·(1+alpha)^T) даёт оценку горизонта:
+см. cert_horizon_bound (ArchitectureTheorem). -/
 theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
@@ -143,8 +145,9 @@ theorem sustained_takeoff_struct (C G D : ℕ → ℝ)
     gd.empDyn gd.empCCap gd.empBeta
 
 /-- **Усечённый капстоун MasterHAGI**: ВСЕ growth-посылки
-только при t < T; потолок ёмкости входит ЯВНО как условие
-горизонна C0 (1 + alpha)^T <= Cstar. Остальные блоки
+только при t < T (потолок ёмкости не входит — R311:
+условие C0 (1+alpha)^T <= Cstar не использовалось в выводе;
+границу горизонта даёт cert_horizon_bound). Остальные блоки
 (Φ_HAGI, safety, budget, gen-floor) — как в MasterHAGI, их
 посылки уже были усечены (t < T). Не-вакуозность growth-блока
 подтверждает masterhagi_growth_witness ниже. -/
