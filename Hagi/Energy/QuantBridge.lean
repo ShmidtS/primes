@@ -143,8 +143,40 @@ theorem quant_matrix_perturb_norm {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ
         Real.sqrt_le_sqrt key
     _ = D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := Real.sqrt_sq hpos
 
+/-- **The layer-output→loss bridge** (unified plan §6.2, step 3):
+if the loss ℓ is κ-Lipschitz in the layer output (Euclidean
+norm on Fin m), then quantizing an m×n layer with
+componentwise error ≤ D changes the loss by at most
+
+  |ℓ(Ŵ x) − ℓ(W x)| ≤ κ · D · √(m·n) · ‖x‖₂
+
+— the direct composition of the dimension-correct output
+perturbation (quant_matrix_perturb_norm) with the measured
+Lipschitz constant of the loss (h_emp_lip-style premise). -/
+theorem quant_loss_bridge {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
+    (x : Fin n → ℝ) (ell : (Fin m → ℝ) → ℝ) (kappa D : ℝ)
+    (hD : 0 ≤ D) (hk : 0 ≤ kappa)
+    (hres : ∀ i j, |Wq i j - W i j| ≤ D)
+    (hlip : ∀ y z, |ell y - ell z|
+      ≤ kappa * Real.sqrt (∑ i, (y i - z i) ^ 2)) :
+    |ell (Wq.mulVec x) - ell (W.mulVec x)|
+      ≤ kappa * D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by
+  have hpert := quant_matrix_perturb_norm W Wq x D hD hres
+  -- ‖Wq x − W x‖₂ = ‖(Wq − W) x‖₂
+  have hlip2 := hlip (Wq.mulVec x) (W.mulVec x)
+  have hsum : (∑ i, (Wq.mulVec x i - W.mulVec x i) ^ 2)
+      = ∑ i, ((Wq - W).mulVec x i) ^ 2 :=
+    Finset.sum_congr rfl fun i _ => by rw [Matrix.sub_mulVec]; rfl
+  rw [hsum] at hlip2
+  calc |ell (Wq.mulVec x) - ell (W.mulVec x)|
+      ≤ kappa * Real.sqrt (∑ i, ((Wq - W).mulVec x i) ^ 2) := hlip2
+    _ ≤ kappa * (D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2)) :=
+        mul_le_mul_of_nonneg_left hpert hk
+    _ = kappa * D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by ring
+
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb quant_matrix_perturb_norm)
+export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb
+  quant_matrix_perturb_norm quant_loss_bridge)
 end Hagi

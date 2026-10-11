@@ -852,6 +852,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   по выходам. Цепочка моста §6.2 теперь: округление →
   выход слоя (новое) → энергия (quant_energy_bridge).
   Freeze 2172→2174.
+- R310 (план §6.2, шаг 3): quant_loss_bridge
+  (QuantBridge) — композиция возмущения выхода и
+  липшицевости потерь: при κ-липшицевости ℓ по выходу
+  (Euclidean) и покомпонентной ошибке квантования ≤ D:
+  |ℓ(Ŵx) − ℓ(Wx)| ≤ κ·D·√(m·n)·‖x‖₂. κ ≥ 0 — явная
+  посылка (честный контракт; из hlip недоказуемо —
+  тривиальный ell). Цепочка §6.2: округление → выход
+  слоя (R309) → потеря (R310) → [сертификат компрессии
+  — следующий шаг §6.2.4]. Freeze 2174→2175.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-нетривиальные
@@ -860,7 +869,7 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Счётчик
 
-- 1182 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
+- 1183 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
   Foundations: 7 модулей L0. CI: PASS.
 
 ## Бюджет-линия (R176, цикл 2026-10-06)
