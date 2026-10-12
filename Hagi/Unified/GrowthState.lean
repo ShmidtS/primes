@@ -3,7 +3,8 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Unified.MacroCycle
+import Hagi.Foundations.StageCalculus
+import Hagi.Foundations.Telescope
 import Hagi.Step.ProjectionDescent
 set_option linter.style.header false
 
@@ -43,7 +44,7 @@ theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace
     E2 ≤ E1 - eta * ‖ds‖ ^ 2 / 2 := by
   have hdescent' : ‖ds‖ ^ 2 ≤ ⟪g0, ds⟫_ℝ :=
     (safeQP_descent C hconv h0 g0 ds hs hmin).1
-  exact joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
+  exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
 
 /-! ## The macro termination derived -/
 
@@ -56,7 +57,7 @@ theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)
     (heps : 0 < eps) :
     (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  lyapunov_termination_fin Emin eps k hE hgen heps  -- same law as macro_termination (dedup R197)
+  Hagi.Foundations.lyapunov_termination_fin Emin eps k hE hgen heps  -- same law as macro_termination (dedup R197)
 
 /-! ## The protected error budget across generations -/
 
@@ -436,7 +437,7 @@ theorem potential_joint (S : GrowthState X)
       + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2) :
     potential (joint S) - potential S ≤ -gainJoint S + costJoint S := by
   have hj : S.jointEnergy ≤ S.energy - gainJoint S :=
-    joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
+    Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
       S.jointEnergy S.energy hL heta heta0 hdescent h_emp_smooth
   have hp : potential (joint S)
       = S.jointEnergy + (S.protectedRisk + S.jointRisk) := rfl
@@ -454,7 +455,7 @@ theorem potential_compress (S : GrowthState X)
     potential (compress S) - potential S
       ≤ -gainCompress S + costCompress S := by
   have hc : S.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s / 2 :=
-    compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.energy
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.energy
       hkappa hs hdn h_emp_dist h_emp_lip
   have hp : potential (compress S)
       = S.compressEnergy + (S.protectedRisk + S.compressRisk) := rfl
@@ -491,12 +492,12 @@ theorem growth_cycle_potential (S : GrowthState X)
   have hm : S.mergeEnergy ≤ S.growEnergy - S.gap := h_emp_merge
   -- the gap sign enters through merge_stage (Emerged ≤ Emean with G ≥ 0)
   have hmw : S.mergeEnergy ≤ S.growEnergy :=
-    merge_stage S.growEnergy S.gap S.mergeEnergy h_emp_merge hgap
+    Hagi.Foundations.merge_stage S.growEnergy S.gap S.mergeEnergy h_emp_merge hgap
   have hj : S.jointEnergy ≤ S.mergeEnergy - S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 :=
-    joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
+    Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
       S.jointEnergy S.mergeEnergy hL heta heta0 hdescent h_emp_smooth
   have hc : S.compressEnergy - S.jointEnergy ≤ S.sp.kappa * S.sp.s / 2 :=
-    compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.jointEnergy
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.jointEnergy
       hkappa hs hdn h_emp_dist h_emp_lip
   -- the transition algebra: the composed potential telescopes
   have hp : potential (compress (joint (merge (grow S))))

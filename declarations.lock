@@ -373,7 +373,6 @@ compound_trajectory	94624530e128babd
 compress	1d8c65ee5d19c88a
 compress_chain_cost	d059809f27c4793f
 compress_stage	90586588fca9cbb5
-compress_stage	90586588fca9cbb5
 concDelta	53f1ab3695ab9db4
 concDelta_nonneg	f9787aee47198851
 concatCols	d229d280f67666d6
@@ -1175,7 +1174,6 @@ lse_midpoint_le	1b4ffa2dfe41bd51
 lse_shift	170dbfb34a5680ae
 lse_shift_lower	6e60a51001050e80
 lse_shift_upper	27a4f894d60639f0
-lyapunov_telescope	f3b9d8337a1ff16d
 lyapunov_telescope_fin	9ed1c95231b26cb0
 lyapunov_termination_fin	f4127f0391215ca2
 mDist	331af0d43253a1af

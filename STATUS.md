@@ -966,6 +966,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   потребитель); импорт Insight←GlobalDynamics убран;
   exception удалён. Осталось 2 exceptions —
   ModeState/StateBinding←GrowthState (Фаза 4). Freeze 2181.
+- R330 (аудит v3 §2.1 + §2.2, предступия Фазы 4):
+  merge_stage/merge_stage_decrease/joint_stage →
+  Foundations/StageCalculus; lyapunov_telescope_fin/
+  lyapunov_termination_fin → Foundations/Telescope;
+  Unified/GlobalConvergence удалён (неиспользуемый
+  lyapunov_telescope умёр с ним); GrowthState больше не
+  импортирует MacroCycle. Freeze 2179.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

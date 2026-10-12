@@ -54,4 +54,34 @@ theorem telescope_sub_sum {f c : ℕ → ℝ} {T : ℕ}
       rw [hstep, Finset.sum_range_succ]
       linarith
 
+/-- If `E (t+1) ≤ E t − eps` for all `t < k`, then
+`E k ≤ E 0 − k * eps`. -/
+theorem lyapunov_telescope_fin {E : ℕ → ℝ} (eps : ℝ)
+    (hstep : ∀ t < k, E (t+1) ≤ E t - eps) :
+    E k ≤ E 0 - k * eps := by
+  have h := telescope_sum_le
+    (c := fun _ => -eps) (h := fun t ht => by
+      have := hstep t ht
+      linarith)
+  rw [Finset.sum_const] at h
+  simp at h
+  linarith
+
+/-- If `Emin ≤ E t` for all `t ≤ k`, `E (t+1) ≤ E t − eps`
+for all `t < k`, and `0 < eps`, then
+`k ≤ (E 0 − Emin) / eps`. -/
+theorem lyapunov_termination_fin {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t) (hstep : ∀ t < k, E (t+1) ≤ E t - eps)
+    (heps : 0 < eps) :
+    (k : ℝ) ≤ (E 0 - Emin) / eps := by
+  have htel := lyapunov_telescope_fin eps hstep
+  have hEk := hE k (le_refl k)
+  have hbound : E 0 - Emin ≥ (k:ℝ) * eps := by linarith
+  rw [le_div_iff₀ heps]
+  linarith
+
 end Hagi.Foundations
+
+namespace Hagi
+export Hagi.Foundations (lyapunov_telescope_fin lyapunov_termination_fin)
+end Hagi

@@ -46,4 +46,50 @@ theorem compound_budget (α D J ε_c : ℝ)
         exact mul_le_mul_of_nonneg_left hG hα
     _ ≤ ε_c := hpos
 
+/-! ## Stage 1: Merge — the Jensen gap buys energy -/
+
+/-- If `Em ≤ Emean − G` (h_emp_merge) and `0 ≤ G`, then
+`Em ≤ Emean`. -/
+theorem merge_stage (Emean G Em : ℝ)
+    (h_emp_merge : Em ≤ Emean - G) (hgap : 0 ≤ G) :
+    Em ≤ Emean := by linarith
+
+/-- If `Em ≤ Emean − G` (h_emp_merge) and `0 < G`, then
+`Em < Emean`. -/
+theorem merge_stage_decrease (Emean G Em : ℝ)
+    (h_emp_merge : Em ≤ Emean - G) (hgap : 0 < G) :
+    Em < Emean := by linarith
+
+/-! ## Stage 2: Joint — the SafeQP step is certified descent -/
+
+/-- With `0 < L`, `0 ≤ eta ≤ 1/L`, certified descent
+`dnorm² ≤ inner`, and the smoothness premise
+`E2 ≤ E1 − eta * inner + L * eta² * dnorm² / 2` (h_emp_),
+one gets `E2 ≤ E1 − eta * dnorm² / 2`. -/
+theorem joint_stage (L eta dnorm inner E2 E1 : ℝ)
+    (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
+    (hdescent : dnorm ^ 2 ≤ inner)
+    (h_emp_smooth : E2 ≤ E1 - eta * inner + L * eta ^ 2 * dnorm ^ 2 / 2) :
+    E2 ≤ E1 - eta * dnorm ^ 2 / 2 := by
+  have hd2 : 0 ≤ dnorm ^ 2 := by positivity
+  have hLe : L * eta ≤ 1 := by
+    have hmono : L * eta ≤ L * (1 / L) := mul_le_mul_of_nonneg_left heta (by linarith)
+    have hdiv : L * (1 / L) = 1 := by field_simp
+    rw [hdiv] at hmono
+    exact hmono
+  have hsecond : L * eta ^ 2 * dnorm ^ 2 / 2 ≤ eta * dnorm ^ 2 / 2 := by
+    have hpos : 0 ≤ eta * dnorm ^ 2 := by nlinarith
+    have hm : L * eta * (eta * dnorm ^ 2) ≤ 1 * (eta * dnorm ^ 2) :=
+      mul_le_mul_of_nonneg_right hLe hpos
+    have hp : L * eta ^ 2 * dnorm ^ 2 ≤ eta * dnorm ^ 2 := by
+      rw [show L * eta ^ 2 * dnorm ^ 2 = L * eta * (eta * dnorm ^ 2) from by ring]
+      simpa using hm
+    nlinarith [hp]
+  have hterm : eta * dnorm ^ 2 ≤ eta * inner := mul_le_mul_of_nonneg_left hdescent heta0
+  linarith
+
 end Hagi.Foundations
+
+namespace Hagi
+export Hagi.Foundations (merge_stage merge_stage_decrease joint_stage)
+end Hagi
