@@ -1177,6 +1177,7 @@ logitGrad_deriv	e788fb675bd6cb95
 logitRange	1e1d5e8d7dcd75df
 logitRange_scale	6c10e67c449e420f
 lower	599a4890b82b717f
+lr_batch_equivalence	45b981be7bb2e97a
 lsScale_gram	b8cca263c931e152
 lsScale_optimal	683ee0644922aace
 lse	d873a0b1d4621109
@@ -1903,6 +1904,7 @@ sqrtConjTransposeMulSelf_mul_self	fd261e036fccc6a2
 sqrtConjTransposeMulSelf_sq	9c5b77588ad55bf7
 sqrtGain	81fb32c3c3a6069f
 sqrt_add_le	743e9ed13b7b5701
+sqrt_div_sq	22c7ea41c0dc93c2
 sqrt_gain_step	d439ab0185ff9959
 sqrt_gain_takeoff	6ac7a4ca7d59d957
 stable_factor_two	b64e5ee238d12f04

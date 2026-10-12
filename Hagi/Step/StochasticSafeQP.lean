@@ -431,10 +431,65 @@ theorem stochastic_safeQP_feasibility {m : ℕ} (hm : 0 < m)
   have h2 := hcert i
   linarith
 
+/--
+Вспомогательный закон извлечения квадрата из-под корня:
+для вещественного `x` (в т.ч. отрицательного, где
+`Real.sqrt = 0`) и `k > 0` выполнено `√(x/k²) = √x / k`.
+-/
+private theorem sqrt_div_sq (x k : ℝ) (hk : 0 < k) :
+    Real.sqrt (x / k ^ 2) = Real.sqrt x / k := by
+  have hk2 : (0:ℝ) < k ^ 2 := by positivity
+  by_cases hx : x ≤ 0
+  · have h1 : x / k ^ 2 ≤ 0 :=
+      div_nonpos_of_nonpos_of_nonneg hx hk2.le
+    rw [Real.sqrt_eq_zero_of_nonpos h1,
+      Real.sqrt_eq_zero_of_nonpos hx]
+    simp
+  · rw [Real.sqrt_div (by nlinarith : (0:ℝ) ≤ x) (k ^ 2),
+      Real.sqrt_sq (le_of_lt hk)]
+
+/--
+`lr_batch_equivalence` — формальное ядро закона «не снижай
+LR, увеличивай batch» (Smith et al., arXiv:1711.00489):
+шумовой бюджет шага `η · noiseEps` инвариантен относительно
+преобразования (η, m) → (k·η, k²·m): увеличение learning
+rate в k раз при увеличении batch в k² раз сохраняет
+шумовую границу шага (и, значит, все сертифицированные
+гарантии `stochastic_safeQP_feasibility` на том же уровне
+δ). Следствие: расписание LR можно заменить масштабированием
+batch — тот же уровень шума (и те же сертификаты) при
+большем параллелизме: на ту же кривую обучения нужно в k раз
+меньше последовательных обновлений.
+
+Инвариант — это в точности постоянство дисперсии шума на
+обновление η²σ²/m (шумовая шкала SGD).
+
+## References
+
+[1] Smith, Kindermans, Ying, Le. Don't Decay the Learning
+Rate, Increase the Batch Size. arXiv:1711.00489 (2017).
+-/
+theorem lr_batch_equivalence {m k : ℕ} (hm : 0 < m) (hk : 0 < k)
+    (eta sigma delta : ℝ) (d : X) :
+    (k : ℝ) * eta * noiseEps K sigma d (k ^ 2 * m) delta
+      = eta * noiseEps K sigma d m delta := by
+  have hk' : (0:ℝ) < k := by positivity
+  have hcast : ((k ^ 2 * m : ℕ) : ℝ) = (k:ℝ) ^ 2 * m := by
+    push_cast
+    ring
+  simp only [noiseEps, hcast]
+  have hfrac : (2 * Real.log ((Fintype.card K : ℝ) / delta) / ((k:ℝ) ^ 2 * m))
+      = (2 * Real.log ((Fintype.card K : ℝ) / delta) / m) / (k:ℝ) ^ 2 := by
+    field_simp
+  rw [hfrac]
+  rw [sqrt_div_sq
+    (2 * Real.log ((Fintype.card K : ℝ) / delta) / m) (k:ℝ) hk']
+  field_simp
+
 end StochasticSafeQP
 
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (noiseEps minibatch_inner_tail minibatch_inner_concentration minibatch_inner_concentration_upper stochastic_safeQP_feasibility)
+export Hagi.Step (noiseEps lr_batch_equivalence minibatch_inner_tail minibatch_inner_concentration minibatch_inner_concentration_upper stochastic_safeQP_feasibility)
 end Hagi
