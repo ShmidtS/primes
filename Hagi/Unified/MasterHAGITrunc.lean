@@ -312,9 +312,42 @@ theorem masterhagi_growth_witness :
       le_trans (by simpa using hT) h6
     exact hfinal
 
+/-- **Экспонат честности** (R363, аудит v7 §2): посылки
+`frontier_cone_trunc` СОВМЕСТНО принуждают ТОЧНЫЙ
+геометрический закон `C (t+1) = (1+α)·C t` на каждом шаге
+конуса: конус `α/γ·C ≤ D` и продукция `γ·D ≤ G` дают
+`α·C ≤ G`, шаг `C(t+1) = C + G` — рост не ниже `(1+α)·C`,
+а потолок `C(t+1) ≤ (1+α)·C` — не выше. Итог: равенство.
+
+Это НЕ слабость доказательства, а свойство контракта: точный
+темп роста является частью модели (законом перехода), а не
+выводом из более слабых принципов. Слабая (честно выводная)
+версия — `Hagi.Foundations.takeoff_from_cone`: только конус +
+шаг, без потолка, выводит `C 0·(1+γk)^T ≤ C T`. -/
+theorem cone_premises_force_exact (C G D : ℕ → ℝ)
+    (alpha gamma : ℝ) (t : ℕ)
+    (hγ : 0 < gamma)
+    (hcone : alpha / gamma * C t ≤ D t)
+    (hgain : gamma * D t ≤ G t)
+    (hstep : C (t + 1) = C t + G t)
+    (hcap : C (t + 1) ≤ (1 + alpha) * C t) :
+    C (t + 1) = (1 + alpha) * C t := by
+  have h1 : alpha * C t ≤ gamma * D t := by
+    have hm := mul_le_mul_of_nonneg_right hcone hγ.le
+    have heq : alpha / gamma * C t * gamma = alpha * C t := by
+      field_simp
+    rw [heq, mul_comm (D t) gamma] at hm
+    exact hm
+  have h2 : alpha * C t ≤ G t := le_trans h1 hgain
+  have hlow : (1 + alpha) * C t ≤ C t + G t := by
+    have : alpha * C t = (1 + alpha) * C t - C t := by ring
+    linarith
+  rw [hstep] at hcap ⊢
+  exact le_antisymm hcap hlow
+
 end Trunc
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (frontier_cone_trunc frontier_cone_struct sustained_takeoff_trunc sustained_takeoff_struct MasterHAGI_trunc masterhagi_growth_witness)
+export Hagi.Unified (frontier_cone_trunc frontier_cone_struct sustained_takeoff_trunc sustained_takeoff_struct MasterHAGI_trunc masterhagi_growth_witness cone_premises_force_exact)
 end Hagi
