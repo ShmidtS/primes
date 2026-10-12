@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Mathlib
+import Hagi.Foundations.StageCalculus
 set_option linter.style.header false
 
 /-!
@@ -276,8 +277,52 @@ theorem descent_example :
       ≤ logitCE 0 - (2/2) * (1 / (1 + Real.exp 0))^2 :=
   descent_step 0 2 (by norm_num) (by norm_num)
 
+/-! ## Bridge: explicit model -> certified joint stage (R350)
+
+The `h_emp_smooth` premise of `Foundations.joint_stage` is
+DERIVED (not assumed) for the explicit logit-CE model:
+`logitCE_descent_lemma` is exactly the L-smoothness form
+with `L = 1/2` (coefficient 1/4 = L/2). Instantiating
+`joint_stage` with this derived smoothness yields the
+certified descent stage for the real model — the first
+closed bridge from an explicit model to the stage
+calculus. -/
+
+set_option maxHeartbeats 1000000 in
+/-- Certified joint stage for the explicit logit-CE model
+(R350). Here `d` is a descent DIRECTION (along `-grad`), so
+the certified-descent premise reads `d^2 ≤ (-logitGrad w)*d`
+(automatic for `d = t·q` with `0 ≤ t ≤ 1`, `q = -grad ≥ 0`).
+The smoothness premise of `joint_stage` is DERIVED from
+`logitCE_descent_lemma` (which is exactly L-smoothness with
+`L = 1/2`), giving `logitCE (w + eta*d) ≤ logitCE w -
+eta*d^2/2` — the first h_emp_smooth premise closed by an
+explicit model. -/
+theorem joint_stage_logitCE (w eta d : ℝ)
+    (heta : 0 < eta) (heta2 : eta ≤ 2)
+    (hdescent : d ^ 2 ≤ (-logitGrad w) * d) :
+    logitCE (w + eta * d) ≤ logitCE w - eta * d ^ 2 / 2 := by
+  have hsmooth : logitCE (w + eta * d) ≤ logitCE w
+      - eta * ((-logitGrad w) * d) + (1/2) * eta ^ 2 * d ^ 2 / 2 := by
+    have hlem := logitCE_descent_lemma w (w + eta * d)
+    rw [show (w + eta * d) - w = eta * d from by ring] at hlem
+    have hterm : (1/4) * (eta * d) ^ 2 = (1/2) * eta ^ 2 * d ^ 2 / 2 := by
+      field_simp
+      ring
+    rw [hterm] at hlem
+    have hsign : logitGrad w * (eta * d)
+        = eta * (logitGrad w * d) := by ring
+    rw [hsign] at hlem
+    linarith
+  have heta' : eta ≤ 1 / (1/2) := by
+    norm_num
+    linarith
+  exact Hagi.Foundations.joint_stage (1/2) eta d
+    ((-logitGrad w) * d) (logitCE (w + eta * d)) (logitCE w)
+    (by norm_num) heta' heta.le hdescent hsmooth
+
 end Hagi.Model
 
 namespace Hagi
-export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example)
+export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE)
 end Hagi

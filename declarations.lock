@@ -1035,6 +1035,7 @@ jointStep_regression_bound	edc91c2ae4d0d7fb
 joint_stage	0a90466d38c46b84
 joint_stage_cap_optimal	66a765ae424e095f
 joint_stage_linked	255b800758c6319c
+joint_stage_logitCE	723be5859e3c10a5
 kernel_interference_zero	74ec3dfd9b2e113f
 klDef	7d95d9a89166cb67
 klDiv	8d61fb2c344ebf7a

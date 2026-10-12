@@ -121,6 +121,15 @@ same-folder DAG свободен.
 - Спектральный хвост: `spectral_tail_energy`,
   `cert_horizon_witness`, `mdl_rank_ce`, `gate_retention`.
 
+### Model (L2 — явная модель)
+
+- `SoftmaxStep` (Model): `joint_stage_logitCE` (R350) —
+  h_emp_smooth ВЫВЕДЕН из явной logit-CE модели
+  (десцент-лемма = L-smoothness при L = 1/2, η ≤ 2):
+  certified joint stage без измеряемых посылок — первый
+  закрытый мост «явная модель → stage-calculus»;
+  `descent_step`, `grad_lipschitz` (σ² ≤ 1/4).
+
 ### Budget (L2/L3 — распределение ресурсов)
 
 - BitAlloc: маржинальный обмен битами точен
