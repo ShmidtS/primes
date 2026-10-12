@@ -401,9 +401,38 @@ theorem grokking_threshold_time (eta lam r0 eps : ℝ)
         mul_le_mul_of_nonneg_left hexp hr0.le
     _ ≤ eps := hbound
 
+/-- **Grokking-хвост поверх certified-спуска** (R368):
+композиция certified-телескопа и grokking-остатка. Если
+потенциал раскладывается как `Φ t = Φ_core t + r t`, где
+core-часть убывает certified-шагами (decrease_t ≥ 0 на каждом
+шаге), а остаток (probe/генерализационная компонента) следует
+grokking-динамике `r(t+1) = r(t) − ηλ·r(t)`, то к моменту
+`T ≥ ln(r₀/ε)/(ηλ)`
+
+  Φ T ≤ Φ 0 − ∑ decrease_t + ε:
+
+certified-спуск PLUS погашенный grokking-хвост. Планировщик
+(η = 1/L кап, λ из целевого времени, R346/R347/R366)
+управляет моментом, когда хвост перестаёт доминировать. -/
+theorem certified_descent_with_grokking_tail
+    (eta lam r0 eps : ℝ)
+    (heta : 0 < eta) (hlam : 0 < lam) (hr0 : 0 < r0)
+    (heps : 0 < eps) (hepsr : eps ≤ r0) (hprod : eta * lam ≤ 1)
+    (phi dec : ℕ → ℝ) (r : ℕ → ℝ)
+    (hphi : ∀ t, phi t = phi 0 - ∑ j ∈ Finset.range t, dec j + r t)
+    (hdec : ∀ t, 0 ≤ dec t)
+    (hrec : ∀ t, r (t + 1) = r t - eta * lam * r t)
+    (hinit : r 0 = r0)
+    (T : ℕ) (hT : Real.log (r0 / eps) / (eta * lam) ≤ T) :
+    phi T ≤ phi 0 - ∑ t ∈ Finset.range T, dec t + eps := by
+  have hgr := grokking_threshold_time eta lam r0 eps heta hlam
+    hr0 heps hepsr hprod r hrec hinit T hT
+  have := hphi T
+  linarith
+
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time)
+export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time certified_descent_with_grokking_tail)
 end Hagi
 

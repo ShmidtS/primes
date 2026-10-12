@@ -52,7 +52,10 @@ same-folder DAG свободен.
   спектральной теории grokking, arXiv:2609.26679): остаточная
   динамика r(t+1) = r(t) − ηλ·r(t) достигает порога ε к
   времени ln(r₀/ε)/(ηλ) — inverse-product скейлинг времени
-  генерализации; `one_sub_pow_le_exp`: (1−x)^T ≤ e^{−xT}.
+  генерализации; `one_sub_pow_le_exp`: (1−x)^T ≤ e^{−xT};
+  `certified_descent_with_grokking_tail` (R368): Φ_T ≤
+  Φ_0 − Σ dec_t + ε — certified-спуск + погашенный
+  grokking-хвост к моменту ln(r₀/ε)/(ηλ).
   Геометрический телескоп; рекуррентное
   неравенство u(t+1) ≤ ρ·u(t) + c при ρ < 1 даёт
   u(t) ≤ ρᵗ·u(0) + c/(1−ρ); `contraction_limit` (предел),
