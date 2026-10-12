@@ -1178,6 +1178,7 @@ log_weighted_jensen	d5e2d42cbf6bbe86	d2f2896c62c965a3
 logitCE	dba74f39768d47ca	b068d876fc5ab7e4
 logitCE_deriv	ca74a097002d781a	64bca471a016caac
 logitCE_descent_lemma	1811673555ce91f9	de3ca7dbb2247ab7
+logitCE_trajectory_bound	4a5506797d9890e1	cf673da07c2ec9ca
 logitGrad	181e97673663f8aa	0f3eaada63d058fd
 logitGrad_deriv	e788fb675bd6cb95	c15360098f65f6f8
 logitRange	1e1d5e8d7dcd75df	981ec3f203de8cc1

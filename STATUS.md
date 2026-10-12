@@ -128,6 +128,9 @@ same-folder DAG свободен.
   (десцент-лемма = L-smoothness при L = 1/2, η ≤ 2):
   certified joint stage без измеряемых посылок — первый
   закрытый мост «явная модель → stage-calculus»;
+  `logitCE_trajectory_bound` (R354) — телескоп T шагов:
+  logitCE(w_T) ≤ logitCE(w_0) − Σ η_t·d_t²/2, все посылки
+  выведены, h_emp_* нет;
   `descent_step`, `grad_lipschitz` (σ² ≤ 1/4).
 
 ### Budget (L2/L3 — распределение ресурсов)

@@ -321,8 +321,58 @@ theorem joint_stage_logitCE (w eta d : ℝ)
     ((-logitGrad w) * d) (logitCE (w + eta * d)) (logitCE w)
     (by norm_num) heta' heta.le hdescent hsmooth
 
+/-!
+## Trajectory bound for the explicit model (R354)
+
+Iterating the derived certified stage (`joint_stage_logitCE`)
+telescopes over the whole training trajectory: after T
+certified steps the logit-CE is at most its initial value
+minus the summed per-step certified decreases. Every premise
+here is either a definition of the trajectory or the
+DERIVED-per-step stage condition — no `h_emp_*` premises.
+-/
+
+/-- Telescoped certified-descent bound for the explicit
+logit-CE model: if each step `w t → w t + eta t * d t`
+satisfies `0 < eta t ≤ 2` and the certified-descent
+direction condition `d t ^ 2 ≤ (-logitGrad (w t)) * d t`,
+then
+
+  logitCE (w T) ≤ logitCE (w 0) − ∑ t < T, eta t * d t ^ 2 / 2.
+
+This is the concrete-model instance of the loop-level
+telescope (`stage_certificate_telescope`) with the
+smoothness premise DERIVED (`joint_stage_logitCE`) instead
+of assumed. -/
+theorem logitCE_trajectory_bound (T : ℕ) (w eta d : ℕ → ℝ)
+    (hstep : ∀ t < T, w (t + 1) = w t + eta t * d t)
+    (heta : ∀ t < T, 0 < eta t ∧ eta t ≤ 2)
+    (hdir : ∀ t < T, d t ^ 2 ≤ (-logitGrad (w t)) * d t) :
+    logitCE (w T) ≤ logitCE (w 0)
+      - ∑ t ∈ Finset.range T, eta t * d t ^ 2 / 2 := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      have hstepT : ∀ t < T, w (t + 1) = w t + eta t * d t :=
+        fun t ht => hstep t (Nat.lt_succ_of_lt ht)
+      have hetaT : ∀ t < T, 0 < eta t ∧ eta t ≤ 2 :=
+        fun t ht => heta t (Nat.lt_succ_of_lt ht)
+      have hdirT : ∀ t < T, d t ^ 2 ≤ (-logitGrad (w t)) * d t :=
+        fun t ht => hdir t (Nat.lt_succ_of_lt ht)
+      have hih := ih hstepT hetaT hdirT
+      have hsucc := joint_stage_logitCE (w T) (eta T) (d T)
+        (heta T (Nat.le_refl _)).1 (heta T (Nat.le_refl _)).2
+        (hdir T (Nat.le_refl _))
+      rw [hstep T (Nat.le_refl _)]
+      have hsum : ∑ t ∈ Finset.range (T + 1), eta t * d t ^ 2 / 2
+          = ∑ t ∈ Finset.range T, eta t * d t ^ 2 / 2
+            + eta T * d T ^ 2 / 2 := by
+        rw [Finset.sum_range_succ]
+      rw [hsum]
+      linarith
+
 end Hagi.Model
 
 namespace Hagi
-export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE)
+export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE logitCE_trajectory_bound)
 end Hagi
