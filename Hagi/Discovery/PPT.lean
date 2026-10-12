@@ -12,7 +12,7 @@ set_option linter.style.header false
 
 The concrete `discover` mechanism for HAGI's growth loop: parallel-tempering /
 power-target sampling over a FINITE sequence space. This module upgrades
-`Hagi.Unified.GrowthState.discover` from a bare `Candidate` carrier to a
+`Hagi.System.GrowthState.discover` from a bare `Candidate` carrier to a
 sampling semantics: the candidate the growth loop discovers is a sequence
 drawn from a power target pi_α(x) ∝ p(x)^α, refined by a Metropolis–Hastings
 suffix kernel, mixed across replicas by swaps, and scored by the composite

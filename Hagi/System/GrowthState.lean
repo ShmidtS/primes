@@ -27,7 +27,7 @@ compress-stage weight-rounding lifts remain h_emp_ inputs.
 
 open Finset Real InnerProductSpace
 
-namespace Hagi.Unified
+namespace Hagi.System
 
 /-! ## Stage 2 linked: the joint step with real vectors -/
 
@@ -604,7 +604,7 @@ theorem stage_certificate_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 
 end GrowthLoop
 
-end Hagi.Unified
+end Hagi.System
 namespace Hagi
-export Hagi.Unified (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.System (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 end Hagi

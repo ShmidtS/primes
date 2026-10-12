@@ -1046,6 +1046,10 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   soundness (делегат certificate_sound) и телескоп
   stage_certificate_telescope (континуитет-посылка явная,
   скрытых отождествлений состояний нет). Freeze 2196.
+- R343 (аудит v3 Фаза 7): namespace = каталог для System:
+  GrowthState-модуль Hagi.Unified → Hagi.System (root-алиасы
+  Hagi.GrowthState и др. сохранены export-строкой; Freeze-имена
+  обновлены до Hagi.System.*). Freeze 2196.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
