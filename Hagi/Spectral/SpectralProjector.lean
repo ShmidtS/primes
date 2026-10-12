@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib
+import Hagi.Foundations.Ortho
 
 set_option linter.style.header false
 
@@ -142,11 +143,8 @@ theorem spectral_tail_energy (hv : Orthonormal ℝ v) (x : E)
       add_sub_cancel_left]
   -- norm squared of the complementary sum = sum of squared coefficients
   have hnorm : ∀ c : ι → ℝ,
-      ‖∑ i ∈ sᶜ, c i • v i‖ ^ 2 = ∑ i ∈ sᶜ, c i ^ 2 := by
-    intro c
-    rw [← real_inner_self_eq_norm_sq,
-      Orthonormal.inner_sum hv c c sᶜ]
-    exact Finset.sum_congr rfl fun i _ => by simp; ring
+      ‖∑ i ∈ sᶜ, c i • v i‖ ^ 2 = ∑ i ∈ sᶜ, c i ^ 2 :=
+    fun c => Hagi.Foundations.ortho_norm_sq_finset hv c sᶜ
   calc ‖x - spectralProj (v := v) s x‖ ^ 2
       = ‖∑ i ∈ sᶜ, ⟪x, v i⟫_ℝ • v i‖ ^ 2 := by
         rw [show x - spectralProj (v := v) s x

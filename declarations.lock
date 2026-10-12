@@ -1380,6 +1380,7 @@ optimal_step_unconstrained	83e78906a2f20f53
 optimal_step_value	f279e0cb85c9808e
 orthoNorm	4cb7339047bb0cec
 ortho_norm_sq	ce812ec757d677b2
+ortho_norm_sq_finset	9737dc8887df0dd5
 orthogonal_energy_split	0ee52d5cf3dde76a
 orthogonal_noise_averaging	d02ebf153d39f656
 orthogonal_preserves_grad_dist	6a9d5751515dec92

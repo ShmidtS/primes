@@ -987,6 +987,15 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (урок R303: rg sorry не ловит axiom-декларации).
   Тест: временный axiom-файл пойман — FAIL;
   без него — PASS. Freeze 2179.
+- R333 (аудит v3 §2.1/§1.4, Фаза 2): спектральный
+  хвост-принцип един: новый канон
+  Foundations/ortho_norm_sq_finset (‖∑_{t} c•v‖² = ∑_t c²);
+  ortho_norm_sq = следствие (univ);
+  gating_tail_bound и
+  spectral_tail_energy делегируют
+  (дублированные доказательства-ядра
+  удалены). Аксиомы чистые.
+  Freeze 2180 (+1).
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
