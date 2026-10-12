@@ -243,6 +243,15 @@ same-folder DAG свободен.
 - `Assumptions.Trunc` + `trunc_nonvacuous` (idle-свидетель),
   `Nonvacuity` (S₀/S₁ свидетели CorePremises),
   `HAGICertWitness` (горизонт-1, все 17 полей);
+  `masterhagi_productive_witness` (R370, ВЕРШИНА):
+  на X = ℝ, K = Fin 1 — траектория, где ВСЕ посылки капстоуна
+  MasterHAGI выполнены одновременно с живыми величинами:
+  ненулевой безопасный шаг (stepDir = 1, η = 1/2 внутри
+  SafeQP-окна против старого градиента −1, риск честно
+  платится 1/4/шаг), энергия строго убывает, capability
+  растёт составно (×3/2 за шаг), budget-счёт точен;
+  заключение CertifiedHAGIInvariant выведено самим
+  MasterHAGI. Полная лестница R357 → R359 → R369 → R370.
   `corePremises_trajectory_productive` (R369): для ЛЮБОГО
   горизонта T существует траектория, на которой
   CorePremises выполняется на КАЖДОМ шаге со строго
