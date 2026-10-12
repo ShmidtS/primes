@@ -35,6 +35,14 @@ same-folder DAG свободен.
 
 ## Модули: состояние и главные формулы
 
+### Канонизация Information (состояние)
+
+- KL: единое определение `Hagi.Prelude.klDef`; дубли
+  `Distill.klDiv`, `FreeEnergy.kldiv`, `Variational.kldiv'`
+  делегируют телом; `DField.KLdiv` связан rfl-мостом
+  `KLdiv_eq_klDef` (полн. телегация отклонена: каскадно
+  ломает 8 потребителей, сила rfl-моста та же).
+
 ### Prelude и Foundations (L1 — каноны)
 
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
