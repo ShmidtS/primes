@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Hagi.Foundations.StageCalculus
 
 /-!
 # ProjectionDescent — канонический Step-слой вертикали спуска проекции
@@ -81,8 +82,22 @@ theorem safeQP_descent (C : Set X) (hconv : Convex ℝ C)
     rw [h2, h3] at h
     exact h
 
+/-- With `ds` the minimizer of the distance to `g0` over a
+convex set (so `‖ds‖² ≤ ⟪g0, ds⟫` by `safeQP_descent`),
+`0 < L`, `0 ≤ eta ≤ 1/L`, and the smoothness premise
+(h_emp_), `E2 ≤ E1 − eta * ‖ds‖² / 2`. -/
+theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) (g0 ds : X)
+    (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0)
+    (L eta E1 E2 : ℝ) (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
+    (h_emp_smooth : E2 ≤ E1 - eta * ⟪g0, ds⟫_ℝ + L * eta ^ 2 * ‖ds‖ ^ 2 / 2) :
+    E2 ≤ E1 - eta * ‖ds‖ ^ 2 / 2 := by
+  have hdescent' : ‖ds‖ ^ 2 ≤ ⟪g0, ds⟫_ℝ :=
+    (safeQP_descent C hconv h0 g0 ds hs hmin).1
+  exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
+
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent)
+export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent joint_stage_linked)
 end Hagi

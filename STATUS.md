@@ -973,6 +973,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Unified/GlobalConvergence удалён (неиспользуемый
   lyapunov_telescope умёр с ним); GrowthState больше не
   импортирует MacroCycle. Freeze 2179.
+- R331 (аудит v3 §2.2/§3, Фаза 3-мост): СОЗДАН
+  слой Hagi/System (layer 3); GrowthState перенесён
+  Unified→System (namespace Hagi.Unified сохранён —
+  импорты обновлены); joint_stage_linked →
+  Step/ProjectionDescent; GrowthState теперь зависит только от
+  Foundations. ПОЛНЫЙ НОЛЬ LayerLint-exceptions
+  (цель Фазы 3 по аудиту v3 §4/Фаза 8).
+  growth_cycle_potential — аксиомы чистые. Freeze 2179.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

@@ -5,7 +5,6 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.StageCalculus
 import Hagi.Foundations.Telescope
-import Hagi.Step.ProjectionDescent
 set_option linter.style.header false
 
 /-!
@@ -31,20 +30,6 @@ open Finset Real InnerProductSpace
 namespace Hagi.Unified
 
 /-! ## Stage 2 linked: the joint step with real vectors -/
-
-/-- With `ds` the minimizer of the distance to `g0` over a
-convex set (so `‖ds‖² ≤ ⟪g0, ds⟫` by `safeQP_descent`),
-`0 < L`, `0 ≤ eta ≤ 1/L`, and the smoothness premise
-(h_emp_), `E2 ≤ E1 − eta * ‖ds‖² / 2`. -/
-theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-    (C : Set X) (hconv : Convex ℝ C) (h0 : (0:X) ∈ C) (g0 ds : X)
-    (hs : ds ∈ C) (hmin : ∀ d ∈ C, dist ds g0 ≤ dist d g0)
-    (L eta E1 E2 : ℝ) (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
-    (h_emp_smooth : E2 ≤ E1 - eta * ⟪g0, ds⟫_ℝ + L * eta ^ 2 * ‖ds‖ ^ 2 / 2) :
-    E2 ≤ E1 - eta * ‖ds‖ ^ 2 / 2 := by
-  have hdescent' : ‖ds‖ ^ 2 ≤ ⟪g0, ds⟫_ℝ :=
-    (safeQP_descent C hconv h0 g0 ds hs hmin).1
-  exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
 
 /-! ## The macro termination derived -/
 
@@ -551,5 +536,5 @@ end GrowthLoop
 
 end Hagi.Unified
 namespace Hagi
-export Hagi.Unified (joint_stage_linked macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.Unified (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 end Hagi

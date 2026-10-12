@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Growth.FrontierScaling
 import Hagi.Growth.SelfDevelopment
-import Hagi.Unified.GrowthState
+import Hagi.System.GrowthState
 set_option linter.style.header false
 
 /-!

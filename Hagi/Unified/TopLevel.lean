@@ -3,7 +3,8 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Unified.GrowthState
+import Hagi.System.GrowthState
+import Hagi.Step.ProjectionDescent
 import Hagi.Unified.AnytimeValid
 import Hagi.Energy.QuantBridge
 import Hagi.Step.SafeQPRobust

@@ -30,6 +30,7 @@ LAYERS = {
     "Ensemble": 3,
     "Step": 3,
     "Runtime": 3,
+    "System": 3,   # R331: state layer (GrowthState) per audit v3 3
     "Model": 4,
     "Growth": 4,
     "Generalization": 4,
@@ -50,8 +51,6 @@ LAYER_EXCEPTIONS = {
     
     
     
-    ("Generalization/ModeState.lean", "Unified/GrowthState.lean"),
-    ("Growth/StateBinding.lean", "Unified/GrowthState.lean"),
     
     
 }

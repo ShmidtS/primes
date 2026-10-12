@@ -238,7 +238,7 @@ import Hagi.Autonomy.SupervisorSafety
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
-import Hagi.Unified.GrowthState
+import Hagi.System.GrowthState
 import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeValid
 import Hagi.Unified.AnytimeMartingale

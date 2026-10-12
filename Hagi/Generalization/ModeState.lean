@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.Potential
-import Hagi.Unified.GrowthState
+import Hagi.System.GrowthState
 
 set_option linter.style.header false
 set_option linter.unusedFintypeInType false
