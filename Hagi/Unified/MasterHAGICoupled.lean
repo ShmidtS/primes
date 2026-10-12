@@ -159,4 +159,52 @@ theorem coupledHAGI_nonvacuous {X : Type*} [NormedAddCommGroup X]
     simp [Hagi.Unified.idleGrowth]
   qvec_floor := fun _ => le_refl 0
 
+/-- The growing-state trajectory for the non-idle witness:
+capability `c₀(1+α)^t` (real compound growth, α > 0), budget
+`B − t·s` with a strictly positive per-step spend `s`, risk
+pinned at zero. -/
+noncomputable def coupledGrowthTraj {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (x0 : X) (alpha c0 s B : ℝ) : ℕ → GrowthState X :=
+  fun t =>
+    { Hagi.Unified.idleGrowth x0 0 with
+      capability := c0 * (1 + alpha) ^ t
+      budget := B - t * s }
+
+/-- **The coupled capstone is inhabited NON-IDLE** (R358):
+with `α > 0`, `c₀ > 0`, spend `s > 0` and budget
+`B = T·s + 1` (enough for T steps), the growing trajectory
+satisfies every conjunct of `CoupledHAGIInvariant` —
+compound capability growth `(1+α)^T`, strictly positive
+spends, a budget that genuinely decreases but stays
+nonnegative at the horizon. -/
+theorem coupledHAGI_nonvacuous_strict {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (x0 : X) (T : ℕ) (alpha c0 s : ℝ)
+    (halpha : 0 < alpha) (hc0 : 0 < c0) (hs : 0 < s) :
+    CoupledHAGIInvariant T
+      (coupledGrowthTraj x0 alpha c0 s (T * s + 1))
+      (fun _ => 0) (fun _ => s) (fun _ _ => 0) (fun _ => 0)
+      alpha where
+  cap_is_state := by
+    intro t _
+    rfl
+  risk_bound := by
+    simp [coupledGrowthTraj, Hagi.Unified.idleGrowth]
+  spend_nonneg := fun _ _ => hs.le
+  risk_nonneg := fun _ _ => le_refl 0
+  budget_account := by
+    constructor
+    · simp [coupledGrowthTraj, Hagi.Unified.idleGrowth]
+    · simp only [coupledGrowthTraj]
+      have : (T:ℝ) * s < T * s + 1 := by nlinarith
+      have hcast : ((T:ℝ)) = ((T:ℝ)) := rfl
+      show (0:ℝ) ≤ (T * s + 1) - ((T:ℕ):ℝ) * s
+      push_cast
+      linarith
+  capability_growth := by
+    simp only [coupledGrowthTraj]
+    rw [pow_zero, mul_one]
+  qvec_floor := fun _ => le_refl 0
+
 end Hagi.Unified
