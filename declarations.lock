@@ -276,6 +276,7 @@ budget_no_growth	1c71ffbc8dde80b9
 candidate_completeness_find	650842ae688c2534
 capChannel	fdd57500b504f497
 capMember	8271a19c43607272
+cap_cost_factor	e4bc0ec856ef6478
 capability_cumulative	32fd9397c2a1cb79
 capability_gain_transfer	d69e76232b904163
 capability_multiplicative	320144d8e3dfb9ca
@@ -655,6 +656,7 @@ esUnbiased	d667336f1de58960
 etaOpt	5590a05f56995156
 etaPolicy	0e477c8d3c4a37a9
 etaState	8d5423d3e9d5e755
+eta_star_exceeds_cap	ffce336dcf34e88e
 exhausted_when	d4020f627de11bf6
 exists	4229d659ec96e962
 exists_balanced_allocation	83b40726dc03d547
@@ -1029,6 +1031,7 @@ joint	c0f5cb1eb55b9dd7
 jointStep_conflict_regression	5c8f6b1dcdd3cc7c
 jointStep_regression_bound	edc91c2ae4d0d7fb
 joint_stage	0a90466d38c46b84
+joint_stage_cap_optimal	66a765ae424e095f
 joint_stage_linked	255b800758c6319c
 kernel_interference_zero	74ec3dfd9b2e113f
 klDef	7d95d9a89166cb67
@@ -1576,6 +1579,7 @@ quad_form_factorization	534b6fc2b0e50877
 quad_form_zero_iff	2492b42edf0edb32
 quadf	1cf9a04a218b5333
 quadfGrad	55ccf3acd8cb04d4
+quadratic_bound_max	2a76ddb433dcc600
 quantMat	6df8d365d0cdde42
 quantMat_entry	ea8a6b9800555881
 quantMat_sq_bound	8bb3970e08cf295c

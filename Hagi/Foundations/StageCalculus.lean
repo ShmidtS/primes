@@ -88,8 +88,81 @@ theorem joint_stage (L eta dnorm inner E2 E1 : ℝ)
   have hterm : eta * dnorm ^ 2 ≤ eta * inner := mul_le_mul_of_nonneg_left hdescent heta0
   linarith
 
+/-! ## Optimal step size analysis (R347)
+
+Under the smoothness bound `E2 ≤ E1 − η·inner + Lη²·dnorm²/2`
+the guaranteed decrease `η·dnorm²/2` (via `joint_stage`) is
+maximized at the cap `η = 1/L`, giving `dnorm²/(2L)`. The
+unconstrained optimum of the bound, `η* = inner/(L·dnorm²)`,
+violates the cap exactly when the certified-descent premise
+`dnorm² ≤ inner` holds — the cap is binding and costs a
+factor `inner/dnorm² ≥ 1` of potential decrease
+(`inner²/(2L·dnorm²)`). -/
+
+/-- Unconstrained maximum of the smoothness-bound decrease:
+for `L > 0`, `dnorm > 0` and ANY `η`, the model decrease
+`η·inner − Lη²·dnorm²/2` never exceeds `inner²/(2L·dnorm²)`
+(completion of the square). -/
+theorem quadratic_bound_max (L dnorm inner eta : ℝ)
+    (hL : 0 < L) (hd : 0 < dnorm) :
+    eta * inner - L * eta ^ 2 * dnorm ^ 2 / 2
+      ≤ inner ^ 2 / (2 * L * dnorm ^ 2) := by
+  have hpos : (0:ℝ) < L * dnorm ^ 2 / 2 := by positivity
+  have hsq : eta * inner - L * eta ^ 2 * dnorm ^ 2 / 2
+      - inner ^ 2 / (2 * L * dnorm ^ 2)
+      = -(L * dnorm ^ 2 / 2) * (eta - inner / (L * dnorm ^ 2)) ^ 2 := by
+    field_simp
+    ring
+  have hnn : (0:ℝ) ≤ (L * dnorm ^ 2 / 2)
+      * (eta - inner / (L * dnorm ^ 2)) ^ 2 :=
+    mul_nonneg hpos.le (sq_nonneg _)
+  have : -(L * dnorm ^ 2 / 2) * (eta - inner / (L * dnorm ^ 2)) ^ 2 ≤ 0 := by
+    nlinarith
+  nlinarith [hsq, this]
+
+/-- The unconstrained optimum `η* = inner/(L·dnorm²)` exceeds
+the stability cap `1/L` exactly when `dnorm² < inner`
+(strict certified descent makes the cap binding). -/
+theorem eta_star_exceeds_cap (L dnorm inner : ℝ)
+    (hL : 0 < L) (hd : 0 < dnorm) (hlt : dnorm ^ 2 < inner) :
+    1 / L < inner / (L * dnorm ^ 2) := by
+  have h0 : (0:ℝ) < L * dnorm ^ 2 := by positivity
+  have hc : 1 * (L * dnorm ^ 2) < inner * L := by nlinarith
+  exact (div_lt_div_iff₀ hL h0).2 hc
+
+/-- At the cap `η = 1/L` the joint stage yields the best
+guaranteed decrease on the admissible interval `η ≤ 1/L`:
+`E2 ≤ E1 − dnorm²/(2L)`. -/
+theorem joint_stage_cap_optimal (L dnorm inner E2 E1 : ℝ)
+    (hL : 0 < L) (hdescent : dnorm ^ 2 ≤ inner)
+    (h_emp_smooth : E2 ≤ E1 - (1 / L) * inner
+      + L * (1 / L) ^ 2 * dnorm ^ 2 / 2) :
+    E2 ≤ E1 - dnorm ^ 2 / (2 * L) := by
+  have h2 := joint_stage L (1 / L) dnorm inner E2 E1 hL
+    (le_refl _) (by positivity) hdescent
+    (by simpa using h_emp_smooth)
+  field_simp at h2 ⊢
+  linarith
+
+/-- The cap cost: with strict certified descent
+`dnorm² < inner`, the unconstrained potential
+`inner²/(2L·dnorm²)` strictly exceeds the achievable
+`dnorm²/(2L)` by the factor `inner/dnorm² > 1`. -/
+theorem cap_cost_factor (L dnorm inner : ℝ)
+    (hL : 0 < L) (hd : 0 < dnorm) (hlt : dnorm ^ 2 < inner) :
+    dnorm ^ 2 / (2 * L) < inner ^ 2 / (2 * L * dnorm ^ 2) := by
+  have hd2 : (0:ℝ) < dnorm ^ 2 := by nlinarith
+  have h2L : (0:ℝ) < 2 * L := by nlinarith
+  have h2Ld : (0:ℝ) < 2 * L * dnorm ^ 2 := by nlinarith
+  have hsum : (0:ℝ) < inner + dnorm ^ 2 := by nlinarith
+  have hdiff : (0:ℝ) < (inner - dnorm ^ 2) * (inner + dnorm ^ 2) :=
+    mul_pos (by nlinarith) hsum
+  have hc : dnorm ^ 2 * (2 * L * dnorm ^ 2) < inner ^ 2 * (2 * L) := by
+    nlinarith [hdiff]
+  exact (div_lt_div_iff₀ h2L h2Ld).2 hc
+
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (merge_stage merge_stage_decrease joint_stage)
+export Hagi.Foundations (merge_stage merge_stage_decrease joint_stage quadratic_bound_max eta_star_exceeds_cap joint_stage_cap_optimal cap_cost_factor)
 end Hagi

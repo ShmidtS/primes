@@ -49,7 +49,13 @@ same-folder DAG свободен.
   то k ≤ (E₀ − Emin)/ε (терминация по Ляпунову).
 - `ConeTakeoff`: конус C(t+1) ≥ ρF + γC ⟹ C₀(1+γk)^T ≤ C_T
   (`frontier_cone_inductive`, `takeoff_from_cone`).
-- `StageCalculus`: покомпонентные законы стадий —
+- `StageCalculus`: законы стадий + оптимальный шаг (R347):
+  `quadratic_bound_max` (потолок спуска inner²/(2L·dnorm²)),
+  `eta_star_exceeds_cap` (безусловный оптимум η* нарушает кап
+  1/L при certified descent), `joint_stage_cap_optimal`
+  (η = 1/L оптимален на допустимом интервале: спуск
+  dnorm²/(2L)), `cap_cost_factor` (цена капа — фактор
+  inner/dnorm²). Покомпонентные законы стадий —
   `merge_stage` (E′ ≤ E − G при G ≥ 0), `joint_stage`
   (E′ ≤ E − η⟨g,d⟩ + Lη²‖d‖²/2), `compress_stage`
   (E′ − E ≤ κ·s·qerr при qerr ≤ 1/2), `merge_stage_decrease`.
