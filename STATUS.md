@@ -243,6 +243,12 @@ same-folder DAG свободен.
 - `Assumptions.Trunc` + `trunc_nonvacuous` (idle-свидетель),
   `Nonvacuity` (S₀/S₁ свидетели CorePremises),
   `HAGICertWitness` (горизонт-1, все 17 полей);
+  `corePremises_trajectory_productive` (R369): для ЛЮБОГО
+  горизонта T существует траектория, на которой
+  CorePremises выполняется на КАЖДОМ шаге со строго
+  убывающей энергией (E − 2t·g), строгим зазором g > 0 и
+  растущей capability (+g за шаг) — полный
+  траекторный (category-2) свидетель аудита v7 §5.3.
   `corePremises_nonvacuous_strict` (R357) — не-idle
   свидетель: gap = строгий Йенсен-зазор (MergeBridge, R356),
   growGain = gap > 0, энергии E → E−g → E−2g — все 15

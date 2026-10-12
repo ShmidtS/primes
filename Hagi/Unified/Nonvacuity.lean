@@ -193,6 +193,67 @@ with the expert count advanced. -/
 noncomputable def Spos' (E : ℝ) : Hagi.GenState X :=
   { Spos E with experts := 1, energy := E - 2 * witnessGap }
 
+/-- The productive TRAJECTORY witness state at step t:
+energy strictly decreases `E − 2t·g` per step-pair, gap and
+gain stay at the strict Jensen level `g`, capability grows
+`t·g`. -/
+noncomputable def Straj (E g : ℝ) (t : ℕ) : Hagi.GenState X where
+  weightDim := 1
+  weights := fun _ => 1/4
+  params := 0
+  experts := t
+  energy := E - 2 * t * g
+  protectedRisk := 0
+  budget := 1
+  gap := g
+  dataField := 0
+  capability := t * g
+  verifier := 0
+  runtimeError := 0
+  stepDir := 0
+  grad := 0
+  sp := { eta := 0, L := 1, kappa := 0, s := 1 }
+  effects := {
+    growGain := g
+    growCost := 0
+    growRisk := 0
+    growEnergy := E - (2 * t + 1) * g
+    mergeEnergy := E - (2 * t + 2) * g
+    mergeRisk := 0
+    jointEnergy := E - (2 * t + 2) * g
+    jointRisk := 0
+    jointCost := 0
+    quantErr := |1/4 - qTern 1 (1/4)|
+    compressEnergy := E - (2 * t + 2) * g
+    compressRisk := 0
+  }
+  gen := ⟨0, 0, 0, 0, 0⟩
+
+/-- **The productive trajectory witness** (R369, audit v7
+§5.3): for EVERY horizon T there is a state trajectory on
+which `CorePremises` holds at EVERY step with strictly
+positive gap and gain and strictly decreasing energy —
+E − 2t·g → E − 2(t+1)·g — while capability grows linearly
+`t·g`. This is the trajectory-level (category-2) witness:
+not one pair of states, but the full contract along the
+whole horizon. -/
+theorem corePremises_trajectory_productive (E g : ℝ)
+    (hg : 0 < g) (T : ℕ) :
+    ∃ S : ℕ → Hagi.GenState X, ∀ t < T,
+      CorePremises (S t) (S (t + 1)) 0 (fun _ => 0)
+        ∧ (S (t + 1)).toGrowthState.energy
+          < (S t).toGrowthState.energy
+        ∧ 0 < (S t).toGrowthState.gap
+        ∧ 0 < (S (t + 1)).toGrowthState.capability
+            - (S t).toGrowthState.capability := by
+  refine ⟨fun t => Straj E g t, fun t ht => ?_⟩
+  unfold CorePremises Straj
+  norm_num [Qgen, Qvec, grow, merge, joint, compress]
+  have hq := witness_quantErr_bounded
+  have hT : (0:ℝ) ≤ (t:ℝ) := by positivity
+  refine ⟨⟨hg.le, by linarith [hT], by linarith [hT], hq,
+    by left; ring⟩, by linarith [hg, hT], hg,
+    by nlinarith [hg, hT]⟩
 /-- **The non-idle nonvacuity witness**: `CorePremises` is
 satisfiable with a STRICTLY positive Jensen gap and gain —
 the cycle's energy ledger strictly decreases (`S'.energy =
