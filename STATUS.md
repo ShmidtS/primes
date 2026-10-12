@@ -955,6 +955,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   устранена (ModeState → Foundations); MasterHAGI — явный
   import FrontierScaling (был транзитивным через ModeState).
   LayerLint exceptions осталось 5. Freeze 2181.
+- R328 (аудит v3 §2.2): ortho_norm_sq + gating_tail_bound → новый
+  Foundations/Ortho (чистая линейная алгебра в низком
+  слое); инверсия Sparsity/SparseStep0←Unified
+  (1←6) устранена. LayerLint exceptions: 3.
+  Freeze 2181 (перемещение имён между
+  пространств имён).
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

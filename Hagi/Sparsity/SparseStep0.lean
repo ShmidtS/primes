@@ -3,7 +3,7 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Unified.RecursiveGrowth
+import Hagi.Foundations.Ortho
 set_option linter.style.header false
 
 /-!
@@ -29,7 +29,7 @@ theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
     (c : ι → ℝ) (s : Finset ι) (tol : ℝ) (htol : 0 ≤ tol)
     (htail : ∑ i ∈ sᶜ, c i ^ 2 < tol ^ 2) :
     ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ < tol := by
-  have hgt := gating_tail_bound hv c s
+  have hgt := Hagi.Foundations.gating_tail_bound hv c s
   have hsq : ‖(∑ i, c i • v i) - ∑ i ∈ s, c i • v i‖ < tol := by
     by_contra hcon
     push Not at hcon
