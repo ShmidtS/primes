@@ -206,7 +206,11 @@ same-folder DAG свободен.
   (честно обозначено).
 - `Assumptions.Trunc` + `trunc_nonvacuous` (idle-свидетель),
   `Nonvacuity` (S₀/S₁ свидетели CorePremises),
-  `HAGICertWitness` (горизонт-1, все 17 полей).
+  `HAGICertWitness` (горизонт-1, все 17 полей);
+  `corePremises_nonvacuous_strict` (R357) — не-idle
+  свидетель: gap = строгий Йенсен-зазор (MergeBridge, R356),
+  growGain = gap > 0, энергии E → E−g → E−2g — все 15
+  конъюнктов CorePremises + строгое убывание ledger.
 
 ### Autonomy / Omni / Discovery / Deployment (L3)
 

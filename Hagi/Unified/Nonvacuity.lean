@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.MergeBridge
 import Hagi.Runtime.TernaryExact
 
 set_option linter.style.header false
@@ -127,6 +128,85 @@ noncomputable def S₁ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
     compressRisk := 0
   }
   gen := ⟨0, 0, 0, 0, 0⟩
+
+/-!
+## Non-idle witness (R357): positive gap and gain
+
+`corePremises_nonvacuous` pins the 15 conjuncts at equality
+with zero gap/gain — satisfiable but degenerate. The NON-idle
+witness below feeds the merge conjunct with the STRICT Jensen
+gap of two genuinely disagreeing experts (`jensenGap_pos_witness`,
+R356): `gap := g > 0`, `growGain := g`, energies chained
+`E → E−g → E−2g`, so the cycle strictly decreases the energy
+ledger while every `h_emp_*` law holds. h_emp_merge is here
+INSTANTIATED by the Core lse theory (MergeBridge), not chosen
+freely.
+-/
+
+/-- The measured strict gap of the witness disagreement. -/
+noncomputable def witnessGap : ℝ :=
+  jensenGap (fun _ : Fin 2 => (0:ℝ))
+    (fun i : Fin 2 => if i = 0 then (1:ℝ) else -1)
+
+theorem witnessGap_pos : 0 < witnessGap :=
+  jensenGap_pos_witness 1 one_ne_zero
+
+/-- The non-idle pre-state: `gap := g > 0`, `growGain := g`,
+energies chained `E → E−g → E−2g` (grow, then merge at the
+strict gap); the joint and compress stages pass through at
+`eta = 0`, `kappa = 0`. -/
+noncomputable def Spos (E : ℝ) : Hagi.GenState X where
+  weightDim := 1
+  weights := fun _ => 1/4
+  params := 0
+  experts := 0
+  energy := E
+  protectedRisk := 0
+  budget := 0
+  gap := witnessGap
+  dataField := 0
+  capability := 0
+  verifier := 0
+  runtimeError := 0
+  stepDir := 0
+  grad := 0
+  sp := { eta := 0, L := 1, kappa := 0, s := 1 }
+  effects := {
+    growGain := witnessGap
+    growCost := 0
+    growRisk := 0
+    growEnergy := E - witnessGap
+    mergeEnergy := E - 2 * witnessGap
+    mergeRisk := 0
+    jointEnergy := E - 2 * witnessGap
+    jointRisk := 0
+    jointCost := 0
+    quantErr := |1/4 - qTern 1 (1/4)|
+    compressEnergy := E - 2 * witnessGap
+    compressRisk := 0
+  }
+  gen := ⟨0, 0, 0, 0, 0⟩
+
+/-- The non-idle post-state: the composite successor's
+ledger fields (energy = the compress stage's output `E − 2g`)
+with the expert count advanced. -/
+noncomputable def Spos' (E : ℝ) : Hagi.GenState X :=
+  { Spos E with experts := 1, energy := E - 2 * witnessGap }
+
+/-- **The non-idle nonvacuity witness**: `CorePremises` is
+satisfiable with a STRICTLY positive Jensen gap and gain —
+the cycle's energy ledger strictly decreases (`S'.energy =
+E − 2g < E`), h_emp_merge carried by the Core lse theory. -/
+theorem corePremises_nonvacuous_strict (E : ℝ) :
+    ∃ S S' : Hagi.GenState X, ∃ epsQ : ℝ, ∃ w : Fin 5 → ℝ,
+      CorePremises S S' epsQ w ∧ 0 < S.toGrowthState.gap
+        ∧ 0 < S.toGrowthState.effects.growGain := by
+  refine ⟨Spos E, Spos' E, 0, fun _ => 0, ?_, ?_, ?_⟩
+  · unfold CorePremises Spos Spos'
+    norm_num [Qgen, Qvec, grow, merge, joint, compress]
+    refine ⟨le_of_lt witnessGap_pos, by linarith, witness_quantErr_bounded, rfl, rfl⟩
+  · exact witnessGap_pos
+  · exact witnessGap_pos
 
 /-- **The nonvacuity witness**: `CorePremises` is satisfiable —
 `S₀ E` and its composite successor `S₁ E` satisfy all 15
