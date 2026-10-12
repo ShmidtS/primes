@@ -259,7 +259,7 @@ import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.GrandSynthesis
-import Hagi.Unified.Certificates
+import Hagi.System.Certificates
 import Hagi.Unified.Nonvacuity
 import Hagi.Unified.Assumptions
 import Hagi.Unified.MergeBridge
