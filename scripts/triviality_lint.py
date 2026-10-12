@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""Triviality linter for Hagi (round-52 rules).
+"""Triviality linter for Hagi (round-52 rules, R332 hardening).
 
+T0: no `axiom` declarations, no `native_decide`, no bare
+    `sorry` anywhere in project sources (fail-closed: the
+    project must not declare axioms at all — R303 lesson:
+    rg "sorry" misses `axiom` declarations).
 T1: theorem proof must not be bare `rfl` / `trivial` / `sorry`
 T2: conclusion must not literally coincide with a hypothesis
 Reports the non-trivial share (lower bound) over all theorems.
@@ -12,6 +16,10 @@ import sys
 ROOT = os.path.join(os.path.dirname(__file__), "..", "Hagi")
 
 THEO = re.compile(r"^\s*(?:private\s+)?(?:theorem|lemma)\s+([A-Za-z0-9_']+)", re.M)
+# T0 (R332): local axiom declarations and proof bypasses
+AXIOM_DECL = re.compile(r"^\s*(?:private\s+)?axiom\s+([A-Za-z0-9_']+)", re.M)
+SORRY_ANY = re.compile(r"sorry")
+NATIVE_DECIDE = re.compile(r"native_decide")
 
 
 def split_sigs(text):
@@ -45,6 +53,15 @@ def sig_hyps_and_concl(sig):
 
 def findings(path, text):
     out = []
+    # T0 pass (R332): axiom declarations / sorry / native_decide
+    for m in AXIOM_DECL.finditer(text):
+        out.append((path, m.group(1), "T0-AXIOM-DECLARATION", "axiom"))
+    for m in SORRY_ANY.finditer(text):
+        ln = text.count(chr(10), 0, m.start()) + 1
+        out.append((path, f"line {ln}", "T0-SORRY", "sorry"))
+    for m in NATIVE_DECIDE.finditer(text):
+        ln = text.count(chr(10), 0, m.start()) + 1
+        out.append((path, f"line {ln}", "T0-NATIVE-DECIDE", "native_decide"))
     for m in THEO.finditer(text):
         name = m.group(1)
         # locate the proof body: scan forward from the theorem name for
@@ -98,11 +115,16 @@ def main():
         flagged.extend(findings(path, text))
     print(f"theorems+lemmas scanned: {total}")
     print(f"triviality flags: {len(flagged)}")
+    hard = [f for f in flagged if f[2].startswith("T0")]
     for path, name, kind, detail in flagged:
         print(f"  {kind:32s} {os.path.relpath(path)} :: {name}  {detail}")
     share = 1 - (len(flagged) / total if total else 0)
     print(f"non-trivial share (lower bound of detected; heuristic, not complete): {share:.4f}")
+    if hard:
+        print("TRIVIALITY: FAIL (T0 hard violations)")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

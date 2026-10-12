@@ -981,6 +981,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Foundations. ПОЛНЫЙ НОЛЬ LayerLint-exceptions
   (цель Фазы 3 по аудиту v3 §4/Фаза 8).
   growth_cycle_potential — аксиомы чистые. Freeze 2179.
+- R332 (Фаза 8 п.2/п.3): TrivialLint упрочнён T0-проверками
+  (fail-closed): axiom-декларации, sorry, native_decide в
+  любом месте источников → FAIL с exit 1
+  (урок R303: rg sorry не ловит axiom-декларации).
+  Тест: временный axiom-файл пойман — FAIL;
+  без него — PASS. Freeze 2179.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
