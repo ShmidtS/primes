@@ -23,7 +23,7 @@ The principal-angle (spectral) version remains open — Mathlib
 lacks Eckart-Young.
 -/
 
-namespace Hagi.Cortex
+namespace Hagi.Architecture
 
 open Finset Matrix
 
@@ -143,4 +143,4 @@ theorem mergeEnergyPerturbed {d r1 r2 : ℕ} (V : Matrix (Fin d) (Fin r1) ℝ)
   rw [hsplit, orthoNorm V hV r, orthoNorm W hW s]
   nlinarith [hcrossle, hXpos]
 
-end Hagi.Cortex
+end Hagi.Architecture

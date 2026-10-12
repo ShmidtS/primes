@@ -36,9 +36,9 @@ set_option linter.style.header false
 утверждается — для неё требуется отдельная теория.
 -/
 
-open Matrix Hagi.LiveDelta
+open Matrix Hagi.Architecture
 
-namespace Hagi.DeltaHistory
+namespace Hagi.Step
 
 variable {m n r' : Type} [Fintype m] [Fintype n] [Fintype r']
 
@@ -70,7 +70,7 @@ theorem effective_addBlock (A : Matrix r' m ℝ) (B : Matrix r' n ℝ)
     List.sum_cons]
   rw [← add_assoc, add_comm s.base (Aᵀ * B), add_assoc]
 
-/-- Шаг свёртки истории в LiveDelta. -/
+/-- Шаг свёртки истории в Architecture. -/
 def histStep (p : (m → ℝ) × (n → ℝ)) (s : LiveDelta m n Unit) :
     LiveDelta m n Unit :=
   addBlock (rank1Block p.1 p.2).1 (rank1Block p.1 p.2).2 s
@@ -158,4 +158,4 @@ theorem history_storage_cost (W₀ : Matrix m n ℝ)
   simp only [List.length_nil, Nat.zero_add, fromHistory] at h ⊢
   rw [h]
 
-end Hagi.DeltaHistory
+end Hagi.Step

@@ -16,7 +16,7 @@ concavity-on-states (concaveOn_entropy) — the spectral core on
 which the coupling bound is built.
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 universe u_1
 
@@ -164,4 +164,4 @@ theorem concaveOn_entropy :
 
 end GAD
 end
-end Hagi.Quantum
+end Hagi.Information

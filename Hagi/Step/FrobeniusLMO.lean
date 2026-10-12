@@ -41,7 +41,7 @@ X* = −η·sign(G)) — та же конструкция с ядерной ду
 
 open Finset InnerProductSpace Real
 
-namespace Hagi.FrobeniusLMO
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X]
   [InnerProductSpace ℝ X]
@@ -88,4 +88,4 @@ theorem lmo_descent_direction (G D : X) (eta : ℝ)
     -eta * ‖G‖ ≤ ⟪G, D⟫_ℝ :=
   lmo_lower_bound G D eta hD
 
-end Hagi.FrobeniusLMO
+end Hagi.Step

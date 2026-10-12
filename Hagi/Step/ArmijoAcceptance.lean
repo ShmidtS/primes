@@ -20,7 +20,7 @@ MDL-предобусловленного SafeQP-направления.
 
 open Real InnerProductSpace
 
-namespace Hagi.Armijo
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -92,4 +92,4 @@ theorem armijo_step_size (J : X → ℝ) (g d : X)
           linarith
     _ = J 0 - (c1 / 2) * alpha * ‖d‖^2 := by ring
 
-end Hagi.Armijo
+end Hagi.Step

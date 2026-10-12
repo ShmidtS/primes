@@ -27,7 +27,7 @@ Mathlib-типом `PMF V` точно и в обе стороны.
 
 open ENNReal Finset
 
-namespace Hagi.PMFBridge
+namespace Hagi.Probability
 
 variable {V ι : Type} [Fintype V] [Nonempty V]
 
@@ -112,4 +112,4 @@ theorem fromPMF_toPMF (q : V → ℝ) (hnn : ∀ v, 0 ≤ q v)
   funext v
   exact ENNReal.toReal_ofReal (hnn v)
 
-end Hagi.PMFBridge
+end Hagi.Probability

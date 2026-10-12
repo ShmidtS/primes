@@ -27,11 +27,11 @@ open Matrix
 `(U *ᵥ z + V *ᵥ w) ⬝ᵥ (U *ᵥ z + V *ᵥ w) = z ⬝ᵥ z + w ⬝ᵥ w`. -/
 theorem sharedStateEnergy {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (V : Matrix (Fin d) (Fin r) ℝ)
-    (hU : Hagi.Cortex.IsOrthoCol U) (hV : Hagi.Cortex.IsOrthoCol V)
+    (hU : Hagi.Architecture.IsOrthoCol U) (hV : Hagi.Architecture.IsOrthoCol V)
     (hUV : Uᵀ * V = 0) (z : Fin c → ℝ) (w : Fin r → ℝ) :
     (U.mulVec z + V.mulVec w) ⬝ᵥ (U.mulVec z + V.mulVec w)
       = z ⬝ᵥ z + w ⬝ᵥ w :=
-  Hagi.Cortex.fiberPythagoras U V hU hV hUV z w
+  Hagi.Architecture.fiberPythagoras U V hU hV hUV z w
 
 /-! ### The parameter arithmetic of the omni state -/
 
@@ -64,12 +64,12 @@ theorem sharedStateCostBound (k r d : ℕ) (hd : 0 < d)
 `Vᵀ * W = 0` this is the equality of `sharedStateEnergy`. -/
 theorem sharedStatePerturbed {d r1 r2 : ℕ}
     (V : Matrix (Fin d) (Fin r1) ℝ) (W : Matrix (Fin d) (Fin r2) ℝ)
-    (hV : Hagi.Cortex.IsOrthoCol V) (hW : Hagi.Cortex.IsOrthoCol W)
+    (hV : Hagi.Architecture.IsOrthoCol V) (hW : Hagi.Architecture.IsOrthoCol W)
     (r : Fin r1 → ℝ) (s : Fin r2 → ℝ) :
     (V *ᵥ r + W *ᵥ s) ⬝ᵥ (V *ᵥ r + W *ᵥ s)
       ≤ (r ⬝ᵥ r) + (s ⬝ᵥ s)
-        + 2 * (Hagi.Cortex.frobSq (Vᵀ * W)).sqrt
+        + 2 * (Hagi.Architecture.frobSq (Vᵀ * W)).sqrt
             * (r ⬝ᵥ r).sqrt * (s ⬝ᵥ s).sqrt :=
-  Hagi.Cortex.mergeEnergyPerturbed V W hV hW r s
+  Hagi.Architecture.mergeEnergyPerturbed V W hV hW r s
 
 end Hagi.Omni

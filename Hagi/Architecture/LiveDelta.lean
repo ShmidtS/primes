@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Matrix Finset
 
-namespace Hagi.LiveDelta
+namespace Hagi.Architecture
 
 variable {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 
@@ -95,4 +95,4 @@ theorem blocks_cost (s : LiveDelta m n r) :
       = s.blocks.length * (Fintype.card r * (Fintype.card m
           + Fintype.card n)) := rfl
 
-end Hagi.LiveDelta
+end Hagi.Architecture

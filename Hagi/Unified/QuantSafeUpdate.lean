@@ -33,7 +33,7 @@ Runtime/LiveDeltaQuant и бюджету R272): реальный шаг несё
 
 open Finset InnerProductSpace Real
 
-namespace Hagi.QuantSafeUpdate
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 variable {K : Type*} [Fintype K] [Nonempty K]
@@ -143,4 +143,4 @@ theorem quantized_safe_window (g : K → X) (eps L : K → ℝ)
         + L i * eta * eta * (‖d‖ * q + q ^ 2 / 2) := by
         linarith [hsum1]
 
-end Hagi.QuantSafeUpdate
+end Hagi.Unified

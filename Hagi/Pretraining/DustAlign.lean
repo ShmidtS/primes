@@ -44,7 +44,7 @@ noncomputable def Nrm {n : ℕ} (v : Fin n → ℝ) : ℝ := Real.sqrt (v ⬝ᵥ
 /-- Cauchy–Schwarz in norm form. -/
 theorem absDot_le {n : ℕ} (a b : Fin n → ℝ) :
     |a ⬝ᵥ b| ≤ Nrm a * Nrm b := by
-  have h : (a ⬝ᵥ b) ^ 2 ≤ (a ⬝ᵥ a) * (b ⬝ᵥ b) := Cortex.dotCS a b
+  have h : (a ⬝ᵥ b) ^ 2 ≤ (a ⬝ᵥ a) * (b ⬝ᵥ b) := Architecture.dotCS a b
   have h2 : |a ⬝ᵥ b| = Real.sqrt ((a ⬝ᵥ b) ^ 2) := by
     rw [sq]
     exact (Real.sqrt_mul_self_eq_abs _).symm
@@ -155,13 +155,13 @@ theorem dustAlignment (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → 
         / (δ * Nrm (quadfGrad d A b x)) ^ 2 := by
   -- the error field and its energy
   -- E‖err‖² equals the V of the statement
-  have hVform : KLS.expQ (pairQ d)
+  have hVform : Probability.expQ (pairQ d)
         (fun p => (Nrm (fun i => (esEst d A b x σ p.1 i
           + esEst d A b x σ p.2 i) / 2 - quadfGrad d A b x i)) ^ 2)
       = (∑ q : HC d × HC d, ∑ i, ((esEst d A b x σ q.1 i
           - quadfGrad d A b x i) + (esEst d A b x σ q.2 i
             - quadfGrad d A b x i)) ^ 2) / (4 * 2 ^ d * 2 ^ d) := by
-    simp only [KLS.expQ, pairQ, Nrm, Real.sq_sqrt, dotProduct,
+    simp only [Probability.expQ, pairQ, Nrm, Real.sq_sqrt, dotProduct,
       mul_comm, mul_left_comm, mul_assoc, div_mul_eq_mul_div]
     conv_rhs => rw [Finset.sum_div]
     apply Finset.sum_congr rfl
@@ -194,7 +194,7 @@ theorem dustAlignment (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d → 
   set V := (∑ q : HC d × HC d, ∑ i, ((esEst d A b x σ q.1 i
       - quadfGrad d A b x i) + (esEst d A b x σ q.2 i
         - quadfGrad d A b x i)) ^ 2) / (4 * 2 ^ d * 2 ^ d) with hV
-  have hMarkov := KLS.klsChebyshev (pairQ d) (pairQ_nonneg d) V
+  have hMarkov := Probability.klsChebyshev (pairQ d) (pairQ_nonneg d) V
     (δ * Nrm (quadfGrad d A b x))
     (by positivity) E (le_of_eq hVform)
   -- the bad set is contained in the complement of the aligned set
@@ -313,7 +313,7 @@ theorem dustAlignmentK (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
     (esEst d A b x σ u i - quadfGrad d A b x i) ^ 2)
     / ((2:ℝ) ^ d) with hV
   -- the energy identity: expQ prodQ (fun τ => (E τ)^2) = V / K
-  have hVform : KLS.expQ (prodQ d K) (fun τ => (E τ) ^ 2) = V / K := by
+  have hVform : Probability.expQ (prodQ d K) (fun τ => (E τ) ^ 2) = V / K := by
     have hsq : ∀ τ : Fin K → HC d,
         (E τ) ^ 2 = ∑ i : Fin d,
           ((∑ k, esEst d A b x σ (τ k) i) / K
@@ -336,11 +336,11 @@ theorem dustAlignmentK (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
       intro i _
       ring
     have hbase := dustVarK_expQ d A b x σ hσ K hK
-    unfold KLS.expQ at hbase ⊢
+    unfold Probability.expQ at hbase ⊢
     simp only [hsq]
     exact hbase
   -- Markov/Chebyshev
-  have hMarkov := KLS.klsChebyshev (prodQ d K) (prodQ_nonneg d K)
+  have hMarkov := Probability.klsChebyshev (prodQ d K) (prodQ_nonneg d K)
     (V / K) (δ * Nrm (quadfGrad d A b x))
     (mul_pos hδ hgN) E (le_of_eq hVform)
   -- the bad set is contained in the complement of the aligned set

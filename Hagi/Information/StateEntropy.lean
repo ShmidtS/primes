@@ -18,7 +18,7 @@ spectralFactor (StateEntropy.lean). The mixing calculus the
 coupling bound needs.
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 universe u_1 u_3 u_4
 
@@ -107,19 +107,19 @@ variable {ι : Type u_1} {α : Type u_4} [Fintype ι] [DecidableEq ι] [Fintype 
 
 theorem entropy_sum_le (A : α → Matrix ι ι ℂ) (hA : ∀ a, (A a).PosSemidef) :
     entropy (∑ a, A a) ≤ ∑ a, entropy (A a) := by
-  let F : Matrix ι (α × ι) ℂ := fun i ak ↦ GAD.spectralFactor (hA ak.1) i ak.2
-  have hgram : GAD.gram F = ∑ a, A a := by
+  let F : Matrix ι (α × ι) ℂ := fun i ak ↦ Information.GAD.spectralFactor (hA ak.1) i ak.2
+  have hgram : Information.GAD.gram F = ∑ a, A a := by
     ext i j
-    change (∑ ak : α × ι, GAD.spectralFactor (hA ak.1) i ak.2 *
-      star (GAD.spectralFactor (hA ak.1) j ak.2)) = (∑ a, A a) i j
+    change (∑ ak : α × ι, Information.GAD.spectralFactor (hA ak.1) i ak.2 *
+      star (Information.GAD.spectralFactor (hA ak.1) j ak.2)) = (∑ a, A a) i j
     simp only [Fintype.sum_prod_type,Matrix.sum_apply]
     apply Finset.sum_congr rfl
     intro a _
-    exact congrArg (fun M : Matrix ι ι ℂ ↦ M i j) (GAD.spectralFactor_gram (hA a))
+    exact congrArg (fun M : Matrix ι ι ℂ ↦ M i j) (Information.GAD.spectralFactor_gram (hA a))
   have hdiag (ak : α × ι) : ((Fᴴ*F) ak ak).re = (hA ak.1).isHermitian.eigenvalues ak.2 := by
     change (∑ i, star (F i ak)*F i ak).re = _
     simp only [Complex.re_sum,Complex.star_def,← Complex.normSq_eq_conj_mul_self,Complex.ofReal_re,F]
-    exact GAD.spectralFactor_column (hA ak.1) ak.2
+    exact Information.GAD.spectralFactor_column (hA ak.1) ak.2
   rw [← hgram]
   change entropy (F*Fᴴ) ≤ _
   rw [entropy_mul_conjTranspose]
@@ -145,4 +145,4 @@ theorem entropy_mixture_upper (w : α → ℝ) (A : α → Matrix ι ι ℂ)
 end
 end GAD
 end
-end Hagi.Quantum
+end Hagi.Information

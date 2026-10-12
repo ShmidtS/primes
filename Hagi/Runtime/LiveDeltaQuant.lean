@@ -23,7 +23,7 @@ set_option linter.style.header false
 
 open Finset Real Matrix
 
-namespace Hagi.LiveDeltaQuant
+namespace Hagi.Runtime
 
 variable {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 
@@ -63,4 +63,4 @@ theorem quantMat_sq_bound (s : ℝ) (hs : 0 < s) (M : Matrix m n ℝ)
           Finset.sum_const, Finset.card_univ]
         ring
 
-end Hagi.LiveDeltaQuant
+end Hagi.Runtime

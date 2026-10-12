@@ -22,7 +22,7 @@ set_option linter.style.header false
 
 open Real Finset
 
-namespace Hagi.MDL
+namespace Hagi.Step
 
 /-- Полная MDL-цель: предсказание + λ · длина описания. -/
 def mdlObjective (Lpred Lcode : ℝ → ℝ) (lam : ℝ) : ℝ → ℝ :=
@@ -74,4 +74,4 @@ theorem mdlObjective_neg_lambda_forbidden (Lpred Lcode : ℝ → ℝ)
     (lam : ℝ) (h : lam < 0) :
     ¬ (0 ≤ lam) := by linarith
 
-end Hagi.MDL
+end Hagi.Step

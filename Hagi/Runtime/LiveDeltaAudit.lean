@@ -22,7 +22,7 @@ h_emp_ телеметрия (их вычисление и связь со спе
 владелец контракта.
 -/
 
-namespace Hagi.LiveDeltaAudit
+namespace Hagi.Runtime
 
 /-- Треугольное неравенство для трёх точек (руками: abs_add
 в этой версии Mathlib недоступен по имени). -/
@@ -90,4 +90,4 @@ theorem audit_chain (tol : AuditTolerance)
     · have h := tri t2.partRatio t1.partRatio t0.partRatio tol.tolPR tol.tolPR b3 a3
       linarith
 
-end Hagi.LiveDeltaAudit
+end Hagi.Runtime

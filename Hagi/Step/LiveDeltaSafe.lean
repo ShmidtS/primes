@@ -30,9 +30,9 @@ set_option linter.style.header false
 гипотезы; их вывод не делается.
 -/
 
-open Finset Matrix Real InnerProductSpace Hagi.LiveDelta
+open Finset Matrix Real InnerProductSpace Hagi.Architecture
 
-namespace Hagi.LiveDeltaSafe
+namespace Hagi.Step
 
 variable {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 
@@ -91,4 +91,4 @@ theorem safe_update_window (g : K → X) (eps L : K → ℝ)
     ∀ i, dL i ≤ eps i :=
   safeqp_eta_max g eps L d dL eta hL heps heta hd h_lipline h_eta
 
-end Hagi.LiveDeltaSafe
+end Hagi.Step

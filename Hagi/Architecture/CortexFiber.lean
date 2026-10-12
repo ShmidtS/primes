@@ -25,7 +25,7 @@ That trained experts align to a common `U` is a hypothesis,
 not proved here.
 -/
 
-namespace Hagi.Cortex
+namespace Hagi.Architecture
 
 open Finset Matrix
 
@@ -94,4 +94,4 @@ theorem fiberParamCount {d r : ℕ} (hr : r < d) :
   have h0 : 0 < d := lt_of_le_of_lt (Nat.zero_le r) hr
   exact Nat.mul_lt_mul_of_lt_of_le hr (Nat.le_refl d) h0
 
-end Hagi.Cortex
+end Hagi.Architecture

@@ -42,7 +42,7 @@ O_t), а не наибольшим (SGD, D = G):
 
 open Finset InnerProductSpace Real
 
-namespace Hagi.MuonStableLR
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X]
   [InnerProductSpace ℝ X]
@@ -107,4 +107,4 @@ theorem muon_avg_not_max (m sigmaSum sigmaMax : ℝ)
   rw [div_le_iff₀ hm]
   linarith
 
-end Hagi.MuonStableLR
+end Hagi.Step

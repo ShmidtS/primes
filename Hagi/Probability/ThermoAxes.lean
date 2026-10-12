@@ -36,7 +36,7 @@ the Batch Size» (arXiv:1711.00489, Smith et al.; план §2,
 
 open Finset Real
 
-namespace Hagi.ThermoAxes
+namespace Hagi.Probability
 
 /-- Почленное совпадение осей: при r²·c = 1 и η₀²·B₀ = 1/B₀
 шумовой вклад LR-оси η₀²·r^{2t} равен вкладу batch-оси
@@ -74,4 +74,4 @@ theorem noise_budget_axes_equal (eta0 r B0 c : ℝ) (n : ℕ)
   exact Finset.sum_congr rfl fun t _ =>
     noise_axes_coincide eta0 r B0 c t hr2c heta hB0
 
-end Hagi.ThermoAxes
+end Hagi.Probability

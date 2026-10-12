@@ -42,7 +42,7 @@ Poincaré property enters as an explicit hypothesis, exactly
 like the empirical `h_emp_` premises elsewhere in HAGI.
 -/
 
-namespace Hagi.KLS
+namespace Hagi.Probability
 
 open Finset
 
@@ -291,4 +291,4 @@ theorem klsChebyshev {Ω : Type*} [Fintype Ω] (q : Ω → ℝ)
         rw [div_le_div_iff₀ (by positivity) (by positivity)]
         exact mul_le_mul_of_nonneg_right hV (by positivity)
 
-end Hagi.KLS
+end Hagi.Probability

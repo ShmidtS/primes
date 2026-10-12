@@ -280,13 +280,13 @@ estimate under the uniform product weight, in expQ form. -/
 theorem dustVarK_expQ (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
     (b : Fin d → ℝ) (x : Fin d → ℝ) (σ : ℝ) (hσ : σ ≠ 0)
     (K : ℕ) (hK : 0 < K) :
-    KLS.expQ (prodQ d K) (fun τ => (∑ i,
+    Probability.expQ (prodQ d K) (fun τ => (∑ i,
         ((∑ k, esEst d A b x σ (τ k) i) / K
           - quadfGrad d A b x i) ^ 2))
       = ((∑ u : HC d, ∑ i,
           (esEst d A b x σ u i - quadfGrad d A b x i) ^ 2)
           / ((2:ℝ) ^ d)) / K := by
-  unfold KLS.expQ prodQ
+  unfold Probability.expQ prodQ
   have hmul : (∑ τ : Fin K → HC d,
       (1 / ((2:ℝ) ^ d) ^ K) * (∑ i,
         ((∑ k, esEst d A b x σ (τ k) i) / K

@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 open Real InnerProductSpace
 
-namespace Hagi.PreconditionerDescent
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -100,4 +100,4 @@ theorem preconditioned_step_size (J : X → ℝ) (g u : X) (L mu alpha : ℝ)
           linarith
     _ = J 0 - (mu / 2) * alpha * ‖u‖^2 := by ring
 
-end Hagi.PreconditionerDescent
+end Hagi.Step

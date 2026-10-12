@@ -48,7 +48,7 @@ diagonal-entropy bridge hypothesis of DiscreteFannes.
 
 open scoped BigOperators
 
-namespace Hagi.Canonical
+namespace Hagi.Data
 
 variable {V : Type*} [Fintype V]
 
@@ -81,8 +81,8 @@ theorem shannonEntropy_eq_canonical (p : V → ℝ) :
 
 theorem shannon_eq_canonical {ι : Type*} [Fintype ι]
     (p : ι → ℝ) :
-    Hagi.Quantum.GAD.shannon p = -∑ i, p i * Real.log (p i) := by
-  have h1 : Hagi.Quantum.GAD.shannon p
+    Hagi.Information.shannon p = -∑ i, p i * Real.log (p i) := by
+  have h1 : Hagi.Information.shannon p
       = ∑ i, Real.negMulLog (p i) := rfl
   have h2 : ∀ i : ι, Real.negMulLog (p i)
       = -(p i * Real.log (p i)) := fun i => by
@@ -97,12 +97,12 @@ theorem tvDist_eq_canonical {W : Type} [Fintype W] [Nonempty W]
 
 theorem tvHalf_eq_canonical {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) :
-    Hagi.Quantum.GAD.tvHalf p q = (∑ i, |p i - q i|) / 2 := rfl
+    Hagi.Information.tvHalf p q = (∑ i, |p i - q i|) / 2 := rfl
 
 /-- The canonical cross-entropy matches the Distill
 definition (same carrier, same form). -/
 theorem crossEntropy_eq_canonical (q p : V → ℝ) :
-    Hagi.Canonical.CE q p = Hagi.crossEntropy (V := V) q p := rfl
+    Hagi.Data.CE q p = Hagi.crossEntropy (V := V) q p := rfl
 
 /-! ## The canonical identity block (one place) -/
 
@@ -121,4 +121,4 @@ theorem kl_excess_cross_entropy (q p : V → ℝ)
     rw [Real.log_div (hq v) (hp v)]
     ring)
 
-end Hagi.Canonical
+end Hagi.Data

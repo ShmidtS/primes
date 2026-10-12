@@ -31,7 +31,7 @@ and qdirect from one ternary pass; the comparison is a
 one-line certificate before any GPU run.
 -/
 
-open Finset Hagi.LiveDeltaQuant
+open Finset Hagi.Runtime
 
 namespace Hagi.Budget
 

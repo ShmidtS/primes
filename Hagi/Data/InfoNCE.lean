@@ -33,25 +33,25 @@ variational lower bound on the mutual information»):
 
 open Finset
 
-namespace Hagi.InfoNCE
+namespace Hagi.Data
 
 variable {V : Type} [Fintype V] [DecidableEq V]
 
 /-- CE q q в точности равен энтропии H q (знак-соглашения
 канонических определений совпадают). -/
 theorem ce_self_eq_entropy (q : V → ℝ) :
-    Hagi.Canonical.CE q q = Hagi.Canonical.H q := rfl
+    Hagi.Data.CE q q = Hagi.Data.H q := rfl
 
 /-- Кросс-энтропия не ниже энтропии цели: CE q p ≥ H q
 (KL ≥ 0 в ce-разложении kl_excess_cross_entropy). -/
 theorem ce_ge_entropy (q p : V → ℝ)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    Hagi.Canonical.H q ≤ Hagi.Canonical.CE q p := by
-  have hex := Hagi.Canonical.kl_excess_cross_entropy q p
+    Hagi.Data.H q ≤ Hagi.Data.CE q p := by
+  have hex := Hagi.Data.kl_excess_cross_entropy q p
     (fun v => ne_of_gt (hq v))
     (fun v => ne_of_gt (hp v))
-  have hkl : 0 ≤ Hagi.Canonical.KL q p :=
+  have hkl : 0 ≤ Hagi.Data.KL q p :=
     Hagi.kl_nonneg q p hq hp hsumq hsump
   rw [ce_self_eq_entropy] at hex
   linarith [hex, hkl]
@@ -61,7 +61,7 @@ theorem ce_ge_entropy (q p : V → ℝ)
 theorem infonce_never_overestimates (k : ℝ) (q p : V → ℝ)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    k - Hagi.Canonical.CE q p ≤ k - Hagi.Canonical.H q := by
+    k - Hagi.Data.CE q p ≤ k - Hagi.Data.H q := by
   have h := ce_ge_entropy q p hsumq hsump hq hp
   linarith
 
@@ -70,10 +70,10 @@ theorem infonce_never_overestimates (k : ℝ) (q p : V → ℝ)
 с постериором (зазор нулевой ⟺ KL нулевой). -/
 theorem infonce_gap_is_kl (k : ℝ) (q p : V → ℝ)
     (hq : ∀ v, q v ≠ 0) (hp : ∀ v, p v ≠ 0) :
-    (k - Hagi.Canonical.H q) - (k - Hagi.Canonical.CE q p)
-      = Hagi.Canonical.KL q p := by
-  have hex := Hagi.Canonical.kl_excess_cross_entropy q p hq hp
+    (k - Hagi.Data.H q) - (k - Hagi.Data.CE q p)
+      = Hagi.Data.KL q p := by
+  have hex := Hagi.Data.kl_excess_cross_entropy q p hq hp
   rw [ce_self_eq_entropy] at hex
   linarith
 
-end Hagi.InfoNCE
+end Hagi.Data

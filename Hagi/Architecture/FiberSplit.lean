@@ -21,7 +21,7 @@ cortex-embedded part and a residual:
   term.
 -/
 
-namespace Hagi.Cortex
+namespace Hagi.Architecture
 
 open Finset Matrix
 
@@ -73,4 +73,4 @@ theorem fiberSplitEnergy {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
   rw [hsplit, hcross, hUenergy]
   ring
 
-end Hagi.Cortex
+end Hagi.Architecture

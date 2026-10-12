@@ -15,7 +15,7 @@ core is ported (the resolvent/zeroBlock machinery is not on
 the path to entropy_coupling_bound).
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 universe u_1 u_2
 
@@ -40,4 +40,4 @@ theorem mass_nonneg (A : Matrix ι κ ℂ) : 0 ≤ mass A :=
 
 end GAD
 end
-end Hagi.Quantum
+end Hagi.Information

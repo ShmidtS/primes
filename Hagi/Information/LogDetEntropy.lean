@@ -16,7 +16,7 @@ duality entropy (A·Aᴴ) = entropy (Aᴴ·A) — the machinery
 behind entropy_mul_conjTranspose.
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 
 universe u_1 u_2 u_3 u_4 u_5
@@ -207,4 +207,4 @@ end GAD
 end
 
 
-end Hagi.Quantum
+end Hagi.Information

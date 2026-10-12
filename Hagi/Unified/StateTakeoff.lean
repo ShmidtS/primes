@@ -27,7 +27,7 @@ D и коэффициент γ (как и должно быть).
 
 open Real Finset InnerProductSpace Hagi Hagi.Foundations
 
-namespace Hagi.StateTakeoff
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -119,4 +119,4 @@ theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
     h13, ?_, h15⟩
   exact full_cycle_field_eq hfull
 
-end Hagi.StateTakeoff
+end Hagi.Unified

@@ -23,7 +23,7 @@ floor.
 open scoped BigOperators
 open Hagi.Growth
 
-namespace Hagi.Master
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -92,4 +92,4 @@ theorem grand_synthesis
     linarith
   · exact ⟨hbudget.1, hqvec⟩
 
-end Hagi.Master
+end Hagi.Unified

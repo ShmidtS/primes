@@ -26,7 +26,7 @@ discrete PMF specialization is a direct corollary of the
 diagonal (commuting) case.
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 noncomputable section
 
@@ -355,4 +355,4 @@ theorem exists_projected_factor {P : Matrix ι ι ℂ} (hP : IsProjection P)
 end GAD
 
 end
-end Hagi.Quantum
+end Hagi.Information

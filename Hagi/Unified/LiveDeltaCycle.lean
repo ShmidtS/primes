@@ -25,10 +25,10 @@ SafeQP-окно (защищаемые потери в бюджетах) →
 -/
 
 open Finset Matrix Real InnerProductSpace
-open Hagi.LiveDelta Hagi.LiveDeltaSafe Hagi.LiveDeltaAudit
-  Hagi.LiveDeltaQuant
+open Hagi.Architecture Hagi.Step Hagi.Runtime
+  Hagi.Runtime
 
-namespace Hagi.LiveDeltaCycle
+namespace Hagi.Unified
 
 variable {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -80,4 +80,4 @@ theorem live_delta_cycle (s : LiveDelta m n r)
     updateNewest_cost B' s, haudit,
     quantMat_sq_bound sPack hs (effectiveWeights s) hin⟩
 
-end Hagi.LiveDeltaCycle
+end Hagi.Unified

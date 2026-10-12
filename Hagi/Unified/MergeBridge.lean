@@ -39,7 +39,7 @@ grounded in the Core `lse` theory — the first nonvacuous
 
 open Real Finset Hagi
 
-namespace Hagi.MergeBridge
+namespace Hagi.Unified
 
 variable {k : Type} [Fintype k] [Nonempty k]
 
@@ -80,4 +80,4 @@ theorem h_emp_merge_of_bridge (t : k) (z₁ z₂ : k → ℝ) :
       ∧ 0 ≤ jensenGap z₁ z₂ :=
   ⟨le_of_eq (merge_energy_bridge t z₁ z₂), jensenGap_nonneg z₁ z₂⟩
 
-end Hagi.MergeBridge
+end Hagi.Unified

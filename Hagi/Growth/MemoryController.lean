@@ -37,9 +37,9 @@ set_option linter.style.header false
 ЛОГИКА решения и её следствия, не оценка Ĝ.
 -/
 
-open Finset Hagi.LiveDelta Hagi.DeltaHistory Hagi.DeltaConsolidate
+open Finset Hagi.Architecture Hagi.Step Hagi.Step
 
-namespace Hagi.MemoryController
+namespace Hagi.Growth
 
 variable {m n : Type} [Fintype m] [Fintype n]
 
@@ -151,4 +151,4 @@ theorem admits_satisfy_checks {m n : Type} [Fintype m]
       noveltyOk (checks t) ∧ gainOk (checks t) :=
   fun t h => hdec t h
 
-end Hagi.MemoryController
+end Hagi.Growth

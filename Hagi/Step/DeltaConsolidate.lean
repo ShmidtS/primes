@@ -29,9 +29,9 @@ LiveDelta): замена факторов блока (квантование, с
 решение: quantMat-блоки хранят тернарные факторы).
 -/
 
-open Matrix Finset Hagi.LiveDelta Hagi.DeltaHistory
+open Matrix Finset Hagi.Architecture Hagi.Step
 
-namespace Hagi.DeltaConsolidate
+namespace Hagi.Step
 
 variable {m n : Type} [Fintype m] [Fintype n]
 
@@ -192,4 +192,4 @@ theorem consolidate_budget (k : ℕ)
   refine mul_le_mul_of_nonneg_left ?_ (by positivity)
   exact Finset.sum_le_sum fun t _ => hε t
 
-end Hagi.DeltaConsolidate
+end Hagi.Step

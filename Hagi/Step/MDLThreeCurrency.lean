@@ -40,7 +40,7 @@ C_state — размер хранимого состояния (биты/бай�
 
 open Finset
 
-namespace Hagi.MDLThreeCurrency
+namespace Hagi.Step
 
 variable {V : Type} [Fintype V] [DecidableEq V]
 
@@ -114,4 +114,4 @@ theorem no_compression_below_entropy (p q : V → ℝ)
     Hagi.kl_nonneg p q hp hq hsump hsumq
   linarith
 
-end Hagi.MDLThreeCurrency
+end Hagi.Step

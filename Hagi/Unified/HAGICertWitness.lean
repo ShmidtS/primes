@@ -25,7 +25,7 @@ risk/best/r/ε0/R — нулевые, ρe = 1/2.
 
 open Finset
 
-namespace Hagi.HAGICertWitness
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -135,4 +135,4 @@ theorem hagicert_nonvacuous :
   case refine_16 => norm_num
   case refine_17 => norm_num
 
-end Hagi.HAGICertWitness
+end Hagi.Unified

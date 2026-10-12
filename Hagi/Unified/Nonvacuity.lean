@@ -36,7 +36,7 @@ frontier.
 
 open Real Finset InnerProductSpace Hagi Hagi.Foundations
 
-namespace Hagi.Nonvacuity
+namespace Hagi.Unified
 
 /-- The ternary-grounded distortion of the witness weight:
 the compressed weight is `qTern 1 (1/4) = roundTern (1/4) = 0`,
@@ -142,4 +142,4 @@ theorem corePremises_nonvacuous (E : ℝ) :
 
 end Witness
 
-end Hagi.Nonvacuity
+end Hagi.Unified

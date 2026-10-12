@@ -23,7 +23,7 @@ kernels for engineering upgrades
   depth (`dynamic_branch_variance`).
 -/
 
-namespace Hagi.Unified
+namespace Hagi.Runtime
 
 open Finset Real
 
@@ -189,4 +189,4 @@ theorem dynamic_branch_variance (L : ℕ) (v : ℝ)
   rw [hsq, Finset.sum_const, Finset.card_range, nsmul_eq_mul]
   field_simp
 
-end Hagi.Unified
+end Hagi.Runtime

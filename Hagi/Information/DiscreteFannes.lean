@@ -38,7 +38,7 @@ Main results:
 
 open scoped BigOperators ComplexOrder MatrixOrder
 
-namespace Hagi.Quantum.GAD
+namespace Hagi.Information
 
 variable {ι : Type u} [Fintype ι] [DecidableEq ι]
 
@@ -105,7 +105,7 @@ theorem pos_neg_sums (p q : ι → ℝ)
     exact h
 
 section DiagPSD
-open Matrix
+open Matrix GAD
 
 /-- The diagonal embedding of a nonnegative real vector is
 positive semidefinite: diagonal r = D * D with D = diagonal sqrt r
@@ -237,4 +237,4 @@ theorem discrete_fannes_coupling [Nonempty ι] (p q : ι → ℝ)
 
 end DiagPSD
 
-end Hagi.Quantum.GAD
+end Hagi.Information

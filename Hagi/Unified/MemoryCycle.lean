@@ -34,10 +34,10 @@ set_option linter.style.header false
   сохраняет качество в пределах границы.
 -/
 
-open Finset Hagi.LiveDelta Hagi.DeltaHistory Hagi.DeltaConsolidate
-  Hagi.MemoryController Matrix
+open Finset Hagi.Architecture Hagi.Step Hagi.Step
+  Hagi.Growth Matrix
 
-namespace Hagi.MemoryCycle
+namespace Hagi.Unified
 
 variable {m n : Type} [Fintype m] [Fintype n]
 
@@ -85,4 +85,4 @@ theorem memory_cycle_quality (k : ℕ)
   consolidation_quality_bound k entries news ε hbud loss L
     hL hlip
 
-end Hagi.MemoryCycle
+end Hagi.Unified

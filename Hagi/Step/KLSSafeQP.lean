@@ -31,33 +31,33 @@ theorem klsSafeQP_certified {n : ℕ} {Ω : Type*} [Fintype Ω] [Nonempty Ω]
     (C L : ℝ) (hC : 0 ≤ C)
     (sens : (Fin n → ℝ) → Ω → ℝ)
     (hpoincare : ∀ (g : Ω → Fin n → ℝ) (a : Fin n → ℝ),
-      KLS.gradVar q g a ≤ C * KLS.expQ q (fun x => (sens a x) ^ 2))
-    (hop : ∀ (a : Fin n → ℝ) (x : Ω), (sens a x) ^ 2 ≤ L ^ 2 * KLS.sqN a)
+      Probability.gradVar q g a ≤ C * Probability.expQ q (fun x => (sens a x) ^ 2))
+    (hop : ∀ (a : Fin n → ℝ) (x : Ω), (sens a x) ^ 2 ≤ L ^ 2 * Probability.sqN a)
     {B : ℕ} (hB : 0 < B) (g : Fin B → Ω → Fin n → ℝ) (a : Fin n → ℝ)
     (huncorr : ∀ i j, i ≠ j →
-      KLS.expQ q (fun x => (KLS.proj a (g i x)
-          - KLS.expQ q (fun y => KLS.proj a (g i y)))
-        * (KLS.proj a (g j x)
-          - KLS.expQ q (fun y => KLS.proj a (g j y)))) = 0)
+      Probability.expQ q (fun x => (Probability.proj a (g i x)
+          - Probability.expQ q (fun y => Probability.proj a (g i y)))
+        * (Probability.proj a (g j x)
+          - Probability.expQ q (fun y => Probability.proj a (g j y)))) = 0)
     (trueInner : Ω → ℝ) (estInner : Ω → ℝ)
     (hdev : ∀ x, estInner x - trueInner x
-      = (∑ i, KLS.proj a (g i x) / B
-          - (∑ i, KLS.expQ q (fun y => KLS.proj a (g i y))) / B))
+      = (∑ i, Probability.proj a (g i x) / B
+          - (∑ i, Probability.expQ q (fun y => Probability.proj a (g i y))) / B))
     (gd : ℝ) (eps t : ℝ) (ht : 0 < t)
     (htrue : ∀ x, eps + |gd| * t ≤ gd * trueInner x) :
     (∑ x ∈ Finset.univ.filter (fun x => eps ≤ gd * estInner x), q x)
-      ≥ 1 - (C * L ^ 2 * KLS.sqN a / B) / t ^ 2 := by
+      ≥ 1 - (C * L ^ 2 * Probability.sqN a / B) / t ^ 2 := by
   -- the deviation field
-  set dev : Ω → ℝ := fun x => ∑ i, KLS.proj a (g i x) / B
-    - (∑ i, KLS.expQ q (fun y => KLS.proj a (g i y))) / B with hdevdef
+  set dev : Ω → ℝ := fun x => ∑ i, Probability.proj a (g i x) / B
+    - (∑ i, Probability.expQ q (fun y => Probability.proj a (g i y))) / B with hdevdef
   -- the KLS chain bounds its second moment
-  set V := C * L ^ 2 * KLS.sqN a / B with hVdef
-  have hnoise : KLS.expQ q (fun x => (dev x) ^ 2) ≤ V :=
-    KLS.klsBatchNoise q hq0 hq1 C L hC sens hpoincare hop hB g a huncorr
+  set V := C * L ^ 2 * Probability.sqN a / B with hVdef
+  have hnoise : Probability.expQ q (fun x => (dev x) ^ 2) ≤ V :=
+    Probability.klsBatchNoise q hq0 hq1 C L hC sens hpoincare hop hB g a huncorr
   -- Chebyshev: the bad set has q-mass at most V / t^2
   have hbad : (∑ x ∈ Finset.univ.filter (fun x => t ≤ |dev x|), q x)
       ≤ V / t ^ 2 :=
-    KLS.klsChebyshev q hq0 V t ht dev hnoise
+    Probability.klsChebyshev q hq0 V t ht dev hnoise
   -- the certified set contains the complement of the bad set
   have hmono : (Finset.univ.filter (fun x => ¬(t ≤ |dev x|)))
       ⊆ Finset.univ.filter (fun x => eps ≤ gd * estInner x) := by

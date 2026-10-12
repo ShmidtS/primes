@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 open Real Finset InnerProductSpace InnerProduct
 
-namespace Hagi.MetricSafeQP
+namespace Hagi.Step
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
   [FiniteDimensional ℝ X]
@@ -120,4 +120,4 @@ theorem mProject_exists_unique (A : X ≃L[ℝ] X)
     calc d = A.symm (A d) := (A.symm_apply_apply d).symm
       _ = A.symm y := by rw [heq]
 
-end Hagi.MetricSafeQP
+end Hagi.Step

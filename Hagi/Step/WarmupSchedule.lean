@@ -42,7 +42,7 @@ h_emp_-гипотеза на ландшафт; доказаны арифмети
 
 open Finset
 
-namespace Hagi.WarmupSchedule
+namespace Hagi.Step
 
 /-- Тёплый (адаптивно растущий) learning rate: η_t =
 c·min{1/K₀, Δ_t^{−ρ}/(3^ρ·K_ρ)}. -/
@@ -175,4 +175,4 @@ theorem warmup_beats_constant (T : ℕ) (eta : ℕ → ℝ)
         Finset.sum_le_sum fun i hi =>
           hge i (Finset.mem_range.mp hi)
 
-end Hagi.WarmupSchedule
+end Hagi.Step

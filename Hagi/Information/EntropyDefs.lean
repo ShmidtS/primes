@@ -17,7 +17,7 @@ The downstream target of the campaign is
 bound with the singular h₂ part) in the top layer.
 -/
 
-namespace Hagi.Quantum
+namespace Hagi.Information
 
 universe u
 
@@ -36,4 +36,4 @@ def IsState {ι : Type u} [Fintype ι] [DecidableEq ι] (P : Matrix ι ι ℂ) :
   P.PosSemidef ∧ Matrix.trace P = 1
 
 end
-end Hagi.Quantum
+end Hagi.Information

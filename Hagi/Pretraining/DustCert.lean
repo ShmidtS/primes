@@ -58,9 +58,9 @@ theorem pairQ_nonneg (d : ℕ) : ∀ p, 0 ≤ pairQ d p := by
 only on the first component has the pair expectation equal to
 its hypercube average. -/
 theorem pairExpFirst (d : ℕ) (F : HC d → ℝ) :
-    KLS.expQ (pairQ d) (fun p => F p.1)
+    Probability.expQ (pairQ d) (fun p => F p.1)
       = (∑ u ∈ (Finset.univ : Finset (HC d)), F u) / 2 ^ d := by
-  unfold KLS.expQ pairQ
+  unfold Probability.expQ pairQ
   rw [Fintype.sum_prod_type, Finset.sum_comm]
   rw [Finset.sum_congr rfl (fun y (_ : y ∈ Finset.univ) =>
     ((Finset.mul_sum (Finset.univ : Finset (HC d)) F
@@ -76,10 +76,10 @@ theorem pairExpFirst (d : ℕ) (F : HC d → ℝ) :
 of one-component factors equals the product of the hypercube
 averages (finite Fubini on the product space). -/
 theorem pairExpProd (d : ℕ) (φ ψ : HC d → ℝ) :
-    KLS.expQ (pairQ d) (fun p => φ p.1 * ψ p.2)
+    Probability.expQ (pairQ d) (fun p => φ p.1 * ψ p.2)
       = ((∑ u ∈ (Finset.univ : Finset (HC d)), φ u) / 2 ^ d)
         * ((∑ v ∈ (Finset.univ : Finset (HC d)), ψ v) / 2 ^ d) := by
-  unfold KLS.expQ pairQ
+  unfold Probability.expQ pairQ
   rw [Fintype.sum_prod_type]
   -- regroup and factor over y
   rw [Finset.sum_congr rfl (fun x (_ : x ∈ Finset.univ) =>
@@ -106,7 +106,7 @@ coordinate error is `esUnbiased`; this is the huncorr
 hypothesis of `klsBatchNoise` promoted to a theorem. -/
 theorem dustUncorrPair (d : ℕ) (φ ψ : HC d → ℝ)
     (hφ : ∑ u ∈ (Finset.univ : Finset (HC d)), φ u = 0) :
-    KLS.expQ (pairQ d) (fun p => φ p.1 * ψ p.2) = 0 := by
+    Probability.expQ (pairQ d) (fun p => φ p.1 * ψ p.2) = 0 := by
   rw [pairExpProd, hφ]
   simp
 

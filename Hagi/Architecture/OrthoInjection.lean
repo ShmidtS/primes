@@ -22,7 +22,7 @@ orthogonal to the retained cortex state:
   orthogonally to the cortex component.
 -/
 
-namespace Hagi.Cortex
+namespace Hagi.Architecture
 
 /-- The injected fiber has zero cortex coordinates: the whole
 payload lands in the orthogonal subspace. -/
@@ -69,4 +69,4 @@ theorem fiber_injection_norm_split {d c r : ℕ}
   simp only [dotProduct_add, add_dotProduct, hint, hint2]
   ring
 
-end Hagi.Cortex
+end Hagi.Architecture

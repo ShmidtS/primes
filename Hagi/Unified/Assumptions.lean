@@ -30,7 +30,7 @@ home, one bridge theorem.
 
 open Real Finset InnerProductSpace Hagi Hagi.Foundations
 
-namespace Hagi.Assumptions
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -226,4 +226,4 @@ theorem trunc_nonvacuous {X : Type*} [NormedAddCommGroup X]
     Nonempty (Trunc (fun _ => idleGen x0 E0) 1 1 0 E0 T) :=
   ⟨trunc_idle_witness x0 E0 T⟩
 
-end Hagi.Assumptions
+end Hagi.Unified

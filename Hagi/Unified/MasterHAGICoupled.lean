@@ -39,7 +39,7 @@ the scalar version is derived, not primary.
 
 open scoped BigOperators
 
-namespace Hagi.Master
+namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
@@ -144,19 +144,19 @@ Phase 6): the idle state trajectory (all fields zero, budget
 theorem coupledHAGI_nonvacuous {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] (x0 : X) (T : ℕ) :
     CoupledHAGIInvariant T
-      (fun _ => Hagi.Assumptions.idleGrowth x0 0)
+      (fun _ => Hagi.Unified.idleGrowth x0 0)
       (fun _ => 0) (fun _ => 0) (fun _ _ => 0) (fun _ => 0) 0 where
   cap_is_state := by
     intro t _
     rfl
   risk_bound := by
-    simp [Hagi.Assumptions.idleGrowth]
+    simp [Hagi.Unified.idleGrowth]
   spend_nonneg := fun _ _ => le_refl 0
   risk_nonneg := fun _ _ => le_refl 0
   budget_account := by
-    constructor <;> simp [Hagi.Assumptions.idleGrowth]
+    constructor <;> simp [Hagi.Unified.idleGrowth]
   capability_growth := by
-    simp [Hagi.Assumptions.idleGrowth]
+    simp [Hagi.Unified.idleGrowth]
   qvec_floor := fun _ => le_refl 0
 
-end Hagi.Master
+end Hagi.Unified
