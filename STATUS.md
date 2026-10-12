@@ -1,1182 +1,214 @@
-# STATUS — текущее состояние формализации HAGI
+# STATUS — состояние формализации HAGI
 
 Метрика «0 sorry» недостаточна (тавтологии её проходят).
 Правила приёмки: заключение ≠ посылка; не `rfl`/`A = A`;
 `#print axioms` — только propext / Classical.choice /
 Quot.sound; эмпирические посылки — префикс `h_emp_`.
-
-Историческая ретроспектива раундов R41–R166 удалена
-(см. git log / docstrings модулей); здесь — только текущее
-описание корпуса.
+История раундов удалена (git log, docstrings); здесь —
+текущее состояние, главные формулы и открытые задачи.
 
 ## Корпус
 
-- 263 Lean-модуля в `Hagi/`, 1585+46=1631 деклараций в
-  declarations.lock (Freeze, 2026-10-10), 0 sorry; `lake build
-  Hagi` — зелёный (9194 jobs); 27 per-directory lean_lib-пакетов
-  (R270).
-- Namespace-кампания (R269) завершена: 0 плоских
-  `namespace Hagi`; все модули в `namespace Hagi.<Dir>` с
-  легаси-алиас-экспортами (старые полные имена `Hagi.foo`
-  резолвятся).
-- CI (`scripts/ci.sh`): TrivialLint + тривиальность +
-  DocLint + LayerLint + StatusLint — PASS.
-- Аксиомы: стандартные (проверено выборочно по капстоунам).
+- 290 Lean-модулей в `Hagi/` (28 каталогов), 2196 деклараций
+  в declarations.lock (Freeze, 2026-10-11), 1712
+  theorem/lemma, 0 sorry; `lake build Hagi` зелёный.
+- LayerLint: 0 исключений; TrivialLint T0 fail-closed
+  (axiom/sorry/native_decide в любом месте → exit 1).
+- Батарея: Freeze, DocLint, StatusLint, LayerLint,
+  triviality_lint — PASS (`bash scripts/ci.sh`).
 
-## Слоистая архитектура (миграция 2026-10-05)
+## Слои
 
-- `Foundations/` (L0, только Mathlib): `Recurrence`
-  (`recurrence_upper`, `recurrence_pure`, `recurrence_lower`,
-  `geom_telescope`, `geom_sum_le_inv`, `contraction_limit`),
-  `Telescope` (`telescope_le`, `telescope_sum_le`,
-  `telescope_sub_sum`), `ConeTakeoff`
-  (`cone_invariant_horizon`, `takeoff_from_cone`), `Chord`
-  (`exp_chord_ab`, `log_cosh_le`), `Hoeffding`
-  (`bern_mgf_bound`, `mgf_hoeffding_ab`, `mgf_hoeffding`),
-  `TakeoffCounted` (`capability_takeoff_counted`).
-- Правило LayerLint: импорт только из строго нижних слоёв;
-  same-folder DAG допустим; baseline-исключений — 10
-  (сокращающийся список в `scripts/LayerLint.py`).
-- Дедупликация: MasterHAGI-телескопы, Saturation
-  (`pl_gap_geometric`), Dynamics/Contraction — делегации
-  Foundations.
+```
+0  Mathlib
+1  Foundations/  Prelude/          — скалярные каноны
+2  Core..Step/   (математика)      — линейка, квантование,
+                                     концентрация, SafeQP
+3  System/  Unified/  Growth/      — состояние, цикл, капстоуны
+   Runtime/ Discovery/ Autonomy/
+```
 
-## Вероятностный слой (Probability/)
+Правило LayerLint: импорт только из строго нижних слоёв;
+same-folder DAG свободен.
 
-- `AdaptiveSuccess` (конечные вероятностные системы:
-  `prodE`, `prodPq`, `markov_ge`), `CertifiedEstimator`,
-  `ConditionalSuccess`.
-- `Azuma`: мартингальная концентрация
-  (`hoeffding_lemma_prefix`, `azuma_mgf`, `azuma_tail_low`,
-  `adaptive_success_azuma`).
-- `Freedman` (R167): дисперсионно-адаптивная концентрация —
-  `exp_tail_two` (двойной MVT), `freedman_lemma_prefix`,
-  `freedman_mgf`, `freedman_tail_low`,
-  P[ΣX ≤ −Δ] ≤ exp(−Δ²/(2(nσ²+bΔ))), `cond_var_le_second`,
-  `adaptive_success_freedman` (σ²=1 воспроизводит Азуму,
-  σ²<1 — сильнее).
+---
 
-## Growth-каскад и капстоуны
+## Модули: состояние и главные формулы
 
-- Growth: `RatioTakeoff`, `FrontierScaling`
-  (`frontier_cone_invariant`), `GainRenewal`
-  (`gain_renewal_recurrence`), `Saturation`
-  (`pl_gap_geometric`, `saturation_limit`), `GrowthCeiling`
-  (`growth_dichotomy`), `TakeoffElasticity`
-  (`elasticity_chain`), `PlasticityLedger` (`kl_le_log_card`),
-  `RsiCriterion` (`rsi_cone_criterion`), `SeedOnly`,
-  `StateBinding`, `StateClosedRenewal`.
-- Unified: `MasterHAGI` (условный капстоун, телескопы через
-  Foundations), `MasterHAGITrunc`
-  (`MasterHAGI_trunc`, `masterhagi_growth_witness` —
-  свидетель не-вакуозности), `ArchitectureTheorem`
-  (`cone_invariant_trunc`, `pl_gap_lower_trunc`),
-  `GrowthState`, `TopLevel`, `AnytimeValid`.
-- Model: `SoftmaxStep` (`descent_step` — гарантированный
-  спуск CE конкретной модели без `h_emp_`-посылок).
-- Budget: `CertifiedArgmax` (`argmax_pair_certified`,
-  `tie_ambiguity` — контрпример противоречивости argmax при
-  малых зазорах), `ComputeBudget`, `JointCost`.
-- Probability→Growth мосты: `WallClockTakeoff`,
-  `GrowthBridge`, `Liveness`.
+### Prelude и Foundations (L1 — каноны)
 
-## Честные границы (открытое)
+- Prelude.Info: KL, TV, энтропия, softmax. Каноны:
+  `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
+  `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Recurrence`: геометрический телескоп; рекуррентное
+  неравенство u(t+1) ≤ ρ·u(t) + c при ρ < 1 даёт
+  u(t) ≤ ρᵗ·u(0) + c/(1−ρ); `contraction_limit` (предел),
+  `disp_recurrence_general`.
+- `Telescope`: `telescope_le`, `lyapunov_telescope_fin`,
+  `lyapunov_termination_fin` — если E падает на ε за шаг,
+  то k ≤ (E₀ − Emin)/ε (терминация по Ляпунову).
+- `ConeTakeoff`: конус C(t+1) ≥ ρF + γC ⟹ C₀(1+γk)^T ≤ C_T
+  (`frontier_cone_inductive`, `takeoff_from_cone`).
+- `StageCalculus`: покомпонентные законы стадий —
+  `merge_stage` (E′ ≤ E − G при G ≥ 0), `joint_stage`
+  (E′ ≤ E − η⟨g,d⟩ + Lη²‖d‖²/2), `compress_stage`
+  (E′ − E ≤ κ·s·qerr при qerr ≤ 1/2), `merge_stage_decrease`.
+- `Ortho`: `ortho_norm_sq_finset` — ‖∑ cₜvₜ‖² = ∑ cₜ² для
+  ортонормальных vₜ (канон); следствия `gating_tail_bound`,
+  спектральный хвост.
+- `Chord` (`exp_chord_ab`, `log_cosh_le`), `Hoeffding`
+  (Хёфдинг через MGF), `TakeoffCounted`, `WeightedVar`.
 
-- `h_emp_`-посылки (измеряемые, не теоремы): дрейф ρ,
-  сжатие γ, условные дисперсии σ², условные полы успехов —
-  проверяются runtime-измерением, не выводимы.
-- γ-дефицит mixer.gain→0 (9×) — НЕ закрыт (честный
-  статус R160).
-- Полная Fannes-граница (остаток R157 после `binEnt_mono`
-  клона) — открыта; pinsker-часть доказана.
-- Freedman: совместная (M ≥ x И V ≤ v) и anytime-формы —
-  открыты.
-- Eckart–Young в Mathlib отсутствует — спектральный хвост
-  R132 уровня 2 не переносится.
-- R158 Lean↔Runtime property-тесты — требует torch-рантайма
-  E:\HAGI_v2 (blocked).
-- §I LSL-стек (SupportGate/GateRetention/LocalSafeQP/
-  Consolidation) — нет спецификации §I (blocked).
-- Covariance-Projected Gain Operator — после gen7-вердикта.
-- `frontier_cone_invariant` — структурно отличен от
-  Foundations-конуса (ξ-член, cap вместо равенства шага);
-  канонизация — будущая работа.
+### Energy / Data / Information (L2 — квантование и инфо)
 
-## Раунды R265–R270 (сводка)
+- Ternary: тернарная сетка, округление к ближайшему,
+  ошибка ≤ полшага s/2; qerr-инварианты.
+- MergeBridge-канон: CE(t, mid) = mean CE − JensenGap,
+  gap ≥ 0 (Jensen для lse на конкатенации экспертов).
+- Prelude-мосты: Fannes/Pinsker условные формы
+  (`entropy_continuity_pinsker'`), бинэнтропийная монотонность.
+- Дистилляция: CE/KL-тождества, mixture KKT, floors памяти.
 
-- R265–R268 (аудиты + план): GrandSynthesis budget-split
-  (бюджет и capability — отдельные последовательности);
-  StateTakeoff (h_emp_step ВЫВОДИТСЯ из FullCycleRefinement,
-  C-канал = поле состояния); LiveDelta-стек (Architecture/
-  LiveDelta, Step/LiveDeltaSafe, Runtime/LiveDeltaQuant,
-  LiveDeltaAudit, Unified/LiveDeltaCycle — квантованные
-  инкрементальные апдейты с rollback + аудит-телеметрия);
-  Probability/PMFBridge (V→ℝ ↔ PMF, оба пути); HAGICertWitness
-  (горизонт-1 неразрывности HAGICert, все 17 полей);
-  Freeze: хэш структур обрезается на ближайшем ':='/'where'.
-- R269: namespace-кампания — 178 изолированных модулей →
-  `namespace Hagi.<Dir>` + легаси-экспорты (срезы 40+138).
-- R270: 27 per-directory lean_lib-пакетов (`globs =
-  "Hagi.<Dir>.+"`), defaultTargets не тронут.
+### Probability (L2 — концентрация)
 
-## Миграция — оставшиеся шаги
+- `Azuma`: P[ΣX ≤ −Δ] ≤ exp(−Δ²/(2n)) (MGF-путь).
+- `Freedman`: дисперсионно-адаптивная граница
+  P[ΣX ≤ −Δ] ≤ exp(−Δ²/(2(V + bΔ/3))) — при V ≪ n
+  сильнее Азумы; `adaptive_success_freedman`.
+- `PMFBridge`: V↔ℝ ↔ PMF оба пути; anytime-формы
+  (`AnytimeValid`, `AnytimeMartingale`).
 
-- Разворот 23 baseline-рёбер LayerLint (в основном
-  Unified-хабы GrowthState/TopLevel, Growth↔Budget) —
-  требует шага «мосты»: capability-семантика через KL/CE,
-  GrowthState ← DField/Merge.
-- git mv папок по слоям, spec_manifest.toml, регенерация
-  STATUS скриптом (шаги 4, 6, 7 плана миграции).
-  LayerLint-исключения: авторитет — scripts/LayerLint.py
-  (10 рёбер; записи «18»/«23» в старых блоках устарели).
+### Step (L2 — контроллер шага)
 
-- R240 (d934f0e): кампания честности докстрингов — 162
-  висячие ссылки разрешены (~90 модулей): переименования к
-  реальным декларациям где ясно, de-backtick иначе; 2
-  ошибочные fuzzy-замены пойманы ручной проверкой и
-  откачены. OOM-инцидент: lake build на 16 ядрах исчерпал
-  виртуальную память, повредив Mathlib-олени — CI переведён
-  на LAKE_JOBS=2, битые артефакты удалены и пересобраны
-  (конвергенция за 1 проход). GPU для Lean-элаборации
-  НЕ существует (CPU/RAM-bound). Урок: /tmp-скретчи на
-  Windows стираются/пишутся битыми — верифицировать размер
-  файла перед выводом об успехе (Map≠Territory: пустой
-  файл дал ложный PASS).
-- R261: ratio-semeynaya unifikaciya — cone_reinvest_invariant (kanonicheskiy zakon reinvest-formy: tochnyy shag C'=C+gamma*D — chastichnyy sluchay capa C'<=C+gamma*D; porog gamma*k^2+(1-rho)*k, retention rho>=gamma*k, k>=0) + most cone_ratio_step_is_reinvest. ChESTNAYA granica: NE pogloschenie cap-formy R260 (ona torguet posylku rho>=gamma*k; dve ekonomii gipotez zafiksirovany, ne slitly). Uroki: masshtabirovanie neravenstva capa na k trebuet znak k (v tochnoy versiiRatioTakeoff eto ne nuzhno); linarith ne masshtabiruet — davat' umnozhennuyu versiyu kak mul_le_mul_of_nonneg_left.
-- R260: P1-unifikaciya audita otkryta — ConeDynamics: odna abstraktnaya struktura ConeData (C, D, forcing xi, konstanty) + obschiy zakon cone_data_invariant s forcing-chlenom (nulevaya oshibka = sledstvie pri xi=0) + MOST frontier_cone_inductive_is_cone_data: teorema FrontierScaling EST abstraktnyy zakon pri k=alpha/gamma (tonkaya instanciaciya). Uroki: structure-polya tolko po odnomu na stroke; `:= have ... exact ...` v tele theorem — term-mode, obertyvat v `by`.
-- R259: README/докстринг-консистентность по цели:
-  (а) fiber_merge_denoise ДОКАЗАН (был фантомом в
-  докстринге R255): ошибка fiber-merge для эксперта i =
-  РОВНО шумовой остаток n̄ − n_i, энергия РОВНО
-  σ²(1−1/N) < σ² — каждый эксперт получает доказуемо МЕНЕЕ
-  шумную версию себя, полезное разногласие нетронуто
-  (кросс-терм ⟨n̄,n_i⟩ = σ²/N, разложение
-  norm_sub_pow_two_real); (б) README дополнен строками
-  R255–R258 (NoiseDisentangle с fiber_merge_denoise,
-  Canonical, ProjectionDescent, Certificates); (в)
-  STATUS-шапка пересчитана. Полный аудит висячих имён:
-  0 после фикса. Урок: exact-энергия (1−1/N) выводится
-  БЕЗ Пифагора — inner-разложение + уже доказанный
-  orthogonal_noise_averaging.
-- R258 (77f594e): P0-4/5 аудита — САМЫЙ ГЛАВНЫЙ
-  архитектурный апгрейд: типизированные по-стадийные
-  СЕРТИФИКАТЫ вместо гигантской CorePremises-конъюнкции
-  (этап 0: рядом со старым, ничего не удалено):
-  Grow/Merge/Joint/Compression/Generalization-Certificate
-  + CycleCertificate (бандл + chain-поля сцепки стадий —
-  дефинициональная сантехника, не новая посылка).
-  cycle_certificate_sound: один сертифицированный цикл
-  уменьшает потенциал Φ = E+λR+νmax(0,Q_t−Q) при
-  λ·Σrisk+ν·ε_Q ≤ dec (dec = gap+η⟪g,d⟫−(L/2)η²‖d‖²−κqerr).
-  Контракт end-to-end (audit stage-6): реализация
-  поставляет пять ЛОКАЛЬНЫХ сертификатов — глобальная
-  теория делает остальное. Доказательство: penalty_
-  drop_bound (4-кейсовый max-максорасширение),
-  мультипликативная обёртка через ν≥0, атомарный
-  финальный linarith с hdec-связкой. P0-2 аудита УЖЕ был
-  закрыт (R207–209: GenCycle/Contraction — делегации
-  Foundations.Recurrence, проверено).
-- R257 (6317a9e): P0-3 аудита закрыт — Step/ProjectionDescent:
-  канонический Step-уровень для min_dist_to_vi +
-  safeQP_descent (делегирование к Audit-доказательствам,
-  те же сигнатуры); Unified.GrowthState и MacroCycle
-  ПЕРЕКЛЮЧЕНЫ на Step-импорт (проверено: других Audit-имён
-  не используют) — Audit больше не load-bearing для
-  production-теории. Этап 0: Audit-копии остаются legacy.
-- R256 (0f30894): архитектурный аудит (внешний, полный
-  проход 241 файла) принят как программа: главная проблема
-  не «теория не доказана», а ОДНА теория в 3–5 разных API
-  (KL/entropy/TV, recurrence, SafeQP, merge/gap, cone/
-  takeoff, концентрация + перегруженный GrowthState/
-  CorePremises). Начат Этап 0/1 (P0-1): канонический
-  Information-слой — Canonical.{KL,H,TV,CE} = Prelude-формы
-  + ВСЕ варианты помолены (klDiv/KLdiv/kldiv/shannonEntropy/
-  shannon/tvDist/tvHalf; новый kldiv-мост посажен прямо в
-  FreeEnergy из-за same-layer правила); kl_excess_cross_
-  entropy в канонической форме (positivity-посылки явно);
-  матричная энтропия СОЗНАТЕЛЬНО не склеивается (другой
-  объект). Ничего не удалено (Этап 0). LayerLint-урок:
-  канонические модули-мосты обязаны жить на слое ≥ самого
-  высокого мостимого (Data+Energy ⟹ Data/Energy-сплит).
-  Дальше по аудиту: P0-2 Recurrence-обёртки, P0-3 SafeQP-
-  извлечение из Audit, P0-4/5 композициональный state +
-  сертификаты, P1 cone-унификация.
-- R255 (cbb3d9f): NoiseDisentangle — трёхчастный merge с
-  доказуемой обработкой шума (автономная цель):
-  orthogonal_noise_averaging — ЗАКОН ДЕНОЙЗА: попарно-
-  ортогональный шум равной энергии при усреднении по
-  ансамблю имеет энергию РОВНО σ²/N (шум умирает линейно
-  по N; полезное разногласие НЕ ортогонально — потому и
-  должно идти в выровненные волокна, не в среднее);
-  disagreement_convergence_floor — ПРАВИЛО ОСТАНОВА:
-  контрактивный joint-шаг конвертирует разногласие
-  геометрически, но каждый раунд впрыскивает свежий шум
-  σ²/N: сходимость к ПОЛУ (σ²/N)/(1−κ) — глубже полА
-  раунды бесполезны (STOP, связка exhausted_when), пол
-  углубляется линейно по N, κ→1 мелчит как 1/(1−κ).
-  АЛГОРИТМ (докстринг): волокна по-экспертно (сохранение
-  точное), усреднение только shared (шум гибнет 1/N),
-  joint-шаги до пола. Уроки: inner_sum сигнатура x-второй;
-  @-явные ℝ V-аргументы против мет-стака; N=0-кейс требует
-  NeZero.
-- R253–R254 (d4ba495, ba27ad4): гигиена §5.7 + WSqD §5.4.
-  R253: inventory-проб перезапущен — 0-loss подтверждён
-  (все 1810 базлайнных деклараций живы, хэши типов
-  идентичны), +102 новых (R238–R252), итог 1912
-  деклараций / 1146 theorem+lemma / 0 sorry; STATUS-шапка
-  синхронизирована. R254: WSqD-шумовой бюджет — стабильная
-  фаза стоит ЛИНЕЙНО (σ²·n_w/B₀ за шаг), cooldown ЛЮБОЙ
-  длины — КОНСТАНТА σ²c/(B₀(c−1)) (геометрический хвост
-  R174d): составной бюджет = линейный член + постоянный
-  хвост. Ядро prescription WSqD формализовано как
-  экономика планирования; полная WSqD≥WSD quality-теорема
-  честно помечена как optimizer-theoretic (вне
-  формализации).
-- R252 (ffb641d): NonlinearCone — конкавный (корневой) gain:
-  полиномиальный взлёт C_T ≥ (√C₀ + c₀T)² БЕЗ экзогенного
-  потолка: несовместимость конуса с насыщением (аудит §19)
-  снята СТРУКТУРНО (закон роста самосамоограничивается,
-  субэкспоненциален); c₀ = γ√k/(2+γ√k/√C₀) — нелинейность
-  только в знаменателе (убывающая отдача ЗАМЕДЛЯЕТ, не
-  останавливает √-рост); zero-kill переживает
-  нелинейность. Линейный конус = предел α→1. Честная
-  позиция по эмпирике: h_emp_ — контракты измерений, в
-  Lean НЕ устранимы; устранена ЛИНЕЙНАЯ идеализация закона
-  скорости. Инцидент-уроки: (а) μ-различия форм (mul vs
-  pow, γ- vs c-формы) — менять не rw-цепочками, а
-  явными calc/have-конверсиями; (б) Sunk-Cost: >15 итераций
-  на div-монотонность — решено переходом на
-  cross-multiplication через le_div_iff₀ + field_simp +
-  nlinarith.
-- R251 (38538e2): T3-теорема ЗАКРЫТА (план §5.1, главный
-  открытый пункт): ignitionCeiling — интервал зажигания
-  (0, min(ρ/k, (β_C−(1−ρ)k)/k²)] (ОБА cone-условия —
-  ВЕРХНИЕ границы скорости; зажигание = строгая
-  положительность ПОД потолком, а не «пробивание нижнего
-  гейта»); T3_ignition: γ_eff = β⁴κ в интервале +
-  runtime-сертификаты ⟹ takeoff на измеренной скорости.
-  Вопрос 9× факторизуется: (a) γ_eff = 0 — какой-то α = 0
-  (деление по R249), (b) γ_eff над потолком — инкременты
-  обгоняют восполнение фронтира (R247-предупреждение).
-  Инцидент-урок: первый черновик имел ИНВЕРТИРОВАННОЕ
-  направление гейта (γ ≥ (β_C−(1−ρ)k)/k² даёт неравенство
-  ПРОТИВОПОЛОЖНОЕ curvature-условию конуса) — поймано
-  отказом linarith в изолированном скретче; корень: оба
-  условия сохранения — верхние границы, честная T3 —
-  интервальная форма.
-- R250 (c48369e): GrandSynthesis — ЕДИНЫЙ капстоун: одна
-  траектория, один набор сертификатов, ЧЕТЫРЕ одновременных
-  вывода (взлёт C₀(1+β⁴κk)^T ≤ C_T; телескопная
-  безопасность; точный невозрастающий бюджет;
-  покомпонентный пол обобщения) — три башни (измерительная
-  цепь R245/R249, конус R247, контракт R246) собраны в
-  одну теорему. Полный аудит докстрингов по ВСЕМ файлам:
-  2 висячие ссылки исправлены (residual_gate-переименование,
-  composite_seven_factor-фантом), устаревшие «NOT
-  formalized» свипнуты (WaterFilling закрыт R248), 15
-  оставшихся заявлений проверены как подлинные честные
-  границы. README дополнен. Урок: anonymous-constructor
-  разбор больших конъюнкций хрупок — явные constructor-
-  блоки надёжнее.
-- R249 (e2ee87d): рефакторинг-унификация + честность +
-  README: ChainUnification — обучающее ядро ЕСТЬ хвост
-  измерительной цепи (η_p·η_o·η_s = α_trunc·α_safe·α_cap при
-  E_dev = E_aligned ≠ 0; ДВЕ параллельные формализации R239/
-  R245 — один пайплайн); deficit_factorizes — 9×-дефицит =
-  произведение по-стадийных отношений required/measured,
-  локализация бутылочного горла = ДЕЛЕНИЕ. Инцидент-урок:
-  ранний черновик утверждал семифакторную композицию G_cap —
-  МАТЕМАТИЧЕСКИ ЛОЖНА (цепи стесняют друг друга, а не
-  компонуются) — поймана на доказательстве, переформулирована
-  как теорема совпадения хвостов. Докстринги: BitAlloc
-  «termination NOT formalized» устарел — закрыт R248; README
-  дополнен блоком R238–R249 (11 модулей), WaterFilling-строка
-  синхронизирована. StatusLint: поля структур ≠ имена теорем
-  — de-backtick.
-- R248 (937798f): хвост BitAlloc ЗАКРЫТ — терминантность
-  жадного бит-обмена доказана конструктивно: ошибки строго
-  убывают по цепи (error_chain_descends), улучшающая
-  последовательность инъективна, аллокации кодируются в
-  конечный тип (Fin (B+1))^n (записи ограничены бюджетом),
-  pigeonhole даёт противоречие. Следствие: жадный цикл
-  ДОЛЖЕН достичь no-gain точки, где stable_factor_two
-  сертифицирует фактор-2 баланс. Урок: docstring-долги
-  («termination is existential, not a construction»)
-  закрываются стандартной конечностью+инъективностью.
-- R247 (5d8e602): мост «цепочка ⟹ конус» (аудит §41,
-  цепочечная сторона): chain_feeds_cone — сертификат
-  времени выполнения (все αᵢ ≥ β) + diverse-tracks-frontier
-  (E_raw ≥ κ·D) ⟹ γ-условие конуса с γ = β⁴κ;
-  cone_two_sided_certificate — конус живёт при ДВУСТОРОННЕМ
-  сертификате инкремента (γ·D ≤ G ≤ γ̄·D; ЧЕСТНО: одная
-  нижняя граница НЕ сохраняет конус — слишком большой
-  инкремент перекрывает k·C ≤ D, сертификат обязан быть
-  двусторонним); takeoff_from_certificate — полный
-  audit-§41-арк: C₀(1+β⁴κk)^T ≤ C_T. Инцидент-уроки:
-  (а) две sorry-загрязнённые черновые итерации ПОЙМАНЫ
-  собственной дисциплиной (не коммитились) — правило
-  «писать начисто после первой sorry-итерации»; (б)
-  ≤-шаг конуса математически НЕ инвариантен (C может
-  скакнуть) — переформулировка через двусторонний band;
-  (в) bracketing β⁴(κk) vs β⁴κ·k: exact ломается, nlinarith
-  прощает.
-- R246 (3b3d8c8): внешний статический аудит всего дерева
-  (233 файла, 1.93 MB, 0 sorry) — вердикт: теория — честный
-  КОНТРАКТ (условия ⟹ рост/безопасность), не доказательство
-  что конкретная сеть удовлетворяет условиям. Три
-  структурных дефекта капстоуна исправлены
-  (MasterHAGICoupled): (1) cap-канал СВЯЗАН с траекторией
-  состояний (аудит §22); (2) физический ledger: spend≥0,
-  risk≥0, бюджет не растёт (§23); (3) векторный Q-пол —
-  скаляр производен, scalar_hides_deficit КВАНТИФИЦИРУЕТ
-  механизм скрытия (компонент ниже пола на δ ⟹ остальные
-  компенсируют ≥ w_j·δ) (§24). Открытые мосты (честно):
-  ConcreteStep-интерфейс (архитектура ⟹ CorePremises, §41),
-  существование self-development (§25), глобальная
-  сходимость (§34) — runtime-эмпирика, помечены не спрятаны.
-  Центральный блокер по аудиту: переход E_dev → G_cap —
-  покрыт R239/R245 (измеримая цепочка), но положительность
-  — runtime-вопрос.
-- R245 (2a09c7f): диагностическая цепочка 9×-дефицита:
-  DisagreementChain — E_raw → aligned → kept → safe → cap;
-  точный закон произведения (нет скрытого люфта),
-  pigeonhole-локализация (какой-то αᵢ < ρ^{1/4} — мерить
-  стадии индивидуально), alignment_factor_le_one (сырая
-  E_dev завышает потери ровно на долю переворотов — связка
-  с R242). Измерительная программа для γ-дефицита
-  зафиксирована: посчитать четыре α, найтиниже  геометрической
-  доли.
-- R242–R244 (66a2180): LittleBit/LittleBit-2 интеграция
-  (arXiv:2506.13771, PMLR v306) — не как binary-квантзация,
-  а как перестройка merge: (R242) LatentAlign-слой —
-  вращения бесплатны (rotated_factors_same_matrix),
-  sign-flip функционально эквивалентен, но наивный
-  latent-merge обнуляет перевёрнутые колонки —
-  латентное лицо MergeCancellation и кандидат-источник
-  mixer.gain=0.002; (R243) разделение residual'ов:
-  R_expert ≠ R_quant, экономический гейт ветви, теорема
-  «сжатие R_quant не возвращает специализацию»; (R244)
-  BPW-арифметика: sub-1-BPW ⟺ rank < (d²−32d)/(2log₂3·d+16)
-  — рост по латентной размерности вместо H→3H; якорь
-  d=4096, r=384 ≈ 0.305 BPW. Пайплайн merge зафиксирован:
-  factorize → latent-align → root/contrast → spectral
-  compress → F3. Указано: core_is_worth_it в
-  factorized_merge.py должен использовать измеренную ошибку
-  core (сейчас сводится к параметрам) — runtime-долг.
-- R241 (f3f8297): дискретная PMF-специализация Fannes:
-  diagonal_posSemidef (через спектральные факторы D·Dᴴ,
-  полностью доказано), канонический coupling-набор
-  (posPart/negPart, p+v=q+u pointwise, равные массы),
-  discrete_fannes_coupling: Shannon(p)−Shannon(q) ≤
-  t·log d + (1+t)·h₂(t/(1+t)) — перенос через диагональное
-  вложение из entropy_coupling_bound; вырожденный случай
-  p=q отдельно. Диагонально-энтропийный мост — ЯВНАЯ
-  гипотеза (нужен eigenvalues_diagonal в Mathlib-терминах),
-  всё остальное доказано. Парсер-урок: в многострочных
-  матричных суммах fun-аргументы обязаны быть в скобках.
-- R238–R239 (158e11e): статья 2610.02179 (multi-teacher
-  on-policy distillation, градиенты→способности)
-  интегрирована: (R238) тождество токен-взвешивания Eq.5 —
-  взвешенное среднее = среднее + Cov(T,g)/T̄ ТОЧНО +
-  сертификация нулевого смещения ⟺ нулевая ковариация;
-  (R239) этап ОПТИМИЗАТОРА в gain-цепочке: G_cap =
-  η_p·η_opt·η_s·E_dev — три отдельно измеримых
-  bottleneck'а для γ-дефицита 9×; эмпирические якоря
-  (Adam first-moment выравнивает teacher-updates, cos>0.83
-  vs ≈0 при reset; SGD сохраняет больше disagreement)
-  помечены как scale-зависимые. Инцидент-урок R238:
-  тождество потребовало 20+ тактических итераций — численная
-  верификация формулы ДО Lean-доказательства спасла от
-  ложной гипотезы; lesson: Finset.mul_sum s f a — аргументы
-  (f, a), sum-разложения применять simp only (фикспойнт),
-  НЕ цепочкой rw.
-- R237 (c4f6e44): h₂-Fannes-кампания ЗАВЕРШЕНА —
-  entropy_coupling_bound перенесён: PSD-coupled состояния
-  A+U=B+V, tr U=tr V=t ⟹ S(A)−S(B) ≤ t·log d +
-  (1+t)·h₂(t/(1+t)) — уточнённая Zhang/Shirokov-
-  непрерывность, zero-eigenvalue-safe. Остаток R157 закрыт
-  (квантовая форма). Слои 5–6 адаптированы под нашу
-  Mathlib (PosSemidef.eigenvalues_nonneg напрямую;
-  GAD-namespace унификация; mass_nonneg восстановлен в
-  GramBasic). Аксиомы стандартные. Дискретная PMF-
-  специализация (диагональный случай) — прямой
-  follow-up-кандидат. Урок R236→R237: «блокировка API»
-  оказалась частично ложной — isHermitian/eigenvalues-
-  dot-формы работают от PosSemidef-биндеров; реально
-  отсутствовало только eigenvalues_nonneg (решается
-  PSD-прямым доступом) — проверять минимальным scratch-
-  тестом ДО вывода о блокировке.
-- R236 (cdaa50b+c214dce): h₂-Fannes-кампания, слои 1–4/6:
-  EntropyDefs (спектральная энтропия, cfc), SpectralEntropy
-  (entropy_eq_sum, диагональная мажоризация, вогнутость),
-  LogDetEntropy (logDetShift-исчисление + дуальность Грама),
-  GramBasic (gram/mass-ядро) — слои 2–4 verbatim с первого
-  прогона. Слой 5 (StateEntropy) ЗАБЛОКИРОВАН расхождением
-  Mathlib API: источник собран на Mathlib, где IsHermitian —
-  структура с dot-полями (eigenvalues_nonneg,
-  eigenvectorUnitary-функция); наша v4.34.1 (rev d13f23b)
-  разворачивает IsHermitian в Eq (dot-проекций нет),
-  eigenvectorUnitary ∈ unitaryGroup (матрица, не функция),
-  eigenvalues_nonneg — имя отсутствует. Требуется АДАПТАЦИЯ
-  (не verbatim): And-разборка + префиксные имена +
-  переиндексация U j k. WIP-файл Hagi/Information/
-  StateEntropy.lean оставлен незакоммиченным; импорт
-  отсоединён (билд зелёный). Слой 6 (entropy_coupling_bound)
-  ждёт слой 5.
-- R235 (abb4fc9): ThreeTermBudget — оптимальный сплит
-  данные/шаги: AM-GM-пол 2√(AC/B), явный оптимизатор
-  N*=√(AB/C), K*=√(CB/A), оба растут как √B («оптимальный
-  batch растёт с токен-бюджетом» — ядро 2607.01487,
-  α=β=1-режим, доказано точно). h₂-Fannes-порт: разведка
-  каскада (Model→GramMatrices→Pinching→...→EntropyContinuity
-  ~10 файлов квантовой инфраструктуры) — кампания отдельного
-  хода; зависимости отображены (масса в GramMatrices,
-  спектральные — в StateEntropy/PureRecursion).
-- R233–R234 (0ca02bf, f346146): Freedman-программа §1.2
-  ПОЛНОСТЬЮ закрыта: R233 — порт History-каскада
-  (HistoryPath: path-space lift; HistoryPastMean:
-  past-measurability + union bound; HistoryFreedman: joint
-  anytime maximal P[∃j≤T: S_j ≥ r, V_j ≤ V] ≤ (T+1)·exp(−r²/
-  (4(V+cr)))), все три файла verbatim с первого прогона;
-  R234 — two-sided следствие Hagi: P[|S_j| ≥ r] ≤ 2(T+1)·
-  exp(...) (S и −S + union bound; ключевой приём —
-  congrFun-перепись negated-функционала под ∃-биндером).
-  Аксиомы стандартные. Инцидент-урок R234: 6 итераций из-за
-  classical-if-инстансов — if-термы сравнивать только в
-  одном лямбда-контексте, не между отдельными pmfMean.
-- R232 (7317685): ПОРТ Freedman из openai/math (Fam 188):
-  PmfMean (конечное PMF-ядро: pmfMean + вся алгебра) +
-  MarkovFreedman (pmfMean_exp_le — компенсированный MGF,
-  markovMean_potential_le — супермартингал, finite_freedman:
-  anytime P[X_j ≥ r, V_j ≤ v] ≤ exp(−r²/(4(v+cr))) на
-  time-inhomogeneous цепях). Доказательства перенесены
-  verbatim, аксиомы [propext, Classical.choice, Quot.sound].
-  Закрывает открытые Freedman-формы §1.2 (anytime-часть);
-  two-sided joint (HistoryAdditive: 2(T+1)·exp(...)) —
-  требует History-инфраструктуру, следующий порт-кандидат.
-- R228/R230/R227 (dc062f1, f1a7b22 + R227): Muon-серия §2
-  ЗАКРЫТА. R228 MergeMixture: слияние сохраняет выход смеси
-  ТОЧНО при фиксированном роутинге (линейность); дрейф роутера
-  ≤ L1-разница × нормы ветвей (формальный аналог cosine
-  0.896–0.976). R230 SNRWeights: равномерная ортогонализация =
-  среднее (шумовой пол), фокус на below-mean направлении
-  строго лучше (мотивация SNR-aware transform; механизм
-  полинома не доказан). R227 WaterFillingMoE: словарь
-  эксперт↔канал (effectiveCapacity = improvement/cost),
-  KKT-структура — уже в marginalValue_law, нового теоремного
-  контента нет — честно зафиксировано. Все 7 раундов §2
-  плана (R224–R230) закрыты.
-- R231 FlopsEconomy: ответ на скептический вопрос
-  «1.5H с нуля при том же бюджете?» — однораундовая гонка
-  эмпирическая (pipeline_beats_baseline_iff сводит к
-  сравнению net-gain'ов; Δ_B — посылка), многораундовая —
-  структурная (амортизация волокон N·r·d < d² доказана).
-- R230-аудит (docstring honesty): сверка всех докстрингов с
-  кодом. Исправлены overclaim'ы: MuonTwoLevel (удалены ссылки
-  на недоказанные exact_ortho_norm/ns_gap_diagonal — уровень-1
-  переописан как контракт-посылка, не результат), MuonWD
-  (wd_absorbs_gradient_bursts — призрачный пункт удалён),
-  PolicyCompatibility (mopd_gate_open → MOPDApproved),
-  RoundViability (cycle_monotone_viability → cycle_criterion),
-  ConfigurationCost (average_trade_explicit — призрак после
-  дедупликации), HybridState (multi-step accumulation — НЕ
-  доказано, помечено), Heterarchy (disagreement_survives_
-  configs — «γ-deficit answer» смягчён до «arithmetic core,
-  interpretation not architecture proof»). Слой-исключения
-  LayerLint: висячие 5 записей удалены (23→18; реальное
-  закрытие рёбер было в R207-R209 файлах, записи не были
-  убраны — инцидент-урок «'removed' печатал без проверки»
-  повторился). ОТКРЫТЫЙ ДОЛГ: ~79 висячих докстринг-ссылок
-  в старых модулях (полный список в аудите R230) — лечение
-  раунд за раундом.
-- R224–R229 (план §6/§2, Muon-серия): R224 MuonWD
-  (e3b7879) — weight decay + ортогонализованный шаг ВЫВОДЯТ
-  аксиому bounded-gradient: ‖θ_T‖ ≤ ρ^T‖θ₀‖ + C/λ без
-  ограничения градиентов; R226 GainCeiling (0e84fce) —
-  композиционный потолок: стек контракций ≤ q^L,
-  9×-усиление невозможно в полностью конtrakтивном стеке
-  (формальный gain-vs-stability tradeoff); R225 MuonTwoLevel
-  (debf070) — NS-gap бюджет: rank × worst pointwise
-  polynomial error; R229 HybridState — staleness-bias
-  tiered momentum: устаревший слот несёт систематический
-  bias ‖g_t − g_t0‖, свежий — ноль; граница тиров =
-  граница свежести. spec_manifest.toml создан (§1.2);
-  STATUS-шапка синхронизирована с inventory (966 theorems).
-  Собственный TrivialLint дважды поймал тавтологии в моих
-  черновиках (R210b, R225-диагональ-rfl) — удалены до
-  коммита.
-- R223: RoundViability — stop/continue-критерий цикла
-  саморазвития: E_dev=0 ⟹ гарантированный маржинальный
-  прирост ноль (честная остановка: повторное слияние
-  согласных экспертов не растит модель); E_dev > порога +
-  гейты ⟹ шаг конуса. Решение контроллера сведено к ОДНОЙ
-  измеряемой величине + два гейта. Инцидент: направление
-  неравенства round_exhausted исправлено (GainOp даёт
-  НИЖНЮЮ границу — «caps» был неверен, «collapses to decay
-  floor» честно).
-- R221–R222 (12668b0, HEAD2): алгоритмическая сторона
-  обучения: (R221) exchange-аргумент порядка интеграции —
-  аддитивный режим: порядок не создаёт ценности, отрицательный
-  эксперт вредит в любой позиции, выбор «только
-  положительные» доминирует (жадный по net-gain оптимален,
-  честная граница: без кортикальных cross-terms);
-  (R222) бюджет rollout'ов policy-KL: контракция κ<1 ⟹
-  логарифмический бюджет по начальному разрыву; halving-режим:
-  каждый rollout покупает ровно ОДИН БИТ близости
-  teacher-student. η_p-этап (R215) получил вычислительную
-  цену.
-- R220 (553dae1): ActiveCompute — вычислительный счёт
-  переключения: per-token (c+r)·d (кора + АКТИВНОЕ волокно),
-  никогда дороже монолита d² при c+r ≤ d, и ≤ 1/N от
-  dense-семьи N·d² — гетерархия экономит ВЫЧИСЛЕНИЯ в
-  N раз, не только параметры. Полная тройная бухгалтерия
-  закрыта: параметры (R217/R219: K·r_min·d ≤ bill ≤ K·r·d
-  < d²), вычисления (R220: N-кратный дивиденд), селектор
-  (R218: log-масштаб).
-- R219 (c0f3356): FiberNecessity — параметрический пол
-  разделимости: 2ε-отделимые задачи не могут делить
-  конфигурацию (инъективность cfg на separated-семействе),
-  fiber_params_floor: Σrank·d ≥ K·r_min·d — разделимость
-  оплачивается волокнами ЛИНЕЙНО по K. Вместе с R217
-  минимальный достаточный размер switchable-архитектуры
-  зажат с ОБОИХ сторон: ≥ K·r_min·d необходимо, K·r·d
-  (K·r<d) достаточно для доминирования над dense.
-- R217–R218 (67c4c3a, 0146d3f): бухгалтерия конфигураций —
-  «хранить или усреднять»: fiber-семья N·r·d против
-  dense d² (при N·r < d хранение конфигураций ДЕШЕВЛЕ
-  одного dense-эксперта — деструктивное усреднение
-  доминированная покупка параметров); селекторный счёт:
-  log-масштаб битов маршрутизации никогда не доминирует
-  линейный параметрический счёт. Замыкает мост
-  R217(ledger)↔R210(bits-floor). Уроки: (1) Nat.log2-API
-  недоступен в этом Mathlib-срезе — формулировать через
-  card-пороги; (2) scratch-тесты с head -N проглатывают
-  ошибки — всегда полный вывод.
-- R215–R216 (1567f71, 750d38f+227e936): GainDecomposition —
-  GainOperator разложен на измеримые этапы: η = η_policy·η_state
-  (мультипликативно), zero_stage_kills_gain (необходимость
-  обоих этапов: нулевой этап с неотрицательным партнёром
-  убивает gain — у цепочки нет обхода), chain_ignition_
-  threshold (программа: измерить ОБЕ константы). UrgencyDepth
-  (перенесён Growth→Dynamics, LayerLint поймал слой):
-  shallow_misses_tube (срочность разменивает глубину на
-  точность), patient_configuration_reaches (достижение
-  трубки — вопрос времени, не архитектуры). Урок: `| tail -1`
-  в конвейере маскирует exit-code — дважды пропустил сломанный
-  коммит; SSOT: отдельный `echo EXIT=$?`.
-- R214 (1fedd48+cacd62e): Heterarchy — гетерархический
-  слой (arXiv:2610.04643): dominatesIn (контекстозависимое
-  доминирование), no_global_ranking (обратное доминирование в
-  двух контекстах убивает ЛЮБОЕ линейное ранжирование),
-  cycle_breaks_ranking (3-цикл A→B→C→A), disagreement_
-  survives_configs (ответ на γ-дефицит 9×: среднее
-  уничтожает disagreement, конфигурации сохраняют его
-  энергию — Integrate = (cortex, fibers, context graph)).
-  Инциденты: коллизия имён Hagi.dominates (ModeState) →
-  dominatesIn; незаконные Ensemble-импорты из Architecture=2
-  (LayerLint поймал) → файл Mathlib-only; урок: `| tail -1`
-  маскирует exit-code CI → SSOT `> log; echo EXIT`.
-- R211–R213 (8fe3d3f, 2e27caa, 71dfab4): внешний анализ
-  (MOPD / LOOM / Looped Models Done Right) встроен тремя
-  кирпичами: (R211) policy-совместимость — гейт
-  «capability × compatibility», отрицательный результат
-  integration_rejects_far_teacher (D_policy > D_max — гейт
-  закрыт при ЛЮБОМ twoGap; эмпирика λ≈5 помечена h_emp_);
-  (R212) ортогональная fiber-инъекция — кора-координаты
-  состояния неизменны при любой полезной нагрузке навыка,
-  энергия добавляется ортогонально; (R213) двучленная
-  контракция looped-моделей — точный κ-взвешенный хвост
-  входного дрейфа + геометрический хвост + явный бюджет
-  глубины (1/κ)^T ≥ x₀/ε («когда остановить looping»).
-  Двухконтурная декомпозиция (computational vs capability
-  recursion) — позиция HAGI как внешнего контроллера роста
-  поверх MOPD/LOOM/fixed-point компонентов.
-- R207–R209 (cc5ba41, f7c8b83, c1fd622): слоевые рёбра
-  закрываются foundations-извлечением с delegation-алиасами
-  (Hyrum: имена сохраняются): dQuad_nonneg → WeightedVar;
-  compress_stage + adaptive_ns_exists + compound_budget →
-  StageCalculus; genMean_compound/genGap_decay → Recurrence.
-  Исключения 14 → 9.
-- R210 (afb4596+e27b64b): RoutingCapacity — router_bits:
-  K разделённых задач через B-битный роутер ⟹ K ≤ 2^B
-  (экспоненциальная форма counting floor; 119-ядро для
-  роутинга). Собственный TrivialLint поймал тавтологию
-  router_bits_floor (hypothesis=conclusion) — удалена.
-- Архитектурный узел (отложен, требует плана): кластер
-  SafeQP — Audit(0) ест Step/SafeQP(3), External/Layers(2)
-  ест Audit.Exactness — перенос в любую сторону рвёт других
-  потребителей. SafeQP теперь Mathlib-only (мёртвый Joint-
-  импорт удалён) — кандидат в низкий слой после декомпозиции.
-- R204 (0ecbb18): п.6 начат — Telescope/Recurrence: import
-  Mathlib → Mathlib.Tactic (per-file, не механически; Chord
-  оставлен на полном импорте).
-- R205 (08344f9): п.7 — 5 мёртвых слоевых рёбер удалены
-  (UNUSED-детектор по прямому использованию имён); урок:
-  детектор видит только ПРЯМЫХ потребителей — JointPreserve
-  ел SeedOnly ТРАНЗИТИВНО через JointCost; починено честным
-  прямым импортом (новое объявленное исключение). Файлы без
-  прямого Mathlib-импорта сидели на транзит-носителях —
-  добавлен явный import Mathlib.Tactic. Исключения 23 → 19.
-- R203 (298190c): AdaptiveQuery (Hagi/Growth — LayerLint
-  правильно указал слой: контроллерный кирпич): avgRadius
-  e/√K + certified_gain_select_avg — порог отбора 3e → 3e/√K
-  (139-ядро: адаптивные multi-query бьют одиночные измерения).
-  Приоритет-лист openai/math 1–5 ЗАКРЫТ ядрами: 140 ✓ 119 ✓
-  ProjectionMoments ✓ 148-структура ✓ 139 ✓.
-- R201 (704a0c2): GainRecoverability — disagreement EXTRACTABLE:
-  devEnergyF_pos_iff + recoverable_avg (E/N-пол) + devSignal_self
-  (self-readout > 0). Средний кирпич цепочки MergeCancellation →
-  [extractable] → GainOperator замкнут.
-- R202 (691c68f): RepresentationRate — repRate (retained/bits) +
-  трихотомия режимов под counting-капаситом (148 ratio-структура,
-  честная граница: динамика 148 не переносится).
-- Разведка: 143 (QuinticLienard) и 221 (DilutedSpin) в
-  ComparatorChallenges — statement-заглушки 46/154 строк, НЕ полные
-  доказательства; полный Lean есть у 140/119 (OAI/Probability,
-  InformationTheory/BooleanNoise).
-- R200 (b2f94b5): слой Hagi/Information — MemoryCapacity
-  (separated_needs_capacity: K 2ε-разделённых задач ⟹
-  |State| ≥ K — counting-флор памяти/точности, ядро
-  openai/math 140 в самодостаточной HAGI-постановке) +
-  InformationRetention (no_free_recovery — data-processing;
-  quantized_separation_needs_range — range квантования =
-  валюта capability, ядро 119). Локальная копия openai/math
-  (E:/math, та же toolchain v4.34.1) разведана; импорт OAI-кода
-  отложен в пользу самодостаточных ядер (722 рукописи —
-  пересечение с HAGI: 140/119/ProjectionMoments/148/139).
+- ProjectionDescent: `proj_descent_inner`, `min_dist_to_vi`,
+  `safeQP_descent` — спуск E(w+ηd*) ≤ E − η‖d*‖²/2 при
+  ε-ограничениях ⟨gᵢ,d⟩ ≥ −εᵢ на старые домены.
+- SafeQP: существование/единственность, стохастический и
+  адаптивный варианты с явными константами;
+  `safeqpEtaMax` — аналитический потолок η (не гиперпараметр).
+- `MetricSafeQP`, `MDLThreeCurrency` (трёхвалютная MDL-цель
+  с детектором двойного учёта), `FrobeniusLMO`,
+  `PreconditionerDescent`, `ArmijoAcceptance`, `WarmupSchedule`.
+- `ControllerGates` (Runtime): variance gate — R²/8
+  контрактуется квадратично при τ = R/R̄;
+  `trust_region_proj_norm` — ‖(R/‖x‖)•x‖ = R и проекция
+  на шар ближайшая.
 
-## Гигиена-кампания (R197–R199, по внешнему аудиту 2026-10-07)
+### QuantBridge (L2 — квантование→потеря)
 
-- R199 GrowthDynamics: структура-пучок 11 посылок конуса/
-  takeoff-семейства; structured-адаптеры (frontier_cone_struct,
-  sustained_takeoff_struct); условность — в подписи (emp*-поля).
-  ALGORITHMS: «полностью выведен» → «условно выведен при
-  перечисленных эмпирических посылках».
-- Уровни доверия (п.4 аудита, документационная фаза):
-  Exact (безусловная математика: подавляющее большинство
-  теорем), Pins (тривиальные регрессионные пины: muon_step_bound,
-  swa_reach_eq, GQA, QFormer K=1), Conditional (капстоуны на
-  GrowthDynamics/h_emp_*: 343 h_emp_-сайта). Полное
-  namespace-разделение отложено до миграции шага 7 (git mv).
+- `quant_loss_bridge`: ‖(Ŵ−W)x‖ ≤ D·√(mn)·‖x‖ (ранг-1);
+  `quant_frob_loss`: ΔE ≤ κ_F·D·√(mn);
+  `frob_minkowski` (Коши–Буняковский + Минковский),
+  `compress_chain_cost`: |ℓ(W)−ℓ(W″)| ≤ κ_F·(δ₁+δ₂).
 
-- Страховка: scripts/inventory.lean — дамп всех Hagi.* констант
-  с хэшем типа (метапрограммно, быстро); каждая правка
-  проверяется 0-diff; уже поймал незапланированную потерю
-  noisy_cycle_step (восстановлена).
-- R197 дедуп: телескопы ×3 → Foundations; lyapunov-терминация
-  ×4 имени → lyapunov_termination_fin; exp_chord → Chord
-  (14 строк → 6); geo_sum_mul → geom_telescope.
-- R197 honesty: stable_factor_two переформулирован из
-  тавтологии в следствие imbalance_yields_gain (контрапозиция).
-- R198 Prelude.Info (слой −1): канонические klDef/entDef/tvDef/
-  softDef; KL ×4 → 1 (Variational/FreeEnergy/Distill/DField-
-  мост), энтропии ×2 → 1 (DBridge/DistillRecursion); мосты —
-  rfl-однострочники у потребителей; LayerLint: Prelude=−1.
-- README: PoE-число 0.157 → 0.0968 (пересчёт аудита подтверждён).
-- Инвентарь: 1550 констант; счётчик теорем после дедупа НЕ
-  завышаем (тела заменены делегированием, имена сохранены для
-  потребителей).
+### Spectral / External (L2 — внешний порт FLYWHEEL)
 
-## R287 — RoPE Proposition 1 (контрактная форма)
+- Порт FLYWHEEL (Apache-2.0, acomarce): singularValues,
+  SVD-разложение, `eckart_young_frobenius` (нижняя
+  оптимальность), Weyl, Courant–Fischer, MDL-ранг
+  (`mdlJ_first_order`, `mdl_rank_ce`).
+- Namespace Mathlib.* сохранён осознанно (внешний порт).
+- Спектральный хвост: `spectral_tail_energy`,
+  `cert_horizon_witness`, `mdl_rank_ce`, `gate_retention`.
 
-- Hagi/Core/RoPEMoments: rope_var_bound — вариация
-  высокочастотного счёта S(m) около уровня 1/2:
-  |Σ_m S(m)²/M − 1/2| ≤ κ(1+2M)/2 при частотных контрактах
-  |C(2ω_n)| ≤ κM, |C(ω_n±ω_k)| ≤ κM (n≠k), Σz²=1. Разбиение
-  ΣΣ → диагональ (κM) + кросс (Коши–Буняковский (Σ|z|)² ≤ M,
-  даёт 2κM²). С R284 замыкает каркас Theorem 0 (RoPE at the
-  End of Its Rope, arXiv:2609.39929): позиционная точность
-  выше порога недостижима в пределе — вариация неминуема.
-  Вспомогательные: cosSum_zero, sum_diag_off (erase-сплит),
-  sum_singleton_rest. Аксиомы: propext/Classical.choice/
-  Quot.sound.
+### Budget (L2/L3 — распределение ресурсов)
 
-## R288–R291 — внешний аудит 2026-10-09 (ядро вместо новых
-глобальных теорем)
+- BitAlloc: маржинальный обмен битами точен
+  (`transfer_exact`); water-filling = балансировка двух
+  слоёв (`two_layer_equalize`); фактор-2 жадный инвариант;
+  полный сертификат поколения
+  S_n + n·g ≤ E₀ + δ_n + totalError.
+- `CertifiedArgmax`: сертифицированный argmax доминирует
+  (`argmax_pair_certified`); при малых зазорах argmax
+  противоречив (`tie_ambiguity` — контрпример).
 
-- Аудит-триаж против дерева da50827: пункты 2.4 (Hoeffding/
-  Recurrence-дубли) и частично 2.3 уже закрыты дедуп-кампаниями
-  R163/R265–R270 (тонкие делегирующие адаптеры).
-- R288 (441a84e): удалены safeQP_noconflict (SafeQP.lean) и
-  safeqp_idle (GlobalDynamics.lean) — лишь dist_nonneg/
-  dist_self, имена вводили в заблуждение (аудит 2.7);
-  потребителей нет; Freeze --update 1665→1663.
-- R289 (e0cc62b): GainRenewal — фантомный импорт
-  Unified.Liveness заменён на Step.JointPreserve
-  (действительный источник diversity_floor); инверсия слоёв
-  Growth→Unified устранена (аудит §3).
-- R290 (73bcd96): MasterHAGICore_refined — удалена
-  неиспользуемая посылка hfull : FullCycleRefinement
-  (аудит 2.1); тело — честный thin wrapper к MasterHAGICore.
-- R291 (24e9ba5): канонический cone_step в
-  Foundations/ConeTakeoff — единственная копия hkey-тождества
-  (ρD+βC−k(C+γD) = (ρ−γk)(D−kC) + (β−(γk²+(1−ρ)k))C);
-  cone_invariant_horizon и RatioTakeoff.cone_ratio_step
-  делегируют (аудит 2.3, конус-унификация). FrontierScaling —
-  возмущённое (ξ + cap) расширение, оставлено отдельной
-  теоремой по классификации аудита.
-- R294: канонические Entropy/KL/TV — Prelude.klDef/entDef/
-  tvDef уже SSOT; все Data-версии делегировали кроме
-  AntiCollapse.entTV (собственное тело (1/2)·Σ|p−q|) —
-  переведён на Prelude.tvDef + rfl-мост entTV_eq_tvDef.
-  Матричная энтропия — отдельный объект (верно).
-- R295: Hagi/Core/FrobOuter — frobSq_outer_orthonormal:
-  Frobenius-квадрат Σ σ_i·(u_i⊗v_i) при ортонормальных
-  семействах u, v равен точно Σ σ_i² (квадрат суммы, кросс
-  исчезают через (Σu_c u_d)(Σv_c v_d) = δ_cd·δ_cd). Верхняя
-  часть Eckart–Young–Мирского (достижимость усечения) без
-  спектральных посылок — SVD в Mathlib v4.34 отсутствует;
-  нижняя оптимальность (Weyl) — открытый фронт.
-- R296: frobSq_outerSum (обобщение на подмножество индексов)
-  + frobSq_trunc_tail: точный хвост ошибки усечения
-  ‖A − Σ_{i∈s}σ_i u_i⊗v_i‖²_F = Σ_{i∉s}σ_i² (достижимость
-  Eckart–Young для SVD-формы). Следующий фронт: порт FLYWHEEL
-  (github.com/acomarce/FLYWHEEL, Apache-2.0, Lean v4.26):
-  готовые SVD + eckart_young_frobenius + Weyl + Courant–Fischer;
-  известные sorry: equivFin-мост (SVD.lean:2070), TightBounds —
-  вне EY-цепочки. Правило: перед формализацией ВСЕГДА искать
-  готовые решения.
-- R297 (аудит-волна 2026-10-11): KL/энтропия/TV-дедуп —
-  Energy.Variational.kldiv' и Energy.FreeEnergy.kldiv →
-  Prelude.klDef (rfl-мосты); FannesSmooth.ent и
-  DistillRecursion.shannonEntropy → Prelude.entDef (мосты;
-  FannesSmooth уже имел ent_eq_entDef — дубль убран);
-  Discovery.PPT.tvDist → Prelude.tvDef (мост
-  tvDist_eq_tvDef). Единый SSOT: Prelude.Info для KL/H/TV.
-- R299: lyapunov_telescope_fin — единственная собственная
-  индукция termination-семейства — переведена на делегирование
-  Foundations.telescope_sum_le (Σ(−eps)-форма); вся цепь
-  termination×5 (top_level/macro/macro_derived/
-  lyapunov_termination_fin) теперь на одном телескоп-ядре.
-- R300: cert_horizon_bound (ArchitectureTheorem) — НОВАЯ
-  теорема из аудита §2.3: точный шаг C' = C + γF, точное
-  насыщение C' = C + σ(C*−C) и конус kC ≤ F совместно
-  возможны лишь на логарифмически ограниченном горизонте:
-  (1+γk)^(T−1) ≤ σC*/((γk+σ)·C₀). «Взлёт+насыщение» на одном
-  окне — короткий переходный режим, не вечная фаза
-  (фазовая модель: взлёт → τ → насыщение).
-- R301: MasterHAGITrunc — приватные telescope_*_h-обёртки
-  удалены (прямой вызов Foundations.telescope_*; Freeze
-  1673→1670). frontier_cone_inductive_is_cone_data из аудита
-  уже отсутствует. Орто-разложение×13 исследовано —
-  многоходовая унификация, отложено (план R302).
-- R302: FLYWHEEL-порт ЗАВЕРШЁН (Hagi/External/Flywheel/):
-  SVD (4117 строк) + CourantFischer + WeylInequality + FrobeniusNorm
-  переведены v4.26→v4.34 (domRestrict-ренейм, List.Sorted→Pairwise,
-  quasispectrum-мост, toEuclideanLin_apply-rfl-мосты, 2 незакрытых
-  коммента-ломы оригинала). ИЗВИНЕНИЕ SVD:2080 ЗАКРЫТО архитектурно:
-  eigenvaluesBijection/embedMinToN переопределены через
-  (Fintype.equivOfCardEq (card_fin _)).symm (Mathlib-форма), мост
-  equivFin↔equivOfCardEq удалён — ВСЯ цепочка 0 sorry, ~50 новых
-  деклараций (Freeze 1670→1985), включая eckart_young_frobenius,
-  frobenius_norm_sq_eq_trace, Weyl, Courant-Fischer, Thompson
-  interlacing — аксиомы чистые.
-- R303: FLYWHEEL-порт слайс 2 — KroneckerRearrangement +
-  TruncatedSVDRank1 + MatrixNormRelations (кронекер-ошибки
-  аппроксимации через F-нормы) + SpectralNormGap
-  (спектральные зазоры, kronecker_spectral_error) +
-  CoherenceCharacterization (коэренс-фактор μ = ‖E‖_F/(√r·‖E‖₂),
-  characterization tight/loose; 2 ломы докстрингов оригинала
-  закрыты; @-инстанс-мости norm_zero/norm_nonneg для
-  L2-opNorm). TightBounds НЕ портирован: 2 бага оригинала
-  (недоказуемая ветка rank ≤ k при k < min; TODO-теорема
-  μ→1) — честно исключён. Freeze 1985→2162 (+177 деклараций).
-- R304: MDLRank — первый HAGI-специфичный потребитель
-  FLYWHEEL-стека: mdlErr_antitone (ошибка rank-k усечения
-  антимонотонна — прямое следствие Eckart–Young),
-  mdlErr_zero_of_ge (полное усечение при k ≥ n),
-  mdlJ_argmin_exists (MDL-функционал J = err + λ·c·k
-  достигает глобального минимума: оптимальный ранг сжатия
-  существует). Ядро: err-через-@-норму (instance-whnf-
-  зацикл лечится явным frobeniusSeminormedAddCommGroup),
-  pow_le_pow_left₀, Finset.exists_min_image на Icc.
-  Freeze 2162→2167. Аксиомы чистые.
-- R305: mdlErr_step — прирост качества на шаге ранга
-  ТОЖДЕСТВЕНЕН следующему сингулярному числу:
-  err k − err(k+1) = σ_k² (через frobenius_error_
-  truncatedSVD + Finset.sum_eq_single по биекции
-  equivOfCardEq). MDL-теория ранга замкнута: вместе с
-  antitone/argmin_exists даёт полную основу first-order
-  критерия σ_{k+1}² ≤ λ·c. Freeze 2167→2168.
-- R306 (единый план, Фаза 1): аксиома FLYWHEEL
-  exists_spectral_minimizer_rank1 (CoherenceCharacterization)
-  ЗАМЕНЕНА доказанной теоремой — rank-1 truncatedSVD сам
-  спектральный минимизатор: σ₂(A) = ‖A−trunc1‖₂ ≤ σ₁(A−N) =
-  ‖A−N‖₂ (Rectangular.spectral_error + Weyl interlacing +
-  spectral_norm_eq_singularValues₀_zero); ветка card ≤ 1 —
-  truncatedSVD_full. spectralOptimalRank1 := truncatedSVD A 1
-  (без Classical.choose), заглушка frobeniusOptimalKronecker
-  (неиспользуемая := A) удалена. 0 аксиом / 0 sorry во всей
-  библиотеке Hagi. Freeze 2168→2169.
-- R306b (Фаза 0.2 плана): аксиомный аудит главных теорем
-  через #print axioms — hagi_synthesis, MasterHAGI,
-  MasterHAGI_trunc, top_level_cycle_bound, grand_synthesis
-  (Hagi.Master), cert_horizon_bound, eckart_young_
-  frobenius, mdlErr_step — ВСЕ зависят только от
-  propext/Classical.choice/Quot.sound. Доверительная база
-  подтверждена: 0 пользовательских аксиом, 0 sorry,
-  2169 деклараций, сборка 9214 jobs зелёная.
-- R307 (Фаза 1, алиасы): MasterHAGICore_refined удалена —
-  тонкая обёртка MasterHAGICore без потребителей (экспорт
-  сокращён). Хёффдинг-дубли Energy.PoEBound подтверждены
-  адаптерами Foundations (R294) — пункт плана закрыт.
-  instCStarAlgebraMatrix: SVD уже на локальном инстансе,
-  глобальный стабилен — отложено без риска. Freeze 2169→2168.
-- R307b (Фаза 1, дубли Flywheel): аудит 11 кросс-файловых
-  пар — 6 private+private (файл-локальны, безвредны),
-  3 SVD-private vs MNR-public (нет конфликта имён),
-  2 public-public в РАЗНЫХ namespaces (Matrix.FrobeniusNorm
-  vs Matrix.SVD.Rectangular) — namespaced-реэкспорты/
-  делегаты по дизайну FLYWHEEL (frobenius_error_
-  truncatedSVD делегирует канону). Семантических дублей
-  для слияния НЕТ — пункт плана закрыт проверкой.
-- R308: mdlJ_first_order — first-order критерий MDL-
-  оптимального ранга (замыкает теорию сжатия): при
-  σ_{k*}² ≤ λ·c и (k* = 0 ∨ λ·c < σ_{k*−1}²) точка k* —
-  ГЛОБАЛЬНЫЙ минимум J = err + λ·c·k. Ядро: mdlDj_eq
-  (прирост J = λc − σ_k²), mdlDj_ge_card (за пределами
-  err=0, прирост = λc); дискретная выпуклость из
-  антимонотонности σ (pow_le_pow_left₀); две
-  индукции (после k*: приросты ≥ 0; до k*: приросты < 0
-  через Nat.le_pred_of_lt). Практический смысл:
-  сжатие выгодно пока σ² > λ·c — проверяемый критерий
-  truncation-политики. Freeze 2168→2172.
-- R309 (план §6.2, шаг 2): quant_matrix_perturb +
-  quant_matrix_perturb_norm (QuantBridge) —
-  размерностно-корректная граница возмущения выхода
-  слоя при покомпонентной ошибке квантования ≤ D:
-  ‖(Ŵ−W)x‖₂ ≤ D·√(m·n)·‖x‖₂ (ОБЕ размерности под корнем —
-  поправка аудита: √d_in-форма верна лишь для max-нормы
-  выхода). Доказательство: Коши–Шварц по строкам
-  (sum_mul_sq_le_sq_mul_sq) + |E_ij|² ≤ D² + суммирование
-  по выходам. Цепочка моста §6.2 теперь: округление →
-  выход слоя (новое) → энергия (quant_energy_bridge).
-  Freeze 2172→2174.
-- R310 (план §6.2, шаг 3): quant_loss_bridge
-  (QuantBridge) — композиция возмущения выхода и
-  липшицевости потерь: при κ-липшицевости ℓ по выходу
-  (Euclidean) и покомпонентной ошибке квантования ≤ D:
-  |ℓ(Ŵx) − ℓ(Wx)| ≤ κ·D·√(m·n)·‖x‖₂. κ ≥ 0 — явная
-  посылка (честный контракт; из hlip недоказуемо —
-  тривиальный ell). Цепочка §6.2: округление → выход
-  слоя (R309) → потеря (R310) → [сертификат компрессии
-  — следующий шаг §6.2.4]. Freeze 2174→2175.
-- R311 (план Фаза 5.5): MasterHAGI_trunc — удалены
-  неиспользуемые параметр Cstar и посылка hCeil
-  (C 0·(1+alpha)^T ≤ Cstar не участвует в выводе
-  сертификата; утверждение о насыщении — отдельный
-  путь cert_horizon_bound R300, куда верхняя граница
-  входит содержательно). Assumptions-адаптер обновлён.
-  Freeze 2175, сигнатуры честные.
-- R313 (план §6.1, nonvacuity): cert_horizon_witness —
-  траектория C t = 2 − (1/2)^t, F t = (1/2)^t,
-  γ = k = σ = 1/2, Cstar = 2, T = 1: ВСЕ посылки
-  cert_horizon_bound выполняются одновременно с ненулевым
-  ростом (C0 = 1 < C1 = 3/2 < 2); при t = 1 конус уже
-  нарушен (3/4 > 1/2) — совместимость взлёта и насыщения
-  живёт лишь на коротком горизонте, ровно как требует
-  cert_horizon_bound. Freeze 2176.
-- R314 (план §5.6, композиция): hagi_horizon_bound — мост
-  cert_horizon_bound → HAGICert-мир: из полей сертификата
-  (hstep + hpl_up + hpl_lo ⇒ ТОЧНОЕ равенство насыщения
-  через le_antisymm) и конуса на всём горизонте —
-  логарифмическая оценка совместимости взлёта и насыщения
-  непосредственно для capability-траектории состояний:
-  (1+γk)^(T−1) ≤ σC*/((γk+σ)·C₀). §6.3-дистилляция:
-  телескопирование CE/KL уже покрыто (distill_entropy_
-  recurrence — точная замкнутая форма + entropy_kl_ce_
-  identity). Freeze 2176→2177.
-- R315 (план §6.3): новый модуль Data/CertifiedArgmax —
-  certified_argmax_strict (отрыв истинного максимума > 2ε
-  при оценках с ошибкой ≤ ε ⇒ argmax оценок гарантированно
-  истинный) + certified_argmax_ambiguity (честная граница:
-  при зазоре ≤ ε существуют ε-точные оценки со СМЕЩЁННЫМ
-  argmax — гарантии нет, нужна обработка неоднозначности).
-  Freeze 2177→2179.
-- R316 (план §6.3, mdl_rank_ce): условная CE-цена rank-k
-  усечения через ЯВНУЮ κ_F-липшицевость ℓ по норме
-  Фробениуса (не прямое отождествление весовых и CE-единиц):
-  |ℓ(A) − ℓ(A_k)| ≤ κ_F·√(Σ_{i≥k} σ_i²) — композиция
-  липшицевости с точным тождеством хвостов
-  (frobenius_error_truncatedSVD, sqrt-мост). MDL-стек
-  полон: antitone + step + argmin + first_order + CE-цена.
-  Freeze 2179→2180.
-- R317 (план §6.3, LSL): gate_retention (Insight) —
-  сертификат сохранения знаний при многошаговой
-  консолидации: каждый шаг в гейт-конусе
-  (⟪gold, d⟫ ≥ −ε) ⇒ суммарный дрейф по золотому
-  направлению на T шагах линеен: Σ⟪gold, ds_t⟫ ≥ −T·ε
-  (шаговая версия — insight_consolidation_safe).
-  Freeze 2180→2181.
-- R318 (план §6.2/§6.3): quant_frob_loss — весовой
-  уровень цены квантования: при покомпонентной ошибке ≤ D
-  и κ_F-липшицевости ℓ по норме Фробениуса:
-  |ℓ(W) − ℓ(Ŵ)| ≤ κ_F·D·√(m·n) (весовой аналог
-  mdl_rank_ce; для rank-усечения √(Σσ²) вместо D√(mn)).
-  §6.2-цепочка замкнута на обоих уровнях: выход слоя
-  (R309/R310) и веса (R318). Freeze 2181→2182.
-- R319 (QuantBridge): frob_minkowski — Минковский для двойных сумм (Коши–Буняковского построчно + суммирование по строкам
-  + асимптота квадрата суммы); compress_chain_cost — полная цена
-  двухстадийного сжатия |ℓ(W)−ℓ(W'')| ≤ κ_F·(δ₁+δ₂) через
-  Минковского. Аксиомы чистые. Freeze 2184.
-- R320 (MemoryCapacity/цепочка): убран фантомный параметр eps из SepSeparated
-  и всех 5 потребителей (separated_needs_capacity,
-  quantized_separation_needs_range, router_capacity_bound,
-  configs_injective_on_separated, used_configs_lower_bound,
-  fiber_params_floor) — ε-точность закодирована в выборе good
-  (аудит v3 §3.3). Батарея зелёная, Freeze 2184.
-- R321 (аудит v3 §2.2, Фаза 2): устранена инверсия Step←Audit.
-  Каноническая теория проекции (proj_descent_inner, min_dist_to_vi,
-  safeQP_descent) перенесена в Step/ProjectionDescent
-  (с полными доказательствами); дубли из Audit/Foundations
-  и Audit/Exactness удалены; импорт Audit.Exactness из
-  Step/ProjectionDescent убран (теперь только Mathlib);
-  Insight переключён на Step.ProjectionDescent.
-  Аксиомы чистые. Freeze 2181.
-- R322 (аудит v3 §2.2, Фаза 2): CurvatureSafe перенесён из Dynamics/
-  в Step/ (теория кривизны и trust region — в оптимизационном слое;
-  инверсия Step←Dynamics устранена; exception удалён из LayerLint
-  allowlist. Freeze 2181.
-- R323 (аудит v3 §2.2 + §1.1): geom_range_identity +
-  disp_recurrence_general перенесены из Growth/SeedOnly в
-  Foundations/Recurrence (единый рекуррентный канон); инверсия
-  Step/JointPreserve←Growth/SeedOnly устранена (import →
-  Foundations.Recurrence); exception удалён. Freeze 2181.
-- R324 (аудит v3 §2.2, Фаза 2): SafeQPComposition-секция
-  (filtered_step_cost + spectral_safeQP_target) перенесена из
-  Spectral/SpectralProjector в Step/SafeQP; инверсия
-  Spectral←Step устранена; exception удалён. Freeze 2181.
-- R325: Ensemble/MergePrice — неиспользуемый import Step.GPM заменён на
-  Mathlib; exception удалён. Осталось 6 LayerLint-исключений
-  (все — связаны с GrowthState-декомпозицией, Фаза 4). Freeze 2181.
-- R326 (аудит v3 §1.1/§2.1): frontier_cone_inductive +
-  frontier_cone_invariant → Foundations/ConeTakeoff (конусный канон в
-  низком слое); инверсия ModeState←FrontierScaling
-  устранена (ModeState → Foundations); MasterHAGI — явный
-  import FrontierScaling (был транзитивным через ModeState).
-  LayerLint exceptions осталось 5. Freeze 2181.
-- R328 (аудит v3 §2.2): ortho_norm_sq + gating_tail_bound → новый
-  Foundations/Ortho (чистая линейная алгебра в низком
-  слое); инверсия Sparsity/SparseStep0←Unified
-  (1←6) устранена. LayerLint exceptions: 3.
-  Freeze 2181 (перемещение имён между
-  пространств имён).
-- R329 (аудит v3 §2.2): forgetting_kl_bound перенесён из
-  Unified/GlobalDynamics в Autonomy/Insight (единственный
-  потребитель); импорт Insight←GlobalDynamics убран;
-  exception удалён. Осталось 2 exceptions —
-  ModeState/StateBinding←GrowthState (Фаза 4). Freeze 2181.
-- R330 (аудит v3 §2.1 + §2.2, предступия Фазы 4):
-  merge_stage/merge_stage_decrease/joint_stage →
-  Foundations/StageCalculus; lyapunov_telescope_fin/
-  lyapunov_termination_fin → Foundations/Telescope;
-  Unified/GlobalConvergence удалён (неиспользуемый
-  lyapunov_telescope умёр с ним); GrowthState больше не
-  импортирует MacroCycle. Freeze 2179.
-- R331 (аудит v3 §2.2/§3, Фаза 3-мост): СОЗДАН
-  слой Hagi/System (layer 3); GrowthState перенесён
-  Unified→System (namespace Hagi.Unified сохранён —
-  импорты обновлены); joint_stage_linked →
-  Step/ProjectionDescent; GrowthState теперь зависит только от
-  Foundations. ПОЛНЫЙ НОЛЬ LayerLint-exceptions
-  (цель Фазы 3 по аудиту v3 §4/Фаза 8).
-  growth_cycle_potential — аксиомы чистые. Freeze 2179.
-- R332 (Фаза 8 п.2/п.3): TrivialLint упрочнён T0-проверками
-  (fail-closed): axiom-декларации, sorry, native_decide в
-  любом месте источников → FAIL с exit 1
-  (урок R303: rg sorry не ловит axiom-декларации).
-  Тест: временный axiom-файл пойман — FAIL;
-  без него — PASS. Freeze 2179.
-- R333 (аудит v3 §2.1/§1.4, Фаза 2): спектральный
-  хвост-принцип един: новый канон
-  Foundations/ortho_norm_sq_finset (‖∑_{t} c•v‖² = ∑_t c²);
-  ortho_norm_sq = следствие (univ);
-  gating_tail_bound и
-  spectral_tail_energy делегируют
-  (дублированные доказательства-ядра
-  удалены). Аксиомы чистые.
-  Freeze 2180 (+1).
-- R334 (аудит v3 §1.2, Фаза 2): канон KL ≥ 0 в Prelude:
-  Prelude.kl_nonneg (лог-ограниченный маршрут); DField.kl_nonneg —
-  делегат; Variational (тилтованный KL) — делегат
-  (инлайн-дубль двигателя ~40 строк удалён).
-  Аксиомы чистые. Freeze 2181.
-- R335 (аудит v3 §1.2, Фаза 2): kl_nonneg_of_nonneg — KL ≥ 0
-  при нулевых вероятностях q (q ≥ 0, p > 0; слагаемые
-  q v = 0 равны 0 через log 0 = 0) — явная постановка
-  «нулевых вероятностей» из аудита. Аксиомы чистые.
-  Freeze 2182.
-- R336 (аудит v3 Фаза 6): trunc_nonvacuous — свидетель структуры
-  Assumptions.Trunc: константная idle-траектория
-  (все стадии на равенстве, stepDir=0, sp={eta=0,L=1,kappa=0,
-  s=0}, budget=1, Qvec=0) удовлетворяет ВСЕМ полям Trunc
-  (CorePremises на каждом шаге, h_net на равенстве,
-  h_budget0, h_risk_nn, h_Emin) для любого T и E0.
-  Структурный уровень свидетелей (уровень 2 из Фазы 6)
-  закрыт. Аксиомы чистые. Freeze 2189.
-- R337 (аудит v3 Фаза 6): certifiedHAGI_nonvacuous +
-  coupledHAGI_nonvacuous — свидетели числовых инвариант-
-  структур MasterHAGI/MasterHAGICoupled (константные
-  каналы: risk=0, phi=1, cap=1, budget=1, spend=0,
-  alpha=0; coupled — на idle-траектории). Все главные
-  структуры предпосылок теперь имеют свидетели:
-  Trunc (R336), CertifiedHAGI, CoupledHAGI (R337),
-  CorePremises, HAGICert. Аксиомы чистые. Freeze 2191.
-- R338 (аудит v3 §2.4/Фаза 5): HAGICert обобщён с Fin 1 на
-  произвольное семейство доменов Fin I:
-  hrisk теперь ∀ i, заключение hagi_synthesis — ∀ i
-  (per-domain суммарная гарантия). hagi_horizon_bound и
-  hagicert_nonvacuous — параметризованы. Аксиомы чистые.
-  Freeze 2191.
-- R339 (аудит v3 §4/Фаза 4): MacroCycleV2 переименован в
-  Runtime/ControllerGates — файл не содержит
-  альтернативного макро-цикла (аудитный посыл устарел),
-  это контроллерные ядра (variance gate, trust region,
-  dynamic routing); вынесены из Unified в Runtime-слой
-  по плану Фазы 4. Freeze 2191.
-- R341 (аудит v3 Фаза 4, шаг 1): 12 измеренных полей
-  эффектов стадий выделены из GrowthState в структуру
-  StageEffects (S.effects.growGain и т.д.); переходы
-  grow/merge/joint/compress переносят effects одним полем.
-  Свидетели (Nonvacuity S0/S1, idle, witnessState)
-  свёрнуты в effects-литералы. API-миграция: StateBinding,
-  GrowthBridge, MasterHAGI, StateTakeoff. Freeze 2192.
-- R342 (аудит v3 Фаза 4, шаг 2): StageCertificate
-  (before/after/cert) + stageCertificate + сгенерированные
-  soundness (делегат certificate_sound) и телескоп
-  stage_certificate_telescope (континуитет-посылка явная,
-  скрытых отождествлений состояний нет). Freeze 2196.
-- R343 (аудит v3 Фаза 7): namespace = каталог для System:
-  GrowthState-модуль Hagi.Unified → Hagi.System (root-алиасы
-  Hagi.GrowthState и др. сохранены export-строкой; Freeze-имена
-  обновлены до Hagi.System.*). Freeze 2196.
-- R344 (аудит v3 Фаза 7): Certificates.lean перенесён
-  Unified → System (namespace Hagi.System уже соответствовал;
-  каталог приведён к namespace). Слои: System=3 корректен.
-  Freeze 2196.
-- Открыто из аудита: R292 (GrowthState ModelState/
-  StageCertificate-разделение — многоходовый),
-  unusedHypotheses-включение, Nonvacuity-параметрические
-  свидетели полного HAGICert (базовый закрыт R313),
-  верхнеуровневая композиция HAGICycleSoundness/
-  HAGIFiniteHorizon/HAGIConditionalTakeoff.
+### Growth-каскад (L3 — взлёт)
+
+- `StateBinding`: C(t) = capability, G(t) = growGain поля
+  состояния — конус на реальной траектории.
+- `FrontierScaling` (`frontier_cone_invariant`),
+  `GainRenewal`, `Saturation` (насыщение: C_T ≤ C* −
+  (1−σ)^T·(C*−C₀)), `GrowthCeiling` (`growth_dichotomy`),
+  `RatioTakeoff`, `TakeoffElasticity`.
+- `ConeTakeoff`-мост: `ChainToCone`, `DisagreementChain`.
+
+### System / Unified (L3 — состояние и капстоуны)
+
+- `GrowthState` (System): ядро состояния (weights, params,
+  energy, protectedRisk, budget, capability, stepDir, sp) +
+  `StageEffects` (12 измеренных полей эффектов) +
+  `Certificate`/`Metrics`/`Candidate` + verify/measure/
+  discover. Законы:
+  - `growth_cycle_potential`: Φ(после цикла) ≤ Φ −
+    (gainGrow + G + η‖d*‖²/2) + (Σ рисков + κs/2);
+  - `certificate_sound`: Φ′ ≤ Φ − dec + riskSpend;
+  - `budget_account`: budget′ = budget − budgetSpend;
+  - `macro_termination_derived` (делегат Ляпунова);
+  - `protected_generation_budget`: регресс ≤ T·ε,
+    расход ≤ T·b.
+- `StageCertificate` (R342): before/after/cert; телескоп
+  `stage_certificate_telescope`:
+  Φ_{T−1} ≤ Φ₀ − Σ decrease + Σ riskSpend при континуитете
+  before(t+1) = after(t) (скрытых отождествлений нет).
+- `MasterHAGI` (условный капстоун): полный цикл на
+  GenState-траектории; `MasterHAGI_trunc` +
+  `masterhagi_growth_witness` (свидетель не-вакуозности);
+  `CertifiedHAGIInvariant`/`CoupledHAGIInvariant` с
+  числовыми свидетелями (`certifiedHAGI_nonvacuous`,
+  `coupledHAGI_nonvacuous`).
+- `ArchitectureTheorem` (R338: Fin 1 → Fin I):
+  `HAGICert` на произвольном семействе доменов;
+  `hagi_synthesis`:
+  - взлёт: C₀(1+γk)^T ≤ C_T ≤ C* − (1−σ)^T(C*−C₀);
+  - риск: ∀ домен i: Σ risk(t,i) ≤ T·best(i) + R +
+    ε₀/(1−ρₑ);
+  - `cert_horizon_bound`/`hagi_horizon_bound` —
+    логарифмическая совместимость взлёта и насыщения;
+  - `cert_horizon_witness`, `band_witness`.
+- `GrandSynthesis` (compositions-capstone): измерительная
+  цепочка + конус + coupled-капстоун в одном утверждении
+  о траектории (взлёт, риск-телескоп, точный бюджет,
+  probe-полы); пункты 2/4 — плоские передачи посылок
+  (честно обозначено).
+- `Assumptions.Trunc` + `trunc_nonvacuous` (idle-свидетель),
+  `Nonvacuity` (S₀/S₁ свидетели CorePremises),
+  `HAGICertWitness` (горизонт-1, все 17 полей).
+
+### Autonomy / Omni / Discovery / Deployment (L3)
+
+- `Universality` (`universality_longhorizon`, Fin I):
+  Σ risk ≤ T·best + R + ε₀/(1−ρₑ); `Liveness`
+  (`liveness_two_axis`: цикл не замерзает, пока жива ось);
+  `Insight` (KL-канал обучения, `forgetting_kl_bound`);
+  Omni (кросс-модальный gap = взаимная информация);
+  `PPT` (discovery-ядра).
+
+---
+
+## Открытые задачи
+
+- Вывод `h_emp_*`-посылок из Core-слоя: закрыты merge
+  (`MergeBridge`) и compress (тернарное округление);
+  открыты `h_emp_grow`, `h_emp_smooth`, `h_emp_lip`
+  (требуют модель выпуклости/липшицевости измерений).
+- GrandSynthesis: вывести пункты 2/4 из более слабых
+  посылок или оставить композицией (нужна новая математика).
+- Фаза 7 namespace=каталог: ~50 flat-namespace модулей
+  (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
+  сокращение широких `import Mathlib` (Certificates и др.).
+- Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- γ-дефицит mixer.gain→0 — честно открыт.
+- Полная Fannes-граница (Pinsker-часть доказана); anytime-
+  Freedman (совместная M/V форма).
+- Параметрические nonvacuity-свидетели ↔ `cert_horizon_bound`
+  (связать свидетель с горизонтом).
+- Терминация из телескопа: композиция
+  `stage_certificate_telescope` + `lyapunov_termination_fin`
+  (если decrease ≥ ε > 0 и riskSpend ограничен — стоп).
+- Lean↔Runtime property-тесты — требует torch-рантайма
+  E:\HAGI_v2 (blocked); §I LSL-стек — нет спецификации.
 
 ## Счётчик
 
-- 1190 theorem/lemma (after R197–R198 dedup: bodies unified, count kept honest by inventory-probe 0-diff checks); 0 sorry; LayerLint baseline: 23;
-  Foundations: 7 модулей L0. CI: PASS.
-
-## Бюджет-линия (R176, цикл 2026-10-06)
-
-- Hagi/Budget/BitAlloc: оптимальное распределение битов при
-  ограничении объёма — transfer_exact (маржинальный обмен:
-  перестановка бита меняет ошибку ровно на e_k − e_j/2),
-  two_layer_equalize (балансировка двух слоёв — water-
-  filling как теорема), imbalance_yields_gain +
-  stable_factor_two (фактор-2 инвариант на фикс-поинте
-  жадного цикла), distill_quant_composite (полный
-  сертификат поколения: S_n + n·g ≤ E_0 + δ_n +
-  totalError). Источники: 2609.38169, 2607.16097, 2607.16600.
-- Анализ цикла: формализуемые ядра темы «максимальное
-  качество при минимальном объёме» в корпусе исчерпаны
-  (Eckart–Young нет в Mathlib и в корпусе; width-скейлинг
-  2606.28242 покрыт tail-eigenvalue формой DesignOpt;
-  QAT/JL/superposition теорий нет).
-- Термослой ЗАВЕРШЁН (R174a–e): IFT+второй закон (a),
-  температура шума 1/B + отжиг батчем (b, R174d-ядро
-  anneal_by_batch), детальный баланс ⟺ нулевая диссипация
-  (c), субквадратичные хвосты → момент плоскости (e,
-  StationaryFlatness: tail-sum identity + 2C-граница).
-- R157-остаток ч.2 закрыт (FannesSmooth): липшиц энтропии
-  на δ-интерьере симплекса, |ΔH| ≤ (2/δ+2log(1/δ))·TV;
-  открыта только сингулярная h₂-граница (нулевые массы).
-- Открыто: h₂-Fannes (тяжёлый порт), R158 (torch-рантайм),
-  LSL (нет §I-спецификации), frontier_cone канонизация.
-- Цикл 2026-10-06 (продолжение): R181 CortexFiber (законы
-  энергии кортекс⊕волокна), R182 AlignedMerge (штраф за
-  невыравнивание линеен по δ), R183 FiberSplit (Grow-закон:
-  расщепление эксперта точно), R184 dustNoiseHalving (мост A
-  ч.1: zeroth-order шум гасится популяцией), R185 DustCert
-  (мост A замкнут: статистические предпосылки klsBatchNoise —
-  теоремы для Dust-оценки), R186 ThermoBridge (мост C:
-  носители prodE/expQ сварены; 1/B-закон один в трёх
-  словарях). Мост D (биты↔спектр): арифметика покрыта
-  (fiberParamCount), спектральная форма blocked (Eckart–Young
-  нет в Mathlib). Мост E ЗАКРЫТ (R187 DustAlign, c43b6ef):
-  cos-закон выравнивания в Markov-форме — q-масса пар с
-  floor-выравниванием (1−2δ)·‖g‖·‖ĝ‖ ≤ ⟨g,ĝ⟩ не хуже
-  1 − V/(δ·‖g‖)², где V — гашёная энергия ошибки
-  (dustNoiseHalving); норма/CS/треугольник самодостаточны
-  (absDot_le, nrmTriangle, alignLower). Общий-K
-  дисперсионный закон Dust ЗАКРЫТ (R188 DustVarK, 1ea8500):
-  hcVarKTotal/hcVarK — 1/K-закон для ЛЮБОГО K ≥ 1 (индукция
-  по K через Fin.cons-сплит), esErrCentered — центрированность
-  из esUnbiased, dustVarK — векторная форма: ожидаемая
-  квадратичная ошибка K-draw усреднённой esEst-оценки ровно
-  (1/K) одночной. R189 (5019aa3): prodQ/dustVarK_expQ/
-  dustAlignmentK — вероятностный cos(K)-закон для ЛЮБОГО K ≥ 1:
-  масса пар с floor-выравниванием ≥ 1 − (V/K)/(δ‖g‖)². Dust-цепь
-  полностью замкнута: энергия 1/K (R188) + выравнивание с
-  вероятностью 1−V/(K·δ²‖g‖²) (R189) — формальный аналог
-  эмпирического cos(K) = c_max/√(1+c/K) для всех K.
-- Цикл 2026-10-06 (Omni): Р190 CrossModalGap (ecfaf8f) — открыт
-  слой Hagi/Omni: G_xy = H(X)+H(Y)−H(X,Y) = KL(joint ‖ marg⊗marg)
-  (crossModalGap_eq_kl), G ≥ 0 (subadditivity), G = 0 ⟺
-  независимость (redundant-модальность не даёт gain). R191
-  OmniGrowth (740198f): omniStep = C+G_intra+G_cross−compress−risk,
-  omniGate_crossModal — строго зависимая пара модальностей +
-  bounded costs ⟹ строгий рост capability. Формальное ядро
-  omni-расширения HAGI («модальность = эксперт», Rho-1-inspired,
-  без копирования архитектуры Reka). R192 SharedStateComposition
-  (8601b1e): sharedStateEnergy (Pythagoras при UᵀV=0),
-  sharedStatePerturbed (цена рассогласования линейна по
-  frobSq(VᵀW)), sharedStateCostBound (k·r·d < d·d при k·r<d —
-  omni-состояние дешевле dense-слоя). R193 TemporalState
-  (18d09a0): driftTube/geom_sum_fin/drift_limit — контракт
-  дрейфа world-model: контракция ρ<1 держит дрейф в трубке
-  d0+e/(1−ρ) навсегда (long-horizon drift исключён); drift_zero —
-  точные наблюдения дают геометрическое затухание. R194
-  OmniSafeStep (a15f25e): omniSafeStep/omniSafeStep_sum —
-  консенсус-шаг безвреден для ВСЕХ модальных градиентов при
-  неотрицательном выравнивании; omniGate_complete — ПОЛНЫЙ цикл
-  приёма модальности: G_cross > 0 + строгий рост + дешёвый
-  лист + безвредный joint-шаг. R195 OmniInvariant (9fb28eb):
-  omniPhi = risk − cap; Φ-монотонность цикла при покрытии
-  SafeQP-бюджета net-гейном; omniInvariant_preserved —
-  композитный сертификат (Φ↓ ∧ C↑ ∧ risk-bounded ∧ budget≥0).
-  R196 CapabilityMatrix (3f13c4e): groupGap (R190 на ГРУППАХ
-  модальностей) + admissionChain — цепочка приёмов с δ-net
-  ratchet: C_t ≥ C_0 + t·δ (растущий omni не останавливается).
-  Omni-слой: 7 модулей, контракт полный: рост → геометрия →
-  стоимость → динамика → безопасность → инвариант → цепочка.
-- R177 WaterFilling (dac7e86): существование фактор-2
-  сбалансированной аллокации — замыкание R176 (конечный
-  argmin через Finset.min' + бюджет-сохраняющие переносы).
-  Честная граница (поправлена R-аудитом): доказательство
-  ЭКЗИСТЕНЦИАЛЬНО, не конструктивно; терминантность жадного
-  цикла переносов НЕ формализована; OPT-аппроксимационные
-  гарантии water-filling не формализуемы без структуры.
-- R178 Dust ч.1–2b (c042c9c, 3b0f325, 82ab1d2; источник
-  qlabs.sh/research/dust): Rademacher-гиперкуб без теории
-  меры — hcFactorized (pi-фубини), hcDelta (E[u_i u_j]=δ),
-  esUnbiased (ТОЧНАЯ несмещённость симметрично-разностной
-  оценки на квадратичных потерях, без σ²-смещения),
-  drawPairOrtho (интерференция дро исчезает в среднем),
-  varianceHalving (K=2: удвоение популяции делит средний
-  квадрат ошибки). Открыто: общий-K дисперсионный закон,
-  cos(K)-закон выравнивания.
-- R179 KLSBridge (ad9db69): Poincaré-ИНТЕРФЕЙС (константа
-  arXiv:2610.01447v2 НЕ импортирована — препринт не
-  верифицирован независимо): gradCovBound (Cov(g) ⪯ C·L²·I
-  по направлениям), uncorrMeanVar, expQ_varEq, klsBatchNoise
-  (σ² ≲ C·L²/B), klsChebyshev. Лог-вогнутость данных НЕ
-  утверждается — Poincaré входит явной гипотезой.
-- R180 KLSSafeQP (45eceb2): композиция R179 → SafeQP-слой:
-  klsSafeQP_certified — при guard ε+|gd|·t шумный чек
-  сертифицирует ε с вероятностью ≥ 1 − V/t²
-  (V = C·L²·‖a‖²/B). Рецепт SafeQPRobust (margins ε+m)
-  получил теоретический шумовой бюджет.
-- Аудит R-цикла (94a21a5+): докстринги BitAlloc/WaterFilling
-  поправлены — убраны overclaim'ы («constructive», «greedy
-  loop terminates»): доказано существование, не конструкция;
-  терминантность жадного цикла не формализована.
+- 1712 theorem/lemma; 2196 деклараций (Freeze); 0 sorry;
+  LayerLint-исключений: 0.

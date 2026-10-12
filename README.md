@@ -22,7 +22,7 @@ Detailed per-round history: `STATUS.md`.
 | Budget | Bit allocation (marginal exchange, factor-2 balance, termination), water-filling, KV allocation, compute budget laws. |
 | Growth | Cone/takeoff family: frontier-scaling invariant (sustained takeoff from production dynamics), gain renewal, disagreement chains, gain-operator chain, cone unification. |
 | Dynamics, External, Deployment, Discovery, Autonomy, Omni, Pretraining | Contraction/endpoint budgets; imported laws (μP, vocab critical point, phase metric); proxy-shift budget; PPT discovery (MH kernels, truncation bias); exponential-weights routing, supervisor viability (halving), insight channel; omni (cross-modal gap = mutual information, capability gates, Φ-monotonicity). |
-| Unified | The state-and-cycle layer: `GrowthState` (the measured stage ledger), stage theorems, macro-cycle, the conditional capstones (`MasterHAGI*`, `GrandSynthesis`), `CertifiedHAGIInvariant`, the nonvacuity witness, the assumptions record, the merge bridge, the state-level takeoff, the end-to-end live-weights cycle; the memory-management cycle: admission controller (novelty ∧ certified gain), consolidation quality bound (L·√(k·Σε)), quantized safe-update window with explicit q-cost. |
+| System, Unified | The state-and-cycle layer: `GrowthState` (core state + `StageEffects` measured ledger + `Certificate`/`Metrics`/`Candidate`), `StageCertificate` with the per-generation soundness and the multi-generation telescope (`stage_certificate_telescope`), the conditional capstones (`MasterHAGI*`, `GrandSynthesis`, `ArchitectureTheorem` with `HAGICert` on `Fin I` domain families), `CertifiedHAGIInvariant`/`CoupledHAGIInvariant` with numeric nonvacuity witnesses, the assumptions record (`Assumptions.Trunc` + idle witness), the merge bridge, the state-level takeoff, the end-to-end live-weights cycle; the memory-management cycle: admission controller (novelty ∧ certified gain), consolidation quality bound, quantized safe-update window. |
 | Model, Generalization, Runtime | Gap-law model; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. |
 
 ## The three layers (honest status)
@@ -47,6 +47,11 @@ Detailed per-round history: `STATUS.md`.
      named record.
    Deriving the remaining `h_emp_*` premises (h_emp_grow,
    h_emp_smooth, h_emp_lip) from the Core layer is open.
+
+Current corpus: 290 modules, 2196 frozen declarations, 1712
+theorem/lemma, 0 sorry, 0 LayerLint exceptions. Per-module
+state with the derived formulas: `STATUS.md`; the algorithms
+implied by the proven theorems: `ALGORITHMS.md`.
 
 ## Build and checks
 
