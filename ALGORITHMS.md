@@ -68,8 +68,15 @@ d* = proj_C(g₀),  C = {d : ⟨g_i, d⟩ ≥ −ε_i}   # старые доме
 - Гарантия спуска (joint_stage):
   E′ ≤ E − η⟨g₀,d*⟩ + Lη²‖d*‖²/2 ≤ E − η‖d*‖²/2
   при η ≤ 1/L и ‖d*‖² ≤ ⟨g₀,d*⟩.
-- Варiaнт с предобуславливателем: PreconditionerDescent;
-  Armijo-приёмка: ArmijoAcceptance.
+- Оптимальный η (R347, StageCalculus):
+  `quadratic_bound_max` — безусловный потолок модельного
+  спуска inner²/(2L·dnorm²) при η* = inner/(L·dnorm²);
+  `eta_star_exceeds_cap` — при certified descent η* > 1/L,
+  кап активен; `joint_stage_cap_optimal` — на допустимом
+  интервале оптимален η = 1/L, спуск dnorm²/(2L);
+  `cap_cost_factor` — цена капа = фактор inner/dnorm² > 1.
+  Правило: η = 1/L всегда (не настраивать); усилие — не в
+  η-тюнинге, а в росте dnorm² (quality of direction).
 - LR↔batch эквивалентность (`lr_batch_equivalence`,
   StochasticSafeQP; Smith et al. 1711.00489): шумовой бюджет
   шага η·noiseEps ∝ ησ/√m инвариантен при (η, m) → (kη, k²m).
