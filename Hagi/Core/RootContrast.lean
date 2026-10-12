@@ -26,7 +26,7 @@ family, `contrastPart x = x - rootPart x` the centered part.
 
 open Finset InnerProductSpace Real
 
-namespace Hagi.Depth
+namespace Hagi.Core
 
 section T1
 
@@ -191,8 +191,8 @@ theorem rho_partition (m : ℕ) (s : ℕ → ℝ) (r : ℕ)
 
 end RhoDefs
 
-end Hagi.Depth
+end Hagi.Core
 
 namespace Hagi
-export Hagi.Depth (rootPart contrastPart root_sum_eq root_idem contrast_zero_sum contrast_of_root root_contrast_orth_total root_contrast_pythagoras filter_partition_sum highway_gain_identity rhoCaptured rhoTail rho_partition)
+export Hagi.Core (rootPart contrastPart root_sum_eq root_idem contrast_zero_sum contrast_of_root root_contrast_orth_total root_contrast_pythagoras filter_partition_sum highway_gain_identity rhoCaptured rhoTail rho_partition)
 end Hagi

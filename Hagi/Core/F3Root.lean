@@ -23,7 +23,7 @@ Two formal cores of the depth-vs-flat tradeoff:
 
 open Finset
 
-namespace Hagi.Depth
+namespace Hagi.Core
 
 section F3Root
 
@@ -54,8 +54,8 @@ theorem anova_split (a b : ℝ) :
 
 end F3Root
 
-end Hagi.Depth
+end Hagi.Core
 
 namespace Hagi
-export Hagi.Depth (root_invariance root_no_leaf_signal anova_split)
+export Hagi.Core (root_invariance root_no_leaf_signal anova_split)
 end Hagi

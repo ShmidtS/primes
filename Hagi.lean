@@ -113,7 +113,7 @@ import Hagi.Budget.FactorizedBPW
 import Hagi.Budget.ThreeTermBudget
 import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
-import Hagi.Depth.F3Root
+import Hagi.Core.F3Root
 import Hagi.Data.SinkCost
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
@@ -134,7 +134,7 @@ import Hagi.Audit.Foundations
 import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness
 import Hagi.External.Layers
-import Hagi.Depth.RootContrast
+import Hagi.Core.RootContrast
 import Hagi.Growth.CycleChannel
 import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
@@ -176,7 +176,7 @@ import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
 import Hagi.Growth.Saturation
 import Hagi.Growth.GrowthCeiling
-import Hagi.Deployment.ProxyGap
+import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
 import Hagi.Growth.TakeoffElasticity
 import Hagi.Ensemble.CompressionCert

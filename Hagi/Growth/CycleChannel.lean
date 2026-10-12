@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Depth.RootContrast
+import Hagi.Core.RootContrast
 
 set_option linter.style.header false
 
