@@ -26,7 +26,7 @@ product space: each new coordinate contributes its own diagonal
 energy (Q) and, by centeredness, ZERO cross terms with the tail.
 -/
 
-namespace Hagi.Dust
+namespace Hagi.Pretraining
 
 open Finset Fin
 
@@ -299,4 +299,4 @@ theorem dustVarK_expQ (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
   rw [hmul]
   exact dustVarK d A b x σ hσ K hK
 
-end Hagi.Dust
+end Hagi.Pretraining

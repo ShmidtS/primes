@@ -44,7 +44,7 @@ theory):
   error: the theoretical form of the paper's cos(K) law.
 -/
 
-namespace Hagi.Dust
+namespace Hagi.Pretraining
 
 open Finset
 
@@ -472,4 +472,4 @@ theorem dustNoiseHalving (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ) (b : Fin d �
   exact varianceHalving d
     (fun u i => esEst d A b x σ u i - quadfGrad d A b x i) hzero
 
-end Hagi.Dust
+end Hagi.Pretraining

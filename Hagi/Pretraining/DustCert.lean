@@ -33,7 +33,7 @@ bound of the KLS interface remain hypotheses; the
 quadratic-model restriction is inherited from `esUnbiased`.
 -/
 
-namespace Hagi.Dust
+namespace Hagi.Pretraining
 
 open Finset
 
@@ -110,4 +110,4 @@ theorem dustUncorrPair (d : ℕ) (φ ψ : HC d → ℝ)
   rw [pairExpProd, hφ]
   simp
 
-end Hagi.Dust
+end Hagi.Pretraining

@@ -35,7 +35,7 @@ N*(B) = √(A·B/C) растёт как √B с токен-бюджетом) и 
 
 open Real
 
-namespace Hagi.BatchCap
+namespace Hagi.Budget
 
 /-- Эффективный батч-план: минимум compute-оптимального
 √(A·B/C) и критического b*. -/
@@ -74,4 +74,4 @@ theorem batchCapSaturates (A C bstar B : ℝ) (hA : 0 < A)
   rw [Real.sqrt_sq hbstar.le] at hs
   exact min_eq_right hs
 
-end Hagi.BatchCap
+end Hagi.Budget

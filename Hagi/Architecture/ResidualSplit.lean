@@ -26,7 +26,7 @@ The merge separates two corrections: the expert disagreement
 open scoped BigOperators
 open Matrix
 
-namespace Hagi.Residual
+namespace Hagi.Architecture
 
 variable {d : ℕ}
 
@@ -71,4 +71,4 @@ theorem fidelity_bound_with_fibers
   · rw [hkeep]
     abel_nf
 
-end Hagi.Residual
+end Hagi.Architecture

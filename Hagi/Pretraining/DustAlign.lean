@@ -34,7 +34,7 @@ Probability (Markov on the pair space, welded by):
   as 1/K in the population — the proved shape of Fig. 5.
 -/
 
-namespace Hagi.Dust
+namespace Hagi.Pretraining
 
 open Finset
 
@@ -426,4 +426,4 @@ theorem dustAlignmentK (d : ℕ) (A : Matrix (Fin d) (Fin d) ℝ)
 
 
 
-end Hagi.Dust
+end Hagi.Pretraining

@@ -23,7 +23,7 @@ arXiv:2506.13771)
 open scoped BigOperators
 open Matrix
 
-namespace Hagi.Latent
+namespace Hagi.Architecture
 
 variable {d r : ℕ}
 
@@ -103,4 +103,4 @@ theorem naive_latent_merge_kills_flipped
 
 
 
-end Hagi.Latent
+end Hagi.Architecture

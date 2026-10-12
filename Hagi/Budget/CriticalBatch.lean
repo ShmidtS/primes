@@ -39,7 +39,7 @@ T_b·b = X·b^{3/2}/((ε−Z)√b − Y) имеет ГЛОБАЛЬНЫЙ мин�
 
 open Real
 
-namespace Hagi.CriticalBatch
+namespace Hagi.Budget
 
 /-- SFO-сложность как функция s = √b:
 X·s³/(c·s − Y), где c = ε − Z. -/
@@ -126,4 +126,4 @@ theorem critical_batch_lower (Y ε Z : ℝ) (hY : 0 < Y)
     (show (0:ℝ) < (2 * (ε - Z)) ^ 2 by positivity)).mpr
       hcross
 
-end Hagi.CriticalBatch
+end Hagi.Budget
