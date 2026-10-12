@@ -295,5 +295,115 @@ theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
         _ = a^(t+1) * D 0 + s * ∑ i ∈ Finset.range (t+1), a^i := by
             rw [hsum]; ring
 
+/-!
+## Grokking timescale (R366)
+
+Formal core of the spectral theory of grokking
+(arXiv:2609.26679): for homogeneous networks with squared
+loss and L2 weight decay, the generalization (grokking)
+timescale is controlled by the product `η·λ` of learning
+rate and weight decay — residual components decay with rate
+`η·λ`, so the time to drive a residual from `r₀` below `ε`
+scales as `ln(r₀/ε)/(η·λ)`.
+
+`grokking_threshold_time`: an exact exponential residual
+dynamic `r(t+1) = r(t) − η·λ·r(t)` reaches the threshold
+`ε` by time `T = ⌈ln(r₀/ε)/(η·λ)⌉` — the inverse-product
+scaling law, derived from `(1−ηλ)^T ≤ exp(−ηλT)`.
+
+## References
+
+[1] arXiv:2609.26679 (2026).
+-/
+
+/-- The key one-sided exponential bound: for `0 ≤ x ≤ 1`,
+`(1−x)^T ≤ exp(−x·T)`. -/
+theorem one_sub_pow_le_exp (x : ℝ) (T : ℕ) (hx : 0 ≤ x) (hx1 : x ≤ 1) :
+    (1 - x) ^ T ≤ Real.exp (-(x * T)) := by
+  rcases eq_or_lt_of_le hx1 with h1 | h1
+  · -- x = 1: LHS = 0^T ≤ exp(-T)
+    subst h1
+    cases T with
+    | zero => norm_num
+    | succ T' =>
+        have hz : (1 - 1 : ℝ) ^ (T' + 1) = 0 := by
+          rw [sub_self, zero_pow]
+          norm_num
+        rw [hz]
+        exact Real.exp_nonneg _
+  · -- 0 ≤ x < 1: strict base, take logs
+    have hbase : 0 < 1 - x := by linarith
+    have hlog1 : Real.log (1 - x) ≤ -x := by
+      have h := Real.log_le_sub_one_of_pos hbase
+      linarith
+    have hln : Real.log ((1 - x) ^ T) = (T:ℝ) * Real.log (1 - x) := by
+      rw [Real.log_pow]
+    have hmono : (T:ℝ) * Real.log (1 - x) ≤ -x * (T:ℝ) := by
+      have := mul_le_mul_of_nonneg_left hlog1 (by positivity : (0:ℝ) ≤ (T:ℝ))
+      linarith
+    have hfinal : Real.log ((1 - x) ^ T) ≤ -x * (T:ℝ) := by
+      rw [hln]
+      exact hmono
+    calc (1 - x) ^ T = Real.exp (Real.log ((1 - x) ^ T)) := by
+          rw [Real.exp_log (pow_pos hbase T)]
+      _ ≤ Real.exp (-x * (T:ℝ)) := Real.exp_le_exp.mpr hfinal
+      _ = Real.exp (-(x * T)) := by congr 1; push_cast; ring
+
+/-- **Grokking threshold time** (R366): under the exact
+residual dynamics `r(t+1) = r(t) − η·λ·r(t)` with `η·λ ∈
+(0,1]`, the residual at time `T ≥ ln(r₀/ε)/(η·λ)` is at most
+`ε` — the inverse-product scaling of the generalization
+timescale in `η·λ` (the formal core of the grokking phase
+geometry). -/
+theorem grokking_threshold_time (eta lam r0 eps : ℝ)
+    (heta : 0 < eta) (hlam : 0 < lam) (hr0 : 0 < r0)
+    (heps : 0 < eps) (hepsr : eps ≤ r0)
+    (hprod : eta * lam ≤ 1)
+    (r : ℕ → ℝ)
+    (hrec : ∀ t, r (t + 1) = r t - eta * lam * r t)
+    (hinit : r 0 = r0)
+    (T : ℕ) (hT : Real.log (r0 / eps) / (eta * lam) ≤ T) :
+    r T ≤ eps := by
+  have hprod0 : 0 ≤ eta * lam := by positivity
+  -- closed form: r T = r0 * (1 - eta*lam)^T
+  have hform : ∀ t, r t = r0 * (1 - eta * lam) ^ t := by
+    intro t
+    induction t with
+    | zero => simp [hinit]
+    | succ t ih =>
+        rw [hrec t, ih, pow_succ]
+        ring
+  rw [hform T]
+  have hexp := one_sub_pow_le_exp (eta * lam) T hprod0 hprod
+  have hbound : r0 * Real.exp (-(eta * lam * T)) ≤ eps := by
+    -- r0 * exp(-(ηλT)) ≤ r0 * exp(-(ηλ·(ln(r0/eps)/(ηλ)))) = eps
+    have hexp_le : Real.exp (-(eta * lam * (T:ℝ)))
+        ≤ Real.exp (-(eta * lam * (Real.log (r0 / eps) / (eta * lam)))) := by
+      apply Real.exp_le_exp.mpr
+      nlinarith [hT, mul_pos heta hlam]
+    have hcancel : eta * lam * (Real.log (r0 / eps) / (eta * lam))
+        = Real.log (r0 / eps) := by
+      field_simp
+    rw [hcancel] at hexp_le
+    have hfin : r0 * Real.exp (-(Real.log (r0 / eps))) = eps := by
+      have hrpos : (0:ℝ) < r0 / eps := by positivity
+      have hinv : Real.exp (-(Real.log (r0 / eps))) = (r0 / eps)⁻¹ := by
+        rw [Real.exp_neg, Real.exp_log hrpos]
+      rw [hinv]
+      field_simp
+    calc r0 * Real.exp (-(eta * lam * (T:ℝ)))
+          ≤ r0 * Real.exp (-(Real.log (r0 / eps))) := by
+            exact mul_le_mul_of_nonneg_left hexp_le hr0.le
+      _ = eps := hfin
+  calc r0 * (1 - eta * lam) ^ T
+      = r0 * (1 - eta * lam) ^ T := rfl
+    _ ≤ r0 * Real.exp (-(eta * lam * (T:ℝ))) :=
+        mul_le_mul_of_nonneg_left hexp hr0.le
+    _ ≤ eps := hbound
+
 end Hagi.Foundations
+
+namespace Hagi
+export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time)
+end Hagi
 

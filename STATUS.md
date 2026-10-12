@@ -48,7 +48,12 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
-- `Recurrence`: геометрический телескоп; рекуррентное
+- `Recurrence`: `grokking_threshold_time` (R366, ядро
+  спектральной теории grokking, arXiv:2609.26679): остаточная
+  динамика r(t+1) = r(t) − ηλ·r(t) достигает порога ε к
+  времени ln(r₀/ε)/(ηλ) — inverse-product скейлинг времени
+  генерализации; `one_sub_pow_le_exp`: (1−x)^T ≤ e^{−xT}.
+  Геометрический телескоп; рекуррентное
   неравенство u(t+1) ≤ ρ·u(t) + c при ρ < 1 даёт
   u(t) ≤ ρᵗ·u(0) + c/(1−ρ); `contraction_limit` (предел),
   `disp_recurrence_general`.
