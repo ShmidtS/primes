@@ -47,7 +47,6 @@ LAYERS = {
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
     # (R169: 49; R170: 46; R171: 26; R172: 24; R173: 23)
-    ("Autonomy/Insight.lean", "Unified/GlobalDynamics.lean"),
     
     
     

@@ -961,6 +961,11 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (1←6) устранена. LayerLint exceptions: 3.
   Freeze 2181 (перемещение имён между
   пространств имён).
+- R329 (аудит v3 §2.2): forgetting_kl_bound перенесён из
+  Unified/GlobalDynamics в Autonomy/Insight (единственный
+  потребитель); импорт Insight←GlobalDynamics убран;
+  exception удалён. Осталось 2 exceptions —
+  ModeState/StateBinding←GrowthState (Фаза 4). Freeze 2181.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

@@ -13,8 +13,6 @@ set_option linter.style.header false
   g₀ = 0 specialization of the SafeQP objective).
 * `idle_merge_zero_gap`: at consensus logits the merge gap is
   exactly 0.
-* `forgetting_kl_bound`: `kl ≤ eps` whenever
-  `kl ≤ ⟪dW, F dW⟫ / 2` and `⟪dW, F dW⟫ ≤ 2 * eps`.
 -/
 
 open Real InnerProductSpace
@@ -31,17 +29,8 @@ theorem idle_merge_zero_gap {k : Type} [Fintype k] [Nonempty k]
     Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) (fun _ => (0:ℝ)) = 0 :=
     (Hagi.twoGap_zero_iff hp hsum).mpr ⟨0, fun _ => rfl⟩
 
-/-- If `kl ≤ ⟪dW, F dW⟫_ℝ / 2` (h_emp_ curvature) and
-`⟪dW, F dW⟫_ℝ ≤ 2 * eps`, then `kl ≤ eps`. -/
-theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-    (F : X →L[ℝ] X) (dW : X) (kl eps : ℝ)
-    (h_emp_second : kl ≤ ⟪dW, F dW⟫_ℝ / 2)
-    (hball : ⟪dW, F dW⟫_ℝ ≤ 2 * eps) :
-    kl ≤ eps := by
-  linarith
-
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (idle_merge_zero_gap forgetting_kl_bound)
+export Hagi.Unified (idle_merge_zero_gap)
 end Hagi

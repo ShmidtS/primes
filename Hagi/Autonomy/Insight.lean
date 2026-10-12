@@ -5,7 +5,6 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Data.Distill
 import Hagi.Step.ProjectionDescent
-import Hagi.Unified.GlobalDynamics
 import Mathlib.Tactic
 
 set_option linter.style.header false
@@ -26,6 +25,17 @@ namespace Hagi.Autonomy
 section Insight
 
 variable {V : Type*} [Fintype V]
+
+/-- If `kl ≤ ⟪dW, F dW⟫_ℝ / 2` (h_emp_ curvature) and
+`⟪dW, F dW⟫_ℝ ≤ 2 * eps`, then `kl ≤ eps`.
+(R329: перенесено из Unified/GlobalDynamics — единственный
+потребитель здесь.) -/
+theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (F : X →L[ℝ] X) (dW : X) (kl eps : ℝ)
+    (h_emp_second : kl ≤ ⟪dW, F dW⟫_ℝ / 2)
+    (hball : ⟪dW, F dW⟫_ℝ ≤ 2 * eps) :
+    kl ≤ eps := by
+  linarith
 
 /-- For strictly positive distributions q, pI, pTheta:
 crossEntropy q pTheta − crossEntropy q pI
@@ -116,5 +126,5 @@ theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 end Hagi.Autonomy
 
 namespace Hagi
-export Hagi.Autonomy (insight_kl_descent experience_cycle_bound insight_consolidation_safe tldr_drift_null tldr_two_tier_safety)
+export Hagi.Autonomy (forgetting_kl_bound insight_kl_descent experience_cycle_bound insight_consolidation_safe tldr_drift_null tldr_two_tier_safety)
 end Hagi
