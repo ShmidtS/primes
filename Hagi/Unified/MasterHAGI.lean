@@ -619,8 +619,60 @@ theorem certifiedHAGI_nonvacuous (T : ℕ) :
     · norm_num
   gen_floor := by norm_num
 
+/-- **`CertifiedHAGIInvariant` is inhabited NON-IDLE**
+(R359): every channel is live — capability grows
+compounds `c₀(1+α)^t` (α > 0), Φ decreases linearly
+`φ₀ − t·δ` (δ > 0), cumulative risk accrues `t·e` exactly
+within the per-domain regulatory budgets `e`, the budget
+pays strictly positive spends `s > 0` per step while staying
+nonnegative at the horizon (`B = T·s + 1`), and the
+generalization telemetry holds above its floor. The old
+constant witness (R337) documents minimal satisfiability;
+this one shows the contract is compatible with genuine
+growth, descent, and spending simultaneously. -/
+theorem certifiedHAGI_nonvacuous_strict (T : ℕ)
+    (alpha c0 delta e s : ℝ)
+    (halpha : 0 < alpha) (hc0 : 0 < c0) (hdelta : 0 < delta)
+    (he : 0 ≤ e) (hs : 0 < s) :
+    CertifiedHAGIInvariant T
+      (fun t => t * e)
+      (fun t => (T + 1) * delta - t * delta)
+      (fun t => c0 * (1 + alpha) ^ t)
+      (fun t => T * s + 1 - t * s)
+      (fun _ => s)
+      (fun _ => 1)
+      (fun _ => e)
+      alpha 0 where
+  risk_bound := by
+    have hsum : ∑ t ∈ Finset.range T, e = (T:ℝ) * e := by simp
+    show (T:ℝ) * e - (0:ℕ) * e ≤ ∑ t ∈ Finset.range T, e
+    rw [hsum]
+    push_cast
+    linarith
+  phi_bound := by
+    show ((T:ℕ) + 1 : ℝ) * delta - ((T:ℕ) : ℝ) * delta
+      ≤ ((T:ℕ) + 1 : ℝ) * delta - ((0:ℕ) : ℝ) * delta
+    have hT : (0:ℝ) ≤ (T:ℝ) := by positivity
+    have hTd : (0:ℝ) ≤ (T:ℝ) * delta :=
+      mul_nonneg hT hdelta.le
+    push_cast
+    linarith
+  capability_growth := by
+    rw [pow_zero, mul_one]
+  budget_respected := by
+    constructor
+    · have hsum : ∑ t ∈ Finset.range T, s = (T:ℝ) * s := by simp
+      rw [hsum]
+      push_cast
+      ring
+    · show (0:ℝ) ≤ T * s + 1 - (T:ℕ) * s
+      push_cast
+      have hTs : (0:ℝ) ≤ (T:ℝ) * s := by positivity
+      linarith
+  gen_floor := by norm_num
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (certifiedHAGI_nonvacuous CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
+export Hagi.Unified (certifiedHAGI_nonvacuous certifiedHAGI_nonvacuous_strict CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
 end Hagi
