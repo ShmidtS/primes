@@ -6,7 +6,8 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# MacroCycleV2 — mathematical kernels for engineering upgrades
+# ControllerGates (ex-MacroCycleV2, R339) — mathematical
+kernels for engineering upgrades
 
 * Variance gating: the logit range scales linearly under
   temperature division (`logitRange_scale`), so the `R²/8`

@@ -1028,6 +1028,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   (per-domain суммарная гарантия). hagi_horizon_bound и
   hagicert_nonvacuous — параметризованы. Аксиомы чистые.
   Freeze 2191.
+- R339 (аудит v3 §4/Фаза 4): MacroCycleV2 переименован в
+  Runtime/ControllerGates — файл не содержит
+  альтернативного макро-цикла (аудитный посыл устарел),
+  это контроллерные ядра (variance gate, trust region,
+  dynamic routing); вынесены из Unified в Runtime-слой
+  по плану Фазы 4. Freeze 2191.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

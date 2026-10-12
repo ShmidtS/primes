@@ -58,7 +58,7 @@ import Hagi.Energy.BranchScale
 import Hagi.Energy.TernaryLean
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
-import Hagi.Unified.MacroCycleV2
+import Hagi.Runtime.ControllerGates
 import Hagi.Budget.BitAlloc
 import Hagi.Budget.BitAllocTermination
 import Hagi.Data.NessDissipation
