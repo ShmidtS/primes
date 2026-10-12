@@ -3,11 +3,17 @@
 with a hash of its type/statement so 'no theorem is lost'
 becomes an automatic check.
 
-Writes declarations.lock (sorted: name<TAB>hash) when absent
-or with --update; verifies otherwise. Hash covers the
-declaration KIND + NAME + statement text (everything up to
-` :=` / ` := by`), normalized by whitespace, so proof-body
-changes never trip it but statement changes always do.
+Writes declarations.lock (sorted: name<TAB>hash<TAB>stmt)
+when absent or with --update; verifies otherwise.
+
+Two hashes per declaration (audit v4 Phase 0):
+- hash: KIND + NAME + statement (any change trips);
+- stmt: KIND + statement ONLY (name-independent).
+
+Verify rule: a name that disappeared is OK iff its stmt
+hash survives on some other declaration (a pure rename /
+alias keeps the statement verbatim). Statement edits or
+real deletions always FAIL. Proof bodies never trip.
 
 Usage:
   python scripts/Freeze.py            # verify (exit 1 on drift)
@@ -61,45 +67,66 @@ def collect():
                 h = hashlib.sha256(
                     (kind + '|' + name + '|' + stmt).encode('utf-8')
                 ).hexdigest()[:16]
-                rows.append((name, h))
+                s = hashlib.sha256(
+                    (kind + '|' + stmt).encode('utf-8')
+                ).hexdigest()[:16]
+                rows.append((name, h, s))
     rows.sort()
     return rows
 
 
 def main():
-    lock = 'declarations.lock'
+    lock = "declarations.lock"
     rows = collect()
-    update = '--update' in sys.argv
+    update = "--update" in sys.argv
     if update or not os.path.exists(lock):
-        with open(lock, 'w', encoding='utf-8', newline='\n') as fh:
-            fh.write('\n'.join(f'{n}\t{h}' for n, h in rows) + '\n')
+        with open(lock, 'w', encoding="utf-8", newline=chr(10)) as fh:
+            fh.write(chr(10).join(
+                f'{n}	{h}	{s}' for n, h, s in rows) + chr(10))
         print(f'FREEZE: wrote {len(rows)} declarations to {lock}')
         return
-    old = dict(
-        line.split('\t') for line in
-        open(lock, encoding='utf-8').read().splitlines() if line
-    )
-    new = dict(rows)
-    lost = sorted(set(old) - set(new))
+    old = {}
+    for line in open(lock, encoding="utf-8").read().splitlines():
+        if not line:
+            continue
+        parts = line.split("\t")
+        if len(parts) == 3:
+            old[parts[0]] = (parts[1], parts[2])
+        elif len(parts) == 2:
+            old[parts[0]] = (parts[1], None)
+    new = {n: (h, s) for n, h, s in rows}
+    stmt_pool = {s for _, s, _ in rows}
+    lost = []
+    renamed = []
+    for n in sorted(set(old) - set(new)):
+        s_old = old[n][1]
+        if s_old is not None and s_old in stmt_pool:
+            renamed.append(n)
+        else:
+            lost.append(n)
     changed = sorted(
-        n for n in set(old) & set(new) if old[n] != new[n]
+        n for n in set(old) & set(new) if old[n][0] != new[n][0]
     )
     added = sorted(set(new) - set(old))
     if lost:
-        print('FREEZE: LOST declarations (statement removed/renamed):')
+        print("FREEZE: LOST statements (removed, no alias):")
         for n in lost:
-            print('  -', n)
+            print("  - ", n)
+    if renamed:
+        print(f'FREEZE: {len(renamed)} names now aliases (statement survives elsewhere):')
+        for n in renamed:
+            print("  - ", n)
     if changed:
-        print('FREEZE: CHANGED statements (needs --update + review):')
+        print("FREEZE: CHANGED statements (needs --update + review):")
         for n in changed:
-            print('  -', n)
+            print("  - ", n)
     if added:
         print(f'FREEZE: {len(added)} new declarations (fine)')
     if lost or changed:
-        print('FREEZE: FAIL')
+        print("FREEZE: FAIL")
         sys.exit(1)
-    print(f'FREEZE: PASS ({len(rows)} declarations, nothing lost/changed)')
+    print(f'FREEZE: PASS ({len(rows)} declarations, {len(renamed)} aliased, nothing lost/changed)')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

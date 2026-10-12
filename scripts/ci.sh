@@ -42,3 +42,4 @@ echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=
 
 echo
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
+python scripts/Metrics.py
