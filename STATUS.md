@@ -149,7 +149,11 @@ same-folder DAG свободен.
 - `StageCertificate` (R342): before/after/cert; телескоп
   `stage_certificate_telescope`:
   Φ_{T−1} ≤ Φ₀ − Σ decrease + Σ riskSpend при континуитете
-  before(t+1) = after(t) (скрытых отождествлений нет).
+  before(t+1) = after(t) (скрытых отождествлений нет);
+  `termination_from_telescope`: если decreaseₜ ≥ ε и
+  riskSpendₜ ≤ r < ε, то T ≤ (Φ₀ − φmin)/(ε − r) — цикл
+  не может работать бесконечно (композиция с
+  `lyapunov_termination_fin`).
 - `MasterHAGI` (условный капстоун): полный цикл на
   GenState-траектории; `MasterHAGI_trunc` +
   `masterhagi_growth_witness` (свидетель не-вакуозности);

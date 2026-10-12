@@ -604,7 +604,45 @@ theorem stage_certificate_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 
 end GrowthLoop
 
+/--
+`termination_from_telescope`: if every certified generation
+decreases the potential by at least `ε` while spending at most
+`r < ε` risk, then the number of generations is bounded by
+`(Φ₀ − φmin)/(ε − r)`: the loop cannot run forever. This is
+the composition of `stage_certificate_telescope` with a
+Lyapunov step bound (cf. `lyapunov_termination_fin`).
+-/
+theorem termination_from_telescope {T : ℕ} (cs : ℕ → StageCertificate)
+    (φmin ε r : ℝ)
+    (hT : 0 < T)
+    (hcontig : ∀ t, t + 1 < T → (cs (t + 1)).before = (cs t).after)
+    (hsound : ∀ t, t < T →
+      (cs t).after ≤ (cs t).before - ((cs t).cert).decrease
+        + ((cs t).cert).riskSpend)
+    (hfloor : φmin ≤ (cs (T - 1)).after)
+    (hdec : ∀ t ∈ Finset.range T, ε ≤ ((cs t).cert).decrease)
+    (hrisk : ∀ t ∈ Finset.range T, ((cs t).cert).riskSpend ≤ r)
+    (hε : 0 < ε) (hr : 0 ≤ r) (hεr : r < ε)
+    : (T : ℝ) ≤ ((cs 0).before - φmin) / (ε - r) := by
+  have htel := stage_certificate_telescope cs hT hcontig hsound
+  have hsumdec : T * ε ≤ ∑ t ∈ Finset.range T, ((cs t).cert).decrease := by
+    calc T * ε = ∑ t ∈ Finset.range T, ε := by simp
+      _ ≤ ∑ t ∈ Finset.range T, ((cs t).cert).decrease :=
+          Finset.sum_le_sum hdec
+  have hsumrisk : ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend ≤ T * r := by
+    calc ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend
+        ≤ ∑ t ∈ Finset.range T, r := Finset.sum_le_sum hrisk
+      _ = T * r := by simp
+  have hkey : T * (ε - r) ≤ (cs 0).before - φmin := by
+    have h1 : (cs (T - 1)).after ≤ (cs 0).before
+        - ∑ t ∈ Finset.range T, ((cs t).cert).decrease
+        + ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend := htel
+    nlinarith
+  have hpos : 0 < ε - r := by linarith
+  rw [le_div_iff₀ hpos]
+  exact hkey
+
 end Hagi.System
 namespace Hagi
-export Hagi.System (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.System (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 end Hagi

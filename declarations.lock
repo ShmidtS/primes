@@ -2012,6 +2012,7 @@ telescope_sum_le	0648d56559fc3d1b
 temperature_changes_softmax	448851d0004ea0e4
 temperature_softmax_eq_forces_const	daf044e7f7782c7c
 tendsto_logEntropyPrimitive	de92f80cdd162600
+termination_from_telescope	17d345104dba014c
 tern	1203681c3f93a3d8
 ternInRange	58c871726f4bed6a
 tern_distortion_round	b1d93f4e9b9a94b6
