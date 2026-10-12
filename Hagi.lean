@@ -254,6 +254,7 @@ import Hagi.Step.SafeQPRobust
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
 import Hagi.Spectral.SpectralProjector
+import Hagi.Spectral.RankGrowth
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI

@@ -138,6 +138,16 @@ same-folder DAG свободен.
   выведены, h_emp_* нет;
   `descent_step`, `grad_lipschitz` (σ² ≤ 1/4).
 
+### Spectral: RankGrowth (R360)
+
+- `rank_orthogonal_growth` (ядро arXiv:2607.14571 «What
+  Does Model Growth Really Add?»): если k новых строк
+  функционального Якобиана линейно независимы и
+  ортогональны всем старым строкам (dormant directions), то
+  rank стек-матрицы РОВНО rank M + k — ёмкость растёт на
+  полное число добавленных направлений при нетронутом
+  старом row space. Мост к h_emp_grow-фронту.
+
 ### Budget (L2/L3 — распределение ресурсов)
 
 - BitAlloc: маржинальный обмен битами точен
