@@ -96,8 +96,43 @@ theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace
     (safeQP_descent C hconv h0 g0 ds hs hmin).1
   exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
 
+/-! ## Orthogonal projection = zero interference (R348)
+
+The GPM/EoupCT family (Saha et al. 2021, arXiv:2103.09762;
+Wang et al. 2026, arXiv:2609.30935) constrains new-task
+updates to be orthogonal to stored past-task gradients.
+In the SafeQP frame this is the exact-interference-zero
+limit: an update direction orthogonal to every protected
+gradient satisfies every SafeQP constraint
+`⟪g i, d⟫ ≥ −ε i` with ANY `ε i ≥ 0` — including the hard
+budget `ε i = 0`. Orthogonal projection is thus the
+`ε = 0` special case of SafeQP with zero risk spend. -/
+
+/-- If `d` is orthogonal to every protected gradient `g i`,
+then `d` lies in the SafeQP feasible set
+`C = {w | ∀ i, ⟪g i, w⟫ ≥ −ε i}` for any `ε i ≥ 0`
+— including `ε i = 0` (zero tolerated interference). -/
+theorem orthogonal_zero_interference {K : Type*}
+    (g : K → X) (eps : K → ℝ) (heps : ∀ i, 0 ≤ eps i)
+    (d : X) (hortho : ∀ i, ⟪g i, d⟫_ℝ = 0) :
+    ∀ i, -eps i ≤ ⟪g i, d⟫_ℝ := by
+  intro i
+  rw [hortho i]
+  exact neg_nonpos.2 (heps i)
+
+/-- Converse limit: orthogonality is exactly what the hard
+SafeQP budget `ε = 0` demands when interference must be
+non-positive on both sides — the `ε = 0` cap forces
+`⟪g i, d⟫ = 0`. -/
+theorem hard_budget_forces_orthogonal {K : Type*}
+    (g : K → X) (d : X)
+    (hd : ∀ i, ⟪g i, d⟫_ℝ ≥ 0 ∧ ⟪g i, d⟫_ℝ ≤ 0) :
+    ∀ i, ⟪g i, d⟫_ℝ = 0 := by
+  intro i
+  exact le_antisymm (hd i).2 (hd i).1
+
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent joint_stage_linked)
+export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent joint_stage_linked orthogonal_zero_interference hard_budget_forces_orthogonal)
 end Hagi

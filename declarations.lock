@@ -919,6 +919,7 @@ halfspace_convex	40585f6499d6ad0e
 halvingVerdict	066ede902be5d3e5
 halving_mistake_bound	4d0ae4bfa6cb4e71
 halving_mistake_halves	cb037365b4de929e
+hard_budget_forces_orthogonal	92598278df27dbcb
 harvest_accounting_identity	585626ad6e89ca44
 harvest_budget	a26b92490d4a92c2
 hasDerivAt_logEntropyPrimitive	eec45d4cc077d4b0
@@ -1399,6 +1400,7 @@ ortho_norm_sq_finset	9737dc8887df0dd5
 orthogonal_energy_split	0ee52d5cf3dde76a
 orthogonal_noise_averaging	d02ebf153d39f656
 orthogonal_preserves_grad_dist	6a9d5751515dec92
+orthogonal_zero_interference	edab87410b118078
 outer	5b55f2b87bfd754c
 outerP	f5718a4e8102f8a7
 outerProd	76729dc63a64e599
