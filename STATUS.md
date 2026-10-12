@@ -1041,6 +1041,11 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   Свидетели (Nonvacuity S0/S1, idle, witnessState)
   свёрнуты в effects-литералы. API-миграция: StateBinding,
   GrowthBridge, MasterHAGI, StateTakeoff. Freeze 2192.
+- R342 (аудит v3 Фаза 4, шаг 2): StageCertificate
+  (before/after/cert) + stageCertificate + сгенерированные
+  soundness (делегат certificate_sound) и телескоп
+  stage_certificate_telescope (континуитет-посылка явная,
+  скрытых отождествлений состояний нет). Freeze 2196.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

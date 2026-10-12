@@ -131,6 +131,7 @@ S	5ac0679926d52969
 S	99896226b023ea7a
 SepSeparated	40e11bae7b9cd27d
 Shatters	e23573fd383696a4
+StageCertificate	ba60c72b1d05f746
 StageEffects	1d48f94fb2016ea7
 StageParams	2e0122bfbbef24ee
 SuccessFloor	240cb8d1cf6414fe
@@ -1909,6 +1910,9 @@ stable_phase_noise	a8f845a3a5854f0a
 stackComp	a958feacfe77b080
 stackComp_cons	fe924a1b0af5e1a6
 stackStates	f9839879664977c9
+stageCertificate	cdfb18b391de30cd
+stage_certificate_sound	9a356487c2c444a7
+stage_certificate_telescope	563a2fbb653e095b
 stale_momentum_bias	842bc0de6a66478d
 star_unitary_mem	215bb12f89056ce5
 state_capability_takeoff	6edde1a7bb67ace3

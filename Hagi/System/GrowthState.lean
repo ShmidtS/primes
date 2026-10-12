@@ -493,9 +493,118 @@ theorem budget_account (S : GrowthState X) :
   have hv : (verify S).budgetSpend = S.effects.growCost + S.effects.jointCost := rfl
   linarith
 
+/-! ### StageCertificate (audit v3 Phase 4 step 2, R342) -/
+
+/-- The one-generation stage certificate: the potentials before
+and after the composed generation plus the verifier certificate
+it emits. Contiguity of a trajectory of such certificates is a
+premise of `stage_certificate_telescope` (no hidden state
+identity). -/
+structure StageCertificate where
+  /-- Φ of the state before the generation. -/
+  before : ℝ
+  /-- Φ of the state after the generation. -/
+  after : ℝ
+  /-- The emitted verifier certificate (decrease/riskSpend/budgetSpend). -/
+  cert : Certificate
+
+/-- `stageCertificate S`: the certificate of one composed
+generation on `S`. -/
+def stageCertificate (S : GrowthState X) : StageCertificate where
+  before := potential S
+  after := potential (compress (joint (merge (grow S))))
+  cert := verify S
+
+/-- **Soundness of the stage certificate**: under exactly the
+stage premises of `certificate_sound`, the recorded after-potential
+is at most the before-potential minus the certified decrease plus
+the certified risk spend. -/
+theorem stage_certificate_sound (S : GrowthState X)
+    (hgap : 0 ≤ S.gap)
+    (h_emp_grow : S.effects.growEnergy ≤ S.energy - S.effects.growGain)
+    (h_emp_merge : S.effects.mergeEnergy ≤ S.effects.growEnergy - S.gap)
+    (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
+    (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
+    (h_emp_smooth : S.effects.jointEnergy ≤ S.effects.mergeEnergy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
+      + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2)
+    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.effects.quantErr)
+    (h_emp_dist : S.effects.quantErr ≤ 1 / 2)
+    (h_emp_lip : S.effects.compressEnergy - S.effects.jointEnergy
+      ≤ S.sp.kappa * S.sp.s * S.effects.quantErr) :
+    (stageCertificate S).after
+      ≤ (stageCertificate S).before
+        - ((stageCertificate S).cert).decrease
+        + ((stageCertificate S).cert).riskSpend :=
+  certificate_sound S hgap h_emp_grow h_emp_merge hL heta heta0 hdescent
+    h_emp_smooth hkappa hs hdn h_emp_dist h_emp_lip
+
+/-- **The telescope over a contiguous certificate trajectory**:
+if every generation's stage certificate is sound and the chain is
+contiguous (`before (t+1) = after t`), the final potential is at
+most the initial one minus the summed certified decreases plus the
+summed risk spends. -/
+theorem stage_certificate_telescope {T : ℕ} (cs : ℕ → StageCertificate)
+    (hT : 0 < T)
+    (hcontig : ∀ t, t + 1 < T → (cs (t + 1)).before = (cs t).after)
+    (hsound : ∀ t, t < T →
+      (cs t).after ≤ (cs t).before - ((cs t).cert).decrease
+        + ((cs t).cert).riskSpend) :
+    (cs (T - 1)).after ≤ (cs 0).before
+      - ∑ t ∈ Finset.range T, ((cs t).cert).decrease
+      + ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend := by
+  -- the chain identity: the final after-potential is the initial
+  -- before-potential plus the summed per-certificate steps
+  have hsum : (cs (T - 1)).after = (cs 0).before
+      + ∑ t ∈ Finset.range T, ((cs t).after - (cs t).before) := by
+    revert hsound
+    revert hcontig
+    induction T with
+    | zero =>
+        intro _ _
+        exact absurd hT (Nat.not_lt_zero 0)
+    | succ T ih =>
+        intro hcontig hsound
+        cases Nat.eq_zero_or_pos T with
+        | inl h0 =>
+            subst h0
+            have h1 : (0 + 1 - 1 : ℕ) = 0 := by norm_num
+            rw [h1, Finset.sum_range_one]
+            ring
+        | inr hpos =>
+            have hb : (cs (T - 1 + 1)).before = (cs (T - 1)).after :=
+              hcontig (T - 1) (by omega)
+            have hidx : T - 1 + 1 = T := by omega
+            rw [hidx] at hb
+            have hrec := ih hpos
+              (fun t ht => hcontig t (by omega))
+              (fun t ht => hsound t (by omega))
+            have hstep : (cs T).after - (cs (T - 1)).after
+                = (cs T).after - (cs T).before := by
+              rw [hb]
+            have hidx2 : T + 1 - 1 = T := by omega
+            rw [hidx2, Finset.sum_range_succ]
+            linarith
+  -- each step is bounded by its certificate
+  have hsteps : ∀ t ∈ Finset.range T,
+      (cs t).after - (cs t).before
+        ≤ -((cs t).cert).decrease + ((cs t).cert).riskSpend :=
+    fun t ht => by
+      have h := hsound t (Finset.mem_range.mp ht)
+      linarith
+  have hsumbound : ∑ t ∈ Finset.range T, ((cs t).after - (cs t).before)
+      ≤ ∑ t ∈ Finset.range T, ( - ((cs t).cert).decrease
+        + ((cs t).cert).riskSpend) :=
+    Finset.sum_le_sum hsteps
+  have hsplit : ∑ t ∈ Finset.range T, ( - ((cs t).cert).decrease
+        + ((cs t).cert).riskSpend)
+      = - ∑ t ∈ Finset.range T, ((cs t).cert).decrease
+        + ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend := by
+    simp [Finset.sum_add_distrib, Finset.sum_neg_distrib]
+  linarith
+
 end GrowthLoop
 
 end Hagi.Unified
 namespace Hagi
-export Hagi.Unified (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.Unified (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 end Hagi
