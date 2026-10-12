@@ -371,8 +371,34 @@ theorem logitCE_trajectory_bound (T : ℕ) (w eta d : ℕ → ℝ)
       rw [hsum]
       linarith
 
+/-- The explicit-model CE is nonnegative: log(1+e^{-w}) ≥ 0
+(the argument is ≥ 1, so the log is ≥ log 1 = 0). -/
+theorem logitCE_nonneg (w : ℝ) : 0 ≤ logitCE w := by
+  have h1 : (1:ℝ) ≤ 1 + Real.exp (-w) := by
+    have := Real.exp_nonneg (-w)
+    linarith
+  have hpos : (0:ℝ) < 1 + Real.exp (-w) := by linarith
+  have hlog : Real.log 1 ≤ Real.log (1 + Real.exp (-w)) :=
+    Real.log_le_log (by norm_num) h1
+  simp only [logitCE]
+  simpa using hlog
+
+/-- Bounded total certified descent (R355): the summed
+per-step certified decreases along ANY certified trajectory
+never exceed the initial CE — since CE stays nonnegative,
+the model cannot descend forever. The explicit-model
+instance of the loop-level termination bound. -/
+theorem logitCE_total_descent_bounded (T : ℕ) (w eta d : ℕ → ℝ)
+    (hstep : ∀ t < T, w (t + 1) = w t + eta t * d t)
+    (heta : ∀ t < T, 0 < eta t ∧ eta t ≤ 2)
+    (hdir : ∀ t < T, d t ^ 2 ≤ (-logitGrad (w t)) * d t) :
+    ∑ t ∈ Finset.range T, eta t * d t ^ 2 / 2 ≤ logitCE (w 0) := by
+  have htr := logitCE_trajectory_bound T w eta d hstep heta hdir
+  have hnn := logitCE_nonneg (w T)
+  linarith
+
 end Hagi.Model
 
 namespace Hagi
-export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE logitCE_trajectory_bound)
+export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE logitCE_trajectory_bound logitCE_nonneg logitCE_total_descent_bounded)
 end Hagi

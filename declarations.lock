@@ -1178,6 +1178,8 @@ log_weighted_jensen	d5e2d42cbf6bbe86	d2f2896c62c965a3
 logitCE	dba74f39768d47ca	b068d876fc5ab7e4
 logitCE_deriv	ca74a097002d781a	64bca471a016caac
 logitCE_descent_lemma	1811673555ce91f9	de3ca7dbb2247ab7
+logitCE_nonneg	45377f4fe9c031e3	056603bbd6d4e82f
+logitCE_total_descent_bounded	b4c971b8e6a77fe5	d787e39a96475bff
 logitCE_trajectory_bound	4a5506797d9890e1	cf673da07c2ec9ca
 logitGrad	181e97673663f8aa	0f3eaada63d058fd
 logitGrad_deriv	e788fb675bd6cb95	c15360098f65f6f8
@@ -1363,6 +1365,7 @@ ns_iter_bound	e5d5d53ed96521b0	6227907cc399f659
 ns_poly_bound	8d5f87669628be74	9af2d3e5346a255a
 null_effect	1d98a15abde95bb0	418fc0b60a5f5322
 of	45227268f72e857a	eb1c897b78d17519
+of	dd0fa3cf43373bdc	ee035aba35e83ffe
 of	dd5dbadea78f5427	f826f92521da32ff
 ofReal_finset_sum	940a1586b5e7d0c2	2ae2b6c93587be7c
 offdiag_pythagoras	658e47256acf0c93	7d47284b3be5b588
