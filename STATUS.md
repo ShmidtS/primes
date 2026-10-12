@@ -48,6 +48,16 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Step/WeightDecay` (R372, план §2): `wd_norm_bound` —
+  обновление w(t+1) = (1−ηλ)w(t) − ηg(t) с ‖g‖ ≤ G держит
+  всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
+  является ограничением нормы (неявный spectral-constraint,
+  2507.01598-family), без внешней аксиомы ограниченности.
+- `Nonvacuity` (R373): `masterhagi_productive_witness_all` —
+  R370-witness обобщён с T=1 на произвольный T ≥ 1: все
+  посылки MasterHAGI на каждом шаге t < T, энергия строго
+  убывает на всём горизонте, capability 2(3/2)^T, риск T/4;
+  терминальный энергополоток Emin := e_T (T-зависимый).
 - `Recurrence`: `grokking_threshold_time` (R366, ядро
   спектральной теории grokking, arXiv:2609.26679): остаточная
   динамика r(t+1) = r(t) − ηλ·r(t) достигает порога ε к
