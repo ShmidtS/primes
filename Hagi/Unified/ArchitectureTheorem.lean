@@ -413,8 +413,43 @@ theorem hagi_horizon_bound {I : ℕ} (S : ℕ → GrowthState Xs)
   · intro t ht
     exact hcone t (Finset.mem_range.mpr ht)
 
+/-- Явная логарифмическая форма горизонта совместимости
+взлёта и насыщения (R349): логарифмируя `cert_horizon_bound`,
+получаем явный потолок числа шагов
+
+  T ≤ 1 + (ln(σ·C*) − ln((γk+σ)·C 0)) / ln(1+γk),
+
+если зазор насыщения строго положителен
+(`(γk+σ)·C 0 < σ·C*`). Чем больше конус-усиление γk, тем
+короче горизонт — экспоненциальный взлёт быстрее упирается в
+потолок насыщения. -/
+theorem cert_horizon_log_bound (C F : ℕ → ℝ)
+    (γ k σ Cstar : ℝ) (T : ℕ)
+    (hγ : 0 < γ) (hk : 0 < k) (hσ : 0 < σ) (hCstar : 0 < Cstar)
+    (hC0 : 0 < C 0) (hT1 : 1 ≤ T)
+    (hgap : (γ * k + σ) * C 0 < σ * Cstar)
+    (hstep : ∀ t < T, C (t + 1) = C t + γ * F t)
+    (hpl : ∀ t < T, C (t + 1) = C t + σ * (Cstar - C t))
+    (hcone : ∀ t < T, k * C t ≤ F t) :
+    ((T : ℝ) - 1) * Real.log (1 + γ * k)
+      ≤ Real.log (σ * Cstar) - Real.log ((γ * k + σ) * C 0) := by
+  have hb := cert_horizon_bound C F γ k σ Cstar T hγ hk hσ hCstar
+    hC0 hT1 hstep hpl hcone
+  have hpos1 : (0:ℝ) < 1 + γ * k := by nlinarith
+  have hpos2 : (0:ℝ) < σ * Cstar / ((γ * k + σ) * C 0) :=
+    div_pos (mul_pos hσ hCstar)
+      (mul_pos (by nlinarith) hC0)
+  have hlog := Real.log_le_log (pow_pos hpos1 _) hb
+  rw [Real.log_pow] at hlog
+  have hcast : ((T - 1 : ℕ) : ℝ) = ((T:ℝ) - 1) := by
+    rw [Nat.cast_sub hT1, Nat.cast_one]
+  rw [hcast] at hlog
+  rw [Real.log_div (ne_of_gt (mul_pos hσ hCstar))
+    (ne_of_gt (mul_pos (by nlinarith : (0:ℝ) < γ * k + σ) hC0))] at hlog
+  exact hlog
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness cert_horizon_log_bound hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
 end Hagi

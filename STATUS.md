@@ -178,6 +178,9 @@ same-folder DAG свободен.
     ε₀/(1−ρₑ);
   - `cert_horizon_bound`/`hagi_horizon_bound` —
     логарифмическая совместимость взлёта и насыщения;
+  - `cert_horizon_log_bound` (R349) — явный потолок
+    горизонта: (T−1)·ln(1+γk) ≤ ln(σC*) − ln((γk+σ)·C₀)
+    при зазоре (γk+σ)·C₀ < σC*;
   - `cert_horizon_witness`, `band_witness`.
 - `GrandSynthesis` (compositions-capstone): измерительная
   цепочка + конус + coupled-капстоун в одном утверждении
