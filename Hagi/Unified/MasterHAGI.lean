@@ -163,26 +163,26 @@ instantiated at the pre-cycle state `S` and post-cycle state
 
 def CorePremises (S S' : GenState X) (epsQ : ℝ) (w : Fin 5 → ℝ) : Prop :=
   0 ≤ S.toGrowthState.gap
-  ∧ S.toGrowthState.growEnergy
-      ≤ S.toGrowthState.energy - S.toGrowthState.growGain
-  ∧ S.toGrowthState.mergeEnergy
-      ≤ S.toGrowthState.growEnergy - S.toGrowthState.gap
+  ∧ S.toGrowthState.effects.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain
+  ∧ S.toGrowthState.effects.mergeEnergy
+      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap
   ∧ 0 < S.toGrowthState.sp.L
   ∧ S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L
   ∧ 0 ≤ S.toGrowthState.sp.eta
   ∧ ‖S.toGrowthState.stepDir‖ ^ 2
       ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ
-  ∧ S.toGrowthState.jointEnergy
-      ≤ S.toGrowthState.mergeEnergy
+  ∧ S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.effects.mergeEnergy
         - S.toGrowthState.sp.eta * ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ
         + S.toGrowthState.sp.L * S.toGrowthState.sp.eta ^ 2
           * ‖S.toGrowthState.stepDir‖ ^ 2 / 2
   ∧ 0 ≤ S.toGrowthState.sp.kappa
   ∧ 0 ≤ S.toGrowthState.sp.s
-  ∧ 0 ≤ S.toGrowthState.quantErr
-  ∧ S.toGrowthState.quantErr ≤ 1 / 2
-  ∧ S.toGrowthState.compressEnergy - S.toGrowthState.jointEnergy
-      ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * S.toGrowthState.quantErr
+  ∧ 0 ≤ S.toGrowthState.effects.quantErr
+  ∧ S.toGrowthState.effects.quantErr ≤ 1 / 2
+  ∧ S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * S.toGrowthState.effects.quantErr
   ∧ (S'.toGrowthState.energy
         = (compress (joint (merge (grow S.toGrowthState)))).energy
       ∧ S'.toGrowthState.protectedRisk

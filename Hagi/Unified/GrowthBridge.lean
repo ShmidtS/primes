@@ -38,12 +38,12 @@ noncomputable section GrowthBridge
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- For `0 < S.capability`:
-`(grow S).capability = S.capability * (1 + S.growGain / S.capability)`. -/
+`(grow S).capability = S.capability * (1 + S.effects.growGain / S.capability)`. -/
 theorem additive_as_multiplicative (S : GrowthState X)
     (hC : 0 < S.capability) :
     (grow S).capability
-      = S.capability * (1 + S.growGain / S.capability) := by
-  change S.capability + S.growGain = _
+      = S.capability * (1 + S.effects.growGain / S.capability) := by
+  change S.capability + S.effects.growGain = _
   field_simp
 
 /-- The grow transition, to be read through
@@ -64,16 +64,16 @@ theorem growCycle_succ (t : ℕ) (S : GrowthState X) :
 
 theorem growCycle_zero (S : GrowthState X) : growCycle 0 S = S := rfl
 
-/-- If `0 < S.capability` and `alpha * S.capability ≤ S.growGain`,
+/-- If `0 < S.capability` and `alpha * S.capability ≤ S.effects.growGain`,
 then `S.capability * (1 + alpha) ≤ (growMul S).capability`. -/
 theorem growMul_step_multiplicative (S : GrowthState X) (alpha : ℝ)
     (hCpos : 0 < S.capability)
-    (hsuccess : alpha * S.capability ≤ S.growGain) :
+    (hsuccess : alpha * S.capability ≤ S.effects.growGain) :
     S.capability * (1 + alpha) ≤ (growMul S).capability := by
   have hbr := additive_as_multiplicative S hCpos
-  have hd : alpha ≤ S.growGain / S.capability := (le_div_iff₀ hCpos).mpr hsuccess
+  have hd : alpha ≤ S.effects.growGain / S.capability := (le_div_iff₀ hCpos).mpr hsuccess
   have hm : S.capability * alpha
-      ≤ S.capability * (S.growGain / S.capability) :=
+      ≤ S.capability * (S.effects.growGain / S.capability) :=
     mul_le_mul_of_nonneg_left hd hCpos.le
   rw [growMul_eq_grow, hbr]
   nlinarith
@@ -81,7 +81,7 @@ theorem growMul_step_multiplicative (S : GrowthState X) (alpha : ℝ)
 /-- The measured grow-gain field is INVARIANT under the grow
 transition, hence constant along the growCycle trajectory. -/
 theorem growCycle_growGain (t : ℕ) (S : GrowthState X) :
-    (growCycle t S).growGain = S.growGain := by
+    (growCycle t S).effects.growGain = S.effects.growGain := by
   induction t with
   | zero => rfl
   | succ t ih =>
@@ -89,29 +89,29 @@ theorem growCycle_growGain (t : ℕ) (S : GrowthState X) :
 
 theorem growCycle_capability_succ (t : ℕ) (S : GrowthState X) :
     (growCycle (t + 1) S).capability
-      = (growCycle t S).capability + S.growGain := by
+      = (growCycle t S).capability + S.effects.growGain := by
   rw [growCycle_succ, growMul, grow, growCycle_growGain]
 
-/-- `(growCycle t S).capability = S.capability + t * S.growGain`
+/-- `(growCycle t S).capability = S.capability + t * S.effects.growGain`
 (the gain field is invariant under `grow`). -/
 theorem growCycle_capability (t : ℕ) (S : GrowthState X) :
-    (growCycle t S).capability = S.capability + (t : ℝ) * S.growGain := by
+    (growCycle t S).capability = S.capability + (t : ℝ) * S.effects.growGain := by
   induction t with
   | zero => rw [growCycle_zero]; ring
   | succ t ih => rw [growCycle_capability_succ, ih]; push_cast; ring
 
 /-- With `0 < alpha`, `sigma t ≤ 1`, positive capability along the
-trajectory, and the success gate `alpha * C_t ≤ S.growGain` on
+trajectory, and the success gate `alpha * C_t ≤ S.effects.growGain` on
 every successful cycle:
 `(growCycle T S).capability ≥ S.capability * (1 + alpha) ^ Σσ`.
 See `growth_state_takeoff_window`: with a fixed gain the
 certified takeoff is bounded. -/
 theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
-    (hgnonneg : 0 ≤ S.growGain)
+    (hgnonneg : 0 ≤ S.effects.growGain)
     (hCpos : ∀ t, 0 < (growCycle t S).capability)
     (hsuccess : ∀ t, sigma t = 1 →
-      alpha * (growCycle t S).capability ≤ S.growGain)
+      alpha * (growCycle t S).capability ≤ S.effects.growGain)
     (hsig : ∀ t, sigma t ≤ 1)
     (T : ℕ) :
     (growCycle T S).capability
@@ -144,7 +144,7 @@ theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
   [IsProbabilityMeasure μ]
 
-/-- With `0 < alpha`, `0 < S.growGain`, the t = 0 gate
+/-- With `0 < alpha`, `0 < S.effects.growGain`, the t = 0 gate
 `alpha * C₀ ≤ G`, and the gate `alpha * C_t ≤ G` on every
 successful cycle (evaluated along the exact trajectory
 `C_t = C₀ + t·G`): the success count obeys
@@ -155,46 +155,46 @@ takeoff would need a capability-dependent gain and is not
 claimed. -/
 theorem growth_state_takeoff_window (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
-    (hG : 0 < S.growGain)
-    (hgate0 : alpha * S.capability ≤ S.growGain)
+    (hG : 0 < S.effects.growGain)
+    (hgate0 : alpha * S.capability ≤ S.effects.growGain)
     (hgate : ∀ t, sigma t = 1 →
-      alpha * (growCycle t S).capability ≤ S.growGain)
+      alpha * (growCycle t S).capability ≤ S.effects.growGain)
     (hsig : ∀ t, sigma t ≤ 1)
     (T : ℕ) :
     (∑ t ∈ Finset.range T, sigma t : ℝ)
-      ≤ 1 / alpha + 1 - S.capability / S.growGain
+      ≤ 1 / alpha + 1 - S.capability / S.effects.growGain
     ∧ (1 + alpha) ^ (∑ t ∈ Finset.range T, sigma t)
-      ≤ Real.exp (1 + alpha - alpha * S.capability / S.growGain) := by
+      ≤ Real.exp (1 + alpha - alpha * S.capability / S.effects.growGain) := by
   -- the exact additive trajectory: C_t = C₀ + t·G
   have hadd : ∀ t : ℕ, (growCycle t S).capability
-      = S.capability + (t : ℝ) * S.growGain := fun t =>
+      = S.capability + (t : ℝ) * S.effects.growGain := fun t =>
     growCycle_capability t S
   -- every success time obeys the gate in its additive form:
   -- α·(C₀ + t·G) ≤ G  ⟺  t ≤ 1/α − C₀/G
-  have hpos : 0 < alpha * S.growGain := mul_pos halpha hG
+  have hpos : 0 < alpha * S.effects.growGain := mul_pos halpha hG
   have htime : ∀ t : ℕ, sigma t = 1 →
-      (t : ℝ) ≤ 1 / alpha - S.capability / S.growGain := by
+      (t : ℝ) ≤ 1 / alpha - S.capability / S.effects.growGain := by
     intro t hs
     have hg := hgate t hs
     rw [hadd] at hg
-    have hkey : (t : ℝ) * (alpha * S.growGain)
-        ≤ S.growGain - alpha * S.capability := by
-      have e : (t : ℝ) * (alpha * S.growGain)
-          = alpha * ((t : ℝ) * S.growGain) := by ring
+    have hkey : (t : ℝ) * (alpha * S.effects.growGain)
+        ≤ S.effects.growGain - alpha * S.capability := by
+      have e : (t : ℝ) * (alpha * S.effects.growGain)
+          = alpha * ((t : ℝ) * S.effects.growGain) := by ring
       rw [e]
       linarith
-    rw [show 1 / alpha - S.capability / S.growGain
-        = (S.growGain - alpha * S.capability) / (alpha * S.growGain) from by
+    rw [show 1 / alpha - S.capability / S.effects.growGain
+        = (S.effects.growGain - alpha * S.capability) / (alpha * S.effects.growGain) from by
       field_simp]
     exact (le_div_iff₀ hpos).mpr hkey
   -- the success count is the number of admissible times, and
   -- every admissible time is below ⌊window⌋ in ℕ
-  set tmax : ℝ := 1 / alpha - S.capability / S.growGain with htmax
+  set tmax : ℝ := 1 / alpha - S.capability / S.effects.growGain with htmax
   have htmax_nonneg : 0 ≤ tmax := by
-    have h1 : S.capability * alpha ≤ S.growGain := by
+    have h1 : S.capability * alpha ≤ S.effects.growGain := by
       rw [mul_comm]
       exact hgate0
-    have h2 : S.capability / S.growGain ≤ 1 / alpha := by
+    have h2 : S.capability / S.effects.growGain ≤ 1 / alpha := by
       rw [div_le_iff₀ hG, div_mul_eq_mul_div, one_mul, le_div_iff₀ halpha]
       exact h1
     rw [htmax]
@@ -288,13 +288,13 @@ theorem growth_state_takeoff_window (S : GrowthState X) (sigma : ℕ → ℕ)
               ring
   have hN := hpow (∑ t ∈ Finset.range T, sigma t)
   have hNle : alpha * ((∑ t ∈ Finset.range T, sigma t : ℕ) : ℝ)
-      ≤ 1 + alpha - alpha * S.capability / S.growGain := by
+      ≤ 1 + alpha - alpha * S.capability / S.effects.growGain := by
     have hc2 : ((∑ t ∈ Finset.range T, sigma t : ℕ) : ℝ) ≤ tmax + 1 := by
       push_cast
       exact hcount
     rw [htmax] at hc2
-    have hEq : alpha * (1 / alpha - S.capability / S.growGain + 1)
-        = 1 + alpha - alpha * S.capability / S.growGain := by
+    have hEq : alpha * (1 / alpha - S.capability / S.effects.growGain + 1)
+        = 1 + alpha - alpha * S.capability / S.effects.growGain := by
       field_simp
       ring
     have hmul := mul_le_mul_of_nonneg_left hc2 halpha.le

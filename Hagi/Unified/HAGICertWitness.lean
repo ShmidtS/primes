@@ -45,18 +45,20 @@ noncomputable def witnessState (cap df : ℝ) : Hagi.GrowthState X where
   stepDir := 0
   grad := 0
   sp := { eta := 0, L := 1, kappa := 0, s := 1 }
-  growGain := 0
-  growCost := 0
-  growRisk := 0
-  growEnergy := 0
-  mergeEnergy := 0
-  mergeRisk := 0
-  jointEnergy := 0
-  jointRisk := 0
-  jointCost := 0
-  quantErr := 0
-  compressEnergy := 0
-  compressRisk := 0
+  effects := {
+    growGain := 0
+    growCost := 0
+    growRisk := 0
+    growEnergy := 0
+    mergeEnergy := 0
+    mergeRisk := 0
+    jointEnergy := 0
+    jointRisk := 0
+    jointCost := 0
+    quantErr := 0
+    compressEnergy := 0
+    compressRisk := 0
+  }
 
 /-- Траектория-свидетель: C₀ = 1, C₁ = 3/2, дальше C₀. -/
 noncomputable def witnessTraj : ℕ → Hagi.GrowthState X :=

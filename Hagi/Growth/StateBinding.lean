@@ -13,7 +13,7 @@ set_option linter.style.header false
 
 * `usableFrontier`: поле frontier состояния (`S.dataField`);
 * `capability_takeoff_state`: если
-  `C t = (S t).capability`, `G t = (S t).growGain`,
+  `C t = (S t).capability`, `G t = (S t).effects.growGain`,
   `D t = usableFrontier (S t)` и выполнены посылки
   `sustained_takeoff_from_production`, то
   `(S 0).capability·(1+α)^T ≤ (S T).capability`;
@@ -41,7 +41,7 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 def usableFrontier (S : GrowthState X) : ℝ := S.dataField
 
 /-- Если выполнены посылки `sustained_takeoff_from_production`
-для `C t = (S t).capability`, `G t = (S t).growGain`,
+для `C t = (S t).capability`, `G t = (S t).effects.growGain`,
 `D t = usableFrontier (S t)`, то
 `(S 0).capability·(1+α)^T ≤ (S T).capability`. -/
 theorem capability_takeoff_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
@@ -50,8 +50,8 @@ theorem capability_takeoff_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
     (hC0 : 0 < (S 0).capability)
     (h_cone0 : alpha / gamma * (S 0).capability ≤ usableFrontier (S 0))
     (h_step : ∀ t, (S (t + 1)).capability
-      = (S t).capability + (S t).growGain)
-    (h_gain_prod : ∀ t, gamma * usableFrontier (S t) ≤ (S t).growGain)
+      = (S t).capability + (S t).effects.growGain)
+    (h_gain_prod : ∀ t, gamma * usableFrontier (S t) ≤ (S t).effects.growGain)
     (h_dyn : ∀ t, rho * usableFrontier (S t) + beta * (S t).capability
       - xi t ≤ usableFrontier (S (t + 1)))
     (h_C_cap : ∀ t, (S (t + 1)).capability
@@ -61,7 +61,7 @@ theorem capability_takeoff_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
     (T : ℕ) :
     (S 0).capability * (1 + alpha) ^ T ≤ (S T).capability :=
   sustained_takeoff_from_production
-    (fun t => (S t).capability) (fun t => (S t).growGain)
+    (fun t => (S t).capability) (fun t => (S t).effects.growGain)
     (fun t => usableFrontier (S t)) xi
     alpha gamma rho beta halpha hgamma hrho hC0 h_cone0 h_step h_gain_prod
     h_dyn h_C_cap hbeta T

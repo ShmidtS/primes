@@ -141,18 +141,20 @@ def idleGrowth {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
   stepDir := 0
   grad := 0
   sp := idleSp
-  growGain := 0
-  growCost := 0
-  growRisk := 0
-  growEnergy := E0
-  mergeEnergy := E0
-  mergeRisk := 0
-  jointEnergy := E0
-  jointRisk := 0
-  jointCost := 0
-  quantErr := 0
-  compressEnergy := E0
-  compressRisk := 0
+  effects := {
+    growGain := 0
+    growCost := 0
+    growRisk := 0
+    growEnergy := E0
+    mergeEnergy := E0
+    mergeRisk := 0
+    jointEnergy := E0
+    jointRisk := 0
+    jointCost := 0
+    quantErr := 0
+    compressEnergy := E0
+    compressRisk := 0
+  }
 
 /-- The idle GenState: the idle growth state with the zero
 probe vector (all `Qvec` components 0, so `Qgen · w = 0` for

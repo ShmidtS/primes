@@ -75,18 +75,20 @@ noncomputable def S₀ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
   stepDir := 0
   grad := 0
   sp := { eta := 0, L := 1, kappa := 0, s := 1 }
-  growGain := 0
-  growCost := 0
-  growRisk := 0
-  growEnergy := E
-  mergeEnergy := E
-  mergeRisk := 0
-  jointEnergy := E
-  jointRisk := 0
-  jointCost := 0
-  quantErr := |1/4 - qTern 1 (1/4)|
-  compressEnergy := E
-  compressRisk := 0
+  effects := {
+    growGain := 0
+    growCost := 0
+    growRisk := 0
+    growEnergy := E
+    mergeEnergy := E
+    mergeRisk := 0
+    jointEnergy := E
+    jointRisk := 0
+    jointCost := 0
+    quantErr := |1/4 - qTern 1 (1/4)|
+    compressEnergy := E
+    compressRisk := 0
+  }
   gen := ⟨0, 0, 0, 0, 0⟩
 
 /-- The post-cycle state: the composite
@@ -110,18 +112,20 @@ noncomputable def S₁ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
   stepDir := 0
   grad := 0
   sp := { eta := 0, L := 1, kappa := 0, s := 1 }
-  growGain := 0
-  growCost := 0
-  growRisk := 0
-  growEnergy := E
-  mergeEnergy := E
-  mergeRisk := 0
-  jointEnergy := E
-  jointRisk := 0
-  jointCost := 0
-  quantErr := |1/4 - qTern 1 (1/4)|
-  compressEnergy := E
-  compressRisk := 0
+  effects := {
+    growGain := 0
+    growCost := 0
+    growRisk := 0
+    growEnergy := E
+    mergeEnergy := E
+    mergeRisk := 0
+    jointEnergy := E
+    jointRisk := 0
+    jointCost := 0
+    quantErr := |1/4 - qTern 1 (1/4)|
+    compressEnergy := E
+    compressRisk := 0
+  }
   gen := ⟨0, 0, 0, 0, 0⟩
 
 /-- **The nonvacuity witness**: `CorePremises` is satisfiable —

@@ -101,6 +101,30 @@ structure StageParams where
   /-- Ternary grid step s. -/
   s : ℝ
 
+structure StageEffects where
+  /-- Grow stage: measured gain, budget cost, protected risk, post energy.
+    -- implementation gap: no concrete expert-synthesis operation. -/
+  growGain : ℝ
+  growCost : ℝ
+  growRisk : ℝ
+  growEnergy : ℝ
+  /-- Merge stage: post energy and protected risk (F3 mixer; the
+    parameter part is the orthonormal RealF3 mixer path — `reBlock`,
+    R89/R90 orthogonality). -/
+  mergeEnergy : ℝ
+  mergeRisk : ℝ
+  /-- Joint stage: post energy, protected risk, compute cost. -/
+  jointEnergy : ℝ
+  jointRisk : ℝ
+  jointCost : ℝ
+  /-- Compress stage: relative quantization distortion (≤ 1/2),
+    post energy, protected risk.
+    -- implementation gap: no concrete Fin-lift of the ternary
+    rounding (`Hagi/Energy/Ternary` is entry-level only). -/
+  quantErr : ℝ
+  compressEnergy : ℝ
+  compressRisk : ℝ
+
 /-- The growth-loop state: weights, parameters, expert count,
 the measured energy (token-weighted reverse-KL certificate),
 protected risk, budget, the Jensen gap, and the measured
@@ -139,57 +163,38 @@ structure GrowthState (X : Type*) [NormedAddCommGroup X]
   grad : X
   /-- Measured stage constants. -/
   sp : StageParams
-  /-- Grow stage: measured gain, budget cost, protected risk, post energy.
-    -- implementation gap: no concrete expert-synthesis operation. -/
-  growGain : ℝ
-  growCost : ℝ
-  growRisk : ℝ
-  growEnergy : ℝ
-  /-- Merge stage: post energy and protected risk (F3 mixer; the
-    parameter part is the orthonormal RealF3 mixer path — `reBlock`,
-    R89/R90 orthogonality). -/
-  mergeEnergy : ℝ
-  mergeRisk : ℝ
-  /-- Joint stage: post energy, protected risk, compute cost. -/
-  jointEnergy : ℝ
-  jointRisk : ℝ
-  jointCost : ℝ
-  /-- Compress stage: relative quantization distortion (≤ 1/2),
-    post energy, protected risk.
-    -- implementation gap: no concrete Fin-lift of the ternary
-    rounding (`Hagi/Energy/Ternary` is entry-level only). -/
-  quantErr : ℝ
-  compressEnergy : ℝ
-  compressRisk : ℝ
+  /-- The measured per-stage effect fields (h_emp_ inputs),
+  grouped as one record (audit v3 Phase 4, R341). -/
+  effects : StageEffects
 
 /-- The potential `Φ := energy + protectedRisk`. -/
 def potential (S : GrowthState X) : ℝ := S.energy + S.protectedRisk
 
 /-- The certified grow-stage gain (measured field; no
 training theorem backs it). -/
-def gainGrow (S : GrowthState X) : ℝ := S.growGain
+def gainGrow (S : GrowthState X) : ℝ := S.effects.growGain
 
 /-- The grow-stage Φ-cost (protected risk; budget is outside Φ). -/
-def costGrow (S : GrowthState X) : ℝ := S.growRisk
+def costGrow (S : GrowthState X) : ℝ := S.effects.growRisk
 
 /-- The certified merge-stage gain: the Jensen gap G itself. -/
 def gainMerge (S : GrowthState X) : ℝ := S.gap
 
 /-- The merge-stage Φ-cost (protected risk). -/
-def costMerge (S : GrowthState X) : ℝ := S.mergeRisk
+def costMerge (S : GrowthState X) : ℝ := S.effects.mergeRisk
 
 /-- The joint-stage gain `eta * ‖stepDir‖² / 2`. -/
 def gainJoint (S : GrowthState X) : ℝ := S.sp.eta * ‖S.stepDir‖ ^ 2 / 2
 
 /-- The joint-stage Φ-cost (protected risk). -/
-def costJoint (S : GrowthState X) : ℝ := S.jointRisk
+def costJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 
 /-- The compress-stage gain: zero (no energy gain claimed). -/
 def gainCompress (_S : GrowthState X) : ℝ := 0
 
 /-- The compress-stage cost `kappa * s / 2 + compressRisk`. -/
 def costCompress (S : GrowthState X) : ℝ :=
-  S.sp.kappa * S.sp.s / 2 + S.compressRisk
+  S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk
 
 /-! ### The stage transitions -/
 
@@ -201,29 +206,18 @@ def grow (S : GrowthState X) : GrowthState X where
   weights := S.weights
   params := S.params
   experts := S.experts + 1
-  energy := S.growEnergy
-  protectedRisk := S.protectedRisk + S.growRisk
-  budget := S.budget - S.growCost
+  energy := S.effects.growEnergy
+  protectedRisk := S.protectedRisk + S.effects.growRisk
+  budget := S.budget - S.effects.growCost
   gap := S.gap
   dataField := S.dataField
-  capability := S.capability + S.growGain
+  capability := S.capability + S.effects.growGain
   verifier := S.verifier
   runtimeError := S.runtimeError
   stepDir := S.stepDir
   grad := S.grad
   sp := S.sp
-  growGain := S.growGain
-  growCost := S.growCost
-  growRisk := S.growRisk
-  growEnergy := S.growEnergy
-  mergeEnergy := S.mergeEnergy
-  mergeRisk := S.mergeRisk
-  jointEnergy := S.jointEnergy
-  jointRisk := S.jointRisk
-  jointCost := S.jointCost
-  quantErr := S.quantErr
-  compressEnergy := S.compressEnergy
-  compressRisk := S.compressRisk
+  effects := S.effects
 
 /-- **Merge**: the F3-merged pool (parameter path: the orthonormal
 RealF3 mixer, R89/R90); the energy effect is the Concat-adapter gap
@@ -233,8 +227,8 @@ def merge (S : GrowthState X) : GrowthState X where
   weights := S.weights
   params := S.params
   experts := S.experts
-  energy := S.mergeEnergy
-  protectedRisk := S.protectedRisk + S.mergeRisk
+  energy := S.effects.mergeEnergy
+  protectedRisk := S.protectedRisk + S.effects.mergeRisk
   budget := S.budget
   gap := S.gap
   dataField := S.dataField
@@ -244,18 +238,7 @@ def merge (S : GrowthState X) : GrowthState X where
   stepDir := S.stepDir
   grad := S.grad
   sp := S.sp
-  growGain := S.growGain
-  growCost := S.growCost
-  growRisk := S.growRisk
-  growEnergy := S.growEnergy
-  mergeEnergy := S.mergeEnergy
-  mergeRisk := S.mergeRisk
-  jointEnergy := S.jointEnergy
-  jointRisk := S.jointRisk
-  jointCost := S.jointCost
-  quantErr := S.quantErr
-  compressEnergy := S.compressEnergy
-  compressRisk := S.compressRisk
+  effects := S.effects
 
 /-- **Joint**: one SafeQP-certified refinement step — the parameter
 update θ ↦ θ − η·d* is CONCRETE (`safeQP_descent` supplies d*); the
@@ -265,9 +248,9 @@ def joint (S : GrowthState X) : GrowthState X where
   weights := S.weights
   params := S.params - S.sp.eta • S.stepDir
   experts := S.experts
-  energy := S.jointEnergy
-  protectedRisk := S.protectedRisk + S.jointRisk
-  budget := S.budget - S.jointCost
+  energy := S.effects.jointEnergy
+  protectedRisk := S.protectedRisk + S.effects.jointRisk
+  budget := S.budget - S.effects.jointCost
   gap := S.gap
   dataField := S.dataField
   capability := S.capability
@@ -276,18 +259,7 @@ def joint (S : GrowthState X) : GrowthState X where
   stepDir := S.stepDir
   grad := S.grad
   sp := S.sp
-  growGain := S.growGain
-  growCost := S.growCost
-  growRisk := S.growRisk
-  growEnergy := S.growEnergy
-  mergeEnergy := S.mergeEnergy
-  mergeRisk := S.mergeRisk
-  jointEnergy := S.jointEnergy
-  jointRisk := S.jointRisk
-  jointCost := S.jointCost
-  quantErr := S.quantErr
-  compressEnergy := S.compressEnergy
-  compressRisk := S.compressRisk
+  effects := S.effects
 
 /-- **Compress**: ternary compression of the weights; the weight
 rounding itself is an implementation gap (entry-level theory in
@@ -298,8 +270,8 @@ def compress (S : GrowthState X) : GrowthState X where
   weights := S.weights
   params := S.params
   experts := S.experts
-  energy := S.compressEnergy
-  protectedRisk := S.protectedRisk + S.compressRisk
+  energy := S.effects.compressEnergy
+  protectedRisk := S.protectedRisk + S.effects.compressRisk
   budget := S.budget
   gap := S.gap
   dataField := S.dataField
@@ -309,18 +281,7 @@ def compress (S : GrowthState X) : GrowthState X where
   stepDir := S.stepDir
   grad := S.grad
   sp := S.sp
-  growGain := S.growGain
-  growCost := S.growCost
-  growRisk := S.growRisk
-  growEnergy := S.growEnergy
-  mergeEnergy := S.mergeEnergy
-  mergeRisk := S.mergeRisk
-  jointEnergy := S.jointEnergy
-  jointRisk := S.jointRisk
-  jointCost := S.jointCost
-  quantErr := S.quantErr
-  compressEnergy := S.compressEnergy
-  compressRisk := S.compressRisk
+  effects := S.effects
 
 /-! ### The observation maps -/
 
@@ -362,9 +323,9 @@ quantities — stage sum growGain + G + η‖d*‖²/2 − κs/2. Soundness is
 `certificate_sound`: whenever the stage hypotheses hold, the real
 Φ-decrease is at least the certificate's. -/
 def verify (S : GrowthState X) : Certificate where
-  decrease := S.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2
-  riskSpend := S.growRisk + S.mergeRisk + S.jointRisk + S.compressRisk
-  budgetSpend := S.growCost + S.jointCost
+  decrease := S.effects.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2
+  riskSpend := S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk
+  budgetSpend := S.effects.growCost + S.effects.jointCost
 
 /-- **measure**: the observable snapshot. -/
 def measure (S : GrowthState X) : Metrics where
@@ -379,8 +340,8 @@ ratio. -- implementation gap: real candidate enumeration (the
 architecture compiler scan) is not formalized; the map returns the
 grow action's certified pair. -/
 def discover (S : GrowthState X) : Candidate where
-  gain := S.growGain
-  cost := S.growCost
+  gain := S.effects.growGain
+  cost := S.effects.growCost
 
 /-! ### The per-stage potential laws -/
 
@@ -388,28 +349,28 @@ def discover (S : GrowthState X) : Candidate where
 (h_emp_grow), then Φ decreases by at least
 `gainGrow − costGrow`. -/
 theorem potential_grow (S : GrowthState X)
-    (h_emp_grow : S.growEnergy ≤ S.energy - gainGrow S) :
+    (h_emp_grow : S.effects.growEnergy ≤ S.energy - gainGrow S) :
     potential (grow S) - potential S ≤ -gainGrow S + costGrow S := by
   have hp : potential (grow S)
-      = S.growEnergy + (S.protectedRisk + S.growRisk) := rfl
+      = S.effects.growEnergy + (S.protectedRisk + S.effects.growRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
-  have hgg : gainGrow S = S.growGain := rfl
-  have hcg : costGrow S = S.growRisk := rfl
+  have hgg : gainGrow S = S.effects.growGain := rfl
+  have hcg : costGrow S = S.effects.growRisk := rfl
   linarith
 
 /-- If the measured merge-stage energy descends by the gap
 (h_emp_merge), then Φ decreases by at least
 `gainMerge − costMerge`. -/
 theorem potential_merge (S : GrowthState X)
-    (h_emp_merge : S.mergeEnergy ≤ S.energy - gainMerge S) :
+    (h_emp_merge : S.effects.mergeEnergy ≤ S.energy - gainMerge S) :
     potential (merge S) - potential S ≤ -gainMerge S + costMerge S := by
   -- the content is `merge_stage` (Emerged ≤ Emean − G); the sign
   -- G ≥ 0 is the Concat adapter's (R88) — no free parameter
   have hp : potential (merge S)
-      = S.mergeEnergy + (S.protectedRisk + S.mergeRisk) := rfl
+      = S.effects.mergeEnergy + (S.protectedRisk + S.effects.mergeRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
   have hgm : gainMerge S = S.gap := rfl
-  have hcm : costMerge S = S.mergeRisk := rfl
+  have hcm : costMerge S = S.effects.mergeRisk := rfl
   linarith
 
 /-- With `0 < L`, `0 ≤ eta ≤ 1/L`, the SafeQP descent
@@ -418,35 +379,35 @@ by at least `gainJoint − costJoint`. -/
 theorem potential_joint (S : GrowthState X)
     (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
     (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
-    (h_emp_smooth : S.jointEnergy ≤ S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
+    (h_emp_smooth : S.effects.jointEnergy ≤ S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
       + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2) :
     potential (joint S) - potential S ≤ -gainJoint S + costJoint S := by
-  have hj : S.jointEnergy ≤ S.energy - gainJoint S :=
+  have hj : S.effects.jointEnergy ≤ S.energy - gainJoint S :=
     Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
-      S.jointEnergy S.energy hL heta heta0 hdescent h_emp_smooth
+      S.effects.jointEnergy S.energy hL heta heta0 hdescent h_emp_smooth
   have hp : potential (joint S)
-      = S.jointEnergy + (S.protectedRisk + S.jointRisk) := rfl
+      = S.effects.jointEnergy + (S.protectedRisk + S.effects.jointRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
-  have hcj : costJoint S = S.jointRisk := rfl
+  have hcj : costJoint S = S.effects.jointRisk := rfl
   linarith
 
 /-- With the compress-stage premises (h_emp_ distortion and
 Lipschitz bounds), Φ increases by at most
 `costCompress` (gain side zero). -/
 theorem potential_compress (S : GrowthState X)
-    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.quantErr)
-    (h_emp_dist : S.quantErr ≤ 1 / 2)
-    (h_emp_lip : S.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s * S.quantErr) :
+    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.effects.quantErr)
+    (h_emp_dist : S.effects.quantErr ≤ 1 / 2)
+    (h_emp_lip : S.effects.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s * S.effects.quantErr) :
     potential (compress S) - potential S
       ≤ -gainCompress S + costCompress S := by
-  have hc : S.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s / 2 :=
-    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.energy
+  have hc : S.effects.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s / 2 :=
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr S.effects.compressEnergy S.energy
       hkappa hs hdn h_emp_dist h_emp_lip
   have hp : potential (compress S)
-      = S.compressEnergy + (S.protectedRisk + S.compressRisk) := rfl
+      = S.effects.compressEnergy + (S.protectedRisk + S.effects.compressRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
   have hgc : gainCompress S = 0 := rfl
-  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.compressRisk := rfl
+  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk := rfl
   linarith
 
 /-! ### The composed generation -/
@@ -458,39 +419,39 @@ grow → merge → joint → compress satisfies
 (growRisk + mergeRisk + jointRisk + costCompress)`. -/
 theorem growth_cycle_potential (S : GrowthState X)
     (hgap : 0 ≤ S.gap)
-    (h_emp_grow : S.growEnergy ≤ S.energy - S.growGain)
-    (h_emp_merge : S.mergeEnergy ≤ S.growEnergy - S.gap)
+    (h_emp_grow : S.effects.growEnergy ≤ S.energy - S.effects.growGain)
+    (h_emp_merge : S.effects.mergeEnergy ≤ S.effects.growEnergy - S.gap)
     (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
     (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
-    (h_emp_smooth : S.jointEnergy ≤ S.mergeEnergy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
+    (h_emp_smooth : S.effects.jointEnergy ≤ S.effects.mergeEnergy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
       + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2)
-    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.quantErr)
-    (h_emp_dist : S.quantErr ≤ 1 / 2)
-    (h_emp_lip : S.compressEnergy - S.jointEnergy
-      ≤ S.sp.kappa * S.sp.s * S.quantErr) :
+    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.effects.quantErr)
+    (h_emp_dist : S.effects.quantErr ≤ 1 / 2)
+    (h_emp_lip : S.effects.compressEnergy - S.effects.jointEnergy
+      ≤ S.sp.kappa * S.sp.s * S.effects.quantErr) :
     potential (compress (joint (merge (grow S)))) - potential S
-      ≤ -(S.growGain + gainMerge S + gainJoint S)
-        + (S.growRisk + S.mergeRisk + S.jointRisk + costCompress S) := by
+      ≤ -(S.effects.growGain + gainMerge S + gainJoint S)
+        + (S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + costCompress S) := by
   -- numeric content: the underlying stage theorems on the chained
   -- post energies (the composition point, as in macro_step_decrease)
-  have hg : S.growEnergy ≤ S.energy - S.growGain := h_emp_grow
-  have hm : S.mergeEnergy ≤ S.growEnergy - S.gap := h_emp_merge
+  have hg : S.effects.growEnergy ≤ S.energy - S.effects.growGain := h_emp_grow
+  have hm : S.effects.mergeEnergy ≤ S.effects.growEnergy - S.gap := h_emp_merge
   -- the gap sign enters through merge_stage (Emerged ≤ Emean with G ≥ 0)
-  have hmw : S.mergeEnergy ≤ S.growEnergy :=
-    Hagi.Foundations.merge_stage S.growEnergy S.gap S.mergeEnergy h_emp_merge hgap
-  have hj : S.jointEnergy ≤ S.mergeEnergy - S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 :=
+  have hmw : S.effects.mergeEnergy ≤ S.effects.growEnergy :=
+    Hagi.Foundations.merge_stage S.effects.growEnergy S.gap S.effects.mergeEnergy h_emp_merge hgap
+  have hj : S.effects.jointEnergy ≤ S.effects.mergeEnergy - S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 :=
     Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
-      S.jointEnergy S.mergeEnergy hL heta heta0 hdescent h_emp_smooth
-  have hc : S.compressEnergy - S.jointEnergy ≤ S.sp.kappa * S.sp.s / 2 :=
-    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.quantErr S.compressEnergy S.jointEnergy
+      S.effects.jointEnergy S.effects.mergeEnergy hL heta heta0 hdescent h_emp_smooth
+  have hc : S.effects.compressEnergy - S.effects.jointEnergy ≤ S.sp.kappa * S.sp.s / 2 :=
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr S.effects.compressEnergy S.effects.jointEnergy
       hkappa hs hdn h_emp_dist h_emp_lip
   -- the transition algebra: the composed potential telescopes
   have hp : potential (compress (joint (merge (grow S))))
-      = S.compressEnergy + (S.protectedRisk + S.growRisk + S.mergeRisk
-        + S.jointRisk + S.compressRisk) := rfl
+      = S.effects.compressEnergy + (S.protectedRisk + S.effects.growRisk + S.effects.mergeRisk
+        + S.effects.jointRisk + S.effects.compressRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
   have hgj : gainJoint S = S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 := rfl
-  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.compressRisk := rfl
+  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk := rfl
   have hgm : gainMerge S = S.gap := rfl
   linarith
 
@@ -499,27 +460,27 @@ the real Φ-decrease dominates the `verify` certificate's
 `decrease` minus its declared `riskSpend`. -/
 theorem certificate_sound (S : GrowthState X)
     (hgap : 0 ≤ S.gap)
-    (h_emp_grow : S.growEnergy ≤ S.energy - S.growGain)
-    (h_emp_merge : S.mergeEnergy ≤ S.growEnergy - S.gap)
+    (h_emp_grow : S.effects.growEnergy ≤ S.energy - S.effects.growGain)
+    (h_emp_merge : S.effects.mergeEnergy ≤ S.effects.growEnergy - S.gap)
     (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
     (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
-    (h_emp_smooth : S.jointEnergy ≤ S.mergeEnergy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
+    (h_emp_smooth : S.effects.jointEnergy ≤ S.effects.mergeEnergy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
       + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2)
-    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.quantErr)
-    (h_emp_dist : S.quantErr ≤ 1 / 2)
-    (h_emp_lip : S.compressEnergy - S.jointEnergy
-      ≤ S.sp.kappa * S.sp.s * S.quantErr) :
+    (hkappa : 0 ≤ S.sp.kappa) (hs : 0 ≤ S.sp.s) (hdn : 0 ≤ S.effects.quantErr)
+    (h_emp_dist : S.effects.quantErr ≤ 1 / 2)
+    (h_emp_lip : S.effects.compressEnergy - S.effects.jointEnergy
+      ≤ S.sp.kappa * S.sp.s * S.effects.quantErr) :
     potential (compress (joint (merge (grow S))))
       ≤ potential S - (verify S).decrease + (verify S).riskSpend := by
   have hcycle := growth_cycle_potential S hgap h_emp_grow h_emp_merge hL heta heta0
     hdescent h_emp_smooth hkappa hs hdn h_emp_dist h_emp_lip
   have hv : (verify S).decrease
-      = S.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2 := rfl
+      = S.effects.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2 := rfl
   have hr : (verify S).riskSpend
-      = S.growRisk + S.mergeRisk + S.jointRisk + S.compressRisk := rfl
+      = S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk := rfl
   have hgj : gainJoint S = S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 := rfl
   have hgm : gainMerge S = S.gap := rfl
-  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.compressRisk := rfl
+  have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk := rfl
   linarith
 
 /-- The composed budget after one generation equals
@@ -528,8 +489,8 @@ theorem budget_account (S : GrowthState X) :
     (compress (joint (merge (grow S)))).budget
       = S.budget - (verify S).budgetSpend := by
   have hb : (compress (joint (merge (grow S)))).budget
-      = S.budget - S.growCost - S.jointCost := rfl
-  have hv : (verify S).budgetSpend = S.growCost + S.jointCost := rfl
+      = S.budget - S.effects.growCost - S.effects.jointCost := rfl
+  have hv : (verify S).budgetSpend = S.effects.growCost + S.effects.jointCost := rfl
   linarith
 
 end GrowthLoop

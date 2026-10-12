@@ -37,7 +37,7 @@ grow добавляет growGain, merge/joint/compress канал
 theorem full_cycle_capability_step (S S' : Hagi.GenState X)
     (hfull : FullCycleRefinement S S') :
     S'.toGrowthState.capability
-      = S.toGrowthState.capability + S.toGrowthState.growGain := by
+      = S.toGrowthState.capability + S.toGrowthState.effects.growGain := by
   obtain ⟨heq, _⟩ := hfull
   rw [heq]
   simp [grow, merge, joint, compress]
@@ -60,7 +60,7 @@ theorem state_capability_takeoff (S : ℕ → Hagi.GenState X)
     (h_emp_cone0 : alpha / gamma * (S 0).toGrowthState.capability
       ≤ D 0)
     (h_emp_gain_prod : ∀ t < T, gamma * D t
-      ≤ (S t).toGrowthState.growGain)
+      ≤ (S t).toGrowthState.effects.growGain)
     (h_emp_dyn : ∀ t < T, rho * D t
         + beta * (S t).toGrowthState.capability - xi t
       ≤ D (t + 1))
@@ -73,12 +73,12 @@ theorem state_capability_takeoff (S : ℕ → Hagi.GenState X)
   -- the step premise is DERIVED, not assumed
   have hstep : ∀ t < T, (S (t + 1)).toGrowthState.capability
       = (S t).toGrowthState.capability
-        + (S t).toGrowthState.growGain :=
+        + (S t).toGrowthState.effects.growGain :=
     fun t ht => full_cycle_capability_step (S t) (S (t + 1))
       (hfull t ht)
   exact Hagi.sustained_takeoff_trunc
     (fun t => (S t).toGrowthState.capability)
-    (fun t => (S t).toGrowthState.growGain)
+    (fun t => (S t).toGrowthState.effects.growGain)
     D alpha gamma rho beta xi T hα hγ hρ hC0 h_emp_cone0 hstep
     h_emp_gain_prod h_emp_dyn h_emp_C_cap h_emp_beta
 
@@ -91,28 +91,28 @@ theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
     (epsQ : ℝ) (w : Fin 5 → ℝ)
     (hfull : FullCycleRefinement S S')
     (h1 : 0 ≤ S.toGrowthState.gap)
-    (h2 : S.toGrowthState.growEnergy
-      ≤ S.toGrowthState.energy - S.toGrowthState.growGain)
-    (h3 : S.toGrowthState.mergeEnergy
-      ≤ S.toGrowthState.growEnergy - S.toGrowthState.gap)
+    (h2 : S.toGrowthState.effects.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
+    (h3 : S.toGrowthState.effects.mergeEnergy
+      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
     (h4 : 0 < S.toGrowthState.sp.L)
     (h5 : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
     (h6 : 0 ≤ S.toGrowthState.sp.eta)
     (h7 : ‖S.toGrowthState.stepDir‖ ^ 2
       ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
-    (h8 : S.toGrowthState.jointEnergy
-      ≤ S.toGrowthState.mergeEnergy
+    (h8 : S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.effects.mergeEnergy
         - S.toGrowthState.sp.eta
           * ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ
         + S.toGrowthState.sp.L * S.toGrowthState.sp.eta ^ 2
           * ‖S.toGrowthState.stepDir‖ ^ 2 / 2)
     (h9 : 0 ≤ S.toGrowthState.sp.kappa)
     (h10 : 0 ≤ S.toGrowthState.sp.s)
-    (h11 : 0 ≤ S.toGrowthState.quantErr)
-    (h12 : S.toGrowthState.quantErr ≤ 1 / 2)
-    (h13 : S.toGrowthState.compressEnergy - S.toGrowthState.jointEnergy
+    (h11 : 0 ≤ S.toGrowthState.effects.quantErr)
+    (h12 : S.toGrowthState.effects.quantErr ≤ 1 / 2)
+    (h13 : S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
       ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
-        * S.toGrowthState.quantErr)
+        * S.toGrowthState.effects.quantErr)
     (h15 : Qgen S.gen w - epsQ ≤ Qgen S'.gen w) :
     CorePremises S S' epsQ w := by
   refine ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,

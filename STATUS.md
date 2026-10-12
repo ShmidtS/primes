@@ -1034,6 +1034,13 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   это контроллерные ядра (variance gate, trust region,
   dynamic routing); вынесены из Unified в Runtime-слой
   по плану Фазы 4. Freeze 2191.
+- R341 (аудит v3 Фаза 4, шаг 1): 12 измеренных полей
+  эффектов стадий выделены из GrowthState в структуру
+  StageEffects (S.effects.growGain и т.д.); переходы
+  grow/merge/joint/compress переносят effects одним полем.
+  Свидетели (Nonvacuity S0/S1, idle, witnessState)
+  свёрнуты в effects-литералы. API-миграция: StateBinding,
+  GrowthBridge, MasterHAGI, StateTakeoff. Freeze 2192.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
