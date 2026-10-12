@@ -448,8 +448,57 @@ theorem cert_horizon_log_bound (C F : ℕ → ℝ)
     (ne_of_gt (mul_pos (by nlinarith : (0:ℝ) < γ * k + σ) hC0))] at hlog
   exact hlog
 
+/-- **Экспонат честности** (R364, аудит v7 §6.2): поля
+`hpl_up` и `hpl_lo` сертификата `HAGICert` сравнивают
+`C (t+1)` с ОДНОЙ и той же величиной
+`C t + σ·(Cstar − C t)` с двух сторон — совместно они
+принуждают ТОЧНЫЙ закон насыщения
+
+  C (t + 1) = C t + σ * (Cstar − C t)
+
+на каждом шаге t < T. Насыщение — часть модели (закон
+перехода), а не вывод из более слабых принципов; выведенная
+граница `pl_gap_lower_trunc` опирается на этот точный закон. -/
+theorem saturation_law_forced {I : ℕ} {Xs : Type*}
+    [NormedAddCommGroup Xs] [InnerProductSpace ℝ Xs]
+    (S : ℕ → GrowthState Xs) (Cstar σ : ℝ) (t : ℕ)
+    (hup : (S (t + 1)).capability
+      ≤ (S t).capability + σ * (Cstar - (S t).capability))
+    (hlo : (S t).capability
+      + σ * (Cstar - (S t).capability) ≤ (S (t + 1)).capability) :
+    (S (t + 1)).capability
+      = (S t).capability + σ * (Cstar - (S t).capability) :=
+  le_antisymm hup hlo
+
+/-- **Бюджет на всём горизонте** (R364, аудит v7 §6.1):
+точный счёт бюджета + неотрицательность каждого расхода
+дают неотрицательность бюджета на ВСЁМ горизонте
+(∀ t ≤ T), а не только в конечной точке: частичные суммы
+расходов никогда не превышают B₀. -/
+theorem budget_horizon_nonneg (B spend : ℕ → ℝ) (T : ℕ)
+    (hspend : ∀ t ∈ Finset.range T, 0 ≤ spend t)
+    (hacct : ∀ t ≤ T,
+      B t = B 0 - ∑ j ∈ Finset.range t, spend j)
+    (hT : 0 ≤ B T) :
+    ∀ t ≤ T, 0 ≤ B t := by
+  intro t ht
+  rw [hacct t ht]
+  have hpart : ∑ j ∈ Finset.range t, spend j
+      ≤ ∑ j ∈ Finset.range T, spend j := by
+    refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+    · intro x hx
+      have hx' := Finset.mem_range.mp hx
+      simp only [Finset.mem_range]
+      omega
+    · intro x hx _
+      exact hspend x hx
+  have hB : ∑ j ∈ Finset.range T, spend j ≤ B 0 := by
+    rw [hacct T (Nat.le_refl T)] at hT
+    linarith
+  linarith
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness cert_horizon_log_bound hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness cert_horizon_log_bound saturation_law_forced budget_horizon_nonneg hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
 end Hagi
