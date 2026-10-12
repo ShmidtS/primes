@@ -602,8 +602,25 @@ theorem MasterHAGI_probability {Om : Type*} [MeasurableSpace Om]
 
 end MasterHAGI
 
+/-- **`CertifiedHAGIInvariant` is inhabited** (R337, audit v3
+Phase 6): constant channels (risk = 0, phi = 1, cap = 1,
+budget = 1, spend = 0, genq = 1, epsReg = 0, alpha = 0,
+Qfloor = 0) satisfy every conjunct at any horizon `T`. -/
+theorem certifiedHAGI_nonvacuous (T : ℕ) :
+    CertifiedHAGIInvariant T
+      (fun _ => 0) (fun _ => 1) (fun _ => 1) (fun _ => 1)
+      (fun _ => 0) (fun _ => 1) (fun _ => 0) 0 0 where
+  risk_bound := by norm_num
+  phi_bound := le_refl 1
+  capability_growth := by simp
+  budget_respected := by
+    constructor
+    · simp
+    · norm_num
+  gen_floor := by norm_num
+
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
+export Hagi.Unified (certifiedHAGI_nonvacuous CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
 end Hagi

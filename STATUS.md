@@ -1014,6 +1014,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   h_budget0, h_risk_nn, h_Emin) для любого T и E0.
   Структурный уровень свидетелей (уровень 2 из Фазы 6)
   закрыт. Аксиомы чистые. Freeze 2189.
+- R337 (аудит v3 Фаза 6): certifiedHAGI_nonvacuous +
+  coupledHAGI_nonvacuous — свидетели числовых инвариант-
+  структур MasterHAGI/MasterHAGICoupled (константные
+  каналы: risk=0, phi=1, cap=1, budget=1, spend=0,
+  alpha=0; coupled — на idle-траектории). Все главные
+  структуры предпосылок теперь имеют свидетели:
+  Trunc (R336), CertifiedHAGI, CoupledHAGI (R337),
+  CorePremises, HAGICert. Аксиомы чистые. Freeze 2191.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.Assumptions
 
 /-!
 # MasterHAGICoupled — closing the three structural gaps of the
@@ -135,5 +136,27 @@ theorem scalar_hides_deficit (T : ℕ)
   rw [← hdiff]
   linarith [hscalar]
 
+
+/-- **`CoupledHAGIInvariant` is inhabited** (R337, audit v3
+Phase 6): the idle state trajectory (all fields zero, budget
+1) with zero risk/spend ledgers, zero qvec floor and `alpha =
+0` satisfies every conjunct at any horizon `T`. -/
+theorem coupledHAGI_nonvacuous {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (x0 : X) (T : ℕ) :
+    CoupledHAGIInvariant T
+      (fun _ => Hagi.Assumptions.idleGrowth x0 0)
+      (fun _ => 0) (fun _ => 0) (fun _ _ => 0) (fun _ => 0) 0 where
+  cap_is_state := by
+    intro t _
+    rfl
+  risk_bound := by
+    simp [Hagi.Assumptions.idleGrowth]
+  spend_nonneg := fun _ _ => le_refl 0
+  risk_nonneg := fun _ _ => le_refl 0
+  budget_account := by
+    constructor <;> simp [Hagi.Assumptions.idleGrowth]
+  capability_growth := by
+    simp [Hagi.Assumptions.idleGrowth]
+  qvec_floor := fun _ => le_refl 0
 
 end Hagi.Master

@@ -304,6 +304,7 @@ certificate_sound	e423e0b277c01bab
 certifiedGain	292988191aa9e4bd
 certifiedGain_monotone	f329d0162718973c
 certifiedGain_positive	5a589f4c7a117db5
+certifiedHAGI_nonvacuous	ab6cd6569bce38c9
 certified_argmax_ambiguity	938f51acb2d92f92
 certified_argmax_strict	32cedc01bf871194
 certified_cycle_renewal	3af0305e767b8b44
@@ -435,6 +436,7 @@ costGrow	de60df8e7a177cdc
 costJoint	833a33c01ba2b9a4
 costMerge	5f8982c8c21ab16e
 counted_takeoff_exp	4a8da2badf51a079
+coupledHAGI_nonvacuous	0fa16309f98503e3
 courantFischer_maxMin_bounds	ba18106e4947fedf
 courantFischer_minMax_bounds	f24fd4d39ddad420
 covered	c317174677fd9505
