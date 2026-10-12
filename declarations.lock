@@ -973,6 +973,11 @@ hoeffding_mean_tail_low	dd75c7cc6826e887
 hoeffding_tail	c06620f1881d29fd
 hoeffding_two_sided	f9c9006b808f0876
 horizon_termination	bce200a44f40b517
+idleGen	1b70dd097d04e1d9
+idleGrowth	c84edafa9554c0b2
+idleSp	0215aad6620b3ff3
+idle_Qgen_zero	4d637a8fdcc5c484
+idle_cycle_fixed	adad8db8f3728838
 idle_merge_zero_gap	3aeef28a5269c3fd
 ift_normalization	482a0aa7ae673b4d
 ignitionCeiling	73ee8ca948e038c8
@@ -2055,6 +2060,8 @@ tritEncode_injective	9635bc9434da3b80
 tritEncode_lt	dec1f9b820d2c504
 trits_fit_byte	49f6ebdca5efe9a6
 trunc1_spectral_optimal_aux	00e1517fad23f99f
+trunc_idle_witness	2a1ea2d6ef0a7a6f
+trunc_nonvacuous	47de0aa4fa895cc6
 truncatedSVD	cc73d44020cb9a4e
 truncatedSVD	e0e879723d26e7cf
 truncatedSVD_add_tail	78fae056faea8c71

@@ -1006,6 +1006,14 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   q v = 0 равны 0 через log 0 = 0) — явная постановка
   «нулевых вероятностей» из аудита. Аксиомы чистые.
   Freeze 2182.
+- R336 (аудит v3 Фаза 6): trunc_nonvacuous — свидетель структуры
+  Assumptions.Trunc: константная idle-траектория
+  (все стадии на равенстве, stepDir=0, sp={eta=0,L=1,kappa=0,
+  s=0}, budget=1, Qvec=0) удовлетворяет ВСЕМ полям Trunc
+  (CorePremises на каждом шаге, h_net на равенстве,
+  h_budget0, h_risk_nn, h_Emin) для любого T и E0.
+  Структурный уровень свидетелей (уровень 2 из Фазы 6)
+  закрыт. Аксиомы чистые. Freeze 2189.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические
