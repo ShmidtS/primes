@@ -139,4 +139,52 @@ theorem rank_orthogonal_growth {k : Type*} [Fintype k] [DecidableEq k]
   rw [finrank_span_eq_card hind] at hfs
   linarith
 
+/-!
+## Growth directions are automatically safe (R367)
+
+Bridge between `rank_orthogonal_growth` (R360: new dormant
+rows grow the functional capacity) and the SafeQP old-domain
+constraints (R348): ANY update direction lying in the span of
+the new (old-gradient-orthogonal) directions interferes with
+EVERY protected old gradient by exactly zero — new capacity
+and old-function preservation are compatible by construction.
+Growth does not have to pay a safety budget.
+-/
+
+/-- If the `k` growth directions `u` are each orthogonal to
+every protected gradient `g i`, then every update `d` in
+their span satisfies all hard SafeQP constraints
+(`ε = 0`): zero interference with the old domains. -/
+theorem span_growth_zero_interference {α κ : Type*}
+    [Fintype α] [Fintype κ]
+    (g : α → (n → ℝ)) (u : κ → (n → ℝ))
+    (horth : ∀ i j, ∑ c, g i c * u j c = 0)
+    (d : n → ℝ)
+    (hd : d ∈ Submodule.span ℝ (Set.range u)) :
+    ∀ i, ∑ c, g i c * d c = 0 := by
+  intro i
+  induction hd using Submodule.span_induction with
+  | mem x hx =>
+      obtain ⟨j, rfl⟩ := hx
+      exact horth i j
+  | zero => simp
+  | add x y _ _ ihx ihy =>
+      rw [show ∑ c, g i c * (x + y) c = ∑ c, g i c * x c
+        + ∑ c, g i c * y c from by
+        rw [← Finset.sum_add_distrib]
+        exact Finset.sum_congr rfl fun c _ => by rw [Pi.add_apply]; ring]
+      rw [ihx, ihy]
+      ring
+  | smul a x _ ihx =>
+      rw [show ∑ c, g i c * (a • x) c = a * ∑ c, g i c * x c from by
+        rw [Finset.mul_sum]
+        exact Finset.sum_congr rfl fun c _ => by
+          rw [Pi.smul_apply, smul_eq_mul]; ring]
+      rw [ihx]
+      ring
+
 end Hagi.Spectral
+
+namespace Hagi
+export Hagi.Spectral (stackRows OrthRows rank_orthogonal_growth span_growth_zero_interference)
+end Hagi
