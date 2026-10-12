@@ -53,6 +53,12 @@ same-folder DAG свободен.
   динамика r(t+1) = r(t) − ηλ·r(t) достигает порога ε к
   времени ln(r₀/ε)/(ηλ) — inverse-product скейлинг времени
   генерализации; `one_sub_pow_le_exp`: (1−x)^T ≤ e^{−xT};
+  `growing_batch_stabilized` (R371, план §2 «растущий
+  batch»): рекурсия E(t+1) ≤ ρE(t) + η²σ²/(b₀δ^t) при
+  ρ = 1−ηL < 1, δ ≥ 1, ρδ > 1 ⟹ E(T) ≤ ρ^T E0 +
+  c·ρ^(T−1)/(1−(ρδ)⁻¹) — стохастический хвост гаснет на
+  скорости контракции: геометрически растущий batch полностью
+  extinguish'ит шумовой хвост.
   `certified_descent_with_grokking_tail` (R368): Φ_T ≤
   Φ_0 − Σ dec_t + ε — certified-спуск + погашенный
   grokking-хвост к моменту ln(r₀/ε)/(ηλ).

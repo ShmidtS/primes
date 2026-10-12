@@ -430,9 +430,155 @@ theorem certified_descent_with_grokking_tail
   have := hphi T
   linarith
 
+/-!
+## Growing-batch stabilization (R371)
+
+Formal core of the growing-batch convergence results
+(Improved Convergence Rates for Stochastic Multi-Gradient
+Descent, Corollary 3.1 family; plan §2): under the standard
+quadratic-descent recursion
+
+  E(t+1) ≤ ρ·E(t) + η²·σ²/b(t),  ρ = 1 − ηL < 1,
+
+a GEOMETRICALLY growing batch b(t) = b₀·δ^t (δ ≥ 1) makes
+the accumulated noise term CONSTANT in T:
+
+  E(T) ≤ ρ^T·E(0) + η²σ² / (b₀·(1 − ρδ⁻¹))     (ρ·δ⁻¹ < 1)
+
+— the noise floor does not accumulate: the tail is
+extinguished exactly as the grokking residual (R366/R368),
+and the horizon bound is the contraction floor
+c/(1−ρ) from `recurrence_upper`. The learning-rate cap
+η = 1/L (R347) plus batch scaling (R346) plus this
+stabilization complete the schedule algebra.
+-/
+
+/-- **Growing-batch stabilization**: under the recursion
+`E(t+1) ≤ ρ·E(t) + c·δ^(-t)` with `ρ = 1 − ηL ∈ (0,1)`,
+`δ ≥ 1` and `ρ·δ > 1` (batch grows faster than the
+contraction decays), for every horizon `T ≥ 1`
+
+  E(T) ≤ ρ^T·E(0) + c·ρ^(T−1) / (1 − (ρδ)⁻¹),
+
+where `c = η²σ²/b₀`: the accumulated stochastic noise dies
+at the CONTRACTION rate — geometrically growing batches
+extinguish the noise tail completely (plan §2, growing-batch
+family of Improved Convergence Rates, Corollary 3.1). -/
+theorem growing_batch_stabilized (E : ℕ → ℝ)
+    (rho eta L sigma2 b0 delta : ℝ)
+    (hrho : 0 < rho) (hrho1 : rho < 1) (hrho_eq : rho = 1 - eta * L)
+    (hs2 : 0 ≤ sigma2) (hb0 : 0 < b0) (hdelta : 1 ≤ delta)
+    (hrd : 1 < rho * delta)
+    (hrec : ∀ t, E (t + 1) ≤ rho * E t
+      + eta ^ 2 * sigma2 / (b0 * delta ^ t))
+    (T : ℕ) (hT : 1 ≤ T) :
+    E T ≤ rho ^ T * E 0
+      + (eta ^ 2 * sigma2 / b0) * rho ^ (T - 1)
+        / (1 - (rho * delta)⁻¹) := by
+  set c : ℝ := eta ^ 2 * sigma2 / b0 with hc
+  have hc0 : (0:ℝ) ≤ c := by positivity
+  -- exact majorant: E t ≤ rho^t E0 + c * sum_{j<t} rho^(t-1-j) * delta^(-j)
+  have hmain : ∀ t : ℕ, E t ≤ rho ^ t * E 0
+      + c * (∑ j ∈ Finset.range t,
+          rho ^ (t - 1 - j) * (delta ^ (j:ℕ))⁻¹) := by
+    intro t
+    induction t with
+    | zero => simp
+    | succ t ih =>
+        have hstep := hrec t
+        have hsplit : ∑ j ∈ Finset.range (t + 1),
+            rho ^ (t + 1 - 1 - j) * (delta ^ (j:ℕ))⁻¹
+            = rho * ∑ j ∈ Finset.range t,
+                rho ^ (t - 1 - j) * (delta ^ (j:ℕ))⁻¹
+              + (delta ^ (t:ℕ))⁻¹ := by
+          rw [Finset.sum_range_succ]
+          have hlast : rho ^ (t + 1 - 1 - t) * (delta ^ (t:ℕ))⁻¹
+              = (delta ^ (t:ℕ))⁻¹ := by
+            have h0 : t + 1 - 1 - t = 0 := by omega
+            rw [h0, pow_zero, one_mul]
+          rw [hlast, Finset.mul_sum]
+          congr 1
+          refine Finset.sum_congr rfl fun j _ => ?_
+          have hlt : j < t := Finset.mem_range.mp ‹_›
+          have hj : t + 1 - 1 - j = (t - 1 - j) + 1 := by omega
+          show rho ^ (t + 1 - 1 - j) * (delta ^ (j:ℕ))⁻¹
+            = rho * (rho ^ (t - 1 - j) * (delta ^ (j:ℕ))⁻¹)
+          rw [hj, pow_succ]
+          ring
+        calc E (t + 1) ≤ rho * E t
+              + eta ^ 2 * sigma2 / (b0 * delta ^ t) := hstep
+          _ = rho * E t + c * (delta ^ (t:ℕ))⁻¹ := by
+              have hd0 : (0:ℝ) < delta ^ t := by positivity
+              rw [hc]
+              field_simp
+          _ ≤ rho * (rho ^ t * E 0
+              + c * ∑ j ∈ Finset.range t,
+                  rho ^ (t - 1 - j) * (delta ^ (j:ℕ))⁻¹)
+              + c * (delta ^ (t:ℕ))⁻¹ :=
+              add_le_add (mul_le_mul_of_nonneg_left ih hrho.le) le_rfl
+          _ = rho ^ (t + 1) * E 0
+              + c * (rho * ∑ j ∈ Finset.range t,
+                  rho ^ (t - 1 - j) * (delta ^ (j:ℕ))⁻¹
+                + (delta ^ (t:ℕ))⁻¹) := by
+              rw [pow_succ]
+              ring
+          _ = rho ^ (t + 1) * E 0
+              + c * ∑ j ∈ Finset.range (t + 1),
+                  rho ^ (t + 1 - 1 - j) * (delta ^ (j:ℕ))⁻¹ := by
+              rw [hsplit]
+  -- the exact tail sums as rho^(t-1) * sum (rho*delta)^(-j)
+  have hrpdinv : (0:ℝ) ≤ (rho * delta)⁻¹ := by positivity
+  have hrpd1 : (rho * delta)⁻¹ < 1 := by
+    rw [inv_lt_one₀ (mul_pos hrho (by linarith : (0:ℝ) < delta))]
+    exact hrd
+  have htail : ∑ j ∈ Finset.range T,
+      rho ^ (T - 1 - j) * (delta ^ (j:ℕ))⁻¹
+      = rho ^ (T - 1)
+        * ∑ j ∈ Finset.range T, ((rho * delta) ^ (j:ℕ))⁻¹ := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    have hmem : j < T := Finset.mem_range.mp ‹_›
+    have hj' : j ≤ T - 1 := by omega
+    have hpow : rho ^ (T - 1)
+        = rho ^ (T - 1 - j) * rho ^ j := by
+      rw [← pow_add]
+      congr 1
+      omega
+    have hinvpow : ((rho * delta) ^ (j:ℕ))⁻¹
+        = (rho ^ j)⁻¹ * (delta ^ (j:ℕ))⁻¹ := by
+      rw [mul_pow, mul_inv]
+    show rho ^ (T - 1 - j) * (delta ^ (j:ℕ))⁻¹
+      = rho ^ (T - 1) * ((rho * delta) ^ (j:ℕ))⁻¹
+    rw [hpow, hinvpow]
+    field_simp
+  have hgeom0 := geom_sum_le_inv (rho := (rho * delta)⁻¹) T hrpdinv hrpd1
+  have hgeom : ∑ j ∈ Finset.range T, ((rho * delta) ^ (j:ℕ))⁻¹
+      ≤ 1 / (1 - (rho * delta)⁻¹) := by
+    have heq : ∑ j ∈ Finset.range T, ((rho * delta) ^ (j:ℕ))⁻¹
+        = ∑ j ∈ Finset.range T, (rho * delta)⁻¹ ^ (j:ℕ) :=
+      Finset.sum_congr rfl fun j _ => (inv_pow (rho * delta) j).symm
+    rw [heq]
+    exact hgeom0
+  have hfinal := hmain T
+  rw [htail] at hfinal
+  have hrhoT : (0:ℝ) ≤ rho ^ (T - 1) := by positivity
+  calc E T ≤ rho ^ T * E 0
+        + c * (rho ^ (T - 1)
+          * ∑ j ∈ Finset.range T, ((rho * delta) ^ (j:ℕ))⁻¹) := hfinal
+    _ ≤ rho ^ T * E 0
+        + c * (rho ^ (T - 1) * (1 / (1 - (rho * delta)⁻¹))) :=
+        add_le_add le_rfl
+          (mul_le_mul_of_nonneg_left
+            (mul_le_mul_of_nonneg_left hgeom hrhoT) hc0)
+    _ = rho ^ T * E 0
+        + (eta ^ 2 * sigma2 / b0) * rho ^ (T - 1)
+          / (1 - (rho * delta)⁻¹) := by
+        rw [hc]
+        field_simp
+
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time certified_descent_with_grokking_tail)
+export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time certified_descent_with_grokking_tail growing_batch_stabilized)
 end Hagi
 
