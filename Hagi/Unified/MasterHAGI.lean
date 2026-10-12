@@ -600,6 +600,53 @@ theorem MasterHAGI_probability {Om : Type*} [MeasurableSpace Om]
   simp only [sub_zero] at hom
   exact hom
 
+/-- **MasterHAGI_linked** (R362, audit v6 §4.1): the growth
+channel `C` is NOT a free sequence — it IS the states'
+capability (`h_link`). The capstone's growth guarantee then
+holds for the ACTUAL trajectory states, closing the audit
+gap where `C` grew independently of `S`. -/
+theorem MasterHAGI_linked {K : Type*} [Fintype K] [Nonempty K]
+    (S : ℕ → GenState X) (lam nu Qtarget Emin : ℝ) (w : Fin 5 → ℝ)
+    (hlam : 0 ≤ lam) (hnu : 0 < nu)
+    (epsQ : ℕ → ℝ) (h_epsQ : ∀ t, 0 ≤ epsQ t)
+    (T : ℕ)
+    (g : ℕ → K → X) (dL eps L : ℕ → K → ℝ) (etaq : ℕ → ℝ)
+    (hLq : ∀ t i, 0 < L t i) (hepsq : ∀ t i, 0 ≤ eps t i)
+    (hetaq : ∀ t, 0 ≤ etaq t)
+    (hd : ∀ t < T, (S t).toGrowthState.stepDir ≠ 0)
+    (h_lipline : ∀ t < T, ∀ i, dL t i ≤ -etaq t
+        * ⟪g t i, (S t).toGrowthState.stepDir⟫_ℝ
+        + L t i * etaq t * etaq t * ‖(S t).toGrowthState.stepDir‖ ^ 2 / 2)
+    (h_eta : ∀ t < T, etaq t
+        ≤ safeqpEtaMax (g t) (eps t) (L t) (S t).toGrowthState.stepDir)
+    (h_sumdL : ∀ t < T, (S (t + 1)).toGrowthState.protectedRisk
+        = (S t).toGrowthState.protectedRisk + ∑ i, dL t i)
+    (h_core : ∀ t < T, CorePremises (S t) (S (t + 1)) (epsQ t) w)
+    (h_net : ∀ t < T, lam * (verify (S t).toGrowthState).riskSpend
+        + nu * epsQ t ≤ (verify (S t).toGrowthState).decrease)
+    (h_budget0 : ∑ t ∈ Finset.range T,
+        (verify (S t).toGrowthState).budgetSpend
+      ≤ (S 0).toGrowthState.budget)
+    (h_risk_nn : ∀ t, 0 ≤ (S t).toGrowthState.protectedRisk)
+    (h_Emin : Emin ≤ (S T).toGrowthState.energy)
+    (C G D xi : ℕ → ℝ) (alpha gamma rho beta : ℝ)
+    (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
+    (hC0 : 0 < C 0) (h_cone0 : alpha / gamma * C 0 ≤ D 0)
+    (h_step : ∀ t, C (t + 1) = C t + G t)
+    (h_gain_prod : ∀ t, gamma * D t ≤ G t)
+    (h_dyn : ∀ t, rho * D t + beta * C t - xi t ≤ D (t + 1))
+    (h_C_cap : ∀ t, C (t + 1) ≤ (1 + alpha) * C t)
+    (hβ : ∀ t, alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta)
+    (h_link : ∀ t ≤ T, C t = (S t).toGrowthState.capability) :
+    (S 0).toGrowthState.capability * (1 + alpha) ^ T
+      ≤ (S T).toGrowthState.capability :=
+  MasterHAGI S lam nu Qtarget Emin w hlam hnu epsQ h_epsQ T g dL eps L etaq
+    hLq hepsq hetaq hd h_lipline h_eta h_sumdL h_core h_net h_budget0
+    h_risk_nn h_Emin C G D xi alpha gamma rho beta hα hγ hρ hC0 h_cone0
+    h_step h_gain_prod h_dyn h_C_cap hβ |>.capability_growth
+  |> (fun h =>
+    (h_link 0 (Nat.zero_le T)) ▸ (h_link T (Nat.le_refl T)) ▸ h)
+
 end MasterHAGI
 
 /-- **`CertifiedHAGIInvariant` is inhabited** (R337, audit v3
@@ -674,5 +721,5 @@ theorem certifiedHAGI_nonvacuous_strict (T : ℕ)
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (certifiedHAGI_nonvacuous certifiedHAGI_nonvacuous_strict CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
+export Hagi.Unified (certifiedHAGI_nonvacuous certifiedHAGI_nonvacuous_strict MasterHAGI_linked CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
 end Hagi

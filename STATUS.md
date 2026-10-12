@@ -191,6 +191,11 @@ same-folder DAG свободен.
   riskSpendₜ ≤ r < ε, то T ≤ (Φ₀ − φmin)/(ε − r) — цикл
   не может работать бесконечно (композиция с
   `lyapunov_termination_fin`).
+- `MasterHAGI_linked` (R362, аудит v6 §4.1): посылка
+  C t = (S t).capability для t ≤ T — рост доказан для
+  capability РЕАЛЬНОЙ траектории состояний, а не свободной
+  последовательности. Аудит v6 §12: MasterHAGI /
+  hagi_synthesis / grand_synthesis — аксиомы чистые.
 - `MasterHAGI` (условный капстоун): полный цикл на
   GenState-траектории; `MasterHAGI_trunc` +
   `masterhagi_growth_witness` (свидетель не-вакуозности);
