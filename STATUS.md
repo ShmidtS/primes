@@ -70,7 +70,12 @@ same-folder DAG свободен.
 - Ternary: тернарная сетка, округление к ближайшему,
   ошибка ≤ полшага s/2; qerr-инварианты.
 - MergeBridge-канон: CE(t, mid) = mean CE − JensenGap,
-  gap ≥ 0 (Jensen для lse на конкатенации экспертов).
+  gap ≥ 0 (Jensen для lse на конкатенации экспертов);
+  `jensenGap_pos_witness` (R356): для реального
+  несогласия (z₁=(0,0), z₂=(a,−a), a≠0) зазор строго
+  положителен (½log cosh a > log cosh(a/2) через
+  half-angle) — не-idle свидетель: слияние расходящихся
+  экспертов строго лучше среднего.
 - Prelude-мосты: Fannes/Pinsker условные формы
   (`entropy_continuity_pinsker'`), бинэнтропийная монотонность.
 - Дистилляция: CE/KL-тождества, mixture KKT, floors памяти.

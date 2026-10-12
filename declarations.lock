@@ -435,6 +435,7 @@ correspondingN_injective	1449dd5b25ad368b	4b3d3d4daafe15c2
 correspondingN_spec	40005d5c49242214	c7c5420f653274b0
 cosSum	bbc516c6c185a856	c522ab86224cbf83
 cosSum_zero'	025890db24ead754	096f8dac00187ade
+cosh_half_sq	c1bcfb68d9a9f187	777c8ea4d003b390
 costCompress	ec59ec8f3db89160	cad1598f1a2fe5f6
 costGrow	de60df8e7a177cdc	40bda09f6312dbfc
 costJoint	833a33c01ba2b9a4	b07da1e3090982fb
@@ -1027,6 +1028,7 @@ isHermitian_kronecker	1a826677bfb7b154	6a9a0af5c786c02d
 isUnit_det_map_C	9d3c3268b777e140	6f320298cb62ba72
 jensenGap	273241ea57291f24	8e0254ef8ed7e851
 jensenGap_nonneg	7d8c6227b4905805	1e7af5f5fddd67d2
+jensenGap_pos_witness	929777a16abb2d4a	f113a0603ff5e108
 jensen_log	9821ac4a14e98c83	5c61b6d14ebf24c3
 jl_inner_approx	0e0addbf89765e25	66401deaa030ad2b
 joint	c0f5cb1eb55b9dd7	8cd003de48f674d0

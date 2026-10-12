@@ -80,4 +80,103 @@ theorem h_emp_merge_of_bridge (t : k) (z₁ z₂ : k → ℝ) :
       ∧ 0 ≤ jensenGap z₁ z₂ :=
   ⟨le_of_eq (merge_energy_bridge t z₁ z₂), jensenGap_nonneg z₁ z₂⟩
 
+/-!
+## Strict positivity witness (R356)
+
+The Jensen gap is not just nonnegative — it is STRICTLY
+positive for real disagreements. Concrete two-logit witness:
+children `z₁ = (0, 0)` and `z₂ = (a, −a)` (a ≠ 0) have
+
+  jensenGap = ½·log(cosh a) − log(cosh (a/2)) > 0,
+
+because `cosh²(a/2) = (1 + cosh a)/2 < cosh a` for `a ≠ 0`
+(half-angle identity + `1 < cosh a`). This kills the
+"gap = 0 idle witness" degeneracy: merging two genuinely
+disagreeing experts STRICTLY beats their mean.
+-/
+
+/-- Half-angle identity via `cosh(2x) = 2cosh²x − 1`. -/
+private theorem cosh_half_sq (x : ℝ) :
+    Real.cosh x ^ 2 = (Real.cosh (2 * x) + 1) / 2 := by
+  have h1 := Real.cosh_two_mul x
+  have h2 := Real.cosh_sq_sub_sinh_sq x
+  field_simp
+  linarith
+
+/-- The strict Jensen-gap witness: for the two-logit family
+`z₁ = (0,0)`, `z₂ = (a,−a)` with `a ≠ 0`, the merge gap is
+strictly positive — merging two genuinely disagreeing
+experts STRICTLY beats their mean. -/
+theorem jensenGap_pos_witness (a : ℝ) (ha : a ≠ 0) :
+    0 < jensenGap
+      (fun _ : Fin 2 => (0:ℝ))
+      (fun i : Fin 2 => if i = 0 then a else -a) := by
+  set z1 : Fin 2 → ℝ := fun _ => 0 with hz1
+  set z2 : Fin 2 → ℝ := fun i => if i = 0 then a else -a with hz2
+  have hz20 : z2 0 = a := by norm_num [hz2]
+  have hz21 : z2 1 = -a := by norm_num [hz2]
+  have hea : Real.exp a + Real.exp (-a) = 2 * Real.cosh a := by
+    simp only [Real.cosh_eq]
+    ring
+  have heh : Real.exp (a / 2) + Real.exp (-(a / 2))
+      = 2 * Real.cosh (a / 2) := by
+    simp only [Real.cosh_eq]
+    ring
+  have hse1 : ∑ v : Fin 2, Real.exp (z1 v) = 2 := by
+    simp only [Fin.sum_univ_two, hz1]
+    norm_num
+  have hse2 : ∑ v : Fin 2, Real.exp (z2 v) = 2 * Real.cosh a := by
+    rw [Fin.sum_univ_two]
+    simp only [hz20, hz21]
+    exact hea
+  have hsem : ∑ v : Fin 2, Real.exp (((z1 + z2) / 2) v)
+      = 2 * Real.cosh (a / 2) := by
+    rw [Fin.sum_univ_two]
+    have e0 : ((z1 + z2) / 2 : Fin 2 → ℝ) 0 = a / 2 := by
+      simp [Pi.add_apply, Pi.div_apply, hz1, hz20]
+    have e1 : ((z1 + z2) / 2 : Fin 2 → ℝ) 1 = -(a / 2) := by
+      simp [Pi.add_apply, Pi.div_apply, hz1, hz21]
+      ring
+    simp only [e0, e1]
+    exact heh
+  have hl1 : Hagi.lse z1 = Real.log 2 := by
+    simp only [Hagi.lse, hse1]
+  have hl2 : Hagi.lse z2 = Real.log (2 * Real.cosh a) := by
+    simp only [Hagi.lse, hse2]
+  have hlm : Hagi.lse ((z1 + z2) / 2)
+      = Real.log (2 * Real.cosh (a / 2)) := by
+    simp only [Hagi.lse, hsem]
+  have hnc : Real.cosh a ≠ 0 := ne_of_gt (Real.cosh_pos a)
+  have hnc2 : Real.cosh (a / 2) ≠ 0 :=
+    ne_of_gt (Real.cosh_pos (a / 2))
+  have hl2a : Real.log (2 * Real.cosh a)
+      = Real.log 2 + Real.log (Real.cosh a) :=
+    Real.log_mul two_ne_zero hnc
+  have hlma : Real.log (2 * Real.cosh (a / 2))
+      = Real.log 2 + Real.log (Real.cosh (a / 2)) :=
+    Real.log_mul two_ne_zero hnc2
+  have hc1 : 1 < Real.cosh a := (Real.one_lt_cosh (x := a)).mpr ha
+  have hsq : Real.cosh (a / 2) ^ 2 = (Real.cosh a + 1) / 2 := by
+    have h := cosh_half_sq (a / 2)
+    rw [show 2 * (a / 2) = a from by ring] at h
+    exact h
+  have hlt : Real.cosh (a / 2) ^ 2 < Real.cosh a := by
+    rw [hsq]
+    linarith
+  have hloglt : Real.log (Real.cosh (a / 2) ^ 2)
+      < Real.log (Real.cosh a) :=
+    Real.log_lt_log (by positivity) hlt
+  have hlogpow : Real.log (Real.cosh (a / 2) ^ 2)
+      = 2 * Real.log (Real.cosh (a / 2)) := by
+    rw [Real.log_pow]
+    norm_num
+  rw [hlogpow] at hloglt
+  unfold jensenGap
+  rw [hl1, hl2, hlm, hl2a, hlma]
+  linarith
+
 end Hagi.Unified
+
+namespace Hagi
+export Hagi.Unified (jensenGap_pos_witness)
+end Hagi
