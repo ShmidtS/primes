@@ -126,7 +126,7 @@ theorem hagicert_nonvacuous :
     simp only [witnessTraj, witnessState]
     norm_num
   case refine_13 =>
-    intro t ht
+    intro t ht i
     norm_num
   case refine_14 => norm_num
   case refine_15 => norm_num

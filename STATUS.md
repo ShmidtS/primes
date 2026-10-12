@@ -1022,6 +1022,12 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
   структуры предпосылок теперь имеют свидетели:
   Trunc (R336), CertifiedHAGI, CoupledHAGI (R337),
   CorePremises, HAGICert. Аксиомы чистые. Freeze 2191.
+- R338 (аудит v3 §2.4/Фаза 5): HAGICert обобщён с Fin 1 на
+  произвольное семейство доменов Fin I:
+  hrisk теперь ∀ i, заключение hagi_synthesis — ∀ i
+  (per-domain суммарная гарантия). hagi_horizon_bound и
+  hagicert_nonvacuous — параметризованы. Аксиомы чистые.
+  Freeze 2191.
 - Открыто из аудита: R292 (GrowthState ModelState/
   StageCertificate-разделение — многоходовый),
   unusedHypotheses-включение, Nonvacuity-параметрические

@@ -48,7 +48,7 @@ GrowCertificate	5604c7b7d1f91c94
 GrowthDynamics	ae1dc0800dae902d
 GrowthState	12ae99d9728abde5
 H	712b43279cc00af0
-HAGICert	ab95b01980bdfd12
+HAGICert	b19ca190cb181b91
 HC	3bc93c019cdbf398
 History	c2b5c52da3f1d0b7
 InjectionLaw	e6f7a940b324168e
@@ -904,8 +904,8 @@ hagiPotential	9b2da52a794089c3
 hagiPotential	9d53f2b61739bcad
 hagiPotential_penalty_drop	42856caa5cc1a8cd
 hagi_gen_floor	6e713ee05caa47a7
-hagi_horizon_bound	6f1252286ada5e23
-hagi_synthesis	f7cfee0b2723c5a6
+hagi_horizon_bound	9117eb42a5bf845d
+hagi_synthesis	58b84742177dfdb6
 hagicert_nonvacuous	10e22c7cf9f18801
 half_log_cosh_le	02238dc05779219b
 half_pow_anti	c7b359ed775e5725

@@ -88,9 +88,9 @@ theorem pl_gap_lower_trunc (C : ℕ → ℝ) (Cstar σ : ℝ) (T : ℕ)
 дрейф. Все посылки квантифицированы только по
 `t < T`; выполнимость — пока
 `C0 * (1 + gamma * k) ^ T ≤ Cstar` (см. `band_witness`). -/
-structure HAGICert (S : ℕ → GrowthState Xs)
+structure HAGICert {I : ℕ} (S : ℕ → GrowthState Xs)
     (g : ℕ → ℝ)
-    (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
+    (risk : ℕ → Fin I → ℝ) (best : Fin I → ℝ) (r : ℕ → ℝ)
     (γ ρ k ξ ηT Cstar σ ε0 ρe R : ℝ) (T : ℕ) where
   hCpos : ∀ t ∈ Finset.range (T + 1), 0 < (S t).capability
   hstep : ∀ t ∈ Finset.range T, (S (t + 1)).capability
@@ -111,8 +111,8 @@ structure HAGICert (S : ℕ → GrowthState Xs)
   hσ0 : 0 < σ
   hσ1 : σ ≤ 1
   hC0 : (S 0).capability ≤ Cstar
-  hrisk : ∀ t ∈ Finset.range T,
-    risk t (0 : Fin 1) ≤ best (0 : Fin 1) + r t + ε0 * ρe ^ t
+  hrisk : ∀ t ∈ Finset.range T, ∀ i : Fin I,
+    risk t i ≤ best i + r t + ε0 * ρe ^ t
   hregret : ∑ t ∈ Finset.range T, r t ≤ R
   hε0 : 0 ≤ ε0
   hρe : 0 ≤ ρe
@@ -121,9 +121,9 @@ structure HAGICert (S : ℕ → GrowthState Xs)
 /-- При сертификате `HAGICert` на горизонте `T` одновременно:
 `C0 * (1 + γk) ^ T ≤ C_T ≤ Cstar − (1−σ)^T · (Cstar − C0)`
 и `Σ risk ≤ T * best + R + ε0 / (1 − ρe)`. -/
-theorem hagi_synthesis (S : ℕ → GrowthState Xs)
+theorem hagi_synthesis {I : ℕ} (S : ℕ → GrowthState Xs)
     (g : ℕ → ℝ)
-    (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
+    (risk : ℕ → Fin I → ℝ) (best : Fin I → ℝ) (r : ℕ → ℝ)
     (γ ρ k ξ ηT Cstar σ ε0 ρe R : ℝ) (T : ℕ)
     (hγ : 0 < γ) (hk : 0 < k)
     (cert : HAGICert S g risk best r
@@ -131,8 +131,8 @@ theorem hagi_synthesis (S : ℕ → GrowthState Xs)
     ((S 0).capability * (1 + γ * k) ^ T ≤ (S T).capability
       ∧ (S T).capability
         ≤ Cstar - (1 - σ) ^ T * (Cstar - (S 0).capability))
-    ∧ (∑ t ∈ Finset.range T, risk t (0 : Fin 1)
-      ≤ T * best (0 : Fin 1) + R + ε0 / (1 - ρe)) := by
+    ∧ ∀ i : Fin I, ∑ t ∈ Finset.range T, risk t i
+      ≤ T * best i + R + ε0 / (1 - ρe) := by
   obtain ⟨hCpos, hstep, hop, hsuff, hrhogk, hcone0, hpl_up,
     hpl_lo, hCstar, hσ0, hσ1, hC0, hrisk, hregret, hε0,
     hρe, hρe1⟩ := cert
@@ -160,8 +160,9 @@ theorem hagi_synthesis (S : ℕ → GrowthState Xs)
     · have hband := pl_gap_lower_trunc
         (fun t => (S t).capability) Cstar σ T hσ1 hpl_up
       linarith
-  · exact universality_longhorizon risk best r (0 : Fin 1) R ε0 ρe
-      hrisk hregret hε0 hρe hρe1
+  · intro i
+    exact universality_longhorizon risk best r i R ε0 ρe
+      (fun t ht => hrisk t ht i) hregret hε0 hρe hρe1
 
 /-- The powers of 1/2 stay in [0,1]. -/
 theorem half_pow_bounds (t : ℕ) :
@@ -386,9 +387,9 @@ cert_horizon_bound даёт логарифмическую
 оценку совместимости взлёта и
 насыщения напрямую для capability-поля
 состояний. -/
-theorem hagi_horizon_bound (S : ℕ → GrowthState Xs)
+theorem hagi_horizon_bound {I : ℕ} (S : ℕ → GrowthState Xs)
     (g : ℕ → ℝ)
-    (risk : ℕ → Fin 1 → ℝ) (best : Fin 1 → ℝ) (r : ℕ → ℝ)
+    (risk : ℕ → Fin I → ℝ) (best : Fin I → ℝ) (r : ℕ → ℝ)
     (γ ρ k ξ ηT Cstar σ ε0 ρe R : ℝ) (T : ℕ)
     (hγ : 0 < γ) (hk : 0 < k)
     (cert : HAGICert S g risk best r
