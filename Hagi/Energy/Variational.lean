@@ -156,46 +156,11 @@ theorem free_energy_variational (q p U : V → ℝ)
   have hZpos : 0 < ∑ w, p w * Real.exp (U w) :=
     Finset.sum_pos (fun w _ => mul_pos (hp w) (Real.exp_pos _))
       Finset.univ_nonempty
-  have hklT : 0 ≤ kldiv' (V := V) q (tilted (V := V) p U) := by
-    -- the kl_nonneg route (log-bound per term, sums cancel)
-    have htsum : ∑ v, tilted (V := V) p U v = 1 :=
-      tilted_sum_one p U hp hp1
-    have htpos : ∀ v, 0 < tilted (V := V) p U v :=
-      tilted_pos p U hp
-    have hterm : ∀ v : V,
-        q v - tilted (V := V) p U v
-          ≤ q v * Real.log (q v / tilted (V := V) p U v) := by
-      intro v
-      have h1 : Real.log (tilted (V := V) p U v / q v)
-          ≤ tilted (V := V) p U v / q v - 1 :=
-        Real.log_le_sub_one_of_pos (div_pos (htpos v) (hq v))
-      have h2 : Real.log (tilted (V := V) p U v / q v)
-          = -Real.log (q v / tilted (V := V) p U v) := by
-        rw [Real.log_div (ne_of_gt (htpos v)) (ne_of_gt (hq v)),
-            Real.log_div (ne_of_gt (hq v)) (ne_of_gt (htpos v))]
-        ring
-      rw [h2] at h1
-      have h3 : q v * (-(Real.log (q v / tilted (V := V) p U v)))
-          ≤ q v * (tilted (V := V) p U v / q v - 1) :=
-        mul_le_mul_of_nonneg_left h1 (le_of_lt (hq v))
-      have h4 : tilted (V := V) p U v / q v - 1
-          = (tilted (V := V) p U v - q v) / q v := by
-        field_simp [(ne_of_gt (hq v))]
-      rw [h4] at h3
-      have h5 : q v * ((tilted (V := V) p U v - q v) / q v)
-          = tilted (V := V) p U v - q v := by
-        field_simp [(ne_of_gt (hq v))]
-      rw [h5, mul_neg] at h3
-      linarith
-    -- sum: Σ(t − q) ≤ Σ q·log(q/t); Σt = 1, Σq = 1 → 0 ≤ KL
-    have hsum : ∑ v, (q v - tilted (V := V) p U v)
-        ≤ ∑ v, q v * Real.log (q v / tilted (V := V) p U v) :=
-      Finset.sum_le_sum fun v _ => hterm v
-    have hsplit : ∑ v, (q v - tilted (V := V) p U v)
-        = (∑ v, q v) - ∑ v, tilted (V := V) p U v := by
-      rw [← Finset.sum_sub_distrib]
-    rw [hsplit, hq1, htsum, sub_self] at hsum
-    exact hsum
+  have hklT : 0 ≤ kldiv' (V := V) q (tilted (V := V) p U) :=
+    -- R334: delegates to the canon Hagi.Prelude.kl_nonneg
+    -- (kldiv' IS klDef by rfl)
+    Hagi.Prelude.kl_nonneg q (tilted (V := V) p U)
+      hq (tilted_pos p U hp) hq1 (tilted_sum_one p U hp hp1)
   -- the finish: from KL(q‖p̃) = KL(q‖p) − E_q[U] + log Z ≥ 0
   --            ⟹ E_q[U] − KL(q‖p) ≤ log Z
   have hZ := hdecomp

@@ -1031,6 +1031,7 @@ kl_eq_ce_gap	3459348c4fb5b68e
 kl_excess_cross_entropy	6074f177927f1aab
 kl_half_steps	acb8878c34fa4b29
 kl_le_log_card	9f8b64cba3423e86
+kl_nonneg	20d9ca4875d99163
 kl_nonneg	f15c1dd6878ae46b
 kl_product	75c6b692f7ff42b1
 kl_tilted_decompose	0ce7f4904c437b46

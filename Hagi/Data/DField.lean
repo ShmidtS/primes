@@ -133,36 +133,13 @@ set_option linter.unusedDecidableInType false in
 /-- **KL ≥ 0 with the equality condition** (the per-term log
 bound `log x ≤ x − 1` and its strictness). The D-field's
 building block: a weighted KL between two probability vectors
-is nonneg, and zero iff the vectors coincide. -/
+is nonneg, and zero iff the vectors coincide. Nonnegativity
+delegates to the canon `Hagi.Prelude.kl_nonneg` (R334). -/
 theorem kl_nonneg (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
     (hsump : ∑ v, p v = 1) (hsumq : ∑ v, q v = 1) :
-    0 ≤ KLdiv p q := by
-  have hterm : ∀ v : V, p v - q v ≤ p v * Real.log (p v / q v) := by
-    intro v
-    have h1 : Real.log (q v / p v) ≤ q v / p v - 1 :=
-      Real.log_le_sub_one_of_pos (div_pos (hq v) (hp v))
-    have h2 : Real.log (q v / p v) = -Real.log (p v / q v) := by
-      rw [Real.log_div (ne_of_gt (hq v)) (ne_of_gt (hp v)),
-          Real.log_div (ne_of_gt (hp v)) (ne_of_gt (hq v))]
-      ring
-    rw [h2] at h1
-    have h3 : p v * (-(Real.log (p v / q v))) ≤ p v * (q v / p v - 1) :=
-      mul_le_mul_of_nonneg_left h1 (le_of_lt (hp v))
-    have h4 : p v * (q v / p v - 1) = q v - p v := by
-      have hpv : p v ≠ 0 := ne_of_gt (hp v)
-      have h : q v / p v - 1 = (q v - p v) / p v := by
-        field_simp [hpv]
-      rw [h]
-      exact mul_div_cancel₀ (q v - p v) (ne_of_gt (hp v))
-    rw [h4, mul_neg] at h3
-    linarith
-  have hsum : ∑ v, (p v - q v) ≤ ∑ v, p v * Real.log (p v / q v) :=
-    Finset.sum_le_sum fun v _ => hterm v
-  unfold KLdiv at hsum ⊢
-  rw [Finset.sum_sub_distrib, hsump, hsumq] at hsum
-  norm_num at hsum
-  exact hsum
+    0 ≤ KLdiv p q :=
+  Hagi.Prelude.kl_nonneg p q hp hq hsump hsumq
 
 /-- The equality case of the per-term log bound: log x = x − 1
 forces x = 1 (the strict convexity of exp). -/
