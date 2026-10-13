@@ -297,4 +297,116 @@ theorem distill_quant_composite {E S delta c_seq : ℕ → ℝ}
     positivity
   linarith
 
+/-!
+### Continuous water-filling optimum (R378)
+
+The n-layer continuous water-filling optimum — the last open
+item of this module (He–Zhao–Zhou TWC 2013 geometric
+water-filling, plan §1.2): in the continuous relaxation
+(real-valued bit budgets), the ERROR-EQUALIZED allocation
+(all `c i / 2 ^ f i` equal) minimizes the total error among
+ALL allocations with the same total budget. The engine is
+Jensen for exp: Σ e^{y i} ≥ n e^{ȳ} — equalized y (hence
+equalized errors) attains the bound.
+-/
+
+theorem jensen_exp_sum_le {n : ℕ} (hn : 0 < n) (y : Fin n → ℝ) :
+    n * Real.exp ((Finset.univ.sum y) / n)
+      ≤ Finset.univ.sum (fun i => Real.exp (y i)) := by
+  have hj := convexOn_exp.map_sum_le
+    (t := Finset.univ) (w := fun _ : Fin n => (1:ℝ) / (n:ℝ)) (p := y)
+    (fun i _ => by positivity) (by
+      rw [← Finset.sum_div]
+      rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+        Nat.smul_one_eq_cast]
+      field_simp)
+    (fun i _ => Set.mem_univ _)
+  simp only [smul_eq_mul, mul_one_div] at hj
+  have hleft : (Finset.univ.sum y) / (n:ℝ)
+      = ∑ i, (1:ℝ)/(n:ℝ) * y i := by
+    rw [Finset.sum_div]
+    exact Finset.sum_congr rfl fun i _ => by
+      rw [mul_comm]
+      field_simp
+  rw [hleft]
+  have hmul : (n:ℝ) * ∑ i, (1:ℝ)/(n:ℝ) * Real.exp (y i)
+      = ∑ i, Real.exp (y i) := by
+    rw [← Finset.mul_sum, ← mul_assoc]
+    field_simp
+  calc (n:ℝ) * Real.exp (∑ i, (1:ℝ)/(n:ℝ) * y i)
+      ≤ (n:ℝ) * ∑ i, (1:ℝ)/(n:ℝ) * Real.exp (y i) :=
+        mul_le_mul_of_nonneg_left hj (by positivity)
+    _ = ∑ i, Real.exp (y i) := hmul
+
+noncomputable def totalErrorCont {n : ℕ} (c : Fin n → ℝ) (f : Fin n → ℝ) : ℝ :=
+  ∑ i, c i / 2 ^ (f i)
+
+theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
+    (hc : ∀ i, 0 < c i) (B : ℝ)
+    (f g : Fin n → ℝ)
+    (hsumf : ∑ i, f i = B) (hsumg : ∑ i, g i = B)
+    (halign : ∀ i j, c i / 2 ^ (f i) = c j / 2 ^ (f j)) :
+    totalErrorCont c f ≤ totalErrorCont c g := by
+  have hterm : ∀ (h : Fin n → ℝ) (i : Fin n),
+      c i / 2 ^ (h i)
+        = Real.exp (Real.log (c i) - h i * Real.log 2) := by
+    intro h i
+    rw [← Real.exp_log (div_pos (hc i)
+      (Real.rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) (h i)))]
+    congr 1
+    rw [Real.log_div (hc i).ne'
+      (Real.rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) (h i)).ne']
+    rw [Real.log_rpow (by norm_num : (0:ℝ) < 2) (h i)]
+  -- equal total log-sums
+  have hsumy : (∑ i, (Real.log (c i) - f i * Real.log 2))
+      = (∑ i, (Real.log (c i) - g i * Real.log 2)) := by
+    have hsub : (∑ i, (Real.log (c i) - f i * Real.log 2))
+        - (∑ i, (Real.log (c i) - g i * Real.log 2))
+        = ∑ i, ((Real.log (c i) - f i * Real.log 2)
+            - (Real.log (c i) - g i * Real.log 2)) :=
+      (Finset.sum_sub_distrib _ _).symm
+    have hzero : (∑ i, (Real.log (c i) - f i * Real.log 2))
+        - (∑ i, (Real.log (c i) - g i * Real.log 2)) = 0 := by
+      rw [hsub, Finset.sum_congr rfl (fun i _ =>
+        show (Real.log (c i) - f i * Real.log 2)
+            - (Real.log (c i) - g i * Real.log 2)
+          = (g i - f i) * Real.log 2 by ring),
+        ← Finset.sum_mul, Finset.sum_sub_distrib, hsumf, hsumg,
+        sub_self, zero_mul]
+    exact sub_eq_zero.mp hzero
+  -- Jensen for yg
+  have hj := jensen_exp_sum_le hn
+    (fun i => Real.log (c i) - g i * Real.log 2)
+  -- yf constant
+  have hconst : ∀ i : Fin n,
+      (Real.log (c i) - f i * Real.log 2)
+        = (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
+    intro i
+    have h1 : Real.exp (Real.log (c i) - f i * Real.log 2)
+        = Real.exp (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
+      rw [← hterm f i, ← hterm f ⟨0, hn⟩]
+      exact halign i ⟨0, hn⟩
+    exact Real.exp_injective h1
+  -- rewrite goal in exp-sums
+  unfold totalErrorCont
+  rw [Finset.sum_congr rfl (fun i _ => hterm f i),
+    Finset.sum_congr rfl (fun i _ => hterm g i)]
+  -- LHS = n * exp(Σyf/n) since yf const
+  have hsumc : (∑ i, (Real.log (c i) - f i * Real.log 2))
+      = n * (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
+    rw [Finset.sum_congr rfl (fun i _ => hconst i)]
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  have hnR : ((n:ℝ)) ≠ 0 := (Nat.cast_pos.2 hn).ne'
+  have hleft : ∑ i, Real.exp (Real.log (c i) - f i * Real.log 2)
+      = n * Real.exp ((∑ i, (Real.log (c i) - f i * Real.log 2)) / n) := by
+    rw [Finset.sum_congr rfl (fun i _ =>
+        show Real.exp (Real.log (c i) - f i * Real.log 2)
+          = Real.exp (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) from
+        congrArg Real.exp (hconst i))]
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    push_cast
+    rw [hsumc, mul_div_cancel_left₀ _ hnR]
+  rw [hleft, hsumy]
+  exact hj
+
 end Hagi.Budget

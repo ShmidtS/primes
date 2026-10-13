@@ -61,6 +61,13 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Budget/BitAlloc` (R378, план §1.2): n-слойный непрерывный
+  water-filling оптимум ЗАКРЫТ: `water_filling_inner_optimum`
+  — выровненное по ошибкам распределение (все c i/2^{f i}
+  равны) минимизирует totalErrorCont при том же бюджете;
+  движок `jensen_exp_sum_le` (Σ e^y ≥ n·e^{ȳ} через
+  convexOn_exp.map_sum_le). Опоры: He–Zhao–Zhou TWC 2013.
+  Остаток: b ≥ 0-граница (active set) — отдельный юнит.
 - `Information/Pinsker` (R377): `cmi_iteration` — финальная
   сборка bounded-CMI вертикали: средний swap-gap ≤ средняя
   стабильность + 2√(средний KL) (Коши–Шварца-concavity √);
