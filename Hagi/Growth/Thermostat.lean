@@ -116,3 +116,35 @@ theorem merge_gate_eventually (α T0 J θ : ℝ) (hα1 : 0 < α)
     mul_le_mul_of_nonneg_left (le_of_lt ht) (le_of_lt hθ)
   rwa [mul_div_cancel₀ _ hθ.ne'] at this
 
+open Filter in
+/-- **Единая фазовая точка (R407)**: ∃ N, ∀ t ≥ N:
+эксплорация остановлена (e^{−δ/T_t} ≤ θ, R388) ∧
+merge-гейт открыт (θ·T_t ≤ J, R389) — контроллер
+охлаждения сертифицированно достигает режима
+«консолидация»: одна точка переключения для всего T-контура
+(max двух горизонтов). -/
+theorem thermostat_phase_point (α T0 δ J θ : ℝ)
+    (hα1 : 0 < α) (hα2 : α < 1) (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hJ : 0 < J) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      Real.exp (-δ/(T0 * α ^ t)) ≤ θ
+        ∧ θ * (T0 * α ^ t) ≤ J := by
+  -- R388 stopping horizon
+  have hstop := thermostat_stop α T0 δ θ hα1 hα2 hT0 hδ hθ1 hθ2
+  -- R389 merge gate eventually: extract concrete bound
+  have hgate := merge_gate_eventually α T0 J θ hα1 hα2 hT0 hJ hθ1
+  rw [eventually_iff] at hgate
+  obtain ⟨N2, hN2⟩ := mem_atTop_sets.mp hgate
+  -- take N = max of the two bounds
+  set N : ℕ := max (Nat.ceil (Real.log (δ/(T0 * Real.log (1/θ)))
+      / Real.log α)) N2 with hNdef
+  refine ⟨N, fun t ht => ?_⟩
+  have hmax1 : ((Nat.ceil (Real.log (δ/(T0 * Real.log (1/θ)))
+      / Real.log α)) : ℝ) ≤ ((N : ℕ) : ℝ) := by
+    rw [hNdef]
+    exact_mod_cast Nat.le_max_left _ _
+  have hmax2 : ((N2 : ℕ) : ℝ) ≤ ((N : ℕ) : ℝ) := by
+    rw [hNdef]
+    exact_mod_cast Nat.le_max_right _ _
+  exact ⟨hstop t (hmax1.trans ht), hN2 t (Nat.cast_le.mp (hmax2.trans ht))⟩
+
