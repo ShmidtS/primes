@@ -944,10 +944,42 @@ theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
         rw [Finset.sum_const, Finset.card_univ]
         norm_num
 
+/-! ### Probabilistic method (R402): если |K|·e^{−2ε²/(b−a)²} < 1,
+то существует "хорошая точка" v: ∀ k, d k v < ε.
+От противного: если каждая точка проигрывает какому-то k,
+плохое множество покрывает всю вероятностную массу (1), но
+union bound (R384) даёт ≤ |K|·c < 1. Первое применение
+uniform-convergence конвейера к existential-утверждению. -/
+variable {K : Type*} [Fintype K]
+
+theorem uniform_good_point {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε)
+    (hsmall : (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+      < 1) :
+    ∃ v : V, ∀ k : K, d k v < ε := by
+  by_contra hcon
+  push_neg at hcon
+  -- the bad filter is everything
+  have hsub : (Finset.univ : Finset V)
+      ⊆ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v) :=
+    fun v _ => Finset.mem_filter.mpr ⟨Finset.mem_univ v, hcon v⟩
+  -- mass of bad set = 1 (weights nonneg, univ covered)
+  have h1le : (1:ℝ) ≤ ∑ v ∈ Finset.univ.filter
+      (fun v => ∃ k, ε ≤ d k v), w v := by
+    rw [← hw1]
+    exact Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun v _ _ => le_of_lt (hw v))
+  -- R384: mass of the bad set
+  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  linarith
+
 end HoeffdingFin
 
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail uniform_good_point exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi

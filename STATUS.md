@@ -48,6 +48,11 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R402): `uniform_good_point` —
+  вероятностный метод: при |K|·e^{−2ε²/(b−a)²} < 1
+  существует v: ∀k d k v < ε (плохое множество покрыло бы
+  всю массу, но union bound даёт < 1) — первое
+  existential-применение uniform-convergence конвейера.
 - `Ensemble/Hoeffding` (R384): `hoeffding_union_tail` —
   union bound: Σ_{∃k: ε ≤ d k v} w v ≤ |K|·exp(−2ε²/(b−a)²)
   — равномерный хвост над конечным классом (finite-class
