@@ -1227,6 +1227,39 @@ theorem tolerance_calibration (b θ : ℝ) (hb : 0 < b) (hθ1 : 0 < θ)
   rw [hexp, Real.exp_neg (Real.log (1/θ)), Real.exp_log (by
     rw [lt_div_iff₀ hθ1]; linarith), one_div, inv_inv]
 
+/-! ### Калиброванная двусторонняя масса (R410): при
+ε = (b−a)√(ln(1/θ)/2) (R409-калибровка) масса точек,
+хороших для всего класса, ≥ 1 − 2|K|θ — финальное звено
+моста: охлаждение (θ) → ε-допуск → сертифицированная
+равномерная точность. -/
+theorem calibrated_two_sided_mass {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    1 - 2 * (Fintype.card K : ℝ) * θ
+      ≤ ∑ v ∈ Finset.univ.filter
+          (fun v => ∀ k, |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2)),
+          w v := by
+  -- R405 at calibrated eps
+  set ε : ℝ := (b - a) * Real.sqrt (Real.log (1/θ)/2) with hε
+  have hεpos : (0:ℝ) ≤ ε := by
+    have hR : (0:ℝ) ≤ b - a := by linarith
+    have hone : (1:ℝ) < 1/θ := by
+      rw [lt_div_iff₀ hθ1]
+      linarith
+    have hlog : (0:ℝ) ≤ Real.log (1/θ) :=
+      le_of_lt (Real.log_pos hone)
+    apply mul_nonneg
+    · exact hR
+    · exact Real.sqrt_nonneg _
+  have hR405 := two_sided_good_mass w d a b hw hw1 hlt hbd hc hεpos
+  -- rewrite the exp factor via R409
+  have hcal := tolerance_calibration (b - a) θ (by linarith) hθ1 hθ2
+  rw [hcal] at hR405
+  exact hR405
+
 end HoeffdingFin
 
 end Hagi.Ensemble
