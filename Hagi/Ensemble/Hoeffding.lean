@@ -1158,6 +1158,49 @@ theorem two_sided_good_mass {V K : Type*} [Fintype V]
   rw [hw1] at hsplit
   linarith
 
+/-! ### Нижняя граница класса (R406): если каждая точка
+проигрывает какому-то k (нет ε-хорошей точки), то
+|K| ≥ e^{2ε²/(b−a)²} — экспоненциальная нижняя оценка
+размера покрывающего класса (контрапозиция R402 в
+размерной форме: covering-number bound). -/
+theorem class_size_lower {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε)
+    (hcover : ∀ v : V, ∃ k : K, ε ≤ d k v) :
+    Real.exp (2 * ε ^ 2 / (b - a) ^ 2)
+      ≤ (Fintype.card K : ℝ) := by
+  -- R384 gives |K| * c >= 1
+  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  -- the bad filter covers everything: mass = 1
+  have hsub : (Finset.univ : Finset V)
+      ⊆ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v) :=
+    fun v _ => Finset.mem_filter.mpr ⟨Finset.mem_univ v, hcover v⟩
+  have h1le : (1:ℝ) ≤ ∑ v ∈ Finset.univ.filter
+      (fun v => ∃ k, ε ≤ d k v), w v := by
+    rw [← hw1]
+    exact Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun v _ _ => le_of_lt (hw v))
+  have hkey : (1:ℝ) ≤ (Fintype.card K : ℝ)
+      * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := h1le.trans hR384
+  -- divide: exp(2..) <= |K|
+  have hcpos : (0:ℝ) < Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) :=
+    exp_pos _
+  have : (1:ℝ) / Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+      ≤ (Fintype.card K : ℝ) := by
+    rw [div_le_iff₀ hcpos]
+    exact hkey
+  -- 1/e^{-t} = e^{t}
+  have hinv : (1:ℝ) / Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+      = Real.exp (2 * ε ^ 2 / (b - a) ^ 2) := by
+    rw [one_div]
+    field_simp
+    rw [← Real.exp_add]
+    have hz : -(2 * ε ^ 2 / (b - a) ^ 2) + 2 * ε ^ 2 / (b - a) ^ 2 = 0 := by ring
+    rw [hz, Real.exp_zero]
+  rwa [hinv] at this
+
 end HoeffdingFin
 
 end Hagi.Ensemble

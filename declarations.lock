@@ -356,6 +356,7 @@ chord_weighted	28c527a77087c2e8	6063a0d7244e0490
 chunked_sum_exact	4dc30dd1199e73b2	ed9e1fb435985af6
 clampInt4	8c3628f14090cd72	4d5be4ded3df1fcd
 clampInt4_error	b4166c397b32c001	38fb0ed8764b1902
+class_size_lower	40e4da5a619cc7b7	4ce3ea261c2fdb79
 closed_loop_takeoff	a4ec1156115693d9	07c8470f79d5d18f
 cmi_iteration	002583e0e6950c4a	f69bac7b0d24c43f
 coherenceFactor	bd5d6d8558cb7067	232dec94959be1ed
