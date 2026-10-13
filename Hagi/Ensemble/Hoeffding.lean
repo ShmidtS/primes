@@ -1124,6 +1124,40 @@ theorem two_sided_union_tail {V K : Type*} [Fintype V]
     _ = 2 * (Fintype.card K : ℝ)
         * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by ring
 
+/-! ### Двусторонняя масса хороших точек (R405): ≥
+1 − 2|K|e^{−2ε²/(b−a)²} — вероятностная форма
+двусторонней uniform convergence (R404 + filter-расщепление
+R403-паттерн). -/
+theorem two_sided_good_mass {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    1 - 2 * (Fintype.card K : ℝ)
+        * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+      ≤ ∑ v ∈ Finset.univ.filter (fun v => ∀ k, |d k v| < ε), w v := by
+  have hR404 := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
+  classical
+  have hsplit : ∑ v ∈ Finset.univ.filter (fun v => ∀ k, |d k v| < ε), w v
+      + ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|), w v
+      = ∑ v, w v := by
+    have hbad : (Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|) : Finset V)
+        = Finset.univ.filter (fun v => ¬(∀ k, |d k v| < ε)) := by
+      ext v
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      constructor
+      · rintro ⟨k, hk⟩ h
+        exact absurd (h k) (not_lt.2 hk)
+      · intro h
+        by_contra hcon
+        push_neg at hcon
+        exact h hcon
+    rw [hbad]
+    exact Finset.sum_filter_add_sum_filter_not Finset.univ
+      (fun v => ∀ k, |d k v| < ε) w
+  rw [hw1] at hsplit
+  linarith
+
 end HoeffdingFin
 
 end Hagi.Ensemble

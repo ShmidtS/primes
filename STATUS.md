@@ -48,6 +48,11 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R405):
+  `two_sided_good_mass` — двусторонняя масса хороших
+  точек ≥ 1 − 2|K|·e^{−2ε²/(b−a)²} (R404 + filter-расщеп-
+  ление): вероятностная форма двусторонней uniform
+  convergence.
 - `Ensemble/Hoeffding` (R404):
   `two_sided_union_tail` — двусторонняя граница: масса
   {∃k |d k v| ≥ ε} ≤ 2|K|e^{−2ε²/(b−a)²} (индикаторное
