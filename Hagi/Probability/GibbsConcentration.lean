@@ -470,3 +470,106 @@ theorem gibbs_expected_energy_tendsto {V : Type*} [Fintype V]
         Tendsto (fun _ : ℕ => E vstar) atTop (nhds (E vstar))).add hexp0)
     (fun n => hlower n) (fun n => hupper n)
 
+open Filter in
+open Filter in
+/-- **TV-идентификация (R395)**: (1/2)·∑|p_T(v) − δ_{v*}(v)|
+= 1 − share(T) — TV-расстояние Гиббс-меры до точечной массы
+минимизатора равно массе конкурентов. Вместе с R387:
+TV(p_{T_n}, δ_{v*}) → 0 — метрическое замыкание Гиббс-
+вертикали (охлаждение сходится в TV). -/
+theorem gibbs_tv_eq {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T) (vstar : V) :
+    (1/2) * ∑ v, |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+        - if v = vstar then (1:ℝ) else 0|
+      = 1 - Real.exp (-(E vstar)/T)
+        / (∑ v, Real.exp (-(E v)/T)) := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- split the sum: star + competitors
+  have hsplit : ∑ v, |Real.exp (-(E v)/T) / Z
+        - if v = vstar then (1:ℝ) else 0|
+      = ∑ v ∈ Finset.univ.erase vstar,
+            Real.exp (-(E v)/T) / Z
+        + |Real.exp (-(E vstar)/T) / Z - 1| := by
+    have hsum2 : ∑ v ∈ Finset.univ.erase vstar,
+        |Real.exp (-(E v)/T) / Z - if v = vstar then (1:ℝ) else 0|
+        + |Real.exp (-(E vstar)/T) / Z
+          - if vstar = vstar then (1:ℝ) else 0|
+        = ∑ v, |Real.exp (-(E v)/T) / Z
+          - if v = vstar then (1:ℝ) else 0| :=
+      Finset.sum_erase_add (Finset.univ : Finset V)
+        (fun v => |Real.exp (-(E v)/T) / Z
+          - if v = vstar then (1:ℝ) else 0|)
+        (Finset.mem_univ vstar)
+    rw [← hsum2]
+    have hstar : |Real.exp (-(E vstar)/T) / Z
+        - if vstar = vstar then (1:ℝ) else 0|
+        = |Real.exp (-(E vstar)/T) / Z - 1| := by
+      rw [if_pos rfl]
+    rw [hstar]
+    have hcong : ∑ v ∈ Finset.univ.erase vstar,
+        |Real.exp (-(E v)/T) / Z - if v = vstar then (1:ℝ) else 0|
+        = ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v)/T) / Z := by
+      refine Finset.sum_congr (f := fun v => |Real.exp (-(E v)/T) / Z
+          - if v = vstar then (1:ℝ) else 0|)
+        (g := fun v => Real.exp (-(E v)/T) / Z) rfl ?_
+      intro v hv
+      have hvne : v ≠ vstar := (Finset.mem_erase.mp hv).1
+      rw [if_neg hvne, sub_zero]
+      exact abs_of_nonneg (div_nonneg
+        (le_of_lt (exp_pos _)) (le_of_lt hZpos))
+    rw [hcong]
+  -- star abs = 1 - share
+  have hsharele : Real.exp (-(E vstar)/T) / Z ≤ 1 := by
+    have hge : Real.exp (-(E vstar)/T) ≤ Z :=
+      Finset.single_le_sum (f := fun v => Real.exp (-(E v)/T))
+        (fun v _ => le_of_lt (exp_pos _)) (Finset.mem_univ vstar)
+    rw [div_le_one hZpos]
+    exact hge
+  rw [hsplit, abs_of_nonpos (by nlinarith [hsharele])]
+  -- goal: 1/2 * ((share - 1) + Sum_erase w/Z) = 1 - share
+  have hsumerase : ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v)/T)
+      = Z - Real.exp (-(E vstar)/T) := by
+    have hsum : ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v)/T)
+        + Real.exp (-(E vstar)/T) = Z := by
+      rw [hZ]
+      exact Finset.sum_erase_add (Finset.univ : Finset V)
+        (fun v => Real.exp (-(E v)/T)) (Finset.mem_univ vstar)
+    linarith
+  rw [← Finset.sum_div, hsumerase]
+  field_simp
+  ring
+
+open Filter in
+/-- TV-следствие (R395): вдоль annealing-графика TV → 0. -/
+theorem gibbs_tv_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    Tendsto (fun n => (1/2) * ∑ v, |Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+        - if v = vstar then (1:ℝ) else 0|) atTop (nhds 0) := by
+  have hshare := gibbs_concentration_tendsto E δ hδ vstar hgap
+  have hkey : ∀ n, (1/2) * ∑ v, |Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+        - if v = vstar then (1:ℝ) else 0|
+      = 1 - Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))) :=
+    fun n => gibbs_tv_eq E (δ/((n+1 : ℕ) : ℝ))
+      (div_pos hδ (Nat.cast_pos.mpr n.succ_pos)) vstar
+  rw [show (fun n => (1/2) * ∑ v, |Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+        - if v = vstar then (1:ℝ) else 0|)
+      = fun n => (1:ℝ) - Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) from
+    funext hkey]
+  have hlim : Tendsto (fun n => (1:ℝ) - Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+      / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))) atTop (nhds 0) := by
+    have hstep := (tendsto_const_nhds :
+      Tendsto (fun _ : ℕ => (1:ℝ)) atTop (nhds (1:ℝ))).sub hshare
+    have hzero : (1:ℝ) - 1 = 0 := by ring
+    rw [hzero] at hstep
+    exact hstep
+  exact hlim

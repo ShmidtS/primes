@@ -82,6 +82,10 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R395): `gibbs_tv_eq`
+  + `gibbs_tv_tendsto` — метрическое замыкание: TV(p_T,
+  δ_{v*}) = 1 − share (идентификация) и TV → 0 вдоль
+  annealing-графика — охлаждение сходится в TV.
 - `Probability/GibbsConcentration` (R394):
   `gibbs_expected_energy_tendsto` — предел: ⟨E⟩_{T_n} → E*
   вдоль annealing-графика (squeeze: взвешенное среднее ≥
