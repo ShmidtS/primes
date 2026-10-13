@@ -339,4 +339,54 @@ theorem pinsker4_fin (q p f : V → ℝ)
     _ ≤ 2 * Real.sqrt (klDef q p) :=
         mul_le_mul_of_nonneg_left (Real.sqrt_le_sqrt hkl) (by norm_num)
 
+/-- **Generalization = stability + information** (R376, the
+sup-pair core of the Steinke–Zakynthinou CMI proof): for
+distributions `q, p` (the conditional hypothesis laws on the
+two selections of a sup-pair) and losses `f, g` (evaluated on
+the two points, both in [0,1]), the expected swap gap obeys
+
+  |E_q f − E_p g| ≤ E_q|f − g| + 2·√(KL(q‖p)):
+
+the first term is the algorithmic STABILITY of the loss under
+point swap, the second is the INFORMATION the hypothesis
+carries about the selection — exactly the decomposition the
+bounded-CMI theorem iterates over the sample. -/
+theorem gen_pair_bound (q p : V → ℝ) (f g : V → ℝ)
+    (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
+    (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1)
+    (hf : ∀ v, 0 ≤ f v ∧ f v ≤ 1) (hg : ∀ v, 0 ≤ g v ∧ g v ≤ 1) :
+    abs (∑ v, q v * f v - ∑ v, p v * g v)
+      ≤ ∑ v, q v * abs (f v - g v) + 2 * Real.sqrt (klDef q p) := by
+  -- decompose: x = (E_q f - E_q g) + (E_q g - E_p g)
+  have hsplit : ∑ v, q v * f v - ∑ v, p v * g v
+      = (∑ v, q v * (f v - g v)) + ((∑ v, q v * g v) - (∑ v, p v * g v)) := by
+    have h1 : ∑ v, q v * (f v - g v) = ∑ v, q v * f v - ∑ v, q v * g v := by
+      rw [Finset.sum_congr rfl (fun v _ => (mul_sub (q v) (f v) (g v))),
+        Finset.sum_sub_distrib]
+    rw [h1]
+    linarith
+  -- part 1: |E_q (f−g)| ≤ E_q |f−g|
+  have hpart1 : abs (∑ v, q v * (f v - g v))
+      ≤ ∑ v, q v * abs (f v - g v) := by
+    refine abs_le.mpr ⟨?_, ?_⟩
+    · have h1 : ∑ v, -(q v * abs (f v - g v)) ≤ ∑ v, q v * (f v - g v) := by
+        refine Finset.sum_le_sum fun v _ => ?_
+        rw [← mul_neg]
+        exact mul_le_mul_of_nonneg_left (neg_abs_le _) (hq v).le
+      rw [Finset.sum_neg_distrib] at h1
+      exact h1
+    · exact Finset.sum_le_sum fun v _ =>
+        mul_le_mul_of_nonneg_left (le_abs_self _) (hq v).le
+  -- part 2: |E_q g − E_p g| ≤ 2√KL
+  have hpart2 : abs (∑ v, q v * g v - ∑ v, p v * g v)
+      ≤ 2 * Real.sqrt (klDef q p) :=
+    Hagi.Information.pinsker4_fin q p g hq hp hsumq hsump hg
+  -- triangle assembly
+  have htr : abs ((∑ v, q v * (f v - g v)) + (∑ v, q v * g v - ∑ v, p v * g v))
+      ≤ abs (∑ v, q v * (f v - g v))
+        + abs (∑ v, q v * g v - ∑ v, p v * g v) :=
+    abs_add_le _ _
+  rw [hsplit]
+  exact le_trans htr (add_le_add hpart1 hpart2)
+
 end Hagi.Information
