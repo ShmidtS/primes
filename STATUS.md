@@ -71,6 +71,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R387):
+  `gibbs_concentration_tendsto` — предел охлаждения: вдоль
+  annealing-графика T_n = δ/(n+1) доля глобального минимума
+  → 1 (squeeze с exp(−(n+1)) → 0).
 - `Probability/GibbsConcentration` (R386):
   `gibbs_concentration` — термодинамический закон
   охлаждения: доля веса глобального минимума в мере Гиббса

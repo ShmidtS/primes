@@ -113,3 +113,77 @@ theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
     nlinarith [mul_self_nonneg Ce]
   exact hmono2.trans hmono1
 
+open Filter in
+/-- **Предел концентрации при охлаждении (R387)**: вдоль
+annealing-графика T_n = δ/(n+1) доля глобального минимума
+стремится к 1 — закон охлаждения в предельной форме.
+Маршрут: R386-оценка при T = T_n (показатель −δ/T_n = −(n+1)
+— точное сокращение через field_simp), share ≤ 1
+(`Finset.single_le_sum`), и двусторонний squeeze с
+exp(−(n+1)) → 0 (`Tendsto.add_atBot` + `Real.tendsto_exp_atBot`). -/
+theorem gibbs_concentration_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    Tendsto (fun n => Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))) atTop (nhds 1) := by
+  -- temperature schedule T_n = δ/(n+1) > 0
+  have hTnpos : ∀ n, (0:ℝ) < δ/((n+1 : ℕ) : ℝ) := fun n =>
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  have hδT : ∀ n, -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
+    intro n
+    field_simp
+  -- per-n bound from R386
+  have hbound : ∀ n, (1:ℝ)
+      - ((Finset.univ.erase vstar).card : ℝ) * Real.exp (-((n+1 : ℕ) : ℝ))
+      ≤ Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) := by
+    intro n
+    have hge := gibbs_concentration E δ vstar hgap _ (hTnpos n)
+    rw [hδT n] at hge
+    exact hge
+  -- share <= 1
+  have hle : ∀ n, Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) ≤ 1 := by
+    intro n
+    have hpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) :=
+      Finset.sum_pos (fun v _ => exp_pos _)
+        ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+    have hsingle := Finset.single_le_sum
+      (f := fun v => Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+      (fun v _ => le_of_lt (exp_pos _)) (Finset.mem_univ vstar)
+    rw [div_le_one hpos]
+    exact hsingle
+  -- exp(-(n+1)) -> 0
+  have hexp0 : Tendsto (fun n => Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds 0) := by
+    have hnat : Tendsto (fun n => -((n+1 : ℕ) : ℝ)) atTop atBot := by
+      have hbase : Tendsto (fun n => -((n:ℕ):ℝ)) atTop atBot :=
+        tendsto_neg_atTop_atBot.comp tendsto_natCast_atTop_atTop
+      have hstep : Tendsto (fun n => -(1:ℝ) + -((n:ℕ):ℝ)) atTop atBot :=
+        (tendsto_const_nhds : Tendsto (fun _ : ℕ => -(1:ℝ)) atTop
+          (nhds (-(1:ℝ)))).add_atBot hbase
+      have hconv : (fun n => -(1:ℝ) + -((n:ℕ):ℝ))
+          = fun n => -((n+1 : ℕ) : ℝ) := by
+        funext n
+        push_cast
+        ring
+      exact hconv ▸ hstep
+    exact Real.tendsto_exp_atBot.comp hnat
+  -- lower bound -> 1
+  have hlow : Tendsto (fun n => (1:ℝ)
+      - ((Finset.univ.erase vstar).card : ℝ) * Real.exp (-((n+1 : ℕ) : ℝ)))
+      atTop (nhds 1) := by
+    have hstep : Tendsto (fun n => (1:ℝ)
+        - ((Finset.univ.erase vstar).card : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))) atTop
+        (nhds (1 - ((Finset.univ.erase vstar).card : ℝ) * 0)) :=
+      (tendsto_const_nhds : Tendsto (fun _ : ℕ => (1:ℝ)) atTop (nhds (1:ℝ))).sub
+        ((tendsto_const_nhds : Tendsto (fun _ : ℕ => ((Finset.univ.erase vstar).card : ℝ))
+          atTop (nhds ((Finset.univ.erase vstar).card : ℝ))).mul hexp0)
+    have hlim : (1:ℝ) - ((Finset.univ.erase vstar).card : ℝ) * 0 = 1 := by ring
+    rw [hlim] at hstep
+    exact hstep
+  -- squeeze
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlow tendsto_const_nhds
+    (fun n => hbound n) (fun n => hle n)
+
