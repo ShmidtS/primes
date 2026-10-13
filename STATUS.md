@@ -61,6 +61,12 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Information/Pinsker` (R377): `cmi_iteration` — финальная
+  сборка bounded-CMI вертикали: средний swap-gap ≤ средняя
+  стабильность + 2√(средний KL) (Коши–Шварца-concavity √);
+  вместе R374–R377: полный конвейер Хёфдинг→Пинскер→
+  стабильность+информация→итерация = механизм теоремы
+  Steinke–Zakynthinou √(CMI/n).
 - `Information/Pinsker` (R376): `gen_pair_bound` —
   обобщение = стабильность + информация: |E_q f − E_p g| ≤
   E_q|f−g| + 2√(KL(q‖p)) (sup-парное ядро доказательства

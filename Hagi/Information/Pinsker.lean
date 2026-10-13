@@ -389,4 +389,75 @@ theorem gen_pair_bound (q p : V → ℝ) (f g : V → ℝ)
   rw [hsplit]
   exact le_trans htr (add_le_add hpart1 hpart2)
 
+/-- **CMI iteration** (R377, final assembly of the bounded-CMI
+route): given per-pair swap gaps `Δ i`, each bounded by its
+stability term plus information term
+(`Δ i ≤ stab i + 2√(KL i)` — the R376 sup-pair bound), the
+AVERAGE gap obeys the square-root rate:
+
+  (1/n)·Σ Δ i ≤ (1/n)·Σ stab i + 2·√((1/n)·Σ KL i).
+
+The information terms average via Cauchy–Schwarz concavity of
+√ — exactly the mechanism by which the Steinke–Zakynthinou
+theorem turns bounded CMI (the average KL) into the
+√(CMI/n) generalization rate. Together with R374–R376 this
+completes the CMI pipeline: Hoeffding (mgf) + Pinsker (KL/TV)
++ stability-information decomposition + this iteration. -/
+theorem cmi_iteration (n : ℕ) (hn : 0 < n) (stab KL Δ : Fin n → ℝ)
+    (hKL : ∀ i, 0 ≤ KL i) (hst : ∀ i, 0 ≤ stab i)
+    (hΔ : ∀ i, Δ i ≤ stab i + 2 * Real.sqrt (KL i)) :
+    (∑ i, Δ i) / n
+      ≤ (∑ i, stab i) / n + 2 * Real.sqrt ((∑ i, KL i) / n) := by
+  -- step 1: sum the per-pair bounds
+  have hsum : ∑ i, Δ i ≤ ∑ i, stab i + 2 * ∑ i, Real.sqrt (KL i) := by
+    calc ∑ i, Δ i
+        ≤ ∑ i, (stab i + 2 * Real.sqrt (KL i)) := Finset.sum_le_sum (fun i _ => hΔ i)
+      _ = ∑ i, stab i + ∑ i, 2 * Real.sqrt (KL i) :=
+          Finset.sum_add_distrib
+      _ = ∑ i, stab i + 2 * ∑ i, Real.sqrt (KL i) := by
+          rw [Finset.mul_sum]
+  -- step 2: Cauchy (Σ √KL)² ≤ n · ΣKL
+  have hcauchy : (∑ i, Real.sqrt (KL i)) ^ 2
+      ≤ (∑ i, KL i) * n := by
+    have hkey := Finset.sum_mul_sq_le_sq_mul_sq (Finset.univ)
+      (fun i => Real.sqrt (KL i)) (fun _ => 1)
+    simp only [mul_one, Real.sq_sqrt (hKL _), one_pow, pow_two,
+      Finset.sum_const, Fintype.card_fin, Nat.smul_one_eq_cast] at hkey
+    rw [Finset.card_univ, Fintype.card_fin] at hkey
+    rw [pow_two]
+    exact hkey
+  -- step 3: (Σ√)/n ≤ √(ΣKL/n)
+  have hn' : ((0:ℝ) < n) := by exact_mod_cast hn
+  have hsumsq : (0:ℝ) ≤ ∑ i, Real.sqrt (KL i) :=
+    Finset.sum_nonneg fun i _ => Real.sqrt_nonneg _
+  have hsumKL : (0:ℝ) ≤ ∑ i, KL i := Finset.sum_nonneg (fun i _ => hKL i)
+  have hstep3 : (∑ i, Real.sqrt (KL i)) / n
+      ≤ Real.sqrt ((∑ i, KL i) / n) := by
+    have hle : ((∑ i, Real.sqrt (KL i)) ^ 2) / n ^ 2
+        ≤ (∑ i, KL i) / n := by
+      have hnn : ((∑ i, KL i) / n) * n ^ 2 = (∑ i, KL i) * n := by
+        field_simp
+      rw [div_le_div_iff₀ (by nlinarith [hn'] : (0:ℝ) < n ^ 2) hn']
+      nlinarith [hcauchy, hnn, hn', sq_nonneg (n:ℝ)]
+
+    calc (∑ i, Real.sqrt (KL i)) / n
+        ≤ Real.sqrt (((∑ i, Real.sqrt (KL i)) / n) ^ 2) := by
+          refine (Real.sqrt_sq ?_).symm.le
+          exact div_nonneg hsumsq hn'.le
+      _ = Real.sqrt (((∑ i, Real.sqrt (KL i)) ^ 2) / n ^ 2) := by
+          rw [div_pow]
+      _ ≤ Real.sqrt ((∑ i, KL i) / n) := by
+          refine Real.sqrt_le_sqrt ?_
+          exact hle
+  -- step 4: assemble
+  have hd1 : (∑ i, Δ i) / n
+      ≤ ((∑ i, stab i) + 2 * ∑ i, Real.sqrt (KL i)) / n :=
+    (div_le_div_iff_of_pos_right hn').mpr hsum
+  have hd2 : ((∑ i, stab i) + 2 * ∑ i, Real.sqrt (KL i)) / n
+      = (∑ i, stab i) / n + 2 * ((∑ i, Real.sqrt (KL i)) / n) := by
+    rw [add_div, mul_div_assoc']
+  refine hd1.trans ?_
+  rw [hd2]
+  nlinarith [hstep3]
+
 end Hagi.Information

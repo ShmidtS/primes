@@ -357,6 +357,7 @@ chunked_sum_exact	4dc30dd1199e73b2	ed9e1fb435985af6
 clampInt4	8c3628f14090cd72	4d5be4ded3df1fcd
 clampInt4_error	b4166c397b32c001	38fb0ed8764b1902
 closed_loop_takeoff	a4ec1156115693d9	07c8470f79d5d18f
+cmi_iteration	002583e0e6950c4a	f69bac7b0d24c43f
 coherenceFactor	bd5d6d8558cb7067	232dec94959be1ed
 coherenceFactorRect	7dd4dfd0edd8f962	905660250a20643c
 coherenceFactorRect_bounds	4fb08a2ff86ee77a	c6a5632ef47bfffc
@@ -2134,6 +2135,7 @@ trust_region_nearest	135dcd8d10d2d1f5	b0cfc4117530ce93
 trust_region_proj_norm	44b80f39d563169b	9a039f6adf336e4b
 ttt_bibo	cf32ac7fb683921e	7ae91f1f8e7e2531
 ttt_chain_bounded	c1719ba53df2d6f6	dead678a52a7f83c
+turns	80777c005fb5c900	8097f219aad909e1
 tvDef	6a4960300ebcdc21	695c29e68a1dc18f
 tvDist	26440c44cbf348eb	0731d41ccabc78d0
 tvDist	b040d050bcfeb910	2ab111f80dd688e4
