@@ -71,6 +71,12 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R388): `thermostat_stop` —
+  термостат селектора: замкнутый горизонт остановки
+  N = ⌈ln(δ/(T₀·ln(1/θ)))/ln α⌉: при t ≥ N эксплорация
+  остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
+  T-контур: расписание T_t = T₀α^t управляет admission и
+  merge-гейтами; stopping-by-law вместо эвристики.
 - `Probability/GibbsConcentration` (R387):
   `gibbs_concentration_tendsto` — предел охлаждения: вдоль
   annealing-графика T_n = δ/(n+1) доля глобального минимума

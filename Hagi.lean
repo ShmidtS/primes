@@ -273,6 +273,7 @@ import Hagi.Step.LiveDeltaSafe
 import Hagi.Step.DeltaHistory
 import Hagi.Step.DeltaConsolidate
 import Hagi.Growth.MemoryController
+import Hagi.Growth.Thermostat
 import Hagi.Unified.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Runtime.LiveDeltaAudit
