@@ -315,3 +315,77 @@ theorem gibbs_excess_energy_bound {V : Type*} [Fintype V]
   have h1 : (0:ℝ) ≤ Real.exp (-(E v)/T) := le_of_lt (exp_pos _)
   exact mul_le_mul_of_nonneg_right (hΔ v) h1
 
+/-- **Капстоун охлаждения (R393)**: нормализованная
+ожидаемая энергия Гиббс-состояния
+
+  ⟨E⟩_T = (∑ E v·e^{−Ev/T})/Z ≤ E* + Δ·(n−1)·e^{−δ/T}
+
+— композиция R392 (избыточная энергия ≤ зазор × масса
+конкурентов) и R386 (масса конкурентов ≤ (n−1)e^{−δ/T}):
+при охлаждении T → 0 ожидаемая энергия экспоненциально
+прижимается к энергии основного состояния. Полный
+физический сертификат T-контура. -/
+theorem gibbs_expected_energy_bound {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (T : ℝ) (hT : 0 < T) (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    (∑ v, E v * Real.exp (-(E v)/T))
+      / (∑ v, Real.exp (-(E v)/T))
+      ≤ E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/T) := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  set wstar : ℝ := Real.exp (-(E vstar)/T) with hw
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- R386: share = wstar/Z >= 1 - C e
+  have hshare := gibbs_concentration E δ vstar hgap T hT
+  -- R392: excess
+  have hexcess := gibbs_excess_energy_bound E T hT vstar Δ hmin hΔ
+  -- decompose A = sum E v w = E* Z + sum (Ev-E*) w
+  have hA : ∑ v, E v * Real.exp (-(E v)/T)
+      = E vstar * Z + ∑ v, (E v - E vstar)
+          * Real.exp (-(E v)/T) := by
+    have hexp : ∀ v : V, E v * Real.exp (-(E v)/T)
+        = E vstar * Real.exp (-(E v)/T)
+          + (E v - E vstar) * Real.exp (-(E v)/T) := by
+      intro v
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => (hexp v))]
+    simp only [Finset.sum_add_distrib]
+    rw [← Finset.mul_sum]
+  rw [hA, add_div]
+  have hzcancel : E vstar * Z / Z = E vstar := by field_simp
+  rw [hzcancel]
+  -- chain: excess/Z <= Delta*(Z-wstar)/Z <= Delta*C*e
+  have hstep1 : (∑ v, (E v - E vstar) * Real.exp (-(E v)/T)) / Z
+      ≤ Δ * ((Z - wstar) / Z) := by
+    have hassoc : Δ * ((Z - wstar) / Z) = Δ * (Z - wstar) / Z := by ring
+    rw [hassoc, div_le_div_iff₀ hZpos hZpos, hZ, hw]
+    nlinarith [hexcess, hZpos]
+  -- share >= 1 - C e  =>  (Z - wstar)/Z <= C e
+  have hstep2 : (Z - wstar) / Z
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/T) := by
+    rw [div_le_iff₀ hZpos]
+    have hshare' : 1 - (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/T) ≤ wstar / Z := hshare
+    rw [le_div_iff₀ hZpos] at hshare'
+    nlinarith [hZpos]
+  -- combine
+  have hΔ0 : (0:ℝ) ≤ Δ := by
+    have := hΔ vstar
+    simp only [sub_self] at this
+    linarith
+  have hstep3 : Δ * ((Z - wstar) / Z)
+      ≤ Δ * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/T)) :=
+    mul_le_mul_of_nonneg_left hstep2 hΔ0
+  -- excess/Z <= Delta (Z-w)/Z: reassociate
+  have hfin : (∑ v, (E v - E vstar) * Real.exp (-(E v)/T)) / Z
+      ≤ Δ * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/T)) := hstep1.trans hstep3
+  linarith
+

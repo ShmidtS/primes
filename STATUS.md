@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R393):
+  `gibbs_expected_energy_bound` — капстоун: ⟨E⟩_T ≤ E* +
+  Δ·(n−1)·e^{−δ/T} (композиция R392 × R386): при охлаждении
+  ожидаемая энергия экспоненциально прижимается к
+  основному состоянию.
 - `Probability/GibbsConcentration` (R392):
   `gibbs_excess_energy_bound` — избыточная энергия
   Гиббс-состояния: Σ(E v − E*)·e^{−Ev/T} ≤ Δ·(Z − w_*) —
