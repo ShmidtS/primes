@@ -61,6 +61,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Step/NewtonPolar` (R379, план §2 Muon-two-level): ядро
+  Higham 1986 — Newton-polar итерация x ↦ (x+x⁻¹)/2 с ТОЧНО
+  квадратичной ошибкой x_{k+1}−1 = (x_k−1)²/(2x_k);
+  монотонная ветка x ≥ 1: |error| ≤ |x−1|²/2 (Byers–Xu
+  scaling держит в этой ветке).
 - `Budget/BitAlloc` (R378, план §1.2): n-слойный непрерывный
   water-filling оптимум ЗАКРЫТ: `water_filling_inner_optimum`
   — выровненное по ошибкам распределение (все c i/2^{f i}

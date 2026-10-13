@@ -281,6 +281,7 @@ import Hagi.Step.MDLObjective
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule
 import Hagi.Step.WeightDecay
+import Hagi.Step.NewtonPolar
 import Hagi.Step.MuonStableLR
 import Hagi.Step.FrobeniusLMO
 import Hagi.Step.PreconditionerDescent
