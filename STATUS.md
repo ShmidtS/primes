@@ -82,6 +82,10 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R398):
+  `free_energy_sharp_lower` — острая нижняя граница F(T) ≥
+  E* − T·ln(1+(n−1)e^{−δ/T}): зазор δ улучшает энтропийный
+  пол R390 до экспоненциально малой поправки при малых T.
 - `Probability/GibbsConcentration` (R397):
   `gibbs_tv_mutual_bound` — количественный Коши: TV(p_n,
   p_m) ≤ C·(e^{−(n+1)}+e^{−(m+1)}) — явная

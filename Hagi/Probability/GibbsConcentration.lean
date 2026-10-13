@@ -693,3 +693,98 @@ theorem gibbs_tv_mutual_bound {V : Type*} [Fintype V]
       sq_nonneg (((Finset.univ.erase vstar).card : ℕ) : ℝ)]
   exact htri.trans hcomb
 
+/-- **Острая нижняя граница свободной энергии (R398)**:
+F(T) = −T·ln Z ≥ E* − T·ln(1 + (n−1)·e^{−δ/T}) — при
+малых T зазор δ улучшает энтропийный пол T·ln|R390| до
+T·ln(1+(n−1)e^{−δ/T}) ≈ T(n−1)e^{−δ/T} — экспоненциально
+малая поправка. Маршрут: Z ≤ w*·(1+C·e^{−δ/T}) (per-v
+экспоненциальная оценка веса конкурентов) + log-монотонность. -/
+theorem free_energy_sharp_lower {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (T : ℝ) (hT : 0 < T) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    E vstar - T * Real.log (1
+        + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/T))
+      ≤ -T * Real.log (∑ v, Real.exp (-(E v)/T)) := by
+  set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  set wstar : ℝ := Real.exp (-(E vstar)/T) with hw
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- per-competitor weight bound
+  have hterm : ∀ v ∈ Finset.univ.erase vstar,
+      Real.exp (-(E v)/T) ≤ Real.exp (-δ/T) * wstar := by
+    intro v hv
+    have hvne : v ≠ vstar := (Finset.mem_erase.mp hv).1
+    have hE : E vstar + δ ≤ E v := hgap v hvne
+    have hmul : (E vstar + δ) * T ≤ E v * T :=
+      mul_le_mul_of_nonneg_right hE (le_of_lt hT)
+    have hkey : -(E v)/T ≤ -(E vstar + δ)/T := by
+      rw [div_le_div_iff₀ hT hT]
+      nlinarith [hmul]
+    have hexp : Real.exp (-(E v)/T)
+        ≤ Real.exp (-(E vstar + δ)/T) :=
+      Real.exp_le_exp.mpr hkey
+    have hsplit2 : Real.exp (-(E vstar + δ)/T)
+        = Real.exp (-δ/T) * wstar := by
+      rw [← Real.exp_add]
+      congr 1
+      field_simp
+      ring
+    rw [← hsplit2]
+    exact hexp
+  -- sum: Z <= wstar * (1 + C e)
+  have hsum : Z ≤ wstar * (1 + C * Real.exp (-δ/T)) := by
+    have hsumE : ∑ v ∈ Finset.univ.erase vstar,
+        Real.exp (-(E v)/T) ≤ C * Real.exp (-δ/T) * wstar := by
+      calc ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v)/T)
+          ≤ ∑ v ∈ Finset.univ.erase vstar,
+              Real.exp (-δ/T) * wstar :=
+            Finset.sum_le_sum hterm
+        _ = (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * (Real.exp (-δ/T) * wstar) := by
+            rw [Finset.sum_const]
+            norm_num
+        _ = C * Real.exp (-δ/T) * wstar := by
+            rw [hC]
+            ring
+    rw [hZ, hw]
+    calc ∑ v, Real.exp (-(E v)/T)
+        = ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v)/T)
+          + Real.exp (-(E vstar)/T) := by
+          refine (Finset.sum_erase_add (Finset.univ : Finset V)
+            (fun v => Real.exp (-(E v)/T)) (Finset.mem_univ vstar)).symm
+      _ ≤ C * Real.exp (-δ/T) * wstar + Real.exp (-(E vstar)/T) :=
+          add_le_add_left hsumE _
+      _ = Real.exp (-(E vstar)/T) * (1 + C * Real.exp (-δ/T)) := by ring
+  -- logs
+  have hwpos : (0:ℝ) < wstar := exp_pos _
+  have hfactpos : (0:ℝ) < 1 + C * Real.exp (-δ/T) := by
+    have : (0:ℝ) ≤ C * Real.exp (-δ/T) :=
+      mul_nonneg (Nat.cast_nonneg _) (le_of_lt (exp_pos _))
+    linarith
+  have hlog : Real.log Z ≤ Real.log wstar
+      + Real.log (1 + C * Real.exp (-δ/T)) := by
+    have h1 : Real.log Z
+        ≤ Real.log (wstar * (1 + C * Real.exp (-δ/T))) :=
+      Real.log_le_log hZpos hsum
+    rw [Real.log_mul hwpos.ne' hfactpos.ne'] at h1
+    exact h1
+  -- final scaling by -T
+  have hstep : -T * (Real.log wstar
+      + Real.log (1 + C * Real.exp (-δ/T)))
+      ≤ -T * Real.log Z :=
+    mul_le_mul_of_nonpos_left hlog (by linarith)
+  have hlogw : Real.log wstar = -(E vstar)/T := by
+    rw [hw, Real.log_exp]
+  rw [hlogw] at hstep
+  have hcancel : -T * (-(E vstar)/T
+      + Real.log (1 + C * Real.exp (-δ/T)))
+      = E vstar - T * Real.log (1 + C * Real.exp (-δ/T)) := by
+    field_simp
+    ring
+  rw [hcancel] at hstep
+  exact hstep
+
