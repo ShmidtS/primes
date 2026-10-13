@@ -788,3 +788,194 @@ theorem free_energy_sharp_lower {V : Type*} [Fintype V]
   rw [hcancel] at hstep
   exact hstep
 
+open Filter in
+/-- **Предел свободной энергии (R399)**: вдоль
+annealing-графика F(T_n) = −T_n·ln Z_n → E* — свободная
+энергия прижимается к энергии основного состояния.
+Двусторонний squeeze: верхняя R390 (F ≤ E*), нижняя R398
+(F ≥ E* − T_n·ln(1+Ce^{−(n+1)})) с ошибкой ≤
+δ·C·e^{−(n+1)}/(n+1) → 0 (ln(1+x) ≤ x через
+`Real.add_one_le_exp`). Nernst-стиль: при T → 0 свободная
+энергия вырождается в основное состояние. -/
+theorem free_energy_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hmin : ∀ v, E vstar ≤ E v) :
+    Tendsto (fun n => -(δ/((n+1 : ℕ) : ℝ))
+        * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))))
+      atTop (nhds (E vstar)) := by
+  have hTnpos : ∀ n, (0:ℝ) < δ/((n+1 : ℕ) : ℝ) := fun n =>
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  have hδT : ∀ n, -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
+    intro n
+    field_simp
+  -- upper: F <= E* (R390 upper part with vstar)
+  have hupper : ∀ n, -(δ/((n+1 : ℕ) : ℝ))
+        * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+      ≤ E vstar := by
+    intro n
+    have hR390 := (free_energy_sandwich E (δ/((n+1 : ℕ) : ℝ))
+      (hTnpos n) vstar hmin).2
+    exact hR390
+  -- lower from R398
+  have hlower0 : ∀ n, E vstar - (δ/((n+1 : ℕ) : ℝ))
+        * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)))
+      ≤ -(δ/((n+1 : ℕ) : ℝ))
+        * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))) := by
+    intro n
+    have hR := free_energy_sharp_lower E δ (δ/((n+1 : ℕ) : ℝ))
+      (hTnpos n) vstar hgap
+    rw [hδT n] at hR
+    exact hR
+  -- error bound -> 0: T_n * ln(1+Ce) <= T_n * C * e <= delta*C/(n+1)
+  have hlnle : ∀ n, Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)))
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)) := by
+    intro n
+    have hx : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)) :=
+      mul_nonneg (Nat.cast_nonneg _) (le_of_lt (exp_pos _))
+    have h1 : 1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))
+        ≤ Real.exp ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))) := by
+      rw [add_comm]
+      exact Real.add_one_le_exp _
+    have h2 : Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)))
+        ≤ Real.log (Real.exp ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)))) :=
+      Real.log_le_log (by linarith) h1
+    rw [Real.log_exp] at h2
+    exact h2
+  -- squeeze delta*C/(n+1) -> 0
+  have hkey : Tendsto (fun n => (δ/((n+1 : ℕ) : ℝ))
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds 0) := by
+    have hle : ∀ n, (0:ℝ) ≤ (δ/((n+1 : ℕ) : ℝ))
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)) := by
+      intro n
+      have hcast : (0:ℝ) ≤ ((n+1 : ℕ) : ℝ) := Nat.cast_nonneg _
+      have hcard : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+        Nat.cast_nonneg _
+      have hexpm : (0:ℝ) ≤ Real.exp (-((n+1 : ℕ) : ℝ)) :=
+        le_of_lt (exp_pos _)
+      have hd0 : (0:ℝ) ≤ δ/((n+1 : ℕ) : ℝ) :=
+        div_nonneg (le_of_lt hδ) hcast
+      exact mul_nonneg (mul_nonneg hd0 hcard) hexpm
+    have hb : ∀ n, (δ/((n+1 : ℕ) : ℝ))
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ))
+      ≤ δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        / ((n+1 : ℕ) : ℝ) := by
+      intro n
+      have hexp1 : Real.exp (-((n+1 : ℕ) : ℝ)) ≤ 1 := by
+        have : (-((n+1 : ℕ) : ℝ)) ≤ 0 := by
+          have hcast : (0:ℝ) ≤ ((n+1 : ℕ) : ℝ) := Nat.cast_nonneg _
+          linarith
+        have h1 : Real.exp (-((n+1 : ℕ) : ℝ)) ≤ Real.exp (0:ℝ) :=
+          Real.exp_le_exp.mpr this
+        rw [Real.exp_zero] at h1
+        exact h1
+      calc (δ/((n+1 : ℕ) : ℝ))
+          * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))
+          ≤ (δ/((n+1 : ℕ) : ℝ))
+            * (((Finset.univ.erase vstar).card : ℕ) : ℝ) * 1 :=
+            mul_le_mul_of_nonneg_left hexp1 (by positivity)
+        _ = δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            / ((n+1 : ℕ) : ℝ) := by
+            rw [mul_one]
+            field_simp
+    have hinv : Tendsto (fun n => δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        / ((n+1 : ℕ) : ℝ)) atTop (nhds 0) := by
+      have hnat2 : Tendsto (fun n => ((n+1 : ℕ) : ℝ)) atTop atTop :=
+        tendsto_atTop_mono (fun n => by
+          have hcast : ((n:ℕ):ℝ) ≤ ((n+1 : ℕ) : ℝ) := by
+            push_cast
+            linarith
+          exact le_trans hcast (le_refl _))
+          tendsto_natCast_atTop_atTop
+      have hdiv := tendsto_inv_atTop_zero.comp hnat2
+      have hmul : Tendsto (fun n => (δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          * (((n+1 : ℕ) : ℝ))⁻¹) atTop (nhds (δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ) * 0)) :=
+        (tendsto_const_nhds : Tendsto
+          (fun _ : ℕ => δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          atTop (nhds (δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)))).mul hdiv
+      have hform : (fun n => (δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          * (((n+1 : ℕ) : ℝ))⁻¹)
+          = fun n => δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            / ((n+1 : ℕ) : ℝ) := by
+        funext n
+        rw [div_eq_inv_mul]
+        ring
+      rw [hform] at hmul
+      simpa using hmul
+    exact squeeze_zero hle hb hinv
+  -- err -> 0
+  have herr : Tendsto (fun n => (δ/((n+1 : ℕ) : ℝ))
+      * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)))) atTop (nhds 0) := by
+    have hge : ∀ n, (0:ℝ) ≤ (δ/((n+1 : ℕ) : ℝ))
+        * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))) := by
+      intro n
+      have hln : (0:ℝ) ≤ Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ))) := by
+        have hcard : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+          Nat.cast_nonneg _
+        have hexpm : (0:ℝ) ≤ Real.exp (-((n+1 : ℕ) : ℝ)) :=
+          le_of_lt (exp_pos _)
+        have hprod : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)) :=
+          mul_nonneg hcard hexpm
+        apply Real.log_nonneg
+        linarith
+      exact mul_nonneg (div_nonneg (le_of_lt hδ)
+        (Nat.cast_nonneg _)) hln
+    have hle : ∀ n, (δ/((n+1 : ℕ) : ℝ))
+        * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)))
+      ≤ (δ/((n+1 : ℕ) : ℝ))
+        * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ))) :=
+      fun n => by
+        have h1 : (δ/((n+1 : ℕ) : ℝ))
+            * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+              * Real.exp (-((n+1 : ℕ) : ℝ)))
+            ≤ (δ/((n+1 : ℕ) : ℝ))
+            * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+              * Real.exp (-((n+1 : ℕ) : ℝ))) :=
+          mul_le_mul_of_nonneg_left (hlnle n)
+            (div_nonneg (le_of_lt hδ)
+              (Nat.cast_nonneg (n+1)))
+        have h2 : ((δ/((n+1 : ℕ) : ℝ))
+            * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+              * Real.exp (-((n+1 : ℕ) : ℝ))))
+            = (δ/((n+1 : ℕ) : ℝ))
+            * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-((n+1 : ℕ) : ℝ)) := by ring
+        linarith
+    exact squeeze_zero hge hle (by simpa only [mul_assoc] using hkey)
+  -- final squeeze
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+    (g := fun n => E vstar - (δ/((n+1 : ℕ) : ℝ))
+      * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ))))
+    (f := fun n => -(δ/((n+1 : ℕ) : ℝ))
+        * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))))
+    (h := fun n => E vstar)
+    (show Tendsto (fun n => E vstar - (δ/((n+1 : ℕ) : ℝ))
+        * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)))) atTop (nhds (E vstar)) by
+      have hstep := (tendsto_const_nhds :
+        Tendsto (fun _ : ℕ => E vstar) atTop (nhds (E vstar))).sub herr
+      have hz : (E vstar : ℝ) - 0 = E vstar := by ring
+      simpa [hz] using hstep)
+    tendsto_const_nhds
+    (fun n => hlower0 n) (fun n => hupper n)
+

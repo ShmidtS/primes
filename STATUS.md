@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R399):
+  `free_energy_tendsto` — предел: F(T_n) → E* вдоль
+  annealing-графика (squeeze R390 × R398; ошибка ≤
+  δCe^{−n}/(n+1) → 0) — Nernst-стиль: свободная энергия
+  вырождается в основное состояние.
 - `Probability/GibbsConcentration` (R398):
   `free_energy_sharp_lower` — острая нижняя граница F(T) ≥
   E* − T·ln(1+(n−1)e^{−δ/T}): зазор δ улучшает энтропийный
