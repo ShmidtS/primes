@@ -93,3 +93,26 @@ theorem thermostat_stop (α T0 δ θ : ℝ) (hα1 : 0 < α)
     exact neg_le_neg hstep
   exact (Real.exp_le_exp.mpr hfinal).trans_eq (Real.exp_log hθ1)
 
+open Filter in
+/-- **Merge-гейт: фазовый переход неизбежен (R389)**: при
+охлаждении `T_t = T₀·α^t` любой положительный Jensen-зазор
+`J > 0` рано или поздно проходит гейт `J ≥ θ·T_t` —
+eventually-форма: слияние (конденсация листьев в корень)
+происходит ПО ЗАКОНУ охлаждения, а не по эвристике.
+Переиспользует `tendsto_pow_atTop_nhds_zero_of_lt_one`. -/
+theorem merge_gate_eventually (α T0 J θ : ℝ) (hα1 : 0 < α)
+    (hα2 : α < 1) (hT0 : 0 < T0) (hJ : 0 < J) (hθ : 0 < θ) :
+    ∀ᶠ t in atTop, θ * (T0 * α^t) ≤ J := by
+  have hpow : Tendsto (fun t => α^t) atTop (nhds 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one (le_of_lt hα1) hα2
+  have hmul : Tendsto (fun t => T0 * α^t) atTop (nhds (T0 * 0)) :=
+    hpow.const_mul T0
+  have hz : (T0:ℝ) * 0 = 0 := by ring
+  rw [hz] at hmul
+  have hev := hmul.eventually (gt_mem_nhds
+    (by positivity : (0:ℝ) < J / θ))
+  filter_upwards [hev] with t ht
+  have : θ * (T0 * α^t) ≤ θ * (J / θ) :=
+    mul_le_mul_of_nonneg_left (le_of_lt ht) (le_of_lt hθ)
+  rwa [mul_div_cancel₀ _ hθ.ne'] at this
+
