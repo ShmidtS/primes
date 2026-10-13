@@ -187,3 +187,62 @@ theorem gibbs_concentration_tendsto {V : Type*} [Fintype V]
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlow tendsto_const_nhds
     (fun n => hbound n) (fun n => hle n)
 
+/-- **Сэндвич свободной энергии (R390)**: F(T) = −T·ln Z
+зажат между `E* − T·ln|V|` (энтропийный пол: Z ≤ n·e^{−E*/T})
+и `E(v)` для любого v (вариационная верхняя: Z ≥ e^{−E(v)/T}
+через single-член). Ядро границ simulated annealing:
+F(0⁺) → E* с энтропийной ценой T·ln n — второй закон этой
+системы: описание не дешевле энтропии данных. -/
+theorem free_energy_sandwich {V : Type*} [Fintype V] [Nonempty V]
+    (E : V → ℝ) (T : ℝ) (hT : 0 < T) (vstar : V)
+    (hmin : ∀ v, E vstar ≤ E v) :
+    E vstar - T * Real.log (Fintype.card V : ℝ)
+      ≤ -T * Real.log (∑ v, Real.exp (-(E v)/T))
+      ∧ -T * Real.log (∑ v, Real.exp (-(E v)/T)) ≤ E vstar := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- upper bound: F <= E*
+  have hZge : Real.exp (-(E vstar)/T) ≤ Z :=
+    Finset.single_le_sum (f := fun v => Real.exp (-(E v)/T))
+      (fun v _ => le_of_lt (exp_pos _)) (Finset.mem_univ vstar)
+  have hlogge : Real.log (Real.exp (-(E vstar)/T)) ≤ Real.log Z :=
+    Real.log_le_log (exp_pos _) hZge
+  rw [Real.log_exp] at hlogge
+  have hupper : -T * Real.log Z ≤ E vstar := by
+    have hstep : -T * Real.log Z ≤ -T * (-(E vstar)/T) :=
+      mul_le_mul_of_nonpos_left hlogge (by linarith)
+    have hcancel : -T * (-(E vstar)/T) = E vstar := by
+      field_simp
+    rw [hcancel] at hstep
+    exact hstep
+  -- lower bound: F >= E* - T ln n
+  have hterm : ∀ v, Real.exp (-(E v)/T) ≤ Real.exp (-(E vstar)/T) :=
+    fun v => Real.exp_le_exp.mpr (by
+      rw [div_le_div_iff₀ hT hT]
+      nlinarith [hmin v])
+  have hZle : Z ≤ (Fintype.card V : ℝ) * Real.exp (-(E vstar)/T) := by
+    calc Z ≤ ∑ v : V, Real.exp (-(E vstar)/T) :=
+          Finset.sum_le_sum (fun v _ => hterm v)
+      _ = (Fintype.card V : ℝ) * Real.exp (-(E vstar)/T) := by
+          rw [Finset.sum_const]
+          norm_num
+  have hlogle : Real.log Z ≤ Real.log ((Fintype.card V : ℝ)
+      * Real.exp (-(E vstar)/T)) :=
+    Real.log_le_log hZpos hZle
+  rw [Real.log_mul (by exact_mod_cast Fintype.card_ne_zero (α := V)) (exp_pos _).ne'] at hlogle
+  rw [Real.log_exp] at hlogle
+  have hlower : E vstar - T * Real.log (Fintype.card V : ℝ)
+      ≤ -T * Real.log Z := by
+    have hstep : -T * (Real.log (Fintype.card V : ℝ) + -(E vstar)/T)
+        ≤ -T * Real.log Z :=
+      mul_le_mul_of_nonpos_left hlogle (by linarith)
+    have hcancel : -T * (Real.log (Fintype.card V : ℝ) + -(E vstar)/T)
+        = E vstar - T * Real.log (Fintype.card V : ℝ) := by
+      field_simp
+      ring
+    rw [hcancel] at hstep
+    exact hstep
+  exact ⟨hlower, hupper⟩
+

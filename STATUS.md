@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R390):
+  `free_energy_sandwich` — F(T) = −T·ln Z зажат между
+  E* − T·ln|V| и E(v): энтропийный пол + вариационная
+  верхняя — ядро границ simulated annealing (второй закон:
+  описание не дешевле энтропии данных).
 - `Probability/GibbsConcentration` (R387):
   `gibbs_concentration_tendsto` — предел охлаждения: вдоль
   annealing-графика T_n = δ/(n+1) доля глобального минимума
