@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R400):
+  `gibbs_entropy_tendsto_zero` — Нернст: S_n = (⟨E⟩−F)/T_n
+  → 0 — остаточная энтропия исчезает при охлаждении
+  (третий закон термодинамики HAGI; squeeze R393/R394 ×
+  R398 + (n+1)e^{−(n+1)} ≤ 2e^{−(n+1)/2}).
 - `Probability/GibbsConcentration` (R399):
   `free_energy_tendsto` — предел: F(T_n) → E* вдоль
   annealing-графика (squeeze R390 × R398; ошибка ≤
