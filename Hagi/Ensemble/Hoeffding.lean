@@ -32,6 +32,7 @@ criterion uses the exact ½·log cosh M bound.
 -/
 
 open Finset Real
+open scoped ENNReal NNReal
 
 namespace Hagi.Ensemble
 
@@ -687,8 +688,118 @@ theorem prune_certificate {k : Type} [Fintype k] [Nonempty k]
       - Hagi.ceOneHot t m ≤ delta ^ 2 / 4 :=
   ce_gap_bounded m d t delta hp hsum hdelta hclose
 
+section HoeffdingFin
+
+/-!
+### Hoeffding lemma, finite form (R374)
+
+The missing sharp `(b − a)²/8` half of the chord bound
+(recorded negative finding above): for a FINITE weighted
+ensemble `w` on `V` with values `d v ∈ [a, b]` and exact
+weighted mean `∑ w v * d v = 0`, the weighted exponential
+sum obeys the centered Hoeffding (sub-Gaussian) bound for
+every `t`:
+
+  ∑ v, w v * exp (t * d v) ≤ exp (t^2 * (b − a)^2 / 8).
+
+Bridged from the Mathlib measure-theoretic
+`hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero` via the
+`PMF.ofFintype` / `PMF.integral_eq_sum` machinery. This is
+the engine of the bounded-CMI ⟹ generalization route (plan
+§2, Steinke–Zakynthinou stage 1) and closes the twoGap ≤
+M²/8 gap factor by factor.
+-/
+
+variable {V : Type*} [Fintype V] [Nonempty V]
+
+/-- **Finite Hoeffding lemma**: for weights `w` (positive,
+summing to 1) and centered bounded values `d v ∈ [a, b]`
+(`∑ w v * d v = 0`), the weighted mgf is sub-Gaussian with
+the SHARP variance proxy `(b − a)²/4`:
+
+  ∑ v, w v * exp (t * d v) ≤ exp (t^2 * (b − a)^2 / 8). -/
+theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hab : a ≤ b) (hbd : ∀ v, d v ∈ Set.Icc a b)
+    (hc : ∑ v, w v * d v = 0) (t : ℝ) :
+    ∑ v, w v * Real.exp (t * d v)
+      ≤ Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := by
+  classical
+  letI mTop : MeasurableSpace V := ⊤
+  have hsing : ∀ (x : V), @MeasurableSet V mTop {x} :=
+    fun (x : V) => MeasurableSpace.measurableSet_top
+  haveI : MeasurableSingletonClass V := ⟨hsing⟩
+  have hq1 : ∑ v, ENNReal.ofReal (w v) = 1 := by
+    rw [← ENNReal.ofReal_sum_of_nonneg (s := Finset.univ) (f := w)
+      (by intro v _; exact le_of_lt (hw v))]
+    rw [hw1, ENNReal.ofReal_one]
+  set p : PMF V := PMF.ofFintype (fun v => ENNReal.ofReal (w v)) hq1 with hp
+  have hmeas : AEMeasurable d p.toMeasure := by
+    refine Measurable.aemeasurable ?_
+    intro s _
+    show @MeasurableSet V mTop (d ⁻¹' s)
+    exact MeasurableSpace.measurableSet_top
+  have hbae : ∀ᵐ v ∂(p.toMeasure), d v ∈ Set.Icc a b := by
+    filter_upwards with v
+    exact hbd v
+  have hint : (∫ v, d v ∂(p.toMeasure)) = 0 := by
+    have hconv : ∀ v : V, ((p v : ℝ≥0∞).toReal • d v : ℝ) = w v * d v := by
+      intro v
+      have h1v : ((p v : ℝ≥0∞).toReal : ℝ) = w v := by
+        simp only [hp, PMF.ofFintype_apply]
+        exact ENNReal.toReal_ofReal (le_of_lt (hw v))
+      rw [h1v]
+      exact smul_eq_mul _ _
+    calc (∫ v, d v ∂(p.toMeasure))
+        = ∑ v, (p v : ℝ≥0∞).toReal • d v := PMF.integral_eq_sum p d
+      _ = ∑ v, w v * d v :=
+          Finset.sum_congr rfl fun v _ => hconv v
+      _ = 0 := hc
+  have hsg := ProbabilityTheory.hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero
+    (X := d) (μ := p.toMeasure) (a := a) (b := b)
+    hmeas hbae hint
+  have hmgfeq : ProbabilityTheory.mgf d p.toMeasure t
+      = ∑ v, w v * Real.exp (t * d v) := by
+    have hconv2 : ∀ v : V,
+        ((p v : ℝ≥0∞).toReal • Real.exp (t * d v) : ℝ)
+          = w v * Real.exp (t * d v) := by
+      intro v
+      have h1v : ((p v : ℝ≥0∞).toReal : ℝ) = w v := by
+        simp only [hp, PMF.ofFintype_apply]
+        exact ENNReal.toReal_ofReal (le_of_lt (hw v))
+      rw [h1v]
+      exact smul_eq_mul _ _
+    calc (∫ v, Real.exp (t * d v) ∂(p.toMeasure))
+        = ∑ v, (p v : ℝ≥0∞).toReal • Real.exp (t * d v) :=
+          PMF.integral_eq_sum p _
+      _ = ∑ v, w v * Real.exp (t * d v) :=
+          Finset.sum_congr rfl fun v _ => hconv2 v
+  -- final assembly: mgf ≤ exp(σ²t²/2) with σ² = (b-a)²/4
+  have hle := hsg.mgf_le t
+  have hkey : Real.exp (((((‖(b - a : ℝ)‖₊ / 2) ^ 2 : ℝ≥0) : ℝ)) * t ^ 2 / 2)
+      = Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := by
+    have h1 : ((((‖(b - a : ℝ)‖₊ / 2) ^ 2 : ℝ≥0) : ℝ)) * t ^ 2 / 2
+        = t ^ 2 * (b - a) ^ 2 / 8 := by
+      simp only [NNReal.coe_pow, NNReal.coe_div _ _]
+      have hx : (↑(‖(b - a : ℝ)‖₊) : ℝ) = |b - a| := by
+        have hr : (‖(b - a : ℝ)‖₊) = Real.nnabs (b - a) := rfl
+        rw [hr]
+        exact Real.coe_nnabs (b - a)
+      rw [hx]
+      have habs : |b - a| * |b - a| = (b - a) * (b - a) :=
+        abs_mul_abs_self (b - a)
+      push_cast
+      nlinarith [habs]
+    rw [h1]
+  calc ∑ v, w v * Real.exp (t * d v)
+      = ProbabilityTheory.mgf d p.toMeasure t := hmgfeq.symm
+    _ ≤ Real.exp (((((‖(b - a : ℝ)‖₊ / 2) ^ 2 : ℝ≥0) : ℝ)) * t ^ 2 / 2) := hle
+    _ = Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := hkey
+
+end HoeffdingFin
+
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_fin exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi

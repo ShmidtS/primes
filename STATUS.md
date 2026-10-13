@@ -48,6 +48,14 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R374): `hoeffding_fin` — конечная
+  форма леммы Хёфдинга (missing half из negative finding):
+  веса w > 0 (∑ = 1), значения d v ∈ [a,b], центрированность
+  ∑ w·d = 0 ⟹ ∀ t: ∑ w v·e^{t·d v} ≤ e^{t²(b−a)²/8}.
+  Мост к Mathlib-мере через PMF.ofFintype +
+  PMF.integral_eq_sum — движок bounded-CMI ⟹ generalization
+  (Steinke–Zakynthinou этап-1) и фактор-за-фактором twoGap
+  ≤ M²/8.
 - `Step/WeightDecay` (R372, план §2): `wd_norm_bound` —
   обновление w(t+1) = (1−ηλ)w(t) − ηg(t) с ‖g‖ ≤ G держит
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
