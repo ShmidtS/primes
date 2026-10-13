@@ -573,3 +573,64 @@ theorem gibbs_tv_tendsto {V : Type*} [Fintype V]
     rw [hzero] at hstep
     exact hstep
   exact hlim
+/-- **TV-треугольник (R396)**: TV(p_T, p_S) ≤ (1 − share_T)
++ (1 − share_S) — взаимная сходимость: обе Гиббс-меры
+прижимаются к одной точечной массе, поэтому прижимаются
+друг к другу (Коши-свойство охлаждения). Поточечный
+треугольник через δ_{v*} (abs_add_le) + tv-идентификация
+R395. -/
+theorem gibbs_tv_mutual {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (T S : ℝ) (hT : 0 < T) (hS : 0 < S)
+    (vstar : V) :
+    (1/2) * ∑ v, |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+        - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))|
+      ≤ (1 - Real.exp (-(E vstar)/T) / (∑ v, Real.exp (-(E v)/T)))
+        + (1 - Real.exp (-(E vstar)/S) / (∑ v, Real.exp (-(E v)/S))) := by
+  -- pointwise triangle through the point mass
+  have htri : ∀ v : V,
+      |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+          - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))|
+      ≤ |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+          - if v = vstar then (1:ℝ) else 0|
+        + |(if v = vstar then (1:ℝ) else 0)
+          - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))| := by
+    intro v
+    have hsplit : Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+        - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))
+        = (Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+            - if v = vstar then (1:ℝ) else 0)
+          + ((if v = vstar then (1:ℝ) else 0)
+            - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))) := by ring
+    rw [hsplit]
+    exact abs_add_le _ _
+  -- sum up
+  have hsum : (1/2) * ∑ v, |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+        - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))|
+      ≤ (1/2) * ∑ v, (|Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+          - if v = vstar then (1:ℝ) else 0|
+        + |(if v = vstar then (1:ℝ) else 0)
+          - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))|) :=
+    mul_le_mul_of_nonneg_left
+      (Finset.sum_le_sum (fun v _ => htri v)) (by positivity)
+  refine hsum.trans ?_
+  rw [Finset.sum_add_distrib]
+  -- identify via gibbs_tv_eq (second with if-flip)
+  have heq1 := gibbs_tv_eq E T hT vstar
+  have hflip : ∀ v : V,
+      |(if v = vstar then (1:ℝ) else 0)
+        - Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))|
+      = |Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))
+        - if v = vstar then (1:ℝ) else 0| :=
+    fun v => abs_sub_comm _ _
+  rw [Finset.sum_congr rfl (fun v _ => hflip v)]
+  rw [← heq1]
+  have heq2 := gibbs_tv_eq E S hS vstar
+  rw [← heq2]
+  have hA : (0:ℝ) ≤ ∑ v, |Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+      - if v = vstar then (1:ℝ) else 0| :=
+    Finset.sum_nonneg (fun v _ => abs_nonneg _)
+  have hB : (0:ℝ) ≤ ∑ v, |Real.exp (-(E v)/S) / (∑ v, Real.exp (-(E v)/S))
+      - if v = vstar then (1:ℝ) else 0| :=
+    Finset.sum_nonneg (fun v _ => abs_nonneg _)
+  linarith
+
