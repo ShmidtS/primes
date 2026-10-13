@@ -409,4 +409,62 @@ theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
   rw [hleft, hsumy]
   exact hj
 
+/-- **Two-layer clamped water-filling corner** (R381): with
+the nonnegativity constraint `b ≥ 0`, when even the FULL
+budget on layer 2 leaves its error above layer 1's zero-bit
+error (`c₁ ≤ c₂/2^B` — equalization would need negative
+bits), the corner allocation `(0, B)` is optimal. The proof
+is the EXACT factorization
+`diff = (2^x − 1)·(c₂·2^x/2^B − c₁)/2^x ≥ 0`
+— no calculus. Together with `two_layer_equalize` (interior)
+this completes the 2-layer constrained water-filling optimum
+(active-set analysis for n = 2). -/
+theorem two_layer_clamped_corner (c1 c2 B x : ℝ)
+    (hc1 : 0 < c1) (hc2 : 0 < c2) (hB : 0 ≤ B) (hx0 : 0 ≤ x)
+    (hxB : x ≤ B) (hcorner : c1 ≤ c2 / (2:ℝ) ^ B) :
+    c1 + c2 / (2:ℝ) ^ B ≤ c1 / (2:ℝ) ^ x + c2 / (2:ℝ) ^ (B - x) := by
+  have h2pos : (0:ℝ) < (2:ℝ) ^ x := Real.rpow_pos_of_pos (by norm_num) x
+  have h2B : (0:ℝ) < (2:ℝ) ^ B := Real.rpow_pos_of_pos (by norm_num) B
+  have hadd : (2:ℝ) ^ x * (2:ℝ) ^ (B - x) = (2:ℝ) ^ B := by
+    rw [← Real.rpow_add (by norm_num : (0:ℝ) < 2)]
+    congr 1
+    ring
+  -- rewrite c2 / 2^(B-x) = (c2 / 2^B) * 2^x
+  have hsub : (2:ℝ) ^ (B - x) = (2:ℝ) ^ B / (2:ℝ) ^ x := by
+    rw [div_eq_inv_mul, ← Real.rpow_neg (by norm_num : (0:ℝ) ≤ 2) x,
+      ← Real.rpow_add (by norm_num : (0:ℝ) < 2)]
+    congr 1
+    ring
+  rw [hsub, div_div_eq_mul_div]
+  -- goal: c1/2^x + (c2 * 2^x)/2^B ≥ c1 + c2/2^B
+  -- exact factorization: diff = (u-1)*(b*u - a)/u
+  have hge1 : (1:ℝ) ≤ (2:ℝ) ^ x := by
+    exact Real.one_le_rpow (by norm_num) hx0
+  have hb : (0:ℝ) < c2 / (2:ℝ) ^ B := div_pos hc2 h2B
+  have hinner : c1 ≤ c2 * (2:ℝ) ^ x / (2:ℝ) ^ B := by
+    have hmono : c2 / (2:ℝ) ^ B
+        ≤ c2 / (2:ℝ) ^ B * (2:ℝ) ^ x :=
+      le_mul_of_one_le_right hb.le hge1
+    have hform : c2 / (2:ℝ) ^ B * (2:ℝ) ^ x
+        = c2 * (2:ℝ) ^ x / (2:ℝ) ^ B := by ring
+    rw [hform] at hmono
+    exact hcorner.trans hmono
+  have hu : (0:ℝ) < (2:ℝ) ^ x := h2pos
+  have hb : (0:ℝ) < c2 / (2:ℝ) ^ B := div_pos hc2 h2B
+  -- key inequality via exact identity
+  have hid : c1 / (2:ℝ) ^ x + c2 * (2:ℝ) ^ x / (2:ℝ) ^ B
+      - (c1 + c2 / (2:ℝ) ^ B)
+      = ((2:ℝ) ^ x - 1)
+          * (c2 * (2:ℝ) ^ x / (2:ℝ) ^ B - c1) / (2:ℝ) ^ x := by
+    field_simp
+    ring
+  have hprod : (0:ℝ) ≤ ((2:ℝ) ^ x - 1)
+      * (c2 * (2:ℝ) ^ x / (2:ℝ) ^ B - c1) / (2:ℝ) ^ x := by
+    have h1 : (0:ℝ) ≤ (2:ℝ) ^ x - 1 := by linarith
+    have h2 : (0:ℝ) ≤ c2 * (2:ℝ) ^ x / (2:ℝ) ^ B - c1 := by
+      rw [sub_nonneg]
+      exact hinner
+    exact div_nonneg (mul_nonneg h1 h2) (le_of_lt h2pos)
+  linarith
+
 end Hagi.Budget

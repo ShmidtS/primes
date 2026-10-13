@@ -71,6 +71,12 @@ same-folder DAG свободен.
   квадратичной ошибкой x_{k+1}−1 = (x_k−1)²/(2x_k);
   монотонная ветка x ≥ 1: |error| ≤ |x−1|²/2 (Byers–Xu
   scaling держит в этой ветке).
+- `Budget/BitAlloc` (R381): `two_layer_clamped_corner` —
+  ограниченный (b ≥ 0) 2-слойный water-filling: угловая
+  оптимальность (0, B) при c₁ ≤ c₂/2^B через ТОЧНУЮ
+  факторизацию (2^x−1)(c₂·2^x/2^B−c₁)/2^x ≥ 0 без calculus;
+  вместе с two_layer_equalize — полный 2-слойный
+  active-set оптимум.
 - `Budget/BitAlloc` (R378, план §1.2): n-слойный непрерывный
   water-filling оптимум ЗАКРЫТ: `water_filling_inner_optimum`
   — выровненное по ошибкам распределение (все c i/2^{f i}
