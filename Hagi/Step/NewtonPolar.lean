@@ -107,4 +107,56 @@ theorem newton_polar_convergence (x₀ : ℝ) (hx₀ : 1 ≤ x₀) (T : ℕ) :
           ≤ 2 * ((newtonStep x₀ - 1) / 2) ^ (2 ^ T) := hnext
         _ ≤ 2 * ((x₀ - 1) / 2) ^ (2 ^ (T + 1)) := hcomb
 
+/-!
+### Convergence (R382)
+
+Turning the R380 rate into an actual limit: for
+`1 ≤ x₀ < 3` the iterates converge to the polar factor 1.
+
+  newtonIter x₀ T ⟶ 1  (T → ∞)
+
+Proof: the majorant `2·r^{2^T}` with `r = (x₀−1)/2 < 1` is
+squeezed by `r^{2^T} ≤ r^T` (`T ≤ 2^T`, proved by induction)
+against `tendsto_pow_atTop_nhds_zero_of_lt_one`. -/
+open Filter in
+theorem newton_polar_tendsto_one (x₀ : ℝ) (hx₀ : 1 ≤ x₀)
+    (hx₃ : x₀ < 3) :
+    Tendsto (fun T => newtonIter x₀ T) atTop (nhds 1) := by
+  have hr0 : (0:ℝ) ≤ (x₀ - 1) / 2 := by positivity
+  have hr1 : (x₀ - 1) / 2 < 1 := by linarith
+  have hbdd : ∀ T, |newtonIter x₀ T - 1|
+      ≤ 2 * ((x₀ - 1) / 2) ^ ((2:ℕ) ^ T) :=
+    fun T => newton_polar_convergence x₀ hx₀ T
+  have hmono : ∀ T, ((x₀ - 1) / 2) ^ ((2:ℕ) ^ T)
+      ≤ ((x₀ - 1) / 2) ^ T := by
+    intro T
+    have h2 : T ≤ (2:ℕ) ^ T := by
+      induction T with
+      | zero => norm_num
+      | succ n ih =>
+        have hexp : (2:ℕ)^(n+1) = (2:ℕ)^n + (2:ℕ)^n := by
+          rw [pow_succ]; ring
+        have hpos : 0 < (2:ℕ)^n := pow_pos (by norm_num : (1:ℕ) ≤ 2) n
+        omega
+    exact pow_le_pow_of_le_one hr0 (le_of_lt hr1) h2
+  have hle : ∀ T, |newtonIter x₀ T - 1|
+      ≤ 2 * ((x₀ - 1) / 2) ^ T := fun T =>
+    (hbdd T).trans (by
+      exact mul_le_mul_of_nonneg_left (hmono T) (by norm_num : (0:ℝ) ≤ 2))
+  have hlim : Tendsto (fun T => 2 * ((x₀ - 1) / 2) ^ T)
+      atTop (nhds 0) := by
+    simpa using (tendsto_pow_atTop_nhds_zero_of_lt_one hr0 hr1).const_mul 2
+  -- two-sided squeeze: -g T <= e T <= g T
+  have hkey : Tendsto (fun T => newtonIter x₀ T - 1)
+      atTop (nhds 0) :=
+    tendsto_of_tendsto_of_tendsto_of_le_of_le
+      (g := fun T => -(2 * ((x₀ - 1) / 2) ^ T))
+      (f := fun T => newtonIter x₀ T - 1)
+      (h := fun T => 2 * ((x₀ - 1) / 2) ^ T)
+      (by simpa using hlim.neg) hlim (fun T => (abs_le.mp (hle T)).1)
+      (fun T => (abs_le.mp (hle T)).2)
+  have hgo : Tendsto (fun T => (1:ℝ) + (newtonIter x₀ T - 1))
+      atTop (nhds (1 + 0)) := hkey.const_add 1
+  simpa [add_sub_cancel] using hgo
+
 end Hagi.Step
