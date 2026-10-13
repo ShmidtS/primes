@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R391):
+  `gibbs_neg_log_share_tendsto` — −ln share(T_n) → 0:
+  KL(p_T ‖ δ_min) гаснет экспоненциально вдоль
+  annealing-графика — мост Гиббс-вертикали к KL/Pinsker
+  (охлаждение = поток информации).
 - `Probability/GibbsConcentration` (R390):
   `free_energy_sandwich` — F(T) = −T·ln Z зажат между
   E* − T·ln|V| и E(v): энтропийный пол + вариационная

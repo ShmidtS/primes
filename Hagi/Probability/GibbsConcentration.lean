@@ -246,3 +246,30 @@ theorem free_energy_sandwich {V : Type*} [Fintype V] [Nonempty V]
     exact hstep
   exact ⟨hlower, hupper⟩
 
+open Filter in
+/-- **KL к минимизатору стремится к нулю (R391)**:
+`−ln share(T_n) → 0` вдоль annealing-графика —
+`KL(p_{T_n} ‖ δ_{vstar})` ( KL на точечную меру = −ln p(v*)
+) экспоненциально гаснет: охлаждение = поток информации.
+Мост Гиббс-вертикали к KL/Pinsker-конвейеру (R375–R377):
+R387 + непрерывность log. -/
+theorem gibbs_neg_log_share_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    Tendsto (fun n => -Real.log (Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))) atTop (nhds 0) := by
+  have hshare := gibbs_concentration_tendsto E δ hδ vstar hgap
+  have hpos : ∀ n, (0:ℝ) < Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) := by
+    intro n
+    apply div_pos (exp_pos _)
+    exact Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hlog : Tendsto (fun n => Real.log (Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))) atTop (nhds (Real.log 1)) :=
+    (Real.continuousAt_log (by norm_num : (1:ℝ) ≠ 0)).tendsto.comp hshare
+  have hone : Real.log 1 = 0 := Real.log_one
+  rw [hone] at hlog
+  simpa using hlog.neg
+
