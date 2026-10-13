@@ -881,10 +881,73 @@ theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
   rw [hval, hR]
   exact le_of_eq (by ring)
 
+/-!
+### Union bound over a finite class (R384)
+
+Uniform tail over a finite class of centered bounded
+functions — the finite-class uniform convergence kernel:
+
+  ∑_{v : ∃ k, ε ≤ d k v} w v ≤ |K| · exp(−2ε²/(b−a)²).
+
+Route: pointwise indicator domination
+(`if ∃k … then w v else 0 ≤ ∑_k if ε ≤ d k v then w v else 0`
+via `Finset.single_le_sum`), then `Finset.sum_comm` and the
+per-k bound `hoeffding_tail` (R383). -/
+variable {K : Type*} [Fintype K]
+
+theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
+      ≤ Fintype.card K * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by
+  classical
+  set c := Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) with hcdef
+  -- per-k bound
+  have hper : ∀ k : K,
+      ∑ v ∈ Finset.univ.filter (fun v => ε ≤ d k v), w v ≤ c :=
+    fun k => hoeffding_tail w (d k) a b hw hw1 hlt (hbd k) (hc k) hε
+  -- pointwise indicator domination
+  have hpt : ∀ v : V, (if ∃ k, ε ≤ d k v then w v else 0)
+      ≤ ∑ k : K, (if ε ≤ d k v then w v else 0) := by
+    intro v
+    rcases Classical.em (∃ k, ε ≤ d k v) with ⟨k, hk⟩ | hv
+    · have hnn : ∀ k' ∈ (Finset.univ : Finset K),
+          (0:ℝ) ≤ if ε ≤ d k' v then w v else 0 := by
+        intro k' _
+        rcases Decidable.em (ε ≤ d k' v) with h | h
+        · rw [if_pos h]
+          exact le_of_lt (hw v)
+        · rw [if_neg h]
+      have hle := Finset.single_le_sum hnn (Finset.mem_univ k)
+      rw [if_pos hk] at hle
+      rw [if_pos ⟨k, hk⟩]
+      exact hle
+    · rw [if_neg hv]
+      apply Finset.sum_nonneg
+      intro k _
+      rcases Decidable.em (ε ≤ d k v) with h | h
+      · rw [if_pos h]
+        exact le_of_lt (hw v)
+      · rw [if_neg h]
+  calc ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
+      = ∑ v ∈ Finset.univ, (if ∃ k, ε ≤ d k v then w v else 0) :=
+        Finset.sum_filter (fun v => ∃ k, ε ≤ d k v) w
+    _ ≤ ∑ v ∈ Finset.univ, ∑ k : K, (if ε ≤ d k v then w v else 0) :=
+        Finset.sum_le_sum (fun v _ => hpt v)
+    _ = ∑ k : K, ∑ v ∈ Finset.univ, (if ε ≤ d k v then w v else 0) :=
+        Finset.sum_comm
+    _ = ∑ k : K, ∑ v ∈ Finset.univ.filter (fun v => ε ≤ d k v), w v :=
+        Finset.sum_congr rfl (fun k _ => (Finset.sum_filter (fun v => ε ≤ d k v) w).symm)
+    _ ≤ ∑ k : K, c := Finset.sum_le_sum (fun k _ => hper k)
+    _ = Fintype.card K * c := by
+        rw [Finset.sum_const, Finset.card_univ]
+        norm_num
+
 end HoeffdingFin
 
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (hoeffding_fin hoeffding_tail exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi

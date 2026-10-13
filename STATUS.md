@@ -48,6 +48,11 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R384): `hoeffding_union_tail` —
+  union bound: Σ_{∃k: ε ≤ d k v} w v ≤ |K|·exp(−2ε²/(b−a)²)
+  — равномерный хвост над конечным классом (finite-class
+  uniform convergence kernel): поточечная доминация
+  индикаторов + single_le_sum + per-k R383.
 - `Ensemble/Hoeffding` (R383): `hoeffding_tail` —
   Chernoff-хвост из MGF (hoeffding_fin): Σ_{d v ≥ ε} w v ≤
   exp(−2ε²/(b−a)²) при центрированном d; закрыт honest
