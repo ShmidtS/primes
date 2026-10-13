@@ -48,6 +48,11 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R383): `hoeffding_tail` —
+  Chernoff-хвост из MGF (hoeffding_fin): Σ_{d v ≥ ε} w v ≤
+  exp(−2ε²/(b−a)²) при центрированном d; закрыт honest
+  boundary файла («Hoeffding tail form not proven»).
+  t* = 4ε/(b−a)² — точная минимизация показателя.
 - `Ensemble/Hoeffding` (R374): `hoeffding_fin` — конечная
   форма леммы Хёфдинга (missing half из negative finding):
   веса w > 0 (∑ = 1), значения d v ∈ [a,b], центрированность

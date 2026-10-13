@@ -796,10 +796,95 @@ theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
     _ ≤ Real.exp (((((‖(b - a : ℝ)‖₊ / 2) ^ 2 : ℝ≥0) : ℝ)) * t ^ 2 / 2) := hle
     _ = Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := hkey
 
+/-!
+### The Hoeffding tail (R383) — closing the file's honest boundary
+
+From the MGF bound (`hoeffding_fin`) to the actual tail
+event probability via the Chernoff method: for centered
+`d` (mean zero under weights `w`), `d v ∈ [a, b]`,
+
+  ∑_{v : ε ≤ d v} w v  ≤  exp (−2ε²/(b−a)²),
+
+the classical Hoeffding tail. Route: on the up-set,
+`e^{tε} ≤ e^{t d v}` (t ≥ 0) gives
+`∑_s w ≤ e^{−tε}·Σ w e^{td} ≤ e^{t²(b−a)²/8 − tε}`,
+and the exponent is minimized exactly at `t = 4ε/(b−a)²`
+where it equals `−2ε²/(b−a)²`. -/
+theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ v, d v ∈ Set.Icc a b)
+    (hc : ∑ v, w v * d v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    Finset.sum (Finset.univ.filter (fun v => ε ≤ d v)) (fun v => w v)
+      ≤ Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by
+  classical
+  set s := Finset.univ.filter (fun v => ε ≤ d v) with hs
+  set R := (b - a) ^ 2 with hR
+  have hRpos : 0 < R := by
+    have : (b - a) ^ 2 > 0 := sq_pos_of_ne_zero (by linarith)
+    exact this
+  -- choose t = 4ε/R ≥ 0
+  set t : ℝ := 4 * ε / R with ht
+  have ht0 : 0 ≤ t := by rw [ht]; apply div_nonneg <;> positivity
+  -- step 1: on s, w v ≤ e^{-tε} · w v · e^{t d v}
+  have hkey : ∀ v ∈ s, w v ≤ Real.exp (-t * ε) * (w v * Real.exp (t * d v)) := by
+    intro v hv
+    have hde : ε ≤ d v := by simpa [hs] using hv
+    have hmul : t * ε ≤ t * d v := mul_le_mul_of_nonneg_left hde ht0
+    have h1 : Real.exp (t * ε) ≤ Real.exp (t * d v) :=
+      Real.exp_le_exp.mpr hmul
+    have hcollapse : Real.exp (-t * ε) * Real.exp (t * ε) = 1 := by
+      rw [← Real.exp_add]
+      norm_num
+    calc w v = Real.exp (-t * ε) * (Real.exp (t * ε) * w v) := by
+            rw [← mul_assoc, hcollapse, one_mul]
+      _ ≤ Real.exp (-t * ε) * (Real.exp (t * d v) * w v) :=
+        mul_le_mul_of_nonneg_left
+          (mul_le_mul h1 (le_refl _) (le_of_lt (hw v))
+            (Real.exp_nonneg _)) (Real.exp_nonneg _)
+      _ = Real.exp (-t * ε) * (w v * Real.exp (t * d v)) := by ring
+  -- step 2: sum over s
+  have hsum : Finset.sum s (fun v => w v)
+      ≤ Real.exp (-t * ε) * ∑ v, w v * Real.exp (t * d v) := by
+    calc Finset.sum s (fun v => w v)
+        ≤ Finset.sum s (fun v => Real.exp (-t * ε) * (w v * Real.exp (t * d v))) :=
+          Finset.sum_le_sum hkey
+      _ ≤ Real.exp (-t * ε) * Finset.sum s (fun v => w v * Real.exp (t * d v)) := by
+            rw [Finset.mul_sum]
+      _ ≤ Real.exp (-t * ε) * ∑ v, w v * Real.exp (t * d v) := by
+            apply mul_le_mul_of_nonneg_left _ (Real.exp_nonneg _)
+            have hsub : s ⊆ Finset.univ := Finset.filter_subset _ _
+            have hf : ∀ v ∈ Finset.univ, v ∉ s →
+                (0:ℝ) ≤ w v * Real.exp (t * d v) := by
+              intro v _ _
+              exact mul_nonneg (le_of_lt (hw v))
+                (Real.exp_nonneg (t * d v))
+            exact Finset.sum_le_sum_of_subset_of_nonneg hsub hf
+  -- step 3: mgf bound + exponent optimization
+  have hmgf := hoeffding_fin w d a b hw hw1 (le_of_lt hlt) hbd hc t
+  have hstep2 : Finset.sum s (fun v => w v)
+      ≤ Real.exp (t ^ 2 * (b - a) ^ 2 / 8 - t * ε) := by
+    calc Finset.sum s (fun v => w v)
+        ≤ Real.exp (-t * ε) * ∑ v, w v * Real.exp (t * d v) := hsum
+      _ ≤ Real.exp (-t * ε) * Real.exp (t ^ 2 * (b - a) ^ 2 / 8) :=
+            mul_le_mul_of_nonneg_left hmgf (Real.exp_nonneg _)
+      _ = Real.exp (t ^ 2 * (b - a) ^ 2 / 8 - t * ε) := by
+            rw [← Real.exp_add]
+            congr 1
+            ring
+  refine le_trans hstep2 ?_
+  rw [ht, hR]
+  apply Real.exp_le_exp.mpr
+  have hval : ((4 * ε / R) ^ 2 * R / 8 - 4 * ε / R * ε
+      : ℝ) = -(2 * ε ^ 2 / R) := by
+    field_simp
+    ring
+  rw [hval, hR]
+  exact le_of_eq (by ring)
+
 end HoeffdingFin
 
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (hoeffding_fin exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_fin hoeffding_tail exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi
