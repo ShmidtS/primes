@@ -634,3 +634,62 @@ theorem gibbs_tv_mutual {V : Type*} [Fintype V] [DecidableEq V]
     Finset.sum_nonneg (fun v _ => abs_nonneg _)
   linarith
 
+/-- **Количественный Коши (R397)**: вдоль annealing-графика
+TV(p_n, p_m) ≤ C·(e^{−(n+1)} + e^{−(m+1)}) — явная
+экспоненциальная скорость взаимного сближения Гиббс-мер
+(R396 × R386): последовательность охлаждения Коши со
+скоростью e^{−n}. -/
+theorem gibbs_tv_mutual_bound {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ) (hδ : 0 < δ)
+    (vstar : V) (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (n m : ℕ) :
+    (1/2) * ∑ v, |Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+        - Real.exp (-(E v)/(δ/((m+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((m+1 : ℕ) : ℝ))))|
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * (Real.exp (-((n+1 : ℕ) : ℝ))
+          + Real.exp (-((m+1 : ℕ) : ℝ))) := by
+  have hTn : (0:ℝ) < δ/((n+1 : ℕ) : ℝ) :=
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  have hTm : (0:ℝ) < δ/((m+1 : ℕ) : ℝ) :=
+    div_pos hδ (Nat.cast_pos.mpr m.succ_pos)
+  have hδTn : -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
+    rw []
+    field_simp
+  have hδTm : -δ / (δ/((m+1 : ℕ) : ℝ)) = -((m+1 : ℕ) : ℝ) := by
+    field_simp
+  -- triangle
+  have htri := gibbs_tv_mutual E _ _ hTn hTm vstar
+  -- share bounds from R386
+  have hb1 := gibbs_concentration E δ vstar hgap _ hTn
+  have hb2 := gibbs_concentration E δ vstar hgap _ hTm
+  rw [hδTn] at hb1
+  rw [hδTm] at hb2
+  -- combine
+  have hcomb : (1 - Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))))
+      + (1 - Real.exp (-(E vstar)/(δ/((m+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((m+1 : ℕ) : ℝ)))))
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * (Real.exp (-((n+1 : ℕ) : ℝ))
+          + Real.exp (-((m+1 : ℕ) : ℝ))) := by
+    have h1 : Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))) ≥ 1
+        - (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((n+1 : ℕ) : ℝ)) := hb1
+    have h2 : Real.exp (-(E vstar)/(δ/((m+1 : ℕ) : ℝ)))
+        / (∑ v, Real.exp (-(E v)/(δ/((m+1 : ℕ) : ℝ)))) ≥ 1
+        - (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-((m+1 : ℕ) : ℝ)) := hb2
+    have hC : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+      Nat.cast_nonneg _
+    have hexp1 : (0:ℝ) ≤ Real.exp (-((n+1 : ℕ) : ℝ)) :=
+      le_of_lt (exp_pos _)
+    have hexp2 : (0:ℝ) ≤ Real.exp (-((m+1 : ℕ) : ℝ)) :=
+      le_of_lt (exp_pos _)
+    nlinarith [h1, h2, hC, hexp1, hexp2,
+      mul_nonneg hC hexp1, mul_nonneg hC hexp2,
+      sq_nonneg (((Finset.univ.erase vstar).card : ℕ) : ℝ)]
+  exact htri.trans hcomb
+

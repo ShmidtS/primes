@@ -82,6 +82,11 @@ same-folder DAG свободен.
   остановлена по закону Гиббса (e^{−δ/(T₀α^t)} ≤ θ) —
   T-контур: расписание T_t = T₀α^t управляет admission и
   merge-гейтами; stopping-by-law вместо эвристики.
+- `Probability/GibbsConcentration` (R397):
+  `gibbs_tv_mutual_bound` — количественный Коши: TV(p_n,
+  p_m) ≤ C·(e^{−(n+1)}+e^{−(m+1)}) — явная
+  экспоненциальная скорость взаимного сближения Гиббс-мер
+  вдоль annealing-графика (R396 × R386).
 - `Probability/GibbsConcentration` (R396):
   `gibbs_tv_mutual` — TV-треугольник: TV(p_T, p_S) ≤
   (1−share_T)+(1−share_S) — взаимная сходимость охлаждения
