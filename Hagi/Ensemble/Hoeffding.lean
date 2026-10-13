@@ -976,6 +976,40 @@ theorem uniform_good_point {V K : Type*} [Fintype V]
   have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
   linarith
 
+/-! ### Масса хороших точек (R403): ≥ 1 − |K|·e^{−2ε²/(b−a)²} —
+вероятностная форма uniform convergence: почти вся масса
+сосредоточена на точках, хороших для ВСЕГО класса сразу.
+Расщепление filter/filter_not + union bound R384. -/
+theorem uniform_good_mass {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    1 - (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+      ≤ ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v := by
+  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  -- bad set = filter (exists k) equals filter (not good)
+  classical
+  have hsplit : ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v
+      + ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
+      = ∑ v, w v := by
+    have hbad : (Finset.univ.filter (fun v => ∃ k, ε ≤ d k v) : Finset V)
+        = Finset.univ.filter (fun v => ¬(∀ k, d k v < ε)) := by
+      ext v
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      constructor
+      · rintro ⟨k, hk⟩ h
+        exact absurd (h k) (not_lt.2 hk)
+      · intro h
+        by_contra hcon
+        push_neg at hcon
+        exact h hcon
+    rw [hbad]
+    exact Finset.sum_filter_add_sum_filter_not Finset.univ
+      (fun v => ∀ k, d k v < ε) w
+  rw [hw1] at hsplit
+  linarith
+
 end HoeffdingFin
 
 end Hagi.Ensemble

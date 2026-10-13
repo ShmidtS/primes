@@ -48,6 +48,10 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R403): `uniform_good_mass` —
+  масса хороших точек ≥ 1 − |K|·e^{−2ε²/(b−a)²} —
+  вероятностная форма uniform convergence (расщепление
+  filter/filter_not + R384).
 - `Ensemble/Hoeffding` (R402): `uniform_good_point` —
   вероятностный метод: при |K|·e^{−2ε²/(b−a)²} < 1
   существует v: ∀k d k v < ε (плохое множество покрыло бы
