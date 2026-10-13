@@ -71,6 +71,12 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R386):
+  `gibbs_concentration` — термодинамический закон
+  охлаждения: доля веса глобального минимума в мере Гиббса
+  ≥ 1 − (n−1)·e^{−δ/T} при δ-зазоре (simulated annealing /
+  temperature scaling ядро); связка с ThermoAxes — куда
+  сходится охлаждение.
 - `Step/RiemannNewtonPolar` (R385): `radial_tangential_
   curvature` — ковариантная θθ-поправка риманова Ньютона в
   полярных координатах: h(s)=φ(√(r²+s²)) ⟹ h''(0)=φ'(r)/r =
