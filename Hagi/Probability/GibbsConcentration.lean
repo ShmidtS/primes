@@ -273,3 +273,45 @@ theorem gibbs_neg_log_share_tendsto {V : Type*} [Fintype V]
   rw [hone] at hlog
   simpa using hlog.neg
 
+/-- **Избыточная энергия Гиббс-состояния (R392)**:
+Σ (E v − E*)·e^{−Ev/T} ≤ Δ·(Z − w_*) — ядро физического
+смысла охлаждения (без нормализации): ожидаемая энергия
+над основным состоянием ограничена зазором Δ на массу
+конкурентов; вместе с R386 (масса конкурентов ≤
+(n−1)e^{−δ/T}) — экспоненциальное гашение избыточной
+энергии при охлаждении. -/
+theorem gibbs_excess_energy_bound {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    ∑ v, (E v - E vstar) * Real.exp (-(E v)/T)
+      ≤ Δ * (∑ v, Real.exp (-(E v)/T)
+        - Real.exp (-(E vstar)/T)) := by
+  -- LHS: star term zero
+  have hsplit : ∑ v, (E v - E vstar) * Real.exp (-(E v)/T)
+      = ∑ v ∈ Finset.univ.erase vstar,
+          (E v - E vstar) * Real.exp (-(E v)/T) := by
+    rw [← Finset.sum_erase_add _ (fun v =>
+      (E v - E vstar) * Real.exp (-(E v)/T))
+      (Finset.mem_univ vstar)]
+    have hz : (E vstar - E vstar)
+        * Real.exp (-(E vstar)/T) = 0 := by
+      rw [sub_self, zero_mul]
+    rw [hz, add_zero]
+  -- RHS: univ = erase + star
+  have hR : Δ * (∑ v, Real.exp (-(E v)/T)
+        - Real.exp (-(E vstar)/T))
+      = Δ * ∑ v ∈ Finset.univ.erase vstar,
+          Real.exp (-(E v)/T) := by
+    have hsum := Finset.sum_erase_add (Finset.univ : Finset V)
+      (fun v => Real.exp (-(E v)/T)) (Finset.mem_univ vstar)
+    conv_lhs => rw [← hsum]
+    rw [add_sub_cancel_right]
+  rw [hsplit, hR, Finset.mul_sum]
+  refine Finset.sum_le_sum (f := fun v => (E v - E vstar) * Real.exp (-(E v)/T))
+    (g := fun v => Δ * Real.exp (-(E v)/T)) (fun v hv => ?_)
+  have hvne : v ≠ vstar := (Finset.mem_erase.mp hv).1
+  have h1 : (0:ℝ) ≤ Real.exp (-(E v)/T) := le_of_lt (exp_pos _)
+  exact mul_le_mul_of_nonneg_right (hΔ v) h1
+
