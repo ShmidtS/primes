@@ -1211,3 +1211,45 @@ theorem gibbs_entropy_tendsto_zero {V : Type*} [Fintype V]
     (fun n => (hcomb n).2) (by simpa using hpart1.add hpart2)
 
 
+/-- **Апостериорное отношение (R401)**: для конкурента с
+δ-зазором p_v ≤ e^{−δ/T}·p_{v*} — likelihood-ratio
+сертификат: относительный вес проигравшего экспоненциально
+гасится температурой. Основа admission-гейта T-контура
+(какой вес может претендовать на место в корне). -/
+theorem gibbs_posterior_ratio {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (T : ℝ) (hT : 0 < T) (vstar v : V)
+    (hgap : E vstar + δ ≤ E v) :
+    Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+      ≤ Real.exp (-δ/T)
+        * (Real.exp (-(E vstar)/T)
+          / (∑ v, Real.exp (-(E v)/T))) := by
+  have hZpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/T) :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- numerator comparison
+  have hkey : -(E v)/T ≤ -(E vstar + δ)/T := by
+    have hmul : (E vstar + δ) * T ≤ E v * T :=
+      mul_le_mul_of_nonneg_right hgap (le_of_lt hT)
+    rw [div_le_div_iff₀ hT hT]
+    nlinarith [hmul]
+  have hexp : Real.exp (-(E v)/T)
+      ≤ Real.exp (-(E vstar + δ)/T) :=
+    Real.exp_le_exp.mpr hkey
+  have hsplit : Real.exp (-(E vstar + δ)/T)
+      = Real.exp (-δ/T) * Real.exp (-(E vstar)/T) := by
+    rw [← Real.exp_add]
+    congr 1
+    field_simp
+    ring
+  rw [hsplit] at hexp
+  -- scale by 1/Z
+  calc Real.exp (-(E v)/T) / (∑ v, Real.exp (-(E v)/T))
+      = (1 / (∑ v, Real.exp (-(E v)/T))) * Real.exp (-(E v)/T) := by ring
+    _ ≤ (1 / (∑ v, Real.exp (-(E v)/T)))
+        * (Real.exp (-δ/T) * Real.exp (-(E vstar)/T)) :=
+        mul_le_mul_of_nonneg_left hexp (by positivity)
+    _ = Real.exp (-δ/T)
+        * (Real.exp (-(E vstar)/T)
+          / (∑ v, Real.exp (-(E v)/T))) := by ring
+
