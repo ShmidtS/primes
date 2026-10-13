@@ -61,6 +61,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Step/NewtonPolar` (R380): `newton_polar_convergence` —
+  T-шаговая квадратичная сходимость: |newtonIter x₀ T − 1| ≤
+  2·((x₀−1)/2)^{2^T} (удвоение экспоненты; AM-GM инвариант
+  newtonStep x ≥ 1 = Byers–Xu ветка) — формальный rate
+  Higham 1986.
 - `Step/NewtonPolar` (R379, план §2 Muon-two-level): ядро
   Higham 1986 — Newton-polar итерация x ↦ (x+x⁻¹)/2 с ТОЧНО
   квадратичной ошибкой x_{k+1}−1 = (x_k−1)²/(2x_k);
