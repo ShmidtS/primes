@@ -389,3 +389,84 @@ theorem gibbs_expected_energy_bound {V : Type*} [Fintype V]
         * Real.exp (-δ/T)) := hstep1.trans hstep3
   linarith
 
+open Filter in
+/-- **Предел ожидаемой энергии (R394)**: вдоль
+annealing-графика T_n = δ/(n+1) ожидаемая энергия
+Гиббс-состояния стремится к энергии основного состояния:
+⟨E⟩_{T_n} → E*. Двусторонний squeeze: нижняя — взвешенное
+среднее не ниже минимума; верхняя — R393 с
+e^{−δ/T_n} = e^{−(n+1)} → 0. Предельная форма физики
+охлаждения: энергия системы прижимается к основному
+состоянию по закону, а не по эвристике. -/
+theorem gibbs_expected_energy_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    Tendsto (fun n => (∑ v, E v * Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
+      / (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))))
+      atTop (nhds (E vstar)) := by
+  set Tn : ℕ → ℝ := fun n => δ/((n+1 : ℕ) : ℝ) with hTn
+  have hTnpos : ∀ n, (0:ℝ) < Tn n := fun n =>
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  have hδT : ∀ n, -δ / Tn n = -((n+1 : ℕ) : ℝ) := by
+    intro n
+    rw [hTn]
+    field_simp
+  -- lower: <E> >= E*
+  have hlower : ∀ n, E vstar ≤ (∑ v, E v * Real.exp (-(E v)/Tn n))
+      / (∑ v, Real.exp (-(E v)/Tn n)) := by
+    intro n
+    have hZpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/Tn n) :=
+      Finset.sum_pos (fun v _ => exp_pos _)
+        ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+    rw [le_div_iff₀ hZpos]
+    calc E vstar * ∑ v, Real.exp (-(E v)/Tn n)
+        = ∑ v, E vstar * Real.exp (-(E v)/Tn n) := Finset.mul_sum _ _ _
+      _ ≤ ∑ v, E v * Real.exp (-(E v)/Tn n) :=
+          Finset.sum_le_sum (fun v _ =>
+            mul_le_mul_of_nonneg_right (hmin v) (le_of_lt (exp_pos _)))
+  -- upper from R393
+  have hupper : ∀ n, (∑ v, E v * Real.exp (-(E v)/Tn n))
+      / (∑ v, Real.exp (-(E v)/Tn n))
+      ≤ E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)) := by
+    intro n
+    have hb := gibbs_expected_energy_bound E δ (Tn n) (hTnpos n)
+      vstar Δ hmin hgap hΔ
+    rw [hδT n] at hb
+    exact hb
+  -- squeeze: upper - E* -> 0
+  have hexp0 : Tendsto (fun n => Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds 0) := by
+    have h1 : Tendsto (fun n => Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds 0) := by
+      have hnat : Tendsto (fun n => -((n+1 : ℕ) : ℝ)) atTop atBot := by
+        have hbase : Tendsto (fun n => -((n:ℕ):ℝ)) atTop atBot :=
+          tendsto_neg_atTop_atBot.comp tendsto_natCast_atTop_atTop
+        have hstep : Tendsto (fun n => -(1:ℝ) + -((n:ℕ):ℝ)) atTop atBot :=
+          (tendsto_const_nhds :
+            Tendsto (fun _ : ℕ => -(1:ℝ)) atTop (nhds (-(1:ℝ)))).add_atBot hbase
+        have hconv : (fun n => -(1:ℝ) + -((n:ℕ):ℝ))
+            = fun n => -((n+1 : ℕ) : ℝ) := by
+          funext n
+          push_cast
+          ring
+        exact hconv ▸ hstep
+      exact Real.tendsto_exp_atBot.comp hnat
+    simpa using (tendsto_const_nhds :
+      Tendsto (fun _ : ℕ => Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+        atTop (nhds (Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)))).mul h1
+  -- combine via squeeze
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+    (g := fun n => E vstar) (f := fun n => (∑ v, E v * Real.exp (-(E v)/Tn n))
+      / (∑ v, Real.exp (-(E v)/Tn n)))
+    (h := fun n => E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-((n+1 : ℕ) : ℝ)))
+    tendsto_const_nhds
+    (show Tendsto (fun n => E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds (E vstar)) by
+      simpa using (tendsto_const_nhds :
+        Tendsto (fun _ : ℕ => E vstar) atTop (nhds (E vstar))).add hexp0)
+    (fun n => hlower n) (fun n => hupper n)
+
