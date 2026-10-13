@@ -90,6 +90,7 @@ import Hagi.Information.DiscreteFannes
 import Hagi.Data.Canonical
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.InformationRetention
+import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
 import Hagi.Information.RepresentationRate
 import Hagi.Information.RoutingCapacity

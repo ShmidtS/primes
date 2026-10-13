@@ -61,6 +61,14 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Information/Pinsker` (R375): `pinsker4_fin` — Пинскер
+  (константа 4) в конечной форме: для распределений q, p и
+  f : V → [0,1]: |Σ q·f − Σ p·f| ≤ 2·√(KL(q‖p)). Доказано
+  БЕЗ calculus: KL ≥ −2·ln A (послаговый log_le_sub_one с
+  нормировкой — «Jensen даром»), TV ≤ 2√2·H через
+  Коши–Шварца на √-расщеплении, A ≤ 1 (Коши). Рабочая
+  лошадка bounded-CMI ⟹ generalization (этап-2; этап-1
+  hoeffding_fin R374, этап-3 — сборка CMI-теоремы).
 - `Nonvacuity` (R373): `masterhagi_productive_witness_all` —
   R370-witness обобщён с T=1 на произвольный T ≥ 1: все
   посылки MasterHAGI на каждом шаге t < T, энергия строго
