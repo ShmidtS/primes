@@ -48,6 +48,11 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R409):
+  `tolerance_calibration` — калибровка: ε := (b−a)·√(ln(1/θ)/2)
+  даёт ровно e^{−2ε²/(b−a)²} = θ — мост термостата (θ-гейт
+  R407) × Хёфдинга (ε-хвост R384): калиброванный хвост =
+  |K|·θ.
 - `Ensemble/Hoeffding` (R406): `class_size_lower` —
   нижняя граница: нет ε-хорошей точки ⟹ |K| ≥
   e^{2ε²/(b−a)²} (covering-number bound; контрапозиция

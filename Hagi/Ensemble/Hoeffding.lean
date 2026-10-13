@@ -1201,6 +1201,32 @@ theorem class_size_lower {V K : Type*} [Fintype V]
     rw [hz, Real.exp_zero]
   rwa [hinv] at this
 
+/-! ### Калибровка допуска (R409): ε := (b−a)·√(ln(1/θ)/2)
+даёт РОВНО e^{−2ε²/(b−a)²} = θ — термостатный θ
+переводится в ε-допуск Хёфдинга: мост R407 (θ-гейт) ×
+R384 (ε-хвост): хвост класса при калиброванном ε есть
+|K|·θ. -/
+theorem tolerance_calibration (b θ : ℝ) (hb : 0 < b) (hθ1 : 0 < θ)
+    (hθ2 : θ < 1) :
+    Real.exp (-2 * ((b * Real.sqrt (Real.log (1/θ)/2)) ^ 2) / b ^ 2)
+      = θ := by
+  have hRpos : (0:ℝ) < b ^ 2 := sq_pos_of_ne_zero (by linarith)
+  have hlogpos : (0:ℝ) < Real.log (1/θ) := by
+    apply Real.log_pos
+    rw [lt_div_iff₀ hθ1]
+    linarith
+  -- expand the square: (b * sqrt(L/2))^2 = b^2 * L/2
+  have hsq : (b * Real.sqrt (Real.log (1/θ)/2)) ^ 2
+      = b ^ 2 * (Real.log (1/θ)/2) := by
+    rw [mul_pow, Real.sq_sqrt (by linarith)]
+  rw [hsq]
+  -- exponent: -2 * (b^2 * L/2) / b^2 = -L
+  have hexp : -2 * (b ^ 2 * (Real.log (1/θ)/2)) / b ^ 2
+      = -Real.log (1/θ) := by
+    field_simp
+  rw [hexp, Real.exp_neg (Real.log (1/θ)), Real.exp_log (by
+    rw [lt_div_iff₀ hθ1]; linarith), one_div, inv_inv]
+
 end HoeffdingFin
 
 end Hagi.Ensemble
