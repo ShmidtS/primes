@@ -1010,6 +1010,120 @@ theorem uniform_good_mass {V K : Type*} [Fintype V]
   rw [hw1] at hsplit
   linarith
 
+/-! ### Двусторонняя граница (R404): масса {∃k |d k v| ≥ ε}
+≤ 2|K|e^{−2ε²/(b−a)²} — расщепление |d| на
+верх/низ через индикаторы, R384 к d и −d (границы
+[−b,−a], среднее −0). -/
+theorem two_sided_union_tail {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|), w v
+      ≤ 2 * (Fintype.card K : ℝ)
+        * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by
+  -- indicator sums
+  have hE : ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|), w v
+      = ∑ v : V, (if ∃ k, ε ≤ |d k v| then w v else 0) :=
+    (Finset.sum_filter (fun v => ∃ k, ε ≤ |d k v|) w)
+  have hA : ∑ v : V, (if ∃ k, ε ≤ |d k v| then w v else 0)
+      ≤ ∑ v : V, ((if ∃ k, ε ≤ d k v then w v else 0)
+        + (if ∃ k, ε ≤ -(d k v) then w v else 0)) := by
+    refine Finset.sum_le_sum ?_
+    intro v _
+    rcases Classical.em (∃ k, ε ≤ |d k v|) with ⟨k, hk⟩ | hE'
+    · by_cases hd : (0:ℝ) ≤ d k v
+      · have h1 : ε ≤ d k v := by rwa [abs_of_nonneg hd] at hk
+        have h2 : (if ∃ k, ε ≤ d k v then w v else 0) = w v := by
+          rw [if_pos ⟨k, h1⟩]
+        have h3 : (0:ℝ) ≤ (if ∃ k, ε ≤ -(d k v) then w v else 0) := by
+          rcases Classical.em (∃ k', ε ≤ -(d k' v)) with h | h'
+          · rw [if_pos h]; exact le_of_lt (hw v)
+          · rw [if_neg h']
+        have hstart : (if ∃ k, ε ≤ |d k v| then w v else 0) = w v := by
+          rw [if_pos ⟨k, hk⟩]
+        rw [hstart, h2]
+        linarith
+      · have h1 : ε ≤ -(d k v) := by
+          rwa [abs_of_neg (by linarith : d k v < 0)] at hk
+        have h2 : (if ∃ k, ε ≤ -(d k v) then w v else 0) = w v := by
+          rw [if_pos ⟨k, h1⟩]
+        have h3 : (0:ℝ) ≤ (if ∃ k, ε ≤ d k v then w v else 0) := by
+          rcases Classical.em (∃ k', ε ≤ d k' v) with h | h'
+          · rw [if_pos h]; exact le_of_lt (hw v)
+          · rw [if_neg h']
+        have hstart : (if ∃ k, ε ≤ |d k v| then w v else 0) = w v := by
+          rw [if_pos ⟨k, hk⟩]
+        rw [hstart, h2]
+        linarith
+    · have hstart : (if ∃ k, ε ≤ |d k v| then w v else 0) = 0 := by
+        rw [if_neg hE']
+      have hnn : ∀ v : V, (0:ℝ) ≤ (if ∃ k, ε ≤ d k v then w v else 0)
+          + (if ∃ k, ε ≤ -(d k v) then w v else 0) := by
+        intro v
+        rcases Classical.em (∃ k, ε ≤ d k v) with h | h'
+        · rw [if_pos h]
+          rcases Classical.em (∃ k, ε ≤ -(d k v)) with h2 | h2'
+          · rw [if_pos h2]; linarith [hw v]
+          · rw [if_neg h2']; linarith [hw v]
+        · rw [if_neg h']
+          rcases Classical.em (∃ k, ε ≤ -(d k v)) with h2 | h2'
+          · rw [if_pos h2]; linarith [hw v]
+          · rw [if_neg h2']
+            linarith
+      rw [hstart]
+      exact hnn v
+  -- now sum of indicators splits into A + B sums
+  have hsplit : ∑ v : V, ((if ∃ k, ε ≤ d k v then w v else 0)
+        + (if ∃ k, ε ≤ -(d k v) then w v else 0))
+      = ∑ v : V, (if ∃ k, ε ≤ d k v then w v else 0)
+        + ∑ v : V, (if ∃ k, ε ≤ -(d k v) then w v else 0) :=
+    Finset.sum_add_distrib
+  -- rewrite each as filter sums and apply R384
+  have hup : ∑ v : V, (if ∃ k, ε ≤ d k v then w v else 0)
+      = ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v :=
+    (Finset.sum_filter (fun v => ∃ k, ε ≤ d k v) w).symm
+  have hdown : ∑ v : V, (if ∃ k, ε ≤ -(d k v) then w v else 0)
+      = ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ -(d k v)), w v :=
+    (Finset.sum_filter (fun v => ∃ k, ε ≤ -(d k v)) w).symm
+  -- R384 up (direct) and down (apply to -d)
+  have hRup := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  -- for -d: bounds negated, mean negated
+  have hneg_bd : ∀ k v, -(d k v) ∈ Set.Icc (-b) (-a) := by
+    intro k v
+    obtain ⟨h1, h2⟩ := Set.mem_Icc.mp (hbd k v)
+    constructor
+    · linarith
+    · linarith
+  have hneg_c : ∀ k, ∑ v, w v * -(d k v) = 0 := by
+    intro k
+    have heq : ∑ v, w v * -(d k v) = -∑ v, w v * d k v := by
+      rw [← Finset.sum_neg_distrib]
+      exact Finset.sum_congr rfl (fun v _ => mul_neg (w v) (d k v))
+    rw [heq, hc k]
+    ring
+  have hneg_lt : (-b:ℝ) < -a := by linarith
+  have hRdown := hoeffding_union_tail w (fun k v => -(d k v)) (-b) (-a)
+    hw hw1 hneg_lt hneg_bd hneg_c hε
+  -- exponent match: (b-a)^2 = (-a-(-b))^2
+  have hexp : (-a - (-b))^2 = (b - a)^2 := by ring
+  rw [hexp] at hRdown
+  -- combine
+  rw [hE]
+  calc ∑ v : V, (if ∃ k, ε ≤ |d k v| then w v else 0)
+      ≤ ∑ v : V, ((if ∃ k, ε ≤ d k v then w v else 0)
+        + (if ∃ k, ε ≤ -(d k v) then w v else 0)) := hA
+    _ = ∑ v : V, (if ∃ k, ε ≤ d k v then w v else 0)
+        + ∑ v : V, (if ∃ k, ε ≤ -(d k v) then w v else 0) := hsplit
+    _ = ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
+        + ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ -(d k v)), w v :=
+          by rw [hup, hdown]
+    _ ≤ (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
+        + (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) :=
+          add_le_add hRup hRdown
+    _ = 2 * (Fintype.card K : ℝ)
+        * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by ring
+
 end HoeffdingFin
 
 end Hagi.Ensemble
