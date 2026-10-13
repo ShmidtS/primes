@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Probability.GibbsConcentration
 set_option linter.style.header false
 
 /-!
@@ -147,4 +148,38 @@ theorem thermostat_phase_point (α T0 δ J θ : ℝ)
     rw [hNdef]
     exact_mod_cast Nat.le_max_right _ _
   exact ⟨hstop t (hmax1.trans ht), hN2 t (Nat.cast_le.mp (hmax2.trans ht))⟩
+
+open Finset in
+/-- **Концентрация после фазовой точки (R408)**: ∃N,
+∀t ≥ N: share(T_t) ≥ 1 − C·θ — после единой точки
+переключения (R407) система не только останавливает
+эксплорацию, но и СКОНЦЕНТРИРОВАНА на минимизаторе
+(R386-оценка с e^{−δ/T_t} ≤ θ). Режим
+«консолидация» = сконцентрированное состояние: термостат
+× Гиббс-концентрация в одном утверждении. -/
+theorem phase_concentration {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      1 - (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ
+        ≤ Real.exp (-(E vstar)/(T0 * α ^ t))
+          / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) := by
+  obtain ⟨N, hN⟩ := thermostat_phase_point α T0 δ 1 θ hα1 hα2 hT0 hδ
+    (by norm_num) hθ1 hθ2
+  refine ⟨N, fun t ht => ?_⟩
+  obtain ⟨hstop, _⟩ := hN t ht
+  have hTpos : (0:ℝ) < T0 * α ^ t :=
+    mul_pos hT0 (pow_pos hα1 t)
+  have hb := gibbs_concentration E δ vstar hgap (T0 * α ^ t) hTpos
+  -- C * e^{-δ/T} <= C * theta
+  have hC : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+    Nat.cast_nonneg _
+  have hscale : (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-δ/(T0 * α ^ t))
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ :=
+    mul_le_mul_of_nonneg_left hstop hC
+  linarith
 
