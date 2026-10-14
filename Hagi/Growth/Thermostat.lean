@@ -980,3 +980,21 @@ theorem certified_state_excess_tendsto {V : Type*} [Fintype V]
     hT0 hδ hgap
   simpa using hE.sub hF
 
+/-- **Монотонность охлаждения (R431)**:
+T_{t+1} = T₀·α^{t+1} ≤ T₀·α^t = T_t —
+температура не растёт
+(семантический кирпич
+для всех тендст-результатов
+вертикали). -/
+theorem thermostat_monotone (α T0 : ℝ) (hα1 : 0 < α)
+    (hα2 : α < 1) (hT0 : 0 < T0) (t : ℕ) :
+    T0 * α ^ (t+1) ≤ T0 * α ^ t := by
+  have hp : (0:ℝ) ≤ α ^ t := pow_nonneg (le_of_lt hα1) t
+  have hkey : α ^ (t+1) = α ^ t * α := pow_succ α t
+  rw [hkey]
+  have hinner : α ^ t * α ≤ α ^ t * 1 :=
+    mul_le_mul_of_nonneg_left (le_of_lt hα2) hp
+  have hfin : T0 * (α ^ t * α) ≤ T0 * (α ^ t * 1) :=
+    mul_le_mul_of_nonneg_left hinner (le_of_lt hT0)
+  linarith [hfin]
+
