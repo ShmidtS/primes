@@ -1896,3 +1896,52 @@ theorem log_sum_ineq_on {V : Type*} [Fintype V] [DecidableEq V]
   rw [hlast] at hsub
   exact hsub
 
+open Finset in
+/-- **Неравенство
+обработки данных (R453)**:
+KL(Tρḟ‖Tγ) ≤ KL(ρḟ‖γ) для
+любого отображения T:
+информация только
+теряется при
+обработке.
+Механика:
+fiber-разложение
+(Finset.sum_fiberwise) + log-sum
+почленно по слоям
+(R452); пустые слои — нулевой
+вклад (log 0 = 0). -/
+theorem kl_data_processing {V W : Type*} [Fintype V] [Fintype W]
+    [DecidableEq V] [DecidableEq W] [Nonempty V]
+    (T : V → W)
+    (ρ γ : V → ℝ)
+    (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1)
+    (hγ : ∀ v, 0 < γ v) (hγ1 : ∑ v : V, γ v = 1) :
+    (∑ w : W, (∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, ρ v)
+        * Real.log ((∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, ρ v)
+          / (∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, γ v)))
+    ≤ ∑ v : V, ρ v * Real.log (ρ v / γ v) := by
+  -- fiber decomposition: RHS = sum over W of fiber sums
+  have hdecomp : (∑ v : V, ρ v * Real.log (ρ v / γ v))
+      = ∑ w : W, ∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ,
+          ρ v * Real.log (ρ v / γ v) :=
+    (Finset.sum_fiberwise Finset.univ T
+      (fun v => ρ v * Real.log (ρ v / γ v))).symm
+  -- per-fiber log-sum (case split on fiber emptiness)
+  have hper : ∀ w : W,
+      (∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, ρ v)
+        * Real.log ((∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, ρ v)
+          / (∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ, γ v))
+      ≤ ∑ v ∈ Finset.filter (fun v => T v = w) Finset.univ,
+          ρ v * Real.log (ρ v / γ v) := by
+    intro w
+    by_cases hfib : (Finset.filter (fun v => T v = w) Finset.univ).Nonempty
+    · exact log_sum_ineq_on _ hfib ρ γ
+        (fun v hv => hρ v) (fun v hv => hγ v)
+    · -- empty fiber: both sides 0
+      have he : Finset.filter (fun v => T v = w) Finset.univ = ∅ :=
+        Finset.not_nonempty_iff_eq_empty.mp hfib
+      rw [he]
+      simp [Real.log_zero, zero_div]
+  rw [hdecomp]
+  exact Finset.sum_le_sum (fun w _ => hper w)
+
