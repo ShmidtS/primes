@@ -3161,3 +3161,113 @@ theorem neg_log_bc_le_half_kl {V : Type*} [Fintype V] [DecidableEq V]
   rw [← hconv]
   exact h
 
+open Finset Real in
+/-- **Бретаньоль–
+Юбер (R475)**:
+TV ≤
+√(1−e^{−KL})
+.
+Цепь: Коши
+(R472-механика) →
+Σ|p−q|² ≤
+4(1−BC²);
+R474: BC ≥
+e^{−KL/2} →
+1−BC² ≤
+1−e^{−KL}.
+Тиснее R472 при
+большом KL
+(√(1−e^{−KL}) ≤ 1). -/
+theorem tv_le_sqrt_one_minus_exp {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    (1/2) * ∑ v : V, |p v - q v|
+      ≤ Real.sqrt (1 - Real.exp
+        (-(∑ v : V, p v * Real.log (p v / q v)))) := by
+  set KL : ℝ := ∑ v : V, p v * Real.log (p v / q v) with hKL
+  set BC : ℝ := ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) with hBC
+  set s : V → ℝ := fun v => Real.sqrt (p v) - Real.sqrt (q v) with hs
+  set t : V → ℝ := fun v => Real.sqrt (p v) + Real.sqrt (q v) with htt
+  have hv : ∀ v, |p v - q v| = |s v| * t v := by
+    intro v
+    have h1 : p v - q v = (Real.sqrt (p v) - Real.sqrt (q v))
+        * (Real.sqrt (p v) + Real.sqrt (q v)) := by
+      rw [show (Real.sqrt (p v) - Real.sqrt (q v))
+          * (Real.sqrt (p v) + Real.sqrt (q v))
+          = Real.sqrt (p v) ^ 2 - Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+    rw [h1, abs_mul, abs_of_nonneg
+      (add_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _))]
+  have hC2 : (∑ v : V, |p v - q v|) ^ 2
+      ≤ (∑ v : V, |s v| ^ 2) * (∑ v : V, t v ^ 2) := by
+    have hC := Finset.sum_mul_sq_le_sq_mul_sq
+      Finset.univ (fun v => |s v|) t
+    rw [Finset.sum_congr rfl (fun v _ => (hv v).symm)] at hC
+    exact hC
+  have hA : ∑ v : V, |s v| ^ 2 = 2 - 2 * BC := by
+    have h2 : ∀ v : V, |s v| ^ 2 = p v + q v
+        - 2 * (Real.sqrt (p v) * Real.sqrt (q v)) := by
+      intro v
+      rw [sq_abs, show s v ^ 2 = Real.sqrt (p v) ^ 2
+          - 2 * (Real.sqrt (p v) * Real.sqrt (q v))
+            + Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => h2 v),
+      Finset.sum_sub_distrib, Finset.sum_add_distrib,
+      ← Finset.mul_sum, hp1, hq1]
+    ring
+  have hB : ∑ v : V, t v ^ 2 = 2 + 2 * BC := by
+    have h2 : ∀ v : V, t v ^ 2 = p v + q v
+        + 2 * (Real.sqrt (p v) * Real.sqrt (q v)) := by
+      intro v
+      rw [show t v ^ 2 = Real.sqrt (p v) ^ 2
+          + 2 * (Real.sqrt (p v) * Real.sqrt (q v))
+            + Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => h2 v),
+      Finset.sum_add_distrib, Finset.sum_add_distrib,
+      ← Finset.mul_sum, hp1, hq1]
+    ring
+  rw [hA, hB] at hC2
+  have e1 : (2 - 2 * BC) * (2 + 2 * BC) = 4 * (1 - BC ^ 2) := by ring
+  rw [e1] at hC2
+  -- BC >= exp(-KL/2)
+  have hBCpos : (0:ℝ) < BC := by
+    rw [hBC]
+    exact Finset.sum_pos (fun v _ => mul_pos (Real.sqrt_pos.mpr (hp v))
+      (Real.sqrt_pos.mpr (hq v)))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hR74 := neg_log_bc_le_half_kl p q hp hq hp1
+  rw [← hBC] at hR74
+  rw [← hKL] at hR74
+  have h2 : Real.exp (-(KL / 2)) ≤ BC := by
+    have h1 : -(KL / 2) ≤ Real.log BC := by linarith [hR74]
+    have h2p := Real.exp_le_exp.mpr h1
+    rw [Real.exp_log hBCpos] at h2p
+    exact h2p
+  have e1b : (Real.exp (-(KL / 2))) ^ 2 = Real.exp (-(KL)) := by
+    rw [pow_two, ← Real.exp_add]
+    congr 1
+    linarith
+  have hb2 : (Real.exp (-(KL / 2))) ^ 2 ≤ BC ^ 2 := by
+    have hBCe : (0:ℝ) ≤ BC + Real.exp (-(KL / 2)) := by
+      linarith [hBCpos, Real.exp_pos (-(KL / 2))]
+    have hmul : (BC - Real.exp (-(KL / 2)))
+        * (BC + Real.exp (-(KL / 2))) ≥ 0 :=
+      mul_nonneg (sub_nonneg.mpr h2) hBCe
+    have e3r : (BC - Real.exp (-(KL / 2)))
+        * (BC + Real.exp (-(KL / 2)))
+        = BC ^ 2 - (Real.exp (-(KL / 2))) ^ 2 := by ring
+    rw [e3r] at hmul
+    linarith
+  have e2r : ((1:ℝ)/2 * ∑ v : V, |p v - q v|) ^ 2
+      = (∑ v : V, |p v - q v|) ^ 2 / 4 := by ring
+  have hTV : ((1:ℝ)/2 * ∑ v : V, |p v - q v|) ^ 2
+      ≤ 1 - Real.exp (-(KL)) := by
+    linarith [hC2, e2r, hb2, e1b]
+  exact Real.le_sqrt_of_sq_le hTV
+
