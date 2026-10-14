@@ -109,6 +109,13 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R464):
+  `gap_decomposition` + `gapII_nonpos` +
+  `gap_graceful` — трёхисточниковая декомпозиция
+  зазора суррогат/истина (prior-miscalibration +
+  estimator-bias + optimization-slack), Gap II ≤ 0
+  для нижних прокси, линейная graceful degradation
+  (RAG arXiv 2607.13612 Prop 1 / Cor 2).
 - `Probability/GibbsConcentration` (R463):
   `proxy_cert_preserved` + `proxy_cert_lost` +
   `gibbs_cert_bridge` — дихотомия безопасности

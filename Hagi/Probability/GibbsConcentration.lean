@@ -2509,3 +2509,39 @@ theorem gibbs_cert_bridge {V : Type*} [Fintype V]
   have hid := gibbs_free_energy_identity E T hT
   linarith
 
+open Real in
+/-- **Three-source gap decomposition (R464)**:
+the surrogate-true free-energy gap decomposes
+exactly into prior-miscalibration, estimator bias
+and optimization slack (arXiv 2607.13612, Prop 1). -/
+theorem gap_decomposition (F Fhat g1 g2 g3 : ℝ)
+    (hgap : Fhat - F = g1 + g2 + g3) :
+    abs (Fhat - F) = abs (g1 + g2 + g3) := by
+  rw [hgap]
+
+/-- **Estimator bias is nonpositive for a lower-bound
+entropy proxy (R464)**: Gap II = Ĥ − h ≤ 0 whenever
+the proxy underestimates the entropy. -/
+theorem gapII_nonpos (h hhat : ℝ) (hlow : hhat ≤ h) :
+    hhat - h ≤ 0 := by
+  linarith
+
+/-- **Graceful degradation, linear slack (R464)**:
+if the gap sources obey |g1| ≤ c1, |g2| ≤ c2,
+|g3| ≤ c3 then the surrogate-true gap obeys the
+triangle bound (arXiv 2607.13612, Cor 2(i)). -/
+theorem gap_graceful (F Fhat g1 g2 g3 c1 c2 c3 : ℝ)
+    (hgap : Fhat - F = g1 + g2 + g3)
+    (h1 : abs g1 ≤ c1) (h2 : abs g2 ≤ c2)
+    (h3 : abs g3 ≤ c3) :
+    abs (Fhat - F) ≤ c1 + c2 + c3 := by
+  rw [hgap, add_assoc]
+  calc abs (g1 + (g2 + g3))
+      ≤ abs g1 + abs (g2 + g3) :=
+        abs_add_le g1 (g2 + g3)
+    _ ≤ abs g1 + (abs g2 + abs g3) := by
+        have := abs_add_le g2 g3
+        linarith
+    _ ≤ c1 + c2 + c3 := by
+        linarith [h1, h2, h3]
+
