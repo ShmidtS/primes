@@ -4018,3 +4018,109 @@ theorem chernoff_subgauss_tail {V : Type*} [Fintype V] [DecidableEq V]
     rw [← Real.exp_sub, hex]
   exact le_trans hq' (le_trans h1 h2.le)
 
+/-- Popoviciu: for bounded g : [a,b] with weights q summing to 1,
+the weighted variance is at most (b-a)^2/4.  Three-step argument:
+mu in [a,b] (barycenter), per-point squared deviation from midpoint
+bounded by ((b-a)/2)^2, and variance minimality of the mean. -/
+theorem popoviciu_var {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
+    ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2
+      ≤ (b - a) ^ 2 / 4 := by
+  set μ := ∑ x : V, q x * g x with hμ
+  have hμin : a ≤ μ ∧ μ ≤ b := by
+    have h1 : ∑ v : V, q v * g v - a
+        = ∑ v : V, q v * (g v - a) := by
+      have heq : ∀ v : V, q v * g v - q v * a
+          = q v * (g v - a) := fun v => by ring
+      have hsa : ∑ v : V, q v * a = a := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a),
+          ← Finset.mul_sum, hq1, mul_one]
+      rw [show ∑ v : V, q v * (g v - a)
+          = ∑ v : V, q v * g v - ∑ v : V, q v * a from by
+        rw [Finset.sum_congr rfl (fun v _ => (heq v).symm),
+          Finset.sum_sub_distrib], hsa]
+    have h2 : b - ∑ v : V, q v * g v
+        = ∑ v : V, q v * (b - g v) := by
+      have heq : ∀ v : V, q v * b - q v * g v
+          = q v * (b - g v) := fun v => by ring
+      have hsb : ∑ v : V, q v * b = b := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) b),
+          ← Finset.mul_sum, hq1, mul_one]
+      rw [show ∑ v : V, q v * (b - g v)
+          = ∑ v : V, q v * b - ∑ v : V, q v * g v from by
+        rw [Finset.sum_congr rfl (fun v _ => (heq v).symm),
+          Finset.sum_sub_distrib], hsb]
+    have ha1 : ∑ v : V, q v * (g v - a) ≥ 0 :=
+      Finset.sum_nonneg (fun v _ =>
+        mul_nonneg (hq v).le (by linarith [hlo v]))
+    have ha2 : ∑ v : V, q v * (b - g v) ≥ 0 :=
+      Finset.sum_nonneg (fun v _ =>
+        mul_nonneg (hq v).le (by linarith [hhi v]))
+    constructor
+    · rw [hμ]
+      linarith [ha1, h1.symm, ha2, h2]
+    · rw [hμ]
+      linarith [ha1, h1.symm, ha2, h2]
+  -- per-v: |g v - m| <= (b-a)/2 where m = (a+b)/2
+  have hmid : ∀ v : V, (g v - (a + b) / 2) ^ 2
+      ≤ ((b - a) / 2) ^ 2 := by
+    intro v
+    have he1 : |(2:ℝ) * (g v - (a + b) / 2)| = 2 * |g v - (a + b) / 2| := by
+      rw [abs_mul, abs_of_pos (by norm_num : (0:ℝ) < 2)]
+    have he2 : |(2:ℝ) * (g v - (a + b) / 2)| ≤ b - a := by
+      rw [abs_le]
+      constructor
+      · linarith [hlo v, hhi v]
+      · linarith [hlo v, hhi v]
+    have he3 : |(g v - (a + b) / 2)| ≤ (b - a) / 2 := by
+      rw [abs_le]
+      constructor
+      · linarith [he2, hlo v, hhi v]
+      · linarith [he2, hlo v, hhi v]
+    exact sq_le_sq.mpr (he3.trans (by rw [abs_of_nonneg (by linarith : (0:ℝ) ≤ (b - a) / 2)]))
+  -- variance minimal at mean: sum q(g-mu)^2 <= sum q(g-m)^2
+  -- variance minimal at mean: sum q(g-mu)^2 <= sum q(g-m)^2
+  have hvarmin : ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2
+      ≤ ∑ v : V, q v * (g v - (a + b) / 2) ^ 2 := by
+    set μ := ∑ x : V, q x * g x with hμd
+    have hμ1 : ∑ v : V, q v = 1 := hq1
+    have key : ∀ c : ℝ, ∑ v : V, q v * (g v - c) ^ 2
+        = (∑ v : V, q v * g v ^ 2) - 2 * c * μ + c ^ 2 := by
+      intro c
+      have expand : ∀ v : V, q v * (g v - c) ^ 2
+          = q v * g v ^ 2 - q v * (2 * c * g v) + q v * c ^ 2 := fun v => by ring
+      rw [Finset.sum_congr rfl (fun v _ => by rw [expand v])]
+      push_cast [Finset.sum_sub_distrib, Finset.sum_add_distrib]
+      rw [Finset.sum_congr rfl (fun v _ =>
+        (by ring : q v * (2 * c * g v) = (q v * g v) * (2 * c)))]
+      rw [← Finset.sum_mul, ← hμd]
+      rw [Finset.sum_congr rfl (fun v _ => (by ring : q v * c ^ 2 = c ^ 2 * q v)),
+        ← Finset.mul_sum, hμ1, mul_one]
+      ring
+    have hΔ : ∀ c : ℝ, ∑ v : V, q v * (g v - c) ^ 2
+        = (∑ v : V, q v * (g v - μ) ^ 2) + (c - μ) ^ 2 := by
+      intro c
+      rw [key c, key μ]
+      ring
+    have hspec := hΔ ((a + b) / 2)
+    have hnonneg : (0:ℝ) ≤ ((a + b) / 2 - μ) ^ 2 := sq_nonneg _
+    linarith [hspec, hnonneg]
+  -- bound each term by (b-a)^2/4
+  have havg : ∑ v : V, q v * (g v - (a + b) / 2) ^ 2
+      ≤ (b - a) ^ 2 / 4 := by
+    have h1 : ∑ v : V, q v * (g v - (a + b) / 2) ^ 2
+        ≤ ∑ v : V, q v * (((b - a) / 2) ^ 2) :=
+      Finset.sum_le_sum (fun v _ =>
+        mul_le_mul_of_nonneg_left (hmid v) (hq v).le)
+    have h2 : ∑ v : V, q v * (((b - a) / 2) ^ 2)
+        = ((b - a) / 2) ^ 2 := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        (mul_comm (q v) (((b - a) / 2) ^ 2))),
+        ← Finset.mul_sum, hq1, mul_one]
+    rw [h2] at h1
+    have h3 : ((b - a) / 2) ^ 2 = (b - a) ^ 2 / 4 := by field_simp; ring
+    rw [h3] at h1
+    exact h1
+  exact le_trans hvarmin havg
