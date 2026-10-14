@@ -1242,6 +1242,7 @@ log_one_add_ge_sub_half_sq	93af71258077238e	4e70bda86db4cf74
 log_ratio_add	e852ee2e03af5151	6a2bd776e2164639
 log_sub_le_div	c9cdbfed377ac4c1	bd59e439e82aced9
 log_sum_ineq	953c5b134f755859	072ce850178af164
+log_sum_ineq_on	57696cf29bb4e4b1	1746eacab5893d27
 log_weighted_jensen	d5e2d42cbf6bbe86	d2f2896c62c965a3
 logitCE	dba74f39768d47ca	b068d876fc5ab7e4
 logitCE_deriv	ca74a097002d781a	64bca471a016caac

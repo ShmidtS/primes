@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R452):
+  `log_sum_ineq_on` — log-sum на подмножестве s:
+  (Σ_{v∈s} a)·ln(Σa/Σb) ≤ Σ_{v∈s} a·ln(a/b) (R451 на
+  подтипе {v // v ∈ s}; кирпич DPI).
 - `Probability/GibbsConcentration` (R451):
   `log_sum_ineq` — log-sum неравенство: A·ln(A/B) ≤
   Σ a·ln(a/b) (нормализация в распределения + R447;

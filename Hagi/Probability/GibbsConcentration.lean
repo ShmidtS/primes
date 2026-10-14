@@ -1863,3 +1863,36 @@ theorem log_sum_ineq {V : Type*} [Fintype V] [DecidableEq V]
   field_simp at hKLA
   linarith
 
+open Finset in
+/-- **Log-sum неравенство на
+подмножестве (R452)**:
+для s ⊆ V и положительных на s:
+(Σ_{v∈s} a)·ln(Σa/Σb) ≤ Σ_{v∈s} a·ln(a/b).
+Доказательство:
+применение R451 к
+подтипу {v // v ∈ s}
+(Finset.sum_coe_sort).
+Кирпич для
+неравенства
+обработки данных (KL не
+растёт при сжатии по
+слоям). -/
+theorem log_sum_ineq_on {V : Type*} [Fintype V] [DecidableEq V]
+    (s : Finset V) (hs : s.Nonempty)
+    (a b : V → ℝ)
+    (ha : ∀ v ∈ s, 0 < a v) (hb : ∀ v ∈ s, 0 < b v) :
+    (∑ v ∈ s, a v) * Real.log ((∑ v ∈ s, a v) / (∑ v ∈ s, b v))
+      ≤ ∑ v ∈ s, a v * Real.log (a v / b v) := by
+  -- subtype carrier
+  have hne : Nonempty {v // v ∈ s} := hs.to_subtype
+  have hsub := @log_sum_ineq {v // v ∈ s} _ _ hne
+    (fun v => a v.val) (fun v => b v.val)
+    (fun v => ha v.1 v.2) (fun v => hb v.1 v.2)
+  -- convert coe-sort sums to Finset sums
+  rw [Finset.sum_coe_sort, Finset.sum_coe_sort] at hsub
+  have hlast : ∑ v : {v // v ∈ s}, a v.val * Real.log (a v.val / b v.val)
+      = ∑ v ∈ s, a v * Real.log (a v / b v) :=
+    Finset.sum_coe_sort s (fun x => a x * Real.log (a x / b x))
+  rw [hlast] at hsub
+  exact hsub
+
