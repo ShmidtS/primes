@@ -2641,3 +2641,23 @@ theorem efe_ceiling (G P I : ℝ)
     G ≤ P := by
   linarith
 
+open Real in
+/-- **Amortised EFE policy guarantee (R467)**: if the
+learned surrogate Ĝ uniformly approximates the true
+expected free energy within slack c, the policy
+minimising Ĝ executes within 2c of the optimum
+(arXiv 2607.13612, Prop 7 structure). -/
+theorem amortized_policy_bound {Pol : Type*}
+    (Ghat G : Pol → ℝ) (pih pis : Pol) (c : ℝ)
+    (happrox : ∀ pi, abs (Ghat pi - G pi) ≤ c)
+    (hmin : ∀ pi, Ghat pih ≤ Ghat pi) :
+    G pih ≤ G pis + 2 * c := by
+  have hA : ∀ pi : Pol, Ghat pi - G pi ≤ c :=
+    fun pi => (abs_le.mp (happrox pi)).2
+  have hB : ∀ pi : Pol, G pi - Ghat pi ≤ c :=
+    fun pi => by
+      have h := abs_le.mp (happrox pi)
+      linarith
+  have h3 := hmin pis
+  linarith [hA pih, hA pis, hB pih]
+

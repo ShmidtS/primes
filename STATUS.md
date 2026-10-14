@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R467):
+  `amortized_policy_bound` — гарантия амортизиро-
+  ванной EFE-политики: суррогатный argmin при
+  равномерном зазоре c исполняет в 2c от оптимума
+  (RAG arXiv 2607.13612 Prop 7-структура).
 - `Probability/GibbsConcentration` (R466):
   `mutual_info_nonneg` (I = KL(ρ‖μ₁×μ₂) ≥ 0, R447 на
   R459-мерах) + `efe_ceiling` (G = P − I ≤ P — EFE не
