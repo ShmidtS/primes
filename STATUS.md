@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R415):
+  `certified_state_tv` — TV-следствие: ∃N ∀t≥N: TV(p_t,
+  δ*) ≤ C·θ (R408 × R395-идентификация) — сертифицированное
+  состояние метрически близко к минимизатору.
 - `Growth/Thermostat` (R414):
   `hagi_certified_state` — СУПЕР-КАПСТОУН: ∃N ∀t≥N:
   остановка ∧ merge-гейт ∧ концентрация ∧ ∃

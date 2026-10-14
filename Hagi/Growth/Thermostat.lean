@@ -297,3 +297,32 @@ theorem hagi_certified_state {V K : Type*} [Fintype V]
   obtain ⟨h1, h2, h3⟩ := hN t ht
   exact ⟨h1, h2, h3, v0, hv0⟩
 
+open Finset in
+/-- **TV-следствие сертифицированного состояния (R415)**:
+∃N, ∀t ≥ N: TV(p_{T_t}, δ_{v*}) ≤ C·θ — после
+фазовой точки охлаждённое состояние метрически
+близко к минимизатору (R408-концентрация
++ R395-TV-идентификация). -/
+theorem certified_state_tv {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      (1/2) * ∑ v, |Real.exp (-(E v)/(T0 * α ^ t))
+          / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+          - if v = vstar then (1:ℝ) else 0|
+        ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ := by
+  obtain ⟨N, hN⟩ := phase_concentration E vstar α T0 δ hα1 hα2 hT0 hδ
+    hgap θ hθ1 hθ2
+  refine ⟨N, fun t ht => ?_⟩
+  have hTpos : (0:ℝ) < T0 * α ^ t :=
+    mul_pos hT0 (pow_pos hα1 t)
+  -- TV identification
+  have htv := gibbs_tv_eq E (T0 * α ^ t) hTpos vstar
+  -- concentration
+  have hconc := hN t ht
+  rw [htv]
+  linarith
+
