@@ -255,3 +255,33 @@ theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η
       = ∑ v : V, Real.exp (-(η * ∑ t ∈ Finset.range T, ℓs t v)) :=
   Finset.sum_congr rfl (fun v _ => mwu_prod_exp ℓs η T v)
 
+/-- **Статический MWU-regret (R440)**:
+потенциал в произведенческой
+форме зажат:
+ηL_min ≤ −ln((1/n)∑∏ e^{−ηℓ_t})
+  ≤ 2η·⟨L⟩_unif
+(R439-перепись + R436 на
+кумулятивных потерях).
+Полная многошаговая
+механика MWU сведена к
+одношаговому сертификату. -/
+theorem mwu_regret_static {V : Type*} [Fintype V]
+    [Nonempty V] (ℓs : ℕ → V → ℝ) (η : ℝ) (T : ℕ)
+    (hℓ : ∀ t ∈ Finset.range T, ∀ v, 0 ≤ ℓs t v)
+    (hη : 0 < η)
+    (hsmall : ∀ v, η * (∑ t ∈ Finset.range T, ℓs t v) ≤ 1/2) :
+    ∃ vmin : V,
+      η * (∑ t ∈ Finset.range T, ℓs t vmin)
+        ≤ -(Real.log ((1/(Fintype.card V : ℝ))
+            * ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))))
+      ∧ -(Real.log ((1/(Fintype.card V : ℝ))
+            * ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))))
+        ≤ 2 * η * (∑ v : V, (1/(Fintype.card V : ℝ))
+            * ∑ t ∈ Finset.range T, ℓs t v) := by
+  -- rewrite product form to Gibbs form via R439
+  rw [mwu_partition_sum ℓs η T, Finset.mul_sum]
+  have hLnn : ∀ v : V, 0 ≤ ∑ t ∈ Finset.range T, ℓs t v :=
+    fun v => Finset.sum_nonneg (fun t ht => hℓ t ht v)
+  exact mwu_uniform_squeeze (fun v => ∑ t ∈ Finset.range T, ℓs t v) η
+    hLnn hη hsmall
+
