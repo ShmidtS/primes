@@ -3536,3 +3536,27 @@ theorem hellinger_le_half_kl {V : Type*} [Fintype V] [Nonempty V]
   rw [hellinger_sq_eq_one_minus_bc p q hp hp1 hq hq1]
   exact one_minus_bc_le_half_kl p q hp hp1 hq hq1
 
+open Finset Real in
+/-- **Чернофф-наклон
+(R481)**: для любого c:
+c·E_p g − ln E_q e^{c·g}
+≤ KL(p‖q)
+(инстанс R477 с
+f := c·g — Cramér-
+параметризация
+функции моментов). -/
+theorem kl_chernoff_tilt {V : Type*} [Fintype V] [Nonempty V]
+    (p q g : V → ℝ) (c : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    c * ∑ v : V, p v * g v
+      - Real.log (∑ v : V, q v * Real.exp (c * g v))
+      ≤ ∑ v : V, p v * Real.log (p v / q v) := by
+  have hR := kl_variational_lower p q (fun v => c * g v) hp hp1 hq hq1
+  have hconv : ∑ v : V, p v * (c * g v)
+      = c * ∑ v : V, p v * g v := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl (fun x _ => by ring)
+  rw [hconv] at hR
+  exact hR
+

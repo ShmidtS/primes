@@ -114,6 +114,11 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R481):
+  `kl_chernoff_tilt` — Чернофф-наклон: для любого
+  c: c·E_p g − ln E_q e^{c·g} ≤ KL(p‖q)
+  (инстанс R477 с f := c·g — Cramér-параметризация
+  функции моментов).
 - `Probability/GibbsConcentration` (R480):
   `hellinger_sq_eq_one_minus_bc` — H² = 1−BC
   (точное тождество) и `hellinger_le_half_kl` —
