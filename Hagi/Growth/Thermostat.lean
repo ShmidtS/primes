@@ -326,3 +326,48 @@ theorem certified_state_tv {V : Type*} [Fintype V]
   rw [htv]
   linarith
 
+open Finset in
+/-- **Энергетическое следствие сертифицированного состояния
+(R416)**: ∃N, ∀t ≥ N: ⟨E⟩_{T_t} ≤ E* + Δ·C·θ —
+энергия охлаждённого состояния прижата к
+основному с θ-точностью (R393 × R407). -/
+theorem certified_state_energy {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      ≤ E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * θ := by
+  obtain ⟨N, hN⟩ := thermostat_phase_point α T0 δ 1 θ hα1 hα2 hT0 hδ
+    (by norm_num) hθ1 hθ2
+  refine ⟨N, fun t ht => ?_⟩
+  obtain ⟨hstop, _⟩ := hN t ht
+  have hTpos : (0:ℝ) < T0 * α ^ t :=
+    mul_pos hT0 (pow_pos hα1 t)
+  -- R393
+  have hb := gibbs_expected_energy_bound E δ (T0 * α ^ t) hTpos
+    vstar Δ hmin hgap hΔ
+  -- scale the exp by theta
+  have hC : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+    Nat.cast_nonneg _
+  have hscale : (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-δ/(T0 * α ^ t))
+      ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ :=
+    mul_le_mul_of_nonneg_left hstop hC
+  -- hb RHS: E* + Δ * (C * e^{-δ/T}) <= E* + Δ * (C * θ)
+  have hΔ0 : (0:ℝ) ≤ Δ := by
+    have h0 := hΔ vstar
+    simp only [sub_self] at h0
+    linarith
+  have hR : Δ * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-δ/(T0 * α ^ t)))
+      ≤ Δ * ((((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ) :=
+    mul_le_mul_of_nonneg_left hscale hΔ0
+  linarith [hb, hR]
+
