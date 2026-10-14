@@ -2661,3 +2661,87 @@ theorem amortized_policy_bound {Pol : Type*}
   have h3 := hmin pis
   linarith [hA pih, hA pis, hB pih]
 
+open Finset Real in
+/-- **TV ≤ положительная
+часть KL (R469)**:
+(1/2)·Σ|p−q| ≤
+Σ_{v: q<p} p·ln(p/q).
+Механика: расщепление
+Σ|p−q| = 2·Σ_A(p−q)
+(дополнение меняет
+знак) + per-v ln u ≥ 1−1/u
+с u = q/p на A.
+ВАЖНО: линейное
+KL ≥ TV НЕВЕРНО
+(контрпример p=(0.9,0.1),
+q=(0.5,0.5): KL=0.368 <
+TV=0.4; Пинскер требует √).
+Кирпич
+к Пинскеру. -/
+theorem tv_le_pos_part_kl {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    (1/2) * (∑ v : V, |p v - q v|)
+      ≤ ∑ v ∈ Finset.filter (fun v => q v < p v) Finset.univ,
+        p v * Real.log (p v / q v) := by
+  set A : Finset V := Finset.filter (fun v => q v < p v) Finset.univ with hA
+  -- per-v on A: p - q <= p ln(p/q)
+  have hpt : ∀ v ∈ A, p v - q v ≤ p v * Real.log (p v / q v) := by
+    intro v hv
+    have hlt : q v < p v := (Finset.mem_filter.mp hv).2
+    have h1 : Real.log (q v / p v) ≤ q v / p v - 1 :=
+      Real.log_le_sub_one_of_pos (div_pos (hq v) (hp v))
+    have h2 : Real.log (p v / q v) = -(Real.log (q v / p v)) := by
+      rw [Real.log_div (hp v).ne' (hq v).ne',
+        Real.log_div (hq v).ne' (hp v).ne']
+      ring
+    rw [h2]
+    have h3 : p v * (q v / p v) = q v := by
+      field_simp [(hp v).ne']
+    nlinarith [h1, h3, hp v]
+  -- split: sum |p - q| = 2 * sum_A (p - q)
+  have hsplit : ∑ v : V, |p v - q v| = 2 * (∑ v ∈ A, (p v - q v)) := by
+    have h0 : ∑ v : V, (p v - q v) = 0 := by
+      rw [Finset.sum_sub_distrib, hp1, hq1, sub_self]
+    have hcompl : ∑ v ∈ Aᶜ, (p v - q v) = -(∑ v ∈ A, (p v - q v)) := by
+      have hc := Finset.sum_add_sum_compl A (fun v => p v - q v)
+      rw [show ∑ i ∈ A, (fun v => p v - q v) i
+        = ∑ v ∈ A, (p v - q v) from rfl] at hc
+      rw [h0] at hc
+      linarith
+    have habsA : ∀ v ∈ A, |p v - q v| = p v - q v := by
+      intro v hv
+      exact abs_of_pos (sub_pos.mpr (Finset.mem_filter.mp hv).2)
+    have habsC : ∀ v ∈ Aᶜ, |p v - q v| = -(p v - q v) := by
+      intro v hv
+      have hle : p v ≤ q v := by
+        by_contra hc
+        push_neg at hc
+        rw [Finset.mem_compl] at hv
+        exact hv (Finset.mem_filter.mpr ⟨Finset.mem_univ v, hc⟩)
+      exact abs_of_nonpos (by linarith)
+    have hsplit2 : ∑ v : V, |p v - q v|
+        = (∑ v ∈ A, |p v - q v|) + (∑ v ∈ Aᶜ, |p v - q v|) := by
+      have h := Finset.sum_add_sum_compl A (fun v => |p v - q v|)
+      simpa using h.symm
+    rw [hsplit2]
+    rw [Finset.sum_congr rfl (fun v hv => habsA v hv)]
+    rw [Finset.sum_congr rfl (fun v hv => habsC v hv)]
+    rw [Finset.sum_neg_distrib, hcompl]
+    ring
+  rw [hsplit]
+  -- sum_A (p-q) <= sum_A (p ln) <= full sum
+  have hnonneg : ∀ v ∈ A, (0:ℝ) ≤ p v * Real.log (p v / q v) := by
+    intro v hv
+    have hlt : q v < p v := (Finset.mem_filter.mp hv).2
+    have hlog : (0:ℝ) ≤ Real.log (p v / q v) := by
+      have : (1:ℝ) < p v / q v :=
+        (one_lt_div (hq v)).mpr hlt
+      exact le_of_lt (log_pos this)
+    exact mul_nonneg (hp v).le hlog
+  calc (1:ℝ)/2 * (2 * (∑ v ∈ A, (p v - q v)))
+      = ∑ v ∈ A, (p v - q v) := by ring
+    _ ≤ ∑ v ∈ A, p v * Real.log (p v / q v) :=
+      Finset.sum_le_sum hpt
+
