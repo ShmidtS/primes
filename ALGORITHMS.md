@@ -1,7 +1,7 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 1827 theorem/lemma, 0 sorry,
+теоремы Lean 4 / Mathlib (Hagi/, 1855 theorem/lemma, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
@@ -276,6 +276,49 @@ Probability/GibbsConcentration)
   KL(ρ‖unif) = −ln Z − ⟨E⟩/T + ln n; вместе с
   R422 (KL = ln n − S) даёт F = ⟨E⟩ − T·S — гиббсовская
   свободная энергия выведена из PAC-Bayes.
+
+## 16. Ядро теории информации
+(Probability/GibbsConcentration)
+
+- Второй закон в общем виде: `finite_kl_nonneg` —
+  KL(ρ‖γ) ≥ 0 для любых распределений (ln u ≤ u−1
+  почленно с u := γ/ρ).
+- Log-sum: `log_sum_ineq` (+ `_on` на подмножествах) —
+  A·ln(A/B) ≤ Σa·ln(a/b) (нормализация + R447).
+- Обработка данных: `kl_data_processing` —
+  KL(Tρ‖Tγ) ≤ KL(ρ‖γ) для любого сжатия T
+  (fiber-разложение + log-sum по слоям).
+- Выпуклость: дуга R454–R457 — вогнутость ln →
+  выпуклость x·ln x → скалярная x·ln(x/y) →
+  KL по первому аргументу.
+- Арифметика совместных: `kl_product_additive`
+  (KL аддитивен на произведении), `entropy_subadditive`
+  (S(joint) ≤ S₁+S₂), `entropy_chain` (цепное правило
+  Шеннона), `joint_entropy_ge_marginal` (условная
+  энтропия ≥ 0), `mutual_info_nonneg` (I ≥ 0).
+- Равновесие: `gibbs_free_energy_identity` —
+  F = ⟨E⟩ − T·S на Гиббс-мере.
+
+## 17. Active-Inference вертикаль
+(RAG arXiv 2607.13612)
+
+- Прокси-дихотомия: `proxy_cert_preserved` /
+  `proxy_cert_lost` — нижняя оценка энтропии
+  сохраняет surprise-сертификат по построению,
+  верхняя строго теряет; `gibbs_cert_bridge` — мост
+  к Гиббс-равновесию (R462).
+- Зазор суррогат/истина: `gap_decomposition` +
+  `gapII_nonpos` + `gap_graceful` — три источника
+  (miscalibration/bias/slack), смещение ≤ 0 для
+  нижних прокси, линейная деградация.
+- Компаундинг: `compounding_bound` / `compounding_sq`
+  — e_H ≤ L^H·e₀ и e_H² ≤ (L²)^H·e₀²; MPC
+  horizon-one обнуляет.
+- EFE-потолок: `efe_ceiling` — G = P − I ≤ P;
+  state-epistemic gap = взаимная информация.
+- Амортизированная политика:
+  `amortized_policy_bound` — суррогатный argmin при
+  равномерном зазоре c исполняет в 2c от оптимума.
 
 ## Честные границы (что НЕ выведено)
 
