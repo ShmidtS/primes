@@ -172,3 +172,51 @@ theorem mwu_uniform_squeeze {V : Type*} [Fintype V]
     rw [nsmul_eq_mul, one_div, mul_inv_cancel₀ (ne_of_gt hn)]
   exact mwu_potential_squeeze (fun _ => 1/(Fintype.card V : ℝ)) ℓ η hw hw1 hℓ hη hsmall
 
+/-- **Классический ln n-член (R437)**:
+−ln W ≤ ln n + η·L_min для uniform-hedge
+(W ≥ (1/n)·e^{−ηL_min} через
+один член суммы).
+Вместе с R436 (верхняя
+2η-грань): полная regret-пара
+для экспоненциальных
+весов: ln n + ηL_min ≥ −ln W ≥ ηL_min —
+запас на инициализацию ровно
+ln n. -/
+theorem mwu_potential_upper_uniform {V : Type*} [Fintype V]
+    [Nonempty V] (ℓ : V → ℝ) (η : ℝ) (hη : 0 < η) :
+    ∃ vmin : V, -(Real.log (∑ v : V, (1/(Fintype.card V : ℝ))
+        * Real.exp (-(η * ℓ v))))
+      ≤ Real.log (Fintype.card V : ℝ) + η * ℓ vmin := by
+  obtain ⟨vmin, hvmin⟩ : ∃ vmin : V, ∀ v : V, ℓ vmin ≤ ℓ v := by
+    obtain ⟨a, _, ha⟩ := Finset.exists_min_image (Finset.univ : Finset V) ℓ
+      Finset.univ_nonempty
+    exact ⟨a, fun v => ha v (Finset.mem_univ v)⟩
+  refine ⟨vmin, ?_⟩
+  have hn : (0:ℝ) < (Fintype.card V : ℝ) :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+  have hZpos : (0:ℝ) < ∑ v : V, (1/(Fintype.card V : ℝ))
+      * Real.exp (-(η * ℓ v)) :=
+    Finset.sum_pos (fun v _ => mul_pos (by positivity) (exp_pos _))
+      ⟨vmin, Finset.mem_univ _⟩
+  have hsingle : (1/(Fintype.card V : ℝ)) * Real.exp (-(η * ℓ vmin))
+      ≤ ∑ v : V, (1/(Fintype.card V : ℝ)) * Real.exp (-(η * ℓ v)) :=
+    single_le_sum (f := fun v => (1/(Fintype.card V : ℝ))
+      * Real.exp (-(η * ℓ v)))
+      (fun v _ => mul_nonneg (by positivity) (exp_pos _).le)
+      (Finset.mem_univ vmin)
+  have hpos2 : (0:ℝ) < (1/(Fintype.card V : ℝ))
+      * Real.exp (-(η * ℓ vmin)) :=
+    mul_pos (by positivity) (exp_pos _)
+  have hlog := Real.log_le_log hpos2 hsingle
+  have hsplit : Real.log ((1/(Fintype.card V : ℝ))
+      * Real.exp (-(η * ℓ vmin)))
+      = -(Real.log (Fintype.card V : ℝ) + η * ℓ vmin) := by
+    have hne1 : (1/(Fintype.card V : ℝ)) ≠ 0 := by positivity
+    have hne2 : Real.exp (-(η * ℓ vmin)) ≠ 0 := by positivity
+    rw [Real.log_mul hne1 hne2, Real.log_exp,
+      Real.log_div (one_ne_zero) (ne_of_gt hn), Real.log_one,
+      zero_sub, neg_add_eq_sub]
+    ring
+  rw [hsplit] at hlog
+  linarith
+

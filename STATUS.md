@@ -109,6 +109,9 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/MWU` (R437):
+  `mwu_potential_upper_uniform` — классический ln n-член:
+  −ln W ≤ ln n + η·L_min (запас на инициализацию = ln n).
 - `Probability/MWU` (R436):
   `mwu_uniform_squeeze` — uniform-старт (классический
   hedge): ηL_min ≤ −ln W ≤ 2η⟨L⟩_unif — телескопический
