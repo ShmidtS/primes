@@ -109,6 +109,9 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R420):
+  `gibbs_expected_energy_lower` — нижняя грань: E* ≤ ⟨E⟩_T
+  почленно; с R393 полный сэндвич E* ≤ ⟨E⟩ ≤ E*+Δ(n−1)e^{−δ/T}.
 - `Growth/MemoryController` (R419):
   `admission_margin_sound` — обоснованность запаса
   ε_cert: если истинный выигрыш в пределах ε_cert от

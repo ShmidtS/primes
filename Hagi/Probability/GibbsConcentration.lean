@@ -1293,3 +1293,32 @@ theorem gibbs_entropy_nonneg {V : Type*} [Fintype V]
   apply neg_nonneg.mpr
   exact Real.log_nonpos (le_of_lt (hwpos v)) (hwle v)
 
+open Finset in
+/-- **Нижняя грань энергии (R420)**: E* ≤ ⟨E⟩_T
+почленно (E* · w_v ≤ E_v · w_v). Вместе с R393
+полный сэндвич:
+E* ≤ ⟨E⟩_T ≤ E* + Δ·(n−1)·e^{−δ/T} —
+энергия Гиббса зажата между
+основным состоянием и хвостом. -/
+theorem gibbs_expected_energy_lower {V : Type*} [Fintype V]
+    [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (vstar : V) (hmin : ∀ v, E vstar ≤ E v) :
+    E vstar ≤ (∑ v, E v * Real.exp (-(E v)/T))
+        / (∑ v, Real.exp (-(E v)/T)) := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- E* = (sum E* * e) / Z  <=  (sum E * e) / Z
+  have hnum : (∑ v, E vstar * Real.exp (-(E v)/T))
+      ≤ ∑ v, E v * Real.exp (-(E v)/T) := by
+    apply Finset.sum_le_sum
+    intro v _
+    exact mul_le_mul_of_nonneg_right (hmin v) (le_of_lt (exp_pos _))
+  -- rewrite numerator: sum E* * e = E* * Z
+  have hsplit : ∑ v, E vstar * Real.exp (-(E v)/T)
+      = E vstar * Z := by
+    rw [hZ, Finset.mul_sum]
+  rw [hsplit] at hnum
+  rwa [le_div_iff₀ hZpos]
+
