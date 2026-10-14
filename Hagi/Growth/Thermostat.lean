@@ -955,3 +955,28 @@ theorem certified_state_entropy_tendsto {V : Type*} [Fintype V]
         * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
         * (4:ℝ)/δ^2))
 
+open Finset Real Filter in
+/-- **Калориметрический нуль (R430)**:
+⟨E⟩_t − F_t → 0 вдоль термостата
+(мгновенная композиция R427 + R428
+через Tendsto.sub): запасённое тепло
+исчезает — асимптотическая
+версия R417. -/
+theorem certified_state_excess_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    Tendsto (fun t : ℕ => (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))))
+      atTop (nhds 0) := by
+  have hE := certified_state_energy_tendsto E vstar α T0 δ Δ hα1 hα2
+    hT0 hδ hmin hgap hΔ
+  have hF := certified_state_free_energy_tendsto E vstar α T0 δ hα1 hα2
+    hT0 hδ hgap
+  simpa using hE.sub hF
+

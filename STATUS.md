@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R430):
+  `certified_state_excess_tendsto` — калориметрический
+  ноль: ⟨E⟩−F → 0 (R427+R428 через Tendsto.sub; асимпто-
+  тическая версия R417).
 - `Growth/Thermostat` (R429):
   `certified_state_entropy_tendsto` — Нернст на термостате:
   S_t = (⟨E⟩−F)/T_t → 0. Ключ: e^{−δ/T} = (e^{−δ/2T})² ≤
