@@ -2336,3 +2336,68 @@ theorem entropy_chain {V W : Type*} [Fintype V] [Fintype W]
     rw [← Finset.mul_sum]
   rw [hA, hB]
 
+open Finset Real in
+/-- **Лог-сумма
+распределения
+неположительна (R461a)**:
+Σ ρ·ln ρ ≤ 0 при ρ ≤ 1
+почленно
+(single_le_sum + log-монотонность). -/
+theorem dist_log_nonpos {V : Type*} [Fintype V] [Nonempty V]
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1) :
+    (∑ v : V, ρ v * Real.log (ρ v)) ≤ 0 := by
+  have hle : ∀ v : V, ρ v ≤ 1 := by
+    intro v
+    have h1 := Finset.single_le_sum (f := ρ) (fun w _ => (hρ w).le)
+      (Finset.mem_univ v)
+    rw [hρ1] at h1
+    exact h1
+  have hpt : ∀ v : V, ρ v * Real.log (ρ v) ≤ 0 := by
+    intro v
+    have hl : Real.log (ρ v) ≤ Real.log 1 :=
+      Real.log_le_log (hρ v) (hle v)
+    rw [Real.log_one] at hl
+    nlinarith [hρ v, hl]
+  exact Finset.sum_nonpos (fun v _ => hpt v)
+
+/-- **Условие не
+увеличивает
+энтропию (R461)**:
+S(V,W) ≥ S(V) — условная
+энтропия неотрицательна.
+Вывод: цепное правило R460 +
+неположительность
+лог-сумм условных
+строк. -/
+theorem joint_entropy_ge_marginal {V W : Type*} [Fintype V]
+    [Fintype W] [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
+    (ρ : V × W → ℝ)
+    (hρ : ∀ p, 0 < ρ p) (hρ1 : ∑ p : V × W, ρ p = 1) :
+    (∑ p : V × W, ρ p * Real.log (ρ p))
+    ≤ (∑ v : V, (∑ w : W, ρ (v, w))
+        * Real.log (∑ w : W, ρ (v, w))) := by
+  rw [entropy_chain ρ hρ hρ1]
+  -- row conditionals are distributions; each row log-sum <= 0
+  have hrow : ∀ v : V,
+      (∑ w : W, ρ (v, w))
+        * (∑ w : W, (ρ (v, w) / (∑ w : W, ρ (v, w)))
+            * Real.log (ρ (v, w) / (∑ w : W, ρ (v, w)))) ≤ 0 := by
+    intro v
+    have hμ : (0:ℝ) < ∑ w : W, ρ (v, w) :=
+      Finset.sum_pos (fun w _ => hρ (v, w))
+        ⟨Classical.arbitrary W, Finset.mem_univ _⟩
+    have hsum1 : ∑ w : W, ρ (v, w) / (∑ w : W, ρ (v, w)) = 1 := by
+      rw [← Finset.sum_div, div_self hμ.ne']
+    have hpos : ∀ w : W,
+        0 < ρ (v, w) / (∑ w : W, ρ (v, w)) :=
+      fun w => div_pos (hρ (v, w)) hμ
+    have hnonpos := dist_log_nonpos
+      (fun w => ρ (v, w) / (∑ w : W, ρ (v, w))) hpos hsum1
+    nlinarith [hμ]
+  have hrows : (∑ v : V,
+      (∑ w : W, ρ (v, w))
+        * (∑ w : W, (ρ (v, w) / (∑ w : W, ρ (v, w)))
+            * Real.log (ρ (v, w) / (∑ w : W, ρ (v, w))))) ≤ 0 :=
+    Finset.sum_nonpos (fun v _ => hrow v)
+  linarith
+

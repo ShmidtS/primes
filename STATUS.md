@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R461):
+  `dist_log_nonpos` (Σρ·lnρ ≤ 0; single_le_sum +
+  log-монотонность) + `joint_entropy_ge_marginal` —
+  условная энтропия неотрицательна: S(V,W) ≥ S(V)
+  (R460 + неположительность лог-сумм условных строк).
 - `Probability/GibbsConcentration` (R460):
   `entropy_chain` — цепное правило Шеннона:
   S(V,W) = S(V) + Σ μ₁·S(условная) (per-term
