@@ -3626,3 +3626,115 @@ theorem chernoff_event {V : Type*} [Fintype V] [DecidableEq V]
   rw [heq] at hm
   exact le_div_iff₀' (Real.exp_pos (hl * t)) |>.mpr hm
 
+open Finset Real in
+/-- **Экспоненциальная
+интерполяция
+(R484)**: для a ≤ g ≤ b:
+Σp·e^{c·g} ≤
+e^{ca}·Σp·w₁
++ e^{cb}·Σp·w₂,
+w₁ = (b−g)/(b−a),
+w₂ = (g−a)/(b−a)
+— выпуклость e^
+через двухточечный
+АМ-ГМ (R454):
+три случая (краи
+аналітика +середина),
+p·множение
+самсого-сумы-суммой
+через
+mul_le_mul_of_nonneg_left. -/
+theorem exp_tilt_interpol {V : Type*} [Fintype V] [Nonempty V]
+    (p g : V → ℝ) (c a b : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hgb : ∀ v, g v ≤ b) (hga : ∀ v, a ≤ g v) (hxx : a < b) :
+    ∑ v : V, p v * Real.exp (c * g v)
+      ≤ Real.exp (c * a)
+        * ∑ v : V, p v * ((b - g v) / (b - a))
+        + Real.exp (c * b)
+          * ∑ v : V, p v * ((g v - a) / (b - a)) := by
+  have hw1 : ∀ v : V, (0:ℝ) ≤ (b - g v) / (b - a) := by
+    intro v; exact div_nonneg (by linarith [hgb v]) (by linarith)
+  have hw2 : ∀ v : V, (0:ℝ) ≤ (g v - a) / (b - a) := by
+    intro v; exact div_nonneg (by linarith [hga v]) (by linarith)
+  have hws : ∀ v : V, (b - g v) / (b - a) + (g v - a) / (b - a) = 1 := by
+    intro v
+    rw [← add_div, show (b - g v) + (g v - a) = (b - a) from by ring,
+      div_self (by linarith)]
+  have hmid : ∀ v : V, (b - g v) / (b - a) * (c * a)
+      + (g v - a) / (b - a) * (c * b) = c * g v := by
+    intro v
+    rw [div_mul_eq_mul_div, div_mul_eq_mul_div, ← add_div,
+      show (b - g v) * (c * a) + (g v - a) * (c * b)
+        = c * g v * (b - a) from by ring]
+    rw [mul_div_assoc (c * g v) (b - a)]
+    rw [div_self (show (b - a : ℝ) ≠ 0 by linarith), mul_one]
+  have hpos : ∀ v : V, (0:ℝ) < (b - g v) / (b - a) * Real.exp (c * a)
+      + (g v - a) / (b - a) * Real.exp (c * b) := by
+    intro v
+    by_cases hlt : g v < b
+    · have h1 : (0:ℝ) < (b - g v) / (b - a) :=
+        div_pos (by linarith) (by linarith)
+      exact lt_add_of_pos_of_le
+        (mul_pos h1 (Real.exp_pos (c * a)))
+        (mul_nonneg (hw2 v) (Real.exp_nonneg (c * b)))
+    · have hge : g v = b := le_antisymm (hgb v) (by linarith)
+      have h2 : (0:ℝ) < (g v - a) / (b - a) := by
+        rw [hge]
+        exact div_pos (by linarith) (by linarith)
+      exact lt_add_of_le_of_pos
+        (mul_nonneg (hw1 v) (Real.exp_nonneg (c * a)))
+        (mul_pos h2 (Real.exp_pos (c * b)))
+  have hper : ∀ v : V, Real.exp (c * g v)
+      ≤ (b - g v) / (b - a) * Real.exp (c * a)
+        + (g v - a) / (b - a) * Real.exp (c * b) := by
+    intro v
+    rcases eq_or_lt_of_le (hga v) with hga' | hgt
+    · have hw1e : (b - g v) / (b - a) = (1:ℝ) := by
+        rw [show (b - g v) = (b - a) from by rw [hga']]
+        exact div_self (by linarith)
+      have hw2e : (g v - a) / (b - a) = (0:ℝ) := by
+        rw [show (g v - a) = (0:ℝ) from by rw [hga']; ring, zero_div]
+      rw [hw1e, hw2e, one_mul, zero_mul, add_zero]
+      exact Real.exp_le_exp.mpr (by rw [hga'])
+    · rcases eq_or_lt_of_le (hgb v) with hgb' | hlt
+      · have hb : (b - g v) = (0:ℝ) := by rw [hgb']; ring
+        have ha2 : (g v - a) = (b - a) := by rw [hgb']
+        have hw1f : (b - g v) / (b - a) = (0:ℝ) := by
+          rw [hb, zero_div]
+        have hw2f : (g v - a) / (b - a) = (1:ℝ) := by
+          rw [ha2]
+          exact div_self (ne_of_gt
+            (show (0:ℝ) < b - a by linarith))
+        rw [hw1f, hw2f, zero_mul, one_mul, zero_add]
+        exact Real.exp_le_exp.mpr (by rw [hgb'])
+      · have hw1s : (0:ℝ) < (b - g v) / (b - a) :=
+          div_pos (by linarith) (by linarith)
+        have hw2s : (0:ℝ) < (g v - a) / (b - a) :=
+          div_pos (by linarith) (by linarith)
+        have hlam2 : (b - g v) / (b - a) < 1 := by linarith [hws v]
+        have hR := log_concave_two hw1s hlam2
+          (Real.exp_pos (c * a)) (Real.exp_pos (c * b))
+        rw [Real.log_exp (c * a), Real.log_exp (c * b)] at hR
+        have hw2eq : (g v - a) / (b - a)
+            = 1 - (b - g v) / (b - a) := by linarith [hws v]
+        have hmid2 : (b - g v) / (b - a) * (c * a)
+            + (1 - (b - g v) / (b - a)) * (c * b) = c * g v := by
+          have h2 := hmid v
+          rw [hw2eq] at h2
+          exact h2
+        rw [hmid2] at hR
+        have hX := Real.exp_le_exp.mpr hR
+        have hpos2 : (0:ℝ) < (b - g v) / (b - a) * Real.exp (c * a)
+            + (1 - (b - g v) / (b - a)) * Real.exp (c * b) := by
+          rw [← hw2eq]
+          exact hpos v
+        rw [Real.exp_log hpos2, ← hw2eq] at hX
+        exact hX
+  refine le_trans (Finset.sum_le_sum (fun v _ =>
+    mul_le_mul_of_nonneg_left (hper v) (le_of_lt (hp v)))) ?_
+  rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+  apply Finset.sum_le_sum
+  intro v _
+  exact le_of_eq (by ring)
+

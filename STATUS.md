@@ -114,6 +114,14 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R484):
+  `exp_tilt_interpol` — экспоненциальная
+  интерполяция: для a ≤ g ≤ b: Σp·e^{cg} ≤
+  e^{ca}·Σp·w₁ + e^{cb}·Σp·w₂ (w₁ = (b−g)/(b−a),
+  w₂ = (g−a)/(b−a)) — выпуклость e через
+  двухточечный AM-GM (R454); три случая (края
+  аналитически, середина через ln-вогнутость).
+  Хёффдинг-кирпич.
 - `Probability/GibbsConcentration` (R483):
   `chernoff_event` — Чернофф на событии: для
   λ > 0: p({g ≥ t}) ≤ e^{−λt}·E_p e^{λg}

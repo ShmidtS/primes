@@ -720,6 +720,7 @@ exp_prod_le_cosh	af1ffae1198c4949	33baf0e9f5b0163e
 exp_sum_pos	9a3a006b6711e8e5	16779c8503b294b8
 exp_tail_two	628810609ca499d9	8d44a06ffaa5e2f5
 exp_tangent	58946e0b842df0b0	2f3fd2d6dcf4fe7b
+exp_tilt_interpol	e1870d880400ab05	e23e891edfffe184
 expansion_required	560a720e667624ad	6d7f3b040d9850e4
 expectNat	36551a81a235baed	9e1d59c54d5056f1
 experience_cycle_bound	704e43b0821cb54f	7dbf95b5757be3da
