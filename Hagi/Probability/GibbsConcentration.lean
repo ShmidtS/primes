@@ -2469,3 +2469,43 @@ theorem gibbs_free_energy_identity {V : Type*} [Fintype V]
   rw [hγ1, one_mul] at hsum
   linarith
 
+open Finset Real in
+/-- **Safety of a lower-bound entropy proxy (R463)**:
+if the entropy estimate Ĥ never exceeds the true h,
+then the surrogate free energy E − Ĥ majorizes the
+true E − h, and the surprise certificate s ≤ E − h is
+preserved by construction. -/
+theorem proxy_cert_preserved (E h hhat s : ℝ)
+    (hlow : hhat ≤ h) (hcert : s ≤ E - h) :
+    s ≤ E - hhat := by
+  linarith
+
+/-- **Loss of the certificate for an upper-bound
+entropy proxy (R463)**: if the proxy strictly exceeds
+the true entropy and the true free energy exactly
+meets the certificate, the surrogate free energy
+falls strictly below it — the AIF bound is not
+guaranteed (arXiv 2607.13612, Prop 2(ii)). -/
+theorem proxy_cert_lost (E h hhat s : ℝ)
+    (hup : h < hhat) (hexact : E - h = s) :
+    E - hhat < s := by
+  linarith
+
+/-- **Gibbs certificate bridge (R463)**: at the
+Gibbs equilibrium the surprise certificate
+s ≤ F = −T·ln Z (R462 identity) is preserved by any
+lower-bound entropy proxy Ĥ ≤ T·S_γ. -/
+theorem gibbs_cert_bridge {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) (hhat s : ℝ)
+    (hlow : hhat ≤ T * (-(∑ v : V, (Real.exp (-(E v)/T)
+      / ∑ v : V, Real.exp (-(E v)/T))
+      * Real.log (Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T)))))
+    (hcert : s ≤ -T * Real.log (∑ v : V,
+      Real.exp (-(E v)/T))) :
+    s ≤ (∑ v : V, (Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T)) * E v) - hhat := by
+  have hid := gibbs_free_energy_identity E T hT
+  linarith
+

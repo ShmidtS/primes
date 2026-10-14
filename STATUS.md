@@ -109,6 +109,13 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R463):
+  `proxy_cert_preserved` + `proxy_cert_lost` +
+  `gibbs_cert_bridge` — дихотомия безопасности
+  энтропийных прокси (RAG arXiv 2607.13612 Prop 2):
+  нижний прокси сохраняет surprise-сертификат по
+  построению, верхний строго теряет; мост к
+  Гиббс-равновесию через R462.
 - `Probability/GibbsConcentration` (R462):
   `gibbs_free_energy_identity` — F = ⟨E⟩ − T·S на
   равновесии: −T·ln Z = ⟨E⟩_γ + T·Σγ ln γ (per-v
