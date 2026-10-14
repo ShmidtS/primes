@@ -3966,3 +3966,55 @@ theorem cgf_centering {V : Type*} [Fintype V] [Nonempty V]
   rw [Finset.sum_congr rfl (fun v _ => hper v), ← Finset.mul_sum,
     Real.log_mul (Real.exp_pos _).ne' hpos.ne', Real.log_exp (c * μ)]
 
+open Finset Real in
+/-- **Чернов-subG-хвост
+(R491)**: при CGF-границе
+ln Σq·e^{c(g−μ)} ≤ c²σ²/2:
+q({g ≥ μ+u}) ≤
+e^{−u²/(2σ²)} (λ = u/σ²;
+R483 + R490-центринг
++ exp_sub-RHS-переупаковка;
+h2.le-связка). -/
+theorem chernoff_subgauss_tail {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (q g : V → ℝ) (μ σ2 u : ℝ)
+    (hq : ∀ v, 0 < q v) (hs2 : 0 < σ2) (hu : 0 < u)
+    (hcgf : ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : V, q v * Real.exp (c * (g v - μ)))
+        ≤ c ^ 2 * σ2 / 2) :
+    ∑ v ∈ Finset.filter (fun v => μ + u ≤ g v) Finset.univ, q v
+      ≤ Real.exp (-(u ^ 2) / (2 * σ2)) := by
+  have lam0 : (0:ℝ) < u / σ2 := div_pos hu hs2
+  have hq' := chernoff_event q g (u / σ2) (μ + u) hq lam0
+  -- CGF upper at lam = u/σ2 after centering
+  have hC := hcgf (u / σ2) lam0
+  have hZ2 : Real.log (∑ v : V, q v * Real.exp ((u / σ2) * g v))
+      ≤ (u / σ2) * μ + (u / σ2) ^ 2 * σ2 / 2 :=
+    (le_of_eq (cgf_centering q g μ (u / σ2) hq)).trans
+      (by linarith [hC])
+  -- exponent arithmetic: λμ + λ²σ2/2 − λ(μ+u) = −u²/(2σ2)
+  have hex : (u / σ2) * μ + (u / σ2) ^ 2 * σ2 / 2
+      - (u / σ2) * (μ + u) = -(u ^ 2) / (2 * σ2) := by
+    field_simp
+    ring
+  -- hq' div-form: Σ_s q ≤ (Σ q e^{λg}) / e^{λ(μ+u)}, with
+  -- Σ q e^{λg} ≤ e^{λμ+λ²σ2/2} (from exp_le_exp.mpr hZ2)
+  have h1 : (∑ v : V, q v * Real.exp ((u / σ2) * g v))
+      / Real.exp ((u / σ2) * (μ + u))
+      ≤ Real.exp ((u / σ2) * μ + (u / σ2) ^ 2 * σ2 / 2)
+        / Real.exp ((u / σ2) * (μ + u)) :=
+    (div_le_div_iff_of_pos_right (Real.exp_pos _)).mpr
+      (by
+        have hL : Real.exp (Real.log (∑ v : V,
+            q v * Real.exp ((u / σ2) * g v)))
+          = ∑ v : V, q v * Real.exp ((u / σ2) * g v) :=
+            Real.exp_log (Finset.sum_pos (fun v _ =>
+              mul_pos (hq v) (Real.exp_pos _))
+              ⟨Classical.arbitrary V, Finset.mem_univ _⟩)
+        rw [← hL]
+        exact exp_le_exp.mpr hZ2)
+  have h2 : Real.exp ((u / σ2) * μ + (u / σ2) ^ 2 * σ2 / 2)
+        / Real.exp ((u / σ2) * (μ + u))
+      = Real.exp (-(u ^ 2) / (2 * σ2)) := by
+    rw [← Real.exp_sub, hex]
+  exact le_trans hq' (le_trans h1 h2.le)
+
