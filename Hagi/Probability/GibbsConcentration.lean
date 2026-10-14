@@ -1974,3 +1974,44 @@ theorem log_concave_two {lam x y : ℝ} (hlam : 0 < lam) (hlam2 : lam < 1)
     (Real.rpow_pos_of_pos hx lam)
     (Real.rpow_pos_of_pos hy (1 - lam))) h1
 
+open Finset Real in
+/-- **Выпуклость x·ln x (R455)**:
+(λa+(1−λ)b)·ln(λa+(1−λ)b) ≤
+λa·ln a + (1−λ)b·ln b.
+Доказательство: log-sum (R451)
+на Bool-носителе с
+α = (λa, (1−λ)b),
+β = (λ, 1−λ) (Σβ = 1).
+Энтропийная
+функция выпукла —
+кирпич выпуклости KL-
+дивергенции. -/
+theorem xlogx_convex {a b lam : ℝ} (ha : 0 < a) (hb : 0 < b)
+    (hlam : 0 < lam) (hlam2 : lam < 1) :
+    (lam * a + (1 - lam) * b) * Real.log (lam * a + (1 - lam) * b)
+      ≤ lam * a * Real.log a + (1 - lam) * b * Real.log b := by
+  set α : Bool → ℝ := fun t => if t then lam * a else (1 - lam) * b with hα
+  set β : Bool → ℝ := fun t => if t then lam else 1 - lam with hβ
+  have hαpos : ∀ t : Bool, 0 < α t := by
+    intro t; cases t <;> rw [hα] <;> simp <;> positivity
+  have hβpos : ∀ t : Bool, 0 < β t := by
+    intro t; cases t <;> rw [hβ] <;> simp <;> linarith
+  have hsum := log_sum_ineq α β hαpos hβpos
+  have hβ1 : ∑ t : Bool, β t = 1 := by
+    rw [hβ]; simp [Fin.sum_univ_two]
+  have hα1 : ∑ t : Bool, α t = lam * a + (1 - lam) * b := by
+    rw [hα]; simp [Fin.sum_univ_two]
+  rw [hβ1, div_one, hα1] at hsum
+  have hexp : ∑ t : Bool, α t * Real.log (α t / β t)
+      = lam * a * Real.log a + (1 - lam) * b * Real.log b := by
+    have hdiv1 : lam * a / lam = a := by
+      field_simp
+    have hdiv2 : (1 - lam) * b / (1 - lam) = b := by
+      field_simp
+      ring_nf
+      linarith [mul_inv_cancel₀ (ne_of_gt (show 0 < 1 - lam by linarith))]
+    rw [hα, hβ]
+    simp [hdiv1, hdiv2]
+  rw [hexp] at hsum
+  exact hsum
+
