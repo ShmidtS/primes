@@ -371,3 +371,72 @@ theorem certified_state_energy {V : Type*} [Fintype V]
     mul_le_mul_of_nonneg_left hscale hΔ0
   linarith [hb, hR]
 
+open Finset in
+/-- **Калориметрический избыток сертифицированного состояния
+(R417)**: ∃N, ∀t ≥ N: ⟨E⟩_t − F_t ≤ (Δ+T₀)·C·θ —
+энергетическая и свободная энергия
+согласованы: избыток − тепло, запасённое в
+охлаждённом состоянии, ≤ θ-масштаба
+(R416 + R398: F ≥ E* − T·Cθ, T ≤ T₀). -/
+theorem certified_state_excess {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+        - (-(T0 * α ^ t)
+          * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))))
+      ≤ (Δ + T0) * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * θ := by
+  obtain ⟨N1, hN1⟩ := thermostat_phase_point α T0 δ 1 θ hα1 hα2 hT0 hδ
+    (by norm_num) hθ1 hθ2
+  obtain ⟨N2, hN2⟩ := certified_state_energy E vstar α T0 δ Δ hα1 hα2
+    hT0 hδ hmin hgap hΔ θ hθ1 hθ2
+  refine ⟨max N1 N2, fun t ht => ?_⟩
+  have h1 : ((N1 : ℕ) : ℝ) ≤ ((max N1 N2 : ℕ) : ℝ) := by
+    exact_mod_cast Nat.le_max_left _ _
+  have h2 : ((N2 : ℕ) : ℝ) ≤ ((max N1 N2 : ℕ) : ℝ) := by
+    exact_mod_cast Nat.le_max_right _ _
+  obtain ⟨hstop, _⟩ := hN1 t (h1.trans ht)
+  have hE := hN2 t (h2.trans ht)
+  set T := T0 * α ^ t with hTdef
+  have hTpos : (0:ℝ) < T := mul_pos hT0 (pow_pos hα1 t)
+  set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  -- T <= T0
+  have hTle : T ≤ T0 := by
+    rw [hTdef]
+    have hp := pow_le_one₀ (n := t) hα1.le (le_of_lt hα2)
+    calc T0 * α ^ t ≤ T0 * 1 := mul_le_mul_of_nonneg_left hp hT0.le
+      _ = T0 := by ring
+  -- F sharp lower, log term scaled by theta
+  have hF := free_energy_sharp_lower E δ T hTpos vstar hgap
+  have hC0 : (0:ℝ) ≤ C := Nat.cast_nonneg _
+  have hln : Real.log (1 + C * Real.exp (-δ/T)) ≤ C * θ := by
+    have hx : (0:ℝ) ≤ C * Real.exp (-δ/T) :=
+      mul_nonneg hC0 (le_of_lt (exp_pos _))
+    have hexp : (1:ℝ) + C * Real.exp (-δ/T)
+        ≤ Real.exp (C * Real.exp (-δ/T)) := by
+      linarith [Real.add_one_le_exp (C * Real.exp (-δ/T))]
+    have hle := Real.log_le_log (by linarith) hexp
+    rw [Real.log_exp] at hle
+    calc Real.log (1 + C * Real.exp (-δ/T))
+        ≤ C * Real.exp (-δ/T) := hle
+      _ ≤ C * θ := mul_le_mul_of_nonneg_left hstop hC0
+  -- numerator: E_mean - F <= Δ*C*θ + T*(C*θ) <= (Δ+T0)*C*θ
+  have hF' : E vstar - T * (C * θ) ≤ -T * Real.log Z := by
+    have hTln : T * Real.log (1 + C * Real.exp (-δ/T)) ≤ T * (C*θ) :=
+      mul_le_mul_of_nonneg_left hln hTpos.le
+    linarith [hF, hTln]
+  have hring : Δ * C * θ + T0 * C * θ = (Δ + T0) * C * θ := by ring
+  have hT2 : T * (C * θ) = T * C * θ := by ring
+  rw [hT2] at hF'
+  have hCθ : (0:ℝ) ≤ C * θ := mul_nonneg hC0 hθ1.le
+  have hprod : T * C * θ ≤ T0 * C * θ := by nlinarith
+  linarith [hE, hF', hring, hprod]
+

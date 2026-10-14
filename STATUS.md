@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R417):
+  `certified_state_excess` — калориметрический избыток:
+  ∃N ∀t≥N: ⟨E⟩_t − F_t ≤ (Δ+T0)·C·θ (R416 + R398 + T≤T0)
+  — энергия и свободная энергия согласованы в θ-масштабе.
 - `Growth/Thermostat` (R416):
   `certified_state_energy` — энергетическое следствие:
   ∃N ∀t≥N: ⟨E⟩_{T_t} ≤ E* + Δ·C·θ (R393 × R407) — энергия
