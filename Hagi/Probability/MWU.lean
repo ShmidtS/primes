@@ -240,3 +240,18 @@ theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
     congr 1
     ring
 
+/-- **Замкнутая форма разбиения (R439)**:
+∑_v ∏_t e^{−ηℓ_t(v)} = ∑_v e^{−ηL_v}
+(почленная композиция R438).
+Ненормированная статистика
+алгоритма — чисто
+Гиббс-статистика
+кумулятивных потерь:
+мост MWU ↔ Гиббс замыкается
+на уровне разбиения. -/
+theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η : ℝ)
+    (T : ℕ) :
+    ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))
+      = ∑ v : V, Real.exp (-(η * ∑ t ∈ Finset.range T, ℓs t v)) :=
+  Finset.sum_congr rfl (fun v _ => mwu_prod_exp ℓs η T v)
+
