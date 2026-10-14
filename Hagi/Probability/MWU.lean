@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Probability.GibbsConcentration
 
 /-!
 # MWU — мост к multiplicative weights (R433–)
@@ -284,4 +285,33 @@ theorem mwu_regret_static {V : Type*} [Fintype V]
     fun v => Finset.sum_nonneg (fun t ht => hℓ t ht v)
   exact mwu_uniform_squeeze (fun v => ∑ t ∈ Finset.range T, ℓs t v) η
     hLnn hη hsmall
+
+/-- **Гиббс = hedge при η = 1/T (R441)** —
+мост вертикалей:
+hedge-сертификат Гиббс-статистики:
+(1/T)E_min ≤ −ln((1/n)∑e^{−E/T}) ≤
+2(1/T)⟨E⟩_unif. Температура —
+обратный learning rate: охлаждение
+термостата = ускорение
+обучения. Вся MWU-механика
+(R432-R440) автоматически
+переносится на термодинамику. -/
+theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
+    [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hE : ∀ v, 0 ≤ E v)
+    (hsmall : ∀ v, (1/T) * E v ≤ 1/2) :
+    ∃ vmin : V, (1/T) * E vmin
+      ≤ -(Real.log ((1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(E v)/T)))
+      ∧ -(Real.log ((1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(E v)/T)))
+        ≤ 2 * (1/T) * (∑ v : V, (1/(Fintype.card V : ℝ)) * E v) := by
+  have hkey : ∀ v : V, Real.exp (-(E v)/T)
+      = Real.exp (-((1/T) * E v)) := by
+    intro v
+    congr 1
+    field_simp
+  rw [Finset.sum_congr rfl (fun v _ => hkey v), Finset.mul_sum]
+  have hη : (0:ℝ) < 1/T := by positivity
+  exact mwu_uniform_squeeze E (1/T) hE hη hsmall
 

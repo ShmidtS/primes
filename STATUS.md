@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/MWU` (R441):
+  `gibbs_hedge_squeeze` — Гиббс = hedge при η = 1/T:
+  (1/T)E_min ≤ −ln((1/n)Σe^{−E/T}) ≤ 2(1/T)⟨E⟩_unif.
+  Мост вертикалей: температура = обратный learning rate;
+  вся MWU-механика переносится на термодинамику.
 - `Probability/MWU` (R440):
   `mwu_regret_static` — статический MWU-regret в
   произведенческой форме: ηL_min ≤ −ln((1/n)Σ∏e^{−ηℓ_t}) ≤
