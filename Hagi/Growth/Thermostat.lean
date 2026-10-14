@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
 import Hagi.Probability.GibbsConcentration
+import Hagi.Ensemble.Hoeffding
 set_option linter.style.header false
 
 /-!
@@ -215,4 +216,38 @@ theorem consolidation_certificate {V : Type*} [Fintype V]
     exact_mod_cast Nat.le_max_right _ _
   obtain ⟨hstop, hgate⟩ := hN t (h1.trans ht)
   exact ⟨hstop, hgate, hN2 t (h2.trans ht)⟩
+
+open Finset in
+/-- **Третий мост: Гиббс × Хёфдинг (R413)**: при центрировании d по
+Гиббс-мере p_T и 2|K|θ < 1 существует равномерно
+ε_θ-хорошая точка — выборка из охлаждённого ансамбля
+репрезентативна для всего класса (Гиббс-веса —
+вероятностная мера: exp_pos + div_self; R411 напрямую).
+Треугольник мостов замкнут: термостат ↔ Гиббс
+(R408), термостат ↔ Хёфдинг (R409–411), Гиббс ↔
+Хёфдинг (R413). -/
+theorem gibbs_representative {V K : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] [Fintype K]
+    (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (d : K → V → ℝ) (a b : ℝ)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T)) * d k v = 0)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1)
+    (hsmall : 2 * (Fintype.card K : ℝ) * θ < 1) :
+    ∃ v : V, ∀ k : K,
+      |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+  have hZpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/T) :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hw : ∀ v, 0 < Real.exp (-(E v)/T)
+      / ∑ v, Real.exp (-(E v)/T) :=
+    fun v => div_pos (exp_pos _) hZpos
+  have hw1 : ∑ v, Real.exp (-(E v)/T)
+      / ∑ v, Real.exp (-(E v)/T) = 1 := by
+    rw [← Finset.sum_div]
+    exact div_self hZpos.ne'
+  exact Hagi.Ensemble.calibrated_good_point
+    (fun v => Real.exp (-(E v)/T) / ∑ v, Real.exp (-(E v)/T))
+    d a b hw hw1 hlt hbd hc θ hθ1 hθ2 hsmall
 
