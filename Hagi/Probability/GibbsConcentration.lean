@@ -1354,3 +1354,58 @@ theorem free_energy_upper {V : Type*} [Fintype V]
     field_simp
   linarith
 
+open Finset in
+/-- **Разложение перекрёстной энтропии (R422)**:
+∑ w·ln(w·n) = ∑ w·ln w + ln n — тождество
+энтропия/KL: KL(pḟ‖u) =
+−S + ln n. Вместе с R418 (S ≥ 0) даёт
+KL(pḟ‖u) ≤ ln n; мост к Пинскеру на
+Гиббс-парах: охлаждение убивает энтропию
+→ KL к равномерному растёт до ln n (порядок
+максимальной энтропии обращается). -/
+theorem gibbs_kl_uniform_split {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) :
+    ∑ v, (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))
+      * Real.log ((Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))
+        * (Fintype.card V : ℝ))
+    = ∑ v, (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))
+      * Real.log (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))
+      + Real.log (Fintype.card V : ℝ) := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set w : V → ℝ := fun v => Real.exp (-(E v)/T) / Z with hw
+  have hwpos : ∀ v, 0 < w v := fun v => div_pos (exp_pos _) hZpos
+  have hw1 : ∑ v, w v = 1 := by
+    rw [hw]
+    simp only
+    rw [← Finset.sum_div]
+    exact div_self hZpos.ne'
+  have hcard : (0:ℝ) < (Fintype.card V : ℝ) :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr
+      ⟨Classical.arbitrary V⟩)
+  -- per-term: log (w * n) = log w + log n
+  have hterm : ∀ v ∈ Finset.univ,
+      w v * Real.log (w v * (Fintype.card V : ℝ))
+        = w v * Real.log (w v)
+          + w v * Real.log (Fintype.card V : ℝ) := by
+    intro v _
+    have hsplit : Real.log (w v * (Fintype.card V : ℝ))
+        = Real.log (w v) + Real.log (Fintype.card V : ℝ) :=
+      (Real.log_mul (ne_of_gt (hwpos v)) (ne_of_gt hcard))
+    rw [hsplit, mul_add]
+  rw [Finset.sum_congr rfl hterm, Finset.sum_add_distrib]
+  have hsecond : ∑ v, w v * Real.log (Fintype.card V : ℝ)
+      = Real.log (Fintype.card V : ℝ) := by
+    have hcomm : ∑ v, w v * Real.log (Fintype.card V : ℝ)
+        = ∑ v, Real.log (Fintype.card V : ℝ) * w v :=
+      Finset.sum_congr rfl (fun v _ => by rw [mul_comm])
+    rw [hcomm, ← Finset.mul_sum, hw1, mul_one]
+  rw [hsecond]
+
