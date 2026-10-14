@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R485):
+  `cramer_tilt_kl` — Cramér-наклон: при
+  E_p g ≥ t и c > 0: c·t − ln Σq·e^{cg} ≤ KL
+  (из R481 + монотонность; НОВАЯ ОПОРА:
+  arXiv 2401.01148 «PAC-Bayes-Chernoff bounds
+  for unbounded losses», NeurIPS 2024).
 - `Probability/GibbsConcentration` (R484):
   `exp_tilt_interpol` — экспоненциальная
   интерполяция: для a ≤ g ≤ b: Σp·e^{cg} ≤

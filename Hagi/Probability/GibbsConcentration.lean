@@ -3738,3 +3738,26 @@ theorem exp_tilt_interpol {V : Type*} [Fintype V] [Nonempty V]
   intro v _
   exact le_of_eq (by ring)
 
+open Finset Real in
+/-- **Cramér-наклон
+(R485)**: если E_p g ≥ t,
+то для любого
+c > 0: c·t −
+ln Σq·e^{c·g} ≤
+KL(p‖q).
+Опора arXiv 2401.01148
+(PAC-Bayes-Chernoff,
+NeurIPS 2024) — первый
+кирпич вертикали. -/
+theorem cramer_tilt_kl {V : Type*} [Fintype V] [Nonempty V]
+    (p q g : V → ℝ) (t c : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hc : 0 < c) (hge : t ≤ ∑ v : V, p v * g v) :
+    c * t - Real.log (∑ v : V, q v * Real.exp (c * g v))
+      ≤ ∑ v : V, p v * Real.log (p v / q v) := by
+  have hR := kl_chernoff_tilt p q g c hp hp1 hq hq1
+  have hmono : c * t ≤ c * ∑ v : V, p v * g v :=
+    mul_le_mul_of_nonneg_left hge hc.le
+  linarith [hR, hmono]
+
