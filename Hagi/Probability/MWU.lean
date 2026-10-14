@@ -340,3 +340,153 @@ theorem mwu_double_upper {V : Type*} [Fintype V]
   rw [← Finset.mul_sum] at h3
   exact ⟨vmin, h2, h3⟩
 
+/-- **η-сбалансированная граница (R444)**:
+−ln W ≤ 2√(η·⟨ℓ⟩·ln n) при
+η·⟨ℓ⟩ ≤ ln n (равновесие
+двух оценок R443 через
+среднее геометрическое:
+f ≤ X, f ≤ Y, f ≥ 0 ⟹ f² ≤ XY;
+Y ≤ 2 ln n при балансе).
+Классическая структура
+regret-границ MWU. -/
+theorem mwu_sqrt_bound {V : Type*} [Fintype V]
+    [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2)
+    (hn : (0:ℝ) < Real.log (Fintype.card V : ℝ))
+    (hbal : η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
+      ≤ Real.log (Fintype.card V : ℝ)) :
+    -(Real.log ((1/(Fintype.card V : ℝ))
+        * ∑ v : V, Real.exp (-(η * ℓ v))))
+      ≤ 2 * Real.sqrt (η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
+        * Real.log (Fintype.card V : ℝ)) := by
+  obtain ⟨_, h2, _⟩ := mwu_double_upper ℓ η hℓ hη hsmall
+  set Lbar : ℝ := ∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v with hL
+  -- explicit minimizer
+  obtain ⟨v0, hv0⟩ : ∃ v0 : V, ∀ v : V, ℓ v0 ≤ ℓ v := by
+    obtain ⟨a, _, ha⟩ := Finset.exists_min_image
+      (Finset.univ : Finset V) ℓ Finset.univ_nonempty
+    exact ⟨a, fun v => ha v (Finset.mem_univ v)⟩
+  have hLnn : (0:ℝ) ≤ Lbar :=
+    Finset.sum_nonneg (fun v _ => mul_nonneg (by positivity) (hℓ v))
+  -- direct bound: -log W <= log n + eta * Lbar
+  have hminle : ℓ v0 ≤ Lbar := by
+    have hsumle : (Fintype.card V : ℝ)
+        * ((1/(Fintype.card V : ℝ)) * ℓ v0)
+        ≤ ∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v := by
+      calc (Fintype.card V : ℝ)
+          * ((1/(Fintype.card V : ℝ)) * ℓ v0)
+          = ∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v0 := by
+            rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+        _ ≤ ∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v :=
+            Finset.sum_le_sum (fun v _ =>
+              mul_le_mul_of_nonneg_left (hv0 v) (by positivity))
+    have hrewrite : (Fintype.card V : ℝ)
+        * ((1/(Fintype.card V : ℝ)) * ℓ v0) = ℓ v0 := by
+      field_simp
+    rw [hrewrite] at hsumle
+    rw [hL]
+    exact hsumle
+  set f : ℝ := -(Real.log ((1/(Fintype.card V : ℝ))
+      * ∑ v : V, Real.exp (-(η * ℓ v)))) with hfdef
+  have hη0 : (0:ℝ) ≤ η := le_of_lt hη
+  have hf : (0:ℝ) ≤ f := by
+    have hW : (1/(Fintype.card V : ℝ))
+        * ∑ v : V, Real.exp (-(η * ℓ v)) ≤ 1 := by
+      have hle : ∑ v : V, Real.exp (-(η * ℓ v))
+          ≤ (Fintype.card V : ℝ) := by
+        calc ∑ v : V, Real.exp (-(η * ℓ v))
+            ≤ ∑ v : V, (1:ℝ) :=
+              Finset.sum_le_sum (fun v _ =>
+                Real.exp_le_one_iff.mpr
+                  (neg_nonpos.mpr (mul_nonneg hη0 (hℓ v))))
+          _ = (Fintype.card V : ℝ) := by
+              rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul,
+                mul_one]
+      have hnn : (0:ℝ) < (Fintype.card V : ℝ) :=
+        Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+      have hone : (1/(Fintype.card V : ℝ))
+          * (Fintype.card V : ℝ) = 1 := by field_simp
+      have hstep := mul_le_mul_of_nonneg_left hle
+        (by positivity : (0:ℝ) ≤ 1/(Fintype.card V : ℝ))
+      have := hstep.trans_eq hone
+      exact this
+    have hWpos : (0:ℝ) < (1/(Fintype.card V : ℝ))
+        * ∑ v : V, Real.exp (-(η * ℓ v)) :=
+      mul_pos (by positivity)
+        (Finset.sum_pos (fun v _ => exp_pos _) ⟨v0, Finset.mem_univ _⟩)
+    have hlog := Real.log_le_log hWpos hW
+    rw [Real.log_one] at hlog
+    simp only [hfdef]
+    linarith
+  have hupper2 : f
+      ≤ Real.log (Fintype.card V : ℝ) + η * Lbar := by
+    have hstep : η * ℓ v0 ≤ η * Lbar :=
+      mul_le_mul_of_nonneg_left hminle hη0
+    have hsingle : (1/(Fintype.card V : ℝ)) * Real.exp (-(η * ℓ v0))
+        ≤ (1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(η * ℓ v)) := by
+      rw [Finset.mul_sum]
+      exact single_le_sum
+        (f := fun v => (1/(Fintype.card V : ℝ))
+          * Real.exp (-(η * ℓ v)))
+        (fun v _ => mul_nonneg (by positivity) (exp_pos _).le)
+        (Finset.mem_univ v0)
+    have hpos2 : (0:ℝ) < (1/(Fintype.card V : ℝ))
+        * Real.exp (-(η * ℓ v0)) :=
+      mul_pos (by positivity) (exp_pos _)
+    have hlog := Real.log_le_log hpos2 hsingle
+    have hsplit : Real.log ((1/(Fintype.card V : ℝ))
+        * Real.exp (-(η * ℓ v0)))
+        = -(Real.log (Fintype.card V : ℝ) + η * ℓ v0) := by
+      have hne1 : (1/(Fintype.card V : ℝ)) ≠ 0 := by positivity
+      have hne2 : Real.exp (-(η * ℓ v0)) ≠ 0 := by positivity
+      have hnn : (0:ℝ) < (Fintype.card V : ℝ) :=
+        Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+      rw [Real.log_mul hne1 hne2, Real.log_exp,
+        Real.log_div (one_ne_zero) (ne_of_gt hnn), Real.log_one,
+        zero_sub, neg_add_eq_sub]
+      ring
+    rw [hsplit] at hlog
+    simp only [hfdef] at hlog ⊢
+    linarith
+  -- geometric combination: f^2 <= X * Y with X = 2 eta Lbar, Y = log n + eta Lbar
+  have hXY : f * f ≤ (2 * η * Lbar) * (Real.log (Fintype.card V : ℝ)
+      + η * Lbar) :=
+    mul_le_mul h2 hupper2 hf
+      (mul_nonneg (mul_nonneg (by norm_num : (0:ℝ) ≤ 2) hη0) hLnn)
+  -- Y <= 2 log n
+  have hY : Real.log (Fintype.card V : ℝ) + η * Lbar
+      ≤ 2 * Real.log (Fintype.card V : ℝ) := by linarith
+  have hprod : (2 * η * Lbar) * (Real.log (Fintype.card V : ℝ) + η * Lbar)
+      ≤ (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+        * (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ))) := by
+    have hsq : (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+        * (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+        = 4 * (η * Lbar * Real.log (Fintype.card V : ℝ)) := by
+      have h1 := Real.sq_sqrt (by positivity : (0:ℝ) ≤ η * Lbar
+        * Real.log (Fintype.card V : ℝ))
+      calc (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+          * (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+          = 4 * (Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ))
+            * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ))) := by
+            ring
+        _ = 4 * (η * Lbar * Real.log (Fintype.card V : ℝ)) := by
+            rw [← sq, h1]
+    rw [hsq]
+    nlinarith [hbal, hLnn, hn, le_of_lt hη, hY]
+  -- f = sqrt(f^2) <= sqrt(prod) = 2 sqrt(...)
+  have hfsq : Real.sqrt (f * f) = f := by
+    rw [← sq f, Real.sqrt_sq hf]
+  rw [← hfsq]
+  calc Real.sqrt (f * f)
+      ≤ Real.sqrt ((2 * η * Lbar) * (Real.log (Fintype.card V : ℝ)
+        + η * Lbar)) := Real.sqrt_le_sqrt hXY
+    _ ≤ Real.sqrt ((2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))
+        * (2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)))) :=
+        Real.sqrt_le_sqrt hprod
+    _ = 2 * Real.sqrt (η * Lbar * Real.log (Fintype.card V : ℝ)) := by
+        have h2 := Real.sqrt_sq (by positivity : (0:ℝ) ≤ 2 * Real.sqrt
+          (η * Lbar * Real.log (Fintype.card V : ℝ)))
+        rw [← sq, h2]
+
