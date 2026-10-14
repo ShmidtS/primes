@@ -70,3 +70,50 @@ theorem mwu_potential_step {V : Type*} [Fintype V]
   rw [Real.log_exp] at hlog
   linarith
 
+/-- **Нижняя грань потенциала (R434)**:
+ln Z' ≤ −η·ℓ_min — вклад минимизатора
+потерь доминирует:
+e^{−ηℓ_v} ≤ e^{−ηℓ_min} почленно ⟹
+Z' ≤ e^{−ηℓ_min}. Вместе с R433
+(верхняя грань): −η·ℓ_min
+≤ −ln Z' ≤ 2η·⟨ℓ⟩_w — потенциал
+зажат с обеих сторон. -/
+theorem mwu_potential_lower {V : Type*} [Fintype V]
+    [Nonempty V] (w : V → ℝ) (ℓ : V → ℝ) (η : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hη : 0 < η) :
+    ∃ vmin : V, Real.log (∑ v, w v * Real.exp (-(η * ℓ v)))
+      ≤ -(η * ℓ vmin) := by
+  obtain ⟨vmin, hvmin⟩ : ∃ vmin : V, ∀ v : V, ℓ vmin ≤ ℓ v := by
+    obtain ⟨a, _, ha⟩ := Finset.exists_min_image (Finset.univ : Finset V) ℓ
+      Finset.univ_nonempty
+    exact ⟨a, fun v => ha v (Finset.mem_univ v)⟩
+  refine ⟨vmin, ?_⟩
+  -- per-v: exp(-(η ℓ v)) <= exp(-(η ℓ vmin))
+  have hper : ∀ v : V, Real.exp (-(η * ℓ v)) ≤ Real.exp (-(η * ℓ vmin)) := by
+    intro v
+    apply Real.exp_le_exp.mpr
+    have h1 : ℓ vmin ≤ ℓ v := hvmin v
+    have h2 : -(η * ℓ v) ≤ -(η * ℓ vmin) := by
+      have : η * ℓ vmin ≤ η * ℓ v :=
+        mul_le_mul_of_nonneg_left h1 (le_of_lt hη)
+      linarith
+    exact h2
+  -- weighted sum bound
+  have hsum : ∑ v, w v * Real.exp (-(η * ℓ v))
+      ≤ ∑ v, w v * Real.exp (-(η * ℓ vmin)) :=
+    Finset.sum_le_sum (fun v _ => mul_le_mul_of_nonneg_left (hper v) (le_of_lt (hw v)))
+  -- = exp(...) * sum w = exp(...)
+  have hsplit : ∑ v, w v * Real.exp (-(η * ℓ vmin))
+      = Real.exp (-(η * ℓ vmin)) * ∑ v, w v := by
+    rw [Finset.sum_congr rfl (fun v _ => mul_comm (w v) (Real.exp (-(η * ℓ vmin)))),
+      Finset.mul_sum]
+  rw [hw1, mul_one] at hsplit
+  rw [hsplit] at hsum
+  -- log mono
+  have hZpos : (0:ℝ) < ∑ v, w v * Real.exp (-(η * ℓ v)) :=
+    Finset.sum_pos (fun v _ => mul_pos (hw v) (exp_pos _))
+      ⟨vmin, Finset.mem_univ _⟩
+  have hlog := Real.log_le_log hZpos hsum
+  rwa [Real.log_exp] at hlog
+
