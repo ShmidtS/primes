@@ -1945,3 +1945,32 @@ theorem kl_data_processing {V W : Type*} [Fintype V] [Fintype W]
   rw [hdecomp]
   exact Finset.sum_le_sum (fun w _ => hper w)
 
+open Real in
+/-- **Двухточечная
+вогнутость ln (R454)**:
+λ·ln x + (1−λ)·ln y ≤
+ln(λx+(1−λ)y).
+Без calculus:
+взвешенное AM-GM
+(Реал.geom_mean_le_arith_mean2_weighted)
++ монотонность ln.
+Кирпич выпуклости KL-
+дивергенции. -/
+theorem log_concave_two {lam x y : ℝ} (hlam : 0 < lam) (hlam2 : lam < 1)
+    (hx : 0 < x) (hy : 0 < y) :
+    lam * Real.log x + (1 - lam) * Real.log y
+      ≤ Real.log (lam * x + (1 - lam) * y) := by
+  have h1 : x ^ lam * y ^ (1 - lam) ≤ lam * x + (1 - lam) * y :=
+    Real.geom_mean_le_arith_mean2_weighted hlam.le
+      (by linarith : (0:ℝ) ≤ 1 - lam) hx.le hy.le
+      (by ring)
+  have h2 : Real.log (x ^ lam * y ^ (1 - lam))
+      = lam * Real.log x + (1 - lam) * Real.log y := by
+    rw [Real.log_mul (Real.rpow_pos_of_pos hx lam).ne'
+      (Real.rpow_pos_of_pos hy (1 - lam)).ne',
+      Real.log_rpow hx, Real.log_rpow hy]
+  rw [← h2]
+  exact Real.log_le_log (mul_pos
+    (Real.rpow_pos_of_pos hx lam)
+    (Real.rpow_pos_of_pos hy (1 - lam))) h1
+
