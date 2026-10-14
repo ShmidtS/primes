@@ -3589,3 +3589,40 @@ theorem markov_finite {V : Type*} [Fintype V] [DecidableEq V]
       (fun v _ _ => mul_nonneg (hp v).le (hg v))
   linarith
 
+open Finset Real in
+/-- **Чернофф
+на событии
+(R483)**: для λ > 0:
+p({g ≥ t}) ≤
+e^{−λt}·E_p e^{λg}
+(марковский
+R482 на
+H := e^{λg}; эквивим
+фильтров через
+exp-монотонность). -/
+theorem chernoff_event {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p g : V → ℝ) (hl t : ℝ)
+    (hp : ∀ v, 0 < p v) (hltp : 0 < hl) :
+    ∑ v ∈ Finset.filter (fun v => t ≤ g v) Finset.univ, p v
+      ≤ (∑ v : V, p v * Real.exp (hl * g v)) / Real.exp (hl * t) := by
+  set s₁ : Finset V := Finset.filter (fun v => t ≤ g v) Finset.univ with hs₁
+  have hm := markov_finite p (fun v => Real.exp (hl * g v))
+    (Real.exp (hl * t)) hp
+    (fun v => Real.exp_nonneg _) (Real.exp_pos _)
+  have hiff : ∀ v : V,
+      (Real.exp (hl * g v) ≥ Real.exp (hl * t)) ↔ (t ≤ g v) := by
+    intro v
+    constructor
+    · intro hge
+      have hh := Real.exp_le_exp.mp hge
+      nlinarith [hh, hltp]
+    · intro hle
+      exact Real.exp_le_exp.mpr (by nlinarith [hltp])
+  have heq : Finset.filter (fun v =>
+      Real.exp (hl * g v) ≥ Real.exp (hl * t)) Finset.univ = s₁ := by
+    apply Finset.ext
+    intro v
+    rw [Finset.mem_filter, Finset.mem_filter, hiff v]
+  rw [heq] at hm
+  exact le_div_iff₀' (Real.exp_pos (hl * t)) |>.mpr hm
+

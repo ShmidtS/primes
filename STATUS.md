@@ -114,6 +114,11 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R483):
+  `chernoff_event` — Чернофф на событии: для
+  λ > 0: p({g ≥ t}) ≤ e^{−λt}·E_p e^{λg}
+  (Марков R482 на H := e^{λg}; эквивалентность
+  фильтров через exp-монотонность).
 - `Probability/GibbsConcentration` (R482):
   `markov_finite` — конечный Марков: для g ≥ 0 и
   t > 0: t·p({g ≥ t}) ≤ E_p g (фильтр-событие +
