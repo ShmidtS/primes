@@ -1703,3 +1703,48 @@ theorem gibbs_variational {V : Type*} [Fintype V]
   rw [hTKL] at hKL'
   linarith
 
+open Finset in
+/-- **Нижняя грань свободной энергии (R449)**:
+E_min − T·ln n ≤ F = −T·ln Z.
+Вместе с R421 (F ≤ E*) — сэндвич свободной энергии:
+E_min − T·ln n ≤ F ≤ E_min.
+Классическая термодинамика: свободная энергия
+зажата между основанием с энтропийным
+запасом T·ln n и насыщением E_min.
+Метод: Z ≤ n·e^{−E_min/T} почленно + монотонность ln
++ умножение на −T < 0. -/
+theorem gibbs_free_energy_lower {V : Type*} [Fintype V]
+    [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (vmin : V) (hmin : ∀ v : V, E vmin ≤ E v) :
+    (E vmin) - T * Real.log ((Fintype.card V : ℝ))
+      ≤ -T * Real.log (∑ v : V, Real.exp (-(E v)/T)) := by
+  have hZ : ∑ v : V, Real.exp (-(E v)/T)
+      ≤ (Fintype.card V : ℝ) * Real.exp (-(E vmin)/T) := by
+    have hexp : ∀ v : V, Real.exp (-(E v)/T)
+        ≤ Real.exp (-(E vmin)/T) := by
+      intro v
+      apply Real.exp_le_exp.mpr
+      rw [neg_div, neg_div]
+      exact neg_le_neg ((div_le_div_iff_of_pos_right hT).mpr (hmin v))
+    calc ∑ v : V, Real.exp (-(E v)/T)
+        ≤ ∑ v : V, Real.exp (-(E vmin)/T) :=
+          Finset.sum_le_sum (fun v _ => hexp v)
+      _ = (Fintype.card V : ℝ) * Real.exp (-(E vmin)/T) := by
+          simp [Finset.sum_const]
+  have hn : (0:ℝ) < Fintype.card V :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+  have hexpmin : (0:ℝ) < Real.exp (-(E vmin)/T) := exp_pos _
+  have hlog : Real.log (∑ v : V, Real.exp (-(E v)/T))
+      ≤ Real.log ((Fintype.card V : ℝ)) - (E vmin)/T := by
+    have h1 := Real.log_le_log (Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩) hZ
+    rw [Real.log_mul hn.ne' hexpmin.ne', Real.log_exp, neg_div] at h1
+    exact h1
+  have h3 : -T * (Real.log ((Fintype.card V : ℝ)) - (E vmin)/T)
+      = (E vmin) - T * Real.log ((Fintype.card V : ℝ)) := by
+    field_simp
+    ring
+  have h4 := mul_le_mul_of_nonpos_left hlog (by linarith : (-T:ℝ) ≤ 0)
+  rw [h3] at h4
+  exact h4
+
