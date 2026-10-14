@@ -1793,3 +1793,73 @@ theorem finite_max_entropy {V : Type*} [Fintype V]
   rw [hexp] at hKL
   linarith
 
+open Finset in
+/-- **Log-sum неравенство (R451)**:
+A·ln(A/B) ≤ Σ a·ln(a/b) для
+положительных a, b
+(A = Σa, B = Σb).
+Вывод: нормализация
+a/A, b/B в распределения +
+R447 (KL ≥ 0); без Коши-Энгеля.
+Классический кирпич
+Энтропийной неравенств
+цепи и основа
+Пинскера/Гиббса-Дюгема. -/
+theorem log_sum_ineq {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (a b : V → ℝ)
+    (ha : ∀ v, 0 < a v) (hb : ∀ v, 0 < b v) :
+    (∑ v : V, a v) * Real.log ((∑ v : V, a v) / (∑ v : V, b v))
+      ≤ ∑ v : V, a v * Real.log (a v / b v) := by
+  set A : ℝ := ∑ v : V, a v with hA
+  set B : ℝ := ∑ v : V, b v with hB
+  have hApos : 0 < A :=
+    Finset.sum_pos (fun v _ => ha v)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hBpos : 0 < B :=
+    Finset.sum_pos (fun v _ => hb v)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set ρ : V → ℝ := fun v => a v / A with hρ
+  set γ : V → ℝ := fun v => b v / B with hγ
+  have hρpos : ∀ v, 0 < ρ v :=
+    fun v => by rw [hρ]; exact div_pos (ha v) hApos
+  have hγpos : ∀ v, 0 < γ v :=
+    fun v => by rw [hγ]; exact div_pos (hb v) hBpos
+  have hρ1 : ∑ v : V, ρ v = 1 := by
+    rw [hρ]; simp only; rw [← Finset.sum_div]; exact div_self hApos.ne'
+  have hγ1 : ∑ v : V, γ v = 1 := by
+    rw [hγ]; simp only; rw [← Finset.sum_div]; exact div_self hBpos.ne'
+  have hKL := finite_kl_nonneg ρ γ hρpos hρ1 hγpos hγ1
+  have hexp : ∑ v : V, ρ v * Real.log (ρ v / γ v)
+      = (1/A) * (∑ v : V, a v * Real.log (a v / b v))
+        + Real.log (B/A) := by
+    have hsplit : ∀ v : V, ρ v * Real.log (ρ v / γ v)
+        = (1/A) * (a v * Real.log (a v / b v))
+          + (a v / A) * Real.log (B/A) := by
+      intro v
+      have hr : ρ v / γ v = (a v / b v) * (B / A) := by
+        rw [hρ, hγ]; field_simp
+      have hab : 0 < a v / b v := div_pos (ha v) (hb v)
+      have hBA : 0 < B / A := div_pos hBpos hApos
+      rw [hr, Real.log_mul hab.ne' hBA.ne', hρ]
+      simp only
+      field_simp
+    have hs1 : ∑ v : V, (1/A) * (a v * Real.log (a v / b v))
+        = (1/A) * (∑ v : V, a v * Real.log (a v / b v)) :=
+      (Finset.mul_sum Finset.univ
+        (fun v => a v * Real.log (a v / b v)) (1/A)).symm
+    have hs2 : ∑ v : V, (a v / A) * Real.log (B / A)
+        = Real.log (B / A) := by
+      rw [← Finset.sum_mul, ← Finset.sum_div,
+        div_self hApos.ne', one_mul]
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v),
+      Finset.sum_add_distrib, hs1, hs2]
+  rw [hexp] at hKL
+  have hlogneg : Real.log (A / B) = -(Real.log (B / A)) := by
+    rw [Real.log_div hApos.ne' hBpos.ne',
+      Real.log_div hBpos.ne' hApos.ne']
+    ring
+  rw [hlogneg]
+  have hKLA := mul_nonneg hKL hApos.le
+  field_simp at hKLA
+  linarith
+
