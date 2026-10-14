@@ -141,3 +141,34 @@ theorem mwu_potential_squeeze {V : Type*} [Fintype V]
   · linarith
   · linarith
 
+/-- **MWU с uniform-стартом (R436)**:
+специализация R435 на веса
+1/n — классический hedge с
+равномерным начальным
+распределением над
+экспертами V. Кумулятивные
+потери ℓ := L (сумма по шагам)
+дают телескопический
+потенциал: η·L_min ≤ −ln W ≤
+2η·⟨L⟩_{unif}. -/
+theorem mwu_uniform_squeeze {V : Type*} [Fintype V]
+    [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2) :
+    ∃ vmin : V, η * ℓ vmin
+      ≤ -(Real.log (∑ v : V, (1/(Fintype.card V : ℝ))
+          * Real.exp (-(η * ℓ v))))
+      ∧ -(Real.log (∑ v : V, (1/(Fintype.card V : ℝ))
+          * Real.exp (-(η * ℓ v))))
+        ≤ 2 * η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v) := by
+  have hw : ∀ v : V, (0:ℝ) < 1/(Fintype.card V : ℝ) := by
+    intro v
+    apply div_pos (by norm_num)
+    exact Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+  have hw1 : ∑ v : V, (1/(Fintype.card V : ℝ)) = 1 := by
+    rw [Finset.sum_const, Finset.card_univ]
+    have hn : (0:ℝ) < (Fintype.card V : ℝ) :=
+      Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+    rw [nsmul_eq_mul, one_div, mul_inv_cancel₀ (ne_of_gt hn)]
+  exact mwu_potential_squeeze (fun _ => 1/(Fintype.card V : ℝ)) ℓ η hw hw1 hℓ hη hsmall
+
