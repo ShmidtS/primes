@@ -251,6 +251,7 @@ bernRho_slope	816fee75484d42ef	66028bbbc9e2ba72
 bern_mgf_bound	b0b28b6e4bfb9a30	911cb137332776d5
 bern_mgf_bound	b0b28b6e4bfb9a30	911cb137332776d5
 bf16_frozen_update	7e3827abcae73665	b3123a181f97b483
+bhattacharyya_cauchy	abb03505a8fcf01c	0cf24867aea3acde
 binEnt	287d0af98f4c7a18	0e169661ca9d5f2f
 binEnt_half	769ab862780c5990	003dee224d0f2199
 binEnt_mono	05370c6214ca9e5a	6ac33e42a6c96b0a

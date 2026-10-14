@@ -114,6 +114,10 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R470):
+  `bhattacharyya_cauchy` — Бхаттачарья-коэффициент
+  BC = Σ√(pq) ≤ 1 (Коши для сумм в форме квадратов
+  + sq_sqrt-свёртка); кирпич Пинскер-цепи.
 - `Probability/GibbsConcentration` (R469):
   `tv_le_pos_part_kl` — TV ≤ положительная часть KL:
   (1/2)Σ|p−q| ≤ Σ_{q<p} p·ln(p/q) (расщепление

@@ -2745,3 +2745,46 @@ theorem tv_le_pos_part_kl {V : Type*} [Fintype V] [DecidableEq V]
     _ ≤ ∑ v ∈ A, p v * Real.log (p v / q v) :=
       Finset.sum_le_sum hpt
 
+open Finset Real in
+/-- **Бхаттачаря
+≤ 1 (R470)**:
+Σ√(p·q) ≤ 1 — Коши
+(sum_mul_sq_le_sq_mul_sq
+в форме квадратов с
+sq_sqrt-свёрткой).
+Кирпич Пинскер-цепи
+(BC→KL). -/
+theorem bhattacharyya_cauchy {V : Type*} [Fintype V]
+    (p q : V → ℝ) (hp : ∀ v, 0 ≤ p v) (hq : ∀ v, 0 ≤ q v)
+    (hp1 : ∑ v : V, p v = 1) (hq1 : ∑ v : V, q v = 1) :
+    (∑ v : V, Real.sqrt (p v) * Real.sqrt (q v)) ≤ 1 := by
+  have h := Finset.sum_mul_sq_le_sq_mul_sq
+    Finset.univ (fun v => Real.sqrt (p v)) (fun v => Real.sqrt (q v))
+  have hsq : (∑ v : V, Real.sqrt (p v) * Real.sqrt (q v)) ^ 2
+      ≤ (∑ v : V, p v) * (∑ v : V, q v) := by
+    have h1 : (∑ v : V, Real.sqrt (p v) ^ 2) = ∑ v : V, p v := by
+      exact Finset.sum_congr rfl (fun v _ => by
+        rw [sq_sqrt (hp v)])
+    have h2 : (∑ v : V, Real.sqrt (q v) ^ 2) = ∑ v : V, q v := by
+      exact Finset.sum_congr rfl (fun v _ => by
+        rw [sq_sqrt (hq v)])
+    rw [h1, h2] at h
+    simpa [pow_two] using h
+  have hge : (0:ℝ) ≤ ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) := by
+    apply Finset.sum_nonneg
+    intro v _
+    exact mul_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _)
+  have hp1' : (0:ℝ) ≤ (∑ v : V, p v) * (∑ v : V, q v) := by
+    rw [hp1, hq1]; norm_num
+  rw [hp1, hq1] at hsq
+  norm_num at hsq
+  norm_num at hsq
+  by_contra hc
+  have hgt : (1:ℝ) < ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) := by
+    push_neg at hc
+    exact hc
+  have h2 : (1:ℝ) < (∑ v : V, Real.sqrt (p v)
+      * Real.sqrt (q v)) ^ 2 := by
+    nlinarith [hgt]
+  linarith [abs_le.mp hsq |>.2]
+
