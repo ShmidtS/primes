@@ -1128,6 +1128,7 @@ kl_divergence_nonneg	dfd7643c3ff6d22c	3dbd41be0ee83c62
 kl_eq_ce_gap	3459348c4fb5b68e	5af29b2890950be6
 kl_excess_cross_entropy	6074f177927f1aab	33be0ecc3e8f3fda
 kl_half_steps	acb8878c34fa4b29	5084ad2cb036b239
+kl_joint_convex	d37a55edd9061b79	87fa62fd095bee98
 kl_le_log_card	9f8b64cba3423e86	8ab3ebbcf38adb6c
 kl_nonneg	20d9ca4875d99163	666198c04de2ec81
 kl_nonneg	f15c1dd6878ae46b	e0a9dc3778409394

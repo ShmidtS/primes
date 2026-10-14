@@ -3271,3 +3271,66 @@ theorem tv_le_sqrt_one_minus_exp {V : Type*} [Fintype V] [DecidableEq V]
     linarith [hC2, e2r, hb2, e1b]
   exact Real.le_sqrt_of_sq_le hTV
 
+open Finset Real in
+/-- **Совместная
+выпуклость KL
+(R476)**: для c ∈ (0,1):
+KL(c·p₁+(1−c)·p₂
+‖ c·q₁+(1−c)·q₂)
+≤
+c·KL(p₁‖q₁) +
+(1−c)·KL(p₂‖q₂).
+Per-v — двухточечный
+log-sum: R451 на
+Fin 2 с парами
+(c·p₁v, (1−c)·p₂v) и
+(c·q₁v, (1−c)·q₂v);
+разбавение диляций
+mul_div_mul_left. -/
+theorem kl_joint_convex {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p₁ p₂ q₁ q₂ : V → ℝ) (c : ℝ)
+    (hp₁ : ∀ v, 0 < p₁ v) (hp₁1 : ∑ v : V, p₁ v = 1)
+    (hp₂ : ∀ v, 0 < p₂ v) (hp₂1 : ∑ v : V, p₂ v = 1)
+    (hq₁ : ∀ v, 0 < q₁ v) (hq₂ : ∀ v, 0 < q₂ v)
+    (hc0 : 0 < c) (hc1 : c < 1) :
+    ∑ v : V, (c * p₁ v + (1 - c) * p₂ v)
+        * Real.log ((c * p₁ v + (1 - c) * p₂ v)
+          / (c * q₁ v + (1 - c) * q₂ v))
+      ≤ (1 - c) * (∑ v : V, p₂ v * Real.log (p₂ v / q₂ v))
+        + c * (∑ v : V, p₁ v * Real.log (p₁ v / q₁ v)) := by
+  rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+  apply Finset.sum_le_sum
+  intro v _
+  have ha : ∀ i : Fin 2,
+      0 < (fun i => if i = 0 then c * p₁ v else (1 - c) * p₂ v) i := by
+    intro i
+    by_cases hz : i = 0
+    · simp only [hz, if_pos hz]
+      exact mul_pos hc0 (hp₁ v)
+    · simp only [if_neg hz]
+      exact mul_pos (by linarith) (hp₂ v)
+  have hb : ∀ i : Fin 2,
+      0 < (fun i => if i = 0 then c * q₁ v else (1 - c) * q₂ v) i := by
+    intro i
+    by_cases hz : i = 0
+    · simp only [hz, if_pos hz]
+      exact mul_pos hc0 (hq₁ v)
+    · simp only [if_neg hz]
+      exact mul_pos (by linarith) (hq₂ v)
+  have hv := log_sum_ineq
+    (fun i => if i = 0 then c * p₁ v else (1 - c) * p₂ v)
+    (fun i => if i = 0 then c * q₁ v else (1 - c) * q₂ v)
+    ha hb
+  simp only [Fin.sum_univ_two] at hv
+  simp only [if_pos rfl, if_neg (by omega : ¬((1 : Fin 2) = 0)),
+    Fin.isValue, reduceIte] at hv
+  rw [mul_div_mul_left _ _ hc0.ne',
+    mul_div_mul_left _ _ (by linarith)] at hv
+  have hv2 : (1 - c) * (p₂ v * Real.log (p₂ v / q₂ v))
+      + c * (p₁ v * Real.log (p₁ v / q₁ v))
+      = c * p₁ v * Real.log (p₁ v / q₁ v)
+        + (1 - c) * p₂ v * Real.log (p₂ v / q₂ v) := by
+    ring
+  rw [hv2]
+  linarith
+
