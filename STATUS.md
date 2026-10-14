@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R466):
+  `mutual_info_nonneg` (I = KL(ρ‖μ₁×μ₂) ≥ 0, R447 на
+  R459-мерах) + `efe_ceiling` (G = P − I ≤ P — EFE не
+  превышает прагматики; state-epistemic gap = I;
+  RAG arXiv 2607.13612 Prop 6-структура).
 - `Probability/GibbsConcentration` (R465):
   `compounding_bound` + `compounding_sq` —
   геометрический Lipschitz-компаундинг ошибки:

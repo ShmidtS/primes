@@ -2583,3 +2583,61 @@ theorem compounding_sq (L : ℝ) (hL : 0 ≤ L)
         _ = (L^2)^(n+1) * e 0^2 := by
             rw [pow_succ]; ring
 
+open Finset Real in
+/-- **Mutual information is nonnegative (R466)**:
+I(X;Y) = KL(ρ ‖ μ₁×μ₂) ≥ 0 — the information a
+joint distribution carries about the dependence
+of its marginals never decreases below zero
+(direct R447 application; equivalent to R459). -/
+theorem mutual_info_nonneg {V W : Type*} [Fintype V]
+    [Fintype W] [Nonempty V] [Nonempty W]
+    [DecidableEq V] [DecidableEq W]
+    (ρ : V × W → ℝ)
+    (hρ : ∀ p, 0 < ρ p) (hρ1 : ∑ p : V × W, ρ p = 1) :
+    (0:ℝ) ≤ ∑ p : V × W, ρ p * Real.log
+      (ρ p / ((∑ w : W, ρ (p.1, w))
+        * (∑ v : V, ρ (v, p.2)))) := by
+  set μ₁ : V → ℝ := fun v => ∑ w : W, ρ (v, w) with hμ₁
+  set μ₂ : W → ℝ := fun w => ∑ v : V, ρ (v, w) with hμ₂
+  have hμ₁pos : ∀ v, 0 < μ₁ v := by
+    intro v
+    have := Finset.sum_pos (fun w _ => hρ (v, w))
+      ⟨Classical.arbitrary W, Finset.mem_univ _⟩
+    rw [hμ₁]; exact this
+  have hμ₂pos : ∀ w, 0 < μ₂ w := by
+    intro w
+    have := Finset.sum_pos (fun v _ => hρ (v, w))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+    rw [hμ₂]; exact this
+  set γ : V × W → ℝ := fun p => μ₁ p.1 * μ₂ p.2 with hγ
+  have hγpos : ∀ p, 0 < γ p := fun p => by
+    rw [hγ]; exact mul_pos (hμ₁pos p.1) (hμ₂pos p.2)
+  have hμ₁s : ∑ v : V, μ₁ v = 1 := by
+    rw [hμ₁, ← Fintype.sum_prod_type]; exact hρ1
+  have hμ₂s : ∑ w : W, μ₂ w = 1 := by
+    rw [hμ₂, Finset.sum_comm, ← Fintype.sum_prod_type]; exact hρ1
+  have hγ1 : ∑ p : V × W, γ p = 1 := by
+    show ∑ p : V × W, μ₁ p.1 * μ₂ p.2 = 1
+    rw [Fintype.sum_prod_type]
+    have hrow : ∀ v : V,
+        ∑ w : W, μ₁ (v, w).1 * μ₂ (v, w).2 = μ₁ v := by
+      intro v
+      simp only []
+      rw [← Finset.mul_sum, hμ₂s, mul_one]
+    rw [Finset.sum_congr rfl (fun v _ => hrow v)]
+    exact hμ₁s
+  -- the KL expression is definitionally the one in R447
+  have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
+  exact hKL
+
+/-- **EFE ceiling (R466)**: expected free energy
+decomposes as G = P − I with pragmatic value P and
+epistemic (information) part I ≥ 0; hence the EFE
+never exceeds the pragmatic value — the
+state-epistemic gap is exactly the mutual
+information (arXiv 2607.13612, Prop 6 structure). -/
+theorem efe_ceiling (G P I : ℝ)
+    (hdecomp : G = P - I) (hI : 0 ≤ I) :
+    G ≤ P := by
+  linarith
+
