@@ -3761,3 +3761,28 @@ theorem cramer_tilt_kl {V : Type*} [Fintype V] [Nonempty V]
     mul_le_mul_of_nonneg_left hge hc.le
   linarith [hR, hmono]
 
+open Finset Real in
+/-- **Cramér-sup (R486)**: при E_p g ≥ t:
+sSup по c > 0
+функционала c·t −
+ln Σq·e^{c·g}
+≤ KL(p‖q)
+(вертикаль arXiv
+2401.01148, кирпич 2;
+САВ (sup + bound) = Cramér-оболочка). -/
+theorem cramer_sup_le_kl {V : Type*} [Fintype V] [Nonempty V]
+    (p q g : V → ℝ) (t : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hge : t ≤ ∑ v : V, p v * g v) :
+    sSup {x : ℝ | ∃ c > 0, x = c * t
+      - Real.log (∑ v : V, q v * Real.exp (c * g v))}
+      ≤ ∑ v : V, p v * Real.log (p v / q v) := by
+  apply csSup_le
+  · exact ⟨1 * t - Real.log (∑ v : V, q v * Real.exp (1 * g v)),
+      ⟨(1:ℝ), by norm_num, rfl⟩⟩
+  · intro x hx
+    rcases hx with ⟨c, hc, hxe⟩
+    refine hxe ▸ cramer_tilt_kl p q g t c hp hp1 hq hq1 hc ?_
+    exact hge
+
