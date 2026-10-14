@@ -3786,3 +3786,40 @@ theorem cramer_sup_le_kl {V : Type*} [Fintype V] [Nonempty V]
     refine hxe ▸ cramer_tilt_kl p q g t c hp hp1 hq hq1 hc ?_
     exact hge
 
+open Finset Real in
+/-- **CGF-форма
+Cramér (R487)**: если
+ln Σq·e^{c(g−μ)} ≤ ψ(c)
+и E_p g ≥ t, то
+c·(t−μ) − ψ(c) ≤
+KL(p‖q) для любого
+c > 0 — кирпич CGF-вертикали
+(2401.01148 /
+JMLR 23-1360: параметр-свободная
+CGF-оболочка). -/
+theorem cramer_cgf {V : Type*} [Fintype V] [Nonempty V]
+    (p q g : V → ℝ) (t μ : ℝ) (ψ : ℝ → ℝ) (c : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hc : 0 < c) (hge : t ≤ ∑ v : V, p v * g v)
+    (hcgf : Real.log (∑ v : V, q v * Real.exp (c * (g v - μ))) ≤ ψ c) :
+    c * (t - μ) - ψ c ≤ ∑ v : V, p v * Real.log (p v / q v) := by
+  have hper : ∀ v : V, q v * Real.exp (c * g v)
+      = Real.exp (c * μ) * (q v * Real.exp (c * (g v - μ))) := by
+    intro v
+    have h1 : c * g v = c * (g v - μ) + c * μ := by ring
+    rw [h1, Real.exp_add]
+    ring
+  have hsplit : ∑ v : V, q v * Real.exp (c * g v)
+      = Real.exp (c * μ) * ∑ v : V,
+          q v * Real.exp (c * (g v - μ)) := by
+    rw [Finset.sum_congr rfl (fun v _ => hper v), ← Finset.mul_sum]
+  have hpos : (0:ℝ) < ∑ v : V, q v * Real.exp (c * (g v - μ)) :=
+    Finset.sum_pos (fun v _ => mul_pos (hq v)
+      (Real.exp_pos _)) ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hR := cramer_tilt_kl p q g t c hp hp1 hq hq1 hc hge
+  rw [hsplit, Real.log_mul (Real.exp_pos _).ne'
+    hpos.ne'] at hR
+  rw [Real.log_exp (c * μ)] at hR
+  linarith [hR, hcgf]
+

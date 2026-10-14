@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R487):
+  `cramer_cgf` — CGF-форма Cramér: при CGF-
+  границе lnΣq·e^{c(g−μ)} ≤ ψ(c) и E_p g ≥ t:
+  c·(t−μ) − ψ(c) ≤ KL для любого c > 0
+  (сдвиг-centering: Σq·e^{cg} = e^{cμ}·Σq·e^{c(g−μ)}
+  через exp_add + ← mul_sum-константу).
 - `Probability/GibbsConcentration` (R486):
   `cramer_sup_le_kl` — sup-форма Cramér-наклона:
   sSup{c·t − lnΣq·e^{cg} | c > 0} ≤ KL
