@@ -1,7 +1,7 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 1855 theorem/lemma, 0 sorry,
+теоремы Lean 4 / Mathlib (Hagi/, 1864 theorem/lemma, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
@@ -319,6 +319,28 @@ Probability/GibbsConcentration)
 - Амортизированная политика:
   `amortized_policy_bound` — суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума.
+
+## 18. Pinsker-семейство и TV-дуальность
+(Probability/GibbsConcentration)
+
+- Капстоун MWU: `mwu_regret_regimes` —
+  −ln((1/n)Σe^{−ηℓ}) ≤ max(2√(η⟨ℓ⟩·lnn), 2η⟨ℓ⟩);
+  η = √(lnn/⟨ℓ⟩) даёт классический 2√(⟨ℓ⟩·lnn).
+- Верхнее TV: `tv_le_pos_part_kl` — TV ≤ Σ_{q<p}
+  p·ln(p/q). МАТАН-ЛОВЛЯ: линейное KL ≥ TV неверно
+  (контрпример 0.368 < 0.4 — Пинскер требует √).
+- Бхаттачарья: `bhattacharyya_cauchy` — BC ≤ 1
+  (Коши-сумм); `one_minus_bc_le_half_kl` —
+  1−BC ≤ KL/2 (per-v t−1 ≤ t·ln t).
+- Пинскер: `pinsker_sqrt_kl` — TV ≤ √(KL)
+  (тождество |p−q| = |√p−√q|(√p+√q) + Коши);
+  `neg_log_bc_le_half_kl` — BC ≥ e^{−KL/2};
+  `tv_le_sqrt_one_minus_exp` — Бретаньоль–Юбер
+  TV ≤ √(1−e^{−KL}) (точнее при большом KL).
+- Дуальность: `tv_dual_abs` — |E_p f − E_q f| ≤ TV
+  для любой 0 ≤ f ≤ 1 (расщепление + f → 1−f).
+- Совместная выпуклость: `kl_joint_convex` —
+  классическое замыкание ядра инфо-теории.
 
 ## Честные границы (что НЕ выведено)
 
