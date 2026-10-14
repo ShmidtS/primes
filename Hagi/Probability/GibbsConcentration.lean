@@ -2176,3 +2176,96 @@ theorem kl_product_additive {V W : Type*} [Fintype V] [Fintype W]
   rw [hsplit2 ρ₁ γ₁ hρ₁ hγ₁, hsplit2W ρ₂ γ₂ hρ₂ hγ₂]
   linarith
 
+open Finset Real in
+/-- **Субаддитивность
+энтропии (R459)**:
+S(совместное) ≤
+S(маргинальное по V)
++ S(маргинальное по W).
+Вывод через взаимную
+информацию: KL(ρ ḟ‖ μ₁×μ₂)
+= S₁+S₂−S ≥ 0 (R447);
+механика в стиле R458
+(Fubini-свёртки).
+Классика теории
+информации. -/
+theorem entropy_subadditive {V W : Type*} [Fintype V] [Fintype W]
+    [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
+    (ρ : V × W → ℝ)
+    (hρ : ∀ p, 0 < ρ p) (hρ1 : ∑ p : V × W, ρ p = 1) :
+    -(∑ p : V × W, ρ p * Real.log (ρ p))
+      ≤ -(∑ v : V, (∑ w : W, ρ (v, w)) * Real.log (∑ w : W, ρ (v, w)))
+        - (∑ w : W, (∑ v : V, ρ (v, w)) * Real.log (∑ v : V, ρ (v, w))) := by
+  set μ₁ : V → ℝ := fun v => ∑ w : W, ρ (v, w) with hμ₁
+  set μ₂ : W → ℝ := fun w => ∑ v : V, ρ (v, w) with hμ₂
+  have hμ₁pos : ∀ v, 0 < μ₁ v := by
+    intro v
+    have := Finset.sum_pos (fun w _ => hρ (v, w))
+      ⟨Classical.arbitrary W, Finset.mem_univ _⟩
+    rw [hμ₁]; exact this
+  have hμ₂pos : ∀ w, 0 < μ₂ w := by
+    intro w
+    have := Finset.sum_pos (fun v _ => hρ (v, w))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+    rw [hμ₂]; exact this
+  -- product of marginals is a distribution
+  set γ : V × W → ℝ := fun p => μ₁ p.1 * μ₂ p.2 with hγ
+  have hγpos : ∀ p, 0 < γ p := fun p => by
+    rw [hγ]; exact mul_pos (hμ₁pos p.1) (hμ₂pos p.2)
+  have hμ₁s : ∑ v : V, μ₁ v = 1 := by
+    rw [hμ₁, ← Fintype.sum_prod_type]; exact hρ1
+  have hμ₂s : ∑ w : W, μ₂ w = 1 := by
+    rw [hμ₂, Finset.sum_comm, ← Fintype.sum_prod_type]
+    exact hρ1
+  have hγ1 : ∑ p : V × W, γ p = 1 := by
+    show ∑ p : V × W, μ₁ p.1 * μ₂ p.2 = 1
+    rw [Fintype.sum_prod_type]
+    have hrow : ∀ v : V,
+        ∑ w : W, μ₁ (v, w).1 * μ₂ (v, w).2 = μ₁ v := by
+      intro v
+      simp only []
+      rw [← Finset.mul_sum, hμ₂s, mul_one]
+    rw [Finset.sum_congr rfl (fun v _ => hrow v)]
+    exact hμ₁s
+  have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
+  -- expand KL = A - B - C
+  have hexp : ∑ p : V × W, ρ p * Real.log (ρ p / γ p)
+      = (∑ p : V × W, ρ p * Real.log (ρ p))
+        - (∑ p : V × W, ρ p * Real.log (μ₁ p.1))
+        - (∑ p : V × W, ρ p * Real.log (μ₂ p.2)) := by
+    have hpt : ∀ p : V × W, ρ p * Real.log (ρ p / γ p)
+        = ρ p * Real.log (ρ p) - ρ p * Real.log (μ₁ p.1)
+          - ρ p * Real.log (μ₂ p.2) := by
+      intro p
+      rw [hγ]
+      rw [Real.log_div (hρ p).ne' (mul_pos (hμ₁pos p.1) (hμ₂pos p.2)).ne']
+      rw [Real.log_mul (hμ₁pos p.1).ne' (hμ₂pos p.2).ne']
+      ring
+    rw [Finset.sum_congr rfl (fun p _ => hpt p), Finset.sum_sub_distrib,
+      Finset.sum_sub_distrib]
+  -- Fubini collapse of cross terms
+  have hfibV : ∀ f : V → ℝ, (∑ p : V × W, ρ p * f p.1)
+      = (∑ v : V, μ₁ v * f v) := by
+    intro f
+    rw [Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl ?_
+    intro v _
+    rw [Finset.sum_congr rfl (fun w _ => by
+      show ρ (v, w) * f (v, w).1 = ρ (v, w) * f v
+      simp only)]
+    rw [Finset.sum_mul]
+  have hfibW : ∀ g : W → ℝ, (∑ p : V × W, ρ p * g p.2)
+      = (∑ w : W, μ₂ w * g w) := by
+    intro g
+    rw [Fintype.sum_prod_type, Finset.sum_comm]
+    refine Finset.sum_congr rfl ?_
+    intro w _
+    rw [Finset.sum_congr rfl (fun v _ => by
+      show ρ (v, w) * g (v, w).2 = ρ (v, w) * g w
+      simp only)]
+    rw [← Finset.sum_mul, hμ₂]
+  rw [hexp, hfibV (fun v => Real.log (μ₁ v)), hfibW (fun w => Real.log (μ₂ w))] at hKL
+  rw [hμ₁] at hKL
+  rw [hμ₂] at hKL
+  linarith
+

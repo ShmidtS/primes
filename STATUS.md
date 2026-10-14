@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R459):
+  `entropy_subadditive` — субаддитивность энтропии:
+  S(совместное) ≤ S₁ + S₂ (взаимная информация
+  KL(ρ‖μ₁×μ₂) = S₁+S₂−S ≥ 0; R447 + Fubini в стиле
+  R458).
 - `Probability/GibbsConcentration` (R458):
   `kl_product_additive` — аддитивность KL на
   произведении: KL(ρ₁×ρ₂‖γ₁×γ₂) = KL₁ + KL₂
