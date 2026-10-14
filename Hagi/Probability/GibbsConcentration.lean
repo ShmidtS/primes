@@ -2269,3 +2269,70 @@ theorem entropy_subadditive {V W : Type*} [Fintype V] [Fintype W]
   rw [hμ₂] at hKL
   linarith
 
+open Finset Real in
+/-- **Цепное правило
+энтропии Шеннона (R460)**:
+S(V,W) = S(V) + Σᵥ μ₁(v)·S(условная)
+— совместная энтропия =
+маргинальная + средняя
+условная по условному
+ядру ρ(v,w)/μ₁(v).
+Механика: per-term log-
+разделение + Fubini-
+свёртки строк/ядер в
+стиле R458/R459.
+Вместе с R459 — полная
+энтропийная арифметика
+совместных распределений. -/
+theorem entropy_chain {V W : Type*} [Fintype V] [Fintype W]
+    [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
+    (ρ : V × W → ℝ)
+    (hρ : ∀ p, 0 < ρ p) (hρ1 : ∑ p : V × W, ρ p = 1) :
+    (∑ p : V × W, ρ p * Real.log (ρ p))
+      = (∑ v : V, (∑ w : W, ρ (v, w))
+            * Real.log (∑ w : W, ρ (v, w)))
+        + (∑ v : V, (∑ w : W, ρ (v, w))
+            * (∑ w : W, (ρ (v, w) / (∑ w : W, ρ (v, w)))
+                * Real.log (ρ (v, w) / (∑ w : W, ρ (v, w))))) := by
+  set μ₁ : V → ℝ := fun v => ∑ w : W, ρ (v, w) with hμ₁
+  have hμ₁pos : ∀ v, 0 < μ₁ v := by
+    intro v
+    have := Finset.sum_pos (fun w _ => hρ (v, w))
+      ⟨Classical.arbitrary W, Finset.mem_univ _⟩
+    rw [hμ₁]; exact this
+  -- per-term split: rho ln rho = rho ln mu1 + rho ln(rho/mu1)
+  have hpt : ∀ p : V × W, ρ p * Real.log (ρ p)
+      = ρ p * Real.log (μ₁ p.1)
+        + μ₁ p.1 * ((ρ p / μ₁ p.1) * Real.log (ρ p / μ₁ p.1)) := by
+    intro p
+    rw [Real.log_div (hρ p).ne' (hμ₁pos p.1).ne']
+    field_simp [(hμ₁pos p.1).ne']
+    ring
+  rw [Finset.sum_congr rfl (fun p _ => hpt p), Finset.sum_add_distrib]
+  -- first sum: Fubini collapse
+  have hA : (∑ p : V × W, ρ p * Real.log (μ₁ p.1))
+      = (∑ v : V, μ₁ v * Real.log (μ₁ v)) := by
+    rw [Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl ?_
+    intro v _
+    rw [Finset.sum_congr rfl (fun w _ => by
+      show ρ (v, w) * Real.log (μ₁ (v, w).1) = ρ (v, w) * Real.log (μ₁ v)
+      simp only)]
+    rw [Finset.sum_mul]
+  -- second sum: row-collapse with cond kernel
+  have hB : (∑ p : V × W, μ₁ p.1
+      * ((ρ p / μ₁ p.1) * Real.log (ρ p / μ₁ p.1)))
+      = (∑ v : V, μ₁ v
+          * (∑ w : W, (ρ (v, w) / μ₁ v)
+              * Real.log (ρ (v, w) / μ₁ v))) := by
+    rw [Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl ?_
+    intro v _
+    rw [Finset.sum_congr rfl (fun w _ => by
+      show μ₁ (v, w).1 * ((ρ (v, w) / μ₁ (v, w).1)
+          * Real.log (ρ (v, w) / μ₁ (v, w).1))
+        = μ₁ v * ((ρ (v, w) / μ₁ v) * Real.log (ρ (v, w) / μ₁ v))
+      simp only)]
+    rw [← Finset.mul_sum]
+  rw [hA, hB]
+
