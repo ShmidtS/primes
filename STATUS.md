@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R450):
+  `finite_max_entropy` — максимальная энтропия:
+  S ≤ ln n для любого распределения (R447 при
+  γ = uniform; с R418 полный контур 0 ≤ S ≤ ln n).
 - `Probability/GibbsConcentration` (R449):
   `gibbs_free_energy_lower` — нижняя грань F:
   E_min − T·ln n ≤ F; с R421 — сэндвич

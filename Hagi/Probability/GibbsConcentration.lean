@@ -1748,3 +1748,48 @@ theorem gibbs_free_energy_lower {V : Type*} [Fintype V]
   rw [h3] at h4
   exact h4
 
+open Finset in
+/-- **Максимальная энтропия (R450)**:
+S(ρ) = −Σρ ln ρ ≤ ln n для любого
+распределения на n-точечном
+носителе — равновесие
+(uniform) максимизирует энтропию.
+Вывод: R447 с γ = uniform:
+KL(ρḟ‖unif) ≥ 0 ⇔ S ≤ ln n.
+Вместе с R418 (S ≥ 0) и R429 (Нернст
+на термостате) — полный
+энтропийный контур любого
+распределения: 0 ≤ S ≤ ln n. -/
+theorem finite_max_entropy {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (ρ : V → ℝ)
+    (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1) :
+    -(∑ v : V, ρ v * Real.log (ρ v))
+      ≤ Real.log ((Fintype.card V : ℝ)) := by
+  set n : ℝ := (Fintype.card V : ℝ) with hn
+  have hnne : n ≠ 0 := by positivity
+  set γ : V → ℝ := fun _ => 1/n with hγ
+  have hγpos : ∀ v, 0 < γ v := by
+    intro v; rw [hγ]; positivity
+  have hγ1 : ∑ v : V, γ v = 1 := by
+    rw [hγ]
+    simp only [Finset.sum_const, nsmul_eq_mul, Finset.card_univ, one_div]
+    rw [← hn]
+    exact mul_inv_cancel₀ hnne
+  have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
+  -- expand KL: sum rho (log rho + log n)
+  have hexp : ∑ v : V, ρ v * Real.log (ρ v / γ v)
+      = (∑ v : V, ρ v * Real.log (ρ v))
+        + Real.log n := by
+    have hsplit : ∀ v : V, ρ v * Real.log (ρ v / γ v)
+        = ρ v * Real.log (ρ v) + ρ v * Real.log n := by
+      intro v
+      rw [hγ, one_div, div_inv_eq_mul,
+        Real.log_mul (hρ v).ne' hnne]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v),
+      Finset.sum_add_distrib]
+    rw [Finset.sum_congr rfl (fun v _ => mul_comm (ρ v) (Real.log n))]
+    rw [← Finset.mul_sum, hρ1, mul_one]
+  rw [hexp] at hKL
+  linarith
+
