@@ -314,3 +314,29 @@ theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
   rw [Finset.sum_congr rfl (fun v _ => hkey v), Finset.mul_sum]
   have hη : (0:ℝ) < 1/T := by positivity
   exact mwu_uniform_squeeze E (1/T) hE hη hsmall
+/-- **Двойная верхняя грань (R443)**:
+−ln W ≤ min(2η·⟨ℓ⟩_unif,
+ln n + η·ℓ_min) — две
+конкурирующие оценки
+в одной теореме:
+база для η-оптимизации
+(уравнивание двух членов даёт
+классический оптимальный
+learning rate). -/
+theorem mwu_double_upper {V : Type*} [Fintype V]
+    [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2) :
+    ∃ vmin : V,
+      -(Real.log ((1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(η * ℓ v))))
+        ≤ 2 * η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
+      ∧ -(Real.log ((1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(η * ℓ v))))
+        ≤ Real.log (Fintype.card V : ℝ) + η * ℓ vmin := by
+  obtain ⟨_, _, h2⟩ := mwu_uniform_squeeze ℓ η hℓ hη hsmall
+  rw [← Finset.mul_sum] at h2
+  obtain ⟨vmin, h3⟩ := mwu_potential_upper_uniform ℓ η hη
+  rw [← Finset.mul_sum] at h3
+  exact ⟨vmin, h2, h3⟩
+

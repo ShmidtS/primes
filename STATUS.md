@@ -109,6 +109,9 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/MWU` (R443):
+  `mwu_double_upper` — двойная верхняя грань: −ln W ≤
+  min(2η⟨ℓ⟩, ln n + ηℓ_min): база для η-оптимизации.
 - `Growth/Thermostat` (R442):
   `mwu_representative` — Хёфдинг↔MWU: выборка из
   hedge-распределения e^{−ηL} репрезентативна (R413 при
