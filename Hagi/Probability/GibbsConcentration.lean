@@ -3463,3 +3463,37 @@ theorem pac_chernoff_events {V : Type*} [Fintype V] [DecidableEq V]
   rw [hEta, hZeta] at hR
   linarith [hR, hκ]
 
+open Finset Real in
+/-- **ТочностьДВ
+(R479)**: sup Донскера
+достигается: существует f
+(f := ln(p/q)), для
+которой KL(p‖q) ≤
+E_p f − ln(Σq·e^f)
+(с R477 — эквивалентность:
+KL = sup_f
+(E_p f − ln E_q e^f));
+Z = Σq·(p/q) =
+Σp = 1 через
+exp_log и field_simp. -/
+theorem kl_dv_attained {V : Type*} [Fintype V] [Nonempty V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    ∃ f : V → ℝ,
+      ∑ v : V, p v * Real.log (p v / q v)
+        ≤ ∑ v : V, p v * f v
+          - Real.log (∑ v : V, q v * Real.exp (f v)) := by
+  refine ⟨fun v => Real.log (p v / q v), ?_⟩
+  have hZ : ∑ v : V, q v * Real.exp (Real.log (p v / q v)) = (1:ℝ) := by
+    have e1 : ∀ v : V,
+        q v * Real.exp (Real.log (p v / q v)) = p v := by
+      intro v
+      rw [Real.exp_log (div_pos (hp v) (hq v))]
+      field_simp [(hq v).ne']
+    rw [Finset.sum_congr rfl (fun v _ => e1 v), hp1]
+  rw [hZ, Real.log_one]
+  have hbe : ∑ v : V, p v * (fun v => Real.log (p v / q v)) v
+      = ∑ v : V, p v * Real.log (p v / q v) := rfl
+  rw [hbe, sub_zero]
+

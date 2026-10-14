@@ -114,6 +114,11 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R479):
+  `kl_dv_attained` — точность ДВ: sup достижим
+  (f := ln(p/q): Z = Σq·p/q = 1 через exp_log,
+  log 1 = 0); с R477 — эквивалентность
+  KL = sup_f (E_p f − ln E_q e^f).
 - `Probability/GibbsConcentration` (R478):
   `pac_chernoff_events` — PAC-Чернофф для событий:
   при KL(p‖q) ≤ κ: p(s) ≤ κ + ln(1+(e−1)·q(s))
