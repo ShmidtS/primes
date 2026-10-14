@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R477):
+  `kl_variational_lower` — Донскер–Варадхан
+  (нижняя грань): KL(p‖q) ≥ E_p f −
+  ln(Σq·e^f) (софтмакс r := q·e^f/Z +
+  KL(p‖r) ≥ 0, per-v ln(p/r) = ln(p/q) − f +
+  ln Z).
 - `Probability/GibbsConcentration` (R476):
   `kl_joint_convex` — совместная выпуклость KL:
   KL(c·p₁+(1−c)·p₂ ‖ c·q₁+(1−c)·q₂) ≤

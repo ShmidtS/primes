@@ -3334,3 +3334,66 @@ theorem kl_joint_convex {V : Type*} [Fintype V] [DecidableEq V]
   rw [hv2]
   linarith
 
+open Finset Real in
+/-- **Донскер–
+Варадхан,
+нижняя грань
+(R477)**: KL(p‖q) ≥
+E_p f −
+ln(Σq·e^f).
+Механика: софтмакс
+r := q·e^f/Z,
+KL(p‖r) ≥ 0 (R447),
+per-v
+ln(p/r) =
+ln(p/q) − f + ln Z. -/
+theorem kl_variational_lower {V : Type*} [Fintype V] [Nonempty V]
+    (p q f : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    ∑ v : V, p v * Real.log (p v / q v)
+      ≥ ∑ v : V, p v * f v
+        - Real.log (∑ v : V, q v * Real.exp (f v)) := by
+  set Z : ℝ := ∑ v : V, q v * Real.exp (f v) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => mul_pos (hq v) (Real.exp_pos (f v)))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set r : V → ℝ := fun v => q v * Real.exp (f v) / Z with hr
+  have hrpos : ∀ v, 0 < r v := fun v =>
+    div_pos (mul_pos (hq v) (Real.exp_pos (f v))) hZpos
+  have hS2 : (∑ v : V, q v * Real.exp (f v)) = Z := hZ.symm
+  have hr1 : ∑ v : V, r v = 1 := by
+    have e1 : ∑ v : V, r v
+        = ∑ v : V, (q v * Real.exp (f v) / Z) := rfl
+    rw [e1, ← Finset.sum_div, hS2]
+    exact div_self hZpos.ne'
+  have hkl := finite_kl_nonneg p r hp hp1 hrpos hr1
+  have hper : ∀ v : V, Real.log (p v / r v)
+      = Real.log (p v / q v) - f v + Real.log Z := by
+    intro v
+    have e1 : p v / r v
+        = p v * Z / (q v * Real.exp (f v)) := by
+      rw [hr]
+      field_simp
+    rw [e1, Real.log_div (mul_pos (hp v) hZpos).ne'
+      (mul_pos (hq v) (Real.exp_pos (f v))).ne',
+      Real.log_mul (hp v).ne' hZpos.ne',
+      Real.log_div (hp v).ne' (hq v).ne']
+    rw [Real.log_mul (hq v).ne'
+      (Real.exp_pos (f v)).ne', Real.log_exp (f v)]
+    ring
+  have hper2 : ∀ v : V, p v * Real.log (p v / r v)
+      = p v * Real.log (p v / q v) - p v * f v
+        + p v * Real.log Z := by
+    intro v
+    rw [hper v]
+    ring
+  rw [Finset.sum_congr rfl (fun v _ => hper2 v)] at hkl
+  rw [Finset.sum_add_distrib, Finset.sum_sub_distrib] at hkl
+  have hZsum : ∑ v : V, p v * Real.log Z = Real.log Z := by
+    rw [Finset.sum_congr rfl
+      (fun v _ => mul_comm (p v) (Real.log Z)),
+      ← Finset.mul_sum, hp1, mul_one]
+  rw [hZsum] at hkl
+  linarith
+
