@@ -736,3 +736,222 @@ theorem certified_state_free_energy_tendsto {V : Type*} [Fintype V]
   rw [heq]
   simpa using (tendsto_const_nhds (x := E vstar)).sub hdiff
 
+private lemma exp_div_tail (T δ e : ℝ) (hT : 0 < T) (hδ : 0 < δ)
+    (he0 : 0 ≤ e)
+    (he : e ≤ (2*T/(2*T+δ))*(2*T/(2*T+δ))) :
+    e / T ≤ (4:ℝ) * T / δ^2 := by
+  have hu : (0:ℝ) < 2*T + δ := by linarith
+  have h1 : (2*T/(2*T+δ))*(2*T/(2*T+δ))
+      = (2*T)*(2*T)/((2*T+δ)*(2*T+δ)) := by
+    field_simp
+  rw [h1] at he
+  have huu : (0:ℝ) < (2*T+δ)*(2*T+δ) := by positivity
+  rw [le_div_iff₀ huu] at he
+  have h3 : δ*δ ≤ (2*T+δ)*(2*T+δ) := by
+    nlinarith [hu]
+  have hstep : e * (δ*δ) ≤ e * ((2*T+δ)*(2*T+δ)) :=
+    mul_le_mul_of_nonneg_left h3 he0
+  rw [div_le_div_iff₀ hT (by positivity : (0:ℝ) < δ^2)]
+  linarith
+
+open Finset Real Filter in
+/-- **Нернст на термостатном графике (R429)**:
+S_t = (⟨E⟩−F)/T_t → 0 при T_t = T₀·α^t — третий закон на
+реальном охлаждении. Ключ: острыह хвост
+e^{−δ/T} = (e^{−δ/2T})² ≤ (2T/(2T+δ))² ⟹ e/T ≤ 4T/δ².
+ЧЕТВЕРТА чистоты: метрика (R426) + энергетика (R427) +
+свободная энергия (R428) + энтропия (R429). -/
+theorem certified_state_entropy_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    Tendsto (fun t : ℕ => (
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))))
+      / (T0 * α ^ t)) atTop (nhds 0) := by
+  have hTpos : ∀ t : ℕ, (0:ℝ) < T0 * α ^ t :=
+    fun t => mul_pos hT0 (pow_pos hα1 t)
+  have hCnn : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ) :=
+    Nat.cast_nonneg _
+  have hΔ0 : (0:ℝ) ≤ Δ := by
+    have h0 := hΔ vstar
+    simp only [sub_self] at h0
+    linarith
+  -- half-tail
+  have hhalf : ∀ t : ℕ, Real.exp (-(δ/(T0 * α ^ t)/2))
+      ≤ (2*(T0 * α ^ t))/(2*(T0 * α ^ t) + δ) := by
+    intro t
+    have h1 : Real.exp (-(δ/(T0 * α ^ t)/2))
+        = (Real.exp (δ/(T0 * α ^ t)/2))⁻¹ := by
+      rw [Real.exp_neg]
+    have h2 : δ/(T0 * α ^ t)/2 + 1
+        ≤ Real.exp (δ/(T0 * α ^ t)/2) :=
+      Real.add_one_le_exp (δ/(T0 * α ^ t)/2)
+    have hxp : (0:ℝ) < δ/(T0 * α ^ t) := div_pos hδ (hTpos t)
+    have h3 : (0:ℝ) < δ/(T0 * α ^ t)/2 + 1 := by linarith
+    have hiv : (Real.exp (δ/(T0 * α ^ t)/2))⁻¹
+        ≤ (δ/(T0 * α ^ t)/2 + 1)⁻¹ := by
+      exact (inv_le_inv₀ (exp_pos _) h3).mpr (by linarith)
+    have h4 : (δ/(T0 * α ^ t)/2 + 1)⁻¹
+        = (2*(T0 * α ^ t))/(2*(T0 * α ^ t) + δ) := by
+      field_simp
+      ring
+    rw [h4] at hiv
+    rw [h1]
+    exact hiv
+  -- squared tail
+  have hsq : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
+      ≤ ((2*(T0 * α ^ t))/(2*(T0 * α ^ t) + δ))
+        * ((2*(T0 * α ^ t))/(2*(T0 * α ^ t) + δ)) := by
+    intro t
+    have hsplit : Real.exp (-δ/(T0 * α ^ t))
+        = Real.exp (-(δ/(T0 * α ^ t)/2))
+          * Real.exp (-(δ/(T0 * α ^ t)/2)) := by
+      rw [← Real.exp_add]
+      congr 1
+      ring
+    rw [hsplit]
+    exact mul_self_le_mul_self (le_of_lt (exp_pos _)) (hhalf t)
+  -- F lower with log(1+x) <= x
+  have hFge : ∀ t : ℕ, E vstar - (T0 * α ^ t)
+      * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/(T0 * α ^ t)))
+      ≤ -(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) := by
+    intro t
+    have hF := free_energy_sharp_lower E δ (T0 * α ^ t) (hTpos t) vstar hgap
+    have hln : Real.log (1
+        + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t)))
+        ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t)) := by
+      have hpos : (0:ℝ) < 1
+          + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-δ/(T0 * α ^ t)) := by
+        have hnn : (0:ℝ) ≤ (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-δ/(T0 * α ^ t)) :=
+          mul_nonneg hCnn (le_of_lt (exp_pos _))
+        linarith
+      have h2 := Real.log_le_sub_one_of_pos hpos
+      linarith
+    have hTnn : (0:ℝ) ≤ T0 * α ^ t := le_of_lt (hTpos t)
+    have hmul : (T0 * α ^ t)
+        * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t)))
+        ≤ (T0 * α ^ t)
+          * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-δ/(T0 * α ^ t))) :=
+      mul_le_mul_of_nonneg_left hln hTnn
+    linarith
+  -- energy upper
+  have hEup : ∀ t : ℕ, (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+      / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      ≤ E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/(T0 * α ^ t)) :=
+    fun t => gibbs_expected_energy_bound E δ (T0 * α ^ t) (hTpos t) vstar Δ
+      hmin hgap hΔ
+  -- F <= E*
+  have hFle : ∀ t : ℕ, -(T0 * α ^ t)
+      * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      ≤ E vstar :=
+    fun t => free_energy_upper E (T0 * α ^ t) (hTpos t) vstar
+  -- numerator bound: 0 <= num <= (ΔC + T0C)*exp
+  have hnum : ∀ t : ℕ,
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))))
+      ≤ (Δ + T0) * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/(T0 * α ^ t)) := by
+    intro t
+    -- T*C*exp <= T0*C*exp
+    have hTle : T0 * α ^ t ≤ T0 := by
+      have hp := pow_le_one₀ (n := t) hα1.le (le_of_lt hα2)
+      calc T0 * α ^ t ≤ T0 * 1 := mul_le_mul_of_nonneg_left hp hT0.le
+        _ = T0 := by ring
+    have h1 := hEup t
+    have h2 := hFge t
+    have hsplit : (Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ/(T0 * α ^ t))
+        = Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t))
+        + (T0 * α ^ t)
+          * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-δ/(T0 * α ^ t)))
+        + (T0 - T0 * α ^ t)
+          * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+            * Real.exp (-δ/(T0 * α ^ t))) := by
+      have hC : (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t)) ≥ 0 :=
+        mul_nonneg hCnn (le_of_lt (exp_pos _))
+      nlinarith [hTle, hC]
+    rw [hsplit]
+    have hpos : (0:ℝ) ≤ (T0 - T0 * α ^ t)
+        * ((((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          * Real.exp (-δ/(T0 * α ^ t))) := by
+      apply mul_nonneg _ (mul_nonneg hCnn (le_of_lt (exp_pos _)))
+      linarith
+    linarith
+  -- pointwise bound via scalar lemma
+  have hS : ∀ t : ℕ,
+      ((∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))))
+      / (T0 * α ^ t)
+      ≤ ((Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * (4:ℝ)/δ^2) * (T0 * α ^ t) := by
+    intro t
+    have htail := exp_div_tail (T0 * α ^ t) δ
+      (Real.exp (-δ/(T0 * α ^ t))) (hTpos t) hδ
+      (le_of_lt (exp_pos _)) (hsq t)
+    -- num/T <= (Δ+T0)C * (exp/T) <= (Δ+T0)C * 4T/δ²
+    rw [div_le_iff₀ (hTpos t)]
+    have hexp4 : Real.exp (-δ/(T0 * α ^ t))
+        ≤ (4:ℝ)/δ^2 * (T0 * α ^ t) * (T0 * α ^ t) := by
+      have h0 := htail
+      rw [div_le_iff₀ (hTpos t)] at h0
+      calc Real.exp (-δ/(T0 * α ^ t))
+          ≤ (4:ℝ)*(T0 * α ^ t)/δ^2 * (T0 * α ^ t) := h0
+        _ = (4:ℝ)/δ^2 * (T0 * α ^ t) * (T0 * α ^ t) := by
+            field_simp
+    have hM : (0:ℝ) ≤ (Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ) := by
+      apply mul_nonneg (by linarith) hCnn
+    have hMstep := mul_le_mul_of_nonneg_left hexp4 hM
+    have hring2 : ((Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+        * ((4:ℝ)/δ^2 * (T0 * α ^ t) * (T0 * α ^ t))
+      = ((Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * (4:ℝ)/δ^2) * (T0 * α ^ t) * (T0 * α ^ t) := by
+      field_simp
+    linarith [hnum t, hMstep, hring2]
+  -- squeeze
+  refine squeeze_zero
+    (g := fun t => ((Δ + T0)
+      * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * (4:ℝ)/δ^2) * (T0 * α ^ t)) ?_ hS ?_
+  · intro t
+    have h1 := hEup t
+    have h2 := hFle t
+    have hlow := gibbs_expected_energy_lower E (T0 * α ^ t) (hTpos t)
+      vstar hmin
+    have hnn : (0:ℝ) ≤ (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))) := by
+      linarith
+    exact div_nonneg hnn (le_of_lt (hTpos t))
+  · simpa using (thermostat_tendsto_zero α T0 hα1 hα2).const_mul
+      (((Δ + T0)
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * (4:ℝ)/δ^2))
+
