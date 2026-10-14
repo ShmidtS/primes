@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R412):
+  `consolidation_certificate` — капстоун контроллера:
+  ∃N ∀t≥N: остановка ∧ merge-гейт ∧ концентрация ≥ 1−Cθ —
+  режим «консолидация» формально наступает и
+  поддерживается (R407 ∧ R408, max горизонтов).
 - `Growth/Thermostat` (R408):
   `phase_concentration` — после фазовой точки: share(T_t)
   ≥ 1 − C·θ ∀t ≥ N (R407 × R386): режим консолидации =

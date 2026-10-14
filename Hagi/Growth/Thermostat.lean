@@ -183,3 +183,36 @@ theorem phase_concentration {V : Type*} [Fintype V]
     mul_le_mul_of_nonneg_left hstop hC
   linarith
 
+open Finset in
+/-- **Сертификат консолидации (R412)** — капстоун
+контроллера: ∃N, ∀t ≥ N: эксплорация остановлена ∧
+merge-гейт открыт ∧ Гиббс-концентрация ≥ 1 − Cθ. Одна
+точка, три свойства: физический режим «консолидация»
+HAGI формально наступает и поддерживается (max двух
+горизонтов R407/R408). -/
+theorem consolidation_certificate {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      Real.exp (-δ/(T0 * α ^ t)) ≤ θ
+        ∧ θ * (T0 * α ^ t) ≤ θ
+        ∧ 1 - (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ
+          ≤ Real.exp (-(E vstar)/(T0 * α ^ t))
+            / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) := by
+  -- phase point from R407 (J := θ)
+  obtain ⟨N, hN⟩ := thermostat_phase_point α T0 δ θ θ hα1 hα2 hT0 hδ
+    hθ1 hθ1 hθ2
+  -- concentration from R408
+  obtain ⟨N2, hN2⟩ := phase_concentration E vstar α T0 δ hα1 hα2 hT0 hδ
+    hgap θ hθ1 hθ2
+  refine ⟨max N N2, fun t ht => ?_⟩
+  have h1 : ((N : ℕ) : ℝ) ≤ ((max N N2 : ℕ) : ℝ) := by
+    exact_mod_cast Nat.le_max_left _ _
+  have h2 : ((N2 : ℕ) : ℝ) ≤ ((max N N2 : ℕ) : ℝ) := by
+    exact_mod_cast Nat.le_max_right _ _
+  obtain ⟨hstop, hgate⟩ := hN t (h1.trans ht)
+  exact ⟨hstop, hgate, hN2 t (h2.trans ht)⟩
+
