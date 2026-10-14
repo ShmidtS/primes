@@ -160,3 +160,31 @@ theorem newton_polar_tendsto_one (x₀ : ℝ) (hx₀ : 1 ≤ x₀)
   simpa [add_sub_cancel] using hgo
 
 end Hagi.Step
+namespace Hagi.Step
+
+/-- **Монотонный спуск полярного Ньютона (R423)**:
+при x ≥ 1: newtonStep x ≤ x (нестрого),
+при x > 1: строго. Вместе с R380/R382
+(quad-скорость + сходимость)
+траектория полностью
+сертифицирована: монотонно
+спускается и квадратично
+сжимается к 1. -/
+theorem newton_step_descent (x : ℝ) (hx : 1 ≤ x) :
+    newtonStep x ≤ x := by
+  have herr := newton_polar_scalar_error x (by linarith)
+  have h5 : (x - 1)^2 / (2 * x) ≤ x - 1 := by
+    rw [div_le_iff₀ (by linarith : (0:ℝ) < 2 * x)]
+    nlinarith
+  linarith
+
+theorem newton_step_descent_lt (x : ℝ) (hx : 1 < x) :
+    newtonStep x < x := by
+  have herr := newton_polar_scalar_error x (by linarith)
+  have h5 : (x - 1)^2 / (2 * x) < x - 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 2 * x)]
+    nlinarith
+  linarith
+
+
+end Hagi.Step
