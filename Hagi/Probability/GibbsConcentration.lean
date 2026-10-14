@@ -2078,3 +2078,101 @@ theorem kl_convex_first {V : Type*} [Fintype V] [Nonempty V]
         + (1 - lam) * (∑ v : V, ρ₂ v * Real.log (ρ₂ v / γ v)) := by
         rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
 
+open Finset Real in
+/-- **Аддитивность KL на
+произведении (R458)**:
+KL(ρ₁×ρ₂ ḟ‖ γ₁×γ₂) =
+KL(ρ₁ḟ‖γ₁) + KL(ρ₂ḟ‖γ₂)
+(цепное правило для
+независимых).
+Механика: log-
+разложение + Fubini
+(Fintype.sum_prod_type +
+sum_congr/свёртка
+строк через
+Σρ = 1). -/
+theorem kl_product_additive {V W : Type*} [Fintype V] [Fintype W]
+    [Nonempty V] [Nonempty W]
+    (ρ₁ γ₁ : V → ℝ) (ρ₂ γ₂ : W → ℝ)
+    (hρ₁ : ∀ v, 0 < ρ₁ v) (hρ₂ : ∀ w, 0 < ρ₂ w)
+    (hγ₁ : ∀ v, 0 < γ₁ v) (hγ₂ : ∀ w, 0 < γ₂ w)
+    (hρ₁s : ∑ v : V, ρ₁ v = 1) (hρ₂s : ∑ w : W, ρ₂ w = 1) :
+    (∑ p : V × W, (ρ₁ p.1 * ρ₂ p.2)
+        * Real.log ((ρ₁ p.1 * ρ₂ p.2) / (γ₁ p.1 * γ₂ p.2)))
+    = (∑ v : V, ρ₁ v * Real.log (ρ₁ v / γ₁ v))
+      + (∑ w : W, ρ₂ w * Real.log (ρ₂ w / γ₂ w)) := by
+  have hsplit : ∀ p : V × W,
+      Real.log ((ρ₁ p.1 * ρ₂ p.2) / (γ₁ p.1 * γ₂ p.2))
+      = (Real.log (ρ₁ p.1) + Real.log (ρ₂ p.2)
+          - Real.log (γ₁ p.1) - Real.log (γ₂ p.2)) := by
+    intro p
+    rw [Real.log_div (mul_pos (hρ₁ p.1) (hρ₂ p.2)).ne'
+      (mul_pos (hγ₁ p.1) (hγ₂ p.2)).ne']
+    rw [Real.log_mul (hρ₁ p.1).ne' (hρ₂ p.2).ne',
+      Real.log_mul (hγ₁ p.1).ne' (hγ₂ p.2).ne']
+    ring
+  -- expand the summand algebraically
+  have hterm : ∀ p : V × W, (ρ₁ p.1 * ρ₂ p.2)
+      * Real.log ((ρ₁ p.1 * ρ₂ p.2) / (γ₁ p.1 * γ₂ p.2))
+      = ρ₁ p.1 * ρ₂ p.2 * Real.log (ρ₁ p.1)
+        + ρ₁ p.1 * ρ₂ p.2 * Real.log (ρ₂ p.2)
+        - ρ₁ p.1 * ρ₂ p.2 * Real.log (γ₁ p.1)
+        - ρ₁ p.1 * ρ₂ p.2 * Real.log (γ₂ p.2) := by
+    intro p
+    rw [hsplit p]
+    ring
+  rw [Finset.sum_congr rfl (fun p _ => hterm p)]
+  rw [Finset.sum_sub_distrib, Finset.sum_sub_distrib,
+    Finset.sum_add_distrib]
+  -- Fubini bricks
+  have hfibV : ∀ f : V → ℝ, (∑ p : V × W, ρ₁ p.1 * ρ₂ p.2 * f p.1)
+      = (∑ v : V, ρ₁ v * f v) := by
+    intro f
+    rw [Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl ?_
+    intro v _
+    rw [Finset.sum_congr rfl (fun w _ => by
+      show ρ₁ (v, w).1 * ρ₂ (v, w).2 * f (v, w).1 = (ρ₁ v * f v) * ρ₂ w
+      simp only; ring)]
+    rw [← Finset.mul_sum, hρ₂s, mul_one]
+  have hfibW : ∀ g : W → ℝ, (∑ p : V × W, ρ₁ p.1 * ρ₂ p.2 * g p.2)
+      = (∑ w : W, ρ₂ w * g w) := by
+    intro g
+    rw [Fintype.sum_prod_type]
+    have hrow : ∀ v : V,
+        ∑ w : W, ρ₁ (v, w).1 * ρ₂ (v, w).2 * g (v, w).2
+          = (∑ w : W, ρ₂ w * g w) * ρ₁ v := by
+      intro v
+      rw [Finset.sum_congr rfl (fun w _ => by
+        show ρ₁ (v, w).1 * ρ₂ (v, w).2 * g (v, w).2
+          = (ρ₂ w * g w) * ρ₁ v
+        simp only; ring)]
+      rw [Finset.sum_mul]
+    rw [Finset.sum_congr rfl (fun v _ => hrow v)]
+    rw [← Finset.mul_sum, hρ₁s, mul_one]
+  rw [hfibV (fun v => Real.log (ρ₁ v)), hfibV (fun v => Real.log (γ₁ v)),
+    hfibW (fun w => Real.log (ρ₂ w)), hfibW (fun w => Real.log (γ₂ w))]
+  -- split log-div sums
+  have hsplit2 : ∀ (f g : V → ℝ), (∀ v, 0 < f v) → (∀ v, 0 < g v) →
+      (∑ v : V, f v * Real.log (f v / g v))
+      = (∑ v : V, f v * Real.log (f v))
+        - (∑ v : V, f v * Real.log (g v)) := by
+    intro f g hf hg
+    have hpt : ∀ v : V, f v * Real.log (f v / g v)
+        = f v * Real.log (f v) - f v * Real.log (g v) := by
+      intro v
+      rw [Real.log_div (hf v).ne' (hg v).ne', mul_sub]
+    rw [Finset.sum_congr rfl (fun v _ => hpt v), Finset.sum_sub_distrib]
+  have hsplit2W : ∀ (f g : W → ℝ), (∀ w, 0 < f w) → (∀ w, 0 < g w) →
+      (∑ w : W, f w * Real.log (f w / g w))
+      = (∑ w : W, f w * Real.log (f w))
+        - (∑ w : W, f w * Real.log (g w)) := by
+    intro f g hf hg
+    have hpt : ∀ w : W, f w * Real.log (f w / g w)
+        = f w * Real.log (f w) - f w * Real.log (g w) := by
+      intro w
+      rw [Real.log_div (hf w).ne' (hg w).ne', mul_sub]
+    rw [Finset.sum_congr rfl (fun w _ => hpt w), Finset.sum_sub_distrib]
+  rw [hsplit2 ρ₁ γ₁ hρ₁ hγ₁, hsplit2W ρ₂ γ₂ hρ₂ hγ₂]
+  linarith
+

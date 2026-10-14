@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R458):
+  `kl_product_additive` — аддитивность KL на
+  произведении: KL(ρ₁×ρ₂‖γ₁×γ₂) = KL₁ + KL₂
+  (цепное правило для независимых; log-разложение +
+  Fubini через Σρ = 1).
 - `Probability/GibbsConcentration` (R457):
   `kl_convex_first` — выпуклость KL по первому
   аргументу: KL(λρ₁+(1−λ)ρ₂‖γ) ≤ λKL(ρ₁‖γ)+
