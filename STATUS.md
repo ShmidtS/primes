@@ -48,6 +48,12 @@ same-folder DAG свободен.
 - Prelude.Info: KL, TV, энтропия, softmax. Каноны:
   `klDef`, `tvDef`; `kl_nonneg` (KL ≥ 0 — единственный),
   `kl_nonneg_of_nonneg` (KL ≥ 0 и при нулевых q).
+- `Ensemble/Hoeffding` (R411):
+  `two_sided_good_point` + `calibrated_good_point` — при
+  2|K|θ < 1 существует v: ∀k |d k v| < ε_θ =
+  (b−a)√(ln(1/θ)/2) (вероятностный метод R404 × калибровка
+  R409): термостатная θ гарантирует существование
+  репрезентативной точки.
 - `Ensemble/Hoeffding` (R410):
   `calibrated_two_sided_mass` — при ε = (b−a)√(ln(1/θ)/2):
   масса класс-хороших точек ≥ 1 − 2|K|θ (R405 × R409) —

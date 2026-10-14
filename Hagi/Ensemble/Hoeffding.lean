@@ -1260,6 +1260,61 @@ theorem calibrated_two_sided_mass {V K : Type*} [Fintype V]
   rw [hcal] at hR405
   exact hR405
 
+/-! ### Двусторонняя хорошая точка (R411a): при
+2|K|e^{−2ε²/(b−a)²} < 1 существует v: ∀k |d k v| < ε
+(вероятностный метод на R404). -/
+theorem two_sided_good_point {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε)
+    (hsmall : 2 * (Fintype.card K : ℝ)
+      * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) < 1) :
+    ∃ v : V, ∀ k : K, |d k v| < ε := by
+  by_contra hcon
+  push_neg at hcon
+  have hsub : (Finset.univ : Finset V)
+      ⊆ Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|) :=
+    fun v _ => Finset.mem_filter.mpr ⟨Finset.mem_univ v, hcon v⟩
+  have h1le : (1:ℝ) ≤ ∑ v ∈ Finset.univ.filter
+      (fun v => ∃ k, ε ≤ |d k v|), w v := by
+    rw [← hw1]
+    exact Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun v _ _ => le_of_lt (hw v))
+  have hR404 := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
+  linarith
+
+
+/-! ### Калиброванная хорошая точка (R411b): при 2|K|θ < 1
+существует v, равномерно ε_θ-хорошая для всего класса,
+ε_θ = (b−a)√(ln(1/θ)/2) (R411a × R409) — сэмпл-
+сложность моста в θ-параметризации: термостатная θ
+гарантирует существование репрезентативной точки. -/
+theorem calibrated_good_point {V K : Type*} [Fintype V]
+    [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
+    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k, ∑ v, w v * d k v = 0)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1)
+    (hsmall : 2 * (Fintype.card K : ℝ) * θ < 1) :
+    ∃ v : V, ∀ k : K,
+      |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+  -- R402 with calibrated eps
+  have hεpos : (0:ℝ) ≤ (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+    have hR : (0:ℝ) ≤ b - a := by linarith
+    have hone : (1:ℝ) < 1/θ := by
+      rw [lt_div_iff₀ hθ1]
+      linarith
+    apply mul_nonneg hR _
+    exact Real.sqrt_nonneg _
+  have hcal := tolerance_calibration (b - a) θ (by linarith) hθ1 hθ2
+  have hcond : 2 * (Fintype.card K : ℝ)
+      * Real.exp (-2 * ((b - a) * Real.sqrt (Real.log (1/θ)/2)) ^ 2
+        / (b - a) ^ 2) < 1 := by
+    rw [hcal]
+    linarith
+  exact two_sided_good_point w d a b hw hw1 hlt hbd hc hεpos hcond
+
 end HoeffdingFin
 
 end Hagi.Ensemble
