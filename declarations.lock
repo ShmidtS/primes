@@ -1309,6 +1309,7 @@ marginalValue_law	999717d77a96da8f	adb73fb4e687ad95
 markovLaw	e6cae4c1cad97abc	f7b85bfeb2460c00
 markovMean_exp_compensated_le	ec34dbff0f6b2c89	863b38d7f53c7406
 markovMean_potential_le	5e9ef907db008e09	b1e43c541950764c
+markov_finite	dd7645741ae745b4	ceac466ce97eb042
 markov_ge	e8582ed2a05b463f	31322b855024f4e0
 mass	7a64e737f1f032f4	1e7fe5e38781937f
 mass_add	5026a31aa4bd39e1	236719efedb9f83c

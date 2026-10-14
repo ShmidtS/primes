@@ -3560,3 +3560,32 @@ theorem kl_chernoff_tilt {V : Type*} [Fintype V] [Nonempty V]
   rw [hconv] at hR
   exact hR
 
+open Finset Real in
+/-- **Конечный
+Марков (R482)**:
+для g ≥ 0 и t > 0:
+t·p({g ≥ t}) ≤ E_p g
+(фильтр {t ≤ g},
+per-v p·t ≤ p·g,
+подсумма → полная
+сумма через
+nonneg-расширение). -/
+theorem markov_finite {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p g : V → ℝ) (t : ℝ)
+    (hp : ∀ v, 0 < p v) (hg : ∀ v, 0 ≤ g v) (ht : 0 < t) :
+    t * ∑ v ∈ Finset.filter (fun v => t ≤ g v) Finset.univ, p v
+      ≤ ∑ v : V, p v * g v := by
+  set s' : Finset V := Finset.filter (fun v => t ≤ g v) Finset.univ with hs'
+  rw [Finset.mul_sum]
+  have h1 : ∑ v ∈ s', t * p v ≤ ∑ v ∈ s', p v * g v := by
+    apply Finset.sum_le_sum
+    intro v hv
+    rw [mul_comm]
+    exact mul_le_mul_of_nonneg_left
+      (Finset.mem_filter.mp hv).2 (le_of_lt (hp v))
+  have h2 : ∑ v ∈ s', p v * g v ≤ ∑ v : V, p v * g v := by
+    exact Finset.sum_le_sum_of_subset_of_nonneg
+      (Finset.filter_subset _ _)
+      (fun v _ _ => mul_nonneg (hp v).le (hg v))
+  linarith
+
