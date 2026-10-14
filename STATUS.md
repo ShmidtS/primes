@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R474):
+  `neg_log_bc_le_half_kl` — −ln BC ≤ KL/2
+  (log_sum R451 с парой a := p, b := √(pq):
+  LHS = ln(1/BC); per-v p/√(pq) = √(p/q));
+  эквив. BC ≥ e^{−KL/2} — кирпич
+  Бретаньоль–Юбера.
 - `Probability/GibbsConcentration` (R473):
   `tv_dual_abs` — дуальная характеризация TV:
   |E_p f − E_q f| ≤ (1/2)Σ|p−q| для любой

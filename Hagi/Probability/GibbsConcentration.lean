@@ -3094,3 +3094,70 @@ theorem tv_dual_abs {V : Type*} [Fintype V] [DecidableEq V]
   rw [abs_le]
   exact ⟨by linarith [hd2, hneg], hup⟩
 
+open Finset Real in
+/-- **−ln BC ≤ KL/2
+(R474)**:
+−ln Σ√(p·q) ≤
+(1/2)·Σp·ln(p/q).
+Log-sum R451 с
+парой a := p,
+b := √(p·q)
+(LHS = ln(1/BC)); per-v:
+p/√(pq) = √(p/q),
+т.е. ln(p/√(pq)) =
+(1/2)ln(p/q) (log_sqrt).
+Эквив: BC ≥
+e^{−KL/2} — кирпич
+Бретаньоль–Юбера. -/
+theorem neg_log_bc_le_half_kl {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
+    (hp1 : ∑ v : V, p v = 1) :
+    -Real.log (∑ v : V, Real.sqrt (p v) * Real.sqrt (q v))
+      ≤ (1/2) * ∑ v : V, p v * Real.log (p v / q v) := by
+  have hper : ∀ v : V, p v / (Real.sqrt (p v) * Real.sqrt (q v))
+      = Real.sqrt (p v / q v) := by
+    intro v
+    have hsq : Real.sqrt (p v) * Real.sqrt (p v) = p v := by
+      rw [← sq (Real.sqrt (p v))]
+      exact sq_sqrt (hp v).le
+    have e3 : p v / (√(p v) * √(q v))
+        = (Real.sqrt (p v) * Real.sqrt (p v))
+          / (Real.sqrt (p v) * Real.sqrt (q v)) := by
+      nth_rewrite 1 [← hsq]
+      rfl
+    have e4 : (Real.sqrt (p v) * Real.sqrt (p v))
+        / (Real.sqrt (p v) * Real.sqrt (q v))
+        = Real.sqrt (p v) / Real.sqrt (q v) := by
+      exact mul_div_mul_left _ _ (Real.sqrt_pos.mpr (hp v)).ne'
+    exact e3.trans ((e4.trans
+      (Real.sqrt_div (hp v).le (q v)).symm))
+  have hlogper : ∀ v : V,
+      Real.log (p v / (Real.sqrt (p v) * Real.sqrt (q v)))
+      = (1/2) * Real.log (p v / q v) := by
+    intro v
+    rw [hper v, Real.log_sqrt ((div_nonneg (hp v).le (hq v).le))]
+    ring
+  have hBCpos : (0:ℝ) < ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) :=
+    Finset.sum_pos (fun v _ => mul_pos (Real.sqrt_pos.mpr (hp v))
+      (Real.sqrt_pos.mpr (hq v)))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have h := log_sum_ineq p
+    (fun v => Real.sqrt (p v) * Real.sqrt (q v))
+    hp (fun v => mul_pos (Real.sqrt_pos.mpr (hp v))
+      (Real.sqrt_pos.mpr (hq v)))
+  simp only [hlogper] at h
+  have hrhs : (∑ v : V, p v) * Real.log ((∑ v : V, p v)
+      / (∑ v : V, Real.sqrt (p v) * Real.sqrt (q v)))
+      = Real.log (1 / (∑ v : V, Real.sqrt (p v)
+        * Real.sqrt (q v))) := by
+    rw [hp1, one_mul]
+  rw [hrhs] at h
+  rw [← Real.log_inv, inv_eq_one_div]
+  have hconv : ∑ x : V, p x * (1/2 * Real.log (p x / q x))
+      = (1/2) * ∑ x : V, p x * Real.log (p x / q x) := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl (fun x _ => by ring)
+  rw [← hconv]
+  exact h
+
