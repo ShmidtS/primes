@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/MWU` (R433, новый файл):
+  `mwu_potential_step` — одношаговый потенциал
+  экспоненциальных весов: ln Z' ≥ −2η⟨ℓ⟩ при ηℓ ≤ 1/2
+  (hedge-ядро без рядов: (1+2x)(1−x) ≥ 1 ⟹ e^{−2x} ≤
+  1−x). Шаг 2 моста к MWU-regret.
 - `Probability/GibbsConcentration` (R432):
   `gibbs_energy_gap_crude` — ⟨E⟩_T ≤ E_min + T·n для любых
   E без гэп-предположений: первый кирпич моста к

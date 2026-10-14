@@ -173,6 +173,7 @@ import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
 import Hagi.Probability.ThermoAxes
 import Hagi.Probability.GibbsConcentration
+import Hagi.Probability.MWU
 import Hagi.Probability.WSqD
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RatioTakeoff
