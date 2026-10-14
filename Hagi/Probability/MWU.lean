@@ -220,3 +220,23 @@ theorem mwu_potential_upper_uniform {V : Type*} [Fintype V]
   rw [hsplit] at hlog
   linarith
 
+/-- **Телескоп MWU-весов (R438)**:
+∏_{t<T} e^{−η·ℓ_t(v)} = e^{−η·∑_{t<T} ℓ_t(v)}
+(индукция, exp_add). Замкнутая
+форма ненормированных
+экспоненциальных весов:
+u_T(v) = e^{−ηL_v}. Соединяется с
+R436/R437 (W = (1/n)∑ e^{−ηL_v}) — полная
+многошаговая механика. -/
+theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
+    (T : ℕ) (v : V) :
+    ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))
+      = Real.exp (-(η * ∑ t ∈ Finset.range T, ℓs t v)) := by
+  induction T with
+  | zero => simp
+  | succ t ih =>
+    rw [Finset.prod_range_succ_comm, Finset.sum_range_succ, ih,
+      ← Real.exp_add]
+    congr 1
+    ring
+
