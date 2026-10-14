@@ -1409,3 +1409,100 @@ theorem gibbs_kl_uniform_split {V : Type*} [Fintype V]
     rw [hcomm, ← Finset.mul_sum, hw1, mul_one]
   rw [hsecond]
 
+open Finset in
+/-- **Элементарный зазор Гиббса (R432)** —
+первый кирпич моста к multiplicative
+weights (RAG-опора: arXiv 2608.09389,
+EW-regret ≤ M√(2 ln A·T)):
+⟨E⟩_T ≤ E_min + T·n для ЛЮБЫх E
+(без гэп-предположений!).
+Доказательство:
+x + T ≤ T·e^{x/T} почленно +
+свёртка w·e^{(E−Emin)/T} = e^{−Emin/T}
+тожденственно. При температуре
+η = T/шаг это без-regret зона
+экспоненциальных весов. -/
+theorem gibbs_energy_gap_crude {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) :
+    ∃ vmin : V, (∑ v, E v * Real.exp (-(E v)/T))
+        / (∑ v, Real.exp (-(E v)/T)) - E vmin
+      ≤ T * (Fintype.card V : ℝ) := by
+  obtain ⟨vmin, hvmin⟩ : ∃ vmin : V, ∀ v : V, E vmin ≤ E v := by
+    obtain ⟨a, _, ha⟩ := Finset.exists_min_image (Finset.univ : Finset V) E
+      Finset.univ_nonempty
+    exact ⟨a, fun v => ha v (Finset.mem_univ v)⟩
+  refine ⟨vmin, ?_⟩
+  have hZpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/T) :=
+    Finset.sum_pos (fun v _ => exp_pos _) ⟨vmin, Finset.mem_univ _⟩
+  -- numerator identity
+  have hterm : ∀ v : V, Real.exp (-(E v)/T) * (E v - E vmin)
+      = E v * Real.exp (-(E v)/T)
+        - Real.exp (-(E v)/T) * E vmin := fun v => by ring
+  have hnum : (∑ v, E v * Real.exp (-(E v)/T))
+      / (∑ v, Real.exp (-(E v)/T)) - E vmin
+      = (∑ v, Real.exp (-(E v)/T) * (E v - E vmin))
+        / (∑ v, Real.exp (-(E v)/T)) := by
+    have hsumEq : ∑ v, Real.exp (-(E v)/T) * (E v - E vmin)
+        = ∑ v, E v * Real.exp (-(E v)/T)
+          - E vmin * ∑ v, Real.exp (-(E v)/T) := by
+      rw [Finset.sum_congr rfl (fun v _ => hterm v), Finset.sum_sub_distrib,
+        Finset.sum_congr rfl (fun v _ => mul_comm (Real.exp (-(E v)/T)) (E vmin)),
+        ← Finset.mul_sum]
+    rw [hsumEq, sub_div, mul_div_cancel_right₀ (E vmin) (ne_of_gt hZpos)]
+  rw [hnum]
+  -- per-point exponential identity (folded form)
+  have hident : ∀ v : V, Real.exp (-(E v)/T)
+      * Real.exp ((E v - E vmin)/T) = Real.exp (-(E vmin)/T) := by
+    intro v
+    rw [← Real.exp_add]
+    congr 1
+    field_simp
+    ring
+  -- per-point bound: x <= T*exp(x/T) - T... via add_one_le_exp
+  have hpt : ∀ v : V, Real.exp (-(E v)/T) * (E v - E vmin)
+      ≤ Real.exp (-(E v)/T) * (T * Real.exp ((E v - E vmin)/T)) := by
+    intro v
+    have hnn : (0:ℝ) ≤ E v - E vmin := sub_nonneg.mpr (hvmin v)
+    have hmult := mul_le_mul_of_nonneg_left
+      (Real.add_one_le_exp ((E v - E vmin)/T)) (le_of_lt hT)
+    have hrew : T * ((E v - E vmin)/T + 1)
+        = (E v - E vmin) + T := by
+      rw [mul_add]
+      have hd : T * ((E v - E vmin)/T) = E v - E vmin := by
+        field_simp
+      rw [hd, mul_one]
+    have hkey2 : E v - E vmin
+        ≤ T * Real.exp ((E v - E vmin)/T) := by linarith [hmult, hrew]
+    exact mul_le_mul_of_nonneg_left hkey2 (exp_pos _).le
+  -- sum bound
+  have h1 : (∑ v : V, Real.exp (-(E v)/T) * (E v - E vmin))
+      ≤ ∑ v : V, Real.exp (-(E v)/T)
+        * (T * Real.exp ((E v - E vmin)/T)) :=
+    Finset.sum_le_sum (fun v _ => hpt v)
+  have hterm2 : ∀ v : V, Real.exp (-(E v)/T)
+      * (T * Real.exp ((E v - E vmin)/T))
+      = T * Real.exp (-(E vmin)/T) := by
+    intro v
+    calc Real.exp (-(E v)/T) * (T * Real.exp ((E v - E vmin)/T))
+        = T * (Real.exp (-(E v)/T)
+          * Real.exp ((E v - E vmin)/T)) := by ring
+      _ = T * Real.exp (-(E vmin)/T) := by rw [hident v]
+  have h2 : ∑ v : V, Real.exp (-(E v)/T)
+        * (T * Real.exp ((E v - E vmin)/T))
+      = T * (Fintype.card V : ℝ) * Real.exp (-(E vmin)/T) := by
+    rw [Finset.sum_congr rfl (fun v _ => hterm2 v), Finset.sum_const]
+    norm_num
+    ring
+  have hsum : (∑ v : V, Real.exp (-(E v)/T) * (E v - E vmin))
+      ≤ T * (Fintype.card V : ℝ) * Real.exp (-(E vmin)/T) :=
+    h1.trans_eq h2
+  have hC : Real.exp (-(E vmin)/T)
+      ≤ ∑ v, Real.exp (-(E v)/T) :=
+    single_le_sum (f := fun v => Real.exp (-(E v)/T))
+      (fun v _ => le_of_lt (exp_pos _)) (Finset.mem_univ vmin)
+  rw [div_le_iff₀ hZpos]
+  have hn : (0:ℝ) ≤ (Fintype.card V : ℝ) := Nat.cast_nonneg _
+  have hmul := mul_le_mul_of_nonneg_left hC (mul_nonneg (le_of_lt hT) hn)
+  linarith [hsum, hmul]
+

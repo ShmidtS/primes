@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R432):
+  `gibbs_energy_gap_crude` — ⟨E⟩_T ≤ E_min + T·n для любых
+  E без гэп-предположений: первый кирпич моста к
+  multiplicative weights (RAG-опора arXiv 2608.09389
+  EW-regret). Retry [162] успешен.
 - `Growth/Thermostat` (R431):
   `thermostat_monotone` — T_{t+1} ≤ T_t: монотонность
   охлаждения (семантический кирпич вертикали).
