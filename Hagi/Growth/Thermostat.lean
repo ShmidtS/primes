@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
 import Hagi.Probability.GibbsConcentration
+import Hagi.Probability.MWU
 import Hagi.Ensemble.Hoeffding
 set_option linter.style.header false
 
@@ -998,3 +999,41 @@ theorem thermostat_monotone (α T0 : ℝ) (hα1 : 0 < α)
     mul_le_mul_of_nonneg_left hinner (le_of_lt hT0)
   linarith [hfin]
 
+open Finset in
+/-- **Хёфдинг ↔ MWU: последний
+мост (R442)**: выборка из
+hedge-распределения
+w_T ∝ e^{−ηL} репрезентативна
+для всего класса оценок при
+2|K|θ < 1 (R413 при E := L, T := 1/η —
+тождество весов). ПОЛНЫЙ
+ГРАФ МОСТОВ: 4 вертикали,
+все 6 пар соединены. -/
+theorem mwu_representative {V K : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] [Fintype K]
+    (L : V → ℝ) (η : ℝ) (hη : 0 < η)
+    (d : K → V → ℝ) (a b : ℝ)
+    (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
+    (hc : ∀ k : K, ∑ v, (Real.exp (-(η * L v))
+        / ∑ v, Real.exp (-(η * L v))) * d k v = 0)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1)
+    (hsmall : 2 * (Fintype.card K : ℝ) * θ < 1) :
+    ∃ v : V, ∀ k : K,
+      |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+  have hkey : ∀ v : V, Real.exp (-(η * L v))
+      = Real.exp (-(L v)/(1/η)) := by
+    intro v
+    congr 1
+    field_simp
+  have hc' : ∀ k : K, ∑ v, (Real.exp (-(L v)/(1/η))
+      / ∑ v, Real.exp (-(L v)/(1/η))) * d k v = 0 := by
+    intro k
+    have hsum : ∑ v, Real.exp (-(L v)/(1/η))
+        = ∑ v, Real.exp (-(η * L v)) :=
+      Finset.sum_congr rfl (fun v _ => (hkey v).symm)
+    have := hc k
+    rw [← hsum] at this
+    rw [Finset.sum_congr rfl (fun v _ => by rw [hkey v])] at this
+    exact this
+  have hT : (0:ℝ) < 1/η := by positivity
+  exact gibbs_representative L (1/η) hT d a b hlt hbd hc' θ hθ1 hθ2 hsmall

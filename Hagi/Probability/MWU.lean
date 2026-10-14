@@ -314,4 +314,3 @@ theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
   rw [Finset.sum_congr rfl (fun v _ => hkey v), Finset.mul_sum]
   have hη : (0:ℝ) < 1/T := by positivity
   exact mwu_uniform_squeeze E (1/T) hE hη hsmall
-

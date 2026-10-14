@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R442):
+  `mwu_representative` — Хёфдинг↔MWU: выборка из
+  hedge-распределения e^{−ηL} репрезентативна (R413 при
+  T := 1/η). ПОЛНЫЙ ГРАФ МОСТОВ: 4 вертикали, все 6 пар.
 - `Probability/MWU` (R441):
   `gibbs_hedge_squeeze` — Гиббс = hedge при η = 1/T:
   (1/T)E_min ≤ −ln((1/n)Σe^{−E/T}) ≤ 2(1/T)⟨E⟩_unif.
