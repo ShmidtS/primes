@@ -1635,3 +1635,71 @@ theorem finite_kl_nonneg {V : Type*} [Fintype V] [Nonempty V]
     _ ≤ ∑ v : V, ρ v * Real.log (ρ v / γ v) :=
       Finset.sum_le_sum (fun v _ => hterm v)
 
+open Finset in
+/-- **Вариационный
+принцип Гиббса (R448)**:
+для любого распределения ρ:
+⟨E⟩_ρ + T·Σρ ln ρ ≥ −T·ln Z —
+свободная энергия
+любого ρ (⟨E⟩ − T·S
+с S = −Σρ ln ρ) не меньше
+гиббсовой F = −T ln Z.
+Вывод: R447 (KL ≥ 0) на
+Гиббс-мере γ с
+разворачиванием
+T·KL почленно
+(T·KL = T·Σρ ln ρ + ⟨E⟩ + T ln Z).
+Равенство на Гиббсе —
+R446. Минимум свободной
+энергии достигается
+равновесным
+распределением. -/
+theorem gibbs_variational {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1) :
+    -T * Real.log (∑ v : V, Real.exp (-(E v)/T))
+      ≤ (∑ v : V, ρ v * E v)
+        + T * (∑ v : V, ρ v * Real.log (ρ v)) := by
+  set Z : ℝ := ∑ v : V, Real.exp (-(E v)/T) with hZdef
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set γ : V → ℝ := fun v => Real.exp (-(E v)/T) / Z with hγ
+  have hγpos : ∀ v, 0 < γ v := fun v => by
+    rw [hγ]; positivity
+  have hγ1 : ∑ v : V, γ v = 1 := by
+    rw [hγ]
+    simp only
+    rw [← Finset.sum_div]
+    exact div_self hZpos.ne'
+  have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
+  have hlogγ : ∀ v : V, Real.log (γ v)
+      = -(E v)/T - Real.log Z := by
+    intro v
+    rw [hγ, Real.log_div (exp_pos _).ne' hZpos.ne', Real.log_exp]
+  -- T * KL = T*S-form + <E> + T log Z
+  have hTKL : T * (∑ v : V, ρ v * Real.log (ρ v / γ v))
+      = T * (∑ v : V, ρ v * Real.log (ρ v))
+        + (∑ v : V, ρ v * E v) + T * Real.log Z := by
+    have hsplit : ∀ v : V,
+        T * (ρ v * Real.log (ρ v / γ v))
+        = ρ v * (T * Real.log (ρ v)) + ρ v * E v
+          + ρ v * (T * Real.log Z) := by
+      intro v
+      rw [Real.log_div (hρ v).ne' (hγpos v).ne', hlogγ v]
+      field_simp
+      ring
+    rw [Finset.mul_sum]
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v)]
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+    rw [Finset.sum_congr rfl (fun v _ =>
+      mul_left_comm (ρ v) T (Real.log (ρ v)))]
+    rw [← Finset.mul_sum]
+    rw [Finset.sum_congr rfl (fun v _ => mul_comm (ρ v) (T * Real.log Z))]
+    rw [← Finset.mul_sum, hρ1, mul_one]
+  have hKL' : (0:ℝ) ≤ T * (∑ v : V, ρ v * Real.log (ρ v / γ v)) :=
+    mul_nonneg (le_of_lt hT) hKL
+  rw [hTKL] at hKL'
+  linarith
+

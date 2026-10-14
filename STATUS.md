@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R448):
+  `gibbs_variational` — вариационный принцип Гиббса:
+  ⟨E⟩_ρ + T·Σρ ln ρ ≥ −T·ln Z для любого ρ (R447 на
+  Гиббс-мере; равенство на Гиббсе = R446; минимум
+  свободной энергии достигается равновесием).
 - `Probability/GibbsConcentration` (R447):
   `finite_kl_nonneg` — общий второй закон: KL(ρ‖γ) ≥ 0
   для любых распределений (ln u ≤ u−1 почленно с
