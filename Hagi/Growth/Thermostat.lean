@@ -530,3 +530,106 @@ theorem certified_state_tv_tendsto {V : Type*} [Fintype V]
     mul_nonneg (by norm_num : (0:ℝ) ≤ 1/2)
       (Finset.sum_nonneg (fun v _ => abs_nonneg _))) hbound htail
 
+open Finset Real Filter in
+/-- **Энергия → E* вдоль термостатного
+графика (R427)**: ⟨E⟩_{T_t} → E* при
+T_t = T₀·α^t (аналог R394 для
+δ/(n+1)-графика). Сжатие:
+0 ≤ ⟨E⟩−E* ≤ ΔC·T_t/(T_t+δ) → 0
+(R420 × R393 × R426-хвост). Энергетическая
+чистота сертифицированного
+состояния наряду с метрической (R426). -/
+theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    Tendsto (fun t : ℕ => (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))) atTop
+      (nhds (E vstar)) := by
+  have hTpos : ∀ t : ℕ, (0:ℝ) < T0 * α ^ t :=
+    fun t => mul_pos hT0 (pow_pos hα1 t)
+  set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
+  -- tail bound (as in R426)
+  have hexpb : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
+      ≤ (T0 * α ^ t)/(T0 * α ^ t + δ) := by
+    intro t
+    have hx : (0:ℝ) < δ/(T0 * α ^ t) := div_pos hδ (hTpos t)
+    have h := Real.add_one_le_exp (δ/(T0 * α ^ t))
+    have hinv : Real.exp (-δ/(T0 * α ^ t))
+        = (Real.exp (δ/(T0 * α ^ t)))⁻¹ := by
+      rw [neg_div, Real.exp_neg]
+    have hf : (T0*α^t)/(T0*α^t+δ)
+        = 1/(1 + δ/(T0 * α ^ t)) := by field_simp
+    rw [hinv, hf, one_div, inv_le_inv₀ (by linarith) (by linarith)]
+    linarith
+  -- upper: <E>_t <= E* + ΔC frac
+  have hupper : ∀ t : ℕ,
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      ≤ E vstar + Δ * C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) := by
+    intro t
+    have hb := gibbs_expected_energy_bound E δ (T0 * α ^ t) (hTpos t)
+      vstar Δ hmin hgap hΔ
+    have hC0 : (0:ℝ) ≤ C := Nat.cast_nonneg _
+    calc (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+        ≤ E vstar + Δ * C * Real.exp (-δ/(T0 * α ^ t)) := hb
+      _ ≤ E vstar + Δ * C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) := by
+          have hΔ0 : (0:ℝ) ≤ Δ := by
+            have h0 := hΔ vstar
+            simp only [sub_self] at h0
+            linarith
+          have hX : Δ * C * Real.exp (-δ/(T0 * α ^ t))
+              ≤ Δ * C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) :=
+            mul_le_mul_of_nonneg_left (hexpb t)
+              (mul_nonneg hΔ0 hC0)
+          linarith
+  -- lower: E* <= <E>_t (R420)
+  have hlower : ∀ t : ℕ, E vstar ≤ (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) :=
+    fun t => gibbs_expected_energy_lower E (T0 * α ^ t) (hTpos t) vstar hmin
+  -- tail tends to 0 (as in R426)
+  have hA := thermostat_tendsto_zero α T0 hα1 hα2
+  have hB : Tendsto (fun t : ℕ => T0 * α ^ t + δ) atTop (nhds δ) := by
+    simpa using hA.add tendsto_const_nhds
+  have hdiv : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds ((0:ℝ)/δ)) :=
+    Tendsto.div hA hB (ne_of_gt hδ)
+  have hdiv0 : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds 0) := by simpa using hdiv
+  -- squeeze on difference
+  have hdiff : Tendsto (fun t : ℕ =>
+      (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) - E vstar)
+      atTop (nhds 0) := by
+    refine squeeze_zero
+      (g := fun t => Δ * C * ((T0 * α ^ t)/(T0 * α ^ t + δ))) ?_ ?_ ?_
+    · intro t
+      have := hlower t
+      linarith
+    · intro t
+      have := hupper t
+      have hΔ0 : (0:ℝ) ≤ Δ := by
+        have h0 := hΔ vstar
+        simp only [sub_self] at h0
+        linarith
+      have hC0 : (0:ℝ) ≤ C := Nat.cast_nonneg _
+      have hfrac : (0:ℝ) ≤ (T0 * α ^ t)/(T0 * α ^ t + δ) := by
+        apply div_nonneg (le_of_lt (hTpos t))
+        linarith [hTpos t]
+      have hpos : (0:ℝ) ≤ Δ * C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) :=
+        mul_nonneg (mul_nonneg hΔ0 hC0) hfrac
+      linarith
+    · simpa using hdiv0.const_mul (Δ * C)
+  have heq : (fun t : ℕ => (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))))
+      = (fun t : ℕ => ((∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) - E vstar) + E vstar) := by
+    funext t
+    ring
+  rw [heq]
+  simpa using hdiff.add (tendsto_const_nhds (x := E vstar))
+

@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R427):
+  `certified_state_energy_tendsto` — ⟨E⟩_{T_t} → E* вдоль
+  термостатного графика (R420 × R393 × R426-хвост):
+  энергетическая чистота наряду с метрической (R426).
 - `Growth/Thermostat` (R426):
   `certified_state_tv_tendsto` — TV(p_t, δ*) → 0 вдоль
   отжига: сжатие TV ≤ C·e^{−δ/T_t} ≤ C·T_t/(T_t+δ) → 0
