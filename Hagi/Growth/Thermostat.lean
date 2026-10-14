@@ -455,3 +455,78 @@ theorem thermostat_tendsto_zero (α T0 : ℝ) (hα1 : 0 < α)
   have hp := tendsto_pow_atTop_nhds_zero_of_lt_one (le_of_lt hα1) hα2
   simpa using Tendsto.const_mul T0 hp
 
+open Finset Real Filter in
+/-- **TV → 0 вдоль отжига (R426)**: сертифицированное
+состояние сходится к минимизатору метрически:
+TV(p_{T_t}, δ*) → 0. Сжатие: TV ≤ C·e^{−δ/T_t} ≤
+C·T_t/(T_t+δ) → 0 (R386 × R395 × R425;
+e^{−x} ≤ 1/(1+x) через inv_le_inv₀). Фазовый
+переход R415 — не только наступает, но и
+знутри всё чище: асимптотическая
+чистота. -/
+theorem certified_state_tv_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    Tendsto (fun t : ℕ => (1/2) * ∑ v,
+        |Real.exp (-(E v)/(T0 * α ^ t))
+          / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+          - if v = vstar then (1:ℝ) else 0|) atTop (nhds 0) := by
+  have hTpos : ∀ t : ℕ, (0:ℝ) < T0 * α ^ t :=
+    fun t => mul_pos hT0 (pow_pos hα1 t)
+  set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
+  -- exp tail bound: e^{-x} <= 1/(1+x)
+  have hexpb : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
+      ≤ 1/(1 + δ/(T0 * α ^ t)) := by
+    intro t
+    have hx : (0:ℝ) < δ/(T0 * α ^ t) := div_pos hδ (hTpos t)
+    have h := Real.add_one_le_exp (δ/(T0 * α ^ t))
+    have hinv : Real.exp (-δ/(T0 * α ^ t))
+        = (Real.exp (δ/(T0 * α ^ t)))⁻¹ := by
+      rw [neg_div, Real.exp_neg]
+    rw [hinv, one_div, inv_le_inv₀ (by linarith) (by linarith)]
+    linarith
+  -- fraction equals schedule/(schedule+delta)
+  have hfrac : ∀ t : ℕ, 1/(1 + δ/(T0 * α ^ t))
+      = (T0 * α ^ t)/(T0 * α ^ t + δ) := by
+    intro t
+    field_simp
+  -- pointwise: TV_t <= C * fraction
+  have hbound : ∀ t : ℕ, (1/2) * ∑ v,
+      |Real.exp (-(E v)/(T0 * α ^ t))
+        / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+        - if v = vstar then (1:ℝ) else 0|
+      ≤ C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) := by
+    intro t
+    have htv := gibbs_tv_eq E (T0 * α ^ t) (hTpos t) vstar
+    have hconc := gibbs_concentration E δ vstar hgap (T0 * α ^ t) (hTpos t)
+    rw [htv]
+    have hle1 : 1 - Real.exp (-(E vstar)/(T0*α^t))
+        / (∑ v, Real.exp (-(E v)/(T0*α^t)))
+        ≤ C * Real.exp (-δ/(T0*α^t)) := by linarith
+    have hf : (T0*α^t)/(T0*α^t+δ)
+        = 1/(1 + δ/(T0*α^t)) := (hfrac t).symm
+    calc 1 - Real.exp (-(E vstar)/(T0*α^t))
+          / (∑ v, Real.exp (-(E v)/(T0*α^t)))
+        ≤ C * Real.exp (-δ/(T0*α^t)) := hle1
+      _ ≤ C * ((T0*α^t)/(T0*α^t+δ)) := by
+          rw [hf]
+          exact mul_le_mul_of_nonneg_left (hexpb t) (Nat.cast_nonneg _)
+  -- fraction tends to 0 (schedule -> 0, denom -> delta > 0)
+  have hA := thermostat_tendsto_zero α T0 hα1 hα2
+  have hB : Tendsto (fun t : ℕ => T0 * α ^ t + δ) atTop (nhds δ) := by
+    simpa using hA.add tendsto_const_nhds
+  have hdiv : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds ((0:ℝ)/δ)) :=
+    Tendsto.div hA hB (ne_of_gt hδ)
+  have hdiv0 : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds 0) := by simpa using hdiv
+  have htail : Tendsto (fun t : ℕ =>
+      C * ((T0 * α ^ t)/(T0 * α ^ t + δ))) atTop (nhds 0) := by
+    simpa using hdiv0.const_mul C
+  -- squeeze
+  exact squeeze_zero (fun t =>
+    mul_nonneg (by norm_num : (0:ℝ) ≤ 1/2)
+      (Finset.sum_nonneg (fun v _ => abs_nonneg _))) hbound htail
+
