@@ -3939,3 +3939,30 @@ theorem mean_shift_tv {V : Type*} [Fintype V] [DecidableEq V]
   rw [hΔF, abs_mul, abs_of_pos hD]
   exact mul_le_mul_of_nonneg_left hdual hD.le
 
+open Finset Real in
+/-- **Центрирование
+CGF (R490)**: ln Σq·e^{c·g}
+= c·μ +
+ln Σq·e^{c(g−μ)} —
+standalone-лемма
+(выделена из R487 по
+Rule-of-Three: центр-мост
+дублировался). -/
+theorem cgf_centering {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (μ c : ℝ)
+    (hq : ∀ v, 0 < q v) :
+    Real.log (∑ v : V, q v * Real.exp (c * g v))
+      = c * μ + Real.log (∑ v : V,
+          q v * Real.exp (c * (g v - μ))) := by
+  have hper : ∀ v : V, q v * Real.exp (c * g v)
+      = Real.exp (c * μ) * (q v * Real.exp (c * (g v - μ))) := by
+    intro v
+    have h1 : c * g v = c * (g v - μ) + c * μ := by ring
+    rw [h1, Real.exp_add]
+    ring
+  have hpos : (0:ℝ) < ∑ v : V, q v * Real.exp (c * (g v - μ)) :=
+    Finset.sum_pos (fun v _ => mul_pos (hq v)
+      (Real.exp_pos _)) ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  rw [Finset.sum_congr rfl (fun v _ => hper v), ← Finset.mul_sum,
+    Real.log_mul (Real.exp_pos _).ne' hpos.ne', Real.log_exp (c * μ)]
+

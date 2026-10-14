@@ -114,6 +114,10 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R490):
+  `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
+  = c·μ + ln Σq·e^{c(g−μ)} (standalone-
+  лемма, выделена из R487 по Rule-of-Three).
 - `Probability/GibbsConcentration` (R489):
   `mean_shift_tv` — сдвиг среднего ~ TV: при
   a ≤ g ≤ b: |E_p g − E_q g| ≤ (b−a)·TV(p,q)
