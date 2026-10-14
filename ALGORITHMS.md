@@ -1,7 +1,7 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 1864 theorem/lemma, 0 sorry,
+теоремы Lean 4 / Mathlib (Hagi/, 1889 theorem/lemma, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
@@ -341,6 +341,28 @@ Probability/GibbsConcentration)
   для любой 0 ≤ f ≤ 1 (расщепление + f → 1−f).
 - Совместная выпуклость: `kl_joint_convex` —
   классическое замыкание ядра инфо-теории.
+
+## 19. Дониер-Варадхан и Cramér-вертикаль
+(Probability/GibbsConcentration)
+
+- ДВ-нижняя грань: `kl_variational_lower` —
+  KL ≥ E_p f − ln E_q e^{f} (софтмакс-наклон
+  r = q·e^f/Z + R447); точность:
+  `kl_dv_attained` (f := ln(p/q), Z = 1);
+  наклон-констант: `kl_chernoff_tilt`.
+- Cramér-вертикаль (2401.01148, NeurIPS 2024):
+  `cramer_tilt_kl` (пороговая форма),
+  `cramer_sup_le_kl` (sup-форма через csSup_le),
+  `cramer_cgf` (CGF-форма с центрированием),
+  `subgauss_dev_kl` (λ*-подстановка, (E−μ)²/2σ² ≤
+  KL — без дифф-исчисления).
+- События и масштаб: `markov_finite` (t·p({g≥t}) ≤
+  E_p g), `chernoff_event` (p({g≥t}) ≤ e^{−λt}·
+  E_p e^{λg}), `exp_tilt_interpol` (интерполяция
+  через R454 — 3 случая), `mean_shift_tv`
+  (|E_p g − E_q g| ≤ (b−a)·TV через R473),
+  Hellinger: `hellinger_sq_eq_one_minus_bc`,
+  `hellinger_le_half_kl`.
 
 ## Честные границы (что НЕ выведено)
 
