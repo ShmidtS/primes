@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R462):
+  `gibbs_free_energy_identity` — F = ⟨E⟩ − T·S на
+  равновесии: −T·ln Z = ⟨E⟩_γ + T·Σγ ln γ (per-v
+  декомпозиция + свёртки; термодинамическая форма
+  тождества Катони R446).
 - `Probability/GibbsConcentration` (R461):
   `dist_log_nonpos` (Σρ·lnρ ≤ 0; single_le_sum +
   log-монотонность) + `joint_entropy_ge_marginal` —

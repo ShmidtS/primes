@@ -2401,3 +2401,71 @@ theorem joint_entropy_ge_marginal {V W : Type*} [Fintype V]
     Finset.sum_nonpos (fun v _ => hrow v)
   linarith
 
+open Finset Real in
+/-- **Тождество свободной
+энергии на равновесии (R462)**:
+−T·ln Z = ⟨E⟩_γ + T·Σγ ln γ —
+F = ⟨E⟩ − T·S в лог-форме
+(эквивалент R446 совместно с
+PAC-Bayes-выводом).
+Механика: per-v
+T·γ ln γ = −γE − γ(T ln Z) +
+свёртки сумм через
+Σγ = 1. -/
+theorem gibbs_free_energy_identity {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T) :
+    -T * Real.log (∑ v : V, Real.exp (-(E v)/T))
+      = (∑ v : V, (Real.exp (-(E v)/T)
+            / ∑ v : V, Real.exp (-(E v)/T)) * E v)
+        + T * (∑ v : V, (Real.exp (-(E v)/T)
+            / ∑ v : V, Real.exp (-(E v)/T))
+            * Real.log (Real.exp (-(E v)/T)
+              / ∑ v : V, Real.exp (-(E v)/T))) := by
+  set Z : ℝ := ∑ v : V, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set γ : V → ℝ := fun v => Real.exp (-(E v)/T) / Z with hγ
+  have hγpos : ∀ v, 0 < γ v := fun v => by
+    rw [hγ]; exact div_pos (exp_pos _) hZpos
+  have hγ1 : ∑ v : V, γ v = 1 := by
+    rw [hγ]; simp only; rw [← Finset.sum_div]; exact div_self hZpos.ne'
+  -- per-term: T * gamma * ln gamma = - gamma * E - gamma * (T ln Z)
+  have hpt : ∀ v : V, T * (γ v * Real.log (γ v))
+      = -(γ v * E v) - γ v * (T * Real.log Z) := by
+    intro v
+    rw [hγ, Real.log_div (exp_pos _).ne' hZpos.ne', Real.log_exp]
+    field_simp [(hγpos v).ne', hZpos.ne']
+  -- sum the identity
+  have hsum : T * (∑ v : V, γ v * Real.log (γ v))
+      = -(∑ v : V, γ v * E v)
+        - (∑ v : V, γ v) * (T * Real.log Z) := by
+    have h1 : T * (∑ v : V, γ v * Real.log (γ v))
+        = ∑ v : V, T * (γ v * Real.log (γ v)) := by
+      rw [Finset.mul_sum]
+    have h2 : (∑ v : V, T * (γ v * Real.log (γ v)))
+        = ∑ v : V, (-(γ v * E v) - γ v * (T * Real.log Z)) :=
+      Finset.sum_congr rfl (fun v _ => hpt v)
+    have h3 : (∑ v : V, (-(γ v * E v) - γ v * (T * Real.log Z)))
+        = -(∑ v : V, γ v * E v)
+          - (∑ v : V, γ v) * (T * Real.log Z) := by
+      rw [Finset.sum_sub_distrib, Finset.sum_neg_distrib,
+        Finset.sum_mul]
+    rw [h1, h2, h3, hγ1, one_mul]
+  -- conclude
+  have hgoalE : (∑ v : V, (Real.exp (-(E v)/T)
+      / ∑ v : V, Real.exp (-(E v)/T)) * E v)
+      = (∑ v : V, γ v * E v) :=
+    Finset.sum_congr rfl (fun v _ => rfl)
+  have hgoalL : (∑ v : V, (Real.exp (-(E v)/T)
+      / ∑ v : V, Real.exp (-(E v)/T))
+      * Real.log (Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T)))
+      = (∑ v : V, γ v * Real.log (γ v)) :=
+    Finset.sum_congr rfl (fun v _ => rfl)
+  have hZZ : Real.log Z
+      = Real.log (∑ v : V, Real.exp (-(E v)/T)) := rfl
+  rw [hgoalE, hgoalL, ← hZZ]
+  rw [hγ1, one_mul] at hsum
+  linarith
+
