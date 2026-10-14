@@ -2788,3 +2788,85 @@ theorem bhattacharyya_cauchy {V : Type*} [Fintype V]
     nlinarith [hgt]
   linarith [abs_le.mp hsq |>.2]
 
+open Finset Real in
+/-- **1 − BC ≤ KL/2 (R471)**:
+1 − Σ√(p·q) ≤
+(1/2)·Σp·ln(p/q).
+Per-v ядро: с t := √(p/q):
+p − √(pq) = √(pq)(t−1),
+(1/2)p·ln(p/q) = √(pq)·t·ln t,
+и t−1 ≤ t·ln t (из
+ln u ≤ u−1 с u := 1/t).
+С R470 (BC ≤ 1) замыкает
+Пинскер-цепь: 1−BC ≤ KL/2. -/
+theorem one_minus_bc_le_half_kl {V : Type*} [Fintype V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    1 - ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v)
+      ≤ (1/2) * ∑ v : V, p v * Real.log (p v / q v) := by
+  have tlem : ∀ t : ℝ, 0 < t → t - 1 ≤ t * Real.log t := by
+    intro t ht
+    have h1 : Real.log t⁻¹ ≤ t⁻¹ - 1 :=
+      Real.log_le_sub_one_of_pos (inv_pos.mpr ht)
+    have h2 : t * Real.log t⁻¹ ≤ t * (t⁻¹ - 1) :=
+      mul_le_mul_of_nonneg_left h1 (le_of_lt ht)
+    have h3 : t * (t⁻¹ - 1) = 1 - t := by
+      field_simp
+    have h6 : t * Real.log t = -(t * Real.log t⁻¹) := by
+      rw [Real.log_inv t]; ring
+    linarith
+  have hsplit : 1 - ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v)
+      = ∑ v : V, (p v - Real.sqrt (p v) * Real.sqrt (q v)) := by
+    have h1 : ∑ v : V, (p v - Real.sqrt (p v) * Real.sqrt (q v))
+        = (∑ v : V, p v)
+          - ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) :=
+      by rw [Finset.sum_sub_distrib]
+    rw [h1, hp1]
+  have hsqpv : ∀ v : V, Real.sqrt (p v) * Real.sqrt (q v)
+      * Real.sqrt (p v / q v) = p v := by
+    intro v
+    have h1 : Real.sqrt (p v) * Real.sqrt (q v)
+        = Real.sqrt (p v * q v) :=
+      (Real.sqrt_mul (hp v).le (q v)).symm
+    have h2 : Real.sqrt (p v * q v) * Real.sqrt (p v / q v)
+        = Real.sqrt (p v * q v * (p v / q v)) :=
+      (Real.sqrt_mul (mul_nonneg (hp v).le (hq v).le)
+        (p v / q v)).symm
+    rw [h1, h2]
+    have hfe : p v * q v * (p v / q v) = p v * p v := by
+      field_simp [(hp v).ne', (hq v).ne']
+    rw [hfe, ← sq (p v), Real.sqrt_sq_eq_abs, abs_of_pos (hp v)]
+  rw [hsplit, Finset.mul_sum]
+  apply Finset.sum_le_sum
+  intro v _
+  set t : ℝ := Real.sqrt (p v / q v) with ht_def
+  have htpos : 0 < t := Real.sqrt_pos.mpr (div_pos (hp v) (hq v))
+  have hsq := hsqpv v
+  have hte : p v / q v = t ^ 2 :=
+    (Real.sq_sqrt (div_nonneg (hp v).le (hq v).le)).symm
+  have hlogt : Real.log (p v / q v) = 2 * Real.log t := by
+    rw [hte, show t ^ 2 = t * t from sq t,
+      Real.log_mul (ne_of_gt htpos) (ne_of_gt htpos)]
+    ring
+  have hspos : (0:ℝ) < Real.sqrt (p v) * Real.sqrt (q v) :=
+    mul_pos (Real.sqrt_pos.mpr (hp v)) (Real.sqrt_pos.mpr (hq v))
+  have step1 : p v - Real.sqrt (p v) * Real.sqrt (q v)
+      = Real.sqrt (p v) * Real.sqrt (q v) * (t - 1) := by
+    have h2' : Real.sqrt (p v) * Real.sqrt (q v) * (t - 1)
+        = Real.sqrt (p v) * Real.sqrt (q v) * t
+          - Real.sqrt (p v) * Real.sqrt (q v) := by ring
+    rw [h2', hsq]
+  have hpv : p v * Real.log t
+      = (Real.sqrt (p v) * Real.sqrt (q v) * t) * Real.log t := by
+    rw [hsq]
+  have step2 : (1/2) * (p v * Real.log (p v / q v))
+      = Real.sqrt (p v) * Real.sqrt (q v) * (t * Real.log t) := by
+    rw [hlogt]
+    rw [show (1/2:ℝ) * (p v * (2 * Real.log t))
+        = p v * Real.log t from by ring, hpv]
+    ring
+  rw [step1, step2]
+  have h8 := tlem t htpos
+  nlinarith
+
