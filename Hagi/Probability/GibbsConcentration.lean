@@ -4124,3 +4124,50 @@ theorem popoviciu_var {V : Type*} [Fintype V] [Nonempty V]
     rw [h3] at h1
     exact h1
   exact le_trans hvarmin havg
+
+/-- Chebyshev-Popoviciu: for g in [a,b] under weights q, the two-sided
+deviation tail satisfies q{|g-mu| >= t} <= (b-a)^2/(4t^2).  Chain:
+Markov on the squared deviation + Popoviciu variance bound. -/
+theorem chebyshev_popoviciu {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (q g : V → ℝ) (a b t : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) (ht : 0 < t) :
+    ∑ v ∈ Finset.filter (fun v => t ≤ |g v - ∑ x : V, q x * g x|)
+      Finset.univ, q v
+      ≤ (b - a) ^ 2 / (4 * t ^ 2) := by
+  set μ := ∑ x : V, q x * g x with hμd
+  have hnng : ∀ v, (0:ℝ) ≤ (g v - μ) ^ 2 := fun v => sq_nonneg _
+  have ht2 : (0:ℝ) < t ^ 2 := sq_pos_of_ne_zero (ne_of_gt ht)
+  have hmk := markov_finite q (fun v => (g v - μ) ^ 2) (t ^ 2)
+    hq hnng ht2
+  have hsub : ∀ v : V, t ≤ |g v - μ| → t ^ 2 ≤ (g v - μ) ^ 2 := by
+    intro v hv
+    have habs : |t| ≤ |g v - μ| := by rw [abs_of_pos ht]; exact hv
+    exact sq_le_sq.mpr habs
+  set S1 := Finset.filter (fun v => t ≤ |g v - μ|) Finset.univ with hS1
+  set S2 := Finset.filter (fun v => t ^ 2 ≤ (g v - μ) ^ 2) Finset.univ with hS2
+  have hss : S1 ⊆ S2 := by
+    intro v hv
+    rw [hS1, Finset.mem_filter] at hv
+    rw [hS2, Finset.mem_filter]
+    exact ⟨hv.1, hsub v hv.2⟩
+  have hcard : ∑ v ∈ S1, q v ≤ ∑ v ∈ S2, q v := by
+    have hsplit : ∑ v ∈ S2, q v
+        = ∑ v ∈ S1, q v + ∑ v ∈ S2 \ S1, q v := by
+      have := Finset.sum_sdiff hss (f := q)
+      linarith
+    rw [hsplit]
+    exact le_add_of_nonneg_right
+      (Finset.sum_nonneg (fun v _ => le_of_lt (hq v)))
+  -- chain: t^2 * prob(S1) <= Var <= (b-a)^2/4
+  have hpop := popoviciu_var q g a b hq hq1 hlo hhi
+  have hVar : ∑ v : V, q v * (g v - μ) ^ 2 ≤ (b - a) ^ 2 / 4 := hpop
+  have hchain : t ^ 2 * ∑ v ∈ S1, q v ≤ (b - a) ^ 2 / 4 := by
+    calc t ^ 2 * ∑ v ∈ S1, q v
+        ≤ t ^ 2 * ∑ v ∈ S2, q v :=
+          mul_le_mul_of_nonneg_left hcard (le_of_lt ht2)
+      _ ≤ ∑ v : V, q v * (g v - μ) ^ 2 := hmk
+      _ ≤ (b - a) ^ 2 / 4 := hVar
+  rw [le_div_iff₀ (by positivity : (0:ℝ) < 4 * t ^ 2)]
+  nlinarith [hchain, ht2]
+
