@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Growth/Thermostat` (R425):
+  `thermostat_tendsto_zero` — график охлаждения T_t =
+  T0·α^t → 0: семантика термостата (квази-нуль),
+  фундирует все tendsto-результаты вертикали.
 - `Step/NewtonPolar` (R424):
   `newton_iter_bracket` — 1 ≤ newtonIter x₀ T ≤ x₀ при
   x₀ ≥ 1: инвариант-скобка вдоль всей траектории

@@ -440,3 +440,18 @@ theorem certified_state_excess {V : Type*} [Fintype V]
   have hprod : T * C * θ ≤ T0 * C * θ := by nlinarith
   linarith [hE, hF', hring, hprod]
 
+open Filter in
+/-- **График охлаждения → 0 (R425)**:
+T_t = T₀·α^t → 0 — семантика
+термостата: температура
+убывает до абсолютного
+нуля (квази-нуль термостата).
+Фундирует все tendsto-результаты
+вертикали (R387–400 вели это
+инлайн). -/
+theorem thermostat_tendsto_zero (α T0 : ℝ) (hα1 : 0 < α)
+    (hα2 : α < 1) :
+    Tendsto (fun t : ℕ => T0 * α ^ t) atTop (nhds 0) := by
+  have hp := tendsto_pow_atTop_nhds_zero_of_lt_one (le_of_lt hα1) hα2
+  simpa using Tendsto.const_mul T0 hp
+
