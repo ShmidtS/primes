@@ -3397,3 +3397,69 @@ theorem kl_variational_lower {V : Type*} [Fintype V] [Nonempty V]
   rw [hZsum] at hkl
   linarith
 
+open Finset Real in
+/-- **PAC-Чернофф
+для событий
+(R478)**: при
+KL(p‖q) ≤ κ:
+Σ_{v∈s} p ≤ κ +
+ln(1+(e−1)·q(s))
+— одложенная
+софтмакс-форма
+R477 с f :=
+индикатором s;
+ключевой
+PAC-Bayes-кирпич. -/
+theorem pac_chernoff_events {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p q : V → ℝ) (s : Finset V) (κ : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hκ : ∑ v : V, p v * Real.log (p v / q v) ≤ κ) :
+    ∑ v ∈ s, p v
+      ≤ κ + Real.log (1 + (Real.exp 1 - 1) * ∑ v ∈ s, q v) := by
+  have hR := kl_variational_lower p q (fun v => if v ∈ s then (1:ℝ) else 0)
+    hp hp1 hq hq1
+  -- per-v equations
+  have hpe1 : ∀ v ∈ s, p v * (if v ∈ s then (1:ℝ) else 0) = p v := by
+    intro v hv; rw [if_pos hv, mul_one]
+  have hpe2 : ∀ v ∈ sᶜ, p v * (if v ∈ s then (1:ℝ) else 0) = 0 := by
+    intro v hv; rw [if_neg (Finset.mem_compl.mp hv), mul_zero]
+  have hqe1 : ∀ v ∈ s,
+      q v * Real.exp (if v ∈ s then (1:ℝ) else 0)
+      = Real.exp 1 * q v := by
+    intro v hv; rw [if_pos hv]; ring
+  have hqe2 : ∀ v ∈ sᶜ,
+      q v * Real.exp (if v ∈ s then (1:ℝ) else 0) = q v := by
+    intro v hv
+    rw [if_neg (Finset.mem_compl.mp hv), Real.exp_zero, mul_one]
+  -- E_p[indicator] = p(s)
+  have hEta : ∑ v : V, p v * (if v ∈ s then (1:ℝ) else 0)
+      = ∑ v ∈ s, p v := by
+    have h := Finset.sum_add_sum_compl s
+      (fun v => p v * (if v ∈ s then (1:ℝ) else 0))
+    rw [Finset.sum_congr rfl (fun v hv => hpe1 v hv)] at h
+    have hX : ∑ v ∈ sᶜ, p v * (if v ∈ s then (1:ℝ) else 0) = 0 :=
+      Finset.sum_eq_zero (fun v hv => by rw [hpe2 v hv])
+    linarith [h, hX]
+  -- Z = 1 + (e-1) q(s)
+  have hZeta : ∑ v : V, q v * Real.exp (if v ∈ s then (1:ℝ) else 0)
+      = 1 + (Real.exp 1 - 1) * ∑ v ∈ s, q v := by
+    have h := Finset.sum_add_sum_compl s
+      (fun v => q v * Real.exp (if v ∈ s then (1:ℝ) else 0))
+    rw [Finset.sum_congr rfl (fun v hv => hqe1 v hv),
+      Finset.sum_congr rfl (fun v hv => hqe2 v hv),
+      ← Finset.mul_sum] at h
+    have hC : ∑ v ∈ sᶜ, q v = 1 - ∑ v ∈ s, q v := by
+      have hc := Finset.sum_add_sum_compl s (fun v => q v)
+      rw [show ∑ i ∈ s, (fun v => q v) i = ∑ v ∈ s, q v from rfl,
+        show ∑ i ∈ sᶜ, (fun v => q v) i = ∑ v ∈ sᶜ, q v from rfl,
+        hq1] at hc
+      linarith
+    have hRr : Real.exp 1 * ∑ v ∈ s, q v
+        + (1 - ∑ v ∈ s, q v)
+        = 1 + (Real.exp 1 - 1) * ∑ v ∈ s, q v := by
+      ring
+    linarith [h, hC, hRr]
+  rw [hEta, hZeta] at hR
+  linarith [hR, hκ]
+
