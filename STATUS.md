@@ -114,6 +114,10 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R480):
+  `hellinger_sq_eq_one_minus_bc` — H² = 1−BC
+  (точное тождество) и `hellinger_le_half_kl` —
+  H² ≤ KL/2 (мост из R471).
 - `Probability/GibbsConcentration` (R479):
   `kl_dv_attained` — точность ДВ: sup достижим
   (f := ln(p/q): Z = Σq·p/q = 1 через exp_log,

@@ -3497,3 +3497,42 @@ theorem kl_dv_attained {V : Type*} [Fintype V] [Nonempty V]
       = ∑ v : V, p v * Real.log (p v / q v) := rfl
   rw [hbe, sub_zero]
 
+open Finset Real in
+/-- **Hellinger-кирпичи
+(R480)**: H²(p,q) :=
+(1/2)·Σ(√p−√q)²
+= 1 − BC — точное
+тождество (квадрат
+разности корней
+разворачивается
+в p+q−2√(pq)); с R471
+— мост H² ≤ KL/2. -/
+theorem hellinger_sq_eq_one_minus_bc {V : Type*} [Fintype V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    (1/2) * ∑ v : V, (Real.sqrt (p v) - Real.sqrt (q v)) ^ 2
+      = 1 - ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) := by
+  have hper : ∀ v : V, (Real.sqrt (p v) - Real.sqrt (q v)) ^ 2
+      = p v + q v - 2 * (Real.sqrt (p v) * Real.sqrt (q v)) := by
+    intro v
+    rw [show (Real.sqrt (p v) - Real.sqrt (q v)) ^ 2
+        = Real.sqrt (p v) ^ 2
+          - 2 * (Real.sqrt (p v) * Real.sqrt (q v))
+          + Real.sqrt (q v) ^ 2 from by ring,
+      sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+    ring
+  rw [Finset.sum_congr rfl (fun v _ => hper v),
+    Finset.sum_sub_distrib, Finset.sum_add_distrib,
+    ← Finset.mul_sum, hp1, hq1]
+  ring
+
+theorem hellinger_le_half_kl {V : Type*} [Fintype V] [Nonempty V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    (1/2) * ∑ v : V, (Real.sqrt (p v) - Real.sqrt (q v)) ^ 2
+      ≤ (1/2) * ∑ v : V, p v * Real.log (p v / q v) := by
+  rw [hellinger_sq_eq_one_minus_bc p q hp hp1 hq hq1]
+  exact one_minus_bc_le_half_kl p q hp hp1 hq hq1
+
