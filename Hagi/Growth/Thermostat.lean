@@ -251,3 +251,49 @@ theorem gibbs_representative {V K : Type*} [Fintype V]
     (fun v => Real.exp (-(E v)/T) / ∑ v, Real.exp (-(E v)/T))
     d a b hw hw1 hlt hbd hc θ hθ1 hθ2 hsmall
 
+open Finset in
+/-- **Сертифицированное состояние HAGI (R414)** — супер-капстоун
+сети: ∃N, ∀t ≥ N: эксплорация остановлена ∧
+merge-гейт открыт ∧ Гиббс-концентрация
+≥ 1−Cθ ∧ существует равномерно
+ε_θ-репрезентативная точка для
+всего класса оценок (R412 + R413).
+Три вертикали + три моста в одном
+утверждении: термодинамическая машина
+HAGI сертифицирована целиком. -/
+theorem hagi_certified_state {V K : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] [Fintype K]
+    (E : V → ℝ) (vstar : V)
+    (d : K → V → ℝ) (a b : ℝ)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hbd : ∀ k v, d k v ∈ Set.Icc a b) (hlt : a < b)
+    (θ : ℝ) (hθ1 : 0 < θ) (hθ2 : θ < 1)
+    (hsmall : 2 * (Fintype.card K : ℝ) * θ < 1)
+    (hcent : ∀ k : K, ∀ t : ℕ, ∑ v, (Real.exp (-(E v)/(T0 * α ^ t))
+        / ∑ v, Real.exp (-(E v)/(T0 * α ^ t))) * d k v = 0) :
+    ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
+      Real.exp (-δ/(T0 * α ^ t)) ≤ θ
+        ∧ θ * (T0 * α ^ t) ≤ θ
+        ∧ 1 - (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ
+          ≤ Real.exp (-(E vstar)/(T0 * α ^ t))
+            / (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+        ∧ ∃ v : V, ∀ k : K,
+            |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+  -- the good point does not depend on t: obtain once
+  have hpt : ∃ v : V, ∀ k : K,
+      |d k v| < (b - a) * Real.sqrt (Real.log (1/θ)/2) := by
+    -- at t = 0 the Gibbs measure is a probability measure
+    have hTpos : (0:ℝ) < T0 * α ^ 0 := by
+      rw [pow_zero, mul_one]; exact hT0
+    exact gibbs_representative E (T0 * α ^ 0) hTpos d a b hlt hbd
+      (fun k => hcent k 0) θ hθ1 hθ2 hsmall
+  obtain ⟨v0, hv0⟩ := hpt
+  -- controller certificate from R412
+  obtain ⟨N, hN⟩ := consolidation_certificate E vstar α T0 δ hα1 hα2
+    hT0 hδ hgap θ hθ1 hθ2
+  refine ⟨N, fun t ht => ?_⟩
+  obtain ⟨h1, h2, h3⟩ := hN t ht
+  exact ⟨h1, h2, h3, v0, hv0⟩
+
