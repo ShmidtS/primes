@@ -1322,3 +1322,35 @@ theorem gibbs_expected_energy_lower {V : Type*} [Fintype V]
   rw [hsplit] at hnum
   rwa [le_div_iff₀ hZpos]
 
+open Finset in
+/-- **Верхняя грань свободной энергии (R421)**:
+F(T) = −T·ln Z ≤ E* поточено (Z ≥ w*,
+логарифм монотонен, −T < 0). Вместе с R398
+полный сэндвич свободной энергии:
+E* − T·ln(1+(n−1)e^{−δ/T}) ≤ F(T) ≤ E* —
+сжимается к E* при охлаждении. -/
+theorem free_energy_upper {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) (vstar : V) :
+    -T * Real.log (∑ v, Real.exp (-(E v)/T)) ≤ E vstar := by
+  have hZpos : (0:ℝ) < ∑ v, Real.exp (-(E v)/T) :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  -- Z >= w* : single_le_sum
+  have hw : Real.exp (-(E vstar)/T)
+      ≤ ∑ v, Real.exp (-(E v)/T) :=
+    single_le_sum (f := fun v => Real.exp (-(E v)/T))
+      (fun v _ => le_of_lt (exp_pos _)) (Finset.mem_univ vstar)
+  -- log mono
+  have hlog : Real.log (Real.exp (-(E vstar)/T))
+      ≤ Real.log (∑ v, Real.exp (-(E v)/T)) :=
+    Real.log_le_log (exp_pos _) hw
+  rw [Real.log_exp] at hlog
+  -- -T * log Z <= -T * (-(E vstar)/T) = E vstar
+  have hmul : -T * Real.log (∑ v, Real.exp (-(E v)/T))
+      ≤ -T * (-(E vstar)/T) :=
+    mul_le_mul_of_nonpos_left hlog (by linarith : (-T:ℝ) ≤ 0)
+  have : -T * (-(E vstar)/T) = E vstar := by
+    field_simp
+  linarith
+
