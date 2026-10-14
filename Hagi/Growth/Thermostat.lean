@@ -633,3 +633,106 @@ theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
   rw [heq]
   simpa using hdiff.add (tendsto_const_nhds (x := E vstar))
 
+open Finset Real Filter in
+/-- **F → E* вдоль термостатного графика (R428)**:
+свободная энергия сходится к
+основному состоянию при
+T_t = T₀·α^t (аналог R399 для
+δ/(n+1)-графика). Сжатие:
+0 ≤ E*−F ≤ T_t·C·T_t/(T_t+δ) → 0
+(R398 × ln(1+x) ≤ x × R421). Триада
+чистоты завершена: метрика
+(R426) + энергетика (R427) +
+свободная энергия (R428). -/
+theorem certified_state_free_energy_tendsto {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
+    (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
+    (hT0 : 0 < T0) (hδ : 0 < δ)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v) :
+    Tendsto (fun t : ℕ => -(T0 * α ^ t)
+      * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))))
+      atTop (nhds (E vstar)) := by
+  have hTpos : ∀ t : ℕ, (0:ℝ) < T0 * α ^ t :=
+    fun t => mul_pos hT0 (pow_pos hα1 t)
+  set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
+  have hC0 : (0:ℝ) ≤ C := Nat.cast_nonneg _
+  -- exp tail bound (R426-style)
+  have hexpb : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
+      ≤ (T0 * α ^ t)/(T0 * α ^ t + δ) := by
+    intro t
+    have hx : (0:ℝ) < δ/(T0 * α ^ t) := div_pos hδ (hTpos t)
+    have h := Real.add_one_le_exp (δ/(T0 * α ^ t))
+    have hinv : Real.exp (-δ/(T0 * α ^ t))
+        = (Real.exp (δ/(T0 * α ^ t)))⁻¹ := by
+      rw [neg_div, Real.exp_neg]
+    have hf : (T0*α^t)/(T0*α^t+δ)
+        = 1/(1 + δ/(T0 * α ^ t)) := by field_simp
+    rw [hinv, hf, one_div, inv_le_inv₀ (by linarith) (by linarith)]
+    linarith
+  -- log(1 + C e) <= C * frac
+  have hlogb : ∀ t : ℕ, Real.log (1 + C * Real.exp (-δ/(T0 * α ^ t)))
+      ≤ C * ((T0 * α ^ t)/(T0 * α ^ t + δ)) := by
+    intro t
+    have h1 : Real.log (1 + C * Real.exp (-δ/(T0 * α ^ t)))
+        ≤ C * Real.exp (-δ/(T0 * α ^ t)) := by
+      have hpos : (0:ℝ) < 1 + C * Real.exp (-δ/(T0 * α ^ t)) := by
+        have hnn : (0:ℝ) ≤ C * Real.exp (-δ/(T0 * α ^ t)) :=
+          mul_nonneg hC0 (le_of_lt (exp_pos _))
+        linarith
+      have h2 := Real.log_le_sub_one_of_pos hpos
+      linarith
+    exact le_trans h1 (mul_le_mul_of_nonneg_left (hexpb t) hC0)
+  -- sharp lower bound scaled
+  have hFge : ∀ t : ℕ, E vstar - (T0 * α ^ t)
+      * (C * ((T0 * α ^ t)/(T0 * α ^ t + δ)))
+      ≤ -(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) := by
+    intro t
+    have hF := free_energy_sharp_lower E δ (T0 * α ^ t) (hTpos t) vstar hgap
+    have hlog := hlogb t
+    have hTnn : (0:ℝ) ≤ T0 * α ^ t := le_of_lt (hTpos t)
+    have hmul : (T0 * α ^ t)
+        * Real.log (1 + C * Real.exp (-δ/(T0 * α ^ t)))
+        ≤ (T0 * α ^ t) * (C * ((T0 * α ^ t)/(T0 * α ^ t + δ))) :=
+      mul_le_mul_of_nonneg_left hlog hTnn
+    linarith
+  -- upper: F <= E*
+  have hFle : ∀ t : ℕ, -(T0 * α ^ t)
+      * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))
+      ≤ E vstar :=
+    fun t => free_energy_upper E (T0 * α ^ t) (hTpos t) vstar
+  -- tail: T_t * C * frac -> 0
+  have hA := thermostat_tendsto_zero α T0 hα1 hα2
+  have hB : Tendsto (fun t : ℕ => T0 * α ^ t + δ) atTop (nhds δ) := by
+    simpa using hA.add tendsto_const_nhds
+  have hdiv : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds ((0:ℝ)/δ)) :=
+    Tendsto.div hA hB (ne_of_gt hδ)
+  have hdiv0 : Tendsto (fun t : ℕ => (T0 * α ^ t)/(T0 * α ^ t + δ))
+      atTop (nhds 0) := by simpa using hdiv
+  have htail : Tendsto (fun t : ℕ => (T0 * α ^ t)
+      * (C * ((T0 * α ^ t)/(T0 * α ^ t + δ)))) atTop (nhds 0) := by
+    simpa using Tendsto.mul hA (hdiv0.const_mul C)
+  -- squeeze on E* - F
+  have hdiff : Tendsto (fun t : ℕ => E vstar - (-(T0 * α ^ t)
+      * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))))
+      atTop (nhds 0) := by
+    refine squeeze_zero
+      (g := fun t => (T0 * α ^ t)
+        * (C * ((T0 * α ^ t)/(T0 * α ^ t + δ)))) ?_ ?_ htail
+    · intro t
+      have := hFle t
+      linarith
+    · intro t
+      have := hFge t
+      linarith
+  -- final: F = E* - (E* - F)
+  have heq : (fun t : ℕ => -(T0 * α ^ t)
+      * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t))))
+      = (fun t : ℕ => E vstar - (E vstar - (-(T0 * α ^ t)
+        * Real.log (∑ v, Real.exp (-(E v)/(T0 * α ^ t)))))) := by
+    funext t
+    ring
+  rw [heq]
+  simpa using (tendsto_const_nhds (x := E vstar)).sub hdiff
+
