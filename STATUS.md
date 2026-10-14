@@ -114,6 +114,11 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R473):
+  `tv_dual_abs` — дуальная характеризация TV:
+  |E_p f − E_q f| ≤ (1/2)Σ|p−q| для любой
+  0 ≤ f ≤ 1 (расщепление по {q<p} + замена
+  f → 1−f); PAC-Bayes-кирпич.
 - `Probability/GibbsConcentration` (R472):
   `pinsker_sqrt_kl` — Пинскер, слабая √-форма:
   TV = (1/2)Σ|p−q| ≤ √(KL) (тождество

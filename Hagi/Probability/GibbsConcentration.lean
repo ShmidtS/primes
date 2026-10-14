@@ -2986,3 +2986,111 @@ theorem pinsker_sqrt_kl {V : Type*} [Fintype V]
     linarith [hstep, e2]
   exact Real.le_sqrt_of_sq_le hS2
 
+open Finset Real in
+/-- **Дуальная
+характеризация
+TV (R473)**:
+для любой 0 ≤ f ≤ 1
+|E_p f − E_q f| ≤ TV.
+Верх: расщепление
+Σ(p−q)f →
+Σ_A(p−q)f + 0 ≤
+Σ_A(p−q) = TV;
+низ — заменой
+f → 1−f.
+PAC-Bayes-кирпич (дуальность
+TV). -/
+theorem tv_dual_abs {V : Type*} [Fintype V] [DecidableEq V]
+    (p q : V → ℝ) (f : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hf0 : ∀ v, 0 ≤ f v) (hf1 : ∀ v, f v ≤ 1) :
+    |∑ v : V, p v * f v - ∑ v : V, q v * f v|
+      ≤ (1/2) * ∑ v : V, |p v - q v| := by
+  set A : Finset V := Finset.filter (fun v => q v < p v) Finset.univ with hA
+  -- TV split: (1/2) sum |p-q| = sum_A (p - q)
+  have hT : (1/2) * ∑ v : V, |p v - q v|
+      = ∑ v ∈ A, (p v - q v) := by
+    have h0 : ∑ v : V, (p v - q v) = 0 := by
+      rw [Finset.sum_sub_distrib, hp1, hq1, sub_self]
+    have hcompl : ∑ v ∈ Aᶜ, (p v - q v) = -(∑ v ∈ A, (p v - q v)) := by
+      have hc := Finset.sum_add_sum_compl A (fun v => p v - q v)
+      rw [show ∑ i ∈ A, (fun v => p v - q v) i
+        = ∑ v ∈ A, (p v - q v) from rfl] at hc
+      rw [h0] at hc
+      linarith
+    have habsA : ∀ v ∈ A, |p v - q v| = p v - q v := by
+      intro v hv
+      exact abs_of_pos (sub_pos.mpr (Finset.mem_filter.mp hv).2)
+    have habsC : ∀ v ∈ Aᶜ, |p v - q v| = -(p v - q v) := by
+      intro v hv
+      have hle : p v ≤ q v := by
+        by_contra hc
+        push_neg at hc
+        rw [Finset.mem_compl] at hv
+        exact hv (Finset.mem_filter.mpr ⟨Finset.mem_univ v, hc⟩)
+      exact abs_of_nonpos (by linarith)
+    have hsplit2 : ∑ v : V, |p v - q v|
+        = (∑ v ∈ A, |p v - q v|) + (∑ v ∈ Aᶜ, |p v - q v|) := by
+      have h := Finset.sum_add_sum_compl A (fun v => |p v - q v|)
+      simpa using h.symm
+    rw [hsplit2]
+    rw [Finset.sum_congr rfl (fun v hv => habsA v hv),
+      Finset.sum_congr rfl (fun v hv => habsC v hv)]
+    rw [Finset.sum_neg_distrib, hcompl]
+    ring
+  -- upper bound for any 0<=f<=1
+  have hupper : ∀ g : V → ℝ, (∀ v, 0 ≤ g v) → (∀ v, g v ≤ 1) →
+      ∑ v : V, p v * g v - ∑ v : V, q v * g v
+        ≤ (1/2) * ∑ v : V, |p v - q v| := by
+    intro g hg0 hg1
+    have hd : ∑ v : V, p v * g v - ∑ v : V, q v * g v
+        = ∑ v : V, (p v - q v) * g v := by
+      rw [← Finset.sum_sub_distrib]
+      exact Finset.sum_congr rfl (fun v _ => by ring)
+    have hup1 : ∑ v ∈ A, (p v - q v) * g v
+        ≤ ∑ v ∈ A, (p v - q v) := by
+      apply Finset.sum_le_sum
+      intro v hv
+      exact (mul_le_mul_of_nonneg_left (hg1 v)
+        (le_of_lt (sub_pos.mpr (Finset.mem_filter.mp hv).2))).trans
+        (by rw [mul_one])
+    have hup2 : ∑ v ∈ Aᶜ, (p v - q v) * g v ≤ 0 := by
+      apply Finset.sum_nonpos
+      intro v hv
+      have hle : p v ≤ q v := by
+        by_contra hc
+        push_neg at hc
+        rw [Finset.mem_compl] at hv
+        exact hv (Finset.mem_filter.mpr ⟨Finset.mem_univ v, hc⟩)
+      exact le_trans (mul_le_mul_of_nonneg_right
+        (sub_nonpos.mpr hle) (hg0 v)) (by rw [zero_mul])
+    calc ∑ v : V, p v * g v - ∑ v : V, q v * g v
+        = ∑ v : V, (p v - q v) * g v := hd
+      _ = (∑ v ∈ A, (p v - q v) * g v)
+          + (∑ v ∈ Aᶜ, (p v - q v) * g v) := by
+          have h := Finset.sum_add_sum_compl A
+            (fun v => (p v - q v) * g v)
+          linarith
+      _ ≤ ∑ v ∈ A, (p v - q v) + 0 := by linarith
+      _ = (1/2) * ∑ v : V, |p v - q v| := by
+          rw [add_zero]; exact hT.symm
+  have hup := hupper f hf0 hf1
+  -- lower bound via 1 - f
+  have hf0' : ∀ v, 0 ≤ 1 - f v := by intro v; linarith [hf1 v]
+  have hf1' : ∀ v, 1 - f v ≤ 1 := by intro v; linarith [hf0 v]
+  have hneg := hupper (fun v => 1 - f v) hf0' hf1'
+  have hd2 : ∑ v : V, p v * (1 - f v) - ∑ v : V, q v * (1 - f v)
+      = -(∑ v : V, p v * f v - ∑ v : V, q v * f v) := by
+    have e3 : ∀ v : V, p v * (1 - f v) = p v - p v * f v :=
+      fun v => by ring
+    have e4 : ∀ v : V, q v * (1 - f v) = q v - q v * f v :=
+      fun v => by ring
+    rw [Finset.sum_congr rfl (fun v _ => e3 v),
+      Finset.sum_congr rfl (fun v _ => e4 v),
+      Finset.sum_sub_distrib, Finset.sum_sub_distrib,
+      hp1, hq1]
+    linarith
+  rw [abs_le]
+  exact ⟨by linarith [hd2, hneg], hup⟩
+

@@ -2248,6 +2248,7 @@ tvDist_le_one	8ef828aeb2204aab	8a719522093234b1
 tvDist_nonneg	37c3d6872ae87188	d413ae3f8c5dc46e
 tvHalf	699c61eef9c59145	0c76975e05f27cc6
 tvHalf_eq_canonical	b75df99d2e6f33f3	0dfff9592f59acbd
+tv_dual_abs	a1af5f11c549201c	6fff8ac88e54cfcb
 tv_le_pos_part_kl	3606dff63648dbaa	851de79dfc04b001
 twoGap	2ec41ec882cc3d32	73b0d0303699071b
 twoGap_bounded	96cd849366a2c1b3	02d3659d57404b07
