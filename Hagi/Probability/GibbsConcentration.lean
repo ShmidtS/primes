@@ -1594,3 +1594,44 @@ theorem gibbs_katoni_kl {V : Type*} [Fintype V]
   rw [← Finset.sum_div]
   ring
 
+open Finset in
+/-- **Общий второй закон (R447)**:
+KL(ρḟ‖γ) ≥ 0 для любых
+двух распределений
+на конечном носителе:
+ln u ≤ u−1 почленно с
+u := γ/ρ даёт ρ·ln(ρ/γ) ≥ ρ−γ;
+телескоп даёт 0.
+Обобщение R418 (Гибс-случай)
+на произвольные пары;
+основа для вариационного
+принципа Гиббса. -/
+theorem finite_kl_nonneg {V : Type*} [Fintype V] [Nonempty V]
+    (ρ γ : V → ℝ)
+    (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1)
+    (hγ : ∀ v, 0 < γ v) (hγ1 : ∑ v : V, γ v = 1) :
+    (0:ℝ) ≤ ∑ v : V, ρ v * Real.log (ρ v / γ v) := by
+  -- per-v: ln(gamma/rho) <= gamma/rho - 1
+  have hln : ∀ v : V, Real.log (γ v / ρ v) ≤ γ v / ρ v - 1 :=
+    fun v => Real.log_le_sub_one_of_pos (div_pos (hγ v) (hρ v))
+  -- negate: rho * log(rho/gamma) >= rho - gamma
+  have hterm : ∀ v : V, ρ v - γ v
+      ≤ ρ v * Real.log (ρ v / γ v) := by
+    intro v
+    have hneg : Real.log (ρ v / γ v) = -(Real.log (γ v / ρ v)) := by
+      rw [Real.log_div (hρ v).ne' (hγ v).ne',
+        Real.log_div (hγ v).ne' (hρ v).ne']
+      ring
+    rw [hneg]
+    have hc : ρ v * (γ v / ρ v) = γ v := by
+      field_simp [(hρ v).ne']
+    -- -rho*log(gamma/rho) >= rho - gamma
+    nlinarith [hln v, hρ v, hc]
+  -- sum telescope
+  have hsum : ∑ x : V, (ρ x - γ x) = 0 := by
+    rw [Finset.sum_sub_distrib, hρ1, hγ1, sub_self]
+  calc (0:ℝ)
+      = ∑ v : V, (ρ v - γ v) := by rw [hsum]
+    _ ≤ ∑ v : V, ρ v * Real.log (ρ v / γ v) :=
+      Finset.sum_le_sum (fun v _ => hterm v)
+

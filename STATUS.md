@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R447):
+  `finite_kl_nonneg` — общий второй закон: KL(ρ‖γ) ≥ 0
+  для любых распределений (ln u ≤ u−1 почленно с
+  u := γ/ρ; телескоп Σ(ρ−γ)=0; обобщение R418;
+  основа вариационного принципа).
 - `Probability/GibbsConcentration` (R446):
   `gibbs_katoni_kl` — KL-тождество Катони: KL(ρ‖unif) =
   −ln Z − ⟨E⟩/T + ln n (суммирование R445; с R422 даёт
