@@ -3823,3 +3823,42 @@ theorem cramer_cgf {V : Type*} [Fintype V] [Nonempty V]
   rw [Real.log_exp (c * μ)] at hR
   linarith [hR, hcgf]
 
+open Finset Real in
+/-- **Sub-Gaussian
+измерение
+(R488)**: при CGF-границе
+ln Σq·e^{c(g−μ)} ≤
+c²σ²/2 и μ ≤ E_p g:
+(E_p g − μ)²/(2σ²) ≤
+KL(p‖q) — λ*подстановка
+λ = (E_p g − μ)/σ² в R487
+без дифференциального
+исчисления (оптимум
+Cramér-функционала). -/
+theorem subgauss_dev_kl {V : Type*} [Fintype V] [Nonempty V]
+    (p q g : V → ℝ) (μ σ2 : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hs2 : 0 < σ2) (hm : μ ≤ ∑ v : V, p v * g v)
+    (hcgf : ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : V, q v * Real.exp (c * (g v - μ)))
+        ≤ c ^ 2 * σ2 / 2) :
+    ((∑ v : V, p v * g v) - μ) ^ 2 / (2 * σ2)
+      ≤ ∑ v : V, p v * Real.log (p v / q v) := by
+  set T := ∑ v : V, p v * g v with hT
+  rcases eq_or_lt_of_le hm with hhe | hlt
+  · rw [← hhe]
+    have hkl := finite_kl_nonneg p q hp hp1 hq hq1
+    simpa using hkl
+  · have hc : (0:ℝ) < (T - μ) / σ2 := div_pos (by linarith) hs2
+    have hR := cramer_cgf p q g T μ (fun x => x ^ 2 * σ2 / 2)
+      ((T - μ) / σ2) hp hp1 hq hq1 hc (by linarith)
+      (hcgf _ hc)
+    have hval : (T - μ) / σ2 * (T - μ)
+        - ((T - μ) / σ2) ^ 2 * σ2 / 2
+        = (T - μ) ^ 2 / (2 * σ2) := by
+      field_simp
+      ring
+    rw [hval] at hR
+    exact hR
+
