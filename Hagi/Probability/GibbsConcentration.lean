@@ -2870,3 +2870,119 @@ theorem one_minus_bc_le_half_kl {V : Type*} [Fintype V]
   have h8 := tlem t htpos
   nlinarith
 
+open Finset Real in
+/-- **Пинскер,
+слабая √-форма
+(R472)**:
+(1/2)·Σ|p−q| ≤
+√(KL).
+Цепь: тождество
+|p−q| = |√p−√q|·(√p+√q)
++ Коши (суммы
+квадратов) →
+Σ|p−q| ² ≤
+(2−2BC)(2+2BC) =
+4(1−BC)(1+BC) ≤
+8(1−BC) ≤ 4·KL
+(R470: BC ≤ 1; R471:
+1−BC ≤ KL/2) →
+TV ≤ √(KL).
+Выборочный код:
+K на R469–R471.
+Точная форма
+(KL/2) требует
+двоич-редукций
+(DPI + калкулус) —
+не в этом юните. -/
+theorem pinsker_sqrt_kl {V : Type*} [Fintype V]
+    (p q : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    (1/2) * ∑ v : V, |p v - q v|
+      ≤ Real.sqrt (∑ v : V, p v * Real.log (p v / q v)) := by
+  set KL : ℝ := ∑ v : V, p v * Real.log (p v / q v) with hKL
+  set BC : ℝ := ∑ v : V, Real.sqrt (p v) * Real.sqrt (q v) with hBC
+  set s : V → ℝ := fun v => Real.sqrt (p v) - Real.sqrt (q v) with hs
+  set t : V → ℝ := fun v => Real.sqrt (p v) + Real.sqrt (q v) with htt
+  -- per-v: |p - q| = |s| * t
+  have hv : ∀ v, |p v - q v| = |s v| * t v := by
+    intro v
+    have h1 : p v - q v = (Real.sqrt (p v) - Real.sqrt (q v))
+        * (Real.sqrt (p v) + Real.sqrt (q v)) := by
+      rw [show (Real.sqrt (p v) - Real.sqrt (q v))
+          * (Real.sqrt (p v) + Real.sqrt (q v))
+          = Real.sqrt (p v) ^ 2 - Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+    rw [h1, abs_mul, abs_of_nonneg
+      (add_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _))]
+  -- Cauchy
+  have hC2 : (∑ v : V, |p v - q v|) ^ 2
+      ≤ (∑ v : V, |s v| ^ 2) * (∑ v : V, t v ^ 2) := by
+    have hC := Finset.sum_mul_sq_le_sq_mul_sq
+      Finset.univ (fun v => |s v|) t
+    rw [Finset.sum_congr rfl (fun v _ => (hv v).symm)] at hC
+    exact hC
+  -- sum of squares of s: 2 - 2 BC
+  have hA : ∑ v : V, |s v| ^ 2 = 2 - 2 * BC := by
+    have h2 : ∀ v : V, |s v| ^ 2 = p v + q v
+        - 2 * (Real.sqrt (p v) * Real.sqrt (q v)) := by
+      intro v
+      rw [sq_abs, show s v ^ 2 = Real.sqrt (p v) ^ 2
+          - 2 * (Real.sqrt (p v) * Real.sqrt (q v))
+            + Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => h2 v),
+      Finset.sum_sub_distrib, Finset.sum_add_distrib,
+      ← Finset.mul_sum, hp1, hq1]
+    ring
+  -- sum of squares of t: 2 + 2 BC
+  have hB : ∑ v : V, t v ^ 2 = 2 + 2 * BC := by
+    have h2 : ∀ v : V, t v ^ 2 = p v + q v
+        + 2 * (Real.sqrt (p v) * Real.sqrt (q v)) := by
+      intro v
+      rw [show t v ^ 2 = Real.sqrt (p v) ^ 2
+          + 2 * (Real.sqrt (p v) * Real.sqrt (q v))
+            + Real.sqrt (q v) ^ 2 from by ring,
+        sq_sqrt (hp v).le, sq_sqrt (hq v).le]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => h2 v)]
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib,
+      ← Finset.mul_sum, hp1, hq1]
+    ring
+  rw [hA, hB] at hC2
+  -- BC <= 1 and chain
+  have hBC1 : BC ≤ 1 :=
+    bhattacharyya_cauchy p q (fun v => (hp v).le)
+      (fun v => (hq v).le) hp1 hq1
+  have hR : 1 - BC ≤ KL / 2 := by
+    have := one_minus_bc_le_half_kl p q hp hp1 hq hq1
+    rw [← hBC] at this
+    linarith
+  have h4 : (1 - BC) * (1 + BC) ≤ 2 * (1 - BC) := by
+    by_contra hc
+    push_neg at hc
+    nlinarith [hBC1, sub_nonneg.mpr hBC1]
+  have hM : 2 * (KL / 2) = KL := by field_simp
+  have i1 : 2 * (1 - BC) ≤ KL := by linarith [hR, hM]
+  have hstep : (∑ v : V, |p v - q v|) ^ 2 ≤ 4 * KL := by
+    have hc := hC2
+    have e1 : (2 - 2 * BC) * (2 + 2 * BC)
+        = 4 * ((1 - BC) * (1 + BC)) := by ring
+    rw [e1] at hc
+    have h5 : 4 * ((1 - BC) * (1 + BC)) ≤ 4 * (2 * (1 - BC)) := by
+      exact mul_le_mul_of_nonneg_left h4 (by norm_num)
+    linarith [hc, h5, i1]
+  -- final sqrt step
+  have hS : (0:ℝ) ≤ ∑ v : V, |p v - q v| := by
+    apply Finset.sum_nonneg
+    intro v _
+    exact abs_nonneg _
+  have hs2 : (0:ℝ) ≤ (1/2) * ∑ v : V, |p v - q v| := by
+    linarith [hS]
+  have hS2 : ((1:ℝ)/2 * ∑ v : V, |p v - q v|) ^ 2 ≤ KL := by
+    have e2 : ((1:ℝ)/2 * ∑ v : V, |p v - q v|) ^ 2
+        = (∑ v : V, |p v - q v|) ^ 2 / 4 := by ring
+    linarith [hstep, e2]
+  exact Real.le_sqrt_of_sq_le hS2
+

@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R472):
+  `pinsker_sqrt_kl` — Пинскер, слабая √-форма:
+  TV = (1/2)Σ|p−q| ≤ √(KL) (тождество
+  |p−q| = |√p−√q|(√p+√q) + Коши-сумм →
+  Σ|p−q|² ≤ 4(1−BC)(1+BC) ≤ 8(1−BC) ≤ 4KL
+  по R470/R471); цепь R469–R472 замкнута.
 - `Probability/GibbsConcentration` (R471):
   `one_minus_bc_le_half_kl` — 1−BC ≤ KL/2 (per-v:
   t−1 ≤ t·ln t при t = √(p/q) через ln u ≤ u−1
