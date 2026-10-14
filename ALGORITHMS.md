@@ -1,7 +1,7 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 1712 theorem/lemma, 0 sorry,
+теоремы Lean 4 / Mathlib (Hagi/, 1827 theorem/lemma, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
@@ -213,6 +213,69 @@ d* = proj_C(g₀),  C = {d : ⟨g_i, d⟩ ≥ −ε_i}   # старые доме
 - горизонт: `cert_horizon_bound` (логарифмическая стыковка
   γk-взлёта и σ-насыщения);
 - бюджет битов: water-filling `two_layer_equalize`.
+
+## 13. Термостатный контроллер (Growth/Thermostat,
+Probability/GibbsConcentration)
+
+Отжиг T_t = T₀·α^t (0 < α < 1) как управляющий контур
+селектора; все величины сходятся к пределам без настройки
+гиперпараметров.
+
+- Монотонность: `thermostat_monotone` — T_{t+1} ≤ T_t;
+  `thermostat_tendsto_zero` — T_t → 0.
+- Полярный Ньютон: `newton_step_descent` — итерация
+  x ↦ (x+2)/3(x) монотонно спускается при x ≥ 1 и зажата
+  1 ≤ newtonIter x₀ ≤ x₀ (`newton_iter_bracket`).
+- Сертификат состояния: `hagi_certified_state` —
+  ∃N ∀t≥N: stop ∧ gate ∧ концентрация ∧ ∃ε-репрезен-
+  тативная точка (R412+R413).
+- ЧЕТЫРЕ ЧИСТОТЫ вдоль отжига:
+  - метрика: `certified_state_tv_tendsto` — TV → 0;
+  - энергия: `certified_state_energy_tendsto` —
+    ⟨E⟩_t → E*;
+  - свободная энергия: `certified_state_free_energy_-
+    tendsto` — F_t → E*;
+  - энтропия (Нернст): `certified_state_entropy_tendsto` —
+    S_t → 0;
+  - избыток: `certified_state_excess_tendsto` —
+    ⟨E⟩−F → 0.
+- Калориметрия: `certified_state_excess` —
+  ⟨E⟩−F ≤ (Δ+T₀)·C·θ.
+- Admission-гейт памяти: `admission_margin_sound` —
+  ε_cert-запас = сертификат soundness: истинный выигрыш
+  покрывает стоимость + риск.
+
+## 14. Hedge-селектор и regret (Probability/MWU)
+
+Мультипликативные веса как универсальный селектор;
+температура = обратный learning rate (η = 1/T).
+
+- Одношаговое зажатие потенциала: `mwu_potential_squeeze`
+  — ηℓ_min ≤ −ln Z′ ≤ 2η⟨ℓ⟩ (hedge-ядро без рядов:
+  (1+2x)(1−x) ≥ 1 ⟹ e^{−2x} ≤ 1−x).
+- Телескоп: `mwu_uniform_squeeze` — потенциал кумулятивных
+  потерь зажат с двух сторон при uniform-старте.
+- √-балансировка: `mwu_sqrt_bound` — −ln W ≤
+  2√(η⟨L⟩·ln n) при η⟨L⟩ ≤ ln n (равновесное геометри-
+  ческое среднее R443-пары; классическая regret-структура).
+- Гиббс = hedge: `gibbs_hedge_squeeze` — при η = 1/T
+  (1/T)E_min ≤ −ln((1/n)Σe^{−E/T}) ≤ 2(1/T)⟨E⟩.
+- Репрезентативность: `mwu_representative` — выборка из
+  hedge-распределения e^{−ηL} репрезентативна (мост
+  Хёфдинг ↔ MWU; полный граф мостов: 4 вертикали,
+  все 6 пар).
+
+## 15. PAC-Bayes мост (Probability/GibbsConcentration)
+
+Тождество Катони замыкает термодинамику и PAC-Bayes.
+
+- Log-декомпозиция веса: `gibbs_weight_log_decomp` —
+  ln(ρ_v·n) = ln n − ln Z − E_v/T (вес = сложение
+  случайности, нормировки и энергии).
+- KL-тождество Катони: `gibbs_katoni_kl` —
+  KL(ρ‖unif) = −ln Z − ⟨E⟩/T + ln n; вместе с
+  R422 (KL = ln n − S) даёт F = ⟨E⟩ − T·S — гиббсовская
+  свободная энергия выведена из PAC-Bayes.
 
 ## Честные границы (что НЕ выведено)
 
