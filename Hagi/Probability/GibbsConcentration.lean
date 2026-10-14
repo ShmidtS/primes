@@ -2015,3 +2015,31 @@ theorem xlogx_convex {a b lam : ℝ} (ha : 0 < a) (hb : 0 < b)
   rw [hexp] at hsum
   exact hsum
 
+open Real in
+/-- **Скалярная выпуклость
+x·ln(x/y) по x (R456)**:
+(λa+(1−λ)b)·ln((λa+(1−λ)b)/y) ≤
+λa·ln(a/y) + (1−λ)b·ln(b/y).
+Вывод: R455 (z·ln z выпукла)
++ линейность
+z·ln y. Кирпич
+выпуклости KL по
+первому аргументу. -/
+theorem xlog_div_convex {a b y lam : ℝ} (ha : 0 < a) (hb : 0 < b)
+    (hy : 0 < y) (hlam : 0 < lam) (hlam2 : lam < 1) :
+    (lam * a + (1 - lam) * b)
+      * Real.log ((lam * a + (1 - lam) * b) / y)
+      ≤ lam * a * Real.log (a / y) + (1 - lam) * b * Real.log (b / y) := by
+  have hz : 0 < lam * a + (1 - lam) * b :=
+    add_pos (mul_pos hlam ha) (mul_pos (by linarith : (0:ℝ) < 1 - lam) hb)
+  have h1 := xlogx_convex ha hb hlam hlam2
+  -- expand logs: ln(x/y) = ln x - ln y
+  rw [Real.log_div hz.ne' hy.ne', Real.log_div ha.ne' hy.ne',
+    Real.log_div hb.ne' hy.ne']
+  -- z * (ln z - ln y) = z*ln z - z*ln y; split linear term
+  have hsplit : (lam * a + (1 - lam) * b) * Real.log y
+      = lam * a * Real.log y + (1 - lam) * b * Real.log y := by
+    ring
+  rw [mul_sub, hsplit]
+  linarith
+

@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R456):
+  `xlog_div_convex` — скалярная выпуклость x·ln(x/y)
+  по x (R455 + линейность z·ln y; кирпич выпуклости
+  KL по первому аргументу).
 - `Probability/GibbsConcentration` (R455):
   `xlogx_convex` — выпуклость энтропийной функции
   x·ln x (R451 на Bool-носителе с β = (λ, 1−λ);
