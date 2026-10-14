@@ -1543,3 +1543,54 @@ theorem gibbs_weight_log_decomp {V : Type*} [Fintype V]
     Real.log_mul hnn.ne' hexpne, Real.log_exp]
   ring
 
+open Finset in
+/-- **KL-тождество Катони (R446)**:
+KL(ρḟ‖unif) = −ln Z − ⟨E⟩/T + ln n —
+суммарование
+log-декомпозиции
+R445: λ⟨r⟩ + KL(ρḟ‖π) =
+−ln Z_π в uniform-случае.
+Связь с известным:
+вместе с R422 (KL = ln n − S)
+даёт F = ⟨E⟩ − T·S — гибсовская
+свободная энергия из
+PAC-Bayes-тожества. Мост
+термодинамика ↔
+PAC-Bayes формально замкнут. -/
+theorem gibbs_katoni_kl {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) :
+    (∑ v : V, (Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T))
+      * Real.log ((Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T))
+        * (Fintype.card V : ℝ)))
+    = Real.log (Fintype.card V : ℝ)
+      - Real.log (∑ v : V, Real.exp (-(E v)/T))
+      - (1/T) * (∑ v : V, (Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T)) * E v) := by
+  set Z : ℝ := ∑ v : V, Real.exp (-(E v)/T) with hZdef
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set n : ℝ := (Fintype.card V : ℝ) with hn
+  set ρ : V → ℝ := fun v => Real.exp (-(E v)/T) / Z with hρ
+  have hρsum : ∑ v : V, ρ v = 1 := by
+    rw [hρ]
+    simp only
+    rw [← Finset.sum_div]
+    exact div_self hZpos.ne'
+  -- per-term split
+  have hterm : ∀ v : V, ρ v * Real.log (ρ v * n)
+      = ρ v * (Real.log n - Real.log Z)
+        - (ρ v * E v)/T := by
+    intro v
+    rw [gibbs_weight_log_decomp E T hT v, mul_sub, mul_div_assoc]
+  rw [Finset.sum_congr rfl (fun v _ => hterm v), Finset.sum_sub_distrib]
+  -- part 1: sum(rho * c) = c
+  rw [Finset.sum_congr rfl (fun v _ => mul_comm (ρ v)
+      (Real.log n - Real.log Z)), ← Finset.mul_sum, hρsum, mul_one]
+  -- part 2: sum (rho E / T) = (sum rho E)/T
+  rw [← Finset.sum_div]
+  ring
+

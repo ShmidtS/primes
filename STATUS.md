@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R446):
+  `gibbs_katoni_kl` — KL-тождество Катони: KL(ρ‖unif) =
+  −ln Z − ⟨E⟩/T + ln n (суммирование R445; с R422 даёт
+  F = ⟨E⟩ − TS из PAC-Bayes). Термодинамика ↔ PAC-Bayes
+  формально замкнуты.
 - `Probability/GibbsConcentration` (R445):
   `gibbs_weight_log_decomp` — log-декомпозиция веса:
   ln(ρn) = ln n − ln Z − E/T (PAC-Bayes/Катони-кирпич,
