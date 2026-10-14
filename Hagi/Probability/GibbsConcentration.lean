@@ -2545,3 +2545,41 @@ theorem gap_graceful (F Fhat g1 g2 g3 c1 c2 c3 : ℝ)
     _ ≤ c1 + c2 + c3 := by
         linarith [h1, h2, h3]
 
+open Real in
+/-- **Autoregressive error compounding (R465)**:
+if the predictor is L-Lipschitz so each step maps
+e_t ↦ e_{t+1} ≤ L·e_t, the H-step executed error
+compounds geometrically (arXiv 2607.13612, Thm 2(ii),
+L^{2H}-structure in the squared metric). -/
+theorem compounding_bound (L : ℝ) (hL : 0 ≤ L)
+    (e : ℕ → ℝ) (he : ∀ t, e (t+1) ≤ L * e t)
+    (n : ℕ) : e n ≤ L^n * e 0 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      have h1 := he n
+      calc e (n+1) ≤ L * e n := h1
+        _ ≤ L * (L^n * e 0) := by
+            exact mul_le_mul_of_nonneg_left ih hL
+        _ = L^(n+1) * e 0 := by
+            rw [pow_succ]; ring
+
+/-- **Squared-metric compounding is L^(2H) (R465)**:
+in the squared metric the same step recursion gives
+e_H^2 ≤ (L^2)^H·e_0^2 — the O(L^(2H)) term of
+arXiv 2607.13612, Thm 2(ii). -/
+theorem compounding_sq (L : ℝ) (hL : 0 ≤ L)
+    (e : ℕ → ℝ) (he : ∀ t, 0 ≤ e t)
+    (hsq : ∀ t, e (t+1)^2 ≤ (L^2) * e t^2)
+    (n : ℕ) : e n^2 ≤ (L^2)^n * e 0^2 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      have h1 := hsq n
+      have hL2 : (0:ℝ) ≤ L^2 := by nlinarith [hL]
+      calc e (n+1)^2 ≤ L^2 * e n^2 := h1
+        _ ≤ L^2 * ((L^2)^n * e 0^2) := by
+            exact mul_le_mul_of_nonneg_left ih hL2
+        _ = (L^2)^(n+1) * e 0^2 := by
+            rw [pow_succ]; ring
+
