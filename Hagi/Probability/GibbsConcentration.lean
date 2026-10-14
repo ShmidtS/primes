@@ -2043,3 +2043,38 @@ theorem xlog_div_convex {a b y lam : ℝ} (ha : 0 < a) (hb : 0 < b)
   rw [mul_sub, hsplit]
   linarith
 
+open Finset Real in
+/-- **Выпуклость KL по
+первому аргументу (R457)**:
+KL(λρ₁+(1−λ)ρ₂ ḟ‖ γ) ≤
+λ·KL(ρ₁ḟ‖γ)+(1−λ)·KL(ρ₂ḟ‖γ).
+Вывод: почленное R456 +
+разделение сумм.
+Дуга выпуклости
+завершена:
+R454→R455→R456→R457. -/
+theorem kl_convex_first {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₁ ρ₂ γ : V → ℝ) (lam : ℝ)
+    (hρ₁ : ∀ v, 0 < ρ₁ v) (hρ₂ : ∀ v, 0 < ρ₂ v)
+    (hγ : ∀ v, 0 < γ v)
+    (hlam : 0 < lam) (hlam2 : lam < 1) :
+    (∑ v : V, (lam * ρ₁ v + (1 - lam) * ρ₂ v)
+        * Real.log ((lam * ρ₁ v + (1 - lam) * ρ₂ v) / γ v))
+    ≤ lam * (∑ v : V, ρ₁ v * Real.log (ρ₁ v / γ v))
+      + (1 - lam) * (∑ v : V, ρ₂ v * Real.log (ρ₂ v / γ v)) := by
+  have hper : ∀ v : V, (lam * ρ₁ v + (1 - lam) * ρ₂ v)
+      * Real.log ((lam * ρ₁ v + (1 - lam) * ρ₂ v) / γ v)
+      ≤ lam * (ρ₁ v * Real.log (ρ₁ v / γ v))
+        + (1 - lam) * (ρ₂ v * Real.log (ρ₂ v / γ v)) :=
+    fun v => by
+      have h := xlog_div_convex (hρ₁ v) (hρ₂ v) (hγ v) hlam hlam2
+      linarith
+  calc (∑ v : V, (lam * ρ₁ v + (1 - lam) * ρ₂ v)
+        * Real.log ((lam * ρ₁ v + (1 - lam) * ρ₂ v) / γ v))
+      ≤ ∑ v : V, (lam * (ρ₁ v * Real.log (ρ₁ v / γ v))
+          + (1 - lam) * (ρ₂ v * Real.log (ρ₂ v / γ v))) :=
+        Finset.sum_le_sum (fun v _ => hper v)
+    _ = lam * (∑ v : V, ρ₁ v * Real.log (ρ₁ v / γ v))
+        + (1 - lam) * (∑ v : V, ρ₂ v * Real.log (ρ₂ v / γ v)) := by
+        rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+
