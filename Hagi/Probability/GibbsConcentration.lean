@@ -3862,3 +3862,80 @@ theorem subgauss_dev_kl {V : Type*} [Fintype V] [Nonempty V]
     rw [hval] at hR
     exact hR
 
+open Finset Real in
+/-- **Сдвиг-среднего
+~ TV (R489)**: при
+a ≤ g ≤ b:
+|E_p g − E_q g| ≤
+(b−a)·TV(p,q).
+Механика: нормировка
+f = (g−a)/(b−a) —
+дуальность R473 +
+центрировка μ-сдвига
+(=с линейным
+мостом Δ = d·F
+через
+partition sum_div). -/
+theorem mean_shift_tv {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (p q g : V → ℝ) (a b : ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) (hab : a < b) :
+    |∑ v : V, p v * g v - ∑ v : V, q v * g v|
+      ≤ (b - a) * ((1/2) * ∑ v : V, |p v - q v|) := by
+  have hD : (0:ℝ) < b - a := by linarith
+  have hf0 : ∀ v, 0 ≤ (g v - a) / (b - a) :=
+    fun v => div_nonneg (by linarith [hlo v]) hD.le
+  have hf1 : ∀ v, (g v - a) / (b - a) ≤ 1 := by
+    intro v
+    rw [div_le_one hD]
+    linarith [hhi v]
+  set Δ := ∑ v : V, p v * g v - ∑ v : V, q v * g v with hΔ
+  set F := ∑ v : V, p v * ((g v - a) / (b - a))
+    - ∑ v : V, q v * ((g v - a) / (b - a)) with hF
+  have hΔF : Δ = (b - a) * F := by
+    have hEp : ∑ v : V, p v * ((g v - a) / (b - a))
+        = (∑ v : V, p v * (g v - a)) / (b - a) := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        mul_div_assoc' (p v) _ _), Finset.sum_div]
+    have hEq : ∑ v : V, q v * ((g v - a) / (b - a))
+        = (∑ v : V, q v * (g v - a)) / (b - a) := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        mul_div_assoc' (q v) _ _), Finset.sum_div]
+    have hbn : ∑ v : V, p v * (g v - a)
+        = ∑ v : V, p v * g v - a := by
+      have h2 : ∑ v : V, p v * (g v - a)
+          = ∑ v : V, p v * g v - ∑ v : V, p v * a := by
+        rw [Finset.sum_congr rfl (fun v _ => by rw [mul_sub]),
+          Finset.sum_sub_distrib]
+      rw [h2]
+      have h3 : ∑ v : V, p v * a = a := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (p v) a),
+          ← Finset.mul_sum, hp1, mul_one]
+      rw [h3]
+    have hqn : ∑ v : V, q v * (g v - a)
+        = ∑ v : V, q v * g v - a := by
+      have h2 : ∑ v : V, q v * (g v - a)
+          = ∑ v : V, q v * g v - ∑ v : V, q v * a := by
+        rw [Finset.sum_congr rfl (fun v _ => by rw [mul_sub]),
+          Finset.sum_sub_distrib]
+      rw [h2]
+      have h3 : ∑ v : V, q v * a = a := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a),
+          ← Finset.mul_sum, hq1, mul_one]
+      rw [h3]
+    rw [hΔ, hF, hEp, hEq, hbn, hqn, div_sub_div_same]
+    rw [show (∑ v : V, p v * g v - a) - (∑ v : V, q v * g v - a)
+        = ∑ v : V, p v * g v - ∑ v : V, q v * g v from by ring]
+    rw [mul_comm, div_mul_cancel₀ _ (ne_of_gt hD)]
+  have hf0 : ∀ v, 0 ≤ (g v - a) / (b - a) :=
+    fun v => div_nonneg (by linarith [hlo v]) hD.le
+  have hf1 : ∀ v, (g v - a) / (b - a) ≤ 1 := by
+    intro v
+    rw [div_le_one hD]
+    linarith [hhi v]
+  have hdual := tv_dual_abs p q (fun v => (g v - a) / (b - a))
+    hp hp1 hq hq1 hf0 hf1
+  rw [hΔF, abs_mul, abs_of_pos hD]
+  exact mul_le_mul_of_nonneg_left hdual hD.le
+

@@ -114,6 +114,12 @@ same-folder DAG свободен.
   ванной EFE-политики: суррогатный argmin при
   равномерном зазоре c исполняет в 2c от оптимума
   (RAG arXiv 2607.13612 Prop 7-структура).
+- `Probability/GibbsConcentration` (R489):
+  `mean_shift_tv` — сдвиг среднего ~ TV: при
+  a ≤ g ≤ b: |E_p g − E_q g| ≤ (b−a)·TV(p,q)
+  (нормировка f = (g−a)/(b−a) + R473-дуаль +
+  линейный мост Δ = d·F через div_sub_div_same
+  и mul_div_cancel₀).
 - `Probability/GibbsConcentration` (R488):
   `subgauss_dev_kl` — sub-Gaussian измерение:
   при lnΣq·e^{c(g−μ)} ≤ c²σ²/2 и μ ≤ E_p g:
