@@ -220,6 +220,12 @@ same-folder DAG свободен.
   `gibbs_weight_log_decomp` — log-декомпозиция веса:
   ln(ρn) = ln n − ln Z − E/T (PAC-Bayes/Катони-кирпич,
   RAG arXiv 2609.12891; суммирование даст KL-тождество).
+- `Probability/MWU` (R468):
+  `mwu_regret_regimes` — двухрежимный regret-капстоун:
+  −ln((1/n)Σe^{−ηℓ}) ≤ max(2√(η⟨ℓ⟩·lnn), 2η⟨ℓ⟩)
+  (малый режим: R444 √-балансировка; большой:
+  линейная R436; η = √(lnn/⟨ℓ⟩) даёт классический
+  2√(⟨ℓ⟩·lnn)).
 - `Probability/MWU` (R444):
   `mwu_sqrt_bound` — η-сбалансированная: −ln W ≤
   2√(η⟨ℓ⟩·ln n) при η⟨ℓ⟩ ≤ ln n (равновесие R443-оценок

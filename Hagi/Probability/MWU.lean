@@ -490,3 +490,43 @@ theorem mwu_sqrt_bound {V : Type*} [Fintype V]
           (η * Lbar * Real.log (Fintype.card V : ℝ)))
         rw [← sq, h2]
 
+open Finset Real in
+/-- **Двухрежимный regret-капстоун
+MWU (R468)**: безусловная
+объединённая граница:
+−ln((1/n)∑e^{−ηℓ}) ≤
+max(2√(η〈ℓ〉·ln n),
+2η〈ℓ〉).
+Малый режим (η〈ℓ〉 ≤ ln n):
+√-балансировка R444;
+большой — линейная
+одношаговая R436.
+Выбор η = √(ln n/〈ℓ〉)
+даёт классический
+2√(〈ℓ〉·ln n) regret. -/
+theorem mwu_regret_regimes {V : Type*} [Fintype V]
+    [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2)
+    (hn : (0:ℝ) < Real.log (Fintype.card V : ℝ)) :
+    -(Real.log ((1/(Fintype.card V : ℝ))
+        * ∑ v : V, Real.exp (-(η * ℓ v))))
+    ≤ max (2 * Real.sqrt (η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
+        * Real.log (Fintype.card V : ℝ)))
+      (2 * η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)) := by
+  by_cases hbal : η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
+      ≤ Real.log (Fintype.card V : ℝ)
+  · have h := mwu_sqrt_bound ℓ η hℓ hη hsmall hn hbal
+    exact le_max_of_le_left h
+  · obtain ⟨_, _, h2⟩ := mwu_uniform_squeeze ℓ η hℓ hη hsmall
+    have hb : (∑ v : V, (1/(Fintype.card V : ℝ))
+        * Real.exp (-(η * ℓ v)))
+        = (1/(Fintype.card V : ℝ))
+          * ∑ v : V, Real.exp (-(η * ℓ v)) :=
+      (Finset.mul_sum Finset.univ
+        (fun v => Real.exp (-(η * ℓ v)))
+        (1/(Fintype.card V : ℝ))).symm
+    refine le_max_of_le_right ?_
+    rw [← hb]
+    exact h2
+
