@@ -109,6 +109,11 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R418):
+  `gibbs_entropy_nonneg` — второй закон: S(p_T) ≥ 0
+  (w ≤ 1 как веса меры ⟹ −ln w ≥ 0 почленно). Вместе с
+  R400 (Нернст S→0): 0 ≤ S_n → 0 — третий закон с двух
+  сторон.
 - `Growth/Thermostat` (R417):
   `certified_state_excess` — калориметрический избыток:
   ∃N ∀t≥N: ⟨E⟩_t − F_t ≤ (Δ+T0)·C·θ (R416 + R398 + T≤T0)

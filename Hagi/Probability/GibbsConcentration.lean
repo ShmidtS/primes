@@ -1253,3 +1253,43 @@ theorem gibbs_posterior_ratio {V : Type*} [Fintype V]
         * (Real.exp (-(E vstar)/T)
           / (∑ v, Real.exp (-(E v)/T))) := by ring
 
+open Finset in
+/-- **Второй закон: неотрицательность
+энтропии Гиббса (R418)**: S(p_T) =
+∑ w·(−ln w) ≥ 0 — почленно: w ≤ 1 (как
+вес вероятностной меры, single_le_sum) ⟹
+−ln w ≥ 0 ⟹ каждый член ≥ 0. Вместе с R400
+(Нернст S→0) даёт 0 ≤ S_n → 0 — полный
+третий закон в обеих сторонах. -/
+theorem gibbs_entropy_nonneg {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) :
+    (0:ℝ) ≤ ∑ v, (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))
+      * (-Real.log (Real.exp (-(E v)/T)
+        / ∑ v, Real.exp (-(E v)/T))) := by
+  set Z : ℝ := ∑ v, Real.exp (-(E v)/T) with hZ
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set w : V → ℝ := fun v => Real.exp (-(E v)/T) / Z with hw
+  have hwpos : ∀ v, 0 < w v := fun v => div_pos (exp_pos _) hZpos
+  have hw1 : ∑ v, w v = 1 := by
+    rw [hw]
+    simp only
+    rw [← Finset.sum_div]
+    exact div_self hZpos.ne'
+  -- each w v <= 1 (probability)
+  have hwle : ∀ v, w v ≤ 1 := by
+    intro v
+    have := single_le_sum (f := w) (fun x _ => le_of_lt (hwpos x))
+      (Finset.mem_univ v)
+    rw [hw1] at this
+    exact this
+  -- termwise nonneg
+  apply Finset.sum_nonneg
+  intro v _
+  apply mul_nonneg (le_of_lt (hwpos v))
+  apply neg_nonneg.mpr
+  exact Real.log_nonpos (le_of_lt (hwpos v)) (hwle v)
+
