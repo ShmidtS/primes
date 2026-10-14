@@ -1506,3 +1506,40 @@ theorem gibbs_energy_gap_crude {V : Type*} [Fintype V]
   have hmul := mul_le_mul_of_nonneg_left hC (mul_nonneg (le_of_lt hT) hn)
   linarith [hsum, hmul]
 
+open Finset in
+/-- **Log-декомпозиция Гиббс-веса
+(R445)** (PAC-Bayes/Катони, RAG arXiv
+2609.12891): ln(ρ_v·n) = ln n − ln Z −
+E_v/T — вес = сложение
+случайности,
+нормировки и
+энергии. Кирпич
+KL-тождества Катони
+(λ⟨r⟩ + KL = −ln Z_π):
+суммирование по
+v даёт тождество
+в целом. -/
+theorem gibbs_weight_log_decomp {V : Type*} [Fintype V]
+    [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (v : V) :
+    Real.log ((Real.exp (-(E v)/T)
+        / ∑ v : V, Real.exp (-(E v)/T))
+        * (Fintype.card V : ℝ))
+    = Real.log (Fintype.card V : ℝ)
+      - Real.log (∑ v : V, Real.exp (-(E v)/T))
+      - (E v)/T := by
+  set Z : ℝ := ∑ v : V, Real.exp (-(E v)/T) with hZdef
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  set n : ℝ := (Fintype.card V : ℝ) with hn
+  have hnn : (0:ℝ) < n :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩)
+  have hsplit : (Real.exp (-(E v)/T) / Z) * n
+      = n * Real.exp (-(E v)/T) / Z := by
+    field_simp
+  have hexpne : Real.exp (-(E v)/T) ≠ 0 := by positivity
+  rw [hsplit, Real.log_div (by positivity) hZpos.ne',
+    Real.log_mul hnn.ne' hexpne, Real.log_exp]
+  ring
+

@@ -109,6 +109,10 @@ same-folder DAG свободен.
   всю траекторию в шаре max(‖w₀‖, G/λ): weight decay сам
   является ограничением нормы (неявный spectral-constraint,
   2507.01598-family), без внешней аксиомы ограниченности.
+- `Probability/GibbsConcentration` (R445):
+  `gibbs_weight_log_decomp` — log-декомпозиция веса:
+  ln(ρn) = ln n − ln Z − E/T (PAC-Bayes/Катони-кирпич,
+  RAG arXiv 2609.12891; суммирование даст KL-тождество).
 - `Probability/MWU` (R444):
   `mwu_sqrt_bound` — η-сбалансированная: −ln W ≤
   2√(η⟨ℓ⟩·ln n) при η⟨ℓ⟩ ≤ ln n (равновесие R443-оценок
