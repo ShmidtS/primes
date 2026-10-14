@@ -187,4 +187,27 @@ theorem newton_step_descent_lt (x : ℝ) (hx : 1 < x) :
   linarith
 
 
+/-- **Скобка траектории полярного Ньютона (R424)**:
+1 ≤ newtonIter x₀ T ≤ x₀ при x₀ ≥ 1 —
+инвариант вдоль всей
+траектории (индукция:
+спуск R423 + инвариант ≥1
+R53). Траектория живёт в
+отрезке [1, x₀] и монотонно
+спускается к 1 с quad-скоростью. -/
+theorem newton_iter_bracket (x₀ : ℝ) (hx₀ : 1 ≤ x₀) (T : ℕ) :
+    1 ≤ newtonIter x₀ T ∧ newtonIter x₀ T ≤ x₀ := by
+  induction T with
+  | zero =>
+    unfold newtonIter
+    exact ⟨hx₀, le_refl _⟩
+  | succ t ih =>
+    have hstep : newtonIter x₀ (t+1) = newtonStep (newtonIter x₀ t) := by
+      unfold newtonIter
+      exact Function.iterate_succ_apply' Hagi.Step.newtonStep t x₀
+    rw [hstep]
+    obtain ⟨h1, h2⟩ := ih
+    refine ⟨newtonStep_ge_one _ (by linarith), ?_⟩
+    exact le_trans (newton_step_descent _ h1) h2
+
 end Hagi.Step
