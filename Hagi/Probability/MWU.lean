@@ -117,3 +117,27 @@ theorem mwu_potential_lower {V : Type*} [Fintype V]
   have hlog := Real.log_le_log hZpos hsum
   rwa [Real.log_exp] at hlog
 
+/-- **Сертификат зажатия потенциала
+(R435)**: η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w —
+одна теорема для потребителя
+(композиция R434 + R433).
+Следствие: ℓ_min ≤ 2⟨ℓ⟩_w —
+одношаговая гарантия
+без-регретности; многошаговый
+телескоп построится на
+ней индукцией. -/
+theorem mwu_potential_squeeze {V : Type*} [Fintype V]
+    [Nonempty V] (w : V → ℝ) (ℓ : V → ℝ) (η : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2) :
+    ∃ vmin : V, η * ℓ vmin
+      ≤ -(Real.log (∑ v, w v * Real.exp (-(η * ℓ v))))
+      ∧ -(Real.log (∑ v, w v * Real.exp (-(η * ℓ v))))
+        ≤ 2 * η * (∑ v, w v * ℓ v) := by
+  obtain ⟨vmin, hlow⟩ := mwu_potential_lower w ℓ η hw hw1 hη
+  have hhigh := mwu_potential_step w ℓ η hw hw1 hℓ hη hsmall
+  refine ⟨vmin, ?_, ?_⟩
+  · linarith
+  · linarith
+
