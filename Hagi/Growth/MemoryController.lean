@@ -152,3 +152,26 @@ theorem admits_satisfy_checks {m n : Type} [Fintype m]
   fun t h => hdec t h
 
 end Hagi.Growth
+namespace Hagi.Growth
+
+/-- **Обоснованность запаса ε_cert (R419)**: если
+истинный выигрыш в пределах ε_cert от оценки
+(что даёт R410/R413 при θ-калибровке:
+ε_cert = (b−a)√(ln(1/θ)/2)), то admit-решение
+гарантирует, что ИСТИННЫЙ выигрыш
+покрывает стоимость + риск. Запас — не
+декорация, а сертификат звучности. -/
+theorem admission_margin_sound (c : AdmissionChecks)
+    (gtrue : ℝ) (hclose : |gtrue - c.gain| ≤ c.ε_cert)
+    (h : admit c) :
+    c.lamM * c.Δcost + c.lamR * c.Δrisk ≤ gtrue := by
+  obtain ⟨_, hgain⟩ := h
+  have hgain' : c.lamM * c.Δcost + c.lamR * c.Δrisk
+      + c.ε_cert ≤ c.gain := hgain
+  have hle : c.gain - c.ε_cert ≤ gtrue := by
+    have h2 := abs_le.mp hclose
+    linarith [h2.1]
+  linarith [hgain', hle]
+
+
+end Hagi.Growth
