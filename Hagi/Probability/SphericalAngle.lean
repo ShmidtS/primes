@@ -221,4 +221,27 @@ theorem sphericalAngle_seven : sphericalAngle 7 = 16 * π^3 / 15 := by
 
 
 
+theorem div6_eq_div3 (x : ℝ) : 2 * x / 6 = x / 3 := by
+  field_simp
+  ring
+theorem pi_lt_16_5' : (π:ℝ) < 16/5 := by linarith [pi_lt_d2]
+theorem Omega_8' : sphericalAngle 8 = π^4/3 := by
+  unfold sphericalAngle
+  have h : Real.Gamma ((4:ℕ):ℝ) = 6 := by norm_num
+  rw [show ((8:ℕ):ℝ)/2 = ((4:ℕ):ℝ) from by norm_num, h, Real.rpow_natCast]
+  exact div6_eq_div3 (π^4)
+theorem Omega_7_gt_Omega_6 : sphericalAngle 6 < sphericalAngle 7 := by
+  rw [sphericalAngle_six, sphericalAngle_seven]
+  have h3 : (0:ℝ) < π^3 := by positivity
+  rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 15)]
+  linarith
+theorem Omega_7_gt_Omega_8 : sphericalAngle 8 < sphericalAngle 7 := by
+  rw [Omega_8', sphericalAngle_seven]
+  have hπ : (π:ℝ) < 16/5 := pi_lt_16_5'
+  have h3pos : (0:ℝ) < π^3 := by positivity
+  rw [div_lt_iff₀ (by norm_num : (0:ℝ) < 3)]
+  rw [show (16:ℝ) * π^3 / 15 * 3 = 16 * π^3 / 5 from by field_simp; ring]
+  rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 5)]
+  nlinarith [hπ, h3pos]
+
 end Hagi

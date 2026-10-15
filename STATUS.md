@@ -178,6 +178,11 @@ same-folder DAG свободен.
   дискретный «пик размерностей», континуальный
   максимум n ≈ 7.257). Мост к d_eff ≤ 8
   дисциплине FactorizedBPW и прунингу.
+  `Omega_7_gt_Omega_6` / `Omega_7_gt_Omega_8`
+  (R521): строгое неравенство пика —
+  Ω_6 < Ω_7 ∧ Ω_8 < Ω_7 (при π < 16/5),
+  дискретный максимум n = 7 доказан
+  полностью.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
