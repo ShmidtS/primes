@@ -8,6 +8,7 @@ import Hagi.Probability.CertGaps
 import Hagi.Probability.PinskerTV
 import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.MomentBounds
+import Hagi.Probability.GibbsFluctuations
 
 /-!
 # Концентрация меры Гиббса (хаб R386-R496)
