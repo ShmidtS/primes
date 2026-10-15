@@ -526,3 +526,29 @@ theorem minkowski_finite {V : Type*} [Fintype V] (a b : V → ℝ) {p q : ℝ}
       rw [hXsplit]
       exact hchain
     exact le_of_mul_le_mul_right hstep hXqpos
+
+/-! ## Сравнение норм L1 <= Lp (R505)
+
+sum |g| <= (sum |g|^p)^{1/p} * n^{1/q}: Hoelder R503 с
+константной второй функцией 1; sum |1|^q = n. Базовый
+кирпич норм-сравнений для оценок качества/объёма. -/
+theorem lp_one_le_card {V : Type*} [Fintype V] (g : V → ℝ) {p q : ℝ}
+    (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    ∑ v : V, |g v|
+      ≤ (∑ v : V, |g v| ^ p) ^ (1 / p)
+        * (Fintype.card V : ℝ) ^ (1 / q) := by
+  have h := hoelder_finite (V := V) g (fun _ : V => (1:ℝ)) hp hpq
+  -- RHS second factor: (sum 1^q)^{1/q} = card^{1/q}
+  have hone : (∑ v : V, (|(1:ℝ)| ^ q)) = (Fintype.card V : ℝ) := by
+    have h1 : ∀ v : V, (|(1:ℝ)| ^ q) = 1 := by
+      intro v
+      rw [abs_one, one_rpow]
+    rw [Finset.sum_congr rfl (fun v _ => h1 v)]
+    rw [Finset.sum_const]
+    simp
+  rw [hone] at h
+  -- LHS: |g v * 1| = |g v|
+  have hL : ∑ v : V, |g v * (1:ℝ)| = ∑ v : V, |g v| := by
+    refine Finset.sum_congr rfl (fun v _ => ?_)
+    rw [mul_one]
+  rwa [hL] at h
