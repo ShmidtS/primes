@@ -94,7 +94,7 @@ theorem gibbs_energy_variance_bound
         * Real.exp (-δ / T) := by
     linarith [hμupper]
   -- Apply the sharper Bhatia-Davis variance inequality (R496).
-  have hbd := bhatia_davis p E E vstar (E vstar + Δ) hp hp1
+  have hbd := bhatia_davis p E (E vstar) (E vstar + Δ) hp hp1
     hmin (fun v => by linarith [hΔ v])
   have hvar : ∑ v : V, p v * (E v - μ) ^ 2
       ≤ (E vstar + Δ - μ) * (μ - E vstar) := by
