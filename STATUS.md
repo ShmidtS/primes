@@ -153,6 +153,12 @@ same-folder DAG свободен.
   Var ≤ ε), `gibbs_var_tendsto_zero` (Var → 0 вдоль
   T_n = δ/(n+1)), `gibbs_var_steps_bound` (n+1 ≥
   ln(Δ²(n−1)/ε) ⟹ Var ≤ ε — число шагов).
+- `Probability/CertifiedEstimator` (R516–R517):
+  anytime-лестница шаги 1–2: `union_bound_finite`
+  (T-событий union ≤ сумма), `max_bound_union` /
+  `max_bound_chernoff_sum` (P(max_{t<T} g_t ≥ u) ≤
+  Σ-хвостов ≤ Σ e_t). `Probability/ChernoffCGF`
+  (R518): `tail_complement` (q{g<t}+q{g≥t}=1).
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
