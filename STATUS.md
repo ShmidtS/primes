@@ -183,6 +183,16 @@ same-folder DAG свободен.
   Ω_6 < Ω_7 ∧ Ω_8 < Ω_7 (при π < 16/5),
   дискретный максимум n = 7 доказан
   полностью.
+- `Ensemble/ThermoPrune` (R522):
+  `condensation_budget` (каркасная
+  девиация M ⟹ CE-стоимость ≤ M²/4;
+  бюджет ε ⟹ девиация 2√ε) и
+  `thermo_prune_certificate` — двухступенчатый
+  сертификат: слои за L мертвы
+  (dead_layer_stop) И каркас перестраивается
+  ≤ M²/4 (prune_certificate). Формализация
+  тезиса «98,5% тепловая масса, знание —
+  в 1,5% каркаса».
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
