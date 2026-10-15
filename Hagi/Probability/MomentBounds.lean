@@ -478,3 +478,36 @@ theorem var_le_delta_excess {V : Type*} [Fintype V] [Nonempty V]
     _ ≤ (b - a) * (μ - a) := by
           exact mul_le_mul_of_nonneg_right
             (by ring_nf; linarith) (sub_nonneg.mpr hμa)
+
+/-- Обратный мост: Var/(b−a) ≤ μ − a — из Bhatia–Davis R496
+(Var ≤ (b−μ)(μ−a), (b−μ) ≤ (b−a)).  Для Гиббса: если
+дисперсия мала, то и среднее прижато к минимуму. -/
+theorem excess_ge_var_over_range {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) (hab : a < b) :
+    (∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2)
+      / (b - a) ≤ ∑ x : V, q x * g x - a := by
+  set μ := ∑ x : V, q x * g x with hμd
+  have hbd := bhatia_davis q g a b hq hq1 hlo hhi
+  -- mu >= a (barycenter in [a,b])
+  have hμa : a ≤ μ := by
+    calc a = ∑ v : V, q v * a := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a),
+            ← Finset.mul_sum, hq1, mul_one]
+      _ ≤ ∑ v : V, q v * g v := Finset.sum_le_sum
+          (fun v _ => mul_le_mul_of_nonneg_left (hlo v) (le_of_lt (hq v)))
+  have hnn : (0:ℝ) ≤ b - a := by
+    have v : V := Classical.arbitrary V
+    linarith [hlo v, hhi v]
+  -- (b - mu) <= (b - a)
+  have hbm : b - μ ≤ b - a := by linarith
+  have hbane : b - a ≠ 0 := ne_of_gt (by linarith)
+  have hbpos : (0:ℝ) < b - a := by linarith
+  -- Var <= (b-mu)*(mu-a) <= (b-a)*(mu-a); divide:
+  calc (∑ v : V, q v * (g v - μ) ^ 2) / (b - a)
+      ≤ ((b - a) * (μ - a)) / (b - a) :=
+        div_le_div_of_nonneg_right
+          (le_trans hbd (mul_le_mul_of_nonneg_right hbm
+            (sub_nonneg.mpr hμa))) hbpos.le
+    _ = μ - a := mul_div_cancel_left₀ _ hbane

@@ -130,6 +130,11 @@ same-folder DAG свободен.
   (b−a)/2; Коши–Шварц), `bhatia_davis` (Var ≤
   (b−μ)(μ−a); per-v (b−g)(g−a)≥0), `bhatia_implies_
   popoviciu` (мост AM-GM).
+- `Probability/MomentBounds` (R513, R515): мосты
+  избыток↔дисперсия: `var_le_delta_excess`
+  (Var ≤ (b−a)(μ−a)), `excess_ge_var_over_range`
+  (Var/(b−a) ≤ μ−a) — дисперсия и избыток среднего
+  взаимно сертифицируются (двусторонние stop-gate).
 - `Probability/ExpChord` (R498–R508): Lp-вертикаль:
   `exp_chord` (хорда e^{rx} через ConvexOn.
   comp_linearMap), `hoeffding_chord_mgf` (взвешенная
