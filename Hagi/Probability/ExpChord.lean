@@ -182,3 +182,89 @@ theorem amgm_weighted {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
   refine le_trans (le_of_eq hexp.symm) ?_
   exact le_trans (Real.exp_le_exp.mpr h)
     (le_of_eq (Real.exp_log (by positivity : (0:ℝ) < (1 - w) * a + w * b)))
+
+/-! ## Неравенство Юнга (R502)
+
+x*y <= x^p/p + y^q/q для x,y >= 0, 1 < p, 1/p + 1/q = 1:
+обобщённый AM-GM R501 на X = x^p, Y = y^q с весом 1/q,
+степени сокращаются каналом (z^r)^(1/r) = z (log_rpow +
+exp_log); degenerate-случаи через zero_rpow + positivity.
+Фундамент Hölder/Minkowski-вертикали. -/
+theorem young_two {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) {p q : ℝ}
+    (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    x * y ≤ x ^ p / p + y ^ q / q := by
+  have hq : 1 < q := by
+    have hp0 : (0:ℝ) < p := by linarith
+    have hpp : 1 / p < 1 := by
+      field_simp
+      nlinarith [hp0]
+    have : (1:ℝ) / q = 1 - 1 / p := by linarith [hpq]
+    have hqpos : (0:ℝ) < q := by
+      have hsub : (0:ℝ) < 1 - 1 / p := by linarith
+      have := this
+      by_contra hc
+      push_neg at hc
+      have h1 : (1:ℝ) / q ≤ 0 := by
+        apply div_nonpos_of_nonneg_of_nonpos
+        · linarith
+        · linarith
+      rw [this] at h1
+      linarith
+    have hp1pos : (0:ℝ) < 1 / p := by positivity
+    show (1:ℝ) < q
+    by_contra hq1
+    push_neg at hq1
+    have h2 : (1:ℝ) / q ≥ 1 := by
+      rw [ge_iff_le, le_div_iff₀ hqpos]
+      linarith
+    rw [this] at h2
+    linarith
+  rcases eq_or_lt_of_le hx with hx' | hx'
+  · -- x = 0
+    have hpp0 : (0:ℝ) < p := by linarith
+    have hxp : (0:ℝ) ^ p = 0 := Real.zero_rpow (by linarith : (p:ℝ) ≠ 0)
+    rw [← hx', hxp]
+    norm_num
+    positivity
+  · rcases eq_or_lt_of_le hy with hy' | hy'
+    · -- y = 0
+      have hqq0 : (0:ℝ) < q := by linarith
+      have hyq : (0:ℝ) ^ q = 0 := Real.zero_rpow (by linarith : (q:ℝ) ≠ 0)
+      rw [← hy', hyq]
+      norm_num
+      positivity
+    · -- x, y > 0: generalized AM-GM on X = x^p, Y = y^q, w = 1/q
+      have hp0 : (0:ℝ) < p := by linarith
+      have hq0 : (0:ℝ) < q := by linarith
+      have hxp : (0:ℝ) < x ^ p := by positivity
+      have hyq : (0:ℝ) < y ^ q := by positivity
+      have hw : (0:ℝ) < 1 / q := by positivity
+      have hw2 : 1 / q < 1 := by
+        rw [div_lt_one hq0]
+        linarith
+      have hgam := amgm_weighted hxp hyq (1 / q) hw hw2
+      -- (x^p)^(1-1/q) (y^q)^(1/q) <= (1-1/q) x^p + (1/q) y^q
+      -- 1 - 1/q = 1/p
+      have hsub : (1:ℝ) - 1 / q = 1 / p := by linarith [hpq]
+      -- power lemma
+      have hkey2 : ∀ z : ℝ, ∀ r : ℝ, 0 < z → 0 < r →
+          (z ^ r) ^ (1 / r) = z := by
+        intro z r hz hr
+        have h1 : (z ^ r) ^ (1 / r) = Real.exp ((1 / r) * Real.log (z ^ r)) := by
+          rw [← Real.log_rpow (by positivity : (0:ℝ) < z ^ r) (1 / r)]
+          exact Real.exp_log (by positivity : (0:ℝ) < (z ^ r) ^ (1 / r)) |>.symm
+        rw [h1, Real.log_rpow hz r]
+        rw [show (1:ℝ) / r = r⁻¹ from by field_simp, ← mul_assoc, mul_comm r⁻¹ r,
+          mul_inv_cancel₀ (by positivity : (r:ℝ) ≠ 0), one_mul, Real.exp_log hz]
+      have he1 : (x ^ p) ^ (1 - 1 / q) = x := by
+        rw [hsub]
+        exact hkey2 x p hx' hp0
+      have he2 : (y ^ q) ^ (1 / q) = y := hkey2 y q hy' hq0
+      rw [he1, he2] at hgam
+      -- RHS: (1-1/q) x^p + (1/q) y^q = x^p/p + y^q/q
+      have hconv : (1 - 1 / q) * x ^ p + (1 / q) * y ^ q
+          = x ^ p / p + y ^ q / q := by
+        rw [hsub]
+        rw [one_div_mul_eq_div, one_div_mul_eq_div]
+      rw [← hconv]
+      exact hgam
