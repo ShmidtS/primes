@@ -350,3 +350,44 @@ theorem gibbs_var_steps_bound {V : Type*} [Fintype V] [DecidableEq V]
           mul_le_mul_of_nonneg_left hexp (le_of_lt hcpos)
       _ = eps := mul_div_cancel₀ eps (by
             exact ne_of_gt hcpos)
+
+/-- Standalone mean-excess certificate in P-form:
+⟨E⟩_{p_T} - E* <= Δ(n−1)e^{−δ/T} (R393 repackaged with
+normalized Gibbs weights).  Combined with var_le_delta_excess
+R513 yields the variance gate directly from the excess
+certificate (no exponential indentation). -/
+theorem gibbs_excess_mean_bound {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (δ T : ℝ) (hδ : 0 < δ) (hT : 0 < T)
+    (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    let Z : ℝ := ∑ v, Real.exp (-(E v) / T)
+    let p : V → ℝ := fun v => Real.exp (-(E v) / T) / Z
+    ∑ v : V, p v * E v - E vstar
+      ≤ Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ / T) := by
+  intro Z p
+  have hZpos : (0:ℝ) < Z :=
+    Finset.sum_pos (fun v _ => Real.exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hp1 : ∑ v : V, p v = 1 := by
+    have hsd : ∑ v : V, Real.exp (-(E v) / T) / Z
+        = (∑ v : V, Real.exp (-(E v) / T)) / Z :=
+      (Finset.sum_div Finset.univ (fun v => Real.exp (-(E v) / T)) Z).symm
+    rw [hsd]
+    exact div_self hZpos.ne'
+  have hμeq : ∑ v : V, p v * E v
+      = (∑ v : V, E v * Real.exp (-(E v) / T)) / Z := by
+    rw [Finset.sum_div]
+    refine Finset.sum_congr rfl (fun v _ => ?_)
+    rw [show p v * E v = (E v * Real.exp (-(E v) / T)) / Z from by
+      rw [div_mul_eq_mul_div, mul_comm]]
+  have hmean := gibbs_expected_energy_bound E δ T hT vstar Δ hmin hgap hΔ
+  have hconst : ∑ v : V, p v * E vstar = E vstar := by
+    rw [Finset.sum_congr rfl (fun v _ => mul_comm (p v) (E vstar)),
+      ← Finset.mul_sum, hp1, mul_one]
+  -- R393 is already in P-form: ⟨E⟩ ≤ E* + Δ(n−1)e^{−δ/T}
+  have hR := gibbs_expected_energy_bound E δ T hT vstar Δ hmin hgap hΔ
+  -- hR : (∑ E e)/Z ≤ E* + Δ(n−1)e^{−δ/T}; goal: (∑ E e)/Z − E* ≤ Δ(n−1)e^{−δ/T}
+  linarith
