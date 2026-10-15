@@ -135,3 +135,26 @@ theorem hoeffding_chord_mgf {V : Type*} [Fintype V] [Nonempty V]
         = (∑ v : V, q v * ((g v - a) / (b - a))) * Real.exp (r * (b - μ)) := by
       simp [Finset.mul_sum, mul_comm, mul_assoc, mul_left_comm]
     rw [e1, e2, hwavg1, hwavg2]
+
+/-! ## Хорда логарифма (R500)
+
+Вогнутость ln: (1-w) ln a + w ln b <= ln((1-w)a + w b) для
+a,b > 0, 0 < w < 1. Через strictConcaveOn_log_Ioi.concaveOn;
+двухточечный Jensen. Основа для вариационных KL-шагов
+(взвешенные log-sum оценки). -/
+theorem log_chord {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
+    (hw : 0 < w) (hw2 : w < 1) :
+    (1 - w) * Real.log a + w * Real.log b
+      ≤ Real.log ((1 - w) * a + w * b) := by
+  have hc : ConcaveOn ℝ (Ioi (0:ℝ)) Real.log :=
+    strictConcaveOn_log_Ioi.concaveOn
+  have hma : (a:ℝ) ∈ Ioi (0:ℝ) := ha
+  have hmb : (b:ℝ) ∈ Ioi (0:ℝ) := hb
+  have hw1 : (0:ℝ) ≤ 1 - w := by linarith
+  have hsum : (1 - w) + w = 1 := by ring
+  have h := hc.2 hma hmb hw1 (le_of_lt hw) hsum
+  -- h : log ((1-w) • a + w • b) >= (1-w) • log a + w • log b
+  have hcombo : ((1 - w)) • (a:ℝ) + (w) • (b:ℝ) = (1 - w) * a + w * b := by
+    rw [smul_eq_mul, smul_eq_mul]
+  rw [hcombo] at h
+  simpa using h
