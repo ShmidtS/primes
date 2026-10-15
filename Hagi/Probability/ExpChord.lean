@@ -808,3 +808,62 @@ theorem minkowski_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : �
       rw [hXsplit]
       exact hchain
     exact le_of_mul_le_mul_right hstep hXqpos
+
+/-! ## Монотонность Ляпунова (R509)
+
+(E|g|^r)^{1/r} <= (E|g|^s)^{1/s} при 0 < r < s, sum w = 1:
+R507 применён к |g|^r с показателем p = s/r, сте-
+пенной коллапс (|g|^r)^{s/r} = |g|^s, финал через
+rpow_le_rpow (обе части h в степень 1/r) и
+rpow_mul-сокращение. Лестница моментов замкнута. -/
+theorem lyapunov_moment_mono {V : Type*} [Fintype V] (w g : V → ℝ)
+    {r s : ℝ} (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v : V, w v = 1)
+    (hr : 0 < r) (hs : r < s) :
+    (∑ v : V, w v * |g v| ^ r) ^ (1 / r)
+      ≤ (∑ v : V, w v * |g v| ^ s) ^ (1 / s) := by
+  set p : ℝ := s / r with hp
+  have hp1 : 1 < p := by
+    rw [hp]
+    rw [one_lt_div hr]
+    linarith
+  have hpq : 1 / p + 1 / (p / (p - 1)) = 1 := by
+    have hp0 : (0:ℝ) < p := by linarith
+    have hpm1 : (0:ℝ) < p - 1 := by linarith
+    field_simp
+    ring
+  have h := lp_mean_le_rms (p := p) (q := p / (p - 1)) w
+    (fun v => |g v| ^ r) hw hw1 hp1 hpq
+  -- unwrap abs and collapse powers inside h
+  have habs : ∀ v : V, w v * abs (|g v| ^ r) = w v * |g v| ^ r := by
+    intro v
+    rw [abs_of_nonneg (Real.rpow_nonneg (abs_nonneg _) r)]
+  rw [Finset.sum_congr rfl (fun v _ => habs v)] at h
+  have hpow : ∀ v : V, w v * abs (|g v| ^ r) ^ p = w v * |g v| ^ s := by
+    intro v
+    rw [abs_of_nonneg (Real.rpow_nonneg (abs_nonneg _) r)]
+    rw [hp, ← Real.rpow_mul (abs_nonneg _) r (s / r),
+      mul_div_cancel₀ _ (by linarith : (r:ℝ) ≠ 0)]
+  rw [Finset.sum_congr rfl (fun v _ => hpow v)] at h
+  have hexp : 1 / p = r / s := by
+    rw [hp]
+    field_simp
+  rw [hexp] at h
+  have hnn : (0:ℝ) ≤ ∑ v : V, w v * |g v| ^ r :=
+    Finset.sum_nonneg (fun v _ => mul_nonneg (hw v)
+      (Real.rpow_nonneg (abs_nonneg _) r))
+  have hsnn : (0:ℝ) ≤ ∑ v : V, w v * |g v| ^ s :=
+    Finset.sum_nonneg (fun v _ => mul_nonneg (hw v)
+      (Real.rpow_nonneg (abs_nonneg _) s))
+  -- raise h to power 1/r (monotone for nonneg base)
+  have hstep : (∑ v : V, w v * |g v| ^ r) ^ (1 / r)
+      ≤ ((∑ v : V, w v * |g v| ^ s) ^ (r / s)) ^ (1 / r) :=
+    Real.rpow_le_rpow (x := ∑ v : V, w v * |g v| ^ r)
+      (y := (∑ v : V, w v * |g v| ^ s) ^ (r / s)) (z := 1 / r) hnn h
+      (by positivity : (0:ℝ) ≤ 1 / r)
+  -- collapse the double power
+  have hcollapse : ((∑ v : V, w v * |g v| ^ s) ^ (r / s)) ^ (1 / r)
+      = (∑ v : V, w v * |g v| ^ s) ^ (1 / s) := by
+    rw [← Real.rpow_mul hsnn]
+    rw [show (r / s) * (1 / r) = 1 / s from by
+      field_simp]
+  rwa [hcollapse] at hstep
