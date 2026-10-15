@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.Hoeffding
+import Hagi.Probability.ChernoffCGF
 set_option linter.style.header false
 
 /-!
@@ -778,3 +779,23 @@ theorem max_bound_abs_union {V : Type*} [Fintype V]
       rw [← Finset.sum_add_distrib]
       refine Finset.sum_congr rfl (fun t _ => ?_)
       rw [Finset.sum_add_distrib, ← hR1 t, ← hR2 t]
+
+/-- **Anytime-лестница, шаг 3**: явные экспоненциальные члены.
+Временное семейство (μ_t, σ²_t) с субгауссовым CGF на каждом шаге:
+P(∃ t < T: μ_t + u_t ≤ g_t(ω)) ≤ Σ_t exp(−u_t²/(2σ²_t)).
+Композиция union_bound_finite (шаг 1) + chernoff_subgauss_tail
+(per-t exp-хвосты). -/
+theorem anytime_subgauss_exp {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (μ σ2 u : ℕ → ℝ) (T : ℕ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hs2 : ∀ t, 0 < σ2 t) (hu : ∀ t, 0 < u t)
+    (hcgf : ∀ t : ℕ, ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : V, q v * Real.exp (c * (g v - μ t)))
+        ≤ c ^ 2 * σ2 t / 2) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T, μ t + u t ≤ g v) Finset.univ, q v
+      ≤ ∑ t ∈ Finset.range T, Real.exp (-(u t ^ 2) / (2 * σ2 t)) := by
+  classical
+  refine le_trans (union_bound_finite q hq hq1
+    (fun t v => μ t + u t ≤ g v) T) ?_
+  refine Finset.sum_le_sum (fun t ht => ?_)
+  exact chernoff_subgauss_tail q g (μ t) (σ2 t) (u t) hq (hs2 t) (hu t) (hcgf t)

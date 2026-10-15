@@ -193,6 +193,12 @@ same-folder DAG свободен.
   ≤ M²/4 (prune_certificate). Формализация
   тезиса «98,5% тепловая масса, знание —
   в 1,5% каркаса».
+- `Probability/CertifiedEstimator`
+  `anytime_subgauss_exp` (R523):
+  anytime-лестница шаг 3 — явные
+  exp-члены: P(∃t<T: μ_t+u_t ≤ g) ≤
+  Σ_t e^{−u_t²/(2σ²_t)} (композиция
+  union_bound_finite + chernoff_subgauss_tail).
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
