@@ -202,6 +202,10 @@ same-folder DAG свободен.
   `anytime_subgauss_const` (R524):
   стационарный случай (μ,σ²,u постоянны) —
   хвост T·e^{−u²/(2σ²)}.
+  `anytime_safe_threshold` (R525):
+  uniform-уровень α — порог
+  u = √(2σ²ln(T/α)) ⟹ anytime-событие
+  контролируется на уровне α.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-

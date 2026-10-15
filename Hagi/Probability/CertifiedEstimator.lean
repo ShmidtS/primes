@@ -814,3 +814,46 @@ theorem anytime_subgauss_const {V : Type*} [Fintype V] [Nonempty V]
   refine le_trans h ?_
   rw [Finset.sum_const]
   simp
+
+theorem anytime_safe_threshold {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (μ σ2 α : ℝ) (T : ℕ)
+    (hT : 0 < T) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hs2 : 0 < σ2) (hα : 0 < α) (hα1 : α < 1)
+    (hcgf : ∀ t : ℕ, ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : V, q v * Real.exp (c * (g v - μ)))
+        ≤ c ^ 2 * σ2 / 2) :
+    ∑ v ∈ Finset.filter (fun v =>
+        ∃ t < T, μ + Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ≤ g v)
+      Finset.univ, q v ≤ α := by
+  have hT1 : (1:ℝ) ≤ (T:ℝ) :=
+    Nat.one_le_cast.mpr (Nat.one_le_iff_ne_zero.mpr (ne_of_gt hT))
+  have hTα : (1:ℝ) < (T:ℝ) / α := by
+    rw [one_lt_div hα]
+    linarith
+  have hlog : 0 < Real.log ((T:ℝ) / α) := Real.log_pos hTα
+  have hu : 0 < Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) := by
+    apply Real.sqrt_pos.mpr
+    positivity
+  have hstep := anytime_subgauss_const q g μ σ2
+    (Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α))) T
+    hq hq1 hs2 hu hcgf
+  -- hexp: exp(−u²/(2σ²)) = exp(−ln(T/α)) = α/T
+  have hexp : Real.exp (-(Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ^ 2)
+      / (2 * σ2)) = α / (T:ℝ) := by
+    have hsq : (Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α))) ^ 2
+        = 2 * σ2 * Real.log ((T:ℝ) / α) := Real.sq_sqrt (by positivity)
+    rw [hsq]
+    have hdel : -((2:ℝ) * σ2 * Real.log ((T:ℝ)/α)) / (2 * σ2)
+        = -Real.log ((T:ℝ)/α) := by field_simp
+    rw [hdel]
+    have hposx : (0:ℝ) < (T:ℝ)/α := div_pos (by linarith) hα
+    have hE : Real.exp (Real.log ((T:ℝ)/α)) = (T:ℝ)/α := Real.exp_log hposx
+    rw [show Real.exp (-(Real.log ((T:ℝ)/α))) = α / (T:ℝ) from by
+      rw [Real.exp_neg, hE]
+      field_simp]
+  calc ∑ v ∈ Finset.filter (fun v => ∃ t < T,
+      μ + Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ≤ g v) Finset.univ, q v
+      ≤ (T:ℝ) * Real.exp (-(Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ^ 2)
+          / (2 * σ2)) := hstep
+    _ = (T:ℝ) * (α / (T:ℝ)) := by rw [hexp]
+    _ = α := mul_div_cancel₀ α (by linarith [hT1])
