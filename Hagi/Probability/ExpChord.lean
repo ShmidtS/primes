@@ -634,3 +634,29 @@ theorem hoelder_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
   rw [Finset.sum_congr rfl (fun v _ => habsL v)] at h
   rw [Finset.sum_congr rfl (fun v _ => (habsorb v).symm)]
   exact h
+
+/-! ## Среднее <= RMS-мощность (R507)
+
+Взвешенное E|g| <= (E|g|^p)^{1/p} при sum w = 1:
+взвешенный Гёльдер R506 с константной второй функцией;
+мгновенное следствие. Ключ к Jensen/Lyapunov-оценкам. -/
+theorem lp_mean_le_rms {V : Type*} [Fintype V] (w g : V → ℝ) {p q : ℝ}
+    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v : V, w v = 1)
+    (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    ∑ v : V, w v * |g v|
+      ≤ (∑ v : V, w v * |g v| ^ p) ^ (1 / p) := by
+  have h := hoelder_weighted w g (fun _ => (1:ℝ)) hw hp hpq
+  -- second factor: (sum w * |1|^q)^{1/q} = (sum w)^{1/q} = 1
+  have hone : (∑ v : V, w v * |(1:ℝ)| ^ q) = 1 := by
+    have h1 : ∀ v : V, w v * |(1:ℝ)| ^ q = w v := by
+      intro v
+      rw [abs_one, one_rpow, mul_one]
+    rw [Finset.sum_congr rfl (fun v _ => h1 v), hw1]
+  rw [hone] at h
+  -- second factor becomes 1^{1/q} = 1
+  rw [one_rpow, mul_one] at h
+  -- LHS: |g v * 1| = |g v|
+  have hL : ∑ v : V, w v * |g v * (1:ℝ)| = ∑ v : V, w v * |g v| := by
+    refine Finset.sum_congr rfl (fun v _ => ?_)
+    rw [mul_one]
+  rwa [hL] at h
