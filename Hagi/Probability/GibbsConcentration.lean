@@ -4171,3 +4171,125 @@ theorem chebyshev_popoviciu {V : Type*} [Fintype V] [DecidableEq V]
   rw [le_div_iff₀ (by positivity : (0:ℝ) < 4 * t ^ 2)]
   nlinarith [hchain, ht2]
 
+/-- Cantelli (one-sided Chebyshev): for g in [a,b] under weights q,
+the one-sided deviation tail satisfies q{g - mu >= t} <= sigma^2 /
+(sigma^2 + t^2) with sigma^2 = (b-a)^2/4.  Proof: Markov on the
+shifted square (g - mu + c)^2 with c = sigma^2/t, cross term
+vanishes since sum q(g - mu) = 0, and (sigma^2 + c^2)(sigma^2 + t^2)
+= sigma^2(t + c)^2 closes the algebra. -/
+theorem cantelli_one_side {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (q g : V → ℝ) (a b t : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) (ht : 0 < t) :
+    ∑ v ∈ Finset.filter (fun v => t ≤ g v - ∑ x : V, q x * g x)
+      Finset.univ, q v
+      ≤ (b - a) ^ 2 / (4 * t ^ 2 + (b - a) ^ 2) := by
+  set μ := ∑ x : V, q x * g x with hμd
+  set σ2 := (b - a) ^ 2 / 4 with hσ2def
+  have hσ2 : (0:ℝ) ≤ σ2 := by unfold σ2; positivity
+  rcases lt_or_eq_of_le hσ2 with hσ2pos | hσ2zero
+  · -- main case: sigma2 > 0
+    have hpop := popoviciu_var q g a b hq hq1 hlo hhi
+    have hVar : ∑ v : V, q v * (g v - μ) ^ 2 ≤ σ2 := hpop
+    set c := σ2 / t with hc
+    have hc_pos : 0 < c := div_pos hσ2pos ht
+    have hdev : ∀ v : V, t ≤ g v - μ →
+        (t + c) ^ 2 ≤ (g v - μ + c) ^ 2 := by
+      intro v hv
+      have h1 : t + c ≤ g v - μ + c := by linarith
+      have h2 : (0:ℝ) ≤ t + c := by linarith
+      have h3 : (0:ℝ) ≤ g v - μ + c := by linarith
+      exact sq_le_sq.mpr
+        (by rw [abs_of_nonneg h2, abs_of_nonneg h3]; exact h1)
+    have hnng : ∀ v, (0:ℝ) ≤ (g v - μ + c) ^ 2 := fun v => sq_nonneg _
+    have hthr : (0:ℝ) < (t + c) ^ 2 :=
+      sq_pos_of_ne_zero (ne_of_gt (by linarith))
+    have hmk := markov_finite q (fun v => (g v - μ + c) ^ 2)
+      ((t + c) ^ 2) hq hnng hthr
+    set S1 := Finset.filter (fun v => t ≤ g v - μ) Finset.univ with hS1
+    set S2 := Finset.filter
+      (fun v => (t + c) ^ 2 ≤ (g v - μ + c) ^ 2) Finset.univ with hS2
+    have hss : S1 ⊆ S2 := by
+      intro v hv
+      rw [hS1, Finset.mem_filter] at hv
+      rw [hS2, Finset.mem_filter]
+      exact ⟨hv.1, hdev v hv.2⟩
+    have hcard : ∑ v ∈ S1, q v ≤ ∑ v ∈ S2, q v := by
+      have hsplit : ∑ v ∈ S2, q v
+          = ∑ v ∈ S1, q v + ∑ v ∈ S2 \ S1, q v := by
+        have := Finset.sum_sdiff hss (f := q)
+        linarith
+      rw [hsplit]
+      exact le_add_of_nonneg_right
+        (Finset.sum_nonneg (fun v _ => le_of_lt (hq v)))
+    have hqμ : ∑ v : V, q v * (g v - μ) = 0 := by
+      have hsplit : ∀ v : V, q v * (g v - μ)
+          = q v * g v - q v * μ := fun v => by ring
+      rw [Finset.sum_congr rfl (fun v _ => hsplit v)]
+      rw [Finset.sum_sub_distrib]
+      have hB : ∑ v : V, q v * μ = μ := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) μ),
+          ← Finset.mul_sum, hq1, mul_one]
+      rw [hB]
+      rw [hμd]
+      ring
+    have hE : ∑ v : V, q v * (g v - μ + c) ^ 2 ≤ σ2 + c ^ 2 := by
+      have hexp : ∀ v : V, q v * (g v - μ + c) ^ 2
+          = q v * (g v - μ) ^ 2 + 2 * c * (q v * (g v - μ))
+            + q v * c ^ 2 := by
+        intro v; ring
+      rw [Finset.sum_congr rfl (fun v _ => hexp v)]
+      have hcross : ∑ v : V, 2 * c * (q v * (g v - μ)) = 0 := by
+        have hpull : ∑ v : V, 2 * c * (q v * (g v - μ))
+            = 2 * c * ∑ v : V, q v * (g v - μ) := by
+          rw [Finset.mul_sum]
+        rw [hpull, hqμ, mul_zero]
+      have hconst : ∑ v : V, q v * c ^ 2 = c ^ 2 := by
+        rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) (c ^ 2)),
+          ← Finset.mul_sum, hq1, mul_one]
+      rw [Finset.sum_add_distrib, Finset.sum_add_distrib, hcross, hconst]
+      linarith
+    have hchain : (t + c) ^ 2 * ∑ v ∈ S1, q v ≤ σ2 + c ^ 2 := by
+      calc (t + c) ^ 2 * ∑ v ∈ S1, q v
+          ≤ (t + c) ^ 2 * ∑ v ∈ S2, q v :=
+            mul_le_mul_of_nonneg_left hcard (le_of_lt hthr)
+        _ ≤ ∑ v : V, q v * (g v - μ + c) ^ 2 := hmk
+        _ ≤ σ2 + c ^ 2 := hE
+    have htc : t * c = σ2 := by rw [hc]; field_simp
+    have h4 : (b - a) ^ 2 = 4 * σ2 := by
+      have : σ2 = (b - a) ^ 2 / 4 := rfl
+      linarith [this]
+    rw [le_div_iff₀ (by positivity : (0:ℝ) < 4 * t ^ 2 + (b - a) ^ 2)]
+    nlinarith [hchain, htc, h4]
+  · -- degenerate: sigma2 = 0, so a = b, g constant, event empty
+    have hab : (b - a) ^ 2 = 0 := by
+      have : σ2 = (b - a) ^ 2 / 4 := rfl
+      rw [hσ2def] at hσ2zero
+      have h4 : (4:ℝ) ≠ 0 := by norm_num
+      field_simp at hσ2zero
+      linarith [hσ2zero]
+    have hba : b = a := by
+      have := sq_eq_zero_iff.mp hab
+      linarith
+    have hg : ∀ v : V, g v = a := by
+      intro v; rw [← hba]; linarith [hlo v, hhi v]
+    have hμa : μ = a := by
+      unfold μ
+      rw [Finset.sum_congr rfl (fun v _ => by rw [hg v])]
+      rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a)]
+      rw [← Finset.mul_sum, hq1, mul_one]
+    have hfalse : ∀ v : V, t ≤ g v - μ → False := by
+      intro v hv
+      rw [hμa, hg v] at hv
+      linarith
+    have hempty : Finset.filter (fun v => t ≤ g v - μ) Finset.univ = ∅ := by
+      ext v
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      rw [hμa, hg v, sub_self]
+      simp [ht]
+    rw [hempty, Finset.sum_empty]
+    have hR : (0:ℝ) ≤ (b - a) ^ 2 / (4 * t ^ 2 + (b - a) ^ 2) := by
+      rw [hab]
+      positivity
+    linarith
+
