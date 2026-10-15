@@ -412,3 +412,38 @@ theorem bhatia_davis {V : Type*} [Fintype V] [Nonempty V]
   rw [hvar]
   linarith [hsum, hexp]
 
+/-- Bridge: the Bhatia-Davis bound implies the classic Popoviciu
+bound, since (b - mu)(mu - a) <= ((b - a)/2)^2 for mu in [a,b]
+(the difference is the square ((b - mu) - (mu - a))^2 / 4 >= 0).
+Also gives a second, purely algebraic proof of popoviciu_var via
+R496 + AM-GM identity. -/
+theorem bhatia_implies_popoviciu {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
+    ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2 ≤ (b - a) ^ 2 / 4 := by
+  set μ := ∑ x : V, q x * g x with hμd
+  have hbd := bhatia_davis q g a b hq hq1 hlo hhi
+  -- mu in [a,b]
+  have hμa : a ≤ μ := by
+    calc a = ∑ v : V, q v * a := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a),
+            ← Finset.mul_sum, hq1, mul_one]
+      _ ≤ ∑ v : V, q v * g v := Finset.sum_le_sum
+          (fun v _ => mul_le_mul_of_nonneg_left (hlo v) (le_of_lt (hq v)))
+  have hμb : μ ≤ b := by
+    calc μ = ∑ v : V, q v * g v := rfl
+      _ ≤ ∑ v : V, q v * b := Finset.sum_le_sum
+          (fun v _ => mul_le_mul_of_nonneg_left (hhi v) (le_of_lt (hq v)))
+      _ = b := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) b),
+            ← Finset.mul_sum, hq1, mul_one]
+  -- AM-GM: (b-mu)(mu-a) <= ((b-a)/2)^2 for mu in [a,b]
+  have hamgm : (b - μ) * (μ - a) ≤ (b - a) ^ 2 / 4 := by
+    have h1 : (0:ℝ) ≤ b - μ := by linarith
+    have h2 : (0:ℝ) ≤ μ - a := by linarith
+    nlinarith [sq_nonneg ((b - μ) - (μ - a)), mul_nonneg h1 h2]
+  calc ∑ v : V, q v * (g v - μ) ^ 2
+      ≤ (b - μ) * (μ - a) := hbd
+    _ ≤ (b - a) ^ 2 / 4 := hamgm
+
