@@ -447,3 +447,34 @@ theorem bhatia_implies_popoviciu {V : Type*} [Fintype V] [Nonempty V]
       ≤ (b - μ) * (μ - a) := hbd
     _ ≤ (b - a) ^ 2 / 4 := hamgm
 
+/-- Excess-variance bridge: Var_q(g) <= (b-a) * (mu - a) —
+Bhatia-Davis R496 with b - mu <= b - a.  For the Gibbs vertical
+this gives Var_{p_T}(E) <= Delta * (⟨E⟩ - E*) — fluctuations
+are controlled by the mean excess directly. -/
+theorem var_le_delta_excess {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
+    ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2
+      ≤ (b - a) * (∑ x : V, q x * g x - a) := by
+  set μ := ∑ x : V, q x * g x with hμd
+  have hbd := bhatia_davis q g a b hq hq1 hlo hhi
+  -- b - mu <= b - a  (mu >= a)
+  have hμa : a ≤ μ := by
+    calc a = ∑ v : V, q v * a := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a),
+            ← Finset.mul_sum, hq1, mul_one]
+      _ ≤ ∑ v : V, q v * g v := Finset.sum_le_sum
+          (fun v _ => mul_le_mul_of_nonneg_left (hlo v) (le_of_lt (hq v)))
+  rw [show (b - μ) = (b - a) - (μ - a) from by ring] at hbd
+  -- (b-a) - (mu-a) <= (b-a)
+  have hnonneg : (0:ℝ) ≤ b - a := by
+    have v : V := Classical.arbitrary V
+    linarith [hlo v, hhi v]
+  -- b - mu <= b - a directly:  mu >= a
+  have hleDbmu : b - μ ≤ b - a := by linarith
+  calc ∑ v : V, q v * (g v - μ) ^ 2
+      ≤ (b - a - (μ - a)) * (μ - a) := hbd
+    _ ≤ (b - a) * (μ - a) := by
+          exact mul_le_mul_of_nonneg_right
+            (by ring_nf; linarith) (sub_nonneg.mpr hμa)
