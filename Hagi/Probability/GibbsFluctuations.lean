@@ -42,9 +42,10 @@ theorem gibbs_energy_variance_bound
     dsimp [p]
     exact div_pos (Real.exp_pos _) hZpos
   have hp1 : ∑ v : V, p v = 1 := by
-    change (∑ v : V, Real.exp (-(E v) / T) / Z) = 1
-    rw [Finset.sum_div]
-    change Z / Z = 1
+    have hsd : ∑ v : V, Real.exp (-(E v) / T) / Z
+        = (∑ v : V, Real.exp (-(E v) / T)) / Z :=
+      (Finset.sum_div Finset.univ (fun v => Real.exp (-(E v) / T)) Z).symm
+    rw [hsd]
     exact div_self hZpos.ne'
   -- Convert the normalized Gibbs mean into the partition-function form R393.
   have hμeq : μ =
