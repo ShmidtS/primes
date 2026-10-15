@@ -565,3 +565,30 @@ theorem chernoff_subgauss_tail {V : Type*} [Fintype V] [DecidableEq V]
     rw [← Real.exp_sub, hex]
   exact le_trans hq' (le_trans h1 h2.le)
 
+/-- Дополнение хвоста: мера {g < t} = 1 − мера{g ≥ t} для
+вероятностных весов q. -/
+theorem tail_complement {V : Type*} [Fintype V] [DecidableEq V]
+    (q g : V → ℝ) (t : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1) :
+    ∑ v ∈ Finset.filter (fun v => g v < t) Finset.univ, q v
+      + ∑ v ∈ Finset.filter (fun v => t ≤ g v) Finset.univ, q v = 1 := by
+  classical
+  set A : Finset V := Finset.filter (fun v => g v < t) Finset.univ with hA
+  set B : Finset V := Finset.filter (fun v => t ≤ g v) Finset.univ with hB
+  have hd : A ∩ B = ∅ := by
+    ext v
+    simp [Finset.mem_inter, hA, hB, Finset.mem_filter, Finset.mem_univ]
+  have hun : A ∪ B = Finset.univ := by
+    ext v
+    simp only [Finset.mem_union, hA, hB, Finset.mem_filter, Finset.mem_univ,
+      true_and]
+    cases lt_or_ge (g v) t <;> simp [*]
+  have hunion : ∑ v ∈ A ∪ B, q v
+      = ∑ v ∈ A, q v + ∑ v ∈ B, q v := by
+    have hi := Finset.sum_union_inter (f := q) (s₁ := A) (s₂ := B)
+    rw [hd] at hi
+    simp at hi
+    exact hi
+  have hfull : ∑ v : V, q v = ∑ v ∈ A ∪ B, q v := by rw [hun]
+  rw [hfull] at hq1
+  linarith
