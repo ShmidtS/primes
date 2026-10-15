@@ -141,6 +141,13 @@ same-folder DAG свободен.
   `lp_mean_le_rms` (E|g|≤(E|g|^p)^{1/p}),
   `minkowski_weighted` — полная невзвешенная и
   взвешенная Young→Hölder→Minkowski-вертикаль.
+
+- `Probability/GibbsFluctuations` (R510–R512): термо-
+  статное трио сертификации: `thermostat_var_stop` /
+  `thermostat_threshold` (порог T ≤ δ/ln(c/ε) ⟹
+  Var ≤ ε), `gibbs_var_tendsto_zero` (Var → 0 вдоль
+  T_n = δ/(n+1)), `gibbs_var_steps_bound` (n+1 ≥
+  ln(Δ²(n−1)/ε) ⟹ Var ≤ ε — число шагов).
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
