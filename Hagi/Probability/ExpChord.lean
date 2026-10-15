@@ -46,3 +46,92 @@ theorem exp_chord {a b x : ℝ} (hab : a < b) (hxa : a ≤ x) (hxb : x ≤ b)
     exact mul_div_cancel_left₀ x hne
   rw [hcombo] at hconv
   simpa using hconv
+
+/-! ## Шаг Хёффдинга: взвешенное хордовое MGF (R499)
+
+E_q e^{r(g - mu)} <= ((b-mu)/(b-a)) e^{r(a-mu)} + ((mu-a)/(b-a)) e^{r(b-mu)}:
+хорда R498 суммируется с весами q, аффинные веса усредняются к
+барицентру (sum q (b - g) = b - mu, sum q (g - a) = mu - a),
+константы выносятся из сумм через mul_sum-коммутационный simp.
+-/
+theorem hoeffding_chord_mgf {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) (hab : a < b) (r : ℝ) :
+    ∑ v : V, q v * Real.exp (r * (g v - ∑ x : V, q x * g x))
+      ≤ (b - ∑ x : V, q x * g x) / (b - a) * Real.exp (r * (a - ∑ x : V, q x * g x))
+        + (∑ x : V, q x * g x - a) / (b - a)
+          * Real.exp (r * (b - ∑ x : V, q x * g x)) := by
+  set μ := ∑ x : V, q x * g x with hμd
+  -- per-vertex chord on [a - mu, b - mu]
+  have hdev : ∀ v : V, (a - μ) ≤ (g v - μ) ∧ (g v - μ) ≤ (b - μ) := by
+    intro v
+    constructor <;> linarith [hlo v, hhi v]
+  have hlt : a - μ < b - μ := by linarith
+  -- sum the chord with weights
+  have hchord : ∀ v : V, q v * Real.exp (r * (g v - μ))
+      ≤ q v * ((b - μ - (g v - μ)) / (b - μ - (a - μ)) * Real.exp (r * (a - μ))
+        + (g v - μ - (a - μ)) / (b - μ - (a - μ)) * Real.exp (r * (b - μ))) :=
+    fun v => mul_le_mul_of_nonneg_left
+      (exp_chord (a := a - μ) (b := b - μ) hlt (hdev v).1 (hdev v).2 r)
+      (le_of_lt (hq v))
+  refine le_trans (Finset.sum_le_sum (fun v _ => hchord v)) ?_
+  · -- sum of weights times chord = RHS (weights sum to 1)
+    have h1 : ∑ v : V, q v * (((b - μ) - (g v - μ)) / (b - μ - (a - μ))
+          * Real.exp (r * (a - μ))
+        + ((g v - μ) - (a - μ)) / (b - μ - (a - μ)) * Real.exp (r * (b - μ)))
+        = ∑ v : V, q v * ((b - g v) / (b - a) * Real.exp (r * (a - μ))
+          + (g v - a) / (b - a) * Real.exp (r * (b - μ))) := by
+      refine Finset.sum_congr rfl (fun v _ => ?_)
+      have hden : b - μ - (a - μ) = b - a := by ring
+      rw [hden]
+      ring
+    rw [h1]
+    -- now average the affine weights
+    have hwavg1 : ∑ v : V, q v * ((b - g v) / (b - a))
+        = (b - μ) / (b - a) := by
+      have : ∀ v : V, q v * ((b - g v) / (b - a))
+          = (q v * (b - g v)) / (b - a) := fun v => by ring
+      rw [Finset.sum_congr rfl (fun v _ => this v)]
+      rw [← Finset.sum_div]
+      have hbg : ∑ v : V, q v * (b - g v) = b - μ := by
+        have hsplit : ∀ v : V, q v * (b - g v) = q v * b - q v * g v := by
+          intro v; ring
+        rw [Finset.sum_congr rfl (fun v _ => hsplit v)]
+        rw [Finset.sum_sub_distrib]
+        have hqb : ∑ v : V, q v * b = b := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) b),
+            ← Finset.mul_sum, hq1, mul_one]
+        rw [hqb]
+      rw [hbg]
+    have hwavg2 : ∑ v : V, q v * ((g v - a) / (b - a))
+        = (μ - a) / (b - a) := by
+      have : ∀ v : V, q v * ((g v - a) / (b - a))
+          = (q v * (g v - a)) / (b - a) := fun v => by ring
+      rw [Finset.sum_congr rfl (fun v _ => this v)]
+      rw [← Finset.sum_div]
+      have hga : ∑ v : V, q v * (g v - a) = μ - a := by
+        have hsplit : ∀ v : V, q v * (g v - a) = q v * g v - q v * a := by
+          intro v; ring
+        rw [Finset.sum_congr rfl (fun v _ => hsplit v)]
+        rw [Finset.sum_sub_distrib]
+        have hqa : ∑ v : V, q v * a = a := by
+          rw [Finset.sum_congr rfl (fun v _ => mul_comm (q v) a)]
+          rw [← Finset.mul_sum, hq1, mul_one]
+        rw [hqa]
+      rw [hga]
+    -- distribute the sum over the two terms
+    have hsplit : ∑ v : V, q v * ((b - g v) / (b - a) * Real.exp (r * (a - μ))
+        + (g v - a) / (b - a) * Real.exp (r * (b - μ)))
+        = ∑ v : V, q v * ((b - g v) / (b - a)) * Real.exp (r * (a - μ))
+          + ∑ v : V, q v * ((g v - a) / (b - a)) * Real.exp (r * (b - μ)) := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl (fun v _ => by ring)
+    rw [hsplit]
+    have e1 : ∑ v : V, q v * ((b - g v) / (b - a)) * Real.exp (r * (a - μ))
+        = (∑ v : V, q v * ((b - g v) / (b - a))) * Real.exp (r * (a - μ)) := by
+      simp [Finset.mul_sum, mul_comm, mul_assoc, mul_left_comm]
+    have e2 : ∑ v : V, q v * ((g v - a) / (b - a)) * Real.exp (r * (b - μ))
+        = (∑ v : V, q v * ((g v - a) / (b - a))) * Real.exp (r * (b - μ)) := by
+      simp [Finset.mul_sum, mul_comm, mul_assoc, mul_left_comm]
+    rw [e1, e2, hwavg1, hwavg2]
