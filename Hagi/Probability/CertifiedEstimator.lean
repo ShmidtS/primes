@@ -543,3 +543,75 @@ end Hagi.Probability
 namespace Hagi
 export Hagi.Probability (prodDens prodE prodPq IsProbSys prodDens_nonneg sum_prod_factor prodE_one prodPq_le_one prodPq_compl prodPq_mono prodPq_union_le prodE_exp_sum markov_ge coordMean centeredSum coord_center_zero coord_mgf_bound sum_mgf_bound hoeffding_chernoff hoeffding_tail hoeffding_mean_tail hoeffding_mean_tail_low hoeffding_two_sided cert_upper cert_lower certified_premise)
 end Hagi
+
+/-- Конечный union-bound: событие {∃ t < T, S t v} под-мерой q
+не превосходит суммы мер {S t v} по t < T. -/
+theorem union_bound_finite {V : Type*} [Fintype V]
+    (q : V → ℝ) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (S : ℕ → (V → Prop)) [∀ t, DecidablePred (S t)] (T : ℕ) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T, S t v) Finset.univ, q v
+      ≤ ∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter (S t) Finset.univ, q v := by
+  classical
+  -- pointwise indicator inequality
+  have hpoint : ∀ v : V,
+      (if ∃ t < T, S t v then (1:ℝ) else 0)
+        ≤ ∑ t ∈ Finset.range T, (if S t v then (1:ℝ) else 0) := by
+    intro v
+    by_cases hE : ∃ t < T, S t v
+    · obtain ⟨t, ht, hSt⟩ := hE
+      rw [if_pos (by exact ⟨t, ht, hSt⟩)]
+      have hmem : t ∈ Finset.range T := Finset.mem_range.mpr ht
+      have hs := Finset.single_le_sum (f := fun t' : ℕ =>
+        (if S t' v then (1:ℝ) else 0))
+        (fun x _ => by split <;> simp) hmem
+      have h1 : (if S t v then (1:ℝ) else 0) = 1 := if_pos hSt
+      rwa [h1] at hs
+    · rw [if_neg hE]
+      positivity
+  -- LHS = sum over v of (if exists then q(1) else 0)
+  have hLHS : ∑ v ∈ Finset.filter (fun v => ∃ t < T, S t v) Finset.univ, q v
+      = ∑ v : V, (if ∃ t < T, S t v then q v else 0) := by
+    rw [Finset.sum_filter]
+  have hRHS : ∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter (S t) Finset.univ, q v
+      = ∑ t ∈ Finset.range T, ∑ v : V, (if S t v then q v else 0) := by
+    refine Finset.sum_congr rfl (fun t _ => ?_)
+    rw [Finset.sum_filter]
+  -- after swap: sum_v sum_t (if S t v then q v) = sum_v (q v * count) — compare with hpoint-weighted
+  have hstep : ∀ v : V,
+      (if ∃ t < T, S t v then q v else 0)
+        ≤ q v * ∑ t ∈ Finset.range T, (if S t v then (1:ℝ) else 0) := by
+    intro v
+    by_cases hE : ∃ t < T, S t v
+    · obtain ⟨t, ht, hSt⟩ := hE
+      have hq1' : (if ∃ t < T, S t v then q v else 0) = q v := if_pos (by exact ⟨t, by have : t < T := ht; exact this, hSt⟩)
+      have hcnt : (1:ℝ) ≤ ∑ t' ∈ Finset.range T, (if S t' v then (1:ℝ) else 0) := by
+        have hmem : t ∈ Finset.range T := Finset.mem_range.mpr ht
+        have hs := Finset.single_le_sum (f := fun t' : ℕ =>
+          (if S t' v then (1:ℝ) else 0))
+          (fun x _ => by split <;> simp) hmem
+        have h2 : (if S t v then (1:ℝ) else 0) = 1 := if_pos hSt
+        rwa [h2] at hs
+      rw [hq1']
+      calc q v ≤ q v * 1 := (mul_one _).symm.le
+        _ ≤ q v * ∑ t' ∈ Finset.range T, (if S t' v then (1:ℝ) else 0) :=
+            mul_le_mul_of_nonneg_left hcnt (le_of_lt (hq v))
+    · rw [if_neg hE]
+      exact mul_nonneg (le_of_lt (hq v))
+        (Finset.sum_nonneg (fun t _ => by split <;> simp))
+  -- swap sums on RHS
+  have hswap : ∑ t ∈ Finset.range T, ∑ v : V, (if S t v then q v else 0)
+      = ∑ v : V, q v * ∑ t ∈ Finset.range T, (if S t v then (1:ℝ) else 0) := by
+    rw [← Finset.sum_comm]
+    refine Finset.sum_congr rfl (fun v _ => ?_)
+    rw [show ∑ t ∈ Finset.range T, (if S t v then q v else 0)
+        = q v * ∑ t ∈ Finset.range T, (if S t v then (1:ℝ) else 0) from by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl (fun t _ => by
+        by_cases hSt : S t v
+        · simp [hSt]
+        · simp [hSt])]
+
+  -- final assembly
+  rw [hLHS, hRHS, hswap]
+  exact le_trans (Finset.sum_le_sum (fun v _ => hstep v))
+    (le_refl _)
