@@ -158,3 +158,27 @@ theorem log_chord {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
     rw [smul_eq_mul, smul_eq_mul]
   rw [hcombo] at h
   simpa using h
+
+/-! ## Взвешенное AM-GM (R501)
+
+a^{1-w} * b^w <= (1-w) a + w b для a,b > 0, w in (0,1):
+экспоненцирование хорды логарифма R500; rpow-канал через
+log_rpow + exp_log (positivity для rpow-положительности). -/
+theorem amgm_weighted {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
+    (hw : 0 < w) (hw2 : w < 1) :
+    a ^ (1 - w) * b ^ w ≤ (1 - w) * a + w * b := by
+  have h := log_chord ha hb w hw hw2
+  -- (1-w) ln a + w ln b = ln (a^(1-w) * b^w)
+  have hexp : Real.exp ((1 - w) * Real.log a + w * Real.log b)
+      = a ^ (1 - w) * b ^ w := by
+    rw [Real.exp_add]
+    rw [show Real.exp ((1 - w) * Real.log a) = a ^ (1 - w) from by
+      rw [← Real.log_rpow ha (1 - w),
+        Real.exp_log (by positivity : (0:ℝ) < a ^ (1 - w))],
+     show Real.exp (w * Real.log b) = b ^ w from by
+      rw [← Real.log_rpow hb w,
+        Real.exp_log (by positivity : (0:ℝ) < b ^ w)]]
+  -- exp monotone
+  refine le_trans (le_of_eq hexp.symm) ?_
+  exact le_trans (Real.exp_le_exp.mpr h)
+    (le_of_eq (Real.exp_log (by positivity : (0:ℝ) < (1 - w) * a + w * b)))
