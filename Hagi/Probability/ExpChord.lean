@@ -660,3 +660,151 @@ theorem lp_mean_le_rms {V : Type*} [Fintype V] (w g : V → ℝ) {p q : ℝ}
     refine Finset.sum_congr rfl (fun v _ => ?_)
     rw [mul_one]
   rwa [hL] at h
+
+/-! ## Взвешенный Минковский (R508)
+
+(sum w|a+b|^p)^{1/p} <= (sum w|a|^p)^{1/p} + (sum w|b|^p)^{1/p}
+для w >= 0: та же схема R504 (разложение/треугольник),
+взвешенный Гёльдер R506 на оба слагаемых, сокращение
+le_of_mul_le_mul_right. Полная взвешенная Lp-вертикаль. -/
+theorem minkowski_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
+    (hw : ∀ v, 0 ≤ w v) (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    (∑ v : V, w v * |a v + b v| ^ p) ^ (1 / p)
+      ≤ (∑ v : V, w v * |a v| ^ p) ^ (1 / p)
+        + (∑ v : V, w v * |b v| ^ p) ^ (1 / p) := by
+  have hp0 : (0:ℝ) < p := by linarith
+  have hpp : (1:ℝ) / p < 1 := by
+    rw [div_lt_one hp0]; linarith
+  have hq : 1 < q := by
+    have h1 : (1:ℝ) / q = 1 - 1 / p := by linarith [hpq]
+    have hqpos : (0:ℝ) < q := by
+      by_contra hc
+      push_neg at hc
+      have h2 : (1:ℝ) / q ≤ 0 :=
+        div_nonpos_of_nonneg_of_nonpos (by linarith) hc
+      rw [h1] at h2
+      linarith
+    show (1:ℝ) < q
+    by_contra hq1
+    push_neg at hq1
+    have h3 : (1:ℝ) / q ≥ 1 := by
+      rw [ge_iff_le, le_div_iff₀ hqpos]; linarith
+    rw [h1] at h3
+    have hp1pos : (0:ℝ) < 1 / p := by positivity
+    linarith
+  have hq0 : (0:ℝ) < q := by linarith
+  have hpqmul : p * q = p + q := by
+    have h1 : p * q * (1 / p + 1 / q) = p * q * 1 := by rw [hpq]
+    have h2 : p * q * (1 / p + 1 / q)
+        = p * q / p + p * q / q := by ring
+    have h3 : p * q / p = q := by field_simp
+    have h4 : p * q / q = p := by field_simp
+    rw [h2, h3, h4, mul_one] at h1
+    linarith
+  have hp1q : (p - 1) * q = p := by nlinarith [hpqmul]
+  set X : ℝ := ∑ v : V, w v * |a v + b v| ^ p with hX
+  have hXnn : (0:ℝ) ≤ X := Finset.sum_nonneg
+    (fun v _ => mul_nonneg (hw v) (by positivity : (0:ℝ) ≤ |a v + b v| ^ p))
+  rcases eq_or_lt_of_le hXnn with hX0 | hXpos
+  · rw [← hX0, Real.zero_rpow (by positivity : (1:ℝ) / p ≠ 0)]
+    exact add_nonneg (Real.rpow_nonneg (Finset.sum_nonneg
+      (fun v _ => mul_nonneg (hw v) (by positivity : (0:ℝ) ≤ |a v| ^ p))) _)
+      (Real.rpow_nonneg (Finset.sum_nonneg
+        (fun v _ => mul_nonneg (hw v) (by positivity : (0:ℝ) ≤ |b v| ^ p))) _)
+  · -- decomposition: X = sum w |a+b| * |a+b|^(p-1)
+    have hsplit : X = ∑ v : V, w v * (|a v + b v| * |a v + b v| ^ (p - 1)) := by
+      refine Finset.sum_congr rfl (fun v _ => ?_)
+      have h1 : |a v + b v| ^ p
+          = |a v + b v| ^ (1 + (p - 1)) := by
+        congr 1
+        ring
+      rw [h1, Real.rpow_add' (abs_nonneg _)
+        (by linarith : (1:ℝ) + (p - 1) ≠ 0), Real.rpow_one]
+    -- triangle
+    have htri : ∑ v : V, w v * (|a v + b v| * |a v + b v| ^ (p - 1))
+        ≤ ∑ v : V, w v * ((|a v| + |b v|) * |a v + b v| ^ (p - 1)) := by
+      refine Finset.sum_le_sum (s := Finset.univ) (fun v _ => ?_)
+      exact mul_le_mul_of_nonneg_left
+        (mul_le_mul_of_nonneg_right (abs_add_le _ _)
+          (by positivity : (0:ℝ) ≤ |a v + b v| ^ (p - 1))) (hw v)
+    -- expand
+    have hexp : ∑ v : V, w v * ((|a v| + |b v|) * |a v + b v| ^ (p - 1))
+        = ∑ v : V, w v * (|a v| * |a v + b v| ^ (p - 1))
+          + ∑ v : V, w v * (|b v| * |a v + b v| ^ (p - 1)) := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl (fun v _ => by ring)
+    -- power identity
+    have hpowkey : (fun v => (|a v + b v| ^ (p - 1)) ^ q)
+        = (fun v => |a v + b v| ^ p) := by
+      funext v
+      rw [← Real.rpow_mul (abs_nonneg _) (p - 1) q, hp1q]
+    -- weighted Hoelder both
+    have hH1 : ∑ v : V, w v * (|a v| * |a v + b v| ^ (p - 1))
+        ≤ (∑ v : V, w v * |a v| ^ p) ^ (1 / p) * X ^ (1 / q) := by
+      have h := hoelder_weighted w (fun v => a v)
+        (fun v => |a v + b v| ^ (p - 1)) hw hp hpq
+      have habs : ∀ v : V, w v * |a v * |a v + b v| ^ (p - 1)|
+          = w v * (|a v| * |a v + b v| ^ (p - 1)) := by
+        intro v
+        rw [abs_mul, abs_of_nonneg
+          (Real.rpow_nonneg (abs_nonneg (a v + b v)) (p - 1))]
+      rw [Finset.sum_congr rfl (fun v _ => habs v)] at h
+      have habs3 : ∀ v : V, w v * abs (|a v + b v| ^ (p - 1)) ^ q
+          = w v * (|a v + b v| ^ (p - 1)) ^ q := by
+        intro v
+        rw [abs_of_nonneg (Real.rpow_nonneg (abs_nonneg (a v + b v)) (p - 1))]
+      rw [Finset.sum_congr rfl (fun v _ => habs3 v)] at h
+      have hpk : ∀ v : V, w v * (|a v + b v| ^ (p - 1)) ^ q
+          = w v * |a v + b v| ^ p := by
+        intro v
+        have hk : (|a v + b v| ^ (p - 1)) ^ q = |a v + b v| ^ p :=
+          congrFun hpowkey v
+        rw [hk]
+      rw [Finset.sum_congr rfl (fun v _ => hpk v), ← hX] at h
+      exact h
+    have hH2 : ∑ v : V, w v * (|b v| * |a v + b v| ^ (p - 1))
+        ≤ (∑ v : V, w v * |b v| ^ p) ^ (1 / p) * X ^ (1 / q) := by
+      have h := hoelder_weighted w (fun v => b v)
+        (fun v => |a v + b v| ^ (p - 1)) hw hp hpq
+      have habs : ∀ v : V, w v * |b v * |a v + b v| ^ (p - 1)|
+          = w v * (|b v| * |a v + b v| ^ (p - 1)) := by
+        intro v
+        rw [abs_mul, abs_of_nonneg
+          (Real.rpow_nonneg (abs_nonneg (a v + b v)) (p - 1))]
+      rw [Finset.sum_congr rfl (fun v _ => habs v)] at h
+      have habs3 : ∀ v : V, w v * abs (|a v + b v| ^ (p - 1)) ^ q
+          = w v * (|a v + b v| ^ (p - 1)) ^ q := by
+        intro v
+        rw [abs_of_nonneg (Real.rpow_nonneg (abs_nonneg (a v + b v)) (p - 1))]
+      rw [Finset.sum_congr rfl (fun v _ => habs3 v)] at h
+      have hpk : ∀ v : V, w v * (|a v + b v| ^ (p - 1)) ^ q
+          = w v * |a v + b v| ^ p := by
+        intro v
+        have hk : (|a v + b v| ^ (p - 1)) ^ q = |a v + b v| ^ p :=
+          congrFun hpowkey v
+        rw [hk]
+      rw [Finset.sum_congr rfl (fun v _ => hpk v), ← hX] at h
+      exact h
+    -- chain
+    have hchain : X ≤ ((∑ v : V, w v * |a v| ^ p) ^ (1 / p)
+        + (∑ v : V, w v * |b v| ^ p) ^ (1 / p)) * X ^ (1 / q) := by
+      calc X = ∑ v : V, w v * (|a v + b v| * |a v + b v| ^ (p - 1)) := hsplit
+        _ ≤ ∑ v : V, w v * ((|a v| + |b v|) * |a v + b v| ^ (p - 1)) := htri
+        _ = ∑ v : V, w v * (|a v| * |a v + b v| ^ (p - 1))
+            + ∑ v : V, w v * (|b v| * |a v + b v| ^ (p - 1)) := hexp
+        _ ≤ (∑ v : V, w v * |a v| ^ p) ^ (1 / p) * X ^ (1 / q)
+            + (∑ v : V, w v * |b v| ^ p) ^ (1 / p) * X ^ (1 / q) :=
+          add_le_add hH1 hH2
+        _ = ((∑ v : V, w v * |a v| ^ p) ^ (1 / p)
+            + (∑ v : V, w v * |b v| ^ p) ^ (1 / p)) * X ^ (1 / q) := by ring
+    -- factor and cancel
+    have hXsplit : X ^ (1 / p) * X ^ (1 / q) = X := by
+      rw [← Real.rpow_add' hXnn (by
+        rw [hpq]; norm_num : (1:ℝ) / p + 1 / q ≠ 0), hpq, Real.rpow_one]
+    have hXqpos : (0:ℝ) < X ^ (1 / q) := Real.rpow_pos_of_pos hXpos _
+    have hstep : X ^ (1 / p) * X ^ (1 / q)
+        ≤ ((∑ v : V, w v * |a v| ^ p) ^ (1 / p)
+            + (∑ v : V, w v * |b v| ^ p) ^ (1 / p)) * X ^ (1 / q) := by
+      rw [hXsplit]
+      exact hchain
+    exact le_of_mul_le_mul_right hstep hXqpos
