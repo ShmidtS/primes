@@ -615,3 +615,41 @@ theorem union_bound_finite {V : Type*} [Fintype V]
   rw [hLHS, hRHS, hswap]
   exact le_trans (Finset.sum_le_sum (fun v _ => hstep v))
     (le_refl _)
+
+/-! ## Anytime-лестница (R517): max-связки через union bound
+
+`max_bound_union`: P(max_{t<T} g_t >= u) <= sum_t P(g_t >= u)
+— прямое применение union_bound_finite к хвостовым событиям;
+`max_bound_chernoff_sum` — суммарно-экспоненциальная форма с
+per-t членами e t.  PS2020 (Howard–Ramdas) шаги 1–2 лестницы.
+
+-/
+
+/-- Anytime-кирпич: P(max_{t<T} g_t >= u) <= sum_t P(g_t >= u)
+— прямое применение union_bound_finite к хвостовым событиям. -/
+theorem max_bound_union {V : Type*} [Fintype V]
+    (q : V → ℝ) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (g : ℕ → V → ℝ) (u : ℝ) (T : ℕ) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T, u ≤ g t v) Finset.univ, q v
+      ≤ ∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ g t v) Finset.univ, q v :=
+  union_bound_finite q hq hq1 (fun t v => u ≤ g t v) T
+
+/-- Anytime-Чернов: P(max_{t<T} g_t >= u) <= sum_t exp(hl_t*(mu_t-u))-форма
+— каждый xвост ограничен exp-через chernoff_event при CGF-без-подсчёта:
+просто экспоненциальная сумма по выбору hl_t = u/2 (Hoeffding-стиль).
+Пока - алгебраическая компоновка: max_bound + per-t члены-e-границы. -/
+theorem max_bound_chernoff_sum {V : Type*} [Fintype V]
+    (q : V → ℝ) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (g : ℕ → V → ℝ) (u : ℝ) (T : ℕ)
+    (e : ℕ → ℝ)
+    (he : ∀ t : ℕ, t < T →
+      ∑ v ∈ Finset.filter (fun v => u ≤ g t v) Finset.univ, q v ≤ e t) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T, u ≤ g t v) Finset.univ, q v
+      ≤ ∑ t ∈ Finset.range T, e t := by
+  calc ∑ v ∈ Finset.filter (fun v => ∃ t < T, u ≤ g t v) Finset.univ, q v
+      ≤ ∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ g t v) Finset.univ, q v :=
+        max_bound_union q hq hq1 g u T
+    _ ≤ ∑ t ∈ Finset.range T, e t := by
+        exact Finset.sum_le_sum (fun t ht => he t (Finset.mem_range.mp ht))
