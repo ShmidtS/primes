@@ -552,3 +552,85 @@ theorem lp_one_le_card {V : Type*} [Fintype V] (g : V → ℝ) {p q : ℝ}
     refine Finset.sum_congr rfl (fun v _ => ?_)
     rw [mul_one]
   rwa [hL] at h
+
+/-! ## Взвешенный Гёльдер (R506)
+
+sum w*|a*b| <= (sum w|a|^p)^{1/p} * (sum w|b|^q)^{1/q} для
+w >= 0: поглощение веса w = w^{1/p} * w^{1/q} (rpow_add при
+w>0, zero_rpow при w=0), применяем невзвешенный Гёльдер R503
+к (w^{1/p}|a|, w^{1/q}|b|) и сворачиваем (w^{1/p})^p = w.
+Ключ к вероятностным Lp-оценкам HAGI (средние по q-мерам). -/
+theorem hoelder_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
+    (hw : ∀ v, 0 ≤ w v) (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    ∑ v : V, w v * |a v * b v|
+      ≤ (∑ v : V, w v * |a v| ^ p) ^ (1 / p)
+        * (∑ v : V, w v * |b v| ^ q) ^ (1 / q) := by
+  have hp0 : (0:ℝ) < p := by linarith
+  have hpp : (1:ℝ) / p < 1 := by
+    rw [div_lt_one hp0]; linarith
+  have hq1 : (1:ℝ) < q := by
+    have h1 : (1:ℝ) / q = 1 - 1 / p := by linarith [hpq]
+    have hqpos : (0:ℝ) < q := by
+      by_contra hc
+      push_neg at hc
+      have h2 : (1:ℝ) / q ≤ 0 :=
+        div_nonpos_of_nonneg_of_nonpos (by linarith) hc
+      rw [h1] at h2
+      linarith
+    by_contra hq1'
+    push_neg at hq1'
+    have h3 : (1:ℝ) / q ≥ 1 := by
+      rw [ge_iff_le, le_div_iff₀ hqpos]; linarith
+    rw [h1] at h3
+    have hp1pos : (0:ℝ) < 1 / p := by positivity
+    linarith
+  have hpne : (1:ℝ) / p ≠ 0 := by positivity
+  have hqne : (1:ℝ) / q ≠ 0 := by positivity
+  -- absorb weights: w = w^{1/p} * w^{1/q}
+  have habsorb : ∀ v : V, w v * |a v * b v|
+      = (w v ^ (1 / p) * |a v|) * (w v ^ (1 / q) * |b v|) := by
+    intro v
+    rw [abs_mul]
+    have hkey : w v ^ (1 / p) * w v ^ (1 / q) = w v := by
+      by_cases hwv : w v = 0
+      · rw [hwv, Real.zero_rpow hpne,
+          Real.zero_rpow hqne, zero_mul]
+      · have hwvpos : (0:ℝ) < w v := lt_of_le_of_ne (hw v)
+          (fun h => hwv h.symm)
+        rw [← Real.rpow_add hwvpos, hpq, Real.rpow_one]
+    linear_combination (|b v| * |a v|) * hkey.symm
+  rw [Finset.sum_congr rfl (fun v _ => habsorb v)]
+  -- apply unweighted Hoelder to the absorbed functions
+  have h := hoelder_finite (fun v => w v ^ (1 / p) * |a v|)
+    (fun v => w v ^ (1 / q) * |b v|) hp hpq
+  -- simplify RHS factors: (w^{1/p}|a|)^p = w |a|^p
+  have hfac1 : ∀ v : V, abs (w v ^ (1 / p) * |a v|) ^ p = w v * |a v| ^ p := by
+    intro v
+    rw [abs_of_nonneg (mul_nonneg (Real.rpow_nonneg (hw v) (1 / p)) (abs_nonneg _))]
+    rw [Real.mul_rpow (Real.rpow_nonneg (hw v) (1 / p))
+      (abs_nonneg _)]
+    rw [← Real.rpow_mul (hw v), show (1:ℝ) / p * p = 1 from by field_simp,
+      Real.rpow_one]
+  have hfac2 : ∀ v : V, abs (w v ^ (1 / q) * |b v|) ^ q = w v * |b v| ^ q := by
+    intro v
+    rw [abs_of_nonneg (mul_nonneg (Real.rpow_nonneg (hw v) (1 / q)) (abs_nonneg _))]
+    rw [Real.mul_rpow (Real.rpow_nonneg (hw v) (1 / q))
+      (abs_nonneg _)]
+    rw [← Real.rpow_mul (hw v), show (1:ℝ) / q * q = 1 from by field_simp,
+      Real.rpow_one]
+  rw [Finset.sum_congr rfl (fun v _ => hfac1 v),
+    Finset.sum_congr rfl (fun v _ => hfac2 v)] at h
+  have habsL : ∀ v : V, abs (w v ^ (1 / p) * |a v| * (w v ^ (1 / q) * |b v|))
+      = w v * |a v * b v| := by
+    intro v
+    have h1 : abs (w v ^ (1 / p) * |a v|) = w v ^ (1 / p) * |a v| :=
+      abs_of_nonneg (mul_nonneg (Real.rpow_nonneg (hw v) (1 / p))
+        (abs_nonneg _))
+    have h2 : abs (w v ^ (1 / q) * |b v|) = w v ^ (1 / q) * |b v| :=
+      abs_of_nonneg (mul_nonneg (Real.rpow_nonneg (hw v) (1 / q))
+        (abs_nonneg _))
+    rw [abs_mul, h1, h2]
+    exact (habsorb v).symm
+  rw [Finset.sum_congr rfl (fun v _ => habsL v)] at h
+  rw [Finset.sum_congr rfl (fun v _ => (habsorb v).symm)]
+  exact h
