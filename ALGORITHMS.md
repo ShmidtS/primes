@@ -239,6 +239,7 @@ Probability/GibbsConcentration)
     S_t → 0;
   - избыток: `certified_state_excess_tendsto` —
     ⟨E⟩−F → 0.
+- Lp-вертикаль (R498–R508, Probability/ExpChord): кирпичи `exp_chord`/`log_chord` (двухточечные хорды e^{rx} и ln), `amgm_weighted`, `young_two`, `hoelder_finite`/`hoelder_weighted`, `minkowski_finite`/`minkowski_weighted`, `lp_one_le_card`, `lp_mean_le_rms`. Моментная вертикаль R492–497 (Popoviciu/Chebyshev/Cantelli/Bhatia–Davis, Probability/MomentBounds): хвостовые критерии ранней остановки охлаждения (Var_{p_T}(E) ≤ ε_var ⟹ стоп-гейт термостата); Lp-нормы — сертифицированные границы для merge/регуляризации.
 - Калориметрия: `certified_state_excess` —
   ⟨E⟩−F ≤ (Δ+T₀)·C·θ.
 - Admission-гейт памяти: `admission_margin_sound` —

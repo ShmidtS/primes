@@ -119,6 +119,27 @@ same-folder DAG свободен.
   при CGF-границе q({g ≥ μ+u}) ≤ e^{−u²/(2σ²)}
   (λ = u/σ²; R483 + R490-центринг +
   exp_sub-RHS-переупаковка; связка h2.le).
+- `Probability/MomentBounds` (R492–R497): вертикаль
+  моментов для g∈[a,b]: `popoviciu_var` (Var ≤ (b−a)²/4;
+  барицентр+midpoint+минимальность среднего),
+  `chebyshev_popoviciu` (двусторонний хвост ≤
+  (b−a)²/4t²; Марков на квадрате), `cantelli_one_side`
+  (односторонний хвост σ²/(σ²+t²); сдвинутый квадрат,
+  точная константа), `popoviciu_abs_dev` (E|g−μ| ≤
+  (b−a)/2; Коши–Шварц), `bhatia_davis` (Var ≤
+  (b−μ)(μ−a); per-v (b−g)(g−a)≥0), `bhatia_implies_
+  popoviciu` (мост AM-GM).
+- `Probability/ExpChord` (R498–R508): Lp-вертикаль:
+  `exp_chord` (хорда e^{rx} через ConvexOn.
+  comp_linearMap), `hoeffding_chord_mgf` (взвешенная
+  хордовая MGF-оценка), `log_chord` (двухточечный
+  Jensen для ln), `amgm_weighted` (AM-GM),
+  `young_two` (неравенство Юнга), `hoelder_finite`,
+  `minkowski_finite`, `lp_one_le_card` (L1≤Lp·n^{1/q}),
+  `hoelder_weighted` (поглощение w=w^{1/p}w^{1/q}),
+  `lp_mean_le_rms` (E|g|≤(E|g|^p)^{1/p}),
+  `minkowski_weighted` — полная невзвешенная и
+  взвешенная Young→Hölder→Minkowski-вертикаль.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
