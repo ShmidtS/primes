@@ -114,3 +114,92 @@ theorem gibbs_energy_variance_bound
       mul_le_mul_of_nonneg_left hmeanExcess hΔ0
     _ = Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
         * Real.exp (-δ / T) := by ring
+
+/-- Термостатный variance-stop сертификат: если
+Δ²·(n−1)·e^{−δ/T} <= eps, то Var_{p_T}(E) <= eps. -/
+theorem thermostat_var_stop {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (δ T eps : ℝ)
+    (hδ : 0 < δ) (hT : 0 < T) (heps : 0 ≤ eps)
+    (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ)
+    (hgate : Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-δ / T) ≤ eps) :
+    let Z : ℝ := ∑ v, Real.exp (-(E v) / T)
+    let p : V → ℝ := fun v => Real.exp (-(E v) / T) / Z
+    let μ : ℝ := ∑ v : V, p v * E v
+    ∑ v : V, p v * (E v - μ) ^ 2 ≤ eps := by
+  intro Z p μ
+  exact le_trans (gibbs_energy_variance_bound E δ T hδ hT vstar Δ
+    hmin hgap hΔ) hgate
+
+/-- Явный температурный порог: при T <= δ / ln(Δ²(n−1)/eps)
+гейт выполнен (eps > 0, Δ²(n−1) > eps-ветка). -/
+theorem thermostat_threshold {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (δ T eps : ℝ)
+    (hδ : 0 < δ) (hT : 0 < T) (heps : 0 < eps)
+    (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ)
+    (hΔpos : 0 < Δ)
+    (hcard : 0 < (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+    (hTle : T ≤ δ / Real.log (Δ ^ 2
+      * (((Finset.univ.erase vstar).card : ℕ) : ℝ) / eps)) :
+    Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-(δ / T)) ≤ eps := by
+  set c : ℝ := Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hc
+  have hcpos : (0:ℝ) < c := by
+    rw [hc]
+    positivity
+  -- log(c/eps) > 0 since T > 0 and T <= delta/log(c/eps) implies log(c/eps) > 0
+  have hlogpos : (0:ℝ) < Real.log (c / eps) := by
+    by_contra hlog
+    push_neg at hlog
+    rcases lt_or_eq_of_le hlog with hlogneg | hlog0
+    · have h1 : δ / Real.log (c / eps) < 0 :=
+        div_neg_of_pos_of_neg hδ hlogneg
+      have h2 : T ≤ δ / Real.log (c / eps) := hTle
+      linarith
+    · rw [hlog0] at hTle
+      have hdiv : δ / (0:ℝ) ≤ 0 := by
+        apply div_nonpos_of_nonneg_of_nonpos
+        · exact le_of_lt hδ
+        · norm_num
+      have : T ≤ 0 := le_trans hTle hdiv
+      linarith
+  -- so c/eps > 1, i.e. eps < c
+  have hceps : eps < c := by
+    have h1 : (1:ℝ) ≤ c / eps := by
+      have := Real.one_le_exp (by linarith : (0:ℝ) ≤ Real.log (c / eps))
+      rw [Real.exp_log (show (0:ℝ) < c / eps from div_pos hcpos heps)] at this
+      exact this
+    rw [le_div_iff₀ heps] at h1
+    rcases lt_or_eq_of_le h1 with h | h
+    · linarith
+    · -- c = eps contradicts log(c/eps) > 0
+      rw [one_mul] at h
+      rw [← h] at hlogpos
+      rw [div_self heps.ne'] at hlogpos
+      rw [Real.log_one] at hlogpos
+      linarith
+  have hdTpos : (0:ℝ) < δ / T := div_pos hδ hT
+  -- key: log(c/eps) <= delta/T from T <= delta/L
+  have hkey : Real.log (c / eps) ≤ δ / T := by
+    rw [le_div_iff₀ hT]
+    have := hTle
+    rw [le_div_iff₀ hlogpos] at this
+    -- this : T * log(c/eps) <= delta
+    linarith [this]
+  -- exp(-L) = (c/eps)^{-1} = eps/c; c * eps/c = eps
+  have hexplog : Real.exp (-(Real.log (c / eps))) = eps / c := by
+    rw [Real.exp_neg, Real.exp_log (show (0:ℝ) < c / eps from div_pos hcpos heps)]
+    rw [inv_div]
+  calc c * Real.exp (-(δ / T))
+      ≤ c * Real.exp (-(Real.log (c / eps))) :=
+          mul_le_mul_of_nonneg_left
+            (Real.exp_le_exp.mpr (show -(δ / T) ≤ -(Real.log (c / eps)) from
+              neg_le_neg hkey)) (le_of_lt hcpos)
+    _ = c * (eps / c) := by rw [hexplog]
+    _ = eps := mul_div_cancel₀ eps (by linarith : c ≠ 0)
