@@ -799,3 +799,18 @@ theorem anytime_subgauss_exp {V : Type*} [Fintype V] [Nonempty V]
     (fun t v => μ t + u t ≤ g v) T) ?_
   refine Finset.sum_le_sum (fun t ht => ?_)
   exact chernoff_subgauss_tail q g (μ t) (σ2 t) (u t) hq (hs2 t) (hu t) (hcgf t)
+
+theorem anytime_subgauss_const {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (μ σ2 u : ℝ) (T : ℕ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hs2 : 0 < σ2) (hu : 0 < u)
+    (hcgf : ∀ t : ℕ, ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : V, q v * Real.exp (c * (g v - μ)))
+        ≤ c ^ 2 * σ2 / 2) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T, μ + u ≤ g v) Finset.univ, q v
+      ≤ (T :ℝ) * Real.exp (-(u ^ 2) / (2 * σ2)) := by
+  have h := anytime_subgauss_exp q g (fun _ => μ) (fun _ => σ2) (fun _ => u) T
+    hq hq1 (fun _ => hs2) (fun _ => hu) (fun t c hc => hcgf t c hc)
+  refine le_trans h ?_
+  rw [Finset.sum_const]
+  simp

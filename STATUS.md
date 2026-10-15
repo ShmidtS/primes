@@ -199,6 +199,9 @@ same-folder DAG свободен.
   exp-члены: P(∃t<T: μ_t+u_t ≤ g) ≤
   Σ_t e^{−u_t²/(2σ²_t)} (композиция
   union_bound_finite + chernoff_subgauss_tail).
+  `anytime_subgauss_const` (R524):
+  стационарный случай (μ,σ²,u постоянны) —
+  хвост T·e^{−u²/(2σ²)}.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
