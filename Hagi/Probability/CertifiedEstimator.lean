@@ -653,3 +653,128 @@ theorem max_bound_chernoff_sum {V : Type*} [Fintype V]
         max_bound_union q hq hq1 g u T
     _ ≤ ∑ t ∈ Finset.range T, e t := by
         exact Finset.sum_le_sum (fun t ht => he t (Finset.mem_range.mp ht))
+/-- Двусторонний anytime-хвост: P(max_{t<T} |g_t - mu_t| >= u)
+<= sum_t (P(g_t - mu_t >= u) + P(mu_t - g_t >= u)). -/
+theorem max_bound_abs_union {V : Type*} [Fintype V]
+    (q : V → ℝ) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (g : ℕ → V → ℝ) (mu : ℕ → ℝ) (u : ℝ) (T : ℕ) :
+    ∑ v ∈ Finset.filter (fun v => ∃ t < T,
+        u ≤ |g t v - mu t|) Finset.univ, q v
+      ≤ (∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ g t v - mu t) Finset.univ, q v)
+        + (∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ mu t - g t v) Finset.univ, q v) := by
+  classical
+  -- 1-form pointwise inequality
+  have hpoint1 : ∀ v : V,
+      (if ∃ t < T, u ≤ |g t v - mu t| then (1:ℝ) else 0)
+        ≤ (∑ t ∈ Finset.range T, (if u ≤ g t v - mu t then (1:ℝ) else 0))
+          + (∑ t ∈ Finset.range T, (if u ≤ mu t - g t v then (1:ℝ) else 0)) := by
+    intro v
+    by_cases hE : ∃ t < T, u ≤ |g t v - mu t|
+    · rw [if_pos hE]
+      obtain ⟨t, ht, hSt⟩ := hE
+      have hmem : t ∈ Finset.range T := Finset.mem_range.mpr ht
+      have hcases : u ≤ g t v - mu t ∨ u ≤ mu t - g t v := by
+        rcases le_abs'.mp hSt with hx | hx
+        · exact Or.inr (by linarith)
+        · exact Or.inl hx
+      rcases hcases with hc | hc
+      · -- g-branch: first sum >= 1
+        have hs := Finset.single_le_sum (f := fun t' : ℕ =>
+            (if u ≤ g t' v - mu t' then (1:ℝ) else 0))
+            (fun x _ => by split <;> norm_num) hmem
+        have h2 : (if u ≤ g t v - mu t then (1:ℝ) else 0) = 1 := if_pos hc
+        rw [h2] at hs
+        have hz : (0:ℝ) ≤ ∑ t' ∈ Finset.range T,
+            (if u ≤ mu t' - g t' v then (1:ℝ) else 0) :=
+          Finset.sum_nonneg (fun t' _ => by split <;> simp)
+        exact le_trans hs (le_add_of_nonneg_right hz)
+      · -- mu-branch: second sum >= 1
+        have hs := Finset.single_le_sum (f := fun t' : ℕ =>
+            (if u ≤ mu t' - g t' v then (1:ℝ) else 0))
+            (fun x _ => by split <;> norm_num) hmem
+        have h2 : (if u ≤ mu t - g t v then (1:ℝ) else 0) = 1 := if_pos hc
+        rw [h2] at hs
+        have hzero : (0:ℝ) ≤ ∑ t' ∈ Finset.range T,
+            (if u ≤ g t' v - mu t' then (1:ℝ) else 0) :=
+          Finset.sum_nonneg (fun t' _ => by
+            by_cases hh : u ≤ g t' v - mu t'
+            · rw [if_pos hh]; norm_num
+            · rw [if_neg hh])
+        exact le_trans hs (le_add_of_nonneg_left hzero)
+    · rw [if_neg hE]
+      refine add_nonneg ?_ ?_
+      · exact Finset.sum_nonneg (fun t _ => by split <;> norm_num)
+      · exact Finset.sum_nonneg (fun t _ => by split <;> norm_num)
+  -- weighted pointwise inequality by scaling
+  have hqpos : ∀ v : V, (0:ℝ) ≤ q v := fun v => le_of_lt (hq v)
+  have hpointw : ∀ v : V,
+      (if ∃ t < T, u ≤ |g t v - mu t| then q v else 0)
+        ≤ q v * (∑ t ∈ Finset.range T, (if u ≤ g t v - mu t then (1:ℝ) else 0))
+          + q v * (∑ t ∈ Finset.range T, (if u ≤ mu t - g t v then (1:ℝ) else 0)) := by
+    intro v
+    by_cases hE : ∃ t < T, u ≤ |g t v - mu t|
+    · rw [if_pos hE]
+      have h2 := mul_le_mul_of_nonneg_left (hpoint1 v) (hqpos v)
+      rw [if_pos hE, mul_one, mul_add] at h2
+      exact h2
+    · rw [if_neg hE]
+      exact add_nonneg
+        (mul_nonneg (hqpos v) (Finset.sum_nonneg fun t _ => by split <;> norm_num))
+        (mul_nonneg (hqpos v) (Finset.sum_nonneg fun t _ => by split <;> norm_num))
+  -- LHS unfolding
+  have hLHS : ∑ v ∈ Finset.filter (fun v => ∃ t < T,
+      u ≤ |g t v - mu t|) Finset.univ, q v
+      = ∑ v : V, (if ∃ t < T, u ≤ |g t v - mu t| then q v else 0) := by
+    rw [Finset.sum_filter]
+  -- RHS unfolding (weighted indicator form)
+  have hR1 : ∀ t : ℕ, ∑ v ∈ Finset.filter (fun v => u ≤ g t v - mu t)
+      Finset.univ, q v
+      = ∑ v : V, q v * (if u ≤ g t v - mu t then (1:ℝ) else 0) := by
+    intro t
+    rw [Finset.sum_filter]
+    exact Finset.sum_congr rfl (fun v _ => by rw [mul_ite, mul_one, mul_zero])
+  have hR2 : ∀ t : ℕ, ∑ v ∈ Finset.filter (fun v => u ≤ mu t - g t v)
+      Finset.univ, q v
+      = ∑ v : V, q v * (if u ≤ mu t - g t v then (1:ℝ) else 0) := by
+    intro t
+    rw [Finset.sum_filter]
+    exact Finset.sum_congr rfl (fun v _ => by rw [mul_ite, mul_one, mul_zero])
+  -- per-v inner swap: q·(Σ1) + q·(Σ2) = Σ_t (q·if1 + q·if2)
+  have hinner : ∀ v : V,
+      (q v * (∑ t ∈ Finset.range T, (if u ≤ g t v - mu t then (1:ℝ) else 0))
+        + q v * (∑ t ∈ Finset.range T, (if u ≤ mu t - g t v then (1:ℝ) else 0)))
+      = ∑ t ∈ Finset.range T,
+          (q v * (if u ≤ g t v - mu t then (1:ℝ) else 0)
+            + q v * (if u ≤ mu t - g t v then (1:ℝ) else 0)) := by
+    intro v
+    have e1 : q v * (∑ t ∈ Finset.range T, (if u ≤ g t v - mu t then (1:ℝ) else 0))
+        = ∑ t ∈ Finset.range T, q v * (if u ≤ g t v - mu t then (1:ℝ) else 0) :=
+      Finset.mul_sum _ _ _
+    have e2 : q v * (∑ t ∈ Finset.range T, (if u ≤ mu t - g t v then (1:ℝ) else 0))
+        = ∑ t ∈ Finset.range T, q v * (if u ≤ mu t - g t v then (1:ℝ) else 0) :=
+      Finset.mul_sum _ _ _
+    rw [e1, e2, Finset.sum_add_distrib]
+  calc ∑ v ∈ Finset.filter (fun v => ∃ t < T,
+      u ≤ |g t v - mu t|) Finset.univ, q v
+      = ∑ v : V, (if ∃ t < T, u ≤ |g t v - mu t| then q v else 0) := hLHS
+    _ ≤ ∑ v : V, (q v * (∑ t ∈ Finset.range T,
+          (if u ≤ g t v - mu t then (1:ℝ) else 0))
+          + q v * (∑ t ∈ Finset.range T,
+          (if u ≤ mu t - g t v then (1:ℝ) else 0))) :=
+      Finset.sum_le_sum (fun v _ => hpointw v)
+    _ = ∑ v : V, ∑ t ∈ Finset.range T,
+          (q v * (if u ≤ g t v - mu t then (1:ℝ) else 0)
+            + q v * (if u ≤ mu t - g t v then (1:ℝ) else 0)) :=
+      Finset.sum_congr rfl (fun v _ => hinner v)
+    _ = ∑ t ∈ Finset.range T, ∑ v : V,
+          (q v * (if u ≤ g t v - mu t then (1:ℝ) else 0)
+            + q v * (if u ≤ mu t - g t v then (1:ℝ) else 0)) := Finset.sum_comm
+    _ = (∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ g t v - mu t) Finset.univ, q v)
+        + (∑ t ∈ Finset.range T, ∑ v ∈ Finset.filter
+          (fun v => u ≤ mu t - g t v) Finset.univ, q v) := by
+      rw [← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl (fun t _ => ?_)
+      rw [Finset.sum_add_distrib, ← hR1 t, ← hR2 t]

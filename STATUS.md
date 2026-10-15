@@ -159,6 +159,14 @@ same-folder DAG свободен.
   `max_bound_chernoff_sum` (P(max_{t<T} g_t ≥ u) ≤
   Σ-хвостов ≤ Σ e_t). `Probability/ChernoffCGF`
   (R518): `tail_complement` (q{g<t}+q{g≥t}=1).
+  `Probability/CertifiedEstimator` (R519):
+  `max_bound_abs_union` — двусторонний anytime-
+  хвост: P(max_{t<T} |g_t−μ_t| ≥ u) ≤ Σ_t
+  (плюс-хвост + минус-хвост); 1-форма через
+  le_abs' + single_le_sum, взвешивание
+  mul_le_mul_of_nonneg_left, развёртки
+  sum_filter/mul_sum/sum_comm. Шаг 2b
+  anytime-лестницы.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
