@@ -4349,3 +4349,73 @@ theorem popoviciu_abs_dev {V : Type*} [Fintype V] [Nonempty V]
     rw [hs, Real.sqrt_sq hba, show Real.sqrt 4 = 2 by norm_num]
   rwa [hhalf] at hs1
 
+
+/-- Bhatia-Davis: sharpened Popoviciu variance bound Var_q(g) <=
+(b - mu)(mu - a) for g in [a,b], mu the weighted mean.  Proof is pure
+algebra: per-vertex (b - g)(g - a) >= 0, summed with weights it gives
+E g^2 <= (a + b) mu - a b, combined with the variance identity
+Var = E g^2 - mu^2.  Note (b-mu)(mu-a) <= (b-a)^2/4 recovers
+popoviciu_var. -/
+theorem bhatia_davis {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
+    ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2
+      ≤ (b - ∑ x : V, q x * g x) * (∑ x : V, q x * g x - a) := by
+  set μ := ∑ x : V, q x * g x with hμd
+  -- expand per-v: (b - g v) * (g v - a) >= 0
+  have hper : ∀ v : V, (0:ℝ) ≤ (b - g v) * (g v - a) := by
+    intro v
+    exact mul_nonneg (by linarith [hhi v]) (by linarith [hlo v])
+  -- sum with weights: E[(b-g)(g-a)] >= 0
+  have hsum : (0:ℝ) ≤ ∑ v : V, q v * ((b - g v) * (g v - a)) :=
+    Finset.sum_nonneg (fun v _ => mul_nonneg (le_of_lt (hq v)) (hper v))
+  -- expand: E[(b-g)(g-a)] = b*mu - ab - (E g^2 - a*b) ... compute:
+  -- q*((b-g)(g-a)) = q*(b*g - b*a - g^2 + a*g)
+  have hexp : ∑ v : V, q v * ((b - g v) * (g v - a))
+      = ∑ v : V, (q v * (b * g v) + q v * (a * g v))
+        - ∑ v : V, (q v * (b * a) + q v * g v ^ 2) := by
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl (fun v _ => by ring)
+  have hsum' : ∑ v : V, (q v * (b * g v) + q v * (a * g v))
+      - ∑ v : V, (q v * (b * a) + q v * g v ^ 2)
+      = b * μ - b * a - (∑ v : V, q v * g v ^ 2) + a * μ := by
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+    have hbg : ∑ v : V, q v * (b * g v) = b * μ := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        show q v * (b * g v) = b * (q v * g v) from by ring),
+        Finset.mul_sum]
+    have hba : ∑ v : V, q v * (b * a) = b * a := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        show q v * (b * a) = b * a * q v from by ring)]
+      rw [← Finset.mul_sum, hq1, mul_one]
+    have hag : ∑ v : V, q v * (a * g v) = a * μ := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        show q v * (a * g v) = a * (q v * g v) from by ring),
+        Finset.mul_sum]
+    rw [hbg, hba, hag]
+    ring
+  rw [hexp, hsum'] at hsum
+  -- variance identity: Var = E g^2 - mu^2
+  have hvar : ∑ v : V, q v * (g v - μ) ^ 2
+      = ∑ v : V, q v * g v ^ 2 - μ ^ 2 := by
+    have hterm : ∀ v : V, q v * (g v - μ) ^ 2
+        = (q v * g v ^ 2 + q v * μ ^ 2) - 2 * μ * (q v * g v) := by
+      intro v; ring
+    rw [Finset.sum_congr rfl (fun v _ => hterm v)]
+    rw [Finset.sum_sub_distrib, Finset.sum_add_distrib]
+    have hcross : ∑ v : V, 2 * μ * (q v * g v) = 2 * μ * μ := by
+      have hpull : ∑ v : V, 2 * μ * (q v * g v)
+          = 2 * μ * ∑ v : V, q v * g v := by
+        rw [← Finset.mul_sum]
+      rw [hpull]
+    have hconst : ∑ v : V, q v * μ ^ 2 = μ ^ 2 := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        show q v * μ ^ 2 = μ ^ 2 * q v from by ring)]
+      rw [← Finset.mul_sum, hq1, mul_one]
+    rw [hcross, hconst]
+    ring
+  -- chain: Var = E g^2 - mu^2 <= b*mu + a*mu - a*b - mu^2 = (b-mu)(mu-a)
+  rw [hvar]
+  linarith [hsum, hexp]
+
