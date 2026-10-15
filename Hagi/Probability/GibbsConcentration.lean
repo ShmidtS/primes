@@ -4293,3 +4293,59 @@ theorem cantelli_one_side {V : Type*} [Fintype V] [DecidableEq V]
       positivity
     linarith
 
+
+/-- Mean absolute deviation Popoviciu: for g in [a,b] under weights q,
+the expected absolute deviation from the mean satisfies
+E|g - mu| <= (b - a)/2.  Cauchy-Schwarz on (sqrt q, sqrt q * |g - mu|)
+gives (E|g-mu|)^2 <= Var, then Popoviciu variance bound and sqrt
+monotonicity. -/
+theorem popoviciu_abs_dev {V : Type*} [Fintype V] [Nonempty V]
+    (q g : V → ℝ) (a b : ℝ)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
+    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
+    ∑ v : V, q v * |g v - ∑ x : V, q x * g x| ≤ (b - a) / 2 := by
+  set μ := ∑ x : V, q x * g x with hμd
+  have hpop := popoviciu_var q g a b hq hq1 hlo hhi
+  -- per-term: q v * |g v - mu| = sqrt(q v) * (sqrt(q v) * |g v - mu|)
+  have hterm : ∀ v : V, Real.sqrt (q v) * (Real.sqrt (q v) * |g v - μ|)
+      = q v * |g v - μ| := by
+    intro v
+    have h : Real.sqrt (q v) * Real.sqrt (q v) = q v :=
+      Real.mul_self_sqrt (le_of_lt (hq v))
+    linear_combination |g v - μ| * h
+  -- Cauchy-Schwarz on sqrt q and sqrt q * |g - mu|
+  have hcs := Finset.sum_mul_sq_le_sq_mul_sq
+    (s := Finset.univ) (f := fun v => Real.sqrt (q v))
+    (g := fun v => Real.sqrt (q v) * |g v - μ|)
+  rw [Finset.sum_congr rfl (fun v _ => hterm v)] at hcs
+  -- first factor: sum q = 1; second: sum q * (g-mu)^2
+  have hf1 : ∑ v : V, Real.sqrt (q v) ^ 2 = 1 := by
+    rw [Finset.sum_congr rfl
+      (fun v _ => Real.sq_sqrt (le_of_lt (hq v))), hq1]
+  have hf2 : ∑ v : V, (Real.sqrt (q v) * |g v - μ|) ^ 2
+      = ∑ v : V, q v * (g v - μ) ^ 2 := by
+    rw [Finset.sum_congr rfl (fun v _ => by
+      rw [mul_pow, Real.sq_sqrt (le_of_lt (hq v)), sq_abs])]
+  rw [hf1, hf2] at hcs
+  -- hcs : (sum q |g-mu|)^2 <= 1 * Var <= (b-a)^2/4
+  have hsq : (∑ v : V, q v * |g v - μ|) ^ 2 ≤ (b - a) ^ 2 / 4 := by
+    rw [one_mul] at hcs
+    linarith
+  have hnn : (0:ℝ) ≤ ∑ v : V, q v * |g v - μ| :=
+    Finset.sum_nonneg (fun v _ => mul_nonneg (le_of_lt (hq v)) (abs_nonneg _))
+  have hba : (0:ℝ) ≤ b - a := by
+    have := Classical.arbitrary V
+    linarith [hlo ‹V›, hhi ‹V›]
+  -- sqrt both sides
+  have hs1 : Real.sqrt ((∑ v : V, q v * |g v - μ|) ^ 2)
+      ≤ Real.sqrt ((b - a) ^ 2 / 4) := by
+    apply Real.sqrt_le_sqrt hsq
+  rw [Real.sqrt_sq hnn] at hs1
+  have hhalf : Real.sqrt ((b - a) ^ 2 / 4) = (b - a) / 2 := by
+    have h4 : (0:ℝ) < 4 := by norm_num
+    have hs : Real.sqrt ((b - a) ^ 2 / 4)
+        = Real.sqrt ((b - a) ^ 2) / Real.sqrt 4 :=
+      Real.sqrt_div (sq_nonneg (b - a)) 4
+    rw [hs, Real.sqrt_sq hba, show Real.sqrt 4 = 2 by norm_num]
+  rwa [hhalf] at hs1
+
