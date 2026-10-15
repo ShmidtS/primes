@@ -167,6 +167,17 @@ same-folder DAG свободен.
   mul_le_mul_of_nonneg_left, развёртки
   sum_filter/mul_sum/sum_comm. Шаг 2b
   anytime-лестницы.
+- `Probability/SphericalAngle` (R520):
+  `sphericalAngle` (Ω_n = 2π^{n/2}/Γ(n/2)),
+  `sphericalAngle_add_two`, `sphericalAngle_factor_lt_one`,
+  `sphericalAngle_even_geo` / `sphericalAngle_odd_geo`
+  (геометрическое доминирование ветвей от 8 и 9),
+  `sphericalAngle_tendsto_zero` (collapse:
+  Γ(n/2) ~ (n/2)! растёт быстрее π^{n/2}),
+  `sphericalAngle_seven` (Ω_7 = 16π³/15 —
+  дискретный «пик размерностей», континуальный
+  максимум n ≈ 7.257). Мост к d_eff ≤ 8
+  дисциплине FactorizedBPW и прунингу.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
