@@ -6,7 +6,7 @@ import Hagi.Probability.GibbsCooling
 import Hagi.Probability.MomentBounds
 set_option linter.style.header false
 
-open Finset Real
+open Finset Real Filter
 
 /-- **Экспоненциальное затухание флуктуаций энергии Гиббса (R498)**:
 если все энергии лежат в [E*, E* + Δ] и есть зазор δ > 0,
@@ -203,3 +203,74 @@ theorem thermostat_threshold {V : Type*} [Fintype V] [DecidableEq V]
               neg_le_neg hkey)) (le_of_lt hcpos)
     _ = c * (eps / c) := by rw [hexplog]
     _ = eps := mul_div_cancel₀ eps (by linarith : c ≠ 0)
+
+/-- Сходимость флуктуаций к нулю вдоль графика T_n = δ/(n+1):
+Var_{p_{T_n}}(E) <= Δ²(n−1)e^{−(n+1)} -> 0. -/
+theorem gibbs_var_tendsto_zero {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (δ : ℝ)
+    (hδ : 0 < δ) (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ) :
+    Tendsto (fun n => ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+      * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2)
+      atTop (nhds 0) := by
+  -- temperature schedule
+  have hTn : ∀ n, (0:ℝ) < δ/((n+1 : ℕ) : ℝ) := fun n =>
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  -- per-n bound from gibbs_energy_variance_bound
+  have hbd : ∀ n : ℕ, ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+      * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
+      ≤ Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-δ / (δ/((n+1 : ℕ) : ℝ))) := by
+    intro n
+    exact gibbs_energy_variance_bound E δ (δ/((n+1 : ℕ) : ℝ)) hδ
+      (hTn n) vstar Δ hmin hgap hΔ
+  -- collapse -δ/(δ/(n+1)) = -(n+1)
+  have hkey : ∀ n : ℕ, -δ / (δ/((n+1 : ℕ) : ℝ))
+      = -((n+1 : ℕ) : ℝ) := by
+    intro n
+    field_simp
+  -- the bound tends to 0: const * (const * exp(-(n+1)))
+  have hzero : Tendsto (fun n => Δ ^ 2
+      * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+      * Real.exp (-((n+1 : ℕ) : ℝ))) atTop (nhds 0) := by
+    have hexp : Tendsto (fun n => Real.exp (-((n+1 : ℕ) : ℝ)))
+        atTop (nhds 0) :=
+      Real.tendsto_exp_atBot.comp
+        (tendsto_neg_atTop_atBot.comp
+          (tendsto_natCast_atTop_atTop.comp (tendsto_add_atTop_nat 1)))
+    have hconst : Tendsto (fun n : ℕ => Δ ^ 2
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) atTop
+        (nhds (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ))) :=
+      tendsto_const_nhds
+    simpa [mul_zero] using hconst.mul hexp
+  -- squeeze: 0 <= Var_n <= bound_n -> 0
+  have hnn : ∀ n : ℕ, (0:ℝ) ≤ ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+      * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2 := by
+    intro n
+    refine Finset.sum_nonneg (fun v _ => ?_)
+    have hZpos : (0:ℝ) < ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))) :=
+      Finset.sum_pos (fun w _ => Real.exp_pos _)
+        ⟨Classical.arbitrary V, Finset.mem_univ (Classical.arbitrary V)⟩
+    exact mul_nonneg
+      (div_pos (Real.exp_pos _) hZpos).le (sq_nonneg _)
+  -- rewrite the bound into the exp(-(n+1)) form for the squeeze
+  have hbd2 : ∀ n : ℕ, ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+      * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
+      ≤ Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+        * Real.exp (-((n+1 : ℕ) : ℝ)) := by
+    intro n
+    rw [← hkey n]
+    exact hbd n
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+    (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0:ℝ)) atTop (nhds 0))
+    hzero hnn hbd2
