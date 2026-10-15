@@ -274,3 +274,79 @@ theorem gibbs_var_tendsto_zero {V : Type*} [Fintype V] [DecidableEq V]
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le
     (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0:ℝ)) atTop (nhds 0))
     hzero hnn hbd2
+
+/-- Явная граница шагов: при (n+1) >= ln(c/eps), c = Δ²(n−1),
+Var_{p_{T_n}}(E) <= eps, T_n = delta/(n+1).  Если c <= eps —
+тривиально (граница <= c <= eps). -/
+theorem gibbs_var_steps_bound {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V] (E : V → ℝ) (δ : ℝ) (eps : ℝ)
+    (hδ : 0 < δ) (heps : 0 < eps)
+    (vstar : V) (Δ : ℝ)
+    (hmin : ∀ v, E vstar ≤ E v)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hΔ : ∀ v, E v - E vstar ≤ Δ)
+    (hcard : 0 < (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+    (hΔpos : 0 < Δ)
+    (n : ℕ)
+    (hn : (Real.log (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ) / eps) : ℝ) ≤ (n + 1 : ℕ)) :
+    ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+      * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+        / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
+      ≤ eps := by
+  -- everything in explicit form (no set — R504/R512 lessons)
+  have hcpos : (0:ℝ) < (Δ ^ 2
+      * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) :=
+    mul_pos (sq_pos_of_pos hΔpos) hcard
+  have hTn : (0:ℝ) < δ/((n+1 : ℕ) : ℝ) :=
+    div_pos hδ (Nat.cast_pos.mpr n.succ_pos)
+  have hbd := gibbs_energy_variance_bound E δ (δ/((n+1 : ℕ) : ℝ)) hδ
+    hTn vstar Δ hmin hgap hΔ
+  have hkey : -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
+    field_simp
+  rw [hkey] at hbd
+  by_cases hce : (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) ≤ eps
+  · -- degenerate: bound <= c * 1 <= eps
+    have hexp1 : Real.exp (-((n+1 : ℕ) : ℝ)) ≤ 1 :=
+      Real.exp_le_one_iff.mpr (by linarith)
+    calc ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+          / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+        * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+          / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
+        ≤ (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          * Real.exp (-((n+1 : ℕ) : ℝ)) := hbd
+      _ ≤ (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) * 1 :=
+          mul_le_mul_of_nonneg_left hexp1 (le_of_lt hcpos)
+      _ ≤ eps := by rwa [mul_one]
+  · -- main: log(c/eps) > 0 and exp(-(n+1)) <= eps/c
+    have hlogpos : (0:ℝ) < Real.log (Δ ^ 2
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ) / eps) := by
+      by_contra hlog
+      push_neg at hlog
+      have hexp : Real.exp (Real.log (Δ ^ 2
+          * (((Finset.univ.erase vstar).card : ℕ) : ℝ) / eps)) ≤ 1 :=
+        Real.exp_le_one_iff.mpr hlog
+      have h1 : Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
+          / eps ≤ 1 := by
+        rwa [Real.exp_log (div_pos hcpos heps)] at hexp
+      rw [div_le_iff₀ heps, one_mul] at h1
+      linarith
+    have hexplog : Real.exp (-(Real.log (Δ ^ 2
+        * (((Finset.univ.erase vstar).card : ℕ) : ℝ) / eps)))
+        = eps / (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) := by
+      rw [Real.exp_neg, Real.exp_log (div_pos hcpos heps), inv_div]
+    have hexp : Real.exp (-((n+1 : ℕ) : ℝ))
+        ≤ eps / (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) :=
+      le_trans (Real.exp_le_exp.mpr (neg_le_neg hn)) (le_of_eq hexplog)
+    -- final chain: Var <= c*exp(-(n+1)) <= c*(eps/c) = eps
+    calc ∑ v, (Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))
+          / ∑ w, Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ))))
+        * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
+          / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
+        ≤ (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          * Real.exp (-((n+1 : ℕ) : ℝ)) := hbd
+      _ ≤ (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ))
+          * (eps / (Δ ^ 2 * (((Finset.univ.erase vstar).card : ℕ) : ℝ))) :=
+          mul_le_mul_of_nonneg_left hexp (le_of_lt hcpos)
+      _ = eps := mul_div_cancel₀ eps (by
+            exact ne_of_gt hcpos)
