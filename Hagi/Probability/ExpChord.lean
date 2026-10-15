@@ -268,3 +268,122 @@ theorem young_two {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) {p q : ℝ}
         rw [one_div_mul_eq_div, one_div_mul_eq_div]
       rw [← hconv]
       exact hgam
+
+/-! ## Конечный Гёльдер (R503)
+
+sum |a*b| <= (sum |a|^p)^{1/p} * (sum |b|^q)^{1/q} для
+сопряжённых 1/p+1/q=1: нормировка X=|a|/PA, Y=|b|/PB,
+per-term Young R502, суммирование; PA^p = sum |a|^p через
+rpow_mul (1/p*p=1); degenerate-случаи SA=0/SB=0 через
+single_le_sum + zero_rpow. Замыкает Young->Hoelder
+вертикаль (Minkowski далее). -/
+theorem hoelder_finite {V : Type*} [Fintype V] (a b : V → ℝ) {p q : ℝ}
+    (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
+    ∑ v : V, |a v * b v|
+      ≤ (∑ v : V, |a v| ^ p) ^ (1 / p) * (∑ v : V, |b v| ^ q) ^ (1 / q) := by
+  have hp0 : (0:ℝ) < p := by linarith
+  have hpp : (1:ℝ) / p < 1 := by
+    rw [div_lt_one hp0]
+    linarith
+  have hq : 1 < q := by
+    have h1 : (1:ℝ) / q = 1 - 1 / p := by linarith [hpq]
+    have hqpos : (0:ℝ) < q := by
+      by_contra hc
+      push_neg at hc
+      have h2 : (1:ℝ) / q ≤ 0 :=
+        div_nonpos_of_nonneg_of_nonpos (by linarith) hc
+      rw [h1] at h2
+      linarith
+    show (1:ℝ) < q
+    by_contra hq1
+    push_neg at hq1
+    have h3 : (1:ℝ) / q ≥ 1 := by
+      rw [ge_iff_le, le_div_iff₀ hqpos]
+      linarith
+    rw [h1] at h3
+    have hp1pos : (0:ℝ) < 1 / p := by positivity
+    linarith
+  have hq0 : (0:ℝ) < q := by linarith
+  have hSAnn : (0:ℝ) ≤ ∑ w : V, |a w| ^ p :=
+    Finset.sum_nonneg (fun v _ => show (0:ℝ) ≤ |a v| ^ p by positivity)
+  have hSBnn : (0:ℝ) ≤ ∑ w : V, |b w| ^ q :=
+    Finset.sum_nonneg (fun v _ => show (0:ℝ) ≤ |b v| ^ q by positivity)
+  rcases eq_or_lt_of_le hSAnn with hSA0 | hSApos
+  · -- SA = 0 => a = 0
+    have haz : ∀ v : V, |a v| = 0 := by
+      intro v
+      by_contra hv
+      push_neg at hv
+      have hterm : (0:ℝ) < |a v| ^ p := by positivity
+      have hsingle : |a v| ^ p ≤ ∑ w : V, |a w| ^ p :=
+        Finset.single_le_sum
+          (fun w _ => show (0:ℝ) ≤ |a w| ^ p by positivity) (Finset.mem_univ v)
+      rw [← hSA0] at hsingle
+      linarith
+    have hL : ∑ v : V, |a v * b v| = 0 := by
+      refine Finset.sum_eq_zero (fun v _ => ?_)
+      simp [abs_mul, haz v]
+    rw [hL, ← hSA0, Real.zero_rpow (by positivity : (1:ℝ) / p ≠ 0), zero_mul]
+  · rcases eq_or_lt_of_le hSBnn with hSB0 | hSBpos
+    · have hbz : ∀ v : V, |b v| = 0 := by
+        intro v
+        by_contra hv
+        push_neg at hv
+        have hterm : (0:ℝ) < |b v| ^ q := by positivity
+        have hsingle : |b v| ^ q ≤ ∑ w : V, |b w| ^ q :=
+          Finset.single_le_sum
+            (fun w _ => show (0:ℝ) ≤ |b w| ^ q by positivity) (Finset.mem_univ v)
+        rw [← hSB0] at hsingle
+        linarith
+      have hL : ∑ v : V, |a v * b v| = 0 := by
+        refine Finset.sum_eq_zero (fun v _ => ?_)
+        simp [abs_mul, hbz v]
+      rw [hL, ← hSB0, Real.zero_rpow (by positivity : (1:ℝ) / q ≠ 0), mul_zero]
+    · -- main case
+      set PA : ℝ := (∑ w : V, |a w| ^ p) ^ (1 / p) with hPA
+      set PB : ℝ := (∑ w : V, |b w| ^ q) ^ (1 / q) with hPB
+      have hPApos : (0:ℝ) < PA := by
+        rw [hPA]
+        apply Real.rpow_pos_of_pos hSApos
+      have hPBpos : (0:ℝ) < PB := by
+        rw [hPB]
+        apply Real.rpow_pos_of_pos hSBpos
+      have hyoung : ∀ v : V,
+          (|a v| / PA) * (|b v| / PB) ≤ (|a v| / PA) ^ p / p + (|b v| / PB) ^ q / q :=
+        fun v => young_two (div_nonneg (abs_nonneg _) hPApos.le)
+          (div_nonneg (abs_nonneg _) hPBpos.le) hp hpq
+      have hsum2 : ∑ v : V, (|a v| / PA) ^ p = 1 := by
+        have hpow : ∀ v : V, (|a v| / PA) ^ p = |a v| ^ p / PA ^ p :=
+          fun v => div_rpow (abs_nonneg _) hPApos.le p
+        rw [Finset.sum_congr rfl (fun v _ => hpow v), ← Finset.sum_div]
+        have hPAp : PA ^ p = ∑ w : V, |a w| ^ p := by
+          rw [hPA, ← Real.rpow_mul (show (0:ℝ) ≤ ∑ w : V, |a w| ^ p by positivity),
+            show (1:ℝ) / p * p = 1 from by field_simp, Real.rpow_one]
+        rw [hPAp]
+        exact div_self hSApos.ne'
+      have hsum3 : ∑ v : V, (|b v| / PB) ^ q = 1 := by
+        have hpow : ∀ v : V, (|b v| / PB) ^ q = |b v| ^ q / PB ^ q :=
+          fun v => div_rpow (abs_nonneg _) hPBpos.le q
+        rw [Finset.sum_congr rfl (fun v _ => hpow v), ← Finset.sum_div]
+        have hPBq : PB ^ q = ∑ w : V, |b w| ^ q := by
+          rw [hPB, ← Real.rpow_mul (show (0:ℝ) ≤ ∑ w : V, |b w| ^ q by positivity),
+            show (1:ℝ) / q * q = 1 from by field_simp, Real.rpow_one]
+        rw [hPBq]
+        exact div_self hSBpos.ne'
+      have hLHS : ∑ v : V, (|a v| / PA) * (|b v| / PB)
+          = (∑ v : V, |a v * b v|) / (PA * PB) := by
+        rw [Finset.sum_div]
+        refine Finset.sum_congr rfl (fun v _ => ?_)
+        rw [abs_mul, div_mul_div_comm _ _ _ _]
+      have hchain : (∑ v : V, |a v * b v|) / (PA * PB) ≤ 1 := by
+        have hs := Finset.sum_le_sum (s := Finset.univ) (fun v _ => hyoung v)
+        rw [hLHS] at hs
+        rw [Finset.sum_add_distrib] at hs
+        have hnorm : ∑ v : V, (|a v| / PA) ^ p / p
+            + ∑ v : V, (|b v| / PB) ^ q / q = 1 := by
+          rw [← Finset.sum_div, ← Finset.sum_div, hsum2, hsum3]
+          rw [hpq]
+        rw [hnorm] at hs
+        exact hs
+      rw [div_le_iff₀ (show (0:ℝ) < PA * PB from mul_pos hPApos hPBpos)] at hchain
+      rwa [one_mul] at hchain
