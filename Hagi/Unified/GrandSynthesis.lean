@@ -36,6 +36,7 @@ the telescoped risk bound, the exact nonincreasing budget
 sequence — the R265 audit fix separates it from the
 capability channel), and `qfloor i ≤ qvec T i` for every
 probe `i`. -/
+-- DEPRECATED (REFACTOR_PLAN F1): flat-premise form; use grand_synthesis_weak
 theorem grand_synthesis
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa gbar rho cbeta k : ℝ)
