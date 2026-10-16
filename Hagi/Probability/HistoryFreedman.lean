@@ -170,10 +170,66 @@ theorem history_additive_freedman_maximal {α : Type*} [Fintype α]
     split_ifs <;> rfl
 
 
+
+/-- **Anytime-Freedman с k-зависимыми порогами (R541)**:
+лестница {r j, V j} по горизонту j ≤ T — обобщение
+равнопороговой `history_additive_freedman_maximal`:
+P[∃ j ≤ T: r j ≤ S_j ∧ C_j ≤ V_j]
+  ≤ Σ_{j=0}^{T} exp(−r j² / (4·(V j + c·r j))).
+Каждый член лестницы — собственный Freedman-хвост;
+мост законов — `historyLaw_past_mean` (событие j-го
+префикса не зависит от «заморозки» после j). -/
+theorem anytime_freedman_thresholds {α : Type*} [Fintype α]
+    (initial : PMF α) (K : ℕ → α → PMF α) (g : ℕ → α → α → ℝ)
+    (v : ℕ → α → ℝ)
+    (T : ℕ) (c : ℝ) (hc : 0 < c)
+    (hbounded : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      ∀ b ∈ (K k a).support, |g k a b| ≤ c)
+    (hmean : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) (g k a) = 0)
+    (hvar : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) (fun b => (g k a b)^2) ≤ v k a)
+    (r V : ℕ → ℝ) (hr : ∀ j, 0 < r j) (hV : ∀ j, 0 ≤ V j) :
+    pmfMean (historyLaw initial K T T)
+      (fun ω => if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+        historyCounter v T j ω ≤ V j then 1 else 0) ≤
+      ∑ j ∈ Finset.range (T+1),
+        Real.exp (-(r j)^2/(4*(V j + c * r j))) := by
+  classical
+  have hcov := pmfMean_event_union (historyLaw initial K T T)
+    (Finset.range (T+1))
+    (fun j ω => r j ≤ historyAdditive g T j ω ∧
+      historyCounter v T j ω ≤ V j)
+  have hsum : (∑ j ∈ Finset.range (T+1),
+      pmfMean (historyLaw initial K T T)
+        (fun ω => if r j ≤ historyAdditive g T j ω ∧
+          historyCounter v T j ω ≤ V j then 1 else 0)) ≤
+      ∑ j ∈ Finset.range (T+1),
+        Real.exp (-(r j)^2/(4*(V j + c * r j))) := by
+    apply Finset.sum_le_sum
+    intro j hj
+    have hjT : j ≤ T := by have := Finset.mem_range.mp hj; omega
+    rw [historyLaw_past_mean initial K T j T hjT _ (by
+      intro ω π h
+      rw [historyAdditive_past g T j ω π h,
+        historyCounter_past v T j ω π h])]
+    exact history_additive_freedman initial K g v T c hc
+      hbounded hmean hvar j (r j) (V j) (hr j) (hV j)
+  apply le_trans _ hsum
+  convert hcov using 1 <;> try rfl
+  · apply congrArg (pmfMean (historyLaw initial K T T))
+    funext ω
+    simp only [Finset.mem_range, Nat.lt_succ_iff]
+  · apply Finset.sum_congr rfl
+    intro j _
+    apply congrArg (pmfMean (historyLaw initial K T T))
+    funext ω
+    split_ifs <;> rfl
+
 end
 
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (historyAdditive historyAdditive_update historyAdditive_zero historyAdditive_frozen history_additive_freedman historyAdditive_past history_additive_freedman_maximal)
+export Hagi.Probability (historyAdditive historyAdditive_update historyAdditive_zero historyAdditive_frozen history_additive_freedman historyAdditive_past history_additive_freedman_maximal anytime_freedman_thresholds)
 end Hagi
