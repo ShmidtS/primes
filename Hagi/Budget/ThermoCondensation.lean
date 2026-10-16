@@ -19,7 +19,9 @@ set_option linter.style.header false
 Файл в слое 4 (Budget): может импортировать Ensemble (3).
 -/
 
-namespace Hagi
+namespace Hagi.Budget
+
+open Hagi.Ensemble
 
 open Real Finset
 
@@ -69,4 +71,4 @@ theorem thermo_condensation_full {k : Type} [Fintype k] [Nonempty k]
     condensation_epsilon_to_gap m d t ε hp hsum hε hcond, ?_⟩
   exact Hagi.Budget.scaffold_15pct_at_deff5
 
-end Hagi
+end Hagi.Budget

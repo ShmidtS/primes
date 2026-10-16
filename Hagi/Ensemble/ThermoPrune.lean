@@ -19,7 +19,7 @@ set_option linter.style.header false
   каркас перестраивается не дороже M²/4.
 -/
 
-namespace Hagi
+namespace Hagi.Ensemble
 
 open Real Finset
 
@@ -67,4 +67,4 @@ theorem thermo_prune_certificate {k : Type} [Fintype k] [Nonempty k]
   refine ⟨dead_layer_stop val hmono L eps hL, ?_⟩
   exact ce_gap_bounded m d t M hp hsum hM hcond
 
-end Hagi
+end Hagi.Ensemble

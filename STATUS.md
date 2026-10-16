@@ -1169,8 +1169,12 @@ same-folder DAG свободен.
   покомпонентной монотонности), композит
   `grand_synthesis_weak` — та же 5-частная конъюнкция
   при ослабленных посылках. Пункт закрыт.
-- Фаза 7 namespace=каталог: ~50 flat-namespace модулей
-  (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
+- Фаза 7 namespace=каталог: мигрированы (R543) три flat-модуля
+  термоконденсации: ThermoPrune → Hagi.Ensemble,
+  ThermoCondensation/AnytimeCondensation → Hagi.Budget
+  (FREEZE PASS без потери имён); остались flat: Core/RealF3*
+  (вложенный ns), Core/Select; Flywheel-файлы — Matrix.*-ns
+  (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
 - Anytime-Freedman композиция: закрыта (R541+R542):

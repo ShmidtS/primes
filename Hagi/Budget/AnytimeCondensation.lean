@@ -19,7 +19,7 @@ set_option linter.style.header false
 α сертифицирует конденсацию без переобучения.
 -/
 
-namespace Hagi
+namespace Hagi.Budget
 
 open Real Finset
 
@@ -80,4 +80,4 @@ theorem anytime_condensation {k : Type} [Fintype k] [Nonempty k]
   exact (condensation_epsilon_to_gap m (fun v => g v - μ) t (u ^ 2) hp hsum hε
     h2u).trans (le_of_eq hval)
 
-end Hagi
+end Hagi.Budget
