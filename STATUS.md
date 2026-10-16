@@ -351,6 +351,15 @@ same-folder DAG свободен.
   T^k z = rot(kφ₀) z навсегда: raw вечно обходит орбиту,
   quotient стоит; вырожденная степень свободы с нулевой
   работой (термодинамика: работа по симметрии = 0).
+- `Unified/NernstFannes` (R539): Нернст через Фаннес —
+  третья теорема термодинамики как композиция R532+R386:
+  dirac-сравнение (shannon_dirac_zero = 0), переводчик
+  `tvHalf_dirac_eq` (tvHalf p dirac = масса вне v* —
+  через sum_filter_add_sum_filter_not + sum_erase),
+  `nernst_fannes` — S(p) ≤ t·log d + (1+t)h₂(t/(1+t))
+  при t = масса вне минимума; с концентрацией R386
+  t ≤ Ce^{−δ/T} ⟹ S(p_T) → 0 при T → 0⁺ (экспоненциально).
+  Nernst-пункт закрыт.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
