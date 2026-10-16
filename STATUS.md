@@ -1177,6 +1177,13 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Certified T-шаговый takeoff закрыт (R555 ч.2):
+  `CertifiedGains.prob_ladder_lower` (универсальная лестница:
+  шаговые bad-события ≤ M ⟹ P(q) ≥ 1 − T·M) и
+  `certified_gainprod_takeoff` (A_t = {margin_t ∧ μ-нарушение}
+  ≤ 2e^{−2nε²} + точечное покрытие + лестница ⟹ импликация
+  «все T margins → takeoff» с уровнем 1 − 2T·e^{−2nε²}) —
+  первая полная цепочка «выборка → T-шаговый takeoff».
 - Union bound для нулевых масс закрыт (R555 ч.1):
   `UnionBound.union_bound_nonneg` — ladder-объединение при
   0 ≤ q v (prodDens имеет нули; старый union_bound_finite
