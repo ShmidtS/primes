@@ -223,6 +223,18 @@ same-folder DAG свободен.
   итоговая формализация тезиса «98,5%
   тепловая среда, знание в ≤1,5% каркаса,
   отрезаемого и перестраиваемого за ε».
+- `Budget/AnytimeCondensation` (R528):
+  динамический мост anytime-мониторинга
+  и конденсации: `pointwise_upper_band`
+  (пустой bad-set ⟹ точечная полоса) и
+  `anytime_condensation` — при
+  CGF-ограниченной (subGauss σ²) статистике
+  g с пустым anytime-bad-set (вероятность
+  ≤ α по anytime_safe_threshold) перестройка
+  softmax-каркаса девиацией d = g − μ стоит
+  ≤ 2σ²·ln(T/α) CE. Мониторинг с уровнем α
+  сертифицирует конденсацию без
+  переобучения.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
