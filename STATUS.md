@@ -1173,13 +1173,13 @@ same-folder DAG свободен.
   (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
-- Anytime-Freedman композиция: закрыта (R541)
+- Anytime-Freedman композиция: закрыта (R541+R542):
   `anytime_freedman_thresholds` — лестница k-зависимых
-  порогов: P[∃ j ≤ T: r j ≤ S_j ∧ C_j ≤ V_j]
-  ≤ Σ_j exp(−r j²/(4(V j + c·r j))) — обобщение
-  равнопороговой maximal-формы; мост законов —
-  historyLaw_past_mean, объединение — pmfMean_event_union;
-  per-j члены — собственные Freedman-хвосты.
+  порогов (P[∃ j ≤ T: r j ≤ S_j ∧ C_j ≤ V_j]
+  ≤ Σ_j exp(−r j²/(4(V j + c·r j))), мост historyLaw_past_mean
+  + pmfMean_event_union) и R542 `anytime_freedman_thresholds_
+  two_sided` — двусторонняя |S|-лестница: 2·Σ_j того же члена
+  (плечи S и −S — свои пороговые лестницы).
 - Lean↔Runtime property-тесты — требует torch-рантайма
   E:\HAGI_v2 (blocked); §I LSL-стек — нет спецификации.
 

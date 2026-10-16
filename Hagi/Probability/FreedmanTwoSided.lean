@@ -160,8 +160,151 @@ theorem history_additive_freedman_two_sided
         add_le_add h1 h2
     _ = 2 * ((T : ℝ) + 1) * Real.exp (-r^2/(4*(V+c*r))) := by ring
 
+
+/-- **Двусторонняя anytime-лестница с k-зависимыми
+порогами (R542)**: композиция R541 (`anytime_freedman_
+thresholds`) с двусторонним расщеплением:
+P[∃ j ≤ T: |S_j| ≥ r j ∧ C_j ≤ V j] ≤ 2·Σ_j exp(−r j²/(4(V j + c·r j))).
+Каждое плечо (S и −S) — своя пороговая лестница. -/
+theorem anytime_freedman_thresholds_two_sided
+    {α : Type*} [Fintype α]
+    (initial : PMF α) (K : ℕ → α → PMF α) (g : ℕ → α → α → ℝ)
+    (v : ℕ → α → ℝ)
+    (T : ℕ) (c : ℝ) (hc : 0 < c)
+    (hbounded : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      ∀ b ∈ (K k a).support, |g k a b| ≤ c)
+    (hmean : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) (g k a) = 0)
+    (hvar : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) (fun b => (g k a b)^2) ≤ v k a)
+    (r V : ℕ → ℝ) (hr : ∀ j, 0 < r j) (hV : ∀ j, 0 ≤ V j) :
+    pmfMean (historyLaw initial K T T)
+      (fun ω => if ∃ j ≤ T, r j ≤ |historyAdditive g T j ω| ∧
+        historyCounter v T j ω ≤ V j then 1 else 0) ≤
+      2 * ∑ j ∈ Finset.range (T+1),
+        Real.exp (-(r j)^2/(4*(V j + c * r j))) := by
+  classical
+  -- negated functional: same conditions
+  have hbounded' : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      ∀ b ∈ (K k a).support, |(-g) k a b| ≤ c := by
+    intro k hk a ha b hb
+    show |-(g k a b)| ≤ c
+    rw [abs_neg]
+    exact hbounded k hk a ha b hb
+  have hmean' : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) ((fun k a b => -g k a b) k a) = 0 := by
+    intro k hk a ha
+    show pmfMean (K k a) (fun b => -(g k a b)) = 0
+    have h0 : pmfMean (K k a) (fun b => g k a b) = 0 := hmean k hk a ha
+    have hneg : pmfMean (K k a) (fun b => -(g k a b))
+        = -pmfMean (K k a) (fun b => g k a b) := by
+      have := pmfMean_const_mul (K k a) (-1) (fun b => g k a b)
+      simpa using this
+    rw [hneg, h0]
+    ring
+  have hvar' : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
+      pmfMean (K k a) (fun b => ((fun k a b => -g k a b) k a b)^2)
+        ≤ v k a := by
+    intro k hk a ha
+    show pmfMean (K k a) (fun b => (-(g k a b))^2) ≤ v k a
+    have hsq : pmfMean (K k a) (fun b => (-(g k a b))^2)
+        = pmfMean (K k a) (fun b => (g k a b)^2) :=
+      pmfMean_congr (K k a) (fun b _ => neg_sq (g k a b))
+    rw [hsq]
+    exact hvar k hk a ha
+  -- additive indicator split: |S| event ⊆ S-event + (−S)-event
+  have hsplit : pmfMean (historyLaw initial K T T)
+      (fun ω => if ∃ j ≤ T, r j ≤ |historyAdditive g T j ω| ∧
+        historyCounter v T j ω ≤ V j then 1 else 0)
+      ≤ pmfMean (historyLaw initial K T T)
+        (fun ω => (if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0)
+          + (if ∃ j ≤ T, r j ≤ -historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0)) := by
+    refine pmfMean_mono _ (fun ω _ => ?_)
+    by_cases hex : ∃ j ≤ T, r j ≤ |historyAdditive g T j ω| ∧
+      historyCounter v T j ω ≤ V j
+    · rw [ite_eq_left hex]
+      by_cases hpos : ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+        historyCounter v T j ω ≤ V j
+      · rw [ite_eq_left hpos]
+        have hz : (0:ℝ) ≤ (if ∃ j ≤ T, r j ≤ -historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then 1 else 0) :=
+          ite_nonneg (by norm_num) (by norm_num)
+        linarith
+      · obtain ⟨j, hj, habs, hctr⟩ := hex
+        have hnegup : r j ≤ -historyAdditive g T j ω := by
+          by_contra hcon
+          push_neg at hcon
+          have hS : historyAdditive g T j ω < r j :=
+            lt_of_not_ge (fun h => hpos ⟨j, hj, h, hctr⟩)
+          have habslt : |historyAdditive g T j ω| < r j :=
+            abs_lt.mpr ⟨by linarith, hS⟩
+          linarith
+        rw [ite_eq_right hpos,
+          ite_eq_left ⟨j, hj, hnegup, hctr⟩]
+        norm_num
+    · rw [ite_eq_right hex]
+      have hz1 : (0:ℝ) ≤ (if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+          historyCounter v T j ω ≤ V j then 1 else 0) :=
+        ite_nonneg (by norm_num) (by norm_num)
+      have hz2 : (0:ℝ) ≤ (if ∃ j ≤ T, r j ≤ -historyAdditive g T j ω ∧
+          historyCounter v T j ω ≤ V j then 1 else 0) :=
+        ite_nonneg (by norm_num) (by norm_num)
+      linarith
+  -- second summand: rewrite −S additive as negated functional
+  have hsum : pmfMean (historyLaw initial K T T)
+      (fun ω => (if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0)
+          + (if ∃ j ≤ T, r j ≤ -historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0))
+      = pmfMean (historyLaw initial K T T)
+          (fun ω => if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0)
+        + pmfMean (historyLaw initial K T T)
+          (fun ω => if ∃ j ≤ T,
+            r j ≤ historyAdditive (fun k a b => -g k a b) T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0) := by
+    rw [pmfMean_add]
+    congr 1
+    · refine pmfMean_congr _ (fun ω _ => ?_)
+      have hj : ∀ j, historyAdditive (fun k a b => -g k a b) T j ω
+          = -historyAdditive g T j ω := fun j => by
+        unfold historyAdditive
+        rw [← Finset.sum_neg_distrib]
+      simp only [hj]
+  calc pmfMean (historyLaw initial K T T)
+        (fun ω => if ∃ j ≤ T, r j ≤ |historyAdditive g T j ω| ∧
+          historyCounter v T j ω ≤ V j then 1 else 0)
+      ≤ pmfMean (historyLaw initial K T T)
+          (fun ω => (if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+              historyCounter v T j ω ≤ V j then (1:ℝ) else 0)
+            + (if ∃ j ≤ T, r j ≤ -historyAdditive g T j ω ∧
+              historyCounter v T j ω ≤ V j then (1:ℝ) else 0)) := hsplit
+    _ = pmfMean (historyLaw initial K T T)
+          (fun ω => if ∃ j ≤ T, r j ≤ historyAdditive g T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0)
+        + pmfMean (historyLaw initial K T T)
+          (fun ω => if ∃ j ≤ T,
+            r j ≤ historyAdditive (fun k a b => -g k a b) T j ω ∧
+            historyCounter v T j ω ≤ V j then (1:ℝ) else 0) := hsum
+    _ ≤ ∑ j ∈ Finset.range (T+1),
+          Real.exp (-(r j)^2/(4*(V j + c * r j)))
+        + ∑ j ∈ Finset.range (T+1),
+          Real.exp (-(r j)^2/(4*(V j + c * r j))) :=
+        add_le_add
+          (anytime_freedman_thresholds initial K g v T c hc
+            hbounded hmean hvar r V hr hV)
+          (anytime_freedman_thresholds initial K
+            (fun k a b => -g k a b) v T c hc hbounded' hmean' hvar'
+            r V hr hV)
+    _ = 2 * ∑ j ∈ Finset.range (T+1),
+          Real.exp (-(r j)^2/(4*(V j + c * r j))) := by ring
+
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (history_additive_freedman_two_sided)
+export Hagi.Probability (history_additive_freedman_two_sided
+  anytime_freedman_thresholds_two_sided)
 end Hagi
+
