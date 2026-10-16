@@ -147,4 +147,22 @@ theorem geometric_band_ceiling (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
     exact div_le_div_of_nonneg_right (by linarith [hmul]) hσ.le
   exact le_trans h1 (by linarith [hstep2])
 
+
+/-- **Цель выше потолка полосы — недостижима (R557)**:
+термостат-настройка: если затухающая полоса даёт потолок
+C 0 + b/σ ниже цели C*, то цель не достигается ни на каком
+горизонте. Обратная сторона R530 (γ-дефицит): полоса — ещё
+один механизм блокировки takeoff. -/
+theorem band_target_unreachable (C G : ℕ → ℝ) (b σ Cstar : ℝ)
+    (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≤ b * (1 - σ) ^ t)
+    (hb : 0 ≤ b) (hσ : 0 < σ) (hσ1 : σ ≤ 1)
+    (hlow : C 0 + b / σ < Cstar) :
+    ∀ t, C t < Cstar := by
+  intro t
+  obtain ⟨h1, hceil⟩ :=
+    geometric_band_ceiling C G b σ t hstep hband hb hσ hσ1
+  linarith
+
 end Hagi.Foundations
