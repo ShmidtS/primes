@@ -175,6 +175,3 @@ end BatchExact
 
 end Hagi.Audit
 
-namespace Hagi
-export Hagi.Audit (ns_iter_bound amgm_equality amgm_uniqueness batch_T_min)
-end Hagi

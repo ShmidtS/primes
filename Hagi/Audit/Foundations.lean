@@ -227,6 +227,3 @@ end BatchOpt
 
 end Hagi.Audit
 
-namespace Hagi
-export Hagi.Audit (exp_jensen gap_N_nonneg anchor_recurrence ns_poly_bound amgm_batch_bound)
-end Hagi

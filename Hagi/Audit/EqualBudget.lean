@@ -233,6 +233,3 @@ end EqualBudget
 
 end Hagi.Audit
 
-namespace Hagi
-export Hagi.Audit (aitken_exact aitken_consistency budget_gap_sign_const headstart_pays_iff)
-end Hagi

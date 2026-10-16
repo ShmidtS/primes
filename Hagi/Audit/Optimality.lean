@@ -218,6 +218,3 @@ end TimeShift
 
 end Hagi.Audit
 
-namespace Hagi
-export Hagi.Audit (nce_estimator_unbiased log_jensen_uniform exp_tangent waterfilling_optimal head_start_timeshift)
-end Hagi
