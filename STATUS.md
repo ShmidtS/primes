@@ -280,6 +280,22 @@ same-folder DAG свободен.
   t·log d + (1+t)h₂(t/(1+t)), t = ½‖p−q‖₁ —
   безусловная (без eigenvalues-of-diagonal
   Mathlib-пробела R268).
+- `Unified/RecursiveClean` (R533): формализация
+  теории «Neural Networks Are Already Clean»
+  (Goodfire/Cammarata): рекурсивное обобщение против
+  суперпозиции. branchLocality L_j (средневзвешенная
+  семантическая длина ветви), Условие A
+  `locality_le_of_bounded` (все ветви ≤ ε ⟹ L_j ≤ ε),
+  timeConsistency T*_j, Условие B
+  `timeConsistency_eq_one` (упорядочены ⟹ T* = 1),
+  indepMass U_j, `indepMass_eq_zero_of_cover`
+  (покрывающая компонента ⟹ U = 0),
+  `activationMass_entropy_le` (мост к R532),
+  структура CleanCertificate + композит
+  `clean_neuron_of_conditions` (A+B+U ⟹ L≤ε ∧
+  T*=1 ∧ U=0), доля π̂_R с оценкой `piR_le_one`.
+  Интерпретируемость — вектор характеристик, не
+  единый индекс.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
