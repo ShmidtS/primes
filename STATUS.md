@@ -212,6 +212,17 @@ same-folder DAG свободен.
   `scaffold_15pct_at_deff5` (1/5! ≈ 0.83% <
   1,5%), `inv_fact_mono` (доля убывает
   по d_eff). Связка с FactorizedBPW.
+- `Budget/ThermoCondensation` (R527):
+  полная интеграционная связка трёх
+  вертикалей: `condensation_epsilon_to_gap`
+  (CE-бюджет ε ⟹ допустимая девиация каркаса
+  δ = 2√ε, перестройка стоит ровно ε) и
+  `thermo_condensation_full` — «слои за L
+  мертвы ∧ живой каркас конденсируется в
+  ε ∧ каркасная доля 1/5! ≤ 1,5%» —
+  итоговая формализация тезиса «98,5%
+  тепловая среда, знание в ≤1,5% каркаса,
+  отрезаемого и перестраиваемого за ε».
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
