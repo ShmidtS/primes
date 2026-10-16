@@ -27,6 +27,19 @@ namespace Hagi.Unified
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
+/-- Бюджетная неповышаемость — арифметическое следствие
+неотрицательности трат (REFACTOR_PLAN E2/Ф2): не содержательное
+утверждение о модели, выделено из конъюнкций капстоунов. -/
+theorem budget_nonincreasing_of_nonneg_spend (budget spend : ℕ → ℝ)
+    (T : ℕ)
+    (hspend : ∀ t ∈ Finset.range T, 0 ≤ spend t)
+    (hexact : budget T = budget 0 - ∑ t ∈ Finset.range T, spend t) :
+    budget T ≤ budget 0 := by
+  have hsum : 0 ≤ ∑ t ∈ Finset.range T, spend t :=
+    Finset.sum_nonneg hspend
+  rw [hexact]
+  linarith
+
 /-- Under the stated measured premises (certified stage
 conversions, frontier dynamics, cone initialization, risk
 and spend ledgers, probe floors), one trajectory
@@ -87,10 +100,8 @@ theorem grand_synthesis
   constructor
   · exact hrisk_bound
   constructor
-  · -- budget nonincreasing from nonnegative spends
-    have hsum : 0 ≤ ∑ t ∈ Finset.range T, spend t :=
-      Finset.sum_nonneg hspend
-    linarith
+  · exact budget_nonincreasing_of_nonneg_spend budget spend T
+      hspend hbudget.1
   · exact ⟨hbudget.1, hqvec⟩
 
 
@@ -136,6 +147,7 @@ theorem qfloor_le_of_monotone {n : Type*} [Fintype n]
   induction T with
   | zero => exact h0 i
   | succ T ih => exact le_trans ih (hmono i T)
+
 
 
 /-- **Слабая форма капстоуна (R540)**: та же траекторная

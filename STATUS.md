@@ -1177,6 +1177,10 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- REFACTOR_PLAN E2/Ф2 закрыт (R546): бюджетная неповышаемость
+  выделена в бюджетную лемму budget_nonincreasing_of_nonneg_spend
+  (арифметическое следствие 0 ≤ spend, не содержательное
+  утверждение); grand_synthesis использует её вместо inline-блока.
 - Конденсационный конвейер закрыт (R545, REFACTOR_PLAN D1):
   `Budget.AnytimeCondensation.condensation_pipeline` — одна
   составная: CGF(subGauss σ²) + пустой anytime-bad-set (≤ α)
