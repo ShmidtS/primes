@@ -1177,6 +1177,9 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- REFACTOR_PLAN B2 начат (R547): канонический бридж
+  shannonEntropy = Information.shannon (DistillRecursion),
+  починен изолированный CR в файле; tvDist-unify — следующий шаг.
 - REFACTOR_PLAN E2/Ф2 закрыт (R546): бюджетная неповышаемость
   выделена в бюджетную лемму budget_nonincreasing_of_nonneg_spend
   (арифметическое следствие 0 ≤ spend, не содержательное

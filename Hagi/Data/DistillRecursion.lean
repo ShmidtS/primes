@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
 import Hagi.Data.Distill
+import Hagi.Information.DiscreteFannes
 
 set_option linter.style.header false
 
@@ -95,6 +96,13 @@ noncomputable def shannonEntropy (p : V → ℝ) : ℝ :=
 /-- prelude bridge: shannonEntropy IS the canonical Prelude.entDef. -/
 theorem shannonEntropy_eq_entDef (p : V → ℝ) :
     shannonEntropy p = Hagi.Prelude.entDef p := rfl
+
+/-- Канонический бридж энтропий (REFACTOR_PLAN B2): shannonEntropy =
+Information.shannon — единственная сущность, две записи. -/
+theorem shannonEntropy_eq_shannon (p : V → ℝ) :
+    shannonEntropy p = Hagi.Information.shannon p := by
+  simp [shannonEntropy, Hagi.Prelude.entDef, Hagi.Information.shannon,
+    Real.negMulLog]
 
 /-- The recursive-distillation training target: the previous
 model's distribution blended with the fresh-data mass ν:
