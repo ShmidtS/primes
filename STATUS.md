@@ -1161,8 +1161,14 @@ same-folder DAG свободен.
   (`MergeBridge`) и compress (тернарное округление);
   открыты `h_emp_grow`, `h_emp_smooth`, `h_emp_lip`
   (требуют модель выпуклости/липшицевости измерений).
-- GrandSynthesis: вывести пункты 2/4 из более слабых
-  посылок или оставить композицией (нужна новая математика).
+- GrandSynthesis: пункты 2/4 выведены из более слабых
+  посылок (R540): `risk_telescope_of_growth_covered`
+  (глобальный телескоп C T − C 0 ≤ Σ risk из пошагового
+  покрытия G t ≤ risk t — индукция с mem_range-переводом),
+  `qfloor_le_of_monotone` (полы из floor-в-нуле +
+  покомпонентной монотонности), композит
+  `grand_synthesis_weak` — та же 5-частная конъюнкция
+  при ослабленных посылках. Пункт закрыт.
 - Фаза 7 namespace=каталог: ~50 flat-namespace модулей
   (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
