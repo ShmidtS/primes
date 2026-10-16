@@ -189,4 +189,49 @@ theorem seq_dev_modulus {s c x₀ : ℝ} (hs : s ≠ 1) (t : ℕ) :
       = |s| ^ t * |x₀ - c / (1 - s)| := by
   rw [seq_dev_exact hs t, abs_mul, abs_pow]
 
+/-! ## Non-forcing: орбитальное движение не трогает quotient (Prop A.2) -/
+
+/-- **Итерированная эквивариантность (R538, ядро Prop A.2)**:
+k-я итерация оператора переводит gauge-орбиту в gauge-орбиту:
+T^k (g·z) = g·(T^k z) — движение вдоль орбиты переносится
+параллельно и не смешивается с quotient-динамикой. -/
+theorem iterate_gauge_commute (sys : GaugeSystem)
+    (φ₀ : ℝ) (z : ℂ) (k : ℕ) :
+    sys.T^[k] (rot φ₀ z) = rot φ₀ (sys.T^[k] z) := by
+  have hcomm : Function.Commute sys.T (rot φ₀) := fun w => sys.hequiv φ₀ w
+  exact hcomm.iterate_left k z
+
+/-- Композиция фаз: rot b (rot a z) = rot (a+b) z. -/
+theorem rotStep (a b : ℝ) (z : ℂ) : rot b (rot a z) = rot (a + b) z := by
+  unfold rot
+  show z * exp (↑a * I) * exp (↑b * I) = z * exp (↑(a + b) * I)
+  have hexp : exp (↑a * I) * exp (↑b * I) = exp (↑(a + b) * I) := by
+    rw [← exp_add]
+    congr 1
+    push_cast
+    ring
+  calc z * exp (↑a * I) * exp (↑b * I)
+      = z * (exp (↑a * I) * exp (↑b * I)) := by ring
+    _ = z * exp (↑(a + b) * I) := by rw [hexp]
+
+/-- **Орбитальная траектория relative equilibrium (R538)**:
+если T z = e^{iφ₀} z, то T^k z = e^{i k φ₀} z навсегда:
+raw-состояние вечно движется по орбите, quotient-состояние
+стоит — вычисление «завершено», динамика продолжает
+симметрический обход (термодинамически: вырожденная
+степень свободы с нулевой работой). -/
+theorem relativeEquilibrium_orbit (sys : GaugeSystem)
+    (z : ℂ) (φ₀ : ℝ) (hrel : sys.T z = rot φ₀ z) (k : ℕ) :
+    sys.T^[k] z = rot (k * φ₀) z := by
+  induction k with
+  | zero => simp [rot]
+  | succ k ih =>
+      rw [Function.iterate_succ_apply', ih]
+      rw [sys.hequiv]
+      rw [hrel, rotStep]
+      congr 1
+      push_cast
+      ring
+
 end Hagi.Unified.GaugeQuotient
+

@@ -343,6 +343,14 @@ same-folder DAG свободен.
   x_t−x*=s^t(x₀−x*) и `seq_dev_modulus` — |s|^t-форма:
   осцилляторная мода (s=−r) при r≥1 не затухает, при
   r<1 затухает геометрически с темпом r.
+- `Unified/GaugeQuotient` аппендикс (R538): non-forcing
+  (Prop A.2 QRR): `rotStep` (композиция фаз rot b∘rot a =
+  rot(a+b)), `iterate_gauge_commute` — T^k(g·z)=g·(T^k z)
+  (орбиты переносятся параллельно, через Function.Commute.
+  iterate_left), `relativeEquilibrium_orbit` —
+  T^k z = rot(kφ₀) z навсегда: raw вечно обходит орбиту,
+  quotient стоит; вырожденная степень свободы с нулевой
+  работой (термодинамика: работа по симметрии = 0).
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
