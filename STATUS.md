@@ -206,6 +206,12 @@ same-folder DAG свободен.
   uniform-уровень α — порог
   u = √(2σ²ln(T/α)) ⟹ anytime-событие
   контролируется на уровне α.
+- `Budget/ScaffoldFraction` (R526):
+  количественный мост «1,5% ⟺ d_eff ~ 5-6»:
+  факториальная таблица 4!..8!,
+  `scaffold_15pct_at_deff5` (1/5! ≈ 0.83% <
+  1,5%), `inv_fact_mono` (доля убывает
+  по d_eff). Связка с FactorizedBPW.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
