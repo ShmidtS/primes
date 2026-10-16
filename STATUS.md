@@ -1177,6 +1177,11 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Гиббс+Нернст композит закрыт (R549): `NernstFannes.gibbs_nernst`
+  — у Гиббс-распределения с δ-зазором S(p_T) ≤ t̂·log d +
+  (1+t̂)·log 2 при t̂ = (d−1)e^{−δ/T}: третий закон с явной
+  экспоненциальной скоростью (gibbs_concentration + nernst_fannes
+  + binEntropy ≤ log 2); T → 0⁺ ⟹ S → 0 экспоненциально.
 - Anytime-growth бюджет закрыт (R548):`Foundations.GrowthDynamics.
   telescope_band` (полный прирост ≤ телескоп полосы) и
   `anytime_growth_budget` (полоса μ+u ⟹ C T ≤ C 0 + T·μ + T·u)

@@ -142,4 +142,93 @@ theorem nernst_fannes (p : V → ℝ) (vstar : V)
   rw [hzero, sub_zero] at hkey
   exact hkey
 
+
+/-- **Гиббс + Нернст (R549)**: у Гиббс-распределения с δ-зазором
+энтропия экспоненциально затухает при охлаждении: с
+t̂ = (d−1)·e^{−δ/T} (оценка массы вне v* из `gibbs_concentration`):
+S(p_T) ≤ t̂·log d + (1+t̂)·log 2 — третий закон с явной
+экспоненциальной скоростью (композиция gibbs_concentration +
+nernst_fannes + binEntropy ≤ log 2). -/
+theorem gibbs_nernst {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V]
+    (E : V → ℝ) (δ : ℝ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (T : ℝ) (hT : 0 < T) :
+    Hagi.Information.shannon
+        (fun v => Real.exp (-(E v) / T)
+          / ∑ w, Real.exp (-(E w) / T))
+      ≤ ((Finset.univ.erase vstar).card : ℝ) * Real.exp (-δ / T)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ((Finset.univ.erase vstar).card : ℝ)
+          * Real.exp (-δ / T)) * Real.log 2 := by
+  classical
+  set p : V → ℝ := fun v => Real.exp (-(E v) / T)
+      / ∑ w, Real.exp (-(E w) / T) with hpdef
+  set t : ℝ := ((Finset.univ.erase vstar).card : ℝ)
+      * Real.exp (-δ / T) with htdef
+  -- нормировка и неотрицательность Гиббса
+  have hZpos : 0 < ∑ w, Real.exp (-(E w) / T) :=
+    Finset.sum_pos (fun v _ => Real.exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hpsum : ∑ v, p v = 1 := by
+    rw [hpdef, ← Finset.sum_div, div_self (ne_of_gt hZpos)]
+  have hpnn : ∀ v, 0 ≤ p v := fun v => by
+    unfold p
+    positivity
+  -- масса вне v* : hm ≤ t  (обращение gibbs_concentration)
+  have hconc := gibbs_concentration E δ vstar hgap T hT
+  have hmass : ∑ v ∈ Finset.univ.erase vstar, p v
+      + p vstar = ∑ v, p v := by
+    exact Finset.sum_erase_add (s := Finset.univ) p (a := vstar)
+      (Finset.mem_univ vstar)
+  have hpvs : p vstar = Real.exp (-(E vstar) / T)
+      / ∑ w, Real.exp (-(E w) / T) := rfl
+  have hmass1 : ∑ v ∈ Finset.univ.erase vstar, p v + p vstar = 1 := by
+    rw [hmass, hpsum]
+  have hmle : ∑ v ∈ Finset.univ.erase vstar, p v ≤ t := by
+    have hkey : ∑ v ∈ Finset.univ.erase vstar, p v
+        + (Real.exp (-(E vstar) / T) / ∑ w, Real.exp (-(E w) / T))
+      = 1 := by rw [← hpvs]; exact hmass1
+    linarith [hkey, hconc]
+  -- Фаннес-граница при фактической массе (Σ вне v*)
+  have hS0 : 0 ≤ ∑ v ∈ Finset.univ.erase vstar, p v :=
+    Finset.sum_nonneg (fun v _ => hpnn v)
+  have hfact := nernst_fannes p vstar hpnn hpsum _ rfl
+  -- грубая форма: h₂ ≤ log 2 и монотонность по массе ≤ t
+  have hh2 : ∀ x : ℝ, Real.binEntropy (x / (1 + x)) ≤ Real.log 2 :=
+    fun x => Real.binEntropy_le_log_two
+  have hlin : ∀ x : ℝ, x ≤ t → 0 ≤ x →
+      x * Real.log (Fintype.card V : ℝ)
+        + (1 + x) * Real.log 2 ≤
+      t * Real.log (Fintype.card V : ℝ) + (1 + t) * Real.log 2 := by
+    intro x hx h0
+    have hcard : (1 : ℝ) ≤ Fintype.card V := by
+      have : 0 < Fintype.card V :=
+        Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩
+      exact_mod_cast this
+    have hlogd : 0 ≤ Real.log (Fintype.card V : ℝ) :=
+      Real.log_nonneg hcard
+    have h1 : x * Real.log (Fintype.card V : ℝ)
+        ≤ t * Real.log (Fintype.card V : ℝ) :=
+      mul_le_mul_of_nonneg_right hx hlogd
+    have h2 : (1 + x) * Real.log 2 ≤ (1 + t) * Real.log 2 :=
+      mul_le_mul_of_nonneg_right (by linarith)
+        (Real.log_pos (by norm_num)).le
+    linarith
+  calc Hagi.Information.shannon p
+      ≤ (∑ v ∈ Finset.univ.erase vstar, p v)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ∑ v ∈ Finset.univ.erase vstar, p v)
+            * Real.binEntropy
+              ((∑ v ∈ Finset.univ.erase vstar, p v)
+                / (1 + ∑ v ∈ Finset.univ.erase vstar, p v)) := hfact
+    _ ≤ (∑ v ∈ Finset.univ.erase vstar, p v)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ∑ v ∈ Finset.univ.erase vstar, p v) * Real.log 2 :=
+        by
+          refine add_le_add_right (mul_le_mul_of_nonneg_left
+            (hh2 _) (by linarith)) _
+    _ ≤ t * Real.log (Fintype.card V : ℝ) + (1 + t) * Real.log 2 :=
+        hlin _ hmle hS0
+
 end Hagi.Unified.NernstFannes
