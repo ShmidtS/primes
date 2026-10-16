@@ -89,4 +89,62 @@ theorem anytime_growth_budget (C G b : ℕ → ℝ) (T : ℕ) (μ u : ℝ)
   rw [nsmul_eq_mul] at hsum
   push_cast at hsum ⊢
   linarith
+
+/-- Телескоп полосы (R556, ∀t-форма). -/
+theorem band_telescope (C G : ℕ → ℝ) (b σ : ℝ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≤ b * (1 - σ) ^ t) :
+    ∀ N : ℕ, C N ≤ C 0 + ∑ t ∈ Finset.range N, b * (1 - σ) ^ t := by
+  intro N
+  induction N with
+  | zero => simp
+  | succ N ih =>
+      have hs := hstep N
+      have hbN := hband N
+      calc C (N + 1) = C N + G N := hs
+        _ ≤ C N + b * (1 - σ) ^ N := by linarith
+        _ ≤ (C 0 + ∑ t ∈ Finset.range N, b * (1 - σ) ^ t)
+            + b * (1 - σ) ^ N := by linarith
+        _ = C 0 + ∑ t ∈ Finset.range (N + 1),
+              b * (1 - σ) ^ t := by
+            rw [Finset.sum_range_succ]; ring
+
+/-- **Затухающая полоса ⟹ capability-потолок (R556)**: прирост
+накрыт геометрически убывающей полосой G t ≤ b·(1−σ)^t
+(b ≥ 0, σ > 0) — рост насыщается: C T ≤ C 0 + (b/σ)·(1−(1−σ)^T)
+≤ C 0 + b/σ; мост к сигнатуре насыщения satC (R531). -/
+theorem geometric_band_ceiling (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≤ b * (1 - σ) ^ t)
+    (hb : 0 ≤ b) (hσ : 0 < σ) (hσ1 : σ ≤ 1) :
+    C T ≤ C 0 + b * (1 - (1 - σ) ^ T) / σ
+      ∧ C T ≤ C 0 + b / σ := by
+  have htel := band_telescope C G b σ hstep hband T
+  have hgeo : ∀ N : ℕ, ∑ t ∈ Finset.range N, (1 - σ) ^ t
+      = (1 - (1 - σ) ^ N) / σ := by
+    intro N
+    induction N with
+    | zero => simp
+    | succ N ih =>
+        rw [Finset.sum_range_succ, ih]
+        field_simp
+        ring
+  have hsum : ∑ t ∈ Finset.range T, b * (1 - σ) ^ t
+      = b * (1 - (1 - σ) ^ T) / σ := by
+    rw [← Finset.mul_sum, hgeo]
+    ring
+  have h1 : C T ≤ C 0 + b * (1 - (1 - σ) ^ T) / σ := by
+    rw [hsum] at htel
+    exact htel
+  refine ⟨h1, ?_⟩
+  have hge : 0 ≤ (1 - σ) ^ T := by
+    have h1σ : (0:ℝ) ≤ 1 - σ := by linarith
+    exact pow_nonneg h1σ T
+  have hle1 : (1:ℝ) - (1 - σ) ^ T ≤ 1 := by linarith
+  have hstep2 : b * (1 - (1 - σ) ^ T) / σ ≤ b / σ := by
+    have hmul : b * (1 - (1 - σ) ^ T) ≤ b * 1 :=
+      mul_le_mul_of_nonneg_left hle1 hb
+    exact div_le_div_of_nonneg_right (by linarith [hmul]) hσ.le
+  exact le_trans h1 (by linarith [hstep2])
+
 end Hagi.Foundations

@@ -1177,6 +1177,12 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Затухающая полоса ⟹ capability-потолок закрыт (R556):
+  `GrowthDynamics.band_telescope` (∀t-форма) +
+  `geometric_band_ceiling` — прирост накрыт G t ≤ b(1−σ)^t
+  (b ≥ 0, σ ∈ (0,1]) ⟹ C T ≤ C 0 + (b/σ)(1−(1−σ)^T) ≤ C 0 + b/σ:
+  формальный мост к сигнатуре насыщения satC (R531); docs-sync
+  README (324 модуля, 2524→2526 frozen, 1924 theorem).
 - Certified T-шаговый takeoff закрыт (R555 ч.2):
   `CertifiedGains.prob_ladder_lower` (универсальная лестница:
   шаговые bad-события ≤ M ⟹ P(q) ≥ 1 − T·M) и
