@@ -65,6 +65,3 @@ theorem liveness_two_axis {k : Type} [Fintype k] [Nonempty k]
 
 end Hagi.Unified
 
-namespace Hagi
-export Hagi.Unified (liveness_merge liveness_data_axis liveness_two_axis)
-end Hagi

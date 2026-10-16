@@ -167,6 +167,3 @@ end SinkCost
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (sink_cost_bound sink_window_substitutes)
-end Hagi

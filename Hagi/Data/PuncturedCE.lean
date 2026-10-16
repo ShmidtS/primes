@@ -104,6 +104,3 @@ theorem punctured_unbiased {n : ℕ} (x : Fin n → ℝ)
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (puncturedSum punctured_unbiased)
-end Hagi

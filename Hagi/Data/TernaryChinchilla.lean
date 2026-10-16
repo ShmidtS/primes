@@ -71,6 +71,3 @@ theorem ternary_beats_binary (A N alpha : ℝ)
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (capMember capacity_member_mono ternary_beats_binary)
-end Hagi

@@ -81,6 +81,3 @@ theorem ce_prior_decomposition {V : Type} [Fintype V]
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (chunked_sum_exact ce_prior_decomposition)
-end Hagi

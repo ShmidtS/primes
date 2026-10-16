@@ -86,6 +86,3 @@ end TransportEta
 
 end Hagi.Unified
 
-namespace Hagi
-export Hagi.Unified (uncertainty_contraction finite_termination traininfer_critical)
-end Hagi

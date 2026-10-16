@@ -113,6 +113,3 @@ end DFieldKKT
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (divField_marginal dfield_ascent_transfer)
-end Hagi

@@ -44,6 +44,3 @@ theorem pb_gap_bound_mono (KL1 KL2 base : ℝ)
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (capability_gain_transfer pb_gap_bound_mono)
-end Hagi

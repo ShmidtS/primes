@@ -31,6 +31,3 @@ theorem idle_merge_zero_gap {k : Type} [Fintype k] [Nonempty k]
 
 end Hagi.Unified
 
-namespace Hagi
-export Hagi.Unified (idle_merge_zero_gap)
-end Hagi

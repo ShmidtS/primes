@@ -171,6 +171,3 @@ theorem entropy_continuity_pinsker'
 
 end Hagi.Data
 
-namespace Hagi
-export Hagi.Data (binEnt_mono binEnt_nonneg entropy_continuity_pinsker')
-end Hagi

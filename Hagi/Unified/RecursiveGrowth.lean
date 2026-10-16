@@ -296,6 +296,3 @@ theorem safeqp_pareto_orthogonality {K : Type} [Fintype K]
 
 end Hagi.Unified
 
-namespace Hagi
-export Hagi.Unified (topk_routing_optimal fisher_nullspace unitary_perturb_bound unitary_perturb_metric optimal_step_unconstrained optimal_step_value optimal_step_ge_recip safeqp_cumulative safeqp_total_descent safeqp_eps_critical gram_cone_inner safeqp_pareto_orthogonality)
-end Hagi

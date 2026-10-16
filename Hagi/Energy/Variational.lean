@@ -170,6 +170,3 @@ end Variational
 
 end Hagi.Energy
 
-namespace Hagi
-export Hagi.Energy (kldiv' tilted tilted_sum_one tilted_pos kl_tilted_decompose free_energy_variational)
-end Hagi
