@@ -1058,9 +1058,6 @@ same-folder DAG свободен.
   Freedman (совместная M/V форма).
 - Параметрические nonvacuity-свидетели ↔ `cert_horizon_bound`
   (связать свидетель с горизонтом).
-- Терминация из телескопа: композиция
-  `stage_certificate_telescope` + `lyapunov_termination_fin`
-  (если decrease ≥ ε > 0 и riskSpend ограничен — стоп).
 - Lean↔Runtime property-тесты — требует torch-рантайма
   E:\HAGI_v2 (blocked); §I LSL-стек — нет спецификации.
 
