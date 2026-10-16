@@ -222,4 +222,32 @@ theorem band_time_to_target (C G : ℕ → ℝ) (b σ Cstar : ℝ)
   have hgrowth := band_guaranteed_growth C G b σ T hstep hband hσ hσ1
   linarith
 
+
+/-- **Range-версия гарантированного роста (R561)**: полоса
+только на горизонте t < T (сертифицируемая форма; канон
+R540-лямбд для генерализованных гипотез). -/
+theorem band_guaranteed_growth_range (C G : ℕ → ℝ) (b σ : ℝ)
+    (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t < T, b * (1 - σ) ^ t ≤ G t)
+    (hσ : 0 < σ) (hσ1 : σ ≤ 1) :
+    C T ≥ C 0 + b * (1 - (1 - σ) ^ T) / σ := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      -- ih: переведённые гипотезы для горизонта T
+      have ihT := ih
+        (fun t ht => hband t (lt_trans ht (Nat.lt_succ_self T)))
+      have hs := hstep T
+      have hbT := hband T (Nat.lt_succ_self T)
+      have hsumT : ∑ t ∈ Finset.range T, (1 - σ) ^ t
+          = (1 - (1 - σ) ^ T) / σ := geo_sum_decay σ hσ T
+      have hpow : (1 - σ) ^ (T + 1) = (1 - σ) ^ T * (1 - σ) :=
+        pow_succ _ T
+      calc C (T + 1) = C T + G T := hs
+        _ ≥ (C 0 + b * (1 - (1 - σ) ^ T) / σ)
+              + b * (1 - σ) ^ T := by linarith
+        _ = C 0 + b * (1 - (1 - σ) ^ (T + 1)) / σ := by
+            field_simp [hpow]
+            ring
 end Hagi.Foundations
