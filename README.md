@@ -48,7 +48,7 @@ Detailed per-round history: `STATUS.md`.
    Deriving the remaining `h_emp_*` premises (h_emp_grow,
    h_emp_smooth, h_emp_lip) from the Core layer is open.
 
-Current corpus: 324 modules, 2524 frozen declarations, 1924
+Current corpus: 326 modules, 2533 frozen declarations, 1924
 theorem/lemma, 0 sorry, 0 LayerLint exceptions. Per-module
 state with the derived formulas: `STATUS.md`; the algorithms
 implied by the proven theorems: `ALGORITHMS.md`.
