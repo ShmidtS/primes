@@ -1177,6 +1177,12 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Certified-takeoff закрыт (R554): `Unified.CertifiedTakeoff.
+  certified_cone0_takeoff` — cone0-посылка через μ-средние
+  сертифицируется certified_premise (P ≥ 1 − 2e^{−2nε²});
+  на хорошем событии точечно sustained_takeoff_trunc ⟹
+  импликация «margin → takeoff» с тем же уровнем. Первый
+  мост «выборка → детерминированный takeoff».
 - Export-чистка завершена (R553-retry, fb1e84d): строгий
   сканер (same-dir потребители считаются, docstrings
   исключены) — 14 мёртвых блоков удалены, −42 строки;
