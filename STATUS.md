@@ -1177,6 +1177,12 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Конденсационный конвейер закрыт (R545, REFACTOR_PLAN D1):
+  `Budget.AnytimeCondensation.condensation_pipeline` — одна
+  составная: CGF(subGauss σ²) + пустой anytime-bad-set (≤ α)
+  ⟹ dead layers за L + стоимость каркаса ≤ 2σ²·ln(T/α) CE
+  + scaffold ≤ 1,5% (d_eff=5); трио ThermoPrune/ThermoCondensation/
+  AnytimeCondensation соединено в линейный конвейер.
 - Anytime-Freedman композиция: закрыта (R541+R542):
   `anytime_freedman_thresholds` — лестница k-зависимых
   порогов (P[∃ j ≤ T: r j ≤ S_j ∧ C_j ≤ V_j]

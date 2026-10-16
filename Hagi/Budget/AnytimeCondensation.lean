@@ -80,4 +80,65 @@ theorem anytime_condensation {k : Type} [Fintype k] [Nonempty k]
   exact (condensation_epsilon_to_gap m (fun v => g v - μ) t (u ^ 2) hp hsum hε
     h2u).trans (le_of_eq hval)
 
+
+/-- **Конденсационный конвейер (R545, REFACTOR_PLAN D1)**: одна
+составная теорема — от CGF-статистики g (subGauss σ²) и пустого
+anytime-bad-set (вероятность ≤ α) до ПОЛНОГО термосертификата:
+(1) слои за L мертвы; (2) перестройка каркаса стоит не больше
+ε = 2σ²·ln(T/α) CE; (3) каркасная доля ≤ 1,5% (d_eff = 5).
+Соединяет `anytime_condensation` (α-уровень) с
+`thermo_condensation_full` (ε-бюджет + dead layers + scaffold). -/
+theorem condensation_pipeline {k : Type} [Fintype k] [Nonempty k]
+    (q g : k → ℝ) (m : k → ℝ) (t : k) (μ σ2 α : ℝ) (T : ℕ)
+    (hT : 0 < T) (hq : ∀ v, 0 < q v) (hq1 : ∑ v : k, q v = 1)
+    (hs2 : 0 < σ2) (hα : 0 < α) (hα1 : α < 1)
+    (hcgf : ∀ n : ℕ, ∀ c : ℝ, 0 < c →
+      Real.log (∑ v : k, q v * Real.exp (c * (g v - μ)))
+        ≤ c ^ 2 * σ2 / 2)
+    (hempty : ∀ v : k, ¬ ∃ s < T,
+      μ + Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ≤ g v)
+    (hempty2 : ∀ v : k, ¬ ∃ s < T,
+      μ + Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) ≤ 2 * μ - g v)
+    (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
+    (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
+    (val : ℕ → ℝ) (hmono : ∀ j, val (j+1) ≤ val j)
+    (L : ℕ) (epsL : ℝ) (hL : val L < epsL) :
+    (∀ j, L ≤ j → val j < epsL)
+      ∧ (Hagi.ceOneHot t (fun v => m v + (g v - μ)) / 2
+          + Hagi.ceOneHot t (fun v => m v - (g v - μ)) / 2
+          - Hagi.ceOneHot t m ≤ 2 * σ2 * Real.log ((T:ℝ) / α))
+      ∧ (1:ℝ) / ((5:ℕ).factorial : ℝ) ≤ 0.015 := by
+  set u : ℝ := Real.sqrt (2 * σ2 * Real.log ((T:ℝ) / α)) with hu
+  have hlogpos : 0 < Real.log ((T:ℝ) / α) := Real.log_pos
+    (by have hT1 : (1:ℝ) ≤ T := by exact_mod_cast Nat.succ_le_of_lt hT
+        have : T ≠ 0 := ne_of_gt hT
+        have hTα : (1:ℝ) < (T:ℝ) / α := one_lt_div hα |>.2 (by linarith)
+        linarith)
+  have hbandU : ∀ v, g v - μ < u := fun v => by
+    have hb := pointwise_upper_band g μ u T hT hempty v
+    linarith
+  have hbandL : ∀ v, -u < g v - μ := fun v => by
+    have hb := pointwise_upper_band (fun v => 2 * μ - g v) μ u T hT
+      hempty2 v
+    linarith
+  have hdev : ∀ a b : k, |(g a - μ) - (g b - μ)| ≤ 2 * u := by
+    intro a b
+    have ha := hbandU a
+    have hb := hbandU b
+    have la := hbandL a
+    have lb := hbandL b
+    rw [abs_le]
+    constructor <;> linarith
+  have hu0 : 0 ≤ u := by rw [hu]; positivity
+  have h2u : ∀ a b : k, |(g a - μ) - (g b - μ)| ≤ 2 * Real.sqrt (u ^ 2) := by
+    intro a b
+    rw [Real.sqrt_sq_eq_abs, abs_of_nonneg hu0]
+    exact hdev a b
+  have hval : u ^ 2 = 2 * σ2 * Real.log ((T:ℝ) / α) := by
+    rw [hu, Real.sq_sqrt (by positivity)]
+  refine ⟨dead_layer_stop val hmono L epsL hL, ?_, scaffold_15pct_at_deff5⟩
+  have hcost := condensation_epsilon_to_gap m (fun v => g v - μ) t (u ^ 2)
+    hp hsum (by positivity) h2u
+  rwa [hval] at hcost
+
 end Hagi.Budget
