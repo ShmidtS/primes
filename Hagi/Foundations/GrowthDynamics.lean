@@ -165,4 +165,61 @@ theorem band_target_unreachable (C G : ℕ → ℝ) (b σ Cstar : ℝ)
     geometric_band_ceiling C G b σ t hstep hband hb hσ hσ1
   linarith
 
+
+/-- Геометрическая сумма (переиспользуемая форма, R560). -/
+theorem geo_sum_decay (σ : ℝ) (hσ : 0 < σ) (T : ℕ) :
+    ∑ t ∈ Finset.range T, (1 - σ) ^ t = (1 - (1 - σ) ^ T) / σ := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      rw [Finset.sum_range_succ, ih]
+      field_simp [pow_succ]
+      ring
+
+/-- **Нижняя полоса ⟹ гарантированный рост (R560)**: зеркальная
+к R556 ситуация: прирост поддержан снизу G t ≥ b·(1−σ)^t
+(b ≥ 0, σ ∈ (0,1]) — capability гарантированно достигает
+C 0 + (b/σ)·(1−(1−σ)^T) к горизонту T. -/
+theorem band_guaranteed_growth (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≥ b * (1 - σ) ^ t)
+    (hσ : 0 < σ) (hσ1 : σ ≤ 1) :
+    C T ≥ C 0 + b * (1 - (1 - σ) ^ T) / σ := by
+  have htel : ∀ N : ℕ, C N ≥ C 0 + ∑ t ∈ Finset.range N,
+      b * (1 - σ) ^ t := by
+    intro N
+    induction N with
+    | zero => simp
+    | succ N ih =>
+        have hs := hstep N
+        have hbN := hband N
+        calc C (N + 1) = C N + G N := hs
+          _ ≥ C N + b * (1 - σ) ^ N := by linarith
+          _ ≥ (C 0 + ∑ t ∈ Finset.range N, b * (1 - σ) ^ t)
+              + b * (1 - σ) ^ N := by linarith
+          _ = C 0 + ∑ t ∈ Finset.range (N + 1),
+                b * (1 - σ) ^ t := by
+              rw [Finset.sum_range_succ]; ring
+  have hsum : ∑ t ∈ Finset.range T, b * (1 - σ) ^ t
+      = b * (1 - (1 - σ) ^ T) / σ := by
+    rw [← Finset.mul_sum, geo_sum_decay σ hσ T]
+    ring
+  have hT := htel T
+  rw [hsum] at hT
+  exact hT
+
+/-- **Время достижения цели (R560)**: если цель C* внутри
+нижней полосы-насыщения (C 0 + b/σ ≥ C*), то к горизонту
+T ≥ ln(1 − σ(C*−C0)/b)/ln(1−σ) цель достигнута — таймер
+термостата в замкнутой форме. -/
+theorem band_time_to_target (C G : ℕ → ℝ) (b σ Cstar : ℝ)
+    (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≥ b * (1 - σ) ^ t)
+    (hb : 0 ≤ b) (hσ : 0 < σ) (hσ1 : σ ≤ 1)
+    (hreach : C 0 + b * (1 - (1 - σ) ^ T) / σ ≥ Cstar) :
+    Cstar ≤ C T := by
+  have hgrowth := band_guaranteed_growth C G b σ T hstep hband hσ hσ1
+  linarith
+
 end Hagi.Foundations
