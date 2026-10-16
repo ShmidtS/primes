@@ -56,6 +56,47 @@ theorem top_level_cycle_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSp
   -- assemble the three real stages: merge law, joint descent, quant cost
   linarith
 
+/-- **Терминация из телескопа с риск-бюджетом (R529)**:
+композиция `stage_certificate_telescope` + лиапуновской терминации.
+Каждое поколение сертифицировано: после ≤ before − decrease + riskSpend
+(soundность телескопа), decrease ≥ ε > 0 в каждом поколении, а
+суммарный risk-спенд ограничен R (риск-бюджет). Тогда потенциал на
+выходе T поколений остаётся ≥ Emin − R, и горизонт ограничен:
+T ≤ (Φ₀ − Emin + R) / ε. Риск-бюджет входит в числитель горизонта —
+менеджмент риска линеен по времени жизни процесса. -/
+theorem risk_budget_termination (cs : ℕ → Hagi.StageCertificate)
+    (Φ₀ Emin eps R : ℝ) (T : ℕ)
+    (hT : 0 < T)
+    (heps : 0 < eps)
+    (h0 : (cs 0).before = Φ₀)
+    (hcontig : ∀ t, t + 1 < T → (cs (t + 1)).before = (cs t).after)
+    (hsound : ∀ t, t < T →
+      (cs t).after ≤ (cs t).before - ((cs t).cert).decrease
+        + ((cs t).cert).riskSpend)
+    (hdec : ∀ t, t < T → eps ≤ ((cs t).cert).decrease)
+    (hsum : ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend ≤ R)
+    (hR0 : 0 ≤ R)
+    (hfloor : Emin ≤ (cs (T - 1)).after) :
+    (T : ℝ) ≤ (Φ₀ - Emin + R) / eps := by
+  have htel := Hagi.stage_certificate_telescope cs hT hcontig hsound
+  rw [h0] at htel
+  -- sum of decreases ≥ T * eps
+  have hsumdec : ∑ t ∈ Finset.range T, ((cs t).cert).decrease ≥ eps * (T:ℝ) := by
+    calc eps * (T:ℝ) = ∑ t ∈ Finset.range T, eps := by
+          rw [Finset.sum_const]; simp; ring
+      _ ≤ ∑ t ∈ Finset.range T, ((cs t).cert).decrease :=
+          Finset.sum_le_sum fun t ht => hdec t (Finset.mem_range.mp ht)
+  -- after_{T-1} ≤ Φ₀ − Tε + R
+  have hbound : (cs (T - 1)).after ≤ Φ₀ - eps * (T:ℝ) + R := by
+    calc (cs (T - 1)).after
+        ≤ Φ₀ - ∑ t ∈ Finset.range T, ((cs t).cert).decrease
+          + ∑ t ∈ Finset.range T, ((cs t).cert).riskSpend := htel
+      _ ≤ Φ₀ - eps * (T:ℝ) + R := by linarith
+  -- close: Emin − R ≤ after ≤ Φ₀ − Tε + R
+  have hcomm : eps * (T:ℝ) = (T:ℝ) * eps := mul_comm _ _
+  rw [le_div_iff₀ heps]
+  linarith
+
 /-- If `Emin ≤ E t` for `t ≤ k` and each step decreases by
 at least `eps > 0`, then `k ≤ (E 0 − Emin) / eps`. -/
 theorem top_level_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
@@ -135,5 +176,5 @@ theorem merge_stage_concat_adapter {Tok : Type} [Fintype Tok]
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (top_level_cycle_bound top_level_termination noisy_cycle_step horizon_termination merge_stage_concat_adapter)
+export Hagi.Unified (top_level_cycle_bound top_level_termination noisy_cycle_step horizon_termination merge_stage_concat_adapter risk_budget_termination)
 end Hagi

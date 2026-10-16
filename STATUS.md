@@ -235,6 +235,17 @@ same-folder DAG свободен.
   ≤ 2σ²·ln(T/α) CE. Мониторинг с уровнем α
   сертифицирует конденсацию без
   переобучения.
+- `Unified/TopLevel` `risk_budget_termination`
+  (R529): терминация из телескопа с
+  риск-бюджетом — композиция
+  stage_certificate_telescope + лиапуновской
+  терминации: decrease ≥ ε в каждом
+  поколении ∧ суммарный risk-спенд ≤ R ∧
+  потенциал ≥ Emin ⟹ горизонт ограничен:
+  T ≤ (Φ₀ − Emin + R)/ε. Риск-бюджет входит
+  в числитель горизонта линейно — открытый
+  пункт STATUS §«Терминация из телескопа»
+  закрыт.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
