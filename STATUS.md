@@ -246,6 +246,14 @@ same-folder DAG свободен.
   в числитель горизонта линейно — открытый
   пункт STATUS §«Терминация из телескопа»
   закрыт.
+- `Growth/GammaDeficit` (R530): закрытие
+  открытого пункта «γ-дефицит mixer.gain→0»:
+  `gamma_min_for_target` — достижение цели C*
+  требует γ ≥ α·C*/D̄ (контрапозиция
+  bounded_frontier); `gamma_deficit_no_takeoff`
+  — при γ·D̄ < α·C* capability не превышает
+  потолка γ·D̄/α ни в один момент: честный
+  взлёт требует γ-бюджета.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
@@ -1053,8 +1061,7 @@ same-folder DAG свободен.
   (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
-- γ-дефицит mixer.gain→0 — честно открыт.
-- Полная Fannes-граница (Pinsker-часть доказана); anytime-
+-- Полная Fannes-граница (Pinsker-часть доказана); anytime-
   Freedman (совместная M/V форма).
 - Параметрические nonvacuity-свидетели ↔ `cert_horizon_bound`
   (связать свидетель с горизонтом).
