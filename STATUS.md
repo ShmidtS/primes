@@ -1177,6 +1177,11 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Union bound для нулевых масс закрыт (R555 ч.1):
+  `UnionBound.union_bound_nonneg` — ladder-объединение при
+  0 ≤ q v (prodDens имеет нули; старый union_bound_finite
+  требовал 0 < q v); фундамент для T-шаговой сертификации
+  прироста (ч.2 — следующий виток).
 - Certified-takeoff закрыт (R554): `Unified.CertifiedTakeoff.
   certified_cone0_takeoff` — cone0-посылка через μ-средние
   сертифицируется certified_premise (P ≥ 1 − 2e^{−2nε²});
