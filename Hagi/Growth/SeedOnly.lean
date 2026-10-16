@@ -96,6 +96,3 @@ end SeedOnly
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (sum_dist_mean_le seed_only_disp_bound seed_only_grow_stop)
-end Hagi

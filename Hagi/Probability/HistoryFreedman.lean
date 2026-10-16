@@ -230,6 +230,3 @@ end
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (historyAdditive historyAdditive_update historyAdditive_zero historyAdditive_frozen history_additive_freedman historyAdditive_past history_additive_freedman_maximal anytime_freedman_thresholds)
-end Hagi

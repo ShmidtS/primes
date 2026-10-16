@@ -84,6 +84,3 @@ theorem fiber_params_floor {A Q : Type} [DecidableEq Q]
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (configs_injective_on_separated used_configs_lower_bound fiber_params_floor)
-end Hagi

@@ -178,6 +178,3 @@ theorem closed_loop_takeoff {n : ℕ} (p : Fin n → V → ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (opportunity_renewal recursive_self_development multiplicative_growth realizedSuccess sum_realized closed_loop_takeoff)
-end Hagi

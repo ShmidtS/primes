@@ -150,6 +150,3 @@ theorem merge_gate_certified {twoGap : ℝ}
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (sigmaPrice QuadModel sigmaPrice_neg merge_price_quad price_zero_iff_ker MergeApproved merge_gate_certified)
-end Hagi

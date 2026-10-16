@@ -67,6 +67,3 @@ theorem any_stage_kills_gain (E_dev G_policy G_update G_cap
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (etaOpt gain_chain_opt any_stage_kills_gain)
-end Hagi

@@ -78,6 +78,3 @@ theorem attention_error_damped' {ι : Type*} [Fintype ι] {E : Type*}
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (attention_error_damped_sum attention_error_damped attention_error_damped')
-end Hagi

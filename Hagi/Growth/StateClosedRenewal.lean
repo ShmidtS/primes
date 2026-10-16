@@ -133,6 +133,3 @@ theorem state_closed_band (S : ℕ → GrowthState X)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (state_closed_takeoff state_closed_renewal_step state_closed_band)
-end Hagi

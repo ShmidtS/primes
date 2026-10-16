@@ -46,6 +46,3 @@ theorem sparse_step0 {v : ι → E} (hv : Orthonormal ℝ v)
 
 end Hagi.Sparsity
 
-namespace Hagi
-export Hagi.Sparsity (sparse_step0)
-end Hagi

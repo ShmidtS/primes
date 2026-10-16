@@ -69,6 +69,3 @@ end Real
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (kronecker_mul_conjTranspose conjTranspose_kronecker_mul kronecker_mul_transpose transpose_kronecker_mul)
-end Hagi

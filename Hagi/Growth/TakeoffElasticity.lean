@@ -94,6 +94,3 @@ theorem decay_elasticity (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (elasticity_chain takeoff_elasticity decay_elasticity)
-end Hagi

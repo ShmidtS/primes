@@ -109,6 +109,3 @@ theorem gpm_implies_safeqp_gn (X : Matrix k n ℝ) (r : k → ℝ)
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (quad_form_factorization quad_form_zero_iff kernel_interference_zero gn_grad_inner_ker gpm_implies_safeqp_gn)
-end Hagi

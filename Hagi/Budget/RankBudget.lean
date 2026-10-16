@@ -202,6 +202,3 @@ end RankBudget
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (rankResidual rankResidual_equalized rankResidual_allocation)
-end Hagi

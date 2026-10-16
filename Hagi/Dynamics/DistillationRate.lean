@@ -56,6 +56,3 @@ theorem kl_half_steps (kl : ℕ → ℝ) (KL₀ : ℝ) (T : ℕ)
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (kl_contraction_budget kl_half_steps)
-end Hagi

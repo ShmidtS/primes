@@ -47,6 +47,3 @@ theorem fresh_momentum_unbiased (gt : V)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (stale_momentum_bias fresh_momentum_unbiased)
-end Hagi

@@ -68,6 +68,3 @@ theorem safeqp_monotone_domain (inner slack L dnorm dL : ℝ)
   linarith
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (safeqp_second_order safeqp_trust_region safeqp_monotone_domain)
-end Hagi

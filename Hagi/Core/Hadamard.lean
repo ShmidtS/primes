@@ -223,6 +223,3 @@ theorem hadamardOrthonormal_mul_transpose :
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (zmod2_add_self zmod2_neg_eq_self zmod2_one_add_one zmod2_cases chi2 chi2_zero chi2_one chi2_sq chi2_mul sylvester sylvester_apply sylvester_transpose sylvester_mem inner2_add_left sum_chi2_eq_zero sylvester_mul_transpose hadamardReal hadamardOrthonormal hadamardReal_mul_transpose smul_orthonormal hadamardOrthonormal_mul_transpose)
-end Hagi

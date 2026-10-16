@@ -140,6 +140,3 @@ theorem takeoff_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : ℕ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (InjectionLaw injection_law_of_measured disMean coordMean_const const_probe_sum certified_cycle_renewal CapabilitySound takeoff_lifts_utility)
-end Hagi

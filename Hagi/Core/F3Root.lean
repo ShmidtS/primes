@@ -56,6 +56,3 @@ end F3Root
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (root_invariance root_no_leaf_signal anova_split)
-end Hagi

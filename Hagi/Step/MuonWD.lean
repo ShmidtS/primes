@@ -109,6 +109,3 @@ theorem wd_boundedness (theta : ℕ → W) (U : ℕ → W)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (muon_wd_recursion wd_boundedness)
-end Hagi

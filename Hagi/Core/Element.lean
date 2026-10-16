@@ -84,6 +84,3 @@ end Element
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (residualLeaf residualLeaf_zero residualLeaf_zero_apply delta_rank_le delta_exact_rank_bound params_count)
-end Hagi

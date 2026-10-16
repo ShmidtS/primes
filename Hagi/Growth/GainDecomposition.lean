@@ -65,6 +65,3 @@ theorem zero_stage_kills_gain (E_dev G_policy G_cap η_p η_s : ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (etaPolicy etaState gain_chain zero_stage_kills_gain)
-end Hagi

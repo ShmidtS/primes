@@ -110,6 +110,3 @@ end BranchScale
 
 end Hagi.Energy
 
-namespace Hagi
-export Hagi.Energy (var_recursion constructive_scale)
-end Hagi

@@ -52,6 +52,3 @@ theorem positive_selection_dominates {N : ℕ}
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (sum_perm_invariant negative_expert_hurts_any_order positive_selection_dominates)
-end Hagi

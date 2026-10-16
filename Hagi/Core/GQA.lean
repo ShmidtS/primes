@@ -71,6 +71,3 @@ theorem gqa_cache_card (g : GQA Q KV) :
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (GQA mhaCache gqaCache scoreOf gqaScoreOf gqa_shared_score gqa_cache_card)
-end Hagi

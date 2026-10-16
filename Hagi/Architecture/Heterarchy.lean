@@ -86,6 +86,3 @@ theorem disagreement_survives_configs (d : X) (hd : d ≠ 0) :
 
 end Hagi.Architecture
 
-namespace Hagi
-export Hagi.Architecture (dominatesIn RankingConsistent no_global_ranking cycle_breaks_ranking disagreement_survives_configs)
-end Hagi

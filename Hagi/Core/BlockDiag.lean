@@ -54,6 +54,3 @@ theorem step0_equivalence {m' n' : o → Type*} [∀ i, Fintype (n' i)]
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (blockDiagonal'_mulVec_apply stackStates step0_equivalence)
-end Hagi

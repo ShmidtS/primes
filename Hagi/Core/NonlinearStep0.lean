@@ -107,6 +107,3 @@ theorem zero_init_identity [AddCommGroup V] [Module ℝ V]
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (blockMap GaugeEquiv gauge_equiv_comp PerBlockLayer perBlock_gauge_equiv DeepNet DeepNetV perBlock_net_blockwise zero_init_identity)
-end Hagi

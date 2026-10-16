@@ -53,6 +53,3 @@ theorem vista_residual_identity {d : ℕ} (U : Fin 1 → (Fin d → ℝ))
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (bridgeOut vista_bridge_zero vista_residual_identity)
-end Hagi

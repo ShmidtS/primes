@@ -131,6 +131,3 @@ theorem pl_rate_noconflict (f : X → ℝ) (x : X) (g : X)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (safeqp_pl_descent safeqp_pl_rate pl_rate_noconflict)
-end Hagi

@@ -163,6 +163,3 @@ end Waterfilling
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (kvResidual waterfilling_bound waterfilling_inactive_clamp)
-end Hagi

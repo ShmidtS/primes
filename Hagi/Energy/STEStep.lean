@@ -51,6 +51,3 @@ theorem ste_step_residual (gradStep s wdelta : ℝ)
 
 end Hagi.Energy
 
-namespace Hagi
-export Hagi.Energy (ste_step_residual)
-end Hagi

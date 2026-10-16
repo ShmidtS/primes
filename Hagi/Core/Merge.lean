@@ -66,6 +66,3 @@ theorem mulVec_dotProduct_mulVec (Q : Matrix n n ℝ) (hQ : Q * Qᵀ = 1)
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (head_prerotation blockCols blockCols_mulVec_sum mulVec_dotProduct_mulVec)
-end Hagi

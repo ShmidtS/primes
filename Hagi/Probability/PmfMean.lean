@@ -139,6 +139,3 @@ theorem pmfMean_uniformOfFinset {α : Type*} [Fintype α]
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (pmfMean pmf_weight_sum pmfMean_const pmfMean_congr pmfMean_add pmfMean_sub pmfMean_mul_const pmfMean_const_mul pmfMean_nonneg pmfMean_mono pmfMean_sq_sub pmfMean_sq_le pmfMean_markov_sq pmfMean_pure pmfMean_bind pmfMean_map pmfMean_uniformOfFinset)
-end Hagi

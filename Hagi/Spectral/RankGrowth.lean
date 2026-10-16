@@ -185,6 +185,3 @@ theorem span_growth_zero_interference {α κ : Type*}
 
 end Hagi.Spectral
 
-namespace Hagi
-export Hagi.Spectral (stackRows OrthRows rank_orthogonal_growth span_growth_zero_interference)
-end Hagi

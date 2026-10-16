@@ -122,6 +122,3 @@ end MergeScaling
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (two_channel_step_law)
-end Hagi

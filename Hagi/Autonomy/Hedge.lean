@@ -171,6 +171,3 @@ theorem router_regret_bound (K T : ℕ) (eta A Lstar : ℝ)
 
 end Hagi.Autonomy
 
-namespace Hagi
-export Hagi.Autonomy (exp_neg_le_quad hedge_step hedge_telescope router_regret_bound)
-end Hagi

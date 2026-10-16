@@ -111,6 +111,3 @@ end MergeIdentity
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (softmax_shift_invariance geometric_mean_logit_mean)
-end Hagi

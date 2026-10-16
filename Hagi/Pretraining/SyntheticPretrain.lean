@@ -195,6 +195,3 @@ end SyntheticPretrain
 
 end Hagi.Pretraining
 
-namespace Hagi
-export Hagi.Pretraining (TimeToCapability synthGain time_to_capability_correct synth_investment_dominates task_selection_marginal)
-end Hagi

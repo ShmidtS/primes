@@ -80,6 +80,3 @@ theorem mup_grad_invariant (m d : ℕ) (hm : 1 ≤ m)
   field_simp
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (gradEntry grad_norm_grows mup_grad_invariant)
-end Hagi

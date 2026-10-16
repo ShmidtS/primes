@@ -106,6 +106,3 @@ theorem shift_paid_from_budget (e delta : ℕ → ℝ) (eps : ℝ)
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (BudgetAlive budget_consumed guarantee_horizon_bound shift_paid_from_budget)
-end Hagi

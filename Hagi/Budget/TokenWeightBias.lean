@@ -131,6 +131,3 @@ theorem zero_bias_iff_uncorrelated (T g : Fin n → ℝ)
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (token_weight_decomposition zero_bias_iff_uncorrelated)
-end Hagi

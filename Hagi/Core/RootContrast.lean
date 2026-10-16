@@ -193,6 +193,3 @@ end RhoDefs
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (rootPart contrastPart root_sum_eq root_idem contrast_zero_sum contrast_of_root root_contrast_orth_total root_contrast_pythagoras filter_partition_sum highway_gain_identity rhoCaptured rhoTail rho_partition)
-end Hagi

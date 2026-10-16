@@ -64,6 +64,3 @@ theorem cycle_criterion (D D' : ℝ) (ρ η ξ : ℝ) (dev : Fin N → V)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (round_exhausted round_viable cycle_criterion)
-end Hagi

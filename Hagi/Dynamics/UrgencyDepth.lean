@@ -54,6 +54,3 @@ theorem patient_configuration_reaches (x c : ℕ → ℝ)
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (depth_capped_by_time shallow_misses_tube patient_configuration_reaches)
-end Hagi

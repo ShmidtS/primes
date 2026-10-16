@@ -41,6 +41,3 @@ noncomputable def effectiveCapacity (ℓ p : ℝ) : ℝ := ℓ / p
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (effectiveCapacity)
-end Hagi

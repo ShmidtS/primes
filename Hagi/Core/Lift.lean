@@ -194,6 +194,3 @@ theorem parentPreservingQ_theta :
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (Qentry parentPreservingQ parentPreservingQ_mul_transpose parentPreservingQ_diag parentPreservingQ_leafSub diagonalAdd_preserves_equality rootProj rootProj_is_mean parentPreservingQ_root_fixed mixerQ mixerQ_orthogonal mixerQ_root_fixed parentPreservingQ_trace parentPreservingQ_cos_angle parentPreservingQ_theta)
-end Hagi

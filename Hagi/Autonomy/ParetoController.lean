@@ -188,6 +188,3 @@ end Directional
 
 end Hagi.Autonomy
 
-namespace Hagi
-export Hagi.Autonomy (dirTau dirTau_le le_dirTau dirTau_char pareto_validity dir_controller_find noisy_pareto_select)
-end Hagi

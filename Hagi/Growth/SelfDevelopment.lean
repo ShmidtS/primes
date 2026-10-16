@@ -100,6 +100,3 @@ theorem search_cost_bound (cMeas : ℝ) (hc : 0 ≤ cMeas) (safe : A → Prop)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (safeCandidates controller_max_exists self_development_find certified_gain_select search_cost_bound)
-end Hagi

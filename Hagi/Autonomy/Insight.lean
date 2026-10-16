@@ -125,6 +125,3 @@ theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
 
 end Hagi.Autonomy
 
-namespace Hagi
-export Hagi.Autonomy (forgetting_kl_bound insight_kl_descent experience_cycle_bound insight_consolidation_safe tldr_drift_null tldr_two_tier_safety)
-end Hagi

@@ -656,6 +656,3 @@ theorem adaptive_success_azuma (q : V → ℝ)
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (hoeffding_lemma_prefix prodE_snoc azumaSum azumaSum_congr azumaSum_snoc azuma_mgf azumaSum_neg azuma_tail_low azumaSum_sub azumaSum_lower azumaSum_ext adaptive_success_azuma)
-end Hagi

@@ -36,6 +36,3 @@ theorem ns_gap_scaled (r : ℕ) (dev : Fin r → ℝ)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (ns_gap_scaled)
-end Hagi

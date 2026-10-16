@@ -591,6 +591,3 @@ end AdaptiveSafeQP
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (latticeStep latticeNet latticeNet_norm_le latticeNet_covers latticeNet_card_le adaptiveNoiseEps adaptive_net_concentration adaptive_direction_concentration adaptive_safeQP_feasibility)
-end Hagi

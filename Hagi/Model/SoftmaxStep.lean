@@ -399,6 +399,3 @@ theorem logitCE_total_descent_bounded (T : ℕ) (w eta d : ℕ → ℝ)
 
 end Hagi.Model
 
-namespace Hagi
-export Hagi.Model (logitCE logitGrad logitCE_deriv logitGrad_deriv sigmoid_sq_le_quarter grad_lipschitz logitCE_descent_lemma descent_step descent_example joint_stage_logitCE logitCE_trajectory_bound logitCE_nonneg logitCE_total_descent_bounded)
-end Hagi

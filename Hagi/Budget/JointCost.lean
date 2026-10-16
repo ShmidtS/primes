@@ -146,6 +146,3 @@ end JointCost
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (block_lowrank_lt_dense_iff nsIter nsIter_scale nsIter_block_le amdahl_ceiling offdiag_pythagoras)
-end Hagi

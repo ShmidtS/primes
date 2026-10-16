@@ -78,6 +78,3 @@ theorem rope_translation_shift (θ : Fin d → ℝ) (m n k : ℕ) (hmn : m ≤ n
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (rotVec pairInner rot_norm rope_score_delta rope_translation_shift)
-end Hagi

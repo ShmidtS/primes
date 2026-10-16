@@ -111,6 +111,3 @@ theorem tie_ambiguity (eps delta : ℝ)
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (argmax_pair_certified argmax_select_certified RequiresRandomSplit tie_ambiguity)
-end Hagi

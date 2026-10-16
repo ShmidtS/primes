@@ -78,6 +78,3 @@ theorem rsi_cone_criterion (D C : ℕ → ℝ) (rho beta alpha gamma : ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (rsi_step_growth rsi_cone_criterion)
-end Hagi

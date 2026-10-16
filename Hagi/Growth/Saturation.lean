@@ -212,6 +212,3 @@ theorem takeoff_with_saturation (C D : ℕ → ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (never_overshoot pl_gap_geometric saturation_limit pl_gap_geometric_lo takeoff_with_saturation)
-end Hagi

@@ -105,6 +105,3 @@ theorem optimal_split (A C B : ℝ) (hA : 0 < A) (hC : 0 < C)
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (two_term_amgm optimal_split)
-end Hagi

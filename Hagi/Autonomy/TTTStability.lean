@@ -66,6 +66,3 @@ theorem ttt_chain_bounded (W : ℕ → ℝ) (hW : ∀ t, abs (W t) ≤ 1)
 
 end Hagi.Autonomy
 
-namespace Hagi
-export Hagi.Autonomy (ttt_bibo ttt_chain_bounded)
-end Hagi

@@ -87,6 +87,3 @@ theorem no_restore_without_checkpoint (h : List SupEv)
 
 end Hagi.Autonomy
 
-namespace Hagi
-export Hagi.Autonomy (RunId SupEv admissibleIn ValidHist no_restore_without_checkpoint)
-end Hagi

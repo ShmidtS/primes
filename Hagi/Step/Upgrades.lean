@@ -56,6 +56,3 @@ end Upgrades
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (ns_geometric_envelope sinkReceptiveField)
-end Hagi

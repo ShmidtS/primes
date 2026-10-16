@@ -58,6 +58,3 @@ theorem active_beats_dense_family (c r d N : ℕ)
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (active_flops switching_never_exceeds_dense active_beats_dense_family)
-end Hagi

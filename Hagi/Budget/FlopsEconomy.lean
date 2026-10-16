@@ -75,6 +75,3 @@ theorem amortized_growth_cheaper (d r N : ℕ)
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (equal_budget_baseline pipeline_beats_baseline_iff amortized_growth_cheaper)
-end Hagi

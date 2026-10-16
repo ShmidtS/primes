@@ -120,6 +120,3 @@ theorem growth_dichotomy (V eps b : ℕ → ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (potential_telescope edge_total_bound frozen_saturation expansion_required growth_dichotomy)
-end Hagi

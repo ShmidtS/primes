@@ -154,6 +154,3 @@ end
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (historyLaw_past_mean historyNoise_past historyCounter_past pmfMean_finset_sum pmfMean_event_union history_noise_freedman_maximal)
-end Hagi

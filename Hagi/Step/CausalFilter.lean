@@ -79,6 +79,3 @@ theorem leak_same_step (w x : ℕ → ℝ) (t : ℕ) (hw : w 0 ≠ 0)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (causalConv causal_prefix_determined centeredConv leak_same_step)
-end Hagi

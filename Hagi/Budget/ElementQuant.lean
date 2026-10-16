@@ -103,6 +103,3 @@ theorem ternary_pair_qerr_sum {m r n : Type} [Fintype m]
 
 end Hagi.Budget
 
-namespace Hagi
-export Hagi.Budget (factor_quant_error factor_quant_go)
-end Hagi

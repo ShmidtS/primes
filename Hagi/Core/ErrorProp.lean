@@ -151,6 +151,3 @@ end SecondMoment
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (propagate propagate_cons propagate_bound propagate_bound_contractive weightedResidual propagate_sq_bound)
-end Hagi

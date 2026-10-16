@@ -218,6 +218,3 @@ end NCEExact
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (partZ impW jensen_log partEst_unbiased secondMomentW secondMomentW_ge_sq partEst_gap_jensen relative_second_moment_floor anchor_cadence_criterion)
-end Hagi

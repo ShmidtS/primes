@@ -72,6 +72,3 @@ theorem mixed_invisible {Q : n → n → ℝ} {W : n → (k → ℝ)}
 
 end Hagi.Core
 
-namespace Hagi
-export Hagi.Core (mixedLogits plainLogits mixed_invisible)
-end Hagi

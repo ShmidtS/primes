@@ -745,6 +745,3 @@ theorem adaptive_success_freedman (q : V → ℝ)
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (exp_tail_two freedman_lemma_prefix freedman_mgf freedman_tail_low cond_var_le_second adaptive_success_freedman)
-end Hagi

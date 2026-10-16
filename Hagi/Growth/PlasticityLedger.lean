@@ -154,6 +154,3 @@ theorem radius_zero_of_eq (P : I → V → ℝ)
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (famMix plasticityRadius IsProbs kl_le_log_card radius_le_log_card radius_zero_of_eq)
-end Hagi

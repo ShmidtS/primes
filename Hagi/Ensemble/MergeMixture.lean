@@ -75,6 +75,3 @@ theorem routing_drift_bound (w w' : Fin m → ℝ)
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (merged_output_exact routing_drift_bound)
-end Hagi

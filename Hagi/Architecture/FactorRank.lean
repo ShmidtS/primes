@@ -130,6 +130,3 @@ theorem regimeC_fractional {W : Matrix m (Fin k) ℝ} {r : ℕ}
 
 end Hagi.Architecture
 
-namespace Hagi
-export Hagi.Architecture (nonnegFactorization rank_le_of_nonnegFactorization nonnegRank rank_le_nonnegRank factorGap positive_measure_pos_prob regimeAFactor regimeCFactor regimeC_fractional)
-end Hagi

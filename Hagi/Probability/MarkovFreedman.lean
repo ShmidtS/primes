@@ -199,6 +199,3 @@ end
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (pmfMean_exp_le markovLaw markovMean_potential_le markovMean_exp_compensated_le pmfMean_compensated_tail finite_freedman)
-end Hagi

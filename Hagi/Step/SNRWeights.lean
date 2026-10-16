@@ -53,6 +53,3 @@ theorem focused_beats_uniform (dev : Fin r → ℝ)
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (uniform_is_mean focused_beats_uniform)
-end Hagi

@@ -161,6 +161,3 @@ noncomputable def reverseKlTarget {N : ℕ} (w : Fin N → ℝ)
 
 end Hagi.Ensemble
 
-namespace Hagi
-export Hagi.Ensemble (l1Norm distill_kl_bridge distillEfficiency distill_efficiency_pos forwardKlTarget reverseKlTarget)
-end Hagi

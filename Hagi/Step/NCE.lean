@@ -60,6 +60,3 @@ end NCE
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (nce_decomposition nce_correction_pos)
-end Hagi

@@ -578,7 +578,4 @@ theorem growing_batch_stabilized (E : ℕ → ℝ)
 
 end Hagi.Foundations
 
-namespace Hagi
-export Hagi.Foundations (one_sub_pow_le_exp grokking_threshold_time certified_descent_with_grokking_tail growing_batch_stabilized)
-end Hagi
 

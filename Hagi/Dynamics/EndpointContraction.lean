@@ -128,7 +128,4 @@ theorem endpoint_depth_budget (x c : ℕ → ℝ) (κ β cbar ε : ℝ)
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (endpoint_bivariate_bound endpoint_geometric_tail endpoint_depth_budget)
-end Hagi
 

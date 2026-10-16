@@ -46,6 +46,3 @@ theorem muon_pl_rate {W : Type} [NormedAddCommGroup W]
 
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (muonDir muon_step_bound muon_pl_rate)
-end Hagi

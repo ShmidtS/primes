@@ -74,6 +74,3 @@ theorem budget_allocation_dominance (Gam : ℕ → ℝ) (K : ℕ → ℝ) (ibest
 
 end Hagi.Dynamics
 
-namespace Hagi
-export Hagi.Dynamics (ratio_dominance budget_allocation_dominance)
-end Hagi

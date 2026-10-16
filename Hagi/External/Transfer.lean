@@ -164,6 +164,3 @@ end Slingshot
 
 end Hagi.External
 
-namespace Hagi
-export Hagi.External (mup_scale_invariance vocab_critical_point phase_metric_monotone frozen_norm_no_dynamics)
-end Hagi

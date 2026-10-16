@@ -238,6 +238,3 @@ end
 
 end Hagi.Probability
 
-namespace Hagi
-export Hagi.Probability (History historyIndex historyIndex_val historyInitial historyKernel historyLaw historyIndex_ne_succ historyLaw_marginal historyLaw_invariant historyIncrement historyNoise historyCounter historyCounterRate historyNoise_update historyCounter_update historyNoise_zero historyCounter_zero historyLaw_current_support historyNoise_frozen historyCounter_frozen history_noise_freedman)
-end Hagi

@@ -103,6 +103,3 @@ end ChannelBudget
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (cycle_decay_mono cycle_decay_ratio channel_switch)
-end Hagi

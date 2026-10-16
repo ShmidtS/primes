@@ -47,6 +47,3 @@ end GrowthGate
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (verdict_ttt verdict_grow verdict_exhausted)
-end Hagi

@@ -78,6 +78,3 @@ theorem amplification_needs_expansion (Ts : List (V →L[ℝ] V))
 
 end Hagi.Growth
 
-namespace Hagi
-export Hagi.Growth (gain_product_bound stackComp stackComp_cons gain_stack_ceiling amplification_needs_expansion)
-end Hagi

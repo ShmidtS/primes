@@ -123,6 +123,3 @@ end Ternary
 
 end Hagi.Energy
 
-namespace Hagi
-export Hagi.Energy (tern tern_distortion_round tern_scale_invariance)
-end Hagi

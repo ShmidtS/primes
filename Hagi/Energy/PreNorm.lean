@@ -112,6 +112,3 @@ end PreNorm
 
 end Hagi.Energy
 
-namespace Hagi
-export Hagi.Energy (rms_direction rms_idempotent bf16_frozen_update)
-end Hagi

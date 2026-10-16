@@ -114,6 +114,3 @@ theorem klsSafeQP_certified {n : ℕ} {Ω : Type*} [Fintype Ω] [Nonempty Ω]
         linarith [hbad]
 end Hagi.Step
 
-namespace Hagi
-export Hagi.Step (klsSafeQP_certified)
-end Hagi
