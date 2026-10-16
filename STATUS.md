@@ -329,6 +329,20 @@ same-folder DAG свободен.
   gate ⟹ C ≤ gMax·wLive/α). Рост требует причинной
   интерпретируемости — корреляция без вычисления не
   конвертируется в capability (композиция R530+R535).
+- `Unified/GaugeQuotient` (R537): формализация ядра
+  QRR (Park & Rusch, arXiv:2610.18174 «Looped Reasoning
+  Finishes Earlier Than You Think»): rot — token-local
+  U(1) gauge-действие (e^{iφ}z); GaugeSystem —
+  эквивариантность T(g·z)=g·T(z); quotientResidual
+  r_G(z)=inf_φ‖Tz−e^{iφ}z‖ (Eq.19 статьи);
+  `quotientResidual_gauge_invariant` — r_G(g·z)=r_G(z)
+  (движение по орбите невидимо для quotient-теста);
+  `relativeEquilibrium_residual_zero` — T z=g·z ⟹ r_G=0:
+  quotient сходится раньше raw (ранний halting); ядра
+  rate inheritance (Thm 3.2): `seq_dev_exact` —
+  x_t−x*=s^t(x₀−x*) и `seq_dev_modulus` — |s|^t-форма:
+  осцилляторная мода (s=−r) при r≥1 не затухает, при
+  r<1 затухает геометрически с темпом r.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
