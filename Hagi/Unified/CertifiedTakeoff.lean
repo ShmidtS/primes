@@ -52,4 +52,40 @@ theorem certified_cone0_takeoff {n : ℕ} {V : Type}
   exact sustained_takeoff_trunc C G D alpha gamma rho beta xi T
     hα hγ hρ hC0 (hbridge (h hmargin)) hstep hgain hdyn hcap hbeta
 
+
+/-- **Размер выборки из уровня доверия (R558)**: если
+n ≥ ln(2T/α)/(2ε²), то экспоненциальный дефект лестницы
+2T·e^{−2nε²} ≤ α — замыкающий мост certified-каскада:
+сколько измерений нужно, чтобы anytime-уровень R555 был
+≥ 1 − α. -/
+theorem sample_size_adequate (n T : ℕ) (eps alpha : ℝ)
+    (heps : 0 < eps) (hα : 0 < alpha) (hT : 0 < T)
+    (hn : Real.log (2 * (T:ℝ) / alpha) / (2 * eps^2) ≤ (n:ℝ)) :
+    2 * (T:ℝ) * Real.exp (-2 * (n:ℝ) * eps^2) ≤ alpha := by
+  have hTα : 0 < 2 * (T:ℝ) / alpha := by positivity
+  have hlog : Real.log (2 * (T:ℝ) / alpha) ≤ 2 * (n:ℝ) * eps^2 := by
+    have h1 : (Real.log (2 * (T:ℝ) / alpha)) / (2 * eps^2)
+        ≤ (n:ℝ) := hn
+    have h2 : 0 < (2:ℝ) * eps^2 := by positivity
+    have h3 := (div_le_iff₀ h2).mp h1
+    have h4 : (n:ℝ) * (2 * eps^2) = 2 * (n:ℝ) * eps^2 := by ring
+    rw [h4] at h3
+    exact h3
+  -- antitone: e^{−2nε²} ≤ e^{−ln(2T/α)} = α/(2T)
+  have hanti : Real.exp (-(2 * (n:ℝ) * eps^2))
+      ≤ Real.exp (-(Real.log (2 * (T:ℝ) / alpha))) := by
+    exact Real.exp_le_exp.mpr (by linarith)
+  have hexplog : Real.exp (-(Real.log (2 * (T:ℝ) / alpha)))
+      = alpha / (2 * (T:ℝ)) := by
+    rw [Real.exp_neg, Real.exp_log hTα]
+    field_simp
+  rw [hexplog] at hanti
+  have h2T : 0 < (2:ℝ) * T := by positivity
+  have hmul := mul_le_mul_of_nonneg_left hanti h2T.le
+  have hdiv : (2 * (T:ℝ)) * (alpha / (2 * (T:ℝ))) = alpha := by
+    field_simp
+  rw [hdiv] at hmul
+  ring_nf at hmul ⊢
+  exact hmul
+
 end Hagi.Unified
