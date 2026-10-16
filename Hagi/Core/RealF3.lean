@@ -27,9 +27,7 @@ The orthogonality of `reUnitMat` is not yet proven here.
 
 open scoped Matrix
 
-namespace Hagi
-
-namespace RealF3
+namespace Hagi.RealF3
 
 open Hagi
 
@@ -146,6 +144,4 @@ theorem reBlock_mul_transpose (c d : ℂ) :
     simp [Complex.mul_re, Complex.mul_im] <;>
     ring
 
-end RealF3
-
-end Hagi
+end Hagi.RealF3

@@ -19,7 +19,7 @@ set_option linter.style.header false
 
 open scoped Matrix
 
-namespace Hagi
+namespace Hagi.Core
 
 namespace SelectionCounterexample
 
@@ -167,4 +167,4 @@ theorem selection_hurts :
 
 end
 
-end Hagi
+end Hagi.Core
