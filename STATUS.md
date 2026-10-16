@@ -267,6 +267,19 @@ same-folder DAG свободен.
   геометрии; witness_achieves_horizon —
   честный рост C0 < C T. Witness-горизонт
   совпадает с горизонтом границы.
+- `Unified/FannesComplete` (R532): ПОЛНАЯ
+  Fannes-граница без hbridge-моста:
+  `zs_kl` (zero-safe KL≥0 через
+  носитель-сужение log_sum_ineq_on),
+  `xlogx_superadd` (супераддитивность
+  x·log x = Дженсен против нуля),
+  `mix_point`/`mix_entropy_upper`
+  (H(смесь) ≤ aH+bH+h₂), `mix_entropy_lower`
+  (вогнутость), `shannon_le_log_card`,
+  ГЛАВНАЯ `fanes_unconditional`: H(p)−H(q) ≤
+  t·log d + (1+t)h₂(t/(1+t)), t = ½‖p−q‖₁ —
+  безусловная (без eigenvalues-of-diagonal
+  Mathlib-пробела R268).
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
@@ -1074,8 +1087,9 @@ same-folder DAG свободен.
   (Hagi.BatchCap в Budget/ и т.д.) — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
--- Полная Fannes-граница (Pinsker-часть доказана); anytime-
-  Freedman (совместная M/V форма).
+-- Anytime-Freedman композиция с anytime-лестницей
+  CertifiedEstimator (базис finite_freedman уже
+  совместный M/V).
 - Lean↔Runtime property-тесты — требует torch-рантайма
   E:\HAGI_v2 (blocked); §I LSL-стек — нет спецификации.
 
