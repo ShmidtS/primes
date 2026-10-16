@@ -254,6 +254,19 @@ same-folder DAG свободен.
   — при γ·D̄ < α·C* capability не превышает
   потолка γ·D̄/α ни в один момент: честный
   взлёт требует γ-бюджета.
+- `Unified/NonvacuityHorizon` (R531):
+  закрытие пункта «параметрические
+  nonvacuity-свидетели ↔ cert_horizon_bound»:
+  семейство насыщения satC/satF
+  (C t = Cstar − Δ(1−σ)^t,
+  F t = σΔ(1−σ)^t/γ) реализует ВСЕ посылки
+  cert_horizon_bound на любом горизонте T,
+  совместимом с геометрией конуса
+  γkCstar ≤ (γk+σ)Δ(1−σ)^t; sat_cone_iff —
+  точная эквивалентность конуса и
+  геометрии; witness_achieves_horizon —
+  честный рост C0 < C T. Witness-горизонт
+  совпадает с горизонтом границы.
 - `Probability/GibbsConcentration` (R490):
   `cgf_centering` — центрирование CGF: ln Σq·e^{cg}
   = c·μ + ln Σq·e^{c(g−μ)} (standalone-
@@ -1063,8 +1076,6 @@ same-folder DAG свободен.
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
 -- Полная Fannes-граница (Pinsker-часть доказана); anytime-
   Freedman (совместная M/V форма).
-- Параметрические nonvacuity-свидетели ↔ `cert_horizon_bound`
-  (связать свидетель с горизонтом).
 - Lean↔Runtime property-тесты — требует torch-рантайма
   E:\HAGI_v2 (blocked); §I LSL-стек — нет спецификации.
 
