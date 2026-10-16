@@ -50,4 +50,43 @@ structure GrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
   empBeta : ∀ t < T,
     alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta
 
+
+/-- **Телескоп прироста под полосой (R548)**: если каждый
+шаговый прирост ограничен полосой (G t ≤ b t), то полный
+прирост не превосходит телескопа полосы: C T - C 0 ≤ Σ b t.
+Базовая форма для anytime-growth бюджетов (b t = μ + u). -/
+theorem telescope_band (C G b : ℕ → ℝ) (T : ℕ)
+    (hstep : ∀ t ∈ Finset.range T, C (t + 1) = C t + G t)
+    (hband : ∀ t ∈ Finset.range T, G t ≤ b t) :
+    C T - C 0 ≤ ∑ t ∈ Finset.range T, b t := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      rw [Finset.sum_range_succ,
+        hstep T (Finset.mem_range.mpr (Nat.lt_succ_self T))]
+      have hle : C T - C 0 ≤ ∑ t ∈ Finset.range T, b t :=
+        ih (fun t ht => hstep t
+          (Finset.mem_range.mpr (lt_trans (Finset.mem_range.mp ht)
+            (Nat.lt_succ_self T))))
+          (fun t ht => hband t
+            (Finset.mem_range.mpr (lt_trans (Finset.mem_range.mp ht)
+              (Nat.lt_succ_self T))))
+      have hpt := hband T (Finset.mem_range.mpr (Nat.lt_succ_self T))
+      linarith
+
+/-- **Anytime-growth бюджет (R548)**: полоса μ + u на каждом
+шаге с u = √(2σ²·ln(T/α)) (anytime_safe_threshold-форма) даёт
+C T ≤ C 0 + T·μ + T·u — линейный рост за jmp anytime-уровень. -/
+theorem anytime_growth_budget (C G b : ℕ → ℝ) (T : ℕ) (μ u : ℝ)
+    (hstep : ∀ t ∈ Finset.range T, C (t + 1) = C t + G t)
+    (hband : ∀ t ∈ Finset.range T, G t ≤ b t)
+    (hb : ∀ t ∈ Finset.range T, b t ≤ μ + u) :
+    C T ≤ C 0 + (T:ℝ) * μ + (T:ℝ) * u := by
+  have htel := telescope_band C G b T hstep hband
+  have hsum : ∑ t ∈ Finset.range T, b t ≤ ∑ t ∈ Finset.range T, (μ + u) := by
+    refine Finset.sum_le_sum (fun t ht => hb t ht)
+  rw [Finset.sum_const, Finset.card_range] at hsum
+  rw [nsmul_eq_mul] at hsum
+  push_cast at hsum ⊢
+  linarith
 end Hagi.Foundations

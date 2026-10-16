@@ -1177,6 +1177,10 @@ same-folder DAG свободен.
   (узаконенный внешн. стиль). Остаток — постепенная миграция;
   сокращение широких `import Mathlib` (Certificates и др.).
 - Flywheel → отдельный Lake-пакет (постепенно, план §3).
+- Anytime-growth бюджет закрыт (R548):`Foundations.GrowthDynamics.
+  telescope_band` (полный прирост ≤ телескоп полосы) и
+  `anytime_growth_budget` (полоса μ+u ⟹ C T ≤ C 0 + T·μ + T·u)
+  — базовая композиция концентрации с capability-телескопом.
 - REFACTOR_PLAN B2 начат (R547): канонический бридж
   shannonEntropy = Information.shannon (DistillRecursion),
   починен изолированный CR в файле; tvDist-unify — следующий шаг.
