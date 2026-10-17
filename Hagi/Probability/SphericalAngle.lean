@@ -244,4 +244,36 @@ theorem Omega_7_gt_Omega_8 : sphericalAngle 8 < sphericalAngle 7 := by
   rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 5)]
   nlinarith [hπ, h3pos]
 
+
+/-! ## Дигамма-мосты (R562 шаг 1): ψ-значения в целых точках —
+фундамент числового брекета континуального пика x* (ψ(x/2) =
+ln π). -/
+
+/-- Гармоническая форма ψ(n+1): значение в точке 3. -/
+theorem digamma_three_eq :
+    Complex.digamma ((2:ℕ) + 1)
+      = ((3:ℚ) / 2 - eulerMascheroniConstant : ℝ) := by
+  rw [Complex.digamma_nat_add_one 2]; push_cast [harmonic];
+    norm_num [harmonic]
+
+/-- Гармоническая форма ψ(n+1): значение в точке 4. -/
+theorem digamma_four_eq :
+    Complex.digamma ((3:ℕ) + 1)
+      = ((11:ℚ) / 6 - eulerMascheroniConstant : ℝ) := by
+  rw [Complex.digamma_nat_add_one 3]; push_cast [harmonic];
+    norm_num [harmonic]
+
+/-- Нижняя скобка: ψ(3)-значение ниже ln π при γ > 3/2 − ln π. -/
+theorem digamma_three_below_logpi
+    (hγlo : (1.5:ℝ) - Real.log Real.pi < eulerMascheroniConstant) :
+    (((3:ℚ)/2 : ℝ) - eulerMascheroniConstant) < Real.log Real.pi := by
+  linarith
+
+/-- Верхняя скобка: ψ(4)-значение выше ln π при
+γ < 11/6 − ln π. -/
+theorem digamma_four_above_logpi
+    (hγhi : eulerMascheroniConstant < (11:ℝ)/6 - Real.log Real.pi) :
+    Real.log Real.pi < (((11:ℚ)/6 : ℝ) - eulerMascheroniConstant) := by
+  linarith
+
 end Hagi
