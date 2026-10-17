@@ -403,4 +403,92 @@ theorem digamma_peak_exists
   rw [hcast]
   exact hs_eq
 
+/-! ## Острый брекет пика (R569): ψ(7/2) = 46/15 − 2ln2 − γ
+< ln π < ψ(4) — IVT сужает пик s* ∈ (7/2, 4), x* ∈ (7, 8) для
+γ > 46/15 − 2ln2 − ln π ≈ 0.5357 (реальный γ = 0.5772 ✓). -/
+
+/-- Рекуррентный шаг в полуцелых точках: ψ((2k+1)/2 + 1) =
+ψ((2k+1)/2) + 2/(2k+1). -/
+theorem digamma_half_step (k : ℕ) :
+    Complex.digamma ((((2*k+1 : ℕ) : ℝ)/2 : ℂ) + 1)
+    = Complex.digamma ((((2*k+1 : ℕ) : ℝ)/2 : ℂ))
+      + ((((2*k+1 : ℕ) : ℝ)/2 : ℂ))⁻¹ := by
+  apply Complex.digamma_apply_add_one
+  intro m h
+  have h2 : (((2*k+1 : ℕ) : ℝ)/2) = -(m:ℝ) := by
+    have := congrArg Complex.re h
+    simpa using this
+  have h4 : (0:ℝ) ≤ (m:ℝ) := Nat.cast_nonneg m
+  have h5 : (0:ℝ) < (((2*k+1 : ℕ) : ℝ))/2 := by
+    have hpos : ((0:ℕ) < 2*k+1) := by omega
+    have : ((0:ℝ) < ((2*k+1 : ℕ) : ℝ)) := by exact_mod_cast hpos
+    positivity
+  linarith
+
+/-- ψ(7/2) = 46/15 − 2ln2 − γ — тройная рекуррентная цепочка
+от ψ(1/2). -/
+theorem digamma_seven_half_val : Complex.digamma ((7:ℂ)/2)
+    = ((46:ℝ)/15) - 2 * (Complex.log 2)
+      - (eulerMascheroniConstant : ℂ) := by
+  have h1 := digamma_half_step 0
+  have h2 := digamma_half_step 1
+  have h3 := digamma_half_step 2
+  norm_num at h1 h2 h3
+  rw [h3, h2, h1, digamma_half_value]; push_cast; ring
+
+/-- ψ(7/2) в вещественной форме. -/
+theorem digamma_seven_half_re :
+    (Complex.digamma ((7:ℂ)/2)).re
+      = (46:ℝ)/15 - 2 * Real.log 2 - eulerMascheroniConstant := by
+  have hlog : ((2:ℂ) * Complex.log ((2:ℂ))).re = 2 * Real.log 2 := by
+    have hh := Complex.log_re ((2:ℂ))
+    simpa using (by norm_num [Complex.mul_re, hh] :
+      ((2:ℝ)*Complex.log ((2:ℂ))).re = 2 * Real.log 2)
+  have hγc : Complex.re eulerMascheroniConstant
+      = eulerMascheroniConstant := rfl
+  have hlast : Complex.re (((46:ℝ)/15 : ℂ))
+      = (46:ℝ)/15 := by simp
+  have hstep1 := congrArg Complex.re digamma_seven_half_val
+  rw [Complex.sub_re, Complex.sub_re] at hstep1
+  rw [hlog, hγc, hlast] at hstep1
+  exact hstep1
+
+/-- **Острый брекет пика (R569)**: при γ-брекетах (нижняя
+граница 46/15 − 2ln2 − ln π ≈ 0.5357 < γ < 11/6 − ln π)
+существует s* ∈ (7/2, 4) с Re ψ(s*) = ln π — сузило
+(3,4) до (7/2, 4) (пик x* = 2s* ∈ (7, 8)). -/
+theorem digamma_logpi_root_exists_sharp
+    (hγlo : ((46:ℝ)/15 - 2 * Real.log 2 - Real.log Real.pi)
+        < eulerMascheroniConstant)
+    (hγhi : eulerMascheroniConstant < (11:ℝ)/6 - Real.log Real.pi) :
+    ∃ s : ℝ, s ∈ Set.Ioo ((7:ℝ)/2) 4 ∧
+      (Complex.digamma (s:ℂ)).re = Real.log Real.pi := by
+  set g : ℝ → ℝ := fun t => (Complex.digamma (t:ℂ)).re with hgdef
+  have hcont : ContinuousOn g (Set.Icc ((7:ℝ)/2) 4) :=
+    digamma_re_continuousOn.mono (by
+      intro t ht
+      exact ⟨by linarith [ht.1], by linarith [ht.2]⟩)
+  have h70 : g ((7:ℝ)/2) = (46:ℝ)/15 - 2 * Real.log 2
+      - eulerMascheroniConstant := by
+    simpa [hgdef] using digamma_seven_half_re
+  have h4v : g 4 = (11:ℝ)/6 - eulerMascheroniConstant := by
+    have hre := congrArg Complex.re digamma_four_eq
+    rw [Complex.ofReal_re] at hre
+    have heq : g 4 = (Complex.digamma ((3:ℕ) + 1)).re := by
+      simp only [hgdef]; norm_num
+    rw [heq]; exact hre
+  have hlo : g ((7:ℝ)/2) < Real.log Real.pi := by
+    rw [h70]
+    have h1 := digamma_seven_half_re
+    have hγ := hγlo
+    linarith
+  have hhi : Real.log Real.pi < g 4 := by
+    rw [h4v]; exact digamma_four_above_logpi hγhi
+  have hsub := intermediate_value_Ioo (a := ((7:ℝ)/2)) (b := 4)
+    (by norm_num) hcont
+  have hmem : Real.log Real.pi ∈ Set.Ioo (g ((7:ℝ)/2)) (g 4) :=
+    ⟨hlo, hhi⟩
+  obtain ⟨s, hs_in, hs_eq⟩ := hsub hmem
+  exact ⟨s, hs_in, hs_eq⟩
+
 end Hagi
