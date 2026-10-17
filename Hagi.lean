@@ -98,8 +98,6 @@ import Hagi.Energy.Variational
 import Hagi.Energy.PoEBound
 import Hagi.Step.Upgrades
 import Hagi.External.Diversity
-import Hagi.External.Transport
-import Hagi.External.Transfer
 import Hagi.External.Flywheel.FrobeniusNorm
 import Hagi.External.Flywheel.TruncatedSVDRank1
 import Hagi.External.Flywheel.MatrixNormRelations
@@ -107,7 +105,6 @@ import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.External.Flywheel.MDLRank
 import Hagi.Audit.Exactness
-import Hagi.External.Layers
 import Hagi.Core.RootContrast
 import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
@@ -198,7 +195,6 @@ import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
 import Hagi.Unified.GlobalDynamics
 import Hagi.Energy.STEStep
-import Hagi.Energy.QuantBridge
 import Hagi.Runtime.TernaryExact
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
@@ -248,7 +244,6 @@ import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
-import Hagi.Probability.GibbsFluctuations
 import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.PinskerTV
