@@ -138,7 +138,7 @@ theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
           _ ≥ (growCycle t S).capability * (1 + alpha) := hm
           _ = (growCycle t S).capability * (1 + alpha) ^ (sigma t) := by
               rw [hs1, pow_one]
-    exact capability_takeoff_counted
+    exact Hagi.Foundations.capability_takeoff_counted
       (fun t => (growCycle t S).capability) sigma alpha halpha hmul T
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}

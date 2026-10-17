@@ -98,13 +98,6 @@ theorem compound_trajectory (ρ D G₀ α J : ℝ)
   refine mul_le_mul_of_nonneg_left ?_ hα
   exact Hagi.Foundations.genGap_decay ρ D G₀ hρ hρ1 hD G hG0 hstep t
 
-/-- Если `0 ≤ α` и `α·D + J ≤ ε_c`, то
-`α·G_next + J ≤ ε_c` для любого `G_next ≤ D`. -/
-theorem compound_budget (α D J ε_c : ℝ)
-    (hα : 0 ≤ α) (hpos : α * D + J ≤ ε_c) :
-    ∀ (G_next : ℝ), G_next ≤ D → α * G_next + J ≤ ε_c :=
-  Hagi.Foundations.compound_budget α D J ε_c hα hpos
-
 /-- При `c t ≤ C` для всех t:
 `M₀ − Σ_{t<k} c t ≥ M₀ − k·C`. -/
 theorem compound_cumulative (M₀ : ℝ) (c : ℕ → ℝ) (k : ℕ)
@@ -154,5 +147,5 @@ end Interval
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (compound_c_stabilizes compound_constant_regime compound_trajectory compound_budget compound_cumulative compound_budget_interval compound_fold_interval)
+export Hagi.Step (compound_c_stabilizes compound_constant_regime compound_trajectory compound_cumulative compound_budget_interval compound_fold_interval)
 end Hagi

@@ -99,10 +99,6 @@ structure CycleCertificate where
 
 /-! ## Soundness: one certified cycle decreases Φ -/
 
-/-- The HAGI potential Φ = E + λR + ν·max(0, Q_target−Q). -/
-noncomputable def hagiPotential (E R nu qTarget q : ℝ) (lam : ℝ) : ℝ :=
-  -- R263 dedup: canonical form in Foundations.Potential
-  Hagi.Foundations.hagiPotential E R nu qTarget q lam
 
 /-- The penalty term grows by at most the probe drop. -/
 lemma penalty_drop_bound (qTarget q q' epsQ : ℝ)
@@ -132,11 +128,11 @@ theorem cycle_certificate_sound
         - cert.joint.lip * cert.joint.eta
           * cert.joint.eta * cert.joint.dnorm2 / 2
         - cert.compress.kappa * cert.compress.qerr) :
-    hagiPotential cert.compress.energy
+    Hagi.Foundations.hagiPotential cert.compress.energy
         (R + cert.grow.risk + cert.merge.risk
           + cert.joint.risk) nu qTarget
         cert.generalization.q' lam
-      ≤ hagiPotential cert.grow.preEnergy R nu qTarget
+      ≤ Hagi.Foundations.hagiPotential cert.grow.preEnergy R nu qTarget
         cert.generalization.q lam := by
   -- the certified net decrease
   set dec : ℝ := cert.merge.gap + cert.joint.eta
@@ -169,7 +165,7 @@ theorem cycle_certificate_sound
     _ = nu * max 0 (qTarget - cert.generalization.q)
         + nu * cert.generalization.epsQ := by ring
   -- combine (all products are atoms now; pure linear algebra)
-  unfold hagiPotential Hagi.Foundations.hagiPotential
+  unfold Hagi.Foundations.hagiPotential
   have hs : lam * (R + cert.grow.risk + cert.merge.risk
       + cert.joint.risk) = lam * R
       + lam * (cert.grow.risk + cert.merge.risk

@@ -259,7 +259,7 @@ theorem coord_mgf_bound {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
   set μ : ℝ := coordMean p X i with hmu
   have hq := (hp i).1
   have hq1 := (hp i).2
-  have hchord := mgf_hoeffding_ab (p i) (fun v => lam * (X i v - μ))
+  have hchord := Hagi.Foundations.mgf_hoeffding_ab (p i) (fun v => lam * (X i v - μ))
     hq hq1 (lam * (0 - μ)) (lam * (1 - μ))
     (fun v => by
       apply mul_le_mul_of_nonneg_left _ hlam

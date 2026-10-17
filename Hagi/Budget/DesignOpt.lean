@@ -158,10 +158,6 @@ NS-contraction argument advertised earlier: the proper
 bridge (e_{t+1} ≤ f(e_t) < e_t with f a contraction on an
 interval ⟹ ∃ t, e_t ≤ ε_NS, giving a per-matrix count s*)
 remains open and is the honest version of this theorem. -/
-theorem adaptive_ns_exists (e : ℕ → ℝ) (eps : ℝ)
-    (heps : 0 ≤ eps) (he0 : e 100 = 0) :
-    ∃ s : ℕ, e s ≤ eps :=
-  Hagi.Foundations.adaptive_ns_exists e eps heps he0
 
 -- not A theorem (round-41 audit): the rfl form `A = A` was a
 -- prescription carrier only. Demoted to the DEFINITION of the
@@ -188,5 +184,5 @@ end DesignOpt
 end Hagi.Budget
 
 namespace Hagi
-export Hagi.Budget (spectral_tail_mono spectral_rank_exists adaptive_ns_exists wallClock shadow_price_sum_identity)
+export Hagi.Budget (spectral_tail_mono spectral_rank_exists wallClock shadow_price_sum_identity)
 end Hagi

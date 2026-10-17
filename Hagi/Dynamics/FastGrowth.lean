@@ -125,6 +125,7 @@ theorem growth_efficiency_div (Rext : ℕ → ℝ) (Gamma c K : ℝ)
   rw [div_le_div_iff₀ hK (mul_pos hT hK)]
   nlinarith [hmain, hK, hT]
 
+
 /-- При `0 < α` и `C (t+1) ≥ C t·(1+α)` для всех t:
 `C T ≥ C 0·(1+α)^T` (пошаговый мультипликативный закон —
 посылка; заключение — его T-кратная композиция). -/
@@ -146,15 +147,6 @@ theorem capability_multiplicative (C : ℕ → ℝ) (_succ : ℕ → ℕ)
             linarith
         _ = C 0 * ((1 + alpha) ^ T * (1 + alpha)) := by ring
 
-/-- При `0 < α` и `C (t+1) ≥ C t·(1+α)^(s t)` для всех t:
-`C T ≥ C 0·(1+α)^(Σ_{t<T} s t)` (делегация Foundations). -/
-theorem capability_takeoff_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
-    (alpha : ℝ) (halpha : 0 < alpha)
-    (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
-    (T : ℕ) :
-    C T ≥ C 0 * (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
-  Hagi.Foundations.capability_takeoff_counted C s alpha halpha hmul T
-
 /-- При `0 < α`, `0 ≤ C 0`, `C (t+1) ≥ C t·(1+α)^(s t)` и
 `N ≤ Σ_{t<T} s t` — `C T ≥ C 0·(1+α)^N`. -/
 theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
@@ -163,7 +155,7 @@ theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
     (T N : ℕ)
     (hcount : N ≤ ∑ t ∈ Finset.range T, s t) :
     C T ≥ C 0 * (1 + alpha) ^ N := by
-  have hlaw := capability_takeoff_counted C s alpha halpha hmul T
+  have hlaw := Hagi.Foundations.capability_takeoff_counted C s alpha halpha hmul T
   have hmono : (1 + alpha) ^ N ≤ (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
     pow_le_pow_right₀ (by linarith : (1:ℝ) ≤ 1 + alpha) hcount
   have hmul2 : C 0 * (1 + alpha) ^ N ≤ C 0 * (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
@@ -240,5 +232,5 @@ theorem risk_epsilon_floor (R0 eps beta : ℝ) (N : ℕ)
 end Hagi.Dynamics
 
 namespace Hagi
-export Hagi.Dynamics (capability_cumulative growth_efficiency_lower growth_efficiency_div capability_multiplicative capability_takeoff_counted capability_takeoff_floor risk_takeoff_counted risk_epsilon_floor)
+export Hagi.Dynamics (capability_cumulative growth_efficiency_lower growth_efficiency_div capability_multiplicative capability_takeoff_floor risk_takeoff_counted risk_epsilon_floor)
 end Hagi

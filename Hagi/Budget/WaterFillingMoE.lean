@@ -120,23 +120,7 @@ theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
     push_cast
     rfl]
 
-/-- **The linear compounding law** (: proof lives in
-Foundations.Recurrence; delegation preserves the name). -/
-theorem genMean_compound (M₀ c : ℝ) (_hc : 0 < c)
-    (step : ℕ → ℝ → ℝ)
-    (hstep : ∀ k M, step k M ≤ M - c)
-    (iter : ℕ → ℝ) (hiter0 : iter 0 = M₀)
-    (hiterS : ∀ k, iter (k + 1) = step k (iter k)) :
-    ∀ k : ℕ, iter k ≤ M₀ - (k : ℝ) * c :=
-  Hagi.Foundations.genMean_compound M₀ c _hc step hstep iter hiter0 hiterS
 
-/-- **The death law of the recursion** (: proof lives in
-Foundations.Recurrence; delegation preserves the name). -/
-theorem genGap_decay (ρ D G₀ : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
-    (_hD : 0 ≤ D) (G : ℕ → ℝ) (hG0 : G 0 ≤ G₀)
-    (hstep : ∀ t, G (t + 1) ≤ ρ * G t + D) :
-    ∀ t, G t ≤ ρ ^ t * G₀ + (D * (1 - ρ ^ t)) / (1 - ρ) :=
-  Hagi.Foundations.genGap_decay ρ D G₀ hρ hρ1 _hD G hG0 hstep
 
 end GenCycle
 
@@ -144,7 +128,7 @@ end GenCycle
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (genMean genMean_assoc genMean_compound genGap_decay)
+export Hagi.Ensemble (genMean genMean_assoc)
 end Hagi
 /-!
 # ComputeBudget: one marginal-value law, five measured instances

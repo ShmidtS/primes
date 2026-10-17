@@ -216,11 +216,9 @@ theorem exp_prod_le_cosh {V : Type} [Fintype V] (p d : V → ℝ) (M : ℝ)
     _ = Real.cosh M := by
         rw [Real.cosh_eq M]
         ring
-theorem log_cosh_le (M : ℝ) : Real.log (Real.cosh M) ≤ M ^ 2 / 2 :=
-  Hagi.Foundations.log_cosh_le M
 
 theorem half_log_cosh_le (M : ℝ) : Real.log (Real.cosh M) / 2 ≤ M ^ 2 / 4 := by
-  have h := log_cosh_le M
+  have h := Hagi.Foundations.log_cosh_le M
   linarith [div_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (0:ℝ) < 4)]
 
 /-- **Full quadratic admission bound**: the Jensen gap of a
@@ -1320,5 +1318,5 @@ end HoeffdingFin
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail uniform_good_point exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh log_cosh_le half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail uniform_good_point exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
 end Hagi

@@ -134,7 +134,7 @@ theorem hoeffding_lemma_prefix (q : V → ℝ)
   rw [hfinal] at hsum
   refine le_trans hsum ?_
   have h1 : Real.cosh A ≤ Real.exp (A ^ 2 / 2) := by
-    have h2 := Real.exp_le_exp.mpr (log_cosh_le A)
+    have h2 := Real.exp_le_exp.mpr (Hagi.Foundations.log_cosh_le A)
     rwa [Real.exp_log (Real.cosh_pos A)] at h2
   rw [← hAsq]
   exact h1

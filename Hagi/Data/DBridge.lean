@@ -228,17 +228,6 @@ theorem dfield_entropy_identity (p : K → Corpus V) (w : K → ℝ)
   unfold divField mixtureCorpus KLdiv
   rw [hL, hR]
 
-set_option linter.unusedDecidableInType false in
--- hypothesis kept: documented API premise
-/-- **The quadratic field is nonneg (the softmax Hessian is
-PSD)**: the weighted-variance form
-dᵀ H_w d = Σ p_w d² − (Σ p_w d)² ≥ 0 — the Cauchy bound under
-the mixture weights; the second-order span of the sibling gap
-is a true variance. -/
-theorem dQuad_nonneg (pW : V → ℝ) (d : V → ℝ)
-    (hpW : ∀ v, 0 ≤ pW v) (hpW1 : ∑ v, pW v = 1) :
-    (∑ v, pW v * d v)^2 ≤ ∑ v, pW v * d v^2 :=
-  Hagi.Foundations.dQuad_nonneg pW d hpW hpW1
 
 /-- **The equilibrium upper bracket ( honesty fix: the
 REAL recurrence theorem, was a carrier lower≤upper).** Under
@@ -266,5 +255,5 @@ end DBridge
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (negEntropy dfield_entropy_identity dQuad_nonneg equilibrium_bracket)
+export Hagi.Data (negEntropy dfield_entropy_identity equilibrium_bracket)
 end Hagi

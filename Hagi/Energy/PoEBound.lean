@@ -85,31 +85,7 @@ open Finset Real
 
 namespace Hagi.Energy
 
-/-! ## Pillars 0-1b: делегация Foundations.Hoeffding -/
-
-/-- The Bernoulli MGF step (Hoeffding's nugget): for theta in [0,1],
-1 - theta + theta e^s <= e^{theta s + s^2/8} (Foundations). -/
-theorem bern_mgf_bound (θ s : ℝ) (hθ0 : 0 ≤ θ) (hθ1 : θ ≤ 1) :
-    1 - θ + θ * Real.exp s ≤ Real.exp (θ * s + s ^ 2 / 8) :=
-  Hagi.Foundations.bern_mgf_bound θ s hθ0 hθ1
-
-/-- **Hoeffding's lemma, finite form (explicit endpoints)**:
-for a probability vector `q` on V and logits `h` with `a ≤ h ≤ b`,
-`log E_q[e^h] ≤ E_q[h] + (b−a)²/8` (Foundations). -/
-theorem mgf_hoeffding_ab {V : Type} [Fintype V] [Nonempty V]
-    (q h : V → ℝ) (hq : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
-    (a b : ℝ) (hlo : ∀ v, a ≤ h v) (hhi : ∀ v, h v ≤ b) :
-    Real.log (∑ v, q v * Real.exp (h v)) ≤ ∑ v, q v * h v + (b - a) ^ 2 / 8 :=
-  Hagi.Foundations.mgf_hoeffding_ab q h hq hq1 a b hlo hhi
-
-/-- **Hoeffding's lemma, range form**: with D dominating the
-pairwise range of `h`, `log E_q[e^h] ≤ E_q[h] + D²/8` (Foundations). -/
-theorem mgf_hoeffding {V : Type} [Fintype V] [Nonempty V]
-    (q h : V → ℝ) (hq : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
-    (D : ℝ) (hD : ∀ u v, h u - h v ≤ D) :
-    Real.log (∑ v, q v * Real.exp (h v)) ≤ ∑ v, q v * h v + D ^ 2 / 8 :=
-  Hagi.Foundations.mgf_hoeffding q h hq hq1 D hD
-
+/-! ## (Hoeffding pillars delegated to Foundations.Hoeffding) -/
 
 /-! ## Pillar 2: the log-sum-exp deviation bounds -/
 
@@ -188,7 +164,7 @@ theorem lse_shift_upper {V : Type} [Fintype V] [Nonempty V] (x y : V → ℝ)
       + ∑ v, smax x v * (y v - x v) + r ^ 2 / 8 := by
   have hZx := sum_exp_pos x
   have hZy := sum_exp_pos y
-  have hH := mgf_hoeffding (smax x) (fun v => y v - x v)
+  have hH := Hagi.Foundations.mgf_hoeffding (smax x) (fun v => y v - x v)
     (fun v => smax_nonneg x v) (smax_sum_one x) r hr
   have hE : ∑ v, smax x v * Real.exp ((fun v => y v - x v) v)
       = (∑ v, Real.exp (y v)) / (∑ v, Real.exp (x v)) := by
@@ -600,5 +576,5 @@ theorem poe_sequence_speed {T V K : Type} [Fintype T] [Fintype V]
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (bern_mgf_bound mgf_hoeffding_ab mgf_hoeffding smax sum_exp_pos smax_pos smax_nonneg smax_sum_one sum_smax_exp lse_shift_lower lse_shift_upper weighted_center_le sum_w_center poe_logZ_second_order poe_softmax_speed sum_w_decomp weighted_var_bound poe_logZ_pairwise poe_sequence_speed)
+export Hagi.Energy (smax sum_exp_pos smax_pos smax_nonneg smax_sum_one sum_smax_exp lse_shift_lower lse_shift_upper weighted_center_le sum_w_center poe_logZ_second_order poe_softmax_speed sum_w_decomp weighted_var_bound poe_logZ_pairwise poe_sequence_speed)
 end Hagi
