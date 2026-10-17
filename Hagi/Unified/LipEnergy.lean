@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Foundations.StageCalculus
 
 /-!
 # LipEnergy — градиентная модель липшицевости (R563)
@@ -46,5 +47,21 @@ theorem lip_energy_quantization {W : Type*} [NormedAddCommGroup W]
     (w : W) (qTern : W → W) :
     |E w - E (qTern w)| ≤ kappa * ‖w - qTern w‖ :=
   lip_energy_from_gradient E kappa hdiff hnorm w (qTern w)
+
+
+/-- **h_emp_grow из certified descent (R564)**: энергетический
+учёт grow-стадии (growEnergy ≤ energy − growGain) — точная
+форма joint_stage (StageCalculus): upper-quadratic модель
+(h_emp_smooth) + certified descent (dnorm² ≤ inner) + SafeQP-
+окно (0 < L, 0 ≤ η ≤ 1/L) ⟹ E2 ≤ E1 − η·dnorm²/2. Поле
+ выигрыша growGain := η·dnorm²/2 — измеримая величина (шаг ×
+квадрат нормы направления). -/
+theorem grow_gain_from_smooth_descent (L eta dnorm inner E2 E1 : ℝ)
+    (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
+    (hdescent : dnorm ^ 2 ≤ inner)
+    (h_emp_smooth : E2 ≤ E1 - eta * inner + L * eta ^ 2 * dnorm ^ 2 / 2) :
+    E2 ≤ E1 - eta * dnorm ^ 2 / 2 :=
+  Hagi.Foundations.joint_stage L eta dnorm inner E2 E1 hL heta
+    heta0 hdescent h_emp_smooth
 
 end Hagi.Unified

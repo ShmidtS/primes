@@ -1195,6 +1195,14 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
+- h_emp_grow закрыт (R564): `LipEnergy.
+  grow_gain_from_smooth_descent` — энергетический учёт
+  grow-стадии (growEnergy ≤ energy − growGain) выводится
+  из upper-quadratic модели (h_emp_smooth) + certified
+  descent + SafeQP-окна одной подстановкой joint_stage
+  (StageCalculus); growGain = η·dnorm²/2 — измеримая
+  константа. Из h_emp-троицы осталась только smooth
+  (вторая производная / L-гладкость).
 - h_emp_lip-модель закрыта (R563): `Unified.LipEnergy.
   lip_energy_from_gradient` — MVT-вывод |E(w)−E(q)| ≤
   κ·‖w−q‖ из градиентной модели (‖∇E‖ ≤ κ всюду),  `lip_energy_quantization` — h_emp_lip-форма (dE ≤
