@@ -1195,6 +1195,17 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
+- R566 ЗАКРЫТ (8c62ae3): континуальный пик-фундамент —
+  `SphericalAngle.digamma_continuousOn_right` (ψ непрерывна
+  на {Re w > 2} через Γ-quotient и AnalyticOnNhd.deriv),
+  `digamma_re_continuousOn` (вещественная ветвь на [3,4]),
+  `digamma_logpi_root_exists` (IVT: при γ-брекетах сущ.
+  s в (3,4), Re ψ(s) = ln π, пик x* = 2s в (6,8)).
+  Канон: Complex.Gamma_ne_zero; Complex.differentiableAt_
+  Gamma (open Real перебивает имя); Complex.ofReal_re t;
+  intermediate_value_Ioo (hab) (hf) : Ioo (f a) (f b) ⊆
+  f '' Ioo; DifferentiableOn.analyticOnNhd — 2 аргум.
+  FREEZE 2548→2551; аксиомы канон; CI PASS.
 - R565 ЗАКРЫТ (6bfe8ac): `Unified.DerivAlong.
   smooth_from_lipschitz_gradient` — h_emp_smooth ВЫВЕДЕН
   из L-гладкости градиента (‖∇E(y)−∇E(x)‖ ≤ L‖y−x⟫):
