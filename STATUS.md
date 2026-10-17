@@ -1106,7 +1106,8 @@ same-folder DAG свободен.
 
 ### Autonomy / Omni / Discovery / Deployment (L3)
 
-- `Universality` (`universality_longhorizon`, Fin I):
+Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
+  Fin I):
   Σ risk ≤ T·best + R + ε₀/(1−ρₑ); `Liveness`
   (`liveness_two_axis`: цикл не замерзает, пока жива ось);
   `Insight` (KL-канал обучения, `forgetting_kl_bound`);

@@ -94,7 +94,6 @@ import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
 import Hagi.Architecture.ResidualSplit
-import Hagi.Budget.FactorizedBPW
 import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
 import Hagi.Core.F3Root
@@ -169,7 +168,6 @@ import Hagi.Foundations.ConeTakeoff
 import Hagi.Budget.CertifiedArgmax
 import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
-import Hagi.Growth.StateClosedRenewal
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
@@ -192,16 +190,13 @@ import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
 import Hagi.Ensemble.DistillTransfer
 import Hagi.Ensemble.RecursiveDistill
-import Hagi.Step.SafeQPPL
 import Hagi.Data.AntiCollapse
-import Hagi.Autonomy.Universality
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
 import Hagi.Core.RoPE
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
-import Hagi.Data.ChunkedCE
 import Hagi.Step.Muon
 import Hagi.Step.MuonWD
 import Hagi.Step.MuonTwoLevel
