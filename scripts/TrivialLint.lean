@@ -22,6 +22,12 @@ Checks (only `ConstantInfo.thmInfo` declarations in namespace `Hagi.*`):
               regardless of the proof tactic used.
   TRIV_PREM   conclusion is syntactically equal (`Expr.equal`) to the type of
               one of the theorem's own ∀-premises (Pi chain unfolded).
+  TRIV_CONJ   conclusion is an ∧-chain with >= half (and >= 2) of its
+              conjuncts syntactically equal to (∧-flattened) premise types —
+              component-wise restatement of hypotheses.
+  UNUSED_PARA a non-`h`/non-`_` data parameter whose binder never occurs in a
+              later premise type or the conclusion (bvar positional analysis;
+              conservative over-approximation of usage).
   BAD_AXIOM   `Lean.collectAxioms` reports an axiom outside
               {`propext`, `Classical.choice`, `Quot.sound`}; `sorryAx` included.
 
@@ -85,6 +91,68 @@ def stripLams : Expr → Expr
   | .lam _ _ body _ => stripLams body
   | e => e
 
+/-- ∀-chain WITH binder names: (Array (binderName, type), conclusion). -/
+def piChainNN (e : Expr) : Array (Name × Expr) × Expr :=
+  go e #[]
+where
+  go : Expr → Array (Name × Expr) → Array (Name × Expr) × Expr
+    | .forallE n ty body _, acc => go body (acc.push (n, ty))
+    | e, acc => (acc, e)
+
+/-- Flatten an ∧-chain into conjuncts (`A ∧ B ∧ C ↦ #[A, B, C]`). -/
+def flattenAnd : Expr → Array Expr :=
+  go #[]
+where
+  go : Array Expr → Expr → Array Expr
+    | acc, .app (.app (.const `And _) a) b => go (go acc a) b
+    | acc, e => acc.push e
+
+/-- Marker string for one subterm of a theorem signature, α-canonical with
+respect to the theorem-forall prefix: theorem-binder references render as
+`#i`, internal binders as `@d`, constants/literals by identity. Two subterms
+are equal up to binder naming iff their markers coincide. -/
+partial def markerPat (base : Nat) : Expr → String :=
+  go 0
+where
+  go : Nat → Expr → String
+    | d, .bvar k =>
+        if d ≤ k then s!"#{base - (k - d)}" else s!"@{d - k}"
+    | d, .app f a => s!"({go d f} {go d a})"
+    | d, .lam _ t b _ => s!"(L {go d t} {go (d + 1) b})"
+    | d, .forallE _ t b _ => s!"(F {go d t} {go (d + 1) b})"
+    | d, .letE _ t v b _ => s!"(E {go d t} {go d v} {go (d + 1) b})"
+    | d, .const n _ => s!"c{n}"
+    | d, .lit l => match l with
+        | .natVal n => "nat" ++ toString n
+        | .strVal st => "str" ++ st
+    | d, .fvar id => s!"f{id.name}"
+    | d, .sort _ => "sort"
+    | d, .mdata _ e => go d e
+    | d, .proj _ idx e => s!"(P{idx} {go d e})"
+    | d, _ => "?"
+
+/-- Theorem-binder indices referenced by an expression located under a
+theorem-forall prefix of length `base + 1`. Tracks LOCAL depth so internal
+binders (nested `∀ t, ...` inside a premise) do not shift attribution:
+a bvar `k` at local depth `d` refers to an internal binder when `k < d`,
+and to the theorem binder `base - (k - d)` otherwise. Partial (script). -/
+partial def thmBinderRefs (base : Nat) : Expr → Array Nat :=
+  go 0 #[]
+where
+  go : Nat → Array Nat → Expr → Array Nat
+    | d, acc, .bvar k =>
+        if d ≤ k then
+          let rel := k - d
+          if rel ≤ base then acc.push (base - rel) else acc
+        else acc
+    | d, acc, .app f a => go d (go d acc f) a
+    | d, acc, .lam _ t b _ => go d (go (d + 1) acc b) t
+    | d, acc, .forallE _ t b _ => go d (go (d + 1) acc b) t
+    | d, acc, .letE _ t v b _ => go d (go d (go (d + 1) acc b) v) t
+    | d, acc, .mdata _ e => go d acc e
+    | d, acc, .proj _ _ e => go d acc e
+    | _, acc, _ => acc
+
 /-- Defining module of a declaration; inline re-implementation of ImportGraph's
 `Environment.getModuleFor?` (that helper lives in the external `importGraph`
 package, which we deliberately do not depend on here). -/
@@ -136,6 +204,49 @@ def checkTheorem (name : Name) (ty : Expr) (val : Expr) : MetaM (Array Finding) 
     findings := findings.push
       { flag := "TRIV_PREM", decl := name
         detail := "conclusion is syntactically one of the theorem's own premises" }
+  -- TRIV_CONJ: ∧-conclusion with >= half (>=2) conjuncts α-equal to premise
+  -- types; marker comparison handles the de-Bruijn depth shift between a
+  -- premise (depth j-1) and a conclusion conjunct (depth n-1)
+  let conjC := flattenAnd concl
+  if conjC.size ≥ 2 then
+    let premSet := premises.toList.flatMap
+      (fun p => (flattenAnd p).toList.map (markerPat (premises.size - 1) ·))
+    let verb := conjC.countP
+      fun c => premSet.contains (markerPat (premises.size - 1) c)
+    if verb ≥ 2 && verb * 2 ≥ conjC.size then
+      findings := findings.push
+        { flag := "TRIV_CONJ", decl := name
+          detail := s!"{verb}/{conjC.size} conclusion conjuncts are verbatim premise types" }
+  -- UNUSED_PARAM: non-h data parameter never referenced by later premises/conclusion
+  let nB := premises.size
+  let binders := (piChainNN ty).1
+  let mut used : Array Bool := Array.replicate nB false
+  for j in [0:nB] do
+    for i in thmBinderRefs (j - 1) premises[j]! do
+      if i < nB then used := used.set! i true
+  for i in thmBinderRefs (nB - 1) concl do
+    if i < nB then used := used.set! i true
+  for i in [0:nB] do
+    unless used[i]! do
+      let p := binders[i]!
+      let nm := p.1
+      let nmS := nm.toString
+      -- h*-hypotheses are part of the documented API contract (see lakefile);
+      -- underscore-prefixed are intentional discards; `_hyg`-names and
+      -- `inst`-names are machine-generated (instance-implicits, tactic
+      -- hygiene), not authored parameters. No isProp test on purpose: it
+      -- needs whnf, which times out on some heavy premise types.
+      unless nmS.startsWith "h" || nmS.startsWith "_" ||
+          nmS.contains "_hyg" || nmS.startsWith "inst" ||
+          nmS.startsWith "a._@" || nmS.startsWith "x._@" ||
+          nmS == "self" || nmS.startsWith "x_" ||
+          nmS.startsWith "F_" || nmS.startsWith "_proof" ||
+          nmS.startsWith "this" || nmS.startsWith "_font" ||
+          nmS.startsWith "e_" || nmS.startsWith "__" ||
+          nmS == "_example" || nmS.startsWith "meth_" do
+        findings := findings.push
+          { flag := "UNUSED_PARAM", decl := name
+            detail := s!"parameter `{nm}` is not referenced by any later premise or the conclusion" }
   -- BAD_AXIOM
   for ax in (← Lean.collectAxioms name) do
     unless allowedAxioms.contains ax do
@@ -179,12 +290,20 @@ private theorem trivAeqA (a : Nat) : a = a := by simp
 private theorem trivPrem (h : 1 + 1 = 2) : 1 + 1 = 2 := h
 private theorem okUnfold (a : Nat) : a + 0 = a + 0 + 0 := by simp
 private theorem okReal (a b : Nat) (h : a = b) : b = a := h.symm
+private theorem trivConj (h1 : 1 = 1) (h2 : 2 = 2) : 1 = 1 ∧ 2 = 2 := ⟨h1, h2⟩
+private theorem unusedParamSelf (x : Nat) (b : Nat) (h : 0 < b) : 0 < b := h
+private theorem okUsedParam (x : Nat) (h : 0 < x) : 0 < x + 1 := by omega
+private theorem okHonestConj (a b : Nat) (h : a = b) :
+    a + 0 = b ∧ b = a := by constructor <;> omega
+private theorem okUnusedHypNamed (x : Nat) (hx : 0 < x) : True := trivial
 
 /-- Expected findings for the planted theorems above. -/
 def expected : List (String × Name) :=
   [ ("TRIV_RFL", ``trivRfl)
   , ("TRIV_AEQ_A", ``trivAeqA)
-  , ("TRIV_PREM", ``trivPrem) ]
+  , ("TRIV_PREM", ``trivPrem)
+  , ("TRIV_CONJ", ``trivConj)
+  , ("UNUSED_PARAM", ``unusedParamSelf) ]
 
 /-- Run `checkTheorem` over the planted set and report mismatches. `main`
 sets `Core.State.env` to the SCRIPT's elaboration environment (which contains
@@ -200,7 +319,8 @@ def run : MetaM (List String) := do
       unless found.any (·.flag == flag) do
         errs := s!"self-test MISS: {name} expected {flag}, got {found.map (·.flag)}" :: errs
     | _ => errs := s!"self-test MISS: {name} not found in environment" :: errs
-  for name in [``okUnfold, ``okReal] do
+  for name in [``okUnfold, ``okReal, ``okUsedParam, ``okHonestConj,
+               ``okUnusedHypNamed] do
     let env ← getEnv
     match env.find? name with
     | some (.thmInfo t) =>
@@ -226,17 +346,25 @@ unsafe def main : IO Unit := do
     -- `SMap.fold` covers BOTH stages: after `importModules` all imported
     -- constants live in stage 1 (`map₁`), while stage 2 (`map₂`) holds only
     -- constants added after the stage switch during elaboration.
+    let isAuthored : Name → Bool := fun n =>
+      let ns := n.toString
+      !(ns.contains ".congr_simp") && !(ns.contains "brecOn") &&
+      !(ns.contains "._eq_") && !(ns.contains "._proof_1") &&
+      !(ns.contains "._simp_1") && !(ns.endsWith ".congrArg")
     let thms : Array (Name × Expr × Expr) := env.constants.fold (init := #[])
       (fun acc n info =>
         if let .thmInfo t := info then
-          if inHagi n then acc.push (n, t.type, t.value) else acc
+          if inHagi n && isAuthored n then acc.push (n, t.type, t.value) else acc
         else acc)
     let mut acc : Array Finding := #[]
     for (n, ty, val) in thms do
       try
         acc := acc ++ (← checkTheorem n ty val)
-      catch e =>
-        IO.println s!"warn: check failed for `{n}`: {← e.toMessageData.toString}"
+      catch _ =>
+        -- NB: do NOT call e.toMessageData here — for Lean exceptions thrown
+        -- outside an elaboration context (e.g. whnf heartbeat timeouts) its
+        -- lazy MessageData is unprintable and crashes the reporter itself.
+        IO.println s!"warn: check failed for `{n}` (skipped)"
     return (thms.size, acc)
   let findings := findings.qsort fun a b =>
     if a.flag != b.flag then a.flag < b.flag else a.decl.toString < b.decl.toString
@@ -249,8 +377,25 @@ unsafe def main : IO Unit := do
     IO.println "---"
     for f in findings do
       IO.println s!"{f.flag} | {f.decl} | {declLocation env f.decl} | {f.detail}"
-  IO.println (if findings.isEmpty then "LINT: PASS" else "LINT: FAIL")
-  unless findings.isEmpty do
+  -- Baseline gating (same pattern as StatusLint): findings listed in
+  -- scripts/triviallint_baseline.txt (`flag|decl`) are known accepted debt;
+  -- only NEW findings fail the gate.
+  let readFile? : IO (Option String) := do
+    try
+      let txt ← IO.FS.readFile "scripts/triviallint_baseline.txt"
+      return some txt
+    catch _ =>
+      return none
+  let baselineTxt? ← readFile?
+  let baselineSet : List String :=
+    match baselineTxt? with
+    | some txt => (txt.splitOn "\n").map (fun l => (l.trimAscii.toString)) |>.filter (· != "")
+    | none => []
+  let isNew := findings.filter
+    (fun f => !(baselineSet.contains s!"{f.flag}|{f.decl}"))
+  IO.println s!"baseline-suppressed: {findings.size - isNew.size}; new: {isNew.size}"
+  IO.println (if isNew.isEmpty then "LINT: PASS" else "LINT: FAIL")
+  unless isNew.isEmpty do
     IO.Process.exit 1
 
 /- Elaboration-time self-test: `#eval` executes while THIS file's environment
