@@ -386,4 +386,21 @@ theorem digamma_logpi_root_exists
   obtain ⟨s, hs_in, hs_eq⟩ := hsub hmem
   exact ⟨s, hs_in, hs_eq⟩
 
+/-- **Континуальный пик (R568)**: при γ-брекетах существует
+x* ∈ (6,8) с пик-условием Re ψ(x*/2) = ln π — замыкание
+корне-теоремы R566 подстановкой x* = 2s. -/
+theorem digamma_peak_exists
+    (hγlo : (1.5:ℝ) - Real.log Real.pi < eulerMascheroniConstant)
+    (hγhi : eulerMascheroniConstant < (11:ℝ)/6 - Real.log Real.pi) :
+    ∃ x : ℝ, x ∈ Set.Ioo (6:ℝ) 8 ∧
+      (Complex.digamma (x / 2 : ℂ)).re = Real.log Real.pi := by
+  obtain ⟨s, hs_in, hs_eq⟩ := digamma_logpi_root_exists hγlo hγhi
+  refine ⟨2 * s, ⟨by linarith [hs_in.1, hs_in.2],
+    by linarith [hs_in.1, hs_in.2]⟩, ?_⟩
+  have hcast : ((2 * s : ℝ) / 2 : ℂ) = (s : ℂ) := by
+    push_cast
+    field_simp
+  rw [hcast]
+  exact hs_eq
+
 end Hagi
