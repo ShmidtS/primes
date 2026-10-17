@@ -34,6 +34,10 @@ step "DupLint (exact-duplicate statements, shrinking delta-gate)"
 out=$(python scripts/DupLint.py 2>&1 | tail -1)
 echo "$out"; case "$out" in DUPLINT:\ PASS*) ;; *) echo "DUPLINT: FAIL"; fail=1;; esac
 
+step "NsLint (namespace matches folder, shrinking baseline)"
+out=$(python scripts/NsLint.py 2>&1 | tail -1)
+echo "$out"; case "$out" in NSLINT:\ PASS*) ;; *) echo "NSLINT: FAIL"; fail=1;; esac
+
 step "namepool (env names for DocLint)"
 [ -f scripts/namepool.txt ] || lake env lean --run scripts/NamePool.lean
 
