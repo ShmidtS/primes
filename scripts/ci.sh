@@ -22,7 +22,11 @@ python scripts/triviality_lint.py | tail -2 | grep -q "flags: 0" \
 
 step "Mathlib rev pin (reproducibility gate)"
 pinned=$(cat scripts/mathlib-rev.txt 2>/dev/null)
-actual=$(git -C "${MATHLIB_DIR:-C:/Users/shmid/mathlib4}" rev-parse HEAD 2>/dev/null)
+# Mathlib location comes from lake-manifest.json (path dependency),
+# overridable via MATHLIB_DIR — no personal paths in this script.
+ml_dir=$(python -c "import json;print([(p.get('dir','')) for p in json.load(open('lake-manifest.json',encoding='utf-8'))['packages'] if p.get('name')=='mathlib'][0])" 2>/dev/null)
+ml_dir="${MATHLIB_DIR:-$ml_dir}"
+actual=$(git -C "$ml_dir" rev-parse HEAD 2>/dev/null)
 if [ "$pinned" = "$actual" ] && [ -n "$pinned" ]; then
   echo "MATHLIBPIN: PASS ($pinned)"
 else

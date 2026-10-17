@@ -8,6 +8,9 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 /-- Popoviciu: for bounded g : [a,b] with weights q summing to 1,
@@ -510,3 +513,7 @@ theorem excess_ge_var_over_range {V : Type*} [Fintype V] [Nonempty V]
           (le_trans hbd (mul_le_mul_of_nonneg_right hbm
             (sub_nonneg.mpr hμa))) hbpos.le
     _ = μ - a := mul_div_cancel_left₀ _ hbane
+
+end Hagi.Probability
+
+export Hagi.Probability (bhatia_davis bhatia_implies_popoviciu cantelli_one_side chebyshev_popoviciu excess_ge_var_over_range popoviciu_abs_dev popoviciu_var var_le_delta_excess)

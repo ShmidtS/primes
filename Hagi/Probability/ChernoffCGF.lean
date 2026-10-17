@@ -7,6 +7,9 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 open Finset Real in
@@ -591,3 +594,7 @@ theorem tail_complement {V : Type*} [Fintype V] [DecidableEq V]
   have hfull : ∑ v : V, q v = ∑ v ∈ A ∪ B, q v := by rw [hun]
   rw [hfull] at hq1
   linarith
+
+end Hagi.Probability
+
+export Hagi.Probability (cgf_centering chernoff_event chernoff_subgauss_tail cramer_cgf cramer_sup_le_kl cramer_tilt_kl exp_tilt_interpol hellinger_le_half_kl hellinger_sq_eq_one_minus_bc kl_chernoff_tilt kl_dv_attained markov_finite mean_shift_tv subgauss_dev_kl tail_complement)

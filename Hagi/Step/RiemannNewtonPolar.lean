@@ -9,6 +9,9 @@ import Mathlib
 
 set_option linter.style.header false
 
+namespace Hagi.Step
+
+
 /-!
 # Riemannian (covariant) Newton in polar coordinates (R385)
 
@@ -91,3 +94,7 @@ theorem radial_tangential_curvature (φ : ℝ → ℝ) (g gg : ℝ → ℝ)
   field_simp
   ring
 
+
+end Hagi.Step
+
+export Hagi.Step (radial_tangential_curvature)

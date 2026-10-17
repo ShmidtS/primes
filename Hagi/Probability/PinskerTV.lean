@@ -6,6 +6,9 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 open Finset Real in
@@ -810,3 +813,7 @@ theorem pac_chernoff_events {V : Type*} [Fintype V] [DecidableEq V]
   rw [hEta, hZeta] at hR
   linarith [hR, hκ]
 
+
+end Hagi.Probability
+
+export Hagi.Probability (bhattacharyya_cauchy kl_joint_convex kl_variational_lower neg_log_bc_le_half_kl one_minus_bc_le_half_kl pac_chernoff_events pinsker_sqrt_kl tv_dual_abs tv_le_pos_part_kl tv_le_sqrt_one_minus_exp)

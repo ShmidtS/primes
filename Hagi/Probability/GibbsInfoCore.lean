@@ -6,6 +6,9 @@ import Mathlib.Tactic
 
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 open Finset in
@@ -508,3 +511,7 @@ theorem finite_max_entropy {V : Type*} [Fintype V]
   rw [hexp] at hKL
   linarith
 
+
+end Hagi.Probability
+
+export Hagi.Probability (finite_kl_nonneg finite_max_entropy free_energy_upper gibbs_energy_gap_crude gibbs_expected_energy_lower gibbs_free_energy_lower gibbs_katoni_kl gibbs_kl_uniform_split gibbs_variational gibbs_weight_log_decomp)

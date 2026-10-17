@@ -6,6 +6,9 @@ import Mathlib.Tactic
 
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 
@@ -1298,3 +1301,7 @@ theorem gibbs_entropy_nonneg {V : Type*} [Fintype V]
   apply neg_nonneg.mpr
   exact Real.log_nonpos (le_of_lt (hwpos v)) (hwle v)
 
+
+end Hagi.Probability
+
+export Hagi.Probability (free_energy_sandwich free_energy_sharp_lower free_energy_tendsto gibbs_concentration gibbs_concentration_tendsto gibbs_entropy_nonneg gibbs_entropy_tendsto_zero gibbs_excess_energy_bound gibbs_expected_energy_bound gibbs_expected_energy_tendsto gibbs_neg_log_share_tendsto gibbs_posterior_ratio gibbs_tv_eq gibbs_tv_mutual gibbs_tv_mutual_bound gibbs_tv_tendsto)

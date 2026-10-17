@@ -7,6 +7,9 @@ import Mathlib
 
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Real Filter Topology
 
 /-!
@@ -24,7 +27,6 @@ HAGI-связка: дисциплина роста эффективной раз
 (фоновая тепловая масса направлений против конденсированного каркаса).
 -/
 
-namespace Hagi
 /-- Полный телесный угол (площадь поверхности единичной 
 (n−1)-сферы) в n-мерном евклидовом пространстве:
 Ω_n = 2π^{n/2} / Γ(n/2). Максимум при n ≈ 7.257
@@ -494,4 +496,7 @@ theorem digamma_logpi_root_exists_sharp
   obtain ⟨s, hs_in, hs_eq⟩ := hsub hmem
   exact ⟨s, hs_in, hs_eq⟩
 
-end Hagi
+
+end Hagi.Probability
+
+export Hagi.Probability (Omega_7_gt_Omega_6 Omega_7_gt_Omega_8 Omega_8' digamma_continuousOn_right digamma_four_above_logpi digamma_four_eq digamma_half_step digamma_half_value digamma_logpi_root_exists digamma_logpi_root_exists_sharp digamma_peak_exists digamma_re_continuousOn digamma_recurrence_bridge digamma_reflection_bridge digamma_seven_half_re digamma_seven_half_val digamma_three_below_logpi digamma_three_eq div6_eq_div3 pi_lt_16_5' sphericalAngle sphericalAngle_add_two sphericalAngle_even_geo sphericalAngle_factor_lt_one sphericalAngle_odd_geo sphericalAngle_seven sphericalAngle_six sphericalAngle_tail_bound sphericalAngle_tendsto_zero tail_parity_split)

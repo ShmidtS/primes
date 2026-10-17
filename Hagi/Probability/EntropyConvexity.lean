@@ -6,6 +6,9 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 
+namespace Hagi.Probability
+
+
 open Finset Real
 
 open Finset in
@@ -682,3 +685,7 @@ theorem gibbs_free_energy_identity {V : Type*} [Fintype V]
   rw [hγ1, one_mul] at hsum
   linarith
 
+
+end Hagi.Probability
+
+export Hagi.Probability (dist_log_nonpos entropy_chain entropy_subadditive gibbs_free_energy_identity joint_entropy_ge_marginal kl_convex_first kl_data_processing kl_product_additive log_concave_two log_sum_ineq log_sum_ineq_on xlog_div_convex xlogx_convex)
