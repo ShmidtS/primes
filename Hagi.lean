@@ -65,10 +65,6 @@ import Hagi.Omni.CapabilityMatrix
 import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
-import Hagi.Information.SpectralEntropy
-import Hagi.Information.LogDetEntropy
-import Hagi.Information.StateEntropy
-import Hagi.Information.EntropyContinuity
 import Hagi.Information.DiscreteFannes
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
