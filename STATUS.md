@@ -1195,6 +1195,17 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
+- R567 ЗАКРЫТ (fc5f564): таймер термостата в замкнутой
+  лог-форме — `GrowthDynamics.time_to_target_log`: при
+  sigma < 1 и sigma(C*-C0) < b горизонт T >=
+  ln(1-sigma(C*-C0)/b)/ln(1-sigma) влечёт C* <= C T.
+  Механика: div_le_iff_of_neg (log(1-sigma) < 0!) +
+  Real.log_lt_log контрапозиция + Real.log_pow +
+  band_time_to_target-подстановка. Требует СТРОГОЕ
+  sigma < 1 (при sigma = 1 вырождено) и hс0: C0 <= C*.
+  Канон: div_le_iff_of_neg hc : b/c <= a <-> a*c <= b
+  (c < 0); le_div_iff₀ (у = b/c форму); div_lt_one hb.
+  FREEZE 2551→2552; аксиомы канон; CI PASS.
 - R566 ЗАКРЫТ (8c62ae3): континуальный пик-фундамент —
   `SphericalAngle.digamma_continuousOn_right` (ψ непрерывна
   на {Re w > 2} через Γ-quotient и AnalyticOnNhd.deriv),
