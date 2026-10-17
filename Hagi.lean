@@ -34,7 +34,6 @@ import Hagi.Data.InfoNCE
 import Hagi.Data.ValueOfRead
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
-import Hagi.Budget.ComputeBudget
 import Hagi.Budget.CriticalBatch
 import Hagi.Budget.BatchCap
 import Hagi.Data.DFieldKKT
@@ -66,7 +65,6 @@ import Hagi.Probability.StationaryFlatness
 import Hagi.Data.FannesSmooth
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
-import Hagi.Pretraining.DustCert
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustVarK
 import Hagi.Omni.CrossModalGap
@@ -106,7 +104,6 @@ import Hagi.Budget.WaterFillingMoE
 import Hagi.Architecture.LatentAlign
 import Hagi.Architecture.ResidualSplit
 import Hagi.Budget.FactorizedBPW
-import Hagi.Budget.ThreeTermBudget
 import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
 import Hagi.Core.F3Root
@@ -305,13 +302,11 @@ import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CausalEffect
 import Hagi.Unified.CertifiedGains
 import Hagi.Unified.CertifiedGrowth
-import Hagi.Unified.CertifiedTakeoff
 import Hagi.Unified.DerivAlong
 import Hagi.Unified.DualCeiling
 import Hagi.Unified.FannesComplete
 import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.InterpretiveGrowth
-import Hagi.Unified.LipEnergy
 import Hagi.Unified.ModelComparison
 import Hagi.Unified.NernstFannes
 import Hagi.Unified.NonvacuityHorizon
