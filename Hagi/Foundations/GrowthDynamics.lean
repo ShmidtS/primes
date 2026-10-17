@@ -250,4 +250,49 @@ theorem band_guaranteed_growth_range (C G : ℕ → ℝ) (b σ : ℝ)
         _ = C 0 + b * (1 - (1 - σ) ^ (T + 1)) / σ := by
             field_simp [hpow]
             ring
+/-- **Таймер термостата в замкнутой лог-форме (R567)**:
+при σ < 1 и σ(C*−C0) < b цель C* настигается на горизонте
+T ≥ ln(1 − σ(C*−C0)/b)/ln(1−σ) — обратная задача каскада
+в логарифмической форме: из лог-неравенства выводится
+(1−σ)^T ≤ 1 − σ(C*−C0)/b, затем band_time_to_target. -/
+theorem time_to_target_log (C G : ℕ → ℝ) (b σ Cstar : ℝ) (T : ℕ)
+    (hstep : ∀ t, C (t + 1) = C t + G t)
+    (hband : ∀ t, G t ≥ b * (1 - σ) ^ t)
+    (hb : 0 ≤ b) (hσ : 0 < σ) (hσ1 : σ < 1)
+    (hc0 : C 0 ≤ Cstar)
+    (hc1 : σ * (Cstar - C 0) < b)
+    (hT : Real.log (1 - σ * (Cstar - C 0) / b)
+        / Real.log (1 - σ) ≤ (T : ℝ)) :
+    Cstar ≤ C T := by
+  have hq1 : 0 < (1:ℝ) - σ := by linarith
+  have hq2 : (1:ℝ) - σ < 1 := by linarith
+  have hq0 : Real.log (1 - σ) < 0 := Real.log_neg hq1 hq2
+  have hd0 : 0 ≤ Cstar - C 0 := by linarith
+  have hbpos : 0 < b := by
+    have h1 : 0 ≤ σ * (Cstar - C 0) := by positivity
+    linarith
+  have h2 : σ * (Cstar - C 0)/b < 1 := by
+    rw [div_lt_one hbpos]; exact hc1
+  have hy0 : 0 < (1:ℝ) - σ*(Cstar - C 0)/b := by linarith
+  have hmul : (T:ℝ) * Real.log (1 - σ)
+      ≤ Real.log (1 - σ * (Cstar - C 0)/b) :=
+    (div_le_iff_of_neg hq0).mp hT
+  have hrev : ((1:ℝ)-σ)^T ≤ 1 - σ*(Cstar - C 0)/b := by
+    by_contra hcon
+    have hgt : (1:ℝ) - σ*(Cstar - C 0)/b < (1 - σ)^T := by linarith
+    have hlog : Real.log (1 - σ*(Cstar - C 0)/b) < Real.log ((1-σ)^T) :=
+      Real.log_lt_log hy0 hgt
+    rw [Real.log_pow] at hlog
+    linarith
+  refine band_time_to_target C G b σ Cstar T hstep hband hb hσ
+    (by linarith) ?_
+  show C 0 + b * (1 - (1 - σ) ^ T) / σ ≥ Cstar
+  have h1 : σ * (Cstar - C 0)/b ≤ 1 - (1 - σ)^T := by linarith
+  rw [div_le_iff₀ hbpos] at h1
+  have h2 : Cstar - C 0 ≤ b * (1 - (1 - σ)^T)/σ := by
+    rw [le_div_iff₀ hσ]
+    nlinarith [h1, hσ.le]
+  linarith
+
 end Hagi.Foundations
+
