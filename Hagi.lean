@@ -20,7 +20,6 @@ import Hagi.Core.Ambig
 import Hagi.Growth.Grow
 import Hagi.Ensemble.GapLaw
 import Hagi.Ensemble.Hoeffding
-import Hagi.Core.RealF3
 import Hagi.Core.RealF3Ortho
 import Hagi.Core.Element
 import Hagi.Step.Joint
@@ -52,7 +51,6 @@ import Hagi.Growth.GrowthGate
 import Hagi.Growth.GainRenewal
 import Hagi.Growth.FrontierScaling
 import Hagi.Ensemble.MergeIdentity
-import Hagi.Energy.TernaryLean
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
 import Hagi.Runtime.ControllerGates
@@ -91,7 +89,6 @@ import Hagi.Probability.ThermoBridge
 import Hagi.Step.KLSSafeQP
 import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.AlignedMerge
-import Hagi.Architecture.FiberSplit
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.ConfigurationCost
@@ -125,7 +122,6 @@ import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness
 import Hagi.External.Layers
 import Hagi.Core.RootContrast
-import Hagi.Growth.CycleChannel
 import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
 import Hagi.Unified.RecursiveGrowth
@@ -151,7 +147,6 @@ import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.PmfMean
 import Hagi.Probability.MarkovFreedman
 import Hagi.Probability.HistoryPath
-import Hagi.Probability.HistoryPastMean
 import Hagi.Probability.HistoryFreedman
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.Azuma
@@ -207,7 +202,6 @@ import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
 import Hagi.Core.RoPE
 import Hagi.Core.RoPEMoments
-import Hagi.Core.GQA
 import Hagi.Core.SWA
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
@@ -217,7 +211,6 @@ import Hagi.Step.MuonWD
 import Hagi.Step.MuonTwoLevel
 import Hagi.Step.HybridState
 import Hagi.Step.SNRWeights
-import Hagi.Data.TernaryChinchilla
 import Hagi.Autonomy.SupervisorSafety
 import Hagi.Discovery.PPT
 import Hagi.Pretraining.SyntheticPretrain
@@ -258,7 +251,6 @@ import Hagi.Growth.MemoryController
 import Hagi.Growth.Thermostat
 import Hagi.Unified.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
-import Hagi.Runtime.LiveDeltaAudit
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
 import Hagi.Step.MDLObjective
@@ -292,7 +284,6 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.PinskerTV
 import Hagi.Probability.SphericalAngle
-import Hagi.Unified.CausalEffect
 import Hagi.Unified.CertifiedGains
 import Hagi.Unified.CertifiedGrowth
 import Hagi.Unified.DerivAlong
