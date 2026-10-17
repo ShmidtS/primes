@@ -1,0 +1,130 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Hagi.Unified.LipEnergy
+
+/-!
+# DerivAlong — точечная оценка производной вдоль сегмента (R565.3)
+
+Финальное звено h_emp_smooth-модели: g'(t) ≤ g'(0) + L·t·‖dir‖²
+из L-гладкости (‖∇E(y) − ∇E(x)‖ ≤ L‖y − x‖) + Cauchy–Schwarz
+для CLM.
+-/
+
+open Real
+
+namespace Hagi.Unified
+
+/-- **Точечная оценка (R565.3)**: производная вдоль сегмента
+ограничена начальным направленным градиентом + L·t·‖dir‖². -/
+theorem deriv_along_segment_le {W : Type} [NormedAddCommGroup W]
+    [NormedSpace ℝ W]
+    (E : W → ℝ) (dir q : W) (L : ℝ)
+    (hsmooth : ∀ x y : W, ‖fderiv ℝ E y - fderiv ℝ E x‖ ≤ L * ‖y - x‖)
+    (t : ℝ) (ht0 : 0 ≤ t) :
+    fderiv ℝ E (q + t • dir) dir
+      ≤ fderiv ℝ E q dir + L * t * ‖dir‖^2 := by
+  have hsplit : fderiv ℝ E (q + t • dir) dir
+      = fderiv ℝ E q dir
+        + (fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir := by
+    have hlin := sub_apply (fderiv ℝ E (q + t • dir))
+      (fderiv ℝ E q) dir
+    rw [hlin]; ring
+  have hcs : ‖(fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir‖
+      ≤ ‖fderiv ℝ E (q + t • dir) - fderiv ℝ E q‖ * ‖dir‖ :=
+    ContinuousLinearMap.le_opNorm _ dir
+  have hseg : ‖q + t • dir - q‖ = t * ‖dir‖ := by
+    have hs : q + t • dir - q = t • dir := by simp
+    rw [hs, norm_smul, Real.norm_eq_abs, abs_of_nonneg ht0]
+  have hdelta : ‖fderiv ℝ E (q + t • dir) - fderiv ℝ E q‖
+      ≤ L * (t * ‖dir‖) := by
+    have h := hsmooth q (q + t • dir)
+    rw [hseg] at h
+    exact h
+  -- ключевой скалярный факт: значение ≤ его норме
+  have hval : (fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir
+      ≤ ‖(fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir‖ := by
+    rw [Real.norm_eq_abs]
+    exact le_abs_self _
+  calc fderiv ℝ E (q + t • dir) dir
+      = fderiv ℝ E q dir
+        + (fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir := by rw [hsplit]
+    _ ≤ fderiv ℝ E q dir
+        + ‖(fderiv ℝ E (q + t • dir) - fderiv ℝ E q) dir‖ :=
+          add_le_add_right hval _
+    _ ≤ fderiv ℝ E q dir
+        + ‖fderiv ℝ E (q + t • dir) - fderiv ℝ E q‖ * ‖dir‖ :=
+          add_le_add_right hcs _
+    _ ≤ fderiv ℝ E q dir + L * (t * ‖dir‖) * ‖dir‖ :=
+          add_le_add_right
+            (mul_le_mul_of_nonneg_right hdelta (norm_nonneg dir)) _
+    _ = fderiv ℝ E q dir + L * t * ‖dir‖^2 := by ring
+
+
+open intervalIntegral in
+/-- **Гладкость ⟹ верхняя квадратичная модель (R565, h_emp_smooth)**:
+L-гладкость градиента даёт верхнюю квадратичную модель энергии:
+E(q+dir) ≤ E(q) + ⟨∇E(q), dir⟩ + L·‖dir‖²/2.
+Это точная форма h_emp_smooth (StageCalculus) при eta = 1,
+dnorm² = ‖dir‖², inner = ⟨∇E(q), dir⟩. -/
+theorem smooth_from_lipschitz_gradient {W : Type}
+    [NormedAddCommGroup W] [NormedSpace ℝ W]
+    (E : W → ℝ) (dir q : W) (L : ℝ)
+    (hdiff : ∀ w : W, HasFDerivAt E (fderiv ℝ E w) w)
+    (hsmooth : ∀ x y : W, ‖fderiv ℝ E y - fderiv ℝ E x‖ ≤ L * ‖y - x‖)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E (q + t • dir) dir) :
+    E (q + dir) ≤ E q + fderiv ℝ E q dir
+      + L * ‖dir‖ ^ 2 / 2 := by
+  -- (1) Newton–Leibniz вдоль сегмента
+  have hint := integral_deriv_segment E dir q hdiff hgcont
+  -- (2) точечная оценка подынтегральной производной
+  have hLx : ∀ t : ℝ, t ∈ Set.Icc (0:ℝ) 1 →
+      fderiv ℝ E (q + t • dir) dir
+        ≤ fderiv ℝ E q dir + L * t * ‖dir‖^2 := fun t ht =>
+    deriv_along_segment_le E dir q L hsmooth t ht.1
+  -- (3) монотонность интеграла
+  have hc2 : Continuous fun t : ℝ => L * t * ‖dir‖^2 := by fun_prop
+  have hmono : ∫ (t : ℝ) in (0:ℝ)..1, fderiv ℝ E (q + t • dir) dir
+      ≤ ∫ (t : ℝ) in (0:ℝ)..1,
+        (fderiv ℝ E q dir + L * t * ‖dir‖^2) :=
+    intervalIntegral.integral_mono_on (by norm_num)
+      (hgcont.intervalIntegrable 0 1)
+      ((by fun_prop : Continuous fun t : ℝ =>
+        fderiv ℝ E q dir + L * t * ‖dir‖^2).intervalIntegrable 0 1)
+      (fun t ht => hLx t ht)
+  -- (4) интеграл полинома
+  have hinteg : ∫ (t : ℝ) in (0:ℝ)..1,
+      (fderiv ℝ E q dir + L * t * ‖dir‖^2)
+      = fderiv ℝ E q dir + L * ‖dir‖^2 / 2 := by
+    have hLx' : ∫ (x : ℝ) in (0:ℝ)..1, L * x
+        = L * ∫ (x : ℝ) in (0:ℝ)..1, x := by
+      rw [show (fun x : ℝ => L * x) = fun x : ℝ => (L:ℝ) • x from
+        by funext x; simp [smul_eq_mul]]
+      rw [intervalIntegral.integral_smul]
+      rfl
+    have hc : Continuous fun x : ℝ => L * x := by fun_prop
+    rw [intervalIntegral.integral_add
+      (intervalIntegrable_const
+        (c := fderiv ℝ E q dir))
+      ((by fun_prop : Continuous fun x : ℝ =>
+        L * x * ‖dir‖^2).intervalIntegrable 0 1)]
+    simp only [intervalIntegral.integral_const, smul_eq_mul, one_mul,
+      sub_zero]
+    rw [intervalIntegral.integral_mul_const (‖dir‖^2)
+      (fun x => L * x), hLx']
+    have hxI : ∫ (x : ℝ) in (0:ℝ)..1, x = 1 / 2 := by
+      have h1 : ∫ (x : ℝ) in (0:ℝ)..1, x
+          = ∫ (x : ℝ) in (0:ℝ)..1, (1:ℝ) * x := by
+        congr 1; funext x; ring
+      rw [h1]
+      norm_num [intervalIntegral.integral_const_mul]
+    rw [hxI]
+    ring
+  -- (5) сборка
+  have hsplit2 : E (q + dir) = E q
+    + ∫ (t : ℝ) in (0:ℝ)..1, fderiv ℝ E (q + t • dir) dir := by
+    linarith
+  rw [hsplit2]
+  linarith
+
+end Hagi.Unified
