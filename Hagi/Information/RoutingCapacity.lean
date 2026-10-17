@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Information.InformationRetention
+import Hagi.Information.RepresentationRate
 
 /-!
 # RoutingCapacity — the router is a bounded information channel

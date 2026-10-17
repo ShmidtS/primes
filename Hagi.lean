@@ -75,7 +75,6 @@ import Hagi.Information.StateEntropy
 import Hagi.Information.EntropyContinuity
 import Hagi.Information.DiscreteFannes
 import Hagi.Information.MemoryCapacity
-import Hagi.Information.InformationRetention
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
 import Hagi.Information.RepresentationRate
@@ -193,7 +192,6 @@ import Hagi.Ensemble.RecursiveDistill
 import Hagi.Data.AntiCollapse
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
-import Hagi.Core.RoPE
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
@@ -208,7 +206,6 @@ import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.System.GrowthState
 import Hagi.Unified.GrowthBridge
-import Hagi.Unified.AnytimeValid
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
 import Hagi.Unified.GlobalDynamics

@@ -94,6 +94,29 @@ def main():
     barrel.write_text(bt, encoding='utf-8', newline='')
     print(f'merged {child_mod} -> {parent_mod}')
 
+    # Optional: retarget another former importer of the child to the parent.
+    if len(sys.argv) > 4 and sys.argv[3] == '--retarget':
+        other = pathlib.Path(sys.argv[4])
+        ot = other.read_text(encoding='utf-8')
+        ot2 = re.sub(rf'^import {re.escape(child_mod)}$',
+                     f'import {parent_mod}', ot, flags=re.M)
+        if ot2 != ot:
+            lines = ot2.split('\n')
+            # dedup: if the file already imports parent later, drop the duplicate
+            if sum(1 for l in lines
+                   if l.startswith(f'import {parent_mod}')) > 1:
+                seen = False
+                out = []
+                for l in lines:
+                    if l.startswith(f'import {parent_mod}'):
+                        if seen:
+                            continue
+                        seen = True
+                    out.append(l)
+                ot2 = '\n'.join(out)
+            other.write_text(ot2, encoding='utf-8', newline='')
+            print(f'retargeted {other} -> {parent_mod}')
+
 
 if __name__ == '__main__':
     main()

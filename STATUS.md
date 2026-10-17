@@ -944,7 +944,7 @@ same-folder DAG свободен.
   P[ΣX ≤ −Δ] ≤ exp(−Δ²/(2(V + bΔ/3))) — при V ≪ n
   сильнее Азумы; `adaptive_success_freedman`.
 - `PMFBridge`: V↔ℝ ↔ PMF оба пути; anytime-формы
-  (`AnytimeValid`, `AnytimeMartingale`).
+  (AnytimeValid слит в `AnytimeMartingale`).
 
 ### Step (L2 — контроллер шага)
 

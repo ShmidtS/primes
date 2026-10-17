@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.System.GrowthState
 import Hagi.Step.ProjectionDescent
-import Hagi.Unified.AnytimeValid
+import Hagi.Unified.AnytimeMartingale
 import Hagi.Energy.QuantBridge
 import Mathlib.Tactic
 /-!
