@@ -31,7 +31,10 @@ But that's a refactor for another day...
 -/
 
 open scoped ComplexOrder Matrix
-open Matrix SpectralNorm
+open Matrix
+open Hagi.External.Flywheel.Matrix.SpectralNorm
+
+namespace Hagi.External.Flywheel
 
 namespace Matrix.Coherence
 
@@ -1993,3 +1996,5 @@ theorem decision_criterion (A : Matrix n n ℂ) (ε : ℝ) (hε : 0 < ε)
 end SolutionDistance
 
 end Matrix.Coherence
+
+end Hagi.External.Flywheel

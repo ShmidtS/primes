@@ -20,8 +20,12 @@ Created: 2025-01-02
 Last modified: 2025-01-05 (fixed off-by-one in index bounds)
 -/
 
-open Matrix Matrix.SVD
+open Matrix
 open scoped ComplexOrder
+
+open Hagi.External.Flywheel.Matrix.SVD
+
+namespace Hagi.External.Flywheel
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
@@ -115,3 +119,5 @@ theorem truncatedSVD_rank1_identity (A : Matrix n n ℂ) (h : A.rank ≤ 1) :
     _ = A * ((rightUnitary A : Matrix n n ℂ) * star (rightUnitary A : Matrix n n ℂ)) := by rw [mul_assoc]
     _ = A * 1 := by rw [h_V_unitary]
     _ = A := by rw [mul_one]
+
+end Hagi.External.Flywheel

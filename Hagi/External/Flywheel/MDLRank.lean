@@ -16,6 +16,9 @@ import Hagi.External.Flywheel.FrobeniusNorm
 set_option maxHeartbeats 4000000
 
 open Matrix
+open Hagi.External.Flywheel.Matrix
+
+namespace Hagi.External.Flywheel
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
@@ -279,3 +282,5 @@ theorem mdl_rank_ce (A : Matrix n n ℂ) (k : ℕ)
 
 end Hagi.MDL.Rank
 
+
+end Hagi.External.Flywheel

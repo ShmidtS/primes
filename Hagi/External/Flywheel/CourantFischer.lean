@@ -28,6 +28,8 @@ import Hagi.External.Flywheel.SVD
 open scoped Matrix ComplexOrder
 open Finset Matrix BigOperators
 
+namespace Hagi.External.Flywheel
+
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 
 namespace CourantFischer
@@ -1332,3 +1334,5 @@ theorem exists_unit_in_kernel_and_tail_span (A C : Matrix n n ℂ) (k : ℕ)
 end EckartYoungBridge
 
 end CourantFischer
+
+end Hagi.External.Flywheel

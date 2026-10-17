@@ -25,6 +25,8 @@ For Hermitian A, B: λₖ(A) + λₙ(B) ≤ λₖ(A+B) ≤ λₖ(A) + λ₁(B).
 open scoped Matrix ComplexOrder
 open Finset Matrix BigOperators
 
+namespace Hagi.External.Flywheel
+
 namespace Matrix.WeylInequality
 
 /-- v4.34 port: Matrix.toEuclideanLin_apply removed; definitional. -/
@@ -1171,3 +1173,5 @@ theorem interlacing_for_eckart_young (A C : Matrix n n ℂ) (k : ℕ)
 end ThompsonInterlacing
 
 end Matrix.WeylInequality
+
+end Hagi.External.Flywheel

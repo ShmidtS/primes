@@ -43,6 +43,8 @@ import Hagi.External.Flywheel.FrobeniusNorm
 
 open Matrix
 
+namespace Hagi.External.Flywheel
+
 namespace Matrix.KroneckerRearrangement
 
 variable {m n p q : Type*} [Fintype m] [Fintype n] [Fintype p] [Fintype q]
@@ -431,7 +433,7 @@ attribute [local instance 1001] Matrix.frobeniusSeminormedAddCommGroup
 
 /-- The truncated SVD of rank k. Uses the inline definition from Matrix.SVD. -/
 noncomputable abbrev truncatedSVD [Nonempty n] (A : Matrix n n ℂ) (k : ℕ) : Matrix n n ℂ :=
-  _root_.Matrix.SVD.truncatedSVD A k
+  Matrix.SVD.truncatedSVD A k
 
 /-- **Eckart-Young Theorem (Frobenius norm):**
     The truncated SVD Aₖ is the best rank-k approximation in Frobenius norm.
@@ -447,7 +449,7 @@ theorem eckart_young_frobenius [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
     Re-exported from FrobeniusNorm.lean. -/
 theorem frobenius_error_truncatedSVD [Nonempty n] (A : Matrix n n ℂ) (k : ℕ) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (A - truncatedSVD A k) ^ 2 =
-    ∑ i : n, (_root_.Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2 :=
+    ∑ i : n, (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2 :=
   FrobeniusNorm.frobenius_error_truncatedSVD A k
 
 end EckartYoung
@@ -782,7 +784,7 @@ theorem kronecker_approx_frobenius_error (C : Matrix (m × n) (p × q) ℂ)
   -- R distributes: R(C - A ⊗ B) = R(C) - R(A ⊗ B)
   have h_R_sub : R (C - kroneckerMap (· * ·) A B) = R C - R (kroneckerMap (· * ·) A B) := by
     ext ⟨i, k⟩ ⟨j, l⟩
-    simp [R, sub_apply]
+    simp [R, Matrix.sub_apply]
   rw [h_R_sub]
   -- R(A ⊗ B) = outerProduct (vec A) (vec B)
   rw [R_kronecker]
@@ -1252,7 +1254,7 @@ theorem kronecker_sub_decomposition
     kroneckerMap (· * ·) (B - B') C + kroneckerMap (· * ·) B' (C - C') := by
   -- Use the bilinearity of kroneckerMap
   ext ⟨i, j⟩ ⟨k, l⟩
-  simp only [sub_apply, add_apply, kroneckerMap_apply]
+  simp only [Matrix.sub_apply, Matrix.add_apply, kroneckerMap_apply]
   ring
 
 /-- Alternative form: B ⊗ C - B' ⊗ C' = (B - B') ⊗ C' + B ⊗ (C - C')
@@ -1261,7 +1263,7 @@ theorem kronecker_sub_decomposition' (B B' : Matrix m p ℂ) (C C' : Matrix n q 
     kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C' =
     kroneckerMap (· * ·) (B - B') C' + kroneckerMap (· * ·) B (C - C') := by
   ext ⟨i, j⟩ ⟨k, l⟩
-  simp only [sub_apply, add_apply, kroneckerMap_apply]
+  simp only [Matrix.sub_apply, Matrix.add_apply, kroneckerMap_apply]
   ring
 
 end Decomposition
@@ -1403,7 +1405,7 @@ theorem kronecker_perturbation_single_factor_B [Nonempty p] [Nonempty q]
   have h : kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C =
            kroneckerMap (· * ·) (B - B') C := by
     ext ⟨i, j⟩ ⟨k, l⟩
-    simp only [sub_apply, kroneckerMap_apply]
+    simp only [Matrix.sub_apply, kroneckerMap_apply]
     ring
   rw [h, KroneckerRearrangement.l2_opNorm_kronecker]
 
@@ -1414,7 +1416,7 @@ theorem kronecker_perturbation_single_factor_C [Nonempty p] [Nonempty q]
   have h : kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B C' =
            kroneckerMap (· * ·) B (C - C') := by
     ext ⟨i, j⟩ ⟨k, l⟩
-    simp only [sub_apply, kroneckerMap_apply]
+    simp only [Matrix.sub_apply, kroneckerMap_apply]
     ring
   rw [h, KroneckerRearrangement.l2_opNorm_kronecker]
 
@@ -1452,3 +1454,5 @@ theorem kronecker_singularValue_perturbation [Nonempty p] [Nonempty q]
 end WeylConnection
 
 end Matrix.KroneckerPerturbation
+
+end Hagi.External.Flywheel

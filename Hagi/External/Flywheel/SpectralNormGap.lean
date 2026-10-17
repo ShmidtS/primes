@@ -25,6 +25,8 @@ import Hagi.External.Flywheel.MatrixNormRelations
 open scoped ComplexOrder Matrix
 open Matrix
 
+namespace Hagi.External.Flywheel
+
 namespace Matrix.Kronecker.SpectralGap
 
 variable {m n p q : Type*}
@@ -279,14 +281,14 @@ variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
 lemma R_sub (M N : Matrix (m × n) (p × q) ℂ) :
     KroneckerRearrangement.R (M - N) = KroneckerRearrangement.R M - KroneckerRearrangement.R N := by
   ext ⟨i, k⟩ ⟨j, l⟩
-  simp only [KroneckerRearrangement.R, sub_apply]
+  simp only [KroneckerRearrangement.R, Matrix.sub_apply]
 
 /-- R_inv distributes over subtraction. -/
 lemma R_inv_sub (M N : Matrix (m × p) (n × q) ℂ) :
     KroneckerRearrangement.R_inv (M - N) =
     KroneckerRearrangement.R_inv M - KroneckerRearrangement.R_inv N := by
   ext ⟨i, j⟩ ⟨k, l⟩
-  simp only [KroneckerRearrangement.R_inv, sub_apply]
+  simp only [KroneckerRearrangement.R_inv, Matrix.sub_apply]
 
 /-! ### Spectral norm bound for general matrix differences via R⁻¹ -/
 
@@ -848,3 +850,5 @@ theorem rank1_kronecker_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq n'
 end Rank1Application
 
 end Matrix.Kronecker.SpectralGapCharacterization
+
+end Hagi.External.Flywheel

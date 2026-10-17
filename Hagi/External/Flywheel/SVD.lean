@@ -38,6 +38,8 @@ import Mathlib.LinearAlgebra.UnitaryGroup
 open Matrix Polynomial
 open scoped ComplexOrder MatrixOrder
 
+namespace Hagi.External.Flywheel
+
 namespace Matrix.SVD
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
@@ -643,7 +645,7 @@ private lemma scalar_mul_eq_mul_scalar' (M : Matrix n n (Polynomial ℂ)) (x : P
 private lemma charmatrix_eq_scalar_sub_map (M : Matrix n n ℂ) :
     M.charmatrix = scalar n Polynomial.X - M.map Polynomial.C := by
   ext i j
-  simp only [charmatrix_apply, sub_apply, scalar_apply, diagonal, of_apply, map_apply]
+  simp only [charmatrix_apply, Matrix.sub_apply, scalar_apply, diagonal, of_apply, map_apply]
 
 /-- Ring homomorphism map preserves inverses for invertible matrices. -/
 private lemma map_inv_of_isUnit {R S : Type*} [CommRing R] [CommRing S]
@@ -1398,7 +1400,7 @@ theorem truncatedSVD_add_tail (A : Matrix n n ℂ) (k : ℕ) :
                 diagonal (Complex.ofReal ∘ truncatedSingularValues_tail A k) =
                 diagonal (Complex.ofReal ∘ singularValues A) := by
     ext i j
-    simp only [add_apply, diagonal_apply, Function.comp_apply]
+    simp only [Matrix.add_apply, diagonal_apply, Function.comp_apply]
     split_ifs with h
     · subst h
       rw [← Complex.ofReal_add, truncatedSingularValues_add_tail]
@@ -4096,3 +4098,5 @@ theorem frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect
   field_simp
 
 end RectangularCoherenceFactor
+
+end Hagi.External.Flywheel

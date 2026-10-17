@@ -41,6 +41,8 @@ Implementation via `Matrix.frobeniusSeminormedAddCommGroup` instance.
 open Matrix
 open scoped BigOperators ComplexConjugate ComplexOrder MatrixOrder
 
+namespace Hagi.External.Flywheel
+
 namespace Matrix.FrobeniusNorm
 
 variable {n m : Type*} [Fintype n] [Fintype m] [DecidableEq n] [DecidableEq m]
@@ -401,7 +403,7 @@ lemma frobenius_sq_diagonal_minus_matrix (d : n → ℂ) (C : Matrix n n ℂ) :
           simp only [Finset.filter_eq', Finset.mem_univ, ↓reduceIte, Finset.sum_singleton]
       _ = ‖d i - C i i‖^2 + ∑ j ∈ Finset.univ.filter (· ≠ i), ‖(diagonal d - C) i j‖^2 := by
           congr 1
-          simp only [sub_apply, diagonal_apply_eq]
+          simp only [Matrix.sub_apply, diagonal_apply_eq]
       _ = ‖d i - C i i‖^2 + ∑ j ∈ Finset.univ.filter (· ≠ i), ‖C i j‖^2 := by
           congr 1
           apply Finset.sum_congr rfl
@@ -409,7 +411,7 @@ lemma frobenius_sq_diagonal_minus_matrix (d : n → ℂ) (C : Matrix n n ℂ) :
           simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq] at hj
           -- hj : ¬j = i, we need to show (if i = j then d i else 0) = 0
           have hij : ¬i = j := fun h => hj h.symm
-          simp only [sub_apply, diagonal_apply, if_neg hij, zero_sub, norm_neg]
+          simp only [Matrix.sub_apply, diagonal_apply, if_neg hij, zero_sub, norm_neg]
       _ = ‖d i - C i i‖^2 + ∑ j, (if i ≠ j then ‖C i j‖^2 else 0) := by
           congr 1
           -- Need to show Σ_{j ≠ i} ‖C i j‖² = Σⱼ (if i ≠ j then ‖C i j‖² else 0)
@@ -435,7 +437,7 @@ lemma frobenius_sq_truncated_diagonal (A : Matrix n n ℂ) (k : ℕ) :
                 diagonal (Complex.ofReal ∘ Matrix.SVD.truncatedSingularValues A k) =
                 diagonal (Complex.ofReal ∘ Matrix.SVD.truncatedSingularValues_tail A k) := by
     ext i j
-    simp only [sub_apply, diagonal_apply, Function.comp_apply]
+    simp only [Matrix.sub_apply, diagonal_apply, Function.comp_apply]
     split_ifs with h
     · subst h
       rw [← Complex.ofReal_sub]
@@ -881,3 +883,5 @@ theorem eckart_young_frobenius (A : Matrix n n ℂ) (k : ℕ)
 end EckartYoung
 
 end Matrix.FrobeniusNorm
+
+end Hagi.External.Flywheel
