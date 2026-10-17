@@ -61,6 +61,8 @@ def main():
     # the transitive Mathlib through the child — propagate import level.
     has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
                       for l in child_text.split('\n'))
+    has_tactic = any(l.rstrip('\r') == 'import Mathlib.Tactic'
+                     for l in child_text.split('\n'))
     parent_has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
                              for l in pt.split('\n'))
     pt_tactic = any(l.rstrip('\r') == 'import Mathlib.Tactic'
@@ -70,8 +72,8 @@ def main():
     for imp in child_imports:
         if imp != parent_mod and f'\nimport {imp}' not in pt:
             extra.append(f'import {imp}')
-    if has_mathlib and not parent_has_mathlib and not pt_tactic:
-        extra.append('import Mathlib')
+    if (has_mathlib or has_tactic) and not parent_has_mathlib and not pt_tactic:
+        extra.append('import Mathlib' if has_mathlib else 'import Mathlib.Tactic')
     if extra:
         imp_idx = [i for i, l in enumerate(pt.split('\n')) if l.startswith('import ')]
         if imp_idx:

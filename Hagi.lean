@@ -27,7 +27,6 @@ import Hagi.Step.Joint
 import Hagi.Ensemble.GenCycle
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
-import Hagi.Step.NCE
 import Hagi.Step.NCEVar
 import Hagi.Data.DField
 import Hagi.Data.InfoNCE
@@ -53,7 +52,6 @@ import Hagi.Growth.GrowthGate
 import Hagi.Growth.GainRenewal
 import Hagi.Growth.FrontierScaling
 import Hagi.Ensemble.MergeIdentity
-import Hagi.Energy.BranchScale
 import Hagi.Energy.TernaryLean
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
@@ -101,7 +99,6 @@ import Hagi.Budget.ActiveCompute
 import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
-import Hagi.Architecture.LatentAlign
 import Hagi.Architecture.ResidualSplit
 import Hagi.Budget.FactorizedBPW
 import Hagi.Budget.TokenWeightBias
@@ -132,7 +129,6 @@ import Hagi.Growth.CycleChannel
 import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
 import Hagi.Unified.RecursiveGrowth
-import Hagi.Step.CurvatureSafe
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.UrgencyDepth
 import Hagi.Dynamics.DistillationRate
@@ -214,7 +210,6 @@ import Hagi.Core.RoPEMoments
 import Hagi.Core.GQA
 import Hagi.Core.SWA
 import Hagi.Step.CausalFilter
-import Hagi.Data.PuncturedCE
 import Hagi.Ensemble.QFormerBridge
 import Hagi.Data.ChunkedCE
 import Hagi.Step.Muon
@@ -272,7 +267,6 @@ import Hagi.Step.WarmupSchedule
 import Hagi.Step.WeightDecay
 import Hagi.Step.NewtonPolar
 import Hagi.Step.RiemannNewtonPolar
-import Hagi.Step.MuonStableLR
 import Hagi.Step.FrobeniusLMO
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP
@@ -287,7 +281,6 @@ import Hagi.Foundations.Chord
 import Hagi.Foundations.Hoeffding
 import Hagi.Foundations.Ortho
 import Hagi.Foundations.Potential
-import Hagi.Foundations.TakeoffCounted
 import Hagi.Growth.GammaDeficit
 import Hagi.Probability.CertGaps
 import Hagi.Probability.ChernoffCGF
