@@ -28,7 +28,6 @@ import Hagi.Budget.RankBudget
 import Hagi.Step.NCEVar
 import Hagi.Data.DField
 import Hagi.Data.InfoNCE
-import Hagi.Data.ValueOfRead
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
 import Hagi.Budget.BatchCap
@@ -96,7 +95,6 @@ import Hagi.Architecture.ResidualSplit
 import Hagi.Budget.TokenWeightBias
 import Hagi.Ensemble.MergeScaling
 import Hagi.Core.F3Root
-import Hagi.Data.SinkCost
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
 import Hagi.Energy.Variational
@@ -139,7 +137,6 @@ import Hagi.Growth.SelfDevelopment
 import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
-import Hagi.Probability.PmfMean
 import Hagi.Probability.MarkovFreedman
 import Hagi.Probability.HistoryPath
 import Hagi.Probability.HistoryFreedman
@@ -169,7 +166,6 @@ import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
 import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
-import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
 import Hagi.Growth.DisagreementChain
 import Hagi.Growth.ChainToCone
@@ -232,9 +228,7 @@ import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
 import Hagi.Step.LiveDeltaSafe
-import Hagi.Step.DeltaHistory
 import Hagi.Step.DeltaConsolidate
-import Hagi.Growth.MemoryController
 import Hagi.Growth.Thermostat
 import Hagi.Unified.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
