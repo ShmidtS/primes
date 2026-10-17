@@ -1195,13 +1195,22 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
-- R565 (h_emp_smooth из L-гладкости) — wiring в процессе:
-  верифицированы piecewise: sub_apply-расщепление,
-  ContinuousLinearMap.le_opNorm (Cauchy–Schwarz для CLM),
-  norm_smul+abs_of_nonneg (hseg), hsmooth q (q + t•dir) —
-  (x y)-порядок аргументов критичен; осталось финальное
-  le_trans-calc склеивание шагов (все факты зелёные по
-  отдельности в probe, сборка в один след — виток #213).
+- R565 ЗАКРЫТ (6bfe8ac): `Unified.DerivAlong.
+  smooth_from_lipschitz_gradient` — h_emp_smooth ВЫВЕДЕН
+  из L-гладкости градиента (‖∇E(y)−∇E(x)‖ ≤ L‖y−x⟫):
+  Newton–Leibniz вдоль сегмента + pointwise-оценка
+  deriv_along_segment_le (Cauchy–Schwarz для CLM через
+  ContinuousLinearMap.le_opNorm) + integral_mono_on +
+  полиномиальный интеграл ∫₀¹ t = 1/2. E(q+dir) ≤ E(q) +
+  ⟨∇E(q),dir⟩ + L·‖dir‖²/2. Канон: hsmooth-порядок
+  аргументов (x y) даёт ‖fderiv y − fderiv x‖;
+  add_le_add_right (не left!) в calc-цепочках с правым
+  слагаемым; le_opNorm даёт норму значения (нужен
+  Real.norm_eq_abs-мост для скаляра); le_trans по
+  цепочке вместо многошагового calc. h_emp-троица
+  ПОЛНОСТЬЮ закрыта (lip R563, grow R564, smooth R565).
+  FREEZE 2544→2548; аксиомы [propext, Classical.choice,
+  Quot.sound]; CI PASS.
 
 - h_emp_grow закрыт (R564): `LipEnergy.
   grow_gain_from_smooth_descent` — энергетический учёт
