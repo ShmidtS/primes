@@ -64,4 +64,34 @@ theorem grow_gain_from_smooth_descent (L eta dnorm inner E2 E1 : ℝ)
   Hagi.Foundations.joint_stage L eta dnorm inner E2 E1 hL heta
     heta0 hdescent h_emp_smooth
 
+
+open Real intervalIntegral
+
+/-- Производная энергии вдоль сегмента (chain rule; R565.2). -/
+theorem hasDerivAt_along_segment {W : Type*} [NormedAddCommGroup W]
+    [NormedSpace ℝ W] (E : W → ℝ) (dir q : W)
+    (hdiff : ∀ w : W, HasFDerivAt E (fderiv ℝ E w) w)
+    (t : ℝ) :
+    HasDerivAt (fun s => E (q + s • dir)) (fderiv ℝ E (q + t • dir) dir) t := by
+  have h1 := hdiff (q + t • dir)
+  have h2 : HasDerivAt (fun s : ℝ => q + s • dir) dir t := by
+    simpa using HasDerivAt.fun_add (hasDerivAt_const t q)
+      ((hasDerivAt_id t).smul_const dir)
+  exact HasFDerivAt.comp_hasDerivAt (l := E) t h1 h2
+
+/-- Интеграл производной вдоль сегмента = приращение (Newton-
+Leibniz, R565.2). -/
+theorem integral_deriv_segment {W : Type*} [NormedAddCommGroup W]
+    [NormedSpace ℝ W] (E : W → ℝ) (dir q : W)
+    (hdiff : ∀ w : W, HasFDerivAt E (fderiv ℝ E w) w)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E (q + t • dir) dir) :
+    ∫ (t : ℝ) in (0:ℝ)..1, fderiv ℝ E (q + t • dir) dir
+      = E (q + dir) - E q := by
+  have hint := intervalIntegral.integral_deriv_eq_sub'
+    (a := 0) (b := 1) (fun s => E (q + s • dir))
+    (funext (fun t => (hasDerivAt_along_segment E dir q hdiff t).deriv))
+    (fun t _ => (hasDerivAt_along_segment E dir q hdiff t).differentiableAt)
+    (Continuous.continuousOn hgcont)
+  simpa [one_smul] using hint
+
 end Hagi.Unified

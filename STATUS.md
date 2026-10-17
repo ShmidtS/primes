@@ -1195,15 +1195,14 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
-- R565 (h_emp_smooth из L-гладкости) — разведка, отложен:
-  инфраструктура собрана в probe (chain-rule вдоль сегмента,
-  integral_deriv_eq_sub', prob_ladder-мосты, integral_mono_on,
-  integral_smul-через-smul_форма, nsmul_eq_mul-формых),  остался один узел: inner-product-оценка gvec t − hp0 ≤
-  L·t·‖dir‖² (Cauchy–Schwarz через ContinuousLinearMap.
-  le_opNorm — лемма верифицирована в probe) + интеграл
-  полинома (все звенья в probe). Сборка — следующий виток;
-  попытки финальной сборки одним кадром — 3 провала,
-  откат по Sunk Cost (worktree чист via git checkout).
+- R565 (h_emp_smooth из L-гладкости) — wiring в процессе:
+  верифицированы piecewise: sub_apply-расщепление,
+  ContinuousLinearMap.le_opNorm (Cauchy–Schwarz для CLM),
+  norm_smul+abs_of_nonneg (hseg), hsmooth q (q + t•dir) —
+  (x y)-порядок аргументов критичен; осталось финальное
+  le_trans-calc склеивание шагов (все факты зелёные по
+  отдельности в probe, сборка в один след — виток #213).
+
 - h_emp_grow закрыт (R564): `LipEnergy.
   grow_gain_from_smooth_descent` — энергетический учёт
   grow-стадии (growEnergy ≤ energy − growGain) выводится
