@@ -73,7 +73,6 @@ import Hagi.Information.DiscreteFannes
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
-import Hagi.Information.RepresentationRate
 import Hagi.Information.RoutingCapacity
 import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
@@ -129,8 +128,6 @@ import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.MarkovFreedman
-import Hagi.Probability.HistoryPath
-import Hagi.Probability.HistoryFreedman
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
@@ -173,7 +170,6 @@ import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
 import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
-import Hagi.Ensemble.RecursiveDistill
 import Hagi.Data.AntiCollapse
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
@@ -248,7 +244,6 @@ import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.PinskerTV
 import Hagi.Probability.SphericalAngle
-import Hagi.Unified.CertifiedGains
 import Hagi.Unified.CertifiedGrowth
 import Hagi.Unified.DerivAlong
 import Hagi.Unified.DualCeiling
