@@ -276,4 +276,24 @@ theorem digamma_four_above_logpi
     Real.log Real.pi < (((11:ℚ)/6 : ℝ) - eulerMascheroniConstant) := by
   linarith
 
+
+/-- Полузначение ψ(1/2) = −2·ln 2 − γ (Mathlib-форма). -/
+theorem digamma_half_value :
+    Complex.digamma (1/2 : ℂ)
+      = -2 * (Complex.log 2) - (eulerMascheroniConstant : ℂ) :=
+  Complex.digamma_one_half
+
+/-- Рефлексия Эйлера: ψ(1−s) = ψ(s) + π·cot(π·s) — мост для
+симметрии ψ относительно 1/2 (фундамент дубль-формулы и
+вилки отрицательных аргументов). -/
+theorem digamma_reflection_bridge {s : ℂ} (hs : ∀ n : ℤ, s ≠ n) :
+    Complex.digamma (1 - s)
+      = Complex.digamma s + (Real.pi : ℂ) * Complex.cot ((Real.pi : ℂ) * s) := by
+  exact Complex.digamma_one_sub hs
+
+/-- Рекуррента ψ(s+1) = ψ(s) + 1/s — мост лестницы шагов -/
+theorem digamma_recurrence_bridge {s : ℂ} (hs : ∀ m : ℕ, s ≠ -m) :
+    Complex.digamma (s + 1) = Complex.digamma s + s⁻¹ := by
+  exact Complex.digamma_apply_add_one s hs
+
 end Hagi

@@ -1195,6 +1195,12 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
+- ψ-инструментарий дополнен (R562 шаг 2): `SphericalAngle.
+  digamma_half_value` (ψ(1/2) = −2ln2−γ, Complex-форма),
+  `digamma_reflection_bridge` (Эйлер: ψ(1−s)=ψ(s)+π·cot πs),
+  `digamma_recurrence_bridge` (ψ(s+1)=ψ(s)+1/s); полная
+  ψ-монотонность отложена (Mathlib: Gauss-интеграл TODO —
+  многовитковый проект, нужен trigamma-ряд).
 - Дигамма-мосты закрыты (R562 шаг 1): `SphericalAngle.
   digamma_three_eq/four_eq` — harmonic-форма ψ(3) = H₂−γ,
   ψ(4) = H₃−γ (cast-цепочки ℚ→ℝ→ℂ); брекет-следствия
