@@ -919,7 +919,7 @@ same-folder DAG свободен.
   ортонормальных vₜ (канон); следствия `gating_tail_bound`,
   спектральный хвост.
 - `Chord` (`exp_chord_ab`, `log_cosh_le`), `Hoeffding`
-  (Хёфдинг через MGF), `TakeoffCounted`, `WeightedVar`.
+  (Хёфдинг через MGF), `TakeoffCounted`, WeightedVar (слит в `DBridge`).
 
 ### Energy / Data / Information (L2 — квантование и инфо)
 

@@ -77,7 +77,6 @@ import Hagi.Omni.OmniInvariant
 import Hagi.Omni.CapabilityMatrix
 import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
-import Hagi.Foundations.WeightedVar
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.SpectralEntropy
 import Hagi.Information.LogDetEntropy
@@ -135,7 +134,6 @@ import Hagi.Core.RootContrast
 import Hagi.Growth.CycleChannel
 import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
-import Hagi.Unified.MacroCycle
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Step.CurvatureSafe
 import Hagi.Dynamics.EndpointContraction
@@ -191,7 +189,6 @@ import Hagi.Architecture.FactorRank
 import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainOperator
 import Hagi.Growth.GainDecomposition
-import Hagi.Growth.OptimizerStage
 import Hagi.Growth.DisagreementChain
 import Hagi.Growth.ChainToCone
 import Hagi.Growth.ChainUnification
@@ -216,7 +213,6 @@ import Hagi.Autonomy.Universality
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
 import Hagi.Core.RoPE
-import Hagi.Core.RoPELimit
 import Hagi.Core.RoPEMoments
 import Hagi.Core.GQA
 import Hagi.Core.SWA
@@ -224,7 +220,6 @@ import Hagi.Step.CausalFilter
 import Hagi.Data.PuncturedCE
 import Hagi.Ensemble.QFormerBridge
 import Hagi.Data.ChunkedCE
-import Hagi.Step.LRWidth
 import Hagi.Step.Muon
 import Hagi.Step.MuonWD
 import Hagi.Step.MuonTwoLevel
