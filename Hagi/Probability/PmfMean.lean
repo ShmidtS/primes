@@ -1,7 +1,11 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+
 import Mathlib
+
+
+
 
 /-!
 # PmfMean — finite PMF expectations
@@ -124,6 +128,38 @@ theorem pmfMean_bind {α β : Type*} [Fintype α] [Fintype β]
     pmfMean (p.map g) f = pmfMean p (fun a => f (g a)) := by
   rw [← PMF.bind_pure_comp, pmfMean_bind]
   simp
+
+namespace PMF
+open scoped ENNReal Classical in
+/-- PMF-valued uniform distribution on a nonempty finset.
+
+Restored locally: Mathlib 4.35 turned `PMF.uniformOfFinset` into a
+`Measure`-valued definition, but the PMF kernel below (and its apply
+lemma) is still referenced by `pmfMean_uniformOfFinset` (statement
+preserved verbatim, see scripts/Freeze.py contract). -/
+noncomputable def uniformOfFinset {α : Type*} [Fintype α] (s : Finset α) (_hs : s.Nonempty) :
+    PMF α :=
+  ⟨fun a => if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0, by
+    classical
+    have hcard : (s.card : ℝ≥0∞) ≠ 0 := by
+      exact_mod_cast (Finset.card_pos.mpr _hs).ne'
+    have hval : (∑ a, (if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else (0:ℝ≥0∞))) = 1 := by
+      have hzero : (∑ a ∈ sᶜ, (if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else (0:ℝ≥0∞))) = 0 :=
+        Finset.sum_eq_zero (fun a ha => by simp [Finset.mem_compl.mp ha])
+      rw [← Finset.sum_add_sum_compl s, hzero, add_zero]
+      refine Eq.trans (Finset.sum_congr rfl (fun a ha => by rw [if_pos ha])) ?_
+      rw [Finset.sum_const, nsmul_eq_mul]
+      exact ENNReal.mul_inv_cancel hcard (by simp)
+    have hsum := hasSum_fintype (fun a : α => (if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else (0:ℝ≥0∞)))
+    rwa [hval] at hsum⟩
+
+open scoped ENNReal Classical in
+@[simp] theorem uniformOfFinset_apply {α : Type*} [Fintype α] {s : Finset α} {_hs : s.Nonempty} (a : α) :
+    uniformOfFinset s _hs a = if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0 := by
+  show (uniformOfFinset s _hs).val a = _
+  rfl
+
+end PMF
 
 theorem pmfMean_uniformOfFinset {α : Type*} [Fintype α]
     (s : Finset α) (hs : s.Nonempty) (f : α → ℝ) :

@@ -9,3 +9,6 @@ FORMALIZATION_PLAN.md
 scripts/prune_log.txt
 inventory_baseline.txt
 REFACTOR_PLAN.md
+*.txt
+*.try
+*.tmp

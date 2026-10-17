@@ -3,7 +3,6 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib
 import Hagi.External.Flywheel.SVD
 
 /-!
@@ -150,7 +149,7 @@ theorem inner_toEuclideanLin_eq_eigenvalue_sum
   intro i _
   -- Goal: ⟨Ax, uᵢ⟩ * ⟨uᵢ, x⟩ = |⟨uᵢ, x⟩|² * λᵢ
   -- Use the symmetric property: ⟨Ax, uᵢ⟩ = ⟨x, Auᵢ⟩ = ⟨x, λᵢuᵢ⟩ = λᵢ⟨x, uᵢ⟩
-  have hSym : (Matrix.toEuclideanLin A).IsSymmetric := isHermitian_iff_isSymmetric.mp hA
+  have hSym : (Matrix.toEuclideanLin A).IsSymmetric := Matrix.isSymmetric_toEuclideanLin_iff.mpr hA
   -- A uᵢ = λᵢ uᵢ
   have hEigen : Matrix.toEuclideanLin A (hA.eigenvectorBasis i) =
       (hA.eigenvalues i : ℂ) • (hA.eigenvectorBasis i) := by

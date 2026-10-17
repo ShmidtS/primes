@@ -13,10 +13,11 @@ maxSynthPendingDepth = 3
 # particular proof does not use one directly.
 weak.linter.unusedHypotheses = false
 
+# Local prebuilt Mathlib (lean-4.35.0 toolchain, built at C:/Users/shmid/mathlib4).
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.34.1"
+path = "C:/Users/shmid/mathlib4"
 
 [[lean_lib]]
 name = "Primes"

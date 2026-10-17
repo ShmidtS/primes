@@ -223,8 +223,6 @@ theorem xlogx_convex {a b lam : ℝ} (ha : 0 < a) (hb : 0 < b)
       field_simp
     have hdiv2 : (1 - lam) * b / (1 - lam) = b := by
       field_simp
-      ring_nf
-      linarith [mul_inv_cancel₀ (ne_of_gt (show 0 < 1 - lam by linarith))]
     rw [hα, hβ]
     simp [hdiv1, hdiv2]
   rw [hexp] at hsum
