@@ -4,7 +4,6 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Core.Hadamard
 import Hagi.Core.FrobOuter
 import Hagi.Core.Kronecker
-import Hagi.Core.DFT3
 import Hagi.Core.BlockDiag
 import Hagi.Core.Merge
 import Hagi.Energy.Ternary
@@ -58,7 +57,6 @@ import Hagi.Data.FannesSmooth
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.DustAlign
-import Hagi.Pretraining.DustVarK
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.SharedStateComposition
 import Hagi.Omni.TemporalState
@@ -104,12 +102,10 @@ import Hagi.External.Transport
 import Hagi.External.Transfer
 import Hagi.External.Flywheel.FrobeniusNorm
 import Hagi.External.Flywheel.TruncatedSVDRank1
-import Hagi.External.Flywheel.KroneckerRearrangement
 import Hagi.External.Flywheel.MatrixNormRelations
 import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.External.Flywheel.MDLRank
-import Hagi.Audit.Foundations
 import Hagi.Audit.Exactness
 import Hagi.External.Layers
 import Hagi.Core.RootContrast
@@ -163,7 +159,6 @@ import Hagi.Budget.CertifiedArgmax
 import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
 import Hagi.Architecture.FactorRank
-import Hagi.Ensemble.MergeCancellation
 import Hagi.Growth.GainDecomposition
 import Hagi.Growth.DisagreementChain
 import Hagi.Growth.ChainToCone
