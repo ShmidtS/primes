@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Mathlib
 import Hagi.Probability.GibbsCooling
 import Hagi.Probability.MomentBounds
 set_option linter.style.header false

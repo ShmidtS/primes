@@ -1,7 +1,10 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+
 import Mathlib
+
+
 
 /-!
 # GramBasic — the Gram/mass kernel (h2-Fannes port, layer 4/N)

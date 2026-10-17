@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Information.EntropyDefs
+import Mathlib
 
 /-!
 # SpectralEntropy — entropy from the spectral theorem
@@ -25,6 +25,23 @@ open scoped BigOperators Matrix.Norms.Elementwise
 open Matrix
 open scoped BigOperators ComplexOrder MatrixOrder
 open Matrix Set
+
+universe u
+
+noncomputable section
+open scoped BigOperators ComplexOrder
+open Matrix
+
+abbrev Basis (n : ℕ) := Fin n → Fin 2
+abbrev QMatrix (n : ℕ) := Matrix (Basis n) (Basis n) ℂ
+
+/-- The spectral definition of -Tr(P log P), with 0 log 0 = 0. -/
+def entropy {ι : Type u} [Fintype ι] [DecidableEq ι] (P : Matrix ι ι ℂ) : ℝ :=
+  (Matrix.trace (cfc Real.negMulLog P)).re
+
+def IsState {ι : Type u} [Fintype ι] [DecidableEq ι] (P : Matrix ι ι ℂ) : Prop :=
+  P.PosSemidef ∧ Matrix.trace P = 1
+
 
 namespace GAD
 
@@ -164,4 +181,6 @@ theorem concaveOn_entropy :
 
 end GAD
 end
+end
 end Hagi.Information
+

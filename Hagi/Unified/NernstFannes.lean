@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Mathlib
 import Hagi.Unified.FannesComplete
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false

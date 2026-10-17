@@ -1,4 +1,3 @@
-import Mathlib
 import Hagi.Probability.GibbsConcentration
 
 /-!

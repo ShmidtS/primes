@@ -2,7 +2,6 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Mathlib
 import Hagi.Spectral.SpectralProjector
 
 set_option linter.style.header false

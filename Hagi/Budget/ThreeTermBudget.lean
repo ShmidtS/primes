@@ -1,7 +1,9 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Mathlib
+
+import Mathlib.Tactic
+
 
 /-!
 # ThreeTermBudget — the optimal data/steps split (plan §3,

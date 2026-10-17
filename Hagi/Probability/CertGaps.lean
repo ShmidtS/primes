@@ -1,7 +1,6 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Mathlib
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling

@@ -80,14 +80,12 @@ import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.WeightedVar
 import Hagi.Foundations.StageCalculus
-import Hagi.Information.EntropyDefs
 import Hagi.Information.GramBasic
 import Hagi.Information.SpectralEntropy
 import Hagi.Information.LogDetEntropy
 import Hagi.Information.StateEntropy
 import Hagi.Information.EntropyContinuity
 import Hagi.Information.DiscreteFannes
-import Hagi.Data.Canonical
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.InformationRetention
 import Hagi.Information.Pinsker
@@ -183,7 +181,6 @@ import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
 import Hagi.Growth.TakeoffElasticity
 import Hagi.Ensemble.CompressionCert
-import Hagi.Data.BinEntMono
 import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
 import Hagi.Foundations.Recurrence
