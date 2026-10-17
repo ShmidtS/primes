@@ -36,14 +36,26 @@ def main():
     pt = parent_path.read_text(encoding='utf-8')
     if f'import {child_mod}' in pt:
         pt = pt.replace(f'import {child_mod}\n', '')
-    # add child's other Hagi imports to parent if missing (transitive Mathlib kept as-is)
+    # add child's other Hagi imports to parent if missing (deduped);
+    # also propagate the child's Mathlib import level (lesson from the
+    # EntropyDefs->SpectralEntropy merge: parent may have relied on the
+    # transitive Mathlib through the child).
+    child_text = child_path.read_text(encoding='utf-8')
+    has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
+                      for l in child_text.split('\n'))
+    parent_has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
+                             for l in pt.split('\n'))
+    pt_tactic = any(l.rstrip('\r') == 'import Mathlib.Tactic'
+                    for l in pt.split('\n'))
     for imp in child_imports:
         if imp != parent_mod and f'\nimport {imp}' not in pt:
-            # place after last import line
             lines = pt.split('\n')
             last = max(i for i, l in enumerate(lines) if l.startswith('import '))
-            lines.insert(last + 1, f'import {imp}')
-            pt = '\n'.join(lines)
+            pt = '\n'.join(lines[:last + 1] + [f'import {imp}'] + lines[last + 1:])
+    if has_mathlib and not parent_has_mathlib and not pt_tactic:
+        lines = pt.split('\n')
+        last = max(i for i, l in enumerate(lines) if l.startswith('import '))
+        pt = '\n'.join(lines[:last + 1] + ['import Mathlib'] + lines[last + 1:])
 
     body = body_of(child_path, child_mod)
     assert child_mod in body.replace(' ', '') or True

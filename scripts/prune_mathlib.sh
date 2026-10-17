@@ -1,54 +1,69 @@
 #!/usr/bin/env bash
-# Prune wholesale `import Mathlib` one file at a time, verified by module rebuild.
-# Cascade per file: Mathlib → Mathlib.Tactic → try dropping Mathlib entirely
-# (transitive Hagi imports may suffice). Revert on any real build error.
+# Minimalize wholesale `import Mathlib` across Hagi/, verified by rebuild.
+# Two passes per file level: try full drop, then 'import Mathlib.Tactic'.
+# Real build errors roll the file back (via prune_helper.py unimport FULL);
+# flaky "failed to read" olean races are retried, not treated as failure.
+# Usage: bash scripts/prune_mathlib.sh   (idempotent; safe to re-run)
 set -u
 cd "$(dirname "$0")/.."
-export PATH="$HOME/.elan/bin:$PATH"
-LOG=scripts/prune_mathlib_log.txt
-touch "$LOG"
+H=scripts/prune_helper.py
 
-build_mod () { # module -> 0 ok, 1 no-such-target, 2 real error, 3 flaky
-  local out _i
-  for _i in 1 2 3; do
-    out=$(LAKE_JOBS=2 lake build "$1" 2>&1)
-    if echo "$out" | grep -q "completed successfully"; then return 0; fi
-    if echo "$out" | grep -q "failed to read file"; then return 3; fi
-    if echo "$out" | grep -qE "unknown module|no target|does not exist"; then return 1; fi
-    return 2
+# Pass 0: drop wholesale imports everywhere.
+fd -e lean . Hagi | python -c "
+import sys, pathlib
+for p in sys.stdin:
+    p = p.strip()
+    t = pathlib.Path(p).read_text(encoding='utf-8', errors='replace')
+    lines = t.split('\n')
+    if 'import Mathlib' in [l.rstrip('\r') for l in lines]:
+        lines = [l for l in lines if l.rstrip('\r') != 'import Mathlib']
+        pathlib.Path(p).write_text('\n'.join(lines), encoding='utf-8', newline='')
+        print('DROP-TRY', p)
+"
+
+prune_round () { # $1 = label, $2 = max iterations
+  for i in $(seq 1 "$2"); do
+    if LAKE_JOBS=16 lake build > "/tmp/prune_$1_$i.log" 2>&1; then
+      echo "PASS $1 GREEN at iter $i"; return 0
+    fi
+    python $H failed "/tmp/prune_$1_$i.log" "/tmp/prune_$1_failed.txt" || return 1
+    cnt=$(wc -l < "/tmp/prune_$1_failed.txt")
+    [ "$cnt" -eq 0 ] && { echo "PASS $1 flaky-only, retrying"; continue; }
+    while read -r f; do
+      [ -f "$f" ] && python $H unimport "$f" FULL > /dev/null
+    done < "/tmp/prune_$1_failed.txt"
+    echo "PASS $1 iter $i restored $cnt"
   done
-  return 3
+  return 1
 }
 
-fd -e lean . Hagi | sort | while read -r f; do
-  grep -q '^import Mathlib$' "$f" || continue
-  mod=Hagi.$(echo "$f" | sed 's|^Hagi/||; s|\.lean$||; s|/|.|g')
-  cp "$f" "$f.bak"
+prune_round A 8
 
-  # Attempt 1: drop `import Mathlib` entirely (transitive Hagi deps may cover).
-  sed -i '/^import Mathlib$/d' "$f"
-  build_mod "$mod"; rc=$?
-  if [ $rc -eq 0 ]; then
-    rm -f "$f.bak"
-    echo "DROP  $mod" >> "$LOG"
-    continue
-  fi
+# Tactic-only pass: files still on wholesale import get Mathlib.Tactic.
+fd -e lean . Hagi | python -c "
+import sys, pathlib
+for p in sys.stdin:
+    p = p.strip()
+    lines = pathlib.Path(p).read_text(encoding='utf-8', errors='replace').split('\n')
+    if 'import Mathlib' in [l.rstrip('\r') for l in lines]:
+        lines = ['import Mathlib.Tactic' if l.rstrip('\r') == 'import Mathlib' else l
+                 for l in lines]
+        pathlib.Path(p).write_text('\n'.join(lines), encoding='utf-8', newline='')
+"
 
-  # Attempt 2: minimal umbrella Mathlib.Tactic.
-  grep -q '^import Mathlib$' "$f" 2>/dev/null
-  if ! grep -q '^import Mathlib\.Tactic$' "$f"; then
-    # reinsert as Mathlib.Tactic after the header (before first Hagi import or after docstring)
-    sed -i '0,/^import Hagi\./s//import Mathlib.Tactic\nimport Hagi./' "$f"
-  fi
-  build_mod "$mod"; rc=$?
-  if [ $rc -eq 0 ]; then
-    rm -f "$f.bak"
-    echo "TACTIC  $mod" >> "$LOG"
-    continue
-  fi
+prune_round B 6
 
-  # Keep wholesale import.
-  mv "$f.bak" "$f"
-  echo "KEEP  $mod" >> "$LOG"
-done
-echo "summary: $(grep -c '^DROP' "$LOG") dropped, $(grep -c '^TACTIC' "$LOG") tactic-only, $(grep -c '^KEEP' "$LOG") kept"
+# Verdict
+LAKE_JOBS=16 lake build > /tmp/prune_verify.log 2>&1 \
+  && echo "PRUNE GREEN" || { echo "PRUNE RED"; exit 1; }
+fd -e lean . Hagi | python -c "
+import sys, pathlib
+n_m = n_t = n_none = 0
+for p in sys.stdin:
+    p = p.strip()
+    lines = [l.rstrip('\r') for l in
+             pathlib.Path(p).read_text(encoding='utf-8', errors='replace').split('\n')]
+    if 'import Mathlib' in lines: n_m += 1
+    elif 'import Mathlib.Tactic' in lines: n_t += 1
+    else: n_none += 1
+print(f'wholesale: {n_m}, tactic-only: {n_t}, none: {n_none}')"
