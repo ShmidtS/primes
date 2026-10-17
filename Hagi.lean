@@ -25,7 +25,6 @@ import Hagi.Core.Element
 import Hagi.Step.Joint
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
-import Hagi.Step.NCEVar
 import Hagi.Data.DField
 import Hagi.Data.InfoNCE
 import Hagi.Step.NCEExact
@@ -111,7 +110,6 @@ import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.External.Flywheel.MDLRank
 import Hagi.Audit.Foundations
-import Hagi.Audit.Optimality
 import Hagi.Audit.Exactness
 import Hagi.External.Layers
 import Hagi.Core.RootContrast
@@ -183,7 +181,6 @@ import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
 import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
-import Hagi.Ensemble.DistillTransfer
 import Hagi.Ensemble.RecursiveDistill
 import Hagi.Data.AntiCollapse
 import Hagi.Unified.ArchitectureTheorem
@@ -213,7 +210,6 @@ import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
-import Hagi.Spectral.SpectralProjector
 import Hagi.Spectral.RankGrowth
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
@@ -223,7 +219,6 @@ import Hagi.Unified.GrandSynthesis
 import Hagi.System.Certificates
 import Hagi.Unified.Nonvacuity
 import Hagi.Unified.Assumptions
-import Hagi.Unified.MergeBridge
 import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
@@ -254,7 +249,6 @@ import Hagi.Foundations.Hoeffding
 import Hagi.Foundations.Ortho
 import Hagi.Foundations.Potential
 import Hagi.Growth.GammaDeficit
-import Hagi.Probability.CertGaps
 import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.ExpChord

@@ -1100,7 +1100,7 @@ same-folder DAG свободен.
   растущей capability (+g за шаг) — полный
   траекторный (category-2) свидетель аудита v7 §5.3.
   `corePremises_nonvacuous_strict` (R357) — не-idle
-  свидетель: gap = строгий Йенсен-зазор (MergeBridge, R356),
+  свидетель: gap = строгий Йенсен-зазор (слит в Nonvacuity, R356),
   growGain = gap > 0, энергии E → E−g → E−2g — все 15
   конъюнктов CorePremises + строгое убывание ledger.
 
@@ -1160,7 +1160,7 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
 ## Открытые задачи
 
 - Вывод `h_emp_*`-посылок из Core-слоя: закрыты merge
-  (`MergeBridge`) и compress (тернарное округление);
+  сжатие (слит в Nonvacuity) и compress (тернарное округление);
   открыты `h_emp_grow`, `h_emp_smooth`, `h_emp_lip`
   (требуют модель выпуклости/липшицевости измерений).
 - GrandSynthesis: пункты 2/4 выведены из более слабых
