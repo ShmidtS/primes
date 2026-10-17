@@ -1,22 +1,43 @@
 #!/usr/bin/env python3
-"""Freeze-safe module merge: append CHILD module's body into its only
-importer PARENT (namespaces/decl names unchanged), delete CHILD, drop the
-import lines.
+"""Freeze-safe module merge: merge CHILD module into its only importer
+PARENT. Namespaces and declaration names/hashes are untouched (Freeze: PASS).
 
-Usage: python scripts/merge_module.py Hagi/X/Y.lean Hagi/A/B.lean
-Verifies: child has exactly the expected module, parent already imports it.
+Child body is inserted right AFTER the parent's import block, so child
+declarations precede any parent code that uses them (lesson from
+EntropyDefs->SpectralEntropy and ScaffoldFraction->ThermoCondensation).
+
+Usage:
+  python scripts/merge_module.py <child.lean> <parent.lean>
 """
 import pathlib
 import re
-import subprocess
 import sys
 
 
-def body_of(path: pathlib.Path, self_mod: str) -> str:
+def insert_after_imports(text: str, new_lines: list[str]) -> str:
+    """Insert new_lines after the last top 'import ...' line; if the file
+    has no imports, insert after the leading block comment /- ... -/."""
+    lines = text.split('\n')
+    imp_idx = [i for i, l in enumerate(lines) if l.startswith('import ')]
+    if imp_idx:
+        at = imp_idx[-1] + 1
+    else:
+        at = 0
+        if lines and lines[0].strip() == '/-':
+            end = next((i for i, l in enumerate(lines) if l.strip() == '-/'), None)
+            if end is not None:
+                at = end + 1
+    return '\n'.join(lines[:at] + new_lines + lines[at:])
+
+
+def body_of(path: pathlib.Path) -> str:
     lines = path.read_text(encoding='utf-8').split('\n')
-    last_imp = max(i for i, l in enumerate(lines) if l.startswith('import '))
+    imp_idx = [i for i, l in enumerate(lines) if l.startswith('import ')]
+    last_imp = imp_idx[-1] if imp_idx else -1
     body = '\n'.join(lines[last_imp + 1:]).strip('\n')
-    # child's own trailing `end`s stay inside body; parent must not re-close them
+    # drop the child's `set_option linter.style.header false` if present
+    body = re.sub(r'^set_option linter\.style\.header false$', '', body,
+                  flags=re.M).strip('\n')
     return body
 
 
@@ -31,39 +52,40 @@ def main():
     child_mod = 'Hagi.' + child_path.as_posix()[len('Hagi/'):].replace('/', '.').replace('.lean', '')
     parent_mod = 'Hagi.' + parent_path.as_posix()[len('Hagi/'):].replace('/', '.').replace('.lean', '')
 
-    child_imports = imports_of(child_path)
-    # sanity: child imports parent (or is standalone) — merge appends child after parent
-    pt = parent_path.read_text(encoding='utf-8')
-    if f'import {child_mod}' in pt:
-        pt = pt.replace(f'import {child_mod}\n', '')
-    # add child's other Hagi imports to parent if missing (deduped);
-    # also propagate the child's Mathlib import level (lesson from the
-    # EntropyDefs->SpectralEntropy merge: parent may have relied on the
-    # transitive Mathlib through the child).
     child_text = child_path.read_text(encoding='utf-8')
+    child_imports = imports_of(child_path)
+    pt = parent_path.read_text(encoding='utf-8')
+    pt = re.sub(rf'^import {re.escape(child_mod)}$\n?', '', pt, flags=re.M)
+
+    # Lesson from EntropyDefs->SpectralEntropy: parent may have relied on
+    # the transitive Mathlib through the child — propagate import level.
     has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
                       for l in child_text.split('\n'))
     parent_has_mathlib = any(l.rstrip('\r') == 'import Mathlib'
                              for l in pt.split('\n'))
     pt_tactic = any(l.rstrip('\r') == 'import Mathlib.Tactic'
                     for l in pt.split('\n'))
+
+    extra = []
     for imp in child_imports:
         if imp != parent_mod and f'\nimport {imp}' not in pt:
-            lines = pt.split('\n')
-            last = max(i for i, l in enumerate(lines) if l.startswith('import '))
-            pt = '\n'.join(lines[:last + 1] + [f'import {imp}'] + lines[last + 1:])
+            extra.append(f'import {imp}')
     if has_mathlib and not parent_has_mathlib and not pt_tactic:
-        lines = pt.split('\n')
-        last = max(i for i, l in enumerate(lines) if l.startswith('import '))
-        pt = '\n'.join(lines[:last + 1] + ['import Mathlib'] + lines[last + 1:])
+        extra.append('import Mathlib')
+    if extra:
+        imp_idx = [i for i, l in enumerate(pt.split('\n')) if l.startswith('import ')]
+        if imp_idx:
+            lines = pt.split('\n')
+            pt = '\n'.join(lines[:imp_idx[-1] + 1] + extra + lines[imp_idx[-1] + 1:])
+        else:
+            pt = insert_after_imports(pt, extra)
 
-    body = body_of(child_path, child_mod)
-    assert child_mod in body.replace(' ', '') or True
-    pt = pt.rstrip('\n') + '\n\n' + body + '\n'
+    body = body_of(child_path)
+    # Insert child body right after parent's import block (before any use).
+    pt = insert_after_imports(pt, body.split('\n'))
     parent_path.write_text(pt, encoding='utf-8', newline='')
     child_path.unlink()
 
-    # barrel: drop child import
     barrel = pathlib.Path('Hagi.lean')
     bt = barrel.read_text(encoding='utf-8')
     bt = re.sub(rf'^import {re.escape(child_mod)}$\n?', '', bt, flags=re.M)

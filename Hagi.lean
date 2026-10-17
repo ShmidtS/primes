@@ -70,7 +70,6 @@ import Hagi.Pretraining.DustCert
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustVarK
 import Hagi.Omni.CrossModalGap
-import Hagi.Omni.OmniGrowth
 import Hagi.Omni.SharedStateComposition
 import Hagi.Omni.TemporalState
 import Hagi.Omni.OmniSafeStep
@@ -80,7 +79,6 @@ import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.WeightedVar
 import Hagi.Foundations.StageCalculus
-import Hagi.Information.GramBasic
 import Hagi.Information.SpectralEntropy
 import Hagi.Information.LogDetEntropy
 import Hagi.Information.StateEntropy
@@ -140,7 +138,6 @@ import Hagi.Unified.Unified
 import Hagi.Unified.MacroCycle
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Step.CurvatureSafe
-import Hagi.Dynamics.Contraction
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.UrgencyDepth
 import Hagi.Dynamics.DistillationRate
@@ -289,7 +286,6 @@ import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP
 import Hagi.Step.ArmijoAcceptance
 import Hagi.Budget.AnytimeCondensation
-import Hagi.Budget.ScaffoldFraction
 import Hagi.Budget.ThermoCondensation
 import Hagi.Ensemble.ThermoPrune
 import Hagi.External.Flywheel.CourantFischer
@@ -325,7 +321,6 @@ import Hagi.Unified.ModelComparison
 import Hagi.Unified.NernstFannes
 import Hagi.Unified.NonvacuityHorizon
 import Hagi.Unified.RecursiveClean
-import Hagi.Unified.UnionBound
 
 set_option linter.style.header false
 
