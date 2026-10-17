@@ -20,6 +20,20 @@ step "triviality_lint (regex-level)"
 python scripts/triviality_lint.py | tail -2 | grep -q "flags: 0" \
   || { echo "TRIVIALITY: FAIL"; fail=1; }
 
+step "Mathlib rev pin (reproducibility gate)"
+pinned=$(cat scripts/mathlib-rev.txt 2>/dev/null)
+actual=$(git -C "${MATHLIB_DIR:-C:/Users/shmid/mathlib4}" rev-parse HEAD 2>/dev/null)
+if [ "$pinned" = "$actual" ] && [ -n "$pinned" ]; then
+  echo "MATHLIBPIN: PASS ($pinned)"
+else
+  echo "MATHLIBPIN: FAIL (pinned=${pinned:-unset}, actual=${actual:-unset})"
+  fail=1
+fi
+
+step "DupLint (exact-duplicate statements, shrinking delta-gate)"
+out=$(python scripts/DupLint.py 2>&1 | tail -1)
+echo "$out"; case "$out" in DUPLINT:\ PASS*) ;; *) echo "DUPLINT: FAIL"; fail=1;; esac
+
 step "namepool (env names for DocLint)"
 [ -f scripts/namepool.txt ] || lake env lean --run scripts/NamePool.lean
 
