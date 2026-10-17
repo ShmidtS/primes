@@ -23,7 +23,6 @@ import Hagi.Ensemble.Hoeffding
 import Hagi.Core.RealF3Ortho
 import Hagi.Core.Element
 import Hagi.Step.Joint
-import Hagi.Ensemble.GenCycle
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
 import Hagi.Step.NCEVar
@@ -32,7 +31,6 @@ import Hagi.Data.InfoNCE
 import Hagi.Data.ValueOfRead
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
-import Hagi.Budget.CriticalBatch
 import Hagi.Budget.BatchCap
 import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
@@ -66,7 +64,6 @@ import Hagi.Pretraining.DustVarK
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.SharedStateComposition
 import Hagi.Omni.TemporalState
-import Hagi.Omni.OmniSafeStep
 import Hagi.Omni.OmniInvariant
 import Hagi.Omni.CapabilityMatrix
 import Hagi.Prelude.Info
@@ -202,7 +199,6 @@ import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.HAGICertWitness
 import Hagi.Core.RoPE
 import Hagi.Core.RoPEMoments
-import Hagi.Core.SWA
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
 import Hagi.Data.ChunkedCE
@@ -227,7 +223,6 @@ import Hagi.Runtime.TernaryExact
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Step.LazyAdamMomentum
-import Hagi.Step.SafeQPRobust
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
 import Hagi.Spectral.SpectralProjector
@@ -265,7 +260,6 @@ import Hagi.Step.MetricSafeQP
 import Hagi.Step.ArmijoAcceptance
 import Hagi.Budget.AnytimeCondensation
 import Hagi.Budget.ThermoCondensation
-import Hagi.Ensemble.ThermoPrune
 import Hagi.External.Flywheel.CourantFischer
 import Hagi.External.Flywheel.SVD
 import Hagi.External.Flywheel.WeylInequality
