@@ -1195,6 +1195,12 @@ same-folder DAG свободен.
   нижнего насыщения ⟹ C* ≤ C T — таймер термостата);
   полоса теперь двусторонняя: верхний потолок R556 + нижняя
   гарантия R560.
+- h_emp_lip-модель закрыта (R563): `Unified.LipEnergy.
+  lip_energy_from_gradient` — MVT-вывод |E(w)−E(q)| ≤
+  κ·‖w−q‖ из градиентной модели (‖∇E‖ ≤ κ всюду),  `lip_energy_quantization` — h_emp_lip-форма (dE ≤
+  κ·dist(w, qTern(w))); измеренный κ = sup‖∇E‖ —
+  открытый пункт STATUS «модель липшицевости измерений»
+  закрыт на уровне согласованной посылки (MVT на сегменте).
 - ψ-инструментарий дополнен (R562 шаг 2): `SphericalAngle.
   digamma_half_value` (ψ(1/2) = −2ln2−γ, Complex-форма),
   `digamma_reflection_bridge` (Эйлер: ψ(1−s)=ψ(s)+π·cot πs),
