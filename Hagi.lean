@@ -291,6 +291,44 @@ import Hagi.Step.FrobeniusLMO
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.MetricSafeQP
 import Hagi.Step.ArmijoAcceptance
+import Hagi.Budget.AnytimeCondensation
+import Hagi.Budget.ScaffoldFraction
+import Hagi.Budget.ThermoCondensation
+import Hagi.Ensemble.ThermoPrune
+import Hagi.External.Flywheel.CourantFischer
+import Hagi.External.Flywheel.SVD
+import Hagi.External.Flywheel.WeylInequality
+import Hagi.Foundations.Chord
+import Hagi.Foundations.Hoeffding
+import Hagi.Foundations.Ortho
+import Hagi.Foundations.Potential
+import Hagi.Foundations.TakeoffCounted
+import Hagi.Growth.GammaDeficit
+import Hagi.Probability.CertGaps
+import Hagi.Probability.ChernoffCGF
+import Hagi.Probability.EntropyConvexity
+import Hagi.Probability.ExpChord
+import Hagi.Probability.GibbsCooling
+import Hagi.Probability.GibbsFluctuations
+import Hagi.Probability.GibbsInfoCore
+import Hagi.Probability.MomentBounds
+import Hagi.Probability.PinskerTV
+import Hagi.Probability.SphericalAngle
+import Hagi.Unified.CausalEffect
+import Hagi.Unified.CertifiedGains
+import Hagi.Unified.CertifiedGrowth
+import Hagi.Unified.CertifiedTakeoff
+import Hagi.Unified.DerivAlong
+import Hagi.Unified.DualCeiling
+import Hagi.Unified.FannesComplete
+import Hagi.Unified.GaugeQuotient
+import Hagi.Unified.InterpretiveGrowth
+import Hagi.Unified.LipEnergy
+import Hagi.Unified.ModelComparison
+import Hagi.Unified.NernstFannes
+import Hagi.Unified.NonvacuityHorizon
+import Hagi.Unified.RecursiveClean
+import Hagi.Unified.UnionBound
 
 set_option linter.style.header false
 

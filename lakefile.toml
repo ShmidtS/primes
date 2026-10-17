@@ -56,16 +56,6 @@ globs = ["Hagi.Data.+"]
 
 # Review stage 6: per-directory package for incremental builds.
 [[lean_lib]]
-name = "Hagi.Deployment"
-globs = ["Hagi.Deployment.+"]
-
-# Review stage 6: per-directory package for incremental builds.
-[[lean_lib]]
-name = "Hagi.Depth"
-globs = ["Hagi.Depth.+"]
-
-# Review stage 6: per-directory package for incremental builds.
-[[lean_lib]]
 name = "Hagi.Discovery"
 globs = ["Hagi.Discovery.+"]
 
