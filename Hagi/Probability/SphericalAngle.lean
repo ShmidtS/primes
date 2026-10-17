@@ -296,4 +296,94 @@ theorem digamma_recurrence_bridge {s : ℂ} (hs : ∀ m : ℕ, s ≠ -m) :
     Complex.digamma (s + 1) = Complex.digamma s + s⁻¹ := by
   exact Complex.digamma_apply_add_one s hs
 
+
+/-- ψ непрерывна на правой полуплоскости {Re w > 2} (R566):
+Γ дифференцируема и ненулевая вне полюсов −ℕ₀, ψ = Γ'/Γ. -/
+theorem digamma_continuousOn_right :
+    ContinuousOn (fun w : ℂ => Complex.digamma w) {w : ℂ | 2 < w.re} := by
+  have hpole : ∀ m : ℕ, ∀ w : ℂ, w = -(m : ℂ) → ¬ (2 : ℝ) < w.re := by
+    intro m w hcon
+    subst hcon
+    have h1 : (-(m:ℂ)).re = -(m:ℝ) := by
+      rw [Complex.neg_re]; simp
+    rw [h1]
+    linarith
+  have hD : DifferentiableOn ℂ Complex.Gamma {w : ℂ | 2 < w.re} := by
+    intro w hw
+    have hne : ∀ m : ℕ, w ≠ -(m : ℂ) := fun m hcon =>
+      hpole m w hcon hw
+    exact (Complex.differentiableAt_Gamma w hne).differentiableWithinAt
+  have hAn : AnalyticOnNhd ℂ Complex.Gamma {w : ℂ | 2 < w.re} :=
+    hD.analyticOnNhd (isOpen_lt continuous_const Complex.continuous_re)
+  have hAnD : AnalyticOnNhd ℂ (deriv Complex.Gamma) {w : ℂ | 2 < w.re} :=
+    hAn.deriv
+  have hcontD : ContinuousOn (deriv Complex.Gamma) {w : ℂ | 2 < w.re} :=
+    fun w hw => (hAnD w hw).continuousAt.continuousWithinAt
+  have hcontG : ContinuousOn Complex.Gamma {w : ℂ | 2 < w.re} :=
+    fun w hw => (hAn w hw).continuousAt.continuousWithinAt
+  have hnz : ∀ w ∈ {w : ℂ | 2 < w.re}, Complex.Gamma w ≠ 0 := by
+    intro w hw
+    exact Complex.Gamma_ne_zero (fun m hcon => hpole m w hcon hw)
+  have hdig : Complex.digamma
+      = fun w => deriv Complex.Gamma w / Complex.Gamma w := by
+    funext w; rw [Complex.digamma_def]; rfl
+  rw [hdig]
+  exact hcontD.div hcontG hnz
+
+/-- Вещественная ветвь ψ: t ↦ Re ψ(t) непрерывна на [3,4] (R566)
+— композиция непрерывного вложения ℝ→ℂ, ψ (непрерывной на
+{Re > 2}) и Re. -/
+theorem digamma_re_continuousOn :
+    ContinuousOn (fun t : ℝ => (Complex.digamma (t : ℂ)).re)
+      (Set.Icc 3 4) := by
+  have hembed : Continuous (fun t : ℝ => (t : ℂ)) := by fun_prop
+  have hrel : ∀ t : ℝ, t ∈ Set.Icc 3 4 → (t : ℂ) ∈ {w : ℂ | 2 < w.re} := by
+    intro t ht
+    have hre : ((t : ℂ)).re = t := Complex.ofReal_re t
+    simp only [Set.mem_ofPred_eq, hre]
+    linarith [ht.1]
+  have hpsion : ContinuousOn (fun w : ℂ => Complex.digamma w)
+      {w : ℂ | 2 < w.re} := digamma_continuousOn_right
+  have hcomp1 : ContinuousOn (fun w : ℂ => (Complex.digamma w).re)
+      {w : ℂ | 2 < w.re} :=
+    (Continuous.continuousOn Complex.continuous_re).comp hpsion
+      (fun w _ => Set.mem_univ _)
+  exact hcomp1.comp hembed.continuousOn hrel
+
+/-- **IVT корня диагаммы (R566)**: при γ-брекетах
+(1.5 − ln π < γ < 11/6 − ln π) существует s ∈ (3,4) с
+Re ψ(s) = ln π — фундамент континуального пика x* = 2s ∈ (6,8). -/
+theorem digamma_logpi_root_exists
+    (hγlo : (1.5:ℝ) - Real.log Real.pi < eulerMascheroniConstant)
+    (hγhi : eulerMascheroniConstant < (11:ℝ)/6 - Real.log Real.pi) :
+    ∃ s : ℝ, s ∈ Set.Ioo (3:ℝ) 4 ∧
+      (Complex.digamma (s:ℂ)).re = Real.log Real.pi := by
+  set g : ℝ → ℝ := fun t => (Complex.digamma (t:ℂ)).re with hgdef
+  have hcont : ContinuousOn g (Set.Icc (3:ℝ) 4) :=
+    digamma_re_continuousOn
+  have h3 : g 3 = (3:ℝ)/2 - eulerMascheroniConstant := by
+    have h := digamma_three_eq
+    have hre := congrArg Complex.re h
+    rw [Complex.ofReal_re] at hre
+    have hshow : g 3 = (Complex.digamma ((2:ℕ) + 1)).re := by
+      norm_num [hgdef]
+    rw [hshow]; exact hre
+  have h4 : g 4 = (11:ℝ)/6 - eulerMascheroniConstant := by
+    have h := digamma_four_eq
+    have hre := congrArg Complex.re h
+    rw [Complex.ofReal_re] at hre
+    have hshow : g 4 = (Complex.digamma ((3:ℕ) + 1)).re := by
+      norm_num [hgdef]
+    rw [hshow]; exact hre
+  have hlo : g 3 < Real.log Real.pi := by
+    rw [h3]; exact digamma_three_below_logpi hγlo
+  have hhi : Real.log Real.pi < g 4 := by
+    rw [h4]; exact digamma_four_above_logpi hγhi
+  have hsub := intermediate_value_Ioo (a := (3:ℝ)) (b := 4)
+    (by norm_num) hcont
+  have hmem : Real.log Real.pi ∈ Set.Ioo (g 3) (g 4) :=
+    ⟨hlo, hhi⟩
+  obtain ⟨s, hs_in, hs_eq⟩ := hsub hmem
+  exact ⟨s, hs_in, hs_eq⟩
+
 end Hagi
