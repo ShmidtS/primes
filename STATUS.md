@@ -1149,7 +1149,12 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   `dLexact ≤ dLmeas + ε·‖d‖` (`safe_certificate_margin`,
   Cauchy–Schwarz на разности направлений) и приём шага при
   нулевом бюджете риска (`probe_safe_accept`) — мост
-  «приближённый сигнал → SafeQP-допуск».
+  «приближённый сигнал → SafeQP-допуск». Накопление
+  измеримого выигрыша: `measured_gain_horizon` — горизонт
+  безопасных шагов ограничен `(E0−Emin)/gain` при факт-лоссе
+  как ledger-энергии (делегирование
+  `System.macro_termination_derived`; прирост измеряется
+  фактически, без назначенного growGain).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

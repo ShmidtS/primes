@@ -5,6 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Mathlib
 import Hagi.Core.ErrorProp
+import Hagi.System.GrowthState
 set_option linter.style.header false
 
 /-!
@@ -223,4 +224,23 @@ theorem probe_safe_accept {X : Type*} [NormedAddCommGroup X]
     dLexact ≤ 0 :=
   le_trans (safe_certificate_margin ghat gfull d hε hL hbound
     dLmeas dLexact hmeas hexact) hbudget
+/-! ### Теорема 4: от безопасного шага к измеримому приросту -/
+
+/-- **Накопление измеримого выигрыша** (лимитная цепочка):
+если на каждом шаге горизонта `k` принятый безопасный шаг дают
+истинный спад `E (t+1) ≤ E t − gain` с одной и той же
+измеримой величиной `gain > 0` (факт-лосс как ledger-энергия,
+план §7), а энергия ограничена снизу `Emin`, то весь горизонт
+ограничен бюджетом: `(k:ℝ) ≤ (E 0 − Emin)/gain`.
+Делегирует базовому лиапуновскому закону
+`Hagi.System.macro_termination_derived` (объединение с
+Foundation-машиной: теорема не требует признака «назначенного
+growGain» — спад измеряется фактически). -/
+theorem measured_gain_horizon {E : ℕ → ℝ} (Emin gain : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t)
+    (hgen : ∀ t < k, E (t + 1) ≤ E t - gain)
+    (hgain : 0 < gain) :
+    (k : ℝ) ≤ (E 0 - Emin) / gain :=
+  Hagi.System.macro_termination_derived Emin gain k hE hgen hgain
+
 end Hagi.Pretraining
