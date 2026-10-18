@@ -1154,7 +1154,13 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   безопасных шагов ограничен `(E0−Emin)/gain` при факт-лоссе
   как ledger-энергии (делегирование
   `System.macro_termination_derived`; прирост измеряется
-  фактически, без назначенного growGain).
+  фактически, без назначенного growGain). Количественная
+  форма ε_attention: `clamped_attention_grad_bound` (гладкость
+  по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
+  `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
+  (`cut_signal_attention_quant`) и сквозной приём шага
+  `cut_safe_accept` (объединение Теорем 1–3: суммарный запас
+  → нулевой бюджет риска → истинный спад).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

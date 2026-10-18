@@ -243,4 +243,69 @@ theorem measured_gain_horizon {E : ℕ → ℝ} (Emin gain : ℝ) (k : ℕ)
     (k : ℝ) ≤ (E 0 - Emin) / gain :=
   Hagi.System.macro_termination_derived Emin gain k hE hgen hgain
 
+/-! ### Теорема 5: количественная граница для ε_attention и
+сквозная цепочка -/
+
+/-- **Количественная форма ε_attention**: если градиент
+вспомогательной (attention-clamped) задачи относительно градиента
+полной задачи `L_att`-липшицев по возмущению клампнутых выходов
+внимания (модельная гипотеза `h_emp_attsmooth`: «фиксация + top-k
+усечение вносят возмущение, контролируемое параметром
+`ε_att`»), то `‖g_mid xhat - g_full x‖ ≤ L_att * ε_att` —
+количественное наполнение абстрактного члена `ε_attention`
+из `cut_signal_triangle`. -/
+theorem clamped_attention_grad_bound {X : Type*} [NormedAddCommGroup X]
+    (gmid gfull : X → X) {L_att ε_att : ℝ}
+    (hL : 0 ≤ L_att) (hε : 0 ≤ ε_att)
+    (h_emp_attsmooth : ∀ x y : X, ‖gmid x - gfull y‖ ≤ L_att * ‖x - y‖)
+    (xhat x : X) (hclamp : ‖xhat - x‖ ≤ ε_att) :
+    ‖gmid xhat - gfull x‖ ≤ L_att * ε_att := by
+  have h := h_emp_attsmooth xhat x
+  have hmul : L_att * ‖xhat - x‖ ≤ L_att * ε_att :=
+    mul_le_mul_of_nonneg_left hclamp hL
+  linarith [h, hmul]
+
+/-- **Инстанцированный треугольник Cut-сигнала**: композиция
+`cut_signal_triangle` с количественной границей члена внимания
+из `clamped_attention_grad_bound`. `gA` — карта градиента
+вспомогательной (attention-clamped) задачи, `gF` — полной;
+`gu` — вектор-оценка сигнала. Итоговая граница расхождения:
+`‖gu - gF x‖ ≤ ε_probe + L_att * ε_att`. -/
+theorem cut_signal_attention_quant {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (gA gF : X → X) (gu xhat x : X) {L_att ε_att ε_probe : ℝ}
+    (hL_att : 0 ≤ L_att) (hε_att : 0 ≤ ε_att)
+    (h_emp_attsmooth : ∀ a b : X, ‖gA a - gF b‖ ≤ L_att * ‖a - b‖)
+    (hclamp : ‖xhat - x‖ ≤ ε_att)
+    (hprobe : ‖gu - gA xhat‖ ≤ ε_probe) :
+    ‖gu - gF x‖ ≤ ε_probe + L_att * ε_att := by
+  have hatt : ‖gA xhat - gF x‖ ≤ L_att * ε_att :=
+    clamped_attention_grad_bound (X := X) gA gF hL_att hε_att
+      h_emp_attsmooth xhat x hclamp
+  exact cut_signal_triangle ε_probe (L_att * ε_att) hprobe hatt
+
+/-- **Сквозная цепочка приёма шага** (объединение Теорем 1–5):
+«приближённый сигнал → суммарный запас ε_probe + L_att·ε_att →
+бюджет риска». Probe-член контролируется конечными разностями
+(`<fе>fd_probe_error</fе>`), attention-член — гладкостью по
+клампнутым выходам; приём шага — `probe_safe_accept` с
+суммарным ε. -/
+theorem cut_safe_accept {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X]
+    (gA gF : X → X) (gu d xhat x : X) {L ε_probe L_att ε_att : ℝ}
+    (hL : 0 ≤ L) (hL_att : 0 ≤ L_att) (hε_att : 0 ≤ ε_att)
+    (hε_probe : 0 ≤ ε_probe)
+    (h_emp_attsmooth : ∀ a b : X, ‖gA a - gF b‖ ≤ L_att * ‖a - b‖)
+    (hclamp : ‖xhat - x‖ ≤ ε_att)
+    (hprobe : ‖gu - gA xhat‖ ≤ ε_probe)
+    (dLmeas dLexact : ℝ)
+    (hmeas : dLmeas = -⟪gu, d⟫_ℝ + L * ‖d‖ ^ 2 / 2)
+    (hexact : dLexact = -⟪gF x, d⟫_ℝ + L * ‖d‖ ^ 2 / 2)
+    (hbudget : dLmeas + (ε_probe + L_att * ε_att) * ‖d‖ ≤ 0) :
+    dLexact ≤ 0 :=
+  probe_safe_accept gu (gF x) d (ε := ε_probe + L_att * ε_att)
+    (add_nonneg hε_probe (mul_nonneg hL_att hε_att)) hL
+    (cut_signal_attention_quant gA gF gu xhat x hL_att hε_att
+      h_emp_attsmooth hclamp hprobe)
+    dLmeas dLexact hmeas hexact hbudget
+
 end Hagi.Pretraining
