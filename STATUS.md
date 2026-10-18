@@ -1135,6 +1135,16 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   `dhcStep_abs_bound`); критерий завершения p₁ ≥ τ ∧
   p₁-p₂ ≥ Δ корректен на каждом шаге
   (`dhcOrbit_weights_sum_one`).
+- `ProbeError` (Pretraining, мост Boost→Cut PR #11): теория проявления
+  Модель гладкости — явная гипотеза; ошибка прямой
+  разности от градиента ≤ Lσ‖v‖²/2
+  (`fd_probe_error`); аффинное вырождение — точное
+  восстановление (`linear_probe_exact`);
+  top-k маршрутизация MLP: остаток и его приращение
+  ограничены треугольником по нормам столбцов
+  (`residual_vec_bound`, `residual_vec_diff`, `mlpResidual_bound`);
+  дальнейший путь ошибки — через
+  `Core.ErrorProp.propagate_bound`.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
