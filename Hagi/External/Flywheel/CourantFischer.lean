@@ -3,6 +3,7 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
+import Hagi.External.Flywheel.NormSupport
 import Hagi.External.Flywheel.SVD
 
 /-!
@@ -33,11 +34,6 @@ namespace Hagi.External.Flywheel
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 
 namespace CourantFischer
-
-/-- v4.34 port: Matrix.toEuclideanLin_apply removed; definitional. -/
-private lemma toEuclideanLin_apply {m : Type*} [Fintype m] [DecidableEq m]
-    {𝕜 : Type*} [RCLike 𝕜] (A : Matrix m m 𝕜) (x : EuclideanSpace 𝕜 m) :
-    Matrix.toEuclideanLin A x = A.mulVec x := rfl
 
 section SubspaceDimensionTools
 

@@ -56,7 +56,7 @@ echo "$out"; [ "$out" = "LAYERLINT: PASS" ] || { echo "LAYERLINT: FAIL"; fail=1;
 step "Freeze (no declaration lost / statement changed)"
 out=$(python scripts/Freeze.py 2>&1 | tail -1)
 echo "$out"
-case "$out" in *"FREEZE: PASS"*) ;; *) fail "Freeze failed";; esac
+case "$out" in *"FREEZE: PASS"*) ;; *) echo "FREEZE: FAIL"; fail=1;; esac
 
 step "StatusLint (doc identifiers exist in code, baseline-gated)"
 out=$(python scripts/StatusLint.py 2>&1 | tail -1)
