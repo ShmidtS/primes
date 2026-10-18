@@ -290,4 +290,24 @@ theorem dhcWeights_unique_leader (a : Fin K → ℝ) {T : ℝ} (hT : T ≠ 0)
       + dhcWeights a T i = 1 := by linarith
   linarith [hlead]
 
+/-- Контрольная точка: при равных активациях
+(все `a j = c`) softmax даёт равномерное распределение
+1/K — санитийная проверка нормировки. -/
+theorem dhcWeights_uniform (a : Fin K → ℝ) {T : ℝ} (hT : T ≠ 0)
+    (hK : 0 < K) (c : ℝ) (hc : ∀ j, a j = c) (i : Fin K) :
+    dhcWeights a T i = 1 / (K : ℝ) := by
+  have hsum : ∑ j, Real.exp (a j / T)
+      = (K : ℝ) * Real.exp (c / T) := by
+    rw [Finset.sum_congr rfl (fun j _ => by rw [hc j])]
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  have hne : (K : ℝ) * Real.exp (c / T) ≠ 0 :=
+    mul_ne_zero (ne_of_gt (by exact_mod_cast hK : (0:ℝ) < (K : ℝ)))
+      (ne_of_gt (exp_pos _))
+  unfold dhcWeights
+  have htot : dhcTotal a T = (K : ℝ) * Real.exp (c / T) := by
+    unfold dhcTotal
+    linarith [hsum]
+  rw [hc i, htot, mul_comm]
+  field_simp
+
 end Hagi.Model
