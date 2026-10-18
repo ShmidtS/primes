@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Probability.GibbsConcentration
 import Hagi.Probability.MWU
 import Hagi.Ensemble.Hoeffding
+import Hagi.Ensemble.UniformCert
 set_option linter.style.header false
 
 namespace Hagi.Growth
