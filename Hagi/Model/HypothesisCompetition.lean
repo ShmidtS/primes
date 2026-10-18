@@ -176,4 +176,69 @@ theorem dhcStep_abs_bound (a s : Fin K → ℝ) (C : Matrix (Fin K) (Fin K) ℝ)
   unfold dhcStep
   exact le_trans htri (by linarith)
 
+/-- **DHC-орбита**: рекурсивная траектория активаций
+с обновлением на каждом шаге (оценки `s` постоянны — это
+закрытая модель; пересчёт оценок после новых свидетельств —
+уровень окружения). -/
+noncomputable def dhcOrbit (s : Fin K → ℝ) (C : Matrix (Fin K) (Fin K) ℝ)
+    (rho kappa T : ℝ) (a0 : Fin K → ℝ) : ℕ → Fin K → ℝ
+  | 0 => a0
+  | t + 1 => dhcStep (dhcOrbit s C rho kappa T a0 t) s C rho kappa T
+
+/-- Шаг орбиты — обновление предыдущей точки. -/
+theorem dhcOrbit_succ (s : Fin K → ℝ) (C : Matrix (Fin K) (Fin K) ℝ)
+    (rho kappa T : ℝ) (a0 : Fin K → ℝ) (t : ℕ) :
+    dhcOrbit s C rho kappa T a0 (t + 1)
+      = dhcStep (dhcOrbit s C rho kappa T a0 t) s C rho kappa T := rfl
+
+/-- Ограниченность орбиты по индукции: при 0 ≤ ρ ≤ 1, 0 ≤ κ, 0 ≤ C
+  — |a_t i| ≤ |a0 i| + t·(ρ|s i| + κ∑|C i j|): прирост на шаг не
+  превосходит константы поддержки + подавления; линейная оболочка
+  инварианта dhcStep_abs_bound. -/
+theorem dhcOrbit_bound (s : Fin K → ℝ) (C : Matrix (Fin K) (Fin K) ℝ)
+    {rho kappa T : ℝ} (hrho1 : 0 ≤ rho) (hrho2 : rho ≤ 1) (hkap : 0 ≤ kappa)
+    (hT : T ≠ 0) (hK : 0 < K) (hC : ∀ i j, 0 ≤ C i j)
+    (a0 : Fin K → ℝ) (i : Fin K) (t : ℕ) :
+    |dhcOrbit s C rho kappa T a0 t i|
+      ≤ |a0 i| + (t : ℝ) * (rho * |s i| + kappa * ∑ j, |C i j|) := by
+  induction t with
+  | zero => simpa [dhcOrbit] using abs_nonneg a0 i
+  | succ n ih =>
+    have hstep := dhcStep_abs_bound (dhcOrbit s C rho kappa T a0 n) s C
+      hrho1 hrho2 hkap hT hK hC i
+    have h1 : (1 - rho) * |dhcOrbit s C rho kappa T a0 n i|
+        ≤ (1 - rho) * (|a0 i| + (n : ℝ) * (rho * |s i|
+          + kappa * ∑ j, |C i j|)) :=
+      mul_le_mul_of_nonneg_left ih (by linarith : (0:ℝ) ≤ 1 - rho)
+    rw [dhcOrbit_succ]
+    refine le_trans hstep ?_
+    have hcast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 := by
+      push_cast
+      ring
+    have hG : (0:ℝ) ≤ rho * |s i| + kappa * ∑ j, |C i j| := by
+      have ha : (0:ℝ) ≤ rho * |s i| := mul_nonneg hrho1 (abs_nonneg _)
+      have hb : (0:ℝ) ≤ kappa * ∑ j, |C i j| :=
+        mul_nonneg hkap (Finset.sum_nonneg fun j _ => abs_nonneg _)
+      linarith
+    rw [hcast, add_mul, one_mul]
+    have h1' : (1 - rho) * (|a0 i| + (n:ℝ) * (rho * |s i|
+        + kappa * ∑ j, |C i j|))
+        = (1 - rho) * |a0 i| + (1 - rho) * ((n:ℝ)
+          * (rho * |s i| + kappa * ∑ j, |C i j|)) := by ring
+    have h3 : (1 - rho) * |a0 i| ≤ |a0 i| := by
+      have hEq : (1 - rho) * |a0 i| = |a0 i| - rho * |a0 i| := by ring
+      rw [hEq]
+      exact sub_le_self _ (mul_nonneg hrho1 (abs_nonneg _))
+    have h4 : (1 - rho) * ((n:ℝ) * (rho * |s i| + kappa * ∑ j, |C i j|))
+        ≤ (n:ℝ) * (rho * |s i| + kappa * ∑ j, |C i j|) := by
+      have hc : (0:ℝ) ≤ (n : ℝ) := by exact_mod_cast Nat.zero_le n
+      have hEq : (1 - rho) * ((n : ℝ) * (rho * |s i|
+            + kappa * ∑ j, |C i j|))
+          = (n : ℝ) * (rho * |s i| + kappa * ∑ j, |C i j|)
+            - rho * ((n : ℝ) * (rho * |s i| + kappa * ∑ j, |C i j|)) := by
+        ring
+      rw [hEq]
+      exact sub_le_self _ (mul_nonneg hrho1 (mul_nonneg hc hG))
+    linarith [ih, h1, h1', h3, h4]
+
 end Hagi.Model
