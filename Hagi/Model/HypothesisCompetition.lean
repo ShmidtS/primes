@@ -269,4 +269,25 @@ theorem dhcOrbit_weights_sum_one (s : Fin K → ℝ)
     ∑ i, dhcWeights (dhcOrbit s C rho kappa T a0 t) T i = 1 :=
   dhcWeights_sum_one _ hT hK
 
+/-- Критерий завершения, часть 3: если вес гипотезы
+строго больше 1/2, она — единственный лидер: любая
+другая гипотеза весит меньше (следствие нормировки;
+замыкает критерий p₁ ≥ τ ∧ p₁ - p₂ ≥ Δ при τ > 1/2). -/
+theorem dhcWeights_unique_leader (a : Fin K → ℝ) {T : ℝ} (hT : T ≠ 0)
+    (hK : 0 < K) {i : Fin K} (hlead : 1 / 2 < dhcWeights a T i)
+    (j : Fin K) (hij : j ≠ i) :
+    dhcWeights a T j < dhcWeights a T i := by
+  have hsum := dhcWeights_sum_one a hT hK
+  have hsplit := Finset.sum_erase_add Finset.univ
+    (fun k => dhcWeights a T k) (Finset.mem_univ i)
+  have hmem : j ∈ Finset.univ.erase i :=
+    Finset.mem_erase.mpr ⟨hij, Finset.mem_univ j⟩
+  have hlej : dhcWeights a T j
+      ≤ ∑ k ∈ Finset.univ.erase i, dhcWeights a T k :=
+    Finset.single_le_sum (f := fun k => dhcWeights a T k)
+      (fun k _ => le_of_lt (dhcWeights_pos a hT hK k)) hmem
+  have hsplit1 : ∑ k ∈ Finset.univ.erase i, dhcWeights a T k
+      + dhcWeights a T i = 1 := by linarith
+  linarith [hlead]
+
 end Hagi.Model
