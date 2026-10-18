@@ -177,4 +177,50 @@ theorem cut_signal_triangle {gu g_mid g_full : X} (ε_probe ε_attention : ℝ)
     _ ≤ ‖gu - g_mid‖ + ‖g_mid - g_full‖ := norm_add_le _ _
     _ ≤ ε_probe + ε_attention := by linarith [h1, h2]
 
+/-! ### Теорема 3: допуск обновления по неточному сигналу -/
+
+/-- **Сертификат с запасом на ошибку сигнала** (мост «приближённый
+сигнал → оценка погрешности → безопасный шаг»): пусть
+`dLmeas` — изменение контролируемого loss, сертифицированное по
+неточному направлению `ghat` (гладкостная модель), а `dLexact` —
+истинное значение по точному градиенту `gfull`. Тогда
+`dLexact ≤ dLmeas + ε·‖d‖` — аддитивный запас равен
+произведению границы ошибки сигнала на норму шага
+(Cauchy–Schwarz на разности направлений). -/
+theorem safe_certificate_margin {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (ghat gfull d : X) {L ε : ℝ}
+    (hε : 0 ≤ ε) (hL : 0 ≤ L)
+    (hbound : ‖ghat - gfull‖ ≤ ε)
+    (dLmeas dLexact : ℝ)
+    (hmeas : dLmeas = -⟪ghat, d⟫_ℝ + L * ‖d‖ ^ 2 / 2)
+    (hexact : dLexact = -⟪gfull, d⟫_ℝ + L * ‖d‖ ^ 2 / 2) :
+    dLexact ≤ dLmeas + ε * ‖d‖ := by
+  have hdiff : ⟪ghat, d⟫_ℝ - ⟪gfull, d⟫_ℝ = ⟪ghat - gfull, d⟫_ℝ := by
+    rw [inner_sub_left]
+  have h1 := abs_real_inner_le_norm (ghat - gfull) d
+  have h4 : ‖ghat - gfull‖ * ‖d‖ ≤ ε * ‖d‖ :=
+    mul_le_mul_of_nonneg_right hbound (norm_nonneg d)
+  have hcauchy : ⟪ghat, d⟫_ℝ - ⟪gfull, d⟫_ℝ ≤ ε * ‖d‖ := by
+    calc ⟪ghat, d⟫_ℝ - ⟪gfull, d⟫_ℝ = ⟪ghat - gfull, d⟫_ℝ := hdiff
+      _ ≤ |⟪ghat - gfull, d⟫_ℝ| := le_abs_self _
+      _ ≤ ‖ghat - gfull‖ * ‖d‖ := h1
+      _ ≤ ε * ‖d‖ := h4
+  rw [hexact]
+  linarith [hcauchy, hmeas]
+
+/-- **Приём шага по неточному сигналу**: если сертифицированное по
+`ghat` изменение с запасом `ε·‖d‖` укладывается в нулевой бюджет
+риска (контрольное условие SafeQP-семантики), то и истинное
+изменение неположительно. -/
+theorem probe_safe_accept {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (ghat gfull d : X) {L ε : ℝ}
+    (hε : 0 ≤ ε) (hL : 0 ≤ L)
+    (hbound : ‖ghat - gfull‖ ≤ ε)
+    (dLmeas dLexact : ℝ)
+    (hmeas : dLmeas = -⟪ghat, d⟫_ℝ + L * ‖d‖ ^ 2 / 2)
+    (hexact : dLexact = -⟪gfull, d⟫_ℝ + L * ‖d‖ ^ 2 / 2)
+    (hbudget : dLmeas + ε * ‖d‖ ≤ 0) :
+    dLexact ≤ 0 :=
+  le_trans (safe_certificate_margin ghat gfull d hε hL hbound
+    dLmeas dLexact hmeas hexact) hbudget
 end Hagi.Pretraining

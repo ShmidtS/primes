@@ -1144,7 +1144,12 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   ограничены треугольником по нормам столбцов
   (`residual_vec_bound`, `residual_vec_diff`, `mlpResidual_bound`);
   дальнейший путь ошибки — через
-  `Core.ErrorProp.propagate_bound`.
+  `Core.ErrorProp.propagate_bound`. Спуск
+  по неточному сигналу: сертификат с аддитивным запасом
+  `dLexact ≤ dLmeas + ε·‖d‖` (`safe_certificate_margin`,
+  Cauchy–Schwarz на разности направлений) и приём шага при
+  нулевом бюджете риска (`probe_safe_accept`) — мост
+  «приближённый сигнал → SafeQP-допуск».
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
