@@ -1169,7 +1169,15 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   (приросты 1, 2, 4; энергия 30-27-23-17; capability 1-2-4-8) —
   невозможен в старой модели по двум регрессиям выше;
   `two_cycle_certified_descent` связывает witness с
-  `advance_energy_drop`). Количественная
+  `advance_energy_drop`). Усиление и
+  объединение: `capability_takeoff_amplified` (state-linked
+  геометрический рост по траектории при свободных поцикловых
+  приростах), `trajectory_energy_telescope` (многоцикловой
+  сертификат прогресса), `cycle_drop_ge_certificate` (старый
+  сертификат `System.verify` — нижняя граница реального
+  per-cycle drop; то самое зажатие окна — теперь конструктивно),
+  `witness_takeoff_realized` — takeoff (1+1)^3 * 1 = 8
+  РЕАЛИЗОВАН на witness-траектории (старой модели был вакуумен). Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`

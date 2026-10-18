@@ -317,4 +317,179 @@ theorem two_cycle_certified_descent :
       ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
     all_goals (simp [advance, wS0, wU0, wU1, wU2]; all_goals norm_num)
 
+/-! ### Strengthening: fields, telescope, state-linked takeoff -/
+
+/-- The successor's energy ledger comes verbatim from the cycle
+input. -/
+theorem advance_energy (S : GrowthState X) (u : StageInput X) :
+    (advance S u).energy = u.eff.compressEnergy := rfl
+
+/-- The successor's capability adds THIS cycle's measured gain. -/
+theorem advance_capability (S : GrowthState X) (u : StageInput X) :
+    (advance S u).capability = S.capability + u.eff.growGain := rfl
+
+/-- **State-linked geometric amplification** (the repaired takeoff):
+if every cycle of a trajectory measures a gain of at least
+`alpha * C_t` (the cone+production collapse of
+`takeoff_edge_forced`, now with per-cycle gains FREE to vary), the
+capability grows geometrically:
+`(state T).capability >= (1+alpha)^T * (state 0).capability`.
+Unlike `state_capability_takeoff`-style hypotheses (unsatisfiable
+at `T >= 2` under the fixed-effects model,
+`full_cycle_two_step_growth_inconsistent`), these hypotheses are
+REALIZED by the witness below. -/
+theorem capability_takeoff_amplified (tr : Trajectory X) (alpha : ℝ)
+    (hα : 0 ≤ alpha)
+    (hgain : ∀ t < tr.T,
+      alpha * (tr.state t).capability ≤ (tr.input t).eff.growGain)
+    (t : ℕ) (ht : t ≤ tr.T) :
+    (1 + alpha) ^ t * (tr.state 0).capability
+      ≤ (tr.state t).capability := by
+  induction t with
+  | zero => simp
+  | succ n ih =>
+    have hn : n ≤ tr.T := by omega
+    have hstep := tr.h_step n (by omega)
+    have hg := hgain n (by omega)
+    have hcap : (tr.state (n + 1)).capability
+        = (tr.state n).capability + (tr.input n).eff.growGain := by
+      rw [hstep]; exact advance_capability _ _
+    have h1p : 0 ≤ 1 + alpha := by linarith
+    have hmul : (1 + alpha) ^ n * (1 + alpha) * (tr.state 0).capability
+        ≤ (1 + alpha) * (tr.state n).capability := by
+      have hih := ih (by omega)
+      have hII : (1 + alpha) ^ n * (tr.state 0).capability * (1 + alpha)
+          ≤ (tr.state n).capability * (1 + alpha) :=
+        mul_le_mul_of_nonneg_right hih h1p
+      have hI2 : (1 + alpha) ^ n * (1 + alpha) * (tr.state 0).capability
+          = (1 + alpha) ^ n * (tr.state 0).capability * (1 + alpha) := by
+        ring
+      rw [hI2, mul_comm (1 + alpha) (tr.state n).capability]
+      exact hII
+    have hr2 : (1 + alpha) * (tr.state n).capability
+        = (tr.state n).capability
+          + alpha * (tr.state n).capability := by ring
+    calc (1 + alpha) ^ (n + 1) * (tr.state 0).capability
+        = (1 + alpha) ^ n * (1 + alpha) * (tr.state 0).capability := by ring
+      _ ≤ (1 + alpha) * (tr.state n).capability := hmul
+      _ ≤ (tr.state n).capability + (tr.input n).eff.growGain := by
+          rw [hr2]; linarith [hg]
+      _ = (tr.state (n + 1)).capability := by rw [hcap]
+
+/-- **Telescope of certified per-cycle drops**: if every cycle of a
+trajectory certifies an energy drop of at least `d0 >= 0` over the
+FRESH measurement (`advance_energy_drop` saturated by `d0`), then
+`(state t).energy <= (state 0).energy - t * d0` — a multi-cycle
+progress certificate (impossible under the fixed-effects model,
+where two cycles already force the certificate nonpositive,
+`corePremises_two_step_decrease_nonpos`). -/
+theorem trajectory_energy_telescope (tr : Trajectory X) (d0 : ℝ)
+    (hd0 : 0 ≤ d0)
+    (hdrop : ∀ t < tr.T,
+      (tr.input t).eff.compressEnergy
+        ≤ (tr.state t).energy - d0)
+    (t : ℕ) (ht : t ≤ tr.T) :
+    (tr.state t).energy ≤ (tr.state 0).energy - (t : ℝ) * d0 := by
+  induction t with
+  | zero => simp
+  | succ n ih =>
+    have hn : n ≤ tr.T := by omega
+    have hstep := tr.h_step n (by omega)
+    have hd := hdrop n (by omega)
+    have hE : (tr.state (n + 1)).energy
+        = (tr.input n).eff.compressEnergy := by
+      rw [hstep]; exact advance_energy _ _
+    have hprev := ih hn
+    have hcast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 := by norm_cast
+    calc (tr.state (n + 1)).energy
+        = (tr.input n).eff.compressEnergy := hE
+      _ ≤ (tr.state n).energy - d0 := hd
+      _ ≤ (tr.state 0).energy - (n : ℝ) * d0 - d0 := by
+          linarith [hprev]
+      _ = (tr.state 0).energy - ((n + 1 : ℕ) : ℝ) * d0 := by
+          rw [hcast]; linarith [hd0]
+
+/-! ### Unification: the old certificate is dominated by the cycle drop -/
+
+/-- **Certificate domination (old → new bridge)**: one full
+per-cycle drop (the `advance_energy_drop` bracket) dominates the
+old `System.verify` certificate `growGain + gap + eta*||d||^2/2 -
+kappa*s/2` whenever the SafeQP window holds (`eta <= 1/L`,
+`||d||^2 <= <grad,d>`): the window saturates
+`L*eta^2*||d||^2 <= eta*||d||^2` and the cone gives
+`eta*||d||^2 <= eta*<grad,d>` — the same squeeze that forced the
+two-cycle obstruction, now used constructively: the LEDGER of the
+old model is a LOWER BOUND on the real per-cycle progress of the
+repaired one. -/
+theorem cycle_drop_ge_certificate (u : StageInput X)
+    (hdesc : ‖u.stepDir‖ ^ 2 ≤ ⟪u.grad, u.stepDir⟫_ℝ)
+    (heta : u.sp.eta ≤ 1 / u.sp.L)
+    (hL : 0 < u.sp.L) :
+    u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      ≥ u.eff.growGain + u.gap + u.sp.eta * ‖u.stepDir‖ ^ 2 / 2 := by
+  set eta := u.sp.eta with hE
+  set L := u.sp.L with hLE
+  set N := ‖u.stepDir‖ ^ 2 with hN
+  set I := ⟪u.grad, u.stepDir⟫_ℝ with hI
+  have heta0 : 0 ≤ eta := le_trans (by linarith) (le_of_lt u.h_eta_pos)
+  have hetaL : eta * L ≤ 1 := by
+    calc eta * L ≤ (1 / L) * L := mul_le_mul_of_nonneg_right heta hL.le
+      _ = 1 := by field_simp
+  have hGN : 0 ≤ eta * N := mul_nonneg heta0 (sq_nonneg _)
+  have h1a : eta * N ≤ eta * I := mul_le_mul_of_nonneg_left hdesc heta0
+  have h1b : L * eta ^ 2 * N ≤ eta * N := by nlinarith [hetaL, hGN]
+  linarith
+
+/-! ### Unification: the witness realizes the amplification -/
+
+/-- The three-cycle witness trajectory: states linked by
+`advance` over the fresh inputs `wU0, wU1, wU2`. -/
+noncomputable def wTraj : Trajectory ℝ where
+  T := 3
+  state := fun t =>
+    if t = 0 then wS0
+    else if t = 1 then advance wS0 wU0
+    else if t = 2 then advance (advance wS0 wU0) wU1
+    else advance (advance (advance wS0 wU0) wU1) wU2
+  input := fun t =>
+    if t = 0 then wU0 else if t = 1 then wU1 else wU2
+  h_step := by
+    intro t ht
+    have ht3 : t < 3 := ht
+    interval_cases t
+    all_goals simp [advance]
+
+/-- The amplification theorem instantiated on the witness: the
+state-linked geometric takeoff `(1+1)^3 * 1 = 8` IS REALIZED —
+the repaired semantics proves the capstone growth the OLD model
+could only state vacuously (`MasterHAGI_linked` was inconsistent
+at `T >= 2`). -/
+theorem witness_takeoff_realized :
+    (1 + (1:ℝ)) ^ 3 * (wTraj.state 0).capability
+      ≤ (wTraj.state 3).capability := by
+  have hα : 0 ≤ (1:ℝ) := by norm_num
+  have hg : ∀ t < wTraj.T,
+      (1:ℝ) * (wTraj.state t).capability
+        ≤ (wTraj.input t).eff.growGain := by
+    intro t ht
+    have ht3 : t < 3 := ht
+    interval_cases t
+    all_goals simp [wTraj, advance, wS0, wU0, wU1, wU2]
+    all_goals norm_num
+  have hT : (3:ℕ) ≤ wTraj.T := by simp [wTraj]
+  have hres := capability_takeoff_amplified wTraj (1:ℝ) hα hg 3 hT
+  have hstate3 : wTraj.state 3
+      = advance (advance (advance wS0 wU0) wU1) wU2 := by
+    simp [wTraj]
+  have hcap3 : (advance (advance (advance wS0 wU0) wU1) wU2).capability = 8 := by
+    simp [advance, wS0, wU0, wU1, wU2]
+    all_goals norm_num
+  have hstate0 : wTraj.state 0 = wS0 := by simp [wTraj]
+  rw [hstate0, hstate3, hcap3]
+  have hcap0 : wS0.capability = 1 := by simp [wS0]
+  rw [hcap0]
+  norm_num
+
 end Hagi.Model
