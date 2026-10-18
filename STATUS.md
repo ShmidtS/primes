@@ -1165,9 +1165,11 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   (модуль `Hagi.Model.StageSemantics`: `advance`/`Trajectory`/
   `advance_energy_drop`/`cone_growth_window` с окном
   `alpha_min <= alpha_cap` без зажатия; witness
-  `two_cycle_varying_gain_nonvacuous` — два активных цикла с
-  различными приростами, строгим спадом энергии и активным шагом —
-  невозможен в старой модели по двум регрессиям выше). Количественная
+  `three_cycle_varying_gain_nonvacuous` — три активных цикла
+  (приросты 1, 2, 4; энергия 30-27-23-17; capability 1-2-4-8) —
+  невозможен в старой модели по двум регрессиям выше;
+  `two_cycle_certified_descent` связывает witness с
+  `advance_energy_drop`). Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
