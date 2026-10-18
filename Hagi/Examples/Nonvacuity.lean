@@ -443,6 +443,143 @@ theorem corePremises_single_step_obstruction {X : Type*} [NormedAddCommGroup X]
   linarith
 
 /-!
+## Audit regressions: the two-cycle defects as theorems (P1)
+
+Two structural facts surfaced by the independent audits,
+formalized so the model defect is PROVEN, not prose:
+
+1. two consecutive `CorePremises` force the run's own progress
+   certificate to be nonpositive:
+   `decrease <= kappa*s*(quantErr - 1/2) <= 0` — the fixed
+   `effects` record cannot certify positive progress twice;
+2. additive state capability growth (each full-cycle step adds
+   the same measured `growGain`) together with the cone-forced
+   saturation factor `(1+alpha)` is inconsistent on TWO steps
+   when `alpha > 0`, `C0 > 0`.
+-/
+
+/-- **Two-cycle regression (general kappa)**: two consecutive
+`CorePremises` steps under the fixed-effects transition imply
+`(verify S).decrease <= 0` — sharpening
+`corePremises_single_step_obstruction` from the `kappa = 0`
+case to the general compression ledger: the certified decrease
+is at most `kappa*s*(quantErr - 1/2) <= 0` (since
+`quantErr <= 1/2`). A strictly positive progress certificate
+cannot survive a second cycle. -/
+theorem corePremises_two_step_decrease_nonpos {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (S S' S'' : Hagi.GenState X) (epsQ epsQ' : ℝ)
+    (w : Fin 5 → ℝ)
+    (h1 : CorePremises S S' epsQ w)
+    (h2 : CorePremises S' S'' epsQ' w) :
+    (Hagi.System.verify S.toGrowthState).decrease <= 0 := by
+  obtain ⟨_, hgrow1, hmerge, hL, heta, heta0, hdesc, hsmooth, hkap0, hs0,
+    _, hq2, hlip, heq, _, _⟩ := h1
+  obtain ⟨_, hgrow2, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩ := h2
+  have heff : S'.toGrowthState.effects = S.toGrowthState.effects := by
+    rw [heq]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  have hEn : S'.toGrowthState.energy
+      = S.toGrowthState.effects.compressEnergy := by
+    rw [heq]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  rw [hEn, heff] at hgrow2
+  rw [Hagi.System.verify_decrease]
+  set eta := S.toGrowthState.sp.eta with hetaE
+  set L := S.toGrowthState.sp.L with hLE
+  set I := ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ with hIE
+  set N := ‖S.toGrowthState.stepDir‖ ^ 2 with hNE
+  set gain := S.toGrowthState.effects.growGain with hgE
+  set gE := S.toGrowthState.effects.growEnergy with hgEn
+  set mE := S.toGrowthState.effects.mergeEnergy with hmE
+  set jE := S.toGrowthState.effects.jointEnergy with hjE
+  set cE := S.toGrowthState.effects.compressEnergy with hcE
+  set gapv := S.toGrowthState.gap with hgapE
+  -- SafeQP window: eta*L <= 1
+  have hetaL : eta * L <= 1 := by
+    calc eta * L <= (1 / L) * L := mul_le_mul_of_nonneg_right heta hL.le
+      _ = 1 := by field_simp
+  have hGN0 : 0 <= eta * N := mul_nonneg heta0 (sq_nonneg _)
+  -- cone-side: eta*N <= eta*I (from ||d||^2 <= <grad,d>)
+  have h1a : eta * N <= eta * I := mul_le_mul_of_nonneg_left hdesc heta0
+  -- saturation of the smoothness window: L*eta^2*N <= eta*N
+  have h1b : L * eta ^ 2 * N <= eta * N := by
+    nlinarith [hetaL, hGN0]
+  -- honest quantization ledger bound: kappa*s*q <= kappa*s*(1/2)
+  have hKQ : S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
+      * S.toGrowthState.effects.quantErr
+      <= S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * (1 / 2) :=
+    mul_le_mul_of_nonneg_left hq2 (mul_nonneg hkap0 hs0)
+  -- /2 vs *(1/2): ring-bridge atom
+  have hdiv : S.toGrowthState.sp.kappa * S.toGrowthState.sp.s / 2
+      = S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * (1 / 2) := by
+    ring
+  -- the four stage inequalities + the second cycle's grow premise
+  have hchain0 : gain + gapv + eta * I - L * eta ^ 2 * N / 2
+      - S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
+        * S.toGrowthState.effects.quantErr <= 0 := by
+    linarith [hgrow2, hmerge, hsmooth, hlip]
+  rw [hdiv]
+  linarith [hchain0, h1a, h1b, hKQ]
+
+/-- **Two-step growth regression**: full-cycle transitions make
+capability grow additively by the SAME measured `growGain` every
+step (the effects record is copied verbatim), while the cone +
+production + matching cap force the multiplicative saturation
+`C(t+1) = (1+alpha) * C(t)` (`takeoff_edge_forced`). On the
+horizon `T = 2` this demands
+`alpha * C0 = growGain = alpha * C1` with
+`C1 = (1+alpha) * C0` — impossible for `alpha > 0`, `C0 > 0`.
+Hence `state_capability_takeoff`-style hypotheses (with constant
+measured gain) are UNSATISFIABLE on two steps: the linked
+capstone's growth premise is vacuous, a model defect to repair
+via time-indexed stage inputs. -/
+theorem full_cycle_two_step_growth_inconsistent {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (S : ℕ → Hagi.GenState X) (alpha : ℝ)
+    (hα : 0 < alpha)
+    (hC0 : 0 < (S 0).toGrowthState.capability)
+    (h01 : (S 1).toGrowthState
+      = Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (S 0).toGrowthState))))
+    (h12 : (S 2).toGrowthState
+      = Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (S 1).toGrowthState))))
+    -- cone + production + cap, collapsed to the forced bound
+    -- alpha * C t <= growGain_t (takeoff_edge_forced, t < 2)
+    (hgain : ∀ t < 2, alpha * (S t).toGrowthState.capability
+      <= (S t).toGrowthState.effects.growGain)
+    (hcap : ∀ t < 2, (S (t + 1)).toGrowthState.capability
+      <= (1 + alpha) * (S t).toGrowthState.capability) :
+    False := by
+  -- additive capability step, same measured gain each cycle
+  have hstep1 : (S 1).toGrowthState.capability
+      = (S 0).toGrowthState.capability
+        + (S 0).toGrowthState.effects.growGain := by
+    rw [h01]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  have heff1 : (S 1).toGrowthState.effects
+      = (S 0).toGrowthState.effects := by
+    rw [h01]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  have hg1 : (S 1).toGrowthState.effects.growGain
+      = (S 0).toGrowthState.effects.growGain := by rw [heff1]
+  -- cycle 0: the gain is squeezed to exactly alpha * C0
+  have hgain0 := hgain 0 (by omega)
+  have hcap0 := hcap 0 (by omega)
+  rw [hstep1] at hcap0
+  have hr : (1 + alpha) * (S 0).toGrowthState.capability
+      = (S 0).toGrowthState.capability
+        + alpha * (S 0).toGrowthState.capability := by ring
+  have hge0 : (S 0).toGrowthState.effects.growGain
+      = alpha * (S 0).toGrowthState.capability := by
+    linarith [hgain0, hcap0, hr]
+  -- cycle 1: the SAME gain must now cover alpha * C1
+  have hgain1 := hgain 1 (by omega)
+  rw [hg1, hge0] at hgain1
+  -- alpha * C1 <= alpha * C0 with alpha > 0 forces C1 <= C0
+  have hcontra : (S 1).toGrowthState.capability
+      <= (S 0).toGrowthState.capability := by
+    exact le_of_mul_le_mul_left hgain1 hα
+  -- but C1 = C0 + alpha*C0 > C0
+  have hpos : 0 < alpha * (S 0).toGrowthState.capability :=
+    mul_pos hα hC0
+  rw [hstep1, hge0] at hcontra
+  linarith
+
+/-!
 ## The FULL productive MasterHAGI witness (R370, one-step form)
 
 On the concrete carrier `X = ℝ` with one protected domain

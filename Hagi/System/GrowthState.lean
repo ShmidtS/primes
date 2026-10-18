@@ -327,6 +327,15 @@ def verify (S : GrowthState X) : Certificate where
   riskSpend := S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk
   budgetSpend := S.effects.growCost + S.effects.jointCost
 
+/-- `verify` unfolds definitionally to the stage sum
+`growGain + gap + eta*||stepDir||^2/2 - kappa*s/2`
+(audit regression interface). -/
+theorem verify_decrease (S : GrowthState X) :
+    (verify S).decrease
+      = S.effects.growGain + S.gap
+        + S.sp.eta * ‖S.stepDir‖ ^ 2 / 2
+        - S.sp.kappa * S.sp.s / 2 := rfl
+
 /-- **measure**: the observable snapshot. -/
 def measure (S : GrowthState X) : Metrics where
   energy := S.energy

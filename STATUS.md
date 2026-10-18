@@ -1154,7 +1154,14 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   безопасных шагов ограничен `(E0−Emin)/gain` при факт-лоссе
   как ledger-энергии (делегирование
   `System.macro_termination_derived`; прирост измеряется
-  фактически, без назначенного growGain). Количественная
+  фактически, без назначенного growGain).
+  Аудит-регрессии (P1): дефекты фиксированного `effects`
+  зафиксированы как теоремы —
+  `corePremises_two_step_decrease_nonpos` (общий κ: два подряд
+  `CorePremises` дают `decrease ≤ κ·s·(quantErr − 1/2) ≤ 0`) и
+  `full_cycle_two_step_growth_inconsistent` (аддитивный
+  growGain + конусное насыщение несовместимы при T=2, α>0,
+  C₀>0). Чинит семантику: измерения — вход перехода. Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
