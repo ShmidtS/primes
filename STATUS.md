@@ -1177,7 +1177,11 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   сертификат `System.verify` — нижняя граница реального
   per-cycle drop; то самое зажатие окна — теперь конструктивно),
   `witness_takeoff_realized` — takeoff (1+1)^3 * 1 = 8
-  РЕАЛИЗОВАН на witness-траектории (старой модели был вакуумен). Количественная
+  РЕАЛИЗОВАН на witness-траектории (старой модели был вакуумен). Дедуп
+  exp-хорды: канон `Foundations.exp_chord_r` (r-обобщение);
+  `Probability.exp_chord` и `Foundations.exp_chord_ab` (r=1)
+  делегируют; `Ensemble.exp_chord` — симметричный частный случай
+  поверх `exp_chord_ab` — одна математическая копия вместо трёх. Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`

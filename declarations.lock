@@ -839,6 +839,7 @@ expQ_varEq	5eb1fc1d456c2674	5c7249c9448f55ce
 exp_chord	3c3802a4f992325a	824daf777bc3b709
 exp_chord	ef087d7572be9860	76d5c6719302e844
 exp_chord_ab	224142646b99f69f	3cf23ea3865b65e2
+exp_chord_r	0a2f4968a72b927a	67168186f27ac92f
 exp_div_tail	7d7f0fcc66b5c2d3	9f8bd07f4df19d98
 exp_jensen	5ae2ca14b732f495	e06dad6a936eb8c1
 exp_le_one_add	7b6d5bebf95d42bd	64c0db67d358e1f9
