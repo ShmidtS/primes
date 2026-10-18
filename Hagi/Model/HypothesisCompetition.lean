@@ -241,4 +241,32 @@ theorem dhcOrbit_bound (s : Fin K → ℝ) (C : Matrix (Fin K) (Fin K) ℝ)
       exact sub_le_self _ (mul_nonneg hrho1 (mul_nonneg hc hG))
     linarith [ih, h1, h1', h3, h4]
 
+/-- Критерий завершения, часть 1: вес лидера (гипотезы
+с максимальной активацией) не меньше 1/K — основа
+порога уверенности τ в критерии p₁ ≥ τ ∧ p₁-p₂ ≥ Δ. -/
+theorem dhcWeights_leader_ge_invK (a : Fin K → ℝ) {T : ℝ} (hT : 0 < T)
+    (hK : 0 < K) {i : Fin K} (hmax : ∀ j, a j ≤ a i) :
+    (1 / (K : ℝ)) ≤ dhcWeights a T i := by
+  have hsum := dhcWeights_sum_one a (ne_of_gt hT) hK
+  have hmono : ∀ j, dhcWeights a T j ≤ dhcWeights a T i := fun j =>
+    dhcWeights_mono a hT hK (hmax j)
+  have hcomm : (K : ℝ) * dhcWeights a T i
+      = dhcWeights a T i * (K : ℝ) := mul_comm _ _
+  have hle : ∑ j, dhcWeights a T j ≤ dhcWeights a T i * (K : ℝ) := by
+    refine le_trans (Finset.sum_le_sum (fun j _ => hmono j)) ?_
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul,
+      hcomm]
+  rw [div_le_iff₀ (by exact_mod_cast hK : (0:ℝ) < K)]
+  linarith [hsum, hle]
+
+/-- Критерий завершения, часть 2: нормировка весов выбора
+вдоль всей орбиты — на каждом шаге веса образуют
+распределение (сумма = 1), поэтому критерий
+p₁ ≥ τ ∧ p₁ - p₂ ≥ Δ корректен на любом шаге траектории. -/
+theorem dhcOrbit_weights_sum_one (s : Fin K → ℝ)
+    (C : Matrix (Fin K) (Fin K) ℝ) (rho kappa T : ℝ) (hT : T ≠ 0)
+    (hK : 0 < K) (a0 : Fin K → ℝ) (t : ℕ) :
+    ∑ i, dhcWeights (dhcOrbit s C rho kappa T a0 t) T i = 1 :=
+  dhcWeights_sum_one _ hT hK
+
 end Hagi.Model

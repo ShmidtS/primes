@@ -603,6 +603,7 @@ dftPow_mul_conjTranspose	bd62ac7b53395207	d2abcdc90675a665
 dhcOrbit	bb257e0f2aeb51dc	51234fa7141ece11
 dhcOrbit_bound	ca8742294c560c26	2fb99393a8b530dc
 dhcOrbit_succ	3082583c74df3bce	c602f57524da314a
+dhcOrbit_weights_sum_one	c82164c70e3a1761	b756d994bcfa1e64
 dhcStep	57cba11da01da92d	27592caf8fc03092
 dhcStep_abs_bound	513e23ad864701f9	85a27a0cfa06fce7
 dhcStep_suppressed	80d92e84af8e950d	9f742caecc06d407
@@ -610,6 +611,7 @@ dhcTotal	9b48c6c5c341f2e0	ee75e2547c0623f7
 dhcTotal_pos	d1ad5f5b9418a59d	078ee1fe5b0ebc12
 dhcWeights	ab6ea01a609c1c1b	eb9ce9abbc282fae
 dhcWeights_le_one	1074d10e20bef3ee	13ba8482598d4a86
+dhcWeights_leader_ge_invK	2be3c2e9db620f0e	8d3f6ae49ee6f513
 dhcWeights_mono	89fd48dfc13a89f2	95fb334694f83f2e
 dhcWeights_pos	e8a1ad70a9994d41	d159b85db52a08e9
 dhcWeights_sum_one	e2fd1deb93b7f563	d7a047e53dcfae0a
