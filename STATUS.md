@@ -1155,8 +1155,8 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   как ledger-энергии (делегирование
   `System.macro_termination_derived`; прирост измеряется
   фактически, без назначенного growGain).
-  Аудит-регрессии (P1): дефекты фиксированного `effects`
-  зафиксированы как теоремы —
+  Аудит-регрессии (P1): дефекты фиксированной
+  записи эффектов зафиксированы как теоремы —
   `corePremises_two_step_decrease_nonpos` (общий κ: два подряд
   `CorePremises` дают `decrease ≤ κ·s·(quantErr − 1/2) ≤ 0`) и
   `full_cycle_two_step_growth_inconsistent` (аддитивный
