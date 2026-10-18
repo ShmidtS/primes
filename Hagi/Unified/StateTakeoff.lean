@@ -115,8 +115,8 @@ theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
         * S.toGrowthState.effects.quantErr)
     (h15 : Qgen S.gen w - epsQ ≤ Qgen S'.gen w) :
     CorePremises S S' epsQ w := by
+  obtain ⟨hfull1, hfull2⟩ := hfull
   refine ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,
-    h13, ?_, h15⟩
-  exact full_cycle_field_eq hfull
+    h13, hfull1, hfull2, h15⟩
 
 end Hagi.Unified

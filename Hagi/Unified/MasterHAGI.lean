@@ -152,12 +152,17 @@ instantiated at the pre-cycle state `S` and post-cycle state
   stage laws (h_emp_grow, h_emp_merge, h_emp_smooth,
   h_emp_dist, h_emp_lip), the SafeQP window (hL, heta, heta0,
   hdescent) and the compress constants (hkappa, hs, hdn);
-* conjunct 14 (h_cycle): the bridging link — `S'` IS the
-  composed cycle `compress(joint(merge(grow S)))` on the three
-  carriers the account and potential laws read (energy,
-  protectedRisk, budget). This is definitional plumbing, not a
-  new assumption: the composite's fields are the measured
-  stage outputs by construction (R91);
+* conjunct 14 (h_cycle): the FULL transition link (audit v8,
+  §2.3) — `S'` IS the composed cycle
+  `compress(joint(merge(grow S)))` as a WHOLE record equality
+  (all fields: params, energy, capability, experts, telemetry),
+  plus `S'.gen = S.gen`. This is definitional plumbing, not a
+  new assumption: the composite's fields are the measured stage
+  outputs by construction (R91). This closes the old
+  "right accounting, arbitrary capability/params" hole where
+  the 3-carrier link left `params` unbound (the joint step's
+  `params := params - eta • stepDir` was never reflected in
+  the witness trajectories);
 * conjunct 15: R109's `generalization_safe_step` probe
   tolerance (h_emp_G, MEASURED telemetry ε_Q). -/
 
@@ -183,12 +188,8 @@ def CorePremises (S S' : GenState X) (epsQ : ℝ) (w : Fin 5 → ℝ) : Prop :=
   ∧ S.toGrowthState.effects.quantErr ≤ 1 / 2
   ∧ S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
       ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * S.toGrowthState.effects.quantErr
-  ∧ (S'.toGrowthState.energy
-        = (compress (joint (merge (grow S.toGrowthState)))).energy
-      ∧ S'.toGrowthState.protectedRisk
-        = (compress (joint (merge (grow S.toGrowthState)))).protectedRisk
-      ∧ S'.toGrowthState.budget
-        = (compress (joint (merge (grow S.toGrowthState)))).budget)
+  ∧ S'.toGrowthState = compress (joint (merge (grow S.toGrowthState)))
+  ∧ S'.gen = S.gen
   ∧ (Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
 
 /-! ## Level 1: the one-cycle composition (R91 + R109) -/
@@ -215,8 +216,17 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
     ∧ S'.toGrowthState.budget
       = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend := by
   obtain ⟨hgap, h_emp_grow, h_emp_merge, hL, heta, heta0, hdescent,
-    h_emp_smooth, hkappa, hs, hdn, h_emp_dist, h_emp_lip, h_cycle, h_emp_G⟩ := hp
-  obtain ⟨hcE, hcR, hcB⟩ := h_cycle
+    h_emp_smooth, hkappa, hs, hdn, h_emp_dist, h_emp_lip, heq, hgenq,
+    h_emp_G⟩ := hp
+  have hcE : S'.toGrowthState.energy
+      = (compress (joint (merge (grow S.toGrowthState)))).energy := by
+    rw [heq]
+  have hcR : S'.toGrowthState.protectedRisk
+      = (compress (joint (merge (grow S.toGrowthState)))).protectedRisk := by
+    rw [heq]
+  have hcB : S'.toGrowthState.budget
+      = (compress (joint (merge (grow S.toGrowthState)))).budget := by
+    rw [heq]
   -- R91: the real potential decrease dominates the certificate
   have hcs := certificate_sound S.toGrowthState hgap h_emp_grow h_emp_merge
     hL heta heta0 hdescent h_emp_smooth hkappa hs hdn h_emp_dist h_emp_lip

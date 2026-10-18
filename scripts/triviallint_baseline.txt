@@ -13,7 +13,6 @@ UNUSED_PARAM|Hagi.Unified.certified_cone0_takeoff
 UNUSED_PARAM|Hagi.Unified.certified_gainprod_takeoff
 UNUSED_PARAM|Hagi.Examples.corePremises_nonvacuous
 UNUSED_PARAM|Hagi.Examples.corePremises_nonvacuous_strict
-UNUSED_PARAM|Hagi.Examples.corePremises_trajectory_productive
 UNUSED_PARAM|Hagi.Unified.dual_ceiling
 UNUSED_PARAM|Hagi.Unified.frontier_cone_struct
 UNUSED_PARAM|Hagi.Unified.hagi_horizon_bound

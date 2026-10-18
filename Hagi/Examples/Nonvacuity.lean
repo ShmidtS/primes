@@ -366,151 +366,287 @@ noncomputable def Spos (E : ℝ) : Hagi.GenState X where
 ledger fields (energy = the compress stage's output `E − 2g`)
 with the expert count advanced. -/
 noncomputable def Spos' (E : ℝ) : Hagi.GenState X :=
-  { Spos E with experts := 1, energy := E - 2 * witnessGap }
+  { Spos E with
+    experts := 1
+    energy := E - 2 * witnessGap
+    capability := witnessGap }
 
-/-- The productive TRAJECTORY witness state at step t:
-energy strictly decreases `E − 2t·g` per step-pair, gap and
-gain stay at the strict Jensen level `g`, capability grows
-`t·g`. -/
-noncomputable def Straj (E g : ℝ) (t : ℕ) : Hagi.GenState X where
-  weightDim := 1
-  weights := fun _ => 1/4
-  params := 0
-  experts := t
-  energy := E - 2 * t * g
-  protectedRisk := 0
-  budget := 1
-  gap := g
-  dataField := 0
-  capability := t * g
-  verifier := 0
-  runtimeError := 0
-  stepDir := 0
-  grad := 0
-  sp := { eta := 0, L := 1, kappa := 0, s := 1 }
-  effects := {
-    growGain := g
-    growCost := 0
-    growRisk := 0
-    growEnergy := E - (2 * t + 1) * g
-    mergeEnergy := E - (2 * t + 2) * g
-    mergeRisk := 0
-    jointEnergy := E - (2 * t + 2) * g
-    jointRisk := 0
-    jointCost := 0
-    quantErr := |1/4 - qTern 1 (1/4)|
-    compressEnergy := E - (2 * t + 2) * g
-    compressRisk := 0
-  }
-  gen := ⟨0, 0, 0, 0, 0⟩
+/-! ## The single-step obstruction (audit v8, full contract)
 
-/-- **The productive trajectory witness** (R369, audit v7
-§5.3): for EVERY horizon T there is a state trajectory on
-which `CorePremises` holds at EVERY step with strictly
-positive gap and gain and strictly decreasing energy —
-E − 2t·g → E − 2(t+1)·g — while capability grows linearly
-`t·g`. This is the trajectory-level (category-2) witness:
-not one pair of states, but the full contract along the
-whole horizon. -/
-theorem corePremises_trajectory_productive (E g : ℝ)
-    (hg : 0 < g) (T : ℕ) :
-    ∃ S : ℕ → Hagi.GenState X, ∀ t < T,
-      CorePremises (S t) (S (t + 1)) 0 (fun _ => 0)
-        ∧ (S (t + 1)).toGrowthState.energy
-          < (S t).toGrowthState.energy
-        ∧ 0 < (S t).toGrowthState.gap
-        ∧ 0 < (S (t + 1)).toGrowthState.capability
-            - (S t).toGrowthState.capability := by
-  refine ⟨fun t => Straj E g t, fun t ht => ?_⟩
-  unfold CorePremises Straj
-  norm_num [Qgen, Qvec, grow, merge, joint, compress]
-  have hq := witness_quantErr_bounded
-  have hT : (0:ℝ) ≤ (t:ℝ) := by positivity
-  refine ⟨⟨hg.le, by linarith [hT], by linarith [hT], hq,
-    by left; ring⟩, by linarith [hg, hT], hg,
-    by nlinarith [hg, hT]⟩
+With the FULL transition contract (audit v8 §2.3) the state's
+measured `effects` record is copied verbatim by every stage, so a
+step of the cycle keeps the measured stage effects INVARIANT.
+Consecutive productive steps are then impossible when the ledger
+is honest (`kappa = 0`): the stage laws at the NEXT step demand
+`growEnergy ≤ compressEnergy − growGain` (the grow law reads the
+cycle's OUTPUT energy), while the composition at the CURRENT step
+forces `compressEnergy ≤ mergeEnergy ≤ growEnergy − gap − c`
+with `c = η⟪g,d⟫ − Lη²‖d‖²/2 ≥ 0` (merge gap + SafeQP descent).
+The horizon witnesses therefore stop at ONE productive step; the
+multi-step capstone witness is the IDLE orbit
+(`Assumptions.trunc_idle_witness`). This is the formal shape of
+the audit's point that the measured-effects ledger must be
+reinterpretated per stage (Etap 2) before multi-step productive
+trajectories can exist. -/
+
+set_option maxHeartbeats 800000 in
+-- audit v8 section 5: the 16-conjunct full-contract record proof chokes whnf at default heartbeats
+/-- **The single-step obstruction**: under the full transition
+contract, two consecutive `CorePremises` steps force a strictly
+positive total ledger loss `gap + c + growGain` against a
+nonnegative cycle budget — impossible when the merge gap is
+strictly positive, the measured grow gain is nonnegative and the
+compression ledger is honest (`kappa = 0`). -/
+theorem corePremises_single_step_obstruction {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (S S' S'' : Hagi.GenState X) (epsQ epsQ' : ℝ)
+    (w : Fin 5 → ℝ)
+    (h1 : CorePremises S S' epsQ w)
+    (h2 : CorePremises S' S'' epsQ' w)
+    (hgap : 0 < S.toGrowthState.gap)
+    (hga : 0 ≤ S.toGrowthState.effects.growGain)
+    (hkappa : S.toGrowthState.sp.kappa = 0) : False := by
+  obtain ⟨_, hgrow1, hmerge, hL, heta, heta0, hdesc, hsmooth, _, _,
+    _, _, hlip, heq, _, _⟩ := h1
+  obtain ⟨_, hgrow2, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩ := h2
+  -- the full transition copies the measured effects verbatim
+  have heff : S'.toGrowthState.effects = S.toGrowthState.effects := by
+    rw [heq]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  have hEn : S'.toGrowthState.energy
+      = S.toGrowthState.effects.compressEnergy := by
+    rw [heq]; simp [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  rw [hEn, heff] at hgrow2
+  -- the honest compression ledger: compress cannot gain (kappa = 0)
+  have hlip0 : S.toGrowthState.effects.compressEnergy
+      ≤ S.toGrowthState.effects.jointEnergy := by
+    rw [hkappa] at hlip
+    simpa using hlip
+  -- c := η⟪g,d⟫ − Lη²‖d‖²/2 ≥ 0 from the SafeQP window (η ≤ 1/L)
+  set eta := S.toGrowthState.sp.eta with hetaE
+  set L := S.toGrowthState.sp.L with hLE
+  set I := ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ with hIE
+  set N := ‖S.toGrowthState.stepDir‖ ^ 2 with hNE
+  have hLpos : 0 < L := hL
+  have hetaL : eta * L ≤ 1 := by
+    calc eta * L ≤ (1 / L) * L := mul_le_mul_of_nonneg_right heta hLpos.le
+      _ = 1 := by field_simp
+  have hN0 : 0 ≤ N := sq_nonneg _
+  have hI0 : 0 ≤ I := by
+    have hNI : N ≤ I := hdesc
+    linarith
+  have hA0 : 0 ≤ eta * N := by nlinarith [heta0, hN0]
+  have hbound : L * eta ^ 2 * N ≤ eta * N := by nlinarith [hetaL, hA0]
+  have k1 : eta * N ≤ eta * I := by nlinarith [heta0, hdesc, hI0, hN0]
+  have hcpos : 0 ≤ eta * I - L * eta ^ 2 * N / 2 := by
+    have h2b : (0 : ℝ) ≤ eta * N / 2 := by nlinarith [hA0]
+    linarith
+  -- the stranglehold: gap + c + growGain must fit a nonnegative budget
+  linarith
+
 /-!
-## The FULL productive MasterHAGI witness (R370)
+## The FULL productive MasterHAGI witness (R370, one-step form)
 
-The end-to-end witness (audit v7 §5.3, the final rung of the
-R357 → R359 → R369 ladder): on the concrete carrier `X = ℝ`
-with one protected domain (`K = Fin 1`), a trajectory on
-which EVERY premise of the capstone `MasterHAGI` holds
-simultaneously with genuinely live quantities — nonzero safe
-step, strictly decreasing energy, growing capability and
-risk accrued within its budgets — at a concrete horizon.
+On the concrete carrier `X = ℝ` with one protected domain
+(`K = Fin 1`): a FULL-cycle trajectory — the recursive orbit
+`Mw`, whose every step IS the composed transition
+`compress ∘ joint ∘ merge ∘ grow` — on which every premise of
+the capstone holds with live quantities: nonzero safe step,
+one-step strictly decreasing energy, capability growth by the
+measured grow gain, risk honestly accrued within budgets.
 
-Numerical layout (all derived above):
-`g_old = -1` (old-domain gradient: descent direction d = 1
-points AGAINST it, so the domain's risk grows — honestly
-paid via jointRisk), `d = 1`, `grad = 1`, `η = 1/2`, `L = 1`,
-`ε = 2`, per-step merge gap `g = witnessGap`, joint drop
-`j = 1`, risk spend `1/4` per step, capability `c0 + t·g_c`
-with `c0 = 2`, `g_c = witnessGap`.
+Honest scope (audit v8 §5.2 + `corePremises_single_step_obstruction`):
+under the full transition contract the measured effects record is
+invariant along the cycle, so a strictly productive run cannot
+extend beyond ONE step while the ledger stays honest
+(`kappa = 0`). The multi-step capstone witness is the IDLE orbit
+(`Assumptions.trunc_idle_witness`); productive multi-step
+trajectories require the stage-semantics reinterpretation of the
+effects record (Etap 2), where each stage's successor state
+carries the NEXT stage's measurements.
 -/
 
 open Hagi.Step
 
-/-- The end-to-end witness state at step t (X = ℝ): closed
-forms solving the composite recursion exactly —
-energy e_{t+1} = e_t − (3/2)^t − g − 1 (grow gain, merge
-gap, joint drop), capability 2·(3/2)^t (compound growth at
-rate α = 1/2), risk t/4 (honestly accrued per-step
-jointRisk), budget constant (zero spends). -/
-noncomputable def Mw (E : ℝ) (t : ℕ) : Hagi.GenState ℝ where
+/-- The measured one-step effects of the productive witness:
+grow gain `3/2`, merge gap `witnessGap`, joint drop `1`,
+risk spend `1/4`, honest ternary quantization error
+`|1/4 - qTern 1 (1/4)|` — all INVARIANT under the cycle (the
+transitions copy the effects record verbatim). -/
+noncomputable def MwEffects (E : ℝ) : Hagi.System.StageEffects where
+  growGain := 3/2
+  growCost := 0
+  growRisk := 0
+  growEnergy := E - 3/2
+  mergeEnergy := E - 3/2 - witnessGap
+  mergeRisk := 0
+  jointEnergy := E - 3/2 - witnessGap - 1
+  jointRisk := 1/4
+  jointCost := 0
+  quantErr := |1/4 - qTern 1 (1/4)|
+  compressEnergy := E - 3/2 - witnessGap - 1
+  compressRisk := 0
+
+/-- The productive witness origin state at `t = 0` (X = ℝ):
+live energy `E`, zero risk, zero capability, one unit of budget,
+a strict Jensen merge gap, a nonzero safe step (`stepDir = 1`,
+`η = 1/2` inside the SafeQP window against the old-domain
+gradient), the measured effects above. -/
+noncomputable def Mw0 (E : ℝ) : Hagi.GenState ℝ where
   weightDim := 1
   weights := fun _ => 1/4
-  params := 0
-  experts := t
-  energy := E - 2 * ((3/2 : ℝ) ^ t - 1) - t * witnessGap - t
-  protectedRisk := t / 4
+  params := (0 : ℝ)
+  experts := 0
+  energy := E
+  protectedRisk := 0
   budget := 1
   gap := witnessGap
   dataField := 0
-  capability := 2 * (3/2 : ℝ) ^ t
+  capability := 0
   verifier := 0
   runtimeError := 0
   stepDir := 1
   grad := 1
   sp := { eta := 1/2, L := 1, kappa := 0, s := 1 }
-  effects := {
-    growGain := (3/2 : ℝ) ^ t
-    growCost := 0
-    growRisk := 0
-    growEnergy := E - 2 * ((3/2 : ℝ) ^ t - 1) - t * witnessGap - t
-      - (3/2 : ℝ) ^ t
-    mergeEnergy := E - 2 * ((3/2 : ℝ) ^ t - 1) - t * witnessGap - t
-      - (3/2 : ℝ) ^ t - witnessGap
-    mergeRisk := 0
-    jointEnergy := E - 2 * ((3/2 : ℝ) ^ t - 1) - t * witnessGap - t
-      - (3/2 : ℝ) ^ t - witnessGap - 1
-    jointRisk := 1/4
-    jointCost := 0
-    quantErr := |1/4 - qTern 1 (1/4)|
-    compressEnergy := E - 2 * ((3/2 : ℝ) ^ t - 1) - t * witnessGap - t
-      - (3/2 : ℝ) ^ t - witnessGap - 1
-    compressRisk := 0
-  }
+  effects := MwEffects E
   gen := ⟨0, 0, 0, 0, 0⟩
 
-/-- **The full productive MasterHAGI witness** (R370): at
-horizon 1 on the concrete carrier `ℝ`, EVERY premise of the
-capstone holds simultaneously with live quantities — nonzero
-safe step (`stepDir = 1`, η = 1/2 within the SafeQP window
-against the old-domain gradient −1), strictly decreasing
-energy, compound capability growth (rate 3/2), risk honestly
-accrued (1/4 per step) — and the conclusion
-`CertifiedHAGIInvariant` follows by `MasterHAGI` itself.
-The end-to-end rung of the R357 → R359 → R369 witness
-ladder (audit v7 §5.3). -/
+/-- The witness ORBIT: `Mw E (t+1)` is DEFITIONALLY the composed
+cycle `compress (joint (merge (grow (Mw E t))))` with the probe
+carried over — the full transition contract holds by `rfl` on
+every step (audit v8 §2.3), no arithmetic bridging needed. -/
+noncomputable def Mw (E : ℝ) : ℕ → Hagi.GenState ℝ
+  | 0 => Mw0 E
+  | t + 1 =>
+    { toGrowthState :=
+        Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (Mw E t).toGrowthState)))
+      gen := (Mw E t).gen }
+
+/-- Projection lemmas for the witness orbit: every step's
+records project to closed forms by `rfl` (the orbit is
+definitionally the composed cycle, and the stage records copy
+the measured effects verbatim; no heavy simp is needed). -/
+theorem Mw0_energy (E : ℝ) : (Mw E 0).toGrowthState.energy = E := rfl
+theorem Mw0_gap (E : ℝ) : (Mw E 0).toGrowthState.gap = witnessGap := rfl
+theorem Mw0_stepDir (E : ℝ) : (Mw E 0).toGrowthState.stepDir = 1 := rfl
+theorem Mw0_grad (E : ℝ) : (Mw E 0).toGrowthState.grad = 1 := rfl
+theorem Mw0_risk (E : ℝ) :
+    (Mw E 0).toGrowthState.protectedRisk = 0 := rfl
+theorem Mw0_budget (E : ℝ) : (Mw E 0).toGrowthState.budget = 1 := rfl
+theorem Mw0_eta (E : ℝ) : (Mw E 0).toGrowthState.sp.eta = 1/2 := rfl
+theorem Mw0_L (E : ℝ) : (Mw E 0).toGrowthState.sp.L = 1 := rfl
+theorem Mw0_kappa (E : ℝ) : (Mw E 0).toGrowthState.sp.kappa = 0 := rfl
+theorem Mw0_s (E : ℝ) : (Mw E 0).toGrowthState.sp.s = 1 := rfl
+theorem Mw0_growGain (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.growGain = 3/2 := rfl
+theorem Mw0_growEnergy (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.growEnergy = E - 3/2 := rfl
+theorem Mw0_mergeEnergy (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.mergeEnergy = E - 3/2 - witnessGap := rfl
+theorem Mw0_jointEnergy (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.jointEnergy = E - 3/2 - witnessGap - 1 := rfl
+theorem Mw0_compressEnergy (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.compressEnergy = E - 3/2 - witnessGap - 1 := rfl
+theorem Mw0_growCost (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.growCost = 0 := rfl
+theorem Mw0_jointCost (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.jointCost = 0 := rfl
+theorem Mw0_quantErr (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.quantErr = |1/4 - qTern 1 (1/4)| := rfl
+theorem Mw0_growRisk (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.growRisk = 0 := rfl
+theorem Mw0_mergeRisk (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.mergeRisk = 0 := rfl
+theorem Mw0_jointRisk (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.jointRisk = 1/4 := rfl
+theorem Mw0_compressRisk (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.compressRisk = 0 := rfl
+
+/-- The measured effects are INVARIANT along the orbit (the
+stage transitions copy the effects record verbatim). -/
+theorem Mw_effects (E : ℝ) (t : ℕ) :
+    (Mw E t).toGrowthState.effects = MwEffects E := by
+  induction t with
+  | zero => rfl
+  | succ n ih => exact ih
+
+theorem Mw0_effects (E : ℝ) :
+    (Mw E 0).toGrowthState.effects = MwEffects E := rfl
+
+theorem Mw0_cap (E : ℝ) :
+    (Mw E 0).toGrowthState.capability = 0 := rfl
+
+/-- The orbit's step risk law: one `1/4` jointRisk per cycle. -/
+theorem Mw_risk_succ (E : ℝ) (t : ℕ) :
+    (Mw E (t + 1)).toGrowthState.protectedRisk
+      = (Mw E t).toGrowthState.protectedRisk + (1/4 : ℝ) := by
+  show (Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (Mw E t).toGrowthState)))).protectedRisk = _
+  simp only [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  rw [Mw_effects]
+  simp only [MwEffects]
+  ring
+
+theorem Mw1_energy (E : ℝ) :
+    (Mw E 1).toGrowthState.energy = E - 3/2 - witnessGap - 1 := by
+  show (Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (Mw E 0).toGrowthState)))).energy = _
+  simp only [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress, Mw0_effects, MwEffects]
+
+theorem Mw1_cap (E : ℝ) :
+    (Mw E 1).toGrowthState.capability
+      = (Mw E 0).toGrowthState.capability + (3/2 : ℝ) := by
+  show (Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (Mw E 0).toGrowthState)))).capability = _
+  simp only [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress]
+  rw [Mw0_effects, Mw0_cap]
+  simp only [MwEffects]
+  try norm_num
+
+theorem Mw1_risk (E : ℝ) :
+    (Mw E 1).toGrowthState.protectedRisk = 1/4 := by
+  show (Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (Mw E 0).toGrowthState)))).protectedRisk = _
+  simp only [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress, Mw0_effects]
+  simp only [MwEffects]
+  rw [Mw0_risk]
+  norm_num
+
+/-- The one-step orbit satisfies the FULL `CorePremises`
+(audit v8: the transition contract is `rfl` since `Mw E 1` is
+definitionally the composed cycle). -/
+theorem mw_core_premises (E : ℝ) :
+    CorePremises (Mw E 0) (Mw E 1) 0 (fun _ => 0) := by
+  have hfull : FullCycleRefinement (Mw E 0) (Mw E 1) := ⟨rfl, rfl⟩
+  unfold CorePremises
+  rw [Mw0_gap, Mw0_energy, Mw0_growGain, Mw0_growEnergy, Mw0_mergeEnergy,
+    Mw0_jointEnergy, Mw0_compressEnergy, Mw0_quantErr,
+    Mw0_stepDir, Mw0_grad, Mw0_eta, Mw0_L, Mw0_kappa, Mw0_s]
+  refine ⟨le_of_lt witnessGap_pos,
+    le_of_eq (by ring),
+    le_of_eq (by ring),
+    by norm_num,
+    by norm_num,
+    by norm_num,
+    by norm_num <;> simp,
+    by norm_num <;> try linarith,
+    by norm_num,
+    by norm_num,
+    abs_nonneg _,
+    witness_quantErr_bounded,
+    by norm_num,
+    hfull.1, hfull.2,
+    by simp [Qgen, Hagi.Qvec]⟩
+
+/-- **The productive MasterHAGI witness** (R370, one-step):
+at horizon 1 EVERY premise of the capstone holds simultaneously
+with live quantities — nonzero safe step (`stepDir = 1`,
+`η = 1/2` within the SafeQP window), strictly decreasing energy,
+capability growth by the measured gain `3/2`, risk honestly
+accrued (`1/4`) — on a trajectory whose step is DEFITIONALLY the
+full cycle (`FullCycleRefinement` by `rfl`); the conclusion
+`CertifiedHAGIInvariant` follows by `MasterHAGI` itself. -/
 theorem masterhagi_productive_witness (E : ℝ) :
     ∃ (S : ℕ → Hagi.GenState ℝ),
       (S 1).toGrowthState.energy < (S 0).toGrowthState.energy
         ∧ (S 0).toGrowthState.stepDir ≠ 0
         ∧ (S 1).toGrowthState.capability
-            = (3/2 : ℝ) * (S 0).toGrowthState.capability
-        ∧ (S 1).toGrowthState.protectedRisk
-            = 1/4
+            = (S 0).toGrowthState.capability + (3/2 : ℝ)
+        ∧ (S 1).toGrowthState.protectedRisk = 1/4
         ∧ CertifiedHAGIInvariant 1
             (fun t => (S t).toGrowthState.protectedRisk)
             (fun t => hagiPotential (S t) 0 1 0 (fun _ => 0))
@@ -521,24 +657,21 @@ theorem masterhagi_productive_witness (E : ℝ) :
             (fun t => ∑ i : Fin 1, (2 : ℝ))
             (1/2 : ℝ)
             (0 - (hagiPotential (S 0) 0 1 0 (fun _ => 0)
-              - (E - witnessGap - 3)) / 1) := by
+              - (E - 3/2 - witnessGap - 1)) / 1) := by
   refine ⟨Mw E, ?_, ?_, ?_, ?_, ?_⟩
-  · -- energy strictly decreases: e_1 = E - g - 2 < E
-    unfold Mw
-    norm_num
+  · rw [Mw1_energy, Mw0_energy]
     linarith [witnessGap_pos]
-  · unfold Mw; norm_num
-  · unfold Mw; norm_num
-  · -- risk accrued honestly: 1/4 after one step
-    show (Mw E 1).toGrowthState.protectedRisk = 1/4
-    unfold Mw
+  · rw [Mw0_stepDir]
     norm_num
-  · -- the capstone itself, applied to the live trajectory
+  · rw [Mw1_cap, Mw0_cap]
+    try ring
+  · exact Mw1_risk E
+  · -- the capstone itself, on the full-cycle orbit
     have hd : ∀ t < 1, (Mw E t).toGrowthState.stepDir ≠ 0 := by
       intro t ht
       have h0 : t = 0 := by omega
       subst h0
-      unfold Mw
+      rw [Mw0_stepDir]
       norm_num
     have hlip : ∀ t < 1, ∀ i : Fin 1, (1/4 : ℝ) ≤ -(1/2) *
         ⟪(fun _ => (-1:ℝ)) i, (Mw E t).toGrowthState.stepDir⟫_ℝ
@@ -547,7 +680,7 @@ theorem masterhagi_productive_witness (E : ℝ) :
       intro t ht i
       have h0 : t = 0 := by omega
       subst h0
-      unfold Mw
+      rw [Mw0_stepDir]
       norm_num
     have heta : ∀ t < 1, (1/2 : ℝ)
         ≤ safeqpEtaMax (K := Fin 1) (fun _ => (-1:ℝ))
@@ -556,62 +689,58 @@ theorem masterhagi_productive_witness (E : ℝ) :
       intro t ht
       have h0 : t = 0 := by omega
       subst h0
-      rw [le_safeqpEtaMax_iff]
+      rw [Mw0_stepDir, le_safeqpEtaMax_iff]
       refine ⟨by norm_num, ?_⟩
       intro i
-      unfold Mw
       norm_num
-    have hsum : ∀ t < 1, (Mw E (t + 1)).toGrowthState.protectedRisk
+    have hsum : ∀ t < 1,
+        (Mw E (t + 1)).toGrowthState.protectedRisk
         = (Mw E t).toGrowthState.protectedRisk
           + ∑ i : Fin 1, (1/4 : ℝ) := by
       intro t ht
-      have h0 : t = 0 := by omega
-      subst h0
-      unfold Mw
+      rw [Mw_risk_succ]
       simp
-    have hcore : ∀ t < 1,
-        CorePremises (Mw E t) (Mw E (t + 1)) 0 (fun _ => 0) := by
-      intro t ht
-      have h0 : t = 0 := by omega
-      subst h0
-      unfold CorePremises Mw
-      norm_num [Qgen, Qvec, grow, merge, joint, compress]
-      all_goals first
-        | exact ⟨witnessGap_pos.le, by linarith [witnessGap_pos],
-            witness_quantErr_bounded⟩
-        | exact witness_quantErr_bounded
-        | linarith [witnessGap_pos]
-        | norm_num
-        | positivity
-        | (left; ring)
     have hnet : ∀ t < 1, 0 * (verify (Mw E t).toGrowthState).riskSpend
         + 1 * 0 ≤ (verify (Mw E t).toGrowthState).decrease := by
       intro t ht
       have h0 : t = 0 := by omega
       subst h0
-      unfold verify Mw
-      simp [gainJoint]
-      try linarith [witnessGap_pos]
+      unfold verify
+      simp only [gainJoint]
+      rw [Mw0_growGain, Mw0_gap, Mw0_eta, Mw0_stepDir, Mw0_kappa, Mw0_s,
+        Mw0_growRisk, Mw0_mergeRisk, Mw0_jointRisk, Mw0_compressRisk]
+      norm_num
+      linarith [witnessGap_pos]
     have hbud : ∑ t ∈ Finset.range 1,
         (verify (Mw E t).toGrowthState).budgetSpend
       ≤ (Mw E 0).toGrowthState.budget := by
-      simp [verify, Mw, Finset.sum_range_one]
+      rw [Finset.sum_range_one]
+      show ((Mw E 0).toGrowthState.effects.growCost
+          + (Mw E 0).toGrowthState.effects.jointCost : ℝ)
+        ≤ (Mw E 0).toGrowthState.budget
+      rw [Mw0_growCost, Mw0_jointCost, Mw0_budget]
+      norm_num
     have hrnn : ∀ t, 0 ≤ (Mw E t).toGrowthState.protectedRisk := by
       intro t
-      unfold Mw
-      positivity
-    have hEmin : E - witnessGap - 3
+      induction t with
+      | zero => rw [Mw0_risk]; try norm_num
+      | succ n ih => rw [Mw_risk_succ]; linarith
+    have hEmin : E - 3/2 - witnessGap - 1
         ≤ (Mw E 1).toGrowthState.energy := by
-      unfold Mw
-      norm_num
-      try linarith [witnessGap_pos]
+      rw [Mw1_energy]
+      try linarith
     exact Hagi.Unified.MasterHAGI (fun t => Mw E t) 0 1 0
-      (E - witnessGap - 3) (fun _ => 0) (by norm_num) (by norm_num)
+      (E - 3/2 - witnessGap - 1) (fun _ => 0) (by norm_num) (by norm_num)
       (fun _ => 0) (by norm_num) 1
       (fun _ _ => (-1 : ℝ)) (fun _ _ => 1/4) (fun _ _ => 2)
       (fun _ _ => 1) (fun _ => 1/2)
       (by norm_num) (by norm_num) (by norm_num)
-      hd hlip heta hsum hcore hnet hbud hrnn hEmin
+      hd hlip heta hsum
+      (fun t _ => by
+        have h0 : t = 0 := by omega
+        subst h0
+        exact mw_core_premises E)
+      hnet hbud hrnn hEmin
       (fun t => 2 * (3/2 : ℝ) ^ t) (fun t => (3/2 : ℝ) ^ t)
       (fun t => (3/2 : ℝ) ^ t) (fun _ => 0)
       (1/2) 1 (1/2) (1/2)
@@ -630,180 +759,26 @@ theorem masterhagi_productive_witness (E : ℝ) :
         exact le_of_eq (by ring))
       (fun t => by
         have hpos : (0:ℝ) < 2 * (3/2 : ℝ) ^ t := by positivity
-        field_simp
         norm_num)
 
-/-- **The productive MasterHAGI witness at ANY horizon**
-(R373): the R370 witness generalizes from T = 1 to every
-horizon `T ≥ 1` — the closed-form trajectory `Mw` (compound
-capability 2·(3/2)^t, energy e_t = E − 2((3/2)^t − 1) −
-t·gap − t, honestly accrued risk t/4) satisfies ALL
-MasterHAGI premises at EVERY step t < T: the capstone is
-productive on arbitrary horizons, not just single steps. The
-terminal energy bound is the T-dependent floor e_T itself
-(the constant E − gap − 3 of R370 fails for large T). -/
-theorem masterhagi_productive_witness_all (E : ℝ) (T : ℕ)
-    (hT : 1 ≤ T) :
-    ∃ (S : ℕ → Hagi.GenState ℝ),
-      (S T).toGrowthState.energy < (S 0).toGrowthState.energy
-        ∧ (S 0).toGrowthState.stepDir ≠ 0
-        ∧ (S T).toGrowthState.capability
-            = (3/2 : ℝ) ^ T * (S 0).toGrowthState.capability
-        ∧ (S T).toGrowthState.protectedRisk = (T : ℝ) / 4
-        ∧ CertifiedHAGIInvariant T
-            (fun t => (S t).toGrowthState.protectedRisk)
-            (fun t => hagiPotential (S t) 0 1 0 (fun _ => 0))
-            (fun t => 2 * (3/2 : ℝ) ^ t)
-            (fun t => (S t).toGrowthState.budget)
-            (fun t => (verify (S t).toGrowthState).budgetSpend)
-            (fun t => Qgen (S t).gen (fun _ => 0))
-            (fun t => ∑ i : Fin 1, (2 : ℝ))
-            (1/2 : ℝ)
-            (0 - (hagiPotential (S 0) 0 1 0 (fun _ => 0)
-              - (E - 2 * ((3/2 : ℝ) ^ T - 1)
-                - (T : ℝ) * witnessGap - (T : ℝ))) / 1) := by
-  refine ⟨Mw E, ?_, ?_, ?_, ?_, ?_⟩
-  · -- energy strictly decreases over the horizon
-    have hone : (1:ℝ) ≤ (3/2 : ℝ) ^ T := by
-      clear hT
-      induction T with
-      | zero => norm_num
-      | succ T ih =>
-          have hbase : (0:ℝ) < 3/2 := by norm_num
-          rw [pow_succ]
-          nlinarith
-    have hT' : (1:ℝ) ≤ (T : ℝ) := by exact_mod_cast hT
-    unfold Mw
-    norm_num
-    nlinarith [hone, hT', witnessGap_pos]
-  · unfold Mw; norm_num
-  · -- compound growth: c_T = (3/2)^T · c_0
-    unfold Mw
-    ring
-  · -- risk accrued honestly: T/4
-    unfold Mw
-    push_cast
-    ring
-  · -- the capstone itself, on the whole horizon
-    have hd : ∀ t < T, (Mw E t).toGrowthState.stepDir ≠ 0 := by
-      intro t ht
-      unfold Mw
-      norm_num
-    have hlip : ∀ t < T, ∀ i : Fin 1, (1/4 : ℝ) ≤ -(1/2) *
-        ⟪(fun _ => (-1:ℝ)) i, (Mw E t).toGrowthState.stepDir⟫_ℝ
-        + 1 * (1/2) * (1/2)
-          * ‖(Mw E t).toGrowthState.stepDir‖ ^ 2 / 2 := by
-      intro t ht i
-      unfold Mw
-      norm_num
-    have heta : ∀ t < T, (1/2 : ℝ)
-        ≤ safeqpEtaMax (K := Fin 1) (fun _ => (-1:ℝ))
-            (fun _ => 2) (fun _ => 1)
-            (Mw E t).toGrowthState.stepDir := by
-      intro t ht
-      rw [le_safeqpEtaMax_iff]
-      refine ⟨by norm_num, ?_⟩
-      intro i
-      unfold Mw
-      norm_num
-    have hsum : ∀ t < T,
-        (Mw E (t + 1)).toGrowthState.protectedRisk
-        = (Mw E t).toGrowthState.protectedRisk
-          + ∑ i : Fin 1, (1/4 : ℝ) := by
-      intro t ht
-      unfold Mw
-      push_cast
-      ring
-    have hcore : ∀ t < T,
-        CorePremises (Mw E t) (Mw E (t + 1)) 0 (fun _ => 0) := by
-      intro t ht
-      unfold CorePremises Mw
-      norm_num [Qgen, Qvec, grow, merge, joint, compress]
-      refine ⟨?_, ?_, witness_quantErr_bounded, ?_, ?_⟩
-      · exact witnessGap_pos.le
-      · linarith
-      · -- telescoping: (3/2)^(t+1) = (3/2)·(3/2)^t
-        rw [pow_succ]
-        ring
-      · push_cast
-        ring
-    have hnet : ∀ t < T, 0 * (verify (Mw E t).toGrowthState).riskSpend
-        + 1 * 0 ≤ (verify (Mw E t).toGrowthState).decrease := by
-      intro t ht
-      unfold verify Mw
-      simp [gainJoint]
-      have hp : (0:ℝ) ≤ (3/2 : ℝ) ^ t := pow_nonneg (by norm_num) t
-      linarith [hp, witnessGap_pos]
-    have hbud : ∑ t ∈ Finset.range T,
-        (verify (Mw E t).toGrowthState).budgetSpend
-      ≤ (Mw E 0).toGrowthState.budget := by
-      simp [verify, Mw]
-    have hrnn : ∀ t, 0 ≤ (Mw E t).toGrowthState.protectedRisk := by
-      intro t
-      unfold Mw
-      positivity
-    have hEmin : E - 2 * ((3/2 : ℝ) ^ T - 1)
-        - (T : ℝ) * witnessGap - (T : ℝ)
-        ≤ (Mw E T).toGrowthState.energy := by
-      unfold Mw
-      push_cast
-      ring_nf
-      linarith
-    exact Hagi.Unified.MasterHAGI (fun t => Mw E t) 0 1 0
-      (E - 2 * ((3/2 : ℝ) ^ T - 1) - (T : ℝ) * witnessGap - (T : ℝ))
-      (fun _ => 0) (by norm_num) (by norm_num)
-      (fun _ => 0) (by norm_num) T
-      (fun _ _ => (-1 : ℝ)) (fun _ _ => 1/4) (fun _ _ => 2)
-      (fun _ _ => 1) (fun _ => 1/2)
-      (by norm_num) (by norm_num) (by norm_num)
-      hd hlip heta hsum hcore hnet hbud hrnn hEmin
-      (fun t => 2 * (3/2 : ℝ) ^ t) (fun t => (3/2 : ℝ) ^ t)
-      (fun t => (3/2 : ℝ) ^ t) (fun _ => 0)
-      (1/2) 1 (1/2) (1/2)
-      (by norm_num) (by norm_num) (by norm_num) (by norm_num)
-      (by norm_num)
-      (fun t => by
-        rw [pow_succ]
-        ring)
-      (fun t => by
-        norm_num)
-      (fun t => by
-        rw [pow_succ]
-        exact le_of_eq (by ring))
-      (fun t => by
-        rw [pow_succ]
-        exact le_of_eq (by ring))
-      (fun t => by
-        have hpos : (0:ℝ) < 2 * (3/2 : ℝ) ^ t := by positivity
-        field_simp
-        norm_num)
-
-/-- **The non-idle nonvacuity witness**: `CorePremises` is
-satisfiable with a STRICTLY positive Jensen gap and gain —
-the cycle's energy ledger strictly decreases (`S'.energy =
-E − 2g < E`), h_emp_merge carried by the Core lse theory. -/
+/-- **The non-idle nonvacuity witness**: the FULL-contract
+`CorePremises` is satisfiable with a STRICTLY positive Jensen
+gap and measured gain — the one-step orbit `Mw` pays `3/2`
+grow-gain and an honest `witnessGap` merge gap. -/
 theorem corePremises_nonvacuous_strict (E : ℝ) :
-    ∃ S S' : Hagi.GenState X, ∃ epsQ : ℝ, ∃ w : Fin 5 → ℝ,
+    ∃ S S' : Hagi.GenState ℝ, ∃ epsQ : ℝ, ∃ w : Fin 5 → ℝ,
       CorePremises S S' epsQ w ∧ 0 < S.toGrowthState.gap
-        ∧ 0 < S.toGrowthState.effects.growGain := by
-  refine ⟨Spos E, Spos' E, 0, fun _ => 0, ?_, ?_, ?_⟩
-  · unfold CorePremises Spos Spos'
-    norm_num [Qgen, Qvec, grow, merge, joint, compress]
-    refine ⟨le_of_lt witnessGap_pos, by linarith, witness_quantErr_bounded, rfl, rfl⟩
-  · exact witnessGap_pos
-  · exact witnessGap_pos
+        ∧ 0 < S.toGrowthState.effects.growGain :=
+  ⟨Mw E 0, Mw E 1, 0, fun _ => 0, mw_core_premises E,
+    witnessGap_pos, by show 0 < (3/2 : ℝ); norm_num⟩
 
-/-- **The nonvacuity witness**: `CorePremises` is satisfiable —
-`S₀ E` and its composite successor `S₁ E` satisfy all 15
-conjuncts, with h_emp_dist carried by the ternary rounding
-theorem and every other stage law instantiated at equality. -/
+/-- **The nonvacuity witness**: the FULL-contract `CorePremises`
+is satisfiable (strictly, in fact — see
+`corePremises_nonvacuous_strict`). -/
 theorem corePremises_nonvacuous (E : ℝ) :
-    ∃ S S' : Hagi.GenState X, ∃ epsQ : ℝ, ∃ w : Fin 5 → ℝ,
-      CorePremises S S' epsQ w := by
-  refine ⟨S₀ E, S₁ E, 0, fun _ => 0, ?_⟩
-  unfold CorePremises S₀ S₁ grow merge joint compress
-  norm_num [Qgen, Qvec]
-  exact witness_quantErr_bounded
+    ∃ S S' : Hagi.GenState ℝ, ∃ epsQ : ℝ, ∃ w : Fin 5 → ℝ,
+      CorePremises S S' epsQ w :=
+  ⟨Mw E 0, Mw E 1, 0, fun _ => 0, mw_core_premises E⟩
 
 end Witness
 

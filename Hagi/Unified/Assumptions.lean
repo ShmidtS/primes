@@ -184,9 +184,19 @@ theorem idle_Qgen_zero (w : Fin 5 → ℝ) :
   intro i _
   fin_cases i <;> simp
 
+/-- The IDLE ORBIT trajectory (audit v8 §2.3): the full
+transition contract binds `S'` to the composed cycle as a whole
+record, and the cycle increments `experts` — so the honest idle
+trajectory is the orbit `experts := t` with every measured
+carrier pinned at its idle value. -/
+noncomputable def idleTraj {X : Type*} [NormedAddCommGroup X]
+    [InnerProductSpace ℝ X] (x0 : X) (E0 : ℝ) (t : ℕ) : Hagi.GenState X :=
+  { idleGen x0 E0 with
+    toGrowthState := { (idleGen x0 E0).toGrowthState with experts := t } }
+
 noncomputable def trunc_idle_witness {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] (x0 : X) (E0 : ℝ) (T : ℕ) :
-    Trunc (fun _ => idleGen x0 E0) 1 1 0 E0 T where
+    Trunc (fun t => idleTraj x0 E0 t) 1 1 0 E0 T where
   w := 0
   hlam := by norm_num
   hnu := one_pos
@@ -194,36 +204,39 @@ noncomputable def trunc_idle_witness {X : Type*} [NormedAddCommGroup X]
   h_epsQ := fun _ => le_refl 0
   h_core := by
     intro t _
-    unfold Hagi.CorePremises idleGen
-    simp only [Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress,
-      idleGrowth, idleSp, Hagi.gainJoint, Hagi.Qgen, Hagi.Qvec]
+    unfold Hagi.CorePremises idleTraj
+    simp only [idleGen, Hagi.grow, Hagi.merge, Hagi.joint, Hagi.compress,
+      idleGrowth, idleSp, Hagi.gainJoint, Hagi.Qgen, Hagi.Qvec,
+      zero_smul, sub_zero, smul_zero]
     norm_num
   h_net := by
     intro t _
-    have hv : (Hagi.verify (idleGen x0 E0).toGrowthState).riskSpend = 0
-        ∧ (Hagi.verify (idleGen x0 E0).toGrowthState).decrease = 0 := by
-      constructor <;> simp [Hagi.verify, idleGen, idleGrowth, idleSp, Hagi.gainJoint]
-    rw [hv.1, hv.2]
+    have hv : ∀ s : ℕ,
+        (Hagi.verify (idleTraj x0 E0 s).toGrowthState).riskSpend = 0
+        ∧ (Hagi.verify (idleTraj x0 E0 s).toGrowthState).decrease = 0 := by
+      intro s
+      constructor <;>
+        simp [Hagi.verify, idleTraj, idleGen, idleGrowth, idleSp, Hagi.gainJoint]
+    obtain ⟨hvr, hvd⟩ := hv t
+    rw [hvr, hvd]
     norm_num
   h_budget0 := by
-    have hv : (Hagi.verify (idleGen x0 E0).toGrowthState).budgetSpend = 0 := by
-      simp [Hagi.verify, idleGen, idleGrowth]
-    show ∑ t ∈ Finset.range T,
-        (Hagi.verify ((fun _ => idleGen x0 E0) t).toGrowthState).budgetSpend
-      ≤ ((fun _ => idleGen x0 E0) 0).toGrowthState.budget
-    simp only []
-    rw [Finset.sum_congr rfl (fun t (_ : t ∈ Finset.range T) => hv)]
-    simp [idleGen, idleGrowth]
-  h_risk_nn := fun _ => by simp [idleGen, idleGrowth]
+    have hv : ∀ s : ℕ,
+        (Hagi.verify (idleTraj x0 E0 s).toGrowthState).budgetSpend = 0 := by
+      intro s
+      simp [Hagi.verify, idleTraj, idleGen, idleGrowth]
+    rw [Finset.sum_congr rfl (fun t (_ : t ∈ Finset.range T) => hv t)]
+    simp [idleTraj, idleGen, idleGrowth]
+  h_risk_nn := fun _ => by simp [idleTraj, idleGen, idleGrowth]
   h_Emin := le_refl E0
 
 /-- **`Trunc` is inhabited** (R336, audit v3 Phase 6): the idle
-trajectory is an admissible premise set for any horizon `T`
-and any idle energy `E0` — the structure-level companion of
+orbit trajectory is an admissible premise set for any horizon
+`T` and any idle energy `E0` — the structure-level companion of
 the arithmetic witnesses. -/
 theorem trunc_nonvacuous {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] (x0 : X) (E0 : ℝ) (T : ℕ) :
-    Nonempty (Trunc (fun _ => idleGen x0 E0) 1 1 0 E0 T) :=
+    Nonempty (Trunc (fun t => idleTraj x0 E0 t) 1 1 0 E0 T) :=
   ⟨trunc_idle_witness x0 E0 T⟩
 
 end Hagi.Unified

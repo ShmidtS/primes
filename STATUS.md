@@ -877,11 +877,17 @@ same-folder DAG свободен.
   Коши–Шварца на √-расщеплении, A ≤ 1 (Коши). Рабочая
   лошадка bounded-CMI ⟹ generalization (этап-2; этап-1
   hoeffding_fin R374, этап-3 — сборка CMI-теоремы).
-- `Nonvacuity` (R373): `masterhagi_productive_witness_all` —
-  R370-witness обобщён с T=1 на произвольный T ≥ 1: все
-  посылки MasterHAGI на каждом шаге t < T, энергия строго
-  убывает на всём горизонте, capability 2(3/2)^T, риск T/4;
-  терминальный энергополоток Emin := e_T (T-зависимый).
+- `Nonvacuity` (R373, аудит v8): FULL-контракт перехода —
+  `CorePremises` связывает S' с композитным циклом ПОЛНОСТЬЮ
+  (conjunct 14: `S'.toGrowthState = compress(joint(merge(grow S)))`,
+  conjunct 15: `S'.gen = S.gen`). Свидетель
+  `masterhagi_productive_witness` (T=1, орбита `Mw`):
+  `Mw E 1` дефиниционно равен циклу — `FullCycleRefinement` по
+  `rfl`; энергия строго убывает, capability +3/2, риск 1/4
+  честно начислен. `mw_core_premises` — переиспользуемое
+  свидетельство полной посылки; `corePremises_single_step_
+  obstruction` (kappa=0) показывает невозможностьproductive
+  траектории T≥2 при честном ledger.
 - `Recurrence`: `grokking_threshold_time` (R366, ядро
   спектральной теории grokking, arXiv:2609.26679): остаточная
   динамика r(t+1) = r(t) − ηλ·r(t) достигает порога ε к
@@ -1093,12 +1099,12 @@ same-folder DAG свободен.
   растёт составно (×3/2 за шаг), budget-счёт точен;
   заключение CertifiedHAGIInvariant выведено самим
   MasterHAGI. Полная лестница R357 → R359 → R369 → R370.
-  `corePremises_trajectory_productive` (R369): для ЛЮБОГО
-  горизонта T существует траектория, на которой
-  CorePremises выполняется на КАЖДОМ шаге со строго
-  убывающей энергией (E − 2t·g), строгим зазором g > 0 и
-  растущей capability (+g за шаг) — полный
-  траекторный (category-2) свидетель аудита v7 §5.3.
+  Аудит v8: многошаговый trajectory-witness (R369) снят —
+  при FULL-контракте перехода measured effects копируются
+  дословно, поэтому «продуктивная» траектория T≥2
+  невозможна при честном ledger (см.
+  `corePremises_single_step_obstruction`); productive
+  свидетель имеет форму одного честного шага T=1.
   `corePremises_nonvacuous_strict` (R357) — не-idle
   свидетель: gap = строгий Йенсен-зазор (слит в Nonvacuity, R356),
   growGain = gap > 0, энергии E → E−g → E−2g — все 15
