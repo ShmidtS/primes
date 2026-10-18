@@ -250,6 +250,7 @@ import Hagi.Unified.ModelComparison
 import Hagi.Unified.NernstFannes
 import Hagi.Examples.NonvacuityHorizon
 import Hagi.Unified.RecursiveClean
+import Hagi.Model.StageSemantics
 
 set_option linter.style.header false
 

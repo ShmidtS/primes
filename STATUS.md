@@ -1161,7 +1161,13 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   `CorePremises` дают `decrease ≤ κ·s·(quantErr − 1/2) ≤ 0`) и
   `full_cycle_two_step_growth_inconsistent` (аддитивный
   growGain + конусное насыщение несовместимы при T=2, α>0,
-  C₀>0). Чинит семантику: измерения — вход перехода. Количественная
+  C₀>0). Чинит семантику: измерения — вход перехода
+  (модуль `Hagi.Model.StageSemantics`: `advance`/`Trajectory`/
+  `advance_energy_drop`/`cone_growth_window` с окном
+  `alpha_min <= alpha_cap` без зажатия; witness
+  `two_cycle_varying_gain_nonvacuous` — два активных цикла с
+  различными приростами, строгим спадом энергии и активным шагом —
+  невозможен в старой модели по двум регрессиям выше). Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
