@@ -152,4 +152,29 @@ theorem mlpResidual_bound (W : Matrix (Fin m) (Fin n) ℝ) (h : Fin n → ℝ)
           EuclideanSpace ℝ (Fin m))‖ := by
   exact residual_vec_bound _ _ K
 
+/-! ### Теорема 2: расхождение Cut-сигнала с полным градиентом -/
+
+/-- **Ошибка Cut-сигнала (трёхчленная декомпозиция)**: полный
+градиент `g_full` задачи, градиент `g_mid` вспомогательной задачи
+с фиксированными выходами внимания (attention-clamped) и
+оценитель `gu` по конечным разностям той же вспомогательной
+задачи. Треугольник даёт
+`‖gu - g_full‖ ≤ ‖gu - g_mid‖ + ‖g_mid - g_full‖`:
+член `ε_probe` контролируется `fd_probe_error` (конечные
+разности вспомогательной задачи), член `ε_attention` — модельная
+гипотеза о близости градиентов вспомогательной и полной задач
+(фиксация внимания + top-k усечение — содержимое этой границы;
+её количественная форма — отдельная теорема). -/
+theorem cut_signal_triangle {gu g_mid g_full : X} (ε_probe ε_attention : ℝ)
+    (h1 : ‖gu - g_mid‖ ≤ ε_probe)
+    (h2 : ‖g_mid - g_full‖ ≤ ε_attention) :
+    ‖gu - g_full‖ ≤ ε_probe + ε_attention := by
+  have hstep : gu - g_full = (gu - g_mid) + (g_mid - g_full) := by
+    abel
+  rw [hstep]
+  calc ‖(gu - g_mid) + (g_mid - g_full)‖
+      = ‖(gu - g_mid) + (g_mid - g_full)‖ := rfl
+    _ ≤ ‖gu - g_mid‖ + ‖g_mid - g_full‖ := norm_add_le _ _
+    _ ≤ ε_probe + ε_attention := by linarith [h1, h2]
+
 end Hagi.Pretraining
