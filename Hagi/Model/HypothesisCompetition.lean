@@ -310,4 +310,35 @@ theorem dhcWeights_uniform (a : Fin K → ℝ) {T : ℝ} (hT : T ≠ 0)
   rw [hc i, htot, mul_comm]
   field_simp
 
+/-- Параметрическая чувствительность 1: шаг монотонен по оценкам
+гипотез при 0 ≤ ρ (сильнее поддержка → сильнее активация). -/
+theorem dhcStep_mono_scores (a s s' : Fin K → ℝ)
+    (C : Matrix (Fin K) (Fin K) ℝ) {rho kappa T : ℝ} (hrho : 0 ≤ rho)
+    (h : ∀ j, s j ≤ s' j) (i : Fin K) :
+    dhcStep a s C rho kappa T i ≤ dhcStep a s' C rho kappa T i := by
+  have h1 : rho * s i ≤ rho * s' i :=
+    mul_le_mul_of_nonneg_left (h i) hrho
+  unfold dhcStep
+  linarith
+
+/-- Параметрическая чувствительность 2: шаг антитоничен по силе
+подавления при 0 ≤ C (усиление κ подавляет активацию). -/
+theorem dhcStep_antitone_kappa (a s : Fin K → ℝ)
+    (C : Matrix (Fin K) (Fin K) ℝ) {rho kappa1 kappa2 T : ℝ}
+    (hkap : kappa1 ≤ kappa2) (hT : T ≠ 0) (hK : 0 < K)
+    (hC : ∀ i j, 0 ≤ C i j) (i : Fin K) :
+    dhcStep a s C rho kappa2 T i ≤ dhcStep a s C rho kappa1 T i := by
+  have hp0 : ∀ j, 0 ≤ dhcWeights a T j := fun j =>
+    le_of_lt (dhcWeights_pos a hT hK j)
+  have hsum : 0 ≤ ∑ j, C i j * dhcWeights a T j :=
+    Finset.sum_nonneg (fun j _ => mul_nonneg (hC i j) (hp0 j))
+  have hdiff : (kappa2 - kappa1) * ∑ j, C i j * dhcWeights a T j
+      = kappa2 * ∑ j, C i j * dhcWeights a T j
+        - kappa1 * ∑ j, C i j * dhcWeights a T j := by ring
+  have hdom : kappa1 * ∑ j, C i j * dhcWeights a T j
+      ≤ kappa2 * ∑ j, C i j * dhcWeights a T j :=
+    mul_le_mul_of_nonneg_right hkap hsum
+  unfold dhcStep
+  linarith [hdiff, hdom]
+
 end Hagi.Model
