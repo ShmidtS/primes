@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Mathlib
+import Hagi.Prelude.Info
 set_option linter.style.header false
 
 /-!
@@ -340,5 +341,56 @@ theorem dhcStep_antitone_kappa (a s : Fin K → ℝ)
     mul_le_mul_of_nonneg_right hkap hsum
   unfold dhcStep
   linarith [hdiff, hdom]
+
+/-! ## Связка с Information-слоем HAGI (объединение идей) -/
+
+/-- Мост концепций: DHC-веса это HAGI-softmax `softDef`
+на отнормированных активациях `a j / T` (температура
+уходит в деление; `T = 1` даёт тождественное совпадение
+с `softDef a`). -/
+theorem dhcWeights_eq_softDef (a : Fin K → ℝ) (T : ℝ) (i : Fin K) :
+    dhcWeights a T i = Hagi.Prelude.softDef (fun j => a j / T) i :=
+  rfl
+
+/-- Энтропийная граница (объединение с R334): шаноновская
+энтропия DHC-весов выбора не превышает `log K` —
+следствие HAGI-гиббсовской леммы `kl_nonneg`,
+применённой к распределению весов и равномерному. -/
+theorem dhcWeights_ent_le_logK (a : Fin K → ℝ) {T : ℝ} (hT : T ≠ 0)
+    (hK : 0 < K) :
+    Hagi.Prelude.entDef (dhcWeights a T) ≤ Real.log (K : ℝ) := by
+  set u : Fin K → ℝ := fun _ => 1 / (K : ℝ) with hu
+  have hKc0 : 0 < (K : ℝ) := by exact_mod_cast hK
+  have hq : ∀ v, 0 < dhcWeights a T v := fun v => dhcWeights_pos a hT hK v
+  have hpu : ∀ v, 0 < u v := fun _ => div_pos one_pos hKc0
+  have hsq : ∑ v, dhcWeights a T v = 1 := dhcWeights_sum_one a hT hK
+  have hsu : ∑ v, u v = 1 := by
+    rw [hu, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+      nsmul_eq_mul, one_div]
+    field_simp
+  have hkl := Hagi.Prelude.kl_nonneg (dhcWeights a T) u hq hpu hsq hsu
+  have hterm : ∀ v, dhcWeights a T v * Real.log (dhcWeights a T v / u v)
+      = dhcWeights a T v * Real.log (dhcWeights a T v)
+        + dhcWeights a T v * Real.log (K : ℝ) := by
+    intro v
+    have hdiv : dhcWeights a T v / u v
+        = dhcWeights a T v * (K : ℝ) := by
+      rw [hu]; field_simp
+    rw [hdiv, Real.log_mul (ne_of_gt (hq v)) (ne_of_gt hKc0)]
+    ring
+  have hkl' : Hagi.Prelude.klDef (dhcWeights a T) u
+      = -Hagi.Prelude.entDef (dhcWeights a T) + Real.log (K : ℝ) := by
+    unfold Hagi.Prelude.klDef Hagi.Prelude.entDef
+    have h1 : ∑ v, dhcWeights a T v * Real.log (dhcWeights a T v / u v)
+        = ∑ v, (dhcWeights a T v * Real.log (dhcWeights a T v)
+            + dhcWeights a T v * Real.log (K : ℝ)) :=
+      Finset.sum_congr rfl (fun v _ => hterm v)
+    rw [h1, Finset.sum_add_distrib]
+    have h2 : ∑ v, dhcWeights a T v * Real.log (K : ℝ)
+        = (∑ v, dhcWeights a T v) * Real.log (K : ℝ) := by
+      rw [Finset.sum_mul]
+    rw [h2, hsq]
+    ring
+  linarith
 
 end Hagi.Model
