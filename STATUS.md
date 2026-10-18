@@ -1181,7 +1181,9 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   exp-хорды: канон `Foundations.exp_chord_r` (r-обобщение);
   `Probability.exp_chord` и `Foundations.exp_chord_ab` (r=1)
   делегируют; `Ensemble.exp_chord` — симметричный частный случай
-  поверх `exp_chord_ab` — одна математическая копия вместо трёх. Количественная
+  поверх `exp_chord_ab` — одна математическая копия вместо трёх. Ещё один
+  дословный дубль устранён: `System.Certificates.penalty_drop_bound`
+  теперь делегирует канону `Foundations.hagiPotential_penalty_drop`. Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`

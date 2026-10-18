@@ -100,18 +100,13 @@ structure CycleCertificate where
 /-! ## Soundness: one certified cycle decreases Φ -/
 
 
-/-- The penalty term grows by at most the probe drop. -/
+/-- The penalty term grows by at most the probe drop
+(dedup: one-line delegation to the canonical
+`Hagi.Foundations.hagiPotential_penalty_drop`). -/
 lemma penalty_drop_bound (qTarget q q' epsQ : ℝ)
     (heps : 0 ≤ epsQ) (hdrop : q - epsQ ≤ q') :
-    max 0 (qTarget - q') ≤ max 0 (qTarget - q) + epsQ := by
-  have h1 : qTarget - q' ≤ qTarget - q + epsQ := by linarith
-  have hkey : qTarget - q' ≤ max 0 (qTarget - q) + epsQ := by
-    rcases le_total 0 (qTarget - q) with h | h
-    · rw [max_eq_right h]; linarith
-    · rw [max_eq_left h]; linarith
-  rcases le_total 0 (qTarget - q') with h | h
-  · rw [max_eq_right h]; exact hkey
-  · rw [max_eq_left h]; positivity
+    max 0 (qTarget - q') ≤ max 0 (qTarget - q) + epsQ :=
+  Hagi.Foundations.hagiPotential_penalty_drop qTarget q q' epsQ heps hdrop
 
 /-- For a chained `CycleCertificate` with `lam, nu ≥ 0` and
 price coverage `lam·(grow.risk + merge.risk + joint.risk) +
