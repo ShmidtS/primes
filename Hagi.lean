@@ -142,6 +142,7 @@ import Hagi.Growth.TakeoffElasticity
 import Hagi.Ensemble.CompressionCert
 import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
+import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
