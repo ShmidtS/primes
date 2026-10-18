@@ -166,7 +166,7 @@ import Hagi.Ensemble.PolicyCompatibility
 import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
 import Hagi.Unified.ArchitectureTheorem
-import Hagi.Unified.HAGICertWitness
+import Hagi.Examples.HAGICertWitness
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
@@ -198,7 +198,7 @@ import Hagi.Unified.MasterHAGI
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.GrandSynthesis
 import Hagi.System.Certificates
-import Hagi.Unified.Nonvacuity
+import Hagi.Examples.Nonvacuity
 import Hagi.Unified.Assumptions
 import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta
@@ -245,7 +245,7 @@ import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.InterpretiveGrowth
 import Hagi.Unified.ModelComparison
 import Hagi.Unified.NernstFannes
-import Hagi.Unified.NonvacuityHorizon
+import Hagi.Examples.NonvacuityHorizon
 import Hagi.Unified.RecursiveClean
 
 set_option linter.style.header false

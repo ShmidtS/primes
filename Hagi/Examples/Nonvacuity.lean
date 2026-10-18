@@ -38,7 +38,7 @@ grounded in the Core `lse` theory — the first nonvacuous
 
 open Real Finset Hagi
 
-namespace Hagi.Unified
+namespace Hagi.Examples
 
 variable {k : Type} [Fintype k] [Nonempty k]
 
@@ -174,10 +174,10 @@ theorem jensenGap_pos_witness (a : ℝ) (ha : a ≠ 0) :
   rw [hl1, hl2, hlm, hl2a, hlma]
   linarith
 
-end Hagi.Unified
+end Hagi.Examples
 
 namespace Hagi
-export Hagi.Unified (jensenGap_pos_witness)
+export Hagi.Examples (jensenGap_pos_witness)
 end Hagi
 
 set_option linter.style.header false
@@ -212,7 +212,7 @@ frontier.
 
 open Real Finset InnerProductSpace Hagi Hagi.Foundations
 
-namespace Hagi.Unified
+namespace Hagi.Examples
 
 /-- The ternary-grounded distortion of the witness weight:
 the compressed weight is `qTern 1 (1/4) = roundTern (1/4) = 0`,
@@ -807,4 +807,4 @@ theorem corePremises_nonvacuous (E : ℝ) :
 
 end Witness
 
-end Hagi.Unified
+end Hagi.Examples

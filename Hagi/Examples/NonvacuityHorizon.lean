@@ -21,7 +21,7 @@ nonvacuity-свидетели ↔ cert_horizon_bound (связать свиде�
 `cert_horizon_witness`.
 -/
 
-namespace Hagi.Unified
+namespace Hagi.Examples
 
 open Real
 
@@ -119,4 +119,4 @@ theorem witness_achieves_horizon (γ k σ Cstar C0 : ℝ) (T : ℕ)
   simp only [satC, pow_zero, mul_one]
   linarith
 
-end Hagi.Unified
+end Hagi.Examples

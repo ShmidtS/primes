@@ -149,3 +149,8 @@ globs = ["Hagi.Step.+"]
 [[lean_lib]]
 name = "Hagi.Unified"
 globs = ["Hagi.Unified.+"]
+
+# Stage-3: witness/nonvacuity examples (top layer).
+[[lean_lib]]
+name = "Hagi.Examples"
+globs = ["Hagi.Examples.+"]

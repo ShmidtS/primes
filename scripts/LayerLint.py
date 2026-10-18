@@ -42,6 +42,7 @@ LAYERS = {
     "Autonomy": 5,
     "Omni": 5,
     "Unified": 6,
+    "Examples": 7,
 }
 
 # known violations, to be removed one by one (audit list):
