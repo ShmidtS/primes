@@ -254,6 +254,7 @@ import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
+import Hagi.Percolation.Site
 
 set_option linter.style.header false
 
