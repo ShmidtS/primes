@@ -1402,6 +1402,21 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   Замкнуты все 4 компонента единого ядра: квантование
   (gridQ), телескоп (lyapunov_gain_noise), охлаждение
   (gibbs_optimal_bound, ит. 19), шаг (DiscreteStep).
+- Итерация 21 (рефакторинг по аудиту 2, шаг A —
+  state-dependent effects): в `Hagi/Model/StageSemantics.lean`
+  добавлен слой эффектов, ВЫЧИСЛЯЕМЫХ ИЗ ТЕКУЩЕГО СОСТОЯНИЯ:
+  `stateGrowthEffects α S` (growGain = α·C_t — продуктивный
+  закон, который модель с фиксированными эффектами не выражает)
+  + `growInput` (честный StageInput на цикл) +
+  `growAdvance_capability` (прирост ровно α·C_t за переход),
+  `grow_two_step_consistent` (C₂ = (1+α)²·C₀ — зеркальное
+  опровержение two-step-противоречия: геометрический закон
+  ВЫПОЛНИМ на двух циклах, прирост порождается переходом, а не
+  встроен формулой) и `grow_strict_productive` (строгий рост
+  каждый цикл — клауза Productive трихотомии аудита
+  Nonempty/Productive/SustainedTakeoff). Старая модель и её
+  регрессионный тест
+  full_cycle_two_step_growth_inconsistent сохранены.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

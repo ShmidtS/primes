@@ -101,6 +101,91 @@ structure Trajectory (X : Type*) [NormedAddCommGroup X]
   /-- Every step is an advance over that cycle's input. -/
   h_step : ∀ t < T, state (t + 1) = advance (state t) (input t)
 
+/-! ### State-dependent effects (audit 2 / P2 repair)
+
+The two-step inconsistency
+(`Examples/Nonvacuity.full_cycle_two_step_growth_inconsistent`)
+showed that a FIXED per-trajectory effect cannot sustain a
+geometric growth law: the gain must be recomputed FROM THE
+CURRENT STATE at every cycle. This layer makes that explicit:
+`stateGrowthEffects alpha S` computes the cycle effects from
+the state (gain proportional to capability), and `growAdvance`
+composes them through the honest `advance` semantics. -/
+
+/-- **State-dependent cycle effects**: measured effects
+computed FROM the current state, not carried over. The gain is
+proportional to the current capability (the productive law the
+fixed-effects model cannot express); the remaining entries are
+neutral placeholders (no-op costs/risks/energies), so the
+growth dynamic can be studied in isolation. -/
+def stateGrowthEffects (alpha : ℝ) (S : GrowthState X) : StageEffects where
+  growGain := alpha * S.capability
+  growCost := 0
+  growRisk := 0
+  growEnergy := S.energy
+  mergeEnergy := S.energy
+  mergeRisk := 0
+  jointEnergy := S.energy
+  jointRisk := 0
+  jointCost := 0
+  quantErr := 0
+  compressEnergy := S.energy
+  compressRisk := 0
+
+/-- The per-cycle input for the pure productive-growth cycle:
+effects recomputed from the CURRENT state `S` (state-dependent —
+the repair of the fixed-effects defect), zero gap, neutral
+SafeQP evidence. -/
+noncomputable def growInput (alpha : ℝ) (S : GrowthState X) : StageInput X where
+  sp.eta := 1
+  sp.L := 1
+  sp.kappa := 0
+  sp.s := 0
+  eff := stateGrowthEffects alpha S
+  gap := 0
+  stepDir := 0
+  grad := 0
+  h_costs_nn := by constructor <;> exact le_refl _
+  h_risks_nn := by
+    exact ⟨le_refl _, ⟨le_refl _, ⟨le_refl _, le_refl _⟩⟩⟩
+  h_eta_pos := by norm_num
+
+/-- One productive growth cycle through the state-dependent
+semantics: capability gains exactly `alpha * C_t` — the gain is
+recomputed from the CURRENT state at every cycle. -/
+theorem growAdvance_capability (alpha : ℝ) (S : GrowthState X) :
+    (advance S (growInput alpha S)).capability
+      = S.capability + alpha * S.capability := by
+  simp [advance, growInput, stateGrowthEffects]
+
+/-- **Two-step consistency (the mirror of the two-step
+inconsistency)**: under state-dependent effects the geometric
+growth law is SATISFIABLE on two consecutive cycles — the
+second cycle recomputes its gain from the ALREADY GROWN state,
+so `C 2 = (1 + alpha)^2 * C 0`. This is the productive witness
+the fixed-effects model provably excludes. -/
+theorem grow_two_step_consistent (alpha : ℝ) (S : GrowthState X) :
+    (advance (advance S (growInput alpha S))
+      (growInput alpha (advance S (growInput alpha S)))).capability
+      = (1 + alpha) ^ 2 * S.capability := by
+  have h1 := growAdvance_capability alpha S
+  have h2 := growAdvance_capability alpha
+    (advance S (growInput alpha S))
+  rw [h1] at h2
+  rw [h2]
+  ring
+
+/-- Across the horizon the state-dependent cycle is strictly
+productive (capability strictly increases whenever `alpha > 0`
+and the start is positive) — the `Productive` clause of the
+audit's Nonempty/Productive/SustainedTakeoff trichotomy,
+realized by genuine transitions rather than built-in formulas. -/
+theorem grow_strict_productive (alpha : ℝ) (S : GrowthState X)
+    (hα : 0 < alpha) (hC : 0 < S.capability) :
+    S.capability < (advance S (growInput alpha S)).capability := by
+  rw [growAdvance_capability]
+  linarith [mul_pos hα hC]
+
 /-! ### The one-cycle energy certificate -/
 
 /-- **One-cycle energy drop over fresh measurements**: under the
