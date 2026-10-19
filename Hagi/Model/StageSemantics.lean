@@ -492,4 +492,35 @@ theorem witness_takeoff_realized :
   rw [hcap0]
   norm_num
 
+/-! ### Termination: the repaired model terminates on schedule -/
+
+/-- **Termination bound for repaired trajectories** (unification
+with the canonical Lyapunov machine): if every cycle certifies a
+drop of at least `d0 > 0` and the energy never sinks below the
+floor `Emin`, the whole horizon is budget-bounded:
+`T <= (E_0 - Emin)/d0`. This is the multi-cycle generalization of
+the one-cycle certificate arithmetic — under the OLD fixed-effects
+model two consecutive cycles already forced the certified drop
+nonpositive (`corePremises_two_step_decrease_nonpos`), so a
+POSITIVE `d0` horizon was unsatisfiable; in the repaired semantics
+it is realized (see `two_cycle_certified_descent`). Delegation
+chain: `trajectory_energy_telescope` + energy floor +
+`Hagi.Foundations.lyapunov_divides`-style arithmetic. -/
+theorem trajectory_termination (tr : Trajectory X) (Emin d0 : ℝ)
+    (hd0 : 0 < d0)
+    (hdrop : ∀ t < tr.T,
+      (tr.input t).eff.compressEnergy
+        ≤ (tr.state t).energy - d0)
+    (hfloor : ∀ t ≤ tr.T, Emin ≤ (tr.state t).energy) :
+    (tr.T : ℝ) ≤ ((tr.state 0).energy - Emin) / d0 := by
+  have htel := trajectory_energy_telescope tr d0 hd0.le hdrop tr.T
+    (Nat.le_refl _)
+  have hEk : Emin ≤ (tr.state tr.T).energy := hfloor tr.T (Nat.le_refl _)
+  have hkey : (tr.state 0).energy - Emin ≥ (tr.T : ℝ) * d0 := by
+    calc (tr.state 0).energy - Emin
+        ≥ (tr.state 0).energy - (tr.state tr.T).energy := by
+          linarith [hEk]
+      _ ≥ (tr.T : ℝ) * d0 := by linarith [htel]
+  exact (le_div_iff₀ hd0).mpr hkey
+
 end Hagi.Model
