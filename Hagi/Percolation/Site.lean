@@ -286,6 +286,67 @@ theorem emergence_jump_witness :
     ∃ ω : V 2 → Fin 2,
       ¬ crossing rowTop rowBot 1 ω ∧ crossing rowTop rowBot 2 ω :=
   ⟨paritySeed, parity_not_crossing1, parity_crossing2⟩
+/-- **Strict jump in `R`** (Layer-3, quantitative): the emergence
+witness makes the crossing probability STRICTLY increase from
+threshold `1` to threshold `2` on the same `2 × 2` grid — the
+whole strict increase comes from the single seed `paritySeed`,
+all other seeds only move the indicator monotonically. -/
+theorem R_strict_jump :
+    R 2 rowTop rowBot 1 < R 2 rowTop rowBot 2 := by
+  classical
+  have hc16 : (Fintype.card (Ω 2 2) : ℕ) = 16 := by rw [card_Ω]; norm_num
+  have hcpos : (0 : ℝ) < ((Fintype.card (Ω 2 2) : ℕ) : ℝ) := by norm_num [hc16]
+  set S1 : ℝ := ∑ ω ∈ (Finset.univ : Finset (Ω 2 2)),
+    (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0) with hS1
+  set S2 : ℝ := ∑ ω ∈ (Finset.univ : Finset (Ω 2 2)),
+    (if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0) with hS2
+  have hR1 : R 2 rowTop rowBot 1
+      = ((Fintype.card (Ω 2 2) : ℕ) : ℝ)⁻¹ * S1 := rfl
+  have hR2 : R 2 rowTop rowBot 2
+      = ((Fintype.card (Ω 2 2) : ℕ) : ℝ)⁻¹ * S2 := rfl
+  have hd : ∀ ω : Ω 2 2,
+      (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0)
+        + ((if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0)
+            - (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0))
+      = (if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0) := by
+    intro ω
+    by_cases hc1 : crossing rowTop rowBot 1 ω
+    · rw [if_pos hc1, if_pos (crossing_mono rowTop rowBot ω (Nat.le_succ 1) hc1)]; ring
+    · rw [if_neg hc1]
+      by_cases hc2 : crossing rowTop rowBot 2 ω
+      · rw [if_pos hc2]; ring
+      · rw [if_neg hc2]; ring
+  have hps : (if crossing rowTop rowBot 2 paritySeed then (1 : ℝ) else 0)
+      - (if crossing rowTop rowBot 1 paritySeed then (1 : ℝ) else 0) = 1 := by
+    rw [if_pos parity_crossing2, if_neg parity_not_crossing1]; ring
+  have hnn : ∀ ω ∈ (Finset.univ : Finset (Ω 2 2)),
+      (0 : ℝ) ≤ (if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0)
+        - (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0) := by
+    intro ω _
+    by_cases hc1 : crossing rowTop rowBot 1 ω
+    · rw [if_pos hc1, if_pos (crossing_mono rowTop rowBot ω (Nat.le_succ 1) hc1)]; norm_num
+    · rw [if_neg hc1]; split <;> norm_num
+  set D : ℝ := ∑ ω ∈ (Finset.univ : Finset (Ω 2 2)),
+    ((if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0)
+      - (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0)) with hD
+  have h1le : (1 : ℝ) ≤ D := by
+    have hge := Finset.single_le_sum hnn (Finset.mem_univ paritySeed)
+    rw [← hD] at hge
+    rw [← hps]
+    exact hge
+  have hsum : S1 + 1 ≤ S2 := by
+    have hgc : S2 = ∑ ω ∈ (Finset.univ : Finset (Ω 2 2)),
+        ((if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0)
+          + ((if crossing rowTop rowBot 2 ω then (1 : ℝ) else 0)
+              - (if crossing rowTop rowBot 1 ω then (1 : ℝ) else 0))) := by
+      rw [hS2]
+      exact Finset.sum_congr rfl fun ω _ => (hd ω).symm
+    rw [hgc, Finset.sum_add_distrib, ← hS1, ← hD]
+    linarith [h1le]
+  rw [hR1, hR2, inv_mul_eq_div, inv_mul_eq_div]
+  rw [div_lt_div_iff₀ hcpos hcpos]
+  nlinarith [hsum, hcpos]
+
 /-! ### Threshold-system interface (unification with HAGI line) -/
 
 /-- **Monotone threshold system** (the common shape behind
