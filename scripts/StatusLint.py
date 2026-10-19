@@ -13,7 +13,7 @@ HAGI = ROOT / "Hagi"
 
 DECL_RE = re.compile(
     r"^\s*(?:private\s+|protected\s+)?(?:noncomputable\s+)?"
-    r"(?:theorem|lemma|def|structure|abbrev|instance|inductive)"
+    r"(?:theorem|lemma|def|structure|abbrev|instance|inductive|class)"
     r"\s+([A-Za-z_][A-Za-z0-9_'′?]*)", re.M)
 
 
