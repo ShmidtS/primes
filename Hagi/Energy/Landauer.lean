@@ -356,4 +356,26 @@ theorem strict_prefix_growth (kmin : ℝ)
     exact this
   nlinarith [hkmin]
 
+
+/-! ### Iteration 13: first crossing — minimal cycles to target -/
+
+/-- **First crossing** (target reachability): if the witness
+trajectory of `T` cycles strictly exceeds a capability target
+(θ(T·kmin) > θtarget), then there is a MINIMAL number of cycles
+`n ≤ T` at which the target is first crossed (θ(n·kmin) >
+θtarget, and every earlier prefix does not cross). The
+thermodynamically legal run TELLS you how long self-development
+takes: the target time is the first crossing along the
+credit-prefix schedule, bounded by the lifetime. -/
+theorem first_crossing_le_lifetime (kmin : ℝ) (θ : ℝ → ℝ)
+    (θtarget : ℝ) (T : ℕ) (hcross : θ (T * kmin) > θtarget) :
+    ∃ n : ℕ, n ≤ T ∧ θ (n * kmin) > θtarget ∧
+      ∀ m : ℕ, m < n → ¬ (θ (m * kmin) > θtarget) := by
+  classical
+  set P : ℕ → Prop := fun n => θ (n * kmin) > θtarget with hPdef
+  have hex : ∃ n : ℕ, P n := ⟨T, hcross⟩
+  refine ⟨Nat.find hex, Nat.find_le (n := T) hcross, Nat.find_spec hex, ?_⟩
+  · intro m hm
+    exact (Nat.lt_find_iff hex m).mp hm m (le_refl _)
+
 end Hagi.Energy
