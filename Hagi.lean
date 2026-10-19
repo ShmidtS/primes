@@ -253,6 +253,7 @@ import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
+import Hagi.Pretraining.TrustRegion
 
 set_option linter.style.header false
 

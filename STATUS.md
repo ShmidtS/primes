@@ -1234,7 +1234,17 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   g = H·Δ восстанавливают credit-вектор Δ ТОЧНО (Δ = c⁻¹·Hᵀg) —
   k forward-оценок дают все k координат против 2k при
   координатных разностях; восстановление — тождество, не
-  оценка (мост с Hagi.Core.Hadamard sylvester-ортогональностью).
+  оценка (мост с Hagi.Core.Hadamard sylvester-ортогональностью). Итерация 4 (spectral trust region, Muon/ANVIL-мост;
+  theory: arXiv:2506.15054, 2502.02900):
+  `Hagi/Pretraining/TrustRegion.lean` — ортогонализованный шаг
+  живёт под спектральным trust region: `hadamardRows_sup_bound`
+  (|Q·ᵥδ|_i <= ||δ||_2 для строково-ортонормальной Q:
+  Cauchy–Schwarz + единичные строки — шаг двигает каждую
+  координату не дальше η·||δ||_2), `orthonormal_mulVec_isometry`
+  (Parseval: Q·ᵥδ сохраняет L2-норму credit-вектора —
+  ортогонализованный momentum не усиливает и не гасит ни одно
+  направление), `transpose_mul_self_of_mul_transpose`
+  (QᵀQ = 1 из QQᵀ = 1 через обратимость).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
