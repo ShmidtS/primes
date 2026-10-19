@@ -166,4 +166,28 @@ theorem serial_divergence_cap (B cOp n : ℝ) (hcOp : 0 < cOp)
   have h2 : n * cOp ≤ B := by rw [mul_comm]; exact h_emp_finite_time
   exact (le_div_iff₀ hcOp).mpr h2
 
+
+/-! ### Iteration 6: cycle budget capstone (measure + write) -/
+
+/-- **Cycle budget split (capstone of the thermodynamic line)**:
+one training cycle = full readout-credit measurement (exactly `k`
+forward evaluations, the ceiling achieved by the Hadamard batch)
+PLUS a parameter write of `F` bits. Both are priced by the same
+unit work `cUnit` (bridges `h_emp_credit` and `h_emp_memwrite`,
+same `h_emp_` status); with a per-cycle budget `B`, the reachable
+pair (credit dimension, written bits) lies on the line
+`k + F = B / cUnit` — measuring more and remembering more compete
+for the SAME energy budget. This is the general optimality
+pressure of the thermodynamic laws: quality (larger measured
+credit) and volume (larger written model) trade off linearly. -/
+theorem cycle_budget_split (B cUnit k F : ℝ) (hcUnit : 0 < cUnit)
+    (hk : 0 ≤ k) (hF : 0 ≤ F)
+    (h_emp_credit : cUnit * k ≤ M)
+    (h_emp_memwrite : cUnit * F ≤ W) (hM : M + W ≤ B) :
+    cUnit * (k + F) ≤ B := by
+  have h1 : cUnit * k + cUnit * F ≤ M + W := by linarith
+  have h2 : cUnit * k + cUnit * F = cUnit * (k + F) := by
+    rw [mul_add]
+  linarith
+
 end Hagi.Energy

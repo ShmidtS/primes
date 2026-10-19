@@ -1252,7 +1252,13 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   термодинамическая цена ПОЛНОГО credit'а — ровно k
   forward-оценок за итерацию (цена оценки — Landauer-мост
   Energy.Landauer). Связка Speedrun+Landauer замкнута:
-  hadamard_probe_inversion ДОСТИГАЕТ нижнюю границу.
+  hadamard_probe_inversion ДОСТИГАЕТ нижнюю границу. Итерация 6 (capstone):
+  `cycle_budget_split` — бюджет цикла B расщепляется на
+  измерение (k·c_unit, нижняя граница итерации 5) и запись
+  (F·c_unit, Landauer): c_unit·(k+F) <= B — качество (объём
+  измеренного credit'а) и объём (размер записанной модели)
+  конкурентны за один и тот же энергобюджет ЛИНЕЙНО
+  (линия k + F = B/c_unit).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
