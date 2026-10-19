@@ -1229,7 +1229,12 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   softmax-весов — nothing is differentiated), `head_probe_linear`
   (линейный head на пробе = чистые логиты + предвычисленное
   направление: probe стоит один head-eval). Честная граница:
-  софт-кап 15·tanh(z/15) рантайма — h_emp-мост вне тождеств.
+  софт-кап 15·tanh(z/15) рантайма — h_emp-мост вне тождеств. Плюс `hadamard_probe_inversion`:
+  при строково-ортогональных probe (H·Hᵀ = c•1) измерения
+  g = H·Δ восстанавливают credit-вектор Δ ТОЧНО (Δ = c⁻¹·Hᵀg) —
+  k forward-оценок дают все k координат против 2k при
+  координатных разностях; восстановление — тождество, не
+  оценка (мост с Hagi.Core.Hadamard sylvester-ортогональностью).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

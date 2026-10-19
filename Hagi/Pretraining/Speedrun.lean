@@ -3,6 +3,9 @@ Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib.Tactic
+import Hagi.Core.Hadamard
+
+open scoped Matrix
 set_option linter.style.header false
 
 /-!
@@ -151,5 +154,49 @@ theorem head_probe_linear {X : Type*} [AddCommGroup X] [Module ℝ X]
     (h : X →ₗ[ℝ] X) (x d : X) (σ : ℝ) :
     h (x + σ • d) = h x + σ • (h d) := by
   rw [map_add, map_smul]
+
+
+/-! ### Hadamard-probe inversion (run.py: forward differences along
+all rows of a sign matrix give each coordinate's credit in full) -/
+
+/-- **Hadamard-probe inversion**: with row-orthogonal probes
+(`H * Hᵀ = c • 1`, `c ≠ 0`), full-batch sign-probe measurements
+`g r = ⟨H r, Δ⟩` (one forward evaluation per row) recover the
+coordinate-credit vector `Δ` EXACTLY: `Δ = c⁻¹ • (Hᵀ *ᵥ g)`.
+
+The run.py economy: k forward evaluations (k Hadamard rows) give
+ALL k coordinates of the credit — versus 2k finite-difference
+evaluations coordinate by coordinate — and the recovery is an
+identity, not an estimator. -/
+theorem hadamard_probe_inversion {m : Type*} [Fintype m]
+    [DecidableEq m] (H : Matrix m m ℝ) (Δ g : m → ℝ) (c : ℝ)
+    (hc : c ≠ 0) (hmul : H * Hᵀ = c • 1)
+    (hg : ∀ r, g r = ∑ k, H r k * Δ k) :
+    Δ = (c⁻¹) • (Hᵀ *ᵥ g) := by
+  classical
+  have hHB : H * ((c⁻¹ : ℝ) • Hᵀ) = 1 := by
+    rw [Matrix.mul_smul, hmul, smul_smul, inv_mul_cancel₀ hc, one_smul]
+  have hdet : H.det ≠ 0 := by
+    intro h0
+    have h2 : (H * ((c⁻¹:ℝ) • Hᵀ)).det = 1 := by rw [hHB]; simp
+    rw [Matrix.det_mul, h0, zero_mul] at h2
+    norm_num at h2
+  have hUd : IsUnit H.det := IsUnit.mk0 H.det hdet
+  have hU : IsUnit H := (Matrix.isUnit_iff_isUnit_det H).mpr hUd
+  have hBinv : (c⁻¹ : ℝ) • Hᵀ = H⁻¹ := by
+    rw [← Matrix.mul_one H⁻¹, ← hHB, ← Matrix.mul_assoc,
+      Matrix.nonsing_inv_mul H hUd, Matrix.one_mul]
+  have hTH : Hᵀ * H = c • 1 := by
+    have h2 : ((c⁻¹ : ℝ) • Hᵀ) * H = 1 := by
+      rw [hBinv, Matrix.nonsing_inv_mul H hUd]
+    rw [Matrix.smul_mul] at h2
+    have h3 := congrArg (fun X : Matrix m m ℝ => c • X) h2
+    rw [smul_smul, mul_inv_cancel₀ hc, one_smul] at h3
+    exact h3
+  have hgv : g = H *ᵥ Δ := funext fun r => hg r
+  have key : Hᵀ *ᵥ g = c • Δ := by
+    rw [hgv, Matrix.mulVec_mulVec, hTH, Matrix.smul_mulVec,
+      Matrix.one_mulVec]
+  rw [key, smul_smul, inv_mul_cancel₀ hc, one_smul]
 
 end Hagi.Pretraining
