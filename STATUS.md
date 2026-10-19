@@ -1244,7 +1244,15 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   (Parseval: Q·ᵥδ сохраняет L2-норму credit-вектора —
   ортогонализованный momentum не усиливает и не гасит ни одно
   направление), `transpose_mul_self_of_mul_transpose`
-  (QᵀQ = 1 из QQᵀ = 1 через обратимость).
+  (QᵀQ = 1 из QQᵀ = 1 через обратимость). Итерация 5: `probe_lower_bound` —
+  нижняя граница измерений: менее k линейных probe-строк всегда
+  существует ненулевой credit-вектор со ВСЕМИ нулевыми
+  показаниями (finrank-аргумент: injective → k <= n) — точное
+  восстановление Δ = c⁻¹Hᵀg невозможно; минимальная
+  термодинамическая цена ПОЛНОГО credit'а — ровно k
+  forward-оценок за итерацию (цена оценки — Landauer-мост
+  Energy.Landauer). Связка Speedrun+Landauer замкнута:
+  hadamard_probe_inversion ДОСТИГАЕТ нижнюю границу.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

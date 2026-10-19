@@ -199,4 +199,30 @@ theorem hadamard_probe_inversion {m : Type*} [Fintype m]
       Matrix.one_mulVec]
   rw [key, smul_smul, inv_mul_cancel₀ hc, one_smul]
 
+
+/-! ### Probe lower bound (blind spots of too-few measurements) -/
+
+/-- **Probe lower bound** (the thermodynamic floor of full readout
+credit): with fewer than `k` linear probe rows, SOME nonzero credit
+vector produces all-zero measurements — exact recovery `Δ =
+c⁻¹ • Hᵀ g` is then impossible for every `Δ`. The k-measurement
+floor means the minimal energy price of FULL credit is
+`k` forward evaluations per iteration (each priced by the Landauer
+bridge of `Hagi.Energy.Landauer`). -/
+theorem probe_lower_bound {k n : ℕ}
+    (f : (Fin k → ℝ) →ₗ[ℝ] (Fin n → ℝ)) (hnk : n < k) :
+    ∃ v : Fin k → ℝ, v ≠ 0 ∧ f v = 0 := by
+  classical
+  by_contra hcon
+  push Not at hcon
+  have hinj : Function.Injective f := by
+    rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
+    intro x hx
+    by_contra hx0
+    exact hcon x (fun h => hx0 h) (by simpa [LinearMap.mem_ker] using hx)
+  have h1 : Module.finrank ℝ (Fin k → ℝ) ≤ Module.finrank ℝ (Fin n → ℝ) :=
+    LinearMap.finrank_le_finrank_of_injective hinj
+  simp at h1
+  omega
+
 end Hagi.Pretraining
