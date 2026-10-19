@@ -9,8 +9,8 @@ Quot.sound; эмпирические посылки — префикс `h_emp_`.
 
 ## Корпус
 
-- 290 Lean-модулей в `Hagi/` (28 каталогов), 2196 деклараций
-  в declarations.lock (Freeze, 2026-10-11), 1712
+- 290 Lean-модулей в `Hagi/` (28 каталогов), 2683 деклараций
+  в declarations.lock (Freeze, 2026-10-18), 1714
   theorem/lemma, 0 sorry; `lake build Hagi` зелёный.
 - LayerLint: 0 исключений; TrivialLint T0 fail-closed
   (axiom/sorry/native_decide в любом месте → exit 1).
@@ -1357,7 +1357,15 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   HAGI-моделей θ (intensity = absorbed credit): монотонно-
   пороговые аргументы — например, Парето-доминирование
   optimal_split — переносятся ОДИН раз на все системы,
-  реализующие интерфейс.
+  реализующие интерфейс. Итерация 17 (Layer 3, количественное
+  замыкание): рефакторинг свидетельства на именованные части
+  (`paritySeed`, `rowTop`, `rowBot`, `parity_not_crossing1`,
+  `parity_crossing2`) и строгое усиление `R_strict_jump` —
+  вероятность пересечения СТРОГО растёт: R(1) < R(2) на той
+  же сетке 2×2, весь строгий прирост 1/16 идёт от одного seed
+  `paritySeed` (индикатор 0 → 1), все прочие seeds движутся
+  монотонно (crossing_mono + Finset.single_le_sum); аксиомы
+  [propext, Classical.choice, Quot.sound].
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
@@ -1636,5 +1644,5 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
 
 ## Счётчик
 
-- 1712 theorem/lemma; 2196 деклараций (Freeze); 0 sorry;
+- 1714 theorem/lemma; 2683 деклараций (Freeze); 0 sorry;
   LayerLint-исключений: 0.
