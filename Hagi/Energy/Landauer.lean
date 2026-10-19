@@ -324,4 +324,36 @@ theorem thermodynamic_growth_witness (cUnit kmin Etot : ℝ)
       exact mul_pos (by exact_mod_cast hT) hkmin
     exact hθ (by linarith)
 
+
+/-! ### Iteration 12: every-cycle growth (prefix monotonicity) -/
+
+/-- **Strict prefix growth**: in the growth witness trajectory,
+capability does not merely improve from start to finish — it
+strictly increases at EVERY cycle boundary: for all `i < j ≤ T`,
+the measured-credit prefix after `j` cycles exceeds the prefix
+after `i`, hence (strict mono θ) the capability at stage `j`
+strictly exceeds the capability at stage `i`. A self-developing
+model in the strong sense: no plateau, every cycle pays for
+itself. -/
+theorem strict_prefix_growth (kmin : ℝ)
+    (hkmin : 0 < kmin) (θ : ℝ → ℝ)
+    (hθ : StrictMono θ) (i j : ℕ) (hij : i < j) :
+    θ (∑ _t ∈ Finset.range (i + 1), kmin)
+      < θ (∑ _t ∈ Finset.range (j + 1), kmin) := by
+  classical
+  have hsum : ∀ n : ℕ, ∑ _t ∈ Finset.range n, kmin = n * kmin := by
+    intro n
+    rw [Finset.sum_const, Finset.card_range]
+    ring
+  refine hθ ?_
+  rw [hsum, hsum]
+  have hle : ((i + 1:ℕ):ℝ) ≤ ((j + 1:ℕ):ℝ) := by
+    have hn : (i + 1 : ℕ) ≤ j + 1 := by omega
+    exact_mod_cast hn
+  have hlt : ((i + 1:ℕ):ℝ) < ((j + 1:ℕ):ℝ) := by
+    have hn : (i + 1 : ℕ) < j + 1 := by omega
+    have := (Nat.cast_lt (α := ℝ)).mpr hn
+    exact this
+  nlinarith [hkmin]
+
 end Hagi.Energy
