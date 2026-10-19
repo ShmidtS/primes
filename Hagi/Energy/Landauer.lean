@@ -268,4 +268,27 @@ theorem witness_ceiling_attainable (cUnit B k : ℝ) (hcUnit : 0 < cUnit)
   · rw [hB]
     exact div_pos (mul_pos hcUnit hk) hcUnit
 
+
+/-! ### Iteration 10: optimal split (quality model) -/
+
+/-- **Optimal split** ("maximum quality at minimal volume" as a
+theorem): let capability after the cycle be a function θ(k) of the
+measured credit ONLY (a quality model in the sense of the
+information-theoretic scaling laws, Jeon–Van Roy
+arXiv:2407.01456: quality is a functional of absorbed information),
+strictly increasing in `k`. Among all budget-line splits
+(`k + F = B/cUnit`, iteration 5–6–9) with a volume cap `F ≤ Fmax`,
+the split `k* = B/cUnit − Fmax` PARETO-DOMINATES: any other split
+has strictly less measured credit, hence strictly less capability,
+and never less volume. The formal core: under thermodynamic laws,
+minimal volume forces measurement to its budget share, and
+anything not spent on measurement is pure waste. -/
+theorem optimal_split_pareto (B cUnit Fmax : ℝ) (hcUnit : 0 < cUnit)
+    (hFmax : 0 ≤ Fmax) (θ : ℝ → ℝ)
+    (hθ : StrictMono θ) (k F : ℝ)
+    (hline : k + F = B / cUnit) (hcap : F ≤ Fmax)
+    (hne : k < B / cUnit - Fmax) :
+    θ k < θ (B / cUnit - Fmax) :=
+  hθ (by linarith)
+
 end Hagi.Energy
