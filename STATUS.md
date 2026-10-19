@@ -1278,6 +1278,18 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   расщепления (k, F) на линии k + F = B/c_unit для максимума
   реализованной capability — формальное ядро принципа
   «максимальное качество при минимальном объёме».
+  СВОДКА цикла (ит. 1–9): 16+ теорем, 0 sorry/axiom, все
+  axioms = [propext, Classical.choice, Quot.sound]. Замкнуты две
+  линии: (A) термодинамическая: Landauer-сэндвич → memory-кап →
+  cycle_budget_split → trajectory_telescope →
+  lifetime_thermodynamic_ceiling (ВЫВЕДЕН) → witness (ДОСТИЖИМ);
+  (B) credit: speedrun-тождества → hadamard_probe_inversion
+  (k оценок достаточно) → probe_lower_bound (k необходимо) +
+  spectral trust region (Muon). Результат: задача обучения HAGI
+  при термодинамических законах формально сводится к выбору
+  точки (k, F) на линии k + F = (E0−Emin)/(c_unit·T).
+  СЛЕДУЮЩИЙ шаг: tying (k, F) к capability-росту (cone-takeoff /
+  GrowthState) — содержательная модель качества.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
