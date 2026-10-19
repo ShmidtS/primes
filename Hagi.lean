@@ -7,6 +7,7 @@ import Hagi.Core.Kronecker
 import Hagi.Core.BlockDiag
 import Hagi.Core.Merge
 import Hagi.Energy.Ternary
+import Hagi.Energy.Quantizer
 import Hagi.Core.ErrorProp
 import Hagi.Core.Attention
 import Hagi.Core.Lift

@@ -67,6 +67,31 @@ theorem lyapunov_telescope_fin {E : ℕ → ℝ} (eps : ℝ)
   simp at h
   linarith
 
+/-- **Ляпунов-телескоп с выигрышем и шумом** (нейтральная
+форма верхнего рекуррентного сертификата): если на каждом
+шаге потенциал подчинён `V (t+1) ≤ V t - gain t + noise t`
+при `t < T`, то после `T` шагов
+
+  `V T ≤ V 0 - (∑ t < T, gain t) + (∑ t < T, noise t)`.
+
+Содержательная нагрузка вынесена в гипотезу `h`: сама лемма —
+точное телескопирование неравенств. Универсальная форма
+сертификатов этапов MasterHAGI: `gain` — полезное уменьшение
+за шаг, `noise` — накопленный шум квантования/оценки. -/
+theorem lyapunov_gain_noise {V gain noise : ℕ → ℝ} {T : ℕ}
+    (h : ∀ t < T, V (t + 1) ≤ V t - gain t + noise t) :
+    V T ≤ V 0 - ∑ t ∈ Finset.range T, gain t
+      + ∑ t ∈ Finset.range T, noise t := by
+  have h' := telescope_sum_le (f := V) (c := fun t => noise t - gain t)
+    (fun t ht => by
+      have := h t ht
+      linarith)
+  have hsum : (∑ t ∈ Finset.range T, (noise t - gain t))
+      = (∑ t ∈ Finset.range T, noise t) - ∑ t ∈ Finset.range T, gain t := by
+    rw [← Finset.sum_sub_distrib]
+  rw [hsum] at h'
+  linarith
+
 /-- If `Emin ≤ E t` for all `t ≤ k`, `E (t+1) ≤ E t − eps`
 for all `t < k`, and `0 < eps`, then
 `k ≤ (E 0 − Emin) / eps`. -/
@@ -83,5 +108,6 @@ theorem lyapunov_termination_fin {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (lyapunov_telescope_fin lyapunov_termination_fin)
+export Hagi.Foundations (lyapunov_telescope_fin lyapunov_termination_fin
+  lyapunov_gain_noise)
 end Hagi
