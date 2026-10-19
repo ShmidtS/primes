@@ -523,4 +523,54 @@ theorem trajectory_termination (tr : Trajectory X) (Emin d0 : ℝ)
       _ ≥ (tr.T : ℝ) * d0 := by linarith [htel]
   exact (le_div_iff₀ hd0).mpr hkey
 
+/-! ### Honest ledgers: typed nonnegativity drives bookkeeping -/
+
+/-- **Budget never increases** (typed honesty): the compute spends
+are nonnegative by the input's PROOF FIELDS
+(`StageInput.h_costs_nn`), so the budget ledger strictly follows
+the spends — an advance can only burn, never mint, budget. -/
+theorem advance_budget_le (S : GrowthState X) (u : StageInput X) :
+    (advance S u).budget ≤ S.budget := by
+  have h1 : (0:ℝ) ≤ u.eff.growCost + u.eff.jointCost := by
+    obtain ⟨h1, h2⟩ := u.h_costs_nn
+    linarith
+  have hE : (advance S u).budget
+      = S.budget - (u.eff.growCost + u.eff.jointCost) := by
+    simp only [advance]; ring
+  linarith
+
+/-- **Protected risk never decreases** (typed honesty): the risk
+spends are nonnegative by `StageInput.h_risks_nn`, so the
+protected-domain ledger only accrues. -/
+theorem advance_risk_ge (S : GrowthState X) (u : StageInput X) :
+    S.protectedRisk ≤ (advance S u).protectedRisk := by
+  have h1 : (0:ℝ) ≤ u.eff.growRisk + u.eff.mergeRisk
+      + u.eff.jointRisk + u.eff.compressRisk := by
+    obtain ⟨h1, h2, h3, h4⟩ := u.h_risks_nn
+    linarith
+  have hE : (advance S u).protectedRisk
+      = S.protectedRisk + (u.eff.growRisk + u.eff.mergeRisk
+        + u.eff.jointRisk + u.eff.compressRisk) := by
+    simp [advance]; ring
+  linarith
+
+/-- **Ledger monotonicity along a trajectory** (unification of the
+typed nonnegativity with multi-cycle bookkeeping): over any run,
+the budget never grows and the protected risk never shrinks. -/
+theorem trajectory_ledgers_monotone (tr : Trajectory X) (t : ℕ)
+    (ht : t ≤ tr.T) :
+    (tr.state t).budget ≤ (tr.state 0).budget
+    ∧ (tr.state 0).protectedRisk ≤ (tr.state t).protectedRisk := by
+  induction t with
+  | zero => simp
+  | succ n ih =>
+    have hn : n ≤ tr.T := by omega
+    obtain ⟨hb, hr⟩ := ih hn
+    have hstep := tr.h_step n (by omega)
+    constructor
+    · rw [hstep]
+      exact le_trans (advance_budget_le _ _) hb
+    · rw [hstep]
+      exact le_trans hr (advance_risk_ge _ _)
+
 end Hagi.Model

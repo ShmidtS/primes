@@ -1191,7 +1191,11 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   сертифицированном drop >= d0 > 0 и floor Emin весь горизонт
   ограничен T <= (E0-Emin)/d0 (объединение телескопа с канонической
   лиапуновской арифметикой; при старой фиксированной модели
-  положительный d0-горизонт был невыполним). Количественная
+  положительный d0-горизонт был невыполним). Честные
+  ledger'ы: advance_budget_le/advance_risk_ge и
+  trajectory_ledgers_monotone — типовая неотрицательность трат
+  (proof-поля StageInput) даёт бух فقط в честную сторону: бюджет
+  вдоль траектории не растёт, защищённый риск не убывает. Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
