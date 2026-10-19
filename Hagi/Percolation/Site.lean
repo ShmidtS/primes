@@ -177,112 +177,115 @@ theorem edgeless_reachable_eq {V : Type*} {G : SimpleGraph V}
   | nil => rfl
   | cons hz _ => exact absurd hz (hno _ _)
 
-/-- **Emergence jump witness** (Layer-3 control result): on the
-`2 × 2` grid with the parity seed (`ω c` = rank-sum mod 2),
-raising the threshold from `1` to `2` FLIPS the macro property:
-at threshold `1` the open cells `{(0,0), (1,1)}` are mutually
-non-adjacent, so no top-bottom crossing exists; at threshold `2`
-the single extra cell `(0,1)` connects the halves and a
-top-bottom path appears. Global capability out of ONE local
-event — the qualitative transition the audit asks about,
-formalized on the same seed. -/
+/-- The parity seed on the `2 × 2` grid (rank-sum mod 2). -/
+def paritySeed : V 2 → Fin 2 := fun c => seedParity c.1.val c.2.val
+
+/-- Top-row boundary for the `2 × 2` emergence witness. -/
+def rowTop : V 2 → Prop := fun c => c.1.val = 0
+
+/-- Bottom-row boundary for the `2 × 2` emergence witness. -/
+def rowBot : V 2 → Prop := fun c => c.1.val = 1
+
+/-- In the parity seed, crossing never holds at threshold 1: the
+only open cells `(0,0)` and `(1,1)` are mutually non-adjacent. -/
+theorem parity_not_crossing1 :
+    ¬ crossing rowTop rowBot 1 paritySeed := by
+  classical
+  rintro ⟨a, b, haT, hbB, hreach⟩
+  have hno : ∀ x y : V 2, ¬ (openGraph (openAt 1 paritySeed)).Adj x y := by
+    intro x y hp
+    obtain ⟨hca, hx, hy⟩ := hp
+    have hx1 : x = (0, 0) ∨ x = (1, 1) := by
+      obtain ⟨x1, x2⟩ := x
+      simp only [openAt] at hx
+      have hx2 : (seedParity x1.val x2.val).val < 1 := hx
+      simp only [seedParity] at hx2
+      have h4 : x1.val = 0 ∨ x1.val = 1 := by
+        have hlt := x1.isLt; omega
+      have h5 : x2.val = 0 ∨ x2.val = 1 := by
+        have hlt := x2.isLt; omega
+      rcases h4 with h4 | h4
+      · rcases h5 with h5 | h5
+        · rw [h4, h5] at hx2
+          left
+          refine Prod.ext ?_ ?_
+          · exact Fin.val_injective (by simp [h4])
+          · exact Fin.val_injective (by simp [h5])
+        · rw [h4, h5] at hx2; omega
+      · rcases h5 with h5 | h5
+        · rw [h4, h5] at hx2; omega
+        · rw [h4, h5] at hx2
+          simp only [Nat.mod_self] at hx2
+          right
+          refine Prod.ext ?_ ?_
+          · exact Fin.val_injective (by simp [h4])
+          · exact Fin.val_injective (by simp [h5])
+    have hy1 : y = (0, 0) ∨ y = (1, 1) := by
+      obtain ⟨y1, y2⟩ := y
+      simp only [openAt] at hy
+      have hy2 : (seedParity y1.val y2.val).val < 1 := hy
+      simp only [seedParity] at hy2
+      have h4 : y1.val = 0 ∨ y1.val = 1 := by
+        have hlt := y1.isLt; omega
+      have h5 : y2.val = 0 ∨ y2.val = 1 := by
+        have hlt := y2.isLt; omega
+      rcases h4 with h4 | h4
+      · rcases h5 with h5 | h5
+        · rw [h4, h5] at hy2
+          left
+          refine Prod.ext ?_ ?_
+          · exact Fin.val_injective (by simp [h4])
+          · exact Fin.val_injective (by simp [h5])
+        · rw [h4, h5] at hy2; omega
+      · rcases h5 with h5 | h5
+        · rw [h4, h5] at hy2; omega
+        · rw [h4, h5] at hy2
+          simp only [Nat.mod_self] at hy2
+          right
+          refine Prod.ext ?_ ?_
+          · exact Fin.val_injective (by simp [h4])
+          · exact Fin.val_injective (by simp [h5])
+    rcases hx1 with rfl | rfl <;>
+    rcases hy1 with rfl | rfl
+    · exact cellAdj_loopless _ hca
+    · have h2 : ¬ cellAdj ((0 : Fin 2), (0 : Fin 2))
+          ((1 : Fin 2), (1 : Fin 2)) := by simp [cellAdj, step]
+      exact h2 hca
+    · have h2 : ¬ cellAdj ((1 : Fin 2), (1 : Fin 2))
+          ((0 : Fin 2), (0 : Fin 2)) := by simp [cellAdj, step]
+      exact h2 hca
+    · exact cellAdj_loopless _ hca
+  have hab' : a = b := edgeless_reachable_eq hno hreach
+  subst hab'
+  have h0 : a.1.val = 0 := haT
+  have h1 : a.1.val = 1 := hbB
+  omega
+
+/-- In the parity seed, threshold 2 opens the full connecting
+path `(0,0) → (0,1) → (1,1)`. -/
+theorem parity_crossing2 : crossing rowTop rowBot 2 paritySeed := by
+  classical
+  refine ⟨(0, 0), (1, 1), rfl, rfl, ⟨?_⟩⟩
+  have h01 : (openGraph (openAt 2 paritySeed)).Adj (0, 0) (0, 1) := by
+    refine ⟨?_, ?_, ?_⟩
+    · simp [cellAdj, step]
+    · simp [openAt, paritySeed, seedParity]
+    · simp [openAt, paritySeed, seedParity]
+  have h11 : (openGraph (openAt 2 paritySeed)).Adj (0, 1) (1, 1) := by
+    refine ⟨?_, ?_, ?_⟩
+    · simp [cellAdj, step]
+    · simp [openAt, paritySeed, seedParity]
+    · simp [openAt, paritySeed, seedParity]
+  exact SimpleGraph.Walk.cons h01
+    (SimpleGraph.Walk.cons h11 SimpleGraph.Walk.nil)
+
+/-- **Emergence jump witness** (Layer-3 control result): raising
+the threshold from `1` to `2` FLIPS the macro property on the
+SAME seed — global capability out of ONE local event. -/
 theorem emergence_jump_witness :
     ∃ ω : V 2 → Fin 2,
-      ¬ crossing (fun c : V 2 => c.1.val = 0) (fun c : V 2 => c.1.val = 1) 1 ω
-      ∧ crossing (fun c : V 2 => c.1.val = 0) (fun c : V 2 => c.1.val = 1) 2 ω := by
-  classical
-  refine ⟨fun c => seedParity c.1.val c.2.val, ?_, ?_⟩
-  · -- ¬crossing at threshold 1: open cells {(0,0), (1,1)} are non-adjacent
-    rintro ⟨a, b, haT, hbB, hreach⟩
-    have hno : ∀ x y : V 2, ¬ (openGraph (openAt 1
-        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj x y := by
-      intro x y hp
-      obtain ⟨hca, hx, hy⟩ := hp
-      have hx1 : x = (0, 0) ∨ x = (1, 1) := by
-        obtain ⟨x1, x2⟩ := x
-        simp only [openAt] at hx
-        have hx2 : (seedParity x1.val x2.val).val < 1 := hx
-        simp only [seedParity] at hx2
-        have h4 : x1.val = 0 ∨ x1.val = 1 := by
-          have hlt := x1.isLt; omega
-        have h5 : x2.val = 0 ∨ x2.val = 1 := by
-          have hlt := x2.isLt; omega
-        rcases h4 with h4 | h4
-        · rcases h5 with h5 | h5
-          · rw [h4, h5] at hx2
-            left
-            refine Prod.ext ?_ ?_
-            · exact Fin.val_injective (by simp [h4])
-            · exact Fin.val_injective (by simp [h5])
-          · rw [h4, h5] at hx2; omega
-        · rcases h5 with h5 | h5
-          · rw [h4, h5] at hx2; omega
-          · rw [h4, h5] at hx2
-            simp only [Nat.mod_self] at hx2
-            right
-            refine Prod.ext ?_ ?_
-            · exact Fin.val_injective (by simp [h4])
-            · exact Fin.val_injective (by simp [h5])
-      have hy1 : y = (0, 0) ∨ y = (1, 1) := by
-        obtain ⟨y1, y2⟩ := y
-        simp only [openAt] at hy
-        have hy2 : (seedParity y1.val y2.val).val < 1 := hy
-        simp only [seedParity] at hy2
-        have h4 : y1.val = 0 ∨ y1.val = 1 := by
-          have hlt := y1.isLt; omega
-        have h5 : y2.val = 0 ∨ y2.val = 1 := by
-          have hlt := y2.isLt; omega
-        rcases h4 with h4 | h4
-        · rcases h5 with h5 | h5
-          · rw [h4, h5] at hy2
-            left
-            refine Prod.ext ?_ ?_
-            · exact Fin.val_injective (by simp [h4])
-            · exact Fin.val_injective (by simp [h5])
-          · rw [h4, h5] at hy2; omega
-        · rcases h5 with h5 | h5
-          · rw [h4, h5] at hy2; omega
-          · rw [h4, h5] at hy2
-            simp only [Nat.mod_self] at hy2
-            right
-            refine Prod.ext ?_ ?_
-            · exact Fin.val_injective (by simp [h4])
-            · exact Fin.val_injective (by simp [h5])
-      rcases hx1 with rfl | rfl <;>
-      rcases hy1 with rfl | rfl
-      · exact cellAdj_loopless _ hca
-      · have h2 : ¬ cellAdj ((0 : Fin 2), (0 : Fin 2))
-            ((1 : Fin 2), (1 : Fin 2)) := by simp [cellAdj, step]
-        exact h2 hca
-      · have h2 : ¬ cellAdj ((1 : Fin 2), (1 : Fin 2))
-            ((0 : Fin 2), (0 : Fin 2)) := by simp [cellAdj, step]
-        exact h2 hca
-      · exact cellAdj_loopless _ hca
-    have hab' : a = b := edgeless_reachable_eq hno hreach
-    subst hab'
-    have h0 : a.1.val = 0 := haT
-    have h1 : a.1.val = 1 := hbB
-    omega
-  · -- crossing at threshold 2: the walk (0,0) → (0,1) → (1,1)
-    refine ⟨(0, 0), (1, 1), rfl, rfl, ⟨?_⟩⟩
-    have h01 : (openGraph (openAt 2
-        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj
-        (0, 0) (0, 1) := by
-      refine ⟨?_, ?_, ?_⟩
-      · simp [cellAdj, step]
-      · simp [openAt, seedParity]
-      · simp [openAt, seedParity]
-    have h11 : (openGraph (openAt 2
-        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj
-        (0, 1) (1, 1) := by
-      refine ⟨?_, ?_, ?_⟩
-      · simp [cellAdj, step]
-      · simp [openAt, seedParity]
-      · simp [openAt, seedParity]
-    exact SimpleGraph.Walk.cons h01
-      (SimpleGraph.Walk.cons h11 SimpleGraph.Walk.nil)
-
-
+      ¬ crossing rowTop rowBot 1 ω ∧ crossing rowTop rowBot 2 ω :=
+  ⟨paritySeed, parity_not_crossing1, parity_crossing2⟩
 /-! ### Threshold-system interface (unification with HAGI line) -/
 
 /-- **Monotone threshold system** (the common shape behind
