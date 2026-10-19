@@ -1323,7 +1323,7 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   (A) Термодинамика: Landauer → memory-cap → cycle split →
       telescope → lifetime ceiling (выведен) → witness (достижим)
       — рост совместим с законами термодинамики (ит. 11–12:
-     严格的 покажди-циклный рост без плато; ит. 13: время до цели
+     покажди-циклный строгий рост без плато; ит. 13: время до цели
       = первое пересечение, <= lifetime).
   (B) Credit: speedrun-тождества → Hadamard-инверсия
       (k достаточно) → probe_lower_bound (k необходимо).
