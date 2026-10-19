@@ -1417,6 +1417,18 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   Nonempty/Productive/SustainedTakeoff). Старая модель и её
   регрессионный тест
   full_cycle_two_step_growth_inconsistent сохранены.
+- Итерация 22 (объединение по аудиту 3 — единая траектория,
+  SustainedTakeoff): в StageSemantics добавлены `growState`
+  (рекурсивная последовательность честных переходов:
+  S(t+1) = advance(S(t), growInput α S(t)) — эффекты
+  пересчитываются из текущего состояния КАЖДОГО цикла),
+  `growTraj` (Trajectory-обёртка, h_step = rfl) и
+  `growState_capability` — ростовой закон по всей Honest-
+  траектории: capability(S(t)) = (1+α)^t·C₀ при t ≤ T, каждый
+  множитель порождён реальным переходом (ср. с упрёком аудита
+  к `coupledGrowthTraj`, где рост встроен формулой). Замкнуты
+  все три клаузы трихотомии аудита: Nonempty (idle-свидетели),
+  Productive (ит. 21), SustainedTakeoff (ит. 22).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

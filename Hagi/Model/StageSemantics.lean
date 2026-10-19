@@ -186,6 +186,49 @@ theorem grow_strict_productive (alpha : ℝ) (S : GrowthState X)
   rw [growAdvance_capability]
   linarith [mul_pos hα hC]
 
+/-! ### Sustained takeoff on the honest trajectory
+
+The third clause of the audit's trichotomy: capability growth
+sustained over the WHOLE horizon by genuine `advance`
+transitions with state-dependent effects. The state sequence is
+built by actual composition (`growState`), not by postulating
+the growth formula. -/
+
+/-- The honest productive state sequence: state `t + 1` is the
+genuine advance of state `t` with effects recomputed from the
+current state. -/
+noncomputable def growState (alpha : ℝ) (S0 : GrowthState X) :
+    ℕ → GrowthState X
+  | 0 => S0
+  | t + 1 => advance (growState alpha S0 t)
+      (growInput alpha (growState alpha S0 t))
+
+/-- The honest productive trajectory on horizon `T` assembled
+from the state sequence. -/
+noncomputable def growTraj (alpha : ℝ) (T : ℕ) (S0 : GrowthState X) :
+    Trajectory X where
+  T := T
+  state := growState alpha S0
+  input := fun t => growInput alpha (growState alpha S0 t)
+  h_step := fun t _ => rfl
+
+/-- **Sustained takeoff (the honest-trajectory growth law)**:
+after `t` genuine cycles
+`capability (growState t) = (1 + alpha)^t * C0` — every factor
+contributed by a real transition whose gain was recomputed from
+the current state (contrast the fixed-effects two-step
+inconsistency). -/
+theorem growState_capability (alpha : ℝ) (S0 : GrowthState X)
+    (t : ℕ) :
+    (growState alpha S0 t).capability
+      = (1 + alpha) ^ t * S0.capability := by
+  induction t with
+  | zero => simp [growState]
+  | succ t ih =>
+      simp only [growState]
+      rw [growAdvance_capability, ih, pow_succ]
+      ring
+
 /-! ### The one-cycle energy certificate -/
 
 /-- **One-cycle energy drop over fresh measurements**: under the
