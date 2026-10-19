@@ -1366,6 +1366,20 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   `paritySeed` (индикатор 0 → 1), все прочие seeds движутся
   монотонно (crossing_mono + Finset.single_le_sum); аксиомы
   [propext, Classical.choice, Quot.sound].
+- Итерация 18 (объединение, маршрут B — единое ядро вперёд,
+  нейтральные имена без разрушения Freeze): (1) новый модуль
+  `Hagi/Energy/Quantizer.lean` — канонический квантователь
+  решётки `gridQ Δ x = Δ * round (x / Δ)`: равномерная ошибка
+  ≤ Δ/2 БЕЗ ограничений на x (обобщает roundHalf_error и
+  roundTern_error_scaled), idemпотентность,
+  gridQ_mem_grid (образ = решётка Δℤ), gridQ_div — единый
+  оператор вместо россыпи точечных округлений; (2)
+  `lyapunov_gain_noise` в Foundations/Telescope — нейтральная
+  форма верхнего рекуррентного сертификата
+  (V(t+1) ≤ V t − gain t + noise t ⟹ V T ≤ V 0 − Σ gain +
+  Σ noise), точная форма Master-сертификатов без ролевой
+  лексики. Аксиомы всех трёх: [propext, Classical.choice,
+  Quot.sound].
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
