@@ -1219,7 +1219,17 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   n <= B/(c_unit·log 3) — термодинамический потолок роста
   архитектуры за цикл), `serial_divergence_cap` (serial-ран
   расходится с размером задачи; рост должен оставаться
-  параллелизуемым).
+  параллелизуемым). Итерация 3 (интеграция speedrun-рецепта
+  qlabs-eng/noise train/speedrun/run.py):
+  `Hagi/Pretraining/Speedrun.lean` — точные readout-credit
+  тождества forward-only бустинга: `cePartition_move` (сдвиг
+  одного логита меняет partition ровно на один член),
+  `ceLogit_move_change` (замкнутая форма изменения CE при сдвиге
+  логита: target-сдвиг + log(1 + w_j(e^δ−1)) из ЧИСТЫХ
+  softmax-весов — nothing is differentiated), `head_probe_linear`
+  (линейный head на пробе = чистые логиты + предвычисленное
+  направление: probe стоит один head-eval). Честная граница:
+  софт-кап 15·tanh(z/15) рантайма — h_emp-мост вне тождеств.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
