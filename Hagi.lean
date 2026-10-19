@@ -252,6 +252,7 @@ import Hagi.Examples.NonvacuityHorizon
 import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
+import Hagi.Pretraining.Speedrun
 
 set_option linter.style.header false
 
