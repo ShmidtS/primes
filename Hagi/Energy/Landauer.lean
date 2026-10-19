@@ -217,4 +217,34 @@ theorem trajectory_budget_telescope (cUnit : ℝ) (hcUnit : 0 < cUnit)
     _ ≤ ∑ t, B t := Finset.sum_le_sum fun t _ => hper t
     _ ≤ Etot := htel
 
+
+/-! ### Iteration 8: lifetime compose (termination x budget) -/
+
+/-- **Lifetime compose**: a run whose every cycle dissipates at
+most `d0` (the per-cycle budget) and whose trajectory terminates
+by the standard dissipation lifetime `T ≤ (E0 − Emin)/d0`
+(`Hagi.System.GrowthState.trajectory_termination` shape), for the
+same energy interval `Etot = E0 − Emin`, satisfies the WHOLE-RUN
+thermodynamic line with an explicit numeric ceiling:
+`cUnit * (∑ k t + ∑ F t) ≤ E0 − Emin` — over its whole lifetime,
+the run can measure at most `(E0−Emin)/cUnit` worth of credit
+plus write at most that much model memory. The self-development
+ceiling is thus DERIVED from the termination lifetime, not
+assumed. -/
+theorem lifetime_thermodynamic_ceiling (cUnit E0 Emin : ℝ)
+    (hcUnit : 0 < cUnit) (hE : Emin ≤ E0)
+    (T : ℕ) (k F B d : Fin T → ℝ)
+    (hper : ∀ t, cUnit * (k t + F t) ≤ B t)
+    (hBd : ∀ t, B t ≤ d t)
+    (hd : (∑ t, d t) ≤ E0 - Emin) :
+    cUnit * ((∑ t, k t) + (∑ t, F t)) ≤ E0 - Emin := by
+  classical
+  have htel := trajectory_budget_telescope cUnit hcUnit T k F B
+    (E0 - Emin) hper (by
+      -- ∑ B t ≤ ∑ d t ≤ E0 - Emin
+      have h1 : (∑ t, B t) ≤ (∑ t, d t) :=
+        Finset.sum_le_sum fun t _ => hBd t
+      linarith)
+  exact htel
+
 end Hagi.Energy
