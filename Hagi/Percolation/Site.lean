@@ -282,4 +282,30 @@ theorem emergence_jump_witness :
     exact SimpleGraph.Walk.cons h01
       (SimpleGraph.Walk.cons h11 SimpleGraph.Walk.nil)
 
+
+/-! ### Threshold-system interface (unification with HAGI line) -/
+
+/-- **Monotone threshold system** (the common shape behind
+percolation `R` and HAGI capability models `θ`): a family of
+"capability levels" indexed by an intensity, nondecreasing in the
+intensity. Both `R_monotone` (percolation: intensity = threshold)
+and the audit's growth-θ models (intensity = absorbed credit) are
+instances of this shape, so monotone-threshold arguments — e.g.
+the optimal-split Pareto dominance — transfer once, for every
+system realizing the interface. -/
+class ThresholdSystem (Ints : Type) [Preorder Ints] where
+  /-- Capability as a function of intensity. -/
+  cap : Ints → ℝ
+  /-- Nondecreasing in intensity. -/
+  mono : ∀ i j : Ints, i ≤ j → cap i ≤ cap j
+
+export ThresholdSystem (cap mono)
+
+/-- **Percolation is a threshold system**: intensity = threshold;
+monotonicity is exactly `R_monotone`. -/
+noncomputable def percolationSystem (L M : ℕ) (T B : V L → Prop) :
+    ThresholdSystem ℕ where
+  cap := R M T B
+  mono := fun _i _j h => R_monotone M T B h
+
 end Hagi.Percolation
