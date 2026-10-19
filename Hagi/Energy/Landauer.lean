@@ -190,4 +190,31 @@ theorem cycle_budget_split (B cUnit k F : ℝ) (hcUnit : 0 < cUnit)
     rw [mul_add]
   linarith
 
+
+/-! ### Iteration 7: telescoped budget over the trajectory -/
+
+/-- **Trajectory budget telescope**: if every cycle `t` of a
+run of `T` cycles satisfies its budget split
+`cUnit * (k t + F t) ≤ B t` (iteration-6 capstone per cycle) and
+the per-cycle budgets telescope under the total energy `Etot`
+(`∑ B t ≤ Etot`), then the WHOLE run satisfies the same line:
+`cUnit * (∑ k t + ∑ F t) ≤ Etot`. The measure/write competition
+compounds: over a trajectory, total measured credit plus total
+written bits cannot exceed `Etot / cUnit` — the thermodynamic
+ceiling on the ENTIRE self-development run, not just one cycle. -/
+theorem trajectory_budget_telescope (cUnit : ℝ) (hcUnit : 0 < cUnit)
+    (T : ℕ) (k F B : Fin T → ℝ) (Etot : ℝ)
+    (hper : ∀ t, cUnit * (k t + F t) ≤ B t)
+    (htel : (∑ t, B t) ≤ Etot) :
+    cUnit * ((∑ t, k t) + (∑ t, F t)) ≤ Etot := by
+  classical
+  have hsplit : cUnit * ((∑ t, k t) + (∑ t, F t))
+      = ∑ t, cUnit * (k t + F t) := by
+    rw [mul_add, Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+    exact Finset.sum_congr rfl fun t _ => (mul_add cUnit (k t) (F t)).symm
+  calc cUnit * ((∑ t, k t) + (∑ t, F t))
+      = ∑ t, cUnit * (k t + F t) := hsplit
+    _ ≤ ∑ t, B t := Finset.sum_le_sum fun t _ => hper t
+    _ ≤ Etot := htel
+
 end Hagi.Energy
