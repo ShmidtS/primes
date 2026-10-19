@@ -1380,6 +1380,17 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   Σ noise), точная форма Master-сертификатов без ролевой
   лексики. Аксиомы всех трёх: [propext, Classical.choice,
   Quot.sound].
+- Итерация 19 (объединение, маршрут B — зеркальный спуск):
+  `gibbs_optimal_bound` в `Hagi/Energy/Variational.lean` —
+  точная оптимизационная форма темперированного софтмакса:
+  для всех q на симплексе, L и T > 0
+  ⟨L⟩_q + T·Σ q log q ≥ −T·log Σ exp(−L/T) — нижняя граница
+  вариационного принципа, достигаемая Гиббс-весами
+  softmax(−L/T) (равенство); выведена из
+  free_energy_variational на равномерной базе (decomposition
+  KL + Finset-алгебра, без новой аксиоматики). Вместе с
+  gridQ (ит. 18) и lyapunov_gain_noise замыкает компоненты
+  1–3 единого ядра (квантование, телескоп, охлаждение).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

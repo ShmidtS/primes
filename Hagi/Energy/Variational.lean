@@ -166,6 +166,103 @@ theorem free_energy_variational (q p U : V → ℝ)
   have hZ := hdecomp
   linarith [hklT, hdecomp]
 
+/-- **Optimal Gibbs weights over the simplex (mirror-descent
+bound)**: for every probability vector `q` and every loss
+profile `L` at inverse temperature `T > 0`,
+
+  `⟨L⟩_q + T · Σ v, q v · log (q v) ≥ - T · log Σ v, exp(-L v / T)`.
+
+This is the exact optimization statement behind the tempered
+softmax: the Gibbs/tilted distribution attains the right-hand
+side, i.e. `w = softmax(-L / T)` minimizes the regularized
+objective — the equality case of the variational principle,
+lived entirely on the finite simplex. The lower bound derives
+from `free_energy_variational` at the uniform base; the
+attainment/characterization lives in the KL equality case. -/
+theorem gibbs_optimal_bound (q L : V → ℝ) {T : ℝ} (hT : 0 < T)
+    (hq : ∀ v, 0 < q v) (hq1 : ∑ v, q v = 1) :
+    (∑ v, q v * L v) + T * ∑ v, q v * Real.log (q v)
+      ≥ -T * Real.log (∑ v, Real.exp (-(L v) / T)) := by
+  classical
+  set n := ((Fintype.card V : ℕ) : ℝ) with hn
+  have hnpos : 0 < n := by
+    have hc : (0 : ℕ) < Fintype.card V := Fintype.card_pos
+    rw [hn]  -- no-op for goal; cast positivity:
+    exact Nat.cast_pos.mpr hc
+  have hu1 : ∑ v : V, ((1 : ℝ) / n) = 1 := by
+    simp [Finset.sum_const, hn]
+  have hup : ∀ v : V, 0 < (1 : ℝ) / n := fun _ => div_pos one_pos hnpos
+  set Uloss : V → ℝ := fun v => -L v / T with hUloss
+  have hmain := free_energy_variational (V := V) q
+    (fun v : V => (1 : ℝ) / n) Uloss hq hup hq1 hu1
+  -- E_q[U] = -(Σ q·L)/T
+  have hEu : ∑ v, q v * (-L v / T) = -(∑ v, q v * L v) / T := by
+    have hterm : ∀ v : V, q v * (-L v / T) = -((q v * L v) / T) := by
+      intro v; ring
+    have hkey : (∑ v, (q v * L v) / T) = (∑ v, q v * L v) / T :=
+      (Finset.sum_div Finset.univ (fun v => q v * L v) T).symm
+    calc ∑ v, q v * (-L v / T)
+        = ∑ v, -((q v * L v) / T) :=
+          Finset.sum_congr rfl (fun v _ => hterm v)
+      _ = -(∑ v, (q v * L v) / T) := by
+          rw [Finset.sum_neg_distrib]
+      _ = -(∑ v, q v * L v) / T := by rw [hkey, neg_div]
+  -- KL(q ‖ uniform) = Σ q·log q + log n
+  have hkl : kldiv' (V := V) q (fun _ => (1 : ℝ) / n)
+      = (∑ v, q v * Real.log (q v)) + Real.log n := by
+    unfold kldiv' Hagi.Prelude.klDef
+    simp only []
+    have hdiv : ∀ v : V, q v / (1 / n) = q v * n := by
+      intro v; field_simp
+    have hlog : ∀ v : V, Real.log (q v * n)
+        = Real.log (q v) + Real.log n := by
+      intro v
+      rw [Real.log_mul (hq v).ne' (ne_of_gt hnpos)]
+    rw [Finset.sum_congr rfl (fun v _ => by rw [hdiv v, hlog v, mul_add]),
+      Finset.sum_add_distrib]
+    have hlast : ∑ v, q v * Real.log n = Real.log n := by
+      have hpre : (∑ v, q v) * Real.log n
+          = ∑ v, q v * Real.log n := Finset.sum_mul (Finset.univ : Finset V)
+            (fun v => q v) (Real.log n)
+      rw [hq1, one_mul] at hpre
+      exact hpre.symm
+    rw [hlast]
+  rw [hEu, hkl] at hmain
+  -- exponent sum positivity (in Uloss-terms, as in hmain)
+  have hsumeposU : (0 : ℝ) < ∑ w, Real.exp (Uloss w) :=
+    Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
+  -- normalize the partition-function log: log(Σe / n) = log Σe − log n
+  have hZeq : Real.log ((∑ w, ((1 : ℝ) / n) * Real.exp (Uloss w)))
+      = Real.log (∑ w, Real.exp (Uloss w)) - Real.log n := by
+    have hsplit : ∑ w, ((1 : ℝ) / n) * Real.exp (Uloss w)
+        = (∑ w, Real.exp (Uloss w)) / n := by
+      have hterm : ∀ w : V, ((1 : ℝ) / n) * Real.exp (Uloss w)
+          = Real.exp (Uloss w) / n := by
+        intro w; ring
+      rw [Finset.sum_congr rfl (fun w _ => hterm w)]
+      rw [Finset.sum_div Finset.univ (fun w => Real.exp (Uloss w)) n]
+    rw [hsplit]
+    have hld : Real.log ((∑ w, Real.exp (Uloss w)) / n)
+        = Real.log (∑ w, Real.exp (Uloss w)) - Real.log n :=
+      Real.log_div (ne_of_gt hsumeposU) (ne_of_gt hnpos)
+    rw [hld]
+  rw [hZeq] at hmain
+  -- multiply the inequality by T > 0 and finish linearly
+  have hmult := mul_le_mul_of_nonneg_right hmain (le_of_lt hT)
+  have hcancel : (-(∑ v, q v * L v)) / T * T
+      = -(∑ v, q v * L v) :=
+    div_mul_cancel₀ _ (ne_of_gt hT)
+  have hsimp : (-(∑ v, q v * L v) / T
+      - (∑ v, q v * Real.log (q v) + Real.log n))
+      * T
+      = -(∑ v, q v * L v)
+        - (∑ v, q v * Real.log (q v)) * T - Real.log n * T := by
+    rw [sub_mul, add_mul, hcancel]
+    ring
+  rw [hsimp] at hmult
+  rw [hUloss] at hmult
+  linarith [hmult]
+
 end Variational
 
 end Hagi.Energy
