@@ -114,4 +114,56 @@ theorem landauer_cap_certified {wPre wPost : V → ℝ}
       _ = kappa * s / (2 * cUnit) := hrw
   linarith [h1, hdiv]
 
+/-! ### Iteration 2: memory, not arithmetic — the capacity cap -/
+
+/-- **Written-bits cap (Tkachenko arXiv:2503.09980: "the
+thermodynamic price of a neural network is set by its memory")**:
+writing `F` bits of parameters costs at least `F * cUnit` of work
+(physical bridge `h_emp_memwrite`, same status as every
+`h_emp_`); with a per-cycle energy budget `B` for the growth stage,
+the number of parameter bits WRITTEN this cycle is at most
+`B / cUnit` — the thermodynamic cap on architectural growth per
+cycle. -/
+theorem written_bits_cap (B cUnit F : ℝ) (hcUnit : 0 < cUnit)
+    (h_emp_memwrite : cUnit * F ≤ B) :
+    F ≤ B / cUnit := by
+  have h2 : F * cUnit ≤ B := by rw [mul_comm]; exact h_emp_memwrite
+  exact (le_div_iff₀ hcUnit).mpr h2
+
+/-- **Capacity cap on the growth stage**: ternary weights carry
+`log 3` bits each (three states); writing `n` new ternary weights
+costs at least `n * (log 3) * cUnit`; with budget `B` the growth
+of the weight count per cycle is bounded:
+`n <= B / (cUnit * log 3)`. Combined with the cone takeoff
+(`capability_takeoff_amplified`): the thermodynamic budget is the
+physical ceiling on `alpha` — architecture growth is not free, it
+is LR-priced by memory. -/
+theorem ternary_weight_growth_cap (B cUnit n : ℝ) (hcUnit : 0 < cUnit)
+    (_hn : 0 ≤ n) (hlog : (0:ℝ) < Real.log 3)
+    (h_emp_memwrite : cUnit * (Real.log 3 * n) ≤ B) :
+    n ≤ B / (cUnit * Real.log 3) := by
+  have hkey : n * (cUnit * Real.log 3) ≤ B := by
+    have hcomm : cUnit * (Real.log 3 * n)
+        = n * (cUnit * Real.log 3) := by ring
+    rw [hcomm] at h_emp_memwrite
+    exact h_emp_memwrite
+  exact (le_div_iff₀ (mul_pos hcUnit hlog)).mpr hkey
+
+/-- **Serial divergence (Konopik–Korten–Lutz, Nat Commun 2023):
+finite-time serial computing diverges with problem size** — with a
+per-operation dissipation floor `cOp > 0` (the finite-time
+correction OVER the Landauer limit; parallel execution with
+`P >= 1` lanes splits the problem), a serial run over `n`
+operations dissipates at least `n * cOp`, so a fixed energy
+budget `B` bounds the serial problem size: `n <= B / cOp`.
+The HAGI reading: expert-parallel growth lanes are the
+thermodynamically sound scaling axis — the growth frontier must
+stay parallelizable, else the energy budget caps the run size. -/
+theorem serial_divergence_cap (B cOp n : ℝ) (hcOp : 0 < cOp)
+    (hn : 0 ≤ n)
+    (h_emp_finite_time : cOp * n ≤ B) :
+    n ≤ B / cOp := by
+  have h2 : n * cOp ≤ B := by rw [mul_comm]; exact h_emp_finite_time
+  exact (le_div_iff₀ hcOp).mpr h2
+
 end Hagi.Energy

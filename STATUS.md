@@ -1211,7 +1211,15 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   бюджетом: `landauer_sandwich` (KL <= kappa*s*quantErr/c_unit),
   `landauer_cap_certified` (KL <= kappa*s/(2*c_unit) при
   quantErr <= 1/2) — бюджет каппит разрушаемую информацию:
-  давление к минимальному объёму при заданной точности.
+  давление к минимальному объёму при заданной точности. Итерация 2:
+  память, а не арифметика (Tkachenko) + конечное время
+  (Konopik–Lutz Nat Commun 2023): `written_bits_cap`
+  (запись F бит стоит >= F·c_unit → F <= B/c_unit),
+  `ternary_weight_growth_cap` (n новых тернарных весов:
+  n <= B/(c_unit·log 3) — термодинамический потолок роста
+  архитектуры за цикл), `serial_divergence_cap` (serial-ран
+  расходится с размером задачи; рост должен оставаться
+  параллелизуемым).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
