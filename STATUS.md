@@ -1183,7 +1183,10 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   делегируют; `Ensemble.exp_chord` — симметричный частный случай
   поверх `exp_chord_ab` — одна математическая копия вместо трёх. Ещё один
   дословный дубль устранён: `System.Certificates.penalty_drop_bound`
-  теперь делегирует канону `Foundations.hagiPotential_penalty_drop`. Количественная
+  теперь делегирует канону `Foundations.hagiPotential_penalty_drop`. KL-канон:
+  `Prelude.kl_nonneg` (строгий q>0) — частный случай нулейтолерантного
+  `kl_nonneg_of_nonneg`; копия proof'а заменена однострочной
+  делегацией (канон перенесён раньше по файлу). Количественная
   форма ε_attention: `clamped_attention_grad_bound` (гладкость
   по клампнутым выходам, гипотеза `h_emp_attsmooth`), итог
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
