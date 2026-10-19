@@ -162,4 +162,124 @@ theorem R_monotone (M : ℕ) (T B : V L → Prop) {qv qv' : ℕ} (hqq : qv ≤ q
         norm_num
       · rw [if_neg h2']
 
+
+/-! ### Emergence jump: one cell flips the macro property -/
+
+/-- The parity seed on the `2 × 2` grid: rank-sum mod 2. -/
+def seedParity (x y : ℕ) : Fin 2 :=
+  ⟨(x + y) % 2, Nat.mod_lt _ (by omega)⟩
+
+/-- Edgeless graphs only connect a vertex to itself. -/
+theorem edgeless_reachable_eq {V : Type*} {G : SimpleGraph V}
+    (hno : ∀ x y : V, ¬ G.Adj x y) {u v : V} (h : G.Reachable u v) : u = v := by
+  obtain ⟨w⟩ := h
+  induction w with
+  | nil => rfl
+  | cons hz _ => exact absurd hz (hno _ _)
+
+/-- **Emergence jump witness** (Layer-3 control result): on the
+`2 × 2` grid with the parity seed (`ω c` = rank-sum mod 2),
+raising the threshold from `1` to `2` FLIPS the macro property:
+at threshold `1` the open cells `{(0,0), (1,1)}` are mutually
+non-adjacent, so no top-bottom crossing exists; at threshold `2`
+the single extra cell `(0,1)` connects the halves and a
+top-bottom path appears. Global capability out of ONE local
+event — the qualitative transition the audit asks about,
+formalized on the same seed. -/
+theorem emergence_jump_witness :
+    ∃ ω : V 2 → Fin 2,
+      ¬ crossing (fun c : V 2 => c.1.val = 0) (fun c : V 2 => c.1.val = 1) 1 ω
+      ∧ crossing (fun c : V 2 => c.1.val = 0) (fun c : V 2 => c.1.val = 1) 2 ω := by
+  classical
+  refine ⟨fun c => seedParity c.1.val c.2.val, ?_, ?_⟩
+  · -- ¬crossing at threshold 1: open cells {(0,0), (1,1)} are non-adjacent
+    rintro ⟨a, b, haT, hbB, hreach⟩
+    have hno : ∀ x y : V 2, ¬ (openGraph (openAt 1
+        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj x y := by
+      intro x y hp
+      obtain ⟨hca, hx, hy⟩ := hp
+      have hx1 : x = (0, 0) ∨ x = (1, 1) := by
+        obtain ⟨x1, x2⟩ := x
+        simp only [openAt] at hx
+        have hx2 : (seedParity x1.val x2.val).val < 1 := hx
+        simp only [seedParity] at hx2
+        have h4 : x1.val = 0 ∨ x1.val = 1 := by
+          have hlt := x1.isLt; omega
+        have h5 : x2.val = 0 ∨ x2.val = 1 := by
+          have hlt := x2.isLt; omega
+        rcases h4 with h4 | h4
+        · rcases h5 with h5 | h5
+          · rw [h4, h5] at hx2
+            left
+            refine Prod.ext ?_ ?_
+            · exact Fin.val_injective (by simp [h4])
+            · exact Fin.val_injective (by simp [h5])
+          · rw [h4, h5] at hx2; omega
+        · rcases h5 with h5 | h5
+          · rw [h4, h5] at hx2; omega
+          · rw [h4, h5] at hx2
+            simp only [Nat.mod_self] at hx2
+            right
+            refine Prod.ext ?_ ?_
+            · exact Fin.val_injective (by simp [h4])
+            · exact Fin.val_injective (by simp [h5])
+      have hy1 : y = (0, 0) ∨ y = (1, 1) := by
+        obtain ⟨y1, y2⟩ := y
+        simp only [openAt] at hy
+        have hy2 : (seedParity y1.val y2.val).val < 1 := hy
+        simp only [seedParity] at hy2
+        have h4 : y1.val = 0 ∨ y1.val = 1 := by
+          have hlt := y1.isLt; omega
+        have h5 : y2.val = 0 ∨ y2.val = 1 := by
+          have hlt := y2.isLt; omega
+        rcases h4 with h4 | h4
+        · rcases h5 with h5 | h5
+          · rw [h4, h5] at hy2
+            left
+            refine Prod.ext ?_ ?_
+            · exact Fin.val_injective (by simp [h4])
+            · exact Fin.val_injective (by simp [h5])
+          · rw [h4, h5] at hy2; omega
+        · rcases h5 with h5 | h5
+          · rw [h4, h5] at hy2; omega
+          · rw [h4, h5] at hy2
+            simp only [Nat.mod_self] at hy2
+            right
+            refine Prod.ext ?_ ?_
+            · exact Fin.val_injective (by simp [h4])
+            · exact Fin.val_injective (by simp [h5])
+      rcases hx1 with rfl | rfl <;>
+      rcases hy1 with rfl | rfl
+      · exact cellAdj_loopless _ hca
+      · have h2 : ¬ cellAdj ((0 : Fin 2), (0 : Fin 2))
+            ((1 : Fin 2), (1 : Fin 2)) := by simp [cellAdj, step]
+        exact h2 hca
+      · have h2 : ¬ cellAdj ((1 : Fin 2), (1 : Fin 2))
+            ((0 : Fin 2), (0 : Fin 2)) := by simp [cellAdj, step]
+        exact h2 hca
+      · exact cellAdj_loopless _ hca
+    have hab' : a = b := edgeless_reachable_eq hno hreach
+    subst hab'
+    have h0 : a.1.val = 0 := haT
+    have h1 : a.1.val = 1 := hbB
+    omega
+  · -- crossing at threshold 2: the walk (0,0) → (0,1) → (1,1)
+    refine ⟨(0, 0), (1, 1), rfl, rfl, ⟨?_⟩⟩
+    have h01 : (openGraph (openAt 2
+        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj
+        (0, 0) (0, 1) := by
+      refine ⟨?_, ?_, ?_⟩
+      · simp [cellAdj, step]
+      · simp [openAt, seedParity]
+      · simp [openAt, seedParity]
+    have h11 : (openGraph (openAt 2
+        (fun c : V 2 => seedParity c.1.val c.2.val))).Adj
+        (0, 1) (1, 1) := by
+      refine ⟨?_, ?_, ?_⟩
+      · simp [cellAdj, step]
+      · simp [openAt, seedParity]
+      · simp [openAt, seedParity]
+    exact SimpleGraph.Walk.cons h01
+      (SimpleGraph.Walk.cons h11 SimpleGraph.Walk.nil)
+
 end Hagi.Percolation
