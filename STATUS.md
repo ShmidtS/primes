@@ -1201,7 +1201,17 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   `‖gu − gF x‖ ≤ ε_probe + L_att·ε_att`
   (`cut_signal_attention_quant`) и сквозной приём шага
   `cut_safe_accept` (объединение Теорем 1–3: суммарный запас
-  → нулевой бюджет риска → истинный спад).
+  → нулевой бюджет риска → истинный спад). Термодинамика
+  (research-цикл, ask.sciencemadereadable.com): модуль
+  `Energy.Landauer` — цена стирания информации при тернарном
+  квантовании (Sagawa–Ueda PRL 2009, Janzing quant-ph/0002048,
+  Tkachenko arXiv:2503.09980): при физическом мосте
+  (диссипация >= c_unit·KL стёртых весов, `h_emp_landauer`)
+  discarded-info за compress-шаг ограничена энергетическим
+  бюджетом: `landauer_sandwich` (KL <= kappa*s*quantErr/c_unit),
+  `landauer_cap_certified` (KL <= kappa*s/(2*c_unit) при
+  quantErr <= 1/2) — бюджет каппит разрушаемую информацию:
+  давление к минимальному объёму при заданной точности.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —
