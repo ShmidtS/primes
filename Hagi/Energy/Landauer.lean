@@ -247,4 +247,25 @@ theorem lifetime_thermodynamic_ceiling (cUnit E0 Emin : ℝ)
       linarith)
   exact htel
 
+
+/-! ### Iteration 9: witness — the ceiling line is ATTAINABLE -/
+
+/-- **Witness: the ceiling is attainable** (non-vacuity of the
+budget line). A pure-measurement cycle spending its ENTIRE budget
+on reading `k` bits of credit (`B = cUnit * k`) and writing
+nothing (`F = 0`) sits exactly on the ceiling edge
+`cUnit * (k + 0) = B`: the thermodynamic ceiling does not forbid
+a cycle — it is TIGHT. Combined with iteration 8, `E0 − Emin`
+over `cUnit` is the exact reachable total, and the learning
+problem reduces to choosing the split `(k, F)` on the line
+`k + F = B / cUnit` to maximize realized capability — the formal
+core of "maximum quality at minimal volume". -/
+theorem witness_ceiling_attainable (cUnit B k : ℝ) (hcUnit : 0 < cUnit)
+    (hk : 0 < k) (hB : B = cUnit * k) :
+    cUnit * (k + 0) ≤ B ∧ 0 < B / cUnit := by
+  refine ⟨?_, ?_⟩
+  · rw [hB, add_zero]
+  · rw [hB]
+    exact div_pos (mul_pos hcUnit hk) hcUnit
+
 end Hagi.Energy
