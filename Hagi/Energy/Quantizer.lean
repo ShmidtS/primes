@@ -70,4 +70,39 @@ theorem gridQ_idem (Δ : ℝ) (hΔ : 0 < Δ) (x : ℝ) :
   unfold gridQ
   rw [h2, round_intCast]
 
+
+/-- **Оптимальный шаг решётки: Δ* = c.** Компромисс
+«точность × объём памяти»: ошибка квантования стоит Δ
+(ошибка ≤ Δ/2 на `gridQ`), точность Δ требует ~log(1/Δ) бит
+на вес, а хранение/стирание бита стоит c (ландауэровская
+цена, см. `landauer_cooling_floor`). Суммарная цена
+
+  `f(Δ) = Δ + c·log(1/Δ)`
+
+минимальна ровно при Δ = c: для любого Δ > 0
+
+  `f(c) ≤ f(Δ)`
+
+(доказано алгебраически из log x ≤ x − 1 без случая-разбора).
+Оптимальный шаг квантования пропорционален цене бита:
+дорогая память/энергия ⇒ грубее решётка; дешёвая ⇒ точнее.
+Это формальный ответ на «максимальное качество при
+минимальном объёме»: уровень квантования весов выбирается
+равным удельной цене информации. -/
+theorem quantizer_optimal_step (c Δ : ℝ) (hc : 0 < c) (hΔ : 0 < Δ) :
+    c + c * Real.log (1/c) ≤ Δ + c * Real.log (1/Δ) := by
+  have h1 : Real.log (Δ/c) ≤ Δ/c - 1 := Real.log_le_sub_one_of_pos (by positivity)
+  have h2 : c * Real.log (Δ/c) ≤ Δ - c := by
+    have := mul_le_mul_of_nonneg_left h1 hc.le
+    field_simp at this
+    linarith
+  have h3 : Real.log (Δ/c) = Real.log Δ - Real.log c :=
+    Real.log_div (hΔ.ne') (hc.ne')
+  rw [h3] at h2
+  have h4 : Real.log (1/c) = -Real.log c := by
+    rw [one_div, Real.log_inv]
+  have h5 : Real.log (1/Δ) = -Real.log Δ := by
+    rw [one_div, Real.log_inv]
+  rw [h4, h5]
+  linarith
 end Hagi.Energy
