@@ -1,0 +1,58 @@
+h_emp files: 34
+h_emp identifiers: 117
+primitive defs: 17
+
+[h_emp]
+Hagi/Autonomy/Insight.lean: h_emp_second
+Hagi/Discovery/PPT.lean: h_emp_bud h_emp_dist h_emp_fiber h_emp_good h_emp_meas h_emp_single h_emp_ver
+Hagi/Energy/Landauer.lean: h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
+Hagi/Energy/STEStep.lean: h_emp_res
+Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
+Hagi/Examples/Nonvacuity.lean: h_emp_dist h_emp_grow h_emp_merge h_emp_merge_of_bridge
+Hagi/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smooth
+Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
+Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
+Hagi/Growth/Grow.lean: h_emp_pl
+Hagi/Growth/RatioTakeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
+Hagi/Growth/SeedOnly.lean: h_emp_disp_step h_emp_lip
+Hagi/Model/SoftmaxStep.lean: h_emp_smooth
+Hagi/Pretraining/ProbeError.lean: h_emp_attsmooth
+Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate h_emp_retrieval_transfer_ h_emp_task_
+Hagi/Probability/ConditionalSuccess.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
+Hagi/Probability/Freedman.lean: h_emp_var
+Hagi/Runtime/TernaryExact.lean: h_emp_lip
+Hagi/Step/AdaptiveSafeQP.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
+Hagi/Step/Compound.lean: h_emp_c h_emp_decay h_emp_gap
+Hagi/Step/ProjectionDescent.lean: h_emp_smooth
+Hagi/Step/SafeQPStep.lean: h_emp_smooth
+Hagi/Step/StochasticSafeQP.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
+Hagi/System/GrowthState.lean: h_emp_dist h_emp_grow h_emp_lip h_emp_merge h_emp_smooth
+Hagi/Unified/AnytimeMartingale.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
+Hagi/Unified/ArchitectureTheorem.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
+Hagi/Unified/Assumptions.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_grow h_emp_merge h_emp_step
+Hagi/Unified/DerivAlong.lean: h_emp_grow h_emp_lip h_emp_smooth
+Hagi/Unified/GrowthBridge.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
+Hagi/Unified/MasterHAGI.lean: h_emp_01 h_emp_G h_emp_dist h_emp_fit h_emp_frontier_scaling h_emp_grow h_emp_indep h_emp_lip h_emp_meas h_emp_merge h_emp_p h_emp_smooth
+Hagi/Unified/MasterHAGITrunc.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
+Hagi/Unified/RecursiveGrowth.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_quad h_emp_smooth
+Hagi/Unified/StateTakeoff.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
+Hagi/Unified/TopLevel.lean: h_emp_conc h_emp_lip h_emp_smooth
+
+[primitives]
+Hagi/Core/Concat.lean:lse
+Hagi/Core/Concat.lean:softmaxP
+Hagi/Data/Distill.lean:klDiv
+Hagi/Data/FannesSmooth.lean:ent
+Hagi/Data/FannesSmooth.lean:tvDist
+Hagi/Discovery/PPT.lean:tvDist
+Hagi/Energy/EntropyProduction.lean:entropyProduction
+Hagi/Energy/FreeEnergy.lean:kldiv
+Hagi/Energy/Variational.lean:kldiv'
+Hagi/Information/DiscreteFannes.lean:entropy
+Hagi/Information/DiscreteFannes.lean:tvHalf
+Hagi/Omni/SharedStateComposition.lean:entryCount
+Hagi/Prelude/Info.lean:entDef
+Hagi/Prelude/Info.lean:klDef
+Hagi/Prelude/Info.lean:tvDef
+Hagi/Step/Upgrades.lean:softmaxW
+Hagi/Unified/ArchitectureTheorem.lean:entTV

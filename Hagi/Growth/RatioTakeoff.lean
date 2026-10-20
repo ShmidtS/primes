@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Growth.FrontierScaling
+import Hagi.Growth.TakeoffElasticity
 import Hagi.Foundations.ConeTakeoff
 set_option linter.style.header false
 
@@ -74,27 +75,22 @@ theorem ratio_takeoff (C D : ℕ → ℝ) (γ k : ℝ)
     (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
     (h_emp_cone : ConeRatio C D k) (T : ℕ) :
     C 0 * (1 + γ * k) ^ T ≤ C T := by
-  induction T with
-  | zero => simp
-  | succ T ih =>
-      have hc := h_emp_cone T
-      have hs := h_emp_step T
-      have hgrow : (1 + γ * k) * C T ≤ C (T + 1) := by
-        rw [hs]
-        have hring : C T + γ * k * C T = (1 + γ * k) * C T := by ring
-        have hmul : γ * (k * C T) ≤ γ * D T :=
-          mul_le_mul_of_nonneg_left hc hγ.le
-        have hring2 : C T + γ * k * C T = C T + γ * (k * C T) := by ring
-        linarith [hring, hring2, hmul]
-      have hcast : (1 + γ * k) ^ (T + 1)
-          = (1 + γ * k) ^ T * (1 + γ * k) := by ring
-      rw [hcast]
-      calc C 0 * ((1 + γ * k) ^ T * (1 + γ * k))
-          = (C 0 * (1 + γ * k) ^ T) * (1 + γ * k) := by ring
-        _ ≤ C T * (1 + γ * k) :=
-            mul_le_mul_of_nonneg_right ih (by positivity)
-        _ = (1 + γ * k) * C T := by ring
-        _ ≤ C (T + 1) := hgrow
+  -- dedup R-scan: the manual induction is exactly the
+  -- specialization of TakeoffElasticity.elasticity_chain with
+  -- the constant cone elasticity `e t = γ·k` — the cone gives
+  -- the per-step elasticity lower bound, the product chain
+  -- does the rest.
+  have hstep : ∀ t, (1 + γ * k) * C t ≤ C (t + 1) := by
+    intro t
+    rw [h_emp_step t]
+    have hring2 : C t + γ * k * C t = C t + γ * (k * C t) := by ring
+    have hmul : γ * (k * C t) ≤ γ * D t :=
+      mul_le_mul_of_nonneg_left (h_emp_cone t) hγ.le
+    have hring : C t + γ * k * C t = (1 + γ * k) * C t := by ring
+    linarith [hring, hring2, hmul]
+  have hchain := Hagi.Growth.elasticity_chain C (fun _ => γ * k) T
+    hstep (fun t _ => by positivity)
+  rwa [Finset.prod_const, Finset.card_range] at hchain
 
 /-- Если `0 ≤ ρ` и `D (t+1) ≤ ρ·D t` при всех t, то
 `D T ≤ ρ^T·D 0`. -/

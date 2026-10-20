@@ -58,6 +58,10 @@ out=$(python scripts/Freeze.py 2>&1 | tail -1)
 echo "$out"
 case "$out" in *"FREEZE: PASS"*) ;; *) echo "FREEZE: FAIL"; fail=1;; esac
 
+step "AssumptionScan (h_emp premise + primitive registry, lock-gated)"
+out=$(python scripts/AssumptionScan.py 2>&1 | tail -1)
+echo "$out"; case "$out" in ASSUMPTIONSCAN:\ PASS*) ;; *) echo "ASSUMPTIONSCAN: FAIL"; fail=1;; esac
+
 step "StatusLint (doc identifiers exist in code, baseline-gated)"
 out=$(python scripts/StatusLint.py 2>&1 | tail -1)
 echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=1; }
