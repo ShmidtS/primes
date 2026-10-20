@@ -1,6 +1,7 @@
 import Mathlib.Tactic
 import Hagi.Prelude.Info
 import Hagi.Energy.Quantizer
+import Hagi.Energy.Variational
 
 set_option linter.style.header false
 
@@ -41,5 +42,26 @@ theorem unified_step_certificate (θ L : ι → ℝ) (g : ℝ)
   intro w m
   refine ⟨fun i => softDef_pos _ i, softDef_sum_one _, ?_⟩
   exact gridQ_error Δ hΔ (m - γ * g)
+
+
+/-- **Суммарный бюджет качества композитного шага**: Гиббс-
+ансамбль при обратной температуре 1/Tt даёт ожидаемую потерю
+смеси в Tt·log n-окрестности глобального минимума
+(`gibbs_mixture_quality`: термодинамическая цепочка
+расписание → свободная энергия → энергия смеси), а
+квантованное исполнение шага вносит не более Δ/2 ошибки в
+параметрах (`gridQ_error`). Полный вычислительный бюджет
+качества HAGI: (Tt·log n) по охлаждению + (Δ/2) по решётке —
+оба слагаяемых минимизируются независимо, компромисс
+«качество × вычисления» явный. -/
+theorem unified_step_budget (θ L : ι → ℝ) (g γ Δ Tt : ℝ)
+    (hΔ : 0 < Δ) (hTt : 0 < Tt) :
+    (∃ m : ℝ, (∀ i, m ≤ L i)
+      ∧ (∑ i, softDef (fun i => -(L i) / Tt) i * L i
+          ≤ m + Tt * Real.log ((Fintype.card ι : ℕ):ℝ)))
+      ∧ |gridQ Δ hΔ ((∑ i, softDef (fun i => -(L i) / Tt) i * θ i) - γ * g)
+          - ((∑ i, softDef (fun i => -(L i) / Tt) i * θ i) - γ * g)| ≤ Δ / 2 := by
+  refine ⟨gibbs_mixture_quality L hTt, ?_⟩
+  exact gridQ_error Δ hΔ _
 
 end Hagi.System
