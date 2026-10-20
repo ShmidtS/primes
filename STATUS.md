@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 266 Lean-модулей в `Hagi/`; 2733 деклараций (Freeze);
+- 267 Lean-модулей в `Hagi/`; 2735 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -287,6 +287,16 @@
   (действительный случай Thm 1 SFPRM). Синтез с R520 (пик
   Ω_n при n = 7): сферическая параметризация шага как доли
   угла согласована с максимумом телесного угла в 7-мерии.
+
+- **Неточное сжатие и пол квантования**
+  (`Hagi/Optimization/InexactContraction.lean`): внутренняя
+  индукция «трёх геометрий» — рекурсия x(k+1) ≤ q·x(k) + ε
+  даёт точную границу x(k) ≤ q^k·x₀ + ε(1−q^k)/(1−q)
+  (`inexact_contraction_bound`) и предельный пол
+  x(k) ≤ q^k·x₀ + ε/(1−q) (`inexact_contraction_floor`):
+  квантование ставит пол сходимости ε/(1−q); с
+  `quantized_descent_telescope` (ε = Δ/2) — требование к
+  решётке Δ < 2τ(1−q) для останова по допуску τ.
 
 ### L3. Сертификатный слой (CycleCertificate)
 
