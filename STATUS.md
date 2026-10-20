@@ -1418,17 +1418,37 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   регрессионный тест
   full_cycle_two_step_growth_inconsistent сохранены.
 - Итерация 22 (объединение по аудиту 3 — единая траектория,
-  SustainedTakeoff): в StageSemantics добавлены `growState`
+  SustainedTakeoff): в StageSemantics добавлены `growSeq`
   (рекурсивная последовательность честных переходов:
   S(t+1) = advance(S(t), growInput α S(t)) — эффекты
   пересчитываются из текущего состояния КАЖДОГО цикла),
   `growTraj` (Trajectory-обёртка, h_step = rfl) и
-  `growState_capability` — ростовой закон по всей Honest-
+  `growSeq_capability` — ростовой закон по всей Honest-
   траектории: capability(S(t)) = (1+α)^t·C₀ при t ≤ T, каждый
   множитель порождён реальным переходом (ср. с упрёком аудита
   к `coupledGrowthTraj`, где рост встроен формулой). Замкнуты
   все три клаузы трихотомии аудита: Nonempty (idle-свидетели),
   Productive (ит. 21), SustainedTakeoff (ит. 22).
+- Итерация 23 (объединение по аудиту §3 — платный рост и
+  единый ledger): в state-зависимом слое рост сделан ПЛАТНЫМ:
+  `stateGrowthEffects α μ S` теперь несёт growCost = μ·C_t
+  (рост пропорционально оплачивается из бюджета — «рост без
+  цены», слабость прежнего свидетеля, устранена).
+  Последовательность `growSeq` несёт инвариант
+  0 ≤ μ·capability КОНСТРУКТИВНО на каждом шаге (subtype),
+  что делает честность цены частью определения — без
+  внешних гипотез в рекурсии. Новые теоремы на ОДНОЙ
+  траектории: `growAdvance_budget` (цикл списывает ровно
+  μ·C_t), `grow_two_step_consistent` (второй цикл
+  пересчитывает и gain и cost из выросшего состояния),
+  `growSeq_capability` (C_t = (1+α)^t·C₀) и
+  `growSeq_budget_ledger` — бюджетный ledger на той же
+  траектории: budget(t) + μ·Σ_{i<t} C_i = budget(0), где
+  C_i — та же capability-последовательность. Capability,
+  энергия и бюджет теперь из одной динамики (мост
+  MasterHAGI-предпосылок к честным переходам). Инфослой
+  (аудит §4A) проверен: все KL/TV-определения — rfl-мосты
+  к канону Prelude.Info, независимых копий нет.
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

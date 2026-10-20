@@ -101,26 +101,25 @@ structure Trajectory (X : Type*) [NormedAddCommGroup X]
   /-- Every step is an advance over that cycle's input. -/
   h_step : ∀ t < T, state (t + 1) = advance (state t) (input t)
 
-/-! ### State-dependent effects (audit 2 / P2 repair)
+/-! ### State-dependent effects (audit 2 / P2 repair, paid growth)
 
 The two-step inconsistency
 (`Examples/Nonvacuity.full_cycle_two_step_growth_inconsistent`)
 showed that a FIXED per-trajectory effect cannot sustain a
 geometric growth law: the gain must be recomputed FROM THE
-CURRENT STATE at every cycle. This layer makes that explicit:
-`stateGrowthEffects alpha S` computes the cycle effects from
-the state (gain proportional to capability), and `growAdvance`
-composes them through the honest `advance` semantics. -/
+CURRENT STATE at every cycle. This layer makes that explicit —
+and PAID: the budget cost is proportional to capability
+(growth is not free), with the cost honesty carried
+constructively along the sequence. -/
 
 /-- **State-dependent cycle effects**: measured effects
-computed FROM the current state, not carried over. The gain is
-proportional to the current capability (the productive law the
-fixed-effects model cannot express); the remaining entries are
-neutral placeholders (no-op costs/risks/energies), so the
-growth dynamic can be studied in isolation. -/
-def stateGrowthEffects (alpha : ℝ) (S : GrowthState X) : StageEffects where
+computed FROM the current state, not carried over. Gain
+`alpha * C_t` (geometric law), budget cost `mu * C_t` (growth
+is paid for); remaining entries are neutral placeholders, so
+the productive dynamic is studied in isolation. -/
+def stateGrowthEffects (alpha mu : ℝ) (S : GrowthState X) : StageEffects where
   growGain := alpha * S.capability
-  growCost := 0
+  growCost := mu * S.capability
   growRisk := 0
   growEnergy := S.energy
   mergeEnergy := S.energy
@@ -132,102 +131,178 @@ def stateGrowthEffects (alpha : ℝ) (S : GrowthState X) : StageEffects where
   compressEnergy := S.energy
   compressRisk := 0
 
-/-- The per-cycle input for the pure productive-growth cycle:
-effects recomputed from the CURRENT state `S` (state-dependent —
-the repair of the fixed-effects defect), zero gap, neutral
-SafeQP evidence. -/
-noncomputable def growInput (alpha : ℝ) (S : GrowthState X) : StageInput X where
+/-- The per-cycle input for the paid productive-growth cycle:
+effects recomputed from the CURRENT state `S`; the honesty of
+the proportional budget spend is exactly `hcost`. -/
+noncomputable def growInput (alpha mu : ℝ) (S : GrowthState X)
+    (hcost : 0 ≤ mu * S.capability) : StageInput X where
   sp.eta := 1
   sp.L := 1
   sp.kappa := 0
   sp.s := 0
-  eff := stateGrowthEffects alpha S
+  eff := stateGrowthEffects alpha mu S
   gap := 0
   stepDir := 0
   grad := 0
-  h_costs_nn := by constructor <;> exact le_refl _
-  h_risks_nn := by
-    exact ⟨le_refl _, ⟨le_refl _, ⟨le_refl _, le_refl _⟩⟩⟩
+  h_costs_nn := ⟨hcost, le_refl _⟩
+  h_risks_nn := ⟨le_refl _, ⟨le_refl _, ⟨le_refl _, le_refl _⟩⟩⟩
   h_eta_pos := by norm_num
 
 /-- One productive growth cycle through the state-dependent
 semantics: capability gains exactly `alpha * C_t` — the gain is
 recomputed from the CURRENT state at every cycle. -/
-theorem growAdvance_capability (alpha : ℝ) (S : GrowthState X) :
-    (advance S (growInput alpha S)).capability
+theorem growAdvance_capability (alpha mu : ℝ) (S : GrowthState X)
+    (hcost : 0 ≤ mu * S.capability) :
+    (advance S (growInput alpha mu S hcost)).capability
       = S.capability + alpha * S.capability := by
   simp [advance, growInput, stateGrowthEffects]
 
+/-- One paid cycle consumes exactly `mu * C_t` of budget. -/
+theorem growAdvance_budget (alpha mu : ℝ) (S : GrowthState X)
+    (hcost : 0 ≤ mu * S.capability) :
+    (advance S (growInput alpha mu S hcost)).budget
+      = S.budget - mu * S.capability := by
+  simp [advance, growInput, stateGrowthEffects]
+
 /-- **Two-step consistency (the mirror of the two-step
-inconsistency)**: under state-dependent effects the geometric
-growth law is SATISFIABLE on two consecutive cycles — the
-second cycle recomputes its gain from the ALREADY GROWN state,
-so `C 2 = (1 + alpha)^2 * C 0`. This is the productive witness
-the fixed-effects model provably excludes. -/
-theorem grow_two_step_consistent (alpha : ℝ) (S : GrowthState X) :
-    (advance (advance S (growInput alpha S))
-      (growInput alpha (advance S (growInput alpha S)))).capability
+inconsistency)**: under paid state-dependent effects the
+geometric growth law is SATISFIABLE on two consecutive cycles
+— the second cycle recomputes BOTH its gain and its cost from
+the ALREADY GROWN state. -/
+theorem grow_two_step_consistent (alpha mu : ℝ) (S : GrowthState X)
+    (hcost : 0 ≤ mu * S.capability) (hα1 : 0 ≤ 1 + alpha) :
+    (advance (advance S (growInput alpha mu S hcost))
+      (growInput alpha mu (advance S (growInput alpha mu S hcost))
+        (by
+          have hcap := growAdvance_capability alpha mu S hcost
+          rw [hcap]
+          have hrid : mu * (S.capability + alpha * S.capability)
+            = (1 + alpha) * (mu * S.capability) := by ring
+          rw [hrid]
+          exact mul_nonneg hα1 hcost))).capability
       = (1 + alpha) ^ 2 * S.capability := by
-  have h1 := growAdvance_capability alpha S
-  have h2 := growAdvance_capability alpha
-    (advance S (growInput alpha S))
+  have hcap' : 0 ≤ mu
+      * (advance S (growInput alpha mu S hcost)).capability := by
+    have h1 := growAdvance_capability alpha mu S hcost
+    rw [h1]
+    have hrid : mu * (S.capability + alpha * S.capability)
+      = (1 + alpha) * (mu * S.capability) := by ring
+    rw [hrid]
+    exact mul_nonneg hα1 hcost
+  have h1 := growAdvance_capability alpha mu S hcost
+  have h2 := growAdvance_capability alpha mu
+    (advance S (growInput alpha mu S hcost)) hcap'
   rw [h1] at h2
   rw [h2]
   ring
 
-/-- Across the horizon the state-dependent cycle is strictly
-productive (capability strictly increases whenever `alpha > 0`
-and the start is positive) — the `Productive` clause of the
-audit's Nonempty/Productive/SustainedTakeoff trichotomy,
-realized by genuine transitions rather than built-in formulas. -/
-theorem grow_strict_productive (alpha : ℝ) (S : GrowthState X)
-    (hα : 0 < alpha) (hC : 0 < S.capability) :
-    S.capability < (advance S (growInput alpha S)).capability := by
+/-- Across the horizon the paid state-dependent cycle is
+strictly productive (capability strictly increases whenever
+`alpha > 0` and the start is positive). -/
+theorem grow_strict_productive (alpha mu : ℝ) (S : GrowthState X)
+    (hcost : 0 ≤ mu * S.capability) (hα : 0 < alpha)
+    (hC : 0 < S.capability) :
+    S.capability < (advance S (growInput alpha mu S hcost)).capability := by
   rw [growAdvance_capability]
   linarith [mul_pos hα hC]
 
-/-! ### Sustained takeoff on the honest trajectory
+/-! ### Sustained takeoff on the honest paid trajectory
 
 The third clause of the audit's trichotomy: capability growth
 sustained over the WHOLE horizon by genuine `advance`
-transitions with state-dependent effects. The state sequence is
-built by actual composition (`growState`), not by postulating
-the growth formula. -/
+transitions with paid state-dependent effects, on ONE
+trajectory that carries capability, energy AND the budget
+ledger (audit section 3: all metrics from one dynamics). The
+cost honesty `0 <= mu * C_t` is carried CONSTRUCTIVELY at
+every step, so the recursion needs no external invariant. -/
 
-/-- The honest productive state sequence: state `t + 1` is the
-genuine advance of state `t` with effects recomputed from the
-current state. -/
-noncomputable def growState (alpha : ℝ) (S0 : GrowthState X) :
-    ℕ → GrowthState X
+/-- The honest paid productive sequence: each state carries the
+invariant `0 <= mu * capability`, making every cycle's cost
+honest by construction (no external invariant needed in the
+recursion). -/
+noncomputable def growSeq (alpha mu : ℝ) (hmu : 0 ≤ mu)
+    (hα1 : 0 ≤ 1 + alpha)
+    (S0 : {s : GrowthState X // 0 ≤ mu * s.capability}) :
+    ℕ → {s : GrowthState X // 0 ≤ mu * s.capability}
   | 0 => S0
-  | t + 1 => advance (growState alpha S0 t)
-      (growInput alpha (growState alpha S0 t))
-
-/-- The honest productive trajectory on horizon `T` assembled
-from the state sequence. -/
-noncomputable def growTraj (alpha : ℝ) (T : ℕ) (S0 : GrowthState X) :
-    Trajectory X where
-  T := T
-  state := growState alpha S0
-  input := fun t => growInput alpha (growState alpha S0 t)
-  h_step := fun t _ => rfl
+  | t + 1 =>
+    let S := growSeq alpha mu hmu hα1 S0 t
+    ⟨advance S.val (growInput alpha mu S.val S.property),
+      by
+        have hcap := growAdvance_capability alpha mu S.val S.property
+        have hrid : mu * (S.val.capability + alpha * S.val.capability)
+          = (1 + alpha) * (mu * S.val.capability) := by ring
+        rw [hcap, hrid]
+        exact mul_nonneg hα1 S.property⟩
 
 /-- **Sustained takeoff (the honest-trajectory growth law)**:
-after `t` genuine cycles
-`capability (growState t) = (1 + alpha)^t * C0` — every factor
-contributed by a real transition whose gain was recomputed from
-the current state (contrast the fixed-effects two-step
-inconsistency). -/
-theorem growState_capability (alpha : ℝ) (S0 : GrowthState X)
-    (t : ℕ) :
-    (growState alpha S0 t).capability
-      = (1 + alpha) ^ t * S0.capability := by
+after `t` genuine paid cycles
+`capability = (1 + alpha)^t * C0` — every factor contributed by
+a real transition whose gain AND cost were recomputed from the
+current state. -/
+theorem growSeq_capability (alpha mu : ℝ) (hmu : 0 ≤ mu)
+    (hα1 : 0 ≤ 1 + alpha)
+    (S0 : {s : GrowthState X // 0 ≤ mu * s.capability}) (t : ℕ) :
+    (growSeq alpha mu hmu hα1 S0 t).val.capability
+      = (1 + alpha) ^ t * S0.val.capability := by
   induction t with
-  | zero => simp [growState]
+  | zero => simp [growSeq]
   | succ t ih =>
-      simp only [growState]
-      rw [growAdvance_capability, ih, pow_succ]
+      have hcap := growAdvance_capability alpha mu (growSeq alpha mu hmu hα1 S0 t).val
+        (growSeq alpha mu hmu hα1 S0 t).property
+      simp only [growSeq]
+      rw [hcap, ih, pow_succ]
       ring
+
+/-- **The unified budget ledger on the same trajectory**
+(audit section 3: capability and budget from ONE dynamics):
+after `t` paid cycles the remaining budget plus the total spend
+recorded cycle-by-cycle equals the initial budget exactly
+
+  `budget(t) + mu * SUM_{i<t} C_i = budget(0)`,
+
+with `C_i = (1 + alpha)^i * C0` the SAME capability sequence as
+in `growSeq_capability`. -/
+theorem growSeq_budget_ledger (alpha mu : ℝ) (hmu : 0 ≤ mu)
+    (hα1 : 0 ≤ 1 + alpha)
+    (S0 : {s : GrowthState X // 0 ≤ mu * s.capability}) (t : ℕ) :
+    (growSeq alpha mu hmu hα1 S0 t).val.budget
+      + mu * (∑ i ∈ Finset.range t,
+        (growSeq alpha mu hmu hα1 S0 i).val.capability)
+      = S0.val.budget := by
+  induction t with
+  | zero => simp [growSeq]
+  | succ t ih =>
+      have hcost := (growSeq alpha mu hmu hα1 S0 t).property
+      have hbud := growAdvance_budget alpha mu (growSeq alpha mu hmu hα1 S0 t).val hcost
+      have hsum : (∑ i ∈ Finset.range (t + 1),
+          (growSeq alpha mu hmu hα1 S0 i).val.capability)
+        = (∑ i ∈ Finset.range t,
+            (growSeq alpha mu hmu hα1 S0 i).val.capability)
+          + (growSeq alpha mu hmu hα1 S0 t).val.capability := by
+        rw [Finset.sum_range_succ]
+      simp only [growSeq]
+      rw [hbud, hsum]
+      have hsplit : mu * ((∑ i ∈ Finset.range t,
+            (growSeq alpha mu hmu hα1 S0 i).val.capability)
+          + (growSeq alpha mu hmu hα1 S0 t).val.capability)
+        = mu * (∑ i ∈ Finset.range t,
+            (growSeq alpha mu hmu hα1 S0 i).val.capability)
+          + mu * (growSeq alpha mu hmu hα1 S0 t).val.capability := by ring
+      rw [hsplit]
+      linarith [ih]
+
+/-- The paid honest trajectory on horizon `T` assembled from
+the invariant-carrying sequence. -/
+noncomputable def growTraj (alpha mu : ℝ) (hmu : 0 ≤ mu)
+    (hα1 : 0 ≤ 1 + alpha)
+    (S0 : {s : GrowthState X // 0 ≤ mu * s.capability}) (T : ℕ) :
+    Trajectory X where
+  T := T
+  state := fun t => (growSeq alpha mu hmu hα1 S0 t).val
+  input := fun t => growInput alpha mu (growSeq alpha mu hmu hα1 S0 t).val
+    (growSeq alpha mu hmu hα1 S0 t).property
+  h_step := fun t _ => rfl
 
 /-! ### The one-cycle energy certificate -/
 
