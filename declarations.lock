@@ -176,6 +176,7 @@ S	99896226b023ea7a	8629bbee8e7e92c7
 Score	6be016743cd11c41	6beb3b9b30aeed72
 SepSeparated	40e11bae7b9cd27d	0ea9069e0be888b0
 Shatters	e23573fd383696a4	396539c673aca743
+SidonSet	90a9bbc7d56166d5	bbcc1854aa3a5139
 Spos	77c86283135f389d	200070200926d341
 Spos'	9611f4a4cbcbdba8	0ad1d68afc6d8365
 StageCertificate	ba60c72b1d05f746	54af8035508a526d
@@ -229,6 +230,7 @@ advance_energy	6491a8a5bfde2286	8f994fb0743d4387
 advance_energy_drop	1962a40fe38dcca0	8e91209a2cc01020
 advance_risk_ge	3d0400bbe1c53ef3	26034f4b2cdf3b7f
 advance_sp	3120327f417aa763	2ada7aacb772ebfe
+advance_weights_shared	b31f996341165349	6d0a1598effedaf7
 aitken_consistency	f61f004ab8d2f59d	8ce568def1b7ba79
 aitken_exact	c234e7b2868af4a2	8bda6ed2575404a8
 alignLower	7b39d62abdb71775	647c7ee6e5caf9ca
@@ -2231,6 +2233,9 @@ sharedStateCostBound	2ec47db7d5c957d0	c7b5e541b1df070c
 sharedStateEnergy	363dd7303edd736f	890fd6d02fa3797f
 sharedStatePerturbed	0de41389e44bd6b3	a48da357bb5254d7
 shift_paid_from_budget	cbb36c5c892cef1b	d660249e63fffa5c
+sidonSet_golomb4	eb17e9f9ea9275f5	3c8435b1ff5af87a
+sidon_diff_eq	203103606c8cf910	1692eb48ea67afe6
+sidon_pair_diff_injective	d36d54edda14a1a7	97805306432d6ea4
 sigmaPrice	8cb753e8bb3c9f07	d64ee205181a0040
 sigmaPrice_neg	ab5ae13c52ad10ee	2182434ebe701713
 sigma_orth_necessary	d38e2cd84d495222	25cf7218f919b1a4
