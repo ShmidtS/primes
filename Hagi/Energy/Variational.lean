@@ -475,6 +475,73 @@ theorem gibbs_mixture_quality {ι : Type*} [Fintype ι] [Nonempty ι]
       * Real.log (softDef (fun i => -(L i) / Tt) i) :=
     mul_le_mul_of_nonneg_left hS (le_of_lt hTt)
   linarith
+
+
+/-- **Геометрическое охлаждение: логарифмическая цена точности.**
+Расписание Tₜ = T₀·ρᵗ (0 < ρ < 1) достигает ε-качества
+исполняемой Гиббс-смеси за
+
+  `N ≥ log(T₀·log n / ε) / log(1/ρ)`
+
+шагов: после N шагов охлаждения T_N·log n ≤ ε, и по
+`gibbs_mixture_quality` ожидаемая потеря смеси ≤ m + ε.
+Вычислительная сложность достижения качества ε —
+O(log(1/ε)) фаз охлаждения (при постоянных T₀, ρ, n):
+прямая формализация «минимизации вычислений» —
+экспоненциальная точность за логарифмическое число шагов
+управления температурой. -/
+theorem geometric_cooling_steps {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) (T₀ ρ ε : ℝ) (hT₀ : 0 < T₀) (hρ0 : 0 < ρ) (hρ1 : ρ < 1)
+    (hε : 0 < ε) (hn : 2 ≤ Fintype.card ι) (N : ℕ)
+    (hN : Real.log (T₀ * Real.log ((Fintype.card ι : ℕ):ℝ) / ε)
+        / Real.log ((1:ℝ)/ρ) ≤ (N:ℝ)) :
+    ∃ m : ℝ, (∀ i, m ≤ L i)
+      ∧ (∑ i, softDef (fun i => -(L i) / (T₀ * ρ^(N:ℝ))) i * L i
+          ≤ m + ε) := by
+  have hlogn : 0 < Real.log ((Fintype.card ι : ℕ):ℝ) := by
+    apply Real.log_pos
+    have h1 : (1:ℝ) < ((Fintype.card ι : ℕ):ℝ) := by exact_mod_cast hn
+    linarith
+  have hone : (1:ℝ) < (1:ℝ)/ρ := one_lt_one_div hρ0 hρ1
+  have hloginv : 0 < Real.log ((1:ℝ)/ρ) := Real.log_pos hone
+  have hTp : 0 < T₀ * ρ^(N:ℝ) := by positivity
+  have hkey : T₀ * ρ^(N:ℝ) * Real.log ((Fintype.card ι : ℕ):ℝ) ≤ ε := by
+    set A := T₀ * Real.log ((Fintype.card ι : ℕ):ℝ) with hA
+    have hApos : 0 < A := by positivity
+    have hBpos : 0 < ((1:ℝ)/ρ)^(N:ℝ) := by positivity
+    have h11 : Real.log (A / ε) ≤ (N:ℝ) * Real.log ((1:ℝ)/ρ) :=
+      (div_le_iff₀ hloginv).mp hN
+    have h13 : Real.log (((1:ℝ)/ρ)^(N:ℝ)) = (N:ℝ) * Real.log ((1:ℝ)/ρ) :=
+      Real.log_rpow (one_div_pos.mpr hρ0) _
+    have h3 : Real.log (A / ε) ≤ Real.log (((1:ℝ)/ρ)^(N:ℝ)) := by
+      rw [h13]; linarith
+    have h4 : A / ε ≤ ((1:ℝ)/ρ)^(N:ℝ) := by
+      have h12 := Real.exp_le_exp.mpr h3
+      rwa [Real.exp_log (div_pos hApos hε), Real.exp_log hBpos] at h12
+    have h5 : ρ^(N:ℝ) * ((1:ℝ)/ρ)^(N:ℝ) = 1 := by
+      rw [← Real.mul_rpow (show (0:ℝ) ≤ ρ by positivity)
+        (show (0:ℝ) ≤ (1:ℝ)/ρ by positivity)]
+      have : ρ * ((1:ℝ)/ρ) = 1 := by field_simp
+      rw [this]
+      exact Real.one_rpow _
+    have h4' : A ≤ ε * ((1:ℝ)/ρ)^(N:ℝ) := by
+      have := (div_le_iff₀ hε).mp h4
+      linarith [this]
+    have h9 := mul_le_mul_of_nonneg_left h4'
+      (le_of_lt (show (0:ℝ) < ρ^(N:ℝ) by positivity))
+    have h10 : ρ^(N:ℝ) * (ε * ((1:ℝ)/ρ)^(N:ℝ)) = ε := by
+      linear_combination ε * h5
+    linarith
+
+  have hTp : 0 < T₀ * ρ^(N:ℝ) := by positivity
+  have hqual := gibbs_mixture_quality L hTp
+  rcases hqual with ⟨m, hmin, hbnd⟩
+  refine ⟨m, hmin, ?_⟩
+  have hTn : T₀ * ρ^(N:ℝ) * Real.log ((Fintype.card ι : ℕ):ℝ) ≤ ε := hkey
+  -- bound: E ≤ m + T·log n ≤ m + ε
+  have : ∑ i, softDef (fun i => -(L i) / (T₀ * ρ^(N:ℝ))) i * L i
+      ≤ m + T₀ * ρ^(N:ℝ) * Real.log ((Fintype.card ι : ℕ):ℝ) := hbnd
+  linarith
 end Variational
 
 end Hagi.Energy
