@@ -148,6 +148,7 @@ import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
+import Hagi.Foundations.PerronCone
 import Hagi.Budget.CertifiedArgmax
 import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
