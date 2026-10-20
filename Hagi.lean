@@ -204,6 +204,7 @@ import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.GrandSynthesis
 import Hagi.System.Certificates
 import Hagi.System.DiscreteStep
+import Hagi.System.UnifiedStep
 import Hagi.Examples.Nonvacuity
 import Hagi.Unified.Assumptions
 import Hagi.Unified.StateTakeoff

@@ -42,6 +42,23 @@ noncomputable def tvDef (p q : V → ℝ) : ℝ :=
 noncomputable def softDef {k : Type*} [Fintype k] (z : k → ℝ) : k → ℝ :=
   fun a => Real.exp (z a) / ∑ b, Real.exp (z b)
 
+/-- Softmax is strictly positive (exp positive over a positive
+normalizer). -/
+theorem softDef_pos {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) (a : k) :
+    0 < softDef z a := by
+  unfold softDef
+  exact div_pos (Real.exp_pos _)
+    (Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty)
+
+/-- Softmax normalizes: `∑ a, softDef z a = 1`. -/
+theorem softDef_sum_one {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) :
+    ∑ a, softDef z a = 1 := by
+  have hZ : 0 < ∑ b : k, Real.exp (z b) :=
+    Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
+  unfold softDef
+  rw [← Finset.sum_div (Finset.univ : Finset k)]
+  rw [div_self (Ne.symm (ne_of_lt hZ))]
+
 /-- **KL ≥ 0 при нулевых вероятностях q** (§1.2 аудита v3:
 явная постановка для q ≥ 0, p > 0): KL-расхождение
 неотрицательно, когда q лишь неотрицательно (слагаемые с

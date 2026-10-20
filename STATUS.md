@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 265 Lean-модулей в `Hagi/`; 2707 деклараций (Freeze);
+- 265 Lean-модулей в `Hagi/`; 2710 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -65,6 +65,13 @@
   Q_Δ(x) = Δ·round(x/Δ); |Q_Δ(x) − x| ≤ Δ/2 (без
   ограничений на x), идемпотентность Q(Q(x)) = Q(x),
   образ = решётка Δℤ.
+- **Комозитный шаг единой теории** (`unified_step_certificate`,
+  System/UnifiedStep): веса Гиббс-ансамбля w = softmax(−L/Tt)
+  — строго положительное распределие (канонич. леммы
+  `softDef_pos`, `softDef_sum_one`), точка смешения
+  m = Σ wᵢθᵢ, квантованное обновление
+  Q_Δ(m − γ·g) с ошибкой ≤ Δ/2 — охлаждение × ансамбль ×
+  решётка в одном сертификате.
 - **Квантованный спуск** (`quantized_descent_telescope`):
   x(t+1) = Q_Δ(x t − γ·g t) ⟹
   x T ≤ x 0 − Σ γ·g t + T·Δ/2 — цена квантования Δ/2/шаг.
