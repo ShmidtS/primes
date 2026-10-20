@@ -260,6 +260,7 @@ import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.SubspaceGrowth
+import Hagi.Optimization.AdaptiveCycle
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
