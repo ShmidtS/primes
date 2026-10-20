@@ -330,6 +330,23 @@ theorem gibbs_value_nernst_bounds {V : Type*} [Fintype V] [Nonempty V]
     have hB : T * (-(m / T)) = -m := by field_simp
     linarith
 
+/-- **Следствие: расписание охлаждения достигает качества ε.**
+Из `gibbs_value_nernst_bounds`: любая температура T > 0 с
+T·log n ≤ ε даёт Гиббс-значение в ε-окрестности глобального
+минимума `m - ε ≤ V_T ≤ m`. В частности, T := ε / log n
+оптимальна по порядку. Вместе с `gibbs_optimal_bound` это
+замыкает термодинамическую ось обучения HAGI: качество как
+явная функция расписания охлаждения (максимум качества при
+заданном вычислительном бюджете). -/
+theorem gibbs_schedule_quality {V : Type*} [Fintype V] [Nonempty V]
+    (L : V → ℝ) {T ε : ℝ} (hT : 0 < T)
+    (hTeq : T * Real.log ((Fintype.card V : ℕ):ℝ) ≤ ε) :
+    ∃ m : ℝ, (∀ i : V, m ≤ L i) ∧ (∃ i0 : V, m = L i0)
+      ∧ (m - ε ≤ -T * Real.log (∑ i, Real.exp (-(L i / T)))
+        ∧ -T * Real.log (∑ i, Real.exp (-(L i / T))) ≤ m) := by
+  rcases gibbs_value_nernst_bounds L hT with ⟨m, hmin, hatt, hlo, hhi⟩
+  exact ⟨m, hmin, hatt, by linarith, hhi⟩
+
 end Variational
 
 end Hagi.Energy
