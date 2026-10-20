@@ -257,6 +257,7 @@ import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
 import Hagi.Model.CycleCertificate
 import Hagi.Model.Sidon
+import Hagi.Optimization.SphericalDamping
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
