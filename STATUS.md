@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 269 Lean-модулей в `Hagi/`; 2742 деклараций (Freeze);
+- 270 Lean-модулей в `Hagi/`; 2747 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -321,6 +321,14 @@
   внутренней (K-горизонт останова `inexact_contraction_halt`)
   индукций — цикл «расширение → пересчёт → останов»
   геометрически адаптивной HAGI замкнут.
+
+- **Упаковка направлений: ядро Уэлча**
+  (`Hagi/Optimization/DirectionPacking.lean`): Коши для сумм
+  (∑f)² ≤ n·∑f² (через inner-норму), frame operator
+  Sop = Σ⟪uᵢ,·⟫uᵢ с матричными элементами и следом tr S = M
+  для M единичных направлений (Парсеваль). Инфраструктура
+  границы Уэлча μ² ≥ (M−d)/(d(M−1)) — завершение
+  (tr S² = Σᵢₖ⟪uᵢ,uₖ⟫² + сведение) в следующей итерации.
 
 ### L3. Сертификатный слой (CycleCertificate)
 
