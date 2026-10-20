@@ -145,6 +145,18 @@ noncomputable def lse (z : k → ℝ) : ℝ := Real.log (∑ v, Real.exp (z v))
 theorem exp_sum_pos (z : k → ℝ) : 0 < ∑ v, Real.exp (z v) :=
   Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
 
+/-- Prelude bridge: the canonical softmax IS the exponentiated
+gap to `lse` — `softDef z a = exp (z a − lse z)`. This closes
+the last unbridged primitive pair of the info layer (audit-3
+stage 3): every softmax/lse definition in the project is now
+reducible to the single `Prelude.softDef` / `Concat.lse` spine
+by `rfl`-strength identities. -/
+theorem softDef_eq_exp_sub_lse (z : k → ℝ) (a : k) :
+    Hagi.Prelude.softDef z a = Real.exp (z a - lse z) := by
+  have hpos := exp_sum_pos z
+  rw [Hagi.Prelude.softDef, lse, eq_comm, Real.exp_sub,
+    Real.exp_log hpos]
+
 /-- Midpoint convexity of `lse`:
 `lse ((z₁ + z₂)/2) ≤ (lse z₁ + lse z₂)/2`, by Cauchy-Schwarz on
 `exp((z₁+z₂)/2) = exp(z₁/2)·exp(z₂/2)`. The general weighted form

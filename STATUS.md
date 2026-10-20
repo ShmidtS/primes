@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 265 Lean-модулей в `Hagi/`; 2706 деклараций (Freeze);
+- 265 Lean-модулей в `Hagi/`; 2707 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -21,6 +21,10 @@
   коэффициент Бхаттачарьи Σ√(pᵢqᵢ) ≤ 1 (Коши–Шварц).
 - **Fannes-непрерывность**: условные и сглаженные формы
   (`DiscreteFannes`, `FannesSmooth`, `NernstFannes`).
+- **Полный инфо-канон**: единые Prelude-определения
+  (klDef/tvDef/entDef/softDef); все 16 прочих примитивов
+  проекта — rfl-мосты к канону; замыкающий мост
+  `softDef_eq_exp_sub_lse`: softmax = exp(z a − lse z).
 - **Гиббс+Нернст** (`gibbs_nernst`): у Гиббс-распределения с
   δ-зазором S(p_T) ≤ t̂·log d + (1+t̂)·log 2 при
   t̂ = (d−1)e^{−δ/T} — третий закон с экспоненциальной
