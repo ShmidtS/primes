@@ -29,7 +29,8 @@ def lean_names() -> set:
 RUNTIME_NAMES = {
     "kill_vs_crash", "resume_safety", "safeRestore",
     "not_latest_is_best_allowed", "increment_envelope",
-    "sum_w_pair_mid",
+    "sum_w_pair_mid", "AssumptionScan", "AssumptionScan.py",
+    "assumptions.lock",
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,
