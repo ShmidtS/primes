@@ -1481,6 +1481,21 @@ Universality (слит в `ArchitectureTheorem`; `universality_longhorizon`,
   elasticity_chain (ит. 24) даёт их неравенственные формы с
   той же скоростью). Позвоночник конус-семейства:
   cone_step → cone_perron_growth/elasticity_chain.
+- Итерация 26 (этап 4 аудита 3 — позвоночник на всю
+  горизонтную форму): `elasticity_chain_horizon` в
+  TakeoffElasticity — эластичная цепочка, где шаг требуется
+  только внутри горизонта t < T (эмпирические посылки
+  takeoff-теорем даются на range T, не на всём ℕ);
+  доказана сильной индукцией с обобщением. Свёрнут второй
+  крупный дубликат семейства: ChainToCone.
+  takeoff_from_certificate — ручная индукция (~40 строк)
+  заменена следствием elasticity_chain_horizon с константной
+  цепной эластичностью e t = (β⁴·κ)·k; утверждение НЕ
+  изменилось (Freeze PASS без update). Позвоночник
+  takeoff-семейства теперь полный: cone_step /
+  cone_perron_growth (ит. 25) → elasticity_chain /
+  elasticity_chain_horizon (ит. 24/26) → ratio_takeoff,
+  takeoff_from_certificate (обе — следствия).
 - R351: Freeze переведён на 3-колоночный lock (name, hash,
   name-независимый stmt-хеш): переименование утверждения
   проходит автоматически как alias, правка утверждения —

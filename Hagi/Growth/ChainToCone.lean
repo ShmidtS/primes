@@ -166,48 +166,33 @@ theorem takeoff_from_certificate
   have hcone := cone_two_sided_certificate C D G
     (beta^4 * kappa) gbar rho cbeta k T hk hD hC
     hstep hlow hup hdyn hrhogk hbeta' hcone0
-  -- takeoff via the lower-bounded step law
-  have hmain : ∀ t : ℕ, t ≤ T →
-      C 0 * (1 + (beta^4 * kappa) * k) ^ t ≤ C t := by
-    intro t
-    induction t with
-    | zero => intro _; simp
-    | succ t ih =>
-        intro hle
-        have htlt : t ∈ Finset.range T := by
-          rw [Finset.mem_range]; omega
-        have hci := ih (by omega)
-        have hlo := hlow t htlt
-        have hs := hstep t htlt
-        have hgammak : 0 ≤ (beta^4 * kappa) * k :=
-          mul_nonneg (mul_nonneg (by positivity) hκ) hk
-        have hmul : (1:ℝ) ≤ 1 + (beta^4 * kappa) * k := by linarith
-        have hcone' := hcone t (Finset.mem_range.mpr
-          (Nat.lt_succ_of_lt (Finset.mem_range.mp htlt)))
-        -- C0·X^(t+1) ≤ C t·X = C t + γk·C t ≤ C t + γ·D t
-        have h1 : C 0 * (1 + (beta^4 * kappa) * k) ^ (t + 1)
-            ≤ C t * (1 + (beta^4 * kappa) * k) := by
-          have hexp : (1 + (beta^4 * kappa) * k) ^ (t + 1)
-              = (1 + (beta^4 * kappa) * k) ^ t
-                * (1 + (beta^4 * kappa) * k) := pow_succ _ _
-          have hmono := mul_le_mul_of_nonneg_right hci
-            (add_nonneg zero_le_one hgammak)
-          rw [hexp]
-          nlinarith [hmono]
-        have h2 : C t * (1 + (beta^4 * kappa) * k)
-            ≤ C t + (beta^4 * kappa) * D t := by
-          have hkC : k * C t ≤ D t := hcone'
-          have hgamma : 0 ≤ beta^4 * kappa :=
-            mul_nonneg (by positivity) hκ
-          have hmono : (beta^4 * kappa) * (k * C t)
-              ≤ (beta^4 * kappa) * D t :=
-            mul_le_mul_of_nonneg_left hkC hgamma
-          have hrew : C t * (1 + (beta^4 * kappa) * k)
-              = C t + (beta^4 * kappa) * (k * C t) := by ring
-          rw [hrew]
-          nlinarith [hmono]
-        rw [hs]
-        nlinarith [h1, h2]
-  exact hmain T (le_refl T)
+  -- takeoff via the elasticity spine (dedup it. 26): the
+  -- manual induction collapses to
+  -- TakeoffElasticity.elasticity_chain_horizon with the
+  -- constant chain elasticity e t = (beta^4 * kappa) * k
+  -- (the cone gives the per-step elasticity lower bound
+  -- inside the horizon only — hence the horizon form).
+  have hgammak : 0 ≤ (beta^4 * kappa) * k :=
+    mul_nonneg (mul_nonneg (by positivity) hκ) hk
+  have hstep' : ∀ t < T, (1 + (beta^4 * kappa) * k) * C t
+      ≤ C (t + 1) := by
+    intro t ht
+    have htmem : t ∈ Finset.range T := Finset.mem_range.mpr ht
+    have hlo := hlow t htmem
+    have hs := hstep t htmem
+    have hcone' := hcone t (Finset.mem_range.mpr
+      (Nat.lt_succ_of_lt (Finset.mem_range.mp htmem)))
+    rw [hs]
+    have hmono : (beta^4 * kappa) * (k * C t)
+        ≤ (beta^4 * kappa) * D t :=
+      mul_le_mul_of_nonneg_left hcone'
+        (mul_nonneg (by positivity) hκ)
+    have hrew : C t + (beta^4 * kappa) * (k * C t)
+        = (1 + (beta^4 * kappa) * k) * C t := by ring
+    linarith [hmono, hrew]
+  have hchain := elasticity_chain_horizon C
+    (fun _ => (beta^4 * kappa) * k) T hstep'
+    (fun t _ => by linarith)
+  rwa [Finset.prod_const, Finset.card_range] at hchain
 
 end Hagi.Growth

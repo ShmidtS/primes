@@ -94,5 +94,42 @@ theorem decay_elasticity (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
   have hbound := hmain T (le_refl T)
   nlinarith
 
+
+/-- **Горизонтная форма эластичной цепочки**: то же, но шаг
+требуется только внутри горизонта `t < T` (внешние шаги
+не контролируются). Канонический позвоночник для takeoff-
+теорем, чьи эмпирические посылки даны на `range T`, а не на всём `ℕ`
+(например, ChainToCone.takeoff_from_certificate). -/
+theorem elasticity_chain_horizon (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
+    (hstep : ∀ t < T, (1 + e t) * x t ≤ x (t + 1))
+    (hpos : ∀ t ∈ Finset.range T, 0 < 1 + e t) :
+    x 0 * ∏ t ∈ Finset.range T, (1 + e t) ≤ x T := by
+  have hmain : ∀ T' : ℕ, T' ≤ T →
+      (∀ t < T', (1 + e t) * x t ≤ x (t + 1)) →
+      (∀ t ∈ Finset.range T', 0 < 1 + e t) →
+      x 0 * ∏ t ∈ Finset.range T', (1 + e t) ≤ x T' := by
+    intro T' hle hs' hp'
+    induction T' with
+    | zero => simp
+    | succ n ih =>
+        have hmem : ∀ t ∈ Finset.range n, 0 < 1 + e t :=
+          fun t ht => hp' t
+            (Finset.mem_range.mpr
+              (Nat.lt_succ_of_lt (Finset.mem_range.mp ht)))
+        have hprod : (0:ℝ)
+            < ∏ t ∈ Finset.range n, (1 + e t) :=
+          Finset.prod_pos fun t ht => hmem t ht
+        have hih := ih (by omega) (fun t ht => hs' t (by omega)) hmem
+        have hs := hs' n (Nat.lt_succ_self n)
+        rw [Finset.prod_range_succ]
+        calc x 0 * ((∏ t ∈ Finset.range n, (1 + e t)) * (1 + e n))
+            = (x 0 * ∏ t ∈ Finset.range n, (1 + e t)) * (1 + e n) := by ring
+          _ ≤ x n * (1 + e n) :=
+              mul_le_mul_of_nonneg_right hih
+              (hp' n (Finset.mem_range.mpr (Nat.lt_succ_self n))).le
+          _ = (1 + e n) * x n := by ring
+          _ ≤ x (n + 1) := hs
+  exact hmain T (le_refl T) hstep hpos
+
 end Hagi.Growth
 
