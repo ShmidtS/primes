@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 265 Lean-модулей в `Hagi/`; 2710 деклараций (Freeze);
+- 265 Lean-модулей в `Hagi/`; 2716 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -191,6 +191,24 @@
   C T ≤ C 0 + b/σ ∧ C T ≤ γ·D̄/α одновременно.
 - **Дихотомия роста** (`growth_dichotomy`): взлёт или
   потолок.
+
+### L3. Сертификатный слой (CycleCertificate)
+
+- **Сертификат полного цикла** (`CycleCertificate`,
+  Model/CycleCertificate): независимые компоненты —
+  прогресс (C(t+1) = C t + gain t), потенциал
+  (Φ(t+1) ≤ Φ t − drop t + risk t), бюджет
+  (B(t+1) = B t − spend t), каждый с честностью.
+- **Композиция** (`cycle_certificate_composition`): один
+  сертификат на горизонте T даёт одновременно точный рост
+  C T = C 0 + Σ gain, телескоп потенциала
+  Φ T ≤ Φ 0 − Σ drop + Σ risk и точный ledger
+  B T = B 0 − Σ spend.
+- **Инстанс-мост «механизм → сертификат»**
+  (`growSeq_cycle_certificate`, `honest_trajectory_global`):
+  честная платная траектория доставляет сертификат (gain =
+  α·C t, spend = μ·C t, энергия постоянна) — глобальные
+  гарантии применимы к траектории без доп. гипотез.
 
 ### L3. Капстоуны
 
