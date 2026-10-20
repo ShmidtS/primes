@@ -378,4 +378,83 @@ theorem first_crossing_le_lifetime (kmin : ℝ) (θ : ℝ → ℝ)
   · intro m hm
     exact (Nat.lt_find_iff hex m).mp hm m (le_refl _)
 
+
+
+
+/-- **Геометрическая сумма температур расписания**:
+`∑_{t<N} T₀·ρᵗ = T₀·(1 − ρ^N)/(1 − ρ)` для 0 < ρ < 1. -/
+theorem geometric_temp_sum (T₀ ρ : ℝ) (hT₀ : 0 < T₀) (hρ0 : 0 < ρ)
+    (hρ1 : ρ < 1) (N : ℕ) :
+    ∑ t ∈ Finset.range N, T₀ * ρ^(t:ℝ)
+      = T₀ * (1 - ρ^(N:ℝ)) / (1 - ρ) := by
+  induction N with
+  | zero => simp
+  | succ n ih =>
+      rw [Finset.sum_range_succ, ih]
+      have hcalc : T₀ * (1 - ρ^(n:ℝ)) / (1 - ρ) + T₀ * ρ^(n:ℝ)
+          = T₀ * (1 - ρ^((n+1:ℕ):ℝ)) / (1 - ρ) := by
+        have hpow : ρ^((n+1:ℕ):ℝ) = ρ^(n:ℝ) * ρ := by
+          rw [show ((n+1:ℕ):ℝ) = (n:ℝ) + 1 by norm_cast, Real.rpow_add hρ0, Real.rpow_one]
+        field_simp
+        rw [hpow]
+        field_simp
+        ring
+      rw [hcalc]
+
+/-- **Термодинамическая цена обучения с охлаждением.**
+Если на каждой фазе t < N геометрического расписания
+Tₜ = T₀·ρᵗ рассеивание d t (h_emp-посылка, статус
+`h_emp_landauer`) не меньше `cUnit·Tₜ·bits` — ландауэровская
+стоимость стирания `bits` бит при температуре Tₜ, — то
+суммарное рассеивание обучения имеет точную нижнюю оценку
+через геометрическую сумму:
+
+  `∑ d ≥ cUnit·bits·T₀·(1 − ρ^N)/(1 − ρ)`
+
+а сама стоимость расписания ограничена константой
+`cUnit·bits·T₀/(1 − ρ)` (т.к. 1 − ρ^N ≤ 1). Объединяет
+ландауэровский мост с термодинамической осью охлаждения
+(`geometric_cooling_steps`): ε-качество за O(log(1/ε)) фаз
+стоит не более cUnit·bits·T₀/(1−ρ) энергии — полная тройная
+граница «качество × вычисления × энергия». -/
+theorem landauer_cooling_floor (T₀ ρ cUnit bits : ℝ)
+    (hT₀ : 0 < T₀) (hρ0 : 0 < ρ) (hρ1 : ρ < 1) (hcUnit : 0 < cUnit)
+    (hbits : 0 ≤ bits) (N : ℕ) (d : ℕ → ℝ)
+    (h_emp_cooling : ∀ t < N, cUnit * (T₀ * ρ^(t:ℝ)) * bits ≤ d t) :
+    cUnit * bits * (T₀ * (1 - ρ^(N:ℝ)) / (1 - ρ))
+      ≤ ∑ t ∈ Finset.range N, d t
+      ∧ ∑ t ∈ Finset.range N, cUnit * (T₀ * ρ^(t:ℝ)) * bits
+        ≤ cUnit * bits * (T₀ / (1 - ρ)) := by
+  have hgeo := geometric_temp_sum T₀ ρ hT₀ hρ0 hρ1 N
+  constructor
+  · calc cUnit * bits * (T₀ * (1 - ρ^(N:ℝ)) / (1 - ρ))
+        = ∑ t ∈ Finset.range N, cUnit * bits * (T₀ * ρ^(t:ℝ)) := by
+          rw [← Finset.mul_sum]
+          congr 1
+          rw [hgeo]
+      _ ≤ ∑ t ∈ Finset.range N, d t :=
+          Finset.sum_le_sum (fun t ht => by
+          rw [show cUnit * bits * (T₀ * ρ^(t:ℝ))
+              = cUnit * (T₀ * ρ^(t:ℝ)) * bits from by ring]
+          exact h_emp_cooling t (Finset.mem_range.mp ht))
+  · have h1 : ∑ t ∈ Finset.range N, cUnit * (T₀ * ρ^(t:ℝ)) * bits
+        = cUnit * bits * (T₀ * (1 - ρ^(N:ℝ)) / (1 - ρ)) := by
+        rw [← Finset.sum_mul, ← Finset.mul_sum, hgeo]
+        ring
+    rw [h1]
+    have h2 : (1 - ρ^(N:ℝ)) ≤ 1 := by
+      have : 0 ≤ ρ^(N:ℝ) := by positivity
+      linarith
+    have h3 : (1 - ρ) > 0 := by linarith
+    have h4 : (0:ℝ) ≤ cUnit * bits := by positivity
+    have h5 : T₀ * (1 - ρ^(N:ℝ)) * (1 - ρ) ≤ T₀ * 1 * (1 - ρ) :=
+      mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left h2 (le_of_lt hT₀))
+        (by linarith)
+    calc cUnit * bits * (T₀ * (1 - ρ^(N:ℝ)) / (1 - ρ))
+        ≤ cUnit * bits * (T₀ * 1 / (1 - ρ)) := by
+          apply mul_le_mul_of_nonneg_left _ h4
+          rw [div_le_div_iff₀ h3 h3]
+          exact h5
+      _ = cUnit * bits * (T₀ / (1 - ρ)) := by ring
+
 end Hagi.Energy

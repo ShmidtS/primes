@@ -1,11 +1,11 @@
 h_emp files: 34
-h_emp identifiers: 117
+h_emp identifiers: 118
 primitive defs: 17
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
 Hagi/Discovery/PPT.lean: h_emp_bud h_emp_dist h_emp_fiber h_emp_good h_emp_meas h_emp_single h_emp_ver
-Hagi/Energy/Landauer.lean: h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
+Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
 Hagi/Energy/STEStep.lean: h_emp_res
 Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
 Hagi/Examples/Nonvacuity.lean: h_emp_dist h_emp_grow h_emp_merge h_emp_merge_of_bridge
