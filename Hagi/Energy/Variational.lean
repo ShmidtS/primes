@@ -263,6 +263,73 @@ theorem gibbs_optimal_bound (q L : V → ℝ) {T : ℝ} (hT : 0 < T)
   rw [hUloss] at hmult
   linarith [hmult]
 
+/-- **Нернст-скорость Гиббс-значения**: для любого поля потерь L
+на конечном пространстве существует достигаемый минимум m,
+и темперированное логсумм-значение зажато в двусторонней оценке
+
+  `m - T·log n ≤ -T·log ∑ e^{-Lᵢ/T} ≤ m`
+
+(исследовательская база: Hajek 1988; Catoni–Cot 1998 — охлаждение к
+глобальному минимуму). Точность достижения минимума — радиус T·log n:
+при T → 0 Гиббс-значение стремится к глобальному минимуму
+(экспоненциальная концентрация весов по 1/T). Совместно с
+`gibbs_optimal_bound` задаёт термодинамическую ось цели обучения:
+скорость охлаждения определяет качество на конечном горизонте. -/
+theorem gibbs_value_nernst_bounds {V : Type*} [Fintype V] [Nonempty V]
+    (L : V → ℝ) {T : ℝ} (hT : 0 < T) :
+    ∃ m : ℝ, (∀ i : V, m ≤ L i) ∧ (∃ i0 : V, m = L i0)
+      ∧ (m - T * Real.log ((Fintype.card V : ℕ):ℝ)
+          ≤ -T * Real.log (∑ i, Real.exp (-(L i / T)))
+        ∧ -T * Real.log (∑ i, Real.exp (-(L i / T))) ≤ m) := by
+  classical
+  set S := Finset.univ.image L with hS
+  have hne : S.Nonempty := ⟨L (Classical.arbitrary V),
+    Finset.mem_image.mpr ⟨_, Finset.mem_univ _, rfl⟩⟩
+  have hm : S.min' hne ∈ S := S.min'_mem hne
+  rcases Finset.mem_image.mp hm with ⟨i0, _, hi0⟩
+  set m := S.min' hne with hmn
+  have hmin : ∀ i, m ≤ L i := fun i =>
+    Finset.min'_le S (L i) (Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩)
+  have hsumpos : 0 < ∑ i, Real.exp (-(L i / T)) :=
+    Finset.sum_pos (fun i _ => Real.exp_pos _) (Finset.univ_nonempty)
+  have hge : Real.exp (-(m / T)) ≤ ∑ i, Real.exp (-(L i / T)) := by
+    have hthis := Finset.single_le_sum (f := fun i => Real.exp (-(L i / T)))
+      (fun i _ => le_of_lt (Real.exp_pos _)) (Finset.mem_univ i0)
+    rw [hi0] at hthis
+    exact hthis
+  have hle : ∑ i, Real.exp (-(L i / T))
+      ≤ ((Fintype.card V : ℕ):ℝ) * Real.exp (-(m / T)) := by
+    have hstep : ∑ i, Real.exp (-(L i / T))
+        ≤ ∑ i ∈ (Finset.univ : Finset V), Real.exp (-(m / T)) :=
+      Finset.sum_le_sum (fun i _ =>
+        Real.exp_le_exp.mpr (by
+          have h1 : m * T ≤ L i * T := mul_le_mul_of_nonneg_right (hmin i) (le_of_lt hT)
+          have h2 : m / T ≤ L i / T := by rw [div_le_div_iff₀ hT hT]; exact h1
+          exact neg_le_neg h2))
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul] at hstep
+    exact hstep
+  have hlogge : -(m / T) ≤ Real.log (∑ i, Real.exp (-(L i / T))) := by
+    have h := Real.log_le_log (Real.exp_pos _) hge
+    rwa [Real.log_exp] at h
+  have hlogle : Real.log (∑ i, Real.exp (-(L i / T)))
+      ≤ Real.log (((Fintype.card V : ℕ):ℝ)) + -(m / T) := by
+    have h := Real.log_le_log hsumpos hle
+    rwa [Real.log_mul (by positivity) (Real.exp_ne_zero _), Real.log_exp] at h
+  refine ⟨m, hmin, ⟨i0, hi0.symm⟩, ?_, ?_⟩
+  · -- нижняя: m − T·log n ≤ −T·log ∑ (из hlogle)
+    have hA : T * Real.log (∑ i, Real.exp (-(L i / T)))
+        ≤ T * (Real.log (((Fintype.card V : ℕ):ℝ)) + -(m / T)) :=
+      mul_le_mul_of_nonneg_left hlogle (le_of_lt hT)
+    have hB : T * (Real.log (((Fintype.card V : ℕ):ℝ)) + -(m / T))
+        = T * Real.log (((Fintype.card V : ℕ):ℝ)) - m := by
+      field_simp; ring
+    linarith
+  · -- верхняя: −T·log ∑ ≤ m (из hlogge)
+    have hA : T * (-(m / T)) ≤ T * Real.log (∑ i, Real.exp (-(L i / T))) :=
+      mul_le_mul_of_nonneg_left hlogge (le_of_lt hT)
+    have hB : T * (-(m / T)) = -m := by field_simp
+    linarith
+
 end Variational
 
 end Hagi.Energy
