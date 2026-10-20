@@ -50,6 +50,7 @@ fixed point.
 -/
 
 open Finset
+open Hagi.Prelude
 
 namespace Hagi.Energy
 
@@ -346,6 +347,54 @@ theorem gibbs_schedule_quality {V : Type*} [Fintype V] [Nonempty V]
         ∧ -T * Real.log (∑ i, Real.exp (-(L i / T))) ≤ m) := by
   rcases gibbs_value_nernst_bounds L hT with ⟨m, hmin, hatt, hlo, hhi⟩
   exact ⟨m, hmin, hatt, by linarith, hhi⟩
+
+/-- **Термодинамическое тождество ансамбля: E = F + T·S.**
+Ожидаемая потеря Гиббс-ансамбля (softDef при обратной
+температуре 1/Tt) раскладывается точно:
+
+  `∑ wᵢ·Lᵢ = −Tt·log Z − Tt·∑ wᵢ·log wᵢ`
+
+т.е. энергия = свободная энергия (логсумм-значение) + T·энтропия
+(с точностью до знака: E = F + T·S при S = −∑ wᵢ log wᵢ).
+Это ядро термодинамической семантики HAGI: качество реальной
+смеси (`∑ wᵢ·Lᵢ` — то, что фактически исполняется в
+`unified_step_certificate`) связано со свободной энергией
+(цель `gibbs_optimal_bound`) через энтропийный член. -/
+theorem gibbs_free_energy_identity {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) {Tt : ℝ} (hTt : 0 < Tt) :
+    ∑ i, softDef (fun i => -(L i) / Tt) i * L i
+      = -Tt * Real.log (∑ i, Real.exp (-L i / Tt))
+        - Tt * ∑ i, softDef (fun i => -(L i) / Tt) i
+            * Real.log (softDef (fun i => -(L i) / Tt) i) := by
+  set w := softDef (fun i => -(L i) / Tt) with hwdef
+  set Z := ∑ i, Real.exp (-L i / Tt) with hZdef
+  have hZpos : 0 < Z := Finset.sum_pos (fun i _ => Real.exp_pos _) (Finset.univ_nonempty)
+  have h3 : (∑ b, Real.exp (-L b / Tt)) = Z := hZdef.symm
+  have hwl : ∀ i, Real.log (w i) = -L i / Tt - Real.log Z := by
+    intro i
+    show Real.log (Real.exp (-L i / Tt) / ∑ b, Real.exp (-L b / Tt))
+      = -L i / Tt - Real.log Z
+    rw [h3, Real.log_div (Real.exp_ne_zero _) hZpos.ne', Real.log_exp]
+  have key : ∀ i, w i * (L i + Tt * Real.log (w i)) = -Tt * Real.log Z * w i := by
+    intro i
+    rw [hwl i]
+    have h4 : L i + Tt * (-L i / Tt - Real.log Z) = -Tt * Real.log Z := by
+      field_simp
+      ring
+    rw [h4]
+    ring
+  have h1 : ∑ i, w i * (L i + Tt * Real.log (w i)) = ∑ i, -Tt * Real.log Z * w i :=
+    Finset.sum_congr rfl (fun i _ => key i)
+  rw [← Finset.mul_sum] at h1
+  have hsum : ∑ i, w i = 1 := by rw [hwdef]; exact softDef_sum_one _
+  rw [hsum] at h1
+  have h2 : ∑ i, w i * (L i + Tt * Real.log (w i))
+      = ∑ i, w i * L i + Tt * ∑ i, w i * Real.log (w i) := by
+    trans ∑ i, (w i * L i + Tt * (w i * Real.log (w i)))
+    · exact Finset.sum_congr rfl (fun i _ => by ring)
+    · rw [Finset.sum_add_distrib, Finset.mul_sum]
+  rw [h2] at h1
+  linarith
 
 end Variational
 
