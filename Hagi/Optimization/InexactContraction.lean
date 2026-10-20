@@ -73,4 +73,27 @@ theorem inexact_contraction_floor (x : ℕ → ℝ) (q ε : ℝ)
     exact (div_le_div_iff_of_pos_right hqpos).mpr h2
   linarith
 
+
+/-- **Критерий останова неточного сжатия**: если пол ошибки
+ниже допуска (ε/(1−q) < τ, встроено в строгость hK) и
+начальное отклонение ограничено x 0 ≤ B, то любой горизонт K
+с q^K < (τ − ε/(1−q))/B даёт останов по допуску: x K < τ.
+Внутренняя индукция «трёх геометрий» замкнута: сжатие +
+квантование + явный K-горизонт останова (логарифмический по
+1/(τ − ε/(1−q)) при геометрическом убывании q^K). -/
+theorem inexact_contraction_halt (x : ℕ → ℝ) (q ε τ : ℝ)
+    (hq0 : 0 < q) (hq1 : q < 1) (hε : 0 ≤ ε)
+    (hstep : ∀ k : ℕ, x (k+1) ≤ q * x k + ε)
+    (B : ℝ) (hB0 : 0 < B) (hB : x 0 ≤ B) (K : ℕ)
+    (hK : q ^ (K : ℝ) < (τ - ε / (1 - q)) / B) :
+    x K < τ := by
+  have hfloor := inexact_contraction_floor x q ε hq0 hq1 hε hstep K
+  rw [show (q^(K:ℕ):ℝ) = q ^ (K:ℝ) from (Real.rpow_natCast q K).symm] at hfloor
+  have hqpos : (0:ℝ) < 1 - q := by linarith
+  have hqK : (0:ℝ) < q ^ (K:ℝ) := by positivity
+  have h1 : q ^ (K:ℝ) * B < τ - ε / (1 - q) := (lt_div_iff₀ hB0).mp hK
+  have h2 : q ^ (K:ℝ) * x 0 ≤ q ^ (K:ℝ) * B :=
+    mul_le_mul_of_nonneg_left hB (le_of_lt hqK)
+  have h3 : q ^ (K:ℝ) * x 0 < τ - ε / (1 - q) := lt_of_le_of_lt h2 h1
+  linarith
 end Hagi.Optimization
