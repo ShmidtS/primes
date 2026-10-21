@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Prelude.Info
+import Hagi.Core.Concat
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
 set_option linter.style.header false
@@ -542,6 +543,38 @@ theorem geometric_cooling_steps {ι : Type*} [Fintype ι] [Nonempty ι]
   have : ∑ i, softDef (fun i => -(L i) / (T₀ * ρ^(N:ℝ))) i * L i
       ≤ m + T₀ * ρ^(N:ℝ) * Real.log ((Fintype.card ι : ℕ):ℝ) := hbnd
   linarith
+
+/-- **Термическое размытие различимости**: логарифмическое
+отношение Гиббс-весов двух направлений в точности равно
+относительному зазору их потерь, делённому на температуру:
+
+  `log wᵢ − log wⱼ = (Lⱼ − Lᵢ)/T`
+
+Следствие: чтобы Гиббс-ансамбль различал понятия с зазором
+потерь s с лог-точностью τ, температура обязана быть
+T ≤ s/τ — расписание охлаждения ограничено СНИЗУ
+различимостью: слишком быстрый нагрев/высокая T стирает
+различия между направлениями. Термодинамическая
+нижняя граница для `geometric_cooling_steps`. -/
+theorem thermal_blur {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) {T : ℝ} (hT : 0 < T) (i j : ι) :
+    Real.log (softDef (fun x => -L x / T) i)
+      - Real.log (softDef (fun x => -L x / T) j)
+      = (L j - L i) / T := by
+  have hli : Real.log (softDef (fun x => -L x / T) i)
+      = -L i / T - Real.log (∑ k, Real.exp (-L k / T)) := by
+    have h1 : softDef (fun x => -L x / T) i
+        = Real.exp (-L i / T - Real.log (∑ k, Real.exp (-L k / T))) := by
+      rw [Hagi.Core.softDef_eq_exp_sub_lse, Hagi.Core.lse]
+    rw [h1, Real.log_exp]
+  have hlj : Real.log (softDef (fun x => -L x / T) j)
+      = -L j / T - Real.log (∑ k, Real.exp (-L k / T)) := by
+    have h1 : softDef (fun x => -L x / T) j
+        = Real.exp (-L j / T - Real.log (∑ k, Real.exp (-L k / T))) := by
+      rw [Hagi.Core.softDef_eq_exp_sub_lse, Hagi.Core.lse]
+    rw [h1, Real.log_exp]
+  rw [hli, hlj]
+  ring
 end Variational
 
 end Hagi.Energy
