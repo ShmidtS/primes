@@ -379,4 +379,29 @@ theorem temperature_corridor {ι : Type*} [Fintype ι] [Nonempty ι]
     rcases gibbs_mixture_quality L hT with ⟨m, hmin, hbnd⟩
     exact ⟨m, hmin, hbnd, hcap⟩
 
+
+/-- **Охлаждение раскрывает различимость**: если зазор потерь
+|Lᵢ − Lⱼ| ≥ s и температура достаточно низкая
+(T ≤ s/τ), то лог-расстояние Гиббс-весов не меньше τ —
+дополнение к `temperature_corridor` (нижняя оценка вместо
+верхней): при T → 0 ансамбль различает сколь угодно близкие
+направления; число эффективно различимых понятий
+монотонно растёт при охлаждении — вместе с
+`welch_min_dimension` это термодинамическая развертка
+вместимости: охлаждение раскрывает упаковочную ёмкость
+пространства представлений. -/
+theorem thermal_reveal {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) (s τ : ℝ) (hs : 0 < s) (hτ : 0 < τ)
+    (T : ℝ) (hT : 0 < T) (hTle : T ≤ s / τ) (i j : ι)
+    (hgap : s ≤ |L j - L i|) :
+    τ ≤ |Real.log (softDef (fun x => -L x / T) i)
+      - Real.log (softDef (fun x => -L x / T) j)| := by
+  have h := thermal_blur L hT i j
+  rw [h, abs_div, abs_of_pos hT]
+  rw [le_div_iff₀ hT]
+  have h2 : τ * T ≤ s := by
+    rw [mul_comm, ← le_div_iff₀ hτ]
+    exact hTle
+  have h3 : τ * T ≤ |L j - L i| := le_trans h2 hgap
+  linarith [h3]
 end Hagi.Energy
