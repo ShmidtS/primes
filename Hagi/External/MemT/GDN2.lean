@@ -199,3 +199,90 @@ theorem gdn2_read_sensitivity {d v r : Type*} [Fintype d] [Fintype v]
     _ ≤ rowSumNorm Q * rowSumNorm (M₁ - M₂) := rowSumNorm_mul_le _ _
     _ ≤ rowSumNorm Q * (rowSumNorm M₁ + rowSumNorm M₂) :=
         mul_le_mul_of_nonneg_left (rowSumNorm_sub_le M₁ M₂) (rowSumNorm_nonneg Q)
+
+/-- Линейность GDN-2 по памяти: разность обновлений —
+обновление разности (проекция-затухание линейна, инжекция
+сокращается). -/
+theorem gdn2Update_sub (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (A E : Matrix d v ℝ) :
+    gdn2Update U D ω V A - gdn2Update U D ω V E
+      = ((1 : Matrix d d ℝ) - Uᵀ * U) * D * (A - E) := by
+  ext i j
+  simp only [gdn2Update, Matrix.mul_apply, Matrix.add_apply,
+    Matrix.sub_apply, Matrix.transpose_apply, Matrix.one_apply,
+    Matrix.diagonal_apply, mul_sub, sub_mul, Finset.sum_sub_distrib]
+  ring
+
+/-- Приближённая траектория GDN-2: каждый шаг — точное
+обновление плюс ошибка реализации err k (квантование,
+аппроксимация). -/
+noncomputable def gdn2ApproxIter (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (err : ℕ → Matrix d v ℝ)
+    (M : Matrix d v ℝ) : ℕ → Matrix d v ℝ
+  | 0 => M
+  | t + 1 => gdn2Update U D ω V (gdn2ApproxIter U D ω V err M t) + err t
+
+/-- Распространение ошибки приближённого обновления GDN-2:
+при коэффициенте затухания q = ‖(I−UᵀU)·D‖ < 1 и пошаговой
+ошибке реализации ≤ δ расхождение приближённой и точной
+траекторий зажато δ·(1−qᵗ)/(1−q) — квантованная память
+не накапливает ошибку быстрее потолка сжатия. -/
+theorem gdn2_perturbation (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (err : ℕ → Matrix d v ℝ)
+    (M : Matrix d v ℝ) (δ : ℝ)
+    (hq0 : 0 < rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (hq1 : rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D < 1)
+    (herr : ∀ n, rowSumNorm (err n) ≤ δ) (t : ℕ) :
+    rowSumNorm (gdn2ApproxIter U D ω V err M t - gdn2Iter U D ω V M t)
+      ≤ δ * (1 - (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+          * rowSumNorm D) ^ t)
+        / (1 - rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) := by
+  set q := rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D with hq
+  have hstep : ∀ n : ℕ,
+      rowSumNorm (gdn2ApproxIter U D ω V err M (n + 1)
+        - gdn2Iter U D ω V M (n + 1))
+        ≤ q * rowSumNorm (gdn2ApproxIter U D ω V err M n
+          - gdn2Iter U D ω V M n) + δ := by
+    intro n
+    have hsplit : gdn2ApproxIter U D ω V err M (n + 1)
+        - gdn2Iter U D ω V M (n + 1)
+        = ((1 : Matrix d d ℝ) - Uᵀ * U) * D
+            * (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n)
+          + err n := by
+      rw [gdn2ApproxIter, gdn2Iter]
+      rw [← gdn2Update_sub]
+      abel
+    rw [hsplit]
+    calc rowSumNorm (((1 : Matrix d d ℝ) - Uᵀ * U) * D
+          * (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n)
+          + err n)
+        ≤ rowSumNorm (((1 : Matrix d d ℝ) - Uᵀ * U) * D
+            * (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n))
+            + rowSumNorm (err n) := rowSumNorm_add_le _ _
+      _ ≤ q * rowSumNorm (gdn2ApproxIter U D ω V err M n
+            - gdn2Iter U D ω V M n) + δ := by
+            have h1 := rowSumNorm_mul_le
+              (((1 : Matrix d d ℝ) - Uᵀ * U) * D)
+              (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n)
+            have h2 := rowSumNorm_mul_le
+              ((1 : Matrix d d ℝ) - Uᵀ * U) D
+            have h2' := mul_le_mul_of_nonneg_right h2
+              (rowSumNorm_nonneg
+                (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n))
+            have hq' : (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+                * rowSumNorm D) * rowSumNorm
+                  (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n)
+                = q * rowSumNorm
+                  (gdn2ApproxIter U D ω V err M n - gdn2Iter U D ω V M n) :=
+              by rw [hq]
+            exact add_le_add (le_trans (le_trans h1 h2') hq'.le) (herr n)
+  have h0 : rowSumNorm (gdn2ApproxIter U D ω V err M 0
+      - gdn2Iter U D ω V M 0) = 0 := by
+    simp [gdn2ApproxIter, gdn2Iter, sub_self, rowSumNorm]
+  have h := Hagi.Optimization.inexact_contraction_bound
+    (fun n => rowSumNorm (gdn2ApproxIter U D ω V err M n
+      - gdn2Iter U D ω V M n)) q δ hq0 hq1
+    (le_trans (rowSumNorm_nonneg (err 0)) (herr 0)) hstep t
+  rw [h0, mul_zero, zero_add] at h
+  rw [hq] at h ⊢
+  simpa using h
