@@ -1071,6 +1071,7 @@ gdn2_horizon	cd117db27c5f879f	700d5334b9ad5896
 gdn2_perturbation	cc85735a739fa65f	0f9e410fa9de6bc7
 gdn2_read_error	77e5e1be6d38c179	de9fcddb2a0f3229
 gdn2_read_sensitivity	36b246d32b97915d	18782c61500d984f
+gdn2_stabilizes	6da93c3d1c0d51bf	5b5d76ed6fef59b4
 gdn2_step_bound	26ac60962654dd84	40f2c365f19a7272
 genGap_decay	52d9524fe69f40d2	3036e921a66585d9
 genMean	6180cf9e1defee92	8b29b767d5a54c1b

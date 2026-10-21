@@ -317,3 +317,55 @@ theorem gdn2_read_error (U : Matrix k d ℝ) (D : Matrix d d ℝ)
     (gdn2ApproxIter U D ω V err M t - gdn2Iter U D ω V M t)
   exact le_trans h1
     (mul_le_mul_of_nonneg_left hdiff (rowSumNorm_nonneg Q))
+
+/-- Стабилизация памяти GDN-2: при затухании q < 1 и любой
+точности ε > 0 существует горизонт T, начиная с которого
+норма памяти навсегда ≤ b/(1−q) + ε — рекуррентная память
+сходится в стационарный коридор потолка сжатия. -/
+theorem gdn2_stabilizes (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (M : Matrix d v ℝ)
+    (hq0 : 0 < rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (hq1 : rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D < 1)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s →
+      rowSumNorm (gdn2Iter U D ω V M s)
+        ≤ rowSumNorm (Uᵀ * (Matrix.diagonal ω * V))
+            / (1 - rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+          + ε := by
+  have hM0 : 0 ≤ rowSumNorm M := rowSumNorm_nonneg M
+  -- затухающий член: ∃T, qᵀ·‖M₀‖ ≤ ε
+  have hex : ∃ T : ℕ, (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+      * rowSumNorm D) ^ T * rowSumNorm M ≤ ε := by
+    by_cases hM : rowSumNorm M = 0
+    · refine ⟨0, ?_⟩
+      rw [hM, mul_zero]
+      exact hε.le
+    · have hMpos : 0 < rowSumNorm M := lt_of_le_of_ne hM0 (Ne.symm hM)
+      have htend : Filter.Tendsto
+          (fun t => (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+            * rowSumNorm D) ^ t) Filter.atTop (nhds 0) :=
+        tendsto_pow_atTop_nhds_zero_of_lt_one hq0.le hq1
+      have h2 : ∀ᶠ y in nhds 0, y * rowSumNorm M < ε := by
+        refine (gt_mem_nhds (div_pos hε hMpos)).mono fun y hy => ?_
+        rw [lt_div_iff₀ hMpos] at hy
+        exact (mul_comm (rowSumNorm M) y) ▸ hy
+      have hev : ∀ᶠ t in Filter.atTop, (rowSumNorm ((1 : Matrix d d ℝ)
+          - Uᵀ * U) * rowSumNorm D) ^ t * rowSumNorm M < ε :=
+        Filter.Tendsto.eventually htend h2
+      rw [Filter.eventually_atTop] at hev
+      obtain ⟨T, hT⟩ := hev
+      exact ⟨T, (hT T (le_refl T)).le⟩
+  obtain ⟨T, hT⟩ := hex
+  refine ⟨T, fun s hs => ?_⟩
+  have hbnd := gdn2_horizon U D ω V M hq0 hq1 s
+  have hqs : (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+      * rowSumNorm D) ^ s * rowSumNorm M
+      ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+          * rowSumNorm D) ^ T * rowSumNorm M := by
+    have hle : (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+        * rowSumNorm D) ^ s
+        ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+            * rowSumNorm D) ^ T :=
+      pow_le_pow_of_le_one hq0.le hq1.le hs
+    exact mul_le_mul_of_nonneg_right hle hM0
+  linarith [hbnd, hqs, hT]
