@@ -68,4 +68,38 @@ theorem angular_damping_window (ζ η : ℝ) (hζ : ζ < 1) :
     have hk : η * (1 - ζ) < 2 := (lt_div_iff₀ hpos).mp h2
     constructor <;> nlinarith [h1, hpos]
 
+
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+
+/-- **Норма смеси на сфере** (SFPRM Lemma 3-ядро):
+`‖α•u + β•v‖² = α² + 2αβ⟪u,v⟫ + β²` для единичных u, v. -/
+theorem mixture_norm_sq (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
+    (α β : ℝ) :
+    ‖α • u + β • v‖^2 = α^2 + 2*α*β*⟪u, v⟫_ℝ + β^2 := by
+  rw [show ‖α • u + β • v‖^2
+      = ⟪α • u + β • v, α • u + β • v⟫_ℝ from (real_inner_self_eq_norm_sq _).symm]
+  simp only [inner_add_left, inner_add_right, real_inner_smul_left,
+    real_inner_smul_right]
+  have huu : ⟪u, u⟫_ℝ = 1 := (inner_eq_one_iff_of_norm_eq_one hu hu).mpr rfl
+  have hvv : ⟪v, v⟫_ℝ = 1 := (inner_eq_one_iff_of_norm_eq_one hv hv).mpr rfl
+  rw [huu, hvv, real_inner_comm v u]; ring
+
+/-- **Нормализованная смесь на дуге**: внутреннее
+произведение нормализованной смеси с u в точности
+`(α + β·⟪u,v⟫)/‖α•u + β•v‖` — угол нормализованной
+евклидовой смеси зависит только от α/β и угла между u и v:
+аддитивная инъекция (FPRM) и геодезическая (SFPRM Slerp λ)
+двигают состояние по ОДНОЙ И ТОЙ ЖЕ дуге — сферическая
+параметризация шага совместима с аддитивной. -/
+theorem normalized_mixture_inner (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
+    (α β : ℝ) :
+    ⟪(‖α • u + β • v‖⁻¹) • (α • u + β • v), u⟫_ℝ
+      = (α + β * ⟪u, v⟫_ℝ) / ‖α • u + β • v‖ := by
+  rw [real_inner_smul_left]
+  have h1 : ⟪α • u + β • v, u⟫_ℝ = α + β * ⟪v, u⟫_ℝ := by
+    simp only [inner_add_left, real_inner_smul_left]
+    rw [show ⟪u, u⟫_ℝ = 1 from (inner_eq_one_iff_of_norm_eq_one hu hu).mpr rfl]
+    ring
+  rw [div_eq_inv_mul, h1, real_inner_comm v u]
+
 end Hagi.Optimization
