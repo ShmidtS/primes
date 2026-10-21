@@ -461,4 +461,31 @@ theorem reveal_time_exists (T₀ ρ s τ : ℝ) (hT₀ : 0 < T₀)
   have hgoal : T₀ * ρ ^ (t:ℝ) * τ ≤ s := by
     nlinarith [h6, h5, mul_pos hT₀ hτ]
   exact (le_div_iff₀ hτ).mpr hgoal
+
+/-- **Динамическая пара: раскрытие ∧ качество одновременно**:
+для любого зазора s, точности τ и бюджета качества ε
+существует шаг t, на котором геометрическое расписание
+ОДНОВРЕМЕННО раскрывает все пары с зазором ≥ s
+(Tₜ ≤ s/τ) и достигает ε-качества (Tₜ·log n ≤ ε):
+термодинамические часы и бюджет качества сходятся —
+обе верхние границы на Tₜ выполняются при достаточно
+большом t (хвост расписания входит в min-окно коридора). -/
+theorem cooling_schedule_pair (T₀ ρ s τ ε : ℝ) (hT₀ : 0 < T₀)
+    (hρ0 : 0 < ρ) (hρ1 : ρ < 1) (hs : 0 < s) (hτ : 0 < τ)
+    (hε : 0 < ε) (n : ℝ) (hn : 1 < n) :
+    ∃ t : ℕ, T₀ * ρ ^ (t : ℝ) ≤ s / τ
+      ∧ T₀ * ρ ^ (t : ℝ) * Real.log n ≤ ε := by
+  have hlogn : 0 < Real.log n := Real.log_pos hn
+  have hmin : 0 < min (s / τ) (ε / Real.log n) := lt_min (div_pos hs hτ) (div_pos hε hlogn)
+  have hmin : (0:ℝ) < min (s / τ) (ε / Real.log n) :=
+    lt_min (div_pos hs hτ) (div_pos hε hlogn)
+  rcases reveal_time_exists T₀ ρ (min (s / τ) (ε / Real.log n)) 1
+    hT₀ hρ0 hρ1 hmin one_pos with ⟨t, ht⟩
+  have ht' : T₀ * ρ ^ (t:ℝ) ≤ min (s / τ) (ε / Real.log n) := by
+    rw [div_one] at ht; exact ht
+  refine ⟨t, le_trans ht' (min_le_left _ _), ?_⟩
+  have h2 : T₀ * ρ ^ (t:ℝ) ≤ ε / Real.log n := le_trans ht' (min_le_right _ _)
+  have h3 := mul_le_mul_of_nonneg_right h2 hlogn.le
+  rw [div_mul_cancel₀ _ (ne_of_gt hlogn)] at h3
+  exact h3
 end Hagi.Energy
