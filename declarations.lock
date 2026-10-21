@@ -1067,6 +1067,7 @@ gdn2ApproxIter	f14bd5f297f83c42	1174b4625613cd55
 gdn2Iter	7e54f68387e8d0eb	93512dd31031ba5f
 gdn2Update	53a0e8a07522f8c6	59e28fedb7502a38
 gdn2Update_sub	fa81a0561a8bfd3f	15e9983024dbdfb8
+gdn2_forgets_initial	d820559bfde85c1d	62807930b029fe61
 gdn2_horizon	cd117db27c5f879f	700d5334b9ad5896
 gdn2_perturbation	cc85735a739fa65f	0f9e410fa9de6bc7
 gdn2_read_error	77e5e1be6d38c179	de9fcddb2a0f3229

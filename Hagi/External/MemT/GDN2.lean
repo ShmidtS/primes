@@ -369,3 +369,43 @@ theorem gdn2_stabilizes (U : Matrix k d ℝ) (D : Matrix d d ℝ)
       pow_le_pow_of_le_one hq0.le hq1.le hs
     exact mul_le_mul_of_nonneg_right hle hM0
   linarith [hbnd, hqs, hT]
+
+/-- Забывание начальных условий: расстояние между двумя
+траекториями GDN-2 с одинаковыми параметрами записи и разными
+стартовыми памятями затухает как qᵗ·‖M₁−M₂‖ — память
+экспоненциально забывает стартовые условия (сжатие
+возмущений, устойчивость по начальным данным). -/
+theorem gdn2_forgets_initial (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (M₁ M₂ : Matrix d v ℝ)
+    (t : ℕ) :
+    rowSumNorm (gdn2Iter U D ω V M₁ t - gdn2Iter U D ω V M₂ t)
+      ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) ^ t
+        * rowSumNorm (M₁ - M₂) := by
+  induction t with
+  | zero =>
+      rw [pow_zero, one_mul]
+      exact le_refl _
+  | succ n ih =>
+      rw [gdn2Iter, gdn2Iter, gdn2Update_sub]
+      rw [pow_succ]
+      have h1 := rowSumNorm_mul_le
+        (((1 : Matrix d d ℝ) - Uᵀ * U) * D)
+        (gdn2Iter U D ω V M₁ n - gdn2Iter U D ω V M₂ n)
+      have h2 := rowSumNorm_mul_le
+        ((1 : Matrix d d ℝ) - Uᵀ * U) D
+      have h2' := mul_le_mul_of_nonneg_right h2
+        (rowSumNorm_nonneg
+          (gdn2Iter U D ω V M₁ n - gdn2Iter U D ω V M₂ n))
+      calc rowSumNorm (((1 : Matrix d d ℝ) - Uᵀ * U) * D
+            * (gdn2Iter U D ω V M₁ n - gdn2Iter U D ω V M₂ n))
+          ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+              * rowSumNorm
+                (gdn2Iter U D ω V M₁ n - gdn2Iter U D ω V M₂ n) :=
+              le_trans h1 h2'
+        _ ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) ^ (n + 1)
+              * rowSumNorm (M₁ - M₂) := by
+              rw [pow_succ]
+              nlinarith [ih, mul_nonneg
+                (rowSumNorm_nonneg
+                  ((1 : Matrix d d ℝ) - Uᵀ * U))
+                (rowSumNorm_nonneg D)]
