@@ -92,6 +92,7 @@ import Hagi.Core.F3Root
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
 import Hagi.Energy.Variational
+import Hagi.Energy.Cooling
 import Hagi.Energy.PoEBound
 import Hagi.Step.Upgrades
 import Hagi.External.Diversity

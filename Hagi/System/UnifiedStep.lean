@@ -2,6 +2,7 @@ import Mathlib.Tactic
 import Hagi.Prelude.Info
 import Hagi.Energy.Quantizer
 import Hagi.Energy.Variational
+import Hagi.Energy.Cooling
 
 set_option linter.style.header false
 
