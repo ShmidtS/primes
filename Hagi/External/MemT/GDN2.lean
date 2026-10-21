@@ -290,7 +290,7 @@ theorem gdn2_perturbation (U : Matrix k d ℝ) (D : Matrix d d ℝ)
 variable {d k v r : Type*} [Fintype d] [Fintype k] [Fintype v] [Fintype r]
   [DecidableEq d] [DecidableEq k] [DecidableEq v] [DecidableEq r]
 
-omit [DecidableEq r] [DecidableEq v] in
+omit [DecidableEq r] in
 /-- Составная граница ошибки чтения приближённой памяти GDN-2:
 квантование/аппроксимация шага (δ) проходит через сжатие
 (q < 1) и линейное чтение (‖Q‖) — итоговая ошибка чтения
