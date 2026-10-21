@@ -404,4 +404,22 @@ theorem thermal_reveal {ι : Type*} [Fintype ι] [Nonempty ι]
     exact hTle
   have h3 : τ * T ≤ |L j - L i| := le_trans h2 hgap
   linarith [h3]
+
+/-- **Время раскрытия понятия при геометрическом
+охлаждении**: если расписание Tₜ = T₀·ρᵗ достигло
+Tₜ ≤ s/τ (т.е. t ≥ log(T₀τ/s)/log(1/ρ)), то на шаге t
+ансамбль различает пару с зазором ≥ s с лог-точностью τ.
+Композиция `thermal_reveal` × геометрического расписания:
+каждое понятие с зазором s получает момент раскрытия —
+термодинамические «часы» различимости; при ρ < 1
+момент логарифмичен по T₀τ/s. -/
+theorem reveal_horizon {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) (T₀ ρ s τ : ℝ) (hT₀ : 0 < T₀) (hρ0 : 0 < ρ)
+    (hρ1 : ρ < 1) (hs : 0 < s) (hτ : 0 < τ)
+    (i j : ι) (hgap : s ≤ |L j - L i|)
+    (t : ℕ) (hle : T₀ * ρ ^ (t : ℝ) ≤ s / τ) :
+    τ ≤ |Real.log (softDef (fun x => -L x / (T₀ * ρ ^ (t : ℝ))) i)
+      - Real.log (softDef (fun x => -L x / (T₀ * ρ ^ (t : ℝ))) j)| := by
+  have hTpos : 0 < T₀ * ρ ^ (t : ℝ) := by positivity
+  exact thermal_reveal L s τ hs hτ _ hTpos hle i j hgap
 end Hagi.Energy
