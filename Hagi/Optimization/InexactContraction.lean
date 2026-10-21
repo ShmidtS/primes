@@ -96,4 +96,28 @@ theorem inexact_contraction_halt (x : ℕ → ℝ) (q ε τ : ℝ)
     mul_le_mul_of_nonneg_left hB (le_of_lt hqK)
   have h3 : q ^ (K:ℝ) * x 0 < τ - ε / (1 - q) := lt_of_le_of_lt h2 h1
   linarith
+
+/-- **Ускорение Андерсона: пол квантования улучшается на
+gain-фактор** (мост к Evans–Pollock–Rebholz 2020, SIAM J.
+Numer. Anal.: AA улучшает скорость сжатия на фактор gain
+θ ≤ 1 за шаг): если ускоренная итерация поддерживает
+per-step gain θ — `x(k+1) ≤ θ·q·x(k) + ε` — то эффективный
+фактор сжатия θ·q и
+
+* точная граница: `x(k) ≤ (θq)^k·x₀ + ε(1−(θq)^k)/(1−θq)`;
+* пол квантования улучшается: `ε/(1−θq) ≤ ε/(1−q)`.
+
+Ускорение снижает предельную ошибку квантованной рекурсии —
+явный выигрыш ускорения в нашей floor-семантике. -/
+theorem anderson_floor_gain (x : ℕ → ℝ) (θ q ε : ℝ) (hθ : 0 < θ)
+    (hθ1 : θ < 1) (hq0 : 0 < q) (hq1 : q < 1) (hε : 0 ≤ ε)
+    (hAA : ∀ k : ℕ, x (k+1) ≤ θ * q * x k + ε) (k : ℕ) :
+    x k ≤ (θ*q)^k * x 0 + ε * (1 - (θ*q)^k) / (1 - θ*q)
+      ∧ ε / (1 - θ*q) ≤ ε / (1 - q) := by
+  have hq'0 : 0 < θ * q := by positivity
+  have hq'1 : θ * q < 1 := by nlinarith
+  refine ⟨inexact_contraction_bound x (θ*q) ε hq'0 hq'1 hε hAA k, ?_⟩
+  rw [div_le_div_iff₀ (by nlinarith : (0:ℝ) < 1 - θ*q) (by nlinarith : (0:ℝ) < 1 - q)]
+  have hle : θ * q ≤ q := by nlinarith
+  nlinarith [mul_le_mul_of_nonneg_left hle hε]
 end Hagi.Optimization
