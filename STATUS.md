@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2787 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2788 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Top-K дистилляция: KL-версия** (`kl_topk_shift`):
+  KL(q‖p|_S/Z) = KL(q‖p) + log Z — Top-K-дистилляция не
+  добавляет скрытых штрафов сверх цены усечения хвоста.
 - **Top-K дистилляция: точное смещение CE** (`ce_topk_shift`):
   CE(q, p|_S/Z) = CE(q,p) + log Z — усечение учителя до Top-K
   смещает кросс-энтропию ровно на логарифм удержанной массы

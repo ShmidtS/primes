@@ -195,6 +195,64 @@ theorem ce_topk_shift (q p : V → ℝ) (S : Finset V)
   rw [hsplit, hqS]
   ring
 
+/-- KL-версия формулы Top-K: усечение учителя до S с
+перенормировкой смещает KL-дивергенцию ученика к учителю
+ровно на log Z — Top-K-дистилляция не добавляет скрытых
+штрафов сверх явной цены усечения хвоста. -/
+theorem kl_topk_shift (q p : V → ℝ) (S : Finset V) (Z : ℝ)
+    (hq : ∀ v ∉ S, q v = 0)
+    (hqS : ∑ v ∈ S, q v = 1) (hZ : 0 < Z)
+    (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v) :
+    klDiv q (truncNorm p S Z) = klDiv q p + Real.log Z := by
+  -- члены вне S нулевые с обеих сторон (q v = 0)
+  have hqout : ∀ v, v ∉ S →
+      q v * Real.log (q v / truncNorm p S Z v) = 0 := by
+    intro v hv
+    rw [hq v hv, zero_mul]
+  have hqout' : ∀ v, v ∉ S → q v * Real.log (q v / p v) = 0 := by
+    intro v hv
+    rw [hq v hv, zero_mul]
+  -- редукция обеих сумм к S
+  have hL : ∑ v, q v * Real.log (q v / truncNorm p S Z v)
+      = ∑ v ∈ S, q v * Real.log (Z * q v / p v) := by
+    have hsum : ∑ v ∈ S, q v * Real.log (q v / truncNorm p S Z v)
+        = ∑ v, q v * Real.log (q v / truncNorm p S Z v) :=
+      Finset.sum_subset (Finset.subset_univ S)
+        (fun v _ hv => hqout v hv)
+    rw [← hsum]
+    refine Finset.sum_congr rfl fun v hv => ?_
+    have htz : truncNorm p S Z v = p v / Z := by simp [truncNorm, hv]
+    rw [htz]
+    congr 1
+    field_simp
+  have hR : ∑ v, q v * Real.log (q v / p v)
+      = ∑ v ∈ S, q v * Real.log (q v / p v) :=
+    (Finset.sum_subset (Finset.subset_univ S)
+      (fun v _ hv => hqout' v hv)).symm
+  unfold klDiv Hagi.Prelude.klDef
+  rw [hL, hR]
+  have hlog : ∀ v, v ∈ S →
+      Real.log (Z * q v / p v) = Real.log (q v / p v) + Real.log Z := by
+    intro v hv
+    have h1 : Z * q v / p v = (q v / p v) * Z := by field_simp
+    rw [h1, Real.log_mul (ne_of_gt (div_pos (hqpos v hv) (hppos v hv)))
+      (ne_of_gt hZ)]
+  have hsplit : ∀ v, v ∈ S → q v * Real.log (Z * q v / p v)
+      = q v * Real.log (q v / p v) + q v * Real.log Z := by
+    intro v hv
+    rw [hlog v hv]
+    ring
+  calc ∑ v ∈ S, q v * Real.log (Z * q v / p v)
+      = ∑ v ∈ S, (q v * Real.log (q v / p v)
+          + q v * Real.log Z) :=
+        Finset.sum_congr rfl hsplit
+    _ = (∑ v ∈ S, q v * Real.log (q v / p v))
+          + ∑ v ∈ S, q v * Real.log Z := by exact Finset.sum_add_distrib
+    _ = (∑ v ∈ S, q v * Real.log (q v / p v))
+          + (∑ v ∈ S, q v) * Real.log Z := by rw [Finset.sum_mul]
+    _ = (∑ v ∈ S, q v * Real.log (q v / p v)) + Real.log Z := by
+        rw [hqS, one_mul]
+
 end Distill
 
 end Hagi.Data

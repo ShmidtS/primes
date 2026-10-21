@@ -1388,6 +1388,7 @@ kl_nonneg_of_nonneg	ec91368f8e74c40e	8189d2451833a41e
 kl_product	75c6b692f7ff42b1	075361af322fd722
 kl_product_additive	dce016d6d7545826	b6e13c46ec9a284e
 kl_tilted_decompose	0ce7f4904c437b46	345239bb87bb7cb3
+kl_topk_shift	fed0d812e3406791	b60ab143b0444785
 kl_variational_lower	2914cf78d325902e	8df911828ca26d0a
 kl_zero_iff_eq	7d8f72f0b3dc6c2f	3ba6848a66558430
 kldiv	1a4c69b547314b09	33badce3a03b2d67
