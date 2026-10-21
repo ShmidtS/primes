@@ -575,6 +575,54 @@ theorem thermal_blur {ι : Type*} [Fintype ι] [Nonempty ι]
     rw [h1, Real.log_exp]
   rw [hli, hlj]
   ring
+
+/-- **Коридор температур**: если термодинамический коридор
+непуст (нижняя граница различимости s/τ не превосходит
+верхнюю границу качества ε/log n), то существует температура
+T (свидетель: T = s/τ), дающая ОДНОВРЕМЕННО
+
+* различимость: любые два направления с зазором потерь ≤ s
+  различаются лог-точностью τ (`thermal_blur`);
+* качество: ожидаемая потеря смеси ≤ m + ε
+  (`gibbs_mixture_quality` + бюджет охлаждения).
+
+Двусторонняя теорема о расписании HAGI: температура обязана
+лежать в [s/τ, ε/log n] — ниже нельзя (нагрев стирает
+различимость), выше не нужно (ε-качество уже достигнуто). -/
+theorem temperature_corridor {ι : Type*} [Fintype ι] [Nonempty ι]
+    (L : ι → ℝ) (s τ ε : ℝ) (hs : 0 < s) (hτ : 0 < τ) (hε : 0 < ε)
+    (hn : 2 ≤ Fintype.card ι)
+    (hcorridor : s / τ ≤ ε / Real.log ((Fintype.card ι : ℕ):ℝ)) :
+    ∃ T : ℝ, 0 < T
+      ∧ (∀ i j, |L j - L i| ≤ s →
+          |Real.log (softDef (fun x => -L x / T) i)
+            - Real.log (softDef (fun x => -L x / T) j)| ≤ τ)
+      ∧ (∃ m : ℝ, (∀ i, m ≤ L i)
+          ∧ (∑ i, softDef (fun x => -L x / T) i * L i
+              ≤ m + T * Real.log ((Fintype.card ι : ℕ):ℝ))
+          ∧ T * Real.log ((Fintype.card ι : ℕ):ℝ) ≤ ε) := by
+  refine ⟨s / τ, div_pos hs hτ, ?_, ?_⟩
+  · intro i j hgap
+    have hT := div_pos hs hτ
+    have h := thermal_blur L hT i j
+    rw [h]
+    rw [show (L j - L i) / (s / τ) = (L j - L i) * (τ / s) from by
+      field_simp]
+    rw [abs_mul, abs_of_nonneg (by positivity : (0:ℝ) ≤ τ / s)]
+    rw [mul_div_assoc', div_le_iff₀ hs]
+    rw [mul_comm τ s]
+    exact mul_le_mul_of_nonneg_right hgap hτ.le
+  · have hT := div_pos hs hτ
+    have hlogn : 0 < Real.log ((Fintype.card ι : ℕ):ℝ) := by
+      apply Real.log_pos
+      have h1 : (1:ℝ) < ((Fintype.card ι : ℕ):ℝ) := by exact_mod_cast hn
+      linarith
+    have hcap : (s / τ) * Real.log ((Fintype.card ι : ℕ):ℝ) ≤ ε := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ hτ]
+      rw [div_le_div_iff₀ hτ hlogn] at hcorridor
+      exact hcorridor
+    rcases gibbs_mixture_quality L hT with ⟨m, hmin, hbnd⟩
+    exact ⟨m, hmin, hbnd, hcap⟩
 end Variational
 
 end Hagi.Energy
