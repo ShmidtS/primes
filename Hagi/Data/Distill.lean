@@ -132,6 +132,69 @@ theorem teacher_generated_identity (pE pTheta : V → ℝ)
   rw [kl_eq_ce_gap pE pTheta hpE hpT]
   ring
 
+variable [DecidableEq V]
+
+/-- Top-K усечение распределения на S с перенормировкой
+удержанной массой Z > 0. -/
+noncomputable def truncNorm (p : V → ℝ) (S : Finset V) (Z : ℝ)
+    (v : V) : ℝ := if v ∈ S then p v / Z else 0
+
+/-- Точная формула смещения кросс-энтропии при Top-K
+усечении учителя: если носители q, p лежат в S (p > 0 на S)
+и q — вероятностное распределение, то
+CE(q, p|_S/Z) = CE(q, p) + log Z — усечение смещает
+функционал дистилляции ровно на логарифм удержанной массы
+(log Z ≤ 0 при Z ≤ 1): меньше K — ниже CE на носителе,
+но уже область применимости. -/
+theorem ce_topk_shift (q p : V → ℝ) (S : Finset V)
+    (hq : ∀ v ∉ S, q v = 0) (hpOut : ∀ v ∉ S, p v = 0)
+    (hpos : ∀ v ∈ S, 0 < p v)
+    (hq1 : ∑ v, q v = 1) (hZ : 0 < Z) :
+    crossEntropy q (truncNorm p S Z)
+      = crossEntropy q p + Real.log Z := by
+  -- масса q на S равна 1
+  have hqS : ∑ v ∈ S, q v = 1 := by
+    have hcompl : ∑ v ∈ Sᶜ, q v = 0 :=
+      Finset.sum_eq_zero fun v hv => hq v (Finset.mem_compl.mp hv)
+    have hsplit := Finset.sum_add_sum_compl S q
+    rw [hq1, hcompl, add_zero] at hsplit
+    exact hsplit
+  -- члены вне S обнуляются с обеих сторон
+  have hqout : ∀ v, v ∉ S → q v * Real.log (truncNorm p S Z v) = 0 := by
+    intro v hv
+    have hz : truncNorm p S Z v = 0 := by simp [truncNorm, hv]
+    rw [hz, Real.log_zero, mul_zero]
+  have hpout' : ∀ v, v ∉ S → q v * Real.log (p v) = 0 := by
+    intro v hv
+    rw [hq v hv, zero_mul]
+  -- редукция сумм к S
+  have hL : ∑ v, q v * Real.log (truncNorm p S Z v)
+      = ∑ v ∈ S, q v * Real.log (p v / Z) := by
+    have hsum : ∑ v ∈ S, q v * Real.log (truncNorm p S Z v)
+        = ∑ v, q v * Real.log (truncNorm p S Z v) :=
+      Finset.sum_subset (Finset.subset_univ S)
+        (fun v _ hv => hqout v hv)
+    rw [← hsum]
+    exact Finset.sum_congr rfl fun v hv => by simp [truncNorm, hv]
+  have hR : ∑ v, q v * Real.log (p v) = ∑ v ∈ S, q v * Real.log (p v) :=
+    (Finset.sum_subset (Finset.subset_univ S)
+      (fun v _ hv => hpout' v hv)).symm
+  -- разложение логарифма отношения на S
+  have hlog : ∀ v, v ∈ S →
+      Real.log (p v / Z) = Real.log (p v) - Real.log Z := fun v hv =>
+    Real.log_div (ne_of_gt (hpos v hv)) (ne_of_gt hZ)
+  -- финальная перегруппировка
+  unfold crossEntropy
+  rw [hL, hR]
+  have hsplit : ∑ v ∈ S, q v * Real.log (p v / Z)
+      = (∑ v ∈ S, q v * Real.log (p v)) - (∑ v ∈ S, q v) * Real.log Z := by
+    rw [Finset.sum_mul, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun v hv => ?_
+    rw [hlog v hv]
+    ring
+  rw [hsplit, hqS]
+  ring
+
 end Distill
 
 end Hagi.Data
