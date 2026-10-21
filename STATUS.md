@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2766 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2768 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Единая семантика перехода** (`advance_decompose`):
+  advance = compress ∘ joint ∘ merge ∘ grow ∘ prepare (rfl) —
+  этап P1.1 плана рефакторинга: измерения привязываются явно,
+  эффекты цикла порождаются операторами, а не предполагаются.
 - **Коридор температур** (`temperature_corridor`): если
   s/τ ≤ ε/log n, существует T (свидетель s/τ) с
   ОДНОВРЕМЕННОЙ различимостью (зазор s → лог-точность τ,

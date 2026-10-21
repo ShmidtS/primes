@@ -776,4 +776,32 @@ theorem trajectory_ledgers_monotone (tr : Trajectory X) (t : ℕ)
     · rw [hstep]
       exact le_trans hr (advance_risk_ge _ _)
 
+/-- Привязка измерений цикла: копирует свежие поля `u`
+(направление, градиент, параметры этапа, зазор, эффекты) в
+состояние, не меняя накопленные величины. -/
+def prepare (S : GrowthState X) (u : StageInput X) : GrowthState X where
+  weightDim := S.weightDim
+  weights := S.weights
+  params := S.params
+  experts := S.experts
+  energy := S.energy
+  protectedRisk := S.protectedRisk
+  budget := S.budget
+  gap := u.gap
+  dataField := S.dataField
+  capability := S.capability
+  verifier := S.verifier
+  runtimeError := S.runtimeError
+  stepDir := u.stepDir
+  grad := u.grad
+  sp := u.sp
+  effects := u.eff
+
+/-- ЕДИНАЯ СЕМАНТИКА: `advance` — это в точности
+последовательность четырёх операторов одного цикла
+(grow → merge → joint → compress) после привязки измерений. -/
+theorem advance_decompose (S : GrowthState X) (u : StageInput X) :
+    advance S u = compress (joint (merge (grow (prepare S u)))) := by
+  rfl
+
 end Hagi.Model
