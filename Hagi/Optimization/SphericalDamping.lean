@@ -118,4 +118,23 @@ theorem mixture_normalize_unit {F : Type*} [NormedAddCommGroup F]
     rw [Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr (norm_nonneg _))]
     ]
   rw [inv_mul_cancel₀ hnz]
+
+/-- **Явная хордовая дистанция шага**: расстояние
+нормализованной смеси до исходной точки u в явных α, β и
+угле:
+
+  `½‖step − u‖² = 1 − (α + β·⟪u,v⟫)/‖α•u + β•v‖`
+
+Композиция `chordal_residual_eq` × `normalized_mixture_inner`
+× `mixture_normalize_unit`: критерий останова SFPRM получает
+явную формулу через параметры шага — хордовый остаток
+аддитивной инъекции вычислим напрямую из α, β, c. -/
+theorem normalized_mixture_distance {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F]
+    (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (α β : ℝ)
+    (hnz : ‖α • u + β • v‖ ≠ 0) :
+    (1/2) * ‖(‖α • u + β • v‖⁻¹) • (α • u + β • v) - u‖^2
+      = 1 - (α + β * ⟪u, v⟫_ℝ) / ‖α • u + β • v‖ := by
+  rw [← chordal_residual_eq _ _ (mixture_normalize_unit u v hu hv α β hnz) hu]
+  rw [normalized_mixture_inner u v hu hv α β]
 end Hagi.Optimization
