@@ -422,4 +422,43 @@ theorem reveal_horizon {ι : Type*} [Fintype ι] [Nonempty ι]
       - Real.log (softDef (fun x => -L x / (T₀ * ρ ^ (t : ℝ))) j)| := by
   have hTpos : 0 < T₀ * ρ ^ (t : ℝ) := by positivity
   exact thermal_reveal L s τ hs hτ _ hTpos hle i j hgap
+
+/-- **Момент раскрытия существует**: для любого зазора s > 0 и
+точности τ > 0 геометрическое расписание Tₜ = T₀·ρᵗ
+достигает Tₜ ≤ s/τ за конечное число шагов (∃ t:
+T₀·ρᵗ ≤ s/τ). Вместе с `reveal_horizon`: КАЖДОЕ понятие с
+конечным зазором будет раскрыто — полное содержание
+термодинамических часов: охлаждение раскрывает все
+различия, момент логарифмичен. -/
+theorem reveal_time_exists (T₀ ρ s τ : ℝ) (hT₀ : 0 < T₀)
+    (hρ0 : 0 < ρ) (hρ1 : ρ < 1) (hs : 0 < s) (hτ : 0 < τ) :
+    ∃ t : ℕ, T₀ * ρ ^ (t : ℝ) ≤ s / τ := by
+  have hposTS : 0 < T₀ * τ / s := by positivity
+  have hloginv : 0 < Real.log ((1:ℝ)/ρ) :=
+    Real.log_pos (one_lt_one_div hρ0 hρ1)
+  rcases exists_nat_ge (Real.log (T₀ * τ / s) / Real.log ((1:ℝ)/ρ)) with ⟨t, ht⟩
+  refine ⟨t, ?_⟩
+  -- шаг 1: (1/ρ)^t ≥ T₀τ/s (exp-монотонность из лога)
+  have h1 : Real.log (T₀ * τ / s) ≤ (t:ℝ) * Real.log ((1:ℝ)/ρ) :=
+    (div_le_iff₀ hloginv).mp ht
+  have h2 : Real.log (((1:ℝ)/ρ)^(t:ℝ)) ≥ Real.log (T₀ * τ / s) := by
+    rw [Real.log_rpow (by positivity : (0:ℝ) < (1:ℝ)/ρ)]
+    linarith [h1]
+  have h3 : ((1:ℝ)/ρ)^(t:ℝ) ≥ T₀ * τ / s := by
+    have h4 := Real.exp_le_exp.mpr h2
+    rw [Real.exp_log hposTS, Real.exp_log (Real.rpow_pos_of_pos (one_div_pos.mpr hρ0) _)] at h4
+    exact h4
+  -- шаг 2: ρ^t · (1/ρ)^t = 1 ⟹ T₀ρᵗ ≤ s/τ
+  have h5 : ρ^(t:ℝ) * ((1:ℝ)/ρ)^(t:ℝ) = 1 := by
+    rw [← Real.mul_rpow (le_of_lt hρ0)
+      (le_of_lt (one_div_pos.mpr hρ0))]
+    have : ρ * ((1:ℝ)/ρ) = 1 := by field_simp
+    rw [this]
+    exact Real.one_rpow _
+  have h6 : T₀ * τ / s ≤ ((1:ℝ)/ρ)^(t:ℝ) := h3
+  rw [div_le_iff₀ (by positivity : (0:ℝ) < s)] at h6
+  -- h6 : T₀ * τ ≤ s * ((1/ρ)^t)
+  have hgoal : T₀ * ρ ^ (t:ℝ) * τ ≤ s := by
+    nlinarith [h6, h5, mul_pos hT₀ hτ]
+  exact (le_div_iff₀ hτ).mpr hgoal
 end Hagi.Energy
