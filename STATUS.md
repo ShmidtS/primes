@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 270 Lean-модулей в `Hagi/`; 2761 деклараций (Freeze);
+- 270 Lean-модулей в `Hagi/`; 2762 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -391,6 +391,10 @@
   рекурсия останавливается при (θq)^K < (τ − ε/(1−θq))/B —
   объединение gain-фактора и K-горизонта: ускорение
   сокращает и пол, и горизонт останова.
+
+- **Рефакторинг утилит** (`unit_inner_self`): вынесен
+  повторяющийся паттерн ⟪u,u⟫ = 1 из ‖u‖ = 1 (3 вхождения
+  SphericalDamping; итерация 58).
 
 ### L3. Сертификатный слой (CycleCertificate)
 

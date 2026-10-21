@@ -71,6 +71,13 @@ theorem angular_damping_window (ζ η : ℝ) (hζ : ζ < 1) :
 
 variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
 
+/-- Утилита: для единичного вектора `⟪u, u⟫_ℝ = 1`. -/
+theorem unit_inner_self {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F] (u : F) (hu : ‖u‖ = 1) :
+    ⟪u, u⟫_ℝ = 1 := (inner_eq_one_iff_of_norm_eq_one hu hu).mpr rfl
+
+
+
 /-- **Норма смеси на сфере** (SFPRM Lemma 3-ядро):
 `‖α•u + β•v‖² = α² + 2αβ⟪u,v⟫ + β²` для единичных u, v. -/
 theorem mixture_norm_sq (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
@@ -80,8 +87,8 @@ theorem mixture_norm_sq (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
       = ⟪α • u + β • v, α • u + β • v⟫_ℝ from (real_inner_self_eq_norm_sq _).symm]
   simp only [inner_add_left, inner_add_right, real_inner_smul_left,
     real_inner_smul_right]
-  have huu : ⟪u, u⟫_ℝ = 1 := (inner_eq_one_iff_of_norm_eq_one hu hu).mpr rfl
-  have hvv : ⟪v, v⟫_ℝ = 1 := (inner_eq_one_iff_of_norm_eq_one hv hv).mpr rfl
+  have huu : ⟪u, u⟫_ℝ = 1 := unit_inner_self u hu
+  have hvv : ⟪v, v⟫_ℝ = 1 := unit_inner_self v hv
   rw [huu, hvv, real_inner_comm v u]; ring
 
 /-- **Нормализованная смесь на дуге**: внутреннее
@@ -98,7 +105,7 @@ theorem normalized_mixture_inner (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
   rw [real_inner_smul_left]
   have h1 : ⟪α • u + β • v, u⟫_ℝ = α + β * ⟪v, u⟫_ℝ := by
     simp only [inner_add_left, real_inner_smul_left]
-    rw [show ⟪u, u⟫_ℝ = 1 from (inner_eq_one_iff_of_norm_eq_one hu hu).mpr rfl]
+    rw [show ⟪u, u⟫_ℝ = 1 from unit_inner_self u hu]
     ring
   rw [div_eq_inv_mul, h1, real_inner_comm v u]
 
