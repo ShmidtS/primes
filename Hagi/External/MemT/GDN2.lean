@@ -286,3 +286,34 @@ theorem gdn2_perturbation (U : Matrix k d ℝ) (D : Matrix d d ℝ)
   rw [h0, mul_zero, zero_add] at h
   rw [hq] at h ⊢
   simpa using h
+
+variable {d k v r : Type*} [Fintype d] [Fintype k] [Fintype v] [Fintype r]
+  [DecidableEq d] [DecidableEq k] [DecidableEq v] [DecidableEq r]
+
+omit [DecidableEq r] [DecidableEq v] in
+/-- Составная граница ошибки чтения приближённой памяти GDN-2:
+квантование/аппроксимация шага (δ) проходит через сжатие
+(q < 1) и линейное чтение (‖Q‖) — итоговая ошибка чтения
+≤ ‖Q‖·δ(1−qᵗ)/(1−q), не растёт с горизонтом. -/
+theorem gdn2_read_error (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (err : ℕ → Matrix d v ℝ)
+    (M : Matrix d v ℝ) (Q : Matrix r d ℝ) (δ : ℝ)
+    (hq0 : 0 < rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (hq1 : rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D < 1)
+    (herr : ∀ n, rowSumNorm (err n) ≤ δ) (t : ℕ) :
+    rowSumNorm (Q * gdn2ApproxIter U D ω V err M t
+        - Q * gdn2Iter U D ω V M t)
+      ≤ rowSumNorm Q * (δ * (1 - (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+          * rowSumNorm D) ^ t)
+        / (1 - rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)) := by
+  have hmul : Q * gdn2ApproxIter U D ω V err M t
+      - Q * gdn2Iter U D ω V M t
+      = Q * (gdn2ApproxIter U D ω V err M t - gdn2Iter U D ω V M t) := by
+    ext i j
+    simp [Matrix.mul_apply, Matrix.sub_apply, mul_sub, Finset.sum_sub_distrib]
+  have hdiff := gdn2_perturbation U D ω V err M δ hq0 hq1 herr t
+  rw [hmul]
+  have h1 := rowSumNorm_mul_le Q
+    (gdn2ApproxIter U D ω V err M t - gdn2Iter U D ω V M t)
+  exact le_trans h1
+    (mul_le_mul_of_nonneg_left hdiff (rowSumNorm_nonneg Q))
