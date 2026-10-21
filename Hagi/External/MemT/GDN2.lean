@@ -8,6 +8,7 @@ arXiv:2610.26825) и границы его нормы.
 -/
 import Mathlib.Analysis.Matrix.Normed
 import Mathlib.Algebra.Order.AbsoluteValue.Basic
+import Hagi.Optimization.InexactContraction
 
 open Finset Matrix
 namespace Hagi.External.MemT
@@ -123,3 +124,42 @@ theorem gdn2_step_bound (U : Matrix k d ℝ) (D : Matrix d d ℝ)
           * rowSumNorm M
           + rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)) :=
         add_le_add h1 (le_refl _)
+
+/-- T-шаговая траектория памяти GDN-2 с фиксированными
+параметрами записи (U, D, ω, V). -/
+noncomputable def gdn2Iter (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (M : Matrix d v ℝ) :
+    ℕ → Matrix d v ℝ
+  | 0 => M
+  | t + 1 => gdn2Update U D ω V (gdn2Iter U D ω V M t)
+
+omit [DecidableEq v] in
+/-- Горизонтная граница памяти GDN-2: при коэффициенте
+затухания q = ‖(I−UᵀU)·D‖ < 1 и неотрицательной норме
+инжекции b норма T-шаговой памяти не превосывает
+q^T·‖M₀‖ + b/(1−q) — рекуррентная память зажата
+стационарным потолком неточного сжатия. -/
+theorem gdn2_horizon (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (M : Matrix d v ℝ)
+    (hq0 : 0 < rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (hq1 : rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D < 1)
+    (t : ℕ) :
+    rowSumNorm (gdn2Iter U D ω V M t)
+      ≤ (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) ^ t
+          * rowSumNorm M
+        + rowSumNorm (Uᵀ * (Matrix.diagonal ω * V))
+          / (1 - rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) := by
+  have hstep : ∀ n : ℕ,
+      rowSumNorm (gdn2Iter U D ω V M (n + 1))
+        ≤ rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D
+            * rowSumNorm (gdn2Iter U D ω V M n)
+          + rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)) := by
+    intro n
+    rw [gdn2Iter]
+    exact gdn2_step_bound U D ω V _
+  have h := Hagi.Optimization.inexact_contraction_floor
+    (fun n => rowSumNorm (gdn2Iter U D ω V M n))
+    (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)))
+    hq0 hq1 (rowSumNorm_nonneg _) hstep t
+  simpa [gdn2Iter] using h
