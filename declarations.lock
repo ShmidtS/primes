@@ -1066,6 +1066,7 @@ gauge_equiv_comp	d12dccddf7777777	8451b1e7ecbf1add
 gdn2Iter	7e54f68387e8d0eb	93512dd31031ba5f
 gdn2Update	53a0e8a07522f8c6	59e28fedb7502a38
 gdn2_horizon	cd117db27c5f879f	700d5334b9ad5896
+gdn2_read_sensitivity	36b246d32b97915d	18782c61500d984f
 gdn2_step_bound	26ac60962654dd84	40f2c365f19a7272
 genGap_decay	52d9524fe69f40d2	3036e921a66585d9
 genMean	6180cf9e1defee92	8b29b767d5a54c1b
@@ -2193,6 +2194,7 @@ rowSumNorm	99d226d96a6c3713	1895f8fee0492120
 rowSumNorm_add_le	c4c8b05a594ff98f	6365136f8ca72681
 rowSumNorm_mul_le	7fb0c0c90a75a1b6	3e43e1d0396863c2
 rowSumNorm_nonneg	be5aa80208963bc5	c314adad3d401b79
+rowSumNorm_sub_le	02653723b2860c48	1cfb899900dd7468
 rowTop	fe9ddf7cb1c6b217	54f527e4a29980db
 rsi_cone_criterion	0a22bea0363cea80	0785923b5091c345
 rsi_step_growth	8b9d6665de96019e	1efe14a883b283a8

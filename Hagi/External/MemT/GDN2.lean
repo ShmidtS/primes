@@ -163,3 +163,39 @@ theorem gdn2_horizon (U : Matrix k d ℝ) (D : Matrix d d ℝ)
     (rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)))
     hq0 hq1 (rowSumNorm_nonneg _) hstep t
   simpa [gdn2Iter] using h
+
+
+/-- Разность ограничивается суммой норм. -/
+theorem rowSumNorm_sub_le {m n : Type*} [Fintype m] [Fintype n]
+    (A : Matrix m n ℝ) (B : Matrix m n ℝ) :
+    rowSumNorm (A - B) ≤ rowSumNorm A + rowSumNorm B := by
+  have h : A - B = A + (-1 : ℝ) • B := by
+    ext i j; simp [Matrix.sub_apply, Matrix.smul_apply]; ring
+  rw [h]
+  have h1 : rowSumNorm (A + (-1 : ℝ) • B)
+      ≤ rowSumNorm A + rowSumNorm ((-1 : ℝ) • B) := rowSumNorm_add_le _ _
+  have h2 : rowSumNorm ((-1 : ℝ) • B) = rowSumNorm B := by
+    rw [rowSumNorm, rowSumNorm]
+    refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => ?_
+    rw [Matrix.smul_apply, smul_eq_mul]
+    simp [abs_mul]
+  rw [h2] at h1
+  exact h1
+
+/-- Чувствительность чтения GDN-2 (линейное извлечение
+Q·M): расстояние прочитанных значений ограничено
+‖Q‖·(‖M₁‖ + ‖M₂‖) — чтение не усиливает различие
+памятей сильнее операторной нормы запроса. -/
+theorem gdn2_read_sensitivity {d v r : Type*} [Fintype d] [Fintype v]
+    [Fintype r] [DecidableEq d] [DecidableEq v] [DecidableEq r]
+    (Q : Matrix r d ℝ) (M₁ M₂ : Matrix d v ℝ) :
+    rowSumNorm (Q * M₁ - Q * M₂)
+      ≤ rowSumNorm Q * (rowSumNorm M₁ + rowSumNorm M₂) := by
+  have hsub : Q * M₁ - Q * M₂ = Q * (M₁ - M₂) := by
+    ext i j
+    simp [Matrix.mul_apply, Matrix.sub_apply, mul_sub]
+  calc rowSumNorm (Q * M₁ - Q * M₂)
+      = rowSumNorm (Q * (M₁ - M₂)) := by rw [hsub]
+    _ ≤ rowSumNorm Q * rowSumNorm (M₁ - M₂) := rowSumNorm_mul_le _ _
+    _ ≤ rowSumNorm Q * (rowSumNorm M₁ + rowSumNorm M₂) :=
+        mul_le_mul_of_nonneg_left (rowSumNorm_sub_le M₁ M₂) (rowSumNorm_nonneg Q)
