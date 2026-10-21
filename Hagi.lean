@@ -96,6 +96,7 @@ import Hagi.Energy.Cooling
 import Hagi.Energy.PoEBound
 import Hagi.Step.Upgrades
 import Hagi.External.Diversity
+import Hagi.External.MemT.GDN2
 import Hagi.External.Flywheel.NormSupport
 import Hagi.External.Flywheel.FrobeniusNorm
 import Hagi.External.Flywheel.TruncatedSVDRank1

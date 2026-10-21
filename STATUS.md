@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2768 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2774 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **GDN-2: граница нормы шага памяти** (`gdn2_step_bound`):
+  ‖M̃'‖ ≤ ‖(I−UᵀU)·D‖·‖M‖ + ‖Uᵀ(ω⊙V)‖ — первая формализация
+  оператора MemT-1.0 (arXiv:2610.26825): рекуррентная память
+  подчиняется q·x+b рекурсии; связка с неточным сжатием даст
+  стационарный потолок b/(1−q). План MemT×HAGI P0/P2.
 - **Единая семантика перехода** (`advance_decompose`):
   advance = compress ∘ joint ∘ merge ∘ grow ∘ prepare (rfl) —
   этап P1.1 плана рефакторинга: измерения привязываются явно,
