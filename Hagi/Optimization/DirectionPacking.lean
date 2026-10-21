@@ -259,4 +259,33 @@ theorem welch_bound_core {M : ℕ} (_b : OrthonormalBasis (Fin d) ℝ F)
     exact le_trans hA (le_trans hB hC)
   rw [div_le_iff₀ (by linarith : (0:ℝ) < (M:ℝ) - 1)]
   nlinarith [hfin, hd, hM1]
+
+/-- **Минимальная размерность по Уэлчу**: чтобы упаковать M
+различимых направлений с когерентностью μ (допустимым
+смешением), необходимо
+
+  `M / (1 + (M−1)·μ²) ≤ d`.
+
+Прямое следствие `welch_bound_core`: размерность
+представления выбирается числом реально нужных различимых
+направлений и допустимым уровнем их смешения — измеримая
+замена эвристики «пик телесного угла при n = 7». -/
+theorem welch_min_dimension {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F] {d : ℕ} [FiniteDimensional ℝ F]
+    (_b : OrthonormalBasis (Fin d) ℝ F) {M : ℕ} (u : Fin M → F)
+    (hu : ∀ i, ‖u i‖ = 1) (μ : ℝ) (hμ : ∀ i k, i ≠ k → |⟪u i, u k⟫_ℝ| ≤ μ)
+    (hM : 2 ≤ M) (hd : 0 < d) (hμ0 : 0 ≤ μ) :
+    (M:ℝ) / (1 + ((M:ℝ) - 1) * μ^2) ≤ (d:ℝ) := by
+  have hw := welch_bound_core _b u hu μ hμ hM hd
+  have hpos : (0:ℝ) < 1 + ((M:ℝ) - 1) * μ^2 := by
+    have hM1 : (0:ℝ) < (M:ℝ) - 1 := by
+      have : (1:ℝ) < (M:ℝ) := by exact_mod_cast show (1:ℕ) < M by omega
+      linarith
+    nlinarith [hM1]
+  have hM1 : (0:ℝ) < (M:ℝ) - 1 := by
+    have : (1:ℝ) < (M:ℝ) := by exact_mod_cast show (1:ℕ) < M by omega
+    linarith
+  rw [div_le_iff₀ hM1] at hw
+  rw [div_le_iff₀ hpos]
+  nlinarith [hw]
 end Hagi.Optimization
