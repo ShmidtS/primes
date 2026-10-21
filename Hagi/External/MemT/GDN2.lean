@@ -409,3 +409,34 @@ theorem gdn2_forgets_initial (U : Matrix k d ℝ) (D : Matrix d d ℝ)
                 (rowSumNorm_nonneg
                   ((1 : Matrix d d ℝ) - Uᵀ * U))
                 (rowSumNorm_nonneg D)]
+
+/-- Корректность сброса: свежая память (M₀ = 0) на всём
+горизонте ограничена b·(1−qᵗ)/(1−q) ≤ b/(1−q) — независимая
+траектория стартует с чистого листа и никогда не превышает
+потолок инжекции. -/
+theorem gdn2_reset_bound (U : Matrix k d ℝ) (D : Matrix d d ℝ)
+    (ω : k → ℝ) (V : Matrix k v ℝ) (t : ℕ)
+    (hq0 : 0 < rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (hq1 : rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D < 1) :
+    rowSumNorm (gdn2Iter U D ω V 0 t)
+      ≤ rowSumNorm (Uᵀ * (Matrix.diagonal ω * V))
+          * (1 - (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U)
+            * rowSumNorm D) ^ t)
+        / (1 - rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D) := by
+  have hstep : ∀ n : ℕ,
+      rowSumNorm (gdn2Iter U D ω V 0 (n + 1))
+        ≤ rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D
+            * rowSumNorm (gdn2Iter U D ω V 0 n)
+          + rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)) := by
+    intro n
+    rw [gdn2Iter]
+    exact gdn2_step_bound U D ω V _
+  have h0 : rowSumNorm (gdn2Iter U D ω V 0 0) = 0 := by
+    simp [gdn2Iter, rowSumNorm]
+  have h := Hagi.Optimization.inexact_contraction_bound
+    (fun n => rowSumNorm (gdn2Iter U D ω V 0 n))
+    (rowSumNorm ((1 : Matrix d d ℝ) - Uᵀ * U) * rowSumNorm D)
+    (rowSumNorm (Uᵀ * (Matrix.diagonal ω * V)))
+    hq0 hq1 (rowSumNorm_nonneg _) hstep t
+  rw [h0, mul_zero, zero_add] at h
+  simpa [gdn2Iter] using h
