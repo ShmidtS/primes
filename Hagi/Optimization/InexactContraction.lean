@@ -120,4 +120,21 @@ theorem anderson_floor_gain (x : ℕ → ℝ) (θ q ε : ℝ) (hθ : 0 < θ)
   rw [div_le_div_iff₀ (by nlinarith : (0:ℝ) < 1 - θ*q) (by nlinarith : (0:ℝ) < 1 - q)]
   have hle : θ * q ≤ q := by nlinarith
   nlinarith [mul_le_mul_of_nonneg_left hle hε]
+
+/-- **AA-горизонт останова**: ускоренная рекурсия с gain θ
+останавливается по допуску τ при
+(θ·q)^K < (τ − ε/(1−θq))/B — объединение
+`anderson_floor_gain` (улучшенный фактор и пол) и
+`inexact_contraction_halt` (явный горизонт): ускорение
+сокращает не только пол, но и K-горизонт останова
+(логарифмический по 1/(τ − улучшенный пол)). -/
+theorem anderson_halt (x : ℕ → ℝ) (θ q ε τ : ℝ) (hθ : 0 < θ)
+    (hθ1 : θ < 1) (hq0 : 0 < q) (hq1 : q < 1) (hε : 0 ≤ ε)
+    (hAA : ∀ k : ℕ, x (k+1) ≤ θ * q * x k + ε)
+    (B : ℝ) (hB0 : 0 < B) (hB : x 0 ≤ B) (K : ℕ)
+    (hK : (θ*q) ^ (K : ℝ) < (τ - ε / (1 - θ*q)) / B) :
+    x K < τ := by
+  have hq'0 : 0 < θ * q := by positivity
+  have hq'1 : θ * q < 1 := by nlinarith
+  exact inexact_contraction_halt x (θ*q) ε τ hq'0 hq'1 hε hAA B hB0 hB K hK
 end Hagi.Optimization
