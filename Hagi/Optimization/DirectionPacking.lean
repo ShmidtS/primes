@@ -288,4 +288,26 @@ theorem welch_min_dimension {F : Type*} [NormedAddCommGroup F]
   rw [div_le_iff₀ hM1] at hw
   rw [div_le_iff₀ hpos]
   nlinarith [hw]
+
+/-- **Вместимость упаковки заполнена**: M+1 направлений с
+когерентностью μ существуют только если
+(M+1)/(1+M·μ²) ≤ d. Контрапозиция — триггер контроллера
+роста (модуль SubspaceGrowth): если d < (M+1)/(1+M·μ²), новое
+направление НЕВОЗМОЖНО добавить без роста размерности или
+роста смешения μ — упаковка исчерпана, и projResidual-
+остаток нового важного направления обязан быть ненулевым. -/
+theorem welch_capacity_full {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F] {d : ℕ} [FiniteDimensional ℝ F]
+    (_b : OrthonormalBasis (Fin d) ℝ F) (μ : ℝ) (hμ0 : 0 ≤ μ)
+    (hd : 0 < d) (M : ℕ) (hM1 : 1 ≤ M)
+    (u : Fin (M+1) → F) (hu : ∀ i, ‖u i‖ = 1)
+    (hμ : ∀ i k, i ≠ k → |⟪u i, u k⟫_ℝ| ≤ μ) :
+    ((M:ℝ)+1) / (1 + (M:ℝ) * μ^2) ≤ (d:ℝ) := by
+  have hM : 2 ≤ M + 1 := by omega
+  have hw := welch_min_dimension _b u hu μ hμ hM hd hμ0
+  have hconv : (((M:ℕ)+1:ℕ):ℝ) - 1 = (M:ℝ) := by push_cast; ring
+  simp only [Nat.cast_succ] at hw
+  have : ((M:ℝ) + 1 - 1) = (M:ℝ) := by ring
+  rw [this] at hw
+  exact hw
 end Hagi.Optimization
