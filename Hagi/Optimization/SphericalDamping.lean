@@ -102,4 +102,20 @@ theorem normalized_mixture_inner (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1)
     ring
   rw [div_eq_inv_mul, h1, real_inner_comm v u]
 
+
+/-- **Нормализованная смесь на сфере**: при ненулевой смеси
+`‖(‖α•u + β•v‖⁻¹)•(α•u + β•v)‖ = 1` — нормализованный шаг
+остаётся на единичной сфере (структурная ограниченность
+SFPRM: расходимость невозможна по построению, никаких
+связанных коэффициентов FPRM не требуется). -/
+theorem mixture_normalize_unit {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F]
+    (u v : F) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (α β : ℝ)
+    (hnz : ‖α • u + β • v‖ ≠ 0) :
+    ‖(‖α • u + β • v‖⁻¹) • (α • u + β • v)‖ = 1 := by
+  rw [norm_smul]
+  rw [show ‖(‖α • u + β • v‖⁻¹ : ℝ)‖ = ‖α • u + β • v‖⁻¹ from by
+    rw [Real.norm_eq_abs, abs_of_nonneg (inv_nonneg.mpr (norm_nonneg _))]
+    ]
+  rw [inv_mul_cancel₀ hnz]
 end Hagi.Optimization
