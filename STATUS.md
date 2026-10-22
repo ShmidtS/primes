@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2806 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2807 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Риск-кэп останавливает** (`risk_cap_bounds_horizon`,
+  этап 6): ρ ≤ per-cycle риск ∧ risk(k) ≤ Rmax ⟹
+  k ≤ (Rmax − risk0)/ρ — накопление риска ограничивает
+  горизонт (третья ось контроллера: бюджет/риск/структура).
 - **Структурный рост оплачен** (`experts_pays_budget`, MemT
   P1): эксперты = структурный масштаб: g ≤ spend ∧ budget ≥ 0
   ⟹ experts(k) ≤ experts(0) + budget(0)/g — экспансия

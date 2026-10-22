@@ -999,4 +999,50 @@ theorem experts_pays_budget (tr : Trajectory X) (g : ℝ) (hg : 0 < g)
     (le_div_iff₀ hg).mpr hkg
   linarith
 
+/-- РИСК-КЭП ОСТАНАВЛИВАЕТ (этап 6, третья ось контроллера):
+если каждый цикл несёт защищённый риск ≥ ρ и траектория
+удерживает риск-кэп Rmax, то горизонт ограничен
+(Rmax − risk0)/ρ — накопление риска, как и бюджета,
+фундаментально ограничивает развитие. -/
+theorem risk_cap_bounds_horizon (tr : Trajectory X) (ρ Rmax : ℝ)
+    (hρ : 0 < ρ)
+    (hrisk : ∀ t < tr.T,
+      ρ ≤ (tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk
+        + (tr.input t).eff.jointRisk
+        + (tr.input t).eff.compressRisk)
+    (k : ℕ) (hk : k ≤ tr.T)
+    (hcap : (tr.state k).protectedRisk ≤ Rmax) :
+    (k : ℝ) ≤ (Rmax - (tr.state 0).protectedRisk) / ρ := by
+  -- рисковый телескоп: risk(k) = risk0 + Σ per-cycle рисков
+  have htele : ∀ j ≤ k, (tr.state j).protectedRisk
+      = (tr.state 0).protectedRisk
+        + (∑ t ∈ Finset.range j, ((tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk + (tr.input t).eff.jointRisk + (tr.input t).eff.compressRisk)) := by
+    intro j hj
+    induction j with
+    | zero => simp
+    | succ n ih =>
+        have hn : n ≤ k := le_trans (Nat.le_succ n) hj
+        have hnk : n < k := lt_of_lt_of_le (Nat.lt_succ_self n) hj
+        rw [tr.h_step n (lt_of_lt_of_le hnk hk)]
+        obtain ⟨_, hrc, _⟩ :=
+          advance_cycle_certificate (tr.state n) (tr.input n)
+        rw [hrc, ih hn, Finset.sum_range_succ]
+        ring
+  -- Σ per-cycle рисков ≥ k·ρ
+  have hsum : (k : ℝ) * ρ ≤ (∑ t ∈ Finset.range k, ((tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk + (tr.input t).eff.jointRisk + (tr.input t).eff.compressRisk)) := by
+    calc (k : ℝ) * ρ
+        = ∑ _t ∈ Finset.range k, ρ := by
+          simp [Finset.card_range, nsmul_eq_mul]
+      _ ≤ ∑ t ∈ Finset.range k,
+          ((tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk
+            + (tr.input t).eff.jointRisk
+            + (tr.input t).eff.compressRisk) :=
+          Finset.sum_le_sum fun t ht =>
+            hrisk t (lt_of_lt_of_le (by simpa using ht) hk)
+  -- сведение
+  rw [htele k (le_refl k)] at hcap
+  have hkey : (k : ℝ) * ρ ≤ Rmax - (tr.state 0).protectedRisk := by
+    linarith
+  exact (le_div_iff₀ hρ).mpr hkey
+
 end Hagi.Model
