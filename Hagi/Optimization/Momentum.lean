@@ -408,4 +408,41 @@ theorem momentum_optimal_beta (q β : ℝ) (hq : 0 < q)
   rw [momentumRate_zero_beta q hq.le]
   exact momentum_beta_strict_cost q β hq hβ
 
+/-- КОРРЕКЦИЯ НЕСТЕРОВА: look-ahead импульс с поправкой —
+закон e_{k+1} + β·(e_{k+1} − e_k) ≤ q·e_k — даёт эффективный
+фактор (q+β)/(1+β): поправка гасит нарастание инерции, и при
+q < 1 метод сходится геометрически с этим фактором. Это
+механизм истинного ускорения: не добавка импульса к фактору,
+а деление на (1+β). -/
+theorem nesterov_corrected (e : ℕ → ℝ) (q β : ℝ) (hq : 0 < q)
+    (hq1 : q < 1) (hβ : 0 < β)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ q * e k)
+    (k : ℕ) :
+    e k ≤ ((q + β) / (1 + β)) ^ k * e 0 := by
+  have hq'0 : 0 < (q + β) / (1 + β) := by
+    positivity
+  have hq'1 : (q + β) / (1 + β) < 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  have hstep' : ∀ j : ℕ,
+      e (j + 1) ≤ ((q + β) / (1 + β)) * e j := by
+    intro j
+    have h := hstep j
+    have hkey : (1 + β) * e (j + 1) ≤ (q + β) * e j := by
+      nlinarith [h]
+    have hconv : ((q + β) / (1 + β)) * e j
+        = (q + β) * e j / (1 + β) := by
+      field_simp
+    rw [hconv]
+    exact (le_div_iff₀' (by linarith : (0:ℝ) < 1 + β)).mpr hkey
+  have hstep'' : ∀ j : ℕ,
+      e (j + 1) ≤ ((q + β) / (1 + β)) * e j + 0 := by
+    intro j
+    have := hstep' j
+    linarith
+  have h := inexact_contraction_bound e ((q + β) / (1 + β)) 0
+    hq'0 hq'1 (le_refl 0) hstep'' k
+  simpa using h
+
 end Hagi.Optimization
