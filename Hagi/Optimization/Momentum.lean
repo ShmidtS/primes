@@ -477,4 +477,49 @@ theorem nesterov_factor_monotone (q β₁ β₂ : ℝ) (hq : q < 1)
   -- (q+β₁)(1+β₂) ≤ (q+β₂)(1+β₁) ⟺ β₂−β₁ ≥ ... раскрыть
   nlinarith
 
+/-- ПОЛ НЕТОЧНОЙ КОРРЕКЦИИ НЕСТЕРОВА: закон
+e_{k+1} + β·(e_{k+1} − e_k) ≤ q·e_k + δ даёт сжатие с
+фактором (q+β)/(1+β) и СТАЦИОНАРНЫЙ ПОЛ δ/(1−q): инерция
+улучшает только переходную скорость, но НЕ пол — пол
+неточности определяется базовым q; коррекция бесплатна для
+качества, платит только скоростью входа. -/
+theorem nesterov_floor (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
+    (hq1 : q < 1) (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ q * e k + δ)
+    (k : ℕ) :
+    e k ≤ ((q + β) / (1 + β)) ^ k * e 0 + δ / (1 - q) := by
+  have hq'0 : 0 < (q + β) / (1 + β) := by positivity
+  have hq'1 : (q + β) / (1 + β) < 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  -- редукция: e_{k+1} ≤ q'·e_k + δ/(1+β)
+  have hstep' : ∀ j : ℕ,
+      e (j + 1)
+        ≤ ((q + β) / (1 + β)) * e j + δ / (1 + β) := by
+    intro j
+    have h := hstep j
+    have hkey : (1 + β) * e (j + 1) ≤ (q + β) * e j + δ := by
+      nlinarith [h]
+    have hconv : ((q + β) / (1 + β)) * e j + δ / (1 + β)
+        = ((q + β) * e j + δ) / (1 + β) := by
+      field_simp
+    rw [hconv]
+    exact (le_div_iff₀' (by linarith : (0:ℝ) < 1 + β)).mpr hkey
+  -- сжатие с полом δ/(1+β) при факторе q'
+  have h := Hagi.Optimization.inexact_contraction_floor e
+    ((q + β) / (1 + β)) (δ / (1 + β)) hq'0 hq'1
+    (div_nonneg hδ (by linarith)) hstep' k
+  -- δ/(1+β) / (1−q') = δ/(1−q)
+  have hfloor : (δ / (1 + β)) / (1 - (q + β) / (1 + β))
+      = δ / (1 - q) := by
+    have hdenom : 1 - (q + β) / (1 + β)
+        = (1 - q) / (1 + β) := by
+      field_simp
+      ring
+    rw [hdenom, div_div_eq_mul_div, div_mul_cancel₀ _ (by
+      linarith : ((1:ℝ) + β) ≠ 0)]
+  rw [hfloor] at h
+  exact h
+
 end Hagi.Optimization
