@@ -349,4 +349,41 @@ theorem anderson_momentum_compose (e : ℕ → ℝ)
         * (momentumRate (θ * q) β) ^ k :=
   momentum_floor e (θ * q) β δ (mul_pos hθ hq) hβ hqb hδ hstep k
 
+/-- Геометрическая сумма: Σ_{k<n} ρ^k = (1−ρⁿ)/(1−ρ) при ρ ≠ 1. -/
+private theorem geo_sum_eq (ρ : ℝ) (hρ : ρ ≠ 1) (n : ℕ) :
+    ∑ k ∈ Finset.range n, ρ ^ k = (1 - ρ ^ n) / (1 - ρ) := by
+  induction n with
+  | zero => simp
+  | succ m ih =>
+      rw [Finset.sum_range_succ, ih]
+      field_simp
+      ring
+
+/-- СУММАРНАЯ ОШИБКА УСКОРЕННОГО МЕТОДА: геометрическое
+затухание e_k ≤ C·ρ^k даёт конечный бюджет полной ошибки
+Σ_{k<n} e_k ≤ C·(1−ρⁿ)/(1−ρ) ≤ C/(1−ρ): полная стоимость
+ошибки на горизонте контролируется так же, как и поточечная. -/
+theorem momentum_total_error (e : ℕ → ℝ) (q β : ℝ) (hq : 0 < q)
+    (hβ : 0 ≤ β) (hqb : q + β < 1)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ q * e k + β * e (k - 1))
+    (C : ℝ) (hC : 0 ≤ C)
+    (hbnd : ∀ k, e k ≤ C * (momentumRate q β) ^ k)
+    (n : ℕ) :
+    ∑ k ∈ Finset.range n, e k
+      ≤ C * (1 - (momentumRate q β) ^ n)
+        / (1 - momentumRate q β) := by
+  obtain ⟨hρpos, hρ1⟩ := momentumRate_pos_lt_one q β hq hβ hqb
+  set ρ := momentumRate q β with hρ
+  have hne : ρ ≠ 1 := ne_of_lt hρ1
+  have hsplit : ∑ k ∈ Finset.range n, e k
+      ≤ ∑ k ∈ Finset.range n, C * ρ ^ k :=
+    Finset.sum_le_sum fun k _ => hbnd k
+  have hgeo : ∑ k ∈ Finset.range n, C * ρ ^ k
+      = C * (1 - ρ ^ n) / (1 - ρ) := by
+    rw [← Finset.mul_sum, geo_sum_eq ρ hne n]
+    ring
+  rw [hgeo] at hsplit
+  exact hsplit
+
 end Hagi.Optimization
