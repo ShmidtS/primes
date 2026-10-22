@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2793 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2795 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Единый потенциал: мост Φ1↔Φ2** (`potential_decrease_bridge`
+  + `hagiPotential_special_eq`): при λ=1, ν≥0 убывание базового
+  Φ=E+R и неубывание качества переносятся на канонический
+  Φ=E+λR+ν·max(0,Q_target−Q); специализация λ=1,ν=0 совпадает
+  с Φ1 (P1.2 большого плана).
 - **Термодинамическое затухание смещения Top-K**
   (`cooling_topk_bias`, + `gibbs_tail_mass`): при
   n·e^{−s/T} < 1 смещение усечения Гиббс-учителя ≤

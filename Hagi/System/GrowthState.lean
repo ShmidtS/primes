@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.StageCalculus
+import Hagi.Foundations.Potential
 import Hagi.Foundations.Telescope
 set_option linter.style.header false
 
@@ -654,4 +655,35 @@ theorem termination_from_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 end Hagi.System
 namespace Hagi
 export Hagi.System (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+
+/-- Специализация канона: Φ2 при λ=1, ν=0 — это в точности
+потенциал состояния Φ1 (единственность базовой шкалы). -/
+theorem hagiPotential_special_eq (S : GrowthState X) :
+    Hagi.Foundations.hagiPotential S.energy S.protectedRisk 0 0 S.capability 1
+      = potential S := by
+  simp [Hagi.Foundations.hagiPotential, potential]
+
+/-- Мост убывания: при λ=1 и ν ≥ 0 убывание базового
+потенциала Φ1 вместе с НЕубыванием качества переносится на
+канонический потенциал Φ2 — штраф недостижения цели только
+помогает (не растёт при росте качества). -/
+theorem potential_decrease_bridge (S S' : GrowthState X)
+    (nu qTarget : ℝ) (hnu : 0 ≤ nu)
+    (hcap : S.capability ≤ S'.capability)
+    (hPhi1 : potential S' ≤ potential S) :
+    Hagi.Foundations.hagiPotential S'.energy S'.protectedRisk nu qTarget
+        S'.capability 1
+      ≤ Hagi.Foundations.hagiPotential S.energy S.protectedRisk nu qTarget
+          S.capability 1 := by
+  -- penalty не растёт при росте качества
+  have hpen : max 0 (qTarget - S'.capability)
+      ≤ max 0 (qTarget - S.capability) := by
+    have h1 : qTarget - S'.capability ≤ qTarget - S.capability := by
+      linarith
+    exact max_le_max (le_refl _) h1
+  -- развернуть оба потенциала
+  unfold Hagi.Foundations.hagiPotential potential at *
+  linarith [hpen, mul_le_mul_of_nonneg_left hpen hnu]
+
 end Hagi
