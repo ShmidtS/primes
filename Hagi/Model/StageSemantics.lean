@@ -1188,4 +1188,22 @@ theorem trajectory_accelerated_entry (tr : Trajectory X)
     (fun t => potential (tr.state t)) q β δ hq hβ hqb hδ
     hstep ε hε
 
+/-- МОСТ НЕСТЕРОВ × МОДЕЛЬ: если потенциал состояний
+Φ(S_t) = energy + protectedRisk подчиняется СКОРРЕКТИРОВАННОМУ
+инерционному закону (look-ahead с поправкой β), то он
+затухает с эффективным фактором (q+β)/(1+β): ускорение с
+коррекцией напрямую управляет потенциалом модели. -/
+theorem trajectory_potential_nesterov (tr : Trajectory X)
+    (q β : ℝ) (hq : 0 < q) (hq1 : q < 1) (hβ : 0 < β)
+    (hstep : ∀ k : ℕ,
+      potential (tr.state (k + 1))
+        + β * (potential (tr.state (k + 1))
+          - potential (tr.state k))
+        ≤ q * potential (tr.state k))
+    (k : ℕ) :
+    potential (tr.state k)
+      ≤ ((q + β) / (1 + β)) ^ k * potential (tr.state 0) :=
+  Hagi.Optimization.nesterov_corrected
+    (fun t => potential (tr.state t)) q β hq hq1 hβ hstep k
+
 end Hagi.Model
