@@ -1088,4 +1088,62 @@ theorem controller_horizon_bound (tr : Trajectory X)
   have hR := risk_cap_bounds_horizon tr ρ Rmax hρ hrisk k hk hcap
   exact le_min hSk hR
 
+/-- ПОЛОЖИТЕЛЬНЫЙ ЧИСТЫЙ ПРИРОСТ (этап 6 / P5, зеркально
+MemoryCycle.gainOk): если каждый цикл сертифицирован —
+прирост покрывает взвешенную стоимость, взвешенный риск и
+запас ε (gainOk-контракт), то суммарное развитие траектории
+не меньше суммы оплат: capability(k) ≥ cap0 + λM·Σspend +
+λR·Σrisk + k·ε — саморазвитие с сертификатом чистой пользы. -/
+theorem admit_gated_net_gain (tr : Trajectory X)
+    (lamM lamR ε : ℝ) (hε : 0 ≤ ε)
+    (hcert : ∀ t < tr.T,
+      lamM * (verify (tr.state (t+1))).budgetSpend
+        + lamR * ((tr.input t).eff.growRisk
+          + (tr.input t).eff.mergeRisk
+          + (tr.input t).eff.jointRisk
+          + (tr.input t).eff.compressRisk)
+        + ε
+      ≤ (tr.input t).eff.growGain)
+    (k : ℕ) (hk : k ≤ tr.T) :
+    (tr.state 0).capability + lamM
+        * ∑ t ∈ Finset.range k, (verify (tr.state (t+1))).budgetSpend
+      + lamR * ∑ t ∈ Finset.range k,
+          ((tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk
+            + (tr.input t).eff.jointRisk
+            + (tr.input t).eff.compressRisk)
+      + (k : ℝ) * ε
+    ≤ (tr.state k).capability := by
+  obtain ⟨_, hcap⟩ := trajectory_cycle_ledgers tr k hk
+  rw [hcap]
+  -- Σgain ≥ Σ(λM spend + λR risk + ε) — почленно
+  have h1 : ∑ t ∈ Finset.range k, (tr.input t).eff.growGain
+      ≥ ∑ t ∈ Finset.range k,
+          (lamM * (verify (tr.state (t+1))).budgetSpend
+            + lamR * ((tr.input t).eff.growRisk
+              + (tr.input t).eff.mergeRisk
+              + (tr.input t).eff.jointRisk
+              + (tr.input t).eff.compressRisk)
+            + ε) :=
+    Finset.sum_le_sum fun t ht =>
+      hcert t (lt_of_lt_of_le (by simpa using ht) hk)
+  -- разложение суммы на три компоненты
+  have h2 : ∑ t ∈ Finset.range k,
+      (lamM * (verify (tr.state (t+1))).budgetSpend
+        + lamR * ((tr.input t).eff.growRisk
+          + (tr.input t).eff.mergeRisk
+          + (tr.input t).eff.jointRisk
+          + (tr.input t).eff.compressRisk)
+        + ε)
+      = lamM * ∑ t ∈ Finset.range k, (verify (tr.state (t+1))).budgetSpend
+        + lamR * ∑ t ∈ Finset.range k,
+            ((tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk
+              + (tr.input t).eff.jointRisk
+              + (tr.input t).eff.compressRisk)
+        + (k : ℝ) * ε := by
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib,
+      Finset.mul_sum, Finset.mul_sum,
+      show (k : ℝ) * ε = ∑ _t ∈ Finset.range k, ε from by
+        simp [Finset.card_range, nsmul_eq_mul]]
+  linarith
+
 end Hagi.Model

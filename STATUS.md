@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2808 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2809 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Положительный чистый прирост** (`admit_gated_net_gain`,
+  P5/этап 6): gainOk-сертифицированные циклы ⟹
+  capability(k) ≥ cap0 + λM·Σspend + λR·Σrisk + k·ε —
+  саморазвитие с сертификатом чистой пользы (зеркало
+  MemoryCycle.gainOk на траекториях advance).
 - **Единый инвариант контроллера** (`controller_horizon_bound`,
   этап 6): k ≤ min(budget0/g, (Rmax−risk0)/ρ) — горизонт
   ограничен минимумом структурного и рискового потолков;
