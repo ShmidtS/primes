@@ -167,4 +167,29 @@ theorem momentum_beta_strict_cost (q β : ℝ) (hq : 0 < q)
   rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 2)]
   nlinarith
 
+/-- Ускорение через направление доминирует цену инерции:
+если Anderson-ускорение улучшает фактор шага с q до θ·q
+(θ < 1, как в `anderson_floor_gain`: θ·q-фактор), то
+инерционная скорость на улучшенном направлении строго
+меньше: ρ(θq, β) < ρ(q, β) при любом β ≥ 0 — правильный
+способ ускоряться: улучшать направление, а не наращивать
+импульс. -/
+theorem momentum_direction_beats_inertia (q θ β : ℝ)
+    (hq : 0 < q) (hθ : 0 < θ) (hθ1 : θ < 1) (hβ : 0 ≤ β) :
+    momentumRate (θ * q) β < momentumRate q β := by
+  have hq' : 0 < θ * q := mul_pos hθ hq
+  have hle : θ * q < q := by nlinarith
+  -- монотонность sqrt: θq < q ⟹ (θq)² < q² (обе > 0)
+  have hsq : (θ * q) ^ 2 < q ^ 2 := by nlinarith [mul_pos hq' hq']
+  have h4 : (θ * q) ^ 2 + 4 * β < q ^ 2 + 4 * β := by linarith
+  have hnn : (0:ℝ) ≤ (θ * q) ^ 2 + 4 * β := by nlinarith
+  have hnn2 : (0:ℝ) ≤ q ^ 2 + 4 * β := by nlinarith
+  have hsqrt : Real.sqrt ((θ * q) ^ 2 + 4 * β)
+      < Real.sqrt (q ^ 2 + 4 * β) :=
+    Real.sqrt_lt_sqrt hnn h4
+  unfold momentumRate
+  rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 2),
+    div_mul_eq_mul_div, mul_div_cancel_right₀ _ two_ne_zero]
+  nlinarith
+
 end Hagi.Optimization

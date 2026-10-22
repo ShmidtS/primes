@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2815 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2816 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Momentum: направление бьёт инерцию**
+  (`momentum_direction_beats_inertia`): θ<1 ⟹
+  ρ(θq, β) < ρ(q, β) при любом β — Anderson-ускорение
+  (улучшение фактора до θ·q) доминирует цену инерции:
+  ускоряться следует улучшением направления.
 - **Momentum: цена инерции точна** (`momentum_beta_strict_cost`):
   β > 0 ⟹ ρ(q,β) > q — импульс сам по себе НЕ ускоряет;
   выигрыш приходит только через улучшение направления
