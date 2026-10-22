@@ -119,4 +119,34 @@ theorem momentum_bound (e : ℕ → ℝ) (q β : ℝ) (hq : 0 < q)
                     (mul_le_mul_of_nonneg_left h0 hβ)
               _ = C * ρ ^ (n + 1) := by rw [hsplit, hfin]
   exact key k k (le_refl k)
+/-- Инерция с неточностью: стационарный пол. При постоянной
+ошибке реализации δ рекурсия e_{k+1} ≤ q·e_k + β·e_{k−1} + δ
+стягивается в коридор δ/(1−q−β) + (max(x₀, x₁/ρ))·ρ^k,
+где x — центрированная ошибка: импульс не ухудшает пол по
+сравнению с чистым сжатием, пока q+β < 1. -/
+theorem momentum_floor (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
+    (hβ : 0 ≤ β) (hqb : q + β < 1) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ q * e k + β * e (k - 1) + δ)
+    (k : ℕ) :
+    e k ≤ δ / (1 - q - β)
+      + max (e 0 - δ / (1 - q - β))
+          ((e 1 - δ / (1 - q - β)) / momentumRate q β)
+        * (momentumRate q β) ^ k := by
+  obtain ⟨hρpos, hρ1⟩ := momentumRate_pos_lt_one q β hq hβ hqb
+  -- центрированная последовательность x = e − c, c = δ/(1−q−β)
+  set c := δ / (1 - q - β) with hc
+  have hqb0 : 0 < 1 - q - β := by linarith
+  have hcx : ∀ k : ℕ, 1 ≤ k →
+      (e (k + 1) - c) ≤ q * (e k - c) + β * (e (k - 1) - c) := by
+    intro k hk
+    have hstp := hstep k hk
+    have hcc : (1 - q - β) * c = δ := by
+      rw [hc, mul_div_cancel₀ _ (ne_of_gt hqb0)]
+    -- e_{k+1} − c ≤ q e_k + β e_{k-1} + δ − c = q e_k + β e_{k-1} + (1−q−β)c − ... 
+    linarith [hcc]
+  have hmb := momentum_bound (fun n => e n - c) q β hq hβ hqb hcx k
+  -- перенести: e k = x k + c
+  linarith
+
 end Hagi.Optimization
