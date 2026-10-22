@@ -945,4 +945,58 @@ theorem budget_stops_growth (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
   have h := growth_pays_budget tr c hc k hk hpaid hbudk
   linarith
 
+/-- Структурный рост тоже оплачен (MemT P1: число экспертов —
+структурный масштаб, не счётчик саморазвития): если добавление
+эксперта стоит ≥ g и бюджет траектории неотрицателен, то
+число экспертов на горизонте ограничено бюджетом — структурная
+экспансия без ресурса невозможна. -/
+theorem experts_pays_budget (tr : Trajectory X) (g : ℝ) (hg : 0 < g)
+    (hpaid : ∀ t < tr.T,
+      g ≤ (verify (tr.state (t+1))).budgetSpend)
+    (k : ℕ) (hk : k ≤ tr.T)
+    (hbudk : 0 ≤ (tr.state k).budget) :
+    ((tr.state k).experts : ℝ)
+      ≤ (tr.state 0).experts + (tr.state 0).budget / g := by
+  -- телескоп бюджета: Σ spend ≤ budget0
+  obtain ⟨hbud, _⟩ := trajectory_cycle_ledgers tr k hk
+  have hspend : ∑ t ∈ Finset.range k,
+      (verify (tr.state (t+1))).budgetSpend
+      ≤ (tr.state 0).budget := by
+    linarith [hbud, hbudk]
+  -- эксперты: +1 за цикл (advance)
+  have hexp : ∀ t < tr.T,
+      ((tr.state (t+1)).experts : ℝ)
+        = ((tr.state t).experts : ℝ) + 1 := by
+    intro t ht
+    rw [tr.h_step t ht]
+    simp [advance]
+  -- индукция: experts(k) = experts(0) + k, k ≤ budget0/g
+  have hcount : ∀ j ≤ k,
+      ((tr.state j).experts : ℝ)
+        = ((tr.state 0).experts : ℝ) + (j : ℝ) := by
+    intro j hj
+    induction j with
+    | zero => simp
+    | succ n ih =>
+        have hn : n ≤ k := le_trans (Nat.le_succ n) hj
+        have hnk : n < k := lt_of_lt_of_le (Nat.lt_succ_self n) hj
+        rw [hexp n (lt_of_lt_of_le hnk hk)]
+        rw [ih hn]
+        push_cast
+        ring
+  rw [hcount k (le_refl k)]
+  -- k ≤ budget0/g: из Σ g ≤ Σ spend ≤ budget0
+  have hkg : (k : ℝ) * g ≤ (tr.state 0).budget := by
+    calc (k : ℝ) * g
+        = ∑ _t ∈ Finset.range k, g := by
+          simp [Finset.card_range, nsmul_eq_mul]
+      _ ≤ ∑ t ∈ Finset.range k,
+          (verify (tr.state (t+1))).budgetSpend :=
+          Finset.sum_le_sum fun t ht =>
+            hpaid t (lt_of_lt_of_le (by simpa using ht) hk)
+      _ ≤ (tr.state 0).budget := hspend
+  have hle : (k : ℝ) ≤ (tr.state 0).budget / g :=
+    (le_div_iff₀ hg).mpr hkg
+  linarith
+
 end Hagi.Model
