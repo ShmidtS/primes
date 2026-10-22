@@ -253,6 +253,28 @@ theorem kl_topk_shift (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     _ = (∑ v ∈ S, q v * Real.log (q v / p v)) + Real.log Z := by
         rw [hqS, one_mul]
 
+/-- Передача бюджета Top-K-дистилляции: если удержанная
+масса учителя Z ≥ exp(−β) (хвост дешевле β в лог-метрике)
+и ученик достиг KL ≤ α против УСЕЧЁННОГО учителя, то его
+KL против ПОЛНОГО учителя ≤ α + β — смещение усечения
+входит в бюджет дистилляции аддитивно и контролируется
+порогом удержанной массы. -/
+theorem topk_distill_budget (q p : V → ℝ) (S : Finset V) (Z : ℝ)
+    (hq : ∀ v ∉ S, q v = 0)
+    (hqS : ∑ v ∈ S, q v = 1) (hZ0 : 0 < Z)
+    (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v)
+    (α β : ℝ) (hβ : 0 ≤ β)
+    (hZ : Real.exp (-β) ≤ Z)
+    (hstudent : klDiv q (truncNorm p S Z) ≤ α) :
+    klDiv q p ≤ α + β := by
+  have hshift := kl_topk_shift q p S Z hq hqS hZ0 hqpos hppos
+  -- log Z ≥ −β из Z ≥ e^(−β)
+  have hlogZ : -β ≤ Real.log Z := by
+    have h1 := Real.log_le_log (Real.exp_pos (-β)) hZ
+    rw [Real.log_exp] at h1
+    exact h1
+  linarith
+
 end Distill
 
 end Hagi.Data
