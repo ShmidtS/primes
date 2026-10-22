@@ -867,4 +867,37 @@ theorem trajectory_cycle_ledgers (tr : Trajectory X) :
       · rw [hbc, hv, hbud]; ring
       · rw [Finset.sum_range_succ, hcapc, hcap]; ring
 
+/-- РОСТ ОПЛАЧЕН (уровень D): если каждый цикл оплачивает
+свой прирост качества (c·gain ≤ бюджетная трата цикла) и
+бюджет неотрицателен, то суммарный прирост качества на
+всей траектории ограничен стартовым бюджетом / c —
+саморазвитие не бесплатно: сертификат качества опирается
+на ресурсный сертификат. -/
+theorem growth_pays_budget (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
+    (k : ℕ) (hk : k ≤ tr.T)
+    (hpaid : ∀ t < tr.T,
+      c * (tr.input t).eff.growGain
+        ≤ (verify (tr.state (t+1))).budgetSpend)
+    (hbudk : 0 ≤ (tr.state k).budget) :
+    (tr.state k).capability
+      ≤ (tr.state 0).capability + (tr.state 0).budget / c := by
+  obtain ⟨hbud, hcap⟩ := trajectory_cycle_ledgers tr k hk
+  -- Σ gain ≤ Σ spend / c ≤ budget0 / c (бюджет k ≥ 0 ⟹ Σ spend ≤ budget0)
+  have hsum : ∑ t ∈ Finset.range k, (tr.input t).eff.growGain
+      ≤ (∑ t ∈ Finset.range k,
+          (verify (tr.state (t+1))).budgetSpend) / c := by
+    refine (le_div_iff₀' hc).mpr ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum fun t ht =>
+      hpaid t (lt_of_lt_of_le (by simpa using ht : t < k) hk)
+  have hspend : ∑ t ∈ Finset.range k,
+      (verify (tr.state (t+1))).budgetSpend
+      ≤ (tr.state 0).budget := by
+    linarith [hbud, hbudk]
+  have hfin : ∑ t ∈ Finset.range k, (tr.input t).eff.growGain
+      ≤ (tr.state 0).budget / c :=
+    le_trans hsum ((div_le_div_iff_of_pos_right hc).mpr hspend)
+  rw [hcap]
+  linarith
+
 end Hagi.Model
