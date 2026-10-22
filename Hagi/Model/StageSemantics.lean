@@ -926,4 +926,23 @@ theorem integral_trajectory_certificate (tr : Trajectory X)
   intro hbudk
   exact growth_pays_budget tr c hc k hk hpaid hbudk
 
+/-- КРИТЕРИЙ ОСТАНОВКИ (этап 7): если целевое качество дороже
+всего бюджета (Qtarget > cap0 + budget0/c) и каждый цикл
+оплачивает свой прирост, то НИ НА КАКОМ горизонте с
+неотрицательным бюджетом цель недостижима — обучение
+следует остановить/пересмотреть бюджет: это прямая
+контрапозиция оплаченного роста. -/
+theorem budget_stops_growth (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
+    (hpaid : ∀ t < tr.T,
+      c * (tr.input t).eff.growGain
+        ≤ (verify (tr.state (t+1))).budgetSpend)
+    (Qtarget : ℝ)
+    (hunreach : (tr.state 0).capability + (tr.state 0).budget / c
+      < Qtarget) :
+    ∀ k ≤ tr.T, 0 ≤ (tr.state k).budget →
+      (tr.state k).capability < Qtarget := by
+  intro k hk hbudk
+  have h := growth_pays_budget tr c hc k hk hpaid hbudk
+  linarith
+
 end Hagi.Model
