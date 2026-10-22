@@ -386,4 +386,26 @@ theorem momentum_total_error (e : ℕ → ℝ) (q β : ℝ) (hq : 0 < q)
   rw [hgeo] at hsplit
   exact hsplit
 
+/-- Базовая скорость: без импульса ρ(q,0) = q — чистый
+градиентный закон сжатия. -/
+theorem momentumRate_zero_beta (q : ℝ) (hq : 0 ≤ q) :
+    momentumRate q 0 = q := by
+  unfold momentumRate
+  norm_num
+  rw [Real.sqrt_sq hq]
+  have : (q + q) / 2 = q := by ring
+  rw [this]
+
+/-- ОПТИМУМ ИМПУЛЬСА В АБСТРАКТНОЙ МОДЕЛИ: при фиксированном
+базовом факторе q чистый градиент (β=0) строго быстрее
+любого β>0: ρ(q,0) = q < ρ(q,β) — в рамках закона ошибки
+e_{k+1} ≤ q·e_k + β·e_{k−1} импульс НЕ ускоряет (ускорение
+Нестерова работает через КОРРЕКЦИЮ направления, а не через
+добавку к фактору ошибки). -/
+theorem momentum_optimal_beta (q β : ℝ) (hq : 0 < q)
+    (hβ : 0 < β) :
+    momentumRate q 0 < momentumRate q β := by
+  rw [momentumRate_zero_beta q hq.le]
+  exact momentum_beta_strict_cost q β hq hβ
+
 end Hagi.Optimization

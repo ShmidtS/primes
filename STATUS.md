@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2824 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2826 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Momentum: оптимум импульса** (`momentum_optimal_beta` +
+  `momentumRate_zero_beta`): ρ(q,0)=q < ρ(q,β) при β>0 — в
+  рамках закона ошибки чистый градиент строго оптимален;
+  ускорение Нестерова — через коррекцию направления.
 - **Momentum: суммарная ошибка** (`momentum_total_error`):
   Σ_{k<n} e_k ≤ C(1−ρⁿ)/(1−ρ) — бюджет полной ошибки
   ускоренного метода конечен и контролируется геометрией.
