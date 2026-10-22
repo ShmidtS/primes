@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2820 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2821 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,7 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
-- **Momentum: точная граница устойчивости** (`momentum_rate_ge`):
+- **Anderson × Momentum** (`anderson_momentum_compose`):
+  ускоренная неточная рекурсия (фактор θ·q, инерция β,
+  неточность δ): скорость ρ(θq,β), пол δ/(1−θq−β) — полная
+  граница ускоренного квантованного метода.
+- **Momentum: точная граница устойчивости** (`moment_rate_ge`
+  / `momentum_rate_ge`):
   q+β ≤ ρ(q,β) — грубая сумма есть НИЖНЯЯ граница истинной
   скорости: условие q+β<1 из momentum_bound точно (ρ<1 ⟺
   q+β<1), инерция всегда дороже грубой оценки.

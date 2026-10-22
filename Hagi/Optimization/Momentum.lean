@@ -329,4 +329,24 @@ theorem momentum_rate_ge (q β : ℝ) (hq : 0 < q) (hβ : 0 ≤ β)
   rw [le_div_iff₀ (by norm_num : (0:ℝ) < 2)]
   nlinarith
 
+/-- КОМПОЗИЦИЯ ANDERSON × MOMENTUM: если ускорение
+Anderson улучшает фактор шага с q до θ·q (θ<1) и добавлена
+инерция β с неточностью δ, то ошибка следует инерционному
+закону улучшенного режима: скорость ρ(θq,β), пол
+δ/(1−θq−β) — полная граница ускоренного квантованного
+метода: направление улучшает скорость, инерция её
+оплачивает, неточность задаёт пол. -/
+theorem anderson_momentum_compose (e : ℕ → ℝ)
+    (θ q β δ : ℝ) (hθ : 0 < θ) (hθ1 : θ < 1)
+    (hq : 0 < q) (hβ : 0 ≤ β)
+    (hqb : θ * q + β < 1) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ θ * q * e k + β * e (k - 1) + δ)
+    (k : ℕ) :
+    e k ≤ δ / (1 - θ * q - β)
+      + max (e 0 - δ / (1 - θ * q - β))
+          ((e 1 - δ / (1 - θ * q - β)) / momentumRate (θ * q) β)
+        * (momentumRate (θ * q) β) ^ k :=
+  momentum_floor e (θ * q) β δ (mul_pos hθ hq) hβ hqb hδ hstep k
+
 end Hagi.Optimization
