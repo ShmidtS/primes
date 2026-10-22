@@ -900,4 +900,30 @@ theorem growth_pays_budget (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
   rw [hcap]
   linarith
 
+/-- ИНТЕГРАЛЬНЫЙ СЕРТИФИКАТ ТРАЕКТОРИИ (уровень E): единая
+теорема — точные леджеря (бюджет/качество) И (при оплате
+приростов и неотрицательном бюджете) ресурсная граница
+роста: сертификат цикла → телескоп → оплаченный рост,
+в одном утверждении с явно сохранёнными предпосылками. -/
+theorem integral_trajectory_certificate (tr : Trajectory X)
+    (c : ℝ) (hc : 0 < c)
+    (hpaid : ∀ t < tr.T,
+      c * (tr.input t).eff.growGain
+        ≤ (verify (tr.state (t+1))).budgetSpend) :
+    ∀ k ≤ tr.T,
+      (tr.state k).budget
+        = (tr.state 0).budget
+          - ∑ t ∈ Finset.range k, (verify (tr.state (t+1))).budgetSpend
+      ∧ (tr.state k).capability
+        = (tr.state 0).capability
+          + ∑ t ∈ Finset.range k, (tr.input t).eff.growGain
+      ∧ (0 ≤ (tr.state k).budget →
+          (tr.state k).capability
+            ≤ (tr.state 0).capability + (tr.state 0).budget / c) := by
+  intro k hk
+  obtain ⟨hbud, hcap⟩ := trajectory_cycle_ledgers tr k hk
+  refine ⟨hbud, hcap, ?_⟩
+  intro hbudk
+  exact growth_pays_budget tr c hc k hk hpaid hbudk
+
 end Hagi.Model
