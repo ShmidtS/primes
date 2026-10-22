@@ -237,4 +237,45 @@ theorem momentum_achievability (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
     have h2 : C * ρ ^ s < ε := hT s hs
     linarith
 
+/-- Явный логарифмический горизонт входа: при C > 0 и
+ρ < 1 существует T ≥ log(C/ε)/log(1/ρ) такое, что с шага T
+ошибка инерционного метода навсегда в коридоре пол+ε:
+время входа логарифмично по отношению требуемой точности к
+геометрическому масштабу C/ε — скорость ускорения явна. -/
+theorem momentum_entry_horizon (C ρ ε : ℝ) (hC : 0 < C)
+    (hρ0 : 0 < ρ) (hρ1 : ρ < 1) (hε : 0 < ε) :
+    ∃ T : ℕ, Real.log (C / ε) / Real.log (1 / ρ) ≤ T
+      ∧ ∀ s : ℕ, T ≤ s → ρ ^ s * C < ε := by
+  have h1ρ : 0 < 1 / ρ := div_pos one_pos hρ0
+  have hlog1ρ : 0 < Real.log (1 / ρ) :=
+    Real.log_pos (one_lt_one_div hρ0 hρ1)
+  -- ρ^s → 0: ждём ρ^s < ε/C
+  have htend : Filter.Tendsto (fun s => ρ ^ s) Filter.atTop (nhds 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hρ0.le hρ1
+  have hpos : 0 < ε / C := div_pos hε hC
+  have hev : ∀ᶠ s in Filter.atTop, ρ ^ s < ε / C :=
+    Filter.Tendsto.eventually htend (gt_mem_nhds hpos)
+  rw [Filter.eventually_atTop] at hev
+  obtain ⟨T, hT⟩ := hev
+  refine ⟨T, ?_, fun s hs => ?_⟩
+  · -- T ≥ log(C/ε)/log(1/ρ): из ρ^T < ε/C
+    have hTT : ρ ^ T < ε / C := hT T (le_refl T)
+    -- log: T·log(1/ρ) ≥ log(C/ε)
+    have hlogT : Real.log (ρ ^ T) < Real.log (ε / C) :=
+      Real.log_lt_log (pow_pos hρ0 T) hTT
+    rw [Real.log_pow ρ T, Real.log_div (ne_of_gt hε) (ne_of_gt hC)] at hlogT
+    -- T·log ρ < log ε − log C ⟺ T ≥ (log C − log ε)/log(1/ρ)
+    rw [div_le_iff₀ hlog1ρ]
+    -- hlogT: T·log ρ < log ε − log C; log ρ = −log(1/ρ)
+    have hlinv : Real.log (1 / ρ) = -Real.log ρ := by
+      rw [one_div, Real.log_inv ρ]
+    rw [hlinv]
+    have hge : Real.log (C / ε) = Real.log C - Real.log ε :=
+      Real.log_div (ne_of_gt hC) (ne_of_gt hε)
+    rw [hge]
+    linarith
+  · have h2 := hT s hs
+    have h3 := (lt_div_iff₀ hC).mp h2
+    linarith
+
 end Hagi.Optimization
