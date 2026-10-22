@@ -192,4 +192,49 @@ theorem momentum_direction_beats_inertia (q θ β : ℝ)
     div_mul_eq_mul_div, mul_div_cancel_right₀ _ two_ne_zero]
   nlinarith
 
+/-- Достижимость качества при ускорении: любой целевой уровень
+строго выше инерционного пола δ/(1−q−β) достигается за
+конечное время и держится навсегда: ускоренный неточный
+метод входит в коридор ширины ε над полом за геометрическое
+время со скоростью ρ. -/
+theorem momentum_achievability (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
+    (hβ : 0 ≤ β) (hqb : q + β < 1) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ q * e k + β * e (k - 1) + δ)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s →
+      e s ≤ δ / (1 - q - β) + ε := by
+  obtain ⟨hρpos, hρ1⟩ := momentumRate_pos_lt_one q β hq hβ hqb
+  have hbound := momentum_floor e q β δ hq hβ hqb hδ hstep
+  set ρ := momentumRate q β with hρ
+  set C := max (e 0 - δ / (1 - q - β))
+      ((e 1 - δ / (1 - q - β)) / momentumRate q β) with hC
+  by_cases hCn : C ≤ 0
+  · -- C ≤ 0: C·ρ^s ≤ 0 ≤ ε — коридор уже достигнут
+    refine ⟨0, fun s _ => ?_⟩
+    have h1 := hbound s
+    have h2 : C * ρ ^ s ≤ 0 :=
+      mul_nonpos_iff.mpr (Or.inr ⟨hCn, pow_nonneg hρpos.le s⟩)
+    linarith
+  · -- C > 0: ρ^s → 0, ждём C·ρ^s < ε
+    have hCpos : 0 < C := by
+      by_contra hc
+      push_neg at hc
+      linarith
+    have htend : Filter.Tendsto (fun s => ρ ^ s) Filter.atTop (nhds 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hρpos.le hρ1
+    have hev : ∀ᶠ s in Filter.atTop, C * ρ ^ s < ε := by
+      have hmem : ∀ᶠ s in Filter.atTop, ρ ^ s < ε / C :=
+        Filter.Tendsto.eventually htend (gt_mem_nhds (div_pos hε hCpos))
+      refine hmem.mono fun s hs => ?_
+      have := (lt_div_iff₀ hCpos).mp hs
+      rw [mul_comm] at this
+      exact this
+    rw [Filter.eventually_atTop] at hev
+    obtain ⟨T, hT⟩ := hev
+    refine ⟨T, fun s hs => ?_⟩
+    have h1 := hbound s
+    have h2 : C * ρ ^ s < ε := hT s hs
+    linarith
+
 end Hagi.Optimization
