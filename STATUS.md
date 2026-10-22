@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2795 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2797 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Единый ресурсный учёт (P1.3)**: StageEffects +
+  mergeCost/compressCost; операторы merge/compress и advance
+  тратят их; verify.budgetSpend — полная 4-стадийная сумма;
+  StageInput.h_costs_nn — 4-компонентная честность;
+  advance_budget_le/budget_account/advance_decompose
+  сохранены (rfl-симметричная миграция).
 - **Единый потенциал: мост Φ1↔Φ2** (`potential_decrease_bridge`
   + `hagiPotential_special_eq`): при λ=1, ν≥0 убывание базового
   Φ=E+R и неубывание качества переносятся на канонический

@@ -148,12 +148,14 @@ def idleGrowth {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     growEnergy := E0
     mergeEnergy := E0
     mergeRisk := 0
+    mergeCost := 0
     jointEnergy := E0
     jointRisk := 0
     jointCost := 0
     quantErr := 0
     compressEnergy := E0
     compressRisk := 0
+    compressCost := 0
   }
 
 /-- The idle GenState: the idle growth state with the zero

@@ -114,6 +114,9 @@ structure StageEffects where
     R89/R90 orthogonality). -/
   mergeEnergy : ℝ
   mergeRisk : ℝ
+  /-- Merge stage: compute cost (P1.3: honest resource
+  accounting — merge is not free). -/
+  mergeCost : ℝ
   /-- Joint stage: post energy, protected risk, compute cost. -/
   jointEnergy : ℝ
   jointRisk : ℝ
@@ -125,6 +128,9 @@ structure StageEffects where
   quantErr : ℝ
   compressEnergy : ℝ
   compressRisk : ℝ
+  /-- Compress stage: compute cost (P1.3: honest resource
+  accounting — compression work is not free). -/
+  compressCost : ℝ
 
 /-- The growth-loop state: weights, parameters, expert count,
 the measured energy (token-weighted reverse-KL certificate),
@@ -230,7 +236,7 @@ def merge (S : GrowthState X) : GrowthState X where
   experts := S.experts
   energy := S.effects.mergeEnergy
   protectedRisk := S.protectedRisk + S.effects.mergeRisk
-  budget := S.budget
+  budget := S.budget - S.effects.mergeCost
   gap := S.gap
   dataField := S.dataField
   capability := S.capability
@@ -273,7 +279,7 @@ def compress (S : GrowthState X) : GrowthState X where
   experts := S.experts
   energy := S.effects.compressEnergy
   protectedRisk := S.protectedRisk + S.effects.compressRisk
-  budget := S.budget
+  budget := S.budget - S.effects.compressCost
   gap := S.gap
   dataField := S.dataField
   capability := S.capability
@@ -326,7 +332,8 @@ quantities — stage sum growGain + G + η‖d*‖²/2 − κs/2. Soundness is
 def verify (S : GrowthState X) : Certificate where
   decrease := S.effects.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2
   riskSpend := S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk
-  budgetSpend := S.effects.growCost + S.effects.jointCost
+  budgetSpend := S.effects.growCost + S.effects.mergeCost
+      + S.effects.jointCost + S.effects.compressCost
 
 /-- `verify` unfolds definitionally to the stage sum
 `growGain + gap + eta*||stepDir||^2/2 - kappa*s/2`
@@ -499,8 +506,11 @@ theorem budget_account (S : GrowthState X) :
     (compress (joint (merge (grow S)))).budget
       = S.budget - (verify S).budgetSpend := by
   have hb : (compress (joint (merge (grow S)))).budget
-      = S.budget - S.effects.growCost - S.effects.jointCost := rfl
-  have hv : (verify S).budgetSpend = S.effects.growCost + S.effects.jointCost := rfl
+      = S.budget - S.effects.growCost - S.effects.mergeCost
+          - S.effects.jointCost - S.effects.compressCost := rfl
+  have hv : (verify S).budgetSpend = S.effects.growCost
+      + S.effects.mergeCost + S.effects.jointCost
+      + S.effects.compressCost := rfl
   linarith
 
 /-! ### StageCertificate (audit v3 Phase 4 step 2, R342) -/

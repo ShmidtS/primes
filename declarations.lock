@@ -100,6 +100,7 @@ Mw0	290125dc0090db7a	a9423ddbdcb42bc1
 Mw0_L	ea85439e1c348ff8	01d483c1509c4be8
 Mw0_budget	f222801b5faf20aa	11f0d262b2de73d0
 Mw0_cap	0b077138bc505767	cc69fb08a5f5c4ed
+Mw0_compressCost	a93b4e34a446cc7b	b85cec3b6492dcdc
 Mw0_compressEnergy	dea892d69e1932a3	d7f47e5d5b0c7f6f
 Mw0_compressRisk	99d4f49f546a3834	3e9c38011b458c08
 Mw0_effects	dd21410f42d93abc	e14d321a158e7f92
@@ -115,6 +116,7 @@ Mw0_jointCost	ae239f85b978f985	f5956df89c0285d4
 Mw0_jointEnergy	9f75b900aebca768	2f0d4f556621607b
 Mw0_jointRisk	665d3f9b397f6d19	92ac586a2a7cfda6
 Mw0_kappa	0e393cd90b13a55d	96a54039f02de8d3
+Mw0_mergeCost	5c0fef7cecfc72b4	217885a1f7442e3f
 Mw0_mergeEnergy	e3f75d7dc85ea65c	a25b238706f06198
 Mw0_mergeRisk	bf77308d8a2d343c	2489a8d7789d5a5e
 Mw0_quantErr	3ed7bc501a924377	c8541ec9490795e7

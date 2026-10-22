@@ -258,12 +258,14 @@ noncomputable def S₀ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
     growEnergy := E
     mergeEnergy := E
     mergeRisk := 0
+    mergeCost := 0
     jointEnergy := E
     jointRisk := 0
     jointCost := 0
     quantErr := |1/4 - qTern 1 (1/4)|
     compressEnergy := E
     compressRisk := 0
+    compressCost := 0
   }
   gen := ⟨0, 0, 0, 0, 0⟩
 
@@ -295,12 +297,14 @@ noncomputable def S₁ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
     growEnergy := E
     mergeEnergy := E
     mergeRisk := 0
+    mergeCost := 0
     jointEnergy := E
     jointRisk := 0
     jointCost := 0
     quantErr := |1/4 - qTern 1 (1/4)|
     compressEnergy := E
     compressRisk := 0
+    compressCost := 0
   }
   gen := ⟨0, 0, 0, 0, 0⟩
 
@@ -353,12 +357,14 @@ noncomputable def Spos (E : ℝ) : Hagi.GenState X where
     growEnergy := E - witnessGap
     mergeEnergy := E - 2 * witnessGap
     mergeRisk := 0
+    mergeCost := 0
     jointEnergy := E - 2 * witnessGap
     jointRisk := 0
     jointCost := 0
     quantErr := |1/4 - qTern 1 (1/4)|
     compressEnergy := E - 2 * witnessGap
     compressRisk := 0
+    compressCost := 0
   }
   gen := ⟨0, 0, 0, 0, 0⟩
 
@@ -615,12 +621,14 @@ noncomputable def MwEffects (E : ℝ) : Hagi.System.StageEffects where
   growEnergy := E - 3/2
   mergeEnergy := E - 3/2 - witnessGap
   mergeRisk := 0
+  mergeCost := 0
   jointEnergy := E - 3/2 - witnessGap - 1
   jointRisk := 1/4
   jointCost := 0
   quantErr := |1/4 - qTern 1 (1/4)|
   compressEnergy := E - 3/2 - witnessGap - 1
   compressRisk := 0
+  compressCost := 0
 
 /-- The productive witness origin state at `t = 0` (X = ℝ):
 live energy `E`, zero risk, zero capability, one unit of budget,
@@ -684,6 +692,12 @@ theorem Mw0_compressEnergy (E : ℝ) :
     (Mw E 0).toGrowthState.effects.compressEnergy = E - 3/2 - witnessGap - 1 := rfl
 theorem Mw0_growCost (E : ℝ) :
     (Mw E 0).toGrowthState.effects.growCost = 0 := rfl
+theorem Mw0_mergeCost (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.mergeCost = 0 := rfl
+
+theorem Mw0_compressCost (E : ℝ) :
+    (Mw E 0).toGrowthState.effects.compressCost = 0 := rfl
+
 theorem Mw0_jointCost (E : ℝ) :
     (Mw E 0).toGrowthState.effects.jointCost = 0 := rfl
 theorem Mw0_quantErr (E : ℝ) :
@@ -853,9 +867,12 @@ theorem masterhagi_productive_witness (E : ℝ) :
       ≤ (Mw E 0).toGrowthState.budget := by
       rw [Finset.sum_range_one]
       show ((Mw E 0).toGrowthState.effects.growCost
-          + (Mw E 0).toGrowthState.effects.jointCost : ℝ)
+          + (Mw E 0).toGrowthState.effects.mergeCost
+          + (Mw E 0).toGrowthState.effects.jointCost
+          + (Mw E 0).toGrowthState.effects.compressCost : ℝ)
         ≤ (Mw E 0).toGrowthState.budget
-      rw [Mw0_growCost, Mw0_jointCost, Mw0_budget]
+      rw [Mw0_growCost, Mw0_mergeCost, Mw0_jointCost,
+        Mw0_compressCost, Mw0_budget]
       norm_num
     have hrnn : ∀ t, 0 ≤ (Mw E t).toGrowthState.protectedRisk := by
       intro t

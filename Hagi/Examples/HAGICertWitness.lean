@@ -52,12 +52,14 @@ noncomputable def witnessState (cap df : ℝ) : Hagi.GrowthState X where
     growEnergy := 0
     mergeEnergy := 0
     mergeRisk := 0
+    mergeCost := 0
     jointEnergy := 0
     jointRisk := 0
     jointCost := 0
     quantErr := 0
     compressEnergy := 0
     compressRisk := 0
+    compressCost := 0
   }
 
 /-- Траектория-свидетель: C₀ = 1, C₁ = 3/2, дальше C₀. -/

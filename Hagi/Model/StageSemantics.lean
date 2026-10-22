@@ -57,8 +57,10 @@ structure StageInput (X : Type*) [NormedAddCommGroup X]
   stepDir : X
   /-- The energy gradient of this cycle. -/
   grad : X
-  /-- Compute spends are honest (nonnegative). -/
-  h_costs_nn : 0 ≤ eff.growCost ∧ 0 ≤ eff.jointCost
+  /-- Compute spends are honest (nonnegative) — ALL four
+  stages (P1.3: merge and compression are not free). -/
+  h_costs_nn : 0 ≤ eff.growCost ∧ 0 ≤ eff.mergeCost
+    ∧ 0 ≤ eff.jointCost ∧ 0 ≤ eff.compressCost
   /-- Protected-risk spends are honest (nonnegative). -/
   h_risks_nn : 0 ≤ eff.growRisk ∧ 0 ≤ eff.mergeRisk
     ∧ 0 ≤ eff.jointRisk ∧ 0 ≤ eff.compressRisk
@@ -77,7 +79,8 @@ def advance (S : GrowthState X) (u : StageInput X) : GrowthState X where
   energy := u.eff.compressEnergy
   protectedRisk := S.protectedRisk + u.eff.growRisk + u.eff.mergeRisk
     + u.eff.jointRisk + u.eff.compressRisk
-  budget := S.budget - u.eff.growCost - u.eff.jointCost
+  budget := S.budget - u.eff.growCost - u.eff.mergeCost
+      - u.eff.jointCost - u.eff.compressCost
   gap := u.gap
   dataField := S.dataField
   capability := S.capability + u.eff.growGain
@@ -124,12 +127,14 @@ def stateGrowthEffects (alpha mu : ℝ) (S : GrowthState X) : StageEffects where
   growEnergy := S.energy
   mergeEnergy := S.energy
   mergeRisk := 0
+  mergeCost := 0
   jointEnergy := S.energy
   jointRisk := 0
   jointCost := 0
   quantErr := 0
   compressEnergy := S.energy
   compressRisk := 0
+  compressCost := 0
 
 /-- The per-cycle input for the paid productive-growth cycle:
 effects recomputed from the CURRENT state `S`; the honesty of
@@ -144,7 +149,7 @@ noncomputable def growInput (alpha mu : ℝ) (S : GrowthState X)
   gap := 0
   stepDir := 0
   grad := 0
-  h_costs_nn := ⟨hcost, le_refl _⟩
+  h_costs_nn := ⟨hcost, le_refl _, le_refl _, le_refl _⟩
   h_risks_nn := ⟨le_refl _, ⟨le_refl _, ⟨le_refl _, le_refl _⟩⟩⟩
   h_eta_pos := by norm_num
 
@@ -369,9 +374,9 @@ noncomputable def wU2 : StageInput ℝ where
   sp := { eta := 1, L := 1, kappa := 0, s := 0 }
   eff :=
     { growGain := 4, growCost := 1, growRisk := 0, growEnergy := 19
-      mergeEnergy := 18, mergeRisk := 0
+      mergeEnergy := 18, mergeRisk := 0, mergeCost := 0
       jointEnergy := 17, jointRisk := 0, jointCost := 1
-      quantErr := 0, compressEnergy := 17, compressRisk := 0 }
+      quantErr := 0, compressEnergy := 17, compressRisk := 0, compressCost := 0 }
   gap := 1
   stepDir := 1
   grad := 1
@@ -401,18 +406,18 @@ noncomputable def wS0 : GrowthState ℝ where
   sp := { eta := 1, L := 1, kappa := 0, s := 0 }
   effects :=
     { growGain := 0, growCost := 0, growRisk := 0, growEnergy := 0
-      mergeEnergy := 0, mergeRisk := 0
+      mergeEnergy := 0, mergeRisk := 0, mergeCost := 0
       jointEnergy := 0, jointRisk := 0, jointCost := 0
-      quantErr := 0, compressEnergy := 0, compressRisk := 0 }
+      quantErr := 0, compressEnergy := 0, compressRisk := 0, compressCost := 0 }
 
 /-- Cycle-0 measurement: gain `1`, gap `1`, chain `29 >= 8 >= 7`. -/
 noncomputable def wU0 : StageInput ℝ where
   sp := { eta := 1, L := 1, kappa := 0, s := 0 }
   eff :=
     { growGain := 1, growCost := 1, growRisk := 0, growEnergy := 29
-      mergeEnergy := 28, mergeRisk := 0
+      mergeEnergy := 28, mergeRisk := 0, mergeCost := 0
       jointEnergy := 27, jointRisk := 0, jointCost := 1
-      quantErr := 0, compressEnergy := 27, compressRisk := 0 }
+      quantErr := 0, compressEnergy := 27, compressRisk := 0, compressCost := 0 }
   gap := 1
   stepDir := 1
   grad := 1
@@ -426,9 +431,9 @@ noncomputable def wU1 : StageInput ℝ where
   sp := { eta := 1, L := 1, kappa := 0, s := 0 }
   eff :=
     { growGain := 2, growCost := 1, growRisk := 0, growEnergy := 25
-      mergeEnergy := 24, mergeRisk := 0
+      mergeEnergy := 24, mergeRisk := 0, mergeCost := 0
       jointEnergy := 23, jointRisk := 0, jointCost := 1
-      quantErr := 0, compressEnergy := 23, compressRisk := 0 }
+      quantErr := 0, compressEnergy := 23, compressRisk := 0, compressCost := 0 }
   gap := 1
   stepDir := 1
   grad := 1
@@ -734,11 +739,13 @@ are nonnegative by the input's PROOF FIELDS
 the spends — an advance can only burn, never mint, budget. -/
 theorem advance_budget_le (S : GrowthState X) (u : StageInput X) :
     (advance S u).budget ≤ S.budget := by
-  have h1 : (0:ℝ) ≤ u.eff.growCost + u.eff.jointCost := by
-    obtain ⟨h1, h2⟩ := u.h_costs_nn
+  have h1 : (0:ℝ) ≤ u.eff.growCost + u.eff.mergeCost
+      + u.eff.jointCost + u.eff.compressCost := by
+    obtain ⟨h1, h2, h3, h4⟩ := u.h_costs_nn
     linarith
   have hE : (advance S u).budget
-      = S.budget - (u.eff.growCost + u.eff.jointCost) := by
+      = S.budget - (u.eff.growCost + u.eff.mergeCost
+          + u.eff.jointCost + u.eff.compressCost) := by
     simp only [advance]; ring
   linarith
 
