@@ -275,6 +275,43 @@ theorem topk_distill_budget (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     exact h1
   linarith
 
+/-- Логарифмическая цена усечения в линейных единицах:
+−log Z ≤ (1−Z)/Z для 0 < Z ≤ 1 (log x ≤ x−1 при x = 1/Z). -/
+theorem topk_tail_bound (Z : ℝ) (hZ0 : 0 < Z) (hZ1 : Z ≤ 1) :
+    -Real.log Z ≤ (1 - Z) / Z := by
+  have hinvpos : (0:ℝ) < 1 / Z := div_pos one_pos hZ0
+  have hlog := Real.log_le_sub_one_of_pos hinvpos
+  rw [Real.log_div one_ne_zero (ne_of_gt hZ0), Real.log_one, zero_sub] at hlog
+  rw [le_div_iff₀ hZ0]
+  have hkey : (1 / Z - 1) * Z = 1 - Z := by field_simp
+  have hlog' : -Real.log Z * Z ≤ (1 / Z - 1) * Z :=
+    mul_le_mul_of_nonneg_right hlog (le_of_lt hZ0)
+  rw [hkey] at hlog'
+  linarith
+
+/-- Бюджет Top-K-дистилляции в линейных единицах хвоста:
+если удержанная масса Z ∈ (0,1] и ученик достиг KL ≤ α
+против усечённого учителя, то KL против полного ≤
+α + (1−Z)/Z — порог допуска выражается относительной
+массой хвоста без логарифмов. -/
+theorem topk_distill_budget_tv (q p : V → ℝ) (S : Finset V) (Z : ℝ)
+    (hq : ∀ v ∉ S, q v = 0)
+    (hqS : ∑ v ∈ S, q v = 1) (hZ0 : 0 < Z) (hZ1 : Z ≤ 1)
+    (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v)
+    (α : ℝ)
+    (hstudent : klDiv q (truncNorm p S Z) ≤ α) :
+    klDiv q p ≤ α + (1 - Z) / Z := by
+  have hexp : Real.exp (-((1 - Z) / Z)) ≤ Z := by
+    have h1 := topk_tail_bound Z hZ0 hZ1
+    -- −log Z ≤ (1−Z)/Z ⟹ exp(−(1−Z)/Z) ≤ exp(log Z) = Z
+    have h3 : -((1 - Z) / Z) ≤ Real.log Z := neg_le.mp h1
+    have h2 : Real.exp (-((1 - Z) / Z)) ≤ Real.exp (Real.log Z) :=
+      Real.exp_le_exp.mpr h3
+    rwa [Real.exp_log hZ0] at h2
+  exact topk_distill_budget q p S Z hq hqS hZ0 hqpos hppos α
+    ((1 - Z) / Z) (div_nonneg (sub_nonneg.mpr hZ1) (le_of_lt hZ0))
+    hexp hstudent
+
 end Distill
 
 end Hagi.Data
