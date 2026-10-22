@@ -836,4 +836,35 @@ theorem advance_cycle_certificate (S : GrowthState X) (u : StageInput X) :
   · rfl
   · rfl
 
+/-- УРОВЕНЬ B: телескопирование траектории через сертификат
+одного цикла — бюджетный и качественный леджеря всей
+траектории выводятся из per-cycle сертификатов (единая
+телескопная теорема, а не повторение суммирования). -/
+theorem trajectory_cycle_ledgers (tr : Trajectory X) :
+    ∀ k ≤ tr.T,
+      (tr.state k).budget
+        = (tr.state 0).budget
+          - ∑ t ∈ Finset.range k, (verify (tr.state (t+1))).budgetSpend
+      ∧ (tr.state k).capability
+        = (tr.state 0).capability
+          + ∑ t ∈ Finset.range k, (tr.input t).eff.growGain := by
+  intro k hk
+  induction k with
+  | zero => simp
+  | succ n ih =>
+      have hn : n ≤ tr.T := le_trans (Nat.le_succ n) hk
+      obtain ⟨hbud, hcap⟩ := ih hn
+      have hstep := tr.h_step n (Nat.lt_of_succ_le hk)
+      rw [hstep]
+      obtain ⟨hbc, _, hcapc⟩ :=
+        advance_cycle_certificate (tr.state n) (tr.input n)
+      -- сертификат цикла использует verify(advance) = verify(state n+1)
+      have hv : (verify (advance (tr.state n) (tr.input n))).budgetSpend
+          = (verify (tr.state (n+1))).budgetSpend := by
+        rw [hstep]
+      rw [Finset.sum_range_succ]
+      refine ⟨?_, ?_⟩
+      · rw [hbc, hv, hbud]; ring
+      · rw [Finset.sum_range_succ, hcapc, hcap]; ring
+
 end Hagi.Model

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2798 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2799 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Телескопирование траектории** (`trajectory_cycle_ledgers`,
+  уровень B этапа 4): budget(T) = budget(0) − Σ budgetSpend ∧
+  capability(T) = capability(0) + Σ growGain — единая
+  телескопная теорема из per-cycle сертификатов.
 - **Сертификат одного цикла** (`advance_cycle_certificate`,
   уровень A этапа 4): advance точно исполняет бюджетный
   (полная 4-стадийная сумма), рисковый (накопление) и
