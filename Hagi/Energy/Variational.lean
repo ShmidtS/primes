@@ -270,5 +270,11 @@ theorem gibbs_optimal_bound (q L : V → ℝ) {T : ℝ} (hT : 0 < T)
 
 end Variational
 
-end Hagi.Energy
 
+variable {V : Type*} [Fintype V]
+
+/-- Канон 2.1: kldiv' — адаптер канонического klDef. -/
+theorem kldiv'_eq_canon (q p : V → ℝ) :
+    kldiv' q p = Hagi.Prelude.klDef q p := rfl
+
+end Hagi.Energy

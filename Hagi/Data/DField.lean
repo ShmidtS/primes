@@ -431,4 +431,12 @@ end Hagi.Data
 
 namespace Hagi
 export Hagi.Data (Corpus KLdiv KLdiv_eq_klDef mixtureCorpus divField kl_nonneg log_eq_sub_one_iff_one mixtureCorpus_pos mixtureCorpus_sum_one log_lt_sub_one' kl_zero_iff_eq divField_zero_iff log_ratio_add kl_product KL_product_ge_marginal dfield_smoothing)
+
+variable {V : Type*} [Fintype V]
+
+/-- Канон 2.1: KLdiv — тонкий адаптер канонического klDef
+(формула идентична, порядок аргументов p q). -/
+theorem KLdiv_eq_canon (p q : V → ℝ) :
+    KLdiv p q = Hagi.Prelude.klDef p q := rfl
+
 end Hagi

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2801 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2804 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Канон 2.1: единый KL** (`KLdiv_eq_canon`, `kldiv_eq_canon`,
+  `kldiv'_eq_canon`): все локальные KL (DField, FreeEnergy,
+  Variational) — rfl-адаптеры канонического klDef; дубликатов
+  со своей математикой нет.
 - **Интегральный сертификат траектории**
   (`integral_trajectory_certificate`, уровень E): единая
   теорема — точные леджеря ∧ ресурсная граница роста,

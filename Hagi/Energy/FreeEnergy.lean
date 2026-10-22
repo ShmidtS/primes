@@ -313,4 +313,11 @@ end Hagi.Energy
 
 namespace Hagi
 export Hagi.Energy (kldiv free_energy_gap geometric_pool_identity geometric_pool_identity_nonneg tokenKLTotal)
+
+variable {V : Type*} [Fintype V]
+
+/-- Канон 2.1: kldiv — адаптер канонического klDef. -/
+theorem kldiv_eq_canon (q p : V → ℝ) :
+    kldiv q p = Hagi.Prelude.klDef q p := rfl
+
 end Hagi
