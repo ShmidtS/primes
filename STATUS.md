@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2814 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2815 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Momentum: цена инерции точна** (`momentum_beta_strict_cost`):
+  β > 0 ⟹ ρ(q,β) > q — импульс сам по себе НЕ ускоряет;
+  выигрыш приходит только через улучшение направления
+  (уменьшение q, как в Anderson θ·q), β — только цена.
 - **Momentum: пол при неточности** (`momentum_floor`):
   e_{k+1} ≤ q·e_k + β·e_{k−1} + δ ⟹ e_k ≤ δ/(1−q−β) +
   max(x₀, x₁/ρ)·ρ^k — импульс не ухудшает стационарный пол

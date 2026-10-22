@@ -149,4 +149,22 @@ theorem momentum_floor (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
   -- перенести: e k = x k + c
   linarith
 
+/-- Цена инерции точна: при β > 0 скорость инерционного
+метода СТРОГО хуже базового сжатия: ρ(q,β) > q = ρ(q,0).
+Импульс сам по себе не ускоряет — выигрыш ускорения
+приходит только через улучшение направления (уменьшение q,
+как в Anderson-ускорении с фактором θ·q), а не через
+инерционный член; β только оплачивает растущую цену. -/
+theorem momentum_beta_strict_cost (q β : ℝ) (hq : 0 < q)
+    (hβ : 0 < β) :
+    q < momentumRate q β := by
+  have hsq : 0 < q ^ 2 + 4 * β := by nlinarith
+  have h1 : q ^ 2 < q ^ 2 + 4 * β := by nlinarith
+  have h2 : Real.sqrt (q ^ 2) < Real.sqrt (q ^ 2 + 4 * β) :=
+    Real.sqrt_lt_sqrt (by nlinarith) h1
+  rw [Real.sqrt_sq (by linarith : (0:ℝ) ≤ q)] at h2
+  unfold momentumRate
+  rw [lt_div_iff₀ (by norm_num : (0:ℝ) < 2)]
+  nlinarith
+
 end Hagi.Optimization
