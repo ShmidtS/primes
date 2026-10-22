@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import Mathlib
 import Hagi.System.GrowthState
+import Hagi.Optimization.Momentum
 set_option linter.style.header false
 
 /-!
@@ -1145,5 +1146,25 @@ theorem admit_gated_net_gain (tr : Trajectory X)
       show (k : ℝ) * ε = ∑ _t ∈ Finset.range k, ε from by
         simp [Finset.card_range, nsmul_eq_mul]]
   linarith
+
+/-- МОСТ УСКОРЕНИЕ × МОДЕЛЬ: если потенциал состояний
+Φ(S_t) = energy + protectedRisk подчиняется инерционному
+закону (шаг q, импульс β), то он затухает со скоростью
+ρ(q,β): ускоренный алгоритм обучения напрямую управляет
+потенциалом модели — сертификат роста и теория ускорения
+соединены. -/
+theorem trajectory_potential_momentum (tr : Trajectory X)
+    (q β : ℝ) (hq : 0 < q) (hβ : 0 ≤ β) (hqb : q + β < 1)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      potential (tr.state (k + 1))
+        ≤ q * potential (tr.state k)
+          + β * potential (tr.state (k - 1)))
+    (k : ℕ) :
+    potential (tr.state k)
+      ≤ max (potential (tr.state 0))
+          (potential (tr.state 1) / Hagi.Optimization.momentumRate q β)
+        * (Hagi.Optimization.momentumRate q β) ^ k :=
+  Hagi.Optimization.momentum_bound (fun t => potential (tr.state t)) q β hq hβ hqb
+    hstep k
 
 end Hagi.Model
