@@ -278,4 +278,35 @@ theorem momentum_entry_horizon (C ρ ε : ℝ) (hC : 0 < C)
     have h3 := (lt_div_iff₀ hC).mp h2
     linarith
 
+/-- ПЕРЕКЛЮЧЕНИЕ В ТОЧНЫЙ РЕЖИМ (coarse-to-fine, фаза 2):
+после момента T метод работает в точном режиме (q₂, β₂,
+δ₂): дальнейшая ошибка следует инерционному закону НОВОГО
+режима с начальными данными e T, e (T+1) — грубая фаза
+задаёт стартовые данные, точная определяет пол и скорость
+(композиция полов при смене точности). -/
+theorem coarse_to_fine (e : ℕ → ℝ) (T : ℕ)
+    (q₂ β₂ δ₂ : ℝ)
+    (hq₂ : 0 < q₂) (hβ₂ : 0 ≤ β₂) (hqb₂ : q₂ + β₂ < 1)
+    (hδ₂ : 0 ≤ δ₂)
+    (hstep₂ : ∀ k : ℕ, T + 1 ≤ k →
+      e (k + 1) ≤ q₂ * e k + β₂ * e (k - 1) + δ₂)
+    (k : ℕ) :
+    e (T + k) ≤ δ₂ / (1 - q₂ - β₂)
+      + max (e T - δ₂ / (1 - q₂ - β₂))
+          ((e (T + 1) - δ₂ / (1 - q₂ - β₂))
+            / momentumRate q₂ β₂)
+        * (momentumRate q₂ β₂) ^ k := by
+  -- сдвинутая последовательность фазы 2
+  set f : ℕ → ℝ := fun j => e (T + j) with hf
+  have hfstep : ∀ j : ℕ, 1 ≤ j →
+      f (j + 1) ≤ q₂ * f j + β₂ * f (j - 1) + δ₂ := by
+    intro j hj
+    have hstep := hstep₂ (T + j) (by omega)
+    have h1 : T + j + 1 = T + (j + 1) := Nat.add_assoc T j 1
+    have h2 : T + j - 1 = T + (j - 1) := by omega
+    rw [h1, h2] at hstep
+    simp only [f]
+    exact hstep
+  exact momentum_floor f q₂ β₂ δ₂ hq₂ hβ₂ hqb₂ hδ₂ hfstep k
+
 end Hagi.Optimization
