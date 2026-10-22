@@ -445,4 +445,19 @@ theorem nesterov_corrected (e : ℕ → ℝ) (q β : ℝ) (hq : 0 < q)
     hq'0 hq'1 (le_refl 0) hstep'' k
   simpa using h
 
+/-- ДОМИНИРОВАНИЕ КОРЕКЦИИ: эффективный фактор Нестерова
+(q+β)/(1+β) СТРОГО меньше характеристической скорости сырого
+импульса ρ(q,β) при β > 0, q+β ≤ 1: коррекция направления —
+единственный честный механизм ускорения (сырой импульс лишь
+дороже: ρ ≥ q+β). -/
+theorem nesterov_beats_plain (q β : ℝ) (hq : 0 < q)
+    (hβ : 0 < β) (hqb : q + β ≤ 1) :
+    (q + β) / (1 + β) < momentumRate q β := by
+  have hge : q + β ≤ momentumRate q β :=
+    momentum_rate_ge q β hq hβ.le hqb
+  have hlt : (q + β) / (1 + β) < q + β := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  linarith
+
 end Hagi.Optimization
