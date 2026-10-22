@@ -312,6 +312,110 @@ theorem topk_distill_budget_tv (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     ((1 - Z) / Z) (div_nonneg (sub_nonneg.mpr hZ1) (le_of_lt hZ0))
     hexp hstudent
 
+variable {V : Type*} [Fintype V] [Nonempty V]
+
+omit [Nonempty V] in
+/-- Хвостовая масса Гиббса за энергетическим зазором: суммарный
+вес состояний с L > m + s экспоненциально мал по s/T. -/
+theorem gibbs_tail_mass (L : V → ℝ) (m T s : ℝ) (hT : 0 < T)
+    (hm : ∀ v, m ≤ L v) :
+    ∑ v ∈ Finset.univ.filter (fun v => m + s < L v),
+        Real.exp (-(L v / T))
+      ≤ (Fintype.card V : ℝ) * Real.exp (-((m + s) / T)) := by
+  have hkey : ∀ v ∈ Finset.univ.filter (fun v => m + s < L v),
+      Real.exp (-(L v / T)) ≤ Real.exp (-((m + s) / T)) := by
+    intro v hv
+    have hv' : m + s < L v := by simpa using hv
+    have hdiv : (m + s) / T ≤ L v / T := by
+      rw [div_le_div_iff₀ hT hT]
+      nlinarith [hv', hT]
+    have : -(L v / T) ≤ -((m + s) / T) := by linarith
+    exact Real.exp_le_exp.mpr this
+  calc ∑ v ∈ Finset.univ.filter (fun v => m + s < L v),
+        Real.exp (-(L v / T))
+      ≤ ∑ v ∈ Finset.univ.filter (fun v => m + s < L v),
+          Real.exp (-((m + s) / T)) := Finset.sum_le_sum hkey
+    _ = (Finset.univ.filter (fun v => m + s < L v)).card •
+          Real.exp (-((m + s) / T)) := Finset.sum_const _
+    _ ≤ (Fintype.card V : ℝ) * Real.exp (-((m + s) / T)) := by
+        have hcard : ((Finset.univ.filter (fun v => m + s < L v)).card : ℝ)
+            ≤ (Fintype.card V : ℝ) := by
+          exact_mod_cast Finset.card_filter_le Finset.univ
+            (fun v => m + s < L v)
+        have hexp : (0:ℝ) ≤ Real.exp (-((m + s) / T)) := Real.exp_nonneg _
+        rw [nsmul_eq_mul]
+        calc ((Finset.univ.filter (fun v => m + s < L v)).card : ℝ)
+              * Real.exp (-((m + s) / T))
+            ≤ (Fintype.card V : ℝ) * Real.exp (-((m + s) / T)) :=
+              mul_le_mul_of_nonneg_right hcard hexp
+
+/-- Термодинамическое затухание смещения Top-K: при
+температуре T и зазоре s (n·e^{-s/T} < 1) смещение
+усечения Гиббс-учителя до низкоэнергетического
+множества {L ≤ m+s} ограничено (n·e^{-s/T})/(1−n·e^{-s/T})
+— при T → 0 цена усечения Top-K-дистилляции обнуляется:
+охлаждение учителя автоматически восстанавливает
+допустимость. -/
+theorem cooling_topk_bias (L : V → ℝ) (m T s : ℝ) (hT : 0 < T)
+    (hm : ∀ v, m ≤ L v) (hm0 : ∃ v0 : V, L v0 = m)
+    (hsep : (Fintype.card V : ℝ) * Real.exp (-(s / T)) < 1) :
+    -Real.log (1 - (∑ v ∈ Finset.univ.filter (fun v => m + s < L v),
+            Real.exp (-(L v / T)))
+        / (∑ v, Real.exp (-(L v / T))))
+      ≤ ((Fintype.card V : ℝ) * Real.exp (-(s / T)))
+        / (1 - (Fintype.card V : ℝ) * Real.exp (-(s / T))) := by
+  set n := (Fintype.card V : ℝ) with hn
+  set r := n * Real.exp (-(s / T)) with hr
+  set tail := ∑ v ∈ Finset.univ.filter (fun v => m + s < L v),
+      Real.exp (-(L v / T)) with htail
+  set total := ∑ v, Real.exp (-(L v / T)) with htotal
+  obtain ⟨v0, hv0⟩ := hm0
+  have htotalm : Real.exp (-(m / T)) ≤ total := by
+    have h1 := Finset.single_le_sum (f := fun v => Real.exp (-(L v / T)))
+      (fun v _ => le_of_lt (Real.exp_pos _)) (Finset.mem_univ v0)
+    rw [hv0] at h1
+    exact h1
+  have htaille := gibbs_tail_mass L m T s hT hm
+  have hrdiv : tail / total ≤ r := by
+    have hBpos : (0:ℝ) < Real.exp (-(m / T)) := Real.exp_pos _
+    have hNnn : (0:ℝ) ≤ n * Real.exp (-((m + s) / T)) :=
+      mul_nonneg (by exact_mod_cast Nat.cast_nonneg _) (Real.exp_nonneg _)
+    have h1 : tail / total
+        ≤ (n * Real.exp (-((m + s) / T))) / Real.exp (-(m / T)) := by
+      rw [div_le_div_iff₀ (Finset.sum_pos
+        (fun v _ => Real.exp_pos _) (Finset.univ_nonempty)) hBpos]
+      exact mul_le_mul htaille htotalm (le_of_lt hBpos) hNnn
+    have h2 : (n * Real.exp (-((m + s) / T))) / Real.exp (-(m / T)) = r := by
+      have hexp1 : Real.exp (-((m + s) / T)) = Real.exp (-(m / T))
+          * Real.exp (-(s / T)) := by
+        rw [← Real.exp_add]
+        congr 1
+        ring
+      rw [hexp1, mul_div_assoc,
+        mul_comm (Real.exp (-(m / T))) (Real.exp (-(s / T))),
+        mul_div_cancel_right₀ _ (ne_of_gt hBpos), hr]
+    exact le_trans h1 (h2 ▸ le_refl r)
+  have htotalpos : 0 < total := Finset.sum_pos
+    (fun v _ => Real.exp_pos _) (Finset.univ_nonempty)
+  have htailnn : 0 ≤ tail := Finset.sum_nonneg
+    (fun v _ => le_of_lt (Real.exp_pos _))
+  have hZ1 : 1 - tail / total ≤ 1 := by
+    have : 0 ≤ tail / total := div_nonneg htailnn (le_of_lt htotalpos)
+    linarith
+  have hZ0 : 0 < 1 - tail / total := by
+    have hle : tail / total ≤ r := hrdiv
+    rw [hr] at hle
+    linarith
+  have hmain := topk_tail_bound (1 - tail / total) hZ0 hZ1
+  have hmono : (1 - (1 - tail / total)) / (1 - tail / total)
+      ≤ r / (1 - r) := by
+    have hr1 : r < 1 := by rw [hr] at hsep; linarith
+    rw [div_le_div_iff₀ hZ0 (by linarith)]
+    nlinarith [hrdiv]
+  rw [hr] at hmono
+  linarith
+
+
 end Distill
 
 end Hagi.Data
