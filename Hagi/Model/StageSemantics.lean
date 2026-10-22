@@ -1045,4 +1045,47 @@ theorem risk_cap_bounds_horizon (tr : Trajectory X) (ρ Rmax : ℝ)
     linarith
   exact (le_div_iff₀ hρ).mpr hkey
 
+/-- ЕДИНЫЙ ИНВАРИАНТ КОНТРОЛЛЕРА (этап 6, композиция): при
+оплате структуры (g ≥ стоимость эксперта за цикл) и
+минимальном риске (ρ) с бюджетом ≥ 0 и риск-кэпом Rmax
+горизонт траектории ограничен МИНИМУМОМ структурного и
+рискового потолков (бюджетная ось ограничивает качество —
+budget_stops_growth): контроллер останавливается по первой
+исчерпанной оси счётчиков. -/
+theorem controller_horizon_bound (tr : Trajectory X)
+    (g ρ Rmax : ℝ) (hg : 0 < g) (hρ : 0 < ρ)
+    (hpaidS : ∀ t < tr.T,
+      g ≤ (verify (tr.state (t+1))).budgetSpend)
+    (hrisk : ∀ t < tr.T,
+      ρ ≤ (tr.input t).eff.growRisk + (tr.input t).eff.mergeRisk
+        + (tr.input t).eff.jointRisk
+        + (tr.input t).eff.compressRisk)
+    (k : ℕ) (hk : k ≤ tr.T)
+    (hbudk : 0 ≤ (tr.state k).budget)
+    (hcap : (tr.state k).protectedRisk ≤ Rmax) :
+    (k : ℝ) ≤ min ((tr.state 0).budget / g)
+      ((Rmax - (tr.state 0).protectedRisk) / ρ) := by
+  -- структурная ось: e0 + k ≤ e0 + budget0/g
+  have hS := experts_pays_budget tr g hg hpaidS k hk hbudk
+  have hcount : ∀ j ≤ k, ((tr.state j).experts : ℝ)
+      = ((tr.state 0).experts : ℝ) + (j : ℝ) := by
+    intro j hj
+    induction j with
+    | zero => simp
+    | succ n ih =>
+        have hn : n ≤ k := le_trans (Nat.le_succ n) hj
+        have hnk : n < k := lt_of_lt_of_le (Nat.lt_succ_self n) hj
+        rw [tr.h_step n (lt_of_lt_of_le hnk hk)]
+        simp only [advance, Nat.cast_add, Nat.cast_one]
+        rw [ih hn]
+        ring
+  rw [hcount k (le_refl k)] at hS
+  have hSk : (k : ℝ) ≤ (tr.state 0).budget / g := by
+    have h1 : ((tr.state 0).experts : ℝ) + (k : ℝ)
+        ≤ ((tr.state 0).experts : ℝ) + (tr.state 0).budget / g := hS
+    linarith
+  -- рисковая ось
+  have hR := risk_cap_bounds_horizon tr ρ Rmax hρ hrisk k hk hcap
+  exact le_min hSk hR
+
 end Hagi.Model
