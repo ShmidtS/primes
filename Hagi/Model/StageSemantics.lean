@@ -811,4 +811,29 @@ theorem advance_decompose (S : GrowthState X) (u : StageInput X) :
     advance S u = compress (joint (merge (grow (prepare S u)))) := by
   rfl
 
+/-- СЕРТИФИКАТ ОДНОГО ЦИКЛА (уровень A этапа 4): advance
+точно исполняет все три леджеря — бюджетный (полная
+4-стадийная сумма трат), рисковый (накопление защищённого
+риска), качества (прирост измеренной способности) — и это
+следует из ОПРЕДЕЛЕНИЙ операторов (rfl), а не отдельных
+предположений согласованности. -/
+theorem advance_cycle_certificate (S : GrowthState X) (u : StageInput X) :
+    (advance S u).budget
+        = S.budget - (verify (advance S u)).budgetSpend
+      ∧ (advance S u).protectedRisk
+        = S.protectedRisk + u.eff.growRisk + u.eff.mergeRisk
+            + u.eff.jointRisk + u.eff.compressRisk
+      ∧ (advance S u).capability = S.capability + u.eff.growGain := by
+  refine ⟨?_, ?_, ?_⟩
+  · -- бюджетный леджерь: advance = 4-операторная композиция
+    rw [advance_decompose]
+    have hprep : (prepare S u).budget = S.budget := rfl
+    have hchain := budget_account (prepare S u)
+    have heff : (verify (prepare S u)).budgetSpend
+        = (verify (advance S u)).budgetSpend := rfl
+    rw [heff, hprep] at hchain
+    exact hchain
+  · rfl
+  · rfl
+
 end Hagi.Model
