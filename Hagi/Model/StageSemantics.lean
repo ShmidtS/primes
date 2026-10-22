@@ -1167,4 +1167,25 @@ theorem trajectory_potential_momentum (tr : Trajectory X)
   Hagi.Optimization.momentum_bound (fun t => potential (tr.state t)) q β hq hβ hqb
     hstep k
 
+/-- УСКОРЕННЫЙ ВХОД ПОТЕНЦИАЛА В КОРИДОР: если потенциал
+состояний подчиняется неточному инерционному закону
+(q, β, δ), то для любого ε > 0 существует горизонт T, с
+которого потенциал навсегда ≤ δ/(1−q−β) + ε: ускоренный
+обучающий цикл выводит модель в коридор целевого качества
+за конечное (логарифмическое по скорости ρ) время. -/
+theorem trajectory_accelerated_entry (tr : Trajectory X)
+    (q β δ : ℝ) (hq : 0 < q) (hβ : 0 ≤ β)
+    (hqb : q + β < 1) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      potential (tr.state (k + 1))
+        ≤ q * potential (tr.state k)
+          + β * potential (tr.state (k - 1)) + δ)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s →
+      potential (tr.state s)
+        ≤ δ / (1 - q - β) + ε :=
+  Hagi.Optimization.momentum_achievability
+    (fun t => potential (tr.state t)) q β δ hq hβ hqb hδ
+    hstep ε hε
+
 end Hagi.Model

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2826 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2827 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Ускоренный вход потенциала в коридор**
+  (`trajectory_accelerated_entry`): неточный инерционный
+  закон на потенциале ⟹ ∃T ∀s≥T: Φ(S_s) ≤ δ/(1−q−β)+ε —
+  ускоренный цикл выводит модель в коридор за конечное
+  логарифмическое время.
 - **Momentum: оптимум импульса** (`momentum_optimal_beta` +
   `momentumRate_zero_beta`): ρ(q,0)=q < ρ(q,β) при β>0 — в
   рамках закона ошибки чистый градиент строго оптимален;
