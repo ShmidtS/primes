@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2809 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2813 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Momentum: скорость ускорения** (`momentum_bound` +
+  `momentumRate_char`): инерционная рекурсия
+  e_{k+1} ≤ q·e_k + β·e_{k−1} затухает геометрически со
+  скоростью ρ=(q+√(q²+4β))/2 (корень ρ²=qρ+β): e_k ≤
+  max(e₀,e₁/ρ)·ρ^k при q+β<1 — импульс не ломает сжатие,
+  цена инерции точна (ρ→q при β→0).
 - **Положительный чистый прирост** (`admit_gated_net_gain`,
   P5/этап 6): gainOk-сертифицированные циклы ⟹
   capability(k) ≥ cap0 + λM·Σspend + λR·Σrisk + k·ε —

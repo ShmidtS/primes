@@ -261,6 +261,7 @@ import Hagi.Model.CycleCertificate
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
+import Hagi.Optimization.Momentum
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.AdaptiveCycle
 import Hagi.Optimization.DirectionPacking
