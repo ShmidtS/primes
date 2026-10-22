@@ -309,4 +309,24 @@ theorem coarse_to_fine (e : ℕ → ℝ) (T : ℕ)
     exact hstep
   exact momentum_floor f q₂ β₂ δ₂ hq₂ hβ₂ hqb₂ hδ₂ hfstep k
 
+/-- Грубая оценка — НИЖНЯЯ граница точной скорости:
+q + β ≤ ρ(q,β) при 0 ≤ β, q + β ≤ 1 (доказательство:
+ρ ≥ q+β ⟺ √(q²+4β) ≥ q+2β ⟺ β(1−q−β) ≥ 0). Характеристическая
+скорость инерции всегда не дешевле грубой суммы: условие
+q+β<1 из momentum_bound — не консервативная достаточность,
+а точная граница устойчивости (ρ<1 ⟺ q+β<1). -/
+theorem momentum_rate_ge (q β : ℝ) (hq : 0 < q) (hβ : 0 ≤ β)
+    (hqb : q + β ≤ 1) :
+    q + β ≤ momentumRate q β := by
+  have hrhs : (0:ℝ) ≤ q + 2 * β := by nlinarith
+  have hinner : (q + 2 * β) ^ 2 ≤ q ^ 2 + 4 * β := by
+    nlinarith [hqb, hβ]
+  have hsqrt : q + 2 * β ≤ Real.sqrt (q ^ 2 + 4 * β) := by
+    have h1 : Real.sqrt ((q + 2 * β) ^ 2) ≤ Real.sqrt (q ^ 2 + 4 * β) :=
+      Real.sqrt_le_sqrt hinner
+    rwa [Real.sqrt_sq hrhs] at h1
+  unfold momentumRate
+  rw [le_div_iff₀ (by norm_num : (0:ℝ) < 2)]
+  nlinarith
+
 end Hagi.Optimization
