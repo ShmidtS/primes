@@ -540,4 +540,54 @@ theorem nesterov_anderson (e : ℕ → ℝ) (θ q β δ : ℝ)
   nesterov_floor e (θ * q) β δ (mul_pos hθ hq)
     (by nlinarith) hβ hδ hstep k
 
+/-- ДОСТИЖИМОСТЬ ПРИ КОРРЕКЦИИ НЕСТЕРОВА: любой целевой
+уровень строго выше пола δ/(1−q) достигается за конечное
+время и держится навсегда: скорректированный ускоренный
+метод входит в коридор над полом геометрически с фактором
+(q+β)/(1+β). -/
+theorem nesterov_achievability (e : ℕ → ℝ) (q β δ : ℝ)
+    (hq : 0 < q) (hq1 : q < 1) (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ q * e k + δ)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s →
+      e s ≤ δ / (1 - q) + ε := by
+  have hq'0 : 0 < (q + β) / (1 + β) := by positivity
+  have hq'1 : (q + β) / (1 + β) < 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  set q' := (q + β) / (1 + β) with hq'
+  have hbnd := nesterov_floor e q β δ hq hq1 hβ hδ hstep
+  -- геометрический член q'^s·e0 → 0: ждём q'^s·|e0| < ε
+  have habs : (0:ℝ) ≤ |e 0| := abs_nonneg _
+  by_cases he0 : e 0 ≤ 0
+  · -- e0 ≤ 0: q'^s·e0 ≤ 0 ≤ ε всегда
+    refine ⟨0, fun s _ => ?_⟩
+    have h1 := hbnd s
+    have h2 : q' ^ s * e 0 ≤ 0 := by
+      nlinarith [pow_nonneg hq'0.le s, he0]
+    linarith
+  · have hpos : 0 < e 0 := by
+      by_contra hc
+      push_neg at hc
+      exact he0 hc
+    have htend : Filter.Tendsto (fun s => q' ^ s) Filter.atTop
+        (nhds 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hq'0.le hq'1
+    have hev : ∀ᶠ s in Filter.atTop, q' ^ s * e 0 < ε := by
+      have hmem : ∀ᶠ s in Filter.atTop, q' ^ s < ε / e 0 :=
+        Filter.Tendsto.eventually htend
+          (gt_mem_nhds (div_pos hε hpos))
+      refine hmem.mono fun s hs => ?_
+      have h3 := (lt_div_iff₀ hpos).mp hs
+      rw [mul_comm] at h3
+      rw [mul_comm]
+      exact h3
+    rw [Filter.eventually_atTop] at hev
+    obtain ⟨T, hT⟩ := hev
+    refine ⟨T, fun s hs => ?_⟩
+    have h1 := hbnd s
+    have h2 : q' ^ s * e 0 < ε := hT s hs
+    linarith
+
 end Hagi.Optimization
