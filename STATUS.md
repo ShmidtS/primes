@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2870 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2876 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,13 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Формализация arXiv 2610.31642v1** (`Hagi/Numerics/SoftmaxFix`):
+  ce_grad_sum_zero (градиент CE суммируется в 0 — анти-Softmax
+  Collapse), logitMargin + margin_rest_sum + ce_loss_margin
+  (маржа-форма фиксированного CE: L = softplus(−m)),
+  adamw_equilibrium_magnitude (|g| = λ|θ|ε/(1−λ|θ|) ⟹
+  m* ≈ log(1/ε) — равновесие маржи AdamW),
+  distill_grad_self_zero (анти-Softmax Cancellation).
 - **Сходимость энергии итераций**
   (`mirrorIterate_energy_converges`): убывающая и
   ограниченная снизу последовательность энергий ⟨w_n,ℓ⟩
