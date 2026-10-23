@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2881 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2884 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Инвариантность наклона + форма expm1** (`expTilt`,
+  `expTilt_centering`, `expm1_form_diff`): expTilt p (c−⟨p,c⟩)
+  = expTilt p c; u_k = p_k·(e^{s_k}−1) = q_k − p_k точно —
+  ядро фикса Softmax Cancellation (eq.9) формализовано.
 - **Центрирование §3 (eq.9)** (`centered_delta_sum_zero`,
   `sum_p_expm1_nonneg`): ⟨p,d⟩ = 0 для d = δ−⟨p,δ⟩; вход
   log1p неотрицателен (Йенсен: Σ p e^d ≥ 1) — корректность

@@ -284,4 +284,85 @@ theorem sum_p_expm1_nonneg {V : Type*} [Fintype V] [Nonempty V]
   rw [hcenter, Real.exp_zero] at hjensen
   linarith
 
+/-- Экспоненциальный наклон (exponential tilt): q ∝ p·e^c —
+форма мягкого распределения после сдвига логитов c. -/
+noncomputable def expTilt {V : Type*} [Fintype V] [Nonempty V]
+    (p c : V → ℝ) : V → ℝ :=
+  fun k => p k * Real.exp (c k)
+    / ∑ i, p i * Real.exp (c i)
+
+/-- ИНВАРИАНТНОСТЬ НАКЛОНА К ЦЕНТРИРОВАНИЮ (eq.9):
+экспоненциальный наклон не меняется при вычитании
+p-среднего из логитов: expTilt p (c − ⟨p,c⟩) = expTilt p c —
+константа e^{−⟨p,c⟩} сокращается в числителе и знаменателе:
+центрирование d = δ − ⟨p,δ⟩ не меняет итоговое soft-target
+распределение студента. -/
+theorem expTilt_centering {V : Type*} [Fintype V] [Nonempty V]
+    (p c : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1) :
+    expTilt p (fun k => c k - (∑ w, p w * c w))
+      = expTilt p c := by
+  set μ := ∑ w, p w * c w with hμ
+  have hZc : (0:ℝ) < ∑ i, p i * Real.exp (c i) :=
+    Finset.sum_pos (fun i _ => mul_pos (hp i) (Real.exp_pos _))
+      Finset.univ_nonempty
+  -- знаменатель центрированной версии: Σ p e^{c−μ} = Σ p e^c · e^{−μ}
+  have hterm : ∀ i : V, p i * Real.exp (c i - μ)
+      = p i * Real.exp (c i) * Real.exp (-μ) := by
+    intro i
+    rw [mul_assoc, ← Real.exp_add, sub_eq_add_neg]
+  have hZd : (∑ i, p i * Real.exp (c i - μ))
+      = (∑ i, p i * Real.exp (c i))
+        * Real.exp (-μ) := by
+    rw [Finset.sum_congr rfl (fun i _ => hterm i),
+      ← Finset.sum_mul]
+  funext k
+  unfold expTilt
+  rw [hZd, hterm k]
+  field_simp
+
+/-- ФОРМА expm1 РАЗНОСТИ (u_k = q_k − p_k, eq.9): лог-
+пространственная форма u_k = p_k·(e^{s_k} − 1), где
+s_k = d_k − log(Σ p e^d), в точности равна разности
+наклонённого и исходного распределений q_k − p_k —
+вычисление разности в лог-пространстве без катастрофического
+сокращения (фикс Softmax Cancellation). -/
+theorem expm1_form_diff {V : Type*} [Fintype V] [Nonempty V]
+    (p c : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1) (k : V) :
+    p k * (Real.exp ((c k - (∑ w, p w * c w))
+        - Real.log (∑ i, p i
+            * Real.exp (c i - (∑ w, p w * c w)))) - 1)
+      = expTilt p c k - p k := by
+  set μ := ∑ w, p w * c w with hμ
+  have hZc : (0:ℝ) < ∑ i, p i * Real.exp (c i) :=
+    Finset.sum_pos (fun i _ => mul_pos (hp i) (Real.exp_pos _))
+      Finset.univ_nonempty
+  have hZd : (0:ℝ) < ∑ i, p i
+      * Real.exp (c i - μ) :=
+    Finset.sum_pos (fun i _ => mul_pos (hp i) (Real.exp_pos _))
+      Finset.univ_nonempty
+  have hterm : ∀ i : V, p i * Real.exp (c i - μ)
+      = p i * Real.exp (c i) * Real.exp (-μ) := by
+    intro i
+    rw [mul_assoc, ← Real.exp_add, sub_eq_add_neg]
+  have hZdval : (∑ i, p i * Real.exp (c i - μ))
+      = (∑ i, p i * Real.exp (c i))
+        * Real.exp (-μ) := by
+    rw [Finset.sum_congr rfl (fun i _ => hterm i),
+      ← Finset.sum_mul]
+  -- e^{d − log Z_d} = e^d / Z_d
+  have hexp : Real.exp ((c k - μ)
+      - Real.log (∑ i, p i * Real.exp (c i - μ)))
+      = Real.exp (c k - μ)
+        / (∑ i, p i * Real.exp (c i - μ)) := by
+    rw [Real.exp_sub, Real.exp_log hZd]
+  -- числитель: e^{c−μ} = e^c·e^{−μ}
+  have hnum : Real.exp (c k - μ)
+      = Real.exp (c k) * Real.exp (-μ) := by
+    rw [← Real.exp_add, sub_eq_add_neg]
+  unfold expTilt
+  rw [hexp, hZdval, hnum]
+  field_simp
+
 end Hagi.Numerics
