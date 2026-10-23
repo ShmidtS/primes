@@ -761,4 +761,40 @@ theorem nesterov_floor_beats_plain (δ q β : ℝ) (hδ : 0 ≤ δ)
   rw [div_le_div_iff₀ h2 h1]
   nlinarith [hδ]
 
+/-- ПОЛНАЯ СТОИМОСТЬ ДВУХФАЗНОЙ СТРАТЕГИИ: суммарная ошибка
+coarse-to-fine = грубая фаза (измеренная сумма ≤ B₁ до
+момента T) + точная фаза (нестеровская геометрия + пол):
+Σ_{k<T+n} e_k ≤ B₁ + e_T·(1−q'ⁿ)/(1−q') + n·δ/(1−q) —
+полный бюджет ошибок двухфазного ускоренного метода
+складывается из измеренной грубой части и сертифицированной
+точной части. -/
+theorem two_phase_total (e : ℕ → ℝ) (T : ℕ) (B₁ q β δ : ℝ)
+    (hq : 0 < q) (hq1 : q < 1) (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hcoarse : ∑ k ∈ Finset.range T, e k ≤ B₁)
+    (hstep₂ : ∀ k : ℕ,
+      e (T + k + 1)
+        + β * (e (T + k + 1) - e (T + k)) ≤ q * e (T + k) + δ)
+    (n : ℕ) :
+    ∑ k ∈ Finset.range (T + n), e k
+      ≤ B₁ + e T * (1 - ((q + β) / (1 + β)) ^ n)
+          / (1 - (q + β) / (1 + β))
+        + (n : ℝ) * (δ / (1 - q)) := by
+  -- разбиение суммы: [0,T) + [T, T+n)
+  have hsplit : ∑ k ∈ Finset.range (T + n), e k
+      = ∑ k ∈ Finset.range T, e k
+        + ∑ k ∈ Finset.range n, e (T + k) := by
+    rw [Finset.sum_range_add]
+  -- точная фаза: сдвинутая последовательность
+  set f : ℕ → ℝ := fun k => e (T + k) with hf
+  have hflaw : ∀ k : ℕ,
+      f (k + 1) + β * (f (k + 1) - f k) ≤ q * f k + δ := by
+    intro k
+    have : T + (k + 1) = T + k + 1 := by ring
+    simpa [f, this] using hstep₂ k
+  have hfine := nesterov_total_error f q β δ hq hq1 hβ hδ hflaw n
+  simp only [f, Nat.add_zero] at hfine
+  rw [hsplit]
+  simp only [hf]
+  linarith [hcoarse, hfine]
+
 end Hagi.Optimization
