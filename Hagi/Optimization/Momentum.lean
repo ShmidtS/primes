@@ -748,4 +748,17 @@ theorem nesterov_anderson_entry (e : ℕ → ℝ) (θ q β δ : ℝ)
   nesterov_entry_horizon e (θ * q) β δ (mul_pos hθ hq)
     (by nlinarith) hβ hδ hstep ε hε he0
 
+/-- КОРРЕКЦИЯ УЛУЧШАЕТ И ПОЛ: стационарный пол
+скорректированного метода δ/(1−q) не выше пола сырого
+импульса δ/(1−q−β): коррекция Нестерова доминирует сырой
+heavy-ball по ОБЕИМ осям — и по скорости
+(nesterov_beats_plain), и по полу неточности. -/
+theorem nesterov_floor_beats_plain (δ q β : ℝ) (hδ : 0 ≤ δ)
+    (hβ : 0 ≤ β) (hqb : q + β < 1) :
+    δ / (1 - q) ≤ δ / (1 - q - β) := by
+  have h1 : (0:ℝ) < 1 - q - β := by linarith
+  have h2 : (0:ℝ) < 1 - q := by linarith
+  rw [div_le_div_iff₀ h2 h1]
+  nlinarith [hδ]
+
 end Hagi.Optimization

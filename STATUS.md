@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2839 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2840 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Коррекция улучшает и пол** (`nesterov_floor_beats_plain`):
+  δ/(1−q) ≤ δ/(1−q−β) — коррекция Нестерова доминирует сырой
+  heavy-ball по обеим осям: скорость (nesterov_beats_plain)
+  и пол неточности.
 - **Время входа Anderson × Нестеров**
   (`nesterov_anderson_entry`): T ≥ log(e₀/ε)/
   log((1+β)/(θq+β)) с коридором δ/(1−θq)+ε — полная
