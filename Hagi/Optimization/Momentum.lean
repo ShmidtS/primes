@@ -947,4 +947,18 @@ theorem robbins_monro_decay (x η : ℕ → ℝ)
       by_contra hc; push_neg at hc; linarith
     nlinarith [h1, h2, this]
 
+/-- РОББИНС-МОНРО ПО МОДУЛЮ: закон |y_{k+1}| ≤ (1−η_k)|y_k|
+с расходящейся суммой шагов гасит |y| к нулю независимо от
+знака начальной ошибки (применение ядра к |y|). -/
+theorem robbins_monro_abs (y η : ℕ → ℝ)
+    (hη : ∀ k, 0 ≤ η k ∧ η k ≤ 1)
+    (hstep : ∀ k,
+      |y (k + 1)| ≤ (1 - η k) * |y k|)
+    (hdiv : Filter.Tendsto (fun n => ∑ k ∈ Finset.range n, η k)
+      Filter.atTop Filter.atTop)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s → |y s| ≤ ε :=
+  robbins_monro_decay (fun k => |y k|) η (abs_nonneg _)
+    hη hstep hdiv ε hε
+
 end Hagi.Optimization
