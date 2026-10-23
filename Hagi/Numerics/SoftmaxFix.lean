@@ -133,4 +133,73 @@ theorem distill_grad_self_zero {V : Type*} [Fintype V] [Nonempty V]
     softDef zS v - softDef zT v = 0 := by
   rw [heq, sub_self]
 
+/-- РАВНОВЕСНОЕ ЗНАЧЕНИЕ МАРЖИ (§5, eq.11): если после
+запоминания градиент убывает экспоненциально по марже
+(|g| = c·e^{−m}), то равновесие AdamW
+(adamw_equilibrium_magnitude) даёт ТОЧНОЕ значение
+m* = log(c·(1−λ|θ|)/(λ|θ|·ε)) — при c ≈ 1−λ|θ| и λ|θ|≪1
+маржа насыщается на m* ≈ log(1/ε): рост маржи
+останавливается равновесием weight decay и ε-нормировки. -/
+theorem margin_equilibrium_value (m c θ ε lam : ℝ)
+    (hε : 0 < ε) (hlam : 0 < lam) (hθ : 0 < |θ|)
+    (hlamθ : lam * |θ| < 1)
+    (hc : 0 < c)
+    (hdecay : c * Real.exp (-m)
+      = lam * |θ| * ε / (1 - lam * |θ|)) :
+    m = Real.log (c * (1 - lam * |θ|)
+      / (lam * |θ| * ε)) := by
+  have hpos : (0:ℝ) < 1 - lam * |θ| := by linarith
+  have hA : (0:ℝ) < lam * |θ| * ε :=
+    mul_pos (mul_pos hlam hθ) hε
+  have hB : (0:ℝ) < (1 - lam * |θ|) * c :=
+    mul_pos hpos hc
+  -- ключ: c·e^{−m}·(1−λ|θ|) = λ|θ|·ε
+  have hkey : c * Real.exp (-m) * (1 - lam * |θ|)
+      = lam * |θ| * ε := by
+    rw [hdecay, div_mul_cancel₀ _ hpos.ne']
+  -- e^{−m} = λ|θ|ε/((1−λ|θ|)·c)
+  have hem : Real.exp (-m) = lam * |θ| * ε
+      / ((1 - lam * |θ|) * c) := by
+    rw [eq_div_iff hB.ne']
+    -- перестановка порядка множителей к hkey
+    have hrew : Real.exp (-m) * ((1 - lam * |θ|) * c)
+        = c * Real.exp (-m) * (1 - lam * |θ|) := by ring
+    rw [hrew]
+    exact hkey
+  -- логарифмируем: −m = log(λ|θ|ε/((1−λ|θ|)c))
+  have hlog : -m = Real.log (lam * |θ| * ε
+      / ((1 - lam * |θ|) * c)) := by
+    have h1 : Real.log (Real.exp (-m))
+        = Real.log (lam * |θ| * ε
+          / ((1 - lam * |θ|) * c)) := congrArg Real.log hem
+    rw [Real.log_exp] at h1
+    exact h1
+  -- финал: разложить оба логарифма и сократить
+  rw [Real.log_div hA.ne' hB.ne'] at hlog
+  have hB' : (0:ℝ) < c * (1 - lam * |θ|) :=
+    mul_pos hc hpos
+  rw [Real.log_div hB'.ne' hA.ne']
+  have hcomm : c * (1 - lam * |θ|)
+      = (1 - lam * |θ|) * c := by ring
+  rw [hcomm]
+  linarith
+
+/-- ДВУСТОРОННИЕ ГРАНИЦЫ НОРМИРОВАННОГО ШАГА ADAMW:
+величина нормированного шага g/(|g|+ε):
+(i) всегда ≤ 1 (нормировка ограничивает шаг);
+(ii) при |g| ≤ ε знаменатель ≤ 2ε, значит шаг ≥ |g|/(2ε):
+в режиме |g| ≪ ε нормированный шаг ≈ |g|/ε — затухает
+вместе с градиентом (основа равновесия маржи §5). -/
+theorem adamw_normalized_bounds (g ε : ℝ) (hε : 0 < ε)
+    (hg : |g| ≤ ε) :
+    |g| / (|g| + ε) ≤ 1
+      ∧ |g| / (2 * ε) ≤ |g| / (|g| + ε) := by
+  have habs : (0:ℝ) ≤ |g| := abs_nonneg g
+  constructor
+  · rw [div_le_one (by linarith : (0:ℝ) < |g| + ε)]
+    linarith
+  · rw [div_le_div_iff₀ (by linarith : (0:ℝ) < 2 * ε)
+      (by linarith : (0:ℝ) < |g| + ε)]
+    nlinarith [habs, hε, hg]
+
 end Hagi.Numerics
