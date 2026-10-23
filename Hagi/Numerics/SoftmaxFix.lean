@@ -1,4 +1,5 @@
 import Hagi.Prelude.Info
+import Hagi.Optimization.MirrorDescent
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
 namespace Hagi.Numerics
@@ -364,5 +365,18 @@ theorem expm1_form_diff {V : Type*} [Fintype V] [Nonempty V]
   unfold expTilt
   rw [hexp, hZdval, hnum]
   field_simp
+
+/-- ЗЕРКАЛЬНЫЙ ШАГ = ЭКСПОНЕНЦИАЛЬНЫЙ НАКЛОН:
+Hagi.Optimization.mirrorStep ρ₀ ℓ T = expTilt ρ₀ (−ℓ/T) — унификация слоёв
+Optimization и Numerics: hedge-обновление MWU/Гиббса/EFE
+и лог-пространственная форма фиксированного CE (arXiv
+2610.31642 eq.9) — одна и та же операция наклона. -/
+theorem mirrorStep_is_expTilt {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) :
+    Hagi.Optimization.mirrorStep ρ₀ ℓ T
+      = expTilt ρ₀ (fun v => -(ℓ v)/T) := by
+  funext v
+  unfold Hagi.Optimization.mirrorStep expTilt
+  rfl
 
 end Hagi.Numerics
