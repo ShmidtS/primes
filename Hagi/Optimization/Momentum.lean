@@ -700,4 +700,35 @@ theorem nesterov_total_error (e : ℕ → ℝ) (q β δ : ℝ)
   rw [hgeopart, hconst] at hsplit
   exact hsplit
 
+/-- СКОБКА ШАГА ЛИНЕЙНОГО ПОИСКА: если условие приёма шага
+анти-монотонно по шагу (меньшие шаги принимаются чаще: знак
+Armijo/honesty), шаг s принят, а 2s отвергнут, то порог
+приёма локализован в [s, 2s): всё ≤ s принимается, всё ≥ 2s
+отвергается — одна двойка неопределённости; бисекция
+делит её пополам за шаг (log₂ диапазона до фактора 2). -/
+theorem step_bracket {P : ℝ → Prop}
+    (hmono : ∀ a b, a ≤ b → P b → P a)
+    (s : ℝ) (h1 : P s) (h2 : ¬ P (2 * s)) :
+    (∀ t, t ≤ s → P t) ∧ (∀ t, 2 * s ≤ t → ¬ P t) := by
+  refine ⟨fun t ht => hmono t s ht h1, fun t ht => ?_⟩
+  intro hP
+  exact h2 (hmono (2 * s) t ht hP)
+
+/-- БИСЕКЦИЯ ДЕЛИТ СКОБКУ: при скобке [lo, hi] с принятым lo
+и отвергнутым hi проверка середины оставляет скобку вдвое
+короче: либо [mid, hi] (mid принят), либо [lo, mid] (mid
+отвергнут) — линейный поиск локализует оптимальный шаг с
+экспоненциальной скоростью. -/
+theorem bracket_bisect {P : ℝ → Prop}
+    (hmono : ∀ a b, a ≤ b → P b → P a)
+    (lo hi mid : ℝ) (hlo : P lo) (hhi : ¬ P hi)
+    (hmid1 : lo ≤ mid) (hmid2 : mid ≤ hi) :
+    (P mid ∧ ¬ P hi ∧ mid ≤ hi ∧ lo ≤ mid)
+      ∨ (P lo ∧ ¬ P mid ∧ lo ≤ mid ∧ mid ≤ hi) := by
+  by_cases h : P mid
+  · left
+    exact ⟨h, hhi, hmid2, hmid1⟩
+  · right
+    exact ⟨hlo, h, hmid1, hmid2⟩
+
 end Hagi.Optimization
