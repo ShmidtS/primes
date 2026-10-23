@@ -839,4 +839,21 @@ theorem zero_inertia_optimal (e : ℕ → ℝ) (θ q δ : ℝ)
   Hagi.Optimization.inexact_contraction_floor e (θ * q) δ
     (mul_pos hθ hq) (by nlinarith [hθ, hθ1, hq]) hδ hstep k
 
+/-- ДОСТИЖИМОСТЬ ANDERSON × MOMENTUM: для ускоренной
+неточной инерционной рекурсии (фактор θ·q, импульс β,
+неточность δ) любая цель выше пола δ/(1−θq−β) достигается
+за конечное геометрическое время со скоростью ρ(θq,β) —
+параллель к nesterov_anderson_entry для сырого импульса. -/
+theorem anderson_momentum_reach (e : ℕ → ℝ) (θ q β δ : ℝ)
+    (hθ : 0 < θ) (hθ1 : θ < 1) (hq : 0 < q) (hq1 : q < 1)
+    (hβ : 0 ≤ β) (hδ : 0 ≤ δ)
+    (hqb : θ * q + β < 1)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ θ * q * e k + β * e (k - 1) + δ)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ T : ℕ, ∀ s : ℕ, T ≤ s →
+      e s ≤ δ / (1 - θ * q - β) + ε :=
+  Hagi.Optimization.momentum_achievability e (θ * q) β δ
+    (mul_pos hθ hq) hβ hqb hδ hstep ε hε
+
 end Hagi.Optimization
