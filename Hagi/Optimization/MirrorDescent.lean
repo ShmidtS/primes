@@ -286,4 +286,30 @@ theorem gibbs_from_mirror {V : Type*} [Fintype V] [Nonempty V]
   rw [hZ, hlogZ] at hfl
   nlinarith [hfl]
 
+/-- ОДНОШАГОВОЕ ТОЖДЕСТВО ПРОГРЕССА зеркального спуска:
+для любого ρ ∈ Δ и шага γ = mirrorStep ρ₀ ℓ T:
+⟨ρ,ℓ⟩ − F(γ) = T·(KL(ρ‖γ) − KL(ρ‖ρ₀)), где F(γ) — свободная
+энергия γ (достигаемый пол): превышение любых потерь над
+полом равно приросту расстояния Брегмана до цели ρ — база
+телескопирования регрета MWU/Hedge. -/
+theorem mirror_progress_identity {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    (∑ v, ρ v * ℓ v)
+      - ((∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+          + T * (∑ v, mirrorStep ρ₀ ℓ T v
+              * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)))
+      = T * ((∑ v, ρ v * Real.log (ρ v
+              / mirrorStep ρ₀ ℓ T v))
+          - (∑ v, ρ v * Real.log (ρ v / ρ₀ v))) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have hid := mirror_descent_identity ρ₀ ℓ T hT hρ₀ ρ hρ hρ1
+  have hatt := mirror_descent_attainment ρ₀ ℓ T hT hρ₀
+  rw [hatt]
+  linarith
+
 end Hagi.Optimization
