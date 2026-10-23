@@ -124,4 +124,32 @@ theorem mirror_descent_floor {V : Type*} [Fintype V]
       / mirrorStep ρ₀ ℓ T v)) := mul_nonneg hTnn hKL
   linarith
 
+/-- ДОСТИЖИМОСТЬ ПОЛА ЗЕРКАЛЬНОГО ШАГА: на мере
+γ = mirrorStep ρ₀ ℓ T свободная энергия ⟨γ,ℓ⟩+T·KL(γ‖ρ₀)
+равна в точности −T·log Z — нижняя грань mirror_descent_floor
+достигается: γ — минимизатор вариационной задачи,
+полнота унификации Гиббса/MWU/EFE. -/
+theorem mirror_descent_attainment {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ)
+    (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+      + T * (∑ v, mirrorStep ρ₀ ℓ T v
+          * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v))
+      = -T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have h := mirror_descent_identity ρ₀ ℓ T hT hρ₀
+    (mirrorStep ρ₀ ℓ T) hγpos hγ1
+  have hsum : (∑ v, mirrorStep ρ₀ ℓ T v
+      * Real.log (mirrorStep ρ₀ ℓ T v
+        / mirrorStep ρ₀ ℓ T v)) = 0 := by
+    refine Finset.sum_eq_zero ?_
+    intro v _
+    rw [div_self (hγpos v).ne', Real.log_one, mul_zero]
+  rw [hsum, mul_zero] at h
+  linarith
+
 end Hagi.Optimization
