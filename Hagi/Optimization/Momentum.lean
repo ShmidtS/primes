@@ -823,4 +823,20 @@ theorem momentum_schedule (e : ℕ → ℝ) (q : ℝ) (β : ℕ → ℝ)
     linarith
   exact momentum_bound e q bbar hq hb0' hqb hstep' k
 
+/-- НУЛЕВАЯ ИНЕРЦИЯ КАК ОПТИМАЛЬНАЯ СТРАТЕГИЯ: при β = 0
+скорректированный закон вырождается в чистое сжатие с
+фактором θ·q и полом δ/(1−θq) — в сочетании с тезисом модуля
+(импульс лишь платит, направление ускоряет) и бисекцией
+шага оптимальная конфигурация ускоренного метода:
+Anderson-направление (θ) + нулевая инерция (β=0) +
+line-search-шаг из скобки. -/
+theorem zero_inertia_optimal (e : ℕ → ℝ) (θ q δ : ℝ)
+    (hθ : 0 < θ) (hθ1 : θ < 1) (hq : 0 < q) (hq1 : q < 1)
+    (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ, e (k + 1) ≤ θ * q * e k + δ)
+    (k : ℕ) :
+    e k ≤ (θ * q) ^ k * e 0 + δ / (1 - θ * q) :=
+  Hagi.Optimization.inexact_contraction_floor e (θ * q) δ
+    (mul_pos hθ hq) (by nlinarith [hθ, hθ1, hq]) hδ hstep k
+
 end Hagi.Optimization
