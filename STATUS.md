@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2853 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2854 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост MWU ↔ зеркальный спуск** (`hedge_free_energy_step`):
+  hedge-обновление = mirrorStep при T=1/η; F(γ) ≤ 2⟨ℓ⟩_w при
+  ηℓ ≤ 1/2 — изоморфизм MWU и вариационного принципа как
+  теорема (пункт 3 аудита).
 - **Достижимость пола зеркального шага**
   (`mirror_descent_attainment`): F(γ) = −T·log Z точно —
   γ = mirrorStep минимизирует свободную энергию; полнота

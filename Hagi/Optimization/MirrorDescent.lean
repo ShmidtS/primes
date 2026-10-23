@@ -11,6 +11,7 @@ AIF — одно и то же аналитическое решение с ми�
 T·KL(ρ‖γ) = ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀) + T·log Z.
 -/
 import Hagi.Probability.GibbsInfoCore
+import Hagi.Probability.MWU
 
 namespace Hagi.Optimization
 
@@ -151,5 +152,51 @@ theorem mirror_descent_attainment {V : Type*} [Fintype V]
     rw [div_self (hγpos v).ne', Real.log_one, mul_zero]
   rw [hsum, mul_zero] at h
   linarith
+
+/-- МОСТ MWU ↔ ЗЕРКАЛЬНЫЙ СПУСК: hedge-обновление
+γ = mirrorStep w ℓ (1/η) — в точности зеркальный шаг с
+T = 1/η; комбинируя достижимость пола (F(γ) = −T log Z) с
+оценкой нормировки MWU (log Z ≥ −2η⟨ℓ⟩_w при ηℓ ≤ 1/2),
+получаем F(γ) ≤ 2⟨ℓ⟩_w: свободная энергия обновлённой смеси
+не более удвоенных текущих средних потерь — мост между
+экспоненциальными весами и вариационным принципом. -/
+theorem hedge_free_energy_step {V : Type*} [Fintype V]
+    [Nonempty V] (w ℓ : V → ℝ) (η : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2) :
+    (∑ v, mirrorStep w ℓ (1/η) v * ℓ v)
+      + (1/η) * (∑ v, mirrorStep w ℓ (1/η) v
+          * Real.log (mirrorStep w ℓ (1/η) v / w v))
+      ≤ 2 * (∑ v, w v * ℓ v) := by
+  -- достижимость: F(γ) = −(1/η)·log Z
+  have hT : (0:ℝ) < 1/η := one_div_pos.mpr hη
+  have hatt := mirror_descent_attainment w ℓ (1/η) hT hw
+  -- MWU-оценка нормировки: log Z ≥ −2η⟨ℓ⟩_w
+  have hmwu := mwu_potential_step w ℓ η hw hw1 hℓ hη hsmall
+  -- Z в обоих утверждениях совпадает: exp(−ηℓ) = exp(−ℓ/(1/η))
+  have hZeq : (∑ v, w v * Real.exp (-(ℓ v)/(1/η)))
+      = ∑ v, w v * Real.exp (-(η * ℓ v)) := by
+    refine Finset.sum_congr rfl fun v _ => ?_
+    congr 1
+    field_simp
+  rw [hZeq] at hatt
+  -- F(γ) = (1/η)·(−log Z) ≤ (1/η)·2η⟨ℓ⟩_w = 2⟨ℓ⟩_w
+  have hneg : -Real.log (∑ v, w v * Real.exp (-(η * ℓ v)))
+      ≤ 2 * η * (∑ v, w v * ℓ v) := by linarith
+  have hmul := mul_le_mul_of_nonneg_left hneg hT.le
+  have hconv : (1/η) * (2 * η * (∑ v, w v * ℓ v))
+      = 2 * (∑ v, w v * ℓ v) := by
+    field_simp
+  have hsplit : (∑ v, mirrorStep w ℓ (1/η) v * ℓ v)
+      + (1/η) * (∑ v, mirrorStep w ℓ (1/η) v
+          * Real.log (mirrorStep w ℓ (1/η) v / w v))
+      = (1/η) * (-Real.log (∑ v, w v * Real.exp (-(η * ℓ v)))) := by
+    rw [hatt]
+    ring
+  rw [hsplit]
+  calc (1/η) * (-Real.log (∑ v, w v * Real.exp (-(η * ℓ v))))
+      ≤ (1/η) * (2 * η * (∑ v, w v * ℓ v)) := hmul
+    _ = 2 * (∑ v, w v * ℓ v) := hconv
 
 end Hagi.Optimization
