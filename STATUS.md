@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2856 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2857 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Гиббс = зеркальный шаг** (`gibbs_from_mirror`):
+  вариационная грань Гиббса (R421) выводится из
+  mirror_descent_floor при равномерной ссылке ρ₀=1/n —
+  унификация Гиббс == MWU == EFE завершена (4 моста).
 - **EFE-мост Active Inference** (`aif_efe_attainment`,
   `aif_efe_floor`): при ℓ = surprise − info gain минимизатор
   EFE — mirrorStep; единая грань доминирует любое убеждение —
