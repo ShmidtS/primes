@@ -199,4 +199,34 @@ theorem hedge_free_energy_step {V : Type*} [Fintype V]
       ≤ (1/η) * (2 * η * (∑ v, w v * ℓ v)) := hmul
     _ = 2 * (∑ v, w v * ℓ v) := hconv
 
+/-- EFE-ШАГ ACTIVE INFERENCE = ЗЕРКАЛЬНЫЙ ШАГ: при разложении
+потерь ℓ = surprise − information gain минимизатор ожидаемой
+свободной энергии — мера mirrorStep ρ₀ (s−g) T, и её свободная
+энергия равна в точности −T·log Z(s−g): третий член
+унификации Гиббс == MWU == EFE. -/
+theorem aif_efe_attainment {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ s g : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    (∑ v, mirrorStep ρ₀ (fun v => s v - g v) T v * (s v - g v))
+      + T * (∑ v, mirrorStep ρ₀ (fun v => s v - g v) T v
+          * Real.log (mirrorStep ρ₀ (fun v => s v - g v) T v
+            / ρ₀ v))
+      = -T * Real.log (∑ w, ρ₀ w
+          * Real.exp (-(s w - g w)/T)) :=
+  mirror_descent_attainment ρ₀ (fun v => s v - g v) T hT hρ₀
+
+/-- EFE-ДОМИНИРОВАНИЕ: EFE-шаг не хуже любого убеждения ρ ∈ Δ:
+−T·log Z(s−g) ≤ ⟨ρ, s−g⟩ + T·KL(ρ‖ρ₀) — ожидаемая свободная
+энергия mirrorStep-убеждения доминируется снизу единой
+вариационной гранью (специализация mirror_descent_floor). -/
+theorem aif_efe_floor {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ s g : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    -T * Real.log (∑ w, ρ₀ w * Real.exp (-(s w - g w)/T))
+      ≤ (∑ v, ρ v * (s v - g v))
+        + T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v)) :=
+  mirror_descent_floor ρ₀ (fun v => s v - g v) T hT hρ₀
+    ρ hρ hρ1
+
 end Hagi.Optimization
