@@ -616,4 +616,80 @@ theorem mirrorIterate_cumulative {V : Type*} [Fintype V]
       funext v
       simp only [Finset.sum_range_succ]
 
+/-- МОНОТОННОСТЬ ЭНЕРГИИ HEDGE: зеркальный шаг по потерям ℓ
+никогда не поднимает ожидаемые потери по ним:
+⟨mirrorStep ρ₀ ℓ T, ℓ⟩ ≤ ⟨ρ₀, ℓ⟩. Цепочка:
+⟨γ,ℓ⟩ ≤ F(γ) (KL(γ‖ρ₀) ≥ 0), F(γ) = −T·log Z
+(attainment), −T·log Z ≤ ⟨ρ₀,ℓ⟩ (Йенсен выпуклости exp:
+e^{−⟨ρ₀,ℓ⟩/T} ≤ Z). -/
+theorem mirror_energy_decrease {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v) ≤ (∑ v, ρ₀ v * ℓ v) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  -- KL(γ‖ρ₀) ≥ 0
+  have hkl : (0:ℝ) ≤ ∑ v, mirrorStep ρ₀ ℓ T v
+      * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v) :=
+    finite_kl_nonneg (mirrorStep ρ₀ ℓ T) ρ₀ hγpos hγ1 hρ₀ hρ₀1
+  -- attainment: F(γ) = −T·log Z
+  have hatt := mirror_descent_attainment ρ₀ ℓ T hT hρ₀
+  -- Йенсен: e^{−⟨ρ₀,ℓ⟩/T} ≤ Z
+  have hZpos : (0:ℝ) < ∑ v, ρ₀ v * Real.exp (-(ℓ v)/T) :=
+    Finset.sum_pos
+      (fun v _ => mul_pos (hρ₀ v) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hjensen : Real.exp ((∑ v, ρ₀ v * (-(ℓ v)/T)))
+      ≤ ∑ v, ρ₀ v * Real.exp (-(ℓ v)/T) := by
+    have hconv := convexOn_exp.map_sum_le
+      (p := fun v => -(ℓ v)/T)
+      (fun v _ => le_of_lt (hρ₀ v)) hρ₀1
+      (fun v _ => Set.mem_univ v)
+    simp only [smul_eq_mul] at hconv
+    exact hconv
+  -- log-монотонность: −⟨ρ₀,ℓ⟩/T ≤ log Z
+  have hlogj : (∑ v, ρ₀ v * (-(ℓ v)/T))
+      ≤ Real.log (∑ v, ρ₀ v * Real.exp (-(ℓ v)/T)) := by
+    have h1 := Real.log_le_log (Real.exp_pos _) hjensen
+    rw [Real.log_exp] at h1
+    exact h1
+  -- линейная сборка
+  have hsplit : (∑ v, ρ₀ v * (-(ℓ v)/T))
+      = -(∑ v, ρ₀ v * ℓ v)/T := by
+    have hterm : ∀ v : V, ρ₀ v * (-(ℓ v)/T)
+        = -(ρ₀ v * ℓ v)/T := by
+      intro v
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => hterm v),
+      ← Finset.sum_neg_distrib, ← Finset.sum_div]
+  rw [hsplit] at hlogj
+  -- финал: ⟨γ,ℓ⟩ ≤ F(γ) = −T log Z ≤ ⟨ρ₀,ℓ⟩
+  have hTKL : (0:ℝ) ≤ T * (∑ v, mirrorStep ρ₀ ℓ T v
+      * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)) :=
+    mul_nonneg (le_of_lt hT) hkl
+  have h1 : (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+      ≤ (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+        + T * (∑ v, mirrorStep ρ₀ ℓ T v
+            * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)) := by
+    linarith
+  have h2 : ((∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+        + T * (∑ v, mirrorStep ρ₀ ℓ T v
+            * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)))
+      = -T * Real.log (∑ v, ρ₀ v * Real.exp (-(ℓ v)/T)) :=
+    hatt
+  rw [h2] at h1
+  -- −T·logZ ≤ ⟨ρ₀,ℓ⟩ из hlogj (умножение на T > 0)
+  have h3 : -T * Real.log (∑ v, ρ₀ v * Real.exp (-(ℓ v)/T))
+      ≤ ∑ v, ρ₀ v * ℓ v := by
+    have h4 := (mul_le_mul_of_nonneg_left hlogj (le_of_lt hT))
+    -- T·(−⟨ρ₀,ℓ⟩/T) ≤ T·logZ ; T·(−X/T) = −X
+    have h5 : T * (-(∑ v, ρ₀ v * ℓ v)/T)
+        = -(∑ v, ρ₀ v * ℓ v) := by
+      field_simp
+    rw [h5] at h4
+    linarith
+  linarith [hkl, hT]
+
 end Hagi.Optimization
