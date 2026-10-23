@@ -1,4 +1,5 @@
 import Hagi.Prelude.Info
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
 namespace Hagi.Numerics
 
@@ -229,5 +230,58 @@ theorem fixed_ce_grad_sum_zero {V : Type*} [Fintype V]
     rw [← Finset.sum_div]
   -- подстановка остаточной суммы
   rw [hsplit, margin_rest_sum z t hrest, add_neg_cancel]
+
+/-- ЦЕНТРИРОВАННЫЕ ДЕЛЬТЫ (eq.9): d_k = δ_k − ⟨p,δ⟩ имеют
+нулевое p-среднее: Σ p_k d_k = 0 — центрирование под
+учительским распределением (фиксированная soft-target CE). -/
+theorem centered_delta_sum_zero {V : Type*} [Fintype V]
+    [Nonempty V] (p δ : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1) :
+    (∑ v, p v * ((δ v) - (∑ w, p w * δ w))) = 0 := by
+  have hsplit : (∑ v, p v * ((δ v) - (∑ w, p w * δ w)))
+      = (∑ v, p v * δ v) - (∑ v, p v * (∑ w, p w * δ w)) := by
+    rw [Finset.sum_congr rfl (fun v _ => mul_sub (p v) (δ v)
+      (∑ w, p w * δ w)), Finset.sum_sub_distrib
+      (fun v => p v * δ v)
+      (fun v => p v * (∑ w, p w * δ w))]
+  have hconst : (∑ v, p v * (∑ w, p w * δ w))
+      = (∑ w, p w * δ w) := by
+    rw [Finset.sum_congr rfl (fun v _ =>
+      mul_comm (p v) (∑ w, p w * δ w)), ← Finset.mul_sum,
+      hp1, mul_one]
+  rw [hsplit, hconst, sub_self]
+
+/-- ВХОД log1p НЕОТРИЦАТЕЛЕН (§3): при центрировании
+Σ p d = 0 выполнено Σ p·expm1(d) = Σ p(e^d − 1) ≥ 0 —
+по Йенсену выпуклости exp: Σ p e^d ≥ e^{Σ p d} = e⁰ = 1:
+лог-пространственная форма фиксированной soft-target CE
+корректна (log1p получает неотрицательный аргумент). -/
+theorem sum_p_expm1_nonneg {V : Type*} [Fintype V] [Nonempty V]
+    (p d : V → ℝ)
+    (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1)
+    (hcenter : ∑ v, p v * d v = 0) :
+    (0:ℝ) ≤ (∑ v, p v * (Real.exp (d v) - 1)) := by
+  -- Йенсен: e^{Σ p d} ≤ Σ p e^d
+  have hjensen : Real.exp (∑ v, p v * d v)
+      ≤ ∑ v, p v * Real.exp (d v) := by
+    have hconv := convexOn_exp.map_sum_le
+      (p := fun v => d v)
+      (fun v _ => le_of_lt (hp v)) hp1
+      (fun v _ => Set.mem_univ v)
+    simp only [smul_eq_mul] at hconv
+    exact hconv
+  -- разложение суммы: Σ p e^d − Σ p = Σ p e^d − 1
+  have hsplit : (∑ v, p v * (Real.exp (d v) - 1))
+      = (∑ v, p v * Real.exp (d v)) - 1 := by
+    rw [Finset.sum_congr rfl (fun v _ => mul_sub (p v)
+      (Real.exp (d v)) 1), Finset.sum_sub_distrib
+      (fun v => p v * Real.exp (d v))
+      (fun v => p v * 1)]
+    have hconst : (∑ v, p v * 1) = 1 := by
+      rw [Finset.sum_congr rfl (fun v _ => mul_one (p v)), hp1]
+    rw [hconst]
+  rw [hsplit]
+  rw [hcenter, Real.exp_zero] at hjensen
+  linarith
 
 end Hagi.Numerics
