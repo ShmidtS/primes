@@ -503,4 +503,71 @@ theorem mirror_regret_uniform {V : Type*} [Fintype V] [Nonempty V]
     linarith
   linarith
 
+/-- ПОЛУГРУППОВОЙ ЗАКОН ЗЕРКАЛЬНОГО ШАГА: два
+последовательных зеркальных шага (ℓ₁, затем ℓ₂, одна
+температура T) равны одному шагу с суммарными потерями
+ℓ₁+ℓ₂ — экспоненциальные веса перемножаются, нормировки
+согласованы (Z₂·Z₁ = Z₁₂): траектория hedge за n шагов
+есть один шаг с кумулятивными потерями. -/
+theorem mirror_step_semigroup {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ₁ ℓ₂ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    mirrorStep (mirrorStep ρ₀ ℓ₁ T) ℓ₂ T
+      = mirrorStep ρ₀ (fun v => ℓ₁ v + ℓ₂ v) T := by
+  have hγpos : ∀ w, 0 < mirrorStep ρ₀ ℓ₁ T w :=
+    mirrorStep_pos ρ₀ ℓ₁ T hT hρ₀
+  have hZ₁ : (0:ℝ) < ∑ w, ρ₀ w * Real.exp (-(ℓ₁ w)/T) :=
+    Finset.sum_pos
+      (fun w _ => mul_pos (hρ₀ w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hZ₂ : (0:ℝ) < ∑ w, mirrorStep ρ₀ ℓ₁ T w
+      * Real.exp (-(ℓ₂ w)/T) :=
+    Finset.sum_pos
+      (fun w _ => mul_pos (hγpos w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have he : ∀ w : V, Real.exp (-(ℓ₁ w)/T)
+      * Real.exp (-(ℓ₂ w)/T)
+      = Real.exp (-(ℓ₁ w + ℓ₂ w)/T) := by
+    intro w
+    rw [← Real.exp_add]
+    congr 1
+    ring
+  -- почленно: γ₁(w)·e^{−ℓ₂/T}·Z₁ = ρ₀(w)·e^{−(ℓ₁+ℓ₂)/T}
+  have hterm : ∀ w : V, mirrorStep ρ₀ ℓ₁ T w
+      * Real.exp (-(ℓ₂ w)/T)
+      * (∑ u, ρ₀ u * Real.exp (-(ℓ₁ u)/T))
+      = ρ₀ w * Real.exp (-(ℓ₁ w + ℓ₂ w)/T) := by
+    intro w
+    unfold mirrorStep
+    rw [div_mul_eq_mul_div, div_mul_cancel₀ _ hZ₁.ne',
+      show ρ₀ w * Real.exp (-(ℓ₁ w)/T)
+          * Real.exp (-(ℓ₂ w)/T)
+        = ρ₀ w * (Real.exp (-(ℓ₁ w)/T)
+            * Real.exp (-(ℓ₂ w)/T)) from by ring, he w]
+  -- суммарно: Z₂·Z₁ = Z₁₂
+  have hsum : (∑ w, mirrorStep ρ₀ ℓ₁ T w
+      * Real.exp (-(ℓ₂ w)/T))
+      * (∑ u, ρ₀ u * Real.exp (-(ℓ₁ u)/T))
+      = ∑ w, ρ₀ w * Real.exp (-(ℓ₁ w + ℓ₂ w)/T) := by
+    rw [Finset.sum_mul]
+    exact Finset.sum_congr rfl (fun w _ => hterm w)
+  -- поэлементное совпадение
+  funext v
+  have htermv : mirrorStep ρ₀ ℓ₁ T v
+      * Real.exp (-(ℓ₂ v)/T)
+      = ρ₀ v * Real.exp (-(ℓ₁ v + ℓ₂ v)/T)
+        / (∑ u, ρ₀ u * Real.exp (-(ℓ₁ u)/T)) :=
+    eq_div_of_mul_eq hZ₁.ne' (hterm v)
+  have hL : mirrorStep (mirrorStep ρ₀ ℓ₁ T) ℓ₂ T v
+      = (mirrorStep ρ₀ ℓ₁ T v * Real.exp (-(ℓ₂ v)/T))
+        / (∑ w, mirrorStep ρ₀ ℓ₁ T w
+            * Real.exp (-(ℓ₂ w)/T)) := rfl
+  have hR : mirrorStep ρ₀ (fun v => ℓ₁ v + ℓ₂ v) T v
+      = ρ₀ v * Real.exp (-(ℓ₁ v + ℓ₂ v)/T)
+        / (∑ w, ρ₀ w
+            * Real.exp (-(ℓ₁ w + ℓ₂ w)/T)) := by
+    dsimp only [mirrorStep]
+  rw [hL, hR, htermv, ← hsum]
+  field_simp
+
 end Hagi.Optimization
