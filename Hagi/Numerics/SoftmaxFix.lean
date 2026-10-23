@@ -202,4 +202,32 @@ theorem adamw_normalized_bounds (g ε : ℝ) (hε : 0 < ε)
       (by linarith : (0:ℝ) < |g| + ε)]
     nlinarith [habs, hε, hg]
 
+/-- ZERO-SUM ДЕКОМПОЗИЦИЯ ФИКСИРОВАННОГО CE (eq.7):
+целевой градиент есть точный минус сумма нецелевых:
+Σ_{j≠t} e^{z_j−z_t}/(1+e^{−m}) − e^{−m}/(1+e^{−m}) = 0,
+т.к. Σ_{j≠t} e^{z_j−z_t} = e^{−m} (margin_rest_sum) —
+автодифф фиксированной формы сохраняет сумму градиентов
+ноль за пределами precision cliff (анти-Collapse). -/
+theorem fixed_ce_grad_sum_zero {V : Type*} [Fintype V]
+    [DecidableEq V] [Nonempty V] (z : V → ℝ) (t : V)
+    (hrest : (Finset.univ.erase t).Nonempty) :
+    (∑ j ∈ Finset.univ.erase t,
+        Real.exp (z j - z t)
+          / (1 + Real.exp (-(logitMargin z t))))
+      + (-(Real.exp (-(logitMargin z t))
+          / (1 + Real.exp (-(logitMargin z t))))) = 0 := by
+  have h1m : (0:ℝ) < 1 + Real.exp (-(logitMargin z t)) := by
+    have := Real.exp_pos (-(logitMargin z t))
+    linarith
+  -- общий знаменатель
+  have hsplit : (∑ j ∈ Finset.univ.erase t,
+      Real.exp (z j - z t)
+        / (1 + Real.exp (-(logitMargin z t))))
+      = (∑ j ∈ Finset.univ.erase t,
+          Real.exp (z j - z t))
+        / (1 + Real.exp (-(logitMargin z t))) := by
+    rw [← Finset.sum_div]
+  -- подстановка остаточной суммы
+  rw [hsplit, margin_rest_sum z t hrest, add_neg_cancel]
+
 end Hagi.Numerics

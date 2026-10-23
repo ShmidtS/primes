@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2878 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2879 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Zero-sum декомпозиция фиксированного CE**
+  (`fixed_ce_grad_sum_zero`): g_t = −Σ_{j≠t} g_j точно —
+  сумма градиентов фиксированного CE равна нулю за
+  пределами precision cliff (eq.7).
 - **Равновесие маржи m* = log(c(1−λ|θ|)/(λ|θ|ε))**
   (`margin_equilibrium_value`, `adamw_normalized_bounds`):
   при |g| = c·e^{−m} равновесие AdamW даёт точное m* ≈
