@@ -797,4 +797,30 @@ theorem two_phase_total (e : ℕ → ℝ) (T : ℕ) (B₁ q β δ : ℝ)
   simp only [hf]
   linarith [hcoarse, hfine]
 
+/-- ЗАТУХАЮЩЕЕ РАСПИСАНИЕ ИМПУЛЬСА: если ошибки неотрицательны
+и инерционный коэффициент расписания β_k ограничен константой
+bbar с q + bbar < 1, то ошибка затухает геометрически со
+скоростью ρ(q, bbar): расписание импульса (в т.ч. затухающее
+к нулю) безопасно при равномерном бюджете инерции. -/
+theorem momentum_schedule (e : ℕ → ℝ) (q : ℝ) (β : ℕ → ℝ)
+    (bbar : ℝ) (hq : 0 < q) (hb0 : 0 ≤ bbar)
+    (hqb : q + bbar < 1)
+    (he : ∀ k, 0 ≤ e k)
+    (hβle : ∀ k, β k ≤ bbar)
+    (hstep : ∀ k : ℕ, 1 ≤ k →
+      e (k + 1) ≤ q * e k + β k * e (k - 1))
+    (k : ℕ) :
+    e k ≤ max (e 0) (e 1 / momentumRate q bbar)
+      * (momentumRate q bbar) ^ k := by
+  have hb0' : (0:ℝ) ≤ bbar := hb0
+  have hstep' : ∀ j : ℕ, 1 ≤ j →
+      e (j + 1) ≤ q * e j + bbar * e (j - 1) := by
+    intro j hj
+    have h := hstep j hj
+    have hb := hβle j
+    have hmono : β j * e (j - 1) ≤ bbar * e (j - 1) :=
+      mul_le_mul_of_nonneg_right hb (he (j - 1))
+    linarith
+  exact momentum_bound e q bbar hq hb0' hqb hstep' k
+
 end Hagi.Optimization
