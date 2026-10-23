@@ -350,7 +350,7 @@ theorem anderson_momentum_compose (e : ℕ → ℝ)
   momentum_floor e (θ * q) β δ (mul_pos hθ hq) hβ hqb hδ hstep k
 
 /-- Геометрическая сумма: Σ_{k<n} ρ^k = (1−ρⁿ)/(1−ρ) при ρ ≠ 1. -/
-private theorem geo_sum_eq (ρ : ℝ) (hρ : ρ ≠ 1) (n : ℕ) :
+theorem geo_sum_eq (ρ : ℝ) (hρ : ρ ≠ 1) (n : ℕ) :
     ∑ k ∈ Finset.range n, ρ ^ k = (1 - ρ ^ n) / (1 - ρ) := by
   induction n with
   | zero => simp
@@ -656,5 +656,48 @@ theorem nesterov_entry_horizon (e : ℕ → ℝ) (q β δ : ℝ)
   · have h1 := hbnd s
     have h2 : q' ^ s * e 0 < ε := hT s hs
     linarith
+
+/-- СУММАРНАЯ ОШИБКА КОРРЕКЦИИ НЕСТЕРОВА: геометрическое
+затухание с фактором (q+β)/(1+β) даёт конечный бюджет
+полной ошибки: Σ_{k<n} e_k ≤ геометрическая сумма
+переходной части + n·пол: полная стоимость ошибок
+ускоренного метода контролируется явно. -/
+theorem nesterov_total_error (e : ℕ → ℝ) (q β δ : ℝ)
+    (hq : 0 < q) (hq1 : q < 1) (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ q * e k + δ)
+    (n : ℕ) :
+    ∑ k ∈ Finset.range n, e k
+      ≤ e 0 * (1 - ((q + β) / (1 + β)) ^ n)
+          / (1 - (q + β) / (1 + β))
+        + (n : ℝ) * (δ / (1 - q)) := by
+  have hq'0 : 0 < (q + β) / (1 + β) := by positivity
+  have hq'1 : (q + β) / (1 + β) < 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  set q' := (q + β) / (1 + β) with hq'
+  have hbnd := nesterov_floor e q β δ hq hq1 hβ hδ hstep
+  -- сумма поточечных границ
+  have hsplit : ∑ k ∈ Finset.range n, e k
+      ≤ ∑ k ∈ Finset.range n,
+          (q' ^ k * e 0 + δ / (1 - q)) :=
+    Finset.sum_le_sum fun k _ => hbnd k
+  -- разложение суммы: геометрия + n·пол
+  have hgeo : ∑ k ∈ Finset.range n, (q' ^ k * e 0 + δ / (1 - q))
+      = ∑ k ∈ Finset.range n, q' ^ k * e 0
+        + ∑ k ∈ Finset.range n, (δ / (1 - q)) := by
+    rw [← Finset.sum_add_distrib]
+  rw [hgeo] at hsplit
+  -- геометрическая часть
+  have hgeopart : ∑ k ∈ Finset.range n, q' ^ k * e 0
+      = e 0 * (1 - q' ^ n) / (1 - q') := by
+    rw [← Finset.sum_mul, geo_sum_eq q' (ne_of_lt hq'1) n]
+    ring
+  -- полная часть
+  have hconst : ∑ k ∈ Finset.range n, (δ / (1 - q))
+      = (n : ℝ) * (δ / (1 - q)) := by
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  rw [hgeopart, hconst] at hsplit
+  exact hsplit
 
 end Hagi.Optimization
