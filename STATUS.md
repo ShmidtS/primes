@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2838 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2839 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Время входа Anderson × Нестеров**
+  (`nesterov_anderson_entry`): T ≥ log(e₀/ε)/
+  log((1+β)/(θq+β)) с коридором δ/(1−θq)+ε — полная
+  композиция: фактор, пол и время входа ускоренного
+  квантованного метода явны.
 - **Line search: скобка и бисекция** (`step_bracket`,
   `bracket_bisect`): анти-монотонное условие приёма шага ⟹
   s принят ∧ 2s отвергнут локализует порог в [s, 2s);

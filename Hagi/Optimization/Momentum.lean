@@ -731,4 +731,21 @@ theorem bracket_bisect {P : ℝ → Prop}
   · right
     exact ⟨hlo, h, hmid1, hmid2⟩
 
+/-- ВРЕМЯ ВХОДА ANDERSON × НЕСТЕРОВ: полная композиция —
+фактор (θq+β)/(1+β), пол δ/(1−θq), время входа в коридор
+ε над полом: T ≥ log(e₀/ε)/log((1+β)/(θq+β)): улучшение
+направления θ ускоряет и фактор, и пол, и время входа;
+инерция β оплачивает только переходный процесс. -/
+theorem nesterov_anderson_entry (e : ℕ → ℝ) (θ q β δ : ℝ)
+    (hθ : 0 < θ) (hθ1 : θ < 1) (hq : 0 < q) (hq1 : q < 1)
+    (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ θ * q * e k + δ)
+    (ε : ℝ) (hε : 0 < ε) (he0 : 0 < e 0) :
+    ∃ T : ℕ, Real.log (e 0 / ε)
+        / Real.log ((1 + β) / (θ * q + β)) ≤ T
+      ∧ ∀ s : ℕ, T ≤ s → e s ≤ δ / (1 - θ * q) + ε :=
+  nesterov_entry_horizon e (θ * q) β δ (mul_pos hθ hq)
+    (by nlinarith) hβ hδ hstep ε hε he0
+
 end Hagi.Optimization
