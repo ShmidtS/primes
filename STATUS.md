@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2865 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2867 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **N-кратный полугрупповой закон** (`mirrorStep_zero_loss`,
+  `mirrorIterate_cumulative`): траектория hedge за n шагов =
+  ОДИН зеркальный шаг с кумулятивными потерями Σ_{k<n} ℓ_k.
 - **Полугрупповой закон зеркального шага**
   (`mirror_step_semigroup`): два последовательных шага = один
   шаг с ℓ₁+ℓ₂ (нормировки согласованы: Z₂·Z₁ = Z₁₂) —

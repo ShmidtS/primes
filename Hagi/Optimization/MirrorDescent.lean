@@ -570,4 +570,50 @@ theorem mirror_step_semigroup {V : Type*} [Fintype V] [Nonempty V]
   rw [hL, hR, htermv, ← hsum]
   field_simp
 
+/-- НУЛЕВЫЕ ПОТЕРИ: зеркальный шаг при ℓ = 0 возвращает
+ссылку (Z = Σρ₀·e⁰ = 1): тождественное обновление. -/
+theorem mirrorStep_zero_loss {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1) :
+    mirrorStep ρ₀ (fun _ => 0) T = ρ₀ := by
+  have hexp : ∀ w : V, Real.exp (-(0:ℝ)/T) = 1 := by
+    intro w
+    have hz : (-(0:ℝ)/T) = 0 := by
+      rw [neg_zero, zero_div]
+    rw [hz, Real.exp_zero]
+  have hZ : (∑ w, ρ₀ w * Real.exp (-(0:ℝ)/T)) = 1 := by
+    rw [Finset.sum_congr rfl (fun w _ => by rw [hexp w, mul_one])]
+    exact hρ₀1
+  funext v
+  have hnum : ρ₀ v * Real.exp (-(0:ℝ)/T) = ρ₀ v := by
+    rw [hexp v, mul_one]
+  unfold mirrorStep
+  rw [hZ, div_one, hnum]
+
+/-- N-КРАТНЫЙ ПОЛУГРУППОВОЙ ЗАКОН: траектория hedge за n
+шагов есть ОДИН зеркальный шаг с кумулятивными потерями
+Σ_{k<n} ℓ_k: экспоненциальные веса накапливают потери
+аддитивно, нормировки глобальны. -/
+theorem mirrorIterate_cumulative {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ)
+    (hT : 0 < T) (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (hρ₀1 : ∑ v, ρ₀ v = 1) (n : ℕ) :
+    mirrorIterate ρ₀ ℓs T n
+      = mirrorStep ρ₀
+          (fun v => ∑ k ∈ Finset.range n, ℓs k v) T := by
+  induction n with
+  | zero =>
+      have h0 : mirrorIterate ρ₀ ℓs T 0 = ρ₀ := rfl
+      rw [h0]
+      exact (mirrorStep_zero_loss ρ₀ T hT hρ₀ hρ₀1).symm
+  | succ m ih =>
+      have hdef : mirrorIterate ρ₀ ℓs T (m+1)
+          = mirrorStep (mirrorIterate ρ₀ ℓs T m) (ℓs m) T := by
+        simp only [mirrorIterate]
+      rw [hdef, ih, mirror_step_semigroup ρ₀
+        (fun v => ∑ k ∈ Finset.range m, ℓs k v) (ℓs m) T hT hρ₀]
+      congr 1
+      funext v
+      simp only [Finset.sum_range_succ]
+
 end Hagi.Optimization
