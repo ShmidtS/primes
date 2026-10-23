@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2863 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2864 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Классическая граница MWU T·log n**
+  (`mirror_regret_uniform`): при равномерном старте регрет
+  ≤ T·log n — KL(ρ*‖u) ≤ log n (Σρ log ρ ≤ 0); канонический
+  результат экспоненциальных весов выведен из зеркального
+  телескопирования.
 - **Телескопированный регрет hedge/MWU** (`mirrorIterate`,
   `mirror_step_regret`, `mirror_regret`): суммарное превышение
   потерь обновляемых весов над целью ρ* ≤ T·KL(ρ*‖w₀) —

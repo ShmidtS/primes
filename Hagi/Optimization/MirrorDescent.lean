@@ -429,4 +429,78 @@ theorem mirror_regret {V : Type*} [Fintype V] [Nonempty V]
         hρ hρ1 hposn h1n)
   linarith
 
+/-- КЛАССИЧЕСКАЯ ГРАНИЦА MWU: при равномерном старте
+w₀ = 1/n регрет hedge/MWU относительно любой цели ρ* ≤
+T·log n — KL(ρ*‖u) = Σρ*log ρ + log n ≤ log n, поскольку
+ρ ≤ 1 ⟹ log ρ ≤ 0: каноническая regret-граница
+экспоненциальных весов выводится из зеркального
+телескопирования. -/
+theorem mirror_regret_uniform {V : Type*} [Fintype V] [Nonempty V]
+    (ℓs : ℕ → V → ℝ) (T : ℝ) (hT : 0 < T)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1)
+    (n : ℕ) :
+    ∑ k ∈ Finset.range n,
+        ((∑ v, mirrorIterate (fun _ => 1 / (Fintype.card V : ℝ))
+            ℓs T (k+1) v * ℓs k v)
+          - (∑ v, ρ v * ℓs k v))
+      ≤ T * Real.log (Fintype.card V : ℝ) := by
+  have hcard : (0:ℝ) < Fintype.card V :=
+    Nat.cast_pos.mpr Fintype.card_pos
+  have hcardne : ((Fintype.card V : ℝ)) ≠ 0 := ne_of_gt hcard
+  have hupos : ∀ v : V,
+      (0:ℝ) < 1 / (Fintype.card V : ℝ) := by
+    intro v; positivity
+  have hu1 : ∑ v : V, 1 / (Fintype.card V : ℝ) = 1 := by
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul,
+      one_div, mul_inv_cancel₀ hcardne]
+  -- ρ v ≤ 1: иначе сумма превысила бы 1
+  have hle1 : ∀ v, ρ v ≤ 1 := by
+    intro v
+    have hs := Finset.single_le_sum
+      (fun w _ => le_of_lt (hρ w)) (Finset.mem_univ v)
+    linarith
+  -- Σ ρ log ρ ≤ 0 (log ρ ≤ 0 при 0 < ρ ≤ 1)
+  have hlogneg : (∑ v, ρ v * Real.log (ρ v)) ≤ 0 := by
+    refine Finset.sum_nonpos fun v _ => ?_
+    have hlog : Real.log (ρ v) ≤ 0 := by
+      have h2 := Real.log_le_log (hρ v) (hle1 v)
+      rw [Real.log_one] at h2
+      exact h2
+    exact mul_nonpos_of_nonneg_of_nonpos
+      (le_of_lt (hρ v)) hlog
+  -- KL(ρ‖u) = Σρ log ρ + log n
+  have hKL : (∑ v, ρ v
+        * Real.log (ρ v / (1 / (Fintype.card V : ℝ))))
+      = (∑ v, ρ v * Real.log (ρ v))
+        + Real.log (Fintype.card V : ℝ) := by
+    have hsplit : ∀ v : V, ρ v
+        * Real.log (ρ v / (1 / (Fintype.card V : ℝ)))
+        = ρ v * Real.log (ρ v)
+          + ρ v * Real.log (Fintype.card V : ℝ) := by
+      intro v
+      have hrw : ρ v / (1 / (Fintype.card V : ℝ))
+          = ρ v * (Fintype.card V : ℝ) := by
+        field_simp
+      rw [hrw, Real.log_mul (hρ v).ne' hcardne]
+      ring
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v),
+      Finset.sum_add_distrib]
+    rw [← Finset.sum_mul, hρ1, one_mul]
+  -- зеркальный регрет с равномерным стартом
+  have hr := mirror_regret
+    (fun _ => 1 / (Fintype.card V : ℝ)) ℓs T hT hupos hu1
+    ρ hρ hρ1 n
+  -- KL ≤ log n, тогда T·KL ≤ T·log n
+  have hKLle : (∑ v, ρ v
+      * Real.log (ρ v / (1 / (Fintype.card V : ℝ))))
+      ≤ Real.log (Fintype.card V : ℝ) := by linarith
+  have hTL : T * (∑ v, ρ v
+      * Real.log (ρ v / (1 / (Fintype.card V : ℝ))))
+      ≤ T * Real.log (Fintype.card V : ℝ) := by
+    have h := mul_le_mul_of_nonneg_right hKLle (le_of_lt hT)
+    have hcomm : Real.log (Fintype.card V : ℝ) * T
+        = T * Real.log (Fintype.card V : ℝ) := mul_comm _ _
+    linarith
+  linarith
+
 end Hagi.Optimization
