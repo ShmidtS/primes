@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2844 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2845 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Ядро Роббинса-Монро** (`robbins_monro_decay`): η_k ∈ [0,1]
+  с расходящейся суммой ∧ x_{k+1} ≤ (1−η_k)x_k ⟹ x_k → 0
+  (∏(1−η) ≤ e^{−Ση} → 0) — детерминированное ядро
+  стохастической аппроксимации и затухающих learning rate.
 - **Достижимость Anderson × momentum** (`anderson_momentum_reach`):
   ∀ε>0 ∃T ∀s≥T: e_s ≤ δ/(1−θq−β)+ε — сырая инерция + AA
   также входит в коридор за конечное время (ρ(θq,β)).
