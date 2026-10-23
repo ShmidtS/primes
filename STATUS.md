@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2868 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2869 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Монотонность энергии вдоль траектории**
+  (`mirrorIterate_energy_monotone`): при фиксированных ℓ
+  повторные шаги не поднимают энергию (⟨w_n,ℓ⟩ ≤ ⟨ρ₀,ℓ⟩).
 - **Монотонность энергии hedge** (`mirror_energy_decrease`):
   ⟨mirrorStep ρ₀ ℓ T, ℓ⟩ ≤ ⟨ρ₀, ℓ⟩ — обновление никогда не
   поднимает ожидаемые потери (KL ≥ 0 + attainment + Йенсен

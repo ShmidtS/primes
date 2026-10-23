@@ -692,4 +692,32 @@ theorem mirror_energy_decrease {V : Type*} [Fintype V]
     linarith
   linarith [hkl, hT]
 
+/-- МОНОТОННОСТЬ ЭНЕРГИИ ВДОЛЬ ТРАЕКТОРИИ: при фиксированных
+потерях ℓ повторные зеркальные шаги монотонно не поднимают
+ожидаемую энергию: ⟨w_n, ℓ⟩ ≤ ⟨ρ₀, ℓ⟩ для всех n —
+итерированный hedge сходится по энергии (индукция из
+mirror_energy_decrease). -/
+theorem mirrorIterate_energy_monotone {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (n : ℕ) :
+    (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v)
+      ≤ (∑ v, ρ₀ v * ℓ v) := by
+  induction n with
+  | zero =>
+      have h0 : mirrorIterate ρ₀ (fun _ => ℓ) T 0 = ρ₀ := rfl
+      rw [h0]
+  | succ m ih =>
+      have hdef : mirrorIterate ρ₀ (fun _ => ℓ) T (m+1)
+          = mirrorStep (mirrorIterate ρ₀ (fun _ => ℓ) T m) ℓ T :=
+        by simp only [mirrorIterate]
+      rw [hdef]
+      have hpos : ∀ v, 0 < mirrorIterate ρ₀ (fun _ => ℓ) T m v :=
+        mirrorIterate_pos ρ₀ (fun _ => ℓ) T hT hρ₀ m
+      have h1 : ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T m v = 1 :=
+        mirrorIterate_sum_one ρ₀ (fun _ => ℓ) T hT hρ₀ hρ₀1 m
+      have hstep := mirror_energy_decrease
+        (mirrorIterate ρ₀ (fun _ => ℓ) T m) ℓ T hT hpos h1
+      linarith
+
 end Hagi.Optimization
