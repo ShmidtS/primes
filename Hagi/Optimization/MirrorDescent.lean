@@ -312,4 +312,121 @@ theorem mirror_progress_identity {V : Type*} [Fintype V]
   rw [hatt]
   linarith
 
+/-- Итерированные зеркальные веса: w₀ = ρ₀,
+w_{k+1} = mirrorStep w_k (ℓ_k) T — траектория hedge/MWU
+при постоянной температуре T. -/
+noncomputable def mirrorIterate {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ) : ℕ → V → ℝ
+  | 0 => ρ₀
+  | k+1 => mirrorStep (mirrorIterate ρ₀ ℓs T k) (ℓs k) T
+
+/-- Позитивность траектории сохраняется. -/
+theorem mirrorIterate_pos {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (k : ℕ) :
+    ∀ v, 0 < mirrorIterate ρ₀ ℓs T k v := by
+  induction k with
+  | zero => exact hρ₀
+  | succ n ih =>
+      intro v
+      unfold mirrorIterate
+      exact mirrorStep_pos _ _ T hT ih v
+
+/-- Траектория остаётся распределением. -/
+theorem mirrorIterate_sum_one {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1) (k : ℕ) :
+    ∑ v, mirrorIterate ρ₀ ℓs T k v = 1 := by
+  induction k with
+  | zero => exact hρ₀1
+  | succ n ih =>
+      unfold mirrorIterate
+      exact mirrorStep_sum_one _ _ T hT
+        (mirrorIterate_pos ρ₀ ℓs T hT hρ₀ n)
+
+/-- ОДНОШАГОВОЕ НЕРАВЕНСТВО РЕГРЕТА: обновлённые веса γ
+проигрывают цели ρ* не более убыли T·KL:
+⟨γ,ℓ⟩ − ⟨ρ*,ℓ⟩ ≤ T·(KL(ρ*‖ρ₀) − KL(ρ*‖γ)) — следствие
+тождества прогресса и неотрицательности KL(γ‖ρ₀). -/
+theorem mirror_step_regret {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v) - (∑ v, ρ v * ℓ v)
+      ≤ T * ((∑ v, ρ v * Real.log (ρ v / ρ₀ v))
+        - (∑ v, ρ v * Real.log (ρ v
+            / mirrorStep ρ₀ ℓ T v))) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have hklγ : (0:ℝ) ≤ T * (∑ v, mirrorStep ρ₀ ℓ T v
+      * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)) := by
+    have h := finite_kl_nonneg (mirrorStep ρ₀ ℓ T) ρ₀
+      hγpos hγ1 hρ₀ hρ₀1
+    exact mul_nonneg (le_of_lt hT) h
+  -- hprog: ⟨ρ,ℓ⟩ − (⟨γ,ℓ⟩ + T·KL(γ‖ρ₀)) = T(KL(ρ‖γ) − KL(ρ‖ρ₀))
+  have hprog := mirror_progress_identity ρ₀ ℓ T hT hρ₀ ρ hρ hρ1
+  linarith
+
+/-- ТЕЛЕСКОПИРОВАННЫЙ РЕГРЕТ HEDGE/MWU: суммарное превышение
+потерь обновляемых весов w_{k+1} = mirrorStep w_k ℓ_k T над
+любой фиксированной целью ρ* ≤ T·KL(ρ*‖w₀) — KL-убыль
+телескопирует, регрет ограничен начальным расстоянием
+Брегмана: полная формализация regret-границы зеркального
+спуска (база MWU/Hedge-анализа). -/
+theorem mirror_regret {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1)
+    (n : ℕ) :
+    ∑ k ∈ Finset.range n,
+        ((∑ v, mirrorIterate ρ₀ ℓs T (k+1) v * ℓs k v)
+          - (∑ v, ρ v * ℓs k v))
+      ≤ T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v)) := by
+  -- индукция по n с одношаговым неравенством
+  have key : ∀ n : ℕ,
+      (∑ k ∈ Finset.range n,
+        ((∑ v, mirrorIterate ρ₀ ℓs T (k+1) v * ℓs k v)
+          - (∑ v, ρ v * ℓs k v)))
+      + T * (∑ v, ρ v * Real.log (ρ v
+          / mirrorIterate ρ₀ ℓs T n v))
+      ≤ T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v)) := by
+    intro n
+    induction n with
+    | zero =>
+        simp only [Finset.range_zero, Finset.sum_empty, add_zero]
+        have h0 : ∀ v, mirrorIterate ρ₀ ℓs T 0 v = ρ₀ v :=
+          fun v => rfl
+        simp only [h0, zero_add]
+        exact le_of_eq rfl
+    | succ m ih =>
+        rw [Finset.sum_range_succ]
+        -- одношаговое неравенство на шаге m
+        have hposm : ∀ v, 0 < mirrorIterate ρ₀ ℓs T m v :=
+          mirrorIterate_pos ρ₀ ℓs T hT hρ₀ m
+        have h1m : ∑ v, mirrorIterate ρ₀ ℓs T m v = 1 :=
+          mirrorIterate_sum_one ρ₀ ℓs T hT hρ₀ hρ₀1 m
+        have hstep := mirror_step_regret
+          (mirrorIterate ρ₀ ℓs T m) (ℓs m) T hT hposm h1m
+          ρ hρ hρ1
+        -- w_{m+1} = mirrorStep w_m ℓ_m T по определению
+        have hdef : mirrorIterate ρ₀ ℓs T (m+1)
+            = mirrorStep (mirrorIterate ρ₀ ℓs T m) (ℓs m) T := by
+          simp only [mirrorIterate]
+        rw [hdef]
+        linarith
+  have h := key n
+  -- финальный KL ≥ 0 → регрет ≤ границы
+  have hposn : ∀ v, 0 < mirrorIterate ρ₀ ℓs T n v :=
+    mirrorIterate_pos ρ₀ ℓs T hT hρ₀ n
+  have h1n : ∑ v, mirrorIterate ρ₀ ℓs T n v = 1 :=
+    mirrorIterate_sum_one ρ₀ ℓs T hT hρ₀ hρ₀1 n
+  have hkl : (0:ℝ) ≤ T * (∑ v, ρ v * Real.log (ρ v
+      / mirrorIterate ρ₀ ℓs T n v)) :=
+    mul_nonneg (le_of_lt hT)
+      (finite_kl_nonneg ρ (mirrorIterate ρ₀ ℓs T n)
+        hρ hρ1 hposn h1n)
+  linarith
+
 end Hagi.Optimization
