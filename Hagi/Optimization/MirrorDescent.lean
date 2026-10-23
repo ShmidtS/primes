@@ -720,4 +720,104 @@ theorem mirrorIterate_energy_monotone {V : Type*} [Fintype V]
         (mirrorIterate ρ₀ (fun _ => ℓ) T m) ℓ T hT hpos h1
       linarith
 
+/-- СХОДИМОСТЬ ЭНЕРГИИ ИТЕРАЦИЙ: при фиксированных потерях ℓ
+с нижней границей C последовательность энергий
+e_n = ⟨w_n, ℓ⟩ убывает шаг за шагом и ограничена снизу,
+поэтому входит в ε-коридор над своим инфимумом L:
+∀n≥N: L ≤ e_n ≤ L + ε — итерированный hedge сходится по
+энергии (полнота ℝ + монотонность). -/
+theorem mirrorIterate_energy_converges {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (C : ℝ) (hC : ∀ v, C ≤ ℓ v)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ N : ℕ, ∀ n : ℕ, N ≤ n →
+      (sInf (Set.range (fun k =>
+          ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T k v * ℓ v)))
+        ≤ (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v)
+      ∧ (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v)
+        ≤ (sInf (Set.range (fun k =>
+            ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T k v * ℓ v))) + ε := by
+  set e : ℕ → ℝ := fun k =>
+    ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T k v * ℓ v with he
+  -- соседняя монотонность: e_{n+1} ≤ e_n
+  have hstep : ∀ n : ℕ, e (n+1) ≤ e n := by
+    intro n
+    have hpos : ∀ v, 0 < mirrorIterate ρ₀ (fun _ => ℓ) T n v :=
+      mirrorIterate_pos ρ₀ (fun _ => ℓ) T hT hρ₀ n
+    have h1 : ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v = 1 :=
+      mirrorIterate_sum_one ρ₀ (fun _ => ℓ) T hT hρ₀ hρ₀1 n
+    have hdef : mirrorIterate ρ₀ (fun _ => ℓ) T (n+1)
+        = mirrorStep (mirrorIterate ρ₀ (fun _ => ℓ) T n) ℓ T :=
+      by simp only [mirrorIterate]
+    have hdec := mirror_energy_decrease
+      (mirrorIterate ρ₀ (fun _ => ℓ) T n) ℓ T hT hpos h1
+    rw [he]
+    show (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T (n+1) v * ℓ v)
+        ≤ (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v)
+    rw [hdef]
+    exact hdec
+  -- цепная монотонность: m ≤ n → e_n ≤ e_m
+  have hchain : ∀ n m : ℕ, m ≤ n → e n ≤ e m := by
+    intro n
+    induction n with
+    | zero =>
+        intro m hm
+        have h0 : m = 0 := Nat.le_zero.mp hm
+        subst h0
+        exact le_refl _
+    | succ k ih =>
+        intro m hm
+        rcases Nat.lt_or_ge m (k+1) with hlt | hge
+        · have hk : m ≤ k := Nat.lt_succ_iff.mp hlt
+          have a := hstep k
+          have b := ih m hk
+          linarith
+        · have h0 : m = k+1 := Nat.le_antisymm hm hge
+          subst h0
+          exact le_refl _
+  -- ограниченность снизу: C ≤ e_n
+  have hbdd : ∀ n : ℕ, C ≤ e n := by
+    intro n
+    have hpos : ∀ v, 0 < mirrorIterate ρ₀ (fun _ => ℓ) T n v :=
+      mirrorIterate_pos ρ₀ (fun _ => ℓ) T hT hρ₀ n
+    have h1 : ∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v = 1 :=
+      mirrorIterate_sum_one ρ₀ (fun _ => ℓ) T hT hρ₀ hρ₀1 n
+    have hle : ∀ v : V, mirrorIterate ρ₀ (fun _ => ℓ) T n v * C
+        ≤ mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v :=
+      fun v => mul_le_mul_of_nonneg_left (hC v) (le_of_lt (hpos v))
+    have hsplit : (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * C)
+        ≤ (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * ℓ v) :=
+      Finset.sum_le_sum fun v _ => hle v
+    have hsumC : (∑ v, mirrorIterate ρ₀ (fun _ => ℓ) T n v * C) = C := by
+      rw [Finset.sum_congr rfl (fun v _ =>
+        mul_comm (mirrorIterate ρ₀ (fun _ => ℓ) T n v) C),
+        ← Finset.mul_sum, h1, mul_one]
+    rw [he]
+    linarith
+  -- инфимум L и его свойства
+  set L := sInf (Set.range e) with hL
+  have hrng : (Set.range e).Nonempty := ⟨e 0, Set.mem_range_self 0⟩
+  have hbddBelow : BddBelow (Set.range e) :=
+    ⟨C, fun y hy => by
+      obtain ⟨n, hn⟩ := Set.mem_range.mp hy
+      rw [← hn]
+      exact hbdd n⟩
+  have hleL : ∀ n : ℕ, L ≤ e n :=
+    fun n => csInf_le hbddBelow (Set.mem_range_self n)
+  -- ∃ N: e N ≤ L + ε (иначе L+ε — меньшая нижняя граница)
+  have hex : ∃ N : ℕ, e N ≤ L + ε := by
+    by_contra hcon
+    push_neg at hcon
+    have hle' : L + ε ≤ L :=
+      le_csInf hrng (fun y hy => by
+        obtain ⟨n, hn⟩ := Set.mem_range.mp hy
+        rw [← hn]
+        exact le_of_lt (hcon n))
+    linarith
+  obtain ⟨N, hN⟩ := hex
+  refine ⟨N, fun n hn => ⟨hleL n, ?_⟩⟩
+  have h1 := hchain n N hn
+  linarith
+
 end Hagi.Optimization
