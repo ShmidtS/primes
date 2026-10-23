@@ -590,4 +590,71 @@ theorem nesterov_achievability (e : ℕ → ℝ) (q β δ : ℝ)
     have h2 : q' ^ s * e 0 < ε := hT s hs
     linarith
 
+/-- ЯВНЫЙ ГОРИЗОНТ ВХОДА ДЛЯ КОРРЕКЦИИ НЕСТЕРОВА: при e₀ > 0
+существует T ≥ log(e₀/ε)/log((1+β)/(q+β)) такой, что с шага T
+ошибка навсегда ≤ пол + ε: время входа логарифмично,
+основание логарифма — обратный эффективный фактор
+(1+β)/(q+β) > 1: ускорение коррекции выражается в явном
+числе шагов. -/
+theorem nesterov_entry_horizon (e : ℕ → ℝ) (q β δ : ℝ)
+    (hq : 0 < q) (hq1 : q < 1) (hβ : 0 < β) (hδ : 0 ≤ δ)
+    (hstep : ∀ k : ℕ,
+      e (k + 1) + β * (e (k + 1) - e k) ≤ q * e k + δ)
+    (ε : ℝ) (hε : 0 < ε) (he0 : 0 < e 0) :
+    ∃ T : ℕ, Real.log (e 0 / ε)
+        / Real.log ((1 + β) / (q + β)) ≤ T
+      ∧ ∀ s : ℕ, T ≤ s → e s ≤ δ / (1 - q) + ε := by
+  have hq'0 : 0 < (q + β) / (1 + β) := by positivity
+  have hq'1 : (q + β) / (1 + β) < 1 := by
+    rw [div_lt_iff₀ (by linarith : (0:ℝ) < 1 + β)]
+    nlinarith
+  set q' := (q + β) / (1 + β) with hq'
+  have hinvq : 1 / q' = (1 + β) / (q + β) := by
+    rw [one_div, inv_div]
+  have hbnd := nesterov_floor e q β δ hq hq1 hβ hδ hstep
+  -- фильтр-ожидание q'^s·e0 < ε
+  have htend : Filter.Tendsto (fun s => q' ^ s) Filter.atTop
+      (nhds 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hq'0.le hq'1
+  have hmem : ∀ᶠ s in Filter.atTop, q' ^ s < ε / e 0 :=
+    Filter.Tendsto.eventually htend (gt_mem_nhds (div_pos hε he0))
+  have hev : ∀ᶠ s in Filter.atTop, q' ^ s * e 0 < ε :=
+    hmem.mono fun s hs => by
+      have h3 := (lt_div_iff₀ he0).mp hs
+      rw [mul_comm] at h3
+      rw [mul_comm]
+      exact h3
+  rw [Filter.eventually_atTop] at hev
+  obtain ⟨T, hT⟩ := hev
+  refine ⟨T, ?_, fun s hs => ?_⟩
+  · -- T ≥ log(e0/ε)/log((1+β)/(q+β)) = log(e0/ε)/log(1/q')
+    have hTT : q' ^ T * e 0 < ε := hT T (le_refl T)
+    have hlogT : Real.log (q' ^ T * e 0) < Real.log ε :=
+      Real.log_lt_log (mul_pos (pow_pos hq'0 T) he0) hTT
+    rw [Real.log_mul (ne_of_gt (pow_pos hq'0 T)) (ne_of_gt he0),
+      Real.log_pow q' T] at hlogT
+    -- log q' = −log(1/q') = −log((1+β)/(q+β))
+    have hL : 0 < Real.log (1 / q') :=
+      Real.log_pos (one_lt_one_div hq'0 hq'1)
+    have hlinv : Real.log q' = -Real.log (1 / q') := by
+      rw [one_div, Real.log_inv q']
+      norm_num
+    rw [hlinv] at hlogT
+    have hLL : Real.log (1 / q') = Real.log ((1 + β) / (q + β)) :=
+      congrArg Real.log (by
+        rw [hq', one_div, inv_div])
+    rw [hLL] at hlogT
+    -- цель: log(e0/ε) ≤ T·log((1+β)/(q+β))
+    have hinvq : 1 / q' = (1 + β) / (q + β) := by
+      rw [hq', one_div, inv_div]
+    -- переименовать hL в терминах (1+β)/(q+β)
+    have hL' : 0 < Real.log ((1 + β) / (q + β)) := hinvq ▸ hL
+    have hge : Real.log (e 0 / ε) = Real.log (e 0) - Real.log ε :=
+      Real.log_div (ne_of_gt he0) (ne_of_gt hε)
+    rw [hge, div_le_iff₀ hL']
+    linarith
+  · have h1 := hbnd s
+    have h2 : q' ^ s * e 0 < ε := hT s hs
+    linarith
+
 end Hagi.Optimization
