@@ -149,4 +149,23 @@ theorem branching_dominates_linear
     V Vhat θ ε herr exec hbranch πb hexecb
   linarith
 
+/-- GRPO-ПРЕИМУЩЕСТВО: центрированная награва A_i = r_i − μ
+(μ — средняя награда группы). Сумма преимуществ ноль. -/
+theorem grpo_centered_sum_zero (G : ℕ) (r : ℕ → ℝ)
+    (μ : ℝ) (hμ : μ * G = ∑ i ∈ Finset.range G, r i) :
+    ∑ i ∈ Finset.range G, (r i - μ) = 0 := by
+  rw [Finset.sum_sub_distrib (fun i => r i) (fun _ => μ),
+    Finset.sum_const, Finset.card_range, nsmul_eq_mul,
+    mul_comm (G : ℝ) μ, hμ, sub_self]
+
+/-- GRPO-ЗНАК: следствие из группы G ≥ 1 наград: если
+награда следствия строго выше групповой средней, его
+центрированное преимущество строго положительно — GRPO
+поощряет его (односторонняя версия без деления на std). -/
+theorem grpo_advantage_pos (G : ℕ) (r : ℕ → ℝ)
+    (μ : ℝ) (hμ : μ * G = ∑ i ∈ Finset.range G, r i)
+    (i₀ : ℕ) (hi₀ : i₀ < G) (hgt : μ < r i₀) :
+    0 < r i₀ - μ := by
+  linarith
+
 end Hagi.Planning

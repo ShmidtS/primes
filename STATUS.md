@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **GRPO-ядро** (`grpo_centered_sum_zero`, `grpo_advantage_pos`):
+  сумма центрированных наград группы = 0; награда выше
+  средней даёт положительное преимущество (§2.3).
 - **Branching-теоремы Agima** (`branching_avoids_detectable_failure`,
   `branching_dominates_linear`): детектируемо-вредные ветви
   исключаются из выполнения; branching строго доминирует
