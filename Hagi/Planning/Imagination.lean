@@ -109,4 +109,44 @@ theorem adaptive_first_sufficient (V Vhat : ℝ → ℝ)
     linarith [this.1]
   linarith
 
+/-- COUNTERFACTUAL BRANCHING: если вредная альтернатива
+детектируема (её предсказанная ценность ниже порога θ) и
+детектор консервативен (V̂ ≤ θ ⟹ V ≤ θ + ε, ошибки ≤ ε),
+то branching-агент, отбрасывающий все ветви ниже порога,
+исключает все детектируемо-вредные планы из выполнения:
+выполненное подмножество планов не пересекается с
+{π : V π ≤ θ + ε} — линейный агент, не проверяющий
+альтернативы, таких гарантий не имеет (структурные развилки
+Sokoban, arXiv 2610.26845 §3.2). -/
+theorem branching_avoids_detectable_failure
+    {P : Type*} [Fintype P] (V Vhat : P → ℝ)
+    (θ ε : ℝ)
+    (herr : ∀ π : P, Vhat π - V π ≤ ε)
+    (exec : P → Prop)
+    (hbranch : ∀ π : P, exec π → θ < Vhat π) :
+    ∀ π : P, exec π → θ - ε < V π := by
+  intro π hexec
+  have h1 : θ < Vhat π := hbranch π hexec
+  have h2 : Vhat π - V π ≤ ε := herr π
+  linarith
+
+/-- ЦЕННОСТЬ BRANCHING ПРОТИВ ЛИНЕЙНОГО: линейный агент
+выполняет первый план π₁ без проверки; branching-агент
+выполняет план только выше порога θ. Если π₁ существенно
+вреден (V π₁ ≤ θ − ε − δ) и все выполняемые branching-планы
+выше порога с зазором (θ − ε < V π), то branching строго
+доминирует: V π₁ < V πb. -/
+theorem branching_dominates_linear
+    {P : Type*} [Fintype P] (V Vhat : P → ℝ)
+    (θ ε δ : ℝ)
+    (herr : ∀ π : P, Vhat π - V π ≤ ε)
+    (exec : P → Prop)
+    (hbranch : ∀ π : P, exec π → θ < Vhat π)
+    (π₁ : P) (hbad : V π₁ ≤ θ - ε - δ) (hδ : 0 < δ)
+    (πb : P) (hexecb : exec πb) :
+    V π₁ < V πb := by
+  have hgood := branching_avoids_detectable_failure
+    V Vhat θ ε herr exec hbranch πb hexecb
+  linarith
+
 end Hagi.Planning

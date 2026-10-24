@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Branching-теоремы Agima** (`branching_avoids_detectable_failure`,
+  `branching_dominates_linear`): детектируемо-вредные ветви
+  исключаются из выполнения; branching строго доминирует
+  линейный агент на детектируемых отказах (§3.2).
 - **Формализация arXiv 2610.26845v1** (`Hagi/Planning/Imagination`):
   forward_thinking_regret (argmax по неточной оценке теряет
   ≤ 2ε), imagination_compounding (K-шаговое воображение
