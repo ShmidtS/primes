@@ -52,4 +52,26 @@ theorem gibbs_variational_floor
   have h' := mul_nonneg hT.le hkl
   linarith [h, h']
 
+
+/-- ЕДИНСТВЕННОСТЬ МИНИМУМА дистилляции (в KL-форме):
+студент σ достигает вариационного пола
+⟨σ,ℓ⟩+T·KL(σ‖ρ₀) = −T·log Z (минимума, который реализует
+учитель-Гиббс γ) тогда и только тогда, когда KL(σ‖γ) = 0,
+т.е. расхождение студента с учителем нулевое. -/
+theorem distillation_floor_attained_iff_kl_zero
+    {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (σ : V → ℝ) (hσ : ∀ v, 0 < σ v) (hσ1 : ∑ v, σ v = 1) :
+    ((∑ v, σ v * ℓ v)
+        + T * (∑ v, σ v * Real.log (σ v / ρ₀ v))
+      = -T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)))
+    ↔ (∑ v, σ v * Real.log (σ v
+        / mirrorStep ρ₀ ℓ T v)) = 0 := by
+  have hid := context_distillation_identity ρ₀ ℓ T hT hρ₀ σ hσ hσ1
+  constructor <;> intro h
+  · nlinarith
+  · nlinarith
+
+
 end Hagi.Model

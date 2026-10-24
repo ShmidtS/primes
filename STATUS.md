@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Единственность минимума дистилляции**
+  (`distillation_floor_attained_iff_kl_zero`): студент
+  достигает пола free energy ⟺ KL(σ‖γ)=0.
 - **KL-дистилляция = зеркальный шаг** (`context_distillation_identity`,
   `gibbs_variational_floor`, Cortex §3.3 ↔ MirrorDescent):
   T·KL(σ‖γ) = ⟨σ,ℓ⟩+T·KL(σ‖ρ₀)+T·logZ; учитель-Гиббс —
