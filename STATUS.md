@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2885 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2886 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Nernst-предел итераций hedge** (`mirrorIterate_energy_infimum`):
+  ∀ε>0 ∃N ∀n≥N: ℓmin ≤ ⟨w_n,ℓ⟩ ≤ ℓmin+ε — итерированный hedge
+  сходится по энергии к минимуму потерь (Z_n ≥ min ρ₀ ·
+  e^{−nℓmin/T}, термодинамический предел T/n → 0).
 - **Мост Optimization ↔ Numerics** (`mirrorStep_is_expTilt`):
   mirrorStep ρ₀ ℓ T = expTilt ρ₀ (−ℓ/T) — hedge-обновление и
   лог-форма фиксированного CE — одна операция наклона.
