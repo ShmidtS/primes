@@ -6,6 +6,7 @@ import Mathlib.Tactic
 import Hagi.Prelude.Info
 import Hagi.Core.Concat
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.Topology.Algebra.Order.Field
 
 set_option linter.style.header false
 
@@ -488,4 +489,52 @@ theorem cooling_schedule_pair (T₀ ρ s τ ε : ℝ) (hT₀ : 0 < T₀)
   have h3 := mul_le_mul_of_nonneg_right h2 hlogn.le
   rw [div_mul_cancel₀ _ (ne_of_gt hlogn)] at h3
   exact h3
+
+/-- СТРОГАЯ МОНОТОННОСТЬ СТАТИСТИЧЕСКОЙ СУММЫ: при
+неотрицательных потерях и хотя бы одной положительной
+Z(T) строго возрастает по T: нагрев размешивает Гиббса,
+охлаждение концентрирует на минимизаторах. -/
+theorem partition_strictMono {V : Type*} [Fintype V] [Nonempty V]
+    (ℓ : V → ℝ) (hℓ : ∀ v, 0 ≤ ℓ v) (i₀ : V) (hℓi₀ : 0 < ℓ i₀)
+    {T₁ T₂ : ℝ} (h₁ : 0 < T₁) (h₂ : T₁ < T₂) :
+    ∑ v, Real.exp (-(ℓ v)/T₁) < ∑ v, Real.exp (-(ℓ v)/T₂) := by
+  have hT₂ : (0:ℝ) < T₂ := by linarith
+  apply Finset.sum_lt_sum
+  · intro v _
+    have ha : (-ℓ v) ≤ 0 := neg_nonpos.mpr (hℓ v)
+    refine Real.exp_le_exp.mpr ?_
+    rw [div_le_div_iff₀ h₁ hT₂]
+    have hd := mul_nonpos_of_nonpos_of_nonneg ha (sub_nonneg.mpr h₂.le)
+    have hsplit : (-ℓ v) * T₂ = (-ℓ v) * T₁ + (-ℓ v) * (T₂ - T₁) := by ring
+    linarith
+  · refine ⟨i₀, Finset.mem_univ i₀, ?_⟩
+    have ha : (-ℓ i₀) < 0 := by linarith
+    refine Real.exp_lt_exp.mpr ?_
+    rw [div_lt_div_iff₀ h₁ hT₂]
+    have hd := mul_neg_of_neg_of_pos ha (sub_pos.mpr h₂)
+    have hsplit : (-ℓ i₀) * T₂ = (-ℓ i₀) * T₁ + (-ℓ i₀) * (T₂ - T₁) := by ring
+    linarith
+
+/-- ТЕПЛОВОЙ ПРЕДЕЛ: при T → ∞ статистическая сумма Гиббса
+стремится к |V| (полное термическое размытие). -/
+theorem partition_hot_limit {V : Type*} [Fintype V] [Nonempty V]
+    (ℓ : V → ℝ) :
+    Filter.Tendsto (fun T : ℝ => ∑ v, Real.exp (-(ℓ v)/T))
+      Filter.atTop (nhds (Fintype.card V : ℝ)) := by
+  have hexp : ∀ v : V, Filter.Tendsto
+      (fun T : ℝ => Real.exp (-(ℓ v)/T)) Filter.atTop (nhds 1) := by
+    intro v
+    have hinv : Filter.Tendsto (fun T : ℝ => ((1:ℝ)/T))
+        Filter.atTop (nhds 0) := by
+      simpa [one_div] using tendsto_inv_atTop_zero
+    have hd : Filter.Tendsto (fun T : ℝ => (-ℓ v) * ((1:ℝ)/T))
+        Filter.atTop (nhds 0) := by
+      have h := hinv.const_mul (-ℓ v)
+      simpa [mul_comm] using h
+    have hcomp := Real.continuous_exp.continuousAt.tendsto.comp hd
+    simpa [neg_div, one_div, div_eq_mul_inv, Function.comp_def] using hcomp
+  have := tendsto_finsetSum (Finset.univ : Finset V)
+    (fun v _ => hexp v)
+  simpa [Finset.sum_const, Finset.card_univ] using this
+
 end Hagi.Energy
