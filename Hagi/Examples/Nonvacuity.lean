@@ -174,6 +174,21 @@ theorem jensenGap_pos_witness (a : ℝ) (ha : a ≠ 0) :
   rw [hl1, hl2, hlm, hl2a, hlma]
   linarith
 
+
+/-- МОСТ (CorePremises, компонент 3): граница энергии
+слияния ВЫВОДИТСЯ из реальной операции усреднения логитов
+двух экспертов: при mergeEnergy = CE(t, (z₁+z₂)/2),
+growEnergy = среднему CE, gap = jensenGap (строго выпуклый
+зазор log-sum-exp ≥ 0) выполнено mergeEnergy ≤ growEnergy − gap. -/
+theorem core_premises_merge_operational {k : Type} [Fintype k]
+    [Nonempty k] (t : k) (z₁ z₂ : k → ℝ) (growEnergy : ℝ)
+    (hgrow : (Hagi.ceOneHot t z₁ + Hagi.ceOneHot t z₂) / 2
+      ≤ growEnergy) :
+    Hagi.ceOneHot t ((z₁ + z₂) / 2)
+      ≤ growEnergy - jensenGap z₁ z₂ := by
+  have hb := merge_energy_bridge t z₁ z₂
+  have hg := jensenGap_nonneg z₁ z₂
+  linarith
 end Hagi.Examples
 
 namespace Hagi
