@@ -263,6 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Углы сферического симплекса** (`Hagi/Geometry/SphericalSimplex`,
+  arXiv 2610.31592v1): dihedral_count (K(n)=n(n+1)/2 упорядоченных
+  пар граней), dihedral_angle_strictMono (θ(x)=arccos(1/x) строго
+  возрастает), dihedral_angle_lt_pi/lt_pi_div_two (sup=π, θ<π/2),
+  excess_as_supplement/excess_pos (эксцесс = arccos(−1/x) > 0),
+  euclid_sum_bounds ((π/3)K ≤ S_euc < (π/2)K при n ≥ 2).
 - **GRPO-ядро** (`grpo_centered_sum_zero`, `grpo_advantage_pos`):
   сумма центрированных наград группы = 0; награда выше
   средней даёт положительное преимущество (§2.3).
