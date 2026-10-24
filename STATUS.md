@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2889 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2891 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Капитал hedge телескопирует** (`stepNorm`,
+  `stepNorm_compose`, `hedge_wealth_product`): ∏_{k<n} Z_k =
+  Z(ρ₀, Σℓ) — произведение пошаговых нормировок равно
+  кумулятивной; потенциал-функция MWU/Hedge в замкнутой форме.
 - **Утилиты наклона** (`expTilt_pos`, `expTilt_sum_one`,
   `expTilt_uniform_is_softDef`): наклон — распределение;
   softmax = наклон равномерного — триада

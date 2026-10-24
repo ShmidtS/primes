@@ -1035,4 +1035,83 @@ theorem mirrorIterate_energy_infimum {V : Type*} [Fintype V]
     nlinarith [hNge, hnN, hε]
   linarith
 
+/-- Пошаговая нормировка зеркального шага: Z(ρ₀,ℓ,T) =
+Σ ρ₀·e^{−ℓ/T} — коэффициент перенормировки весов. -/
+noncomputable def stepNorm {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) : ℝ :=
+  ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)
+
+/-- НОРМИРОВКИ ПЕРЕМНОЖАЮТСЯ: нормировка двух
+последовательных шагов равна нормировке одного шага с
+суммарными потерями: Z(γ₁,ℓ₂)·Z(ρ₀,ℓ₁) = Z(ρ₀,ℓ₁+ℓ₂) —
+двойник полугруппового закона на уровне нормировок
+(свидетельство: hedge-капитал телескопирует). -/
+theorem stepNorm_compose {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ₁ ℓ₂ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    stepNorm (mirrorStep ρ₀ ℓ₁ T) ℓ₂ T * stepNorm ρ₀ ℓ₁ T
+      = stepNorm ρ₀ (fun v => ℓ₁ v + ℓ₂ v) T := by
+  have hγpos : ∀ w, 0 < mirrorStep ρ₀ ℓ₁ T w :=
+    mirrorStep_pos ρ₀ ℓ₁ T hT hρ₀
+  have hZ₁ : (0:ℝ) < ∑ w, ρ₀ w * Real.exp (-(ℓ₁ w)/T) :=
+    Finset.sum_pos
+      (fun w _ => mul_pos (hρ₀ w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have he : ∀ w : V, Real.exp (-(ℓ₁ w)/T)
+      * Real.exp (-(ℓ₂ w)/T)
+      = Real.exp (-(ℓ₁ w + ℓ₂ w)/T) := by
+    intro w
+    rw [← Real.exp_add]
+    congr 1
+    ring
+  -- почленно: γ₁(w)·e^{−ℓ₂/T}·Z₁ = ρ₀(w)·e^{−(ℓ₁+ℓ₂)/T}
+  have hterm : ∀ w : V, mirrorStep ρ₀ ℓ₁ T w
+      * Real.exp (-(ℓ₂ w)/T)
+      * (∑ u, ρ₀ u * Real.exp (-(ℓ₁ u)/T))
+      = ρ₀ w * Real.exp (-(ℓ₁ w + ℓ₂ w)/T) := by
+    intro w
+    unfold mirrorStep
+    rw [div_mul_eq_mul_div, div_mul_cancel₀ _ hZ₁.ne',
+      show ρ₀ w * Real.exp (-(ℓ₁ w)/T)
+          * Real.exp (-(ℓ₂ w)/T)
+        = ρ₀ w * (Real.exp (-(ℓ₁ w)/T)
+            * Real.exp (-(ℓ₂ w)/T)) from by ring, he w]
+  -- суммирование
+  unfold stepNorm
+  rw [Finset.sum_mul]
+  exact Finset.sum_congr rfl (fun w _ => hterm w)
+
+/-- КАПИТАЛ HEDGE ТЕЛЕСКОПИРУЕТ: произведение пошаговых
+нормировок траектории равно кумулятивной нормировке:
+∏_{k<n} Z(w_k, ℓ_k, T) = Z(ρ₀, Σ_{k<n} ℓ_k, T) —
+потенциал-функция MWU/Hedge в замкнутой форме. -/
+theorem hedge_wealth_product {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ : V → ℝ) (ℓs : ℕ → V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1) (n : ℕ) :
+    (∏ k ∈ Finset.range n,
+        stepNorm (mirrorIterate ρ₀ ℓs T k) (ℓs k) T)
+      = stepNorm ρ₀ (fun v => ∑ k ∈ Finset.range n, ℓs k v) T := by
+  induction n with
+  | zero =>
+      show (1:ℝ) = stepNorm ρ₀
+        (fun v => ∑ k ∈ Finset.range 0, ℓs k v) T
+      simp only [Finset.range_zero, Finset.sum_empty, neg_zero,
+        div_zero, Real.exp_zero, mul_one, stepNorm, zero_div]
+      exact hρ₀1.symm
+  | succ m ih =>
+      -- кумулятивность: w_m = mirrorStep ρ₀ (Σ_{<m}) T
+      have hcum : mirrorIterate ρ₀ ℓs T m
+          = mirrorStep ρ₀ (fun v => ∑ k ∈ Finset.range m, ℓs k v) T :=
+        mirrorIterate_cumulative ρ₀ ℓs T hT hρ₀ hρ₀1 m
+      -- композиция нормировок на уровне ρ₀
+      have hcomp := stepNorm_compose ρ₀
+        (fun v => ∑ k ∈ Finset.range m, ℓs k v) (ℓs m) T hT hρ₀
+      -- кумулятивная сумма range (m+1)
+      have hsum : (fun v => ∑ k ∈ Finset.range (m+1), ℓs k v)
+          = (fun v => (∑ k ∈ Finset.range m, ℓs k v) + ℓs m v) := by
+        funext v
+        rw [Finset.sum_range_succ]
+      rw [Finset.prod_range_succ, hsum, ih, hcum, mul_comm,
+        ← hcomp]
+
 end Hagi.Optimization
