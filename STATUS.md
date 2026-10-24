@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Условие реализуемости shared down-projection**
+  (`shared_down_projection_iff`, Cortex A.4): ∃L, L·H=Δ ⟺ каждая
+  строка Δ — линейная комбинация строк H (row(Δ) ⊆ row(H)).
 - **MoE shared expansion** (`moe_shared_expansion_identity`,
   Cortex arXiv 2610.20399v1 Appx A.5, eq.18): при Σ a_e = 1
   общая ветка сворачивается в каждого эксперта без изменения

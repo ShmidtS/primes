@@ -24,4 +24,27 @@ theorem moe_shared_expansion_identity
     _ = ∑ e, a e • (E e + S) :=
           Finset.sum_congr rfl fun e _ => (smul_add (a e) (E e) S).symm
 
+
+/-- Prop A.4 (Cortex, arXiv 2610.20399v1): shared down-projection
+реализует цели Δ матрицей L (L * H = Δ) ⟺ каждая строка Δ —
+линейная комбинация строк H (row(Δ) ⊆ row(H)). -/
+theorem shared_down_projection_iff
+    {m n p : ℕ} (H : Matrix (Fin m) (Fin n) ℝ)
+    (Δ : Matrix (Fin p) (Fin n) ℝ) :
+    (∃ L : Matrix (Fin p) (Fin m) ℝ, L * H = Δ)
+      ↔ ∀ i : Fin p, ∃ c : Fin m → ℝ,
+          ∀ j : Fin n, Δ i j = ∑ k : Fin m, c k * H k j := by
+  constructor
+  · rintro ⟨L, hL⟩ i
+    refine ⟨fun k => L i k, fun j => ?_⟩
+    have h1 : (L * H) i j = ∑ k : Fin m, L i k * H k j :=
+      Matrix.mul_apply
+    rw [← h1, ← hL]
+  · intro h
+    refine ⟨Matrix.of fun i k => (h i).choose k, ?_⟩
+    funext i j
+    have := (h i).choose_spec j
+    simpa [Matrix.mul_apply] using this.symm
+
+
 end Hagi.Model
