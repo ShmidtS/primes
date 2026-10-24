@@ -902,6 +902,9 @@ expQ_mono	6d43be465f52122d	a3d6e2f0a8db7ae0
 expQ_varEq	5eb1fc1d456c2674	5c7249c9448f55ce
 expTilt	7c93c3a509842236	2062b76134790e2e
 expTilt_centering	e30a7b43161ad87b	3a02a45fc6164b61
+expTilt_pos	f1fc18da1d247c7f	ee607071f1680774
+expTilt_sum_one	2c3f8d3fa5ac6331	c1c371ca5ff12d8a
+expTilt_uniform_is_softDef	a07c3fbb4275ea45	4880e2df53e263bf
 exp_chord	3c3802a4f992325a	824daf777bc3b709
 exp_chord	ef087d7572be9860	76d5c6719302e844
 exp_chord_ab	224142646b99f69f	3cf23ea3865b65e2

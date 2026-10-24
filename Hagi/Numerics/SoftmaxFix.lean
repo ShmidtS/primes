@@ -379,4 +379,54 @@ theorem mirrorStep_is_expTilt {V : Type*} [Fintype V] [Nonempty V]
   unfold Hagi.Optimization.mirrorStep expTilt
   rfl
 
+/-- НАКЛОН ПОЛОЖИТЕЛЕН: expTilt p c строго положителен при
+положительном p. -/
+theorem expTilt_pos {V : Type*} [Fintype V] [Nonempty V]
+    (p c : V → ℝ) (hp : ∀ v, 0 < p v) (v : V) :
+    0 < expTilt p c v := by
+  unfold expTilt
+  refine div_pos (mul_pos (hp v) (Real.exp_pos _)) ?_
+  exact Finset.sum_pos
+    (fun i _ => mul_pos (hp i) (Real.exp_pos _))
+    Finset.univ_nonempty
+
+/-- НАКЛОН — РАСПРЕДЕЛЕНИЕ: сумма expTilt p c равна 1. -/
+theorem expTilt_sum_one {V : Type*} [Fintype V] [Nonempty V]
+    (p c : V → ℝ) (hp : ∀ v, 0 < p v) :
+    ∑ v, expTilt p c v = 1 := by
+  have hZ : (0:ℝ) < ∑ i, p i * Real.exp (c i) :=
+    Finset.sum_pos
+      (fun i _ => mul_pos (hp i) (Real.exp_pos _))
+      Finset.univ_nonempty
+  unfold expTilt
+  rw [← Finset.sum_div (Finset.univ : Finset V),
+    div_self hZ.ne']
+
+/-- SOFTMAX = НАКЛОН С РАВНОМЕРНОЙ ССЫЛКОЙ: expTilt
+(равномерного) z = softDef z — softmax есть наклон
+равномерного распределения; вместе с mirrorStep_is_expTilt:
+softmax = hedge-обновление равномерного — вся триада
+softmax/hedge/наклон — одна операция. -/
+theorem expTilt_uniform_is_softDef {V : Type*} [Fintype V]
+    [Nonempty V] (z : V → ℝ) (v : V) :
+    expTilt (fun _ => 1 / (Fintype.card V : ℝ)) z v
+      = softDef z v := by
+  have hcard : (0:ℝ) < Fintype.card V :=
+    Nat.cast_pos.mpr Fintype.card_pos
+  have hcardne : ((Fintype.card V : ℝ)) ≠ 0 := ne_of_gt hcard
+  have hS : (0:ℝ) < ∑ i, Real.exp (z i) :=
+    Finset.sum_pos (fun i _ => Real.exp_pos _) Finset.univ_nonempty
+  -- знаменатель: Σ (1/n)·e^{z} = (Σ e^{z})/n
+  have hZsum : (∑ i, (1 / (Fintype.card V : ℝ))
+      * Real.exp (z i))
+      = (∑ i, Real.exp (z i)) / (Fintype.card V : ℝ) := by
+    rw [Finset.sum_congr rfl (fun i _ =>
+      show (1 / (Fintype.card V : ℝ)) * Real.exp (z i)
+        = Real.exp (z i) / (Fintype.card V : ℝ) from by
+        rw [div_mul_eq_mul_div, one_mul]),
+      ← Finset.sum_div]
+  unfold expTilt softDef
+  rw [hZsum, div_mul_eq_mul_div, one_mul]
+  field_simp [hcardne, hS.ne']
+
 end Hagi.Numerics
