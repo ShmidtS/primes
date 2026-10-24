@@ -309,4 +309,32 @@ theorem core_premises_joint_operational
   rw [hgrad] at h
   linarith [h, hE]
 
+
+
+
+/-- МОСТ (CorePremises, компонент 13): граница энергии
+сжатия ВЫВОДИТСЯ из реального квантования gridQ:
+при compressEnergy = E(gridQ Δ x), jointEnergy ≥ E x,
+quantErr = |x − gridQ Δ x| (фактическая ошибка сетки),
+s = 1 выполнено compressEnergy − jointEnergy ≤ κ·s·quantErr. -/
+theorem core_premises_compress_operational
+    (E : ℝ → ℝ) (kappa : ℝ)
+    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
+    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ kappa)
+    (Δ : ℝ) (hΔ : 0 < Δ) (x jointEnergy : ℝ)
+    (hjoint : E x ≤ jointEnergy) :
+    E (Hagi.Energy.gridQ Δ hΔ x) - jointEnergy
+      ≤ kappa * 1 * |x - Hagi.Energy.gridQ Δ hΔ x| := by
+  have hlip := lip_energy_quantization E kappa hdiff hnorm x
+    (Hagi.Energy.gridQ Δ hΔ)
+  rw [Real.norm_eq_abs] at hlip
+  have hupper : E (Hagi.Energy.gridQ Δ hΔ x) - E x
+      ≤ kappa * |x - Hagi.Energy.gridQ Δ hΔ x| := by
+    have := abs_sub_le_iff.mp hlip
+    linarith [this.2]
+  have h' : kappa * 1 * |x - Hagi.Energy.gridQ Δ hΔ x|
+      = kappa * |x - Hagi.Energy.gridQ Δ hΔ x| := by ring
+  rw [h']
+  linarith [hupper, hjoint]
+
 end Hagi.Unified

@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост CorePremises (compress)** 
+  (`core_premises_compress_operational`): компонент 13
+  (граница энергии сжатия) выводится из реального gridQ
+  через липшицевость: E(g x) − jointE ≤ κ·|x − g x|.
 - **Мост CorePremises** (`core_premises_joint_operational`):
   компонент 8 (h_emp_smooth) CorePremises выводится из
   реальной E(params−η•stepDir) с L-градиентом + монотонности
