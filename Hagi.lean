@@ -266,6 +266,7 @@ import Hagi.Optimization.MirrorDescent
 import Hagi.Numerics.SoftmaxFix
 import Hagi.Planning.Imagination
 import Hagi.Geometry.SphericalSimplex
+import Hagi.Ensemble.UniformCert
 import Hagi.Model.MoeExpansion
 import Hagi.Model.MemoryConsolidation
 import Hagi.Model.ConsolidationMirror

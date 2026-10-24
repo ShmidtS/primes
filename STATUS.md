@@ -263,6 +263,15 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост аудит→операции** (`joint_emp_smooth_derived`,
+  DerivAlong): эмпирическое условие гладкости этапа Joint
+  ВЫВОДИТСЯ из L-липшицева градиента реальной функции
+  потерь: E(w−ηd) ≤ E(w) − η·DE(w)d + Lη²‖d‖²/2 — эффекты
+  стадии как следствие операции, а не предпосылка.
+- **LayerLint: закрыты слепые зоны** (Geometry, Numerics,
+  Optimization, Percolation, Planning; External→Optimization
+  в LAYER_EXCEPTIONS как остров MemT); Hagi.Ensemble.UniformCert
+  зарегистрирован в Hagi.lean (аудит 2026-10-24).
 - **Термодинамика Z(T)** (`partition_strictMono`,
   `partition_hot_limit`): статистическая сумма Гиббса строго
   возрастает по T (нагрев размытие, охлаждение концентрация);

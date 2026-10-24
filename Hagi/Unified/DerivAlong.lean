@@ -219,4 +219,34 @@ theorem smooth_from_lipschitz_gradient {W : Type}
   rw [hsplit2]
   linarith
 
+
+
+/-- МОСТ: эмпирическое условие гладкости h_emp_smooth этапа
+Joint ВЫВОДИТСЯ из реального свойства функции потерь
+(L-липшицев градиент), а не постулируется:
+E(w - η•d) ≤ E(w) - η·DE(w)d + L·η²·‖d‖²/2. -/
+theorem joint_emp_smooth_derived {W : Type}
+    [NormedAddCommGroup W] [NormedSpace ℝ W]
+    (E : W → ℝ) (w d : W) (L eta : ℝ) (heta : 0 ≤ eta)
+    (hdiff : ∀ x : W, HasFDerivAt E (fderiv ℝ E x) x)
+    (hsmooth : ∀ x y : W, ‖fderiv ℝ E y - fderiv ℝ E x‖ ≤ L * ‖y - x‖)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E (w + t • (-(eta)•d)) (-(eta)•d)) :
+    E (w - eta•d)
+      ≤ E w - eta * (fderiv ℝ E w d) + L * eta ^ 2 * ‖d‖ ^ 2 / 2 := by
+  have h := smooth_from_lipschitz_gradient E (-(eta)•d) w L hdiff hsmooth hgcont
+  rw [sub_eq_add_neg]
+  -- производная по направлению
+  have hder : (fderiv ℝ E w) (-(eta)•d) = -(eta * (fderiv ℝ E w d)) := by
+    rw [map_smul, neg_smul, smul_eq_mul]
+  rw [hder] at h
+  -- норма
+  have hnorm : ‖-(eta)•d‖ ^ 2 = eta ^ 2 * ‖d‖ ^ 2 := by
+    have h1 : (-(eta:ℝ))•d = -(eta•d) := neg_smul eta d
+    rw [h1, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_nonneg heta]
+    ring
+  rw [hnorm] at h
+  have hL : w + -eta • d = w + -(eta • d) := by rw [neg_smul]
+  rw [hL] at h
+  exact le_trans h (le_of_eq (by ring))
+
 end Hagi.Unified

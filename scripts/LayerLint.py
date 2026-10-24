@@ -22,6 +22,9 @@ LAYERS = {
     "Spectral": 1,
     "Sparsity": 1,
     "Depth": 1,
+    "Geometry": 1,
+    "Planning": 1,
+    "Percolation": 1,
     "Architecture": 2,
     "Data": 2,
     "Energy": 2,
@@ -29,9 +32,11 @@ LAYERS = {
     "External": 2,
     "Ensemble": 3,
     "Step": 3,
+    "Optimization": 3,
     "Runtime": 3,
     "System": 3,   # R331: state layer (GrowthState) per audit v3 3
     "Model": 4,
+    "Numerics": 4,
     "Growth": 4,
     "Generalization": 4,
     "Budget": 4,
@@ -48,6 +53,9 @@ LAYERS = {
 # known violations, to be removed one by one (audit list):
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
+    # аудит 2026-10-24: External/MemT/GDN2 -> Optimization.InexactContraction
+    # (внешний остров MemT; кандидат на вынос из дерева после миграции)
+    ("External/MemT/GDN2.lean", "Optimization/InexactContraction.lean"),
     # (R169: 49; R170: 46; R171: 26; R172: 24; R173: 23)
     
     
