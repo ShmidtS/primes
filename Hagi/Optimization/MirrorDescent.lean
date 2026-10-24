@@ -1114,4 +1114,185 @@ theorem hedge_wealth_product {V : Type*} [Fintype V] [Nonempty V]
       rw [Finset.prod_range_succ, hsum, ih, hcum, mul_comm,
         ← hcomp]
 
+/-- НЕРНСТ-СЭНДВИЧ КАПИТАЛА HEDGE: логарифм капитала
+(произведения пошаговых нормировок) зажат:
+n·ℓmin − T·log|V| ≤ −T·log(∏ Z_k) ≤ n·ℓmin − T·log(min ρ₀).
+Низ: каждый член ≤ e^{−nℓmin/T}, сумма ≤ |V|·e^{−nm/T};
+верх: Z ≥ (min ρ₀)·e^{−nℓmin/T} — кумулятивная свободная
+энергия итераций зажата энтропийным запасом и минимальным
+априорным весом (термодинамический предел капитала). -/
+theorem hedge_wealth_nernst {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (n : ℕ) :
+    ((n : ℝ) * (Finset.min' (Finset.univ.image ℓ)
+          (Finset.image_nonempty.2 Finset.univ_nonempty))
+        - T * Real.log (Fintype.card V : ℝ)
+      ≤ -T * Real.log (∏ k ∈ Finset.range n,
+          stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T))
+    ∧ (-T * Real.log (∏ k ∈ Finset.range n,
+          stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T)
+      ≤ (n : ℝ) * (Finset.min' (Finset.univ.image ℓ)
+          (Finset.image_nonempty.2 Finset.univ_nonempty))
+        - T * Real.log (Finset.min' (Finset.univ.image ρ₀)
+          (Finset.image_nonempty.2 Finset.univ_nonempty))) := by
+  set m := Finset.min' (Finset.univ.image ℓ)
+    (Finset.image_nonempty.2 Finset.univ_nonempty) with hm
+  set r := Finset.min' (Finset.univ.image ρ₀)
+    (Finset.image_nonempty.2 Finset.univ_nonempty) with hr
+  have hneℓ : (Finset.univ.image ℓ).Nonempty :=
+    Finset.image_nonempty.2 Finset.univ_nonempty
+  have hneρ : (Finset.univ.image ρ₀).Nonempty :=
+    Finset.image_nonempty.2 Finset.univ_nonempty
+  obtain ⟨vt, hvt⟩ := Finset.mem_image.mp (Finset.min'_mem _ hneℓ)
+  obtain ⟨wt, hwt⟩ := Finset.mem_image.mp (Finset.min'_mem _ hneρ)
+  have hmle : ∀ v : V, m ≤ ℓ v := fun v =>
+    Finset.min'_le (Finset.univ.image ℓ) (ℓ v)
+      (Finset.mem_image_of_mem ℓ (Finset.mem_univ v))
+  have hrle : ∀ v : V, r ≤ ρ₀ v := fun v =>
+    Finset.min'_le (Finset.univ.image ρ₀) (ρ₀ v)
+      (Finset.mem_image_of_mem ρ₀ (Finset.mem_univ v))
+  have hrpos : (0:ℝ) < r := by
+    have hrw : r = ρ₀ wt := hwt.2.symm
+    rw [hrw]; exact hρ₀ wt
+  -- капитал = кумулятивная нормировка
+  have hwealth := hedge_wealth_product ρ₀ (fun _ => ℓ) T hT hρ₀
+    hρ₀1 n
+  set Z : ℝ := stepNorm ρ₀
+    (fun v => ∑ k ∈ Finset.range n, ℓ v) T with hZ
+  have hZn : Z = ∑ w, ρ₀ w
+      * Real.exp (-((n : ℝ) * ℓ w)/T) := by
+    rw [hZ]
+    refine Finset.sum_congr rfl fun w _ => ?_
+    show ρ₀ w * Real.exp ((-∑ k ∈ Finset.range n, ℓ w)/T)
+      = ρ₀ w * Real.exp (-((n : ℝ) * ℓ w)/T)
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  -- Z ≥ r·e^{−nm/T}
+  have hZge : r * Real.exp (-((n : ℝ) * m)/T) ≤ Z := by
+    rw [hZn]
+    have hterm := Finset.single_le_sum
+      (f := fun w => ρ₀ w
+        * Real.exp (-((n : ℝ) * ℓ w)/T))
+      (fun w (_ : w ∈ Finset.univ) =>
+        mul_nonneg (le_of_lt (hρ₀ w)) (Real.exp_nonneg _))
+      (Finset.mem_univ vt)
+    rw [hvt.2] at hterm
+    nlinarith [hterm, hrle vt, Real.exp_pos
+      (-((n : ℝ) * m)/T)]
+  -- Z ≤ |V|·e^{−nm/T}
+  have hZle : Z ≤ (Fintype.card V : ℝ)
+      * Real.exp (-((n : ℝ) * m)/T) := by
+    rw [hZn]
+    have hterm : ∀ w : V, ρ₀ w
+        * Real.exp (-((n : ℝ) * ℓ w)/T)
+        ≤ Real.exp (-((n : ℝ) * m)/T) := by
+      intro w
+      have h1 : ρ₀ w ≤ 1 := by
+        have hs := Finset.single_le_sum
+          (fun u (_ : u ∈ Finset.univ) => le_of_lt (hρ₀ u))
+          (Finset.mem_univ w)
+        rw [hρ₀1] at hs
+        exact hs
+      have h2 : Real.exp (-((n : ℝ) * ℓ w)/T)
+          ≤ Real.exp (-((n : ℝ) * m)/T) := by
+        refine Real.exp_le_exp.mpr ?_
+        have hnle : ((n : ℝ)) * m ≤ (n : ℝ) * ℓ w :=
+          mul_le_mul_of_nonneg_left (hmle w)
+            (Nat.cast_nonneg n)
+        have hnegr : -((n : ℝ) * ℓ w)
+            ≤ -((n : ℝ) * m) := by
+          have h1 : -((n : ℝ) * ℓ w) ≤ -((n : ℝ) * m) :=
+            neg_le_neg hnle
+          exact h1
+        exact (div_le_div_iff_of_pos_right (show (0:ℝ) < T by
+          exact hT)).mpr hnegr
+      exact (mul_le_mul h1 h2 (Real.exp_nonneg _) zero_le_one).trans_eq
+        (one_mul _)
+    calc (∑ w, ρ₀ w * Real.exp (-((n : ℝ) * ℓ w)/T))
+        ≤ ∑ w : V, Real.exp (-((n : ℝ) * m)/T) :=
+          Finset.sum_le_sum (fun w _ => hterm w)
+      _ = (Fintype.card V : ℝ)
+          * Real.exp (-((n : ℝ) * m)/T) := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  -- позитивность Z
+  have hZpos : (0:ℝ) < Z := by
+    have hrpos' : (0:ℝ) < r * Real.exp (-((n : ℝ) * m)/T) :=
+      mul_pos hrpos (Real.exp_pos _)
+    linarith [hZge, hrpos']
+  -- логарифмический сэндвич
+  have hZpos : (0:ℝ) < Z := by
+    have hrpos' : (0:ℝ) < r * Real.exp (-((n : ℝ) * m)/T) :=
+      mul_pos hrpos (Real.exp_pos _)
+    linarith [hZge, hrpos']
+  have hcardpos : (0:ℝ) < Fintype.card V :=
+    Nat.cast_pos.mpr Fintype.card_pos
+  have hcpos : (0:ℝ) < (Fintype.card V : ℝ)
+      * Real.exp (-((n : ℝ) * m)/T) :=
+    mul_pos hcardpos (Real.exp_pos _)
+  -- card·e^{−nm/T} = e^{log card − nm/T}
+  have hEqC : (Fintype.card V : ℝ)
+      * Real.exp (-((n : ℝ) * m)/T)
+      = Real.exp (Real.log (Fintype.card V : ℝ)
+        - ((n : ℝ) * m)/T) := by
+    rw [Real.exp_sub, Real.exp_log hcardpos,
+      div_eq_mul_inv (Fintype.card V : ℝ)
+        (Real.exp (((n : ℝ) * m)/T)), ← Real.exp_neg]
+    congr 1
+    ring
+  -- log Z ≤ log card − nm/T
+  have hlogZle : Real.log Z
+      ≤ Real.log (Fintype.card V : ℝ)
+        - ((n : ℝ) * m)/T := by
+    have h1 := Real.log_le_log hZpos hZle
+    rw [hEqC, Real.log_exp] at h1
+    exact h1
+  -- log r − nm/T ≤ log Z
+  -- r·e^{−nm/T} = e^{log r − nm/T}
+  have hEqR : r * Real.exp (-((n : ℝ) * m)/T)
+      = Real.exp (Real.log r - ((n : ℝ) * m)/T) := by
+    rw [Real.exp_sub, Real.exp_log hrpos,
+      div_eq_mul_inv r (Real.exp (((n : ℝ) * m)/T)),
+      ← Real.exp_neg]
+    congr 1
+    ring
+  -- log r − nm/T ≤ log Z
+  have hlogZge : Real.log r - ((n : ℝ) * m)/T ≤ Real.log Z := by
+    have hrpos' : (0:ℝ) < r * Real.exp (-((n : ℝ) * m)/T) :=
+      mul_pos hrpos (Real.exp_pos _)
+    have h1 := Real.log_le_log hrpos' hZge
+    rw [hEqR, Real.log_exp] at h1
+    exact h1
+  -- финальные умножения на −T < 0
+  have hTnn : (0:ℝ) ≤ T := le_of_lt hT
+  constructor
+  · -- nm − T·log card ≤ −T·log Z
+    rw [hwealth]
+    have hmul := mul_le_mul_of_nonneg_left hlogZle hTnn
+    have hsplit : T * (Real.log (Fintype.card V : ℝ)
+        - ((n : ℝ) * m)/T)
+        = T * Real.log (Fintype.card V : ℝ) - (n : ℝ) * m := by
+      rw [mul_sub, mul_div_assoc',
+        mul_div_cancel_left₀ _ (ne_of_gt hT)]
+    rw [hsplit] at hmul
+    have hneg : -T * Real.log Z = -(T * Real.log Z) := by ring
+    rw [hneg]
+    linarith
+  · -- −T·log Z ≤ nm − T·log r
+    rw [hwealth]
+    have hlogZge' : Real.log r + (-(((n : ℝ) * m)/T))
+        ≤ Real.log Z := by
+      have := hlogZge
+      linarith
+    have hmul := mul_le_mul_of_nonneg_left hlogZge' hTnn
+    have hkey : T * Real.log r - (n : ℝ) * m ≤ T * Real.log Z := by
+      have hTdiv : T * (((n : ℝ) * m)/T) = (n : ℝ) * m :=
+        mul_div_cancel₀ _ (ne_of_gt hT)
+      have hexp : T * (Real.log r + -(((n : ℝ) * m)/T))
+          = T * Real.log r - T * (((n : ℝ) * m)/T) := by ring
+      rw [hexp, hTdiv] at hmul
+      exact hmul
+    have hneg : -T * Real.log Z = -(T * Real.log Z) := by ring
+    rw [hneg]
+    linarith
+
 end Hagi.Optimization
