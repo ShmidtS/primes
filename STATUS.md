@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост CorePremises** (`core_premises_joint_operational`):
+  компонент 8 (h_emp_smooth) CorePremises выводится из
+  реальной E(params−η•stepDir) с L-градиентом + монотонности
+  энергий стадий (E(params) ≤ mergeEnergy).
 - **Мост grow→операция** (`grow_gain_from_mirror`,
   `grow_gain_nonneg`): выигрыш Гиббс-эксперта = T·(KL(ρ₀‖γ)+
   KL(γ‖ρ₀)) — T-кратная дивергенция Джеффриса; неотрицателен

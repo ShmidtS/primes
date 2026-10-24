@@ -3,7 +3,9 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.StageCalculus
 import Hagi.Energy.Quantizer
+import Hagi.System.GrowthState
 import Mathlib
+open InnerProductSpace
 /-!
 # LipEnergy — градиентная модель липшицевости (R563)
 
@@ -274,5 +276,37 @@ theorem compress_energy_bridge (E : ℝ → ℝ) (kappa : ℝ)
   rw [Real.norm_eq_abs] at h1
   rw [Real.norm_eq_abs] at hlip
   exact le_trans hlip (by linarith)
+
+
+
+
+/-- МОСТ (CorePremises, компонент 8): если энергия после
+шага joint определяется РЕАЛЬНОЙ функцией потерь
+E(params − η•stepDir) с L-липшицевым градиентом, а
+производная по направлению представлена градиентом
+состояния, то эмпирическая предпосылка гладкости
+CorePremises ВЫВОДИТСЯ из операции + монотонности энергий
+стадий (E(params) ≤ mergeEnergy). -/
+theorem core_premises_joint_operational
+    {X : Type} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (E : X → ℝ) (S : Hagi.System.GrowthState X)
+    (hdiff : ∀ w : X, HasFDerivAt E (fderiv ℝ E w) w)
+    (hsmooth : ∀ x y : X, ‖fderiv ℝ E y - fderiv ℝ E x‖
+      ≤ S.sp.L * ‖y - x‖)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E
+      (S.params + t • (-(S.sp.eta)•S.stepDir))
+      (-(S.sp.eta)•S.stepDir))
+    (hgrad : fderiv ℝ E S.params S.stepDir
+      = ⟪S.grad, S.stepDir⟫_ℝ)
+    (heta : 0 ≤ S.sp.eta)
+    (hE : E S.params ≤ S.effects.mergeEnergy) :
+    E (S.params - S.sp.eta • S.stepDir)
+      ≤ S.effects.mergeEnergy
+        - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
+        + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
+  have h := joint_emp_smooth_derived E S.params S.stepDir
+    S.sp.L S.sp.eta heta hdiff hsmooth hgcont
+  rw [hgrad] at h
+  linarith [h, hE]
 
 end Hagi.Unified
