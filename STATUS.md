@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **MoE shared expansion** (`moe_shared_expansion_identity`,
+  Cortex arXiv 2610.20399v1 Appx A.5, eq.18): при Σ a_e = 1
+  общая ветка сворачивается в каждого эксперта без изменения
+  выхода: F + S = Σ a_e·(E_e + S) — сохранение функции при
+  минимальном числе параметров.
 - **Углы сферического симплекса** (`Hagi/Geometry/SphericalSimplex`,
   arXiv 2610.31592v1): dihedral_count (K(n)=n(n+1)/2 упорядоченных
   пар граней), dihedral_angle_strictMono (θ(x)=arccos(1/x) строго

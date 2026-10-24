@@ -266,6 +266,7 @@ import Hagi.Optimization.MirrorDescent
 import Hagi.Numerics.SoftmaxFix
 import Hagi.Planning.Imagination
 import Hagi.Geometry.SphericalSimplex
+import Hagi.Model.MoeExpansion
 import Hagi.Optimization.Momentum
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.AdaptiveCycle
