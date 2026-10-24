@@ -1295,4 +1295,103 @@ theorem hedge_wealth_nernst {V : Type*} [Fintype V] [Nonempty V]
     rw [hneg]
     linarith
 
+/-- СРЕДНИЙ ЛОГ-КАПИТАЛ СХОДИТСЯ К МИНИМУМУ: из
+Нернст-сэндвича капитала: −T·log(∏Z_k)/n → ℓmin при
+n → ∞ — средняя свободная энергия на шаг итерированного
+hedge стремится к минимальным потерям (скорость —
+T·log|V|/n сверху и T·log(min ρ₀)/n снизу). -/
+theorem hedge_wealth_rate {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ N : ℕ, ∀ n : ℕ, N ≤ n →
+      abs ((-T * Real.log (∏ k ∈ Finset.range n,
+            stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T))
+        / (n : ℝ)
+        - (Finset.min' (Finset.univ.image ℓ)
+            (Finset.image_nonempty.2 Finset.univ_nonempty))) ≤ ε := by
+  set m := Finset.min' (Finset.univ.image ℓ)
+    (Finset.image_nonempty.2 Finset.univ_nonempty) with hm
+  set r := Finset.min' (Finset.univ.image ρ₀)
+    (Finset.image_nonempty.2 Finset.univ_nonempty) with hr
+  have hsand : ∀ n : ℕ,
+      ((n : ℝ) * m - T * Real.log (Fintype.card V : ℝ)
+        ≤ -T * Real.log (∏ k ∈ Finset.range n,
+            stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T))
+      ∧ (-T * Real.log (∏ k ∈ Finset.range n,
+            stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T)
+        ≤ (n : ℝ) * m - T * Real.log r) :=
+    fun n => hedge_wealth_nernst ρ₀ ℓ T hT hρ₀ hρ₀1 n
+  -- границы смещения на шаг n
+  set E := fun n : ℕ => (-T * Real.log (∏ k ∈ Finset.range n,
+      stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T))
+    / (n : ℝ) with hE
+  -- |E n − m| ≤ max(T·log card, −T·log r)/n ≤ ε при больших n
+  have hcardpos : (0:ℝ) < Fintype.card V :=
+    Nat.cast_pos.mpr Fintype.card_pos
+  have hrpos : (0:ℝ) < r := by
+    have hneρ : (Finset.univ.image ρ₀).Nonempty :=
+      Finset.image_nonempty.2 Finset.univ_nonempty
+    obtain ⟨wt, hwt⟩ :=
+      Finset.mem_image.mp (Finset.min'_mem _ hneρ)
+    have hrw : r = ρ₀ wt := hwt.2.symm
+    rw [hrw]; exact hρ₀ wt
+  have hrle1 : r ≤ 1 := by
+    have hneρ : (Finset.univ.image ρ₀).Nonempty :=
+      Finset.image_nonempty.2 Finset.univ_nonempty
+    obtain ⟨wt, hwt⟩ :=
+      Finset.mem_image.mp (Finset.min'_mem _ hneρ)
+    have hrw : r = ρ₀ wt := hwt.2.symm
+    rw [hrw]
+    have h1 := Finset.single_le_sum
+      (fun u (_ : u ∈ Finset.univ) => le_of_lt (hρ₀ u))
+      (Finset.mem_univ wt)
+    rw [hρ₀1] at h1
+    exact h1
+  have hlogr : Real.log r ≤ 0 :=
+    (Real.log_le_log hrpos hrle1).trans_eq Real.log_one
+  -- обе границы отклонения: T·log card / n и T·(−log r)/n
+  obtain ⟨N1, hN1⟩ : ∃ N1 : ℕ,
+      T * Real.log (Fintype.card V : ℝ) / ε ≤ N1 :=
+    exists_nat_ge (T * Real.log (Fintype.card V : ℝ) / ε)
+  obtain ⟨N2, hN2⟩ : ∃ N2 : ℕ,
+      T * (-(Real.log r)) / ε ≤ N2 :=
+    exists_nat_ge (T * (-(Real.log r)) / ε)
+  refine ⟨N1 + N2 + 1, fun n hn => ?_⟩
+  have hnpos : (0:ℕ) < n := by omega
+  have hnR : (0:ℝ) < (n : ℝ) := by
+    have := hnpos; exact_mod_cast this
+  obtain ⟨hlo_n, hhi_n⟩ := hsand n
+  set W := -T * Real.log (∏ k ∈ Finset.range n,
+      stepNorm (mirrorIterate ρ₀ (fun _ => ℓ) T k) ℓ T) with hWdef
+  rw [hWdef] at hlo_n hhi_n
+  -- пороги: A := T·log|V| ≥ 0, B := −T·log r ≥ 0
+  have hcard1 : (1:ℝ) ≤ (Fintype.card V : ℝ) := by
+    have := Fintype.card_pos (α := V)
+    exact_mod_cast this
+  have hA : (0:ℝ) ≤ T * Real.log (Fintype.card V : ℝ) :=
+    mul_nonneg (le_of_lt hT) (Real.log_nonneg hcard1)
+  have hB : (0:ℝ) ≤ T * (-(Real.log r)) :=
+    mul_nonneg (le_of_lt hT) (neg_nonneg.mpr hlogr)
+  -- W/n − m = (W − n·m)/n
+  rw [div_sub' hnR.ne', abs_le]
+  constructor
+  · -- −ε ≤ (W − nm)/n ⟸ nm − A ≤ W и A ≤ n·ε
+    rw [le_div_iff₀ hnR]
+    -- цель: −ε·n ≤ W − n·m
+    have hN1le : (N1 : ℝ) ≤ (n : ℝ) := by
+      have : (N1 : ℕ) ≤ n := by omega
+      exact_mod_cast this
+    have hN1e : T * Real.log (Fintype.card V : ℝ) ≤ (N1 : ℝ) * ε :=
+      (div_le_iff₀ hε).mp hN1
+    nlinarith [hN1e, hN1le, hε, hlo_n]
+  · -- (W − nm)/n ≤ ε ⟸ W ≤ nm + B и B ≤ n·ε
+    rw [div_le_iff₀ hnR]
+    have hN2le : (N2 : ℝ) ≤ (n : ℝ) := by
+      have : (N2 : ℕ) ≤ n := by omega
+      exact_mod_cast this
+    have hN2e : T * (-(Real.log r)) ≤ (N2 : ℝ) * ε :=
+      (div_le_iff₀ hε).mp hN2
+    nlinarith [hN2e, hN2le, hε, hhi_n]
+
 end Hagi.Optimization
