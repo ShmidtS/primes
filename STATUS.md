@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **KL-дистилляция = зеркальный шаг** (`context_distillation_identity`,
+  `gibbs_variational_floor`, Cortex §3.3 ↔ MirrorDescent):
+  T·KL(σ‖γ) = ⟨σ,ℓ⟩+T·KL(σ‖ρ₀)+T·logZ; учитель-Гиббс —
+  вариационный минимум free energy (floor ≥ −T·log Z).
 - **Термодинамика консолидации** (`Hagi/Model/MemoryConsolidation`):
   consolidation_bits_cap (запись F бит параметров в бюджете B —
   F ≤ B/cUnit), consolidation_no_free_lunch (бюджета < n·cUnit
