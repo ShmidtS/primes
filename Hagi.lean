@@ -264,6 +264,7 @@ import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
 import Hagi.Optimization.MirrorDescent
 import Hagi.Numerics.SoftmaxFix
+import Hagi.Planning.Imagination
 import Hagi.Optimization.Momentum
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.AdaptiveCycle
