@@ -527,6 +527,7 @@ compounding_bound	70382791705cbf94	e9d4364ed08aa670
 compounding_sq	d1c235d0018ee2c2	fec669ff82ae9c3b
 compress	1d8c65ee5d19c88a	15ed97e81c643dff
 compress_chain_cost	d059809f27c4793f	f98c1ed7871503eb
+compress_energy_bridge	4ceae07ebad9eee4	8cad938e1610f123
 compress_stage	90586588fca9cbb5	315e8c2585ae20e8
 concDelta	53f1ab3695ab9db4	3ca25fbe417b12a4
 concDelta_nonneg	f9787aee47198851	044cab6137e50f3d

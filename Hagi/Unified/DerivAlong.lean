@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.StageCalculus
+import Hagi.Energy.Quantizer
 import Mathlib
 /-!
 # LipEnergy — градиентная модель липшицевости (R563)
@@ -248,5 +249,30 @@ theorem joint_emp_smooth_derived {W : Type}
   have hL : w + -eta • d = w + -(eta • d) := by rw [neg_smul]
   rw [hL] at h
   exact le_trans h (le_of_eq (by ring))
+
+
+
+/-- МОСТ (compress): изменение энергии при РЕАЛЬНОМ
+квантовании gridQ выводится из липшицевости функции
+потерь: |E x − E(gridQ Δ x)| ≤ κ·Δ/2. В сочетании с
+compress_stage (StageCalculus) это замыкает
+h_emp_lip/h_emp_dist этапа сжатия операцией, а не
+предпосылкой. -/
+theorem compress_energy_bridge (E : ℝ → ℝ) (kappa : ℝ)
+    (hkappa : 0 ≤ kappa)
+    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
+    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ kappa)
+    (Δ : ℝ) (hΔ : 0 < Δ) (x : ℝ) :
+    |E x - E (Hagi.Energy.gridQ Δ hΔ x)| ≤ kappa * Δ / 2 := by
+  have hlip := lip_energy_quantization E kappa hdiff hnorm x
+    (Hagi.Energy.gridQ Δ hΔ)
+  have hq := Hagi.Energy.gridQ_error Δ hΔ x
+  rw [show ((Hagi.Energy.gridQ Δ hΔ x) - x) = -(x - (Hagi.Energy.gridQ Δ hΔ x)) from by ring] at hq
+  rw [abs_neg] at hq
+  have h1 : kappa * ‖x - Hagi.Energy.gridQ Δ hΔ x‖ ≤ kappa * (Δ / 2) :=
+    mul_le_mul_of_nonneg_left hq hkappa
+  rw [Real.norm_eq_abs] at h1
+  rw [Real.norm_eq_abs] at hlip
+  exact le_trans hlip (by linarith)
 
 end Hagi.Unified

@@ -1,5 +1,5 @@
 h_emp files: 35
-h_emp identifiers: 119
+h_emp identifiers: 120
 primitive defs: 17
 
 [h_emp]
@@ -31,7 +31,7 @@ Hagi/System/GrowthState.lean: h_emp_dist h_emp_grow h_emp_lip h_emp_merge h_emp_
 Hagi/Unified/AnytimeMartingale.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
 Hagi/Unified/ArchitectureTheorem.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
 Hagi/Unified/Assumptions.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_grow h_emp_merge h_emp_step
-Hagi/Unified/DerivAlong.lean: h_emp_grow h_emp_lip h_emp_smooth
+Hagi/Unified/DerivAlong.lean: h_emp_dist h_emp_grow h_emp_lip h_emp_smooth
 Hagi/Unified/GrowthBridge.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
 Hagi/Unified/MasterHAGI.lean: h_emp_01 h_emp_G h_emp_dist h_emp_fit h_emp_frontier_scaling h_emp_grow h_emp_indep h_emp_lip h_emp_meas h_emp_merge h_emp_p h_emp_smooth
 Hagi/Unified/MasterHAGITrunc.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
