@@ -1,5 +1,5 @@
-h_emp files: 34
-h_emp identifiers: 118
+h_emp files: 35
+h_emp identifiers: 119
 primitive defs: 17
 
 [h_emp]
@@ -15,6 +15,7 @@ Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
 Hagi/Growth/Grow.lean: h_emp_pl
 Hagi/Growth/RatioTakeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
 Hagi/Growth/SeedOnly.lean: h_emp_disp_step h_emp_lip
+Hagi/Model/MemoryConsolidation.lean: h_emp_memwrite
 Hagi/Model/SoftmaxStep.lean: h_emp_smooth
 Hagi/Pretraining/ProbeError.lean: h_emp_attsmooth
 Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate h_emp_retrieval_transfer_ h_emp_task_

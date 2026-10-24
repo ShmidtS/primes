@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Термодинамика консолидации** (`Hagi/Model/MemoryConsolidation`):
+  consolidation_bits_cap (запись F бит параметров в бюджете B —
+  F ≤ B/cUnit), consolidation_no_free_lunch (бюджета < n·cUnit
+  недостаточно для записи n бит — мост Cortex ↔ Landauer).
 - **Условие реализуемости shared down-projection**
   (`shared_down_projection_iff`, Cortex A.4): ∃L, L·H=Δ ⟺ каждая
   строка Δ — линейная комбинация строк H (row(Δ) ⊆ row(H)).
