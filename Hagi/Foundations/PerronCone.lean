@@ -162,4 +162,38 @@ theorem cone_comparison_perturbed (C D C' D' ξ : ℕ → ℝ)
   · exact hC'
   · exact hD'
 
+/-- ЯВНАЯ НИЖНЯЯ ОЦЕНКА D: T-кратная подстановка конусного
+неравенства D_{t+1} ≥ ρ·D_t + β·C_t даёт замкнутую форму
+D T ≥ ρ^T·D 0 + β·Σ_{i<T} ρ^{T−1−i}·C i (ρ ≥ 0) —
+инструмент для T-шаговых оценок скорости роста. -/
+theorem cone_explicit_lower (C D : ℕ → ℝ) (ρ β : ℝ) (hρ : 0 ≤ ρ)
+    (hstep : ∀ t, ρ * D t + β * C t ≤ D (t + 1)) (T : ℕ) :
+    ρ ^ T * D 0 + β * ∑ i ∈ Finset.range T, ρ ^ (T - 1 - i) * C i
+      ≤ D T := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+    have h1 := hstep T
+    calc D (T + 1) ≥ ρ * D T + β * C T := h1
+    _ ≥ ρ * (ρ ^ T * D 0
+        + β * ∑ i ∈ Finset.range T, ρ ^ (T - 1 - i) * C i)
+        + β * C T := by
+          apply add_le_add
+          · exact mul_le_mul_of_nonneg_left ih hρ
+          · rfl
+    _ = ρ ^ (T + 1) * D 0
+        + β * ∑ i ∈ Finset.range (T + 1), ρ ^ (T - i) * C i := by
+      have hrw : ∑ i ∈ Finset.range (T + 1), ρ ^ (T - i) * C i
+          = ρ * ∑ i ∈ Finset.range T, ρ ^ (T - 1 - i) * C i + C T := by
+        rw [Finset.sum_range_succ]
+        have hexp : ∀ i ∈ Finset.range T,
+            ρ ^ (T - i) * C i = ρ * (ρ ^ (T - 1 - i) * C i) := by
+          intro i hi
+          have hi' : i < T := Finset.mem_range.mp hi
+          have h : T - 1 - i + 1 = T - i := by omega
+          rw [← h, pow_succ]; ring
+        rw [Finset.sum_congr rfl hexp, Finset.mul_sum]
+        simp
+      rw [hrw, pow_succ]; ring
+
 end Hagi.Foundations
