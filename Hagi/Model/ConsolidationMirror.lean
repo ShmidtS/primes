@@ -138,4 +138,26 @@ theorem grow_gain_nonneg
   have := mul_nonneg hTnn hsum
   linarith [h, this]
 
+
+
+
+/-- МОСТ (CorePremises, компонент 2): граница энергии роста
+ВЫВОДИТСЯ из замены приора на Гиббс-учителя: при
+growEnergy = ⟨γ,ℓ⟩ (потери нового эксперта), energy ≥ ⟨ρ₀,ℓ⟩
+(потери текущего приора), growGain = T·(KL(ρ₀‖γ)+KL(γ‖ρ₀))
+выполнено growEnergy ≤ energy − growGain. -/
+theorem core_premises_grow_operational
+    {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ₀1 : ∑ v, ρ₀ v = 1)
+    (energy : ℝ)
+    (henergy : (∑ v, ρ₀ v * ℓ v) ≤ energy) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+      ≤ energy - T * ((∑ v, ρ₀ v * Real.log (ρ₀ v
+          / mirrorStep ρ₀ ℓ T v))
+        + (∑ v, mirrorStep ρ₀ ℓ T v * Real.log
+            (mirrorStep ρ₀ ℓ T v / ρ₀ v))) := by
+  have h := grow_gain_from_mirror ρ₀ ℓ T hT hρ₀ hρ₀1
+  linarith [h, henergy]
+
 end Hagi.Model
