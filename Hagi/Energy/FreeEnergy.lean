@@ -102,15 +102,6 @@ variable {V : Type*} [Fintype V]
 /- The cross-entropy of q against p in the +log convention:
 reused from `Hagi.Distill.crossEntropy`. -/
 
-/-- The KL-divergence (the finite-support form of
-`Hagi.DField.KLdiv`). -/
-noncomputable def kldiv (q p : V → ℝ) : ℝ :=
-  Hagi.Prelude.klDef q p
-
-/-- prelude bridge: kldiv IS the canonical Prelude.klDef. -/
-theorem kldiv_eq_klDef (q p : V → ℝ) :
-    kldiv q p = Hagi.Prelude.klDef q p := rfl
-
 /-- **(P1a) The free-energy gap identity** — exact: with the
 potential U = −τ·log p + C, the free energy
 F[q] = E_q[U] − τ·H(q) (with H = −Σ q log q, so −τH = +τΣq log q)
@@ -126,7 +117,7 @@ theorem free_energy_gap (q p : V → ℝ) (tau C : ℝ)
     (hq1 : ∑ v, q v = 1) :
     (∑ v, q v * ((-tau) * Real.log (p v) + C))
         + tau * ∑ v, q v * Real.log (q v)
-      = tau * kldiv (V := V) q p + C := by
+      = tau * Hagi.Prelude.klDef (V := V) q p + C := by
   have hsplit : ∑ v, q v * ((-tau) * Real.log (p v) + C)
       = ∑ v, (q v * ((-tau) * Real.log (p v)) + q v * C) := by
     refine Finset.sum_congr rfl fun v _ => by ring
@@ -139,11 +130,11 @@ theorem free_energy_gap (q p : V → ℝ) (tau C : ℝ)
       = q v * (Real.log (q v) - Real.log (p v)) := by
     intro v
     rw [Real.log_div (ne_of_gt (hq v)) (ne_of_gt (hp v))]
-  have hkl : tau * kldiv (V := V) q p
+  have hkl : tau * Hagi.Prelude.klDef (V := V) q p
       = tau * (∑ v, q v * (Real.log (q v) - Real.log (p v))) := by
-    have hk : kldiv (V := V) q p
+    have hk : Hagi.Prelude.klDef (V := V) q p
         = ∑ v, q v * (Real.log (q v) - Real.log (p v)) := by
-      unfold kldiv
+      unfold Hagi.Prelude.klDef
       exact Finset.sum_congr rfl fun v _ => hterm v
     rw [hk]
   have hkl2 : ∑ v, q v * (Real.log (q v) - Real.log (p v))
@@ -198,8 +189,8 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
     (q : V → ℝ) (p : K → V → ℝ) (w : K → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ i v, 0 < p i v)
     (hq1 : ∑ v, q v = 1) (hw1 : ∑ i, w i = 1) :
-    ∑ i, w i * kldiv (V := V) q (p i)
-      = kldiv (V := V) q (fun v =>
+    ∑ i, w i * Hagi.Prelude.klDef (V := V) q (p i)
+      = Hagi.Prelude.klDef (V := V) q (fun v =>
           (∏ i, (p i v)^(w i)) / (∑ u, ∏ i, (p i u)^(w i)))
         - Real.log (∑ u, ∏ i, (p i u)^(w i)) := by
   have hgp : ∀ u, 0 < ∏ i, (p i u)^(w i) := fun u =>
@@ -222,11 +213,11 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
       (ne_of_gt (div_pos (hgp v) hZpos))]
     rw [hlogpool v]
     ring
-  have hLper : ∀ i : K, w i * kldiv (V := V) q (p i)
+  have hLper : ∀ i : K, w i * Hagi.Prelude.klDef (V := V) q (p i)
       = ∑ v, w i * (q v * Real.log (q v)
           - q v * Real.log (p i v)) := by
     intro i
-    unfold kldiv Hagi.Prelude.klDef
+    simp only [Hagi.Prelude.klDef]
     rw [Finset.mul_sum]
     refine Finset.sum_congr rfl fun v _ => ?_
     rw [Real.log_div (ne_of_gt (hq v)) (ne_of_gt (hp i v))]
@@ -247,7 +238,7 @@ theorem geometric_pool_identity (K : Type) [Fintype K] [Nonempty V]
       - q v * Real.log (p i v)) :=
     Finset.sum_comm
   rw [hswap]
-  unfold kldiv Hagi.Prelude.klDef
+  simp only [Hagi.Prelude.klDef]
   rw [Finset.sum_congr rfl fun v _ => hRper v]
   set X := ∑ v, (q v * Real.log (q v)
       - q v * (∑ i, w i * Real.log (p i v))) with hX
@@ -296,8 +287,8 @@ theorem geometric_pool_identity_nonneg (K : Type) [Fintype K] [Nonempty V]
     (hq : ∀ v, 0 < q v) (hp : ∀ i v, 0 < p i v)
     (hq1 : ∑ v, q v = 1) (hw1 : ∑ i, w i = 1)
     (_hw : ∀ i, 0 ≤ w i) :
-    ∑ i, w i * kldiv (V := V) q (p i)
-      = kldiv (V := V) q (fun v =>
+    ∑ i, w i * Hagi.Prelude.klDef (V := V) q (p i)
+      = Hagi.Prelude.klDef (V := V) q (fun v =>
           (∏ i, (p i v)^(w i)) / (∑ u, ∏ i, (p i u)^(w i)))
         - Real.log (∑ u, ∏ i, (p i u)^(w i)) :=
   geometric_pool_identity K q p w hq hp hq1 hw1
@@ -312,12 +303,8 @@ end FreeEnergy
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (kldiv free_energy_gap geometric_pool_identity geometric_pool_identity_nonneg tokenKLTotal)
+export Hagi.Energy (free_energy_gap geometric_pool_identity geometric_pool_identity_nonneg tokenKLTotal)
 
 variable {V : Type*} [Fintype V]
-
-/-- Канон 2.1: kldiv — адаптер канонического klDef. -/
-theorem kldiv_eq_canon (q p : V → ℝ) :
-    kldiv q p = Hagi.Prelude.klDef q p := rfl
 
 end Hagi
