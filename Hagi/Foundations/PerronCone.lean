@@ -365,4 +365,56 @@ theorem h_emp_takeoff_exponential (C D G : ℕ → ℝ) (γ k : ℝ)
     rw [hstep, pow_succ]
     nlinarith [ih, hγk, hkey]
 
+/-- КОНУСНАЯ ИНВАРИАНТНОСТЬ ПОСЫЛОК MasterHAGI_trunc: блок
+h_emp_{cone0, C_cap, dyn, beta} поддерживает конусное
+соотношение (α/γ)·C t ≤ D t индукцией по t (ядро конусного
+блока аудита v3): cap ограничивает рост C фактором (1+α),
+beta оплачивает дрейф+возмущение, dyn переносит на D. -/
+theorem trunc_cone_invariance (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
+    (hα : 0 ≤ α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
+    (hC : ∀ t, 0 < C t)
+    (hcone0 : α / γ * C 0 ≤ D 0)
+    (hcap : ∀ t, C (t + 1) ≤ (1 + α) * C t)
+    (hdyn : ∀ t, ρ * D t + β * C t - ξ t ≤ D (t + 1))
+    (hbeta : ∀ t, α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β) :
+    ∀ t, α / γ * C t ≤ D t := by
+  intro t
+  induction t with
+  | zero => exact hcone0
+  | succ t ih =>
+    have hCt : 0 < C t := hC t
+    have hkn : (0:ℝ) ≤ α / γ :=
+      div_nonneg hα (le_of_lt hγ)
+    have hξ : ξ t = (ξ t / C t) * C t := by field_simp
+    have hb := hbeta t
+    have hkey : α / γ * (1 + α)
+        ≤ ρ * (α / γ) + β - ξ t / C t := by
+      have hsplit : α / γ * (1 + α)
+          = α / γ * ((1 + α) - ρ) + ρ * (α / γ) := by ring
+      nlinarith [hb]
+    have h1 : α / γ * C (t + 1)
+        ≤ (α / γ * (1 + α)) * C t := by
+      calc α / γ * C (t + 1)
+          ≤ α / γ * ((1 + α) * C t) :=
+            mul_le_mul_of_nonneg_left (hcap t) hkn
+      _ = (α / γ * (1 + α)) * C t := by ring
+    have h2 : (α / γ * (1 + α)) * C t
+        ≤ ρ * D t + β * C t - ξ t := by
+      have hkey : α / γ * (1 + α)
+          ≤ ρ * (α / γ) + β - ξ t / C t := by
+        nlinarith [hbeta t]
+      have hprod : (α / γ * (1 + α)) * C t
+          ≤ (ρ * (α / γ) + β - ξ t / C t) * C t :=
+        mul_le_mul_of_nonneg_right hkey (le_of_lt hCt)
+      have hexpand : (ρ * (α / γ) + β - ξ t / C t) * C t
+          = ρ * (α / γ * C t) + β * C t - (ξ t / C t) * C t := by
+        ring
+      rw [hexpand] at hprod
+      have hξeq : (ξ t / C t) * C t = ξ t := by field_simp
+      rw [hξeq] at hprod
+      have hρmono : ρ * (α / γ * C t) ≤ ρ * D t :=
+        mul_le_mul_of_nonneg_left ih hρ
+      linarith
+    exact le_trans h1 (le_trans h2 (hdyn t))
+
 end Hagi.Foundations
