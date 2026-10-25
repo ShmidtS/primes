@@ -1226,4 +1226,20 @@ theorem wTraj_productive :
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
 
+/-- ИНВАРИАНТЫ ПРОДУКТИВНОЙ ТРАЕКТОРИИ (аудит §9): та же
+wTraj-траектория удовлетворяет сертификатам бюджета и риска
+на всём горизонте: бюджет неотрицателен (100 − 2t), риск
+неотрицателен и не убывает (все риски шагов нулевые —
+тождественный ноль), бюджет тратится ровно на 2 за шаг. -/
+theorem wTraj_budget_risk_invariants :
+    (∀ t ≤ 3, (wTraj.state t).budget = 100 - 2 * t ∧ 0 ≤ (wTraj.state t).budget)
+      ∧ ∀ t ≤ 3, (wTraj.state t).protectedRisk = 0 := by
+  constructor
+  · intro t ht
+    interval_cases t
+    all_goals norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · intro t ht
+    interval_cases t
+    all_goals norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+
 end Hagi.Model
