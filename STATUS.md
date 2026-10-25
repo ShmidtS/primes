@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2898 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2899 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Многошаговый продуктивный witness** (`wTraj_productive`):
+  на канонической семантике Trajectory существует траектория
+  T=3, каждый шаг строго продуктивен (gain>0, энергия −3,
+  capability растёт), состояния — только через advance
+  (аудит §4, регрессионная защита).
 - **Мост CorePremises (grow)**
   (`core_premises_grow_operational`): компонент 2 (h_emp_grow)
   выводится из замены приора на Гиббс-учителя:

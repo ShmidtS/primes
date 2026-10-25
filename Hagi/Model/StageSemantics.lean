@@ -1206,4 +1206,24 @@ theorem trajectory_potential_nesterov (tr : Trajectory X)
   Hagi.Optimization.nesterov_corrected
     (fun t => potential (tr.state t)) q β hq hq1 hβ hstep k
 
+/-- МНОГОШАГОВЫЙ ПРОДУКТИВНЫЙ WITNESS (аудит §4): на
+канонической семантике Trajectory существует траектория
+длины 3, каждый шаг которой строго продуктивен:
+growGain > 0, энергия падает не менее чем на 3,
+способность строго растёт. Состояния получены только
+последовательными advance; эффекты — входы шагов. -/
+theorem wTraj_productive :
+    ∃ tr : Hagi.Model.Trajectory ℝ,
+      tr.T = 3
+        ∧ ∀ t < 3,
+            0 < (tr.input t).eff.growGain
+              ∧ (tr.state (t + 1)).energy + 3 ≤ (tr.state t).energy
+              ∧ (tr.state t).capability < (tr.state (t + 1)).capability := by
+  refine ⟨wTraj, rfl, ?_⟩
+  intro t ht
+  interval_cases t
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+
 end Hagi.Model
