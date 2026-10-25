@@ -1242,4 +1242,22 @@ theorem wTraj_budget_risk_invariants :
     interval_cases t
     all_goals norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
 
+/-- ВЗЛЁТ СВИДЕТЕЛЯ: продуктивная траектория wTraj реализует
+экспоненциальный рост способности с темпом (1+α), α=1:
+каждый шаг удовлетворяет гейту alpha·C_t ≤ growGain (gain
+равен текущей capability: 1,2,4), поэтому
+C_0·(1+1)^t ≤ C_t на всём горизонте — связка канонической
+семантики с cone/takeoff-механикой. -/
+theorem wTraj_takeoff :
+    ∀ t ≤ 3, (1:ℝ) * (wTraj.state t).capability
+      ≤ (wTraj.state (t + 1)).capability
+        ∧ (wTraj.state 0).capability * 2 ^ t
+          ≤ (wTraj.state t).capability := by
+  intro t ht
+  interval_cases t
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+  · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
+
 end Hagi.Model

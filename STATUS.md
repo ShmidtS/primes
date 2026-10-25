@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2900 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2901 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Взлёт свидетеля** (`wTraj_takeoff`): gate alpha·C ≤ gain
+  (α=1, gain=C_t: 1,2,4) на каждом шаге ⟹ экспоненциальный
+  рост C_0·2^t ≤ C_t — связка Trajectory с cone/takeoff.
 - **Инварианты продуктивной траектории**
   (`wTraj_budget_risk_invariants`): бюджет = 100−2t,
   неотрицателен; риск = 0 на всём горизонте T=3 — сертификаты
