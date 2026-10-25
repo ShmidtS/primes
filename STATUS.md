@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2891 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2900 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -588,6 +588,7 @@
   (DField, Distill, Variational, FreeEnergy, DBridge,
   DistillRecursion, NessDissipation, CrossModalGap,
   MDLThreeCurrency, Insight, PlasticityLedger,
+  InfoNCE, PPT) используют
   ArchitectureTheorem) используют
   канонический klDef напрямую (дубликаты KLdiv/kldiv/kldiv'
   и их rfl-мосты удалены, аудит 2026-10-24).
