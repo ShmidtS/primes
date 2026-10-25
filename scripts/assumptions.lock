@@ -1,6 +1,6 @@
 h_emp files: 36
 h_emp identifiers: 121
-primitive defs: 17
+primitive defs: 16
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
@@ -49,7 +49,6 @@ Hagi/Data/FannesSmooth.lean:tvDist
 Hagi/Discovery/PPT.lean:tvDist
 Hagi/Energy/EntropyProduction.lean:entropyProduction
 Hagi/Energy/FreeEnergy.lean:kldiv
-Hagi/Energy/Variational.lean:kldiv'
 Hagi/Information/DiscreteFannes.lean:entropy
 Hagi/Information/DiscreteFannes.lean:tvHalf
 Hagi/Omni/SharedStateComposition.lean:entryCount

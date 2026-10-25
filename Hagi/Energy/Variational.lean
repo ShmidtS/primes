@@ -61,13 +61,6 @@ section Variational
 
 variable {V : Type*} [Fintype V] [Nonempty V]
 
-noncomputable def kldiv' (q p : V → ℝ) : ℝ :=
-  Hagi.Prelude.klDef q p
-
-/-- prelude bridge: kldiv' IS the canonical Prelude.klDef. -/
-theorem kldiv'_eq_klDef (q p : V → ℝ) :
-    kldiv' q p = Hagi.Prelude.klDef q p := rfl
-
 /-- The tilted distribution: p tilted by U, normalized. -/
 noncomputable def tilted (p U : V → ℝ) (v : V) : ℝ :=
   p v * Real.exp (U v) / (∑ w, p w * Real.exp (U w))
@@ -93,8 +86,8 @@ engine of the variational inequality. -/
 theorem kl_tilted_decompose (q p U : V → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
     (hq1 : ∑ v, q v = 1) (_hp1 : ∑ v, p v = 1) :
-    kldiv' (V := V) q (tilted (V := V) p U)
-      = kldiv' (V := V) q p - ∑ v, q v * U v
+    Hagi.Prelude.klDef (V := V) q (tilted (V := V) p U)
+      = Hagi.Prelude.klDef (V := V) q p - ∑ v, q v * U v
           + Real.log (∑ w, p w * Real.exp (U w)) := by
   have hZpos : 0 < ∑ w, p w * Real.exp (U w) :=
     Finset.sum_pos (fun w _ => mul_pos (hp w) (Real.exp_pos _))
@@ -116,7 +109,7 @@ theorem kl_tilted_decompose (q p U : V → ℝ)
       ring
     rw [hdiv, hlog]
     ring
-  unfold kldiv' Hagi.Prelude.klDef tilted
+  unfold Hagi.Prelude.klDef tilted
   rw [Finset.sum_congr rfl fun v _ => hper v]
   have hsplit3 : ∑ v, (q v * Real.log (q v / p v) - q v * U v
       + q v * Real.log Z)
@@ -153,14 +146,14 @@ the free-energy descent's target is unique. -/
 theorem free_energy_variational (q p U : V → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
     (hq1 : ∑ v, q v = 1) (hp1 : ∑ v, p v = 1) :
-    (∑ v, q v * U v) - kldiv' (V := V) q p
+    (∑ v, q v * U v) - Hagi.Prelude.klDef (V := V) q p
       ≤ Real.log (∑ w, p w * Real.exp (U w)) := by
   have hdecomp := kl_tilted_decompose q p U hq hp hq1 hp1
   -- KL(q‖p̃) ≥ 0 (Cauchy on the tilted — the kl_nonneg engine)
   have hZpos : 0 < ∑ w, p w * Real.exp (U w) :=
     Finset.sum_pos (fun w _ => mul_pos (hp w) (Real.exp_pos _))
       Finset.univ_nonempty
-  have hklT : 0 ≤ kldiv' (V := V) q (tilted (V := V) p U) :=
+  have hklT : 0 ≤ Hagi.Prelude.klDef (V := V) q (tilted (V := V) p U) :=
     -- R334: delegates to the canon Hagi.Prelude.kl_nonneg
     -- (kldiv' IS klDef by rfl)
     Hagi.Prelude.kl_nonneg q (tilted (V := V) p U)
@@ -212,9 +205,9 @@ theorem gibbs_optimal_bound (q L : V → ℝ) {T : ℝ} (hT : 0 < T)
           rw [Finset.sum_neg_distrib]
       _ = -(∑ v, q v * L v) / T := by rw [hkey, neg_div]
   -- KL(q ‖ uniform) = Σ q·log q + log n
-  have hkl : kldiv' (V := V) q (fun _ => (1 : ℝ) / n)
+  have hkl : Hagi.Prelude.klDef (V := V) q (fun _ => (1 : ℝ) / n)
       = (∑ v, q v * Real.log (q v)) + Real.log n := by
-    unfold kldiv' Hagi.Prelude.klDef
+    unfold Hagi.Prelude.klDef
     simp only []
     have hdiv : ∀ v : V, q v / (1 / n) = q v * n := by
       intro v; field_simp
@@ -272,9 +265,5 @@ end Variational
 
 
 variable {V : Type*} [Fintype V]
-
-/-- Канон 2.1: kldiv' — адаптер канонического klDef. -/
-theorem kldiv'_eq_canon (q p : V → ℝ) :
-    kldiv' q p = Hagi.Prelude.klDef q p := rfl
 
 end Hagi.Energy
