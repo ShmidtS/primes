@@ -336,4 +336,33 @@ theorem h_emp_gain_geometric (C D G : ℕ → ℝ) (ρ β γ : ℝ)
   exact add_le_add (le_refl _)
     (le_trans (mul_le_mul_of_nonneg_left hmono hγ) hsumG)
 
+/-- ЭКСПОНЕНЦИАЛЬНЫЙ ВЗЛЁТ: если конусное соотношение
+k·C t ≤ D t удерживается на каждом шаге, а шаги
+C (t+1) = C t + G t и γ·D t ≤ G t выполнены, то
+capability растёт экспоненциально:
+C T ≥ (1 + γ·k)^T ·C 0 (при 1+γk ≥ 0) —
+неравенственная версия cone_perron_growth. -/
+theorem h_emp_takeoff_exponential (C D G : ℕ → ℝ) (γ k : ℝ)
+    (hγ : 0 ≤ γ) (hγk : 0 ≤ 1 + γ * k)
+    (hstepC : ∀ t, C (t + 1) = C t + G t)
+    (hgain : ∀ t, γ * D t ≤ G t)
+    (hcone : ∀ t, k * C t ≤ D t) (T : ℕ) :
+    (1 + γ * k) ^ T * C 0 ≤ C T := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+    have hstep := hstepC T
+    have hg := hgain T
+    have hc := hcone T
+    have hγkC : γ * k * C T ≤ G T :=
+      calc γ * k * C T = γ * (k * C T) := by ring
+      _ ≤ γ * D T := mul_le_mul_of_nonneg_left hc hγ
+      _ ≤ G T := hg
+    have hkey : (1 + γ * k) * C T ≤ C T + G T := by
+      have : (1 + γ * k) * C T = C T + γ * k * C T := by ring
+      rw [this]
+      exact add_le_add_right hγkC (C T)
+    rw [hstep, pow_succ]
+    nlinarith [ih, hγk, hkey]
+
 end Hagi.Foundations
