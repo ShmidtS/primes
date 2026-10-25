@@ -61,7 +61,7 @@ the oldest and most widely consumed):
 Bridged variants (each `..._eq_canonical`):
 
 * KL:  Data.Distill.klDiv (delegate,),
-       Data.DField.KLdiv (rfl,),
+       Data.DField (rfl; сам KLdiv удалён, аудит 2026-10-24,),
        Energy.FreeEnergy.kldiv (new bridge below);
 * H:   Data.DistillRecursion.shannonEntropy (new),
        Information.DiscreteFannes.shannon (new);
@@ -99,8 +99,6 @@ noncomputable def CE (q p : V → ℝ) : ℝ := -∑ v, q v * Real.log (p v)
 theorem klDiv_eq_canonical (q p : V → ℝ) :
     Hagi.klDiv q p = KL q p := rfl
 
-theorem KLdiv_eq_canonical (q p : V → ℝ) :
-    Hagi.KLdiv q p = KL q p := rfl
 
 -- (the Energy.FreeEnergy.kldiv bridge lives in
 -- Energy/FreeEnergy.lean itself: same-layer import rule)

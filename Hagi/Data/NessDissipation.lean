@@ -22,7 +22,7 @@ Markov chain:
 
 * the ENTROPY PRODUCTION RATE as the KL divergence between
   the forward and reversed edge flows
-  `epRate P π = KLdiv (flow P π) (flowBack P π)` — the finite
+  `epRate P π = Hagi.Prelude.klDef (flow P π) (flowBack P π)` — the finite
   Markov-chain form of Σ π_i P_ij log(π_i P_ij / π_j P_ji);
 
 * `detailed_balance_zero_ep` — EQUILIBRIUM IS DISSIPATION-FREE:
@@ -66,7 +66,7 @@ the finite form of Σ_{i,j} π_i P_ij·log(π_i P_ij / π_j P_ji).
 Zero exactly at equilibrium (detailed balance); strictly
 positive at any NESS. -/
 noncomputable def epRate (P : V → V → ℝ) (pi : V → ℝ) : ℝ :=
-  KLdiv (fun e : V × V => flowMap P pi e.1 e.2)
+  Hagi.Prelude.klDef (fun e : V × V => flowMap P pi e.1 e.2)
     (fun e : V × V => flowBack P pi e.1 e.2)
 
 /-- **Equilibrium is dissipation-free**: under detailed
@@ -83,7 +83,7 @@ theorem detailed_balance_zero_ep (P : V → V → ℝ) (pi : V → ℝ)
     unfold flowMap flowBack
     exact hdb e.1 e.2
   rw [hzero]
-  unfold KLdiv
+  unfold Hagi.Prelude.klDef
   refine Finset.sum_eq_zero fun e _ => ?_
   have hF : 0 < flowMap P pi e.1 e.2 := hpos e.1 e.2
   have hB : 0 < flowBack P pi e.1 e.2 := by

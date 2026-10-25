@@ -73,7 +73,7 @@ the divergence of corpus i from the current mixture; the KKT
 equalizes THESE across the active set. -/
 noncomputable def divField_marginal (p : K → Corpus V)
     (w : K → ℝ) (i : K) : ℝ :=
-  KLdiv ((p i).dist) (mixtureCorpus p w)
+  Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise

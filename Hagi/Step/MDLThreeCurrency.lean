@@ -87,7 +87,7 @@ noncomputable def sourceEntropy (p : V → ℝ) : ℝ :=
   ∑ v, p v * (-Real.log (p v))
 
 /-- Кодирование данных по модели не короче энтропии
-источника: dataCodeLen − sourceEntropy = KLdiv p q ≥ 0
+источника: dataCodeLen − sourceEntropy = Hagi.Prelude.klDef p q ≥ 0
 (мост из kl_nonneg; p — распределение данных, q — модель).
 Сжатие данных не может обойти источник — граница
 Monotone-Compression-постановки на нашем языке. -/
@@ -96,8 +96,8 @@ theorem no_compression_below_entropy (p q : V → ℝ)
     (hsump : ∑ v, p v = 1) (hsumq : ∑ v, q v = 1) :
     sourceEntropy p ≤ dataCodeLen p q := by
   have hkl : dataCodeLen p q - sourceEntropy p
-      = Hagi.KLdiv p q := by
-    unfold dataCodeLen sourceEntropy Hagi.KLdiv
+      = Hagi.Prelude.klDef p q := by
+    unfold dataCodeLen sourceEntropy Hagi.Prelude.klDef
     have hsplit : ∀ v ∈ (Finset.univ : Finset V),
         p v * (-Real.log (q v)) - p v * (-Real.log (p v))
           = p v * Real.log (p v / q v) := by
@@ -110,7 +110,7 @@ theorem no_compression_below_entropy (p q : V → ℝ)
     rw [← Finset.sum_sub_distrib]
     exact Finset.sum_congr rfl fun v _ => hsplit v
       (Finset.mem_univ v)
-  have hnn : 0 ≤ Hagi.KLdiv p q :=
+  have hnn : 0 ≤ Hagi.Prelude.klDef p q :=
     Hagi.kl_nonneg p q hp hq hsump hsumq
   linarith
 

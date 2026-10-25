@@ -225,7 +225,7 @@ theorem dfield_entropy_identity (p : K → Corpus V) (w : K → ℝ)
       (fun v : V => ∑ i, w i * (p i).dist v
         * Real.log (∑ j, w j * (p j).dist v))]
   -- assemble: unfold everything to the log-sum form
-  unfold divField mixtureCorpus KLdiv
+  unfold divField mixtureCorpus Hagi.Prelude.klDef
   rw [hL, hR]
 
 

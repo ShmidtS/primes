@@ -37,12 +37,12 @@ noncomputable def crossModalGap (p : X × Y → ℝ) : ℝ :=
 /-! ### The entropy form IS the KL form -/
 
 /-- For a positive normalized `p`: `crossModalGap p =
-KLdiv p (margX p · * margY p ·)`. -/
+Hagi.Prelude.klDef p (margX p · * margY p ·)`. -/
 theorem crossModalGap_eq_kl (p : X × Y → ℝ)
     (hp : ∀ z : X × Y, 0 < p z)
     (hsum : ∑ z : X × Y, p z = 1) :
     crossModalGap p
-      = Hagi.KLdiv p (fun z => margX p z.1 * margY p z.2) := by
+      = Hagi.Prelude.klDef p (fun z => margX p z.1 * margY p z.2) := by
   -- marginals are strictly positive and normalized
   have hmx : ∀ x, 0 < margX p x := by
     intro x
@@ -70,7 +70,7 @@ theorem crossModalGap_eq_kl (p : X × Y → ℝ)
     have hpair : ∀ x : X, (x, y).2 = y := fun _ => rfl
     rw [Finset.sum_congr rfl (fun x _ => by rw [hpair x]), ← Finset.sum_mul, margY]
   -- unfold both sides and match
-  unfold crossModalGap Hagi.Data.ent Hagi.Prelude.entDef Hagi.KLdiv
+  unfold crossModalGap Hagi.Data.ent Hagi.Prelude.entDef Hagi.Prelude.klDef
   -- split the log of the ratio
   have hsplit : ∀ z : X × Y,
       Real.log (p z / (margX p z.1 * margY p z.2))
@@ -157,7 +157,7 @@ theorem crossModalGap_zero_iff_indep (p : X × Y → ℝ)
       ↔ ∀ x y, p (x, y) = margX p x * margY p y := by
   constructor
   · intro h0
-    have hkl : Hagi.KLdiv p (fun z => margX p z.1 * margY p z.2) = 0 := by
+    have hkl : Hagi.Prelude.klDef p (fun z => margX p z.1 * margY p z.2) = 0 := by
       rw [← crossModalGap_eq_kl p hp hsum, h0]
     have hall := Hagi.kl_zero_iff_eq p (fun z => margX p z.1 * margY p z.2)
       hp (fun z => mul_pos (margX_pos p hp z.1) (margY_pos p hp z.2))
@@ -165,8 +165,8 @@ theorem crossModalGap_zero_iff_indep (p : X × Y → ℝ)
     intro x y
     exact hall (x, y)
   · intro h
-    have hkl : Hagi.KLdiv p (fun z => margX p z.1 * margY p z.2) = 0 := by
-      unfold Hagi.KLdiv
+    have hkl : Hagi.Prelude.klDef p (fun z => margX p z.1 * margY p z.2) = 0 := by
+      unfold Hagi.Prelude.klDef
       apply Finset.sum_eq_zero
       intro z _
       rw [h z.1 z.2]

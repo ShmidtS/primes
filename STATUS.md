@@ -583,10 +583,11 @@
   цель дороже бюджета (Qtarget > cap0 + budget0/c) ⟹
   недостижима ни на каком горизонте с неотрицательным
   бюджетом — контрапозиция оплаченного роста.
-- **Канон 2.1: единый KL** (`KLdiv_eq_canon`, `kl_tilted_decompose`):
-  DField — rfl-адаптер klDef; Variational и FreeEnergy
-  используют klDef напрямую (дубликаты kldiv/kldiv' и их
-  rfl-мосты удалены, аудит 2026-10-24).
+- **Канон 2.1: единый KL** (`kl_tilted_decompose`): все модули
+  (DField, Variational, FreeEnergy, DBridge, DistillRecursion,
+  NessDissipation, CrossModalGap, MDLThreeCurrency) используют
+  канонический klDef напрямую (дубликаты KLdiv/kldiv/kldiv'
+  и их rfl-мосты удалены, аудит 2026-10-24).
 - **Интегральный сертификат траектории**
   (`integral_trajectory_certificate`, уровень E): единая
   теорема — точные леджеря ∧ ресурсная граница роста,

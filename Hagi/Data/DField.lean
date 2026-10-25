@@ -107,13 +107,6 @@ structure Corpus (V : Type*) [Fintype V] where
   nonneg : ∀ v, 0 ≤ dist v
   sum_one : ∑ v, dist v = 1
 
-/-- The finite-support KL-divergence (concrete definition; the
-per-term log is handled under the positivity hypotheses of the
-theorems). -/
-noncomputable def KLdiv (p q : V → ℝ) : ℝ := ∑ v, p v * Real.log (p v / q v)
-
-/-- prelude bridge: KLdiv IS the canonical Prelude.klDef. -/
-theorem KLdiv_eq_klDef (p q : V → ℝ) : KLdiv p q = Hagi.Prelude.klDef p q := rfl
 
 /-- The mixture of corpora by weights w: the pointwise
 combination (nonneg, sums to 1 — `mixtureCorpus`). -/
@@ -126,7 +119,7 @@ divergence from the mixture — the model of the disagreement
 replenishment. -/
 noncomputable def divField {K : Type*} [Fintype K] (p : K → Corpus V)
     (w : K → ℝ) : ℝ :=
-  ∑ i, w i * KLdiv ((p i).dist) (mixtureCorpus p w)
+  ∑ i, w i * Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w)
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
@@ -138,7 +131,7 @@ delegates to the canon `Hagi.Prelude.kl_nonneg` (R334). -/
 theorem kl_nonneg (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
     (hsump : ∑ v, p v = 1) (hsumq : ∑ v, q v = 1) :
-    0 ≤ KLdiv p q :=
+    0 ≤ Hagi.Prelude.klDef p q :=
   Hagi.Prelude.kl_nonneg p q hp hq hsump hsumq
 
 /-- The equality case of the per-term log bound: log x = x − 1
@@ -198,9 +191,9 @@ of `kl_nonneg`. -/
 theorem kl_zero_iff_eq (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
     (hsump : ∑ v, p v = 1) (hsumq : ∑ v, q v = 1)
-    (hKL : KLdiv p q = 0) :
+    (hKL : Hagi.Prelude.klDef p q = 0) :
     ∀ v, p v = q v := by
-  unfold KLdiv at hKL
+  unfold Hagi.Prelude.klDef at hKL
   have hg : ∀ v : V,
       0 ≤ p v * Real.log (p v / q v) - (p v - q v) := by
     intro v
@@ -276,20 +269,20 @@ theorem divField_zero_iff (p : K → Corpus V) (w : K → ℝ)
     intro hz
     have hmixpos := mixtureCorpus_pos p w hp hw hne
     have hmix1 := mixtureCorpus_sum_one p w hsum hw1
-    have hall : ∀ i : K, 0 ≤ w i * KLdiv ((p i).dist)
+    have hall : ∀ i : K, 0 ≤ w i * Hagi.Prelude.klDef ((p i).dist)
         (mixtureCorpus p w) := fun i =>
       mul_nonneg (le_of_lt (hw i))
         (kl_nonneg ((p i).dist) (mixtureCorpus p w)
           (fun v => hp i v) hmixpos (hsum i) hmix1)
     have hterm0 : ∀ i : K,
-        w i * KLdiv ((p i).dist) (mixtureCorpus p w) = 0 := fun i =>
+        w i * Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) = 0 := fun i =>
       le_antisymm
         (by
-          have hle1 : w i * KLdiv ((p i).dist) (mixtureCorpus p w)
-              ≤ ∑ j, w j * KLdiv ((p j).dist)
+          have hle1 : w i * Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w)
+              ≤ ∑ j, w j * Hagi.Prelude.klDef ((p j).dist)
                 (mixtureCorpus p w) :=
             Finset.single_le_sum (fun j _ => hall j) (mem_univ i)
-          have hsum0 : ∑ j, w j * KLdiv ((p j).dist)
+          have hsum0 : ∑ j, w j * Hagi.Prelude.klDef ((p j).dist)
               (mixtureCorpus p w) = 0 := by
             unfold divField at hz
             exact hz
@@ -297,17 +290,17 @@ theorem divField_zero_iff (p : K → Corpus V) (w : K → ℝ)
           exact hle1)
         (hall i)
     have hKL0 : ∀ i : K,
-        KLdiv ((p i).dist) (mixtureCorpus p w) = 0 := by
+        Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) = 0 := by
       intro i
       by_contra hne0
-      have hKLpos : 0 < KLdiv ((p i).dist) (mixtureCorpus p w) := by
-        have hnn : 0 ≤ KLdiv ((p i).dist) (mixtureCorpus p w) :=
+      have hKLpos : 0 < Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) := by
+        have hnn : 0 ≤ Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) :=
           kl_nonneg ((p i).dist) (mixtureCorpus p w)
             (fun v => hp i v) hmixpos (hsum i) hmix1
         rcases lt_or_eq_of_le hnn with hlt | heq
         · exact hlt
         · exact absurd (Eq.symm heq) hne0
-      have hgt : 0 < w i * KLdiv ((p i).dist) (mixtureCorpus p w) :=
+      have hgt : 0 < w i * Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) :=
         mul_pos (hw i) hKLpos
       linarith [hterm0 i]
     intro i v
@@ -320,8 +313,8 @@ theorem divField_zero_iff (p : K → Corpus V) (w : K → ℝ)
     unfold divField
     apply Finset.sum_eq_zero
     intro i _
-    have : KLdiv ((p i).dist) (mixtureCorpus p w) = 0 := by
-      unfold KLdiv
+    have : Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w) = 0 := by
+      unfold Hagi.Prelude.klDef
       apply Finset.sum_eq_zero
       intro v _
       have hmixpos := mixtureCorpus_pos p w hp hw hne
@@ -343,8 +336,8 @@ set_option linter.unusedDecidableInType false in
 theorem kl_product {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
     (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
     (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1) :
-    KLdiv (fun uv : V × V => p1 uv.1 * p2 uv.2) (fun uv : V × V => q1 uv.1 * q2 uv.2)
-      = KLdiv p1 q1 + KLdiv p2 q2 := by
+    Hagi.Prelude.klDef (fun uv : V × V => p1 uv.1 * p2 uv.2) (fun uv : V × V => q1 uv.1 * q2 uv.2)
+      = Hagi.Prelude.klDef p1 q1 + Hagi.Prelude.klDef p2 q2 := by
   -- term-level split
   have hsplit : ∀ x y : V,
       (p1 x * p2 y) * Real.log ((p1 x * p2 y) / (q1 x * q2 y))
@@ -372,7 +365,7 @@ theorem kl_product {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → �
           = p1 x * (p2 y * Real.log (p2 y / q2 y)) := fun y => by ring
       rw [Finset.sum_congr rfl (fun y _ => hre y), Finset.mul_sum]
     rw [h1, h2]
-  unfold KLdiv
+  unfold Hagi.Prelude.klDef
   rw [Fintype.sum_prod_type (fun uv : V × V =>
     (p1 uv.1 * p2 uv.2) * Real.log ((p1 uv.1 * p2 uv.2) / (q1 uv.1 * q2 uv.2))),
     Finset.sum_congr rfl (fun x _ => hinner x), Finset.sum_add_distrib]
@@ -399,10 +392,10 @@ theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 
     (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
     (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1)
     (_hsumq1 : ∑ v, q1 v = 1) (hsumq2 : ∑ v, q2 v = 1) :
-    KLdiv p1 q1 ≤ KLdiv (fun uv : V × V => p1 uv.1 * p2 uv.2)
+    Hagi.Prelude.klDef p1 q1 ≤ Hagi.Prelude.klDef (fun uv : V × V => p1 uv.1 * p2 uv.2)
       (fun uv : V × V => q1 uv.1 * q2 uv.2) := by
   rw [kl_product p1 q1 p2 q2 hp1 hq1 hp2 hq2 hsum1 hsum2]
-  have h2 : 0 ≤ KLdiv p2 q2 := kl_nonneg p2 q2 hp2 hq2 hsum2 hsumq2
+  have h2 : 0 ≤ Hagi.Prelude.klDef p2 q2 := kl_nonneg p2 q2 hp2 hq2 hsum2 hsumq2
   linarith
 
 end Product
@@ -430,13 +423,9 @@ theorem dfield_smoothing {V : Type} [Fintype V] [Nonempty V]
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (Corpus KLdiv KLdiv_eq_klDef mixtureCorpus divField kl_nonneg log_eq_sub_one_iff_one mixtureCorpus_pos mixtureCorpus_sum_one log_lt_sub_one' kl_zero_iff_eq divField_zero_iff log_ratio_add kl_product KL_product_ge_marginal dfield_smoothing)
+export Hagi.Data (Corpus mixtureCorpus divField kl_nonneg log_eq_sub_one_iff_one mixtureCorpus_pos mixtureCorpus_sum_one log_lt_sub_one' kl_zero_iff_eq divField_zero_iff log_ratio_add kl_product KL_product_ge_marginal dfield_smoothing)
 
 variable {V : Type*} [Fintype V]
 
-/-- Канон 2.1: KLdiv — тонкий адаптер канонического klDef
-(формула идентична, порядок аргументов p q). -/
-theorem KLdiv_eq_canon (p q : V → ℝ) :
-    KLdiv p q = Hagi.Prelude.klDef p q := rfl
 
 end Hagi

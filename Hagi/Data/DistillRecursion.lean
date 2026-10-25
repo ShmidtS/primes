@@ -170,10 +170,10 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
     intro v
     rw [Real.log_div (ne_of_gt (hp v)) (ne_of_gt (hmp v))]
     ring
-  have hklp : KLdiv p (freshMix ν p d)
+  have hklp : Hagi.Prelude.klDef p (freshMix ν p d)
       = ∑ v, p v * Real.log (p v)
         - ∑ v, p v * Real.log (freshMix ν p d v) := by
-    unfold KLdiv
+    unfold Hagi.Prelude.klDef
     rw [Finset.sum_congr rfl (fun v _ => htermp v), ← Finset.sum_sub_distrib]
   have htermd : ∀ v : V, d v * Real.log (d v / freshMix ν p d v)
       = d v * Real.log (d v)
@@ -181,19 +181,19 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
     intro v
     rw [Real.log_div (ne_of_gt (hd v)) (ne_of_gt (hmp v))]
     ring
-  have hkld : KLdiv d (freshMix ν p d)
+  have hkld : Hagi.Prelude.klDef d (freshMix ν p d)
       = ∑ v, d v * Real.log (d v)
         - ∑ v, d v * Real.log (freshMix ν p d v) := by
-    unfold KLdiv
+    unfold Hagi.Prelude.klDef
     rw [Finset.sum_congr rfl (fun v _ => htermd v), ← Finset.sum_sub_distrib]
   -- each KL is nonneg (the repo's DField toolkit)
-  have hkl1 : 0 ≤ KLdiv p (freshMix ν p d) :=
+  have hkl1 : 0 ≤ Hagi.Prelude.klDef p (freshMix ν p d) :=
     kl_nonneg p _ hp hmp hsp hms
-  have hkl2 : 0 ≤ KLdiv d (freshMix ν p d) :=
+  have hkl2 : 0 ≤ Hagi.Prelude.klDef d (freshMix ν p d) :=
     kl_nonneg d _ hd hmp hsd hms
   -- weighted-sum the two nonneg KLs, fold, and read off H
-  have hcomb : (1 - ν) * KLdiv p (freshMix ν p d)
-        + ν * KLdiv d (freshMix ν p d)
+  have hcomb : (1 - ν) * Hagi.Prelude.klDef p (freshMix ν p d)
+        + ν * Hagi.Prelude.klDef d (freshMix ν p d)
       = shannonEntropy (freshMix ν p d)
         - (1 - ν) * shannonEntropy p - ν * shannonEntropy d := by
     rw [hklp, hkld]
@@ -203,8 +203,8 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
     unfold shannonEntropy Hagi.Prelude.entDef
     ring_nf
     linarith [hfold]
-  have hwnn : 0 ≤ (1 - ν) * KLdiv p (freshMix ν p d)
-      + ν * KLdiv d (freshMix ν p d) := by
+  have hwnn : 0 ≤ (1 - ν) * Hagi.Prelude.klDef p (freshMix ν p d)
+      + ν * Hagi.Prelude.klDef d (freshMix ν p d) := by
     exact add_nonneg (mul_nonneg (by linarith) hkl1) (mul_nonneg hν hkl2)
   rw [hcomb] at hwnn
   linarith
