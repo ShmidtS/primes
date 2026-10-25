@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2909 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2910 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост h_emp_dyn ⇒ явная оценка**
+  (`h_emp_dyn_explicit`): возмущённая посылка MasterHAGI_trunc
+  ρ·D+β·C−ξ ≤ D' при ξ ≤ ε·C, C ≥ 0 даёт
+  D T ≥ ρ^T·D 0 + (β−ε)·Σ ρ^{T−1−i}·C i.
 - **Монотонное следствие конуса**
   (`cone_explicit_monotone`): при монотонной capability
   (C i ≥ C 0 ≥ 0, β,ρ ≥ 0) — одночленная оценка

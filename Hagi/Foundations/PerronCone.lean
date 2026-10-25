@@ -224,4 +224,32 @@ theorem cone_explicit_monotone (C D : ℕ → ℝ) (ρ β : ℝ) (hρ : 0 ≤ ρ
     nlinarith [hC1, hbetaS]
   nlinarith [h, hlast]
 
+/-- МОСТ h_emp_dyn ⇒ ЯВНАЯ ОЦЕНКА (аудит v3): возмущённая
+конусная посылка `ρ·D t + β·C t − ξ t ≤ D (t+1)` при
+ξ t ≤ ε·C t, C t ≥ 0 и ε ≤ β эквивалентна чистому конусному
+неравенству с эффективным β−ε; замкнутая форма
+(ε ≥ 0 неявно в ξ t ≤ ε·C t с C t ≥ 0, β−ε любой знак):
+D T ≥ ρ^T·D 0 + (β−ε)·Σ_{i<T} ρ^{T−1−i}·C i — фактическая
+посылка MasterHAGI_trunc напрямую даёт T-шаговую нижнюю
+оценку потенциала роста. -/
+theorem h_emp_dyn_explicit (C D ξ : ℕ → ℝ) (ρ β ε : ℝ)
+    (hρ : 0 ≤ ρ)
+    (hC : ∀ t, 0 ≤ C t)
+    (hξ : ∀ t, ξ t ≤ ε * C t)
+    (h_emp_dyn : ∀ t, ρ * D t + β * C t - ξ t ≤ D (t + 1))
+    (T : ℕ) :
+    ρ ^ T * D 0
+      + (β - ε) * ∑ i ∈ Finset.range T, ρ ^ (T - 1 - i) * C i
+      ≤ D T := by
+  have hstep : ∀ t, ρ * D t + (β - ε) * C t ≤ D (t + 1) := by
+    intro t
+    have h1 := h_emp_dyn t
+    have h2 : ρ * D t + (β - ε) * C t
+        ≤ ρ * D t + β * C t - ξ t := by
+      have hle : ξ t ≤ ε * C t := hξ t
+      have hCt : 0 ≤ C t := hC t
+      nlinarith [hle, hCt]
+    exact le_trans h2 h1
+  exact cone_explicit_lower C D ρ (β - ε) hρ hstep T
+
 end Hagi.Foundations
