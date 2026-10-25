@@ -101,8 +101,6 @@ noncomputable def CE (q p : V → ℝ) : ℝ := -∑ v, q v * Real.log (p v)
 -- (the Energy.FreeEnergy.kldiv bridge lives in
 -- Energy/FreeEnergy.lean itself: same-layer import rule)
 
-theorem shannonEntropy_eq_canonical (p : V → ℝ) :
-    Hagi.shannonEntropy p = H p := rfl
 
 theorem shannon_eq_canonical {ι : Type*} [Fintype ι]
     (p : ι → ℝ) :
@@ -116,9 +114,6 @@ theorem shannon_eq_canonical {ι : Type*} [Fintype ι]
   rw [h1, Finset.sum_congr rfl (fun i _ => h2 i),
     Finset.sum_neg_distrib]
 
-theorem tvDist_eq_canonical {W : Type} [Fintype W] [Nonempty W]
-    (p q : W → ℝ) :
-    Hagi.Data.tvDist p q = (∑ v, |p v - q v|) / 2 := rfl
 
 theorem tvHalf_eq_canonical {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) :

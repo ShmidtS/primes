@@ -108,13 +108,13 @@ dh₂/dτ = ln((1−τ)/τ) ≥ 0), (v) log(V−1) ≥ 0 (V ≥ 2) — то
 ЛОЖЕН (контрпример ревизии: sharpening tail при малом KL). -/
 theorem entropy_continuity_pinsker (p q : V → ℝ)
     (τ kl : ℝ) (hτ : 0 ≤ τ) (hτ2 : τ ≤ 1/2)
-    (hbound : |shannonEntropy p - shannonEntropy q| ≤
+    (hbound : |Hagi.Prelude.entDef p - Hagi.Prelude.entDef q| ≤
       τ * Real.log ((Fintype.card V : ℝ) - 1) + binEnt τ)
     (hpinsker : τ ≤ Real.sqrt (kl / 2))
     (hsq : Real.sqrt (kl / 2) ≤ 1/2)
     (hmono : ∀ a b : ℝ, 0 ≤ a → a ≤ b → b ≤ 1/2 → binEnt a ≤ binEnt b)
     (hV : (0:ℝ) ≤ Real.log ((Fintype.card V : ℝ) - 1)) :
-    |shannonEntropy p - shannonEntropy q|
+    |Hagi.Prelude.entDef p - Hagi.Prelude.entDef q|
       ≤ Real.sqrt (kl / 2) * Real.log ((Fintype.card V : ℝ) - 1)
         + binEnt (Real.sqrt (kl / 2)) := by
   have hlin : τ * Real.log ((Fintype.card V : ℝ) - 1)
@@ -251,12 +251,12 @@ theorem binEnt_nonneg (b : ℝ) (hb0 : 0 ≤ b) (hb2 : b ≤ 1/2) :
 theorem entropy_continuity_pinsker'
     {V : Type*} [Fintype V] [DecidableEq V] (p q : V → ℝ)
     (τ kl : ℝ) (hτ : 0 ≤ τ) (hτ2 : τ ≤ 1/2)
-    (hbound : |shannonEntropy p - shannonEntropy q| ≤
+    (hbound : |Hagi.Prelude.entDef p - Hagi.Prelude.entDef q| ≤
       τ * Real.log ((Fintype.card V : ℝ) - 1) + binEnt τ)
     (hpinsker : τ ≤ Real.sqrt (kl / 2))
     (hsq : Real.sqrt (kl / 2) ≤ 1/2)
     (hV : (0:ℝ) ≤ Real.log ((Fintype.card V : ℝ) - 1)) :
-    |shannonEntropy p - shannonEntropy q|
+    |Hagi.Prelude.entDef p - Hagi.Prelude.entDef q|
       ≤ Real.sqrt (kl / 2) * Real.log ((Fintype.card V : ℝ) - 1)
         + binEnt (Real.sqrt (kl / 2)) := by
   have hmono' : ∀ a b : ℝ, 0 ≤ a → a ≤ b → b ≤ 1/2 → binEnt a ≤ binEnt b := by

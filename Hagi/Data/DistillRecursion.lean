@@ -86,23 +86,13 @@ namespace Hagi.Data
 section DistillRecursion
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
+/-- Bridge: entDef = Information.shannon. -/
+theorem entDef_eq_shannon (p : V → ℝ) :
+    Hagi.Prelude.entDef p = Hagi.Information.shannon p := by
+  simp [Hagi.Prelude.entDef, Hagi.Information.shannon, Real.negMulLog]
 
-/-- The Shannon entropy H(p) = −Σ p·log p of a finite
-distribution (the negative of `negEntropy`, `Hagi.Data/DBridge`;
-defined here directly to keep the module elementary). -/
-noncomputable def shannonEntropy (p : V → ℝ) : ℝ :=
-  Hagi.Prelude.entDef p
 
-/-- prelude bridge: shannonEntropy IS the canonical Prelude.entDef. -/
-theorem shannonEntropy_eq_entDef (p : V → ℝ) :
-    shannonEntropy p = Hagi.Prelude.entDef p := rfl
 
-/-- Канонический бридж энтропий (REFACTOR_PLAN B2): shannonEntropy =
-Information.shannon — единственная сущность, две записи. -/
-theorem shannonEntropy_eq_shannon (p : V → ℝ) :
-    shannonEntropy p = Hagi.Information.shannon p := by
-  simp [shannonEntropy, Hagi.Prelude.entDef, Hagi.Information.shannon,
-    Real.negMulLog]
 
 /-- The recursive-distillation training target: the previous
 model's distribution blended with the fresh-data mass ν:
@@ -151,8 +141,8 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
     (hν : 0 ≤ ν) (hν1 : ν ≤ 1)
     (hp : ∀ v, 0 < p v) (hd : ∀ v, 0 < d v)
     (hsp : ∑ v, p v = 1) (hsd : ∑ v, d v = 1) :
-    (1 - ν) * shannonEntropy p + ν * shannonEntropy d
-      ≤ shannonEntropy (freshMix ν p d) := by
+    (1 - ν) * Hagi.Prelude.entDef p + ν * Hagi.Prelude.entDef d
+      ≤ Hagi.Prelude.entDef (freshMix ν p d) := by
   have hmp : ∀ v, 0 < freshMix ν p d v :=
     freshMix_pos ν p d hν hν1 hp hd
   have hms : ∑ v, freshMix ν p d v = 1 := freshMix_sum_one ν p d hsp hsd
@@ -194,13 +184,13 @@ theorem entropy_mix_ge (ν : ℝ) (p d : V → ℝ)
   -- weighted-sum the two nonneg KLs, fold, and read off H
   have hcomb : (1 - ν) * Hagi.Prelude.klDef p (freshMix ν p d)
         + ν * Hagi.Prelude.klDef d (freshMix ν p d)
-      = shannonEntropy (freshMix ν p d)
-        - (1 - ν) * shannonEntropy p - ν * shannonEntropy d := by
+      = Hagi.Prelude.entDef (freshMix ν p d)
+        - (1 - ν) * Hagi.Prelude.entDef p - ν * Hagi.Prelude.entDef d := by
     rw [hklp, hkld]
     have e4 : (1 - ν) * (∑ v, p v * Real.log (freshMix ν p d v))
         + ν * (∑ v, d v * Real.log (freshMix ν p d v))
         = ∑ v, freshMix ν p d v * Real.log (freshMix ν p d v) := hfold
-    unfold shannonEntropy Hagi.Prelude.entDef
+    unfold Hagi.Prelude.entDef
     ring_nf
     linarith [hfold]
   have hwnn : 0 ≤ (1 - ν) * Hagi.Prelude.klDef p (freshMix ν p d)
@@ -226,10 +216,10 @@ entropy preservation is carried below as the explicit
 hypothesis hcert. -/
 theorem entropy_kl_ce_identity (m q : V → ℝ)
     (hm : ∀ v, 0 < m v) (hq : ∀ v, 0 < q v) :
-    crossEntropy m q = shannonEntropy m + Hagi.Prelude.klDef m q := by
+    crossEntropy m q = Hagi.Prelude.entDef m + Hagi.Prelude.klDef m q := by
   have h := teacher_generated_identity m q hm hq
-  unfold crossEntropy at h
-  unfold shannonEntropy Hagi.Prelude.entDef crossEntropy
+  unfold crossEntropy at h ⊢
+  simp only [Hagi.Prelude.entDef]
   linarith
 
 /-! ### The certified step -/
@@ -251,10 +241,10 @@ theorem distill_step_entropy (pNext pK d : V → ℝ) (ν δ : ℝ)
     (hν : 0 ≤ ν) (hν1 : ν ≤ 1)
     (hp : ∀ v, 0 < pK v) (hd : ∀ v, 0 < d v)
     (hsp : ∑ v, pK v = 1) (hsd : ∑ v, d v = 1)
-    (hcert : shannonEntropy (freshMix ν pK d) - δ
-      ≤ shannonEntropy pNext) :
-    (1 - ν) * shannonEntropy pK + ν * shannonEntropy d - δ
-      ≤ shannonEntropy pNext := by
+    (hcert : Hagi.Prelude.entDef (freshMix ν pK d) - δ
+      ≤ Hagi.Prelude.entDef pNext) :
+    (1 - ν) * Hagi.Prelude.entDef pK + ν * Hagi.Prelude.entDef d - δ
+      ≤ Hagi.Prelude.entDef pNext := by
   have hmix := entropy_mix_ge ν pK d hν hν1 hp hd hsp hsd
   linarith
 
@@ -280,11 +270,11 @@ theorem distill_entropy_recurrence (p : ℕ → V → ℝ) (d : V → ℝ) (ν �
     (hν : 0 < ν) (hν1 : ν ≤ 1) (_hδ : 0 ≤ δ)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ
-      ≤ shannonEntropy (p (k + 1))) (T : ℕ) :
-    (1 - ν)^T * shannonEntropy (p 0)
-      + (1 - (1 - ν)^T) * (shannonEntropy d - δ / ν)
-      ≤ shannonEntropy (p T) := by
+    (hcert : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - δ
+      ≤ Hagi.Prelude.entDef (p (k + 1))) (T : ℕ) :
+    (1 - ν)^T * Hagi.Prelude.entDef (p 0)
+      + (1 - (1 - ν)^T) * (Hagi.Prelude.entDef d - δ / ν)
+      ≤ Hagi.Prelude.entDef (p T) := by
   induction T with
   | zero =>
     simp only [pow_zero]
@@ -293,19 +283,19 @@ theorem distill_entropy_recurrence (p : ℕ → V → ℝ) (d : V → ℝ) (ν �
     have hc : (0:ℝ) ≤ 1 - ν := by linarith
     have h1 := distill_step_entropy (p (T + 1)) (p T) d ν δ
       hν.le hν1 (hp T) hd (hsp T) hsd (hcert T)
-    have h2 : (1 - ν) * ((1 - ν)^T * shannonEntropy (p 0)
-          + (1 - (1 - ν)^T) * (shannonEntropy d - δ / ν))
-        ≤ (1 - ν) * shannonEntropy (p T) :=
+    have h2 : (1 - ν) * ((1 - ν)^T * Hagi.Prelude.entDef (p 0)
+          + (1 - (1 - ν)^T) * (Hagi.Prelude.entDef d - δ / ν))
+        ≤ (1 - ν) * Hagi.Prelude.entDef (p T) :=
       mul_le_mul_of_nonneg_left ih hc
-    have key : (1 - ν) * ((1 - ν)^T * shannonEntropy (p 0)
-          + (1 - (1 - ν)^T) * (shannonEntropy d - δ / ν))
-          + ν * (shannonEntropy d - δ / ν)
-        = (1 - ν) * (1 - ν)^T * shannonEntropy (p 0)
-          + (1 - (1 - ν) * (1 - ν)^T) * (shannonEntropy d - δ / ν) := by
+    have key : (1 - ν) * ((1 - ν)^T * Hagi.Prelude.entDef (p 0)
+          + (1 - (1 - ν)^T) * (Hagi.Prelude.entDef d - δ / ν))
+          + ν * (Hagi.Prelude.entDef d - δ / ν)
+        = (1 - ν) * (1 - ν)^T * Hagi.Prelude.entDef (p 0)
+          + (1 - (1 - ν) * (1 - ν)^T) * (Hagi.Prelude.entDef d - δ / ν) := by
       have hν0 : ν ≠ 0 := ne_of_gt hν
       field_simp
       ring
-    have h3 : ν * (shannonEntropy d - δ / ν) = ν * shannonEntropy d - δ := by
+    have h3 : ν * (Hagi.Prelude.entDef d - δ / ν) = ν * Hagi.Prelude.entDef d - δ := by
       rw [mul_sub, mul_div_cancel₀ δ (ne_of_gt hν)]
     rw [show (1 - ν)^(T + 1) = (1 - ν) * (1 - ν)^T from by
       rw [pow_succ (1 - ν) T, mul_comm ((1 - ν)^T) (1 - ν)]]
@@ -327,16 +317,16 @@ theorem entropy_floor (p : ℕ → V → ℝ) (d : V → ℝ) (ν δ : ℝ)
     (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ
-      ≤ shannonEntropy (p (k + 1))) (T : ℕ) :
-    shannonEntropy d - δ / ν
-      - (1 - ν)^T * (shannonEntropy d - δ / ν - shannonEntropy (p 0))
-      ≤ shannonEntropy (p T) := by
+    (hcert : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - δ
+      ≤ Hagi.Prelude.entDef (p (k + 1))) (T : ℕ) :
+    Hagi.Prelude.entDef d - δ / ν
+      - (1 - ν)^T * (Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0))
+      ≤ Hagi.Prelude.entDef (p T) := by
   have hr := distill_entropy_recurrence p d ν δ hν hν1 hδ hp hd hsp hsd hcert T
-  have hring : (1 - ν)^T * shannonEntropy (p 0)
-      + (1 - (1 - ν)^T) * (shannonEntropy d - δ / ν)
-      = shannonEntropy d - δ / ν
-        - (1 - ν)^T * (shannonEntropy d - δ / ν - shannonEntropy (p 0)) := by
+  have hring : (1 - ν)^T * Hagi.Prelude.entDef (p 0)
+      + (1 - (1 - ν)^T) * (Hagi.Prelude.entDef d - δ / ν)
+      = Hagi.Prelude.entDef d - δ / ν
+        - (1 - ν)^T * (Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0)) := by
     ring
   linarith [hr, hring]
 
@@ -358,16 +348,16 @@ theorem fresh_data_prevents_collapse (p : ℕ → V → ℝ) (d : V → ℝ) (ν
     (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ
-      ≤ shannonEntropy (p (k + 1)))
-    (hinv : shannonEntropy d - δ / ν ≤ shannonEntropy (p 0))
+    (hcert : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - δ
+      ≤ Hagi.Prelude.entDef (p (k + 1)))
+    (hinv : Hagi.Prelude.entDef d - δ / ν ≤ Hagi.Prelude.entDef (p 0))
     (T : ℕ) :
-    shannonEntropy d - δ / ν ≤ shannonEntropy (p T) := by
+    Hagi.Prelude.entDef d - δ / ν ≤ Hagi.Prelude.entDef (p T) := by
   have hc : (0:ℝ) ≤ 1 - ν := by linarith
   have hf := entropy_floor p d ν δ hν hν1 hδ hp hd hsp hsd hcert T
-  have hB : shannonEntropy d - δ / ν - shannonEntropy (p 0) ≤ 0 := by linarith
+  have hB : Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0) ≤ 0 := by linarith
   have hcorr : (1 - ν)^T
-      * (shannonEntropy d - δ / ν - shannonEntropy (p 0)) ≤ 0 :=
+      * (Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0)) ≤ 0 :=
     mul_nonpos_of_nonneg_of_nonpos (pow_nonneg hc T) hB
   linarith
 
@@ -385,12 +375,12 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
     (hν : 0 < ν) (hν1 : ν ≤ 1) (hδ : 0 ≤ δ) (_hε : 0 ≤ ε)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (hcert : ∀ k, shannonEntropy (freshMix ν (p k) d) - δ
-      ≤ shannonEntropy (p (k + 1)))
+    (hcert : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - δ
+      ≤ Hagi.Prelude.entDef (p (k + 1)))
     (hδε : δ ≤ ν * ε)
-    (h0 : shannonEntropy d - ε ≤ shannonEntropy (p 0))
+    (h0 : Hagi.Prelude.entDef d - ε ≤ Hagi.Prelude.entDef (p 0))
     (T : ℕ) :
-    shannonEntropy d - ε ≤ shannonEntropy (p T) := by
+    Hagi.Prelude.entDef d - ε ≤ Hagi.Prelude.entDef (p T) := by
   have hdn : δ / ν ≤ ε := by
     rw [div_le_iff₀ hν, mul_comm]
     exact hδε
@@ -405,13 +395,13 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
       exact (mul_le_mul ih (by linarith : (1:ℝ) - ν ≤ 1) hc zero_le_one).trans
         (by norm_num : (1:ℝ) * 1 ≤ 1)
   have hf := entropy_floor p d ν δ hν hν1 hδ hp hd hsp hsd hcert T
-  have hdif : shannonEntropy d - δ / ν - shannonEntropy (p 0) ≤ ε - δ / ν := by
+  have hdif : Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0) ≤ ε - δ / ν := by
     linarith
   have hprod : (1 - ν)^T
-      * (shannonEntropy d - δ / ν - shannonEntropy (p 0))
+      * (Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0))
       ≤ ε - δ / ν := by
     have hstep1 : (1 - ν)^T
-        * (shannonEntropy d - δ / ν - shannonEntropy (p 0))
+        * (Hagi.Prelude.entDef d - δ / ν - Hagi.Prelude.entDef (p 0))
         ≤ (1 - ν)^T * (ε - δ / ν) :=
       mul_le_mul_of_nonneg_left hdif (pow_nonneg hc T)
     have hstep2 : (1 - ν)^T * (ε - δ / ν) ≤ 1 * (ε - δ / ν) :=
@@ -432,11 +422,11 @@ theorem entropy_floor_tv (p : ℕ → V → ℝ) (d : V → ℝ) (ν B : ℝ)
     (hν : 0 < ν) (hν1 : ν ≤ 1) (hB : 0 ≤ B)
     (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
     (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (htv : ∀ k, shannonEntropy (freshMix ν (p k) d) - B
-      ≤ shannonEntropy (p (k + 1))) (T : ℕ) :
-    shannonEntropy d - B / ν
-      - (1 - ν)^T * (shannonEntropy d - B / ν - shannonEntropy (p 0))
-      ≤ shannonEntropy (p T) :=
+    (htv : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - B
+      ≤ Hagi.Prelude.entDef (p (k + 1))) (T : ℕ) :
+    Hagi.Prelude.entDef d - B / ν
+      - (1 - ν)^T * (Hagi.Prelude.entDef d - B / ν - Hagi.Prelude.entDef (p 0))
+      ≤ Hagi.Prelude.entDef (p T) :=
   entropy_floor p d ν B hν hν1 hB hp hd hsp hsd htv T
 
 end DistillRecursion
@@ -444,5 +434,5 @@ end DistillRecursion
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (shannonEntropy freshMix freshMix_pos freshMix_sum_one entropy_mix_ge entropy_kl_ce_identity distill_step_entropy distill_entropy_recurrence entropy_floor fresh_data_prevents_collapse fresh_data_prevents_collapse_uniform entropy_floor_tv)
+export Hagi.Data (freshMix freshMix_pos freshMix_sum_one entropy_mix_ge entropy_kl_ce_identity distill_step_entropy distill_entropy_recurrence entropy_floor fresh_data_prevents_collapse fresh_data_prevents_collapse_uniform entropy_floor_tv)
 end Hagi

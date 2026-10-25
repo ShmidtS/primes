@@ -32,7 +32,7 @@ def margY (p : X × Y → ℝ) : Y → ℝ := fun y => ∑ x, p (x, y)
 
 /-- The cross-modal gap in entropy form: H(X) + H(Y) − H(X,Y). -/
 noncomputable def crossModalGap (p : X × Y → ℝ) : ℝ :=
-  Hagi.Data.ent (margX p) + Hagi.Data.ent (margY p) - Hagi.Data.ent p
+  Hagi.Prelude.entDef (margX p) + Hagi.Prelude.entDef (margY p) - Hagi.Prelude.entDef p
 
 /-! ### The entropy form IS the KL form -/
 
@@ -70,7 +70,7 @@ theorem crossModalGap_eq_kl (p : X × Y → ℝ)
     have hpair : ∀ x : X, (x, y).2 = y := fun _ => rfl
     rw [Finset.sum_congr rfl (fun x _ => by rw [hpair x]), ← Finset.sum_mul, margY]
   -- unfold both sides and match
-  unfold crossModalGap Hagi.Data.ent Hagi.Prelude.entDef Hagi.Prelude.klDef
+  unfold crossModalGap Hagi.Prelude.entDef Hagi.Prelude.klDef
   -- split the log of the ratio
   have hsplit : ∀ z : X × Y,
       Real.log (p z / (margX p z.1 * margY p z.2))

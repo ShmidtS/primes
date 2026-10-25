@@ -583,7 +583,8 @@
   цель дороже бюджета (Qtarget > cap0 + budget0/c) ⟹
   недостижима ни на каком горизонте с неотрицательным
   бюджетом — контрапозиция оплаченного роста.
-- **Канон 2.1: единый KL** (`kl_tilted_decompose`): все модули
+- **Канон 2.1: единый KL/энтропия/TV** (`kl_tilted_decompose`,
+  `entDef_eq_shannon`): все модули
   (DField, Distill, Variational, FreeEnergy, DBridge,
   DistillRecursion, NessDissipation, CrossModalGap,
   MDLThreeCurrency, Insight, PlasticityLedger,
