@@ -252,4 +252,38 @@ theorem h_emp_dyn_explicit (C D ξ : ℕ → ℝ) (ρ β ε : ℝ)
     exact le_trans h2 h1
   exact cone_explicit_lower C D ρ (β - ε) hρ hstep T
 
+/-- ЛИНЕЙНЫЙ РОСТ при ρ=1: возмущённая посылка
+D (t+1) ≥ D t + β·C t − ξ t с ξ t ≤ ε·C t, C монотонна и
+β ≥ ε даёт D T ≥ D 0 + (β−ε)·T·C 0 — накопление без
+затухания (ρ=1: нет геометрической скидки). -/
+theorem h_emp_dyn_linear_growth (C D ξ : ℕ → ℝ) (β ε : ℝ)
+    (hβε : ε ≤ β) (hC0 : 0 ≤ C 0)
+    (hξ : ∀ t, ξ t ≤ ε * C t)
+    (h_emp_dyn : ∀ t, D t + β * C t - ξ t ≤ D (t + 1))
+    (hC : ∀ i, C 0 ≤ C i) (T : ℕ) :
+    D 0 + (β - ε) * (T : ℝ) * C 0 ≤ D T := by
+  have hCnn : ∀ t, 0 ≤ C t := fun t => le_trans hC0 (hC t)
+  have h := h_emp_dyn_explicit C D ξ 1 β ε
+    (by norm_num) hCnn hξ (by intro t; simpa using h_emp_dyn t) T
+  have h1 : (1:ℝ) ^ T = 1 := one_pow T
+  rw [h1, one_mul] at h
+  have hsum : (T : ℝ) * C 0
+      ≤ ∑ i ∈ Finset.range T, (1:ℝ) ^ (T - 1 - i) * C i := by
+    have hnonneg : ∀ i ∈ Finset.range T,
+        (0:ℝ) ≤ (1:ℝ) ^ (T - 1 - i) * C i := by
+      intro i _
+      exact mul_nonneg (pow_nonneg (by norm_num : (0:ℝ) ≤ 1) _) (hCnn i)
+    have hlower : ∀ i ∈ Finset.range T,
+        C 0 ≤ (1:ℝ) ^ (T - 1 - i) * C i := by
+      intro i _
+      rw [one_pow, one_mul]
+      exact hC i
+    calc (T:ℝ) * C 0
+        = ∑ _i ∈ Finset.range T, C 0 := by
+          simp
+    _ ≤ ∑ i ∈ Finset.range T, (1:ℝ) ^ (T - 1 - i) * C i :=
+        Finset.sum_le_sum (fun i hi => hlower i hi)
+  have : (0:ℝ) ≤ β - ε := by linarith
+  nlinarith [h, hsum, this, Finset.card_range T]
+
 end Hagi.Foundations
