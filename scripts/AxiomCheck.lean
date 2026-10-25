@@ -16,3 +16,4 @@ import Hagi
 #print axioms Hagi.Examples.core_premises_merge_operational
 #print axioms Hagi.Model.context_distillation_identity
 #print axioms Hagi.Energy.partition_strictMono
+#print axioms Hagi.Unified.certified_invariant_advance_witness
