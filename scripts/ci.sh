@@ -82,3 +82,6 @@ else
   echo "AXIOMCHECK: PASS ($N_OK capstones, only standard axioms)"
 fi
 
+step "ClosureReport (modules under capstones vs library)"
+python scripts/ClosureReport.py | head -1
+
