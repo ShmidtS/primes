@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2911 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2912 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Комбинированный 2D-рост**
+  (`h_emp_gain_geometric`): C-телескоп + D-геометрия дают
+  C T ≥ C 0 + γ·D 0·(1−ρ^T)/(1−ρ) при ρ<1 — явная
+  нижняя оценка capability из конусного блока посылок.
 - **Линейный рост при ρ=1**
   (`h_emp_dyn_linear_growth`): без геометрической скидки —
   D T ≥ D 0 + (β−ε)·T·C 0 при монотонной C и β ≥ ε.

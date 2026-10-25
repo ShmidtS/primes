@@ -286,4 +286,54 @@ theorem h_emp_dyn_linear_growth (C D ξ : ℕ → ℝ) (β ε : ℝ)
   have : (0:ℝ) ≤ β - ε := by linarith
   nlinarith [h, hsum, this, Finset.card_range T]
 
+/-- КОМБИНИРОВАННЫЙ 2D-РОСТ: посылки конусного блока
+C (t+1) = C t + G t, γ·D t ≤ G t и ρ·D t + β·C t ≤ D (t+1)
+(β, γ, C ≥ 0, ρ < 1) дают явную нижнюю оценку capability:
+C T ≥ C 0 + γ·D 0·(1−ρ^T)/(1−ρ) — накопление прироста из
+геометрического ряда потенциала. -/
+theorem h_emp_gain_geometric (C D G : ℕ → ℝ) (ρ β γ : ℝ)
+    (hρ : 0 ≤ ρ) (hρ1 : ρ < 1) (hγ : 0 ≤ γ) (hβ : 0 ≤ β)
+    (hC : ∀ t, 0 ≤ C t)
+    (hstepC : ∀ t, C (t + 1) = C t + G t)
+    (hgain : ∀ t, γ * D t ≤ G t)
+    (hstepD : ∀ t, ρ * D t + β * C t ≤ D (t + 1)) (T : ℕ) :
+    C 0 + γ * D 0 * (1 - ρ ^ T) / (1 - ρ) ≤ C T := by
+  have hD : ∀ t, ρ ^ t * D 0 ≤ D t := by
+    intro t
+    induction t with
+    | zero => simp
+    | succ t ih =>
+      have h := hstepD t
+      have hβC : 0 ≤ β * C t := mul_nonneg hβ (hC t)
+      calc D (t + 1) ≥ ρ * D t + β * C t := h
+      _ ≥ ρ * (ρ ^ t * D 0) := by nlinarith
+      _ = ρ ^ (t + 1) * D 0 := by rw [pow_succ]; ring
+  have hCtel : ∀ T, C T = C 0 + ∑ i ∈ Finset.range T, G i := by
+    intro T
+    induction T with
+    | zero => simp
+    | succ T ih =>
+      rw [hstepC T, ih, Finset.sum_range_succ]; ring
+  rw [hCtel T]
+  have hgeom : ∑ i ∈ Finset.range T, ρ ^ i
+      = (1 - ρ ^ T) / (1 - ρ) := by
+    have hne : ρ ≠ 1 := ne_of_lt hρ1
+    rw [geom_sum_eq hne T]
+    field_simp
+    ring
+  have hmono : D 0 * ∑ i ∈ Finset.range T, ρ ^ i
+      ≤ ∑ i ∈ Finset.range T, D i := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum (fun i _ => by nlinarith [hD i])
+  have heq : γ * D 0 * (1 - ρ ^ T) / (1 - ρ)
+      = γ * (D 0 * ∑ i ∈ Finset.range T, ρ ^ i) := by
+    rw [hgeom]; ring
+  rw [heq]
+  have hsumG : γ * ∑ i ∈ Finset.range T, D i
+      ≤ ∑ i ∈ Finset.range T, G i := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum (fun i _ => hgain i)
+  exact add_le_add (le_refl _)
+    (le_trans (mul_le_mul_of_nonneg_left hmono hγ) hsumG)
+
 end Hagi.Foundations

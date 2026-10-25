@@ -1,5 +1,5 @@
 h_emp files: 38
-h_emp identifiers: 125
+h_emp identifiers: 126
 primitive defs: 10
 
 [h_emp]
@@ -9,7 +9,7 @@ Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_la
 Hagi/Energy/STEStep.lean: h_emp_res
 Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
 Hagi/Examples/Nonvacuity.lean: h_emp_dist h_emp_grow h_emp_merge h_emp_merge_of_bridge
-Hagi/Foundations/PerronCone.lean: h_emp_dyn h_emp_dyn_explicit h_emp_dyn_linear_growth
+Hagi/Foundations/PerronCone.lean: h_emp_dyn h_emp_dyn_explicit h_emp_dyn_linear_growth h_emp_gain_geometric
 Hagi/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smooth
 Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
 Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
