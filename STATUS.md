@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2903 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2904 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Мост advance→verify** (`advance_verify_decrease_pos`):
+  decrease шага канонической advance-семантики строго
+  положителен при gap ≥ 0, η ≥ 0 и оплаченной компрессии
+  (κs < 2·gain) — связка StageSemantics с certify-слоем.
 - **Отчёт замыкания капстоунов** (`scripts/ClosureReport.py`,
   CI): 38/277 модулей в транзитивном замыкании итоговых
   теорем (MasterHAGI, GrandSynthesis, StageSemantics),

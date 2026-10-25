@@ -1260,4 +1260,24 @@ theorem wTraj_takeoff :
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
 
+/-- МОСТ (advance → verify-сертификат): decrease шага
+advance (в терминах свежего StageInput u) СТРОГО ПОЛОЖИТЕЛЕН
+при операционных условиях: gap ≥ 0, η ≥ 0 и компрессия
+оплачена (κ·s < 2·growGain, что влечёт growGain > 0). Связывает
+каноническую advance-семантику с certify-слоем verify. -/
+theorem advance_verify_decrease_pos {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : Hagi.System.GrowthState X) (u : Hagi.Model.StageInput X)
+    (hgap : 0 ≤ u.gap)
+    (heta : 0 ≤ u.sp.eta)
+    (hks : u.sp.kappa * u.sp.s < 2 * u.eff.growGain) :
+    0 < (Hagi.System.verify (Hagi.Model.advance S u)).decrease := by
+  rw [Hagi.System.verify_decrease]
+  have hnn : (0:ℝ) ≤ u.sp.eta * ‖u.stepDir‖ ^ 2 / 2 := by
+    have : (0:ℝ) ≤ u.sp.eta * ‖u.stepDir‖ ^ 2 :=
+      mul_nonneg heta (sq_nonneg _)
+    positivity
+  unfold Hagi.Model.advance
+  nlinarith [hgap, hnn, hks]
+
 end Hagi.Model
