@@ -196,4 +196,32 @@ theorem cone_explicit_lower (C D : ℕ → ℝ) (ρ β : ℝ) (hρ : 0 ≤ ρ)
         simp
       rw [hrw, pow_succ]; ring
 
+/-- СЛЕДСТВИЕ (монотонная capability): при β, ρ, C 0 ≥ 0 и
+C i ≥ C 0 — явная одночленная оценка
+D (T+1) ≥ ρ^{T+1}·D 0 + β·C 0: последний член суммы
+cone_explicit_lower (i = T, ρ^0) доминируется монотонностью. -/
+theorem cone_explicit_monotone (C D : ℕ → ℝ) (ρ β : ℝ) (hρ : 0 ≤ ρ)
+    (hβ : 0 ≤ β) (hC0 : 0 ≤ C 0)
+    (hstep : ∀ t, ρ * D t + β * C t ≤ D (t + 1))
+    (hC : ∀ i, C 0 ≤ C i) (T : ℕ) :
+    ρ ^ (T + 1) * D 0 + β * C 0 ≤ D (T + 1) := by
+  have h := cone_explicit_lower C D ρ β hρ hstep (T + 1)
+  have hlast : β * C 0
+      ≤ β * ∑ i ∈ Finset.range (T + 1), ρ ^ (T + 1 - 1 - i) * C i := by
+    rw [Finset.sum_range_succ]
+    have hterms : (0:ℝ)
+        ≤ ∑ i ∈ Finset.range T, ρ ^ (T + 1 - 1 - i) * C i := by
+      apply Finset.sum_nonneg
+      intro i _
+      exact mul_nonneg (pow_nonneg hρ _) (le_trans hC0 (hC i))
+    have hC1 : C 0 ≤ C T := hC T
+    have hz : ρ ^ (T + 1 - 1 - T) * C T = C T := by
+      have hz' : (T + 1 - 1 - T) = 0 := by omega
+      rw [hz', pow_zero, one_mul]
+    rw [hz]
+    have hbetaS : (0:ℝ) ≤ β * ∑ i ∈ Finset.range T, ρ ^ (T + 1 - 1 - i) * C i :=
+      mul_nonneg hβ hterms
+    nlinarith [hC1, hbetaS]
+  nlinarith [h, hlast]
+
 end Hagi.Foundations
