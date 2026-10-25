@@ -17,3 +17,4 @@ import Hagi
 #print axioms Hagi.Model.context_distillation_identity
 #print axioms Hagi.Energy.partition_strictMono
 #print axioms Hagi.Unified.certified_invariant_advance_witness
+#print axioms Hagi.Foundations.trunc_premises_takeoff
