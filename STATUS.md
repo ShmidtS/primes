@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **CI-гейт аксиом** (`scripts/AxiomCheck.lean`): 12 капстоунов
+  (MasterHAGI, grand_synthesis, witness-серия, мосты CorePremises,
+  термодинамика) проверяются на стандартные аксиомы Lean при
+  каждом CI-прогоне (аудит v2 §7/P0).
 - **Взлёт свидетеля** (`wTraj_takeoff`): gate alpha·C ≤ gain
   (α=1, gain=C_t: 1,2,4) на каждом шаге ⟹ экспоненциальный
   рост C_0·2^t ≤ C_t — связка Trajectory с cone/takeoff.

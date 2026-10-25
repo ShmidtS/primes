@@ -69,3 +69,16 @@ echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=
 echo
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
 python scripts/Metrics.py
+
+step "AxiomCheck (capstones depend only on standard axioms)"
+AX=$(lake env lean scripts/AxiomCheck.lean 2>/dev/null)
+echo "$AX" | tail -1
+N_TOTAL=$(echo "$AX" | grep -c "depends on axioms")
+N_OK=$(echo "$AX" | grep -c "propext, Classical.choice, Quot.sound")
+if [ "$N_TOTAL" != "$N_OK" ]; then
+  echo "AXIOMCHECK: FAIL ($N_OK/$N_TOTAL capstones clean)"
+  fail=1
+else
+  echo "AXIOMCHECK: PASS ($N_OK capstones, only standard axioms)"
+fi
+
