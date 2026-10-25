@@ -263,14 +263,18 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Разводка CycleCertificate×2** (аудит v3 §5): System-версия
+  переименована в StageCycleCertChain; параметрический
+  Model.CycleCertificate — единственный с этим именем.
 - **Мост advance→verify** (`advance_verify_decrease_pos`):
   decrease шага канонической advance-семантики строго
   положителен при gap ≥ 0, η ≥ 0 и оплаченной компрессии
   (κs < 2·gain) — связка StageSemantics с certify-слоем.
 - **Отчёт замыкания капстоунов** (`scripts/ClosureReport.py`,
-  CI): 38/277 модулей в транзитивном замыкании итоговых
-  теорем (MasterHAGI, GrandSynthesis, StageSemantics),
-  239 — библиотечный слой (аудит v3 Phase 4, реестр).
+  CI): 50/277 модулей в транзитивном замыкании итоговых теорем
+  (MasterHAGI, GrandSynthesis, StageSemantics + мосты
+  DerivAlong/ConsolidationMirror/Nonvacuity), 227 — библиотечный
+  слой (аудит v3 Phase 4, реестр).
 - **Сравнение с возмущением** (`cone_comparison_perturbed`):
   ξ_t ≤ ε·C_t поглощается сдвигом β→β−ε (ε ≤ β) —
   возмущённая динамика доминируется системой с эффективным

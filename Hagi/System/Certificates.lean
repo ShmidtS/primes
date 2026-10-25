@@ -11,7 +11,7 @@ Per-stage measured (h_emp_-contract) structures:
 (SafeQP alignment + quadratic slack), `CompressionCertificate`
 (energy increases by at most `kappa * qerr`),
 `GeneralizationCertificate` (probe drop `epsQ ≥ 0`), and the
-chained bundle `CycleCertificate` (each stage's pre-state is
+chained bundle `StageCycleCertChain` (each stage's pre-state is
 the previous stage's post-state).
 
 `cycle_certificate_sound`: one certified cycle decreases the
@@ -87,7 +87,7 @@ structure GeneralizationCertificate where
 
 /-- The full cycle certificate: the bundle + the stage
 chaining (each pre-state IS the previous post-state). -/
-structure CycleCertificate where
+structure StageCycleCertChain where
   grow : GrowCertificate
   merge : MergeCertificate
   joint : JointCertificate
@@ -108,13 +108,13 @@ lemma penalty_drop_bound (qTarget q q' epsQ : ℝ)
     max 0 (qTarget - q') ≤ max 0 (qTarget - q) + epsQ :=
   Hagi.Foundations.hagiPotential_penalty_drop qTarget q q' epsQ heps hdrop
 
-/-- For a chained `CycleCertificate` with `lam, nu ≥ 0` and
+/-- For a chained `StageCycleCertChain` with `lam, nu ≥ 0` and
 price coverage `lam·(grow.risk + merge.risk + joint.risk) +
 nu·epsQ ≤ dec` (dec as in the statement), the post-cycle
 potential satisfies Φ' ≤ Φ for
 `hagiPotential E R nu qTarget q lam`. -/
 theorem cycle_certificate_sound
-    (cert : CycleCertificate)
+    (cert : StageCycleCertChain)
     (lam nu qTarget q R : ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
     (hprice : lam * (cert.grow.risk + cert.merge.risk

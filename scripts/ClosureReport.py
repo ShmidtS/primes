@@ -11,6 +11,10 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "Hagi")
 CAPSTONES = [
     "Hagi.Unified.MasterHAGI", "Hagi.Unified.GrandSynthesis",
     "Hagi.Model.StageSemantics",
+    # semantic closure extensions (audit v3 Phase 4):
+    "Hagi.Unified.DerivAlong",        # operational bridges (joint/compress)
+    "Hagi.Model.ConsolidationMirror",  # grow bridge + KL distillation
+    "Hagi.Examples.Nonvacuity",        # merge bridge + obstruction theorems
 ]
 
 IMP = re.compile(r"^import\s+(Hagi\.[A-Za-z0-9_.]+)\s*$", re.M)
