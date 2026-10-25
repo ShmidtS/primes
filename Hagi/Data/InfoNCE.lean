@@ -81,17 +81,7 @@ namespace Hagi.Data
 
 variable {V : Type*} [Fintype V]
 
-/-- THE Kullback–Leibler divergence (canonical). -/
-noncomputable def KL (q p : V → ℝ) : ℝ := Hagi.Prelude.klDef q p
-
-/-- THE Shannon entropy (canonical). -/
-noncomputable def H (p : V → ℝ) : ℝ := Hagi.Prelude.entDef p
-
-/-- THE total variation distance, half-L1 (canonical). -/
-noncomputable def TV (p q : V → ℝ) : ℝ := Hagi.Prelude.tvDef p q
-
-/-- THE cross-entropy CE_q(p) = −Σ q·log p (canonical;
-matches Data.Distill.crossEntropy). -/
+/- Канонические KL/H/TV (Prelude) напрямую; CE локален (= Distill.crossEntropy). -/
 noncomputable def CE (q p : V → ℝ) : ℝ := -∑ v, q v * Real.log (p v)
 
 /-! ## Bridge theorems: every variant IS the canonical form -/
@@ -119,10 +109,6 @@ theorem tvHalf_eq_canonical {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) :
     Hagi.Information.tvHalf p q = (∑ i, |p i - q i|) / 2 := rfl
 
-/-- The canonical cross-entropy matches the Distill
-definition (same carrier, same form). -/
-theorem crossEntropy_eq_canonical (q p : V → ℝ) :
-    Hagi.Data.CE q p = Hagi.crossEntropy (V := V) q p := rfl
 
 /-! ## The canonical identity block (one place) -/
 
@@ -130,10 +116,10 @@ theorem crossEntropy_eq_canonical (q p : V → ℝ) :
 baseline — the canonical form of the law. -/
 theorem kl_excess_cross_entropy (q p : V → ℝ)
     (hq : ∀ v, q v ≠ 0) (hp : ∀ v, p v ≠ 0) :
-    KL q p = CE q p - CE q q := by
-  have h1 : ∀ x : V → ℝ, CE q x = -∑ v, q v * Real.log (x v) := by
+    Hagi.Prelude.klDef q p = Hagi.Data.crossEntropy q p - Hagi.Data.crossEntropy q q := by
+  have h1 : ∀ x : V → ℝ, Hagi.Data.crossEntropy q x = -∑ v, q v * Real.log (x v) := by
     intro x; exact rfl
-  unfold KL
+  unfold Hagi.Prelude.klDef
   rw [h1 p, h1 q]
   rw [← Finset.sum_neg_distrib, ← Finset.sum_neg_distrib,
     ← Finset.sum_sub_distrib]
@@ -152,18 +138,18 @@ variable {V : Type} [Fintype V] [DecidableEq V]
 /-- CE q q в точности равен энтропии H q (знак-соглашения
 канонических определений совпадают). -/
 theorem ce_self_eq_entropy (q : V → ℝ) :
-    Hagi.Data.CE q q = Hagi.Data.H q := rfl
+    Hagi.Data.crossEntropy q q = Hagi.Prelude.entDef q := rfl
 
 /-- Кросс-энтропия не ниже энтропии цели: CE q p ≥ H q
 (KL ≥ 0 в ce-разложении kl_excess_cross_entropy). -/
 theorem ce_ge_entropy (q p : V → ℝ)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    Hagi.Data.H q ≤ Hagi.Data.CE q p := by
+    Hagi.Prelude.entDef q ≤ Hagi.Data.crossEntropy q p := by
   have hex := Hagi.Data.kl_excess_cross_entropy q p
     (fun v => ne_of_gt (hq v))
     (fun v => ne_of_gt (hp v))
-  have hkl : 0 ≤ Hagi.Data.KL q p :=
+  have hkl : 0 ≤ Hagi.Prelude.klDef q p :=
     Hagi.kl_nonneg q p hq hp hsumq hsump
   rw [ce_self_eq_entropy] at hex
   linarith [hex, hkl]
@@ -173,7 +159,7 @@ theorem ce_ge_entropy (q p : V → ℝ)
 theorem infonce_never_overestimates (k : ℝ) (q p : V → ℝ)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    k - Hagi.Data.CE q p ≤ k - Hagi.Data.H q := by
+    k - Hagi.Data.crossEntropy q p ≤ k - Hagi.Prelude.entDef q := by
   have h := ce_ge_entropy q p hsumq hsump hq hp
   linarith
 
@@ -182,8 +168,8 @@ theorem infonce_never_overestimates (k : ℝ) (q p : V → ℝ)
 с постериором (зазор нулевой ⟺ KL нулевой). -/
 theorem infonce_gap_is_kl (k : ℝ) (q p : V → ℝ)
     (hq : ∀ v, q v ≠ 0) (hp : ∀ v, p v ≠ 0) :
-    (k - Hagi.Data.H q) - (k - Hagi.Data.CE q p)
-      = Hagi.Data.KL q p := by
+    (k - Hagi.Prelude.entDef q) - (k - Hagi.Data.crossEntropy q p)
+      = Hagi.Prelude.klDef q p := by
   have hex := Hagi.Data.kl_excess_cross_entropy q p hq hp
   rw [ce_self_eq_entropy] at hex
   linarith

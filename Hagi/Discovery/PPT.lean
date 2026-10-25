@@ -332,18 +332,11 @@ theorem truncation_bias (K : Seq → Seq → ℝ) (pi : Seq → ℝ) (S : Set Se
 
 /-! ## 5. Doeblin mixing -/
 
-/-- Total variation distance (half L1) — delegation to the
-canonical Prelude.tvDef (dedup R297). -/
-noncomputable def tvDist (mu pi : Seq → ℝ) : ℝ :=
-  Hagi.Prelude.tvDef mu pi
-
-/-- prelude bridge: tvDist IS the canonical Prelude.tvDef. -/
-theorem tvDist_eq_tvDef (mu pi : Seq → ℝ) :
-    tvDist mu pi = Hagi.Prelude.tvDef mu pi := rfl
+/- TV: канонический Prelude.tvDef. -/
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-theorem tvDist_nonneg (mu pi : Seq → ℝ) : 0 ≤ tvDist mu pi :=
+theorem tvDist_nonneg (mu pi : Seq → ℝ) : 0 ≤ Hagi.Prelude.tvDef mu pi :=
   div_nonneg (Finset.sum_nonneg fun y _ => abs_nonneg _) (by norm_num)
 
 /-- |a − b| = a + b − 2·min(a,b) — the L¹ identity behind the coupling
@@ -417,8 +410,8 @@ theorem ppt_tvContraction (K : Seq → Seq → ℝ) (hK : pptKernel K)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
     (_hmunn : ∀ x, 0 ≤ mu x) (_hpinn : ∀ x, 0 ≤ pi x)
     (hstat : ∀ y, vecMul pi K y = pi y) :
-    tvDist (vecMul mu K) pi
-      ≤ (1 - (Fintype.card Seq : ℝ) * eps) * tvDist mu pi := by
+    Hagi.Prelude.tvDef (vecMul mu K) pi
+      ≤ (1 - (Fintype.card Seq : ℝ) * eps) * Hagi.Prelude.tvDef mu pi := by
   set A : Finset Seq := Finset.univ.filter (fun x => 0 ≤ mu x - pi x) with hAdef
   set B : Finset Seq := Finset.univ.filter (fun x => ¬ 0 ≤ mu x - pi x) with hBdef
   have hAnn : ∀ x ∈ A, 0 ≤ mu x - pi x := by
@@ -564,8 +557,8 @@ theorem pptMixing (K : Seq → Seq → ℝ) (hK : pptKernel K)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
     (hmunn : ∀ x, 0 ≤ mu x) (hpinn : ∀ x, 0 ≤ pi x)
     (hstat : ∀ y, vecMul pi K y = pi y) (n : ℕ) :
-    tvDist (chainAt mu K n) pi
-      ≤ (1 - (Fintype.card Seq : ℝ) * eps) ^ n * tvDist mu pi := by
+    Hagi.Prelude.tvDef (chainAt mu K n) pi
+      ≤ (1 - (Fintype.card Seq : ℝ) * eps) ^ n * Hagi.Prelude.tvDef mu pi := by
   have hcard : (Fintype.card Seq : ℝ) * eps ≤ 1 := ppt_card_eps_le_one K hK eps heps
   have hcnn : 0 ≤ 1 - (Fintype.card Seq : ℝ) * eps := by linarith
   induction n with
@@ -575,25 +568,25 @@ theorem pptMixing (K : Seq → Seq → ℝ) (hK : pptKernel K)
   | succ n ih =>
       rw [chainAt_succ, pow_succ]
       have hprob := chainAt_isProb K hK mu hmu hmunn n
-      calc tvDist (vecMul (chainAt mu K n) K) pi
-          ≤ (1 - (Fintype.card Seq : ℝ) * eps) * tvDist (chainAt mu K n) pi :=
+      calc Hagi.Prelude.tvDef (vecMul (chainAt mu K n) K) pi
+          ≤ (1 - (Fintype.card Seq : ℝ) * eps) * Hagi.Prelude.tvDef (chainAt mu K n) pi :=
             ppt_tvContraction K hK eps heps _ pi hprob.1 hpi hprob.2 hpinn hstat
         _ ≤ (1 - (Fintype.card Seq : ℝ) * eps)
-              * ((1 - (Fintype.card Seq : ℝ) * eps) ^ n * tvDist mu pi) :=
+              * ((1 - (Fintype.card Seq : ℝ) * eps) ^ n * Hagi.Prelude.tvDef mu pi) :=
             mul_le_mul_of_nonneg_left ih hcnn
-        _ = (1 - (Fintype.card Seq : ℝ) * eps) ^ (n + 1) * tvDist mu pi := by ring
+        _ = (1 - (Fintype.card Seq : ℝ) * eps) ^ (n + 1) * Hagi.Prelude.tvDef mu pi := by ring
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
 theorem tvDist_le_one (mu pi : Seq → ℝ)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
     (hmunn : ∀ x, 0 ≤ mu x) (hpinn : ∀ x, 0 ≤ pi x) :
-    tvDist mu pi ≤ 1 := by
+    Hagi.Prelude.tvDef mu pi ≤ 1 := by
   have h1 : ∑ y, |mu y - pi y| ≤ ∑ y, (mu y + pi y) :=
     Finset.sum_le_sum fun y _ => abs_le.2 ⟨by linarith [hmunn y, hpinn y],
       by linarith [hmunn y, hpinn y]⟩
   rw [Finset.sum_add_distrib, hmu, hpi] at h1
-  unfold tvDist Hagi.Prelude.tvDef
+  unfold Hagi.Prelude.tvDef
   linarith
 
 set_option linter.unusedDecidableInType false in
@@ -608,7 +601,7 @@ theorem pptMixing_doeblin (K : Seq → Seq → ℝ) (hK : pptKernel K)
     (hmu : ∑ x, mu x = 1) (hpi : ∑ x, pi x = 1)
     (hmunn : ∀ x, 0 ≤ mu x) (hpinn : ∀ x, 0 ≤ pi x)
     (hstat : ∀ y, vecMul pi K y = pi y) (n : ℕ) :
-    tvDist (chainAt mu K n) pi ≤ (1 - eps) ^ n := by
+    Hagi.Prelude.tvDef (chainAt mu K n) pi ≤ (1 - eps) ^ n := by
   have hcard : (Fintype.card Seq : ℝ) * eps ≤ 1 := ppt_card_eps_le_one K hK eps heps
   have hcard1 : (1 : ℝ) ≤ Fintype.card Seq := by
     obtain ⟨a⟩ : Nonempty Seq := inferInstance
@@ -624,11 +617,11 @@ theorem pptMixing_doeblin (K : Seq → Seq → ℝ) (hK : pptKernel K)
     nlinarith [hcard1, heps0]
   have hle : (1 - (Fintype.card Seq : ℝ) * eps) ^ n ≤ (1 - eps) ^ n :=
     pow_le_pow_left₀ (by linarith) (by linarith [hge]) n
-  have htv : tvDist mu pi ≤ 1 := tvDist_le_one mu pi hmu hpi hmunn hpinn
+  have htv : Hagi.Prelude.tvDef mu pi ≤ 1 := tvDist_le_one mu pi hmu hpi hmunn hpinn
   have hnn : (0 : ℝ) ≤ 1 - eps := by linarith
-  calc tvDist (chainAt mu K n) pi
-      ≤ (1 - (Fintype.card Seq : ℝ) * eps) ^ n * tvDist mu pi := hsharp
-    _ ≤ (1 - eps) ^ n * tvDist mu pi :=
+  calc Hagi.Prelude.tvDef (chainAt mu K n) pi
+      ≤ (1 - (Fintype.card Seq : ℝ) * eps) ^ n * Hagi.Prelude.tvDef mu pi := hsharp
+    _ ≤ (1 - eps) ^ n * Hagi.Prelude.tvDef mu pi :=
         mul_le_mul_of_nonneg_right hle (tvDist_nonneg _ _)
     _ ≤ (1 - eps) ^ n * 1 :=
         mul_le_mul_of_nonneg_left htv (pow_nonneg hnn n)
@@ -841,5 +834,5 @@ end PPT
 end Hagi.Discovery
 
 namespace Hagi
-export Hagi.Discovery (pptNorm pptNorm_pos pptTarget pptTarget_isProbability pptTarget_pos pptKernel pptKernel_nonneg pptDetailedBalance mh_stationary pptSwapAccept pptSwapAccept_nonneg pptSwapAccept_le_one pptSwapAccept_mem pptSwap_balance pptSwapKernel pptSwapKernel_nonneg pptSwapKernel_sum pptSwapKernel_isKernel pptSwap_detailedBalance pptSwap_productProb pptSwap_stationary truncation_bias tvDist tvDist_nonneg abs_sub_eq_add_sub_two_min vecMul chainAt chainAt_succ vecMul_sum vecMul_nonneg ppt_card_eps_le_one ppt_tvContraction chainAt_isProb pptMixing tvDist_le_one pptMixing_doeblin goodSet discovery_prob_stationary discovery_prob_lower stationary_value_ge pptSuccess pptRejectGood pptOverrun pptSuccess_union_bound pptSuccess_lower)
+export Hagi.Discovery (pptNorm pptNorm_pos pptTarget pptTarget_isProbability pptTarget_pos pptKernel pptKernel_nonneg pptDetailedBalance mh_stationary pptSwapAccept pptSwapAccept_nonneg pptSwapAccept_le_one pptSwapAccept_mem pptSwap_balance pptSwapKernel pptSwapKernel_nonneg pptSwapKernel_sum pptSwapKernel_isKernel pptSwap_detailedBalance pptSwap_productProb pptSwap_stationary truncation_bias tvDist_nonneg abs_sub_eq_add_sub_two_min vecMul chainAt chainAt_succ vecMul_sum vecMul_nonneg ppt_card_eps_le_one ppt_tvContraction chainAt_isProb pptMixing tvDist_le_one pptMixing_doeblin goodSet discovery_prob_stationary discovery_prob_lower stationary_value_ge pptSuccess pptRejectGood pptOverrun pptSuccess_union_bound pptSuccess_lower)
 end Hagi
