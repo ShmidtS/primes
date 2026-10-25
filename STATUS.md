@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2904 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2905 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Продуктивный T=2 свидетель итогового инварианта**
+  (`certified_invariant_advance_witness`): CertifiedHAGIInvariant
+  на T=2 из РЕАЛЬНЫХ advance-переходов wTraj (энергия убывает
+  30→23, capability 1→4 = 2², риск 0, бюджет 100−2t) — ответ на
+  критику 1 аудита v3 (вакуумность мастер-цепочки при T≥2).
 - **Разводка CycleCertificate×2** (аудит v3 §5): System-версия
   переименована в StageCycleCertChain; параметрический
   Model.CycleCertificate — единственный с этим именем.

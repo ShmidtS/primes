@@ -248,6 +248,7 @@ import Hagi.Probability.PinskerTV
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
 import Hagi.Unified.DerivAlong
+import Hagi.Unified.AdvanceWitness
 import Hagi.Unified.DualCeiling
 import Hagi.Unified.FannesComplete
 import Hagi.Unified.GaugeQuotient
