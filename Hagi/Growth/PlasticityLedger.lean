@@ -33,9 +33,9 @@ variable {I V : Type*} [Fintype I] [DecidableEq I] [Fintype V]
 noncomputable def famMix (P : I → V → ℝ) (v : V) : ℝ :=
   (Fintype.card I : ℝ)⁻¹ * ∑ i, P i v
 
-/-- Радиус пластичности: `plasticityRadius P = Σ_i klDiv (P i) (famMix P)`. -/
+/-- Радиус пластичности: `plasticityRadius P = Σ_i Hagi.Prelude.klDef (P i) (famMix P)`. -/
 noncomputable def plasticityRadius (P : I → V → ℝ) : ℝ :=
-  ∑ i, klDiv (P i) (famMix P)
+  ∑ i, Hagi.Prelude.klDef (P i) (famMix P)
 
 /-- `IsProbs P`: все значения неотрицательны и каждое `P i`
 суммируется в 1. -/
@@ -43,11 +43,11 @@ def IsProbs (P : I → V → ℝ) : Prop :=
   (∀ i v, 0 ≤ P i v) ∧ (∀ i, ∑ v, P i v = 1)
 
 /-- Если `IsProbs P`, все `P i v > 0` и все `famMix P v > 0`,
-то `klDiv (P i) (famMix P) ≤ log |I|`. -/
+то `Hagi.Prelude.klDef (P i) (famMix P) ≤ log |I|`. -/
 theorem kl_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
     (hposP : ∀ i v, 0 < P i v)
     (hpos : ∀ v, 0 < famMix P v) (i : I) :
-    klDiv (P i) (famMix P) ≤ Real.log (Fintype.card I : ℝ) := by
+    Hagi.Prelude.klDef (P i) (famMix P) ≤ Real.log (Fintype.card I : ℝ) := by
   obtain ⟨hnn, hsum⟩ := hP
   have hcardpos : (0:ℝ) < (Fintype.card I : ℝ) :=
     Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨i⟩)
@@ -84,7 +84,7 @@ theorem kl_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
       nlinarith [hnmix, hpos v, hdm]
     exact Real.log_le_log (div_pos (hposP i v) (hpos v)) hratio
   -- сумма: Σ P log(P/mix) <= Σ P log n = log n
-  unfold klDiv Hagi.Prelude.klDef
+  simp only [Hagi.Prelude.klDef]
   have hterm : ∀ v, P i v * Real.log (P i v / famMix P v)
       ≤ P i v * Real.log (Fintype.card I : ℝ) :=
     fun v => mul_le_mul_of_nonneg_left (hlog v) (hnn i v)
@@ -112,10 +112,10 @@ theorem radius_le_log_card (P : I → V → ℝ) (hP : IsProbs P)
       ≤ (Fintype.card I : ℝ) * Real.log (Fintype.card I : ℝ) := by
   unfold plasticityRadius
   have hle : ∀ i ∈ Finset.univ,
-      klDiv (P i) (famMix P) ≤ Real.log (Fintype.card I : ℝ) :=
+      Hagi.Prelude.klDef (P i) (famMix P) ≤ Real.log (Fintype.card I : ℝ) :=
     fun i _ => kl_le_log_card P hP hposP hpos i
   have := Finset.sum_le_sum hle
-  calc plasticityRadius P = ∑ i, klDiv (P i) (famMix P) := rfl
+  calc plasticityRadius P = ∑ i, Hagi.Prelude.klDef (P i) (famMix P) := rfl
     _ ≤ ∑ i, Real.log (Fintype.card I : ℝ) := this
     _ = (Fintype.card I : ℝ) * Real.log (Fintype.card I : ℝ) := by
         simp [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
@@ -147,7 +147,7 @@ theorem radius_zero_of_eq (P : I → V → ℝ)
   unfold plasticityRadius
   refine Finset.sum_eq_zero fun i _ => ?_
   rw [hmix i]
-  unfold klDiv
+  unfold Hagi.Prelude.klDef
   refine Finset.sum_eq_zero fun v _ => ?_
   have hself : P i v / P i v = 1 := div_self (ne_of_gt (hposP i v))
   rw [hself, Real.log_one, mul_zero]

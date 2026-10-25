@@ -226,7 +226,7 @@ entropy preservation is carried below as the explicit
 hypothesis hcert. -/
 theorem entropy_kl_ce_identity (m q : V → ℝ)
     (hm : ∀ v, 0 < m v) (hq : ∀ v, 0 < q v) :
-    crossEntropy m q = shannonEntropy m + klDiv m q := by
+    crossEntropy m q = shannonEntropy m + Hagi.Prelude.klDef m q := by
   have h := teacher_generated_identity m q hm hq
   unfold crossEntropy at h
   unfold shannonEntropy Hagi.Prelude.entDef crossEntropy

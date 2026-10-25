@@ -96,8 +96,6 @@ noncomputable def CE (q p : V → ℝ) : ℝ := -∑ v, q v * Real.log (p v)
 
 /-! ## Bridge theorems: every variant IS the canonical form -/
 
-theorem klDiv_eq_canonical (q p : V → ℝ) :
-    Hagi.klDiv q p = KL q p := rfl
 
 
 -- (the Energy.FreeEnergy.kldiv bridge lives in

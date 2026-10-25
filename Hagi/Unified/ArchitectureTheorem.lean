@@ -341,7 +341,7 @@ theorem distill_kl_bridge (q pE pθ : V → ℝ)
     (hq : ∀ v, 0 ≤ q v) (hE : ∀ v, 0 < pE v) (hθ : ∀ v, 0 < pθ v)
     (M : ℝ) (hM : ∀ v, |Real.log (pE v / pθ v)| ≤ M) :
     crossEntropy q pθ - crossEntropy q pE
-      ≤ klDiv pE pθ + M * l1Norm (fun v => q v - pE v) := by
+      ≤ Hagi.Prelude.klDef pE pθ + M * l1Norm (fun v => q v - pE v) := by
   -- разложение логарифма отношения
   have hlogsplit : ∀ v, Real.log (pE v / pθ v)
       = Real.log (pE v) - Real.log (pθ v) := by
@@ -369,7 +369,7 @@ theorem distill_kl_bridge (q pE pθ : V → ℝ)
     exact Finset.sum_congr rfl fun v _ => hper v
   rw [hmain, hsplit]
   -- KL-часть
-  have hkl : klDiv pE pθ = ∑ v, pE v * Real.log (pE v / pθ v) := rfl
+  have hkl : Hagi.Prelude.klDef pE pθ = ∑ v, pE v * Real.log (pE v / pθ v) := rfl
   rw [hkl]
   -- второй член: |Σ (q−pE)·(log-ratio)| ≤ M·‖q−pE‖₁
   have hbound : ∑ v, (q v - pE v) * (Real.log (pE v) - Real.log (pθ v))

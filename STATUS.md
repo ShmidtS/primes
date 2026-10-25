@@ -584,8 +584,10 @@
   недостижима ни на каком горизонте с неотрицательным
   бюджетом — контрапозиция оплаченного роста.
 - **Канон 2.1: единый KL** (`kl_tilted_decompose`): все модули
-  (DField, Variational, FreeEnergy, DBridge, DistillRecursion,
-  NessDissipation, CrossModalGap, MDLThreeCurrency) используют
+  (DField, Distill, Variational, FreeEnergy, DBridge,
+  DistillRecursion, NessDissipation, CrossModalGap,
+  MDLThreeCurrency, Insight, PlasticityLedger,
+  ArchitectureTheorem) используют
   канонический klDef напрямую (дубликаты KLdiv/kldiv/kldiv'
   и их rfl-мосты удалены, аудит 2026-10-24).
 - **Интегральный сертификат траектории**

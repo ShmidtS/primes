@@ -72,18 +72,13 @@ CE_q(p) = −Σ q log p (the standard sign — fix). -/
 noncomputable def crossEntropy (q p : V → ℝ) : ℝ :=
   -∑ v, q v * Real.log (p v)
 
-/-- The Kullback–Leibler divergence KL(q‖p) = Σ q log(q/p)
-(the real definition — fix). -/
-noncomputable def klDiv (q p : V → ℝ) : ℝ :=
-  --: = Prelude.klDef (kept under the historical name)
-  Hagi.Prelude.klDef q p
 
 /-- **KL is the excess cross-entropy** over the entropy
 baseline: KL(q‖p) = CE_q(p) − CE_q(q) for strictly positive
 distributions (q a distribution, p positive). -/
 theorem kl_eq_ce_gap (q p : V → ℝ) (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    klDiv q p = crossEntropy q p - crossEntropy q q := by
-  unfold klDiv crossEntropy Hagi.Prelude.klDef
+    Hagi.Prelude.klDef q p = crossEntropy q p - crossEntropy q q := by
+  unfold Hagi.Prelude.klDef crossEntropy
   have hsplit : ∀ v : V, q v * Real.log (q v / p v)
       = q v * Real.log (q v) - q v * Real.log (p v) := by
     intro v
@@ -111,7 +106,7 @@ identity is the honest replacement. -/
 theorem ce_gap_kl_identity (q pE pTheta : V → ℝ)
     (hq : ∀ v, 0 < q v) (hpE : ∀ v, 0 < pE v) (hpT : ∀ v, 0 < pTheta v) :
     crossEntropy q pTheta - crossEntropy q pE
-      = klDiv q pTheta - klDiv q pE := by
+      = Hagi.Prelude.klDef q pTheta - Hagi.Prelude.klDef q pE := by
   rw [kl_eq_ce_gap q pTheta hq hpT, kl_eq_ce_gap q pE hq hpE]
   ring
 
@@ -128,7 +123,7 @@ teacher-student divergence — the distillable gap is EXACTLY
 the divergence. -/
 theorem teacher_generated_identity (pE pTheta : V → ℝ)
     (hpE : ∀ v, 0 < pE v) (hpT : ∀ v, 0 < pTheta v) :
-    crossEntropy pE pTheta = crossEntropy pE pE + klDiv pE pTheta := by
+    crossEntropy pE pTheta = crossEntropy pE pE + Hagi.Prelude.klDef pE pTheta := by
   rw [kl_eq_ce_gap pE pTheta hpE hpT]
   ring
 
@@ -203,7 +198,7 @@ theorem kl_topk_shift (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     (hq : ∀ v ∉ S, q v = 0)
     (hqS : ∑ v ∈ S, q v = 1) (hZ : 0 < Z)
     (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v) :
-    klDiv q (truncNorm p S Z) = klDiv q p + Real.log Z := by
+    Hagi.Prelude.klDef q (truncNorm p S Z) = Hagi.Prelude.klDef q p + Real.log Z := by
   -- члены вне S нулевые с обеих сторон (q v = 0)
   have hqout : ∀ v, v ∉ S →
       q v * Real.log (q v / truncNorm p S Z v) = 0 := by
@@ -229,7 +224,7 @@ theorem kl_topk_shift (q p : V → ℝ) (S : Finset V) (Z : ℝ)
       = ∑ v ∈ S, q v * Real.log (q v / p v) :=
     (Finset.sum_subset (Finset.subset_univ S)
       (fun v _ hv => hqout' v hv)).symm
-  unfold klDiv Hagi.Prelude.klDef
+  simp only [Hagi.Prelude.klDef]
   rw [hL, hR]
   have hlog : ∀ v, v ∈ S →
       Real.log (Z * q v / p v) = Real.log (q v / p v) + Real.log Z := by
@@ -265,8 +260,8 @@ theorem topk_distill_budget (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v)
     (α β : ℝ) (hβ : 0 ≤ β)
     (hZ : Real.exp (-β) ≤ Z)
-    (hstudent : klDiv q (truncNorm p S Z) ≤ α) :
-    klDiv q p ≤ α + β := by
+    (hstudent : Hagi.Prelude.klDef q (truncNorm p S Z) ≤ α) :
+    Hagi.Prelude.klDef q p ≤ α + β := by
   have hshift := kl_topk_shift q p S Z hq hqS hZ0 hqpos hppos
   -- log Z ≥ −β из Z ≥ e^(−β)
   have hlogZ : -β ≤ Real.log Z := by
@@ -299,8 +294,8 @@ theorem topk_distill_budget_tv (q p : V → ℝ) (S : Finset V) (Z : ℝ)
     (hqS : ∑ v ∈ S, q v = 1) (hZ0 : 0 < Z) (hZ1 : Z ≤ 1)
     (hqpos : ∀ v ∈ S, 0 < q v) (hppos : ∀ v ∈ S, 0 < p v)
     (α : ℝ)
-    (hstudent : klDiv q (truncNorm p S Z) ≤ α) :
-    klDiv q p ≤ α + (1 - Z) / Z := by
+    (hstudent : Hagi.Prelude.klDef q (truncNorm p S Z) ≤ α) :
+    Hagi.Prelude.klDef q p ≤ α + (1 - Z) / Z := by
   have hexp : Real.exp (-((1 - Z) / Z)) ≤ Z := by
     have h1 := topk_tail_bound Z hZ0 hZ1
     -- −log Z ≤ (1−Z)/Z ⟹ exp(−(1−Z)/Z) ≤ exp(log Z) = Z
@@ -421,5 +416,5 @@ end Distill
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (crossEntropy klDiv kl_eq_ce_gap ce_gap_kl_identity teacher_generated_identity)
+export Hagi.Data (crossEntropy kl_eq_ce_gap ce_gap_kl_identity teacher_generated_identity)
 end Hagi

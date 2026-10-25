@@ -39,12 +39,12 @@ theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpac
 
 /-- For strictly positive distributions q, pI, pTheta:
 crossEntropy q pTheta − crossEntropy q pI
-= klDiv q pTheta − klDiv q pI.
+= Hagi.Prelude.klDef q pTheta − Hagi.Prelude.klDef q pI.
 -/
 theorem insight_kl_descent (q pI pTheta' : V → ℝ)
     (hq : ∀ v, 0 < q v) (hI : ∀ v, 0 < pI v) (hT : ∀ v, 0 < pTheta' v) :
     crossEntropy q pTheta' - crossEntropy q pI
-      = klDiv q pTheta' - klDiv q pI :=
+      = Hagi.Prelude.klDef q pTheta' - Hagi.Prelude.klDef q pI :=
   ce_gap_kl_identity q pI pTheta' hq hI hT
 
 /-- Given the stage inequality `Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp`, the next-cycle energy satisfies `Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant)`.
