@@ -138,4 +138,28 @@ theorem cone_comparison (C D C' D' : ℕ → ℝ) (γ ρ β : ℝ)
         _ ≤ ρ * D t + β * C t - 0 := by ring_nf; linarith
         _ ≤ D (t + 1) := by linarith [hD t]
 
+/-- СРАВНЕНИЕ С ВОЗМУЩЕНИЕМ (аудит v3 Phase 3): при
+ξ_t ≤ ε·C_t возмущённая динамика
+D_{t+1} ≥ ρD_t + βC_t − ξ_t доминируется системой с
+эффективным β' = β − ε (ε ≤ β) — возмущение поглощается
+сдвигом коэффициента, спектральный радиус падает. -/
+theorem cone_comparison_perturbed (C D C' D' ξ : ℕ → ℝ)
+    (γ ρ β ε : ℝ)
+    (hγ : 0 ≤ γ) (hρ : 0 ≤ ρ) (hβ : 0 ≤ β) (hε : 0 ≤ ε) (hβε : ε ≤ β)
+    (h0C : C' 0 ≤ C 0) (h0D : D' 0 ≤ D 0)
+    (hC : ∀ t, C (t + 1) ≥ C t + γ * D t)
+    (hD : ∀ t, D (t + 1) ≥ ρ * D t + β * C t - ξ t)
+    (hξ : ∀ t, ξ t ≤ ε * C t)
+    (hC' : ∀ t, C' (t + 1) = C' t + γ * D' t)
+    (hD' : ∀ t, D' (t + 1) = ρ * D' t + (β - ε) * C' t) :
+    ∀ t, C' t ≤ C t ∧ D' t ≤ D t := by
+  apply cone_comparison C D C' D' γ ρ (β - ε) hγ hρ
+    (by linarith) h0C h0D hC
+  · intro t
+    have hξt := hξ t
+    have := hD t
+    nlinarith
+  · exact hC'
+  · exact hD'
+
 end Hagi.Foundations
