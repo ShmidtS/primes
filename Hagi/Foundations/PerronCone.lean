@@ -109,4 +109,33 @@ theorem cone_perron_growth (C D : ℕ → ℝ) (γ β ρ k : ℝ)
           Fin.sum_univ_two] at hc0 hc1
         linear_combination ((1 + γ * k) ^ T * C 0) * hc1
 
+/-- МОНОТОННОЕ СРАВНЕНИЕ КОНУСА (аудит v3, Phase 3): если
+γ,ρ,β ≥ 0, фактическая динамика (C,D) удовлетворяет
+НЕРАВЕНСТВам C_{t+1} ≥ C_t + γD_t, D_{t+1} ≥ ρD_t + βC_t − ξ_t,
+а (C',D') — решение той же системы с РАВЕНСТВАМИ и
+C'₀ ≤ C₀, D'₀ ≤ D₀, то C' ≤ C и D' ≤ D на всём горизонте.
+Кап C_cap НЕ нужен; скорость — спектральный радиус
+(cone_perron_growth — случай равенства). -/
+theorem cone_comparison (C D C' D' : ℕ → ℝ) (γ ρ β : ℝ)
+    (hγ : 0 ≤ γ) (hρ : 0 ≤ ρ) (hβ : 0 ≤ β)
+    (h0C : C' 0 ≤ C 0) (h0D : D' 0 ≤ D 0)
+    (hC : ∀ t, C (t + 1) ≥ C t + γ * D t)
+    (hD : ∀ t, D (t + 1) ≥ ρ * D t + β * C t - 0)
+    (hC' : ∀ t, C' (t + 1) = C' t + γ * D' t)
+    (hD' : ∀ t, D' (t + 1) = ρ * D' t + β * C' t) :
+    ∀ t, C' t ≤ C t ∧ D' t ≤ D t := by
+  intro t
+  induction t with
+  | zero => exact ⟨h0C, h0D⟩
+  | succ t ih =>
+      obtain ⟨ihC, ihD⟩ := ih
+      constructor
+      · calc C' (t + 1) = C' t + γ * D' t := hC' t
+        _ ≤ C t + γ * D t := by nlinarith [ihC, ihD, hγ]
+        _ ≤ C (t + 1) := hC t
+      · calc D' (t + 1) = ρ * D' t + β * C' t := hD' t
+        _ ≤ ρ * D t + β * C t := by nlinarith [ihC, ihD, hρ, hβ]
+        _ ≤ ρ * D t + β * C t - 0 := by ring_nf; linarith
+        _ ≤ D (t + 1) := by linarith [hD t]
+
 end Hagi.Foundations

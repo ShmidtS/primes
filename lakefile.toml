@@ -154,3 +154,27 @@ globs = ["Hagi.Unified.+"]
 [[lean_lib]]
 name = "Hagi.Examples"
 globs = ["Hagi.Examples.+"]
+
+[[lean_lib]]
+name = "Hagi.Geometry"
+globs = ["Hagi.Geometry.+"]
+
+[[lean_lib]]
+name = "Hagi.Numerics"
+globs = ["Hagi.Numerics.+"]
+
+[[lean_lib]]
+name = "Hagi.Optimization"
+globs = ["Hagi.Optimization.+"]
+
+[[lean_lib]]
+name = "Hagi.Percolation"
+globs = ["Hagi.Percolation.+"]
+
+[[lean_lib]]
+name = "Hagi.Planning"
+globs = ["Hagi.Planning.+"]
+
+[[lean_lib]]
+name = "Hagi.System"
+globs = ["Hagi.System.+"]
