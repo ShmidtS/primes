@@ -417,4 +417,27 @@ theorem trunc_cone_invariance (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
       linarith
     exact le_trans h1 (le_trans h2 (hdyn t))
 
+/-- ПОЛНЫЙ ВЗЛЁТ ИЗ ПОСЫЛОК trunc (композиция): конусный блок
+MasterHAGI_trunc (cone0, C_cap, dyn, beta) + шаги
+C (t+1) = C t + G t и γ·D t ≤ G t дают экспоненциальный рост
+capability: C T ≥ (1+α)^T·C 0 — вся цепочка от эмпирических
+посылок к takeoff (trunc_cone_invariance ⟹
+h_emp_takeoff_exponential при k = α/γ, γk = α). -/
+theorem trunc_premises_takeoff (C D G ξ : ℕ → ℝ) (α γ ρ β : ℝ)
+    (hα : 0 ≤ α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
+    (hC : ∀ t, 0 < C t)
+    (hcone0 : α / γ * C 0 ≤ D 0)
+    (hcap : ∀ t, C (t + 1) ≤ (1 + α) * C t)
+    (hdyn : ∀ t, ρ * D t + β * C t - ξ t ≤ D (t + 1))
+    (hbeta : ∀ t, α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β)
+    (hstepC : ∀ t, C (t + 1) = C t + G t)
+    (hgain : ∀ t, γ * D t ≤ G t) (T : ℕ) :
+    (1 + α) ^ T * C 0 ≤ C T := by
+  have hcone := trunc_cone_invariance C D ξ α γ ρ β
+    hα hγ hρ hC hcone0 hcap hdyn hbeta
+  have hγk : γ * (α / γ) = α := by field_simp
+  have h := h_emp_takeoff_exponential C D G γ (α / γ)
+    (le_of_lt hγ) (by nlinarith [hα, hγk]) hstepC hgain hcone T
+  rwa [hγk] at h
+
 end Hagi.Foundations

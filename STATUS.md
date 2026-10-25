@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2914 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2915 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Полный взлёт из посылок trunc**
+  (`trunc_premises_takeoff`): композиция — конусный блок
+  MasterHAGI_trunc + шаги C/G дают C T ≥ (1+α)^T·C 0.
 - **Конусная инвариантность посылок trunc**
   (`trunc_cone_invariance`): блок h_emp_{cone0, C_cap, dyn,
   beta} поддерживает (α/γ)·C t ≤ D t индукцией по t — ядро
