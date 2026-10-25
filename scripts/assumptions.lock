@@ -1,6 +1,6 @@
 h_emp files: 36
 h_emp identifiers: 121
-primitive defs: 11
+primitive defs: 10
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
@@ -51,4 +51,3 @@ Hagi/Prelude/Info.lean:entDef
 Hagi/Prelude/Info.lean:klDef
 Hagi/Prelude/Info.lean:tvDef
 Hagi/Step/Upgrades.lean:softmaxW
-Hagi/Unified/ArchitectureTheorem.lean:entTV

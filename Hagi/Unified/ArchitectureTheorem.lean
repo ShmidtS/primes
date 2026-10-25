@@ -49,15 +49,6 @@ namespace Hagi.Data
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
-/-- Полная вариация τ = ½‖p − q‖₁ (делегирование каноническому
-Prelude.tvDef, дедуп R294). -/
-noncomputable def entTV (p q : V → ℝ) : ℝ :=
-  Hagi.Prelude.tvDef p q
-
-/-- prelude bridge: entTV IS the canonical Prelude.tvDef. -/
-theorem entTV_eq_tvDef (p q : V → ℝ) :
-    entTV p q = Hagi.Prelude.tvDef p q := rfl
-
 /-- Двоичная энтропия h₂(τ) = −τ·log τ − (1−τ)·log(1−τ). -/
 noncomputable def binEnt (τ : ℝ) : ℝ :=
   -τ * Real.log τ - (1 - τ) * Real.log (1 - τ)
@@ -74,14 +65,14 @@ def FannesDecomp (p q : V → ℝ) (τ : ℝ)
     ∧ (∀ v, 0 ≤ u v ∧ 0 ≤ u' v ∧ 0 ≤ w v ∧ 0 ≤ w' v)
     ∧ (∑ v, u v) = 1 ∧ (∑ v, u' v) = 1
 
-theorem entTV_nonneg (p q : V → ℝ) : 0 ≤ entTV p q := by
-  rw [entTV_eq_tvDef]
+theorem entTV_nonneg (p q : V → ℝ) : 0 ≤ Hagi.Prelude.tvDef p q := by
+  
   exact div_nonneg
         (Finset.sum_nonneg fun v _ => abs_nonneg (p v - q v))
         (by norm_num)
 
-theorem entTV_symm (p q : V → ℝ) : entTV p q = entTV q p := by
-  rw [entTV_eq_tvDef, entTV_eq_tvDef]
+theorem entTV_symm (p q : V → ℝ) : Hagi.Prelude.tvDef p q = Hagi.Prelude.tvDef q p := by
+  rw [Hagi.Prelude.tvDef]
   exact congrArg (fun S : ℝ => S / 2)
     (Finset.sum_congr rfl fun v _ => abs_sub_comm (p v) (q v))
 
@@ -276,7 +267,7 @@ end Hagi.Data
 
 
 namespace Hagi
-export Hagi.Data (entTV binEnt FannesDecomp entTV_nonneg entTV_symm binEnt_half entropy_continuity_pinsker)
+export Hagi.Data (binEnt FannesDecomp entTV_nonneg entTV_symm binEnt_half entropy_continuity_pinsker)
 end Hagi
 /-!
 # T3 DistillTransfer — реальный оператор T (замена)
