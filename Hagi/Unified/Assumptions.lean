@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Unified.MasterHAGITrunc
+import Hagi.Foundations.PerronCone
 
 set_option linter.style.header false
 
@@ -240,5 +241,35 @@ theorem trunc_nonvacuous {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] (x0 : X) (E0 : ℝ) (T : ℕ) :
     Nonempty (Trunc (fun t => idleTraj x0 E0 t) 1 1 0 E0 T) :=
   ⟨trunc_idle_witness x0 E0 T⟩
+
+/-- ЗАМЫКАНИЕ МАСТЕР-ЦЕПОЧКИ: конусный блок эмпирических
+посылок trunc + шаги C/G дают экспоненциальный takeoff
+(trunc_premises_takeoff), закрывающий capability_growth-поле
+CertifiedHAGIInvariant; остальные поля (risk/phi/budget/gen) —
+операционные посылки. Инвариант следует без старой
+статичной effects-семантики. -/
+theorem premises_to_certified (T : ℕ)
+    (risk phi C budget spend genq epsReg : ℕ → ℝ)
+    (G D ξ : ℕ → ℝ) (α γ ρ β Qfloor : ℝ)
+    (hα : 0 ≤ α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
+    (hC : ∀ t, 0 < C t)
+    (hcone0 : α / γ * C 0 ≤ D 0)
+    (hcap : ∀ t, C (t + 1) ≤ (1 + α) * C t)
+    (hdyn : ∀ t, ρ * D t + β * C t - ξ t ≤ D (t + 1))
+    (hbeta : ∀ t, α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β)
+    (hstepC : ∀ t, C (t + 1) = C t + G t)
+    (hgain : ∀ t, γ * D t ≤ G t)
+    (hrisk : risk T - risk 0
+      ≤ ∑ t ∈ Finset.range T, epsReg t)
+    (hphi : phi T ≤ phi 0)
+    (hbudget : budget T
+      = budget 0 - ∑ t ∈ Finset.range T, spend t ∧ 0 ≤ budget T)
+    (hgen : Qfloor ≤ genq T) :
+    CertifiedHAGIInvariant T risk phi C budget spend genq
+      epsReg α Qfloor := by
+  refine ⟨hrisk, hphi, ?_, hbudget, hgen⟩
+  have h := Hagi.Foundations.trunc_premises_takeoff C D G ξ α γ ρ β
+    hα hγ hρ hC hcone0 hcap hdyn hbeta hstepC hgain T
+  rwa [mul_comm] at h
 
 end Hagi.Unified
