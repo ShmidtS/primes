@@ -73,6 +73,7 @@ import Hagi.Unified.Pinsker
 import Hagi.Unified.Concentration
 import Hagi.Unified.GrowthTheory
 import Hagi.Unified.SafeStep
+import Hagi.Unified.Master
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability

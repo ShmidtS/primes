@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P2.11 фасад Master** (`Hagi/Unified/Master.lean`):
+  сведение четырёх Master-форм к одной иерархии: главная —
+  premises_to_certified; MasterHAGI/trunc/Coupled/
+  GrandSynthesis — тонкие специализации (срезы).
 - **P1.8 фасад SafeStep** (`Hagi/Unified/SafeStep.lean`):
   единый контракт безопасного шага — StageCalculus + все
   варианты SafeQP (базовый/стохастический/адаптивный/KLS) +
