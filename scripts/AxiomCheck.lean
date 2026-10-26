@@ -23,3 +23,4 @@ import Hagi
 #print axioms Hagi.Model.advance_trajectory_takeoff
 #print axioms Hagi.System.safe_selection_productive
 #print axioms Hagi.Model.growth_corridor
+#print axioms Hagi.Model.plan_reachability
