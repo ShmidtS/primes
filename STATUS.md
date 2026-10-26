@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P1.5 фасад Pinsker** (`Hagi/Unified/Pinsker.lean`): единая
+  точка входа семейства Пинскера — реестр трёх форм
+  (функциональная pinsker4_fin, TV-форма pinsker_sqrt_kl,
+  энтропийная непрерывность); канон Prelude.klDef/entDef/tvDef.
 - **P1.4 фасад Fannes** (`Hagi/Unified/Fannes.lean`): единая
   точка входа неравенства Фанне — реестр четырёх слоёв
   (матричный DiscreteFannes, вероятностный FannesSmooth,
