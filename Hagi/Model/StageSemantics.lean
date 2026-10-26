@@ -1328,4 +1328,79 @@ theorem advance_trajectory_takeoff {X : Type*}
       nlinarith [ih', hkey]
   exact hmain tr.T (le_refl _)
 
+/-- P2/итоговый алгоритм: БЮДЖЕТНЫЙ ПОТОЛОК РОСТА —
+честный бюджет (каждый шаг тратит ≥ c, бюджет неотрицателен)
+ограничивает горизонт T·c ≤ B; с C-cap (C(t+1) ≤ (1+α)C t)
+потолок capability: C T ≤ (1+α)^{B/c}·C 0 — рост нельзя
+«купить» больше, чем позволяет бюджет (термодинамический/
+ресурсный предел экспоненты). -/
+theorem budget_capability_ceiling {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (α c : ℝ)
+    (hα : 1 ≤ 1 + α) (hc : 0 < c)
+    (hcost : ∀ t < tr.T, c ≤ (tr.input t).eff.growCost
+      + (tr.input t).eff.mergeCost
+      + (tr.input t).eff.jointCost
+      + (tr.input t).eff.compressCost)
+    (hbudget : ∀ t ≤ tr.T, 0 ≤ (tr.state t).budget)
+    (hC0 : 0 ≤ (tr.state 0).capability)
+    (hcap : ∀ t < tr.T, (tr.state (t + 1)).capability
+      ≤ (1 + α) * (tr.state t).capability) :
+    (tr.state tr.T).capability
+      ≤ (1 + α) ^ ((tr.state 0).budget / c) * (tr.state 0).capability := by
+  have hB : (tr.T : ℝ) * c ≤ (tr.state 0).budget := by
+    have htele : ∀ n : ℕ, n ≤ tr.T →
+        (tr.state n).budget
+          ≤ (tr.state 0).budget - (n : ℝ) * c := by
+      intro n
+      induction n with
+      | zero => intro _; simp
+      | succ n ih =>
+        intro hn
+        have hstep := tr.h_step n (by omega)
+        have hc' := hcost n (by omega)
+        have ih' := ih (by omega)
+        have hbud : (tr.state (n + 1)).budget
+            ≤ (tr.state n).budget - c := by
+          rw [hstep]
+          simp only [advance]
+          linarith
+        have hcast : (((n : ℝ) + 1)) * c = (n : ℝ) * c + c := by ring
+        have hcast2 : ((n + 1 : ℕ) : ℝ) * c = (n : ℝ) * c + c := by
+          push_cast
+          ring
+        nlinarith [hbud, ih']
+    have h0 := htele tr.T (le_refl _)
+    have hnn := hbudget tr.T (le_refl _)
+    linarith
+  have hcapT : (tr.state tr.T).capability
+      ≤ (1 + α) ^ tr.T * (tr.state 0).capability := by
+    have hmain : ∀ n : ℕ, n ≤ tr.T →
+        (tr.state n).capability
+          ≤ (1 + α) ^ n * (tr.state 0).capability := by
+      intro n
+      induction n with
+      | zero => intro _; simp
+      | succ n ih =>
+        intro hn
+        have hcap' := hcap n (by omega)
+        have ih' := ih (by omega)
+        calc (tr.state (n + 1)).capability
+            ≤ (1 + α) * (tr.state n).capability := hcap'
+        _ ≤ (1 + α) * ((1 + α) ^ n * (tr.state 0).capability) :=
+              mul_le_mul_of_nonneg_left ih' (by linarith)
+        _ = (1 + α) ^ (n + 1) * (tr.state 0).capability := by
+              rw [pow_succ]; ring
+    exact hmain tr.T (le_refl _)
+  have hTle : (tr.T : ℝ) ≤ (tr.state 0).budget / c :=
+    (le_div_iff₀ hc).mpr hB
+  have hpow : (1 + α) ^ (tr.T : ℕ)
+      ≤ (1 + α) ^ ((tr.state 0).budget / c) := by
+    rw [← Real.rpow_natCast]
+    exact Real.rpow_le_rpow_of_exponent_le hα hTle
+  calc (tr.state tr.T).capability
+      ≤ (1 + α) ^ tr.T * (tr.state 0).capability := hcapT
+  _ ≤ (1 + α) ^ ((tr.state 0).budget / c) * (tr.state 0).capability :=
+        mul_le_mul_of_nonneg_right hpow hC0
+
 end Hagi.Model
