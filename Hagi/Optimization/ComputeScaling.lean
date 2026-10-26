@@ -36,4 +36,39 @@ theorem compute_scaling_lower_bound (a b m n : ℝ)
     ring
   linarith [hex, key]
 
+/-- ДОСТИЖИМОСТЬ ГРАНИЦЫ (Jeon–Van Roy): аллокация
+m = √a·s, n = √b·s (линейная data/model-пропорция m/n = √a/√b)
+ДОСТИГАЕТ нижней границы compute_scaling_lower_bound:
+L = (√a+√b)²/(m+n) — граница точная, оптимум вычислений. -/
+theorem compute_scaling_bound_attained (a b s : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hs : 0 < s) :
+    (Real.sqrt a + Real.sqrt b) ^ 2
+      / (Real.sqrt a * s + Real.sqrt b * s)
+      = a / (Real.sqrt a * s) + b / (Real.sqrt b * s) := by
+  set X := Real.sqrt a with hX
+  set Y := Real.sqrt b with hY
+  have e1 : X * X = a := by rw [hX]; exact Real.mul_self_sqrt (le_of_lt ha)
+  have e2 : Y * Y = b := by rw [hY]; exact Real.mul_self_sqrt (le_of_lt hb)
+  have hXs : (0:ℝ) < X * s := by
+    have : (0:ℝ) < X := Real.sqrt_pos.mpr ha
+    positivity
+  have hYs : (0:ℝ) < Y * s := by
+    have : (0:ℝ) < Y := Real.sqrt_pos.mpr hb
+    positivity
+  have hXY : (0:ℝ) < X + Y := by
+    have : (0:ℝ) < X := Real.sqrt_pos.mpr ha
+    have : (0:ℝ) < Y := Real.sqrt_pos.mpr hb
+    linarith
+  have keyL : (X + Y) ^ 2 / (X * s + Y * s) = (X + Y) / s := by
+    have hfac : X * s + Y * s = (X + Y) * s := by ring
+    rw [hfac]
+    field_simp
+  have keyR : a / (X * s) + b / (Y * s) = (X + Y) / s := by
+    rw [← e1, ← e2]
+    have h1 : X * X / (X * s) = X / s := by field_simp
+    have h2 : Y * Y / (Y * s) = Y / s := by field_simp
+    rw [h1, h2]
+    ring
+  rw [keyL, keyR]
+
 end Hagi.Optimization
