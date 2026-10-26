@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2952 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2955 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,12 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Аудит-v4 §3.9: KL-контракт допустимости**
+  (`Hagi.Prelude.KLSupported`): вероятностные векторы +
+  строгая положительность p (носитель q ≪ p); на допустимых
+  входах klDef = математическая KL; KLSupported_pos,
+  klDef_terms_finite — явная область корректности klDef
+  (ENNReal-семантика +∞ — отдельный будущий слой).
 - **Аудит-v4 §3.8: cone_growth_window исправлена** — теперь
   НАСТОЯЩЕЕ окно: (1+α_min)C t ≤ C(t+1) ≤ (1+α_cap)C t;
   добавлена посылка h_upper (G ≤ α_cap·C); α_cap/hsep

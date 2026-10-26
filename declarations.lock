@@ -68,6 +68,8 @@ IsState	eb2189a68d4f41a0	ea5cf39d8e2cccbb
 J3	b6865422d92cf484	46950603e7dd0625
 J3_nonincreasing	01f418cf6f96e79b	ee487ccfb64f8050
 JointCertificate	86ca8abab9f91e9d	34c4a84ecf38cd79
+KLSupported	617e84935f2fc9c3	69578988dbc24351
+KLSupported_pos	492752589676f723	95d7c9ac954f40cf
 KL_product_ge_marginal	15c1e5cb6a296ccd	c34fac409b3692c9
 LittlestoneDim	75d9c14044d7ec96	009f45ef2b7f879f
 LiveDelta	b938ff77c9246cd4	48f8ec6fac4cb6f9
@@ -1451,6 +1453,7 @@ joint_stage_linked	255b800758c6319c	546b622a5a23ecba
 joint_stage_logitCE	723be5859e3c10a5	9860e753c6a05731
 kernel_interference_zero	74ec3dfd9b2e113f	e8259bb342cc5066
 klDef	7d95d9a89166cb67	80ab7e20ab929ce5
+klDef_terms_finite	6515dcbd9a8653a3	5d48e7bf01c46709
 kl_chernoff_tilt	7d2fa5c5c92eb9e4	14f33b560fd336a1
 kl_contraction_budget	dbfac8ff7070acf3	5c162fd55fb3a4e7
 kl_convex_first	f7f2b7fa496cbba9	04bf7dcf9d4bd42b
