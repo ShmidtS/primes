@@ -18,3 +18,4 @@ import Hagi
 #print axioms Hagi.Energy.partition_strictMono
 #print axioms Hagi.Unified.certified_invariant_advance_witness
 #print axioms Hagi.Foundations.trunc_premises_takeoff
+#print axioms Hagi.Unified.premises_to_certified
