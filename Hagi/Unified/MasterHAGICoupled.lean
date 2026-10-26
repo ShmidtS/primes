@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Unified.MasterHAGI
 import Hagi.Unified.Assumptions
+import Hagi.Model.StageSemantics
 
 /-!
 # MasterHAGICoupled — closing the three structural gaps of the
@@ -206,5 +207,28 @@ theorem coupledHAGI_nonvacuous_strict {X : Type*}
     simp only [coupledGrowthTraj]
     rw [pow_zero, mul_one]
   qvec_floor := fun _ => le_refl 0
+
+/-- АУДИТ v4 §3.2: СВЯЗАННЫЙ инвариант — CoupledHAGIInvariant
+ПЛЮС требование, что состояния получены реальными
+advance-переходами (закрытие разрыва «условия могут
+выполняться у произвольной последовательности состояний»). -/
+structure LinkedHAGIInvariant (T : ℕ)
+    (S : ℕ → GrowthState X)
+    (u : ℕ → Hagi.Model.StageInput X)
+    (risk spend : ℕ → ℝ)
+    (qvec : ℕ → Fin 5 → ℝ)
+    (qfloor : Fin 5 → ℝ)
+    (alpha : ℝ) extends CoupledHAGIInvariant T S risk spend qvec qfloor alpha where
+  /-- Каждое состояние получено исполнением перехода. -/
+  linked : ∀ t < T, S (t + 1) = Hagi.Model.advance (S t) (u t)
+
+/-- Связанный инвариант влечёт несвязанный (мост). -/
+theorem LinkedHAGIInvariant_to_coupled {T : ℕ}
+    {S : ℕ → GrowthState X} {u : ℕ → Hagi.Model.StageInput X}
+    {risk spend : ℕ → ℝ} {qvec : ℕ → Fin 5 → ℝ}
+    {qfloor : Fin 5 → ℝ} {alpha : ℝ}
+    (h : LinkedHAGIInvariant T S u risk spend qvec qfloor alpha) :
+    CoupledHAGIInvariant T S risk spend qvec qfloor alpha :=
+  h.toCoupledHAGIInvariant
 
 end Hagi.Unified

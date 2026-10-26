@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2957 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2959 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,10 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Аудит-v4 §3.2: связанный инвариант**
+  (`LinkedHAGIInvariant`): CoupledHAGIInvariant + требование
+  S(t+1) = advance (S t) (u t) — состояния получены реальными
+  переходами; мост LinkedHAGIInvariant_to_coupled.
 - **Аудит-v4 §3.4: полнозвучный отбор**
   (`StepFeasible`, `bestFeasibleDecrease`,
   `safe_feasible_selection_productive`): выбор максимума
