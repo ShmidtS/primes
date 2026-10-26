@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2920 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2921 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Вероятностная композиция**
+  (`probable_conclusion`): потраекторная импликация
+  «все посылки ⟹ Q» + per-посылочные 1−δ ⟹
+  P(Q) ≥ 1 − |S|·δ — финальное звено: выборка → посылки →
+  детерминированная теорема → итоговое свойство.
 - **Union bound для блока посылок**
   (`prodPq_iff`, `prodPq_union_finset`,
   `premises_union_confidence`): конгруэнтность prodPq по

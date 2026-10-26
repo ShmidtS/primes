@@ -648,6 +648,26 @@ theorem premises_union_confidence {n : ℕ} {ι : Type}
   rw [hfinal]
   linarith
 
+/-- ВЕРОЯТНОСТНАЯ КОМПОЗИЦИЯ: если детерминированная
+импликация «все посылки ⟹ итоговое свойство Q» (например,
+конусный блок ⟹ экспоненциальный takeoff) выполняется
+потраекторно, то Q выполняется с вероятностью ≥ 1 − |S|·δ —
+финальное звено эпистемической цепочки: выборка → посылки
+(union-bound) → детерминированная теорема → итог. -/
+theorem probable_conclusion {n : ℕ} (p : Fin n → V → ℝ)
+    (hp : IsProbSys p) {ι : Type} (S : Finset ι)
+    (A : ι → (Fin n → V) → Prop)
+    [∀ i, DecidablePred (A i)]
+    (Q : (Fin n → V) → Prop) [DecidablePred Q]
+    (δ : ℝ)
+    (hA : ∀ i ∈ S, 1 - δ ≤ prodPq p (A i))
+    (himp : ∀ ω, (∀ i ∈ S, A i ω) → Q ω) :
+    1 - (S.card : ℝ) * δ ≤ prodPq p Q := by
+  have h1 := premises_union_confidence p hp S A δ hA
+  have h2 := prodPq_mono p hp _ _
+    (fun ω hall => himp ω hall)
+  exact le_trans h1 h2
+
 end Hagi.Probability
 namespace Hagi
 export Hagi.Probability (prodDens prodE prodPq IsProbSys prodDens_nonneg sum_prod_factor prodE_one prodPq_le_one prodPq_compl prodPq_mono prodPq_union_le prodE_exp_sum markov_ge coordMean centeredSum coord_center_zero coord_mgf_bound sum_mgf_bound hoeffding_chernoff hoeffding_tail hoeffding_mean_tail hoeffding_mean_tail_low hoeffding_two_sided cert_upper cert_lower certified_premise)
