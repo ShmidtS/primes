@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2921 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2922 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Двухуровневая теплоёмкость > 0**
+  (`two_level_meanEnergy_strictMono`, Neural Thermodynamic
+  Laws arXiv 2505.10559): ⟨E⟩(T) = ε/(1+e^{ε/T}) строго ↑ по
+  T — положительная теплоёмкость, охлаждение концентрирует
+  на основном уровне.
 - **Вероятностная композиция**
   (`probable_conclusion`): потраекторная импликация
   «все посылки ⟹ Q» + per-посылочные 1−δ ⟹

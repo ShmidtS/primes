@@ -537,4 +537,28 @@ theorem partition_hot_limit {V : Type*} [Fintype V] [Nonempty V]
     (fun v _ => hexp v)
   simpa [Finset.sum_const, Finset.card_univ] using this
 
+/-- ДВУХУРОВНЕВАЯ ТЕПЛОЁМКОСТЬ > 0 (Neural Thermodynamic
+Laws, arXiv 2505.10559 — теплоёмкость river-valley ландшафта): система с энергиями 0 и ε имеет
+равновесную среднюю энергию
+⟨E⟩(T) = ε·e^{-ε/T}/(1+e^{-ε/T}) = ε/(1+e^{ε/T}),
+и она СТРОГО возрастает по T — нагрев всегда повышает
+среднюю энергию (положительная теплоёмкость), охлаждение
+концентрирует на основном уровне. -/
+theorem two_level_meanEnergy_strictMono (ε : ℝ) (hε : 0 < ε)
+    {T₁ T₂ : ℝ} (h₁ : 0 < T₁) (h₂ : T₁ < T₂) :
+    ε / (1 + Real.exp (ε / T₁)) < ε / (1 + Real.exp (ε / T₂)) := by
+  have hT₂ : (0:ℝ) < T₂ := by linarith
+  have hdiv : ε / T₂ < ε / T₁ := by
+    rw [div_lt_div_iff₀ hT₂ h₁, mul_comm ε T₁, mul_comm ε T₂]
+    exact mul_lt_mul_of_pos_right h₂ hε
+  have hexp : Real.exp (ε / T₂) < Real.exp (ε / T₁) :=
+    Real.exp_lt_exp.mpr hdiv
+  have hden : (1:ℝ) + Real.exp (ε / T₂) < 1 + Real.exp (ε / T₁) := by
+    linarith
+  have hpos1 : (0:ℝ) < 1 + Real.exp (ε / T₁) := by
+    have := Real.exp_pos (ε / T₁)
+    linarith
+  rw [div_lt_div_iff₀ hpos1 (by positivity)]
+  nlinarith [mul_lt_mul_of_pos_right hden hε, hε]
+
 end Hagi.Energy
