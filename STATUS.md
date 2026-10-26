@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Отбор безопасного шага** (`safe_selection_productive`):
+  итоговый алгоритм — если хоть один кандидат имеет
+  положительный decrease-сертификат, отбор по максимуму
+  сертификата даёт продуктивный шаг (bestDecrease).
 - **P2.9 разбиение состояния**
   (`Hagi/System/GrowthStateViews.lean`): GrowthState разложен
   на 5 сущностей (ModelPart/MetricsPart/MemoryPart/

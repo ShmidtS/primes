@@ -37,4 +37,33 @@ theorem stepCertificate_base (S : GrowthState X)
     (epsG : ℝ) (h_epsG : 0 ≤ epsG) :
     (stepCertificateOfParts S epsG h_epsG).base = verify S := rfl
 
+/-- ИТОГОВЫЙ АЛГОРИТМ (отбор безопасного шага): лучший
+decrease среди кандидатов. -/
+def bestDecrease (cands : List (StepCertificate X)) : ℝ :=
+  (cands.map fun c => c.base.decrease).foldr max 0
+
+/-- ОТБОР ЗВУЧЕН: если хоть один кандидат продуктивен
+(положительный decrease), отбор по максимуму сертификата
+даёт положительный decrease — безопасный шаг найден. -/
+theorem safe_selection_productive
+    (cands : List (StepCertificate X))
+    (h : ∃ c ∈ cands, 0 < c.base.decrease) :
+    0 < bestDecrease cands := by
+  obtain ⟨c, hc, hpos⟩ := h
+  unfold bestDecrease
+  have hmem : c.base.decrease ∈ (cands.map fun c => c.base.decrease) :=
+    List.mem_map_of_mem (f := fun c : StepCertificate X => c.base.decrease) hc
+  have hle : ∀ (l : List ℝ) (x : ℝ), x ∈ l → x ≤ l.foldr max 0 := by
+    intro l x hx
+    induction l with
+    | nil => cases hx
+    | cons a l ih =>
+      cases List.mem_cons.mp hx with
+      | inl h => rw [h, List.foldr_cons]; exact le_max_left a _
+      | inr hmem =>
+        rw [List.foldr_cons]
+        exact le_trans (ih hmem) (le_max_right a _)
+  have hle' := hle _ _ hmem
+  linarith [hle']
+
 end Hagi.System
