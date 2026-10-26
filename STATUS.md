@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2955 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2954 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,9 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Аудит-v4 §3.5: Fannes-фасад без псевдоинтерфейса**:
+  `FannesLayers := True` удалён; фасад несёт явный реэкспорт
+  канонической entropy_lipschitz_smooth + реестр слоёв.
 - **Аудит-v4 §3.9: KL-контракт допустимости**
   (`Hagi.Prelude.KLSupported`): вероятностные векторы +
   строгая положительность p (носитель q ≪ p); на допустимых
