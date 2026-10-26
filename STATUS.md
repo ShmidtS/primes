@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2954 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2957 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,12 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Аудит-v4 §3.4: полнозвучный отбор**
+  (`StepFeasible`, `bestFeasibleDecrease`,
+  `safe_feasible_selection_productive`): выбор максимума
+  decrease среди кандидатов, удовлетворяющих лимитам риска И
+  бюджета — отбор уважает все три ограничения (спуск/риск/
+  стоимость), а не только спуск.
 - **Аудит-v4 §3.8-2: точная-экспонента-артефакт задокументирован**
   (sustained_takeoff_trunc): при одном alpha в конусе и cap
   поылки принуждают C(t+1)=(1+α)C t; путь без потолка —

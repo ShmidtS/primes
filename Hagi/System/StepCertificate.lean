@@ -66,4 +66,36 @@ theorem safe_selection_productive
   have hle' := hle _ _ hmem
   linarith [hle']
 
+/-- АУДИТ v4 §3.4: ДОПУСТИМОСТЬ кандидата — риск и бюджет
+укладываются в лимиты шага (не только decrease > 0). -/
+def StepFeasible (riskLim budgetLim : ℝ) (c : StepCertificate X) : Prop :=
+  c.base.riskSpend ≤ riskLim ∧ c.base.budgetSpend ≤ budgetLim
+
+noncomputable instance (riskLim budgetLim : ℝ) :
+    DecidablePred (fun (c : StepCertificate X) =>
+      StepFeasible riskLim budgetLim c) :=
+  fun _ => instDecidableAnd
+
+/-- Лучший decrease среди ДОПУСТИМЫХ кандидатов. -/
+noncomputable def bestFeasibleDecrease (riskLim budgetLim : ℝ)
+    (cands : List (StepCertificate X)) : ℝ :=
+  bestDecrease ((cands.filter (fun c => decide (StepFeasible riskLim budgetLim c))))
+
+/-- ОТБОР ПОЛНОЗВУЧЕН: если ДОПУСТИМЫЙ кандидат с положительным
+decrease существует, отбор среди допустимых даёт положительный
+decrease — сертификат продуктивности уважает бюджет и риск
+(закрытие разрыва «выбор проверяет только спуск», аудит v4 §3.4). -/
+theorem safe_feasible_selection_productive
+    (riskLim budgetLim : ℝ)
+    (cands : List (StepCertificate X))
+    (h : ∃ c ∈ cands, StepFeasible riskLim budgetLim c
+      ∧ 0 < c.base.decrease) :
+    0 < bestFeasibleDecrease riskLim budgetLim cands := by
+  obtain ⟨c, hc, ⟨hrisk, hbud⟩, hpos⟩ := h
+  unfold bestFeasibleDecrease
+  apply safe_selection_productive
+  refine ⟨c, ?_, hpos⟩
+  exact List.mem_filter.mpr ⟨hc, by
+    simp [StepFeasible, hrisk, hbud]⟩
+
 end Hagi.System
