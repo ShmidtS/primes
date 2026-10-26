@@ -110,6 +110,7 @@ import Hagi.Audit.EqualBudget
 import Hagi.Unified.Unified
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.EndpointContraction
+import Hagi.Dynamics.SpeedLimit
 import Hagi.Dynamics.UrgencyDepth
 import Hagi.Dynamics.DistillationRate
 import Hagi.Autonomy.TTTStability
