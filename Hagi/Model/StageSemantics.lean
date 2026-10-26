@@ -1506,4 +1506,26 @@ theorem minimal_budget_log {X : Type*}
   rw [mul_comm c _, div_mul_eq_mul_div, div_le_iff₀ hlog1pos]
   exact hmul
 
+/-- ДОСТАТОЧНЫЙ ГОРИЗОНТ (симметрия минимальному бюджету):
+при гарантированной конусной отдаче γk горизонт T с
+(C*/C 0) ≤ (1+γk)^T ДОСТАТОЧЕН для достижения цели:
+C* ≤ C T — достаточное время экспоненциального взлёта
+(в лог-форме T ≥ log(C*/C 0)/log(1+γk)). -/
+theorem sufficient_horizon {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (D : ℕ → ℝ) (γ k Cstar : ℝ)
+    (hγ : 0 ≤ γ) (hγk : 0 ≤ 1 + γ * k)
+    (hcone : ∀ t < tr.T, k * (tr.state t).capability ≤ D t)
+    (hgain : ∀ t < tr.T, γ * D t ≤ (tr.input t).eff.growGain)
+    (hT : Cstar ≤ (1 + γ * k) ^ (tr.T : ℝ)
+      * (tr.state 0).capability) :
+    Cstar ≤ (tr.state tr.T).capability := by
+  have hlow := advance_trajectory_takeoff tr D γ k hγ hγk
+    hcone hgain
+  have hT' : Cstar ≤ (1 + γ * k) ^ (tr.T : ℕ)
+      * (tr.state 0).capability := by
+    rw [Real.rpow_natCast] at hT
+    exact hT
+  exact le_trans hT' hlow
+
 end Hagi.Model
