@@ -56,4 +56,18 @@ theorem pl_linear_convergence (E G : ℕ → ℝ) (Estar μ L : ℝ)
     _ = (1 - μ / L) ^ (t + 1) * (E 0 - Estar) := by
           rw [pow_succ]; ring
 
+/-- ε-ГОРИЗОНТ PL (достаточное время до точности ε): при
+PL-условии горизонт t с (1−μ/L)^t·(E 0−E*) ≤ ε гарантирует
+E t − E* ≤ ε — достаточное число шагов градиентного спуска
+(лог-форма t ≥ log((E 0−E*)/ε)/log(L/(L−μ))). -/
+theorem pl_sufficient_horizon (E G : ℕ → ℝ) (Estar μ L ε : ℝ)
+    (hL : 0 < L) (hμ : 0 < μ) (hμL : μ ≤ L)
+    (hE : ∀ t, Estar ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - G t / (2 * L))
+    (hPL : ∀ t, 2 * μ * (E t - Estar) ≤ G t) (t : ℕ)
+    (hε : (1 - μ / L) ^ t * (E 0 - Estar) ≤ ε) :
+    E t - Estar ≤ ε :=
+  (pl_linear_convergence E G Estar μ L hL hμ hμL hE
+    hstep hPL t).trans hε
+
 end Hagi.Optimization
