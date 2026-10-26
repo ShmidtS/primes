@@ -16,6 +16,12 @@ CAPSTONES = [
     "Hagi.Model.ConsolidationMirror",  # grow bridge + KL distillation
     "Hagi.Examples.Nonvacuity",        # merge bridge + obstruction theorems
     "Hagi.Probability.CertifiedEstimator",  # epistemic chain (Freedman/union)
+    # refactor-plan facades (P1.4-P2.11):
+    "Hagi.Unified.Master",         # master theorem hierarchy
+    "Hagi.Unified.SafeStep",       # safe step contract
+    "Hagi.Unified.GrowthTheory",   # dynamics/saturation theory
+    "Hagi.Unified.Concentration",  # concentration layer
+    "Hagi.System.GrowthStateViews" # P2.9 entity decomposition
 ]
 
 IMP = re.compile(r"^import\s+(Hagi\.[A-Za-z0-9_.]+)\s*$", re.M)
