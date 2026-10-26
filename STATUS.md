@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P1.7 фасад GrowthTheory**
+  (`Hagi/Unified/GrowthTheory.lean`): единая точка теории
+  динамики и насыщения — телескопные законы, конусная
+  динамика, FrontierScaling, Saturation, speed limit,
+  advance-закон роста.
 - **P1.6 фасад Concentration** (`Hagi/Unified/Concentration.lean`):
   реестр концентрационного слоя (хордовое ядро, Бернулли-MGF,
   Азума, Фридман ± anytime/union, Чернов-CGF); объекты
