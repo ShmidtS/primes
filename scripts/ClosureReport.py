@@ -15,6 +15,7 @@ CAPSTONES = [
     "Hagi.Unified.DerivAlong",        # operational bridges (joint/compress)
     "Hagi.Model.ConsolidationMirror",  # grow bridge + KL distillation
     "Hagi.Examples.Nonvacuity",        # merge bridge + obstruction theorems
+    "Hagi.Probability.CertifiedEstimator",  # epistemic chain (Freedman/union)
 ]
 
 IMP = re.compile(r"^import\s+(Hagi\.[A-Za-z0-9_.]+)\s*$", re.M)

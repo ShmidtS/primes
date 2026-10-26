@@ -334,8 +334,9 @@
 - **Отчёт замыкания капстоунов** (`scripts/ClosureReport.py`,
   CI): 50/277 модулей в транзитивном замыкании итоговых теорем
   (MasterHAGI, GrandSynthesis, StageSemantics + мосты
-  DerivAlong/ConsolidationMirror/Nonvacuity), 227 — библиотечный
-  слой (аудит v3 Phase 4, реестр).
+  DerivAlong/ConsolidationMirror/Nonvacuity +
+  CertifiedEstimator), 227 — библиотечный слой
+  (аудит v3 Phase 4, реестр).
 - **Сравнение с возмущением** (`cone_comparison_perturbed`):
   ξ_t ≤ ε·C_t поглощается сдвигом β→β−ε (ε ≤ β) —
   возмущённая динамика доминируется системой с эффективным
