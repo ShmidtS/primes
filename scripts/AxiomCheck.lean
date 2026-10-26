@@ -20,3 +20,5 @@ import Hagi
 #print axioms Hagi.Foundations.trunc_premises_takeoff
 #print axioms Hagi.Unified.premises_to_certified
 #print axioms Hagi.Probability.probable_conclusion
+#print axioms Hagi.Model.advance_trajectory_takeoff
+#print axioms Hagi.System.safe_selection_productive
