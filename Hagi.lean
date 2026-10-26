@@ -72,6 +72,7 @@ import Hagi.Unified.Fannes
 import Hagi.Unified.Pinsker
 import Hagi.Unified.Concentration
 import Hagi.Unified.GrowthTheory
+import Hagi.Unified.SafeStep
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
