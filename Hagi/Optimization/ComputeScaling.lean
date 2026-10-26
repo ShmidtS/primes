@@ -71,4 +71,61 @@ theorem compute_scaling_bound_attained (a b s : ℝ)
     ring
   rw [keyL, keyR]
 
+/-- K-РЕСУРСНАЯ COMPUTE-ГРАНИЦА: для любого конечного набора
+ресурсов с потерями Σ aᵢ/mᵢ и линейной стоимостью C = Σ mᵢ:
+Σ aᵢ/mᵢ ≥ (Σ √aᵢ)² / C — обобщение Jeon–Van Roy на
+многоресурсную аллокацию вычислений (индукция по 2-ресурсной
+базе compute_scaling_lower_bound). -/
+theorem compute_scaling_multi {ι : Type} (S : Finset ι)
+    (a m : ι → ℝ) (ha : ∀ i ∈ S, 0 < a i)
+    (hm : ∀ i ∈ S, 0 < m i) :
+    (∑ i ∈ S, Real.sqrt (a i)) ^ 2 / (∑ i ∈ S, m i)
+      ≤ ∑ i ∈ S, a i / m i := by
+  classical
+  induction S using Finset.induction_on with
+  | empty => simp
+  | insert j s hj ih =>
+    have haj : 0 < a j := ha j (Finset.mem_insert_self j s)
+    have hmj : 0 < m j := hm j (Finset.mem_insert_self j s)
+    have has : ∀ i ∈ s, 0 < a i :=
+      fun i hi => ha i (Finset.mem_insert_of_mem hi)
+    have hms : ∀ i ∈ s, 0 < m i :=
+      fun i hi => hm i (Finset.mem_insert_of_mem hi)
+    have hih := ih has hms
+    rw [Finset.sum_insert hj, Finset.sum_insert hj]
+    rcases Finset.eq_empty_or_nonempty s with hs0 | hsne
+    · rw [hs0, Finset.sum_empty, Finset.sum_empty,
+        Finset.sum_insert (by simp : ¬ (j : ι) ∈ (∅ : Finset ι)), Finset.sum_empty]
+      rw [add_zero, add_zero]
+      have h2 : (Real.sqrt (a j)) ^ 2 = a j :=
+        Real.sq_sqrt (le_of_lt haj)
+      rw [h2]
+      simp
+    · rw [Finset.sum_insert hj,
+        add_comm (Real.sqrt (a j)) (∑ i ∈ s, Real.sqrt (a i)),
+        add_comm (m j) (∑ i ∈ s, m i)]
+      have hsne' := hsne
+      obtain ⟨i0, hi0mem⟩ := hsne
+      have hXpos : (0:ℝ) < ∑ i ∈ s, Real.sqrt (a i) :=
+        lt_of_lt_of_le (Real.sqrt_pos.mpr (has i0 hi0mem))
+          (Finset.single_le_sum (fun i _ => Real.sqrt_nonneg _)
+            hi0mem)
+      have hMs : (0:ℝ) < ∑ i ∈ s, m i :=
+        Finset.sum_pos hms hsne'
+      have hX2 : Real.sqrt ((∑ i ∈ s, Real.sqrt (a i)) ^ 2)
+          = ∑ i ∈ s, Real.sqrt (a i) :=
+        Real.sqrt_sq (Finset.sum_nonneg
+          (fun i _ => Real.sqrt_nonneg _))
+      have hbase := compute_scaling_lower_bound
+        ((∑ i ∈ s, Real.sqrt (a i)) ^ 2) (a j)
+        (∑ i ∈ s, m i) (m j)
+        (by nlinarith [hXpos]) haj hMs hmj
+      rw [hX2] at hbase
+      calc (∑ i ∈ s, Real.sqrt (a i) + Real.sqrt (a j)) ^ 2
+            / (∑ i ∈ s, m i + m j)
+          ≤ (∑ i ∈ s, Real.sqrt (a i)) ^ 2 / (∑ i ∈ s, m i)
+              + a j / m j := hbase
+        _ ≤ a j / m j + ∑ i ∈ s, a i / m i := by
+              linarith [hbase, hih]
+
 end Hagi.Optimization

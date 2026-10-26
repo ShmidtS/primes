@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2924 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2925 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **K-ресурсная compute-граница**
+  (`compute_scaling_multi`): Σ aᵢ/mᵢ ≥ (Σ √aᵢ)²/Σ mᵢ для
+  любого конечного набора ресурсов — многоресурсная аллокация
+  вычислений (индукция по 2-ресурсной базе).
 - **Достижимость compute-границы**
   (`compute_scaling_bound_attained`): аллокация
   m = √a·s, n = √b·s достигает (√a+√b)²/(m+n) — граница
