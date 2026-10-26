@@ -1403,4 +1403,39 @@ theorem budget_capability_ceiling {X : Type*}
   _ ≤ (1 + α) ^ ((tr.state 0).budget / c) * (tr.state 0).capability :=
         mul_le_mul_of_nonneg_right hpow hC0
 
+/-- КОРИДОР РОСТА (композиция): конусная отдача даёт нижнюю
+границу C T ≥ (1+γk)^T·C 0, бюджет + cap — верхнюю
+C T ≤ (1+α)^{B/c}·C 0; вместе — согласованность горизонта:
+экспоненциальный взлёт не может превысить ресурсный потолок,
+(1+γk)^T ≤ (1+α)^{B/c} (при C 0 > 0). -/
+theorem growth_corridor {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (D : ℕ → ℝ) (γ k α c : ℝ)
+    (hγ : 0 ≤ γ) (hγk : 0 ≤ 1 + γ * k) (hα : 1 ≤ 1 + α)
+    (hc : 0 < c) (hC0 : 0 < (tr.state 0).capability)
+    (hcone : ∀ t < tr.T, k * (tr.state t).capability ≤ D t)
+    (hgain : ∀ t < tr.T, γ * D t ≤ (tr.input t).eff.growGain)
+    (hcost : ∀ t < tr.T, c ≤ (tr.input t).eff.growCost
+      + (tr.input t).eff.mergeCost
+      + (tr.input t).eff.jointCost
+      + (tr.input t).eff.compressCost)
+    (hbudget : ∀ t ≤ tr.T, 0 ≤ (tr.state t).budget)
+    (hcap : ∀ t < tr.T, (tr.state (t + 1)).capability
+      ≤ (1 + α) * (tr.state t).capability) :
+    (1 + γ * k) ^ (tr.T : ℝ) ≤ (1 + α) ^ ((tr.state 0).budget / c) := by
+  have hlow := advance_trajectory_takeoff tr D γ k hγ hγk hcone hgain
+  have hhigh := budget_capability_ceiling tr α c hα hc hcost
+    hbudget (le_of_lt hC0) hcap
+  have hlow' : (1 + γ * k) ^ (tr.T : ℝ)
+      * (tr.state 0).capability
+      ≤ (tr.state tr.T).capability := by
+    rw [Real.rpow_natCast]
+    exact hlow
+  have hchain : (1 + γ * k) ^ (tr.T : ℝ)
+      * (tr.state 0).capability
+      ≤ (1 + α) ^ ((tr.state 0).budget / c)
+        * (tr.state 0).capability := by
+    exact le_trans hlow' hhigh
+  exact le_of_mul_le_mul_right hchain hC0
+
 end Hagi.Model
