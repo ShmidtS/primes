@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2943 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2944 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Достижимость k-ресурсной границы**
+  (`compute_scaling_multi_attained`): аллокация
+  mᵢ = √aᵢ·s достигает (Σ√aᵢ)²/Σmᵢ — многоресурсный
+  compute-оптимум точный, семейство scaling-теорем полно.
 - **AxiomCheck-гейт: 18 капстоунов** (добавлены закон роста
   advance_trajectory_takeoff и отбор safe_selection_productive)
   — итоговый алгоритм под защитой CI.

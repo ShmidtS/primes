@@ -128,4 +128,42 @@ theorem compute_scaling_multi {ι : Type} (S : Finset ι)
         _ ≤ a j / m j + ∑ i ∈ s, a i / m i := by
               linarith [hbase, hih]
 
+/-- ДОСТИЖИМОСТЬ K-РЕСУРСНОЙ ГРАНИЦЫ (Jeon–Van Roy,
+многоресурсный оптимум): пропорциональная аллокация
+mᵢ = √aᵢ·s ДОСТИГАЕТ нижней границы
+Σ aᵢ/mᵢ = (Σ √aᵢ)² / Σ mᵢ — граница точная для любого
+конечного набора ресурсов; оптимальная аллокация вычислений
+пропорциональна корням вкладов. -/
+theorem compute_scaling_multi_attained {ι : Type} (S : Finset ι)
+    (a : ι → ℝ) (s : ℝ) (hne : S.Nonempty)
+    (ha : ∀ i ∈ S, 0 < a i) (hs : 0 < s) :
+    (∑ i ∈ S, Real.sqrt (a i)) ^ 2 / (∑ i ∈ S, Real.sqrt (a i) * s)
+      = ∑ i ∈ S, a i / (Real.sqrt (a i) * s) := by
+  have hsqrt : ∀ i ∈ S, (Real.sqrt (a i)) * Real.sqrt (a i)
+      = a i := fun i hi => Real.mul_self_sqrt (le_of_lt (ha i hi))
+  have hpos : ∀ i ∈ S, (0:ℝ) < Real.sqrt (a i) :=
+    fun i hi => Real.sqrt_pos.mpr (ha i hi)
+  have hterm : ∀ i ∈ S,
+      a i / (Real.sqrt (a i) * s) = Real.sqrt (a i) / s := by
+    intro i hi
+    have hx := hpos i hi
+    calc a i / (Real.sqrt (a i) * s)
+        = (Real.sqrt (a i) * Real.sqrt (a i)) / (Real.sqrt (a i) * s) := by
+          rw [hsqrt i hi]
+      _ = Real.sqrt (a i) / s := by
+          field_simp
+  rw [Finset.sum_congr rfl (fun i hi => hterm i hi)]
+  have hden : ∑ i ∈ S, Real.sqrt (a i) * s
+      = s * ∑ i ∈ S, Real.sqrt (a i) := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl (fun i _ => mul_comm _ _)
+  obtain ⟨i0, h0m⟩ := hne
+  have hsumpos : (0:ℝ) < ∑ i ∈ S, Real.sqrt (a i) :=
+    Finset.sum_pos' (fun i _ => Real.sqrt_nonneg _)
+      ⟨i0, h0m, hpos i0 h0m⟩
+  rw [hden, ← Finset.sum_div]
+  have hne0 : s * ∑ i ∈ S, Real.sqrt (a i) ≠ 0 :=
+    mul_ne_zero (ne_of_gt hs) (ne_of_gt hsumpos)
+  field_simp
+
 end Hagi.Optimization
