@@ -55,4 +55,35 @@ theorem certifiedTransition_of_advance (S : Hagi.System.GrowthState X)
     simp only [advance]
     ring
 
+/-- ГОРИЗОНТНАЯ ТЕОРЕМА (аудит v4 §5.4/§4): семейство
+сертифицированных переходов телескопирует точный бюджетный
+ledger — S T = S 0 − Σ spends; ресурсы накапливаются только
+через реальные exec-переходы. -/
+theorem certified_trajectory_budget {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → Hagi.System.GrowthState X) (u : ℕ → StageInput X)
+    (T : ℕ)
+    (hc : ∀ t < T, CertifiedTransition (S t) (S (t + 1)) (u t)
+      ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk)) :
+    (S T).budget = (S 0).budget
+      - ∑ t ∈ Finset.range T, ((u t).eff.growCost + (u t).eff.mergeCost
+        + (u t).eff.jointCost + (u t).eff.compressCost) := by
+  have hmain : ∀ n : ℕ, n ≤ T →
+      (S n).budget = (S 0).budget
+        - ∑ t ∈ Finset.range n, ((u t).eff.growCost + (u t).eff.mergeCost
+          + (u t).eff.jointCost + (u t).eff.compressCost) := by
+    intro n
+    induction n with
+    | zero => intro _; simp
+    | succ n ih =>
+      intro hn
+      have hih := ih (by omega)
+      have hc' := hc n (by omega)
+      have hres := hc'.resources
+      have hstep := hres
+      rw [hstep, hih, Finset.sum_range_succ]
+      ring
+  exact hmain T (le_refl _)
+
 end Hagi.Model
