@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2927 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2928 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,13 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P0.2 мост (закон роста advance)**:
+  `advance_trajectory_takeoff`: траектория настоящих
+  advance-циклов с конусными посылками (k·C ≤ D, γ·D ≤
+  измеренный growGain) даёт C T ≥ (1+γk)^T·C 0 —
+  пересчитываемый gain согласован с экспоненциальным
+  законом; конфликт линейного/экспоненциального роста
+  разрешён.
 - **P0.3 рефакторинг**: `S'.gen = S.gen` УДАЛЁН из
   CorePremises/FullCycleRefinement; вместо plumbing-равенства —
   измерительная связь: компонентная полоса

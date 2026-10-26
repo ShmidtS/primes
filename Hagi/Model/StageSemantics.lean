@@ -1280,4 +1280,52 @@ theorem advance_verify_decrease_pos {X : Type*}
   unfold Hagi.Model.advance
   nlinarith [hgap, hnn, hks]
 
+/-- P0.2 МОСТ (закон роста advance-семантики): для траектории
+настоящих advance-циклов с измеряемым потенциалом D
+(k·capability ≤ D на каждом шаге) и конусной отдачей
+(γ·D t ≤ измеренный growGain шага t) capability растёт
+ЭКСПОНЕНЦИАЛЬНО: C T ≥ (1+γk)^T·C 0 — пересчитываемый из
+состояния gain согласован с конусным законом роста;
+фиксированный (независимый от состояния) gain дал бы лишь
+линейный рост — конфликт семантик разрешён в пользу
+пересчёта (audit two-step inconsistency). -/
+theorem advance_trajectory_takeoff {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (D : ℕ → ℝ) (γ k : ℝ)
+    (hγ : 0 ≤ γ) (hγk : 0 ≤ 1 + γ * k)
+    (hcone : ∀ t < tr.T, k * (tr.state t).capability ≤ D t)
+    (hgain : ∀ t < tr.T, γ * D t ≤ (tr.input t).eff.growGain) :
+    (1 + γ * k) ^ tr.T * (tr.state 0).capability
+      ≤ (tr.state tr.T).capability := by
+  have hmain : ∀ n : ℕ, n ≤ tr.T →
+      (1 + γ * k) ^ n * (tr.state 0).capability
+        ≤ (tr.state n).capability := by
+    intro n
+    induction n with
+    | zero =>
+      intro _
+      have h0 : (1 + γ * k) ^ 0 = 1 := pow_zero _
+      rw [h0, one_mul]
+    | succ n ih =>
+      intro hn
+      have ih' := ih (by omega)
+      have hstep := tr.h_step n (by omega)
+      have hg := hgain n (by omega)
+      have hc := hcone n (by omega)
+      have hγkC : γ * k * (tr.state n).capability
+          ≤ (tr.input n).eff.growGain :=
+        calc γ * k * (tr.state n).capability
+            = γ * (k * (tr.state n).capability) := by ring
+        _ ≤ γ * D n := mul_le_mul_of_nonneg_left hc hγ
+        _ ≤ (tr.input n).eff.growGain := hg
+      have hkey : (1 + γ * k) * ((tr.state n).capability)
+          ≤ (tr.state n).capability + (tr.input n).eff.growGain := by
+        nlinarith [hγkC]
+      have heq : (tr.state (n + 1)).capability
+          = (tr.state n).capability + (tr.input n).eff.growGain := by
+        rw [hstep]; simp [advance]
+      rw [pow_succ, heq]
+      nlinarith [ih', hkey]
+  exact hmain tr.T (le_refl _)
+
 end Hagi.Model
