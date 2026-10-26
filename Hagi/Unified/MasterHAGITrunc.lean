@@ -91,7 +91,15 @@ theorem frontier_cone_struct (C G D : ℕ → ℝ)
 /-- **Усечённый takeoff**: из усечённых посылок (только
 t < T) — C_T >= C0 * (1+alpha)^T. Совместимость с потолком C*
 (если C* < C0·(1+alpha)^T) даёт оценку горизонта:
-см. cert_horizon_bound (ArchitectureTheorem). -/
+см. cert_horizon_bound (ArchitectureTheorem). 
+АУДИТ v4 §3.8-2: при том же `alpha` в `h_emp_C_cap` и в конусе
+посылки принуждают C (t+1) = (1+alpha)·C t (точную экспоненту).
+Путь БЕЗ потолка: `Foundations.trunc_premises_takeoff`
+доказывает ту же нижнюю границу из конусного блока без
+`h_emp_C_cap` — разделяйте минимальный темп (прогресс) и
+потолок (насыщение), как в `Model.cone_growth_window`;
+полная миграция — отдельный шаг (см. STATUS).
+-/
 theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
