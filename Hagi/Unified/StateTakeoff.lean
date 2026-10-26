@@ -35,7 +35,8 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 grow добавляет growGain, merge/joint/compress канал
 сохраняют. -/
 theorem full_cycle_capability_step (S S' : Hagi.GenState X)
-    (hfull : FullCycleRefinement S S') :
+    {epsG : ℝ}
+    (hfull : FullCycleRefinement S S' epsG) :
     S'.toGrowthState.capability
       = S.toGrowthState.capability + S.toGrowthState.effects.growGain := by
   obtain ⟨heq, _⟩ := hfull
@@ -52,11 +53,11 @@ theorem full_cycle_capability_step (S S' : Hagi.GenState X)
 Разница с MasterHAGI_trunc: h_emp_step здесь НЕ посылка —
 он выводится из устройства цикла (full_cycle_capability_step);
 C-канал — это само поле состояния. -/
-theorem state_capability_takeoff (S : ℕ → Hagi.GenState X)
+theorem state_capability_takeoff (S : ℕ → Hagi.GenState X) (epsG : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi D : ℕ → ℝ) (T : ℕ)
     (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
     (hC0 : 0 < (S 0).toGrowthState.capability)
-    (hfull : ∀ t < T, FullCycleRefinement (S t) (S (t + 1)))
+    (hfull : ∀ t < T, FullCycleRefinement (S t) (S (t + 1)) (epsG t))
     (h_emp_cone0 : alpha / gamma * (S 0).toGrowthState.capability
       ≤ D 0)
     (h_emp_gain_prod : ∀ t < T, gamma * D t
@@ -88,8 +89,8 @@ energy/protectedRisk/budget; при полной связи состояний �
 ВЫВОДИТСЯ из FullCycleRefinement (full_cycle_field_eq), а
 остальные 14 конъюнкт — те же измеряемые посылки стадий. -/
 theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
-    (epsQ : ℝ) (w : Fin 5 → ℝ)
-    (hfull : FullCycleRefinement S S')
+    {epsG : ℝ} (epsQ : ℝ) (w : Fin 5 → ℝ)
+    (hfull : FullCycleRefinement S S' epsG)
     (h1 : 0 ≤ S.toGrowthState.gap)
     (h2 : S.toGrowthState.effects.growEnergy
       ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
@@ -113,10 +114,11 @@ theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
     (h13 : S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
       ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
         * S.toGrowthState.effects.quantErr)
-    (h15 : Qgen S.gen w - epsQ ≤ Qgen S'.gen w) :
+    (h15 : Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
+    (hband : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ) :
     CorePremises S S' epsQ w := by
-  obtain ⟨hfull1, hfull2⟩ := hfull
-  refine ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,
-    h13, hfull1, hfull2, h15⟩
+  obtain ⟨hfull1, _⟩ := hfull
+  exact ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,
+    h13, hfull1, hband, h15⟩
 
 end Hagi.Unified

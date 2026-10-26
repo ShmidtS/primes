@@ -777,7 +777,8 @@ theorem Mw1_risk (E : ℝ) :
 definitionally the composed cycle). -/
 theorem mw_core_premises (E : ℝ) :
     CorePremises (Mw E 0) (Mw E 1) 0 (fun _ => 0) := by
-  have hfull : FullCycleRefinement (Mw E 0) (Mw E 1) := ⟨rfl, rfl⟩
+  have hfull : FullCycleRefinement (Mw E 0) (Mw E 1) 0 :=
+    ⟨rfl, by intro i; simp [Mw, Hagi.Qvec]⟩
   unfold CorePremises
   rw [Mw0_gap, Mw0_energy, Mw0_growGain, Mw0_growEnergy, Mw0_mergeEnergy,
     Mw0_jointEnergy, Mw0_compressEnergy, Mw0_quantErr,
@@ -795,7 +796,8 @@ theorem mw_core_premises (E : ℝ) :
     abs_nonneg _,
     witness_quantErr_bounded,
     by norm_num,
-    hfull.1, hfull.2,
+    hfull.1,
+    (by intro i; simp [Mw, Hagi.Qvec]),
     by simp [Qgen, Hagi.Qvec]⟩
 
 /-- **The productive MasterHAGI witness** (R370, one-step):

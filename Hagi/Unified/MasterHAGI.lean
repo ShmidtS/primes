@@ -189,7 +189,7 @@ def CorePremises (S S' : GenState X) (epsQ : ℝ) (w : Fin 5 → ℝ) : Prop :=
   ∧ S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
       ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s * S.toGrowthState.effects.quantErr
   ∧ S'.toGrowthState = compress (joint (merge (grow S.toGrowthState)))
-  ∧ S'.gen = S.gen
+  ∧ (∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
   ∧ (Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
 
 /-! ## Level 1: the one-cycle composition (R91 + R109) -/
@@ -272,16 +272,16 @@ carried over unchanged. This is the Lean-side half of the
 RuntimeRefinement bridge (§I of the audit); the runtime side
 (actual tensor/optimizer execution implying this equality)
 remains the implementation gap, stated as a premise here. -/
-def FullCycleRefinement (S S' : GenState X) : Prop :=
+def FullCycleRefinement (S S' : GenState X) (epsG : ℝ) : Prop :=
   S'.toGrowthState = compress (joint (merge (grow S.toGrowthState)))
-  ∧ S'.gen = S.gen
+  ∧ ∀ i, |Qvec S'.gen i - Qvec S.gen i| ≤ epsG
 
 /-- The full-state equality implies the three field equalities
 of the old h_cycle conjunct (energy/protectedRisk/budget) —
 the refinement is strictly stronger, closing the
 "right accounting, arbitrary capability" hole. -/
-theorem full_cycle_field_eq {S S' : GenState X}
-    (hfull : FullCycleRefinement S S') :
+theorem full_cycle_field_eq {S S' : GenState X} {epsG : ℝ}
+    (hfull : FullCycleRefinement S S' epsG) :
     S'.toGrowthState.energy
       = (compress (joint (merge (grow S.toGrowthState)))).energy
     ∧ S'.toGrowthState.protectedRisk
