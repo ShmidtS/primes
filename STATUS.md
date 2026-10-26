@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P3.14 граничные тесты** (`Hagi/Examples/EdgeTests.lean`):
+  тестовая триада завершена — продуктивные (witness-серия,
+  attained), отрицательные (obstruction-серия), граничные
+  (γ=0 takeoff, M=0 speed limit, ε=0 термодинамика, симметрия
+  и singleton для compute_scaling).
 - **P2.10 StepCertificate**
   (`Hagi/System/StepCertificate.lean`): полный сертификат шага —
   базовый Certificate (спуск/риск/стоимость) + gen-полоса epsG;
