@@ -266,6 +266,10 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Аудит-v4 §3.8: cone_growth_window исправлена** — теперь
+  НАСТОЯЩЕЕ окно: (1+α_min)C t ≤ C(t+1) ≤ (1+α_cap)C t;
+  добавлена посылка h_upper (G ≤ α_cap·C); α_cap/hsep
+  реально участвуют; нижняя из конуса, верхняя из cap.
 - **PL-линейная сходимость**
   (`Hagi/Optimization/PLConvergence.lean`,
   `pl_linear_convergence`): Поляк–Лоясевич — градиентное

@@ -353,8 +353,11 @@ theorem cone_growth_window (C G D : ℕ → ℝ) (α_min α_cap γ : ℝ)
     (hγ : 0 < γ) (hmin : 0 ≤ α_min) (hsep : α_min ≤ α_cap)
     (h_step : ∀ t, C (t + 1) = C t + G t)
     (h_gain : ∀ t, γ * D t ≤ G t)
-    (h_cone : ∀ t, α_min / γ * C t ≤ D t) :
-    (1 + α_min) * C t ≤ C (t + 1) := by
+    (h_cone : ∀ t, α_min / γ * C t ≤ D t)
+    (h_upper : ∀ t, G t ≤ α_cap * C t) :
+    (1 + α_min) * C t ≤ C (t + 1)
+      ∧ C (t + 1) ≤ (1 + α_cap) * C t := by
+  -- нижняя граница: конус + отдача
   have hc := h_cone t
   have hg := h_gain t
   have he : γ * (α_min / γ * C t) = α_min * C t := by field_simp
@@ -363,9 +366,17 @@ theorem cone_growth_window (C G D : ℕ → ℝ) (α_min α_cap γ : ℝ)
       mul_le_mul_of_nonneg_left hc hγ.le
     rw [he] at h1
     exact le_trans h1 hg
-  have hr : (1 + α_min) * C t = C t + α_min * C t := by ring
-  rw [h_step t, hr]
-  linarith
+  have hlow : (1 + α_min) * C t ≤ C (t + 1) := by
+    have hr : (1 + α_min) * C t = C t + α_min * C t := by ring
+    rw [h_step t, hr]
+    linarith
+  -- верхняя граница: cap на прирост
+  have hhi : C (t + 1) ≤ (1 + α_cap) * C t := by
+    have hu := h_upper t
+    have hr : (1 + α_cap) * C t = C t + α_cap * C t := by ring
+    rw [h_step t, hr]
+    linarith
+  exact ⟨hlow, hhi⟩
 
 /-! ### The repaired semantics is nonvacuous: two active cycles -/
 
