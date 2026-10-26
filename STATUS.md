@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2922 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2923 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Compute-optimal нижняя граница**
+  (`compute_scaling_lower_bound`, Jeon–Van Roy arXiv
+  2407.01456): потери a/m + b/n при линейной стоимости C=m+n
+  удовлетворяют L ≥ (√a+√b)²/C для любой аллокации — бюджет
+  ограничивает потери снизу (Engel-форма Коши–Буняковского).
 - **Двухуровневая теплоёмкость > 0**
   (`two_level_meanEnergy_strictMono`, Neural Thermodynamic
   Laws arXiv 2505.10559): ⟨E⟩(T) = ε/(1+e^{ε/T}) строго ↑ по
