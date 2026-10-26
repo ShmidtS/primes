@@ -50,6 +50,7 @@ GeneralizationCertificate	4d9452560d31fbb9	84fa558ea1be73f7
 GrowCertificate	5604c7b7d1f91c94	e8fce0de5b27051c
 GrowthDynamics	ae1dc0800dae902d	43e181f5b8fc82ca
 GrowthState	12ae99d9728abde5	26851538c76af494
+GrowthState_parts_roundtrip	a9306c543edefdcb	623f461c32bbc471
 HAGICert	b19ca190cb181b91	9149c96e0d2a9241
 HC	3bc93c019cdbf398	5ac5c6772631bb8e
 History	c2b5c52da3f1d0b7	763a6d00ed7ceba7
@@ -86,10 +87,13 @@ Matrix	c43f835a52818a6b	e4cfd46d28262af3
 Matrix	c62852e59e452a76	1389fbe8bfafaae6
 Matrix	d12f763daae27f23	1ae460a7e481d13e
 MemBlock	e3f56252d8eb81d1	a66149f05f587541
+MemoryPart	5758ee45ec39c29f	851ade0387954bbb
 MergeApproved	7a09f4d9b890cb28	76263fccf8c43930
 MergeCertificate	1b2cb0b9cd7761d6	a78ef3e628ba6205
 Metrics	86351d48e70ab510	37a3e69f221900b3
+MetricsPart	d3c1fc2e9d83fdc3	1a20e87c9f4d4b02
 ModeDrop	0b948685dd9a7df9	4fdb25bdf6b0232d
+ModelPart	561252fed7e849e4	52086b4ec462548b
 Mw	5f844be406c63a36	0bb385ffb6469383
 Mw0	290125dc0090db7a	a9423ddbdcb42bc1
 Mw0_L	ea85439e1c348ff8	01d483c1509c4be8
@@ -129,6 +133,7 @@ Nrm	df62a3c06e704731	f2778930dde04c4f
 Omega_7_gt_Omega_6	32950aeed2c20a64	4abb17e49eb7fd9b
 Omega_7_gt_Omega_8	76201377951be828	88a5742aa28c5157
 Omega_8'	519da905d319bfa7	4d7731acea2a7de3
+OptimizerPart	4e458f82238c6137	f49f2a1cd10e3935
 OrthProjPair	345f0c60d43cd942	0790f90a54ce1fde
 OrthRows	0ea77f5f677d63f7	717347d618369d90
 PerBlockLayer	419dbbd9eeec95c5	3992fd92a8213d21
@@ -167,6 +172,7 @@ RankingConsistent	932d282ff9f95acd	97968949ba79a90a
 RequiresRandomSplit	cd5388b764f099ec	f401796a849efc07
 ResidualGateOn	73d520bce46b2d85	5695bf3ef8889fd8
 ResidualSplit	afaa37941e7e54f0	e15d8eed4e77c8ab
+ResourcePart	a973ff0b2d8ce04b	bcfc65f38a625027
 RunId	5619487e0792133d	a1b84bd550b68e2a
 S	5ac0679926d52969	2d16507c48f142cd
 S	99896226b023ea7a	8629bbee8e7e92c7
@@ -1885,6 +1891,7 @@ null_effect	1d98a15abde95bb0	418fc0b60a5f5322
 of	45227268f72e857a	eb1c897b78d17519
 of	dd0fa3cf43373bdc	ee035aba35e83ffe
 of	dd5dbadea78f5427	f826f92521da32ff
+ofParts	f5fce17fbe8ff333	8df39db3e8732925
 ofReal_finset_sum	940a1586b5e7d0c2	2ae2b6c93587be7c
 offdiag_pythagoras	658e47256acf0c93	7d47284b3be5b588
 omega	73481c75d637f5bb	913f5cc04b59bba7
@@ -2710,6 +2717,8 @@ toEuclideanLin_sub	98a33c689df5b95a	3f32042f238c37f5
 toPMF	99a1e1e64c50724b	be3c06cd05704f13
 toPMF_apply	84c5763ee0179594	4add56d0e6266558
 toPMF_fromPMF	c8f6efa615a6bd74	0986e9bf6e85ec3b
+toParts	9b10f895c9977247	94973082d2fc7437
+toParts_injective	092e00236811b107	21bf1c52cfeb757a
 tokenKLTotal	4a2276a7611b29ce	b57254fb03b87cce
 token_weight_decomposition	beaee23940cc81c2	1bbc12a7ab3a8861
 tolerance_calibration	992c33e9a23e25e2	a7527f8e10bcf46b

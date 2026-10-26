@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P2.9 разбиение состояния**
+  (`Hagi/System/GrowthStateViews.lean`): GrowthState разложен
+  на 5 сущностей (ModelPart/MetricsPart/MemoryPart/
+  OptimizerPart/ResourcePart) с проекциями toParts/ofParts и
+  раунд-трипом (rfl) + инъективностью — канон не сломан.
 - **P3.14 граничные тесты** (`Hagi/Examples/EdgeTests.lean`):
   тестовая триада завершена — продуктивные (witness-серия,
   attained), отрицательные (obstruction-серия), граничные

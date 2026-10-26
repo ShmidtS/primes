@@ -195,6 +195,7 @@ import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.System.GrowthState
 import Hagi.System.StepCertificate
+import Hagi.System.GrowthStateViews
 import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
