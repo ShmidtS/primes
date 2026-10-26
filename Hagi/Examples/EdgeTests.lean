@@ -2,6 +2,7 @@ import Hagi.Optimization.ComputeScaling
 import Hagi.Foundations.PerronCone
 import Hagi.Dynamics.SpeedLimit
 import Hagi.Energy.Cooling
+import Hagi.Optimization.PLConvergence
 
 /-!
 # EdgeTests — граничные тесты главных результатов (P3.14)
@@ -66,5 +67,34 @@ example (B c : ℝ) (hc : 0 < c) (hB : 0 < B) :
   simp
   exact le_of_lt (Real.one_lt_rpow (by norm_num : (1:ℝ) < 1 + 1)
     (div_pos hB hc))
+
+
+/-! ## PL-сходимость -/
+
+/-- ГРАНИЧНЫЙ: μ=L — скорость обнуляется (1−μ/L = 0): за один
+шаг: (1−μ/L) = 0 ⟹ E t − E* ≤ 0^t·(E 0−E*) — вырожденный
+случай факторизации скорости. -/
+example (E G : ℕ → ℝ) (Estar L : ℝ) (hL : 0 < L)
+    (hE : ∀ t, Estar ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - G t / (2 * L))
+    (hPL : ∀ t, 2 * L * (E t - Estar) ≤ G t) (t : ℕ) :
+    E t - Estar ≤ (0:ℝ) ^ t * (E 0 - Estar) := by
+  have h0 : (1:ℝ) - L / L = 0 := by
+    rw [div_self (ne_of_gt hL), sub_self]
+  have h := Hagi.Optimization.pl_linear_convergence E G Estar L L hL hL
+    (le_refl _) hE hstep hPL t
+  rwa [h0] at h
+
+/-- ГРАНИЧНЫЙ: ε-горизонт при t=0 — достаточность тривиальна:
+(1−μ/L)^0·(E 0−E*) = E 0−E* ≤ ε требуется явно (никакого
+бесплатного спуска). -/
+example (E G : ℕ → ℝ) (Estar μ L ε : ℝ) (hL : 0 < L) (hμ : 0 < μ)
+    (hμL : μ ≤ L) (hE : ∀ t, Estar ≤ E t)
+    (hstep : ∀ t, E (t + 1) ≤ E t - G t / (2 * L))
+    (hPL : ∀ t, 2 * μ * (E t - Estar) ≤ G t)
+    (hε : (E 0 - Estar) ≤ ε) :
+    E 0 - Estar ≤ ε :=
+  Hagi.Optimization.pl_sufficient_horizon E G Estar μ L ε hL hμ hμL
+    hE hstep hPL 0 (by simpa using hε)
 
 end Hagi.Examples
