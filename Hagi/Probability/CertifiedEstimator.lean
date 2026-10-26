@@ -540,6 +540,114 @@ theorem certified_premise {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
   rw [hcompl] at hmono
   linarith
 
+omit [Nonempty V] in
+/-- КОНГРУЭНТНОСТЬ prodPq по поточечно эквивалентным
+предикатам (P ↔ Q всюду ⟹ P[P] = P[Q]). -/
+theorem prodPq_iff {n : ℕ} (p : Fin n → V → ℝ)
+    (P Q : (Fin n → V) → Prop) [DecidablePred P] [DecidablePred Q]
+    (h : ∀ ω, P ω ↔ Q ω) :
+    prodPq p P = prodPq p Q := by
+  classical
+  unfold prodPq prodE
+  refine Finset.sum_congr rfl fun ω _ => ?_
+  show prodDens p ω * (if P ω then 1 else 0)
+    = prodDens p ω * (if Q ω then 1 else 0)
+  by_cases hP : P ω
+  · have hQ : Q ω := (h ω).mp hP
+    simp only [hP, hQ]
+  · have hQ : ¬ Q ω := fun hQ => hP ((h ω).mpr hQ)
+    simp only [hP, hQ]
+
+/-- ОБЩИЙ UNION BOUND: вероятность дизъюнкции событий по
+конечному индексному множеству ≤ сумме вероятностей. -/
+theorem prodPq_union_finset {n : ℕ} {ι : Type} (p : Fin n → V → ℝ)
+    (hp : IsProbSys p) (S : Finset ι)
+    (A : ι → (Fin n → V) → Prop) [∀ i, DecidablePred (A i)] :
+    prodPq p (fun ω => ∃ i ∈ S, A i ω)
+      ≤ ∑ i ∈ S, prodPq p (A i) := by
+  classical
+  induction S using Finset.induction_on with
+  | empty =>
+    have hz : prodPq p (fun ω => ∃ i ∈ (∅ : Finset ι), A i ω) = 0 := by
+      simp [prodPq, prodE]
+    rw [hz]
+    simp
+  | insert a s ha ih =>
+    have hsplit := prodPq_iff p
+      (fun ω => ∃ i ∈ insert a s, A i ω)
+      (fun ω => (A a ω ∨ ∃ i ∈ s, A i ω))
+      (fun ω => by
+        constructor
+        · rintro ⟨i, hi1, hi2⟩
+          rcases Finset.mem_insert.mp hi1 with h | h
+          · exact Or.inl (h ▸ hi2)
+          · exact Or.inr ⟨i, h, hi2⟩
+        · rintro (h | ⟨i, hi1, hi2⟩)
+          · exact ⟨a, Finset.mem_insert.mpr (Or.inl rfl), h⟩
+          · exact ⟨i, Finset.mem_insert.mpr (Or.inr hi1), hi2⟩)
+    have hpred := prodPq_union_le p hp
+      (fun ω => A a ω) (fun ω => ∃ i ∈ s, A i ω)
+    have hih : prodPq p (fun ω => ∃ i ∈ s, A i ω)
+        ≤ ∑ i ∈ s, prodPq p (A i) := ih
+    rw [hsplit, Finset.sum_insert ha]
+    calc prodPq p (fun ω => A a ω ∨ ∃ i ∈ s, A i ω)
+        ≤ prodPq p (fun ω => A a ω)
+            + prodPq p (fun ω => ∃ i ∈ s, A i ω) := hpred
+      _ ≤ prodPq p (A a) + ∑ i ∈ s, prodPq p (A i) :=
+            add_le_add (le_refl _) hih
+
+/-- СЛЕДСТВИЕ: если каждая из посылок по конечному множеству
+индексов выполняется с вероятностью ≥ 1−δ (δ ≥ 0 не нужен:
+гарантия монотонна), то все они
+одновременно — с вероятностью ≥ 1 − |S|·δ (union bound для
+h_emp-блока эмпирических посылок). -/
+theorem premises_union_confidence {n : ℕ} {ι : Type}
+    (p : Fin n → V → ℝ) (hp : IsProbSys p) (S : Finset ι)
+    (A : ι → (Fin n → V) → Prop) [∀ i, DecidablePred (A i)]
+    (δ : ℝ)
+    (hA : ∀ i ∈ S, 1 - δ ≤ prodPq p (A i)) :
+    1 - (S.card : ℝ) * δ
+      ≤ prodPq p (fun ω => ∀ i ∈ S, A i ω) := by
+  classical
+  have hfail : prodPq p (fun ω => ¬ ∀ i ∈ S, A i ω)
+      ≤ (S.card : ℝ) * δ := by
+    have hsplit2 := prodPq_iff p
+      (fun ω => ¬ ∀ i ∈ S, A i ω)
+      (fun ω => ∃ i ∈ S, ¬ A i ω)
+      (fun ω => by
+        constructor
+        · intro hn
+          by_contra hc
+          refine hn (fun i hi => ?_)
+          by_contra hai
+          exact hc ⟨i, hi, hai⟩
+        · rintro ⟨i, hi1, hi2⟩ hall
+          exact hi2 (hall i hi1))
+    rw [hsplit2]
+    have hu := prodPq_union_finset p hp S (fun i ω => ¬ A i ω)
+    have hcomp : ∀ i ∈ S,
+        prodPq p (fun ω => ¬ A i ω) = 1 - prodPq p (A i) :=
+      fun i _ => prodPq_compl p hp (A i)
+    have heq : ∑ i ∈ S, prodPq p (fun ω => ¬ A i ω)
+        = ∑ i ∈ S, (1 - prodPq p (A i)) :=
+      Finset.sum_congr rfl (fun i hi => hcomp i hi)
+    rw [heq] at hu
+    have hle : ∑ i ∈ S, ((1 : ℝ) - prodPq p (A i))
+        ≤ ∑ i ∈ S, δ :=
+      Finset.sum_le_sum (fun i hi => by
+        have := hA i hi
+        linarith)
+    have hsumd : ∑ i ∈ S, (δ : ℝ) = (S.card : ℝ) * δ := by
+      rw [Finset.sum_const, nsmul_eq_mul]
+    rw [hsumd] at hle
+    linarith
+  have hsplit3 := prodPq_compl p hp (fun ω => ∀ i ∈ S, A i ω)
+  have hfinal : prodPq p (fun ω => ∀ i ∈ S, A i ω)
+      = 1 - prodPq p (fun ω => ¬ ∀ i ∈ S, A i ω) :=
+    by linear_combination hsplit3
+  rw [hfinal]
+  linarith
+
 end Hagi.Probability
 namespace Hagi
 export Hagi.Probability (prodDens prodE prodPq IsProbSys prodDens_nonneg sum_prod_factor prodE_one prodPq_le_one prodPq_compl prodPq_mono prodPq_union_le prodE_exp_sum markov_ge coordMean centeredSum coord_center_zero coord_mgf_bound sum_mgf_bound hoeffding_chernoff hoeffding_tail hoeffding_mean_tail hoeffding_mean_tail_low hoeffding_two_sided cert_upper cert_lower certified_premise)

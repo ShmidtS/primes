@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2917 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2920 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Union bound для блока посылок**
+  (`prodPq_iff`, `prodPq_union_finset`,
+  `premises_union_confidence`): конгруэнтность prodPq по
+  эквивалентным предикатам; общий union bound по Finset;
+  k посылок с вероятностью ≥ 1−δ каждая ⟹ все одновременно
+  с вероятностью ≥ 1 − |S|·δ.
 - **Мост Фридмана ⇒ посылки** (`freedman_confidence`):
   если эмпирическая посылка A потраекторно эквивалентна
   неотрицательности суммы мартингал-разностей, то
