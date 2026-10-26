@@ -1461,4 +1461,49 @@ theorem target_needs_budget {X : Type*}
   htarget.trans (budget_capability_ceiling tr α c hα hc hcost
     hbudget hC0 hcap)
 
+/-- ЛОГ-ФОРМА МИНИМАЛЬНОГО БЮДЖЕТА: достичь C* > C 0 > 0
+на горизонте с cap α > 0 можно лишь при
+B ≥ c · log(C*/C 0) / log(1+α) — явная формула минимального
+бюджета цели (экспоненциальная цена роста). -/
+theorem minimal_budget_log {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (α c Cstar : ℝ)
+    (hα : 0 < α) (hc : 0 < c)
+    (hC0 : 0 < (tr.state 0).capability)
+    (hCstar : (tr.state 0).capability < Cstar)
+    (hcost : ∀ t < tr.T, c ≤ (tr.input t).eff.growCost
+      + (tr.input t).eff.mergeCost
+      + (tr.input t).eff.jointCost
+      + (tr.input t).eff.compressCost)
+    (hbudget : ∀ t ≤ tr.T, 0 ≤ (tr.state t).budget)
+    (hcap : ∀ t < tr.T, (tr.state (t + 1)).capability
+      ≤ (1 + α) * (tr.state t).capability)
+    (htarget : Cstar ≤ (tr.state tr.T).capability) :
+    c * (Real.log (Cstar / (tr.state 0).capability)
+      / Real.log (1 + α))
+      ≤ (tr.state 0).budget := by
+  have hbnd := target_needs_budget tr α c Cstar
+    (by linarith) hc hcost hbudget (le_of_lt hC0) hcap htarget
+  have h1lt : (1:ℝ) < 1 + α := by linarith
+  have hlog1pos : 0 < Real.log (1 + α) := Real.log_pos h1lt
+  have hrpowpos : (0:ℝ) < 1 + α := by linarith
+  have hdivpos : 0 < Cstar / (tr.state 0).capability :=
+    div_pos (lt_of_le_of_lt (le_of_lt hC0) hCstar) hC0
+  have hdivle : Cstar / (tr.state 0).capability
+      ≤ (1 + α) ^ ((tr.state 0).budget / c) := by
+    rw [div_le_iff₀ hC0]
+    nlinarith [hbnd]
+  have hlogle : Real.log (Cstar / (tr.state 0).capability)
+      ≤ ((tr.state 0).budget / c) * Real.log (1 + α) := by
+    have hstep := Real.log_le_log hdivpos hdivle
+    rwa [Real.log_rpow hrpowpos] at hstep
+  have hmul : Real.log (Cstar / (tr.state 0).capability) * c
+      ≤ (tr.state 0).budget * Real.log (1 + α) := by
+    have hEq : c * (((tr.state 0).budget / c) * Real.log (1 + α))
+        = (tr.state 0).budget * Real.log (1 + α) := by
+      field_simp
+    nlinarith [hlogle, hEq]
+  rw [mul_comm c _, div_mul_eq_mul_div, div_le_iff₀ hlog1pos]
+  exact hmul
+
 end Hagi.Model

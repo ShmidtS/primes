@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2947 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2948 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,9 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Лог-форма минимального бюджета**
+  (`minimal_budget_log`): B ≥ c·log(C*/C 0)/log(1+α) — явная
+  формула цены экспоненциального роста цели.
 - **Цель требует бюджета** (`target_needs_budget`): достижимость
   C* на горизонте ⟹ C* ≤ (1+α)^{B/c}·C 0 — минимальный бюджет
   цели (лог-форма B ≥ c·log(C*/C0)/log(1+α)).
