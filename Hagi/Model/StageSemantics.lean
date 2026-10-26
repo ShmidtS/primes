@@ -1438,4 +1438,27 @@ theorem growth_corridor {X : Type*}
     exact le_trans hlow' hhigh
   exact le_of_mul_le_mul_right hchain hC0
 
+/-- ЦЕЛЬ ТРЕБУЕТ БЮДЖЕТА (количественный коридор): чтобы
+достичь capability C* на горизонте T (C* ≤ C T), бюджет
+обязан удовлетворять C* ≤ (1+α)^{B/c}·C 0 —
+минимальный бюджет B ≥ c·log(C*/C 0)/log(1+α) в лог-форме;
+рост нельзя достичь дешевле ресурсного потолка. -/
+theorem target_needs_budget {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (tr : Trajectory X) (α c Cstar : ℝ)
+    (hα : 1 ≤ 1 + α) (hc : 0 < c)
+    (hcost : ∀ t < tr.T, c ≤ (tr.input t).eff.growCost
+      + (tr.input t).eff.mergeCost
+      + (tr.input t).eff.jointCost
+      + (tr.input t).eff.compressCost)
+    (hbudget : ∀ t ≤ tr.T, 0 ≤ (tr.state t).budget)
+    (hC0 : 0 ≤ (tr.state 0).capability)
+    (hcap : ∀ t < tr.T, (tr.state (t + 1)).capability
+      ≤ (1 + α) * (tr.state t).capability)
+    (htarget : Cstar ≤ (tr.state tr.T).capability) :
+    Cstar ≤ (1 + α) ^ ((tr.state 0).budget / c)
+      * (tr.state 0).capability :=
+  htarget.trans (budget_capability_ceiling tr α c hα hc hcost
+    hbudget hC0 hcap)
+
 end Hagi.Model
