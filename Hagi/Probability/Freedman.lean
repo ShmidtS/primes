@@ -743,5 +743,41 @@ theorem adaptive_success_freedman (q : V → ℝ)
           prodPq_mono (fun _ => q) hisprob _ _
             (fun ω hω => not_lt.mp hω)
 
-end Hagi.Probability
+/-- МОСТ ФРИДМАНА ⇒ ПОСЫЛКИ (аудит v3): если выполнение
+эмпирической посылки A потраекторно эквивалентно тому, что
+сумма ограниченных мартингал-разностей не провалилась ниже
+−Δ, то A выполняется с вероятностью ≥ 1 − exp(−Δ²/(2(nσ+bΔ)))
+— anytime-валидная уверенность в эмпирических посылках
+h_emp-блока. -/
+theorem freedman_confidence {V : Type} [Fintype V] [Nonempty V]
+    (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
+    (X : ∀ t, (Fin t → V) → ℝ)
+    (b : ℝ) (hb : 0 ≤ b) (hbnd : ∀ t pref, |X t pref| ≤ b)
+    (sig : ℝ) (hsig : 0 < sig)
+    (hmean : ∀ t pref,
+      ∑ v, q v * X (t + 1) (Fin.snoc (α := fun _ => V) pref v) = 0)
+    (hvar : ∀ t pref,
+      ∑ v, q v * (X (t + 1) (Fin.snoc (α := fun _ => V) pref v)) ^ 2
+        ≤ sig)
+    (n : ℕ) (hn : 0 < n) (Δ : ℝ) (hΔ : 0 < Δ)
+    (A : (Fin n → V) → Prop) [DecidablePred A]
+    (hA : ∀ ω, A ω ↔ ¬ (azumaSum X n ω ≤ -Δ)) :
+    1 - Real.exp (- Δ ^ 2 / (2 * ((n : ℝ) * sig + b * Δ)))
+      ≤ prodPq (V := V) (fun _ : Fin n => q) A := by
+  have htail := freedman_tail_low q hq0 hq1 X b hb hbnd sig hsig
+    hmean hvar n hn Δ hΔ
+  have hisprob : IsProbSys (fun _ : Fin n => q) := fun _ => ⟨hq0, hq1⟩
+  have hcompl : prodPq (fun _ : Fin n => q)
+      (fun ω => ¬ (azumaSum X n ω ≤ -Δ))
+      = 1 - prodPq (fun _ : Fin n => q)
+          (fun ω => azumaSum X n ω ≤ -Δ) :=
+    prodPq_compl (fun _ : Fin n => q) hisprob _
+  have hmono : prodPq (fun _ : Fin n => q)
+      (fun ω => ¬ (azumaSum X n ω ≤ -Δ))
+      ≤ prodPq (V := V) (fun _ : Fin n => q) A :=
+    prodPq_mono (fun _ : Fin n => q) hisprob _ _
+      (fun ω h => (hA ω).mpr h)
+  rw [hcompl] at hmono
+  linarith
 
+end Hagi.Probability
