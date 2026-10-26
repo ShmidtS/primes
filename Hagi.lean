@@ -68,6 +68,7 @@ import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
+import Hagi.Unified.Fannes
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability

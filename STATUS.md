@@ -263,6 +263,11 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **P1.4 фасад Fannes** (`Hagi/Unified/Fannes.lean`): единая
+  точка входа неравенства Фанне — реестр четырёх слоёв
+  (матричный DiscreteFannes, вероятностный FannesSmooth,
+  комбинаторный FannesComplete, термодинамический NernstFannes);
+  дубликатных определений нет, канон Prelude.entDef/tvDef.
 - **P0.1 (закрыт ранее)**: `advance_decompose` — единый
   переход: advance = compress(joint(merge(grow(prepare))));
   полный P0 закрыт: P0.1 мост, P0.2 закон роста, P0.3 полосы.
