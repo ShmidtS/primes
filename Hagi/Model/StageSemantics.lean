@@ -30,6 +30,12 @@ Main items:
 * `Trajectory` — states linked by `advance` with per-cycle inputs;
 * `advance_energy_drop` — one-cycle energy certificate;
 * `cone_growth_window` — the un-squeezed growth law;
+* ЕДИНАЯ СЕМАНТИКА ПЕРЕХОДА (аудит v4 §3.3): `advance` —
+канон; compose grow/merge/joint/compress эквивалентен ему
+по всем полям (`advance_decompose`, rfl); CycleCertificate —
+сертификатный контракт (не переход); UnifiedStep —
+специализированная реализация (Quantized Mirror Descent),
+не дубликат канона.
 * `two_cycle_varying_gain_nonvacuous` — a concrete two-cycle
   witness with strictly positive, DISTINCT gains and strictly
   decreasing energy (impossible under the fixed-effects model
