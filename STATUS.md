@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2950 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2951 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,12 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **PL-линейная сходимость**
+  (`Hagi/Optimization/PLConvergence.lean`,
+  `pl_linear_convergence`): Поляк–Лоясевич — градиентное
+  доминирование + честный градиентный шаг ⟹
+  E t − E* ≤ (1−μ/L)^t·(E 0−E*) — first-order оптимальность
+  без выпуклости.
 - **План достижимости цели** (`plan_reachability`): при
   конусной отдаче, честном бюджете и достаточном горизонте:
   C* ≤ C T ∧ T·c ≤ B — интегральный критерий осуществимости
