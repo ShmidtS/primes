@@ -48,7 +48,15 @@ the telescoped risk bound, the exact nonincreasing budget
 `budget T = budget 0 − ∑ spend t` (the budget is its OWN
 sequence — the R265 audit fix separates it from the
 capability channel), and `qfloor i ≤ qvec T i` for every
-probe `i`. -/
+probe `i`.
+AUDIT v4 §3.1 — premise transparency: the conjunctions are NOT EQUAL:
+* DERIVED from cone dynamics: exponential takeoff;
+* PASSED verbatim (hrisk_bound): risk constraint;
+* PASSED (hbudget): exact budget (only the
+  non-increasing property budget T ≤ budget 0 is derived — arithmetic);
+* PASSED (hqvec): componentwise quality floor.
+The passed conjunctions are MEASURABLE premises, not consequences
+of the learning mechanism; their source is the certification stage. -/
 -- DEPRECATED (REFACTOR_PLAN F1): flat-premise form; use grand_synthesis_weak
 theorem grand_synthesis
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
