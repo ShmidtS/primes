@@ -58,4 +58,13 @@ example (E : ℕ → ℝ) (hstep : ∀ t, E (t + 1) ≥ E t - 0) (T : ℕ) :
 example (T : ℝ) : 0 / (1 + Real.exp (0 / T)) = 0 := by
   simp
 
+
+/-- ГРАНИЧНЫЙ: коридор роста при T=0 — обе стороны равны 1:
+пустой горизонт согласован тривиально. -/
+example (B c : ℝ) (hc : 0 < c) (hB : 0 < B) :
+    (1 + 0 * 0 : ℝ) ^ (0 : ℝ) ≤ (1 + 1) ^ (B / c) := by
+  simp
+  exact le_of_lt (Real.one_lt_rpow (by norm_num : (1:ℝ) < 1 + 1)
+    (div_pos hB hc))
+
 end Hagi.Examples
