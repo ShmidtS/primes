@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2959 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2961 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,12 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **CertifiedTransition (аудит v4 §5.4 реализован)**
+  (`Hagi/Model/CertifiedTransition.lean`): зависимый
+  сертификат перехода — exec (S' = advance S u), progress
+  (verify-спуск > 0), safety (риск-лимит), resources (точный
+  бюджетный ledger); конструктор
+  certifiedTransition_of_advance из операциональных условий.
 - **Аудит-v4 §3.3: единая семантика перехода
   (классификация)**: advance — канон; compose эквивалентен по
   всем полям (advance_decompose, rfl); CycleCertificate —

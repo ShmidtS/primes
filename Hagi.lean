@@ -268,6 +268,7 @@ import Hagi.Unified.NernstFannes
 import Hagi.Examples.NonvacuityHorizon
 import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
+import Hagi.Model.CertifiedTransition
 import Hagi.Model.CycleCertificate
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
