@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2962 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2963 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,9 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Горизонтный риск CertifiedTransition**
+  (`certified_trajectory_risk`): R T = R 0 + Σ risk spends —
+  телескоп защищённого риска из exec-переходов.
 - **Горизонтизация CertifiedTransition**
   (`certified_trajectory_budget`): семейство сертифицированных
   переходов телескопирует ТОЧНЫЙ бюджетный ledger

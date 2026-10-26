@@ -86,4 +86,43 @@ theorem certified_trajectory_budget {X : Type*}
       ring
   exact hmain T (le_refl _)
 
+/-- ГОРИЗОНТНЫЙ РИСК: семейство сертифицированных переходов
+телескопирует прирост защищённого риска —
+R T = R 0 + Σ per-step risk spends; безопасность накапливается
+только через exec-переходы. -/
+theorem certified_trajectory_risk {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → Hagi.System.GrowthState X) (u : ℕ → StageInput X)
+    (T : ℕ)
+    (hc : ∀ t < T, CertifiedTransition (S t) (S (t + 1)) (u t)
+      ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk)) :
+    (S T).protectedRisk = (S 0).protectedRisk
+      + ∑ t ∈ Finset.range T, ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk) := by
+  have hmain : ∀ n : ℕ, n ≤ T →
+      (S n).protectedRisk = (S 0).protectedRisk
+        + ∑ t ∈ Finset.range n, ((u t).eff.growRisk + (u t).eff.mergeRisk
+          + (u t).eff.jointRisk + (u t).eff.compressRisk) := by
+    intro n
+    induction n with
+    | zero => intro _; simp
+    | succ n ih =>
+      intro hn
+      have hih := ih (by omega)
+      have hc' := hc n (by omega)
+      have hstep := hc'.safety
+      -- точное равенство из определения advance (safety — ≤,
+      -- но для advance это равенство)
+      have hexact : (S (n + 1)).protectedRisk
+          = (S n).protectedRisk + ((u n).eff.growRisk
+            + (u n).eff.mergeRisk + (u n).eff.jointRisk
+            + (u n).eff.compressRisk) := by
+        rw [hc'.exec]
+        simp only [advance]
+        ring
+      rw [hexact, hih, Finset.sum_range_succ]
+      ring
+  exact hmain T (le_refl _)
+
 end Hagi.Model
