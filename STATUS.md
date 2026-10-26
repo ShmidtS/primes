@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2926 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2927 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -263,6 +263,10 @@
 - **Динамическая пара** (`cooling_schedule_pair`): ∃t с
   ОДНОВРЕМЕННЫМ раскрытием (Tₜ ≤ s/τ) и ε-качеством
   (Tₜ·log n ≤ ε) — часы и бюджет сходятся в min-окне.
+- **Холодный предел Z(T)** (`partition_cold_limit`, NTL):
+  при T → 0+ Z(T) → число глобальных минимизаторов —
+  вырожденные уровни вносят 1, возбуждённые вымерзают;
+  холодный двойник partition_hot_limit.
 - **Speed limit обучения**
   (`learning_time_lower_bound`, Seroussi et al. arXiv
   2307.14653, дискретный аналог): E(t+1) ≥ E t − M ⟹

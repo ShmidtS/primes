@@ -561,4 +561,55 @@ theorem two_level_meanEnergy_strictMono (ε : ℝ) (hε : 0 < ε)
   rw [div_lt_div_iff₀ hpos1 (by positivity)]
   nlinarith [mul_lt_mul_of_pos_right hden hε, hε]
 
+/-- ХОЛОДНЫЙ ПРЕДЕЛ (NTL): при T → 0+ статистическая сумма
+Гиббса Z(T) = Σ exp(−ℓ v/T) сходится к числу глобальных
+минимизаторов ℓ (при ℓ ≥ 0): вырожденные уровни ℓ v = 0
+вкладывают 1, возбуждённые ℓ v > 0 вымерзают. Охлаждение
+концентрирует распределение на минимизаторах — холодный
+двойник partition_hot_limit. -/
+theorem partition_cold_limit {V : Type*} [Fintype V] [Nonempty V]
+    (ℓ : V → ℝ) (hℓ : ∀ v, 0 ≤ ℓ v) :
+    Filter.Tendsto (fun T : ℝ => ∑ v, Real.exp (-(ℓ v)/T))
+      (nhdsWithin (0:ℝ) (Set.Ioi 0))
+      (nhds (∑ v, if ℓ v = 0 then (1:ℝ) else 0)) := by
+  have hterm : ∀ v : V, Filter.Tendsto
+      (fun T : ℝ => Real.exp (-(ℓ v)/T))
+      (nhdsWithin (0:ℝ) (Set.Ioi 0))
+      (nhds (if ℓ v = 0 then (1:ℝ) else 0)) := by
+    intro v
+    rcases eq_or_lt_of_le (hℓ v) with h0 | hpos
+    · have hconst : (fun T : ℝ => Real.exp (-(ℓ v)/T))
+          = fun _ => (1:ℝ) := by
+        funext T
+        rw [h0.symm]
+        simp
+      have hif : (if ℓ v = 0 then (1:ℝ) else 0) = 1 := by
+        simp [h0]
+      rw [hconst, hif]
+      exact tendsto_const_nhds
+    · have hinv : Filter.Tendsto (fun T : ℝ => (1:ℝ)/T)
+          (nhdsWithin (0:ℝ) (Set.Ioi 0)) Filter.atTop :=
+        by simpa using tendsto_inv_nhdsGT_zero
+      have hmul : Filter.Tendsto (fun T : ℝ => (ℓ v) * ((1:ℝ)/T))
+          (nhdsWithin (0:ℝ) (Set.Ioi 0)) Filter.atTop :=
+        Filter.Tendsto.const_mul_atTop hpos hinv
+      have hneg : Filter.Tendsto (fun T : ℝ => -((ℓ v) * ((1:ℝ)/T)))
+          (nhdsWithin (0:ℝ) (Set.Ioi 0)) Filter.atBot :=
+        Filter.tendsto_neg_atBot_iff.mpr hmul
+      have hexp : Filter.Tendsto (fun T : ℝ => Real.exp (-((ℓ v) * ((1:ℝ)/T))))
+          (nhdsWithin (0:ℝ) (Set.Ioi 0)) (nhds 0) :=
+        Real.tendsto_exp_atBot.comp hneg
+      have hfe : (fun T : ℝ => Real.exp (-(ℓ v)/T))
+          = fun T : ℝ => Real.exp (-((ℓ v) * ((1:ℝ)/T))) := by
+        funext T
+        rw [div_eq_mul_inv, one_div]
+        congr 1
+        ring
+      have hgoal0 : (if ℓ v = 0 then (1:ℝ) else 0) = 0 := by
+        have hne := ne_of_gt hpos
+        simp [hne]
+      rw [hgoal0, hfe]
+      exact hexp
+  exact tendsto_finsetSum _ (fun v _ => hterm v)
+
 end Hagi.Energy
