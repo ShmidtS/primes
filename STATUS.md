@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3020 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3021 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/BudgetExt (closure 206/312, 66%)**:
+  бюджетные расширения (11 модулей) под капстоуном;
+  budget_waterfill_and_lowrank — KV-водолив оптимален ∧
+  блочно-низкоранговая экономия ⟺ 3r < (N−1)h.
 - **Фасад Unified/OptStepExt (closure 192/311, 62%)**:
   оптимизационные расширения (12 модулей Step/Optimization)
   под капстоуном; opt_objective_monotone_and_bias_bounded —

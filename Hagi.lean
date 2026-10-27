@@ -89,6 +89,7 @@ import Hagi.Unified.ProbInfo
 import Hagi.Unified.DynamicsLaws
 import Hagi.Unified.StepLaws
 import Hagi.Unified.OptStepExt
+import Hagi.Unified.BudgetExt
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
