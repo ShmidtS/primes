@@ -65,4 +65,27 @@ theorem robust_spacing_bound
   calc |y (i + 1) - y i| ≤ L * |x (i + 1) - x i| := h
     _ ≤ L * δ := mul_le_mul_of_nonneg_left hs hL
 
+/-- КОЛИЧЕСТВЕННАЯ ГРАНИЦА: шумные метки (размах ≥ σ между
+соседями) при плотной выборке (шаг ≤ δ > 0) требуют
+L ≥ σ/δ — количественное ядро Universal Law of Robustness. -/
+theorem lipschitz_floor_of_noisy_labels
+    (f : ℝ → ℝ) (x y : ℕ → ℝ) (n i : ℕ) (L σ δ : ℝ)
+    (hi : i + 1 < n) (hσ : 0 ≤ σ) (hδ : 0 < δ)
+    (hinter : ∀ i < n, f (x i) = y i)
+    (hlip : ∀ a b, |f a - f b| ≤ L * |a - b|)
+    (hnoise : σ ≤ |y (i + 1) - y i|)
+    (hspace : |x (i + 1) - x i| ≤ δ) :
+    σ / δ ≤ L := by
+  have h := robust_interpolation_lipschitz_floor f x y n L
+    hinter hlip i hi
+  have habs : |x (i + 1) - x i| ≤ δ := hspace
+  have hLnn : 0 ≤ L := by
+    have h1 : |f 0 - f 1| ≤ L := by simpa using hlip 0 1
+    have h2 : (0:ℝ) ≤ |f 0 - f 1| := abs_nonneg _
+    linarith
+  have hmono : L * |x (i + 1) - x i| ≤ L * δ :=
+    mul_le_mul_of_nonneg_left habs hLnn
+  have key : σ ≤ L * δ := by linarith
+  exact (div_le_iff₀ hδ).mpr key
+
 end Hagi.Pretraining

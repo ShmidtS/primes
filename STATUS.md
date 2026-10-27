@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2969 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2970 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -274,6 +274,8 @@
   L ≥ |Δy|/|Δx|; no_lipschitz_interpolator_of_steep —
   крутые данные И L-липшицева интерполяция несовместимы
   (робастность требует сверхпараметризации);
+  lipschitz_floor_of_noisy_labels — шум σ при шаге ≤ δ
+  требует L ≥ σ/δ (количественное ядро);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
 - **Населённость CertifiedTransition**
