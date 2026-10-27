@@ -50,4 +50,24 @@ theorem pruning_nfl (kept : Finset ℕ) (p : ℕ) (hp : p ∉ kept)
       · rw [abs_of_nonneg (by linarith : (0:ℝ) ≤ v - 1)]
         linarith
   simpa using htri (g (fun _ => (0:ℝ)))
+/-- ОБРАТНАЯ СТОРОНА NFL: на ИЗБЫТОЧНЫХ данных (таргет
+константен) прореживание БЕСПЛАТНО — предиктор-константа
+ошибается нуль на любой выброшенной точке. Разрыв с
+pruning_nfl: цена pruning возникает только на
+информативных точках. -/
+theorem pruning_free_for_constant (c : ℝ)
+    (kept : Finset ℕ) (p : ℕ)
+    (g : (ℕ → ℝ) → ℝ)
+    (hg : ∀ y : ℕ → ℝ, (∀ i ∈ kept, y i = c) → g y = c) :
+    |g (fun _ => c) - (fun _ => c) p|
+      + |g (fun i => if i = p then c else c)
+          - (fun i => if i = p then c else c) p| = 0 := by
+  have h1 : g (fun _ => c) = c := hg _ (fun i _ => rfl)
+  have h2 : g (fun i => if i = p then c else c) = c := by
+    apply hg
+    intro i _
+    simp
+  rw [h1, h2]
+  simp
+
 end Hagi.Pretraining

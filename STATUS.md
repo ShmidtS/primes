@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2975 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2976 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -290,7 +290,10 @@
   Paul–Santamaria NeurIPS 2023 NFL)**: pruning_nfl — ученик,
   зависящий только от kept-данных, не различает два таргета,
   расходящихся в выброшенной точке: сумма ошибок ≥ 1
-  (прореживание не бесплатно).
+  (прореживание не бесплатно);
+  pruning_free_for_constant — на константных таргетах
+  pruning бесплатен (ошибка 0) — цена возникает только на
+  информативных точках.
 - **Фасад Unified/Robustness.lean + коридор**: экспорт
   robustness-теории (слой 6) + robust_growth_corridor —
   шумные данные дают нижнюю границу бюджета
