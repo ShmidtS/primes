@@ -24,6 +24,7 @@ CAPSTONES = [
     "Hagi.System.GrowthStateViews" # P2.9 entity decomposition
     "Hagi.Unified.Budget",         # budget economy facade
     "Hagi.Unified.ArchitectureCore",  # architecture facade
+    "Hagi.Unified.CoreAlgebra",      # core component algebra facade
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
