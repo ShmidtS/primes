@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2966 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2969 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,16 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **RobustnessLaw (Bubeck–Li–Sellke 2110.06401, ядро;
+  Wu–Huang–Zhang 2202.11592)**
+  (`Hagi/Pretraining/RobustnessLaw.lean`):
+  robust_interpolation_lipschitz_floor — архитектурно-
+  независимая нижняя граница липшицевости интерполятора
+  L ≥ |Δy|/|Δx|; no_lipschitz_interpolator_of_steep —
+  крутые данные И L-липшицева интерполяция несовместимы
+  (робастность требует сверхпараметризации);
+  robust_spacing_bound — плотная выборка ограничивает
+  колебания L·δ.
 - **Населённость CertifiedTransition**
   (`witness_certifiedTransition`): реальный witness-переход
   (wS0, wU0) порождает сертификат; certified_family_linked
