@@ -39,6 +39,17 @@ CAPSTONES = [
     "Hagi.Unified.ModelPretrain",   # model & pretraining facade
     "Hagi.Examples.EdgeTests",      # edge-tests witness module
     "Hagi.Unified.MatrixLib",       # matrix library facade
+    # theorem modules & witnesses (misc):
+    "Hagi.Unified.Fannes",
+    "Hagi.Unified.LearningKernel",
+    "Hagi.Unified.Pinsker",
+    "Hagi.Unified.QuantizedCone",
+    "Hagi.Unified.Robustness",
+    "Hagi.Unified.DataCentric",
+    "Hagi.Unified.MasterHAGICoupled",
+    "Hagi.Foundations.ConeCorridor",
+    "Hagi.Examples.HAGICertWitness",
+    "Hagi.Examples.NonvacuityHorizon",
     # layer-6 theorem modules are capstones by construction:
     "Hagi.Unified.AdvanceWitness",
     "Hagi.Unified.AnytimeMartingale",

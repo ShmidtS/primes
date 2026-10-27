@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Теоремные модули и витнесы в CAPSTONES (closure
+  300/316, 95%)**: Unified-мелочь (Fannes, LearningKernel,
+  Pinsker, QuantizedCone, Robustness, DataCentric,
+  MasterHAGICoupled), ConeCorridor, Examples-витнесы.
 - **Фасад Unified/MatrixLib (closure 292/316, 92%)**:
   матричная библиотека Flywheel (10 модулей: SVD,
   Эккарт–Янг, Вейль, Курант–Фишер, MDL-ранг) под капстоуном;
