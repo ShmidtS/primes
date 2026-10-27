@@ -107,6 +107,31 @@ theorem candidate_completeness_find
   · exact ((Finset.mem_filter.mp ha'mem).2).2
   · linarith
 
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+
+/-- СКЛЕЙКА (f) аудита v5: динамика фронтира как ИЗМЕРИМЫЙ
+контракт пополнения данных — состояние сохраняет долю ρ
+старого фронтира и принимает свежую массу r t (hingest);
+ξ-член конусной динамики — это дефицит свежих данных
+(β·C t − ξ t ≤ r t). Алиас usableFrontier := dataField
+превращается в интерфейс с операционной семантикой. -/
+theorem usableFrontier_renewal (S : ℕ → GrowthState X)
+    (rho : ℝ) (r xi : ℕ → ℝ)
+    (hingest : ∀ t, rho * (S t).dataField + r t
+      ≤ (S (t + 1)).dataField) :
+    ∀ beta : ℝ, (∀ t, beta * (S t).capability - xi t ≤ r t) →
+      ∀ t, rho * usableFrontier (S t) + beta * (S t).capability
+        - xi t ≤ usableFrontier (S (t + 1)) := by
+  intro beta hfresh t
+  have h1 : rho * usableFrontier (S t) + beta * (S t).capability
+      - xi t ≤ rho * usableFrontier (S t) + r t := by
+    have h2 := hfresh t
+    unfold usableFrontier
+    linarith
+  have h3 : rho * usableFrontier (S t) + r t
+      ≤ usableFrontier (S (t + 1)) := hingest t
+  exact le_trans h1 h3
+
 end Hagi.Growth
 
 namespace Hagi
