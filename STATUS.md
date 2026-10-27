@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3021 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3022 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/GrowthExt (closure 242/313, 77%)**:
+  расширения роста (10 модулей) под капстоуном;
+  growth_renews_and_seed_survives — обновление возможностей ∧
+  выживание посева.
 - **Layer-6 теоремные модули как капстоуны (closure
   231/312, 74%)**: 21 Unified-модуль (AdvanceWitness,
   AnytimeMartingale, ArchitectureTheorem, CertifiedGrowth,

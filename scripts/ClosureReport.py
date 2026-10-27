@@ -34,6 +34,7 @@ CAPSTONES = [
     "Hagi.Unified.StepLaws",         # step theory facade
     "Hagi.Unified.OptStepExt",       # optimization extensions facade
     "Hagi.Unified.BudgetExt",       # budget extensions facade
+    "Hagi.Unified.GrowthExt",       # growth extensions facade
     # layer-6 theorem modules are capstones by construction:
     "Hagi.Unified.AdvanceWitness",
     "Hagi.Unified.AnytimeMartingale",
