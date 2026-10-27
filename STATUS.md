@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3007 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3008 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5 п.5, дедупликация Хёффдинга**:
+  hoeffding_fin_via_mgf — Ensemble-форма выведена из
+  Foundations-канона mgf_hoeffding_ab (масштабирование h=t·d,
+  центрирование, exp-монотонность); три копии связаны.
 - **Аудит v5 шаг 4 (ConeSystem), ядро**:
   Foundations/ConeCorridor — cone_exact_exponential:
   при конусных посылках + cap-окне capability зажат ТОЧНОЙ
