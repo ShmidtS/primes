@@ -149,4 +149,28 @@ theorem robust_slows_learning
             (mul_le_mul_of_nonneg_right hησ (le_of_lt hG)) hT
   exact (div_le_iff₀ (mul_pos hδ hG)).mpr key
 
+/-- БЮДЖЕТНАЯ ГРАНИЦА РОБАСТНОСТИ: обучение на шумных
+данных требует T ≥ D·σ/(δ·G) шагов по c единиц бюджета —
+итоговая нижняя граница B ≥ c·D·σ/(δ·G). Мост к
+бюджетному капстоуну HAGI (budget_capability_ceiling). -/
+theorem robust_budget_floor
+    (f : ℝ → ℝ) (x y : ℕ → ℝ) (n i : ℕ) (L σ δ η G D T c B : ℝ)
+    (hi : i + 1 < n) (hσ : 0 < σ) (hδ : 0 < δ) (hη : 0 ≤ η)
+    (hG : 0 < G) (hc : 0 ≤ c) (hT0 : 0 ≤ T)
+    (hinter : ∀ i < n, f (x i) = y i)
+    (hlip : ∀ a b, |f a - f b| ≤ L * |a - b|)
+    (hnoise : σ ≤ |y (i + 1) - y i|)
+    (hspace : |x (i + 1) - x i| ≤ δ)
+    (hstab : η * L ≤ 1)
+    (hprogress : D ≤ T * (η * G))
+    (hbudget : T * c ≤ B) :
+    c * (D * σ / (δ * G)) ≤ B := by
+  have hT : D * σ / (δ * G) ≤ T :=
+    robust_slows_learning f x y n i L σ δ η G D T hi hσ hδ hη
+      hG hT0 hinter hlip hnoise hspace hstab hprogress
+  calc c * (D * σ / (δ * G)) ≤ c * T :=
+        mul_le_mul_of_nonneg_left hT hc
+    _ = T * c := by ring
+    _ ≤ B := hbudget
+
 end Hagi.Pretraining

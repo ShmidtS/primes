@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2972 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2973 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -282,6 +282,8 @@
   robust_slows_learning — D ≤ T·η·G + cap η ≤ δ/σ ⟹
   T ≥ D·σ/(δ·G) (робастность замедляет обучение
   количественно);
+  robust_budget_floor — мост к бюджету: T·c ≤ B ⟹
+  B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
 - **Edge-тесты RobustnessLaw**: достижимость границы
