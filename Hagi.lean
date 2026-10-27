@@ -92,6 +92,7 @@ import Hagi.Unified.OptStepExt
 import Hagi.Unified.BudgetExt
 import Hagi.Unified.GrowthExt
 import Hagi.Unified.StepExt
+import Hagi.Unified.ModelPretrain
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability

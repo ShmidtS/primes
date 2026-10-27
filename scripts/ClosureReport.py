@@ -36,6 +36,8 @@ CAPSTONES = [
     "Hagi.Unified.BudgetExt",       # budget extensions facade
     "Hagi.Unified.GrowthExt",       # growth extensions facade
     "Hagi.Unified.StepExt",         # step & core extensions facade
+    "Hagi.Unified.ModelPretrain",   # model & pretraining facade
+    "Hagi.Examples.EdgeTests",      # edge-tests witness module
     # layer-6 theorem modules are capstones by construction:
     "Hagi.Unified.AdvanceWitness",
     "Hagi.Unified.AnytimeMartingale",
