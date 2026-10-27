@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3017 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3018 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/DynamicsLaws (closure 166/309, 54%)**:
+  динамика и омнимодальность (12 модулей) под капстоуном;
+  dynamics_growth_and_distillation — счётный такофф ∧
+  KL-контракция с бюджетом.
 - **Фасад Unified/ProbInfo (closure 153/308, 50%)**:
   вероятностно-информационный блок (10 модулей) под
   капстоуном; info_not_free_and_detectable — бесплатного

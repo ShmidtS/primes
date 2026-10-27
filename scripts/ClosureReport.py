@@ -30,6 +30,7 @@ CAPSTONES = [
     "Hagi.Unified.GrowthLaws",        # growth laws facade
     "Hagi.Unified.DataEnergy",       # data & energy facade
     "Hagi.Unified.ProbInfo",         # probability & information facade
+    "Hagi.Unified.DynamicsLaws",      # dynamics & omni facade
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
