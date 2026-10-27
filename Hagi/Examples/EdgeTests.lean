@@ -3,6 +3,7 @@ import Hagi.Foundations.PerronCone
 import Hagi.Dynamics.SpeedLimit
 import Hagi.Energy.Cooling
 import Hagi.Optimization.PLConvergence
+import Hagi.Pretraining.RobustnessLaw
 
 /-!
 # EdgeTests — граничные тесты главных результатов (P3.14)
@@ -96,5 +97,39 @@ example (E G : ℕ → ℝ) (Estar μ L ε : ℝ) (hL : 0 < L) (hμ : 0 < μ)
     E 0 - Estar ≤ ε :=
   Hagi.Optimization.pl_sufficient_horizon E G Estar μ L ε hL hμ hμL
     hE hstep hPL 0 (by simpa using hε)
+
+/-- ГРАНИЦА 1 (достижимость): f(x)=x — 1-липшицев
+интерполятор данных (0→0, 1→1); граница |Δy| ≤ L|Δx|
+достигается с L=1. -/
+example : |(1:ℝ) - 0| ≤ 1 * |(1:ℝ) - 0| := by
+  have h := Hagi.Pretraining.robust_interpolation_lipschitz_floor
+    (fun t => t) (fun i => (i : ℝ)) (fun i => (i : ℝ)) 2 1
+    (by intro i hi; interval_cases i <;> norm_num)
+    (by intro a b; simp) 0 (by norm_num)
+  norm_num [h]
+
+/-- ГРАНИЦА 2 (несовместимость): уклон 2 на шаге 1/2
+требует L ≥ 4 — L=1 интерполятор НЕ существует. -/
+example (f : ℝ → ℝ) (h0 : f 0 = 0) (h1 : f (1 / 2) = 2)
+    (hlip : ∀ a b, |f a - f b| ≤ 1 * |a - b|) : False :=
+  Hagi.Pretraining.no_lipschitz_interpolator_of_steep f
+    (fun i => (i : ℝ) * (1 / 2)) (fun i => if i = 0 then 0 else 2)
+    2 0 1 (by norm_num)
+    (by intro i hi; interval_cases i
+        · simp [h0]
+        · simpa using h1)
+    hlip (by norm_num)
+
+/-- ГРАНИЦА 3 (step cap): σ = δ = 1, стабильность η·1 ≤ 1
+даёт η ≤ 1. -/
+example (η : ℝ) (hη : 0 ≤ η) (hstab : η * 1 ≤ 1) : η ≤ 1 := by
+  have h := Hagi.Pretraining.noisy_interpolation_step_cap
+    (fun t => t) (fun i => (i : ℝ))
+    (fun i => if i = 0 then 0 else 1) 2 0 1 1 1 η
+    (by norm_num) (by norm_num) (by norm_num) hη
+    (by intro i hi; interval_cases i <;> simp)
+    (by intro a b; exact le_of_eq (by ring))
+    (by norm_num) (by norm_num) hstab
+  simpa using h
 
 end Hagi.Examples

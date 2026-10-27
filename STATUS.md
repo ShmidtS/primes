@@ -281,6 +281,10 @@
   caps learning rate);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Edge-тесты RobustnessLaw**: достижимость границы
+  (f(x)=x, L=1); несовместимость (уклон 2 на шаге 1/2 ⟹
+  L=1-интерполятор не существует, требуется L ≥ 4);
+  step cap (σ=δ=1 ⟹ η ≤ 1).
 - **Населённость CertifiedTransition**
   (`witness_certifiedTransition`): реальный witness-переход
   (wS0, wU0) порождает сертификат; certified_family_linked
