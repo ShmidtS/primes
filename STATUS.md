@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3024 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3025 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/MatrixLib (closure 292/316, 92%)**:
+  матричная библиотека Flywheel (10 модулей: SVD,
+  Эккарт–Янг, Вейль, Курант–Фишер, MDL-ранг) под капстоуном;
+  matrix_svd_nonneg_and_mdl_antitone — неотрицательность
+  сингулярных значений ∧ антинтонность MDL-ошибки.
 - **BUGFIX ClosureReport (closure 281/315, 89%)**: пропущенная
   запятая после "GrowthStateViews" сливала две строки в один
   мусор-элемент (Budget-фасад не был капстоуном);
