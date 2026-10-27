@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
+import Hagi.Prelude.Info
 /-!
 # SpectralEntropy — entropy from the spectral theorem
 (h2-Fannes port, layer 2/N)
@@ -968,6 +969,12 @@ noncomputable def shannon (p : ι → ℝ) : ℝ := ∑ i, Real.negMulLog (p i)
 
 /-- Total-variation half-distance. -/
 noncomputable def tvHalf (p q : ι → ℝ) : ℝ := (∑ i, |p i - q i|) / 2
+
+/-- ДЕДУП (аудит v5 п.5): tvHalf — то же определение, что
+каноническое Prelude.tvDef (половина L1-расстояния);
+связь rfl. -/
+theorem tvHalf_eq_tvDef (p q : ι → ℝ) :
+    tvHalf p q = Hagi.Prelude.tvDef p q := rfl
 
 /-- The canonical pointwise coupling parts. -/
 def posPart (p q : ι → ℝ) : ι → ℝ := fun i => max (p i - q i) 0
