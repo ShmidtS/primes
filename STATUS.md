@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3025 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3026 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,12 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/MiscCore (closure 312/317, 98%)**:
+  разрозненные теоремные модули (12: System×3, Audit×2,
+  PPT, SoftmaxFix, TemporalState, QFormerBridge, Diversity,
+  RankGrowth, Information.Pinsker) под капстоуном;
+  misc_quantized_telescope_and_aitken — квантованный
+  телескоп (ошибка ≤ T·Δ/2) ∧ точность Айкен-экстраполяции.
 - **Теоремные модули и витнесы в CAPSTONES (closure
   300/316, 95%)**: Unified-мелочь (Fannes, LearningKernel,
   Pinsker, QuantizedCone, Robustness, DataCentric,

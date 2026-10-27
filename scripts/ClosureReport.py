@@ -39,6 +39,7 @@ CAPSTONES = [
     "Hagi.Unified.ModelPretrain",   # model & pretraining facade
     "Hagi.Examples.EdgeTests",      # edge-tests witness module
     "Hagi.Unified.MatrixLib",       # matrix library facade
+    "Hagi.Unified.MiscCore",       # misc theorem modules facade
     # theorem modules & witnesses (misc):
     "Hagi.Unified.Fannes",
     "Hagi.Unified.LearningKernel",
