@@ -85,6 +85,7 @@ import Hagi.Unified.EnsembleTheory
 import Hagi.Unified.AutonomyCore
 import Hagi.Unified.GrowthLaws
 import Hagi.Unified.DataEnergy
+import Hagi.Unified.ProbInfo
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
