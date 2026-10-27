@@ -27,6 +27,7 @@ CAPSTONES = [
     "Hagi.Unified.CoreAlgebra",      # core component algebra facade
     "Hagi.Unified.EnsembleTheory",   # ensemble theory facade
     "Hagi.Unified.AutonomyCore",     # autonomy loop facade
+    "Hagi.Unified.GrowthLaws",        # growth laws facade
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]

@@ -83,6 +83,7 @@ import Hagi.Unified.ArchitectureCore
 import Hagi.Unified.CoreAlgebra
 import Hagi.Unified.EnsembleTheory
 import Hagi.Unified.AutonomyCore
+import Hagi.Unified.GrowthLaws
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
