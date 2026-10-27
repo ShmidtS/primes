@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3002 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3004 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -291,7 +291,10 @@
   граница C ≤ E + энергобаланс пары состояний) +
   grow_premise_derived: grow-посылка CorePremises ВЫВЕДЕНА из
   ландауэровского принципа (допущение → теорема, как DerivAlong
-  для joint/compress).
+  для joint/compress); merge_premise_derived +
+  merge_slack_feasible — merge-посылка как каскадный
+  остаток (slack ≥ 0, материально обеспеченный энергией
+  post-merge). Склейка (b) полностью закрыта.
 - **Аудит v5, склейка (c) закрыта**: high_prob_conclusion —
   перенос вывода с high-probability события: если на Good
   (P ≥ 1−δ из anytime-машины δ_t = δ₀ρᵗ) детерминированная

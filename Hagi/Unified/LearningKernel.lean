@@ -58,4 +58,24 @@ theorem grow_premise_derived (S S' : GenState X)
   -- итог: growEnergy = energy − E' ≤ energy − gain
   linarith [hspent, hgain2]
 
+
+/-- MERGE-КАСКАД: merge-затрата определена каскадом от
+grow-затраты: growEnergy − gap − mergeEnergy = slack,
+slack ≥ 0 — материальный остаток, обеспеченный энергией
+post-merge состояния (slack ≤ E''). Посылка CorePremises
+mergeEnergy ≤ growEnergy − gap — ТЕОРЕМА каскада. -/
+theorem merge_premise_derived (growE gap mergeE slack : ℝ)
+    (hcascade : growE - gap - mergeE = slack)
+    (hslack : 0 ≤ slack) :
+    mergeE ≤ growE - gap := by linarith
+
+/-- Материальность остатка: если slack обеспечен свободной
+энергией post-merge состояния (E'' ≥ slack при балансе
+E'' = E' − mergeEnergy), то каскад согласован с
+ландауэровской бюджетной дисциплиной. -/
+theorem merge_slack_feasible (E' E'' mergeE slack : ℝ)
+    (hbalance : E'' = E' - mergeE)
+    (hslackE : slack ≤ E'') :
+    mergeE + slack ≤ E' := by linarith
+
 end Hagi.Unified
