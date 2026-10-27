@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2999 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3000 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5, склейка (c) закрыта**: high_prob_conclusion —
+  перенос вывода с high-probability события: если на Good
+  (P ≥ 1−δ из anytime-машины δ_t = δ₀ρᵗ) детерминированная
+  цепочка MasterHAGI даёт Takeoff, то P(Takeoff) ≥ 1−δ —
+  скелет стохастического MasterHAGI. Freeze 3000.
 - **Аудит v5, склейка (g) закрыта**: Unified/LinkedWitness —
   wTraj_certified_family + linkedHAGI_witness: НЕТРИВИАЛЬНЫЙ
   витнес LinkedHAGIInvariant на T=3 с ненулевыми состояниями

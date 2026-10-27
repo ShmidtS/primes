@@ -434,7 +434,20 @@ end Stochastic
 
 end Composition
 
+/-- ПЕРЕНОС ВЫВОДА С HIGH-PROBABILITY СОБЫТИЯ: если событие
+Good имеет вероятность ≥ 1−δ (anytime-машина с δ_t = δ₀ρᵗ) и
+на Good детерминированная цепочка MasterHAGI даёт заключение
+Takeoff (hchain), то Takeoff — тоже ≥ 1−δ. Скелет
+стохастического MasterHAGI: детерминированная теория
+применяется поточечно на доверительном событии. -/
+theorem high_prob_conclusion {Ω : Type*} {m0 : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (Good Takeoff : Set Ω)
+    (delta : ℝ) (hP : μ.real Good ≥ 1 - delta)
+    (hchain : Good ⊆ Takeoff) :
+    μ.real Takeoff ≥ 1 - delta := by
+  have hmono : μ.real Good ≤ μ.real Takeoff :=
+    measureReal_mono hchain (measure_ne_top _ Takeoff)
+  exact le_trans hP hmono
+
 end Hagi.Unified
-
-
-
