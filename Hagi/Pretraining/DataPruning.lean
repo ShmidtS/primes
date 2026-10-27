@@ -70,4 +70,33 @@ theorem pruning_free_for_constant (c : ℝ)
   rw [h1, h2]
   simp
 
+/-- ВОССТАНОВЛЕНИЕ ПРУНЕННОЙ ТОЧКИ: если таргет — L-липшицева
+функция f, а выброшенная точка t лежит между соседними
+kept-точками с расстоянием ≤ δ, то значение в t
+восстанавливается из соседа с ошибкой ≤ L·δ. Плотная сетка
+на гладких таргетах делает pruning почти бесплатным —
+дополняет pruning_nfl (ломается на крутых таргетах). -/
+theorem pruning_recovery_bound (f : ℝ → ℝ) (t x0 x1 : ℝ)
+    (L δ : ℝ)
+    (hlip : ∀ a b, |f a - f b| ≤ L * |a - b|)
+    (hl : x0 ≤ t) (hr : t ≤ x1)
+    (hδ : |x1 - x0| ≤ δ) :
+    |f t - f x0| ≤ L * δ := by
+  have hL : (0:ℝ) ≤ L := by
+    have h1 : |f 0 - f 1| ≤ L := by
+      simpa using hlip 0 1
+    have h2 : (0:ℝ) ≤ |f 0 - f 1| := abs_nonneg _
+    linarith
+  have h1 : |f t - f x0| ≤ L * |t - x0| := hlip t x0
+  have h2 : |t - x0| = t - x0 := abs_of_nonneg (by linarith)
+  have h3 : t - x0 ≤ |x1 - x0| := by
+    have : x0 ≤ x1 := le_trans hl hr
+    rw [abs_of_nonneg (by linarith)]
+    linarith
+  have h4 : |x1 - x0| ≤ δ := hδ
+  calc |f t - f x0| ≤ L * |t - x0| := h1
+    _ = L * (t - x0) := by rw [h2]
+    _ ≤ L * |x1 - x0| := mul_le_mul_of_nonneg_left h3 hL
+    _ ≤ L * δ := mul_le_mul_of_nonneg_left h4 hL
+
 end Hagi.Pretraining
