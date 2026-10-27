@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2977 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2978 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/DataCentric.lean**: pruning_dichotomy —
+  гладкие+плотные таргеты восстанавливаются (≤ L·δ),
+  состязательные — NFL ≥ 1; успех pruning определяется
+  данными, не алгоритмом отбора.
 - **DataPruning (Sorscher et al. 2220.09597 контекст;
   Paul–Santamaria NeurIPS 2023 NFL)**: pruning_nfl — ученик,
   зависящий только от kept-данных, не различает два таргета,
