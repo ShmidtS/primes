@@ -25,6 +25,7 @@ CAPSTONES = [
     "Hagi.Unified.Budget",         # budget economy facade
     "Hagi.Unified.ArchitectureCore",  # architecture facade
     "Hagi.Unified.CoreAlgebra",      # core component algebra facade
+    "Hagi.Unified.EnsembleTheory",   # ensemble theory facade
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
