@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3005 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3006 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5 п.5, дедупликация Пинскера**:
+  pinsker4_via_canon — f-форма (pinsker4_fin, Information)
+  выведена из канонной TV-формы (pinsker_sqrt_kl,
+  Probability): разность ожиданий ≤ TV, TV ≤ √KL; копии
+  связаны единым примитивом.
 - **Аудит v5 п.5, дедупликация EW**: ewNorm_as_mirror —
   EW-процесс HedgeSurvivor выражен через mirrorStep
   (MirrorDescent): ewNorm = mirrorStep от равномерного ρ₀ с
