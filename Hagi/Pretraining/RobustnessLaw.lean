@@ -88,4 +88,31 @@ theorem lipschitz_floor_of_noisy_labels
   have key : σ ≤ L * δ := by linarith
   exact (div_le_iff₀ hδ).mpr key
 
+/-- МОСТ К ОБУЧЕНИЮ: шумная интерполяция требует
+L ≥ σ/δ, а стабильность градиентного шага требует η·L ≤ 1 —
+вместе они КАПИРУЮТ learning rate: η ≤ δ/σ. Робастность
+данных напрямую ограничивает скорость обучения. -/
+theorem noisy_interpolation_step_cap
+    (f : ℝ → ℝ) (x y : ℕ → ℝ) (n i : ℕ) (L σ δ η : ℝ)
+    (hi : i + 1 < n) (hσ : 0 < σ) (hδ : 0 < δ) (hη : 0 ≤ η)
+    (hinter : ∀ i < n, f (x i) = y i)
+    (hlip : ∀ a b, |f a - f b| ≤ L * |a - b|)
+    (hnoise : σ ≤ |y (i + 1) - y i|)
+    (hspace : |x (i + 1) - x i| ≤ δ)
+    (hstab : η * L ≤ 1) :
+    η ≤ δ / σ := by
+  have hfloor : σ / δ ≤ L :=
+    lipschitz_floor_of_noisy_labels f x y n i L σ δ hi
+      (le_of_lt hσ) hδ hinter hlip hnoise hspace
+  rw [le_div_iff₀ hσ]
+  have hσL : σ ≤ L * δ := (div_le_iff₀ hδ).mp hfloor
+  have hησ : η * σ ≤ η * (L * δ) :=
+    mul_le_mul_of_nonneg_left hσL hη
+  have : η * (L * δ) ≤ δ := by
+    rw [← mul_assoc] at hησ ⊢
+    calc η * L * δ ≤ 1 * δ := by
+          exact mul_le_mul_of_nonneg_right hstab (le_of_lt hδ)
+      _ = δ := by ring
+  linarith [hησ]
+
 end Hagi.Pretraining
