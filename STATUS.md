@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2964 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2965 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -266,6 +266,11 @@
 - **ε-горизонт PL** (`pl_sufficient_horizon`):
   (1−μ/L)^t·(E 0−E*) ≤ ε ⟹ E t − E* ≤ ε — достаточное
   число шагов до точности ε.
+- **Capstone-мост certified_family_linked**: семейство
+  CertifiedTransition ПОРОЖДАЕТ LinkedHAGIInvariant —
+  телескопы бюджета/риска/роста становятся полями связанного
+  инварианта; путь сертификатов → капстоун замкнут
+  (AxiomCheck-кандидат).
 - **Горизонтный рост CertifiedTransition**
   (`certified_trajectory_capability`): C T = C 0 + Σ growGain —
   точный телескоп capability из exec-переходов; триада

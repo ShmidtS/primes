@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Unified.MasterHAGI
 import Hagi.Unified.Assumptions
 import Hagi.Model.StageSemantics
+import Hagi.Model.CertifiedTransition
 
 /-!
 # MasterHAGICoupled — closing the three structural gaps of the
@@ -230,5 +231,51 @@ theorem LinkedHAGIInvariant_to_coupled {T : ℕ}
     (h : LinkedHAGIInvariant T S u risk spend qvec qfloor alpha) :
     CoupledHAGIInvariant T S risk spend qvec qfloor alpha :=
   h.toCoupledHAGIInvariant
+
+/-- CAPSTONE-МОСТ: семейство CertifiedTransition (зависимые
+сертификаты exec-переходов) ПОРОЖДАЕТ LinkedHAGIInvariant —
+телескопы бюджета/риска/роста становятся полями связанного
+инварианта; несвязанные последовательности исключены. -/
+theorem certified_family_linked {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → GrowthState X) (u : ℕ → Hagi.Model.StageInput X)
+    (T : ℕ) (alpha : ℝ) (qvec : ℕ → Fin 5 → ℝ)
+    (qfloor : Fin 5 → ℝ)
+    (hc : ∀ t < T, Hagi.Model.CertifiedTransition (S t) (S (t + 1))
+      (u t) ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk))
+    (hrisk_nonneg : ∀ t ∈ Finset.range T, 0 ≤ (u t).eff.growRisk
+      + (u t).eff.mergeRisk + (u t).eff.jointRisk
+      + (u t).eff.compressRisk)
+    (hspend_nonneg : ∀ t ∈ Finset.range T, 0 ≤ (u t).eff.growCost
+      + (u t).eff.mergeCost + (u t).eff.jointCost
+      + (u t).eff.compressCost)
+    (hbudget : 0 ≤ (S T).budget)
+    (hgrowth : (S 0).capability * (1 + alpha) ^ T
+      ≤ (S 0).capability + ∑ t ∈ Finset.range T, (u t).eff.growGain)
+    (hqvec : ∀ i, qfloor i ≤ qvec T i) :
+    LinkedHAGIInvariant T S u
+      (fun t => (u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk)
+      (fun t => (u t).eff.growCost + (u t).eff.mergeCost
+        + (u t).eff.jointCost + (u t).eff.compressCost)
+      qvec qfloor alpha where
+  toCoupledHAGIInvariant :=
+    { cap_is_state := fun t _ => rfl
+      risk_bound := by
+        have h := Hagi.Model.certified_trajectory_risk S u T hc
+        rw [h]
+        linarith
+      spend_nonneg := hspend_nonneg
+      risk_nonneg := hrisk_nonneg
+      budget_account := by
+        refine ⟨?_, hbudget⟩
+        exact Hagi.Model.certified_trajectory_budget S u T hc
+      capability_growth := by
+        have h := Hagi.Model.certified_trajectory_capability S u T hc
+        rw [h]
+        exact hgrowth
+      qvec_floor := hqvec }
+  linked := fun t _ => (hc t (by omega)).exec
 
 end Hagi.Unified
