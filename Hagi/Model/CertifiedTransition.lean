@@ -157,4 +157,14 @@ theorem certified_trajectory_capability {X : Type*}
       ring
   exact hmain T (le_refl _)
 
+/-- НАСЕЛЁННОСТЬ CertifiedTransition: реальный witness-переход
+(wS0, wU0) порождает сертификат — структура непуста на
+конкретных данных (не только на бумаге). -/
+theorem witness_certifiedTransition :
+    CertifiedTransition wS0 (advance wS0 wU0) wU0
+      (wU0.eff.growRisk + wU0.eff.mergeRisk + wU0.eff.jointRisk
+        + wU0.eff.compressRisk) :=
+  certifiedTransition_of_advance wS0 wU0 (by simp [wU0])
+    (by simp [wU0]) (by simp [wU0])
+
 end Hagi.Model
