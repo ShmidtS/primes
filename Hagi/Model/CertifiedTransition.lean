@@ -125,4 +125,36 @@ theorem certified_trajectory_risk {X : Type*}
       ring
   exact hmain T (le_refl _)
 
+/-- ГОРИЗОНТНЫЙ РОСТ: семейство сертифицированных переходов
+даёт ТОЧНЫЙ закон capability — C T = C 0 + Σ измеренных
+growGain шагов; рост накапливается только через
+exec-переходы (третья горизонтирующая гарантия после
+бюджета и риска). -/
+theorem certified_trajectory_capability {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → Hagi.System.GrowthState X) (u : ℕ → StageInput X)
+    (T : ℕ)
+    (hc : ∀ t < T, CertifiedTransition (S t) (S (t + 1)) (u t)
+      ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk)) :
+    (S T).capability = (S 0).capability
+      + ∑ t ∈ Finset.range T, (u t).eff.growGain := by
+  have hmain : ∀ n : ℕ, n ≤ T →
+      (S n).capability = (S 0).capability
+        + ∑ t ∈ Finset.range n, (u t).eff.growGain := by
+    intro n
+    induction n with
+    | zero => intro _; simp
+    | succ n ih =>
+      intro hn
+      have hih := ih (by omega)
+      have hc' := hc n (by omega)
+      have hexact : (S (n + 1)).capability
+          = (S n).capability + (u n).eff.growGain := by
+        rw [hc'.exec]
+        simp only [advance]
+      rw [hexact, hih, Finset.sum_range_succ]
+      ring
+  exact hmain T (le_refl _)
+
 end Hagi.Model
