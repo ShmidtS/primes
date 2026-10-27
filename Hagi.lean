@@ -78,6 +78,7 @@ import Hagi.Unified.SafeStep
 import Hagi.Unified.Master
 import Hagi.Unified.Robustness
 import Hagi.Unified.DataCentric
+import Hagi.Unified.Budget
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability

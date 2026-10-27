@@ -22,6 +22,9 @@ CAPSTONES = [
     "Hagi.Unified.GrowthTheory",   # dynamics/saturation theory
     "Hagi.Unified.Concentration",  # concentration layer
     "Hagi.System.GrowthStateViews" # P2.9 entity decomposition
+    "Hagi.Unified.Budget",         # budget economy facade
+    "Hagi.Unified.DataCentric",    # data-centric facade
+    "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
 
 IMP = re.compile(r"^import\s+(Hagi\.[A-Za-z0-9_.]+)\s*$", re.M)

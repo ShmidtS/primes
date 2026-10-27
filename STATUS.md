@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2978 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2979 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/Budget.lean** (ClosureReport 77/296, 26%):
+  экспорт бюджетного блока (WaterFilling/FlopsEconomy/BitAlloc/
+  ThermoCondensation/WaterFillingMoE) +
+  budget_allocation_and_distillation — сбалансированная
+  аллокация бит и дистилляционный телескоп одновременно.
 - **Фасад Unified/DataCentric.lean**: pruning_dichotomy —
   гладкие+плотные таргеты восстанавливаются (≤ L·δ),
   состязательные — NFL ≥ 1; успех pruning определяется
