@@ -45,5 +45,34 @@ theorem neuron_alloc_lower_bound {ι : Type*} [Fintype ι]
   nlinarith [hcs, hN.le, sq_nonneg (∑ i, Real.sqrt (c i))]
 
 
-end Hagi.Optimization
+theorem neuron_alloc_opt_attained {ι : Type*} [Fintype ι]
+    [Nonempty ι] (c : ι → ℝ) (hc : ∀ i, 0 < c i)
+    (N : ℝ) (hN : 0 < N) :
+    ∑ i, c i / (Real.sqrt (c i) * N / ∑ j, Real.sqrt (c j))
+      = (∑ i, Real.sqrt (c i)) ^ 2 / N := by
+  have hSpos : 0 < ∑ j, Real.sqrt (c j) :=
+    Finset.sum_pos' (fun i _ => Real.sqrt_nonneg _)
+      (let i0 := Classical.arbitrary ι
+       ⟨i0, Finset.mem_univ i0, Real.sqrt_pos.mpr (hc i0)⟩)
+  have key : ∀ r S : ℝ, 0 < r → 0 < S → 0 < N →
+      r * r * S / (r * N) = r * S / N := by
+    intro r S hr hS' hN'
+    field_simp
+  have hterm : ∀ i, c i / (Real.sqrt (c i) * N
+      / ∑ j, Real.sqrt (c j))
+      = Real.sqrt (c i) * (∑ j, Real.sqrt (c j)) / N := by
+    intro i
+    have hpos : 0 < Real.sqrt (c i) := Real.sqrt_pos.mpr (hc i)
+    have hsq : c i = Real.sqrt (c i) * Real.sqrt (c i) := by
+      have h2 := Real.sq_sqrt (hc i).le
+      rw [sq] at h2
+      exact h2.symm
+    rw [div_div_eq_mul_div]
+    nth_rewrite 1 [hsq]
+    exact key _ _ hpos hSpos hN
+  rw [Finset.sum_congr rfl fun i _ => hterm i]
+  rw [← Finset.sum_div]
+  rw [← Finset.sum_mul]
+  ring
 
+end Hagi.Optimization
