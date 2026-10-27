@@ -115,4 +115,38 @@ theorem noisy_interpolation_step_cap
       _ = δ := by ring
   linarith [hησ]
 
+/-- РОБАСТНОСТЬ ЗАМЕДЛЯЕТ ОБУЧЕНИЕ (количественно):
+если (1) данные требуют L ≥ σ/δ (шумная интерполяция),
+(2) стабильный шаг ограничен η·L ≤ 1, (3) шаг двигает
+не далее η·G (градиентная граница G), то для смещения на
+расстояние D нужно НЕ МЕНЕЕ D·σ/(δ·G) шагов. -/
+theorem robust_slows_learning
+    (f : ℝ → ℝ) (x y : ℕ → ℝ) (n i : ℕ) (L σ δ η G D T : ℝ)
+    (hi : i + 1 < n) (hσ : 0 < σ) (hδ : 0 < δ) (hη : 0 ≤ η)
+    (hG : 0 < G) (hT : 0 ≤ T)
+    (hinter : ∀ i < n, f (x i) = y i)
+    (hlip : ∀ a b, |f a - f b| ≤ L * |a - b|)
+    (hnoise : σ ≤ |y (i + 1) - y i|)
+    (hspace : |x (i + 1) - x i| ≤ δ)
+    (hstab : η * L ≤ 1)
+    (hprogress : D ≤ T * (η * G)) :
+    D * σ / (δ * G) ≤ T := by
+  have hcap : η ≤ δ / σ :=
+    noisy_interpolation_step_cap f x y n i L σ δ η hi hσ hδ hη
+      hinter hlip hnoise hspace hstab
+  have hησ : η * σ ≤ δ := by
+    have h2 : δ / σ * σ = δ := div_mul_cancel₀ δ (ne_of_gt hσ)
+    calc η * σ ≤ (δ / σ) * σ :=
+          mul_le_mul_of_nonneg_right hcap (le_of_lt hσ)
+      _ = δ := h2
+  -- D ≤ T·η·G и η·σ ≤ δ ⟹ T ≥ D·σ/(δ·G)
+  have key : D * σ ≤ T * (δ * G) := by
+    calc D * σ ≤ (T * (η * G)) * σ := by
+          exact mul_le_mul_of_nonneg_right hprogress (le_of_lt hσ)
+      _ = T * ((η * σ) * G) := by ring
+      _ ≤ T * (δ * G) := by
+          exact mul_le_mul_of_nonneg_left
+            (mul_le_mul_of_nonneg_right hησ (le_of_lt hG)) hT
+  exact (div_le_iff₀ (mul_pos hδ hG)).mpr key
+
 end Hagi.Pretraining
