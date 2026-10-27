@@ -21,7 +21,7 @@ CAPSTONES = [
     "Hagi.Unified.SafeStep",       # safe step contract
     "Hagi.Unified.GrowthTheory",   # dynamics/saturation theory
     "Hagi.Unified.Concentration",  # concentration layer
-    "Hagi.System.GrowthStateViews" # P2.9 entity decomposition
+    "Hagi.System.GrowthStateViews", # P2.9 entity decomposition
     "Hagi.Unified.Budget",         # budget economy facade
     "Hagi.Unified.ArchitectureCore",  # architecture facade
     "Hagi.Unified.CoreAlgebra",      # core component algebra facade
