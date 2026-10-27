@@ -32,6 +32,7 @@ CAPSTONES = [
     "Hagi.Unified.ProbInfo",         # probability & information facade
     "Hagi.Unified.DynamicsLaws",      # dynamics & omni facade
     "Hagi.Unified.StepLaws",         # step theory facade
+    "Hagi.Unified.OptStepExt",       # optimization extensions facade
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
