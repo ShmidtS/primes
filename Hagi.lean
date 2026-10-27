@@ -126,6 +126,7 @@ import Hagi.Dynamics.UrgencyDepth
 import Hagi.Dynamics.DistillationRate
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
+import Hagi.Autonomy.HedgeSurvivor
 import Hagi.Data.PACBayes
 import Hagi.Autonomy.Insight
 import Hagi.Unified.Liveness

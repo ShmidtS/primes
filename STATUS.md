@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2979 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2993 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,12 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5, склейка (a) закрыта**: HedgeSurvivor.lean —
+  EW-процесс (ewWeight/ewPot/ewNorm) построен; ewPot_upper
+  (hedge_step + 1+u ≤ exp u, индукция), ewPot_lower (луч);
+  hsurv_derived — посылка выживания router_regret_bound
+  ВЫВЕДЕНА, не гипотеза; ew_regret — полный regret
+  A − L* ≤ ln K/η + ηT/2 склеен из компонент.
 - **Фасад Unified/Budget.lean** (ClosureReport 77/296, 26%):
   экспорт бюджетного блока (WaterFilling/FlopsEconomy/BitAlloc/
   ThermoCondensation/WaterFillingMoE) +
