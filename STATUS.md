@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3010 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3011 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/ArchitectureCore (closure 88/302, 29%)**:
+  архитектурный блок (10 модулей) под капстоуном;
+  architecture_invariant_and_economical — ортогональные
+  волокна (инвариантность) ∧ конфигурационная экономия.
 - **Аудит v5 п.6 (гигиена): frob_minkowski'** — ручное
   доказательство Минковского-Фробениуса заменено делегацией
   Mathlib (norm_add_le в EuclideanSpace, prod-перестановка
