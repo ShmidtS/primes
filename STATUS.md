@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3000 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3002 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,12 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5, склейка (b) — ядро (grow)**:
+  Unified/LearningKernel — мини-LearningProblem (ландауэровская
+  граница C ≤ E + энергобаланс пары состояний) +
+  grow_premise_derived: grow-посылка CorePremises ВЫВЕДЕНА из
+  ландауэровского принципа (допущение → теорема, как DerivAlong
+  для joint/compress).
 - **Аудит v5, склейка (c) закрыта**: high_prob_conclusion —
   перенос вывода с high-probability события: если на Good
   (P ≥ 1−δ из anytime-машины δ_t = δ₀ρᵗ) детерминированная
