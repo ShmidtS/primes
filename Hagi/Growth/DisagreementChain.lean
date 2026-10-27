@@ -148,4 +148,53 @@ theorem alignment_factor_le_one (s : DisagreementStages)
   rw [s.h1]
   nlinarith [hα, hE]
 
+/-- СКЛЕЙКА (d) аудита v5: эффективная конусная отдача
+γ = β⁴·κ ВЫВОДИТСЯ из стадийных конверсий: четыре
+коэффициента ≥ β (hcert) сцепляют κ·D ≤ E_raw (hdiv) в
+β⁴·κ·D ≤ G_cap = G. Конусная гипотеза hgain перестаёт быть
+независимым допущением. -/
+theorem stages_cone_gain (stages : DisagreementStages)
+    (D : ℝ) (beta kappa : ℝ)
+    (hβ : 0 ≤ beta) (hκ : 0 ≤ kappa) (hD : 0 ≤ D)
+    (hcert : beta ≤ stages.α_align ∧ beta ≤ stages.α_trunc
+      ∧ beta ≤ stages.α_safe ∧ beta ≤ stages.α_cap)
+    (hdiv : kappa * D ≤ stages.E_raw) :
+    beta ^ 4 * kappa * D ≤ stages.G_cap := by
+  have hchain : stages.G_cap
+      = stages.α_align * stages.α_trunc * stages.α_safe
+        * stages.α_cap * stages.E_raw := disagreement_chain stages
+  have hE : 0 ≤ stages.E_raw := le_trans
+    (mul_nonneg hκ hD) hdiv
+  have hα1 : (0:ℝ) ≤ stages.α_align := le_trans hβ hcert.1
+  have hα2 : (0:ℝ) ≤ stages.α_trunc := le_trans hβ hcert.2.1
+  have hα3 : (0:ℝ) ≤ stages.α_safe := le_trans hβ hcert.2.2.1
+  have hα4 : (0:ℝ) ≤ stages.α_cap := le_trans hβ hcert.2.2.2
+  have hβ2 : (0:ℝ) ≤ beta * beta := mul_nonneg hβ hβ
+  have h12 : beta * beta
+      ≤ stages.α_align * stages.α_trunc :=
+    mul_le_mul hcert.1 hcert.2.1 hβ hα1
+  have h34 : beta * beta
+      ≤ stages.α_safe * stages.α_cap :=
+    mul_le_mul hcert.2.2.1 hcert.2.2.2 hβ hα3
+  have h1234 : beta * beta * (beta * beta)
+      ≤ stages.α_align * stages.α_trunc
+        * (stages.α_safe * stages.α_cap) :=
+    mul_le_mul h12 h34 hβ2 (mul_nonneg hα1 hα2)
+  have hb4 : beta ^ 4 = beta * beta * (beta * beta) := by ring
+  have hprod : beta ^ 4 * (kappa * D)
+      ≤ stages.α_align * stages.α_trunc * stages.α_safe
+        * stages.α_cap * stages.E_raw := by
+    have hstep := mul_le_mul h1234 hdiv (mul_nonneg hκ hD)
+      (mul_nonneg (mul_nonneg hα1 hα2) (mul_nonneg hα3 hα4))
+    calc beta ^ 4 * (kappa * D)
+        = beta * beta * (beta * beta) * (kappa * D) := by rw [hb4]
+      _ ≤ stages.α_align * stages.α_trunc
+          * (stages.α_safe * stages.α_cap) * stages.E_raw := hstep
+      _ = stages.α_align * stages.α_trunc * stages.α_safe
+          * stages.α_cap * stages.E_raw := by ring
+  rw [hchain]
+  calc beta ^ 4 * kappa * D = beta ^ 4 * (kappa * D) := by ring
+    _ ≤ stages.α_align * stages.α_trunc * stages.α_safe
+        * stages.α_cap * stages.E_raw := hprod
+
 end Hagi.Growth

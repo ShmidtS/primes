@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2993 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2994 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5, склейка (d) закрыта**: stages_cone_gain —
+  конусная отдача γ = β⁴·κ ВЫВЕДЕНА из стадийных конверсий
+  (disagreement_chain × hcert × hdiv): гипотеза hgain конуса
+  перестаёт быть независимым допущением.
 - **Аудит v5, склейка (a) закрыта**: HedgeSurvivor.lean —
   EW-процесс (ewWeight/ewPot/ewNorm) построен; ewPot_upper
   (hedge_step + 1+u ≤ exp u, индукция), ewPot_lower (луч);
