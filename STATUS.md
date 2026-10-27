@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2973 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2974 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/Robustness.lean + коридор**: экспорт
+  robustness-теории (слой 6) + robust_growth_corridor —
+  шумные данные дают нижнюю границу бюджета
+  B0 ≥ c·D·σ/(δ·G), бюджет — верхнюю границу роста
+  C T ≤ (1+α)^(B0/c)·C0 (данные и физика зажимают рост).
 - **Edge-тесты RobustnessLaw**: достижимость границы
   (f(x)=x, L=1); несовместимость (уклон 2 на шаге 1/2 ⟹
   L=1-интерполятор не существует, требуется L ≥ 4);
