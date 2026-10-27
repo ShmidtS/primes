@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 2997 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 2999 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5, склейка (g) закрыта**: Unified/LinkedWitness —
+  wTraj_certified_family + linkedHAGI_witness: НЕТРИВИАЛЬНЫЙ
+  витнес LinkedHAGIInvariant на T=3 с ненулевыми состояниями
+  (capability 1→8, budget 100→94, alpha=1), построенный через
+  certified_family_linked на реальных exec-переходах.
 - **Аудит v5, склейка (e) закрыта**: Unified/QuantizedCone —
   quantized_net_gain + quantized_cone_gain: конусное условие
   γ·k·C ≤ G сохраняется на квантованном шаге при
