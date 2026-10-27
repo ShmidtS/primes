@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3009 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3010 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v5 п.6 (гигиена): frob_minkowski'** — ручное
+  доказательство Минковского-Фробениуса заменено делегацией
+  Mathlib (norm_add_le в EuclideanSpace, prod-перестановка
+  сумм); Коши–Шварц ℂ уже делегирует norm_inner_le_norm.
 - **Аудит v5 п.5, дедупликация TV/Fannes-языка**:
   tvHalf_eq_tvDef — дублированное определение полной
   вариации (Information) связано с каноном Prelude.tvDef

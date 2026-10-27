@@ -342,6 +342,40 @@ theorem frob_minkowski {m n : ℕ} (X Y : Matrix (Fin m) (Fin n) ℝ) :
         + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) :=
         Real.sqrt_sq (by positivity)
 
+/-- ДЕЛЕГИРОВАНИЕ Mathlib (аудит v5 п.6): Минковский для
+Фробениуса — неравенство треугольника L2 (norm_add_le в
+EuclideanSpace); ручное доказательство из TopLevel.frob_minkowski
+заменено одной ссылкой. -/
+theorem frob_minkowski' {m n : ℕ} (X Y : Matrix (Fin m) (Fin n) ℝ) :
+    Real.sqrt (∑ i, ∑ j, (X i j + Y i j) ^ 2)
+      ≤ Real.sqrt (∑ i, ∑ j, (X i j) ^ 2)
+        + Real.sqrt (∑ i, ∑ j, (Y i j) ^ 2) := by
+  have hnorm : ∀ (Z : Matrix (Fin m) (Fin n) ℝ),
+      (‖(WithLp.toLp 2 (fun p => Z p.1 p.2) :
+        EuclideanSpace ℝ (Fin m × Fin n))‖)
+        = Real.sqrt (∑ i, ∑ j, (Z i j) ^ 2) := by
+    intro Z
+    simp only [EuclideanSpace.norm_eq]
+    congr 1
+    rw [Fintype.sum_prod_type]
+    exact Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl
+      (fun j _ => by simp))
+  have hadd : (WithLp.toLp 2 (fun p => X p.1 p.2)
+      + WithLp.toLp 2 (fun p => Y p.1 p.2) :
+      EuclideanSpace ℝ (Fin m × Fin n))
+      = WithLp.toLp 2 (fun p => X p.1 p.2 + Y p.1 p.2) := rfl
+  have key := norm_add_le
+    (WithLp.toLp 2 (fun p => X p.1 p.2) :
+      EuclideanSpace ℝ (Fin m × Fin n))
+    (WithLp.toLp 2 (fun p => Y p.1 p.2) :
+      EuclideanSpace ℝ (Fin m × Fin n))
+  rw [hadd] at key
+  have hXY : ∑ i, ∑ j, (X i j + Y i j) ^ 2
+      = ∑ i, ∑ j, ((X + Y) i j) ^ 2 := by
+    simp [Matrix.add_apply]
+  rw [hXY, ← hnorm (X + Y), ← hnorm X, ← hnorm Y]
+  exact key
+
 /-- **Полная цена двухстадийного сжатия**
 (единый план §6.2, замыкание цепочки):
 если первая стадия сжатия (напр.
