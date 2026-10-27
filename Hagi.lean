@@ -82,6 +82,7 @@ import Hagi.Unified.Budget
 import Hagi.Unified.ArchitectureCore
 import Hagi.Unified.CoreAlgebra
 import Hagi.Unified.EnsembleTheory
+import Hagi.Unified.AutonomyCore
 import Hagi.Information.MemoryCapacity
 import Hagi.Information.Pinsker
 import Hagi.Information.GainRecoverability
