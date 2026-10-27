@@ -286,6 +286,11 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Layer-6 теоремные модули как капстоуны (closure
+  231/312, 74%)**: 21 Unified-модуль (AdvanceWitness,
+  AnytimeMartingale, ArchitectureTheorem, CertifiedGrowth,
+  ... TopLevel) добавлены в CAPSTONES — слой 6 вершины по
+  определению.
 - **Фасад Unified/BudgetExt (closure 206/312, 66%)**:
   бюджетные расширения (11 модулей) под капстоуном;
   budget_waterfill_and_lowrank — KV-водолив оптимален ∧

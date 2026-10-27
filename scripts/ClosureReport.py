@@ -34,6 +34,29 @@ CAPSTONES = [
     "Hagi.Unified.StepLaws",         # step theory facade
     "Hagi.Unified.OptStepExt",       # optimization extensions facade
     "Hagi.Unified.BudgetExt",       # budget extensions facade
+    # layer-6 theorem modules are capstones by construction:
+    "Hagi.Unified.AdvanceWitness",
+    "Hagi.Unified.AnytimeMartingale",
+    "Hagi.Unified.ArchitectureTheorem",
+    "Hagi.Unified.CertifiedGrowth",
+    "Hagi.Unified.DualCeiling",
+    "Hagi.Unified.FannesComplete",
+    "Hagi.Unified.GaugeQuotient",
+    "Hagi.Unified.GlobalDynamics",
+    "Hagi.Unified.GrowthBridge",
+    "Hagi.Unified.InterpretiveGrowth",
+    "Hagi.Unified.LinkedWitness",
+    "Hagi.Unified.LiveDeltaCycle",
+    "Hagi.Unified.Liveness",
+    "Hagi.Unified.MemoryCycle",
+    "Hagi.Unified.ModelComparison",
+    "Hagi.Unified.NernstFannes",
+    "Hagi.Unified.QuantSafeUpdate",
+    "Hagi.Unified.RecursiveClean",
+    "Hagi.Unified.RecursiveGrowth",
+    "Hagi.Unified.StateTakeoff",
+    "Hagi.Unified.TopLevel",
+    "Hagi.Unified.Unified",
     "Hagi.Unified.DataCentric",    # data-centric facade
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
