@@ -1,4 +1,5 @@
 import Hagi.Autonomy.Hedge
+import Hagi.Optimization.MirrorDescent
 
 /-!
 # HedgeSurvivor — склейка (a) аудита v5
@@ -234,5 +235,23 @@ theorem ew_regret (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
     (∑ t ∈ Finset.range T, l t i)
     (Fintype.card_pos) heta.1 hsurv
 
-end Hagi.Autonomy
+open Hagi.Optimization
 
+variable {ι : Type} [Fintype ι] [Nonempty ι]
+
+theorem ewNorm_as_mirror (l : ℕ → ι → ℝ) (eta : ℝ) (t : ℕ) (i : ι) :
+    ewNorm l eta t i
+      = mirrorStep (fun _ => (1:ℝ))
+          (fun j => ∑ s ∈ Finset.range t, l s j) (1 / eta) i := by
+  unfold ewNorm mirrorStep
+  have hw : ∀ j, ewWeight l eta t j
+      = (1:ℝ) * Real.exp (-((∑ s ∈ Finset.range t, l s j)) / (1/eta)) := by
+    intro j
+    rw [ewWeight_exp]
+    field_simp
+  have hWpot : ewPot l eta t
+      = ∑ x, (1:ℝ) * Real.exp (-((∑ s ∈ Finset.range t, l s x)) / (1/eta)) :=
+    Finset.sum_congr rfl (fun x _ => hw x)
+  rw [hw i, hWpot]
+
+end Hagi.Autonomy

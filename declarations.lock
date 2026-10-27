@@ -928,6 +928,7 @@ eta_pos_of_advance	f191890dc58b9463	1743718363ccdcaf
 eta_star_exceeds_cap	ffce336dcf34e88e	553a1915f266e9ab
 euclid_sum_bounds	b1dda54b30b5b1ab	687a102622c88a33
 ewNorm	6d91db509b02c1d0	de55c371b88d6f8e
+ewNorm_as_mirror	a5608c63a5b64284	60bb8363fce90d9a
 ewNorm_nonneg	034e8ed10270aa57	7ed566e030f2d7bb
 ewNorm_sum	dd6da11f6ba24b34	a6f53bccf7792fc4
 ewPot	81033ad6b728a509	354116c5807cf2d8
