@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3022 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3023 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,10 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Фасад Unified/StepExt (closure 258/314, 82%)**:
+  расширения шага и компонентов (15 модулей Step/Core) под
+  капстоуном; step_warmup_monotone_and_wd_bounded —
+  warmup-монотонность ∧ weight-decay ограниченность.
 - **Фасад Unified/GrowthExt (closure 242/313, 77%)**:
   расширения роста (10 модулей) под капстоуном;
   growth_renews_and_seed_survives — обновление возможностей ∧
