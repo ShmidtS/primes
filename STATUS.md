@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3103 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3105 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,15 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Мост машина → семантика (аудит v7, этап 4)**:
+  Hagi/Model/MachineBridge.lean — machineStageInput (StageInput,
+  СОБРАННЫЙ из машинных измерений: growEnergy = E(w),
+  jointEnergy = E(w−η∇E), compressEnergy = E(Q(w−η∇E)),
+  quantErr — вычисленный; L=1 — фактическая кривизна),
+  machine_advance_certified: при S.energy = E(w) и ledger-факте
+  канонический advance_energy_drop сертифицирует переход —
+  измерения имеют происхождение (веса), сертификат —
+  следствие, а не постулат.
 - **Эталонный исполнитель цикла обучения (аудит v7 §5 +
   этап 6, паттерн qwenputer ref.Machine)**:
   Hagi/Model/ReferenceMachine.lean — носитель, где операции
