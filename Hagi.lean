@@ -237,6 +237,7 @@ import Hagi.Spectral.RankGrowth
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.CorePremisesDerived
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.LinkedWitness
 import Hagi.Unified.LearningKernel

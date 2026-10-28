@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3039 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3043 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,16 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Аудит v6, шаг 1 (DerivAlong → CorePremises)**:
+  Hagi/Unified/CorePremisesDerived.lean — конъюнкты 8
+  (h_emp_smooth) и 13 (h_emp_lip) CorePremises стали
+  ТЕОРЕМАМИ при операциональных определениях (jointEnergy :=
+  E(params−η•stepDir) с L-гладким градиентом; compressEnergy
+  := E(gridQ Δ x) с κ-ограниченным градиентом, фактическая
+  ошибка сетки, s=1); core_premises_operational_scalar —
+  сведение CorePremises к структурным посылкам;
+  MasterHAGICoreOperational — капстоун: одностадийный
+  мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
 - **MesoScale (источник №10: Chen arXiv 2508.12016, A Law of
   Emergence)**: Hagi/Foundations/MesoScale.lean — ядро
   Middle-Scale Peak Theorem: EI(ℓ)=A(ℓ)·L(ℓ), усреднение A ≤
