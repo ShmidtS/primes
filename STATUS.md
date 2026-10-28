@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3085 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3087 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -312,7 +312,11 @@
   операции; HAGI — сертифицирующий контур. Уровень 2-lite:
   dreamY_gap_norm (‖y−x‖ = |ν|·‖x−x⁻‖),
   dream_tau_extrapolation (ν = 2τ+1/2 — экстраполяция
-  растёт линейно по задержке). Следующие уровни:
+  растёт линейно по задержке); склейка №15×№11:
+  dream_gd_as_plRec (запаздывающий GD как PL-рекуррентность,
+  σ кодирует цену задержки), dream_gd_wsd — полная
+  WSD-оценка (сжатие+шум+late-decay) наследуется DREAM-GD.
+  Следующие уровни:
   dream_quadratic_stability, dream_strongly_convex_rate,
   hagi_dream_stage_sound, hagi_async_budget.
 - **PolyStep (источник №14: Training Non-Differentiable

@@ -1,4 +1,6 @@
 import Mathlib
+import Hagi.Foundations.Recurrence
+import Hagi.Optimization.LRSchedule
 
 /-!
 # DREAM — ускорение при задержанных градиентах (источник №15)
@@ -107,5 +109,42 @@ theorem dream_tau_extrapolation (s : DREAMState X)
     linarith
   rw [abs_of_nonneg hnn]
   ring
+
+
+
+/-! ## Склейка с PL-рекуррентностью (источники №15 × №11) -/
+
+/-- ЗАПАЗДЫВАЮЩИЙ GD КАК PL-РЕКУРРЕНТНОСТЬ: если энергия
+вдоль запаздывающего градиентного шага с «ошибкой
+устаревания» σ удовлетворяет PL-неравенству
+e_{k+1} ≤ (1−μα)e_k + σ²α², то ВЕСЬ аппарат LR-расписаний
+применим к DREAM-GD: σ кодирует цену задержки τ. -/
+theorem dream_gd_as_plRec (mu sig alpha : ℝ) (e : ℕ → ℝ)
+    (hpl : ∀ k : ℕ, e (k + 1) ≤ (1 - mu * alpha) * e k
+      + sig ^ 2 * alpha ^ 2) :
+    Hagi.Optimization.LRSchedule.plRec mu sig
+      (fun _ => alpha) e := by
+  intro t
+  exact hpl t
+
+/-- СЛЕДСТВИЕ — ПОЛНАЯ WSD-ОЦЕНКА ДЛЯ DREAM-GD: запаздывающий
+GD в PL-режиме (стабильная фаза m + late-фаза k, η = η_max)
+наследует геометрическое сжатие + шумовой бюджет + late-decay
+из wsd_full_bound (источник №11): цена задержки живёт в σ. -/
+theorem dream_gd_wsd (mu sig etaMax : ℝ) (e : ℕ → ℝ) (m k : ℕ)
+    (hpl : Hagi.Optimization.LRSchedule.plRec mu sig
+      (fun _ => etaMax) e)
+    (hmu : 0 < mu) (hetaMax : 0 < etaMax)
+    (hwindow : mu * etaMax ≤ 1)
+    (henn : ∀ t, 0 ≤ e t) :
+    e (m + k)
+      ≤ (1 - mu * etaMax) ^ m * e 0
+        + sig ^ 2 * etaMax ^ 2
+          * ((1 - (1 - mu * etaMax) ^ m) / (1 - (1 - mu * etaMax)))
+        + (k : ℝ) * sig ^ 2 * etaMax ^ 2 :=
+  Hagi.Optimization.LRSchedule.wsd_full_bound mu sig etaMax
+    (fun _ => etaMax) e m k hpl hmu hetaMax hwindow
+    (fun _ => le_of_lt hetaMax) (fun _ => le_refl _)
+    henn (fun _ _ => rfl)
 
 end Hagi.Optimization.DREAM
