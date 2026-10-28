@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3045 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3046 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -302,7 +302,9 @@
   поля Certificate-проекции пост-состояния (спад > 0,
   риск-трата ≤ Σ рисков стадий, точный бюджетный расход);
   13 сертификат-структур проекта сводятся к цепочке с
-  CertifiedTransition в вершине.
+  CertifiedTransition в вершине; transition_safe_selection —
+  звено 2: переход кормит алгоритм отбора bestDecrease
+  (safe_selection_productive) — Certified Growth Loop.
 - **Аудит v6, критерий готовности «нет двух теорем с
   одинаковым хешем утверждения» — ВЫПОЛНЕН**: разбор
   declarations.lock по type-hash даёт 0 групп дубликатов

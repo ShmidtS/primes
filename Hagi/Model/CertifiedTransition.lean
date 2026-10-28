@@ -1,4 +1,5 @@
 import Hagi.Model.StageSemantics
+import Hagi.System.StepCertificate
 import Hagi.System.Certificates
 
 /-!
@@ -189,5 +190,26 @@ theorem certificate_of_transition {X : Type*}
   · linarith [safety]
   · rw [resources]
     ring
+
+
+/-- ЗВЕНО ЦЕПОЧКИ 2 (аудит v6, L3): сертифицированный
+переход (ядро CertifiedTransition) делает шаг-кандидата
+StepCertificate продуктивным для алгоритма отбора
+(bestDecrease): safe_selection_productive срабатывает —
+L3-сертификат напрямую кормит Certified Growth Loop. -/
+theorem transition_safe_selection {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    {S S' : Hagi.System.GrowthState X} {u : StageInput X}
+    {riskLim : ℝ} (ht : CertifiedTransition S S' u riskLim)
+    (epsG : ℝ) (hE : 0 ≤ epsG) :
+    0 < Hagi.System.bestDecrease
+      [Hagi.System.stepCertificateOfParts S' epsG hE] := by
+  apply Hagi.System.safe_selection_productive
+  refine ⟨Hagi.System.stepCertificateOfParts S' epsG hE,
+    List.mem_cons_self, ?_⟩
+  have hbase : (Hagi.System.stepCertificateOfParts S' epsG hE).base
+      = Hagi.System.verify S' := rfl
+  rw [hbase]
+  exact ht.progress
 
 end Hagi.Model
