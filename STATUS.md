@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3087 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3090 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -377,7 +377,11 @@
   проверяются теоремами для реальной функции потерь;
   quadState + quad_conj8/quad_conj13 — ПОЛНЫЙ Concrete-витнес:
   конъюнкты 8/13 CorePremises — теоремы на реальном
-  состоянии (E=(x−a)²/2, stepDir=0, сетка Δ=1).
+  состоянии (E=(x−a)²/2, stepDir=0, сетка Δ=1);
+  quad_core_premises — ПОЛНЫЙ витнес: ВСЕ 16 конъюнктов
+  CorePremises — теоремы на квадратичной функции потерь
+  (quadGen/quadGen' — точная композиция стадий);
+  Concrete-линия аудита v6 §3 завершена.
 - **Аудит v6, L3 (единый Certificate, старт)**:
   certificate_of_transition — мост цепочки уточнений:
   CertifiedTransition (ядро) детерминирует все наблюдаемые
