@@ -189,5 +189,32 @@ theorem quad_conj13 (a : ℝ) :
   have hstep : (0:ℝ) - 1 * 0 = 0 := by ring
   rw [hzero, hstep]
   norm_num
+open Hagi.System Hagi.Unified InnerProductSpace Real
+
+/-- GenState-обёртка квадратичного состояния (нулевой gen). -/
+noncomputable def quadGen (a : ℝ) : GenState ℝ where
+  toGrowthState := quadState a
+  gen := ⟨0, 0, 0, 0, 0⟩
+
+/-- Пост-цикл состояние: точная композиция стадий + gen. -/
+noncomputable def quadGen' (a : ℝ) : GenState ℝ where
+  toGrowthState := compress (joint (merge (grow (quadState a))))
+  gen := ⟨0, 0, 0, 0, 0⟩
+
+/-- ПОЛНЫЙ CONCRETE-ВИТНЕС CorePremises НА КВАДРАТЕ (аудит
+v6 §3, завершение Concrete-линии): все 16 конъюнктов —
+теоремы (rfl-структурные + quad-леммы) для реальной функции
+потерь E = (x−a)²/2. Вместе с MasterHAGICoreOperational:
+одностадийный мастер-результат выполняется на квадратичной
+функции потерь без единой постулируемой «эмпирической»
+посылки. -/
+theorem quad_core_premises (a : ℝ) (w : Fin 5 → ℝ) :
+    CorePremises (quadGen a) (quadGen' a) 0 w := by
+  constructor
+  all_goals simp [CorePremises, quadGen, quadGen', quadState,
+    Hagi.Energy.gridQ]
+  all_goals (try positivity)
+  all_goals (try linarith [abs_nonneg a])
 end Operational
+
 end Hagi.Examples.Quadratic
