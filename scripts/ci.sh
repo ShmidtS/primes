@@ -82,6 +82,11 @@ else
   echo "AXIOMCHECK: PASS ($N_OK capstones, only standard axioms)"
 fi
 
+
+step "ChallengeCheck (Comparator-challenges: pinned honest statements)"
+out=$(python scripts/ChallengeCheck.py 2>&1 | tail -1)
+echo "$out"; case "$out" in CHALLENGE:\ PASS*) ;; *) echo "CHALLENGECHECK: FAIL"; fail=1;; esac
+
 step "ClosureReport (modules under capstones vs library)"
 python scripts/ClosureReport.py | head -1
 

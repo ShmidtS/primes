@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3043 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3044 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,14 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Аудит v6, шаг 2 (Comparator-challenge)**:
+  Hagi/Challenge/MasterChallenge.lean — честная формулировка
+  MasterHAGICore закреплена: заключение прописано полностью
+  (смена смысла ломает сборку), посылка CorePremises
+  закреплена pinned-типом; Challenge/challenges.json +
+  scripts/ChallengeCheck.py — ворота CI (CHALLENGE: PASS):
+  допустимые аксиомы ровно propext/Classical.choice/
+  Quot.sound, пиннинг типов посылок.
 - **MesoScale (источник №10: Chen arXiv 2508.12016, A Law of
   Emergence)**: Hagi/Foundations/MesoScale.lean — ядро
   Middle-Scale Peak Theorem: EI(ℓ)=A(ℓ)·L(ℓ), усреднение A ≤

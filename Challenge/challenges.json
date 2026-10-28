@@ -1,0 +1,18 @@
+{
+  "challenges": [
+    {
+      "name": "master-hagi-core",
+      "description": "Honest one-cycle master statement: Phi_HAGI decrease up to lambda*riskSpend + nu*epsQ AND exact budget accounting, under the named CorePremises contract",
+      "theorem": "Hagi.Challenge.master_hagi_core_comparator",
+      "module": "Hagi.Challenge.MasterChallenge",
+      "allowed_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
+      "pinned_types": {
+        "Hagi.CorePremises": "{X : Type u_1} → [inst : NormedAddCommGroup X] → [inst_1 : InnerProductSpace ℝ X] → Hagi.GenState X → Hagi.GenState X → ℝ → (Fin 5 → ℝ) → Prop"
+      }
+    }
+  ]
+}

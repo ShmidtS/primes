@@ -178,3 +178,8 @@ globs = ["Hagi.Planning.+"]
 [[lean_lib]]
 name = "Hagi.System"
 globs = ["Hagi.System.+"]
+
+# Audit v6 step 2: Comparator-challenges (pinned honest statements).
+[[lean_lib]]
+name = "Hagi.Challenge"
+globs = ["Hagi.Challenge.+"]
