@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3057 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3060 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,15 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **LRSchedule (источник №11: Li et al. ICLR'26, arXiv
+  2602.06797, Optimal LR Schedules under FSL)**:
+  Hagi/Optimization/LRSchedule.lean — ядро WSD-результата:
+  plRec (PL-рекуррентность с расписанием η_t),
+  pl_step_noise_bound (шаг добавляет ≤ σ²η²),
+  late_phase_bound — любые k последних шагов с η ≤ η_max
+  добавляют к ошибке ≤ k·σ²·η_max²: θ-доля горизонта
+  затухания вносит O(θT) — позднее затухание не портит
+  порядок скорости (shape-insensitivity ядра WSD).
 - **Аудит v6, Concrete-слой (§3, старт)**:
   Hagi/Examples/QuadraticConcrete.lean — квадратичная
   функция потерь E(x)=(x−a)²/2: производная (quad_hasDeriv),
