@@ -361,6 +361,7 @@ binEnt	287d0af98f4c7a18	0e169661ca9d5f2f
 binEnt_half	769ab862780c5990	003dee224d0f2199
 binEnt_mono	05370c6214ca9e5a	6ac33e42a6c96b0a
 binEnt_nonneg	dc9aa9a7f8600366	5c5140f66a78431a
+binEntropy	74d8748f10d64333	9f72bcc893313b42
 bits_floor	460decc60083e8af	55f3ac49781d7308
 blockCols	7d94167d66b3a6f0	064b5110c01091ab
 blockCols_mulVec_sum	80e938cf06e37764	57de021c6136aeea
@@ -2641,6 +2642,10 @@ softDef	9edb73dd684de4d3	bc9e6f5fcb599e2b
 softDef_eq_exp_sub_lse	1058d4c84db6d117	86bba64f3c6891a9
 softDef_pos	252062fd473c74cd	184761ab4cf66165
 softDef_sum_one	ed44e42669580411	c7f2ddba6f73eea5
+softProb	9dabc33e9f0cfff6	4424230cb2e1ba18
+soft_dial_max	264a65e1c149c15f	64fec5f9812bc2ae
+soft_dial_zero	6969e6109087f10f	e4c686ef74c55af0
+soft_entropy_bound	5e95920cde9c3d1d	a7eb4d5ea5cefd7f
 softmaxP	e008297f8cbac223	9090c9d9e8bec377
 softmaxW	754ec0c4b0c9f727	55f66520b47f9c4d
 softmax_gap_mass_ratio	1bfc2ca6058f2b0e	796bce4d979d9cb3

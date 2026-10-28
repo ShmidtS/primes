@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3113 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3118 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,15 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **Дистилляция знаний: температурный диал (источник №19:
+  Hinton, Vinyals, Dean, arXiv 1503.02531)**:
+  Hagi/Unified/Distillation.lean — softProb (двухклассовый
+  soft-зазор x = d/T), soft_dial_max (x→∞: one-hot, полный
+  бит), soft_dial_zero (x→0: равномерное, ноль бит),
+  soft_entropy_bound (H ≤ ln 2 — следствие канонического
+  shannon_le_log_card). Температура непрерывно управляет
+  количеством переносимой информации — формальное ядро
+  temperature scaling в KD.
 - **μP-скейлинг / μTransfer (источник №18: Yang et al.,
   "Tensor Programs V" arXiv 2203.03466)**:
   Hagi/Model/MuPScaling.lean — row_output_bound
