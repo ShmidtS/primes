@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3083 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3085 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -309,7 +309,10 @@
   (1/η)•(α•g_{k−τ} − β•m) шаг advance РЕАЛИЗУЕТ DREAM-шаг.
   Разделение ролей с PolyStep: DREAM — гладкая часть при
   задержанных градиентах, PolyStep — недифференцируемые
-  операции; HAGI — сертифицирующий контур. Следующие уровни:
+  операции; HAGI — сертифицирующий контур. Уровень 2-lite:
+  dreamY_gap_norm (‖y−x‖ = |ν|·‖x−x⁻‖),
+  dream_tau_extrapolation (ν = 2τ+1/2 — экстраполяция
+  растёт линейно по задержке). Следующие уровни:
   dream_quadratic_stability, dream_strongly_convex_rate,
   hagi_dream_stage_sound, hagi_async_budget.
 - **PolyStep (источник №14: Training Non-Differentiable

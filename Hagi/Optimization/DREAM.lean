@@ -81,4 +81,31 @@ theorem dream_delayed_gd (s : DREAMState X) (k : ℕ)
 def dreamMomentum (s : DREAMState X) : X :=
   s.beta • (s.x - s.xPrev)
 
+
+/-- НОРМА ЭКСТРАПОЛЯЦИИ: ‖y_k − x_k‖ = |ν|·‖x_k − x_{k−1}‖ —
+смещение точки градиента пропорционально коэффициенту
+экстраполяции и скорости движения. -/
+theorem dreamY_gap_norm (s : DREAMState X) :
+    ‖dreamY s - s.x‖ = |s.nu| * ‖s.x - s.xPrev‖ := by
+  rw [dreamY]
+  rw [show s.x + s.nu • (s.x - s.xPrev) - s.x
+      = s.nu • (s.x - s.xPrev) from by
+      rw [add_sub_cancel_left]]
+  rw [norm_smul, Real.norm_eq_abs]
+
+/-- ЭКСТРАПОЛЯЦИЯ РАСТЁТ С ЗАДЕРЖКОЙ (структура параметров
+статьи): рекомендуемое ν = M − 1/2 при M = 2τ+1 даёт
+ν = 2τ + 1/2 — точка вычисления градиента выносится вперёд
+пропорционально задержке; смещение ‖y−x‖ = (2τ+1/2)·‖x−x⁻‖. -/
+theorem dream_tau_extrapolation (s : DREAMState X)
+    (hnu : s.nu = (2 * (s.tau : ℝ) + 1) - 1 / 2) :
+    ‖dreamY s - s.x‖ = (2 * (s.tau : ℝ) + 1 / 2) * ‖s.x - s.xPrev‖ := by
+  rw [dreamY_gap_norm, hnu]
+  have hnn : (0:ℝ) ≤ 2 * ((s.tau : ℝ)) + 1 - 1 / 2 := by
+    have htau : (0:ℝ) ≤ (s.tau : ℝ) := Nat.cast_nonneg s.tau
+    rw [sub_nonneg]
+    linarith
+  rw [abs_of_nonneg hnn]
+  ring
+
 end Hagi.Optimization.DREAM
