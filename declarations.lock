@@ -29,6 +29,7 @@ CorePremises	526ce33be66a3c04	238a2b343540a5f8
 Corpus	d01918824ce84787	2d9a1863a6d7f088
 CoupledHAGIInvariant	34157619149a70e4	14c13b6de0217783
 CycleCertificate	1145b3172120e497	71c1f2508f7a68f6
+DREAMState	2d4598e386308f34	0491a457c7a3757b
 DeepNet	db9f5e802c5443a3	8142e58b6a341084
 DeepNetV	bb369e4b271658a8	cb63043cd1bc05c9
 Delta	bde26f0f1f4f313a	b23014e316c29da2
@@ -694,6 +695,7 @@ decision_criterion	5b45c5444ec2c84d	a62935ad33d0688d
 decompose_reconstruct	5a6dd0452c0bbfb3	024e68c9c67c1a14
 deficit_factorizes	218e62a2f9145c1e	7505c4876c4e9d1c
 deficit_localizes	3005d9fe9667718c	1b7b642ac3f1aa4e
+delayedGrad	9f15c79b9d198214	8240c1445d9644cc
 deltaCost	2278d227b816bb8a	950227cbc6207561
 deltaCost_concat	31a04511563017da	65d09da5f5d37fa2
 deltaCost_sum	1910d760a42ec609	f926d089a576aee2
@@ -819,6 +821,11 @@ dotCS	555b0ab715dc02d8	017c99861f3de91b
 dotSelf_nonneg	88e54597af1bf49a	2c8c022d2ff469ad
 double_counting_identified	46ce4d8574fb4155	143d62651563866d
 drawPairOrtho	ee16536f5febe4d4	129fbd8718f65c76
+dreamMomentum	dbe0b56b2a5f3af7	69bbd4ab62c62bc1
+dreamStep	ba6c7039876107f6	0bd9d5bf89327370
+dreamY	f80ddaf17aa1c29e	c1bd19840a6ccc01
+dream_bridge	b6f14d2281027f91	288d6e00ca4ce16f
+dream_delayed_gd	aec5036d74af5707	e7c169ec42d01dea
 driftTube	e7808294658cf36e	a8df75eedf518cab
 driftTube_closed	dd7630465a1ed178	438853f3b91d5f1b
 drift_half_life	2cb1f146acfbffdc	b8967667232b963d

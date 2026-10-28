@@ -321,6 +321,7 @@ import Hagi.Optimization.PLConvergence
 import Hagi.Optimization.NeuronAlloc
 import Hagi.Optimization.LRSchedule
 import Hagi.Optimization.PolyStep
+import Hagi.Optimization.DREAM
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.AdaptiveCycle
 import Hagi.Optimization.DirectionPacking

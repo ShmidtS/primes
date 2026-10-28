@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 import Mathlib
 import Hagi.System.GrowthState
 import Hagi.Optimization.Momentum
+import Hagi.Optimization.DREAM
 set_option linter.style.header false
 
 /-!
@@ -1614,4 +1615,28 @@ theorem sign_bridge_polyStep {X : Type*}
   show (Hagi.Model.advance S u).params = S.params + ell • D
   simp only [Hagi.Model.advance]
   rw [hdir, smul_neg, smul_smul, hcancel, sub_neg_eq_add]
+
+/-- ЗНАКОВЫЙ МОСТ DREAM → advance (источник №15, уровень 1):
+при stepDir := (α/η)·g_{k−τ} − (β/η)·(x_k − x_{k−1}) (η > 0)
+обновление advance params⁺ = params − η·stepDir В ТОЧНОСТИ
+реализует DREAM-шаг x⁺ = x − α·g_{k−τ} + β·(x − x⁻):
+задержанный градиент и независимая инерция согласованы с
+конвенцией спуска HAGI. -/
+theorem dream_bridge {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : GrowthState X) (u : StageInput X)
+    (ds : Hagi.Optimization.DREAM.DREAMState X) (k : ℕ)
+    (hx : S.params = ds.x) (heta : 0 < u.sp.eta)
+    (hdir : u.stepDir = (1 / u.sp.eta) •
+        (ds.alpha • (Hagi.Optimization.DREAM.delayedGrad ds k)
+          - ds.beta • (ds.x - ds.xPrev))) :
+    (advance S u).params = Hagi.Optimization.DREAM.dreamStep ds k := by
+  have hone : u.sp.eta * (1 / u.sp.eta) = 1 := by
+    field_simp
+  show (advance S u).params = Hagi.Optimization.DREAM.dreamStep ds k
+  simp only [advance, Hagi.Optimization.DREAM.dreamStep]
+  rw [hdir, hx, smul_smul, hone, one_smul]
+  abel
+
+
 end Hagi.Model

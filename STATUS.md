@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3076 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3083 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,22 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **DREAM (источник №15: Gürbüzbalaban et al., arXiv
+  2610.37444, Delay-Resistant Acceleration with Momentum;
+  интеграция по анализу пользователя)**:
+  Hagi/Optimization/DREAM.lean — уровень 1
+  (dream_delay_recurrence): DREAMState (x/xPrev/gHist/
+  α,β,ν,τ), dreamY (экстраполяция y_k = x+ν(x−x⁻)),
+  delayedGrad (∇f(y_{k−τ}) из истории), dreamStep (РОВНО
+  рекурсия статьи: x⁺ = x − αg_{k−τ} + β(x−x⁻)), 
+  dream_delayed_gd (β=ν=0 — запаздывающий GD), dreamMomentum;
+  dream_bridge (Model/StageSemantics): при stepDir :=
+  (1/η)•(α•g_{k−τ} − β•m) шаг advance РЕАЛИЗУЕТ DREAM-шаг.
+  Разделение ролей с PolyStep: DREAM — гладкая часть при
+  задержанных градиентах, PolyStep — недифференцируемые
+  операции; HAGI — сертифицирующий контур. Следующие уровни:
+  dream_quadratic_stability, dream_strongly_convex_rate,
+  hagi_dream_stage_sound, hagi_async_budget.
 - **PolyStep (источник №14: Training Non-Differentiable
   Networks via Optimal Transport; интеграция по анализу
   пользователя)**: Hagi/Optimization/PolyStep.lean — ядро
