@@ -296,6 +296,15 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Дедуп-аудит ядер §6 завершён (Fannes×5, Hoeffding,
+  Gibbs)**: гипотеза о дубликатах НЕ подтверждается —
+  консолидация выполнена ранее (v4–v6): Fannes — 4 разных
+  математических слоя + фасад-реестр (Unified/Fannes);
+  Hoeffding — иерархия Foundations(MGF) → Ensemble(chord,
+  импортирует Foundations) → Probability(Azuma/Freedman
+  поверх); Gibbs — Probability-цепочка зависимых модулей,
+  Energy-модули не пересекаются. STMDUP = 0 групп —
+  механическое подтверждение. Смысловых дублей не найдено.
 - **Дедуп-аудит Pinsker-семейства (v7 §6)**: исследована
   тройка Information/Pinsker (pinsker4_fin) ×
   Unified/Pinsker (pinsker4_via_canon) ×
