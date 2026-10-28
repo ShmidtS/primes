@@ -27,6 +27,7 @@ import Hagi.Step.MuonAlign
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
 import Hagi.Data.DField
+import Hagi.Data.DataMixing
 import Hagi.Data.InfoNCE
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam

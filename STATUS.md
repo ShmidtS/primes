@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3065 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3068 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,12 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **DataMixing (источник №13: Ye et al., Data Mixing Laws,
+  arXiv 2403.16952, ICLR'25)**: Hagi/Data/DataMixing.lean —
+  mixingLoss (экспоненциальный закон потери от линейной
+  формы пропорций), mixing_loss_convex — ВЫПУКЛОСТЬ закона
+  смешивания по пропорциям (K≥0): оптимизация смеси доменов
+  есть выпуклая задача (ядро применимости закона).
 - **MuonAlign (источник №12: arXiv 2506.15054, Muon Optimizes
   Under Spectral Norm Constraints)**: Hagi/Step/MuonAlign.lean
   — НАСТОЯЩЕЕ Muon-ядро (закрывает замечание аудита v6
