@@ -1,4 +1,5 @@
 import Hagi.Model.StageSemantics
+import Hagi.Model.CycleCertificate
 import Hagi.System.StepCertificate
 import Hagi.Optimization.LRSchedule
 import Hagi.System.Certificates
@@ -250,5 +251,75 @@ theorem wsd_cycle_bound {X : Type*}
       (fun t => (u t).sp.eta) (fun t => (S t).energy) m k hpl
       hmu hetaMax hwindow hnn hb henn hstable
   · exact certified_trajectory_budget S u (m + k) hc
+
+open Hagi.System InnerProductSpace
+
+/-- ЗВЕНО ЦЕПОЧКИ 3 (аудит v6, L3): семейство сертифицированных
+переходов с законами стадий ПОРОЖДАЕТ CycleCertificate:
+локальные контракты CertifiedTransition (exec/progress/safety/
+resources) + законы стадий дают T-горизонтный цикл-сертификат
+(точный рост capability, спуск потенциала, бюджетный ledger). -/
+theorem cycle_certificate_of_transitions {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → GrowthState X) (u : ℕ → StageInput X) (T : ℕ)
+    (hc : ∀ t < T, CertifiedTransition (S t) (S (t + 1)) (u t)
+      ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk))
+    (hgainnn : ∀ t < T, 0 ≤ (u t).eff.growGain)
+    (hgap : ∀ t < T, 0 ≤ (u t).gap)
+    (hgrow : ∀ t < T, (u t).eff.growEnergy
+      ≤ (S t).energy - (u t).eff.growGain)
+    (hmerge : ∀ t < T, (u t).eff.mergeEnergy
+      ≤ (u t).eff.growEnergy - (u t).gap)
+    (hL : ∀ t < T, 0 < (u t).sp.L)
+    (heta : ∀ t < T, (u t).sp.eta ≤ 1 / (u t).sp.L)
+    (hdesc : ∀ t < T, ‖(u t).stepDir‖ ^ 2
+      ≤ ⟪(u t).grad, (u t).stepDir⟫_ℝ)
+    (hjoint : ∀ t < T, (u t).eff.jointEnergy
+      ≤ (u t).eff.mergeEnergy
+        - (u t).sp.eta * ⟪(u t).grad, (u t).stepDir⟫_ℝ
+        + (u t).sp.L * (u t).sp.eta ^ 2 * ‖(u t).stepDir‖ ^ 2 / 2)
+    (hledger : ∀ t < T, (u t).eff.compressEnergy
+        - (u t).eff.jointEnergy
+      ≤ (u t).sp.kappa * (u t).sp.s * (u t).eff.quantErr)
+    (hcostnn : ∀ t < T, 0 ≤ (u t).eff.growCost + (u t).eff.mergeCost
+      + (u t).eff.jointCost + (u t).eff.compressCost) :
+    ∃ _gc : CycleCertificate T (fun t => (S t).capability)
+      (fun t => (S t).energy) (fun t => (S t).budget), True := by
+  refine ⟨{
+  gain := fun t => (u t).eff.growGain
+  h_gain_nonneg := hgainnn
+  cap_step := by
+    intro t ht
+    have hexec := (hc t ht).exec
+    have hcap : (advance (S t) (u t)).capability
+        = (S t).capability + (u t).eff.growGain := rfl
+    calc (S (t + 1)).capability
+        = (advance (S t) (u t)).capability := by rw [hexec]
+      _ = (S t).capability + (u t).eff.growGain := hcap
+  drop := fun t => (u t).eff.growGain + (u t).gap
+    + ((u t).sp.eta * ⟪(u t).grad, (u t).stepDir⟫_ℝ
+      - (u t).sp.L * (u t).sp.eta ^ 2 * ‖(u t).stepDir‖ ^ 2 / 2)
+    - (u t).sp.kappa * (u t).sp.s * (u t).eff.quantErr
+  risk := fun _ => 0
+  h_risk_nonneg := by intro t _; norm_num
+  pot_descent := by
+    intro t ht
+    have hed := advance_energy_drop (S t) (u t)
+      (hgrow t ht) (hgap t ht) (hmerge t ht) (hL t ht)
+      (heta t ht) (hdesc t ht) (hjoint t ht) (hledger t ht)
+    have hE : (S (t + 1)).energy
+        = (advance (S t) (u t)).energy := by
+      rw [(hc t ht).exec]
+    have hAdven : (advance (S t) (u t)).energy
+        = (u t).eff.compressEnergy := rfl
+    rw [hE, hAdven]
+    linarith
+  spend := fun t => (u t).eff.growCost + (u t).eff.mergeCost
+    + (u t).eff.jointCost + (u t).eff.compressCost
+  h_spend_nonneg := hcostnn
+  budget_ledger := by
+    intro t ht
+    exact (hc t ht).resources }, trivial⟩
 
 end Hagi.Model
