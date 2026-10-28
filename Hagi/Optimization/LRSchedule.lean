@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Foundations.Recurrence
 
 /-!
 # Оптимальные LR-расписания: позднее затухание (источник №11)
@@ -70,5 +71,49 @@ theorem late_phase_bound (mu sig etaMax : ℝ)
     rw [Nat.cast_succ]
     show e ((m + k) + 1) ≤ e m + ((k : ℝ) + 1) * sig ^ 2 * etaMax ^ 2
     nlinarith [hkey, ih]
+
+
+/-- ПОЛНАЯ WSD-ОЦЕНКА (источник №11, capstone): stable-фаза
+длины m с η = η_max даёт геометрическое сжатие ρ = 1−μη_max
+плюс шумовой бюджет σ²η_max²·(1−ρ^m)/(1−ρ); фаза затухания
+длины k добавляет ещё ≤ k·σ²η_max². Асимптотика по m
+определяется stable-фазой; затухание на θ-доле (k = θT)
+вкладывает O(θT) — ядро WSD-оптимальности. -/
+theorem wsd_full_bound (mu sig etaMax : ℝ)
+    (eta e : ℕ → ℝ) (m k : ℕ)
+    (hrec : plRec mu sig eta e)
+    (hmu : 0 < mu) (hetaMax : 0 < etaMax)
+    (hwindow : mu * etaMax ≤ 1)
+    (hnn : ∀ t, 0 ≤ eta t)
+    (hb : ∀ t, eta t ≤ etaMax)
+    (henn : ∀ t, 0 ≤ e t)
+    (hstable : ∀ t < m, eta t = etaMax) :
+    e (m + k)
+      ≤ (1 - mu * etaMax) ^ m * e 0
+        + sig ^ 2 * etaMax ^ 2 * ((1 - (1 - mu * etaMax) ^ m)
+          / (1 - (1 - mu * etaMax)))
+        + (k : ℝ) * sig ^ 2 * etaMax ^ 2 := by
+  set rho := 1 - mu * etaMax with hrho
+  have hpos : 0 < mu * etaMax := mul_pos hmu hetaMax
+  have hrho01 : 0 ≤ rho ∧ rho < 1 := by
+    constructor
+    · linarith
+    · linarith
+  -- шаги stable-фазы: e_{t+1} ≤ rho·e_t + σ²η_max²
+  have hstep : ∀ t < m, e (t + 1) ≤ rho * e t + sig ^ 2 * etaMax ^ 2 := by
+    intro t ht
+    have hst := hstable t ht
+    have hrec' := hrec t
+    rw [hst] at hrec'
+    rw [hrho]
+    exact hrec'
+  have hupper := Hagi.Foundations.recurrence_upper (rho := rho)
+    (c := sig ^ 2 * etaMax ^ 2) e m hrho01.1 hrho01.2 hstep
+  -- late-фаза
+  have hlate := late_phase_bound mu sig etaMax eta e m k hrec
+    (le_of_lt hmu) (le_of_lt hetaMax) hnn hb henn
+    (fun t => le_trans
+      (mul_le_mul_of_nonneg_left (hb t) (le_of_lt hmu)) hwindow)
+  linarith [hupper, hlate]
 
 end Hagi.Optimization.LRSchedule

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3060 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3061 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -304,7 +304,10 @@
   late_phase_bound — любые k последних шагов с η ≤ η_max
   добавляют к ошибке ≤ k·σ²·η_max²: θ-доля горизонта
   затухания вносит O(θT) — позднее затухание не портит
-  порядок скорости (shape-insensitivity ядра WSD).
+  порядок скорости (shape-insensitivity ядра WSD);
+  wsd_full_bound — полная оценка: stable-фаза m с η=η_max ⟹
+  ρ^m·e₀ + σ²η_max²(1−ρ^m)/(1−ρ) + k·σ²η_max²
+  (геометрическое сжатие + шумовой бюджет + late-decay).
 - **Аудит v6, Concrete-слой (§3, старт)**:
   Hagi/Examples/QuadraticConcrete.lean — квадратичная
   функция потерь E(x)=(x−a)²/2: производная (quad_hasDeriv),
