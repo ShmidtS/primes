@@ -125,4 +125,63 @@ theorem micro_collapse (A L : ℝ → ℝ) (a0 L0 : ℝ) (p : ℝ)
     simpa using hz.const_mul (a0 * L0)
   exact squeeze_zero' hf hg hlim
 
+open Real Filter Set
+
+/-- СУЩЕСТВОВАНИЕ МЕЗО-ПИКА (capstone источника №10):
+каузальная сила EI непрерывна на (0,∞), неотрицательна,
+положительна в ℓ₀ и исчезает на обоих концах шкалы —
+глобальный максимум ДОСТИГАЕТСЯ: ∃ lstar, ∀ℓ>0, EI ℓ ≤ EI lstar.
+Носитель эмерджентности — мезо-масштаб. -/
+theorem meso_peak_exists (EI : ℝ → ℝ)
+    (hcont : ContinuousOn EI (Ioi (0:ℝ)))
+    (ℓ₀ : ℝ) (hℓ₀ : 0 < ℓ₀) (hpos : 0 < EI ℓ₀)
+    (hmacro : Tendsto EI atTop (nhds 0))
+    (hmicro : Tendsto EI (nhdsWithin 0 (Ioi (0:ℝ))) (nhds 0)) :
+    ∃ lstar, ∀ ℓ, 0 < ℓ → EI ℓ ≤ EI lstar := by
+  set c0 := EI ℓ₀ with hc0
+  -- макро-хвост: ∃M, ∀ℓ≥M, EI ℓ < c0
+  have hM : ∃ M : ℝ, ℓ₀ ≤ M ∧ ∀ ℓ, M ≤ ℓ → EI ℓ < c0 := by
+    have hmem : (Iio c0) ∈ nhds (0:ℝ) := Iio_mem_nhds (by nlinarith)
+    obtain ⟨M, hM⟩ := eventually_atTop.mp (hmacro hmem)
+    refine ⟨max M ℓ₀, le_max_right _ _, fun ℓ hℓ => ?_⟩
+    exact hM ℓ (le_trans (le_max_left M ℓ₀) hℓ)
+  obtain ⟨M, hℓ₀M, hM⟩ := hM
+  -- микро-хвост: ∃ε>0, ε≤ℓ₀, ∀ℓ∈(0,ε], EI ℓ < c0
+  have hε : ∃ ε : ℝ, 0 < ε ∧ ε ≤ ℓ₀ ∧ ∀ ℓ, 0 < ℓ → ℓ ≤ ε → EI ℓ < c0 := by
+    have hmem : (Iio c0) ∈ nhds (0:ℝ) := Iio_mem_nhds (by nlinarith)
+    have hev : (EI ⁻¹' (Iio c0)) ∈ nhdsWithin 0 (Ioi (0:ℝ)) := hmicro hmem
+    rw [mem_nhdsWithin] at hev
+    obtain ⟨U, hU, hU0, hUp⟩ := hev
+    obtain ⟨δ, hδ, hball⟩ := Metric.isOpen_iff.mp hU 0 hU0
+    refine ⟨min (δ/2) ℓ₀, lt_min (by nlinarith) hℓ₀, min_le_right _ _, fun ℓ hℓ hℓε => ?_⟩
+    have h1 : ℓ ∈ U := hball (show ℓ ∈ Metric.ball 0 δ by
+      rw [Metric.mem_ball, Real.dist_eq]
+      rw [abs_of_nonneg (by nlinarith : (0:ℝ) ≤ ℓ - 0)]
+      calc ℓ - 0 = ℓ := sub_zero ℓ
+        _ ≤ min (δ/2) ℓ₀ := hℓε
+        _ < δ := by nlinarith [min_le_left (δ/2) ℓ₀])
+    exact hUp ⟨h1, hℓ⟩
+  obtain ⟨ε, hεpos, hεℓ₀, hε⟩ := hε
+  -- максимум на компакте [ε, M]
+  have hsub : Icc ε M ⊆ Ioi (0:ℝ) :=
+    fun ℓ hℓ => hεpos.trans_le hℓ.1
+  have hcc : ContinuousOn EI (Icc ε M) := hcont.mono hsub
+  obtain ⟨lstar, hlmem, hmax⟩ :=
+    isCompact_Icc.exists_isMaxOn ⟨ℓ₀, hεℓ₀, hℓ₀M⟩ hcc
+  refine ⟨lstar, fun ℓ hℓ => ?_⟩
+  by_cases hℓM : ℓ ≤ M
+  · by_cases hℓε : ε ≤ ℓ
+    · exact hmax ⟨hℓε, hℓM⟩
+    · -- ℓ < ε: из микро-хвоста EI ℓ < c0 ≤ EI lstar
+      have hlt : ℓ ≤ ε := by nlinarith
+      have := hε ℓ hℓ hlt
+      have hstar : c0 ≤ EI lstar :=
+        hmax ⟨hεℓ₀, hℓ₀M⟩
+      linarith
+  · -- ℓ > M: из макро-хвоста
+    have hge : M ≤ ℓ := by nlinarith
+    have := hM ℓ hge
+    have hstar : c0 ≤ EI lstar := hmax ⟨hεℓ₀, hℓ₀M⟩
+    linarith
+
 end Hagi.Foundations.MesoScale
