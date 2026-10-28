@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3064 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3065 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -319,7 +319,11 @@
   (геометрическое сжатие + шумовой бюджет + late-decay);
   wsd_cycle_bound — мост в Certified Growth Loop: WSD-оценка
   энергии + ТОЧНАЯ бюджетная бухгалтерия траектории
-  сертифицированных переходов с LR-расписанием.
+  сертифицированных переходов с LR-расписанием;
+  cycle_certificate_of_transitions — звено 3 цепочки L3:
+  семейство CertifiedTransition + законы стадий ПОРОЖДАЮТ
+  CycleCertificate T-горизонта (точный рост, спуск
+  потенциала, бюджетный ledger).
 - **Аудит v6, Concrete-слой (§3, старт)**:
   Hagi/Examples/QuadraticConcrete.lean — квадратичная
   функция потерь E(x)=(x−a)²/2: производная (quad_hasDeriv),
