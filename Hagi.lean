@@ -306,6 +306,7 @@ import Hagi.Model.CycleCertificate
 import Hagi.Model.ModernHopfield
 import Hagi.Model.ReferenceMachine
 import Hagi.Model.MachineBridge
+import Hagi.Model.ModeConnectivity
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction

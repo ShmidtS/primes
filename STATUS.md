@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3105 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3108 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,17 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **Mode Connectivity, квадратичный режим (источник №17:
+  Garipov et al. NeurIPS 2018 arXiv 1802.10026; Theus et al.
+  NeurIPS 2025)**: Hagi/Model/ModeConnectivity.lean —
+  energy_convex (выпуклость квадратичной энергии вдоль
+  линейного пути), linear_no_barrier (энергия вдоль отрезка
+  ≤ max концов — барьер между режимами ОТСУТСТВУЕТ: строгая
+  формализация LMC; в ньютоновской окрестности минимума
+  выполняется автоматически), linear_midpoint_bound (основа
+  SWA-усреднения). Обоснование слияния экспертов HAGI:
+  переходы между решениями не обязаны проходить через
+  барьеры.
 - **Мост машина → семантика (аудит v7, этап 4)**:
   Hagi/Model/MachineBridge.lean — machineStageInput (StageInput,
   СОБРАННЫЙ из машинных измерений: growEnergy = E(w),
