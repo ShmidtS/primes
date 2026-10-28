@@ -296,6 +296,10 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Аудит v6, шаг 3 (закрепление окружения)**:
+  mathlib-rev.txt теперь пинит и toolchain-commit
+  (eb6cafb…), ворота MATHLIBPIN в CI сверяют rev Mathlib и
+  commit lean-тулчейна — тихий дрейф окружения ловится.
 - **Аудит v6, шаг 2 (Comparator-challenge)**:
   Hagi/Challenge/MasterChallenge.lean — честная формулировка
   MasterHAGICore закреплена: заключение прописано полностью

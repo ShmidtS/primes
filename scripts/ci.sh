@@ -21,7 +21,16 @@ python scripts/triviality_lint.py | tail -2 | grep -q "flags: 0" \
   || { echo "TRIVIALITY: FAIL"; fail=1; }
 
 step "Mathlib rev pin (reproducibility gate)"
-pinned=$(cat scripts/mathlib-rev.txt 2>/dev/null)
+pinned=$(head -1 scripts/mathlib-rev.txt 2>/dev/null)
+tc_pinned=$(sed -n 's/^toolchain //p' scripts/mathlib-rev.txt 2>/dev/null)
+tc_actual=$(lean --version 2>/dev/null | sed -n 's/.*commit \([0-9a-f]*\).*/\1/p')
+if [ -n "$tc_pinned" ] && [ -n "$tc_actual" ] && [ "$tc_pinned" != "$tc_actual" ]; then
+  echo "MATHLIBPIN: FAIL (toolchain pinned=$tc_pinned, actual=$tc_actual)"
+  fail=1
+elif [ -z "$tc_pinned" ] || [ -z "$tc_actual" ]; then
+  echo "MATHLIBPIN: FAIL (toolchain pin unreadable)"
+  fail=1
+fi
 # Mathlib location comes from lake-manifest.json (path dependency),
 # overridable via MATHLIB_DIR — no personal paths in this script.
 ml_dir=$(python -c "import json;print([(p.get('dir','')) for p in json.load(open('lake-manifest.json',encoding='utf-8'))['packages'] if p.get('name')=='mathlib'][0])" 2>/dev/null)
