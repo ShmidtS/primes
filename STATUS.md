@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3034 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3035 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -293,7 +293,9 @@
   (|w| невозрастает), drift_half_life (полужизнь (ln2)/λ),
   grokking_timescale_separation (∀T_fast ∃λ: время полужизни
   > k·T_fast — обобщение задержано Θ(1/λ) относительно
-  обучения).
+  обучения); drift_total_variation — полная вариация дрейфа
+  ∫|w'| ≤ |w₀| безусловно: риманов дрейф имеет конечный
+  «бюджет движения» начальной нормы.
 - **NeuronAlloc (resource model of neural scaling)**:
   neuron_alloc_lower_bound — суммарная обратная потеря
   Σ cᵢ/nᵢ ≥ (Σ √cᵢ)²/N при бюджете Σnᵢ = N (Коши–Шварц,

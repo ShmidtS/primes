@@ -820,6 +820,7 @@ drift_hasDeriv	95be180d8899e2eb	1b6c69ab37949ae8
 drift_limit	a7f7ffe06e742955	d13a8a0d9dea2683
 drift_norm_nondecreasing	e351bbcab964084f	4d1fd378d4036cb7
 drift_solution	529835d1564a9409	b044b524af83f017
+drift_total_variation	038567da7dd16970	93359f0d5a45d990
 drift_zero	db6fd6a929ec0add	960f4c26c43bf407
 dual_ceiling	61580960621b8181	4a1009b00488b142
 dustAlignment	c3866d2620ca71e8	4a73811e8ebcea02

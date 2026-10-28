@@ -85,4 +85,52 @@ theorem grokking_timescale_separation (T_fast k : ℝ)
     field_simp
     nlinarith
 
+open Real intervalIntegral
+
+/-- ДЛИНА ПУТИ ДРЕЙФА ОГРАНИЧЕНА: полная вариация
+пост-интерполяционного дрейфа на [0,t] не превосходит
+начальную норму — риманов дрейф ℓ₂-нормы имеет конечный
+«бюджет движения» |w₀|, независимо от t. -/
+theorem drift_total_variation (lam w0 : ℝ) (hlam : 0 < lam) (t : ℝ) :
+    ∫ x in (0)..t, |(-lam) * (w0 * exp (-lam * x))| ≤ |w0| := by
+  have habs : ∀ x : ℝ, |(-lam) * (w0 * exp (-lam * x))|
+      = lam * |w0| * exp (-lam * x) := by
+    intro x
+    calc |(-lam) * (w0 * exp (-lam * x))|
+        = |(-lam)| * |w0 * exp (-lam * x)| := abs_mul _ _
+      _ = lam * (|w0| * |exp (-lam * x)|) := by
+          rw [abs_of_neg (show (0:ℝ) > -lam by nlinarith), abs_mul]
+          ring
+      _ = lam * |w0| * exp (-lam * x) := by
+          rw [abs_of_nonneg (exp_nonneg _)]
+          ring
+  have heq := intervalIntegral.integral_congr
+    (a := 0) (b := t) (μ := MeasureTheory.volume)
+    (f := fun x => |(-lam) * (w0 * exp (-lam * x))|)
+    (fun x _ => habs x)
+  rw [heq, intervalIntegral.integral_const_mul]
+  -- ∫₀^t e^{−λx} dx = (1 − e^{−λt})/λ  через замену u = −λx
+  have hint : ∫ x in (0)..t, exp (-lam * x)
+      = (1 - exp (-lam * t)) / lam := by
+    have hcom : ∀ x : ℝ, exp (-lam * x) = exp (x * (-lam)) :=
+      fun x => by congr 1; ring
+    have he := intervalIntegral.integral_congr
+      (a := 0) (b := t) (μ := MeasureTheory.volume)
+      (f := fun x => exp (-lam * x)) (fun x _ => hcom x)
+    rw [he, integral_comp_mul_right exp
+      (by nlinarith : (-lam : ℝ) ≠ 0), integral_exp]
+    rw [zero_mul, mul_neg, smul_eq_mul, exp_zero]
+    field_simp
+    ring
+  rw [hint]
+  have hexp : 0 ≤ exp (-lam * t) := exp_nonneg _
+  have hle : 1 - exp (-lam * t) ≤ 1 := by nlinarith
+  have hcancel : lam * |w0| * ((1 - exp (-lam * t)) / lam)
+      = |w0| * (1 - exp (-lam * t)) := by
+    field_simp
+  rw [hcancel]
+  calc |w0| * (1 - exp (-lam * t))
+      ≤ |w0| * 1 := mul_le_mul_of_nonneg_left hle (abs_nonneg w0)
+    _ = |w0| := mul_one _
+
 end Hagi.Pretraining.Grokking
