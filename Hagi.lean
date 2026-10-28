@@ -304,6 +304,7 @@ import Hagi.Model.StageSemantics
 import Hagi.Model.CertifiedTransition
 import Hagi.Model.CycleCertificate
 import Hagi.Model.ModernHopfield
+import Hagi.Model.ReferenceMachine
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction

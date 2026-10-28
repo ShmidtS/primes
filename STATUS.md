@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3092 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3103 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,17 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Эталонный исполнитель цикла обучения (аудит v7 §5 +
+  этап 6, паттерн qwenputer ref.Machine)**:
+  Hagi/Model/ReferenceMachine.lean — носитель, где операции
+  РЕАЛЬНО вычисляют веса (jointStep — градиентный шаг,
+  compressQ — квантование решёткой Δ·round), а ВСЕ измерения
+  — функции весов: jointStep_energy ((1−η)²·E),
+  jointStep_energy_decrease (0<η<2 ⟹ строгое снижение
+  без постулатов), machine_quant_err_bound (≤ √n·Δ/2),
+  machine_energy_bound (полная оценка цикла: шаг+квантование
+  через Cauchy–Schwarz). Закрывает разрыв «доказательства
+  не связаны с операциями над весами».
 - **Modern Hopfield / attention-ретривал (источник №16:
   Ramsauer et al., arXiv 2008.02217 "Hopfield Networks is
   All You Need")**: Hagi/Model/ModernHopfield.lean —
