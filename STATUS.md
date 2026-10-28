@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3046 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3052 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,14 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Аудит v6, Concrete-слой (§3, старт)**:
+  Hagi/Examples/QuadraticConcrete.lean — квадратичная
+  функция потерь E(x)=(x−a)²/2: производная (quad_hasDeriv),
+  значение fderiv (quad_fderiv_apply), L-гладкость L=1
+  (quad_smooth), κ-граница R+|a| на [−R,R]
+  (quad_kappa_bound), непрерывность вдоль сегмента
+  (quad_gcont) — ВСЕ операциональные премисы шага 1
+  проверяются теоремами для реальной функции потерь.
 - **Аудит v6, L3 (единый Certificate, старт)**:
   certificate_of_transition — мост цепочки уточнений:
   CertifiedTransition (ядро) детерминирует все наблюдаемые
