@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3090 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3092 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,14 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Modern Hopfield / attention-ретривал (источник №16:
+  Ramsauer et al., arXiv 2008.02217 "Hopfield Networks is
+  All You Need")**: Hagi/Model/ModernHopfield.lean —
+  hopfield_concentration (softmax-концентрация ретривала:
+  при зазоре Δ лучшего логита вес лучшего паттерна
+  ≥ 1/(1+(K−1)e^{−Δ}) — механизм точного восстановления),
+  capacity_bound_arith (арифметика экспоненциальной ёмкости:
+  2K·log K ≤ d ⟹ K ≤ 2^{d/(2·log K)}).
 - **DREAM (источник №15: Gürbüzbalaban et al., arXiv
   2610.37444, Delay-Resistant Acceleration with Momentum;
   интеграция по анализу пользователя)**:
