@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3028 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3029 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -292,7 +292,9 @@
   структура Энгеля); источник — resource-модель скейлинга
   (потеря подтаска ∝ 1/нейроны);
   neuron_alloc_opt_attained — аллокация nᵢ ∝ √cᵢ·N/Σ√cⱼ
-  достигает границы РОВНО (двусторонняя замкнутость).
+  достигает границы РОВНО (двусторонняя замкнутость);
+  neuron_alloc_equal_costs — равные c ⟹ равномерная
+  аллокация, потеря k²·c₀/N (uniform growth модели).
 - **Фасад Unified/MiscCore (closure 312/317, 98%)**:
   разрозненные теоремные модули (12: System×3, Audit×2,
   PPT, SoftmaxFix, TemporalState, QFormerBridge, Diversity,

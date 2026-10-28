@@ -75,4 +75,22 @@ theorem neuron_alloc_opt_attained {ι : Type*} [Fintype ι]
   rw [← Finset.sum_mul]
   ring
 
+/-- РАВНОМЕРНОЕ МАСШТАБИРОВАНИЕ (resource model): при равных
+сложностях (c ≡ c₀) равномерная аллокация nᵢ = N/k даёт
+суммарную потерю РОВНО k²·c₀/N; нижняя граница при равных c
+совпадает — равномерность оптимальна. -/
+theorem neuron_alloc_equal_costs {k : ℕ} (hk : 0 < k)
+    (c0 : ℝ) (hc0 : 0 < c0) (N : ℝ) (hN : 0 < N) :
+    ∑ i : Fin k, c0 / ((N : ℝ) / k)
+      = (k : ℝ) ^ 2 * c0 / N := by
+  have hterm : ∀ _i : Fin k, c0 / (N / k) = c0 * (k : ℝ) / N := by
+    intro _
+    rw [div_div_eq_mul_div]
+  rw [Finset.sum_congr rfl fun i _ => hterm i]
+  have hsum : ∑ i : Fin k, c0 * (k : ℝ) / N
+      = (k : ℝ) * (c0 * (k : ℝ) / N) := by
+    simp [Finset.sum_const]
+  rw [hsum]
+  field_simp
+
 end Hagi.Optimization
