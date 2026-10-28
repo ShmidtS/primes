@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Probability.AdaptiveSuccess
+import Hagi.Foundations.Hoeffding
 set_option linter.style.header false
 
 /-!
@@ -62,84 +63,47 @@ theorem hoeffding_lemma_prefix (q : V → ℝ)
     (hmean : ∑ v, q v * X v = 0) (lam : ℝ) :
     ∑ v, q v * Real.exp (lam * X v)
       ≤ Real.exp (lam ^ 2 * c ^ 2 / 2) := by
-  rcases eq_or_ne lam 0 with hlam | hlam
-  · rw [hlam]
-    simp [hq1]
-  have hA : 0 < |lam| * c := mul_pos (abs_pos.mpr hlam) hc
-  set A := |lam| * c with hAdef
-  -- хорда exp на [−A, A]
-  have hchord : ∀ v, Real.exp (lam * X v)
-      ≤ (A - lam * X v) / (2 * A) * Real.exp (-A)
-        + (lam * X v + A) / (2 * A) * Real.exp A := by
+  -- ДЕДУПЛИКАЦИЯ (аудит v6, L1): вывод из канона
+  -- mgf_hoeffding_ab (Foundations.Hoeffding) — лемма Хёффдинга
+  -- одна; λ·X ∈ [−|λ|c, |λ|c], среднее 0 ⟹
+  -- log-mgf ≤ (2|λ|c)²/8 = λ²c²/2, экспоненцируем.
+  have hbounds : ∀ v, -(abs lam) * c ≤ lam * X v
+      ∧ lam * X v ≤ (abs lam) * c := by
     intro v
-    have hbx : |lam * X v| ≤ A := by
-      rw [abs_mul, hAdef]
-      exact mul_le_mul_of_nonneg_left
-        (abs_le.mpr ⟨(hb v).1, (hb v).2⟩) (abs_nonneg lam)
-    obtain ⟨hm, hp⟩ := abs_le.mp hbx
-    have hne : (-A : ℝ) < A := by linarith
-    have hch := exp_chord_ab (-A) A (lam * X v) hne (by linarith) (by linarith)
-    have hden : A - (-A : ℝ) = 2 * A := by ring
-    rw [hden] at hch
-    have hxa : lam * X v - (-A : ℝ) = lam * X v + A := by ring
-    rw [hxa] at hch
-    exact hch
-  -- суммирование с весами
-  have hsum : ∑ v, q v * Real.exp (lam * X v)
-      ≤ ∑ v, q v * ((A - lam * X v) / (2 * A) * Real.exp (-A)
-        + (lam * X v + A) / (2 * A) * Real.exp A) :=
-    Finset.sum_le_sum fun v _ => mul_le_mul_of_nonneg_left (hchord v) (hq0 v)
-  -- веса: среднее-ноль убирает асимметрию, остаётся cosh A
-  have hS1 : ∑ v, q v * (A - lam * X v) = A := by
-    have hrw : ∀ v, q v * (A - lam * X v)
-        = A * q v - lam * (q v * X v) := fun v => by ring
-    simp only [hrw]
-    rw [Finset.sum_sub_distrib, ← Finset.mul_sum, ← Finset.mul_sum, hq1, hmean]
-    norm_num
-  have hS2 : ∑ v, q v * (lam * X v + A) = A := by
-    have hrw : ∀ v, q v * (lam * X v + A)
-        = lam * (q v * X v) + A * q v := fun v => by ring
-    simp only [hrw]
-    rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum, hq1, hmean]
-    norm_num
-  -- раскрытие суммы произведений
-  have hfinal : ∑ v, q v * ((A - lam * X v) / (2 * A) * Real.exp (-A)
-        + (lam * X v + A) / (2 * A) * Real.exp A)
-      = Real.cosh A := by
-    have hsplit : ∀ v, q v * ((A - lam * X v) / (2 * A) * Real.exp (-A)
-        + (lam * X v + A) / (2 * A) * Real.exp A)
-        = Real.exp (-A) * q v * (A - lam * X v) / (2 * A)
-          + Real.exp A * q v * (lam * X v + A) / (2 * A) := by
-      intro v
-      ring
-    rw [Finset.sum_congr rfl (fun v _ => hsplit v), Finset.sum_add_distrib]
-    rw [← Finset.sum_div, ← Finset.sum_div]
-    have hc1 : ∑ i, Real.exp (-A) * q i * (A - lam * X i)
-        = Real.exp (-A) * A := by
-      have hrw : ∀ i, Real.exp (-A) * q i * (A - lam * X i)
-          = Real.exp (-A) * (q i * (A - lam * X i)) := fun i => by ring
-      rw [Finset.sum_congr rfl (fun i _ => hrw i), ← Finset.mul_sum, hS1]
-    have hc2 : ∑ i, Real.exp A * q i * (lam * X i + A)
-        = Real.exp A * A := by
-      have hrw : ∀ i, Real.exp A * q i * (lam * X i + A)
-          = Real.exp A * (q i * (lam * X i + A)) := fun i => by ring
-      rw [Finset.sum_congr rfl (fun i _ => hrw i), ← Finset.mul_sum, hS2]
-    rw [hc1, hc2]
-    rw [Real.cosh_eq]
-    field_simp
+    obtain ⟨h1, h2⟩ := hb v
+    rcases le_total (0 : ℝ) lam with hlam | hlam
+    · have habs : abs lam = lam := abs_of_nonneg hlam
+      rw [habs]
+      constructor <;> nlinarith
+    · have habs : abs lam = -lam := abs_of_nonpos hlam
+      rw [habs]
+      constructor <;> nlinarith
+  have hmgf := Hagi.Foundations.mgf_hoeffding_ab q
+    (fun v => lam * X v) hq0 hq1 (-(abs lam) * c) ((abs lam) * c)
+    (fun v => (hbounds v).1) (fun v => (hbounds v).2)
+  have hmean' : ∑ v, q v * (lam * X v) = 0 := by
+    have hrw : ∀ v, q v * (lam * X v) = lam * (q v * X v) :=
+      fun v => by ring
+    rw [Finset.sum_congr rfl fun v _ => hrw v, ← Finset.mul_sum, hmean]
     ring
-  have hAsq : A ^ 2 = lam ^ 2 * c ^ 2 := by
-    rw [hAdef, mul_pow]
-    rw [show |lam| ^ 2 = lam ^ 2 by rw [pow_two, abs_mul_abs_self, ← pow_two]]
-  rw [hfinal] at hsum
-  refine le_trans hsum ?_
-  have h1 : Real.cosh A ≤ Real.exp (A ^ 2 / 2) := by
-    have h2 := Real.exp_le_exp.mpr (Hagi.Foundations.log_cosh_le A)
-    rwa [Real.exp_log (Real.cosh_pos A)] at h2
-  rw [← hAsq]
-  exact h1
-
-/-! ## Snoc-декомпозиция произведения -/
+  rw [hmean'] at hmgf
+  have hle : (0 : ℝ) + (abs lam * c - -abs lam * c) ^ 2 / 8
+      ≤ lam ^ 2 * c ^ 2 / 2 := by
+    have h2 : (abs lam) ^ 2 = lam ^ 2 := by
+      rw [pow_two, abs_mul_abs_self, ← pow_two]
+    nlinarith [h2, sq_nonneg lam, sq_nonneg c]
+  have hlog2 : Real.log (∑ v, q v * Real.exp (lam * X v))
+      ≤ lam ^ 2 * c ^ 2 / 2 := le_trans hmgf hle
+  -- экспоненцирование log-неравенства
+  have hpos : 0 < ∑ v, q v * Real.exp (lam * X v) := by
+    obtain ⟨v0, -, hv0ne⟩ := Finset.exists_ne_zero_of_sum_ne_zero (by
+      rw [hq1]; exact one_ne_zero)
+    have hv0pos : 0 < q v0 :=
+      lt_of_le_of_ne (hq0 v0) (fun hc => hv0ne hc.symm)
+    exact Finset.sum_pos' (fun v _ => mul_nonneg (hq0 v) (Real.exp_pos _).le)
+      ⟨v0, Finset.mem_univ v0, mul_pos hv0pos (Real.exp_pos _)⟩
+  have hexp := Real.exp_le_exp.mpr hlog2
+  rwa [Real.exp_log hpos] at hexp
 
 /-- **Башня ожиданий, конечная форма**: prodE по n+1 координате =
 Σ по префиксам × Σ по последней координате

@@ -296,6 +296,11 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Аудит v6, дедуп L1 (порядок работ №3, старт)**:
+  hoeffding_lemma_prefix (Azuma) переписан как ВЫВОД из
+  канона mgf_hoeffding_ab (Foundations.Hoeffding) — хордовое
+  доказательство удалено, лемма Хёффдинга в проекте теперь
+  одна (statement неизменен, Freeze стабилен).
 - **Аудит v6, шаг 3 (закрепление окружения)**:
   mathlib-rev.txt теперь пинит и toolchain-commit
   (eb6cafb…), ворота MATHLIBPIN в CI сверяют rev Mathlib и
