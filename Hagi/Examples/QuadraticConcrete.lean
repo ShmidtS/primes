@@ -17,7 +17,7 @@ import Hagi.Unified.CorePremisesDerived
 
 namespace Hagi.Examples.Quadratic
 
-open Real
+open Real InnerProductSpace
 
 /-- Квадратичная функция потерь: E(x) = (x−a)²/2. -/
 noncomputable def quadE (a x : ℝ) : ℝ := (x - a) ^ 2 / 2
@@ -100,4 +100,94 @@ theorem quad_gcont (a p d : ℝ) :
   rw [heq]
   fun_prop
 
+section Operational
+
+open Hagi.System Hagi.Unified
+
+/-- СОСТОЯНИЕ Concrete-витнеса: квадратичная функция потерь
+quadE a, stepDir = 0 (тривиальный шаг), L = 1, kappa = 1+|a|
+(на [−1,1]), s = 1, Δ = 1; энергии стадий операционально
+согласованы: jointEnergy = E(params−η·d), compressEnergy =
+E(gridQ Δ params), quantErr = фактическая ошибка сетки. -/
+noncomputable def quadState (a : ℝ) : GrowthState ℝ where
+  weightDim := 0
+  weights := fun _ => 0
+  params := 0
+  experts := 0
+  energy := quadE a 0
+  protectedRisk := 0
+  budget := 0
+  gap := 0
+  dataField := 0
+  capability := 0
+  verifier := 0
+  runtimeError := 0
+  stepDir := 0
+  grad := -a
+  sp := { eta := 1, L := 1, kappa := 1 + |a|, s := 1 }
+  effects := {
+    growGain := 0
+    growCost := 0
+    growRisk := 0
+    growEnergy := quadE a 0
+    mergeRisk := 0
+    mergeCost := 0
+    mergeEnergy := quadE a 0
+    jointEnergy := quadE a (0 - 1 * (0:ℝ))
+    jointRisk := 0
+    jointCost := 0
+    quantErr := |0 - Hagi.Energy.gridQ 1 one_pos 0|
+    compressEnergy := quadE a (Hagi.Energy.gridQ 1 one_pos 0)
+    compressRisk := 0
+    compressCost := 0
+  }
+
+/-- fderiv-форма производной для hdiff-посылок. -/
+theorem quad_hasFDeriv (a x : ℝ) :
+    HasFDerivAt (quadE a) (fderiv ℝ (quadE a) x) x :=
+  (quad_hasDeriv a x).differentiableAt.hasFDerivAt
+
+/-- CONJUNCT 8 НА КВАДРАТЕ (теорема): операционная посылка
+гладкости выводится для quadState — все гипотезы DerivAlong-
+моста суть теоремы (производная, L=1-гладкость,
+непрерывность, тождество направленной производной). -/
+theorem quad_conj8 (a : ℝ) :
+    (quadState a).effects.jointEnergy
+      ≤ (quadState a).effects.mergeEnergy
+        - (quadState a).sp.eta
+          * ⟪(quadState a).grad, (quadState a).stepDir⟫_ℝ
+        + (quadState a).sp.L * (quadState a).sp.eta ^ 2
+          * ‖(quadState a).stepDir‖ ^ 2 / 2 :=
+  conj8_h_emp_smooth_derived (quadE a) (quadState a)
+    (quad_hasFDeriv a)
+    (fun x y => by
+      have h := quad_smooth a x y
+      simpa [quadState, mul_one] using h)
+    (by simp [quadState]; exact continuous_const)
+    (by
+      simp only [quad_fderiv_apply, quadState, inner_apply]
+      ring)
+    (by show (0:ℝ) ≤ 1; norm_num)
+    (by rfl)
+    (by rfl)
+
+/-- κ-граница в точке 0 (|0| ≤ 1). -/
+theorem quad_kappa_at0 (a : ℝ) :
+    ‖fderiv ℝ (quadE a) 0‖ ≤ 1 + |a| :=
+  quad_kappa_bound a 1 0 (by norm_num) (by norm_num)
+
+/-- CONJUNCT 13 НА КВАДРАТЕ (теорема): точка 0 — узел сетки
+(gridQ 1 0 = 0), quantErr = 0, compressEnergy = E(0) =
+jointEnergy — посылка сжатия выполняется с нулевым зазором
+(прямое вычисление, без глобальной κ-границы). -/
+theorem quad_conj13 (a : ℝ) :
+    quadE a (Hagi.Energy.gridQ 1 one_pos 0)
+      - quadE a (0 - 1 * (0:ℝ))
+      ≤ (1 + |a|) * 1 * |0 - Hagi.Energy.gridQ 1 one_pos 0| := by
+  have hzero : Hagi.Energy.gridQ 1 one_pos 0 = 0 := by
+    simp [Hagi.Energy.gridQ]
+  have hstep : (0:ℝ) - 1 * 0 = 0 := by ring
+  rw [hzero, hstep]
+  norm_num
+end Operational
 end Hagi.Examples.Quadratic
