@@ -59,6 +59,7 @@ import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.ProbeError
 import Hagi.Pretraining.RobustnessLaw
+import Hagi.Pretraining.Grokking
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
 import Hagi.Omni.CrossModalGap

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3029 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3034 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,14 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **Grokking (источник №9: Boursier–Pesme–Dragomir NeurIPS'25)**:
+  Hagi/Pretraining/Grokking.lean — двухфазная динамика
+  gradient flow + weight decay: drift_solution/drift_hasDeriv
+  (пост-интерполяционный дрейф w'=-λw), drift_norm_nondecreasing
+  (|w| невозрастает), drift_half_life (полужизнь (ln2)/λ),
+  grokking_timescale_separation (∀T_fast ∃λ: время полужизни
+  > k·T_fast — обобщение задержано Θ(1/λ) относительно
+  обучения).
 - **NeuronAlloc (resource model of neural scaling)**:
   neuron_alloc_lower_bound — суммарная обратная потеря
   Σ cᵢ/nᵢ ≥ (Σ √cᵢ)²/N при бюджете Σnᵢ = N (Коши–Шварц,
