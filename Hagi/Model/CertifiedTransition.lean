@@ -167,4 +167,27 @@ theorem witness_certifiedTransition :
   certifiedTransition_of_advance wS0 wU0 (by simp [wU0])
     (by simp [wU0]) (by simp [wU0])
 
+/-- МОСТ ЦЕПОЧКИ УТОЧНЕНИЙ (аудит v6, L3): Certificate
+(GrowthState.verify-проекция) согласован с CertifiedTransition
+— переход уровня L3 детерминирует все три наблюдаемых поля
+Certificate пост-состояния: спад положителен, риск-трата в
+лимите, бюджетный расход точен. Сертификатное семейство
+сводится к одной цепочке с CertifiedTransition в ядре. -/
+theorem certificate_of_transition {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    {S S' : Hagi.System.GrowthState X} {u : Hagi.Model.StageInput X}
+    {riskLim : ℝ} (ht : CertifiedTransition S S' u riskLim) :
+    0 < (Hagi.System.verify S').decrease
+    ∧ S'.protectedRisk - S.protectedRisk
+      ≤ u.eff.growRisk + u.eff.mergeRisk
+        + u.eff.jointRisk + u.eff.compressRisk
+    ∧ S.budget - S'.budget
+      = u.eff.growCost + u.eff.mergeCost
+        + u.eff.jointCost + u.eff.compressCost := by
+  obtain ⟨exec, progress, safety, resources⟩ := ht
+  refine ⟨progress, ?_, ?_⟩
+  · linarith [safety]
+  · rw [resources]
+    ring
+
 end Hagi.Model

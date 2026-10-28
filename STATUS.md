@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3044 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3045 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,13 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Аудит v6, L3 (единый Certificate, старт)**:
+  certificate_of_transition — мост цепочки уточнений:
+  CertifiedTransition (ядро) детерминирует все наблюдаемые
+  поля Certificate-проекции пост-состояния (спад > 0,
+  риск-трата ≤ Σ рисков стадий, точный бюджетный расход);
+  13 сертификат-структур проекта сводятся к цепочке с
+  CertifiedTransition в вершине.
 - **Аудит v6, критерий готовности «нет двух теорем с
   одинаковым хешем утверждения» — ВЫПОЛНЕН**: разбор
   declarations.lock по type-hash даёт 0 групп дубликатов
