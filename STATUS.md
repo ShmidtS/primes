@@ -296,6 +296,17 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Дедуп-аудит Pinsker-семейства (v7 §6)**: исследована
+  тройка Information/Pinsker (pinsker4_fin) ×
+  Unified/Pinsker (pinsker4_via_canon) ×
+  Probability/PinskerTV (pinsker_sqrt_kl). Установлено:
+  дедуп УЖЕ выполнен мостом via_canon (fin-форма выводится
+  из TV-канона); прямое делегирование pinsker4_fin →
+  канон НЕВОЗМОЖНО по layer-контракту (Information layer 1
+  не может импортировать Probability layer 2 — LAYERLINT
+  блокирует). Канон один (pinsker_sqrt_kl), следствие одно
+  (via_canon), fin — оригинал уровня 1. Закрыто без
+  изменения кода.
 - **Дифференциальные тесты машины (аудит v7, этап 6,
   паттерн qwenputer fuzz.py)**: scripts/MachineDiffTest.py +
   гейт MACHINEDIFF в CI — Python-порт ReferenceMachine на 2000
