@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3068 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3076 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,20 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **PolyStep (источник №14: Training Non-Differentiable
+  Networks via Optimal Transport; интеграция по анализу
+  пользователя)**: Hagi/Optimization/PolyStep.lean — ядро
+  уровня 1 вертикального прототипа: polyWeights
+  (softmax-веса по стоимостям, Σ=1, ≥0), 
+  polyWeights_strict_mono (строго меньшая потеря ⟹ строго
+  больший вес), polyDelta/polyStepUpdate (взвешенное
+  направление, шаг θ+ℓ·D), polyDelta_basis_sum (невырожденность
+  координатного блока); sign_bridge_polyStep (в Model/
+  StageSemantics): при stepDir = −(ℓ/η)•D (η>0) обновление
+  advance РЕАЛИЗУЕТ PolyStep-шаг — знаковый мост конвенций
+  HAGI(спуск)/PolyStep(приближение). Следующие уровни:
+  polyStep_cost_sound (измерение потерь), связь с матричными
+  весами, continual_learning_regression_bound.
 - **DataMixing (источник №13: Ye et al., Data Mixing Laws,
   arXiv 2403.16952, ICLR'25)**: Hagi/Data/DataMixing.lean —
   mixingLoss (экспоненциальный закон потери от линейной

@@ -1594,4 +1594,24 @@ theorem plan_reachability {X : Type*}
   have hnn := hbudget tr.T (le_refl _)
   linarith
 
+
+/-- ЗНАКОВЫЙ МОСТ PolyStep → HAGI (пункт 4 анализа
+интеграции): конвенция HAGI — спуск θ⁺ = θ − η•stepDir;
+конвенция PolyStep — приближение θ⁺ = θ + ℓ•D. При
+stepDir := −(ℓ/η)•D (η > 0) обновление advance В ТОЧНОСТИ
+реализует PolyStep-шаг — знаки и теоремы о спуске
+согласованы без переопределения стадий. -/
+theorem sign_bridge_polyStep {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : Hagi.System.GrowthState X)
+    (u : Hagi.Model.StageInput X)
+    (D : X) (ell : ℝ) (heta : 0 < u.sp.eta)
+    (hdir : u.stepDir = -((ell / u.sp.eta) • D)) :
+    (Hagi.Model.advance S u).params
+      = S.params + ell • D := by
+  have hcancel : u.sp.eta * (ell / u.sp.eta) = ell := by
+    rw [mul_comm, div_mul_cancel₀ ell (ne_of_gt heta)]
+  show (Hagi.Model.advance S u).params = S.params + ell • D
+  simp only [Hagi.Model.advance]
+  rw [hdir, smul_neg, smul_smul, hcancel, sub_neg_eq_add]
 end Hagi.Model
