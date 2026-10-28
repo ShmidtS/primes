@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3035 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3037 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -286,6 +286,12 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
+- **MesoScale (источник №10: Chen arXiv 2508.12016, A Law of
+  Emergence)**: Hagi/Foundations/MesoScale.lean — ядро
+  Middle-Scale Peak Theorem: EI(ℓ)=A(ℓ)·L(ℓ), усреднение A ≤
+  a₀ℓ^p, локальность L ≤ L₀ℓ^{-q}, q>p ⟹ macro_collapse:
+  EI(ℓ) → 0 при ℓ→∞ — эмерджентность исчезает на
+  макро-масштабе (носитель — мезо); + rpow_tendsto_zero.
 - **Grokking (источник №9: Boursier–Pesme–Dragomir NeurIPS'25)**:
   Hagi/Pretraining/Grokking.lean — двухфазная динамика
   gradient flow + weight decay: drift_solution/drift_hasDeriv

@@ -181,6 +181,7 @@ import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.PerronCone
+import Hagi.Foundations.MesoScale
 import Hagi.Foundations.ConeCorridor
 import Hagi.Unified.QuantizedCone
 import Hagi.Budget.CertifiedArgmax
