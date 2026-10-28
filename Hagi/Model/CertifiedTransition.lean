@@ -1,5 +1,6 @@
 import Hagi.Model.StageSemantics
 import Hagi.System.StepCertificate
+import Hagi.Optimization.LRSchedule
 import Hagi.System.Certificates
 
 /-!
@@ -211,5 +212,43 @@ theorem transition_safe_selection {X : Type*}
       = Hagi.System.verify S' := rfl
   rw [hbase]
   exact ht.progress
+
+
+/-- МОСТ WSD → CERTIFIED GROWTH LOOP (источник №11 ×
+L3-цепочка): траектория сертифицированных переходов, чья
+энергия следует PL-рекуррентности с LR-расписанием
+(stable-фаза η = η_max длины m + late-фаза k), даёт ОДНОВРЕМЕННО
+WSD-оценку энергии (геометрическое сжатие + шумовой бюджет +
+late-decay) и ТОЧНУЮ бюджетную бухгалтерию цикла —
+сертифицированный рост с LR-расписанием. -/
+theorem wsd_cycle_bound {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → Hagi.System.GrowthState X) (u : ℕ → StageInput X)
+    (mu sig etaMax : ℝ) (m k : ℕ)
+    (hc : ∀ t < m + k, CertifiedTransition (S t) (S (t + 1)) (u t)
+      ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk))
+    (hpl : Hagi.Optimization.LRSchedule.plRec mu sig
+      (fun t => (u t).sp.eta) (fun t => (S t).energy))
+    (hmu : 0 < mu) (hetaMax : 0 < etaMax)
+    (hwindow : mu * etaMax ≤ 1)
+    (hnn : ∀ t, 0 ≤ (u t).sp.eta)
+    (hb : ∀ t, (u t).sp.eta ≤ etaMax)
+    (henn : ∀ t, 0 ≤ (S t).energy)
+    (hstable : ∀ t < m, (u t).sp.eta = etaMax) :
+    (S (m + k)).energy
+      ≤ (1 - mu * etaMax) ^ m * (S 0).energy
+        + sig ^ 2 * etaMax ^ 2
+          * ((1 - (1 - mu * etaMax) ^ m) / (1 - (1 - mu * etaMax)))
+        + (k : ℝ) * sig ^ 2 * etaMax ^ 2
+    ∧ (S (m + k)).budget = (S 0).budget
+      - ∑ t ∈ Finset.range (m + k),
+          ((u t).eff.growCost + (u t).eff.mergeCost
+            + (u t).eff.jointCost + (u t).eff.compressCost) := by
+  constructor
+  · exact Hagi.Optimization.LRSchedule.wsd_full_bound mu sig etaMax
+      (fun t => (u t).sp.eta) (fun t => (S t).energy) m k hpl
+      hmu hetaMax hwindow hnn hb henn hstable
+  · exact certified_trajectory_budget S u (m + k) hc
 
 end Hagi.Model
