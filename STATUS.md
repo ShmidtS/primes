@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3108 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3113 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,16 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **μP-скейлинг / μTransfer (источник №18: Yang et al.,
+  "Tensor Programs V" arXiv 2203.03466)**:
+  Hagi/Model/MuPScaling.lean — row_output_bound
+  (Cauchy–Schwarz строчная оценка выхода), muP_width_invariant
+  (шаг η/√n ⟹ изменение выхода ≤ η·c·‖x‖₂ — НЕ зависит от
+  ширины n: перенос LR между моделями разных ширин),
+  sp_grows_with_width (без скейлинга оценка растёт как √n —
+  стандартная параметризация непереносима). Ядро μTransfer:
+  обучение малой модели с переносом гиперпараметров на
+  большую — прямая цель HAGI (минимум вычислений).
 - **Mode Connectivity, квадратичный режим (источник №17:
   Garipov et al. NeurIPS 2018 arXiv 1802.10026; Theus et al.
   NeurIPS 2025)**: Hagi/Model/ModeConnectivity.lean —
