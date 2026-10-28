@@ -100,6 +100,10 @@ step "StatementDupCheck (audit v6: no two decls share statement hash)"
 out=$(python scripts/StatementDupCheck.py 2>&1 | tail -1)
 echo "$out"; case "$out" in STMDUP:\ PASS*) ;; *) fail=1;; esac
 
+step "MachineDiffTest (audit v7 stage 6: reference machine differential tests)"
+out=$(python scripts/MachineDiffTest.py 2>&1 | tail -1)
+echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
+
 step "ClosureReport (modules under capstones vs library)"
 python scripts/ClosureReport.py | head -1
 

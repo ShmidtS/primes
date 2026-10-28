@@ -296,6 +296,12 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **Дифференциальные тесты машины (аудит v7, этап 6,
+  паттерн qwenputer fuzz.py)**: scripts/MachineDiffTest.py +
+  гейт MACHINEDIFF в CI — Python-порт ReferenceMachine на 2000
+  случайных конфигурациях; все 5 формальных законов
+  подтверждаются численно (1923 certified, 77 вне
+  ledger-условия теоремы — легальные skip).
 - **Мост машина → семантика (аудит v7, этап 4)**:
   Hagi/Model/MachineBridge.lean — machineStageInput (StageInput,
   СОБРАННЫЙ из машинных измерений: growEnergy = E(w),
