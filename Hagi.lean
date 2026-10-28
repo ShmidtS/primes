@@ -23,6 +23,7 @@ import Hagi.Ensemble.Hoeffding
 import Hagi.Core.RealF3Ortho
 import Hagi.Core.Element
 import Hagi.Step.Joint
+import Hagi.Step.MuonAlign
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
 import Hagi.Data.DField

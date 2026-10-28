@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3062 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3064 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -296,6 +296,15 @@
   сведение CorePremises к структурным посылкам;
   MasterHAGICoreOperational — капстоун: одностадийный
   мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
+- **MuonAlign (источник №12: arXiv 2506.15054, Muon Optimizes
+  Under Spectral Norm Constraints)**: Hagi/Step/MuonAlign.lean
+  — НАСТОЯЩЕЕ Muon-ядро (закрывает замечание аудита v6
+  «Muon.lean не содержит Muon»): unitary_diag_abs_le (|Qᵢᵢ|≤1
+  из QᴴQ=1), muon_alignment_optimal — в собственном базисе
+  градиента (diag σ, σ≥0) Muon-шаг (полярная часть = I)
+  достигает выравнивания Σσᵢ, максимального среди унитарных Q
+  (Σσᵢ·Re Qᵢᵢ ≤ Σσᵢ — ядро неравенства фон Неймана о следе;
+  steepest descent при спектральной норме).
 - **LRSchedule (источник №11: Li et al. ICLR'26, arXiv
   2602.06797, Optimal LR Schedules under FSL)**:
   Hagi/Optimization/LRSchedule.lean — ядро WSD-результата:
