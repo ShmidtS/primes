@@ -98,4 +98,68 @@ theorem linear_midpoint_bound (a w1 w2 : Fin n → ℝ) :
   rw [hfun] at h
   nlinarith [h]
 
+
+/-- SWA-ГРАНИЦА (Izmailov et al., arXiv 1803.05407, уровень-2
+источника №17): энергия СРЕДНЕГО по T точкам траектории не
+превышает среднего энергий — стохастическое усреднение весов
+(SWA) не хуже среднего по траектории. Доказано через
+Cauchy–Schwarz: (Σ_t d_t)² ≤ T·Σ_t d_t². -/
+theorem swa_average_bound (a : Fin n → ℝ) (T : ℕ) (hT : 0 < T)
+    (ws : Fin T → Fin n → ℝ) :
+    energy a (fun i => (∑ t, ws t i) / T)
+      ≤ (∑ t, energy a (ws t)) / T := by
+  have hTpos : (0:ℝ) < T := by exact_mod_cast hT
+  -- per-i: среднее минус a = среднее отклонений
+  have hkey : ∀ i : Fin n,
+      (∑ t, ws t i) / T - a i = (∑ t, (ws t i - a i)) / T := by
+    intro i
+    rw [show (∑ t, (ws t i - a i)) / T
+        = (∑ t, ws t i) / T - a i from by
+      have h1 : ∑ t, (ws t i - a i) = ∑ t, ws t i - (T:ℝ) * a i := by
+        rw [Finset.sum_sub_distrib, Finset.sum_const,
+          Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+      rw [h1, sub_div, mul_div_cancel_left₀ (a i) hTpos.ne']]
+  -- per-i Cauchy–Schwarz: (Σ_t d_t)² ≤ T·Σ_t d_t²
+  have hcs : ∀ i : Fin n, (∑ t, (ws t i - a i)) ^ 2
+      ≤ T * ∑ t, (ws t i - a i) ^ 2 := by
+    intro i
+    have h := Finset.sum_mul_sq_le_sq_mul_sq (Finset.univ : Finset (Fin T))
+      (fun t : Fin T => ws t i - a i) (fun _ : Fin T => (1:ℝ))
+    have hone : ∑ t : Fin T, ((1:ℝ) ^ 2) = T := by
+      rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin]
+      simp
+    simp only [mul_one] at h
+    rw [hone] at h
+    calc (∑ t, (ws t i - a i)) ^ 2
+        = (∑ t, (ws t i - a i) * (1:ℝ)) ^ 2 := by
+          refine congrArg (fun x => x ^ 2) ?_
+          exact Finset.sum_congr rfl fun t _ => by ring
+      _ ≤ (∑ t, (ws t i - a i) ^ 2) * T := by
+        have heq : (∑ t, (ws t i - a i) * (1:ℝ)) ^ 2
+            = (∑ t, (ws t i - a i)) ^ 2 := by
+          congr 1
+          exact Finset.sum_congr rfl fun t _ => by ring
+        rw [heq]
+        exact h
+      _ = T * ∑ t, (ws t i - a i) ^ 2 := mul_comm _ _
+  -- сборка: lhs ≤ Σ_i Y_i/(2T) = rhs
+  calc ∑ i, ((∑ t, ws t i) / T - a i) ^ 2 / 2
+      ≤ ∑ i, (T * ∑ t, (ws t i - a i) ^ 2) / T ^ 2 / 2 := by
+        refine Finset.sum_le_sum fun i _ => ?_
+        have h2 : (∑ t, (ws t i - a i)) ^ 2 / ((T:ℝ) ^ 2)
+            ≤ (T * ∑ t, (ws t i - a i) ^ 2) / ((T:ℝ) ^ 2) := by
+          rw [div_le_div_iff₀ (by positivity) (by positivity)]
+          nlinarith [hcs i, sq_nonneg ((T:ℝ))]
+        rw [hkey i, div_pow,
+          div_le_div_iff₀ (by norm_num : (0:ℝ) < 2) (by norm_num : (0:ℝ) < 2)]
+        exact mul_le_mul_of_nonneg_right h2 (by norm_num : (0:ℝ) ≤ 2)
+    _ = ∑ i, (∑ t, (ws t i - a i) ^ 2) / T / 2 := by
+        refine Finset.sum_congr rfl fun i _ => ?_
+        rw [div_div, sq, mul_assoc, mul_div_mul_left _ _ hTpos.ne', div_div]
+    _ = (∑ t, ∑ i, (ws t i - a i) ^ 2 / 2) / T := by
+        rw [Finset.sum_comm, Finset.sum_div]
+        refine Finset.sum_congr rfl fun i _ => ?_
+        rw [← Finset.sum_div]
+        field_simp
+
 end Hagi.Model.ModeConnectivity

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3120 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3121 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,12 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **SWA-теория, уровень 2 источника №17 (Izmailov et al.,
+  arXiv 1803.05407)**: swa_average_bound — энергия СРЕДНЕГО
+  по T точкам траектории ≤ среднего энергий (Jensen для
+  квадратичной энергии через Cauchy–Schwarz:
+  (Σd)² ≤ T·Σd²): стохастическое усреднение весов не хуже
+  среднего по траектории.
 - **Compute-optimal масштабирование (источник №20:
   Hoffmann et al., Chinchilla, arXiv 2203.15556)**:
   Hagi/Model/ComputeOptimal.lean — chinchillaLoss (A/N +
