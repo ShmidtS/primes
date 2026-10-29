@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3174 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3180 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Cosine LR Schedule (источник №30, SGDR, Loshchilov &
+  Hutter 1608.03983)**: cos_anti (косинус анти-монотонен на
+  [0,π] — через произведение синусов, без анализа),
+  cosLR (η/2·(1+cos(πt/T))), cosLR_nonneg, cosLR_start (η(0)
+  = η_max), cosLR_end (η(T) = 0), cosLR_anti (расписание
+  анти-монотонно на [0,T]). LR-расписания: WSD (№11) +
+  cosine (№30).
 - **Gradient Clipping (источник №29, Pascanu 1211.5063)**:
   clip (масштабирование до шара нормы — теоремы для любой
   нормы), clip_norm_le (‖clip R g‖ ≤ R — защита от взрывных
