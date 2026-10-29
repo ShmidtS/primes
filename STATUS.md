@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3227 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3228 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,9 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **GRPO уровень 3 (№33+)**: groupAdv_std_unit —
+  стандартизованный advantage A_i = (r_i−mean)/σ имеет
+  ЕДИНИЧНУЮ дисперсию: ∑A_i² = n (Dr.GRPO-нормировка).
 - **DPO уровень 2 (№31+)**: btPref (Bradley–Terry
   sigmoid-link p(y₁≻y₂) = σ(r₁−r₂)), bt_pref_iff
   (p > 1/2 ⟺ r₁ > r2 — link корректно кодирует порядок

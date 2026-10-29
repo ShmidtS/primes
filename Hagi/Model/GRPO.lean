@@ -82,5 +82,18 @@ theorem groupAdv_sq_min (r : Fin n → ℝ) (hn : 0 < n) (c : ℝ) :
     positivity
   linarith [hd, hsq]
 
-end Hagi.Model.GRPO
+/-- УРОВЕНЬ 3 No33: стандартизованный advantage
+A_i = (r_i - mean)/sigma имеет ЕДИНИЧНУЮ дисперсию по
+группе: sum A_i^2 = n (нормировка Dr.GRPO-стиля;
+sigma^2 — групповая дисперсия). -/
+theorem groupAdv_std_unit (r : Fin n → ℝ) (_hn : 0 < n)
+    (sigma : ℝ) (hsig : 0 < sigma)
+    (hsigdef : ∑ i, (r i - (∑ j, r j) / n) ^ 2 = sigma ^ 2 * n) :
+    ∑ i, ((r i - (∑ j, r j) / n) / sigma) ^ 2 = n := by
+  have hs2 : sigma ^ 2 ≠ 0 := by
+    have : 0 < sigma ^ 2 := by positivity
+    exact ne_of_gt this
+  simp only [div_pow]
+  rw [← Finset.sum_div, hsigdef, mul_div_cancel_left₀ _ hs2]
 
+end Hagi.Model.GRPO
