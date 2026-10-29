@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3199 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3200 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **QK-Norm (источник №36, Henry 2002.10872)**:
+  qk_logit_bound: для RMS-нормированных q, k
+  |q·k| ≤ n — логиты внимания ограничены размерностью
+  головы (Cauchy–Schwarz через dotCS), attention-спайки
+  исключены, масштаб входов не влияет. Композиция №25
+  (rn_unit_rms) + dotCS — ноль новых примитивов.
 - **LoRA, уровень 1 (источник №35, Hu 2106.09685)**:
   lora_out ((W+BA)x = Wx + B(Ax) — адаптация через
   низкоранговый канал), lora_kernel_preserved (A·x = 0 ⟹

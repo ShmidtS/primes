@@ -2339,6 +2339,7 @@ qTern_error_out	8aa3d0950f54d29f	a26023cd9d6508ae
 qfloor_le_of_monotone	d70dedfb311edad7	2a90457157f3dd47
 qgen_frontier_bridge	f87e13b932506031	8c06335754fb898c
 qgen_frontier_bridge_invariant	a2365f1757e04c41	e8f23511044777ef
+qk_logit_bound	d9e9df38a34fe1cf	c31a392a5c648089
 quadE	74814684dca70543	f5b462a89d7d81fc
 quadGen	218868d49e1e5a42	547fc800c04ffc61
 quadGen'	4b3e6f27f49d4cc6	ac844b1f95a1a255
