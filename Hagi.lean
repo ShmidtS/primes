@@ -309,6 +309,7 @@ import Hagi.Model.RMSNorm
 import Hagi.Model.SwiGLU
 import Hagi.Model.Speculative
 import Hagi.Optimization.AdamBias
+import Hagi.Step.GradClip
 import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Model.RoPE

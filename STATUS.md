@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3168 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3173 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Gradient Clipping (источник №29, Pascanu 1211.5063)**:
+  clip (проекция на ℓ₂-шар), clip_norm_le (‖clip R g‖ ≤ R —
+  защита от взрывных градиентов), clip_eq_of_le (инертность
+  при ‖g‖ ≤ R), clip_idem, clip_dir (при R < ‖g‖ клип =
+  c•g, c > 0 — НАПРАВЛЕНИЕ спуска сохраняется).
+  Стабилизационный стек обучения замкнут.
 - **Adam bias correction (источник №28, Loshchilov & Hutter
   1711.05101)**: one_sub_beta_geom ((1−β)∑β^i = 1−β^t),
   adamM_recur (closed form = рекуррентность m₀=0,
