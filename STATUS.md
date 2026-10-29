@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3136 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3139 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,12 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **RoPE, уровень 1 (источник №24: Su et al., RoFormer,
+  arXiv 2104.09864)**: Hagi/Model/RoPE.lean — rot
+  (вращение позиции (e^{iθ})^k), rot_normSq_one (единичность,
+  cos²+sin²), rope_normSq_preserved (ИЗОМЕТРИЧНОСТЬ:
+  вращение сохраняет normSq — фаза меняется, модуль нет —
+  ядро корректности позиционного кодирования).
 - **RoPE-задел + μP-контраст-сводка (такт 143)**:
   muP_bound_le_sp_bound (μP-граница ≤ SP-границы при n ≥ 1
   — формальное сопоставление переносимого и непереносимого

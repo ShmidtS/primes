@@ -311,6 +311,7 @@ import Hagi.Model.MuPScaling
 import Hagi.Model.ComputeOptimal
 import Hagi.Model.LayerNorm
 import Hagi.Model.Residual
+import Hagi.Model.RoPE
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping
