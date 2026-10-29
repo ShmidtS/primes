@@ -111,4 +111,41 @@ theorem soft_entropy_bound (p : ℝ) (hp : 0 < p) (hp2 : p < 1) :
   rw [hsplit] at hcanon
   exact hcanon
 
+
+/-! ### Attention-масштабирование (источник №23) -/
+
+/-- ПОЧЕМУ 1/√d В ATTENTION (Vaswani et al., arXiv
+1706.03762), температурная интерпретация: масштаб логитов
+на 1/√размерности держит softmax в МЯГКОЙ ЗОНЕ — для
+любого фиксированного зазора s вероятность
+softProb (s/√n) → 1/2 при n → ∞ (максимум градиента,
+никакого затухания). Композиция `soft_dial_zero` с
+√n → ∞. -/
+theorem attention_scale_softens (s : ℝ) :
+    Filter.Tendsto (fun n : ℕ => softProb (s / Real.sqrt ((n:ℝ))))
+      Filter.atTop (nhds (1/2)) := by
+  have h1 : Filter.Tendsto (fun n : ℕ => Real.sqrt ((n:ℝ)))
+      Filter.atTop Filter.atTop :=
+    Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop
+  have h2 : Filter.Tendsto (fun x : ℝ => s / x)
+      Filter.atTop (nhds 0) := by
+    have h := tendsto_inv_atTop_zero.const_mul s
+    convert h using 1
+    · ext x
+      field_simp
+    · simp
+  exact soft_dial_zero.comp (h2.comp h1)
+
+/-- КОНТРАСТ: БЕЗ масштабирования при ширине n зазор
+растёт как s·n — вероятность САТУРИРУЕТСЯ к 1 (диал в
+максимум, градиент затухает): формальное ядро
+необходимости 1/√d-скейлинга в attention. -/
+theorem attention_no_scale_saturates (s : ℝ) (hs : 0 < s) :
+    Filter.Tendsto (fun n : ℕ => softProb (s * (n:ℝ)))
+      Filter.atTop (nhds 1) := by
+  have h1 : Filter.Tendsto (fun n : ℕ => s * (n:ℝ))
+      Filter.atTop Filter.atTop :=
+    (tendsto_natCast_atTop_atTop.const_mul_atTop hs)
+  exact soft_dial_max.comp h1
+
 end Hagi.Unified.Distillation
