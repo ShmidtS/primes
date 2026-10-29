@@ -317,6 +317,7 @@ import Hagi.Model.HNet
 import Hagi.Model.MambaSSM
 import Hagi.Model.DDPM
 import Hagi.Model.CFG
+import Hagi.Model.FlowMatching
 import Hagi.Optimization.AdamBias
 import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip
