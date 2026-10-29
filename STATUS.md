@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3210 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3213 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Classifier-Free Guidance (источник №40, Ho & Salimans
+  2207.12598)**: cfg_interp (ε̃ = (1−w)ε_u + wε_c),
+  cfg_convex (при w∈[0,1] предсказание между условным и
+  безусловным), cfg_boost (при w>1 отклонение ∝ (w−1)
+  от безусловного — экстраполяция усиливает условность).
+  Diffusion-стек: DDPM (№39) + CFG (№40).
 - **DDPM forward-процесс (источник №39, Ho 2006.11239)**:
   alphaBar (∏(1−β_s)) + рекуррентность, alphaBar_mono
   (сигнал монотонно НЕвозрастает при β∈[0,1]),
