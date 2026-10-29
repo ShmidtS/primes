@@ -307,6 +307,7 @@ import Hagi.Model.ComputeOptimal
 import Hagi.Model.LayerNorm
 import Hagi.Model.RMSNorm
 import Hagi.Model.SwiGLU
+import Hagi.Model.Speculative
 import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Model.RoPE

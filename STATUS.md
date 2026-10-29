@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3159 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3162 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Speculative Decoding, уровень 1 (источник №27, Chen
+  2302.01318)**: accept_chain_prob (α^k), 
+  speculative_expected_tokens (геометрическая серия
+  (1-α^{k+1})/(1-α), индукция), speculative_win (при α>0,
+  k≥1 ожидаемое число токенов/проход > 1 — спекулятивный
+  цикл строго выгоднее последовательного декодирования).
+  Inference-стек: GQA + shift-softmax + spec-decoding.
 - **Multi-scale Engine: композиционный сертификат микро-шага
   (MicroStepCert)**: microstep_cert — МОСТ рычагов: L-гладкость
   + дессент ⟨G,ΔW⟩ ≤ -ε + gpmOrth ⟹ ОДНОВРЕМЕННО
