@@ -329,6 +329,16 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Аудит v8 — ответ тактом №146 (P1, фасады Unified)**:
+  демонтированы 5 пустых реэкспортеров (Unified/Concentration,
+  Fannes, GrowthTheory, Master, SafeStep — 0 деклараций, 0
+  внешних импортёров). Статус по P0 аудита: Gen-2 advance(S,u)
+  (StageSemantics + LinkedWitness T=3 + ReferenceMachine +
+  MachineBridge) уже основная операционная семантика; Gen-1
+  CorePremises сохранён только как историческая модель с
+  регрессионным UNSAT-тестом (Examples/Nonvacuity). Остатки
+  аудита v8: карантин Gen-1-цепочки из Unified, дедуп
+  hagiPotential/maxSingularValue, этап 7 (абляции).
 - **RoPE, уровень 1 (источник №24: Su et al., RoFormer,
   arXiv 2104.09864)**: Hagi/Model/RoPE.lean — rot
   (вращение позиции (e^{iθ})^k), rot_normSq_one (единичность,
