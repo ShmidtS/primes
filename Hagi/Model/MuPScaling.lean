@@ -161,4 +161,23 @@ theorem sp_grows_with_width (G : Fin n → Fin n → ℝ)
         exact mul_le_mul_of_nonneg_left hkey (mul_nonneg heta hc)
     _ = eta * c * Real.sqrt ((n:ℝ)) * (∑ j, (x j) ^ 2).sqrt := by ring
 
+
+/-- КОНТРАСТ-СВОДКА: μP-граница никогда не хуже SP-границы
+(при n ≥ 1 множитель √n ≥ 1) — формальное сопоставление
+переносимого и непереносимого скейлинга шага. -/
+theorem muP_bound_le_sp_bound (x : Fin n → ℝ) (eta c : ℝ)
+    (heta : 0 ≤ eta) (hc : 0 ≤ c) (hn1 : 1 ≤ n) :
+    eta * c * (∑ j, (x j) ^ 2).sqrt
+      ≤ eta * c * Real.sqrt ((n:ℝ)) * (∑ j, (x j) ^ 2).sqrt := by
+  have hn : (1:ℝ) ≤ Real.sqrt ((n:ℝ)) := by
+    have hnn : (1:ℝ) ≤ (n:ℕ) := by exact_mod_cast hn1
+    calc (1:ℝ) = Real.sqrt 1 := (Real.sqrt_one).symm
+      _ ≤ Real.sqrt ((n:ℝ)) := Real.sqrt_le_sqrt hnn
+  have hnn : 0 ≤ eta * c * (∑ j, (x j) ^ 2).sqrt := by
+    apply mul_nonneg
+    · exact mul_nonneg heta hc
+    · exact Real.sqrt_nonneg _
+  have hB : 0 ≤ (∑ j, (x j) ^ 2).sqrt := Real.sqrt_nonneg _
+  nlinarith [hn, hnn, hB]
+
 end Hagi.Model.MuPScaling
