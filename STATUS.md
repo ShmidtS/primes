@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3194 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3196 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Switch MoE load balancing (источник №34, Fedus
+  2101.03961)**: switch_floor (∑P_i² ≥ 1/n при ∑P = 1 —
+  нижняя граница нагрузочного члена; реюз GRPO sq_decomp с
+  c=0), switch_floor_eq_iff (равенство ⟺ равномерный
+  роутинг — единственный минимум баланса). MoE-стек:
+  Hopfield-ёмкость (№16) + water-filling + Switch-баланс.
 - **GRPO, уровни 1+2 (источник №33, Shao 2402.19327)**:
   groupAdv (A_i = r_i − mean(r) — групповой baseline без
   value-сети), groupAdv_sum_zero (∑ A_i = 0 — смещение-
