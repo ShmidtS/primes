@@ -314,6 +314,7 @@ import Hagi.Model.SwitchMoE
 import Hagi.Model.LoRA
 import Hagi.Model.QKNorm
 import Hagi.Model.HNet
+import Hagi.Model.MambaSSM
 import Hagi.Optimization.AdamBias
 import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip

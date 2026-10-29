@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3203 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3206 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,14 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Mamba/SSM (источник №38, Gu & Dao 2312.00752)**:
+  ssm_linear_cost_lt (рекуррентный O(T·κ) проход строго
+  дешевле O(T²)-attention при T > κ — crossover),
+  ssm_memory_const (O(1)-память состояния vs линейный
+  KV-кэш при d ≥ 1), ssm_state_bound (при сжатии ρ < 1
+  состояние ограничено B/(1−ρ) — стабильность SSM,
+  геометрическая серия). Sequence-стек: attention (№23) +
+  H-Net иерархия (№37) + SSM (№38).
 - **H-Net byte-level (источник №37, Cartesia From Tokens
   to Bytes I/II + Merrill 2509.06784)**: hier_seq_shorten
   (пул r байтов в латент: T → T/r), hier_attn_saving
