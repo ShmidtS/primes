@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3192 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3194 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,12 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
-- **GRPO, уровень 1 (источник №33, Shao 2402.19327)**:
+- **GRPO, уровни 1+2 (источник №33, Shao 2402.19327)**:
   groupAdv (A_i = r_i − mean(r) — групповой baseline без
   value-сети), groupAdv_sum_zero (∑ A_i = 0 — смещение-
-  компенсация: baseline не вносит систематического сдвига).
-  sq_min-оптимальность среднего отложена (Finset-вынос
-  константы нестабилен — LESSONS). RL-стек: DPO + PPO + GRPO.
+  компенсация), groupAdv_sq_decomp (∑(r−c)² − ∑(r−mean)² =
+  n·(mean−c)²), groupAdv_sq_min (mean — ОПТИМАЛЬНЫЙ baseline:
+  сумма квадратов минимальна ровно на среднем). RL-стек:
+  DPO + PPO + GRPO.
 - **PPO-clip (источник №32, Schulman 1707.06347)**: ppoClip,
   границы/монотонность/тождественность внутри отрезка,
   ppo_clip_term_abs_bound (|clip·A| ≤ (1+ε)|A|),
