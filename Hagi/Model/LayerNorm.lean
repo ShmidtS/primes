@@ -94,4 +94,18 @@ theorem variance_decomp (x : Fin n → ℝ) (hn : 0 < n) :
   rw [hB]
   field_simp
 
+/-- УРОВЕНЬ 3 No21: LayerNorm-выход ЦЕНТРИРОВАН:
+sum (lnVec x i) = 0 (реюз groupAdv_sum_zero; RMSNorm (No25)
+этим НЕ обладает — точный контраст двух нормировок). -/
+theorem ln_sum_zero (x : Fin n → ℝ) (hn : 0 < n) :
+    ∑ i, lnVec x i = 0 := by
+  have hz : ∑ i, (x i - (∑ j, x j) / n) = 0 :=
+    Hagi.Model.GRPO.groupAdv_sum_zero x hn
+  unfold lnVec
+  rw [← Finset.sum_div]
+  rw [show (∑ i, (x i - mean x)) = ∑ i, (x i - (∑ j, x j) / n)
+    from by simp only [mean]]
+  rw [hz, zero_div]
+
 end Hagi.Model.LayerNorm
+

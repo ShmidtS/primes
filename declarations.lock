@@ -1722,6 +1722,7 @@ lmo_descent_direction	531bbe98c3e0464a	401cfaf95b14265f
 lmo_lower_bound	ab290f2ed7c06362	6ecc80b74041e494
 lnVec	80848daff54b5e90	b7c476298f5c3953
 ln_scale_invariant	42edb77e1daaf026	8b7f59b5b267e3a3
+ln_sum_zero	e8a4a561b3ed611a	72db61d7b70c1abe
 locality_le_of_bounded	ffaeb140633b862a	6b08246b629595e9
 log2_3	bb47234e0bdeceb6	8531ebcadd7c8998
 logDetShift	ad2a98e2ca7c7363	8e3acc8edfea97f4
