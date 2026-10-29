@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3139 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3142 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,13 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **RoPE, уровень 2 — ОТНОСИТЕЛЬНОСТЬ (ядро RoPE)**:
+  ropeInner (Re-часть (star w_m·u)·(w_n·v)),
+  rope_shift_invariant: одновременный сдвиг d обеих
+  позиций НЕ меняет внутреннего произведения
+  (star w_d·w_d = 1, d-экспоненты сокращаются) —
+  взаимодействие токенов зависит только от ВЗАИМНОГО
+  расположения. Полное ядро RoPE формализовано.
 - **RoPE, уровень 1 (источник №24: Su et al., RoFormer,
   arXiv 2104.09864)**: Hagi/Model/RoPE.lean — rot
   (вращение позиции (e^{iθ})^k), rot_normSq_one (единичность,
