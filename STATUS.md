@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3206 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3210 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **DDPM forward-процесс (источник №39, Ho 2006.11239)**:
+  alphaBar (∏(1−β_s)) + рекуррентность, alphaBar_mono
+  (сигнал монотонно НЕвозрастает при β∈[0,1]),
+  alphaBar_exp_bound (ᾱ_t ≤ (1−b)^t — ЭКСПОНЕНЦИАЛЬНОЕ
+  затухание сигнала, геометрическая скорость перевода в
+  шумовой режим). Генеративный стек: KD + DPO + diffusion.
 - **Mamba/SSM (источник №38, Gu & Dao 2312.00752)**:
   ssm_linear_cost_lt (рекуррентный O(T·κ) проход строго
   дешевле O(T²)-attention при T > κ — crossover),
