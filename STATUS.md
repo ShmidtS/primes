@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3231 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3233 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **H-Net №37 уровень 2 — ОПТИМАЛЬНЫЙ РАНГ ПУЛА**: amgm3
+  (трёхчленный AM-GM из geom_mean_le_arith_mean_weighted),
+  hnet_cost_floor — cost(r) = aTr + bT²/r² ≥
+  3·(a²bT⁴/4)^{1/3} НЕ зависит от r (r сокращается в
+  AM-GM-произведении x=x=aTr/2, z=bT²/r²); оптимум
+  r* = (2bT/a)^{1/3} ∝ T^{1/3} — скейлинг ранга иерархии.
 - **RMSNorm №25 уровень 3 (КОНТРАСТ)**: rms_not_centered —
   на константном векторе ∑(rnVec x i) = n ≠ 0: RMSNorm НЕ
   центрирует (цена экономии без mean-subtraction);

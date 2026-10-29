@@ -51,4 +51,48 @@ theorem hier_attn_saving_lt (T r c : ℝ) (hr1 : 1 < r)
   have hbase : 0 < c * T ^ 2 := by positivity
   nlinarith [hbase, hr1]
 
+/-- AM-GM для трёх неотриц чисел (выведен из взвешенного
+geom_mean_le_arith_mean_weighted). -/
+theorem amgm3 (x y z : ℝ) (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
+    (x * y * z) ^ ((3:ℝ)⁻¹) ≤ (x + y + z) / 3 := by
+  have hw := Real.geom_mean_le_arith_mean_weighted
+    (Finset.univ : Finset (Fin 3))
+    (fun _ => (1 / 3 : ℝ))
+    (fun i => if i = 0 then x else if i = 1 then y else z)
+    (fun i _ => by norm_num)
+    (by simp)
+    (fun i _ => by fin_cases i <;> simp [hx, hy, hz])
+  rw [Fin.prod_univ_three, Fin.sum_univ_three] at hw
+  simp at hw
+  rw [show (x * y * z : ℝ) = x * (y * z) from by ring,
+    Real.mul_rpow hx (mul_nonneg hy hz), Real.mul_rpow hy hz]
+  field_simp
+  ring_nf at hw ⊢
+  linarith
+
+/-- УРОВЕНЬ 2 No37: ОПТИМАЛЬНЫЙ РАНГ ПУЛА. Полная стоимость
+иерархии cost(r) = a*T*r (локальные пулы) + b*T^2/r^2
+(латентный attention) ограничена снизу
+3*(a^2*b*T^4/4)^(1/3) — НЕ зависит от r (AM-GM-3 с
+x = y = aTr/2, z = bT^2/r^2: r сокращается в произведении).
+Оптимум r* = (2bT/a)^(1/3) пропорционален T^(1/3). -/
+theorem hnet_cost_floor (a b T r : ℝ) (ha : 0 < a) (hb : 0 < b)
+    (hT : 0 < T) (hr : 0 < r) :
+    3 * ((a * T * r / 2) * (a * T * r / 2) * (b * T ^ 2 / r ^ 2))
+        ^ ((3:ℝ)⁻¹) ≤ a * T * r + b * T ^ 2 / r ^ 2 := by
+  have ham := amgm3 (a * T * r / 2) (a * T * r / 2) (b * T ^ 2 / r ^ 2)
+    (by positivity) (by positivity) (by positivity)
+  have hsplit : a * T * r / 2 + a * T * r / 2 + b * T ^ 2 / r ^ 2
+      = a * T * r + b * T ^ 2 / r ^ 2 := by ring
+  rw [hsplit] at ham
+  have hstep : 3 * ((a * T * r / 2 * (a * T * r / 2) * (b * T ^ 2 / r ^ 2)) ^ ((3:ℝ)⁻¹))
+      ≤ 3 * ((a * T * r + b * T ^ 2 / r ^ 2) / 3) :=
+    mul_le_mul_of_nonneg_left ham (by norm_num)
+  have hcancel : 3 * ((a * T * r + b * T ^ 2 / r ^ 2) / 3)
+      = a * T * r + b * T ^ 2 / r ^ 2 := by
+    field_simp
+  rw [hcancel] at hstep
+  linarith [hstep]
+
 end Hagi.Model.HNet
+
