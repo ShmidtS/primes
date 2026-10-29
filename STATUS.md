@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3142 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3147 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **RMSNorm, уровни 1+2 (источник №25, Zhang & Sennrich
+  1912.11247)**: ms/rnVec, rn_scale_invariant (как LN —
+  инвариантность к масштабу, направление сохраняется),
+  rn_unit_rms (∑(rn x i)² = n при x ≠ 0 — единичный RMS
+  выхода). Стек нормализации замкнут: LN (№21) + RMSNorm.
 - **Аудит v8 — ответ тактом №146 (P1, фасады Unified)**:
   демонтированы 5 пустых реэкспортеров (Unified/Concentration,
   Fannes, GrowthTheory, Master, SafeStep — 0 деклараций, 0

@@ -305,6 +305,7 @@ import Hagi.Model.ModeConnectivity
 import Hagi.Model.MuPScaling
 import Hagi.Model.ComputeOptimal
 import Hagi.Model.LayerNorm
+import Hagi.Model.RMSNorm
 import Hagi.Model.Residual
 import Hagi.Model.RoPE
 import Hagi.Unified.Distillation
