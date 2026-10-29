@@ -311,6 +311,7 @@ import Hagi.Model.Speculative
 import Hagi.Model.DPO
 import Hagi.Model.GRPO
 import Hagi.Model.SwitchMoE
+import Hagi.Model.LoRA
 import Hagi.Optimization.AdamBias
 import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip

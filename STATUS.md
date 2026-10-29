@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3196 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3199 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **LoRA, уровень 1 (источник №35, Hu 2106.09685)**:
+  lora_out ((W+BA)x = Wx + B(Ax) — адаптация через
+  низкоранговый канал), lora_kernel_preserved (A·x = 0 ⟹
+  поведение НЕ МЕНЯЕТСЯ — аналог GPM zero-forgetting на
+  охвате адаптера), lora_param_saving ((m+n)r ≤ mn —
+  экономия против полного fine-tuning).
+  Адаптационный стек: LoRA + LiveDelta + RankBudget.
 - **Switch MoE load balancing (источник №34, Fedus
   2101.03961)**: switch_floor (∑P_i² ≥ 1/n при ∑P = 1 —
   нижняя граница нагрузочного члена; реюз GRPO sq_decomp с
