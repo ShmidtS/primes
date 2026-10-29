@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3236 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3241 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Logit soft-capping (источник №45, Gemma 2 2408.00118)**:
+  tanhE/softcap (l' = cap·tanh(l/cap)), tanhBound (|tanh| ≤ 1
+  через разность квадратов — tanh-лемм в пине нет),
+  softcap_bound (|softcap| ≤ cap — ГЛАДКОЕ ограничение
+  логитов без градиентных разрывов), softcap_zero.
+  Стек стабилизации: QK-norm + softcap.
 - **Mamba №38 уровень 2**: mamba_disc_contract —
   дискретизация SSM: e^{−ΔA} ≤ 1 при Δ,A ≥ 0 — дискретный
   шаг никогда не усиливает состояние (устойчивость явной
