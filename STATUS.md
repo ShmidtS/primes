@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3218 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3221 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **MLA латентный KV-кэш (источник №42, DeepSeek-V2
+  2405.04434)**: cacheFull/cacheLatent (память 2nd vs n·dc),
+  mla_cache_saving (dc < d ⟹ латентный кэш СТРОГО меньше —
+  экономия растёт с контекстом; K,V восстанавливаются из
+  латента той же низкоранговой структурой, что LoRA №35).
+  Inference-стек: GQA + spec-decoding + H-Net + MLA.
 - **Flow Matching (источник №41, Lipman 2210.02747)**:
   flowPath (линейный путь (1−t)x₀+tx₁ — прямая
   интерполяция шум→данные), flow_start/end (точная
