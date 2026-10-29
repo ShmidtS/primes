@@ -309,6 +309,7 @@ import Hagi.Model.MachineBridge
 import Hagi.Model.ModeConnectivity
 import Hagi.Model.MuPScaling
 import Hagi.Model.ComputeOptimal
+import Hagi.Model.LayerNorm
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.SphericalDamping

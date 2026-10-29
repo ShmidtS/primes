@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3121 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3127 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,13 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **LayerNorm: масштабная инвариантность (источник №21:
+  Ba, Kiros, Hinton arXiv 1607.06450; RMSNorm 1904.10510)**:
+  Hagi/Model/LayerNorm.lean — mean/variance/lnVec,
+  mean_smul, variance_smul (однородность 2-й степени),
+  ln_scale_invariant: LN(c•x) = LN(x) при c > 0 —
+  нормировка выделяет НАПРАВЛЕНИЕ, отбрасывая длину
+  (устойчивость глубоких сетей к масштабу активаций).
 - **SWA-теория, уровень 2 источника №17 (Izmailov et al.,
   arXiv 1803.05407)**: swa_average_bound — энергия СРЕДНЕГО
   по T точкам траектории ≤ среднего энергий (Jensen для
