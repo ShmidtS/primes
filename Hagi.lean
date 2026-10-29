@@ -310,6 +310,7 @@ import Hagi.Model.SwiGLU
 import Hagi.Model.Speculative
 import Hagi.Model.DPO
 import Hagi.Optimization.AdamBias
+import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip
 import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual

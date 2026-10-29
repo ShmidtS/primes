@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3183 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3190 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **PPO-clip (источник №32, Schulman 1707.06347)**: ppoClip,
+  границы/монотонность/тождественность внутри отрезка,
+  ppo_clip_term_abs_bound (|clip·A| ≤ (1+ε)|A|),
+  ppo_surr_upper_bound (L = min(rA, clip·A) ≤ (1+ε)|A|
+  при любом r — клипнутый surrogate ограничен сверху:
+  обновление политики не может дать неограниченный
+  выигрыш). RL-выравнивание: DPO (№31) + PPO (№32).
 - **DPO, уровень 1 (источник №31, Rafailov 2305.18290)**:
   dpoReward (β·(ln π − ln π_ref)), boltzmann_from_reward
   (π = π_ref·exp(r/β) — политика восстанавливается из
