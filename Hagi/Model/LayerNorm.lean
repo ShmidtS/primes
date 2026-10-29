@@ -1,4 +1,6 @@
 import Mathlib
+import Hagi.Model.GRPO
+import Hagi.Model.RMSNorm
 
 /-!
 # LayerNorm: масштабная инвариантность (источник №21)
@@ -75,5 +77,21 @@ theorem ln_scale_invariant (x : Fin n → ℝ) (c : ℝ) (hc : 0 < c) :
       Real.sqrt_sq (by positivity : (0:ℝ) ≤ c)]
   rw [hs, mean_smul, show (c • x) i = c * x i from rfl]
   rw [← mul_sub, mul_div_mul_left _ _ hc.ne']
+
+/-- МОСТ №21-№25: разложение дисперсии
+variance(x) = ms(x) - (mean x)^2 — LayerNorm-дисперсия есть
+RMSNorm-средний квадрат минус квадрат среднего (E[x^2] - E[x]^2).
+Реюз groupAdv_sq_decomp (GRPO №33) с c = 0. -/
+theorem variance_decomp (x : Fin n → ℝ) (hn : 0 < n) :
+    variance x = Hagi.Model.RMSNorm.ms x - (mean x) ^ 2 := by
+  have hn' : (n : ℝ) ≠ 0 := by positivity
+  have hd := Hagi.Model.GRPO.groupAdv_sq_decomp x hn 0
+  simp only [sub_zero] at hd
+  have hB : ∑ i, (x i - (∑ j, x j) / n) ^ 2
+      = ∑ i, (x i) ^ 2 - n * ((∑ j, x j) / n) ^ 2 := by
+    linarith [hd]
+  unfold variance mean Hagi.Model.RMSNorm.ms
+  rw [hB]
+  field_simp
 
 end Hagi.Model.LayerNorm
