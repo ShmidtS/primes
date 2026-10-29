@@ -77,4 +77,22 @@ theorem rn_unit_rms (x : Fin n → ℝ) (hx : ms x ≠ 0) :
     simp
   exact mul_div_cancel_left₀ (n:ℝ) hS
 
+/-- КОНТРАСТ №25: RMSNorm НЕ центрирует — на константном
+векторе выход имеет сумму n ≠ 0 (LayerNorm (№21)
+центрирует: ln_sum_zero). Экономия RMSNorm (без
+mean-subtraction) имеет цену: постоянная компонента
+проходит насквозь. -/
+theorem rms_not_centered (hn : 1 ≤ n) :
+    ∑ i, (rnVec (n := n) (fun _ => (1:ℝ)) i) = (n : ℝ) := by
+  have hnpos : (n : ℝ) ≠ 0 := by
+    have h : n ≠ 0 := by omega
+    exact_mod_cast h
+  have hsum1 : (∑ _i ∈ (Finset.univ : Finset (Fin n)), (1:ℝ))
+      = (n : ℝ) := by
+    simp
+  unfold rnVec ms
+  simp only [one_pow]
+  rw [hsum1, div_self hnpos, Real.sqrt_one, div_one]
+  exact hsum1
+
 end Hagi.Model.RMSNorm

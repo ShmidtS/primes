@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3230 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3231 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **RMSNorm №25 уровень 3 (КОНТРАСТ)**: rms_not_centered —
+  на константном векторе ∑(rnVec x i) = n ≠ 0: RMSNorm НЕ
+  центрирует (цена экономии без mean-subtraction);
+  LayerNorm центрирует (ln_sum_zero) — точная пара
+  контрастных теорем.
 - **LayerNorm №21 уровень 3**: ln_sum_zero — LN-выход
   ЦЕНТРИРОВАН: ∑(lnVec x i) = 0 (реюз groupAdv_sum_zero);
   RMSNorm этим НЕ обладает — точный контраст нормировок.
