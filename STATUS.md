@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3127 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3130 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,13 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **Residual-соединения: ограниченный дрейф (источник №22:
+  He et al., arXiv 1512.03385)**: Hagi/Model/Residual.lean —
+  resStep/resStream, res_bounded_drift: T residual-шагов с
+  приращениями ≤ ε ⟹ суммарный дрейф ≤ T·ε (индукция +
+  треугольник): приращения АДДИТИВНЫ — глубина даёт
+  линейный, не экспоненциальный рост дрейфа (ядро
+  обучаемости глубоких residual-сетей).
 - **LayerNorm: масштабная инвариантность (источник №21:
   Ba, Kiros, Hinton arXiv 1607.06450; RMSNorm 1904.10510)**:
   Hagi/Model/LayerNorm.lean — mean/variance/lnVec,
