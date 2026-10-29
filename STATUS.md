@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3225 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3227 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,10 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **DPO уровень 2 (№31+)**: btPref (Bradley–Terry
+  sigmoid-link p(y₁≻y₂) = σ(r₁−r₂)), bt_pref_iff
+  (p > 1/2 ⟺ r₁ > r2 — link корректно кодирует порядок
+  наград; строго через exp-монотонность).
 - **QK-Norm уровень 2 (№36+)**: qk_no_saturation — при
   логит-гэпе ≤ 2n (после QK-норм) отношение любых двух
   вероятностей внимания ≤ e^{2n}: каждый токен получает

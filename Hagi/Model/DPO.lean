@@ -55,4 +55,36 @@ theorem boltzmann_norm {β : ℝ} (hβ : β ≠ 0)
   rw [Finset.sum_congr rfl h]
   exact hsumP
 
+/-- Bradley-Terry sigmoid-link: вероятность предпочтения
+y1 > y2 по разности наград. -/
+noncomputable def btPref (r1 r2 : ℝ) : ℝ :=
+  1 / (1 + Real.exp (-(r1 - r2)))
+
+/-- УРОВЕНЬ 2 No31: предпочтение монотонно по награде —
+p(y1 > y2) > 1/2 ⟺ r1 > r2 (Bradley-Terry link корректно
+кодирует порядок наград). -/
+theorem bt_pref_iff (r1 r2 : ℝ) :
+    1 / 2 < btPref r1 r2 ↔ r1 > r2 := by
+  unfold btPref
+  set S := 1 + Real.exp (-(r1 - r2)) with hSdef
+  have hSpos : (0:ℝ) < S := by
+    have := Real.exp_pos (-(r1 - r2))
+    rw [hSdef]
+    linarith
+  have hkey : (1:ℝ)/2 < (1:ℝ)/S ↔ S < (2:ℝ) := by
+    rw [one_div, one_div]
+    exact inv_lt_inv₀ (by norm_num : (0:ℝ) < 2) hSpos
+  rw [hkey]
+  have hexp : Real.exp (-(r1 - r2)) < 1 ↔ -(r1 - r2) < 0 :=
+    Real.exp_lt_one_iff
+  constructor
+  · intro h
+    have h1 : Real.exp (-(r1 - r2)) < 1 := by linarith
+    have h2 := hexp.mp h1
+    linarith
+  · intro h
+    have hneg : -(r1 - r2) < 0 := by linarith
+    have h1 := hexp.mpr hneg
+    linarith
+
 end Hagi.Model.DPO
