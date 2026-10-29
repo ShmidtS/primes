@@ -62,5 +62,45 @@ theorem res_bounded_drift (f : ℕ → X → X) (x0 : X) (eps : ℝ)
       rw [hcast]
       linarith
 
-end Hagi.Model.Residual
+/-- Каскадный (plain) поток: T мультипликативных слоёв. -/
+def cascade (g : ℕ → X → X) (x0 : X) : ℕ → X
+  | 0 => x0
+  | (t + 1) => g t (cascade g x0 t)
 
+/-- ЭКСПОНЕНЦИАЛЬНАЯ ОЦЕНКА plain-каскада: T слоёв с
+усилением ≤ (1+δ) дают ‖x_T‖ ≤ (1+δ)^T·‖x₀‖ — рост
+экспоненциален по глубине (контраст с линейным
+`res_bounded_drift`). -/
+theorem cascade_exp_bound (g : ℕ → X → X) (x0 : X) (delta : ℝ)
+    (hdelta : 0 ≤ delta)
+    (hg : ∀ (t : ℕ) (x : X), ‖g t x‖ ≤ (1 + delta) * ‖x‖)
+    (T : ℕ) :
+    ‖cascade g x0 T‖ ≤ (1 + delta) ^ T * ‖x0‖ := by
+  induction T with
+  | zero =>
+      rw [show cascade g x0 0 = x0 from rfl]
+      norm_num
+  | succ t ih =>
+      have hsplit : cascade g x0 (t + 1)
+          = g t (cascade g x0 t) := rfl
+      rw [hsplit]
+      have hg' := hg t (cascade g x0 t)
+      rw [pow_succ]
+      calc ‖g t (cascade g x0 t)‖
+          ≤ (1 + delta) * ‖cascade g x0 t‖ := hg'
+        _ ≤ (1 + delta) * ((1 + delta) ^ t * ‖x0‖) :=
+            mul_le_mul_of_nonneg_left ih (by positivity)
+        _ = (1 + delta) ^ t * (1 + delta) * ‖x0‖ := by ring
+
+/-- КОНТРАСТ ЛИНЕЙНОГО И ЭКСПОНЕНЦИАЛЬНОГО: мультипликативная
+оценка доминирует линейную снизу Бернулли (1+δ)^T ≥ 1+Tδ —
+residual-дрейф растёт ЛИНЕЙНО, plain-каскад — как минимум
+линейно и в общем случае экспоненциально. Формальное ядро
+того, почему глубокие plain-сети необучаемы, а
+residual-обучаемы. -/
+theorem linear_le_exp_contrast (delta : ℝ) (hdelta : 0 ≤ delta)
+    (T : ℕ) :
+    1 + (T:ℝ) * delta ≤ (1 + delta) ^ T :=
+  one_add_mul_le_pow (by linarith) T
+
+end Hagi.Model.Residual

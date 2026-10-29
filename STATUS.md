@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3130 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3133 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,12 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **Контраст линейного/экспоненциального (уровень 2
+  источника №22)**: cascade_exp_bound (plain-каскад:
+  ‖x_T‖ ≤ (1+δ)^T·‖x₀‖ — экспоненциальный рост по глубине),
+  linear_le_exp_contrast (Бернулли: (1+δ)^T ≥ 1+Tδ) —
+  формальное ядро необучаемости глубоких plain-сетей vs
+  обучаемости residual (линейный дрейф).
 - **Residual-соединения: ограниченный дрейф (источник №22:
   He et al., arXiv 1512.03385)**: Hagi/Model/Residual.lean —
   resStep/resStream, res_bounded_drift: T residual-шагов с
