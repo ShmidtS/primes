@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3154 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3159 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Multi-scale Engine: композиционный сертификат микро-шага
+  (MicroStepCert)**: microstep_cert — МОСТ рычагов: L-гладкость
+  + дессент ⟨G,ΔW⟩ ≤ -ε + gpmOrth ⟹ ОДНОВРЕМЕННО
+  E(W+ΔW) ≤ E W - ε + L/2‖ΔW‖²_F и ТОЧНОЕ воспроизведение
+  старых входов ((W+ΔW)x_k = Wx_k ∀k — gpm_zero_forgetting).
+  microstep_net_drop: при L/2‖ΔW‖²_F < ε — строгий чистый
+  спуск. SafeQP в подпространстве GPM совместим со спуском.
 - **SwiGLU, уровень 1 (источник №26, Shazeer 2002.05202)**:
   sig/swish/swiglu, swish_abs_le (|Swish z| ≤ |z| — гейт
   σ(z)∈(0,1) не усиливает активацию), swiglu_abs_le
