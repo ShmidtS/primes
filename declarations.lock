@@ -534,6 +534,7 @@ clamped_attention_grad_bound	a5cbff569ed50672	6f5fc25a0abde32e
 class_size_lower	40e4da5a619cc7b7	4ce3ea261c2fdb79
 clean_neuron_of_conditions	3342b161e4a8b63b	bcd181c8acd9e20b
 clip	0df292a9c6e2d01e	1b401c9a35a76552
+clip_descent_pos	91cddaf77902bd4a	f605976266bafae6
 clip_dir	14734c4511d6686a	3ddc0fc4536145df
 clip_eq_of_le	d91140a63852dc6b	df2db14eb4a9bba3
 clip_idem	8ac86be3c3d418bf	f72774c06e7738a0

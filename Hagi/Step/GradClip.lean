@@ -1,12 +1,14 @@
 import Mathlib
 
 /-!
-# Gradient Clipping: проекция на ℓ₂-шар (источник №29)
+# Gradient Clipping: масштабирование до шара нормы (источник №29)
 
 Источник №29: Pascanu, Mikolov, Bengio, "On the difficulty of
 training recurrent neural networks" (arXiv 1211.5063).
 Gradient clipping — стандартная защита от взрывных градиентов:
-g заменяется на min(1, R/‖g‖)·g — проекцию на ℓ₂-шар радиуса R.
+g заменяется на min(1, R/‖g‖)·g — масштабирование до шара
+радиуса R (теоремы верны для любой нормой, заданной на
+`Fin n → ℝ`; стандартно ℓ₂ при евклидовой структуре).
 
 Формализованное ядро (строгое):
 - `clip_norm_le`: ‖clip R g‖ ≤ R — норма никогда не
@@ -23,8 +25,8 @@ namespace Hagi.Step.GradClip
 
 variable {n : ℕ}
 
-/-- Клип на ℓ₂-шар радиуса R: тождество при ‖g‖ ≤ R,
-иначе масштабирование до нормы R. -/
+/-- Клип в шар радиуса R (норма пространства): тождество при
+‖g‖ ≤ R, иначе масштабирование до нормы R. -/
 noncomputable def clip (R : ℝ) (g : Fin n → ℝ) : Fin n → ℝ :=
   if ‖g‖ ≤ R then g else (R / ‖g‖) • g
 
@@ -72,4 +74,19 @@ theorem clip_dir (R : ℝ) (hR : 0 < R) (g : Fin n → ℝ)
   · next hT => exact absurd hT (by linarith)
   · rfl
 
+/-- КЛИП СОХРАНЯЕТ СПУСКОВОСТЬ: если градиентное направление
+g образует острый угол с направлением спуска d, клипнутый
+градиент сохраняет это свойство (положительное
+масштабирование не меняет знака внутреннего произведения). -/
+theorem clip_descent_pos (R : ℝ) (hR : 0 < R)
+    (g d : Fin n → ℝ)
+    (h : 0 < ∑ i, g i * d i) (hbig : R < ‖g‖) :
+    0 < ∑ i, clip R g i * d i := by
+  obtain ⟨c, hc, hceq⟩ := clip_dir R hR g hbig
+  have hproj : ∀ i, clip R g i = (c • g) i := fun i => by rw [hceq]
+  simp only [hproj, Pi.smul_apply, smul_eq_mul, mul_assoc]
+  rw [← Finset.mul_sum]
+  exact mul_pos hc h
+
 end Hagi.Step.GradClip
+
