@@ -69,4 +69,20 @@ theorem ssm_state_bound (ρ B : ℝ) (hρ : 0 ≤ ρ) (hρ1 : ρ < 1)
   field_simp
   nlinarith [hnn, hB]
 
+/-- УРОВЕНЬ 2 No38: ДИСКРЕТИЗАЦИЯ SSM СЖИМАЕТ. Selective SSM
+дискретизуется как h_{t+1} = exp(-Delta*A)*h_t + ...;
+при Delta >= 0, A >= 0 множитель exp(-Delta*A) <= 1 —
+дискретный шаг НИКОГДА не усиливает состояние
+(устойчивость явной схемы; контраст с неконтролируемым
+e^{+Delta*A} >= 1 при смене знака). -/
+theorem mamba_disc_contract (Delta A : ℝ) (hD : 0 ≤ Delta)
+    (hA : 0 ≤ A) :
+    Real.exp (-(Delta * A)) ≤ 1 := by
+  have hnn : -(Delta * A) ≤ 0 := by
+    have : 0 ≤ Delta * A := mul_nonneg hD hA
+    linarith
+  have := Real.exp_le_exp.mpr hnn
+  simpa using this
+
 end Hagi.Model.MambaSSM
+

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3235 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3236 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,10 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Mamba №38 уровень 2**: mamba_disc_contract —
+  дискретизация SSM: e^{−ΔA} ≤ 1 при Δ,A ≥ 0 — дискретный
+  шаг никогда не усиливает состояние (устойчивость явной
+  схемы selective SSM).
 - **Matryoshka Representation Learning (источник №44,
   Kusupati 2205.13147)**: matryoshka_norm_le (норма усечения
   m ≤ n не превосходит полной — вложенность
