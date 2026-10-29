@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3233 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3235 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Matryoshka Representation Learning (источник №44,
+  Kusupati 2205.13147)**: matryoshka_norm_le (норма усечения
+  m ≤ n не превосходит полной — вложенность
+  представлений), matryoshka_dist_le (расстояние усечений ≤
+  полного — усечение никогда не усиливает). Гранулярность
+  одного эмбеддинга обслуживает любой бюджет.
 - **H-Net №37 уровень 2 — ОПТИМАЛЬНЫЙ РАНГ ПУЛА**: amgm3
   (трёхчленный AM-GM из geom_mean_le_arith_mean_weighted),
   hnet_cost_floor — cost(r) = aTr + bT²/r² ≥
