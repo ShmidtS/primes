@@ -319,6 +319,7 @@ import Hagi.Model.DDPM
 import Hagi.Model.CFG
 import Hagi.Model.FlowMatching
 import Hagi.Model.MLA
+import Hagi.Model.ZLoss
 import Hagi.Optimization.AdamBias
 import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip

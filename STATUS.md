@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3221 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3223 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Z-loss router-стабилизация (источник №43, ST-MoE
+  2202.08906)**: zloss_bound (штраф c·log²Z ≤ B ⟹
+  |log Z| ≤ √(B·c) — квадратичный штраф даёт корневую
+  границу на рост логит-нормы), zloss_zero (нулевой штраф
+  ⟺ Z = 1 — сбалансированная нормировка как глобальный
+  минимум). MoE-стек: Switch-баланс (№34) + Z-loss (№43).
 - **MLA латентный KV-кэш (источник №42, DeepSeek-V2
   2405.04434)**: cacheFull/cacheLatent (память 2nd vs n·dc),
   mla_cache_saving (dc < d ⟹ латентный кэш СТРОГО меньше —
