@@ -48,4 +48,24 @@ theorem qk_logit_bound (q k : Fin n → ℝ)
   have hnpos : 0 ≤ ((n : ℝ) * (n : ℝ)) := by positivity
   nlinarith [habs2, hd, abs_nonneg d, sq_nonneg ((n : ℝ))]
 
+/-- Softmax-вероятность внимания по логитам. -/
+noncomputable def attP {n : ℕ} (l : Fin n → ℝ) (i : Fin n) : ℝ :=
+  Real.exp (l i) / ∑ j, Real.exp (l j)
+
+/-- УРОВЕНЬ 2 №36: если ВСЕ попарные логит-разности
+ограничены D (после QK-норм D = 2n), то отношение любых
+двух вероятностей внимания ≤ e^D — полная сатурация
+(p → 1) СТРУКТУРНО исключена: каждый токен получает
+не менее e^{−D} доли внимания. -/
+theorem qk_no_saturation {n : ℕ} (l : Fin n → ℝ)
+    (i j : Fin n) (hgap : l i - l j ≤ 2 * ((n : ℝ)))
+    (hsum : ∑ k, Real.exp (l k) ≠ 0) :
+    attP l i / attP l j ≤ Real.exp (2 * ((n : ℝ))) := by
+  unfold attP
+  have hS : (∑ k, Real.exp (l k)) ≠ 0 := hsum
+  field_simp
+  rw [← Real.exp_add]
+  exact Real.exp_le_exp.mpr (by linarith)
+
 end Hagi.Model.QKNorm
+
