@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3118 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3120 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -322,6 +322,14 @@
   случайных конфигурациях; все 5 формальных законов
   подтверждаются численно (1923 certified, 77 вне
   ledger-условия теоремы — легальные skip).
+- **Compute-optimal масштабирование (источник №20:
+  Hoffmann et al., Chinchilla, arXiv 2203.15556)**:
+  Hagi/Model/ComputeOptimal.lean — chinchillaLoss (A/N +
+  B·N/C: параметрический член убывает, член данных растёт
+  при D = C/(c·N)), chinchilla_optimum — ТОЧНЫЙ глобальный
+  минимум (AM–GM): N* = √(A·C/B), min L = 2√(A·B/C):
+  и слишком малые, и слишком большие модели проигрышны;
+  оптимум сбалансирован, N* растёт как √C.
 - **Дистилляция знаний: температурный диал (источник №19:
   Hinton, Vinyals, Dean, arXiv 1503.02531)**:
   Hagi/Unified/Distillation.lean — softProb (двухклассовый
