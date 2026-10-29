@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3180 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3183 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **DPO, уровень 1 (источник №31, Rafailov 2305.18290)**:
+  dpoReward (β·(ln π − ln π_ref)), boltzmann_from_reward
+  (π = π_ref·exp(r/β) — политика восстанавливается из
+  неявной награды без RL-цикла), boltzmann_norm
+  (болцмановская реконструкция АВТОМАТИЧЕСКИ нормирована:
+  Z = ∑ π_ref·exp(r/β) = 1). Pref-обучение без RL.
 - **Cosine LR Schedule (источник №30, SGDR, Loshchilov &
   Hutter 1608.03983)**: cos_anti (косинус анти-монотонен на
   [0,π] — через произведение синусов, без анализа),
