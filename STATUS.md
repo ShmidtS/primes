@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3162 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3168 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Adam bias correction (источник №28, Loshchilov & Hutter
+  1711.05101)**: one_sub_beta_geom ((1−β)∑β^i = 1−β^t),
+  adamM_recur (closed form = рекуррентность m₀=0,
+  m_{t+1}=βm_t+(1−β)g), adam_unbiased_const (НА ПОСТОЯННОМ
+  ГРАДИЕНТЕ КОРРЕКЦИЯ ТОЧНА: m̂_t = g при 0≤β<1, t≥1),
+  adam_bias_bound (без коррекции m_t = g−β^t·g — смещение
+  затухает геометрически). Оптимизаторный стек замкнут.
 - **Speculative Decoding, уровень 1 (источник №27, Chen
   2302.01318)**: accept_chain_prob (α^k), 
   speculative_expected_tokens (геометрическая серия
