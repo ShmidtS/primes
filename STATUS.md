@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3147 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3154 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **SwiGLU, уровень 1 (источник №26, Shazeer 2002.05202)**:
+  sig/swish/swiglu, swish_abs_le (|Swish z| ≤ |z| — гейт
+  σ(z)∈(0,1) не усиливает активацию), swiglu_abs_le
+  (|Swish(a)·b| ≤ |a·b| — drift-границы residual-потока №22
+  переносятся на SwiGLU-блоки без изменения констант).
+  FFN-слой стека замкнут.
 - **RMSNorm, уровни 1+2 (источник №25, Zhang & Sennrich
   1912.11247)**: ms/rnVec, rn_scale_invariant (как LN —
   инвариантность к масштабу, направление сохраняется),
