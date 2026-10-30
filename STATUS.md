@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3253 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3254 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Sparse Upcycling (источник №50, Komatsuzaki 2210.06264)**:
+  upcycle_preserves — идентичные эксперты + равномерный
+  роутер ⟹ MoE-выход = dense-выходу (СТАРТОВАЯ ФУНКЦИЯ
+  СОХРАНЯЕТСЯ при upcycling: наследование предобучения;
+  композиция с равномерностью №34).
 - **Weight Tying (источник №49, Press & Wolf 1608.05859)**:
   wtParams/untiedParams (mn vs 2mn), wt_saving (СТРОГАЯ
   экономия половины параметров проекции при связывании
