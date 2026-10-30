@@ -37,7 +37,6 @@ import Hagi.Unified.ArchitectureTheorem
 namespace Hagi.Unified
 
 
-namespace Hagi.Unified
 
 /-!
 # Pinsker — единая точка входа семейства Пинскера (P1.5)
@@ -180,7 +179,6 @@ theorem pruning_dichotomy (f : ℝ → ℝ) (t x0 x1 : ℝ) (L δ : ℝ)
 Несса, термодинамика (охлаждение, свободная энергия, Ландауэр).
 -/
 
-namespace Hagi.Unified
 
 export Hagi.Data.CertifiedArgmax (certified_argmax_strict)
 export Hagi.Data (dfield_ascent_transfer fresh_data_prevents_collapse_uniform)
@@ -203,4 +201,3 @@ theorem data_certified_and_thermodynamic
     partition_cold_limit ℓ hℓ⟩
 
 
-end Hagi.Unified

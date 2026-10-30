@@ -33,7 +33,6 @@ namespace Hagi.Unified
 (ThermoCondensation), MoE-водозаполнение (WaterFillingMoE).
 -/
 
-namespace Hagi.Unified
 
 export Hagi.Budget (exists_balanced_allocation
   amortized_growth_cheaper pipeline_beats_baseline_iff
@@ -68,7 +67,6 @@ theorem budget_allocation_and_distillation {m : ℕ}
 терминация бит-аллокации, активные флопсы, anytime-сгущение.
 -/
 
-namespace Hagi.Unified
 
 export Hagi.Budget (waterfilling_bound block_lowrank_lt_dense_iff
   alloc_entry_le active_flops rankResidual_equalized)
@@ -91,4 +89,3 @@ theorem budget_waterfill_and_lowrank
     block_lowrank_lt_dense_iff N h r hh hN⟩
 
 
-end Hagi.Unified

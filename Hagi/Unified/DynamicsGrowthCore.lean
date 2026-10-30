@@ -41,7 +41,6 @@ KL-контракция при дистилляции, endpoint-контракц
 wall-clock такофф, омни-инварианты.
 -/
 
-namespace Hagi.Unified
 
 export Hagi.Dynamics (kl_contraction_budget
   capability_gain_transfer depth_capped_by_time)
@@ -67,7 +66,6 @@ theorem dynamics_growth_and_distillation
     Hagi.Dynamics.kl_contraction_budget kl κ_KL δ T hκ hκ1 hδ
       hstep hneed⟩
 
-end Hagi.Unified
 
 
 /-!
@@ -77,7 +75,6 @@ end Hagi.Unified
 гамма-дефицит, конусная динамика данных.
 -/
 
-namespace Hagi.Unified
 
 export Hagi.Growth (potential_telescope
   gamma_min_for_target cone_data_invariant)
@@ -106,7 +103,6 @@ theorem growth_balanced_and_conic
     Hagi.Growth.cone_data_invariant cd k T hk hγ hρ hCpos
       hcone h_dyn h_C_cap hβ⟩
 
-end Hagi.Unified
 
 /-
 Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
@@ -126,7 +122,6 @@ set_option linter.style.header false
 
 open Real InnerProductSpace
 
-namespace Hagi.Unified
 
 /-- At a softmax distribution with all pairwise logit
 deviations 0, `twoGap` is exactly 0. The compression stage's
@@ -138,7 +133,6 @@ theorem idle_merge_zero_gap {k : Type} [Fintype k] [Nonempty k]
     Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) (fun _ => (0:ℝ)) = 0 :=
     (Hagi.twoGap_zero_iff hp hsum).mpr ⟨0, fun _ => rfl⟩
 
-end Hagi.Unified
 
 
 end Hagi.Unified

@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Аудит v9 P3 (фасады), такт №194**: финальная волна —
+  CoreAlgebra/MatrixLib→AlgebraMatrixCore; GrowthExt/
+  EnsembleTheory/DualCeiling→GrowthEnsembleCore;
+  ModelPretrain/OptStepExt/Robustness→PretrainOptRobustCore.
+  ИТОГ P3: 20 одно-теоремных фасадов → 7 тематических модулей;
+  устранено скрытое задвоение namespace (поймано TrivialLint,
+  имена деклараций восстановлены, Freeze 3265 стабилен).
 - **Аудит v9 P3 (фасады), такт №193**: слияние
   Budget/BudgetExt → BudgetCore; ArchitectureCore/
   AutonomyCore/MiscCore → CoreFacades (12 одно-теоремных
