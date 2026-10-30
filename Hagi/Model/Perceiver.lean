@@ -70,4 +70,17 @@ theorem perceiver_saving_pos (n m : ℕ) (h2m : 2 * m < n) :
   have h := perceiver_cost_lt n m (by omega) hn
   omega
 
+/-- УРОВЕНЬ 2: МОНОТОННОСТЬ ЭКОНОМИИ. При фиксированном
+латентном размере m экономия Perceiver-блока РАСТЁТ с
+удлинением входа n (при 2m ≤ n): каждый новый входной токен
+увеличивает преимущество бутылочного горлышка. -/
+theorem perceiver_saving_mono (n m : ℕ) (h2m : 2 * m ≤ n) :
+    attnCost n - perceiverCost n m
+      ≤ attnCost (n + 1) - perceiverCost (n + 1) m := by
+  unfold attnCost perceiverCost crossCost latentCost
+  rw [show (n + 1) * (n + 1) = n * n + 2 * n + 1 from by ring,
+    show (n + 1) * m = n * m + m from by ring]
+  omega
+
 end Hagi.Model.Perceiver
+
