@@ -329,6 +329,10 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Аудит v9 P3 (фасады), такт №193**: слияние
+  Budget/BudgetExt → BudgetCore; ArchitectureCore/
+  AutonomyCore/MiscCore → CoreFacades (12 одно-теоремных
+  фасадов свёрнуто за три такта; Freeze 3265 стабилен).
 - **Аудит v9 P3 (фасады), такт №192**: слияние четырёх
   одно-теоремных фасадов Pinsker/ProbInfo/DataCentric/
   DataEnergy → Unified/InfoDataCore (Freeze 3265 стабилен).
