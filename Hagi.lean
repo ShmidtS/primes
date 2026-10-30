@@ -309,6 +309,7 @@ import Hagi.Model.FlowMatching
 import Hagi.Model.MLA
 import Hagi.Model.MoD
 import Hagi.Model.Perceiver
+import Hagi.Model.SWA
 import Hagi.Model.ZLoss
 import Hagi.Model.Matryoshka
 import Hagi.Model.Softcap
