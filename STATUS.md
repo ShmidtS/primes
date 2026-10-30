@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3241 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3244 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **AdaGrad (источник №46, Duchi 1110.4001)**: adagradAcc
+  (∑ g_s²), acc_mono, adagrad_step_anti (накопление НИКОГДА
+  не увеличивает адаптивный шаг η/√(G+g²) ≤ η/√G —
+  монотонное затухание), adagrad_step_pos. Оптимизаторный
+  стек: Adam + AdaGrad + Muon + SafeQP.
 - **Logit soft-capping (источник №45, Gemma 2 2408.00118)**:
   tanhE/softcap (l' = cap·tanh(l/cap)), tanhBound (|tanh| ≤ 1
   через разность квадратов — tanh-лемм в пине нет),
