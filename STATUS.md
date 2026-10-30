@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3284 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3288 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,12 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **СИНТЕЗ cost-семейства (такт №199)**:
+  Unified/CostComposition — гибрид MoD(№55)×SWA(№56)×глубина:
+  hybrid_cost_lt (L·k·(2w+1) < L·n² — механизмы экономии
+  складываются в одну цепочку), hybrid_ratio_le (относительная
+  стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
+  экономии).
 - **Sliding Window Attention (источник №56: Mistral,
   2310.06825)**: swa_cost_lt (n·(2w+1) < n² при 2w+1<n),
   swa_cost_ratio_lt (<1), swa_cost_mono (уменьшение окна

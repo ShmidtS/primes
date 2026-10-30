@@ -74,6 +74,7 @@ import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
 import Hagi.Unified.InfoDataCore
+import Hagi.Unified.CostComposition
 import Hagi.Unified.DynamicsGrowthCore
 import Hagi.Unified.BudgetCore
 import Hagi.Unified.CoreFacades
