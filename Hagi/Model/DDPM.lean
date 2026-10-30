@@ -67,4 +67,18 @@ theorem alphaBar_exp_bound (β : ℕ → ℝ) (b : ℝ) (_hb : 0 < b)
       nlinarith
     exact mul_le_mul ih hle hc (pow_nonneg hnn t)
 
+/-- УРОВЕНЬ 2 No39: ТОЧНОЕ ВОССТАНОВЛЕНИЕ. Если x_t построен
+forward-процессом x_t = sqrt(ab)*x_0 + sqrt(1-ab)*eps, то
+denoising-предиктор (x_t - sqrt(1-ab)*eps)/sqrt(ab)
+ВОССТАНАВЛИВАЕТ x_0 ТОЧНО (при ab > 0) — идеальный
+noise-predictor даёт тождественную реконструкцию. -/
+theorem ddpm_recover (x0 eps ab : ℝ) (hab : 0 < ab)
+    (_hab1 : ab < 1) (xt : ℝ)
+    (hfwd : xt = Real.sqrt ab * x0 + Real.sqrt (1 - ab) * eps) :
+    (xt - Real.sqrt (1 - ab) * eps) / Real.sqrt ab = x0 := by
+  rw [hfwd]
+  field_simp
+  ring
+
 end Hagi.Model.DDPM
+
