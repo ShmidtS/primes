@@ -73,16 +73,13 @@ import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
-import Hagi.Unified.Pinsker
+import Hagi.Unified.InfoDataCore
 import Hagi.Unified.Robustness
-import Hagi.Unified.DataCentric
 import Hagi.Unified.Budget
 import Hagi.Unified.ArchitectureCore
 import Hagi.Unified.CoreAlgebra
 import Hagi.Unified.EnsembleTheory
 import Hagi.Unified.AutonomyCore
-import Hagi.Unified.DataEnergy
-import Hagi.Unified.ProbInfo
 import Hagi.Unified.DynamicsGrowthCore
 import Hagi.Unified.StepLaws
 import Hagi.Unified.OptStepExt
