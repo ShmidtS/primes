@@ -182,18 +182,27 @@ training theorem backs it). -/
 def gainGrow (S : GrowthState X) : ℝ := S.effects.growGain
 
 /-- The grow-stage Φ-cost (protected risk; budget is outside Φ). -/
+def riskGrow (S : GrowthState X) : ℝ := S.effects.growRisk
+
+@[deprecated riskGrow (since := "audit v10 3.5: risk not FLOPs")]
 def costGrow (S : GrowthState X) : ℝ := S.effects.growRisk
 
 /-- The certified merge-stage gain: the Jensen gap G itself. -/
 def gainMerge (S : GrowthState X) : ℝ := S.gap
 
 /-- The merge-stage Φ-cost (protected risk). -/
+def riskMerge (S : GrowthState X) : ℝ := S.effects.mergeRisk
+
+@[deprecated riskMerge (since := "audit v10 3.5: risk not FLOPs")]
 def costMerge (S : GrowthState X) : ℝ := S.effects.mergeRisk
 
 /-- The joint-stage gain `eta * ‖stepDir‖² / 2`. -/
 def gainJoint (S : GrowthState X) : ℝ := S.sp.eta * ‖S.stepDir‖ ^ 2 / 2
 
 /-- The joint-stage Φ-cost (protected risk). -/
+def riskJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
+
+@[deprecated riskJoint (since := "audit v10 3.5: risk not FLOPs")]
 def costJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 
 /-- The compress-stage gain: zero (no energy gain claimed). -/

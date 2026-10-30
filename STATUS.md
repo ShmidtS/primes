@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3301 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3304 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,10 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **Аудит v10 §3.5, такт №202**: честные имена рисков —
+  riskGrow/riskMerge/riskJoint (новые канонические defs);
+  costGrow/costMerge/costJoint помечены @[deprecated] с
+  алиасами (риск ≠ FLOPs; API сохранён, Freeze стабилен).
 - **Аудит v10 P0-2/P0-3, такт №201**: Model/MeasuredEffects —
   ТИПИЗИРОВАННЫЕ величины (StageRisk ≠ ComputeCost ≠
   StageGain — развязка риска и FLOPs) + схема v10
