@@ -81,10 +81,9 @@ import Hagi.Unified.ArchitectureCore
 import Hagi.Unified.CoreAlgebra
 import Hagi.Unified.EnsembleTheory
 import Hagi.Unified.AutonomyCore
-import Hagi.Unified.GrowthLaws
 import Hagi.Unified.DataEnergy
 import Hagi.Unified.ProbInfo
-import Hagi.Unified.DynamicsLaws
+import Hagi.Unified.DynamicsGrowthCore
 import Hagi.Unified.StepLaws
 import Hagi.Unified.OptStepExt
 import Hagi.Unified.BudgetExt
@@ -224,7 +223,6 @@ import Hagi.System.GrowthStateViews
 import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
-import Hagi.Unified.GlobalDynamics
 import Hagi.Energy.STEStep
 import Hagi.Runtime.TernaryExact
 import Hagi.Step.JointPreserve
