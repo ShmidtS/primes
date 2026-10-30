@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3335 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3340 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,12 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **StreamingLLM (источник №61: Xiao et al., 2309.17453)**:
+  stream_bounded (KV-кэш ≤ n_s + w при ЛЮБОМ горизонте —
+  память не растёт с длиной входа: стриминг без
+  ограничений), stream_mem_lt (строгая экономия против
+  полного кэша), stream_saving_step (экономия растёт
+  линейно: +1 на токен).
 - **ALiBi (источник №60: Press et al., 2108.12409)**:
   alibi_bias_anti (bias −m·d монотонно убывает по
   расстоянию), alibi_bias_nonpos, alibi_kernel_decay
