@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3322 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3325 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,12 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **SourceMixture (источник №58: Song et al., 2610.40564 —
+  единый training objective)**: mixture_sum_one (смесь
+  вероятностных источников с весами λ (Σλ=1) — САМА
+  вероятностное распределение: корректность единого
+  likelihood-обучения на смеси), mixture_nonneg. Уровень 2
+  (MaxRL/TailRL-цели, токен-нормировка) — далее.
 - **BernoulliFactory (источник №59: Taylor 2610.38964)**:
   Bernstein-гейт — probAccept_eq_bernPoly (вероятность
   принятия = Bernstein-полином в точности),

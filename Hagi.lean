@@ -314,6 +314,7 @@ import Hagi.Model.GQA
 import Hagi.Model.MoD
 import Hagi.Model.Perceiver
 import Hagi.Model.MeasuredEffects
+import Hagi.Model.SourceMixture
 import Hagi.Model.SWA
 import Hagi.Model.ZLoss
 import Hagi.Model.Matryoshka
