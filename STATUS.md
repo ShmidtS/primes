@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3265 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3272 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -369,6 +369,12 @@
   noise-predictor восстанавливает x₀ ТОЧНО:
   (x_t − √(1−ᾱ)·ε)/√ᾱ = x_0 при корректном ε (тождество
   реконструкции denoising-петли).
+- **Perceiver latent bottleneck (источник №54: Jaegle et al.,
+  2103.03206)**: perceiver_cost_lt (при 2m ≤ n блок
+  cross+latent СТРОГО дешевле self-attention; честная
+  оговорка: при m → n сумма ПРЕВЫШАЕТ n² — экономия только
+  у настоящего бутылочного горлышка), perceiver_cost_ratio_lt
+  (< 1), perceiver_saving_pos (2m < n).
 - **Best-of-N rejection sampling (источник №53, Dong
   2304.06767)**: best_of_n_mean_le_sup (средняя награда ≤
   максимума — отбор лучшего не хуже среднего: порядковая
