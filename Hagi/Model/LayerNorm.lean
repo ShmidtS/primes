@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Model.GRPO
+import Hagi.Foundations.SumIdentities
 import Hagi.Model.RMSNorm
 
 /-!
@@ -85,7 +85,7 @@ RMSNorm-средний квадрат минус квадрат среднего
 theorem variance_decomp (x : Fin n → ℝ) (hn : 0 < n) :
     variance x = Hagi.Model.RMSNorm.ms x - (mean x) ^ 2 := by
   have hn' : (n : ℝ) ≠ 0 := by positivity
-  have hd := Hagi.Model.GRPO.groupAdv_sq_decomp x hn 0
+  have hd := Hagi.Foundations.SumIdentities.sq_decomp x hn 0
   simp only [sub_zero] at hd
   have hB : ∑ i, (x i - (∑ j, x j) / n) ^ 2
       = ∑ i, (x i) ^ 2 - n * ((∑ j, x j) / n) ^ 2 := by
@@ -100,7 +100,7 @@ sum (lnVec x i) = 0 (реюз groupAdv_sum_zero; RMSNorm (No25)
 theorem ln_sum_zero (x : Fin n → ℝ) (hn : 0 < n) :
     ∑ i, lnVec x i = 0 := by
   have hz : ∑ i, (x i - (∑ j, x j) / n) = 0 :=
-    Hagi.Model.GRPO.groupAdv_sum_zero x hn
+    Hagi.Foundations.SumIdentities.sum_sub_mean_zero x hn
   unfold lnVec
   rw [← Finset.sum_div]
   rw [show (∑ i, (x i - mean x)) = ∑ i, (x i - (∑ j, x j) / n)

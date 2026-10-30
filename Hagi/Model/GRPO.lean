@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Foundations.SumIdentities
 
 /-!
 # GRPO: групповая нормировка advantage (источник №33)
@@ -31,16 +32,8 @@ noncomputable def groupAdv (r : Fin n → ℝ) (i : Fin n) : ℝ :=
 
 /-- Сумма advantage по группе равна нулю. -/
 theorem groupAdv_sum_zero (r : Fin n → ℝ) (hn : 0 < n) :
-    ∑ i, groupAdv r i = 0 := by
-  have hn' : (n : ℝ) ≠ 0 := by positivity
-  have hS : ∑ i, groupAdv r i
-      = (∑ i, r i) - n * ((∑ j, r j) / n) := by
-    unfold groupAdv
-    rw [Finset.sum_sub_distrib, Finset.sum_div, Finset.sum_const]
-    simp
-  have hc : n * ((∑ j, r j) / n) = ∑ j, r j := by
-    rw [mul_comm, div_mul_cancel₀ _ hn']
-  rw [hS, hc, sub_self]
+    ∑ i, groupAdv r i = 0 :=
+  Hagi.Foundations.SumIdentities.sum_sub_mean_zero r hn
 
 /-- Разложение разности: ∑(r−c)² − ∑(r−mean)² = n·(mean−c)²
 (среднее — проекция: разность есть неотрицательный
@@ -48,28 +41,8 @@ theorem groupAdv_sum_zero (r : Fin n → ℝ) (hn : 0 < n) :
 theorem groupAdv_sq_decomp (r : Fin n → ℝ) (hn : 0 < n) (c : ℝ) :
     ∑ i, (r i - c) ^ 2
       - ∑ i, (r i - (∑ j, r j) / n) ^ 2
-      = n * ((∑ j, r j) / n - c) ^ 2 := by
-  have hz : ∑ i, (r i - (∑ j, r j) / n) = 0 :=
-    groupAdv_sum_zero r hn
-  set m : ℝ := (∑ j, r j) / n with hm
-  have hpe : ∀ i, (r i - c) ^ 2 - (r i - m) ^ 2
-      = 2 * (r i - m) * (m - c) + (m - c) ^ 2 := by
-    intro i
-    ring
-  rw [← Finset.sum_sub_distrib]
-  rw [Finset.sum_congr rfl (fun i _ => hpe i)]
-  rw [Finset.sum_add_distrib]
-  have hterm1 : ∑ i, 2 * (r i - m) * (m - c) = 0 := by
-    rw [show (0:ℝ) = 2 * (m - c) * ∑ i, (r i - m) from by
-        rw [hz]
-        ring]
-    rw [Finset.mul_sum
-      (s := (Finset.univ : Finset (Fin n)))
-      (f := fun i => r i - m)
-      (a := 2 * (m - c))]
-    exact Finset.sum_congr rfl (fun i _ => by ring)
-  rw [hterm1, Finset.sum_const]
-  simp [Finset.card_univ, Fintype.card_fin]
+      = n * ((∑ j, r j) / n - c) ^ 2 :=
+  Hagi.Foundations.SumIdentities.sq_decomp r hn c
 
 /-- Среднее группы — оптимальный baseline: сумма квадратов
 отклонений от mean не превосходит отклонений от ЛЮБОЙ

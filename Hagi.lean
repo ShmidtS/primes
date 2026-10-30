@@ -175,6 +175,7 @@ import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
+import Hagi.Foundations.SumIdentities
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.PerronCone

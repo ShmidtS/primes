@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3261 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3263 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,13 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Аудит v9 — ответ тактом №189 (P2/P4: разрыв случайных
+  связей)**: sq_decomp-семейство перенесено в нижний слой
+  Foundations/SumIdentities (sum_sub_mean_zero, sq_decomp —
+  канонический дом König–Huygens-тождеств); LayerNorm и
+  SwitchMoE больше НЕ зависят от RL-модуля GRPO (аудит v9
+  находка 9); GRPO делегирует канону — API/Freeze
+  неизменны.
 - **Flow Matching №41 уровень 2**: flow_const_velocity —
   скорость пути d/dt flowPath = x₁ − x₀ НЕ зависит от t
   (постоянная скорость прямолинейного потока — основа

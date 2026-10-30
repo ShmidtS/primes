@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Model.GRPO
+import Hagi.Foundations.SumIdentities
 
 /-!
 # Switch MoE: балансировка нагрузки (источник №34)
@@ -30,7 +30,7 @@ theorem switch_floor (P : Fin n → ℝ) (hsum : ∑ i, P i = 1)
     (hn : 0 < n) :
     1 / n ≤ ∑ i, (P i) ^ 2 := by
   have hn' : (n : ℝ) ≠ 0 := by positivity
-  have hd := Hagi.Model.GRPO.groupAdv_sq_decomp P hn 0
+  have hd := Hagi.Foundations.SumIdentities.sq_decomp P hn 0
   simp only [sub_zero] at hd
   rw [hsum] at hd
   have hnn : 0 ≤ ∑ i, (P i - 1 / n) ^ 2 :=
@@ -47,7 +47,7 @@ theorem switch_floor_eq_iff (P : Fin n → ℝ)
   have hn' : (n : ℝ) ≠ 0 := by positivity
   constructor
   · intro heq
-    have hd := Hagi.Model.GRPO.groupAdv_sq_decomp P hn 0
+    have hd := Hagi.Foundations.SumIdentities.sq_decomp P hn 0
     simp only [sub_zero] at hd
     rw [hsum] at hd
     have hval : (n : ℝ) * (1 / n) ^ 2 = 1 / n := by
