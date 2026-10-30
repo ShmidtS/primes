@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3290 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3301 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,16 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **Аудит v10 P0-2/P0-3, такт №201**: Model/MeasuredEffects —
+  ТИПИЗИРОВАННЫЕ величины (StageRisk ≠ ComputeCost ≠
+  StageGain — развязка риска и FLOPs) + схема v10
+  «(S, batch, измеритель) → (S', измеренные эффекты)»:
+  trainStep_measured (эффекты = выход измерителя, rfl — НЕТ
+  телепортирования), trainStep_budget_balance (баланс по
+  измеренной стоимости), trainStep_capability_band (полоса
+  роста из измерения, реюз GrowthBand). growth_band перенесён
+  в Foundations/GrowthBand (канонический нижний слой;
+  Growth реэкспортит, слои соблюдены).
 - **Аудит v10 P0 (полоса роста), такт №200**: growth_band_step
   + growth_band_iter — ДВУХСТОРОННЯЯ полоса (1+αmin)^T·C0 ≤
   C_T ≤ (1+αmax)^T·C0 с НЕЗАВИСИМЫМИ коэффициентами;
