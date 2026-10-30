@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3325 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3329 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,14 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **SourceMixture №58 уровень 2 (MaxRL-ядро, такт №208)**:
+  successDist_norm — распределение успешных ответов
+  π⁺(y)=π(y)·r(y)/p НОРМИРОВАНО (RL-цель корректна как
+  likelihood-обучение на успешных ответах — мост
+  генерация→верификация→MLE), successDist_nonneg.
+  №59-нормировка (бином-индукция) — 5 подходов, карантин
+  LESSONS (pin-Mathlib не экспортирует binomial theorem;
+  синтакс-формы показателей хрупки для rw).
 - **SourceMixture (источник №58: Song et al., 2610.40564 —
   единый training objective)**: mixture_sum_one (смесь
   вероятностных источников с весами λ (Σλ=1) — САМА
