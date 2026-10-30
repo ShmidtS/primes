@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3306 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3310 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,13 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **Аудит v11 P1 (унификация эффектов), такт №204**:
+  ofStageEffects — типизированная проекция плоского
+  StageEffects в MeasuredEffects (risk/cost/gain разведены);
+  ofStageEffects_roundtrip (все 9 полей без искажения, rfl),
+  totalCost/totalRisk_ofStageEffects (бухгалтерия согласована).
+  LESSONS: перенос строки внутри {...} structure-instance в
+  def-теле валит парсер — использовать ⟨...⟩-конструктор.
 - **Аудит v11 §3.2 (progress-разрыв), такт №203**:
   LinkedHAGIInvariantProgress — усиленный связанный инвариант:
   per-step PROGRESS-поля CertifiedTransition (0 < verify-

@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.Foundations.GrowthBand
+import Hagi.System.GrowthState
 
 /-!
 # MeasuredEffects — переход реального шага (аудит v10 P0-2/P0-3)
@@ -109,4 +110,46 @@ theorem trainStep_capability_band (S : MS) (batch : ℕ)
     (measure S batch).gain.capability αmin αmax
     hC hαmin hband hstep hlo hhi
 
+/-! ### Мосты унификации (аудит v11 P1: StageEffects ↔
+типизированный MeasuredEffects — одна каноническая
+типизированная структура, плоский StageEffects получает
+типизированную проекцию без потери полей). -/
+
+open Hagi.System
+
+/-- Типизированная проекция плоского StageEffects. -/
+def ofStageEffects (e : StageEffects) : MeasuredEffects where
+  gain := ⟨e.growGain, e.growEnergy⟩
+  risk := ⟨e.growRisk, e.mergeRisk, e.jointRisk, e.compressRisk⟩
+  cost := ⟨e.growCost, e.mergeCost, e.jointCost, e.compressCost⟩
+
+/-- Типизированные поля восстанавливаются из ofStageEffects
+без искажения (репроекция компонент). -/
+theorem ofStageEffects_roundtrip (e : StageEffects) :
+    (ofStageEffects e).gain.capability = e.growGain
+      ∧ (ofStageEffects e).risk.grow = e.growRisk
+      ∧ (ofStageEffects e).risk.merge = e.mergeRisk
+      ∧ (ofStageEffects e).risk.joint = e.jointRisk
+      ∧ (ofStageEffects e).risk.compress = e.compressRisk
+      ∧ (ofStageEffects e).cost.grow = e.growCost
+      ∧ (ofStageEffects e).cost.merge = e.mergeCost
+      ∧ (ofStageEffects e).cost.joint = e.jointCost
+      ∧ (ofStageEffects e).cost.compress = e.compressCost := by
+  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- totalCost типизированной проекции = явная сумма полей
+стоимости StageEffects (бухгалтерия согласована). -/
+theorem totalCost_ofStageEffects (e : StageEffects) :
+    totalCost (ofStageEffects e)
+      = e.growCost + e.mergeCost + e.jointCost + e.compressCost :=
+  rfl
+
+/-- totalRisk типизированной проекции = явная сумма полей
+риска StageEffects. -/
+theorem totalRisk_ofStageEffects (e : StageEffects) :
+    totalRisk (ofStageEffects e)
+      = e.growRisk + e.mergeRisk + e.jointRisk + e.compressRisk :=
+  rfl
+
 end Hagi.Model.MeasFx
+
