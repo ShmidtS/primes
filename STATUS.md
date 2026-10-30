@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3330 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3335 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,12 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **ALiBi (источник №60: Press et al., 2108.12409)**:
+  alibi_bias_anti (bias −m·d монотонно убывает по
+  расстоянию), alibi_bias_nonpos, alibi_kernel_decay
+  (экспоненциальное затухание attention-ядра дальних
+  позиций: exp(−m·d₂) ≤ exp(−m·d₁) — основа «train short,
+  test long»), alibi_kernel_decay_lt (строгое).
 - **Аудит v12 (riskLim), такт №209**:
   certifiedTransition_risk_respect — параметр riskLim
   CertifiedTransition РЕАЛЬНО ограничивает прирост
