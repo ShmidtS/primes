@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3263 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3265 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,12 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Аудит v9 P1 (vacuity-gate), такт №190**: wTraj2 —
+  двухцикловый витнес Gen-2 (T = 2, минимальный горизонт
+  гейта аудита); witness_takeoff_realized_T2 — рост
+  (1+1)²·1 = 4 СТРОГО реализован семантикой Gen-2 на T = 2,
+  где старый Gen-1 (MasterHAGI_linked) уже противоречив.
+  Пара {T=2, T=3} закрывает гейт P1 для Gen-2-мастера.
 - **Аудит v9 — ответ тактом №189 (P2/P4: разрыв случайных
   связей)**: sq_decomp-семейство перенесено в нижний слой
   Foundations/SumIdentities (sum_sub_mean_zero, sq_decomp —

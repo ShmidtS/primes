@@ -688,6 +688,51 @@ noncomputable def wTraj : Trajectory ℝ where
     interval_cases t
     all_goals simp [advance]
 
+/-- TWO-CYCLE witness trajectory (audit v9 P1 vacuity-gate):
+first two steps of wTraj, horizon T = 2. -/
+noncomputable def wTraj2 : Trajectory ℝ where
+  T := 2
+  state := fun t =>
+    if t = 0 then wS0
+    else if t = 1 then advance wS0 wU0
+    else advance (advance wS0 wU0) wU1
+  input := fun t => if t = 0 then wU0 else wU1
+  h_step := by
+    intro t ht
+    have ht2 : t < 2 := ht
+    interval_cases t
+    all_goals simp [advance]
+
+/-- VACUITY-GATE WITNESS (audit v9, P1): рост на T = 2
+СТРОГО реализован семантикой Gen-2 — (1+1)^2 * 1 = 4 —
+минимальный горизонт гейта, на котором старый Gen-1
+(`MasterHAGI_linked`) уже противоречив. -/
+theorem witness_takeoff_realized_T2 :
+    (1 + (1:ℝ)) ^ 2 * (wTraj2.state 0).capability
+      ≤ (wTraj2.state 2).capability := by
+  have hα : 0 ≤ (1:ℝ) := by norm_num
+  have hg : ∀ t < wTraj2.T,
+      (1:ℝ) * (wTraj2.state t).capability
+        ≤ (wTraj2.input t).eff.growGain := by
+    intro t ht
+    have ht2 : t < 2 := ht
+    interval_cases t
+    all_goals simp [wTraj2, advance, wS0, wU0, wU1]
+    all_goals norm_num
+  have hT : (2:ℕ) ≤ wTraj2.T := by simp [wTraj2]
+  have hres := capability_takeoff_amplified wTraj2 (1:ℝ) hα hg 2 hT
+  have hstate2 : wTraj2.state 2
+      = advance (advance wS0 wU0) wU1 := by
+    simp [wTraj2]
+  have hcap2 : (advance (advance wS0 wU0) wU1).capability = 4 := by
+    simp [advance, wS0, wU0, wU1]
+    all_goals norm_num
+  have hstate0 : wTraj2.state 0 = wS0 := by simp [wTraj2]
+  rw [hstate0, hstate2, hcap2]
+  have hcap0 : wS0.capability = 1 := by simp [wS0]
+  rw [hcap0]
+  norm_num
+
 /-- The amplification theorem instantiated on the witness: the
 state-linked geometric takeoff `(1+1)^3 * 1 = 8` IS REALIZED —
 the repaired semantics proves the capstone growth the OLD model
