@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3288 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3290 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,12 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **Аудит v10 P0 (полоса роста), такт №200**: growth_band_step
+  + growth_band_iter — ДВУХСТОРОННЯЯ полоса (1+αmin)^T·C0 ≤
+  C_T ≤ (1+αmax)^T·C0 с НЕЗАВИСИМЫМИ коэффициентами;
+  устраняет вынужденное ТОЧНОЕ насыщение takeoff_edge_forced
+  (сохранён как частный случай αmin = αmax, по рекомендации
+  аудита).
 - **СИНТЕЗ cost-семейства (такт №199)**:
   Unified/CostComposition — гибрид MoD(№55)×SWA(№56)×глубина:
   hybrid_cost_lt (L·k·(2w+1) < L·n² — механизмы экономии
