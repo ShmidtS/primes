@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3256 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3257 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **RLHF KL-контроль (источник №52, Ziegler 1909.08593)**:
+  rlhf_penalty_floor — KL-штраф НИКОГДА не увеличивает
+  цель U = E[r] − β·KL ≤ E[r] (композиция kl_nonneg):
+  однонаправленный урез reward-hacking. RL-стек замкнут:
+  RLHF + PPO + GRPO + GAE + DPO.
 - **GAE (источник №51, Schulman 1506.02438)**:
   gae_weight_bound (сумма GAE-весов (1−λ)(γλ)^i ≤ 1 при
   γ,λ∈[0,1] — выпуклость смеси с хвостовой утечкой; реюз
