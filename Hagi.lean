@@ -246,6 +246,7 @@ import Hagi.Unified.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
+import Hagi.Probability.BernoulliFactory
 import Hagi.Step.MDLObjective
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule

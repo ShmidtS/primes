@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3315 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3322 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,13 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **BernoulliFactory (источник №59: Taylor 2610.38964)**:
+  Bernstein-гейт — probAccept_eq_bernPoly (вероятность
+  принятия = Bernstein-полином в точности),
+  binomWeight_nonneg (при p ∈ [0,1]), probAccept_bounds
+  (0 ≤ P ≤ binomMass; полная нормировка = 1 — уровень 2,
+  индукция/Vandermonde). Оговорка аудита v12: gate НЕ
+  заменяет SafeQP-гарантии отдельного шага.
 - **GQA (источник №57: Ainslie et al., 2305.13248)**:
   gqa_kv_lt (KV-кэш n_kv < n_h голов строго меньше MHA),
   gqa_kv_ratio (отношение = n_kv/n_h), gqa_kv_mono
