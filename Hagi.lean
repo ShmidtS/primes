@@ -309,6 +309,7 @@ import Hagi.Model.DDPM
 import Hagi.Model.CFG
 import Hagi.Model.FlowMatching
 import Hagi.Model.MLA
+import Hagi.Model.GQA
 import Hagi.Model.MoD
 import Hagi.Model.Perceiver
 import Hagi.Model.MeasuredEffects

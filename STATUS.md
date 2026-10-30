@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3310 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3315 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,10 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **GQA (источник №57: Ainslie et al., 2305.13248)**:
+  gqa_kv_lt (KV-кэш n_kv < n_h голов строго меньше MHA),
+  gqa_kv_ratio (отношение = n_kv/n_h), gqa_kv_mono
+  (монотонность по числу KV-голов; MQA-минимум).
 - **Sliding Window Attention (источник №56: Mistral,
   2310.06825)**: swa_cost_lt (n·(2w+1) < n² при 2w+1<n),
   swa_cost_ratio_lt (<1), swa_cost_mono (уменьшение окна

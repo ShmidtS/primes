@@ -1341,8 +1341,12 @@ gpmOrth	b944ee7cbb0ac9d5	5638d766ae56a032
 gpm_implies_safeqp_gn	32dae674c260ee02	f30e073439a8e093
 gpm_zero_forgetting	ed4a8f161a1c7f57	3727ee08d1e1587f
 gqaCache	cbb31f90195eb47b	45fe160dbf2c486c
+gqaKVCost	58ea97722894c7c8	94a1db396fc4b8d0
 gqaScoreOf	7c7c48dd06464842	a7b1ce16536eb6e7
 gqa_cache_card	ccda1783584ac94a	671070fb20008d11
+gqa_kv_lt	890af1308ed60ff2	78fb20cac2e6102b
+gqa_kv_mono	39fbe2a2be1a6f00	8d7a1f860d6992fc
+gqa_kv_ratio	a869083d8f223e9b	f2bf52ad62d7c0f0
 gqa_shared_score	510db379d64a6d2a	c64514f48faf03ff
 grad	5f706fcb7a4fbf44	033e4bcd6ce2c0de
 gradCovBound	61482bad962bb5c9	079b13c23df1aa78
@@ -1915,6 +1919,7 @@ mgf_hoeffding	e974b396bf2f6fa3	99eb52d256e9b1d4
 mgf_hoeffding_ab	31e9f60ebd39bed5	b3f7eb097326acfb
 mh_stationary	a52bb12ee3cc68cb	8d6fc4555e145974
 mhaCache	f371e6ed366f2687	cd50a24457bc89e3
+mhaKVCost	dda12f4831e9be1e	65bd3b027f3a8b3c
 micro_collapse	49207353b8ef82dd	787ab00becd21532
 microstep_cert	72b847400deacd6d	0eb97d26d654d4ce
 microstep_net_drop	f50e5539e8e51fbd	107eddaddc983713
