@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3250 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3253 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,10 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Weight Tying (источник №49, Press & Wolf 1608.05859)**:
+  wtParams/untiedParams (mn vs 2mn), wt_saving (СТРОГАЯ
+  экономия половины параметров проекции при связывании
+  входных/выходных эмбеддингов).
 - **Gradient Checkpointing (источник №48, Chen 1604.06174)**:
   ckpt_mem_floor (k + n/k ≥ 2√n — нижняя граница памяти,
   разложение квадрата), ckpt_sqrt_opt (k = √n — оптимум:
