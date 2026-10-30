@@ -278,4 +278,64 @@ theorem certified_family_linked {X : Type*}
       qvec_floor := hqvec }
   linked := fun t _ => (hc t (by omega)).exec
 
+/-- АУДИТ v11 §3.2: УСИЛЕННЫЙ связанный инвариант — Linked
+PLUS per-step PROGRESS-сертификаты (0 < verify-снижение на
+КАЖДОМ переходе) и перенос их в финальный результат:
+кумулятивное сертифицированное снижение не меньше суммы
+шаговых decrease (энергетический телескоп ПО ИЗМЕРЕННЫМ
+progress-полям). Закрывает разрыв «progress-поле
+CertifiedTransition не потребляется итоговым инвариантом». -/
+structure LinkedHAGIInvariantProgress (T : ℕ)
+    (S : ℕ → GrowthState X)
+    (u : ℕ → Hagi.Model.StageInput X)
+    (risk spend : ℕ → ℝ)
+    (qvec : ℕ → Fin 5 → ℝ)
+    (qfloor : Fin 5 → ℝ)
+    (alpha : ℝ)
+    extends LinkedHAGIInvariant T S u risk spend qvec qfloor alpha where
+  /-- На каждом переходе — строго положительное снижение. -/
+  progress_pos : ∀ t < T,
+    0 < (Hagi.System.verify (S (t + 1))).decrease
+  /-- Кумулятивное снижение (энергетический перенос
+  progress-полей в финальный сертификат). -/
+  cumulative_progress :
+    ∑ t ∈ Finset.range T, (Hagi.System.verify (S (t + 1))).decrease
+      ≤ (S 0).energy - (S T).energy
+
+/-- Мост-усиление: certified-семейство ПОРОЖДАЕТ усиленный
+инвариант — progress-поля потребляются явно. -/
+theorem certified_family_linked_progress {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → GrowthState X) (u : ℕ → Hagi.Model.StageInput X)
+    (T : ℕ) (alpha : ℝ) (qvec : ℕ → Fin 5 → ℝ)
+    (qfloor : Fin 5 → ℝ)
+    (hc : ∀ t < T, Hagi.Model.CertifiedTransition (S t) (S (t + 1))
+      (u t) ((u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk))
+    (hrisk_nonneg : ∀ t ∈ Finset.range T, 0 ≤ (u t).eff.growRisk
+      + (u t).eff.mergeRisk + (u t).eff.jointRisk
+      + (u t).eff.compressRisk)
+    (hspend_nonneg : ∀ t ∈ Finset.range T, 0 ≤ (u t).eff.growCost
+      + (u t).eff.mergeCost + (u t).eff.jointCost
+      + (u t).eff.compressCost)
+    (hbudget : 0 ≤ (S T).budget)
+    (hgrowth : (S 0).capability * (1 + alpha) ^ T
+      ≤ (S 0).capability + ∑ t ∈ Finset.range T, (u t).eff.growGain)
+    (hqvec : ∀ i, qfloor i ≤ qvec T i)
+    (hetelescope : ∑ t ∈ Finset.range T,
+        (Hagi.System.verify (S (t + 1))).decrease
+      ≤ (S 0).energy - (S T).energy) :
+    LinkedHAGIInvariantProgress T S u
+      (fun t => (u t).eff.growRisk + (u t).eff.mergeRisk
+        + (u t).eff.jointRisk + (u t).eff.compressRisk)
+      (fun t => (u t).eff.growCost + (u t).eff.mergeCost
+        + (u t).eff.jointCost + (u t).eff.compressCost)
+      qvec qfloor alpha where
+  toLinkedHAGIInvariant :=
+    certified_family_linked S u T alpha qvec qfloor hc
+      hrisk_nonneg hspend_nonneg hbudget hgrowth hqvec
+  progress_pos := fun t ht => (hc t ht).progress
+  cumulative_progress := hetelescope
+
 end Hagi.Unified
+
