@@ -322,4 +322,21 @@ theorem cycle_certificate_of_transitions {X : Type*}
     intro t ht
     exact (hc t ht).resources }, trivial⟩
 
+
+/-- АУДИТ v12: riskLim-СВЯЗЬ. Если лимит riskLim покрывает
+суммарный риск входа, то CertifiedTransition с этим лимитом
+гарантирует S'.protectedRisk − S.protectedRisk ≤ riskLim
+(параметр типа реально ограничивает прирост риска через
+safety-поле; закрытие замечания «riskLim не используется»). -/
+theorem certifiedTransition_risk_respect {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S S' : Hagi.System.GrowthState X) (u : StageInput X)
+    (riskLim : ℝ)
+    (h : CertifiedTransition S S' u riskLim)
+    (hlim : u.eff.growRisk + u.eff.mergeRisk
+      + u.eff.jointRisk + u.eff.compressRisk ≤ riskLim) :
+    S'.protectedRisk - S.protectedRisk ≤ riskLim := by
+  have hs := h.safety
+  linarith [hs, hlim]
+
 end Hagi.Model

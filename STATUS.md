@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3329 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3330 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,11 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **Аудит v12 (riskLim), такт №209**:
+  certifiedTransition_risk_respect — параметр riskLim
+  CertifiedTransition РЕАЛЬНО ограничивает прирост
+  защищённого риска (мост safety+линейность; закрыто
+  замечание «riskLim объявлен, но не используется»).
 - **SourceMixture №58 уровень 2 (MaxRL-ядро, такт №208)**:
   successDist_norm — распределение успешных ответов
   π⁺(y)=π(y)·r(y)/p НОРМИРОВАНО (RL-цель корректна как
