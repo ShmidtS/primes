@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3273 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3279 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -373,6 +373,10 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
+- **Mixture-of-Depths (источник №55: Raposo et al., 2404.02258)**:
+  mod_layer_cost_lt (top-k слой строго дешевле dense),
+  mod_stack_saving (глубина УМНОЖАЕТ экономию: L-слойный
+  стек экономит ровно L·(послойная экономия), Nat.mul_sub).
 - **Perceiver latent bottleneck (источник №54: Jaegle et al.,
   2103.03206)**: perceiver_cost_lt (при 2m ≤ n блок
   cross+latent СТРОГО дешевле self-attention; честная
