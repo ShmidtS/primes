@@ -50,4 +50,17 @@ theorem flow_mid (x0 x1 : ℝ) :
   norm_num [flowPath]
   linarith
 
+/-- УРОВЕНЬ 2 No41: ПОСТОЯННАЯ СКОРОСТЬ. Скорость пути
+d/dt flowPath = x1 - x0 — НЕ ЗАВИСИТ от t: прямолинейный
+поток имеет одну скорость всюду (основа
+constant-velocity matching-цели). -/
+theorem flow_const_velocity (x0 x1 t : ℝ) :
+    HasDerivAt (flowPath x0 x1) (x1 - x0) t := by
+  rw [show flowPath x0 x1 = fun s => x0 + (x1 - x0) * s from by
+    funext s
+    unfold flowPath
+    ring]
+  simpa using ((hasDerivAt_id t).const_mul (x1 - x0)).const_add x0
+
 end Hagi.Model.FlowMatching
+

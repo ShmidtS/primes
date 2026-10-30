@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3260 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3261 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -329,6 +329,11 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
+- **Flow Matching №41 уровень 2**: flow_const_velocity —
+  скорость пути d/dt flowPath = x₁ − x₀ НЕ зависит от t
+  (постоянная скорость прямолинейного потока — основа
+  constant-velocity matching-цели; HasDerivAt-цепь
+  const_mul/const_add + simpa).
 - **DDPM №39 уровень 2**: ddpm_recover — идеальный
   noise-predictor восстанавливает x₀ ТОЧНО:
   (x_t − √(1−ᾱ)·ε)/√ᾱ = x_0 при корректном ε (тождество
