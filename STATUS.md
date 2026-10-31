@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3418 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3423 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **LabelSmoothing (источник №74: Szegedy 1606.04586;
+  такт №235)**: lsTarget ((1−ε)q + ε·u — выпуклая комбинация
+  с равномерной), ls_sum_one (сглаженная цель —
+  распределение), ls_nonneg, ls_pointwise_dist
+  (|q^LS−q| = ε·|q−1/K| — линейно по ε), ls_l1_bound
+  (∑|q^LS−q| ≤ ε·card — цель обучения в ε-окрестности).
 - **Насыщение роста (аудит v14 §3.3, такт №234)**:
   saturation_gap (C*−C_T = (1−σ)^T(C*−C_0) — геометрическое
   сжатие зазора до потолка: ЛИНЕЙНАЯ сходимость вместо
