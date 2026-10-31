@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3470 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3478 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,15 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **NeuralComputer (приоритет 4 обзора, такт №250)**:
+  NCState — ЕДИНОЕ состояние нейрокомпьютера (φ, base,
+  adapt, cpu, mem, E, R, B, C); ncAdvance — канонический
+  переход; инварианты: nc_cpu_frozen (процессор заморожен
+  rfl), nc_base_frozen (тритарная база консервативна),
+  nc_mem_only_via_write (память — только адресуемая
+  запись), nc_budget_ledger (точная бухгалтерия),
+  nc_risk_mono (риск неубывающий) — три типа изменяемости
+  разделены формально.
 - **AdaptiveChunking (приоритет 3 обзора, такт №249)**:
   adaptiveCost (C(x)=Σ c_ℓ·M_ℓ(x)² — стоимость иерархии как
   функция ВХОДА); adaptive_le_static (поточечное
