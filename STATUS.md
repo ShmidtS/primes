@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3381 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3392 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **StepContract (аудит v15 §4.3, такт №226)**: единый
+  моноид сертификатов шага — StepContract (decrease/riskCost/
+  budgetSpend + неотрицательности), compose (assoc/нейтраль
+  по rfl-структуре), chain (foldr-свёртка; компоненты = суммы),
+  trajectory_convergence (ЕДИНАЯ телескопическая теорема:
+  Σdecrease ≤ Φ₀−Φ_min+Σrisk; замещает дубли телескопирования).
 - **LogitPSV (источник №69: Rethinking Neural Thickets,
   2610.40649; аудит v14)**: logitPSV_gap_nonneg (ансамбль
   K статических логит-смещений НЕ ХУЖЕ среднего — реюз
