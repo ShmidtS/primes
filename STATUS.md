@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3455 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3458 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **TransitionContract (P1-миграция v3, такт №246)**: мост
+  CertifiedTransitionV2 → StepContract: ctContract (decrease
+  = verify-сертификат, risk = Σ эффект-рисков ≥ 0, budget =
+  Σ стоимостей), ctv2_contract (rfl-связка), ctRisk_covers
+  (ΔR ≤ riskCost контракта — safety-бухгалтерия накрывает
+  реальный прирост риска). Единая trajectory_convergence
+  теперь применима к реальным переходам напрямую.
 - **CautiousOptimizer (источник №78: 2411.16085; такт
   №245)**: cautiousMask (сохранять только компоненты update,
   согласованные со знаком градиента): cautiousMask_abs_le

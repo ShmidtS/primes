@@ -333,6 +333,7 @@ import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
 import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
+import Hagi.Unified.TransitionContract
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
