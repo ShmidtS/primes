@@ -317,6 +317,7 @@ import Hagi.Model.GDNRAM
 import Hagi.Model.FlashAttention
 import Hagi.Model.MoD
 import Hagi.Model.Perceiver
+import Hagi.Model.PreNorm
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
 import Hagi.Model.SWA

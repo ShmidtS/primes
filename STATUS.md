@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3356 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3359 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,11 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **PreNorm (источник №66: DeepNet 2203.04627 — pre-norm
+  стабильность)**: preNorm_step_bound (треугольник:
+  ‖x+f‖ ≤ ‖x‖+‖f‖), preNorm_depth_bound (по глубине L:
+  ‖x_L‖ ≤ ‖x_0‖ + L·B — глубина НЕ взрывает норму,
+  экспоненциальный рост невозможен).
 - **GradAccum (источник №65: микробатчи/fiberwise)**:
   accum_equiv — сумма микробатч-градиентов РАВНА полному
   батч-градиенту (Finset.sum_fiberwise: разбиение по
