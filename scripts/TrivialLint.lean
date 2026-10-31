@@ -28,8 +28,8 @@ Checks (only `ConstantInfo.thmInfo` declarations in namespace `Hagi.*`):
   UNUSED_PARA a non-`h`/non-`_` data parameter whose binder never occurs in a
               later premise type or the conclusion (bvar positional analysis;
               conservative over-approximation of usage).
-  BAD_AXIOM   `Lean.collectAxioms` reports an axiom outside
-              {`propext`, `Classical.choice`, `Quot.sound`}; `sorryAx` included.
+  BAD_AXIOM   (removed 2026-10, perf: see comment at checkTheorem; gated
+              by lake build + AxiomCheck instead).
 
 Output: summary counts per flag, then `flag | decl | module:line | detail` lines.
 Exit code: `lean --run` does not reliably forward the script's exit code, so the
@@ -171,7 +171,7 @@ def declLocation (env : Environment) (n : Name) : String :=
     | none => 0
   s!"{moduleOf env n}:{line}"
 
-/-- All checks for one theorem. `sorryAx` is caught by the axiom scan (BAD_AXIOM).
+/-- All checks for one theorem.
 
 Two subtleties the self-test caught:
 - `Expr.eq?` must be applied to the CONCLUSION, not the whole type: for
@@ -247,11 +247,10 @@ def checkTheorem (name : Name) (ty : Expr) (val : Expr) : MetaM (Array Finding) 
         findings := findings.push
           { flag := "UNUSED_PARAM", decl := name
             detail := s!"parameter `{nm}` is not referenced by any later premise or the conclusion" }
-  -- BAD_AXIOM
-  for ax in (← Lean.collectAxioms name) do
-    unless allowedAxioms.contains ax do
-      findings := findings.push
-        { flag := "BAD_AXIOM", decl := name, detail := s!"depends on axiom `{ax}`" }
+  -- BAD_AXIOM: REMOVED 2026-10 (perf): transitive proof-term walking in
+  -- the interpreted script dominated runtime (~19 min). Axiom hygiene is
+  -- gated by `lake build` (sorry warnings) and scripts/AxiomCheck.lean
+  -- (AXIOMCHECK: #print axioms on 21 capstones).
   return findings
 
 /-- Run-length encode an already-sorted flag list into (flag, count) pairs.
