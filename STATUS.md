@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **riskLim-дефантомизация (такт №267, аудит №5 P1)**:
+  CertifiedTransition получил активное поле riskBound
+  (S'.protectedRisk − S.protectedRisk ≤ riskLim) — лимит
+  риска теперь ГАРАНТИРУЕТСЯ типом, а не является
+  неиспользуемым параметром. Конструктор дополнен;
+  все потребители (MasterHAGICoupled, LinkedWitness,
+  CertifiedTrajectory) — гипотезы, остались валидны.
 - **CI-фикс H2 (такт №266, аудит №5)**: финальный гейт
   в конце ci.sh — поздние проверки (AxiomCheck,
   ChallengeCheck, StatementDupCheck, MachineDiffTest)
