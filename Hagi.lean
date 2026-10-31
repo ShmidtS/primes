@@ -335,6 +335,7 @@ import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
 import Hagi.Unified.TransitionContract
 import Hagi.Model.GDNBridge
+import Hagi.Step.CPUFreeze
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

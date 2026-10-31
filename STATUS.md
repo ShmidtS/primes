@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3463 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3467 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CPUFreeze (приоритет 5 обзора, такт №248)**: safeStep
+  (CPU-блок шага обнулён, rest сохранён): cpu_frozen
+  (ΔCPU'=0 rfl-контракт — веса процессора инвариантны к
+  градиентам), norm_le (‖safe‖ ≤ ‖proposal‖ — trust region
+  наследуется), anchor_drift (якорный дрейф только по rest;
+  C1/C2/C3 SafeQP-расширения закрыты).
 - **GDNBridge (приоритет 1 обзора HAGI Neural Computer,
   такт №247)**: gdnUpdate (delta rule S' = g·S + β·(v−S·k)kᵀ);
   gdn_onehot_is_colUpdate (g=β=1, k=e_i — ТОЧНАЯ замена
