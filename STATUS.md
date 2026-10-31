@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3449 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3450 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **InfoPreservation (аудит v16 Test 6, такт №244)**:
+  info_preservation_regret — СРЕДНИЕ потери траектории
+  mirrorIterate ≤ потери целевого распределения +
+  T·KL(ρ*‖ρ₀)/n — информационный дрейф гасится начальной
+  близостью, исчезает с горизонтом (реюз mirror_regret).
+  Тем самым v16-тесты: 1✓ 2✓ 3✓ 5✓ 6✓ 7✓ (Test 4 —
+  SafeQP-домены, общий вид).
 - **BytePatch (источник №77: Cartesia From-Tokens-to-Bytes
   H-Net; такт №243)**: patchCount ⌈N/p⌉₊ — байтовые патчи:
   patch_cover (p·⌈N/p⌉ ≥ N — покрытие входа), patch_le_raw
