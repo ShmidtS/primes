@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3423 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3425 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **LabelSmoothing ур.2 (углубнение №74, такт №236)**:
+  ls_entropy_ge — СГЛАЖИВАНИЕ НЕ УМЕНЬШАЕТ ЭНТРОПИЮ ЦЕЛИ:
+  H(q) ≤ H(q^LS) при строго положительной цели (Jensen по
+  слагаемым x·log x из xlogx_convex + шенноновская граница
+  shannon_entropy_le_log_card: H(q^LS) ≥ (1−ε)H(q) +
+  ε·log card K ≥ H(q)) — регуляризация к равномерному.
 - **LabelSmoothing (источник №74: Szegedy 1606.04586;
   такт №235)**: lsTarget ((1−ε)q + ε·u — выпуклая комбинация
   с равномерной), ls_sum_one (сглаженная цель —

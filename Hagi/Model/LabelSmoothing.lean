@@ -1,4 +1,6 @@
 import Mathlib
+import Hagi.Probability.EntropyConvexity
+import Hagi.Energy.Cooling
 
 /-!
 # LabelSmoothing (источник №74: "Rethinking the Inception
@@ -88,5 +90,97 @@ theorem ls_l1_bound (q : K → ℝ) (hq : ∀ i, 0 ≤ q i)
     _ ≤ ∑ i : K, ε * 1 :=
         Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (hkey i) hε
     _ = ε * Fintype.card K := by simp; ring
+
+
+/-! ### Энтропийное возрастание (углубление №74):
+сглаживание НЕ УМЕНЬШАЕТ энтропию цели — регуляризация
+к равномерному распределению (мотивация калибровки из
+1906.02629). -/
+
+/-- Энтропия цели. -/
+noncomputable def lsH (p : K → ℝ) : ℝ := -∑ i : K, p i * Real.log (p i)
+
+/-- СГЛАЖИВАНИЕ УВЕЛИЧИВАЕТ ЭНТРОПИЮ: H(q) ≤ H(q^LS) при
+строго положительной цели и ε ∈ (0,1). Вывод: Jensen по
+слагаемым (x·log x выпукла — xlogx_convex) даёт
+H(q^LS) ≥ (1−ε)·H(q) + ε·log(card K) ≥ H(q), поскольку
+H(q) ≤ log(card K) (shannon_entropy_le_log_card). -/
+theorem ls_entropy_ge (q : K → ℝ) (hq : ∀ i, 0 < q i)
+    (hq1 : ∑ i : K, q i = 1) (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
+    lsH q ≤ lsH (lsTarget q ε) := by
+  have hcard : (0:ℝ) < Fintype.card K := by
+    have : (0:ℕ) < Fintype.card K := Fintype.card_pos
+    exact_mod_cast this
+  have hu : ∀ i : K, 0 < 1 / (Fintype.card K : ℝ) := by
+    intro i; positivity
+  have hlspos : ∀ i, 0 < lsTarget q ε i := by
+    intro i
+    have h1 : 0 < (1 - ε) * q i := mul_pos (by linarith) (hq i)
+    have h2 : 0 ≤ ε / (Fintype.card K : ℝ) := by positivity
+    unfold lsTarget
+    linarith
+
+  -- Jensen по слагаемым (x·log x выпукла)
+  have hjensen : ∀ i : K,
+      lsTarget q ε i * Real.log (lsTarget q ε i)
+        ≤ (1 - ε) * (q i * Real.log (q i))
+          + ε * ((1 / (Fintype.card K : ℝ))
+            * Real.log (1 / (Fintype.card K : ℝ))) := by
+    intro i
+    have := Hagi.Probability.xlogx_convex (a := q i)
+      (b := 1 / (Fintype.card K : ℝ)) (lam := 1 - ε) (hq i) (hu i)
+      (by linarith) (by linarith)
+    -- форма: (lam*a + (1-lam)*b)*log(...) ≤ lam*a*log a + (1-lam)*b*log b
+    have hform : (1 - ε) * q i + ε * (1 / (Fintype.card K : ℝ))
+        = lsTarget q ε i := by
+      unfold lsTarget
+      rw [div_eq_mul_one_div]
+      ring
+    rw [← hform]
+    have hsimp : 1 - (1 - ε) = ε := by ring
+    rw [hsimp] at this
+    linarith [this]
+  have hsum : (∑ i : K, lsTarget q ε i * Real.log (lsTarget q ε i))
+      ≤ ∑ i : K, ((1 - ε) * (q i * Real.log (q i))
+        + ε * ((1 / (Fintype.card K : ℝ))
+          * Real.log (1 / (Fintype.card K : ℝ)))) :=
+    Finset.sum_le_sum (fun i _ => hjensen i)
+  -- сумма: ∑ lsT·log lsT ≤ (1−ε)·∑ q·log q + ε·∑ u·log u
+  have hsumu : ∑ i : K, (1 / (Fintype.card K : ℝ))
+      * Real.log (1 / (Fintype.card K : ℝ))
+      = -(Real.log (Fintype.card K : ℝ)) := by
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+    have hc : (Fintype.card K : ℝ) ≠ 0 := by positivity
+    have hcc : (Fintype.card K : ℝ) * (Fintype.card K : ℝ)⁻¹ = 1 :=
+      mul_inv_cancel₀ hc
+    rw [one_div, ← mul_assoc, hcc, one_mul, Real.log_inv]
+
+  -- разбиение суммы на два слагаемых
+  have hsplit : ∑ i : K, ((1 - ε) * (q i * Real.log (q i))
+      + ε * ((1 / (Fintype.card K : ℝ))
+        * Real.log (1 / (Fintype.card K : ℝ))))
+      = (1 - ε) * ∑ i : K, q i * Real.log (q i)
+        + ε * ∑ i : K, (1 / (Fintype.card K : ℝ))
+          * Real.log (1 / (Fintype.card K : ℝ)) := by
+    rw [Finset.sum_add_distrib]
+    have e1 : ∑ i : K, (1 - ε) * (q i * Real.log (q i))
+        = (1 - ε) * ∑ i : K, q i * Real.log (q i) :=
+      (Finset.mul_sum Finset.univ (fun i => q i * Real.log (q i)) (1 - ε)).symm
+    have e2 : ∑ i : K, ε * ((1 / (Fintype.card K : ℝ))
+        * Real.log (1 / (Fintype.card K : ℝ)))
+        = ε * ∑ i : K, (1 / (Fintype.card K : ℝ))
+          * Real.log (1 / (Fintype.card K : ℝ)) :=
+      (Finset.mul_sum Finset.univ
+        (fun i => (1 / (Fintype.card K : ℝ))
+          * Real.log (1 / (Fintype.card K : ℝ))) ε).symm
+    rw [e1, e2]
+
+  rw [hsplit, hsumu] at hsum
+  -- H(q) ≤ log card (шенноновская граница)
+  have hqcap := Hagi.Energy.shannon_entropy_le_log_card q hq hq1
+  -- финал: −∑q·log q ≤ −∑lsT·log lsT (через neg_le_neg)
+  unfold lsH
+  rw [neg_le_neg_iff]
+  nlinarith [hsum, hqcap]
 
 end Hagi.Model.LabelSmoothing
