@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3555 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3559 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **QuadGate (такт №269, аудит №5 P1/P3)**: CommitGate
+  ЗАМКНУТ на эталонной машине: machineCert — GateCert,
+  где ВСЕ поля вычислены (V=energy a w, dStep=machineGap,
+  quant=quantLift √(2X)z+z²/2 из решётки), machine_energy_lift
+  (E(градиент+квантование) ≤ X + quantLift — реюз
+  machine_energy_bound), quad_gate_commit: gate открыт ⟹
+  РЕАЛЬНАЯ энергия полного машинного шага СТРОГО убывает —
+  ни одного постулированного поля, всё из весов.
 - **CapabilityLocal (такт №268, аудит №5 P1/K8)**:
   геометрический рост ПОЛЕВОЙ capability из ЛОКАЛЬНОГО
   условия: capability_geometric_of_local (ΔΓ_t ≥ α·Γ_t +
