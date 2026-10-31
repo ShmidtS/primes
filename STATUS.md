@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3432 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3437 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **BatchSNR (источник №76: McCandlish Gradient Noise Scale,
+  1812.06162; такт №240)**: snr (μ²B/σ²), snr_realized
+  (= μ²/E[(ĝ−μ)²] — реализованный SNR через temperature law
+  Var=B⁻¹), snr_linear (SNR(B)=B·SNR(1) — линейный рост),
+  criticalBatch (B*=σ²/μ²), snr_ge_one_iff (SNR≥1 ⟺ B≥B* —
+  пороговый закон критического батча). Поверх
+  NoiseTemperature-капстроуна без дублирования.
+  Также: LESSONS.md +12 записей тактов 225–238 (ретро №239).
 - **LookaheadTrajectory (связка №75×EMA, такт №238)**:
   anchorSeq (якорная последовательность Lookahead);
   anchor_eq_ema (тождество: slowStep-рекурсия = EMA при

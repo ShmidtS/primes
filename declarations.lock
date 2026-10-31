@@ -757,6 +757,7 @@ covered	c317174677fd9505	40202eb8e2b5bfc7
 cramer_cgf	7da21cf4f79e2cb6	77b382f9e12a981d
 cramer_sup_le_kl	772057df367a122e	67cc91980300cecf
 cramer_tilt_kl	9698403f6e0754c8	6e5b7ac73a443560
+criticalBatch	fe9b3d7ba571af4c	85d199b86726cf76
 criticalS	ccdf31cf52faa5cc	c320205c6c3b2c1b
 critical_batch_lower	d8d423537306370e	00453177a048808c
 crossCost	5b5ff9b834f9ebb4	403458d0c0e4d0fa
@@ -2894,6 +2895,10 @@ smax_pos	e3e49295cb175b59	54f7bfc660b36249
 smax_sum_one	1ee1a71a26a8036a	0bd823ebef569495
 smooth_from_lipschitz_gradient	f896b5fc4fb15a5a	cec321b7f9436f7d
 smul_orthonormal	aceb05e0bf99266f	4c6e69c24c97a18d
+snr	79866c6754bb3173	e9c0d6f2abd719e0
+snr_ge_one_iff	2452f309315c7dbd	416712f376de0955
+snr_linear	339846cea660c574	ca9e15e99e6dcf7c
+snr_realized	5649413dc6a18451	c99eb6fa17d84bb1
 softDef	9edb73dd684de4d3	bc9e6f5fcb599e2b
 softDef_eq_exp_sub_lse	1058d4c84db6d117	86bba64f3c6891a9
 softDef_pos	252062fd473c74cd	184761ab4cf66165
