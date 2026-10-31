@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3373 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3376 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Сквозной пример + КВАНТОВАНИЕ, такт №223**:
+  qQuant_err_bound — потеря функции потерь от
+  квантования постшаговой точки ≤ (Δ/2)(2R+Δ/2) при
+  |x'−a| ≤ R (gridQ_error + разность квадратов): цепочка
+  «биты → реальное квантование → ошибка параметров →
+  ошибка loss» замкнута ВЫЧИСЛЕНИЕМ на сквозном примере
+  (аудит v13 §6.4).
 - **Аудит v13 P4 (сквозной пример), такт №222**:
   Examples/QuadraticEndToEnd — первый END-TO-END обучающий
   шаг: F(x)=(x−a)², qGrad (производная ВЫЧИСЛЕНА),

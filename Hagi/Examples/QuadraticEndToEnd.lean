@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Energy.Quantizer
 
 /-!
 # QuadraticEndToEnd — сквозной обучающий шаг (аудит v13 P4,
@@ -78,4 +79,55 @@ theorem qIter_loss (a x eta : ℝ) (t : ℕ) :
         ring
       rw [hsplit]
 
+/-! ### Квантование постшаговой точки (аудит v13: цепочка
+«биты → реальное квантование → ошибка параметров → ошибка
+функции потерь», замкнутая на сквозном примере). -/
+
+/-- КОЛИЧЕСТВО ШАГОВ ПОСЛЕ t ИТЕРАЦИЙ: x_t = постшаговая
+точка итераций. -/
+def qIter (a x eta : ℝ) (t : ℕ) : ℝ :=
+  (List.range t).foldl (fun acc _ => qStep a acc eta) x
+
+/-- Полный сквозной переход: t шагов оптимизации, затем
+квантование результата. -/
+noncomputable def qQuantized (a x eta : ℝ) (t : ℕ)
+    (Δ : ℝ) (hΔ : 0 < Δ) : ℝ :=
+  Hagi.Energy.gridQ Δ hΔ (qIter a x eta t)
+
+/-- СКВОЗНАЯ ОШИБКА КВАНТОВАНИЯ (вычислена): при
+|x' − a| ≤ R потеря функции потерь от квантования
+постшаговой точки не превосствует (Δ/2)·(2R + Δ/2) —
+полная цепочка биты→квантование→ошибка→loss без
+свободных гипотез (gridQ_error + разность квадратов). -/
+theorem qQuant_err_bound (a y Δ R : ℝ) (hΔ : 0 < Δ)
+    (hR : |y - a| ≤ R) :
+    qLoss a (Hagi.Energy.gridQ Δ hΔ y) - qLoss a y
+      ≤ (Δ / 2) * (2 * R + Δ / 2) := by
+  have hq := Hagi.Energy.gridQ_error Δ hΔ y
+  set Q := Hagi.Energy.gridQ Δ hΔ y with hQ
+  have hsplit : qLoss a Q - qLoss a y
+      = (Q - y) * (Q + y - 2 * a) := by
+    unfold qLoss
+    ring
+  rw [hsplit]
+  have hqabs : |Q - y| ≤ Δ / 2 := hq
+  have h2 : |Q + y - 2 * a| ≤ Δ / 2 + 2 * R := by
+    have hqlo := (abs_le.mp hqabs).1
+    have hqhi := (abs_le.mp hqabs).2
+    have hylo := (abs_le.mp hR).1
+    have hyhi := (abs_le.mp hR).2
+    have hsplit2 : Q + y - 2 * a = (Q - y) + 2 * (y - a) := by ring
+    rw [hsplit2, abs_le]
+    constructor <;> nlinarith
+  have hd : 0 ≤ Δ / 2 := by positivity
+  have habsx : (Q - y) * (Q + y - 2 * a)
+      ≤ |(Q - y) * (Q + y - 2 * a)| := le_abs_self _
+  rw [abs_mul] at habsx
+  calc (Q - y) * (Q + y - 2 * a)
+      ≤ |Q - y| * |Q + y - 2 * a| := habsx
+    _ ≤ (Δ / 2) * (Δ / 2 + 2 * R) :=
+        mul_le_mul hqabs h2 (abs_nonneg _) hd
+    _ = (Δ / 2) * (2 * R + Δ / 2) := by ring
+
 end Hagi.Examples.QuadraticEndToEnd
+

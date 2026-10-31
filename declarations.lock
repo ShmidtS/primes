@@ -2443,9 +2443,12 @@ pure_posSemidef	dab205b21b69ff68	76a486e842adee75
 pure_state	7ea1f821074510cf	019e7f2a314dc0c3
 pure_trace	8f4aa7511182af2f	0511af2f3496d34a
 qGrad	d3975447a31307b5	464056e0ef11fdff
+qIter	e0b7487f23d422e9	094bde3aad3a08cf
 qIter_loss	ed56966cb941d680	f43a8240ca00257f
 qLoss	62d85e9aa9c9088b	568734c78738688b
 qMean	fbac44965586b6ea	df75bb7bec3a07f4
+qQuant_err_bound	9cde29210c3bb4fa	69ff4bfdc02a3d5b
+qQuantized	d8f3ead701b4c6b1	539e1a58f48deb3c
 qStep	7ae40326d9828ad2	c7162b538afdea42
 qStep_descent	0c1e913e42e313d3	8b3bbbe3711941fe
 qStep_loss_exact	4ed3e940b9e87274	ed9cb75f72d2b36f
