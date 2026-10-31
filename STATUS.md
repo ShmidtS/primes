@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3559 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3565 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,16 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **QuadTrajectory (такт №270, аудит №5 P3)**:
+  многошаговый сертифицированный цикл над вычисленным
+  gate: gateStep (commit/hold-ветвление), gateTraj
+  (итерация), gateStep_mono (энергия не возрастает на
+  любом шаге: commit — строго, hold — равенство),
+  gateTraj_mono (кумулятивная монотонность по T),
+  gateStep_drop (честный телескоп: разность РЕАЛЬНЫХ
+  энергий), gateStep_pos (строгое убывание при открытом
+  gate — реюз quad_gate_commit). Нетривиальный
+  многократный цикл с реальным изменением параметров.
 - **QuadGate (такт №269, аудит №5 P1/P3)**: CommitGate
   ЗАМКНУТ на эталонной машине: machineCert — GateCert,
   где ВСЕ поля вычислены (V=energy a w, dStep=machineGap,
