@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3429 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3432 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **LookaheadTrajectory (связка №75×EMA, такт №238)**:
+  anchorSeq (якорная последовательность Lookahead);
+  anchor_eq_ema (тождество: slowStep-рекурсия = EMA при
+  β=1−α — DRY-мост); anchor_stable (якорная траектория в
+  [lo,hi] на любом горизонте — реюз ema_invariant:
+  двухмасштабная схема не может дрейфовать за оболочку
+  данных).
 - **Lookahead (источник №75: 1907.08610; такт №237)**:
   slowStep (w' = w + α(x−w)); lookahead_mem (новый якорь ∈
   [min, max] старого и быстрого — шаг назад не проскакивает

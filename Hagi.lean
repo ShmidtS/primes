@@ -327,6 +327,7 @@ import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
 import Hagi.Model.LabelSmoothing
 import Hagi.Optimization.Lookahead
+import Hagi.Model.LookaheadTrajectory
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
