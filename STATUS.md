@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3517 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3525 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **SAM (источник №81, такт №259)**: Sharpness-Aware
+  Minimization (2010.01412): norm2/ball, samW (worst-case
+  лосс на ρ-шаре), sam_ge (sam ≥ L), ball_mono + sam_mono
+  (вложение шаров ⟹ монотонность остроты по ρ),
+  sam_flat (константа на шаре ⟹ нулевая острота — цель
+  SAM: плоские минимумы устойчивы к квантованию).
 - **TernaryGrad-мост (такт №258)**: SignSGD × Quantizer:
   sgn1_round, sgn1_grid_fix (gridQ 1 фиксирует знаковый
   градиент — тернарный вектор уже в решётке 1·ℤ),

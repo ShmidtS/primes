@@ -344,6 +344,7 @@ import Hagi.Model.RVCore
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
 import Hagi.Unified.TernaryGrad
+import Hagi.Optimization.SAM
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
