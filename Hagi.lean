@@ -321,6 +321,7 @@ import Hagi.Model.PreNorm
 import Hagi.Model.ReZero
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
+import Hagi.Unified.AnytimePACBayes
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

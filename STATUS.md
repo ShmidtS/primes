@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3394 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3396 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Anytime PAC-Bayes / time-uniform Catoni (источник №71:
+  направление FormalSLT; такт №228)**: real_mono_prob (хелпер
+  монотонности реальной меры), anytime_catoni — если
+  L_t = exp(lam·S_t − ψ·t) неотрицательный супермартингал с
+  E[L₀]≤1, то P(∃t≤n: S_t > (ψt+log(1/δ))/lam) ≤ δ —
+  TIME-UNIFORM гарантия (момент проверки адаптивен), Ville ×
+  Catoni композиция. Закрывает лакуну «time-uniform bounds»
+  из обзора конкурирующих проектов (FormalSLT).
 - **Вариационное ядро (источник №70: Bridging Control/
   Inference/Transport/Thermodynamics, 2609.15897; такт №227)**:
   mirror_step_variational_descent (экспоненциальное обновление
