@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3376 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3381 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **LogitPSV (источник №69: Rethinking Neural Thickets,
+  2610.40649; аудит v14)**: logitPSV_gap_nonneg (ансамбль
+  K статических логит-смещений НЕ ХУЖЕ среднего — реюз
+  twoGap_nonneg), logitPSV_gap_zero_of_no_spread (σ=0:
+  без разнообразия нет выигрыша — twoGap_zero_iff),
+  frozenWeights (база заморожена: тернарность не
+  разрушается, стоимость изменений весов = 0).
 - **Сквозной пример + КВАНТОВАНИЕ, такт №223**:
   qQuant_err_bound — потеря функции потерь от
   квантования постшаговой точки ≤ (Δ/2)(2R+Δ/2) при
