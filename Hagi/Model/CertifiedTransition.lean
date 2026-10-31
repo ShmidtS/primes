@@ -339,4 +339,29 @@ theorem certifiedTransition_risk_respect {X : Type*}
   have hs := h.safety
   linarith [hs, hlim]
 
+
+/-! ### Аудит v16, проблема №5: riskLim ДОЛЖЕН проверяться.
+`CertifiedTransition` ведёт риск-бухгалтерию (safety), но
+не связывает её с переданным лимитом. `CertifiedTransitionV2`
+добавляет активное поле `hRiskLim : ΔR ≤ riskLim` (лимит
+реально соблюдён) и мост из старой структуры. -/
+
+/-- V2: сертифицированный переход с АКТИВНО проверенным
+риск-лимитом (аудит v16 №5: счётчик ≠ соблюдение лимита). -/
+structure CertifiedTransitionV2 (S S' : Hagi.System.GrowthState X)
+    (u : StageInput X) (riskLim : ℝ) where
+  /-- Вся валидация V1. -/
+  base : CertifiedTransition S S' u riskLim
+  /-- ЛИМИТ АКТИВЕН: прирост защищённого риска ≤ riskLim. -/
+  hRiskLim : S'.protectedRisk - S.protectedRisk ≤ riskLim
+
+/-- МОСТ V1 → V2: старый сертификат + соблюдение лимита
+дают V2 (полная совместимость, Freeze стабилен). -/
+theorem ctv2_of_ct {S S' : Hagi.System.GrowthState X}
+    {u : StageInput X} {riskLim : ℝ}
+    (hc : CertifiedTransition S S' u riskLim)
+    (hrisk : S'.protectedRisk - S.protectedRisk ≤ riskLim) :
+    CertifiedTransitionV2 S S' u riskLim :=
+  ⟨hc, hrisk⟩
+
 end Hagi.Model

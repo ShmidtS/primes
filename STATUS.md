@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3437 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3439 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CertifiedTransitionV2 (аудит v16 проблема №5, такт
+  №241)**: hRiskLim — риск-лимит АКТИВНО проверяется полем
+  структуры (счётчик ≠ соблюдение лимита); ctv2_of_ct — мост
+  V1→V2 (полная совместимость, Freeze стабилен); ранее
+  добавлена теорема ct_risk_respects_budget (ΔR ≤ riskLim
+  выводится из safety-бухгалтерии при сумме эффект-рисков ≤
+  лимита).
 - **BatchSNR (источник №76: McCandlish Gradient Noise Scale,
   1812.06162; такт №240)**: snr (μ²B/σ²), snr_realized
   (= μ²/E[(ĝ−μ)²] — реализованный SNR через temperature law
