@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3553 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3555 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CapabilityLocal (такт №268, аудит №5 P1/K8)**:
+  геометрический рост ПОЛЕВОЙ capability из ЛОКАЛЬНОГО
+  условия: capability_geometric_of_local (ΔΓ_t ≥ α·Γ_t +
+  рекуррентность поля ⟹ Γ_T ≥ (1+α)^T·Γ₀ — чистая
+  индукция, внешний C-канал MasterHAGI не нужен;
+  привязка к (S t).effects.growGain реальна),
+  capability_strict_first (строгий рост на первом шаге —
+  нетривиальный witness).
 - **riskLim-дефантомизация (такт №267, аудит №5 P1)**:
   CertifiedTransition получил активное поле riskBound
   (S'.protectedRisk − S.protectedRisk ≤ riskLim) — лимит

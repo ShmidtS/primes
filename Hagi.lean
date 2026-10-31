@@ -349,6 +349,7 @@ import Hagi.Unified.DescentCore
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.CommitGate
 import Hagi.Model.BlockNorm
+import Hagi.Unified.CapabilityLocal
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
