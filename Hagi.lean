@@ -388,6 +388,14 @@ import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
 import Hagi.Percolation.Site
+import Hagi.Model.BestOfN
+import Hagi.Model.GAE
+import Hagi.Model.RLHF
+import Hagi.Model.Upcycling
+import Hagi.Model.WeightTying
+import Hagi.Optimization.AdaGrad
+import Hagi.Optimization.Checkpoint
+import Hagi.Optimization.Lion
 
 set_option linter.style.header false
 
@@ -452,3 +460,4 @@ Empirical measurements (RMS errors, benchmark scores, saturation
 curves) are not mathematical statements and are intentionally out of
 scope.
 -/
+

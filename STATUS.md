@@ -419,6 +419,11 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Аудит-фикс #2 (такт №260)**: 8 висячих модулей
+  (BestOfN, GAE, RLHF, Upcycling, WeightTying, AdaGrad,
+  Checkpoint, Lion) подключены в Hagi.lean — теперь
+  собираются CI-целью (ранее вне lake build, Freeze их
+  видел только source-сканом).
 - **SAM (источник №81, такт №259)**: Sharpness-Aware
   Minimization (2010.01412): norm2/ball, samW (worst-case
   лосс на ρ-шаре), sam_ge (sam ≥ L), ball_mono + sam_mono
