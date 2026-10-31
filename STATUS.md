@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CI-фикс H2 (такт №266, аудит №5)**: финальный гейт
+  в конце ci.sh — поздние проверки (AxiomCheck,
+  ChallengeCheck, StatementDupCheck, MachineDiffTest)
+  теперь ВЛИЯЮТ на exit code (ранее ранний PASS мог
+  маскировать поздние FAIL — подтверждённый ложный-PASS
+  дефект закрыт).
 - **BlockNorm (такт №265, аудит P1-RMSNorm)**: поблочная
   нормализация сохраняет ансамбль: global_eq_mean_blocks
   (глобальная дисперсия = среднее блочных — ТОЧНОЕ

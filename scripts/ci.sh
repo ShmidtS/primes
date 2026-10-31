@@ -107,3 +107,6 @@ echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
 step "ClosureReport (modules under capstones vs library)"
 python scripts/ClosureReport.py | head -1
 
+
+# Final gate (audit H2 fix): late-stage failures must affect exit code
+if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
