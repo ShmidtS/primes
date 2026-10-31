@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3582 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3587 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **NTXent (источник №83, такт №274)**: SimCLR
+  (2002.05709), бинарный InfoNCE: nt2 m = log(1+e^{−m}):
+  nt2_nonneg, nt2_le_log2 (m≥0 ⟹ ≤ log 2), nt2_anti
+  (СТРОГО убывает по марже), nt2_zero_margin (m=0 —
+  порог неразличимости log 2). Контрастная пара к
+  TripletLoss №82 (hinge vs log-хижина).
 - **DescentCoreDiag (такт №273)**: второй реальный
   инстанс гладкости: ВЗВЕШЕННАЯ квадратичная
   E=½Σaᵢ(wᵢ−yᵢ)²: diag_descent_eq (ТОЧНОЕ тождество),

@@ -355,6 +355,7 @@ import Hagi.Unified.QuadTrajectory
 import Hagi.Unified.QuadBudget
 import Hagi.Model.TripletLoss
 import Hagi.Unified.DescentCoreDiag
+import Hagi.Model.NTXent
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
