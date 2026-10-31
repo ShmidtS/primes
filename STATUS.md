@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3367 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3373 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Аудит v13 P4 (сквозной пример), такт №222**:
+  Examples/QuadraticEndToEnd — первый END-TO-END обучающий
+  шаг: F(x)=(x−a)², qGrad (производная ВЫЧИСЛЕНА),
+  qStep_loss_exact (постшаговый loss = (1−2η)²(x−a)²
+  В ТОЧНОСТИ), qStep_descent (строгое убывание при η∈(0,1),
+  x≠a — ноль эмпирических гипотез), qIter_loss (t шагов =
+  геометрическое убывание (1−2η)^{2t} — точная
+  многошаговость).
 - **Аудит v13 P0 (вакуумность core_premises), такт №221**:
   ПОДТВЕРЖДЕНО противоречие hjointE (E(params) ≤
   jointEnergy = E(params−ηd)) со спуском — вынуждает d=0.
