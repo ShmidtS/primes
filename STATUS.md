@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3416 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3418 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Насыщение роста (аудит v14 §3.3, такт №234)**:
+  saturation_gap (C*−C_T = (1−σ)^T(C*−C_0) — геометрическое
+  сжатие зазора до потолка: ЛИНЕЙНАЯ сходимость вместо
+  обязательного экспоненциального взлёта),
+  saturation_ceiling (C_T ≤ C* − (1−σ)^T(C*−C_0) ≤ C* —
+  рост монотонен и не пересекает потолок). Рекомендация
+  v14 выполнена: жёсткая модель cone_premises_force_exact
+  дополнена честной динамикой с насыщением и шумом.
 - **StepContract-мост (аудит v15 дублирование, такт №233)**:
   constContract (постоянный контракт decrease=eps, risk=0),
   termination_via_stepcontract — канонический телескоп
