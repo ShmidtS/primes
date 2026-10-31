@@ -46,6 +46,7 @@ FluctuationSetup	43cf8064ac649599	ff75d1cb7c5da528
 FullCycleRefinement	d64c5421a7d02623	48b83908cf90a43a
 GQA	aa7615e814a692b7	cbe34d5fb9b87698
 GainOp	9f4bf8b235d2585c	26ca67a6b75e8c20
+GateCert	02ff95c0adc47ac3	51af913d912dcbd7
 GaugeEquiv	769b078eea90c366	3b15a288520143f3
 GaugeSystem	849df9eb85213ccc	471afa68b6b9c81e
 GenMetrics	3eb3fef9a5530da1	17fd19800c2f50d5
@@ -646,6 +647,8 @@ coherence_ratio_ge_one	b8ee1378d7943608	b654775b2fd84b15
 coherence_ratio_outerProduct_frobenius	aaca9b9f8b6f3b3c	0c0eb6e016d38d8c
 colInterp	cd0d908b11c02ff3	adadb45f5c0f6dc5
 colUpdate	9eb9f9e3ea8b80f5	7fd97865c773e0bf
+commitProductive	2a8a8a9c6ae1bcb6	ff637cfb8decf253
+commitV	87e59b9655984cfa	d96de14f6bfc1872
 complex_sum_cauchy_schwarz	8765d515691928a0	469272017cd602f7
 compose	3698f352d9da5065	86863d159816b8fd
 compose	5afbec67fd963985	286ed3ac4d7ea880
@@ -1339,6 +1342,7 @@ gapII_nonpos	d66e4b62dd9792a2	4311435bbef3fe98
 gap_N_nonneg	e5dfa42de1ab8b60	a7a0d2e11e099914
 gap_decomposition	0ca1a7b8ebff5909	de04145665103495
 gap_graceful	8902c8535cfed2e5	970a21f8a89f5e95
+gate	884922c1ff19a9da	85c405aeb7cfa646
 gate_retention	851bc019f220d45a	ee9bd5591a8c4a72
 gate_success_multiplier	bf857dc552c45c00	970142ddc5f9e7db
 gating_tail_bound	f13f64426ceafb59	5a85e2e0e998c76e
@@ -1620,6 +1624,8 @@ hoeffding_two_sided	f9c9006b808f0876	df1bc7917fb62c36
 hoeffding_union_tail	7041dd3a2cd1f8ce	e8644d7f5a8166d2
 hoelder_finite	6c7ef85502668447	c115eb2856adcc87
 hoelder_weighted	3779d39f5d41b2ab	b02f221a2cd8cfe2
+holdSafe	2ac1f345df21987c	af529f48c7fe6afe
+holdV	7118aceaf35d09b4	b0f6daad000b6f02
 honest_trajectory_global	53b958a185634507	7ecaf7747fc01823
 hopfield_concentration	e4ebde2df83144a2	8f0d47f47e9678d9
 horizon_termination	bce200a44f40b517	29613000b9a9b30c
@@ -2603,6 +2609,7 @@ quantMat_entry	ea8a6b9800555881	83d91c7cd8cbc53b
 quantMat_sq_bound	8bb3970e08cf295c	8de1a273b98a2a79
 quantStudent	bbf70a8f2e64bdb2	d701c3ed76ea57f5
 quant_L2	1ec915569e1548ea	13c218f8f7120cfa
+quant_bound_of_gridQ	4aa795a3064514a3	512dcc1295091470
 quant_energy_bridge	d410165a8676b25f	6df772fb62350d07
 quant_energy_bridge_saturation	442043b77bcb69b7	5ed8db7127dde55c
 quant_frob_loss	932ab798204c897a	78ae256ed47b7283

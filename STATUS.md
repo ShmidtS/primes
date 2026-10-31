@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3539 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3546 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CommitGate (такт №264, аудит D TRD-GMS)**: инвариант
+  ветвления вместо h_emp_grow: GateCert (V, dStep-контракт,
+  gap≥0, quant, gen≥0), gate (win > loss — решаемое
+  условие), commitProductive (gate=true ⟹ СТРОГОЕ убывание
+  потенциала), holdSafe (rollback: Δ=0, parent-preserving),
+  quant_bound_of_gridQ (Σ квант-ошибок² ≤ n·Δ²/4 — реюз
+  gridQ_error). Условие продуктивности — ВЕТВЛЕНИЕ
+  АЛГОРИТМА, не внешняя гипотеза.
 - **DescentCoreQuad (такт №263, аудит #3/#8)**: первый
   НЕПОСТУЛИРОВАННЫЙ инстанс Objective: квадратичная
   машина E(w)=½Σ(w−a)²: quad_descent_eq (descent-лемма —
