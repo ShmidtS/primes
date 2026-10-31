@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3439 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3444 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,15 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **QuantizedAdvance (аудит v16 P0/Test 3, такт №242)**:
+  advanceQ — РЕАЛЬНАЯ семантика компрессии: params' =
+  q(params − η·d) (advance + фактическое квантование);
+  advanceQ_quantized (Test 3 rfl-контракт), advanceQ_prox
+  (контракт квантовщика ‖qx−x‖≤Δ ⟹ квантованное состояние в
+  Δ-окрестности идеального), compressQ_eq_gridQ +
+  compressQ_prox (machineStep эталона = advanceQ с
+  q = compressQ, контракт выполнен поточечно Δ/2 через
+  gridQ_error).
 - **CertifiedTransitionV2 (аудит v16 проблема №5, такт
   №241)**: hRiskLim — риск-лимит АКТИВНО проверяется полем
   структуры (счётчик ≠ соблюдение лимита); ctv2_of_ct — мост
