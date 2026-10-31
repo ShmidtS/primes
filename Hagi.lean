@@ -338,6 +338,7 @@ import Hagi.Model.GDNBridge
 import Hagi.Step.CPUFreeze
 import Hagi.Model.AdaptiveChunking
 import Hagi.Model.NeuralComputer
+import Hagi.Unified.NCTheorem
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

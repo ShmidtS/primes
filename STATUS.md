@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3478 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3481 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **NCTheorem (приоритет 7 обзора, такт №251)**:
+  ГЛОБАЛЬНАЯ теорема нейрокомпьютера: ncContract (мост
+  NCInput → StepContract: decrease=сертификат,
+  risk=riskSpend, budget=cost); nc_trajectory_bound
+  (телескоп: Σd ≤ Φ₀−Φ_min+Σrisk на ncAdvance-траектории —
+  реюз trajectory_convergence); nc_cpu_frozen_trajectory
+  (процессор заморожен на ВСЕМ горизонте — индукция
+  инварианта).
 - **NeuralComputer (приоритет 4 обзора, такт №250)**:
   NCState — ЕДИНОЕ состояние нейрокомпьютера (φ, base,
   adapt, cpu, mem, E, R, B, C); ncAdvance — канонический
