@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3481 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3487 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **DistillCert (приоритет 6 обзора, такт №252)**:
+  сертификат консолидации: DistillCert (teacher/student/
+  Δ/lip/dist2-прокси с честными полями), quant_pointwise
+  (Δ/2-реюз gridQ_error), quant_L2 (‖Q(s)−s‖² ≤ n(Δ/2)²),
+  consolidation_bound (|L(Q(student)) − L(teacher)| ≤
+  Λ·(2n(Δ/2)² + 2·dbound²) — каналы квантования и
+  дистилляции суммируются через (a+b)²≤2a²+2b²).
 - **NCTheorem (приоритет 7 обзора, такт №251)**:
   ГЛОБАЛЬНАЯ теорема нейрокомпьютера: ncContract (мост
   NCInput → StepContract: decrease=сертификат,
