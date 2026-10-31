@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3487 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3496 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **RVCore (приоритет 2-ядро обзора, такт №253)**:
+  бит-точное ALU-ядро RISC-V над UInt32: wordAdd_spec
+  (toNat(w+w') = (n+n')%2³² — точный перенос),
+  wordSub_spec (заём-обёртка), wordAnd_spec (Nat.land),
+  wordAnd_idem, execDeterministic (CPU — функция: нулевая
+  энтропия ошибки, основа RAM_Parity). wordAdd_spec зависит
+  ТОЛЬКО от propext (конструктивная бит-арифметика).
 - **DistillCert (приоритет 6 обзора, такт №252)**:
   сертификат консолидации: DistillCert (teacher/student/
   Δ/lip/dist2-прокси с честными полями), quant_pointwise

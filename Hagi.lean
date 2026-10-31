@@ -340,6 +340,7 @@ import Hagi.Model.AdaptiveChunking
 import Hagi.Model.NeuralComputer
 import Hagi.Unified.NCTheorem
 import Hagi.Model.DistillCert
+import Hagi.Model.RVCore
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
