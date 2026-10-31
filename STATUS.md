@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3444 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3449 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **BytePatch (источник №77: Cartesia From-Tokens-to-Bytes
+  H-Net; такт №243)**: patchCount ⌈N/p⌉₊ — байтовые патчи:
+  patch_cover (p·⌈N/p⌉ ≥ N — покрытие входа), patch_le_raw
+  (p ≥ 1 ⟹ патчей ≤ байтов), patch_real_bound (< N/p+1),
+  patch_attn_saving (⌈N/p⌉² < N² при p≥2, N≥2p — строгая
+  экономия квадратичного внимания).
 - **QuantizedAdvance (аудит v16 P0/Test 3, такт №242)**:
   advanceQ — РЕАЛЬНАЯ семантика компрессии: params' =
   q(params − η·d) (advance + фактическое квантование);

@@ -330,6 +330,7 @@ import Hagi.Optimization.Lookahead
 import Hagi.Model.LookaheadTrajectory
 import Hagi.Probability.BatchSNR
 import Hagi.Model.QuantizedAdvance
+import Hagi.Data.BytePatch
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
