@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3525 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3530 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **DescentCore (такт №261, аудит #4/#1)**: семантический
+  центр спуска: Objective (L-гладкость — descentLemma
+  поле-контракт), aligned (‖dir‖² ≤ ⟨g,dir⟩),
+  descent_drop: ЧИСТОЕ УБЫВАНИЕ f(x−η·dir) ≤
+  f(x) − η(1−Lη/2)‖dir‖² при η ≤ 1/L — ВЫВОДИТСЯ из
+  гладкости, h_emp_smooth больше не постулат потребителя.
 - **Аудит-фикс #2 (такт №260)**: 8 висячих модулей
   (BestOfN, GAE, RLHF, Upcycling, WeightTying, AdaGrad,
   Checkpoint, Lion) подключены в Hagi.lean — теперь
