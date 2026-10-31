@@ -218,4 +218,155 @@ theorem MasterHAGICoreOperational
       hgenq h_emp_G E hdiff hsmooth hgcont hgrad hEmerge hjointE
       hjointdef hnorm Δ hΔ hcompdef hquantdef hs1)
 
+/-! ### Аудит v13 P0: исправленные версии (v2)
+
+Противоречие старой версии: гипотезы `hjointE`
+(E(params) ≤ jointEnergy) и `hjointdef`
+(jointEnergy = E(params − η·d)) вместе со спуском
+(hdescent + гладкость + η ≤ 1/L ⟹ E(params−ηd) <
+E(params) при d ≠ 0) вынуждают d = 0 — вакуумность,
+подтверждённая аудитом v13 §4. Исправление (рекомендация
+аудита): квантование оценивается в ПОСТШАГОВОЙ точке
+x' = params − η·d, гипотеза hjointE УДАЛЕНА (заменяется
+rfl-истинным неравенством в конъюнкте 13). Старые версии
+сохранены без изменений (superseded, API-совместимость). -/
+
+theorem core_premises_operational_scalar_v2
+    (S S' : GenState ℝ) (epsQ : ℝ) (w : Fin 5 → ℝ)
+    (hgap : 0 ≤ S.toGrowthState.gap)
+    (h_emp_grow : S.toGrowthState.effects.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
+    (h_emp_merge : S.toGrowthState.effects.mergeEnergy
+      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
+    (hL : 0 < S.toGrowthState.sp.L)
+    (heta : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
+    (heta0 : 0 ≤ S.toGrowthState.sp.eta)
+    (hdescent : ‖S.toGrowthState.stepDir‖ ^ 2
+      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
+    (hs : 0 ≤ S.toGrowthState.sp.s)
+    (hdn : 0 ≤ S.toGrowthState.effects.quantErr)
+    (h_emp_dist : S.toGrowthState.effects.quantErr ≤ 1 / 2)
+    (heq : S'.toGrowthState
+      = compress (joint (merge (grow S.toGrowthState))))
+    (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
+    (h_emp_G : Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
+    (E : ℝ → ℝ)
+    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
+    (hsmooth : ∀ x y : ℝ, ‖fderiv ℝ E y - fderiv ℝ E x‖
+      ≤ S.toGrowthState.sp.L * ‖y - x‖)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E
+      (S.toGrowthState.params
+        + t • (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
+      (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
+    (hgrad : fderiv ℝ E S.toGrowthState.params
+        S.toGrowthState.stepDir
+      = ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (hEmerge : E S.toGrowthState.params
+      ≤ S.toGrowthState.effects.mergeEnergy)
+    (hjointdef : S.toGrowthState.effects.jointEnergy
+      = E (S.toGrowthState.params
+        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
+    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
+    (Δ : ℝ) (hΔ : 0 < Δ)
+    -- ПОСТШАГОВОЕ квантование (фикс аудита v13):
+    -- Q применяется к x' = params − η·d
+    (hcompdef : S.toGrowthState.effects.compressEnergy
+      = E (Hagi.Energy.gridQ Δ hΔ
+          (S.toGrowthState.params
+            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)))
+    (hquantdef : S.toGrowthState.effects.quantErr
+      = |(S.toGrowthState.params
+            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
+        - Hagi.Energy.gridQ Δ hΔ
+            (S.toGrowthState.params
+              - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)|)
+    (hs1 : S.toGrowthState.sp.s = 1) :
+    CorePremises S S' epsQ w := by
+  have h8 := conj8_h_emp_smooth_derived E S.toGrowthState hdiff
+    hsmooth hgcont hgrad heta0 hEmerge hjointdef
+  -- conj13 с постшаговой точкой: hjoint — rfl-истинное
+  have h13 := conj13_h_emp_lip_derived E
+    S.toGrowthState.sp.kappa hdiff hnorm Δ hΔ
+    (S.toGrowthState.params
+      - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
+    (E (S.toGrowthState.params
+      - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
+    (le_refl _)
+    S.toGrowthState.effects.compressEnergy hcompdef
+    S.toGrowthState.effects.quantErr hquantdef
+  have h13' : S.toGrowthState.effects.compressEnergy
+      - S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
+        * S.toGrowthState.effects.quantErr := by
+    rw [hs1, hjointdef]
+    exact h13
+  exact ⟨hgap, h_emp_grow, h_emp_merge, hL, heta, heta0, hdescent,
+    h8, hkappa, hs, hdn, h_emp_dist, h13', heq, hgenq, h_emp_G⟩
+
+/-- Капстоун-мост v2 (аудит v13): без противоречивого
+hjointE, с постшаговым квантованием. -/
+theorem MasterHAGICoreOperational_v2
+    (S S' : GenState ℝ) (lam nu Qtarget epsQ : ℝ)
+    (w : Fin 5 → ℝ)
+    (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
+    (hgap : 0 ≤ S.toGrowthState.gap)
+    (h_emp_grow : S.toGrowthState.effects.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
+    (h_emp_merge : S.toGrowthState.effects.mergeEnergy
+      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
+    (hL : 0 < S.toGrowthState.sp.L)
+    (heta : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
+    (heta0 : 0 ≤ S.toGrowthState.sp.eta)
+    (hdescent : ‖S.toGrowthState.stepDir‖ ^ 2
+      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
+    (hs : 0 ≤ S.toGrowthState.sp.s)
+    (hdn : 0 ≤ S.toGrowthState.effects.quantErr)
+    (h_emp_dist : S.toGrowthState.effects.quantErr ≤ 1 / 2)
+    (heq : S'.toGrowthState
+      = compress (joint (merge (grow S.toGrowthState))))
+    (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
+    (h_emp_G : Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
+    (E : ℝ → ℝ)
+    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
+    (hsmooth : ∀ x y : ℝ, ‖fderiv ℝ E y - fderiv ℝ E x‖
+      ≤ S.toGrowthState.sp.L * ‖y - x‖)
+    (hgcont : Continuous fun t : ℝ => fderiv ℝ E
+      (S.toGrowthState.params
+        + t • (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
+      (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
+    (hgrad : fderiv ℝ E S.toGrowthState.params
+        S.toGrowthState.stepDir
+      = ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (hEmerge : E S.toGrowthState.params
+      ≤ S.toGrowthState.effects.mergeEnergy)
+    (hjointdef : S.toGrowthState.effects.jointEnergy
+      = E (S.toGrowthState.params
+        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
+    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
+    (Δ : ℝ) (hΔ : 0 < Δ)
+    (hcompdef : S.toGrowthState.effects.compressEnergy
+      = E (Hagi.Energy.gridQ Δ hΔ
+          (S.toGrowthState.params
+            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)))
+    (hquantdef : S.toGrowthState.effects.quantErr
+      = |(S.toGrowthState.params
+            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
+        - Hagi.Energy.gridQ Δ hΔ
+            (S.toGrowthState.params
+              - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)|)
+    (hs1 : S.toGrowthState.sp.s = 1) :
+    hagiPotential S' lam nu Qtarget w
+      ≤ hagiPotential S lam nu Qtarget w - (verify S.toGrowthState).decrease
+        + lam * (verify S.toGrowthState).riskSpend + nu * epsQ
+    ∧ S'.toGrowthState.budget
+      = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend := by
+  exact MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ
+    (core_premises_operational_scalar_v2 S S' epsQ w hgap h_emp_grow
+      h_emp_merge hL heta heta0 hdescent hkappa hs hdn h_emp_dist heq
+      hgenq h_emp_G E hdiff hsmooth hgcont hgrad hEmerge
+      hjointdef hnorm Δ hΔ hcompdef hquantdef hs1)
+
 end Hagi.Unified
+

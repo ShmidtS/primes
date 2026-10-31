@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3365 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3367 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Аудит v13 P0 (вакуумность core_premises), такт №221**:
+  ПОДТВЕРЖДЕНО противоречие hjointE (E(params) ≤
+  jointEnergy = E(params−ηd)) со спуском — вынуждает d=0.
+  Исправление: core_premises_operational_scalar_v2 +
+  MasterHAGICoreOperational_v2 — ПОСТШАГОВОЕ квантование
+  (gridQ от x' = params − η·d), hjointE УДАЛЁН (заменён
+  rfl-истинным неравенством в конъюнкте 13). Старые версии
+  сохранены (superseded, Freeze-совместимость).
 - **LLRD (источник №68: послойное LR-затухание, ULMFiT
   1801.06146-стиль)**: llrd_strict_mono (при 0<γ<1 LR
   СТРОГО растёт с номером слоя — верхние слои учатся
