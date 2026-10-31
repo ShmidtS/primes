@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3578 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3582 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **DescentCoreDiag (такт №273)**: второй реальный
+  инстанс гладкости: ВЗВЕШЕННАЯ квадратичная
+  E=½Σaᵢ(wᵢ−yᵢ)²: diag_descent_eq (ТОЧНОЕ тождество),
+  diag_descent_le (L-гладкость с L = любая верхняя
+  граница весов — НЕтривиальная константа, выведена
+  поточечным aᵢ ≤ L; контракт DescentCore проверен при
+  произвольном L, не только L=1). + LESSONS-ретро №273
+  (+10 записей, 92 строки).
 - **TripletLoss (источник №82, такт №272)**: FaceNet
   (1503.03832): tl = max 0 (d⁺ − d⁻ + m): tl_nonneg (hinge),
   tl_zero (маржа выполнена ⟹ ноль), tl_pos (нарушение ⟹
