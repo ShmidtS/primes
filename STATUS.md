@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3506 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3513 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **DiffAttention (источник №80, такт №257)**: дифф-внимание
+  (2410.05258): sm (softmax), sm_sum_one/sm_nonneg,
+  sm_shift (СДВИГ-ИНВАРИАНТНОСТЬ: общий сдвиг логитов не
+  меняет веса — key-bias сокращается в нормировке),
+  noise_cancel (общий аддитивный шум самосокращается),
+  diffW + diff_range (w₁−λw₂ ∈ [−λ,1] при λ≥0).
 - **BatchSNR-углубление (такт №256)**: модель
   критического батча с издержками: batchGain (min(1,B/B*)),
   stepCost (α·B+β), gainPerCost; gain_decreasing_past_critical
