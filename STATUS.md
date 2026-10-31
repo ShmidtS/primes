@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3591 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3596 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **VicReg (источник №85, такт №276)**: variance-hinge
+  антиколлапс (2105.04906): vh = max 0 (γ−√popVar) (реюз
+  popVar из NoiseTemperature), pv_nonneg, vh_nonneg,
+  vh_zero (var ≥ γ² ⟹ ноль, любой знак γ), vh_anti
+  (СТРОГОЕ убывание по var на АКТИВНОЙ зоне — честная
+  посылка vh>0; контрпример «оба нуля» пойман до коммита).
 - **Mixup (источник №84, такт №275)**: Zhang (1710.09412):
   mixLabel (выпуклая комбинация меток), mixLabel_dist
   (симплекс замкнут — смесь распределений — распределение),

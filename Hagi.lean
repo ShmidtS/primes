@@ -357,6 +357,7 @@ import Hagi.Model.TripletLoss
 import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.NTXent
 import Hagi.Model.Mixup
+import Hagi.Model.VicReg
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

@@ -2592,6 +2592,7 @@ pure	ca2078d3b5f50b26	35907cfbb97db4e3
 pure_posSemidef	dab205b21b69ff68	76a486e842adee75
 pure_state	7ea1f821074510cf	019e7f2a314dc0c3
 pure_trace	8f4aa7511182af2f	0511af2f3496d34a
+pv_nonneg	8fa9d12cd7945b8f	1a2b0719b754d23b
 qGrad	d3975447a31307b5	464056e0ef11fdff
 qIter	e0b7487f23d422e9	094bde3aad3a08cf
 qIter_loss	ed56966cb941d680	f43a8240ca00257f
@@ -3496,6 +3497,10 @@ verify_decrease	90e0ad4922d8a53d	81fb7650db804820
 versionSpace	999357545aa6b485	ffe1a78b1ca9f135
 versionSpace_append_singleton	32dc82aea205bb85	d66e0331cb43e8ac
 versionSpace_mono	2c4c5f2913616012	92d1c89de09b0c17
+vh	171c5c40606c1c7f	2b3bccad0d0f1fb2
+vh_anti	f6fa66c3c40e2616	384acb20f1754327
+vh_nonneg	c722cdf4e1924278	dc42969da9158727
+vh_zero	31cf20a4b3677ccb	05d6504f90d63024
 ville_anytime_false_alarm	c83dc3146df18fa1	93dd5a836d99b72b
 ville_supermartingale	e5c7943aed067959	7b85b25461869aa3
 vista_bridge_zero	26a8af24b0049257	a9ced8090bdd4671
