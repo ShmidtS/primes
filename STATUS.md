@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3496 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3502 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **SignSGD (источник №79, такт №255)**: 1-bit градиентная
+  компрессия: sgn1 (тернарный знак), sign_inner_nonneg
+  (⟨sign(g),g⟩ = ‖g‖₁ ≥ 0 — компрессия не переворачивает
+  направление спуска), sign_inner_pos (строгий косинус при
+  g≠0), sgn1_ternary ({−1,0,1} — совместимость с тритарным
+  ядром), sgn1_fix + sign_idempotent (sign∘sign=sign).
 - **RVCore (приоритет 2-ядро обзора, такт №253)**:
   бит-точное ALU-ядро RISC-V над UInt32: wordAdd_spec
   (toNat(w+w') = (n+n')%2³² — точный перенос),
