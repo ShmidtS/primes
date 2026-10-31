@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3402 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3404 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CertifiedTrajectory (такт №230)**: ЕДИНАЯ траекторная
+  теорема certified_progress_honest — связка трёх уровней
+  (execution → measurement → contract): Σmeasured − Σδ ≤
+  Φ₀−Φ_min+Σrisk (прогресс подтверждён снизу данными И
+  ограничен сверху теорией); certified_progress_signal —
+  суммарный измеренный прирост > шума ⟹ кумулятивный
+  decrease строго положителен И бюджетно-рисково ограничен.
 - **MeasurementCert (направление TorchLean spec→exec→verify;
   такт №229)**: двухуровневая сертификация — StepMeasurement
   (claimed ∈ [measured−δ, measured+δ], anytime-полоса),

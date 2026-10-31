@@ -323,6 +323,7 @@ import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
+import Hagi.Unified.CertifiedTrajectory
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
