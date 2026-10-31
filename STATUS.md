@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3571 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3578 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **TripletLoss (источник №82, такт №272)**: FaceNet
+  (1503.03832): tl = max 0 (d⁺ − d⁻ + m): tl_nonneg (hinge),
+  tl_zero (маржа выполнена ⟹ ноль), tl_pos (нарушение ⟹
+  строгий сигнал), tl_le_hinge (граница при d±≥0 —
+  контрпример dap<0 пойман до коммита), tl_mono_pos/neg
+  (правильные направления тяги: ближе позитив / дальше
+  негатив).
 - **QuadBudget (такт №271)**: леджер сертифицированной
   траектории: trajDropSum (ТОЧНЫЙ телескоп Σ(E_t−E_{t+1})
   = E₀−E_T — разности РЕАЛЬНЫХ энергий), trajDropBound
