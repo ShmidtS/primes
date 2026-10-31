@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3340 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3345 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -414,6 +414,11 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **GDNRAM (источник №62: Qwenputer/GDN one-hot — аудит
+  v10 §5.3)**: контракт ТОЧНОЙ адресуемой памяти —
+  ram_read_after_write (чтение после записи возвращает
+  значение в точности), ram_write_independent (строки
+  изолированы), ram_write_idem (перезапись идемпотентна).
 - **StreamingLLM (источник №61: Xiao et al., 2309.17453)**:
   stream_bounded (KV-кэш ≤ n_s + w при ЛЮБОМ горизонте —
   память не растёт с длиной входа: стриминг без
