@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3450 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3455 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **CautiousOptimizer (источник №78: 2411.16085; такт
+  №245)**: cautiousMask (сохранять только компоненты update,
+  согласованные со знаком градиента): cautiousMask_abs_le
+  (маска не увеличивает модуль), cautiousAligned (выжившие
+  компоненты u'·g ≥ 0), cautiousId/cautiousZero (тождество
+  при согласии, полный отказ при конфликте — «не вредить»).
 - **InfoPreservation (аудит v16 Test 6, такт №244)**:
   info_preservation_regret — СРЕДНИЕ потери траектории
   mirrorIterate ≤ потери целевого распределения +
