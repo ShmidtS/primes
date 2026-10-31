@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3513 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3517 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **TernaryGrad-мост (такт №258)**: SignSGD × Quantizer:
+  sgn1_round, sgn1_grid_fix (gridQ 1 фиксирует знаковый
+  градиент — тернарный вектор уже в решётке 1·ℤ),
+  sgn1_zero_quant_error (ошибка квантования строго 0,
+  не Δ/2), tern_grad_inner (⟨Q(sign g), g⟩ = ‖g‖₁ —
+  композиция каналов компрессии без деградации сигнала).
 - **DiffAttention (источник №80, такт №257)**: дифф-внимание
   (2410.05258): sm (softmax), sm_sum_one/sm_nonneg,
   sm_shift (СДВИГ-ИНВАРИАНТНОСТЬ: общий сдвиг логитов не

@@ -343,6 +343,7 @@ import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
+import Hagi.Unified.TernaryGrad
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
