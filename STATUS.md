@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3349 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3353 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **AdamW (источник №64: Loshchilov & Hutter,
+  1711.05101)**: adamw_shrink (decoupled decay действует
+  ВСЕГДА: при нулевом градиенте веса строго сжимаются,
+  фактор |1−λ|<1), l2_decay_diluted (coupled-L2
+  ослабляет decay адаптивным знаменателем: эффективный
+  фактор ≤ λ² — ядро критики расцепления).
 - **FlashAttention (источник №63: Dao et al., 2205.14135)**:
   flash_io_lt (IO N²d²/M < N²+Nd при ЧЕСТНОЙ гипотезе
   M > d² — наивная M > d ЛОЖНА: d=2, M=2.1, N=10 →
