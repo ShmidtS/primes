@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3467 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3470 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **AdaptiveChunking (приоритет 3 обзора, такт №249)**:
+  adaptiveCost (C(x)=Σ c_ℓ·M_ℓ(x)² — стоимость иерархии как
+  функция ВХОДА); adaptive_le_static (поточечное
+  доминирование M_ℓ(x) ≤ L/r ⟹ адаптивная стоимость ≤
+  статической); adaptive_lt_of_strict (строгое превосходство
+  на одном уровне при положительной цене ⟹ строгая
+  экономия) — математическая модель обучаемого чанкинга
+  H-Net (M зависит от входа, а не от константного r).
 - **CPUFreeze (приоритет 5 обзора, такт №248)**: safeStep
   (CPU-блок шага обнулён, rest сохранён): cpu_frozen
   (ΔCPU'=0 rfl-контракт — веса процессора инвариантны к
