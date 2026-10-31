@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3409 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3414 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **ModelSoup/EMA (источник №73: Model Soups, 2203.05482;
+  такт №232)**: soup (выпуклая комбинация параметров),
+  soup_mem (суп ∈ [min,max] — выпуклая оболочка),
+  soup_loss_le_avg (Jensen: выпуклый лосс супа ≤ супа
+  лоссов — ConvexOn.map_sum_le), ema-рекурсия +
+  ema_invariant (EMA ∈ [lo,hi] на любом горизонте при
+  β ∈ [0,1] — сглаживание без выхода за диапазон).
 - **MuonNS (источник №72: Muon is Scalable, 2502.25082;
   такт №231)**: реальная скалярная модель итерации
   Ньютона-Шульца ортогонализации Muon: ns u = u(3−u²)/2 —
