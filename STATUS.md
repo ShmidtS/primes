@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3404 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3409 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **MuonNS (источник №72: Muon is Scalable, 2502.25082;
+  такт №231)**: реальная скалярная модель итерации
+  Ньютона-Шульца ортогонализации Muon: ns u = u(3−u²)/2 —
+  ns_invariant ((0,1]-инвариант), ns_monotone_ascent
+  (подъём к 1), ns_error_factor (1−ns u = (u−1)²(u+2)/2 —
+  КВАДРАТИЧНАЯ сходимость сингулярных чисел),
+  ns_error_contract (строгое сжатие u < ns u < 1).
 - **CertifiedTrajectory (такт №230)**: ЕДИНАЯ траекторная
   теорема certified_progress_honest — связка трёх уровней
   (execution → measurement → contract): Σmeasured − Σδ ≤

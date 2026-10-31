@@ -193,3 +193,78 @@ theorem muon_pl_rate {W : Type} [NormedAddCommGroup W]
 
 end Hagi.Step
 
+
+/-! ### Источник №72 (Muon, 2502.25082): скалярная модель
+итерации Ньютона-Шульца. Реальный Muon ортогонализует
+матрицу импульса итерацией U ← U(3I−UᵀU)/2; сингулярные
+числа эволюционируют по скалярной карте ns(u) = u(3−u²)/2.
+Формализуем честную скалярную динамику: инвариантность
+(0,1], монотонный подъём к 1, квадратичную ошибку. -/
+
+namespace Hagi.Step.MuonNS
+
+/-- Скалярная итерация Ньютона-Шульца (Muon). -/
+noncomputable def ns (u : ℝ) : ℝ := u * (3 - u^2) / 2
+
+/-- Инвариант отрезка: u ∈ (0,1] ⟹ ns u ∈ (0,1]. -/
+theorem ns_invariant (u : ℝ) (hu : 0 < u) (hu1 : u ≤ 1) :
+    0 < ns u ∧ ns u ≤ 1 := by
+  constructor
+  · -- u(3−u²) > 0 при u ≤ 1 < √3
+    have h3 : 0 < 3 - u^2 := by nlinarith [sq_nonneg u]
+    have := mul_pos hu h3
+    unfold ns; linarith
+  · -- ns u ≤ 1: 1 − ns u = (u−1)²(u+2)/2 ≥ 0
+    have key : (1:ℝ) - ns u = (u - 1)^2 * (u + 2) / 2 := by
+      unfold ns; ring
+    have hnn : (0:ℝ) ≤ (u - 1)^2 * (u + 2) :=
+      mul_nonneg (sq_nonneg (u - 1)) (by linarith)
+    have : (0:ℝ) ≤ 1 - ns u := by rw [key]; exact div_nonneg hnn (by positivity)
+    linarith
+
+/-- МОНОТОННЫЙ ПОДЪЁМ К 1: ns u ≥ u на (0,1], равенство
+только при u = 1 — каждое NS-обновление подтягивает
+сингулярное число к единице (ортогонализация). -/
+theorem ns_monotone_ascent (u : ℝ) (hu : 0 < u) (hu1 : u ≤ 1) :
+    u ≤ ns u := by
+  have h1 : (0:ℝ) ≤ 1 - u^2 := by nlinarith [sq_nonneg u]
+  have h2 : (0:ℝ) ≤ u * (1 - u^2) := mul_nonneg hu.le h1
+  have key : u * (3 - u^2) / 2 - u = u * (1 - u^2) / 2 := by ring
+  have h3 : (0:ℝ) ≤ u * (3 - u^2) / 2 - u := by rw [key]; exact div_nonneg h2 (by positivity)
+  unfold ns
+  linarith
+
+/-- ФАКТОРИЗАЦИЯ ОШИБКИ: 1 − ns u = (u−1)²(u+2)/2 — ошибка
+квадратична по отклонению u от 1: NS-итерация квадратично
+стягивает сингулярные числа к 1 (ортогонализация). -/
+theorem ns_error_factor (u : ℝ) :
+    1 - ns u = (u - 1)^2 * (u + 2) / 2 := by
+  unfold ns; ring
+
+/-- СТРОГОЕ СЖАТИЕ: u ∈ (0,1) ⟹ u < ns u < 1 — каждая
+итерация строго подтягивает сингулярное число к единице,
+оставаясь внутри (0,1). -/
+theorem ns_error_contract (u : ℝ) (hu : 0 < u) (hu1 : u < 1) :
+    u < ns u ∧ ns u < 1 := by
+  have hle : u ≤ ns u := ns_monotone_ascent u hu hu1.le
+  have hne : ns u ≠ u := by
+    intro heq
+    have key : ns u - u = u * (1 - u^2) / 2 := by
+      unfold ns; ring
+    rw [heq, sub_self] at key
+    have h1 : (0:ℝ) < 1 - u^2 := by nlinarith [sq_nonneg u, hu1]
+    have : (0:ℝ) < u * (1 - u^2) / 2 :=
+      div_pos (mul_pos hu h1) (by positivity)
+    linarith [this, key]
+  have hlt : u < ns u := lt_of_le_of_ne hle (Ne.symm hne)
+  have h1 : (0:ℝ) < 1 - u := by linarith
+  have hu1ne : u - 1 ≠ 0 := sub_ne_zero.mpr (ne_of_lt hu1)
+  have hsq : (0:ℝ) < (u - 1)^2 * (u + 2) :=
+    mul_pos (sq_pos_iff.mpr hu1ne) (by linarith)
+  have hef := ns_error_factor u
+  have hns1 : ns u < 1 := by
+    have : (0:ℝ) < 1 - ns u := by rw [hef]; exact div_pos hsq (by positivity)
+    linarith
+  exact ⟨hlt, hns1⟩
+
+end Hagi.Step.MuonNS
