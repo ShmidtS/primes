@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3596 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3599 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **QuadUnify (такт №277, аудит №5 P3-сведение)**:
+  квадратичные линии УНИФИЦИРОВАНЫ: quadE_eq_energy и
+  quadGrad_eq_grad (DescentCoreQuad ≡ ReferenceMachine —
+  формы совпадают точно), machine_one_step_zero (η=1:
+  один шаг машины — точно в оптимум). Сертификаты машины
+  (QuadGate/Trajectory/Budget) и Objective-контракт
+  говорят об ОДНОЙ величине.
 - **VicReg (источник №85, такт №276)**: variance-hinge
   антиколлапс (2105.04906): vh = max 0 (γ−√popVar) (реюз
   popVar из NoiseTemperature), pv_nonneg, vh_nonneg,
