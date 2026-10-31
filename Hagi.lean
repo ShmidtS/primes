@@ -346,6 +346,7 @@ import Hagi.Model.DiffAttention
 import Hagi.Unified.TernaryGrad
 import Hagi.Optimization.SAM
 import Hagi.Unified.DescentCore
+import Hagi.Unified.DescentCoreQuad
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

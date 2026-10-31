@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3532 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3539 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,16 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **DescentCoreQuad (такт №263, аудит #3/#8)**: первый
+  НЕПОСТУЛИРОВАННЫЙ инстанс Objective: квадратичная
+  машина E(w)=½Σ(w−a)²: quad_descent_eq (descent-лемма —
+  ТОЧНОЕ РАВЕНСТВО, выведено алгебраически, L=1),
+  quadObjective (все поля контракта доказаны),
+  quadAligned (выравнивание — вычисление, не гипотеза),
+  quad_one_step (η=1/L: ОДИН шаг попадает точно в оптимум
+  a, E(a)=0 — сквозной witness: алгоритм реально меняет
+  параметры и доказанно достигает цели), quad_drop
+  (строгое убывание при x≠a).
 - **GDN-фикс (такт №262, аудит P0)**: каноническая
   gated-форма gdnUpdate: S' = gS + β(v − gSk)kᵀ (остаток
   по ЗАТУХШЕМУ состоянию, как в оригинальной статье; при
