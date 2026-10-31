@@ -314,6 +314,7 @@ import Hagi.Model.GQA
 import Hagi.Model.ALiBi
 import Hagi.Model.StreamingLLM
 import Hagi.Model.GDNRAM
+import Hagi.Model.FlashAttention
 import Hagi.Model.MoD
 import Hagi.Model.Perceiver
 import Hagi.Model.MeasuredEffects

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3345 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3349 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,11 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **FlashAttention (источник №63: Dao et al., 2205.14135)**:
+  flash_io_lt (IO N²d²/M < N²+Nd при ЧЕСТНОЙ гипотезе
+  M > d² — наивная M > d ЛОЖНА: d=2, M=2.1, N=10 →
+  flash≈190 > std=120; выгодность требует SRAM > d²),
+  flash_io_antitone (монотонность по M).
 - **GDNRAM (источник №62: Qwenputer/GDN one-hot — аудит
   v10 §5.3)**: контракт ТОЧНОЙ адресуемой памяти —
   ram_read_after_write (чтение после записи возвращает
