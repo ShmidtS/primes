@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Foundations.Telescope
 
 /-!
 # StepContract — единый моноид сертификатов шага (аудит v15 §4.3)
@@ -149,6 +150,51 @@ theorem trajectory_convergence {T : ℕ}
         linarith
   have hkey := key T cs h_step h_floor
   have hfloor := h_floor T (le_refl T)
+  linarith
+
+
+/-! ### Мост к каноническому телескопу (закрытие пункта
+дублирования аудита v15): `lyapunov_termination_fin` —
+частный случай `trajectory_convergence` при постоянном
+контракте (decrease = eps, risk = 0). -/
+
+/-- Постоянный контракт шага: decrease = eps, risk = 0. -/
+def constContract (eps : ℝ) (heps : 0 ≤ eps) : StepContract where
+  decrease := eps
+  riskCost := 0
+  budgetSpend := 0
+  hDecreasePos := heps
+  hRiskNonneg := le_refl 0
+  hBudgetNonneg := le_refl 0
+
+/-- МОСТ: классическая граница остановки Ляпунова
+(lyapunov_termination_fin) выводится из ЕДИНОЙ
+телескопической теоремы trajectory_convergence при
+постоянном контракте — все телескоп-дубли (ProbeError,
+GrowthState, TopLevel) суть экземпляры одного принципа. -/
+theorem termination_via_stepcontract {E : ℕ → ℝ}
+    (Emin eps : ℝ) (k : ℕ)
+    (hE : ∀ t ≤ k, Emin ≤ E t)
+    (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
+    (heps : 0 < eps) :
+    (k : ℝ) ≤ (E 0 - Emin) / eps := by
+  have hdec : (constContract eps heps.le).decrease = eps := rfl
+  have hrisk : (constContract eps heps.le).riskCost = 0 := rfl
+  have hstep' : ∀ t : Fin k,
+      E (t.val + 1) ≤ E t.val
+        - (constContract eps heps.le).decrease
+        + (constContract eps heps.le).riskCost := by
+    intro t
+    simpa [constContract] using hstep t.val t.isLt
+  have htele := trajectory_convergence
+    (fun _ : Fin k => constContract eps heps.le) E Emin hstep' hE
+  have hsum : ∑ t : Fin k, (constContract eps heps.le).decrease
+      = k * eps := by
+    simp [constContract, Finset.sum_const]
+  have hsumr : ∑ t : Fin k, (constContract eps heps.le).riskCost
+      = 0 := by rw [hrisk]; simp
+  rw [hsum, hsumr] at htele
+  rw [le_div_iff₀ heps]
   linarith
 
 end Hagi.Unified.StepCert

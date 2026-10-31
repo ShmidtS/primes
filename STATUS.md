@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3414 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3416 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **StepContract-мост (аудит v15 дублирование, такт №233)**:
+  constContract (постоянный контракт decrease=eps, risk=0),
+  termination_via_stepcontract — канонический телескоп
+  lyapunov_termination_fin ВЫВОДИТСЯ из единой
+  trajectory_convergence: телескоп-дубли (ProbeError,
+  GrowthState, TopLevel) суть экземпляры одного принципа.
 - **ModelSoup/EMA (источник №73: Model Soups, 2203.05482;
   такт №232)**: soup (выпуклая комбинация параметров),
   soup_mem (суп ∈ [min,max] — выпуклая оболочка),
