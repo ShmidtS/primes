@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3353 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3356 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,11 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **GradAccum (источник №65: микробатчи/fiberwise)**:
+  accum_equiv — сумма микробатч-градиентов РАВНА полному
+  батч-градиенту (Finset.sum_fiberwise: разбиение по
+  классам c восстанавливает полную сумму; накопление по
+  частям математически тождественно одному большому шагу).
 - **AdamW (источник №64: Loshchilov & Hutter,
   1711.05101)**: adamw_shrink (decoupled decay действует
   ВСЕГДА: при нулевом градиенте веса строго сжимаются,

@@ -325,6 +325,7 @@ import Hagi.Model.Matryoshka
 import Hagi.Model.Softcap
 import Hagi.Optimization.AdamBias
 import Hagi.Optimization.AdamW
+import Hagi.Optimization.GradAccum
 import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip
 import Hagi.Unified.MicroStepCert
