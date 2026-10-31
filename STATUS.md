@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3502 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3506 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **BatchSNR-углубление (такт №256)**: модель
+  критического батча с издержками: batchGain (min(1,B/B*)),
+  stepCost (α·B+β), gainPerCost; gain_decreasing_past_critical
+  — при α>0, B₂>B₁≥B* прогресс/стоимость СТРОГО убывает
+  (оптимум эффективности в B*; α=0-случай исключён — там
+  эффективность постоянна, контрпример пойман до коммита).
 - **SignSGD (источник №79, такт №255)**: 1-bit градиентная
   компрессия: sgn1 (тернарный знак), sign_inner_nonneg
   (⟨sign(g),g⟩ = ‖g‖₁ ≥ 0 — компрессия не переворачивает

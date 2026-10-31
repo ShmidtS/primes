@@ -385,6 +385,7 @@ band_witness	84a39a54ce37c0a9	e1cbf0e454b65c45
 batchCapMonotone	dbb1ed200c7cb9c7	107a6a92578633c1
 batchCapSaturates	9eb419d7ef0a6515	9543a3baaecc4892
 batchEff	7356a76e12fe17cd	a464567d23d7d1b7
+batchGain	a243f1b2227cb6a3	378fe21f86059d1d
 batchMean	f59eac9b732512e5	20c841360eb41c2b
 batchMean_unbiased	93777a71f33f7df8	28fb1bfdab0f15e9
 batchVar_expQ	c54c38621d1596af	4ac58a1e9a2ba8df
@@ -1308,8 +1309,10 @@ gainGrow	804b8419f76219ee	d4605f8710fc94f1
 gainJoint	49af9536981046d3	caec342de4293774
 gainMerge	085fe28dc22f02a2	b7306d285fac78e0
 gainOk	d803dfdc164689b7	f7e875bf01682d8c
+gainPerCost	550213b154083f6b	7f1a7b4a98d0c2c1
 gain_chain	8a3d30f79aec8569	40044de954d593f7
 gain_chain_opt	7612b163e6fcf5d9	486b7cf728e12369
+gain_decreasing_past_critical	c7ad5cb466e57758	50a5b5fd20a5308c
 gain_le_mix	2ee2f4387ac2b140	c5616d4ca89b4280
 gain_product_bound	64f8cbadd270dbba	3357d09a7de3ac18
 gain_renewal_floor	8dd0874fc9bfc25e	cf8be1202beae92b
@@ -3070,6 +3073,7 @@ step	6dd617e8c8a2503c	d19bbaaad319555e
 step0_equivalence	38d5db2e32bfed39	ccdf442e502199ba
 stepCertificateOfParts	f64e2c894b74316c	b38281ae9b01d5f0
 stepCertificate_base	79472c107a5ff0bf	583d09eddcbd4ad3
+stepCost	f80cc99a90238b08	9173db5f76724f5b
 stepNorm	b206e6267901063f	b527e4b55bbea59a
 stepNorm_compose	b31d9b74aff129c3	976eeb3117e5fa72
 step_armijo_and_sgd_stable	eb482460b255613a	267a96154a624e06

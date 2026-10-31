@@ -59,4 +59,52 @@ theorem snr_ge_one_iff (g : V → ℝ)
   rw [ge_iff_le, le_div_iff₀ hσ, div_le_iff₀ hμ2]
   constructor <;> intro h <;> linarith
 
+/-- Модель критического батча (источник №76, §4):
+прогресс шага ∝ min(1, B/B*) — ниже B* прогресс
+линейный по B, выше — насыщается (шум подавлен). -/
+noncomputable def batchGain (Bstar : ℝ) (B : ℝ) : ℝ :=
+  min 1 (B / Bstar)
+
+/-- Стоимость шага: фиксированная β + линейная α·B
+(параллелизм идеален до α). -/
+noncomputable def stepCost (alpha beta B : ℝ) : ℝ :=
+  alpha * B + beta
+
+/-- Прогресс на единицу стоимости. -/
+noncomputable def gainPerCost (Bstar alpha beta B : ℝ) : ℝ :=
+  batchGain Bstar B / stepCost alpha beta B
+
+/-- ЗАКОН УБЫВАНИЯ ЭФФЕКТИВНОСТИ: при B₂ > B₁ ≥ B*
+прогресс на единицу стоимости СТРОГО убывает — за
+критическим батчем каждый доп. образец покупает всё
+меньше прогресса за вычисления (оптимум в B*). -/
+theorem gain_decreasing_past_critical
+    (Bstar alpha beta B1 B2 : ℝ)
+    (hstar : 0 < Bstar) (hbeta : 0 < beta) (halpha : 0 < alpha)
+    (h1 : Bstar ≤ B1) (h2 : B1 < B2) :
+    gainPerCost Bstar alpha beta B2
+      < gainPerCost Bstar alpha beta B1 := by
+  have hmin1 : batchGain Bstar B1 = 1 :=
+    min_eq_left ((le_div_iff₀ hstar).mpr (by linarith))
+  have hmin2 : batchGain Bstar B2 = 1 :=
+    min_eq_left ((le_div_iff₀ hstar).mpr (by linarith))
+  unfold gainPerCost stepCost
+  rw [hmin1, hmin2]
+  have hB1pos : (0:ℝ) < B1 := lt_of_lt_of_le hstar h1
+  have hc : (0:ℝ) < alpha * B1 + beta := by
+    have hnn : 0 ≤ alpha * B1 :=
+      mul_nonneg (le_of_lt halpha) (le_of_lt hB1pos)
+    linarith
+  have hc2 : (0:ℝ) < alpha * B2 + beta := by
+    have hB2pos : (0:ℝ) < B2 := lt_of_lt_of_le hstar
+      (le_trans h1 (le_of_lt h2))
+    have hnn2 : 0 ≤ alpha * B2 :=
+      mul_nonneg (le_of_lt halpha) (le_of_lt hB2pos)
+    linarith
+  rw [one_div_lt_one_div hc2 hc]
+  have hBpos : (0:ℝ) < B2 - B1 := sub_pos.mpr h2
+  have hmul : 0 < alpha * (B2 - B1) :=
+    mul_pos halpha hBpos
+  nlinarith [hmul]
+
 end Hagi.Probability.BatchSNR
