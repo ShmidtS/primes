@@ -414,6 +414,11 @@
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
+- **РЕТРО такт №213**: LESSONS.md +11 записей (карантин
+  №59-бином, Nat.mul-направления, structure-instance
+  переносы, namespace-удвоение при merge, DUPLINT-делегаты,
+  perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
+  min-в-omega, updateRow-семейство).
 - **GDNRAM (источник №62: Qwenputer/GDN one-hot — аудит
   v10 §5.3)**: контракт ТОЧНОЙ адресуемой памяти —
   ram_read_after_write (чтение после записи возвращает
