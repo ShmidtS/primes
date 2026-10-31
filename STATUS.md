@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3565 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3571 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **QuadBudget (такт №271)**: леджер сертифицированной
+  траектории: trajDropSum (ТОЧНЫЙ телескоп Σ(E_t−E_{t+1})
+  = E₀−E_T — разности РЕАЛЬНЫХ энергий), trajDropBound
+  (Σ certified-убываний ≤ E₀ — прогресс конечен; телескоп-
+  граница StepContract выведена на реальной траектории),
+  commitInd/commitCount, budgetLedger (все hold ⟹
+  #commits = 0 — бюджет нетронут), commitCountBound
+  (#commits ≤ T при любой траектории).
 - **QuadTrajectory (такт №270, аудит №5 P3)**:
   многошаговый сертифицированный цикл над вычисленным
   gate: gateStep (commit/hold-ветвление), gateTraj
