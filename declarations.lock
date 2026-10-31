@@ -210,6 +210,7 @@ StageRisk	0b66c8cf7badf897	94a205ca169b8d1c
 StepCertificate	e96205f5a96ecc50	bd1f677207f586a0
 StepContract	938c66020ef8d03e	d332d939885bc617
 StepFeasible	7dcd793e45ab394d	1c5e5bc417c1f20a
+StepMeasurement	d0453c559aac7b07	3aae78eece6b0d44
 SuccessFloor	240cb8d1cf6414fe	4ed235abc63b54ce
 SupEv	bfea6a5c72833bf9	f74e782e56586653
 T3_ignition	6d8055f27415b3a3	5d71346d62b780d6
@@ -544,6 +545,7 @@ chainAt_succ	65fb46250cb65318	f19f5c09e76c9c04
 chain_budget	5608524858a7f94a	c21012a4f973bb10
 chain_decrease	6696a6ba0c1b5627	efd00d203769c349
 chain_feeds_cone	d05569654b3beccc	50c3bc73ae52a0f2
+chain_floor	1dab7a344d594ffc	fc1a5d512818170c
 chain_risk	34acf3b39628578f	9d1d140a953b7597
 channel_switch	825ccf4ea293cde6	94b5154584af5310
 charMat	947e5ef0f621265f	cc09a24890cd6e3b
@@ -579,6 +581,9 @@ chordal_residual_eq	30ec301581d780dc	58ed31e8734c72ee
 chunked_sum_exact	4dc30dd1199e73b2	ed9e1fb435985af6
 ckpt_mem_floor	4dd0abd9c3f30a5e	c0b96af506ca78fe
 ckpt_sqrt_opt	34a4a0cbd65df150	c2e0b3644a01d7f7
+claimed_ceiling	fb4262874f65ef3a	0b4b6fdc53f597bc
+claimed_floor	8627bfc2f443ef3e	bebcfc7dd2559522
+claimed_pos_of_signal	dc94be5b38900d01	ca083fdf67926b18
 clampInt4	8c3628f14090cd72	4d5be4ded3df1fcd
 clampInt4_error	b4166c397b32c001	38fb0ed8764b1902
 clamped_attention_grad_bound	a5cbff569ed50672	6f5fc25a0abde32e
@@ -612,6 +617,7 @@ coherence_ratio_ge_one	b8ee1378d7943608	b654775b2fd84b15
 coherence_ratio_outerProduct_frobenius	aaca9b9f8b6f3b3c	0c0eb6e016d38d8c
 complex_sum_cauchy_schwarz	8765d515691928a0	469272017cd602f7
 compose	3698f352d9da5065	86863d159816b8fd
+compose	5afbec67fd963985	286ed3ac4d7ea880
 compose_assoc	6edc3abf3336f2bc	d48f901c0a07bf67
 compose_id_left	34594e8a44c62f53	662dcb5487a35f46
 compose_id_right	02cde4033654bfe6	9a77b5152072425b

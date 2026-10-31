@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3396 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3402 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **MeasurementCert (направление TorchLean spec→exec→verify;
+  такт №229)**: двухуровневая сертификация — StepMeasurement
+  (claimed ∈ [measured−δ, measured+δ], anytime-полоса),
+  claimed_floor/claimed_ceiling (честные границы),
+  claimed_pos_of_signal (прирост > шума ⟹ положителен),
+  compose + chain_floor (кумулятивная честность цепочки).
+  Уровень 2 из рекомендации аудита: сертификат ИЗМЕРЕНИЯ
+  поверх сертификата ИСПОЛНЕНИЯ (CertifiedTransition.exec).
 - **Anytime PAC-Bayes / time-uniform Catoni (источник №71:
   направление FormalSLT; такт №228)**: real_mono_prob (хелпер
   монотонности реальной меры), anytime_catoni — если
