@@ -1394,4 +1394,72 @@ theorem hedge_wealth_rate {V : Type*} [Fintype V] [Nonempty V]
       (div_le_iff₀ hε).mp hN2
     nlinarith [hN2e, hN2le, hε, hhi_n]
 
+
+/-! ### Источник №70 (arXiv 2609.15897): вариационный шаг как спуск
+JKO-подобная схема: каждое экспоненциальное обновление —
+минимизация свободной энергии F(q) = ⟨q,ℓ⟩ + T·KL(q‖ρ₀).
+Отсюда НЕВОЗРАСТАНИЕ F вдоль итераций при том же ландшафте ℓ
+(частный случай: конкурент q = ρ₀ с KL = 0). -/
+
+/-- ВАРИАЦИОННЫЙ СПУСК ЗЕРКАЛЬНОГО ШАГА: γ = mirrorStep ρ₀ ℓ T
+даёт F(γ) := ⟨γ,ℓ⟩ + T·KL(γ‖ρ₀) ≤ ⟨ρ₀,ℓ⟩ = F(ρ₀) — каждое
+экспоненциальное обновление НЕ УВЕЛИЧИВАЕТ свободную энергию
+(конкурент ρ₀ имеет нулевой KL-штраф; частный случай
+вариационного принципа источника №70, arXiv 2609.15897). -/
+theorem mirror_step_variational_descent {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ1 : ∑ v, ρ₀ v = 1) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+      + T * (∑ v, mirrorStep ρ₀ ℓ T v
+          * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v))
+      ≤ ∑ v, ρ₀ v * ℓ v := by
+  -- достижимость: F(γ) = −T·log Z ...
+  have hatt := mirror_descent_attainment ρ₀ ℓ T hT hρ₀
+  -- ... и пол с конкурентом ρ₀ (KL(ρ₀‖ρ₀) = 0):
+  --   −T·log Z ≤ ⟨ρ₀,ℓ⟩ + T·KL(ρ₀‖ρ₀) = ⟨ρ₀,ℓ⟩
+  have hself : (∑ v, ρ₀ v * Real.log (ρ₀ v / ρ₀ v)) = 0 := by
+    refine Finset.sum_eq_zero ?_
+    intro v _
+    rw [div_self (hρ₀ v).ne', Real.log_one, mul_zero]
+  have hfloor := mirror_descent_floor ρ₀ ℓ T hT hρ₀ ρ₀ hρ₀ hρ1
+  rw [hself, mul_zero] at hfloor
+  linarith
+
+/-- ИТЕРАЦИОННАЯ МОНОТОННОСТЬ (№70): при фиксированном
+ландшафте ℓ частная свободная энергия шага не возрастает
+вдоль траектории mirrorIterate: F_{k+1} ≤ F_k, где
+F_k = ⟨ρ_k,ℓ⟩ (KL-штраф относительно ρ_k обнуляется на
+следующем шаге). Кумулятивный аналог убывания свободной
+энергии в JKO-схеме. -/
+theorem mirrorIterate_partial_mono {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (hρ1 : ∑ v, ρ₀ v = 1)
+    (ℓs : ℕ → V → ℝ) (k : ℕ) (hls : ℓs k = ℓ) :
+    ∑ v, (mirrorIterate ρ₀ ℓs T (k+1)) v * ℓ v
+      ≤ ∑ v, (mirrorIterate ρ₀ ℓs T k) v * ℓ v := by
+  have hpos : ∀ v, 0 < mirrorIterate ρ₀ ℓs T k v :=
+    mirrorIterate_pos ρ₀ ℓs T hT hρ₀ k
+  have hsum : ∑ v, mirrorIterate ρ₀ ℓs T k v = 1 :=
+    mirrorIterate_sum_one ρ₀ ℓs T hT hρ₀ hρ1 k
+  have hstep : mirrorIterate ρ₀ ℓs T (k+1)
+      = mirrorStep (mirrorIterate ρ₀ ℓs T k) (ℓs k) T := rfl
+  rw [hls] at hstep
+  rw [hstep]
+  -- KL-штраф ≥ 0, поэтому вариационный спуск даёт ⟨γ,ℓ⟩ ≤ F(γ) ≤ ⟨ρ_k,ℓ⟩
+  have hd := mirror_step_variational_descent
+    (mirrorIterate ρ₀ ℓs T k) ℓ T hT hpos hsum
+  have hKL0 : (0:ℝ) ≤ T * (∑ v, mirrorStep
+      (mirrorIterate ρ₀ ℓs T k) ℓ T v
+      * Real.log (mirrorStep (mirrorIterate ρ₀ ℓs T k) ℓ T v
+        / mirrorIterate ρ₀ ℓs T k v)) := by
+    have hγpos : ∀ v, 0 < mirrorStep
+        (mirrorIterate ρ₀ ℓs T k) ℓ T v :=
+      mirrorStep_pos _ ℓ T hT hpos
+    have hγ1 : ∑ v, mirrorStep (mirrorIterate ρ₀ ℓs T k) ℓ T v
+        = 1 := mirrorStep_sum_one _ ℓ T hT hpos
+    have := finite_kl_nonneg (mirrorStep (mirrorIterate ρ₀ ℓs T k) ℓ T)
+      (mirrorIterate ρ₀ ℓs T k) hγpos hγ1 hpos hsum
+    exact mul_nonneg hT.le this
+  linarith
+
 end Hagi.Optimization

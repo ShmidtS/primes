@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3392 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3394 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Вариационное ядро (источник №70: Bridging Control/
+  Inference/Transport/Thermodynamics, 2609.15897; такт №227)**:
+  mirror_step_variational_descent (экспоненциальное обновление
+  НЕ увеличивает свободную энергию F(q)=⟨q,ℓ⟩+T·KL(q‖ρ₀):
+  F(γ) ≤ F(ρ₀) — вариационный принцип; вывод из
+  floor+attainment), mirrorIterate_partial_mono (итерационная
+  монотонность при фиксированном ландшафте — JKO-аналог
+  убывания свободной энергии вдоль траектории).
 - **StepContract (аудит v15 §4.3, такт №226)**: единый
   моноид сертификатов шага — StepContract (decrease/riskCost/
   budgetSpend + неотрицательности), compose (assoc/нейтраль
