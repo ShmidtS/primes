@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3546 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3553 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **BlockNorm (такт №265, аудит P1-RMSNorm)**: поблочная
+  нормализация сохраняет ансамбль: global_eq_mean_blocks
+  (глобальная дисперсия = среднее блочных — ТОЧНОЕ
+  тождество), equal_blocks_global (равные RMS блоков ⟹
+  глобальная нормализация = поблочной ПОТОЧЕЧНО — GroupNorm(3)
+  сохраняет шаг 0 слияния без возмущения). Устранён
+  семантический разрыв Merge×RMSNorm из аудита.
 - **CommitGate (такт №264, аудит D TRD-GMS)**: инвариант
   ветвления вместо h_emp_grow: GateCert (V, dStep-контракт,
   gap≥0, quant, gen≥0), gate (win > loss — решаемое
