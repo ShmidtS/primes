@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3530 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3532 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,13 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **GDN-фикс (такт №262, аудит P0)**: каноническая
+  gated-форма gdnUpdate: S' = gS + β(v − gSk)kᵀ (остаток
+  по ЗАТУХШЕМУ состоянию, как в оригинальной статье; при
+  g=1 формы совпадают — старые теоремы сохранены) +
+  gdn_onehot_interp: при one-hot и произвольных g, β —
+  точная колоночная интерполяция (1−β)gS + β·v (β — мера
+  перезаписи; обобщение точной записи g=β=1).
 - **DescentCore (такт №261, аудит #4/#1)**: семантический
   центр спуска: Objective (L-гладкость — descentLemma
   поле-контракт), aligned (‖dir‖² ≤ ⟨g,dir⟩),

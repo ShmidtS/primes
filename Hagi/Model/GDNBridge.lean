@@ -5,13 +5,18 @@ import Hagi.Model.GDNRAM
 # GDNBridge (приоритет 1 обзора «HAGI Neural Computer»,
 # такт №247): Gated DeltaNet-уравнение РЕАЛИЗУЕТ RAM.
 
-Delta rule обновления состояния:
-  S' = g·S + β·(v − S·k)·kᵀ.
+Delta rule обновления состояния (КАНОНИЧЕСКАЯ gated-форма,
+исправлено по аудиту №262: остаток берётся по ЗАТУХШЕМУ
+состоянию gS, как в оригинальной статье Gated DeltaNet):
+  S' = g·S + β·(v − g·S·k)·kᵀ.
 При g = 1, β = 1, k = e_i (one-hot) — это ЗАМЕНА i-ГО
-СТОЛБЦА на v (точная адресуемая запись). Через
-транспонирование получаем строчную ramWrite из GDNRAM:
+СТОЛБЦА на v (точная адресуемая запись; при g = 1 формы
+совпадают, старые теоремы сохраняются). Через
+транспонирование — строчная ramWrite из GDNRAM:
 реальная рекуррентная нейросеть (Gated DeltaNet в режиме
 Qwenputer) исполняет абстрактную RAM-семантику.
+Общая лемма gdn_onehot_interp: при произвольных g, β —
+интерполяция столбца: (1−β)·g·S + β·v (мера перезаписи β).
 -/
 
 namespace Hagi.Model.GDNBridge
@@ -29,7 +34,7 @@ def outerUK (u : Fin m → ℝ) (k : Fin n → ℝ) :
 noncomputable def gdnUpdate (S : Matrix (Fin m) (Fin n) ℝ)
     (k : Fin n → ℝ) (v : Fin m → ℝ) (g β : ℝ) :
     Matrix (Fin m) (Fin n) ℝ :=
-  g • S + β • outerUK (v - S.mulVec k) k
+  g • S + β • outerUK (v - g • S.mulVec k) k
 
 /-- ЗАМЕНА СТОЛБЦА: матрица с i-м столбцом, равным v. -/
 def colUpdate (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin n)
@@ -69,5 +74,34 @@ theorem gdn_transpose_is_ramWrite (S : Matrix (Fin m) (Fin n) ℝ)
       Matrix.updateRow_apply]
   · simp [colUpdate, h, Hagi.Model.GDNRAM.ramWrite,
       Matrix.updateRow_apply]
+
+
+/-- КОЛОНОЧНАЯ ИНТЕРПОЛЯЦИЯ: i-й столбец = (1−β)·g·S + β·v,
+остальные затухают в g раз. -/
+def colInterp (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin n)
+    (v : Fin m → ℝ) (g β : ℝ) :
+    Matrix (Fin m) (Fin n) ℝ :=
+  Matrix.of fun a b =>
+    if b = i then (1-β)*g*S a b + β*v a else g*S a b
+
+/-- ОБЩАЯ ЛЕММА gated-записи: при one-hot ключе и
+произвольных g, β обновление S' = gS + β(v − gSk)e_iᵀ —
+ТОЧНО колоночная интерполяция: i-й столбец =
+(1−β)·g·S + β·v (β — мера перезаписи; β=1 — полная
+замена, β=0 — чистое затухание g). Частный случай
+g = β = 1 даёт gdn_onehot_is_colUpdate. -/
+theorem gdn_onehot_interp (S : Matrix (Fin m) (Fin n) ℝ)
+    (i : Fin n) (v : Fin m → ℝ) (g β : ℝ) :
+    gdnUpdate S ((Pi.single i (1:ℝ) : Fin n → ℝ)) v g β
+      = colInterp S i v g β := by
+  ext a b
+  unfold gdnUpdate colInterp outerUK
+  simp only [Pi.single_apply, smul_eq_mul, Matrix.add_apply,
+    Matrix.of_apply, Matrix.smul_apply, mulVec, dotProduct,
+    Pi.single_apply, mul_comm, mul_sub, sub_mul]
+  by_cases h : b = i
+  · simp [h, mul_comm]
+    ring
+  · simp [h, mul_comm]
 
 end Hagi.Model.GDNBridge
