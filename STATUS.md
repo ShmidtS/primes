@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3587 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3591 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **Mixup (источник №84, такт №275)**: Zhang (1710.09412):
+  mixLabel (выпуклая комбинация меток), mixLabel_dist
+  (симплекс замкнут — смесь распределений — распределение),
+  mixScore, mix_loss_le (Jensen: выпуклый лосс на
+  смиксованном счёте ≤ смеси лоссов — реюз
+  soup_loss_le_avg из ModelSoup на Fin 2).
 - **NTXent (источник №83, такт №274)**: SimCLR
   (2002.05709), бинарный InfoNCE: nt2 m = log(1+e^{−m}):
   nt2_nonneg, nt2_le_log2 (m≥0 ⟹ ≤ log 2), nt2_anti
