@@ -99,6 +99,43 @@ theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
     have hq2 : FloorKept M (f (n + 1)) floor := hq
     refine ⟨?_, hq2, hbb2, ?_⟩ <;> linarith
 
+/-- Усиление: покомпонентный floor держится на ВСЕХ
+промежуточных состояниях цепочки, не только в конце. -/
+theorem certified_loop_all (obj : S → ℝ) (M : MeasuredState S)
+    (floor : Fin 5 → ℝ) (riskLim : ℝ)
+    (f : ℕ → S) (b drops spends : ℕ → ℝ) (n : ℕ)
+    (h₀ : FloorKept M (f 0) floor) (hb₀ : 0 ≤ b 0)
+    (certs : ∀ t : Fin n,
+      StepCert obj M floor riskLim (f t.val) (f (t.val + 1))
+        (b t.val) (b (t.val + 1)))
+    (hdrops : ∀ t : Fin n,
+      drops t.val = (certs t).trans.objectiveDrop)
+    (hspends : ∀ t : Fin n,
+      spends t.val = (certs t).spend) :
+    ∀ t ≤ n, FloorKept M (f t) floor := by
+  intro t ht
+  induction n generalizing t with
+  | zero =>
+    have : t = 0 := Nat.le_zero.mp ht
+    subst this
+    exact h₀
+  | succ n ih =>
+    match t, ht with
+    | 0, _ => exact h₀
+    | t + 1, ht =>
+      have hcert := certs (Fin.last n)
+      have hstep : FloorKept M (f (n + 1)) floor :=
+        hcert.quality
+      match Nat.lt_or_ge t n with
+      | .inr heq =>
+        have hn : t = n := by omega
+        subst hn
+        exact hstep
+      | .inl hlt =>
+        exact ih (fun t' => certs t'.castSucc)
+          (fun t' => hdrops t'.castSucc)
+          (fun t' => hspends t'.castSucc) (t + 1) (by omega)
+
 /-- Принцип commit/hold: без сертификата — hold,
 состояние сохраняется. Энергия не растёт НИКОГДА. -/
 theorem gate_never_increases (obj : S → ℝ) (P : Prop) [Decidable P]
