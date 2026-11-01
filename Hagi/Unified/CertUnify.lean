@@ -2,6 +2,7 @@ import Mathlib
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.StepContract
 import Hagi.Unified.MeasureProto
+import Hagi.Model.CertifiedTransition
 
 /-!
 # CertUnify : сведение сертификатных миров
@@ -122,5 +123,64 @@ theorem protoMeasured_spec {P : Type}
       ∧ (protoMeasured pr).evaluate w 1 = -pr.risk w
       ∧ (protoMeasured pr).evaluate w 2 = pr.capability w := by
   refine ⟨rfl, rfl, rfl⟩
+
+/-! ### Мост CertifiedTransitionV2 → HonestTransition -/
+
+open InnerProductSpace
+
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+
+open Hagi.Model Hagi.System
+
+/-- Старый сертификат (verify-показатель + активный
+риск-лимит) + операциональные условия спуска
+(advance_energy_drop) + явные позитивности дают
+зависимый HonestTransition: энергетическая гарантия
+выводится из исполнения, а не из показателя. -/
+noncomputable def ctv2Honest (S : Hagi.System.GrowthState X)
+    (u : StageInput X) (riskLim : ℝ)
+    (hc : CertifiedTransitionV2 S (advance S u) u riskLim)
+    (hgain : u.eff.growEnergy ≤ S.energy - u.eff.growGain)
+    (hgap0 : 0 ≤ u.gap)
+    (hmerge : u.eff.mergeEnergy ≤ u.eff.growEnergy - u.gap)
+    (hL : 0 < u.sp.L)
+    (heta : u.sp.eta ≤ 1 / u.sp.L)
+    (hdesc : ‖u.stepDir‖ ^ 2 ≤ ⟪u.grad, u.stepDir⟫_ℝ)
+    (hjoint : u.eff.jointEnergy
+      ≤ u.eff.mergeEnergy - u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        + u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+    (hledger : u.eff.compressEnergy - u.eff.jointEnergy
+      ≤ u.sp.kappa * u.sp.s * u.eff.quantErr)
+    (hD : 0 < u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      - u.sp.kappa * u.sp.s * u.eff.quantErr)
+    (hBud : u.eff.growCost + u.eff.mergeCost
+      + u.eff.jointCost + u.eff.compressCost ≤ S.budget) :
+    HonestTransition (fun St => St.energy) S (advance S u)
+      ((advance S u).protectedRisk - S.protectedRisk) riskLim
+      (u.eff.growCost + u.eff.mergeCost + u.eff.jointCost
+        + u.eff.compressCost) (advance S u).budget where
+  objectiveDrop := u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      - u.sp.kappa * u.sp.s * u.eff.quantErr
+  objectiveDrop_pos := hD
+  actualDescent := by
+    show (advance S u).energy ≤ S.energy - _
+    have hE : (advance S u).energy = u.eff.compressEnergy := rfl
+    rw [hE]
+    have h := Hagi.Model.advance_energy_drop S u hgain hgap0
+      hmerge hL heta hdesc hjoint hledger
+    linarith
+  riskBound := hc.hRiskLim
+  budgetBound := by
+    have hB : (advance S u).budget = S.budget
+        - (u.eff.growCost + u.eff.mergeCost
+          + u.eff.jointCost + u.eff.compressCost) := by
+      simp [Hagi.Model.advance]
+      ring
+    rw [hB]
+    linarith
 
 end Hagi.Unified.CertUnify

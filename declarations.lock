@@ -835,6 +835,7 @@ crossing	4421370b25785ccc	338d77bb89b7859c
 crossing_mono	5d92a181b5680fa4	c799fbf72657698e
 ctContract	c82f2837e58c0e7f	fcfa5adbe126c794
 ctRisk_covers	b76d1ff834d3c9c1	bad1da75c83aab39
+ctv2Honest	e1239cea49826113	89b1a501b6611a53
 ctv2_contract	e57d46ba98d03e61	7561bdcbacc312d2
 ctv2_of_ct	4cd23e139442796b	b62cd8ae03611caa
 cut_safe_accept	e01f0f55fb1cf285	46fc30baa5b604e9
