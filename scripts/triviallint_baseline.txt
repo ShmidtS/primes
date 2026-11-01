@@ -17,5 +17,4 @@ UNUSED_PARAM|Hagi.Unified.dual_ceiling
 UNUSED_PARAM|Hagi.Unified.frontier_cone_struct
 UNUSED_PARAM|Hagi.Unified.hagi_horizon_bound
 UNUSED_PARAM|Hagi.Unified.hagi_synthesis
-UNUSED_PARAM|Hagi.Unified.saturation_law_forced
 UNUSED_PARAM|Hagi.Unified.sustained_takeoff_struct

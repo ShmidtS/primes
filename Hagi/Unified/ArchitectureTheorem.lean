@@ -1228,7 +1228,7 @@ theorem cert_horizon_log_bound (C F : ℕ → ℝ)
 на каждом шаге t < T. Насыщение — часть модели (закон
 перехода), а не вывод из более слабых принципов; выведенная
 граница `pl_gap_lower_trunc` опирается на этот точный закон. -/
-theorem saturation_law_forced {I : ℕ} {Xs : Type*}
+theorem saturation_law_forced {Xs : Type*}
     [NormedAddCommGroup Xs] [InnerProductSpace ℝ Xs]
     (S : ℕ → GrowthState Xs) (Cstar σ : ℝ) (t : ℕ)
     (hup : (S (t + 1)).capability
