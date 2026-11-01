@@ -103,4 +103,54 @@ theorem quad_gd_pl_rate (a x0 : k → ℝ) (eta : ℝ)
       = 1 - 2 * eta * (1 - eta / 2) from by ring] at hmain
   exact hmain
 
+/-- ОДНОШАГОВАЯ СХОДИМОСТЬ: на квадратичной машине
+оптимальный шаг eta = 1 достигает оптимума за ОДИН шаг —
+итерат равен якорю, энергия нуль. Минимально возможное
+вычисление. -/
+theorem quad_gd_one_step (a x : k → ℝ) :
+    quadGD a 1 x 1 = a ∧ quadE a (quadGD a 1 x 1) = 0 := by
+  have h1 : quadGD a 1 x 1 = a := by
+    funext i
+    show x i - 1 * (x i - a i) = a i
+    ring
+  rw [h1]
+  exact ⟨rfl, quad_e_star a⟩
+
+/-- Скорость на открытом диапазоне: eta < 1 строго. -/
+theorem quad_gd_pl_rate_open (a x0 : k → ℝ) (eta : ℝ)
+    (heta : 0 < eta) (heta2 : eta < 1) (n : ℕ) :
+    quadE a (quadGD a eta x0 n)
+      ≤ (1 - 2 * eta * (1 - eta / 2)) ^ n * quadE a x0 := by
+  have hκ : (0:ℝ) ≤ eta * (1 - eta / 2) :=
+    mul_nonneg heta.le (by
+      have : (0:ℝ) ≤ 1 - eta / 2 := by nlinarith
+      linarith)
+  have hκ2 : 2 * (eta * (1 - eta / 2)) < 1 := by
+    have hne : (1:ℝ) - eta ≠ 0 := by
+      intro h
+      linarith
+    have hring : (1 - eta) * (1 - eta)
+        = 1 - 2 * (eta * (1 - eta / 2)) := by ring
+    have hpos : (0:ℝ) < (1 - eta) * (1 - eta) :=
+      mul_self_pos.mpr hne
+    rw [hring] at hpos
+    linarith
+  set drops : ℕ → ℝ := fun t =>
+    eta * (1 - eta / 2) * nrm2 (quadGrad a (quadGD a eta x0 t))
+  have hstep : ∀ t : ℕ,
+      quadE a (quadGD a eta x0 (t + 1))
+        = quadE a (quadGD a eta x0 t) - drops t := by
+    intro t
+    unfold drops
+    have := quad_gd_step_eq a (quadGD a eta x0 t) eta
+    simpa [quadGD] using this
+  have hmain := quad_pl_rate a (quadGD a eta x0) drops n
+    (eta * (1 - eta / 2)) hκ hκ2
+    (fun t _ => le_of_eq rfl)
+    (fun t _ => by rw [hstep t])
+  rw [show quadGD a eta x0 0 = x0 from rfl] at hmain
+  rw [show (1:ℝ) - 2 * (eta * (1 - eta / 2))
+      = 1 - 2 * eta * (1 - eta / 2) from by ring] at hmain
+  exact hmain
+
 end Hagi.Unified.QuadGDRate
