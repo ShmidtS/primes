@@ -207,8 +207,8 @@ set_option linter.unusedDecidableInType false in
 The student's cross-entropy against the target is EXACTLY the
 target entropy plus the divergence:
 `CE_m(q) = H(m) + KL(m‖q)` — the `Hagi.Data/Distill` master
-identity `teacher_generated_identity` restated with
-`shannonEntropy`. This is what the h_emp_ KL certification
+identity `teacher_generated_identity` restated with the canonical
+`Hagi.Prelude.entDef` definition of entropy. This is what the h_emp_ KL certification
 `KL(m‖q) ≤ δ` really buys: `CE_m(q) ≤ H(m) + δ`. It does not
 buy `H(q) ≥ H(m) − δ` (that direction is FALSE — see the module
 docstring for the explicit counterexample), so the per-step

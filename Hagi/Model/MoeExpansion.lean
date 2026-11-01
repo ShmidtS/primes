@@ -25,7 +25,7 @@ theorem moe_shared_expansion_identity
           Finset.sum_congr rfl fun e _ => (smul_add (a e) (E e) S).symm
 
 
-/-- Prop A.4 (Cortex, arXiv 2610.20399v1): shared down-projection
+/-- Prop A.4 (Cortex, источник в заголовке модуля): shared down-projection
 реализует цели Δ матрицей L (L * H = Δ) ⟺ каждая строка Δ —
 линейная комбинация строк H (row(Δ) ⊆ row(H)). -/
 theorem shared_down_projection_iff
