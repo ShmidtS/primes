@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3622 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3630 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,18 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **FunctionalState (такт №286, аудит №6 дефект 1 /
+  Фаза 2)**: ответ теореме-обструкции: FunState
+  (ТОЛЬКО физические переменные: weights/budget/
+  stepCount), метрики — ФУНКЦИИ (fsEnergy/fsCapa),
+  funStepJoint/funStep (переход пересчитывает всё из
+  новых весов), fs_energy_after (rfl-функциональность),
+  energy_at_target, fs_two_steps_productive: ДВА
+  последовательных продуктивных шага СТРОГО убывают
+  энергию (0<η<2, η≠1) — обструкция GrowthState
+  (CorePremises-несовместимость) НЕ переносится на
+  функциональное состояние: продуктивная многошаговая
+  динамика возможна.
 - **Дедупликация (такт №285, аудит №6 дефект 5)**: 7
   α-дубликатов помечены @[deprecated] с указанием
   канонических: lyapunov-семейство (macro_termination,
