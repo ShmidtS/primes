@@ -138,6 +138,7 @@ import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Dynamics.ControllerPolicy
 import Hagi.Probability.ConditionalSuccess
 import Hagi.Probability.CertifiedEstimator
+import Hagi.Ensemble.HoeffdingBridge
 import Hagi.Growth.FrontierProduction
 import Hagi.Growth.SelfDevelopment
 import Hagi.Growth.StateBinding

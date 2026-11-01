@@ -718,7 +718,7 @@ the SHARP variance proxy `(b − a)²/4`:
 
   ∑ v, w v * exp (t * d v) ≤ exp (t^2 * (b − a)^2 / 8). -/
 theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
-    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1)
     (hab : a ≤ b) (hbd : ∀ v, d v ∈ Set.Icc a b)
     (hc : ∑ v, w v * d v = 0) (t : ℝ) :
     ∑ v, w v * Real.exp (t * d v)
@@ -730,7 +730,7 @@ theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
   haveI : MeasurableSingletonClass V := ⟨hsing⟩
   have hq1 : ∑ v, ENNReal.ofReal (w v) = 1 := by
     rw [← ENNReal.ofReal_sum_of_nonneg (s := Finset.univ) (f := w)
-      (by intro v _; exact le_of_lt (hw v))]
+      (by intro v _; exact hw v)]
     rw [hw1, ENNReal.ofReal_one]
   set p : PMF V := PMF.ofFintype (fun v => ENNReal.ofReal (w v)) hq1 with hp
   have hmeas : AEMeasurable d p.toMeasure := by
@@ -746,7 +746,7 @@ theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
       intro v
       have h1v : ((p v : ℝ≥0∞).toReal : ℝ) = w v := by
         simp only [hp, PMF.ofFintype_apply]
-        exact ENNReal.toReal_ofReal (le_of_lt (hw v))
+        exact ENNReal.toReal_ofReal (hw v)
       rw [h1v]
       exact smul_eq_mul _ _
     calc (∫ v, d v ∂(p.toMeasure))
@@ -765,7 +765,7 @@ theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
       intro v
       have h1v : ((p v : ℝ≥0∞).toReal : ℝ) = w v := by
         simp only [hp, PMF.ofFintype_apply]
-        exact ENNReal.toReal_ofReal (le_of_lt (hw v))
+        exact ENNReal.toReal_ofReal (hw v)
       rw [h1v]
       exact smul_eq_mul _ _
     calc (∫ v, Real.exp (t * d v) ∂(p.toMeasure))
@@ -810,7 +810,7 @@ the classical Hoeffding tail. Route: on the up-set,
 and the exponent is minimized exactly at `t = 4ε/(b−a)²`
 where it equals `−2ε²/(b−a)²`. -/
 theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
-    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1)
     (hlt : a < b) (hbd : ∀ v, d v ∈ Set.Icc a b)
     (hc : ∑ v, w v * d v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
     Finset.sum (Finset.univ.filter (fun v => ε ≤ d v)) (fun v => w v)
@@ -838,7 +838,7 @@ theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
             rw [← mul_assoc, hcollapse, one_mul]
       _ ≤ Real.exp (-t * ε) * (Real.exp (t * d v) * w v) :=
         mul_le_mul_of_nonneg_left
-          (mul_le_mul h1 (le_refl _) (le_of_lt (hw v))
+          (mul_le_mul h1 (le_refl _) (hw v)
             (Real.exp_nonneg _)) (Real.exp_nonneg _)
       _ = Real.exp (-t * ε) * (w v * Real.exp (t * d v)) := by ring
   -- step 2: sum over s
@@ -855,7 +855,7 @@ theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
             have hf : ∀ v ∈ Finset.univ, v ∉ s →
                 (0:ℝ) ≤ w v * Real.exp (t * d v) := by
               intro v _ _
-              exact mul_nonneg (le_of_lt (hw v))
+              exact mul_nonneg (hw v)
                 (Real.exp_nonneg (t * d v))
             exact Finset.sum_le_sum_of_subset_of_nonneg hsub hf
   -- step 3: mgf bound + exponent optimization
@@ -895,7 +895,7 @@ per-k bound `hoeffding_tail` (R383). -/
 variable {K : Type*} [Fintype K]
 
 theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
-    (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (a b : ℝ) (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1)
     (hlt : a < b) (hbd : ∀ k v, d k v ∈ Set.Icc a b)
     (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
     ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
@@ -916,7 +916,7 @@ theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
         intro k' _
         rcases Decidable.em (ε ≤ d k' v) with h | h
         · rw [if_pos h]
-          exact le_of_lt (hw v)
+          exact hw v
         · rw [if_neg h]
       have hle := Finset.single_le_sum hnn (Finset.mem_univ k)
       rw [if_pos hk] at hle
@@ -927,7 +927,7 @@ theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
       intro k _
       rcases Decidable.em (ε ≤ d k v) with h | h
       · rw [if_pos h]
-        exact le_of_lt (hw v)
+        exact hw v
       · rw [if_neg h]
   calc ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v), w v
       = ∑ v ∈ Finset.univ, (if ∃ k, ε ≤ d k v then w v else 0) :=
@@ -947,7 +947,7 @@ end HoeffdingFin
 
 theorem hoeffding_fin_via_mgf {V : Type} [Fintype V] [Nonempty V]
     (w d : V → ℝ) (a b : ℝ)
-    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1)
     (hlo : ∀ v, a ≤ d v) (hhi : ∀ v, d v ≤ b)
     (hc : ∑ v, w v * d v = 0) (t : ℝ) (ht : 0 ≤ t) :
     ∑ v, w v * Real.exp (t * d v)
@@ -958,7 +958,7 @@ theorem hoeffding_fin_via_mgf {V : Type} [Fintype V] [Nonempty V]
   have hhi' : ∀ v, t * d v ≤ t * b := fun v =>
     mul_le_mul_of_nonneg_left (hhi v) ht
   have h1 := Hagi.Foundations.mgf_hoeffding_ab w
-    (fun v => t * d v) (fun v => (hw v).le) hw1 (t * a) (t * b)
+    (fun v => t * d v) (fun v => hw v) hw1 (t * a) (t * b)
     hlo' hhi'
   -- Σ w·(t·d) = t·Σw·d = 0
   have hcenter : ∑ v, w v * (t * d v) = 0 := by
@@ -976,10 +976,13 @@ theorem hoeffding_fin_via_mgf {V : Type} [Fintype V] [Nonempty V]
     rw [show t ^ 2 * (b - a) ^ 2 = (t * (b - a)) ^ 2 from by ring]
     linarith
   have hpos : 0 < ∑ v, w v * Real.exp (t * d v) := by
-    apply Finset.sum_pos' (fun v _ => mul_nonneg (hw v).le
+    apply Finset.sum_pos' (fun v _ => mul_nonneg (hw v)
       (Real.exp_pos _).le)
-    obtain ⟨v0⟩ := ‹Nonempty V›
-    exact ⟨v0, Finset.mem_univ v0, mul_pos (hw v0) (Real.exp_pos _)⟩
+    obtain ⟨v0, _, hv0ne⟩ := Finset.exists_ne_zero_of_sum_ne_zero (by
+      rw [hw1]; exact one_ne_zero)
+    have hv0pos : 0 < w v0 := lt_of_le_of_ne (hw v0)
+      (fun hc => hv0ne hc.symm)
+    exact ⟨v0, Finset.mem_univ v0, mul_pos hv0pos (Real.exp_pos _)⟩
   calc ∑ v, w v * Real.exp (t * d v)
       = Real.exp (Real.log (∑ v, w v * Real.exp (t * d v))) :=
         (Real.exp_log hpos).symm

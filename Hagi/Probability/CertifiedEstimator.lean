@@ -985,3 +985,79 @@ theorem anytime_safe_threshold {V : Type*} [Fintype V] [Nonempty V]
           / (2 * σ2)) := hstep
     _ = (T:ℝ) * (α / (T:ℝ)) := by rw [hexp]
     _ = α := mul_div_cancel₀ α (by linarith [hT1])
+
+namespace Hagi.Probability
+
+variable {V : Type} [Fintype V] [Nonempty V]
+
+/-! ## Маргинал и мост в weighted-слой Hoeffding -/
+
+/-- МАРГИНАЛ: ожидание однокоординатной функции под
+произведением — координатное среднее. Конечный Fubini
+через `sum_prod_factor`. -/
+theorem marginal_prodE {n : ℕ} (p : Fin n → V → ℝ)
+    (hp : IsProbSys p) (i₀ : Fin n) (f : V → ℝ) :
+    prodE p (fun ω => f (ω i₀)) = ∑ v, p i₀ v * f v := by
+  unfold prodE prodDens
+  set F : ∀ i : Fin n, V → ℝ := fun i v =>
+    if i = i₀ then p i v * f v else p i v with hF
+  have hsplit : ∀ ω : Fin n → V,
+      (∏ i, p i (ω i)) * f (ω i₀) = ∏ i, F i (ω i) := by
+    intro ω
+    have hF2 : ∀ i : Fin n, F i (ω i)
+        = p i (ω i) * (if i = i₀ then f (ω i) else 1) := by
+      intro i
+      by_cases h : i = i₀ <;> simp [hF, h]
+    rw [Finset.prod_congr rfl (fun i _ => hF2 i),
+      Finset.prod_mul_distrib]
+    have hite : ∏ i, (if i = i₀ then f (ω i) else 1)
+        = f (ω i₀) := by
+      simp [Finset.prod_ite_eq]
+    rw [hite]
+  rw [Finset.sum_congr rfl (fun ω _ => hsplit ω)]
+  rw [sum_prod_factor F]
+  have hsum : ∀ i : Fin n, ∑ v, F i v
+      = if i = i₀ then ∑ v, p i₀ v * f v else 1 := by
+    intro i
+    by_cases h : i = i₀
+    · simp only [hF]
+      rw [if_pos h, h]
+      simp
+    · have hc : ∑ v, F i v = ∑ v, p i v :=
+        Finset.sum_congr rfl fun v _ => by simp [hF, h]
+      rw [hc, (hp i).2, if_neg h]
+  have hprod : ∏ i, (if i = i₀ then ∑ v, p i₀ v * f v else 1)
+      = ∑ v, p i₀ v * f v := by
+    simp [Finset.prod_ite_eq]
+  rw [Finset.prod_congr rfl (fun i _ => hsum i), hprod]
+
+/-- Среднее центрированной суммы под произведением —
+нуль (независимость съедает центрирующие константы). -/
+theorem centeredSum_mean_zero {n : ℕ} (p : Fin n → V → ℝ)
+    (hp : IsProbSys p) (X : Fin n → V → ℝ) :
+    prodE p (fun ω => centeredSum p X ω) = 0 := by
+  have hnorm : ∑ ω, prodDens p ω = 1 := by
+    have := prodE_one p hp
+    unfold prodE at this
+    simpa using this
+  show ∑ ω, prodDens p ω
+      * (∑ i, X i (ω i) - ∑ i, coordMean p X i) = 0
+  simp only [mul_sub, Finset.sum_sub_distrib]
+  have h1 : ∑ ω, prodDens p ω * ∑ i, X i (ω i)
+      = ∑ i, coordMean p X i := by
+    have hexpand : ∀ ω : Fin n → V,
+        prodDens p ω * ∑ i, X i (ω i)
+          = ∑ i, prodDens p ω * X i (ω i) := fun ω => by
+      simp only [mul_sum]
+    rw [Finset.sum_congr rfl (fun ω _ => hexpand ω),
+      Finset.sum_comm]
+    exact Finset.sum_congr rfl fun i _ => by
+      have := marginal_prodE p hp i (X i)
+      unfold prodE at this
+      exact this
+  have h2 : ∑ ω, prodDens p ω * ∑ i, coordMean p X i
+      = ∑ i, coordMean p X i := by
+    rw [← Finset.sum_mul, hnorm, one_mul]
+  rw [h1, h2, sub_self]
+
+end Hagi.Probability

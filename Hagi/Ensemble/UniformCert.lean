@@ -50,7 +50,7 @@ theorem uniform_good_point {V K : Type*} [Fintype V]
     exact Finset.sum_le_sum_of_subset_of_nonneg hsub
       (fun v _ _ => le_of_lt (hw v))
   -- R384: mass of the bad set
-  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   linarith
 
 /-! ### Масса хороших точек (R403): ≥ 1 − |K|·e^{−2ε²/(b−a)²} —
@@ -64,7 +64,7 @@ theorem uniform_good_mass {V K : Type*} [Fintype V]
     (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
     1 - (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
       ≤ ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v := by
-  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   -- bad set = filter (exists k) equals filter (not good)
   classical
   have hsplit : ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v
@@ -164,7 +164,7 @@ theorem two_sided_union_tail {V K : Type*} [Fintype V]
       = ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ -(d k v)), w v :=
     (Finset.sum_filter (fun v => ∃ k, ε ≤ -(d k v)) w).symm
   -- R384 up (direct) and down (apply to -d)
-  have hRup := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  have hRup := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   -- for -d: bounds negated, mean negated
   have hneg_bd : ∀ k v, -(d k v) ∈ Set.Icc (-b) (-a) := by
     intro k v
@@ -181,7 +181,7 @@ theorem two_sided_union_tail {V K : Type*} [Fintype V]
     ring
   have hneg_lt : (-b:ℝ) < -a := by linarith
   have hRdown := hoeffding_union_tail w (fun k v => -(d k v)) (-b) (-a)
-    hw hw1 hneg_lt hneg_bd hneg_c hε
+    (fun v => (hw v).le) hw1 hneg_lt hneg_bd hneg_c hε
   -- exponent match: (b-a)^2 = (-a-(-b))^2
   have hexp : (-a - (-b))^2 = (b - a)^2 := by ring
   rw [hexp] at hRdown
@@ -249,7 +249,7 @@ theorem class_size_lower {V K : Type*} [Fintype V]
     Real.exp (2 * ε ^ 2 / (b - a) ^ 2)
       ≤ (Fintype.card K : ℝ) := by
   -- R384 gives |K| * c >= 1
-  have hR384 := hoeffding_union_tail w d a b hw hw1 hlt hbd hc hε
+  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   -- the bad filter covers everything: mass = 1
   have hsub : (Finset.univ : Finset V)
       ⊆ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v) :=
