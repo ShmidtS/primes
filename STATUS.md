@@ -2278,6 +2278,14 @@
   НЕПОСРЕДСТВЕННО в форме показателей verify: гипотеза
   hetelescope в MasterHAGICoupled теперь выводима как
   теорема (закрытие находки внешнего аудита).
+- **Композиционная экономия внимания (Model/AttentionSpend.lean)**:
+  hybridAttnCost/denseAttnCost; hybrid_spend_lt — окно
+  короче длины и KV-групп меньше головок ⟹ гибрид SWA×GQA
+  строго дешевле плотного внимания; hybrid_ratio —
+  относительная стоимость РОВНО произведение факторов
+  экономии (окно/длина)·(n_kv/n_h) — механизмы экономии
+  ПЕРЕМНОЖАЮТСЯ; hybrid_ratio_lt_one — строго ниже
+  dense-базлайна.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
