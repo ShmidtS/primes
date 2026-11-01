@@ -2444,6 +2444,11 @@
   «компрессия ↔ скорость ↔ качество»; CAPSTONES пополнены
   (CompressionArc, HoeffdingBridge, GibbsCore) — замыкание
   166/447 (37%) → 181/448 (40%).
+- **Фасад модельного каталога + Closure 55% (Model/
+  ModelArc.lean)**: единая точка входа каталога моделей;
+  CAPSTONES + ModelArc — замыкание 181/448 (40%) →
+  247/449 (55%). Оставшиеся кластеры: Unified (31),
+  Growth (20), Optimization (17), Budget (16).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
