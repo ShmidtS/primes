@@ -462,6 +462,19 @@
   MasterChallengeV3 — драфт Gen-3 капстоуна на
   certified_loop_strict (заключение прописано, аксиомы
   чистые).
+- **Фаза 3, такт №327 (SignSGD + Lion → DescentCore)**:
+  SignDescent: НЕмасштабированный sign-шаг НЕ
+  выровнен (норма знака = число ненулевых > ℓ₁ при
+  малых градиентах); масштаб s = ‖g‖₁/n делает шаг
+  выровненным (sign_scaled_aligned) ⟹ чистое
+  убывание сжатого шага (sign_descent, база:
+  Bernstein 1802.04434 — связь signSGD с
+  нормализованным SGD). Generic-мост
+  scaled_sign_aligned_of_coherence + lion_descent:
+  условие согласованности момента
+  (‖m‖₁/n·nnz(m) ≤ ⟨g, sign(m)⟩) даёт чистое убывание
+  масштабированного Lion-шага (Chen 2302.06675).
+  Freeze 3715, CI PASS.
 - **Фаза 1 — Gen-3 капстоун (такты №316–№320)**:
   CHALLENGE-гейт переключён на v3 (2/2 PASS, StepCert
   тип запинен); MasterHAGI/MasterHAGI_linked/MasterHAGICore
