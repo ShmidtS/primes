@@ -450,6 +450,31 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Фаза 0 — инвентаризация (такты №313–№315)**:
+  DepAudit.py — полный граф импортов 424 модулей;
+  Gen-1-only (без CertifiedLoop/HonestTransition в
+  замыкании) — 52 модуля (не 23 по плану); CorePremises —
+  0 прямых импортёров. LeafClassify.py — 286 library
+  leaves по 4 классам: A=34 (Objective/Descent),
+  B=45 (Step Compressors), C=93 (Efficiency/Budget),
+  D=19 (Alignment), E=95 (мат-фундамент, кандидаты
+  Phase-4). ClosureReport baseline: 138/424 (33%).
+  MasterChallengeV3 — драфт Gen-3 капстоуна на
+  certified_loop_strict (заключение прописано, аксиомы
+  чистые).
+- **Фаза 1 — Gen-3 капстоун (такты №316–№320)**:
+  CHALLENGE-гейт переключён на v3 (2/2 PASS, StepCert
+  тип запинен); MasterHAGI/MasterHAGI_linked/MasterHAGICore
+  @[deprecated] → CertifiedLoop.certified_loop (Freeze
+  batch 3695→3707). QuadLoopWitness: полушаговая
+  траектория qhalf (η = 1/2, энергия × 1/4 за шаг),
+  halfStepCert — StepCert на каждом шаге, quad_loop_
+  horizon — certified_loop_strict на ЛЮБОМ горизонте,
+  специализации quad_witness_T3/T10 — сквозной Gen-3
+  свидетель без CorePremises (покрывает такт №320,
+  размещён в Examples по слойности). Обструкция Gen-1
+  изолирована в Hagi.Diagnostics.Obstructions
+  (регрессионный тест, не продакшн-инструмент).
 - **Unused-import чистка (такт №312)**: 37 неиспользуемых
   импортов удалено из 25 файлов — компилятор-
   верифицированно (удаление → lake env lean 0 ошибок →
