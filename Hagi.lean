@@ -329,6 +329,7 @@ import Hagi.Unified.SignStepCert
 import Hagi.Unified.PLLoop
 import Hagi.Unified.PLQuad
 import Hagi.Unified.SignNoKappa
+import Hagi.Unified.ErrorFeedback
 import Hagi.Unified.SamDescent
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
