@@ -1306,6 +1306,7 @@ frobSq	3a34332b5bbeac9d	90d11852c0bbec6b
 frobSq	5e9d9ec5e8bdbb0f	5d0585837205beb7
 frobSq	d0f79674d3b954e3	b9fb4a9fa2b323cc
 frobSq_eq	71c95b729703802f	bb56e3a29ebaa03c
+frobSq_eq_aligned	c61d7a39a29bb816	ff529b0cc042e644
 frobSq_outerSum	1d2605d3b5444014	9f2ec0590e8fb462
 frobSq_outer_orthonormal	f65f6f3fd474b276	4c30f03630b1386f
 frobSq_trunc_tail	9039712bc49d8cb4	b8ed813447e45694

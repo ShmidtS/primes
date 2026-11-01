@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.Step.GPM
+import Hagi.Architecture.AlignedMerge
 
 /-!
 # MicroStepCert — композиционный сертификат микро-шага
@@ -78,5 +79,13 @@ theorem microstep_net_drop
   have h := (microstep_cert E W ΔW xs G L ε hsmooth hgrad horth).1
   exact ⟨by linarith,
     fun k => Hagi.Step.gpm_zero_forgetting W ΔW xs horth k⟩
+
+/-- ДЕДУП-МОСТ: квадрат нормы Фробениуса совпадает с
+архитектурным определением — один канон, два имени. -/
+theorem frobSq_eq_aligned (A : Matrix (Fin m) (Fin n) ℝ) :
+    frobSq A = Hagi.Architecture.frobSq A := by
+  unfold frobSq frobDot Hagi.Architecture.frobSq
+  exact Finset.sum_congr rfl fun i _ =>
+    Finset.sum_congr rfl fun j _ => by ring
 
 end Hagi.Unified.MicroStepCert
