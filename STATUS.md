@@ -456,7 +456,8 @@
   ExecutedCert. Все четыре сертификатных слоя
   (StepContract-моноид, CertifiedTransitionV2,
   StepMeasurement, MeasureProto) теперь формально сведены
-  к ядру HonestTransition/ExecutedCert/MeasuredState.
+  к ядру. LESSONS: +2 (ложный standalone-0 при unknown
+  import; structure-возврат только через def). HonestTransition/ExecutedCert/MeasuredState.
 - **ctv2Honest-мост (такт №308)**:
   CertifiedTransitionV2 (verify-показатель + активный
   риск-лимит) + операциональные условия спуска
