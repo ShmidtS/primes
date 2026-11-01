@@ -1,5 +1,6 @@
 import Hagi.Model.GQA
 import Hagi.Model.SWA
+import Hagi.Model.MoD
 
 /-!
 # Композиционная экономия внимания: SWA × GQA
@@ -83,5 +84,38 @@ theorem hybrid_ratio_lt_one (T n w n_h n_kv d : ℕ)
   have hp2 : (0:ℝ) ≤ (n_kv : ℝ) / n_h :=
     div_nonneg (by positivity) (by positivity)
   nlinarith [h1, h2, hp1, hp2]
+
+/-- ПОЛНЫЙ СТЕК: глубина × MoD-ширина × окно × KV-группы. -/
+def fullStackCost (L k w n_kv d : ℕ) : ℕ :=
+  L * k * (2 * w + 1) * n_kv * d
+
+/-- Плотный базлайн полного стека: глубина × длина ×
+длина × все головки. -/
+def fullDenseCost (L n n_h d : ℕ) : ℕ :=
+  L * n * n * n_h * d
+
+/-- ПОЛНАЯ КОМПОЗИЦИЯ: относительная стоимость полного
+гибридного стека — ТОЧНОЕ произведение трёх факторов
+экономии (MoD k/n) × (окно/длина) × (KV/головки). -/
+theorem fullStack_ratio (L n w n_h n_kv k d : ℕ)
+    (hL : 0 < L) (hn : 0 < n) (hh : 0 < n_h) (hd : 0 < d) :
+    (fullStackCost L k w n_kv d : ℝ)
+      / (fullDenseCost L n n_h d : ℝ)
+      = ((k : ℝ) / n) * ((2 * w + 1 : ℝ) / n)
+        * ((n_kv : ℝ) / n_h) := by
+  simp only [fullStackCost, fullDenseCost, Nat.cast_mul]
+  field_simp
+  push_cast
+  ring
+
+/-- ПОЛНЫЙ ГИБРИД СТРОГО ДЕШЕВЛЕ: при трёх активных
+механизмах экономии (k < n, окно < длины, n_kv < n_h)
+полный стек строго дешевле плотного базлайна. -/
+theorem fullStack_lt (L n w n_h n_kv k d : ℕ)
+    (hL : 0 < L) (hd : 0 < d)
+    (hk : k < n) (hw : 2 * w + 1 < n) (hkv : n_kv < n_h) :
+    fullStackCost L k w n_kv d < fullDenseCost L n n_h d := by
+  unfold fullStackCost fullDenseCost
+  gcongr <;> omega
 
 end Hagi.Model.AttentionSpend
