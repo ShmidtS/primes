@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3613 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3622 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **BYOL (источник №87, такт №282)**: self-distillation
+  без негативов (2006.07733): cosS (с вырожденным
+  0-случаем), CSCarrier (CS как контракт |cos|≤1 —
+  производитель будущий Cauchy-модуль), bl_bounds
+  ([0,2]), bl_anti, bl_zero_at_perfect,
+  cos_scale_inv (масштаб-инвариантность при s·t>0 —
+  КОНТРПРИМЕР st<0 пойман до коммита: cos антисимметричен
+  знаку); bl без variance-давления — контраст с VicReg.
 - **ProtoTrajectory (такт №281)**: полная цепочка
   execution × measurement × certificate замкнута:
   proto_loss_mono / proto_loss_telescope /

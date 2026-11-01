@@ -13,6 +13,7 @@ Basis	137bfbf500c80032	23539f4cef01a6c1
 Blocks	5838eeed7c76186d	86bc756d672c46ec
 BudgetAlive	9aec6a9a215610ad	7a4c51cda21834d0
 CE	eee82b7395061eea	1f75ef15f4ae01b5
+CSCarrier	142102ebeccec5e8	0c8f266fe38c3222
 Candidate	13671d92f9593e6b	2be38216d27ff949
 CandidateComplete	0a9eadcfe9d60763	8cd2e9ac58cc66db
 CapabilitySound	881543252b2bb39c	4ce83b11043b2aea
@@ -430,6 +431,10 @@ binomMass	a34d60fb691ecc3f	870bd309e18557ba
 binomWeight	4b211a2d9bb89552	f38b66b357c21491
 binomWeight_nonneg	affecbef68ad1707	59337ff132a418f3
 bits_floor	460decc60083e8af	55f3ac49781d7308
+bl	0cf12ce14d12060b	6d6f9c9e8ebfd681
+bl_anti	57e8559f7b8ca6f7	4a3d3f8d120bfeab
+bl_bounds	3ab79b5a1b572dc1	2300152f9ee4bd12
+bl_zero_at_perfect	8901149710c6448f	2fce6e6ea4a2bd51
 blockCols	7d94167d66b3a6f0	064b5110c01091ab
 blockCols_mulVec_sum	80e938cf06e37764	57de021c6136aeea
 blockCost	fa506fcc264cbd0d	5b281e5cd3641cac
@@ -779,9 +784,11 @@ cosLR_anti	e270bec7cce33cac	636169bcdefc649e
 cosLR_end	53e7d2635b06fe0d	5daf7c4a36440205
 cosLR_nonneg	b2b118aa304a5c34	9be06f17a4fcd72e
 cosLR_start	0d183b015c61076c	5fe6d8f3abd4c29c
+cosS	02f9bd6fa10dba97	1952fb2406243304
 cosSum	bbc516c6c185a856	c522ab86224cbf83
 cosSum_zero'	025890db24ead754	096f8dac00187ade
 cos_anti	5b5f8f80ca55714a	fac293ccc161de69
+cos_scale_inv	14d7426c801cb75b	7dd9775c09a13482
 cosh_half_sq	c1bcfb68d9a9f187	777c8ea4d003b390
 costCompress	ec59ec8f3db89160	cad1598f1a2fe5f6
 costGrow	e01d0d7d9c8f5c47	18fe37170d4121a6
@@ -993,6 +1000,7 @@ drift_norm_nondecreasing	e351bbcab964084f	4d1fd378d4036cb7
 drift_solution	529835d1564a9409	b044b524af83f017
 drift_total_variation	038567da7dd16970	93359f0d5a45d990
 drift_zero	db6fd6a929ec0add	960f4c26c43bf407
+dsum	641b8d4973dbfbbd	8b2d6273631559e9
 dual_ceiling	61580960621b8181	4a1009b00488b142
 dustAlignment	c3866d2620ca71e8	4a73811e8ebcea02
 dustAlignmentK	187e374317528eed	d2e38ebd5c155eea
@@ -2626,6 +2634,7 @@ qgen_frontier_bridge	f87e13b932506031	8c06335754fb898c
 qgen_frontier_bridge_invariant	a2365f1757e04c41	e8f23511044777ef
 qk_logit_bound	d9e9df38a34fe1cf	c31a392a5c648089
 qk_no_saturation	a45861f40d2b308f	5ff4d1d244bc4b39
+qnorm	ba450507b25b8d56	fe397bdaedcca6a5
 quadAligned	71197d2ddb313b3f	a7ce315d2721e5de
 quadE	74814684dca70543	f5b462a89d7d81fc
 quadE	f52c814ca362775d	d1ae5701ecef30a2
