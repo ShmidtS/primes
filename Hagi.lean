@@ -308,6 +308,7 @@ import Hagi.Model.SwitchMoE
 import Hagi.Model.LoRA
 import Hagi.Model.QKNorm
 import Hagi.Model.HNet
+import Hagi.Model.HNet2
 import Hagi.Model.MambaSSM
 import Hagi.Model.DDPM
 import Hagi.Model.CFG
@@ -343,9 +344,11 @@ import Hagi.Model.GDNBridge
 import Hagi.Step.CPUFreeze
 import Hagi.Model.AdaptiveChunking
 import Hagi.Model.NeuralComputer
+import Hagi.Unified.NCStepCert
 import Hagi.Unified.NCTheorem
 import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
+import Hagi.Model.RVCoreBignum
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
 import Hagi.Unified.TernaryGrad
