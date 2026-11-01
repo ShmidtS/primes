@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3655 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3660 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,15 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **CanonicalParams (такт №293, P0-3 аудита)**: params —
+  единственный канонический носитель; weights — производная
+  проекция canonWeights = toW(params) с LawfulProj
+  (инъективность). Теоремы: advance_params_ne (η>0, dir≠0 ⟹
+  params строго меняется), bridge_update (активный шаг
+  меняет и канонические weights — тест аудита №6 выполнен),
+  idProj (тождественный проектор — свидетель). Две
+  семантики (params-update vs weights-update) связаны
+  явным мостом.
 - **HonestTransition (такт №292, ответ на внешний
   аудит P0-2)**: CertifiedTransition.progress
   сертифицировал показатель, а не спуск. Новая
