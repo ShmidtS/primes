@@ -8,6 +8,7 @@ import Hagi.Growth.FrontierScaling
 import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Step.SafeQPStep
 import Hagi.Foundations.Telescope
+import Hagi.Unified.CertifiedLoop
 set_option linter.style.header false
 
 /-!
@@ -206,6 +207,7 @@ certificate's decrease — NOT restated) and its risk hypothesis
 (the cycle's protectedRisk increment IS the declared riskSpend);
 `budget_account` (R91) supplies the budget conjunct. -/
 
+@[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
     (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
@@ -356,6 +358,7 @@ This certifies the LOOP given the measured premises; the
 premises' derivation from the real runtime is the open frontier
 I (see the module docstring's h_emp inventory). -/
 
+@[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGI {K : Type*} [Fintype K] [Nonempty K]
     (S : ℕ → GenState X) (lam nu Qtarget Emin : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 < nu)
@@ -615,6 +618,7 @@ channel `C` is NOT a free sequence — it IS the states'
 capability (`h_link`). The capstone's growth guarantee then
 holds for the ACTUAL trajectory states, closing the audit
 gap where `C` grew independently of `S`. -/
+@[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGI_linked {K : Type*} [Fintype K] [Nonempty K]
     (S : ℕ → GenState X) (lam nu Qtarget Emin : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 < nu)

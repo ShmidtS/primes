@@ -1,6 +1,20 @@
 {
   "challenges": [
     {
+      "name": "master-hagi-challenge-v3",
+      "description": "Gen-3 master statement: strict descent (obj f n < obj f 0 for n >= 1), sum of certificate drops <= obj0 - objN, componentwise FloorKept quality, honest budget telescope b_n <= b0 - sum spends, under only the StepCert chain contract",
+      "theorem": "Hagi.Challenge.master_hagi_challenge_v3",
+      "module": "Hagi.Challenge.MasterChallengeV3",
+      "allowed_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
+      "pinned_types": {
+        "Hagi.Unified.CertifiedLoop.StepCert": "{S : Type u_1} → (S → ℝ) → Hagi.Unified.LinkedQVec.MeasuredState S → (Fin 5 → ℝ) → ℝ → S → S → ℝ → ℝ → Type"
+      }
+    },
+    {
       "name": "master-hagi-core",
       "description": "Honest one-cycle master statement: Phi_HAGI decrease up to lambda*riskSpend + nu*epsQ AND exact budget accounting, under the named CorePremises contract",
       "theorem": "Hagi.Challenge.master_hagi_core_comparator",
