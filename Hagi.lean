@@ -43,7 +43,6 @@ import Hagi.Step.SafeQPStep
 import Hagi.Step.StochasticSafeQP
 import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
-import Hagi.Step.Decompose
 import Hagi.Energy.FreeEnergy
 import Hagi.Growth.GrowthGate
 import Hagi.Growth.GainRenewal
@@ -122,7 +121,6 @@ import Hagi.External.Flywheel.MDLRank
 import Hagi.Audit.Exactness
 import Hagi.Core.RootContrast
 import Hagi.Audit.EqualBudget
-import Hagi.Unified.Unified
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.SpeedLimit

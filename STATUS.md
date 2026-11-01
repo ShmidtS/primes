@@ -2690,7 +2690,6 @@
 - `Hagi/Unified/TernaryGrad.lean` — `sgn1_round`, `sgn1_grid_fix`, `sgn1_zero_quant_error`, `tern_grad_inner`
 - `Hagi/Unified/TopLevel.lean` — `quant_residual_norm`, `quant_energy_bridge`, `quant_matrix_perturb`, `quant_matrix_perturb_norm`, `quant_loss_bridge`, `quant_frob_loss`, `frob_minkowski`, `frob_minkowski'` (+10)
 - `Hagi/Unified/TransitionContract.lean` — `ctv2_contract`, `ctRisk_covers`
-- `Hagi/Unified/Unified.lean` — `uncertainty_contraction`, `finite_termination`, `traininfer_critical`
 
 ## Открытые проблемы
 
