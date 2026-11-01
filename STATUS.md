@@ -2271,9 +2271,13 @@
   ctv2_family_telescope — кумулятивная связь Σ спусков ≤
   E₀ − E_T ВЫВОДИТСЯ из поштучных CertifiedTransitionV2 с
   операциональными условиями (advance_energy_drop по
-  индукции): гипотеза hetelescope в MasterHAGICoupled
-  перестаёт быть независимой посылкой (закрытие находки
-  внешнего аудита).
+  индукции); stepDrop_ge_verify — мост: честный спуск
+  шага не меньше показателя verify нового состояния (при
+  выровненном направлении, η ≤ 1/L, ошибке квантования
+  ≤ полсетки); verify_family_telescope — телескоп
+  НЕПОСРЕДСТВЕННО в форме показателей verify: гипотеза
+  hetelescope в MasterHAGICoupled теперь выводима как
+  теорема (закрытие находки внешнего аудита).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
