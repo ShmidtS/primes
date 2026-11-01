@@ -347,7 +347,12 @@ theorem certifiedTransition_risk_respect {X : Type*}
 реально соблюдён) и мост из старой структуры. -/
 
 /-- V2: сертифицированный переход с АКТИВНО проверенным
-риск-лимитом (№5: счётчик ≠ соблюдение лимита). -/
+риск-лимитом (№5: счётчик ≠ соблюдение лимита).
+НЕканонический слой: канонический переход — зависимый
+`Hagi.Unified.HonestTransition` (спуск выведен из
+исполнения); сведение — `ctv2Honest` при операциональных
+условиях спуска. Новым кодом использовать
+`HonestTransition` напрямую. -/
 structure CertifiedTransitionV2 (S S' : Hagi.System.GrowthState X)
     (u : StageInput X) (riskLim : ℝ) where
   /-- Вся валидация V1. -/
