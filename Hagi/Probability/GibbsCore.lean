@@ -64,4 +64,40 @@ theorem gibbsZ_shift (E : V → ℝ) (T : ℝ) (hT : 0 < T)
   field_simp
   ring
 
+/-- ДОМИНИРОВАНИЕ ОСНОВНОГО СОСТОЯНИЯ: вес минимума
+энергии не меньше веса любого конкурента при ЛЮБОЙ
+положительной температуре (экспонента антимонотонна). -/
+theorem gibbsW_min_dominates (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (vstar v : V) (hle : E vstar ≤ E v) :
+    gibbsW E T v ≤ gibbsW E T vstar := by
+  unfold gibbsW
+  exact Real.exp_le_exp.mpr
+    ((div_le_div_iff_of_pos_right hT).mpr (neg_le_neg hle))
+
+/-- ГЛАВНЫЙ ВЫВОД: нормированный вес основного состояния
+не меньше равномерного — минимум доминирует в среднем. -/
+theorem gibbs_min_weight_ge_uniform (E : V → ℝ) (T : ℝ)
+    (hT : 0 < T) [Nonempty V] (vstar : V)
+    (hmin : ∀ v, E vstar ≤ E v) :
+    1 / (Fintype.card V : ℝ)
+      ≤ gibbsW E T vstar / gibbsZ E T := by
+  have hZpos : 0 < gibbsZ E T := gibbsZ_pos E T hT
+  have hZle : gibbsZ E T
+      ≤ (Fintype.card V : ℝ) * gibbsW E T vstar := by
+    calc gibbsZ E T = ∑ v, gibbsW E T v := rfl
+      _ ≤ ∑ v, gibbsW E T vstar :=
+        Finset.sum_le_sum fun v _ =>
+          gibbsW_min_dominates E T hT vstar v (hmin v)
+      _ = (Fintype.card V : ℝ) * gibbsW E T vstar := by
+        rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  have h1 : (1/(Fintype.card V : ℝ)) * gibbsZ E T
+      ≤ (1/(Fintype.card V : ℝ))
+        * ((Fintype.card V : ℝ) * gibbsW E T vstar) :=
+    mul_le_mul_of_nonneg_left hZle (by positivity)
+  have h2 : (1/(Fintype.card V : ℝ))
+      * ((Fintype.card V : ℝ) * gibbsW E T vstar)
+      = gibbsW E T vstar := by field_simp
+  rw [le_div_iff₀ hZpos]
+  linarith [h1, h2]
+
 end Hagi.Probability

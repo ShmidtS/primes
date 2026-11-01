@@ -2460,6 +2460,13 @@
   (97%); оставшиеся 12 — честные изоляты (мат-кирпичи
   Core/Geometry/Percolation/External без потребителей,
   Class D/E по LeafClassify).
+- **Доминирование основного состояния (Probability/
+  GibbsCore.lean)**: gibbsW_min_dominates — вес минимума
+  энергии ≥ веса любого конкурента при ЛЮБОЙ температуре
+  (экспонента антимонотонна); gibbs_min_weight_ge_uniform —
+  нормированный вес основного состояния ≥ 1/card —
+  минимум доминирует равномерное. Кирпичи концентрации
+  через канон Гиббса.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
