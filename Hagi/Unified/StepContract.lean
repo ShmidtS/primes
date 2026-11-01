@@ -1,4 +1,5 @@
 import Mathlib
+import Hagi.Foundations.Telescope
 
 /-!
 # StepContract — единый моноид сертификатов шага (аудит v15 §4.3)
@@ -171,6 +172,7 @@ def constContract (eps : ℝ) (heps : 0 ≤ eps) : StepContract where
 телескопической теоремы trajectory_convergence при
 постоянном контракте — все телескоп-дубли (ProbeError,
 GrowthState, TopLevel) суть экземпляры одного принципа. -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem termination_via_stepcontract {E : ℕ → ℝ}
     (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)

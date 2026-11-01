@@ -6,6 +6,7 @@ Authors: HAGI_v2 formalization team
 import Mathlib
 import Hagi.Core.ErrorProp
 import Hagi.System.GrowthState
+import Hagi.Foundations.Telescope
 set_option linter.style.header false
 
 /-!
@@ -235,7 +236,9 @@ theorem probe_safe_accept {X : Type*} [NormedAddCommGroup X]
 Делегирует базовому лиапуновскому закону
 `Hagi.System.macro_termination_derived` (объединение с
 Foundation-машиной: теорема не требует признака «назначенного
-growGain» — спад измеряется фактически). -/
+growGain» — спад измеряется фактически). Каноническая
+форма: `lyapunov_termination_fin`. -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem measured_gain_horizon {E : ℕ → ℝ} (Emin gain : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hgen : ∀ t < k, E (t + 1) ≤ E t - gain)
