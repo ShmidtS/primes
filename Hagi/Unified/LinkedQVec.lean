@@ -22,10 +22,10 @@ namespace Hagi.Unified.LinkedQVec
 
 /-- Состояние с ЗАКРЕПЛЁННЫМ измерителем качества:
 qvec = evaluate S — отдельная последовательность невозможна. -/
-structure MeasuredState (S : Type) where
+structure MeasuredState (S : Type*) where
   evaluate : S → (Fin 5 → ℝ)
 
-variable {S : Type} (M : MeasuredState S)
+variable {S : Type*} (M : MeasuredState S)
 
 /-- Покомпонентный floor-контракт. -/
 def FloorKept (s : S) (floor : Fin 5 → ℝ) : Prop :=

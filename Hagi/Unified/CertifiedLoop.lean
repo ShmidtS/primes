@@ -32,7 +32,7 @@ namespace Hagi.Unified.CertifiedLoop
 
 open Hagi.Unified.HonestTransition Hagi.Unified.LinkedQVec
 
-variable {S : Type}
+variable {S : Type*}
 
 /-- Один шаг цикла: честный переход + качество + бюджет.
 Связность с траекторией (f, b) заложена в типе индексации. -/

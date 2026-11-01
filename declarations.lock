@@ -108,7 +108,7 @@ Matrix	c62852e59e452a76	1389fbe8bfafaae6
 Matrix	d12f763daae27f23	1ae460a7e481d13e
 MeasureProto	eae5f76cdf085f7d	3456494500429904
 MeasuredEffects	05138641839425ce	b7136f2d25bd9d73
-MeasuredState	91957df78489de06	f66028d6c4bc53ca
+MeasuredState	e2b3dad6d45198e4	261748646acb01e8
 MemBlock	e3f56252d8eb81d1	a66149f05f587541
 MemoryPart	5758ee45ec39c29f	851ade0387954bbb
 MergeApproved	7a09f4d9b890cb28	76263fccf8c43930
@@ -2689,6 +2689,9 @@ qk_logit_bound	d9e9df38a34fe1cf	c31a392a5c648089
 qk_no_saturation	a45861f40d2b308f	5ff4d1d244bc4b39
 qnorm	ba450507b25b8d56	fe397bdaedcca6a5
 quadAligned	71197d2ddb313b3f	a7ce315d2721e5de
+quadCert	5893eb1b5804ff22	a46ab53a9520a917
+quadCert_drop_pos	98796a40d83336a8	ff0d986dc039fd10
+quadCert_hits_optimum	d8037e38b2d67c4f	42d735097e4163db
 quadE	74814684dca70543	f5b462a89d7d81fc
 quadE	f52c814ca362775d	d1ae5701ecef30a2
 quadE_eq_energy	09926621e4f13423	5e79e8a899e263d7

@@ -1,0 +1,73 @@
+import Mathlib
+import Hagi.Unified.CertifiedLoop
+import Hagi.Unified.DescentCoreQuad
+
+/-!
+# LoopInstances (такт №300): заполнение StepCert из
+# реального градиентного шага
+
+Мост DescentCore → CertifiedLoop: квадратичная модель
+поставляет зависимый сертификат честного перехода —
+капстон применим к настоящему алгоритму.
+
+`quadCert`: шаг w' = w − ∇E (η = 1/L = 1 — оптимальный:
+достигает оптимума за один шаг, E(w') = 0) даёт
+HonestTransition с drop = E(w) целиком.
+`quadDropPos`: drop > 0 при ∇E ≠ 0.
+-/
+
+namespace Hagi.Unified.LoopInstances
+
+open Hagi.Unified.HonestTransition Hagi.Unified.CertifiedLoop
+open Hagi.Unified.DescentCoreQuad
+
+variable {k : Type*} [Fintype k] [Nonempty k]
+
+/-- Оптимальный градиентный шаг квадратичной цели —
+честный переход с drop = вся энергия. -/
+noncomputable def quadCert (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
+    HonestTransition (S := k → ℝ) (fun w => quadE a w) x (x - quadGrad a x)
+      0 0 0 0 where
+  objectiveDrop := quadE a x
+  objectiveDrop_pos := by
+    have h := (quad_one_step a x).2
+    unfold Hagi.Unified.DescentCore.nrm2 at h
+    have hsum : (0:ℝ) < ∑ i, (quadGrad a x i)^2 := by
+      by_contra h0
+      push_neg at h0
+      apply hx
+      funext i
+      have hle : (quadGrad a x i)^2 ≤ ∑ j, (quadGrad a x j)^2 :=
+        Finset.single_le_sum (fun j _ => sq_nonneg _)
+          (Finset.mem_univ i)
+      have hnn : (0:ℝ) ≤ (quadGrad a x i)^2 := sq_nonneg _
+      have hzi : (quadGrad a x i)^2 = 0 := by linarith
+      exact sq_eq_zero_iff.mp hzi
+    show 0 < quadE a x
+    linarith
+  actualDescent := by
+    show quadE a (x - quadGrad a x) ≤ quadE a x - quadE a x
+    have h0 : (quadObjective a).f (x - quadGrad a x) = 0 :=
+      (quad_one_step a x).1
+    have heq : (quadObjective a).f (x - quadGrad a x)
+        = quadE a (x - quadGrad a x) := rfl
+    rw [heq] at h0
+    have hz : quadE a x - quadE a x = (0:ℝ) := by ring
+    linarith
+  riskBound := le_refl 0
+  budgetBound := le_refl 0
+
+omit [Nonempty k] in
+/-- drop-сертификата положителен при ненулевом градиенте. -/
+theorem quadCert_drop_pos (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
+    0 < (quadCert a x hx).objectiveDrop :=
+  (quadCert a x hx).objectiveDrop_pos
+
+omit [Nonempty k] in
+/-- Реальный спуск сертификата — точное равенство нулю
+энергии после оптимального шага. -/
+theorem quadCert_hits_optimum (a x : k → ℝ) :
+    quadE a (x - quadGrad a x) = 0 :=
+  (quad_one_step a x).1
+
+end Hagi.Unified.LoopInstances

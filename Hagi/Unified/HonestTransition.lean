@@ -28,7 +28,7 @@ E_compress=100 — положительный сертификат при рос
 
 namespace Hagi.Unified.HonestTransition
 
-variable {S : Type}
+variable {S : Type*}
 
 /-- Честный переход: спуск связан с objective-функцией
 зависимым доказательством, не с показателем. -/

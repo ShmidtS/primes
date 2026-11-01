@@ -450,6 +450,15 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **LoopInstances (такт №300)**: мост DescentCore →
+  CertifiedLoop: quadCert — оптимальный градиентный шаг
+  квадратичной цели (η=1, E(w')=0) поставляет зависимый
+  HonestTransition с drop = E(w) целиком;
+  quadCert_drop_pos (∇≠0 ⟹ drop>0), quadCert_hits_
+  optimum (точный ноль после шага). Капстон заполнен
+  реальным алгоритмом, не только абстракцией. Вселенские
+  расширения: HonestTransition/MeasuredState/CertifiedLoop
+  переведены с Type на Type*.
 - **QuadUnify-сведение №2 (такт №299)**: DescentCoreDiag
   (взвешенная квадратичная) — частный случай
   DescentCoreQuad при единичных весах: diag_is_quad,
