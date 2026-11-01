@@ -195,6 +195,7 @@ import Hagi.Core.NonlinearStep0
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Examples.HAGICertWitness
 import Hagi.Examples.QuadLoopWitness
+import Hagi.Examples.QuarticWitness
 import Hagi.Examples.QuadraticConcrete
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
