@@ -2267,6 +2267,13 @@
   оба спуска строго положительны. CHALLENGE-гейт
   переведён исключительно на Gen-3 капстоун
   (Gen-1 comparator снят).
+- **Семейственный телескоп (Unified/Ctv2Telescope.lean)**:
+  ctv2_family_telescope — кумулятивная связь Σ спусков ≤
+  E₀ − E_T ВЫВОДИТСЯ из поштучных CertifiedTransitionV2 с
+  операциональными условиями (advance_energy_drop по
+  индукции): гипотеза hetelescope в MasterHAGICoupled
+  перестаёт быть независимой посылкой (закрытие находки
+  внешнего аудита).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
@@ -2716,7 +2723,10 @@
 3. **Сертификатный веер.** 8 представлений перехода не сведены
    к канонической цепочке Execution → Measurement → StepCert →
    CertifiedLoop; StepContract-моноид не завершён; скалярный
-   Qgen ещё не заменён на FloorKept везде.
+   Qgen ещё не заменён на FloorKept везде. Семейственный
+   телескоп теперь выводится (ctv2_family_telescope);
+   остаётся перевести MasterHAGICoupled на него вместо
+   гипотезы.
 4. **Асимптотика перколяции.** p_c ≈ 0.5927 бесконечной
    решётки не выводится из конечного ядра.
 5. **ψ-монотонность (trigamma > 0).** Отсутствует в Mathlib.
