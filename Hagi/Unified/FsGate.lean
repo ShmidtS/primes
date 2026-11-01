@@ -73,4 +73,69 @@ theorem fsTraj_mono (a : Fin n → ℝ) (eta Delta : ℝ)
       (fsTraj a eta Delta s₀ t)
     exact le_trans hstep ih
 
+
+/-- БЮДЖЕТ-ШАГ: commit платит 1, hold бесплатен. -/
+theorem fsGate_budget (a : Fin n → ℝ) (eta Delta : ℝ)
+    (s : FunState n) :
+    (fsGate a eta Delta s).budget
+      = if gate (machineCert a s.weights eta Delta)
+        then s.budget - 1 else s.budget := by
+  unfold fsGate funStep
+  by_cases hg : gate (machineCert a s.weights eta Delta)
+  · rw [if_pos hg, if_pos hg]
+  · rw [if_neg hg, if_neg hg]
+
+/-- СЧЁТЧИК-ШАГ: commit считается, hold нет. -/
+theorem fsGate_count (a : Fin n → ℝ) (eta Delta : ℝ)
+    (s : FunState n) :
+    (fsGate a eta Delta s).stepCount
+      = if gate (machineCert a s.weights eta Delta)
+        then s.stepCount + 1 else s.stepCount := by
+  unfold fsGate funStep
+  by_cases hg : gate (machineCert a s.weights eta Delta)
+  · rw [if_pos hg, if_pos hg]
+  · rw [if_neg hg, if_neg hg]
+
+/-- БЮДЖЕТ НЕ ВОЗРАСТАЕТ: бюджет вдоль fs-траектории не
+превышает начального (индукция: commit платит, hold
+бесплатен). -/
+theorem fsTraj_budget_le (a : Fin n → ℝ) (eta Delta : ℝ)
+    (s₀ : FunState n) (T : ℕ) :
+    (fsTraj a eta Delta s₀ T).budget ≤ s₀.budget := by
+  induction T with
+  | zero => exact le_refl _
+  | succ t ih =>
+    simp only [fsTraj]
+    have hstep := fsGate_budget a eta Delta
+      (fsTraj a eta Delta s₀ t)
+    rw [hstep]
+    by_cases hg : gate (machineCert a
+      ((fsTraj a eta Delta s₀ t)).weights eta Delta)
+    · rw [if_pos hg]
+      linarith
+    · rw [if_neg hg]
+      exact ih
+
+/-- СЧЁТЧИК ≤ T: число реальных шагов не превышает горизонт
+(верхняя граница commitCount). -/
+theorem fsTraj_count_le (a : Fin n → ℝ) (eta Delta : ℝ)
+    (s₀ : FunState n) (T : ℕ) :
+    (fsTraj a eta Delta s₀ T).stepCount
+      ≤ s₀.stepCount + T := by
+  induction T with
+  | zero =>
+    show s₀.stepCount ≤ s₀.stepCount + 0
+    omega
+  | succ t ih =>
+    simp only [fsTraj]
+    have hstep := fsGate_count a eta Delta
+      (fsTraj a eta Delta s₀ t)
+    rw [hstep]
+    by_cases hg : gate (machineCert a
+      ((fsTraj a eta Delta s₀ t)).weights eta Delta)
+    · rw [if_pos hg]
+      omega
+    · rw [if_neg hg]
+      omega
+
 end Hagi.Unified.FsGate

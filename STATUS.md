@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3635 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3639 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,13 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **FsGate-леджер (такт №288)**: бюджет/счётчик
+  функционального состояния: fsGate_budget (commit платит
+  1, hold бесплатен), fsGate_count, fsTraj_budget_le
+  (бюджет вдоль траектории не возрастает — индукция),
+  fsTraj_count_le (число шагов ≤ горизонт). Полный учёт
+  FunState-цикла: энергия×бюджет×счётчик — всё
+  функционально, всё доказано.
 - **FsGate (такт №287)**: замыкание FunState в
   сертифицированный цикл: fsGate (commit/hold над
   функциональным состоянием — вычисленный gate),
