@@ -1,6 +1,5 @@
 import Mathlib.Tactic
 import Hagi.Model.StageSemantics
-import Hagi.Foundations.Telescope
 
 set_option linter.style.header false
 

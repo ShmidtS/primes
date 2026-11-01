@@ -5,7 +5,6 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.Ortho
 import Hagi.Step.ProjectionDescent
-import Hagi.Foundations.StageCalculus
 import Hagi.Foundations.Telescope
 /-!
 # The per-stage Lyapunov decomposition of the macro cycle

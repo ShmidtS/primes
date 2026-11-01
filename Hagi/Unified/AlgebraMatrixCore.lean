@@ -1,9 +1,7 @@
 import Mathlib
 import Hagi.Core.Attention
-import Hagi.Core.BlockDiag
 import Hagi.Core.ErrorProp
 import Hagi.Core.Kronecker
-import Hagi.Core.Merge
 import Hagi.Core.Mix
 import Hagi.Core.Ridge
 import Hagi.External.Flywheel.CoherenceCharacterization

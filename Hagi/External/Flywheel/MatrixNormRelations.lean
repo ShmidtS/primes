@@ -37,7 +37,6 @@ import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
 import Mathlib.Analysis.Matrix.Normed
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 import Mathlib.Analysis.Complex.Order
-import Hagi.External.Flywheel.NormSupport
 import Hagi.External.Flywheel.FrobeniusNorm
 -- NOTE: Some of these imports might be redundant. I added them one by one
 -- when I got "unknown identifier" errors. Feel free to clean up.

@@ -5,9 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.System.GrowthState
 import Hagi.Step.ProjectionDescent
-import Hagi.Unified.AnytimeMartingale
 import Mathlib.Tactic
-import Hagi.Foundations.StageCalculus
 /-!
 # the quantization-to-energy bridge (audit bridge #4)
 

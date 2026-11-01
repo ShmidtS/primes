@@ -1,5 +1,4 @@
 import Mathlib
-import Hagi.Foundations.Telescope
 
 /-!
 # StepContract — единый моноид сертификатов шага (аудит v15 §4.3)

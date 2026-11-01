@@ -1,6 +1,5 @@
 import Mathlib
 import Hagi.System.GrowthState
-import Hagi.Growth.StateBinding
 
 /-!
 # CapabilityLocal: рост

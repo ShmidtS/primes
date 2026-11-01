@@ -1,5 +1,4 @@
 import Mathlib
-import Hagi.Optimization.AdamBias
 
 /-!
 # DDPM: forward-процесс диффузии (источник №39)

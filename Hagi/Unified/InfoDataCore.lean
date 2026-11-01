@@ -16,15 +16,10 @@ import Hagi.Information.Pinsker
 import Hagi.Information.RoutingCapacity
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.RobustnessLaw
-import Hagi.Probability.ExpChord
-import Hagi.Probability.NoiseTemperature
-import Hagi.Probability.PMFBridge
 import Hagi.Probability.PinskerTV
-import Hagi.Probability.SphericalAngle
 import Hagi.Probability.StationaryFlatness
 import Hagi.Probability.ThermoAxes
 import Hagi.Probability.ThermoBridge
-import Hagi.Probability.WSqD
 import Hagi.Unified.ArchitectureTheorem
 
 /-!

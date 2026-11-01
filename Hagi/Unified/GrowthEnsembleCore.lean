@@ -10,13 +10,10 @@ import Hagi.Ensemble.UniformCert
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Growth.ChainUnification
 import Hagi.Growth.NoiseDisentangle
-import Hagi.Growth.NonlinearCone
 import Hagi.Growth.PlasticityLedger
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.RoundViability
-import Hagi.Growth.RsiCriterion
 import Hagi.Growth.SeedOnly
-import Hagi.Growth.T3Ignition
 import Hagi.Growth.Thermostat
 
 /-!

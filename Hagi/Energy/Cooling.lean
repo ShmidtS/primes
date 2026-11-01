@@ -3,7 +3,6 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
-import Hagi.Prelude.Info
 import Hagi.Core.Concat
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 import Mathlib.Topology.Algebra.Order.Field
