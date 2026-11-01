@@ -450,6 +450,13 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **smToExec-мост (такт №309)**:
+  StepMeasurement (claimed-полоса) + связка измерения с
+  исполнением (measured = фактический спуск) → единый
+  ExecutedCert. Все четыре сертификатных слоя
+  (StepContract-моноид, CertifiedTransitionV2,
+  StepMeasurement, MeasureProto) теперь формально сведены
+  к ядру HonestTransition/ExecutedCert/MeasuredState.
 - **ctv2Honest-мост (такт №308)**:
   CertifiedTransitionV2 (verify-показатель + активный
   риск-лимит) + операциональные условия спуска

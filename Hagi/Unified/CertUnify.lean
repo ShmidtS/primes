@@ -3,6 +3,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.StepContract
 import Hagi.Unified.MeasureProto
 import Hagi.Model.CertifiedTransition
+import Hagi.Model.MeasurementCert
 
 /-!
 # CertUnify : сведение сертификатных миров
@@ -182,5 +183,26 @@ noncomputable def ctv2Honest (S : Hagi.System.GrowthState X)
       ring
     rw [hB]
     linarith
+
+/-! ### Мост StepMeasurement → ExecutedCert -/
+
+/-- Сертификат измерения (claimed-полоса) + связка
+измерения с исполнением дают единый ExecutedCert:
+полоса пере-центрируется на фактический спуск. -/
+theorem smToExec {S : Type} {obj : S → ℝ} {step : S → S}
+    {s : S} {m : Hagi.Model.MeasurementCert.StepMeasurement}
+    (hmeas : m.measured = obj s - obj (step s))
+    (hdrop : 0 < m.claimed)
+    (hactual : obj (step s) ≤ obj s - m.claimed) :
+    Hagi.Unified.ExecutedCert.ExecutedCert obj step s m.measured m.delta where
+  drop := m.claimed
+  drop_pos := hdrop
+  actual := hactual
+  delta_nn := m.hdelta
+  link := by
+    rw [hmeas]
+    constructor
+    · linarith [m.hband.1]
+    · linarith [m.hband.2]
 
 end Hagi.Unified.CertUnify
