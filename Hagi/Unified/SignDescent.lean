@@ -168,6 +168,30 @@ theorem scaled_sign_aligned_of_coherence
     _ = (A / N) * S := by
         field_simp
 
+/-- ЗНАК ОПТИМАЛЕН на ℓ∞-кубе: для любого направления v
+с покоординатными |v i| ≤ 1 линейный функционал
+⟨g, v⟩ ≤ ⟨g, sign(g)⟩ = ‖g‖₁ — ядро спектральной
+оптимальности Muon (ортогонализация максимизирует
+выравнивание; диагональное ядро — знаковое). -/
+theorem sign_is_pointwise_max (g v : k → ℝ)
+    (hv : ∀ i, |v i| ≤ 1) :
+    (∑ i, g i * v i) ≤ ∑ i, |g i| := by
+  have hpt : ∀ i : k, g i * v i ≤ |g i| := by
+    intro i
+    rcases lt_trichotomy (g i) 0 with h | h | h
+    · have hv' : v i ≤ 1 := le_trans (abs_le.mp (hv i)).2 (le_refl _)
+      have hnn : |g i| = -g i := abs_of_neg h
+      nlinarith [mul_le_mul_of_nonneg_right hv' (le_of_lt (by linarith : (0:ℝ) < -g i)),
+        abs_le.mp (hv i)]
+    · have hgv : g i * v i = 0 := by simp [h]
+      rw [hgv, h]
+      norm_num
+    · have hv' : -1 ≤ v i := (abs_le.mp (hv i)).1
+      have hpos : |g i| = g i := abs_of_pos h
+      nlinarith [mul_le_mul_of_nonneg_left hv' (le_of_lt h),
+        abs_le.mp (hv i)]
+  exact Finset.sum_le_sum (fun i _ => hpt i)
+
 /-- LION-МОСТ: sign-шаг по моменту m согласован с градиентом
 ⟹ масштабированный Lion-шаг даёт чистое убывание. -/
 theorem lion_descent (J : Objective k) (x m : k → ℝ)
