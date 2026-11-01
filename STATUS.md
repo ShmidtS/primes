@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3599 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3604 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,12 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **GradCentralization (источник №86, такт №279)**:
+  центрирование градиента (2004.02861): gc (реюз
+  centered), gc_zero_sum (реюз sum_centered),
+  gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
+  gc_norm_le (центрирование не увеличивает норму),
+  gc_const_zero (константный градиент → 0).
 - **AllAxiomCheck (такт №278, аудит №5 H3)**: гейт
   аксиом-чистоты ВСЕХ Hagi.*-теорем (метапрограмма
   collectAxioms по окружению — не только 21 capstone):
