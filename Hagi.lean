@@ -368,6 +368,7 @@ import Hagi.Model.Grokfast
 import Hagi.Model.GradNorm
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.CanonicalParams
+import Hagi.Unified.LinkedQVec
 import Hagi.Model.BYOL
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects

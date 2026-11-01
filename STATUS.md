@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3660 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3667 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,17 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **LinkedQVec (такт №294, P0-4 аудита)**: качество —
+  функция состояния (MeasuredState.evaluate :
+  S → Fin 5 → ℝ), внешние qvec-последовательности
+  невозможны по типу. Теоремы: floor_preserved
+  (покомпонентный floor сохраняется вдоль траектории),
+  qgen_hides (КОНТРПРИМЕР: скалярный Qgen с равными
+  весами не отличает e₀ от e₁ — обрушение компоненты
+  скрыто), floor_catches (покомпонентный floor ловит
+  деградацию, которую Qgen пропустил). Поймана вторая
+  statement-фальсификация (суммы на Fin 5 ≠ Fin 2) до
+  коммита.
 - **CanonicalParams (такт №293, P0-3 аудита)**: params —
   единственный канонический носитель; weights — производная
   проекция canonWeights = toW(params) с LawfulProj
