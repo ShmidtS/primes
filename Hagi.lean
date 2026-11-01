@@ -227,6 +227,7 @@ import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
 import Hagi.Unified.MasterHAGI
 import Hagi.Challenge.MasterChallenge
+import Hagi.Challenge.MasterChallengeV3
 import Hagi.Unified.CorePremisesDerived
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.LinkedWitness
