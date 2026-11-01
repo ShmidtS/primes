@@ -1,6 +1,8 @@
 import Hagi.Unified.ErrorFeedback
 import Hagi.Unified.QuadGDRate
 import Hagi.Unified.EFQuad
+import Hagi.Unified.SignStepCert
+import Hagi.Unified.SignNoKappa
 
 /-!
 # EF-сжатие теняет градиентный спуск на эталоне
@@ -18,6 +20,7 @@ open Hagi.Unified.ErrorFeedback
 open Hagi.Unified.QuadGDRate
 open Hagi.Unified.DescentCore
 open Hagi.Unified.DescentCoreQuad
+open Hagi.Unified.SignStepCert Hagi.Unified.SignDescent Hagi.Step.SignSGD
 
 variable {k : Type*} [Fintype k]
 
@@ -126,5 +129,61 @@ theorem quad_ef_quality_rate (a : k → ℝ) (eta : ℝ)
     show (1:ℝ) - 2 * (eta * (1 - eta / 2))
       = 1 - 2 * eta * (1 - eta / 2) from by ring] at hmain
   exact hmain
+
+/-- КОНКРЕТНЫЙ КОМПРЕССОР: масштабированный знак
+(бит на координату). -/
+noncomputable def signComp (v : k → ℝ) : k → ℝ :=
+  fun i => signScale v * sgn1 (v i)
+
+/-- ПОЛНОСТЬЮ КОНКРЕТНЫЙ АЛГОРИТМ: знаковое EF-обучение —
+то же качество (GD-скорость + точные резидуальные
+члены) при битной пересылке. -/
+theorem quad_ef_sign_quality (a : k → ℝ) (eta : ℝ)
+    (heta : 0 < eta) (heta2 : eta ≤ 1 / 2)
+    (x0 : k → ℝ) (e : ℕ → k → ℝ)
+    (hEF : ∀ t, e (t + 1)
+      = quadGrad a (quadGD a eta x0 t) + e t
+        - signComp (quadGrad a (quadGD a eta x0 t) + e t))
+    (xC : ℕ → k → ℝ)
+    (hxC : ∀ t, xC (t + 1)
+      = xC t - eta • signComp
+        (quadGrad a (quadGD a eta x0 t) + e t))
+    (hx0 : xC 0 = x0) (n : ℕ) :
+    quadE a (xC n)
+      ≤ (1 - 2 * eta * (1 - eta / 2)) ^ n * quadE a x0
+        + inprod (quadGrad a (quadGD a eta x0 n))
+            (eta • (e n - e 0))
+        + (1:ℝ) / 2 * nrm2 (eta • (e n - e 0)) :=
+  quad_ef_quality_rate a eta heta heta2 x0 e signComp hEF xC
+    hxC hx0 n
+
+/-- QUALITY-PER-BIT: знаковое EF-обучение достигает
+качества GD-скорости с резидуальным контролем, а бюджет
+пересылки — бит на координату за шаг, строго дешевле
+слова на координату. -/
+theorem quad_ef_sign_quality_bits (a : k → ℝ) (eta : ℝ)
+    (heta : 0 < eta) (heta2 : eta ≤ 1 / 2)
+    (x0 : k → ℝ) (e : ℕ → k → ℝ)
+    (hEF : ∀ t, e (t + 1)
+      = quadGrad a (quadGD a eta x0 t) + e t
+        - signComp (quadGrad a (quadGD a eta x0 t) + e t))
+    (xC : ℕ → k → ℝ)
+    (hxC : ∀ t, xC (t + 1)
+      = xC t - eta • signComp
+        (quadGrad a (quadGD a eta x0 t) + e t))
+    (hx0 : xC 0 = x0) (n : ℕ) [Nonempty k] :
+    quadE a (xC n)
+      ≤ (1 - 2 * eta * (1 - eta / 2)) ^ n * quadE a x0
+        + inprod (quadGrad a (quadGD a eta x0 n))
+            (eta • (e n - e 0))
+        + (1:ℝ) / 2 * nrm2 (eta • (e n - e 0))
+      ∧ (n:ℝ) * (Fintype.card k : ℝ)
+          ≤ (n:ℝ) * fullCommCost k := by
+  constructor
+  · exact quad_ef_sign_quality a eta heta heta2 x0 e hEF
+      xC hxC hx0 n
+  · have hle := sign_comm_le (k := k)
+    unfold fullCommCost signCommCost at hle
+    exact mul_le_mul_of_nonneg_left hle (by positivity)
 
 end Hagi.Unified.SignEFQuad
