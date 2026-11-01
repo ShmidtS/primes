@@ -6,7 +6,7 @@ import Hagi.Growth.StateBinding
 # CapabilityLocal: рост
 привязан к ПОЛЕВОЙ capability через ЛОКАЛЬНОЕ условие.
 
-Замечание аудита: MasterHAGI использует внешний канал
+MasterHAGI использует внешний канал
 C : ℕ → ℝ, слабо связанный с (S t).capability. Правильная
 форма (K8): из ЛОКАЛЬНОГО условия
   gain_t ≥ α · capability_t        (α > 0)
