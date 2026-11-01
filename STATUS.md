@@ -2256,6 +2256,17 @@
   перенос·сетка), carry_le_one (перенос ≤ единицы),
   carry_eq_zero_iff — точная многословная арифметика
   без накопления ошибки переноса.
+- **M6-свидетель (Examples/QuarticWitness.lean)**:
+  нелинейная цель E(w) = Σ(w² + w⁴) на Fin-пространстве,
+  два последовательных продуктивных градиентных шага
+  с точной рациональной арифметикой; каждый шаг —
+  полный StepCert с ненулевыми spend и riskLim,
+  растущим capability-каналом и покомпонентным полом;
+  quartic_two_steps: строгий спуск + FloorKept +
+  честный бюджетный телескоп; quartic_drops_pos:
+  оба спуска строго положительны. CHALLENGE-гейт
+  переведён исключительно на Gen-3 капстоун
+  (Gen-1 comparator снят).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
@@ -2699,8 +2710,9 @@
    мат-фундамент) не инстанцируют StepCert/DescentCore.Objective.
    Цель — 80%+ через LibrarySynthesis.
 2. **Gen-1 рудименты.** 52 модуля без CertifiedLoop в замыкании
-   (`python scripts/DepAudit.py`); MasterChallenge (v1) и
-   Nonvacuity-витнесы ещё на CorePremises.
+   (`python scripts/DepAudit.py`); Nonvacuity-витнесы ещё на
+   CorePremises (MasterChallenge v1 снят с гейта, теорема
+   депрекнута и вне основного контура).
 3. **Сертификатный веер.** 8 представлений перехода не сведены
    к канонической цепочке Execution → Measurement → StepCert →
    CertifiedLoop; StepContract-моноид не завершён; скалярный
