@@ -38,6 +38,7 @@ namespace Hagi.System
 `E` by at least `eps > 0`, then
 `k ≤ (E 0 − Emin) / eps` (delegation to
 `lyapunov_termination_fin`). -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)

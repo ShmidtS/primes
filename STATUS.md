@@ -450,6 +450,15 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Дедупликация (такт №285, аудит №6 дефект 5)**: 7
+  α-дубликатов помечены @[deprecated] с указанием
+  канонических: lyapunov-семейство (macro_termination,
+  macro_termination_derived, top_level_termination,
+  horizon_termination → lyapunov_termination_fin),
+  geom-семейство (one_sub_beta_geom, geom_sum_telescope),
+  exp_chord → exp_chord_r. Потребители не сломаны
+  (deprecated = мягкая миграция; alias требует import —
+  ловушка зафиксирована).
 - **Аудит №6-фиксы (такт №284, P0)**: (1) УДАЛЕНЫ
   vacuous-теоремы MasterHAGICoreOperational v1 и
   core_premises_operational_scalar (посылка hjointE

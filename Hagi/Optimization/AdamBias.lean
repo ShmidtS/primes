@@ -21,6 +21,7 @@ m_{t+1} = β·m_t + (1−β)·g смещена к нулю на ранних ш�
 namespace Hagi.Optimization.AdamBias
 
 /-- Closed form: (1−β)·∑_{i<t} β^i = 1 − β^t. -/
+@[deprecated]
 theorem one_sub_beta_geom (β : ℝ) (t : ℕ) :
     (1 - β) * ∑ i ∈ Finset.range t, β ^ i = 1 - β ^ t := by
   induction t with

@@ -22,6 +22,7 @@ x in [a,b], a < b. Базовый кирпич Hoeffding/Bennett CGF-оцено�
 Процесс-урок: приоритет оператора `•` выше `/` — веса в smul
 нужны в скобках: `((b - x) / (b - a)) • a`.
 -/
+@[deprecated Hagi.Foundations.exp_chord_r]
 theorem exp_chord {a b x : ℝ} (hab : a < b) (hxa : a ≤ x) (hxb : x ≤ b)
     (r : ℝ) :
     Real.exp (r * x)

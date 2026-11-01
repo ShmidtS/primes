@@ -22,6 +22,7 @@ namespace Hagi.Dynamics
 
 /-- Телескопическое тождество:
 `(1 − γ)·Σ_{i<t} γ^i = 1 − γ^t` (делегация Foundations). -/
+@[deprecated]
 theorem geom_sum_telescope (gamma : ℝ) (t : ℕ) :
     (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i = 1 - gamma ^ t :=
   Hagi.Foundations.geom_telescope gamma t

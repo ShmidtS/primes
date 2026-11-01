@@ -601,6 +601,7 @@ theorem risk_budget_termination (cs : ℕ → Hagi.StageCertificate)
 
 /-- If `Emin ≤ E t` for `t ≤ k` and each step decreases by
 at least `eps > 0`, then `k ≤ (E 0 − Emin) / eps`. -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem top_level_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
@@ -635,6 +636,7 @@ theorem noisy_cycle_step {n : ℕ} {w q : Fin n → ℝ}
 /-- Restatement of `top_level_termination`: per-step decrease
 ≥ eps and lower bound `Emin` give
 `k ≤ (E 0 − Emin) / eps`. -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem horizon_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t) (hstep : ∀ t < k, E (t + 1) ≤ E t - eps)
     (heps : 0 < eps) :

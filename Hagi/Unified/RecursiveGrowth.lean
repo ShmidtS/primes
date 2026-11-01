@@ -54,6 +54,7 @@ theorem macro_step_decrease (_E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnor
 /-- If `Emin ≤ E t` for `t ≤ k` and each step decreases by
 at least `eps > 0`, then `k ≤ (E 0 − Emin) / eps`
 (delegation to `lyapunov_termination_fin`). -/
+@[deprecated Hagi.Foundations.lyapunov_termination_fin]
 theorem macro_termination {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
     (hE : ∀ t ≤ k, Emin ≤ E t)
     (hstep : ∀ t < k, E (t+1) ≤ E t - eps)
