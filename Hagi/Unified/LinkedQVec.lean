@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# LinkedQVec (ответ на внешний аудит, P0-4)
+# LinkedQVec 
 
 Проблема: `CoupledHAGIInvariant` принимает `qvec : ℕ → Fin 5 → ℝ`
 как произвольную последовательность — она НЕ обязана

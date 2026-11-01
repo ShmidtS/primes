@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# HonestTransition (ответ на внешний аудит, P0-2)
+# HonestTransition 
 
 Дефект старого `CertifiedTransition.progress`: оно
 сертифицирует ПОЛОЖИТЕЛЬНОСТЬ ВЫЧИСЛЯЕМОГО ПОКАЗАТЕЛЯ

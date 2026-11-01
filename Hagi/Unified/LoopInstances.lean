@@ -3,7 +3,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.DescentCoreQuad
 
 /-!
-# LoopInstances (такт №300): заполнение StepCert из
+# LoopInstances : заполнение StepCert из
 # реального градиентного шага
 
 Мост DescentCore → CertifiedLoop: квадратичная модель
@@ -58,11 +58,6 @@ noncomputable def quadCert (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
   budgetBound := le_refl 0
 
 omit [Nonempty k] in
-/-- drop-сертификата положителен при ненулевом градиенте. -/
-theorem quadCert_drop_pos (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
-    0 < (quadCert a x hx).objectiveDrop :=
-  (quadCert a x hx).objectiveDrop_pos
-
 omit [Nonempty k] in
 /-- Реальный спуск сертификата — точное равенство нулю
 энергии после оптимального шага. -/

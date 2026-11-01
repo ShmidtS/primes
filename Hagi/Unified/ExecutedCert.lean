@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# ExecutedCert (ответ на внешний аудит, 4.4 / P1-5)
+# ExecutedCert 
 
 Проблема: MeasurementCert (claimed/measured/delta),
 StepContract и CertifiedTrajectory — три несвязанных

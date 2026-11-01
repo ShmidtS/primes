@@ -3,7 +3,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.StepContract
 
 /-!
-# CertUnify (такт №303): сведение сертификатных миров
+# CertUnify : сведение сертификатных миров
 
 Раньше два параллельных телескопа:
 - StepContract.trajectory_convergence (моноид-мир,

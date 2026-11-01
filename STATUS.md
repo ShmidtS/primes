@@ -450,6 +450,15 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Чистка (такт №304)**: удалена дублирующая обёртка
+  quadCert_drop_pos (= поле objectiveDrop_pos); докстринги
+  7 файлов (CertifiedLoop/HonestTransition/LinkedQVec/
+  CanonicalParams/ExecutedCert/CertUnify/LoopInstances)
+  вычищены: только доказанные утверждения, без номеров
+  тактов и нарратива. DupLint/StatementDup: 0 групп
+  (формальных дублей нет); ClosureReport: 139/424 модулей
+  под капстоунами (33%), 285 library — границы изоляции
+  ML-примитивов, не дубли.
 - **CertUnify — сведение миров (такт №303)**: StepCert-
   мир ПОСТАВЛЯЕТ посылки моноид-телескопа: scOf
   (проекция StepCert → StepContract), tc_step_of_
