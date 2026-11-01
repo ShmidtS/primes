@@ -387,6 +387,7 @@ import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
 import Hagi.Model.SWA
 import Hagi.Model.AttentionSpend
+import Hagi.Model.AlignmentRisk
 import Hagi.Model.ZLoss
 import Hagi.Model.Matryoshka
 import Hagi.Model.Softcap

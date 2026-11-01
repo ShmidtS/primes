@@ -2290,6 +2290,13 @@
   (k/n)·(окно/длина)·(n_kv/n_h) — произведение ТРЁХ
   факторов; fullStack_lt — при трёх активных механизмах
   полный гибридный стек строго дешевле плотного.
+- **Alignment-риск (Model/AlignmentRisk.lean)**:
+  kl_budget_risk_bound — KL-бюджет штрафа (Пинскер) +
+  липшицевый по TV риск-канал ⟹ риск ≤ c·√KL;
+  kl_penalty_certifies_risk — штраф ≤ δ ⟹ риск-лимит
+  c·√δ (riskBound certified-цикла из alignment-штрафа);
+  rlhf_zero_drift_zero_risk — нулевой дрейф ⟹ нулевой
+  риск.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
