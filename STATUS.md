@@ -2238,6 +2238,24 @@
 - **SAM (Unified/SamDescent.lean)**: `sam_descent_bridge` —
   спуск по worst-neighbor цели переносится на истинную с
   потерей на остроту; `sam_descent_flat` — плоский случай.
+- **Нейрокомпьютер в капстоуне (Unified/NCStepCert.lean)**:
+  ncCertStep (обучающий переход с честным энергийным
+  спуском), ncStepCert — полный StepCert нейрокомпьютера
+  (спуск + покомпонентный пол capability + честный бюджет,
+  риск — консервативным комбинированным лимитом),
+  ncTraj_capa_mono, ncTraj_cpu_frozen, nc_loop_horizon —
+  certified_loop_strict на траектории NC: строгий спуск
+  энергии на любом горизонте при замороженном CPU.
+- **Двухстадийное чанкование (Model/HNet2.lean)**:
+  hier2_compression_product (полная компрессия =
+  произведение коэффициентов стадий), hier2_positions_le,
+  hier2_beats_dense (условие выигрыша двухстадийной
+  иерархии над dense-базлайном).
+- **Bignum-кирпич CPU (Model/RVCoreBignum.lean)**:
+  wordAdd_carry_decomp (полная сумма = машинная сумма +
+  перенос·сетка), carry_le_one (перенос ≤ единицы),
+  carry_eq_zero_iff — точная многословная арифметика
+  без накопления ошибки переноса.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
