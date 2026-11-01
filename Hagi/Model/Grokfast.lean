@@ -74,4 +74,15 @@ theorem const_grad_fix (β g₀ : ℝ) (t : ℕ) :
     rw [hlow t]
     ring
 
+
+/-- МОСТ К СПУСКУ: скалярное произведение усиленного
+направления с градиентом НЕ МЕНЬШЕ исходного, если
+низкочастотная компонента выровнена с градиентом
+(⟨g, gL⟩ ≥ 0 — типично: EMA сохраняет знак тренда):
+энергия тяги не падает при усилении. -/
+theorem amp_inner_ge (lam : ℝ) (g gl : ℝ)
+    (hlam : 0 ≤ lam) (halign : 0 ≤ g * gl) :
+    g * (g + lam * gl) ≥ g * g := by
+  nlinarith [halign, hlam, mul_nonneg hlam halign]
+
 end Hagi.Model.Grokfast
