@@ -70,4 +70,38 @@ theorem quadCert_hits_optimum (a x : k → ℝ) :
     quadE a (x - quadGrad a x) = 0 :=
   (quad_one_step a x).1
 
+
+/-! ### Полный StepCert-инстанс и применение капстона -/
+
+open Hagi.Unified.LinkedQVec Hagi.Unified.CertifiedLoop in
+/-- Измеритель качества quad-модели: канал 0 —
+capability = 1/(1+E). -/
+noncomputable def quadMeasured (a : k → ℝ) :
+    MeasuredState (k → ℝ) where
+  evaluate w _ := 1 / (1 + quadE a w)
+
+/-- Покомпонентный floor: capability ≥ половины стартовой
+(floor согласован со стартовым состоянием). -/
+noncomputable def quadFloor (a x : k → ℝ) : Fin 5 → ℝ :=
+  fun _ => 1 / (2 * (1 + quadE a x))
+
+/-- ПОЛНЫЙ StepCert для оптимального quad-шага:
+спуск + качество + бюджет, всё зависимо. -/
+noncomputable def quadStepCert (a x : k → ℝ)
+    (hx : quadGrad a x ≠ 0) :
+    StepCert (fun w => quadE a w) (quadMeasured a) (quadFloor a x) 0
+      x (x - quadGrad a x) 0 0 where
+  spend := 0
+  trans := quadCert a x hx
+  hdec := by norm_num
+  quality := by
+    intro i
+    have h0 : quadE a (x - quadGrad a x) = 0 :=
+      quadCert_hits_optimum a x
+    have hpos : (0:ℝ) < quadE a x :=
+      (quadCert a x hx).objectiveDrop_pos
+    simp only [quadFloor, quadMeasured, h0]
+    field_simp
+    linarith
+
 end Hagi.Unified.LoopInstances
