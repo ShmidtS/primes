@@ -450,6 +450,12 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **protoMeasured-мост (такт №305)**: MeasureProto
+  (каналы-функции) → MeasuredState (evaluate-вектор):
+  e₀=−loss, e₁=−risk, e₂=capability. Два «качество-как-
+  функция»-мира сведены; FsGate-серия проверена — уже
+  проекция QuadTrajectory через веса-мост (не дубликат,
+  слойность корректна).
 - **Чистка (такт №304)**: удалена дублирующая обёртка
   quadCert_drop_pos (= поле objectiveDrop_pos); докстринги
   7 файлов (CertifiedLoop/HonestTransition/LinkedQVec/

@@ -1,6 +1,7 @@
 import Mathlib
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.StepContract
+import Hagi.Unified.MeasureProto
 
 /-!
 # CertUnify : сведение сертификатных миров
@@ -98,5 +99,28 @@ theorem tc_consequence (obj : S → ℝ) (M : MeasuredState S)
       (certs t)).riskCost = 0 := by
     simp [scOf]
   rwa [hsum, hsumr, add_zero] at key
+
+/-! ### Мост MeasureProto → MeasuredState -/
+
+open Hagi.Unified.MeasureProto in
+/-- Протокол измерений поставляет вектор качества:
+e₀ = −loss, e₁ = −risk, e₂ = capability, e₃/e₄ —
+резерв. Один мир измерений вместо двух. -/
+noncomputable def protoMeasured {P : Type} (pr : MeasureProto P) :
+    Hagi.Unified.LinkedQVec.MeasuredState P where
+  evaluate := fun w i =>
+    match i with
+    | 0 => -pr.loss w
+    | 1 => -pr.risk w
+    | 2 => pr.capability w
+    | _ => 0
+
+theorem protoMeasured_spec {P : Type}
+    (pr : Hagi.Unified.MeasureProto.MeasureProto P)
+    (w : P) :
+    (protoMeasured pr).evaluate w 0 = -pr.loss w
+      ∧ (protoMeasured pr).evaluate w 1 = -pr.risk w
+      ∧ (protoMeasured pr).evaluate w 2 = pr.capability w := by
+  refine ⟨rfl, rfl, rfl⟩
 
 end Hagi.Unified.CertUnify
