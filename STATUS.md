@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3609 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3613 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,15 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **ProtoTrajectory (такт №281)**: полная цепочка
+  execution × measurement × certificate замкнута:
+  proto_loss_mono / proto_loss_telescope /
+  proto_progress_bound (loss-канал протокола вдоль
+  реальной commit/hold-траектории: монотонность, точный
+  телескоп, суммарный прогресс ≤ начального loss) +
+  proto_capa_mono (capability-канал НЕ убывает вдоль
+  траектории — инверсия loss-монотонности). Все
+  величины происходят из протокола и исполнения.
 - **MeasureProto (такт №280, аудит №5 P1/E)**: протокол
   измерений — происхождение как ТИП: MeasureProto
   (loss/risk/capability/cost — поля-функции Params→ℝ),
