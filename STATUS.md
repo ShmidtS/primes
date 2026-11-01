@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3667 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3672 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,15 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **ExecutedCert (такт №295, 4.4/P1-5 аудита)**:
+  исполнение, измерение и гарантия объединены в ОДНОМ
+  зависимом сертификате: поле link связывает измерение
+  с исполнением (|measured − actual| ≤ delta) внутри
+  типа, а не внешней гипотезой hlink. Теоремы:
+  measured_honest (завысить измерение нельзя),
+  measured_lower (декларация − ошибка ≤ измерение),
+  telescope_measured (кумулятивная честная бухгалтерия
+  вдоль ВЫПОЛНЕННОЙ траектории step^[t]).
 - **LinkedQVec (такт №294, P0-4 аудита)**: качество —
   функция состояния (MeasuredState.evaluate :
   S → Fin 5 → ℝ), внешние qvec-последовательности
