@@ -2297,6 +2297,15 @@
   c·√δ (riskBound certified-цикла из alignment-штрафа);
   rlhf_zero_drift_zero_risk — нулевой дрейф ⟹ нулевой
   риск.
+- **Сертифицированный сжатый шаг (Unified/SignStepCert.lean)**:
+  signStepCert — полный StepCert для знакового шага на
+  квадратичной машине: честный спуск (выравнивание
+  масштабированного знакового направления через
+  descent_drop), покомпонентный пол качества и ДЕШЁВЫЙ
+  бюджет — пересылка бита на координату вместо слова
+  (signCommCost/fullCommCost, sign_comm_le);
+  signStep_nrm_pos (норма знакового направления > 0 при
+  ненулевом градиенте), signDrop_pos, signStep_energy_le.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
