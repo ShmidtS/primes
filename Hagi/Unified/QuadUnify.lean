@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.Unified.DescentCoreQuad
+import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.ReferenceMachine
 
 /-!
@@ -44,5 +45,27 @@ theorem machine_one_step_zero (a w : Fin n → ℝ) :
   have : ((1:ℝ) - 1)^2 = 0 := by norm_num
   rw [this]
   ring
+
+
+variable {k : Type*} [Fintype k] [Nonempty k]
+
+/-- СВЕДЕНИЕ №2 (такт №299): DescentCoreDiag — частный
+случай DescentCoreQuad при единичных весах. Взвешенная и
+невзвешенная квадратичные цели — ОДНА математика спуска. -/
+theorem diag_is_quad (y w : k → ℝ) :
+    Hagi.Unified.DescentCoreQuad.quadE y w
+      = Hagi.Unified.DescentCoreDiag.diagE (fun _ => (1:ℝ)) y w := by
+  unfold Hagi.Unified.DescentCoreQuad.quadE
+    Hagi.Unified.DescentCoreDiag.diagE
+  refine congrArg (· / 2) ?_
+  exact Finset.sum_congr rfl fun i _ => (one_mul _).symm
+
+theorem diagGrad_is_quadGrad (y w : k → ℝ) :
+    Hagi.Unified.DescentCoreQuad.quadGrad y w
+      = Hagi.Unified.DescentCoreDiag.diagGrad (fun _ => (1:ℝ)) y w := by
+  unfold Hagi.Unified.DescentCoreQuad.quadGrad
+    Hagi.Unified.DescentCoreDiag.diagGrad
+  funext i
+  exact (one_mul _).symm
 
 end Hagi.Unified.QuadUnify

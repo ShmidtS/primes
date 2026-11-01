@@ -450,6 +450,14 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **QuadUnify-сведение №2 (такт №299)**: DescentCoreDiag
+  (взвешенная квадратичная) — частный случай
+  DescentCoreQuad при единичных весах: diag_is_quad,
+  diagGrad_is_quadGrad (суммы/градиенты совпадают).
+  Три descent-модуля — одна математика спуска.
+  MasterHAGI (главный) оставлен живым: используется
+  Nonvacuity-witness'ом; миграция — отдельная задача
+  ([Chesterton]: не ломать работающий вызов).
 - **Миграция MasterHAGI_trunc (такт №298)**: условная
   плоская форма капстоуна MasterHAGI_trunc получила
   @[deprecated] → CertifiedLoop.certified_loop.
