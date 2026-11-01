@@ -1490,6 +1490,10 @@ gittins_index_max	a1e1b5448a8fb4be	ef1eaa541f050365
 globalNorm	ac6631330ad459bb	3bc308c340959232
 globalRms	49b490aa464292b0	71bc420caa8289e3
 global_eq_mean_blocks	2d88c6a463baf579	feff2540c228560e
+gnBalanced	df91c5f72d066b26	dbf5ccc2dc835b8a
+gnInverse	94a5d14d1e12ae85	cfe0b34880ca5c0f
+gnPos	44b78ab0216bc121	2f11d06a3a66f9c7
+gnWeight	3a1dd52da2700217	bd55c0ce9c2f3014
 gn_grad_inner_ker	a83c7cf534e5bbca	84b2f1b733ac8411
 goodSet	8df81c6f101d6436	a59271f19d458dac
 gpmOrth	b944ee7cbb0ac9d5	5638d766ae56a032
