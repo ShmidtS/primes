@@ -448,6 +448,7 @@ import Hagi.Unified.QuadGDRate
 import Hagi.Unified.SignEFQuad
 import Hagi.Unified.EFResidual
 import Hagi.Unified.ThrComp
+import Hagi.Unified.CompressionArc
 
 set_option linter.style.header false
 

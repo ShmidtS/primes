@@ -58,6 +58,9 @@ CAPSTONES = [
     "Hagi.Unified.CertifiedGrowth",
     # Gen-3 canonical capstone + integration capstones (phase 3):
     "Hagi.Unified.CertifiedLoop",
+    "Hagi.Unified.CompressionArc",   # compression-quality arc facade
+    "Hagi.Ensemble.HoeffdingBridge", # M4 weighted/product bridge
+    "Hagi.Probability.GibbsCore",    # M4 Gibbs canon
     "Hagi.Unified.LoopInstances",
     "Hagi.Unified.SignDescent",
     "Hagi.Unified.SamDescent",

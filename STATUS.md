@@ -2439,6 +2439,11 @@
   GD-скорость + η·√(‖g‖·card·τ²) + (η²/2)·card·τ² —
   ни одной гипотезы о резидуале, барьер по построению
   компрессора.
+- **Фасад дуги компрессии + Closure 40% (Unified/
+  CompressionArc.lean)**: единая точка входа дуги
+  «компрессия ↔ скорость ↔ качество»; CAPSTONES пополнены
+  (CompressionArc, HoeffdingBridge, GibbsCore) — замыкание
+  166/447 (37%) → 181/448 (40%).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
