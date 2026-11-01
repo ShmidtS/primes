@@ -2,19 +2,15 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3677 деклараций (Freeze);
-  2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
+- 429 Lean-модулей в `Hagi/`; 3718 деклараций (Freeze);
+  2909 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
-- CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
-  Freeze, AssumptionScan (реестр 117 `h_emp_*`-посылок и
-  17 инфо-примитивов), StatusLint — все PASS.
-
----
+- CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
+  NsLint, DocLint, LayerLint, Freeze, AssumptionScan,
+  StatusLint, CHALLENGE (Gen-3: `master_hagi_challenge_v3`),
+  STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
-
-### L1. Информация и телескопы
-
 - **KL ≥ 0** (`kl_nonneg`): Σ q log(q/p) ≥ 0 при q ≥ 0, p > 0
   (лемма о хорде log x ≤ x − 1).
 - **Pinsker** (`PinskerTV`): TV(p,q) ≤ √(KL(p‖q)/2), через
@@ -41,7 +37,6 @@
   (1 + e_t)·x t ≤ x(t+1) ⟹ x T ≥ x 0·∏_{t<T}(1 + e_t).
 
 ### L1. Ядро конуса (Перрон)
-
 - **Конус = уравнение собственного вектора**
   (`cone_eigenvector_iff`): вектор (1, k) — собственный
   вектор матрицы M = [[1,γ],[β,ρ]] с собственным значением
@@ -60,7 +55,6 @@
   C 0·(1 + β⁴κ·k)^T ≤ C T).
 
 ### L2. Квантование и энергия
-
 - **Единый квантователь решётки** (`gridQ`):
   Q_Δ(x) = Δ·round(x/Δ); |Q_Δ(x) − x| ≤ Δ/2 (без
   ограничений на x), идемпотентность Q(Q(x)) = Q(x),
@@ -86,7 +80,6 @@
   (Jeon–Van Roy): максимум качества при минимальном объёме.
 
 ### L2. Гиббс / зеркальный спуск
-
 - **Вариационное неравенство** (`free_energy_variational`):
   E_q[U] − KL(q‖p) ≤ log Σ p·e^U для всех q на симплексе.
 - **Оптимальность Гиббс-весов** (`gibbs_optimal_bound`):
@@ -99,7 +92,6 @@
   F = −T ln Z = ⟨E⟩ − T·S.
 
 ### L2. Пробы / предобучение
-
 - **Инверсия Адамара-проб** (`hadamard_probe_inversion`):
   k оценок восстанавливают credit-вектор точно
   (Δ = c⁻¹·Hᵀg).
@@ -113,7 +105,6 @@
   инвариантен при (η,m) → (kη, k²m).
 
 ### L2. Концентрация
-
 - **Хёфдинг**: двухсторонние хорошие точки; при
   2|K|θ < 1 существует v: ∀k |d k v| < ε_θ =
   (b−a)√(ln(1/θ)/2); масса хороших точек ≥ 1 − 2|K|θ.
@@ -143,7 +134,6 @@
   старые домены (SafeQP ε = 0).
 
 ### L2. Безопасный шаг (SafeQP)
-
 - **Спуск** (`safeQP_descent`): E(w + ηd*) ≤ E − η‖d*‖²/2
   при ε-ограничениях ⟨gᵢ, d⟩ ≥ −εᵢ; существование и
   единственность d*; стохастический/адаптивный варианты;
@@ -157,7 +147,6 @@
   h_emp_grow: growEnergy ≤ energy − η‖d*‖²/2.
 
 ### L3. Единая динамика траектории (StageSemantics)
-
 - **Платный рост с конструктивной честностью цены**
   (`growSeq`): эффекты вычисляются из текущего состояния
   (growGain = α·C t, growCost = μ·C t); инвариант
@@ -179,7 +168,6 @@
   logitCE(w_T) ≤ logitCE(w_0) − Σ η_t d_t²/2.
 
 ### L3. Насыщение и термостат
-
 - **Насыщение**: C T ≤ C* − (1−σ)^T·(C* − C 0).
 - **Полоса роста**: G t ≤ b(1−σ)^t ⟹
   C T ≤ C 0 + (b/σ)(1 − (1−σ)^T) ≤ C 0 + b/σ (потолок);
@@ -193,7 +181,6 @@
   потолок.
 
 ### L3. Мост к AR-экспрессивности (Sidon, arXiv:2610.17283)
-
 - **Sidon-множества**: `SidonSet` (парные суммы различны с
   точностью до перестановки), `sidon_diff_eq` — Sidon ⟹
   положительные попарные разности различны;
@@ -210,7 +197,6 @@
   Trajectory способна симулировать любую σ-схему.
 
 ### L3. Термодинамическая ось охлаждения (Нернст)
-
 - **Нернст-скорость Гиббс-значения** (`gibbs_value_nernst_bounds`):
   для любого поля потерь L на конечном пространстве существует
   достигаемый минимум m и двусторонняя оценка
@@ -286,37 +272,7 @@
   B ≥ c·D·σ/(δ·G) (шумные данные дорожают количественно);
   robust_spacing_bound — плотная выборка ограничивает
   колебания L·δ.
-- **Аудит v6, шаг 1 (DerivAlong → CorePremises)**:
-  Hagi/Unified/CorePremisesDerived.lean — конъюнкты 8
-  (h_emp_smooth) и 13 (h_emp_lip) CorePremises стали
-  ТЕОРЕМАМИ при операциональных определениях (jointEnergy :=
-  E(params−η•stepDir) с L-гладким градиентом; compressEnergy
-  := E(gridQ Δ x) с κ-ограниченным градиентом, фактическая
-  ошибка сетки, s=1); core_premises_operational_scalar —
-  сведение CorePremises к структурным посылкам;
-  MasterHAGICoreOperational — капстоун: одностадийный
-  мастер-результат из свойств РЕАЛЬНОЙ функции потерь.
-- **Дедуп-аудит ядер §6 завершён (Fannes×5, Hoeffding,
-  Gibbs)**: гипотеза о дубликатах НЕ подтверждается —
-  консолидация выполнена ранее (v4–v6): Fannes — 4 разных
-  математических слоя + фасад-реестр (Unified/Fannes);
-  Hoeffding — иерархия Foundations(MGF) → Ensemble(chord,
-  импортирует Foundations) → Probability(Azuma/Freedman
-  поверх); Gibbs — Probability-цепочка зависимых модулей,
-  Energy-модули не пересекаются. STMDUP = 0 групп —
-  механическое подтверждение. Смысловых дублей не найдено.
-- **Дедуп-аудит Pinsker-семейства (v7 §6)**: исследована
-  тройка Information/Pinsker (pinsker4_fin) ×
-  Unified/Pinsker (pinsker4_via_canon) ×
-  Probability/PinskerTV (pinsker_sqrt_kl). Установлено:
-  дедуп УЖЕ выполнен мостом via_canon (fin-форма выводится
-  из TV-канона); прямое делегирование pinsker4_fin →
-  канон НЕВОЗМОЖНО по layer-контракту (Information layer 1
-  не может импортировать Probability layer 2 — LAYERLINT
-  блокирует). Канон один (pinsker_sqrt_kl), следствие одно
-  (via_canon), fin — оригинал уровня 1. Закрыто без
-  изменения кода.
-- **Дифференциальные тесты машины (аудит v7, этап 6,
+- **Дифференциальные тесты машины 
   паттерн qwenputer fuzz.py)**: scripts/MachineDiffTest.py +
   гейт MACHINEDIFF в CI — Python-порт ReferenceMachine на 2000
   случайных конфигурациях; все 5 формальных законов
@@ -329,37 +285,6 @@
   (star w_d·w_d = 1, d-экспоненты сокращаются) —
   взаимодействие токенов зависит только от ВЗАИМНОГО
   расположения. Полное ядро RoPE формализовано.
-- **Аудит v9 P3 (фасады), такт №194**: финальная волна —
-  CoreAlgebra/MatrixLib→AlgebraMatrixCore; GrowthExt/
-  EnsembleTheory/DualCeiling→GrowthEnsembleCore;
-  ModelPretrain/OptStepExt/Robustness→PretrainOptRobustCore.
-  ИТОГ P3: 20 одно-теоремных фасадов → 7 тематических модулей;
-  устранено скрытое задвоение namespace (поймано TrivialLint,
-  имена деклараций восстановлены, Freeze 3265 стабилен).
-- **Аудит v9 P3 (фасады), такт №193**: слияние
-  Budget/BudgetExt → BudgetCore; ArchitectureCore/
-  AutonomyCore/MiscCore → CoreFacades (12 одно-теоремных
-  фасадов свёрнуто за три такта; Freeze 3265 стабилен).
-- **Аудит v9 P3 (фасады), такт №192**: слияние четырёх
-  одно-теоремных фасадов Pinsker/ProbInfo/DataCentric/
-  DataEnergy → Unified/InfoDataCore (Freeze 3265 стабилен).
-- **Аудит v9 P3 (фасады), такт №191**: слияние трёх
-  одно-теоремных фасадов DynamicsLaws/GrowthLaws/
-  GlobalDynamics → Unified/DynamicsGrowthCore (импортеры
-  только Hagi.lean; декларации и Freeze 3265 неизменны).
-- **Аудит v9 P1 (vacuity-gate), такт №190**: wTraj2 —
-  двухцикловый витнес Gen-2 (T = 2, минимальный горизонт
-  гейта аудита); witness_takeoff_realized_T2 — рост
-  (1+1)²·1 = 4 СТРОГО реализован семантикой Gen-2 на T = 2,
-  где старый Gen-1 (MasterHAGI_linked) уже противоречив.
-  Пара {T=2, T=3} закрывает гейт P1 для Gen-2-мастера.
-- **Аудит v9 — ответ тактом №189 (P2/P4: разрыв случайных
-  связей)**: sq_decomp-семейство перенесено в нижний слой
-  Foundations/SumIdentities (sum_sub_mean_zero, sq_decomp —
-  канонический дом König–Huygens-тождеств); LayerNorm и
-  SwitchMoE больше НЕ зависят от RL-модуля GRPO (аудит v9
-  находка 9); GRPO делегирует канону — API/Freeze
-  неизменны.
 - **Flow Matching №41 уровень 2**: flow_const_velocity —
   скорость пути d/dt flowPath = x₁ − x₀ НЕ зависит от t
   (постоянная скорость прямолинейного потока — основа
@@ -373,53 +298,13 @@
   при фиксированном m экономия бутылочного горлышка РАСТЁТ с
   удлинением входа n (каждый новый токен увеличивает
   преимущество; unfold + ring-разложения + omega).
-- **Аудит v11 P1 (унификация эффектов), такт №204**:
-  ofStageEffects — типизированная проекция плоского
-  StageEffects в MeasuredEffects (risk/cost/gain разведены);
-  ofStageEffects_roundtrip (все 9 полей без искажения, rfl),
-  totalCost/totalRisk_ofStageEffects (бухгалтерия согласована).
-  LESSONS: перенос строки внутри {...} structure-instance в
-  def-теле валит парсер — использовать ⟨...⟩-конструктор.
-- **Аудит v11 §3.2 (progress-разрыв), такт №203**:
-  LinkedHAGIInvariantProgress — усиленный связанный инвариант:
-  per-step PROGRESS-поля CertifiedTransition (0 < verify-
-  decrease) ОБЯЗАТЕЛЬНЫ и переносятся в финальный сертификат
-  (кумулятивное снижение ≤ E₀ − E_T);
-  certified_family_linked_progress — мост: progress-поля
-  потребляются явно (закрыт разрыв «progress не используется
-  итоговым инвариантом»).
-- **Аудит v10 §3.5, такт №202**: честные имена рисков —
-  riskGrow/riskMerge/riskJoint (новые канонические defs);
-  costGrow/costMerge/costJoint помечены @[deprecated] с
-  алиасами (риск ≠ FLOPs; API сохранён, Freeze стабилен).
-- **Аудит v10 P0-2/P0-3, такт №201**: Model/MeasuredEffects —
-  ТИПИЗИРОВАННЫЕ величины (StageRisk ≠ ComputeCost ≠
-  StageGain — развязка риска и FLOPs) + схема v10
-  «(S, batch, измеритель) → (S', измеренные эффекты)»:
-  trainStep_measured (эффекты = выход измерителя, rfl — НЕТ
-  телепортирования), trainStep_budget_balance (баланс по
-  измеренной стоимости), trainStep_capability_band (полоса
-  роста из измерения, реюз GrowthBand). growth_band перенесён
-  в Foundations/GrowthBand (канонический нижний слой;
-  Growth реэкспортит, слои соблюдены).
-- **Аудит v10 P0 (полоса роста), такт №200**: growth_band_step
-  + growth_band_iter — ДВУХСТОРОННЯЯ полоса (1+αmin)^T·C0 ≤
-  C_T ≤ (1+αmax)^T·C0 с НЕЗАВИСИМЫМИ коэффициентами;
-  устраняет вынужденное ТОЧНОЕ насыщение takeoff_edge_forced
-  (сохранён как частный случай αmin = αmax, по рекомендации
-  аудита).
-- **СИНТЕЗ cost-семейства (такт №199)**:
+- **СИНТЕЗ cost-семейства**:
   Unified/CostComposition — гибрид MoD(№55)×SWA(№56)×глубина:
   hybrid_cost_lt (L·k·(2w+1) < L·n² — механизмы экономии
   складываются в одну цепочку), hybrid_ratio_le (относительная
   стоимость ≤ (k/n)·((2w+1)/n) — произведение факторов
   экономии).
-- **РЕТРО такт №213**: LESSONS.md +11 записей (карантин
-  №59-бином, Nat.mul-направления, structure-instance
-  переносы, namespace-удвоение при merge, DUPLINT-делегаты,
-  perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
-  min-в-omega, updateRow-семейство).
-- **BYOL (источник №87, такт №282)**: self-distillation
+- **BYOL (источник №87**: self-distillation
   без негативов (2006.07733): cosS (с вырожденным
   0-случаем), CSCarrier (CS как контракт |cos|≤1 —
   производитель будущий Cauchy-модуль), bl_bounds
@@ -427,7 +312,7 @@
   cos_scale_inv (масштаб-инвариантность при s·t>0 —
   КОНТРПРИМЕР st<0 пойман до коммита: cos антисимметричен
   знаку); bl без variance-давления — контраст с VicReg.
-- **ProtoTrajectory (такт №281)**: полная цепочка
+- **ProtoTrajectory**: полная цепочка
   execution × measurement × certificate замкнута:
   proto_loss_mono / proto_loss_telescope /
   proto_progress_bound (loss-канал протокола вдоль
@@ -436,7 +321,7 @@
   proto_capa_mono (capability-канал НЕ убывает вдоль
   траектории — инверсия loss-монотонности). Все
   величины происходят из протокола и исполнения.
-- **MeasureProto (такт №280, аудит №5 P1/E)**: протокол
+- **MeasureProtoаудит №5 P1/E)**: протокол
   измерений — происхождение как ТИП: MeasureProto
   (loss/risk/capability/cost — поля-функции Params→ℝ),
   machineProto (инстанс машины: loss = energy — реальное
@@ -444,345 +329,65 @@
   − loss(step) — rfl-тождество с протоколом),
   machineProto_capa_mono (capability 1/(1+E) монотонна
   по реальной энергии — каналы согласованы).
-- **GradCentralization (источник №86, такт №279)**:
+- **GradCentralization (источник №86**:
   центрирование градиента (2004.02861): gc (реюз
   centered), gc_zero_sum (реюз sum_centered),
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
-- **Фаза 0 — инвентаризация (такты №313–№315)**:
-  DepAudit.py — полный граф импортов 424 модулей;
-  Gen-1-only (без CertifiedLoop/HonestTransition в
-  замыкании) — 52 модуля (не 23 по плану); CorePremises —
-  0 прямых импортёров. LeafClassify.py — 286 library
-  leaves по 4 классам: A=34 (Objective/Descent),
-  B=45 (Step Compressors), C=93 (Efficiency/Budget),
-  D=19 (Alignment), E=95 (мат-фундамент, кандидаты
-  Phase-4). ClosureReport baseline: 138/424 (33%).
-  MasterChallengeV3 — драфт Gen-3 капстоуна на
-  certified_loop_strict (заключение прописано, аксиомы
-  чистые).
-- **Фаза 3, такт №327 (SignSGD + Lion → DescentCore)**:
-  SignDescent: НЕмасштабированный sign-шаг НЕ
-  выровнен (норма знака = число ненулевых > ℓ₁ при
-  малых градиентах); масштаб s = ‖g‖₁/n делает шаг
-  выровненным (sign_scaled_aligned) ⟹ чистое
-  убывание сжатого шага (sign_descent, база:
-  Bernstein 1802.04434 — связь signSGD с
-  нормализованным SGD). Generic-мост
-  scaled_sign_aligned_of_coherence + lion_descent:
-  условие согласованности момента
-  (‖m‖₁/n·nnz(m) ≤ ⟨g, sign(m)⟩) даёт чистое убывание
-  масштабированного Lion-шага (Chen 2302.06675).
-  Freeze 3715, CI PASS.
-- **Фаза 1 — Gen-3 капстоун (такты №316–№320)**:
-  CHALLENGE-гейт переключён на v3 (2/2 PASS, StepCert
-  тип запинен); MasterHAGI/MasterHAGI_linked/MasterHAGICore
-  @[deprecated] → CertifiedLoop.certified_loop (Freeze
-  batch 3695→3707). QuadLoopWitness: полушаговая
-  траектория qhalf (η = 1/2, энергия × 1/4 за шаг),
-  halfStepCert — StepCert на каждом шаге, quad_loop_
-  horizon — certified_loop_strict на ЛЮБОМ горизонте,
-  специализации quad_witness_T3/T10 — сквозной Gen-3
-  свидетель без CorePremises (покрывает такт №320,
-  размещён в Examples по слойности). Обструкция Gen-1
-  изолирована в Hagi.Diagnostics.Obstructions
-  (регрессионный тест, не продакшн-инструмент).
-- **Unused-import чистка (такт №312)**: 37 неиспользуемых
-  импортов удалено из 25 файлов — компилятор-
-  верифицированно (удаление → lake env lean 0 ошибок →
-  подтверждение; иначе откат). Эвристика по именам дала
-  422 подозрения, компилятор подтвердил 37 — остальные
-  транзитивно необходимые (нотации/инстансы). Freeze
-  неизменен (3694), CI PASS.
-- **certified_loop_all (такт №310, усиление)**:
+- **certified_loop_allусиление)**:
   покомпонентный floor держится на ВСЕХ промежуточных
   состояниях сертифицированной цепочки (не только
   финально). Проверки чистоты: дублей длинных докстрингов
   0 (hash-скан), легаси-нарратива 0, группировка
   Unified-ядра отражает построение.
-- **smToExec-мост (такт №309)**:
-  StepMeasurement (claimed-полоса) + связка измерения с
-  исполнением (measured = фактический спуск) → единый
-  ExecutedCert. Все четыре сертификатных слоя
-  (StepContract-моноид, CertifiedTransitionV2,
-  StepMeasurement, MeasureProto) теперь формально сведены
-  к ядру. LESSONS: +2 (ложный standalone-0 при unknown
-  import; structure-возврат только через def). HonestTransition/ExecutedCert/MeasuredState.
-- **ctv2Honest-мост (такт №308)**:
-  CertifiedTransitionV2 (verify-показатель + активный
-  риск-лимит) + операциональные условия спуска
-  (advance_energy_drop) + явные позитивности (drop>0,
-  бюджет≥затрат) → зависимый HonestTransition над
-  реальной энергией состояний. Model-уровень включён в
-  единый сертификатный мир. LESSONS: +1 (нотация ⟪⟫
-  требует open InnerProductSpace).
-- **Аудит-нарратив-чистка (такт №307)**: фразы об
-  аудитах/рецензиях удалены из докстрингов (5 файлов);
-  R-метки требований сохранены (трассировка). TODO в
-  External/Flywheel — внешние комментарии, оставлены.
-  Формальных дубликатов по-прежнему 0 (DupLint/
-  StatementDupCheck PASS).
-- **Массовая чистка докстрингов (такт №306)**: «такт №N»
-  убран из 27 файлов; CAPS-нарратив нормализован в 11
-  (ГЛАВНАЯ ТЕОРЕМА → главная и т.п.) — докстринги
-  содержат только доказанные утверждения. Попытка
-  удалить grand_synthesis отменена: вызывается
-  grand_synthesis_weak в том же файле (rg-фильтр
-  скрывал). Freeze: docstring-only диффы — безопасное
-  обновление baseline. LESSONS: +2.
-- **protoMeasured-мост (такт №305)**: MeasureProto
-  (каналы-функции) → MeasuredState (evaluate-вектор):
-  e₀=−loss, e₁=−risk, e₂=capability. Два «качество-как-
-  функция»-мира сведены; FsGate-серия проверена — уже
-  проекция QuadTrajectory через веса-мост (не дубликат,
-  слойность корректна).
-- **Чистка (такт №304)**: удалена дублирующая обёртка
-  quadCert_drop_pos (= поле objectiveDrop_pos); докстринги
-  7 файлов (CertifiedLoop/HonestTransition/LinkedQVec/
-  CanonicalParams/ExecutedCert/CertUnify/LoopInstances)
-  вычищены: только доказанные утверждения, без номеров
-  тактов и нарратива. DupLint/StatementDup: 0 групп
-  (формальных дублей нет); ClosureReport: 139/424 модулей
-  под капстоунами (33%), 285 library — границы изоляции
-  ML-примитивов, не дубли.
-- **CertUnify — сведение миров (такт №303)**: StepCert-
-  мир ПОСТАВЛЯЕТ посылки моноид-телескопа: scOf
-  (проекция StepCert → StepContract), tc_step_of_
-  stepcert (h_step-посылка выводима без новых
-  предположений, riskCost=0), tc_consequence
-  (trajectory_convergence — автоматическое следствие
-  certified-цепочки). Параллельные телескопы устранены
-  формально. Строгое предположение добавлено: hspend_nn
-  (0 ≤ spend) в StepCert — исключает «отрицательные
-  затраты». LESSONS: +3 (have-непрозрачность, stale
-  olean, сведение вместо параллелизма).
-- **Прогон капстона (такт №302)**: quad_loop_strict —
-  certified_loop_strict ПРИМЕНЁН к реальной quad-
-  траектории: энергия после сертифицированного шага
-  строго меньше. API-улучшение: certs : Fin n (не ∀ℕ —
-  модель-терминатор не может давать бесконечные
-  сертификаты); hspends вычисляется внутри strict.
- Lesson: have-непрозрачность проекций — inline match
-  решает (iota-редукция).
-- **quadStepCert (такт №301)**: ПОЛНЫЙ StepCert-инстанс
-  для оптимального quad-шага: quadMeasured (capability-
-  канал 1/(1+E)), quadFloor (половина стартовой
-  capability), quadStepCert — спуск+качество+бюджет
-  зависимы в одном сертификате. Поймана фальсификация
-  floor≡½ (несовместим с большим E) — floor сделан
-  согласованным со стартом. Прогон certified_loop по
-  траектории — следующий такт (Fin-коэршены требуют
-  аккуратности).
-- **LoopInstances (такт №300)**: мост DescentCore →
-  CertifiedLoop: quadCert — оптимальный градиентный шаг
-  квадратичной цели (η=1, E(w')=0) поставляет зависимый
-  HonestTransition с drop = E(w) целиком;
-  quadCert_drop_pos (∇≠0 ⟹ drop>0), quadCert_hits_
-  optimum (точный ноль после шага). Капстон заполнен
-  реальным алгоритмом, не только абстракцией. Вселенские
-  расширения: HonestTransition/MeasuredState/CertifiedLoop
-  переведены с Type на Type*.
-- **QuadUnify-сведение №2 (такт №299)**: DescentCoreDiag
-  (взвешенная квадратичная) — частный случай
-  DescentCoreQuad при единичных весах: diag_is_quad,
-  diagGrad_is_quadGrad (суммы/градиенты совпадают).
-  Три descent-модуля — одна математика спуска.
-  MasterHAGI (главный) оставлен живым: используется
-  Nonvacuity-witness'ом; миграция — отдельная задача
-  ([Chesterton]: не ломать работающий вызов).
-- **Миграция MasterHAGI_trunc (такт №298)**: условная
-  плоская форма капстоуна MasterHAGI_trunc получила
-  @[deprecated] → CertifiedLoop.certified_loop.
-  Живые инструменты модуля сохранены: sustained_takeoff_
-  trunc (используется CertifiedGrowth/StateTakeoff),
-  frontier_cone_trunc/struct, masterhagi_growth_witness,
-  cone_premises_force_exact. Сертификат-путь капстоуна
-  теперь один: CertifiedLoop.
-- **Чистка/усиление (такт №297)**: grand_synthesis
-  получил @[deprecated] → CertifiedLoop.certified_loop
-  (плоская форма капстоуна выводится из архитектуры —
-  аудиторская рекомендация выполнена); grand_synthesis_
-  weak сохранён (легитимная слабая форма R540).
-  Усиление: certified_loop_strict — при n ≥ 1 спуск
-  СТРОГИЙ (Σ drops > 0 ⟹ obj(f n) < obj(f 0)).
-  DupLint/StatementDup: 0 групп (точных дубликатов нет).
-- **CertifiedLoop + HAGI_MAP (такт №296, наведение
-  порядка по требованию)**: КАПСТОН certified_loop —
-  главная теорема: цепочка StepCert (честный спуск +
-  качество + бюджет) даёт одновременно реальный спуск
-  Σdrops ≤ obj₀ − objₙ, покомпонентный floor и
-  телескоп бюджета bₙ ≤ b₀ − Σspends; gate_never_
-  increases (commit/hold: энергия не растёт никогда).
-  HAGI_MAP.md — честная карта: доказанное ядро /
-  математический фундамент / условные / НЕдоказанное
-  (глобальная оптимальность НЕ заявляется).
-- **ExecutedCert (такт №295, 4.4/P1-5 аудита)**:
-  исполнение, измерение и гарантия объединены в ОДНОМ
-  зависимом сертификате: поле link связывает измерение
-  с исполнением (|measured − actual| ≤ delta) внутри
-  типа, а не внешней гипотезой hlink. Теоремы:
-  measured_honest (завысить измерение нельзя),
-  measured_lower (декларация − ошибка ≤ измерение),
-  telescope_measured (кумулятивная честная бухгалтерия
-  вдоль ВЫПОЛНЕННОЙ траектории step^[t]).
-- **LinkedQVec (такт №294, P0-4 аудита)**: качество —
-  функция состояния (MeasuredState.evaluate :
-  S → Fin 5 → ℝ), внешние qvec-последовательности
-  невозможны по типу. Теоремы: floor_preserved
-  (покомпонентный floor сохраняется вдоль траектории),
-  qgen_hides (КОНТРПРИМЕР: скалярный Qgen с равными
-  весами не отличает e₀ от e₁ — обрушение компоненты
-  скрыто), floor_catches (покомпонентный floor ловит
-  деградацию, которую Qgen пропустил). Поймана вторая
-  statement-фальсификация (суммы на Fin 5 ≠ Fin 2) до
-  коммита.
-- **CanonicalParams (такт №293, P0-3 аудита)**: params —
-  единственный канонический носитель; weights — производная
-  проекция canonWeights = toW(params) с LawfulProj
-  (инъективность). Теоремы: advance_params_ne (η>0, dir≠0 ⟹
-  params строго меняется), bridge_update (активный шаг
-  меняет и канонические weights — тест аудита №6 выполнен),
-  idProj (тождественный проектор — свидетель). Две
-  семантики (params-update vs weights-update) связаны
-  явным мостом.
-- **HonestTransition (такт №292, ответ на внешний
-  аудит P0-2)**: CertifiedTransition.progress
-  сертифицировал показатель, а не спуск. Новая
-  структура: actualDescent — зависимое доказательство
-  obj s' ≤ obj s − objectiveDrop. Теоремы:
-  honest_actual_drop (сертификат ⇒ строгий реальный
-  спуск — контрпример аудитора невозможен по
-  построению), honest_telescope (кумулятивность двух
-  переходов — двухшаговая обструкция старой семантики
-  здесь невозможна), honest_two_steps_existent
-  (свидетель: E=w², 2→1→½, точные спуски 3 и ¾).
-  Поймана своя statement-фальсификация (0→1 по w²) —
-  LESSONS-паттерн сработал до коммита.
-- **GradNorm (источник №89, такт №291)**: мультитаск-
-  балансировка (1710.04057): gnWeight (w = c/‖g‖),
-  gnBalanced (взвешенная норма ТОЧНО c — равные силы
-  задач), gnPos, gnInverse (больший градиент — меньший
-  вес: анти-доминирование). OrthoCols (Parseval) —
-  отправлен в карантин: тройной обмен сумм требует
-  отдельной техники ([Sunk Cost]-выход после 5 итераций).
-- **Grokfast-мост + LESSONS (такт №290)**:
-  amp_inner_ge (усиление не уменьшает скалярное
-  произведение с градиентом при выровненной low-freq
-  компоненте — энергия тяги не падает); LESSONS-ретро
-  №274–289: +11 записей (104 строки) — метапрограммные
-  паттерны, 38×-оптимизация, statement-фальсификация
-  раунд 2 (hinge-нуль-зона/знак-масштаб), unicode-ловушки
-  replace, induction-по-траектории, метрики-функции vs
-  поля.
-- **Grokfast (источник №88, такт №289)**: ускорение
+- **Grokfast (источник №88**: ускорение
   гроккинга (2505.15833): gLow/gHigh (EMA-разложение
   градиента — реюз ema из ModelSoup), decompose (ТОЖДЕСТВО
   gL+gH=g), ampDir + amp_recompose (усиление меняет ТОЛЬКО
   низкочастотную часть — шум не усиливается),
   const_grad_fix (на постоянном градиенте gL=g, gH=0 —
   стационарный сигнал не искажается).
-- **FsGate-леджер (такт №288)**: бюджет/счётчик
-  функционального состояния: fsGate_budget (commit платит
-  1, hold бесплатен), fsGate_count, fsTraj_budget_le
-  (бюджет вдоль траектории не возрастает — индукция),
-  fsTraj_count_le (число шагов ≤ горизонт). Полный учёт
-  FunState-цикла: энергия×бюджет×счётчик — всё
-  функционально, всё доказано.
-- **FsGate (такт №287)**: замыкание FunState в
-  сертифицированный цикл: fsGate (commit/hold над
-  функциональным состоянием — вычисленный gate),
-  fsGate_weights_eq (веса-мост к gateStep: тот же gate над
-  теми же весами), fsGate_mono (энергия не возрастает —
-  проекция gateStep_mono), fsTraj + fsTraj_mono
-  (кумулятивная монотонность по T). Полный стек: FunState
-  × QuadGate × QuadTrajectory — функциональное состояние
-  в доказанном commit/hold-цикле.
-- **FunctionalState (такт №286, аудит №6 дефект 1 /
-  Фаза 2)**: ответ теореме-обструкции: FunState
-  (ТОЛЬКО физические переменные: weights/budget/
-  stepCount), метрики — ФУНКЦИИ (fsEnergy/fsCapa),
-  funStepJoint/funStep (переход пересчитывает всё из
-  новых весов), fs_energy_after (rfl-функциональность),
-  energy_at_target, fs_two_steps_productive: ДВА
-  последовательных продуктивных шага СТРОГО убывают
-  энергию (0<η<2, η≠1) — обструкция GrowthState
-  (CorePremises-несовместимость) НЕ переносится на
-  функциональное состояние: продуктивная многошаговая
-  динамика возможна.
-- **Дедупликация (такт №285, аудит №6 дефект 5)**: 7
-  α-дубликатов помечены @[deprecated] с указанием
-  канонических: lyapunov-семейство (macro_termination,
-  macro_termination_derived, top_level_termination,
-  horizon_termination → lyapunov_termination_fin),
-  geom-семейство (one_sub_beta_geom, geom_sum_telescope),
-  exp_chord → exp_chord_r. Потребители не сломаны
-  (deprecated = мягкая миграция; alias требует import —
-  ловушка зафиксирована).
-- **Аудит №6-фиксы (такт №284, P0)**: (1) УДАЛЕНЫ
-  vacuous-теоремы MasterHAGICoreOperational v1 и
-  core_premises_operational_scalar (посылка hjointE
-  E(x) ≤ E(x−ηd) противоречит спуску — vacuous truth;
-  v2-версии без hjointE сохранены, Freeze −2);
-  (2) evalCapa: probe-based capability-канал (доля
-  координат в ε-окрестности, [0,1]) — НЕ сводим к loss
-  (закрыт P0-дефект 3 «тавтологичная capability»:
-  каналы разделены — оптимизационный loss vs покрытие
-  задач).
-- **CI-оптимизация (такт №283)**: полный цикл 20+мин →
-  1:46 (12×): AllAxiomCheck v2 (единый обход
-  getUsedConstants + visited-HashMap вместо per-const
-  collectAxioms: 19мин → 30сек, 38×); AxiomCheck (21
-  capstone) УДАЛЁН — строго поглощён AllAxiomCheck (5488
-  теорем); Metrics/ClosureReport вынесены в report.sh
-  (репорты, не гейты); ранний гейт → только early-fail.
-  Покрытие НЕ снижено: 16 шагов, все проверки на месте.
-- **AllAxiomCheck (такт №278, аудит №5 H3)**: гейт
-  аксиом-чистоты ВСЕХ Hagi.*-теорем (метапрограмма
-  collectAxioms по окружению — не только 21 capstone):
-  5463/5463 — только propext/Classical.choice/Quot.sound;
-  встроен в ci.sh (гейт ALLAXIOMCHECK).
-- **QuadUnify (такт №277, аудит №5 P3-сведение)**:
+- **QuadUnifyаудит №5 P3-сведение)**:
   квадратичные линии УНИФИЦИРОВАНЫ: quadE_eq_energy и
   quadGrad_eq_grad (DescentCoreQuad ≡ ReferenceMachine —
   формы совпадают точно), machine_one_step_zero (η=1:
   один шаг машины — точно в оптимум). Сертификаты машины
   (QuadGate/Trajectory/Budget) и Objective-контракт
   говорят об ОДНОЙ величине.
-- **VicReg (источник №85, такт №276)**: variance-hinge
+- **VicReg (источник №85**: variance-hinge
   антиколлапс (2105.04906): vh = max 0 (γ−√popVar) (реюз
   popVar из NoiseTemperature), pv_nonneg, vh_nonneg,
   vh_zero (var ≥ γ² ⟹ ноль, любой знак γ), vh_anti
   (СТРОГОЕ убывание по var на АКТИВНОЙ зоне — честная
   посылка vh>0; контрпример «оба нуля» пойман до коммита).
-- **Mixup (источник №84, такт №275)**: Zhang (1710.09412):
+- **Mixup (источник №84**: Zhang (1710.09412):
   mixLabel (выпуклая комбинация меток), mixLabel_dist
   (симплекс замкнут — смесь распределений — распределение),
   mixScore, mix_loss_le (Jensen: выпуклый лосс на
   смиксованном счёте ≤ смеси лоссов — реюз
   soup_loss_le_avg из ModelSoup на Fin 2).
-- **NTXent (источник №83, такт №274)**: SimCLR
+- **NTXent (источник №83**: SimCLR
   (2002.05709), бинарный InfoNCE: nt2 m = log(1+e^{−m}):
   nt2_nonneg, nt2_le_log2 (m≥0 ⟹ ≤ log 2), nt2_anti
   (СТРОГО убывает по марже), nt2_zero_margin (m=0 —
   порог неразличимости log 2). Контрастная пара к
   TripletLoss №82 (hinge vs log-хижина).
-- **DescentCoreDiag (такт №273)**: второй реальный
+- **DescentCoreDiag**: второй реальный
   инстанс гладкости: ВЗВЕШЕННАЯ квадратичная
   E=½Σaᵢ(wᵢ−yᵢ)²: diag_descent_eq (ТОЧНОЕ тождество),
   diag_descent_le (L-гладкость с L = любая верхняя
   граница весов — НЕтривиальная константа, выведена
   поточечным aᵢ ≤ L; контракт DescentCore проверен при
-  произвольном L, не только L=1). + LESSONS-ретро №273
-  (+10 записей, 92 строки).
-- **TripletLoss (источник №82, такт №272)**: FaceNet
+  произвольном L, не только L=1).
+- **TripletLoss (источник №82**: FaceNet
   (1503.03832): tl = max 0 (d⁺ − d⁻ + m): tl_nonneg (hinge),
   tl_zero (маржа выполнена ⟹ ноль), tl_pos (нарушение ⟹
   строгий сигнал), tl_le_hinge (граница при d±≥0 —
   контрпример dap<0 пойман до коммита), tl_mono_pos/neg
   (правильные направления тяги: ближе позитив / дальше
   негатив).
-- **QuadBudget (такт №271)**: леджер сертифицированной
+- **QuadBudget**: леджер сертифицированной
   траектории: trajDropSum (ТОЧНЫЙ телескоп Σ(E_t−E_{t+1})
   = E₀−E_T — разности РЕАЛЬНЫХ энергий), trajDropBound
   (Σ certified-убываний ≤ E₀ — прогресс конечен; телескоп-
@@ -790,7 +395,7 @@
   commitInd/commitCount, budgetLedger (все hold ⟹
   #commits = 0 — бюджет нетронут), commitCountBound
   (#commits ≤ T при любой траектории).
-- **QuadTrajectory (такт №270, аудит №5 P3)**:
+- **QuadTrajectoryаудит №5 P3)**:
   многошаговый сертифицированный цикл над вычисленным
   gate: gateStep (commit/hold-ветвление), gateTraj
   (итерация), gateStep_mono (энергия не возрастает на
@@ -800,7 +405,7 @@
   энергий), gateStep_pos (строгое убывание при открытом
   gate — реюз quad_gate_commit). Нетривиальный
   многократный цикл с реальным изменением параметров.
-- **QuadGate (такт №269, аудит №5 P1/P3)**: CommitGate
+- **QuadGateаудит №5 P1/P3)**: CommitGate
   ЗАМКНУТ на эталонной машине: machineCert — GateCert,
   где ВСЕ поля вычислены (V=energy a w, dStep=machineGap,
   quant=quantLift √(2X)z+z²/2 из решётки), machine_energy_lift
@@ -808,7 +413,7 @@
   machine_energy_bound), quad_gate_commit: gate открыт ⟹
   РЕАЛЬНАЯ энергия полного машинного шага СТРОГО убывает —
   ни одного постулированного поля, всё из весов.
-- **CapabilityLocal (такт №268, аудит №5 P1/K8)**:
+- **CapabilityLocalаудит №5 P1/K8)**:
   геометрический рост ПОЛЕВОЙ capability из ЛОКАЛЬНОГО
   условия: capability_geometric_of_local (ΔΓ_t ≥ α·Γ_t +
   рекуррентность поля ⟹ Γ_T ≥ (1+α)^T·Γ₀ — чистая
@@ -816,27 +421,27 @@
   привязка к (S t).effects.growGain реальна),
   capability_strict_first (строгий рост на первом шаге —
   нетривиальный witness).
-- **riskLim-дефантомизация (такт №267, аудит №5 P1)**:
+- **riskLim-дефантомизацияаудит №5 P1)**:
   CertifiedTransition получил активное поле riskBound
   (S'.protectedRisk − S.protectedRisk ≤ riskLim) — лимит
   риска теперь ГАРАНТИРУЕТСЯ типом, а не является
   неиспользуемым параметром. Конструктор дополнен;
   все потребители (MasterHAGICoupled, LinkedWitness,
   CertifiedTrajectory) — гипотезы, остались валидны.
-- **CI-фикс H2 (такт №266, аудит №5)**: финальный гейт
+- **CI-фикс H2аудит №5)**: финальный гейт
   в конце ci.sh — поздние проверки (AxiomCheck,
   ChallengeCheck, StatementDupCheck, MachineDiffTest)
   теперь ВЛИЯЮТ на exit code (ранее ранний PASS мог
   маскировать поздние FAIL — подтверждённый ложный-PASS
   дефект закрыт).
-- **BlockNorm (такт №265, аудит P1-RMSNorm)**: поблочная
+- **BlockNormаудит P1-RMSNorm)**: поблочная
   нормализация сохраняет ансамбль: global_eq_mean_blocks
   (глобальная дисперсия = среднее блочных — ТОЧНОЕ
   тождество), equal_blocks_global (равные RMS блоков ⟹
   глобальная нормализация = поблочной ПОТОЧЕЧНО — GroupNorm(3)
   сохраняет шаг 0 слияния без возмущения). Устранён
   семантический разрыв Merge×RMSNorm из аудита.
-- **CommitGate (такт №264, аудит D TRD-GMS)**: инвариант
+- **CommitGateаудит D TRD-GMS)**: инвариант
   ветвления вместо h_emp_grow: GateCert (V, dStep-контракт,
   gap≥0, quant, gen≥0), gate (win > loss — решаемое
   условие), commitProductive (gate=true ⟹ СТРОГОЕ убывание
@@ -844,7 +449,7 @@
   quant_bound_of_gridQ (Σ квант-ошибок² ≤ n·Δ²/4 — реюз
   gridQ_error). Условие продуктивности — ВЕТВЛЕНИЕ
   АЛГОРИТМА, не внешняя гипотеза.
-- **DescentCoreQuad (такт №263, аудит #3/#8)**: первый
+- **DescentCoreQuadаудит #3/#8)**: первый
   НЕПОСТУЛИРОВАННЫЙ инстанс Objective: квадратичная
   машина E(w)=½Σ(w−a)²: quad_descent_eq (descent-лемма —
   ТОЧНОЕ РАВЕНСТВО, выведено алгебраически, L=1),
@@ -854,69 +459,64 @@
   a, E(a)=0 — сквозной witness: алгоритм реально меняет
   параметры и доказанно достигает цели), quad_drop
   (строгое убывание при x≠a).
-- **GDN-фикс (такт №262, аудит P0)**: каноническая
+- **GDN-фиксаудит P0)**: каноническая
   gated-форма gdnUpdate: S' = gS + β(v − gSk)kᵀ (остаток
   по ЗАТУХШЕМУ состоянию, как в оригинальной статье; при
   g=1 формы совпадают — старые теоремы сохранены) +
   gdn_onehot_interp: при one-hot и произвольных g, β —
   точная колоночная интерполяция (1−β)gS + β·v (β — мера
   перезаписи; обобщение точной записи g=β=1).
-- **DescentCore (такт №261, аудит #4/#1)**: семантический
+- **DescentCoreаудит #4/#1)**: семантический
   центр спуска: Objective (L-гладкость — descentLemma
   поле-контракт), aligned (‖dir‖² ≤ ⟨g,dir⟩),
   descent_drop: ЧИСТОЕ УБЫВАНИЕ f(x−η·dir) ≤
   f(x) − η(1−Lη/2)‖dir‖² при η ≤ 1/L — ВЫВОДИТСЯ из
   гладкости, h_emp_smooth больше не постулат потребителя.
-- **Аудит-фикс #2 (такт №260)**: 8 висячих модулей
-  (BestOfN, GAE, RLHF, Upcycling, WeightTying, AdaGrad,
-  Checkpoint, Lion) подключены в Hagi.lean — теперь
-  собираются CI-целью (ранее вне lake build, Freeze их
-  видел только source-сканом).
-- **SAM (источник №81, такт №259)**: Sharpness-Aware
+- **SAM (источник №81**: Sharpness-Aware
   Minimization (2010.01412): norm2/ball, samW (worst-case
   лосс на ρ-шаре), sam_ge (sam ≥ L), ball_mono + sam_mono
   (вложение шаров ⟹ монотонность остроты по ρ),
   sam_flat (константа на шаре ⟹ нулевая острота — цель
   SAM: плоские минимумы устойчивы к квантованию).
-- **TernaryGrad-мост (такт №258)**: SignSGD × Quantizer:
+- **TernaryGrad-мост**: SignSGD × Quantizer:
   sgn1_round, sgn1_grid_fix (gridQ 1 фиксирует знаковый
   градиент — тернарный вектор уже в решётке 1·ℤ),
   sgn1_zero_quant_error (ошибка квантования строго 0,
   не Δ/2), tern_grad_inner (⟨Q(sign g), g⟩ = ‖g‖₁ —
   композиция каналов компрессии без деградации сигнала).
-- **DiffAttention (источник №80, такт №257)**: дифф-внимание
+- **DiffAttention (источник №80**: дифф-внимание
   (2410.05258): sm (softmax), sm_sum_one/sm_nonneg,
   sm_shift (СДВИГ-ИНВАРИАНТНОСТЬ: общий сдвиг логитов не
   меняет веса — key-bias сокращается в нормировке),
   noise_cancel (общий аддитивный шум самосокращается),
   diffW + diff_range (w₁−λw₂ ∈ [−λ,1] при λ≥0).
-- **BatchSNR-углубление (такт №256)**: модель
+- **BatchSNR-углубление**: модель
   критического батча с издержками: batchGain (min(1,B/B*)),
   stepCost (α·B+β), gainPerCost; gain_decreasing_past_critical
   — при α>0, B₂>B₁≥B* прогресс/стоимость СТРОГО убывает
   (оптимум эффективности в B*; α=0-случай исключён — там
   эффективность постоянна, контрпример пойман до коммита).
-- **SignSGD (источник №79, такт №255)**: 1-bit градиентная
+- **SignSGD (источник №79**: 1-bit градиентная
   компрессия: sgn1 (тернарный знак), sign_inner_nonneg
   (⟨sign(g),g⟩ = ‖g‖₁ ≥ 0 — компрессия не переворачивает
   направление спуска), sign_inner_pos (строгий косинус при
   g≠0), sgn1_ternary ({−1,0,1} — совместимость с тритарным
   ядром), sgn1_fix + sign_idempotent (sign∘sign=sign).
-- **RVCore (приоритет 2-ядро обзора, такт №253)**:
+- **RVCore (приоритет 2-ядро обзора**:
   бит-точное ALU-ядро RISC-V над UInt32: wordAdd_spec
   (toNat(w+w') = (n+n')%2³² — точный перенос),
   wordSub_spec (заём-обёртка), wordAnd_spec (Nat.land),
   wordAnd_idem, execDeterministic (CPU — функция: нулевая
   энтропия ошибки, основа RAM_Parity). wordAdd_spec зависит
   ТОЛЬКО от propext (конструктивная бит-арифметика).
-- **DistillCert (приоритет 6 обзора, такт №252)**:
+- **DistillCert (приоритет 6 обзора**:
   сертификат консолидации: DistillCert (teacher/student/
   Δ/lip/dist2-прокси с честными полями), quant_pointwise
   (Δ/2-реюз gridQ_error), quant_L2 (‖Q(s)−s‖² ≤ n(Δ/2)²),
   consolidation_bound (|L(Q(student)) − L(teacher)| ≤
   Λ·(2n(Δ/2)² + 2·dbound²) — каналы квантования и
   дистилляции суммируются через (a+b)²≤2a²+2b²).
-- **NCTheorem (приоритет 7 обзора, такт №251)**:
+- **NCTheorem (приоритет 7 обзора**:
   ГЛОБАЛЬНАЯ теорема нейрокомпьютера: ncContract (мост
   NCInput → StepContract: decrease=сертификат,
   risk=riskSpend, budget=cost); nc_trajectory_bound
@@ -924,7 +524,7 @@
   реюз trajectory_convergence); nc_cpu_frozen_trajectory
   (процессор заморожен на ВСЕМ горизонте — индукция
   инварианта).
-- **NeuralComputer (приоритет 4 обзора, такт №250)**:
+- **NeuralComputer (приоритет 4 обзора**:
   NCState — ЕДИНОЕ состояние нейрокомпьютера (φ, base,
   adapt, cpu, mem, E, R, B, C); ncAdvance — канонический
   переход; инварианты: nc_cpu_frozen (процессор заморожен
@@ -933,7 +533,7 @@
   запись), nc_budget_ledger (точная бухгалтерия),
   nc_risk_mono (риск неубывающий) — три типа изменяемости
   разделены формально.
-- **AdaptiveChunking (приоритет 3 обзора, такт №249)**:
+- **AdaptiveChunking (приоритет 3 обзора**:
   adaptiveCost (C(x)=Σ c_ℓ·M_ℓ(x)² — стоимость иерархии как
   функция ВХОДА); adaptive_le_static (поточечное
   доминирование M_ℓ(x) ≤ L/r ⟹ адаптивная стоимость ≤
@@ -941,34 +541,34 @@
   на одном уровне при положительной цене ⟹ строгая
   экономия) — математическая модель обучаемого чанкинга
   H-Net (M зависит от входа, а не от константного r).
-- **CPUFreeze (приоритет 5 обзора, такт №248)**: safeStep
+- **CPUFreeze (приоритет 5 обзора**: safeStep
   (CPU-блок шага обнулён, rest сохранён): cpu_frozen
   (ΔCPU'=0 rfl-контракт — веса процессора инвариантны к
   градиентам), norm_le (‖safe‖ ≤ ‖proposal‖ — trust region
   наследуется), anchor_drift (якорный дрейф только по rest;
   C1/C2/C3 SafeQP-расширения закрыты).
 - **GDNBridge (приоритет 1 обзора HAGI Neural Computer,
-  такт №247)**: gdnUpdate (delta rule S' = g·S + β·(v−S·k)kᵀ);
+ gdnUpdate (delta rule S' = g·S + β·(v−S·k)kᵀ);
   gdn_onehot_is_colUpdate (g=β=1, k=e_i — ТОЧНАЯ замена
   i-го столбца: рекуррентная GDN-нейросеть в режиме
   Qwenputer исполняет адресуемую запись); 
   gdn_transpose_is_ramWrite (транспонированная delta-запись
   = ramWrite из GDNRAM — мост реальной архитектуры к
   абстрактной RAM-семантике).
-- **TransitionContract (P1-миграция v3, такт №246)**: мост
+- **TransitionContract (P1-миграция v3**: мост
   CertifiedTransitionV2 → StepContract: ctContract (decrease
   = verify-сертификат, risk = Σ эффект-рисков ≥ 0, budget =
   Σ стоимостей), ctv2_contract (rfl-связка), ctRisk_covers
   (ΔR ≤ riskCost контракта — safety-бухгалтерия накрывает
   реальный прирост риска). Единая trajectory_convergence
   теперь применима к реальным переходам напрямую.
-- **CautiousOptimizer (источник №78: 2411.16085; такт
+- **CautiousOptimizer (источник №78: 2411.16085
   №245)**: cautiousMask (сохранять только компоненты update,
   согласованные со знаком градиента): cautiousMask_abs_le
   (маска не увеличивает модуль), cautiousAligned (выжившие
   компоненты u'·g ≥ 0), cautiousId/cautiousZero (тождество
   при согласии, полный отказ при конфликте — «не вредить»).
-- **InfoPreservation (аудит v16 Test 6, такт №244)**:
+- **InfoPreservation 
   info_preservation_regret — СРЕДНИЕ потери траектории
   mirrorIterate ≤ потери целевого распределения +
   T·KL(ρ*‖ρ₀)/n — информационный дрейф гасится начальной
@@ -976,12 +576,12 @@
   Тем самым v16-тесты: 1✓ 2✓ 3✓ 5✓ 6✓ 7✓ (Test 4 —
   SafeQP-домены, общий вид).
 - **BytePatch (источник №77: Cartesia From-Tokens-to-Bytes
-  H-Net; такт №243)**: patchCount ⌈N/p⌉₊ — байтовые патчи:
+  H-Net; patchCount ⌈N/p⌉₊ — байтовые патчи:
   patch_cover (p·⌈N/p⌉ ≥ N — покрытие входа), patch_le_raw
   (p ≥ 1 ⟹ патчей ≤ байтов), patch_real_bound (< N/p+1),
   patch_attn_saving (⌈N/p⌉² < N² при p≥2, N≥2p — строгая
   экономия квадратичного внимания).
-- **QuantizedAdvance (аудит v16 P0/Test 3, такт №242)**:
+- **QuantizedAdvance 
   advanceQ — РЕАЛЬНАЯ семантика компрессии: params' =
   q(params − η·d) (advance + фактическое квантование);
   advanceQ_quantized (Test 3 rfl-контракт), advanceQ_prox
@@ -990,7 +590,7 @@
   compressQ_prox (machineStep эталона = advanceQ с
   q = compressQ, контракт выполнен поточечно Δ/2 через
   gridQ_error).
-- **CertifiedTransitionV2 (аудит v16 проблема №5, такт
+- **CertifiedTransitionV2 
   №241)**: hRiskLim — риск-лимит АКТИВНО проверяется полем
   структуры (счётчик ≠ соблюдение лимита); ctv2_of_ct — мост
   V1→V2 (полная совместимость, Freeze стабилен); ранее
@@ -998,38 +598,38 @@
   выводится из safety-бухгалтерии при сумме эффект-рисков ≤
   лимита).
 - **BatchSNR (источник №76: McCandlish Gradient Noise Scale,
-  1812.06162; такт №240)**: snr (μ²B/σ²), snr_realized
+  1812.06162; snr (μ²B/σ²), snr_realized
   (= μ²/E[(ĝ−μ)²] — реализованный SNR через temperature law
   Var=B⁻¹), snr_linear (SNR(B)=B·SNR(1) — линейный рост),
   criticalBatch (B*=σ²/μ²), snr_ge_one_iff (SNR≥1 ⟺ B≥B* —
   пороговый закон критического батча). Поверх
   NoiseTemperature-капстроуна без дублирования.
-  Также: LESSONS.md +12 записей тактов 225–238 (ретро №239).
-- **LookaheadTrajectory (связка №75×EMA, такт №238)**:
+  md +12 записей тактов 225–238 (ретро №239).
+- **LookaheadTrajectory (связка №75×EMA**:
   anchorSeq (якорная последовательность Lookahead);
   anchor_eq_ema (тождество: slowStep-рекурсия = EMA при
   β=1−α — DRY-мост); anchor_stable (якорная траектория в
   [lo,hi] на любом горизонте — реюз ema_invariant:
   двухмасштабная схема не может дрейфовать за оболочку
   данных).
-- **Lookahead (источник №75: 1907.08610; такт №237)**:
+- **Lookahead (источник №75: 1907.08610;
   slowStep (w' = w + α(x−w)); lookahead_mem (новый якорь ∈
   [min, max] старого и быстрого — шаг назад не проскакивает
   цель), lookahead_gap (|w'−w| = α·|x−w| — дрейф якоря
   пропорционален α), lookahead_range (инвариант [lo,hi]).
-- **LabelSmoothing ур.2 (углубнение №74, такт №236)**:
+- **LabelSmoothing ур.2 (углубнение №74**:
   ls_entropy_ge — СГЛАЖИВАНИЕ НЕ УМЕНЬШАЕТ ЭНТРОПИЮ ЦЕЛИ:
   H(q) ≤ H(q^LS) при строго положительной цели (Jensen по
   слагаемым x·log x из xlogx_convex + шенноновская граница
   shannon_entropy_le_log_card: H(q^LS) ≥ (1−ε)H(q) +
   ε·log card K ≥ H(q)) — регуляризация к равномерному.
 - **LabelSmoothing (источник №74: Szegedy 1606.04586;
-  такт №235)**: lsTarget ((1−ε)q + ε·u — выпуклая комбинация
+ lsTarget ((1−ε)q + ε·u — выпуклая комбинация
   с равномерной), ls_sum_one (сглаженная цель —
   распределение), ls_nonneg, ls_pointwise_dist
   (|q^LS−q| = ε·|q−1/K| — линейно по ε), ls_l1_bound
   (∑|q^LS−q| ≤ ε·card — цель обучения в ε-окрестности).
-- **Насыщение роста (аудит v14 §3.3, такт №234)**:
+- **Насыщение роста 
   saturation_gap (C*−C_T = (1−σ)^T(C*−C_0) — геометрическое
   сжатие зазора до потолка: ЛИНЕЙНАЯ сходимость вместо
   обязательного экспоненциального взлёта),
@@ -1037,27 +637,27 @@
   рост монотонен и не пересекает потолок). Рекомендация
   v14 выполнена: жёсткая модель cone_premises_force_exact
   дополнена честной динамикой с насыщением и шумом.
-- **StepContract-мост (аудит v15 дублирование, такт №233)**:
+- **StepContract-мост 
   constContract (постоянный контракт decrease=eps, risk=0),
   termination_via_stepcontract — канонический телескоп
   lyapunov_termination_fin ВЫВОДИТСЯ из единой
   trajectory_convergence: телескоп-дубли (ProbeError,
   GrowthState, TopLevel) суть экземпляры одного принципа.
 - **ModelSoup/EMA (источник №73: Model Soups, 2203.05482;
-  такт №232)**: soup (выпуклая комбинация параметров),
+ soup (выпуклая комбинация параметров),
   soup_mem (суп ∈ [min,max] — выпуклая оболочка),
   soup_loss_le_avg (Jensen: выпуклый лосс супа ≤ супа
   лоссов — ConvexOn.map_sum_le), ema-рекурсия +
   ema_invariant (EMA ∈ [lo,hi] на любом горизонте при
   β ∈ [0,1] — сглаживание без выхода за диапазон).
 - **MuonNS (источник №72: Muon is Scalable, 2502.25082;
-  такт №231)**: реальная скалярная модель итерации
+ реальная скалярная модель итерации
   Ньютона-Шульца ортогонализации Muon: ns u = u(3−u²)/2 —
   ns_invariant ((0,1]-инвариант), ns_monotone_ascent
   (подъём к 1), ns_error_factor (1−ns u = (u−1)²(u+2)/2 —
   КВАДРАТИЧНАЯ сходимость сингулярных чисел),
   ns_error_contract (строгое сжатие u < ns u < 1).
-- **CertifiedTrajectory (такт №230)**: ЕДИНАЯ траекторная
+- **CertifiedTrajectory**: ЕДИНАЯ траекторная
   теорема certified_progress_honest — связка трёх уровней
   (execution → measurement → contract): Σmeasured − Σδ ≤
   Φ₀−Φ_min+Σrisk (прогресс подтверждён снизу данными И
@@ -1065,7 +665,7 @@
   суммарный измеренный прирост > шума ⟹ кумулятивный
   decrease строго положителен И бюджетно-рисково ограничен.
 - **MeasurementCert (направление TorchLean spec→exec→verify;
-  такт №229)**: двухуровневая сертификация — StepMeasurement
+ двухуровневая сертификация — StepMeasurement
   (claimed ∈ [measured−δ, measured+δ], anytime-полоса),
   claimed_floor/claimed_ceiling (честные границы),
   claimed_pos_of_signal (прирост > шума ⟹ положителен),
@@ -1073,7 +673,7 @@
   Уровень 2 из рекомендации аудита: сертификат ИЗМЕРЕНИЯ
   поверх сертификата ИСПОЛНЕНИЯ (CertifiedTransition.exec).
 - **Anytime PAC-Bayes / time-uniform Catoni (источник №71:
-  направление FormalSLT; такт №228)**: real_mono_prob (хелпер
+  направление FormalSLT; real_mono_prob (хелпер
   монотонности реальной меры), anytime_catoni — если
   L_t = exp(lam·S_t − ψ·t) неотрицательный супермартингал с
   E[L₀]≤1, то P(∃t≤n: S_t > (ψt+log(1/δ))/lam) ≤ δ —
@@ -1081,14 +681,14 @@
   Catoni композиция. Закрывает лакуну «time-uniform bounds»
   из обзора конкурирующих проектов (FormalSLT).
 - **Вариационное ядро (источник №70: Bridging Control/
-  Inference/Transport/Thermodynamics, 2609.15897; такт №227)**:
+  Inference/Transport/Thermodynamics, 2609.15897;
   mirror_step_variational_descent (экспоненциальное обновление
   НЕ увеличивает свободную энергию F(q)=⟨q,ℓ⟩+T·KL(q‖ρ₀):
   F(γ) ≤ F(ρ₀) — вариационный принцип; вывод из
   floor+attainment), mirrorIterate_partial_mono (итерационная
   монотонность при фиксированном ландшафте — JKO-аналог
   убывания свободной энергии вдоль траектории).
-- **StepContract (аудит v15 §4.3, такт №226)**: единый
+- **StepContract 
   моноид сертификатов шага — StepContract (decrease/riskCost/
   budgetSpend + неотрицательности), compose (assoc/нейтраль
   по rfl-структуре), chain (foldr-свёртка; компоненты = суммы),
@@ -1101,29 +701,13 @@
   без разнообразия нет выигрыша — twoGap_zero_iff),
   frozenWeights (база заморожена: тернарность не
   разрушается, стоимость изменений весов = 0).
-- **Сквозной пример + КВАНТОВАНИЕ, такт №223**:
+- **Сквозной пример + КВАНТОВАНИЕ**:
   qQuant_err_bound — потеря функции потерь от
   квантования постшаговой точки ≤ (Δ/2)(2R+Δ/2) при
   |x'−a| ≤ R (gridQ_error + разность квадратов): цепочка
   «биты → реальное квантование → ошибка параметров →
   ошибка loss» замкнута ВЫЧИСЛЕНИЕМ на сквозном примере
-  (аудит v13 §6.4).
-- **Аудит v13 P4 (сквозной пример), такт №222**:
-  Examples/QuadraticEndToEnd — первый END-TO-END обучающий
-  шаг: F(x)=(x−a)², qGrad (производная ВЫЧИСЛЕНА),
-  qStep_loss_exact (постшаговый loss = (1−2η)²(x−a)²
-  В ТОЧНОСТИ), qStep_descent (строгое убывание при η∈(0,1),
-  x≠a — ноль эмпирических гипотез), qIter_loss (t шагов =
-  геометрическое убывание (1−2η)^{2t} — точная
-  многошаговость).
-- **Аудит v13 P0 (вакуумность core_premises), такт №221**:
-  ПОДТВЕРЖДЕНО противоречие hjointE (E(params) ≤
-  jointEnergy = E(params−ηd)) со спуском — вынуждает d=0.
-  Исправление: core_premises_operational_scalar_v2 +
-  MasterHAGICoreOperational_v2 — ПОСТШАГОВОЕ квантование
-  (gridQ от x' = params − η·d), hjointE УДАЛЁН (заменён
-  rfl-истинным неравенством в конъюнкте 13). Старые версии
-  сохранены (superseded, Freeze-совместимость).
+  .
 - **LLRD (источник №68: послойное LR-затухание, ULMFiT
   1801.06146-стиль)**: llrd_strict_mono (при 0<γ<1 LR
   СТРОГО растёт с номером слоя — верхние слои учатся
@@ -1171,19 +755,13 @@
   (экспоненциальное затухание attention-ядра дальних
   позиций: exp(−m·d₂) ≤ exp(−m·d₁) — основа «train short,
   test long»), alibi_kernel_decay_lt (строгое).
-- **Аудит v12 (riskLim), такт №209**:
-  certifiedTransition_risk_respect — параметр riskLim
-  CertifiedTransition РЕАЛЬНО ограничивает прирост
-  защищённого риска (мост safety+линейность; закрыто
-  замечание «riskLim объявлен, но не используется»).
-- **SourceMixture №58 уровень 2 (MaxRL-ядро, такт №208)**:
+- **SourceMixture №58 уровень 2 (MaxRL-ядро**:
   successDist_norm — распределение успешных ответов
   π⁺(y)=π(y)·r(y)/p НОРМИРОВАНО (RL-цель корректна как
   likelihood-обучение на успешных ответах — мост
   генерация→верификация→MLE), successDist_nonneg.
-  №59-нормировка (бином-индукция) — 5 подходов, карантин
-  LESSONS (pin-Mathlib не экспортирует binomial theorem;
-  синтакс-формы показателей хрупки для rw).
+  №59-нормировка (бином-индукция) — карантин (не
+  выводится в пин-версии Mathlib).
 - **SourceMixture (источник №58: Song et al., 2610.40564 —
   единый training objective)**: mixture_sum_one (смесь
   вероятностных источников с весами λ (Σλ=1) — САМА
@@ -1436,29 +1014,17 @@
   инвариантность к масштабу, направление сохраняется),
   rn_unit_rms (∑(rn x i)² = n при x ≠ 0 — единичный RMS
   выхода). Стек нормализации замкнут: LN (№21) + RMSNorm.
-- **Аудит v8 — ответ тактом №146 (P1, фасады Unified)**:
-  демонтированы 5 пустых реэкспортеров (Unified/Concentration,
-  Fannes, GrowthTheory, Master, SafeStep — 0 деклараций, 0
-  внешних импортёров). Статус по P0 аудита: Gen-2 advance(S,u)
-  (StageSemantics + LinkedWitness T=3 + ReferenceMachine +
-  MachineBridge) уже основная операционная семантика; Gen-1
-  CorePremises сохранён только как историческая модель с
-  регрессионным UNSAT-тестом (Examples/Nonvacuity). Остатки
-  аудита v8: карантин Gen-1-цепочки из Unified, дедуп
-  hagiPotential/maxSingularValue, этап 7 (абляции).
 - **RoPE, уровень 1 (источник №24: Su et al., RoFormer,
   arXiv 2104.09864)**: Hagi/Model/RoPE.lean — rot
   (вращение позиции (e^{iθ})^k), rot_normSq_one (единичность,
   cos²+sin²), rope_normSq_preserved (ИЗОМЕТРИЧНОСТЬ:
   вращение сохраняет normSq — фаза меняется, модуль нет —
   ядро корректности позиционного кодирования).
-- **RoPE-задел + μP-контраст-сводка (такт 143)**:
+- **RoPE-задел + μP-контраст-сводка **:
   muP_bound_le_sp_bound (μP-граница ≤ SP-границы при n ≥ 1
   — формальное сопоставление переносимого и непереносимого
-  скейлинга). RoPE (№24, Su 2104.09864) — разведка API
-  зафиксирована в LESSONS (Complex.conj/abs_exp отсутствуют
-  в пин-версии Mathlib; star доступен; формулировка
-  shift-инвариантности без вычитания выбрана) — отложено до
+  скейлинга). RoPE (№24, Su 2104.09864) — ядро
+  shift-инвариантности формализовано; расширение отложено до
   следующей попытки.
 - **Attention-масштабирование 1/√d (источник №23:
   Vaswani et al., arXiv 1706.03762)**: композиции
@@ -1532,7 +1098,7 @@
   SWA-усреднения). Обоснование слияния экспертов HAGI:
   переходы между решениями не обязаны проходить через
   барьеры.
-- **Мост машина → семантика (аудит v7, этап 4)**:
+- **Мост машина → семантика **:
   Hagi/Model/MachineBridge.lean — machineStageInput (StageInput,
   СОБРАННЫЙ из машинных измерений: growEnergy = E(w),
   jointEnergy = E(w−η∇E), compressEnergy = E(Q(w−η∇E)),
@@ -1541,7 +1107,7 @@
   канонический advance_energy_drop сертифицирует переход —
   измерения имеют происхождение (веса), сертификат —
   следствие, а не постулат.
-- **Эталонный исполнитель цикла обучения (аудит v7 §5 +
+- **Эталонный исполнитель цикла обучения 
   этап 6, паттерн qwenputer ref.Machine)**:
   Hagi/Model/ReferenceMachine.lean — носитель, где операции
   РЕАЛЬНО вычисляют веса (jointStep — градиентный шаг,
@@ -1631,52 +1197,6 @@
   семейство CertifiedTransition + законы стадий ПОРОЖДАЮТ
   CycleCertificate T-горизонта (точный рост, спуск
   потенциала, бюджетный ledger).
-- **Аудит v6, Concrete-слой (§3, старт)**:
-  Hagi/Examples/QuadraticConcrete.lean — квадратичная
-  функция потерь E(x)=(x−a)²/2: производная (quad_hasDeriv),
-  значение fderiv (quad_fderiv_apply), L-гладкость L=1
-  (quad_smooth), κ-граница R+|a| на [−R,R]
-  (quad_kappa_bound), непрерывность вдоль сегмента
-  (quad_gcont) — ВСЕ операциональные премисы шага 1
-  проверяются теоремами для реальной функции потерь;
-  quadState + quad_conj8/quad_conj13 — ПОЛНЫЙ Concrete-витнес:
-  конъюнкты 8/13 CorePremises — теоремы на реальном
-  состоянии (E=(x−a)²/2, stepDir=0, сетка Δ=1);
-  quad_core_premises — ПОЛНЫЙ витнес: ВСЕ 16 конъюнктов
-  CorePremises — теоремы на квадратичной функции потерь
-  (quadGen/quadGen' — точная композиция стадий);
-  Concrete-линия аудита v6 §3 завершена.
-- **Аудит v6, L3 (единый Certificate, старт)**:
-  certificate_of_transition — мост цепочки уточнений:
-  CertifiedTransition (ядро) детерминирует все наблюдаемые
-  поля Certificate-проекции пост-состояния (спад > 0,
-  риск-трата ≤ Σ рисков стадий, точный бюджетный расход);
-  13 сертификат-структур проекта сводятся к цепочке с
-  CertifiedTransition в вершине; transition_safe_selection —
-  звено 2: переход кормит алгоритм отбора bestDecrease
-  (safe_selection_productive) — Certified Growth Loop.
-- **Аудит v6, критерий готовности «нет двух теорем с
-  одинаковым хешем утверждения» — ВЫПОЛНЕН**: разбор
-  declarations.lock по type-hash даёт 0 групп дубликатов
-  (буквальные statement-дубликаты вычищены прошлыми
-  дедуп-раундами); ворота STMDUP в CI закрепляют.
-- **Аудит v6, дедуп L1 (порядок работ №3, старт)**:
-  hoeffding_lemma_prefix (Azuma) переписан как ВЫВОД из
-  канона mgf_hoeffding_ab (Foundations.Hoeffding) — хордовое
-  доказательство удалено, лемма Хёффдинга в проекте теперь
-  одна (statement неизменен, Freeze стабилен).
-- **Аудит v6, шаг 3 (закрепление окружения)**:
-  mathlib-rev.txt теперь пинит и toolchain-commit
-  (eb6cafb…), ворота MATHLIBPIN в CI сверяют rev Mathlib и
-  commit lean-тулчейна — тихий дрейф окружения ловится.
-- **Аудит v6, шаг 2 (Comparator-challenge)**:
-  Hagi/Challenge/MasterChallenge.lean — честная формулировка
-  MasterHAGICore закреплена: заключение прописано полностью
-  (смена смысла ломает сборку), посылка CorePremises
-  закреплена pinned-типом; Challenge/challenges.json +
-  scripts/ChallengeCheck.py — ворота CI (CHALLENGE: PASS):
-  допустимые аксиомы ровно propext/Classical.choice/
-  Quot.sound, пиннинг типов посылок.
 - **MesoScale (источник №10: Chen arXiv 2508.12016, A Law of
   Emergence)**: Hagi/Foundations/MesoScale.lean — ядро
   Middle-Scale Peak Theorem: EI(ℓ)=A(ℓ)·L(ℓ), усреднение A ≤
@@ -1690,7 +1210,6 @@
   коллапс + EI(ℓ₀)>0 ⟹ глобальный максимум ДОСТИГАЕТСЯ
   (компакт [ε,M], exists_isMaxOn) — формальный Middle-Scale
   Peak Theorem.
-
 - **Grokking (источник №9: Boursier–Pesme–Dragomir NeurIPS'25)**:
   Hagi/Pretraining/Grokking.lean — двухфазная динамика
   gradient flow + weight decay: drift_solution/drift_hasDeriv
@@ -1792,73 +1311,6 @@
   архитектурный блок (10 модулей) под капстоуном;
   architecture_invariant_and_economical — ортогональные
   волокна (инвариантность) ∧ конфигурационная экономия.
-- **Аудит v5 п.6 (гигиена): frob_minkowski'** — ручное
-  доказательство Минковского-Фробениуса заменено делегацией
-  Mathlib (norm_add_le в EuclideanSpace, prod-перестановка
-  сумм); Коши–Шварц ℂ уже делегирует norm_inner_le_norm.
-- **Аудит v5 п.5, дедупликация TV/Fannes-языка**:
-  tvHalf_eq_tvDef — дублированное определение полной
-  вариации (Information) связано с каноном Prelude.tvDef
-  (rfl); Fannes-семейство теперь на общем TV-языке.
-- **Аудит v5 п.5, дедупликация Хёффдинга**:
-  hoeffding_fin_via_mgf — Ensemble-форма выведена из
-  Foundations-канона mgf_hoeffding_ab (масштабирование h=t·d,
-  центрирование, exp-монотонность); три копии связаны.
-- **Аудит v5 шаг 4 (ConeSystem), ядро**:
-  Foundations/ConeCorridor — cone_exact_exponential:
-  при конусных посылках + cap-окне capability зажат ТОЧНОЙ
-  экспонентой (1+α)^T·C0 ≤ C T ≤ (1+α)^T·C0 (нижняя — конус,
-  верхняя — индукция по cap); коридор вырождается в точную
-  двустороннюю оценку.
-- **Аудит v5 п.5, дедупликация Пинскера**:
-  pinsker4_via_canon — f-форма (pinsker4_fin, Information)
-  выведена из канонной TV-формы (pinsker_sqrt_kl,
-  Probability): разность ожиданий ≤ TV, TV ≤ √KL; копии
-  связаны единым примитивом.
-- **Аудит v5 п.5, дедупликация EW**: ewNorm_as_mirror —
-  EW-процесс HedgeSurvivor выражен через mirrorStep
-  (MirrorDescent): ewNorm = mirrorStep от равномерного ρ₀ с
-  кумулятивными потерями и T = 1/η; четыре копии
-  экспоненциальных весов сведены к одному примитиву.
-- **Аудит v5, склейка (b) — ядро (grow)**:
-  Unified/LearningKernel — мини-LearningProblem (ландауэровская
-  граница C ≤ E + энергобаланс пары состояний) +
-  grow_premise_derived: grow-посылка CorePremises ВЫВЕДЕНА из
-  ландауэровского принципа (допущение → теорема, как DerivAlong
-  для joint/compress); merge_premise_derived +
-  merge_slack_feasible — merge-посылка как каскадный
-  остаток (slack ≥ 0, материально обеспеченный энергией
-  post-merge). Склейка (b) полностью закрыта.
-- **Аудит v5, склейка (c) закрыта**: high_prob_conclusion —
-  перенос вывода с high-probability события: если на Good
-  (P ≥ 1−δ из anytime-машины δ_t = δ₀ρᵗ) детерминированная
-  цепочка MasterHAGI даёт Takeoff, то P(Takeoff) ≥ 1−δ —
-  скелет стохастического MasterHAGI. Freeze 3000.
-- **Аудит v5, склейка (g) закрыта**: Unified/LinkedWitness —
-  wTraj_certified_family + linkedHAGI_witness: НЕТРИВИАЛЬНЫЙ
-  витнес LinkedHAGIInvariant на T=3 с ненулевыми состояниями
-  (capability 1→8, budget 100→94, alpha=1), построенный через
-  certified_family_linked на реальных exec-переходах.
-- **Аудит v5, склейка (e) закрыта**: Unified/QuantizedCone —
-  quantized_net_gain + quantized_cone_gain: конусное условие
-  γ·k·C ≤ G сохраняется на квантованном шаге при
-  margin-условии (штраф ≤ γ·(D − k·C)); квантизация внутри
-  инварианта.
-- **Аудит v5, склейка (f) закрыта**: usableFrontier_renewal —
-  динамика фронтира как измеримый контракт пополнения данных
-  (сохранение доли ρ + приём свежей массы r t; ξ-член =
-  дефицит свежих данных); алиас dataField получил
-  операционную семантику.
-- **Аудит v5, склейка (d) закрыта**: stages_cone_gain —
-  конусная отдача γ = β⁴·κ ВЫВЕДЕНА из стадийных конверсий
-  (disagreement_chain × hcert × hdiv): гипотеза hgain конуса
-  перестаёт быть независимым допущением.
-- **Аудит v5, склейка (a) закрыта**: HedgeSurvivor.lean —
-  EW-процесс (ewWeight/ewPot/ewNorm) построен; ewPot_upper
-  (hedge_step + 1+u ≤ exp u, индукция), ewPot_lower (луч);
-  hsurv_derived — посылка выживания router_regret_bound
-  ВЫВЕДЕНА, не гипотеза; ew_regret — полный regret
-  A − L* ≤ ln K/η + ηT/2 склеен из компонент.
 - **Фасад Unified/Budget.lean** (ClosureReport 77/296, 26%):
   экспорт бюджетного блока (WaterFilling/FlopsEconomy/BitAlloc/
   ThermoCondensation/WaterFillingMoE) +
@@ -1907,51 +1359,12 @@
   (`certified_trajectory_budget`): семейство сертифицированных
   переходов телескопирует ТОЧНЫЙ бюджетный ledger
   S T = S 0 − Σ spends — ресурсы только через exec-переходы.
-- **CertifiedTransition (аудит v4 §5.4 реализован)**
+- **CertifiedTransition **
   (`Hagi/Model/CertifiedTransition.lean`): зависимый
   сертификат перехода — exec (S' = advance S u), progress
   (verify-спуск > 0), safety (риск-лимит), resources (точный
   бюджетный ledger); конструктор
   certifiedTransition_of_advance из операциональных условий.
-- **Аудит-v4 §3.3: единая семантика перехода
-  (классификация)**: advance — канон; compose эквивалентен по
-  всем полям (advance_decompose, rfl); CycleCertificate —
-  сертификатный контракт; UnifiedStep — специализированная
-  реализация (QMD), не дубликат. Все четыре описания
-  разведены по ролям.
-- **Аудит-v4 §3.1: прозрачность GrandSynthesis**: конъюнкты
-  маркированы — takeoff ВЫВЕДЕН из конусной динамики;
-  риск/бюджет/качество ПЕРЕДАНЫ как измеряемые посылки
-  (источник — стадия сертификации), выведена лишь
-  неповышаемость бюджета.
-- **Аудит-v4 §3.2: связанный инвариант**
-  (`LinkedHAGIInvariant`): CoupledHAGIInvariant + требование
-  S(t+1) = advance (S t) (u t) — состояния получены реальными
-  переходами; мост LinkedHAGIInvariant_to_coupled.
-- **Аудит-v4 §3.4: полнозвучный отбор**
-  (`StepFeasible`, `bestFeasibleDecrease`,
-  `safe_feasible_selection_productive`): выбор максимума
-  decrease среди кандидатов, удовлетворяющих лимитам риска И
-  бюджета — отбор уважает все три ограничения (спуск/риск/
-  стоимость), а не только спуск.
-- **Аудит-v4 §3.8-2: точная-экспонента-артефакт задокументирован**
-  (sustained_takeoff_trunc): при одном alpha в конусе и cap
-  поылки принуждают C(t+1)=(1+α)C t; путь без потолка —
-  trunc_premises_takeoff (нижняя граница без C_cap); полная
-  миграция на alpha_min/alpha_cap — задокументированный шаг.
-- **Аудит-v4 §3.5: Fannes-фасад без псевдоинтерфейса**:
-  `FannesLayers := True` удалён; фасад несёт явный реэкспорт
-  канонической entropy_lipschitz_smooth + реестр слоёв.
-- **Аудит-v4 §3.9: KL-контракт допустимости**
-  (`Hagi.Prelude.KLSupported`): вероятностные векторы +
-  строгая положительность p (носитель q ≪ p); на допустимых
-  входах klDef = математическая KL; KLSupported_pos,
-  klDef_terms_finite — явная область корректности klDef
-  (ENNReal-семантика +∞ — отдельный будущий слой).
-- **Аудит-v4 §3.8: cone_growth_window исправлена** — теперь
-  НАСТОЯЩЕЕ окно: (1+α_min)C t ≤ C(t+1) ≤ (1+α_cap)C t;
-  добавлена посылка h_upper (G ≤ α_cap·C); α_cap/hsep
-  реально участвуют; нижняя из конуса, верхняя из cap.
 - **PL-линейная сходимость**
   (`Hagi/Optimization/PLConvergence.lean`,
   `pl_linear_convergence`): Поляк–Лоясевич — градиентное
@@ -2139,7 +1552,7 @@
   на T=2 из РЕАЛЬНЫХ advance-переходов wTraj (энергия убывает
   30→23, capability 1→4 = 2², риск 0, бюджет 100−2t) — ответ на
   критику 1 аудита v3 (вакуумность мастер-цепочки при T≥2).
-- **Разводка CycleCertificate×2** (аудит v3 §5): System-версия
+- **Разводка CycleCertificate×2** : System-версия
   переименована в StageCycleCertChain; параметрический
   Model.CycleCertificate — единственный с этим именем.
 - **Мост advance→verify** (`advance_verify_decrease_pos`):
@@ -2163,19 +1576,19 @@
 - **CI-гейт аксиом** (`scripts/AxiomCheck.lean`): 12 капстоунов
   (MasterHAGI, grand_synthesis, witness-серия, мосты CorePremises,
   термодинамика) проверяются на стандартные аксиомы Lean при
-  каждом CI-прогоне (аудит v2 §7/P0).
+  каждом CI-прогоне .
 - **Взлёт свидетеля** (`wTraj_takeoff`): gate alpha·C ≤ gain
   (α=1, gain=C_t: 1,2,4) на каждом шаге ⟹ экспоненциальный
   рост C_0·2^t ≤ C_t — связка Trajectory с cone/takeoff.
 - **Инварианты продуктивной траектории**
   (`wTraj_budget_risk_invariants`): бюджет = 100−2t,
   неотрицателен; риск = 0 на всём горизонте T=3 — сертификаты
-  бюджета и риска для каждого перехода (аудит §9).
+  бюджета и риска для каждого перехода .
 - **Многошаговый продуктивный witness** (`wTraj_productive`):
   на канонической семантике Trajectory существует траектория
   T=3, каждый шаг строго продуктивен (gain>0, энергия −3,
   capability растёт), состояния — только через advance
-  (аудит §4, регрессионная защита).
+  .
 - **Мост CorePremises (grow)**
   (`core_premises_grow_operational`): компонент 2 (h_emp_grow)
   выводится из замены приора на Гиббс-учителя:
@@ -2208,7 +1621,7 @@
 - **LayerLint: закрыты слепые зоны** (Geometry, Numerics,
   Optimization, Percolation, Planning; External→Optimization
   в LAYER_EXCEPTIONS как остров MemT); Hagi.Ensemble.UniformCert
-  зарегистрирован в Hagi.lean (аудит 2026-10-24).
+  зарегистрирован в Hagi.lean .
 - **Термодинамика Z(T)** (`partition_strictMono`,
   `partition_hot_limit`): статистическая сумма Гиббса строго
   возрастает по T (нагрев размытие, охлаждение концентрация);
@@ -2601,13 +2014,11 @@
   ε-окрестности глобального минимума (m − ε ≤ V_T ≤ m);
   T := ε/log n оптимальна по порядку — явная связь бюджета
   охлаждения с качеством обучения.
-
 - **Суммарный бюджет качества шага** (`unified_step_budget`):
   Гиббс-ансамбль ε-оптимален по потерям (Tt·log n) +
   квантованное исполнение Δ/2-точно по параметрам — полный
   вычислительный компромисс «качество × вычисления» явный,
   слагаемые минимизируются независимо.
-
 - **Геометрическое охлаждение** (`geometric_cooling_steps`):
   расписание Tₜ = T₀·ρᵗ достигает ε-качества исполняемой
   смеси за N ≥ log(T₀·log n / ε)/log(1/ρ) шагов —
@@ -2615,7 +2026,6 @@
   охлаждения. Прямая формализация «минимизации вычислений»:
   экспоненциальная точность за логарифмическое число шагов
   управления температурой.
-
 - **Термодинамическая цена обучения** (`landauer_cooling_floor`,
   + `geometric_temp_sum`): при геометрическом расписании
   Tₜ = T₀·ρᵗ суммарное рассеивание обучения (h_emp_cooling —
@@ -2625,7 +2035,6 @@
   `geometric_cooling_steps` — тройная граница «качество ×
   вычисления × энергия»: ε-качество за O(log(1/ε)) фаз при
   ограниченной энергии.
-
 - **Оптимальный шаг решётки Δ\* = c** (`quantizer_optimal_step`):
   компромисс «точность × объём» f(Δ) = Δ + c·log(1/Δ)
   (ошибка квантования + ландауэровская цена log(1/Δ) бит)
@@ -2633,7 +2042,6 @@
   log x ≤ x − 1. Оптимальный уровень квантования весов равен
   удельной цене информации: формальный ответ на «максимальное
   качество при минимальном объёме».
-
 - **Сферическое демпфирование** (`Hagi/Optimization/
   SphericalDamping.lean`, мост к SFPRM arXiv:2610.25646):
   `chordal_residual_eq` — хордовый остаток остановки
@@ -2643,7 +2051,6 @@
   (действительный случай Thm 1 SFPRM). Синтез с R520 (пик
   Ω_n при n = 7): сферическая параметризация шага как доли
   угла согласована с максимумом телесного угла в 7-мерии.
-
 - **Неточное сжатие и пол квантования**
   (`Hagi/Optimization/InexactContraction.lean`): внутренняя
   индукция «трёх геометрий» — рекурсия x(k+1) ≤ q·x(k) + ε
@@ -2659,7 +2066,6 @@
   логарифмический K-горизонт останова; внутренняя индукция
   «трёх геометрий» (сжатие + квантование + останов)
   замкнута.
-
 - **Контроллер подпространства и конечность роста**
   (`Hagi/Optimization/SubspaceGrowth.lean`): невязка
   представления projResidual u v = v − ∑⟪uᵢ,v⟫uᵢ —
@@ -2671,13 +2077,11 @@
   (k·δ ≤ C₀). Вторая «геометрия» адаптивной HAGI
   формализована: рост по новым независимым направлениям
   останавливается за C₀/δ шагов.
-
 - **Полный адаптивный цикл** (`adaptive_cycle_expansions`):
   композиция внешней (конечность расширений N ≤ C₀/δ) и
   внутренней (K-горизонт останова `inexact_contraction_halt`)
   индукций — цикл «расширение → пересчёт → останов»
   геометрически адаптивной HAGI замкнут.
-
 - **Граница Уэлча** (`Hagi/Optimization/DirectionPacking.lean`,
   полная): для M единичных направлений в d-мерном пространстве
   с когерентностью μ ≥ |⟪uᵢ,uₖ⟫| (i≠k) справедливо
@@ -2697,49 +2101,40 @@
   (`welch_min_dimension`): M/(1+(M−1)μ²) ≤ d — прямое
   следствие: размерность = f(число различимых направлений,
   допустимое смешение).
-
-
 - **Архитектурный контракт адаптивной HAGI (4 оси)**
   (`adaptive_hagi_contract_thermal`): размерность (Уэлч) ∧
   конечный рост (C₀/δ) ∧ honest останов (x K < τ) ∧
   термодинамический коридор (∃T: различимость ∧ качество) —
   единая четырёхосевая сводная теорема адаптивной HAGI
   (3-осевая версия свёрнута в неё, дедуп итерации 56).
-
 - **Геодезия смеси** (`mixture_norm_sq`,
   `normalized_mixture_inner`): ‖αu+βv‖² = α²+2αβ⟪u,v⟫+β² и
   точная формула положения нормализованной смеси на дуге —
   аддитивная инъекция (FPRM) и Slerp-геодезика (SFPRM)
   двигают состояние по одной дуге (ядро Lemma 3 SFPRM):
   сферическая параметризация шага совместима с аддитивной.
-
 - **Шаг остаётся на сфере** (`mixture_normalize_unit`):
   нормализованная смесь единична — структурная
   ограниченность SFPRM (расходимость невозможна по
   построению, связанные коэффициенты FPRM не нужны).
-
 - **Явная хордовая дистанция шага**
   (`normalized_mixture_distance`):
   ½‖step−u‖² = 1 − (α+β⟪u,v⟫)/‖αu+βv‖ — критерий останова
   SFPRM получает явную формулу через параметры инъекции
   (композиция chordal × дуга × единичность).
-
 - **Ускорение Андерсона × пол квантования**
   (`anderson_floor_gain`, мост к Evans–Pollock–Rebholz
   2020): при per-step gain θ ускорённая рекурсия имеет
   эффективный фактор θ·q — точная граница (θq)^k·x₀ +
   ε(1−(θq)^k)/(1−θq) и улучшенный пол ε/(1−θq) ≤ ε/(1−q):
   ускорение снижает предельную ошибку квантованной итерации.
-
 - **AA-горизонт останова** (`anderson_halt`): ускоренная
   рекурсия останавливается при (θq)^K < (τ − ε/(1−θq))/B —
   объединение gain-фактора и K-горизонта: ускорение
   сокращает и пол, и горизонт останова.
-
 - **Рефакторинг утилит** (`unit_inner_self`): вынесен
   повторяющийся паттерн ⟪u,u⟫ = 1 из ‖u‖ = 1 (3 вхождения
   SphericalDamping; итерация 58).
-
 - **Консолидация термодинамической оси** (ит. 59,
   рефакторинг): 8 теорем охлаждения (н burst-оценки, E=F+T·S,
   максимум энтропии, качество смеси, геометрическое
@@ -2749,7 +2144,6 @@
   обновлены, Freeze без потерь (2762).
 
 ### L3. Сертификатный слой (CycleCertificate)
-
 - **Сертификат полного цикла** (`CycleCertificate`,
   Model/CycleCertificate): независимые компоненты —
   прогресс (C(t+1) = C t + gain t), потенциал
@@ -2767,7 +2161,6 @@
   гарантии применимы к траектории без доп. гипотез.
 
 ### L3. Капстоуны
-
 - **MasterHAGI** (условный): CertifiedHAGIInvariant — риск,
   потенциал, рост, бюджет, обобщение; связанная форма
   `MasterHAGI_linked` (C t = capability реальной
@@ -2815,28 +2208,489 @@
 
 ---
 
+## Канонический стек Gen-3 (капстоун и мосты)
+
+- **CertifiedLoop (Unified/CertifiedLoop.lean)**: `certified_loop`
+  — цепочка `StepCert` (честный спуск + покомпонентный floor +
+  бюджет) даёт одновременно Σdrops ≤ obj₀ − objₙ, `FloorKept`,
+  неотрицательный остаток и телескоп бюджета;
+  `certified_loop_strict` — при n ≥ 1 спуск строгий;
+  `certified_loop_all` — floor на всех промежуточных состояниях;
+  `gate_never_increases` — принцип commit/hold.
+- **HonestTransition (Unified/HonestTransition.lean)**:
+  зависимое доказательство спуска actualDescent:
+  obj s' ≤ obj s − drop; сертификат ⇒ строгий спуск.
+- **Сквозной свидетель (Examples/QuadLoopWitness.lean)**:
+  `qhalf` (полушаговая траектория, энергия × 1/4 за шаг),
+  `halfStepCert` — StepCert на каждом шаге, `quad_loop_horizon`
+  — strict-спуск на любом горизонте, `quad_witness_T3` /
+  `quad_witness_T10` — свидетели без CorePremises.
+- **Капстоун-гейт (Challenge/MasterChallengeV3.lean)**:
+  `master_hagi_challenge_v3` — comparator-закрепление Gen-3
+  капстоуна (CHALLENGE 2/2).
+- **SignSGD/Lion (Unified/SignDescent.lean)**:
+  `sign_scaled_aligned` — масштабированный sign-шаг (s = ‖g‖₁/n)
+  выровнен; `sign_descent` — чистое убывание сжатого шага;
+  `scaled_sign_aligned_of_coherence` + `lion_descent` —
+  момент-Lion при согласованности с градиентом;
+  `sign_is_pointwise_max` — знак максимизирует ⟨g, v⟩ на
+  ℓ∞-кубе (ядро спектральной оптимальности Muon).
+- **SAM (Unified/SamDescent.lean)**: `sam_descent_bridge` —
+  спуск по worst-neighbor цели переносится на истинную с
+  потерей на остроту; `sam_descent_flat` — плоский случай.
+- **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
+  `full_cycle_two_step_growth_inconsistent'` — регрессионный
+  тест: копируемые эффекты противоречивы на T = 2.
+- **Изоляция**: MasterHAGI / MasterHAGI_linked / MasterHAGICore /
+  MasterHAGI_trunc / grand_synthesis — `@[deprecated]` →
+  `certified_loop`.
+
+## Каталог: доказанное по файлам (theorem/lemma)
+- `Hagi/Architecture/AlignedMerge.lean` — `dotCS`, `frobSubord`, `misalignCross`, `mergeEnergyPerturbed`
+- `Hagi/Architecture/ConfigurationCost.lean` — `config_storage_beats_dense`
+- `Hagi/Architecture/ConfigurationRouting.lean` — `selector_never_flips_verdict`, `switchable_beats_naive_dense`
+- `Hagi/Architecture/CortexFiber.lean` — `mulVec_vecMul_gram`, `orthoNorm`, `fiberCross`, `fiberPythagoras`, `fiberParamCount`
+- `Hagi/Architecture/FactorRank.lean` — `rank_le_of_nonnegFactorization`, `rank_le_nonnegRank`, `positive_measure_pos_prob`, `regimeC_fractional`
+- `Hagi/Architecture/FactorizedMerge.lean` — `is`, `routed_eval_exact`, `merge_core_residual_identity`, `factorized_merge_exact`, `mean_norm_le`, `routed_approx_bound`, `factorized_error_bound`, `factorized_budget` (+1)
+- `Hagi/Architecture/Heterarchy.lean` — `no_global_ranking`, `cycle_breaks_ranking`, `disagreement_survives_configs`
+- `Hagi/Architecture/LiveDelta.lean` — `rollback_addBlock`, `block_rank_le`, `null_effect`, `blocks_cost`
+- `Hagi/Architecture/OrthoInjection.lean` — `fiberSplitOrtho`, `fiberActionNoInterference`, `fiberSplitEnergy`, `fiber_cortex_zero`, `fiber_injection_preserves_cortex`, `fiber_injection_norm_split`
+- `Hagi/Architecture/ResidualSplit.lean` — `rotated_factors_same_matrix`, `signMatrix_orthogonal`, `signMatrix_mul_self`, `sign_flip_functional_equiv`, `naive_latent_merge_kills_flipped`, `residual_gate_two_sided`, `expert_residual_not_compressible`, `fidelity_bound_with_fibers`
+- `Hagi/Audit/EqualBudget.lean` — `aitken_exact`, `aitken_consistency`, `budget_gap_sign_const`, `headstart_pays_iff`
+- `Hagi/Audit/Exactness.lean` — `exp_jensen`, `gap_N_nonneg`, `anchor_recurrence`, `ns_poly_bound`, `amgm_batch_bound`, `nce_estimator_unbiased`, `log_jensen_uniform`, `exp_tangent` (+6)
+- `Hagi/Autonomy/Hedge.lean` — `exp_neg_le_quad`, `hedge_step`, `hedge_telescope`, `router_regret_bound`
+- `Hagi/Autonomy/HedgeSurvivor.lean` — `ewWeight_nonneg`, `ewWeight_exp`, `ewWeight_pos`, `ewPot_pos`, `ewNorm_nonneg`, `ewNorm_sum`, `ewPot_step`, `ewPot_upper` (+4)
+- `Hagi/Autonomy/Insight.lean` — `forgetting_kl_bound`, `insight_kl_descent`, `experience_cycle_bound`, `insight_consolidation_safe`, `gate_retention`, `tldr_drift_null`, `tldr_two_tier_safety`
+- `Hagi/Autonomy/ParetoController.lean` — `dirTau_le`, `le_dirTau`, `dirTau_char`, `pareto_validity`, `dir_controller_find`, `sup_stab`, `noisy_pareto_select`
+- `Hagi/Autonomy/SupervisorSafety.lean` — `capacity_member_mono`, `ternary_beats_binary`, `no_restore_without_checkpoint`
+- `Hagi/Autonomy/SupervisorViability.lean` — `versionSpace_mono`, `versionSpace_append_singleton`, `halving_mistake_halves`, `mistakesAux_bound`, `halving_mistake_bound`, `majority_wrong_verdict`, `majority_wrong_persists`
+- `Hagi/Autonomy/TTTStability.lean` — `ttt_bibo`, `ttt_chain_bounded`
+- `Hagi/Budget/ActiveCompute.lean` — `active_flops`, `switching_never_exceeds_dense`, `active_beats_dense_family`
+- `Hagi/Budget/AnytimeCondensation.lean` — `pointwise_upper_band`, `anytime_condensation`, `condensation_pipeline`
+- `Hagi/Budget/BatchCap.lean` — `sfo_min_core`, `sfo_global_min`, `critical_batch_lower`, `two_term_amgm`, `optimal_split`, `batchCapMonotone`, `batchCapSaturates`
+- `Hagi/Budget/BitAlloc.lean` — `distill_chain_telescoping`, `ensemble_linear_descent`, `distill_compound_gain`, `distill_leak_gate`, `harvest_budget`, `exhausted_when`, `field_nonneg`, `harvest_accounting_identity` (+15)
+- `Hagi/Budget/BitAllocTermination.lean` — `alloc_entry_le`, `error_chain_descends`, `improving_chain_injective`, `no_infinite_improving_chain`
+- `Hagi/Budget/CertifiedArgmax.lean` — `argmax_pair_certified`, `argmax_select_certified`, `tie_ambiguity`
+- `Hagi/Budget/DesignOpt.lean` — `spectral_tail_mono`, `spectral_rank_exists`, `shadow_price_sum_identity`
+- `Hagi/Budget/ElementQuant.lean` — `factor_quant_error`, `factor_quant_go`, `ternary_factor_qerr_bound`, `ternary_pair_qerr_sum`
+- `Hagi/Budget/FlopsEconomy.lean` — `equal_budget_baseline`, `lower`, `pipeline_beats_baseline_iff`, `amortized_growth_cheaper`
+- `Hagi/Budget/JointCost.lean` — `block_lowrank_lt_dense_iff`, `nsIter_scale`, `nsIter_block_le`, `amdahl_ceiling`, `offdiag_pythagoras`
+- `Hagi/Budget/KVWater.lean` — `waterfilling_bound`, `waterfilling_inactive_clamp`
+- `Hagi/Budget/RankBudget.lean` — `rankResidual_equalized`, `rankResidual_allocation`
+- `Hagi/Budget/ThermoCondensation.lean` — `schedule_descent`, `schedule_conflict_step`, `jl_inner_approx`, `orthogonal_preserves_grad_dist`, `mup_scale_invariance`, `vocab_critical_point`, `phase_metric_monotone`, `frozen_norm_no_dynamics` (+20)
+- `Hagi/Budget/TokenWeightBias.lean` — `token_weight_decomposition`, `zero_bias_iff_uncorrelated`
+- `Hagi/Budget/WaterFilling.lean` — `sum_two_point`, `exists_balanced_allocation`
+- `Hagi/Budget/WaterFillingMoE.lean` — `genMean_assoc`, `marginalValue_law`, `activeSet_structure`
+- `Hagi/Challenge/MasterChallenge.lean` — `master_hagi_core_comparator`
+- `Hagi/Challenge/MasterChallengeV3.lean` — `master_hagi_challenge_v3`
+- `Hagi/Core/Ambig.lean` — `lse_shift`, `consensus_no_gain`
+- `Hagi/Core/Attention.lean` — `attention_error_damped_sum`, `attention_error_damped`, `attention_error_damped'`
+- `Hagi/Core/BlockDiag.lean` — `blockDiagonal'_mulVec_apply`, `step0_equivalence`
+- `Hagi/Core/Concat.lean` — `concatCols_identical`, `concatCols_identical_apply`, `concat_unique_identity_scale`, `temperature_softmax_eq_forces_const`, `temperature_changes_softmax`, `exp_sum_pos`, `softDef_eq_exp_sub_lse`, `lse_midpoint_le` (+4)
+- `Hagi/Core/Element.lean` — `residualLeaf_zero`, `residualLeaf_zero_apply`, `delta_rank_le`, `delta_exact_rank_bound`, `params_count`
+- `Hagi/Core/ErrorProp.lean` — `propagate_cons`, `propagate_bound`, `propagate_bound_contractive`, `propagate_sq_bound`
+- `Hagi/Core/F3Root.lean` — `root_invariance`, `root_no_leaf_signal`, `anova_split`
+- `Hagi/Core/FrobOuter.lean` — `frobSq_outer_orthonormal`, `frobSq_outerSum`, `frobSq_trunc_tail`
+- `Hagi/Core/Hadamard.lean` — `zmod2_add_self`, `zmod2_neg_eq_self`, `zmod2_one_add_one`, `zmod2_cases`, `chi2_zero`, `chi2_one`, `chi2_sq`, `chi2_mul` (+9)
+- `Hagi/Core/Kronecker.lean` — `kronecker_mul_conjTranspose`, `conjTranspose_kronecker_mul`, `kronecker_mul_transpose`, `transpose_kronecker_mul`
+- `Hagi/Core/Lift.lean` — `parentPreservingQ_mul_transpose`, `parentPreservingQ_diag`, `parentPreservingQ_leafSub`, `diagonalAdd_preserves_equality`, `rootProj_is_mean`, `parentPreservingQ_root_fixed`, `mixerQ_orthogonal`, `mixerQ_root_fixed` (+3)
+- `Hagi/Core/Merge.lean` — `head_prerotation`, `blockCols_mulVec_sum`, `mulVec_dotProduct_mulVec`
+- `Hagi/Core/Mix.lean` — `mixed_invisible`
+- `Hagi/Core/NonlinearStep0.lean` — `gauge_equiv_comp`, `perBlock_gauge_equiv`, `perBlock_net_blockwise`, `zero_init_identity`
+- `Hagi/Core/RealF3Ortho.lean` — `sq3`, `sq3c`, `omega_sq_add_add`, `omega_cubed`, `conj_omega`, `omega_ne_one`, `norm_omega`, `omega_pow_mod` (+22)
+- `Hagi/Core/Ridge.lean` — `ridge_optimal`
+- `Hagi/Core/RoPEMoments.lean` — `rot_norm`, `rope_score_delta`, `rope_translation_shift`, `rope_context_dichotomy`, `rope_limit_irreversible`, `rope_mean_sum`, `rope_second_moment_sum`, `cosSum_zero'` (+3)
+- `Hagi/Core/RootContrast.lean` — `root_sum_eq`, `root_idem`, `contrast_zero_sum`, `contrast_of_root`, `root_contrast_orth_total`, `root_contrast_pythagoras`, `filter_partition_sum`, `highway_gain_identity` (+1)
+- `Hagi/Core/Select.lean` — `meanBound_greedy`, `selection_hurts`
+- `Hagi/Data/BytePatch.lean` — `patch_cover`, `patch_le_raw`, `patch_real_bound`, `patch_attn_saving`
+- `Hagi/Data/CertifiedArgmax.lean` — `certified_argmax_strict`, `certified_argmax_ambiguity`
+- `Hagi/Data/DBridge.lean` — `dQuad_nonneg`, `dfield_entropy_identity`, `equilibrium_bracket`
+- `Hagi/Data/DField.lean` — `kl_nonneg`, `log_eq_sub_one_iff_one`, `mixtureCorpus_pos`, `mixtureCorpus_sum_one`, `log_lt_sub_one'`, `kl_zero_iff_eq`, `divField_zero_iff`, `log_ratio_add` (+4)
+- `Hagi/Data/DFieldKKT.lean` — `dfield_ascent_transfer`
+- `Hagi/Data/DataMixing.lean` — `exp_segment_le`, `mixing_loss_convex`
+- `Hagi/Data/Distill.lean` — `kl_eq_ce_gap`, `ce_gap_kl_identity`, `teacher_generated_identity`, `ce_topk_shift`, `kl_topk_shift`, `topk_distill_budget`, `topk_tail_bound`, `topk_distill_budget_tv` (+2)
+- `Hagi/Data/DistillRecursion.lean` — `entDef_eq_shannon`, `freshMix_pos`, `freshMix_sum_one`, `entropy_mix_ge`, `entropy_kl_ce_identity`, `distill_step_entropy`, `distill_entropy_recurrence`, `entropy_floor` (+3)
+- `Hagi/Data/FannesSmooth.lean` — `log_sub_le_div`, `abs_log_sub_le`, `entropy_lipschitz_smooth`
+- `Hagi/Data/InfoNCE.lean` — `shannon_eq_canonical`, `tvHalf_eq_canonical`, `kl_excess_cross_entropy`, `ce_self_eq_entropy`, `ce_ge_entropy`, `infonce_never_overestimates`, `infonce_gap_is_kl`
+- `Hagi/Data/NessDissipation.lean` — `detailed_balance_zero_ep`, `ep_zero_implies_db`
+- `Hagi/Data/PACBayes.lean` — `log_weighted_jensen`, `gibbs_variational`
+- `Hagi/Diagnostics/Obstructions.lean` — `full_cycle_two_step_growth_inconsistent'`
+- `Hagi/Discovery/PPT.lean` — `pptNorm_pos`, `pptTarget_isProbability`, `pptTarget_pos`, `pptKernel_nonneg`, `mh_stationary`, `pptSwapAccept_nonneg`, `pptSwapAccept_le_one`, `pptSwapAccept_mem` (+24)
+- `Hagi/Dynamics/CapabilityGain.lean` — `capability_gain_transfer`, `pb_gap_bound_mono`
+- `Hagi/Dynamics/ControllerPolicy.lean` — `ratio_dominance`, `budget_allocation_dominance`
+- `Hagi/Dynamics/DistillationRate.lean` — `kl_contraction_budget`, `kl_half_steps`
+- `Hagi/Dynamics/EndpointContraction.lean` — `geom_sum_telescope`, `geom_sum_le_inv`, `contraction_limit`, `endpoint_bivariate_bound`, `endpoint_geometric_tail`, `endpoint_depth_budget`
+- `Hagi/Dynamics/FastGrowth.lean` — `capability_takeoff_counted`, `capability_cumulative`, `growth_efficiency_lower`, `growth_efficiency_div`, `capability_multiplicative`, `capability_takeoff_floor`, `risk_takeoff_counted`, `risk_epsilon_floor`
+- `Hagi/Dynamics/ProxyGap.lean` — `budget_consumed`, `guarantee_horizon_bound`, `shift_paid_from_budget`
+- `Hagi/Dynamics/SpeedLimit.lean` — `learning_time_lower_bound`
+- `Hagi/Dynamics/UrgencyDepth.lean` — `depth_capped_by_time`, `shallow_misses_tube`, `patient_configuration_reaches`
+- `Hagi/Dynamics/WallClockTakeoff.lean` — `log_one_add_ge_sub_half_sq`, `exp_le_one_add`, `wallclock_takeoff_product`, `prod_exp_le_prod_one_add`, `wallclock_takeoff`, `wallclock_takeoff_small_steps`, `counted_takeoff_exp`, `wallclock_rate_from_cone` (+2)
+- `Hagi/Energy/Cooling.lean` — `gibbs_value_nernst_bounds`, `gibbs_schedule_quality`, `gibbs_free_energy_identity`, `shannon_entropy_le_log_card`, `gibbs_mixture_quality`, `geometric_cooling_steps`, `thermal_blur`, `temperature_corridor` (+8)
+- `Hagi/Energy/EntropyProduction.lean` — `exp_neg_entropyProduction`, `ift_normalization`, `second_law`
+- `Hagi/Energy/FreeEnergy.lean` — `free_energy_gap`, `geometric_pool_identity`, `geometric_pool_identity_nonneg`
+- `Hagi/Energy/Landauer.lean` — `landauer_sandwich`, `landauer_cap_certified`, `written_bits_cap`, `ternary_weight_growth_cap`, `serial_divergence_cap`, `cycle_budget_split`, `trajectory_budget_telescope`, `lifetime_thermodynamic_ceiling` (+7)
+- `Hagi/Energy/PoEBound.lean` — `sum_exp_pos`, `smax_pos`, `smax_nonneg`, `smax_sum_one`, `sum_smax_exp`, `lse_shift_lower`, `lse_shift_upper`, `weighted_center_le` (+7)
+- `Hagi/Energy/PreNorm.lean` — `var_recursion`, `constructive_scale`, `rms_direction`, `rms_idempotent`, `requires`, `bf16_frozen_update`
+- `Hagi/Energy/Quantizer.lean` — `gridQ_error`, `gridQ_mem_grid`, `gridQ_div`, `gridQ_idem`, `quantizer_optimal_step`
+- `Hagi/Energy/STEStep.lean` — `covered`, `tern_distortion_round`, `tern_scale_invariance`, `ste_step_residual`
+- `Hagi/Energy/Ternary.lean` — `three_pow_five`, `trits_fit_byte`, `sum_two_pow`, `encode_lt_aux`, `tritEncode_lt`, `last_digit_eq`, `abs_sub_le`, `sum_injective_aux` (+7)
+- `Hagi/Energy/Variational.lean` — `tilted_sum_one`, `tilted_pos`, `kl_tilted_decompose`, `free_energy_variational`, `gibbs_optimal_bound`
+- `Hagi/Ensemble/CompressionCert.lean` — `deltaCost_concat`, `deltaCost_sum`, `merged_bound`
+- `Hagi/Ensemble/GapLaw.lean` — `twoGap_pos_measure`, `twoGap_cosh`, `twoGap_nonneg`, `twoGap_zero_iff`, `pairVarEq`
+- `Hagi/Ensemble/Hoeffding.lean` — `exp_chord`, `sum_pair_weights`, `sum_pair_diff_zero`, `sum_pair_const`, `sum2_mul`, `exp_prod_le_cosh`, `half_log_cosh_le`, `twoGap_bounded` (+14)
+- `Hagi/Ensemble/MergeIdentity.lean` — `softmax_shift_invariance`, `geometric_mean_logit_mean`
+- `Hagi/Ensemble/MergeMixture.lean` — `merged_output_exact`, `routing_drift_bound`
+- `Hagi/Ensemble/MergePrice.lean` — `sigmaPrice_neg`, `merge_price_quad`, `price_zero_iff_ker`, `merge_gate_certified`
+- `Hagi/Ensemble/MergeScaling.lean` — `two_channel_step_law`
+- `Hagi/Ensemble/PolicyCompatibility.lean` — `integration_net_gain_pos`, `integration_rejects_far_teacher`, `mopd_kl_scaling_warning`
+- `Hagi/Ensemble/QFormerBridge.lean` — `punctured_unbiased`, `vista_bridge_zero`, `vista_residual_identity`
+- `Hagi/Ensemble/SigmaKernel.lean` — `quad_form_factorization`, `quad_form_zero_iff`, `kernel_interference_zero`, `gn_grad_inner_ker`, `gpm_implies_safeqp_gn`
+- `Hagi/Ensemble/UniformCert.lean` — `uniform_good_point`, `uniform_good_mass`, `two_sided_union_tail`, `two_sided_good_mass`, `class_size_lower`, `tolerance_calibration`, `calibrated_two_sided_mass`, `two_sided_good_point` (+1)
+- `Hagi/Examples/HAGICertWitness.lean` — `eq_zero_of_mem_range_one`, `hagicert_nonvacuous`
+- `Hagi/Examples/Nonvacuity.lean` — `jensenGap_nonneg`, `merge_energy_bridge`, `h_emp_merge_of_bridge`, `cosh_half_sq`, `jensenGap_pos_witness`, `core_premises_merge_operational`, `witness_quantErr_bounded`, `witnessGap_pos` (+38)
+- `Hagi/Examples/NonvacuityHorizon.lean` — `sat_step_laws`, `sat_cone_iff`, `witness_achieves_horizon`
+- `Hagi/Examples/QuadLoopWitness.lean` — `qhalf_succ`, `quadE_half`, `quadE_qhalf`, `quadE_pos_of_grad`, `qhalf_grad_ne`, `quadE_qhalf_le`, `quad_loop_horizon`, `quad_witness_T3` (+1)
+- `Hagi/Examples/QuadraticConcrete.lean` — `quad_hasDeriv`, `quad_fderiv_apply`, `quad_smooth`, `quad_kappa_bound`, `quad_gcont`, `quad_hasFDeriv`, `quad_conj8`, `quad_kappa_at0` (+2)
+- `Hagi/Examples/QuadraticEndToEnd.lean` — `qGrad`, `qStep_loss_exact`, `qStep_descent`, `qIter_loss`, `qQuant_err_bound`
+- `Hagi/External/Diversity.lean` — `grad_dist_polarization`, `grad_zero_merge_perfect`, `gittins_index_max`, `merge_init_head_start`
+- `Hagi/External/Flywheel/CoherenceCharacterization.lean` — `singularValues_ne_zero_iff_eigenvalues_ne_zero`, `rank_eq_card_nonzero_singularValues`, `sum_singularValues_sq_le_rank_mul_max_sq`, `rank_pos_of_ne_zero`, `sum_singularValues_sq_le_card_mul_max_sq`, `frobenius_spectral_ratio_le_sqrt_dim`, `coherenceFactor_zero`, `coherenceFactor_le_one` (+50)
+- `Hagi/External/Flywheel/CourantFischer.lean` — `subspace_intersection_nontrivial`, `exists_nonzero_in_intersection`, `finrank_inf_ge_of_sum_gt`, `eigenspace_span_finrank`, `exists_eigenspace_of_dim`, `inner_toEuclideanLin_eq_eigenvalue_sum`, `rayleigh_eq_eigenvalue_on_eigenvector`, `rayleigh_eq_eigenvalue_weighted_sum` (+37)
+- `Hagi/External/Flywheel/FrobeniusNorm.lean` — `Complex`, `Complex`, `frobenius_norm_sq_eq_trace`, `trace_conjTranspose_unitary_mul`, `trace_conjTranspose_mul_unitary`, `frobenius_norm_unitary_mul`, `frobenius_norm_mul_unitary`, `frobenius_norm_sq_diagonal` (+13)
+- `Hagi/External/Flywheel/MDLRank.lean` — `mdlErr_antitone`, `mdlErr_zero_of_ge`, `mdlErr_step`, `mdlJ_argmin_exists`, `mdlDj_eq`, `mdlDj_ge_card`, `mdlJ_first_order`, `mdl_rank_ce`
+- `Hagi/External/Flywheel/MatrixNormRelations.lean` — `R_apply`, `vec_apply`, `outerProduct_apply`, `R_kronecker`, `R_add`, `R_smul`, `R_frobenius_norm_eq`, `R_inv_R` (+50)
+- `Hagi/External/Flywheel/NormSupport.lean` — `toEuclideanLin_apply`, `complex_sum_cauchy_schwarz`, `mulVec_eucl_norm_sq_le`, `mulVec_eucl_norm_le`, `frobenius_norm_eq_sqrt`
+- `Hagi/External/Flywheel/SVD.lean` — `singularValues_nonneg`, `singularValues_sq`, `singularValues`, `singularValues`, `singularValues_eq_singularValues`, `singularValues`, `matrix_charpoly_zero`, `eigenvalues` (+153)
+- `Hagi/External/Flywheel/SpectralNormGap.lean` — `sum_norm_sq_eq_norm_sq_euclidean`, `outerProduct_frobenius_norm_sq'`, `outerProduct_frobenius_norm'`, `R_inv_frobenius_norm_eq`, `l2_opNorm_le_frobenius`, `R_inv_spectral_le_frobenius`, `R_inv_outerProduct_spectral_bound`, `R_inv_outerProduct_spectral_bound_unit` (+27)
+- `Hagi/External/Flywheel/TruncatedSVDRank1.lean` — `singularValues`, `truncatedSVD_rank1_identity`
+- `Hagi/External/Flywheel/WeylInequality.lean` — `toEuclideanLin_add`, `rayleigh_add`, `weyl_eigenvalue_lower_bound`, `weyl_eigenvalue_upper_bound`, `weyl_eigenvalue_bounds`, `rank_conjTranspose_mul_self_eq`, `rank_mul_conjTranspose_eq`, `antitone_nonneg_zeros_from_rank` (+18)
+- `Hagi/External/MemT/GDN2.lean` — `rowSumNorm_nonneg`, `rowSumNorm_mul_le`, `rowSumNorm_add_le`, `gdn2_step_bound`, `gdn2_horizon`, `rowSumNorm_sub_le`, `gdn2_read_sensitivity`, `gdn2Update_sub` (+5)
+- `Hagi/Foundations/Chord.lean` — `exp_chord_r`, `exp_chord_ab`, `log_cosh_le`
+- `Hagi/Foundations/ConeCorridor.lean` — `cone_exact_exponential`
+- `Hagi/Foundations/ConeTakeoff.lean` — `cone_step`, `cone_invariant_horizon`, `takeoff_from_cone`, `frontier_cone_inductive`, `frontier_cone_invariant`
+- `Hagi/Foundations/GrowthBand.lean` — `growth_band_step`, `growth_band_iter`, `saturation_gap`, `saturation_ceiling`
+- `Hagi/Foundations/GrowthDynamics.lean` — `telescope_band`, `anytime_growth_budget`, `band_telescope`, `geometric_band_ceiling`, `band_target_unreachable`, `geo_sum_decay`, `band_guaranteed_growth`, `band_time_to_target` (+2)
+- `Hagi/Foundations/Hoeffding.lean` — `bernDenom_pos`, `bernDenom_ne_zero`, `bernRho_hasDerivAt`, `bernRho_deriv_le`, `bernRho_cont`, `bernRho_diff`, `bernRho_slope`, `bernF_hasDerivAt` (+7)
+- `Hagi/Foundations/MesoScale.lean` — `rpow_tendsto_zero`, `macro_collapse`, `micro_collapse`, `meso_peak_exists`
+- `Hagi/Foundations/Ortho.lean` — `ortho_norm_sq_finset`, `ortho_norm_sq`, `gating_tail_bound`
+- `Hagi/Foundations/PerronCone.lean` — `cone_eigenvector_iff`, `cone_perron_growth`, `cone_comparison`, `cone_comparison_perturbed`, `cone_explicit_lower`, `cone_explicit_monotone`, `h_emp_dyn_explicit`, `h_emp_dyn_linear_growth` (+4)
+- `Hagi/Foundations/Potential.lean` — `hagiPotential_penalty_drop`
+- `Hagi/Foundations/Recurrence.lean` — `geom_telescope`, `recurrence_upper`, `recurrence_pure`, `recurrence_lower`, `geom_sum_le_inv`, `contraction_limit`, `genMean_compound`, `genGap_decay` (+6)
+- `Hagi/Foundations/StageCalculus.lean` — `compress_stage`, `adaptive_ns_exists`, `compound_budget`, `merge_stage`, `merge_stage_decrease`, `joint_stage`, `quadratic_bound_max`, `eta_star_exceeds_cap` (+2)
+- `Hagi/Foundations/SumIdentities.lean` — `sum_sub_mean_zero`, `sq_decomp`
+- `Hagi/Foundations/Telescope.lean` — `telescope_le`, `telescope_sum_le`, `telescope_sub_sum`, `lyapunov_telescope_fin`, `lyapunov_gain_noise`, `lyapunov_termination_fin`
+- `Hagi/Generalization/ModeState.lean` — `Qgen_le`, `Qgen_drop_bound`, `relu_shift_le`, `generalization_safe_step`, `generalization_safe_step_at_target`, `safeqp_risk_bound_compose`, `modeDrop_rejected`, `scalarized_argmin_pareto` (+4)
+- `Hagi/Geometry/SphericalSimplex.lean` — `dihedral_count`, `dihedral_angle_strictMono`, `dihedral_angle_lt_pi`, `excess_as_supplement`, `excess_pos`, `dihedral_angle_ge_pi_div_three`, `dihedral_angle_lt_pi_div_two`, `euclid_sum_bounds`
+- `Hagi/Growth/AdaptiveQuery.lean` — `avgRadius_shrinks`, `certified_gain_select_avg`
+- `Hagi/Growth/ChainToCone.lean` — `chain_feeds_cone`, `cone_two_sided_certificate`, `takeoff_from_certificate`
+- `Hagi/Growth/ChainUnification.lean` — `training_core_is_measurement_tail`, `deficit_factorizes`
+- `Hagi/Growth/ConeDynamics.lean` — `cone_data_invariant`, `frontier_cone_inductive_is_cone_data`, `cone_reinvest_invariant`, `cone_ratio_step_is_reinvest`
+- `Hagi/Growth/DisagreementChain.lean` — `gain_chain_opt`, `any_stage_kills_gain`, `disagreement_chain`, `deficit_localizes`, `alignment_factor_le_one`, `stages_cone_gain`
+- `Hagi/Growth/FiberNecessity.lean` — `configs_injective_on_separated`, `used_configs_lower_bound`, `fiber_params_floor`
+- `Hagi/Growth/FrontierProduction.lean` — `injection_law_of_measured`, `coordMean_const`, `const_probe_sum`, `certified_cycle_renewal`, `takeoff_lifts_utility`
+- `Hagi/Growth/FrontierScaling.lean` — `takeoff_edge_forced`, `cone_and_pos`, `sustained_takeoff_from_production`, `frontier_asymptotic`
+- `Hagi/Growth/GainCeiling.lean` — `gain_product_bound`, `stackComp_cons`, `gain_stack_ceiling`, `amplification_needs_expansion`
+- `Hagi/Growth/GainDecomposition.lean` — `merge_is_mean`, `deviations_cancel`, `pairwise_variance_identity`, `orthogonal_energy_split`, `decompose_reconstruct`, `anticorrelated_suppressed`, `gainop_cone_step`, `gainop_pairwise_bridge` (+3)
+- `Hagi/Growth/GainRenewal.lean` — `gain_renewal_recurrence`, `geo_sum_mul`, `geo_sum_closed`, `gain_renewal_growth`, `gain_renewal_floor_pos`, `geo_sum_ge_one`, `gain_renewal_floor`, `gain_renewal_growth_one` (+3)
+- `Hagi/Growth/GammaDeficit.lean` — `gamma_min_for_target`, `gamma_deficit_no_takeoff`
+- `Hagi/Growth/Grow.lean` — `newBound`, `certifiedGain_monotone`, `grow_epsilon_stop`, `certifiedGain_positive`, `pl_stop_certificate`
+- `Hagi/Growth/GrowthCeiling.lean` — `potential_telescope`, `edge_total_bound`, `frozen_saturation`, `expansion_required`, `growth_dichotomy`
+- `Hagi/Growth/GrowthGate.lean` — `verdict_ttt`, `verdict_grow`, `verdict_exhausted`
+- `Hagi/Growth/IntegrationOrder.lean` — `sum_perm_invariant`, `negative_expert_hurts_any_order`, `positive_selection_dominates`
+- `Hagi/Growth/NoiseDisentangle.lean` — `orthogonal_noise_averaging`, `disagreement_convergence_floor`, `fiber_merge_denoise`
+- `Hagi/Growth/NonlinearCone.lean` — `sqrt_gain_step`, `sqrt_gain_takeoff`, `nonlinear_zero_kill`
+- `Hagi/Growth/PlasticityLedger.lean` — `kl_le_log_card`, `radius_le_log_card`, `radius_zero_of_eq`
+- `Hagi/Growth/RatioTakeoff.lean` — `cone_ratio_step`, `cone_ratio_invariant`, `ratio_takeoff`, `frontier_decay_no_growth`
+- `Hagi/Growth/RecursiveSelfDevelopment.lean` — `opportunity_renewal`, `recursive_self_development`, `multiplicative_growth`, `sum_realized`, `closed_loop_takeoff`
+- `Hagi/Growth/RoundViability.lean` — `round_exhausted`, `round_viable`, `cycle_criterion`
+- `Hagi/Growth/RsiCriterion.lean` — `rsi_step_growth`, `rsi_cone_criterion`
+- `Hagi/Growth/Saturation.lean` — `never_overshoot`, `pl_gap_geometric`, `saturation_limit`, `pl_gap_geometric_lo`, `takeoff_with_saturation`
+- `Hagi/Growth/SeedOnly.lean` — `cycle_decay_mono`, `cycle_decay_ratio`, `channel_switch`, `sum_dist_mean_le`, `seed_only_disp_bound`, `seed_only_grow_stop`
+- `Hagi/Growth/SelfDevelopment.lean` — `controller_max_exists`, `self_development_find`, `certified_gain_select`, `search_cost_bound`
+- `Hagi/Growth/StateBinding.lean` — `capability_takeoff_state`, `candidate_completeness_find`, `usableFrontier_renewal`
+- `Hagi/Growth/T3Ignition.lean` — `ignitionGate_nonneg`, `ignitionCeiling_pos`, `T3_ignition`
+- `Hagi/Growth/TakeoffElasticity.lean` — `elasticity_chain`, `takeoff_elasticity`, `decay_elasticity`, `elasticity_chain_horizon`
+- `Hagi/Growth/Thermostat.lean` — `thermostat_stop`, `merge_gate_eventually`, `thermostat_phase_point`, `phase_concentration`, `consolidation_certificate`, `gibbs_representative`, `hagi_certified_state`, `certified_state_tv` (+11)
+- `Hagi/Information/DiscreteFannes.lean` — `trace_unitary_conj`, `trace_cfc_eq`, `entropy_eq_sum`, `entropy_nonneg`, `unitary_row_sq_sum`, `unitary_col_sq_sum`, `diag_eq_spectral_mix`, `entropy_le_diagonal` (+56)
+- `Hagi/Information/GainRecoverability.lean` — `dotSelf_nonneg`, `devEnergyF_pos_iff`, `recoverable_avg`, `devSignal_self`
+- `Hagi/Information/MemoryCapacity.lean` — `separated_needs_capacity`, `bits_floor`
+- `Hagi/Information/Pinsker.lean` — `pinsker4_fin`, `gen_pair_bound`, `turns`, `cmi_iteration`
+- `Hagi/Information/RoutingCapacity.lean` — `no_free_recovery`, `quantized_separation_needs_range`, `repRate_trichotomy`, `router_capacity_bound`
+- `Hagi/Model/ALiBi.lean` — `alibi_bias_anti`, `alibi_bias_nonpos`, `alibi_kernel_decay`, `alibi_kernel_decay_lt`
+- `Hagi/Model/AdaptiveChunking.lean` — `adaptive_le_static`, `adaptive_lt_of_strict`
+- `Hagi/Model/BYOL.lean` — `bl_bounds`, `bl_anti`, `bl_zero_at_perfect`, `cos_scale_inv`
+- `Hagi/Model/BestOfN.lean` — `best_of_n_mean_le_sup`, `best_of_n_pos`
+- `Hagi/Model/BlockNorm.lean` — `global_eq_mean_blocks`, `equal_blocks_global`
+- `Hagi/Model/CFG.lean` — `cfg_interp`, `cfg_convex`, `cfg_boost`
+- `Hagi/Model/CertifiedTransition.lean` — `certifiedTransition_of_advance`, `certified_trajectory_budget`, `certified_trajectory_risk`, `certified_trajectory_capability`, `witness_certifiedTransition`, `certificate_of_transition`, `transition_safe_selection`, `wsd_cycle_bound` (+3)
+- `Hagi/Model/ComputeOptimal.lean` — `chinchilla_optimum`
+- `Hagi/Model/ConsolidationMirror.lean` — `context_distillation_identity`, `gibbs_variational_floor`, `distillation_floor_attained_iff_kl_zero`, `grow_gain_from_mirror`, `grow_gain_nonneg`, `core_premises_grow_operational`
+- `Hagi/Model/CycleCertificate.lean` — `cycle_certificate_composition`, `growSeq_capability_nonneg`, `growSeq_energy_const`, `honest_trajectory_global`
+- `Hagi/Model/DDPM.lean` — `alphaBar_succ`, `alphaBar_mono`, `alphaBar_exp_bound`, `ddpm_recover`
+- `Hagi/Model/DPO.lean` — `boltzmann_from_reward`, `boltzmann_norm`, `bt_pref_iff`
+- `Hagi/Model/DiffAttention.lean` — `sm_sum_one`, `sm_nonneg`, `sm_shift`, `noise_cancel`, `diff_range`
+- `Hagi/Model/DistillCert.lean` — `quant_pointwise`, `quant_L2`, `two_sq`, `consolidation_bound`
+- `Hagi/Model/FlashAttention.lean` — `flash_io_lt`, `flash_io_antitone`
+- `Hagi/Model/FlowMatching.lean` — `flow_start`, `flow_end`, `flow_convex`, `flow_mid`, `flow_const_velocity`
+- `Hagi/Model/GAE.lean` — `gae_weight_bound`, `gae_weight_pos`
+- `Hagi/Model/GDNBridge.lean` — `gdn_onehot_is_colUpdate`, `gdn_transpose_is_ramWrite`, `gdn_onehot_interp`
+- `Hagi/Model/GDNRAM.lean` — `ram_read_after_write`, `ram_write_independent`, `ram_write_idem`
+- `Hagi/Model/GQA.lean` — `gqa_kv_lt`, `gqa_kv_ratio`, `gqa_kv_mono`
+- `Hagi/Model/GRPO.lean` — `groupAdv_sum_zero`, `groupAdv_sq_decomp`, `groupAdv_sq_min`, `groupAdv_std_unit`
+- `Hagi/Model/GradNorm.lean` — `gnBalanced`, `gnPos`, `gnInverse`
+- `Hagi/Model/Grokfast.lean` — `decompose`, `amp_recompose`, `const_grad_fix`, `amp_inner_ge`
+- `Hagi/Model/HNet.lean` — `hier_seq_shorten`, `hier_attn_saving`, `hier_attn_saving_lt`, `amgm3`, `hnet_cost_floor`
+- `Hagi/Model/HypothesisCompetition.lean` — `dhcTotal_pos`, `dhcWeights_pos`, `dhcWeights_sum_one`, `dhcWeights_le_one`, `dhcWeights_mono`, `dhcStep_suppressed`, `dhcStep_abs_bound`, `dhcOrbit_succ` (+9)
+- `Hagi/Model/LabelSmoothing.lean` — `ls_sum_one`, `ls_nonneg`, `ls_pointwise_dist`, `ls_l1_bound`, `ls_entropy_ge`
+- `Hagi/Model/LayerNorm.lean` — `mean_smul`, `variance_smul`, `ln_scale_invariant`, `variance_decomp`, `ln_sum_zero`
+- `Hagi/Model/LoRA.lean` — `lora_out`, `lora_kernel_preserved`, `lora_param_saving`
+- `Hagi/Model/LogitPSV.lean` — `logitPSV_gap_nonneg`, `logitPSV_gap_zero_of_no_spread`, `logitPSV_weights_frozen`
+- `Hagi/Model/LookaheadTrajectory.lean` — `anchor_eq_ema`, `anchor_stable`
+- `Hagi/Model/MLA.lean` — `mla_cache_saving`
+- `Hagi/Model/MachineBridge.lean` — `machine_advance_certified`
+- `Hagi/Model/MambaSSM.lean` — `ssm_linear_cost_lt`, `ssm_memory_const`, `ssm_state_bound`, `mamba_disc_contract`
+- `Hagi/Model/Matryoshka.lean` — `matryoshka_norm_le`, `matryoshka_dist_le`
+- `Hagi/Model/MeasuredEffects.lean` — `trainStep_measured`, `trainStep_budget_balance`, `trainStep_capability_band`, `ofStageEffects_roundtrip`, `totalCost_ofStageEffects`, `totalRisk_ofStageEffects`
+- `Hagi/Model/MeasurementCert.lean` — `claimed_floor`, `claimed_pos_of_signal`, `claimed_ceiling`, `chain_floor`
+- `Hagi/Model/MemoryConsolidation.lean` — `consolidation_bits_cap`, `consolidation_no_free_lunch`
+- `Hagi/Model/Mixup.lean` — `mixLabel_dist`, `mix_loss_le`
+- `Hagi/Model/MoD.lean` — `mod_layer_cost_lt`, `mod_stack_saving`
+- `Hagi/Model/ModeConnectivity.lean` — `energy_convex`, `linear_no_barrier`, `linear_midpoint_bound`, `swa_average_bound`
+- `Hagi/Model/ModelSoup.lean` — `soup_mem`, `soup_loss_le_avg`, `ema_invariant`
+- `Hagi/Model/ModernHopfield.lean` — `hopfield_concentration`, `capacity_bound_arith`
+- `Hagi/Model/MoeExpansion.lean` — `moe_shared_expansion_identity`, `shared_down_projection_iff`
+- `Hagi/Model/MuPScaling.lean` — `row_output_bound`, `muP_width_invariant`, `sp_grows_with_width`, `muP_bound_le_sp_bound`
+- `Hagi/Model/NTXent.lean` — `nt2_nonneg`, `nt2_le_log2`, `nt2_anti`, `nt2_zero_margin`
+- `Hagi/Model/NeuralComputer.lean` — `nc_cpu_frozen`, `nc_base_frozen`, `nc_mem_only_via_write`, `nc_budget_ledger`, `nc_risk_mono`
+- `Hagi/Model/Perceiver.lean` — `perceiver_cost_lt`, `perceiver_cost_ratio_lt`, `perceiver_saving_pos`, `perceiver_saving_mono`
+- `Hagi/Model/PreNorm.lean` — `preNorm_step_bound`, `preNorm_depth_bound`
+- `Hagi/Model/QKNorm.lean` — `qk_logit_bound`, `qk_no_saturation`
+- `Hagi/Model/QuantizedAdvance.lean` — `advanceQ_quantized`, `advanceQ_prox`, `ReferenceMachine`, `ReferenceMachine`
+- `Hagi/Model/RLHF.lean` — `rlhf_penalty_floor`
+- `Hagi/Model/RMSNorm.lean` — `ms_smul`, `rn_scale_invariant`, `rn_unit_rms`, `rms_not_centered`
+- `Hagi/Model/RVCore.lean` — `wordAdd_spec`, `wordSub_spec`, `execDeterministic`, `wordAnd_spec`, `wordAnd_idem`
+- `Hagi/Model/ReZero.lean` — `rezero_identity`, `rezero_perturb_bound`
+- `Hagi/Model/ReferenceMachine.lean` — `jointStep_energy`, `jointStep_energy_decrease`, `machine_quant_err_bound`, `machine_energy_bound`
+- `Hagi/Model/Residual.lean` — `res_bounded_drift`, `cascade_exp_bound`, `linear_le_exp_contrast`
+- `Hagi/Model/RoPE.lean` — `rot_normSq_one`, `rope_normSq_preserved`, `star_mul_self`, `rope_shift_invariant`
+- `Hagi/Model/SWA.lean` — `swa_cost_lt`, `swa_cost_ratio_lt`, `swa_cost_mono`
+- `Hagi/Model/Sidon.lean` — `sidon_diff_eq`, `sidon_pair_diff_injective`, `sidonSet_golomb4`, `advance_weights_shared`
+- `Hagi/Model/Softcap.lean` — `tanhBound`, `softcap_bound`, `softcap_zero`
+- `Hagi/Model/SoftmaxStep.lean` — `logitCE_deriv`, `logitGrad_deriv`, `sigmoid_sq_le_quarter`, `grad_lipschitz`, `logitCE_descent_lemma`, `descent_step`, `descent_example`, `joint_stage_logitCE` (+3)
+- `Hagi/Model/SourceMixture.lean` — `mixture_sum_one`, `mixture_nonneg`, `successDist_norm`, `successDist_nonneg`
+- `Hagi/Model/Speculative.lean` — `accept_chain_prob`, `speculative_expected_tokens`, `speculative_win`
+- `Hagi/Model/StageSemantics.lean` — `growAdvance_capability`, `growAdvance_budget`, `grow_two_step_consistent`, `grow_strict_productive`, `growSeq_capability`, `growSeq_budget_ledger`, `advance_energy_drop`, `cone_growth_window` (+42)
+- `Hagi/Model/StreamingLLM.lean` — `stream_bounded`, `stream_mem_lt`, `stream_saving_step`
+- `Hagi/Model/SwiGLU.lean` — `sig_lt_one`, `sig_pos`, `swish_abs_le`, `swiglu_abs_le`
+- `Hagi/Model/SwitchMoE.lean` — `switch_floor`, `switch_floor_eq_iff`
+- `Hagi/Model/TripletLoss.lean` — `tl_nonneg`, `tl_zero`, `tl_pos`, `tl_le_hinge`, `tl_mono_pos`, `tl_mono_neg`
+- `Hagi/Model/Upcycling.lean` — `upcycle_preserves`
+- `Hagi/Model/VicReg.lean` — `pv_nonneg`, `vh_nonneg`, `vh_zero`, `vh_anti`
+- `Hagi/Model/WeightTying.lean` — `wt_saving`
+- `Hagi/Model/ZLoss.lean` — `zloss_bound`, `zloss_zero`
+- `Hagi/Numerics/SoftmaxFix.lean` — `ce_grad_sum_zero`, `margin_rest_sum`, `ce_loss_margin`, `adamw_equilibrium_magnitude`, `distill_grad_self_zero`, `margin_equilibrium_value`, `adamw_normalized_bounds`, `fixed_ce_grad_sum_zero` (+8)
+- `Hagi/Omni/CapabilityMatrix.lean` — `groupGap_nonneg`, `groupGap_zero_iff_indep`, `admissionChain`
+- `Hagi/Omni/CrossModalGap.lean` — `crossModalGap_eq_kl`, `margX_sum_one`, `margY_sum_one`, `margX_pos`, `margY_pos`, `prodMarg_sum_one`, `crossModalGap_nonneg`, `crossModalGap_zero_iff_indep`
+- `Hagi/Omni/OmniInvariant.lean` — `omniGrowth_admits`, `omniGrowth_positive`, `omniGate_crossModal`, `omniSafeStep`, `omniSafeStep_sum`, `omniGate_complete`, `crossModalGap_pos_of_dep`, `omniPhi_step` (+2)
+- `Hagi/Omni/SharedStateComposition.lean` — `sharedStateEnergy`, `omniLeafCost`, `omniParamCost`, `sharedStateCostBound`, `sharedStatePerturbed`
+- `Hagi/Omni/TemporalState.lean` — `geom_sum_fin`, `driftTube_closed`, `drift_limit`, `drift_zero`
+- `Hagi/Optimization/AdaGrad.lean` — `acc_mono`, `adagrad_step_anti`
+- `Hagi/Optimization/AdamBias.lean` — `one_sub_beta_geom`, `pow_lt_one'`, `adamM_recur`, `adam_bias_bound`, `adam_unbiased_const`
+- `Hagi/Optimization/AdamW.lean` — `adamw_shrink`, `l2_decay_diluted`
+- `Hagi/Optimization/AdaptiveCycle.lean` — `adaptive_cycle_expansions`, `adaptive_hagi_contract_thermal`
+- `Hagi/Optimization/CautiousOptimizer.lean` — `cautiousMask_abs_le`, `cautiousAligned`, `cautiousId`, `cautiousZero`
+- `Hagi/Optimization/Checkpoint.lean` — `ckpt_mem_floor`, `ckpt_sqrt_opt`
+- `Hagi/Optimization/ComputeScaling.lean` — `compute_scaling_lower_bound`, `compute_scaling_bound_attained`, `compute_scaling_multi`, `compute_scaling_multi_attained`
+- `Hagi/Optimization/DREAM.lean` — `dream_delayed_gd`, `dreamY_gap_norm`, `dream_tau_extrapolation`, `dream_gd_as_plRec`, `dream_gd_wsd`
+- `Hagi/Optimization/DirectionPacking.lean` — `sum_sq_cauchy`, `Sop_inner`, `Sop_inner_left`, `Sop_self_adjoint`, `Sop_trace`, `Sop_trace_sq`, `welch_bound_core`, `welch_min_dimension` (+1)
+- `Hagi/Optimization/GradAccum.lean` — `accum_equiv`
+- `Hagi/Optimization/InexactContraction.lean` — `inexact_contraction_bound`, `inexact_contraction_floor`, `inexact_contraction_halt`, `anderson_floor_gain`, `anderson_halt`
+- `Hagi/Optimization/InfoPreservation.lean` — `info_preservation_regret`
+- `Hagi/Optimization/LLRD.lean` — `llrd_strict_mono`, `llrd_nonneg`
+- `Hagi/Optimization/LRSchedule.lean` — `pl_step_noise_bound`, `late_phase_bound`, `wsd_full_bound`, `cos_anti`, `cosLR_nonneg`, `cosLR_start`, `cosLR_end`, `cosLR_anti`
+- `Hagi/Optimization/Lion.lean` — `sign_sq_le_one`, `lion_step_norm_bound`
+- `Hagi/Optimization/Lookahead.lean` — `lookahead_mem`, `lookahead_gap`, `lookahead_range`
+- `Hagi/Optimization/MirrorDescent.lean` — `mirrorStep_pos`, `mirrorStep_sum_one`, `mirror_descent_identity`, `mirror_descent_floor`, `mirror_descent_attainment`, `hedge_free_energy_step`, `aif_efe_attainment`, `aif_efe_floor` (+20)
+- `Hagi/Optimization/Momentum.lean` — `momentumRate_char`, `momentumRate_pos_lt_one`, `momentum_bound`, `momentum_floor`, `momentum_beta_strict_cost`, `momentum_direction_beats_inertia`, `momentum_achievability`, `momentum_entry_horizon` (+23)
+- `Hagi/Optimization/NeuronAlloc.lean` — `neuron_alloc_lower_bound`, `neuron_alloc_opt_attained`, `neuron_alloc_equal_costs`
+- `Hagi/Optimization/PLConvergence.lean` — `pl_linear_convergence`, `pl_sufficient_horizon`
+- `Hagi/Optimization/PPOClip.lean` — `ppoClip_le_upper`, `ppoClip_le_lower`, `ppoClip_mono`, `ppoClip_fixed`, `ppo_clip_term_abs_bound`, `ppo_surr_upper_bound`
+- `Hagi/Optimization/PolyStep.lean` — `polyWeights_nonneg`, `polyWeights_sum_one`, `polyWeights_strict_mono`, `polyDelta_basis_sum`
+- `Hagi/Optimization/RobbinsMonro.lean` — `robbins_monro_decay`, `robbins_monro_abs`, `robbins_monro_bias`
+- `Hagi/Optimization/SAM.lean` — `zero_mem_ball`, `sam_ge`, `ball_mono`, `sam_mono`, `sam_flat`
+- `Hagi/Optimization/SphericalDamping.lean` — `chordal_residual_eq`, `angular_damping_window`, `unit_inner_self`, `mixture_norm_sq`, `normalized_mixture_inner`, `mixture_normalize_unit`, `normalized_mixture_distance`
+- `Hagi/Optimization/SubspaceGrowth.lean` — `projResidual_ortho`, `projResidual_self_inner`, `projResidual_le_norm`, `growth_finite`
+- `Hagi/Percolation/Site.lean` — `cellAdj_symm`, `cellAdj_loopless`, `crossing_mono`, `card_`, `R_monotone`, `edgeless_reachable_eq`, `parity_not_crossing1`, `parity_crossing2` (+2)
+- `Hagi/Planning/Imagination.lean` — `forward_thinking_regret`, `imagination_compounding`, `adaptive_first_sufficient`, `branching_avoids_detectable_failure`, `branching_dominates_linear`, `grpo_centered_sum_zero`, `grpo_advantage_pos`
+- `Hagi/Prelude/Info.lean` — `KLSupported_pos`, `klDef_terms_finite`, `softDef_pos`, `softDef_sum_one`, `kl_nonneg_of_nonneg`, `kl_nonneg`
+- `Hagi/Pretraining/DataPruning.lean` — `pruning_nfl`, `pruning_free_for_constant`, `pruning_recovery_bound`
+- `Hagi/Pretraining/Dust.lean` — `hcCard`, `hcFactorized`, `hcDelta`, `crossDiff`, `esUnbiased`, `drawPairOrtho`, `varianceHalving`, `dustNoiseHalving`
+- `Hagi/Pretraining/DustAlign.lean` — `hcVarKTotal`, `hcVarK`, `esErrCentered`, `dustVarK`, `prodQ_nonneg`, `prodQ_isProb`, `dustVarK_expQ`, `pairQ_isProb` (+9)
+- `Hagi/Pretraining/Grokking.lean` — `drift_solution`, `drift_hasDeriv`, `drift_norm_nondecreasing`, `drift_half_life`, `grokking_timescale_separation`, `drift_total_variation`
+- `Hagi/Pretraining/ProbeError.lean` — `fd_probe_error`, `linear_probe_exact`, `residual_vec_bound`, `residual_vec_diff`, `mlpResidual_bound`, `cut_signal_triangle`, `safe_certificate_margin`, `probe_safe_accept` (+4)
+- `Hagi/Pretraining/RobustnessLaw.lean` — `robust_interpolation_lipschitz_floor`, `no_lipschitz_interpolator_of_steep`, `robust_spacing_bound`, `lipschitz_floor_of_noisy_labels`, `noisy_interpolation_step_cap`, `robust_slows_learning`, `robust_budget_floor`
+- `Hagi/Pretraining/Speedrun.lean` — `cePartition_move`, `cePartition_factor`, `ceLogit_move_change`, `head_probe_linear`, `hadamard_probe_inversion`, `probe_lower_bound`
+- `Hagi/Pretraining/SyntheticPretrain.lean` — `time_to_capability_correct`, `synth_investment_dominates`, `task_selection_marginal`
+- `Hagi/Pretraining/TrustRegion.lean` — `transpose_mul_self_of_mul_transpose`, `hadamardRows_sup_bound`, `orthonormal_mulVec_isometry`
+- `Hagi/Probability/AdaptiveSuccess.lean` — `adaptive_success_count_floor`, `adaptive_success_concentrated`
+- `Hagi/Probability/Azuma.lean` — `hoeffding_lemma_prefix`, `prodE_snoc`, `azumaSum_congr`, `azumaSum_snoc`, `azuma_mgf`, `azumaSum_neg`, `azuma_tail_low`, `azumaSum_sub` (+3)
+- `Hagi/Probability/BatchSNR.lean` — `snr_realized`, `snr_linear`, `snr_ge_one_iff`, `gain_decreasing_past_critical`
+- `Hagi/Probability/BernoulliFactory.lean` — `probAccept_eq_bernPoly`, `binomWeight_nonneg`, `probAccept_bounds`
+- `Hagi/Probability/CertifiedEstimator.lean` — `prodDens_nonneg`, `sum_prod_factor`, `prodE_one`, `prodPq_le_one`, `prodPq_compl`, `prodPq_mono`, `prodPq_union_le`, `prodE_exp_sum` (+24)
+- `Hagi/Probability/ChernoffCGF.lean` — `kl_dv_attained`, `hellinger_sq_eq_one_minus_bc`, `hellinger_le_half_kl`, `kl_chernoff_tilt`, `markov_finite`, `chernoff_event`, `exp_tilt_interpol`, `cramer_tilt_kl` (+7)
+- `Hagi/Probability/ConditionalSuccess.lean` — `concDelta_nonneg`, `success_count_lower`, `success_count_lower_p0`, `log_growth`, `takeoff_time_form`
+- `Hagi/Probability/EntropyConvexity.lean` — `log_sum_ineq`, `log_sum_ineq_on`, `kl_data_processing`, `log_concave_two`, `xlogx_convex`, `xlog_div_convex`, `kl_convex_first`, `kl_product_additive` (+5)
+- `Hagi/Probability/ExpChord.lean` — `exp_chord`, `hoeffding_chord_mgf`, `log_chord`, `amgm_weighted`, `young_two`, `hoelder_finite`, `minkowski_finite`, `lp_one_le_card` (+4)
+- `Hagi/Probability/Freedman.lean` — `exp_tail_two`, `freedman_lemma_prefix`, `freedman_mgf`, `freedman_tail_low`, `cond_var_le_second`, `adaptive_success_freedman`, `freedman_confidence`
+- `Hagi/Probability/FreedmanTwoSided.lean` — `pmf_weight_sum`, `pmfMean_const`, `pmfMean_congr`, `pmfMean_add`, `pmfMean_sub`, `pmfMean_mul_const`, `pmfMean_const_mul`, `pmfMean_nonneg` (+41)
+- `Hagi/Probability/GibbsConcentration.lean` — `gibbs_energy_variance_bound`, `thermostat_var_stop`, `thermostat_threshold`, `gibbs_var_tendsto_zero`, `gibbs_var_steps_bound`, `gibbs_excess_mean_bound`, `proxy_cert_preserved`, `proxy_cert_lost` (+9)
+- `Hagi/Probability/GibbsCooling.lean` — `gibbs_concentration`, `gibbs_concentration_tendsto`, `free_energy_sandwich`, `gibbs_neg_log_share_tendsto`, `gibbs_excess_energy_bound`, `gibbs_expected_energy_bound`, `gibbs_expected_energy_tendsto`, `gibbs_tv_eq` (+8)
+- `Hagi/Probability/GibbsInfoCore.lean` — `gibbs_expected_energy_lower`, `free_energy_upper`, `gibbs_kl_uniform_split`, `gibbs_energy_gap_crude`, `gibbs_weight_log_decomp`, `gibbs_katoni_kl`, `finite_kl_nonneg`, `gibbs_variational` (+2)
+- `Hagi/Probability/KLSBridge.lean` — `expQ_mono`, `gradCovBound`, `uncorrMeanVar`, `expQ_varEq`, `klsBatchNoise`, `klsChebyshev`
+- `Hagi/Probability/MWU.lean` — `mwu_potential_step`, `mwu_potential_lower`, `mwu_potential_squeeze`, `mwu_uniform_squeeze`, `mwu_potential_upper_uniform`, `mwu_prod_exp`, `mwu_partition_sum`, `mwu_regret_static` (+4)
+- `Hagi/Probability/MomentBounds.lean` — `popoviciu_var`, `chebyshev_popoviciu`, `cantelli_one_side`, `popoviciu_abs_dev`, `bhatia_davis`, `bhatia_implies_popoviciu`, `var_le_delta_excess`, `excess_ge_var_over_range`
+- `Hagi/Probability/NoiseTemperature.lean` — `popVar_eq`, `sum_centered`, `card_pos_of_nonempty`, `prod_two_sel`, `sum_coord`, `sum_pair`, `uniP_isProb`, `uniP_dens` (+4)
+- `Hagi/Probability/PMFBridge.lean` — `ofReal_finset_sum`, `pmfWeight_le_one`, `toPMF_apply`, `fromPMF_sum`, `toPMF_fromPMF`, `fromPMF_toPMF`
+- `Hagi/Probability/PinskerTV.lean` — `tv_le_pos_part_kl`, `bhattacharyya_cauchy`, `one_minus_bc_le_half_kl`, `pinsker_sqrt_kl`, `tv_dual_abs`, `neg_log_bc_le_half_kl`, `tv_le_sqrt_one_minus_exp`, `kl_joint_convex` (+2)
+- `Hagi/Probability/SphericalAngle.lean` — `sphericalAngle_add_two`, `sphericalAngle_factor_lt_one`, `sphericalAngle_even_geo`, `sphericalAngle_odd_geo`, `tail_parity_split`, `sphericalAngle_tail_bound`, `sphericalAngle_tendsto_zero`, `sphericalAngle_six` (+21)
+- `Hagi/Probability/StationaryFlatness.lean` — `tail_sum_identity`, `inv_sq_le_sub_inv`, `sum_pow2_inv_le`, `flatness_moment_bound`
+- `Hagi/Probability/ThermoAxes.lean` — `noise_axes_coincide`, `noise_budget_axes_equal`
+- `Hagi/Probability/ThermoBridge.lean` — `prodE_as_expQ`, `batchVar_expQ`
+- `Hagi/Probability/WSqD.lean` — `stable_phase_noise`, `cooldown_tail_constant`, `wsqd_noise_budget`
+- `Hagi/Runtime/ControllerGates.lean` — `univNE`, `sup_div`, `logitRange_scale`, `variance_gate_contract`, `variance_gate_normalize`, `trust_region_proj_norm`, `trust_region_nearest`, `dynamic_branch_variance`
+- `Hagi/Runtime/LiveDeltaQuant.lean` — `quantMat_entry`, `quantMat_sq_bound`
+- `Hagi/Runtime/TernaryExact.lean` — `qTern_error_in`, `qTern_error_out`, `ternary_split_bound`, `ternary_inrange_bound`, `ternary_split_le`, `satTail_nonneg`, `sqrt_add_le`, `quant_energy_bridge_saturation` (+1)
+- `Hagi/Sparsity/SparseStep0.lean` — `sparse_step0`
+- `Hagi/Spectral/RankGrowth.lean` — `rank_orthogonal_growth`, `span_growth_zero_interference`
+- `Hagi/Step/AdaptiveSafeQP.lean` — `latticeNet_norm_le`, `latticeNet_covers`, `latticeNet_card_le`, `adaptive_net_concentration`, `adaptive_direction_concentration`, `adaptive_safeQP_feasibility`
+- `Hagi/Step/ArmijoAcceptance.lean` — `armijo_sufficient_decrease`, `armijo_step_size`
+- `Hagi/Step/CPUFreeze.lean` — `cpu_frozen`, `norm_le`, `anchor_drift`
+- `Hagi/Step/CausalFilter.lean` — `gqa_shared_score`, `gqa_cache_card`, `swa_reach_step`, `swa_reach_eq`, `swa_reach_mono`, `swa_relay_full`, `swa_cost_bound`, `causal_prefix_determined` (+1)
+- `Hagi/Step/Compound.lean` — `compound_c_stabilizes`, `compound_constant_regime`, `compound_trajectory`, `compound_cumulative`, `compound_budget_interval`, `compound_fold_interval`
+- `Hagi/Step/Dominate.lean` — `domination_decompose`, `domination_regression`, `safe_consensus_harmless`, `dominated_collateral_bound`, `guard_weight_parity`
+- `Hagi/Step/FrobeniusLMO.lean` — `sgd_stable_step`, `muon_stable_step`, `muon_avg_not_max`, `lmo_lower_bound`, `lmo_attained`, `lmo_descent_direction`
+- `Hagi/Step/GPM.lean` — `mulVec_eq_dotProduct`, `gpm_zero_forgetting`, `sigma_orth_zero`, `sigma_orth_necessary`
+- `Hagi/Step/GradCentralization.lean` — `gc_zero_sum`, `gc_pythagoras`, `gc_norm_le`, `gc_const_zero`
+- `Hagi/Step/GradClip.lean` — `clip_norm_le`, `clip_eq_of_le`, `clip_idem`, `clip_dir`, `clip_descent_pos`
+- `Hagi/Step/HybridState.lean` — `stale_momentum_bias`, `fresh_momentum_unbiased`
+- `Hagi/Step/Joint.lean` — `jointStep_conflict_regression`, `jointStep_regression_bound`, `trustRegion_bound`
+- `Hagi/Step/JointPreserve.lean` — `diversity_noncollapse`, `geom_shift`, `diversity_floor`, `diversity_floor_fresh`, `diversity_floor_strict_pos`
+- `Hagi/Step/KLSSafeQP.lean` — `klsSafeQP_certified`
+- `Hagi/Step/LazyAdam.lean` — `lazyDecay_exact`, `lazyReplay_exact`, `supportSet_bound`
+- `Hagi/Step/LazyAdamMomentum.lean` — `dense_m_decay`, `lazy_moment_drift`, `lazy_momentum_bound`
+- `Hagi/Step/LiveDeltaSafe.lean` — `updateNewest_base`, `updateNewest_length`, `updateNewest_tail`, `updateNewest_cost`, `safe_update_window`
+- `Hagi/Step/MDLObjective.lean` — `mdlObjective_delta`, `mdlObjective_nonincreasing`, `mdlObjective_tradeoff`, `mdlObjective_lambda_zero`, `mdlObjective_neg_lambda_forbidden`
+- `Hagi/Step/MDLThreeCurrency.lean` — `J3_nonincreasing`, `double_counting_identified`, `no_compression_below_entropy`
+- `Hagi/Step/MetricSafeQP.lean` — `inner_transport`, `mDist_eq`, `mProject_exists_unique`
+- `Hagi/Step/Muon.lean` — `chunked_sum_exact`, `ce_prior_decomposition`, `grad_norm_grows`, `mup_grad_invariant`, `muon_step_bound`, `muon_pl_rate`, `ns_invariant`, `ns_monotone_ascent` (+2)
+- `Hagi/Step/MuonAlign.lean` — `unitary_diag_abs_le`, `muon_alignment_optimal`
+- `Hagi/Step/MuonTwoLevel.lean` — `ns_gap_scaled`
+- `Hagi/Step/MuonWD.lean` — `muon_wd_recursion`, `wd_boundedness`
+- `Hagi/Step/NCEExact.lean` — `nce_decomposition`, `nce_correction_pos`, `nce_var_identity`, `secondMoment_ge_mean_sq`, `adaptiveK_bound`, `jensen_log`, `partEst_unbiased`, `secondMomentW_ge_sq` (+3)
+- `Hagi/Step/NewtonPolar.lean` — `newton_polar_scalar_error`, `newton_error_ratio`, `newtonStep_ge_one`, `newton_polar_convergence`, `newton_polar_tendsto_one`, `newton_step_descent`, `newton_step_descent_lt`, `newton_iter_bracket`
+- `Hagi/Step/PreconditionerDescent.lean` — `preconditioned_descent`, `preconditioned_step_size`
+- `Hagi/Step/ProjectionDescent.lean` — `proj_descent_inner`, `min_dist_to_vi`, `safeQP_descent`, `joint_stage_linked`, `orthogonal_zero_interference`, `hard_budget_forces_orthogonal`
+- `Hagi/Step/RiemannNewtonPolar.lean` — `radial_tangential_curvature`
+- `Hagi/Step/SNRWeights.lean` — `uniform_is_mean`, `focused_beats_uniform`
+- `Hagi/Step/SafeQP.lean` — `proj_residual_identity`, `proj_residual_nonneg`, `proj_monotone`, `spectralProj_idempotent`, `spectralProj_selfAdj`, `spectralProj_orth`, `spectral_tail_energy`, `three_stage_error_budget` (+9)
+- `Hagi/Step/SafeQPStep.lean` — `safeqp_second_order`, `safeqp_trust_region`, `safeqp_monotone_domain`, `le_safeqpEtaMax_iff`, `safeqp_eta_max_domain`, `safeqp_eta_max`, `safeqp_eta_zero_direction`, `le_safeqpEtaMaxConflictFree_iff` (+2)
+- `Hagi/Step/SignSGD.lean` — `sign_inner_nonneg`, `sign_inner_pos`, `sgn1_fix`, `sgn1_ternary`, `sign_idempotent`
+- `Hagi/Step/StochasticSafeQP.lean` — `minibatch_inner_tail`, `minibatch_inner_concentration`, `minibatch_inner_concentration_upper`, `stochastic_safeQP_feasibility`, `sqrt_div_sq`, `lr_batch_equivalence`
+- `Hagi/Step/Upgrades.lean` — `skip_bound`, `readPolicy_exists`, `sink_cost_bound`, `sink_window_substitutes`, `ns_geometric_envelope`
+- `Hagi/Step/WarmupSchedule.lean` — `warmup_eta_monotone`, `warmup_telescope_bound`, `warmup_beats_constant`
+- `Hagi/Step/WeightDecay.lean` — `wd_norm_bound`
+- `Hagi/System/Certificates.lean` — `penalty_drop_bound`, `cycle_certificate_sound`
+- `Hagi/System/DiscreteStep.lean` — `quantized_descent_telescope`
+- `Hagi/System/GrowthState.lean` — `macro_termination_derived`, `protected_generation_budget`, `verify_decrease`, `potential_grow`, `potential_merge`, `potential_joint`, `potential_compress`, `growth_cycle_potential` (+7)
+- `Hagi/System/GrowthStateViews.lean` — `GrowthState_parts_roundtrip`, `toParts_injective`
+- `Hagi/System/StepCertificate.lean` — `stepCertificate_base`, `safe_selection_productive`, `safe_feasible_selection_productive`
+- `Hagi/System/UnifiedStep.lean` — `unified_step_certificate`, `unified_step_budget`
+- `Hagi/Unified/AdvanceWitness.lean` — `certified_invariant_advance_witness`, `witness_step_landauer_cap`, `witness_horizon_landauer_cap`
+- `Hagi/Unified/AlgebraMatrixCore.lean` — `core_stable_and_optimal`, `matrix_svd_nonneg_and_mdl_antitone`
+- `Hagi/Unified/AnytimeMartingale.lean` — `merge_stage_linked`, `merge_stage_linked_nonneg`, `anytime_valid_budget`, `eprocess_stopped_budget`, `ville_supermartingale`, `ville_anytime_false_alarm`, `anytime_failure_budget`, `anytime_safety` (+2)
+- `Hagi/Unified/AnytimePACBayes.lean` — `real_mono_prob`, `anytime_catoni`
+- `Hagi/Unified/ArchitectureTheorem.lean` — `entTV_nonneg`, `entTV_symm`, `binEnt_half`, `entropy_continuity_pinsker`, `binEnt_mono`, `binEnt_nonneg`, `entropy_continuity_pinsker'`, `distill_kl_bridge` (+23)
+- `Hagi/Unified/Assumptions.lean` — `masterhagi_trunc_of_assumptions`, `idle_cycle_fixed`, `idle_Qgen_zero`, `trunc_nonvacuous`, `premises_to_certified`
+- `Hagi/Unified/BudgetCore.lean` — `budget_allocation_and_distillation`, `budget_waterfill_and_lowrank`
+- `Hagi/Unified/CanonicalParams.lean` — `advance_params_ne`, `bridge_update`, `idProj`
+- `Hagi/Unified/CapabilityLocal.lean` — `capability_geometric_of_local`, `capability_strict_first`
+- `Hagi/Unified/CertUnify.lean` — `tc_step_of_stepcert`, `tc_consequence`, `protoMeasured_spec`
+- `Hagi/Unified/CertifiedGrowth.lean` — `certified_cone0_takeoff`, `sample_size_adequate`, `union_bound_nonneg`, `prob_ladder_lower`, `certified_gainprod_takeoff`, `certified_band_growth`
+- `Hagi/Unified/CertifiedLoop.lean` — `certified_loop`, `certified_loop_all`, `gate_never_increases`, `certified_loop_strict`
+- `Hagi/Unified/CertifiedTrajectory.lean` — `certified_progress_honest`, `certified_progress_signal`
+- `Hagi/Unified/CommitGate.lean` — `commitProductive`, `holdSafe`, `quant_bound_of_gridQ`
+- `Hagi/Unified/CoreFacades.lean` — `architecture_invariant_and_economical`, `autonomy_regret_and_stability`, `misc_quantized_telescope_and_aitken`
+- `Hagi/Unified/CorePremisesDerived.lean` — `conj8_h_emp_smooth_derived`, `conj13_h_emp_lip_derived`, `core_premises_operational_scalar_v2`, `MasterHAGICoreOperational_v2`
+- `Hagi/Unified/CostComposition.lean` — `hybrid_cost_lt`, `hybrid_ratio_le`
+- `Hagi/Unified/DerivAlong.lean` — `lip_energy_from_gradient`, `lip_energy_quantization`, `grow_gain_from_smooth_descent`, `hasDerivAt_along_segment`, `integral_deriv_segment`, `deriv_along_segment_le`, `smooth_from_lipschitz_gradient`, `joint_emp_smooth_derived` (+3)
+- `Hagi/Unified/DescentCore.lean` — `descent_drop`
+- `Hagi/Unified/DescentCoreDiag.lean` — `diag_descent_eq`, `diag_descent_le`
+- `Hagi/Unified/DescentCoreQuad.lean` — `quad_descent_eq`, `quadAligned`, `quad_one_step`, `quad_drop`
+- `Hagi/Unified/Distillation.lean` — `soft_dial_max`, `soft_dial_zero`, `soft_entropy_bound`, `attention_scale_softens`, `attention_no_scale_saturates`
+- `Hagi/Unified/DynamicsGrowthCore.lean` — `dynamics_growth_and_distillation`, `growth_balanced_and_conic`, `idle_merge_zero_gap`
+- `Hagi/Unified/ExecutedCert.lean` — `measured_honest`, `measured_lower`, `telescope_measured`
+- `Hagi/Unified/FannesComplete.lean` — `zs_kl`, `nml_mul`, `xlogx_superadd`, `mix_point`, `mix_entropy_upper`, `mix_entropy_lower`, `shannon_le_log_card`, `fanes_unconditional`
+- `Hagi/Unified/FsGate.lean` — `fsGate_weights_eq`, `fsGate_mono`, `fsTraj_mono`, `fsGate_budget`, `fsGate_count`, `fsTraj_budget_le`, `fsTraj_count_le`
+- `Hagi/Unified/FunctionalState.lean` — `fs_energy_after`, `energy_at_target`, `fs_two_steps_productive`
+- `Hagi/Unified/GaugeQuotient.lean` — `norm_rot`, `norm_rot_sub`, `residual_nonneg`, `quotientResidual_gauge_invariant`, `relativeEquilibrium_residual_zero`, `seq_dev_exact`, `seq_dev_modulus`, `iterate_gauge_commute` (+2)
+- `Hagi/Unified/GrandSynthesis.lean` — `budget_nonincreasing_of_nonneg_spend`, `grand_synthesis`, `risk_telescope_of_growth_covered`, `qfloor_le_of_monotone`, `grand_synthesis_weak`
+- `Hagi/Unified/GrowthBridge.lean` — `additive_as_multiplicative`, `growMul_eq_grow`, `growCycle_succ`, `growCycle_zero`, `growMul_step_multiplicative`, `growCycle_growGain`, `growCycle_capability_succ`, `growCycle_capability` (+3)
+- `Hagi/Unified/GrowthEnsembleCore.lean` — `growth_renews_and_seed_survives`, `merge_calibrated_and_exact`, `dual_ceiling`
+- `Hagi/Unified/HonestTransition.lean` — `honest_actual_drop`, `honest_telescope`, `honest_two_steps_existent`
+- `Hagi/Unified/InfoDataCore.lean` — `pinsker4_via_canon`, `info_not_free_and_detectable`, `pruning_dichotomy`, `data_certified_and_thermodynamic`
+- `Hagi/Unified/InterpretiveGrowth.lean` — `pointEffect_nonneg`, `causalEffect_nonneg`, `causalEffect_zero_of_pointwise`, `causalEffect_pos_of_point`, `causalEffect_le_max`, `mass_split`, `gain_le_mix`, `passive_starves`
+- `Hagi/Unified/LearningKernel.lean` — `grow_premise_derived`, `merge_premise_derived`, `merge_slack_feasible`
+- `Hagi/Unified/LinkedQVec.lean` — `floor_preserved`, `qgen_hides`, `floor_catches`
+- `Hagi/Unified/LinkedWitness.lean` — `wTraj_certified_family`, `linkedHAGI_witness`
+- `Hagi/Unified/LiveDeltaCycle.lean` — `tri`, `audit_violation_witness`, `audit_chain`, `live_delta_cycle`
+- `Hagi/Unified/Liveness.lean` — `liveness_merge`, `liveness_data_axis`, `liveness_two_axis`
+- `Hagi/Unified/LoopInstances.lean` — `quadCert_hits_optimum`, `quadE_nonneg`, `quad_loop_strict`
+- `Hagi/Unified/MasterHAGI.lean` — `exists`, `MasterHAGICore`, `full_cycle_field_eq`, `hagi_gen_floor`, `MasterHAGI`, `gate_success_multiplier`, `MasterHAGI_wallclock`, `log_bridge_from_multiplier` (+4)
+- `Hagi/Unified/MasterHAGICoupled.lean` — `budget_no_growth`, `qvec_floor_implies_scalar`, `scalar_hides_deficit`, `coupledHAGI_nonvacuous`, `coupledHAGI_nonvacuous_strict`, `LinkedHAGIInvariant_to_coupled`, `certified_family_linked`, `certified_family_linked_progress`
+- `Hagi/Unified/MasterHAGITrunc.lean` — `frontier_cone_trunc`, `frontier_cone_struct`, `sustained_takeoff_trunc`, `sustained_takeoff_struct`, `MasterHAGI_trunc`, `masterhagi_growth_witness`, `cone_premises_force_exact`
+- `Hagi/Unified/MeasureProto.lean` — `machineProto_gap`, `energy_nonneg`, `machineProto_capa_mono`, `evalCapa_bounds`
+- `Hagi/Unified/MemoryCycle.lean` — `rank1Block_eq_outer`, `effective_addBlock`, `effective_fold`, `effective_fromHistory`, `descentFold_eq_effective`, `blocks_length_fold`, `history_storage_cost`, `sum_sub_eq` (+13)
+- `Hagi/Unified/MicroStepCert.lean` — `frobSq_eq`, `microstep_cert`, `microstep_net_drop`
+- `Hagi/Unified/ModelComparison.lean` — `delta_pos_of_dominates`, `zIndicator_one_of_ge`, `zIndicator_zero_of_neg`, `piR_lower_of_certified`
+- `Hagi/Unified/NCTheorem.lean` — `nc_trajectory_bound`, `nc_cpu_frozen_trajectory`
+- `Hagi/Unified/NernstFannes.lean` — `dirac_sum`, `shannon_dirac_zero`, `tvHalf_dirac_eq`, `nernst_fannes`, `gibbs_nernst`
+- `Hagi/Unified/PretrainOptRobustCore.lean` — `memory_capped_and_time_correct`, `opt_objective_monotone_and_bias_bounded`, `robust_growth_corridor`
+- `Hagi/Unified/ProtoTrajectory.lean` — `proto_loss_mono`, `proto_loss_telescope`, `proto_progress_bound`, `proto_capa_mono`
+- `Hagi/Unified/QuadBudget.lean` — `trajDropSum`, `trajDropBound`, `budgetLedger`, `commitCountBound`
+- `Hagi/Unified/QuadGate.lean` — `machine_energy_lift`, `quad_gate_commit`
+- `Hagi/Unified/QuadTrajectory.lean` — `gateStep_mono`, `gateTraj_mono`, `gateStep_drop`, `gateStep_pos`
+- `Hagi/Unified/QuadUnify.lean` — `quadE_eq_energy`, `quadGrad_eq_grad`, `machine_one_step_zero`, `diag_is_quad`, `diagGrad_is_quadGrad`
+- `Hagi/Unified/QuantSafeUpdate.lean` — `quantized_step_bound`, `quantized_safe_window`
+- `Hagi/Unified/QuantizedCone.lean` — `quantized_net_gain`, `quantized_cone_gain`
+- `Hagi/Unified/RecursiveClean.lean` — `locality_le_of_bounded`, `timeConsistency_eq_one`, `indepMass_eq_zero_of_cover`, `activationMass_entropy_le`, `clean_neuron_of_conditions`, `piR_le_one`
+- `Hagi/Unified/RecursiveGrowth.lean` — `macro_step_decrease`, `macro_termination`, `topk_routing_optimal`, `fisher_nullspace`, `unitary_perturb_bound`, `unitary_perturb_metric`, `optimal_step_unconstrained`, `optimal_step_value` (+6)
+- `Hagi/Unified/SamDescent.lean` — `sam_descent_bridge`, `sam_descent_flat`
+- `Hagi/Unified/SignDescent.lean` — `sgn1_mul_self`, `sgn1_sq`, `count_nonzero_le`, `sign_scaled_aligned`, `sign_descent`, `scaled_sign_aligned_of_coherence`, `sign_is_pointwise_max`, `lion_descent`
+- `Hagi/Unified/StateTakeoff.lean` — `full_cycle_capability_step`, `state_capability_takeoff`, `corePremises_of_full_refinement`
+- `Hagi/Unified/StepContract.lean` — `compose_assoc`, `compose_id_left`, `compose_id_right`, `chain_decrease`, `chain_budget`, `chain_risk`, `trajectory_convergence`, `termination_via_stepcontract`
+- `Hagi/Unified/StepExt.lean` — `step_warmup_monotone_and_wd_bounded`
+- `Hagi/Unified/StepLaws.lean` — `step_armijo_and_sgd_stable`
+- `Hagi/Unified/TernaryGrad.lean` — `sgn1_round`, `sgn1_grid_fix`, `sgn1_zero_quant_error`, `tern_grad_inner`
+- `Hagi/Unified/TopLevel.lean` — `quant_residual_norm`, `quant_energy_bridge`, `quant_matrix_perturb`, `quant_matrix_perturb_norm`, `quant_loss_bridge`, `quant_frob_loss`, `frob_minkowski`, `frob_minkowski'` (+10)
+- `Hagi/Unified/TransitionContract.lean` — `ctv2_contract`, `ctRisk_covers`
+- `Hagi/Unified/Unified.lean` — `uncertainty_contraction`, `finite_termination`, `traininfer_critical`
+
 ## Открытые проблемы
 
-1. **Миграция капстоунов на StageSemantics.** Ростовое ядро
-   (growSeq) уже на state-dependent эффектах; MasterHAGI и
-   ~23 потребителя старой модели GrowthState с копируемым
-   эффекты ещё не переведены на Trajectory-семантику.
-   Свидетель T ≥ 3 под FULL-контрактом старой модели
-   невозможен (obstruction формализован).
-2. **Асимптотика перколяции (Layer 4).** p_c ≈ 0.5927
-   бесконечной решётки, форма θ, мост «перколяция →
-   takeoff» — не выводятся из конечного алгебраического
-   ядра; нужна новая содержательная гипотеза.
-3. **ψ-монотонность (trigamma > 0).** Отсутствует в
-   Mathlib; построение (гармоническая форма + ряд)
-   открыто; зум пика до (7.2, 7.3).
-4. **Воспроизводимая сборка.** Локальный путь Mathlib в
-   lakefile и отсутствие elan блокируют проверку «чистым
-   клоном» на другой машине.
-5. **Lean↔Runtime property-тесты.** Требуют torch-рантайма
-   E:\HAGI_v2.
-6. **Вынос пакетов.** Flywheel → отдельный Lake-пакет
-   (кандидат в upstream Mathlib); Primes — отдельный
-   репозиторий.
-7. **Остатки namespace-миграции.** Core/Select, RealF3*
-   (вложенный ns); сокращение широких `import Mathlib`.
+1. **Closure gap.** 138/424 модулей (33%) в замыкании капстоунов;
+   286 library leaves (A=34 Objective/Descent, B=45 Step
+   Compressors, C=93 Efficiency/Budget, D=19 Alignment, E=95
+   мат-фундамент) не инстанцируют StepCert/DescentCore.Objective.
+   Цель — 80%+ через LibrarySynthesis.
+2. **Gen-1 рудименты.** 52 модуля без CertifiedLoop в замыкании
+   (`python scripts/DepAudit.py`); MasterChallenge (v1) и
+   Nonvacuity-витнесы ещё на CorePremises.
+3. **Сертификатный веер.** 8 представлений перехода не сведены
+   к канонической цепочке Execution → Measurement → StepCert →
+   CertifiedLoop; StepContract-моноид не завершён; скалярный
+   Qgen ещё не заменён на FloorKept везде.
+4. **Асимптотика перколяции.** p_c ≈ 0.5927 бесконечной
+   решётки не выводится из конечного ядра.
+5. **ψ-монотонность (trigamma > 0).** Отсутствует в Mathlib.
+6. **Вынос пакетов.** Flywheel, NeuralComputer — кандидаты в
+   отдельные Lake-пакеты; широкие `import Mathlib` в листах.
+7. **Namespace-остатки.** Core/Select, RealF3*.

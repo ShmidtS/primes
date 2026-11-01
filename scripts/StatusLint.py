@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parent.parent
 HAGI = ROOT / "Hagi"
 
 DECL_RE = re.compile(
-    r"^\s*(?:private\s+|protected\s+)?(?:noncomputable\s+)?"
+    r"^\s*(?:@\[[^\]]*\]\s*)?(?:private\s+|protected\s+)?"
+    r"(?:noncomputable\s+)?"
     r"(?:theorem|lemma|def|structure|abbrev|instance|inductive|class)"
     r"\s+([A-Za-z_][A-Za-z0-9_'′?]*)", re.M)
 
