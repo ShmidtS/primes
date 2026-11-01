@@ -91,4 +91,27 @@ theorem gate_never_increases (obj : S → ℝ) (P : Prop) [Decidable P]
   · simpa [hP] using h hP
   · simp [hP]
 
+/-- УСИЛЕНИЕ: при n ≥ 1 спуск СТРОГИЙ — сертифицированная
+цепочка хотя бы одного шага гарантированно улучшает. -/
+theorem certified_loop_strict (obj : S → ℝ) (M : MeasuredState S)
+    (floor : Fin 5 → ℝ) (riskLim : ℝ)
+    (f : ℕ → S) (b drops spends : ℕ → ℝ) (n : ℕ)
+    (h₀ : FloorKept M (f 0) floor) (hb₀ : 0 ≤ b 0)
+    (certs : ∀ t : ℕ,
+      StepCert obj M floor riskLim (f t) (f (t + 1)) (b t) (b (t + 1)))
+    (hdrops : ∀ t < n, drops t = (certs t).trans.objectiveDrop)
+    (hspends : ∀ t < n, spends t = (certs t).spend)
+    (hn : 1 ≤ n) :
+    obj (f n) < obj (f 0) ∧
+      ∑ t ∈ Finset.range n, drops t ≤ obj (f 0) - obj (f n) := by
+  obtain ⟨h1, h2, h3, h4⟩ := certified_loop obj M floor riskLim f b
+    drops spends n h₀ hb₀ certs hdrops hspends
+  have hsum : 0 < ∑ t ∈ Finset.range n, drops t :=
+    Finset.sum_pos
+      (fun t ht => by
+        rw [hdrops t (Finset.mem_range.mp ht)]
+        exact (certs t).trans.objectiveDrop_pos)
+      (⟨0, by simp; omega⟩)
+  exact ⟨by linarith, h1⟩
+
 end Hagi.Unified.CertifiedLoop

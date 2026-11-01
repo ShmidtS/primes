@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3675 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3677 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,14 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Чистка/усиление (такт №297)**: grand_synthesis
+  получил @[deprecated] → CertifiedLoop.certified_loop
+  (плоская форма капстоуна выводится из архитектуры —
+  аудиторская рекомендация выполнена); grand_synthesis_
+  weak сохранён (легитимная слабая форма R540).
+  Усиление: certified_loop_strict — при n ≥ 1 спуск
+  СТРОГИЙ (Σ drops > 0 ⟹ obj(f n) < obj(f 0)).
+  DupLint/StatementDup: 0 групп (точных дубликатов нет).
 - **CertifiedLoop + HAGI_MAP (такт №296, наведение
   порядка по требованию)**: КАПСТОН certified_loop —
   главная теорема: цепочка StepCert (честный спуск +
