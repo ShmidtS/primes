@@ -372,6 +372,7 @@ import Hagi.Unified.LinkedQVec
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.LoopInstances
+import Hagi.Unified.CertUnify
 import Hagi.Model.BYOL
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects

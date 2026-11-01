@@ -43,6 +43,9 @@ structure StepCert (obj : S → ℝ) (M : MeasuredState S)
   spend : ℝ
   /-- Честный переход: спуск зависим от исполнения. -/
   trans : HonestTransition obj s s' spend riskLim spend b'
+  /-- Затраты неотрицательны (строгое предположение —
+  исключает «отрицательные затраты», ломающие телескоп). -/
+  hspend_nn : 0 ≤ spend
   /-- Бюджет невозрастает с учётом затрат. -/
   hdec : b' ≤ bt - spend
   /-- Покомпонентное качество сохранено. -/

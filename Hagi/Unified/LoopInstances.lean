@@ -92,6 +92,7 @@ noncomputable def quadStepCert (a x : k → ℝ)
     StepCert (fun w => quadE a w) (quadMeasured a) (quadFloor a x) 0
       x (x - quadGrad a x) 0 0 where
   spend := 0
+  hspend_nn := le_refl 0
   trans := quadCert a x hx
   hdec := by norm_num
   quality := by
