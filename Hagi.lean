@@ -443,6 +443,7 @@ import Hagi.Model.WeightTying
 import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion
+import Hagi.Probability.GibbsCore
 
 set_option linter.style.header false
 
