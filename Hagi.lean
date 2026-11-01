@@ -366,6 +366,7 @@ import Hagi.Unified.FunctionalState
 import Hagi.Unified.FsGate
 import Hagi.Model.Grokfast
 import Hagi.Model.GradNorm
+import Hagi.Unified.HonestTransition
 import Hagi.Model.BYOL
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects

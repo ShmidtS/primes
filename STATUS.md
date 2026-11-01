@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3650 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3655 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -450,6 +450,19 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **HonestTransition (такт №292, ответ на внешний
+  аудит P0-2)**: CertifiedTransition.progress
+  сертифицировал показатель, а не спуск. Новая
+  структура: actualDescent — зависимое доказательство
+  obj s' ≤ obj s − objectiveDrop. Теоремы:
+  honest_actual_drop (сертификат ⇒ строгий реальный
+  спуск — контрпример аудитора невозможен по
+  построению), honest_telescope (кумулятивность двух
+  переходов — двухшаговая обструкция старой семантики
+  здесь невозможна), honest_two_steps_existent
+  (свидетель: E=w², 2→1→½, точные спуски 3 и ¾).
+  Поймана своя statement-фальсификация (0→1 по w²) —
+  LESSONS-паттерн сработал до коммита.
 - **GradNorm (источник №89, такт №291)**: мультитаск-
   балансировка (1710.04057): gnWeight (w = c/‖g‖),
   gnBalanced (взвешенная норма ТОЧНО c — равные силы

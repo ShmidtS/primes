@@ -62,6 +62,7 @@ GrowthState_parts_roundtrip	a9306c543edefdcb	623f461c32bbc471
 HAGICert	b19ca190cb181b91	9149c96e0d2a9241
 HC	3bc93c019cdbf398	5ac5c6772631bb8e
 History	c2b5c52da3f1d0b7	763a6d00ed7ceba7
+HonestTransition	500cb1459dead63c	aef902ee0a54426f
 InjectionLaw	e6f7a940b324168e	e6287649b39cc1fd
 IsMistake	a2a3c5c1f394f8d1	ef12d1c253fd7c66
 IsOrthoCol	bc127d9cf7150f01	c5cebb9bcdd8bd50
@@ -1692,7 +1693,10 @@ hoelder_finite	6c7ef85502668447	c115eb2856adcc87
 hoelder_weighted	3779d39f5d41b2ab	b02f221a2cd8cfe2
 holdSafe	2ac1f345df21987c	af529f48c7fe6afe
 holdV	7118aceaf35d09b4	b0f6daad000b6f02
+honest_actual_drop	18781a6401fc7f74	42c23201a443b6df
+honest_telescope	6c6c18259fa406f1	8d33803416793a1a
 honest_trajectory_global	53b958a185634507	7ecaf7747fc01823
+honest_two_steps_existent	70d170058d597c42	16482b5116f30896
 hopfield_concentration	e4ebde2df83144a2	8f0d47f47e9678d9
 horizon_termination	fd75b06720234fec	d2e7dca09f5b4486
 hsurv_derived	4bc6a4f9c6fea872	996b28016b902ef9
@@ -2672,6 +2676,7 @@ quadGen'	4b3e6f27f49d4cc6	ac844b1f95a1a255
 quadGrad	24225cbd33b2b071	ae10b2dcef3028fe
 quadGrad_eq_grad	da15817f39f3a4a4	5998b36868111413
 quadIncr	5d46a9f8553d03d5	4cf01e4130d74a49
+quadObj	23533c312f3bd9c6	7322d53c74060605
 quadObjective	6fc7ea3e7698c48f	5fca51050b6564f8
 quadState	6b5133aa187d215a	dce6817bc1a1230f
 quad_conj13	c973edfa5cbc4f4f	06648c7b46bc2c00
