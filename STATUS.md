@@ -2306,6 +2306,13 @@
   (signCommCost/fullCommCost, sign_comm_le);
   signStep_nrm_pos (норма знакового направления > 0 при
   ненулевом градиенте), signDrop_pos, signStep_energy_le.
+- **PL-скорость certified-цикла (Unified/PLLoop.lean)**:
+  pl_linear — при PL-условии (‖∇E‖² ≥ 2μ(E−E*)) и
+  равномерной drop-грани (drop ≥ κ·‖∇E‖²) цепочка шагов
+  даёт ЛИНЕЙНУЮ сходимость: E_T − E* ≤ (1−2κμ)^T·(E_0−E*);
+  certified_pl_horizon — та же скорость для StepCert-цепочки
+  (drop-грань связана с сертификатами). Закрыт пункт аудита
+  «без PL только остановка»: PL даёт формальную скорость.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
