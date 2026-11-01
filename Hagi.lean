@@ -444,6 +444,7 @@ import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion
 import Hagi.Probability.GibbsCore
+import Hagi.Unified.QuadGDRate
 
 set_option linter.style.header false
 
