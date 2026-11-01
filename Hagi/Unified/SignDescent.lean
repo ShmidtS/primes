@@ -112,4 +112,75 @@ theorem sign_descent (J : Objective k) (x : k → ℝ)
     (fun i => signScale (J.grad x) * sgn1 (J.grad x i))
     (sign_scaled_aligned J x) eta heta hetaL
 
+/-- GENERIC-МОСТ: выровненность масштабированного sign-шага
+произвольного направления относительно градиента — при
+условии согласованности направления с градиентом (ядро
+интеграции Lion: момент согласован с градиентом). -/
+theorem scaled_sign_aligned_of_coherence
+    (J : Objective k) (x m : k → ℝ)
+    (hcoh : (∑ i, |m i|) / (Fintype.card k)
+      * (∑ i, if m i = 0 then (0:ℝ) else 1)
+        ≤ ∑ i, J.grad x i * sgn1 (m i)) :
+    aligned J x
+      (fun i => signScale m * sgn1 (m i)) := by
+  set s := signScale m with hsdef
+  have hpt2 : ∀ i : k, (s * sgn1 (m i))^2
+      = s^2 * (if m i = 0 then (0:ℝ) else 1) := by
+    intro i
+    rw [mul_pow, sgn1_sq]
+  have hpt3 : ∀ i : k, J.grad x i * (s * sgn1 (m i))
+      = s * (J.grad x i * sgn1 (m i)) := by
+    intro i
+    ring
+  have hn2 : nrm2 (fun i => s * sgn1 (m i))
+      = s^2 * (∑ i, if m i = 0 then (0:ℝ) else 1) := by
+    unfold nrm2
+    rw [Finset.sum_congr rfl (fun i _ => hpt2 i), ← Finset.mul_sum]
+  have hin : inprod (J.grad x) (fun i => s * sgn1 (m i))
+      = s * (∑ i, J.grad x i * sgn1 (m i)) := by
+    unfold inprod
+    rw [Finset.sum_congr rfl (fun i _ => hpt3 i), ← Finset.mul_sum]
+  unfold aligned
+  rw [hn2, hin, hsdef, signScale]
+  have hnn : (0:ℝ) < (Fintype.card k : ℝ) := by positivity
+  have habs : (0:ℝ) ≤ ∑ i, |m i| :=
+    Finset.sum_nonneg (fun i _ => abs_nonneg _)
+  set A := (∑ i, |m i|) with hA
+  set N := ((Fintype.card k : ℝ)) with hN
+  set S := (∑ i, J.grad x i * sgn1 (m i)) with hS
+  set M := (∑ i, if m i = 0 then (0:ℝ) else 1) with hM
+  have hcoh2 : (A * M) / N ≤ S := by
+    rw [div_mul_eq_mul_div] at hcoh
+    exact hcoh
+  have hcoh' : A * M ≤ S * N := by
+    rw [div_le_iff₀ hnn] at hcoh2
+    exact hcoh2
+  have hAA : A * (A * M) ≤ A * (S * N) :=
+    mul_le_mul_of_nonneg_left hcoh' habs
+  have hlast := mul_le_mul_of_nonneg_right hAA (le_of_lt hnn)
+  calc ((A / N)^2) * M = A * (A * M) / N^2 := by
+        field_simp
+    _ ≤ A * (S * N) / N^2 := by
+        rw [div_le_div_iff₀ (by positivity : (0:ℝ) < N^2)
+          (by positivity : (0:ℝ) < N^2)]
+        nlinarith [mul_le_mul_of_nonneg_right hAA
+          (le_of_lt (by positivity : (0:ℝ) < N^2))]
+    _ = (A / N) * S := by
+        field_simp
+
+/-- LION-МОСТ: sign-шаг по моменту m согласован с градиентом
+⟹ масштабированный Lion-шаг даёт чистое убывание. -/
+theorem lion_descent (J : Objective k) (x m : k → ℝ)
+    (hcoh : (∑ i, |m i|) / (Fintype.card k)
+      * (∑ i, if m i = 0 then (0:ℝ) else 1)
+        ≤ ∑ i, J.grad x i * sgn1 (m i))
+    (eta : ℝ) (heta : 0 < eta) (hetaL : eta ≤ 1 / J.L) :
+    J.f (x - fun i => eta * (signScale m * sgn1 (m i)))
+      ≤ J.f x
+        - eta * (1 - J.L * eta / 2)
+            * nrm2 (fun i => signScale m * sgn1 (m i)) :=
+  descent_drop J x
+    (fun i => signScale m * sgn1 (m i))
+    (scaled_sign_aligned_of_coherence J x m hcoh) eta heta hetaL
+
 end Hagi.Unified.SignDescent
