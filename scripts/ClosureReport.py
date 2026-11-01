@@ -66,6 +66,12 @@ CAPSTONES = [
     "Hagi.Budget.BudgetArc",
     "Hagi.Step.StepArc",
     "Hagi.Probability.ProbabilityArc",
+    "Hagi.Challenge.MasterChallengeV3",  # Gen-3 comparator capstone
+    "Hagi.Diagnostics.Obstructions",     # obstruction isolator
+    "Hagi.Examples.QuadraticConcrete",   # concrete quadratic witness
+    "Hagi.Examples.QuadraticEndToEnd",   # end-to-end witness
+    "Hagi.Examples.QuarticWitness",      # quartic witness
+    "Hagi.Examples.QuadLoopWitness",     # quad loop witness
     "H",
     "H",
     "H",

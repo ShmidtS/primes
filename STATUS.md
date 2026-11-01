@@ -2454,6 +2454,12 @@
   ProbabilityArc — замыкание 247/449 (55%) → 439/455
   (96%); осталось 16 library-модулей (изолированные
   математические фундаменты).
+- **Closure 97% — смысловое замыкание завершено**:
+  зарегистрированы компаратор MasterChallengeV3,
+  изолятор Obstructions, свидетели Examples — 443/455
+  (97%); оставшиеся 12 — честные изоляты (мат-кирпичи
+  Core/Geometry/Percolation/External без потребителей,
+  Class D/E по LeafClassify).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
