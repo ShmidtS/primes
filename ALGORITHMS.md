@@ -1,35 +1,50 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 1889 theorem/lemma, 0 sorry,
+теоремы Lean 4 / Mathlib (Hagi/, 2909 theorem/lemma, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
 
 ---
 
-## 0. Главный цикл: certified growth loop
+## 0. Главный цикл: certified loop (Gen-3, канонический)
+
+Единый сертифицированный цикл обучения. Плоские капстоуны
+поколения Gen-1 (`MasterHAGI*`, `grand_synthesis`)
+`@[deprecated]`; Gen-1-семантика копируемых эффектов
+доказуемо противоречива на T = 2
+(`full_cycle_two_step_growth_inconsistent'`).
 
 ```
-loop:
-  1. ИЗМЕРИТЬ      энергию E, зазор G, d*, κ, s, бюджеты
-  2. СЕРТИФИЦИРОВАТЬ StageCertificate (before/after/dec/risk)
-  3. ВЫБРАТЬ       действие argmax Γ_certified/K
-  4. ИСПОЛНИТЬ     grow → merge → joint → compress
-  5. ПРОВЕРИТЬ     Φ′ ≤ Φ − dec + riskSpend   [certificate_sound]
-  6. СТОП          если consensus ∧ inj ≤ ξ   [liveness_two_axis]
+loop t = 0..n:
+  1. ИЗМЕРИТЬ        obj (энергия), M.evaluate (качество),
+                     spend (стоимость) из состояния
+  2. СЕРТИФИЦИРОВАТЬ StepCert на переходе s→s':
+        trans   : HonestTransition — спуск зависим от
+                  исполнения: obj s' ≤ obj s − drop, drop > 0
+        quality : FloorKept M s' floor — покомпонентный
+                  пол качества (НЕ скалярный Qgen:
+                  `qgen_hides` — контрпример)
+        budget  : b' ≤ b − spend, 0 ≤ spend
+  3. COMMIT/HOLD     без сертификата — hold
+                     (`gate_never_increases`: энергия
+                     не растёт НИКОГДА)
+  4. СТОП            бюджет исчерпан / floor достигнут
 ```
 
-- Потенциал: Φ = E + protectedRisk.
-- Одно поколение: `growth_cycle_potential` —
-  Φ(после) ≤ Φ − (gainGrow + G + η‖d*‖²/2) + (Σ рисков + κs/2).
-- T поколений: `stage_certificate_telescope` —
-  Φ_{T−1} ≤ Φ₀ − Σₜ decreaseₜ + Σₜ riskSpendₜ
-  при континуитете before(t+1) = after(t).
-- Бюджет: `budget_account` — budget′ = budget − budgetSpend
-  (точная арифметика, не оценка).
-- Терминация: `macro_termination_derived` — если каждый шаг
-  уменьшает E ≥ ε > 0, то k ≤ (E₀ − Emin)/ε.
+- Итог горизонта (`certified_loop`, Unified/CertifiedLoop):
+  Σdrops ≤ obj₀ − objₙ ∧ FloorKept ∧ 0 ≤ bₙ ≤ b₀ − Σspends.
+- Строгость (`certified_loop_strict`): при n ≥ 1 спуск
+  строгий, objₙ < obj₀.
+- Весь горизонт (`certified_loop_all`): floor держится на
+  КАЖДОМ промежуточном состоянии.
+- Не-вакуозность (`quad_loop_horizon`): исполняемая
+  машина (квадратичная, полушаг η = 1/2 — энергия × 1/4
+  за шаг) инстанцирует сертификаты на любом горизонте
+  (`quad_witness_T3`, `quad_witness_T10`).
+- Закрепление: `master_hagi_challenge_v3` — comparator-гейт
+  CI (пин типа StepCert, аксиомы чистые).
 
 ## 1. Выбор действия: argmax Γ/K
 
@@ -85,6 +100,40 @@ d* = proj_C(g₀),  C = {d : ⟨g_i, d⟩ ≥ −ε_i}   # старые доме
   `stochastic_safeQP_feasibility` сохраняются на том же δ,
   а последовательных обновлений на ту же кривую — в k раз
   меньше (больше параллелизма). 
+
+## 2b. Сжатые шаги: sign/Lion/SAM (Unified/SignDescent,
+Unified/SamDescent)
+
+Компрессия шага с сертификатом чистого спуска. Ключевой
+факт: НЕмасштабированный sign-шаг НЕ выровнен (норма
+знакового вектора = число ненулевых координат, может
+превышать ℓ₁-норму градиента) — масштаб обязателен.
+
+```
+s = ‖g‖₁ / n                            # signScale
+шаг = x − η·s·sign(g)                   # η ≤ 1/L
+```
+
+- SignSGD: `sign_scaled_aligned` — выровненность
+  (nrm2 ≤ inprod при s = ‖g‖₁/n); `sign_descent` — чистое
+  убывание η(1−Lη/2)·s²·nnz (Bernstein 1802.04434: связь
+  signSGD с нормализованным SGD).
+- Lion (момент m): `scaled_sign_aligned_of_coherence` при
+  согласованности момента с градиентом
+  (‖m‖₁/n·nnz(m) ≤ ⟨g, sign(m)⟩); `lion_descent` — чистое
+  убывание (Chen 2302.06675).
+- Оптимальность знака: `sign_is_pointwise_max` — знак
+  максимизирует ⟨g, v⟩ на всём ℓ∞-кубе |v i| ≤ 1 (векторное
+  ядро спектральной оптимальности Muon;
+  `muon_alignment_optimal` — матричная форма).
+- SAM: `sam_descent_bridge` — спуск δ по worst-neighbor
+  цели переносится на истинный лосс как δ − sharp (острота
+  samW − L); плоский случай `sam_descent_flat` — чистый
+  спуск (Foret 2010.01412). Правило: SAM-спуск честен
+  ровно настолько, насколько найденный минимум плоский.
+- Правило для сжатых машин: сначала SafeQP-направление
+  (η = 1/L), затем компрессия шага до знаков с масштабом
+  s = ‖g‖₁/n — сертификат спуска сохраняется формально.
 
 ## 3. Гейт слияния: реальный CE-зазор
 
@@ -373,7 +422,16 @@ Probability/GibbsConcentration)
   посылки stage-теорем; их вывод из Core-слоя открыт
   (merge и compress закрыты мостами).
 - γ-дефицит mixer.gain→0 — не закрыт (контрпримерная зона).
-- GrandSynthesis пункты 2/4 — плоские передачи посылок,
-  не вывод.
+- Плоские капстоуны (`MasterHAGI*`, `grand_synthesis`)
+  депрекнуты и НЕ заменены выводом — их содержание
+  поглощается условным `certified_loop`; полный вывод
+  всех посылок из физики — открытый фронт.
+- Closure gap: 286 library-листьев (оптимизаторы,
+  attention-экономия, alignment) доказаны автономно, но
+  не инстанцируют StepCert/DescentCore.Objective — их
+  интеграция в certified loop открыта.
+- Сертификатный веер: 8 представлений перехода не сведены
+  к канонической цепочке Execution → Measurement →
+  StepCert → CertifiedLoop.
 - Полная Fannes-граница; anytime-Freedman (M∧V-форма).
 - Lean↔Runtime property-тесты — требуют torch-рантайма.

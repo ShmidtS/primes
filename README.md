@@ -48,10 +48,32 @@ Detailed per-round history: `STATUS.md`.
    Deriving the remaining `h_emp_*` premises (h_emp_grow,
    h_emp_smooth, h_emp_lip) from the Core layer is open.
 
-Current corpus: 328 modules, 2557 frozen declarations, 1958
+Current corpus: 429 modules, 3718 frozen declarations, 2909
 theorem/lemma, 0 sorry, 0 LayerLint exceptions. Per-module
 state with the derived formulas: `STATUS.md`; the algorithms
 implied by the proven theorems: `ALGORITHMS.md`.
+
+## The canonical capstone (Gen-3)
+
+The master result is `CertifiedLoop.certified_loop`
+(Unified/CertifiedLoop.lean): a chain of `StepCert` steps —
+dependent honest descent (`HonestTransition.actualDescent`:
+obj s' ≤ obj s − drop), componentwise quality floor
+(`FloorKept`), honest budget (b' ≤ b − spend) — yields
+simultaneously Σdrops ≤ obj₀ − objₙ, quality on every
+intermediate state (`certified_loop_all`), strict descent
+for n ≥ 1 (`certified_loop_strict`) and the budget
+telescope. The gate `gate_never_increases` (commit/hold)
+keeps energy non-increasing always. Non-vacuity: the
+executable quadratic machine instantiates the certificates
+on any horizon (`quad_loop_horizon`, `quad_witness_T3`,
+`quad_witness_T10`); the CI CHALLENGE gate pins the
+Gen-3 statement (`master_hagi_challenge_v3`).
+
+The old flat Gen-1 capstones (`MasterHAGI*`,
+`grand_synthesis`) are `@[deprecated]`: the copied-effects
+semantics is provably inconsistent at T = 2
+(`Hagi.Diagnostics.Obstructions`).
 
 ## Build and checks
 
@@ -64,7 +86,10 @@ Checks: TrivialLint (no sorry, no custom axioms, no
 trivialities), Freeze.py (declaration statements locked in
 `declarations.lock`), DocLint (docstring names/numbers
 match code), StatusLint, LayerLint (folder-layer import
-order, shrinking whitelist).
+order, shrinking whitelist), DupLint/NsLint, CHALLENGE
+(Gen-3 comparator capstone), STMDUP, MACHINEDIFF
+(differential machine tests), ALLAXIOMS (axiom purity of
+every theorem). 16 gates total, all PASS.
 
 ## Conventions
 
