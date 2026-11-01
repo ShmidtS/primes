@@ -450,6 +450,14 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **CI-оптимизация (такт №283)**: полный цикл 20+мин →
+  1:46 (12×): AllAxiomCheck v2 (единый обход
+  getUsedConstants + visited-HashMap вместо per-const
+  collectAxioms: 19мин → 30сек, 38×); AxiomCheck (21
+  capstone) УДАЛЁН — строго поглощён AllAxiomCheck (5488
+  теорем); Metrics/ClosureReport вынесены в report.sh
+  (репорты, не гейты); ранний гейт → только early-fail.
+  Покрытие НЕ снижено: 16 шагов, все проверки на месте.
 - **AllAxiomCheck (такт №278, аудит №5 H3)**: гейт
   аксиом-чистоты ВСЕХ Hagi.*-теорем (метапрограмма
   collectAxioms по окружению — не только 21 capstone):

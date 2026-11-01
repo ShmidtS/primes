@@ -1,61 +1,71 @@
 /-
-AllAxiomCheck (аудит №5 H3): аксиоматические зависимости
-ВСЕХ публичных констант Hagi.*, а не только 21 capstone.
+AllAxiomCheck v2 (аудит №5 H3, оптимизация такта №283):
+аксиоматические зависимости ВСЕХ Hagi.*-теорем.
 
-Метапрограмма: итерирует окружение, для каждой константы в
-namespace Hagi.* выполняет collectAxioms; нестандартные
-аксиомы (вне {propext, Classical.choice, Quot.sound})
-флагаются. Печатает ALLAXIOMS: PASS/FAIL (последняя строка —
-машиночитаемый маркер для CI).
+v1 (collectAxioms per-const) — 19 мин (транзитивный обход
+заново для каждой из 5463 теорем). v2: ЕДИНЫЙ обход графа
+зависимостей с visited-set — каждая константа посещается
+один раз, O(V+E): на порядок быстрее.
 
 Запуск: lake env lean --run scripts/AllAxiomCheck.lean
+Маркер: ALLAXIOMS: PASS/FAIL (последняя строка).
 -/
 import Hagi
-import Lean.Util.CollectAxioms
-import Lean.Util.Path
+import Lean
 
-open Lean Lean.Meta Core
+open Lean
 
 namespace AllAxiomCheck
 
 def allowed : List Name :=
   [`propext, `Classical.choice, `Quot.sound]
 
-end AllAxiomCheck
-
-open AllAxiomCheck
+/-- Единый обход: getUsedConstants (ядро, быстрый) на
+type+value каждой константы; visited-HashMap: каждая
+константа обрабатывается один раз. -/
+def collectAll (env : Environment) : IO (Array Name × Nat) := do
+  let mut seeds : Array Name := #[]
+  for (nm, ci) in env.constants.toList do
+    if nm.toString.startsWith "Hagi" && ci.isTheorem then
+      seeds := seeds.push nm
+  let mut visited : Std.HashMap Name Unit := {}
+  let mut axioms : Array Name := #[]
+  let mut stack : Array Name := seeds
+  while h : stack.size > 0 do
+    let nm := stack.back
+    stack := stack.pop
+    if visited.contains nm then
+      continue
+    visited := visited.insert nm ()
+    match env.find? nm with
+    | some (.axiomInfo _) => axioms := axioms.push nm
+    | some ci =>
+      let mut deps := ci.type.getUsedConstants
+      match ci with
+      | .thmInfo t => deps := deps ++ t.value.getUsedConstants
+      | .defnInfo d => deps := deps ++ d.value.getUsedConstants
+      | _ => pure ()
+      for d in deps do
+        unless visited.contains d do
+          stack := stack.push d
+    | none => pure ()
+  return (axioms, seeds.size)
 
 unsafe def main : IO Unit := do
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := `Hagi }] ∅ (trustLevel := 1024)
-  let ctx : Core.Context :=
-    { fileName := "<AllAxiomCheck>", options := {}, fileMap := default }
-  let state : Core.State := { env := env }
-  let (summary, _, _) ← (MetaM.toIO · ctx state) do
-    let mut bad : Array (Name × Array Name) := #[]
-    let mut total := 0
-    let mut ok := 0
-    for (nm, ci) in env.constants.toList do
-      if nm.toString.startsWith "Hagi" then
-        match ci with
-        | .thmInfo _ =>
-          total := total + 1
-          let axs ← collectAxioms nm
-          let bads := Array.filter (fun a => !(allowed.contains a)) axs
-          if bads.isEmpty then
-            ok := ok + 1
-          else
-            bad := bad.push (nm, bads)
-        | _ => pure ()
-    let mut rep : String :=
-      s!"checked {ok}/{total} theorems in Hagi.*"
-    for (nm, bads) in bad do
-      rep := rep ++ "
-" ++ s!"BAD_AXIOMS | {nm} | {bads}"
-    if bad.isEmpty then
-      return rep ++ "
-ALLAXIOMS: PASS"
-    else
-      return rep ++ "
-ALLAXIOMS: FAIL"
-  IO.println summary
+  let (axs, nTh) ← collectAll env
+  let bad := axs.filter (fun a => !(allowed.contains a))
+  IO.println s!"transitive axioms of all {nTh} Hagi.* theorems:"
+  for a in axs do
+    IO.println s!"  {a}"
+  if bad.isEmpty then
+    IO.println "ALLAXIOMS: PASS"
+  else
+    IO.println s!"ALLAXIOMS: FAIL ({bad.size} nonstandard)"
+
+end AllAxiomCheck
+
+open AllAxiomCheck
+
+unsafe def main : IO Unit := AllAxiomCheck.main

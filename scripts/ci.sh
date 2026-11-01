@@ -76,21 +76,7 @@ out=$(python scripts/StatusLint.py 2>&1 | tail -1)
 echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=1; }
 
 echo
-if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
-python scripts/Metrics.py
-
-step "AxiomCheck (capstones depend only on standard axioms)"
-AX=$(lake env lean scripts/AxiomCheck.lean 2>/dev/null)
-echo "$AX" | tail -1
-N_TOTAL=$(echo "$AX" | grep -c "depends on axioms")
-N_OK=$(echo "$AX" | grep -c "propext, Classical.choice, Quot.sound")
-if [ "$N_TOTAL" != "$N_OK" ]; then
-  echo "AXIOMCHECK: FAIL ($N_OK/$N_TOTAL capstones clean)"
-  fail=1
-else
-  echo "AXIOMCHECK: PASS ($N_OK capstones, only standard axioms)"
-fi
-
+if [ "$fail" -ne 0 ]; then echo "CI: FAIL (early)"; exit 1; fi
 
 step "ChallengeCheck (Comparator-challenges: pinned honest statements)"
 out=$(python scripts/ChallengeCheck.py 2>&1 | tail -1)
@@ -108,9 +94,5 @@ echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
 step "AllAxiomCheck (audit 5 H3: axioms of ALL Hagi.* theorems)"
 out=$(lake env lean --run scripts/AllAxiomCheck.lean 2>/dev/null | tail -1)
 echo "$out"; case "$out" in ALLAXIOMS:\ PASS*) ;; *) echo "ALLAXIOMCHECK: FAIL"; fail=1;; esac
-step "ClosureReport (modules under capstones vs library)"
-python scripts/ClosureReport.py | head -1
-
-
 # Final gate (audit H2 fix): late-stage failures must affect exit code
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi
