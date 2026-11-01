@@ -104,4 +104,45 @@ noncomputable def quadStepCert (a x : k → ℝ)
     field_simp
     linarith
 
+
+
+/-- Траектория: t=0 — старт, t≥1 — оптимум. -/
+def qf (a x : k → ℝ) : ℕ → (k → ℝ) :=
+  fun t => Nat.rec x (fun _ _ => x - quadGrad a x) t
+
+omit [Nonempty k] in
+theorem quadE_nonneg (a w : k → ℝ) : 0 ≤ quadE a w := by
+  unfold quadE
+  apply div_nonneg
+  · exact Finset.sum_nonneg fun i _ => sq_nonneg _
+  · norm_num
+
+/-- ПРОГОН КАПСТОНА: certified_loop_strict на одношаговой
+quad-траектории — энергия после сертифицированного шага
+СТРОГО меньше. -/
+theorem quad_loop_strict (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
+    quadE a (qf a x 1) < quadE a (qf a x 0) := by
+  have hnn : 0 ≤ quadE a x := quadE_nonneg a x
+  have h₀ : Hagi.Unified.LinkedQVec.FloorKept
+      (quadMeasured a) (qf a x 0) (quadFloor a x) := by
+    intro i
+    show 1 / (2 * (1 + quadE a x)) ≤ 1 / (1 + quadE a x)
+    have h1 : (0:ℝ) < 1 + quadE a x := by linarith
+    have h2 : (0:ℝ) < 2 * (1 + quadE a x) := by linarith
+    rw [div_le_div_iff₀ h2 h1]
+    linarith
+  have main := Hagi.Unified.CertifiedLoop.certified_loop_strict
+    (fun w => quadE a w) (quadMeasured a) (quadFloor a x) 0
+    (qf a x) (fun _ => 0) (fun _ => quadE a x) 1
+    h₀ (le_refl 0)
+    (fun t => match t with
+      | ⟨0, _⟩ => quadStepCert a x hx
+      | ⟨k + 1, h⟩ => nomatch h)
+    (fun t => by
+      have ht : t = 0 := Subsingleton.elim _ _
+      subst ht
+      rfl)
+    (by norm_num)
+  exact main.1
+
 end Hagi.Unified.LoopInstances

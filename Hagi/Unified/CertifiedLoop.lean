@@ -54,33 +54,47 @@ theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
     (f : ℕ → S) (b drops spends : ℕ → ℝ) (n : ℕ)
     (h₀ : FloorKept M (f 0) floor) (hb₀ : 0 ≤ b 0)
-    (certs : ∀ t : ℕ,
-      StepCert obj M floor riskLim (f t) (f (t + 1)) (b t) (b (t + 1)))
-    (hdrops : ∀ t < n, drops t = (certs t).trans.objectiveDrop)
-    (hspends : ∀ t < n, spends t = (certs t).spend) :
+    (certs : ∀ t : Fin n,
+      StepCert obj M floor riskLim (f t.val) (f (t.val + 1))
+        (b t.val) (b (t.val + 1)))
+    (hdrops : ∀ t : Fin n,
+      drops t.val = (certs t).trans.objectiveDrop)
+    (hspends : ∀ t : Fin n,
+      spends t.val = (certs t).spend) :
     ∑ t ∈ Finset.range n, drops t ≤ obj (f 0) - obj (f n)
       ∧ FloorKept M (f n) floor
       ∧ 0 ≤ b n
       ∧ b n ≤ b 0 - ∑ t ∈ Finset.range n, spends t := by
-  revert hdrops hspends
+  revert certs hdrops hspends
   induction n with
   | zero => intro _ _; simp [h₀, hb₀]
   | succ n ih =>
-    intro hdrops hspends
+    intro certs hdrops hspends
     rw [Finset.sum_range_succ, Finset.sum_range_succ]
-    have hdrop := (certs n).trans.actualDescent
-    have hpos := (certs n).trans.objectiveDrop_pos
-    have hbd := (certs n).hdec
-    have hbb := (certs n).trans.budgetBound
-    have hq := (certs n).quality
-    have hn1 : drops n = (certs n).trans.objectiveDrop :=
-      hdrops n (Nat.lt_succ_self n)
-    have hn2 : spends n = (certs n).spend :=
-      hspends n (Nat.lt_succ_self n)
+    have hdrop := (certs (Fin.last n)).trans.actualDescent
+    have hpos := (certs (Fin.last n)).trans.objectiveDrop_pos
+    have hbd := (certs (Fin.last n)).hdec
+    have hbb := (certs (Fin.last n)).trans.budgetBound
+    have hq := (certs (Fin.last n)).quality
+    have hn1 : drops n = (certs (Fin.last n)).trans.objectiveDrop :=
+      hdrops (Fin.last n)
+    have hn1' : drops n = (certs (Fin.last n)).trans.objectiveDrop :=
+      hn1
+    have hn2 : spends n = (certs (Fin.last n)).spend :=
+      hspends (Fin.last n)
+    have hn2' : spends n = (certs (Fin.last n)).spend :=
+      hn2
     obtain ⟨h1, h2, h3, h4⟩ := ih
-      (fun t ht => hdrops t (Nat.lt_succ_of_lt ht))
-      (fun t ht => hspends t (Nat.lt_succ_of_lt ht))
-    refine ⟨?_, hq, hbb, ?_⟩ <;> linarith
+      (fun t => certs t.castSucc)
+      (fun t => hdrops t.castSucc)
+      (fun t => hspends t.castSucc)
+    have hdrop2 : obj (f (n + 1))
+        ≤ obj (f n) - (certs (Fin.last n)).trans.objectiveDrop :=
+      hdrop
+    have hbb2 : 0 ≤ b (n + 1) := hbb
+    have hbd2 : b (n + 1) ≤ b n - (certs (Fin.last n)).spend := hbd
+    have hq2 : FloorKept M (f (n + 1)) floor := hq
+    refine ⟨?_, hq2, hbb2, ?_⟩ <;> linarith
 
 /-- Принцип commit/hold: без сертификата — hold,
 состояние сохраняется. Энергия не растёт НИКОГДА. -/
@@ -92,26 +106,38 @@ theorem gate_never_increases (obj : S → ℝ) (P : Prop) [Decidable P]
   · simp [hP]
 
 /-- УСИЛЕНИЕ: при n ≥ 1 спуск СТРОГИЙ — сертифицированная
-цепочка хотя бы одного шага гарантированно улучшает. -/
+цепочка хотя бы одного шага гарантированно улучшает.
+(spends вычисляются из сертификатов внутри — вызывающей
+стороне не нужно их передавать.) -/
 theorem certified_loop_strict (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
-    (f : ℕ → S) (b drops spends : ℕ → ℝ) (n : ℕ)
+    (f : ℕ → S) (b drops : ℕ → ℝ) (n : ℕ)
     (h₀ : FloorKept M (f 0) floor) (hb₀ : 0 ≤ b 0)
-    (certs : ∀ t : ℕ,
-      StepCert obj M floor riskLim (f t) (f (t + 1)) (b t) (b (t + 1)))
-    (hdrops : ∀ t < n, drops t = (certs t).trans.objectiveDrop)
-    (hspends : ∀ t < n, spends t = (certs t).spend)
+    (certs : ∀ t : Fin n,
+      StepCert obj M floor riskLim (f t.val) (f (t.val + 1))
+        (b t.val) (b (t.val + 1)))
+    (hdrops : ∀ t : Fin n,
+      drops t.val = (certs t).trans.objectiveDrop)
     (hn : 1 ≤ n) :
     obj (f n) < obj (f 0) ∧
       ∑ t ∈ Finset.range n, drops t ≤ obj (f 0) - obj (f n) := by
+  set spends : ℕ → ℝ :=
+    fun t => if h : t < n then (certs ⟨t, h⟩).spend else 0 with hsp_def
+  have hspends : ∀ t (ht : t < n),
+      spends t = (certs ⟨t, ht⟩).spend := by
+    intro t ht
+    rw [hsp_def]
+    simp only [dif_pos ht]
   obtain ⟨h1, h2, h3, h4⟩ := certified_loop obj M floor riskLim f b
-    drops spends n h₀ hb₀ certs hdrops hspends
+    drops spends n h₀ hb₀ certs hdrops (fun t => hspends t.val t.isLt)
   have hsum : 0 < ∑ t ∈ Finset.range n, drops t :=
     Finset.sum_pos
       (fun t ht => by
-        rw [hdrops t (Finset.mem_range.mp ht)]
-        exact (certs t).trans.objectiveDrop_pos)
-      (⟨0, by simp; omega⟩)
+        have ht' := Finset.mem_range.mp ht
+        have he := hdrops ⟨t, ht'⟩
+        have hp := (certs ⟨t, ht'⟩).trans.objectiveDrop_pos
+        linarith)
+      ⟨0, Finset.mem_range.mpr hn⟩
   exact ⟨by linarith, h1⟩
 
 end Hagi.Unified.CertifiedLoop
