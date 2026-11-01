@@ -1048,6 +1048,7 @@ edgeless_reachable_eq	77cfaf46fc85156c	edf39dd017c23324
 ef_iterate_shadow	1de1e07a9f117c6e	cc855709277a9ace
 ef_quad_quality	5e5114dbe0b1924a	c123450b3bd49146
 ef_quad_transfer	029e65933bf8215a	5e9c22feb6edd119
+ef_residual_step_bound	e1398a2faed426d3	4df0027c25641590
 ef_shadow_sum	11165dc34ad44043	cc7216f68459dd65
 ef_telescope	f01d52a5d90fc8bf	d8ebdcdb0673d91f
 efe_ceiling	066b586ab2324ebf	e58fd7e189df0f2e
@@ -2959,7 +2960,9 @@ res_bounded_drift	d1b8f518492a4f6f	345b445d4f128887
 residualLeaf	c4358e15e090e0f5	fc1a0306d3caf496
 residualLeaf_zero	f1d3ff3a3ef0bd3d	8f019beb8eabcd86
 residualLeaf_zero_apply	dbe45488c1f12f07	ecbdbf56ec8c0e06
+residual_coord_le	b0a9defa63973f5d	b3b605c85e49cb5b
 residual_gate_two_sided	79193601d47dc9db	b3c3ee0fc63d491c
+residual_l1_le	9355f08eef823bf8	02802c53058fd4c5
 residual_nonneg	bef895e7b9ccf66e	8c8e62bf5264d22a
 residual_vec_bound	7d6bd81e445e9127	944a9d26d2618d27
 residual_vec_diff	70df8407f11593bc	d9052236e1729c4f
@@ -3137,6 +3140,7 @@ sfo_min_core	320d680a76bd4688	41759860bb07a856
 sgd_stable_step	296c958d4970ce00	c315e44497d0ab18
 sgn	c4fde6f8096a4db7	68f953445ed36344
 sgn1	40df0097387eff2f	f255ba49212847a5
+sgn1_abs_le_one	ccd5df2d0a25165c	8ecb03a3a25114fb
 sgn1_fix	d2c3e7303e2d72e8	d518a5ecaa721485
 sgn1_grid_fix	177040f49880a1ce	a01bc7433e525f84
 sgn1_mul_self	649997c0dbe039e3	3d782a536b22959c
@@ -3425,6 +3429,7 @@ sum_two_point	ae596d408965d1e7	0cc6751f1e9607c0
 sum_two_pow	9697f6207fc981d6	c58eed41509a79ce
 sum_w_center	00149ab920319642	6de3a12dc9b285e8
 sum_w_decomp	4c922b713de4b073	086e4f96a888eef7
+sumsq_le_sq_l1	88d24a25e1158bf4	9048045a993512e8
 sup'_eq_of_range_eq	90308c36fcc9f692	f9781bac10d4906b
 sup'_sq_eq_sq_sup'	3bf363c1e4e1dafe	cf44c7267be67ca0
 sup_div	3734031e8b937182	b36f172bf9de2ace

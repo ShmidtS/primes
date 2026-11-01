@@ -446,6 +446,7 @@ import Hagi.Optimization.Lion
 import Hagi.Probability.GibbsCore
 import Hagi.Unified.QuadGDRate
 import Hagi.Unified.SignEFQuad
+import Hagi.Unified.EFResidual
 
 set_option linter.style.header false
 
