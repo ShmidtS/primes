@@ -450,6 +450,16 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Аудит №6-фиксы (такт №284, P0)**: (1) УДАЛЕНЫ
+  vacuous-теоремы MasterHAGICoreOperational v1 и
+  core_premises_operational_scalar (посылка hjointE
+  E(x) ≤ E(x−ηd) противоречит спуску — vacuous truth;
+  v2-версии без hjointE сохранены, Freeze −2);
+  (2) evalCapa: probe-based capability-канал (доля
+  координат в ε-окрестности, [0,1]) — НЕ сводим к loss
+  (закрыт P0-дефект 3 «тавтологичная capability»:
+  каналы разделены — оптимизационный loss vs покрытие
+  задач).
 - **CI-оптимизация (такт №283)**: полный цикл 20+мин →
   1:46 (12×): AllAxiomCheck v2 (единый обход
   getUsedConstants + visited-HashMap вместо per-const

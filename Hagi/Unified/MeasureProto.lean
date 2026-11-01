@@ -84,4 +84,43 @@ theorem machineProto_capa_mono (a : Fin n → ℝ)
   exact one_div_le_one_div_of_le (by linarith) hkey
 
 
+
+/-- PROBE-CAPABILITY (аудит №6 P0-дефект 3): отдельный
+канал — доля координат, попавших в ε-окрестность цели.
+НЕ сводим к loss: измеряет покрытие задач (счётное), а не
+квадратичную ошибку; связь однонаправленная: энергия
+ниже порога ⟹ полное покрытие (но не наоборот). -/
+noncomputable def evalCapa (a : Fin n → ℝ) (eps : ℝ)
+    (w : Fin n → ℝ) : ℝ :=
+  (∑ i : Fin n, if |w i - a i| ≤ eps then (1:ℝ) else 0)
+    / (Fintype.card (Fin n))
+
+/-- Границы probe-capability: ∈ [0, 1]. -/
+theorem evalCapa_bounds (a : Fin n → ℝ) (eps : ℝ)
+    (w : Fin n → ℝ) (hn : 0 < n) :
+    0 ≤ evalCapa a eps w ∧ evalCapa a eps w ≤ 1 := by
+  have hnum : ∀ i : Fin n,
+      (0:ℝ) ≤ (if |w i - a i| ≤ eps then (1:ℝ) else 0)
+        ∧ (if |w i - a i| ≤ eps then (1:ℝ) else 0) ≤ 1 := by
+    intro i
+    by_cases h : |w i - a i| ≤ eps
+    · simp [h]
+    · simp [h]
+  constructor
+  · unfold evalCapa
+    exact div_nonneg (Finset.sum_nonneg
+      (fun i _ => (hnum i).1)) (by positivity)
+  · unfold evalCapa
+    have h1 : ∑ i : Fin n,
+        (if |w i - a i| ≤ eps then (1:ℝ) else 0)
+        ≤ ∑ i : Fin n, (1:ℝ) :=
+      Finset.sum_le_sum (fun i _ => (hnum i).2)
+    have h2 : (∑ i : Fin n, (1:ℝ))
+      = (Fintype.card (Fin n : Type) : ℝ) := by
+      simp [Finset.sum_const, nsmul_eq_mul, Finset.card_univ]
+    rw [h2] at h1
+    have hcard : (0:ℝ) < (Fintype.card (Fin n : Type)) := by
+      simpa using hn
+    exact (div_le_one hcard).mpr h1
+
 end Hagi.Unified.MeasureProto
