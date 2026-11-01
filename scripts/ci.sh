@@ -104,6 +104,10 @@ step "MachineDiffTest (audit v7 stage 6: reference machine differential tests)"
 out=$(python scripts/MachineDiffTest.py 2>&1 | tail -1)
 echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
 
+
+step "AllAxiomCheck (audit 5 H3: axioms of ALL Hagi.* theorems)"
+out=$(lake env lean --run scripts/AllAxiomCheck.lean 2>/dev/null | tail -1)
+echo "$out"; case "$out" in ALLAXIOMS:\ PASS*) ;; *) echo "ALLAXIOMCHECK: FAIL"; fail=1;; esac
 step "ClosureReport (modules under capstones vs library)"
 python scripts/ClosureReport.py | head -1
 

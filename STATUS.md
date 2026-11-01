@@ -419,6 +419,11 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **AllAxiomCheck (такт №278, аудит №5 H3)**: гейт
+  аксиом-чистоты ВСЕХ Hagi.*-теорем (метапрограмма
+  collectAxioms по окружению — не только 21 capstone):
+  5463/5463 — только propext/Classical.choice/Quot.sound;
+  встроен в ci.sh (гейт ALLAXIOMCHECK).
 - **QuadUnify (такт №277, аудит №5 P3-сведение)**:
   квадратичные линии УНИФИЦИРОВАНЫ: quadE_eq_energy и
   quadGrad_eq_grad (DescentCoreQuad ≡ ReferenceMachine —
