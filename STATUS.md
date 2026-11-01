@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 271 Lean-модулей в `Hagi/`; 3604 деклараций (Freeze);
+- 271 Lean-модулей в `Hagi/`; 3609 деклараций (Freeze);
   2148 theorem/lemma; 0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI: LINT, MathlibPin, DupLint, NsLint, DocLint, LayerLint,
@@ -419,6 +419,14 @@
   переносы, namespace-удвоение при merge, DUPLINT-делегаты,
   perceiver-ловушка worst-case, sum_mul/mul_sum стрелки,
   min-в-omega, updateRow-семейство).
+- **MeasureProto (такт №280, аудит №5 P1/E)**: протокол
+  измерений — происхождение как ТИП: MeasureProto
+  (loss/risk/capability/cost — поля-функции Params→ℝ),
+  machineProto (инстанс машины: loss = energy — реальное
+  вычисление), machineProto_gap (dStep QuadGate = loss(θ)
+  − loss(step) — rfl-тождество с протоколом),
+  machineProto_capa_mono (capability 1/(1+E) монотонна
+  по реальной энергии — каналы согласованы).
 - **GradCentralization (источник №86, такт №279)**:
   центрирование градиента (2004.02861): gc (реюз
   centered), gc_zero_sum (реюз sum_centered),

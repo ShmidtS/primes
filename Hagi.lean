@@ -360,6 +360,7 @@ import Hagi.Model.Mixup
 import Hagi.Model.VicReg
 import Hagi.Unified.QuadUnify
 import Hagi.Step.GradCentralization
+import Hagi.Unified.MeasureProto
 import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
