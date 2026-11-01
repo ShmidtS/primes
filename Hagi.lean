@@ -331,6 +331,7 @@ import Hagi.Unified.PLQuad
 import Hagi.Unified.SignNoKappa
 import Hagi.Unified.ErrorFeedback
 import Hagi.Unified.EFQuad
+import Hagi.Unified.PLBudget
 import Hagi.Unified.SamDescent
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
