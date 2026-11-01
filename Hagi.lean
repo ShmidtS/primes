@@ -327,6 +327,7 @@ import Hagi.Unified.StepContract
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignStepCert
 import Hagi.Unified.PLLoop
+import Hagi.Unified.PLQuad
 import Hagi.Unified.SamDescent
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
