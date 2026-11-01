@@ -60,6 +60,18 @@ CAPSTONES = [
     "Hagi.Unified.CertifiedLoop",
     "Hagi.Unified.CompressionArc",   # compression-quality arc facade
     "Hagi.Model.ModelArc",           # model catalog facade
+    "Hagi.Unified.UnifiedArc",
+    "Hagi.Growth.GrowthArc",
+    "Hagi.Optimization.OptimizationArc",
+    "Hagi.Budget.BudgetArc",
+    "Hagi.Step.StepArc",
+    "Hagi.Probability.ProbabilityArc",
+    "H",
+    "H",
+    "H",
+    "H",
+    "H",
+    "H",
     "Hagi.Ensemble.HoeffdingBridge", # M4 weighted/product bridge
     "Hagi.Probability.GibbsCore",    # M4 Gibbs canon
     "Hagi.Unified.LoopInstances",

@@ -450,6 +450,12 @@ import Hagi.Unified.EFResidual
 import Hagi.Unified.ThrComp
 import Hagi.Unified.CompressionArc
 import Hagi.Model.ModelArc
+import Hagi.Unified.UnifiedArc
+import Hagi.Growth.GrowthArc
+import Hagi.Optimization.OptimizationArc
+import Hagi.Budget.BudgetArc
+import Hagi.Step.StepArc
+import Hagi.Probability.ProbabilityArc
 
 set_option linter.style.header false
 

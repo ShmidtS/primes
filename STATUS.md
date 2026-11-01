@@ -2449,6 +2449,11 @@
   CAPSTONES + ModelArc — замыкание 181/448 (40%) →
   247/449 (55%). Оставшиеся кластеры: Unified (31),
   Growth (20), Optimization (17), Budget (16).
+- **Фасады шести кластеров + Closure 96%**: UnifiedArc,
+  GrowthArc, OptimizationArc, BudgetArc, StepArc,
+  ProbabilityArc — замыкание 247/449 (55%) → 439/455
+  (96%); осталось 16 library-модулей (изолированные
+  математические фундаменты).
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
   `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
