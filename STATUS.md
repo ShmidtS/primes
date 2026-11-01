@@ -450,6 +450,14 @@
   gc_pythagoras (ТОЧНЫЙ Пифагор ‖g‖² = ‖gc‖² + n·μ²),
   gc_norm_le (центрирование не увеличивает норму),
   gc_const_zero (константный градиент → 0).
+- **Миграция MasterHAGI_trunc (такт №298)**: условная
+  плоская форма капстоуна MasterHAGI_trunc получила
+  @[deprecated] → CertifiedLoop.certified_loop.
+  Живые инструменты модуля сохранены: sustained_takeoff_
+  trunc (используется CertifiedGrowth/StateTakeoff),
+  frontier_cone_trunc/struct, masterhagi_growth_witness,
+  cone_premises_force_exact. Сертификат-путь капстоуна
+  теперь один: CertifiedLoop.
 - **Чистка/усиление (такт №297)**: grand_synthesis
   получил @[deprecated] → CertifiedLoop.certified_loop
   (плоская форма капстоуна выводится из архитектуры —

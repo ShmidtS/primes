@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.CertifiedLoop
 import Hagi.Foundations.GrowthDynamics
 set_option linter.style.header false
 
@@ -159,6 +160,9 @@ theorem sustained_takeoff_struct (C G D : ℕ → ℝ)
 (Φ_HAGI, safety, budget, gen-floor) — как в MasterHAGI, их
 посылки уже были усечены (t < T). Не-вакуозность growth-блока
 подтверждает masterhagi_growth_witness ниже. -/
+-- DEPRECATED (такт №298): условная плоская форма капстоуна;
+-- канонический путь — CertifiedLoop.certified_loop
+@[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]
     (S : ℕ → GenState X) (lam nu Qtarget Emin : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 < nu)
