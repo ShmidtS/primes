@@ -3,7 +3,7 @@ import Hagi.Model.ReferenceMachine
 import Hagi.Unified.CommitGate
 
 /-!
-# QuadGate (такт №269, аудит №5 P1/P3): CommitGate
+# QuadGate: CommitGate
 ЗАМКНУТ на эталонной машине — все компоненты ВЫЧИСЛЕНЫ.
 
 Замечание аудита №5: в CommitGate все числа — входные

@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Unified.DescentCore
 
 /-!
-# DescentCoreDiag (такт №273): второй реальный инстанс
+# DescentCoreDiag: второй реальный инстанс
 Objective — ВЗВЕШЕННАЯ квадратичная цель с нетривиальной
 константой гладкости L = max aᵢ.
 
@@ -32,7 +32,7 @@ noncomputable def diagE (a y w : k → ℝ) : ℝ :=
 def diagGrad (a y w : k → ℝ) : k → ℝ :=
   fun i => a i * (w i - y i)
 
-/-- ТОЧНОЕ ТОЖДЕСТВО разложения для взвешенной цели. -/
+/-- Точное тождество разложения для взвешенной цели. -/
 theorem diag_descent_eq (a y x d : k → ℝ) :
     diagE a y (x + d) = diagE a y x
       + inprod (diagGrad a y x) d

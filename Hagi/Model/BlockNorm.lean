@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# BlockNorm (такт №265, аудит P1): поблочная нормализация
+# BlockNorm: поблочная нормализация
 сохраняет ансамбль — устранение семантического разрыва
 слияния.
 
@@ -50,7 +50,7 @@ noncomputable def blockNorm (x : Blocks m) : Blocks m :=
 noncomputable def globalNorm (x : Blocks m) : Blocks m :=
   fun b i => x b i / globalRms x
 
-/-- ТОЧНОЕ ТОЖДЕСТВО: глобальная дисперсия = среднее
+/-- Точное тождество: глобальная дисперсия = среднее
 блочных дисперсий (ключевой факт о конкатенации). -/
 theorem global_eq_mean_blocks (x : Blocks m) :
     (globalRms x)^2 = (∑ b : Fin 3, (blockRms (x b))^2) / 3 := by

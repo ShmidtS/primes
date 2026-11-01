@@ -3,7 +3,7 @@ import Hagi.Model.CertifiedTransition
 import Hagi.Unified.StepContract
 
 /-!
-# TransitionContract (P1-миграция v3, такт №246)
+# TransitionContract (P1-миграция v3, )
 
 Мост CertifiedTransitionV2 → StepContract: каждый
 сертифицированный переход (исполнение + активный риск-лимит)

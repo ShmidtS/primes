@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Unified.QuadGate
 
 /-!
-# QuadTrajectory (такт №270): многошаговый
+# QuadTrajectory: многошаговый
 сертифицированный цикл поверх ВЫЧИСЛЕННОГО gate.
 
 Аудит №5 (этап P3): «нетривиальный многократный цикл с
@@ -51,7 +51,7 @@ theorem gateStep_mono (a : Fin n → ℝ) (eta Delta : ℝ)
     exact le_of_lt (quad_gate_commit a w eta Delta hD hg)
   · rw [if_neg hg]
 
-/-- КУМУЛЯТИВНАЯ МОНОТОННОСТЬ: энергия вдоль всей
+/-- Кумулятивная монотонность: энергия вдоль всей
 траектории не возрастает (индукция по T). -/
 theorem gateTraj_mono (a : Fin n → ℝ) (eta Delta : ℝ)
     (hD : 0 < Delta) (w₀ : Fin n → ℝ) (T : ℕ) :
@@ -79,7 +79,7 @@ theorem gateStep_drop (a : Fin n → ℝ) (eta Delta : ℝ)
   · rw [if_neg hg, if_neg hg]
     ring
 
-/-- СТРОГОЕ УБЫВАНИЕ НА COMMIT: gate открыт ⟹ шаг строго
+/-- Строгое убывание НА COMMIT: gate открыт ⟹ шаг строго
 уменьшает вычисленную энергию (реюз quad_gate_commit). -/
 theorem gateStep_pos (a : Fin n → ℝ) (eta Delta : ℝ)
     (hD : 0 < Delta) (w : Fin n → ℝ)

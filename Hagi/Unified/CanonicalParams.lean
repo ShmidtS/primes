@@ -50,7 +50,7 @@ theorem advance_params_ne (S : Hagi.System.GrowthState X)
   exact (smul_eq_zero.mp hb).resolve_left
     (ne_of_gt u.h_eta_pos)
 
-/-- ГЛАВНЫЙ МОСТ: активный шаг меняет canonical weights. -/
+/-- Главный мост: активный шаг меняет canonical weights. -/
 theorem bridge_update (toW : X → Fin d → ℝ)
     (hproj : LawfulProj d toW)
     (S : Hagi.System.GrowthState X) (u : Hagi.Model.StageInput X)

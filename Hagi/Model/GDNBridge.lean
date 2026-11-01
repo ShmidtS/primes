@@ -3,7 +3,7 @@ import Hagi.Model.GDNRAM
 
 /-!
 # GDNBridge (приоритет 1 обзора «HAGI Neural Computer»,
-# такт №247): Gated DeltaNet-уравнение РЕАЛИЗУЕТ RAM.
+# ): Gated DeltaNet-уравнение РЕАЛИЗУЕТ RAM.
 
 Delta rule обновления состояния (КАНОНИЧЕСКАЯ gated-форма,
 исправлено по аудиту №262: остаток берётся по ЗАТУХШЕМУ

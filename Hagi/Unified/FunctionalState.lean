@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Model.ReferenceMachine
 
 /-!
-# FunctionalState (такт №286, аудит №6 дефект 1 / Фаза 2):
+# FunctionalState:
 функциональное состояние — ответ на теорему-обструкцию.
 
 Обструкция: в GrowthState эффекты — статические поля

@@ -3,7 +3,7 @@ import Hagi.System.GrowthState
 import Hagi.Growth.StateBinding
 
 /-!
-# CapabilityLocal (такт №268, аудит №5 P1/K8): рост
+# CapabilityLocal: рост
 привязан к ПОЛЕВОЙ capability через ЛОКАЛЬНОЕ условие.
 
 Замечание аудита: MasterHAGI использует внешний канал

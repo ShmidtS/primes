@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Unified.DescentCore
 
 /-!
-# DescentCoreQuad (такт №263, аудит #3/#8): первый
+# DescentCoreQuad: первый
 НЕПОСТУЛИРОВАННЫЙ инстанс Objective — квадратичная
 машина E(w) = ½·Σ(wᵢ−aᵢ)².
 
@@ -107,7 +107,7 @@ theorem quad_one_step (a x : k → ℝ) :
   · unfold quadE quadGrad nrm2
     congr 1
 
-/-- СТРОГОЕ УБЫВАНИЕ: специализация descent_drop — при
+/-- Строгое убывание: специализация descent_drop — при
 x ≠ a шаг строго уменьшает цель (нетривиальный прогресс,
 не «idle»). -/
 theorem quad_drop (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :

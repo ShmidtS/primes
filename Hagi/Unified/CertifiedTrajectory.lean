@@ -3,7 +3,7 @@ import Hagi.Unified.StepContract
 import Hagi.Model.MeasurementCert
 
 /-!
-# CertifiedTrajectory — единая траекторная теорема (такт №230)
+# CertifiedTrajectory — единая траекторная теорема
 
 Связка трёх уровней сертификации в одно утверждение:
 1. Execution (CertifiedTransition.exec — переход выполнен);

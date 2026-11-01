@@ -160,7 +160,7 @@ theorem sustained_takeoff_struct (C G D : ℕ → ℝ)
 (Φ_HAGI, safety, budget, gen-floor) — как в MasterHAGI, их
 посылки уже были усечены (t < T). Не-вакуозность growth-блока
 подтверждает masterhagi_growth_witness ниже. -/
--- DEPRECATED (такт №298): условная плоская форма капстоуна;
+-- DEPRECATED: условная плоская форма капстоуна;
 -- канонический путь — CertifiedLoop.certified_loop
 @[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGI_trunc {K : Type*} [Fintype K] [Nonempty K]

@@ -3,12 +3,12 @@ import Hagi.Unified.MeasureProto
 import Hagi.Unified.QuadBudget
 
 /-!
-# ProtoTrajectory (такт №281): протокол × траектория —
+# ProtoTrajectory: протокол × траектория —
 полная цепочка execution × measurement × certificate.
 
 Замыкание интеграции аудита №5: лоссы, измеряемые
-ПРОТОКОЛОМ (MeasureProto, такт №280), вдоль РЕАЛЬНОЙ
-траектории commit/hold (QuadTrajectory, такт №270):
+ПРОТОКОЛОМ (MeasureProto, ), вдоль РЕАЛЬНОЙ
+траектории commit/hold (QuadTrajectory, ):
 
 1. `proto_loss_mono`: loss-канал протокола не возрастает
    вдоль траектории (проекция gateTraj_mono);

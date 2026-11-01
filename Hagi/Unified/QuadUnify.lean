@@ -4,7 +4,7 @@ import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.ReferenceMachine
 
 /-!
-# QuadUnify (такт №277, аудит №5 P3): сведение квадратичных
+# QuadUnify: сведение квадратичных
 линий — DescentCoreQuad и ReferenceMachine суть ОДНА
 математика.
 
@@ -49,7 +49,7 @@ theorem machine_one_step_zero (a w : Fin n → ℝ) :
 
 variable {k : Type*} [Fintype k] [Nonempty k]
 
-/-- СВЕДЕНИЕ №2 (такт №299): DescentCoreDiag — частный
+/-- Сведение 2: DescentCoreDiag — частный
 случай DescentCoreQuad при единичных весах. Взвешенная и
 невзвешенная квадратичные цели — ОДНА математика спуска. -/
 theorem diag_is_quad (y w : k → ℝ) :

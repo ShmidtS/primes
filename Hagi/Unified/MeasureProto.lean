@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Unified.QuadGate
 
 /-!
-# MeasureProto (такт №280, аудит №5 P1/E): протокол
+# MeasureProto: протокол
 измерений — У эффектов обязано быть происхождение.
 
 Замечание аудита: «measure — произвольная входная

@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# RVCore (приоритет 2 «HAGI Neural Computer», такт №253):
+# RVCore (приоритет 2 «HAGI Neural Computer», ):
 бит-точное ядро операций RISC-V над машинными словами.
 
 Полная формализация RV32IM — отдельный проект; здесь

@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Energy.Quantizer
 
 /-!
-# DistillCert (приоритет 6 «HAGI Neural Computer», такт №252):
+# DistillCert (приоритет 6 «HAGI Neural Computer», ):
 СЕРТИФИКАТ КОНСОЛИДАЦИИ — качество после дистилляции
 И квантования.
 

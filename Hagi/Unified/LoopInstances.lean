@@ -80,7 +80,7 @@ noncomputable def quadMeasured (a : k → ℝ) :
 noncomputable def quadFloor (a x : k → ℝ) : Fin 5 → ℝ :=
   fun _ => 1 / (2 * (1 + quadE a x))
 
-/-- ПОЛНЫЙ StepCert для оптимального quad-шага:
+/-- Полный StepCert для оптимального quad-шага:
 спуск + качество + бюджет, всё зависимо. -/
 noncomputable def quadStepCert (a x : k → ℝ)
     (hx : quadGrad a x ≠ 0) :
@@ -113,7 +113,7 @@ theorem quadE_nonneg (a w : k → ℝ) : 0 ≤ quadE a w := by
   · exact Finset.sum_nonneg fun i _ => sq_nonneg _
   · norm_num
 
-/-- ПРОГОН КАПСТОНА: certified_loop_strict на одношаговой
+/-- Прогон капстона: certified_loop_strict на одношаговой
 quad-траектории — энергия после сертифицированного шага
 СТРОГО меньше. -/
 theorem quad_loop_strict (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :

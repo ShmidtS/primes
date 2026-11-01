@@ -3,7 +3,7 @@ import Hagi.Unified.FunctionalState
 import Hagi.Unified.QuadTrajectory
 
 /-!
-# FsGate (такт №287): commit/hold-gate над ФУНКЦИОНАЛЬНЫМ
+# FsGate: commit/hold-gate над ФУНКЦИОНАЛЬНЫМ
 состоянием — замыкание FunState в траекторный цикл.
 
 Мост: веса fsGate-шага РАВНЫ gateStep из QuadTrajectory
@@ -35,7 +35,7 @@ noncomputable def fsGate (a : Fin n → ℝ) (eta Delta : ℝ)
   if gate (machineCert a s.weights eta Delta) then
     funStep a eta Delta s else s
 
-/-- ВЕСА-МОСТ: fsGate-веса = gateStep-веса (тот же
+/-- Веса-мост: fsGate-веса = gateStep-веса (тот же
 вычисленный gate над теми же весами). -/
 theorem fsGate_weights_eq (a : Fin n → ℝ) (eta Delta : ℝ)
     (s : FunState n) :
@@ -61,7 +61,7 @@ noncomputable def fsTraj (a : Fin n → ℝ) (eta Delta : ℝ)
   | 0 => s₀
   | (t + 1) => fsGate a eta Delta (fsTraj a eta Delta s₀ t)
 
-/-- КУМУЛЯТИВНАЯ МОНОТОННОСТЬ: энергия вдоль всей
+/-- Кумулятивная монотонность: энергия вдоль всей
 fs-траектории не возрастает (индукция + fsGate_mono). -/
 theorem fsTraj_mono (a : Fin n → ℝ) (eta Delta : ℝ)
     (hD : 0 < Delta) (s₀ : FunState n) (T : ℕ) :

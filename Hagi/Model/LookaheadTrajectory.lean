@@ -4,7 +4,7 @@ import Hagi.Model.ModelSoup
 
 /-!
 # LookaheadTrajectory — сертификация якорной траектории
-(связка №75 × ModelSoup/EMA, такт №238)
+(связка №75 × ModelSoup/EMA, )
 
 Якорная последовательность Lookahead
 w_{n+1} = w_n + α·(x_{(n+1)·k} − w_n) — это В ТОЧНОСТИ

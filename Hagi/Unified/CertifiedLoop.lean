@@ -51,7 +51,7 @@ structure StepCert (obj : S → ℝ) (M : MeasuredState S)
   /-- Покомпонентное качество сохранено. -/
   quality : FloorKept M s' floor
 
-/-- ГЛАВНАЯ ТЕОРЕМА HAGI: сертифицированная цепочка шагов
+/-- Главная теорема: сертифицированная цепочка шагов
 даёт одновременно реальный спуск, качество, бюджет. -/
 theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)

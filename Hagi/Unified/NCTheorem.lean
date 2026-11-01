@@ -3,7 +3,7 @@ import Hagi.Model.NeuralComputer
 import Hagi.Unified.StepContract
 
 /-!
-# NCTheorem (приоритет 7 «HAGI Neural Computer», такт №251)
+# NCTheorem (приоритет 7 «HAGI Neural Computer», )
 
 ГЛОБАЛЬНАЯ ТЕОРЕМА нейрокомпьютера: траектория
 ncAdvance-переходов с честными контрактами шага

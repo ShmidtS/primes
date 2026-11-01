@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Unified.QuadTrajectory
 
 /-!
-# QuadBudget (такт №271): леджер сертифицированной
+# QuadBudget: леджер сертифицированной
 траектории — бюджет и суммарный прогресс.
 
 Завершение P3-цикла: над commit/hold-траекторией

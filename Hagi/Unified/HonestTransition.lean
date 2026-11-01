@@ -39,7 +39,7 @@ structure HonestTransition (obj : S → ℝ)
   граница). -/
   objectiveDrop : ℝ
   objectiveDrop_pos : 0 < objectiveDrop
-  /-- ГЛАВНОЕ: реальный спуск, выведенный из исполнения. -/
+  /-- Главное: реальный спуск, выведенный из исполнения. -/
   actualDescent : obj s' ≤ obj s - objectiveDrop
   /-- Риск шага ограничен. -/
   riskBound : riskSpend ≤ riskLim

@@ -3,7 +3,7 @@ import Hagi.Energy.Quantizer
 import Hagi.Step.SignSGD
 
 /-!
-# TernaryGrad (такт №258): МОСТ SignSGD × Quantizer —
+# TernaryGrad: МОСТ SignSGD × Quantizer —
 знаковая компрессия градиента УЖЕ тернарна.
 
 Связка источника №79 (signSGD) с единым квантователем

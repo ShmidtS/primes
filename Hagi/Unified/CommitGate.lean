@@ -2,7 +2,7 @@ import Mathlib
 import Hagi.Energy.Quantizer
 
 /-!
-# CommitGate (такт №264, аудит D «TRD-GMS»): инвариант
+# CommitGate: инвариант
 ветвления вместо постулата h_emp_grow.
 
 Главная идея аудита: условие продуктивности шага НЕ
