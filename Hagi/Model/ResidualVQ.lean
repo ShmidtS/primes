@@ -173,4 +173,101 @@ noncomputable def refineStageEffects (D : ℕ → ℝ) (k : ℕ)
   compressRisk := 0
   compressCost := 0
 
+/-! ### Уровень 2: решёточный residual-токенизатор (NCM)
+
+Конкретный токенизатор с ДОКАЗУЕМЫМ сертификатом:
+уровень k квантует текущий остаток решёткой
+с шагом δ/2^k. Одношаговая гарантия:
+D_{k+1} ≤ n(δ/2^k)²/4 — из по-координатной
+δ/2-ошибки решётки (gridQ_error).
+Геометрическое затухание здесь —
+ИЗ КОНСТРУКЦИИ (шаг выбираем мы), а не
+постулат монотонности обучаемого
+токенизатора (ср. IRVQ: performance gain
+diminishes). -/
+
+variable {n : ℕ}
+
+/-- Решёточное квантование вектора (координатно, gridQ). -/
+noncomputable def latQ (Δ : ℝ) (hΔ : 0 < Δ)
+    (v : EuclideanSpace ℝ (Fin n)) : EuclideanSpace ℝ (Fin n) :=
+  WithLp.toLp 2 (fun i => Hagi.Energy.gridQ Δ hΔ (v.ofLp i))
+
+/-- ОДНОШАГОВАЯ ГАРАНТИЯ: энергия остатка после
+решёточного квантования ≤ nΔ²/4. -/
+theorem latQ_residual_bound (Δ : ℝ) (hΔ : 0 < Δ)
+    (v : EuclideanSpace ℝ (Fin n)) :
+    ‖v - latQ Δ hΔ v‖ ^ 2 ≤ (n : ℝ) * Δ ^ 2 / 4 := by
+  rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+  have hper : ∀ i, ‖(v - latQ Δ hΔ v).ofLp i‖ ^ 2
+      ≤ (Δ / 2) ^ 2 := by
+    intro i
+    have hcoord : (v - latQ Δ hΔ v).ofLp i
+        = v.ofLp i - Hagi.Energy.gridQ Δ hΔ (v.ofLp i) := by
+      simp only [PiLp.sub_apply, latQ]
+    rw [hcoord, Real.norm_eq_abs, sq_abs]
+    have he : |v.ofLp i - Hagi.Energy.gridQ Δ hΔ (v.ofLp i)|
+        ≤ Δ / 2 := by
+      rw [abs_sub_comm]
+      exact Hagi.Energy.gridQ_error Δ hΔ (v.ofLp i)
+    calc (v.ofLp i - Hagi.Energy.gridQ Δ hΔ (v.ofLp i)) ^ 2
+        = |v.ofLp i - Hagi.Energy.gridQ Δ hΔ (v.ofLp i)|
+            * |v.ofLp i - Hagi.Energy.gridQ Δ hΔ (v.ofLp i)| := by
+          rw [← sq_abs]
+          ring
+      _ ≤ Δ / 2 * (Δ / 2) :=
+            mul_self_le_mul_self (abs_nonneg _) he
+      _ = (Δ / 2) ^ 2 := by ring
+  have hsum : ∑ i, ‖(v - latQ Δ hΔ v).ofLp i‖ ^ 2
+      ≤ ((n : ℝ)) * (Δ / 2) ^ 2 := by
+    calc ∑ i, ‖(v - latQ Δ hΔ v).ofLp i‖ ^ 2
+        ≤ ∑ i, (Δ / 2) ^ 2 := Finset.sum_le_sum fun i _ => hper i
+      _ = ((n : ℝ)) * (Δ / 2) ^ 2 := by
+          rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin]
+          push_cast
+          ring
+  have hfinal : ((n : ℝ)) * (Δ / 2) ^ 2
+      = (n : ℝ) * Δ ^ 2 / 4 := by
+    have h4 : (Δ / 2) ^ 2 = Δ ^ 2 / 4 := by ring
+    rw [h4]
+    ring
+  linarith [hsum.trans_eq hfinal]
+
+/-- ГЕОМЕТРИЧЕСКАЯ ИЕРАРХИЯ: если каждый
+уровень k квантует текущий остаток
+решёткой с шагом δ/2^k, то ошибка
+после k+1 уровней убывает
+геометрически: D_{k+1} ≤
+nδ²/(4·4^k). -/
+theorem lattice_geometric (δ : ℝ) (hδ : 0 < δ) (K : ℕ)
+    (resid : ℕ → EuclideanSpace ℝ (Fin n))
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = resid k - latQ (δ / 2 ^ k) (by positivity) (resid k)) :
+    ∀ k : ℕ, k < K →
+      ‖resid (k + 1)‖ ^ 2 ≤ (n : ℝ) * (δ / 2 ^ k) ^ 2 / 4 := by
+  intro k hk
+  rw [hstep k hk]
+  exact latQ_residual_bound (δ / 2 ^ k) (by positivity) (resid k)
+
+/-- ADAPTIVE-STOP ГОРИЗОНТ (аудит §5): если
+расписание решётки достаточно глубоко
+(4^{K−1} ≥ nδ²/(4τ)), то уровень K
+СЕРТИФИЦИРОВАННО достаточен: D_K ≤ τ —
+контроллер останавливает уточнение без
+дополнительных гипотез о модели. -/
+theorem lattice_stop_horizon (δ τ : ℝ) (hδ : 0 < δ)
+    (hτ : 0 < τ) (K : ℕ) (hK1 : 1 ≤ K)
+    (resid : ℕ → EuclideanSpace ℝ (Fin n))
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = resid k - latQ (δ / 2 ^ k) (by positivity) (resid k))
+    (hK : (n : ℝ) * (δ / 2 ^ (K - 1)) ^ 2 / 4 ≤ τ) :
+    ‖resid K‖ ^ 2 ≤ τ := by
+  rcases K with _ | K'
+  · omega
+  · have hlast := lattice_geometric δ hδ (K' + 1) resid hstep K'
+      (Nat.lt_succ_self K')
+    have hexp : K' + 1 - 1 = K' := by omega
+    rw [hexp] at hK
+    linarith [hlast, hK]
+
 end Hagi.Model.ResidualVQ
