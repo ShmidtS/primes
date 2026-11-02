@@ -1580,6 +1580,7 @@ gridQVec	e024bff250cf0ddc	5d32632dc8504462
 gridQVec_error	b8e523a201d26cb5	95adb1a083802690
 gridQVec_norm_sq	0e28a6dda0cf8dfb	4455f0db5183df14
 gridQ_div	399e085d3564064d	8ca70e5b5100ea02
+gridQ_energy_bound	307de9b38dbb97f8	fbd08402fbd1e3a5
 gridQ_error	7081f39a9520b858	4d7d4174e4ae7e28
 gridQ_idem	f99252b9c080e08a	5b3e66fffe7851eb
 gridQ_mem_grid	8b176a5b4a6c02ac	8b71ad53594471c0

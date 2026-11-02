@@ -458,6 +458,7 @@ import Hagi.Step.StepArc
 import Hagi.Probability.ProbabilityArc
 import Hagi.Probability.GibbsCanonBridge
 import Hagi.Energy.GridVector
+import Hagi.Unified.QuantEnergyBridge
 
 set_option linter.style.header false
 
