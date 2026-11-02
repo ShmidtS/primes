@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Model.GDNRAM
+import Hagi.Model.Memory
 
 /-!
 # GDNBridge (приоритет 1 обзора «HAGI Neural Computer»,

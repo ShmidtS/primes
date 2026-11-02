@@ -292,15 +292,13 @@ import Hagi.Model.RMSNorm
 import Hagi.Model.NormAct
 import Hagi.Model.SpecDecoding
 import Hagi.Model.RL
-import Hagi.Model.SwitchMoE
 import Hagi.Model.Adaptive
 import Hagi.Model.HNet
 import Hagi.Model.HNet2
 import Hagi.Model.MambaSSM
-import Hagi.Model.DDPM
-import Hagi.Model.FlowMatching
+import Hagi.Model.Generative
 import Hagi.Model.Attention
-import Hagi.Model.GDNRAM
+import Hagi.Model.Memory
 import Hagi.Model.Perceiver
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
@@ -339,7 +337,6 @@ import Hagi.Unified.CapabilityLocal
 import Hagi.Unified.QuadMachine
 import Hagi.Model.Losses
 import Hagi.Unified.DescentCoreDiag
-import Hagi.Model.NTXent
 import Hagi.Model.Mixup
 import Hagi.Step.GradCentralization
 import Hagi.Unified.MachineProto
@@ -377,7 +374,6 @@ import Hagi.Numerics.SoftmaxFix
 import Hagi.Planning.Imagination
 import Hagi.Geometry.SphericalSimplex
 import Hagi.Ensemble.UniformCert
-import Hagi.Model.MemoryConsolidation
 import Hagi.Model.ConsolidationMirror
 import Hagi.Optimization.Momentum
 import Hagi.Optimization.ComputeScaling
@@ -393,7 +389,6 @@ import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
 import Hagi.Percolation.Site
-import Hagi.Model.WeightTying
 import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion

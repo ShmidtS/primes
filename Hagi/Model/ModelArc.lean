@@ -9,12 +9,11 @@ import Hagi.Model.CertifiedTransition
 import Hagi.Model.ComputeOptimal
 import Hagi.Model.ConsolidationMirror
 import Hagi.Model.CycleCertificate
-import Hagi.Model.DDPM
+import Hagi.Model.Generative
 import Hagi.Model.DiffAttention
 import Hagi.Model.DistillCert
-import Hagi.Model.FlowMatching
 import Hagi.Model.GDNBridge
-import Hagi.Model.GDNRAM
+import Hagi.Model.Memory
 import Hagi.Model.Losses
 import Hagi.Model.Grokfast
 import Hagi.Model.HNet
@@ -29,13 +28,11 @@ import Hagi.Model.MachineBridge
 import Hagi.Model.MambaSSM
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.MeasurementCert
-import Hagi.Model.MemoryConsolidation
 import Hagi.Model.Mixup
 import Hagi.Model.ModeConnectivity
 import Hagi.Model.ModelSoup
 import Hagi.Model.ModernHopfield
 import Hagi.Model.MuPScaling
-import Hagi.Model.NTXent
 import Hagi.Model.NeuralComputer
 import Hagi.Model.Perceiver
 import Hagi.Model.NormAct
@@ -48,8 +45,6 @@ import Hagi.Model.Sidon
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.SourceMixture
 import Hagi.Model.StageSemantics
-import Hagi.Model.SwitchMoE
-import Hagi.Model.WeightTying
 
 /-!
 # Фасад модельного каталога
