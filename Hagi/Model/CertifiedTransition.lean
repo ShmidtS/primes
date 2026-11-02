@@ -369,4 +369,98 @@ theorem ctv2_of_ct {S S' : Hagi.System.GrowthState X}
     CertifiedTransitionV2 S S' u riskLim :=
   ⟨hc, hrisk⟩
 
+
+/-! ### Аудит v17 (P0-2): фактическое убывание objective —
+обязательное поле сертификата.
+
+`progress : 0 < (verify S').decrease` — положительность
+ВЫЧИСЛЕННОГО числа-сертификата; это не то же, что
+`E(S') < E(S)`. `CertifiedTransitionV3` добавляет активное
+поле `hActualDescent` — фактический спад энергии
+пост-состояния относительно пре-состояния — и конструктор
+из канонических законов стадий (`advance_energy_drop`):
+спад ВЫВЕДЕН из исполнения, а не постулирован. -/
+
+/-- V3: сертифицированный переход с ОБЯЗАТЕЛЬНЫМ фактическим
+убыванием objective: `E(S') < E(S)`. Наследует всю валидацию
+V2 (исполнение, положительный verify, риск в лимите, точный
+бюджет). Канонический конструктор — `ctv3_of_stageLaws`. -/
+structure CertifiedTransitionV3 (S S' : Hagi.System.GrowthState X)
+    (u : StageInput X) (riskLim : ℝ) extends CertifiedTransitionV2 S S' u riskLim where
+  /-- ФАКТИЧЕСКИЙ спад: энергия пост-состояния строго меньше
+  энергии пре-состояния (не сертификатное число, а само
+  `S'.energy < S.energy`). -/
+  hActualDescent : S'.energy < S.energy
+
+/-- Мост V2 → V3: фактический спад + V2-валидация. -/
+theorem ctv3_of_actualDescent {S S' : Hagi.System.GrowthState X}
+    {u : StageInput X} {riskLim : ℝ}
+    (hc : CertifiedTransitionV2 S S' u riskLim)
+    (hdrop : S'.energy < S.energy) :
+    CertifiedTransitionV3 S S' u riskLim :=
+  { toCertifiedTransitionV2 := hc, hActualDescent := hdrop }
+
+/-- КОНСТРУКТОР ИЗ ЗАКОНОВ СТАДИЙ (P0-2): при канонических
+предпосылках `advance_energy_drop` и строгой положительности
+сертифицированного дропа переход `advance S u` несёт
+V3-сертификат. -/
+theorem ctv3_of_stageLaws (S : Hagi.System.GrowthState X)
+    (u : StageInput X)
+    (hgap : 0 ≤ u.gap) (heta : 0 ≤ u.sp.eta)
+    (hks : u.sp.kappa * u.sp.s < 2 * u.eff.growGain)
+    (hgain : u.eff.growEnergy ≤ S.energy - u.eff.growGain)
+    (hmerge : u.eff.mergeEnergy ≤ u.eff.growEnergy - u.gap)
+    (hL : 0 < u.sp.L) (hetaL : u.sp.eta ≤ 1 / u.sp.L)
+    (hdesc : ‖u.stepDir‖ ^ 2 ≤ ⟪u.grad, u.stepDir⟫_ℝ)
+    (hjoint : u.eff.jointEnergy
+      ≤ u.eff.mergeEnergy - u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        + u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+    (hledger : u.eff.compressEnergy - u.eff.jointEnergy
+      ≤ u.sp.kappa * u.sp.s * u.eff.quantErr)
+    (hcostnn : 0 ≤ u.eff.growCost + u.eff.mergeCost
+      + u.eff.jointCost + u.eff.compressCost)
+    (hstrict : 0 < u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      - u.sp.kappa * u.sp.s * u.eff.quantErr) :
+    CertifiedTransitionV3 S (advance S u) u
+      (u.eff.growRisk + u.eff.mergeRisk
+        + u.eff.jointRisk + u.eff.compressRisk) where
+  toCertifiedTransitionV2 :=
+    { base := certifiedTransition_of_advance S u hgap heta hks
+      hRiskLim := by
+        -- для advance прирост риска РАВЕН сумме стадийных
+        -- рисков (safety-поле ядра — равенство).
+        have hEq : (advance S u).protectedRisk - S.protectedRisk
+            = u.eff.growRisk + u.eff.mergeRisk
+              + u.eff.jointRisk + u.eff.compressRisk := by
+          simp only [advance]; ring
+        rw [hEq] }
+  hActualDescent := by
+    have hd := advance_energy_drop S u hgain hgap hmerge hL hetaL
+      hdesc hjoint hledger
+    have hE : (advance S u).energy = u.eff.compressEnergy := rfl
+    rw [hE]
+    linarith [hstrict]
+
+/-- ЗВУК V3: из сертификата следует фактический спад и
+V1-валидация (exec/progress/safety/resources) — единая точка
+входа для потребителей. -/
+theorem ctv3_sound {S S' : Hagi.System.GrowthState X}
+    {u : StageInput X} {riskLim : ℝ}
+    (h : CertifiedTransitionV3 S S' u riskLim) :
+    S' = advance S u
+    ∧ 0 < (Hagi.System.verify S').decrease
+    ∧ S'.protectedRisk - S.protectedRisk
+      ≤ u.eff.growRisk + u.eff.mergeRisk
+        + u.eff.jointRisk + u.eff.compressRisk
+    ∧ S.budget - S'.budget
+      = u.eff.growCost + u.eff.mergeCost
+        + u.eff.jointCost + u.eff.compressCost
+    ∧ S'.energy < S.energy := by
+  obtain ⟨⟨base, _⟩, hdrop⟩ := h
+  exact ⟨base.exec, base.progress,
+    (certificate_of_transition base).2.1,
+    (certificate_of_transition base).2.2, hdrop⟩
+
 end Hagi.Model
