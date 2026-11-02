@@ -5,7 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Unified.DescentCore
 import Hagi.Unified.RateTheory
 import Hagi.Unified.SignComp
-import Hagi.Energy.GridVector
+import Hagi.Energy.Quantizer
 
 /-!
 # Дуга error feedback (объединённая)

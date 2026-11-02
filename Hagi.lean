@@ -430,7 +430,6 @@ import Hagi.Optimization.OptimizationArc
 import Hagi.Budget.BudgetArc
 import Hagi.Step.StepArc
 import Hagi.Probability.ProbabilityArc
-import Hagi.Energy.GridVector
 import Hagi.Audit.Audit
 
 set_option linter.style.header false
