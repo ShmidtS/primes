@@ -53,16 +53,14 @@ import Hagi.Unified.RateTheory
 import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.QuadMachine
 import Hagi.Unified.QuantSafeUpdate
-import Hagi.Unified.QuantizedCone
+import Hagi.Unified.TernaryGrad
 import Hagi.Unified.RecursiveClean
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.StateTakeoff
 import Hagi.Unified.StepContract
-import Hagi.Unified.StepExt
 import Hagi.Unified.StepLaws
-import Hagi.Unified.TernaryGrad
 import Hagi.Unified.TopLevel
 import Hagi.Unified.TransitionContract
 

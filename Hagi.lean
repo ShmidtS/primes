@@ -79,7 +79,6 @@ import Hagi.Unified.AlgebraMatrixCore
 import Hagi.Unified.GrowthEnsembleCore
 import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.StepLaws
-import Hagi.Unified.StepExt
 import Hagi.Information.Capacity
 import Hagi.Information.Pinsker
 import Hagi.Growth.AdaptiveQuery
@@ -160,7 +159,7 @@ import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.PerronCone
 import Hagi.Foundations.MesoScale
 import Hagi.Foundations.ConeCorridor
-import Hagi.Unified.QuantizedCone
+import Hagi.Unified.TernaryGrad
 import Hagi.Budget.CertifiedArgmax
 import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
@@ -320,7 +319,6 @@ import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
-import Hagi.Unified.TernaryGrad
 import Hagi.Optimization.SAM
 import Hagi.Unified.DescentCore
 import Hagi.Unified.DescentCoreQuad
