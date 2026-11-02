@@ -284,6 +284,7 @@ import Hagi.Model.RMSNorm
 import Hagi.Model.NormAct
 import Hagi.Model.SpecDecoding
 import Hagi.Model.RL
+import Hagi.Model.ResidualVQ
 import Hagi.Model.Adaptive
 import Hagi.Model.HNet
 import Hagi.Model.HNet2
