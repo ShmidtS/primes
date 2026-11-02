@@ -181,4 +181,121 @@ theorem gibbs_concentration_canon (E : V → ℝ) (T : ℝ)
     div_le_iff₀ hXpos, one_mul]
   exact hZle
 
+/-- ЭНЕРГЕТИЧЕСКИЙ СЭНДВИЧ НА КАНОНЕ: ожидаемая энергия
+Гиббса не выше оптимума плюс размах, умноженный на
+экспоненциальный хвост конкурентов. -/
+theorem gibbs_mean_energy_gap (E : V → ℝ) (T : ℝ) (hT : 0 < T)
+    [Nonempty V] [DecidableEq V]
+    (δ Δ : ℝ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (hmax : ∀ v, E v ≤ E vstar + Δ) :
+    (∑ v, E v * gibbsW E T v) / gibbsZ E T
+      ≤ E vstar + Δ * ((Fintype.card V : ℝ) - 1)
+          * Real.exp (-δ/T) := by
+  have hZpos : 0 < gibbsZ E T := gibbsZ_pos E T hT
+  have hΔ : (0:ℝ) ≤ Δ := by
+    have := hmax vstar
+    linarith
+  set p : V → ℝ := fun v => gibbsW E T v / gibbsZ E T with hpdef
+  set X : ℝ := ((Fintype.card V : ℝ) - 1) * Real.exp (-δ/T)
+    with hXdef
+  have hX : (0:ℝ) ≤ X := by
+    have hcn : (1:ℝ) ≤ (Fintype.card V : ℝ) := by
+      have h1 : (1:ℕ) ≤ Fintype.card V := by
+        obtain ⟨w⟩ := ‹Nonempty V›
+        have hsub : ({w} : Finset V) ⊆ Finset.univ :=
+          Finset.subset_univ _
+        have hle := Finset.card_le_card hsub
+        simpa using hle
+      exact_mod_cast h1
+    exact mul_nonneg (by linarith) (Real.exp_pos _).le
+  have hp1 : ∑ v, p v = 1 := gibbs_normalize E T hT
+  have hwnn : ∀ v, (0:ℝ) ≤ gibbsW E T v := fun v =>
+    (gibbsW_pos E T hT v).le
+  have hwle : gibbsW E T vstar ≤ gibbsZ E T :=
+    Finset.single_le_sum (f := gibbsW E T)
+      (fun i _ => hwnn i) (Finset.mem_univ vstar)
+  have hple1 : p vstar ≤ 1 := by
+    show gibbsW E T vstar / gibbsZ E T ≤ 1
+    rw [div_le_iff₀ hZpos]
+    linarith
+  have hconc := gibbs_concentration_canon E T hT δ vstar hgap
+  rw [← hXdef] at hconc
+  have hpx : 1 ≤ (1 + X) * p vstar := by
+    calc (1:ℝ) = (1 + X) * (1 / (1 + X)) := by
+          field_simp
+      _ ≤ (1 + X) * p vstar :=
+          mul_le_mul_of_nonneg_left hconc (by linarith)
+  have hpx' : 1 ≤ p vstar + X * p vstar := by
+    have hh := hpx
+    linarith
+  have hXp : X * p vstar ≤ X := by
+    have hh := mul_le_mul_of_nonneg_left hple1 hX
+    rw [mul_one] at hh
+    exact hh
+  have htail : ∑ v, p v - p vstar ≤ X := by
+    rw [hp1]
+    by_contra hcon
+    push_neg at hcon
+    linarith
+  have hstep : ∀ v : V, (E v - E vstar) * p v
+      ≤ Δ * (if v = vstar then (0:ℝ) else p v) := by
+    intro v
+    by_cases h : v = vstar
+    · have hz : (E v - E vstar) * p v = 0 := by
+        rw [h, sub_self, zero_mul]
+      rw [hz, if_pos h]
+      exact mul_nonneg hΔ (by positivity)
+    · have hEv : E v - E vstar ≤ Δ := by
+        have := hmax v
+        linarith
+      have hpnn : (0:ℝ) ≤ p v :=
+        div_nonneg (hwnn v) hZpos.le
+      rw [if_neg h]
+      exact mul_le_mul_of_nonneg_right hEv hpnn
+  have hsplit : ∑ v, (if v = vstar then (0:ℝ) else p v)
+      = ∑ v, p v - p vstar := by
+    have hdec : ∀ v : V, (if v = vstar then (0:ℝ) else p v)
+        = p v - (if v = vstar then p v else 0) := by
+      intro v
+      by_cases h : v = vstar <;> simp [h]
+    rw [Finset.sum_congr rfl (fun v _ => hdec v),
+      Finset.sum_sub_distrib,
+      Fintype.sum_ite_eq' vstar p]
+  have hmain : ∑ v, (E v - E vstar) * p v
+      ≤ Δ * (∑ v, p v - p vstar) := by
+    calc ∑ v, (E v - E vstar) * p v
+        ≤ ∑ v, Δ * (if v = vstar then (0:ℝ) else p v) :=
+          Finset.sum_le_sum fun v _ => hstep v
+      _ = Δ * (∑ v, (if v = vstar then (0:ℝ) else p v)) := by
+          rw [Finset.mul_sum]
+      _ = Δ * (∑ v, p v - p vstar) := by rw [hsplit]
+  have heq : ∑ v, (E v - E vstar) * p v
+      = ∑ v, E v * p v - E vstar * ∑ v, p v := by
+    have hdistr : ∀ v : V, (E v - E vstar) * p v
+        = E v * p v - E vstar * p v := fun v => by ring
+    rw [Finset.sum_congr rfl (fun v _ => hdistr v),
+      Finset.sum_sub_distrib, ← Finset.mul_sum]
+  rw [hp1, mul_one] at heq
+  have hEp : (∑ v, E v * gibbsW E T v) / gibbsZ E T
+      = ∑ v, E v * p v := by
+    rw [show (∑ v, E v * gibbsW E T v) / gibbsZ E T
+        = ∑ v, (E v * gibbsW E T v) / gibbsZ E T from
+        sum_div Finset.univ _ _, hpdef]
+    exact Finset.sum_congr rfl fun v _ => by
+      show E v * gibbsW E T v / gibbsZ E T
+        = E v * (gibbsW E T v / gibbsZ E T)
+      rw [mul_div_assoc]
+  rw [hEp]
+  have hfin : ∑ v, E v * p v ≤ E vstar + Δ * X := by
+    have h2 : Δ * (∑ v, p v - p vstar) ≤ Δ * X :=
+      mul_le_mul_of_nonneg_left htail hΔ
+    linarith
+  have hgoal : E vstar + Δ * ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-δ/T) = E vstar + Δ * X := by
+    rw [hXdef]
+    ring
+  rw [hgoal]
+  exact hfin
+
 end Hagi.Probability
