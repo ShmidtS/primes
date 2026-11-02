@@ -25,6 +25,26 @@ Detailed per-round history: `STATUS.md`.
 | System, Unified | The state-and-cycle layer: `GrowthState` (core state + `StageEffects` measured ledger + `Certificate`/`Metrics`/`Candidate`), `StageCertificate` with the per-generation soundness and the multi-generation telescope (`stage_certificate_telescope`), the conditional capstones (`MasterHAGI*`, `GrandSynthesis`, `ArchitectureTheorem` with `HAGICert` on `Fin I` domain families), `CertifiedHAGIInvariant`/`CoupledHAGIInvariant` with numeric nonvacuity witnesses, the assumptions record (`Assumptions.Trunc` + idle witness), the merge bridge, the state-level takeoff, the end-to-end live-weights cycle; the memory-management cycle: admission controller (novelty ∧ certified gain), consolidation quality bound, quantized safe-update window. |
 | Model, Generalization, Runtime | Gap-law model; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. |
 
+## Consolidated thematic modules (repository cleanup)
+
+Одна тема — один файл (namespace-блоки и имена деклараций
+сохранены; список слияний см. в истории `refactor(...)`):
+
+- `Unified`: `RateTheory` (PL-скорости), `EFArc` (дуга
+  error feedback), `SignComp` (знаковый компрессор),
+  `QuadMachine` + `MachineProto` (эталонная машина и её
+  протоколы), `NCStepCert` (нейрокомпьютер);
+- `Model`: `Attention`, `RL`, `Adaptive`, `Losses`,
+  `Generative`, `Memory`, `SpecDecoding`, `NormAct`,
+  `RVCore` — каталог техник из 76 мини-файлов стал
+  46 тематическими;
+- `Step`: `Muon`, `LazyAdam`, `VariantSafeQP`;
+- `Probability`: `GibbsCore` (канон + мосты);
+- `Information/Capacity`, `Omni/OmniState`,
+  `Growth/{Takeoff,Ceilings}`, `Dynamics/Laws`,
+  `Architecture/Configuration`, `Energy/Quantizer`,
+  `Audit/Audit`.
+
 ## The three layers (honest status)
 
 1. **Unconditional mathematics** — linear algebra, convexity,
