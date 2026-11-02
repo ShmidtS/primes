@@ -15,7 +15,6 @@ import Hagi.Model.DistillCert
 import Hagi.Model.FlowMatching
 import Hagi.Model.GDNBridge
 import Hagi.Model.GDNRAM
-import Hagi.Model.GRPO
 import Hagi.Model.Losses
 import Hagi.Model.Grokfast
 import Hagi.Model.HNet
@@ -25,7 +24,7 @@ import Hagi.Model.LabelSmoothing
 import Hagi.Model.LayerNorm
 import Hagi.Model.Adaptive
 import Hagi.Model.LogitPSV
-import Hagi.Model.LookaheadTrajectory
+import Hagi.Model.SpecDecoding
 import Hagi.Model.MachineBridge
 import Hagi.Model.MambaSSM
 import Hagi.Model.MeasuredEffects
@@ -39,20 +38,16 @@ import Hagi.Model.MuPScaling
 import Hagi.Model.NTXent
 import Hagi.Model.NeuralComputer
 import Hagi.Model.Perceiver
-import Hagi.Model.PreNorm
-import Hagi.Model.QKNorm
+import Hagi.Model.NormAct
 import Hagi.Model.QuantizedAdvance
 import Hagi.Model.RMSNorm
 import Hagi.Model.RVCore
-import Hagi.Model.RVCoreBignum
 import Hagi.Model.ReferenceMachine
 import Hagi.Model.Residual
 import Hagi.Model.Sidon
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.SourceMixture
-import Hagi.Model.Speculative
 import Hagi.Model.StageSemantics
-import Hagi.Model.SwiGLU
 import Hagi.Model.SwitchMoE
 import Hagi.Model.WeightTying
 

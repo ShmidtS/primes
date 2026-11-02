@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 
 import Mathlib
 import Hagi.Prelude.Info
-import Hagi.Model.PreNorm
+import Hagi.Model.NormAct
 
 /-!
 # Адаптивный рост архитектуры (объединённый)

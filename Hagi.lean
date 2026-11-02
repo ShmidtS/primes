@@ -289,13 +289,11 @@ import Hagi.Model.MuPScaling
 import Hagi.Model.ComputeOptimal
 import Hagi.Model.LayerNorm
 import Hagi.Model.RMSNorm
-import Hagi.Model.SwiGLU
-import Hagi.Model.Speculative
+import Hagi.Model.NormAct
+import Hagi.Model.SpecDecoding
 import Hagi.Model.RL
-import Hagi.Model.GRPO
 import Hagi.Model.SwitchMoE
 import Hagi.Model.Adaptive
-import Hagi.Model.QKNorm
 import Hagi.Model.HNet
 import Hagi.Model.HNet2
 import Hagi.Model.MambaSSM
@@ -304,7 +302,6 @@ import Hagi.Model.FlowMatching
 import Hagi.Model.Attention
 import Hagi.Model.GDNRAM
 import Hagi.Model.Perceiver
-import Hagi.Model.PreNorm
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
 import Hagi.Unified.SignDescent
@@ -317,7 +314,6 @@ import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
 import Hagi.Model.LabelSmoothing
 import Hagi.Optimization.Lookahead
-import Hagi.Model.LookaheadTrajectory
 import Hagi.Probability.BatchSNR
 import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
@@ -331,7 +327,6 @@ import Hagi.Model.NeuralComputer
 import Hagi.Unified.NCStepCert
 import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
-import Hagi.Model.RVCoreBignum
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
 import Hagi.Unified.TernaryGrad
