@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Growth.RatioTakeoff
+import Hagi.Growth.Takeoff
 import Hagi.Growth.StateBinding
 /-!
 # MergeCancellationIdentity — что именно гасит merge

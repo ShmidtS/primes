@@ -10,10 +10,9 @@ import Hagi.Growth.AdaptiveQuery
 import Hagi.Growth.ConeDynamics
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.FrontierProduction
-import Hagi.Growth.GainCeiling
+import Hagi.Growth.Ceilings
 import Hagi.Growth.GammaDeficit
 import Hagi.Growth.Grow
-import Hagi.Growth.GrowthCeiling
 import Hagi.Growth.GrowthGate
 import Hagi.Growth.IntegrationOrder
 import Hagi.Omni.OmniState

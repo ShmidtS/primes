@@ -15,8 +15,8 @@ Hagi/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smoo
 Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
 Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
 Hagi/Growth/Grow.lean: h_emp_pl
-Hagi/Growth/RatioTakeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
 Hagi/Growth/SeedOnly.lean: h_emp_disp_step h_emp_lip
+Hagi/Growth/Takeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
 Hagi/Model/ConsolidationMirror.lean: h_emp_grow
 Hagi/Model/Memory.lean: h_emp_memwrite
 Hagi/Model/SoftmaxStep.lean: h_emp_smooth

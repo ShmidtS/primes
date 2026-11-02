@@ -143,12 +143,11 @@ import Hagi.Probability.GibbsConcentration
 import Hagi.Probability.MWU
 import Hagi.Probability.WSqD
 import Hagi.Growth.RecursiveSelfDevelopment
-import Hagi.Growth.RatioTakeoff
+import Hagi.Growth.Takeoff
 import Hagi.Growth.Saturation
-import Hagi.Growth.GrowthCeiling
+import Hagi.Growth.Ceilings
 import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
-import Hagi.Growth.TakeoffElasticity
 import Hagi.Ensemble.CompressionCert
 import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
@@ -177,7 +176,6 @@ import Hagi.Growth.ConeDynamics
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.IntegrationOrder
 import Hagi.Growth.RoundViability
-import Hagi.Growth.GainCeiling
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
