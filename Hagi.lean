@@ -118,9 +118,7 @@ import Hagi.External.Flywheel.MatrixNormRelations
 import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.External.Flywheel.MDLRank
-import Hagi.Audit.Exactness
 import Hagi.Core.RootContrast
-import Hagi.Audit.EqualBudget
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.SpeedLimit
@@ -460,6 +458,7 @@ import Hagi.Probability.GibbsCanonBridge
 import Hagi.Energy.GridVector
 import Hagi.Unified.QuantEnergyBridge
 import Hagi.Unified.DiagQuad
+import Hagi.Audit.Audit
 
 set_option linter.style.header false
 

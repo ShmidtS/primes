@@ -9,8 +9,6 @@ import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.LiveDelta
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.ResidualSplit
-import Hagi.Audit.EqualBudget
-import Hagi.Audit.Exactness
 import Hagi.Autonomy.HedgeSurvivor
 import Hagi.Autonomy.Insight
 import Hagi.Autonomy.SupervisorSafety
@@ -26,6 +24,7 @@ import Hagi.Spectral.RankGrowth
 import Hagi.System.DiscreteStep
 import Hagi.System.StepCertificate
 import Hagi.System.UnifiedStep
+import Hagi.Audit.Audit
 
 /-!
 # CoreFacades — архитектура/автономия/разное
