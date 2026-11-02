@@ -333,4 +333,59 @@ theorem lattice_quality_per_bit (δ : ℝ) (hδ : 0 < δ) (K : ℕ)
   -- цель: X ≤ A; hstep2: X ≤ (n/4)δ² ; nδ²/4 = (n/4)δ²
   linarith [hstep2]
 
+/-! ### Уровень 3: conditioning corruption (аудит NCM §В)
+
+Генератор уточняет представление по
+СВОИМ предыдущим предсказаниям
+(возможно ошибочным): уровень k
+квантует не истинный остаток r,
+а возмущённый v = r + ξ. Ниже —
+детерминированная граница
+распространения ошибки:
+внешнее возмущение
+входит АДДИТИВНО
+(треугольник + решётчатная
+гарантия), без вероятностных
+предположений. -/
+
+/-- УСТОЙЧИВОСТЬ К ИСПОРЧЕННОМУ
+КОНТЕКСТУ: если уровень
+квантует возмущённый
+остаток v = r + ξ вместо
+истинного r, ошибка относительно r
+ограничена нормой возмущения
+плюс решёточная ошибка:
+‖r − latQ Δ v‖ ≤ ‖ξ‖ + √n·Δ/2. -/
+theorem latQ_corrupt_bound (Δ : ℝ) (hΔ : 0 < Δ)
+    (r ξ v : EuclideanSpace ℝ (Fin n))
+    (hv : v = r + ξ) :
+    ‖r - latQ Δ hΔ v‖ ≤ ‖ξ‖
+      + Real.sqrt ((n : ℝ)) * Δ / 2 := by
+  have htri : ‖r - latQ Δ hΔ v‖
+      ≤ ‖r - v‖ + ‖v - latQ Δ hΔ v‖ := by
+    calc ‖r - latQ Δ hΔ v‖
+        = ‖(r - v) + (v - latQ Δ hΔ v)‖ := by congr 1; abel
+      _ ≤ ‖r - v‖ + ‖v - latQ Δ hΔ v‖ := norm_add_le _ _
+  have hrx : ‖r - v‖ = ‖ξ‖ := by
+    rw [hv]
+    have : r - (r + ξ) = -ξ := by abel
+    rw [this, norm_neg]
+  -- решёточная часть: ‖v−Q v‖ = sqrt(‖v−Q v‖²) ≤ sqrt(nΔ²/4)
+  have hlat := latQ_residual_bound Δ hΔ v
+  have hsq : ‖v - latQ Δ hΔ v‖
+      = Real.sqrt (‖v - latQ Δ hΔ v‖ ^ 2) :=
+    (Real.sqrt_sq (norm_nonneg _)).symm
+  have hnn : 0 ≤ (n : ℝ) * Δ ^ 2 / 4 := by positivity
+  calc ‖r - latQ Δ hΔ v‖ ≤ ‖ξ‖ + ‖v - latQ Δ hΔ v‖ := by
+        rw [hrx] at htri; exact htri
+    _ = ‖ξ‖ + Real.sqrt (‖v - latQ Δ hΔ v‖ ^ 2) := by rw [← hsq]
+    _ ≤ ‖ξ‖ + Real.sqrt ((n : ℝ) * Δ ^ 2 / 4) := by
+        exact add_le_add (le_refl _) (Real.sqrt_le_sqrt hlat)
+    _ = ‖ξ‖ + Real.sqrt ((n : ℝ)) * Δ / 2 := by
+        have h4 : (n : ℝ) * Δ ^ 2 / 4
+            = ((n : ℝ)) * (Δ / 2) ^ 2 := by ring
+        rw [h4, Real.sqrt_mul' ((n : ℝ))
+          (show (0:ℝ) ≤ (Δ / 2) ^ 2 by positivity),
+          Real.sqrt_sq (show (0:ℝ) ≤ Δ / 2 by positivity)]
+        ring
 end Hagi.Model.ResidualVQ

@@ -1959,6 +1959,7 @@ landauer_cooling_floor	7f7ed0552f3178ff	e568738b5534490f
 landauer_sandwich	4f592c54e828d494	dabdeecb7353e19b
 last_digit_eq	069e066ae00ddd35	46bfc1108d8c536e
 latQ	bdae702950faacd3	6bd38d96770c4147
+latQ_corrupt_bound	08dce51965357c5b	7c737a091585cdc4
 latQ_residual_bound	0a6aaba5f2cb2c85	a9b5909f30049222
 late_phase_bound	d12b28812d03f686	71eda7ace1997954
 latentCost	ac791c9c16b7696f	0e40d31517f34084
