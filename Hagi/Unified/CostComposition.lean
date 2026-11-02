@@ -1,6 +1,5 @@
 import Mathlib
-import Hagi.Model.SWA
-import Hagi.Model.MoD
+import Hagi.Model.Attention
 
 /-!
 # CostComposition — синтез семейства экономии

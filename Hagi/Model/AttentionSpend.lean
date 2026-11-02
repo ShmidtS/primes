@@ -1,6 +1,4 @@
-import Hagi.Model.GQA
-import Hagi.Model.SWA
-import Hagi.Model.MoD
+import Hagi.Model.Attention
 
 /-!
 # Композиционная экономия внимания: SWA × GQA
