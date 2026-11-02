@@ -388,4 +388,93 @@ theorem latQ_corrupt_bound (Δ : ℝ) (hΔ : 0 < Δ)
           (show (0:ℝ) ≤ (Δ / 2) ^ 2 by positivity),
           Real.sqrt_sq (show (0:ℝ) ≤ Δ / 2 by positivity)]
         ring
+/-! ### Уровень 3b: композиция коррупции вдоль иерархии
+
+КЛЮЧЕВОЕ НАБЛЮДЕНИЕ:
+квантование СТИРАЕТ
+историю: новый остаток —
+только ошибка квантования
+возмущённого значения;
+возмущения предыдущих
+уровней НЕ накапливаются
+(само-коррекция решётки):
+каждый уровень отвечает
+только за СВОЁ ξ_k и Δ_k. -/
+
+/-- КОРРУПИРОВАННАЯ ИЕРАРХИЯ БЕЗ
+НАКОПЛЕНИЯ: если каждый
+уровень k квантует
+свой возмущённый
+остаток (resid_k + ξ_k),
+ошибка уровня k+1 ограничена
+ТОЛЬКО локальным
+возмущением и шагом:
+‖resid_{k+1}‖ ≤ ‖ξ_k‖ + √n·Δ_k/2.
+Возмущения предыдущих уровней
+исчезают при квантовании. -/
+theorem lattice_corrupt_hierarchy (Δ : ℕ → ℝ)
+    (hΔ : ∀ k, 0 < Δ k) (K : ℕ)
+    (resid xi : ℕ → EuclideanSpace ℝ (Fin n))
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = (resid k + xi k)
+        - latQ (Δ k) (hΔ k) (resid k + xi k)) :
+    ∀ k : ℕ, k < K →
+      ‖resid (k + 1)‖ ≤ Real.sqrt ((n : ℝ)) * Δ k / 2 := by
+  intro k hk
+  rw [hstep k hk]
+  -- новый остаток = v − Q(v): ξ_k исчезает
+  -- полностью; остаётся чистая
+  -- решёточная ошибка
+  have h := latQ_residual_bound (Δ k) (hΔ k) (resid k + xi k)
+  have hsq : ‖(resid k + xi k)
+      - latQ (Δ k) (hΔ k) (resid k + xi k)‖
+      = Real.sqrt (‖(resid k + xi k)
+        - latQ (Δ k) (hΔ k) (resid k + xi k)‖ ^ 2) :=
+    (Real.sqrt_sq (norm_nonneg _)).symm
+  have hsplit : Real.sqrt ((n : ℝ) * Δ k ^ 2 / 4)
+      = Real.sqrt ((n : ℝ)) * Δ k / 2 := by
+    have h4 : (n : ℝ) * Δ k ^ 2 / 4
+        = ((n : ℝ)) * (Δ k / 2) ^ 2 := by ring
+    rw [h4, Real.sqrt_mul' ((n : ℝ))
+      (show (0:ℝ) ≤ (Δ k / 2) ^ 2 by positivity),
+      Real.sqrt_sq (by linarith [hΔ k] : (0:ℝ) ≤ Δ k / 2)]
+    ring
+  rw [hsq, ← hsplit]
+  exact Real.sqrt_le_sqrt h
+
+/-- СЕРТИФИЦИРОВАННЫЙ STOP ПОД
+КОРРУПЦИЮ: если последнее
+возмущение и шаг последнего
+уровня достаточно малы
+(‖ξ_{K−1}‖ + √nΔ_{K−1}/2 ≤ √τ), то
+уровень K достаточен
+для цели D_K ≤ τ — без
+гипотез о предыдущих
+уровнях: они стёрты
+квантованием. -/
+theorem lattice_corrupt_stop (Δ : ℕ → ℝ)
+    (hΔ : ∀ k, 0 < Δ k) (τ : ℝ) (hτ : 0 ≤ τ)
+    (K : ℕ) (hK1 : 1 ≤ K)
+    (resid xi : ℕ → EuclideanSpace ℝ (Fin n))
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = (resid k + xi k)
+        - latQ (Δ k) (hΔ k) (resid k + xi k))
+    (hlast : Real.sqrt ((n : ℝ)) * Δ (K - 1) / 2
+      ≤ Real.sqrt τ) :
+    ‖resid K‖ ^ 2 ≤ τ := by
+  have h1 : K - 1 < K := by omega
+  have hbound := lattice_corrupt_hierarchy Δ hΔ K resid xi hstep
+    (K - 1) h1
+  have hK : K - 1 + 1 = K := by omega
+  rw [hK] at hbound
+  have hfinal : ‖resid K‖ ≤ Real.sqrt τ := hbound.trans hlast
+  have hsq2 : ‖resid K‖ = Real.sqrt (‖resid K‖ ^ 2) :=
+    (Real.sqrt_sq (norm_nonneg _)).symm
+  rw [hsq2] at hfinal
+  -- √(‖·‖²) ≤ √τ → ‖·‖² ≤ τ
+  have hmono : ‖resid K‖ ^ 2 ≤ (Real.sqrt τ) ^ 2 := by
+    nlinarith [hfinal, norm_nonneg (resid K)]
+  rw [Real.sq_sqrt hτ] at hmono
+  exact hmono
+
 end Hagi.Model.ResidualVQ
