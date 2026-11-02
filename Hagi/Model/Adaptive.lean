@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib
-import Hagi.Foundations.SumIdentities
+import Hagi.Foundations.Potential
 import Hagi.Prelude.Info
 import Hagi.Model.NormAct
 

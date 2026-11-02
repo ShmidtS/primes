@@ -1,6 +1,6 @@
 import Hagi.Optimization.ComputeScaling
 import Hagi.Foundations.PerronCone
-import Hagi.Dynamics.SpeedLimit
+import Hagi.Dynamics.Laws
 import Hagi.Optimization.PLConvergence
 import Hagi.Pretraining.RobustnessLaw
 

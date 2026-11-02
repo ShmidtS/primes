@@ -1,11 +1,9 @@
 import Mathlib
-import Hagi.Dynamics.CapabilityGain
+import Hagi.Dynamics.Laws
 import Hagi.Dynamics.ControllerPolicy
-import Hagi.Dynamics.DistillationRate
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.FastGrowth
 import Hagi.Dynamics.ProxyGap
-import Hagi.Dynamics.UrgencyDepth
 import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Ensemble.Hoeffding
 import Hagi.Growth.AdaptiveQuery

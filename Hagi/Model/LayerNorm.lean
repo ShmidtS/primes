@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.SumIdentities
+import Hagi.Foundations.Potential
 import Hagi.Model.RMSNorm
 
 /-!

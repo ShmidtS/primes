@@ -1,7 +1,6 @@
 import Mathlib
 import Hagi.Architecture.AlignedMerge
-import Hagi.Architecture.ConfigurationCost
-import Hagi.Architecture.ConfigurationRouting
+import Hagi.Architecture.Configuration
 import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.FactorRank
 import Hagi.Architecture.FactorizedMerge

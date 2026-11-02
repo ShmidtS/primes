@@ -90,9 +90,8 @@ import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.Heterarchy
-import Hagi.Architecture.ConfigurationCost
+import Hagi.Architecture.Configuration
 import Hagi.Budget.ActiveCompute
-import Hagi.Architecture.ConfigurationRouting
 import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
 import Hagi.Architecture.ResidualSplit
@@ -117,16 +116,13 @@ import Hagi.External.Flywheel.MDLRank
 import Hagi.Core.RootContrast
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.EndpointContraction
-import Hagi.Dynamics.SpeedLimit
-import Hagi.Dynamics.UrgencyDepth
-import Hagi.Dynamics.DistillationRate
+import Hagi.Dynamics.Laws
 import Hagi.Autonomy.TTTStability
 import Hagi.Autonomy.Hedge
 import Hagi.Autonomy.HedgeSurvivor
 import Hagi.Data.PACBayes
 import Hagi.Autonomy.Insight
 import Hagi.Unified.Liveness
-import Hagi.Dynamics.CapabilityGain
 import Hagi.Dynamics.FastGrowth
 import Hagi.Dynamics.WallClockTakeoff
 import Hagi.Dynamics.ControllerPolicy
@@ -158,7 +154,7 @@ import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
-import Hagi.Foundations.SumIdentities
+import Hagi.Foundations.Potential
 import Hagi.Foundations.GrowthBand
 import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
@@ -257,7 +253,6 @@ import Hagi.External.Flywheel.WeylInequality
 import Hagi.Foundations.Chord
 import Hagi.Foundations.Hoeffding
 import Hagi.Foundations.Ortho
-import Hagi.Foundations.Potential
 import Hagi.Growth.GammaDeficit
 import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.EntropyConvexity

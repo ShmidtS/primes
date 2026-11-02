@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Architecture.ConfigurationCost
+import Hagi.Architecture.Configuration
 
 /-!
 # ActiveCompute — the compute bill of switching
