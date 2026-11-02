@@ -1,5 +1,6 @@
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Quantizer
+import Hagi.Model.ReferenceMachine
 
 /-!
 # ResidualVQ — иерархическое остаточное кодирование (NCM-мост, уровень 1)
@@ -544,3 +545,46 @@ theorem lattice_energy_bound (E : EuclideanSpace ℝ (Fin n) → ℝ)
     _ ≤ L * (Real.sqrt ((n : ℝ)) * δ / 2 ^ K) :=
         mul_le_mul_of_nonneg_left hnorm hLnn
 
+
+/-- ДВУХУРОВНЕВАЯ СХОДИМОСТЬ (мост lattice × machine):
+машинный цикл с квантователем сетки Delta на глубине K
+решёточного расписания (Delta = delta / 2^(K-1)) имеет
+hardware floor F_K = n*Delta^2/8 = n*delta^2/8 * 4^(-(K-1)):
+каждый дополнительный бит/координату (уровень решётки)
+падает floor в 4 раза. Число машинных циклов до
+certified stop: из machine_stop_horizon с q = (1-eta)^2. -/
+theorem two_level_floor (n δ : ℝ) (hδ : 0 < δ) (K : ℕ) (hK1 : 1 ≤ K) :
+    (n : ℝ) * (δ / (2 ^ (K - 1) : ℝ)) ^ 2 / 8
+      = (n : ℝ) * δ ^ 2 / 8 / ((2 : ℝ) ^ (K - 1)) ^ 2 := by
+  have hq : ((2:ℝ) ^ (K - 1)) ≠ 0 := by positivity
+  field_simp
+
+
+/-- ПОЛНЫЙ ГОРИЗОНТ (композиция lattice × machine):
+машинный цикл на глубине K решётки: если q^t * E0 ≤ eps·(что
+соответствует требованию machine_stop_horizon), то
+E t ≤ eps + F/(1-q) с F_K = n*delta^2/8/4^(K-1):
+финальная точность = eps + n*delta^2/(8(1-q)*4^(K-1)).
+Оба бюджета (K бит/коорд × t циклов) входят явно. -/
+theorem two_level_stop (E : ℕ → ℝ) (q eps E0 δ : ℝ)
+    (hq : 0 ≤ q) (hq1 : q < 1) (hδ : 0 < δ) (heps : 0 ≤ eps)
+    (n : ℕ)
+    (K : ℕ) (hK1 : 1 ≤ K) (t : ℕ) (h0 : E 0 = E0)
+    (hterm : q ^ t * E0 ≤ eps)
+    (hstep : ∀ s, E (s + 1) ≤ q * E s
+      + (n : ℝ) * (δ / (2 ^ (K - 1):ℝ)) ^ 2 / 8) :
+    E t ≤ eps + (n : ℝ) * δ ^ 2
+      / (8 * (1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2) := by
+  have hfloor := two_level_floor (K := K) (n := (n:ℝ)) δ hδ hK1
+  have hor := Hagi.Model.ReferenceMachine.machine_stop_horizon E q
+    ((n : ℝ) * (δ / (2 ^ (K - 1):ℝ)) ^ 2 / 8) eps E0 hq hq1
+    (by positivity) heps
+    hstep h0 t hterm
+  rw [hfloor] at hor
+  have hsame : (n:ℝ) * δ ^ 2 / (8 * (1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2)
+      = (n:ℝ) * δ ^ 2 / 8 / ((2:ℝ) ^ (K - 1)) ^ 2 / (1 - q) := by
+    field_simp
+  rw [hsame]
+  linarith
+
+end Hagi.Model.ResidualVQ
