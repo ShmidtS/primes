@@ -477,4 +477,70 @@ theorem lattice_corrupt_stop (Δ : ℕ → ℝ)
   rw [Real.sq_sqrt hτ] at hmono
   exact hmono
 
-end Hagi.Model.ResidualVQ
+/-! ### Уровень 4: мост к энергетическому слою
+
+L-липшицевая цель превращает
+ошибку представления в
+искажение энергии: K
+уровней решёточной
+иерархии дают
+|E(ẑ) − E(z)| ≤ L·√n·δ/2^K —
+это соединяет мост NCM с
+компрессионным ledger
+`advance_energy_drop` (κ·s·quantErr-гипотеза
+становится теоремой при
+L-липшицевости). -/
+
+/-- МОСТ К ЭНЕРГИИ: для L-липшицевой
+цели искажение энергии
+K-уровневой решёточной
+реконструкции ограничено
+L·√n·δ/2^K. -/
+theorem lattice_energy_bound (E : EuclideanSpace ℝ (Fin n) → ℝ)
+    (L : ℝ) (hLnn : 0 ≤ L)
+    (hLip : ∀ x y, |E x - E y| ≤ L * ‖x - y‖)
+    (δ : ℝ) (hδ : 0 < δ) (K : ℕ) (hK1 : 1 ≤ K)
+    (z zhat : EuclideanSpace ℝ (Fin n))
+    (resid : ℕ → EuclideanSpace ℝ (Fin n))
+    (hresid : z - zhat = resid K)
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = resid k - latQ (δ / 2 ^ k) (by positivity) (resid k)) :
+    |E zhat - E z|
+      ≤ L * (Real.sqrt ((n : ℝ)) * δ / 2 ^ K) := by
+  have hgeo := lattice_geometric δ hδ (K - 1 + 1) resid
+    (fun k hk => hstep k (by omega)) (K - 1) (by omega)
+  have hKK : K - 1 + 1 = K := by omega
+  rw [hKK] at hgeo
+  -- hgeo в квадратичной форме
+  have hpow : (2:ℝ) ^ K = 2 * 2 ^ (K - 1) := by
+    rcases K with _ | K'
+    · omega
+    · have hsub : K' + 1 - 1 = K' := by omega
+      rw [hsub, pow_succ, mul_comm]
+  have hpos : (0:ℝ) < 2 ^ (K - 1) := by positivity
+  -- ‖resid K‖ ≤ √n·δ/2^{K-1} ... перепишем без sqrt-алгебры:
+  -- из hgeo следует ‖resid K‖ ≤ √n · δ / 2^{K-1} / 2 = √nδ/2^K
+  have hnorm : ‖resid K‖ ≤ Real.sqrt ((n : ℝ)) * δ / 2 ^ K := by
+    have hXnn : (0:ℝ) ≤ Real.sqrt ((n : ℝ)) * δ / 2 ^ K :=
+      div_nonneg (mul_nonneg (Real.sqrt_nonneg _) (le_of_lt hδ))
+        (by positivity)
+    have htarget : (Real.sqrt ((n : ℝ)) * δ / 2 ^ K) ^ 2
+        = (n : ℝ) * (δ / 2 ^ (K - 1)) ^ 2 / 4 := by
+      have hsqn := Real.sq_sqrt
+        (by positivity : (0:ℝ) ≤ (n:ℝ))
+      rw [div_pow, mul_pow, hsqn]
+      rw [hpow, sq]
+      field_simp
+      ring
+    rw [← htarget] at hgeo
+    nlinarith [hgeo, hXnn,
+      sq_nonneg (‖resid K‖ - Real.sqrt ((n : ℝ)) * δ / 2 ^ K)]
+  -- липшицевость замыкает мост
+  have hdist : ‖zhat - z‖ = ‖resid K‖ := by
+    have hflip : zhat - z = -(z - zhat) := by abel
+    rw [hflip, norm_neg, hresid]
+  calc |E zhat - E z| ≤ L * ‖zhat - z‖ := hLip zhat z
+    _ = L * ‖resid K‖ := by rw [hdist]
+    _ ≤ L * (Real.sqrt ((n : ℝ)) * δ / 2 ^ K) :=
+        mul_le_mul_of_nonneg_left hnorm hLnn
+
