@@ -584,7 +584,48 @@ theorem two_level_stop (E : ℕ → ℝ) (q eps E0 δ : ℝ)
   have hsame : (n:ℝ) * δ ^ 2 / (8 * (1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2)
       = (n:ℝ) * δ ^ 2 / 8 / ((2:ℝ) ^ (K - 1)) ^ 2 / (1 - q) := by
     field_simp
-  rw [hsame]
   linarith
+
+
+/-- ОПТИМАЛЬНАЯ ГЛУБИНА K* (budget-optimal lattice depth):
+если глубина K решётки удовлетворяет
+`n*delta^2/8 <= floor_budget * 4^(K-1) * (1-q)` (т.е.
+hardware floor умещается в долю бюджета), то двухуровневый
+цикл достигает суммарной точности `eps + floor_budget`.
+Обратное чтение: МИНИМАЛЬНОЕ такое K = K* — сертифицированный
+критерий достаточности глубины; глубже K* уточнение не
+улучшает суммарную гарантию (floor уже в бюджете). -/
+theorem two_level_optimal_depth (E : ℕ → ℝ) (q eps E0 δ
+    floor_budget : ℝ) (hq : 0 ≤ q) (hq1 : q < 1) (hδ : 0 < δ)
+    (heps : 0 ≤ eps) (hfb : 0 ≤ floor_budget) (n : ℕ)
+    (K : ℕ) (hK1 : 1 ≤ K) (t : ℕ) (h0 : E 0 = E0)
+    (hterm : q ^ t * E0 ≤ eps)
+    (hdepth : (n:ℝ) * δ ^ 2 / 8 ≤ floor_budget * (1 - q)
+      * ((2:ℝ) ^ (K - 1)) ^ 2)
+    (hstep : ∀ s, E (s + 1) ≤ q * E s
+      + (n : ℝ) * (δ / (2 ^ (K - 1):ℝ)) ^ 2 / 8) :
+    E t ≤ eps + floor_budget := by
+  have hfloor := two_level_floor (K := K) (n := (n:ℝ)) δ hδ hK1
+  have hqpos : (0:ℝ) < 1 - q := by linarith
+  have hkey := two_level_stop E q eps E0 δ hq hq1 hδ heps n K hK1 t
+    h0 hterm hstep
+  -- из hdepth: n δ²/8/((1-q)·4^(K-1)) ≤ floor_budget
+  have hden : (n:ℝ) * δ ^ 2 / 8 / ((1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2)
+      ≤ floor_budget := by
+    have hposd : (0:ℝ) < (1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2 :=
+      mul_pos hqpos (by positivity)
+    have hden2 : (n:ℝ) * δ ^ 2 / 8 ≤ floor_budget
+        * ((1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2) := by
+      have h4 := hdepth
+      ring_nf at h4 ⊢
+      linarith
+    rw [div_le_iff₀ hposd]
+    exact hden2
+  have hsame : (n:ℝ) * δ ^ 2
+      / (8 * (1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2)
+      = (n:ℝ) * δ ^ 2 / 8 / ((1 - q) * ((2:ℝ) ^ (K - 1)) ^ 2) := by
+    field_simp
+  rw [hsame] at hkey
+  linarith [hkey]
 
 end Hagi.Model.ResidualVQ
