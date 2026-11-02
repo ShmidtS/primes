@@ -496,4 +496,42 @@ theorem grid_temperature (T : ℝ) (hT : 0 ≤ T) (hn : 0 < n)
     hdle
   linarith
 
+
+/-! ### Термостат-петля: батч → температура → сетка → пол
+
+NoiseTemperature (Probability): шум градиента — резервуар с
+температурой T = sigma^2/B. Соединение с термостатом решётки:
+Δ(T) = sqrt(2T/n) = sigma·sqrt(2/(B·n)) — сетка, выбранная
+бюджетом измерений; её аппаратный пол ≤ sigma^2/(2B).
+Рост батча в c раз опускает пол в c раз — самоохлаждение
+машины измерениями. -/
+
+/-- ПЕТЛЯ ТЕРМОСТАТА: при сетке из температуры батча
+`Delta = sigma*sqrt(2/(B*n))` аппаратный пол машины
+`<= sigma^2/B` — точность ограничена только бюджетом
+измерений; рост батча в c раз опускает пол в c раз
+(самоохлаждение машины измерениями). -/
+theorem batch_grid_loop (sigma : ℝ) (hsigma : 0 ≤ sigma)
+    (B : ℕ) (hB : 0 < B) (hn : 0 < n) (Delta : ℝ)
+    (hD : 0 < Delta)
+    (hDle : Delta ≤ Real.sqrt (2 * (sigma ^ 2 / (B:ℝ))
+      / (n:ℝ))) :
+    (n:ℝ) * Delta ^ 2 / 8 ≤ sigma ^ 2 / (B:ℝ) := by
+  have hres := grid_temperature (sigma ^ 2 / (B:ℝ))
+    (by
+      have := sq_nonneg sigma
+      exact div_nonneg this (le_of_lt (by exact_mod_cast hB)))
+    hn Delta hD hDle
+  have hsplit : sigma ^ 2 / (B:ℝ) / 4
+      ≤ sigma ^ 2 / (B:ℝ) := by
+    have hp : (0:ℝ) < (B:ℝ) := by exact_mod_cast hB
+    have h1 : sigma ^ 2 / (B:ℝ) / 4 = sigma ^ 2 / ((B:ℝ) * 4) := by
+      ring
+    rw [h1]
+    have h4 : (1:ℝ) ≤ (4:ℝ) := by norm_num
+    have hp : (0:ℝ) < (B:ℝ) := by exact_mod_cast hB
+    exact div_le_div_of_nonneg_left (sq_nonneg sigma)
+      hp (by linarith [mul_le_mul_of_nonneg_left h4 (le_of_lt hp)])
+  linarith
+
 end Hagi.Model.ReferenceMachine
