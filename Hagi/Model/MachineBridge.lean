@@ -1,5 +1,6 @@
 import Hagi.Model.StageSemantics
 import Hagi.Model.ReferenceMachine
+import Hagi.Model.CertifiedTransition
 
 /-!
 # Мост: эталонная машина → стадийная семантика (аудит v7, этап 4)
@@ -95,5 +96,123 @@ theorem machine_advance_certified (eta Delta kappa s : ℝ)
   rw [sq_abs (w 0 - a 0)] at hdrop
   ring_nf at hdrop ⊢
   linarith
+
+
+/-! ### Многомерный мост: машина → стадийная семантика (аудит v17 P0-1)
+
+Аудит требовал явный мост S.params = w →
+(advance S u).params = jointStep a w η. Здесь этот мост
+доказан в размерности n над EuclideanSpace, вместе с
+end-to-end сертификатом V3 (фактический спад) для
+машинного цикла. -/
+
+open EuclideanSpace in
+/-- n-мерный StageInput, собранный ИЗ МАШИННЫХ
+ИЗМЕРЕНИЙ: каждая энергия — функция весов;
+L = 1 — фактическая кривизна E = ‖w−a‖²/2. -/
+noncomputable def machineStageInputN (a w : EuclideanSpace ℝ (Fin n))
+    (eta Delta kappa s : ℝ) (heta : 0 < eta) : StageInput (EuclideanSpace ℝ (Fin n)) where
+  sp := { eta := eta, L := 1, kappa := kappa, s := s }
+  eff := {
+    growGain := 0, growCost := 0, growRisk := 0,
+    growEnergy := energyE a w,
+    mergeEnergy := energyE a w, mergeRisk := 0, mergeCost := 0,
+    jointEnergy := energyE a (jointStepE a w eta),
+    jointRisk := 0, jointCost := 0,
+    quantErr := ‖compressQE Delta (jointStepE a w eta) - jointStepE a w eta‖,
+    compressEnergy := energyE a (compressQE Delta (jointStepE a w eta)),
+    compressRisk := 0, compressCost := 0 }
+  gap := 0
+  stepDir := jointGradE a w
+  grad := jointGradE a w
+  h_costs_nn := by norm_num
+  h_risks_nn := by norm_num
+  h_eta_pos := heta
+
+
+/-- МОСТ ПАРАМЕТРОВ (аудит v17 P0-1, главный запрос):
+если параметры состояния — веса машины (S.params = w), то
+исполнение цикла ТОЧНО соответствует шагу эталонной машины:
+(advance S u).params = jointStep a w η. Координатно:
+params'ᵢ = wᵢ − η·(wᵢ − aᵢ). -/
+theorem machine_param_bridge (a w : EuclideanSpace ℝ (Fin n))
+    (eta Delta kappa s : ℝ) (heta : 0 < eta)
+    (S : GrowthState (EuclideanSpace ℝ (Fin n)))
+    (hparams : S.params = w) :
+    (advance S
+        (machineStageInputN a w eta Delta kappa s heta)).params
+      = jointStepE a w eta := by
+  have hadvance : (advance S
+      (machineStageInputN a w eta Delta kappa s heta)).params
+    = S.params - eta • (machineStageInputN a w eta Delta kappa s heta).stepDir := rfl
+  rw [hadvance, hparams]
+  simp only [machineStageInputN, jointGradE]
+  exact rfl
+
+
+/-- END-TO-END (аудит v17 P0-1 + P0-2): машинный цикл в
+размерности n даёт ФАКТИЧЕСКИЙ спад энергии
+состояния обучения. Все величины — вычисленные
+функции весов; леджер сжатия — `compress_energy_ledger`;
+мост параметров — `machine_param_bridge`. Строгость
+(hstrict): погрешность шаг+квантования меньше чистого
+спада шага (достаточно мелкое Δ). Этот факт закрывает
+P0-1: первый end-to-end мост машина↔состояние в n. -/
+theorem machine_actual_descent_n
+    (a w : EuclideanSpace ℝ (Fin n))
+    (eta Delta : ℝ) (heta : 0 < eta) (hetaL : eta ≤ 1)
+    (S : GrowthState (EuclideanSpace ℝ (Fin n)))
+    (hparams : S.params = w)
+    (henergy : S.energy = energyE a w)
+    (hstrict : (1 - eta) * ‖w - a‖
+        * ‖compressQE Delta (jointStepE a w eta) - jointStepE a w eta‖
+      + ‖compressQE Delta (jointStepE a w eta) - jointStepE a w eta‖ ^ 2 / 2
+      < eta * (2 - eta) * energyE a w) :
+    energyE a (compressQE Delta (jointStepE a w eta)) < S.energy
+    ∧ eta * (2 - eta) * energyE a w
+      - (1 - eta) * ‖w - a‖
+        * ‖compressQE Delta (jointStepE a w eta) - jointStepE a w eta‖
+      - ‖compressQE Delta (jointStepE a w eta) - jointStepE a w eta‖ ^ 2 / 2
+      ≤ S.energy
+        - energyE a (compressQE Delta (jointStepE a w eta)) := by
+  set q := ‖compressQE Delta (jointStepE a w eta)
+    - jointStepE a w eta‖ with hq
+  have hledger := compress_energy_ledger a (jointStepE a w eta) Delta
+  have hstep := jointStepE_energy a w eta
+  -- ‖w − a‖² = 2E
+  have hnormsq : ‖w - a‖ ^ 2 = 2 * energyE a w := by
+    rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+    unfold energyE
+    have h2 : 2 * ∑ i, ((w.ofLp i - a.ofLp i) ^ 2 / 2)
+        = ∑ i, (w.ofLp i - a.ofLp i) ^ 2 := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun i _ => by ring
+    rw [h2]
+    simp
+  -- js − a = (1−η) • (w − a) как вектор (коордиатно) → норма
+  have hvec : jointStepE a w eta - a = (1 - eta) • (w - a) := by
+    apply PiLp.ext
+    intro i
+    simp only [PiLp.sub_apply, jointStepE_ofLp, PiLp.smul_apply, smul_eq_mul]
+    ring
+  have hgradn : ‖jointStepE a w eta - a‖ = (1 - eta) * ‖w - a‖ := by
+    have h1 : (0: ℝ) ≤ 1 - eta := by linarith
+    rw [hvec, norm_smul, Real.norm_eq_abs, abs_of_nonneg h1]
+
+  rw [henergy]
+  have hchain : energyE a (compressQE Delta (jointStepE a w eta))
+      ≤ energyE a w - (eta * (2 - eta) * energyE a w
+        - (1 - eta) * ‖w - a‖ * q - q ^ 2 / 2) := by
+    rw [hstep, hgradn] at hledger
+    nlinarith [hledger]
+  constructor
+  · have hq : (0: ℝ) ≤ q := norm_nonneg _
+    have h1 : (0: ℝ) ≤ 1 - eta := by linarith
+    have hnn : (0: ℝ) ≤ ‖w - a‖ := norm_nonneg _
+    have hp1 : (0: ℝ) ≤ (1 - eta) * ‖w - a‖ := mul_nonneg h1 hnn
+    have h0 : (0: ℝ) ≤ (1 - eta) * ‖w - a‖ * q + q ^ 2 / 2 := by
+      nlinarith [hp1, hq]
+    nlinarith [hchain, hstrict]
+  · linarith
 
 end Hagi.Model.MachineBridge

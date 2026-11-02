@@ -281,4 +281,116 @@ theorem machine_energy_bound (a w : Fin n → ℝ) (eta Delta : ℝ)
   rw [hE, hRHS]
   linarith [hfinal, hmono]
 
+/-- Энергия на евклидовом носителе. -/
+noncomputable def energyE (a w : EuclideanSpace ℝ (Fin n)) : ℝ :=
+  ∑ i, (w.ofLp i - a.ofLp i) ^ 2 / 2
+
+/-- Разложение разности энергий: E(y) − E(x) =
+⟨x−a, y−x⟩ + ‖y−x‖²/2 — точное координатное
+тождество. -/
+theorem energy_diff_expansion (a x y : EuclideanSpace ℝ (Fin n)) :
+    energyE a y - energyE a x
+      = (inner ℝ (x - a) (y - x))
+        + ‖y - x‖ ^ 2 / 2 := by
+  have hexpand : energyE a y - energyE a x
+      = ∑ i, ((y.ofLp i - a.ofLp i) ^ 2
+        - (x.ofLp i - a.ofLp i) ^ 2) / 2 := by
+    unfold energyE
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun i _ => by ring
+  have hper : ∀ i, ((y.ofLp i - a.ofLp i) ^ 2
+      - (x.ofLp i - a.ofLp i) ^ 2) / 2
+      = (y.ofLp i - x.ofLp i) * (x.ofLp i - a.ofLp i)
+        + (y.ofLp i - x.ofLp i) ^ 2 / 2 := by
+    intro i
+    have h1 : (y.ofLp i - a.ofLp i) ^ 2
+        = ((x.ofLp i - a.ofLp i) + (y.ofLp i - x.ofLp i)) ^ 2 := by
+      congr 1; ring
+    rw [h1]; ring
+  have hinner : (inner ℝ (x - a) (y - x))
+      = ∑ i, (x.ofLp i - a.ofLp i) * (y.ofLp i - x.ofLp i) := by
+    simp only [PiLp.inner_apply]
+    exact Finset.sum_congr rfl fun i _ => mul_comm _ _
+  have hnorm : ‖y - x‖ ^ 2 = ∑ i, (y.ofLp i - x.ofLp i) ^ 2 := by
+    rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+    simp
+  rw [hexpand, hinner, hnorm]
+  simp only [hper, Finset.sum_add_distrib, Finset.sum_div]
+  congr 1
+
+/-- Квантование на евклидовом носителе (координатное). -/
+noncomputable def compressQE (Delta : ℝ) (w : EuclideanSpace ℝ (Fin n)) :
+    EuclideanSpace ℝ (Fin n) :=
+  WithLp.toLp 2 (fun i => Delta * round (w.ofLp i / Delta))
+
+/-- Координаты compressQE. -/
+theorem compressQE_ofLp (Delta : ℝ) (w : EuclideanSpace ℝ (Fin n))
+    (i : Fin n) :
+    (compressQE Delta w).ofLp i = Delta * round (w.ofLp i / Delta) := rfl
+
+/-- Норма ошибки координатного квантования = √(Σ ошибок²). -/
+theorem distQE (Delta : ℝ) (w : EuclideanSpace ℝ (Fin n)) :
+    ‖compressQE Delta w - w‖ ^ 2
+      = ∑ i, (Delta * round (w.ofLp i / Delta) - w.ofLp i) ^ 2 := by
+  rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+  exact Finset.sum_congr rfl fun i _ => by
+    rw [Real.norm_eq_abs, sq_abs, PiLp.sub_apply, compressQE_ofLp]
+
+/-- ЛЕДЖЕР СЖАТИЯ В n: превышение энергии после квантования
+не больше (‖x−a‖ + q/2)·q, где q = ‖Q(x)−x‖ — вычисленная
+ошибка квантования. Через energy_diff_expansion и
+Коши–Буняковского; ни одного постулата. -/
+theorem compress_energy_ledger
+    (a x : EuclideanSpace ℝ (Fin n)) (Delta : ℝ) :
+    energyE a (compressQE Delta x) - energyE a x
+      ≤ (‖x - a‖ + ‖compressQE Delta x - x‖ / 2)
+        * ‖compressQE Delta x - x‖ := by
+  have hexp := energy_diff_expansion a x (compressQE Delta x)
+  have habs : |(inner ℝ (x - a) (compressQE Delta x - x))|
+      ≤ ‖x - a‖ * ‖compressQE Delta x - x‖ :=
+    abs_real_inner_le_norm (x - a) (compressQE Delta x - x)
+  have hle1 : (inner ℝ (x - a) (compressQE Delta x - x))
+      ≤ ‖x - a‖ * ‖compressQE Delta x - x‖ :=
+    le_trans (le_abs_self _) habs
+  set q := ‖compressQE Delta x - x‖ with hq
+  have hcalc : energyE a (compressQE Delta x) - energyE a x
+      = (inner ℝ (x - a) (compressQE Delta x - x)) + q ^ 2 / 2 := by
+    rw [hexp, hq]
+  calc energyE a (compressQE Delta x) - energyE a x
+      = (inner ℝ (x - a) (compressQE Delta x - x)) + q ^ 2 / 2 := hcalc
+    _ ≤ ‖x - a‖ * q + q * q / 2 := by
+        have h2 : q ^ 2 / 2 = q * q / 2 := by ring
+        rw [h2]
+        gcongr
+    _ = (‖x - a‖ + q / 2) * q := by
+        field_simp
+
+/-- Градиентный шаг на евклидовом носителе. -/
+def jointStepE (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ) :
+    EuclideanSpace ℝ (Fin n) :=
+  w - eta • (w - a)
+
+/-- Координаты градиентного шага. -/
+theorem jointStepE_ofLp (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ)
+    (i : Fin n) :
+    (jointStepE a w eta).ofLp i
+      = w.ofLp i - eta * (w.ofLp i - a.ofLp i) := by
+  simp [jointStepE]
+
+/-- Градиент E на евклидовом носителе: w − a. -/
+def jointGradE (a w : EuclideanSpace ℝ (Fin n)) :
+    EuclideanSpace ℝ (Fin n) := w - a
+
+/-- Энергия шага: (1−η)²·E(w) — вычислено. -/
+theorem jointStepE_energy (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ) :
+    energyE a (jointStepE a w eta) = (1 - eta) ^ 2 * energyE a w := by
+  unfold energyE
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [jointStepE_ofLp]
+  have h : (w.ofLp i - eta * (w.ofLp i - a.ofLp i)) - a.ofLp i
+      = (1 - eta) * (w.ofLp i - a.ofLp i) := by ring
+  rw [h]
+  ring
+
 end Hagi.Model.ReferenceMachine
