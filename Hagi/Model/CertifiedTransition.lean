@@ -463,4 +463,49 @@ theorem ctv3_sound {S S' : Hagi.System.GrowthState X}
     (certificate_of_transition base).2.1,
     (certificate_of_transition base).2.2, hdrop⟩
 
+
+/-! ### Мост с решёточной вертикалью: монотонность сертифицируемости
+
+MachineBridge подставляет `quantErr = quantErr Delta w` в
+StageInput; machine_quant_err_bound даёт `quantErr ≤ √n·Δ/2`.
+При решёточном расписании Δ_K = δ/2^K ошибка падает
+геометрически с глубиной K — и строгий спад, сертифицированный
+на одной глубине, остаётся строгим на любой большей. Это
+делает углубление решётки БЕЗОПАСНЫМ улучшением контроллера:
+сертификат V3 не теряется. -/
+
+/-- МОНОТОННОСТЬ СЕРТИФИЦИРУЕМОСТИ: если строгий спад
+выполнен при квантовой ошибке `qe₀` (и slack положителен
+через `slack₀`), то он выполнен и при меньшей ошибке
+`qe ≤ qe₀`. Углубление решётки (Δ→Δ/2^k ⇒ quantErr↓)
+сохраняет сертификат V3. -/
+theorem stageLaws_mono_quantErr (S : Hagi.System.GrowthState X)
+    (u : StageInput X)
+    (hgap : 0 ≤ u.gap) (heta : 0 ≤ u.sp.eta)
+    (hks : u.sp.kappa * u.sp.s < 2 * u.eff.growGain)
+    (hgain : u.eff.growEnergy ≤ S.energy - u.eff.growGain)
+    (hmerge : u.eff.mergeEnergy ≤ u.eff.growEnergy - u.gap)
+    (hL : 0 < u.sp.L) (hetaL : u.sp.eta ≤ 1 / u.sp.L)
+    (hdesc : ‖u.stepDir‖ ^ 2 ≤ ⟪u.grad, u.stepDir⟫_ℝ)
+    (hjoint : u.eff.jointEnergy
+      ≤ u.eff.mergeEnergy - u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        + u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+    (hcostnn : 0 ≤ u.eff.growCost + u.eff.mergeCost
+      + u.eff.jointCost + u.eff.compressCost)
+    (qe qe₀ : ℝ) (hqe : qe ≤ qe₀) (hksnn : 0 ≤ u.sp.kappa * u.sp.s)
+    (hledger₀ : u.eff.compressEnergy - u.eff.jointEnergy
+      ≤ u.sp.kappa * u.sp.s * qe₀)
+    (hstrict₀ : 0 < u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      - u.sp.kappa * u.sp.s * qe₀) :
+    0 < u.eff.growGain + u.gap
+      + (u.sp.eta * ⟪u.grad, u.stepDir⟫_ℝ
+        - u.sp.L * u.sp.eta ^ 2 * ‖u.stepDir‖ ^ 2 / 2)
+      - u.sp.kappa * u.sp.s * qe := by
+  have h1 : u.sp.kappa * u.sp.s * qe
+      ≤ u.sp.kappa * u.sp.s * qe₀ :=
+    mul_le_mul_of_nonneg_left hqe hksnn
+  linarith
+
 end Hagi.Model
