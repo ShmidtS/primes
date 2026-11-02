@@ -1,5 +1,6 @@
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Quantizer
+import Hagi.Step.NoisyPL
 
 /-!
 # Эталонный исполнитель цикла обучения (аудит v7 §5 + этап 6)
@@ -428,6 +429,22 @@ theorem machine_step_floor (a w : Fin n → ℝ) (Delta : ℝ)
       ≤ (n : ℝ) * Delta ^ 2 / 8 := by
     rw [hsq2]
     linarith
+  linarith
+
+
+/-- ГОРИЗОНТ ОСТАНОВКИ МАШИННОГО ЦИКЛА: если каждый цикл
+сжимает энергию как `E⁺ ≤ q·E + F` (q = (1−eta)^2,
+F = n*Delta^2/8 — hardware floor) и `q^t * E0 <= eps`,
+то `E t <= eps + F/(1-q)` — за `t` шагов гарантируется
+точность `eps` плюс floor-поправка. Количество циклов
+до certified stop: `t = ceil(log(eps*(1-q)/E0)/log q)`. -/
+theorem machine_stop_horizon (E : ℕ → ℝ) (q F eps E0 : ℝ)
+    (hq : 0 ≤ q) (hq1 : q < 1) (hF : 0 ≤ F) (heps : 0 ≤ eps)
+    (hstep : ∀ t, E (t + 1) ≤ q * E t + F)
+    (h0 : E 0 = E0) (t : ℕ) (hterm : q ^ t * E0 ≤ eps) :
+    E t ≤ eps + F / (1 - q) := by
+  have htele := Hagi.Step.noisy_recurrence_telescope E q F hq hq1 hF hstep E0
+    (by rw [h0]) t
   linarith
 
 end Hagi.Model.ReferenceMachine
