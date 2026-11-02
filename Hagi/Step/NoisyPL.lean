@@ -154,4 +154,72 @@ theorem noisy_pl_convergence (e G : ℕ → ℝ) (Estar μ L m : ℝ)
   have hE := he t
   linarith
 
+
+/-- Телескоп с ПЕРЕМЕННЫМИ коэффициентами: если
+`e (t+1) ≤ c t * e t + d` с равномерным `c t ≤ c < 1`
+и `0 ≤ d`, то `e t ≤ (∏ c) * e 0 + d/(1-c)` — базис
+adaptive schedules: шаг за шагом расписания (η_t, batch_t)
+входят только через равномерно-сжимающий sup. -/
+theorem variable_telescope (e : ℕ → ℝ) (c : ℕ → ℝ) (c0 : ℝ)
+    (d : ℝ) (hc : ∀ t, 0 ≤ c t) (hcmax : ∀ t, c t ≤ c0)
+    (hc0 : c0 < 1) (hd : 0 ≤ d)
+    (hstep : ∀ t, e (t + 1) ≤ c t * e t + d)
+    (e₀ : ℝ) (h0 : e 0 ≤ e₀) (t : ℕ) :
+    e t ≤ (∏ k ∈ Finset.range t, c k) * e₀ + d / (1 - c0) := by
+  induction t with
+  | zero =>
+    have hpos : (0:ℝ) ≤ d / (1 - c0) := by positivity
+    have hempty : (∏ k ∈ Finset.range 0, c k) = 1 :=
+      Finset.prod_empty
+    rw [hempty, one_mul]
+    linarith
+  | succ t ih =>
+    have hprod : (∏ k ∈ Finset.range (t + 1), c k)
+        = c t * (∏ k ∈ Finset.range t, c k) := by
+      rw [Finset.prod_range_succ]
+      ring
+    have hprodpos : 0 ≤ ∏ k ∈ Finset.range t, c k := by
+      have hall : ∀ k ∈ Finset.range t, 0 ≤ c k := fun k _ => hc k
+      exact Finset.prod_nonneg hall
+    have hbound : (1 - c0) * ((∏ k ∈ Finset.range t, c k) * e₀
+        + d / (1 - c0))
+        = (1 - c0) * (∏ k ∈ Finset.range t, c k) * e₀ + d := by
+      field_simp
+    -- F_t := prod * e0 + d/(1-c0); F_{t+1} = c_t*F_t + (1-c_t)*d/(1-c0)
+    have hct0 : 0 ≤ c t := hc t
+    have hctmax : c t ≤ c0 := hcmax t
+    have hpos1 : (0:ℝ) < 1 - c0 := by linarith
+    have hstep' : e (t + 1) ≤ c t * e t + d := hstep t
+    have hctih : c t * e t ≤ c t * ((∏ k ∈ Finset.range t, c k) * e₀
+        + d / (1 - c0)) := by
+      exact mul_le_mul_of_nonneg_left ih hct0
+    have hdd : d ≤ (1 - c t) * d / (1 - c0) := by
+      by_cases hddz : d = 0
+      · rw [hddz, mul_zero, zero_div]
+      · have hp : (0:ℝ) < d := by positivity
+        have hge : (1:ℝ) - c0 ≤ (1:ℝ) - c t := by linarith
+        have hmul : ((1:ℝ) - c0) * d ≤ ((1:ℝ) - c t) * d := by
+          exact mul_le_mul_of_nonneg_right hge (le_of_lt hp)
+        have hden : ((1:ℝ) - c t) * d / (1 - c0) * (1 - c0)
+            = ((1:ℝ) - c t) * d := by
+          field_simp
+        rw [le_div_iff₀ hpos1]
+        linarith [hmul, hden]
+    have hkey2 : (1 - c0) * ((∏ k ∈ Finset.range (t + 1), c k) * e₀
+        + d / (1 - c0))
+        = (1 - c0) * (c t * ((∏ k ∈ Finset.range t, c k) * e₀
+          + d / (1 - c0)) + (1 - c t) * d / (1 - c0)) := by
+      rw [hprod]
+      field_simp
+      ring
+    have hmain : e (t + 1)
+        ≤ (∏ k ∈ Finset.range (t + 1), c k) * e₀ + d / (1 - c0) := by
+      have h1 := hstep'
+      have h2 := hctih
+      have h3 := hdd
+      have h4 := hkey2
+      nlinarith [h1, h2, h3, h4,
+        mul_pos hpos1 (by linarith : (0:ℝ) < 1 - c t)]
+    exact hmain
+
 end Hagi.Step
