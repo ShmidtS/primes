@@ -1,5 +1,5 @@
 import Hagi.Step.MDLObjective
-import Hagi.Step.MuonWD
+import Hagi.Step.Muon
 import Hagi.Step.NCEExact
 import Hagi.Step.RiemannNewtonPolar
 import Hagi.Step.Upgrades

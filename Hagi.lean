@@ -23,7 +23,7 @@ import Hagi.Ensemble.Hoeffding
 import Hagi.Core.RealF3Ortho
 import Hagi.Core.Element
 import Hagi.Step.Joint
-import Hagi.Step.MuonAlign
+import Hagi.Step.Muon
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
 import Hagi.Data.DField
@@ -85,7 +85,7 @@ import Hagi.Information.Pinsker
 import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
-import Hagi.Step.KLSSafeQP
+import Hagi.Step.VariantSafeQP
 import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
@@ -195,9 +195,6 @@ import Hagi.Examples.QuadraticConcrete
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
-import Hagi.Step.Muon
-import Hagi.Step.MuonWD
-import Hagi.Step.MuonTwoLevel
 import Hagi.Step.HybridState
 import Hagi.Step.SNRWeights
 import Hagi.Autonomy.SupervisorSafety
@@ -214,7 +211,6 @@ import Hagi.Energy.STEStep
 import Hagi.Runtime.TernaryExact
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
-import Hagi.Step.LazyAdamMomentum
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
 import Hagi.Spectral.RankGrowth
@@ -252,7 +248,6 @@ import Hagi.Step.NewtonPolar
 import Hagi.Step.RiemannNewtonPolar
 import Hagi.Step.FrobeniusLMO
 import Hagi.Step.PreconditionerDescent
-import Hagi.Step.MetricSafeQP
 import Hagi.Step.ArmijoAcceptance
 import Hagi.Budget.AnytimeCondensation
 import Hagi.Budget.ThermoCondensation

@@ -21,9 +21,8 @@ import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Pretraining.TrustRegion
 import Hagi.Step.HybridState
 import Hagi.Step.MDLThreeCurrency
-import Hagi.Step.MetricSafeQP
+import Hagi.Step.VariantSafeQP
 import Hagi.Step.Muon
-import Hagi.Step.MuonTwoLevel
 import Hagi.Step.NewtonPolar
 import Hagi.Step.PreconditionerDescent
 import Hagi.Step.SNRWeights

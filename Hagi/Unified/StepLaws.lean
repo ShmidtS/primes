@@ -4,7 +4,6 @@ import Hagi.Step.Compound
 import Hagi.Step.FrobeniusLMO
 import Hagi.Step.GPM
 import Hagi.Step.LazyAdam
-import Hagi.Step.LazyAdamMomentum
 import Hagi.Runtime.ControllerGates
 import Hagi.Runtime.LiveDeltaQuant
 import Hagi.Sparsity.SparseStep0

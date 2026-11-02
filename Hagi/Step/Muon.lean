@@ -1,9 +1,19 @@
 /-
-Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: HAGI_v2 formalization team
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+
 import Mathlib.Tactic
+import Mathlib
+import Hagi.Foundations.Recurrence
+
+/-!
+# Muon-семейство (объединённое)
+
+Базовый Muon-шаг, выравнивание, двухуровневая версия,
+распад веса. Слит из четырёх модулей; namespace-блоки и
+имена деклараций сохранены.
+-/
+
 /-!
 # chunked CE - exact piecewise summation + prior decomposition
 
@@ -268,3 +278,219 @@ theorem ns_error_contract (u : ℝ) (hu : 0 < u) (hu1 : u < 1) :
   exact ⟨hlt, hns1⟩
 
 end Hagi.Step.MuonNS
+
+/-!
+# Muon: оптимальность выравнивания (источник №12)
+
+Источник №12: "Muon Optimizes Under Spectral Norm
+Constraints" (arXiv 2506.15054): Muon-шаг — ортогональная
+полярная часть градиента — steepest descent при спектральной
+норме: максимум выравнивания с градиентом среди ортогональных
+обновлений.
+
+Ядро в собственном базисе градиента: для G = diag(σ), σ ≥ 0,
+Muon-шаг I даёт выравнивание Σσᵢ, не превзойдённое ни одной
+унитарной матрицей: Σᵢ σᵢ·Re Qᵢᵢ ≤ Σᵢ σᵢ (|Qᵢᵢ| ≤ 1 из
+унитарности — ядро неравенства фон Неймана о следе).
+-/
+
+namespace Hagi.Step.MuonAlign
+
+open Matrix
+
+/-- |Q_ii| ≤ 1 для унитарной Q (QᴴQ = 1): столбец нормы 1. -/
+theorem unitary_diag_abs_le {n : Type*} [Fintype n] [DecidableEq n]
+    (Q : Matrix n n ℂ) (hQ : Qᴴ * Q = 1) (i : n) :
+    ‖Q i i‖ ≤ 1 := by
+  have hexp : (Qᴴ * Q) i i = ∑ j, star (Q j i) * Q j i := by
+    simp [Matrix.mul_apply]
+  have hdiag : ∑ j, star (Q j i) * Q j i = 1 := by
+    have h3 : (Qᴴ * Q) i i = ∑ j, star (Q j i) * Q j i := hexp
+    have h4 : (Qᴴ * Q) i i = 1 := by
+      have hd := congrFun (congrArg Matrix.diag hQ) i
+      simpa [Matrix.diag_apply] using hd
+    rw [h3] at h4
+    exact h4
+  have hpos : ∑ j, ‖Q j i‖ ^ 2 = 1 := by
+    have hterm : ∀ j : n, ‖Q j i‖ ^ 2 = (star (Q j i) * Q j i).re :=
+      fun j => by
+        have h2 : (star (Q j i) * Q j i).re
+            = (Q j i).re * (Q j i).re + (Q j i).im * (Q j i).im := by
+          simp [Complex.mul_re, Complex.conj_re, Complex.conj_im]
+        rw [h2]
+        have hn := Complex.normSq_eq_norm_sq (Q j i)
+        rw [← hn, Complex.normSq_apply]
+    have hre : ∑ j, (star (Q j i) * Q j i).re
+        = (∑ j, star (Q j i) * Q j i).re := by simp
+    calc ∑ j, ‖Q j i‖ ^ 2 = ∑ j, (star (Q j i) * Q j i).re :=
+        Finset.sum_congr rfl fun j _ => hterm j
+      _ = (∑ j, star (Q j i) * Q j i).re := hre
+      _ = (1 : ℂ).re := by rw [hdiag]
+      _ = 1 := by norm_num
+  have hkey : ‖Q i i‖ ^ 2 ≤ 1 := by
+    have hmem : ‖Q i i‖ ^ 2 ≤ ∑ j, ‖Q j i‖ ^ 2 :=
+      Finset.single_le_sum (fun j _ => sq_nonneg (‖Q j i‖)) (Finset.mem_univ i)
+    rw [hpos] at hmem
+    exact hmem
+  have hnn : 0 ≤ ‖Q i i‖ := norm_nonneg _
+  nlinarith [hkey, hnn]
+
+/-- MUON-ОПТИМАЛЬНОСТЬ (диагональное ядро): для
+диагонализованного градиента diag(σ), σ ≥ 0, Muon-шаг
+(ортогональная полярная часть = I) достигает выравнивания
+Σσᵢ, максимального среди унитарных Q: Σᵢ σᵢ·Re Qᵢᵢ ≤ Σᵢ σᵢ —
+stepest descent при спектральной норме (ядро источника). -/
+theorem muon_alignment_optimal {n : Type*} [Fintype n] [DecidableEq n]
+    (sig : n → ℝ) (hsig : ∀ i, 0 ≤ sig i)
+    (Q : Matrix n n ℂ) (hQ : Qᴴ * Q = 1) :
+    (∑ i, sig i * (Q i i).re) ≤ ∑ i, sig i := by
+  have hmain : ∀ i : n, sig i * (Q i i).re ≤ sig i := by
+    intro i
+    have habs := unitary_diag_abs_le Q hQ i
+    have hre' : (Q i i).re ≤ 1 := by
+      calc (Q i i).re ≤ |(Q i i).re| := le_abs_self _
+        _ ≤ ‖Q i i‖ := by simp [Complex.abs_re_le_norm]
+        _ ≤ 1 := habs
+    simpa using mul_le_mul_of_nonneg_left hre' (hsig i)
+  exact Finset.sum_le_sum fun i _ => hmain i
+
+end Hagi.Step.MuonAlign
+
+/-!
+# MuonTwoLevel — точная ортогонализация против NS-аппроксимации
+
+Уровень 1 (контракт, не доказан здесь): идеальный шаг
+`O = U·Vᵀ` (SVD градиента) ортогонален — спектральная
+норма 1.
+
+Уровень 2 (доказан): `ns_gap_scaled` —
+`Σᵢ (p(σᵢ) − 1)² ≤ r·maxᵢ (p(σᵢ) − 1)²`:
+бюджет отклонения факторизуется в ранг × худшую поточечную
+ошибку полинома. Frobenius-тождество, коэффициенты полинома
+и сходимость NS-итераций — не доказаны.
+-/
+
+namespace Hagi.Step
+
+open Finset
+
+/-- При `0 ≤ M` и `(dev i)² ≤ M` для всех i:
+`Σ_i (dev i)² ≤ r·M` (бюджет отклонения = ранг ×
+худший поточечный член). -/
+theorem ns_gap_scaled (r : ℕ) (dev : Fin r → ℝ)
+    (M : ℝ) (hM : 0 ≤ M) (hdev : ∀ i, (dev i)^2 ≤ M) :
+    ∑ i, (dev i)^2 ≤ r * M := by
+  have h1 : ∑ i, (dev i)^2 ≤ ∑ _i, M :=
+    Finset.sum_le_sum fun i _ => hdev i
+  rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+    nsmul_eq_mul] at h1
+  exact h1
+
+
+end Hagi.Step
+
+/-!
+# MuonWD — weight decay заменяет аксиому ограниченного градиента
+
+Рекурсия `θ_{t+1} = (1 − ηλ)·θ_t − η·U_t` с равномерно
+ограниченным ортогонализованным шагом `‖U_t‖ ≤ C`
+(независимо от величины градиента).
+
+* `muon_wd_recursion`: шаг нормы —
+  `‖θ_{t+1}‖ ≤ (1 − ηλ)·‖θ_t‖ + η·C`;
+* `wd_boundedness`: при `0 < ηλ ≤ 1` —
+  `‖θ_T‖ ≤ (1 − ηλ)^T·‖θ_0‖ + C/λ`: стационарный радиус C/λ
+  не зависит от масштаба градиентов (аксиома ограниченности
+  градиентов не нужна; цена — явный WD-пол).
+-/
+
+namespace Hagi.Step
+
+open Finset
+
+variable {W : Type} [NormedAddCommGroup W] [NormedSpace ℝ W]
+
+/-- При `0 ≤ eta`, `0 ≤ eta·lam ≤ 1`, шаге
+`θ (t+1) = (1 − eta·lam) • θ t − eta • U t` и
+`‖U s‖ ≤ C` для всех s —
+`‖θ (t+1)‖ ≤ (1 − eta·lam)·‖θ t‖ + eta·C`. -/
+theorem muon_wd_recursion (theta : ℕ → W) (U : ℕ → W)
+    (eta lam C : ℝ) (t : ℕ)
+    (heta : 0 ≤ eta) (hlam0 : 0 ≤ eta * lam)
+    (hlam1 : eta * lam ≤ 1)
+    (hstep : theta (t + 1) = (1 - eta * lam) • theta t
+      - eta • U t)
+    (hC : ∀ s, ‖U s‖ ≤ C) :
+    ‖theta (t + 1)‖ ≤ (1 - eta * lam) * ‖theta t‖ + eta * C := by
+  have hrho : 0 ≤ 1 - eta * lam := by linarith
+  rw [hstep]
+  have hU : eta * ‖U t‖ ≤ eta * C :=
+    mul_le_mul_of_nonneg_left (hC t) heta
+  have htri := norm_sub_le ((1 - eta * lam) • theta t) (eta • U t)
+  rw [norm_smul, norm_smul, Real.norm_eq_abs, abs_of_nonneg hrho,
+    Real.norm_eq_abs, abs_of_nonneg heta] at htri
+  exact le_trans htri (by linarith)
+
+/-- При `0 ≤ eta`, `0 < eta·lam ≤ 1`, шаге
+`θ (t+1) = (1 − eta·lam) • θ t − eta • U t` и
+`‖U s‖ ≤ C` —
+`‖θ T‖ ≤ (1 − eta·lam)^T·‖θ 0‖ + C/lam`. -/
+theorem wd_boundedness (theta : ℕ → W) (U : ℕ → W)
+    (eta lam C : ℝ) (T : ℕ)
+    (heta : 0 ≤ eta) (hpos : 0 < eta * lam)
+    (hlam1 : eta * lam ≤ 1)
+    (hstep : ∀ t, theta (t + 1) = (1 - eta * lam) • theta t
+      - eta • U t)
+    (hC : ∀ s, ‖U s‖ ≤ C) :
+    ‖theta T‖ ≤ (1 - eta * lam) ^ T * ‖theta 0‖ + C / lam := by
+  have hrho : 0 ≤ 1 - eta * lam := by linarith
+  have hrho1 : 1 - eta * lam < 1 := by linarith
+  have hrec : ∀ t < T, ‖theta (t + 1)‖
+      ≤ (1 - eta * lam) * ‖theta t‖ + eta * C :=
+    fun t _ => muon_wd_recursion theta U eta lam C t heta
+      hpos.le hlam1 (hstep t) hC
+  have hmain := Hagi.Foundations.recurrence_upper (1 - eta * lam)
+    (eta * C) (fun t => ‖theta t‖) T hrho hrho1 hrec
+  have hlam : 0 < lam := by
+    by_contra h
+    push_neg at h
+    nlinarith [heta, h]
+  have hne : (1 - eta * lam) ≠ 1 := by
+    intro h
+    have : eta * lam = 0 := by linarith
+    linarith [hpos]
+  have hfrac : (1 - (1 - eta * lam) ^ T)
+      / (1 - (1 - eta * lam))
+      = ∑ i ∈ Finset.range T, (1 - eta * lam) ^ i := by
+    rw [geom_sum_eq hne T]
+    field_simp
+    ring
+  have hsumle : ∑ i ∈ Finset.range T, (1 - eta * lam) ^ i
+      ≤ 1 / (eta * lam) := by
+    have h1 := Hagi.Foundations.geom_sum_le_inv (1 - eta * lam) T
+      hrho (by linarith)
+    rw [sub_sub_cancel] at h1
+    exact h1
+  have hlampos : (0:ℝ) < lam := hlam
+  have hsplit : eta * C * ((1 - (1 - eta * lam) ^ T)
+      / (1 - (1 - eta * lam))) ≤ C / lam := by
+    have hC0 : 0 ≤ C := le_trans (norm_nonneg _) (hC 0)
+    have hmul : eta * C * ((1 - (1 - eta * lam) ^ T)
+        / (1 - (1 - eta * lam))) ≤ eta * C * (1 / (eta * lam)) := by
+      refine mul_le_mul_of_nonneg_left ?_ (by
+        exact mul_nonneg heta hC0)
+      rw [hfrac]
+      exact hsumle
+    have hcancel : eta * C * (1 / (eta * lam)) = C / lam := by
+      have hne : eta * lam ≠ 0 := ne_of_gt hpos
+      have heta2 : eta ≠ 0 := by
+        intro heq
+        rw [heq] at hpos
+        simp at hpos
+      field_simp
+    rw [hcancel] at hmul
+    exact hmul
+  linarith [hmain, hsplit]
+
+
+end Hagi.Step
