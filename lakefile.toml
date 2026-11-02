@@ -8,10 +8,10 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
-# Named hypotheses are part of the documented API contract of each R-round
-# theorem (h_emp_*, controller obligations) — intentionally kept even when a
-# particular proof does not use one directly.
-weak.linter.unusedHypotheses = false
+# Audit v2 request: surface unused hypotheses as warnings. Named hypotheses
+# remain in signatures (documented API contract); the linter only highlights
+# which ones a given proof does not use directly.
+weak.linter.unusedHypotheses = true
 
 # Local prebuilt Mathlib (lean-4.35.0 toolchain, built at C:/Users/shmid/mathlib4).
 [[require]]
