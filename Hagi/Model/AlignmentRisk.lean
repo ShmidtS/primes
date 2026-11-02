@@ -1,4 +1,4 @@
-import Hagi.Model.RLHF
+import Hagi.Model.RL
 import Hagi.Probability.PinskerTV
 
 /-!

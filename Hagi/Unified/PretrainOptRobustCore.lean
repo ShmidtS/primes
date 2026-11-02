@@ -4,7 +4,7 @@ import Hagi.Energy.STEStep
 import Hagi.Model.CycleCertificate
 import Hagi.Model.HypothesisCompetition
 import Hagi.Model.MemoryConsolidation
-import Hagi.Model.MoeExpansion
+import Hagi.Model.Adaptive
 import Hagi.Model.Sidon
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.StageSemantics
