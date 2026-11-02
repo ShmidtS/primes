@@ -64,10 +64,8 @@ import Hagi.Pretraining.Grokking
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
 import Hagi.Omni.CrossModalGap
-import Hagi.Omni.SharedStateComposition
-import Hagi.Omni.TemporalState
+import Hagi.Omni.OmniState
 import Hagi.Omni.OmniInvariant
-import Hagi.Omni.CapabilityMatrix
 import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus

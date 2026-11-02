@@ -18,10 +18,9 @@ import Hagi.Growth.Grow
 import Hagi.Growth.GrowthCeiling
 import Hagi.Growth.GrowthGate
 import Hagi.Growth.IntegrationOrder
-import Hagi.Omni.CapabilityMatrix
+import Hagi.Omni.OmniState
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.OmniInvariant
-import Hagi.Omni.SharedStateComposition
 import Mathlib.Tactic
 
 /-!

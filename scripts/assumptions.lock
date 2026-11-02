@@ -53,7 +53,7 @@ Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
 Hagi/Information/DiscreteFannes.lean:entropy
 Hagi/Information/DiscreteFannes.lean:tvHalf
-Hagi/Omni/SharedStateComposition.lean:entryCount
+Hagi/Omni/OmniState.lean:entryCount
 Hagi/Prelude/Info.lean:entDef
 Hagi/Prelude/Info.lean:klDef
 Hagi/Prelude/Info.lean:tvDef

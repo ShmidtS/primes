@@ -19,7 +19,7 @@ import Hagi.Ensemble.QFormerBridge
 import Hagi.External.Diversity
 import Hagi.Information.Pinsker
 import Hagi.Numerics.SoftmaxFix
-import Hagi.Omni.TemporalState
+import Hagi.Omni.OmniState
 import Hagi.Spectral.RankGrowth
 import Hagi.System.DiscreteStep
 import Hagi.System.StepCertificate
