@@ -11,9 +11,8 @@ import Hagi.Energy.Cooling
 import Hagi.Energy.EntropyProduction
 import Hagi.Energy.FreeEnergy
 import Hagi.Energy.PoEBound
-import Hagi.Information.GainRecoverability
+import Hagi.Information.Capacity
 import Hagi.Information.Pinsker
-import Hagi.Information.RoutingCapacity
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.RobustnessLaw
 import Hagi.Probability.PinskerTV

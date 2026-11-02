@@ -82,10 +82,8 @@ import Hagi.Unified.GrowthEnsembleCore
 import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.StepLaws
 import Hagi.Unified.StepExt
-import Hagi.Information.MemoryCapacity
+import Hagi.Information.Capacity
 import Hagi.Information.Pinsker
-import Hagi.Information.GainRecoverability
-import Hagi.Information.RoutingCapacity
 import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
