@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.ConeTakeoff
+import Hagi.Foundations.GrowthDynamics
 
 /-!
 # ConeDynamics — abstract cone laws
@@ -151,5 +152,44 @@ theorem cone_ratio_step_is_reinvest (C D : ℕ → ℝ)
   cone_reinvest_invariant C D γ ρ β k t hCpos
     hk hrhogk hcone
     (by linarith [hdyn]) (le_of_eq hstep) hbeta
+
+
+/-! ### Аудит v17, P1: единое ядро роста
+
+`GrowthDynamics` (бундл предпосылок аудита §6.1)
+сводится к абстрактному ядру
+конуса `ConeData` (см. также
+`MasterHAGITrunc.frontier_cone_struct` — та же
+индукция через единственную копию
+тождества `cone_step`). Здесь —
+канальная проекция: предпосылки
+бундла совпадают с полями ConeData. -/
+
+/-- Bundle GrowthDynamics порождает конусные
+данные ядра (канальная проекция:
+каждое поле полегко
+восстанавливается из следующего). -/
+def coneDataOfGrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
+    (alpha gamma rho beta : ℝ) :
+    ConeData where
+  C := C
+  D := D
+  ξ := xi
+  γ := gamma
+  ρ := rho
+  β := beta
+
+/-- МОСТ: согласованность проекции — эта же
+капабилити/фронтир/принуждение и
+константы законов. -/
+theorem coneDataOfGrowthDynamics_eq (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
+    (alpha gamma rho beta : ℝ) :
+    (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).C = C
+    ∧ (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).D = D
+    ∧ (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).ξ = xi
+    ∧ (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).γ = gamma
+    ∧ (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).ρ = rho
+    ∧ (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).β = beta := by
+  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
 end Hagi.Growth
