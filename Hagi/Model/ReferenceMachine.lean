@@ -534,4 +534,24 @@ theorem batch_grid_loop (sigma : ℝ) (hsigma : 0 ≤ sigma)
       hp (by linarith [mul_le_mul_of_nonneg_left h4 (le_of_lt hp)])
   linarith
 
+
+/-- ОТЖИГ ТЕРМОСТАТА: при геометрическом росте батча
+`B t = B 0 * c ^ t` сертифицированный пол экспоненциально
+падает: `floor t <= sigma^2/(B 0 * c ^ t)`. Полная
+автоматика отжига: измерения растут по расписанию — точность
+растёт экспоненциально без вмешательства контроллера;
+температура резервуара охлаждается как 1/c^t. -/
+theorem batch_anneal_floor (sigma B0 c : ℝ) (hsigma : 0 ≤ sigma)
+    (hB0 : 0 < B0) (hc1 : 1 < c) (hn : 0 < n)
+    (t : ℕ) (Delta : ℝ) (hD : 0 < Delta)
+    (hDle : Delta ≤ Real.sqrt (2 * (sigma ^ 2 / (B0 * c ^ t))
+      / (n:ℝ))) :
+    (n:ℝ) * Delta ^ 2 / 8 ≤ sigma ^ 2 / (B0 * c ^ t) :=
+  grid_temperature (sigma ^ 2 / (B0 * c ^ t))
+    (by
+      have hc0 : (0:ℝ) < c := by linarith
+      exact div_nonneg (sq_nonneg sigma)
+        (le_of_lt (mul_pos hB0 (pow_pos hc0 t))))
+    hn Delta hD hDle
+
 end Hagi.Model.ReferenceMachine

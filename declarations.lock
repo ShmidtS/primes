@@ -411,6 +411,7 @@ batchMean	f59eac9b732512e5	20c841360eb41c2b
 batchMean_unbiased	93777a71f33f7df8	28fb1bfdab0f15e9
 batchVar_expQ	c54c38621d1596af	4ac58a1e9a2ba8df
 batch_T_min	e5863caf20978736	af76892362e3c55d
+batch_anneal_floor	0de56d8a07f98134	e4162e3e4b4a1727
 batch_grid_loop	7bc2a80fdf60d4e3	a92b166b6095df77
 batch_noise_floor	ab68e2db5941925a	1d9847bd691f27ac
 batch_terminal_gap	0aad47609f98c7ae	9e95978a164babc9
