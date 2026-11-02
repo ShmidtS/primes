@@ -357,15 +357,12 @@ import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.CommitGate
 import Hagi.Model.BlockNorm
 import Hagi.Unified.CapabilityLocal
-import Hagi.Unified.QuadGate
-import Hagi.Unified.QuadTrajectory
-import Hagi.Unified.QuadBudget
+import Hagi.Unified.QuadMachine
 import Hagi.Model.TripletLoss
 import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.NTXent
 import Hagi.Model.Mixup
 import Hagi.Model.VicReg
-import Hagi.Unified.QuadUnify
 import Hagi.Step.GradCentralization
 import Hagi.Unified.MeasureProto
 import Hagi.Unified.ProtoTrajectory

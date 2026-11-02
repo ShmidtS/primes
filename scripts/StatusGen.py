@@ -156,7 +156,7 @@ GEN3_BLOCK = """
   `certified_loop_all` — floor на всех промежуточных состояниях;
   `gate_never_increases` — принцип commit/hold.
 - **HonestTransition (Unified/HonestTransition.lean)**:
-  зависимое доказательство спуска `actualDescent`:
+  зависимое доказательство спуска actualDescent:
   obj s' ≤ obj s − drop; сертификат ⇒ строгий спуск.
 - **Сквозной свидетель (Examples/QuadLoopWitness.lean)**:
   `qhalf` (полушаговая траектория, энергия × 1/4 за шаг),

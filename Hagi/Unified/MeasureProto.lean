@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Unified.QuadGate
+import Hagi.Unified.QuadMachine
 
 /-!
 # MeasureProto: протокол

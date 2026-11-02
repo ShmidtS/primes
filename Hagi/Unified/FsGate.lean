@@ -1,6 +1,6 @@
 import Mathlib
 import Hagi.Unified.FunctionalState
-import Hagi.Unified.QuadTrajectory
+import Hagi.Unified.QuadMachine
 
 /-!
 # FsGate: commit/hold-gate над ФУНКЦИОНАЛЬНЫМ

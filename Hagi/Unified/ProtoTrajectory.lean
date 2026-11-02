@@ -1,6 +1,6 @@
 import Mathlib
 import Hagi.Unified.MeasureProto
-import Hagi.Unified.QuadBudget
+import Hagi.Unified.QuadMachine
 
 /-!
 # ProtoTrajectory: протокол × траектория —
