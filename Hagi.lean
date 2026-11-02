@@ -121,6 +121,7 @@ import Hagi.Autonomy.Hedge
 import Hagi.Autonomy.HedgeSurvivor
 import Hagi.Data.PACBayes
 import Hagi.Autonomy.Insight
+import Hagi.Unified.LinkedProjects
 import Hagi.Unified.Liveness
 import Hagi.Dynamics.FastGrowth
 import Hagi.Dynamics.WallClockTakeoff
