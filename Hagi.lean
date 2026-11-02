@@ -324,13 +324,9 @@ import Hagi.Model.ReZero
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
 import Hagi.Unified.SignDescent
-import Hagi.Unified.SignStepCert
-import Hagi.Unified.PLLoop
-import Hagi.Unified.PLQuad
-import Hagi.Unified.SignNoKappa
-import Hagi.Unified.ErrorFeedback
-import Hagi.Unified.EFQuad
-import Hagi.Unified.PLBudget
+import Hagi.Unified.SignComp
+import Hagi.Unified.RateTheory
+import Hagi.Unified.EFArc
 import Hagi.Unified.SamDescent
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
@@ -442,10 +438,6 @@ import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion
 import Hagi.Probability.GibbsCore
-import Hagi.Unified.QuadGDRate
-import Hagi.Unified.SignEFQuad
-import Hagi.Unified.EFResidual
-import Hagi.Unified.ThrComp
 import Hagi.Unified.CompressionArc
 import Hagi.Model.ModelArc
 import Hagi.Unified.UnifiedArc

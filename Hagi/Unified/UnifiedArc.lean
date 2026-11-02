@@ -23,9 +23,7 @@ import Hagi.Unified.DescentCoreDiag
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.Distillation
 import Hagi.Unified.DynamicsGrowthCore
-import Hagi.Unified.EFQuad
-import Hagi.Unified.EFResidual
-import Hagi.Unified.ErrorFeedback
+import Hagi.Unified.EFArc
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.FannesComplete
 import Hagi.Unified.FsGate
@@ -53,13 +51,10 @@ import Hagi.Unified.ModelComparison
 import Hagi.Unified.NCStepCert
 import Hagi.Unified.NCTheorem
 import Hagi.Unified.NernstFannes
-import Hagi.Unified.PLBudget
-import Hagi.Unified.PLLoop
-import Hagi.Unified.PLQuad
+import Hagi.Unified.RateTheory
 import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.ProtoTrajectory
 import Hagi.Unified.QuadBudget
-import Hagi.Unified.QuadGDRate
 import Hagi.Unified.QuadGate
 import Hagi.Unified.QuadTrajectory
 import Hagi.Unified.QuadUnify
@@ -69,15 +64,12 @@ import Hagi.Unified.RecursiveClean
 import Hagi.Unified.RecursiveGrowth
 import Hagi.Unified.SamDescent
 import Hagi.Unified.SignDescent
-import Hagi.Unified.SignEFQuad
-import Hagi.Unified.SignNoKappa
-import Hagi.Unified.SignStepCert
+import Hagi.Unified.SignComp
 import Hagi.Unified.StateTakeoff
 import Hagi.Unified.StepContract
 import Hagi.Unified.StepExt
 import Hagi.Unified.StepLaws
 import Hagi.Unified.TernaryGrad
-import Hagi.Unified.ThrComp
 import Hagi.Unified.TopLevel
 import Hagi.Unified.TransitionContract
 

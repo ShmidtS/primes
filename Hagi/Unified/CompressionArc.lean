@@ -1,14 +1,6 @@
-import Hagi.Unified.SignStepCert
-import Hagi.Unified.SignNoKappa
-import Hagi.Unified.PLLoop
-import Hagi.Unified.PLQuad
-import Hagi.Unified.PLBudget
-import Hagi.Unified.QuadGDRate
-import Hagi.Unified.ErrorFeedback
-import Hagi.Unified.EFQuad
-import Hagi.Unified.SignEFQuad
-import Hagi.Unified.EFResidual
-import Hagi.Unified.ThrComp
+import Hagi.Unified.SignComp
+import Hagi.Unified.RateTheory
+import Hagi.Unified.EFArc
 
 /-!
 # Фасад дуги компрессии обучения
