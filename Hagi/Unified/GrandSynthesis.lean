@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Growth.ChainToCone
 import Hagi.Unified.MasterHAGICoupled
+import Hagi.Unified.LinkedQVec
 
 /-!
 # GrandSynthesis — the composed capstone
@@ -207,5 +208,56 @@ theorem grand_synthesis_weak
     (risk_telescope_of_growth_covered C G risk T hstep hcover)
     hspend hrisk hbudget
     (qfloor_le_of_monotone qvec qfloor T hq0 hqmono)
+
+
+/-! ### Аудит v17, P0-3: qvec ↔ состояние
+
+`CoupledHAGIInvariant.qvec_floor` требует floor для ВНЕШНЕЙ
+последовательности qvec. Мост закрывает
+разрыв (аналог cap_is_state для capability):
+если измеритель
+`M : MeasuredState (GrowthState X)` закреплён за
+состоянием и qvec t = M.evaluate (S t) на
+всём горизонте, то инвариант
+переносится на КАНАЛЬНУЮ
+qvec (измеренную из состояния):
+качество больше не внешняя цифра. -/
+
+variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+
+/-- qvec-канал состояния: измерение M
+на t-м состоянии траектории. -/
+def stateQVec (M : LinkedQVec.MeasuredState (GrowthState X))
+    (S : ℕ → GrowthState X) : ℕ → Fin 5 → ℝ :=
+  fun t => M.evaluate (S t)
+
+/-- P0-3 МОСТ: инвариант с внешней qvec, связанной
+с состоянием измерителем M на всём
+горизонте, переносится на канал
+`stateQVec M S` (т.е. qvec = измерение самого
+состояния) — floor-гарантия
+сохраняется, но теперь она
+о измеренной величине. -/
+theorem coupled_state_qvec {T : ℕ}
+    (S : ℕ → GrowthState X)
+    (risk spend : ℕ → ℝ)
+    (qvec : ℕ → Fin 5 → ℝ)
+    (qfloor : Fin 5 → ℝ) (alpha : ℝ)
+    (M : LinkedQVec.MeasuredState (GrowthState X))
+    (hlink : ∀ t ≤ T, qvec t = stateQVec M S t)
+    (h : CoupledHAGIInvariant T S risk spend qvec qfloor alpha) :
+    CoupledHAGIInvariant T S risk spend (stateQVec M S) qfloor alpha where
+  cap_is_state := h.cap_is_state
+  risk_bound := h.risk_bound
+  spend_nonneg := h.spend_nonneg
+  risk_nonneg := h.risk_nonneg
+  budget_account := h.budget_account
+  capability_growth := h.capability_growth
+  qvec_floor := by
+    intro i
+    have hT := h.qvec_floor i
+    have hqT := hlink T (le_refl _)
+    rw [hqT] at hT
+    exact hT
 
 end Hagi.Unified
