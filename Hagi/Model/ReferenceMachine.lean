@@ -447,4 +447,53 @@ theorem machine_stop_horizon (E : ℕ → ℝ) (q F eps E0 : ℝ)
     (by rw [h0]) t
   linarith
 
+
+/-- ОБРАТНОЕ ПРОЕКТИРОВАНИЕ СЕТКИ (термостат решётки):
+для целевого аппаратного пола `tau` достаточно сетки
+`Delta <= sqrt(8*tau/n)` — обращение machine_step_floor.
+Контроллер выбирает сетку из цели точности. -/
+theorem grid_for_floor (tau Delta : ℝ) (htau : 0 ≤ tau)
+    (hn : 0 < n)
+    (hD : 0 < Delta) (hDle : Delta ≤ Real.sqrt (8 * tau / (n:ℝ))) :
+    (n:ℝ) * Delta ^ 2 / 8 ≤ tau := by
+  have hsq : (Real.sqrt (8 * tau / (n:ℝ))) ^ 2 = 8 * tau / (n:ℝ) := by
+    rw [Real.sq_sqrt]
+    positivity
+  have hsq2 : Delta ^ 2 ≤ 8 * tau / (n:ℝ) := by
+    have h0 := sq_le_sq' (by
+      have := Real.sqrt_nonneg (8 * tau / (n:ℝ))
+      linarith) hDle
+    rwa [hsq] at h0
+  calc (n:ℝ) * Delta ^ 2 / 8
+      = ((n:ℝ) / 8) * Delta ^ 2 := by ring
+    _ ≤ ((n:ℝ) / 8) * (8 * tau / (n:ℝ)) :=
+        mul_le_mul_of_nonneg_left hsq2 (by positivity)
+    _ = tau := by
+        field_simp
+
+/-- ТЕРМОСТАТ: сетка как функция машинной энергии
+`Delta(T) = sqrt(2*T/n)` опускает hardware floor до
+`T/4`: замыкание термодинамического цикла — энергия
+(NoiseTemperature) задаёт T, T задаёт сетку, сетка задаёт
+пол точности машины. -/
+theorem grid_temperature (T : ℝ) (hT : 0 ≤ T) (hn : 0 < n)
+    (Delta : ℝ) (hD : 0 < Delta)
+    (hDle : Delta ≤ Real.sqrt (2 * T / (n:ℝ))) :
+    (n:ℝ) * Delta ^ 2 / 8 ≤ T := by
+  have hsq : Delta ^ 2 ≤ 2 * T / (n:ℝ) := by
+    have h0 := sq_le_sq' (by
+      have := Real.sqrt_nonneg (2 * T / (n:ℝ))
+      linarith) hDle
+    rw [Real.sq_sqrt (by positivity : (0:ℝ) ≤ 2 * T / (n:ℝ))] at h0
+    exact h0
+  have hfloor : Delta ^ 2 ≤ 8 * (T / 4) / (n:ℝ) := by
+    have h2 : (8:ℝ) * (T / 4) = 2 * T := by ring
+    rw [h2]
+    exact hsq
+  have hdle : Delta ≤ Real.sqrt (8 * (T / 4) / (n:ℝ)) :=
+    Real.le_sqrt_of_sq_le hfloor
+  have hres := grid_for_floor (T / 4) Delta (by positivity) hn hD
+    hdle
+  linarith
+
 end Hagi.Model.ReferenceMachine
