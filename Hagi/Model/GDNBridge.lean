@@ -104,4 +104,67 @@ theorem gdn_onehot_interp (S : Matrix (Fin m) (Fin n) ℝ)
     ring
   · simp [h, mul_comm]
 
+/-! ### СИНТЕЗ-АРХИТЕКТУРА: полный RAM-контракт GDN
+
+Аудит-синтез (гибридный поток + GDN-RAM):
+для детерминированного подпространства
+рамка требует полного контракта
+памяти: чтение без модификации,
+инертность остальных адресов,
+write-after-write. Здесь эти инварианты
+закрыты для режима
+α=1, β=1, one-hot. -/
+
+/-- ЧТЕНИЕ = ВЫБОРКА СТРОКИ: умножение
+one-hot слева (vecMul) возвращает i-ю
+строку — чистое чтение
+(матрица не меняется). -/
+theorem gdn_onehot_read {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin m) :
+    (Pi.single i (1:ℝ) : Fin m → ℝ) ᵥ* S = S i := by
+  ext j
+  simp [Matrix.vecMul, dotProduct, Pi.single_apply]
+
+/-- ИНЕРТНОСТЬ ДРУГИХ АДРЕСОВ: запись
+в адрес i не трогает другие
+адреса. -/
+theorem colUpdate_inert {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin n)
+    (v : Fin m → ℝ) (b : Fin n) (hb : b ≠ i)
+    (a : Fin m) :
+    colUpdate S i v a b = S a b := by
+  simp [colUpdate, hb]
+
+/-- WRITE-AFTER-WRITE: последовательные
+записи в один адрес —
+последнее значение
+побеждает (память не
+накопляет мусор). -/
+theorem colUpdate_waw {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin n)
+    (v w : Fin m → ℝ) :
+    colUpdate (colUpdate S i v) i w = colUpdate S i w := by
+  ext a b
+  simp only [colUpdate]
+  by_cases h : b = i
+  · simp [h]
+  · simp [h]
+
+/-- ПОЛНЫЙ ЦИКЛ RAM: записали v в
+адрес i через GDN → читаем
+i-ю строку через mulVec →
+получили ТОЧНО v (детерминированное
+подпространство воспроизводит
+записанное без единой
+ошибки). -/
+theorem gdn_ram_roundtrip {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i : Fin m)
+    (v : Fin n → ℝ) :
+    (Pi.single i (1:ℝ) : Fin m → ℝ) ᵥ*
+      Hagi.Model.GDNRAM.ramWrite S i v = v := by
+  change (Pi.single i (1:ℝ) : Fin m → ℝ) ᵥ*
+    (Matrix.updateRow S i v) = v
+  rw [gdn_onehot_read]
+  exact Matrix.updateRow_self
+
 end Hagi.Model.GDNBridge
