@@ -49,7 +49,6 @@ import Hagi.Unified.MemoryCycle
 import Hagi.Unified.MicroStepCert
 import Hagi.Unified.ModelComparison
 import Hagi.Unified.NCStepCert
-import Hagi.Unified.NCTheorem
 import Hagi.Unified.NernstFannes
 import Hagi.Unified.RateTheory
 import Hagi.Unified.PretrainOptRobustCore

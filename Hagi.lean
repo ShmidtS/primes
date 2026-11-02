@@ -346,7 +346,6 @@ import Hagi.Step.CPUFreeze
 import Hagi.Model.AdaptiveChunking
 import Hagi.Model.NeuralComputer
 import Hagi.Unified.NCStepCert
-import Hagi.Unified.NCTheorem
 import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
 import Hagi.Model.RVCoreBignum
