@@ -393,4 +393,41 @@ theorem jointStepE_energy (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ) :
   rw [h]
   ring
 
+
+/-- ШУМОВОЙ ПОЛ ЭТАЛОННОЙ МАШИНЫ: один полный шаг сжатия
+(eta = 1: градиентный шаг до якоря, затем квантование с
+сеткой Delta) опускает энергию до n*Delta^2/8 НЕЗАВИСИМО от
+текущей энергии — corollary machine_energy_bound при Sd = 0.
+Квантование задаёт аппаратный пол точности: дальнейшие
+полные шаги не улучшают гарантию ниже него (certified stop
+в терминах ReferenceMachine; пол 3*m^2/(2*mu) из NoisyPL —
+та же форма, m = квантователь). -/
+theorem machine_step_floor (a w : Fin n → ℝ) (Delta : ℝ)
+    (hD : 0 < Delta) :
+    energy a (machineStep a w 1 Delta) ≤ (n : ℝ) * Delta ^ 2 / 8 := by
+  have hbound := machine_energy_bound a w 1 Delta hD
+  have hzero : (∑ i, (jointStep a w 1 i - a i) ^ 2) = 0 := by
+    have h1 : ∀ i, jointStep a w 1 i - a i = 0 := by
+      intro i
+      unfold jointStep
+      simp
+    refine Finset.sum_eq_zero fun i _ => ?_
+    rw [h1 i]
+    ring
+  rw [hzero] at hbound
+  rw [Real.sqrt_zero, zero_add] at hbound
+  have hsq2 : (Real.sqrt ((n : ℝ)) * Delta / 2) ^ 2
+      = (n : ℝ) * Delta ^ 2 / 4 := by
+    have hsq3 : ((Real.sqrt ((n : ℝ)) * Delta) / 2) ^ 2
+        = (Real.sqrt ((n : ℝ)) * Delta) ^ 2 / 2 ^ 2 := by
+      field_simp
+    rw [hsq3, mul_pow]
+    rw [Real.sq_sqrt (show (0:ℝ) ≤ (n:ℝ) by positivity)]
+    norm_num
+  have hnD : (Real.sqrt ((n : ℝ)) * Delta / 2) ^ 2 / 2
+      ≤ (n : ℝ) * Delta ^ 2 / 8 := by
+    rw [hsq2]
+    linarith
+  linarith
+
 end Hagi.Model.ReferenceMachine
