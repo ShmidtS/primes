@@ -327,7 +327,6 @@ import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory
 import Hagi.Unified.EFArc
-import Hagi.Unified.SamDescent
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
 import Hagi.Unified.CertifiedTrajectory
@@ -446,7 +445,6 @@ import Hagi.Budget.BudgetArc
 import Hagi.Step.StepArc
 import Hagi.Probability.ProbabilityArc
 import Hagi.Energy.GridVector
-import Hagi.Unified.QuantEnergyBridge
 import Hagi.Audit.Audit
 
 set_option linter.style.header false

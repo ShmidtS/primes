@@ -61,7 +61,6 @@ import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.QuantizedCone
 import Hagi.Unified.RecursiveClean
 import Hagi.Unified.RecursiveGrowth
-import Hagi.Unified.SamDescent
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.StateTakeoff

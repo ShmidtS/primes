@@ -173,7 +173,7 @@ GEN3_BLOCK = """
   момент-Lion при согласованности с градиентом;
   `sign_is_pointwise_max` — знак максимизирует ⟨g, v⟩ на
   ℓ∞-кубе (ядро спектральной оптимальности Muon).
-- **SAM (Unified/SamDescent.lean)**: `sam_descent_bridge` —
+- **SAM (в составе Unified/SignDescent.lean)**: `sam_descent_bridge` —
   спуск по worst-neighbor цели переносится на истинную с
   потерей на остроту; `sam_descent_flat` — плоский случай.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:

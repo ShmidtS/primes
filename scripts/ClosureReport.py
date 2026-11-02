@@ -82,7 +82,6 @@ CAPSTONES = [
     "Hagi.Probability.GibbsCore",    # M4 Gibbs canon
     "Hagi.Unified.LoopInstances",
     "Hagi.Unified.SignDescent",
-    "Hagi.Unified.SamDescent",
     "Hagi.Unified.NCStepCert",
     "Hagi.Unified.Ctv2Telescope",
     "Hagi.Model.AttentionSpend",
