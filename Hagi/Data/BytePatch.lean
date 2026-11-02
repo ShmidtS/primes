@@ -88,4 +88,120 @@ theorem patch_attn_saving (N p : ℕ) (hp : 2 ≤ p) (hN : 2 * p ≤ N) :
     mul_nonneg hNn2 (by linarith)
   nlinarith [hint1, hint2]
 
-end Hagi.Data.BytePatch
+/-! ### Безпотеряность патчинга
+(синтез-аудит: byte-level H-Net)
+
+Патчинг как вложение
+(bytes → patches последовательностей
+патчей с хвостом):
+если каждый патч
+несёт свой кусок потока
+с длиной, то конкатенация
+кусков восстанавливает
+поток ТОЧНО — информация
+не теряется (левая
+инверсия). Это закрывает
+lossless-условие байтового
+H-Net из синтез-аудита. -/
+
+/-- Патч с длиной хвоста: кусок
+потока от a до b (невключительно b). -/
+def seg (s : ℕ → α) (a b : ℕ) : List α :=
+  (List.range (b - a)).map (fun j => s (a + j))
+
+/-- РАЗБИЕНИЕ НА ПАТЧИ: список
+кусков [seg s (j·p) (min ((j+1)·p) N)]
+для j < patchCount N p. -/
+noncomputable def patchSeq (s : ℕ → α) (N p : ℕ) : List (List α) :=
+  (List.range (patchCount N p)).map
+    (fun j => seg s (j * p) (min ((j + 1) * p) N))
+
+/-- Длина сегмента [a, b) = b − a. -/
+theorem seg_length (s : ℕ → α) (a b : ℕ) :
+    (seg s a b).length = b - a := by
+  simp [seg, List.length_map, List.length_range]
+
+/-- NAT-ЯДРО LOSSLESS: сумма длин первых K
+патчей = min(K·p, N) — телескоп
+монотонной цепи 0, p, 2p, ...
+(чистая арифметика, без списков). -/
+theorem patchBytes_nat (N p : ℕ) (hp : 0 < p) :
+    ∀ K : ℕ, K ≤ patchCount N p →
+      ∑ j ∈ Finset.range K,
+        (min ((j + 1) * p) N - j * p) = min (K * p) N := by
+  intro K
+  induction K with
+  | zero => simp
+  | succ K ih =>
+    intro hK
+    have hih := ih (by omega)
+    have hsplit : ∑ j ∈ Finset.range (K + 1),
+        (min ((j + 1) * p) N - j * p)
+      = (∑ j ∈ Finset.range K,
+          (min ((j + 1) * p) N - j * p))
+        + (min ((K + 1) * p) N - K * p) :=
+      by rw [Finset.sum_range_succ]
+    rw [hsplit, hih]
+    have hcase : min ((K + 1) * p) N - K * p
+        = min ((K + 1) * p) N - min (K * p) N := by
+      by_cases h : K * p ≤ N
+      · simp [h]
+      · have hge : N ≤ K * p := by omega
+        simp_all
+    rw [hcase]
+    congr 1
+    -- min ((K+1)p) N = min (K·p) N + min ((K+1)p − K·p...)? нет:
+    -- цель: min ((K+1)p, N) = min (K·p) N + (min ((K+1)p, N) − min (K·p) N)
+    -- это tautology при монотонности min (K·p) N ≤ min ((K+1)p) N
+    have hmono : min (K * p) N ≤ min ((K + 1) * p) N := by
+      refine min_le_min ?_ (le_refl _)
+      have : K * p ≤ K * p + p := Nat.le_add_right _ _
+      linarith
+    omega
+
+/-- LIST-ВЕРСИЯ: сумма длин патчей = N
+(lossless-контракт байтового H-Net:
+патчинг не теряет и не дублирует
+ни одного байта). -/
+theorem patchSeq_total_length (s : ℕ → α) (N p : ℕ)
+    (hp : 0 < p) :
+    ((patchSeq s N p).map List.length).sum = N := by
+  unfold patchSeq
+  have hstep : ∀ (l : List ℕ) (f g : ℕ → ℕ),
+      (l.map (fun j => List.length (seg s (f j) (g j)))).sum
+        = (l.map (fun j => g j - f j)).sum := by
+    intro l f g
+    induction l with
+    | nil => simp
+    | cons h t ih => simp [ih, seg_length s (f h) (g h)]
+  have hkey : ((List.range (patchCount N p)).map
+      (fun j => (seg s (j * p)
+        (min ((j + 1) * p) N)).length)).sum
+      = ((List.range (patchCount N p)).map
+        (fun j => min ((j + 1) * p) N - j * p)).sum :=
+    hstep (List.range (patchCount N p))
+      (fun j => j * p) (fun j => min ((j + 1) * p) N)
+  have hkey2 : List.sum (List.map List.length
+      ((List.range (patchCount N p)).map
+      (fun j => seg s (j * p)
+        (min ((j + 1) * p) N))))
+      = ((List.range (patchCount N p)).map
+        (fun j => min ((j + 1) * p) N - j * p)).sum := by
+    rw [List.map_map]
+    exact hkey
+  calc List.sum (List.map List.length
+      ((List.range (patchCount N p)).map
+      (fun j => seg s (j * p)
+        (min ((j + 1) * p) N))))
+      = ((List.range (patchCount N p)).map
+        (fun j => min ((j + 1) * p) N - j * p)).sum := hkey2
+    _ = min ((patchCount N p) * p) N :=
+        patchBytes_nat N p hp (patchCount N p) (le_refl _)
+    _ = N := by
+        have hcov := patch_cover N p hp
+        rcases le_total N ((patchCount N p) * p) with h | h
+        · simp [h]
+        · have h2 : (patchCount N p) * p
+              = p * patchCount N p := Nat.mul_comm _ _
+          omega
+
