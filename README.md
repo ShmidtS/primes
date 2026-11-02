@@ -30,16 +30,16 @@ Detailed per-round history: `STATUS.md`.
 Одна тема — один файл (namespace-блоки и имена деклараций
 сохранены; список слияний см. в истории `refactor(...)`):
 
-- `Unified`: `RateTheory` (PL-скорости), `EFArc` (дуга
+- Unified: `RateTheory` (PL-скорости), `EFArc` (дуга
   error feedback), `SignComp` (знаковый компрессор),
   `QuadMachine` + `MachineProto` (эталонная машина и её
   протоколы), `NCStepCert` (нейрокомпьютер);
-- `Model`: `Attention`, `RL`, `Adaptive`, `Losses`,
+- Model: `Attention`, `RL`, `Adaptive`, `Losses`,
   `Generative`, `Memory`, `SpecDecoding`, `NormAct`,
   `RVCore` — каталог техник из 76 мини-файлов стал
   46 тематическими;
-- `Step`: `Muon`, `LazyAdam`, `VariantSafeQP`;
-- `Probability`: `GibbsCore` (канон + мосты);
+- Step: `Muon`, `LazyAdam`, `VariantSafeQP`;
+- Probability: `GibbsCore` (канон + мосты);
 - `Information/Capacity`, `Omni/OmniState`,
   `Growth/{Takeoff,Ceilings}`, `Dynamics/Laws`,
   `Architecture/Configuration`, `Energy/Quantizer`,
