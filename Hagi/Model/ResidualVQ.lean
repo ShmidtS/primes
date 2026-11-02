@@ -270,4 +270,67 @@ theorem lattice_stop_horizon (δ τ : ℝ) (hδ : 0 < δ)
     rw [hexp] at hK
     linarith [hlast, hK]
 
+/-! ### Уровень 2b: rate–distortion (бюджетная ветка, аудит §6)
+
+Successive refinement (Equitz–Cover 1991): иерархия
+с шагом δ/2^k — bit-plane рефайнмент:
+каждый уровень добавляет ровно
+1 бит информации на координату
+(log₂(Δ_{k−1}/Δ_k) = 1), а ошибка падает в 4
+раза — классический показатель
+D ∼ 2^{−2R/n} равномерного
+квантования. Ниже — точный
+числовой компромисс
+quality-per-bit без логарифмов. -/
+
+/-- QUALITY-PER-BIT: ошибка после K уровней,
+отнесённая к начальной
+(на K−1 бит/координату приравнена к
+единице), даёт
+D_K · 2^{2(K−1)} ≤ nδ²/4: каждый
+дополнительный бит/координату
+поднимает качество в 4 раза
+(показатель −2 дБ/бит, PSNR). -/
+theorem lattice_quality_per_bit (δ : ℝ) (hδ : 0 < δ) (K : ℕ)
+    (hK1 : 1 ≤ K)
+    (resid : ℕ → EuclideanSpace ℝ (Fin n))
+    (hstep : ∀ k : ℕ, k < K → resid (k + 1)
+      = resid k - latQ (δ / 2 ^ k) (by positivity) (resid k)) :
+    ‖resid K‖ ^ 2 * (2 ^ (K - 1)) ^ 2
+      ≤ (n : ℝ) * δ ^ 2 / 4 := by
+  have hK' : K - 1 < K := by omega
+  have hgeo := lattice_geometric δ hδ (K - 1 + 1) resid
+    (fun k hk => hstep k (by omega)) (K - 1) (by omega)
+  have hKK : K - 1 + 1 = K := by omega
+  rw [hKK] at hgeo
+  -- ‖resid K‖² ≤ nδ²/4 / (2^{K−1})² → умножить
+  have hnn : (0:ℝ) < 2 ^ (K - 1) := by positivity
+  have hmul : ∀ q : ℝ, q ≠ 0 →
+      (δ / q) ^ 2 * q ^ 2 = δ ^ 2 := by
+    intro q hq
+    field_simp
+  -- умножаем неравенство hgeo на (2^{K−1})² ≥ 0
+  have hq0 : ((2 : ℝ) ^ (K - 1)) ≠ 0 := by positivity
+  have hstep2 : ‖resid K‖ ^ 2 * ((2 : ℝ) ^ (K - 1)) ^ 2
+      ≤ ((n : ℝ) * (δ / ((2 : ℝ) ^ (K - 1))) ^ 2 / 4)
+        * ((2 : ℝ) ^ (K - 1)) ^ 2 :=
+    mul_le_mul_of_nonneg_right hgeo (sq_nonneg _)
+  have hrhs : ((n : ℝ) * (δ / ((2 : ℝ) ^ (K - 1))) ^ 2 / 4)
+      * ((2 : ℝ) ^ (K - 1)) ^ 2
+      = ((n : ℝ) / 4) * ((δ / ((2 : ℝ) ^ (K - 1))) ^ 2
+        * ((2 : ℝ) ^ (K - 1)) ^ 2) := by ring
+  rw [hrhs, hmul _ hq0] at hstep2
+  -- цель: ‖resid K‖²·(2^{K−1})² ≤ nδ²/4 при hstep2: ≤ (nδ²/4)·(2^{K−1})²
+  -- НО цель не имеет фактора (2^{K−1})² в RHS — переформулируем цель
+  have h1 : (1:ℝ) ≤ ((2 : ℝ) ^ (K - 1)) ^ 2 := by
+    have h2 : (1:ℝ) ≤ (2 : ℝ) ^ (K - 1) := by
+      induction (K - 1) with
+      | zero => norm_num
+      | succ m ih => rw [pow_succ]; nlinarith
+    nlinarith [h2]
+  have hcast : ‖resid K‖ ^ 2 * (2 ^ (K - 1)) ^ 2
+      = ‖resid K‖ ^ 2 * ((2 : ℝ) ^ (K - 1)) ^ 2 := by push_cast; ring
+  -- цель: X ≤ A; hstep2: X ≤ (n/4)δ² ; nδ²/4 = (n/4)δ²
+  linarith [hstep2]
+
 end Hagi.Model.ResidualVQ
