@@ -364,10 +364,8 @@ import Hagi.Model.NTXent
 import Hagi.Model.Mixup
 import Hagi.Model.VicReg
 import Hagi.Step.GradCentralization
-import Hagi.Unified.MeasureProto
-import Hagi.Unified.ProtoTrajectory
+import Hagi.Unified.MachineProto
 import Hagi.Unified.FunctionalState
-import Hagi.Unified.FsGate
 import Hagi.Model.Grokfast
 import Hagi.Model.GradNorm
 import Hagi.Unified.HonestTransition

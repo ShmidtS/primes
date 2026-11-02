@@ -26,7 +26,7 @@ import Hagi.Unified.DynamicsGrowthCore
 import Hagi.Unified.EFArc
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.FannesComplete
-import Hagi.Unified.FsGate
+import Hagi.Unified.MachineProto
 import Hagi.Unified.FunctionalState
 import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.GrandSynthesis
@@ -44,7 +44,6 @@ import Hagi.Unified.LoopInstances
 import Hagi.Unified.MasterHAGI
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.MasterHAGITrunc
-import Hagi.Unified.MeasureProto
 import Hagi.Unified.MemoryCycle
 import Hagi.Unified.MicroStepCert
 import Hagi.Unified.ModelComparison
@@ -52,7 +51,6 @@ import Hagi.Unified.NCStepCert
 import Hagi.Unified.NernstFannes
 import Hagi.Unified.RateTheory
 import Hagi.Unified.PretrainOptRobustCore
-import Hagi.Unified.ProtoTrajectory
 import Hagi.Unified.QuadMachine
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.QuantizedCone
