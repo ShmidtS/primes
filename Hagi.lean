@@ -449,7 +449,6 @@ import Hagi.Probability.ProbabilityArc
 import Hagi.Probability.GibbsCanonBridge
 import Hagi.Energy.GridVector
 import Hagi.Unified.QuantEnergyBridge
-import Hagi.Unified.DiagQuad
 import Hagi.Audit.Audit
 
 set_option linter.style.header false

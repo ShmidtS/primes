@@ -88,4 +88,49 @@ theorem diag_descent_le (a y x d : k → ℝ)
   rw [diag_descent_eq a y x d]
   linarith
 
+/-- Максимум кривизны. -/
+def cMax (c : k → ℝ) : ℝ :=
+  Finset.sup' Finset.univ Finset.univ_nonempty c
+
+theorem cMax_ge (c : k → ℝ) (i : k) : c i ≤ cMax c := by
+  apply Finset.le_sup'
+  exact Finset.mem_univ i
+
+/-- Контрактный инстанс: анизотропная цель с L = максимум
+кривизны. -/
+noncomputable def diagObjective (c a : k → ℝ)
+    (hc : ∀ i, 0 ≤ c i) (hcp : ∃ j, 0 < c j) : Objective k where
+  f := diagE c a
+  grad := diagGrad c a
+  L := cMax c
+  hL := by
+    obtain ⟨jstar, hjp⟩ := hcp
+    have h1 : c jstar ≤ cMax c := by
+      apply Finset.le_sup'
+      exact Finset.mem_univ jstar
+    exact lt_of_lt_of_le hjp h1
+  descentLemma := by
+    intro x d
+    have heq := diag_descent_eq c a x d
+    have hterm : ∀ i, c i * (d i) ^ 2
+        ≤ cMax c * (d i) ^ 2 :=
+      fun i => mul_le_mul_of_nonneg_right (cMax_ge c i)
+        (sq_nonneg _)
+    have hsum : ∑ i, c i * (d i) ^ 2
+        ≤ cMax c * ∑ i, (d i) ^ 2 := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_le_sum fun i _ => hterm i
+    have hhalf : (∑ i, c i * (d i) ^ 2) / 2
+        ≤ (cMax c * ∑ i, (d i) ^ 2) / 2 := by
+      linarith [hsum]
+    have hconv : (cMax c * ∑ i, (d i) ^ 2) / 2
+        = cMax c / 2 * nrm2 d := by
+      unfold nrm2
+      ring
+    show diagE c a (x + d)
+      ≤ diagE c a x + inprod (diagGrad c a x) d
+        + cMax c / 2 * nrm2 d
+    rw [heq]
+    linarith
+
 end Hagi.Unified.DescentCoreDiag
