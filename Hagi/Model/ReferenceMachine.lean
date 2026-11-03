@@ -422,6 +422,29 @@ theorem jointStepE_ofLp (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ)
 def jointGradE (a w : EuclideanSpace ℝ (Fin n)) :
     EuclideanSpace ℝ (Fin n) := w - a
 
+/-- PL-СВОЙСТВО КВАДРАТИЧНОЙ МАШИНЫ (аналитический вывод h_emp_pl
+для конкретного носителя): E = ½‖w−a‖² удовлетворяет
+PL с μ = 1: 1·(E − 0) ≤ ‖∇E‖²/2 — обе стороны равны
+∑(wᵢ−aᵢ)²/2 (точное координатное тождество). -/
+theorem machine_pl_instance (a w : EuclideanSpace ℝ (Fin n)) :
+    (1:ℝ) * (energyE a w - 0) ≤ ‖jointGradE a w‖ ^ 2 / 2 := by
+  have hnorm : ‖jointGradE a w‖ ^ 2
+      = ∑ i, (w.ofLp i - a.ofLp i) ^ 2 := by
+    have h1 : jointGradE a w = w - a := rfl
+    rw [h1, EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+    simp
+  rw [hnorm, energyE, one_mul, sub_zero]
+  have hrhs : ‖jointGradE a w‖ ^ 2 / 2
+      = ∑ i, (w.ofLp i - a.ofLp i) ^ 2 / 2 := by
+    rw [hnorm, div_eq_inv_mul]
+    have hsplit : ∀ i : Fin n,
+        (w.ofLp i - a.ofLp i) ^ 2 / 2
+        = (2:ℝ)⁻¹ * (w.ofLp i - a.ofLp i) ^ 2 := fun i => by
+      rw [div_eq_inv_mul]
+    rw [Finset.sum_congr rfl (fun i _ => hsplit i),
+      Finset.mul_sum]
+  rw [Finset.sum_div]
+
 /-- Энергия шага: (1−η)²·E(w) — вычислено. -/
 theorem jointStepE_energy (a w : EuclideanSpace ℝ (Fin n)) (eta : ℝ) :
     energyE a (jointStepE a w eta) = (1 - eta) ^ 2 * energyE a w := by

@@ -40,6 +40,18 @@
 | h_emp_memwrite | энергия записи памяти | Landauer-кэп, consolidation_bits_cap |
 | h_emp_C_cap | кэп генерализации | CorePremises (14) |
 
+## Статус после волны замены деклараций выводом (audit pass 3)
+
+Выводимые посылки удалены ИЗ СИГНАТУР (не только продублированы
+derived-версиями): machine_advance_certified выводит леджер сжатия
+внутри (compress_ledger_scalar); core_premises_operational_scalar_v2 и
+MasterHAGICoreOperational_v2 выводят quantErr ≥ 0 и ≤ 1/2 из
+gridQ_error при проверяемом Δ ≤ 1. Остающиеся h_emp_* — трёх честных
+классов: (а) generic-параметры условных лемм (cone/takeoff: C, D —
+свободные последовательности); (б) модельные законы динамики
+(ArchitectureTheorem: capability-закон траектории); (в) принципиально
+измеряемые (gen-полосы, шум, семплирующие схемы, Landauer).
+
 ## Замечание об охвате (честная граница, аудит §10)
 
 Полный аудит аксиом и sorry по всем модулям закрыт CI-гейтами
