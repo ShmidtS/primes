@@ -1,5 +1,7 @@
 import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.ArmijoAcceptance
+import Hagi.Step.BatchBudget
+import Hagi.Step.RobustDescent
 import Hagi.Step.CPUFreeze
 import Hagi.Step.CausalFilter
 import Hagi.Step.Compound
