@@ -204,4 +204,70 @@ noncomputable def smToExec {S : Type} {obj : S → ℝ} {step : S → S}
     rw [hmeas]
     simp [m.hdelta]
 
+/-! ### Мост ExecutedCert → StepContract (композиционное
+замыкание: цепочки сертификатов исполнения сводятся к
+моноид-телескопу StepContract — audit v19 §4) -/
+
+/-- Проекция сертификата исполнения+измерения в моноид-контракт:
+drop → decrease, risk/budget передаются явно (исполнение их не
+порождает — их поставляет носитель), связка измерения с
+исполнением уже внутри типа. -/
+noncomputable def ecToSc {S : Type} {obj : S → ℝ} {step : S → S}
+    {s : S} {m d : ℝ}
+    (c : Hagi.Unified.ExecutedCert.ExecutedCert obj step s m d)
+    (riskCost budgetSpend : ℝ)
+    (hrisk : 0 ≤ riskCost) (hbudget : 0 ≤ budgetSpend) :
+    StepContract where
+  decrease := c.drop
+  riskCost := riskCost
+  budgetSpend := budgetSpend
+  hDecreasePos := le_of_lt c.drop_pos
+  hRiskNonneg := hrisk
+  hBudgetNonneg := hbudget
+
+/-- Композиция сохраняет связку измерения: цепочка
+ExecutedCert со значениями risk/budget даёт посылки
+trajectory_convergence без дополнительных гипотез. -/
+theorem ec_chain_to_tc {S : Type} {obj : S → ℝ} {step : S → S}
+    {s : S}
+    (f : ℕ → S) (hf : ∀ t, f (t + 1) = step (f t)) (h0 : f 0 = s)
+    (ms ds risks budgets : ℕ → ℝ)
+    (cs : ∀ t, Hagi.Unified.ExecutedCert.ExecutedCert
+      obj step (f t) (ms t) (ds t))
+    (hrisks : ∀ t, 0 ≤ risks t) (hbudgets : ∀ t, 0 ≤ budgets t)
+    (Emin : ℝ) (hE : ∀ t : ℕ, Emin ≤ obj (f t)) (T : ℕ) :
+    ∑ t : Fin T, (ecToSc (cs t.val) (risks t.val)
+      (budgets t.val) (hrisks t.val) (hbudgets t.val)).decrease
+      ≤ obj (f 0) - Emin
+        + ∑ t : Fin T, risks t.val := by
+  have hstep : ∀ t : Fin T, obj (f (t.val + 1))
+      ≤ obj (f t.val)
+      - (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).decrease
+      + (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).riskCost := by
+    intro t
+    have h1 := (cs t.val).actual
+    have h2 : f (t.val + 1) = step (f t.val) := hf t.val
+    show obj (f (t.val+1)) ≤ obj (f t.val)
+      - (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).decrease
+      + (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).riskCost
+    simp only [ecToSc]
+    rw [show obj (f (t.val+1)) = obj (step (f t.val)) from congrArg obj h2]
+    linarith [h1, hrisks t.val]
+  have hchain : ∀ t : Fin T,
+      obj (f (t.val + 1)) ≤ obj (f t.val)
+      - (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).decrease
+      + (ecToSc (cs t.val) (risks t.val) (budgets t.val)
+          (hrisks t.val) (hbudgets t.val)).riskCost := hstep
+  have := trajectory_convergence
+    (fun t => ecToSc (cs t.val) (risks t.val) (budgets t.val)
+      (hrisks t.val) (hbudgets t.val))
+    (fun k => obj (f k)) Emin hchain
+    (fun k _ => hE k)
+  simpa [ecToSc] using this
+
 end Hagi.Unified.CertUnify
