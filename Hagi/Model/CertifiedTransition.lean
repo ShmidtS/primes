@@ -27,10 +27,14 @@ structure CertifiedTransition (S S' : Hagi.System.GrowthState X)
   exec : S' = advance S u
   /-- Прогресс: verify-сертификат нового состояния положителен. -/
   progress : 0 < (Hagi.System.verify S').decrease
-  /-- Безопасность: прирост защищённого риска в лимите. -/
+  /-- Безопасность (точный ledger): прирост защищённого
+  риска ≤ суммарная фактическая риск-трата операций. -/
   safety : S'.protectedRisk
     ≤ S.protectedRisk + (u.eff.growRisk + u.eff.mergeRisk
       + u.eff.jointRisk + u.eff.compressRisk)
+  /-- Безопасность (ЛИМИТ): riskLim АКТИВНО участвует в
+  контракте — spec P0-3.3: riskAfter ≤ riskBefore + riskLim. -/
+  safetyLim : S'.protectedRisk ≤ S.protectedRisk + riskLim
   /-- Ресурсы: точный бюджетный ledger пост-состояния. -/
   resources : S'.budget = S.budget - (u.eff.growCost + u.eff.mergeCost
     + u.eff.jointCost + u.eff.compressCost)
@@ -49,6 +53,12 @@ theorem certifiedTransition_of_advance (S : Hagi.System.GrowthState X)
   exec := rfl
   progress := advance_verify_decrease_pos S u hgap heta hks
   safety := by
+    show (advance S u).protectedRisk
+      ≤ S.protectedRisk + (u.eff.growRisk + u.eff.mergeRisk
+        + u.eff.jointRisk + u.eff.compressRisk)
+    simp only [advance]
+    exact le_of_eq (by ring)
+  safetyLim := by
     show (advance S u).protectedRisk
       ≤ S.protectedRisk + (u.eff.growRisk + u.eff.mergeRisk
         + u.eff.jointRisk + u.eff.compressRisk)
@@ -187,7 +197,7 @@ theorem certificate_of_transition {X : Type*}
     ∧ S.budget - S'.budget
       = u.eff.growCost + u.eff.mergeCost
         + u.eff.jointCost + u.eff.compressCost := by
-  obtain ⟨exec, progress, safety, resources⟩ := ht
+  obtain ⟨exec, progress, safety, safetyLim, resources⟩ := ht
   refine ⟨progress, ?_, ?_⟩
   · linarith [safety]
   · rw [resources]
