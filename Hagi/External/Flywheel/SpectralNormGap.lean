@@ -284,6 +284,7 @@ state the bound in terms of the Frobenius error of ANY matrix M.
     √(Σᵢ≥₂ σ̃ᵢ²) by Eckart-Young.
 
     This theorem is stated generally to avoid requiring square matrix SVD. -/
+@[deprecated Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R]
 theorem kronecker_spectral_error_le_frobenius_error
     (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - KroneckerRearrangement.R_inv M) ≤
@@ -721,13 +722,14 @@ attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
     **When is the gap large?** When the error has many comparable singular values,
     i.e., when C requires multiple Kronecker terms for good approximation. -/
+@[deprecated Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R]
 theorem kronecker_approx_spectral_le_frobenius
     (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (C - KroneckerRearrangement.R_inv M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (KroneckerRearrangement.R C - M) :=
-  SpectralGap.kronecker_spectral_error_le_frobenius_error C M
+  SpectralGap.spectral_error_bound_via_R C M
 
 /-- **Explicit Gap Bound via Effective Rank:**
     The ratio of spectral to Frobenius error for Kronecker approximation is bounded
@@ -743,7 +745,7 @@ theorem spectral_frobenius_error_ratio_le_one
       (C - KroneckerRearrangement.R_inv M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (KroneckerRearrangement.R C - M) :=
-  kronecker_approx_spectral_le_frobenius C M
+  SpectralGap.spectral_error_bound_via_R C M
 
 end KroneckerOptimality
 
