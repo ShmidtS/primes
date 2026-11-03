@@ -29,7 +29,13 @@ def scan():
     for f in sorted((ROOT / "Hagi").rglob("*.lean")):
         rel = f.relative_to(ROOT).as_posix()
         text = f.read_text(encoding="utf-8", errors="replace")
-        names = sorted(set(IDENT.findall(text)))
+        # Spec 1.4: comments/docstrings are NOT a source of truth, so
+        # they must not register premises either. A docstring saying
+        # "analytic derivation of h_emp_dist" is documentation OF the
+        # elimination, not a premise. Strip comments before scanning.
+        code = re.sub(r"/-.*?-/s", "", text, flags=re.S)
+        code = re.sub(r'--[^\n]*', '', code)
+        names = sorted(set(IDENT.findall(code)))
         if names:
             hmap[rel] = names
         for m in PRIM.finditer(text):
