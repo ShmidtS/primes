@@ -98,6 +98,82 @@ theorem machine_advance_certified (eta Delta kappa s : ℝ)
   linarith
 
 
+/-! ### Аналитический вывод леджера сжатия (убираем декларацию hledger)
+
+Скалярный case: E(Q(x)) − E(x) = (x−a)·(Q−x) + (Q−x)²/2
+(разложение квадрата); с q = |Q−x| (для Fin 1 quantErr Δ x = q)
+получаем ≤ (|x−a| + q/2)·q — при κ·s ≥ |x−a| + q/2 леджер
+ВЫВЕДЕН, а не постулирован. -/
+
+/-- Скалярный леджер сжатия: разложение энергии после
+квантования, аналитически (n = 1). -/
+theorem compress_ledger_scalar (a x : Fin 1 → ℝ) (Delta kappa s : ℝ)
+    (hD : 0 < Delta)
+    (hks : |x 0 - a 0| + |compressQ Delta x 0 - x 0| / 2
+      ≤ kappa * s) :
+    energy a (compressQ Delta x) - energy a x
+      ≤ kappa * s * quantErr Delta x := by
+  have hq : quantErr Delta x = |compressQ Delta x 0 - x 0| := by
+    unfold quantErr
+    rw [Fin.sum_univ_one]
+    have h2 : (compressQ Delta x 0 - x 0) ^ 2
+        = |compressQ Delta x 0 - x 0| ^ 2 := (sq_abs _).symm
+    rw [h2, Real.sqrt_sq (abs_nonneg _)]
+  have hexp : energy a (compressQ Delta x) - energy a x
+      = (x 0 - a 0) * (compressQ Delta x 0 - x 0)
+        + (compressQ Delta x 0 - x 0) ^ 2 / 2 := by
+    unfold energy
+    rw [Fin.sum_univ_one, Fin.sum_univ_one]
+    have hkey : compressQ Delta x 0 - a 0
+        = (x 0 - a 0) + (compressQ Delta x 0 - x 0) := by ring
+    rw [hkey]
+    ring
+  have hbound : (x 0 - a 0) * (compressQ Delta x 0 - x 0)
+      ≤ |x 0 - a 0| * |compressQ Delta x 0 - x 0| := by
+    rw [← abs_mul]
+    exact le_abs_self _
+  have hfinal : (x 0 - a 0) * (compressQ Delta x 0 - x 0)
+      + (compressQ Delta x 0 - x 0) ^ 2 / 2
+      ≤ (|x 0 - a 0| + |compressQ Delta x 0 - x 0| / 2)
+        * |compressQ Delta x 0 - x 0| := by
+    have hqabs : (compressQ Delta x 0 - x 0) ^ 2
+        = |compressQ Delta x 0 - x 0| * |compressQ Delta x 0 - x 0| := by
+      have h1 : |compressQ Delta x 0 - x 0|
+          * |compressQ Delta x 0 - x 0|
+          = (compressQ Delta x 0 - x 0) ^ 2 := by
+        rw [abs_mul_abs_self, sq]
+      exact h1.symm
+    have hbound2 : (x 0 - a 0) * (compressQ Delta x 0 - x 0)
+        ≤ |x 0 - a 0| * |compressQ Delta x 0 - x 0| := hbound
+    nlinarith [hbound2, hqabs, abs_nonneg (x 0 - a 0),
+      abs_nonneg (compressQ Delta x 0 - x 0)]
+  rw [hexp]
+  calc (x 0 - a 0) * (compressQ Delta x 0 - x 0)
+        + (compressQ Delta x 0 - x 0) ^ 2 / 2
+      ≤ (|x 0 - a 0| + |compressQ Delta x 0 - x 0| / 2)
+        * |compressQ Delta x 0 - x 0| := hfinal
+    _ ≤ kappa * s * |compressQ Delta x 0 - x 0| := by
+      exact mul_le_mul_of_nonneg_right hks (abs_nonneg _)
+    _ = kappa * s * quantErr Delta x := by rw [hq]
+
+/-- ПОЛНОСТЬЮ ВЫВЕДЕННЫЙ сертификат: hledger не постулируется,
+а выводится аналитически (разложение квадрата + пер-координатная
+ошибка решётки) при κ·s, покрывающем |x−a| + q/2. -/
+theorem machine_advance_certified_derived
+    (eta Delta kappa s : ℝ) (hD : 0 < Delta)
+    (heta : 0 < eta) (hetaL : eta ≤ 1)
+    (S : GrowthState ℝ) (hS : S.energy = energy a w)
+    (hks : |jointStep a w eta 0 - a 0|
+      + |compressQ Delta (jointStep a w eta) 0
+          - jointStep a w eta 0| / 2
+      ≤ kappa * s) :
+    energy a (machineStep a w eta Delta)
+      ≤ S.energy - (eta * (w 0 - a 0) * (w 0 - a 0)
+          - eta ^ 2 * (w 0 - a 0) * (w 0 - a 0) / 2
+          - kappa * s * quantErr Delta (jointStep a w eta)) :=
+  machine_advance_certified a w eta Delta kappa s heta hetaL S hS
+    (compress_ledger_scalar a (jointStep a w eta) Delta kappa s hD hks)
+
 /-! ### Многомерный мост: машина → стадийная семантика (аудит v17 P0-1)
 
 Аудит требовал явный мост S.params = w →
