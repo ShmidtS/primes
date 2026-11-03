@@ -1,4 +1,5 @@
 import Hagi.Foundations.Telescope
+import Hagi.Foundations.Recurrence
 
 /-!
 # PLConvergence — линейная сходимость Полака–Лоясевича
@@ -22,39 +23,39 @@ theorem pl_linear_convergence (E G : ℕ → ℝ) (Estar μ L : ℝ)
     (hstep : ∀ t, E (t + 1) ≤ E t - G t / (2 * L))
     (hPL : ∀ t, 2 * μ * (E t - Estar) ≤ G t) (t : ℕ) :
     E t - Estar ≤ (1 - μ / L) ^ t * (E 0 - Estar) := by
-  have hG0 : ∀ t, 0 ≤ G t := fun t =>
-    le_trans (mul_nonneg (by positivity) (by
-      have := hE t; linarith)) (hPL t)
+  -- dedup (audit P3/PL): делегация к канону
+  -- Foundations.recurrence_upper при ρ = 1 − μ/L, c = 0;
+  -- PL-шаг даёт рекурренту x(t+1) ≤ ρ·x t для x = E − E*.
   have hrate : (0:ℝ) ≤ 1 - μ / L := by
     have : μ / L ≤ 1 := by
       rw [div_le_iff₀ hL]
       nlinarith [hμL, hL]
     linarith
-  induction t with
-  | zero => simp
-  | succ t ih =>
-    have hG := hG0 t
-    have hPLt := hPL t
-    have hstept := hstep t
-    have hEt : (0:ℝ) ≤ E t - Estar := by
-      have := hE t; linarith
-    have hdrop : E (t + 1) - Estar
-        ≤ (1 - μ / L) * (E t - Estar) := by
-      have hbound : μ / L * (E t - Estar) ≤ G t / (2 * L) := by
-        rw [le_div_iff₀ (by positivity : (0:ℝ) < 2 * L)]
-        have hEq : μ / L * (E t - Estar) * (2 * L)
-            = 2 * μ * (E t - Estar) := by
-          field_simp
-        rw [hEq]
-        exact hPLt
-      linarith
-    have hratepos : (0:ℝ) ≤ 1 - μ / L := hrate
-    calc E (t + 1) - Estar
-        ≤ (1 - μ / L) * (E t - Estar) := hdrop
-    _ ≤ (1 - μ / L) * ((1 - μ / L) ^ t * (E 0 - Estar)) :=
-          mul_le_mul_of_nonneg_left ih hrate
-    _ = (1 - μ / L) ^ (t + 1) * (E 0 - Estar) := by
-          rw [pow_succ]; ring
+  have hrec0 : ∀ k < t, E (k + 1) - Estar
+      ≤ (1 - μ / L) * (E k - Estar) := by
+    intro k _
+    have hPLt := hPL k
+    have hstept := hstep k
+    have hEt : (0:ℝ) ≤ E k - Estar := by
+      have := hE k; linarith
+    have hbound : μ / L * (E k - Estar) ≤ G k / (2 * L) := by
+      rw [le_div_iff₀ (by positivity : (0:ℝ) < 2 * L)]
+      have hEq : μ / L * (E k - Estar) * (2 * L)
+          = 2 * μ * (E k - Estar) := by
+        field_simp
+      rw [hEq]
+      exact hPLt
+    linarith
+  have hrho1 : 1 - μ / L < 1 := by
+    have hpos : (0:ℝ) < μ / L := div_pos hμ hL
+    linarith
+  have h := Hagi.Foundations.recurrence_upper
+    (1 - μ / L) 0 (fun s => E s - Estar) t hrate hrho1
+    (fun k hk => by simpa using hrec0 k hk)
+  have hzero : (0:ℝ) * ((1 - (1 - μ / L) ^ t) / (1 - (1 - μ / L)))
+      = 0 := by ring
+  rw [hzero] at h
+  simpa using h
 
 /-- ε-ГОРИЗОНТ PL (достаточное время до точности ε): при
 PL-условии горизонт t с (1−μ/L)^t·(E 0−E*) ≤ ε гарантирует
