@@ -62,7 +62,6 @@ import Hagi.Unified.StateTakeoff
 import Hagi.Unified.StepContract
 import Hagi.Unified.StepLaws
 import Hagi.Unified.TopLevel
-import Hagi.Unified.TransitionContract
 
 /-!
 # Фасад кластера Unified

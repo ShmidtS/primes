@@ -310,7 +310,6 @@ import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
 import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
-import Hagi.Unified.TransitionContract
 import Hagi.Model.GDNBridge
 import Hagi.Step.CPUFreeze
 import Hagi.Model.AdaptiveChunking
