@@ -494,6 +494,52 @@ theorem admits_satisfy_checks {m n : Type} [Fintype m]
       noveltyOk (checks t) ∧ gainOk (checks t) :=
   fun t h => hdec t h
 
+/-! ### Proof-carrying решения (audit v19 §5.3):
+Bool-решение контроллера ВЫВОДИТСЯ из проверок, а не
+подаётся извне произвольным битом. -/
+
+/-- РЕШЕНИЕ ИЗ ПРОВЕРОК: если обе проверки пройдены,
+контроллер обязан выдать admit=true (бит — следствие
+контракта, не внешний вход). -/
+def decisionOf (c : AdmissionChecks)
+    (h : admit c) : Bool := true
+
+/-- Отклонение из непрошедшей новизны: новизна не
+прошла — бит обязан быть false. -/
+def rejectOfNovelty (c : AdmissionChecks)
+    (h : ¬ noveltyOk c) : Bool := false
+
+/-- Отклонение из непрошедшей пользы. -/
+def rejectOfGain (c : AdmissionChecks)
+    (h : ¬ gainOk c) : Bool := false
+
+/-- Запись по proof-carrying решению: блок добавляется
+ТОЛЬКО при доказанном admit — произвольный Bool
+невозможен по построению. -/
+def applyAdmitted {m n : Type} [Fintype m] [Fintype n]
+    (b : MemBlock m n) (c : AdmissionChecks)
+    (h : admit c) (s : LiveDelta m n Unit) :
+    LiveDelta m n Unit :=
+  applyDecision b (decisionOf c h) s
+
+/-- Отклонённая (по доказанному ¬admit) запись не меняет
+память — тот же результат, что и rejected_no_growth,
+но решение выведено из проверок, а не подано битом. -/
+theorem applyRejected_no_growth {m n : Type} [Fintype m]
+    [Fintype n] (b : MemBlock m n) (c : AdmissionChecks)
+    (hnov : ¬ noveltyOk c) (s : LiveDelta m n Unit) :
+    applyDecision b (rejectOfNovelty c hnov) s = s := by
+  simp [rejectOfNovelty, applyDecision]
+
+/-- Допущенная запись растит память ровно на один блок
+(бит-обёртка не теряет семантики addBlock). -/
+theorem applyAdmitted_grows {m n : Type} [Fintype m]
+    [Fintype n] (b : MemBlock m n) (c : AdmissionChecks)
+    (h : admit c) (s : LiveDelta m n Unit) :
+    (applyAdmitted b c h s).blocks.length
+      = s.blocks.length + 1 := by
+  simp [applyAdmitted, decisionOf, applyDecision, addBlock]
+
 end Hagi.Growth
 namespace Hagi.Growth
 

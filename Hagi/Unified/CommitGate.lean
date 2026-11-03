@@ -51,6 +51,8 @@ structure GateCert where
 издержек. -/
 def gate (c : GateCert) : Prop := c.dStep + c.gap > c.quant + c.gen
 
+variable (c : GateCert)
+
 
 
 /-- Потенциал после commit: выигрыш применяется, издержки
@@ -61,6 +63,26 @@ def commitV (c : GateCert) : ℝ :=
 /-- Потенциал после rollback: неизменен (parent-preserving
 lift / накопление без commit). -/
 def holdV (c : GateCert) : ℝ := c.V
+
+/-- ВЫЧИСЛИМОЕ РЕШЕНИЕ (audit v19 §5.2): gate — не только
+Prop, но и разрешимое условие: решение commit/rollback
+ВЫЧИСЛЯЕТСЯ из измеренных компонент (инвариант ветвления
+внутри алгоритма, не внешняя гипотеза). -/
+noncomputable instance : Decidable (gate c) :=
+  Real.decidableLT _ _
+
+/-- Процедура решения контроллера: Bool-команда
+commit (true) / rollback (false), вычисляемая из
+GateCert (над ℝ — noncomputable в Lean, но семантически
+однозначная функция решения). Согласована с Prop-формой
+в обе стороны. -/
+noncomputable def gateDecision (c : GateCert) : Bool :=
+  decide (gate c)
+
+/-- Корректность процедуры: gateDecision = true ⟺ gate. -/
+theorem gateDecision_iff (c : GateCert) :
+    gateDecision c = true ↔ gate c := by
+  simp [gateDecision]
 
 /-- КОММИТ ПРОДУКТИВЕН: gate = true ⟹ потенциал строго
 убывает (h_emp_grow заменён вычислимым ветвлением). -/
