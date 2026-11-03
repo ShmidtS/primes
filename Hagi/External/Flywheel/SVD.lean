@@ -393,15 +393,15 @@ Constructing the unitary U for full SVD.
 
 set_option linter.unusedSectionVars false in
 /-- Inner product on EuclideanSpace matches our sum formula for star-multiplication. -/
-lemma inner_euclidean_eq_sum (x y : n → ℂ) :
-    @inner ℂ (EuclideanSpace ℂ n) _
-      ((WithLp.equiv 2 (n → ℂ)).symm x)
-      ((WithLp.equiv 2 (n → ℂ)).symm y)
+lemma inner_euclidean_eq_sum {ι : Type*} [Fintype ι] (x y : ι → ℂ) :
+    @inner ℂ (EuclideanSpace ℂ ι) _
+      ((WithLp.equiv 2 (ι → ℂ)).symm x)
+      ((WithLp.equiv 2 (ι → ℂ)).symm y)
     = ∑ i, star (x i) * y i := by
   rw [PiLp.inner_apply]
   simp only [RCLike.inner_apply]
-  have h1 : ∀ i, ((WithLp.equiv 2 (n → ℂ)).symm x).ofLp i = x i := fun _ => rfl
-  have h2 : ∀ i, ((WithLp.equiv 2 (n → ℂ)).symm y).ofLp i = y i := fun _ => rfl
+  have h1 : ∀ i, ((WithLp.equiv 2 (ι → ℂ)).symm x).ofLp i = x i := fun _ => rfl
+  have h2 : ∀ i, ((WithLp.equiv 2 (ι → ℂ)).symm y).ofLp i = y i := fun _ => rfl
   simp_rw [h1, h2, ← Complex.star_def, mul_comm]
 
 /-- Left singular vector as EuclideanSpace element. -/
@@ -457,15 +457,19 @@ theorem extendedONB_spec (A : Matrix n n ℂ) :
   ((leftSingularVectorExtended_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
     finrank_euclideanSpace).choose_spec
 
-/-- Convert an orthonormal basis of EuclideanSpace to a matrix (column j = basis vector j). -/
-noncomputable def onbToMatrix (b : OrthonormalBasis n ℂ (EuclideanSpace ℂ n)) : Matrix n n ℂ :=
+/-- Convert an orthonormal basis of EuclideanSpace ℂ ι to a matrix
+(column j = basis vector j). General form: covers both square and
+rectangular constructions (the rectangular copies were merged). -/
+noncomputable def onbToMatrix {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (b : OrthonormalBasis ι ℂ (EuclideanSpace ℂ ι)) : Matrix ι ι ℂ :=
   fun i j => (b j) i
 
 set_option linter.unusedSectionVars false in
 /-- The inner product of columns equals the inner product of basis vectors. -/
-lemma onbToMatrix_inner (b : OrthonormalBasis n ℂ (EuclideanSpace ℂ n)) (i j : n) :
+lemma onbToMatrix_inner {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (b : OrthonormalBasis ι ℂ (EuclideanSpace ℂ ι)) (i j : ι) :
     (star (onbToMatrix b) * onbToMatrix b) i j =
-    @inner ℂ (EuclideanSpace ℂ n) _ (b i) (b j) := by
+    @inner ℂ (EuclideanSpace ℂ ι) _ (b i) (b j) := by
   simp only [mul_apply, star_apply, onbToMatrix]
   rw [PiLp.inner_apply]
   simp only [RCLike.inner_apply]
@@ -474,8 +478,9 @@ lemma onbToMatrix_inner (b : OrthonormalBasis n ℂ (EuclideanSpace ℂ n)) (i j
   simp only [star, ← Complex.star_def, mul_comm]
 
 /-- A matrix built from an orthonormal basis is unitary. -/
-theorem onbToMatrix_mem_unitaryGroup (b : OrthonormalBasis n ℂ (EuclideanSpace ℂ n)) :
-    onbToMatrix b ∈ unitaryGroup n ℂ := by
+theorem onbToMatrix_mem_unitaryGroup {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (b : OrthonormalBasis ι ℂ (EuclideanSpace ℂ ι)) :
+    onbToMatrix b ∈ unitaryGroup ι ℂ := by
   rw [mem_unitaryGroup_iff']
   ext i j
   rw [onbToMatrix_inner, one_apply]
@@ -3027,18 +3032,6 @@ variable {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
 /-! ### Main Construction -/
 
 set_option linter.unusedSectionVars false in
-/-- Inner product on EuclideanSpace ℂ m matches our sum formula. -/
-lemma inner_euclidean_eq_sum_rectangular (x y : m → ℂ) :
-    @inner ℂ (EuclideanSpace ℂ m) _
-      ((WithLp.equiv 2 (m → ℂ)).symm x)
-      ((WithLp.equiv 2 (m → ℂ)).symm y)
-    = ∑ i, star (x i) * y i := by
-  rw [PiLp.inner_apply]
-  simp only [RCLike.inner_apply]
-  have h1 : ∀ i, ((WithLp.equiv 2 (m → ℂ)).symm x).ofLp i = x i := fun _ => rfl
-  have h2 : ∀ i, ((WithLp.equiv 2 (m → ℂ)).symm y).ofLp i = y i := fun _ => rfl
-  simp_rw [h1, h2, ← Complex.star_def, mul_comm]
-
 /-- Left singular vector as EuclideanSpace ℂ m element (rectangular case).
     For j : n with σⱼ ≠ 0, this is the normalized column j of A*V. -/
 noncomputable def leftSingularVectorEuclidean_rectangular (A : Matrix m n ℂ) (j : n)
@@ -3076,7 +3069,7 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero_rectangular (A : Matri
   rw [Set.domRestrict_apply, Set.domRestrict_apply]
   rw [hj_dif, hj'_dif]
   simp only [leftSingularVectorEuclidean_rectangular]
-  rw [inner_euclidean_eq_sum_rectangular]
+  rw [inner_euclidean_eq_sum]
   by_cases h : j = j'
   · subst h
     simp only [↓reduceIte]
@@ -3146,7 +3139,7 @@ theorem leftSingularVectorByM_orthonormal_on_nonzero (A : Matrix m n ℂ) :
   rw [Set.domRestrict_apply, Set.domRestrict_apply]
   rw [leftSingularVectorByM_eq A k j hcorr hj, leftSingularVectorByM_eq A k' j' hcorr' hj']
   unfold leftSingularVectorEuclidean_rectangular
-  rw [inner_euclidean_eq_sum_rectangular]
+  rw [inner_euclidean_eq_sum]
   by_cases h : k = k'
   · -- Same index k = k', so j = j' by injectivity
     subst h
@@ -3215,39 +3208,11 @@ noncomputable def extendedONB_rectangular (A : Matrix m n ℂ) :
 Convert the orthonormal basis to a unitary matrix in unitaryGroup m ℂ.
 -/
 
-/-- Convert an orthonormal basis of EuclideanSpace ℂ m to a matrix.
-    Column j of the matrix is basis vector j. -/
-noncomputable def onbToMatrix_rectangular (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) :
-    Matrix m m ℂ :=
-  fun i j => (b j) i
-
-set_option linter.unusedSectionVars false in
-/-- Inner product of columns equals inner product of basis vectors. -/
-lemma onbToMatrix_rectangular_inner (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) (i j : m) :
-    (star (onbToMatrix_rectangular b) * onbToMatrix_rectangular b) i j =
-    @inner ℂ (EuclideanSpace ℂ m) _ (b i) (b j) := by
-  simp only [mul_apply, star_apply, onbToMatrix_rectangular]
-  rw [PiLp.inner_apply]
-  simp only [RCLike.inner_apply]
-  congr 1
-  ext k
-  simp only [star, ← Complex.star_def, mul_comm]
-
-/-- A matrix built from an orthonormal basis is unitary. -/
-theorem onbToMatrix_rectangular_mem_unitaryGroup (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) :
-    onbToMatrix_rectangular b ∈ unitaryGroup m ℂ := by
-  rw [mem_unitaryGroup_iff']
-  ext i j
-  rw [onbToMatrix_rectangular_inner, one_apply]
-  have h_on : Orthonormal ℂ b := b.orthonormal
-  rw [orthonormal_iff_ite] at h_on
-  exact h_on i j
-
 /-- The constructed unitary matrix U for rectangular SVD.
     Columns are derived from the extended orthonormal basis (v2 with diagonal alignment). -/
 noncomputable def constructedU_rectangular (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
-  ⟨onbToMatrix_rectangular (extendedONB_rectangular_v2 A),
-   onbToMatrix_rectangular_mem_unitaryGroup _⟩
+  ⟨onbToMatrix (extendedONB_rectangular_v2 A),
+   onbToMatrix_mem_unitaryGroup _⟩
 
 /-- Column k of constructedU_rectangular equals the left singular vector uⱼ
     when k corresponds to j (via diagonal correspondence) and σⱼ ≠ 0. -/
@@ -3256,7 +3221,7 @@ theorem constructedU_rectangular_column_spec (A : Matrix m n ℂ) (k : m) (j : n
     (fun i => (constructedU_rectangular A : Matrix m m ℂ) i k) =
     leftSingularVectorNonzero_rectangular A j hj := by
   ext i
-  simp only [constructedU_rectangular, onbToMatrix_rectangular]
+  simp only [constructedU_rectangular, onbToMatrix]
   have hk_mem : k ∈ nonzeroSingularIndicesM A := ⟨j, hcorr, hj⟩
   have h_spec := extendedONB_rectangular_v2_spec A k hk_mem
   rw [h_spec, leftSingularVectorByM_eq A k j hcorr hj]
