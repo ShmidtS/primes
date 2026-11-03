@@ -18,6 +18,10 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCK = Path(__file__).resolve().parent / "assumptions.lock"
 
 IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
+DECL = re.compile(
+    r'^(?:\s|(?:private|protected|noncomputable)\s+)*'
+    r'(theorem|lemma|def|structure|abbrev|instance|inductive)\s+'
+    r"([A-Za-z_][A-Za-z0-9_']*)", re.M)
 PRIM = re.compile(
     r"^\s*(?:noncomputable\s+)?def\s+((?:kl|tv|ent|entropy|softmax|lse)[A-Za-z0-9_']*)",
     re.M)
@@ -26,6 +30,7 @@ PRIM = re.compile(
 def scan():
     hmap = {}
     prims = []
+    proven = set()
     for f in sorted((ROOT / "Hagi").rglob("*.lean")):
         rel = f.relative_to(ROOT).as_posix()
         text = f.read_text(encoding="utf-8", errors="replace")
@@ -36,27 +41,39 @@ def scan():
         code = re.sub(r"/-.*?-/s", "", text, flags=re.S)
         code = re.sub(r'--[^\n]*', '', code)
         names = sorted(set(IDENT.findall(code)))
+        # R265+: distinguish PROVEN h_emp-named theorems/defs
+        # (derived results with a historical empirical name, e.g.
+        # PerronCone.h_emp_takeoff_exponential) from genuine premise
+        # BINDERS. A proven theorem is not a premise.
+        for dm in DECL.finditer(code):
+            if dm.group(2).startswith('h_emp_'):
+                proven.add(dm.group(2))
         if names:
             hmap[rel] = names
         for m in PRIM.finditer(text):
             prims.append(f"{rel}:{m.group(1)}")
-    return hmap, prims
+    return hmap, prims, proven
 
 
-def registry(hmap, prims):
+def registry(hmap, prims, proven):
+    total = sum(len(v) for v in hmap.values())
     lines = [f"h_emp files: {len(hmap)}",
-             f"h_emp identifiers: {sum(len(v) for v in hmap.values())}",
+             f"h_emp identifiers: {total}",
+             f"h_emp proven theorems: {len(proven)}",
              f"primitive defs: {len(prims)}", "", "[h_emp]"]
     for rel in sorted(hmap):
         lines.append(f"{rel}: {' '.join(hmap[rel])}")
+    lines += ["", "[derived h_emp-named theorems (PROVEN, not premises)]"]
+    for n in sorted(proven):
+        lines.append(n)
     lines += ["", "[primitives]"]
     lines += sorted(prims)
     return "\n".join(lines) + "\n"
 
 
 def main():
-    hmap, prims = scan()
-    reg = registry(hmap, prims)
+    hmap, prims, proven = scan()
+    reg = registry(hmap, prims, proven)
     update = "--update" in sys.argv
     if update or not LOCK.exists():
         LOCK.write_text(reg, encoding="utf-8", newline="\n")
@@ -69,7 +86,9 @@ def main():
               "and review the diff)")
         return 1
     print(f"ASSUMPTIONSCAN: PASS ({len(hmap)} h_emp files, "
-          f"{sum(len(v) for v in hmap.values())} premises, "
+          f"{sum(len(v) for v in hmap.values())} occurrences "
+          f"({len(proven)} proven theorems + "
+          f"{sum(len(v) for v in hmap.values()) - len(proven)} premise binders), "
           f"{len(prims)} primitive defs)")
     return 0
 
