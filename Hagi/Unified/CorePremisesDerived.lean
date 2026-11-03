@@ -91,8 +91,6 @@ theorem core_premises_operational_scalar_v2
       ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
     (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
     (hs : 0 ≤ S.toGrowthState.sp.s)
-    (hdn : 0 ≤ S.toGrowthState.effects.quantErr)
-    (h_emp_dist : S.toGrowthState.effects.quantErr ≤ 1 / 2)
     (heq : S'.toGrowthState
       = compress (joint (merge (grow S.toGrowthState))))
     (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
@@ -114,7 +112,7 @@ theorem core_premises_operational_scalar_v2
       = E (S.toGrowthState.params
         - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
     (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
-    (Δ : ℝ) (hΔ : 0 < Δ)
+    (Δ : ℝ) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1)
     -- ПОСТШАГОВОЕ квантование (фикс аудита v13):
     -- Q применяется к x' = params − η·d
     (hcompdef : S.toGrowthState.effects.compressEnergy
@@ -147,6 +145,15 @@ theorem core_premises_operational_scalar_v2
         * S.toGrowthState.effects.quantErr := by
     rw [hs1, hjointdef]
     exact h13
+  -- hdn и h_emp_dist ВЫВЕДЕНЫ из семантики решётки, не декларированы:
+  have hdn : 0 ≤ S.toGrowthState.effects.quantErr := by
+    rw [hquantdef]; exact abs_nonneg _
+  have h_emp_dist : S.toGrowthState.effects.quantErr ≤ 1 / 2 := by
+    have hq := Hagi.Energy.gridQ_error Δ hΔ
+      (S.toGrowthState.params
+        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
+    rw [hquantdef, abs_sub_comm]
+    exact le_trans hq (by linarith)
   exact ⟨hgap, h_emp_grow, h_emp_merge, hL, heta, heta0, hdescent,
     h8, hkappa, hs, hdn, h_emp_dist, h13', heq, hgenq, h_emp_G⟩
 
@@ -203,19 +210,12 @@ theorem core_premises_operational_scalar_v3
     CorePremises S S' epsQ w := by
   -- АНАЛИТИЧЕСКИЙ ВЫВОД h_emp_dist: per-coordinate ошибка
   -- решётки ≤ Δ/2 ≤ 1/2 — декларация заменена выводом.
-  have hdist : S.toGrowthState.effects.quantErr ≤ 1 / 2 := by
-    have hq := Hagi.Energy.gridQ_error Δ hΔ
-      (S.toGrowthState.params
-        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
-    rw [hquantdef]
-    rw [abs_sub_comm]
-    exact le_trans hq (by linarith)
-  have hdn : 0 ≤ S.toGrowthState.effects.quantErr := by
-    rw [hquantdef]; exact abs_nonneg _
+  -- v2 теперь сам выводит hdn/h_emp_dist; v3 сохранён как
+  -- прямое делегирование (сигнатуры идентичны).
   exact core_premises_operational_scalar_v2 S S' epsQ w
     hgap h_emp_grow h_emp_merge hL heta heta0 hdescent
-    hkappa hs hdn hdist heq hgenq h_emp_G E hdiff hsmooth hgcont
-    hgrad hEmerge hjointdef hnorm Δ hΔ hcompdef hquantdef hs1
+    hkappa hs heq hgenq h_emp_G E hdiff hsmooth hgcont
+    hgrad hEmerge hjointdef hnorm Δ hΔ hΔ1 hcompdef hquantdef hs1
 
 /-- Капстоун-мост v2 (аудит v13): без противоречивого
 hjointE, с постшаговым квантованием. -/
@@ -235,8 +235,6 @@ theorem MasterHAGICoreOperational_v2
       ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
     (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
     (hs : 0 ≤ S.toGrowthState.sp.s)
-    (hdn : 0 ≤ S.toGrowthState.effects.quantErr)
-    (h_emp_dist : S.toGrowthState.effects.quantErr ≤ 1 / 2)
     (heq : S'.toGrowthState
       = compress (joint (merge (grow S.toGrowthState))))
     (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
@@ -258,7 +256,7 @@ theorem MasterHAGICoreOperational_v2
       = E (S.toGrowthState.params
         - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
     (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
-    (Δ : ℝ) (hΔ : 0 < Δ)
+    (Δ : ℝ) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1)
     (hcompdef : S.toGrowthState.effects.compressEnergy
       = E (Hagi.Energy.gridQ Δ hΔ
           (S.toGrowthState.params
@@ -277,9 +275,9 @@ theorem MasterHAGICoreOperational_v2
       = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend := by
   exact MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ
     (core_premises_operational_scalar_v2 S S' epsQ w hgap h_emp_grow
-      h_emp_merge hL heta heta0 hdescent hkappa hs hdn h_emp_dist heq
+      h_emp_merge hL heta heta0 hdescent hkappa hs heq
       hgenq h_emp_G E hdiff hsmooth hgcont hgrad hEmerge
-      hjointdef hnorm Δ hΔ hcompdef hquantdef hs1)
+      hjointdef hnorm Δ hΔ hΔ1 hcompdef hquantdef hs1)
 
 /-- КАПСТОУН-МОСТ v3: h_emp_dist УСТРАНЁН — выводится из
 семантики решётки (Δ ≤ 1); сводится к v2 через v3-конструктор
