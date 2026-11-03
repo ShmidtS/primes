@@ -385,6 +385,13 @@ import Hagi.Budget.BudgetArc
 import Hagi.Step.StepArc
 import Hagi.Probability.ProbabilityArc
 import Hagi.Audit.Audit
+import Hagi.Step.BatchBudget
+import Hagi.Step.NoisyPL
+import Hagi.Step.RobustDescent
+import Hagi.Unified.MemorySemantics
+import Hagi.Unified.ProductiveTransition
+import Hagi.Unified.TransitionCert
+import Hagi.Unified.VerticalCapstone
 
 set_option linter.style.header false
 

@@ -1,0 +1,156 @@
+{
+ "note": "same declaration name in multiple modules (namespace-separated; AlphaDup.py checks statement-level duplication)",
+ "names": {
+  "Complex": [
+   "Hagi\\External\\Flywheel\\FrobeniusNorm.lean"
+  ],
+  "Finset": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean"
+  ],
+  "IsProjection": [
+   "Hagi\\Information\\DiscreteFannes.lean"
+  ],
+  "Matrix": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "R": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean",
+   "Hagi\\Percolation\\Site.lean"
+  ],
+  "ReferenceMachine": [
+   "Hagi\\Model\\QuantizedAdvance.lean"
+  ],
+  "S": [
+   "Hagi\\Examples\\Nonvacuity.lean"
+  ],
+  "V": [
+   "Hagi\\Core\\Select.lean",
+   "Hagi\\Percolation\\Site.lean"
+  ],
+  "compose": [
+   "Hagi\\Model\\MeasurementCert.lean",
+   "Hagi\\Unified\\StepContract.lean"
+  ],
+  "contraction_limit": [
+   "Hagi\\Dynamics\\EndpointContraction.lean",
+   "Hagi\\Foundations\\Recurrence.lean"
+  ],
+  "denseAttnCost": [
+   "Hagi\\Model\\Attention.lean",
+   "Hagi\\Model\\AttentionSpend.lean"
+  ],
+  "denseCost": [
+   "Hagi\\Model\\HNet2.lean",
+   "Hagi\\Unified\\CostComposition.lean"
+  ],
+  "eckart_young_frobenius": [
+   "Hagi\\External\\Flywheel\\FrobeniusNorm.lean",
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean"
+  ],
+  "eigenvalues": [
+   "Hagi\\External\\Flywheel\\SVD.lean",
+   "Hagi\\External\\Flywheel\\WeylInequality.lean"
+  ],
+  "exp_chord": [
+   "Hagi\\Ensemble\\Hoeffding.lean",
+   "Hagi\\Probability\\ExpChord.lean"
+  ],
+  "frobSq": [
+   "Hagi\\Architecture\\AlignedMerge.lean",
+   "Hagi\\Core\\FrobOuter.lean",
+   "Hagi\\Unified\\MicroStepCert.lean"
+  ],
+  "frobenius_error_truncatedSVD": [
+   "Hagi\\External\\Flywheel\\FrobeniusNorm.lean",
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean"
+  ],
+  "geom_sum_le_inv": [
+   "Hagi\\Dynamics\\EndpointContraction.lean",
+   "Hagi\\Foundations\\Recurrence.lean"
+  ],
+  "gibbs_free_energy_identity": [
+   "Hagi\\Energy\\Cooling.lean",
+   "Hagi\\Probability\\EntropyConvexity.lean"
+  ],
+  "gibbs_variational": [
+   "Hagi\\Data\\PACBayes.lean",
+   "Hagi\\Probability\\GibbsInfoCore.lean"
+  ],
+  "hagiPotential": [
+   "Hagi\\Foundations\\Potential.lean",
+   "Hagi\\Generalization\\ModeState.lean"
+  ],
+  "hermitian_spectralRadius_eq_sup_abs_eigenvalues": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean",
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "hoeffding_tail": [
+   "Hagi\\Ensemble\\Hoeffding.lean",
+   "Hagi\\Probability\\CertifiedEstimator.lean"
+  ],
+  "kl_nonneg": [
+   "Hagi\\Data\\DField.lean",
+   "Hagi\\Prelude\\Info.lean"
+  ],
+  "l2_opNorm_hermitian_eq_spectralRadius": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean",
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "l2_opNorm_hermitian_eq_sup_abs_eigenvalues": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean",
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "leftUnitary": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "of": [
+   "Hagi\\Data\\DField.lean",
+   "Hagi\\Data\\DFieldKKT.lean",
+   "Hagi\\Model\\SoftmaxStep.lean"
+  ],
+  "quadE": [
+   "Hagi\\Examples\\QuadraticConcrete.lean",
+   "Hagi\\Unified\\DescentCoreQuad.lean"
+  ],
+  "rightUnitary": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "rot": [
+   "Hagi\\Model\\Attention.lean",
+   "Hagi\\Unified\\GaugeQuotient.lean"
+  ],
+  "shannon_le_log_card": [
+   "Hagi\\Information\\DiscreteFannes.lean",
+   "Hagi\\Unified\\FannesComplete.lean"
+  ],
+  "signStep": [
+   "Hagi\\Optimization\\Lion.lean",
+   "Hagi\\Unified\\SignComp.lean"
+  ],
+  "singularDiagonal": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "singularValues": [
+   "Hagi\\External\\Flywheel\\SVD.lean",
+   "Hagi\\External\\Flywheel\\TruncatedSVDRank1.lean",
+   "Hagi\\External\\Flywheel\\WeylInequality.lean"
+  ],
+  "singularValues_nonneg": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "svd_decomposition": [
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "t": [
+   "Hagi\\Core\\Select.lean"
+  ],
+  "truncatedSVD": [
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean",
+   "Hagi\\External\\Flywheel\\SVD.lean"
+  ],
+  "truncatedSingularValues_tail_nonneg": [
+   "Hagi\\External\\Flywheel\\FrobeniusNorm.lean",
+   "Hagi\\External\\Flywheel\\MatrixNormRelations.lean"
+  ]
+ }
+}
