@@ -48,6 +48,25 @@ theorem ncCertStep_energy (S : NCState) (u : NCInput)
     (d : ℝ) :
     (ncCertStep S u d).energy = S.energy - d := rfl
 
+/-- ЭНЕРГИЯ ПЛАТИТ ЗА РОСТ (audit v19 §5.4): при спуске
+d = измеренному приросту capability энергия уменьшается
+ровно на прирост — канал роста связан с энергетическим
+каналом состояния (аналог конъюнкта 2 CorePremises:
+growEnergy ≤ energy − growGain, здесь в форме равенства
+для certificate-шага). -/
+theorem ncCertStep_pays_gain (S : NCState) (u : NCInput) :
+    (ncCertStep S u u.gain).energy
+      = S.energy - u.gain := rfl
+
+/-- Заплативший за рост шаг имеет capability-прирост,
+полностью покрытый энергийным спуском (связка каналов:
+Δcapability = d = Δ(−energy)). -/
+theorem nc_gain_equals_energy_drop (S : NCState)
+    (u : NCInput) :
+    (ncCertStep S u u.gain).capability - S.capability
+      = S.energy - (ncCertStep S u u.gain).energy := by
+  simp [ncCertStep, ncAdvance]
+
 /-- Измеритель качества нейрокомпьютера: канал —
 capability состояния. -/
 noncomputable def ncMeasured : MeasuredState NCState where
