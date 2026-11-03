@@ -96,6 +96,17 @@ semantics is provably inconsistent at T = 2
 (the obstruction is documented in the audit trail; the module
 was removed as a verbatim wrapper).
 
+## Repo layout
+
+- `Hagi/` — the HAGI_v2 formalization (399 modules; see `STATUS.md`,
+  `ALGORITHMS.md`, `PREMISES.md`);
+- `Primes/` — an independent lean library kept in this repo (2,2k lines:
+  additive-combinatorics bricks for Erdos-problem attempts — wheel sieve,
+  singular series, von Mangoldt chains, unitary divisors, covers #708).
+  It has no Hagi imports and builds via `lake build Primes`;
+- `scripts/` — the CI lint battery and audit tooling (`ci.sh` is the
+  single entry point).
+
 ## Build and checks
 
 ```bash
