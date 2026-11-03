@@ -16,15 +16,15 @@
 
 | # | Конъюнкт | Статус | Откуда |
 |---|----------|--------|--------|
-| 1 | `0 ≤ gap` | EXTERNAL | h_emp_merge-семейство; геометрия слияния измеряется |
-| 2 | `growEnergy ≤ energy − growGain` (рост укладывается в энергию) | DERIVED | CorePremisesDerived (гладкость loss) + EXTERNAL-гладкость |
-| 3 | `mergeEnergy ≤ growEnergy − gap` (стоимость слияния) | EXTERNAL | структурный инвариант бюджета стадии merge |
+| 1 | `0 ≤ gap` | DERIVED | Nonvacuity: gap = измеренный jensenGap (Core lse-теория), ≥ 0 |
+| 2 | `growEnergy ≤ energy − growGain` (рост укладывается в энергию) | DERIVED | CorePremisesDerived + ConsolidationMirror.core_premises_grow_operational (mirror-descent оператор); для машины — MachineBridge (effects вычислены) |
+| 3 | `mergeEnergy ≤ growEnergy − gap` (стоимость слияния) | DERIVED | Nonvacuity.h_emp_merge_of_bridge: gap = jensenGap двух экспентов (Core lse-теория) — посылка выполняется выведением |
 | 4 | `0 < sp.L` (гладкость стадии) | DERIVED | из L2/Lipschitz loss модели (CorePremisesDerived: joint-гладкость выводится) |
 | 5 | `eta ≤ 1/L` (шаг SafeQP) | PROVED | SafeQP: аналитический выбор шага (Step/SafeQP) |
 | 6 | `0 ≤ eta` | PROVED | конструктор SafeQP |
 | 7 | `‖stepDir‖² ≤ ⟨grad, stepDir⟩` (направление спуска) | DERIVED | SafeQP_descent: проекция на допустимые даёт direction property |
 | 8 | `jointEnergy ≤ merge − η⟨g,d⟩ + Lη²‖d‖²/2` (L-модель шага) | DERIVED | CorePremisesDerived: выводится из гладкости loss (DescentAlong) |
-| 9–11 | `0 ≤ kappa`, `0 ≤ s`, `quantErr ≤ 1/2` | PROVED | gridQ-семантика: round-ошибка ≤ Δ/2 (Energy.Quantizer, machine_quant_err_bound) |
+| 9–11 | `0 ≤ kappa`, `0 ≤ s`, `quantErr ≤ 1/2` | PROVED+DERIVED | gridQ-семантика (machine_quant_err_bound); аналитический вывод нормированной формы: ReferenceMachine.quantErrNorm_avg_le_half (|Q(w)ᵢ−wᵢ|/Δ ≤ 1/2 в среднем — из abs_sub_round, без деклараций) |
 | 12 | `compressEnergy − jointEnergy ≤ kappa·s·quantErr` (компрессия) | DERIVED | CorePremisesDerived: из нормы производной + фактической ошибки округления |
 | 13 | `S' = compress∘joint∘merge∘grow S` (состав) | PROVED | операционное определение advance (StageSemantics) — rfl |
 | 14 | `∀ i, Qvec S' i ≤ Qvec S i + epsQ` (gen-полоса покомпонентно) | EXTERNAL | h_emp_C_cap / gen-полоса — измерение на probe-задачах |
