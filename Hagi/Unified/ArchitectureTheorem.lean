@@ -61,11 +61,9 @@ def FannesDecomp (p q : V → ℝ) (τ : ℝ)
     ∧ (∀ v, 0 ≤ u v ∧ 0 ≤ u' v ∧ 0 ≤ w v ∧ 0 ≤ w' v)
     ∧ (∑ v, u v) = 1 ∧ (∑ v, u' v) = 1
 
-theorem entTV_nonneg (p q : V → ℝ) : 0 ≤ Hagi.Prelude.tvDef p q := by
-  
-  exact div_nonneg
-        (Finset.sum_nonneg fun v _ => abs_nonneg (p v - q v))
-        (by norm_num)
+@[deprecated] theorem entTV_nonneg (p q : V → ℝ) : 0 ≤ Hagi.Prelude.tvDef p q :=
+  div_nonneg (Finset.sum_nonneg fun v _ => abs_nonneg (p v - q v))
+    (by norm_num)
 
 theorem entTV_symm (p q : V → ℝ) : Hagi.Prelude.tvDef p q = Hagi.Prelude.tvDef q p := by
   rw [Hagi.Prelude.tvDef]
