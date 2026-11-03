@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Residual-соединения: ограниченный дрейф (источник №22)

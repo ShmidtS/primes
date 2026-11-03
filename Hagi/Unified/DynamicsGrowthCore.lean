@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Dynamics.Laws
 import Hagi.Dynamics.ControllerPolicy
 import Hagi.Dynamics.EndpointContraction

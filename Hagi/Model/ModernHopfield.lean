@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Современные Hopfield-сети: ретривал и ёмкость (источник №16)

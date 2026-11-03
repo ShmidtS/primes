@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # μP-скейлинг: ширино-инвариантные обновления (источник №18)

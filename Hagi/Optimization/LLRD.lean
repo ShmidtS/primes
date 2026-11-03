@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # LLRD — послойное затухание learning rate (источник №68:

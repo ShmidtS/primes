@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # AdamW — decoupled weight decay (источник №64: Loshchilov

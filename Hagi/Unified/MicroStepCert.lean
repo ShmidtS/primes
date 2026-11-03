@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Step.GPM
 import Hagi.Architecture.AlignedMerge
 

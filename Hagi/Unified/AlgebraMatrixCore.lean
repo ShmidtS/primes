@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Core.Attention
 import Hagi.Core.ErrorProp
 import Hagi.Core.Kronecker

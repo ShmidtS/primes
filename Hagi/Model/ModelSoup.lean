@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # ModelSoup / EMA — усреднение весов (источник №73:

@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Gradient Checkpointing: sqrt-трейдофф память/пересчёт

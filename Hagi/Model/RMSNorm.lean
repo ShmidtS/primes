@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # RMSNorm: масштабная инвариантность и сохранение RMS (источник №25)

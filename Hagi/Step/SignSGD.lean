@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # SignSGD (источник №79: 1-bit compressed SGD,

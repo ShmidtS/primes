@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # CPUFreeze (приоритет 5 «HAGI Neural Computer», ):

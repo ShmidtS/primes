@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # AdaGrad: затухание адаптивного шага (источник №46)

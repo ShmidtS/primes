@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Ensemble.CompressionCert
 import Hagi.Ensemble.MergeIdentity
 import Hagi.Ensemble.MergeMixture

@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.System.GrowthState
 import Hagi.Model.StageSemantics
 

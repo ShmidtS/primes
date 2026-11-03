@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Data.CertifiedArgmax
 import Hagi.Data.DBridge
 import Hagi.Data.DField

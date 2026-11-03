@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Energy.PreNorm
 import Hagi.Energy.STEStep
 import Hagi.Model.CycleCertificate

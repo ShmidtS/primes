@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Lookahead optimizer (источник №75: Zhang et al.,

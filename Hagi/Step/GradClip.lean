@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Gradient Clipping: масштабирование до шара нормы (источник №29)

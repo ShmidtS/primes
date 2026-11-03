@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # AdaptiveChunking (приоритет 3 «HAGI Neural Computer»,

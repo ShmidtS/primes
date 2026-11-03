@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Model.StageSemantics
 import Hagi.Model.ReferenceMachine
 import Hagi.Energy.Quantizer

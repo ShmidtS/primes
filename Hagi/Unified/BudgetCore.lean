@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Budget.ActiveCompute
 import Hagi.Budget.AnytimeCondensation
 import Hagi.Budget.BatchCap

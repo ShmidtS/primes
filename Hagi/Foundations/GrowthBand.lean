@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # GrowthBand — двухсторонняя полоса роста (аудит v10 P0)

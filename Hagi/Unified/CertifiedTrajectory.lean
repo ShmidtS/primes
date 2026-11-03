@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Unified.StepContract
 import Hagi.Model.MeasurementCert
 

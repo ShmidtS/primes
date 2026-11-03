@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.LinkedQVec
 import Hagi.Unified.CanonicalParams

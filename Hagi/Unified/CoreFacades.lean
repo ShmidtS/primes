@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.Configuration
 import Hagi.Architecture.CortexFiber
