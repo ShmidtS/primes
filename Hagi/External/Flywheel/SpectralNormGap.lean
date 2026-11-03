@@ -216,7 +216,8 @@ attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 /-- **Key spectral bound via R⁻¹ Frobenius isometry:**
     For any matrix M, the spectral norm of R⁻¹(M) is bounded by the Frobenius norm of M.
     This is the fundamental bridge between Frobenius-space optimization and spectral bounds. -/
-theorem spectral_norm_R_inv_le_frobenius (M : Matrix (m × p) (n × q) ℂ) :
+@[deprecated] theorem spectral_norm_R_inv_le_frobenius -- dedup волна 2, канон: R_inv_spectral_le_frobenius
+    (M : Matrix (m × p) (n × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm M :=
   R_inv_spectral_le_frobenius M
@@ -444,20 +445,12 @@ Kronecker structure.
 /-- The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖₂.
     Combined with spectral ≤ Frobenius and R isometry, this gives:
     ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖ -/
-theorem R_inv_bound_achievable_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
+@[deprecated] theorem R_inv_bound_achievable_rank1 -- dedup волна 2, канон: R_inv_outerProduct_spectral_bound
+    (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    ‖u‖ * ‖v‖ := by
-  -- ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
-  calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-        (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
-      ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
-    _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) :=
-        R_inv_frobenius_norm_eq _
-    _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
+    ‖u‖ * ‖v‖ :=
+  R_inv_outerProduct_spectral_bound u v
 
 /-- The R⁻¹ bound compared to outer product spectral norm. -/
 theorem R_inv_outerProduct_le_outerProduct_frobenius
@@ -528,19 +521,13 @@ theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [No
     - RHS: ‖uv*‖_F = ‖u‖·‖v‖
 
     So the bound is tight for rank-1 matrices! -/
-theorem bound_tight_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
+@[deprecated] theorem bound_tight_rank1 -- dedup волна 2, канон: R_inv_outerProduct_le_outerProduct_frobenius
+    (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) := by
-  calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-        (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
-      ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
-    _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) :=
-        R_inv_frobenius_norm_eq _
+      (KroneckerRearrangement.outerProduct u v) :=
+  R_inv_outerProduct_le_outerProduct_frobenius u v
 
 end Tightness
 
@@ -723,7 +710,7 @@ attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
     **When is the gap large?** When the error has many comparable singular values,
     i.e., when C requires multiple Kronecker terms for good approximation. -/
 @[deprecated Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R]
-theorem kronecker_approx_spectral_le_frobenius
+theorem kronecker_approx_spectral_le_frobenius -- dedup волна 2, канон: spectral_error_bound_via_R
     (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (C - KroneckerRearrangement.R_inv M) ≤
@@ -739,7 +726,7 @@ theorem kronecker_approx_spectral_le_frobenius
     then the spectral error is approximately 1/√r times the Frobenius error.
 
     This theorem provides an upper bound: spectral ≤ Frobenius (ratio ≤ 1). -/
-theorem spectral_frobenius_error_ratio_le_one
+@[deprecated] theorem spectral_frobenius_error_ratio_le_one -- dedup волна 2, канон: spectral_error_bound_via_R
     (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (C - KroneckerRearrangement.R_inv M) ≤

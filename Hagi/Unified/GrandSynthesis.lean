@@ -125,23 +125,8 @@ theorem risk_telescope_of_growth_covered (C G risk : ℕ → ℝ)
     (T : ℕ)
     (hstep : ∀ t ∈ Finset.range T, C (t + 1) = C t + G t)
     (hcover : ∀ t ∈ Finset.range T, G t ≤ risk t) :
-    C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t := by
-  induction T with
-  | zero => simp
-  | succ T ih =>
-      rw [Finset.sum_range_succ,
-        hstep T (Finset.mem_range.mpr (Nat.lt_succ_self T))]
-      have hle : C T - C 0
-          ≤ ∑ t ∈ Finset.range T, risk t :=
-        ih (fun t ht => hstep t (Finset.mem_range.mpr
-          (lt_trans (Finset.mem_range.mp ht) (Nat.lt_succ_self T))))
-          (fun t ht => hcover t (Finset.mem_range.mpr
-            (lt_trans (Finset.mem_range.mp ht) (Nat.lt_succ_self T))))
-      have hpt := hcover T (Finset.mem_range.mpr (Nat.lt_succ_self T))
-      have h1 : C T + G T - C 0 ≤ C T + risk T - C 0 := by linarith
-      have h2 : C T + risk T - C 0
-          ≤ ∑ t ∈ Finset.range T, risk t + risk T := by linarith
-      linarith
+    C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t :=
+  Hagi.Foundations.telescope_band C G risk T hstep hcover
 
 /-- **Полы из монотонности (R540, пункт 4 из слабых посылок)**:
 если floors выполняются в нуле и каждый компонент векторного
