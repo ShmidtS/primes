@@ -236,6 +236,7 @@ T3_ignition	6d8055f27415b3a3	5d71346d62b780d6
 TernSign	59402c37ae0c786c	4b2109460d5d8faf
 TimeToCapability	7bbda29769ca2e80	5bf7e26f1cb640ee
 Trajectory	2a2e2d2f28bd1973	48c1d378cedf9ac3
+TransitionCert	29fa2e43b0d8b9a5	8626862858ac5aec
 Trunc	f348e759b28933d9	dd464624c58bc963
 V	0b2f702a2e19acce	5d15769b43fbc1ea
 V	e9c66d6672a524cb	5caafa72e58c1959
@@ -609,6 +610,7 @@ certified_state_tv_tendsto	34b9880097d2e0c6	afbb4cb1c801d7bb
 certified_trajectory_budget	3710c42bc50b5ec6	76f5e28f825d311b
 certified_trajectory_capability	3097263546dfe123	191c25ea02e00851
 certified_trajectory_risk	0e606a92d509a7ed	68112d0d9c5cda92
+certs_telescope	70be320140c9bc1e	4c02016456eb7a67
 cfg_boost	13af2b05f00172d3	1898bbb573a0742c
 cfg_convex	faca10ba88a6ace5	46483f26e08af61a
 cfg_interp	acc4638c4bb99c65	2d8538343ab66a29
@@ -2482,6 +2484,7 @@ ofParts	f5fce17fbe8ff333	8df39db3e8732925
 ofReal_finset_sum	940a1586b5e7d0c2	2ae2b6c93587be7c
 ofStageEffects	30781121eef7c2c0	8d02e788293720a1
 ofStageEffects_roundtrip	f2c10fd9852f477c	3272bfac65e4dd1f
+of_ctv3	fb43f1094bae721e	30f931322422b999
 offdiag_pythagoras	658e47256acf0c93	7d47284b3be5b588
 omega	73481c75d637f5bb	913f5cc04b59bba7
 omega_cubed	e025a1a2a03fc76f	7bafbe7635b8eaab
