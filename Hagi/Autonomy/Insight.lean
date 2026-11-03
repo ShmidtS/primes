@@ -41,6 +41,7 @@ theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpac
 crossEntropy q pTheta − crossEntropy q pI
 = Hagi.Prelude.klDef q pTheta − Hagi.Prelude.klDef q pI.
 -/
+@[deprecated Hagi.Data.ce_gap_kl_identity]
 theorem insight_kl_descent (q pI pTheta' : V → ℝ)
     (hq : ∀ v, 0 < q v) (hI : ∀ v, 0 < pI v) (hT : ∀ v, 0 < pTheta' v) :
     crossEntropy q pTheta' - crossEntropy q pI

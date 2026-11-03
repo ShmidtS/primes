@@ -93,17 +93,14 @@ orthogonal to the retained cortex state:
 
 namespace Hagi.Architecture
 
-/-- The injected fiber has zero cortex coordinates: the whole
-payload lands in the orthogonal subspace. -/
+/-- [deprecated] Copy of `fiberSplitOrtho` (verbatim; the name
+survives for facade consumers). -/
+@[deprecated Hagi.Architecture.fiberSplitOrtho]
 theorem fiber_cortex_zero {d c r : ℕ}
     (U : Matrix (Fin d) (Fin c) ℝ) (hU : IsOrthoCol U)
     (A : Matrix (Fin d) (Fin r) ℝ) :
-    Uᵀ * (A - U * (Uᵀ * A)) = 0 := by
-  have h1 : Uᵀ * (A - U * (Uᵀ * A))
-      = Uᵀ * A - (Uᵀ * U) * (Uᵀ * A) := by
-    rw [Matrix.mul_sub, ← Matrix.mul_assoc]
-  have h2 : Uᵀ * U = 1 := hU
-  rw [h1, h2, Matrix.one_mul, sub_self]
+    Uᵀ * (A - U * (Uᵀ * A)) = 0 :=
+  fiberSplitOrtho U hU A
 
 /-- The cortex coordinates of the state are unchanged by the
 injection, for any payload `x`. -/
