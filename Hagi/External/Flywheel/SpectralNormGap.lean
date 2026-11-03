@@ -124,21 +124,6 @@ section Rank1SpectralBound
 -- L2 operator norm (spectral norm) uses Matrix.instL2OpNormedAddCommGroup
 -- Frobenius norm uses Matrix.frobeniusSeminormedAddCommGroup
 
-/-! ### Helper lemmas: Spectral norm ≤ Frobenius norm -/
-
-/-- **L2 operator norm is bounded by Frobenius norm** for any matrix.
-    This is the fundamental inequality: ‖A‖₂ ≤ ‖A‖_F -/
-private theorem l2_opNorm_le_frobenius {m' n' : Type*}
-    [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
-      @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A := by
-  rw [l2_opNorm_def, frobenius_norm_eq_sqrt]
-  apply ContinuousLinearMap.opNorm_le_bound
-  · exact Real.sqrt_nonneg _
-  · intro x
-    exact mulVec_eucl_norm_le A x
-
 /-! ### Main theorems -/
 
 /-- **Main theorem**: spectral norm of R⁻¹ on matrices is bounded by Frobenius norm.
@@ -155,7 +140,7 @@ theorem R_inv_spectral_le_frobenius
   -- Step 1: spectral norm ≤ Frobenius norm
   have h1 : @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) ≤
             @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) :=
-    l2_opNorm_le_frobenius _
+    Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
   -- Step 2: R_inv is a Frobenius isometry
   have h2 : @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) =
             @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm M :=
@@ -335,7 +320,7 @@ theorem kronecker_spectral_error_truncatedSVD
     (C : Matrix n' n' ℂ) (k : ℕ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - Matrix.SVD.truncatedSVD C k) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - Matrix.SVD.truncatedSVD C k) :=
-  l2_opNorm_le_frobenius _
+  Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
 
 /-- **The Frobenius error of truncated SVD equals sum of squared tail singular values.**
     Re-exported from FrobeniusNorm.lean for convenience. -/
@@ -353,7 +338,7 @@ theorem spectral_error_le_sqrt_sum_tail_sq (A : Matrix n' n' ℂ) (k : ℕ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (A - Matrix.SVD.truncatedSVD A k) ≤
     Real.sqrt (∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2) := by
   -- ‖A - Aₖ‖₂ ≤ ‖A - Aₖ‖_F = √(Σ tail²)
-  have h_spectral_le_frob := l2_opNorm_le_frobenius (A - Matrix.SVD.truncatedSVD A k)
+  have h_spectral_le_frob := Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect (A - Matrix.SVD.truncatedSVD A k)
   have h_frob_sq := frobenius_error_truncatedSVD_sq A k
   -- ‖A - Aₖ‖_F = √(‖A - Aₖ‖_F²) = √(Σ tail²)
   have h_frob_eq : @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
@@ -437,7 +422,7 @@ theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanS
   calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
         (KroneckerRearrangement.outerProduct u v)
       ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) := l2_opNorm_le_frobenius _
+          (KroneckerRearrangement.outerProduct u v) := Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
     _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
 /-- Tightness bound: spectral ≤ Frobenius for outer products, with equality in Frobenius case. -/
@@ -446,7 +431,7 @@ theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : Eucli
       (KroneckerRearrangement.outerProduct u v) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) :=
-  l2_opNorm_le_frobenius _
+  Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
 
 /-! ### Part B: R⁻¹ Bound Tightness for Kronecker Products
 
@@ -467,7 +452,7 @@ theorem R_inv_bound_achievable_rank1 (u : EuclideanSpace ℂ (m × p)) (v : Eucl
         (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
       ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
+        Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
     _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.outerProduct u v) :=
         R_inv_frobenius_norm_eq _
@@ -484,7 +469,7 @@ theorem R_inv_outerProduct_le_outerProduct_frobenius
         (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
       ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
+        Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
     _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.outerProduct u v) :=
         R_inv_frobenius_norm_eq _
@@ -513,7 +498,7 @@ theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n
     exact hA
   have h_le : @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
               @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A :=
-    l2_opNorm_le_frobenius A
+    Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect A
   rw [ge_iff_le, one_le_div h_spectral_pos]
   exact h_le
 
@@ -531,7 +516,7 @@ theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [No
     (C M : Matrix n' n' ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - M) :=
-  l2_opNorm_le_frobenius _
+  Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
 
 /-- **Key tightness result**: The bound ‖R⁻¹(M)‖₂ ≤ ‖M‖_F is achieved
     when M is a rank-1 outer product, since both sides equal ‖u‖·‖v‖ for the
@@ -551,7 +536,7 @@ theorem bound_tight_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace 
         (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
       ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
+        Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
     _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
           (KroneckerRearrangement.outerProduct u v) :=
         R_inv_frobenius_norm_eq _
@@ -698,7 +683,7 @@ theorem spectral_le_frobenius_with_gap {n' : Type*} [Fintype n'] [DecidableEq n'
     (A : Matrix n' n' ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A :=
-  SpectralGap.l2_opNorm_le_frobenius A
+  Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect A
 
 /-- **Coherence Ratio Bound:**
     For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1,

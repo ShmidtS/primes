@@ -1615,26 +1615,13 @@ theorem kronecker_spectral_le_frobenius {n' : Type*} [Fintype n'] [DecidableEq n
     ‖A - truncatedSVD A k‖₂ ≤ frobeniusNormRect (A - truncatedSVD A k) :=
   spectral_le_frobenius_rect h_dim _
 
-/-- **Correct Coherence-Aware Spectral Bound (Exact):**
+/-- **Correct Coherence-Aware Spectral Bound (Exact) + Improvement Factor:**
 
 The spectral norm equals the Frobenius norm divided by (√rank · coherence):
   ‖E‖₂ = ‖E‖_F / (√rank(E) · μ(E))
-
-This is an EQUALITY that characterizes the spectral-Frobenius relationship.
-- When μ is large (near 1, incoherent): ‖E‖₂ ≈ ‖E‖_F / √rank (large improvement)
-- When μ is small (near 1/√r, coherent): ‖E‖₂ ≈ ‖E‖_F (no improvement) -/
-theorem kronecker_spectral_eq_frobenius_div_coherence {n' : Type*}
-    [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
-    (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
-    ‖A - truncatedSVD A k‖₂ =
-    frobeniusNormRect (A - truncatedSVD A k) /
-    (Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k) :=
-  kronecker_coherent_spectral_bound h_dim A k h_err
-
-/-- **Coherence-Based Improvement Factor:**
-
-The factor by which the spectral bound is tighter than the Frobenius bound is:
+(an EQUALITY; μ large/incoherent -> ‖E‖₂ ≈ ‖E‖_F/√rank, μ small/coherent
+-> ‖E‖₂ ≈ ‖E‖_F). The factor by which the spectral bound is tighter
+than the Frobenius bound is:
   improvement = √rank · μ
 
 When μ = 1 (maximally incoherent): improvement = √rank (best case)
@@ -1647,7 +1634,7 @@ theorem kronecker_coherence_improvement_factor {n' : Type*}
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     frobeniusNormRect (A - truncatedSVD A k) / ‖A - truncatedSVD A k‖₂ =
     Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k := by
-  have h_eq := kronecker_spectral_eq_frobenius_div_coherence h_dim A k h_err
+  have h_eq := kronecker_coherent_spectral_bound h_dim A k h_err
   -- h_eq : ‖E‖₂ = F / (√r · μ)
   -- Goal : F / ‖E‖₂ = √r · μ
   have h_spectral_pos : 0 < ‖A - truncatedSVD A k‖₂ := by

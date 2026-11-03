@@ -812,9 +812,10 @@ noncomputable def frobeniusNorm'' {m' n' : Type*} [Fintype m'] [Fintype n']
 
 /-! ### Helper lemmas: L2 operator norm ≤ Frobenius norm for rectangular matrices -/
 
-/-- **L2 operator norm is bounded by Frobenius norm** for rectangular matrices.
-    This is a fundamental inequality: ‖A‖₂ ≤ ‖A‖_F for any matrix A. -/
-private theorem l2_opNorm_le_frobenius_norm_rect {m' n' : Type*}
+/-- **L2 operator norm is bounded by Frobenius norm** for rectangular
+matrices: ‖A‖₂ ≤ ‖A‖_F for any matrix A (fundamental inequality;
+the private copy in SpectralNormGap was merged here). -/
+theorem l2_opNorm_le_frobenius_norm_rect {m' n' : Type*}
     [Fintype m'] [Fintype n'] [DecidableEq n']
     (A : Matrix m' n' ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
