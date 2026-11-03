@@ -1,10 +1,8 @@
 import Hagi.Unified.AdvanceWitness
-import Hagi.Unified.AlgebraMatrixCore
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Unified.ArchitectureTheorem
 import Hagi.Unified.Assumptions
-import Hagi.Unified.BudgetCore
 import Hagi.Unified.CanonicalParams
 import Hagi.Unified.CapabilityLocal
 import Hagi.Unified.CertUnify
@@ -13,7 +11,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.CertifiedTrajectory
 import Hagi.Unified.CommitGate
 import Hagi.Unified.CompressionArc
-import Hagi.Unified.CoreFacades
+import Hagi.Unified.FacadeLaws
 import Hagi.Unified.CorePremisesDerived
 import Hagi.Unified.CostComposition
 import Hagi.Unified.Ctv2Telescope
@@ -22,7 +20,6 @@ import Hagi.Unified.DescentCore
 import Hagi.Unified.DescentCoreDiag
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.Distillation
-import Hagi.Unified.DynamicsGrowthCore
 import Hagi.Unified.EFArc
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.FannesComplete
@@ -31,9 +28,7 @@ import Hagi.Unified.FunctionalState
 import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.GrandSynthesis
 import Hagi.Unified.GrowthBridge
-import Hagi.Unified.GrowthEnsembleCore
 import Hagi.Unified.HonestTransition
-import Hagi.Unified.InfoDataCore
 import Hagi.Unified.InterpretiveGrowth
 import Hagi.Unified.LearningKernel
 import Hagi.Unified.LinkedQVec
@@ -50,7 +45,6 @@ import Hagi.Unified.ModelComparison
 import Hagi.Unified.NCStepCert
 import Hagi.Unified.NernstFannes
 import Hagi.Unified.RateTheory
-import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.QuadMachine
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.TernaryGrad
@@ -60,7 +54,6 @@ import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.StateTakeoff
 import Hagi.Unified.StepContract
-import Hagi.Unified.StepLaws
 import Hagi.Unified.TopLevel
 
 /-!

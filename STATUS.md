@@ -1275,10 +1275,10 @@
   под капстоуном; opt_objective_monotone_and_bias_bounded —
   монотонность MDL-объектива ∧ измеримость инерционного
   смещения.
-- **Фасад Unified/StepLaws (closure 178/310, 57%)**:
-  теория шага (Step/Runtime/Sparsity, 10 модулей) под
-  капстоуном; step_armijo_and_sgd_stable — достаточное
-  убывание Armijo ∧ строгая стабильность SGD-шага.
+- **Фасады Unified консолидированы в FacadeLaws.lean**
+  (8 файлов слиты в один; реестр A ∧ B-конъюнкций над
+  канонами: armijo_sufficient_decrease + sgd_stable_step и
+  др.).
 - **Фасад Unified/DynamicsLaws (closure 166/309, 54%)**:
   динамика и омнимодальность (12 модулей) под капстоуном;
   dynamics_growth_and_distillation — счётный такофф ∧

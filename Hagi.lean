@@ -70,15 +70,8 @@ import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
-import Hagi.Unified.InfoDataCore
 import Hagi.Unified.CostComposition
-import Hagi.Unified.DynamicsGrowthCore
-import Hagi.Unified.BudgetCore
-import Hagi.Unified.CoreFacades
-import Hagi.Unified.AlgebraMatrixCore
-import Hagi.Unified.GrowthEnsembleCore
-import Hagi.Unified.PretrainOptRobustCore
-import Hagi.Unified.StepLaws
+import Hagi.Unified.FacadeLaws
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
@@ -257,7 +250,6 @@ import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
 import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.MomentBounds
-import Hagi.Probability.PinskerTV
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
 import Hagi.Unified.DerivAlong
