@@ -67,49 +67,41 @@ instance : Zero StepContract := ⟨unit⟩
 def chain {T : ℕ} (cs : Fin T → StepContract) : StepContract :=
   (List.map cs (List.finRange T)).foldr compose unit
 
+/-- GENERIC-ЯДРО: сумма любого поля StepContract по цепочке
+равна сумме по шагам. Три прежние копии (decrease / budgetSpend /
+riskCost) объединены в одну лемму с параметром-проекцией. -/
+theorem chain_field {T : ℕ} (cs : Fin T → StepContract)
+    (f : StepContract → ℝ)
+    (hunit : f unit = 0)
+    (hcomp : ∀ c₁ c₂, f (compose c₁ c₂) = f c₁ + f c₂) :
+    f (chain cs) = ∑ t : Fin T, f (cs t) := by
+  induction T with
+  | zero =>
+      rw [chain]
+      simp [hunit]
+  | succ T ih =>
+      have hfr : List.finRange (T+1) = 0 :: List.map Fin.succ (List.finRange T) := by
+        simp [List.finRange_succ]
+      rw [chain, hfr, List.map_cons, List.foldr_cons, Fin.sum_univ_succ]
+      have h := ih (fun t => cs t.succ)
+      simp only [chain] at h
+      rw [List.map_map, hcomp]
+      exact congrArg (fun x => f (cs 0) + x) h
+
+/-- Сумма доказанных падений по цепочке — сумма по шагам. -/
 theorem chain_decrease {T : ℕ} (cs : Fin T → StepContract) :
-    (chain cs).decrease = ∑ t : Fin T, (cs t).decrease := by
-  induction T with
-  | zero => simp [chain, unit]
-  | succ T ih =>
-      have hfr : List.finRange (T+1) = 0 :: List.map Fin.succ (List.finRange T) := by
-        simp [List.finRange_succ]
-      rw [chain, hfr, List.map_cons, List.foldr_cons, Fin.sum_univ_succ]
-      have h := ih (fun t => cs t.succ)
-      simp only [chain] at h
-      simp only [compose]
-      rw [List.map_map]
-      exact congrArg (fun x => (cs 0).decrease + x) h
+    (chain cs).decrease = ∑ t : Fin T, (cs t).decrease :=
+  chain_field cs StepContract.decrease rfl fun c₁ c₂ => rfl
 
-/-- Бюджетная теорема: суммарный расход — сумма расходов. -/
+/-- Сумма расходов бюджета по цепочке — сумма по шагам. -/
 theorem chain_budget {T : ℕ} (cs : Fin T → StepContract) :
-    (chain cs).budgetSpend = ∑ t : Fin T, (cs t).budgetSpend := by
-  induction T with
-  | zero => simp [chain, unit]
-  | succ T ih =>
-      have hfr : List.finRange (T+1) = 0 :: List.map Fin.succ (List.finRange T) := by
-        simp [List.finRange_succ]
-      rw [chain, hfr, List.map_cons, List.foldr_cons, Fin.sum_univ_succ]
-      have h := ih (fun t => cs t.succ)
-      simp only [chain] at h
-      simp only [compose]
-      rw [List.map_map]
-      exact congrArg (fun x => (cs 0).budgetSpend + x) h
+    (chain cs).budgetSpend = ∑ t : Fin T, (cs t).budgetSpend :=
+  chain_field cs StepContract.budgetSpend rfl fun c₁ c₂ => rfl
 
-/-- Риск цепочки — сумма рисков. -/
+/-- Сумма рисков по цепочке — сумма по шагам. -/
 theorem chain_risk {T : ℕ} (cs : Fin T → StepContract) :
-    (chain cs).riskCost = ∑ t : Fin T, (cs t).riskCost := by
-  induction T with
-  | zero => simp [chain, unit]
-  | succ T ih =>
-      have hfr : List.finRange (T+1) = 0 :: List.map Fin.succ (List.finRange T) := by
-        simp [List.finRange_succ]
-      rw [chain, hfr, List.map_cons, List.foldr_cons, Fin.sum_univ_succ]
-      have h := ih (fun t => cs t.succ)
-      simp only [chain] at h
-      simp only [compose]
-      rw [List.map_map]
-      exact congrArg (fun x => (cs 0).riskCost + x) h
+    (chain cs).riskCost = ∑ t : Fin T, (cs t).riskCost :=
+  chain_field cs StepContract.riskCost rfl fun c₁ c₂ => rfl
 
 /-- ЕДИНАЯ ТЕЛЕСКОПИЧЕСКАЯ ТЕОРЕМА: если потенциал Φ на каждом
 шаге падает на доказанное `decrease` с точностью до

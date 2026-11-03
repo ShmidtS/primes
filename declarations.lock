@@ -620,6 +620,7 @@ chainAt_succ	65fb46250cb65318	f19f5c09e76c9c04
 chain_budget	5608524858a7f94a	c21012a4f973bb10
 chain_decrease	6696a6ba0c1b5627	efd00d203769c349
 chain_feeds_cone	d05569654b3beccc	50c3bc73ae52a0f2
+chain_field	c7a8a5fabbc643f0	4d9cd21c309d431e
 chain_floor	1dab7a344d594ffc	fc1a5d512818170c
 chain_risk	34acf3b39628578f	9d1d140a953b7597
 channel_switch	825ccf4ea293cde6	94b5154584af5310
