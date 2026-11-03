@@ -206,8 +206,13 @@ def riskJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 @[deprecated riskJoint (since := "audit v10 3.5: risk not FLOPs")]
 def costJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 
-/-- The compress-stage gain: zero (no energy gain claimed). -/
-def gainCompress (_S : GrowthState X) : ℝ := 0
+/-- The compress-stage gain: MEASURED energy saving of the
+compression stage (energy before − compressEnergy), not a
+declared zero. If compression does not lower energy, the gain
+is ≤ 0 and the potential bound degrades gracefully to the
+previous conservative form. -/
+def gainCompress (S : GrowthState X) : ℝ :=
+  S.energy - S.effects.compressEnergy
 
 /-- The compress-stage cost `kappa * s / 2 + compressRisk`. -/
 def costCompress (S : GrowthState X) : ℝ :=
@@ -433,8 +438,9 @@ theorem potential_compress (S : GrowthState X)
   have hp : potential (compress S)
       = S.effects.compressEnergy + (S.protectedRisk + S.effects.compressRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
-  have hgc : gainCompress S = 0 := rfl
   have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk := rfl
+  have hgc : gainCompress S = S.energy - S.effects.compressEnergy := rfl
+  have hknn : (0:ℝ) ≤ S.sp.kappa * S.sp.s / 2 := by positivity
   linarith
 
 /-! ### The composed generation -/

@@ -1443,7 +1443,7 @@ gHigh	13cc8127a35ffb6a	9def72b1b7c1e01f
 gLow	334f549189cf0419	3c4ee7a3d9ddf619
 gae_weight_bound	e3af4947ef8fef72	443e10a510de9904
 gae_weight_pos	8134098cc94d1190	aa4c09b8c968a84e
-gainCompress	7e388da02ecc6f32	fde1889edfb57077
+gainCompress	e545f8df40349645	8262030a9896acfa
 gainFromD	92afaf5b8fc78c18	29e5caffaa6f28ea
 gainGrow	804b8419f76219ee	d4605f8710fc94f1
 gainJoint	49af9536981046d3	caec342de4293774
@@ -2911,6 +2911,8 @@ quadf	1cf9a04a218b5333	ca3f1a8bcd4e52b5
 quadfGrad	55ccf3acd8cb04d4	e27b7e94eb37b54f
 quadratic_bound_max	2a76ddb433dcc600	8a65cb6fb9afcfb0
 quantErr	125c3f2ea2cd6ca9	9e513a050035c9e9
+quantErrNorm	0af058073f2241e3	5a8d008e706a89c9
+quantErrNorm_avg_le_half	0ede91c65db89988	89ddd5c20345ced7
 quantLift	eaac01e39ecfebf7	4112fc68564515e2
 quantMat	6df8d365d0cdde42	09e800a5cdb0d816
 quantMat_entry	ea8a6b9800555881	83d91c7cd8cbc53b

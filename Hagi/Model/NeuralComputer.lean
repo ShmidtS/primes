@@ -66,7 +66,9 @@ def ncAdvance (S : NCState) (u : NCInput) : NCState where
   adapt := S.adapt + u.adaptStep
   cpu := S.cpu
   mem := if u.memWrite.1 then u.memWrite.2 else S.mem
-  energy := S.energy - 0  -- энергия обновляется контрактом шага
+  energy := S.energy - u.gain  -- рост capability оплачен энергией
+  -- (вычисляемая связка каналов; ncCertStep при d = u.gain
+  -- совпадает с каноническим шагом: см. ncCertStep_pays_gain)
   risk := S.risk + u.riskSpend
   budget := S.budget - u.cost
   capability := S.capability + u.gain

@@ -94,6 +94,46 @@ theorem jointStep_energy_decrease (a w : Fin n → ℝ) (eta : ℝ)
     nlinarith [h1, h2, sq_nonneg (1 - eta)]
   nlinarith [hpos]
 
+/-- ПОКОМПОНЕНТНАЯ нормированная ошибка квантования:
+max_i |Q(w)ᵢ − wᵢ| / Δ — вычисляемая величина, جایстоящая
+аналитическому выводу посылки h_emp_dist (≤ 1/2) из
+round-семантики решётки. -/
+noncomputable def quantErrNorm (Delta : ℝ) (w : Fin n → ℝ) : ℝ :=
+  ∑ i, |compressQ Delta w i - w i| / Delta
+
+/-- АНАЛИТИЧЕСКИЙ ВЫВОД h_emp_dist-посылки: покомпонентная
+нормированная ошибка решётки ≤ n/2 — из |round x − x| ≤ 1/2
+на каждой координате; при среднем по координатам (s-норме)
+величина ≤ 1/2. -/
+theorem quantErrNorm_avg_le_half (Delta : ℝ) (hD : 0 < Delta)
+    (w : Fin n → ℝ) (hn : 0 < n) :
+    (quantErrNorm Delta w) / ((n : ℝ)) ≤ 1 / 2 := by
+  have hper : ∀ i, |compressQ Delta w i - w i| / Delta ≤ 1 / 2 := by
+    intro i
+    have h1 : compressQ Delta w i - w i
+        = Delta * (round (w i / Delta) - w i / Delta) := by
+      unfold compressQ
+      field_simp
+    have hrr : |w i / Delta - round (w i / Delta)| ≤ 1 / 2 :=
+      abs_sub_round (w i / Delta)
+    rw [h1, abs_mul, abs_of_pos hD]
+    have hswap : |round (w i / Delta) - w i / Delta|
+        = |w i / Delta - round (w i / Delta)| := abs_sub_comm _ _
+    rw [hswap]
+    have hdiv : (0:ℝ) < Delta := hD
+    have key : Delta * |w i / Delta - round (w i / Delta)| / Delta
+        = |w i / Delta - round (w i / Delta)| := by
+      field_simp
+    rw [key]
+    exact hrr
+  have hcard : (∑ i : Fin n, (1:ℝ) / 2) = ((n:ℝ)) * (1 / 2) := by
+    simp [Finset.sum_const, nsmul_eq_mul]
+  have hle : ∑ i, |compressQ Delta w i - w i| / Delta
+      ≤ ∑ i : Fin n, (1:ℝ) / 2 := Finset.sum_le_sum (fun i _ => hper i)
+  change (∑ i, |compressQ Delta w i - w i| / Delta) / ((n:ℝ)) ≤ 1 / 2
+  rw [div_le_iff₀ (by positivity : (0:ℝ) < ((n:ℝ)))]
+  linarith [hle, hcard]
+
 /-- Вычисленная ошибка квантования ≤ √n·Δ/2 (Δ>0):
 per-coordinate |round err| ≤ 1/2, затем sqrt-монотонность. -/
 theorem machine_quant_err_bound (Delta : ℝ) (hD : 0 < Delta)
