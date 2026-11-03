@@ -191,7 +191,7 @@ bound drops the `nu * ε_Q` term. -/
 theorem generalization_safe_step_at_target (S S' : GenState X)
     (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
-    (ε_E ε_Q budget : ℝ)
+    (ε_E budget : ℝ)
     (h_emp_fit : S'.toGrowthState.energy
       ≤ S.toGrowthState.energy - ε_E)
     (h_risk : S'.toGrowthState.protectedRisk
