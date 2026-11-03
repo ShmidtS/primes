@@ -27,26 +27,24 @@ open Hagi.Unified.LinkedQVec
 
 /-- Обучающий переход нейрокомпьютера: как канонический,
 но с честным энергийным спуском. -/
-noncomputable def ncCertStep (S : NCState) (u : NCInput)
-    (d : ℝ) : NCState :=
-  { ncAdvance S u with
-    energy := S.energy - d }
+noncomputable def ncCertStep (S : NCState) (u : NCInput) : NCState :=
+  ncAdvance S u
+  -- d УДАЛЁН: энергийный спад = u.gain ПО ПОСТРОЕНИЮ
+  -- (ncAdvance платит за рост; искусственный d исключён)
 
 /-- Инварианты канонического перехода сохраняются:
 процессор заморожен и при обучающем спуске. -/
-theorem ncCertStep_cpu_frozen (S : NCState) (u : NCInput)
-    (d : ℝ) : (ncCertStep S u d).cpu = S.cpu := rfl
+theorem ncCertStep_cpu_frozen (S : NCState) (u : NCInput) :
+    (ncCertStep S u).cpu = S.cpu := rfl
 
 /-- Бюджетная бухгалтерия обучающего перехода точна. -/
-theorem ncCertStep_budget (S : NCState) (u : NCInput)
-    (d : ℝ) :
-    (ncCertStep S u d).budget = S.budget - u.cost := rfl
+theorem ncCertStep_budget (S : NCState) (u : NCInput) :
+    (ncCertStep S u).budget = S.budget - u.cost := rfl
 
 /-- Энергийный спуск обучающего перехода — точное
 равенство. -/
-theorem ncCertStep_energy (S : NCState) (u : NCInput)
-    (d : ℝ) :
-    (ncCertStep S u d).energy = S.energy - d := rfl
+theorem ncCertStep_energy (S : NCState) (u : NCInput) :
+    (ncCertStep S u).energy = S.energy - u.gain := rfl
 
 /-- ЭНЕРГИЯ ПЛАТИТ ЗА РОСТ (audit v19 §5.4): при спуске
 d = измеренному приросту capability энергия уменьшается
@@ -55,16 +53,16 @@ d = измеренному приросту capability энергия умень
 growEnergy ≤ energy − growGain, здесь в форме равенства
 для certificate-шага). -/
 theorem ncCertStep_pays_gain (S : NCState) (u : NCInput) :
-    (ncCertStep S u u.gain).energy
-      = S.energy - u.gain := rfl
+    (ncCertStep S u).energy = S.energy - u.gain :=
+  ncCertStep_energy S u
 
 /-- Заплативший за рост шаг имеет capability-прирост,
 полностью покрытый энергийным спуском (связка каналов:
 Δcapability = d = Δ(−energy)). -/
 theorem nc_gain_equals_energy_drop (S : NCState)
     (u : NCInput) :
-    (ncCertStep S u u.gain).capability - S.capability
-      = S.energy - (ncCertStep S u u.gain).energy := by
+    (ncCertStep S u).capability - S.capability
+      = S.energy - (ncCertStep S u).energy := by
   simp [ncCertStep, ncAdvance]
 
 /-- Измеритель качества нейрокомпьютера: канал —
@@ -77,77 +75,76 @@ noncomputable def ncMeasured : MeasuredState NCState where
 консервативным комбинированным лимитом: суммарная
 стоимость и риск-трата не превосходят лимит риска). -/
 noncomputable def ncStepCert (S : NCState) (u : NCInput)
-    (d : ℝ) (floor : Fin 5 → ℝ) (riskLim : ℝ)
-    (hd : 0 < d)
+    (floor : Fin 5 → ℝ) (riskLim : ℝ)
+    (hd : 0 < u.gain)
     (hriskLim : u.cost + u.riskSpend ≤ riskLim)
     (hfloor : ∀ i, floor i ≤ S.capability)
     (hgain : 0 ≤ u.gain)
     (hbud : 0 ≤ S.budget)
     (hcost_le : u.cost ≤ S.budget) :
     StepCert (fun St => St.energy) ncMeasured floor riskLim
-      S (ncCertStep S u d) S.budget (ncCertStep S u d).budget
+      S (ncCertStep S u) S.budget (ncCertStep S u).budget
       where
   spend := u.cost
-  trans := ⟨d, hd,
+  trans := ⟨u.gain, hd,
     by
-      show (ncCertStep S u d).energy ≤ S.energy - d
+      show (ncCertStep S u).energy ≤ S.energy - u.gain
       rw [ncCertStep_energy],
     by
       have hr := u.hrisk
       linarith,
     by
-      show (0:ℝ) ≤ (ncCertStep S u d).budget
+      show (0:ℝ) ≤ (ncCertStep S u).budget
       rw [ncCertStep_budget]
       linarith⟩
   hspend_nn := u.hcost
   hdec := by
-    show (ncCertStep S u d).budget
+    show (ncCertStep S u).budget
       ≤ S.budget - u.cost
     rw [ncCertStep_budget]
   quality := by
     intro i
-    have hcap : (ncCertStep S u d).capability
+    have hcap : (ncCertStep S u).capability
         = S.capability + u.gain := rfl
     have hf := hfloor i
     rw [ncMeasured]
-    show floor i ≤ (ncCertStep S u d).capability
+    show floor i ≤ (ncCertStep S u).capability
     rw [hcap]
     have hg := hgain
     linarith
 
 /-- Траектория обучающих переходов. -/
-noncomputable def ncTraj (S : NCState) (u : ℕ → NCInput)
-    (d : ℕ → ℝ) : ℕ → NCState :=
-  fun t => Nat.rec S (fun t' St => ncCertStep St (u t') (d t')) t
+noncomputable def ncTraj (S : NCState) (u : ℕ → NCInput) :
+    ℕ → NCState :=
+  fun t => Nat.rec S (fun t' St => ncCertStep St (u t')) t
 
 /-- Capability вдоль траектории не убывает при
 неотрицательных приростах. -/
 theorem ncTraj_capa_mono (S : NCState) (u : ℕ → NCInput)
-    (d : ℕ → ℝ) (hgain : ∀ t, 0 ≤ (u t).gain) (t : ℕ) :
-    S.capability ≤ (ncTraj S u d t).capability := by
+    (hgain : ∀ t, 0 ≤ (u t).gain) (t : ℕ) :
+    S.capability ≤ (ncTraj S u t).capability := by
   induction t with
   | zero =>
     show S.capability ≤ S.capability
     exact le_refl _
   | succ t ih =>
-    have hstep : ncTraj S u d (t + 1)
-        = ncCertStep (ncTraj S u d t) (u t) (d t) := rfl
+    have hstep : ncTraj S u (t + 1)
+        = ncCertStep (ncTraj S u t) (u t) := rfl
     rw [hstep]
-    have hcap : (ncCertStep (ncTraj S u d t) (u t) (d t)).capability
-        = (ncTraj S u d t).capability + (u t).gain := rfl
+    have hcap : (ncCertStep (ncTraj S u t) (u t)).capability
+        = (ncTraj S u t).capability + (u t).gain := rfl
     rw [hcap]
     have hg := hgain t
     linarith
 
 /-- Процессор заморожен вдоль всей траектории. -/
-theorem ncTraj_cpu_frozen (S : NCState) (u : ℕ → NCInput)
-    (d : ℕ → ℝ) (t : ℕ) :
-    (ncTraj S u d t).cpu = S.cpu := by
+theorem ncTraj_cpu_frozen (S : NCState) (u : ℕ → NCInput) (t : ℕ) :
+    (ncTraj S u t).cpu = S.cpu := by
   induction t with
   | zero => rfl
   | succ t ih =>
-    have hstep : ncTraj S u d (t + 1)
-        = ncCertStep (ncTraj S u d t) (u t) (d t) := rfl
+    have hstep : ncTraj S u (t + 1)
+        = ncCertStep (ncTraj S u t) (u t) := rfl
     rw [hstep, ncCertStep_cpu_frozen]
     exact ih
 
@@ -156,39 +153,39 @@ theorem ncTraj_cpu_frozen (S : NCState) (u : ℕ → NCInput)
 положительном горизонте — процессор остаётся заморожен,
 бюджет честен, качество держится покомпонентно. -/
 theorem nc_loop_horizon (S : NCState) (u : ℕ → NCInput)
-    (d : ℕ → ℝ) (floor : Fin 5 → ℝ) (riskLim : ℝ)
-    (hd : ∀ t, 0 < d t)
+    (floor : Fin 5 → ℝ) (riskLim : ℝ)
+    (hd : ∀ t, 0 < (u t).gain)
     (hriskLim : ∀ t, (u t).cost + (u t).riskSpend ≤ riskLim)
     (hfloor : ∀ i, floor i ≤ S.capability)
     (hgain : ∀ t, 0 ≤ (u t).gain)
-    (hcost_le : ∀ t, (u t).cost ≤ (ncTraj S u d t).budget)
-    (hbud : ∀ t, 0 ≤ (ncTraj S u d t).budget)
+    (hcost_le : ∀ t, (u t).cost ≤ (ncTraj S u t).budget)
+    (hbud : ∀ t, 0 ≤ (ncTraj S u t).budget)
     (n : ℕ) (hn : 1 ≤ n) :
-    (ncTraj S u d n).energy < (ncTraj S u d 0).energy
-      ∧ (ncTraj S u d n).cpu = S.cpu := by
-  have h₀ : FloorKept ncMeasured (ncTraj S u d 0) floor := by
+    (ncTraj S u n).energy < (ncTraj S u 0).energy
+      ∧ (ncTraj S u n).cpu = S.cpu := by
+  have h₀ : FloorKept ncMeasured (ncTraj S u 0) floor := by
     intro i
     have hf := hfloor i
     rw [ncMeasured]
-    show floor i ≤ (ncTraj S u d 0).capability
+    show floor i ≤ (ncTraj S u 0).capability
     exact hf
   have main := certified_loop_strict
     (fun St => St.energy) ncMeasured floor riskLim
-    (ncTraj S u d)
-    (fun t => (ncTraj S u d t).budget)
-    (fun t => d t) n
+    (ncTraj S u)
+    (fun t => (ncTraj S u t).budget)
+    (fun t => (u t).gain) n
     h₀ (hbud 0)
-    (fun t => ncStepCert (ncTraj S u d t.val) (u t.val)
-      (d t.val) floor riskLim (hd t.val) (hriskLim t.val)
+    (fun t => ncStepCert (ncTraj S u t.val) (u t.val)
+      floor riskLim (hd t.val) (hriskLim t.val)
       (by
         intro i
-        have hc := ncTraj_capa_mono S u d hgain t.val
+        have hc := ncTraj_capa_mono S u hgain t.val
         have hf := hfloor i
         linarith)
       (hgain t.val) (hbud t.val) (hcost_le t.val))
     (fun t => rfl)
     hn
-  exact ⟨main.1, ncTraj_cpu_frozen S u d n⟩
+  exact ⟨main.1, ncTraj_cpu_frozen S u n⟩
 
 end Hagi.Unified.NCStepCert
 
