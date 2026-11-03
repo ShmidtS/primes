@@ -59,7 +59,9 @@ namespace Hagi.Model
 -/
 
 /-- Кэп на биты консолидации: запись F бит параметров в
-энергобюджете B при ленандауэровской цене cUnit за бит. -/
+энергобюджете B при ленандауэровской цене cUnit за бит.
+(переадресация на ядро `written_bits_cap`.) -/
+@[deprecated Hagi.Energy.written_bits_cap]
 theorem consolidation_bits_cap (B cUnit F : ℝ) (hcUnit : 0 < cUnit)
     (h_emp_memwrite : cUnit * F ≤ B) :
     F ≤ B / cUnit :=

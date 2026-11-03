@@ -68,6 +68,7 @@ round, not monoliths: the marginal cost of round r is the
 fiber bill, and this advantage is proven, not
 empirical (the round's viability — E_dev > 0 — remains the
  conditional). -/
+@[deprecated Hagi.Architecture.config_storage_beats_dense]
 theorem amortized_growth_cheaper (d r N : ℕ)
     (h : N * r < d) (hd : 0 < d) :
     (N * r) * d < d * d :=

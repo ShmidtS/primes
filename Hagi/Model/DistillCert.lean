@@ -68,8 +68,6 @@ theorem quant_L2 {n : ℕ} (c : DistillCert (n := n)) :
     have h := quant_pointwise c i
     have hnn : (0:ℝ) ≤ c.delta / 2 :=
       div_nonneg (le_of_lt c.hdelta) (by norm_num)
-    have hnn : (0:ℝ) ≤ c.delta / 2 :=
-      div_nonneg (le_of_lt c.hdelta) (by norm_num)
     exact sq_le_sq.mpr (h.trans (le_of_eq (abs_of_nonneg hnn).symm))
   have hsum : ∑ i : Fin n, (c.delta / 2)^2
       = n * (c.delta / 2)^2 := by
