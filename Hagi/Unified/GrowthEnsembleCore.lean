@@ -123,3 +123,4 @@ theorem dual_ceiling (C G D : ℕ → ℝ) (b σ Dbar alpha gamma : ℝ)
     exact h3
   exact (le_div_iff₀ hα).mpr hgateT
 
+end Hagi.Unified

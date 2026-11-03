@@ -88,4 +88,4 @@ theorem budget_waterfill_and_lowrank
   ⟨waterfilling_bound c kappa lam hlam bstar b heq hbudget,
     block_lowrank_lt_dense_iff N h r hh hN⟩
 
-
+end Hagi.Unified

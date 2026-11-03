@@ -194,4 +194,4 @@ theorem data_certified_and_thermodynamic
   ⟨certified_argmax_strict herr hgap,
     partition_cold_limit ℓ hℓ⟩
 
-
+end Hagi.Unified

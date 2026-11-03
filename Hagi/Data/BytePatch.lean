@@ -205,3 +205,4 @@ theorem patchSeq_total_length (s : ℕ → α) (N p : ℕ)
               = p * patchCount N p := Nat.mul_comm _ _
           omega
 
+end Hagi.Data.BytePatch

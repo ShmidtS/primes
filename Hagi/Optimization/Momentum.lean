@@ -857,4 +857,4 @@ theorem anderson_momentum_reach (e : ℕ → ℝ) (θ q β δ : ℝ)
   Hagi.Optimization.momentum_achievability e (θ * q) β δ
     (mul_pos hθ hq) hβ hqb hδ hstep ε hε
 
-
+end Hagi.Optimization

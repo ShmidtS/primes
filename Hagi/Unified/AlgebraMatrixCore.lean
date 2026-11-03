@@ -78,4 +78,4 @@ theorem matrix_svd_nonneg_and_mdl_antitone
   exact ⟨Hagi.External.Flywheel.Matrix.SVD.singularValues_nonneg A i,
     Hagi.External.Flywheel.Hagi.MDL.Rank.mdlErr_antitone A⟩
 
-
+end Hagi.Unified

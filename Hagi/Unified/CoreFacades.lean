@@ -126,3 +126,4 @@ theorem misc_quantized_telescope_and_aitken
   ⟨quantized_descent_telescope x g Δ γ hΔ T hstep,
     aitken_exact Lstar d c L0 L1 L2 h0 h1 h2 hd hc⟩
 
+end Hagi.Unified

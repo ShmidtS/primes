@@ -178,4 +178,4 @@ theorem robust_growth_corridor {X : Type*}
     (tr.state 0).budget hi hσ hδ hη hG (le_of_lt hc) (Nat.cast_nonneg _) hinter
     hlip hnoise hspace hstab hprogress hB
 
-
+end Hagi.Unified

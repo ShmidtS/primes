@@ -440,3 +440,5 @@ theorem gdn2_reset_bound (U : Matrix k d ℝ) (D : Matrix d d ℝ)
     hq0 hq1 (rowSumNorm_nonneg _) hstep t
   rw [h0, mul_zero, zero_add] at h
   simpa [gdn2Iter] using h
+
+end Hagi.External.MemT
