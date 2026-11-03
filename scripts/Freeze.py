@@ -54,13 +54,23 @@ def collect():
                 # FOLLOWING declarations' docstrings (R265 artifact) —
                 # any docstring edit shifted structure hashes.
                 rest = t[m.start():]
+                # End of the declaration = start of the next one
+                # (finditer gives matches in order; use lookahead via
+                # the next match start computed by scanning).
                 if kind in ('structure', 'inductive'):
-                    cut = len(rest)
-                    for opener in (':=', 'where'):
-                        p = rest.find(opener)
-                        if p != -1:
-                            cut = min(cut, p)
-                    stmt = rest[:cut]
+                    # R265+: signature-only hashing made field
+                    # weakening (removing/relaxing proof fields)
+                    # INVISIBLE to the lock. Hash the full body
+                    # (fields) with comments stripped so that pure
+                    # doc edits do not shift hashes.
+                    nxt = m.end()
+                    for m2 in DECL_RE.finditer(t, m.end()):
+                        nxt = m2.start()
+                        break
+                    body = t[m.start():nxt]
+                    body = re.sub(r'/-.*?-/s', '', body, flags=re.S)
+                    body = re.sub(r'--[^\n]*', '', body)
+                    stmt = body
                 else:
                     stmt = rest.split(':=', 1)[0]
                 stmt = ' '.join(stmt.split())
