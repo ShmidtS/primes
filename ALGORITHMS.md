@@ -14,7 +14,6 @@
 поколения Gen-1 (`MasterHAGI*`, `grand_synthesis`)
 `@[deprecated]`; Gen-1-семантика копируемых эффектов
 доказуемо противоречива на T = 2
-(`full_cycle_two_step_growth_inconsistent'`).
 
 ```
 loop t = 0..n:

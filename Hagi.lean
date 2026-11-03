@@ -222,7 +222,6 @@ import Hagi.System.Certificates
 import Hagi.System.DiscreteStep
 import Hagi.System.UnifiedStep
 import Hagi.Examples.Nonvacuity
-import Hagi.Diagnostics.Obstructions
 import Hagi.Unified.Assumptions
 import Hagi.Unified.StateTakeoff
 import Hagi.Architecture.LiveDelta

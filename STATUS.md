@@ -2506,7 +2506,6 @@
   generic-теория спуска больше не привязана к единственной
   изотропной модели.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
-  `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
 - **Изоляция**: MasterHAGI / MasterHAGI_linked / MasterHAGICore /
   MasterHAGI_trunc / grand_synthesis — `@[deprecated]` →
@@ -2546,7 +2545,6 @@
   спуск по worst-neighbor цели переносится на истинную с
   потерей на остроту; `sam_descent_flat` — плоский случай.
 - **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
-  `full_cycle_two_step_growth_inconsistent'` — регрессионный
   тест: копируемые эффекты противоречивы на T = 2.
 - **Изоляция**: MasterHAGI / MasterHAGI_linked / MasterHAGICore /
   MasterHAGI_trunc / grand_synthesis — `@[deprecated]` →
