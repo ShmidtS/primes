@@ -45,59 +45,6 @@ noncomputable def machineStageInput (eta Delta kappa s : ℝ)
   h_risks_nn := by norm_num
   h_eta_pos := heta
 
-/-- ЗВУК МОСТА: если состояние S несёт энергию, ИЗМЕРЕННУЮ
-машиной (S.energy = E(w)), и ledger-факт квантования
-выполнен на ВЫЧИСЛЕННЫХ величинах, то канонический
-`advance_energy_drop` сертифицирует переход — в скалярной
-форме: certified drop = η·d² − η²·d²/2 − κ·s·quantErr,
-при 0 < η ≤ 1 и d ≠ 0 строго положителен. Все слагаемые —
-машинные измерения, ни одного постулата. -/
-theorem machine_advance_certified (eta Delta kappa s : ℝ)
-    (heta : 0 < eta) (hetaL : eta ≤ 1)
-    (S : GrowthState ℝ) (hS : S.energy = energy a w)
-    (hledger : energy a (machineStep a w eta Delta)
-        - energy a (jointStep a w eta)
-      ≤ kappa * s * quantErr Delta (jointStep a w eta)) :
-    energy a (machineStep a w eta Delta)
-      ≤ S.energy - (eta * (w 0 - a 0) * (w 0 - a 0)
-          - eta ^ 2 * (w 0 - a 0) * (w 0 - a 0) / 2
-          - kappa * s * quantErr Delta (jointStep a w eta)) := by
-  have hdrop := advance_energy_drop S
-    (machineStageInput a w eta Delta kappa s heta)
-    (hgain := by
-      simp only [machineStageInput]
-      rw [hS]
-      simp)
-    (hgap0 := by simp [machineStageInput])
-    (hmerge := by simp [machineStageInput])
-    (hL := by simp [machineStageInput])
-    (heta := by
-      simp only [machineStageInput]
-      simpa using hetaL)
-    (hdesc := by
-      simp only [machineStageInput, Real.inner_apply]
-      calc ‖(w 0 - a 0 : ℝ)‖ ^ 2
-          = ‖(w 0 - a 0 : ℝ)‖ * ‖(w 0 - a 0 : ℝ)‖ := by rw [sq]
-        _ = |w 0 - a 0| * |w 0 - a 0| := by rw [Real.norm_eq_abs]
-        _ = (w 0 - a 0) * (w 0 - a 0) := abs_mul_abs_self _
-        _ ≤ (w 0 - a 0) * (w 0 - a 0) := le_refl _)
-    (hjoint := by
-      simp only [machineStageInput, Real.inner_apply]
-      have hE : energy a w = (w 0 - a 0) ^ 2 / 2 := by
-        unfold energy
-        rw [Fin.sum_univ_one]
-      have hn : ‖(w 0 - a 0 : ℝ)‖ ^ 2 = (w 0 - a 0) ^ 2 := by
-        rw [Real.norm_eq_abs, sq_abs]
-      rw [jointStep_energy, hE, hn]
-      nlinarith [sq_nonneg (w 0 - a 0)])
-    (hledger := hledger)
-  simp only [machineStageInput, Real.inner_apply, zero_add,
-    add_zero, Real.norm_eq_abs] at hdrop
-  rw [sq_abs (w 0 - a 0)] at hdrop
-  ring_nf at hdrop ⊢
-  linarith
-
-
 /-! ### Аналитический вывод леджера сжатия (убираем декларацию hledger)
 
 Скалярный case: E(Q(x)) − E(x) = (x−a)·(Q−x) + (Q−x)²/2
@@ -156,12 +103,15 @@ theorem compress_ledger_scalar (a x : Fin 1 → ℝ) (Delta kappa s : ℝ)
       exact mul_le_mul_of_nonneg_right hks (abs_nonneg _)
     _ = kappa * s * quantErr Delta x := by rw [hq]
 
-/-- ПОЛНОСТЬЮ ВЫВЕДЕННЫЙ сертификат: hledger не постулируется,
-а выводится аналитически (разложение квадрата + пер-координатная
-ошибка решётки) при κ·s, покрывающем |x−a| + q/2. -/
-theorem machine_advance_certified_derived
-    (eta Delta kappa s : ℝ) (hD : 0 < Delta)
-    (heta : 0 < eta) (hetaL : eta ≤ 1)
+/-- ЗВУК МОСТА: если состояние S несёт энергию, ИЗМЕРЕННУЮ
+машиной (S.energy = E(w)), и ledger-факт квантования
+выполнен на ВЫЧИСЛЕННЫХ величинах, то канонический
+`advance_energy_drop` сертифицирует переход — в скалярной
+форме: certified drop = η·d² − η²·d²/2 − κ·s·quantErr,
+при 0 < η ≤ 1 и d ≠ 0 строго положителен. Все слагаемые —
+машинные измерения, ни одного постулата. -/
+theorem machine_advance_certified (eta Delta kappa s : ℝ)
+    (hD : 0 < Delta) (heta : 0 < eta) (hetaL : eta ≤ 1)
     (S : GrowthState ℝ) (hS : S.energy = energy a w)
     (hks : |jointStep a w eta 0 - a 0|
       + |compressQ Delta (jointStep a w eta) 0
@@ -170,9 +120,45 @@ theorem machine_advance_certified_derived
     energy a (machineStep a w eta Delta)
       ≤ S.energy - (eta * (w 0 - a 0) * (w 0 - a 0)
           - eta ^ 2 * (w 0 - a 0) * (w 0 - a 0) / 2
-          - kappa * s * quantErr Delta (jointStep a w eta)) :=
-  machine_advance_certified a w eta Delta kappa s heta hetaL S hS
-    (compress_ledger_scalar a (jointStep a w eta) Delta kappa s hD hks)
+          - kappa * s * quantErr Delta (jointStep a w eta)) := by
+  -- леджер сжатия ВЫВЕДЕН, а не декларирован:
+  have hledger := compress_ledger_scalar a (jointStep a w eta)
+    Delta kappa s hD hks
+  have hdrop := advance_energy_drop S
+    (machineStageInput a w eta Delta kappa s heta)
+    (hgain := by
+      simp only [machineStageInput]
+      rw [hS]
+      simp)
+    (hgap0 := by simp [machineStageInput])
+    (hmerge := by simp [machineStageInput])
+    (hL := by simp [machineStageInput])
+    (heta := by
+      simp only [machineStageInput]
+      simpa using hetaL)
+    (hdesc := by
+      simp only [machineStageInput, Real.inner_apply]
+      calc ‖(w 0 - a 0 : ℝ)‖ ^ 2
+          = ‖(w 0 - a 0 : ℝ)‖ * ‖(w 0 - a 0 : ℝ)‖ := by rw [sq]
+        _ = |w 0 - a 0| * |w 0 - a 0| := by rw [Real.norm_eq_abs]
+        _ = (w 0 - a 0) * (w 0 - a 0) := abs_mul_abs_self _
+        _ ≤ (w 0 - a 0) * (w 0 - a 0) := le_refl _)
+    (hjoint := by
+      simp only [machineStageInput, Real.inner_apply]
+      have hE : energy a w = (w 0 - a 0) ^ 2 / 2 := by
+        unfold energy
+        rw [Fin.sum_univ_one]
+      have hn : ‖(w 0 - a 0 : ℝ)‖ ^ 2 = (w 0 - a 0) ^ 2 := by
+        rw [Real.norm_eq_abs, sq_abs]
+      rw [jointStep_energy, hE, hn]
+      nlinarith [sq_nonneg (w 0 - a 0)])
+    (hledger := hledger)
+  simp only [machineStageInput, Real.inner_apply, zero_add,
+    add_zero, Real.norm_eq_abs] at hdrop
+  rw [sq_abs (w 0 - a 0)] at hdrop
+  ring_nf at hdrop ⊢
+  linarith
+
 
 /-! ### Многомерный мост: машина → стадийная семантика (аудит v17 P0-1)
 
