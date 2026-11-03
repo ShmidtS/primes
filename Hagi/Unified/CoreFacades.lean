@@ -16,7 +16,7 @@ import Hagi.Autonomy.TTTStability
 import Hagi.Discovery.PPT
 import Hagi.Ensemble.QFormerBridge
 import Hagi.External.Diversity
-import Hagi.Information.Pinsker
+import Hagi.Probability.PinskerTV
 import Hagi.Numerics.SoftmaxFix
 import Hagi.Omni.OmniState
 import Hagi.Spectral.RankGrowth

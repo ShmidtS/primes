@@ -12,7 +12,7 @@ import Hagi.Energy.EntropyProduction
 import Hagi.Energy.FreeEnergy
 import Hagi.Energy.PoEBound
 import Hagi.Information.Capacity
-import Hagi.Information.Pinsker
+import Hagi.Probability.PinskerTV
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.RobustnessLaw
 import Hagi.Probability.PinskerTV

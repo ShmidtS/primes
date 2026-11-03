@@ -80,7 +80,7 @@ import Hagi.Unified.GrowthEnsembleCore
 import Hagi.Unified.PretrainOptRobustCore
 import Hagi.Unified.StepLaws
 import Hagi.Information.Capacity
-import Hagi.Information.Pinsker
+import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
