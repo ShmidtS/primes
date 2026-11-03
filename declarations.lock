@@ -166,6 +166,7 @@ OrthProjPair	345f0c60d43cd942	0790f90a54ce1fde
 OrthRows	0ea77f5f677d63f7	717347d618369d90
 PerBlockLayer	419dbbd9eeec95c5	3992fd92a8213d21
 PosSemidef_eigenvalues	b20993cec005116b	0913fd3a6f8a626b
+Productive	fde93eff0e1fb22c	8c8f8cfe7491faba
 QMatrix	a74fb1454bbf8f3d	ea666cb1879047e5
 Qentry	067d69377dc344e9	382a082f8c0ec28a
 Qgen	4cc87e6d745b64b2	8cb95983fc96e2b9
@@ -872,6 +873,7 @@ ctv2Honest	e1239cea49826113	89b1a501b6611a53
 ctv2_contract	e57d46ba98d03e61	7561bdcbacc312d2
 ctv2_family_telescope	f4d81070f9fa1bd6	ee00e1d23b021105
 ctv2_of_ct	4cd23e139442796b	b62cd8ae03611caa
+ctv3_idle_contra	d55bab282379d5c3	b355467aeffe781b
 ctv3_of_actualDescent	5148aa1277610fd1	8c2b3cbb73b47b4b
 ctv3_of_stageLaws	726a18546fad1858	f77aa1a3b122fee0
 ctv3_sound	6c1c2df9fbf7ed27	53255cc5288390d7
@@ -1814,6 +1816,7 @@ idleTraj	b40dd55c2d7eac58	684420d8c3965f9b
 idle_Qgen_zero	4d637a8fdcc5c484	68dc5b1854bc9391
 idle_cycle_fixed	adad8db8f3728838	0006d1d8d95a7f64
 idle_merge_zero_gap	3aeef28a5269c3fd	b36aa5fd2fe12343
+idle_not_productive	a5f9ead63d453b00	8597a2ad125bf2b4
 ift_normalization	482a0aa7ae673b4d	fe6297f92d6316ff
 ignitionCeiling	73ee8ca948e038c8	240b003ecef6ebc5
 ignitionCeiling_pos	ee2eb8b2897b6c1c	2a281adcb0501124
@@ -2760,6 +2763,7 @@ prod_le_prod_real	9d52f1304c21aef3	865c36e5f88d3cac
 prod_singularValues_eq_abs_det	3e72cc89138898ad	ca5de437b57d58d8
 prod_sqrt_eq_sqrt_prod	7b86d00c604abb6b	6dcc9ec1dbd3ef76
 prod_two_sel	d34abc8af9b01b15	1703c8ef2550dccd
+productive_of_ctv3	415df17444bfbcd2	87d3df63be2a613d
 proj	5f46625761aa7967	e5c47469cb409e3e
 projResidual	b1ce3d39a8f2e4ff	1e4ac038695db547
 projResidual_le_norm	9eb389d733e5e211	ed9fde49a36935a7
