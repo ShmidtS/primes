@@ -2,8 +2,8 @@
 
 ## Корпус
 
-- 438 Lean-модулей в `Hagi/`; 3848 деклараций (Freeze);
-  3000 theorem/lemma; 0 sorry; 0 кастомных аксиом
+- 399 Lean-модулей в `Hagi/`; 3919 деклараций (Freeze);
+  0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
   NsLint, DocLint, LayerLint, Freeze, AssumptionScan,
