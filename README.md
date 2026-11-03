@@ -93,7 +93,8 @@ Gen-3 statement (`master_hagi_challenge_v3`).
 The old flat Gen-1 capstones (`MasterHAGI*`,
 `grand_synthesis`) are `@[deprecated]`: the copied-effects
 semantics is provably inconsistent at T = 2
-(`Hagi.Diagnostics.Obstructions`).
+(the obstruction is documented in the audit trail; the module
+was removed as a verbatim wrapper).
 
 ## Build and checks
 

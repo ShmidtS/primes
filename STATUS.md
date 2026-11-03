@@ -555,13 +555,14 @@
   gdn_transpose_is_ramWrite (транспонированная delta-запись
   = ramWrite из GDNRAM — мост реальной архитектуры к
   абстрактной RAM-семантике).
-- **TransitionContract (P1-миграция v3**: мост
-  CertifiedTransitionV2 → StepContract: ctContract (decrease
-  = verify-сертификат, risk = Σ эффект-рисков ≥ 0, budget =
-  Σ стоимостей), ctv2_contract (rfl-связка), ctRisk_covers
-  (ΔR ≤ riskCost контракта — safety-бухгалтерия накрывает
-  реальный прирост риска). Единая trajectory_convergence
-  теперь применима к реальным переходам напрямую.
+- **TransitionCert (консолидация)**: единый сертификат
+  перехода TransitionCert (generic State) + телескоп
+  certs_telescope; мост CertifiedTransitionV2 → StepContract
+  (ctContract, ctv2_contract, ctRisk_covers) перенесён внутрь
+  Hagi/Unified/TransitionCert.lean (файл
+  TransitionContract.lean удалён). Единая
+  trajectory_convergence применима к реальным переходам
+  напрямую.
 - **CautiousOptimizer (источник №78: 2411.16085
   №245)**: cautiousMask (сохранять только компоненты update,
   согласованные со знаком градиента): cautiousMask_abs_le
@@ -2455,7 +2456,7 @@
   математические фундаменты).
 - **Closure 97% — смысловое замыкание завершено**:
   зарегистрированы компаратор MasterChallengeV3,
-  изолятор Obstructions, свидетели Examples — 443/455
+  свидетели Examples — 443/455
   (97%); оставшиеся 12 — честные изоляты (мат-кирпичи
   Core/Geometry/Percolation/External без потребителей,
   Class D/E по LeafClassify).
@@ -2505,8 +2506,9 @@
   кривизна, L = cMax, ТОЧНОЕ разложение diag_descent_eq):
   generic-теория спуска больше не привязана к единственной
   изотропной модели.
-- **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
-  тест: копируемые эффекты противоречивы на T = 2.
+- **Обструкция Gen-1**: тест «копируемые эффекты противоречивы
+  на T = 2» (модуль-обёртка Diagnostics/Obstructions удалён;
+  результат задокументирован в audit trail).
 - **Изоляция**: MasterHAGI / MasterHAGI_linked / MasterHAGICore /
   MasterHAGI_trunc / grand_synthesis — `@[deprecated]` →
   `certified_loop`.
@@ -2544,8 +2546,9 @@
 - **SAM (в составе Unified/SignDescent.lean)**: `sam_descent_bridge` —
   спуск по worst-neighbor цели переносится на истинную с
   потерей на остроту; `sam_descent_flat` — плоский случай.
-- **Обструкция Gen-1 (Diagnostics/Obstructions.lean)**:
-  тест: копируемые эффекты противоречивы на T = 2.
+- **Обструкция Gen-1**: тест «копируемые эффекты противоречивы
+  на T = 2» (модуль-обёртка Diagnostics/Obstructions удалён;
+  результат задокументирован в audit trail).
 - **Изоляция**: MasterHAGI / MasterHAGI_linked / MasterHAGICore /
   MasterHAGI_trunc / grand_synthesis — `@[deprecated]` →
   `certified_loop`.
