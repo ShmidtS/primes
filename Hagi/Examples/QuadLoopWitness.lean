@@ -112,7 +112,8 @@ noncomputable def halfStepCert (a x : k → ℝ) (hx : quadGrad a x ≠ 0)
     (t : ℕ) :
     StepCert (fun w => quadE a w) (quadMeasured a) (quadFloor a x) 0
       (qhalf a x t) (qhalf a x (t + 1)) 0 0 where
-  spend := 0
+  riskSpend := 0
+  budgetSpend := 0
   trans := ⟨(3 : ℝ) / 4 * quadE a (qhalf a x t),
     mul_pos (by norm_num)
       (quadE_pos_of_grad a (qhalf a x t) (qhalf_grad_ne a x hx t)),
@@ -125,7 +126,8 @@ noncomputable def halfStepCert (a x : k → ℝ) (hx : quadGrad a x ≠ 0)
       ring_nf
       linarith,
     le_refl 0, le_refl 0⟩
-  hspend_nn := le_refl 0
+  hriskSpend_nn := le_refl 0
+  hbudgetSpend_nn := le_refl 0
   hdec := by norm_num
   quality := by
     intro i

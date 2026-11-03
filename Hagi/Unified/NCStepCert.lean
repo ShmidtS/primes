@@ -85,19 +85,22 @@ noncomputable def ncStepCert (S : NCState) (u : NCInput)
     StepCert (fun St => St.energy) ncMeasured floor riskLim
       S (ncCertStep S u) S.budget (ncCertStep S u).budget
       where
-  spend := u.cost
+  riskSpend := u.riskSpend
+  budgetSpend := u.cost
   trans := ⟨u.gain, hd,
     by
       show (ncCertStep S u).energy ≤ S.energy - u.gain
       rw [ncCertStep_energy],
     by
       have hr := u.hrisk
-      linarith,
+      have hc := u.hcost
+      linarith [hriskLim, u.cost, hr, hc],
     by
       show (0:ℝ) ≤ (ncCertStep S u).budget
       rw [ncCertStep_budget]
       linarith⟩
-  hspend_nn := u.hcost
+  hriskSpend_nn := u.hrisk
+  hbudgetSpend_nn := u.hcost
   hdec := by
     show (ncCertStep S u).budget
       ≤ S.budget - u.cost

@@ -39,7 +39,7 @@ theorem master_hagi_challenge_v3 {S : Type*}
         (b t.val) (b (t.val + 1)))
     (hdrops : ∀ t : Fin n,
       drops t.val = (certs t).trans.objectiveDrop)
-    (hspends : ∀ t : Fin n, spends t.val = (certs t).spend)
+    (hspends : ∀ t : Fin n, spends t.val = (certs t).budgetSpend)
     (hn : 1 ≤ n) :
     -- ЗАКЛЮЧЕНИЕ (прописано, не делегировано):
     obj (f n) < obj (f 0)

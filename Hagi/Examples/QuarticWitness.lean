@@ -92,14 +92,16 @@ theorem qFloor_kept (w : Fin 2 → ℝ) (hle : qE w ≤ qE w0)
 бюджета и лимитом риска. -/
 noncomputable def qCert1 : StepCert qE qMeasured qFloor (1/2)
     w0 w1 10 (19/2) where
-  spend := 1/2
+  riskSpend := 1/2
+  budgetSpend := 1/2
   trans := ⟨2, by norm_num,
     by
       rw [qE_w0, qE_w1]
       norm_num,
     by norm_num,
     by norm_num⟩
-  hspend_nn := by norm_num
+  hriskSpend_nn := by norm_num
+  hbudgetSpend_nn := by norm_num
   hdec := by norm_num
   quality := by
     intro i
@@ -109,7 +111,8 @@ noncomputable def qCert1 : StepCert qE qMeasured qFloor (1/2)
 бюджета и лимитом риска. -/
 noncomputable def qCert2 : StepCert qE qMeasured qFloor (1/2)
     w1 w2 (19/2) 9 where
-  spend := 1/2
+  riskSpend := 1/2
+  budgetSpend := 1/2
   trans := ⟨2/5, by norm_num,
     by
       rw [qE_w1]
@@ -118,7 +121,8 @@ noncomputable def qCert2 : StepCert qE qMeasured qFloor (1/2)
       linarith,
     by norm_num,
     by norm_num⟩
-  hspend_nn := by norm_num
+  hriskSpend_nn := by norm_num
+  hbudgetSpend_nn := by norm_num
   hdec := by norm_num
   quality := by
     intro i

@@ -39,15 +39,20 @@ variable {S : Type*}
 structure StepCert (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
     (s s' : S) (bt b' : ℝ) where
-  /-- Затраты шага. -/
-  spend : ℝ
-  /-- Честный переход: спуск зависим от исполнения. -/
-  trans : HonestTransition obj s s' spend riskLim spend b'
-  /-- Затраты неотрицательны (строгое предположение —
-  исключает «отрицательные затраты», ломающие телескоп). -/
-  hspend_nn : 0 ≤ spend
-  /-- Бюджет невозрастает с учётом затрат. -/
-  hdec : b' ≤ bt - spend
+  /-- Риск-трата шага (НЕЗАВИСИМЫЙ канал: риск ≠ бюджет,
+  spec P0-3.2 — запрет отождествления risk и compute cost). -/
+  riskSpend : ℝ
+  /-- Бюджетная (вычислительная) трата шага. -/
+  budgetSpend : ℝ
+  /-- Честный переход: спуск зависим от исполнения;
+  риск-канал — riskSpend. -/
+  trans : HonestTransition obj s s' riskSpend riskLim budgetSpend b'
+  /-- Риск-трата неотрицательна. -/
+  hriskSpend_nn : 0 ≤ riskSpend
+  /-- Бюджетная трата неотрицательна. -/
+  hbudgetSpend_nn : 0 ≤ budgetSpend
+  /-- Бюджет невозрастает с учётом БЮДЖЕТНОЙ траты. -/
+  hdec : b' ≤ bt - budgetSpend
   /-- Покомпонентное качество сохранено. -/
   quality : FloorKept M s' floor
 
@@ -63,7 +68,7 @@ theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
     (hdrops : ∀ t : Fin n,
       drops t.val = (certs t).trans.objectiveDrop)
     (hspends : ∀ t : Fin n,
-      spends t.val = (certs t).spend) :
+      spends t.val = (certs t).budgetSpend) :
     ∑ t ∈ Finset.range n, drops t ≤ obj (f 0) - obj (f n)
       ∧ FloorKept M (f n) floor
       ∧ 0 ≤ b n
@@ -83,9 +88,9 @@ theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
       hdrops (Fin.last n)
     have hn1' : drops n = (certs (Fin.last n)).trans.objectiveDrop :=
       hn1
-    have hn2 : spends n = (certs (Fin.last n)).spend :=
+    have hn2 : spends n = (certs (Fin.last n)).budgetSpend :=
       hspends (Fin.last n)
-    have hn2' : spends n = (certs (Fin.last n)).spend :=
+    have hn2' : spends n = (certs (Fin.last n)).budgetSpend :=
       hn2
     obtain ⟨h1, h2, h3, h4⟩ := ih
       (fun t => certs t.castSucc)
@@ -95,7 +100,7 @@ theorem certified_loop (obj : S → ℝ) (M : MeasuredState S)
         ≤ obj (f n) - (certs (Fin.last n)).trans.objectiveDrop :=
       hdrop
     have hbb2 : 0 ≤ b (n + 1) := hbb
-    have hbd2 : b (n + 1) ≤ b n - (certs (Fin.last n)).spend := hbd
+    have hbd2 : b (n + 1) ≤ b n - (certs (Fin.last n)).budgetSpend := hbd
     have hq2 : FloorKept M (f (n + 1)) floor := hq
     refine ⟨?_, hq2, hbb2, ?_⟩ <;> linarith
 
@@ -111,7 +116,7 @@ theorem certified_loop_all (obj : S → ℝ) (M : MeasuredState S)
     (hdrops : ∀ t : Fin n,
       drops t.val = (certs t).trans.objectiveDrop)
     (hspends : ∀ t : Fin n,
-      spends t.val = (certs t).spend) :
+      spends t.val = (certs t).budgetSpend) :
     ∀ t ≤ n, FloorKept M (f t) floor := by
   intro t ht
   induction n generalizing t with
@@ -162,9 +167,9 @@ theorem certified_loop_strict (obj : S → ℝ) (M : MeasuredState S)
     obj (f n) < obj (f 0) ∧
       ∑ t ∈ Finset.range n, drops t ≤ obj (f 0) - obj (f n) := by
   set spends : ℕ → ℝ :=
-    fun t => if h : t < n then (certs ⟨t, h⟩).spend else 0 with hsp_def
+    fun t => if h : t < n then (certs ⟨t, h⟩).budgetSpend else 0 with hsp_def
   have hspends : ∀ t (ht : t < n),
-      spends t = (certs ⟨t, ht⟩).spend := by
+      spends t = (certs ⟨t, ht⟩).budgetSpend := by
     intro t ht
     rw [hsp_def]
     simp only [dif_pos ht]

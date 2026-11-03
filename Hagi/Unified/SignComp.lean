@@ -173,7 +173,8 @@ noncomputable def signStepCert (a x : k → ℝ)
     StepCert (fun w => quadE a w) (quadMeasured a) floor riskLim
       x (x - fun i => eta * (signStep a x i))
       (fullCommCost k) (fullCommCost k - signCommCost k) where
-  spend := signCommCost k
+  riskSpend := signCommCost k
+  budgetSpend := signCommCost k
   trans := ⟨signDrop a x eta,
     signDrop_pos a x hx eta heta hetaL,
     by
@@ -187,7 +188,10 @@ noncomputable def signStepCert (a x : k → ℝ)
       unfold fullCommCost signCommCost
       have hn : (0:ℝ) ≤ (Fintype.card k : ℝ) := by positivity
       linarith⟩
-  hspend_nn := by
+  hriskSpend_nn := by
+    unfold signCommCost
+    positivity
+  hbudgetSpend_nn := by
     unfold signCommCost
     positivity
   hdec := by

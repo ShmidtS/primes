@@ -47,10 +47,10 @@ noncomputable def scOf (obj : S → ℝ) (M : MeasuredState S)
     StepContract where
   decrease := c.trans.objectiveDrop
   riskCost := 0
-  budgetSpend := c.spend
+  budgetSpend := c.budgetSpend
   hDecreasePos := le_of_lt c.trans.objectiveDrop_pos
   hRiskNonneg := le_refl 0
-  hBudgetNonneg := c.hspend_nn
+  hBudgetNonneg := c.hbudgetSpend_nn
 
 /-- Посылка h_step старого телескопа ВЫВОДИМА из
 StepCert-цепочки (riskCost = 0: риск уже учтён в
