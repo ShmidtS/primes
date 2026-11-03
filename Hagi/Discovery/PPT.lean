@@ -772,9 +772,7 @@ hence Pr[good] ≤ Pr[S=1] + Pr[reject-good] + Pr[overrun]. Honest and
 explicit: every way a good sample fails to become a success is one of
 the two named failure channels. -/
 theorem pptSuccess_union_bound (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → Seq)
-    (verOK budOK : Set Ω)
-    (_h_emp_good : MeasurableSet {ω | gamma ≤ V (sample ω)})
-    (_h_emp_ver : MeasurableSet verOK) (_h_emp_bud : MeasurableSet budOK) :
+    (verOK budOK : Set Ω) :
     nu.real {ω | gamma ≤ V (sample ω)}
       ≤ nu.real (pptSuccess V gamma sample verOK budOK)
         + nu.real (pptRejectGood V gamma sample verOK)
@@ -818,14 +816,11 @@ Pr[S_t = 1] ≥ p − Pr[verifier rejects a good sample]
 − Pr[budget overrun on a good sample]. -/
 theorem pptSuccess_lower (V : Seq → ℝ) (gamma : ℝ) (sample : Ω → Seq)
     (verOK budOK : Set Ω) (p : ℝ)
-    (h_emp_good : MeasurableSet {ω | gamma ≤ V (sample ω)})
-    (h_emp_ver : MeasurableSet verOK) (h_emp_bud : MeasurableSet budOK)
     (hmass : p ≤ nu.real {ω | gamma ≤ V (sample ω)}) :
     p - nu.real (pptRejectGood V gamma sample verOK)
       - nu.real (pptOverrun V gamma sample budOK)
       ≤ nu.real (pptSuccess V gamma sample verOK budOK) := by
   have hub := pptSuccess_union_bound nu V gamma sample verOK budOK
-    h_emp_good h_emp_ver h_emp_bud
   linarith
 
 end Success

@@ -1,11 +1,11 @@
 h_emp files: 44
-h_emp identifiers: 137
+h_emp identifiers: 134
 h_emp proven theorems: 5
 primitive defs: 10
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
-Hagi/Discovery/PPT.lean: h_emp_bud h_emp_dist h_emp_fiber h_emp_good h_emp_meas h_emp_single h_emp_ver
+Hagi/Discovery/PPT.lean: h_emp_dist h_emp_fiber h_emp_meas h_emp_single
 Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
 Hagi/Energy/STEStep.lean: h_emp_res
 Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
