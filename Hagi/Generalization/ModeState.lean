@@ -196,7 +196,6 @@ theorem generalization_safe_step_at_target (S S' : GenState X)
       ≤ S.toGrowthState.energy - ε_E)
     (h_risk : S'.toGrowthState.protectedRisk
       - S.toGrowthState.protectedRisk ≤ budget)
-    (_h_emp_G : Qgen S.gen w - ε_Q ≤ Qgen S'.gen w)
     (htgt : Qtarget ≤ Qgen S'.gen w) :
     hagiPotential S' lam nu Qtarget w
       ≤ hagiPotential S lam nu Qtarget w - ε_E + lam * budget := by
