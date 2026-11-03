@@ -162,6 +162,27 @@ theorem ste_step_residual (gradStep s wdelta : ℝ)
   rw [h2] at h1
   linarith
 
+/-- ТЕРНАРНАЯ ИНСТАНЦИРОВКА STE-ШАГА: если эффективное
+изменение веса — тернарное округление градиентного шага на
+сетке s (wdelta = s·tern(gradStep/s), |gradStep/s| ≤ 1),
+то посылка-остаток ВЫВЕДЕНА из tern_distortion_round
+(|x − tern x| ≤ 1/2), а не декларирована. -/
+theorem ste_residual_of_tern (gradStep s : ℝ)
+    (hs : 0 < s)
+    (hin : -(1:ℝ) ≤ gradStep / s) (hin2 : gradStep / s ≤ 1) :
+    abs (s * tern (gradStep / s) - gradStep) ≤ s / 2 := by
+  have h := tern_distortion_round (gradStep / s) hin hin2
+  have hscale : s * tern (gradStep / s) - gradStep
+      = -(s * (gradStep / s - tern (gradStep / s))) := by
+    have hcancel : s * (gradStep / s) = gradStep :=
+      mul_div_cancel₀ gradStep (ne_of_gt hs)
+    have hrew : s * (gradStep / s - tern (gradStep / s))
+        = s * (gradStep / s) - s * tern (gradStep / s) := by ring
+    rw [hrew, hcancel]
+    ring
+  rw [hscale, abs_neg, abs_mul, abs_of_pos hs]
+  nlinarith [h, hs]
+
 -- (ste_terminal_ball REMOVED round-65: the linter caught it as
 -- a conclusion-equals-hypothesis restatement; the terminal-ball
 -- content lives in ste_step_residual's docstring and bound.)
