@@ -92,3 +92,11 @@ Spectral-модулях).
 коммиты прошли sorry-гейт (rg=0). Ловушка Mathlib-снапшота:
 one_le_pow_of_one_le' ведёт к unbundled-версии (MulLeftMono ℝ не
 синтезируется) — 1≤Lⁿ доказывается локальной индукцией.
+
+## TD-07 исправен (цикл 14, 2026-11-02)
+
+scOf больше не сбрасывает риск: riskCost := c.riskSpend,
+hRiskNonneg := c.hriskSpend_nn (реальный расход риска в
+контракте). tc_step_of_stepcert и tc_consequence
+переформулированы честно: итог ослаблён на Σ riskSpend
+(раньше «Σ riskCost = 0» — скрытая потеря информации о риске).
