@@ -83,6 +83,7 @@ import Hagi.Learning.HadamardProjectors
 import Hagi.Learning.HRCN
 import Hagi.Learning.FOOF
 import Hagi.Learning.RegCovPD
+import Hagi.Learning.TernaryPert
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery

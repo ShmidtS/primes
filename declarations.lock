@@ -900,6 +900,7 @@ crossModalGap_pos_of_dep	808d620ec9967377	74c4810bb01c77bf
 crossModalGap_zero_iff_indep	d2ba39722e516f35	11a0dd3fb7b9d925
 crossing	4421370b25785ccc	338d77bb89b7859c
 crossing_mono	5d92a181b5680fa4	c799fbf72657698e
+cs_dotProduct	635e5384b4017704	7560e59d14c41201
 ctContract	c82f2837e58c0e7f	fcfa5adbe126c794
 ctRisk_covers	b76d1ff834d3c9c1	bad1da75c83aab39
 ctv2Honest	e1239cea49826113	89b1a501b6611a53
@@ -1240,6 +1241,7 @@ etaState	8d5423d3e9d5e755	54bbbae377f89f82
 eta_pos_of_advance	f191890dc58b9463	1743718363ccdcaf
 eta_star_exceeds_cap	ffce336dcf34e88e	553a1915f266e9ab
 euclid_sum_bounds	b1dda54b30b5b1ab	687a102622c88a33
+eunorm	e66bba8b995aee24	eb4d3f8be78c1424
 evalCapa	5502a816d6dccb6c	05c48cb753c0b834
 evalCapa_bounds	5e4eb33b2cd97b23	7a03141583ac9c0f
 evaluate	b1701e5a0e887a5a	e1ff7580a3af4109
@@ -1411,6 +1413,7 @@ frobVector_inner	99bb021cb27316f9	04c60d583e93fc9a
 frobVector_norm	e303f3bea419dda9	bb9d8deb589acc8e
 frobVector_sub	a5262ef3588dcb0e	9eaba663d9ee0822
 frob_minkowski	43df997112888e3f	93644eeed86ec9a6
+frob_submul	11fc7c1cb28f28ba	5111e8700ba4c602
 frob_sum_le	94a87550e823b66c	8b711009634647d6
 frobeniusNorm'	52419e50bf85d24b	2bf027e0f810eed0
 frobeniusNorm''	3412bc3fb8b066f9	f2314c38dbd59fa4
@@ -2603,6 +2606,7 @@ orthogonal_noise_averaging	d02ebf153d39f656	7c04512c25117124
 orthogonal_preserves_grad_dist	6a9d5751515dec92	c3b076b60d0cdd3e
 orthogonal_zero_interference	edab87410b118078	f7dbc427b685ee15
 orthonormal_mulVec_isometry	f0f6efee6c5300c5	3b6c33a5f82fa5f0
+outNorm	1b34e9f522e3b753	d3461c83ff21115f
 outer	5b55f2b87bfd754c	a4c384f54229bd15
 outer	af833f989b04a331	80a377513afa880a
 outerP	f5718a4e8102f8a7	12221febb2f9ca3b
@@ -3234,6 +3238,7 @@ rowSumNorm_mul_le	7fb0c0c90a75a1b6	3e43e1d0396863c2
 rowSumNorm_nonneg	be5aa80208963bc5	c314adad3d401b79
 rowSumNorm_sub_le	02653723b2860c48	1cfb899900dd7468
 rowTop	fe9ddf7cb1c6b217	54f527e4a29980db
+rowVec	0067200f55ec711e	14d700a2aa631cbc
 row_output_bound	af4b831c30f5b1b4	8ff5cf46e2d0d53a
 rpow_tendsto_zero	957978e30f97dabf	65e0c31bfbea5f96
 rsi_cone_criterion	0a22bea0363cea80	0785923b5091c345
@@ -3698,6 +3703,7 @@ ternaryStepCert	1508f9b9701f6890	8e249507ef3e29a4
 ternary_beats_binary	4a9a0f129ccfad22	4d0dc81a2e2e4b4b
 ternary_factor_qerr_bound	d686340d50992b43	a1bff58cc4e01ae0
 ternary_inrange_bound	a064bd1606974d72	e18ee0309ddf5322
+ternary_layer_pert	83bc57fbf2cb6306	8f7e0cca5800d150
 ternary_pair_qerr_sum	41584bf02e0672ac	fd9462832a9d671e
 ternary_split_bound	b2dd1e9f8a59d699	c2e54d5be0711af9
 ternary_split_le	65cab769869187a8	01abf85fe2649422
