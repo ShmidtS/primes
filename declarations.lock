@@ -1085,6 +1085,8 @@ drift_solution	529835d1564a9409	b044b524af83f017
 drift_total_variation	038567da7dd16970	93359f0d5a45d990
 drift_zero	db6fd6a929ec0add	960f4c26c43bf407
 dsum	641b8d4973dbfbbd	8b2d6273631559e9
+dualW	270b09fa183c0cba	2439a31d9e7db91d
+dual_apply	d4b3519c63e1cc45	3344604747333759
 dual_ceiling	61580960621b8181	4a1009b00488b142
 dustAlignment	c3866d2620ca71e8	4a73811e8ebcea02
 dustAlignmentK	187e374317528eed	d2e38ebd5c155eea
@@ -1283,6 +1285,7 @@ experience_cycle_bound	704e43b0821cb54f	7dbf95b5757be3da
 expert_residual_not_compressible	e7698c84b31b607f	b3509876cb120ca7
 experts_pays_budget	dca22d96d5640fba	9268308d925b89ad
 expm1_form_diff	4c14e34d822f4b9d	468f08979898f15d
+expw	e6b64f930190c08e	d1a0de2ded4d52b7
 extendedONB	26c688ba94758185	f5a9fa6fda473dd7
 extendedONB_real	6677a0efeb71b89c	37170cfc23e748e5
 extendedONB_real_spec	854f3609d2efa343	60af0abc85873dde
@@ -1506,6 +1509,7 @@ gate_retention	851bc019f220d45a	ee9bd5591a8c4a72
 gate_success_multiplier	bf857dc552c45c00	970142ddc5f9e7db
 gating_tail_bound	f13f64426ceafb59	5a85e2e0e998c76e
 gauge_equiv_comp	d12dccddf7777777	8451b1e7ecbf1add
+gauge_shift	7918cc4e73886c2e	77cad8106ccf5f6c
 gc	9c8cdb0ebbd04d40	52a303569b91ac23
 gc_const_zero	f0c28dc050b18748	94ae5c66b33de2fa
 gc_norm_le	a9afa35751c684ce	34e61c0a849bcd1a
@@ -2580,6 +2584,7 @@ orthogonal_preserves_grad_dist	6a9d5751515dec92	c3b076b60d0cdd3e
 orthogonal_zero_interference	edab87410b118078	f7dbc427b685ee15
 orthonormal_mulVec_isometry	f0f6efee6c5300c5	3b6c33a5f82fa5f0
 outer	5b55f2b87bfd754c	a4c384f54229bd15
+outer	af833f989b04a331	80a377513afa880a
 outerP	f5718a4e8102f8a7	12221febb2f9ca3b
 outerProd	76729dc63a64e599	6df5c4403d27a768
 outerProduct	1891715a90ad7f3b	7ff4aa932b9ce59e
@@ -3952,6 +3957,7 @@ waterfilling_optimal	054aa6ac52403960	edad0f6af236d6c7
 wd_boundedness	ae691fed28008c25	3a21498767f189e0
 wd_norm_bound	617f647ba5470f36	46529427da0854bd
 weightedResidual	7acca7903ddb810e	0fb991a5f1fed635
+weightedSoftmax	52fc025e5f08d7fe	da181a6a82022f08
 weighted_center_le	9d35568e9d55c21d	a42d520d1125e0ef
 weighted_var_bound	1056c18ade459ed0	ccc6831c5ba0ce4f
 welch_bound_core	3af6d45354024f0a	7008e561d2177cc5
