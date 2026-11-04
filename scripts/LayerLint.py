@@ -35,6 +35,9 @@ LAYERS = {
     "Optimization": 3,
     "Runtime": 3,
     "System": 3,   # R331: state layer (GrowthState) per audit v3 3
+    "State": 3,     # audit TD-05: canonical TrainState layer (was silently skipped)
+    "Contracts": 7,  # audit TD-05: certificate contracts above Unified/State
+    "Challenge": 7,  # audit TD-05: capstone consumers above Unified
     "Model": 4,
     "Numerics": 4,
     "Growth": 4,
