@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Architecture.CortexFiber
+import Hagi.Core.FrobOuter
 
 set_option linter.style.header false
 
@@ -30,7 +31,7 @@ open Finset Matrix
 /-- Squared Frobenius norm of a matrix (the misalignment
 budget). -/
 def frobSq {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
-  ∑ i, ∑ j, (M i j) ^ 2
+  Hagi.Core.frobSq M  -- dedup: делегат каноническому определению
 
 /-- Cauchy–Schwarz for dotProduct, squared form. -/
 theorem dotCS {n : ℕ} (a b : Fin n → ℝ) :
@@ -50,7 +51,7 @@ theorem frobSubord {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℝ)
       (∑ j, M i j * w j) ^ 2
         ≤ (∑ j, (M i j) ^ 2) * (∑ j, (w j) ^ 2) :=
     fun i => sum_mul_sq_le_sq_mul_sq univ (fun j => M i j) w
-  unfold frobSq dotProduct
+  unfold frobSq Hagi.Core.frobSq dotProduct
   simp only [pow_two, Matrix.mulVec]
   show (∑ i, (∑ j, M i j * w j) * (∑ j, M i j * w j))
       ≤ (∑ i, ∑ j, M i j * M i j) * (∑ i, w i * w i)

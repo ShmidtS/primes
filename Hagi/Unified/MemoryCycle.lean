@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Architecture.LiveDelta
+import Hagi.Core.FrobOuter
 import Mathlib
 /-!
 # DeltaHistory — точный мост: история шагов спуска ⟷ LiveDelta
@@ -191,7 +192,7 @@ namespace Hagi.Step
 variable {m n : Type} [Fintype m] [Fintype n]
 
 /-- Frobenius-квадрат: сумма квадратов элементов. -/
-def frob (M : Matrix m n ℝ) : ℝ := ∑ i, ∑ j, M i j * M i j
+def frob (M : Matrix m n ℝ) : ℝ := Hagi.Core.frobSq M  -- dedup: делегат
 
 /-- Заменить факторы блоков поштучно (квантование/слияние):
 новый список факторов. -/
@@ -275,7 +276,12 @@ theorem frob_sum_le (k : ℕ) (Δ : Fin k → Matrix m n ℝ) :
       (s := (Finset.univ : Finset (Fin k)))
       (f := fun t => Δ t i j)
     simpa [sq] using h
-  unfold frob
+  have hbridge : frob (∑ t, Δ t)
+      = ∑ i, ∑ j, (∑ t, Δ t) i j * (∑ t, Δ t) i j := by
+    unfold frob Hagi.Core.frobSq
+    exact Finset.sum_congr rfl fun i _ =>
+      Finset.sum_congr rfl fun j _ => by ring
+  rw [hbridge]
   have h1 : ∀ i ∈ (Finset.univ : Finset m), ∀ j ∈
       (Finset.univ : Finset n),
       (∑ t, Δ t) i j * (∑ t, Δ t) i j
@@ -320,6 +326,12 @@ theorem frob_sum_le (k : ℕ) (Δ : Fin k → Matrix m n ℝ) :
           exact Finset.sum_congr rfl fun i _ =>
             (Finset.mul_sum _ _ _).symm
         rw [h0, hj, h1, h2]
+    _ ≤ (k : ℝ) * ∑ t, frob (Δ t) := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        refine Finset.sum_le_sum fun t _ => ?_
+        unfold frob Hagi.Core.frobSq
+        exact Finset.sum_le_sum fun i _ =>
+          Finset.sum_le_sum fun j _ => le_of_eq (sq _).symm
 
 /-- Разность сумм = сумма разностей (Fin-семейство). -/
 theorem sum_sub_family (k : ℕ) (f g : Fin k → Matrix m n ℝ) :

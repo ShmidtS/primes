@@ -34,16 +34,13 @@ def frobDot (A B : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
 
 /-- Квадрат нормы Фробениуса. -/
 def frobSq (A : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
-  frobDot A A
+  Hagi.Core.frobSq A  -- dedup: делегат каноническому определению
 
 theorem frobSq_eq (A : Matrix (Fin m) (Fin n) ℝ) :
     frobSq A = ∑ i, ∑ j, (A i j) ^ 2 := by
-  unfold frobSq frobDot
-  congr 1
-  funext i
-  congr 1
-  funext j
-  ring
+  unfold frobSq Hagi.Core.frobSq
+  exact Finset.sum_congr rfl fun i _ =>
+    Finset.sum_congr rfl fun j _ => by ring
 
 /-- Композиционный сертификат микро-шага: спуск + нулевое
 забывание одновременно (МОСТ рычага 4 GPM и descent-леммы). -/
@@ -83,9 +80,6 @@ theorem microstep_net_drop
 /-- ДЕДУП-МОСТ: квадрат нормы Фробениуса совпадает с
 архитектурным определением — один канон, два имени. -/
 theorem frobSq_eq_aligned (A : Matrix (Fin m) (Fin n) ℝ) :
-    frobSq A = Hagi.Architecture.frobSq A := by
-  unfold frobSq frobDot Hagi.Architecture.frobSq
-  exact Finset.sum_congr rfl fun i _ =>
-    Finset.sum_congr rfl fun j _ => by ring
+    frobSq A = Hagi.Architecture.frobSq A := rfl
 
 end Hagi.Unified.MicroStepCert
