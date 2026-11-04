@@ -13,8 +13,8 @@ set_option linter.style.header false
 
 `joint_stage_linked`: the joint-stage descent with the real
 inner product and norm from `safeQP_descent`; only smoothness
-is h_emp_. `macro_termination_derived`: the Lyapunov telescope
-applied to the per-generation certified decrease.
+is h_emp_. Lyapunov termination is delegated to
+`Hagi.Foundations.lyapunov_termination_fin` (R197+audit dedup).
 `protected_generation_budget`: per-generation regression ≤ ε
 and spend ≤ b accumulate to at most `T·ε` and `T·b` over `T`
 generations.
@@ -33,18 +33,6 @@ namespace Hagi.System
 /-! ## Stage 2 linked: the joint step with real vectors -/
 
 /-! ## The macro termination derived -/
-
-/-- If `Emin ≤ E t` for `t ≤ k` and each generation decreases
-`E` by at least `eps > 0`, then
-`k ≤ (E 0 − Emin) / eps` (delegation to
-`lyapunov_termination_fin`). -/
-@[deprecated Hagi.Foundations.lyapunov_termination_fin]
-theorem macro_termination_derived {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
-    (hE : ∀ t ≤ k, Emin ≤ E t)
-    (hgen : ∀ t < k, E (t + 1) ≤ E t - eps)
-    (heps : 0 < eps) :
-    (k : ℝ) ≤ (E 0 - Emin) / eps :=
-  Hagi.Foundations.lyapunov_termination_fin Emin eps k hE hgen heps  -- same law as macro_termination (dedup R197)
 
 /-! ## The protected error budget across generations -/
 
@@ -680,7 +668,7 @@ theorem termination_from_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 
 end Hagi.System
 namespace Hagi
-export Hagi.System (macro_termination_derived protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.System (protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Специализация канона: Φ2 при λ=1, ν=0 — это в точности
