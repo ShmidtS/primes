@@ -74,6 +74,7 @@ import Hagi.Unified.CostComposition
 import Hagi.Unified.FacadeLaws
 import Hagi.Unified.EFTheory
 import Hagi.Unified.TernaryWitness
+import Hagi.StatMech.Hopfield.Model
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
