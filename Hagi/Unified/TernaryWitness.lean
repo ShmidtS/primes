@@ -2,6 +2,7 @@ import Mathlib
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Runtime.TernaryExact
 import Hagi.Unified.HonestTransition
+import Hagi.Unified.LoopInstances
 
 /-!
 # TernaryWitness — многомерный составной свидетель (аудит-3, Фаза 4.2)
@@ -82,7 +83,53 @@ noncomputable def quant_jump_honest (s : ℝ) (hs : 0 < s) (a x : k → ℝ)
     show quadE a (quantOpt s a) ≤ quadE a x
       - (quadE a x - (Fintype.card k : ℝ) * s ^ 2 / 8)
     linarith
-  riskBound := le_refl 0
+  riskBound := le_refl (0:ℝ)
   budgetBound := le_refl 0
+
+/-! ### Полный StepCert: квантованный прыжок в универсальном цикле -/
+
+open Hagi.Unified.CertifiedLoop Hagi.Unified.LinkedQVec
+  Hagi.Unified.LoopInstances
+
+/-- Финальное звено цепочки: тернарно-квантованный прыжок —
+ПОЛНЫЙ StepCert (спуск выведен из дисторсии квантователя,
+качество покомпонентно держится через монотонность измерителя
+quadMeasured: энергия падает ⇒ оценка растёт), готовый к
+телескопированию универсальной certified_loop. -/
+noncomputable def ternaryStepCert (s : ℝ) (hs : 0 < s) (a x : k → ℝ)
+    (hin : ∀ i, ternInRange s (a i))
+    (hxe : (Fintype.card k : ℝ) * s ^ 2 / 8 < quadE a x) :
+    StepCert (fun w => quadE a w) (quadMeasured a)
+      (quadFloor a x) 0 x (quantOpt s a) 0 0 where
+  riskSpend := 0
+  budgetSpend := 0
+  trans := quant_jump_honest s hs a x hin hxe
+  hriskSpend_nn := le_refl (0:ℝ)
+  hbudgetSpend_nn := le_refl (0:ℝ)
+  hdec := by
+    show (0:ℝ) ≤ 0 - 0
+    norm_num
+  quality := by
+    intro i
+    have hlt : quadE a (quantOpt s a) < quadE a x :=
+      lt_of_le_of_lt (quantOpt_energy_bound s hs a hin) hxe
+    have hEx1 : 0 < 1 + quadE a x := by
+      have := quadE_nonneg a x; positivity
+    have hEx2 : 0 < 1 + quadE a (quantOpt s a) := by
+      have := quadE_nonneg a (quantOpt s a); positivity
+    have hA : 0 < 2 * (1 + quadE a x) := by
+      have := quadE_nonneg a x; positivity
+    -- 1/b ≤ 1/a ↔ a ≤ b;  шаг A: A := 2(1+Ex), B := 1+Ex, нужно B ≤ A
+    have hstepA : 1 / (2 * (1 + quadE a x)) ≤ 1 / (1 + quadE a x) :=
+      (one_div_le_one_div hA hEx1).mpr
+        (show (1:ℝ) + quadE a x ≤ 2 * (1 + quadE a x) by linarith)
+    -- шаг B: A := 1+Ex, B := 1+Epost, нужно B ≤ A
+    have hstepB : 1 / (1 + quadE a x)
+        ≤ 1 / (1 + quadE a (quantOpt s a)) :=
+      (one_div_le_one_div hEx1 hEx2).mpr
+        (show (1:ℝ) + quadE a (quantOpt s a) ≤ 1 + quadE a x from
+          add_le_add (le_refl 1) (le_of_lt hlt))
+    show quadFloor a x i ≤ (quadMeasured a).evaluate (quantOpt s a) i
+    exact le_trans hstepA hstepB
 
 end Hagi.Unified.TernaryWitness
