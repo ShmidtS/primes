@@ -451,5 +451,7 @@ end FunctionalLS
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (tritEncode three_pow_five trits_fit_byte tritEncode_lt tritEncode_injective roundTern roundTern_error roundTern_error_scaled roundHalf roundHalf_error clampInt4 clampInt4_error lsScale_optimal lsScale_gram)
+export Hagi.Energy (tritEncode three_pow_five trits_fit_byte tritEncode_lt
+  tritEncode_injective roundTern roundTern_error roundTern_error_scaled roundHalf
+  roundHalf_error clampInt4 clampInt4_error lsScale_optimal lsScale_gram)
 end Hagi

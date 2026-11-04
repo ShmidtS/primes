@@ -659,7 +659,12 @@ theorem termination_from_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 
 end Hagi.System
 namespace Hagi
-export Hagi.System (protected_generation_budget StageParams GrowthState potential gainGrow riskGrow gainMerge riskMerge gainJoint riskJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.System (protected_generation_budget StageParams GrowthState potential gainGrow
+  riskGrow gainMerge riskMerge gainJoint riskJoint gainCompress costCompress grow merge
+  joint compress Certificate Metrics Candidate verify measure discover StageCertificate
+  stageCertificate stage_certificate_sound stage_certificate_telescope
+  termination_from_telescope potential_grow potential_merge potential_joint
+  potential_compress growth_cycle_potential certificate_sound budget_account)
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Специализация канона: Φ2 при λ=1, ν=0 — это в точности

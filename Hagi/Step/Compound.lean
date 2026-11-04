@@ -146,5 +146,6 @@ end Interval
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (compound_c_stabilizes compound_constant_regime compound_trajectory compound_cumulative compound_budget_interval compound_fold_interval)
+export Hagi.Step (compound_c_stabilizes compound_constant_regime compound_trajectory
+  compound_cumulative compound_budget_interval compound_fold_interval)
 end Hagi
