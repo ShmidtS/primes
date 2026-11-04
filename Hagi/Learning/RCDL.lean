@@ -111,3 +111,29 @@ theorem gauge_shift (ks : Fin N → Fin d → ℝ) (ws : Fin N → ℝ)
       Finset.sum_mul]
   rw [hnum]
   field_simp
+
+/-! ### Существование калибровочного сдвига -/
+
+/-- GAUGE-СУЩЕСТВОВАНИЕ: если выход s не согласован с градиентом
+(⟨g, s⟩ ≤ 0) и градиент ненулевой, существует явный сдвиг
+b = δ·g, делающий согласование строгим: ⟨g, s + b⟩ > 0.
+Вместе с gauge_shift это даёт законную (без клиппинга)
+гарантию строго положительного веса нового ключа RCDL:
+w_new ∝ ⟨g, s + b⟩ > 0. -/
+theorem gauge_exists (s g : Fin d → ℝ) (hg : g ≠ 0)
+    (eps : ℝ) (heps : 0 < eps) :
+    ∃ b : Fin d → ℝ, dotProduct g (s + b) ≥ eps := by
+  refine ⟨((eps - dotProduct g s) / dotProduct g g) • g, ?_⟩
+  have hgg : 0 < dotProduct g g := by
+    have hnn : (0:ℝ) ≤ dotProduct g g := by
+      unfold dotProduct
+      exact Finset.sum_nonneg (fun i _ => mul_self_nonneg (g i))
+    rcases lt_or_eq_of_le hnn with h1 | h1
+    · exact h1
+    · exact absurd (dotProduct_self_eq_zero.mp h1.symm) hg
+  have hkey : dotProduct g (s + ((eps - dotProduct g s) / dotProduct g g) • g)
+      = eps := by
+    rw [dotProduct_add, dotProduct_smul, smul_eq_mul,
+      div_mul_cancel₀ _ (ne_of_gt hgg)]
+    ring
+  rw [hkey]

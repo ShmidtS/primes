@@ -1509,6 +1509,7 @@ gate_retention	851bc019f220d45a	ee9bd5591a8c4a72
 gate_success_multiplier	bf857dc552c45c00	970142ddc5f9e7db
 gating_tail_bound	f13f64426ceafb59	5a85e2e0e998c76e
 gauge_equiv_comp	d12dccddf7777777	8451b1e7ecbf1add
+gauge_exists	e46e23d2a45335e6	f918936917ad5032
 gauge_shift	7918cc4e73886c2e	77cad8106ccf5f6c
 gc	9c8cdb0ebbd04d40	52a303569b91ac23
 gc_const_zero	f0c28dc050b18748	94ae5c66b33de2fa
