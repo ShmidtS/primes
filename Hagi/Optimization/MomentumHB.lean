@@ -76,3 +76,66 @@ theorem hb_char_eq_1d (e0 e1 e2 : ℝ) (eta beta : ℝ)
   ring
 
 end Lyapunov
+
+section Canonical
+
+/-! Цикл 2: канонический выбор параметров. При
+η = (1−√β)² характеристическое уравнение
+λ² − (1+β−η)λ + β = 0 имеет ДВОЙНОЙ корень λ = √β:
+дискриминант (1+β−η)² − 4β = ((1−√β)²)² − 4β... проверка:
+1+β−(1−2√β+β) = 2√β; D = (2√β)² − 4β = 0. Двойной корень
+λ* = √β — критический (critical damping) режим. -/
+
+/-- Критическое демпфирование: при η = (1−√β)² дискриминант
+нули. -/
+theorem hb_critical_discriminant (beta : ℝ) (h0 : 0 ≤ beta) :
+    (1 + beta - (1 - Real.sqrt beta) ^ 2) ^ 2
+      - 4 * beta = 0 := by
+  have hsq : (1 - Real.sqrt beta) ^ 2
+      = 1 - 2 * Real.sqrt beta + beta := by
+    rw [pow_two]
+    ring_nf
+    rw [Real.sq_sqrt h0]
+  rw [hsq]
+  have h1 : 1 + beta - (1 - 2 * Real.sqrt beta + beta)
+      = 2 * Real.sqrt beta := by ring
+  rw [h1]
+  have h2 : (2 * Real.sqrt beta) ^ 2 = 4 * beta := by
+    norm_num [mul_pow, Real.sq_sqrt h0]
+  rw [h2]
+  ring
+
+/-- Корень λ = √β удовлетворяет характеристическому
+уравнению при критическом выборе η. -/
+theorem hb_root_sqrt_beta (beta : ℝ) (h0 : 0 ≤ beta) :
+    (Real.sqrt beta) ^ 2
+      - (1 + beta - (1 - Real.sqrt beta) ^ 2)
+        * (Real.sqrt beta) + beta = 0 := by
+  have h1 : 1 + beta - (1 - Real.sqrt beta) ^ 2
+      = 2 * Real.sqrt beta := by
+    have hsq : (1 - Real.sqrt beta) ^ 2
+        = 1 - 2 * Real.sqrt beta + beta := by
+      rw [pow_two]; ring_nf; rw [Real.sq_sqrt h0]
+    rw [hsq]; ring
+  have hs := Real.sq_sqrt h0
+  have hm := Real.mul_self_sqrt h0
+  rw [h1]
+  nlinarith [hs, hm]
+
+/-- Скорость сходимости критического режима: |λ*| = √β < 1.
+ВЫВОД для практики: чтобы получить фактор (1−ε), брать
+β = (1−ε)² — квадратичное по ε число итераций... а против
+plain GD (фактор 1−η, η ≤ 1) ускорение √-уровня на
+плохо обусловленных задачах. -/
+theorem hb_rate_critical (beta : ℝ) (h0 : 0 ≤ beta)
+    (h1 : beta < 1) : |Real.sqrt beta| < 1 := by
+  rw [abs_lt]
+  constructor
+  · have h := Real.sqrt_nonneg beta
+    linarith
+  · have h2 : Real.sqrt beta < Real.sqrt 1 :=
+      (Real.sqrt_lt_sqrt_iff h0).mpr h1
+    rw [Real.sqrt_one] at h2
+    exact h2
+
+end Canonical
