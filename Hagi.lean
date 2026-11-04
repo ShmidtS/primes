@@ -88,6 +88,7 @@ import Hagi.Learning.PertTelescope
 import Hagi.Learning.FOOFUnique
 import Hagi.Unified.InfoCanonical
 import Hagi.Learning.RouterMix
+import Hagi.Learning.BitBudget
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
