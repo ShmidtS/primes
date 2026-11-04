@@ -84,34 +84,21 @@ theorem grand_synthesis
     -- (R265 audit fix: using C for both capability growth and
     -- the spend ledger made the premises contradictory —
     -- C T ≥ C 0 (1+r)^T with r > 0 vs C T = C 0 − Σ spend ≤ C 0)
-    (risk spend : ℕ → ℝ)
+    (spend : ℕ → ℝ)
     (budget : ℕ → ℝ)
-    (qvec : ℕ → Fin 5 → ℝ) (qfloor : Fin 5 → ℝ)
-    (hrisk_bound : C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t)
     (hspend : ∀ t ∈ Finset.range T, 0 ≤ spend t)
-    (hrisk : ∀ t ∈ Finset.range T, 0 ≤ risk t)
     (hbudget : budget T = budget 0 - ∑ t ∈ Finset.range T, spend t
-      ∧ 0 ≤ budget T)
-    (hqvec : ∀ i, qfloor i ≤ qvec T i) :
-    -- 1. takeoff on the trajectory
+      ∧ 0 ≤ budget T) :
+    -- 1. takeoff on the trajectory (REAL mathematical content)
     C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T
-    -- 2. safety telescoped
-    ∧ C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t
-    -- 3. budget (its own sequence): nonincreasing and exact
-    ∧ budget T ≤ budget 0
-      ∧ budget T = budget 0 - ∑ t ∈ Finset.range T, spend t
-    -- 4. vector generalization floor
-    ∧ ∀ i, qfloor i ≤ qvec T i := by
+    -- 2. budget nonincreasing (derived from the exact ledger)
+    ∧ budget T ≤ budget 0 := by
   constructor
   · exact Hagi.Growth.takeoff_from_certificate C D G stages T
       beta kappa gbar rho cbeta k hβ hκ hk hD hC hcert hdiv
       hstep hG hup hdyn hrhogk hbeta' hcone0
-  constructor
-  · exact hrisk_bound
-  constructor
   · exact budget_nonincreasing_of_nonneg_spend budget spend T
       hspend hbudget.1
-  · exact ⟨hbudget.1, hqvec⟩
 
 
 /-! ## Слабые посылки для пунктов 2/4 (R540) -/
@@ -187,12 +174,15 @@ theorem grand_synthesis_weak
     ∧ budget T ≤ budget 0
       ∧ budget T = budget 0 - ∑ t ∈ Finset.range T, spend t
     ∧ ∀ i, qfloor i ≤ qvec T i := by
-  exact grand_synthesis C D G stages T beta kappa gbar rho cbeta k
-    hβ hκ hk hD hC hcert hdiv hstep hG hup hdyn hrhogk hbeta'
-    hcone0 risk spend budget qvec qfloor
-    (risk_telescope_of_growth_covered C G risk T hstep hcover)
-    hspend hrisk hbudget
-    (qfloor_le_of_monotone qvec qfloor T hq0 hqmono)
+  refine ⟨?_, risk_telescope_of_growth_covered C G risk T hstep
+    hcover, ?_, ⟨hbudget.1, fun i =>
+      qfloor_le_of_monotone qvec qfloor T hq0 hqmono i⟩⟩
+  · exact (grand_synthesis C D G stages T beta kappa gbar rho cbeta k
+      hβ hκ hk hD hC hcert hdiv hstep hG hup hdyn hrhogk hbeta'
+      hcone0 spend budget hspend hbudget).1
+  · exact (grand_synthesis C D G stages T beta kappa gbar rho cbeta k
+      hβ hκ hk hD hC hcert hdiv hstep hG hup hdyn hrhogk hbeta'
+      hcone0 spend budget hspend hbudget).2
 
 
 /-! ### Аудит v17, P0-3: qvec ↔ состояние
