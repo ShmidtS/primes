@@ -123,6 +123,7 @@ Metrics	b522fd183cac8df1	dd7fe65bb413c8c4
 MetricsPart	9abb279e1df04af0	ce851c2dbfb7a500
 ModeDrop	0b948685dd9a7df9	4fdb25bdf6b0232d
 ModelPart	b2833fc82a924150	b6a3f6e33294117d
+ModelS	d44a6a8bc88a416d	0e3f5a4994788dd7
 ModelState	18661760ae020d61	83770915c88f72d7
 Mw	5f844be406c63a36	0bb385ffb6469383
 Mw0	290125dc0090db7a	a9423ddbdcb42bc1
@@ -238,6 +239,7 @@ StageInput	a8a6d02867afd58d	54cbb4717b4c975e
 StageParams	50bd7ec171f334a8	ef8025e6baf51632
 StageRisk	7d23aac8610e68c1	5f0300576ea3cbd0
 StepCert	a1fb805f82c6f55a	ae3848c081f21e53
+StepCertT	c764f9550af2614f	959fe70d7d691900
 StepCertificate	1e4acb5e98c2a776	6011ab273c7da027
 StepContract	e365bc85a276a9ce	8d818150221138a9
 StepFeasible	7dcd793e45ab394d	1c5e5bc417c1f20a
@@ -518,6 +520,7 @@ budget_no_growth	1c71ffbc8dde80b9	e5f2f9d67749bc01
 budget_nonincreasing_of_nonneg_spend	2343aa1341873811	30c1960a22a50269
 budget_overrun_impossible	696e0dbe355a1e35	4b7ab000531d6350
 budget_stops_growth	37bade014940c18f	79354f0f16af3026
+budget_telescope	f5be4f5dcf8ce75a	37e24076730d9ff4
 budget_waterfill_and_lowrank	4d0d178e17cd9e09	df8ed51b4b3c92b1
 cMax	2ed404ae1396fe83	ce150484f9de13f8
 cMax_ge	a259cad37aaf67bb	9f70dd700df91bb4
@@ -1831,6 +1834,7 @@ hoelder_weighted	3779d39f5d41b2ab	b02f221a2cd8cfe2
 holdSafe	2ac1f345df21987c	af529f48c7fe6afe
 holdV	7118aceaf35d09b4	b0f6daad000b6f02
 honest_actual_drop	18781a6401fc7f74	42c23201a443b6df
+honest_step_cert	cca60b8619f397e0	a29885208cc5e9d9
 honest_telescope	6c6c18259fa406f1	8d33803416793a1a
 honest_trajectory_global	53b958a185634507	7ecaf7747fc01823
 honest_two_steps_existent	70d170058d597c42	16482b5116f30896
@@ -2130,6 +2134,7 @@ lora_kernel_preserved	eb0424ceb2dfedf7	5e1f963c8080a46c
 lora_out	97bba825e62e384d	e03d6ddfc57ef426
 lora_param_saving	5a62eee0c50e3649	b32a9ecbf8857651
 lossOf	4c029ef8588799d3	ec5adc2747809b4a
+lossS	9323ba28d879e3ad	8bba0cdd725da3bd
 lower	599a4890b82b717f	971d6f5ee865f686
 lp_mean_le_rms	99c94faec8ff6ec2	ebdb3b7a2d9fee58
 lp_one_le_card	5e4f894d65805a4a	b9ecee42174957ff
@@ -3737,6 +3742,7 @@ trainMeasured	35cdac77c15c846b	df2644916d47c49b
 trainStep	bedc41f7f669b89a	e13fcb1ea88b34d2
 trainStep	ea475d6023cc3125	43c96cf6ef11297b
 trainStepCert	e293339138ba18c8	37e17b840316d23a
+trainStepS	b35cf1a924d95853	6300c99bc339b9d2
 trainStep_actualDescent	0d7f0b05f80f1a6b	43da1eb3049f03a5
 trainStep_budget	48983e7462e53986	04ef683dbb307112
 trainStep_budget_balance	7b465fca88329acb	a6b8b4f2ee2d7097
@@ -3756,8 +3762,12 @@ trainStep_risk	de579a4182a426a3	186088cf8deff282
 trainStep_write_semantics	70ef7bc39ec8a530	4a11442d584ad17b
 training_core_is_measurement_tail	118450879039ef13	aa556e45bd0e141d
 traj	a2f4e75ac42d2b82	f887e35f3a50817d
+traj	a3c268f287ad82ff	0d06779f2b07e042
 trajDropBound	7dd062e4e38173da	4e12ef1308ab1426
 trajDropSum	8baca00cd0cb0eb7	5614c703de75f943
+traj_energy_explicit	31548ba714014ed5	6e58e0726c11f71e
+traj_energy_rec	c9cb5bc6d1c6330d	52f9e2f2f7ba393a
+traj_total_descent	91d5e37056166521	e0e5145f2dc6a219
 trajectory_accelerated_entry	a3a34228f36ef1dd	c76c636a3d37f24e
 trajectory_budget_telescope	531b2a9fa56df090	38525b5e107d2394
 trajectory_convergence	6628716a7de4441e	ad6e8931e4104dd6
