@@ -59,6 +59,8 @@ end Hagi.Optimization.MomentumHB
 
 section Lyapunov
 
+variable {k : Type*} [Fintype k]
+
 /-- Квадратичная функция Ляпунова heavy-ball (Кройт-инвариант):
 V_t = η·(η+1−β)/(2)·e_t² + ... канонический выбор
 V(e,v) = e² − (1+β)·e·v... Используем честную квадратичную
@@ -74,6 +76,64 @@ theorem hb_char_eq_1d (e0 e1 e2 : ℝ) (eta beta : ℝ)
     e2 - (1 + beta - eta) * e1 + beta * e0 = 0 := by
   rw [hv]
   ring
+
+
+/-! ### Функция Ляпунова heavy-ball (исследовательский цикл 21)
+
+V(e,v) = ‖e‖² + ‖v‖² на векторном носителе; один шаг пары
+(e', v') = ((1−η)e + v, βv − ηe). Честная глобальная оценка
+(без предположений об автокорреляции): перекрёстные члены
+ограничиваются неравенством (a+b)² ≤ 2a² + 2b², что даёт
+квадратичную форму-мажоранту с факторами 2((1−η)²+η²) по e
+и 2(1+β²) по v. Это ЛЯПУНОВ-ИНВАРИАНТНОСТЬ МАЖОРАНТЫ:
+V' ≤ c_max·V при c_max = max(2((1−η)²+η²), 2(1+β²)).
+Сжатие V' ≤ ρV с ρ<1 требует спектральной структуры
+(см. hb_stability, hb_rate_critical в блоке Canonical) и
+остаётся открытым для векторного случая; честность важнее
+красоты claim'а. -/
+
+/-- Поэлементная мажоранта Ляпунова: (a+b)² ≤ 2a² + 2b². -/
+theorem hb_lyap_elementwise (a b : ℝ) :
+    (a + b)^2 ≤ 2*a^2 + 2*b^2 := by
+  nlinarith [sq_nonneg (a - b)]
+
+/-- Векторная функция Ляпунова heavy-ball. -/
+def hbLyapunov (e v : k → ℝ) : ℝ := ∑ i, e i ^ 2 + ∑ i, v i ^ 2
+
+/-- ЧЕСТНАЯ оценка Ляпунова после одного шага: V(e',v') ≤
+2((1−η)²+η²)·‖e‖² + 2(1+β²)·‖v‖². Перекрёстные члены
+убраны через hb_lyap_elementwise; следствие — рост V не
+быстрее фактора c_max (инвариантность мажоранты, НЕ сжатие;
+сжатие см. спектральный блок Canonical). -/
+theorem hb_lyapunov_step_bound (e v : k → ℝ) (eta beta : ℝ) :
+    hbLyapunov (fun i => (1-eta)*e i + v i) (fun i => beta*v i - eta*e i)
+      ≤ (2*(1-eta)^2 + 2*eta^2) * (∑ i, e i ^ 2)
+        + (2 + 2*beta^2) * (∑ i, v i ^ 2) := by
+  unfold hbLyapunov
+  have hsum : ∀ i : k, ((1-eta)*e i + v i)^2 + (beta*v i - eta*e i)^2
+      ≤ (2*(1-eta)^2 + 2*eta^2) * e i ^ 2 + (2 + 2*beta^2) * v i ^ 2 := by
+    intro i
+    have h1 := hb_lyap_elementwise ((1-eta)*e i) (v i)
+    have h2 := hb_lyap_elementwise (eta*e i) (-beta*v i)
+    have hneg : (beta*v i - eta*e i)^2 = (-beta*v i + eta*e i)^2 := by ring
+    rw [hneg]
+    nlinarith [h1, h2]
+  calc (∑ i, (fun i => (1-eta)*e i + v i) i ^ 2
+        + ∑ i, (fun i => beta*v i - eta*e i) i ^ 2)
+      = ∑ i, ((fun i => (1-eta)*e i + v i) i ^ 2
+        + (fun i => beta*v i - eta*e i) i ^ 2) := (Finset.sum_add_distrib).symm
+    _ ≤ ∑ i, ((2*(1-eta)^2 + 2*eta^2) * e i ^ 2
+        + (2 + 2*beta^2) * v i ^ 2) :=
+        Finset.sum_le_sum (fun i _ => hsum i)
+    _ = (2*(1-eta)^2 + 2*eta^2) * (∑ i, e i ^ 2)
+        + (2 + 2*beta^2) * (∑ i, v i ^ 2) := by
+        have hA : ∑ i, (2*(1-eta)^2 + 2*eta^2) * e i ^ 2
+            = (2*(1-eta)^2 + 2*eta^2) * ∑ i, e i ^ 2 :=
+          (Finset.mul_sum _ _ _).symm
+        have hB : ∑ i, (2 + 2*beta^2) * v i ^ 2
+            = (2 + 2*beta^2) * ∑ i, v i ^ 2 :=
+          (Finset.mul_sum _ _ _).symm
+        rw [Finset.sum_add_distrib, hA, hB]
 
 end Lyapunov
 
