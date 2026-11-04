@@ -30,7 +30,7 @@ Detailed per-round history: `STATUS.md`.
 Одна тема — один файл (namespace-блоки и имена деклараций
 сохранены; список слияний см. в истории `refactor(...)`):
 
-- Unified: `RateTheory` (PL-скорости), `EFArc` (дуга
+- Unified: `RateTheory` (PL-скорости), `EFTheory` (теория
   error feedback), `SignComp` (знаковый компрессор),
   `QuadMachine` + `MachineProto` (эталонная машина и её
   протоколы), `NCStepCert` (нейрокомпьютер);

@@ -425,40 +425,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Budget/BudgetArc.lean": {
-   "imports": [
-    "Hagi.Budget.ActiveCompute",
-    "Hagi.Budget.AnytimeCondensation",
-    "Hagi.Budget.BatchCap",
-    "Hagi.Budget.BitAlloc",
-    "Hagi.Budget.BitAllocTermination",
-    "Hagi.Budget.CertifiedArgmax",
-    "Hagi.Budget.DesignOpt",
-    "Hagi.Budget.ElementQuant",
-    "Hagi.Budget.FlopsEconomy",
-    "Hagi.Budget.JointCost",
-    "Hagi.Budget.KVWater",
-    "Hagi.Budget.RankBudget",
-    "Hagi.Budget.ThermoCondensation",
-    "Hagi.Budget.TokenWeightBias",
-    "Hagi.Budget.WaterFilling",
-    "Hagi.Budget.WaterFillingMoE"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Budget/CertifiedArgmax.lean": {
    "imports": [
     "Mathlib.Tactic"
@@ -694,6 +660,27 @@
    ],
    "counts": {
     "definitions": 0,
+    "structures": 0,
+    "theorems": 1,
+    "lemmas": 0,
+    "axioms": 0,
+    "instances": 0
+   },
+   "flags": {
+    "sorry": false,
+    "admit": false,
+    "unsafe": false
+   },
+   "in_main_build_graph": true
+  },
+  "Hagi/Contracts/StepCertificate.lean": {
+   "imports": [
+    "Hagi.State.Transition",
+    "Hagi.Unified.CertifiedLoop",
+    "Mathlib"
+   ],
+   "counts": {
+    "definitions": 2,
     "structures": 0,
     "theorems": 1,
     "lemmas": 0,
@@ -1350,7 +1337,7 @@
    "counts": {
     "definitions": 0,
     "structures": 0,
-    "theorems": 6,
+    "theorems": 5,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -2833,52 +2820,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Growth/GrowthArc.lean": {
-   "imports": [
-    "Hagi.Growth.AdaptiveQuery",
-    "Hagi.Growth.Ceilings",
-    "Hagi.Growth.ChainToCone",
-    "Hagi.Growth.ChainUnification",
-    "Hagi.Growth.ConeDynamics",
-    "Hagi.Growth.DisagreementChain",
-    "Hagi.Growth.FiberNecessity",
-    "Hagi.Growth.FrontierProduction",
-    "Hagi.Growth.FrontierScaling",
-    "Hagi.Growth.GainDecomposition",
-    "Hagi.Growth.GainRenewal",
-    "Hagi.Growth.GammaDeficit",
-    "Hagi.Growth.Grow",
-    "Hagi.Growth.GrowthGate",
-    "Hagi.Growth.IntegrationOrder",
-    "Hagi.Growth.NoiseDisentangle",
-    "Hagi.Growth.NonlinearCone",
-    "Hagi.Growth.PlasticityLedger",
-    "Hagi.Growth.RecursiveSelfDevelopment",
-    "Hagi.Growth.RoundViability",
-    "Hagi.Growth.RsiCriterion",
-    "Hagi.Growth.Saturation",
-    "Hagi.Growth.SeedOnly",
-    "Hagi.Growth.SelfDevelopment",
-    "Hagi.Growth.StateBinding",
-    "Hagi.Growth.T3Ignition",
-    "Hagi.Growth.Takeoff",
-    "Hagi.Growth.Thermostat"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Growth/GrowthGate.lean": {
    "imports": [
     "Mathlib.Tactic"
@@ -3808,71 +3749,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Model/ModelArc.lean": {
-   "imports": [
-    "Hagi.Model.Adaptive",
-    "Hagi.Model.AdaptiveChunking",
-    "Hagi.Model.AlignmentRisk",
-    "Hagi.Model.Attention",
-    "Hagi.Model.AttentionSpend",
-    "Hagi.Model.BYOL",
-    "Hagi.Model.BlockNorm",
-    "Hagi.Model.CertifiedTransition",
-    "Hagi.Model.ComputeOptimal",
-    "Hagi.Model.ConsolidationMirror",
-    "Hagi.Model.CycleCertificate",
-    "Hagi.Model.DiffAttention",
-    "Hagi.Model.DistillCert",
-    "Hagi.Model.GDNBridge",
-    "Hagi.Model.Generative",
-    "Hagi.Model.Grokfast",
-    "Hagi.Model.HNet",
-    "Hagi.Model.HNet2",
-    "Hagi.Model.HypothesisCompetition",
-    "Hagi.Model.LabelSmoothing",
-    "Hagi.Model.LayerNorm",
-    "Hagi.Model.LogitPSV",
-    "Hagi.Model.Losses",
-    "Hagi.Model.MachineBridge",
-    "Hagi.Model.MambaSSM",
-    "Hagi.Model.MeasuredEffects",
-    "Hagi.Model.MeasurementCert",
-    "Hagi.Model.Memory",
-    "Hagi.Model.Mixup",
-    "Hagi.Model.ModeConnectivity",
-    "Hagi.Model.ModelSoup",
-    "Hagi.Model.ModernHopfield",
-    "Hagi.Model.MuPScaling",
-    "Hagi.Model.NeuralComputer",
-    "Hagi.Model.NormAct",
-    "Hagi.Model.Perceiver",
-    "Hagi.Model.QuantizedAdvance",
-    "Hagi.Model.RL",
-    "Hagi.Model.RMSNorm",
-    "Hagi.Model.RVCore",
-    "Hagi.Model.ReferenceMachine",
-    "Hagi.Model.Residual",
-    "Hagi.Model.Sidon",
-    "Hagi.Model.SoftmaxStep",
-    "Hagi.Model.SourceMixture",
-    "Hagi.Model.SpecDecoding",
-    "Hagi.Model.StageSemantics"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Model/ModelSoup.lean": {
    "imports": [
     "Mathlib.Tactic"
@@ -4336,12 +4212,13 @@
   },
   "Hagi/Optimization/AdamBias.lean": {
    "imports": [
+    "Hagi.Foundations.Recurrence",
     "Mathlib.Tactic"
    ],
    "counts": {
     "definitions": 1,
     "structures": 0,
-    "theorems": 5,
+    "theorems": 4,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -4676,50 +4553,6 @@
     "definitions": 0,
     "structures": 0,
     "theorems": 3,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
-  "Hagi/Optimization/OptimizationArc.lean": {
-   "imports": [
-    "Hagi.Optimization.AdaGrad",
-    "Hagi.Optimization.AdamBias",
-    "Hagi.Optimization.AdamW",
-    "Hagi.Optimization.AdaptiveCycle",
-    "Hagi.Optimization.CautiousOptimizer",
-    "Hagi.Optimization.Checkpoint",
-    "Hagi.Optimization.ComputeScaling",
-    "Hagi.Optimization.DREAM",
-    "Hagi.Optimization.DirectionPacking",
-    "Hagi.Optimization.GradAccum",
-    "Hagi.Optimization.InexactContraction",
-    "Hagi.Optimization.InfoPreservation",
-    "Hagi.Optimization.LLRD",
-    "Hagi.Optimization.LRSchedule",
-    "Hagi.Optimization.Lion",
-    "Hagi.Optimization.Lookahead",
-    "Hagi.Optimization.MirrorDescent",
-    "Hagi.Optimization.Momentum",
-    "Hagi.Optimization.NeuronAlloc",
-    "Hagi.Optimization.PLConvergence",
-    "Hagi.Optimization.PPOClip",
-    "Hagi.Optimization.PolyStep",
-    "Hagi.Optimization.RobbinsMonro",
-    "Hagi.Optimization.SAM",
-    "Hagi.Optimization.SphericalDamping",
-    "Hagi.Optimization.SubspaceGrowth"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -5523,50 +5356,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Probability/ProbabilityArc.lean": {
-   "imports": [
-    "Hagi.Probability.AdaptiveSuccess",
-    "Hagi.Probability.Azuma",
-    "Hagi.Probability.BatchSNR",
-    "Hagi.Probability.BernoulliFactory",
-    "Hagi.Probability.CertifiedEstimator",
-    "Hagi.Probability.ChernoffCGF",
-    "Hagi.Probability.ConditionalSuccess",
-    "Hagi.Probability.EntropyConvexity",
-    "Hagi.Probability.ExpChord",
-    "Hagi.Probability.Freedman",
-    "Hagi.Probability.FreedmanTwoSided",
-    "Hagi.Probability.GibbsConcentration",
-    "Hagi.Probability.GibbsCooling",
-    "Hagi.Probability.GibbsCore",
-    "Hagi.Probability.GibbsInfoCore",
-    "Hagi.Probability.KLSBridge",
-    "Hagi.Probability.MWU",
-    "Hagi.Probability.MomentBounds",
-    "Hagi.Probability.NoiseTemperature",
-    "Hagi.Probability.PMFBridge",
-    "Hagi.Probability.PinskerTV",
-    "Hagi.Probability.SphericalAngle",
-    "Hagi.Probability.StationaryFlatness",
-    "Hagi.Probability.ThermoAxes",
-    "Hagi.Probability.ThermoBridge",
-    "Hagi.Probability.WSqD"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Probability/SphericalAngle.lean": {
    "imports": [
     "Mathlib"
@@ -5748,6 +5537,45 @@
     "definitions": 2,
     "structures": 0,
     "theorems": 2,
+    "lemmas": 0,
+    "axioms": 0,
+    "instances": 0
+   },
+   "flags": {
+    "sorry": false,
+    "admit": false,
+    "unsafe": false
+   },
+   "in_main_build_graph": true
+  },
+  "Hagi/State/TrainState.lean": {
+   "imports": [
+    "Mathlib"
+   ],
+   "counts": {
+    "definitions": 14,
+    "structures": 6,
+    "theorems": 0,
+    "lemmas": 0,
+    "axioms": 0,
+    "instances": 0
+   },
+   "flags": {
+    "sorry": false,
+    "admit": false,
+    "unsafe": false
+   },
+   "in_main_build_graph": true
+  },
+  "Hagi/State/Transition.lean": {
+   "imports": [
+    "Hagi.State.TrainState",
+    "Mathlib"
+   ],
+   "counts": {
+    "definitions": 3,
+    "structures": 1,
+    "theorems": 6,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -6338,58 +6166,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Step/StepArc.lean": {
-   "imports": [
-    "Hagi.Step.AdaptiveSafeQP",
-    "Hagi.Step.ArmijoAcceptance",
-    "Hagi.Step.BatchBudget",
-    "Hagi.Step.CPUFreeze",
-    "Hagi.Step.CausalFilter",
-    "Hagi.Step.Compound",
-    "Hagi.Step.Dominate",
-    "Hagi.Step.FrobeniusLMO",
-    "Hagi.Step.GPM",
-    "Hagi.Step.GradCentralization",
-    "Hagi.Step.GradClip",
-    "Hagi.Step.HybridState",
-    "Hagi.Step.Joint",
-    "Hagi.Step.JointPreserve",
-    "Hagi.Step.LazyAdam",
-    "Hagi.Step.LiveDeltaSafe",
-    "Hagi.Step.MDLObjective",
-    "Hagi.Step.MDLThreeCurrency",
-    "Hagi.Step.Muon",
-    "Hagi.Step.NCEExact",
-    "Hagi.Step.NewtonPolar",
-    "Hagi.Step.PreconditionerDescent",
-    "Hagi.Step.ProjectionDescent",
-    "Hagi.Step.RiemannNewtonPolar",
-    "Hagi.Step.RobustDescent",
-    "Hagi.Step.SNRWeights",
-    "Hagi.Step.SafeQP",
-    "Hagi.Step.SafeQPStep",
-    "Hagi.Step.SignSGD",
-    "Hagi.Step.StochasticSafeQP",
-    "Hagi.Step.Upgrades",
-    "Hagi.Step.VariantSafeQP",
-    "Hagi.Step.WarmupSchedule",
-    "Hagi.Step.WeightDecay"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Step/StochasticSafeQP.lean": {
    "imports": [
     "Hagi.Step.SafeQP",
@@ -6536,7 +6312,7 @@
    "counts": {
     "definitions": 20,
     "structures": 7,
-    "theorems": 15,
+    "theorems": 14,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -6860,27 +6636,6 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Unified/CompressionArc.lean": {
-   "imports": [
-    "Hagi.Unified.EFArc",
-    "Hagi.Unified.RateTheory",
-    "Hagi.Unified.SignComp"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
   "Hagi/Unified/CorePremisesDerived.lean": {
    "imports": [
     "Hagi.Unified.DerivAlong",
@@ -7040,7 +6795,7 @@
    },
    "in_main_build_graph": true
   },
-  "Hagi/Unified/EFArc.lean": {
+  "Hagi/Unified/EFTheory.lean": {
    "imports": [
     "Hagi.Energy.Quantizer",
     "Hagi.Unified.DescentCore",
@@ -7726,6 +7481,29 @@
    },
    "in_main_build_graph": true
   },
+  "Hagi/Unified/NegativeTests.lean": {
+   "imports": [
+    "Hagi.Unified.CertifiedLoop",
+    "Hagi.Unified.HonestTransition",
+    "Hagi.Unified.LinkedQVec",
+    "Hagi.Unified.MemorySemantics",
+    "Hagi.Unified.NCStepCert"
+   ],
+   "counts": {
+    "definitions": 0,
+    "structures": 0,
+    "theorems": 6,
+    "lemmas": 0,
+    "axioms": 0,
+    "instances": 0
+   },
+   "flags": {
+    "sorry": false,
+    "admit": false,
+    "unsafe": false
+   },
+   "in_main_build_graph": true
+  },
   "Hagi/Unified/NernstFannes.lean": {
    "imports": [
     "Hagi.Unified.FannesComplete"
@@ -7856,7 +7634,7 @@
    "counts": {
     "definitions": 0,
     "structures": 0,
-    "theorems": 14,
+    "theorems": 13,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -7980,7 +7758,7 @@
    "counts": {
     "definitions": 0,
     "structures": 0,
-    "theorems": 17,
+    "theorems": 15,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -8002,81 +7780,6 @@
     "definitions": 1,
     "structures": 1,
     "theorems": 4,
-    "lemmas": 0,
-    "axioms": 0,
-    "instances": 0
-   },
-   "flags": {
-    "sorry": false,
-    "admit": false,
-    "unsafe": false
-   },
-   "in_main_build_graph": true
-  },
-  "Hagi/Unified/UnifiedArc.lean": {
-   "imports": [
-    "Hagi.Unified.AdvanceWitness",
-    "Hagi.Unified.AnytimeMartingale",
-    "Hagi.Unified.AnytimePACBayes",
-    "Hagi.Unified.ArchitectureTheorem",
-    "Hagi.Unified.Assumptions",
-    "Hagi.Unified.CanonicalParams",
-    "Hagi.Unified.CapabilityLocal",
-    "Hagi.Unified.CertUnify",
-    "Hagi.Unified.CertifiedGrowth",
-    "Hagi.Unified.CertifiedLoop",
-    "Hagi.Unified.CertifiedTrajectory",
-    "Hagi.Unified.CommitGate",
-    "Hagi.Unified.CompressionArc",
-    "Hagi.Unified.CorePremisesDerived",
-    "Hagi.Unified.CostComposition",
-    "Hagi.Unified.Ctv2Telescope",
-    "Hagi.Unified.DerivAlong",
-    "Hagi.Unified.DescentCore",
-    "Hagi.Unified.DescentCoreDiag",
-    "Hagi.Unified.DescentCoreQuad",
-    "Hagi.Unified.Distillation",
-    "Hagi.Unified.EFArc",
-    "Hagi.Unified.ExecutedCert",
-    "Hagi.Unified.FacadeLaws",
-    "Hagi.Unified.FannesComplete",
-    "Hagi.Unified.FunctionalState",
-    "Hagi.Unified.GaugeQuotient",
-    "Hagi.Unified.GrandSynthesis",
-    "Hagi.Unified.GrowthBridge",
-    "Hagi.Unified.HonestTransition",
-    "Hagi.Unified.InterpretiveGrowth",
-    "Hagi.Unified.LearningKernel",
-    "Hagi.Unified.LinkedQVec",
-    "Hagi.Unified.LinkedWitness",
-    "Hagi.Unified.LiveDeltaCycle",
-    "Hagi.Unified.Liveness",
-    "Hagi.Unified.LoopInstances",
-    "Hagi.Unified.MachineProto",
-    "Hagi.Unified.MasterHAGI",
-    "Hagi.Unified.MasterHAGICoupled",
-    "Hagi.Unified.MasterHAGITrunc",
-    "Hagi.Unified.MemoryCycle",
-    "Hagi.Unified.MicroStepCert",
-    "Hagi.Unified.ModelComparison",
-    "Hagi.Unified.NCStepCert",
-    "Hagi.Unified.NernstFannes",
-    "Hagi.Unified.QuadMachine",
-    "Hagi.Unified.QuantSafeUpdate",
-    "Hagi.Unified.RateTheory",
-    "Hagi.Unified.RecursiveClean",
-    "Hagi.Unified.RecursiveGrowth",
-    "Hagi.Unified.SignComp",
-    "Hagi.Unified.SignDescent",
-    "Hagi.Unified.StateTakeoff",
-    "Hagi.Unified.StepContract",
-    "Hagi.Unified.TernaryGrad",
-    "Hagi.Unified.TopLevel"
-   ],
-   "counts": {
-    "definitions": 0,
-    "structures": 0,
-    "theorems": 0,
     "lemmas": 0,
     "axioms": 0,
     "instances": 0
@@ -8148,8 +7851,10 @@
   "denseAttnCost": 2,
   "rot": 2,
   "denseCost": 2,
+  "trainStep": 2,
   "compose": 2,
   "ReferenceMachine": 2,
+  "energy": 2,
   "signStep": 2
  }
 }

@@ -72,6 +72,7 @@ import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
 import Hagi.Unified.CostComposition
 import Hagi.Unified.FacadeLaws
+import Hagi.Unified.EFTheory
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
@@ -290,7 +291,7 @@ import Hagi.Unified.StepContract
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory
-import Hagi.Unified.EFArc
+import Hagi.Unified.DescentCore
 import Hagi.Unified.AnytimePACBayes
 import Hagi.Model.MeasurementCert
 import Hagi.Unified.CertifiedTrajectory
@@ -312,7 +313,6 @@ import Hagi.Model.RVCore
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
 import Hagi.Optimization.SAM
-import Hagi.Unified.DescentCore
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.CommitGate
 import Hagi.Model.BlockNorm
@@ -376,18 +376,10 @@ import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion
 import Hagi.Probability.GibbsCore
-import Hagi.Unified.CompressionArc
-import Hagi.Model.ModelArc
-import Hagi.Unified.UnifiedArc
-import Hagi.Growth.GrowthArc
-import Hagi.Optimization.OptimizationArc
-import Hagi.Budget.BudgetArc
-import Hagi.Step.StepArc
-import Hagi.Probability.ProbabilityArc
-import Hagi.Audit.Audit
 import Hagi.Step.BatchBudget
-import Hagi.Step.NoisyPL
 import Hagi.Step.RobustDescent
+import Hagi.Audit.Audit
+import Hagi.Step.NoisyPL
 import Hagi.Unified.MemorySemantics
 import Hagi.Unified.ProductiveTransition
 import Hagi.Unified.TransitionCert

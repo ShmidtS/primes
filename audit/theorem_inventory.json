@@ -1442,6 +1442,13 @@
   "axiom_dep": null
  },
  {
+  "name": "Hagi/Contracts/StepCertificate.lean::trainStep_actualDescent",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
   "name": "Hagi/Core/Ambig.lean::lse_shift",
   "kind": "theorem",
   "category": "A",
@@ -3011,13 +3018,6 @@
  },
  {
   "name": "Hagi/Dynamics/ControllerPolicy.lean::budget_allocation_dominance",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
-  "axiom_dep": null
- },
- {
-  "name": "Hagi/Dynamics/EndpointContraction.lean::geom_sum_telescope",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
@@ -13020,13 +13020,6 @@
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Optimization/AdamBias.lean::one_sub_beta_geom",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
-  "axiom_dep": null
- },
- {
   "name": "Hagi/Optimization/AdamBias.lean::pow_lt_one'",
   "kind": "theorem",
   "category": "A",
@@ -16905,6 +16898,48 @@
   "axiom_dep": null
  },
  {
+  "name": "Hagi/State/Transition.lean::trainStep_evaluate_unchanged",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/State/Transition.lean::trainStep_energy_identity",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/State/Transition.lean::trainStep_energy_descent",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/State/Transition.lean::trainStep_write_semantics",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/State/Transition.lean::trainStep_mem_untouched",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/State/Transition.lean::trainStep_foreign_address_intact",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
   "name": "Hagi/Step/AdaptiveSafeQP.lean::latticeNet_norm_le",
   "kind": "theorem",
   "category": "A",
@@ -18200,13 +18235,6 @@
   "axiom_dep": null
  },
  {
-  "name": "Hagi/System/GrowthState.lean::macro_termination_derived",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
-  "axiom_dep": null
- },
- {
   "name": "Hagi/System/GrowthState.lean::protected_generation_budget",
   "kind": "theorem",
   "category": "A",
@@ -19124,168 +19152,168 @@
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_telescope",
+  "name": "Hagi/Unified/EFTheory.lean::ef_telescope",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_shadow_sum",
+  "name": "Hagi/Unified/EFTheory.lean::ef_shadow_sum",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_iterate_shadow",
+  "name": "Hagi/Unified/EFTheory.lean::ef_iterate_shadow",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_quad_transfer",
+  "name": "Hagi/Unified/EFTheory.lean::ef_quad_transfer",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_quad_quality",
+  "name": "Hagi/Unified/EFTheory.lean::ef_quad_quality",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::quad_ef_shadow",
+  "name": "Hagi/Unified/EFTheory.lean::quad_ef_shadow",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::quad_ef_exact",
+  "name": "Hagi/Unified/EFTheory.lean::quad_ef_exact",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::quad_ef_quality_rate",
+  "name": "Hagi/Unified/EFTheory.lean::quad_ef_quality_rate",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::quad_ef_sign_quality",
+  "name": "Hagi/Unified/EFTheory.lean::quad_ef_sign_quality",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::quad_ef_sign_quality_bits",
+  "name": "Hagi/Unified/EFTheory.lean::quad_ef_sign_quality_bits",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::sgn1_abs_le_one",
+  "name": "Hagi/Unified/EFTheory.lean::sgn1_abs_le_one",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::residual_coord_le",
+  "name": "Hagi/Unified/EFTheory.lean::residual_coord_le",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::residual_l1_le",
+  "name": "Hagi/Unified/EFTheory.lean::residual_l1_le",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::sumsq_le_sq_l1",
+  "name": "Hagi/Unified/EFTheory.lean::sumsq_le_sq_l1",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_residual_step_bound",
+  "name": "Hagi/Unified/EFTheory.lean::ef_residual_step_bound",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::thrComp_keeps",
+  "name": "Hagi/Unified/EFTheory.lean::thrComp_keeps",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::thrComp_residual",
+  "name": "Hagi/Unified/EFTheory.lean::thrComp_residual",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::thrComp_residual_le",
+  "name": "Hagi/Unified/EFTheory.lean::thrComp_residual_le",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::ef_thr_residual_control",
+  "name": "Hagi/Unified/EFTheory.lean::ef_thr_residual_control",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::thrComp_barrier",
+  "name": "Hagi/Unified/EFTheory.lean::thrComp_barrier",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::nrm2_smul",
+  "name": "Hagi/Unified/EFTheory.lean::nrm2_smul",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::inprod_abs_le",
+  "name": "Hagi/Unified/EFTheory.lean::inprod_abs_le",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::thr_ef_quality",
+  "name": "Hagi/Unified/EFTheory.lean::thr_ef_quality",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/EFArc.lean::gridQ_energy_bound",
+  "name": "Hagi/Unified/EFTheory.lean::gridQ_energy_bound",
   "kind": "theorem",
   "category": "A",
   "has_h_emp": false,
@@ -20531,6 +20559,48 @@
   "axiom_dep": null
  },
  {
+  "name": "Hagi/Unified/NegativeTests.lean::nc_drop_cannot_be_assigned",
+  "kind": "theorem",
+  "category": "C",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/Unified/NegativeTests.lean::nc_energy_matches_execution",
+  "kind": "theorem",
+  "category": "C",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/Unified/NegativeTests.lean::budget_overrun_impossible",
+  "kind": "theorem",
+  "category": "C",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/Unified/NegativeTests.lean::risk_limit_respected",
+  "kind": "theorem",
+  "category": "C",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/Unified/NegativeTests.lean::ram_foreign_address_unchanged",
+  "kind": "theorem",
+  "category": "A",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
+  "name": "Hagi/Unified/NegativeTests.lean::ram_post_is_exact_write",
+  "kind": "theorem",
+  "category": "C",
+  "has_h_emp": false,
+  "axiom_dep": null
+ },
+ {
   "name": "Hagi/Unified/NernstFannes.lean::dirac_sum",
   "kind": "theorem",
   "category": "A",
@@ -20829,13 +20899,6 @@
   "kind": "theorem",
   "category": "B",
   "has_h_emp": true,
-  "axiom_dep": null
- },
- {
-  "name": "Hagi/Unified/RecursiveGrowth.lean::macro_termination",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
   "axiom_dep": null
  },
  {
@@ -21280,24 +21343,10 @@
   "axiom_dep": null
  },
  {
-  "name": "Hagi/Unified/TopLevel.lean::top_level_termination",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
-  "axiom_dep": null
- },
- {
   "name": "Hagi/Unified/TopLevel.lean::noisy_cycle_step",
   "kind": "theorem",
   "category": "B",
   "has_h_emp": true,
-  "axiom_dep": null
- },
- {
-  "name": "Hagi/Unified/TopLevel.lean::horizon_termination",
-  "kind": "theorem",
-  "category": "A",
-  "has_h_emp": false,
   "axiom_dep": null
  },
  {
