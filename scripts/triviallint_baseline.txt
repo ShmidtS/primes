@@ -20,5 +20,3 @@ UNUSED_PARAM|Hagi.Unified.hagi_synthesis
 UNUSED_PARAM|Hagi.Unified.sustained_takeoff_struct
 UNUSED_PARAM|Hagi.Unified.MemorySemantics.certified_gain_margin
 UNUSED_PARAM|Hagi.Unified.TC.certs_telescope
-UNUSED_PARAM|Hagi.Unified.NegativeTests.fictitious_drop_contradiction
-UNUSED_PARAM|Hagi.Unified.NegativeTests.quality_floor_holds

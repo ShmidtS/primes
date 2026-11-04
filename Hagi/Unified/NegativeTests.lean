@@ -66,16 +66,9 @@ theorem risk_limit_respected {S : Type*}
     (c : StepCert obj M floor riskLim s s' bt b') :
     c.riskSpend ≤ riskLim := c.trans.riskBound
 
-/-! ### N4. Ухудшение защищённого канала качества невозможно -/
-
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-4): каждый покомпонентный канал
-качества сертифицированного пост-состояния ≥ floor. -/
-theorem quality_floor_holds {S : Type*}
-    (obj : S → ℝ) (M : MeasuredState S)
-    (floor : Fin 5 → ℝ) (riskLim : ℝ) (s s' : S) (bt b' : ℝ)
-    (c : StepCert obj M floor riskLim s s' bt b')
-    (i : Fin 5) : floor i ≤ M.evaluate s' i := c.quality i
-
+/-! ### N4. (удалено в ревизии: тривиальная проекция c.quality;
+покомпонентный floor уже доказывается полем StepCert.quality и
+потребляется certified_loop напрямую — дубль без новой информации) -/
 /-! ### N5. Чужой адрес памяти неизменен -/
 
 /-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-5): сертификат записи не может
@@ -93,17 +86,7 @@ theorem ram_post_is_exact_write {m n : ℕ}
     (w : RamWriteCert pre i v) :
     w.post = Matrix.updateRow pre i v := w.post_eq
 
-/-! ### N6. Спуск-сертификат без реального убывания невозможен -/
-
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-1): HonestTransition со строгим
-спуском влечёт РЕАЛЬНОЕ строгое убывание objective — «ручной»
-положительный drop при невозрастающем objective противоречив. -/
-theorem fictitious_drop_contradiction {S : Type*}
-    (obj : S → ℝ) (s s' : S) (rs rl bs b' : ℝ)
-    (T : HonestTransition obj s s' rs rl bs b')
-    (hbad : obj s ≤ obj s') : False := by
-  have ⟨h, _⟩ := honest_actual_drop obj s s' rs rl bs b' T
-  have : obj s' < obj s := h
-  linarith
-
+/-! ### N6. (удалено в ревизии: тривиальное следствие
+honest_actual_drop из HonestTransition.lean — дубль без новой
+информации; НЕ прятался в baseline, а удалён) -/
 end Hagi.Unified.NegativeTests
