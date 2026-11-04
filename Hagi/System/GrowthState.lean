@@ -173,26 +173,17 @@ def gainGrow (S : GrowthState X) : ℝ := S.effects.growGain
 /-- The grow-stage Φ-cost (protected risk; budget is outside Φ). -/
 def riskGrow (S : GrowthState X) : ℝ := S.effects.growRisk
 
-@[deprecated riskGrow (since := "audit v10 3.5: risk not FLOPs")]
-def costGrow (S : GrowthState X) : ℝ := S.effects.growRisk
-
 /-- The certified merge-stage gain: the Jensen gap G itself. -/
 def gainMerge (S : GrowthState X) : ℝ := S.gap
 
 /-- The merge-stage Φ-cost (protected risk). -/
 def riskMerge (S : GrowthState X) : ℝ := S.effects.mergeRisk
 
-@[deprecated riskMerge (since := "audit v10 3.5: risk not FLOPs")]
-def costMerge (S : GrowthState X) : ℝ := S.effects.mergeRisk
-
 /-- The joint-stage gain `eta * ‖stepDir‖² / 2`. -/
 def gainJoint (S : GrowthState X) : ℝ := S.sp.eta * ‖S.stepDir‖ ^ 2 / 2
 
 /-- The joint-stage Φ-cost (protected risk). -/
 def riskJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
-
-@[deprecated riskJoint (since := "audit v10 3.5: risk not FLOPs")]
-def costJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 
 /-- The compress-stage gain: MEASURED energy saving of the
 compression stage (energy before − compressEnergy), not a
@@ -367,48 +358,48 @@ def discover (S : GrowthState X) : Candidate where
 
 /-- If the measured grow-stage energy descends by the gain
 (h_emp_grow), then Φ decreases by at least
-`gainGrow − costGrow`. -/
+`gainGrow − riskGrow`. -/
 theorem potential_grow (S : GrowthState X)
     (h_emp_grow : S.effects.growEnergy ≤ S.energy - gainGrow S) :
-    potential (grow S) - potential S ≤ -gainGrow S + costGrow S := by
+    potential (grow S) - potential S ≤ -gainGrow S + riskGrow S := by
   have hp : potential (grow S)
       = S.effects.growEnergy + (S.protectedRisk + S.effects.growRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
   have hgg : gainGrow S = S.effects.growGain := rfl
-  have hcg : costGrow S = S.effects.growRisk := rfl
+  have hcg : riskGrow S = S.effects.growRisk := rfl
   linarith
 
 /-- If the measured merge-stage energy descends by the gap
 (h_emp_merge), then Φ decreases by at least
-`gainMerge − costMerge`. -/
+`gainMerge − riskMerge`. -/
 theorem potential_merge (S : GrowthState X)
     (h_emp_merge : S.effects.mergeEnergy ≤ S.energy - gainMerge S) :
-    potential (merge S) - potential S ≤ -gainMerge S + costMerge S := by
+    potential (merge S) - potential S ≤ -gainMerge S + riskMerge S := by
   -- the content is `merge_stage` (Emerged ≤ Emean − G); the sign
   -- G ≥ 0 is the Concat adapter's (R88) — no free parameter
   have hp : potential (merge S)
       = S.effects.mergeEnergy + (S.protectedRisk + S.effects.mergeRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
   have hgm : gainMerge S = S.gap := rfl
-  have hcm : costMerge S = S.effects.mergeRisk := rfl
+  have hcm : riskMerge S = S.effects.mergeRisk := rfl
   linarith
 
 /-- With `0 < L`, `0 ≤ eta ≤ 1/L`, the SafeQP descent
 hypothesis, and the smoothness premise (h_emp_), Φ decreases
-by at least `gainJoint − costJoint`. -/
+by at least `gainJoint − riskJoint`. -/
 theorem potential_joint (S : GrowthState X)
     (hL : 0 < S.sp.L) (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
     (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
     (h_emp_smooth : S.effects.jointEnergy ≤ S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ
       + S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2) :
-    potential (joint S) - potential S ≤ -gainJoint S + costJoint S := by
+    potential (joint S) - potential S ≤ -gainJoint S + riskJoint S := by
   have hj : S.effects.jointEnergy ≤ S.energy - gainJoint S :=
     Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
       S.effects.jointEnergy S.energy hL heta heta0 hdescent h_emp_smooth
   have hp : potential (joint S)
       = S.effects.jointEnergy + (S.protectedRisk + S.effects.jointRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
-  have hcj : costJoint S = S.effects.jointRisk := rfl
+  have hcj : riskJoint S = S.effects.jointRisk := rfl
   linarith
 
 /-- With the compress-stage premises (h_emp_ distortion and
@@ -668,7 +659,7 @@ theorem termination_from_telescope {T : ℕ} (cs : ℕ → StageCertificate)
 
 end Hagi.System
 namespace Hagi
-export Hagi.System (protected_generation_budget StageParams GrowthState potential gainGrow costGrow gainMerge costMerge gainJoint costJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
+export Hagi.System (protected_generation_budget StageParams GrowthState potential gainGrow riskGrow gainMerge riskMerge gainJoint riskJoint gainCompress costCompress grow merge joint compress Certificate Metrics Candidate verify measure discover StageCertificate stageCertificate stage_certificate_sound stage_certificate_telescope termination_from_telescope potential_grow potential_merge potential_joint potential_compress growth_cycle_potential certificate_sound budget_account)
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Специализация канона: Φ2 при λ=1, ν=0 — это в точности
