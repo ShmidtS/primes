@@ -77,6 +77,7 @@ import Hagi.Unified.TernaryWitness
 import Hagi.StatMech.Hopfield.Model
 import Hagi.Optimization.MomentumHB
 import Hagi.Learning.ToyTrajectory
+import Hagi.Step.SubspaceSafeQP
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
