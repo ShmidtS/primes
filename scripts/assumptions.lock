@@ -2,6 +2,12 @@ h_emp files: 44
 h_emp identifiers: 134
 h_emp proven theorems: 5
 primitive defs: 10
+operational premise names: 10
+
+[premise classes]
+Empirical: h_emp_* binders (statistical, external)
+Operational: 10 execution-link binders
+Structural/Math: all other parameter hypotheses
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
