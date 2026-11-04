@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.State.TrainState
+import Hagi.Foundations.QuadEta
 
 /-!
 # Transition — единая семантика перехода (Gate 3, спека §5)
@@ -54,6 +55,12 @@ noncomputable def trainStep (S : TrainState n a r c k)
   { S with
       model := { S.model with
           weights := fun i => S.model.weights i - u.eta * u.grad i }
+      opt := { S.opt with
+          -- аудит-4 P0: оптимизатор обновляется вместе с шагом:
+          -- моменты поглощают ФАКТИЧЕСКИЙ применённый градиент
+          m := fun i => S.opt.m i - u.grad i
+          v := fun i => S.opt.v i + u.grad i ^ 2
+          schedStep := S.opt.schedStep + 1 }
       mem := writeMem S.mem u.write
       res := { S.res with
           budget := S.res.budget - u.opCost
@@ -79,6 +86,70 @@ def measureQuality (S : TrainState n a r c k)
 @[simp] theorem trainStep_risk (S : TrainState n a r c k)
     (u : TrainingInput n c) :
     (trainStep S u).saf.risk = S.saf.risk + u.opRisk := rfl
+
+@[simp] theorem trainStep_opt_m (S : TrainState n a r c k)
+    (u : TrainingInput n c) :
+    (trainStep S u).opt.m
+      = fun i => S.opt.m i - u.grad i := rfl
+
+@[simp] theorem trainStep_opt_v (S : TrainState n a r c k)
+    (u : TrainingInput n c) :
+    (trainStep S u).opt.v
+      = fun i => S.opt.v i + u.grad i ^ 2 := rfl
+
+@[simp] theorem trainStep_opt_sched (S : TrainState n a r c k)
+    (u : TrainingInput n c) :
+    (trainStep S u).opt.schedStep
+      = S.opt.schedStep + 1 := rfl
+
+/-! ### Guided-шаг: градиент ВЫЧИСЛЯЕТСЯ переходом из функции
+потерь (аудит-4 P0: направление связано с конкретным лоссом,
+а не подаётся извне произвольным вектором) -/
+
+/-- Функция потерь guided-обучения: квадратичное расстояние
+весов до целевой конфигурации tgt (носитель — Fin n,
+совместим с DescentCoreQuad.quadE). -/
+noncomputable def lossOf {n a r c k : ℕ}
+    (S : TrainState n a r c k) (tgt : Fin n → ℝ) : ℝ :=
+  Hagi.Foundations.quadLossAt tgt S.model.weights
+
+/-- Guided-вход: НЕ несёт градиент — только цель, шаг и
+ресурсные измерения. Направление спуска выводится переходом. -/
+structure GuidedInput (n c : ℕ) where
+  /-- Целевая конфигурация весов (функция потерь lossOf). -/
+  tgt : Fin n → ℝ
+  /-- Скорость обучения. -/
+  eta : ℝ
+  /-- Вычислительная стоимость шага (измеренная). -/
+  opCost : ℝ
+  /-- Риск-трата шага (измеренная). -/
+  opRisk : ℝ
+  write : Option (Σ _ : ℕ, Fin c → ℝ)
+
+/-- Guided-переход: градиент lossOf вычислен ИЗ состояния и
+цели (w − tgt), затем применён общий trainStep. -/
+noncomputable def guidedTrainStep (S : TrainState n a r c k)
+    (u : GuidedInput n c) : TrainState n a r c k :=
+  trainStep S ⟨fun i => S.model.weights i - u.tgt i, u.eta,
+    u.opCost, u.opRisk, u.write⟩
+
+/-- ТОЧНОЕ тождество потерь guided-шага: спуск выведен из
+диапазона η (0 < η < 2), градиент — истинный градиент lossOf.
+Никакого внешнего вектора направления. -/
+theorem guided_loss_identity (S : TrainState n a r c k)
+    (u : GuidedInput n c) :
+    lossOf (guidedTrainStep S u) u.tgt
+      = (1 - u.eta) ^ 2 * lossOf S u.tgt :=
+  Hagi.Foundations.quad_eta_identity u.tgt S.model.weights u.eta
+
+/-- Строгий спуск guided-шага: единственная гипотеза —
+измеримый выбор скорости обучения 0 < η < 2. -/
+theorem guided_loss_descent (S : TrainState n a r c k)
+    (u : GuidedInput n c) (h0 : 0 < u.eta) (h2 : u.eta < 2)
+    (hpos : 0 < lossOf S u.tgt) :
+    lossOf (guidedTrainStep S u) u.tgt < lossOf S u.tgt :=
+  Hagi.Foundations.quad_eta_descent u.tgt S.model.weights u.eta h0
+    h2 hpos
 
 @[simp] theorem trainStep_quality_unchanged (S : TrainState n a r c k)
     (u : TrainingInput n c) :

@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.Unified.DescentCore
+import Hagi.Foundations.QuadEta
 
 /-!
 # DescentCoreQuad: первый
@@ -140,46 +141,29 @@ theorem quad_drop (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
   rw [hone] at hdrop
   linarith
 
-/-! ### Общий шаг с произвольным η: спуск выводится ТОЛЬКО из
-диапазона η (аудит-4, P0-2: градиент привязан к функции потерь
-quadE, никакой h_emp/hcond-посылки на спуск) -/
+/-- Делегаты канонических η-теорем (перенесены в
+Hagi.Foundations.QuadEta — чистая математика, слой 0). -/
+theorem quadE_eq_quadLossAt (a w : k → ℝ) :
+    quadE a w = Hagi.Foundations.quadLossAt a w := by
+  unfold quadE Hagi.Foundations.quadLossAt
+  rw [Finset.sum_div]
 
-/-- ТОЧНОЕ тождество η-шага вдоль градиента quadE:
-E(w − η·∇E(w)) = (1−η)²·E(w). Градиент — ИСТИННЫЙ градиент
-функции потерь quadE (quadGrad), спуск не постулируется:
-при 0 < η < 2 множитель (1−η)² < 1. -/
+theorem quadGrad_eq (a w : k → ℝ) :
+    quadGrad a w = Hagi.Foundations.quadLossGrad a w := rfl
+
 theorem quad_eta_identity (a w : k → ℝ) (eta : ℝ) :
     quadE a (fun i => w i - eta * quadGrad a w i)
       = (1 - eta) ^ 2 * quadE a w := by
-  have hper : ∀ i, (w i - eta * quadGrad a w i - a i)
-      = (1 - eta) * (w i - a i) := by
-    intro i
-    unfold quadGrad
-    ring
-  unfold quadE
-  have hsum : ∑ i, (w i - eta * quadGrad a w i - a i) ^ 2
-      = ∑ i, ((1 - eta) * (w i - a i)) ^ 2 :=
-    Finset.sum_congr rfl (fun i _ => by rw [hper i])
-  rw [hsum]
-  have hfac : ∑ i, ((1 - eta) * (w i - a i)) ^ 2
-      = (1 - eta) ^ 2 * ∑ i, (w i - a i) ^ 2 := by
-    simp only [mul_pow, Finset.mul_sum]
-  rw [hfac]
-  ring
+  have h := Hagi.Foundations.quad_eta_identity a w eta
+  rw [← quadE_eq_quadLossAt, ← quadE_eq_quadLossAt] at h
+  exact h
 
-/-- Спуск выведен из диапазона η ЕДИНСТВЕННОЙ гипотезой
-0 < η < 2 — измеримого выбора скорости обучения, не свойств
-спуска. Многократность: каждый шаг пересчитывает градиент от
-ТЕКУЩЕГО состояния (эффекты зависят от состояния). -/
 theorem quad_eta_descent (a w : k → ℝ) (eta : ℝ)
     (h0 : 0 < eta) (h2 : eta < 2) (hpos : 0 < quadE a w) :
     quadE a (fun i => w i - eta * quadGrad a w i) < quadE a w := by
-  rw [quad_eta_identity]
-  have hlt : (1 - eta) ^ 2 < 1 := by
-    have h1 : -1 < 1 - eta := by linarith
-    have h2' : 1 - eta < 1 := by linarith
-    nlinarith [h1, h2', sq_nonneg (1 - eta)]
-  have := mul_lt_mul_of_pos_right hlt hpos
-  linarith
+  have h := Hagi.Foundations.quad_eta_descent a w eta h0 h2
+    (by rw [← quadE_eq_quadLossAt]; exact hpos)
+  rw [← quadE_eq_quadLossAt, ← quadE_eq_quadLossAt] at h
+  exact h
 
 end Hagi.Unified.DescentCoreQuad
