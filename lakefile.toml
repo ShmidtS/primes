@@ -4,7 +4,7 @@ keywords = ["math"]
 defaultTargets = ["Hagi"]
 
 [leanOptions]
-pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
@@ -18,9 +18,6 @@ weak.linter.unusedHypotheses = true
 name = "mathlib"
 scope = "leanprover-community"
 path = "C:/Users/shmid/mathlib4"
-
-[[lean_lib]]
-name = "Primes"
 
 [[lean_lib]]
 name = "Hagi"
