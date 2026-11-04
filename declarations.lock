@@ -641,10 +641,12 @@ certified_trajectory_risk	0e606a92d509a7ed	68112d0d9c5cda92
 certs_telescope	70be320140c9bc1e	4c02016456eb7a67
 cfgBeta	f032ea8b41ac82a7	f8343837ce791f77
 cfgEta	c33bbe622f9c5f7a	ac3359de527dd557
+cfgLam	e69112fa56ca0e04	2d183745596c37f1
 cfgMaxTrits	5c220f9c4a0c8099	d877897e6a4a6783
 cfg_bits	bc336aeec209e21e	fb2d8e2373684e78
 cfg_boost	13af2b05f00172d3	1898bbb573a0742c
 cfg_convex	faca10ba88a6ace5	46483f26e08af61a
+cfg_curvature	73496b352e01eafa	e25c90ff2a4b0dd9
 cfg_descent	423511a685c2e9f5	def5b0d80fb5cb82
 cfg_interp	acc4638c4bb99c65	2d8538343ab66a29
 cfg_rate	2d0915b7db057643	966f9d28f3d3cf05

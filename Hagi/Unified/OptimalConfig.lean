@@ -2,6 +2,7 @@ import Mathlib.Tactic
 import Hagi.Optimization.MomentumHB
 import Hagi.Learning.TrainingTransition
 import Hagi.Learning.BitBudget
+import Hagi.Learning.RegCovPD
 
 set_option linter.style.header false
 
@@ -162,5 +163,29 @@ theorem cfg_bits (m r : ℕ) (eps : ℝ) (heps : 0 < eps)
     _ ≤ eps * Hagi.Learning.TernaryPert.eunorm x :=
         mul_le_mul_of_nonneg_right hhalf
           (Real.sqrt_nonneg _)
+
+
+/-! ### 5. Регуляризация FOOF: λ выводится из целевой кривизны -/
+
+/-- Регуляризация как функция цели: λ(μ) = μ — целевой порог
+минимальной кривизны. Не подбирается: равен порогу. -/
+def cfgLam (mu : ℝ) : ℝ := mu
+
+/-- ВЫВОД λ: при λ = μ > 0 предобусловленная ковариация
+C = XXᵀ + λI гарантирует кривизну vᵀCv ≥ μ·‖v‖² в ЛЮБОМ
+направлении (ν-сильная выпуклость на спектральном пороге).
+Следствия (уже доказаны): C обратим (regCov_det_unit —
+посылка λ>0 стала теоремой), FOOF-шаг определён и единственен
+(foofW_unique). Вместе с cfgEta/cfgBeta: НИ ОДИН числовой
+параметр HAGI не подбирается. -/
+theorem cfg_curvature (X : Matrix (Fin d) (Fin T) ℝ) (mu : ℝ)
+    (hmu : 0 < mu) (v : Fin d → ℝ) :
+    dotProduct v ((Hagi.Learning.FOOF.regCov X (cfgLam mu)).mulVec v)
+      ≥ mu * (∑ j, v j ^ 2) := by
+  rw [Hagi.Learning.RegCovPD.regCov_quad]
+  have h1 : (0:ℝ) ≤ ∑ i, (∑ j, X j i * v j) ^ 2 :=
+    Finset.sum_nonneg (fun i _ => sq_nonneg _)
+  unfold cfgLam
+  linarith
 
 end Hagi.Unified.OptimalConfig
