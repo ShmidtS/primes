@@ -394,6 +394,8 @@ import Hagi.Unified.TransitionCert
 import Hagi.Unified.VerticalCapstone
 import Hagi.Unified.NegativeTests
 import Hagi.State.TrainState
+import Hagi.State.Transition
+import Hagi.Contracts.StepCertificate
 
 set_option linter.style.header false
 
