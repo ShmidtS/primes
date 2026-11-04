@@ -86,7 +86,7 @@ import Hagi.Learning.RegCovPD
 import Hagi.Learning.TernaryPert
 import Hagi.Learning.PertTelescope
 import Hagi.Learning.FOOFUnique
-import Hagi.Information.InfoCanonical
+import Hagi.Unified.InfoCanonical
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery

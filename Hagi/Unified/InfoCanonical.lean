@@ -7,6 +7,7 @@ set_option linter.style.header false
 
 /-!
 # InfoCanonical — канонические мосты теории информации (TD-03, цикл 15)
+# (в Unified: мост потребляет FannesComplete из того же слоя)
 
 Дублирование определений (аудит TD-03): энтропия/TV определены
 независимо в `Prelude.Info` (entDef/tvDef) и
@@ -20,7 +21,7 @@ merge-before-delete: сначала мосты, удаление дублиру�
 
 open Finset
 
-namespace Hagi.Information.InfoCanonical
+namespace Hagi.Unified.InfoCanonical
 
 /-- Энтропии совпадают: shannon = entDef. -/
 theorem shannon_eq_entDef {V : Type*} [Fintype V] (p : V → ℝ) :
@@ -48,4 +49,4 @@ theorem fanes_entDef {V : Type*} [Fintype V] [DecidableEq V]
   rw [shannon_eq_entDef p, shannon_eq_entDef q, tvHalf_eq_tvDef] at hkey
   exact hkey
 
-end Hagi.Information.InfoCanonical
+end Hagi.Unified.InfoCanonical
