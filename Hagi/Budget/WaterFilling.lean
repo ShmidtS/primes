@@ -148,5 +148,3 @@ theorem exists_balanced_allocation {m : ℕ} (c : Fin m → ℝ) (B : ℕ)
     Finset.sum_congr rfl (fun _ _ => rfl)
   rw [hcoe, hcoe2] at hstar
   linarith
-
-end Hagi.Budget

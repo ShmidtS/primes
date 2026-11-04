@@ -100,3 +100,16 @@ hRiskNonneg := c.hriskSpend_nn (реальный расход риска в
 контракте). tc_step_of_stepcert и tc_consequence
 переформулированы честно: итог ослаблён на Σ riskSpend
 (раньше «Σ riskCost = 0» — скрытая потеря информации о риске).
+
+## TD-04 верифицирован и закрыт (цикл 17, 2026-11-02)
+
+Проверка аудита: «6 вариаций одного Water-Filling» —
+ПРЕУВЕЛИЧЕНО. Реальный дубликат один: totalErrorFin
+(WaterFilling) vs totalError (BitAlloc) — оба Σ c/2^b;
+WaterFilling уже импортирует BitAlloc и делегирует (мост
+доказывался inline rfl). Добавлен публичный мост
+totalErrorFin_eq_totalError как API (merge-before-delete).
+Остальные модули — РАЗНЫЕ модели, не дубликаты:
+WaterFillingMoE (genMean/effectiveCapacity), RankBudget
+(экспоненциальный ранг-остаток), BatchCap (SFO-стоимость),
+KVWater (KV-остаток с каппой).
