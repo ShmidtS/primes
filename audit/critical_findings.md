@@ -113,3 +113,27 @@ totalErrorFin_eq_totalError как API (merge-before-delete).
 WaterFillingMoE (genMean/effectiveCapacity), RankBudget
 (экспоненциальный ранг-остаток), BatchCap (SFO-стоимость),
 KVWater (KV-остаток с каппой).
+
+## Аудит #7 (Claude/ChatGPT, 2026-11-04) — верификация и ответ
+
+Верифицированные факты:
+- TrainState.evaluate = S.qual, trainStep_evaluate_unchanged —
+  ПОДТВЕРЖДЕНО (дизайн-решение: качество через канал
+  measureQuality; известен с аудита #1).
+- Локальный mathlib-путь в lakefile — ПОДТВЕРЖДЕНО (открытая
+  инфраструктурная задача, аудит-4 §10; MATHLIBPIN-гейт в CI
+  фиксирует commit 56a00585).
+- Раздутость Unified (64 файла) — ПОДТВЕРЖДЕНО частично;
+  LayerLint контролирует направления зависимостей.
+
+Ответ P0-2/P0-3 (цикл 19, коммит ниже): TrainingTransition —
+каноническая модель, где качество ВЫЧИСЛЯЕТСЯ из весов
+(taskQual_is_computed, rfl), градиентный шаг реально убывает
+суммарную энергию (taskStep_identity — точное тождество
+E' = E − (2η−Tη²)/2·‖g‖²; taskStep_energy_descent), и
+quality_changes_with_weights ОПРОВЕРГАЕТ инвариант
+«trainStep не меняет качество» — в канонической модели
+одно-задачный случай строго убывает.
+
+Преувеличения аудита отклонены: «409 файлов/4.8МБ» включает
+скрипты; DupLint/TrivialLint/AP-check уже в CI и PASS.
