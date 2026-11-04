@@ -94,7 +94,8 @@ theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace
     E2 ≤ E1 - eta * ‖ds‖ ^ 2 / 2 := by
   have hdescent' : ‖ds‖ ^ 2 ≤ ⟪g0, ds⟫_ℝ :=
     (safeQP_descent C hconv h0 g0 ds hs hmin).1
-  exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ) E2 E1 hL heta heta0 hdescent' h_emp_smooth
+  exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ)
+    E2 E1 hL heta heta0 hdescent' h_emp_smooth
 
 /-! ## Orthogonal projection = zero interference (R348)
 
@@ -134,5 +135,7 @@ theorem hard_budget_forces_orthogonal {K : Type*}
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent joint_stage_linked orthogonal_zero_interference hard_budget_forces_orthogonal)
+export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent
+  joint_stage_linked orthogonal_zero_interference
+  hard_budget_forces_orthogonal)
 end Hagi

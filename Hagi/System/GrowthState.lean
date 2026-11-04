@@ -324,8 +324,10 @@ quantities — stage sum growGain + G + η‖d*‖²/2 − κs/2. Soundness is
 `certificate_sound`: whenever the stage hypotheses hold, the real
 Φ-decrease is at least the certificate's. -/
 def verify (S : GrowthState X) : Certificate where
-  decrease := S.effects.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2
-  riskSpend := S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk
+  decrease := S.effects.growGain + S.gap + gainJoint S
+      - S.sp.kappa * S.sp.s / 2
+  riskSpend := S.effects.growRisk + S.effects.mergeRisk
+      + S.effects.jointRisk + S.effects.compressRisk
   budgetSpend := S.effects.growCost + S.effects.mergeCost
       + S.effects.jointCost + S.effects.compressCost
 
@@ -412,8 +414,8 @@ theorem potential_compress (S : GrowthState X)
     potential (compress S) - potential S
       ≤ -gainCompress S + costCompress S := by
   have hc : S.effects.compressEnergy - S.energy ≤ S.sp.kappa * S.sp.s / 2 :=
-    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr S.effects.compressEnergy S.energy
-      hkappa hs hdn h_emp_dist h_emp_lip
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr
+      S.effects.compressEnergy S.energy hkappa hs hdn h_emp_dist h_emp_lip
   have hp : potential (compress S)
       = S.effects.compressEnergy + (S.protectedRisk + S.effects.compressRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
@@ -451,11 +453,16 @@ theorem growth_cycle_potential (S : GrowthState X)
   -- the gap sign enters through merge_stage (Emerged ≤ Emean with G ≥ 0)
   have hmw : S.effects.mergeEnergy ≤ S.effects.growEnergy :=
     Hagi.Foundations.merge_stage S.effects.growEnergy S.gap S.effects.mergeEnergy h_emp_merge hgap
-  have hj : S.effects.jointEnergy ≤ S.effects.mergeEnergy - S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 :=
-    Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖ ⟪S.grad, S.stepDir⟫_ℝ
-      S.effects.jointEnergy S.effects.mergeEnergy hL heta heta0 hdescent h_emp_smooth
-  have hc : S.effects.compressEnergy - S.effects.jointEnergy ≤ S.sp.kappa * S.sp.s / 2 :=
-    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr S.effects.compressEnergy S.effects.jointEnergy
+  have hj : S.effects.jointEnergy
+      ≤ S.effects.mergeEnergy - S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 :=
+    Hagi.Foundations.joint_stage S.sp.L S.sp.eta ‖S.stepDir‖
+      ⟪S.grad, S.stepDir⟫_ℝ
+      S.effects.jointEnergy S.effects.mergeEnergy hL heta heta0
+      hdescent h_emp_smooth
+  have hc : S.effects.compressEnergy - S.effects.jointEnergy
+      ≤ S.sp.kappa * S.sp.s / 2 :=
+    Hagi.Foundations.compress_stage S.sp.kappa S.sp.s S.effects.quantErr
+      S.effects.compressEnergy S.effects.jointEnergy
       hkappa hs hdn h_emp_dist h_emp_lip
   -- the transition algebra: the composed potential telescopes
   have hp : potential (compress (joint (merge (grow S))))
@@ -487,9 +494,11 @@ theorem certificate_sound (S : GrowthState X)
   have hcycle := growth_cycle_potential S hgap h_emp_grow h_emp_merge hL heta heta0
     hdescent h_emp_smooth hkappa hs hdn h_emp_dist h_emp_lip
   have hv : (verify S).decrease
-      = S.effects.growGain + S.gap + gainJoint S - S.sp.kappa * S.sp.s / 2 := rfl
+      = S.effects.growGain + S.gap + gainJoint S
+        - S.sp.kappa * S.sp.s / 2 := rfl
   have hr : (verify S).riskSpend
-      = S.effects.growRisk + S.effects.mergeRisk + S.effects.jointRisk + S.effects.compressRisk := rfl
+      = S.effects.growRisk + S.effects.mergeRisk
+        + S.effects.jointRisk + S.effects.compressRisk := rfl
   have hgj : gainJoint S = S.sp.eta * ‖S.stepDir‖ ^ 2 / 2 := rfl
   have hgm : gainMerge S = S.gap := rfl
   have hcc : costCompress S = S.sp.kappa * S.sp.s / 2 + S.effects.compressRisk := rfl

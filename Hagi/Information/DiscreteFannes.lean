@@ -486,7 +486,8 @@ theorem spectral_pure_decomposition {P : Matrix ι ι ℂ} (hP : P.IsHermitian) 
     Matrix.smul_apply,pure,Complex.real_smul]
   apply Finset.sum_congr rfl
   intro a _
-  simp only [diagonal_apply, Function.comp_apply, mul_ite, mul_zero, Finset.sum_ite_eq', Finset.mem_univ, ite_true]
+  simp only [diagonal_apply, Function.comp_apply, mul_ite, mul_zero, Finset.sum_ite_eq',
+    Finset.mem_univ, ite_true]
   change hP.eigenvectorUnitary i a * (hP.eigenvalues a : ℂ) * star (hP.eigenvectorUnitary j a) =
     (hP.eigenvalues a : ℂ) * (hP.eigenvectorUnitary i a * star (hP.eigenvectorUnitary j a))
   ring

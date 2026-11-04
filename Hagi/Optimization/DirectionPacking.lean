@@ -238,7 +238,8 @@ theorem welch_bound_core {M : ℕ} (_b : OrthonormalBasis (Fin d) ℝ F)
           = ∑ k : Fin M, (μ^2 + (if i = k then (1:ℝ) - μ^2 else 0)) :=
             Finset.sum_congr rfl (fun k _ => key k)
         _ = M * μ^2 + ∑ k : Fin M, (if i = k then (1:ℝ) - μ^2 else 0) := by
-            simp [Finset.sum_add_distrib, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_add]
+            simp [Finset.sum_add_distrib, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul,
+              mul_add]
         _ = M * μ^2 + ((1:ℝ) - μ^2) := by
             rw [Finset.sum_ite_eq Finset.univ i (fun _ => (1:ℝ) - μ^2),
               if_pos (Finset.mem_univ i)]

@@ -12,10 +12,15 @@ set_option linter.style.header false
 /-!
 # The insight channel
 
-* `insight_kl_descent`: the CE gap between student and insight-teacher equals the corresponding KL gap.
-* `insight_consolidation_safe`: SafeQP consolidation gives per-domain drift bounded by `ε` and preserved descent.
-* `experience_cycle_bound`: a one-cycle Lyapunov budget inequality for the experience gate.
-* `tldr_drift_null`, `tldr_two_tier_safety`: low-rank insight adapters act as zero on the adapter's kernel; combined with the Fisher KL budget this gives two-tier safety.
+* `insight_kl_descent`: the CE gap between student and
+  insight-teacher equals the corresponding KL gap.
+* `insight_consolidation_safe`: SafeQP consolidation gives
+  per-domain drift bounded by `ε` and preserved descent.
+* `experience_cycle_bound`: a one-cycle Lyapunov budget
+  inequality for the experience gate.
+* `tldr_drift_null`, `tldr_two_tier_safety`: low-rank insight
+  adapters act as zero on the adapter's kernel; combined with
+  the Fisher KL budget this gives two-tier safety.
 -/
 
 open Real Finset InnerProductSpace
@@ -48,8 +53,10 @@ theorem insight_kl_descent (q pI pTheta' : V → ℝ)
       = Hagi.Prelude.klDef q pTheta' - Hagi.Prelude.klDef q pI :=
   ce_gap_kl_identity q pI pTheta' hq hI hT
 
-/-- Given the stage inequality `Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp`, the next-cycle energy satisfies `Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant)`.
--/
+/-- Given the stage inequality
+`Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp`,
+the next-cycle energy satisfies
+`Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant)`. -/
 theorem experience_cycle_bound (Et Enext Gins Gmerge dnorm2 eta Cexp Cquant : ℝ)
     (hstage : Enext ≤ Et - Gins - Gmerge - eta * dnorm2 / 2 + Cquant + Cexp) :
     Enext ≤ Et - (Gins + Gmerge + eta * dnorm2 / 2 - Cexp - Cquant) := by
