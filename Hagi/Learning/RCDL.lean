@@ -78,24 +78,24 @@ end Hagi.Learning.RCDL
 
 /-! ### Взвешенный софтмакс и gauge-инвариантность -/
 
-variable {N : ℕ}
+variable {ι : Type*} [Fintype ι] {N : ℕ}
 
 /-- Экспоненциальный вес ключа: e^{⟨kᵢ, q⟩}. -/
-noncomputable def expw (k q : Fin d → ℝ) : ℝ := Real.exp (dotProduct k q)
+noncomputable def expw (k q : ι → ℝ) : ℝ := Real.exp (dotProduct k q)
 
 /-- Взвешенный софтмакс RCDL:
 s(q) = Σ e^{⟨kᵢ,q⟩} ṽᵢ / Σ e^{⟨kᵢ,q⟩} wᵢ. -/
-noncomputable def weightedSoftmax (ks : Fin N → Fin d → ℝ)
-    (ws : Fin N → ℝ) (vs : Fin N → Fin d → ℝ) (q : Fin d → ℝ) :
-    Fin d → ℝ :=
+noncomputable def weightedSoftmax (ks : Fin N → ι → ℝ)
+    (ws : Fin N → ℝ) (vs : Fin N → ι → ℝ) (q : ι → ℝ) :
+    ι → ℝ :=
   fun j => (∑ i, expw (ks i) q * vs i j) / (∑ i, expw (ks i) q * ws i)
 
 /-- GAUGE-ИНВАРИАНТНОСТЬ: сдвиг базы значений на вектор b
 (ṽᵢ → ṽᵢ + b·wᵢ) не меняет взвешенный софтмакс. Именно эта
 теорема делает калибровочный сдвиг законным инструментом
 гарантии w_new > 0 (arXiv:2610.03858, Sec. 3.2). -/
-theorem gauge_shift (ks : Fin N → Fin d → ℝ) (ws : Fin N → ℝ)
-    (vs : Fin N → Fin d → ℝ) (q : Fin d → ℝ) (b : Fin d → ℝ)
+theorem gauge_shift (ks : Fin N → ι → ℝ) (ws : Fin N → ℝ)
+    (vs : Fin N → ι → ℝ) (q : ι → ℝ) (b : ι → ℝ)
     (hdenpos : (∑ i, expw (ks i) q * ws i) ≠ 0) :
     weightedSoftmax ks ws (fun i => vs i + ws i • b) q
       = weightedSoftmax ks ws vs q + b := by
