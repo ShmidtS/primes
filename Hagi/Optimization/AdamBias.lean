@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Hagi.Foundations.Recurrence
 
 /-!
 # Adam bias correction (источник №28)
@@ -19,18 +20,6 @@ m_{t+1} = β·m_t + (1−β)·g смещена к нулю на ранних ш�
 -/
 
 namespace Hagi.Optimization.AdamBias
-
-/-- Closed form: (1−β)·∑_{i<t} β^i = 1 − β^t. -/
-@[deprecated]
-theorem one_sub_beta_geom (β : ℝ) (t : ℕ) :
-    (1 - β) * ∑ i ∈ Finset.range t, β ^ i = 1 - β ^ t := by
-  induction t with
-  | zero => norm_num
-  | succ t ih =>
-    rw [Finset.sum_range_succ (fun i => β ^ i) t]
-    have hp : β ^ (t + 1) = β ^ t * β := by ring
-    have hp2 : β ^ (t + 1) = β * β ^ t := by ring
-    nlinarith [hp, hp2]
 
 /-- Геометрическое затухание степени: 0 ≤ β < 1, t ≥ 1
 ⟹ β^t < 1. -/
@@ -61,7 +50,7 @@ theorem adamM_recur (β g : ℝ) :
   rcases eq_or_ne β 1 with hβ1 | hβ1
   · subst hβ1
     norm_num
-  · have hg := one_sub_beta_geom β t
+  · have hg := Hagi.Foundations.geom_telescope (rho := β) t
     have hS : ∑ i ∈ Finset.range t, β ^ i = (1 - β ^ t) / (1 - β) := by
       field_simp
       linarith
@@ -76,7 +65,7 @@ theorem adam_bias_bound (β g : ℝ) (t : ℕ) :
   unfold adamM
   have h2 : (1 - β) * g * ∑ i ∈ Finset.range t, β ^ i
       = g * ((1 - β) * ∑ i ∈ Finset.range t, β ^ i) := by ring
-  rw [h2, one_sub_beta_geom]
+  rw [h2, Hagi.Foundations.geom_telescope (rho := β)]
   ring
 
 /-- ЯДРО №28: на постоянном градиенте коррекция смещения

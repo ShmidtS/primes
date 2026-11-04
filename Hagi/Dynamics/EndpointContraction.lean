@@ -20,13 +20,6 @@ open Finset
 
 namespace Hagi.Dynamics
 
-/-- Телескопическое тождество:
-`(1 − γ)·Σ_{i<t} γ^i = 1 − γ^t` (делегация Foundations). -/
-@[deprecated]
-theorem geom_sum_telescope (gamma : ℝ) (t : ℕ) :
-    (1 - gamma) * ∑ i ∈ Finset.range t, gamma ^ i = 1 - gamma ^ t :=
-  Hagi.Foundations.geom_telescope gamma t
-
 /-- При `0 ≤ γ < 1` — `Σ_{i<t} γ^i ≤ 1/(1−γ)` (делегация
 Foundations). -/
 theorem geom_sum_le_inv (gamma : ℝ) (hg : 0 ≤ gamma) (hg1 : gamma < 1) (t : ℕ) :
@@ -44,7 +37,7 @@ theorem contraction_limit (E : ℕ → ℝ) (gamma delta : ℝ)
 end Hagi.Dynamics
 
 namespace Hagi
-export Hagi.Dynamics (geom_sum_telescope geom_sum_le_inv contraction_limit)
+export Hagi.Dynamics (geom_sum_le_inv contraction_limit)
 end Hagi
 
 /-!

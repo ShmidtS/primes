@@ -215,8 +215,8 @@ theorem gae_weight_bound (γ lam : ℝ) (hgl : 0 ≤ γ * lam)
   have hmul : (1 - lam) * ∑ i ∈ Finset.range T, (γ * lam) ^ i
       ≤ (1 - γ * lam) * ∑ i ∈ Finset.range T, (γ * lam) ^ i :=
     mul_le_mul_of_nonneg_right h1 hsum
-  have hgeom := Hagi.Optimization.AdamBias.one_sub_beta_geom
-    (γ * lam) T
+  have hgeom := Hagi.Foundations.geom_telescope
+    (rho := γ * lam) T
   have hpow : 0 ≤ (γ * lam) ^ T := pow_nonneg hgl T
   rw [hgeom] at hmul
   linarith
