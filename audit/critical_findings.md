@@ -68,3 +68,27 @@
 существования сдвига с ⟨g, s+b⟩ > 0); FOOF/Mesa-мост;
 Hadamard-проекторы Π_m для изоляции доменов (частично есть в
 Spectral-модулях).
+
+## Исследовательские циклы 9–13 (2026-11-02, после аудита #6)
+
+- Цикл 9 (FOOF): regCov/foofW + foof_normal_eq (W*C = VXᵀ) +
+  foof_step_identity (W*−W₀ = (V−W₀X)XᵀC⁻¹ − λW₀C⁻¹) — мост
+  Mesa/FOOF: second-order preconditioning одним шагом.
+- Цикл 10 (RegCovPD): regCov_quad (точное тождество vᵀCv =
+  ‖Xᵀv‖²+λ‖v‖²), regCov_posDef, regCov_det_unit — посылка
+  обратимости FOOF стала теоремой при λ>0.
+- Цикл 11 (TernaryPert): cs_dotProduct, frob_submul (‖Ex‖ ≤
+  ‖E‖_F‖x‖), ternary_layer_pert (ошибка квантования слоя ≤
+  √(mr/4)‖x‖) — критика «нет сквозной ошибки квантования»
+  закрыта на уровне слоя.
+- Цикл 12 (PertTelescope): outNorm_triangle, pert_comp_pair,
+  lip_composition, pert_telescope (‖comp e x − comp p x‖ ≤
+  nδLⁿ) — полная сквозная оценка квантованной сети.
+- Цикл 13 (FOOFUnique): foof_normal_unique, foofW_unique —
+  единственность аналитического оптимума Mesa/FOOF.
+
+Примечание процесса: в черновиках циклов 9–13 несколько раз
+проскакивали sorry-заглушки — все заменены до коммита, все
+коммиты прошли sorry-гейт (rg=0). Ловушка Mathlib-снапшота:
+one_le_pow_of_one_le' ведёт к unbundled-версии (MulLeftMono ℝ не
+синтезируется) — 1≤Lⁿ доказывается локальной индукцией.
