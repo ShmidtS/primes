@@ -393,6 +393,7 @@ import Hagi.Unified.ProductiveTransition
 import Hagi.Unified.TransitionCert
 import Hagi.Unified.VerticalCapstone
 import Hagi.Unified.NegativeTests
+import Hagi.State.TrainState
 
 set_option linter.style.header false
 
