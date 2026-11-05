@@ -183,4 +183,60 @@ theorem hb_cfg_rate (rho : ℝ) (h0 : 0 < rho) (h1 : rho < 1)
   exact hb_root_modulus (rho ^ 2)
     (1 + rho ^ 2 - (1 - rho) ^ 2) hbeta hd lam hroot
 
+
+/-! ### Спектральное расширение (цикл 33) -/
+
+/-- СПЕКТРАЛЬНАЯ МОДА: если кривизна μ лежит в окне
+[(1−√β)²/η, (1+√β)²/η] (т.е. (1−√β)² ≤ ημ ≤ (1+√β)²), то
+ЛЮБОЙ корень характеристического многочлена моды имеет
+|λ|² = β — мода затухает как (√β)^t. Композиция
+hb_discriminant_interval + hb_root_modulus. -/
+theorem hb_spectral_mode (beta eta mu : ℝ) (hβ : 0 < beta)
+    (hβ1 : beta < 1) (hmu : 0 < mu)
+    (h1 : (1 - Real.sqrt beta)^2 ≤ eta * mu)
+    (h2 : eta * mu ≤ (1 + Real.sqrt beta)^2)
+    (lam : ℂ)
+    (hroot : lam ^ 2 - ((1 + beta - eta * mu : ℝ)) * lam
+      + ((beta : ℝ)) = 0) :
+    lam.normSq = beta :=
+  hb_root_modulus beta (1 + beta - eta * mu) hβ
+    (hb_discriminant_interval beta eta mu hβ hβ1 h1 h2) lam hroot
+
+/-- КЛАССИЧЕСКИЙ ОПТИМАЛЬНЫЙ ТЕМП: для числа обусловленности
+κ ≥ 1 выбор ρ = (√κ − 1)/(√κ + 1) даёт
+(1−ρ)²/(1+ρ)² = 1/κ — окно кривизны HB с β = ρ² покрывает
+масштаб [1/κ, 1] ровно. Это тождество, стоящее за
+Chebyshev-оптимальностью heavy-ball (нижняя √κ-граница —
+отдельная теорема, не претендуем). -/
+theorem hb_rate_from_kappa (kappa : ℝ) (h : 1 ≤ kappa) :
+    ((1 - (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1))
+        / (1 + (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1))) ^ 2
+      = 1 / kappa := by
+  have hs : 0 < Real.sqrt kappa := by positivity
+  have h1 : 1 - (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1)
+      = 2 / (Real.sqrt kappa + 1) := by
+    field_simp
+    ring
+  have h2 : 1 + (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1)
+      = 2 * Real.sqrt kappa / (Real.sqrt kappa + 1) := by
+    field_simp
+    ring
+  rw [h1, h2]
+  have hk : Real.sqrt kappa ^ 2 = kappa := Real.sq_sqrt (by positivity)
+  field_simp
+  rw [hk]
+
+/-- ρ из κ ∈ [1, ∞) корректно определён: 0 ≤ ρ < 1. -/
+theorem hb_rho_range (kappa : ℝ) (h : 1 ≤ kappa) :
+    0 ≤ (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1)
+      ∧ (Real.sqrt kappa - 1) / (Real.sqrt kappa + 1) < 1 := by
+  have hs : 1 ≤ Real.sqrt kappa := by
+    exact Real.one_le_sqrt.mpr h
+  constructor
+  · apply div_nonneg
+    · linarith [hs]
+    · positivity
+  · rw [div_lt_iff₀ (by positivity : (0:ℝ) < Real.sqrt kappa + 1)]
+    nlinarith [hs]
+
 end Hagi.Optimization.HBRate
