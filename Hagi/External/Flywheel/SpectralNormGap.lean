@@ -213,15 +213,6 @@ lemma R_inv_sub (M N : Matrix (m × p) (n × q) ℂ) :
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-/-- **Key spectral bound via R⁻¹ Frobenius isometry:**
-    For any matrix M, the spectral norm of R⁻¹(M) is bounded by the Frobenius norm of M.
-    This is the fundamental bridge between Frobenius-space optimization and spectral bounds. -/
-@[deprecated] theorem spectral_norm_R_inv_le_frobenius -- dedup волна 2, канон: R_inv_spectral_le_frobenius
-    (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm M :=
-  R_inv_spectral_le_frobenius M
-
 /-! ### Main Upper Bound Theorem -/
 
 /-- **Main Upper Bound Theorem (Main):**
@@ -275,22 +266,6 @@ For the general rectangular case, we would need rectangular SVD theory,
 which is partially developed in MatrixNormRelations.lean. For now, we
 state the bound in terms of the Frobenius error of ANY matrix M.
 -/
-
-/-- **General Kronecker Spectral Error Bound:**
-    For any target approximation M in the rearranged space, the spectral norm error
-    of the induced Kronecker approximation C - R⁻¹(M) is bounded by the Frobenius
-    error ‖R(C) - M‖_F.
-
-    When M is the rank-1 truncated SVD of R(C), we get the optimal bound
-    √(Σᵢ≥₂ σ̃ᵢ²) by Eckart-Young.
-
-    This theorem is stated generally to avoid requiring square matrix SVD. -/
-@[deprecated Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R]
-theorem kronecker_spectral_error_le_frobenius_error
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R C - M) :=
-  spectral_error_bound_via_R C M
 
 end UpperBound
 
@@ -442,16 +417,6 @@ outer products, since R⁻¹ acts as an "inverse shuffle" that preserves
 Kronecker structure.
 -/
 
-/-- The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖₂.
-    Combined with spectral ≤ Frobenius and R isometry, this gives:
-    ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖ -/
-@[deprecated] theorem R_inv_bound_achievable_rank1 -- dedup волна 2, канон: R_inv_outerProduct_spectral_bound
-    (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    ‖u‖ * ‖v‖ :=
-  R_inv_outerProduct_spectral_bound u v
-
 /-- The R⁻¹ bound compared to outer product spectral norm. -/
 theorem R_inv_outerProduct_le_outerProduct_frobenius
     (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
@@ -511,23 +476,6 @@ theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [No
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - M) :=
   Matrix.KroneckerRearrangement.l2_opNorm_le_frobenius_norm_rect _
-
-/-- **Key tightness result**: The bound ‖R⁻¹(M)‖₂ ≤ ‖M‖_F is achieved
-    when M is a rank-1 outer product, since both sides equal ‖u‖·‖v‖ for the
-    Frobenius norm.
-
-    More precisely:
-    - LHS: ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
-    - RHS: ‖uv*‖_F = ‖u‖·‖v‖
-
-    So the bound is tight for rank-1 matrices! -/
-@[deprecated] theorem bound_tight_rank1 -- dedup волна 2, канон: R_inv_outerProduct_le_outerProduct_frobenius
-    (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) :=
-  R_inv_outerProduct_le_outerProduct_frobenius u v
 
 end Tightness
 
@@ -695,44 +643,6 @@ is bounded by the Frobenius error, with the gap characterized by effective rank.
 section KroneckerOptimality
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
-
-/-- **Main Gap Bound for Kronecker Approximation:**
-    For a matrix C and its Frobenius-optimal rank-1 Kronecker approximation A_F ⊗ B_F:
-
-    ‖C - A_F ⊗ B_F‖₂ ≤ ‖C - A_F ⊗ B_F‖_F
-
-    The Frobenius error equals the square root of sum of squared tail singular values
-    of R(C). The spectral error is bounded by this but may be strictly smaller.
-
-    **When are they equal?** When the error C - A_F ⊗ B_F has rank 1, which happens
-    when C itself is rank-1 in the rearranged space.
-
-    **When is the gap large?** When the error has many comparable singular values,
-    i.e., when C requires multiple Kronecker terms for good approximation. -/
-@[deprecated Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R]
-theorem kronecker_approx_spectral_le_frobenius -- dedup волна 2, канон: spectral_error_bound_via_R
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R C - M) :=
-  SpectralGap.spectral_error_bound_via_R C M
-
-/-- **Explicit Gap Bound via Effective Rank:**
-    The ratio of spectral to Frobenius error for Kronecker approximation is bounded
-    by the effective rank of the error matrix.
-
-    If the error R(C) - M has r significant singular values of comparable magnitude,
-    then the spectral error is approximately 1/√r times the Frobenius error.
-
-    This theorem provides an upper bound: spectral ≤ Frobenius (ratio ≤ 1). -/
-@[deprecated] theorem spectral_frobenius_error_ratio_le_one -- dedup волна 2, канон: spectral_error_bound_via_R
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R C - M) :=
-  SpectralGap.spectral_error_bound_via_R C M
 
 end KroneckerOptimality
 

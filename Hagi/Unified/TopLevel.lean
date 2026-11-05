@@ -380,9 +380,6 @@ end Hagi.Energy
 
 
 namespace Hagi
-export Hagi.Energy (quant_residual_norm quant_energy_bridge quant_matrix_perturb
-  quant_matrix_perturb_norm quant_loss_bridge quant_frob_loss
-  frob_minkowski compress_chain_cost)
 end Hagi
 /-!
 # SafeQPRobust — устойчивая к возмущениям допустимость
@@ -472,7 +469,6 @@ theorem stochastic_safeqp_descent (inner_true inner_est dnorm m0 eta L E1 E2 : �
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (robust_feasibility stochastic_safeqp_feasible stochastic_safeqp_descent)
 end Hagi
 set_option linter.style.header false
 
@@ -519,7 +515,7 @@ theorem top_level_cycle_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSp
     hL heta heta0 h_emp_smooth
   -- the quant stage DERIVED through the R70 bridge (dependency made real —
   -- the R75 honesty fix: not an assumed final bound)
-  have hquant := Hagi.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa h_emp_lip
+  have hquant := Hagi.Energy.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa h_emp_lip
   -- assemble the three real stages: merge law, joint descent, quant cost
   linarith
 
@@ -582,9 +578,9 @@ theorem noisy_cycle_step {n : ℕ} {w q : Fin n → ℝ}
     (hE3 : E3 = E2) :
     E4 ≤ Emean - (G + eta * dnorm ^ 2 / 2 - eta * m0
       - kappa * Real.sqrt (n : ℝ) * s / 2) := by
-  have hstoch := Hagi.stochastic_safeqp_descent inner_true inner_est dnorm m0 eta L E1 E2
+  have hstoch := Hagi.Step.stochastic_safeqp_descent inner_true inner_est dnorm m0 eta L E1 E2
     hdescent h_emp_conc hL heta heta0 h_emp_smooth
-  have hq := Hagi.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa hquant
+  have hq := Hagi.Energy.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa hquant
   rw [hE3] at hq
   linarith
 
@@ -625,5 +621,4 @@ theorem merge_stage_concat_adapter {Tok : Type} [Fintype Tok]
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (top_level_cycle_bound noisy_cycle_step merge_stage_concat_adapter risk_budget_termination)
 end Hagi

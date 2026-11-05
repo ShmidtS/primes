@@ -71,7 +71,6 @@ import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
 import Hagi.Information.DiscreteFannes
 import Hagi.Unified.CostComposition
-import Hagi.Unified.FacadeLaws
 import Hagi.Unified.EFTheory
 import Hagi.Unified.TernaryWitness
 import Hagi.StatMech.Hopfield.Model

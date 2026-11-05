@@ -182,14 +182,4 @@ theorem lmo_attained (G : X) (eta : ℝ) (heta : 0 ≤ eta)
   · rw [inner_smul_right, real_inner_self_eq_norm_sq]
     field_simp
 
-/-- Единый экстремальный каркас: любой шаг D с ‖D‖ ≤ η даёт
-⟨G, D⟩ не ниже LMO-оптимума −η‖G‖, и оптимум ДОСТИЖИМ —
-SafeQP-проекция и Muon-направление решают задачи одного
-семейства (линейная цель × шар нормы). -/
-@[deprecated Hagi.Step.lmo_lower_bound]
-theorem lmo_descent_direction (G D : X) (eta : ℝ)
-    (hD : ‖D‖ ≤ eta) :
-    -eta * ‖G‖ ≤ ⟪G, D⟫_ℝ :=
-  lmo_lower_bound G D eta hD
-
 end Hagi.Step

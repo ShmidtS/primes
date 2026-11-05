@@ -261,7 +261,6 @@ end Hagi.Data
 
 
 namespace Hagi
-export Hagi.Data (binEnt FannesDecomp entTV_nonneg entTV_symm binEnt_half entropy_continuity_pinsker)
 end Hagi
 /-!
 # T3 DistillTransfer — реальный оператор T (замена)
@@ -776,7 +775,6 @@ theorem universality_longhorizon {T : ℕ}
 end Hagi.Autonomy
 
 namespace Hagi
-export Hagi.Autonomy (geometric_eps_sum hedge_domain_guarantee universality_longhorizon)
 end Hagi
 set_option linter.style.header false
 
@@ -928,7 +926,7 @@ theorem hagi_synthesis {I : ℕ} (S : ℕ → GrowthState Xs)
         (fun t => (S t).capability) Cstar σ T hσ1 hpl_up
       linarith
   · intro i
-    exact universality_longhorizon risk best r i R ε0 ρe
+    exact Hagi.Autonomy.universality_longhorizon risk best r i R ε0 ρe
       (fun t ht => hrisk t ht i) hregret hε0 hρe hρe1
 
 /-- The powers of 1/2 stay in [0,1]. -/

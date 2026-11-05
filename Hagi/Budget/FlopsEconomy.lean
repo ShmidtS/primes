@@ -60,19 +60,5 @@ theorem pipeline_beats_baseline_iff (Q₀ ΔP ΔB : ℝ) :
   · intro h
     linarith
 
-/-- **The structural advantage — amortized growth**: growth
-of the switchable architecture by one fiber family costs
-N·r·d parameters — strictly cheaper than the monolith's d²
-when N·r < d. A many-round growth program pays FIBERS per
-round, not monoliths: the marginal cost of round r is the
-fiber bill, and this advantage is proven, not
-empirical (the round's viability — E_dev > 0 — remains the
- conditional). -/
-@[deprecated Hagi.Architecture.config_storage_beats_dense]
-theorem amortized_growth_cheaper (d r N : ℕ)
-    (h : N * r < d) (hd : 0 < d) :
-    (N * r) * d < d * d :=
-  config_storage_beats_dense d r N h hd
-
 end Hagi.Budget
 
