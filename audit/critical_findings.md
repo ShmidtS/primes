@@ -1,4 +1,29 @@
 
+### Цикл 65 (semantic ternary codec): encoding + restoration + min width
+- Обнаружена существующая base-3 реализация в Hagi.Energy.Ternary.
+  Не создан вариант polynomial encoder: `ternaryByteBlock` и decoder
+  используют именно `tritEncode` и его существующая injectivity.
+- `ternaryValueDecode_encode` связан с истинной веткой `roundTern`
+  нормированного ввода; negative/middle/positive index согласованы с
+  `qTern level value`, включая zero/negative scale как частная identity.
+  Это НЕ восстановление исходного необрезанного x.
+- `ternaryBlockDecode_encode` вычисляет little-endian digit extraction по
+  всем 243 value словам с локальным maxRecDepth 8192. Only ordinary decide;
+  no native_decide/sorry/custom axiom. Byte wrapper инъективен через toFin.
+- `ternaryBlock_seven_bit_impossible` выводит bounded cardinality
+  impossibility 243≤128 via Fintype card. Eight bits subsequently optimal
+  within this fixed five-place uniform alphabet, не minimization arbitrary
+  variable length/entropy or actual full model size.
+- Probe: `[27/8,-1/8,0,3,-2]` at level 1 выдаёт trits `[2,1,1,2,0]`,
+  payload 68; decode positions returns `[1,0,0,1,−1]`.
+  Свободная scale level metadata не упакована в "бесплатный" байт.
+- Max stored payload=242. 243 — number of combinations, а другие 13/256
+  не получают фальшивую validity decoding. Quantized value != raw input.
+- AssumptionScan 38/113. Переиспользование qTern + encoder кардинально
+  меняет machine protocol fidelity, без притворной дерivaции внеtraining.
+- Bounded level/noise cost отделён от памяти и физического runtime;
+  доказанный codec описывает только конечный alphabet block.
+
 ### Цикл 64 (bounded ternary): min на trust-region, saturation cap
 - Bounded selector рассматривает обе ветки. При r>σmax доказана
   nonpositive факторизация `a(B−s)/(Bs)·(Bs(B+s)−2r³)` с правильным

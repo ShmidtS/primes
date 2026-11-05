@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 419 Lean-модулей в `Hagi/`; 4214 декларации (Freeze);
+- 420 Lean-модулей в `Hagi/`; 4225 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2938,6 +2938,30 @@
 - Declaration count включает три generic bounded declarations + семь
   ternary declarations. Нет custom axioms или новых binder'ов эмпирических
   допущений. Registry по-прежнему 38/113.
+
+## Исследовательский цикл 65 — точный ternary codec
+
+- `Hagi/Runtime/TernaryCodec.lean` подключён к настоящему `qTern` и уже
+  реализованному base-3 `tritEncode`; никакого второго encoder polynomial.
+- `ternaryValueDecode_encode` доказывает восстановление именно
+  `qTern level value`, вправе всех трёх веток. Исходный необрезанный x
+  НЕ восстанавливается: непрерывный input подвергнут quantizer.
+- `ternaryByteBlock` использует существующий bound на packed value
+  и доказан injectivity через прямое сравнение packed payload.
+- `ternaryBlockDecode_encode` проверяет все 243 combinations компьютерно
+  (bounded kernel reduction, no native_decide и no extra axiom).
+- `ternaryBlock_seven_bit_impossible` через Fintype.card: 2^7=128 <243;
+  конструктивный block с 8 битами поэтому минимален ДЛЯ fixed
+  uniform alphabet block. `ternaryOneBit_impossible` аналогичен для одной trit.
+- `packedTernarySamples_decode_point`: для общего level и пяти values
+  каждый recovered qTern равен входному quantized sample точно.
+  Уровень — общая metadata, НЕ часть 8-bit alphabet payload.
+- Probe payload: codes=2,1,1,2,0 → packed number=68, decoded q samples
+  `[1,0,0,1,−1]`, а не original `[27/8,−1/8,0,3,−2]`. Maximum
+  packed value=242; 243 — число состояний, надо не путать.
+- Это не оптимальность heap/layout/model size/entropy/runtime, не ошибка
+  атрибутировать sparse metadata из общего уровня блоку всей модели.
+  Старые interfaces и base-3 proof остаются неизменными.
 
 ## Открытые проблемы
 

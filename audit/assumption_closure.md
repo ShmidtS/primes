@@ -273,3 +273,23 @@
   Cost at clipped root=39/8, other within-region cost=8. Lean проверено.
 - Импорт по слоям: общий optimizer в Pretraining, ternary bridge в
   Unified (соответствует layer order и без исключений LayerLint).
+
+## Цикл 65 — alphabet representation и minimum block width
+- Что существовало: base-3 pack upper bound и injectivity. Это НЕ
+  повторно доказано другим polynomial in Runtime module.
+- Что добавлено: явный semantic mapping between actual qTern states and
+  finite ternary codes, typed byte wrapper, natural digits decoder and
+  concrete sample-point reconstruction.
+- Decoder возвращает quantized values, не original unrounded samples;
+  поэтому не возникает ложного restoration theorem for arbitrary reals.
+- Битовая минимальность: 7-bit Fin payloads не допускают ни одного
+  arbitrary injective encoder five-place alphabet (card=243>128).
+  Для одного trit аналогично two states<3. Это fixed code alphabet,
+  не document о оптимальности heap, storage or entropy of all model files.
+- Level parameter shared across group and explicitly not counted in
+  eight-bit block payload. Maximum packed value=242; 243 exact states.
+  No policy заявления trailing bytes 243..255 или memory overhead.
+- Pointwise theorem `packedTernarySamples_decode_point` передаёт каждую
+  quantized sample обратно с общим level. Numerics payload 68 и
+  5-place [1,0,0,1,-1] проверены, no noise distribution or stochastic bounds.
+- Frozen theorem statements/API and registry 38/113 are unchanged.

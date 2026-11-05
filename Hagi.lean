@@ -226,6 +226,7 @@ import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
 import Hagi.Energy.STEStep
 import Hagi.Runtime.TernaryExact
+import Hagi.Runtime.TernaryCodec
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Budget.JointCost

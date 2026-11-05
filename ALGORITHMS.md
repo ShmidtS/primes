@@ -328,6 +328,13 @@ s = ‖g‖₁ / n                            # signScale
   actual saturation error из qTern in/out branches и cubic energy growth.
   `ternaryCentralCubicProbe_optimal_bound` минимизирует только вычисленную
   guarantee для fixed level + σmax, не оптимизирует разряд/память сам по себе.
+- `ternaryValueDecode_encode` (цикл 65): semantic codec превращает state
+  `qTern` в trit и обратно. Он сохраняет quantizer value, а не raw value.
+- `ternaryByteBlock_injective` и `ternaryBlockDecode_encode`: существующая
+  base-3 упаковка получает typed BitVec 8 и обратный decoder по координатам.
+- `ternaryBlock_seven_bit_impossible` показывает минимум 8 битов для
+  пяти-place uniform alphabet block. Не объявлять этот блок оптимальным
+  форматом всей модели: level metadata и runtime overhead вне него.
 - `centralQuadraticProbe_exact` (цикл 58): в том же translated
   quadratic классе центральный probe вместо одностороннего вычисления
   возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной
