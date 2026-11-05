@@ -790,4 +790,95 @@ theorem hb_two_root_orthonormal_weighted_bound
   exact hb_two_root_l2_weighted_bound (fun k => b.repr (e k))
     t beta lam1 lam2 A B rho hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
 
+/-- Начальные коэффициенты через root separation: если оба
+корня ограничены ρ, а `0 < gap ≤ ‖λ₁−λ₂‖`, то сумма норм
+A/B ограничена начальными ошибками и обратным gap. Отдельная
+посылка λ₁≠λ₂ не требуется: она следует из положительности gap. -/
+theorem hb_distinct_root_coefficient_sum_bound
+    (e0 e1 lam1 lam2 A B : ℂ) (rho gap : ℝ)
+    (hnorm1 : ‖lam1‖ ≤ rho) (hnorm2 : ‖lam2‖ ≤ rho)
+    (hgap : 0 < gap) (hsep : gap ≤ ‖lam1 - lam2‖)
+    (hA : A = (e1 - lam2 * e0) / (lam1 - lam2))
+    (hB : B = (lam1 * e0 - e1) / (lam1 - lam2)) :
+    ‖A‖ + ‖B‖ ≤ (2 * (‖e1‖ + rho * ‖e0‖)) / gap := by
+  have hrho : 0 ≤ rho := (norm_nonneg lam1).trans hnorm1
+  have hdenom : 0 < ‖lam1 - lam2‖ := hgap.trans_le hsep
+  have hnumA : ‖e1 - lam2 * e0‖ ≤ ‖e1‖ + rho * ‖e0‖ := by
+    calc
+      ‖e1 - lam2 * e0‖ ≤ ‖e1‖ + ‖lam2 * e0‖ := norm_sub_le _ _
+      _ = ‖e1‖ + ‖lam2‖ * ‖e0‖ := by rw [norm_mul]
+      _ ≤ ‖e1‖ + rho * ‖e0‖ := by
+        exact add_le_add (le_refl _) (mul_le_mul_of_nonneg_right hnorm2 (norm_nonneg e0))
+  have hnumB : ‖lam1 * e0 - e1‖ ≤ ‖e1‖ + rho * ‖e0‖ := by
+    calc
+      ‖lam1 * e0 - e1‖ ≤ ‖lam1 * e0‖ + ‖e1‖ := norm_sub_le _ _
+      _ = ‖lam1‖ * ‖e0‖ + ‖e1‖ := by rw [norm_mul]
+      _ ≤ rho * ‖e0‖ + ‖e1‖ := by
+        exact add_le_add (mul_le_mul_of_nonneg_right hnorm1 (norm_nonneg e0)) (le_refl _)
+      _ = ‖e1‖ + rho * ‖e0‖ := by ring
+  have hnum (x N : ℝ) (hN : 0 ≤ N) (hx : x ≤ N) :
+      x / ‖lam1 - lam2‖ ≤ N / gap := by
+    calc
+      x / ‖lam1 - lam2‖ ≤ N / ‖lam1 - lam2‖ :=
+        div_le_div_of_nonneg_right hx hdenom.le
+      _ ≤ N / gap := div_le_div_of_nonneg_left hN hgap hsep
+  have hN : 0 ≤ ‖e1‖ + rho * ‖e0‖ :=
+    add_nonneg (norm_nonneg _) (mul_nonneg hrho (norm_nonneg _))
+  rw [hA, hB, norm_div, norm_div]
+  calc
+    ‖e1 - lam2 * e0‖ / ‖lam1 - lam2‖ + ‖lam1 * e0 - e1‖ / ‖lam1 - lam2‖
+      ≤ (‖e1‖ + rho * ‖e0‖) / gap + (‖e1‖ + rho * ‖e0‖) / gap :=
+        add_le_add (hnum _ _ hN hnumA) (hnum _ _ hN hnumB)
+    _ = (2 * (‖e1‖ + rho * ‖e0‖)) / gap := by ring
+
+/-- Полная finite-mode траектория без абстрактных A/B: явные
+коэффициенты восстанавливаются из e₀,e₁, после чего каждый вносит
+оценку через обратный root gap. Это консервативный алгебраический
+префактор, НЕ сам численный κ оптимального обучающего алгоритма. -/
+theorem hb_two_root_l2_initial_gap_bound {ι : Type*} [Fintype ι]
+    (e : ℕ → EuclideanSpace ℂ ι) (t beta lam1 lam2 : ι → ℂ)
+    (rho gap : ι → ℝ)
+    (hrec : ∀ n i, e (n + 2) i = t i * e (n + 1) i - beta i * e n i)
+    (hroot1 : ∀ i, lam1 i ^ 2 - t i * lam1 i + beta i = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2 - t i * lam2 i + beta i = 0)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho i) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho i)
+    (hgap : ∀ i, 0 < gap i) (hsep : ∀ i, gap i ≤ ‖lam1 i - lam2 i‖)
+    (n : ℕ) :
+    ‖e n‖ ≤ Real.sqrt (∑ i,
+      ((2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) * rho i ^ n) ^ 2) := by
+  let A : ι → ℂ := fun i => (e 1 i - lam2 i * e 0 i) / (lam1 i - lam2 i)
+  let B : ι → ℂ := fun i => (lam1 i * e 0 i - e 1 i) / (lam1 i - lam2 i)
+  have hne (i : ι) : lam1 i ≠ lam2 i := by
+    have hd : 0 < ‖lam1 i - lam2 i‖ := (hgap i).trans_le (hsep i)
+    intro heq
+    rw [heq, sub_self, norm_zero] at hd
+    exact (lt_irrefl 0) hd
+  have h0 (i : ι) : e 0 i = A i + B i := by
+    simpa only [A, B] using (hb_distinct_root_init (e 0 i) (e 1 i)
+      (lam1 i) (lam2 i) (hne i)).1
+  have h1 (i : ι) : e 1 i = A i * lam1 i + B i * lam2 i := by
+    simpa only [A, B] using (hb_distinct_root_init (e 0 i) (e 1 i)
+      (lam1 i) (lam2 i) (hne i)).2
+  have hbound : ‖e n‖ ≤ Real.sqrt (∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2) :=
+    hb_two_root_l2_weighted_bound e t beta lam1 lam2 A B rho
+      hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
+  have hcoef (i : ι) : ‖A i‖ + ‖B i‖ ≤
+      (2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) := by
+    exact hb_distinct_root_coefficient_sum_bound
+      (e 0 i) (e 1 i) (lam1 i) (lam2 i) (A i) (B i)
+      (rho i) (gap i) (hnorm1 i) (hnorm2 i) (hgap i) (hsep i) rfl rfl
+  have hstep (i : ι) : ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2 ≤
+      ((2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) * rho i ^ n) ^ 2 := by
+    have hrho : 0 ≤ rho i := (norm_nonneg (lam1 i)).trans (hnorm1 i)
+    have hp : 0 ≤ rho i ^ n := pow_nonneg hrho n
+    have hmul : (‖A i‖ + ‖B i‖) * rho i ^ n ≤
+        (2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) * rho i ^ n :=
+      mul_le_mul_of_nonneg_right (hcoef i) hp
+    exact pow_le_pow_left₀
+      (mul_nonneg (add_nonneg (norm_nonneg (A i)) (norm_nonneg (B i))) hp) hmul 2
+  have hsum : (∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2) ≤
+      ∑ i, ((2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) * rho i ^ n) ^ 2 :=
+    Finset.sum_le_sum fun i _ => hstep i
+  exact hbound.trans (Real.sqrt_le_sqrt hsum)
+
 end Hagi.Optimization.HBRate
