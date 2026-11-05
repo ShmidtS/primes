@@ -881,4 +881,92 @@ theorem hb_two_root_l2_initial_gap_bound {ι : Type*} [Fintype ι]
     Finset.sum_le_sum fun i _ => hstep i
   exact hbound.trans (Real.sqrt_le_sqrt hsum)
 
+/-- Комплексная вторая рекуррента исходной пары Heavy Ball.
+Два шага исключают скорость `v`; свободный коэффициент равен
+`β + η·(1−β)`, а не `β` из канонического многочлена
+`λ²−(1+β−η)λ+β`. Это только точное алгебраическое тождество. -/
+theorem hb_pair_second_order_complex (e v : ℕ → ℂ) (eta beta : ℝ)
+    (herr : ∀ n, e (n + 1) = (1 - (eta : ℂ)) * e n + v n)
+    (hvel : ∀ n, v (n + 1) = (beta : ℂ) * v n - (eta : ℂ) * e n) :
+    ∀ n, e (n + 2) =
+      (1 + (beta : ℂ) - eta) * e (n + 1)
+        - ((beta : ℂ) + eta * (1 - (beta : ℂ))) * e n := by
+  intro n
+  calc
+    e (n + 2) = (1 - (eta : ℂ)) * e (n + 1) + v (n + 1) := by
+      simpa only [Nat.add_assoc] using herr (n + 1)
+    _ = (1 + (beta : ℂ) - eta) * e (n + 1)
+        - ((beta : ℂ) + eta * (1 - (beta : ℂ))) * e n := by
+      rw [hvel n]
+      have hv : v n = e (n + 1) - (1 - (eta : ℂ)) * e n := by
+        rw [herr n]
+        ring
+      rw [hv]
+      ring
+
+/-- Модально-зависимая L²-оценка траектории исходной пары
+Heavy Ball с различными корнями. Характеристический многочлен имеет
+свободный коэффициент `β + η·(1−β)`, а не канонический `β`.
+Префактор получен из начальных ошибок и root gap; теорема не
+утверждает глобальную сходимость обучения или κ-оптимальность. -/
+theorem hb_pair_l2_initial_gap_bound {ι : Type*} [Fintype ι]
+    (e v : ℕ → EuclideanSpace ℂ ι) (eta beta : ι → ℝ)
+    (lam1 lam2 : ι → ℂ) (rho gap : ι → ℝ)
+    (herr : ∀ n i, e (n + 1) i =
+      (1 - (eta i : ℂ)) * e n i + v n i)
+    (hvel : ∀ n i, v (n + 1) i =
+      (beta i : ℂ) * v n i - (eta i : ℂ) * e n i)
+    (hroot1 : ∀ i, lam1 i ^ 2
+      - (1 + (beta i : ℂ) - eta i) * lam1 i
+      + ((beta i : ℂ) + eta i * (1 - (beta i : ℂ))) = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2
+      - (1 + (beta i : ℂ) - eta i) * lam2 i
+      + ((beta i : ℂ) + eta i * (1 - (beta i : ℂ))) = 0)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho i) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho i)
+    (hgap : ∀ i, 0 < gap i) (hsep : ∀ i, gap i ≤ ‖lam1 i - lam2 i‖)
+    (n : ℕ) :
+    ‖e n‖ ≤ Real.sqrt (∑ i,
+      ((2 * (‖e 1 i‖ + rho i * ‖e 0 i‖) / gap i) * rho i ^ n) ^ 2) := by
+  have hsecond : ∀ n i, e (n + 2) i =
+      (1 + (beta i : ℂ) - eta i) * e (n + 1) i
+        - ((beta i : ℂ) + eta i * (1 - (beta i : ℂ))) * e n i := by
+    intro n i
+    exact hb_pair_second_order_complex (fun k => e k i) (fun k => v k i)
+      (eta i) (beta i) (fun k => herr k i) (fun k => hvel k i) n
+  exact hb_two_root_l2_initial_gap_bound e
+    (fun i => 1 + (beta i : ℂ) - eta i)
+    (fun i => (beta i : ℂ) + eta i * (1 - (beta i : ℂ)))
+    lam1 lam2 rho gap hsecond hroot1 hroot2 hnorm1 hnorm2 hgap hsep n
+
+/-- Перенос L²-оценки исходной пары Heavy Ball на полный
+ортонормированный базис. Используется точный свободный коэффициент
+`β + η·(1−β)`, а не коэффициент `β` канонической рекурренты.
+Равенство нормы базиса сохраняет оценку без дополнительных потерь;
+глобальная сходимость обучения и κ-оптимальность не утверждаются. -/
+theorem hb_pair_orthonormal_initial_gap_bound
+    {ι E : Type*} [Fintype ι]
+    [NormedAddCommGroup E] [InnerProductSpace ℂ E]
+    (b : OrthonormalBasis ι ℂ E) (e v : ℕ → E)
+    (eta beta : ι → ℝ) (lam1 lam2 : ι → ℂ) (rho gap : ι → ℝ)
+    (herr : ∀ n i, b.repr (e (n + 1)) i =
+      (1 - (eta i : ℂ)) * b.repr (e n) i + b.repr (v n) i)
+    (hvel : ∀ n i, b.repr (v (n + 1)) i =
+      (beta i : ℂ) * b.repr (v n) i - (eta i : ℂ) * b.repr (e n) i)
+    (hroot1 : ∀ i, lam1 i ^ 2
+      - (1 + (beta i : ℂ) - eta i) * lam1 i
+      + ((beta i : ℂ) + eta i * (1 - (beta i : ℂ))) = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2
+      - (1 + (beta i : ℂ) - eta i) * lam2 i
+      + ((beta i : ℂ) + eta i * (1 - (beta i : ℂ))) = 0)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho i) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho i)
+    (hgap : ∀ i, 0 < gap i) (hsep : ∀ i, gap i ≤ ‖lam1 i - lam2 i‖)
+    (n : ℕ) :
+    ‖e n‖ ≤ Real.sqrt (∑ i,
+      ((2 * (‖b.repr (e 1) i‖ + rho i * ‖b.repr (e 0) i‖) / gap i)
+        * rho i ^ n) ^ 2) := by
+  rw [← b.repr.norm_map (e n)]
+  exact hb_pair_l2_initial_gap_bound (fun k => b.repr (e k))
+    (fun k => b.repr (v k)) eta beta lam1 lam2 rho gap
+    herr hvel hroot1 hroot2 hnorm1 hnorm2 hgap hsep n
+
 end Hagi.Optimization.HBRate
