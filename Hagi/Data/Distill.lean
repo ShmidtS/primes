@@ -68,30 +68,22 @@ section Distill
 variable {V : Type*} [Fintype V]
 
 /-- The cross-entropy of model p against distribution q:
-CE_q(p) = −Σ q log p (the standard sign — fix). -/
+CE_q(p) = −Σ q log p — canonical delegation to `Hagi.Prelude.ceDef`. -/
 noncomputable def crossEntropy (q p : V → ℝ) : ℝ :=
-  -∑ v, q v * Real.log (p v)
+  Hagi.Prelude.ceDef q p
+
+/-- Bridge: `crossEntropy` IS the canonical `ceDef`. -/
+theorem crossEntropy_eq_ceDef (q p : V → ℝ) :
+    crossEntropy q p = Hagi.Prelude.ceDef q p := rfl
 
 
+set_option linter.unusedVariables false in
 /-- **KL is the excess cross-entropy** over the entropy
 baseline: KL(q‖p) = CE_q(p) − CE_q(q) for strictly positive
 distributions (q a distribution, p positive). -/
 theorem kl_eq_ce_gap (q p : V → ℝ) (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v) :
-    Hagi.Prelude.klDef q p = crossEntropy q p - crossEntropy q q := by
-  unfold Hagi.Prelude.klDef crossEntropy
-  have hsplit : ∀ v : V, q v * Real.log (q v / p v)
-      = q v * Real.log (q v) - q v * Real.log (p v) := by
-    intro v
-    rw [Real.log_div (hq v).ne' (hp v).ne']
-    ring
-  rw [show ∑ v, q v * Real.log (q v / p v)
-      = ∑ v, (q v * Real.log (q v) - q v * Real.log (p v)) from
-      Finset.sum_congr rfl (fun v _ => hsplit v)]
-  rw [show ∑ v : V, (q v * Real.log (q v) - q v * Real.log (p v))
-      = (∑ v : V, q v * Real.log (q v)) - (∑ v : V, q v * Real.log (p v)) from
-      sum_sub_distrib (fun v : V => q v * Real.log (q v))
-        (fun v : V => q v * Real.log (p v))]
-  ring
+    Hagi.Prelude.klDef q p = crossEntropy q p - crossEntropy q q :=
+  Hagi.Prelude.klDef_eq_ceDef_sub q p (fun v => (hp v).ne')
 
 /-- **The master identity (theorem, real version).**
 For any data distribution q and models p_E, p_θ (all
@@ -179,7 +171,7 @@ theorem ce_topk_shift (q p : V → ℝ) (S : Finset V)
       Real.log (p v / Z) = Real.log (p v) - Real.log Z := fun v hv =>
     Real.log_div (ne_of_gt (hpos v hv)) (ne_of_gt hZ)
   -- финальная перегруппировка
-  unfold crossEntropy
+  unfold crossEntropy Hagi.Prelude.ceDef
   rw [hL, hR]
   have hsplit : ∑ v ∈ S, q v * Real.log (p v / Z)
       = (∑ v ∈ S, q v * Real.log (p v)) - (∑ v ∈ S, q v) * Real.log Z := by

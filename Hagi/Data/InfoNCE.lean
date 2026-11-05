@@ -81,8 +81,12 @@ namespace Hagi.Data
 
 variable {V : Type*} [Fintype V]
 
-/- Канонические KL/H/TV (Prelude) напрямую; CE локален (= Distill.crossEntropy). -/
-noncomputable def CE (q p : V → ℝ) : ℝ := -∑ v, q v * Real.log (p v)
+/- Канонические KL/H/TV (Prelude) напрямую; CE — делегат Prelude.ceDef (= Distill.crossEntropy). -/
+noncomputable def CE (q p : V → ℝ) : ℝ := Hagi.Prelude.ceDef q p
+
+/-- Bridge: `CE` IS the canonical `Prelude.ceDef`. -/
+theorem CE_eq_ceDef (q p : V → ℝ) :
+    CE q p = Hagi.Prelude.ceDef q p := rfl
 
 /-! ## Bridge theorems: every variant IS the canonical form -/
 
@@ -112,20 +116,13 @@ theorem tvHalf_eq_canonical {ι : Type*} [Fintype ι]
 
 /-! ## The canonical identity block (one place) -/
 
+set_option linter.unusedVariables false in
 /-- KL is the excess cross-entropy over the entropy
 baseline — the canonical form of the law. -/
 theorem kl_excess_cross_entropy (q p : V → ℝ)
     (hq : ∀ v, q v ≠ 0) (hp : ∀ v, p v ≠ 0) :
-    Hagi.Prelude.klDef q p = Hagi.Data.crossEntropy q p - Hagi.Data.crossEntropy q q := by
-  have h1 : ∀ x : V → ℝ, Hagi.Data.crossEntropy q x = -∑ v, q v * Real.log (x v) := by
-    intro x; exact rfl
-  unfold Hagi.Prelude.klDef
-  rw [h1 p, h1 q]
-  rw [← Finset.sum_neg_distrib, ← Finset.sum_neg_distrib,
-    ← Finset.sum_sub_distrib]
-  exact Finset.sum_congr rfl (fun v _ => by
-    rw [Real.log_div (hq v) (hp v)]
-    ring)
+    Hagi.Prelude.klDef q p = Hagi.Data.crossEntropy q p - Hagi.Data.crossEntropy q q :=
+  Hagi.Prelude.klDef_eq_ceDef_sub q p hp
 
 end Hagi.Data
 

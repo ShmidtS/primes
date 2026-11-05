@@ -313,3 +313,26 @@
   regex-реестра (лексические вхождения, damaged operational substrings,
   ложное отношение `entryCount` к информационным примитивам) выявлены
   code-only аудитом и НЕ засчитываются как математические результаты.
+
+## Цикл 67 — canonical cross-entropy и честная генерализация
+
+- `Hagi.Prelude.ceDef` канонизирует две CE-формы. Их aliases сохраняют
+  все старые types и exports. `ceDef_self` используется в downstream
+  DistillRecursion, чтобы избежать дублирования entropy algebra.
+- `klDef_eq_ceDef_sub` обобщает CE/KL identity на произвольное q при
+  единственном условии `∀ v, p v ≠ 0`. Это ДОКАЗАННАЯ q-zero analysis,
+  а не удаление premise из AssumptionScan ради меньшего счётчика.
+  Legacy `kl_eq_ce_gap` оставляет обе strict positivity hypotheses;
+  legacy `kl_excess_cross_entropy` оставляет обе nonzero hypotheses.
+- Контрпример p=0,q=2 запрещает полностью свободную identity при
+  total Real.log/div. Пример q=[0,1],p=[1,2] на Fin 2 вычисляет обе
+  стороны в log(1/2), проверяя nonzero branch и q=0 branch.
+- Nonnegativity KL как отдельное свойство сохраняет свои старые
+  positivity/sum conditions; finite real identity не доказывает
+  универсальную extended-KL или model-training convergence.
+- AssumptionScan остаётся 38/113: h_emp-named premises не добавлены,
+  не переименованы и не удалены. Новое ядро не закрывает empirical
+  physical/stochastic/model classes. Всего 4238 declarations (+5).
+- Неполнота primitive-classifier сохранена как отдельный audit debt:
+  новый ceDef не распознаётся старым prefix-regex. Это доказывает
+  необходимость environment inventory, а не корректность старого counter.

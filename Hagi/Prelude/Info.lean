@@ -12,6 +12,9 @@ The canonical information-theoretic definitions:
 
 * `klDef q p := ∑ v, q v * log (q v / p v)` — KL divergence
   (`q` is the sampling distribution);
+* `ceDef q p := −∑ v, q v * log (p v)` — cross-entropy
+  (CE_q(p), the standard minus sign); canonical for all
+  downstream CE names (Data.crossEntropy, Data.CE);
 * `entDef p := −∑ v, p v * log (p v)` — Shannon entropy;
 * `tvDef p q := (∑ v, |p v − q v|)/2` — total variation;
 * `softDef z := exp(z)/Σexp` — softmax.
@@ -56,9 +59,17 @@ theorem klDef_terms_finite (q p : V → ℝ) (h : KLSupported q p)
     (v : V) (hq : 0 < q v) : 0 < q v / p v :=
   div_pos hq (h.2.2.1 v)
 
+/-- Cross-entropy of p against q: `ceDef q p = −∑ v, q v * log (p v)`
+(the standard minus sign; q is the sampling distribution). -/
+noncomputable def ceDef (q p : V → ℝ) : ℝ :=
+  -∑ v, q v * Real.log (p v)
+
 /-- Shannon entropy: `−∑ v, p v * log (p v)`. -/
 noncomputable def entDef (p : V → ℝ) : ℝ :=
   -∑ v, p v * Real.log (p v)
+
+/-- Self cross-entropy is the entropy: `ceDef q q = entDef q`. -/
+theorem ceDef_self (q : V → ℝ) : ceDef q q = entDef q := rfl
 
 /-- Total variation distance (half the L1 distance). -/
 noncomputable def tvDef (p q : V → ℝ) : ℝ :=
@@ -123,6 +134,23 @@ theorem kl_nonneg_of_nonneg (q p : V → ℝ)
   rw [Finset.sum_sub_distrib, hsumq, hsump] at hsum
   norm_num at hsum
   exact hsum
+
+/-- KL is the excess cross-entropy over the entropy baseline:
+`klDef q p = ceDef q p − ceDef q q`. Requires only that the
+second argument p be everywhere nonzero (total Real.log/div
+semantics: q = 0 contributes 0 on both sides; under extended
+mathematical KL the identity needs the support condition on q
+as well). -/
+theorem klDef_eq_ceDef_sub (q p : V → ℝ) (hp : ∀ v, p v ≠ 0) :
+    klDef q p = ceDef q p - ceDef q q := by
+  unfold klDef ceDef
+  rw [← Finset.sum_neg_distrib, ← Finset.sum_neg_distrib,
+    ← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun v _ => ?_
+  by_cases hq : q v = 0
+  · simp [hq]
+  · rw [Real.log_div hq (hp v)]
+    ring
 
 /-- **KL ≥ 0 (Gibbs)**: для строго положительных вероятностных
 векторов KL-расхождение неотрицательно. Канон R334:

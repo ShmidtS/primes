@@ -1,4 +1,37 @@
 
+### Цикл 67 (canonical CE/KL): общее ядро, q=0 и p=0
+
+- В `Prelude.Info` добавлены `ceDef`, `ceDef_self` и
+  `klDef_eq_ceDef_sub`. Старые duplicate CE/KL proofs в Distill/InfoNCE
+  теперь полностью делегируют нижнему ядру, не копируют раскрытие сумм.
+- `crossEntropy_eq_ceDef` и `CE_eq_ceDef` доказывают alias links rfl.
+  Cross-entropy single-source не требует reverse Prelude→Data импортов.
+- Произвольное q допускается при `∀v,pv≠0`: нулевые члены q зануляются
+  явно, ненулевые используют точный `Real.log_div`. Никакого удаления
+  positivity характеристик в СТАРЫХ public theorem types не допущено.
+- Контрпример q=2,p=0 на Fin 1: klDef=0, CE gap=2log2. Условие на p
+  необходимо в данной total real semantics. q=[0,1],p=[1,2] на Fin 2
+  вычисляет обе стороны как log(1/2)—не degenerate zero-gradient case.
+- Два scoped unusedVariables options относятся только к сохранённым hq
+  legacy hypotheses, которые общему доказательству больше не нужны.
+  После проверки #check исходные binder order, positivity/nonzero и
+  явность аргументов q,p,hq,hp подтверждены. Места option-ов исправлены
+  до Root build; API не заменено неявными autoImplicit-аргументами.
+- DistillRecursion и ArchitectureTheorem потребовали меньших alias-aware
+  unfolds: старые proofs ожидали сразу −Σlog, теперь нужен явный ceDef.
+  Их theorem types не изменены. Дополнительный `ceDef_self` bridge
+  совместим с recursion entropy relation без duplicated expansion.
+-   Root build: 9469 jobs PASS. Focused probe и семь #print axioms
+  проходят со standard triple. Freeze=4238 (+5), старые declarations
+  не потеряны и не изменены, AssumptionScan=38/113, StdDup=0.
+- Полный `bash scripts/ci.sh`: PASS, включая CHALLENGE, MACHINEDIFF
+  и ALLAXIOMS. Независимое refute-first ревью пяти production-файлов:
+  LGTM без блокирующих findings.
+- Это реальное упрощение информационного слоя, а НЕ универсальная KL
+  для infinite/extended semantics, nonnegativity unsupported q и не
+  вывод best training algorithm. Scientific retrieval из цикла 66
+  отфильтрован, нерелевантные generic water-filling ссылки здесь не используются.
+
 ### Цикл 66 (weighted exponential allocation): оптимум только выбранного surrogate
 
 - Предварительное ревью плана поймало неправильный целевой объектив:

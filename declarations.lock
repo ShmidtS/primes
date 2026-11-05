@@ -13,6 +13,7 @@ Basis	137bfbf500c80032	23539f4cef01a6c1
 Blocks	5838eeed7c76186d	86bc756d672c46ec
 BudgetAlive	9aec6a9a215610ad	7a4c51cda21834d0
 CE	eee82b7395061eea	1f75ef15f4ae01b5
+CE_eq_ceDef	681c9ae466ccba53	f30078f18b6a90df
 CSCarrier	142102ebeccec5e8	0c8f266fe38c3222
 Candidate	bf0952d5d4269673	1aac18f0b1888fc0
 CandidateComplete	0a9eadcfe9d60763	8cd2e9ac58cc66db
@@ -571,6 +572,8 @@ cautiousId	48a39d58da7324a6	0f794e99ab0a09bd
 cautiousMask	f0c79d4f8664dcb3	7357995271a5502c
 cautiousMask_abs_le	5062cb9eb264a20c	71e6481ad3fc6afc
 cautiousZero	a14e67c308cd66fd	38c802eb5d19a7ab
+ceDef	5f45512ad7990986	0e8e628952fe3a92
+ceDef_self	bc7fb2ceae162b79	00c2189e89cece90
 ceLogit	54668bd840c929b0	00280ae9bcec5f14
 ceLogit_move_change	5bd18f196aa0ee24	76d2b17641c246c4
 ceOneHot	5eaf874097f23d95	c4b7a8aeeacdc12e
@@ -924,6 +927,7 @@ critical_batch_lower	d8d423537306370e	00453177a048808c
 crossCost	5b5ff9b834f9ebb4	403458d0c0e4d0fa
 crossDiff	cf6207253121ab12	0e79edad2b4be9e1
 crossEntropy	0b5c2f949310d1d7	6f2742f4a9ce3473
+crossEntropy_eq_ceDef	f77c262c8fa4a298	1676603bb3f8aaa0
 crossModalGap	bf5832a0511817b5	1e3f72e021e67d98
 crossModalGap_eq_kl	4983052dee8cd3fd	eabd8e75cfecacd4
 crossModalGap_nonneg	93c50df37eb52a87	e9ccc88004285b81
@@ -2052,6 +2056,7 @@ joint_stage_linked	255b800758c6319c	546b622a5a23ecba
 joint_stage_logitCE	723be5859e3c10a5	9860e753c6a05731
 kernel_interference_zero	74ec3dfd9b2e113f	e8259bb342cc5066
 klDef	7d95d9a89166cb67	80ab7e20ab929ce5
+klDef_eq_ceDef_sub	9a82c76df5c33227	b73c48af51e1d320
 klDef_terms_finite	6515dcbd9a8653a3	5d48e7bf01c46709
 kl_budget_risk_bound	e668b45786b8fab5	f5ffc7457c5439fa
 kl_chernoff_tilt	7d2fa5c5c92eb9e4	14f33b560fd336a1

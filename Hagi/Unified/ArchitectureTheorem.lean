@@ -337,7 +337,7 @@ theorem distill_kl_bridge (q pE pθ : V → ℝ)
   --   = KL(pE‖pθ) + Σ (q−pE)·(log pE − log pθ)
   have hmain : crossEntropy q pθ - crossEntropy q pE
       = ∑ v, q v * (Real.log (pE v) - Real.log (pθ v)) := by
-    unfold crossEntropy
+    unfold crossEntropy Hagi.Prelude.ceDef
     rw [neg_sub_neg, ← Finset.sum_sub_distrib]
     exact Finset.sum_congr rfl fun v _ => by ring
   have hsplit : ∑ v, q v * (Real.log (pE v) - Real.log (pθ v))

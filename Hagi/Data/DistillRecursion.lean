@@ -219,7 +219,8 @@ theorem entropy_kl_ce_identity (m q : V → ℝ)
     crossEntropy m q = Hagi.Prelude.entDef m + Hagi.Prelude.klDef m q := by
   have h := teacher_generated_identity m q hm hq
   unfold crossEntropy at h ⊢
-  simp only [Hagi.Prelude.entDef]
+  rw [Hagi.Prelude.ceDef_self] at h
+  simp only [Hagi.Prelude.entDef] at h ⊢
   linarith
 
 /-! ### The certified step -/

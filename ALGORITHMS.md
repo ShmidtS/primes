@@ -1,10 +1,36 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4233 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4238 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+---
+
+## Каноническое CE/KL-ядро (цикл 67)
+
+- `ceDef q p = −Σ q·log p` — единый объект нижнего Prelude.
+  `Data.crossEntropy` и `Data.CE` являются aliases к нему;
+  `crossEntropy_eq_ceDef`, `CE_eq_ceDef` фиксируют мосты rfl.
+  `ceDef_self` отождествляет CE q q с `entDef q`.
+- `klDef_eq_ceDef_sub` выводит точное
+  `klDef q p = ceDef q p − ceDef q q` при `∀v,pv ≠ 0` и произвольном q.
+  Если qv=0, внести вклад 0 в обе стороны можно явно; иначе применяется
+  `Real.log_div`. Сохранённые `kl_eq_ce_gap`, `kl_excess_cross_entropy`
+  получают результат от ядра, сохраняя прежние hq/hp и порядок аргументов.
+- Для ансамбля на Fin 2 с q=[0,1],p=[1,2] обе части identity дают
+  log(1/2). На Fin 1 при q=2,p=0 identity НЕ верна: klDef равен 0,
+  а CE gap равен 2·log 2. Поэтому условие p≠0 не выбрасывается.
+- Старые дубликаты алгебры не оставлены параллельно канону. Top-k,
+  DistillRecursion и ArchitectureTheorem перенесены на alias-aware
+  unfolds; утверждения consumers и import DAG сохранены.
+- Результат не отождествляет total real KL при unsupported inputs с
+  extended ENNReal KL.   Неординарность, stochastic training, expressivity и
+  global optimal architecture этим рефакторингом не доказываются.
+  Nonnegativity KL самостоятельно сохраняет свои conditions.
+- Пять новых declarations; family cross-entropy имеет один shared body.
+  Полный Root build и probes прошли, только стандартные axioms.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 421 Lean-модулей в `Hagi/`; 4233 declarations (Freeze);
+- 421 Lean-модулей в `Hagi/`; 4238 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,28 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 67: каноническое CE/KL ядро
+
+- `ceDef` теперь единое определение cross-entropy в нижнем
+  Prelude-слое. `crossEntropy_eq_ceDef`, `CE_eq_ceDef` — точные
+  rfl-мосты; `ceDef_self` связывает cross-entropy с `entDef`.
+- `klDef_eq_ceDef_sub`: при любых q на конечном пространстве и
+  `∀ v, p v ≠ 0`, `klDef q p = ceDef q p − ceDef q q`. Случай
+  q v=0 обрабатывается явно, поэтому q-side positivity не нужна.
+- Старые `kl_eq_ce_gap` и `kl_excess_cross_entropy` сохранили
+  ВСЕ исходные binders и типы; их proof bodies делегируют ядру.
+  `#check` подтвердил явные q,p,hq,hp, а не только имя.
+- Контрпример Fin 1, q=2,p=0 запрещает удаление p-nonzero premise
+  под текущими total Real.log/div. Для q=[0,1],p=[1,2] на Fin 2
+  обе стороны identity равны log(1/2).
+- Совместимость old consumers восстановлена явными unfold/bridge:
+  top-k, `entropy_kl_ce_identity` и `distill_kl_bridge`. Новых
+  empirical premises нет. Это finite-real algebra, не ENNReal
+  универсальная KL или доказательство оптимальности training.
+- Пять новых declarations. Все семь #print axioms, включая
+  сохранённые legacy теоремы, содержат только стандартную тройку.
+  Полный Root build прошёл; AssumptionScan остаётся 38/113.
+
 ### Цикл 66: оптимум непрерывной экспоненциальной аллокации
 
 - При конечном nonempty ι и `c_i, κ_i, w_i > 0` функция
@@ -35,7 +57,7 @@
 - **Fannes-непрерывность**: условные и сглаженные формы
   (`DiscreteFannes`, `FannesSmooth`, `NernstFannes`).
 - **Полный инфо-канон**: единые Prelude-определения
-  (klDef/tvDef/entDef/softDef); все 16 прочих примитивов
+  (klDef/ceDef/entDef/tvDef/softDef); все 16 прочих примитивов
   проекта — rfl-мосты к канону; замыкающий мост
   `softDef_eq_exp_sub_lse`: softmax = exp(z a − lse z).
 - **Гиббс+Нернст** (`gibbs_nernst`): у Гиббс-распределения с
