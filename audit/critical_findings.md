@@ -1,4 +1,26 @@
 
+### Цикл 62 (genuine Fréchet): derivative поля выведено, не названо
+- `innerSL ℝ` представляет continuous linear functional derivative;
+  фактор L выводится из derivative сдвинутой `‖x−a‖²` через norm_sq.
+  Проверка negative L не требует специального случая. Ноль в центре
+  допустим именно для norm², НЕ постулируется differentiablity sqrt-norm.
+- Cubic координата `⟪x-a,v⟫` действительно linear differentiable;
+  `hasDerivAt_pow 3` + c/6 дают `(c/2)⟪x-a,v⟫²•v`.
+  Направление fixed parameter; это не derivative по (v,x) одновременно.
+- Generic probes fderiv×d дают равенство inner(chosenGrad,d) для всех
+  членов класса X real inner product. Для R величины 24 и 72 проверены
+  kernel reduction, а не лишь numeric approximation.
+- Никаких новых h_emp, epsilon трюков, фундаментальных differentiable
+  assumptions вне явных носителей Quadratic и Cubic. No branch proof
+  for undefined central/sqrt derivative. 2 additive declarations.
+- Cost-bound цикла 61 теперь действительно относится к производной
+  по x на своих носителях; общие stochastic/physics гарантии НЕ переносятся.
+- Независимый review: LGTM. Проверены negative L/c, x=a, v=0,
+  operator применения к arbitrary d и отсутствие bogus derivative of norm.
+- Полный CI: PASS после исправления внешнего `innerSL` в STATUS на
+  описательный термин (требования StatusLint относились к Hagi runtime).
+  Freeze=4199, registry tests 2 OK, ALLAXIOMS только standard triple.
+
 ### Цикл 61 (cubic/noise model): выведенная cost и её оптимум
 - Исчезает обоснование cost абстрактным назначением: для directional
   cubic energy центральный остаток точно равен `(c/6)σ²‖v‖⁶`.

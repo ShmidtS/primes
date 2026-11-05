@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4197 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4199 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2874,6 +2874,25 @@
   global optimal training. Эти границы явно остаются открытыми.
 - AssumptionScan остаётся 38/113: старые conditional APIs сохранены.
   Nine declarations have only propext/Classical.choice/Quot.sound.
+
+## Исследовательский цикл 62 — настоящие Fréchet-производные
+
+- `probeQuadraticEnergy_hasFDerivAt` доказывает
+  `HasFDerivAt energy (innerSL ℝ (probeQuadraticGrad ...)) x`
+  без условий на знак L. Норма именно в квадрате, поэтому центр
+  не является исключением, хотя сама norm там branch sensitive.
+- `probeCubicEnergy_hasFDerivAt` использует цепное правило
+  linear-coordinate→pow→scalar multiplication. Доказана производная
+  только по x при фиксированных a,v; не дифференцируемость пары (v,x).
+- Эти два поля теперь не просто подобранные algebraic linearizations:
+  их fderiv применён к любому d равен `inner(chosenGrad,d)`.
+- Код опирается на Mathlib norm-squared calculus, continuous inner
+  functional и цепное правило для производной, не новый ε-аппарат.
+- Probes: L=2,a=0,x=3,d=4 даёт 24; c=6,a=0,v=2,x=1,d=3 даёт 72.
+  Произвольный direction probe записан для общего inner-product X.
+- Нет посылок дифференцируемости произвольного loss, runtime floating
+  или stochastic gradient. Старые statements не менялись.
+  2 новых теоремы, только стандартная triple axioms.
 
 ## Открытые проблемы
 

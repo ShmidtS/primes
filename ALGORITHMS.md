@@ -308,6 +308,12 @@ s = ‖g‖₁ / n                            # signScale
   Обе погрешности измерений должны быть ограничены δ. Сравнивается
   error(opt) с cost(σ), а не случайная actual error одного σ с другой.
   Не заявлять полные floating/statistical/Frechet-гарантии.
+- `probeQuadraticEnergy_hasFDerivAt` и
+  `probeCubicEnergy_hasFDerivAt` (цикл 62): обе algebraic fields теперь
+  доказаны настоящими Fréchet-производными по x на своих явных носителях.
+  Предыдущие cost ошибки относятся к настоящим направленным derivatives,
+  а не только к произвольно выбранным field. Это не перенос на arbitrary loss
+  или на изменяемое направление v, и не floating-gradient утверждение.
 - `centralQuadraticProbe_exact` (цикл 58): в том же translated
   quadratic классе центральный probe вместо одностороннего вычисления
   возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной

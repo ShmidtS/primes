@@ -220,3 +220,19 @@
   root-условия сами запрещают фиктивную положительную оптимальность.
 - Probe в R даёт точные 1/4, 1, 1, 3 и 5, отдельные eps дают 2.
   AssumptionScan 38/113 остаётся неизменным, как и замороженные формы.
+
+## Цикл 62 — Fréchet grounding для уже выбранных моделей
+- `probeQuadraticEnergy_hasFDerivAt` и `probeCubicEnergy_hasFDerivAt`
+  полностью в типе HasFDerivAt: derivative operator bundled continuous
+  linear map `innerSL ℝ (chosenGradient)`, не meta-утверждение об имени.
+- L и c остаются произвольными вещественными числами, including zero;
+  c,v не имеют искусственно внесённых ограничений из optimization domain.
+- Quadratic использует существующий reference `HasFDerivAt.norm_sq`;
+  Cubic — цепочку `HasDerivAt.comp_hasFDerivAt` с inner-coordinate.
+- Это вывод derivative только в x: fixed v не является дополнительно
+  дифференцируемым мультиаргументом без отдельной теоремы.
+- Registry не уменьшается формальным headline: general hmodel, loss,
+  stochastic noise и physics/rounding сохраняют свои trust boundaries.
+  AssumptionScan 38/113, старые доказательные интерфейсы не тронуты.
+- Library source: Mathlib `Analysis/InnerProductSpace/Calculus.lean`,
+  `hasStrictFDerivAt_norm_sq` и `HasFDerivAt.norm_sq`.

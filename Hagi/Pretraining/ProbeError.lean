@@ -398,6 +398,40 @@ theorem noisyCentralCubicProbe_optimal_bound
     hδ.le hroot hp hm
   exact hcost.trans (probeCost_le_optimal _ _ σ hA hδ hσ)
 
+/-! ### Cycle 62: точные фреше-производные выбранных энергий -/
+
+/-- Каноническая квадратичная энергия имеет фреше-производную,
+соответствующую её алгебраическому градиентному полю. Условие на знак `L`
+не требуется: дифференцируется квадрат нормы, а не сама норма. -/
+theorem probeQuadraticEnergy_hasFDerivAt (L : ℝ) (a x : X) :
+    HasFDerivAt (probeQuadraticEnergy L a)
+      (innerSL ℝ (probeQuadraticGrad L a x)) x := by
+  have h := ((hasFDerivAt_id x).sub_const a).norm_sq.const_mul (L / 2)
+  apply h.congr_fderiv
+  ext d
+  simp only [smul_apply, ContinuousLinearMap.comp_id, id, innerSL_apply_apply,
+    probeQuadraticGrad, real_inner_smul_left, smul_eq_mul]
+  ring
+
+/-- Выбранная кубическая энергия имеет фреше-производную,
+соответствующую её алгебраическому градиентному полю. Доказательство
+использует правило цепочки для третьей степени без условий `c ≠ 0` или
+`v ≠ 0`. -/
+theorem probeCubicEnergy_hasFDerivAt (c : ℝ) (a v x : X) :
+    HasFDerivAt (probeCubicEnergy c a v)
+      (innerSL ℝ (probeCubicGrad c a v x)) x := by
+  have hcoord : HasFDerivAt (fun y : X => ⟪y - a, v⟫_ℝ) (innerSL ℝ v) x := by
+    simpa only [Function.comp_def, id, innerSL_apply_apply, real_inner_comm,
+      ContinuousLinearMap.comp_id] using
+      (innerSL ℝ v).hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const a)
+  have h := ((hasDerivAt_pow 3 ⟪x - a, v⟫_ℝ).comp_hasFDerivAt x hcoord).const_mul
+    (c / 6)
+  apply h.congr_fderiv
+  ext d
+  simp only [smul_apply, innerSL_apply_apply,
+    probeCubicGrad, real_inner_smul_left, smul_eq_mul, Nat.reduceSub, Nat.cast_ofNat]
+  ring
+
 /-- Градиентное поле выбранной перенесённой квадратичной модели
 `L`-липшицево при `L ≥ 0`. Доказательство использует только точное
 сокращение общего центра и норму скалярного множителя; посылка о
