@@ -293,3 +293,23 @@
   quantized sample обратно с общим level. Numerics payload 68 и
   5-place [1,0,0,1,-1] проверены, no noise distribution or stochastic bounds.
 - Frozen theorem statements/API and registry 38/113 are unchanged.
+
+## Цикл 66 — optimum экспоненциальной бюджетной модели
+
+- Это НЕ аналитическое закрытие 108 premise identifiers и не вывод
+  действительного spectral tail произвольной нейросети. Оптимизируется
+  только явно заданная модель `Σ c_i·exp(−κ_i·r_i)` при
+  `Σ w_i·r_i=B`, конечном nonempty индексе и `c_i,κ_i,w_i>0`.
+- Реальное продвижение — новая closed-form allocation, точное
+  budget equality, equalized-marginal identity и глобальная оптимальность
+  среди всех вещественных допустимых allocation через старую
+  `rankResidual_equalized`. w_i не входит в ошибку как множитель.
+- `weightedExpBudget_pos` защищает деление. B и r_i могут быть
+  отрицательными: никакой nonnegative/integer активизации тут нет.
+  Поэтому theorem не выдаёт runtime, hardware, memory или discrete optimum.
+- Все 8 declarations — только стандартные axioms, никаких новых
+  h_emp-named binders. AssumptionScan остаётся 38 файлов/113 identifiers
+  (5 доказанных h_emp-имён + 108 premise names). Неисправности текущего
+  regex-реестра (лексические вхождения, damaged operational substrings,
+  ложное отношение `entryCount` к информационным примитивам) выявлены
+  code-only аудитом и НЕ засчитываются как математические результаты.

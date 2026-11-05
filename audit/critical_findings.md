@@ -1,4 +1,33 @@
 
+### Цикл 66 (weighted exponential allocation): оптимум только выбранного surrogate
+
+- Предварительное ревью плана поймало неправильный целевой объектив:
+  weights w_i должны входить ТОЛЬКО в budget, не умножать residual.
+  Ошибочный вариант НЕ переносился в production. Финальная модель —
+  `Σ c_i·exp(−κ_i·r_i)` на `{r : ℝ^ι | Σ w_i·r_i=B}`.
+- `weightedExpAllocation_budget` и `_marginal` выводят явное решение,
+  `_optimal` делегирует уже проверенной `rankResidual_equalized`
+  при cost weights `w_i+0`; tangent bound не повторяется.
+- Непустой финитный индекс и c_i,κ_i,w_i>0 обязательны там, где нужны
+  сумма и логарифм цены. B и allocation остаются любыми Real: результат
+  НЕ заменяет integer rank, `[·]₊` active set или hardware minimization.
+- Численная проверка не опирается на знаменатель=1 или нулевой gradient:
+  c=(2,1), κ=(1,2), w=(1,1), B=2 дают r*=(4/3,2/3). Для альтернативы
+  (0,2) строгость выведена через x=exp(−4/3)∈(0,1) и
+  `2+x³−3x=(1−x)²(x+2)>0`, без численного приближения exp.
+- Production содержит 8 declarations, старый код не изменён;
+- Возвраты всех #print axioms содержат только
+  [propext, Classical.choice, Quot.sound].
+- Независимое refute-first ревью по исходному RankBudget, production,
+  witnesses и layers вернуло LGTM без blocking findings.
+- Научный retrieval с generic water-filling query вернул в основном
+  неподходящие водные/связные работы. Они НЕ цитируются в поддержку
+  данного optimizer-а: здесь опора на выбранную параметрическую модель
+  и уже существующий формальный Lean-сертификат.
+- Полный code-only аудит не доказывает глобальную оптимальность HAGI.
+  Legacy stage effects и empirical fields остаются отдельными семантическими
+  ограничениями; новое closed-form решение их не маскирует.
+
 ### Цикл 65 (semantic ternary codec): encoding + restoration + min width
 - Обнаружена существующая base-3 реализация в Hagi.Energy.Ternary.
   Не создан вариант polynomial encoder: `ternaryByteBlock` и decoder

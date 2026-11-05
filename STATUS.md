@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 420 Lean-модулей в `Hagi/`; 4225 declarations (Freeze);
+- 421 Lean-модулей в `Hagi/`; 4233 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,23 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 66: оптимум непрерывной экспоненциальной аллокации
+
+- При конечном nonempty ι и `c_i, κ_i, w_i > 0` функция
+  `weightedExpAllocation` задаёт замкнутую форму, минимизирующую
+  `Σ c_i exp(−κ_i r_i)` на ограничении `Σ w_i r_i=B`
+  (`weightedExpAllocation_optimal`).
+- `weightedExpBudget_pos`, `weightedExpAllocation_budget` и
+  `weightedExpAllocation_marginal` выводят положительность суммы A,
+  budget equality и равенство маргинальных стоимостей `λ·w_i`.
+  Тангенс-граница переиспользована через `rankResidual_equalized`.
+- Веса w — только стоимости бюджета, а B и все r — Real. Это НЕ
+  discrete bit/rank или hardware optimum и НЕ глобальная оптимальность HAGI.
+- Пример c=(2,1), κ=(1,2), w=(1,1), B=2 даёт r*=(4/3,2/3);
+  сравнение с альтернативой (0,2) строго доказано стандартными
+  axioms. Registry остаётся 38/113, восемь новых declarations.
+
+### Основные теоремы
 - **KL ≥ 0** (`kl_nonneg`): Σ q log(q/p) ≥ 0 при q ≥ 0, p > 0
   (лемма о хорде log x ≤ x − 1).
 - **Pinsker** (`PinskerTV`): TV(p,q) ≤ √(KL(p‖q)/2), через

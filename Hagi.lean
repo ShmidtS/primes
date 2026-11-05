@@ -26,6 +26,7 @@ import Hagi.Step.Joint
 import Hagi.Step.Muon
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
+import Hagi.Budget.WeightedExpAlloc
 import Hagi.Data.DField
 import Hagi.Data.DataMixing
 import Hagi.Data.InfoNCE

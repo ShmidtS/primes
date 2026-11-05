@@ -1,10 +1,42 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-теоремы Lean 4 / Mathlib (Hagi/, 2909 theorem/lemma, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4233 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+---
+
+## Непрерывная экспоненциальная аллокация (цикл 66)
+
+Для конечного НЕПУСТОГО множества индексов с `c_i > 0`,
+`κ_i > 0`, w_i > 0 минимизируем именно
+`Σ_i c_i·exp(−κ_i·r_i)` при `Σ_i w_i·r_i = B`, где `B,r_i ∈ ℝ`.
+w_i — только стоимость в бюджете, НЕ множитель residual.
+
+- `weightedExpBudget`: `A = Σ w_i/κ_i > 0`
+  (`weightedExpBudget_pos`).
+- `weightedExpLogCoeff`:
+  `C = Σ (w_i/κ_i)·log(c_i·κ_i/w_i)`.
+- `weightedExpPrice`: `λ = exp((C−B)/A)`.
+- `weightedExpAllocation`:
+  `r*_i = (log(c_i·κ_i/w_i) − (C−B)/A)/κ_i`.
+- `weightedExpAllocation_budget` доказывает точное выполнение
+  равенства бюджета; `weightedExpAllocation_marginal` — условие
+  `c_i·κ_i·exp(−κ_i·r*_i) = λ·w_i`.
+- `weightedExpAllocation_optimal` доказывает глобальный минимум
+  суррогатного residual среди ВСЕХ допустимых вещественных r.
+  Tangent-теорема не перекопирована: доказательство вызывает
+  существующую `rankResidual_equalized` при стоимости w_i+0.
+
+Это оптимум непрерывной выбранной модели, не integer-rank/bits,
+активная nonnegative truncation, размер памяти, hardware latency
+или оптимальность нейросети. Scientific-выдача по общему термину
+water filling была отклонена как нерелевантная rank-доказательству.
+Нетривиальный двумерный witness выдал `r*=(4/3,2/3)` при
+`c=(2,1), κ=(1,2), w=(1,1), B=2`; другая допустимая `(0,2)` строго
+хуже. Строгость получена из `(1−x)²(x+2)>0` для `x=exp(−4/3)∈(0,1)`.
 
 ---
 
