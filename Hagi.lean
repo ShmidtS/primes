@@ -75,7 +75,12 @@ import Hagi.Unified.FacadeLaws
 import Hagi.Unified.EFTheory
 import Hagi.Unified.TernaryWitness
 import Hagi.StatMech.Hopfield.Model
+import Hagi.StatMech.Hopfield.Concentration
+import Hagi.StatMech.Hopfield.LowerBound
+import Hagi.StatMech.Hopfield.CharPatterns
+import Hagi.StatMech.Hopfield.SubMemory
 import Hagi.Optimization.MomentumHB
+import Hagi.Optimization.HBRate
 import Hagi.Learning.ToyTrajectory
 import Hagi.Step.SubspaceSafeQP
 import Hagi.Learning.RCDL

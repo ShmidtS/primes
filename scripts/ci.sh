@@ -12,6 +12,10 @@ step "lake build (default target: Hagi)"
 LAKE_JOBS=16 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
   || { echo "BUILD: FAIL"; fail=1; }
 
+step "ReachLint (every module reachable from Hagi.lean root)"
+out=$(python scripts/ReachLint.py 2>&1 | tail -1)
+echo "$out"; case "$out" in REACHLINT:\ PASS*) ;; *) echo "REACHLINT: FAIL"; fail=1;; esac
+
 step "TrivialLint (kernel-level: rfl/A=A/premise=conclusion/axioms)"
 out=$(lake env lean --run scripts/TrivialLint.lean 2>&1 | tail -1)
 echo "$out"; [ "$out" = "LINT: PASS" ] || { echo "TRIVIALLINT: FAIL"; fail=1; }
