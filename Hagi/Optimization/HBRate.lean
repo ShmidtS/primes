@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Hagi.Optimization.MomentumHB
 
@@ -669,5 +670,69 @@ theorem hb_real_two_root_norm_bound (e : ℕ → ℂ) (t beta : ℝ)
   exact hb_two_root_norm_cap e (t : ℂ) (beta : ℂ) lam1 lam2 A B
     ((|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2)
     hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
+
+/-- Конечномерная L²-сборка по Ортонормированным Координатам.
+Для каждой моды переданы свои корни и стартовое представление.
+Итоговый коэффициент — L²-норма вектора модальных коэффициентов,
+а не сумма абсолютных значений по всем модам. Здесь НЕ доказывается
+существование спектрального разложения: оно отдельный вход задачи. -/
+theorem hb_two_root_l2_bound {ι : Type*} [Fintype ι]
+    (e : ℕ → EuclideanSpace ℂ ι) (t beta lam1 lam2 A B : ι → ℂ)
+    (rho : ℝ) (hrho : 0 ≤ rho)
+    (hrec : ∀ n i, e (n + 2) i = t i * e (n + 1) i - beta i * e n i)
+    (hroot1 : ∀ i, lam1 i ^ 2 - t i * lam1 i + beta i = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2 - t i * lam2 i + beta i = 0)
+    (h0 : ∀ i, e 0 i = A i + B i)
+    (h1 : ∀ i, e 1 i = A i * lam1 i + B i * lam2 i)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho)
+    (n : ℕ) :
+    ‖e n‖ ≤ (Real.sqrt (∑ i, (‖A i‖ + ‖B i‖) ^ 2)) * rho ^ n := by
+  have hcoord (i : ι) :
+      ‖e n i‖ ≤ (‖A i‖ + ‖B i‖) * rho ^ n := by
+    exact hb_two_root_norm_cap (fun k => e k i) (t i) (beta i)
+      (lam1 i) (lam2 i) (A i) (B i) rho (fun k => hrec k i)
+      (hroot1 i) (hroot2 i) (h0 i) (h1 i) (hnorm1 i) (hnorm2 i) n
+  have hsquare (i : ι) : ‖e n i‖ ^ 2 ≤
+      (‖A i‖ + ‖B i‖) ^ 2 * (rho ^ n) ^ 2 := by
+    calc
+      ‖e n i‖ ^ 2 ≤ ((‖A i‖ + ‖B i‖) * rho ^ n) ^ 2 :=
+        pow_le_pow_left₀ (norm_nonneg _) (hcoord i) 2
+      _ = (‖A i‖ + ‖B i‖) ^ 2 * (rho ^ n) ^ 2 := by ring
+  have hsq : ‖e n‖ ^ 2 ≤
+      (∑ i, (‖A i‖ + ‖B i‖) ^ 2) * (rho ^ n) ^ 2 := by
+    calc
+      ‖e n‖ ^ 2 = ∑ i, ‖e n i‖ ^ 2 := EuclideanSpace.norm_sq_eq _
+      _ ≤ ∑ i, (‖A i‖ + ‖B i‖) ^ 2 * (rho ^ n) ^ 2 := by
+        exact Finset.sum_le_sum fun i _ => hsquare i
+      _ = (∑ i, (‖A i‖ + ‖B i‖) ^ 2) * (rho ^ n) ^ 2 := by
+        rw [Finset.sum_mul]
+  calc
+    ‖e n‖ = Real.sqrt (‖e n‖ ^ 2) := (Real.sqrt_sq (norm_nonneg _)).symm
+    _ ≤ Real.sqrt ((∑ i, (‖A i‖ + ‖B i‖) ^ 2) * (rho ^ n) ^ 2) :=
+      Real.sqrt_le_sqrt hsq
+    _ = (Real.sqrt (∑ i, (‖A i‖ + ‖B i‖) ^ 2)) * rho ^ n := by
+      rw [Real.sqrt_mul (by positivity), Real.sqrt_sq (pow_nonneg hrho _)]
+
+/-- Перенос L²-сборки на полный конечный ортонормированный базис.
+Входные уравнения уже сформулированы в выбранном базисе;
+изометрия переводит оценку в исходное векторное пространство без
+потери коэффициента и без ложной универсальной self-adjoint теоремы. -/
+theorem hb_two_root_orthonormal_bound
+    {ι E : Type*} [Fintype ι]
+    [NormedAddCommGroup E] [InnerProductSpace ℂ E]
+    (b : OrthonormalBasis ι ℂ E) (e : ℕ → E)
+    (t beta lam1 lam2 A B : ι → ℂ) (rho : ℝ) (hrho : 0 ≤ rho)
+    (hrec : ∀ n i, b.repr (e (n + 2)) i =
+      t i * b.repr (e (n + 1)) i - beta i * b.repr (e n) i)
+    (hroot1 : ∀ i, lam1 i ^ 2 - t i * lam1 i + beta i = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2 - t i * lam2 i + beta i = 0)
+    (h0 : ∀ i, b.repr (e 0) i = A i + B i)
+    (h1 : ∀ i, b.repr (e 1) i = A i * lam1 i + B i * lam2 i)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho)
+    (n : ℕ) :
+    ‖e n‖ ≤ (Real.sqrt (∑ i, (‖A i‖ + ‖B i‖) ^ 2)) * rho ^ n := by
+  rw [← b.repr.norm_map (e n)]
+  exact hb_two_root_l2_bound (fun k => b.repr (e k)) t beta lam1 lam2 A B
+    rho hrho hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
 
 end Hagi.Optimization.HBRate

@@ -1,4 +1,25 @@
 
+### Цикл 49 (HB vector L2 assembly): координаты → пространство
+- `hb_two_root_l2_bound` доказывает сборку finite modes с
+  общим коэффициентом sqrt(sum((‖A_i‖+‖B_i‖)^2)).
+  Суммируются квадраты, sqrt((ρ^n)^2)=ρ^n использует данное ρ≥0.
+- `hb_two_root_orthonormal_bound` переносит результат через
+  `OrthonormalBasis`: сохранение нормы не теряет базисный коэффициент.
+- Self-adjoint existence НЕ подменено двумя lines of proof:
+  корни и начальные данные передаются в модальных координатах.
+  Spectrum API найден для следующего этапа, но не скрыт в ложной
+  универсальной теореме оптимизации.
+- Двухмодовый probe использует реальный EuclideanSpace.basisFun,
+  корни 2,1 и 1,0; результат sqrt(2)*2^n исполнен успешно.
+  Все новые declaration axioms: только стандартная тройка.
+- Независимый refute-first review: LGTM по algebra/geometry.
+  Единственное замечание низкой severity устранено: базис полный,
+  не произвольное неполное ортонормированное семейство.
+- Полный CI: PASS; Freeze=4156 declarations, 418 модулей,
+  AssumptionScan=137, все аксиоматические проверки чисты.
+- Открытый следующий результат: модально-зависимые ρ_i внутри
+  sqrt-суммы и усиление коэффициента через root separation/κ.
+
 ### Цикл 48 (HB positive discriminant): полный скалярный спектр
 - Реализованы `hb_two_root_norm_cap`, `hb_real_root_pm`,
   `hb_real_root_pm_norm` и `hb_real_two_root_norm_bound`.
