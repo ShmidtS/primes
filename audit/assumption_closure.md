@@ -11,6 +11,24 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 73 — minimum resources без empirically solved optimum
+
+- `qualityEligible` сопрягает existing `feasible` с actual `p.step`
+  и objective floor; нет предпосылки что model value равен task quality.
+  Все model memory/operations caps остаются обязательными. Нет eps/noise,
+  hardware measurement или statistics в этом finite selector.
+- `minimumResource` — выбор минимального `(memory,operations)` в
+  порядке `Prod.Lex`, не минимизация weighted surrogate или FLOPs.
+  Это exact selection по данной finite family, не hardware minimum.
+- Empirical inventory 201/37 unchanged. Новые structural occurrences
+  только семь `h0`, каждый — настоящий eligible witness, a0 не скрыт
+  как desired outcome / safety premise. Structural total 9141/410.
+  Legacy declarations/args не изменены; frozen registry=4302.
+- Scalar witnesses различают baseline floor (identity), strict floor
+  (actual gradient update) и пустой strict class при нулевых caps.
+  Min-cost выбор не даёт universal/global architecture, task accuracy,
+  minimum search cost или executable optimization over real objectives.
+
 ## Цикл 72 — logit CE и бюджет без нового empirical closure
 
 - Все statements остаются на явной scalar one-example модели. `logitSafe`

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 423 Lean-модулей в `Hagi/`; 4293 declarations (Freeze);
+- 424 Lean-модулей в `Hagi/`; 4302 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,30 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 73: минимальные ресурсы при actual objective floor
+
+- `qualityEligible` = существующее `feasible` И НАСТОЯЩЕЕ
+  `qfloor ≤ p.value (p.step a s)`. Safety, memory cap и operations cap
+  сохранены без исключения ради quality. Нет фиктивного fallback.
+- `minimumResource` выбирает минимум в явном `(memory,operations)`
+  `Prod.Lex` через существующий `Finset.exists_min_image`.
+  Memory-first порядок задан явно; нет произвольного weighted sum.
+  `minimumResource_cost_min` сравнивает КАЖДЫЙ eligible b.
+- Feasible witness задаёт nonempty subset. Если family пусто, witness
+  не конструируется. `Classical.choose` остаётся точной математической
+  selection без сертификата executable search/minimum complexity.
+- Scalar Fin2 probe: при 0<eta strict floor на настоящем successor
+  выбирает gradient update action=1 и resourceCost=Lex(1,2); identity
+  несовместима c floor через настоящий `descent_step_strict`.
+  Baseline floor выбирает identity, а при MC=0 strict floor невозможен.
+  Поэтому result нельзя перепутать с unconditionally useful learning.
+- Nine declarations, Freeze=4302. Empirical=201/37 unchanged;
+  structural=9141/410 (семь named h0 fields). Fresh CI/ALLAXIOMS PASS.
+  Независимое refute-first review: LGTM, incl. actual binder order.
+- Saved abstracts `ask.sciencemadereadable.com`: HardCoRe-NAS,
+  CGMQ, DnnSAT, HyperPower. Их domains/empirical claims не превращены
+  в premises. Это finite class/declared cost, не global NAS/hardware.
+
 ### Цикл 72: настоящая logit-CE policy и budget trajectory
 
 - `logitProblem` использует ЦЕЛЬ `-logitCE`, не energy-surrogate:

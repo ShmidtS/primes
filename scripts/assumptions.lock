@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9134
-named structural declaration+ordinal keys: 9134
-named structural source modules: 409
+named structural binder occurrences: 9141
+named structural declaration+ordinal keys: 9141
+named structural source modules: 410
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -8980,6 +8980,13 @@ Hagi.Unified.QuadMachine | Hagi.Unified.QuadTrajectory.gateStep_pos | 7 | hg | H
 Hagi.Unified.QuadMachine | Hagi.Unified.QuadTrajectory.gateTraj.match_1 | 3 | h_1 | Unit → motive 0
 Hagi.Unified.QuadMachine | Hagi.Unified.QuadTrajectory.gateTraj.match_1 | 4 | h_2 | (t : ℕ) → motive t.succ
 Hagi.Unified.QuadMachine | Hagi.Unified.QuadTrajectory.gateTraj_mono | 5 | hD | 0 < Delta
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.exists_minimum_resource | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource_cost_min | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource_feasible | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource_next_quality_ge | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource_safe | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.QualityResourceMin | Hagi.Unified.QualityResourceMin.minimumResource_spec | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
 Hagi.Unified.QuantSafeUpdate | Hagi.Unified.quantized_safe_window | 15 | hL | ∀ (i : K), 0 ≤ L i
 Hagi.Unified.QuantSafeUpdate | Hagi.Unified.quantized_safe_window | 16 | heps | ∀ (i : K), 0 ≤ eps i
 Hagi.Unified.QuantSafeUpdate | Hagi.Unified.quantized_safe_window | 17 | heta | 0 ≤ eta

@@ -416,6 +416,7 @@ import Hagi.Step.NoisyPL
 import Hagi.Unified.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
+import Hagi.Unified.QualityResourceMin
 import Hagi.Unified.ProductiveTransition
 import Hagi.Unified.TransitionCert
 import Hagi.Unified.VerticalCapstone

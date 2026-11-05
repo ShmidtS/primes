@@ -1,10 +1,38 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4293 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4302 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Quality floor at minimum declared resources (цикл 73)
+
+- `qualityEligible` не принимает metadata эффектов: это старое `feasible`
+  И `qfloor ≤ p.value (p.step a s)` на действительном successor.
+  Feasibility сохраняет исходную model safety и оба cap величин.
+- `resourceCost = toLex (memory, operations)` тип `ℕ×ₗℕ` задаёт
+  memory-first порядок, operations разрешает только равную память.
+  Произвольного weighted scalarization разных unit нет.
+- `exists_minimum_resource` фильтрует finite `Finset.univ` и вызывает
+  существующий `Finset.exists_min_image`. `minimumResource` лишь
+  `Classical.choose` witness при поданной eligible точке, не optimizer.
+- `minimumResource_next_quality_ge` относится к выбранному successor;
+  `minimumResource_cost_min` сравнивает КАЖДЫЙ eligible competitor.
+  Пустое eligible-семейство не скрывается fallback-ом.
+- В `Fin 2` и `0<eta`, строгий `-logitCE(actual update)` floor
+  отсекает identity и выбирает реальный gradient update, cost=(1,2).
+  Базовый `-logitCE w` floor выбирает identity: это НЕ обучение.
+  При M=C=0 strict-upgrade eligible set пуст, обмануть caps нельзя.
+- Research: HardCoRe-NAS (Nayman et al., ICML 2021),
+  Constraint Guided Model Quantization (Van Baelen, Karsmakers, 2024),
+  DnnSAT (Gao et al., ICSE 2021), HyperPower (Stamoulis et al., 2018).
+  `.tmp/cycle73-research.txt` хранит точные abstract ссылки. Они
+  контекст конкретных constrained models, НЕ доказательства теорем.
+- +9 declarations; Freeze=4302, empirical 201/37 unchanged,
+  structural 9141/410 (7 named eligible witnesses).
+  Точный finite-class minimizer не означает минимум FLOPs hardware,
+  global architecture optimum, search complexity или task quality.
 
 ## Scalar logit-CE policy and budgeted trajectory (цикл 72)
 

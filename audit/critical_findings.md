@@ -1,4 +1,35 @@
 
+### Цикл 73: minimum-cost policy при фактическом objective floor
+
+- `qualityEligible p s M C qfloor a` означает `a∈feasible p M C` И
+  `qfloor ≤ p.value (p.step a s)`. Safety и cap не ослаблены,
+  «желаемые effects» не заменяют настоящий successor.
+- `exists_minimum_resource` применяет готовый Mathlib
+  `Finset.exists_min_image` к nonempty filtered finite family.
+  `minimumResource` — explicit Classical.choice при поданном witness,
+  не machine executable optimizer и не minimum-search theorem.
+- `resourceCost` — `toLex(memory,operations)` в `ℕ×ₗℕ`: memory first,
+  operations only on ties. Weighted ModelState не смешан произвольно
+  с этим порядком. `minimumResource_next_quality_ge` берёт настоящее
+  состояние, а не только witness. `minimumResource_safe` gets `p.safe`.
+- Trend: baseline floor разрешает no-op; это честный witness.
+  Strict `-logitCE(actual upgrade)` отсекает action 0 через
+  `descent_step_strict`; minimizer = action 1, cost=Lex(1,2).
+  При M=C=0 нет strict eligible witness, fallback не подделывает его.
+- Research artifacts отвечают только project scope: HardCoRE-NAS /
+  CGMQ ограничивают конкретные architectures/QAT costs; DnnSAT сокращает
+  конфигурации constraint-solving; HyperPower требует predictive model.
+  Они НЕ источник абсолютного optimum данной теоремы. Scientific
+  abstracts/ссылки хранятся `.tmp/cycle73-research.txt`; web search/fetch
+  auth failure 403 не маскирован, direct OpenAlex retrieval сохранён.
+- Старые signatures не менялись. Новых declarations 9, Freeze 4302,
+  empirical 201/37 unchanged; +7 structural h0 → 9141/410.
+  Full CI: ALLAXIOMS, Freeze, 14 registry tests, MachineDiff,
+  Trivial/Dup/Layer/Doc/Status PASS. Baselines не расширены.
+  Независимый refute-first review: LGTM; p.binders, cap exclusion
+  и orientation cost order проверены отдельно. После документирования
+  повторный complete CI тоже PASS; свидетельство — `.tmp/cycle73-ci.log`.
+
 ### Цикл 72: scalar logit CE и настоящий budget loop
 
 - `logitProblem` заменяет energy-surrogate на `-logitCE`; safety
