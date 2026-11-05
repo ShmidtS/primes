@@ -12,20 +12,20 @@ set_option linter.style.header false
 
 `EmpiricalPremises` — измеряемые величины обучения
 (гладкость L, кривизна κ, шаг η, стадийные коэффициенты,
-шумовая модель), из которых стандартные h_emp-формы
-ВЫВОДЯТСЯ:
+шумовая модель), на которых работает единый монитор `holds`.
+Он НЕ выводит гладкость произвольной энергии:
 
-- `holds` : монитор — конъюнкция измеримых неравенств;
-  при нарушении любого поля цикл уходит в hold (аудит
-  «монитор у каждого поля»);
-- мосты `premises_give_smooth`, `premises_give_lip`:
-  стандартные посылки h_emp_smooth / h_emp_lip
-  (StageCalculus) — следствия `holds`.
+- `holds` — конъюнкция измеримых неравенств; при нарушении
+  любого поля цикл уходит в hold;
+- `premises_give_smooth` лишь компонует `holds` с ЯВНО
+  принятой модельной `hsmooth` и направлением `hdir`;
+- `premises_lip_witness` доказывает только неотрицательность
+  κ·s·dnorm, а не саму ledger-границу энергии;
+- `premises_noise_cases` разбивает шум на нулевой/положительный.
 
 89 теорем с h_emp-сигнатурами НЕ переписываются; мост
-даёт эволюционный путь: новый код принимает
-`EmpiricalPremises` + holds, старый продолжает принимать
-сырые h_emp-формы.
+даёт единый слой мониторинга, но не устраняет исходные
+модельные и вероятностные посылки.
 -/
 
 namespace Hagi.Unified.EmpiricalPremises
@@ -55,10 +55,10 @@ def holds (p : EmpiricalPremises) : Prop :=
     ∧ 0 ≤ p.dnorm ∧ p.inner ≤ p.L * p.dnorm ^ 2
     ∧ 0 ≤ p.noiseSigma
 
-/-- МОСТ 1 (smooth-форма): монитор даёт стандартную посылку
-h_emp_smooth из StageCalculus:
-E2 ≤ E1 − η·inner + L·η²·dnorm²/2 — при inner ≥ dnorm²
-(descent-direction контракт Step/SafeQP). -/
+/-- МОСТ 1 (smooth-форма): при ЯВНО принятой модельной
+`hsmooth`, направлении `hdir` и мониторе `holds` получаем
+сертифицированное убывание. Монитор контролирует L и η,
+но сам не доказывает `hsmooth`. -/
 theorem premises_give_smooth (p : EmpiricalPremises)
     (E1 E2 : ℝ) (h : holds p)
     (hdir : p.dnorm ^ 2 ≤ p.inner)

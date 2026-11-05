@@ -259,6 +259,19 @@ s = ‖g‖₁ / n                            # signScale
   зависящий от обусловленности, — следующий шаг, не
   содержание этих скалярных теорем.
 
+## 7e. Аналитическое закрытие предпосылок
+
+- `pl_stop_certificate_quadratic`: для квадратичной цели
+  `E(w)=μ(w−a)²/2` с `L*=0` PL-форма выполняется точно;
+  stop certificate вызывается без `h_emp_pl`.
+- `audit/assumption_closure.md` фиксирует все 45 файлов lock:
+  существующие smooth/lip/dist/grow/merge выводы и настоящие
+  trust boundaries (independence, physics, telemetry).
+- Общие conditional lemmas сохраняются только как интерфейс
+  классов функций. Запрещено выдавать `EmpiricalPremises.holds`
+  за доказательство гладкости: `premises_give_smooth` требует
+  явной smoothness-модели; документация исправлена соответственно.
+
 ## 8. Мета-закон роста: конус и насыщение
 
 - Конус (frontier_cone_inductive):

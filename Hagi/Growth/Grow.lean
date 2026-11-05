@@ -104,6 +104,19 @@ theorem pl_stop_certificate (Lw Lstar mu gnorm : ℝ)
   rw [le_div_iff₀ (by linarith : (0:ℝ) < 2 * mu)]
   nlinarith [h_emp_pl]
 
+/-- Каноническая квадратичная PL-модель: для `E(w)=μ(w−a)²/2`
+и `L*=E(a)=0` PL-неравенство выполняется ТОЧНО на каждом `w`,
+поэтому общий `pl_stop_certificate` применяется без `h_emp_pl`. -/
+theorem pl_stop_certificate_quadratic (a w mu : ℝ) (hmu : 0 < mu) :
+    mu / 2 * (w - a) ^ 2 ≤ (mu * (w - a)) ^ 2 / (2 * mu) := by
+  have hpl : mu * (mu / 2 * (w - a) ^ 2 - 0)
+      ≤ (mu * (w - a)) ^ 2 / 2 := by
+    ring_nf
+    exact le_rfl
+  have h := pl_stop_certificate (mu / 2 * (w - a) ^ 2) 0 mu
+    (mu * (w - a)) hmu hpl
+  simpa using h
+
 end Hagi.Growth
 
 namespace Hagi

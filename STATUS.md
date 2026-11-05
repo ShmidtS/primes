@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 417 Lean-модулей в `Hagi/`; 4142 деклараций (Freeze);
+- 417 Lean-модулей в `Hagi/`; 4143 декларации (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2597,6 +2597,20 @@
   Отдельная Jordan-оценка кратного корня сохранена из 43.
 - Untracked runtime probe: корни 2/3, 0/1 и i/−i
   инстанцированы; нулевой и комплексный край проходят.
+
+## Исследовательский цикл 45 — аналитический assumptions closure
+
+- Полный аудит всех 45 файлов lock собран в
+  `audit/assumption_closure.md`: существующие аналитические
+  мосты и внешние границы не смешаны.
+- `pl_stop_certificate_quadratic`: каноническая квадратичная
+  PL-посылка стала точным неравенством, не `h_emp_pl`.
+- `EmpiricalPremises`: исправлены ложные документальные
+  обещания `holds ⇒ smooth/lip`; теорема требует явную
+  smoothness-модель, lip-witness доказывает только неотрицательность.
+- Independence, martingale measurements, Landauer-физика и
+  telemetry НЕ скрыты под ложными теоремами: общий аналитический
+  вывод в этих классах невозможен без новой модели.
 
 ## Открытые проблемы
 

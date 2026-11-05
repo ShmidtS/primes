@@ -288,4 +288,32 @@ Learning/Hadamard* подключены корректно (ReachLint PASS
 - **Следующий frontier.** Сначала D>0 и max-модуль двух
   вещественных корней, затем векторная сборка коэффициентов
   по ортонормированным модам; недопустимо обещать единый
-  `(‖A‖+‖B‖)` без конечной суммы по спектру.
+        `(‖A‖+‖B‖)` без конечной суммы по спектру.
+
+## Исследование → формализация → анализ, цикл 45 (assumptions)
+
+- **Запрос.** Проверить аналитический вывод всех записей
+  `scripts/assumptions.lock`. Полная 45-файловая матрица:
+  `audit/assumption_closure.md`.
+- **Новое доказательство.** `pl_stop_certificate_quadratic`
+  выводит PL-форму для `E(w)=μ(w−a)²/2,L*=0`: обе части
+  совпадают, `h_emp_pl` в канонической модели не нужен.
+- **Исправленный overclaim.** `EmpiricalPremises.holds` не
+  выводит `hsmooth`: theorem принимает `hsmooth` явно;
+  `premises_lip_witness` доказывает только неотрицательность.
+  Module/function docstrings приведены к фактическим типам;
+  заодно удалён phantom `h_emp_smooth` lock-entry из комментария,
+  не бывший binder (138 → 137 identifiers).
+- **Граница.** PPT/stationary dist, noise independence,
+  martingale variance, Landauer physics, Qgen/fit и synthetic
+  telemetry — внешние модельные данные. Доказательных
+  counterexamples к их универсальному выводу не добавляем;
+  по типам они исходные параметры. Переименование premise
+  не засчитывается как закрытие.
+- **Проверка.** Узкая сборка Grow PASS; Freeze 4143,
+  DocLint/STMDUP PASS. Полный `bash scripts/ci.sh` — CI: PASS,
+  включая AssumptionScan 137 (5 proved + 132 premise binders)
+  и ALLAXIOMS.
+- **Следующий frontier.** Подключить операциональные
+  инстансы к `CertStep`, оставив физические и вероятностные
+  исходные значения именованными trust boundaries.
