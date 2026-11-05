@@ -86,3 +86,13 @@
 подключать новые операциональные инстансы к каноническому
 `CertStep` и исправить misleading `EmpiricalPremises` docstring,
 который обещал вывод `holds ⇒ smooth`, отсутствующий в теореме.
+
+## Цикл 46 — исполнение замкнуто в CertStep
+
+- `logitStepCertExactCore` — scalar CE с произвольным η>0;
+  фактический drop из `descent_step_strict`.
+- `ncMinimalStepCert` — drop=`u.gain` из `ncCertStep_energy`.
+- `trainStepMinimalCert` — точный drop из `trainStep_actualDescent`
+  с sufficient-step positivity; никакой smoothness-гипотезы.
+- Все три ядра имеют только стандартные Lean-аксиомы;
+  AssumptionScan не получил новых premise binders (137).

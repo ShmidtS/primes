@@ -44,6 +44,12 @@ loop t = 0..n:
   (`quad_witness_T3`, `quad_witness_T10`).
 - Закрепление: `master_hagi_challenge_v3` — comparator-гейт
   CI (пин типа StepCert, аксиомы чистые).
+- Операциональные ядра `CertStep` (цикл 46):
+  `logitStepCertExactCore` (scalar large-step CE),
+  `ncMinimalStepCert` (энергия = gain нейрокомпьютера),
+  `trainStepMinimalCert` (точный drop TrainState).
+  Исполнение даёт drop и actual без `h_emp_*`; полы, риск
+  и бюджет подключаются как расширения, не подмена ядра.
 
 ## 1. Выбор действия: argmax Γ/K
 

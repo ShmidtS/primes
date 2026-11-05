@@ -139,4 +139,12 @@ theorem logit_exact_drop_dominates (w eta : ℝ)
   have hdescent := descent_step w eta h0 h2
   linarith
 
+/-- Ядро Gen-3 `CertStep` для scalar logit CE: существующий
+tочный HonestTransition проецируется без дополнительных посылок. -/
+noncomputable def logitStepCertExactCore
+    (w eta riskLim budgetSpend budget' : ℝ)
+    (h0 : 0 < eta) (hbudget : 0 ≤ budget') (hrisk : 0 ≤ riskLim) :
+    CertStep (fun w => logitCE w) w (w + eta / (1 + Real.exp w)) :=
+  (logitStepCertExact w eta riskLim budgetSpend budget' h0 hbudget hrisk).toCertStep
+
 end Hagi.Unified.LogitCert

@@ -317,3 +317,21 @@ Learning/Hadamard* подключены корректно (ReachLint PASS
 - **Следующий frontier.** Подключить операциональные
   инстансы к `CertStep`, оставив физические и вероятностные
   исходные значения именованными trust boundaries.
+
+## Исследование → формализация → анализ, цикл 46 (CertStep)
+
+- **Результат.** Три операциональные модели сведены к ядру
+  `CertStep`: `logitStepCertExactCore`, `ncMinimalStepCert`,
+  `trainStepMinimalCert`. Их drop вычислен из точного
+  исполнения; новых `h_emp_*` — ноль.
+- **Граница успеха.** Это закрытие операциональных инстансов,
+  не удаление внешних premise из общих классов. Stage smoothness
+  по-прежнему требует модели E; probability/physics/telemetry
+  остаются внешними. AssumptionScan не изменился: 137.
+- **Проверка.** Три узкие сборки PASS, `#print axioms` всех
+  новых declarations — только propext/Classical.choice/
+  Quot.sound; Freeze 4146, DocLint/AssumptionScan PASS.
+  Полный `bash scripts/ci.sh` — CI: PASS.
+- **Следующий frontier.** Замкнуть computed growth/merge
+  instances на общий HonestTransition, затем унифицировать
+  StepCert-expansion без дублирования старых телескопов.

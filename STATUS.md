@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 417 Lean-модулей в `Hagi/`; 4143 декларации (Freeze);
+- 417 Lean-модулей в `Hagi/`; 4146 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2611,6 +2611,17 @@
 - Independence, martingale measurements, Landauer-физика и
   telemetry НЕ скрыты под ложными теоремами: общий аналитический
   вывод в этих классах невозможен без новой модели.
+
+## Исследовательский цикл 46 — операциональный CertStep
+
+- `logitStepCertExactCore`, `ncMinimalStepCert` и
+  `trainStepMinimalCert` сводят scalar logit, нейрокомпьютер
+  и TrainState к единому ядру drop > 0.
+- Каждый actual получен из доказанного исполнения
+  (`descent_step_strict`, `ncCertStep_energy`,
+  `trainStep_actualDescent`), а не из h_emp-рекорда.
+- Проверены три узкие сборки и `#print axioms`: только
+  стандартная тройка; AssumptionScan остаётся 137.
 
 ## Открытые проблемы
 

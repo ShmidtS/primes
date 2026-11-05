@@ -2219,6 +2219,7 @@ logitStepCert	e05009c442112741	0ae501bc2a1b2cc3
 logitStepCert'	3b228f43b4db744c	8a5fcb4d3d817daa
 logitStepCertExact	321ad498e671d81f	31b3c18f5b106235
 logitStepCertExact'	511179a4dc4207b7	55b1c4de083f85be
+logitStepCertExactCore	29876bc654eb32fe	173884f588e2abe9
 logit_exact_drop_dominates	871df3ee3ca030eb	0b267e0a90add5d5
 lookahead_gap	24565a10800c54d8	70ef6c81ef8d81a8
 lookahead_mem	e39ce0a56b5bc182	27c34ae9c8aacadd
@@ -2501,6 +2502,7 @@ ncCertStep_energy	fbe5ed143a57eef8	79cdb0adfa1bd7a3
 ncCertStep_pays_gain	0619663b7fe2003f	8dd39fb29678d1f4
 ncContract	1ab5b295f0e12049	367017c2ad520fb8
 ncMeasured	979749795a909f0b	d0f51feac7f5f25f
+ncMinimalStepCert	a71e0305d8409ead	7187206275dd388a
 ncStepCert	aca214c71c2ac826	01c8d996ae8c8c57
 ncTraj	d21c1f052c5ed31a	ae7c9efe57b73601
 ncTraj_capa_mono	b1d88a7ccadb8110	e35d0dc411323e0e
@@ -3867,6 +3869,7 @@ trainMeasured	35cdac77c15c846b	df2644916d47c49b
 trainStep	bedc41f7f669b89a	e13fcb1ea88b34d2
 trainStep	ea475d6023cc3125	43c96cf6ef11297b
 trainStepCert	e293339138ba18c8	37e17b840316d23a
+trainStepMinimalCert	229cd3f716186ab9	de0b5f58d345f418
 trainStepS	b35cf1a924d95853	6300c99bc339b9d2
 trainStep_actualDescent	0d7f0b05f80f1a6b	43da1eb3049f03a5
 trainStep_budget	48983e7462e53986	04ef683dbb307112

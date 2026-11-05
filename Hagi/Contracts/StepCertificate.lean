@@ -34,6 +34,23 @@ theorem trainStep_actualDescent (S : TrainState n a r c k)
         - u.eta ^ 2 * (∑ i, u.grad i ^ 2)) := by
   rw [trainStep_energy_identity]; ring
 
+/-- Минимальное ядро `CertStep` TrainState: точный drop
+вычислен из энергии перехода и положителен при исходном
+sufficient-step condition; никакой постулированной
+smoothness-посылки. -/
+noncomputable def trainStepMinimalCert (S : TrainState n a r c k)
+    (u : TrainingInput n c) (heta : 0 < u.eta)
+    (hcond : 2 * (∑ i, S.model.weights i * u.grad i)
+      > u.eta * (∑ i, u.grad i ^ 2)) :
+    CertStep energy S (trainStep S u) where
+  drop := 2 * u.eta * (∑ i, S.model.weights i * u.grad i)
+    - u.eta ^ 2 * (∑ i, u.grad i ^ 2)
+  drop_pos := by
+    have hdescent := trainStep_energy_descent S u heta hcond
+    rw [trainStep_energy_identity] at hdescent
+    linarith
+  actual := le_of_eq (trainStep_actualDescent S u)
+
 noncomputable def trainStepCert (S : TrainState n a r c k)
     (u : TrainingInput n c) (floor : QualityVector) (riskLim : ℝ)
     (heta : 0 < u.eta)
