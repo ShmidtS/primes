@@ -185,4 +185,39 @@ theorem certified_loop_strict (obj : S → ℝ) (M : MeasuredState S)
       ⟨0, Finset.mem_range.mpr hn⟩
   exact ⟨by linarith, h1⟩
 
+
+/-! ### Риск-агрегация (цикл 34, аудит #8 п.9 +Risk) -/
+
+/-- ПЕРВАЯ ТЕОРЕМА НАКОПЛЕННОГО РИСКА: сертифицированная
+цепочка из n шагов накапливает риск НЕ БОЛЕЕ n·riskLim —
+индивидуальные riskBound каждого шага агрегируются в
+глобальный лимит. Риск-канал сертификатов теперь УЧАСТВУЕТ
+в выводе цикла (аудит #8: «riskBound в выводе certified_loop
+не участвует вообще» — закрыто). -/
+theorem certified_loop_risk (obj : S → ℝ) (M : MeasuredState S)
+    (floor : Fin 5 → ℝ) (riskLim : ℝ)
+    (f : ℕ → S) (b : ℕ → ℝ) (n : ℕ)
+    (certs : ∀ t : Fin n,
+      StepCert obj M floor riskLim (f t.val) (f (t.val + 1))
+        (b t.val) (b (t.val + 1))) :
+    ∑ t : Fin n, (certs t).riskSpend ≤ (n : ℝ) * riskLim := by
+  induction n with
+  | zero => simp
+  | succ m ih =>
+    have hlast : (certs (Fin.last m)).riskSpend ≤ riskLim :=
+      (certs (Fin.last m)).trans.riskBound
+    have hrest : ∑ t : Fin m, (certs ⟨t.val, by omega⟩).riskSpend
+        ≤ (m : ℝ) * riskLim :=
+      ih (fun t => certs ⟨t.val, by omega⟩)
+    rw [Fin.sum_univ_castSucc]
+    have hcast : ((m + 1 : ℕ) : ℝ) = (m : ℝ) + 1 := by push_cast; ring
+    rw [hcast]
+    have hconv : ∑ t : Fin m, (certs t.castSucc).riskSpend
+        = ∑ t : Fin m, (certs ⟨t.val, by omega⟩).riskSpend := by
+      exact Finset.sum_congr rfl (fun (t : Fin m) (_ : t ∈ Finset.univ) => by
+        have he : (t.castSucc : ℕ) = t.val := rfl
+        rfl)
+    rw [hconv]
+    linarith
+
 end Hagi.Unified.CertifiedLoop
