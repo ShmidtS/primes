@@ -357,6 +357,7 @@ import Hagi.Unified.CanonicalParams
 import Hagi.Unified.LinkedQVec
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.CertifiedLoop
+import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
 import Hagi.Unified.LoopInstances
 import Hagi.Unified.CertUnify
