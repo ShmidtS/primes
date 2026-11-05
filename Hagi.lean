@@ -92,6 +92,7 @@ import Hagi.Learning.BitBudget
 import Hagi.Learning.TrainingTransition
 import Hagi.Unified.OptimalConfig
 import Hagi.Learning.NetworkBudget
+import Hagi.Learning.HadamardComplete
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
