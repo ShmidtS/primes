@@ -94,6 +94,7 @@ import Hagi.Unified.OptimalConfig
 import Hagi.Learning.NetworkBudget
 import Hagi.Learning.HadamardComplete
 import Hagi.Learning.HadamardParseval
+import Hagi.Learning.SpectralBudget
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
 import Hagi.Growth.AdaptiveQuery
