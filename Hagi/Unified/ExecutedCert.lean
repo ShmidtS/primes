@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Hagi.Unified.HonestTransition
 
 /-!
 # ExecutedCert 
@@ -89,5 +90,16 @@ theorem telescope_measured (obj : S → ℝ) (step : S → S)
       unfold traj
       exact congrArg obj (Function.iterate_succ_apply' step n s)
     linarith
+
+
+/-! ### Мост в ядро CertStep (цикл 41) -/
+
+/-- ExecutedCert → CertStep (δ-канал измерения вне ядра). -/
+noncomputable def ExecutedCert.toCertStep {obj : S → ℝ}
+    {step : S → S} {s : S} {m d : ℝ} (C : ExecutedCert obj step s m d) :
+    Hagi.Unified.HonestTransition.CertStep obj s (step s) where
+  drop := C.drop
+  drop_pos := C.drop_pos
+  actual := C.actual
 
 end Hagi.Unified.ExecutedCert

@@ -114,6 +114,19 @@ theorem certs_telescope {obj risk : State → ℝ}
       rw [hcast] at h
       exact h⟩
 
+
+/-! ### Мост в ядро CertStep (цикл 41) -/
+
+/-- TransitionCert → CertStep: строгий спад даёт drop =
+obj s − obj (step s) > 0 — ядро с ТОЧНЫМ спуском. -/
+noncomputable def TransitionCert.toCertStep {obj risk : State → ℝ}
+    {step : State → State} {s : State} {riskLim : ℝ}
+    (C : TransitionCert obj risk step s riskLim) :
+    Hagi.Unified.HonestTransition.CertStep obj s (step s) where
+  drop := obj s - obj (step s)
+  drop_pos := by linarith [C.actual_descent]
+  actual := by linarith [C.actual_descent]
+
 end Hagi.Unified.TC
 
 /-! ### Мост CertifiedTransitionV2 → StepContract

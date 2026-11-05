@@ -17,6 +17,7 @@ CSCarrier	142102ebeccec5e8	0c8f266fe38c3222
 Candidate	bf0952d5d4269673	1aac18f0b1888fc0
 CandidateComplete	0a9eadcfe9d60763	8cd2e9ac58cc66db
 CapabilitySound	881543252b2bb39c	4ce83b11043b2aea
+CertStep	5b94529aeab8f693	8908b0a4d52ed881
 Certificate	763e8e5176181686	2fba6922a060ac05
 CertifiedHAGIInvariant	46978795e4661af8	3dc7a23a4c08af07
 CertifiedMemoryWrite	18adfa30990ac074	35c0596b27544abf
@@ -45,6 +46,7 @@ DistillCert	d558f946b972fc60	f4064a6d5dc91fe7
 DynTelemetry	6712e61834a5490f	f26e19f1ab093100
 EmpiricalPremises	8ea081efa1ee539e	b98a0546ba9dedbe
 ExecutedCert	7f87a6493adf0852	c8de2cba24e708ad
+ExecutedCert	a9e9d089d6a0746f	b2530a6365001383
 FannesDecomp	bd4590ddec854c63	3c5378db99f27681
 Finset	04241caf5b4a0762	b4070d4ce65e587d
 Finset	29f47e5712904694	58ed01885b8db1d2
@@ -70,6 +72,7 @@ HAGICert	7c3f0110c6b4008d	14fd2d68f907c58b
 HC	3bc93c019cdbf398	5ac5c6772631bb8e
 History	c2b5c52da3f1d0b7	763a6d00ed7ceba7
 HonestTransition	61e688fc82549f6e	284cedda5fc39c1e
+HonestTransition	a1288cc2bfd761ca	e683b9b56fbee711
 InjectionLaw	e6f7a940b324168e	e6287649b39cc1fd
 IsMistake	a2a3c5c1f394f8d1	ef12d1c253fd7c66
 IsOrthoCol	bc127d9cf7150f01	c5cebb9bcdd8bd50
@@ -255,6 +258,7 @@ TrainState	028ee7a2bd535515	3a662455546db1a9
 TrainingInput	409e1edc275bc168	851c88e545bb4005
 Trajectory	c9a84a17a9aaf58a	d8a1934d709d5f11
 TransitionCert	1a790cca555d6672	7e66a4cc8e565da5
+TransitionCert	d10f5985157d3ebf	654e2b52c8394091
 Trunc	ded987de9e75f32b	951253edd2eb3d1c
 V	0b2f702a2e19acce	5d15769b43fbc1ea
 V	e9c66d6672a524cb	5caafa72e58c1959

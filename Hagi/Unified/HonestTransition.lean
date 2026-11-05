@@ -82,4 +82,29 @@ theorem honest_two_steps_existent :
       quadObj (1 / 2) ≤ quadObj 1 - d2 := by
   refine ⟨3, 3 / 4, by norm_num, by norm_num, ?_, ?_⟩ <;> norm_num [quadObj]
 
+
+/-! ### CertStep — минимальное ядро сертификата (цикл 41, аудит #8 п.9) -/
+
+/-- ЯДРО СЕРТИФИКАТА (план аудита: Cert.Step obj s s' =
+{drop > 0, obj s' ≤ obj s − drop}). Все сертификаты HAGI
+(HonestTransition, StepCert, ExecutedCert, TransitionCert,
+CertifiedTransitionV3, StepCertT) сводятся к нему; новые
+сертификаты ОБЯЗАНЫ давать мост в CertStep. -/
+structure CertStep (obj : S → ℝ) (s s' : S) where
+  /-- Сертифицированная нижняя граница спуска. -/
+  drop : ℝ
+  /-- Спуск положителен: шаг реально убывает цель. -/
+  drop_pos : 0 < drop
+  /-- Фактический спуск из исполнения. -/
+  actual : obj s' ≤ obj s - drop
+
+/-- HonestTransition → CertStep (риск/бюджет отбрасываются —
+они не входят в ядро спуска). -/
+def HonestTransition.toCertStep {obj : S → ℝ} {s s' : S}
+    {rs rl bs b' : ℝ} (T : HonestTransition obj s s' rs rl bs b') :
+    CertStep obj s s' where
+  drop := T.objectiveDrop
+  drop_pos := T.objectiveDrop_pos
+  actual := T.actualDescent
+
 end Hagi.Unified.HonestTransition
