@@ -1,4 +1,33 @@
 
+### Цикл 71: 2ε quality-оценка с точными resource caps
+
+- `withEstimatedValue` меняет только value. Поля step/safe/memory/operations
+  неизменны; feasibility iff и `robustNext_eq` связывают выбранное
+  состояние с НАСТОЯЩИМ `p.step` допустимого действия исходной задачи.
+- `robust_quality_lower`: при uniform `|q−qhat|≤eps` для всех
+  actual successors любого feasible other имеем
+  `q(other)−2eps≤q(robust successor)`. Это сильная гарантия именно
+  additive maximum-gap, а НЕ точный argmax и НЕ independence claim.
+- `robust_quality_gap` запрещает другому кандидату превосходить выбранный
+  строго больше 2eps. Внутри допуска реальный argmax может быть другим,
+  как и требуют existing ambiguity theorems. Порог 3eps older helper
+  не копируется: для current-bound работают обе absolute errors.
+- `robustNext_fallback` возвращает baseline при единственном feasible
+  действии независимо от испорченной estimate. Однако при допустимом
+  upgrade baseline non-decrease НЕ гарантируется; это отражено в типах,
+  не только документации.
+- Probe: affine estimator 28−2energy даёт −32/−26 от истинных
+  −30/−27, errors 2 и 1, estimated gap 6>4, true gap 3>0.
+  Робастный выбор вычисляет РЕАЛЬНЫЙ advance energy 27, а при zero caps
+  возвращает старое состояние. Safe-proof точечный (wS0), model units
+  не являются физическими FLOP/total bytes; стохастической calibration нет.
+- 8 declarations, Freeze=4266; structural 9065→9075, empirical 201/37
+  без изменений. Independent refute-first review: LGTM; все новые
+  #print axioms содержат только standard triple.
+- Scientific retrieval использован для следующего stochastic-ranking
+  frontier (например Shin/Broadie/Zeevi, 10.1287/ijoc.2021.1071),
+  но retrieved abstracts не служат доказательством deterministic bound.
+
 ### Цикл 70: конечный Pareto controller с actual successor
 
 - `ControllerProblem` поставляет objective, actual step, safe Prop,

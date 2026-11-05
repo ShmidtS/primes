@@ -1,10 +1,38 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4258 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4266 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Bounded-estimation Pareto policy (цикл 71)
+
+- `withEstimatedValue` подменяет только objective estimation;
+  actual successor, model-safe и оба раздельных resource cost неизменны.
+  `robustNext_eq` возвращает настоящий successor допустимого действия исходной
+  модели, а не отдельный желаемый эффект.
+- `robust_quality_lower`: если на каждом actual successor известна
+  absolute error≤eps, то для любого feasible other выполнено
+  `q(other) − 2eps ≤ q(robustNext)`. Доказательство — max по estimate
+  плюс две применённые error bounds. Порог положительного gain не нужен
+  для этой аппроксимации, но и exact argmax не выводится.
+- `robust_quality_gap` исключает улучшение истинного качества другого
+  кандидата БОЛЬШЕ чем на 2eps. Вблизи границы возможен другой actual
+  argmax, как и говорят существующие ambiguity-counterexamples.
+- Memory/operation caps не искажаются оценкой. Единственный допустимый
+  baseline даёт exact identity даже с испорченным estimator, НО при
+  допустимом upgrade утверждать non-decrease по true value нельзя:
+  нужна отдельная safety certificate или достаточный gap.
+- Невырожденный estimator 28−2·energy даёт baseline/upgrade
+  estimate=-32/−26 при true=-30/−27; eps=2, отличающиеся nonzero errors
+  2 и 1, estimated gap 6>4. Robust выбирает реальный advance energy=27.
+  Resource units и focal-point energy safety не расширяются на physical
+  system или полный размер/вычислительную стоимость архитектуры.
+- Пять meaning-carrying results/declarations и три supporting declarations;
+  всего +8, 4266. empirical premise registry: 201/37;
+  structural(+10) происходит от явных h_stay/herr/etc и proof helpers.
+  Нет скрытого independent-Noise, IID или universal-training доказательства.
 
 ## Finite Pareto execution policy (цикл 70)
 

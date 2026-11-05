@@ -11,6 +11,24 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 71 — robust estimation: structural bound, не solved uncertainty
+
+- Обновлён только objective в `withEstimatedValue`; actual step,
+  safe prop и обе resource cost сохранены. `robustNext_eq` доказывает
+  feasible actual successor, `robust_quality_lower` даёт 2ε-bound
+  относительно каждого другого допустимого кандидата.
+- Absolute-error bound для estimator — явная structural premise,
+  а не выведенный stochastic confidence: independence/IID/physical
+  calibration не предполагаются и не доказываются. Registry по-прежнему
+  201 empirical occurrences в 37 modules, structural=9075 (+10).
+- Точного actual optimum при noisy estimate не утверждается. Базовый
+  non-decrease может нарушаться, если upgrade допустим; отдельный
+  fallback сохраняет состояние только когда baseline единственный
+  feasible. Это не отрицание/no-op-замена самого улучшения.
+- Probe явно вычисляет actual −30/−27, estimate −32/−26 и eps=2,
+  демонстрируя разные errors 2 и 1. Полученный actual advance 27
+  подлинный, но estimator не превращён в task-quality oracle.
+
 ## Цикл 70 — Pareto controller без скрытого empirical closure
 
 - Новые finite controller declarations не добавляют h_emp binder-ов:

@@ -235,6 +235,131 @@ theorem next_fallback (p : ControllerProblem A S) [DecidablePred p.safe]
 
 end Finite
 
+section Robust
+
+/-! ### Cycle 71 — bounded-estimation robust selection
+
+The frontier beyond exact selection: the controller may only access an
+`estimate` of the model objective at successor states, with a uniform
+error bound `eps ≥ 0` over the actual successors of the candidate
+family. Running the EXACT finite selector on the estimate-updated
+problem yields a successor that is `2*eps`-approximately optimal in
+the TRUE objective against every feasible competitor — and this is the
+best one can claim: within the bound, the estimate-selected successor
+may be ACTUALLY worse than the baseline unless further conditions
+(`p.safe`, positive gaps) hold. Resource caps stay exact because
+feasibility uses the original `memory`/`operations` fields, which the
+estimate update does not touch.
+-/
+
+variable {A : Type} {S : Type*} [Fintype A]
+
+/-- Record update replacing ONLY the model objective `value` by an
+`estimate : S → ℝ`. `step`, `memory`, `operations` and `safe` are
+preserved definitionally. Marked reducible so instance search and
+`rfl` see the unchanged fields. -/
+@[reducible] def withEstimatedValue (p : ControllerProblem A S)
+    (estimate : S → ℝ) : ControllerProblem A S := { p with value := estimate }
+
+omit [Fintype A] in
+@[simp] theorem withEstimatedValue_step (p : ControllerProblem A S)
+    (estimate : S → ℝ) (a : A) (s : S) :
+    (withEstimatedValue p estimate).step a s = p.step a s := rfl
+
+/-- Feasibility is untouched by the estimate update: the feasible set
+depends only on `safe`/`memory`/`operations`, so budget caps stay
+exact under bounded-estimation quality. -/
+theorem mem_feasible_withEstimatedValue (p : ControllerProblem A S)
+    [DecidablePred p.safe] (estimate : S → ℝ) {M C : ℕ} {a : A} :
+    a ∈ feasible (withEstimatedValue p estimate) M C ↔ a ∈ feasible p M C := by
+  simp [mem_feasible]
+
+/-- The robust successor: run the exact finite selector on the
+estimate-updated problem. Its output is an ACTUAL successor of the
+ORIGINAL `p.step` executed by a feasible action of the ORIGINAL
+problem (see `robustNext_eq`); nothing in quality estimation changes
+resource caps or model safety. -/
+noncomputable def robustNext (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ) (stay : A)
+    (h_stay : stay ∈ feasible p M C) : S :=
+  selectedNext (withEstimatedValue p estimate) s M C stay
+    ((mem_feasible_withEstimatedValue p estimate).mpr h_stay)
+
+/-- The robust successor is the actual `p.step` successor of a
+feasible action of the ORIGINAL problem: exact safety and resource
+caps, only the objective was estimated. -/
+theorem robustNext_eq (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ) (stay : A)
+    (h_stay : stay ∈ feasible p M C) :
+    ∃ a ∈ feasible p M C, robustNext p estimate s M C stay h_stay = p.step a s := by
+  have h' : stay ∈ feasible (withEstimatedValue p estimate) M C :=
+    (mem_feasible_withEstimatedValue p estimate).mpr h_stay
+  exact ⟨selection (withEstimatedValue p estimate) s M C stay h',
+    (mem_feasible_withEstimatedValue p estimate).mp
+      (selection_admissible (withEstimatedValue p estimate) s M C stay h'), rfl⟩
+
+/-- **Approximate quality lower bound.** If `estimate` uniformly
+approximates the true objective on actual successors within `eps`,
+then for EVERY feasible action of the original problem the robust
+successor's true quality is at most `2*eps` below that action's:
+`q_a ≤ est_a + eps ≤ est_sel + eps ≤ q_sel + 2*eps`. No positive-gap
+threshold is required for this approximate guarantee. -/
+theorem robust_quality_lower (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ) (stay : A)
+    (h_stay : stay ∈ feasible p M C) (eps : ℝ) (_heps : 0 ≤ eps)
+    (herr : ∀ a : A, |p.value (p.step a s) - estimate (p.step a s)| ≤ eps) :
+    ∀ a ∈ feasible p M C,
+      p.value (p.step a s) - 2 * eps
+        ≤ p.value (robustNext p estimate s M C stay h_stay) := by
+  intro a ha
+  have h' : stay ∈ feasible (withEstimatedValue p estimate) M C :=
+    (mem_feasible_withEstimatedValue p estimate).mpr h_stay
+  have hsel := selection_quality_optimal (withEstimatedValue p estimate) s M C stay h' a
+    ((mem_feasible_withEstimatedValue p estimate).mpr ha)
+  have ha1 := (abs_le.mp (herr a)).1
+  have ha2 := (abs_le.mp (herr a)).2
+  set sel := selection (withEstimatedValue p estimate) s M C stay h' with hseldef
+  have hs1 := (abs_le.mp (herr sel)).1
+  have hs2 := (abs_le.mp (herr sel)).2
+  have h3 : estimate (p.step a s) ≤ estimate (p.step sel s) := hsel
+  change p.value (p.step a s) - 2 * eps ≤ p.value (p.step sel s)
+  linarith
+
+/-- **Elimination of the contradictory gap.** Under the same bounded
+error, no feasible candidate's ACTUAL quality can strictly exceed the
+robust successor's by more than `2*eps`. This is direct elimination
+via `robust_quality_lower`, not a true exact-argmax theorem. -/
+theorem robust_quality_gap (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ) (stay : A)
+    (h_stay : stay ∈ feasible p M C) (eps : ℝ) (_heps : 0 ≤ eps)
+    (herr : ∀ a : A, |p.value (p.step a s) - estimate (p.step a s)| ≤ eps) :
+    ∀ a ∈ feasible p M C,
+      ¬ (p.value (robustNext p estimate s M C stay h_stay) + 2 * eps
+          < p.value (p.step a s)) := by
+  intro a ha hcontra
+  have h := robust_quality_lower p estimate s M C stay h_stay eps _heps herr a ha
+  linarith
+
+/-- **Fallback is corruption-proof.** If the baseline `stay` is the
+only feasible action of the ORIGINAL problem and fixes the state, the
+robust successor is exactly `s` — even for arbitrarily corrupted
+estimates, because all alternatives are infeasible. Note this does
+NOT promise actual quality improvement in general: with a corrupted
+estimate that admits an upgrade, baseline non-decrease can fail within
+the `2*eps` bound unless additional safety/gap conditions hold. -/
+theorem robustNext_fallback (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ) (stay : A)
+    (h_stay : stay ∈ feasible p M C)
+    (honly : ∀ a, a ≠ stay → a ∉ feasible p M C) (hid : p.step stay s = s) :
+    robustNext p estimate s M C stay h_stay = s := by
+  have h' : stay ∈ feasible (withEstimatedValue p estimate) M C :=
+    (mem_feasible_withEstimatedValue p estimate).mpr h_stay
+  have honly' : ∀ a, a ≠ stay → a ∉ feasible (withEstimatedValue p estimate) M C :=
+    fun a ha hmem => honly a ha ((mem_feasible_withEstimatedValue p estimate).mp hmem)
+  exact next_fallback (withEstimatedValue p estimate) s M C stay h' honly' hid
+
+end Robust
+
 section Stage
 
 variable {A : Type*} {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]

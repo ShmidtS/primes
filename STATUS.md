@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 422 Lean-модулей в `Hagi/`; 4258 declarations (Freeze);
+- 422 Lean-модулей в `Hagi/`; 4266 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,31 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 71: bounded-estimation selection
+
+- `withEstimatedValue` заменяет только objective, сохраняя actual step,
+  safe, memory и operations. Следовательно, safe и resource caps остаются
+  точными условиями исходной модели; `robustNext_eq` даёт реальный
+  successor из original feasible-семейства.
+- При `|true−estimate|≤eps` для всех actual successors,
+  `robust_quality_lower` доказывает для КАЖДОГО feasible other:
+  `q(other)−2eps≤q(robust)`. Это гарантированный additive bound,
+  не exact argmax; `robust_quality_gap` запрещает только превосходство
+  строго больше 2eps.
+- `robustNext_fallback` сохраняет исходный state, когда baseline единственный
+  допустимый. При допустимом upgrade noisy objective НЕ гарантирует
+  baseline non-decrease: оценка может ошибаться в обе стороны.
+- Probe: estimator `28−2*energy`, baseline −30→−32 (error 2),
+  upgrade −27→−26 (error 1), eps=2. Estimated gap 6, true gap 3,
+  выбирается реальный advance с energy 27; zero caps дают identity.
+  Это deterministic finite witness, не stochastic calibration/task quality.
+- Добавлено восемь declarations, Freeze=4266. Empirical=201/37
+  (не уменьшено), structural=9075 (+10). Standard axioms, focused/root
+  builds, LayerLint и независимое refute-first ревью LGTM.
+- Retrieval выбрал stochastic ranking/estimation для следующего класса;
+  DOI 10.1287/ijoc.2021.1071 не используется как доказательство 2ε-bound.
+  Последнее выводится непосредственно из uniform absolute-error premise.
+
 ### Цикл 70: finite Pareto execution controller
 
 - `Hagi.Unified.ParetoExecution` выбирает из конечного feasible-набора

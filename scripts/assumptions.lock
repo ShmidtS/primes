@@ -12,8 +12,8 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9065
-named structural declaration+ordinal keys: 9065
+named structural binder occurrences: 9075
+named structural declaration+ordinal keys: 9075
 named structural source modules: 408
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
@@ -8866,6 +8866,16 @@ Hagi.Unified.OptimalConfig | Hagi.Unified.OptimalConfig.cfg_stability | 3 | h1 |
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 11 | honly | ∀ (a : A), a ≠ stay → a ∉ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 12 | hid | p.step stay s = s
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext._proof_1 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext_eq | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext_fallback | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext_fallback | 12 | honly | ∀ (a : A), a ≠ stay → a ∉ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robustNext_fallback | 13 | hid | p.step stay s = s
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robust_quality_gap | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robust_quality_gap | 14 | herr | ∀ (a : A), |p.value (p.step a s) - estimate (p.step a s)| ≤ eps
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robust_quality_lower | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.robust_quality_lower | 14 | herr | ∀ (a : A), |p.value (p.step a s) - estimate (p.step a s)| ≤ eps
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selectedNext | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selectedNext.eq_1 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
