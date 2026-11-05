@@ -38,7 +38,7 @@
 | Examples/Nonvacuity | Merge и quant distortion выведены; idle ledger witnesses не являются физическим выводом. |
 | Foundations/PerronCone | Четыре h_emp-имени уже доказаны; остальные `h_emp_dyn` — модельная динамика. |
 | Foundations/StageCalculus | Условные арифметические wrappers; аналитические модели закрыты DerivAlong/Nonvacuity, но произвольные E не определены. |
-| Generalization/ModeState | Probe telemetry (`G`, fit, Q dynamics) external; только поточечная линейная агрегация доказана. |
+| Generalization/ModeState | Произвольная probe/dyn telemetry — внешняя; canonical hold-модель цикла 56 выводит fit и нулевые risk/probe эффекты без h_emp binder из computed весов. |
 | Growth/GainRenewal | `frontier_scaling` — модель реинвестиции, derived takeoff не устраняет premise. |
 | Growth/Grow | Каноническая quadratic PL закрыта циклом 45; общий PL остаётся классом функций. |
 | Growth/SeedOnly | Lipschitz dispersion/recurrence — исходные модели, не выводятся. |
@@ -137,3 +137,16 @@
   используют стандартную тройку аксиом. Старые сигнатуры сохранены.
   Registry остаётся 45 файлов/137 вхождений: классical closure
   отличается от численного удаления общего premise binder.
+
+## Цикл 56 — computed-transition generalization
+- `computedGenStep` определяет обновление compressed weights и
+  energy через каноническую growth-квадратику. Параметры и probing
+  сценарии явная модель сохраняет, не постулируя стороннюю fit.
+- `generalization_safe_step_computed` использует это вычисление
+  для h_emp_fit и нулевого risk/probe regression в существующем
+  safe-step. Canonical hcanon остаётся явным условием модели.
+- Переход НЕ выводит h_emp_dynи не доказывает постоянство произвольных
+  наблюдаемых generalization metrics. Это отдельная область данных.
+- Два пространственных weights [2,4] переходят в [1,2] при η=1/2;
+  energy computed равна 5/2, probe выполнен через lake env lean.
+  Аксиомы трёх новых declarations — только стандартная тройка.

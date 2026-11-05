@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4169 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4172 декларации (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2766,6 +2766,25 @@
 - Regression подключён к общему CI перед lock-проверкой. Оставшиеся
   внешние premise binders необходимо по-прежнему моделировать/выводить;
   новое число не означает всеобщего analytical closure.
+
+## Исследовательский цикл 56 — computed Generalization
+
+- `computedGenStep` обновляет compressed weights по canonical
+  growthStep, а energy пересчитывает growthQuad. Остальные runtime
+  поля и GenMetrics сохранены явной структурой перехода.
+- `computedGenStep_energy` доказывает energy identity.
+  `generalization_safe_step_computed` получает fit из canonical
+  состояния, risk/probe — из сохранения полей и закрывает шаг
+  потенциала без h_emp binder. Заранее h_emp_dyn не выводится.
+- При canonical energy=growthQuad weights, `0<η<2`, ненулевых
+  weights: drop=`(1−(1−η)²)·E` строго положителен. Это честный
+  hold-model, в котором probes/protectedRisk неизменны по построению,
+  а не доказательство однообразной телеметрии произвольного train.
+-   Оригинальные h_emp_fit/G/risk сохранены; AssumptionScan 38/113.
+  Отдельный модуль не вводился: полный corpus 418.
+  Все три новых #print axioms проверены и имеют standard triple.
+  Двухкоординатный probe проверил weights `[2,4]→[1,2]` при η=1/2
+  и energy `5/2`, без sorry или постороннего numeric wrapper.
 
 ## Открытые проблемы
 

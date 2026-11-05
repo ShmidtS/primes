@@ -291,6 +291,12 @@ s = ‖g‖₁ / n                            # signScale
   измерять clamp/probe radii и передать границу в Cut-треугольник.
   Это строго явная модель общего P для двух карт, не доказательство
   адаптивного softmax attention и не оптимальность выбора маски.
+- `computedGenStep` и `generalization_safe_step_computed` (цикл 56):
+  для canonical energy=growthQuad weights вычислить веса и energy
+  одним шагом. Probe/risk поля остаются неизменными именно этой
+  hold-моделью, поэтому fit/G/risk доказаны без эмпирических wrappers;
+  возможные новые оценки probe отдельно исследуются, не предполагаются
+  неизменными автоматически или устанавливаются в фиктивную константу.
 - `scripts/AssumptionScan.py` после цикла 55 исключает comments из
   premise-registry: действительный legacy count 137 содержал 24
   комментарных вхождения, реальный список locks 113. Классы закрывают

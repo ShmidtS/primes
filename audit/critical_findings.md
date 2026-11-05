@@ -1,4 +1,26 @@
 
+### Цикл 56 (computed-mode safety): переход вместо fit premise
+- `computedGenStep`: выполняет canonical `growthStep` по compressed
+  weights и явно обновляет energy через `growthQuad`; остальные
+  runtime fields сохраняются record update, включая probe/risk.
+- `computedGenStep_energy`: точный law из `growthQuad_step`.
+  `generalization_safe_step_computed`: fit следует по арифметике
+  fn плюс structural equalities, нулевые eps_Q/budget не нуждаются в
+  carried empirical premises. `growthQuad_descent` даёт strict pos.
+- Условие hcanon является модельной согласованностью energy и weights,
+  не fake proof для arbitrary E. Hold модель гласит лишь что probes
+  и risk сохранены ЭТИМ переходом, не что сервер training measurements
+  навсегда фиксированы. h_emp_dyn/general telemetry остаются открытыми.
+- Generic h_emp_fit/G/risk old APIs сохранены, registry остаётся 38/113;
+  Num code docstrings scanning был исправлен ранее отдельным циклом.
+  Три новых #print axioms имеют стандартный набор, основная сборка PASS.
+- Независимый review: LGTM. Отдельно проверено, что fit — арифметика
+  канонической энергии, а нулевые risk/probe эффекты — редукция
+  preserved полей, не переименованная telemetry-посылка.
+- Concrete probe подтверждает weights `[2,4]→[1,2]` и energy `5/2`.
+  Полный CI: PASS, включая registry regression, ALLAXIOMS/MACHINEDIFF,
+  Freeze=4172 declarations без alias/lost/changed.
+
 ### Цикл 55 (assumption registry): отделение binder от docstring
 - Root cause: `/-.*?-/s` содержал лишний s в block-comment regex.
   Комментарий мог маскироваться под source premise либо доказанную

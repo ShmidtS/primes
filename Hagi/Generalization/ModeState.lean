@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.Potential
+import Hagi.System.GrowthComputed
 import Hagi.System.GrowthState
 
 set_option linter.style.header false
@@ -213,6 +214,70 @@ theorem generalization_safe_step_at_target (S S' : GenState X)
       ≤ lam * (S.toGrowthState.protectedRisk + budget) :=
     mul_le_mul_of_nonneg_left hrisks hlam
   linarith
+
+/-- The canonical quadratic-growth step on a generalization state.
+
+This is the canonical quadratic carrier with coherent measured energy
+`energy = growthQuad weights`: the weights and energy are both computed
+by the same transition. `protectedRisk`, every other runtime field, and
+the generalization probes are held BY THIS DEFINED TRANSITION. It does
+not prove that arbitrary training holds probe results unchanged, nor
+monotonic evolution of telemetry. The `h_emp_fit`/G/risk class is closed
+ONLY on this computed hold-model, not for general HAGI states. -/
+noncomputable def computedGenStep (S : GenState X) (eta : ℝ) : GenState X where
+  toGrowthState :=
+    -- Structure update: FP in Lean, "Structures" (field-preserving update).
+    { S.toGrowthState with
+      weights := Hagi.System.GrowthComputed.growthStep S.weights eta
+      energy := Hagi.System.GrowthComputed.growthQuad
+        (Hagi.System.GrowthComputed.growthStep S.weights eta) }
+  gen := S.gen
+
+/-- Exact energy reduction for `computedGenStep`, via `growthQuad_step`. -/
+theorem computedGenStep_energy (S : GenState X) (eta : ℝ) :
+    (computedGenStep S eta).toGrowthState.energy =
+      (1 - eta) ^ 2 * Hagi.System.GrowthComputed.growthQuad S.weights := by
+  simpa only [computedGenStep] using
+    (Hagi.System.GrowthComputed.growthQuad_step S.weights eta)
+
+/-- On the canonical quadratic carrier, the computed hold-model gives a
+strictly positive potential drop for nonzero weights and `0 < eta < 2`.
+This uses only the defined transition; it is not a theorem about arbitrary
+training dynamics or probe telemetry. -/
+theorem generalization_safe_step_computed (S : GenState X)
+    (lam nu Qtarget eta : ℝ) (w : Fin 5 → ℝ)
+    (hcanon : S.toGrowthState.energy =
+      Hagi.System.GrowthComputed.growthQuad S.weights)
+    (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
+    (h0 : 0 < eta) (h2 : eta < 2)
+    (hw : ∑ i, S.weights i ^ 2 ≠ 0) :
+    hagiPotential (computedGenStep S eta) lam nu Qtarget w ≤
+        hagiPotential S lam nu Qtarget w -
+          ((1 - (1 - eta) ^ 2) *
+            Hagi.System.GrowthComputed.growthQuad S.weights) ∧
+      0 < (1 - (1 - eta) ^ 2) *
+        Hagi.System.GrowthComputed.growthQuad S.weights := by
+  have hdescent := Hagi.System.GrowthComputed.growthQuad_descent
+    S.weights eta h0 h2 hw
+  rw [Hagi.System.GrowthComputed.growthQuad_step] at hdescent
+  have hdrop : 0 < (1 - (1 - eta) ^ 2) *
+      Hagi.System.GrowthComputed.growthQuad S.weights := by
+    nlinarith
+  have hfit : (computedGenStep S eta).toGrowthState.energy ≤
+      S.toGrowthState.energy -
+        (1 - (1 - eta) ^ 2) *
+          Hagi.System.GrowthComputed.growthQuad S.weights := by
+    rw [computedGenStep_energy, hcanon]
+    apply le_of_eq
+    ring
+  constructor
+  · have hstep := generalization_safe_step S (computedGenStep S eta)
+      lam nu Qtarget w hlam hnu
+      ((1 - (1 - eta) ^ 2) *
+        Hagi.System.GrowthComputed.growthQuad S.weights) 0 0 (le_refl 0)
+      hfit (by simp [computedGenStep]) (by simp [computedGenStep])
+    simpa using hstep
+  · exact hdrop
 
 /-- If the accumulated risk is `S'.protectedRisk =
 S.protectedRisk + ∑ dL i` with `dL i ≤ eps i` for every `i`,
