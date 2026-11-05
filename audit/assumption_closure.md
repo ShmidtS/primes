@@ -11,6 +11,21 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 69 — отрицательная специализация takeoff, не закрытие premise
+
+- `Hagi.Examples.state_capability_two_step_inconsistent` содержит пять
+  точных h_emp binder-типов старого state-level takeoff, условие `2 ≤ T`
+  и выводит `False`. Доказательство использует одно наследование конуса
+  и уже существующий `full_cycle_two_step_growth_inconsistent`.
+- Registry: 201 empirical binders в 37 modules, structural=9034. Добавились
+  пять named premise-входов ОТРИЦАТЕЛЬНОЙ теоремы; они НЕ считаются
+  discharged assumptions. Six explicit structural binders и восемь
+  elaborated proof-helper binders также видны в environment v2.
+- Старый `Hagi.Unified.state_capability_takeoff` сохранён полностью.
+  Итог для архитектуры: fixed copied StageEffects несовместим с этой
+  геометрической моделью на двух шагах; fresh StageInput — другой класс,
+  а не доказанный наилучший алгоритм обучения.
+
 ## Цикл 68 — измерительная база: Lean environment v2
 
 - Предыдущий 38/113 был lexical per-file identifier registry. Новый

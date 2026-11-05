@@ -5,6 +5,7 @@ import Hagi.Unified.MasterHAGI
 import Hagi.Unified.HonestTransition
 import Hagi.Runtime.TernaryExact
 import Hagi.Core.Concat
+import Hagi.Unified.StateTakeoff
 /-!
 # R263 (audit §7.1): the h_emp_merge bridge from the Core layer
 
@@ -982,5 +983,83 @@ theorem corePremises_nonvacuous (E : ℝ) :
   ⟨Mw E 0, Mw E 1, 0, fun _ => 0, mw_core_premises E⟩
 
 end Witness
+
+/-!
+## Cycle 69: the T ≥ 2 bridge for `state_capability_takeoff`
+
+`full_cycle_two_step_growth_inconsistent` above needs the
+collapsed premise `alpha * C t <= growGain_t` (t < 2). The
+new theorem derives it from the EXACT substantive premises of
+`Hagi.Unified.state_capability_takeoff` plus `2 <= T`: the cone
+at `t = 0` propagates to `t = 1` by ONE application of
+`frontier_cone_inductive` (only its `t = 0` instance), and the
+production premise `gamma * D t <= growGain_t` clears the
+factor `gamma > 0`. This is the precise missing negative
+specialization: the state-level takeoff hypotheses are already
+unsatisfiable on the two-step window. The five `h_emp_*`
+premises remain measured empirical inputs; nothing here closes
+them.
+-/
+
+/-- **Cycle 69**: with the exact premises of
+`state_capability_takeoff` and horizon `2 <= T`, the two-step
+impossibility `full_cycle_two_step_growth_inconsistent` already
+fires: the cone base and one inductive step give
+`alpha * C t <= growGain_t` for `t < 2`, and the full-cycle
+transitions copy the effects record verbatim. Concludes
+`False`; asserts no learning or optimization consequence. -/
+theorem state_capability_two_step_inconsistent {X : Type*}
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : ℕ → Hagi.GenState X) (epsG : ℕ → ℝ)
+    (alpha gamma rho beta : ℝ) (xi D : ℕ → ℝ) (T : ℕ)
+    (hα : 0 < alpha) (hγ : 0 < gamma) (hρ : 0 ≤ rho)
+    (hC0 : 0 < (S 0).toGrowthState.capability)
+    (hT : 2 ≤ T)
+    (hfull : ∀ t < T, FullCycleRefinement (S t) (S (t + 1)) (epsG t))
+    (h_emp_cone0 : alpha / gamma * (S 0).toGrowthState.capability
+      ≤ D 0)
+    (h_emp_gain_prod : ∀ t < T, gamma * D t
+      ≤ (S t).toGrowthState.effects.growGain)
+    (h_emp_dyn : ∀ t < T, rho * D t
+        + beta * (S t).toGrowthState.capability - xi t
+      ≤ D (t + 1))
+    (h_emp_C_cap : ∀ t < T, (S (t + 1)).toGrowthState.capability
+      ≤ (1 + alpha) * (S t).toGrowthState.capability)
+    (h_emp_beta : ∀ t < T, alpha / gamma * ((1 + alpha) - rho)
+        + xi t / (S t).toGrowthState.capability ≤ beta) :
+    False := by
+  -- one inductive cone step: t = 0 only
+  have hcone1 : alpha / gamma * (S 1).toGrowthState.capability
+      ≤ D 1 :=
+    Hagi.Foundations.frontier_cone_inductive
+      (fun t => (S t).toGrowthState.capability) D xi
+      alpha gamma rho beta hα hγ hρ 0 hC0 h_emp_cone0
+      (h_emp_dyn 0 (by omega)) (h_emp_C_cap 0 (by omega))
+      (h_emp_beta 0 (by omega))
+  -- cone (t < 2) clears gamma and meets production
+  have hgain : ∀ t < 2, alpha * (S t).toGrowthState.capability
+      ≤ (S t).toGrowthState.effects.growGain := by
+    intro t ht
+    have hcone : alpha / gamma * (S t).toGrowthState.capability
+        ≤ D t := by
+      rcases (show t = 0 ∨ t = 1 by omega) with rfl | rfl
+      · exact h_emp_cone0
+      · exact hcone1
+    -- alpha * C t = gamma * (alpha / gamma * C t), gamma ≠ 0
+    have hrw : alpha * (S t).toGrowthState.capability
+        = gamma * (alpha / gamma * (S t).toGrowthState.capability) := by
+      field_simp
+    rw [hrw]
+    exact le_trans (mul_le_mul_of_nonneg_left hcone hγ.le)
+      (h_emp_gain_prod t (by omega))
+  -- full-cycle transitions expose the copied effects equations
+  have h01 : (S 1).toGrowthState
+      = Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (S 0).toGrowthState))) :=
+    (hfull 0 (by omega)).1
+  have h12 : (S 2).toGrowthState
+      = Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (S 1).toGrowthState))) := by
+    simpa using (hfull 1 (by omega)).1
+  exact full_cycle_two_step_growth_inconsistent S alpha hα hC0 h01 h12 hgain
+    (fun t ht => h_emp_C_cap t (by omega))
 
 end Hagi.Examples

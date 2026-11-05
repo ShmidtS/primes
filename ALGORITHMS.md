@@ -1,13 +1,41 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4238 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4239 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
 
-## Инвентарь модельных предпосылок (цикл 68)
+## Барьер fixed-effects и следующий контроллер (цикл 69)
 
+`Hagi.Examples.state_capability_two_step_inconsistent` применяет существующий
+`full_cycle_two_step_growth_inconsistent` к ТОЧНЫМ предпосылкам
+state-level takeoff с дополнительным условием `2 ≤ T`. Вторая точка
+конуса выводится через `frontier_cone_inductive` только при t=0. Значит,
+полный цикл, копирующий старые StageEffects, несовместен с совпадающими
+нижней/верхней geometric rates и положительными alpha, C₀.
+
+- Старый `Hagi.Unified.state_capability_takeoff` не удалён и не изменён;
+  новая отрицательная специализация явно показывает его границу при T≥2.
+- Наличие имени h_exec не доказывает actual computation. Для исполняемого
+  контроллера нужен successor state, фактические сертификаты перехода,
+  свежий measurement каждого цикла и no-op fallback с таким же контрактом.
+- `Hagi.Model.StageSemantics` уже предлагает другой, реализуемый класс:
+  `StageInput` привязан к конкретному циклу. Новая теорема НЕ выводит
+  его оптимальность; она исключает другой, несовместимый fixed-effects
+  класс. Слои сохранены: Examples→Unified, а не наоборот.
+- Registry получил 201 occurrence: ровно пять h_emp-параметров этой
+  отрицательной специализации добавлены к former 196. Это не аналитическое
+  замыкание. Mathematical implication отделён от physical fidelity.
+- Scientific retrieval: Haroon и Fleming, Certified Safety Curation
+  (`10.48550/arxiv.2609.12014`) прямо различают сертификацию training
+  set и policy, а cost report и cost bound. Поэтому следующий Pareto
+  controller обязан различать certified transition, actual quality,
+  память и computation; отказ/no-op не равен оптимальному обучению.
+
+
+
+## Инвентарь модельных предпосылок (цикл 68)
 Следующие алгоритмические специализации должны потреблять
 `assumptions.lock` как индекс фактических ∀-параметров, а не Markdown.
 Его создаёт `AssumptionBinders.lean` после штатного root build.

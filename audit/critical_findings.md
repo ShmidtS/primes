@@ -1,4 +1,28 @@
 
+### Цикл 69: точная несовместимость fixed-effects takeoff
+
+- `Hagi.Examples.state_capability_two_step_inconsistent` копирует типы
+  пяти h_emp-предпосылок state-level takeoff БЕЗ ослабления; добавлено
+  лишь `2 ≤ T`. Заключение — `False`: старая conditional theorem не
+  удалена и не превращена в unconditional statement.
+- Cone на втором шаге получен из `frontier_cone_inductive` только t=0.
+  Затем production и положительный gamma дают требуемые lower gains;
+  полные равенства h01/h12 передаются в существующий
+  `full_cycle_two_step_growth_inconsistent`. Нет нового spectral claim.
+- Layer: Examples → Unified.StateTakeoff, обратного импорта нет.
+  Focused build и axiom probes PASS, только стандартная тройка.
+  Независимое refute-first review: LGTM, типы пяти named-входов
+  сопоставлены по одному; наследование конуса проверено строго для t=0.
+- Registry v2 вырос до 201 h_emp-occurrence в 37 modules. Это НЕ закрытие
+  пяти посылок, а пять входов в доказательство НЕВЫПОЛНИМОСТИ модели.
+  Structural 9034 включает восемь дополнительных proof-helper occurrences.
+- Freeze=4239, ровно +1. Найден ложный docstring token `theorem below`
+  как мнимая declaration `below`; исправлен текст, а не baseline/gate.
+- Архитектурный вывод: fixed copied effects не дают takeoff при T≥2
+  в exact model. Fresh StageInput и actual successor обязательны для
+  непротиворечивой multi-cycle модели, но оптимальность quality/runtime
+  или новое самообучение НЕ доказаны.
+
 ### Цикл 68 (inventory): фактические binders, не текстовые токены
 
 - `AssumptionBinders.lean` читает elaborated root environment и раскрывает

@@ -5,15 +5,15 @@ meaning: occurrences, NOT counts of distinct theorems or unproved goals
 Named h-prefix occurrences include repeatable parameter hypotheses; types are authoritative.
 
 [empirical summary]
-h_emp binder occurrences: 196
-h_emp declaration+ordinal keys: 196
-h_emp source modules: 36
+h_emp binder occurrences: 201
+h_emp declaration+ordinal keys: 201
+h_emp source modules: 37
 h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9020
-named structural declaration+ordinal keys: 9020
+named structural binder occurrences: 9034
+named structural declaration+ordinal keys: 9034
 named structural source modules: 407
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
@@ -46,6 +46,11 @@ Hagi.Energy.Landauer | Hagi.Energy.ternary_weight_growth_cap | 7 | h_emp_memwrit
 Hagi.Energy.Landauer | Hagi.Energy.written_bits_cap | 5 | h_emp_memwrite | cUnit * F ≤ B
 Hagi.Energy.STEStep | Hagi.Energy.ste_step_residual | 5 | h_emp_res | |wdelta - gradStep| ≤ s / 2
 Hagi.Ensemble.PolicyCompatibility | Hagi.Ensemble.mopd_kl_scaling_warning | 3 | h_emp_scaling | Dpolicy = 5 * Dbase
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 19 | h_emp_cone0 | alpha / gamma * (S 0).capability ≤ D 0
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 20 | h_emp_gain_prod | ∀ t < T, gamma * D t ≤ (S t).effects.growGain
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 21 | h_emp_dyn | ∀ t < T, rho * D t + beta * (S t).capability - xi t ≤ D (t + 1)
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 22 | h_emp_C_cap | ∀ t < T, (S (t + 1)).capability ≤ (1 + alpha) * (S t).capability
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 23 | h_emp_beta | ∀ t < T, alpha / gamma * (1 + alpha - rho) + xi t / (S t).capability ≤ beta
 Hagi.Foundations.PerronCone | Hagi.Foundations.h_emp_dyn_explicit | 10 | h_emp_dyn | ∀ (t : ℕ), ρ * D t + β * C t - ξ t ≤ D (t + 1)
 Hagi.Foundations.PerronCone | Hagi.Foundations.h_emp_dyn_linear_growth | 9 | h_emp_dyn | ∀ (t : ℕ), D t + β * C t - ξ t ≤ D (t + 1)
 Hagi.Foundations.StageCalculus | Hagi.Foundations.compress_stage | 9 | h_emp_dist | dnorm ≤ 1 / 2
@@ -1785,6 +1790,20 @@ Hagi.Examples.Nonvacuity | Hagi.Examples.jensenGap_pos_witness | 2 | ha | a ≠ 
 Hagi.Examples.Nonvacuity | Hagi.Examples.masterhagi_productive_witness._proof_1_1 | 2 | ht | t < 1
 Hagi.Examples.Nonvacuity | Hagi.Examples.mergeOperationalCertStep | 7 | hgap | 0 < Hagi.Examples.jensenGap z₁ z₂
 Hagi.Examples.Nonvacuity | Hagi.Examples.mergeStrictCertStep | 3 | ha | a ≠ 0
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 13 | hα | 0 < alpha
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 14 | hγ | 0 < gamma
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 15 | hρ | 0 ≤ rho
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 16 | hC0 | 0 < (S 0).capability
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 17 | hT | 2 ≤ T
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent | 18 | hfull | ∀ t < T, Hagi.FullCycleRefinement (S t) (S (t + 1)) (epsG t)
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._proof_1_1 | 2 | hT | 2 ≤ T
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._proof_1_10 | 2 | hT | 2 ≤ T
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._proof_1_10 | 4 | ht | t < 2
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._proof_1_11 | 2 | hT | 2 ≤ T
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._proof_1_2 | 3 | ht | t < 2
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._simp_1_6 | 7 | ha | a ≠ 0
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._simp_1_6 | 8 | hb | b ≠ 0
+Hagi.Examples.Nonvacuity | Hagi.Examples.state_capability_two_step_inconsistent._simp_1_7 | 6 | h | a ≠ 0
 Hagi.Examples.NonvacuityHorizon | Hagi.Examples.sat_cone_iff | 6 | hγ | 0 < γ
 Hagi.Examples.NonvacuityHorizon | Hagi.Examples.sat_step_laws | 5 | hγ | γ ≠ 0
 Hagi.Examples.NonvacuityHorizon | Hagi.Examples.witness_achieves_horizon | 7 | hγ | 0 < γ

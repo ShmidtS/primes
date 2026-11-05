@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 421 Lean-модулей в `Hagi/`; 4238 declarations (Freeze);
+- 421 Lean-модулей в `Hagi/`; 4239 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,30 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 69: точный барьер fixed-effects takeoff
+
+- `Hagi.Examples.state_capability_two_step_inconsistent` специализирует
+  ТОЧНЫЕ пять h_emp-предпосылок `Hagi.Unified.state_capability_takeoff`,
+  добавляет только `2 ≤ T` и заканчивается `False`. Исходная теорема и
+  ее полный список аргументов не изменены.
+- Доказательство получает конус второго шага одним вызовом
+  `frontier_cone_inductive` при t=0. Затем gamma и производственная
+  оценка дают `alpha*C_t ≤ growGain_t` при t<2; два полных равенства
+  состояний позволяют вызвать уже доказанный
+  `full_cycle_two_step_growth_inconsistent`. Никакого обратного импорта
+  Unified→Examples и никакой новой общей теории роста нет.
+- Следствие: копированный StageEffects не может поддерживать
+  совпадающие геометрическую нижнюю и верхнюю нормы на двух шагах.
+  Для непустого контроллера нужны свежие per-cycle inputs и доказанные
+  actual переходы, как в `Hagi.Model.StageSemantics`; это НЕ доказательство
+  оптимальности капабилити или физического обучения.
+- Freeze=4239 (+1), LayerLint и 14 registry tests PASS; оба axiom probes
+  дают только стандартную тройку. Независимое refute-first ревью — LGTM.
+- Registry честно вырос с 196 до 201 empirical occurrence, в 37 modules.
+  Это пять параметров ОТРИЦАТЕЛЬНОЙ специализации, а НЕ пять закрытых
+  предположений. Пять доказанных h_emp-named declarations не изменились.
+  Structural total=9034, включая elaborated proof helpers.
+
 ### Цикл 68: инвентарь посылок из окружения Lean
 
 - `AssumptionScan` больше не сканирует Hagi-текст/комментарии. После
