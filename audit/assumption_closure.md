@@ -47,7 +47,7 @@
 | Model/Memory | Physical memory write premise остаётся. |
 | Model/ReferenceMachine | Quantization distortion модель уже выведена; measured dist остаётся ledger premise только в generic wrappers. |
 | Model/SoftmaxStep | Smoothness выведена из производной logitCE; generic doc premise не скрыт. |
-| Pretraining/ProbeError | Проекционная scaled linear модель замкнута в цикле 54 через норму проектора; произвольный full/clamped gradient остаётся допущением модели. Общая softmax/top-k динамика не выведена. |
+| Pretraining/ProbeError | Канонические ортопроектор (54) и translated quadratic (57) модели выведены из точной алгебры/норм; общий gA/gF attention-gradient mismatch остаётся предпосылкой, h_emp_dyn не выведен. |
 | Pretraining/SyntheticPretrain | Measured synthetic-task gates/transfer остаются исходными данными. |
 | Probability/ConditionalSuccess | `[0,1]`, meas, p — исходные; independence — stochastic premise, не выводится из них. |
 | Probability/Freedman | Conditional variance bound остаётся martingale input. |
@@ -150,3 +150,15 @@
 - Два пространственных weights [2,4] переходят в [1,2] при η=1/2;
   energy computed равна 5/2, probe выполнен через lake env lean.
   Аксиомы трёх новых declarations — только стандартная тройка.
+
+## Цикл 57 — quadratic FD error и Lipschitz
+- `probeQuadraticEnergy` и `probeQuadraticGrad` задают translated
+  quadratic модель, где центр произвольного X выбирается явно.
+- `fd_probe_error_quadratic` выводит hmodel через exact norm expansion;
+  остаток абсолютного значения неотрицателен только при hL≥0, interval
+  работает при hσ>0. Коэффициент L/2 сохранён при делении σ.
+- `probeQuadraticGrad_lipschitz` закрывает h_emp_attsmooth для общего
+  quadratic поля; arbitrary gA/gF и Fréchet-класс не подменяется моделью.
+  Probe: значения a=1,L=2,σ=1/2,x=1,v=2 дают error=bound=2.
+  Композиция с old Cut theorem доказана в test-side Lean probe, аксиомы
+  чисты, registry 38/113 без force deleting старых условий.

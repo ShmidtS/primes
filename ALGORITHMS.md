@@ -291,6 +291,12 @@ s = ‖g‖₁ / n                            # signScale
   измерять clamp/probe radii и передать границу в Cut-треугольник.
   Это строго явная модель общего P для двух карт, не доказательство
   адаптивного softmax attention и не оптимальность выбора маски.
+- `fd_probe_error_quadratic` (цикл 57): для выбранного
+  `probeQuadraticEnergy` вычислять forward-difference ошибку как
+  (L/2)σ‖v‖² из самой энергии, без отдельной hmodel-матрицы.
+- `probeQuadraticGrad_lipschitz`: общий для двух карты quadratic
+  поле сохраняет Lipschitz по L с общим центром; это источник
+  h_emp_attsmooth для Cut-инстанса, но не всего нелинейного attention.
 - `computedGenStep` и `generalization_safe_step_computed` (цикл 56):
   для canonical energy=growthQuad weights вычислить веса и energy
   одним шагом. Probe/risk поля остаются неизменными именно этой

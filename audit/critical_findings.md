@@ -1,4 +1,22 @@
 
+### Цикл 57 (quadratic probe): remainder и gradient-Lipschitz
+- `fd_probe_error_quadratic` выводит unconstrained Taylor remainder
+  `(L/2)σ²‖v‖²` общим norm expansion. Отдельная hmodel-премиса
+  старого generic API заменена конкретной вычислимой квадратикой.
+- `probeQuadraticGrad_lipschitz` доказывает exact common-center
+  cancellation. Test-side потребитель старого Cut-треугольника
+  передаёт этот доказанный факт, не произвольное gA/gF-smoothness.
+- Численный экземпляр a=1,L=2,σ=1/2,v=2 даёт error=bound=2.
+  Все четыре новых declarations #print axioms standard.
+- Не заявлено arbitrary nonlinear attention, Fréchet characterization
+  или уменьшение registry. Общий h_emp_attsmooth остаётся, и реальные
+  38 files/113 identifiers (5 proven+108 names) не меняются.
+- Independent refute review: LGTM по remainder, hσ, hL/norm_smul,
+  общему центру, tight probe и потреблению старого Cut API.
+- Полный `bash scripts/ci.sh`: PASS. Freeze=4176 declarations,
+  418 modules, AssumptionScan=38/113; регрессия комментария,
+  ALLAXIOMS, CHALLENGE и MACHINEDIFF также проходят.
+
 ### Цикл 56 (computed-mode safety): переход вместо fit premise
 - `computedGenStep`: выполняет canonical `growthStep` по compressed
   weights и явно обновляет energy через `growthQuad`; остальные

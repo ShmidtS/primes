@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4172 декларации (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4176 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2785,6 +2785,22 @@
   Все три новых #print axioms проверены и имеют standard triple.
   Двухкоординатный probe проверил weights `[2,4]→[1,2]` при η=1/2
   и energy `5/2`, без sorry или постороннего numeric wrapper.
+
+## Исследовательский цикл 57 — canonical quadratic probe
+
+- Введены `probeQuadraticEnergy` и `probeQuadraticGrad`:
+  E=(L/2)‖x−a‖², g=L·(x−a) в произвольном real inner-product X.
+- `fd_probe_error_quadratic` выводит точный Taylor remainder
+  `(L/2)σ²‖v‖²` через norm expansion и тождество конечной разности.
+  Общая модельная гипотеза старого `fd_probe_error` здесь доказывается,
+  не передаётся заново; hσ>0 сохраняет настоящий interval.
+- `probeQuadraticGrad_lipschitz` доказывает common-center Lipschitz
+  и позволяет инстанцировать старый Cut-сигнал путём доказанной
+  h_emp_attsmooth формы. Произвольный nonlinear attention/mod pairs не
+  обобщаются: только этот вычислимый класс.
+- Tight probe с a=1,L=2,σ=1/2,v=2 дал error=bound=2. Axioms—all
+  four declarations—standard. General h_emp_attsmooth сохранён,
+  registry 38/113; это не вывод универсальной дифференцируемости.
 
 ## Открытые проблемы
 

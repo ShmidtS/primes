@@ -86,6 +86,61 @@ theorem linear_probe_exact {f : X → ℝ} (f0 : ℝ) (g v : X) (σ : ℝ)
   field_simp
   ring
 
+/-- Каноническая квадратичная энергия с перенесённым центром `a`.
+Это выбранная точная модель для вычислений прямой разности, а не модель
+произвольного полного либо attention-clamped нелинейного loss. Само
+определение не является утверждением о фреше-дифференцируемости. -/
+noncomputable def probeQuadraticEnergy (L : ℝ) (a x : X) : ℝ :=
+  (L / 2) * ‖x - a‖ ^ 2
+
+/-- Каноническое алгебраическое градиентное поле перенесённой
+квадратичной энергии: общий центр `a` сокращается при разности
+значений поля. Использование имени «градиент» здесь не добавляет
+отдельно не доказанного утверждения о фреше-производной. -/
+def probeQuadraticGrad (L : ℝ) (a x : X) : X :=
+  L • (x - a)
+
+/-- Точная квадратичная конкретизация `fd_probe_error`: модельная
+гипотеза конечной разности выводится полным алгебраическим
+разложением, а не принимается как внешняя предпосылка. Остаток без
+абсолютного значения равен `(L / 2) * σ ^ 2 * ‖v‖ ^ 2`; при `L ≥ 0`
+и `σ > 0` он неотрицателен. Это утверждение только о выбранном
+каноническом поле и его прямой разности, а не о произвольном
+полном/clamped attention, общей нелинейной динамике или
+фреше-дифференцируемости. -/
+theorem fd_probe_error_quadratic (L : ℝ) (a : X) (hL : 0 ≤ L)
+    {σ : ℝ} (hσ : 0 < σ) (x v : X) :
+    |(probeQuadraticEnergy L a (x + σ • v) - probeQuadraticEnergy L a x) / σ -
+        ⟪probeQuadraticGrad L a x, v⟫_ℝ|
+      ≤ (L / 2) * σ * ‖v‖ ^ 2 := by
+  apply fd_probe_error hσ
+  intro y w
+  have hshift : y + σ • w - a = (y - a) + σ • w := by
+    abel
+  have hremainder :
+      probeQuadraticEnergy L a (y + σ • w) - probeQuadraticEnergy L a y -
+          σ * ⟪probeQuadraticGrad L a y, w⟫_ℝ =
+        (L / 2) * σ ^ 2 * ‖w‖ ^ 2 := by
+    simp only [probeQuadraticEnergy, probeQuadraticGrad]
+    rw [hshift, norm_add_sq_real, norm_smul, Real.norm_eq_abs,
+      abs_of_pos hσ, real_inner_smul_left, real_inner_smul_right]
+    ring
+  rw [hremainder]
+  exact abs_of_nonneg (by positivity) |>.le
+
+/-- Градиентное поле выбранной перенесённой квадратичной модели
+`L`-липшицево при `L ≥ 0`. Доказательство использует только точное
+сокращение общего центра и норму скалярного множителя; посылка о
+липшицевости произвольной карты либо полного/clamped attention не
+вводится. -/
+theorem probeQuadraticGrad_lipschitz (L : ℝ) (a : X) (hL : 0 ≤ L)
+    (u v : X) :
+    ‖probeQuadraticGrad L a u - probeQuadraticGrad L a v‖ ≤ L * ‖u - v‖ := by
+  unfold probeQuadraticGrad
+  have hsub : (u - a) - (v - a) = u - v := by
+    abel
+  rw [← smul_sub, hsub, norm_smul, Real.norm_eq_abs, abs_of_nonneg hL]
+
 /-! ### Top-k маршрутизация: остаток отброшенных компонент -/
 
 variable {m n : ℕ}
