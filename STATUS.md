@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 424 Lean-модулей в `Hagi/`; 4302 declarations (Freeze);
+- 425 Lean-модулей в `Hagi/`; 4308 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,33 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 74: minimum resources под bounded error
+
+- Eligible robust-класса: `qfloor+eps ≤ estimate(p.step a s)`.
+  `robustMinimumResource` переиспользует `minimumResource` на
+  `withEstimatedValue`; `step`, p.safe, memory, operations сохранены.
+  Все кандидаты проходят исходные exact caps, не quasi-feasible.
+- `robustMinimumResource_actual_quality_ge` по uniform abs-error
+  доказывает floor на настоящем p.step successor: abs_le + arithmetic.
+  Это не IID/confidence error bound; premise для всех actions нужна явно.
+- Cost minimum ТОЛЬКО в lower-bound-certified family. Дешёвый реальный
+  floor-positive candidate может быть исключён, если margin не достаточно.
+  Нет minimum-among-all-truly-eligible или универсального аpportuna.
+- `robustMinimumResource_zero_exact`: если estimate=p.value и eps=0,
+  коннектор равен прежнему exact selector. Отдельных search engine или
+  собственной семантики при exact estimation нет.
+- Flat counterexample: actual=0, estimate=−1/2, eps=1/2, floor 0:
+  actual eligible существует, robust eligible пуст, fallback невозможен.
+  При floor −1 nonempty witness и actual guarantee проверены.
+- Scalar CE: real upgrade выбран в robust class через exact error 1/2.
+  Однако cheaper identity ДЕЙСТВИТЕЛЬНО проходит тот же cautious floor
+  (CE0=log2≤1, CE upgrade≥0), что подтверждает разницу классов.
+  Нет physical/global optimal architecture, minimal FLOPs или task quality.
+- +6 declarations, Freeze 4308. Empirical 201/37 unchanged;
+  structural 9150/411 (includes pointer) count not independent unknowns.
+  Fresh CI: all gates and AllAxiomCheck PASS; no sorry/custom axioms.
+  Independent refute-first review: LGTM for conservative finite class.
+
 ### Цикл 73: минимальные ресурсы при actual objective floor
 
 - `qualityEligible` = существующее `feasible` И НАСТОЯЩЕЕ

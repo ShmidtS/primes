@@ -11,6 +11,27 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 74 — conditional robust lower-bound floor
+
+- `robustMinimumResource` использует существующие feasibility и
+  `withEstimatedValue`, не новый empirical record. Истинная связь
+  `|p.value(p.step a s) − estimate(p.step a s)| ≤ eps` подана явно для
+  всех действий; вероятностная calibration не выводится из названия eps.
+- `absolute-error premise + qfloor+eps ≤ estimate` выводит actual
+  true objective floor арифметически; ошибка ε не удалена как h_emp premise
+  и не замаскирована под physically measured bound.
+- Empirical registry всё ещё 201/37, structural 9150/411 (+9). Это
+  интерфейсные occurrences: h0 и herr, включая elaborated pointer, не count
+  независимых scientific unknowns или nine closures.
+- Cost minimum только над conservative certified family. Flat witness:
+  true floor 0 достижим, но pessimistic lower-bound subset пуст при eps 1/2.
+  Это опровергает равенство классов и всякую автоматическую глобальную
+  minimum-cost claim. Data failure не меняется на fake fallback.
+- `estimate=p.value`/eps=0 возвращает исходный exact selector. Scalar CE
+  пример дополнительно показывает: действительно удовлетворяющий полу
+  cheap identity исключается режимом гарантии, хотя есть update witness.
+  Credits не universal architecture, min FLOPs, hardware или statistics.
+
 ## Цикл 73 — minimum resources без empirically solved optimum
 
 - `qualityEligible` сопрягает existing `feasible` с actual `p.step`

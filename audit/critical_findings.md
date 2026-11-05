@@ -1,4 +1,41 @@
 
+### Цикл 74: bounded error и minimum robust-certified resources
+
+- Вместо второго controller/minimizer: record update цикла 21 сохраняет
+  `step`, `safe`, `memory`, `operations`. Новый
+  `robustMinimumResource` делает ровно существующий minimumResource
+  на смещённом floor `qfloor+eps`. True floor статистической уверенностью
+  не назван; требуется `herr : ∀a, |true−estimate|≤eps`.
+- `robustMinimumResource_actual_quality_ge` получает true floor через
+  анализа absolute bound и `minimumResource_next_quality_ge`. `robustMinimumResource`
+  не является введением вычислимого optimizer: он по-прежнему Classical.choose
+  из fixed `Finset.exists_min_image` на заданном конечном семействе.
+- `robustMinimumResource_feasible` возвращает membership исходного feasible:
+  original model safety и оба cap не исключены при оценивании. Cost_min
+  количественно ограничен ТОЛЬКО lower-bound-certified actions, не true set.
+- Main refutation: flat true=0, est=−1/2, eps=1/2, actual floor 0 проходит,
+  но robust eligible пуст; нет witness и нельзя выдать fallback как learning.
+  При floor −1 robust witness существует и true guarantee выполняется.
+- Non-vacuous logit CE: cautious true-upgrade-quality−1, eps=1/2,
+  real gradient update сертифицирован и выбран. При eta=1,w=0 дешёвый
+  identity ИСТИННО проходит тот же floor (CE0=log 2≤1, CE upgrade≥0)
+  но robust estimate его исключает. Тем самым обычный optimistic argmin
+  над true candidate set не подменяется этим conservative minimum.
+- Research `.tmp/cycle74-research.txt`: a priori error bounded
+  Chandrasekaran et al. 1997, minimax/set-membership estimators,
+  Mazzaro et al. 2001 model-class tradeoffs. Специфические модели и
+  параметрические bounds не перенесены в automatic calibration, HAGI
+  hardware, task accuracy или minimum FLOPs claim.
+- `robustMinimumResource_zero_exact` восстанавливает прежний selector
+  при точном estimation и eps=0; statement order/API совместим с p.value
+  normalization, не uniqueness tie-argmin extension. Старые Frozen
+  declarations/args не подвергались editing.
+- +6 declarations → 4308, 425 modules. Empirical 201/37 unchanged;
+  structural 9150/411. Fresh CI PASS, including 14 registry tests,
+  Layer/Trivial/Doc/Status/Freeze/MachineDiff/AllAxiomCheck.
+  Финальный independent refute-first review: LGTM; incomplete first
+  text не был принят как approval, review continuation подтвердил scope.
+
 ### Цикл 73: minimum-cost policy при фактическом objective floor
 
 - `qualityEligible p s M C qfloor a` означает `a∈feasible p M C` И

@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9141
-named structural declaration+ordinal keys: 9141
-named structural source modules: 410
+named structural binder occurrences: 9150
+named structural declaration+ordinal keys: 9150
+named structural source modules: 411
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -9158,6 +9158,15 @@ Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_bound | 9 | hnorm | 
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 7 | hQ | ∀ (x : E), ‖Q x‖ = ‖x‖
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 8 | hsum | ∀ (x : E), Qt x = Q x + Err x
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 9 | hnorm | ∀ (x : E), ‖Err x‖ ≤ d * ‖x‖
+Hagi.Unified.RobustResourceMin | Hagi.Unified.QualityResourceMin.minimumResource.eq_1 | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource.eq_1 | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_actual_quality_ge | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_actual_quality_ge | 14 | herr | ∀ (a : A), |p.value (p.step a s) - estimate (p.step a s)| ≤ eps
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_cost_min | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_eligible | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_feasible | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
+Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource_zero_exact | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
 Hagi.Unified.SignComp | Hagi.Unified.SignNoKappa.sign_no_uniform_floor | 7 | hκn | 1 / ↑(Fintype.card k) ^ 2 < κ
 Hagi.Unified.SignComp | Hagi.Unified.SignStepCert.sgn1_ne_zero | 2 | hy | y ≠ 0
 Hagi.Unified.SignComp | Hagi.Unified.SignStepCert.signDrop_pos | 6 | hx | Hagi.Unified.DescentCoreQuad.quadGrad a x ≠ 0

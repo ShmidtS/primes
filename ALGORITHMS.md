@@ -1,10 +1,40 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4302 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4308 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Bounded-error guaranteed-floor minimum (цикл 74)
+
+- `robustMinimumResource` переиспользует `minimumResource` на
+  `withEstimatedValue`, требуя `qfloor+eps ≤ estimate(p.step a s)`.
+  На самом деле безопасный step, p.safe и оба ресурсных cap неизменны.
+- `robustMinimumResource_actual_quality_ge`: из `|true-estimate|≤eps`
+  через анализ absolute bound и ресурсный eligible spec выводится actual floor
+  `qfloor ≤ true(p.step selected s)`. Это алгебра, не IID confidence.
+- `robustMinimumResource_cost_min` минимизирует `(memory,operations)`
+  в `Prod.Lex` ТОЛЬКО на lower-bound-certified class. Неутверждение
+  минимума над всеми истинно-qualified candidates — важный инвариант:
+  cheap true-positive без достаточного pessimistic margin исключается.
+- При `estimate=p.value`, `eps=0` получен прежний exact min selector
+  `robustMinimumResource_zero_exact` после нормализации qfloor+0 и
+  record update; нового selection engine/cost objective нет.
+- Flat probe: true=0, estimate=−1/2, eps=1/2, actual floor 0 достижен,
+  но lower-certified class ПУСТ. Ни witness, ни fallback для empty
+  family не выдумываются. При floor −1 класс уже непуст и верен.
+- Scalar logit CE: estimator error exactly 1/2, floor = true upgraded
+  objective − 1. Выбран настоящий gradient upgrade (action 1).
+  Но identity (cost 0) тоже истинно проходит этот floor при eta=1,w=0,
+  поскольку CE0=log 2 ≤ 1 и CE upgrade≥0. Честного всегда cheaper
+  learning claim нет даже здесь. Multi-step/stochastic optimum не дан.
+- Sources: a priori bounded uncertainties и set membership / minimax
+  estimator literature `.tmp/cycle74-research.txt`. Robust identification
+  class tradeoffs описаны Маззаро et al. 2001; требуемые bounds не могут
+  быть выведены из abstract как confidence для нашей p-задачи.
+- +6 declarations, Freeze=4308, empirical 201/37 unchanged,
+  structural 9150/411 (incl elaborated choice pointer, not unknowns).
 
 ## Quality floor at minimum declared resources (цикл 73)
 
