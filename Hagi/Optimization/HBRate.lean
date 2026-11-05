@@ -239,4 +239,107 @@ theorem hb_rho_range (kappa : ℝ) (h : 1 ≤ kappa) :
   · rw [div_lt_iff₀ (by positivity : (0:ℝ) < Real.sqrt kappa + 1)]
     nlinarith [hs]
 
+
+/-! ### Общие параметры (L, μ) — κ-оптимальность на спектре (цикл 37) -/
+
+/-- ОБЩИЕ ПАРАМЕТРЫ HB для спектра [μ, L], 0 < μ ≤ L:
+β = ((√L−√μ)/(√L+√μ))², η = 4/(√L+√μ)². Критическая мода μ:
+ημ = (1−√β)² ТОЧНО (критическое демпфирование нижней моды). -/
+theorem hb_general_eta_mu (L mu : ℝ) (hμ : 0 < mu) (hL : mu ≤ L) :
+    (4 / (Real.sqrt L + Real.sqrt mu)^2) * mu
+      = (1 - Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+          / (Real.sqrt L + Real.sqrt mu))^2))^2 := by
+  have hLpos : (0:ℝ) < L := lt_of_lt_of_le hμ hL
+  have hsL : 0 < Real.sqrt L := Real.sqrt_pos.mpr hLpos
+  have hsm : 0 < Real.sqrt mu := Real.sqrt_pos.mpr hμ
+  have hsum : 0 < Real.sqrt L + Real.sqrt mu := by positivity
+  have hsbeta : Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+      / (Real.sqrt L + Real.sqrt mu))^2)
+      = (Real.sqrt L - Real.sqrt mu) / (Real.sqrt L + Real.sqrt mu) :=
+    Real.sqrt_sq (div_nonneg
+      (by
+        have h := Real.sqrt_le_sqrt (show mu ≤ L by assumption)
+        linarith [Real.sqrt_nonneg mu, Real.sqrt_nonneg L])
+      (by positivity))
+  rw [hsbeta]
+  have hkey : (1 - (Real.sqrt L - Real.sqrt mu)
+      / (Real.sqrt L + Real.sqrt mu))
+      = 2 * Real.sqrt mu / (Real.sqrt L + Real.sqrt mu) := by
+    field_simp
+    ring
+  rw [hkey]
+  have hmusq : Real.sqrt mu ^ 2 = mu := Real.sq_sqrt hμ.le
+  rw [div_pow]
+  field_simp
+  linarith [hmusq]
+
+/-- Верхняя мода L: ηL = (1+√β)² ТОЧНО — окно кривизны
+[(1−√β)², (1+√β)²] покрывает спектр [μ, L] РОВНО по краям. -/
+theorem hb_general_eta_L (L mu : ℝ) (hμ : 0 < mu) (hL : mu ≤ L) :
+    (4 / (Real.sqrt L + Real.sqrt mu)^2) * L
+      = (1 + Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+          / (Real.sqrt L + Real.sqrt mu))^2))^2 := by
+  have hLpos : (0:ℝ) < L := lt_of_lt_of_le hμ hL
+  have hsL : 0 < Real.sqrt L := Real.sqrt_pos.mpr hLpos
+  have hsm : 0 < Real.sqrt mu := Real.sqrt_pos.mpr hμ
+  have hsbeta : Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+      / (Real.sqrt L + Real.sqrt mu))^2)
+      = (Real.sqrt L - Real.sqrt mu) / (Real.sqrt L + Real.sqrt mu) :=
+    Real.sqrt_sq (div_nonneg
+      (by
+        have h := Real.sqrt_le_sqrt (show mu ≤ L by assumption)
+        linarith [Real.sqrt_nonneg mu, Real.sqrt_nonneg L])
+      (by positivity))
+  rw [hsbeta]
+  have hkey : (1 + (Real.sqrt L - Real.sqrt mu)
+      / (Real.sqrt L + Real.sqrt mu))
+      = 2 * Real.sqrt L / (Real.sqrt L + Real.sqrt mu) := by
+    field_simp
+    ring
+  rw [hkey]
+  have hLsq : Real.sqrt L ^ 2 = L := Real.sq_sqrt hLpos.le
+  rw [div_pow]
+  field_simp
+  linarith [hLsq]
+
+/-- ГЛАВНАЯ ТЕОРЕМА ОКНА: при общих параметрах (β, η) из (L, μ)
+ЛЮБАЯ мода λ ∈ [μ, L] попадает в окно устойчивости:
+(1−√β)² ≤ ηλ ≤ (1+√β)² (монотонность между краями). Вместе с
+hb_spectral_mode: ВСЕ моды спектра затухают с темпом
+√β = (√L−√μ)/(√L+√μ) = (√κ−1)/(√κ+1) — κ-оптимальный темп
+достигается на всём спектре. -/
+theorem hb_general_window (L mu lam : ℝ) (hμ : 0 < mu)
+    (hL : mu ≤ L) (hlam : mu ≤ lam) (hlamL : lam ≤ L) :
+    (1 - Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+          / (Real.sqrt L + Real.sqrt mu))^2))^2
+      ≤ (4 / (Real.sqrt L + Real.sqrt mu)^2) * lam
+      ∧ (4 / (Real.sqrt L + Real.sqrt mu)^2) * lam
+        ≤ (1 + Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+          / (Real.sqrt L + Real.sqrt mu))^2))^2 := by
+  have hlo := hb_general_eta_mu L mu hμ hL
+  have hhi := hb_general_eta_L L mu hμ hL
+  have hpos : (0:ℝ) < 4 / (Real.sqrt L + Real.sqrt mu)^2 := by
+    have hd : (0:ℝ) < (Real.sqrt L + Real.sqrt mu)^2 := by positivity
+    positivity
+  constructor
+  · have := mul_le_mul_of_nonneg_left hlam hpos.le
+    rw [← hlo]
+    linarith [mul_le_mul_of_nonneg_left hlam hpos.le, hlo]
+  · have := mul_le_mul_of_nonneg_left hlamL hpos.le
+    rw [← hhi]
+    linarith [mul_le_mul_of_nonneg_left hlamL hpos.le, hhi]
+
+/-- ИТОГОВЫЙ ТЕМП: √β общих параметров = (√L−√μ)/(√L+√μ)
+(эквивалентно (√κ−1)/(√κ+1) при κ = L/μ — см.
+hb_rate_from_kappa). -/
+theorem hb_general_rate (L mu : ℝ) (hμ : 0 < mu) (hL : mu ≤ L) :
+    Real.sqrt (((Real.sqrt L - Real.sqrt mu)
+      / (Real.sqrt L + Real.sqrt mu))^2)
+      = (Real.sqrt L - Real.sqrt mu) / (Real.sqrt L + Real.sqrt mu) :=
+  Real.sqrt_sq (div_nonneg
+    (by
+      have h := Real.sqrt_le_sqrt hL
+      linarith [Real.sqrt_nonneg mu, Real.sqrt_nonneg L])
+    (by positivity))
+
 end Hagi.Optimization.HBRate
