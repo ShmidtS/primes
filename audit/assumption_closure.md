@@ -187,3 +187,19 @@
 - Конкретный probe получил forward -3/2 и значение центрального probe -2,
   что дало 0<1/2. Аксиомы чисты, frozen forms не менялись,
   регистр остаётся 38 файлов и 113 identifiers.
+
+## Цикл 60 — explicit optimum для probe cost
+- Оптимизирована арифметическая функция aσ²+b/σ, а не абстрактное
+  утверждение «лучший learning algorithm для любых данных».
+- Нет `h_emp`: доказаны положительность, точное cube-root coefficient
+  relation, global min и strict comparison при другом положительном σ.
+- Корень взят из Real.rpow_inv_natCast_pow, а не сымитирован численно.
+  Regressed wrong factor был исправлен до commit по counterexample,
+  exact Fraction и числовому Lean probe при a=2,b=4.
+- Чтобы применить этот min к реальному training/probe, ещё нужно
+  вывести a и b из конкретной модели и гарантировать измерительный
+  noise/roundoff bound. Эти границы пока НЕ выводятся из новой cost.
+- Мотивирующий scientific source: Tung et al. 2026,
+  https://jes-tm.org/index.php/jestm/article/view/449.
+- AssumptionScan 38/113: ничего не переименовано в proof и не удалено
+  из registry для имитации общего решения.

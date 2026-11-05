@@ -203,6 +203,66 @@ theorem quadratic_central_error_lt_forward_error
   have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv
   positivity
 
+/-! ### Cycle 60: аддитивная арифметическая модель стоимости пробы -/
+
+/-- Арифметический суррогат границы ошибки `a * σ ^ 2 + b / σ`.
+Это не валидация фактических моделей M3, шума, Тейлора или чисел с
+плавающей точкой. -/
+noncomputable def probeCost (a b σ : ℝ) : ℝ :=
+  a * σ ^ 2 + b / σ
+
+/-- Выбранный положительный шаг для арифметического суррогата.
+Выбор корня и стоимости не выводит эмпирическую границу шума или
+универсальную оптимальность обучения. -/
+noncomputable def probeOptimalStep (a b : ℝ) : ℝ :=
+  (b / (2 * a)) ^ ((3 : ℕ)⁻¹ : ℝ)
+
+/-- Выбранный шаг положителен при положительных коэффициентах. -/
+theorem probeOptimalStep_pos (a b : ℝ) (ha : 0 < a) (hb : 0 < b) :
+    0 < probeOptimalStep a b := by
+  exact Real.rpow_pos_of_pos (div_pos hb (mul_pos (by norm_num) ha)) _
+
+/-- Выбранный шаг удовлетворяет точному соотношению коэффициента. -/
+theorem probeOptimalStep_coefficient (a b : ℝ) (ha : 0 < a) (hb : 0 < b) :
+    b = 2 * a * (probeOptimalStep a b) ^ 3 := by
+  have hpow : (probeOptimalStep a b) ^ 3 = b / (2 * a) := by
+    exact Real.rpow_inv_natCast_pow
+      (div_nonneg hb.le (by positivity)) (by norm_num : (3 : ℕ) ≠ 0)
+  rw [hpow]
+  field_simp [ha.ne']
+
+/-- Точная разность стоимостей при соотношении `b = 2 * a * s ^ 3`. -/
+theorem probeCost_sub_of_coefficient (a b x s : ℝ)
+    (hx : 0 < x) (hs : 0 < s) (hb : b = 2 * a * s ^ 3) :
+    probeCost a b x - probeCost a b s =
+      a * (x - s) ^ 2 * (x + 2 * s) / x := by
+  simp only [probeCost]
+  rw [hb]
+  have hs_ne : s ≠ 0 := hs.ne'
+  field_simp [hx.ne', hs_ne]
+  ring
+
+/-- Выбранный шаг глобально минимизирует суррогат на положительных шагах. -/
+theorem probeCost_le_optimal (a b σ : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hσ : 0 < σ) :
+    probeCost a b (probeOptimalStep a b) ≤ probeCost a b σ := by
+  have hs : 0 < probeOptimalStep a b := probeOptimalStep_pos a b ha hb
+  rw [← sub_nonneg, probeCost_sub_of_coefficient a b σ _ hσ hs
+    (probeOptimalStep_coefficient a b ha hb)]
+  positivity
+
+/-- Всякий отличный положительный шаг имеет строго большую стоимость. -/
+theorem probeCost_lt_optimal (a b σ : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hσ : 0 < σ)
+    (hσopt : σ ≠ probeOptimalStep a b) :
+    probeCost a b (probeOptimalStep a b) < probeCost a b σ := by
+  have hs : 0 < probeOptimalStep a b := probeOptimalStep_pos a b ha hb
+  have hsq : 0 < (σ - probeOptimalStep a b) ^ 2 :=
+    sq_pos_of_ne_zero (sub_ne_zero.mpr hσopt)
+  rw [← sub_pos, probeCost_sub_of_coefficient a b σ _ hσ hs
+    (probeOptimalStep_coefficient a b ha hb)]
+  positivity
+
 /-- Градиентное поле выбранной перенесённой квадратичной модели
 `L`-липшицево при `L ≥ 0`. Доказательство использует только точное
 сокращение общего центра и норму скалярного множителя; посылка о

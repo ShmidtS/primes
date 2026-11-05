@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4181 декларация (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4188 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2830,6 +2830,27 @@
   stochastic/cost claims нет: строгость только об absolute accuracy
   выбранной модели, а не о вычислительной цене или оптимальном σ.
 - Axioms всех трёх новых declarations чисты; AssumptionScan 38/113.
+
+## Исследовательский цикл 60 — оптимальный шаг cost surrogate
+
+- `probeCost a b σ = aσ² + b/σ`; `probeOptimalStep a b` задаёт
+  положительный корень `(b/(2a))^(1/3)` через Mathlib `Real.rpow`.
+- `probeOptimalStep_coefficient` выводит `b=2a·step³`; затем точная
+  разность выражается как `a(σ-step)²(σ+2step)/σ`.
+- Из неё следуют глобальный минимум `probeCost_le_optimal` и
+  строгость `probeCost_lt_optimal` при a,b>0 и σ>0, σ≠step.
+  Это гарантирует лучший выбор σ ДЛЯ ДАННОЙ арифметической cost,
+  не нулевую оптимальную величину при b=0 и не универсальный loss.
+- Первоначальная неверная гипотеза имела лишний делитель step и была
+  опровергнута agent counterexample a=1,b=16,x=3,s=2: 7/3 против 7/6.
+  Корректная identity проверена exact Fraction и Lean; probe a=2,b=4
+  вычисляет step=1, cost(step)=6, cost(2)=10.
+- Источник мотивации precision/noise tradeoff: Tung et al., JES-TM 2026
+  https://jes-tm.org/index.php/jestm/article/view/449. Привязка M3,
+  floating-roundoff и stochastic noise к этой cost остаётся отдельным
+  доказательством модели, а не следствием алгебры минимума.
+- AssumptionScan остаётся 38/113; все 7 declarations имеют лишь
+  стандартные аксиомы.
 
 ## Открытые проблемы
 

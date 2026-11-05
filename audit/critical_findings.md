@@ -1,4 +1,30 @@
 
+### Цикл 60 (optimal probe step): глобальный минимум cost
+- `aσ²+b/σ` минимизируется при положительном `b^(1/3)/(2a)^(1/3)`.
+  В коде форма `(b/(2a))^(1/3)` через rpow, без несуществующего
+  `Real.cbrt`. Положительность и coefficient relation доказаны.
+- Corrected exact difference: `a(σ−step)²(σ+2step)/σ`, НЕ делитель
+  step в знаменателе. Этот остаток неотрицателен и положителен при
+  отличии σ; поэтому минимум не требует разложения Тейлора или gradient.
+- Первичный неверный divisor `σ*step` был удалён ещё до Lean commit.
+  Refutation counterexample использовал s≠1; затем проверка exact
+  Fraction включила три значения, избегая floating false positives.
+- Root positivity нужна: b=0 не попадает в класс и не создаёт
+  ненулевой оптимум. Общий старый probe API оставлен без изменений.
+- Arithmetic optimization НЕ валидация real loss/noise/M3/roundoff
+  and no universal-optimality claim. Это вывод о самой суррогатной
+  cost, который в дальнейшем можно привязать к явному Taylor model.
+- AssumptionScan 38/113; 7 новых declarations, стандартные аксиомы.
+- Независимый review исправил собственную арифметическую ошибку
+  в тексте отчёта и затем подтвердил exact Fraction/Lean: 43/3−12=7/3,
+  верный `/x` остаток, global/strict optimum. Corrected verdict: LGTM.
+- Полный CI: PASS после исправления недопустимого `h_emp` токена
+  только в docstring. Freeze=4188, ALLAXIOMS PASS, old statements intact.
+- Следующий исследовательский шаг: validate cost на явной модели с
+  исчезающим высшим Taylor-остатком и bounded numerical perturbation,
+  применяя оптимум только к выведенным коэффициентам a,b, не предполагая
+  universal convergence, physical epsilon или stochastic guarantees.
+
 ### Цикл 59 (probe precision): строгое преимущество central
 - `forwardQuadraticProbe_error` выводит ТОЧНУЮ абсолютную ошибку
   forward-пути: `(L/2)σ‖v‖²`, включая норму скалярного interval.
