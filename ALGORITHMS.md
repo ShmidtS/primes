@@ -284,6 +284,13 @@ s = ‖g‖₁ / n                            # signScale
   coэффициент политики равен пяти по построению, поэтому достаточный
   ε-budget выводится без h_emp_scaling. Произвольный λ отдельно
   измеряется/моделируется и этой теорией не закрывается.
+- `projected_gradient_lipschitz` и
+  `cut_signal_attention_quant_projection`: для scaled projected
+  gradient достаточно нормы ортопроектора ≤1, поэтому здесь
+  `h_emp_attsmooth` вывести можно. Выбирать retained subspace,
+  измерять clamp/probe radii и передать границу в Cut-треугольник.
+  Это строго явная модель общего P для двух карт, не доказательство
+  адаптивного softmax attention и не оптимальность выбора маски.
 - Общие conditional lemmas сохраняются только как интерфейс
   классов функций. Запрещено выдавать `EmpiricalPremises.holds`
   за доказательство гладкости: `premises_give_smooth` требует

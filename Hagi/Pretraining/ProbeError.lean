@@ -265,6 +265,55 @@ theorem cut_signal_attention_quant {X : Type*} [NormedAddCommGroup X]
       h_emp_attsmooth xhat x hclamp
   exact cut_signal_triangle ε_probe (L_att * ε_att) hprobe hatt
 
+/-- **Липшицевость проекционного градиента**: модель — одинаково
+масштабированная линейная ортографическая проекция обеих абстрактных
+карт градиентов, полезная для фиксированного удерживаемого
+подпространства или маски. Это не произвольное полное либо clamped
+обучаемое attention и не доказательство общей динамики softmax/top-k.
+Математическая опора — доказанная в Mathlib оценка нормы проектора
+`Submodule.norm_orthogonalProjectionOnto_apply_le`; дополнительная
+предпосылка о контрактивности или эмпирической гладкости не требуется. -/
+theorem projected_gradient_lipschitz
+    (K : Submodule ℝ X) [K.HasOrthogonalProjection] (L : ℝ) (hL : 0 ≤ L) :
+    ∀ a b : X,
+      ‖L • (K.orthogonalProjectionOnto a : X) -
+        L • (K.orthogonalProjectionOnto b : X)‖ ≤ L * ‖a - b‖ := by
+  intro a b
+  change ‖L • K.starProjection a - L • K.starProjection b‖ ≤ L * ‖a - b‖
+  have hfactor :
+      L • K.starProjection a - L • K.starProjection b =
+        L • K.starProjection (a - b) := by
+    rw [map_sub, smul_sub]
+  rw [hfactor, norm_smul, Real.norm_eq_abs, abs_of_nonneg hL]
+  have hproj : ‖K.starProjection (a - b)‖ ≤ ‖a - b‖ := by
+    change ‖K.orthogonalProjectionOnto (a - b)‖ ≤ ‖a - b‖
+    exact K.norm_orthogonalProjectionOnto_apply_le (a - b)
+  exact mul_le_mul_of_nonneg_left hproj hL
+
+/-- **Cut-сигнал для проекционной модели**: обе абстрактные карты
+градиентов инстанцированы одной масштабированной линейной
+ортографической проекцией. Модель описывает фиксированное удерживаемое
+подпространство или маску; она не утверждает, что произвольные `gA`/`gF`
+являются проекциями, не описывает произвольное полное/clamped обучаемое
+attention и не доказывает общую динамику softmax/top-k. Общая предпосылка
+`h_emp_attsmooth` здесь доказана через `projected_gradient_lipschitz`;
+сохраняются только входные радиусы и неотрицательность масштаба. -/
+theorem cut_signal_attention_quant_projection
+    (K : Submodule ℝ X) [K.HasOrthogonalProjection] (gu xhat x : X)
+    (L : ℝ) {ε_att ε_probe : ℝ}
+    (hL : 0 ≤ L) (hε_att : 0 ≤ ε_att)
+    (hclamp : ‖xhat - x‖ ≤ ε_att)
+    (hprobe : ‖gu - L • (K.orthogonalProjectionOnto xhat : X)‖ ≤ ε_probe) :
+    ‖gu - L • (K.orthogonalProjectionOnto x : X)‖ ≤ ε_probe + L * ε_att := by
+  have h_smooth : ∀ a b : X,
+      ‖L • (K.orthogonalProjectionOnto a : X) -
+        L • (K.orthogonalProjectionOnto b : X)‖ ≤ L * ‖a - b‖ :=
+    projected_gradient_lipschitz K L hL
+  exact cut_signal_attention_quant
+    (fun z => L • (K.orthogonalProjectionOnto z : X))
+    (fun z => L • (K.orthogonalProjectionOnto z : X)) gu xhat x
+    hL hε_att h_smooth hclamp hprobe
+
 /-- **Сквозная цепочка приёма шага** (объединение Теорем 1–5):
 «приближённый сигнал → суммарный запас ε_probe + L_att·ε_att →
 бюджет риска». Probe-член контролируется конечными разностями

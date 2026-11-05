@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4167 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4169 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2729,6 +2729,25 @@
 - Numeric probes и все четыре `#print axioms` пройдены; новых
   imports и аксиом нет. Изменение EOL в PolicyCompatibility
   отдельно проверено: старый declaration hash не потерян.
+
+## Исследовательский цикл 54 — аналитический Lipschitz проекции
+
+- `projected_gradient_lipschitz` выводит h_emp-attsmooth форму
+  для выбранной scaled linear projected-gradient модели
+  из nonexpansiveness ортогональной проекции. Не нужна посылка о
+  контрактивности отдельного абстрактного operator map.
+- `cut_signal_attention_quant_projection` передаёт это доказанное
+  неравенство имеющемуся Cut-треугольнику: произвольные карты
+  заменены явной моделью `fun x => L • P x` с проектором на
+  retained subspace, произвольного full/clamped attention нет.
+- Доказательство не описывает general softmax/top-k, и отсутствие
+  универсальный Lipschitz для двух произвольных gradient maps.
+- Пространство допускает разные retained subspaces с проекцией
+  и любой L≥0; никакого assertion о выборе маски нет.
+- Probe `K=⊤,L=3` даёт границу 3≤3. Ненужный probe-неотрицательный
+  binder убран: он уже следует из нормы и hprobe.
+- Два #print axioms чисты. Registry остаётся 45/137: общий
+  h_emp_attsmooth сохранён, закрыта только доказуемая модель.
 
 ## Открытые проблемы
 

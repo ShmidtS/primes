@@ -42,7 +42,7 @@
 | Model/Memory | Physical memory write premise остаётся. |
 | Model/ReferenceMachine | Quantization distortion модель уже выведена; measured dist остаётся ledger premise только в generic wrappers. |
 | Model/SoftmaxStep | Smoothness выведена из производной logitCE; generic doc premise не скрыт. |
-| Pretraining/ProbeError | Taylor/probe bound доказан; cross-task attention gradient Lipschitz остаётся допущением модели. |
+| Pretraining/ProbeError | Проекционная scaled linear модель замкнута в цикле 54 через норму проектора; произвольный full/clamped gradient остаётся допущением модели. Общая softmax/top-k динамика не выведена. |
 | Pretraining/SyntheticPretrain | Measured synthetic-task gates/transfer остаются исходными данными. |
 | Probability/ConditionalSuccess | `[0,1]`, meas, p — исходные; independence — stochastic premise, не выводится из них. |
 | Probability/Freedman | Conditional variance bound остаётся martingale input. |
@@ -119,3 +119,16 @@
   остаётся 45 файлов/137 вхождений: это НЕ удаление premise binders.
   Убран один новый-unused-instance warning через Finite r + Fintype
   ofFinite в доказательстве; типовые условия оригинала не менялись.
+
+## Цикл 54 — Lipschitz условие через ортопроекцию
+- `projected_gradient_lipschitz` выводит гладкость модели L·P
+  из нерасширяемости ортогональной проекции. Наличие самой проекции
+  оформлено `HasOrthogonalProjection`, а НЕ новой норм-посылкой.
+- `cut_signal_attention_quant_projection` подставляет этот bound
+  в общий Cut-треугольник без `h_emp_attsmooth`. Обе gradient-карты
+  специально выбраны одной L·P моделью; arbitrary full/clamped
+  gradient mismatch и обучаемая softmax mask здесь не закрываются.
+- Identity-projection probe (K=⊤, L=3) проходит, и all-new proofs
+  используют стандартную тройку аксиом. Старые сигнатуры сохранены.
+  Registry остаётся 45 файлов/137 вхождений: классical closure
+  отличается от численного удаления общего premise binder.

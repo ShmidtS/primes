@@ -1,4 +1,27 @@
 
+### Цикл 54 (projected attention smoothness): геометрия вместо premise
+- `projected_gradient_lipschitz`: имеющаяся в Mathlib оценка нормы
+  `norm_orthogonalProjectionOnto_apply_le` выводит Lipschitz bound
+  для масштабированной ортопроекции, а не abstract map contractivity.
+  Размер L произвольный и hL обязателен для abs/mul-направлений.
+- `cut_signal_attention_quant_projection`: h_emp_attsmooth старой
+  Cut-формы исполняется локальным proof от projection map.
+  Обе карты явно фиксированы как одинаковая модель `L • P x`;
+  arbitrary gA/gF, softmax/top-k и выбор маски НЕ закрыты.
+- Независимый край: identity projection требует L=3, получен 3≤3;
+  wrapped probe проходит через существующий Cut-треугольник.
+  Избыточный `_hε_probe` убран до review — численная неотрицательность
+  уже вынуждается norm/hprobe, новых скрытых premise нет.
+- Замороженный общий h_emp_attsmooth не изменён: registry 45/137
+  не уменьшается, в source добавлены только доказанные instances.
+  Две новых declarations и #print axioms проходят standard checks.
+- Независимый review: LGTM по операции в subtype/ambient, знаку L,
+  norm factoring и потреблению проекционной lemмы старой API.
+  Ограничение модели явно сохранено: одна общая L·P карта, не
+  разные произвольные gradient functions.
+- Полный CI: PASS; Freeze=4169 declarations, 418 modules,
+  AssumptionScan=137, 0 sorry/new custom axioms.
+
 ### Цикл 53 (empirical closure): две явные модели выведены
 - `scalarQuadraticKl`, `forgetting_kl_quadratic_unit_fisher` и
   `tldr_two_tier_safety_unit_fisher`: получена собственная кривизна
