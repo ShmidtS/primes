@@ -170,3 +170,44 @@ AssumptionScan), параллельные API ожиданий, OptimalConfig-с
 Learning/Hadamard* подключены корректно (ReachLint PASS
 подтверждает все 414 модулей); «Freeze 4127 не видит новые
 модули» — Freeze сканирует файлы, числа корректны.
+
+## Исследование → формализация → анализ, цикл 42 (2026-11-05)
+
+- **Исследование.** ask.sciencemadereadable.com по large-step
+  logistic GD: Wu et al. (`10.48550/arxiv.2402.15926`) и Meng
+  et al. (`10.48550/arxiv.2406.05033`) подтверждают потенциал
+  больших шагов, но также осцилляции/циклы вне нашей модели.
+  Альтернативы CertStep-мостов и HB-траектории отложены:
+  точный scalar спуск даёт новый алгоритм без новых посылок.
+- **Формализация.** `logitCE_strictAnti`, `descent_step_strict`,
+  `logitStepCertExact`, `logitStepCertExact'` и
+  `logit_exact_drop_dominates` в `Unified/LogitCert.lean`.
+  Любой η > 0 допустим только для scalar one-example CE;
+  drop равен фактической разности CE, поэтому на исходном
+  диапазоне 0 < η ≤ 2 старая оценка доминируется без
+  изменения её frozen-формулировки.
+- **Независимый refute-first аудит.** PASS с границей:
+  доминирование сохраняет η ≤ 2; контрпример w=0, η=10 даёт
+  oldBound=1.25 > exactDrop≈0.68643. Двухпримерная сумма
+  `logitCE w + logitCE (-w)` опровергает универсальный
+  large-step перенос. В коде кванторы остаются scalar.
+- **Проверка.** `lake build Hagi.Unified.LogitCert` PASS;
+  `#print axioms` для пяти declarations — только propext,
+  Classical.choice, Quot.sound; Freeze 4131, DupLint/NsLint/
+  DocLint/LayerLint/STMDUP/AssumptionScan/StatusLint/ReachLint
+  и regex-TrivialLint PASS. Полный `bash scripts/ci.sh` —
+  CI: PASS (включая CHALLENGE, MACHINEDIFF и ALLAXIOMS).
+  `sorry/custom axiom`: 0.
+- **Что следует.** Точный drop максимален среди допустимых
+  `actualDescent`-сертификатов того же перехода: больший drop
+  нарушил бы определение. Это улучшение сертификата, не доказанное
+  ускорение общей логистической сходимости.
+- **Retro.** Сначала проверять точную монотонность исполнения,
+  и только затем гладкостную оценку: кап из descent lemma не
+  всегда является ограничением реального алгоритма. Отдельный
+  ревьюер обязателен: именно он остановил ложное снятие η ≤ 2
+  из теоремы доминирования.
+- **Следующий frontier.** HB: от модулей корней к траектории;
+  кратный корень требует Jordan-член `(t+1)·ρ^t`. Затем
+  многопараметрический LogitCert с нормой входа или measured
+  commit/hold вместо незаконного переноса scalar-аргумента.
