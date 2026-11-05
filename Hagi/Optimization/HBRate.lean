@@ -735,4 +735,59 @@ theorem hb_two_root_orthonormal_bound
   exact hb_two_root_l2_bound (fun k => b.repr (e k)) t beta lam1 lam2 A B
     rho hrho hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
 
+/-- Модально-зависимая L²-сборка: НЕ усредняем и НЕ заменяем
+все темпы общим максимумом. Каждая мода вносит именно
+`(‖A_i‖+‖B_i‖)·ρ_i^n` в квадратичную сумму. Произвольные
+знаки корней и пустой набор мод не требуют гипотезы `0 ≤ ρ_i`. -/
+theorem hb_two_root_l2_weighted_bound {ι : Type*} [Fintype ι]
+    (e : ℕ → EuclideanSpace ℂ ι) (t beta lam1 lam2 A B : ι → ℂ)
+    (rho : ι → ℝ)
+    (hrec : ∀ n i, e (n + 2) i = t i * e (n + 1) i - beta i * e n i)
+    (hroot1 : ∀ i, lam1 i ^ 2 - t i * lam1 i + beta i = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2 - t i * lam2 i + beta i = 0)
+    (h0 : ∀ i, e 0 i = A i + B i)
+    (h1 : ∀ i, e 1 i = A i * lam1 i + B i * lam2 i)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho i) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho i)
+    (n : ℕ) :
+    ‖e n‖ ≤ Real.sqrt (∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2) := by
+  have hcoord (i : ι) :
+      ‖e n i‖ ≤ (‖A i‖ + ‖B i‖) * rho i ^ n := by
+    exact hb_two_root_norm_cap (fun k => e k i) (t i) (beta i)
+      (lam1 i) (lam2 i) (A i) (B i) (rho i) (fun k => hrec k i)
+      (hroot1 i) (hroot2 i) (h0 i) (h1 i) (hnorm1 i) (hnorm2 i) n
+  have hsquare (i : ι) : ‖e n i‖ ^ 2 ≤
+      ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2 :=
+    pow_le_pow_left₀ (norm_nonneg _) (hcoord i) 2
+  have hsq : ‖e n‖ ^ 2 ≤ ∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2 := by
+    calc
+      ‖e n‖ ^ 2 = ∑ i, ‖e n i‖ ^ 2 := EuclideanSpace.norm_sq_eq _
+      _ ≤ ∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2 := by
+        exact Finset.sum_le_sum fun i _ => hsquare i
+  calc
+    ‖e n‖ = Real.sqrt (‖e n‖ ^ 2) := (Real.sqrt_sq (norm_nonneg _)).symm
+    _ ≤ Real.sqrt (∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2) :=
+      Real.sqrt_le_sqrt hsq
+
+/-- Ортонормированный перенос точной модально-взвешенной L²-оценки.
+Теорема не утверждает, что эта верхняя граница достигается:
+равенство нормы гарантируется у базиса, а не у scalar triangle
+и используемых cap-неравенств. -/
+theorem hb_two_root_orthonormal_weighted_bound
+    {ι E : Type*} [Fintype ι]
+    [NormedAddCommGroup E] [InnerProductSpace ℂ E]
+    (b : OrthonormalBasis ι ℂ E) (e : ℕ → E)
+    (t beta lam1 lam2 A B : ι → ℂ) (rho : ι → ℝ)
+    (hrec : ∀ n i, b.repr (e (n + 2)) i =
+      t i * b.repr (e (n + 1)) i - beta i * b.repr (e n) i)
+    (hroot1 : ∀ i, lam1 i ^ 2 - t i * lam1 i + beta i = 0)
+    (hroot2 : ∀ i, lam2 i ^ 2 - t i * lam2 i + beta i = 0)
+    (h0 : ∀ i, b.repr (e 0) i = A i + B i)
+    (h1 : ∀ i, b.repr (e 1) i = A i * lam1 i + B i * lam2 i)
+    (hnorm1 : ∀ i, ‖lam1 i‖ ≤ rho i) (hnorm2 : ∀ i, ‖lam2 i‖ ≤ rho i)
+    (n : ℕ) :
+    ‖e n‖ ≤ Real.sqrt (∑ i, ((‖A i‖ + ‖B i‖) * rho i ^ n) ^ 2) := by
+  rw [← b.repr.norm_map (e n)]
+  exact hb_two_root_l2_weighted_bound (fun k => b.repr (e k))
+    t beta lam1 lam2 A B rho hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
+
 end Hagi.Optimization.HBRate
