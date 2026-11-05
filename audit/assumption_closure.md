@@ -96,3 +96,11 @@
   с sufficient-step positivity; никакой smoothness-гипотезы.
 - Все три ядра имеют только стандартные Lean-аксиомы;
   AssumptionScan не получил новых premise binders (137).
+
+## Цикл 47 — computed growth/merge
+
+- `GrowthComputedCert.next/stepCert` замыкают реальное
+  обновление весов в `CertStep`: drop=`(1−(1−η)²)·E`.
+- `mergeOperationalCertStep` использует настоящий Jensen gap
+  как drop, а `mergeStrictCertStep` доказывает его ненулевость.
+- Никаких `h_emp_*` в ядрах; общие ledger-формы не удаляются.

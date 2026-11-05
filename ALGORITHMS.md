@@ -48,6 +48,8 @@ loop t = 0..n:
   `logitStepCertExactCore` (scalar large-step CE),
   `ncMinimalStepCert` (энергия = gain нейрокомпьютера),
   `trainStepMinimalCert` (точный drop TrainState).
+  Цикл 47 добавляет `GrowthComputedCert.stepCert` и
+  `mergeStrictCertStep` (не нулевой Jensen gap).
   Исполнение даёт drop и actual без `h_emp_*`; полы, риск
   и бюджет подключаются как расширения, не подмена ядра.
 

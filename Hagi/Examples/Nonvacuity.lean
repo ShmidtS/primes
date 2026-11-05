@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Unified.MasterHAGI
+import Hagi.Unified.HonestTransition
 import Hagi.Runtime.TernaryExact
 import Hagi.Core.Concat
 /-!
@@ -189,6 +190,35 @@ theorem core_premises_merge_operational {k : Type} [Fintype k]
   have hb := merge_energy_bridge t z₁ z₂
   have hg := jensenGap_nonneg z₁ z₂
   linarith
+
+/-- Минимальный CertStep merge для двух экспертов: реальные
+энергии как состояния `ℝ`, objective=`id`, drop=Jensen gap.
+Неотрицательности недостаточно для CertStep: нужен строгий gap. -/
+noncomputable def mergeOperationalCertStep {k : Type} [Fintype k]
+    [Nonempty k] (t : k) (z₁ z₂ : k → ℝ)
+    (hgap : 0 < jensenGap z₁ z₂) :
+    Hagi.Unified.HonestTransition.CertStep id
+      ((Hagi.ceOneHot t z₁ + Hagi.ceOneHot t z₂) / 2)
+      (Hagi.ceOneHot t ((z₁ + z₂) / 2)) where
+  drop := jensenGap z₁ z₂
+  drop_pos := hgap
+  actual := by
+    show Hagi.ceOneHot t ((z₁ + z₂) / 2)
+      ≤ (Hagi.ceOneHot t z₁ + Hagi.ceOneHot t z₂) / 2 - jensenGap z₁ z₂
+    rw [merge_energy_bridge]
+
+/-- Невырожденный merge CertStep: z₁=0, z₂=(a,−a), a≠0.
+Строгий gap получен из `jensenGap_pos_witness`, не декларирован. -/
+noncomputable def mergeStrictCertStep (t : Fin 2) (a : ℝ) (ha : a ≠ 0) :
+    let z₁ : Fin 2 → ℝ := fun _ => 0
+    let z₂ : Fin 2 → ℝ := fun i => if i = 0 then a else -a
+    Hagi.Unified.HonestTransition.CertStep id
+      ((Hagi.ceOneHot t z₁ + Hagi.ceOneHot t z₂) / 2)
+      (Hagi.ceOneHot t ((z₁ + z₂) / 2)) := by
+  dsimp only
+  exact mergeOperationalCertStep t _ _
+    (jensenGap_pos_witness a ha)
+
 end Hagi.Examples
 
 namespace Hagi

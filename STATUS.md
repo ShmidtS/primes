@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 417 Lean-модулей в `Hagi/`; 4146 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4150 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2622,6 +2622,17 @@
   `trainStep_actualDescent`), а не из h_emp-рекорда.
 - Проверены три узкие сборки и `#print axioms`: только
   стандартная тройка; AssumptionScan остаётся 137.
+
+## Исследовательский цикл 47 — computed grow/merge core
+
+- `GrowthComputedCert.stepCert`: реальный computed-growth
+  переход даёт CertStep с drop=`(1−(1−η)²)·E`;
+  положительность доказана из коэффициента и энергии.
+- `mergeOperationalCertStep`: drop=Jensen gap между двумя
+  экспертами; `mergeStrictCertStep` даёт невырожденный
+  `z₁=0,z₂=(a,−a)` инстанс из `jensenGap_pos_witness`.
+- Все четыре declarations имеют только стандартные
+  аксиомы; AssumptionScan остаётся 137.
 
 ## Открытые проблемы
 

@@ -335,3 +335,20 @@ Learning/Hadamard* подключены корректно (ReachLint PASS
 - **Следующий frontier.** Замкнуть computed growth/merge
   instances на общий HonestTransition, затем унифицировать
   StepCert-expansion без дублирования старых телескопов.
+
+## Исследование → формализация → анализ, цикл 47
+
+- **Computed growth.** `GrowthComputedCert.next/stepCert`
+  превращает `growthQuad_step` в CertStep с drop
+  `(1−(1−η)²)·E`; nonzero-веса и `0<η<2` достаточны.
+- **Merge.** `mergeOperationalCertStep` даёт drop=`jensenGap`;
+  `mergeStrictCertStep` выводит строгость из existing
+  `jensenGap_pos_witness`, не из premise. Это фактические
+  инстансы `grow/merge`, а не универсальные эмпирические законы.
+- **Проверка.** Два target-таргета PASS, #print axioms четырёх
+  declarations standard; Freeze 4150, 418 модулей,
+  DocLint/STMDUP/LayerLint/AssumptionScan PASS;
+  полный `bash scripts/ci.sh` — CI: PASS.
+- **Следующий frontier.** Продолжить operational closure
+  по классам, где уже есть точные переходы; внешние модели
+  не объявлять доказанными "для полноты".
