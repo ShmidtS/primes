@@ -11,6 +11,36 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 68: инвентарь посылок из окружения Lean
+
+- `AssumptionScan` больше не сканирует Hagi-текст/комментарии. После
+  обычного root build новый `AssumptionBinders.lean` раскрывает actual
+  binder через environment telescope; lock содержит module, FQ declaration, ordinal,
+  полное имя binder и тип; у docstrings нет такого входа.
+- Environment v2: **196** `h_emp_*` binders в 36 модулях, 42 разных
+  labels, пять `h_emp_`-named declarations. Это НЕ 196 различных задач:
+  одни premise families повторяются в разных public signatures, как
+  оба unit-Fisher cases. Общие исходные conditional statements сохранены.
+- Дополнительный инвентарь h-prefix параметров насчитывает 9020 записей
+  в 407 modules, включая обычные `p>0` и прочие structural conditions.
+  Это не число всех внешних предположений: unnamed type classes,
+  record-valued constraints и inputs с другими именами не охватываются.
+- Старые 38/113 были lexical file+identifier counts, не true binder
+  counts. Повторные premises и недоказанные объекты больше не
+  схлопываются; operational candidate использует целый идентификатор,
+  а не damaged fragments hastic_safeqp_descent, hine_actual_descent.
+- Information primitives разделены по домену: 5 canonical finite-real,
+  7 legacy information и одна matrix spectral entropy. `entryCount`
+  зарегистрирован только как исключённый index-counter. Matrix entropy
+  и finite Shannon entropy не отождествлены без diagonal bridge.
+- Четырнадцать schema/provenance/regression tests PASS, включая обе
+  исходные docstring regressions. Invalid JSON, stale/missing primitives и
+  inconsistent marker означают FAIL, не implicit fallback на старый regex.
+- Корпус по-прежнему 421 Hagi-модуль, 4238 declarations; ни одной
+  production-сигнатуры не изменено. Новый lock для аналитического
+  закрытия конкретных моделей, а НЕ для автоматического измерения
+  physical/stochastic fidelity или universal HAGI optimality.
+
 ### Цикл 67: каноническое CE/KL ядро
 
 - `ceDef` теперь единое определение cross-entropy в нижнем

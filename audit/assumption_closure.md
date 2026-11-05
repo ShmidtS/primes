@@ -11,7 +11,41 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
-## Уже выведено аналитически существующими теоремами
+## Цикл 68 — измерительная база: Lean environment v2
+
+- Предыдущий 38/113 был lexical per-file identifier registry. Новый
+  registry после `lake build Hagi` использует forallTelescope и сортирует
+  фактические параметры по module, FQ declaration и ordinal. Указан
+  source type каждого binder, source comments не являются входом scanner.
+- Точные counts на root 910157e: 196 empirical binders, 36 source
+  modules, 42 labels, пять `h_emp_`-named declarations. 9020 h-prefix
+  structural/math binders in 407 modules. Это спектр interface inputs,
+  а НЕ универсальное число проблем обучения, открытых теорем или
+  физических неизвестных. Unnamed class constraints, record data и
+  universally quantified inputs вне h-naming не поглощаются ложно.
+- Operational candidates теперь 41 от восьми полных идентификаторов;
+  hastic_safeqp_descent, hedule_descent, hes_exec и hine_actual_descent
+  как fragments прежнего regex не присутствуют. Название markers
+  НЕ заменяет проверку computation function и successor state.
+- Information objects: canonical finite-real klDef/ceDef/entDef/tvDef/softDef
+  (5), legacy lse/softmaxP/entropyProduction/shannon/tvHalf/sourceEntropy/softmaxW
+  (7), matrix spectral entropy (1). entryCount intentionally excluded
+  как index-counter. Spectral matrix entropy ≠ finite Shannon unless
+  a separately proved diagonal bridge; такой дополнительный мост здесь не доказывается.
+- Old 5 proved h_emp-named declarations remain; old generic hypothesis
+  types are unchanged by this infrastructure. 196 is not число goals:
+  for example same h_emp_second фактически appears in two public generic
+  declarations/interfaces. Each appearance is recorded with real type
+  and ordinal, not counted once as global word.
+- Root build, second idempotent scan и 14 tests PASS; preserved both
+  initial docstring regressions and added duplicate-name/ordinal,
+  invalid JSON, missing canonical/legacy primitives, nonzero root build,
+  full identifier и cleanup checks.
+- Ниже исторические cycles 45–67 preserve older counts как evidence
+  тогда существовавшего lexical scanner, not current math scope. Отчёт
+  не становится weaker из-за перехода v2: source-code facts privileged.
+
+## Уже выведено аналитически существующими теоремами (историческая v1-карта)
 
 | Класс | Закрытие Lean |
 | --- | --- |

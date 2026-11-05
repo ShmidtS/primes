@@ -6,6 +6,39 @@
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
 
+## Инвентарь модельных предпосылок (цикл 68)
+
+Следующие алгоритмические специализации должны потреблять
+`assumptions.lock` как индекс фактических ∀-параметров, а не Markdown.
+Его создаёт `AssumptionBinders.lean` после штатного root build.
+
+- В inventory v2 каждое входное условие снабжено module,
+  FQ declaration, ordinal и type. Старые текстовые 38/113 заменены
+  фактическими 196 binders семейства h_emp в 36 модулях и 42 label-семействах.
+  Упоминания в docstrings или body приложений не маскируются под binders.
+- Одинаковое label в двух declarations — разные occurrence. Одна
+  repeatable модельная посылка НЕ становится несколькими новыми
+  физическими неизвестными. Registry это НЕ digest доказанности или
+  полное число всех теоретических препятствий.
+- Дополнительный інвентарь h-prefix hypotheses: 9020 form parameters
+  in 407 modules. Сюда входят обычные mathematical conditions, не только
+  external measurements. Unnamed classes, records and other identifiers
+  outside this explicit naming convention remain separately reviewable.
+- Whole-identifier execution marker фиксирует 41 name-candidate от
+  восьми labels, а не четыре damaged fragments старого regex. Для
+  genuine execution controller нужны actual successor functions и effects,
+  а не только имя аргумента вроде h_exec.
+- Information domain: 5 canonical, 7 legacy plus separate matrix
+  spectral entropy. `entryCount` — index-counter и исключён из primitives.
+- Четырнадцать regression/provenance tests PASS. Поиск типа и primitive
+  object fail closed при ошибках загрузки; предыдущий text-scan не
+  является fallback. Physics, stochastic dynamics, telemetry и optimality
+  не выводятся из изобретённого inventory автоматически.
+
+Эта запись не новый training algorithm, а инфраструктура для выведения
+следующих конкретных fixed-model closures без иллюзорного их численного
+уменьшения. Поддерживается работа Cycle 66–67 над budget/CE ядрами.
+
 ---
 
 ## Каноническое CE/KL-ядро (цикл 67)

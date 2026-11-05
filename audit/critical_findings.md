@@ -1,5 +1,32 @@
 
-### Цикл 67 (canonical CE/KL): общее ядро, q=0 и p=0
+### Цикл 68 (inventory): фактические binders, не текстовые токены
+
+- `AssumptionBinders.lean` читает elaborated root environment и раскрывает
+  каждый binder через `forallTelescope/getFVarLocalDecl`. Lock хранит
+  module, полноеимя, ordinal, actual type; docstrings не порождают записей.
+- Environment v2 содержит 196 empirical occurrences в 36 modules/42
+  labels, 9020 h-prefix structural occurrences в 407 modules и пять
+  доказанных `h_emp_`-named declarations. Count — ВХОДЫ интерфейсов,
+  не число независимых открытых физических/стохастических проблем.
+- Information classification явная: пять finite-real canonical, семь
+  legacy и отдельная матричная spectral entropy; `entryCount` — исключённый
+  counter. Никакой diagonal bridge между Shannon и matrix entropy не введён.
+- Execution помечает только 41 occurrence восьми полных имён; повреждённые
+  fragments старого regex отсутствуют. Имя `h_exec` не есть evidence
+  действительного successor-state computation.
+- Четырнадцать tests покрывают comments, ordinal collisions, invalid
+  JSON/markers, missing canonical И legacy definitions, root-build
+  precedence и реальный simulated nonzero build: main возвращает FAIL,
+  lock не создаётся, fallback на lexical scanner отсутствует.
+- Независимое refute-first ревью дало LGTM с двумя LOW: старый guard not
+  проверял missing legacy primitive, а nonzero build не был покрыт тестом.
+  Обе проблемы исправлены в guard и regression tests, без ослабления
+  fail-closed требований; focused follow-up refute-first review: LGTM.
+  Production Hagi сигнатуры и imports не изменены.
+- Инвентарь нужен для ЧЕСТНЫХ последующих fixed-model specializations;
+  он не удаляет 196 premises, не доказывает execution и не является
+  new optimal training algorithm. Общие theorem types остаются frozen.
+
 
 - В `Prelude.Info` добавлены `ceDef`, `ceDef_self` и
   `klDef_eq_ceDef_sub`. Старые duplicate CE/KL proofs в Distill/InfoNCE
