@@ -73,6 +73,7 @@ import Hagi.Information.DiscreteFannes
 import Hagi.Unified.CostComposition
 import Hagi.Unified.EFTheory
 import Hagi.Unified.TernaryWitness
+import Hagi.Unified.TernaryProbe
 import Hagi.StatMech.Hopfield.Model
 import Hagi.StatMech.Hopfield.Concentration
 import Hagi.StatMech.Hopfield.LowerBound

@@ -1,4 +1,39 @@
 
+### Цикл 64 (bounded ternary): min на trust-region, saturation cap
+- Bounded selector рассматривает обе ветки. При r>σmax доказана
+  nonpositive факторизация `a(B−s)/(Bs)·(Bs(B+s)−2r³)` с правильным
+  знаком. `Bs(B+s)≤2B³≤2r³`; три точных Fraction-регрессии подтверждены.
+- `ternaryRoundCap` использует уже реализованный qTern и его exact
+  error in/out, без in-range premise как у предыдущей saturation recovery.
+  Для него actual shift errors с σ и −σ выводятся полностью.
+- `ternaryCubicStepBudget` равен `level/2 + (|c|/6)(|r|+‖v‖²σmax)³`.
+  Он обоснован absolute triangle + pow monotone, для сдвига любого знака,
+  и НЕ назначает error cap универсального loss через переименование.
+- `probeCubicEnergy` после qTern не объявляется гладкой. Ошибка quantized
+  central сравнивается с уже доказанной Fréchet-derivative исходной
+  cubic energy, не с общим false smoothness claim о кусочном Q.
+- Selected root min(r,σmax) может быть именно boundary. Theorem не
+  пропускает σmax positivity и не допускает comparisons вне σ≤σmax.
+- Существует ненулевой численный saturation probe: qTern(27/8)=1,
+  shifted negative endpoint −1/8→0. Ошибка grad=1/4 (измерено 1/2
+  против 3/4), а не нулевой или домешиваемый через pure central witness.
+- Budget=31/8, boundary cost=39/8, other allowed step cost=8.
+  Обе bounded branch теста: 5≤33/4 и inner-root 3≤17/4.
+- Нет оптимизации level, разряда, памяти, сложности runtime, full IEEE,
+  stochastic noise или global architecture. Регистр старых premise
+  условий сохранён, нет новых empirical binders.
+- Scope aggregate: три bounded declarations в ProbeError + семь
+  ternary в новом Unified. Frozen old statements не менялись.
+- Обе независимые рецензии: LGTM. Раздельно проверены bounded
+  factorization, saturation cap, signed offsets, coefficient
+  ‖v‖⁶, actual nonzero-gradient example и layered imports.
+- Полный CI: PASS, 419 modules, 4214 declarations. Focused artifact
+  нового модуля явно присутствует и root build повторён; ALLAXIOMS чист.
+  AssumptionScan registry 38/113, только standard axioms для 10 additions.
+- Следующая открытая граница: явная стоимость memory/level и
+  соответствующий executable protocol; не поддаваться temptation to
+  extrapolate local upper-bound minimization на global architecture.
+
 ### Цикл 63 (dense-grid probe): bound вычислен, не назначен
 - Ссылочный nearest-round объект существует в Mathlib. Добавлен dense grid
   `grid*round(value/grid)` по аналогии saturation-разделённого qTern,

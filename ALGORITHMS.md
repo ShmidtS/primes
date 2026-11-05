@@ -321,6 +321,13 @@ s = ‖g‖₁ / n                            # signScale
   уже реализовано на двух endpoint values. Применять best σ только при
   фиксированном grid>0, c,v≠0, без расширения на finite-word. Cost bound
   не означает strict ordering фактических ошибок или оптимальную сетку.
+- `boundedProbeOptimalStep` и `probeCost_le_boundedOptimal` (цикл 64):
+  при положительных coefficients и σmax выбирают min globalRoot,σmax,
+  доказывая минимум cost на `(0,σmax]`. Нельзя применять вне этой области.
+- `ternaryRoundCap_abs_error_le` и `ternaryCubicStepBudget` вычисляют
+  actual saturation error из qTern in/out branches и cubic energy growth.
+  `ternaryCentralCubicProbe_optimal_bound` минимизирует только вычисленную
+  guarantee для fixed level + σmax, не оптимизирует разряд/память сам по себе.
 - `centralQuadraticProbe_exact` (цикл 58): в том же translated
   quadratic классе центральный probe вместо одностороннего вычисления
   возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной

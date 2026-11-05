@@ -251,3 +251,25 @@
 - Nonzero gradient probe фиксирует ошибку 5/4 с measured value 2 и
   gradient 3/4. Дельта-cost selected 3≤5 при comparison σ=2.
 - AssumptionScan по-прежнему 38/113; только designated model closed.
+
+## Цикл 64 — bounded saturation для ternary cubic probe
+- Недопустимая прямая подстановка переменного saturation cap в
+  unbounded cube-root optimum заменена на корректную bounded domain
+  optimization: min(r,σmax) с доказательством обеих веток.
+- Существующий actual `qTern` подключён напрямую. Его cap для обоих
+  range cases = max(level/2,|value|-level), не переписывает old defs
+  и не предполагает in-range покрытия всех значений energy.
+- `ternaryCubicStepBudget` математически вычисляется через рост energy
+  при |t|≤σmax и два знака сдвига. Этот бюджет upper bound, не
+  следование из стохастических moments всех измерений.
+- Actual signed offsets Q(F)-F, including positive saturation and
+  negative small endpoint, соединяются с уже доказанной cubic/noise cost.
+  Существующая genuine derivative исходной энергии не смешивается с
+  неформализованной производной кусочного quantized protocol.
+- Оптимальность ограничена fixed level, fixed σmax, и interval (0,σmax].
+  Победить global actual error или оптимизировать memory/level/runtime
+  этот proof не утверждает; h_emp registry не сокращён силой названий.
+- Скалярный probe: q=1 и q=0, offsets=-19/8 и 1/8, error=1/4.
+  Cost at clipped root=39/8, other within-region cost=8. Lean проверено.
+- Импорт по слоям: общий optimizer в Pretraining, ternary bridge в
+  Unified (соответствует layer order и без исключений LayerLint).

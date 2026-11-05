@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4204 декларации (Freeze);
+- 419 Lean-модулей в `Hagi/`; 4214 декларации (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2915,6 +2915,29 @@
   Selected cost=3, сравниваемая cost при σ=2 равна 5.
 - Пять новых declarations, старые forms и Fréchet-доказательства сохранены.
   Registry 38/113; чистые стандартные axioms.
+
+## Исследовательский цикл 64 — bounded saturation-aware probe
+
+- `boundedProbeOptimalStep a b σmax = min(globalRoot, σmax)` и
+  `probeCost_le_boundedOptimal` выводят минимум cost именно на `(0,σmax]`.
+  Вторая ветка — граничная, если исходный root правее допустимой области.
+- `qTern` теперь подключён к central cubic probe через точный
+  universal cap `max(level/2, |value|-level)` без in-range assumption.
+  Для saturation используется фактическая out-of-range formula.
+- `ternaryCubicStepBudget` вычислен через центр направления cubic
+  energy и положительную область размера шагов. Оба signs `t` объёмлются
+  неравенством |t|≤σmax; это не optimizer для произвольного loss.
+- `ternaryCentralCubicProbe_optimal_bound` сочетает exact signed offsets
+  и clipped root. Min касается computed upper bound для fixed level/σmax,
+  НЕ level, bit width, memory, runtime floating или общей архитектуры.
+- Probe: c=6,a=0,v=1,x=1/2,level=σmax=1. Positive saturation F+=27/8
+  даёт q=1, negative lower endpoint −1/8 даёт q=0; signed offsets
+  −19/8 и +1/8. Measured=1/2, real grad=3/4, error=1/4.
+- Budget=31/8, исходный root>1, ограниченный root=1; cost=39/8,
+  comparison sigma=1/2 даёт cost 8. Clipped/global branches обе проверены.
+- Declaration count включает три generic bounded declarations + семь
+  ternary declarations. Нет custom axioms или новых binder'ов эмпирических
+  допущений. Registry по-прежнему 38/113.
 
 ## Открытые проблемы
 

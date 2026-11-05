@@ -263,6 +263,60 @@ theorem probeCost_lt_optimal (a b σ : ℝ)
     (probeOptimalStep_coefficient a b ha hb)]
   positivity
 
+/-! ### Cycle 64: глобальный корень, ограниченный допустимым шагом -/
+
+/-- Глобальный минимизатор арифметического суррогата, ограниченный
+положительным порогом `σmax`. За пределами интервала `(0, σmax]` это
+определение не утверждает оптимальности. -/
+noncomputable def boundedProbeOptimalStep (a b σmax : ℝ) : ℝ :=
+  min (probeOptimalStep a b) σmax
+
+/-- Ограниченный выбранный шаг положителен при положительных
+коэффициентах и положительном пороге. -/
+theorem boundedProbeOptimalStep_pos (a b σmax : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hmax : 0 < σmax) :
+    0 < boundedProbeOptimalStep a b σmax := by
+  exact lt_min (probeOptimalStep_pos a b ha hb) hmax
+
+/-- Стоимость на глобальном корне, обрезанном порогом `σmax`, не
+превышает стоимость любого сравниваемого шага из `(0, σmax]`. Если
+корень лежит внутри области, используется его глобальный минимум; если
+он правее порога, применяется точная граничная факторизация. -/
+theorem probeCost_le_boundedOptimal (a b σmax σ : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hmax : 0 < σmax)
+    (hσ : 0 < σ) (hσmax : σ ≤ σmax) :
+    probeCost a b (boundedProbeOptimalStep a b σmax) ≤ probeCost a b σ := by
+  by_cases hr : probeOptimalStep a b ≤ σmax
+  · rw [boundedProbeOptimalStep, min_eq_left hr]
+    exact probeCost_le_optimal a b σ ha hb hσ
+  · have hBr : σmax ≤ probeOptimalStep a b := le_of_lt (lt_of_not_ge hr)
+    rw [boundedProbeOptimalStep, min_eq_right hBr, ← sub_nonpos]
+    have hid : probeCost a b σmax - probeCost a b σ =
+        a * (σmax - σ) / (σmax * σ) *
+          (σmax * σ * (σ + σmax) - 2 * (probeOptimalStep a b) ^ 3) := by
+      simp only [probeCost]
+      conv_lhs => rw [probeOptimalStep_coefficient a b ha hb]
+      field_simp [hmax.ne', hσ.ne']
+      ring
+    rw [hid]
+    have hprod : σmax * σ * (σ + σmax) ≤
+        2 * (probeOptimalStep a b) ^ 3 := by
+      calc
+        σmax * σ * (σ + σmax) ≤ (σmax * σmax) * (σmax + σmax) :=
+          mul_le_mul
+            (mul_le_mul_of_nonneg_left hσmax hmax.le)
+            (add_le_add hσmax (le_refl σmax))
+            (add_nonneg hσ.le hmax.le)
+            (mul_nonneg hmax.le hmax.le)
+        _ = 2 * σmax ^ 3 := by ring
+        _ ≤ 2 * (probeOptimalStep a b) ^ 3 :=
+          mul_le_mul_of_nonneg_left
+            (pow_le_pow_left₀ hmax.le hBr 3) (by norm_num)
+    exact mul_nonpos_of_nonneg_of_nonpos
+      (div_nonneg (mul_nonneg ha.le (sub_nonneg.mpr hσmax))
+        (mul_nonneg hmax.le hσ.le))
+      (sub_nonpos.mpr hprod)
+
 /-! ### Cycle 61: кубический остаток и ограниченные измерения -/
 
 /-- Детерминированная граница вклада двух ограниченных погрешностей
