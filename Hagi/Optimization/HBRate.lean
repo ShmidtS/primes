@@ -41,7 +41,12 @@ set_option maxHeartbeats 800000
 Для канонической рекурренты при двойном корне ρ получена точная форма
 (C+D·n)·ρ^n и оценка |e_n| ≤ (|e_0|+|e_1/ρ−e_0|·n)·ρ^n.
 Это критическая скалярная мода, а не утверждение о полном спектре.
-Траектории внутренних мод и различные корни — следующий frontier.
+
+Цикл 44 добавляет двухкорневую траекторию `Aλ₁^n+Bλ₂^n`,
+явные коэффициенты при λ₁≠λ₂ и мост корневых модулей к
+оценке `(‖A‖+‖B‖)·(√β)^n`. Различные корни и комплексные
+внутренние моды теперь покрыты на scalar-носителе. Следующие
+frontier — положительный дискриминант и векторная сборка.
 -/
 
 namespace Hagi.Optimization.HBRate
@@ -441,5 +446,143 @@ theorem hb_critical_trajectory_bound (e : ℕ → ℝ) (rho : ℝ)
         mul_le_mul_of_nonneg_right (abs_add_le _ _) (pow_nonneg h0.le n)
     _ = (|e 0| + |e 1 / rho - e 0| * n) * rho ^ n := by
       rw [abs_mul, abs_of_nonneg (Nat.cast_nonneg n : (0 : ℝ) ≤ n)]
+
+/-! ### Различные корни внутренней моды (цикл 44) -/
+
+/-- Семейство двух экспонент удовлетворяет рекурренте, если
+каждое основание — корень её характеристического многочлена.
+Различность корней здесь не нужна: она понадобится только
+для единственного восстановления коэффициентов по `e₀,e₁`. -/
+theorem hb_two_root_form_solves (t beta lam1 lam2 A B : ℂ)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0) :
+    ∀ n : ℕ, A * lam1 ^ (n + 2) + B * lam2 ^ (n + 2) =
+      t * (A * lam1 ^ (n + 1) + B * lam2 ^ (n + 1))
+        - beta * (A * lam1 ^ n + B * lam2 ^ n) := by
+  have hr1 : lam1 ^ 2 = t * lam1 - beta := by
+    linear_combination hroot1
+  have hr2 : lam2 ^ 2 = t * lam2 - beta := by
+    linear_combination hroot2
+  intro n
+  calc
+    A * lam1 ^ (n + 2) + B * lam2 ^ (n + 2) =
+        A * (lam1 ^ n * lam1 ^ 2) + B * (lam2 ^ n * lam2 ^ 2) := by
+      simp only [pow_succ]
+      ring
+    _ = A * (lam1 ^ n * (t * lam1 - beta))
+        + B * (lam2 ^ n * (t * lam2 - beta)) := by rw [hr1, hr2]
+    _ = t * (A * lam1 ^ (n + 1) + B * lam2 ^ (n + 1))
+        - beta * (A * lam1 ^ n + B * lam2 ^ n) := by
+      simp only [pow_succ]
+      ring
+
+/-- Решение с двумя характеристическими корнями: начальные
+равенства фиксируют разложение в базисе двух экспонент,
+после чего сильная индукция применяет `hb_two_root_form_solves`. -/
+theorem hb_two_root_closed_form (e : ℕ → ℂ) (t beta lam1 lam2 A B : ℂ)
+    (hrec : ∀ n, e (n + 2) = t * e (n + 1) - beta * e n)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2) :
+    ∀ n, e n = A * lam1 ^ n + B * lam2 ^ n := by
+  intro n
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+    match n with
+    | 0 => simpa using h0
+    | 1 => simpa using h1
+    | n + 2 =>
+      rw [hrec n, ih (n + 1) (by omega), ih n (by omega)]
+      symm
+      exact hb_two_root_form_solves t beta lam1 lam2 A B hroot1 hroot2 n
+
+/-- При РАЗЛИЧНЫХ корнях коэффициенты разложения начальных
+`e₀,e₁` вычисляются явно, без скрытого деления на нуль. -/
+theorem hb_distinct_root_init (e0 e1 lam1 lam2 : ℂ)
+    (hne : lam1 ≠ lam2) :
+    let A := (e1 - lam2 * e0) / (lam1 - lam2)
+    let B := (lam1 * e0 - e1) / (lam1 - lam2)
+    e0 = A + B ∧ e1 = A * lam1 + B * lam2 := by
+  dsimp only
+  have hden : lam1 - lam2 ≠ 0 := sub_ne_zero.mpr hne
+  constructor <;> field_simp [hden] <;> ring
+
+/-- Полная явная траектория для двух РАЗЛИЧНЫХ корней.
+Формула вычислима по начальным значениям и не требует
+ненулевых `lam1`, `lam2`: нулевой в знаменателе только их разность. -/
+theorem hb_distinct_root_explicit (e : ℕ → ℂ) (t beta lam1 lam2 : ℂ)
+    (hne : lam1 ≠ lam2)
+    (hrec : ∀ n, e (n + 2) = t * e (n + 1) - beta * e n)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0) :
+    ∀ n, e n = ((e 1 - lam2 * e 0) / (lam1 - lam2)) * lam1 ^ n
+      + ((lam1 * e 0 - e 1) / (lam1 - lam2)) * lam2 ^ n := by
+  let A := (e 1 - lam2 * e 0) / (lam1 - lam2)
+  let B := (lam1 * e 0 - e 1) / (lam1 - lam2)
+  obtain ⟨h0, h1⟩ := hb_distinct_root_init (e 0) (e 1) lam1 lam2 hne
+  exact hb_two_root_closed_form e t beta lam1 lam2 A B hrec
+    hroot1 hroot2 h0 h1
+
+/-- Норма двухкорневой траектории ограничена суммой модулей
+составляющих экспонент. При `|lam1|,|lam2| ≤ ρ` это даст
+единый темп без Jordan-фактора; здесь не добавляется лишняя
+посылка о различности или ненулевости корней. -/
+theorem hb_two_root_norm_bound (e : ℕ → ℂ) (t beta lam1 lam2 A B : ℂ)
+    (hrec : ∀ n, e (n + 2) = t * e (n + 1) - beta * e n)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2) (n : ℕ) :
+    ‖e n‖ ≤ ‖A‖ * ‖lam1‖ ^ n + ‖B‖ * ‖lam2‖ ^ n := by
+  rw [hb_two_root_closed_form e t beta lam1 lam2 A B hrec
+    hroot1 hroot2 h0 h1 n]
+  calc
+    ‖A * lam1 ^ n + B * lam2 ^ n‖
+      ≤ ‖A * lam1 ^ n‖ + ‖B * lam2 ^ n‖ := norm_add_le _ _
+    _ = ‖A‖ * ‖lam1‖ ^ n + ‖B‖ * ‖lam2‖ ^ n := by
+      rw [norm_mul, norm_mul, norm_pow, norm_pow]
+
+/-- Общий модуль обоих корней сворачивает двухкорневую
+оценку в одну экспоненту. Коэффициент зависит только от
+разложения начальных данных; Jordan-фактор не возникает. -/
+theorem hb_two_root_common_norm_bound (e : ℕ → ℂ)
+    (t beta lam1 lam2 A B : ℂ) (rho : ℝ)
+    (hrec : ∀ n, e (n + 2) = t * e (n + 1) - beta * e n)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2)
+    (hnorm1 : ‖lam1‖ = rho) (hnorm2 : ‖lam2‖ = rho) (n : ℕ) :
+    ‖e n‖ ≤ (‖A‖ + ‖B‖) * rho ^ n := by
+  have h := hb_two_root_norm_bound e t beta lam1 lam2 A B hrec
+    hroot1 hroot2 h0 h1 n
+  rw [hnorm1, hnorm2] at h
+  calc
+    ‖e n‖ ≤ ‖A‖ * rho ^ n + ‖B‖ * rho ^ n := h
+    _ = (‖A‖ + ‖B‖) * rho ^ n := by ring
+
+/-- СПЕКТРАЛЬНАЯ ДВУХКОРНЕВАЯ ТРАЕКТОРИЯ: при β>0 и
+неположительном дискриминанте оба корня имеют модуль √β,
+поэтому разложение по двум корням ограничено
+`(‖A‖+‖B‖)·(√β)^n`. Это мост `hb_root_modulus` к реальной
+траектории, а не утверждение о любом решении кратного корня. -/
+theorem hb_two_root_spectral_norm_bound (e : ℕ → ℂ)
+    (t : ℝ) (beta : ℝ) (lam1 lam2 A B : ℂ)
+    (hβ : 0 < beta) (hdiscr : t ^ 2 - 4 * beta ≤ 0)
+    (hrec : ∀ n, e (n + 2) = (t : ℂ) * e (n + 1) - (beta : ℂ) * e n)
+    (hroot1 : lam1 ^ 2 - (t : ℂ) * lam1 + (beta : ℂ) = 0)
+    (hroot2 : lam2 ^ 2 - (t : ℂ) * lam2 + (beta : ℂ) = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2) (n : ℕ) :
+    ‖e n‖ ≤ (‖A‖ + ‖B‖) * (Real.sqrt beta) ^ n := by
+  have hsq1 : lam1.normSq = beta := hb_root_modulus beta t hβ hdiscr lam1 hroot1
+  have hsq2 : lam2.normSq = beta := hb_root_modulus beta t hβ hdiscr lam2 hroot2
+  have hnorm1 : ‖lam1‖ = Real.sqrt beta := by
+    rw [Complex.normSq_eq_norm_sq] at hsq1
+    rw [← hsq1]
+    exact (Real.sqrt_sq (norm_nonneg lam1)).symm
+  have hnorm2 : ‖lam2‖ = Real.sqrt beta := by
+    rw [Complex.normSq_eq_norm_sq] at hsq2
+    rw [← hsq2]
+    exact (Real.sqrt_sq (norm_nonneg lam2)).symm
+  exact hb_two_root_common_norm_bound e (t : ℂ) (beta : ℂ) lam1 lam2 A B
+    (Real.sqrt beta) hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
 
 end Hagi.Optimization.HBRate
