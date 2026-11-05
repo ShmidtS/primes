@@ -72,6 +72,7 @@ echo "$out"
 case "$out" in *"FREEZE: PASS"*) ;; *) echo "FREEZE: FAIL"; fail=1;; esac
 
 step "AssumptionScan (h_emp premise + primitive registry, lock-gated)"
+python scripts/TestAssumptionScan.py || { echo "ASSUMPTIONSCAN: regression FAIL"; fail=1; }
 out=$(python scripts/AssumptionScan.py 2>&1 | tail -1)
 echo "$out"; case "$out" in ASSUMPTIONSCAN:\ PASS*) ;; *) echo "ASSUMPTIONSCAN: FAIL"; fail=1;; esac
 

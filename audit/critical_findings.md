@@ -1,4 +1,23 @@
 
+### Цикл 55 (assumption registry): отделение binder от docstring
+- Root cause: `/-.*?-/s` содержал лишний s в block-comment regex.
+  Комментарий мог маскироваться под source premise либо доказанную
+  h_emp-named декларацию; проблема инструмента, не математической цели.
+- `scripts/TestAssumptionScan.py`: два regressed кейса. До правки
+  FAILED=2 (doc premise и doc theorem учитывались), после правки OK=2.
+  Тест включён в сам AssumptionScan-step полного CI.
+- Новый registry: 38 files/113 identifiers = 5 actual proved+
+  108 premise names. Legacy: 45 files/137=5+132; 24 различия —
+  комментарные вхождения. Operational: 10 вместо 11 (одно комментарное имя).
+- Все теоремы/сигнатуры исходника не изменены; Freeze=4169 без drift.
+  Улучшение отчётности НЕ засчитано доказательством удаления assumptions.
+  Оставшийся класс trust bindings остаётся явным в updated lock.
+- Независимый review: LGTM по regex, двум regression tests и real
+  counter; optional nested comments/strings lexer — отдельный scope,
+  по текущим source не блокирует это точечное исправление.
+- Полный CI: PASS, включая постоянный regression (2 tests, OK);
+  Freeze=4169 не изменён, ALLAXIOMS/CHALLENGE/MACHINEDIFF чисты.
+
 ### Цикл 54 (projected attention smoothness): геометрия вместо premise
 - `projected_gradient_lipschitz`: имеющаяся в Mathlib оценка нормы
   `norm_orthogonalProjectionOnto_apply_le` выводит Lipschitz bound

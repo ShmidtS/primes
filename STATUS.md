@@ -2749,6 +2749,24 @@
 - Два #print axioms чисты. Registry остаётся 45/137: общий
   h_emp_attsmooth сохранён, закрыта только доказуемая модель.
 
+## Исследовательский цикл 55 — реестр комментариев исправлен
+
+- Root cause в `scripts/AssumptionScan.py`: block-comment regex
+  непреднамеренно требовал лишний `s` после завершителя. Обычные
+  docstrings оставались в сканируемом коде вместо игнорирования.
+- Regression `scripts/TestAssumptionScan.py` до фикса падает дважды,
+  после фикса PASS: docstring не создаёт binder/theorem, а настоящие
+  binder и h_emp-named proved definition сохраняются раздельно.
+- Новый real registry: 38 файлов, 113 identifiers = 5 proved и
+  108 premise names. Legacy 45/137 (5+132) включал 24 комментарных
+  вхождения. Operational names: 10 вместо legacy 11.
+- Это исправление измерения, НЕ 24 новых математических доказательства
+  и не удаление оригинальных условий. Lean source/Freeze не менялись:
+  корпус остаётся 418 модулей/4169 declarations.
+- Regression подключён к общему CI перед lock-проверкой. Оставшиеся
+  внешние premise binders необходимо по-прежнему моделировать/выводить;
+  новое число не означает всеобщего analytical closure.
+
 ## Открытые проблемы
 
 1. **Closure gap.** 138/424 модулей (33%) в замыкании капстоунов;
