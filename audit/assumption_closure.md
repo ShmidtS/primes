@@ -162,3 +162,16 @@
   Probe: значения a=1,L=2,σ=1/2,x=1,v=2 дают error=bound=2.
   Композиция с old Cut theorem доказана в test-side Lean probe, аксиомы
   чисты, registry 38/113 без force deleting старых условий.
+
+## Цикл 58 — exact central quadratic probe
+- `centralQuadraticProbe` вычисляет центральную разность для той же
+  canonical translated energy. Никакого forward remainder или
+  external `hmodel` premise не берём для symmetric cancellation.
+- `centralQuadraticProbe_exact` даёт точное algebraic gradient inner
+  при σ>0. Любой L допустим, поэтому нет ложного nonnegative-состояния
+  в предположениях и нет stochastic global unbiasedness claim.
+  Нет также утверждения о сокращении вычислений relative to forward
+  или реализации оптимального σ selection.
+- Пример a=1,L=2,x=0,v=1,σ=1/4 компилируется и даёт -2.
+  Стандартная тройка аксиом проверена у обеих declarations.
+  По-прежнему не удаляем общие условные теоремы; registry 38/113.

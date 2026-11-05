@@ -1,4 +1,21 @@
 
+### Цикл 58 (central quadratic probe): точное уничтожение bias
+- `centralQuadraticProbe`: двусторонний sample на translated quadratic
+  energy. `centralQuadraticProbe_exact` доказывает совпадение с grad.
+  Доказательство использует norm_add/sub_sq_real и cancellation terms.
+- Разрешён любой L, поэтому нет ложной неиспользуемой hL≥0;
+  только ненулевой interval σ>0 через его положительность.
+- Probe с ненулевым gradient: a=1,L=2,x=0,v=1,σ=1/4 даёт -2,
+  выполнен `lake env lean`. Axioms обе declarations standard.
+- Нет overclaim direct unbiasedness, optimal interval, lower compute
+  count или arbitrary nonlinear model. Old general h_emp/mod data frozen.
+- Старые h_emp_attsmooth/hModel interfaces и core Freeze-сигнатуры
+  остаются; новый registry остаётся 38 files/113 identifiers.
+- Независимый рецензент подтвердил корректность знаков,
+  интервала и численного примера. Контрпримеров нет.
+- Полный CI: PASS. Freeze=4178, оба registry-теста OK,
+  ALLAXIOMS/CHALLENGE/MACHINEDIFF чисты, 0 sorry.
+
 ### Цикл 57 (quadratic probe): remainder и gradient-Lipschitz
 - `fd_probe_error_quadratic` выводит unconstrained Taylor remainder
   `(L/2)σ²‖v‖²` общим norm expansion. Отдельная hmodel-премиса

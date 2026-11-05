@@ -291,6 +291,10 @@ s = ‖g‖₁ / n                            # signScale
   измерять clamp/probe radii и передать границу в Cut-треугольник.
   Это строго явная модель общего P для двух карт, не доказательство
   адаптивного softmax attention и не оптимальность выбора маски.
+- `centralQuadraticProbe_exact` (цикл 58): в том же translated
+  quadratic классе центральный probe вместо одностороннего вычисления
+  возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной
+  directional оценки, но не обещать оптимальный σ или меньше evals.
 - `fd_probe_error_quadratic` (цикл 57): для выбранного
   `probeQuadraticEnergy` вычислять forward-difference ошибку как
   (L/2)σ‖v‖² из самой энергии, без отдельной hmodel-матрицы.

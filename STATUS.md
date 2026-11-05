@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4176 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4178 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2801,6 +2801,20 @@
 - Tight probe с a=1,L=2,σ=1/2,v=2 дал error=bound=2. Axioms—all
   four declarations—standard. General h_emp_attsmooth сохранён,
   registry 38/113; это не вывод универсальной дифференцируемости.
+
+## Исследовательский цикл 58 — точный central probe
+
+- `centralQuadraticProbe` вычисляет (E(x+σv)−E(x−σv))/(2σ)
+  на canonical translated quadratic поле из цикла 57.
+- `centralQuadraticProbe_exact` доказывает равенство с algebraic
+  gradient: оба квадратичных норм-слагаемых сокращаются в центральном
+  числителе. Внешний hmodel/empirical remainder не вводится.
+- Требуется только σ>0, L может быть любым: норма знаменателя
+  этой identity не является assertion о strong convexity или оптимальности.
+  Произвольный stochastic/nonlinear gradient не подменяется моделью,
+  количество вычислений не рекламируется выигрышем.
+- Probe с a=1,L=2,x=0,v=1,σ=1/4: gradient=-2 и probe=-2.
+  Обе новых declarations имеют standard axioms. Registry 38/113.
 
 ## Открытые проблемы
 

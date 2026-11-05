@@ -128,6 +128,36 @@ theorem fd_probe_error_quadratic (L : ℝ) (a : X) (hL : 0 ≤ L)
   rw [hremainder]
   exact abs_of_nonneg (by positivity) |>.le
 
+/-- Центральная разность для выбранной перенесённой квадратичной
+энергии. Это только точная детерминированная конструкция для данного
+поля, а не утверждение о стохастической несмещённости произвольных
+функций или о безусловной оптимизации без производной и без ошибки.
+Она не сравнивает число вычислений функции с прямой разностью. -/
+noncomputable def centralQuadraticProbe (L : ℝ) (a x v : X) (σ : ℝ) : ℝ :=
+  (probeQuadraticEnergy L a (x + σ • v) - probeQuadraticEnergy L a (x - σ • v)) /
+    (2 * σ)
+
+/-- Для выбранной перенесённой квадратичной энергии центральная разность
+точно равна скалярному произведению с её алгебраическим градиентным полем:
+квадратичный вклад сокращается в числителе центральной разности. Это не
+доказательство стохастической несмещённости для произвольных функций и не
+утверждение о безусловной либо безошибочной оптимизации без производной
+для произвольных моделей. Не утверждается также, что число вычислений
+функции не превышает число вычислений для прямой разности. -/
+theorem centralQuadraticProbe_exact (L : ℝ) (a x v : X) {σ : ℝ} (hσ : 0 < σ) :
+    centralQuadraticProbe L a x v σ = ⟪probeQuadraticGrad L a x, v⟫_ℝ := by
+  have hplus : x + σ • v - a = (x - a) + σ • v := by
+    abel
+  have hminus : x - σ • v - a = (x - a) - σ • v := by
+    abel
+  simp only [centralQuadraticProbe, probeQuadraticEnergy, probeQuadraticGrad]
+  rw [hplus, hminus, norm_add_sq_real (x - a) (σ • v),
+    norm_sub_sq_real (x - a) (σ • v)]
+  simp only [norm_smul, Real.norm_eq_abs, abs_of_pos hσ,
+    real_inner_smul_left, real_inner_smul_right]
+  field_simp [ne_of_gt hσ]
+  ring
+
 /-- Градиентное поле выбранной перенесённой квадратичной модели
 `L`-липшицево при `L ≥ 0`. Доказательство использует только точное
 сокращение общего центра и норму скалярного множителя; посылка о
