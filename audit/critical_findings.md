@@ -1,4 +1,21 @@
 
+### Цикл 59 (probe precision): строгое преимущество central
+- `forwardQuadraticProbe_error` выводит ТОЧНУЮ абсолютную ошибку
+  forward-пути: `(L/2)σ‖v‖²`, включая норму скалярного interval.
+- `quadratic_central_error_lt_forward_error` доказывает strict `<`
+  для L>0 и v≠0, используя положительность нормы и hσ>0.
+  Нулевые/zero-v/negative-L случаи намеренно не обобщаются.
+- Numeric probe: forward=-3/2 при grad/central=-2, errors 0<1/2.
+  Три новых declarations зависят только от standard triple.
+- Граница заключается только в accuracy comparison canonical model.
+  No cost advantage or stochastic unbiasedness or arbitrary Lipschitz
+  estimator is claimed; registry remains 38 files/113 inputs.
+- Независимый review: LGTM. Отдельно проверены exact abs-residual,
+  положительность forward ошибки и порог нулевой центральной ошибки.
+- Полный CI: PASS. Freeze=4181, registry tests=2 OK, ALLAXIOMS чист.
+  Цена функциональных вызовов и стохастическая несмещённость остаются
+  вне выведенного утверждения, как требует точная постановка.
+
 ### Цикл 58 (central quadratic probe): точное уничтожение bias
 - `centralQuadraticProbe`: двусторонний sample на translated quadratic
   energy. `centralQuadraticProbe_exact` доказывает совпадение с grad.

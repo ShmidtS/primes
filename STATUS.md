@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4178 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4181 декларация (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2815,6 +2815,21 @@
   количество вычислений не рекламируется выигрышем.
 - Probe с a=1,L=2,x=0,v=1,σ=1/4: gradient=-2 и probe=-2.
   Обе новых declarations имеют standard axioms. Registry 38/113.
+
+## Исследовательский цикл 59 — сравнение probing schemes
+
+- Введён `forwardQuadraticProbe`, чтобы явно вычислять одностороннюю
+  разность для уже доказанного canonical quadratic energy.
+- `forwardQuadraticProbe_error` даёт точный abs error
+  `(L/2)σ‖v‖²` вместо лишь верхней оценки цикла 57.
+- `quadratic_central_error_lt_forward_error` доказывает строгое
+  `|central−grad| < |forward−grad|` при `L>0`, `σ>0`, `v≠0`.
+  Левая часть нулевая по symmetric cancellation, правая положительна.
+- При a=1,L=2,x=0,v=1,σ=1/2: forward=-3/2, central=-2;
+  ошибки соответственно 0 и 1/2. Никаких ложных uniform
+  stochastic/cost claims нет: строгость только об absolute accuracy
+  выбранной модели, а не о вычислительной цене или оптимальном σ.
+- Axioms всех трёх новых declarations чисты; AssumptionScan 38/113.
 
 ## Открытые проблемы
 

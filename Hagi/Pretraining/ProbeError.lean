@@ -158,6 +158,51 @@ theorem centralQuadraticProbe_exact (L : ℝ) (a x v : X) {σ : ℝ} (hσ : 0 < 
   field_simp [ne_of_gt hσ]
   ring
 
+/-- Прямая разность для выбранной перенесённой квадратичной
+энергии. Это детерминированная конструкция только для канонической
+модели, без предпосылок о стохастической несмещённости. -/
+noncomputable def forwardQuadraticProbe (L : ℝ) (a x v : X) (σ : ℝ) : ℝ :=
+  (probeQuadraticEnergy L a (x + σ • v) - probeQuadraticEnergy L a x) / σ
+
+/-- Точная абсолютная ошибка прямой разности в канонической
+перенесённой квадратичной модели. При `L ≥ 0` и `σ > 0` ошибка равна
+`(L / 2) * σ * ‖v‖ ^ 2`; это не утверждение о стохастических
+оценках или произвольном нелинейном loss. -/
+theorem forwardQuadraticProbe_error (L : ℝ) (a : X) (hL : 0 ≤ L)
+    (x v : X) {σ : ℝ} (hσ : 0 < σ) :
+    |forwardQuadraticProbe L a x v σ - ⟪probeQuadraticGrad L a x, v⟫_ℝ| =
+      (L / 2) * σ * ‖v‖ ^ 2 := by
+  have hshift : x + σ • v - a = (x - a) + σ • v := by
+    abel
+  have herror :
+      forwardQuadraticProbe L a x v σ - ⟪probeQuadraticGrad L a x, v⟫_ℝ =
+        (L / 2) * σ * ‖v‖ ^ 2 := by
+    simp only [forwardQuadraticProbe, probeQuadraticEnergy, probeQuadraticGrad]
+    rw [hshift, norm_add_sq_real, norm_smul, Real.norm_eq_abs,
+      abs_of_pos hσ, real_inner_smul_left, real_inner_smul_right]
+    field_simp [ne_of_gt hσ]
+    ring
+  rw [herror]
+  exact abs_of_nonneg (by positivity)
+
+/-- В канонической перенесённой квадратичной модели абсолютная ошибка
+центральной разности строго меньше ошибки прямой разности при `L > 0`,
+`σ > 0` и `v ≠ 0`: центральная ошибка равна нулю, а прямая равна
+`(L / 2) * σ * ‖v‖ ^ 2 > 0`. Это только сравнение точности в выбранной
+модели, а не утверждение о числе вычислений функции, уменьшении их числа,
+оптимальности для произвольного loss или свойствах стохастических оценок.
+Без указанных условий сравнение не утверждается; специальная ветка для
+`σ = 0` не вводится. -/
+theorem quadratic_central_error_lt_forward_error
+    (L : ℝ) (a : X) (hL : 0 < L) (x v : X) (hv : v ≠ 0)
+    {σ : ℝ} (hσ : 0 < σ) :
+    |centralQuadraticProbe L a x v σ - ⟪probeQuadraticGrad L a x, v⟫_ℝ| <
+      |forwardQuadraticProbe L a x v σ - ⟪probeQuadraticGrad L a x, v⟫_ℝ| := by
+  rw [centralQuadraticProbe_exact L a x v hσ,
+    forwardQuadraticProbe_error L a hL.le x v hσ, sub_self, abs_zero]
+  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv
+  positivity
+
 /-- Градиентное поле выбранной перенесённой квадратичной модели
 `L`-липшицево при `L ≥ 0`. Доказательство использует только точное
 сокращение общего центра и норму скалярного множителя; посылка о
