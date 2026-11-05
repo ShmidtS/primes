@@ -236,3 +236,18 @@
   AssumptionScan 38/113, старые доказательные интерфейсы не тронуты.
 - Library source: Mathlib `Analysis/InnerProductSpace/Calculus.lean`,
   `hasStrictFDerivAt_norm_sq` и `HasFDerivAt.norm_sq`.
+
+## Цикл 63 — computed endpoint quantization и σ-bound
+- Один абстрактный class noise ∀|ε±|≤δ получил рабочий вычислимый
+  представитель: dense nearest grid с computed ε±=Q(F±)-F±.
+- Их absolute caps δ=grid/2 выводятся из nearest integer library lemma,
+  не полагаются на новое empirical binder и не регулируют old statements.
+- Оптимальный σ выбирается в данной fixed-grid model. Сетку, число бит,
+  архитектуру и runtime cost случайной/физической модели НЕ оптимизируем.
+- Старое qTern остаётся separate saturating-format theory со range split;
+  новая dense model без saturation не претендует на generic IQ coverage.
+- Нет завершающего floating-processor theorem: расчет после двух округленных
+  значений — exact real subtraction/division, что явно stated в source.
+- Nonzero gradient probe фиксирует ошибку 5/4 с measured value 2 и
+  gradient 3/4. Дельта-cost selected 3≤5 при comparison σ=2.
+- AssumptionScan по-прежнему 38/113; только designated model closed.

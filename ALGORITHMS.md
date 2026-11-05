@@ -314,6 +314,13 @@ s = ‖g‖₁ / n                            # signScale
   Предыдущие cost ошибки относятся к настоящим направленным derivatives,
   а не только к произвольно выбранным field. Это не перенос на arbitrary loss
   или на изменяемое направление v, и не floating-gradient утверждение.
+- `probeGridRound_abs_error_le` (цикл 63): half-step bound выводится
+  для dense lattice, отличной от saturating ternary format. Используйте
+  это отдельное семейство модели для выводимой precision границы.
+- `gridCentralCubicProbe_optimal_bound`: вместо abstract ε caps округление
+  уже реализовано на двух endpoint values. Применять best σ только при
+  фиксированном grid>0, c,v≠0, без расширения на finite-word. Cost bound
+  не означает strict ordering фактических ошибок или оптимальную сетку.
 - `centralQuadraticProbe_exact` (цикл 58): в том же translated
   quadratic классе центральный probe вместо одностороннего вычисления
   возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной

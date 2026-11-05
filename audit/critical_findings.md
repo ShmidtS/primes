@@ -1,4 +1,31 @@
 
+### Цикл 63 (dense-grid probe): bound вычислен, не назначен
+- Ссылочный nearest-round объект существует в Mathlib. Добавлен dense grid
+  `grid*round(value/grid)` по аналогии saturation-разделённого qTern,
+  но без fake cover-range premise: Int-lattice покрывает каждое значение.
+- `probeGridRound_abs_error_le` выводит scaling error grid/2 через
+  abs_sub_round и положительный grid. Negative grid/out-of-domain excluded.
+- `gridCentralCubicProbe_cost_bound` строит фактические perturbations
+  Q(value)-value, а не принимает абстрактные two epsilon caps взамен.
+  Это проверяемый bridge существующего cubic/noise bound к протоколу.
+- Применяется σ minimization при fixed grid; не выводится best grid,
+  bit allocation, оптимальный object size или global HAGI architecture.
+- Полная модель ограничивается endpoint values: никаких extra
+  subtraction/division round-off, overflow или формальных IEEE asserts.
+- Численный root case c=6,grid=4 даёт selected σ=1, δ=2,cost=3; с центра
+  x=0 pure central=1, quantized=0, но actual ошибка grad=0 (НЕ 1).
+- Нетривиальная ветка x=1/2: endpoints F+=27/8,F-=−1/8; rounded=4,0;
+  measured=2, pure central=7/4, true gradient=3/4, actual error=5/4.
+  Другая cost при σ=2 равна 5. Это оценка upper bound, не strict actual min.
+- Пять additive declarations, AXIOMS чисты, старые interfaces остаются.
+  AssumptionScan 38/113: производные гипотезы других loss все ещё открыты.
+- Независимый refute-first review: LGTM. Проверено вычисление
+  endpoint perturbations Q(E)-E, positivity grid и запрет joint grid/bit
+  оптимальности. Nonzero-gradient case: 5/4, не 0/0.
+- Полный CI: PASS; Freeze=4204, ALLAXIOMS чист, registry tests 2 OK.
+  Dense-grid claims не распространяются на полный memory/computation
+  budget или external execution semantics. Наилучший σ только при fixed grid.
+
 ### Цикл 62 (genuine Fréchet): derivative поля выведено, не названо
 - `innerSL ℝ` представляет continuous linear functional derivative;
   фактор L выводится из derivative сдвинутой `‖x−a‖²` через norm_sq.

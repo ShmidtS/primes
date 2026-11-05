@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4199 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4204 декларации (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2893,6 +2893,28 @@
 - Нет посылок дифференцируемости произвольного loss, runtime floating
   или stochastic gradient. Старые statements не менялись.
   2 новых теоремы, только стандартная triple axioms.
+
+## Исследовательский цикл 63 — явное endpoint rounding
+
+- `probeGridRound grid value = grid * round(value/grid)` моделирует
+  dense integer lattice без saturation и без range-cap на energy value.
+  `probeGridRound_abs_error_le` выводит |Q(value)-value|≤grid/2 из
+  известной теоремы о расстоянии до ближайшего целого.
+- `gridCentralCubicProbe` округляет РАЗДЕЛЬНО только два значения
+  энергии. Затем разность и деление на 2σ остаются точными в ℝ.
+- `gridCentralCubicProbe_cost_bound` не принимает произвольный cap ε:
+  две bound ошибки рассчитаны из конкретного grid и endpoint values.
+- `gridCentralCubicProbe_optimal_bound` применяет global σ минимум к
+  конкретному вычисленному δ=grid/2 при каждом фиксированном grid>0;
+  c≠0 и v≠0 дают его условия применимости.
+- НЕТ модели IEEE/finite word, overflow, дополнительного округления
+  разности и деления, стохастической независимости или joint optimal grid
+  и bit-budget. Это не заявление об оптимальной памяти/архитектуре.
+- Probe при c=6,a=0,v=1,x=1/2,σ=1,grid=4: quantized endpoints 4,0,
+  measured=2, pure central=7/4, gradient=3/4, actual error=5/4.
+  Selected cost=3, сравниваемая cost при σ=2 равна 5.
+- Пять новых declarations, старые forms и Fréchet-доказательства сохранены.
+  Registry 38/113; чистые стандартные axioms.
 
 ## Открытые проблемы
 

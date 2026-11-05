@@ -445,6 +445,91 @@ theorem probeQuadraticGrad_lipschitz (L : ℝ) (a : X) (hL : 0 ≤ L)
     abel
   rw [← smul_sub, hsub, norm_smul, Real.norm_eq_abs, abs_of_nonneg hL]
 
+/-! ### Cycle 63: центральная проба после квантования значений -/
+
+/-- Округление вещественного значения к неограниченной целочисленной
+решётке с шагом `grid`. Насыщение, ограниченный диапазон, формат IEEE,
+переполнение и конечная разрядность здесь не моделируются. -/
+noncomputable def probeGridRound (grid value : ℝ) : ℝ :=
+  grid * (round (value / grid) : ℝ)
+
+/-- Точная оценка ошибки округления к плотной целочисленной решётке без
+насыщения и без предположения о диапазоне `value`. Арифметическая опора —
+`abs_sub_round` из Mathlib `Algebra/Order/Round.lean`; это не утверждение о
+числах с плавающей точкой или о распределении ошибки. -/
+theorem probeGridRound_abs_error_le (grid value : ℝ) (hgrid : 0 < grid) :
+    |probeGridRound grid value - value| ≤ grid / 2 := by
+  have hfactor : probeGridRound grid value - value =
+      grid * ((round (value / grid) : ℝ) - value / grid) := by
+    unfold probeGridRound
+    field_simp [hgrid.ne']
+  have hround : |(round (value / grid) : ℝ) - value / grid| ≤ 1 / 2 := by
+    rw [abs_sub_comm]
+    exact abs_sub_round (value / grid)
+  rw [hfactor, abs_mul, abs_of_pos hgrid]
+  calc
+    grid * |(round (value / grid) : ℝ) - value / grid| ≤ grid * (1 / 2) :=
+      mul_le_mul_of_nonneg_left hround hgrid.le
+    _ = grid / 2 := by ring
+
+/-- Центральная кубическая проба после раздельного квантования двух
+endpoint-значений. Вычитание этих квантованных значений и деление на `2 * σ`
+остаются точными операциями над `ℝ`; дополнительное округление разности,
+IEEE/finite-word-семантика, переполнение и стохастическая модель не вводятся. -/
+noncomputable def gridCentralCubicProbe
+    (c : ℝ) (a v x : X) (σ grid : ℝ) : ℝ :=
+  (probeGridRound grid (probeCubicEnergy c a v (x + σ • v)) -
+    probeGridRound grid (probeCubicEnergy c a v (x - σ • v))) / (2 * σ)
+
+/-- Граница ошибки квантованной центральной пробы: она равна ограниченной
+шумовой пробе с двумя фактическими детерминированными ошибками округления.
+Ограничение диапазона энергии или произвольный cap погрешности не требуется;
+оценка не описывает распределение шума и не является полной float-моделью. -/
+theorem gridCentralCubicProbe_cost_bound
+    (c : ℝ) (a v x : X) (σ grid : ℝ) (hgrid : 0 < grid) (hσ : 0 < σ) :
+    |gridCentralCubicProbe c a v x σ grid -
+        ⟪probeCubicGrad c a v x, v⟫_ℝ| ≤
+      probeCost ((|c| / 6) * ‖v‖ ^ 6) (grid / 2) σ := by
+  have hp : |probeGridRound grid (probeCubicEnergy c a v (x + σ • v)) -
+      probeCubicEnergy c a v (x + σ • v)| ≤ grid / 2 :=
+    probeGridRound_abs_error_le grid _ hgrid
+  have hm : |probeGridRound grid (probeCubicEnergy c a v (x - σ • v)) -
+      probeCubicEnergy c a v (x - σ • v)| ≤ grid / 2 :=
+    probeGridRound_abs_error_le grid _ hgrid
+  have heq : gridCentralCubicProbe c a v x σ grid =
+      noisyCentralCubicProbe c a v x σ
+        (probeGridRound grid (probeCubicEnergy c a v (x + σ • v)) -
+          probeCubicEnergy c a v (x + σ • v))
+        (probeGridRound grid (probeCubicEnergy c a v (x - σ • v)) -
+          probeCubicEnergy c a v (x - σ • v)) := by
+    unfold gridCentralCubicProbe noisyCentralCubicProbe
+    ring
+  rw [heq]
+  exact noisyCentralCubicProbe_cost_bound c a v x _ _ (grid / 2)
+    (by positivity) hσ hp hm
+
+/-- На выбранном шаге фактическая ошибка квантованной пробы ограничена
+суррогатной стоимостью `probeCost` произвольного сравниваемого шага, а не
+фактической ошибкой этого шага. Универсальная оптимальность архитектуры,
+обучения либо оставшихся предположений интеграционного плана не утверждается. -/
+theorem gridCentralCubicProbe_optimal_bound
+    (c : ℝ) (a v x : X) (grid σ : ℝ)
+    (hc : c ≠ 0) (hv : v ≠ 0) (hgrid : 0 < grid) (hσ : 0 < σ) :
+    |gridCentralCubicProbe c a v x
+          (probeOptimalStep ((|c| / 6) * ‖v‖ ^ 6) (grid / 2)) grid -
+        ⟪probeCubicGrad c a v x, v⟫_ℝ| ≤
+      probeCost ((|c| / 6) * ‖v‖ ^ 6) (grid / 2) σ := by
+  have hA : 0 < (|c| / 6) * ‖v‖ ^ 6 := by
+    have hcabs : 0 < |c| := abs_pos.mpr hc
+    have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv
+    positivity
+  have hδ : 0 < grid / 2 := by positivity
+  have hroot : 0 < probeOptimalStep ((|c| / 6) * ‖v‖ ^ 6) (grid / 2) :=
+    probeOptimalStep_pos _ _ hA hδ
+  have hcost := gridCentralCubicProbe_cost_bound c a v x
+    (probeOptimalStep ((|c| / 6) * ‖v‖ ^ 6) (grid / 2)) grid hgrid hroot
+  exact hcost.trans (probeCost_le_optimal _ _ σ hA hδ hσ)
+
 /-! ### Top-k маршрутизация: остаток отброшенных компонент -/
 
 variable {m n : ℕ}
