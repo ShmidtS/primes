@@ -302,6 +302,12 @@ s = ‖g‖₁ / n                            # signScale
   другой положительный σ. Использовать только после доказанной
   модели остатка/noise: формула не распознаёт HAGI loss автоматически
   и не считается доказательством floating или stochastic guarantees.
+- `noisyCentralCubicProbe_optimal_bound` (цикл 61): в явной directional
+  cubic/noise модели выведены коэффициенты `(|c|/6)‖v‖⁶` и `δ`;
+  оптимальный шаг цикла 60 уменьшает доказанную upper bound до минимума.
+  Обе погрешности измерений должны быть ограничены δ. Сравнивается
+  error(opt) с cost(σ), а не случайная actual error одного σ с другой.
+  Не заявлять полные floating/statistical/Frechet-гарантии.
 - `centralQuadraticProbe_exact` (цикл 58): в том же translated
   quadratic классе центральный probe вместо одностороннего вычисления
   возвращает ⟨g(x),v⟩ точно при σ>0. Использовать его для точной

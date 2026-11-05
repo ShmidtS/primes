@@ -203,3 +203,20 @@
   https://jes-tm.org/index.php/jestm/article/view/449.
 - AssumptionScan 38/113: ничего не переименовано в proof и не удалено
   из registry для имитации общего решения.
+
+## Цикл 61 — directional cubic noise модель и exact optimal step
+- Граница aσ²+b/σ теперь получает вычисленные коэффициенты:
+  a=(|c|/6)‖v‖^6, b=δ из абсолютных measurement perturbations.
+- Старое чисто алгебраическое optimum применено к доказанной модели
+  через `noisyCentralCubicProbe_optimal_bound`; root не принят как
+  измеренный и/или эмпирический параметр.
+- Моделируется не arbitrary loss, а F_v=(c/6)inner(x-a,v)^3 и её
+  выбранное algebraic field. Central error раскрывается полиномиально.
+- Гипотезы |eps±|≤δ остаются локальной явной bounded-noise моделью,
+  не переименованным универсальным h_emp-зоключением. Они не закрывают
+  ArbitraryMeasurement/estimator/physics-предпосылки registry.
+- Доказательство выводит минимум cost bound, не fictitious strict actual
+  error ordering при любой отдельной perturbation. Если c=0 или v=0,
+  root-условия сами запрещают фиктивную положительную оптимальность.
+- Probe в R даёт точные 1/4, 1, 1, 3 и 5, отдельные eps дают 2.
+  AssumptionScan 38/113 остаётся неизменным, как и замороженные формы.

@@ -263,6 +263,141 @@ theorem probeCost_lt_optimal (a b σ : ℝ)
     (probeOptimalStep_coefficient a b ha hb)]
   positivity
 
+/-! ### Cycle 61: кубический остаток и ограниченные измерения -/
+
+/-- Детерминированная граница вклада двух ограниченных погрешностей
+измерения в центральную разность. Это алгебраическая оценка для заданных
+endpoint-границ, а не утверждение о распределении шума, стохастической
+несмещённости или гарантиях чисел с плавающей точкой. -/
+theorem centralMeasurement_error_bound
+    (epsPlus epsMinus δ σ : ℝ) (_hδ : 0 ≤ δ) (hσ : 0 < σ)
+    (hp : |epsPlus| ≤ δ) (hm : |epsMinus| ≤ δ) :
+    |(epsPlus - epsMinus) / (2 * σ)| ≤ δ / σ := by
+  have h2σ : 0 < 2 * σ := mul_pos (by norm_num) hσ
+  calc
+    |(epsPlus - epsMinus) / (2 * σ)| = |epsPlus - epsMinus| / (2 * σ) := by
+      rw [abs_div, abs_of_pos h2σ]
+    _ ≤ (|epsPlus| + |epsMinus|) / (2 * σ) :=
+      (div_le_div_iff_of_pos_right h2σ).2 (abs_sub epsPlus epsMinus)
+    _ ≤ (δ + δ) / (2 * σ) :=
+      (div_le_div_iff_of_pos_right h2σ).2 (add_le_add hp hm)
+    _ = δ / σ := by
+      field_simp [ne_of_gt hσ]
+      ring
+
+/-- Выбранная алгебраическая кубическая энергия. Это не предположение о
+фреше-дифференцируемости произвольной функции потерь. -/
+noncomputable def probeCubicEnergy (c : ℝ) (a v x : X) : ℝ :=
+  (c / 6) * ⟪x - a, v⟫_ℝ ^ 3
+
+/-- Алгебраическое градиентное поле выбранной кубической энергии вдоль
+фиксированного направления `v`; имя не добавляет общего утверждения о
+фреше-дифференцируемости. -/
+noncomputable def probeCubicGrad (c : ℝ) (a v x : X) : X :=
+  ((c / 2) * ⟪x - a, v⟫_ℝ ^ 2) • v
+
+/-- Центральная разность выбранной кубической энергии. -/
+noncomputable def centralCubicProbe (c : ℝ) (a v x : X) (σ : ℝ) : ℝ :=
+  (probeCubicEnergy c a v (x + σ • v) - probeCubicEnergy c a v (x - σ • v)) /
+    (2 * σ)
+
+/-- Центральная разность с отдельными детерминированными погрешностями
+измерений на двух концах. Случайная модель для `epsPlus` и `epsMinus`
+не вводится. -/
+noncomputable def noisyCentralCubicProbe
+    (c : ℝ) (a v x : X) (σ epsPlus epsMinus : ℝ) : ℝ :=
+  ((probeCubicEnergy c a v (x + σ • v) + epsPlus) -
+    (probeCubicEnergy c a v (x - σ • v) + epsMinus)) / (2 * σ)
+
+/-- Точный кубический остаток центральной разности имеет коэффициент
+`c / 6`, а не `c / 2`: линейный по центру член совпадает со скалярным
+произведением выбранного алгебраического поля с `v`. Доказательство
+полностью остаётся в этой модели и не утверждает общую дифференцируемость. -/
+theorem centralCubicProbe_remainder
+    (c : ℝ) (a v x : X) {σ : ℝ} (hσ : 0 < σ) :
+    centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ =
+      (c / 6) * σ ^ 2 * ‖v‖ ^ 6 := by
+  have hplus : x + σ • v - a = (x - a) + σ • v := by
+    abel
+  have hminus : x - σ • v - a = (x - a) - σ • v := by
+    abel
+  simp only [centralCubicProbe, probeCubicEnergy, probeCubicGrad]
+  rw [hplus, hminus]
+  simp only [inner_add_left, inner_sub_left, real_inner_smul_left,
+    real_inner_self_eq_norm_sq]
+  field_simp [ne_of_gt hσ]
+  ring
+
+/-- Абсолютная кубическая ошибка сохраняет знак через `|c|`; направление
+по-прежнему входит ровно в шестой степени `‖v‖`. -/
+theorem centralCubicProbe_abs_error
+    (c : ℝ) (a v x : X) {σ : ℝ} (hσ : 0 < σ) :
+    |centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ| =
+      (|c| / 6) * σ ^ 2 * ‖v‖ ^ 6 := by
+  rw [centralCubicProbe_remainder c a v x hσ]
+  rw [abs_mul, abs_mul, abs_div]
+  norm_num [abs_of_nonneg (sq_nonneg σ),
+    abs_of_nonneg (pow_nonneg (norm_nonneg v) 6)]
+
+/-- Для ограниченных измерений фактическая абсолютная ошибка ограничена
+арифметическим суррогатом: точный кубический остаток плюс вклад погрешностей
+измерений. Это не утверждение об истинном loss или о распределении шума. -/
+theorem noisyCentralCubicProbe_cost_bound
+    (c : ℝ) (a v x : X) (epsPlus epsMinus δ : ℝ) (hδ : 0 ≤ δ)
+    {σ : ℝ} (hσ : 0 < σ) (hp : |epsPlus| ≤ δ) (hm : |epsMinus| ≤ δ) :
+    |noisyCentralCubicProbe c a v x σ epsPlus epsMinus -
+        ⟪probeCubicGrad c a v x, v⟫_ℝ| ≤
+      probeCost ((|c| / 6) * ‖v‖ ^ 6) δ σ := by
+  have hsplit :
+      noisyCentralCubicProbe c a v x σ epsPlus epsMinus -
+          ⟪probeCubicGrad c a v x, v⟫_ℝ =
+        (centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ) +
+          (epsPlus - epsMinus) / (2 * σ) := by
+    simp only [noisyCentralCubicProbe, centralCubicProbe]
+    ring
+  rw [hsplit]
+  calc
+    |(centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ) +
+        (epsPlus - epsMinus) / (2 * σ)| ≤
+      |centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ| +
+        |(epsPlus - epsMinus) / (2 * σ)| := by
+      simpa only [Real.norm_eq_abs] using
+        norm_add_le
+          (centralCubicProbe c a v x σ - ⟪probeCubicGrad c a v x, v⟫_ℝ)
+          ((epsPlus - epsMinus) / (2 * σ))
+    _ = (|c| / 6) * σ ^ 2 * ‖v‖ ^ 6 + |(epsPlus - epsMinus) / (2 * σ)| := by
+      rw [centralCubicProbe_abs_error c a v x hσ]
+    _ ≤ (|c| / 6) * σ ^ 2 * ‖v‖ ^ 6 + δ / σ :=
+      add_le_add le_rfl
+        (centralMeasurement_error_bound epsPlus epsMinus δ σ hδ hσ hp hm)
+    _ = probeCost ((|c| / 6) * ‖v‖ ^ 6) δ σ := by
+      simp only [probeCost]
+      ring
+
+/-- При `c ≠ 0`, `v ≠ 0` и `δ > 0` ошибка с ограниченными измерениями на
+выбранном корне не превосходят суррогатную стоимость любого сравниваемого
+положительного шага. Сравнивается фактическая ошибка в выбранной точке с
+`probeCost`, а не фактические ошибки между собой; универсальная оптимальность
+для обучения или произвольного распределения шума не утверждается. -/
+theorem noisyCentralCubicProbe_optimal_bound
+    (c : ℝ) (a v x : X) (epsPlus epsMinus δ : ℝ)
+    (hc : c ≠ 0) (hv : v ≠ 0) (hδ : 0 < δ)
+    (hp : |epsPlus| ≤ δ) (hm : |epsMinus| ≤ δ)
+    (σ : ℝ) (hσ : 0 < σ) :
+    |noisyCentralCubicProbe c a v x
+          (probeOptimalStep ((|c| / 6) * ‖v‖ ^ 6) δ) epsPlus epsMinus -
+        ⟪probeCubicGrad c a v x, v⟫_ℝ| ≤
+      probeCost ((|c| / 6) * ‖v‖ ^ 6) δ σ := by
+  have hA : 0 < (|c| / 6) * ‖v‖ ^ 6 := by
+    have hcabs : 0 < |c| := abs_pos.mpr hc
+    have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv
+    positivity
+  have hroot : 0 < probeOptimalStep ((|c| / 6) * ‖v‖ ^ 6) δ :=
+    probeOptimalStep_pos _ _ hA hδ
+  have hcost := noisyCentralCubicProbe_cost_bound c a v x epsPlus epsMinus δ
+    hδ.le hroot hp hm
+  exact hcost.trans (probeCost_le_optimal _ _ σ hA hδ hσ)
+
 /-- Градиентное поле выбранной перенесённой квадратичной модели
 `L`-липшицево при `L ≥ 0`. Доказательство использует только точное
 сокращение общего центра и норму скалярного множителя; посылка о

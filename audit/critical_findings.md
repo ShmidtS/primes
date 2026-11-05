@@ -1,4 +1,31 @@
 
+### Цикл 61 (cubic/noise model): выведенная cost и её оптимум
+- Исчезает обоснование cost абстрактным назначением: для directional
+  cubic energy центральный остаток точно равен `(c/6)σ²‖v‖⁶`.
+  Коэффициент c/6 проверен аналитически числом 1/4, не ошибочным c/2.
+- |c| и `‖v‖^6` используются точно в abs-error; real-inner полином
+  раскрывается через inner_add/sub и inner_self, без new assumption.
+- Для |epsPlus|,|epsMinus|≤δ выводимо вклад measurement ≤δ/σ.
+  Это bounded deterministic model, НЕ стохастическая независимость,
+  empirical zero mean, floating execution или universal HAGI loss.
+- cost-bound и optimal-bound используют upfront domain a>0,b>0;
+  hc≠0 и hv≠0 дают положительность truncation coefficient.
+- optimal-bound: error at selected step ≤ cost at arbitrary σ>0.
+  НЕЛЬЗЯ выводить error(opt) < error(σ) для отдельной фактической
+  bounded perturbation: она может быть меньше своей upper bound.
+- Скалярный probe c=6,a=0,v=1,x=0: σ=1/2 даёт central=remainder=1/4.
+  Для σ=1 absolute cubic error равна 1, step при δ=2 равен 1;
+  cost(step)=3 и cost(2)=5. Раздельные eps=1,−1 дают value 2.
+- Nine additive declarations. No existing theorem changed, hδ binder
+  of redundant nonneg endpoint cap is explicitly marked unused.
+- Независимый review: LGTM. Дополнительный общий численный случай
+  v=2 дал central=112, grad·v=48, remainder=64, отделив норму^6 от c/2.
+  Для noisy eps=1,−1 подтверждено nonzero measured value=2≤3.
+- Полный CI: PASS; Freeze=4197, ALLAXIOMS PASS, registry tests 2 OK.
+- AssumptionScan stays 38/113. Остаётся вопрос runtime/float evidence
+  и общей геометрической/differentiable модели, а не только этого
+  выбранного algebraic linearization field.
+
 ### Цикл 60 (optimal probe step): глобальный минимум cost
 - `aσ²+b/σ` минимизируется при положительном `b^(1/3)/(2a)^(1/3)`.
   В коде форма `(b/(2a))^(1/3)` через rpow, без несуществующего

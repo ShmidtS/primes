@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4188 деклараций (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4197 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2851,6 +2851,29 @@
   доказательством модели, а не следствием алгебры минимума.
 - AssumptionScan остаётся 38/113; все 7 declarations имеют лишь
   стандартные аксиомы.
+
+## Исследовательский цикл 61 — выведенная cubic/noise cost
+
+- Явная модель `probeCubicEnergy = (c/6)⟪x-a,v⟫³` и поле
+  `probeCubicGrad = (c/2)⟪x-a,v⟫²•v`. Это конкретная directional
+  полиномиальная модель, не утверждение о каждом HAGI loss.
+- `centralCubicProbe_remainder` точно даёт `(c/6)σ²‖v‖⁶`, а
+  `centralCubicProbe_abs_error` снимает знак только через `|c|`.
+- `centralMeasurement_error_bound`: два |ε±|≤δ после центральной
+  разности дают вклад ≤δ/σ. Арифметически выведены обе части cost.
+- `noisyCentralCubicProbe_cost_bound` получает фактическую абсолютную ошибку
+  ≤ `probeCost ((|c|/6)‖v‖⁶) δ σ`; оптимум цикла 60 теперь применяется
+  к модели через `noisyCentralCubicProbe_optimal_bound` при c,v≠0,δ>0.
+  Выводится минимум ВЕРХНЕЙ ГРАНИЦЫ; не утверждается строгое сравнение
+  фактических ошибок при других случайных измерениях.
+- Numeric probes: c=6,a=0,v=1,x=0,σ=1/2 дают central=remainder=1/4.
+  При δ=2 step=1, cost(step)=3≤cost(2)=5; ε+=1, ε-=−1 дают measured
+  value 2, то есть ненулевую bounded perturbation.
+- Это не доказательство floating-roundoff модели, waste/variance,
+  Fréchet-дифференцирования, обучения всех nonlinear networks или
+  global optimal training. Эти границы явно остаются открытыми.
+- AssumptionScan остаётся 38/113: старые conditional APIs сохранены.
+  Nine declarations have only propext/Classical.choice/Quot.sound.
 
 ## Открытые проблемы
 
