@@ -514,4 +514,4 @@ theorem finite_max_entropy {V : Type*} [Fintype V]
 
 end Hagi.Probability
 
-export Hagi.Probability (finite_kl_nonneg finite_max_entropy free_energy_upper gibbs_energy_gap_crude gibbs_expected_energy_lower gibbs_free_energy_lower gibbs_katoni_kl gibbs_kl_uniform_split gibbs_variational gibbs_weight_log_decomp)
+export Hagi.Probability (finite_kl_nonneg free_energy_upper gibbs_expected_energy_lower gibbs_variational)

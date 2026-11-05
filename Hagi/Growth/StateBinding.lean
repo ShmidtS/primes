@@ -135,5 +135,5 @@ theorem usableFrontier_renewal (S : ℕ → GrowthState X)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (usableFrontier capability_takeoff_state CandidateComplete candidate_completeness_find)
+export Hagi.Growth (usableFrontier)
 end Hagi

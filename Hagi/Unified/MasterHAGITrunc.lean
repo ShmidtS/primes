@@ -361,5 +361,5 @@ end Trunc
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (frontier_cone_trunc frontier_cone_struct sustained_takeoff_trunc sustained_takeoff_struct MasterHAGI_trunc masterhagi_growth_witness cone_premises_force_exact)
+export Hagi.Unified (sustained_takeoff_trunc MasterHAGI_trunc)
 end Hagi

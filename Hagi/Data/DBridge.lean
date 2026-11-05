@@ -255,5 +255,5 @@ end DBridge
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (negEntropy dfield_entropy_identity equilibrium_bracket)
+
 end Hagi

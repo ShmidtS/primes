@@ -128,7 +128,7 @@ end GenCycle
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (genMean genMean_assoc)
+
 end Hagi
 /-!
 # ComputeBudget: one marginal-value law, five measured instances
@@ -227,7 +227,7 @@ end ComputeBudget
 end Hagi.Budget
 
 namespace Hagi
-export Hagi.Budget (marginalValue_law activeSet_structure)
+
 end Hagi
 
 /-!

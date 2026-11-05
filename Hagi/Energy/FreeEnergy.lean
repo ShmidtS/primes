@@ -303,7 +303,7 @@ end FreeEnergy
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (free_energy_gap geometric_pool_identity geometric_pool_identity_nonneg tokenKLTotal)
+
 
 variable {V : Type*} [Fintype V]
 

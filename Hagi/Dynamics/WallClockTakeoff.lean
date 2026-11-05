@@ -382,6 +382,6 @@ theorem wallclock_rate_avg_tau (C : ℕ → ℝ) (s : ℕ → ℕ) (tau : ℕ �
 end Hagi.Dynamics
 
 namespace Hagi
-export Hagi.Dynamics (log_one_add_ge_sub_half_sq exp_le_one_add per_cycle_time_rate wallclock_takeoff_product wallclock_takeoff wallclock_takeoff_small_steps counted_takeoff_exp wallclock_rate_from_cone wallclock_rate_from_cone_concentrated wallclock_rate_avg_tau)
+export Hagi.Dynamics (wallclock_rate_from_cone)
 end Hagi
 

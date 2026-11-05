@@ -375,5 +375,5 @@ end GapLaw
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (twoGap twoGap_pos_measure twoGap_cosh twoGap_nonneg twoGap_zero_iff pairVarEq)
+export Hagi.Ensemble (twoGap twoGap_cosh twoGap_nonneg twoGap_zero_iff)
 end Hagi

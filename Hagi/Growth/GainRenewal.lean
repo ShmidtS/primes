@@ -256,5 +256,5 @@ theorem bounded_frontier_no_sustained_growth (C G D : ℕ → ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (gainFromD gain_renewal_recurrence gain_renewal_growth gain_renewal_floor_pos gain_renewal_floor gain_renewal_growth_one sustained_takeoff_window_lift renewal_feeds_takeoff bounded_frontier_no_sustained_growth)
+export Hagi.Growth (renewal_feeds_takeoff bounded_frontier_no_sustained_growth)
 end Hagi

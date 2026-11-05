@@ -1041,4 +1041,4 @@ theorem mwu_representative {V K : Type*} [Fintype V]
 
 end Hagi.Growth
 
-export Hagi.Growth (certified_state_energy certified_state_energy_tendsto certified_state_entropy_tendsto certified_state_excess certified_state_excess_tendsto certified_state_free_energy_tendsto certified_state_tv certified_state_tv_tendsto consolidation_certificate exp_div_tail gibbs_representative hagi_certified_state merge_gate_eventually mwu_representative phase_concentration thermostat_monotone thermostat_phase_point thermostat_stop thermostat_tendsto_zero)
+

@@ -53,7 +53,7 @@ theorem macro_step_decrease (_E1 E2 E3 E4 Emean G L eta dnorm inner kappa s dnor
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (macro_step_decrease)
+
 end Hagi
 set_option linter.style.header false
 

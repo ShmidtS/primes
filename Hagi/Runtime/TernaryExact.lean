@@ -241,5 +241,5 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
 end Hagi.Runtime
 
 namespace Hagi
-export Hagi.Runtime (qTern ternInRange satTail qTern_error_in qTern_error_out ternary_split_bound ternary_inrange_bound ternary_split_le satTail_nonneg quant_energy_bridge_saturation no_saturation_recover)
+export Hagi.Runtime (qTern ternInRange qTern_error_in)
 end Hagi

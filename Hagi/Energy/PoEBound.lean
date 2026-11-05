@@ -576,5 +576,5 @@ theorem poe_sequence_speed {T V K : Type} [Fintype T] [Fintype V]
 end Hagi.Energy
 
 namespace Hagi
-export Hagi.Energy (smax sum_exp_pos smax_pos smax_nonneg smax_sum_one sum_smax_exp lse_shift_lower lse_shift_upper weighted_center_le sum_w_center poe_logZ_second_order poe_softmax_speed sum_w_decomp weighted_var_bound poe_logZ_pairwise poe_sequence_speed)
+
 end Hagi

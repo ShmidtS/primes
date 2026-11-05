@@ -1278,7 +1278,6 @@ theorem anytime_freedman_thresholds_two_sided
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (history_additive_freedman_two_sided
-  anytime_freedman_thresholds_two_sided)
+
 end Hagi
 

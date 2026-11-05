@@ -97,4 +97,4 @@ theorem radial_tangential_curvature (φ : ℝ → ℝ) (g gg : ℝ → ℝ)
 
 end Hagi.Step
 
-export Hagi.Step (radial_tangential_curvature)
+

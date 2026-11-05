@@ -125,5 +125,5 @@ theorem ridge_optimal (hlam : 0 ≤ lam) {w₀ : n → ℝ}
 end Hagi.Core
 
 namespace Hagi
-export Hagi.Core (ridge ridgeNormalEq ridge_optimal)
+
 end Hagi

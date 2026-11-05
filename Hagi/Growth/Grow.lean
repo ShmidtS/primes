@@ -107,5 +107,5 @@ theorem pl_stop_certificate (Lw Lstar mu gnorm : ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (certifiedGain newBound certifiedGain_monotone grow_epsilon_stop certifiedGain_positive pl_stop_certificate)
+
 end Hagi

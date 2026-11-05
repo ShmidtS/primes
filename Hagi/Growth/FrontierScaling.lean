@@ -188,6 +188,6 @@ end Hagi.Growth
 
 
 namespace Hagi
-export Hagi.Growth (takeoff_edge_forced sustained_takeoff_from_production frontier_asymptotic)
+export Hagi.Growth (sustained_takeoff_from_production)
 export Hagi.Foundations.GrowthBand (growth_band_step growth_band_iter)
 end Hagi

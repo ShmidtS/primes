@@ -423,9 +423,7 @@ theorem dfield_smoothing {V : Type} [Fintype V] [Nonempty V]
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (Corpus mixtureCorpus divField kl_nonneg log_eq_sub_one_iff_one
-  mixtureCorpus_pos mixtureCorpus_sum_one log_lt_sub_one' kl_zero_iff_eq divField_zero_iff
-  log_ratio_add kl_product KL_product_ge_marginal dfield_smoothing)
+export Hagi.Data (Corpus mixtureCorpus divField kl_nonneg kl_zero_iff_eq)
 
 variable {V : Type*} [Fintype V]
 

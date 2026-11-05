@@ -90,7 +90,7 @@ end LazyAdam
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (lazyDecay_exact lazyReplay_exact supportSet_bound)
+
 end Hagi
 
 set_option linter.style.header false

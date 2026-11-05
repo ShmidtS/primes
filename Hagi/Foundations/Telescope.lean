@@ -108,6 +108,5 @@ theorem lyapunov_termination_fin {E : ℕ → ℝ} (Emin eps : ℝ) (k : ℕ)
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (lyapunov_telescope_fin lyapunov_termination_fin
-  lyapunov_gain_noise)
+export Hagi.Foundations (lyapunov_gain_noise)
 end Hagi

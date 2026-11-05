@@ -181,7 +181,7 @@ end VoI
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (softmaxW skip_bound readPolicy_exists)
+
 end Hagi
 /-!
 # SinkCost: the attention-sink budget — the round-27 config's formal core

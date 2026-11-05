@@ -431,5 +431,5 @@ end Batch
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (popMean popVar centered popVar_eq sum_centered card_pos_of_nonempty prod_two_sel sum_coord sum_pair uniP uniP_isProb uniP_dens batchMean batchMean_unbiased batch_variance_eq noise_scale_separation anneal_by_batch)
+export Hagi.Probability (popMean popVar centered sum_centered uniP uniP_dens batchMean batch_variance_eq anneal_by_batch)
 end Hagi

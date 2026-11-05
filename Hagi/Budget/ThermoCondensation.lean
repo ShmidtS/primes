@@ -498,7 +498,7 @@ end DeadLayer
 end Hagi.External
 
 namespace Hagi
-export Hagi.External (admission_var_criterion branchscale_minmax dead_layer_stop)
+export Hagi.External (dead_layer_stop)
 end Hagi
 /-!
 # FactorizedBPW — bits-per-weight arithmetic of the

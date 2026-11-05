@@ -735,5 +735,5 @@ theorem certifiedHAGI_nonvacuous_strict (T : ℕ)
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (certifiedHAGI_nonvacuous certifiedHAGI_nonvacuous_strict MasterHAGI_linked CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement full_cycle_field_eq hagi_gen_floor MasterHAGI gate_success_multiplier MasterHAGI_wallclock log_bridge_from_multiplier MasterHAGI_probability)
+export Hagi.Unified (CertifiedHAGIInvariant CorePremises MasterHAGICore FullCycleRefinement hagi_gen_floor MasterHAGI)
 end Hagi

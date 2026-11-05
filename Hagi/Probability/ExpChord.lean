@@ -854,4 +854,4 @@ theorem lyapunov_moment_mono {V : Type*} [Fintype V] (w g : V → ℝ)
 
 end Hagi.Probability
 
-export Hagi.Probability (amgm_weighted exp_chord hoeffding_chord_mgf hoelder_finite hoelder_weighted log_chord lp_mean_le_rms lp_one_le_card lyapunov_moment_mono minkowski_finite minkowski_weighted young_two)
+export Hagi.Probability (exp_chord)

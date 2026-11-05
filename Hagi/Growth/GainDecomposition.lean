@@ -400,7 +400,7 @@ theorem gainop_ignition {Xs : Type*}
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (devEnergy GainOp gainop_cone_step gainop_pairwise_bridge gainop_ignition)
+export Hagi.Growth (devEnergy GainOp gainop_cone_step)
 end Hagi
 
 /-!

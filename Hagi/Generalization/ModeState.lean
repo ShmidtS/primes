@@ -423,5 +423,5 @@ end QgenFrontier
 end Hagi.Generalization
 
 namespace Hagi
-export Hagi.Generalization (GenMetrics Qvec Qgen Qgen_le Qgen_drop_bound GenState hagiPotential ModeDrop generalization_safe_step generalization_safe_step_at_target safeqp_risk_bound_compose modeDrop_rejected dominates IsPareto scalarized_argmin_pareto pareto_frontier_nonempty selector_skips_dominated qgen_frontier_bridge qgen_frontier_bridge_invariant)
+export Hagi.Generalization (GenMetrics Qvec Qgen GenState hagiPotential generalization_safe_step safeqp_risk_bound_compose)
 end Hagi

@@ -68,5 +68,5 @@ end Ambiguity
 end Hagi.Core
 
 namespace Hagi
-export Hagi.Core (lse_shift consensus_no_gain)
+
 end Hagi

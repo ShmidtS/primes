@@ -162,7 +162,7 @@ theorem swa_cost_bound (T W : ℕ) (hW : 1 ≤ W) (hTW : W ≤ T) :
 end Hagi.Core
 
 namespace Hagi
-export Hagi.Core (reach swa_reach_step swa_reach_eq swa_reach_mono swa_relay_full swa_cost_bound)
+
 end Hagi
 set_option linter.style.header false
 

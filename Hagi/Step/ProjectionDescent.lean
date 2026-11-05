@@ -135,7 +135,5 @@ theorem hard_budget_forces_orthogonal {K : Type*}
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (proj_descent_inner min_dist_to_vi safeQP_descent
-  joint_stage_linked orthogonal_zero_interference
-  hard_budget_forces_orthogonal)
+export Hagi.Step (min_dist_to_vi safeQP_descent joint_stage_linked)
 end Hagi

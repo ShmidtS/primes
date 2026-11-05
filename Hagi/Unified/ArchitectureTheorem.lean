@@ -1265,5 +1265,5 @@ theorem budget_horizon_nonneg (B spend : ℕ → ℝ) (T : ℕ)
 end Hagi.Unified
 
 namespace Hagi
-export Hagi.Unified (cone_invariant_trunc takeoff_lower_trunc pl_gap_lower_trunc HAGICert hagi_synthesis cert_horizon_bound cert_horizon_witness cert_horizon_log_bound saturation_law_forced budget_horizon_nonneg hagi_horizon_bound half_pow_bounds half_pow_anti band_witness)
+export Hagi.Unified (HAGICert)
 end Hagi

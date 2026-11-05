@@ -35,7 +35,7 @@ theorem config_storage_beats_dense (d r N : ℕ)
 end Hagi.Architecture
 
 namespace Hagi
-export Hagi.Architecture (config_storage_beats_dense)
+
 end Hagi
 
 /-!

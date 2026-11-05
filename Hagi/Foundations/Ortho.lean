@@ -53,5 +53,5 @@ theorem gating_tail_bound {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (ortho_norm_sq_finset ortho_norm_sq gating_tail_bound)
+export Hagi.Foundations (ortho_norm_sq_finset gating_tail_bound)
 end Hagi

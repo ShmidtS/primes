@@ -169,5 +169,5 @@ end MergeVsScratch
 end Hagi.External
 
 namespace Hagi
-export Hagi.External (grad_dist_polarization grad_zero_merge_perfect gittins_index_max merge_init_head_start)
+
 end Hagi

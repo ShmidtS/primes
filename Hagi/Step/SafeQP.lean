@@ -439,5 +439,5 @@ end SafeQPComposition
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (safeSet halfspace_convex safeSet_nonempty convex_min_unique halfspace_closed safeSet_closed safeQP_exists_unique safeqp_inactive filtered_step_cost spectral_safeQP_target)
+export Hagi.Step (safeSet safeQP_exists_unique)
 end Hagi

@@ -123,5 +123,5 @@ end Dominate
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (domination_decompose domination_regression safe_consensus_harmless dominated_collateral_bound guard_weight_parity)
+export Hagi.Step (safe_consensus_harmless)
 end Hagi

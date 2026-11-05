@@ -416,5 +416,5 @@ end Distill
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (crossEntropy kl_eq_ce_gap ce_gap_kl_identity teacher_generated_identity)
+export Hagi.Data (crossEntropy teacher_generated_identity)
 end Hagi

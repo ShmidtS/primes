@@ -992,5 +992,5 @@ theorem hoeffding_fin_via_mgf {V : Type} [Fintype V] [Nonempty V]
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (hoeffding_fin hoeffding_tail hoeffding_union_tail exp_chord sum_pair_weights sum_pair_diff_zero sum_pair_const sum2_mul exp_prod_le_cosh half_log_cosh_le twoGap_bounded merge_skip_certificate merge_value_ceiling pair_factor chord_weighted domain_disagreement_floor twoGap_ce_identity ce_gap_bounded chord_factor1 chord_factor2 prune_certificate)
+export Hagi.Ensemble (hoeffding_tail hoeffding_union_tail exp_chord ce_gap_bounded)
 end Hagi

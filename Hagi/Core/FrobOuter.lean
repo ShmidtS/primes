@@ -211,5 +211,5 @@ theorem frobSq_trunc_tail (s : Finset n) (σ : n → ℝ)
 end Hagi.Core
 
 namespace Hagi
-export Hagi.Core (frobSq outer outerSum frobSq_outer_orthonormal frobSq_outerSum frobSq_trunc_tail)
+export Hagi.Core (frobSq outer)
 end Hagi

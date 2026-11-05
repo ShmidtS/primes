@@ -129,5 +129,5 @@ theorem merged_bound {d : ℕ} (risk : Delta d → ℝ)
 end Hagi.Ensemble
 
 namespace Hagi
-export Hagi.Ensemble (TernSign Delta deltaCost deltaCost_concat deltaCost_sum merged_bound)
+export Hagi.Ensemble (Delta)
 end Hagi

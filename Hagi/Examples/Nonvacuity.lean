@@ -192,7 +192,7 @@ theorem core_premises_merge_operational {k : Type} [Fintype k]
 end Hagi.Examples
 
 namespace Hagi
-export Hagi.Examples (jensenGap_pos_witness)
+
 end Hagi
 
 set_option linter.style.header false

@@ -535,4 +535,4 @@ theorem mwu_regret_regimes {V : Type*} [Fintype V]
 
 end Hagi.Probability
 
-export Hagi.Probability (gibbs_hedge_squeeze mwu_double_upper mwu_partition_sum mwu_potential_lower mwu_potential_squeeze mwu_potential_step mwu_potential_upper_uniform mwu_prod_exp mwu_regret_regimes mwu_regret_static mwu_sqrt_bound mwu_uniform_squeeze)
+export Hagi.Probability (mwu_potential_step)

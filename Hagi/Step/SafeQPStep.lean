@@ -280,5 +280,5 @@ end SafeQPStep
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (safeqpEtaMax le_safeqpEtaMax_iff safeqp_eta_max_domain safeqp_eta_max safeqp_eta_zero_direction safeqpEtaMaxConflictFree le_safeqpEtaMaxConflictFree_iff safeqpEtaMaxConflictFree_pos safeqp_eta_max_conflict_free)
+export Hagi.Step (safeqpEtaMax le_safeqpEtaMax_iff safeqp_eta_max)
 end Hagi

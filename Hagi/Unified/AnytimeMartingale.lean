@@ -69,7 +69,7 @@ theorem anytime_valid_budget (delta0 rho : ℝ) (T : ℕ)
 
 end Hagi.Unified
 namespace Hagi
-export Hagi.Unified (merge_stage_linked merge_stage_linked_nonneg anytime_valid_budget)
+
 end Hagi
 set_option linter.style.header false
 

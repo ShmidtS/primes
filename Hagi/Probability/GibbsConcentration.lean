@@ -601,4 +601,4 @@ PinskerTV, ChernoffCGF, MomentBounds); импорт этого файла
 
 end Hagi.Probability
 
-export Hagi.Probability (amortized_policy_bound compounding_bound compounding_sq efe_ceiling gapII_nonpos gap_decomposition gap_graceful gibbs_cert_bridge gibbs_energy_variance_bound gibbs_excess_mean_bound gibbs_var_steps_bound gibbs_var_tendsto_zero mutual_info_nonneg proxy_cert_lost proxy_cert_preserved thermostat_threshold thermostat_var_stop)
+

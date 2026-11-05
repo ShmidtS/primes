@@ -819,7 +819,7 @@ theorem pac_chernoff_events {V : Type*} [Fintype V] [DecidableEq V]
 
 end Hagi.Probability
 
-export Hagi.Probability (bhattacharyya_cauchy kl_joint_convex kl_variational_lower neg_log_bc_le_half_kl one_minus_bc_le_half_kl pac_chernoff_events pinsker_sqrt_kl tv_dual_abs tv_le_pos_part_kl tv_le_sqrt_one_minus_exp)
+export Hagi.Probability (kl_variational_lower one_minus_bc_le_half_kl pinsker_sqrt_kl tv_dual_abs)
 
 /-! ### Константная-4 форма Пинскера + CMI-итерация
 (перенесено из Hagi.Information.Pinsker, консолидация:

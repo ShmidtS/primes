@@ -168,7 +168,7 @@ end NCEVar
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (secondMoment qMean nce_var_identity secondMoment_ge_mean_sq adaptiveK_bound)
+
 end Hagi
 
 set_option linter.style.header false

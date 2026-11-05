@@ -492,4 +492,4 @@ theorem excess_ge_var_over_range {V : Type*} [Fintype V] [Nonempty V]
 
 end Hagi.Probability
 
-export Hagi.Probability (bhatia_davis bhatia_implies_popoviciu cantelli_one_side chebyshev_popoviciu excess_ge_var_over_range popoviciu_abs_dev popoviciu_var var_le_delta_excess)
+export Hagi.Probability (bhatia_davis)

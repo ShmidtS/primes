@@ -149,5 +149,5 @@ theorem gibbs_variational {ι : Type} [Fintype ι] [Nonempty ι]
 end Hagi.Data
 
 namespace Hagi
-export Hagi.Data (log_weighted_jensen gibbs_variational)
+export Hagi.Data (gibbs_variational)
 end Hagi

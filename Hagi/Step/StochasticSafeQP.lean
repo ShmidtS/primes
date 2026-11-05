@@ -491,5 +491,5 @@ end StochasticSafeQP
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (noiseEps lr_batch_equivalence minibatch_inner_tail minibatch_inner_concentration minibatch_inner_concentration_upper stochastic_safeQP_feasibility)
+export Hagi.Step (noiseEps minibatch_inner_tail stochastic_safeQP_feasibility)
 end Hagi

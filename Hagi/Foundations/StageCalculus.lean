@@ -166,6 +166,5 @@ theorem cap_cost_factor (L dnorm inner : ℝ)
 end Hagi.Foundations
 
 namespace Hagi
-export Hagi.Foundations (merge_stage merge_stage_decrease joint_stage quadratic_bound_max
-  eta_star_exceeds_cap joint_stage_cap_optimal cap_cost_factor)
+export Hagi.Foundations (merge_stage joint_stage)
 end Hagi

@@ -135,5 +135,5 @@ theorem sigma_orth_necessary (ΔW : Matrix (Fin m) (Fin n) ℝ)
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (outerP actSigma gpmOrth mulVec_eq_dotProduct gpm_zero_forgetting sigma_orth_zero sigma_orth_necessary)
+export Hagi.Step (gpmOrth gpm_zero_forgetting)
 end Hagi

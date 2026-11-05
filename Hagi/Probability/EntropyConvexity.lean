@@ -688,4 +688,4 @@ theorem gibbs_free_energy_identity {V : Type*} [Fintype V]
 
 end Hagi.Probability
 
-export Hagi.Probability (dist_log_nonpos entropy_chain entropy_subadditive gibbs_free_energy_identity joint_entropy_ge_marginal kl_convex_first kl_data_processing kl_product_additive log_concave_two log_sum_ineq log_sum_ineq_on xlog_div_convex xlogx_convex)
+export Hagi.Probability (gibbs_free_energy_identity log_concave_two log_sum_ineq log_sum_ineq_on xlogx_convex)

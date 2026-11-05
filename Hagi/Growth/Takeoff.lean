@@ -245,5 +245,5 @@ theorem frontier_decay_no_growth (D : ℕ → ℝ) (ρ : ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (ConeRatio cone_ratio_step cone_ratio_invariant ratio_takeoff frontier_decay_no_growth)
+export Hagi.Growth (ConeRatio cone_ratio_invariant ratio_takeoff)
 end Hagi

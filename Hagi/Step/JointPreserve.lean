@@ -115,5 +115,5 @@ theorem diversity_floor_strict_pos (D : ℕ → ℝ) (rho inj xi : ℝ)
 end Hagi.Step
 
 namespace Hagi
-export Hagi.Step (diversity_noncollapse geom_shift diversity_floor diversity_floor_fresh diversity_floor_strict_pos)
+export Hagi.Step (diversity_floor diversity_floor_fresh diversity_floor_strict_pos)
 end Hagi

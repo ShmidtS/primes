@@ -155,5 +155,5 @@ theorem adaptive_success_concentrated {n : ℕ} (p : Fin n → V → ℝ)
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (SuccessFloor adaptive_success_count_floor adaptive_success_concentrated)
+export Hagi.Probability (SuccessFloor adaptive_success_concentrated)
 end Hagi
