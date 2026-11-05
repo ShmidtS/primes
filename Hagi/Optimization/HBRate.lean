@@ -585,4 +585,89 @@ theorem hb_two_root_spectral_norm_bound (e : ℕ → ℂ)
   exact hb_two_root_common_norm_bound e (t : ℂ) (beta : ℂ) lam1 lam2 A B
     (Real.sqrt beta) hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
 
+/-- Общая верхняя граница модулей корней: при `|λᵢ| ≤ ρ`
+двухкорневая траектория ограничена одной экспонентой.
+Это НЕ требует равенства модулей и работает при любом дискриминанте. -/
+theorem hb_two_root_norm_cap (e : ℕ → ℂ) (t beta lam1 lam2 A B : ℂ)
+    (rho : ℝ)
+    (hrec : ∀ n, e (n + 2) = t * e (n + 1) - beta * e n)
+    (hroot1 : lam1 ^ 2 - t * lam1 + beta = 0)
+    (hroot2 : lam2 ^ 2 - t * lam2 + beta = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2)
+    (hnorm1 : ‖lam1‖ ≤ rho) (hnorm2 : ‖lam2‖ ≤ rho) (n : ℕ) :
+    ‖e n‖ ≤ (‖A‖ + ‖B‖) * rho ^ n := by
+  have h := hb_two_root_norm_bound e t beta lam1 lam2 A B hrec
+    hroot1 hroot2 h0 h1 n
+  have hp1 : ‖lam1‖ ^ n ≤ rho ^ n :=
+    pow_le_pow_left₀ (norm_nonneg _) hnorm1 n
+  have hp2 : ‖lam2‖ ^ n ≤ rho ^ n :=
+    pow_le_pow_left₀ (norm_nonneg _) hnorm2 n
+  calc
+    ‖e n‖ ≤ ‖A‖ * ‖lam1‖ ^ n + ‖B‖ * ‖lam2‖ ^ n := h
+    _ ≤ ‖A‖ * rho ^ n + ‖B‖ * rho ^ n := by
+      exact add_le_add (mul_le_mul_of_nonneg_left hp1 (norm_nonneg A))
+        (mul_le_mul_of_nonneg_left hp2 (norm_nonneg B))
+    _ = (‖A‖ + ‖B‖) * rho ^ n := by ring
+
+/-- Явный вещественный корень квадратного характеристического
+многочлена: λ = (t + s√(t²−4β))/2, s=±1.
+Дискриминант неотрицателен по условию, поэтому корень вещественный. -/
+theorem hb_real_root_pm (t beta s : ℝ) (hs : s = 1 ∨ s = -1)
+    (hd : 0 ≤ t ^ 2 - 4 * beta) :
+    ((t + s * Real.sqrt (t ^ 2 - 4 * beta)) / 2) ^ 2
+      - t * ((t + s * Real.sqrt (t ^ 2 - 4 * beta)) / 2) + beta = 0 := by
+  have hsq : Real.sqrt (t ^ 2 - 4 * beta) ^ 2 = t ^ 2 - 4 * beta :=
+    Real.sq_sqrt hd
+  rcases hs with rfl | rfl <;> field_simp <;> nlinarith [hsq]
+
+/-- Оценка абсолютного значения квадратного корневого выражения
+через `(|t| + √(t²−4β))/2`. При отрицательном D этот Lean-sqrt
+равен нулю, и теорема НЕ объявляет выражение вещественным корнем. -/
+theorem hb_real_root_pm_norm (t beta s : ℝ) (hs : s = 1 ∨ s = -1) :
+    |(t + s * Real.sqrt (t ^ 2 - 4 * beta)) / 2|
+      ≤ (|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2 := by
+  have hsabs : |s| = 1 := by
+    rcases hs with rfl | rfl <;> simp
+  have hsqrt : 0 ≤ Real.sqrt (t ^ 2 - 4 * beta) := Real.sqrt_nonneg _
+  have hstep : |(t + s * Real.sqrt (t ^ 2 - 4 * beta))|
+      ≤ |t| + Real.sqrt (t ^ 2 - 4 * beta) := by
+    calc
+      |(t + s * Real.sqrt (t ^ 2 - 4 * beta))|
+        ≤ |t| + |s * Real.sqrt (t ^ 2 - 4 * beta)| := abs_add_le _ _
+      _ = |t| + Real.sqrt (t ^ 2 - 4 * beta) := by
+        rw [abs_mul, hsabs, one_mul, abs_of_nonneg hsqrt]
+  rw [abs_div, abs_of_nonneg (by norm_num : (0:ℝ) ≤ 2)]
+  exact (div_le_div_of_nonneg_right hstep (by norm_num : (0:ℝ) ≤ 2))
+
+/-- Двухэкспоненциальная траектория вещественных квадратных корней:
+общая экспонента `((|t|+√D)/2)^n`, D=t²−4β.
+Представление начальных данных задаётся отдельно: при D=0 эта
+теорема НЕ покрывает Jordan-слагаемое с коэффициентом n. -/
+theorem hb_real_two_root_norm_bound (e : ℕ → ℂ) (t beta : ℝ)
+    (lam1 lam2 A B : ℂ)
+    (hrec : ∀ n, e (n + 2) = (t : ℂ) * e (n + 1) - (beta : ℂ) * e n)
+    (hroot1 : lam1 ^ 2 - (t : ℂ) * lam1 + (beta : ℂ) = 0)
+    (hroot2 : lam2 ^ 2 - (t : ℂ) * lam2 + (beta : ℂ) = 0)
+    (h0 : e 0 = A + B) (h1 : e 1 = A * lam1 + B * lam2)
+    (hquad1 : lam1 = ((t + Real.sqrt (t ^ 2 - 4 * beta)) / 2 : ℝ))
+    (hquad2 : lam2 = ((t - Real.sqrt (t ^ 2 - 4 * beta)) / 2 : ℝ))
+    (n : ℕ) :
+    ‖e n‖ ≤ (‖A‖ + ‖B‖) *
+      ((|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2) ^ n := by
+  have hnorm1 : ‖lam1‖ ≤ (|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2 := by
+    rw [hquad1]
+    simp only [Complex.norm_real, Real.norm_eq_abs]
+    simpa only [one_mul] using hb_real_root_pm_norm t beta 1 (Or.inl rfl)
+  have hnorm2 : ‖lam2‖ ≤ (|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2 := by
+    have hroot : lam2 = ((t + (-1 : ℝ) * Real.sqrt (t ^ 2 - 4 * beta)) / 2 : ℝ) := by
+      rw [hquad2]
+      congr 1
+      ring
+    rw [hroot]
+    simp only [Complex.norm_real, Real.norm_eq_abs]
+    exact hb_real_root_pm_norm t beta (-1) (Or.inr rfl)
+  exact hb_two_root_norm_cap e (t : ℂ) (beta : ℂ) lam1 lam2 A B
+    ((|t| + Real.sqrt (t ^ 2 - 4 * beta)) / 2)
+    hrec hroot1 hroot2 h0 h1 hnorm1 hnorm2 n
+
 end Hagi.Optimization.HBRate
