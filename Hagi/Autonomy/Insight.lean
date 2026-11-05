@@ -120,5 +120,35 @@ theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
     (A * B).mulVec x = 0 ∧ kl ≤ eps :=
   ⟨tldr_drift_null A B x hx, forgetting_kl_bound F dW kl eps h_emp_second hball⟩
 
+/-- Exact scalar quadratic KL model `dW ↦ dW ^ 2 / 2` for fixed
+unit-Fisher curvature. This is not the true KL divergence of an arbitrary
+distribution. -/
+noncomputable def scalarQuadraticKl (dW : ℝ) : ℝ := dW ^ 2 / 2
+
+/-- For the exact scalar model, the curvature inequality follows from
+`Real.inner_apply`, and `forgetting_kl_bound` gives the KL budget.
+This closes only fixed unit-Fisher curvature, not an arbitrary `F`. -/
+theorem forgetting_kl_quadratic_unit_fisher (dW eps : ℝ) (hball : dW ^ 2 ≤ 2 * eps) :
+    scalarQuadraticKl dW ≤ eps := by
+  have hcurvature :
+      scalarQuadraticKl dW ≤
+        ⟪dW, (ContinuousLinearMap.id ℝ ℝ) dW⟫_ℝ / 2 := by
+    simp only [scalarQuadraticKl, ContinuousLinearMap.id_apply, Real.inner_apply, pow_two]
+    exact le_rfl
+  apply forgetting_kl_bound (ContinuousLinearMap.id ℝ ℝ) dW
+    (scalarQuadraticKl dW) eps hcurvature
+  simpa only [ContinuousLinearMap.id_apply, Real.inner_apply, pow_two] using hball
+
+set_option linter.unusedDecidableInType false in
+/-- Kernel safety together with the exact scalar quadratic KL budget.
+The KL conclusion is limited to fixed unit-Fisher curvature; no bound for
+an arbitrary Fisher map `F` or an arbitrary distribution's true KL is claimed. -/
+theorem tldr_two_tier_safety_unit_fisher {m n r : Type} [Fintype m] [Fintype n] [Finite r]
+    (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)
+    (hx : B.mulVec x = 0) (dW eps : ℝ) (hball : dW ^ 2 ≤ 2 * eps) :
+    (A * B).mulVec x = 0 ∧ scalarQuadraticKl dW ≤ eps := by
+  let _ := Fintype.ofFinite r
+  exact ⟨tldr_drift_null A B x hx, forgetting_kl_quadratic_unit_fisher dW eps hball⟩
+
 end Hagi.Autonomy
 

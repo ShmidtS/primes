@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 418 Lean-модулей в `Hagi/`; 4163 декларации (Freeze);
+- 418 Lean-модулей в `Hagi/`; 4167 деклараций (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -2710,6 +2710,25 @@
   алгебру растущего темпа, НЕ утверждает стабильное обучение.
 - Три `#print axioms` дали стандартную тройку; registry внешних
   h_emp-binders намеренно не менялся этим чистым мостом.
+
+## Исследовательский цикл 53 — вывод двух фиксированных premise-моделей
+
+- `scalarQuadraticKl` и `forgetting_kl_quadratic_unit_fisher`
+  выводят curvature-неравенство от точной скалярной модели F=1;
+  `tldr_two_tier_safety_unit_fisher` добавляет её к доказанному
+  kernel safety без `h_emp_second`. Лимит: только fixed unit-Fisher,
+  не произвольная KL/Fisher mismatch-модель.
+- `mopd_kl_scaling_warning_fivefold` получает scaling=5 от
+  явной fivefold-модели через rfl и прежнюю арифметику допуска,
+  без `h_emp_scaling`. Произвольное policy scaling не доказано.
+- Исходные общие теоремы и Freeze-сигнатуры не изменены. Следовательно,
+  AssumptionScan остаётся 45 файлов/137 включений: добавлены
+  закрытые инстансы, НЕ удалены старые conditional интерфейсы.
+  Комментарная чистка и предложенное узкое переименование sig-
+  натур отвергнуты как фальшивое закрытие.
+- Numeric probes и все четыре `#print axioms` пройдены; новых
+  imports и аксиом нет. Изменение EOL в PolicyCompatibility
+  отдельно проверено: старый declaration hash не потерян.
 
 ## Открытые проблемы
 

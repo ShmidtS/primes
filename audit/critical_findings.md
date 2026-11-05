@@ -1,4 +1,26 @@
 
+### Цикл 53 (empirical closure): две явные модели выведены
+- `scalarQuadraticKl`, `forgetting_kl_quadratic_unit_fisher` и
+  `tldr_two_tier_safety_unit_fisher`: получена собственная кривизна
+  identity map, не переданная как эмпирическая гипотеза.
+  Сохранённые внешние условия — невязка dW² и нулевой kernel
+  адаптера B. Произвольная F/распределительная KL не закрыта.
+- `mopd_kl_scaling_warning_fivefold`: в fixed 5x модели исходная
+  scaling-посылка выполняется rfl, остаётся только экономическое
+  ограничение 5·Dbase·ε ≤ 1. Универсальный масштаб НЕ выводится.
+- Политика Freeze: исходные theorem statements сохранены без
+  переписывания binder сигнатур. Поэтому AssumptionScan остаётся
+  137: это честное class closure, а не числовая имитация cleaning.
+- Четыре #print axioms и численные probes прошли, узкие targets
+  обоих модулей собираются. PolicyCompatibility нормализован
+  CRLF→LF для git diff --check; Freeze подтвердил 4167 declarations,
+  ни одного lost/aliased/изменённого старого результата.
+- Независимый review: LGTM по моделям и binder closure. Его
+  единственное Low-замечание — случайный draft-счётчик `935/137?` —
+  исправлено. Проверенный registry: 45 файлов/137 вхождений.
+- Полный CI повторно PASS (4167 declarations). Оставшиеся общие
+  premise interfaces не объявляются аналитически закрытыми.
+
 ### Цикл 52 (HB state-to-spectrum): исходная пара замкнута
 - `hb_pair_second_order_complex`: точная комплексная форма старого
   скалярного вывода, free coefficient β+η(1−β) сохранён и НЕ

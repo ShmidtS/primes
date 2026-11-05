@@ -275,6 +275,15 @@ s = ‖g‖₁ / n                            # signScale
 - `audit/assumption_closure.md` фиксирует все 45 файлов lock:
   существующие smooth/lip/dist/grow/merge выводы и настоящие
   trust boundaries (independence, physics, telemetry).
+- `forgetting_kl_quadratic_unit_fisher` и
+  `tldr_two_tier_safety_unit_fisher`: скалярная модель задаёт
+  KL как dW²/2, единичная F и её inner-product равенство
+  доказываются, а h_emp_second здесь не нужен. Это не универсальная
+  вероятностная KL-формула для всех распределений.
+- `mopd_kl_scaling_warning_fivefold`: в явной fivefold-модели
+  coэффициент политики равен пяти по построению, поэтому достаточный
+  ε-budget выводится без h_emp_scaling. Произвольный λ отдельно
+  измеряется/моделируется и этой теорией не закрывается.
 - Общие conditional lemmas сохраняются только как интерфейс
   классов функций. Запрещено выдавать `EmpiricalPremises.holds`
   за доказательство гладкости: `premises_give_smooth` требует

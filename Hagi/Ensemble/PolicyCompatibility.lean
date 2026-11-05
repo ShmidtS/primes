@@ -80,5 +80,15 @@ theorem mopd_kl_scaling_warning {Dbase Dpolicy : ℝ}
   rw [le_div_iff₀ heps]
   linarith
 
+/-- **Exact fivefold instability scaling (declared model instance)**:
+when the policy divergence is fixed to `5 * Dbase`, the fivefold
+safety hypothesis yields the tolerance reduction without an
+empirical scaling premise. This is an instance attached to the
+envisioned MOPD regime, not a proof of arbitrary MOPD scaling. -/
+theorem mopd_kl_scaling_warning_fivefold {Dbase : ℝ} (_hbase : 0 < Dbase)
+    {ε : ℝ} (heps : 0 < ε) (hsafe : (5 * Dbase) * ε ≤ 1) :
+    Dbase ≤ 1 / ε / 5 := by
+  exact mopd_kl_scaling_warning (Dpolicy := 5 * Dbase) rfl _hbase heps hsafe
+
 end Hagi.Ensemble
 

@@ -24,11 +24,11 @@
 
 | Файл | Аналитический статус |
 | --- | --- |
-| Autonomy/Insight | Условная кривизна `h_emp_second`; требуется definite energy/Hessian model, общего вывода нет. |
+| Autonomy/Insight | Fixed unit-Fisher модель замкнута в цикле 53 без `h_emp_second`; произвольная F/Hessian и kernel premise остаются исходными данными. |
 | Discovery/PPT | `MeasuredSet`/stationary distribution are sampler semantics; доказательство конечной суммы выведено, distribution/meas остаются исходными данными. |
 | Energy/Landauer | Physical dissipation/memory/write/credit/cooling premises are trust boundaries, not analytic statements. |
 | Energy/STEStep | Закрыто каноническим `ste_residual_of_tern`; общий `ste_step_residual` остаётся условной треугольной леммой. |
-| Ensemble/PolicyCompatibility | Закрывается только при definitional `Dpolicy=5Dbase`; произвольное scaling equality не выводится. |
+| Ensemble/PolicyCompatibility | Точный `Dpolicy=5Dbase` инстанс выведен в цикле 53; произвольное scaling equality не выводится. |
 | Examples/EdgeTests | `h_emp_takeoff_exponential` уже доказан и применяется, не premise. |
 | Examples/Nonvacuity | Merge и quant distortion выведены; idle ledger witnesses не являются физическим выводом. |
 | Foundations/PerronCone | Четыре h_emp-имени уже доказаны; остальные `h_emp_dyn` — модельная динамика. |
@@ -84,8 +84,8 @@
 
 Следующий механический шаг: не удалять общие conditional lemmas;
 подключать новые операциональные инстансы к каноническому
-`CertStep` и исправить misleading `EmpiricalPremises` docstring,
-который обещал вывод `holds ⇒ smooth`, отсутствующий в теореме.
+`CertStep`. Ложное обещание `EmpiricalPremises.holds ⇒ smooth`
+исправлено в цикле 45: отдельная smoothness-модель обязательна.
 
 ## Цикл 46 — исполнение замкнуто в CertStep
 
@@ -104,3 +104,18 @@
 - `mergeOperationalCertStep` использует настоящий Jensen gap
   как drop, а `mergeStrictCertStep` доказывает его ненулевость.
 - Никаких `h_emp_*` в ядрах; общие ledger-формы не удаляются.
+
+## Цикл 53 — fixed unit-Fisher и fivefold-policy
+
+- Скалярная модель `scalarQuadraticKl` полностью вычислима по
+  dW²/2, а единичная F превращается в identity linear map.
+  `forgetting_kl_quadratic_unit_fisher` выводит curvature premise,
+  `tldr_two_tier_safety_unit_fisher` выводит двухуровневую безопасность
+  в той же модели. Это НЕ вывод произвольной распределительной KL.
+- `mopd_kl_scaling_warning_fivefold` устанавливает Dpolicy=5·Dbase
+  по построению; прежний `h_emp_scaling` инстанцируется rfl.
+  Общий масштаб политики не определяется этой теоремой.
+- Frozen-ограничение: общие исходные теоремы сохранены. Registry
+  остаётся 45 файлов/137 вхождений: это НЕ удаление premise binders.
+  Убран один новый-unused-instance warning через Finite r + Fintype
+  ofFinite в доказательстве; типовые условия оригинала не менялись.
