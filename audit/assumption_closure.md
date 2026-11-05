@@ -11,6 +11,24 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 70 — Pareto controller без скрытого empirical closure
+
+- Новые finite controller declarations не добавляют h_emp binder-ов:
+  registry остаётся 201 empirical occurrences в 37 modules.
+  Structural registry=9065 из-за обычных safety/cap/proof constraints.
+- ControllerProblem принимает safe Prop и memory/operation functions
+  как модельные входы, НЕ автоматически доказанные physical premises.
+  Status (No update) и Freeze предохранители здесь не должны создавать
+  ложное впечатление «все external assumptions классифицированы».
+- `selection_pareto` — non-domination в точном finite feasible-set,
+  лексикографический priority quality→memory→operations. Это не
+  scalarization общего Pareto front, не global learning optimum и не
+  минимальная стоимость перебора. Fresh StageInput adapter отделён от
+  скопированных fixed effects старого capstone.
+- Fin 2 probe содержит настоящий advance energy drop 30→27 и no-op
+  fallback. Safe witness сформулирован как explicit point-specific
+  inequality. Registry count 201 не отражает все unnamed model inputs.
+
 ## Цикл 69 — отрицательная специализация takeoff, не закрытие premise
 
 - `Hagi.Examples.state_capability_two_step_inconsistent` содержит пять

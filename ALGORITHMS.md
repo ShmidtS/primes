@@ -1,10 +1,35 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4239 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4258 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Finite Pareto execution policy (цикл 70)
+
+- `ControllerProblem` задаёт objective `ControllerProblem.value`, настоящий переход `step : A → S → S`,
+  model-safe predicate и раздельные модельные memory/operation counts.
+  Feasible set строится через `Hagi.Growth.safeCandidates` с обоими caps.
+- Селекция максимизирует nested Prod.Lex score
+  `(value(next a s), −memory(a), −operations(a))`. Следствия — quality
+  optimum в feasible-set, все equality coordinates у competitor,
+  который не хуже во всех трёх целях, memory и operation bounds.
+- Baseline-takeoff конфликт не переносится: `stageFamily` принимает
+  пер-цикловый `StageInput` и вычисляет `advance`. Следовательно,
+  `stageFamily_capability` содержит текущий growGain, а не copied effects.
+- При единственном feasible действии выбирается baseline; при
+  `step stay s=s` returned state точно равен s. Probe при generous caps
+  выбирает реальный upgrade (idx1), при zero caps — baseline (idx0).
+  Это минимальная служба выбора, не novelty claim на universal training.
+- Explicit priority quality→memory→compute является выбранным правилом,
+  не универсальным скалярным оптимумом. Value=-energy лишь surrogate probe.
+  Resource 0/1/2 units не включают heap, metadata, padding или machine
+  ABI; cost of enumerating candidates не доказан минимальным.
+- Empirical registry=201/37, structural=9065. Proposition `ControllerProblem.safe` остаётся
+  model-conditional: его наличие в record не заменяет actual certificate.
+  Модель не является executable finite-word optimizer; no-op здесь
+  честная остановка, а не learning improvement.
 
 ## Барьер fixed-effects и следующий контроллер (цикл 69)
 

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 421 Lean-модулей в `Hagi/`; 4239 declarations (Freeze);
+- 422 Lean-модулей в `Hagi/`; 4258 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,28 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 70: finite Pareto execution controller
+
+- `Hagi.Unified.ParetoExecution` выбирает из конечного feasible-набора
+  фактические successor functions. Допустимость включает model-safe,
+  memory и operation caps; скоринг — `(quality, −memory, −operations)`
+  через Prod.Lex, без произвольных скалярных весов.
+- `selection_pareto`: feasible competitor, не худший по качеству и не
+  дороже по memory/operations, совпадает по ВСЕМ трём координатам.
+  Гарантия относится только к заданному семейству, не ко всем архитектурам.
+- `selection_quality_ge_stay`, resource bounds и `next_fallback` дают
+  гарантированный baseline и точный no-op при единственном допустимом
+  действии. Это обычный model-safe, а не physical safety бесплатно.
+- Fin 2 probe: identity и реальный `advance wS0 wU0`; выбран idx1,
+  energy 30→27, value=-27. При zero caps возвращается idx0 и исходный state.
+  Safe-witness — настоящий energy inequality, а не unconditional True.
+- `stageFamily_capability` связывает поле с СВЕЖИМ per-cycle growGain.
+  `memory/operations` примера — модельные units, не полные байты/FLOPs.
+  Classical.choice выбора не даёт native runtime или минимум search cost.
+- Новый модуль один, 19 declarations; Freeze=4258. Empirical registry
+  остаётся 201/37; structural=9065. Независимое ревью и follow-up — LGTM,
+  старый `next` остался нетронутым: новое имя — `selectedNext`.
+
 ### Цикл 69: точный барьер fixed-effects takeoff
 
 - `Hagi.Examples.state_capability_two_step_inconsistent` специализирует

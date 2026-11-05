@@ -414,6 +414,7 @@ import Hagi.Step.RobustDescent
 import Hagi.Audit.Audit
 import Hagi.Step.NoisyPL
 import Hagi.Unified.MemorySemantics
+import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ProductiveTransition
 import Hagi.Unified.TransitionCert
 import Hagi.Unified.VerticalCapstone

@@ -1,4 +1,29 @@
 
+### Цикл 70: конечный Pareto controller с actual successor
+
+- `ControllerProblem` поставляет objective, actual step, safe Prop,
+  memory и operations. Feasible set через существующий safeCandidates;
+  score `(quality, −memory, −operations)` в nested Prod.Lex. Произвольные
+  scalar weights не заменяют отдельные resource coordinates.
+- `selection_pareto` доказывает равенство всех трёх координат у любого
+  feasible candidate, одновременно не худшего во всех целях. Это finite
+  non-domination, НЕ глобальная оптимальность обучения или архитектуры.
+- Проверены baseline quality, оба resource caps и exact no-op fallback.
+  Probe выбирает idx1 (реальный advance 30→27) и value=-27, а zero caps
+  возвращают idx0 и исходное состояние. Energy safety witness не равен
+  безусловному True, но всё равно относится только к точке wS0.
+- `stageFamily_capability` принимает per-cycle input, поэтому прежний
+  copied-effects two-step barrier не маскируется. Физическая свежесть
+  measurement не доказывается автоматически этим mathematical adapter.
+- Найдена bare-name collision `next`; новый объект переименован в
+  `selectedNext`, старый `GrowthComputedCert.next` и его hash не изменены.
+  Freeze=4258, ровно +19 (включая private `feasPred`), registry=201/37
+  empirical и 9065 structural. Оба refute-first reviews: LGTM.
+- Ограничения явные: safe Prop модельный, value=-energy surrogate,
+  resource counts модельные units, selection noncomputable Classical.choose.
+  Никаких total byte/FLOP minimum, native runtime proof или минимальной
+  стоимости finite search результат не даёт.
+
 ### Цикл 69: точная несовместимость fixed-effects takeoff
 
 - `Hagi.Examples.state_capability_two_step_inconsistent` копирует типы

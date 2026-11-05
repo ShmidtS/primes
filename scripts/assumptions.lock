@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9034
-named structural declaration+ordinal keys: 9034
-named structural source modules: 407
+named structural binder occurrences: 9065
+named structural declaration+ordinal keys: 9065
+named structural source modules: 408
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -8863,6 +8863,37 @@ Hagi.Unified.OptimalConfig | Hagi.Unified.OptimalConfig.cfg_descent | 6 | hgrad 
 Hagi.Unified.OptimalConfig | Hagi.Unified.OptimalConfig.cfg_rate | 2 | h0 | 0 < rho
 Hagi.Unified.OptimalConfig | Hagi.Unified.OptimalConfig.cfg_stability | 2 | h0 | 0 < rho
 Hagi.Unified.OptimalConfig | Hagi.Unified.OptimalConfig.cfg_stability | 3 | h1 | rho < 1
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 11 | honly | ∀ (a : A), a ≠ stay → a ∉ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.next_fallback | 12 | hid | p.step stay s = s
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selectedNext | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selectedNext.eq_1 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection._proof_1 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection.congr_simp | 21 | h_stay | stay✝ ∈ Hagi.Unified.ParetoExecution.feasible p✝ M✝ C✝
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_admissible | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_fallback | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_fallback | 11 | honly | ∀ (a : A), a ≠ stay → a ∉ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_memory_le | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_operations_le | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_optimal | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto | 12 | ha | a ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto | 13 | hq | p.value (Hagi.Unified.ParetoExecution.selectedNext p s M C stay h_stay) ≤ p.value (p.step a s)
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto | 14 | hm | p.memory a ≤ p.memory (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto | 15 | ho | p.operations a ≤ p.operations (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_2 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_2 | 12 | hm | p.memory a ≤ p.memory (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_2 | 13 | hlt2 | (-↑(p.memory a), -↑(p.operations a)).1 < (-↑(p.memory (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)), -↑(p.operations (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay))).1
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_3 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_3 | 12 | heq2 | (-↑(p.memory a), -↑(p.operations a)).1 = (-↑(p.memory (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)), -↑(p.operations (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay))).1
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_4 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_4 | 12 | ho | p.operations a ≤ p.operations (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_pareto._proof_1_4 | 13 | hle2 | (-↑(p.memory a), -↑(p.operations a)).2 ≤ (-↑(p.memory (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay)), -↑(p.operations (Hagi.Unified.ParetoExecution.selection p s M C stay h_stay))).2
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_ge_stay | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_ge_stay | 11 | hid | p.step stay s = s
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_optimal | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_spec | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.ctv3_idle_contra | 7 | hc | Hagi.Model.CertifiedTransitionV3 S (Hagi.Model.advance S u) u riskLim
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.ctv3_idle_contra | 8 | hzero | (Hagi.Model.advance S u).energy = S.energy
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.idle_not_productive | 7 | hC | 0 < δC
