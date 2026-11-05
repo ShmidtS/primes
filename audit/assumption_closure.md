@@ -11,6 +11,23 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 72 — logit CE и бюджет без нового empirical closure
+
+- Все statements остаются на явной scalar one-example модели. `logitSafe`
+  выведен из logit-строгой монотонности; `logitStepCertExact` даёт
+  подлинный actual drop и actual successor для `certified_loop`.
+  Это не новая physical/optimization гарантия.
+- Empirical registry по-прежнему 201/37; `heta`, `hrec`, `hbnn` и т.п.
+  — structural conditions, не решённые `h_emp_*` premises.
+  Structural total 9134 в 409 modules, включая elaborated helpers.
+- Доказаны точный CE-drop sum, floors, strict decline для n≥1,
+  budget residual и spend=eta. Квадратичная telescope переиспользует
+  существующую теорему, не постулирует optimal speed/horizon.
+- При eta=1 старт w=0 действительно даёт 1/2. Три шага с b0=10
+  заканчиваются b3=7. Cost counters и memory индексы являются model
+  units, а не полным memory/hardware cert; minimizer learning-rate η,∞
+  и global architecture не вводятся.
+
 ## Цикл 71 — robust estimation: structural bound, не solved uncertainty
 
 - Обновлён только objective в `withEstimatedValue`; actual step,

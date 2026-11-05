@@ -1,10 +1,40 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4266 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4293 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Scalar logit-CE policy and budgeted trajectory (цикл 72)
+
+- `logitProblem`: state=real margin, objective=`-logitCE`, actions
+  identity и точное вычисление `w+eta/(1+exp w)`. Safe = настоящий
+  CE non-increase, выведенный из `descent_step_strict` при eta>0.
+  Generic optimality of eta не утверждается.
+- При двух feasible-кандидатах `logit_selectedNext` исполняет update,
+  поскольку false baseline противоречит строгому уменьшению CE.
+  Model memory/operations caps остаются явными, не физическими байтами
+  или минимальным числом FLOPs.
+- `logitEstimate = −logitCE−1/2` имеет ошибку ровно 1/2. Сдвиг
+  пессимистичен и детерминирован; это НЕ IID-калибровка и НЕ широкий
+  estimator guarantee. `logit_robustNext` сохраняет действительный
+  update; без бюджета — возвращает прежний state.
+- `logitTrajCert` переносит настоящие поля `logitStepCertExact` на
+  зависимую точку `w(t+1)`. Все каналы качества 0≤logitCE, risk=0,
+  реальный budgetSpend=eta; per-step hrec не заменён эффектами-ad-hoc.
+- `logit_budget_loop` использует `certified_loop`, `_all`, `_strict`.
+  Итог включает CE sum telescopes, все intermediate floors,
+  budget residual 0≤b_n и b_n≤b0−Σeta, strict decline при n≥1.
+  Индукция `logit_budget_nonneg` выводит 0 от фактических budget bounds.
+- `logit_quadratic_bound` вызывает готовый `logitCE_trajectory_bound`.
+  `logit_budget_loop` и его quadratic certificate требуют eta≤2;
+  базовый exact drop допускает любой eta>0. Нельзя переносить
+  scalar monotonicity
+  на broader large-step logistic models после oscillation literature.
+- Probe: at eta=1 initial update 0→1/2 exactly; selected/robust steps
+  совпадают с ним. For T=3 at b0=10 and eta=1, actual b3=7, Σspend=3.
+  +27 declarations; Freeze=4293, empirical 201/37, structural 9134/409.
 
 ## Bounded-estimation Pareto policy (цикл 71)
 

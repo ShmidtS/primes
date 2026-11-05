@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9075
-named structural declaration+ordinal keys: 9075
-named structural source modules: 408
+named structural binder occurrences: 9134
+named structural declaration+ordinal keys: 9134
+named structural source modules: 409
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -8904,6 +8904,65 @@ Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_ge
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_ge_stay | 11 | hid | p.step stay s = s
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_quality_optimal | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.ParetoExecution | Hagi.Unified.ParetoExecution.selection_spec | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.LogitCert.logitStepCertExact.eq_1 | 6 | h0 | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.LogitCert.logitStepCertExact.eq_1 | 7 | hbudget | 0 ≤ budget'
+Hagi.Unified.ParetoLogit | Hagi.Unified.LogitCert.logitStepCertExact.eq_1 | 8 | hrisk | 0 ≤ riskLim
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitSafe_one | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert | 5 | hrec | ∀ t < n, w (t + 1) = w t + eta t / (1 + Real.exp (w t))
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert | 6 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert | 7 | hbnn | ∀ t ≤ n, 0 ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert | 8 | hbd | ∀ t < n, b (t + 1) ≤ b t - eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_1 | 3 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_2 | 3 | hbnn | ∀ t ≤ n, 0 ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_4 | 5 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_4 | 6 | hbnn | ∀ t ≤ n, 0 ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_5 | 5 | hrec | ∀ t < n, w (t + 1) = w t + eta t / (1 + Real.exp (w t))
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_5 | 6 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_5 | 7 | hbnn | ∀ t ≤ n, 0 ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_6 | 3 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert._proof_7 | 4 | hbd | ∀ t < n, b (t + 1) ≤ b t - eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert.eq_1 | 5 | hrec | ∀ t < n, w (t + 1) = w t + eta t / (1 + Real.exp (w t))
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert.eq_1 | 6 | hpos | ∀ t < n, 0 < eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert.eq_1 | 7 | hbnn | ∀ t ≤ n, 0 ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logitTrajCert.eq_1 | 8 | hbd | ∀ t < n, b (t + 1) ≤ b t - eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_loop | 5 | hrec | ∀ t < n, w (t + 1) = w t + eta t / (1 + Real.exp (w t))
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_loop | 6 | heta | ∀ t < n, 0 < eta t ∧ eta t ≤ 2
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_loop | 7 | hb0 | 0 ≤ b 0
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_loop | 8 | htel | ∀ t < n, b (t + 1) = b t - eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_loop | 9 | hle | ∀ t < n, eta t ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_nonneg | 4 | hb0 | 0 ≤ b 0
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_nonneg | 5 | htel | ∀ t < n, b (t + 1) = b t - eta t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_nonneg | 6 | hle | ∀ t < n, eta t ≤ b t
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_nonneg._proof_1_1 | 3 | ht | t + 1 ≤ n
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_budget_nonneg._proof_1_2 | 3 | ht | t + 1 ≤ n
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_feasible_one | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_feasible_one | 5 | hM | 1 ≤ M
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_feasible_one | 6 | hC | 2 ≤ C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_quadratic_bound | 4 | hrec | ∀ t < n, w (t + 1) = w t + eta t / (1 + Real.exp (w t))
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_quadratic_bound | 5 | heta | ∀ t < n, 0 < eta t ∧ eta t ≤ 2
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext_fallback._proof_1_2 | 2 | hlt | ↑a < 2
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext_fallback._proof_1_2 | 3 | hne | ↑a ≠ 0
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robustNext_fallback._proof_1_2 | 4 | h1 | ↑a ≤ 0
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_selection_eq_one | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_selection_eq_one | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_selection_eq_one | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_selection_eq_one._proof_1_1 | 5 | hm0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoExecution.withEstimatedValue (Hagi.Unified.ParetoLogit.logitProblem eta) Hagi.Unified.ParetoLogit.logitEstimate) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_strict | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_strict | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_robust_strict | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selectedNext | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selectedNext | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selectedNext | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selected_strict | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selected_strict | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selected_strict | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selection_eq_one | 2 | heta | 0 < eta
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selection_eq_one | 6 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selection_eq_one | 7 | h1 | 1 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
+Hagi.Unified.ParetoLogit | Hagi.Unified.ParetoLogit.logit_selection_eq_one._proof_1_1 | 5 | h0 | 0 ∈ Hagi.Unified.ParetoExecution.feasible (Hagi.Unified.ParetoLogit.logitProblem eta) M C
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.ctv3_idle_contra | 7 | hc | Hagi.Model.CertifiedTransitionV3 S (Hagi.Model.advance S u) u riskLim
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.ctv3_idle_contra | 8 | hzero | (Hagi.Model.advance S u).energy = S.energy
 Hagi.Unified.ProductiveTransition | Hagi.Unified.PT.idle_not_productive | 7 | hC | 0 < δC

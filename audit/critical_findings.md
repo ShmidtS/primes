@@ -1,4 +1,44 @@
 
+### Цикл 72: scalar logit CE и настоящий budget loop
+
+- `logitProblem` заменяет energy-surrogate на `-logitCE`; safety
+  доказывается через `descent_step_strict` при любых eta>0 и всех
+  состояниях. Selected upgrade — реальный scalar gradient step,
+  пока h0/h1 в executable family разрешают оба кандидата.
+- `logitEstimate = −logitCE−1/2` имеет ошибку ровно 1/2, сохраняет
+  objective ordering и не добавляет IID/stochastic guarantee.
+  Реальный update исполняется и при robustness; при нулевых caps
+  возвращается исходный state. Нет silent quality-for-free claim.
+- `logitTrajCert` переносит fields настоящего `logitStepCertExact`
+  в dependent StepCert, с risk=0, spend=eta и actual drop через hrec.
+  Rewrite сначала ловит dependent-motive; окончательный proof
+  явно раскрывает logitTrajCert и logitStepCertExact. Это не перенос
+  желаемой метрики вместо вычисленного descent.
+- `logit_budget_loop` вызывает существующие certified_loop/all/strict:
+  все floors ∀t≤n, CE drop sum, 0≤b_n, b_n≤b0−Σeta и strict drop n≥1.
+  `logit_budget_nonneg` локально доказан из фактических eta≤b.
+  Для quadratic bound отдельно используется `logitCE_trajectory_bound`.
+  Eta≤2 нужен в готовом budget loop и quadratic bound. Базовые
+  `logitStepCertExact` и `logitTrajCert` допускают любой eta>0.
+- Exact probe: первый step 0→1/2, три шага с b0=10 дают b3=7 и spend=3.
+  Это one-example scalar модель, не global optimal training или
+  universal convergence. Memory/operations caps не являются
+  FLOP/physical bytes.
+- 27 новых declarations, Freeze=4293; empirical 201/37 unchanged,
+  structural=9134/409. Independent refute-first review LGTM; свежий
+  source/root build и axiom probes дают только standard triple.
+  Первый review отметил повторяющиеся projections; они заменены
+  общим core до окончательного delta-review.
+- Финальный `TrivialLint` поймал auto-generated proof-helper-ы с
+  фиктивными параметрами: `riskBound` замыкался в `0≤0`, а
+  `budgetBound` лишний раз тащил `w`. Baseline не расширен.
+  Общий exact step-core сохранён для всех содержательных CE-полей,
+  risk bound доказан как `le_refl 0`, а budget bound — непосредственно
+  из переданного `hbnn` через `Nat.succ_le_of_lt t.isLt`. Это не
+  меняет публичную сигнатуру и даёт `new=0`, `baseline=21`.
+  Отдельный независимый delta-review: LGTM-дельта. Полный CI
+  и `ALLAXIOMS` после этих изменений: PASS.
+
 ### Цикл 71: 2ε quality-оценка с точными resource caps
 
 - `withEstimatedValue` меняет только value. Поля step/safe/memory/operations

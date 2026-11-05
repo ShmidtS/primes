@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 422 Lean-модулей в `Hagi/`; 4266 declarations (Freeze);
+- 423 Lean-модулей в `Hagi/`; 4293 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,30 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 72: настоящая logit-CE policy и budget trajectory
+
+- `logitProblem` использует ЦЕЛЬ `-logitCE`, не energy-surrogate:
+  identity и реальный scalar update `w+eta/(1+exp w)`. `logitSafe`
+  доказывает CE non-increase для upgrade при eta>0 на всех состояниях.
+  `logit_selectedNext` выбирает этот update при обоих feasible действиях.
+- Детерминированный estimator `-logitCE−1/2` имеет точную ошибку 1/2.
+  Наивная stochastic calibration НЕ вводится. `logit_robustNext` тоже
+  вычисляет реальный update; zero caps возвращают исходное состояние.
+- `logitTrajCert` упаковывает настоящий `logitStepCertExact` в зависимый
+  StepCert с risk=0 и budgetSpend=eta; `logit_budget_loop` через
+  certified_loop даёт CE-telescope, все floors, strict decline при n≥1,
+  неотрицательность residual budget и b_n≤b_0−Σeta. Это не min-FLOPs.
+- `logit_quadratic_bound` ПРЯМО вызывает `logitCE_trajectory_bound`
+  при 0<eta≤2; нового телескопа нет. Композитный budget loop тоже
+  принимает eta≤2; базовый step exact drop работает при любом eta>0.
+- Первый update: eta=1, w=0 даёт точно w'=1/2. Трёхшаговый реальный
+  trajectory даёт strict decrease и b3=7 при b0=10, spend=3. Это
+  one-example scalar model, не общая сходимость или optimal horizon.
+- Один модуль, 27 declarations, Freeze=4293. Empirical=201/37,
+  structural=9134 в 409 modules. Large-step logistic papers размещены
+  только как граница применимости: scalar monotonicity не переносится.
+  Независимые initial/delta-ревью LGTM, axiom probes — standard triple.
+
 ### Цикл 71: bounded-estimation selection
 
 - `withEstimatedValue` заменяет только objective, сохраняя actual step,
