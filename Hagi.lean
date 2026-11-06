@@ -454,6 +454,7 @@ import Hagi.Contracts.BatchCEBestResidual
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor
+import Hagi.Model.GatedCESafeStep
 
 set_option linter.style.header false
 
