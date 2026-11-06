@@ -127,6 +127,26 @@ theorem selection_optimal (p : ControllerProblem A S) [DecidablePred p.safe]
     ∀ a ∈ feasible p M C, score p s a ≤ score p s (selection p s M C stay h_stay) :=
   (selection_spec p s M C stay h_stay).2
 
+/-- With two feasible actions, a strict objective increase from action `0`
+to action `1` forces the lexicographic selection to choose action `1`. -/
+theorem selection_eq_one_of_value_lt {S : Type*}
+    (p : ControllerProblem (Fin 2) S) [DecidablePred p.safe]
+    (w : S) (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible p M C)
+    (h1 : (1 : Fin 2) ∈ feasible p M C)
+    (hvalue : p.value (p.step 0 w) < p.value (p.step 1 w)) :
+    selection p w M C 0 h0 = 1 := by
+  have hval : (selection p w M C 0 h0).val = 0
+      ∨ (selection p w M C 0 h0).val = 1 := by omega
+  rcases hval with h | h
+  · exfalso
+    have hs := selection_optimal p w M C 0 h0 1 h1
+    have hsel : selection p w M C 0 h0 = 0 := Fin.ext h
+    rw [hsel] at hs
+    have hfst : p.value (p.step 1 w) ≤ p.value (p.step 0 w) :=
+      Prod.Lex.monotone_fst _ _ hs
+    linarith
+  · exact Fin.ext h
+
 /-- The actual successor state produced by the selected action. -/
 noncomputable def selectedNext (p : ControllerProblem A S) [DecidablePred p.safe]
     (s : S) (M C : ℕ) (stay : A)

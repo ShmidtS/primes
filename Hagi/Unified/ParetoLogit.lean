@@ -133,20 +133,11 @@ theorem logit_selection_eq_one (eta : ℝ) (heta : 0 < eta) (w : ℝ)
     (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (logitProblem eta) M C)
     (h1 : (1 : Fin 2) ∈ feasible (logitProblem eta) M C) :
     selection (logitProblem eta) w M C 0 h0 = 1 := by
-  have hval : (selection (logitProblem eta) w M C 0 h0).val = 0
-      ∨ (selection (logitProblem eta) w M C 0 h0).val = 1 := by omega
-  rcases hval with h | h
-  · exfalso
-    have hs := selection_optimal (logitProblem eta) w M C 0 h0 1 h1
-    have hsel : selection (logitProblem eta) w M C 0 h0 = 0 := Fin.ext h
-    rw [hsel] at hs
-    have hfst : -logitCE (logitStepFun eta 1 w)
-        ≤ -logitCE (logitStepFun eta 0 w) :=
-      Prod.Lex.monotone_fst _ _ hs
-    rw [logitStepFun_one, logitStepFun_zero] at hfst
-    have hdesc := descent_step_strict w eta heta
-    linarith
-  · exact Fin.ext h
+  apply selection_eq_one_of_value_lt (logitProblem eta) w M C h0 h1
+  simp only [logitProblem_value, logitProblem_step, logitStepFun_zero,
+    logitStepFun_one]
+  have hdesc := descent_step_strict w eta heta
+  linarith
 
 /-- Выбранный преемник равен точному реальному шагу
 обновления — при всех ресурсных предпосылках, оставшихся
@@ -204,27 +195,15 @@ theorem logit_robust_selection_eq_one (eta : ℝ) (heta : 0 < eta)
   have hm0 : (0 : Fin 2) ∈ feasible
       (withEstimatedValue (logitProblem eta) logitEstimate) M C :=
     (mem_feasible_withEstimatedValue _ _).mpr h0
-  have hval : (selection (withEstimatedValue (logitProblem eta)
-      logitEstimate) w M C 0 hm0).val = 0
-      ∨ (selection (withEstimatedValue (logitProblem eta)
-      logitEstimate) w M C 0 hm0).val = 1 := by omega
-  rcases hval with h | h
-  · exfalso
-    have hs := selection_optimal
-      (withEstimatedValue (logitProblem eta) logitEstimate) w M C 0 hm0 1
-      ((mem_feasible_withEstimatedValue _ _).mpr h1)
-    have hfst := Prod.Lex.monotone_fst _ _ hs
-    have hsel : selection (withEstimatedValue (logitProblem eta)
-      logitEstimate) w M C 0 hm0 = 0 := Fin.ext h
-    rw [hsel] at hfst
-    have hfst' : logitEstimate ((logitProblem eta).step 1 w)
-        ≤ logitEstimate ((logitProblem eta).step 0 w) := hfst
-    simp only [logitProblem_step, logitStepFun_one, logitStepFun_zero]
-      at hfst'
-    unfold logitEstimate at hfst'
-    have hdesc := descent_step_strict w eta heta
-    linarith
-  · exact Fin.ext h
+  apply selection_eq_one_of_value_lt
+    (withEstimatedValue (logitProblem eta) logitEstimate) w M C hm0
+    ((mem_feasible_withEstimatedValue _ _).mpr h1)
+  change logitEstimate ((logitProblem eta).step 0 w) <
+    logitEstimate ((logitProblem eta).step 1 w)
+  simp only [logitProblem_step, logitStepFun_zero, logitStepFun_one]
+  unfold logitEstimate
+  have hdesc := descent_step_strict w eta heta
+  linarith
 
 /-- Робастный преемник — реальный скалярный шаг обновления,
 следовательно строгий спуск CE. -/
