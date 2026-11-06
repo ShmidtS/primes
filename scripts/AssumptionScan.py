@@ -22,7 +22,15 @@ IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
 # Audit #7 premise classes: Empirical = h_emp_* binders;
 # Operational = execution-link binders (exec/descent/sample);
 # Structural/Math = all other parameter hypotheses.
-OPERATIONAL = re.compile(r"(h[A-Za-z0-9_']*(?:Exec|exec|Descent|descent|Sample|sample))")
+# Match a whole h-prefixed identifier, never an embedded fragment of an
+# ordinary identifier's name.  In particular,
+# `ceQuantWitness_shortcutScales_strict_descent` is not a premise
+# named `hortcutScales_strict_descent`.  Both guards exclude partial matches;
+# suffixes and primed identifiers are preserved instead of truncated.
+OPERATIONAL = re.compile(
+    r"(?<![A-Za-z0-9_'])h[A-Za-z0-9_']*"
+    r"(?:Exec|exec|Descent|descent|Sample|sample)[A-Za-z0-9_']*"
+    r"(?![A-Za-z0-9_'])")
 
 DECL = re.compile(
     r'^(?:\s|(?:private|protected|noncomputable)\s+)*'
@@ -58,7 +66,7 @@ def scan():
             hmap[rel] = names
         # operational premise registry (execution-link binders)
         for om in OPERATIONAL.finditer(code):
-            operational.add(om.group(1))
+            operational.add(om.group(0))
         for m in PRIM.finditer(code):
             prims.append(f"{rel}:{m.group(1)}")
     return hmap, prims, proven, operational
@@ -83,6 +91,8 @@ def registry(hmap, prims, proven, operational):
         lines.append(n)
     lines += ["", "[primitives]"]
     lines += sorted(prims)
+    lines += ["", "[operational]"]
+    lines += sorted(operational)
     return "\n".join(lines) + "\n"
 
 

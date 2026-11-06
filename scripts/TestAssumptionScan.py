@@ -54,5 +54,33 @@ theorem h_emp_fake : True := by trivial
         self.assertEqual(proven, set())
 
 
+    def write_operational_probe(self, text):
+        path = AssumptionScan.ROOT / "Hagi" / "Probe.lean"
+        path.write_text(text, encoding="utf-8")
+        _, _, _, operational = AssumptionScan.scan()
+        return operational
+
+    def test_operational_regex_ignores_witness_substrings(self):
+        operational = self.write_operational_probe('''
+theorem ceQuantWitness_shortcutScales_eq_knownSample : True := by trivial
+theorem ceQuantWitness_shortcutScales_strict_descent : True := by trivial
+''')
+        # Regression: a plain h followed later by Sample/Descent inside
+        # an ordinary identifier is NOT an h-prefixed operational name.
+        self.assertEqual(operational, set())
+
+    def test_operational_regex_preserves_whole_identifier_prefixes(self):
+        operational = self.write_operational_probe('''
+example (h_exec_retry : True) (hActualDescent : True) : True := by trivial
+example (h_sample_input' : True) : True := by trivial
+''')
+        self.assertEqual(operational,
+                         {"h_exec_retry", "hActualDescent", "h_sample_input'"})
+        report = AssumptionScan.registry({}, [], set(), operational)
+        self.assertIn(
+            "[operational]\nhActualDescent\nh_exec_retry\nh_sample_input'",
+            report)
+
+
 if __name__ == "__main__":
     unittest.main()
