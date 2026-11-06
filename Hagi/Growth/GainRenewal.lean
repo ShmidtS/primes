@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.JointPreserve
 import Hagi.Foundations.Recurrence
+import Hagi.Optimization.Momentum
 set_option linter.style.header false
 
 /-!
@@ -79,16 +80,9 @@ theorem gain_renewal_recurrence (G D : ℕ → ℝ) (γ ρ inj ξ : ℝ)
 
 /-- Geometric-sum closed form: for ρ ≠ 1,
 Σ_{i<t} ρ^i = (1 − ρ^t)/(1 − ρ). -/
-private theorem geo_sum_mul (ρ : ℝ) (t : ℕ) :
-    (1 - ρ) * ∑ i ∈ Finset.range t, ρ ^ i = 1 - ρ ^ t :=
-  -- R197 dedup: = Foundations.Recurrence.geom_telescope
-  Hagi.Foundations.geom_telescope ρ t
+private alias geo_sum_mul := _root_.Hagi.Foundations.geom_telescope
 
-private theorem geo_sum_closed (ρ : ℝ) (hρ : ρ ≠ 1) (t : ℕ) :
-    ∑ i ∈ Finset.range t, ρ ^ i = (1 - ρ ^ t) / (1 - ρ) := by
-  field_simp
-  rw [mul_comm]
-  exact geo_sum_mul ρ t
+private alias geo_sum_closed := _root_.Hagi.Optimization.geo_sum_eq
 
 /-- If `0 < γ`, `0 ≤ ρ < 1`, `ξ ≤ inj`, `0 ≤ ξ`, `0 ≤ inj`,
 `γ·D t ≤ G t ≤ γ·D t`, and `D (t+1) ≥ ρ·D t + inj − ξ`, then

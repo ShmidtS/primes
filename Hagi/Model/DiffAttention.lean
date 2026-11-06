@@ -69,8 +69,7 @@ theorem sm_shift (x : k → ℝ) (c : ℝ) (i : k) :
 всех позициях → веса совпадают с бесшумными (следствие
 сдвиг-инвариантности: контекст-загрязнение с общим
 аддитивным профилем самосокращается). -/
-theorem noise_cancel (x : k → ℝ) (c : ℝ) (i : k) :
-    sm (fun j => x j + c) i = sm x i := sm_shift x c i
+alias noise_cancel := _root_.Hagi.Model.DiffAttention.sm_shift
 
 /-- Дифф-вес: голова1 − λ·голова2. -/
 noncomputable def diffW (x y : k → ℝ) (lam : ℝ) (i : k) : ℝ :=

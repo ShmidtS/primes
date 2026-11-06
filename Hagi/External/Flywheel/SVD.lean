@@ -686,10 +686,6 @@ private lemma det_conj_of_isUnit' {R : Type*} [CommRing R] (M P : Matrix n n R) 
     rw [Ring.mul_inverse_cancel _ hP]
   rw [h, mul_one]
 
-/-- Determinant is invariant under similarity (complex matrices). -/
-private lemma det_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
-    (P * M * P⁻¹).det = M.det := det_conj_of_isUnit' M P hP
-
 /-- The characteristic matrix transforms under similarity. -/
 private lemma charmatrix_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
     (P * M * P⁻¹).charmatrix = (P.map Polynomial.C) * M.charmatrix * (P.map Polynomial.C)⁻¹ := by
@@ -1478,13 +1474,6 @@ lemma real_symmetric_isHermitian {A : Matrix n n ℝ} (hA : A.IsSymm) :
     exact Complex.conj_ofReal (A j i)
   rw [h_star, hA.apply j i]
 
-/-- For real symmetric matrices, eigenvalues can be computed in ℝ. -/
-private lemma real_symmetric_eigenvalues_real {A : Matrix n n ℝ} (hA : A.IsSymm) :
-    let hAc := real_symmetric_isHermitian hA
-    ∀ i, Complex.re (Complex.ofReal (hAc.eigenvalues i)) = hAc.eigenvalues i := by
-  intro hAc i
-  exact Complex.ofReal_re _
-
 omit [DecidableEq n] in
 /-- Aᵀ * A is symmetric for any real matrix A. -/
 lemma transpose_mul_self_isSymm (A : Matrix n n ℝ) : (Aᵀ * A).IsSymm := by
@@ -1518,24 +1507,6 @@ lemma eigenvalues_transpose_mul_self_nonneg (A : Matrix n n ℝ) :
     hATA.eigenvalues_eq_eigenvalues_iff _ |>.mpr h_charpoly
   rw [h_eig_eq]
   exact h i
-
-/-- Spectral theorem for real Hermitian matrices in direct form:
-    A = V * Λ * Vᵀ where V is orthogonal. -/
-private lemma real_spectral_theorem (A : Matrix n n ℝ) (hA : A.IsHermitian) :
-    A = (hA.eigenvectorUnitary : Matrix n n ℝ) *
-        diagonal hA.eigenvalues *
-        (hA.eigenvectorUnitary : Matrix n n ℝ).transpose := by
-  have h := hA.spectral_theorem
-  simp only [Unitary.conjStarAlgAut_apply] at h
-  -- Over ℝ: RCLike.ofReal = id
-  rw [show diagonal hA.eigenvalues = diagonal (RCLike.ofReal ∘ hA.eigenvalues) by
-    ext i j; simp only [diagonal, Function.comp_apply, of_apply]
-    split_ifs with hij <;> simp [RCLike.ofReal, hij]]
-  -- Over ℝ: star = transpose
-  rw [show (hA.eigenvectorUnitary : Matrix n n ℝ).transpose =
-          star (hA.eigenvectorUnitary : Matrix n n ℝ) by
-    ext i j; simp [transpose]]
-  exact h
 
 /-! ### Real SVD Construction
 

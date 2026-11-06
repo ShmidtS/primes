@@ -418,12 +418,7 @@ theorem bhatia_davis {V : Type*} [Fintype V] [Nonempty V]
 restatement of `popoviciu_var` (same statement; kept as an alias for
 the exported facade). -/
 @[deprecated Hagi.Probability.popoviciu_var]
-theorem bhatia_implies_popoviciu {V : Type*} [Fintype V] [Nonempty V]
-    (q g : V → ℝ) (a b : ℝ)
-    (hq : ∀ v, 0 < q v) (hq1 : ∑ v : V, q v = 1)
-    (hlo : ∀ v, a ≤ g v) (hhi : ∀ v, g v ≤ b) :
-    ∑ v : V, q v * (g v - ∑ x : V, q x * g x) ^ 2 ≤ (b - a) ^ 2 / 4 :=
-  popoviciu_var q g a b hq hq1 hlo hhi
+alias bhatia_implies_popoviciu := _root_.Hagi.Probability.popoviciu_var
 
 /-- Excess-variance bridge: Var_q(g) <= (b-a) * (mu - a) —
 Bhatia-Davis R496 with b - mu <= b - a.  For the Gibbs vertical

@@ -644,19 +644,6 @@ theorem consolidation_quality_bound (k : ℕ)
 измеряемой Lipschitz-посылке сохраняет качество в пределах
 L·√(k·Σ εᵢ) — одна теорема про весь цикл
 admit → store → consolidate. -/
-theorem memory_cycle_quality (k : ℕ)
-    (entries : Fin k → Matrix Unit m ℝ × Matrix Unit n ℝ)
-    (news : Fin k → Matrix Unit m ℝ × Matrix Unit n ℝ)
-    (ε : Fin k → ℝ)
-    (hbud : ∀ t, frob ((entries t).1ᵀ * (entries t).2
-      - (news t).1ᵀ * (news t).2) ≤ ε t)
-    (loss : Matrix m n ℝ → ℝ) (L : ℝ) (hL : 0 ≤ L)
-    (hlip : ∀ W W', |loss W - loss W'|
-      ≤ L * frobNorm (W - W')) :
-    |loss (∑ t, (entries t).1ᵀ * (entries t).2)
-      - loss (∑ t, (news t).1ᵀ * (news t).2)|
-      ≤ L * Real.sqrt ((k : ℝ) * ∑ t, ε t) :=
-  consolidation_quality_bound k entries news ε hbud loss L
-    hL hlip
+alias memory_cycle_quality := _root_.Hagi.Unified.consolidation_quality_bound
 
 end Hagi.Unified

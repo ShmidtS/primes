@@ -14,7 +14,7 @@ HAGI = ROOT / "Hagi"
 DECL_RE = re.compile(
     r"^\s*(?:@\[[^\]]*\]\s*)?(?:private\s+|protected\s+)?"
     r"(?:noncomputable\s+)?"
-    r"(?:theorem|lemma|def|structure|abbrev|instance|inductive|class)"
+    r"(?:theorem|lemma|def|structure|abbrev|instance|inductive|class|alias)"
     r"\s+([A-Za-z_][A-Za-z0-9_'′?]*)", re.M)
 
 

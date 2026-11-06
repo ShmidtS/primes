@@ -224,13 +224,7 @@ namespace Matrix.SVD
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
 /-- Truncated singular values are non-negative. -/
-theorem truncatedSingularValues_tail_nonneg (A : Matrix n n ℂ) (k : ℕ) (i : n) :
-    0 ≤ truncatedSingularValues_tail A k i := by
-  unfold truncatedSingularValues_tail
-  simp only
-  split_ifs
-  · exact singularValues₀_nonneg A _
-  · rfl
+alias truncatedSingularValues_tail_nonneg := _root_.Hagi.External.Flywheel.Matrix.FrobeniusNorm.truncatedSingularValues_tail_nonneg
 
 end Matrix.SVD
 
@@ -1377,13 +1371,7 @@ attribute [local instance] Matrix.instL2OpNormedAddCommGroup
     |σᵢ(B̂ ⊗ Ĉ) - σᵢ(B ⊗ C)| ≤ ‖B - B̂‖·‖C‖ + ‖B̂‖·‖C - Ĉ‖
 
     This theorem states the composition of these bounds. -/
-theorem kronecker_singularValue_perturbation [Nonempty p] [Nonempty q]
-    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) :
-    -- The spectral norm error bounds the singular value perturbation
-    ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
-    ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ :=
-  -- Direct application of our main perturbation bound
-  kronecker_sub_spectral_norm_bound B B' C C'
+alias kronecker_singularValue_perturbation := _root_.Hagi.External.Flywheel.Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound
 
 end WeylConnection
 

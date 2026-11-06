@@ -52,9 +52,7 @@ d = измеренному приросту capability энергия умень
 каналом состояния (аналог конъюнкта 2 CorePremises:
 growEnergy ≤ energy − growGain, здесь в форме равенства
 для certificate-шага). -/
-theorem ncCertStep_pays_gain (S : NCState) (u : NCInput) :
-    (ncCertStep S u).energy = S.energy - u.gain :=
-  ncCertStep_energy S u
+alias ncCertStep_pays_gain := _root_.Hagi.Unified.NCStepCert.ncCertStep_energy
 
 /-- Минимальное ядро `CertStep` нейрокомпьютера: drop
 вычислен как `u.gain`, положительность и равенство энергии

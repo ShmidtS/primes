@@ -7,6 +7,7 @@ import Hagi.Growth.Saturation
 import Hagi.Step.SafeQP
 import Hagi.Growth.StateBinding
 import Hagi.Data.DistillRecursion
+import Hagi.Foundations.ConeTakeoff
 /-!
 # T5 AntiCollapse — честная непрерывность энтропии
 
@@ -804,17 +805,7 @@ variable {Xs V : Type*} [NormedAddCommGroup Xs]
 /-- Truncated cone invariant: from the cone at 0 and
 horizon-only step/dynamics premises, D t >= k * C t holds
 for every t <= T. -/
-theorem cone_invariant_trunc (C D : ℕ → ℝ) (γ ρ β k : ℝ) (T : ℕ)
-    (hCpos : ∀ t ∈ Finset.range (T + 1), 0 < C t)
-    (hstep : ∀ t ∈ Finset.range T,
-      C (t + 1) = C t + γ * D t)
-    (hdyn : ∀ t ∈ Finset.range T,
-      ρ * D t + β * C t ≤ D (t + 1))
-    (hrhogk : γ * k ≤ ρ)
-    (hbeta : γ * k ^ 2 + (1 - ρ) * k ≤ β)
-    (hcone0 : k * C 0 ≤ D 0) :
-    ∀ t ∈ Finset.range (T + 1), k * C t ≤ D t := Foundations.cone_invariant_horizon C D γ ρ β k T
-    hCpos hstep hdyn hrhogk hbeta hcone0
+alias cone_invariant_trunc := _root_.Hagi.Foundations.cone_invariant_horizon
 
 /-- Truncated takeoff lower bound: C T >= C 0 * (1+gamma k)^T
 from horizon-only premises (steps t < T only). -/

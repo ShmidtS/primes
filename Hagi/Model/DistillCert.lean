@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer
+import Hagi.Optimization.MomentumHB
 
 /-!
 # DistillCert (приоритет 6 «HAGI Neural Computer», ):
@@ -78,8 +79,7 @@ theorem quant_L2 {n : ℕ} (c : DistillCert (n := n)) :
     _ = n * (c.delta / 2)^2 := hsum
 
 /-- ВСПОМОГАТЕЛЬНОЕ: (a+b)² ≤ 2a² + 2b² (поточечно). -/
-theorem two_sq (a b : ℝ) : (a + b)^2 ≤ 2*a^2 + 2*b^2 := by
-  nlinarith [sq_nonneg (a - b)]
+alias two_sq := _root_.hb_lyap_elementwise
 
 /-- ПОЛНАЯ ГАРАНТИЯ КОНСОЛИДАЦИИ: при липшиц-контракте
 (|ΔL| ≤ Λ·Σ(Δw)² — квадратичная форма) лосс квантованного

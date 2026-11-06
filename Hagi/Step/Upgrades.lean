@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Prelude.Info
+import Hagi.External.Diversity
 /-!
 # The value of information: the bounded-regression reading policy
 
@@ -167,14 +168,7 @@ per read) attains its maximum: the controller's problem is a
 finite argmax over the measured segment-gain table — a
 lookup at inference time, not a search. The training signal is
 the measured table; the policy is its argmax. -/
-theorem readPolicy_exists (B' : Type) [Fintype B'] [Nonempty B']
-    (gain : B' → ℝ) :
-    ∃ b : B', ∀ b' : B', gain b' ≤ gain b := by
-  obtain ⟨b, _, hb⟩ := exists_max_image (Finset.univ : Finset B') gain
-    (Finset.univ_nonempty : (Finset.univ : Finset B').Nonempty)
-  refine ⟨b, ?_⟩
-  intro b''
-  exact hb b'' (mem_univ b'')
+alias readPolicy_exists := _root_.Hagi.External.gittins_index_max
 
 end VoI
 

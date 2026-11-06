@@ -676,16 +676,7 @@ delta²/4 — the exact twoGap bound instantiated at the
 half-deviation diameter M = delta. The tree can BREATHE:
 grow on new information, shrink on consolidation, with the
 computational budget held by the merge certificate. -/
-theorem prune_certificate {k : Type} [Fintype k] [Nonempty k]
-    (m d : k → ℝ) (t : k) (delta : ℝ)
-    (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
-    (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
-    (hdelta : 0 < delta)
-    (hclose : ∀ u v, abs ((d u - d v)) ≤ delta) :
-    Hagi.ceOneHot t (fun v => m v + d v) / 2
-      + Hagi.ceOneHot t (fun v => m v - d v) / 2
-      - Hagi.ceOneHot t m ≤ delta ^ 2 / 4 :=
-  ce_gap_bounded m d t delta hp hsum hdelta hclose
+alias prune_certificate := _root_.Hagi.Ensemble.ce_gap_bounded
 
 section HoeffdingFin
 

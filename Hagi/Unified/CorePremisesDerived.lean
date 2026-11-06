@@ -160,62 +160,7 @@ theorem core_premises_operational_scalar_v2
 /-- ОПЕРАЦИОННАЯ ВЕРСИЯ v3: h_emp_dist УСТРАНЁН как декларация —
 выводится из семантики решётки (gridQ_error) при Δ ≤ 1.
 Остальные посылки — как в v2. -/
-theorem core_premises_operational_scalar_v3
-    (S S' : GenState ℝ) (epsQ : ℝ) (w : Fin 5 → ℝ)
-    (hgap : 0 ≤ S.toGrowthState.gap)
-    (h_emp_grow : S.toGrowthState.effects.growEnergy
-      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
-    (h_emp_merge : S.toGrowthState.effects.mergeEnergy
-      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
-    (hL : 0 < S.toGrowthState.sp.L)
-    (heta : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
-    (heta0 : 0 ≤ S.toGrowthState.sp.eta)
-    (hdescent : ‖S.toGrowthState.stepDir‖ ^ 2
-      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
-    (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
-    (hs : 0 ≤ S.toGrowthState.sp.s)
-    (heq : S'.toGrowthState
-      = compress (joint (merge (grow S.toGrowthState))))
-    (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
-    (h_emp_G : Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
-    (E : ℝ → ℝ)
-    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
-    (hsmooth : ∀ x y : ℝ, ‖fderiv ℝ E y - fderiv ℝ E x‖
-      ≤ S.toGrowthState.sp.L * ‖y - x‖)
-    (hgcont : Continuous fun t : ℝ => fderiv ℝ E
-      (S.toGrowthState.params
-        + t • (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
-      (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
-    (hgrad : fderiv ℝ E S.toGrowthState.params
-        S.toGrowthState.stepDir
-      = ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
-    (hEmerge : E S.toGrowthState.params
-      ≤ S.toGrowthState.effects.mergeEnergy)
-    (hjointdef : S.toGrowthState.effects.jointEnergy
-      = E (S.toGrowthState.params
-        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
-    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
-    (Δ : ℝ) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1)
-    (hcompdef : S.toGrowthState.effects.compressEnergy
-      = E (Hagi.Energy.gridQ Δ hΔ
-          (S.toGrowthState.params
-            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)))
-    (hquantdef : S.toGrowthState.effects.quantErr
-      = |(S.toGrowthState.params
-            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
-        - Hagi.Energy.gridQ Δ hΔ
-            (S.toGrowthState.params
-              - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)|)
-    (hs1 : S.toGrowthState.sp.s = 1) :
-    CorePremises S S' epsQ w := by
-  -- АНАЛИТИЧЕСКИЙ ВЫВОД h_emp_dist: per-coordinate ошибка
-  -- решётки ≤ Δ/2 ≤ 1/2 — декларация заменена выводом.
-  -- v2 теперь сам выводит hdn/h_emp_dist; v3 сохранён как
-  -- прямое делегирование (сигнатуры идентичны).
-  exact core_premises_operational_scalar_v2 S S' epsQ w
-    hgap h_emp_grow h_emp_merge hL heta heta0 hdescent
-    hkappa hs heq hgenq h_emp_G E hdiff hsmooth hgcont
-    hgrad hEmerge hjointdef hnorm Δ hΔ hΔ1 hcompdef hquantdef hs1
+alias core_premises_operational_scalar_v3 := _root_.Hagi.Unified.core_premises_operational_scalar_v2
 
 /-- Капстоун-мост v2 (аудит v13): без противоречивого
 hjointE, с постшаговым квантованием. -/
@@ -282,65 +227,7 @@ theorem MasterHAGICoreOperational_v2
 /-- КАПСТОУН-МОСТ v3: h_emp_dist УСТРАНЁН — выводится из
 семантики решётки (Δ ≤ 1); сводится к v2 через v3-конструктор
 CorePremises. -/
-theorem MasterHAGICoreOperational_v3
-    (S S' : GenState ℝ) (lam nu Qtarget epsQ : ℝ)
-    (w : Fin 5 → ℝ)
-    (hlam : 0 ≤ lam) (hnu : 0 ≤ nu) (h_epsQ : 0 ≤ epsQ)
-    (hgap : 0 ≤ S.toGrowthState.gap)
-    (h_emp_grow : S.toGrowthState.effects.growEnergy
-      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
-    (h_emp_merge : S.toGrowthState.effects.mergeEnergy
-      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
-    (hL : 0 < S.toGrowthState.sp.L)
-    (heta : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
-    (heta0 : 0 ≤ S.toGrowthState.sp.eta)
-    (hdescent : ‖S.toGrowthState.stepDir‖ ^ 2
-      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
-    (hkappa : 0 ≤ S.toGrowthState.sp.kappa)
-    (hs : 0 ≤ S.toGrowthState.sp.s)
-    (heq : S'.toGrowthState
-      = compress (joint (merge (grow S.toGrowthState))))
-    (hgenq : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ)
-    (h_emp_G : Qgen S.gen w - epsQ ≤ Qgen S'.gen w)
-    (E : ℝ → ℝ)
-    (hdiff : ∀ x : ℝ, HasFDerivAt E (fderiv ℝ E x) x)
-    (hsmooth : ∀ x y : ℝ, ‖fderiv ℝ E y - fderiv ℝ E x‖
-      ≤ S.toGrowthState.sp.L * ‖y - x‖)
-    (hgcont : Continuous fun t : ℝ => fderiv ℝ E
-      (S.toGrowthState.params
-        + t • (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
-      (-(S.toGrowthState.sp.eta)•S.toGrowthState.stepDir))
-    (hgrad : fderiv ℝ E S.toGrowthState.params
-        S.toGrowthState.stepDir
-      = ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
-    (hEmerge : E S.toGrowthState.params
-      ≤ S.toGrowthState.effects.mergeEnergy)
-    (hjointdef : S.toGrowthState.effects.jointEnergy
-      = E (S.toGrowthState.params
-        - S.toGrowthState.sp.eta • S.toGrowthState.stepDir))
-    (hnorm : ∀ x : ℝ, ‖fderiv ℝ E x‖ ≤ S.toGrowthState.sp.kappa)
-    (Δ : ℝ) (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1)
-    (hcompdef : S.toGrowthState.effects.compressEnergy
-      = E (Hagi.Energy.gridQ Δ hΔ
-          (S.toGrowthState.params
-            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)))
-    (hquantdef : S.toGrowthState.effects.quantErr
-      = |(S.toGrowthState.params
-            - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)
-        - Hagi.Energy.gridQ Δ hΔ
-            (S.toGrowthState.params
-              - S.toGrowthState.sp.eta • S.toGrowthState.stepDir)|)
-    (hs1 : S.toGrowthState.sp.s = 1) :
-    hagiPotential S' lam nu Qtarget w
-      ≤ hagiPotential S lam nu Qtarget w - (verify S.toGrowthState).decrease
-        + lam * (verify S.toGrowthState).riskSpend + nu * epsQ
-    ∧ S'.toGrowthState.budget
-      = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend :=
-  MasterHAGICore S S' lam nu Qtarget epsQ w hlam hnu h_epsQ
-    (core_premises_operational_scalar_v3 S S' epsQ w hgap h_emp_grow
-      h_emp_merge hL heta heta0 hdescent hkappa hs heq hgenq h_emp_G
-      E hdiff hsmooth hgcont hgrad hEmerge hjointdef hnorm Δ hΔ hΔ1
-      hcompdef hquantdef hs1)
+alias MasterHAGICoreOperational_v3 := _root_.Hagi.Unified.MasterHAGICoreOperational_v2
 
 end Hagi.Unified
 

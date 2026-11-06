@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.ChainToCone
 import Hagi.Unified.MasterHAGICoupled
 import Hagi.Unified.LinkedQVec
+import Hagi.Foundations.GrowthDynamics
 
 /-!
 # GrandSynthesis — the composed capstone
@@ -108,12 +109,7 @@ theorem grand_synthesis
 capability покрыт риском (G t ≤ risk t), то полный прирост
 ограничен телескопом риска: C T − C 0 ≤ Σ risk. Вместо
 глобальной посылки hrisk_bound — локальная пошаговая. -/
-theorem risk_telescope_of_growth_covered (C G risk : ℕ → ℝ)
-    (T : ℕ)
-    (hstep : ∀ t ∈ Finset.range T, C (t + 1) = C t + G t)
-    (hcover : ∀ t ∈ Finset.range T, G t ≤ risk t) :
-    C T - C 0 ≤ ∑ t ∈ Finset.range T, risk t :=
-  Hagi.Foundations.telescope_band C G risk T hstep hcover
+alias risk_telescope_of_growth_covered := _root_.Hagi.Foundations.telescope_band
 
 /-- **Полы из монотонности (R540, пункт 4 из слабых посылок)**:
 если floors выполняются в нуле и каждый компонент векторного

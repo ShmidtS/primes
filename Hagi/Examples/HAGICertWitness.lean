@@ -68,10 +68,6 @@ noncomputable def witnessTraj : ℕ → Hagi.GrowthState X :=
     else if t = 1 then witnessState (3/2) 1
     else witnessState 1 1
 
-private theorem eq_zero_of_mem_range_one {t : ℕ} (ht : t ∈ Finset.range 1) :
-    t = 0 := by
-  have h1 := Finset.mem_range.mp ht
-  omega
 
 /-- **Свидетель невакуумности HAGICert на горизонте T = 1**:
 все поля сертификата выполняются на конкретной траектории с

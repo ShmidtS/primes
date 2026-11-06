@@ -79,29 +79,7 @@ theorem cone_data_invariant (cd : ConeData) (k : ℝ) (t : ℕ)
 /-- `frontier_cone_inductive` from `Hagi.Growth.FrontierScaling`
 as an instance of `cone_data_invariant` with `k = α / γ`:
 under the same hypotheses, `α / γ * C (t + 1) ≤ D (t + 1)`. -/
-theorem frontier_cone_inductive_is_cone_data
-    (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
-    (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ) (t : ℕ)
-    (hCpos : 0 < C t)
-    (hcone : α / γ * C t ≤ D t)
-    (h_dyn : ρ * D t + β * C t - ξ t ≤ D (t + 1))
-    (h_C_cap : C (t + 1) ≤ (1 + α) * C t)
-    (hβ : α / γ * ((1 + α) - ρ) + ξ t / C t ≤ β) :
-    α / γ * C (t + 1) ≤ D (t + 1) := by
-  have hcap : C (t + 1) ≤ (1 + γ * (α / γ)) * C t := by
-    have hgg : γ * (α / γ) = α := by
-      field_simp
-    rw [hgg]
-    exact h_C_cap
-  have hthr : α / γ * ((1 + γ * (α / γ)) - ρ) + ξ t / C t ≤ β := by
-    have hgg : γ * (α / γ) = α := by field_simp
-    rw [hgg]
-    exact hβ
-  exact cone_data_invariant
-    { C := C, D := D, ξ := ξ, γ := γ, ρ := ρ, β := β }
-    (α / γ) t
-    (div_nonneg hα.le hγ.le)
-    hγ.le hρ hCpos hcone h_dyn hcap hthr
+alias frontier_cone_inductive_is_cone_data := _root_.Hagi.Foundations.frontier_cone_inductive
 
 
 /-! ## The reinvest-form cone law -/

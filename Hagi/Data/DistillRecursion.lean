@@ -419,16 +419,7 @@ Pinsker/Fannes-форму: если полная вариация fresh-смес
 B — Fannes-граница через τ = tvDist, см. AntiCollapse),
 то entropy floor выполняется с эффективным δ_eff = B:
 H(p_T) ≥ H(data) − B/ν − (затухание). -/
-theorem entropy_floor_tv (p : ℕ → V → ℝ) (d : V → ℝ) (ν B : ℝ)
-    (hν : 0 < ν) (hν1 : ν ≤ 1) (hB : 0 ≤ B)
-    (hp : ∀ k v, 0 < p k v) (hd : ∀ v, 0 < d v)
-    (hsp : ∀ k, ∑ v, p k v = 1) (hsd : ∑ v, d v = 1)
-    (htv : ∀ k, Hagi.Prelude.entDef (freshMix ν (p k) d) - B
-      ≤ Hagi.Prelude.entDef (p (k + 1))) (T : ℕ) :
-    Hagi.Prelude.entDef d - B / ν
-      - (1 - ν)^T * (Hagi.Prelude.entDef d - B / ν - Hagi.Prelude.entDef (p 0))
-      ≤ Hagi.Prelude.entDef (p T) :=
-  entropy_floor p d ν B hν hν1 hB hp hd hsp hsd htv T
+alias entropy_floor_tv := _root_.Hagi.Data.entropy_floor
 
 end DistillRecursion
 

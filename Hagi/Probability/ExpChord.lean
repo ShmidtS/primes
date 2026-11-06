@@ -23,13 +23,7 @@ x in [a,b], a < b. Базовый кирпич Hoeffding/Bennett CGF-оцено�
 нужны в скобках: `((b - x) / (b - a)) • a`.
 -/
 @[deprecated Hagi.Foundations.exp_chord_r]
-theorem exp_chord {a b x : ℝ} (hab : a < b) (hxa : a ≤ x) (hxb : x ≤ b)
-    (r : ℝ) :
-    Real.exp (r * x)
-      ≤ (b - x) / (b - a) * Real.exp (r * a)
-        + (x - a) / (b - a) * Real.exp (r * b) := by
-  -- dedup: canonical r-scaled chord (Foundations) — delegation
-  exact Hagi.Foundations.exp_chord_r hab hxa hxb r
+alias exp_chord := _root_.Hagi.Foundations.exp_chord_r
 
 /-! ## Шаг Хёффдинга: взвешенное хордовое MGF (R499)
 

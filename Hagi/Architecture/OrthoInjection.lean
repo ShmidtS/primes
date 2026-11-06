@@ -96,11 +96,7 @@ namespace Hagi.Architecture
 /-- [deprecated] Copy of `fiberSplitOrtho` (verbatim; the name
 survives for facade consumers). -/
 @[deprecated Hagi.Architecture.fiberSplitOrtho]
-theorem fiber_cortex_zero {d c r : ℕ}
-    (U : Matrix (Fin d) (Fin c) ℝ) (hU : IsOrthoCol U)
-    (A : Matrix (Fin d) (Fin r) ℝ) :
-    Uᵀ * (A - U * (Uᵀ * A)) = 0 :=
-  fiberSplitOrtho U hU A
+alias fiber_cortex_zero := _root_.Hagi.Architecture.fiberSplitOrtho
 
 /-- The cortex coordinates of the state are unchanged by the
 injection, for any payload `x`. -/

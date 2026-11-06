@@ -35,11 +35,7 @@ namespace Hagi.Step
 `D (t+1) ≤ a·D t + s` — `D T ≤ a^T·D 0 + s·Σa^i`. Совместима с
 полным коллапсом (s = 0); нижняя оценка противоположного
 знака — `diversity_floor`. -/
-theorem diversity_noncollapse (D : ℕ → ℝ) (a s : ℝ)
-    (ha : 0 ≤ a) (hs : 0 ≤ s)
-    (hstep : ∀ t, D (t+1) ≤ a * D t + s) (T : ℕ) :
-    D T ≤ a^T * D 0 + s * ∑ i ∈ Finset.range T, a^i :=
-  Hagi.Foundations.disp_recurrence_general ha hs hstep T
+alias diversity_noncollapse := _root_.Hagi.Foundations.disp_recurrence_general
 
 /-- Тождество для суммы геометрической прогрессии:
 `ρ·Σ_{i<T}ρ^i + 1 = Σ_{i<T}ρ^i + ρ^T`. -/

@@ -12,6 +12,7 @@ update deliberately with `--update` (same workflow as Freeze).
 """
 import re
 import sys
+from Freeze import strip_comments
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ OPERATIONAL = re.compile(r"(h[A-Za-z0-9_']*(?:Exec|exec|Descent|descent|Sample|s
 
 DECL = re.compile(
     r'^(?:\s|(?:private|protected|noncomputable)\s+)*'
-    r'(theorem|lemma|def|structure|abbrev|instance|inductive)\s+'
+    r'(theorem|lemma|def|structure|class|abbrev|instance|inductive)\s+'
     r"([A-Za-z_][A-Za-z0-9_']*)", re.M)
 PRIM = re.compile(
     r"^\s*(?:noncomputable\s+)?def\s+((?:kl|tv|ent|entropy|softmax|lse)[A-Za-z0-9_']*)",
@@ -44,8 +45,7 @@ def scan():
         # they must not register premises either. A docstring saying
         # "analytic derivation of h_emp_dist" is documentation OF the
         # elimination, not a premise. Strip comments before scanning.
-        code = re.sub(r"/-.*?-/", "", text, flags=re.S)
-        code = re.sub(r'--[^\n]*', '', code)
+        code = strip_comments(text)
         names = sorted(set(IDENT.findall(code)))
         # R265+: distinguish PROVEN h_emp-named theorems/defs
         # (derived results with a historical empirical name, e.g.
@@ -59,7 +59,7 @@ def scan():
         # operational premise registry (execution-link binders)
         for om in OPERATIONAL.finditer(code):
             operational.add(om.group(1))
-        for m in PRIM.finditer(text):
+        for m in PRIM.finditer(code):
             prims.append(f"{rel}:{m.group(1)}")
     return hmap, prims, proven, operational
 

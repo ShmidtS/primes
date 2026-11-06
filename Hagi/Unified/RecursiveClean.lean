@@ -140,11 +140,7 @@ theorem indepMass_eq_zero_of_cover (w : V → ℝ)
 интерпретируемость описывается вектором характеристик,
 а не сжимается в один индекс — но энтропия массы даёт
 верхнюю оценку разнообразия задействованных понятий. -/
-theorem activationMass_entropy_le (w : V → ℝ)
-    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1) :
-    ∑ v, Real.negMulLog (w v)
-      ≤ Real.log (Fintype.card V : ℝ) :=
-  Hagi.Unified.shannon_le_log_card w hw hw1
+alias activationMass_entropy_le := _root_.Hagi.Unified.shannon_le_log_card
 
 /-! ## Сертификат «чистого» нейрона -/
 

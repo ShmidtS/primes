@@ -611,15 +611,7 @@ open Real Finset
 не больше δ²/4 CE-бюджета (prune_certificate). Эквивалентно:
 для любого CE-бюджета ε допустимая каркасная девиация есть
 δ = 2√ε. -/
-theorem condensation_budget {k : Type} [Fintype k] [Nonempty k]
-    (m d : k → ℝ) (t : k) (M : ℝ)
-    (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
-    (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
-    (hM : 0 < M)
-    (hcond : ∀ u v, |d u - d v| ≤ M) :
-    Hagi.ceOneHot t (fun v => m v + d v) / 2
-      + Hagi.ceOneHot t (fun v => m v - d v) / 2
-      - Hagi.ceOneHot t m ≤ M ^ 2 / 4 := ce_gap_bounded m d t M hp hsum hM hcond
+alias condensation_budget := _root_.Hagi.Ensemble.ce_gap_bounded
 
 /-- Обратная постановка: CE-бюджет ε ⟹ допустимая конденсационная
 девиация δ = 2√ε ( Loved «1,5%»: жёсткий каркас ⟹ малое δ). -/

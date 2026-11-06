@@ -41,5 +41,18 @@ theorem h_emp_proved (h_emp_input : True) : True := by trivial
         self.assertEqual(proven, {"h_emp_proved"})
 
 
+    def test_nested_comments_hide_fake_binders_and_primitives(self):
+        path = AssumptionScan.ROOT / "Hagi" / "Probe.lean"
+        path.write_text('''/- outer /-
+def klFake : Nat := 0
+theorem h_emp_fake : True := by trivial
+-/
+''', encoding="utf-8")
+        hmap, prims, proven, _ = AssumptionScan.scan()
+        self.assertEqual(hmap, {})
+        self.assertEqual(prims, [])
+        self.assertEqual(proven, set())
+
+
 if __name__ == "__main__":
     unittest.main()

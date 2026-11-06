@@ -659,11 +659,7 @@ section Rank1Application
     - Spectral error ≤ Frobenius error, with gap depending on σ₁ vs tail ratio
 
     This theorem provides the explicit bound for the rank-1 case. -/
-theorem rank1_kronecker_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (C : Matrix n' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - SVD.truncatedSVD C 1) ≤
-    Real.sqrt (∑ i : n', (SVD.truncatedSingularValues_tail C 1 i) ^ 2) :=
-  SpectralGap.spectral_error_rank1_bound C
+alias rank1_kronecker_spectral_bound := _root_.Hagi.External.Flywheel.Matrix.Kronecker.SpectralGap.spectral_error_rank1_bound
 
 end Rank1Application
 

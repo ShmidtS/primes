@@ -50,11 +50,7 @@ theorem groupAdv_sum_zero (r : Fin n → ℝ) (hn : 0 < n) :
 /-- Разложение разности: ∑(r−c)² − ∑(r−mean)² = n·(mean−c)²
 (среднее — проекция: разность есть неотрицательный
 квадрат). -/
-theorem groupAdv_sq_decomp (r : Fin n → ℝ) (hn : 0 < n) (c : ℝ) :
-    ∑ i, (r i - c) ^ 2
-      - ∑ i, (r i - (∑ j, r j) / n) ^ 2
-      = n * ((∑ j, r j) / n - c) ^ 2 :=
-  Hagi.Foundations.SumIdentities.sq_decomp r hn c
+alias groupAdv_sq_decomp := _root_.Hagi.Foundations.SumIdentities.sq_decomp
 
 /-- Среднее группы — оптимальный baseline: сумма квадратов
 отклонений от mean не превосходит отклонений от ЛЮБОЙ

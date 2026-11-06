@@ -62,10 +62,7 @@ namespace Hagi.Model
 энергобюджете B при ленандауэровской цене cUnit за бит.
 (переадресация на ядро `written_bits_cap`.) -/
 @[deprecated Hagi.Energy.written_bits_cap]
-theorem consolidation_bits_cap (B cUnit F : ℝ) (hcUnit : 0 < cUnit)
-    (h_emp_memwrite : cUnit * F ≤ B) :
-    F ≤ B / cUnit :=
-  Hagi.Energy.written_bits_cap B cUnit F hcUnit h_emp_memwrite
+alias consolidation_bits_cap := _root_.Hagi.Energy.written_bits_cap
 
 /-- Нет бесплатной консолидации: если требуется записать n бит
 (весь контекст), а бюджет строго меньше n·cUnit, запись

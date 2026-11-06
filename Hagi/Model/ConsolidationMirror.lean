@@ -14,17 +14,7 @@ KL-дистилляция (учитель с контекстом γ, студе
 /-- КЛ-ДИСТИЛЛЯЦИЯ = зеркальное тождество: расхождение студента
 σ от учителя γ (Гиббс по ℓ, температуре T, приоре ρ₀):
 T·KL(σ‖γ) = ⟨σ,ℓ⟩ + T·KL(σ‖ρ₀) + T·log Z. -/
-theorem context_distillation_identity
-    {V : Type*} [Fintype V] [Nonempty V]
-    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
-    (hρ₀ : ∀ v, 0 < ρ₀ v)
-    (σ : V → ℝ) (hσ : ∀ v, 0 < σ v) (hσ1 : ∑ v, σ v = 1) :
-    T * (∑ v, σ v * Real.log (σ v
-        / mirrorStep ρ₀ ℓ T v))
-      = (∑ v, σ v * ℓ v)
-        + T * (∑ v, σ v * Real.log (σ v / ρ₀ v))
-        + T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)) :=
-  mirror_descent_identity ρ₀ ℓ T hT hρ₀ σ hσ hσ1
+alias context_distillation_identity := _root_.Hagi.Optimization.mirror_descent_identity
 
 /-- ВАРИАЦИОННЫЙ ПРИНЦИП ГИББСА (ядро дистилляции):
 для любого студента-распределения σ
@@ -32,25 +22,7 @@ theorem context_distillation_identity
 достигает минимума free energy; единственность минимума —
 равенство ⟺ KL(σ‖γ)=0. Нижняя граница следует из
 тождества и KL ≥ 0. -/
-theorem gibbs_variational_floor
-    {V : Type*} [Fintype V] [Nonempty V]
-    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
-    (hρ₀ : ∀ v, 0 < ρ₀ v)
-    (σ : V → ℝ) (hσ : ∀ v, 0 < σ v) (hσ1 : ∑ v, σ v = 1) :
-    -T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T))
-      ≤ (∑ v, σ v * ℓ v)
-        + T * (∑ v, σ v * Real.log (σ v / ρ₀ v)) := by
-  have h := context_distillation_identity ρ₀ ℓ T hT hρ₀ σ hσ hσ1
-  have hkl : (0:ℝ) ≤ ∑ v, σ v * Real.log (σ v
-      / mirrorStep ρ₀ ℓ T v) := by
-    apply Hagi.Probability.finite_kl_nonneg
-    · exact hσ
-    · exact hσ1
-    · intro v
-      exact Hagi.Optimization.mirrorStep_pos ρ₀ ℓ T hT hρ₀ v
-    · exact Hagi.Optimization.mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
-  have h' := mul_nonneg hT.le hkl
-  linarith [h, h']
+alias gibbs_variational_floor := _root_.Hagi.Optimization.mirror_descent_floor
 
 
 /-- ЕДИНСТВЕННОСТЬ МИНИМУМА дистилляции (в KL-форме):

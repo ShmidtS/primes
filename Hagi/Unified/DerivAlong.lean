@@ -58,13 +58,7 @@ theorem lip_energy_quantization {W : Type*} [NormedAddCommGroup W]
 окно (0 < L, 0 ≤ η ≤ 1/L) ⟹ E2 ≤ E1 − η·dnorm²/2. Поле
  выигрыша growGain := η·dnorm²/2 — измеримая величина (шаг ×
 квадрат нормы направления). -/
-theorem grow_gain_from_smooth_descent (L eta dnorm inner E2 E1 : ℝ)
-    (hL : 0 < L) (heta : eta ≤ 1 / L) (heta0 : 0 ≤ eta)
-    (hdescent : dnorm ^ 2 ≤ inner)
-    (h_emp_smooth : E2 ≤ E1 - eta * inner + L * eta ^ 2 * dnorm ^ 2 / 2) :
-    E2 ≤ E1 - eta * dnorm ^ 2 / 2 :=
-  Hagi.Foundations.joint_stage L eta dnorm inner E2 E1 hL heta
-    heta0 hdescent h_emp_smooth
+alias grow_gain_from_smooth_descent := _root_.Hagi.Foundations.joint_stage
 
 
 open Real intervalIntegral

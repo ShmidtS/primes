@@ -1,18 +1,38 @@
 /-
-Inventory probe: dumps every Hagi.* declaration with a stable
-type hash, so refactors can be verified losslessly
-("only planned names disappear; all survivors keep their types").
+Semantic declaration inventory for Freeze and human refactors.
+
+For every declaration owned by a Hagi.* module, emit its actual fully
+qualified name, private-name user form, defining module, source ranges,
+elaborated type, constructor/projection names and Batteries-alias marker.
+Proof bodies are deliberately excluded. A compatibility alias remains tracked
+
 Run: lake env lean scripts/inventory.lean > inventory.txt
 -/
 import Hagi
+import Batteries.Tactic.Alias
 open Lean
 
 #eval show CoreM Unit from do
   let env ← getEnv
-  let mut out : Array String := #[]
-  for (n, ci) in env.constants.toList do
-    if (`Hagi).isPrefixOf n && !n.isInternal then
-      out := out.push s!"{n} {ci.type.hash}"
-  out := out.qsort (· < ·)
-  for l in out do
-    IO.println l
+  for (sourceModule, moduleData) in env.header.moduleNames.zip env.header.moduleData do
+    if (`Hagi).isPrefixOf sourceModule then
+      for (n, ci) in moduleData.constNames.zip moduleData.constants do
+        let userName := (privateToUserName? n).getD n
+        let isAlias := (← Batteries.Tactic.Alias.getAliasInfo? n).isSome
+        let (startLine, selectionLine, endLine) := match (declRangeExt.find? (level := .exported) env n).orElse
+            (fun _ => declRangeExt.find? (level := .server) env n) with
+          | some ranges => (ranges.range.pos.line, ranges.selectionRange.pos.line,
+              ranges.range.endPos.line)
+          | none => (0, 0, 0)
+        let mut constructors : List String := []
+        if let .inductInfo info := ci then
+          for constructor in info.ctors do
+            let some constructorInfo := env.find? constructor
+              | throwError "missing constructor {constructor} of {n}"
+            constructors := constructors ++ [s!"{constructor}={constructorInfo.type.hash}"]
+        if let some structureInfo := getStructureInfo? env n then
+          constructors := constructors ++ ["fields=" ++
+            String.intercalate "," (structureInfo.fieldNames.toList.map (·.toString))]
+          for field in structureInfo.fieldInfo do
+            constructors := constructors ++ [field.projFn.toString]
+        IO.println s!"{n}\t{userName}\t{sourceModule}\t{startLine}\t{selectionLine}\t{endLine}\t{ci.type.hash}\t{String.intercalate "," constructors}\t{isAlias}"
