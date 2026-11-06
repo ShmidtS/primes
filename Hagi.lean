@@ -185,6 +185,7 @@ import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEConfidenceScale
 import Hagi.Model.CEPadding
+import Hagi.Model.BatchCEDescent
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
