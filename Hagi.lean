@@ -183,6 +183,7 @@ import Hagi.Model.CEGroupedScale
 import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
+import Hagi.Model.CEConfidenceScale
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
