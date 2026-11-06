@@ -176,6 +176,8 @@ import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
+import Hagi.Model.CEQuantized
+import Hagi.Model.CEPackedStep
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
@@ -232,6 +234,7 @@ import Hagi.Unified.TopLevel
 import Hagi.Energy.STEStep
 import Hagi.Runtime.TernaryExact
 import Hagi.Runtime.TernaryCodec
+import Hagi.Runtime.DyadicTernary
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Budget.JointCost
