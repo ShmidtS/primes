@@ -1,4 +1,41 @@
 
+### Цикл 77: Audited executable finite minimum and its exact scope
+
+- Инструментация reuse `List.argAux` и List.argmin; exact theorem
+  `auditedArgmin_fst` не дублирует выбор. Generic relation counter has
+  length−1, including zero for empty. The definition's counter not CPU.
+  Integer «Nat operands», Scalar gradients, physical byte costs or
+  number of all calls to p.step are not being replaced by that number!
+- Filter is exactly one whole Bool guard call per supplied action,
+  including rejected or duplicated entries. Short-circuit means successive
+  resource/quality/step internal evaluations need not run on each guard.
+- `finiteSelection_mem`, `_minimum`, `_none_iff` derive from ordinary
+  List.filter/argmin API. Eligible unlisted candidates are expressly
+  outside the minimum scope. No empty fallback stay or claimed no-op.
+  `selectedNext` maps actual successor step, not synthesised effects.
+- toController uses point-state guard and Int quality→Real; step and Nat
+  resource data unchanged, original caps intact. No stochastic error or
+  calibration premise, no Real→Int approximation. Exact cast covers −1.
+- Old-vs-executable resource cost equality required hcomplete∀b∈actions
+  and le_antisymm. There is NO equality of selected actions on ties nor
+  FastOptimalSearch / minFLOPs / minimal-time theorem in this cycle.
+- Positive exact probes: floor1 chooses actual increment, next1;
+  floor0 chooses stay; distinct memory/operation exclusions yield none;
+  empty list has (none,0,0). Three-candidate resources (100,0)/(1,100)
+  select2 memory-first. Guards 2, comparisons 0 (one eligible), and
+  guards3, comparisons1 (two eligible) were actually evaluated.
+- Result: +2 modules, +29 declarations (4344/429), empirical 201/37
+  unchanged, structural 9175/415. Exact 10 key differences include filter
+  match hypotheses and visible list-coverage/selection hypotheses. Locks
+  have additive 29 and no removed old statements; no compile sorry survived.
+- Independent refute-first reviewer e65def7d-581e-49f reran source build
+  and both probes, checked relation/counter orientation, omitted action
+  counterexample, cast directions, imports and no sorry; verdict LGTM.
+- Full current CI: all lint/Freeze/AssumptionScan/layers/machine/all axioms
+  PASS. Research NIST/Ibaraki/Hart remains bounded-lookahead context only.
+  Later pruning requires a quiet lower bound for unseen candidates, not
+  assumption of arbitrary-cost monotonicity implicit in a partial list.
+
 ### Цикл 76: exact estimated maximum margin and nonempty boundary
 
 - `estimatedMaxValue` draws actual successor via existing selectedNext;

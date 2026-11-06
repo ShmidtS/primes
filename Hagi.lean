@@ -417,6 +417,8 @@ import Hagi.Unified.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
 import Hagi.Unified.QualityResourceMin
+import Hagi.Unified.ExecutableSelection
+import Hagi.Unified.ExecutableController
 import Hagi.Unified.RobustCostSensitivity
 import Hagi.Unified.RobustRadius
 import Hagi.Unified.RobustResourceMin

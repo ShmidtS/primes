@@ -11,6 +11,35 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 77 — executable finite discrete selection без новых measurements
+
+- `DiscreteProgram` принимает actual step и качество как заданную
+  S→Int модель на actual next state, Bool safety guard, Nat resource
+  model units/ caps. Никаких agents/noise data samples confidence/bytes
+  interpreter определения не содержат.
+- Generic filter/argmin audit uses field names raw count logical calls;
+  k−1 comparisons and n guards are structural model statements, not
+  empirical timing measurement or minimum global search complexity.
+- `admissionGuard_iff_qualityEligible` only exact Int→Real order cast for
+  fixed-state point model plus old caps. This does not create a formal
+  uncertain/empirical radius or carry Pareto robust assumptions into the
+  executable branch. Negative integer cases don't require h_eps.
+- hcomplete in cost equality means ∀b in input list, an explicit finite
+  enumeration premise for that model. Without it omitted candidates are
+  out of scope, not secretly ignored as unimportant. ha/hguard are
+  ordinary observational testing guards, NOT closed empirical unknowns.
+- `minimumResource` comparison retains Classical.choice only in the
+  mathematical comparison theorem; executable filter/argmin definition
+  has no new choice/axiom/product default fallback. Restricting its
+  action carrier to Type matches the original resourceCost signature.
+- Empirical registry remains 201/37. Structural registry is 9175/415:
+  +7 visible reachability/selection h premises +3 compiler-generated
+  auditedFilter match hypotheses. This is premises occurrence count,
+  not ten new scientific unknowns or an indicator of closed physics.
+- Final source has 4344 declarations/429 modules, all old hashes preserved.
+  Independent refute-first review (e65def7d-581e-49f) validated guard
+  counting, type/carrier, cast signs, list scope, equality cost and probes.
+
 ## Цикл 76 — maximal estimated floor margin, not sampled confidence
 
 - Новый threshold выводится из existing selected finite argmax и

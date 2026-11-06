@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9165
-named structural declaration+ordinal keys: 9165
-named structural source modules: 413
+named structural binder occurrences: 9175
+named structural declaration+ordinal keys: 9175
+named structural source modules: 415
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -8323,6 +8323,16 @@ Hagi.Unified.EmpiricalPremises | Hagi.Unified.EmpiricalPremises.premises_give_sm
 Hagi.Unified.EmpiricalPremises | Hagi.Unified.EmpiricalPremises.premises_lip_witness | 3 | h | Hagi.Unified.EmpiricalPremises.holds p
 Hagi.Unified.EmpiricalPremises | Hagi.Unified.EmpiricalPremises.premises_lip_witness | 4 | hs | 0 ≤ s
 Hagi.Unified.EmpiricalPremises | Hagi.Unified.EmpiricalPremises.premises_noise_cases | 2 | h | Hagi.Unified.EmpiricalPremises.holds p
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_cost_eq_minimumResource | 6 | ha | Hagi.Unified.ExecutableController.finiteSelection p = some a
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_cost_eq_minimumResource | 7 | hcomplete | ∀ (b : A), b ∈ p.actions
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_mem | 5 | ha | Hagi.Unified.ExecutableController.finiteSelection p = some a
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_minimum | 5 | ha | Hagi.Unified.ExecutableController.finiteSelection p = some a
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_minimum | 7 | hb | b ∈ p.actions
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.finiteSelection_minimum | 8 | hguard | Hagi.Unified.ExecutableController.admissionGuard p b = true
+Hagi.Unified.ExecutableController | Hagi.Unified.ExecutableController.selectedNext_eq_some | 5 | ha | Hagi.Unified.ExecutableController.finiteSelection p = some a
+Hagi.Unified.ExecutableSelection | Hagi.Unified.ExecutableSelection.auditedFilter.match_1 | 4 | h_1 | (accepted : List α) → (n : ℕ) → motive (accepted, n)
+Hagi.Unified.ExecutableSelection | Hagi.Unified.ExecutableSelection.auditedFilter.match_3 | 4 | h_1 | Unit → motive []
+Hagi.Unified.ExecutableSelection | Hagi.Unified.ExecutableSelection.auditedFilter.match_3 | 5 | h_2 | (a : α) → (as : List α) → motive (a :: as)
 Hagi.Unified.FannesComplete | Hagi.Unified.fanes_unconditional | 6 | hp | ∀ (i : ι), 0 ≤ p i
 Hagi.Unified.FannesComplete | Hagi.Unified.fanes_unconditional | 7 | hq | ∀ (i : ι), 0 ≤ q i
 Hagi.Unified.FannesComplete | Hagi.Unified.fanes_unconditional | 8 | hps | ∑ i, p i = 1

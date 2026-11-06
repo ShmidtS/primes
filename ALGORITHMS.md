@@ -1,10 +1,44 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4315 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4344 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Audited executable discrete selection (цикл 77)
+
+- Generic `auditedFilter` preserves List.filter and counts logical guard
+  calls exactly input length. `auditedArgmin` reuses List.argAux/argmin;
+  `auditedArgmin_fst` establishes exact same candidate and first-on-tie.
+- `auditedArgmin_snd` computes admitted length−1, hence zero on empty.
+  It counts pair-relation calls, NOT native instructions/FLOPs/time,
+  arbitrary cost evaluations or all `step` calls under short-circuit.
+- `DiscreteProgram` uses its actual successor and evaluates integer quality
+  there. Its A : Type matches the old resourceCost action carrier. The
+  Bool guard and Nat resource data are declared model inputs, not
+  physical safety or byte/time measurements.
+- `finiteSelection` returns None iff every input-list guard fails;
+  eligible listed actions attain minimum Prod.Lex (memory, operations).
+  No arbitrary action fallback or all-Fintype minimum from a partial list.
+- `selectionReport_guardCalls` and `selectionReport_comparisons` derive from this
+  fold structure. No optimal-search claim follows from exact counting.
+- Integer-to-real point adapter `toController` preserves step/memory/ops;
+  `admissionGuard_iff_qualityEligible` lifts integer floor in both
+  directions without sign assumptions. It does not execute raw ℝ CE.
+- With hcomplete covering ALL actions,
+  `finiteSelection_cost_eq_minimumResource` compares old and executable
+  costs: equal via two opposite inequalities; concrete actions may differ.
+- Fin2: qfloor1 leads to actual increment, selection/successor=1;
+  qfloor0 chooses cheap stay 0; M=0/C=0 strict upgrades and empty list all
+  yield none. Guards 2 / comparisons 0 (strict) versus 1 (baseline).
+- Fin3: upgrade 1 has cost (100,0), upgrade 2 has (1,100), floor=1.
+  Choice=2 demonstrates memory-first despite more operation units.
+  Negative qfloor=-1 cast and equality to the old min are checked.
+- Two modules, +29 declarations = 4344; empirical 201/37 unchanged,
+  structural 9175/415 (+10). Full root CI / axioms / final independent
+  refute-first review all PASS. Exhaustive scan is not global architecture
+  minimum, nor proof that branch-and-bound/A* are always preferable.
 
 ## Exact admissibility margin (цикл 76)
 

@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 427 Lean-модулей в `Hagi/`; 4315 declarations (Freeze);
+- 429 Lean-модулей в `Hagi/`; 4344 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,43 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 77: executable finite resource selection и явные guard-cost
+
+- `ExecutableSelection.auditedFilter` равен List.filter по candidates,
+  а guard counter равен длине input list. `auditedArgmin` имеет ТОЧНО
+  тот же выбор, что существующий List.argmin; новый minimum engine нет.
+- `auditedArgmin_snd`: logical relation-calls = k−1 для k admitted,
+  с правильным нулём при k=0. Это НЕ CPU, FLOPs или время, и не число
+  вычислений cost/step: cost может вычисляться repeatedly при compare.
+- `DiscreteProgram` исполняет actual `step a state`, считает Int quality
+  на successor, guard, memory и operation caps. `finiteSelection` —
+  Option A; `finiteSelection_none_iff` запрещает скрытый fallback.
+- `finiteSelection_minimum` даёт min resource cost `(memory,operations)`
+  memory-first ТОЛЬКО на eligible input-list candidates. Дешёвый unlisted
+  candidate исключён по области; no completeness из названия.
+- `selectionReport` даёт length действий composite-guard calls и k−1
+  comparisons. Bool short-circuit не обещает все поля/step на действие.
+- `toController` кастует Int quality в Real, сохраняя actual step/ресурсы;
+  safety модели определяется Bool guard при фиксированном state. Это
+  НЕ physical safety, calibration или execution произвольного real CE.
+- `admissionGuard_iff_qualityEligible` доказывает guard ↔ old eligibility
+  через Int.cast_le В ОБЕ стороны, включая отрицательный qfloor.
+  Никаких вероятностных error premises или реальных данных не возникло.
+- `finiteSelection_cost_eq_minimumResource`: при hcomplete∀b∈actions
+  executable min cost равен cost старого mathematical selector. Доказано
+  antisymmetry обоих bounds; действия при равных costs НЕ отождествлены.
+- #eval: floor1,caps1,1 выбирает actual Nat increment1, guards2,cmp0;
+  floor0 выбирает stay0,cmp1. M=0 или C=0 при strict floor дают none;
+  empty list тоже none, guards0. Отдельная negative-floor bridge проверена.
+- Три кандидата: при floor1 resources upgrade1=(100,0), upgrade2=(1,100).
+  Выбирается действие 2 именно memory-first, несмотря на operations100.
+  Это модельные единицы, не physical bytes и не минимум computations.
+- Freeze 4344 (+29), 429 modules; empirical 201/37 unchanged; structural
+  9175/415 (+10 включая filter match helpers). Full CI/ALLAXIOMS PASS.
+- NIST/branch-and-bound references — только выбор full-scan без pruning,
+  не proof globally optimal search. Generic `A` связан Type прежнего
+  resourceCost; generic primitive kernel сохраняет свои universe levels.
+
 ### Цикл 76: exact maximum margin of robust-floor eligibility
 
 - `estimatedMaxValue` вычисляет estimate НАСТОЯЩЕГО successor
