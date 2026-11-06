@@ -365,6 +365,7 @@ import Hagi.Unified.ExecutedCert
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
+import Hagi.Unified.LogitGrowth
 import Hagi.Unified.LoopInstances
 import Hagi.Unified.CertUnify
 import Hagi.Unified.Ctv2Telescope
