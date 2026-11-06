@@ -154,4 +154,23 @@ theorem fderiv_ceOneHot_mulVec
   simp only [ContinuousLinearMap.comp_apply, featureCLM_apply]
   exact ceDeriv_apply t (X *ᵥ θ.ofLp) (X *ᵥ h.ofLp)
 
+/-- Composition of categorical CE with an arbitrary differentiable logit map.
+The output is the existing one-hot residual paired with that map's actual
+Jacobian.  The linear-head theorem is the direct specialization, rather than
+a replacement derivative or a fresh empirical premise. -/
+theorem fderiv_ceOneHot_comp_apply
+    {V : Type} [Fintype V] [Nonempty V] [DecidableEq V]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → (V → ℝ)) (g' : E →L[ℝ] (V → ℝ)) (θ h : E) (t : V)
+    (hg : HasFDerivAt g g' θ) :
+    fderiv ℝ (fun w => Hagi.ceOneHot t (g w)) θ h =
+      ∑ v, (Hagi.Prelude.softDef (g θ) v -
+        if v = t then 1 else 0) * (g' h) v := by
+  change HasFDerivAtNormed g g' θ at hg
+  have hc := (hasFDerivAt_ceOneHot t (g θ)).comp θ hg
+  simp only [Function.comp_def] at hc
+  rw [hc.fderiv]
+  simp only [ContinuousLinearMap.comp_apply]
+  exact ceDeriv_apply t (g θ) (g' h)
+
 end Hagi.Model.CEGradient

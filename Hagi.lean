@@ -451,6 +451,7 @@ import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
 import Hagi.Contracts.BatchCEBestResidual
+import Hagi.Model.GatedCEGradient
 
 set_option linter.style.header false
 
