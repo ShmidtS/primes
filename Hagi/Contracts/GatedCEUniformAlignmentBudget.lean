@@ -10,8 +10,9 @@ set_option linter.style.header false
 # Uniform-curvature accounting of squared gated alignment
 
 The feature-only curvature bound specializes the conditional budget without
-introducing trajectory hypotheses.  These corollaries concern only squared
-current alignment; they make no convergence or model-quality claims.
+introducing trajectory hypotheses.  These corollaries cover squared alignment,
+raw alignment, and residual-transpose coordinate convergence.  They make no
+residual, parameter, global-optimum, or model-quality claims.
 -/
 
 set_option relaxedAutoImplicit false
@@ -62,5 +63,27 @@ theorem fixedGatedAlignment_sq_tendsto_zero_uniform [Nonempty V]
     (gatedCurvatureUniformBound X) (gatedCurvatureUniformBound_pos X)
     (fun s => gatedCurvature_le_uniformBound X
       (coreParameters (fixedGatedState X t S opCost opRisk write s)) t)
+
+/-- Feature-only curvature forces current alignment to zero. -/
+theorem fixedGatedAlignment_tendsto_zero_uniform [Nonempty V]
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (fixedGatedAlignment X t S opCost opRisk write) atTop (𝓝 0) := by
+  exact fixedGatedAlignment_tendsto_zero X t S opCost opRisk write
+    (gatedCurvatureUniformBound X) (gatedCurvatureUniformBound_pos X)
+    (fun s => gatedCurvature_le_uniformBound X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t)
+
+/-- Feature-only curvature forces each residual-transpose coordinate to zero. -/
+theorem fixedGatedResidualTranspose_tendsto_zero_uniform [Nonempty V]
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (j : Fin n) :
+    Tendsto (fun s => gatedResidualTranspose X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t j)
+      atTop (𝓝 0) := by
+  exact fixedGatedResidualTranspose_tendsto_zero X t S opCost opRisk write
+    (gatedCurvatureUniformBound X) (gatedCurvatureUniformBound_pos X)
+    (fun s => gatedCurvature_le_uniformBound X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t) j
 
 end Hagi.Contracts.GatedCEUniformAlignmentBudget

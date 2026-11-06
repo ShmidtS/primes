@@ -147,4 +147,65 @@ theorem fixedGatedAlignment_sq_tendsto_zero [Nonempty V]
   (fixedGatedAlignment_sq_summable X t S opCost opRisk write
     K hK hcurvature).tendsto_atTop_zero
 
+/-- Squared residual-transpose alignment at current parameters is nonnegative. -/
+theorem fixedGatedAlignment_nonneg
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (s : ℕ) :
+    0 ≤ fixedGatedAlignment X t S opCost opRisk write s := by
+  exact gatedAlignment_nonneg X
+    (coreParameters (fixedGatedState X t S opCost opRisk write s)) t
+
+/-- Infinite-time summability of the squares forces current alignment to zero. -/
+theorem fixedGatedAlignment_tendsto_zero [Nonempty V]
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (K : ℝ) (hK : 0 < K)
+    (hcurvature : ∀ s : ℕ, gatedCurvature X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t ≤ K) :
+    Tendsto (fixedGatedAlignment X t S opCost opRisk write) atTop (𝓝 0) := by
+  have hsqrt := (fixedGatedAlignment_sq_tendsto_zero X t S opCost opRisk write
+    K hK hcurvature).sqrt
+  simpa only [Real.sqrt_zero] using hsqrt.congr (fun s =>
+    Real.sqrt_sq (fixedGatedAlignment_nonneg X t S opCost opRisk write s))
+
+/-- One squared residual-transpose coordinate is bounded by current alignment. -/
+theorem fixedGatedResidualTranspose_sq_le_alignment
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (s : ℕ) (j : Fin n) :
+    (gatedResidualTranspose X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t j) ^ 2 ≤
+      fixedGatedAlignment X t S opCost opRisk write s := by
+  unfold fixedGatedAlignment gatedAlignment
+  exact Finset.single_le_sum (fun i _hi => sq_nonneg
+    (gatedResidualTranspose X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t i))
+    (Finset.mem_univ j)
+
+/-- Each current residual-transpose coordinate tends to zero. -/
+theorem fixedGatedResidualTranspose_tendsto_zero [Nonempty V]
+    (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (K : ℝ) (hK : 0 < K)
+    (hcurvature : ∀ s : ℕ, gatedCurvature X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t ≤ K)
+    (j : Fin n) :
+    Tendsto (fun s => gatedResidualTranspose X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t j)
+      atTop (𝓝 0) := by
+  have hsqrt : Tendsto (fun s => Real.sqrt
+      (fixedGatedAlignment X t S opCost opRisk write s)) atTop (𝓝 0) := by
+    simpa only [Real.sqrt_zero] using
+      (fixedGatedAlignment_tendsto_zero X t S opCost opRisk write
+        K hK hcurvature).sqrt
+  apply (tendsto_zero_iff_abs_tendsto_zero _).2
+  change Tendsto (fun s => |gatedResidualTranspose X
+    (coreParameters (fixedGatedState X t S opCost opRisk write s)) t j|)
+    atTop (𝓝 0)
+  exact squeeze_zero (fun s => abs_nonneg _)
+    (fun s => Real.abs_le_sqrt
+      (fixedGatedResidualTranspose_sq_le_alignment
+        X t S opCost opRisk write s j))
+    hsqrt
+
 end Hagi.Contracts.GatedCEAlignmentBudget
