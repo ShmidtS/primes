@@ -478,6 +478,57 @@ theorem jointCandidateCount_zero : jointCandidateCount 0 = 1 := by
 theorem localEvaluationCount_zero : localEvaluationCount 0 = 0 := by
   norm_num [localEvaluationCount]
 
+private lemma le_twoFiftyFive_pow {G : ℕ} (hG : 0 < G) : G ≤ 255 ^ (G - 1) := by
+  induction G with
+  | zero => omega
+  | succ n ih =>
+    by_cases hn : n = 0
+    · subst n
+      simp
+    · have hi := ih (Nat.pos_of_ne_zero hn)
+      have hnpos : 0 < n := Nat.pos_of_ne_zero hn
+      have hp : 255 ^ n = 255 ^ (n - 1) * 255 := by
+        calc
+          255 ^ n = 255 ^ (n - 1 + 1) := by congr 1; omega
+          _ = 255 ^ (n - 1) * 255 := Nat.pow_succ _ _
+      have hpow1 : 1 ≤ 255 ^ (n - 1) := Nat.one_le_pow _ _ (by norm_num)
+      simp only [Nat.add_sub_cancel]
+      omega
+
+/-- Independent local searches use no more mathematical score evaluations
+than there are assignments in the complete joint candidate family. -/
+theorem localEvaluationCount_le_jointCandidateCount {G : ℕ} (hG : 0 < G) :
+    localEvaluationCount G ≤ jointCandidateCount G := by
+  unfold localEvaluationCount jointCandidateCount
+  calc
+    G * 255 ≤ 255 ^ (G - 1) * 255 :=
+      Nat.mul_le_mul_right 255 (le_twoFiftyFive_pow hG)
+    _ = 255 ^ (G - 1 + 1) := (Nat.pow_succ _ _).symm
+    _ = 255 ^ G := by
+      congr 1
+      exact Nat.sub_add_cancel hG
+
+private lemma succ_add_three_le_twoFiftyFive_pow (n : ℕ) : n + 3 ≤ 255 ^ (n + 1) := by
+  induction n with
+  | zero => norm_num
+  | succ n ih =>
+    have hp : 255 ^ (n + 1) ≤ 255 ^ (n + 2) :=
+      Nat.pow_le_pow_right (by norm_num) (by omega)
+    omega
+
+/-- With at least two groups, independent local searches use strictly fewer
+mathematical score evaluations than the complete joint candidate count. -/
+theorem localEvaluationCount_lt_jointCandidateCount {G : ℕ} (hG : 2 ≤ G) :
+    localEvaluationCount G < jointCandidateCount G := by
+  unfold localEvaluationCount jointCandidateCount
+  have hn : ∃ n : ℕ, G = n + 2 := ⟨G - 2, by omega⟩
+  obtain ⟨n, rfl⟩ := hn
+  have hs : n + 3 ≤ 255 ^ (n + 1) := succ_add_three_le_twoFiftyFive_pow n
+  calc
+    (n + 2) * 255 < (n + 3) * 255 := by omega
+    _ ≤ 255 ^ (n + 1) * 255 := Nat.mul_le_mul_right 255 hs
+    _ = 255 ^ (n + 2) := (Nat.pow_succ _ _).symm
+
 /-- A named bit counter for `5 * G` reference weights, each charged 64
 bits.  It is not a model of native storage or total training memory. -/
 def groupReference64BitCounter (G : ℕ) : ℕ := (5 * G) * 64
