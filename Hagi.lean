@@ -445,6 +445,7 @@ import Hagi.Unified.NegativeTests
 import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
 import Hagi.State.Transition
+import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.GatedCEStepCertificate

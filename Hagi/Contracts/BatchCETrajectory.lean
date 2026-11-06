@@ -1,4 +1,5 @@
 import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.CEHeldout
 
 /-!
@@ -164,10 +165,12 @@ theorem fixedBatchObjective_sum_certifiedDrop_le_telescope [Nonempty V]
     ∑ t ∈ Finset.range T, batchCertifiedDrop X
         (coreParameters (fixedBatchState X y S opCost opRisk write t)) y ≤
       batchCEObjective X y S - fixedBatchObjective X y S opCost opRisk write T := by
-  rw [← fixedBatchObjective_actual_telescope X y S opCost opRisk write T]
-  exact Finset.sum_le_sum fun t _ht =>
-    batchCertifiedDrop_le_actualDrop X y
-      (fixedBatchState X y S opCost opRisk write t) opCost opRisk write
+  exact ObjectiveTrajectory.sum_drop_le_initial_sub
+    (fixedBatchObjective X y S opCost opRisk write)
+    (fun t => batchCertifiedDrop X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y) T
+    (fun t => batchCertifiedDrop_le_actualDrop X y
+      (fixedBatchState X y S opCost opRisk write t) opCost opRisk write)
 
 /-- Antitonicity follows from per-successor actual loss nonincrease. -/
 theorem fixedBatchObjective_antitone [Nonempty V]
@@ -193,10 +196,10 @@ theorem fixedBatchObjective_tendsto_ciInf [Nonempty V]
     (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
     Tendsto (fixedBatchObjective X y S opCost opRisk write) atTop
       (𝓝 (⨅ t, fixedBatchObjective X y S opCost opRisk write t)) := by
-  apply tendsto_atTop_ciInf (fixedBatchObjective_antitone X y S opCost opRisk write)
-  refine ⟨0, ?_⟩
-  rintro z ⟨t, rfl⟩
-  exact fixedBatchObjective_nonneg X y S opCost opRisk write t
+  exact ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg
+    (fixedBatchObjective X y S opCost opRisk write)
+    (fixedBatchObjective_antitone X y S opCost opRisk write)
+    (fixedBatchObjective_nonneg X y S opCost opRisk write)
 
 /-- The actual loss infimum is nonnegative, without being declared optimal. -/
 theorem fixedBatchObjective_ciInf_nonneg [Nonempty V]
@@ -204,7 +207,8 @@ theorem fixedBatchObjective_ciInf_nonneg [Nonempty V]
     (S : TrainState n a r c k) (opCost opRisk : ℝ)
     (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
     0 ≤ ⨅ t, fixedBatchObjective X y S opCost opRisk write t :=
-  le_ciInf (fixedBatchObjective_nonneg X y S opCost opRisk write)
+  ObjectiveTrajectory.ciInf_nonneg _
+    (fixedBatchObjective_nonneg X y S opCost opRisk write)
 
 /-- The empty fixed batch has zero raw mean at every time. -/
 theorem fixedBatchObjective_empty [Nonempty V]

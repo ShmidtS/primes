@@ -1,4 +1,5 @@
 import Hagi.Contracts.GatedCEStepCertificate
+import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.CEHeldout
 
@@ -135,9 +136,11 @@ theorem fixedGatedObjective_sum_gatedSafeDrop_le_telescope [Nonempty V]
     ∑ s ∈ Finset.range T, gatedSafeDrop X
         (coreParameters (fixedGatedState X t S opCost opRisk write s)) t ≤
       gatedCEObjective X t S - fixedGatedObjective X t S opCost opRisk write T := by
-  rw [← fixedGatedObjective_actual_telescope X t S opCost opRisk write T]
-  exact Finset.sum_le_sum fun s _hs =>
-    gatedSafeDrop_le_fixedGatedObjective_actualDrop X t S opCost opRisk write s
+  exact ObjectiveTrajectory.sum_drop_le_initial_sub
+    (fixedGatedObjective X t S opCost opRisk write)
+    (fun s => gatedSafeDrop X
+      (coreParameters (fixedGatedState X t S opCost opRisk write s)) t) T
+    (gatedSafeDrop_le_fixedGatedObjective_actualDrop X t S opCost opRisk write)
 
 /-- Antitonicity follows from actual per-successor loss nonincrease. -/
 theorem fixedGatedObjective_antitone [Nonempty V]
@@ -160,16 +163,17 @@ theorem fixedGatedObjective_tendsto_ciInf [Nonempty V]
     (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
     Tendsto (fixedGatedObjective X t S opCost opRisk write) atTop
       (𝓝 (⨅ s, fixedGatedObjective X t S opCost opRisk write s)) := by
-  apply tendsto_atTop_ciInf (fixedGatedObjective_antitone X t S opCost opRisk write)
-  refine ⟨0, ?_⟩
-  rintro z ⟨s, rfl⟩
-  exact fixedGatedObjective_nonneg X t S opCost opRisk write s
+  exact ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg
+    (fixedGatedObjective X t S opCost opRisk write)
+    (fixedGatedObjective_antitone X t S opCost opRisk write)
+    (fixedGatedObjective_nonneg X t S opCost opRisk write)
 
 /-- The real loss infimum is nonnegative, without being declared optimal. -/
 theorem fixedGatedObjective_ciInf_nonneg [Nonempty V]
     (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
     (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
     0 ≤ ⨅ s, fixedGatedObjective X t S opCost opRisk write s :=
-  le_ciInf (fixedGatedObjective_nonneg X t S opCost opRisk write)
+  ObjectiveTrajectory.ciInf_nonneg _
+    (fixedGatedObjective_nonneg X t S opCost opRisk write)
 
 end Hagi.Contracts.GatedCETrajectory
