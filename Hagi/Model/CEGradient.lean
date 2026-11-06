@@ -154,6 +154,15 @@ theorem fderiv_ceOneHot_mulVec
   simp only [ContinuousLinearMap.comp_apply, featureCLM_apply]
   exact ceDeriv_apply t (X *ᵥ θ.ofLp) (X *ᵥ h.ofLp)
 
+/-- Categorical CE remains differentiable after any differentiable logit map. -/
+theorem differentiableAt_ceOneHot_comp
+    {V : Type} [Fintype V] [Nonempty V]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → (V → ℝ)) (θ : E) (t : V)
+    (hg : DifferentiableAt ℝ g θ) :
+    DifferentiableAt ℝ (fun w => Hagi.ceOneHot t (g w)) θ := by
+  exact ((hasFDerivAt_ceOneHot t (g θ)).comp θ hg.hasFDerivAt).differentiableAt
+
 /-- Composition of categorical CE with an arbitrary differentiable logit map.
 The output is the existing one-hot residual paired with that map's actual
 Jacobian.  The linear-head theorem is the direct specialization, rather than
