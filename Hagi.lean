@@ -445,6 +445,7 @@ import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
 import Hagi.State.Transition
 import Hagi.Contracts.StepCertificate
+import Hagi.Contracts.CEStepCertificate
 
 set_option linter.style.header false
 
