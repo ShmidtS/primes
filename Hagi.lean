@@ -453,6 +453,7 @@ import Hagi.Contracts.BatchCEAlignmentBudget
 import Hagi.Contracts.BatchCEBestResidual
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
+import Hagi.Model.TanhTaylor
 
 set_option linter.style.header false
 
