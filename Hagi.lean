@@ -417,6 +417,7 @@ import Hagi.Unified.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
 import Hagi.Unified.QualityResourceMin
+import Hagi.Unified.RobustCostSensitivity
 import Hagi.Unified.RobustResourceMin
 import Hagi.Unified.ProductiveTransition
 import Hagi.Unified.TransitionCert

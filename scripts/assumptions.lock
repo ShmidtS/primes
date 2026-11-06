@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9150
-named structural declaration+ordinal keys: 9150
-named structural source modules: 411
+named structural binder occurrences: 9158
+named structural declaration+ordinal keys: 9158
+named structural source modules: 412
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -9158,6 +9158,14 @@ Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_bound | 9 | hnorm | 
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 7 | hQ | ∀ (x : E), ‖Q x‖ = ‖x‖
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 8 | hsum | ∀ (x : E), Qt x = Q x + Err x
 Hagi.Unified.RecursiveGrowth | Hagi.Unified.unitary_perturb_metric | 9 | hnorm | ∀ (x : E), ‖Err x‖ ≤ d * ‖x‖
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustEligible_mono_epsilon | 13 | h_eps | eps1 ≤ eps2
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustEligible_mono_epsilon | 15 | ha | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps2) a
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_cost_mono | 15 | h_eps | eps1 ≤ eps2
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_cost_mono | 16 | h_small | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps1) a1
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_cost_mono | 17 | h_large | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps2) a2
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 15 | h_eps | eps1 ≤ eps2
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 16 | h_small | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps1) a1
+Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 17 | h_large | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps2) a2
 Hagi.Unified.RobustResourceMin | Hagi.Unified.QualityResourceMin.minimumResource.eq_1 | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
 Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
 Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource.eq_1 | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0

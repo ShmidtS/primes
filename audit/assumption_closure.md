@@ -11,6 +11,24 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 75 — sensitivity is monotone only inside nonempty robust class
+
+- Среднее `qfloor+eps₂ ≤ estimate` при `eps₁≤eps₂` влечёт
+  `qfloor+eps₁ ≤ estimate`. Нет новой h_emp calibration:
+  nesting — only algebraic statement о candidate eligibility.
+- Cost minimum и memory nondecreasing при сохранении ДВУХ witnesses:
+  h_small и h_large. Пустой high-radius class не маскируется кандидатом
+  или fallback. Integration reuses прежние sources, не правит их types.
+- Actual p.step сохраняется from withEstimatedValue; source theorem
+  neither generates nor needs sample error inequality. Actual floor
+  separately requires herr цикла 74 при её вызове. Statistics not introduced.
+- Structural occurrences +8 = 9158/412; empirical 201/37 unchanged.
+  Hypotheses eps, ha, h_small, h_large numbered environment occurrences;
+  они не являются empirical closures nor count unknowns.
+- Finite staircase 0,.5,1 makes both nondecreasing and empty boundary
+  explicit, but not minimum FLOPs, hardware memory/task performance.
+  Ops are only lex-tie memory criterion; separate monotonicity not derived.
+
 ## Цикл 74 — conditional robust lower-bound floor
 
 - `robustMinimumResource` использует существующие feasibility и

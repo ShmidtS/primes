@@ -1,4 +1,32 @@
 
+### Цикл 75: monotonicity of robust-certified resource class
+
+- `robustEligible_mono_epsilon` не доказывает actual data confidence:
+  он лишь по h_eps и upper-floor h_a делает lower-floor eligibility.
+  Fixed safe, memoryLimit и operationLimit остаются в исходном object.
+- `robustMinimumResource_cost_mono` вызывает прежний conservative
+  cost minimum на small family и подставляет выбранный large action,
+  уже перенесённый в small family. Квантор — finite robust subset,
+  не global search/model search и не actual true-floor wider family.
+- `Prod.Lex.monotone_fst` даёт только memory. Одновременно не выведено
+  operations nondecreasing, strict cost increase или algorithm speed.
+  Два witnesses — не стилистическая деталь: без большего witness
+  конструктор minimumResource вне семантического scope теоремы.
+- Endpoints discriminating model: `p.step a s=a,true score=a.val/2`.
+  При eps=0,1/2,1 действительно получаются actions 0,1,2 с costs 0,1,2.
+  More costly candidate 2 min at .5 исключается по Prod.Lex, не случайный
+  simplistic check. При eps=2: no eligible witness for all Fin 3 actions.
+- Scientific abstract `.tmp/cycle75-research.txt`: Doole/Kingwell 2010
+  has cost-of-resource uncertainty simulations, not universal theorem.
+  Robust counterpart / constraint control sources are also model-specific
+  and may use controlled violations, лицензируемых к HAGI without premises.
+  Мы доказали только finite sets/order, не минимизация model training FLOPs.
+- +3 declarations, Freeze=4311, modules=426. Empirical 201/37 unchanged;
+  structural 9158/412 (+8). Root/focused build, Layer/RegScan, scalar
+  witnesses and full CI/ALLAXIOMS all PASS. Axiom output standard triple.
+  Final independent refute-first review: LGTM; source flow, empty class
+  and exact endpoint probes checked independently.
+
 ### Цикл 74: bounded error и minimum robust-certified resources
 
 - Вместо второго controller/minimizer: record update цикла 21 сохраняет

@@ -1,10 +1,30 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4308 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4311 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Robust-certified cost sensitivity (цикл 75)
+
+- `robustEligible_mono_epsilon`: при eps1≤eps2 каждый действительно
+  eligible при eps2 vходит в меньший класс eps1. Элемент feasibility
+  не меняется; меняется лишь qfloor+eps на est(actual successor).
+- `robustMinimumResource_cost_mono` использует предыдущий cost-min
+  непосредственно на выбранном большим radius действии после его
+  transfer в small семейство. Противопоставлять два argmin-ядра не нужно.
+- `robustMinimumResource_memory_mono` выводит неубывание первой memory
+  координаты из Prod.Lex порядка. Строгость и монотонность operations
+  отдельно НЕ выводятся. Уровень — class-certified costs, не hardware.
+- Два witness (small и large) обязательны: eps может стать слишком
+  большим и класс становится пустым. Ни выбора по призрачному witness,
+  ни fallback/forbidden. Истинная качественная гарантия продолжает
+  требовать herr из cycle 74; сам cost lemma её не создаёт.
+- Fin3 witness: score=a.val/2, actual p.step a s=a,
+[... 701 chars omitted ...][... 319 chars omitted ...] -> 4311; empirical 201/37 unchanged,
+  structural +8 до 9158/412. Это только interface occurrences,
+  не новые закрытые empirical premises или hardware bounds.
 
 ## Bounded-error guaranteed-floor minimum (цикл 74)
 

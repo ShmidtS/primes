@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 425 Lean-модулей в `Hagi/`; 4308 declarations (Freeze);
+- 426 Lean-модулей в `Hagi/`; 4311 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,28 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 75: sensitivity of robust-certified minimum cost
+
+- `robustEligible_mono_epsilon` доказывает вложенность finite subset по eps:
+  больший radius означает более сильный floor qfloor+eps2, поэтому его
+  допустимое действие принадлежит меньшему классу eps1. Safety/caps intact.
+- `robustMinimumResource_cost_mono` доказывает неубывание minimum
+  `(memory,operations)` в Prod.Lex при eps1≤eps2. Нужны оба witness,
+  h_small и h_large. Cost order не превращается в physical bytes/FLOPs.
+- `robustMinimumResource_memory_mono`: первая memory координата тоже
+  не убывает. Операции отдельно нет, не гарантируется строгое нарастание
+  (одинаковые допустимые семейства могут дать plateau). Pure lex ordering.
+- Fin3 actual model: p.step a s=a, value=a.val/2, memory=ops=a.val.
+  При eps 0, .5, 1 выбираются, соответственно, действия 0,1,2. При eps 2
+  witness absent for all three despite earlier nonempty families.
+  Это finite-state mathematical model, не hardware или NN benchmark.
+- Fresh axioms probes: only propext/Classical.choice/Quot.sound.
+  Fresh full CI PASS incl. TrivialLint, all registries, machine diffs.
+  +3 declarations → 4311, empirical 201/37 unchanged; structural 9158/412.
+- Research `.tmp/cycle75-research.txt`: uncertainty-set resources and
+  robust optimization literature; cost-of-robustness studies there have
+  specific models/data, не new universal theorem. No confidence calibration.
+
 ### Цикл 74: minimum resources под bounded error
 
 - Eligible robust-класса: `qfloor+eps ≤ estimate(p.step a s)`.
