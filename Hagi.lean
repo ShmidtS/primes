@@ -451,6 +451,7 @@ import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.GatedCETrajectory
 import Hagi.Contracts.GatedCESummability
 import Hagi.Contracts.GatedCEAlignmentBudget
+import Hagi.Contracts.GatedCEUniformAlignmentBudget
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
@@ -460,6 +461,7 @@ import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.GatedCEPositiveCurvature
+import Hagi.Model.GatedCEUniformCurvature
 
 set_option linter.style.header false
 
