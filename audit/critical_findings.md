@@ -1,4 +1,30 @@
 
+### Цикл 76: exact estimated maximum margin and nonempty boundary
+
+- `estimatedMaxValue` draws actual successor via existing selectedNext;
+  withEstimatedValue меняет только objective. Value maximum not desired
+  effect metadata. `h_stay` preserves only original feasible nonempty.
+- `estimatedMaxValue_upper` поднимает p'.value (p'.step) по существующей
+  selection optimality, membership исходной feasible documented.
+- Exact equivalence eps vs max−qfloor uses same inequality signs as
+  Cycle74. Backward uses selection_admissible until actual shifted score
+  AND subtraction; forward compares the eligible candidate with max.
+  Strict above cap => ∀a no lower-certified eligible, boundary remains.
+- Counterexample checks: model score 0 и 1, M=C=1. Selector=1, TRUE
+  ESTIMATE MAX=1; epsilon=1 действительно nonempty, epsilon=2 empty ∀a.
+  No fabricated fallback. Logit proof computes max estimate as actual
+  real gradient successor's estimate (positive eta, feasible both actions).
+- Literature `.tmp/cycle76-research.txt` has Goberna 2021 RRF survey and
+  MIP/linear-conic formulas. They do NOT convert abstractive finite max
+  to universal RRF algorithm, min search complexity, high-dimensional
+  neural training guarantee or IoT/memory-byte physical optimization.
+- Only 4 declarations; Freeze 4315, 427 modules. Empirical 201/37 unchanged,
+  structural 9165/413. Focused/root/all CI, Freeze/all axioms и 14 registry
+  tests PASS. Negative radius is simply allowed real-admissibility algebra,
+  shouldn't be semantically labelled positive statistical uncertainty.
+-   Независимое refute-first review: LGTM for exact finite boundary.
+  Отдельно проверены real CE successor, iff и пустота above‑cap.
+
 ### Цикл 75: monotonicity of robust-certified resource class
 
 - `robustEligible_mono_epsilon` не доказывает actual data confidence:

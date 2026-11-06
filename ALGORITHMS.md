@@ -1,10 +1,36 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4311 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4315 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Exact admissibility margin (цикл 76)
+
+- `estimatedMaxValue` computes the estimated objective of the REAL
+  successor chosen by the existing ParetoExecution engine. It does not
+  re-enumerate a global arch or add a per-radius minimizer.
+- `estimatedMaxValue_upper` dominates estimate of actual successor for
+  EACH original feasible candidate through existing max lemma and
+  withEstimatedValue membership equivalence. Original caps still bind.
+- `robust_eligible_iff_radius_le_margin`: ∃ conservative eligible
+  action iff eps≤estimatedMaxValue−qfloor. Boundary is INCLUDED.
+  Forward: chosen value(conservative)→max; backward: max's witness.
+- `no_robust_eligible_above_margin` means no action whatsoever qualifies
+  at eps>max−floor. h_stay only ensures original feasible nonempty,
+  not nonempty at all eps. No fallback or sampled-noise guarantee
+  appears in the proof.
+- Distinguish scalar estimated admissibility margin from full RRF:
+  Goberna 2021 and Liers 2021 consider restricted MIP/conic programs,
+  not this abstract arbitrary model. Rho≠stochastic confidence and
+  maxEstimate≠actual task performance/minimum computation/search cost.
+- Exact Fin2 boundary: p.step a 0=a, scores 0,1; caps 1,1.
+  Maximum=1, epsilon=1 has witness, epsilon=2 empty for every action.
+  Scalar CE: max estimate equals actual gradient successor estimate
+  whenever the real h_eta/h0/h1 conditions hold (no replacement baseline).
+- +4 declarations to 4315, 427 modules; empirical 201/37 unchanged;
+  structural 9165/413 (+7). Fresh focused probes and corpus CI PASS.
 
 ## Robust-certified cost sensitivity (цикл 75)
 

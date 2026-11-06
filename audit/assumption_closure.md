@@ -11,6 +11,24 @@
 аналитический инстанс различаются. Исправление сканера само
 по себе также не закрывает математическое условие.
 
+## Цикл 76 — maximal estimated floor margin, not sampled confidence
+
+- Новый threshold выводится из existing selected finite argmax и
+  conservation of p.step/safe/caps. `h_stay` только на полную original
+  feasible family, not on nonempty robust subset at all eps.
+- Максимум estimated outcomes определяет точный inclusion threshold
+  eps≤estimatedMaxValue−qfloor. Это НЕ probabilistic bound: sampling,
+  independence, task accuracy, stochastic guarantee в нем не введены.
+- Actual objective-floor quality if required continues to demand herr
+  цикла 74. Terminology max-margin doesn't merge MIP/conic/process-affect
+  evidence with model-value estimates nor "certify" actual training best.
+- Registry: empirical 201/37 unchanged; structural 9165/413 (+7),
+  including h_stay helper projection. None of them closed other premise.
+  Root artifacts are canonical; old statement hashes снова unchanged.
+- Fin2 required-bound max is genuinely achieved at eps 1; eps 2 has no
+  candidate. CE max real gradient next matched. Mathematical selection
+  is not native executable search/minimum FLOPs/physical RRF algorithm.
+
 ## Цикл 75 — sensitivity is monotone only inside nonempty robust class
 
 - Среднее `qfloor+eps₂ ≤ estimate` при `eps₁≤eps₂` влечёт

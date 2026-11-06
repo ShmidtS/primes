@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 426 Lean-модулей в `Hagi/`; 4311 declarations (Freeze);
+- 427 Lean-модулей в `Hagi/`; 4315 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,28 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Цикл 76: exact maximum margin of robust-floor eligibility
+
+- `estimatedMaxValue` вычисляет estimate НАСТОЯЩЕГО successor
+  existing selectedNext на withEstimatedValue. `estimatedMaxValue_upper`
+  ограничивает actual outcomes каждого original feasible кандидата.
+- `robust_eligible_iff_radius_le_margin`: existence robust-floor-класса
+  равносильно eps≤estimatedMaxValue−qfloor. Граница equality допустима;
+  backward использует сам selected candidate; h_stay гарантирует лишь
+  непустую исходную family, а не произвольное radius existence.
+- `no_robust_eligible_above_margin` выводит `∀a, ¬eligible` если eps
+  строже max−floor. Это НЕ глобальная confidence radius or MIP result:
+  только stated finite class, original safety/memory/operations intact.
+  h_stay допускает пустой conservative class на большом eps.
+- Probe: Fin2 p.step/state score 0,1, cap 1,1; computed max=1.
+  eps=1 eligible (включая точную boundary), eps=2 нет даже кандидат.
+  Logit CE max proved to coincide with determinant estimator на настоящем
+  `w+eta/(1+exp w)` при всех ресурсных h₀/h₁ и 0<eta.
+- +4 declarations = 4315. Empirical 201/37 unchanged; structural
+  9165/413. Fresh CI/ALLAXIOMS PASS, no sorry or custom axioms.
+  Robust feasibility papers scoped to their models; нет stochastic guarantee.
+  Independent refute-first review: LGTM for exact family boundary.
+
 ### Цикл 75: sensitivity of robust-certified minimum cost
 
 - `robustEligible_mono_epsilon` доказывает вложенность finite subset по eps:

@@ -12,9 +12,9 @@ h_emp distinct binder labels: 42
 h_emp-named declaration records: 5
 
 [structural/math summary]
-named structural binder occurrences: 9158
-named structural declaration+ordinal keys: 9158
-named structural source modules: 412
+named structural binder occurrences: 9165
+named structural declaration+ordinal keys: 9165
+named structural source modules: 413
 Execution candidates require a complete h-prefixed formal identifier with
 exec/descent/sample in its name; this is a name-subset, NOT proof of execution.
 execution-name candidate occurrences: 41
@@ -9166,6 +9166,13 @@ Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMi
 Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 15 | h_eps | eps1 ≤ eps2
 Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 16 | h_small | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps1) a1
 Hagi.Unified.RobustCostSensitivity | Hagi.Unified.RobustCostSensitivity.robustMinimumResource_memory_mono | 17 | h_large | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps2) a2
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.estimatedMaxValue | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.estimatedMaxValue._proof_1 | 10 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.estimatedMaxValue_upper | 11 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.estimatedMaxValue_upper | 13 | ha | a ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.no_robust_eligible_above_margin | 13 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.no_robust_eligible_above_margin | 14 | h_eps | Hagi.Unified.RobustRadius.estimatedMaxValue estimate s M C stay h_stay - qfloor < eps
+Hagi.Unified.RobustRadius | Hagi.Unified.RobustRadius.robust_eligible_iff_radius_le_margin | 13 | h_stay | stay ∈ Hagi.Unified.ParetoExecution.feasible p M C
 Hagi.Unified.RobustResourceMin | Hagi.Unified.QualityResourceMin.minimumResource.eq_1 | 11 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible p s M C qfloor a0
 Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
 Hagi.Unified.RobustResourceMin | Hagi.Unified.RobustResourceMin.robustMinimumResource.eq_1 | 13 | h0 | Hagi.Unified.QualityResourceMin.qualityEligible (Hagi.Unified.ParetoExecution.withEstimatedValue p estimate) s M C (qfloor + eps) a0
