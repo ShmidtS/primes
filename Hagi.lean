@@ -174,6 +174,8 @@ import Hagi.Growth.PlasticityLedger
 import Hagi.Ensemble.CompressionCert
 import Hagi.Unified.MasterHAGITrunc
 import Hagi.Model.SoftmaxStep
+import Hagi.Model.CEGradient
+import Hagi.Model.CEDescent
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
