@@ -178,6 +178,7 @@ import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
 import Hagi.Model.CEQuantized
 import Hagi.Model.CEPackedStep
+import Hagi.Model.CEScaleSelection
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
