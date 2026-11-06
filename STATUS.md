@@ -2,7 +2,7 @@
 
 ## Корпус
 
-- 429 Lean-модулей в `Hagi/`; 4344 declarations (Freeze);
+- 431 Lean-модулей в `Hagi/`; 4357 declarations (Freeze);
   0 sorry; 0 кастомных аксиом
   (все теоремы: [propext, Classical.choice, Quot.sound]).
 - CI (16 гейтов, `scripts/ci.sh`): LINT, MathlibPin, DupLint,
@@ -11,6 +11,32 @@
   STMDUP, MACHINEDIFF, ALLAXIOMS — все PASS.
 
 ## Доказанные результаты (главные формулы)
+### Cycle 78: analytical closures на явных конечных носителях
+
+- `Hagi.Pretraining.DustMeasure` задаёт настоящий fair-Bernoulli product
+  на `HC m`: measurability/zero mean проекций, iIndepFun по j при
+  фиксированных i,d и ‖noise‖≤1 для unit u_i. Эти четыре fact проведены
+  в actual `minibatch_inner_concentration`; исходные h_emp не уничтожены
+  для произвольных моделей.   Только sigma=1, independence не по i или t.
+- Probe имеет m=2, два разных ненулевых единичных направления и оба
+  знака. Нет hidden MeasurableSpace X, varying-time anytime-вывода,
+  runtime-gradient/physical independence или calibration claim.
+- `Hagi.Discovery.discovery_prob_stationary_identity` доказывает обе
+  premises о sampler на finite PMF для identity. В `Seq : Type`,
+  pi неотрицательный и sum=1 определяет закон, не runtime stationarity.
+  Бесконечные цепи, mixing и реальный PPT initialization не доказаны.
+- `Hagi.Unified.corePremises_of_full_refinement_normalized` выводит
+  h15/hband из двустороннего componentwise full refinement при
+  nonnegative normalized weights. h1..h13 сохранены, old theorem intact.
+  Upper-only wrappers НЕ закрываются: counterexample 0→−1 при w=1/5
+  удовлетворяет upper/normalization, но нарушает weighted lower gap.
+- Freeze 4357 (+13), 431 module; actual empirical=201/37, 42 labels,
+  compact legacy=38 файлов/118 identifier, без h_emp в новых носителях.
+  Это constructed-carrier closures, НЕ closure всех arbitrary inputs.
+- Focused probes, full `bash scripts/ci.sh` и independent refute-first review: PASS;
+  стандартная тройка axioms. Next: exact ℕ-indexed success products,
+  отдельно от already-proved fixed-Fin-m noise model.
+
 ### Цикл 77: executable finite resource selection и явные guard-cost
 
 - `ExecutableSelection.auditedFilter` равен List.filter по candidates,

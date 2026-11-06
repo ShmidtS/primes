@@ -64,6 +64,7 @@ import Hagi.Pretraining.RobustnessLaw
 import Hagi.Pretraining.Grokking
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
+import Hagi.Pretraining.DustMeasure
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.OmniState
 import Hagi.Omni.OmniInvariant
@@ -215,6 +216,7 @@ import Hagi.Step.HybridState
 import Hagi.Step.SNRWeights
 import Hagi.Autonomy.SupervisorSafety
 import Hagi.Discovery.PPT
+import Hagi.Discovery.PPTCanonical
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.System.GrowthState

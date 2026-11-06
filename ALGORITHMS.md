@@ -1,10 +1,36 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4344 declarations, 0 sorry,
+формализации Lean 4 / Mathlib (Hagi/, 4357 declarations, 0 sorry,
 аксиомы только propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+
+## Analytic finite-carrier closures (цикл 78)
+
+- Reuse `signR`/`HC`; `rademacherLaw` is a true finite product of fair
+  Bernoulli distributions. Projection measurability, zero means,
+  `rademacher_projection_independent`, and norm≤1 for unit vectors
+  discharge the four FIXED-minibatch SafeQP noise inputs on this carrier
+  without a duplicate independence engine. Sigma=1; only j-independence
+  for fixed i,d, not across experts/time or an arbitrary minibatch.
+- Actual-consumer probe supplies these four proofs to
+  `minibatch_inner_concentration` for both nonzero coordinate directions.
+  No hidden X-measurable-space, runtime independence or physical guarantee.
+- Finite normalized `pi` plus identity sampling constructs a genuine PMF
+  and exact singleton masses. `discovery_prob_stationary_identity` turns
+  the old fiber/distribution premises into proved model facts; it is not
+  a stationarity theorem for a runtime chain or an empirical hmass.
+- Full componentwise refinement plus `∀i, 0≤w i` and `sum w=1`
+  proves the formerly separate weighted lower gap and upper band in
+  `corePremises_of_full_refinement_normalized`, while preserving h1..h13
+  and the older general constructor. Upper-only telemetry is insufficient:
+  nonzero uniform weights with 0→−1 remain a concrete counterexample.
+- Freeze=4357 (+13): 11 DustMeasure declarations, PPTCanonical and
+  normalization. Modules=431. Actual empirical registry remains 201/37;
+  all arbitrary settings stay conditional rather than disappear.
+- Independent refute-first review: LGTM; full `bash scripts/ci.sh`: PASS. Nondegenerate signs, nonzero unit
+  vectors, normalized scalarization and actual consumer shapes verified.
 
 ## Audited executable discrete selection (цикл 77)
 

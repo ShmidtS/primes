@@ -121,4 +121,52 @@ theorem corePremises_of_full_refinement (S S' : Hagi.GenState X)
   exact ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12,
     h13, hfull1, hband, h15⟩
 
+/-- Normalized nonnegative weights make the separately supplied
+weighted lower gap redundant for a full componentwise refinement.
+The pointwise absolute error supplies both componentwise directions;
+`Qgen_drop_bound` then gives the weighted bound because the weights
+sum to one. This specialization retains the other stage premises and
+does not alter the more general constructor above. -/
+theorem corePremises_of_full_refinement_normalized
+    (S S' : Hagi.GenState X) (epsQ : ℝ) (w : Fin 5 → ℝ)
+    (hfull : FullCycleRefinement S S' epsQ)
+    (hw : ∀ i, 0 ≤ w i) (hwsum : ∑ i, w i = 1)
+    (h1 : 0 ≤ S.toGrowthState.gap)
+    (h2 : S.toGrowthState.effects.growEnergy
+      ≤ S.toGrowthState.energy - S.toGrowthState.effects.growGain)
+    (h3 : S.toGrowthState.effects.mergeEnergy
+      ≤ S.toGrowthState.effects.growEnergy - S.toGrowthState.gap)
+    (h4 : 0 < S.toGrowthState.sp.L)
+    (h5 : S.toGrowthState.sp.eta ≤ 1 / S.toGrowthState.sp.L)
+    (h6 : 0 ≤ S.toGrowthState.sp.eta)
+    (h7 : ‖S.toGrowthState.stepDir‖ ^ 2
+      ≤ ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ)
+    (h8 : S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.effects.mergeEnergy
+        - S.toGrowthState.sp.eta
+          * ⟪S.toGrowthState.grad, S.toGrowthState.stepDir⟫_ℝ
+        + S.toGrowthState.sp.L * S.toGrowthState.sp.eta ^ 2
+          * ‖S.toGrowthState.stepDir‖ ^ 2 / 2)
+    (h9 : 0 ≤ S.toGrowthState.sp.kappa)
+    (h10 : 0 ≤ S.toGrowthState.sp.s)
+    (h11 : 0 ≤ S.toGrowthState.effects.quantErr)
+    (h12 : S.toGrowthState.effects.quantErr ≤ 1 / 2)
+    (h13 : S.toGrowthState.effects.compressEnergy - S.toGrowthState.effects.jointEnergy
+      ≤ S.toGrowthState.sp.kappa * S.toGrowthState.sp.s
+        * S.toGrowthState.effects.quantErr) :
+    CorePremises S S' epsQ w := by
+  have hband : ∀ i, Qvec S'.gen i ≤ Qvec S.gen i + epsQ := by
+    intro i
+    have h := (abs_le.mp (hfull.2 i)).2
+    linarith
+  have hcomponent : ∀ i, Qvec S.gen i - epsQ ≤ Qvec S'.gen i := by
+    intro i
+    have h := (abs_le.mp (hfull.2 i)).1
+    linarith
+  have hgap := Hagi.Generalization.Qgen_drop_bound
+    (ε := fun _ => epsQ) hw hcomponent
+  rw [← Finset.sum_mul, hwsum, one_mul] at hgap
+  exact corePremises_of_full_refinement S S' epsQ w hfull
+    h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 hgap hband
+
 end Hagi.Unified
