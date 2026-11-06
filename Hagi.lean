@@ -449,6 +449,7 @@ import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCETrajectory
+import Hagi.Contracts.BatchCEAlignmentBudget
 
 set_option linter.style.header false
 
