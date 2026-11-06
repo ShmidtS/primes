@@ -169,32 +169,8 @@ theorem gibbs_free_energy_identity {ι : Type*} [Fintype ι] [Nonempty ι]
 theorem shannon_entropy_le_log_card {ι : Type*} [Fintype ι] [Nonempty ι]
     (w : ι → ℝ) (hw0 : ∀ i, 0 < w i) (hw1 : ∑ i, w i = 1) :
     -∑ i, w i * Real.log (w i) ≤ Real.log ((Fintype.card ι : ℕ):ℝ) := by
-  have h2 : ∑ i, w i * Real.log ((w i)⁻¹) ≤ Real.log ((Fintype.card ι : ℕ):ℝ) := by
-    have hconc : ConcaveOn ℝ (Ioi (0:ℝ)) Real.log :=
-      (strictConcaveOn_log_Ioi).concaveOn
-    have hwle1 : ∀ i, w i ≤ 1 := by
-      intro i
-      have hs : w i ≤ ∑ j, w j := by
-        have := Finset.single_le_sum (f := w) (fun j _ => le_of_lt (hw0 j)) (Finset.mem_univ i)
-        simpa using this
-      rw [hw1] at hs
-      linarith [hs]
-    have hmem : ∀ i ∈ (Finset.univ : Finset ι), (w i)⁻¹ ∈ Ioi (0:ℝ) := by
-      intro i _
-      exact (inv_pos.mpr (hw0 i))
-    have hjen := hconc.le_map_sum (t := Finset.univ) (w := w) (p := fun i => (w i)⁻¹)
-      (fun i _ => le_of_lt (hw0 i)) hw1 hmem
-    simp only [smul_eq_mul, Real.log_inv] at hjen
-    have hR : ∑ i, w i * (w i)⁻¹ = ((Fintype.card ι : ℕ):ℝ) := by
-      simp [mul_inv_cancel₀ (ne_of_gt (hw0 _))]
-    rw [hR] at hjen
-    simpa only [Real.log_inv] using hjen
-
-  have hconv : -∑ i, w i * Real.log (w i) = ∑ i, w i * Real.log ((w i)⁻¹) := by
-    rw [← Finset.sum_neg_distrib]
-    exact Finset.sum_congr rfl (fun i _ => by rw [Real.log_inv]; ring)
-  rw [hconv]
-  simpa only [Real.log_inv] using h2
+  simpa only [Real.negMulLog_eq_neg, Finset.sum_neg_distrib] using
+    Hagi.Prelude.sum_negMulLog_le_log_card w (fun i => (hw0 i).le) hw1
 
 /-- **Качество исполняемой смеси: E ≤ m + T·log n.**
 Композиция трёх сертификатов: тождество E = F + T·S

@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 
 
 /-!
@@ -67,6 +68,27 @@ noncomputable def ceDef (q p : V → ℝ) : ℝ :=
 /-- Shannon entropy: `−∑ v, p v * log (p v)`. -/
 noncomputable def entDef (p : V → ℝ) : ℝ :=
   -∑ v, p v * Real.log (p v)
+
+/-- On a nonempty finite carrier, a nonnegative probability vector has
+Shannon entropy at most the logarithm of the carrier's cardinality. -/
+theorem sum_negMulLog_le_log_card {V : Type*} [Fintype V] [Nonempty V]
+    (p : V → ℝ) (hp : ∀ i, 0 ≤ p i) (hsum : ∑ i, p i = 1) :
+    (∑ i, Real.negMulLog (p i)) ≤ Real.log (Fintype.card V : ℝ) := by
+  let d : ℝ := Fintype.card V
+  have hd : 0 < d := by dsimp [d]; exact_mod_cast (Fintype.card_pos (α := V))
+  have h := Real.concaveOn_negMulLog.le_map_sum (t := Finset.univ)
+    (w := fun _ : V ↦ d⁻¹) (p := p)
+    (fun _ _ ↦ inv_nonneg.mpr hd.le)
+    (by simp only [Finset.sum_const,Finset.card_univ,nsmul_eq_mul]; exact mul_inv_cancel₀ hd.ne')
+    (fun i _ ↦ (show p i ∈ Set.Ici 0 from hp i))
+  simp only [smul_eq_mul,← Finset.mul_sum,hsum,mul_one,Real.negMulLog,Real.log_inv] at h
+  have hh := mul_le_mul_of_nonneg_left h hd.le
+  dsimp only [d] at *
+  calc
+    _ = (Fintype.card V : ℝ) * ((Fintype.card V : ℝ)⁻¹ * ∑ i, Real.negMulLog (p i)) := by
+      rw [← mul_assoc,mul_inv_cancel₀ hd.ne',one_mul]
+    _ ≤ _ := hh
+    _ = _ := by field_simp
 
 /-- Self cross-entropy is the entropy: `ceDef q q = entDef q`. -/
 theorem ceDef_self (q : V → ℝ) : ceDef q q = entDef q := rfl

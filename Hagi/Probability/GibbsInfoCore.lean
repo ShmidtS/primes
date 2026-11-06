@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
+import Hagi.Prelude.Info
 
 set_option linter.style.header false
 
@@ -483,33 +484,8 @@ theorem finite_max_entropy {V : Type*} [Fintype V]
     (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1) :
     -(∑ v : V, ρ v * Real.log (ρ v))
       ≤ Real.log ((Fintype.card V : ℝ)) := by
-  set n : ℝ := (Fintype.card V : ℝ) with hn
-  have hnne : n ≠ 0 := by positivity
-  set γ : V → ℝ := fun _ => 1/n with hγ
-  have hγpos : ∀ v, 0 < γ v := by
-    intro v; rw [hγ]; positivity
-  have hγ1 : ∑ v : V, γ v = 1 := by
-    rw [hγ]
-    simp only [Finset.sum_const, nsmul_eq_mul, Finset.card_univ, one_div]
-    rw [← hn]
-    exact mul_inv_cancel₀ hnne
-  have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
-  -- expand KL: sum rho (log rho + log n)
-  have hexp : ∑ v : V, ρ v * Real.log (ρ v / γ v)
-      = (∑ v : V, ρ v * Real.log (ρ v))
-        + Real.log n := by
-    have hsplit : ∀ v : V, ρ v * Real.log (ρ v / γ v)
-        = ρ v * Real.log (ρ v) + ρ v * Real.log n := by
-      intro v
-      rw [hγ, one_div, div_inv_eq_mul,
-        Real.log_mul (hρ v).ne' hnne]
-      ring
-    rw [Finset.sum_congr rfl (fun v _ => hsplit v),
-      Finset.sum_add_distrib]
-    rw [Finset.sum_congr rfl (fun v _ => mul_comm (ρ v) (Real.log n))]
-    rw [← Finset.mul_sum, hρ1, mul_one]
-  rw [hexp] at hKL
-  linarith
+  simpa only [Real.negMulLog_eq_neg, Finset.sum_neg_distrib] using
+    Hagi.Prelude.sum_negMulLog_le_log_card ρ (fun v => (hρ v).le) hρ1
 
 
 end Hagi.Probability

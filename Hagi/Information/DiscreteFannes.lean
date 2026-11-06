@@ -689,21 +689,7 @@ variable {ι : Type u_3} [Fintype ι] [DecidableEq ι]
 omit [DecidableEq ι] in
 theorem shannon_le_log_card [Nonempty ι] (p : ι → ℝ) (hp : ∀ i, 0 ≤ p i)
     (hs : ∑ i, p i = 1) : (∑ i, Real.negMulLog (p i)) ≤ Real.log (Fintype.card ι) := by
-  let d : ℝ := Fintype.card ι
-  have hd : 0 < d := by dsimp [d]; exact_mod_cast (Fintype.card_pos (α := ι))
-  have h := Real.concaveOn_negMulLog.le_map_sum (t := Finset.univ)
-    (w := fun _ : ι ↦ d⁻¹) (p := p)
-    (fun _ _ ↦ inv_nonneg.mpr hd.le)
-    (by simp only [Finset.sum_const,Finset.card_univ,nsmul_eq_mul]; exact mul_inv_cancel₀ hd.ne')
-    (fun i _ ↦ (show p i ∈ Set.Ici 0 from hp i))
-  simp only [smul_eq_mul,← Finset.mul_sum,hs,mul_one,Real.negMulLog,Real.log_inv] at h
-  have hh := mul_le_mul_of_nonneg_left h hd.le
-  dsimp only [d] at *
-  calc
-    _ = (Fintype.card ι:ℝ) * ((Fintype.card ι:ℝ)⁻¹ * ∑ i, Real.negMulLog (p i)) := by
-      rw [← mul_assoc,mul_inv_cancel₀ hd.ne',one_mul]
-    _ ≤ _ := hh
-    _ = _ := by field_simp
+  exact Hagi.Prelude.sum_negMulLog_le_log_card p hp hs
 
 theorem entropy_le_log_card [Nonempty ι] {A : Matrix ι ι ℂ} (hA : IsState A) :
     entropy A ≤ Real.log (Fintype.card ι) := by

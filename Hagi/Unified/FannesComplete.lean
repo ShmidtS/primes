@@ -238,46 +238,8 @@ theorem shannon_le_log_card (p : ι → ℝ) (hp : ∀ i, 0 ≤ p i)
     have h0 : ∑ i, p i = 0 := by
       simp [Finset.univ_eq_empty_iff]
     linarith
-  -- KL(p ‖ uniform) ≥ 0: Σ p·log(p·d) ≥ 0 ⟹ H ≤ log d
-  classical
-  have hdpos : 0 < (Fintype.card ι : ℝ) := by positivity
-  have hBsum : ∑ i : ι, 1 / (Fintype.card ι : ℝ) = 1 := by
-    simp only [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
-    field_simp
-  have hsupp : ∀ i, 0 < p i → 0 < 1 / (Fintype.card ι : ℝ) :=
-    fun i _ => div_pos one_pos hdpos
-  have hkl := zs_kl p (fun _ => 1 / (Fintype.card ι : ℝ)) hp
-    (fun i => div_nonneg (by norm_num : (0:ℝ) ≤ 1) hdpos.le)
-    hp1 (le_of_eq hBsum) hsupp
-  -- разложение: log(p/(1/d)) = log p + log d (p > 0);
-  -- при p = 0 слагаемое 0·log 0 = 0, вклад 0·log d = 0
-  have hterm : ∀ i, p i * Real.log (p i / (1 / (Fintype.card ι : ℝ)))
-      = p i * Real.log (p i) + p i * Real.log ((Fintype.card ι : ℝ)) := by
-    intro i
-    by_cases hpi : p i = 0
-    · have hz0 : (0:ℝ) / (1 / (Fintype.card ι : ℝ)) = 0 := zero_div _
-      rw [hpi, hz0, Real.log_zero, mul_zero, zero_mul]
-      ring
-    · have hpos : 0 < p i := lt_of_le_of_ne (hp i) (Ne.symm hpi)
-      have hdiv : p i / (1 / (Fintype.card ι : ℝ))
-          = p i * (Fintype.card ι : ℝ) := by
-        field_simp
-      have hcardne : (Fintype.card ι : ℝ) ≠ 0 := by positivity
-      rw [hdiv, Real.log_mul hpos.ne' hcardne]
-      ring
-  rw [Finset.sum_congr rfl (fun i _ => hterm i)] at hkl
-  -- Σ p·log p = −Σ negMulLog p; Σ p·log d = log d·Σp = log d
-  have hsplit : ∀ z : ℝ, z * Real.log z = -(Real.negMulLog z) := by
-    intro z; unfold Real.negMulLog; ring
-  have hsumL : ∑ i, p i * Real.log (p i) = -(∑ i, Real.negMulLog (p i)) := by
-    rw [← Finset.sum_neg_distrib]
-    exact Finset.sum_congr rfl (fun i _ => hsplit (p i))
-  have hsumR : ∑ i, p i * Real.log ((Fintype.card ι : ℝ))
-      = Real.log ((Fintype.card ι : ℝ)) := by
-    rw [← Finset.sum_mul, hp1, one_mul]
-  rw [Finset.sum_add_distrib, hsumL, hsumR] at hkl
-  -- 0 ≤ −H + log d ⟹ H ≤ log d
-  linarith
+  · letI : Nonempty ι := Fintype.card_pos_iff.mp hcpos
+    exact Hagi.Prelude.sum_negMulLog_le_log_card p hp hp1
 
 /-- **Полная Fannes без моста (R532, ГЛАВНАЯ)**: для весовых
 векторов p, q ≥ 0 с Σ = 1 каждый и t = ½‖p−q‖₁:
