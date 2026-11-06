@@ -13,3 +13,4 @@ REFACTOR_PLAN.md
 *.try
 *.tmp
 .omc/snap/
+audit/
