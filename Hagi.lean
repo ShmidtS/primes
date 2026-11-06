@@ -458,6 +458,7 @@ import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor
 import Hagi.Model.GatedCESafeStep
+import Hagi.Model.GatedCEPositiveCurvature
 
 set_option linter.style.header false
 
