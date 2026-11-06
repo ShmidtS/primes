@@ -14,3 +14,4 @@ REFACTOR_PLAN.md
 *.tmp
 .omc/snap/
 audit/
+declarations.lock
