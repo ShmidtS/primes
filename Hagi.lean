@@ -180,6 +180,7 @@ import Hagi.Model.CEQuantized
 import Hagi.Model.CEPackedStep
 import Hagi.Model.CEScaleSelection
 import Hagi.Model.CEGroupedScale
+import Hagi.Model.CEJointScale
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
