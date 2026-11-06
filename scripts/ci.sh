@@ -100,5 +100,7 @@ echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
 step "AllAxiomCheck (audit 5 H3: axioms of ALL Hagi.* theorems)"
 out=$(lake env lean --run scripts/AllAxiomCheck.lean 2>/dev/null | tail -1)
 echo "$out"; case "$out" in ALLAXIOMS:\ PASS*) ;; *) echo "ALLAXIOMCHECK: FAIL"; fail=1;; esac
+python scripts/TestAllAxiomCheck.py | tail -1 | grep -q "ALLAXIOMS: REGRESSION PASS" \
+  || { echo "ALLAXIOMS: regression FAIL"; fail=1; }
 # Final gate (audit H2 fix): late-stage failures must affect exit code
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi

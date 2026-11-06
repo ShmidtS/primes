@@ -44,6 +44,7 @@ def collectAll (env : Environment) : IO (Array Name × Nat) := do
       match ci with
       | .thmInfo t => deps := deps ++ t.value.getUsedConstants
       | .defnInfo d => deps := deps ++ d.value.getUsedConstants
+      | .opaqueInfo o => deps := deps ++ o.value.getUsedConstants
       | _ => pure ()
       for d in deps do
         unless visited.contains d do
