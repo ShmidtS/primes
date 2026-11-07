@@ -456,9 +456,6 @@ import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.GatedCETrajectory
-import Hagi.Contracts.GatedCESummability
-import Hagi.Contracts.GatedCEAlignmentBudget
-import Hagi.Contracts.GatedCEUniformAlignmentBudget
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
