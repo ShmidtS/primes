@@ -28,13 +28,14 @@ variable {B n a r c k : ℕ}
 
 /-- Explicit full-feature mass curvature coefficient for a finite batch. -/
 noncomputable def rangeCurvature (X : Fin B → Matrix V (Fin n) ℝ) : ℝ :=
-  4 * (∑ b, (CEGroupedScale.featureAbsSum (X b)) ^ 2) / (B : ℝ)
+  Hagi.Model.BatchCEDescent.batchFeatureRangeCoefficient X / (B : ℝ)
 
 /-- The feature curvature is nonnegative, including its empty-batch zero. -/
 theorem rangeCurvature_nonneg (X : Fin B → Matrix V (Fin n) ℝ) :
-    0 ≤ rangeCurvature X := by
-  unfold rangeCurvature
-  positivity
+    0 ≤ rangeCurvature X :=
+  div_nonneg
+    (Hagi.Model.BatchCEDescent.batchFeatureRangeCoefficient_nonneg X)
+    (Nat.cast_nonneg B)
 
 /-- One coordinate is bounded by the supplied finite squared norm. -/
 theorem abs_coordinate_le_sqrt_sum_sq (D : EuclideanSpace ℝ (Fin n))
@@ -134,7 +135,8 @@ theorem batchRangeSquare_le_rangeCurvature_mul_alignment
                 Real.sqrt (batchAlignment X θ y) ^ 2 := by ring
           _ = 4 * CEGroupedScale.featureAbsSum (X b) ^ 2 *
               batchAlignment X θ y := by rw [hs]
-      rw [heq, rangeCurvature]
+      rw [heq, rangeCurvature,
+        Hagi.Model.BatchCEDescent.batchFeatureRangeCoefficient]
       ring
 
 /-- Zero mean common range forces zero common gradient alignment.  Zero
@@ -257,6 +259,52 @@ theorem fixedBatch_sum_alignment_le_initial [Nonempty V]
             (coreParameters (fixedBatchState X y S opCost opRisk write t)) y) := by
       field_simp [ne_of_gt hK]
     _ ≤ ((rangeCurvature X + 1) / 2) * batchCEObjective X y S := hmul
+
+/-- Along the actual fixed-batch path, the squared norm of the minimum-norm
+point in the current residual-gradient hull is summable, with the same
+curvature-weighted initial-CE bound as the alignment budget.  The minimizer
+is a geometric observer at each current state, not the direction of the step. -/
+theorem fixedBatch_minNormSq_summable_and_tsum_le [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Summable (fun t => ‖batchGradientMinimizer X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖ ^ 2) ∧
+      ∑' t, ‖batchGradientMinimizer X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖ ^ 2 ≤
+      ((rangeCurvature X + 1) / 2) * batchCEObjective X y S := by
+  have hbudget (T : ℕ) :
+      ∑ t ∈ Finset.range T, ‖batchGradientMinimizer X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖ ^ 2 ≤
+        ((rangeCurvature X + 1) / 2) * batchCEObjective X y S :=
+    (Finset.sum_le_sum (fun t _ =>
+      batchGradientMinimizer_norm_sq_le_batchAlignment X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)).trans
+      (fixedBatch_sum_alignment_le_initial X y S opCost opRisk write T)
+  have hs : Summable (fun t => ‖batchGradientMinimizer X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖ ^ 2) :=
+    summable_of_sum_range_le (fun t => sq_nonneg
+      ‖batchGradientMinimizer X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖) hbudget
+  exact ⟨hs, hs.tsum_le_of_sum_range_le hbudget⟩
+
+/-- Norm-square convergence lifts to convergence of the observed minimum-norm
+hull point along the actual fixed-batch path.  This is not convergence of the
+parameters or of the CE objective. -/
+theorem fixedBatch_minNorm_tendsto_zero [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (fun t => batchGradientMinimizer X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)
+      atTop (𝓝 0) := by
+  have hsquared :=
+    (fixedBatch_minNormSq_summable_and_tsum_le X y S opCost opRisk write).1.tendsto_atTop_zero
+  have hnorm : Tendsto (fun t => ‖batchGradientMinimizer X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y‖)
+      atTop (𝓝 0) := by
+    simpa only [Real.sqrt_zero, Real.sqrt_sq (norm_nonneg _)] using hsquared.sqrt
+  exact tendsto_zero_iff_norm_tendsto_zero.2 hnorm
 
 /-- Arithmetic mean of actual common squared residuals through time `T`. -/
 noncomputable def fixedAlignmentCesaro

@@ -440,6 +440,29 @@ theorem batchGradientMinimizer_norm_le_mean {V : Type} [Fintype V] {B d : ℕ}
       ‖WithLp.toLp 2 (meanResidualTranspose X θ y)‖ :=
   batchGradientMinimizer_norm_le X θ y (meanResidualTranspose_mem_convexHull X θ y)
 
+/-- The feasible mean raw residual dominates the minimum-norm hull point's
+squared Euclidean norm. Empty batches are handled by the same totalized mean. -/
+theorem batchGradientMinimizer_norm_sq_le_batchAlignment
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) :
+    ‖batchGradientMinimizer X θ y‖ ^ 2 ≤ batchAlignment X θ y := by
+  by_cases hB : B = 0
+  · subst B
+    simp [batchAlignment, meanResidualTranspose]
+  let _ : Nonempty (Fin B) := ⟨⟨0, Nat.pos_of_ne_zero hB⟩⟩
+  have hnorm := batchGradientMinimizer_norm_le_mean X θ y
+  have hsq : ‖batchGradientMinimizer X θ y‖ ^ 2 ≤
+      ‖WithLp.toLp 2 (meanResidualTranspose X θ y)‖ ^ 2 := by
+    simpa only [pow_two] using
+      (mul_self_le_mul_self (norm_nonneg _) hnorm)
+  calc
+    ‖batchGradientMinimizer X θ y‖ ^ 2 ≤
+        ‖WithLp.toLp 2 (meanResidualTranspose X θ y)‖ ^ 2 := hsq
+    _ = batchAlignment X θ y := by
+      rw [EuclideanSpace.real_norm_sq_eq]
+      rfl
+
 /-- On a two-sample batch, the indexed raw residual gradients are exactly
 the unordered pair of the two sample gradients. -/
 theorem batchGradientRange_pair {V : Type} [Fintype V] {d : ℕ}
