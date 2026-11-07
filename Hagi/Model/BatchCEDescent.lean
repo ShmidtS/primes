@@ -1725,6 +1725,51 @@ theorem batchDirectionHalfEta_le_threshold {V : Type} [Fintype V] {B d : ℕ}
   rw [batchDirectionHalfEta, dite_eq_left hcert]
   exact ciInf_le (Finite.bddBelow_range _) b
 
+theorem exists_batchDirectionHalfEta_eq_threshold
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d))
+    (hcert : Nonempty (Fin B) ∧ ∀ b, dirAction (X b) θ (y b) D < 0) :
+    ∃ b : Fin B, batchDirectionHalfEta X θ y D =
+      4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2 := by
+  classical
+  let _ : Nonempty (Fin B) := hcert.1
+  rw [batchDirectionHalfEta, dite_eq_left hcert]
+  obtain ⟨b, _, hb⟩ := Finset.exists_min_image Finset.univ
+    (fun b : Fin B => 4 * (-dirAction (X b) θ (y b) D) /
+      (dirRange (X b) D) ^ 2) Finset.univ_nonempty
+  refine ⟨b, le_antisymm (ciInf_le (Finite.bddBelow_range _) b) ?_⟩
+  exact le_ciInf fun i => hb i (Finset.mem_univ i)
+
+/-- Exact quadratic residual at one sample's half-window threshold. -/
+theorem batchDirectionQuadraticMargin_at_threshold
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) (b : Fin B)
+    (hR : 0 < dirRange (X b) D) :
+    batchDirectionQuadraticMargin X θ y D
+        (4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2) b =
+      2 * (-dirAction (X b) θ (y b) D) ^ 2 / (dirRange (X b) D) ^ 2 := by
+  unfold batchDirectionQuadraticMargin
+  field_simp [ne_of_gt hR]
+  ring
+
+/-- The attained common half-window turns the full quadratic majorizer at its
+binding sample into the exact squared-action-over-range-square expression. -/
+theorem batchDirectionQuadraticMargin_halfEta_of_eq_threshold
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d))
+    (hcert : Nonempty (Fin B) ∧ ∀ b, dirAction (X b) θ (y b) D < 0)
+    (b : Fin B)
+    (heta : batchDirectionHalfEta X θ y D =
+      4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2) :
+    batchDirectionQuadraticMargin X θ y D (batchDirectionHalfEta X θ y D) b =
+      2 * (-dirAction (X b) θ (y b) D) ^ 2 / (dirRange (X b) D) ^ 2 := by
+  rw [heta]
+  exact batchDirectionQuadraticMargin_at_threshold X θ y D b
+    (dirRange_pos_of_dirAction_neg (X b) θ (y b) D (hcert.2 b))
+
 /-- The old half-of-capped-window is no larger than the common half-window
 computed before the cap.  No corresponding actual-CE ordering is inferred. -/
 theorem batchDirectionSafeEta_le_halfEta {V : Type} [Fintype V] {B d : ℕ}

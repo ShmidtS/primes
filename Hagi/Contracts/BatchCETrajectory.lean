@@ -1921,6 +1921,80 @@ theorem directionBatchHalfQuadraticMargin_budget
     batchSampleCE_batchDirectionHalfTrainStep_le_quadraticMargin
       X y D T opCost opRisk write hT
 
+noncomputable def directionBatchHalfBindingMargin
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (b : Fin B) : ℝ := by
+  classical
+  exact if batchDirectionHalfEta X (coreParameters S) y (D S) =
+      4 * (-dirAction (X b) (coreParameters S) (y b) (D S)) /
+        (dirRange (X b) (D S)) ^ 2 then
+    2 * (-dirAction (X b) (coreParameters S) (y b) (D S)) ^ 2 /
+      (dirRange (X b) (D S)) ^ 2
+  else 0
+
+/-- The binding mask is nonnegative on the empty batch and whenever the
+ordinary totalized half-window is zero, not only on the certified branch. -/
+theorem directionBatchHalfBindingMargin_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (b : Fin B) :
+    0 ≤ directionBatchHalfBindingMargin X y D S b := by
+  classical
+  unfold directionBatchHalfBindingMargin
+  split_ifs <;> positivity
+
+/-- Some coordinate binds the initial common half-window.  If negative
+derivative certificates persist at all actual current states and supplied
+transition costs are legal, its masked binding margins inherit the guarded
+path's entire finite and infinite budget.  Other coordinates are masked to
+zero at each current state rather than claiming the binding identity. -/
+theorem exists_directionBatchHalfBindingMargin_budget
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) [Nonempty (Fin B)]
+    (hneg : ∀ T b, dirAction (X b) (coreParameters T) (y b) (D T) < 0)
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y D S opCost opRisk write t).res.budget) :
+    ∃ b : Fin B,
+      batchDirectionHalfEta X (coreParameters S) y (D S) =
+        4 * (-dirAction (X b) (coreParameters S) (y b) (D S)) /
+          (dirRange (X b) (D S)) ^ 2 ∧
+      ((∀ T, ∑ t ∈ Finset.range T, directionBatchHalfBindingMargin X y D
+          (directionBatchHalfState X y D S opCost opRisk write t) b ≤
+        batchSampleCE X y b S) ∧
+      Summable (fun t => directionBatchHalfBindingMargin X y D
+        (directionBatchHalfState X y D S opCost opRisk write t) b) ∧
+      Tendsto (fun t => directionBatchHalfBindingMargin X y D
+        (directionBatchHalfState X y D S opCost opRisk write t) b) atTop (𝓝 0) ∧
+      ∑' t, directionBatchHalfBindingMargin X y D
+        (directionBatchHalfState X y D S opCost opRisk write t) b ≤
+        batchSampleCE X y b S) := by
+  classical
+  obtain ⟨b, hb⟩ := exists_batchDirectionHalfEta_eq_threshold
+    X (coreParameters S) y (D S) ⟨inferInstance, hneg S⟩
+  refine ⟨b, hb, guardedBatchInputPath_margin_budget X y
+    (fun T => batchDirectionHalfTrainInput X y D T opCost opRisk write)
+    S (fun b T => directionBatchHalfBindingMargin X y D T b)
+    (fun b T => directionBatchHalfBindingMargin_nonneg X y D T b)
+    ?_ hcost b⟩
+  intro T hT b
+  by_cases heta : batchDirectionHalfEta X (coreParameters T) y (D T) =
+      4 * (-dirAction (X b) (coreParameters T) (y b) (D T)) /
+        (dirRange (X b) (D T)) ^ 2
+  · have hbase := batchSampleCE_batchDirectionHalfTrainStep_le_quadraticMargin
+      X y D T opCost opRisk write hT b
+    rw [batchDirectionQuadraticMargin_halfEta_of_eq_threshold
+      X (coreParameters T) y (D T) ⟨inferInstance, hneg T⟩ b heta] at hbase
+    simpa only [guardedBatchInputPath, batchDirectionHalfTrainStep,
+      directionBatchHalfBindingMargin, ite_eq_left heta] using hbase
+  · have hbase := batchSampleCE_batchDirectionHalfTrainStep_le
+      X y D T opCost opRisk write b
+    simpa only [guardedBatchInputPath, batchDirectionHalfTrainStep,
+      directionBatchHalfBindingMargin, ite_eq_right heta, sub_zero] using hbase
+
+/-- Finite-prefix and infinite negative-mean full-margin budgets. -/
 theorem directionBatchHalfMeanQuadraticMargin_budget
     (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
     (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
