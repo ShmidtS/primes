@@ -187,6 +187,7 @@ import Hagi.Model.CEStorageBound
 import Hagi.Model.CEConfidenceScale
 import Hagi.Model.CEPadding
 import Hagi.Model.BatchCEDescent
+import Hagi.Model.CEExpansion
 import Hagi.Model.HypothesisCompetition
 import Hagi.Foundations.Recurrence
 import Hagi.Foundations.Potential
