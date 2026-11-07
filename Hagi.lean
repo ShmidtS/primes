@@ -300,6 +300,7 @@ import Hagi.Probability.GibbsCooling
 import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.LinkedFlip
 import Hagi.Probability.FiniteBayes
+import Hagi.Probability.FiniteHamming
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
