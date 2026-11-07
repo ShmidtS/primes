@@ -1,5 +1,7 @@
 import Hagi.Model.CEDescent
 import Hagi.Probability.FiniteFamilyConfidence
+import Hagi.Step.ProjectionDescent
+import Hagi.Step.SafeQPStep
 
 /-!
 # Common-direction arithmetic-batch cross-entropy descent
@@ -18,11 +20,16 @@ range is zero.  Otherwise it minimizes the named averaged quadratic majorizer
 and gives strict descent of the actual arithmetic-mean batch loss.  Positive
 mean squared range implies a nonempty batch and positive alignment.
 
-The results concern only the supplied batch and quadratic majorizer.  They do
-not assert global CE minimization, universal per-example descent, held-out or
+The results concern only the supplied batch and quadratic majorizer.  A second
+candidate is the totalized minimum-norm point of the raw residual-gradient
+convex hull.  Its negative gives nonincreasing CE for every sample, with strict
+descent at a nonzero minimizer inside the exact half-window.  Empty batches and
+zero minimizers use a zero step, with no fabricated strict-progress claim.
+
+These are formal one-step certificates, not global CE minimization, held-out or
 statistical performance, native execution speed, or general neural-network
-optimality.  Empty-batch values use Lean's `0 / 0 = 0` algebra convention and
-carry no positive descent claim.
+optimality results.  Empty-batch mean values use Lean's `0 / 0 = 0` algebra
+convention.
 
 References are the repository implementations in `Model.CEDescent`,
 `Model.CEGradient`, and `Energy.PoEBound`.
@@ -31,6 +38,7 @@ References are the repository implementations in `Model.CEDescent`,
 set_option relaxedAutoImplicit false
 
 open scoped Matrix
+open InnerProductSpace
 
 namespace Hagi.Model.BatchCEDescent
 
@@ -249,6 +257,119 @@ theorem batchMeanDirection_eq_neg_meanResidualTranspose
   rw [Finset.sum_neg_distrib]
   ring
 
+/-! ## Raw-gradient minimum-norm common direction -/
+
+/-- The raw residual-transpose gradient of one sample on the Euclidean
+carrier.  Its negative is the existing `ceDirection`. -/
+noncomputable def batchResidualGradient {V : Type} [Fintype V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t : V) :
+    EuclideanSpace ℝ (Fin d) :=
+  WithLp.toLp 2 (residualTranspose X θ t)
+
+@[simp] theorem batchResidualGradient_ofLp {V : Type} [Fintype V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t : V)
+    (j : Fin d) :
+    (batchResidualGradient X θ t).ofLp j = residualTranspose X θ t j := rfl
+
+/-- On a nonempty finite batch, compactness of the convex hull supplies a
+minimum-norm raw-gradient convex combination. -/
+theorem exists_batchGradientMinimizer {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)] :
+    ∃ ω ∈ convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)),
+      ∀ c ∈ convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)),
+        ‖ω‖ ≤ ‖c‖ := by
+  let C := convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b))
+  have hCcompact : IsCompact C :=
+    (Set.finite_range _).isCompact_convexHull ℝ
+  have hCnonempty : C.Nonempty :=
+    (Set.range_nonempty _).mono
+      (subset_convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)))
+  obtain ⟨ω, hω, hmin⟩ := hCcompact.exists_isMinOn hCnonempty
+    continuous_norm.continuousOn
+  exact ⟨ω, hω, fun c hc => hmin hc⟩
+
+/-- Totalized classical minimum-norm point of the raw-gradient convex hull.
+At an empty batch there is no simplex choice and the value is zero. -/
+noncomputable def batchGradientMinimizer {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) : EuclideanSpace ℝ (Fin d) := by
+  classical
+  exact if hB : Nonempty (Fin B) then
+    letI := hB
+    Classical.choose (exists_batchGradientMinimizer X θ y)
+  else 0
+
+theorem batchGradientMinimizer_spec {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [hB : Nonempty (Fin B)] :
+    batchGradientMinimizer X θ y ∈
+        convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)) ∧
+      ∀ c ∈ convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)),
+        ‖batchGradientMinimizer X θ y‖ ≤ ‖c‖ := by
+  classical
+  rw [batchGradientMinimizer, dite_eq_left hB]
+  exact Classical.choose_spec (exists_batchGradientMinimizer X θ y)
+
+theorem batchGradientMinimizer_mem {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)] :
+    batchGradientMinimizer X θ y ∈
+      convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)) :=
+  (batchGradientMinimizer_spec X θ y).1
+
+theorem batchGradientMinimizer_norm_le {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)]
+    {c : EuclideanSpace ℝ (Fin d)}
+    (hc : c ∈ convexHull ℝ
+      (Set.range fun b => batchResidualGradient (X b) θ (y b))) :
+    ‖batchGradientMinimizer X θ y‖ ≤ ‖c‖ :=
+  (batchGradientMinimizer_spec X θ y).2 c hc
+
+@[simp] theorem batchGradientMinimizer_empty {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 0 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 0 → V) : batchGradientMinimizer X θ y = 0 := by
+  simp [batchGradientMinimizer]
+
+/-- The actual arithmetic-mean raw gradient is a uniform convex combination
+of the sample gradients. -/
+theorem meanResidualTranspose_mem_convexHull {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)] :
+    WithLp.toLp 2 (meanResidualTranspose X θ y) ∈
+      convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b)) := by
+  classical
+  let b0 : Fin B := Classical.choice (inferInstance : Nonempty (Fin B))
+  have hB : (B : ℝ) ≠ 0 := by
+    intro h
+    have hB0 : B = 0 := Nat.cast_eq_zero.mp h
+    subst B
+    exact Fin.elim0 b0
+  have hmean :
+      (∑ b, (B : ℝ)⁻¹ • batchResidualGradient (X b) θ (y b)) =
+        WithLp.toLp 2 (meanResidualTranspose X θ y) := by
+    apply PiLp.ext
+    intro j
+    simp only [WithLp.ofLp_sum, Finset.sum_apply, WithLp.ofLp_smul,
+      Pi.smul_apply, smul_eq_mul, batchResidualGradient_ofLp, meanResidualTranspose]
+    rw [← Finset.mul_sum, div_eq_inv_mul]
+  rw [← hmean]
+  apply (convex_convexHull ℝ _).sum_mem
+  · intro b _hb
+    exact inv_nonneg.mpr (Nat.cast_nonneg B)
+  · simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    exact mul_inv_cancel₀ hB
+  · intro b _hb
+    exact subset_convexHull ℝ _ ⟨b, rfl⟩
+
+theorem batchGradientMinimizer_norm_le_mean {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)] :
+    ‖batchGradientMinimizer X θ y‖ ≤
+      ‖WithLp.toLp 2 (meanResidualTranspose X θ y)‖ :=
+  batchGradientMinimizer_norm_le X θ y (meanResidualTranspose_mem_convexHull X θ y)
+
 /-- Residual action is the dot product with the generating direction. -/
 theorem dirAction_eq_dot {V : Type} [Fintype V] {d : ℕ}
     (X : Matrix V (Fin d) ℝ) (θ D : EuclideanSpace ℝ (Fin d)) (t : V) :
@@ -261,6 +382,292 @@ theorem dirAction_eq_dot {V : Type} [Fintype V] {d : ℕ}
   apply Finset.sum_congr rfl
   intro v _hv
   ring
+
+/-- The finite-dimensional action is the Euclidean inner product with the
+raw residual gradient. -/
+theorem dirAction_eq_inner {V : Type} [Fintype V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (θ D : EuclideanSpace ℝ (Fin d)) (t : V) :
+    dirAction X θ t D = ⟪batchResidualGradient X θ t, D⟫_ℝ := by
+  rw [dirAction_eq_dot, PiLp.inner_apply]
+  apply Finset.sum_congr rfl
+  intro j _hj
+  simp [batchResidualGradient_ofLp, RCLike.inner_apply, mul_comm]
+
+/-- Projection variational inequality at `g0 = 0`: every sample raw
+gradient has at least the minimizer's squared norm as alignment. -/
+theorem batchGradientMinimizer_kkt {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (b : Fin B) :
+    ‖batchGradientMinimizer X θ y‖ ^ 2 ≤
+      ⟪batchResidualGradient (X b) θ (y b), batchGradientMinimizer X θ y⟫_ℝ := by
+  letI : Nonempty (Fin B) := ⟨b⟩
+  let C := convexHull ℝ (Set.range fun b => batchResidualGradient (X b) θ (y b))
+  have hdist : ∀ c ∈ C,
+      dist (batchGradientMinimizer X θ y) 0 ≤ dist c 0 := by
+    intro c hc
+    simpa [dist_eq_norm] using batchGradientMinimizer_norm_le X θ y hc
+  have hvi := Hagi.Step.min_dist_to_vi C (convex_convexHull ℝ _) 0
+    (batchGradientMinimizer X θ y) (batchGradientMinimizer_mem X θ y) hdist
+    (batchResidualGradient (X b) θ (y b))
+    (subset_convexHull ℝ _ ⟨b, rfl⟩)
+  rw [zero_sub, inner_neg_left, inner_sub_right,
+    real_inner_self_eq_norm_sq,
+    real_inner_comm (batchResidualGradient (X b) θ (y b))
+      (batchGradientMinimizer X θ y)] at hvi
+  linarith
+
+/-- Moving along minus the minimum-norm raw gradient gives the exact
+per-sample directional action upper bound, with no mean-only step used. -/
+theorem dirAction_neg_batchGradientMinimizer_le {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (b : Fin B) :
+    dirAction (X b) θ (y b) (-batchGradientMinimizer X θ y) ≤
+      -‖batchGradientMinimizer X θ y‖ ^ 2 := by
+  rw [dirAction_eq_inner, inner_neg_right]
+  exact neg_le_neg (batchGradientMinimizer_kkt X θ y b)
+
+/-- A nonzero minimizer can occur only on a nonempty batch. -/
+theorem nonempty_fin_batch_of_minimizer_ne_zero {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y ≠ 0) : Nonempty (Fin B) := by
+  classical
+  by_contra hB
+  apply hω
+  simp [batchGradientMinimizer, hB]
+
+/-- Strict KKT at nonzero minimizer forces every sample's exact CE range
+along `-ω` to be positive. -/
+theorem dirRange_neg_batchGradientMinimizer_pos {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y ≠ 0) (b : Fin B) :
+    0 < dirRange (X b) (-batchGradientMinimizer X θ y) := by
+  by_contra hpos
+  have hR : dirRange (X b) (-batchGradientMinimizer X θ y) = 0 :=
+    le_antisymm (le_of_not_gt hpos) (dirRange_nonneg _ _)
+  have hzero := (dirRange_eq_zero_iff
+    (X b) (-batchGradientMinimizer X θ y)).mp hR
+  have hA := dirAction_neg_batchGradientMinimizer_le X θ y b
+  have hA0 : dirAction (X b) θ (y b) (-batchGradientMinimizer X θ y) = 0 := by
+    simp [dirAction, hzero]
+  have hn : 0 < ‖batchGradientMinimizer X θ y‖ ^ 2 :=
+    sq_pos_of_pos (norm_pos_iff.mpr hω)
+  rw [hA0] at hA
+  linarith
+
+/-- The common conflict-free finite window, using exact CE-range algebra.
+These `eps` and `L` labels are not empirical smoothness assumptions. -/
+noncomputable def batchCommonSafeWindow {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)] : ℝ :=
+  Hagi.Step.safeqpEtaMaxConflictFree
+    (fun _ : Fin B => ‖batchGradientMinimizer X θ y‖ ^ 2)
+    (fun b => (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 /
+      (4 * ‖batchGradientMinimizer X θ y‖ ^ 2))
+    (batchGradientMinimizer X θ y)
+
+theorem batchCommonSafeWindow_pos {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)]
+    (hω : batchGradientMinimizer X θ y ≠ 0) : 0 < batchCommonSafeWindow X θ y := by
+  unfold batchCommonSafeWindow
+  apply Hagi.Step.safeqpEtaMaxConflictFree_pos
+  · intro b
+    exact div_pos (sq_pos_of_pos (dirRange_neg_batchGradientMinimizer_pos X θ y hω b))
+      (mul_pos (by norm_num) (sq_pos_of_pos (norm_pos_iff.mpr hω)))
+  · intro b
+    exact sq_pos_of_pos (norm_pos_iff.mpr hω)
+  · exact hω
+
+/-- Each raw SafeQP threshold simplifies to the exact CE-range threshold. -/
+theorem batchCommonSafeWindow_le_threshold {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) [Nonempty (Fin B)]
+    (hω : batchGradientMinimizer X θ y ≠ 0) (b : Fin B) :
+    batchCommonSafeWindow X θ y ≤
+      8 * ‖batchGradientMinimizer X θ y‖ ^ 2 /
+        (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 := by
+  have hraw := ((Hagi.Step.le_safeqpEtaMaxConflictFree_iff
+    (fun _ : Fin B => ‖batchGradientMinimizer X θ y‖ ^ 2)
+    (fun b => (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 /
+      (4 * ‖batchGradientMinimizer X θ y‖ ^ 2))
+    (batchGradientMinimizer X θ y)).mp
+      (le_refl (batchCommonSafeWindow X θ y))).2 b
+  have hn : ‖batchGradientMinimizer X θ y‖ ^ 2 ≠ 0 :=
+    ne_of_gt (sq_pos_of_pos (norm_pos_iff.mpr hω))
+  have hR : (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 ≠ 0 :=
+    ne_of_gt (sq_pos_of_pos (dirRange_neg_batchGradientMinimizer_pos X θ y hω b))
+  unfold batchCommonSafeWindow
+  calc
+    Hagi.Step.safeqpEtaMaxConflictFree
+        (fun _ : Fin B => ‖batchGradientMinimizer X θ y‖ ^ 2)
+        (fun b => (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 /
+          (4 * ‖batchGradientMinimizer X θ y‖ ^ 2))
+        (batchGradientMinimizer X θ y) ≤
+      2 * ‖batchGradientMinimizer X θ y‖ ^ 2 /
+        ((dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 /
+          (4 * ‖batchGradientMinimizer X θ y‖ ^ 2) *
+            ‖batchGradientMinimizer X θ y‖ ^ 2) := hraw
+    _ = 8 * ‖batchGradientMinimizer X θ y‖ ^ 2 /
+        (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 := by
+      field_simp [hn, hR]
+      ring
+
+/-- Canonical totalized common step: half the positive finite window at a
+nonzero minimizer, and zero at an empty batch or zero direction. -/
+noncomputable def batchCommonSafeEta {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) : ℝ := by
+  classical
+  exact if hB : Nonempty (Fin B) then
+    letI := hB
+    if hω : batchGradientMinimizer X θ y = 0 then 0
+    else batchCommonSafeWindow X θ y / 2
+  else 0
+
+@[simp] theorem batchCommonSafeEta_of_minimizer_eq_zero
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y = 0) :
+    batchCommonSafeEta X θ y = 0 := by
+  classical
+  by_cases hB : Nonempty (Fin B)
+  · simp [batchCommonSafeEta, hB, hω]
+  · simp [batchCommonSafeEta, hB]
+
+@[simp] theorem batchCommonSafeEta_empty {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 0 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 0 → V) : batchCommonSafeEta X θ y = 0 := by
+  simp [batchCommonSafeEta]
+
+theorem batchCommonSafeEta_pos_of_minimizer_ne_zero
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y ≠ 0) :
+    0 < batchCommonSafeEta X θ y := by
+  classical
+  letI : Nonempty (Fin B) := nonempty_fin_batch_of_minimizer_ne_zero X θ y hω
+  rw [batchCommonSafeEta, dite_eq_left (inferInstance : Nonempty (Fin B)), dite_eq_right hω]
+  exact half_pos (batchCommonSafeWindow_pos X θ y hω)
+
+theorem batchCommonSafeEta_nonneg {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) : 0 ≤ batchCommonSafeEta X θ y := by
+  by_cases hω : batchGradientMinimizer X θ y = 0
+  · rw [batchCommonSafeEta_of_minimizer_eq_zero X θ y hω]
+  · exact (batchCommonSafeEta_pos_of_minimizer_ne_zero X θ y hω).le
+
+/-- Halving the window makes eta strictly smaller than every sample's
+quadratic-descent threshold. -/
+theorem batchCommonSafeEta_lt_threshold {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y ≠ 0) (b : Fin B) :
+    batchCommonSafeEta X θ y <
+      8 * ‖batchGradientMinimizer X θ y‖ ^ 2 /
+        (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 := by
+  classical
+  letI : Nonempty (Fin B) := nonempty_fin_batch_of_minimizer_ne_zero X θ y hω
+  have heta : batchCommonSafeEta X θ y = batchCommonSafeWindow X θ y / 2 := by
+    rw [batchCommonSafeEta, dite_eq_left (inferInstance : Nonempty (Fin B)), dite_eq_right hω]
+  rw [heta]
+  have hM := batchCommonSafeWindow_pos X θ y hω
+  have hle := batchCommonSafeWindow_le_threshold X θ y hω b
+  have hR : 0 < (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 :=
+    sq_pos_of_pos (dirRange_neg_batchGradientMinimizer_pos X θ y hω b)
+  have hth : 0 < 8 * ‖batchGradientMinimizer X θ y‖ ^ 2 /
+      (dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 :=
+    div_pos (mul_pos (by norm_num) (sq_pos_of_pos (norm_pos_iff.mpr hω))) hR
+  linarith
+
+/-- Parameter update in the common negative minimum-norm direction. -/
+noncomputable def batchCommonNextParameters {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) : EuclideanSpace ℝ (Fin d) :=
+  alongNext θ (-batchGradientMinimizer X θ y) (batchCommonSafeEta X θ y)
+
+@[simp] theorem batchCommonNextParameters_of_minimizer_eq_zero
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y = 0) :
+    batchCommonNextParameters X θ y = θ := by
+  rw [batchCommonNextParameters, batchCommonSafeEta_of_minimizer_eq_zero X θ y hω,
+    alongNext_zero]
+
+@[simp] theorem batchCommonNextParameters_empty {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 0 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 0 → V) : batchCommonNextParameters X θ y = θ := by
+  rw [batchCommonNextParameters, batchCommonSafeEta_empty, alongNext_zero]
+
+/-- The half-window gives strict actual CE descent on every sample. -/
+theorem ceOneHot_batchCommonNextParameters_lt {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y ≠ 0) (b : Fin B) :
+    Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchCommonNextParameters X θ y)) <
+      Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
+  letI : Nonempty V := ⟨y b⟩
+  have heta := batchCommonSafeEta_pos_of_minimizer_ne_zero X θ y hω
+  have hA := dirAction_neg_batchGradientMinimizer_le X θ y b
+  have hR := dirRange_neg_batchGradientMinimizer_pos X θ y hω b
+  have hwindow := batchCommonSafeEta_lt_threshold X θ y hω b
+  have hscaled := (lt_div_iff₀ (sq_pos_of_pos hR)).mp hwindow
+  have hlinear : batchCommonSafeEta X θ y *
+      dirAction (X b) θ (y b) (-batchGradientMinimizer X θ y) ≤
+      -batchCommonSafeEta X θ y * ‖batchGradientMinimizer X θ y‖ ^ 2 := by
+    calc
+      batchCommonSafeEta X θ y *
+          dirAction (X b) θ (y b) (-batchGradientMinimizer X θ y) ≤
+        batchCommonSafeEta X θ y * (-‖batchGradientMinimizer X θ y‖ ^ 2) :=
+          mul_le_mul_of_nonneg_left hA heta.le
+      _ = -batchCommonSafeEta X θ y * ‖batchGradientMinimizer X θ y‖ ^ 2 := by ring
+  have hquadratic :
+      (batchCommonSafeEta X θ y *
+          dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 / 8 <
+        batchCommonSafeEta X θ y * ‖batchGradientMinimizer X θ y‖ ^ 2 := by
+    have hmul := mul_lt_mul_of_pos_left hscaled heta
+    nlinarith [hmul]
+  calc
+    Hagi.ceOneHot (y b) (ceLogits (X b) (batchCommonNextParameters X θ y)) ≤
+      Hagi.ceOneHot (y b) (ceLogits (X b) θ) + batchCommonSafeEta X θ y *
+        dirAction (X b) θ (y b) (-batchGradientMinimizer X θ y) +
+        (batchCommonSafeEta X θ y *
+          dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 / 8 := by
+      rw [batchCommonNextParameters]
+      exact ceOneHot_alongNext_le (X b) θ (-batchGradientMinimizer X θ y)
+        (y b) heta.le
+    _ ≤ Hagi.ceOneHot (y b) (ceLogits (X b) θ) -
+        batchCommonSafeEta X θ y * ‖batchGradientMinimizer X θ y‖ ^ 2 +
+        (batchCommonSafeEta X θ y *
+          dirRange (X b) (-batchGradientMinimizer X θ y)) ^ 2 / 8 := by
+      linarith
+    _ < Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
+      linarith
+
+/-- Every sample is nonincreasing at the selected common update; the zero
+direction branch is actual preservation rather than vacuous strict progress. -/
+theorem ceOneHot_batchCommonNextParameters_le {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (b : Fin B) :
+    Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchCommonNextParameters X θ y)) ≤
+      Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
+  by_cases hω : batchGradientMinimizer X θ y = 0
+  · rw [batchCommonNextParameters_of_minimizer_eq_zero X θ y hω]
+  · exact (ceOneHot_batchCommonNextParameters_lt X θ y hω b).le
+
+@[simp] theorem ceOneHot_batchCommonNextParameters_of_minimizer_eq_zero
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (hω : batchGradientMinimizer X θ y = 0) (b : Fin B) :
+    Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchCommonNextParameters X θ y)) =
+      Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
+  rw [batchCommonNextParameters_of_minimizer_eq_zero X θ y hω]
+
+@[simp] theorem batchLoss_batchCommonNextParameters_empty
+    {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 0 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 0 → V) : batchLoss X (batchCommonNextParameters X θ y) y = batchLoss X θ y := by
+  rw [batchCommonNextParameters_empty]
 
 /-- Averaging the exact actions on the common direction gives minus its
 alignment.  At `B = 0` both sides are the algebra convention zero. -/
