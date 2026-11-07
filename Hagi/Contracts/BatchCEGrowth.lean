@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.ObjectiveTrajectory
 
 set_option linter.style.header false
 
@@ -252,5 +253,404 @@ theorem boundedGrowStep_budget_nonneg_of_legal
     opRisk write h]
   have hb := h.2.2.2.1
   linarith
+
+open Filter Topology
+
+/-- Every bounded transition either preserves width or adds exactly one. -/
+theorem boundedGrowStep_width_eq_or
+    (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk write).width =
+        S.width ∨
+      (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk write).width =
+        S.width + 1 := by
+  by_cases h : GrowthLegal V S Z D trainingCost memoryLimit operationLimit
+  · right
+    rw [boundedGrowStep_of_legal S Z D trainingCost memoryLimit operationLimit
+      opRisk write h]
+    rfl
+  · left
+    rw [boundedGrowStep_of_not_legal S Z D trainingCost memoryLimit operationLimit
+      opRisk write h]
+
+/-- Width is nondecreasing across either admission outcome. -/
+theorem boundedGrowStep_width_mono
+    (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    S.width ≤
+      (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk write).width := by
+  rcases boundedGrowStep_width_eq_or S Z D trainingCost memoryLimit operationLimit
+    opRisk write with h | h
+  · rw [h]
+  · rw [h]
+    omega
+
+/-- A legal batch and its labels force a positive declared operation increment. -/
+theorem growthOperations_pos_of_legal
+    (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (h : GrowthLegal V S Z D trainingCost memoryLimit operationLimit) :
+    0 < growthOperations B V trainingCost := by
+  obtain ⟨b0⟩ := h.2.2.2.2.1
+  have hB : 0 < B := by
+    simpa only [Fintype.card_fin] using Fintype.card_pos_iff.mpr ⟨b0⟩
+  have hV : 0 < Fintype.card V := Fintype.card_pos_iff.mpr ⟨S.labels b0⟩
+  unfold growthOperations expandedFeatureEvaluationCount
+  exact Nat.add_pos_left (Nat.mul_pos hB hV) trainingCost
+
+/-- Exact one-width increment is equivalent to the complete admission gate. -/
+theorem boundedGrowStep_legal_iff_width_succ
+    (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    GrowthLegal V S Z D trainingCost memoryLimit operationLimit ↔
+      (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk write).width =
+        S.width + 1 := by
+  constructor
+  · intro h
+    rw [boundedGrowStep_of_legal S Z D trainingCost memoryLimit operationLimit
+      opRisk write h]
+    rfl
+  · intro hwidth
+    by_cases h : GrowthLegal V S Z D trainingCost memoryLimit operationLimit
+    · exact h
+    · rw [boundedGrowStep_of_not_legal S Z D trainingCost memoryLimit operationLimit
+        opRisk write h] at hwidth
+      omega
+
+/-- Every transition preserves budget plus accumulated declared operations. -/
+theorem boundedGrowStep_budget_add_flops
+    (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk
+      write).state.res.budget +
+        (boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk
+          write).state.res.flops =
+      S.state.res.budget + S.state.res.flops := by
+  by_cases h : GrowthLegal V S Z D trainingCost memoryLimit operationLimit
+  · rw [boundedGrowStep_budget_of_legal S Z D trainingCost memoryLimit operationLimit
+      opRisk write h, boundedGrowStep_flops_of_legal S Z D trainingCost memoryLimit
+      operationLimit opRisk write h]
+    ring
+  · rw [boundedGrowStep_of_not_legal S Z D trainingCost memoryLimit operationLimit
+      opRisk write h]
+
+/-- Number of indices strictly before `T` at which a width sequence increases by one. -/
+def widthIncrementCount (width : ℕ → ℕ) : ℕ → ℕ
+  | 0 => 0
+  | T + 1 => widthIncrementCount width T +
+      if width (T + 1) = width T + 1 then 1 else 0
+
+@[simp] theorem widthIncrementCount_zero (width : ℕ → ℕ) :
+    widthIncrementCount width 0 = 0 := rfl
+
+@[simp] theorem widthIncrementCount_succ (width : ℕ → ℕ) (T : ℕ) :
+    widthIncrementCount width (T + 1) = widthIncrementCount width T +
+      if width (T + 1) = width T + 1 then 1 else 0 := rfl
+
+private theorem widthIncrementCount_add_initial_of_step
+    (width : ℕ → ℕ)
+    (hstep : ∀ t, width (t + 1) = width t ∨ width (t + 1) = width t + 1)
+    (T : ℕ) :
+    widthIncrementCount width T + width 0 = width T := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+      by_cases hinc : width (T + 1) = width T + 1
+      · simp only [widthIncrementCount_succ, hinc, ite_true]
+        omega
+      · have hsame : width (T + 1) = width T := (hstep T).resolve_right hinc
+        simp only [widthIncrementCount_succ, hinc, ite_false]
+        omega
+
+/-- Empirical mean CE of a width-carrying state on its own batch. -/
+noncomputable def growthObjective (S : BoundedBatchState V B a r c k capacity) : ℝ :=
+  batchCEObjective S.features S.labels S.state
+
+/-- Totalized batch CE is nonnegative, including an empty batch. -/
+theorem growthObjective_nonneg (S : BoundedBatchState V B a r c k capacity) :
+    0 ≤ growthObjective S :=
+  batchCEObjective_nonneg S.features S.labels S.state
+
+section GrowthTrajectory
+
+variable (S0 : BoundedBatchState V B a r c k capacity)
+variable (Zs : ℕ → Fin B → V → ℝ)
+variable (Ds : (t : ℕ) → (S : BoundedBatchState V B a r c k capacity) →
+  EuclideanSpace ℝ (Fin (S.width + 1)))
+variable (costs memoryCaps operationCaps : ℕ → ℕ)
+variable (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ))
+
+/-- Repeated actual bounded growth with features and directions at the current width. -/
+noncomputable def growthPath
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (Zs : ℕ → Fin B → V → ℝ)
+    (Ds : (t : ℕ) → (S : BoundedBatchState V B a r c k capacity) →
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) :
+    ℕ → BoundedBatchState V B a r c k capacity
+  | 0 => S0
+  | t + 1 => boundedGrowStep (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)
+      (Zs t) (Ds t (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+      (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t)
+
+@[simp] theorem growthPath_zero :
+    growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes 0 = S0 := rfl
+
+@[simp] theorem growthPath_succ (t : ℕ) :
+    growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes (t + 1) =
+      boundedGrowStep (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)
+        (Zs t) (Ds t (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+        (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t) := rfl
+
+/-- One recursive step cannot reduce width. -/
+theorem growthPath_width_step (t : ℕ) :
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width ≤
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes (t + 1)).width := by
+  rw [growthPath_succ]
+  exact boundedGrowStep_width_mono
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)
+    (Zs t) (Ds t (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+    (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t)
+
+/-- Width is monotone along the actual trajectory. -/
+theorem growthPath_width_mono :
+    Monotone (fun t =>
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) :=
+  monotone_nat_of_le_succ
+    (growthPath_width_step S0 Zs Ds costs memoryCaps operationCaps risks writes)
+
+/-- Every trajectory state carries the original capacity bound. -/
+theorem growthPath_width_le_capacity (t : ℕ) :
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width ≤ capacity :=
+  (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width_le_capacity
+
+/-- Bounded monotone natural width eventually attains a fixed finite value. -/
+theorem growthPath_width_eventually_constant :
+    ∃ width N, ∀ t ≥ N,
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width = width :=
+  converges_of_monotone_of_bounded
+    (growthPath_width_mono S0 Zs Ds costs memoryCaps operationCaps risks writes)
+    (growthPath_width_le_capacity S0 Zs Ds costs memoryCaps operationCaps risks writes)
+
+/-- Once width is constant, every later complete record is literally unchanged.
+The terminal width need not equal capacity. -/
+theorem growthPath_eventually_constant :
+    ∃ N, ∀ t ≥ N, growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t =
+      growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes N := by
+  obtain ⟨width, N, hwidth⟩ := growthPath_width_eventually_constant
+    S0 Zs Ds costs memoryCaps operationCaps risks writes
+  refine ⟨N, ?_⟩
+  intro t ht
+  induction t, ht using Nat.le_induction with
+  | base => rfl
+  | succ n hn ih =>
+      have hnwidth :
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes (n + 1)).width =
+            (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n).width := by
+        rw [hwidth (n + 1) (by omega), hwidth n hn]
+      have hnlegal : ¬GrowthLegal V
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n) (Zs n)
+          (Ds n (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n))
+          (costs n) (memoryCaps n) (operationCaps n) := by
+        intro hlegal
+        have hinc := (boundedGrowStep_legal_iff_width_succ
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n)
+          (Zs n) (Ds n (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n))
+          (costs n) (memoryCaps n) (operationCaps n) (risks n) (writes n)).mp hlegal
+        rw [← growthPath_succ S0 Zs Ds costs memoryCaps operationCaps risks writes n] at hinc
+        omega
+      calc
+        growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes (n + 1) =
+            growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n := by
+          rw [growthPath_succ S0 Zs Ds costs memoryCaps operationCaps risks writes n,
+            boundedGrowStep_of_not_legal
+              (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n)
+              (Zs n) (Ds n (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes n))
+              (costs n) (memoryCaps n) (operationCaps n) (risks n) (writes n) hnlegal]
+        _ = growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes N := ih
+
+/-- Actual batch CE does not increase at any recursive step. -/
+theorem growthPath_objective_step (t : ℕ) :
+    growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes (t + 1)) ≤
+      growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t) := by
+  rw [growthPath_succ]
+  exact batchCEObjective_boundedGrowStep_le
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)
+    (Zs t) (Ds t (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+    (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t)
+
+/-- Actual empirical batch CE is antitone, including every rejected call. -/
+theorem growthPath_objective_antitone :
+    Antitone (fun t =>
+      growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)) :=
+  antitone_nat_of_succ_le
+    (growthPath_objective_step S0 Zs Ds costs memoryCaps operationCaps risks writes)
+
+/-- The actual supplied-batch CE converges to its own historical infimum. -/
+theorem growthPath_objective_tendsto_ciInf : Tendsto (fun t =>
+      growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)) atTop
+    (𝓝 (⨅ t, growthObjective
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))) :=
+  ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (growthPath_objective_antitone S0 Zs Ds costs memoryCaps operationCaps risks writes)
+    (fun t => growthObjective_nonneg
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+
+/-- Once whole states are constant, the actual batch objective is constant too. -/
+theorem growthPath_objective_eventually_constant :
+    ∃ N, ∀ t ≥ N,
+      growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t) =
+        growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes N) := by
+  obtain ⟨N, hN⟩ := growthPath_eventually_constant
+    S0 Zs Ds costs memoryCaps operationCaps risks writes
+  exact ⟨N, fun t ht => by rw [hN t ht]⟩
+
+/-- A late attained state realizes exactly the infimum of this trajectory's CE.
+This is not a minimum over other architectures, inputs or held-out distributions. -/
+theorem growthPath_objective_ciInf_attainment : ∃ N,
+    growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes N) =
+      ⨅ t, growthObjective (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t) := by
+  obtain ⟨N, hN⟩ := growthPath_eventually_constant
+    S0 Zs Ds costs memoryCaps operationCaps risks writes
+  have hanti := growthPath_objective_antitone
+    S0 Zs Ds costs memoryCaps operationCaps risks writes
+  refine ⟨N, le_antisymm (le_ciInf ?_) (ciInf_le ?_ N)⟩
+  · intro t
+    by_cases hNt : N ≤ t
+    · rw [hN t hNt]
+    · exact hanti (Nat.le_of_lt (Nat.lt_of_not_ge hNt))
+  · exact ⟨0, by
+      intro x hx
+      obtain ⟨t, rfl⟩ := hx
+      exact growthObjective_nonneg
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)⟩
+
+/-- The number of one-width increments plus initial width is the actual width.
+By `boundedGrowStep_legal_iff_width_succ`, these increments are exactly accepted calls. -/
+theorem growthPath_widthIncrementCount_add_initial (T : ℕ) :
+    widthIncrementCount (fun t =>
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) T + S0.width =
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).width := by
+  apply widthIncrementCount_add_initial_of_step
+  intro t
+  rw [growthPath_succ]
+  exact boundedGrowStep_width_eq_or
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t)
+    (Zs t) (Ds t (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t))
+    (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t)
+
+/-- At most the initial remaining capacity of accepted growth calls can occur. -/
+theorem growthPath_widthIncrementCount_le_remaining_capacity (T : ℕ) :
+    widthIncrementCount (fun t =>
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) T ≤
+        capacity - S0.width := by
+  have htelescope := growthPath_widthIncrementCount_add_initial
+    S0 Zs Ds costs memoryCaps operationCaps risks writes T
+  have hcap := growthPath_width_le_capacity
+    S0 Zs Ds costs memoryCaps operationCaps risks writes T
+  omega
+
+/-- New parameter/moment cells counted by accepted increments add to the initial cells. -/
+theorem growthPath_model_cells_add_initial (T : ℕ) :
+    expandedStateCoefficients * widthIncrementCount (fun t =>
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) T +
+        expandedStateCoefficients * S0.width =
+      expandedStateCoefficients *
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).width := by
+  calc
+    expandedStateCoefficients * widthIncrementCount (fun t =>
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) T +
+        expandedStateCoefficients * S0.width =
+        expandedStateCoefficients * (widthIncrementCount (fun t =>
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) T +
+          S0.width) := (Nat.mul_add _ _ _).symm
+    _ = expandedStateCoefficients *
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).width :=
+      congrArg (fun width => expandedStateCoefficients * width)
+        (growthPath_widthIncrementCount_add_initial
+          S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+
+/-- Persistent model/moment cells are bounded by the capacity-scaled coefficient count. -/
+theorem growthPath_model_cells_le_capacity (T : ℕ) :
+    expandedStateCoefficients *
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).width ≤
+      expandedStateCoefficients * capacity :=
+  Nat.mul_le_mul_left expandedStateCoefficients
+    (growthPath_width_le_capacity S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+
+/-- Retained feature payload is monotone in the current width. -/
+theorem growthPath_featurePayloadCells_mono :
+    Monotone (fun t => featurePayloadCells B V
+      (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes t).width) := by
+  intro t u htu
+  exact Nat.mul_le_mul_left (expandedFeatureEvaluationCount B V)
+    (growthPath_width_mono S0 Zs Ds costs memoryCaps operationCaps risks writes htu)
+
+/-- Retained feature payload stays within the capacity-scaled logical cell bound. -/
+theorem growthPath_featurePayloadCells_le_capacity (T : ℕ) :
+    featurePayloadCells B V
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).width ≤
+      featurePayloadCells B V capacity :=
+  Nat.mul_le_mul_left (expandedFeatureEvaluationCount B V)
+    (growthPath_width_le_capacity S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+
+/-- Budget plus accumulated declared operations is an exact trajectory invariant. -/
+theorem growthPath_budget_add_flops (T : ℕ) :
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).state.res.budget +
+        (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).state.res.flops =
+      S0.state.res.budget + S0.state.res.flops := by
+  induction T with
+  | zero => rfl
+  | succ T ih =>
+      rw [growthPath_succ S0 Zs Ds costs memoryCaps operationCaps risks writes T,
+        boundedGrowStep_budget_add_flops
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+          (Zs T) (Ds T (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T))
+          (costs T) (memoryCaps T) (operationCaps T) (risks T) (writes T)]
+      exact ih
+
+/-- A nonnegative initial budget remains nonnegative along every legal/rejected path. -/
+theorem growthPath_budget_nonneg (hinitial : 0 ≤ S0.state.res.budget) (T : ℕ) :
+    0 ≤ (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).state.res.budget := by
+  induction T with
+  | zero => exact hinitial
+  | succ T ih =>
+      rw [growthPath_succ S0 Zs Ds costs memoryCaps operationCaps risks writes T]
+      by_cases hlegal : GrowthLegal V
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T) (Zs T)
+          (Ds T (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T))
+          (costs T) (memoryCaps T) (operationCaps T)
+      · exact boundedGrowStep_budget_nonneg_of_legal
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+          (Zs T) (Ds T (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T))
+          (costs T) (memoryCaps T) (operationCaps T) (risks T) (writes T) hlegal
+      · rw [boundedGrowStep_of_not_legal
+          (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T)
+          (Zs T) (Ds T (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T))
+          (costs T) (memoryCaps T) (operationCaps T) (risks T) (writes T) hlegal]
+        exact ih
+
+/-- Initial budget bounds cumulative declared operations beyond the initial accumulator. -/
+theorem growthPath_flops_le_initial_budget_add_flops
+    (hinitial : 0 ≤ S0.state.res.budget) (T : ℕ) :
+    (growthPath S0 Zs Ds costs memoryCaps operationCaps risks writes T).state.res.flops ≤
+      S0.state.res.budget + S0.state.res.flops := by
+  have hbudget := growthPath_budget_nonneg
+    S0 Zs Ds costs memoryCaps operationCaps risks writes hinitial T
+  have hinvariant := growthPath_budget_add_flops
+    S0 Zs Ds costs memoryCaps operationCaps risks writes T
+  linarith
+
+end GrowthTrajectory
 
 end Hagi.Contracts.BatchCEGrowth
