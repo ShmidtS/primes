@@ -914,6 +914,115 @@ theorem batchDirectionNextParameters_eq_zero
     batchDirectionNextParameters X θ y D = θ := by
   rw [batchDirectionNextParameters, batchDirectionSafeEta_empty, alongNext_zero]
 
+/-- The exact local per-sample CE margin supplied by the half-window step.
+This is a mathematical lower bound on the guaranteed drop, not a physical
+cost, an empirical rate, or a trajectory-wide discount. -/
+noncomputable def batchDirectionMargin {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) (b : Fin B) : ℝ :=
+  batchDirectionSafeEta X θ y D * (-dirAction (X b) θ (y b) D) / 2
+
+/-- The local margin is nonnegative even without a complete certificate:
+the totalized step is zero on that branch. -/
+theorem batchDirectionMargin_nonneg {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) (b : Fin B) :
+    0 ≤ batchDirectionMargin X θ y D b := by
+  by_cases hcert : Nonempty (Fin B) ∧
+      ∀ b, dirAction (X b) θ (y b) D < 0
+  · exact div_nonneg
+      (mul_nonneg (batchDirectionSafeEta_nonneg X θ y D)
+        (neg_nonneg.mpr (hcert.2 b).le)) (by norm_num)
+  · simp [batchDirectionMargin, batchDirectionSafeEta_eq_zero X θ y D hcert]
+
+/-- The full negative-derivative certificate makes each local margin
+strictly positive. -/
+theorem batchDirectionMargin_pos_of_neg {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) [Nonempty (Fin B)]
+    (hneg : ∀ b, dirAction (X b) θ (y b) D < 0) (b : Fin B) :
+    0 < batchDirectionMargin X θ y D b := by
+  have heta := (batchDirectionSafeEta_pos_iff X θ y D).2 ⟨inferInstance, hneg⟩
+  exact div_pos (mul_pos heta (neg_pos.mpr (hneg b))) (by norm_num)
+
+/-- Every arbitrary-direction update decreases each sample's actual CE by at
+least its exact local margin.  Without the full certificate both the step and
+the margin vanish, so no conditional premise is needed in the statement. -/
+theorem ceOneHot_batchDirectionNextParameters_le_margin
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) (b : Fin B) :
+    Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchDirectionNextParameters X θ y D)) ≤
+      Hagi.ceOneHot (y b) (ceLogits (X b) θ) -
+        batchDirectionMargin X θ y D b := by
+  by_cases hcert : Nonempty (Fin B) ∧
+      ∀ b, dirAction (X b) θ (y b) D < 0
+  · let _ : Nonempty (Fin B) := hcert.1
+    let _ : Nonempty V := ⟨y b⟩
+    have heta := (batchDirectionSafeEta_pos_iff X θ y D).2 hcert
+    have hR := dirRange_pos_of_dirAction_neg (X b) θ (y b) D (hcert.2 b)
+    have hwindow := batchDirectionSafeWindow_le_threshold X θ y D hcert.2 b
+    have heta_of_neg := batchDirectionSafeEta_of_neg X θ y D hcert.2
+    have heta_le : batchDirectionSafeEta X θ y D ≤
+        4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2 := by
+      rw [heta_of_neg]
+      calc
+        batchDirectionSafeWindow X θ y D / 2 ≤
+            (8 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2) / 2 :=
+          div_le_div_of_nonneg_right hwindow (by norm_num)
+        _ = 4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D) ^ 2 := by
+          ring
+    have hscaled : batchDirectionSafeEta X θ y D * (dirRange (X b) D) ^ 2 ≤
+        4 * (-dirAction (X b) θ (y b) D) :=
+      (le_div_iff₀ (sq_pos_of_pos hR)).mp heta_le
+    have hmul := mul_le_mul_of_nonneg_left hscaled heta.le
+    have hquadratic :
+        (batchDirectionSafeEta X θ y D * dirRange (X b) D) ^ 2 / 8 ≤
+          batchDirectionSafeEta X θ y D *
+            (-dirAction (X b) θ (y b) D) / 2 := by
+      nlinarith [hmul]
+    calc
+      Hagi.ceOneHot (y b)
+          (ceLogits (X b) (batchDirectionNextParameters X θ y D)) ≤
+        Hagi.ceOneHot (y b) (ceLogits (X b) θ) +
+          batchDirectionSafeEta X θ y D * dirAction (X b) θ (y b) D +
+          (batchDirectionSafeEta X θ y D * dirRange (X b) D) ^ 2 / 8 := by
+        rw [batchDirectionNextParameters]
+        exact ceOneHot_alongNext_le (X b) θ D (y b) heta.le
+      _ ≤ Hagi.ceOneHot (y b) (ceLogits (X b) θ) -
+          batchDirectionMargin X θ y D b := by
+        unfold batchDirectionMargin
+        nlinarith [hquadratic]
+  · rw [batchDirectionNextParameters_eq_zero X θ y D hcert]
+    simp [batchDirectionMargin, batchDirectionSafeEta_eq_zero X θ y D hcert]
+
+/-- The arithmetic-mean loss decreases by at least the arithmetic mean of the
+same exact local margins.  Lean's zero-denominator convention handles the
+empty batch without introducing a nonzero-batch premise. -/
+theorem batchLoss_batchDirectionNextParameters_le_margin_sum
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) :
+    batchLoss X (batchDirectionNextParameters X θ y D) y ≤
+      batchLoss X θ y - (∑ b, batchDirectionMargin X θ y D b) / (B : ℝ) := by
+  have hsum : (∑ b, Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchDirectionNextParameters X θ y D))) ≤
+      ∑ b, (Hagi.ceOneHot (y b) (ceLogits (X b) θ) -
+        batchDirectionMargin X θ y D b) :=
+    Finset.sum_le_sum (fun b _hb =>
+      ceOneHot_batchDirectionNextParameters_le_margin X θ y D b)
+  have hdiv := div_le_div_of_nonneg_right hsum (Nat.cast_nonneg B)
+  unfold batchLoss Hagi.Probability.FiniteFamilyConfidence.empiricalMean
+  calc
+    (∑ b, Hagi.ceOneHot (y b)
+        (ceLogits (X b) (batchDirectionNextParameters X θ y D))) / (B : ℝ) ≤
+      (∑ b, (Hagi.ceOneHot (y b) (ceLogits (X b) θ) -
+        batchDirectionMargin X θ y D b)) / (B : ℝ) := hdiv
+    _ = (∑ b, Hagi.ceOneHot (y b) (ceLogits (X b) θ)) / (B : ℝ) -
+        (∑ b, batchDirectionMargin X θ y D b) / (B : ℝ) := by
+      rw [Finset.sum_sub_distrib, sub_div]
+
 /-- The exact half-window produces strict actual CE descent on every sample
 under only the negative directional-derivative certificate. -/
 theorem ceOneHot_batchDirectionNextParameters_lt
@@ -924,29 +1033,9 @@ theorem ceOneHot_batchDirectionNextParameters_lt
     Hagi.ceOneHot (y b)
         (ceLogits (X b) (batchDirectionNextParameters X θ y D)) <
       Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
-  let _ : Nonempty V := ⟨y b⟩
-  have heta := (batchDirectionSafeEta_pos_iff X θ y D).2 ⟨inferInstance, hneg⟩
-  have hR := dirRange_pos_of_dirAction_neg (X b) θ (y b) D (hneg b)
-  have hwindow := batchDirectionSafeEta_lt_threshold X θ y D hneg b
-  have hscaled := (lt_div_iff₀ (sq_pos_of_pos hR)).mp hwindow
-  have hquadratic :
-      (batchDirectionSafeEta X θ y D * dirRange (X b) D) ^ 2 / 8 <
-        batchDirectionSafeEta X θ y D * (-dirAction (X b) θ (y b) D) := by
-    have hmul := mul_lt_mul_of_pos_left hscaled heta
-    nlinarith [hmul]
-  have herror : batchDirectionSafeEta X θ y D * dirAction (X b) θ (y b) D +
-      (batchDirectionSafeEta X θ y D * dirRange (X b) D) ^ 2 / 8 < 0 := by
-    nlinarith [hquadratic]
-  calc
-    Hagi.ceOneHot (y b)
-        (ceLogits (X b) (batchDirectionNextParameters X θ y D)) ≤
-      Hagi.ceOneHot (y b) (ceLogits (X b) θ) +
-        batchDirectionSafeEta X θ y D * dirAction (X b) θ (y b) D +
-        (batchDirectionSafeEta X θ y D * dirRange (X b) D) ^ 2 / 8 := by
-      rw [batchDirectionNextParameters]
-      exact ceOneHot_alongNext_le (X b) θ D (y b) heta.le
-    _ < Hagi.ceOneHot (y b) (ceLogits (X b) θ) := by
-      linarith
+  have hbound := ceOneHot_batchDirectionNextParameters_le_margin X θ y D b
+  have hmargin := batchDirectionMargin_pos_of_neg X θ y D hneg b
+  linarith
 
 /-- Every sample is nonincreasing, including the exact zero-step branch when
 any sample lacks a negative directional derivative. -/
@@ -995,12 +1084,13 @@ theorem batchLoss_batchDirectionNextParameters_lt
     have hB0 : B = 0 := Nat.eq_zero_of_not_pos h
     subst B
     exact Fin.elim0 b0
-  unfold batchLoss Hagi.Probability.FiniteFamilyConfidence.empiricalMean
-  apply div_lt_div_of_pos_right _ (Nat.cast_pos.mpr hB)
-  exact Finset.sum_lt_sum
-    (fun b _hb => (ceOneHot_batchDirectionNextParameters_lt X θ y D hneg b).le)
-    ⟨b0, Finset.mem_univ b0,
-      ceOneHot_batchDirectionNextParameters_lt X θ y D hneg b0⟩
+  have hsum : 0 < ∑ b, batchDirectionMargin X θ y D b :=
+    Finset.sum_pos (fun b _hb => batchDirectionMargin_pos_of_neg X θ y D hneg b)
+      Finset.univ_nonempty
+  have hmean : 0 < (∑ b, batchDirectionMargin X θ y D b) / (B : ℝ) :=
+    div_pos hsum (Nat.cast_pos.mpr hB)
+  have hbound := batchLoss_batchDirectionNextParameters_le_margin_sum X θ y D
+  linarith
 
 /-- At a nonzero exact minimum-norm raw gradient, KKT makes every actual
 CE directional derivative along `-ω` strictly negative. -/

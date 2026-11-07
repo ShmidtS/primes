@@ -790,6 +790,68 @@ theorem batchCEObjective_batchDirectionTrainStep_lt
   exact batchLoss_batchDirectionNextParameters_lt
     X (coreParameters S) y (D S) hcert.2
 
+/-- With nonnegative affordable cost, the actual guarded arbitrary-direction
+step decreases each supplied sample's CE by at least its current local margin.
+Without the full derivative certificate the margin vanishes and the existing
+generic guard still supplies nonincrease; no whole-state fallback is asserted. -/
+theorem batchSampleCE_batchDirectionTrainStep_le_margin
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget) (b : Fin B) :
+    batchSampleCE X y b (batchDirectionTrainStep X y D S opCost opRisk write) ≤
+      batchSampleCE X y b S -
+        batchDirectionMargin X (coreParameters S) y (D S) b := by
+  by_cases hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0
+  · let _ : Nonempty (Fin B) := hcert.1
+    rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert]
+    change Hagi.ceOneHot (y b) (ceLogits (X b)
+        (coreParameters (trainStep S
+          (batchDirectionTrainInput X y D S opCost opRisk write)))) ≤
+      Hagi.ceOneHot (y b) (ceLogits (X b) (coreParameters S)) -
+        batchDirectionMargin X (coreParameters S) y (D S) b
+    rw [coreParameters_trainStep_batchDirectionTrainInput]
+    exact ceOneHot_batchDirectionNextParameters_le_margin
+      X (coreParameters S) y (D S) b
+  · have hmargin : batchDirectionMargin X (coreParameters S) y (D S) b = 0 := by
+      simp [batchDirectionMargin,
+        batchDirectionSafeEta_eq_zero X (coreParameters S) y (D S) hcert]
+    rw [hmargin, sub_zero]
+    exact batchSampleCE_batchDirectionTrainStep_le
+      X y D S opCost opRisk write b
+
+/-- The actual guarded arbitrary-direction step also decreases arithmetic-mean
+CE by at least the arithmetic mean of the current local margins. The same
+feasible-cost premise is retained uniformly; zero-denominator and failed
+certificate cases need only nonincrease. -/
+theorem batchCEObjective_batchDirectionTrainStep_le_margin_sum
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget) :
+    batchCEObjective X y (batchDirectionTrainStep X y D S opCost opRisk write) ≤
+      batchCEObjective X y S -
+        (∑ b, batchDirectionMargin X (coreParameters S) y (D S) b) / (B : ℝ) := by
+  by_cases hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0
+  · let _ : Nonempty (Fin B) := hcert.1
+    rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert]
+    rw [batchCEObjective, batchCEObjective,
+      coreParameters_trainStep_batchDirectionTrainInput]
+    exact batchLoss_batchDirectionNextParameters_le_margin_sum
+      X (coreParameters S) y (D S)
+  · have hsum : (∑ b, batchDirectionMargin X (coreParameters S) y (D S) b) = 0 := by
+      apply Finset.sum_eq_zero
+      intro b _hb
+      simp [batchDirectionMargin,
+        batchDirectionSafeEta_eq_zero X (coreParameters S) y (D S) hcert]
+    rw [hsum, zero_div, sub_zero]
+    exact batchCEObjective_batchDirectionTrainStep_le
+      X y D S opCost opRisk write
+
 /-- Accepted arbitrary-direction execution adds exactly the abstract supplied
 `opCost`; direction selection, certificate checks and CE evaluation are not
 silently included in this declared ledger increment. -/
