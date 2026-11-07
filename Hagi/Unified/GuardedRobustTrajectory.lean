@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Unified.GuardedRobustSelection
+import Hagi.State.TrainState
 set_option linter.style.header false
+
+
 
 /-!
 # Guarded robust trajectories with fresh estimates
@@ -1059,5 +1062,74 @@ theorem fixedBiasBinaryProgressCount_eq_scaled_one
   intro t _ht
   rw [fixedBiasBinaryGain_eq_sub, scaledBiasBinaryGain_eq_sub]
   simp only [fixedBiasBinaryPath_eq_scaled_one]
+
+/-- A shared finite positive-gain telescope for the declared `TrainState`
+FLOP field. The caller must prove the actual action-one increment; nothing
+about estimator evaluations, wall-clock time or physical work is inferred. -/
+theorem scaledBiasBinaryTrainPath_flops_eq
+    {n a r c k : ℕ} (p : ControllerProblem (Fin 2) (Hagi.State.TrainState n a r c k))
+    (δ : ℝ) (hδ : 0 < δ) [DecidablePred p.safe]
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible p M C)
+    (s0 : Hagi.State.TrainState n a r c k)
+    (hid : ∀ s, p.step (0 : Fin 2) s = s) (opCost : ℝ)
+    (hpositive : ∀ t, 0 < scaledBiasBinaryGain p δ M C h0 s0 t →
+      (p.step (1 : Fin 2) (scaledBiasBinaryPath p δ M C h0 s0 t)).res.flops =
+        (scaledBiasBinaryPath p δ M C h0 s0 t).res.flops + opCost)
+    (T : ℕ) :
+    (scaledBiasBinaryPath p δ M C h0 s0 T).res.flops =
+      s0.res.flops + opCost * (scaledBiasBinaryProgressCount p δ M C h0 s0 T : ℝ) := by
+  classical
+  induction T with
+  | zero => simp only [scaledBiasBinaryPath_zero, scaledBiasBinaryProgressCount,
+      Finset.range_zero, Finset.filter_empty, Finset.card_empty, Nat.cast_zero,
+      mul_zero, add_zero]
+  | succ T ih =>
+      by_cases hpos : 0 < scaledBiasBinaryGain p δ M C h0 s0 T
+      · have hsucc := scaledBiasBinaryPath_succ_eq_step_one_of_gain_pos
+          p δ hδ M C h0 s0 hid T hpos
+        rw [hsucc, hpositive T hpos, ih, scaledBiasBinaryProgressCount_succ,
+          Nat.cast_add, Nat.cast_ite, Nat.cast_one, Nat.cast_zero, ite_eq_left hpos]
+        ring
+      · have hzero : scaledBiasBinaryGain p δ M C h0 s0 T = 0 := by
+          rcases scaledBiasBinaryGain_eq_zero_or_delta_le
+            p δ hδ M C h0 s0 hid T with hzero | hpositive
+          · exact hzero
+          · exact False.elim (hpos (lt_of_lt_of_le hδ hpositive))
+        have hnoup : ¬ estimatedUpgrade p (scaledBiasBinaryValueEstimate p δ)
+            (δ / 2) (scaledBiasBinaryPath p δ M C h0 s0 T) M C (0 : Fin 2) := by
+          intro hup
+          exact hpos (scaledBiasBinaryGain_pos_of_upgrade p δ hδ M C h0 s0 hid T hup)
+        rw [scaledBiasBinaryPath_succ,
+          guardedRobustNext_of_no_upgrade p (scaledBiasBinaryValueEstimate p δ)
+            (δ / 2) _ M C (0 : Fin 2) h0 hnoup, hid,
+          ih, scaledBiasBinaryProgressCount_succ,
+          Nat.cast_add, Nat.cast_ite, Nat.cast_one, Nat.cast_zero,
+          ite_eq_right hpos, add_zero]
+
+/-- If actual values are nonpositive and the supplied cost is nonnegative,
+the shared positive-gain telescope is bounded by `(opCost / δ) * -value(s0)`.
+This is an accounting bound for accepted transitions only. -/
+theorem scaledBiasBinaryTrainPath_flops_le_of_value_nonpos
+    {n a r c k : ℕ} (p : ControllerProblem (Fin 2) (Hagi.State.TrainState n a r c k))
+    (δ : ℝ) (hδ : 0 < δ) [DecidablePred p.safe]
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible p M C)
+    (s0 : Hagi.State.TrainState n a r c k)
+    (hid : ∀ s, p.step (0 : Fin 2) s = s) (opCost : ℝ) (hcost : 0 ≤ opCost)
+    (hvalue : ∀ s, p.value s ≤ 0)
+    (hpositive : ∀ t, 0 < scaledBiasBinaryGain p δ M C h0 s0 t →
+      (p.step (1 : Fin 2) (scaledBiasBinaryPath p δ M C h0 s0 t)).res.flops =
+        (scaledBiasBinaryPath p δ M C h0 s0 t).res.flops + opCost)
+    (T : ℕ) :
+    (scaledBiasBinaryPath p δ M C h0 s0 T).res.flops ≤
+      s0.res.flops + (opCost / δ) * (-p.value s0) := by
+  rw [scaledBiasBinaryTrainPath_flops_eq p δ hδ M C h0 s0 hid opCost hpositive T]
+  have hcount := scaledBiasBinaryProgressCount_le_div p δ hδ M C h0 s0 hid 0
+    (fun t => hvalue (scaledBiasBinaryPath p δ M C h0 s0 t)) T
+  rw [scaledBiasBinaryPath_zero] at hcount
+  calc
+    s0.res.flops + opCost * (scaledBiasBinaryProgressCount p δ M C h0 s0 T : ℝ) ≤
+        s0.res.flops + opCost * ((0 - p.value s0) / δ) :=
+      add_le_add_right (mul_le_mul_of_nonneg_left hcount hcost) _
+    _ = s0.res.flops + (opCost / δ) * (-p.value s0) := by ring
 
 end Hagi.Unified.FixedBiasBinaryProgress

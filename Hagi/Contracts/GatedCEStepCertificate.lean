@@ -727,15 +727,16 @@ theorem gatedCEPath_flops_eq
       S0.res.flops + opCost * (scaledBiasBinaryProgressCount
         (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
           X t opCost opRisk write) δ M C h0 S0 T : ℝ) := by
-  induction T with
-  | zero => simp only [scaledBiasBinaryPath_zero, scaledBiasBinaryProgressCount,
-      Finset.range_zero, Finset.filter_empty, Finset.card_empty, Nat.cast_zero,
-      mul_zero, add_zero]
-  | succ T ih =>
-      rw [gatedCEPath_flops_succ X t opCost opRisk write δ hδ M C h0 S0 T, ih,
-        scaledBiasBinaryProgressCount_succ, Nat.cast_add, Nat.cast_ite,
-        Nat.cast_one, Nat.cast_zero]
-      split_ifs <;> ring
+  apply scaledBiasBinaryTrainPath_flops_eq
+    (gatedCEProblem X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) opCost ?_ T
+  intro i hpos
+  have h := gatedCEPath_flops_succ X t opCost opRisk write δ hδ M C h0 S0 i
+  rw [scaledBiasBinaryPath_succ_eq_step_one_of_gain_pos
+    (gatedCEProblem X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) i hpos,
+    ite_eq_left hpos] at h
+  exact h
 
 /-- With nonnegative supplied cost, the finite declared ledger increment is at
 most `(opCost / δ) * initialCE`. This still does not count estimator evaluations. -/
@@ -748,17 +749,22 @@ theorem gatedCEPath_flops_le
     (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
         X t opCost opRisk write) δ M C h0 S0 T).res.flops ≤
       S0.res.flops + (opCost / δ) * gatedCEObjective X t S0 := by
-  rw [gatedCEPath_flops_eq X t opCost opRisk write δ hδ M C h0 S0 T]
-  have hcount := gatedCEProgressCount_le_div
-    X t opCost opRisk write δ hδ M C h0 S0 T
-  have hmul := mul_le_mul_of_nonneg_left hcount hcost
-  calc
-    S0.res.flops + opCost * (scaledBiasBinaryProgressCount
-        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
-          X t opCost opRisk write) δ M C h0 S0 T : ℝ) ≤
-        S0.res.flops + opCost * (gatedCEObjective X t S0 / δ) :=
-      add_le_add_right hmul _
-    _ = S0.res.flops + (opCost / δ) * gatedCEObjective X t S0 := by ring
+  have h_value : (gatedCEProblem X t opCost opRisk write).value S0 =
+      -gatedCEObjective X t S0 := rfl
+  have hbound := scaledBiasBinaryTrainPath_flops_le_of_value_nonpos
+    (gatedCEProblem X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S)
+    opCost hcost (fun S => gatedCEProblem_value_le_zero X t opCost opRisk write S)
+    (by
+      intro i hpos
+      have h := gatedCEPath_flops_succ X t opCost opRisk write δ hδ M C h0 S0 i
+      rw [scaledBiasBinaryPath_succ_eq_step_one_of_gain_pos
+        (gatedCEProblem X t opCost opRisk write) δ hδ M C h0 S0
+        (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) i hpos,
+        ite_eq_left hpos] at h
+      exact h) T
+  rw [h_value, neg_neg] at hbound
+  exact hbound
 
 /-- A concrete first path with threshold `1/16`, exact biased estimate and
 unit caps one and two. Its only control parameters remain the canonical input. -/
