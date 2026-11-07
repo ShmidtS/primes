@@ -2277,6 +2277,123 @@ theorem directionBatchMinNorm_tendsto_zero
     simpa only [Real.sqrt_zero, Real.sqrt_sq (norm_nonneg _)] using hsquared.sqrt
   exact tendsto_zero_iff_norm_tendsto_zero.2 hnorm
 
+/-- The squared norm of the current minimum-norm point is summable along the
+actual minimum-norm half-window path, with total mass bounded by the initial
+supplied-batch CE. Empty batches and zero feature range remain zero cases. -/
+theorem directionBatchMinNormSq_summable_and_tsum_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t).res.budget) :
+    Summable (fun t => ‖batchGradientMinimizer X
+      (coreParameters (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) y‖ ^ 2) ∧
+      ∑' t, ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 ≤
+        ((B : ℝ) * batchFeatureRangeCoefficient X) * batchCEObjective X y S / 2 := by
+  by_cases hB : B = 0
+  · subst B
+    simp
+  have hBpos : 0 < (B : ℝ) := by
+    exact_mod_cast Nat.pos_of_ne_zero hB
+  by_cases hC : batchFeatureRangeCoefficient X = 0
+  · have hsq : ∀ t, ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 = 0 := by
+      intro t
+      have hzero : batchGradientMinimizer X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y = 0 := by
+        by_contra hn
+        have hp := batchFeatureRangeCoefficient_pos_of_minimizer_ne_zero X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y hn
+        exact (ne_of_gt hp) hC
+      simp [hzero]
+    simp_rw [hsq]
+    simp [hC]
+  have hCpos := lt_of_le_of_ne
+    (batchFeatureRangeCoefficient_nonneg X) (Ne.symm hC)
+  have hκ : 0 < (B : ℝ) * batchFeatureRangeCoefficient X := mul_pos hBpos hCpos
+  have hbudget : ∀ T, ∑ t ∈ Finset.range T,
+      2 * ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 /
+        ((B : ℝ) * batchFeatureRangeCoefficient X) ≤ batchCEObjective X y S := by
+    simpa only [directionBatchMinNormSquaredBudget] using
+      (directionBatchMinNormSquaredBudget_budget X y S
+        opCost opRisk write hcost).1
+  exact ObjectiveTrajectory.summable_and_tsum_le_of_sum_two_mul_div_le
+    hκ (fun _t => sq_nonneg _) hbudget
+
+/-- Every nonempty finite prefix of the actual path contains a point whose
+minimum-norm squared norm is bounded by the corresponding finite average.
+This is a best-index statement, not a claim about the last iterate. -/
+theorem directionBatchMinNormSq_exists_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t).res.budget)
+    (T : ℕ) (hT : 0 < T) :
+    ∃ t ∈ Finset.range T, ‖batchGradientMinimizer X
+      (coreParameters (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) y‖ ^ 2 ≤
+      ((B : ℝ) * batchFeatureRangeCoefficient X) * batchCEObjective X y S /
+        (2 * (T : ℝ)) := by
+  by_cases hB : B = 0
+  · subst B
+    refine ⟨0, Finset.mem_range.mpr hT, ?_⟩
+    simp
+  have hBpos : 0 < (B : ℝ) := by
+    exact_mod_cast Nat.pos_of_ne_zero hB
+  by_cases hC : batchFeatureRangeCoefficient X = 0
+  · have hsq : ∀ t, ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 = 0 := by
+      intro t
+      have hzero : batchGradientMinimizer X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y = 0 := by
+        by_contra hn
+        have hp := batchFeatureRangeCoefficient_pos_of_minimizer_ne_zero X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y hn
+        exact (ne_of_gt hp) hC
+      simp [hzero]
+    refine ⟨0, Finset.mem_range.mpr hT, ?_⟩
+    rw [hsq 0]
+    simp [hC]
+  have hCpos := lt_of_le_of_ne
+    (batchFeatureRangeCoefficient_nonneg X) (Ne.symm hC)
+  have hκ : 0 < (B : ℝ) * batchFeatureRangeCoefficient X := mul_pos hBpos hCpos
+  have hbudget : ∀ T, ∑ t ∈ Finset.range T,
+      2 * ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 /
+        ((B : ℝ) * batchFeatureRangeCoefficient X) ≤ batchCEObjective X y S := by
+    simpa only [directionBatchMinNormSquaredBudget] using
+      (directionBatchMinNormSquaredBudget_budget X y S
+        opCost opRisk write hcost).1
+  exact ObjectiveTrajectory.exists_le_of_sum_two_mul_div_le hκ hbudget hT
+
 theorem directionBatchHalfSampleCE_antitone
     (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
     (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
