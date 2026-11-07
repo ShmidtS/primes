@@ -436,6 +436,7 @@ import Hagi.Unified.ParetoLogit
 import Hagi.Unified.GuardedRobustLogit
 import Hagi.Unified.GuardedRobustSelection
 import Hagi.Unified.GuardedRobustTrajectory
+import Hagi.Unified.FixedBiasBinaryProgress
 import Hagi.Unified.GuardedRobustResourceMin
 import Hagi.Unified.QualityResourceMin
 import Hagi.Unified.ExecutableSelection
