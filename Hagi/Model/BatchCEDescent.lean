@@ -1855,6 +1855,70 @@ theorem exists_batchDirectionHalfEta_eq_threshold
   refine ⟨b, le_antisymm (ciInf_le (Finite.bddBelow_range _) b) ?_⟩
   exact le_ciInf fun i => hb i (Finset.mem_univ i)
 
+/-- For a positive range, the full quadratic residual increases while both
+endpoints stay below its individual threshold `4*a/r²`. -/
+theorem quadraticMargin_mono_upto_threshold
+    {a r x y : ℝ} (hr : 0 < r)
+    (hxy : x ≤ y) (hy : y ≤ 4 * a / r ^ 2) :
+    a * x - (x * r) ^ 2 / 8 ≤ a * y - (y * r) ^ 2 / 8 := by
+  have hident (t : ℝ) :
+      2 * a ^ 2 / r ^ 2 - (a * t - (t * r) ^ 2 / 8) =
+        r ^ 2 / 8 * (4 * a / r ^ 2 - t) ^ 2 := by
+    field_simp [ne_of_gt hr]
+    ring
+  have hsquare : (4 * a / r ^ 2 - y) ^ 2 ≤ (4 * a / r ^ 2 - x) ^ 2 := by
+    simpa only [pow_two] using mul_self_le_mul_self
+      (sub_nonneg.mpr hy) (sub_le_sub_left hxy (4 * a / r ^ 2))
+  have hnonneg :
+      0 ≤ r ^ 2 / 8 * ((4 * a / r ^ 2 - x) ^ 2 - (4 * a / r ^ 2 - y) ^ 2) :=
+    mul_nonneg (div_nonneg (sq_nonneg r) (by norm_num))
+      (sub_nonneg.mpr hsquare)
+  linarith [hident x, hident y]
+
+/-- Infimum of the per-sample full quadratic residual at a candidate eta. -/
+noncomputable def batchDirectionMinQuadraticMargin
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d)) (eta : ℝ)
+    [Nonempty (Fin B)] : ℝ :=
+  ⨅ b, batchDirectionQuadraticMargin X θ y D eta b
+
+/-- The common certified half-window maximizes the worst-sample full
+quadratic residual on the common half-threshold interval. -/
+theorem batchDirectionHalfEta_maximizes_minQuadraticMargin
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (D : EuclideanSpace ℝ (Fin d))
+    (hcert : Nonempty (Fin B) ∧
+      ∀ b, dirAction (X b) θ (y b) D < 0) :
+    IsMaxOn (fun eta =>
+        let _ : Nonempty (Fin B) := hcert.1
+        batchDirectionMinQuadraticMargin X θ y D eta)
+      {eta | 0 ≤ eta ∧ ∀ b, eta ≤
+        4 * (-dirAction (X b) θ (y b) D) / (dirRange (X b) D)^2}
+      (batchDirectionHalfEta X θ y D) := by
+  let _ : Nonempty (Fin B) := hcert.1
+  rw [isMaxOn_iff]
+  intro eta heta
+  have heta_le : eta ≤ batchDirectionHalfEta X θ y D := by
+    rw [batchDirectionHalfEta, dite_eq_left hcert]
+    exact le_ciInf heta.2
+  simp only [batchDirectionMinQuadraticMargin]
+  apply le_ciInf
+  intro b
+  calc
+    (⨅ b, batchDirectionQuadraticMargin X θ y D eta b) ≤
+        batchDirectionQuadraticMargin X θ y D eta b :=
+      ciInf_le (Finite.bddBelow_range _) b
+    _ ≤ batchDirectionQuadraticMargin X θ y D
+        (batchDirectionHalfEta X θ y D) b := by
+      have hmono := quadraticMargin_mono_upto_threshold
+        (a := -dirAction (X b) θ (y b) D) (r := dirRange (X b) D)
+        (x := eta) (y := batchDirectionHalfEta X θ y D)
+        (dirRange_pos_of_dirAction_neg (X b) θ (y b) D (hcert.2 b))
+        heta_le (batchDirectionHalfEta_le_threshold X θ y D hcert b)
+      simpa only [batchDirectionQuadraticMargin, mul_comm] using hmono
+
 /-- Exact quadratic residual at one sample's half-window threshold. -/
 theorem batchDirectionQuadraticMargin_at_threshold
     {V : Type} [Fintype V] {B d : ℕ}
