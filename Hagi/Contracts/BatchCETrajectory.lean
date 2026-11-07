@@ -2021,6 +2021,262 @@ theorem directionBatchHalfMeanQuadraticMargin_budget
     batchSampleCE_batchDirectionHalfTrainStep_le_quadraticMargin
       X y D T opCost opRisk write hT
 
+noncomputable def directionBatchMinNormSquaredBudget
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) : ℝ :=
+  2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+    ((B : ℝ) * batchFeatureRangeCoefficient X)
+
+theorem directionBatchMinNormSquaredBudget_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) :
+    0 ≤ directionBatchMinNormSquaredBudget X y S := by
+  unfold directionBatchMinNormSquaredBudget
+  exact div_nonneg (by positivity)
+    (mul_nonneg (Nat.cast_nonneg B) (batchFeatureRangeCoefficient_nonneg X))
+
+/-- The combined minimum-norm KKT and finite feature-range bounds turn at
+least one current binding coordinate into a mean full-margin lower bound.
+The zero-minimizer branch needs no derivative certificate. -/
+theorem directionBatchMinNormSquaredBudget_le_mean
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    directionBatchMinNormSquaredBudget X y S ≤
+      directionBatchHalfMeanQuadraticMargin X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write 0 := by
+  classical
+  by_cases hω : batchGradientMinimizer X (coreParameters S) y = 0
+  · have hmean : 0 ≤ directionBatchHalfMeanQuadraticMargin X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write 0 := by
+      unfold directionBatchHalfMeanQuadraticMargin
+      exact div_nonneg (Finset.sum_nonneg fun b _hb =>
+        directionBatchHalfQuadraticMargin_nonneg X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write b 0) (Nat.cast_nonneg B)
+    simpa [directionBatchMinNormSquaredBudget, hω] using hmean
+  · let _ : Nonempty (Fin B) :=
+      nonempty_fin_batch_of_minimizer_ne_zero X (coreParameters S) y hω
+    have hN : 0 < ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 :=
+      sq_pos_of_pos (norm_pos_iff.mpr hω)
+    have hC : 0 < batchFeatureRangeCoefficient X :=
+      batchFeatureRangeCoefficient_pos_of_minimizer_ne_zero
+        X (coreParameters S) y hω
+    have hneg : ∀ b, dirAction (X b) (coreParameters S) (y b)
+        (-batchGradientMinimizer X (coreParameters S) y) < 0 := by
+      intro b
+      have hbound := dirAction_neg_batchGradientMinimizer_le
+        X (coreParameters S) y b
+      linarith only [hbound, hN]
+    obtain ⟨b, hb⟩ := exists_batchDirectionHalfEta_eq_threshold
+      X (coreParameters S) y (-batchGradientMinimizer X (coreParameters S) y)
+      ⟨inferInstance, hneg⟩
+    have hR := dirRange_pos_of_dirAction_neg
+      (X b) (coreParameters S) (y b)
+      (-batchGradientMinimizer X (coreParameters S) y) (hneg b)
+    have hrange := dirRange_sq_le_batchFeatureRangeCoefficient_mul_norm_sq
+      X (-batchGradientMinimizer X (coreParameters S) y) b
+    have hrecip : 1 / batchFeatureRangeCoefficient X ≤
+        ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+          (dirRange (X b) (-batchGradientMinimizer X (coreParameters S) y)) ^ 2 := by
+      apply (div_le_div_iff₀ hC (sq_pos_of_pos hR)).2
+      simpa [mul_comm] using hrange
+    have he : ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 ≤
+        -dirAction (X b) (coreParameters S) (y b)
+          (-batchGradientMinimizer X (coreParameters S) y) := by
+      have hbound := dirAction_neg_batchGradientMinimizer_le
+        X (coreParameters S) y b
+      linarith only [hbound]
+    have hq : 2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+        batchFeatureRangeCoefficient X ≤
+      directionBatchHalfQuadraticMargin X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write b 0 := by
+      calc
+        2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+            batchFeatureRangeCoefficient X =
+          (2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2) *
+            (1 / batchFeatureRangeCoefficient X) := by ring
+        _ ≤ (2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2) *
+            (‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+              (dirRange (X b)
+                (-batchGradientMinimizer X (coreParameters S) y)) ^ 2) := by
+          exact mul_le_mul_of_nonneg_left hrecip (by positivity)
+        _ = 2 * (‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2) ^ 2 /
+            (dirRange (X b)
+              (-batchGradientMinimizer X (coreParameters S) y)) ^ 2 := by ring
+        _ ≤ 2 * (-dirAction (X b) (coreParameters S) (y b)
+            (-batchGradientMinimizer X (coreParameters S) y)) ^ 2 /
+            (dirRange (X b)
+              (-batchGradientMinimizer X (coreParameters S) y)) ^ 2 := by
+          apply div_le_div_of_nonneg_right _ (sq_nonneg _)
+          exact mul_le_mul_of_nonneg_left
+            (by simpa only [pow_two] using
+              (mul_self_le_mul_self (sq_nonneg _) he)) (by norm_num)
+        _ = directionBatchHalfQuadraticMargin X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write b 0 := by
+          symm
+          exact batchDirectionQuadraticMargin_halfEta_of_eq_threshold
+            X (coreParameters S) y (-batchGradientMinimizer X (coreParameters S) y)
+            ⟨inferInstance, hneg⟩ b hb
+    have hsum : 2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+        batchFeatureRangeCoefficient X ≤
+        ∑ b, directionBatchHalfQuadraticMargin X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write b 0 := hq.trans
+      (Finset.single_le_sum (fun c _hc =>
+        directionBatchHalfQuadraticMargin_nonneg X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write c 0) (Finset.mem_univ b))
+    calc
+      directionBatchMinNormSquaredBudget X y S =
+          (2 * ‖batchGradientMinimizer X (coreParameters S) y‖ ^ 2 /
+            batchFeatureRangeCoefficient X) / (B : ℝ) := by
+        unfold directionBatchMinNormSquaredBudget
+        ring
+      _ ≤ (∑ b, directionBatchHalfQuadraticMargin X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write b 0) / (B : ℝ) :=
+        div_le_div_of_nonneg_right hsum (Nat.cast_nonneg B)
+      _ = directionBatchHalfMeanQuadraticMargin X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write 0 := rfl
+
+theorem directionBatchMinNormSquaredBudget_budget
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t).res.budget) :
+    (∀ T, ∑ t ∈ Finset.range T, directionBatchMinNormSquaredBudget X y
+        (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t) ≤ batchCEObjective X y S) ∧
+      Summable (fun t => directionBatchMinNormSquaredBudget X y
+        (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) ∧
+      Tendsto (fun t => directionBatchMinNormSquaredBudget X y
+        (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) atTop (𝓝 0) ∧
+      ∑' t, directionBatchMinNormSquaredBudget X y
+        (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t) ≤ batchCEObjective X y S := by
+  have hbase := directionBatchHalfMeanQuadraticMargin_budget X y
+    (fun T => -batchGradientMinimizer X (coreParameters T) y)
+    S opCost opRisk write hcost
+  have hfinit : ∀ T, ∑ t ∈ Finset.range T, directionBatchMinNormSquaredBudget X y
+      (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t) ≤ batchCEObjective X y S := by
+    intro T
+    exact (Finset.sum_le_sum (fun t _ht => by
+      simpa only [directionBatchHalfMeanQuadraticMargin,
+        directionBatchHalfQuadraticMargin, directionBatchHalfState_zero] using
+        directionBatchMinNormSquaredBudget_le_mean X y
+          (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t) opCost opRisk write)).trans (hbase.1 T)
+  have hsummable : Summable (fun t => directionBatchMinNormSquaredBudget X y
+      (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) :=
+    summable_of_sum_range_le
+      (fun t => directionBatchMinNormSquaredBudget_nonneg X y _)
+      hfinit
+  exact ⟨hfinit, hsummable, hsummable.tendsto_atTop_zero,
+    hsummable.tsum_le_of_sum_range_le hfinit⟩
+
+/-- Along minimum-norm half-window guarded training, the current minimum-norm
+point's square tends to zero on the actual path. This is not global CE
+minimization or convergence of arbitrary gradients or parameters. -/
+theorem directionBatchMinNormSq_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t).res.budget) :
+    Tendsto (fun t => ‖batchGradientMinimizer X
+      (coreParameters (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) y‖ ^ 2) atTop (𝓝 0) := by
+  by_cases hB : B = 0
+  · subst B
+    simp only [batchGradientMinimizer_empty, norm_zero, ne_eq,
+      OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
+    exact tendsto_const_nhds
+  have hBpos : 0 < (B : ℝ) := by
+    exact_mod_cast Nat.pos_of_ne_zero hB
+  by_cases hC : batchFeatureRangeCoefficient X = 0
+  · have hsq : ∀ t, ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 = 0 := by
+      intro t
+      have hzero : batchGradientMinimizer X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y = 0 := by
+        by_contra hn
+        have hp := batchFeatureRangeCoefficient_pos_of_minimizer_ne_zero X
+          (coreParameters (directionBatchHalfState X y
+            (fun T => -batchGradientMinimizer X (coreParameters T) y)
+            S opCost opRisk write t)) y hn
+        exact (ne_of_gt hp) hC
+      simp [hzero]
+    simp_rw [hsq]
+    exact tendsto_const_nhds
+  have hCpos := lt_of_le_of_ne
+    (batchFeatureRangeCoefficient_nonneg X) (Ne.symm hC)
+  have h_tendsto := (directionBatchMinNormSquaredBudget_budget X y S
+    opCost opRisk write hcost).2.2.1
+  have hmul := h_tendsto.const_mul ((B : ℝ) * batchFeatureRangeCoefficient X / 2)
+  have heq (t : ℕ) : ((B : ℝ) * batchFeatureRangeCoefficient X / 2) *
+      directionBatchMinNormSquaredBudget X y
+        (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t) =
+      ‖batchGradientMinimizer X
+        (coreParameters (directionBatchHalfState X y
+          (fun T => -batchGradientMinimizer X (coreParameters T) y)
+          S opCost opRisk write t)) y‖ ^ 2 := by
+    unfold directionBatchMinNormSquaredBudget
+    field_simp [ne_of_gt hBpos, ne_of_gt hCpos]
+  simpa only [heq, mul_zero] using hmul
+
+/-- Norm-square convergence of the minimum-norm gradient point lifts to
+convergence of that Euclidean point itself. It is not parameter convergence
+or convergence of an arbitrary gradient vector or a held-out loss gap. -/
+theorem directionBatchMinNorm_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t).res.budget) :
+    Tendsto (fun t => batchGradientMinimizer X
+      (coreParameters (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) y) atTop (𝓝 0) := by
+  have hsquared := directionBatchMinNormSq_tendsto_zero X y S
+    opCost opRisk write hcost
+  have hnorm : Tendsto (fun t => ‖batchGradientMinimizer X
+      (coreParameters (directionBatchHalfState X y
+        (fun T => -batchGradientMinimizer X (coreParameters T) y)
+        S opCost opRisk write t)) y‖) atTop (𝓝 0) := by
+    simpa only [Real.sqrt_zero, Real.sqrt_sq (norm_nonneg _)] using hsquared.sqrt
+  exact tendsto_zero_iff_norm_tendsto_zero.2 hnorm
+
 theorem directionBatchHalfSampleCE_antitone
     (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
     (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
