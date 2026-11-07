@@ -303,6 +303,7 @@ import Hagi.Probability.FiniteBayes
 import Hagi.Probability.FiniteHamming
 import Hagi.Probability.FiniteJointLogScore
 import Hagi.Probability.FiniteLogScore
+import Hagi.Probability.FiniteEM
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
