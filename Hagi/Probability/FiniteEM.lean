@@ -112,7 +112,8 @@ private theorem ceDef_jointMass_eq {X Y : Type} [Fintype X]
   rw [hsum]
   ring
 
-private theorem fromPMF_kl_nonneg {X : Type} [Fintype X]
+/-- Support inclusion gives nonnegative real KL divergence between finite PMFs. -/
+theorem fromPMF_kl_nonneg {X : Type} [Fintype X]
     (p q : PMF X) (hpq : p.support ⊆ q.support) :
     0 ≤ klDef (fromPMF p) (fromPMF q) := by
   obtain ⟨x, hx⟩ := p.support_nonempty
