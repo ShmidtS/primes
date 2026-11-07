@@ -1,6 +1,8 @@
 import Hagi.Contracts.CEStepCertificate
+import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.GatedCESafeStep
-import Hagi.Unified.GuardedRobustSelection
+import Hagi.Model.CEHeldout
+import Hagi.Unified.GuardedRobustTrajectory
 
 /-!
 # Gated categorical-CE execution through the canonical training transition
@@ -486,5 +488,338 @@ theorem gatedCEValueEstimate_error_le (X : Matrix V (Fin n) ℝ) (t : V)
       gatedCEValueEstimate X t opCost opRisk write
         ((gatedCEProblem X t opCost opRisk write).step action S)| ≤ 1 / 2 :=
   le_of_eq (gatedCEValueEstimate_error X t opCost opRisk write _)
+
+open Hagi.Unified.FixedBiasBinaryProgress
+open Hagi.Unified.GuardedRobustTrajectory
+open Hagi.Unified.GuardedRobustSelection
+open Filter Topology
+
+/-- The actual one-target gated CE is nonnegative on every ordinary state. -/
+theorem gatedCEObjective_nonneg (X : Matrix V (Fin n) ℝ) (t : V)
+    (S : TrainState n a r c k) : 0 ≤ gatedCEObjective X t S := by
+  let _ : Nonempty V := ⟨t⟩
+  exact Hagi.Model.CEHeldout.ceOneHot_nonneg t _
+
+/-- Nonnegative CE gives the controller's value an intrinsic upper bound zero. -/
+theorem gatedCEProblem_value_le_zero (X : Matrix V (Fin n) ℝ) (t : V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (gatedCEProblem X t opCost opRisk write).value S ≤ 0 := by
+  exact neg_nonpos.mpr (gatedCEObjective_nonneg X t S)
+
+/-- Unlike the stored quality telemetry, the actual one-target CE is monotone
+nonincreasing along the guarded path. -/
+theorem gatedCEPath_antitone
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) :
+    Antitone (fun i => gatedCEObjective X t
+      (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i)) := by
+  apply antitone_nat_of_succ_le
+  intro i
+  have hstep := scaledBiasBinaryPath_quality_step
+    (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+      X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) i
+  simpa only [gatedCEProblem, neg_neg] using neg_le_neg hstep
+
+/-- Actual gated CE converges to its conditional infimum; that infimum need
+not be zero, and no full-state/parameter identification is asserted here. -/
+theorem gatedCEPath_tendsto_ciInf
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) :
+    Tendsto (fun i => gatedCEObjective X t
+      (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i)) atTop
+      (𝓝 (⨅ i, gatedCEObjective X t
+        (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write) δ M C h0 S0 i))) :=
+  Hagi.Contracts.ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (gatedCEPath_antitone X t opCost opRisk write δ hδ M C h0 S0)
+    (fun _ => gatedCEObjective_nonneg X t _)
+
+/-- The finite positive-gain count at the gated controller needs no separately
+supplied upper quality bound: its value gap is exactly the initial CE. -/
+theorem gatedCEProgressCount_le_div
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) (T : ℕ) :
+    (scaledBiasBinaryProgressCount
+      (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 T : ℝ) ≤
+      gatedCEObjective X t S0 / δ := by
+  have hcount := scaledBiasBinaryProgressCount_le_div
+    (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+      X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) 0
+    (fun _ => gatedCEProblem_value_le_zero X t opCost opRisk write _) T
+  rw [scaledBiasBinaryPath_zero] at hcount
+  simpa only [gatedCEProblem, zero_sub, neg_neg] using hcount
+
+/-- The gated positive-threshold trajectory eventually has stationary full
+successors; this is not a claim of global optimality or zero CE. -/
+theorem gatedCEPath_eventually_succ_eq
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) :
+    ∃ N, ∀ i ≥ N,
+      scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 (i + 1) =
+      scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i :=
+  scaledBiasBinaryPath_eventually_succ_eq
+    (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+      X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) 0
+    (fun _ => gatedCEProblem_value_le_zero X t opCost opRisk write _)
+
+/-- The gated path is eventually equal to one of its own finite-time states. -/
+theorem gatedCEPath_eventually_eq
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) :
+    ∃ N, ∀ i ≥ N,
+      scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i =
+      scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 N :=
+  scaledBiasBinaryPath_eventually_eq
+    (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+      X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) 0
+    (fun _ => gatedCEProblem_value_le_zero X t opCost opRisk write _)
+
+/-- Under any supplied full-state topology, the gated trajectory converges to
+an eventual path state. This does not identify that state as a minimizer. -/
+theorem gatedCEPath_tendsto_eventual_state
+    [TopologicalSpace (TrainState n a r c k)]
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) :
+    ∃ N, Filter.Tendsto
+      (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0) Filter.atTop
+      (𝓝 (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a)
+        (r := r) (k := k) X t opCost opRisk write) δ M C h0 S0 N)) :=
+  scaledBiasBinaryPath_tendsto_eventual_value
+    (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+      X t opCost opRisk write) δ hδ M C h0 S0
+    (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) 0
+    (fun _ => gatedCEProblem_value_le_zero X t opCost opRisk write _)
+
+/-- A nonnegative initial declared budget stays nonnegative on every gated
+path state, including inactive steps and identity transitions. -/
+theorem gatedCEPath_budget_nonneg
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) (hbudget : 0 ≤ S0.res.budget) (T : ℕ) :
+    0 ≤ (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r)
+      (k := k) X t opCost opRisk write) δ M C h0 S0 T).res.budget := by
+  induction T with
+  | zero => exact hbudget
+  | succ T ih =>
+      rw [scaledBiasBinaryPath_succ]
+      obtain ⟨action, ha, hstep⟩ := guardedRobustNext_exists
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write)
+        (scaledBiasBinaryValueEstimate
+          (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+            X t opCost opRisk write) δ) (δ / 2)
+        (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r)
+          (k := k) X t opCost opRisk write) δ M C h0 S0 T) M C (0 : Fin 2) h0
+      rw [hstep]
+      have hcases : action.val = 0 ∨ action.val = 1 := by omega
+      rcases hcases with hzero | hone
+      · have ha0 : action = 0 := Fin.ext hzero
+        subst action
+        rw [gatedCEProblem_step_zero]
+        exact ih
+      · have ha1 : action = 1 := Fin.ext hone
+        subst action
+        rw [gatedCEProblem_step_one]
+        exact budgetedGatedCETrainStep_budget_nonneg X t _ opCost opRisk write ih
+
+/-- At a positive actual gated value gain, the budgeted canonical transition
+really executes; hence that step contributes `opCost` and every other step
+contributes zero to the declared `res.flops` counter. -/
+theorem gatedCEPath_flops_succ
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) (i : ℕ) :
+    (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 (i + 1)).res.flops =
+      (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i).res.flops +
+      if 0 < scaledBiasBinaryGain (gatedCEProblem (n := n) (a := a) (r := r)
+        (k := k) X t opCost opRisk write) δ M C h0 S0 i then opCost else 0 := by
+  classical
+  by_cases hpos : 0 < scaledBiasBinaryGain
+      (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 i
+  · have hsucc := scaledBiasBinaryPath_succ_eq_step_one_of_gain_pos
+      (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ hδ M C h0 S0
+      (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) i hpos
+    rw [gatedCEProblem_step_one] at hsucc
+    have hactive : 0 ≤ opCost ∧ opCost ≤
+        (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r)
+          (k := k) X t opCost opRisk write) δ M C h0 S0 i).res.budget := by
+      by_contra hinactive
+      have hzero : scaledBiasBinaryGain
+          (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+            X t opCost opRisk write) δ M C h0 S0 i = 0 := by
+        rw [scaledBiasBinaryGain_eq_sub, hsucc,
+          budgetedGatedCETrainStep_of_inactive X t _ opCost opRisk write hinactive,
+          sub_self]
+      linarith
+    rw [hsucc, budgetedGatedCETrainStep_of_active X t _ opCost opRisk write hactive,
+      gatedCETrainStep, trainStep_flops, gatedCETrainInput, ite_eq_left hpos]
+  · have hnoup : ¬ estimatedUpgrade
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write)
+        (scaledBiasBinaryValueEstimate
+          (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+            X t opCost opRisk write) δ) (δ / 2)
+        (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r)
+          (k := k) X t opCost opRisk write) δ M C h0 S0 i)
+        M C (0 : Fin 2) := by
+      intro hup
+      exact hpos (scaledBiasBinaryGain_pos_of_upgrade
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write) δ hδ M C h0 S0
+        (fun S => gatedCEProblem_step_zero X t opCost opRisk write S) i hup)
+    rw [scaledBiasBinaryPath_succ,
+      guardedRobustNext_of_no_upgrade
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write)
+        (scaledBiasBinaryValueEstimate
+          (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+            X t opCost opRisk write) δ) (δ / 2) _ M C (0 : Fin 2) h0 hnoup]
+    rw [gatedCEProblem_step_zero, ite_eq_right hpos, add_zero]
+
+/-- Exact finite telescope for the declared gated FLOP counter. -/
+theorem gatedCEPath_flops_eq
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) (T : ℕ) :
+    (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 T).res.flops =
+      S0.res.flops + opCost * (scaledBiasBinaryProgressCount
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write) δ M C h0 S0 T : ℝ) := by
+  induction T with
+  | zero => simp only [scaledBiasBinaryPath_zero, scaledBiasBinaryProgressCount,
+      Finset.range_zero, Finset.filter_empty, Finset.card_empty, Nat.cast_zero,
+      mul_zero, add_zero]
+  | succ T ih =>
+      rw [gatedCEPath_flops_succ X t opCost opRisk write δ hδ M C h0 S0 T, ih,
+        scaledBiasBinaryProgressCount_succ, Nat.cast_add, Nat.cast_ite,
+        Nat.cast_one, Nat.cast_zero]
+      split_ifs <;> ring
+
+/-- With nonnegative supplied cost, the finite declared ledger increment is at
+most `(opCost / δ) * initialCE`. This still does not count estimator evaluations. -/
+theorem gatedCEPath_flops_le
+    (X : Matrix V (Fin n) ℝ) (t : V) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (δ : ℝ) (hδ : 0 < δ)
+    (M C : ℕ) (h0 : (0 : Fin 2) ∈ feasible (gatedCEProblem (n := n) (a := a)
+      (r := r) (k := k) X t opCost opRisk write) M C)
+    (S0 : TrainState n a r c k) (T : ℕ) (hcost : 0 ≤ opCost) :
+    (scaledBiasBinaryPath (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+        X t opCost opRisk write) δ M C h0 S0 T).res.flops ≤
+      S0.res.flops + (opCost / δ) * gatedCEObjective X t S0 := by
+  rw [gatedCEPath_flops_eq X t opCost opRisk write δ hδ M C h0 S0 T]
+  have hcount := gatedCEProgressCount_le_div
+    X t opCost opRisk write δ hδ M C h0 S0 T
+  have hmul := mul_le_mul_of_nonneg_left hcount hcost
+  calc
+    S0.res.flops + opCost * (scaledBiasBinaryProgressCount
+        (gatedCEProblem (n := n) (a := a) (r := r) (k := k)
+          X t opCost opRisk write) δ M C h0 S0 T : ℝ) ≤
+        S0.res.flops + opCost * (gatedCEObjective X t S0 / δ) :=
+      add_le_add_right hmul _
+    _ = S0.res.flops + (opCost / δ) * gatedCEObjective X t S0 := by ring
+
+/-- A concrete first path with threshold `1/16`, exact biased estimate and
+unit caps one and two. Its only control parameters remain the canonical input. -/
+noncomputable def identityScaledGatedCEPath : ℕ → TrainState 2 0 0 0 0 :=
+  scaledBiasBinaryPath
+    (gatedCEProblem (n := 2) (a := 0) (r := 0) (c := 0) (k := 0)
+      (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 (1 / 2) (1 / 4) none)
+    (1 / 16) 1 2
+    (gatedCE_stay_feasible (1 : Matrix (Fin 2) (Fin 2) ℝ) 0
+      (1 / 2) (1 / 4) none 1 2) identityInitialState
+
+/-- The first genuinely selected threshold upgrade executes the real canonical
+`identityGatedCEStep`, not an identity or a resource-field replacement. -/
+theorem identityScaledGatedCEPath_one :
+    identityScaledGatedCEPath 1 = identityGatedCEStep := by
+  let p : ControllerProblem (Fin 2) (TrainState 2 0 0 0 0) :=
+    gatedCEProblem (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 (1 / 2) (1 / 4) none
+  let h0 : (0 : Fin 2) ∈ feasible p 1 2 := by
+    dsimp only [p]
+    exact gatedCE_stay_feasible (1 : Matrix (Fin 2) (Fin 2) ℝ) 0
+      (1 / 2) (1 / 4) none 1 2
+  have h1 : (1 : Fin 2) ∈ feasible p 1 2 := by
+    dsimp only [p]
+    exact (gatedCE_one_feasible_iff _ _ _ _ _ _ _).mpr (by norm_num)
+  have hactive : 0 ≤ (1 / 2 : ℝ) ∧
+      (1 / 2) ≤ identityInitialState.res.budget := by
+    constructor
+    · norm_num
+    · change (1 / 2 : ℝ) ≤ 2
+      norm_num
+  have hstep : p.step (1 : Fin 2) identityInitialState = identityGatedCEStep := by
+    change budgetedGatedCETrainStep (1 : Matrix (Fin 2) (Fin 2) ℝ)
+      0 identityInitialState (1 / 2) (1 / 4) none = identityGatedCEStep
+    rw [budgetedGatedCETrainStep_of_active _ _ _ _ _ _ hactive]
+    rfl
+  have hstay : ∀ S : TrainState 2 0 0 0 0, p.step (0 : Fin 2) S = S := by
+    intro S
+    dsimp only [p]
+    exact gatedCEProblem_step_zero _ _ _ _ _ _
+  have hdrop := gatedSafeDrop_le_gatedCETrainStep_drop
+    (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 identityInitialState (1 / 2) (1 / 4) none
+  rw [identity_gatedSafeDrop] at hdrop
+  change (1 / 16 : ℝ) ≤ gatedCEObjective (1 : Matrix (Fin 2) (Fin 2) ℝ)
+      0 identityInitialState -
+    gatedCEObjective (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 identityGatedCEStep at hdrop
+  have hup : estimatedUpgrade p
+      (scaledBiasBinaryValueEstimate p (1 / 16)) (1 / 16 / 2)
+      (scaledBiasBinaryPath p (1 / 16) 1 2 h0 identityInitialState 0) 1 2 0 := by
+    refine ⟨1, h1, ?_⟩
+    change (-gatedCEObjective (1 : Matrix (Fin 2) (Fin 2) ℝ) 0
+        (p.step 0 (scaledBiasBinaryPath p (1 / 16) 1 2 h0 identityInitialState 0)) -
+        (1 / 16 : ℝ) / 2) + 2 * ((1 / 16 : ℝ) / 2) ≤
+      -gatedCEObjective (1 : Matrix (Fin 2) (Fin 2) ℝ) 0
+        (p.step 1 (scaledBiasBinaryPath p (1 / 16) 1 2 h0 identityInitialState 0)) -
+        (1 / 16 : ℝ) / 2
+    rw [scaledBiasBinaryPath_zero, hstay, hstep]
+    linarith
+  have hnext := scaledBiasBinaryPath_succ_eq_step_one_of_upgrade p
+    (1 / 16) (by norm_num) 1 2 h0 identityInitialState hstay 0 hup
+  rw [scaledBiasBinaryPath_zero] at hnext
+  unfold identityScaledGatedCEPath
+  exact hnext.trans hstep
 
 end Hagi.Contracts.BudgetedGatedCE
