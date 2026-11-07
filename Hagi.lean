@@ -452,7 +452,6 @@ import Hagi.State.TrainState
 import Hagi.State.Transition
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.GuardedLogitTrajectory
-import Hagi.Contracts.GuardedLogitProgress
 import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.GatedCEStepCertificate
@@ -460,7 +459,6 @@ import Hagi.Contracts.GatedCETrajectory
 import Hagi.Contracts.GatedCESummability
 import Hagi.Contracts.GatedCEAlignmentBudget
 import Hagi.Contracts.GatedCEUniformAlignmentBudget
-import Hagi.Contracts.BudgetedGatedCEControl
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
