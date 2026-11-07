@@ -54,6 +54,20 @@ noncomputable def batchMinimumNormTrainInput (X : Fin B → Matrix V (Fin n) ℝ
   opRisk := opRisk
   write := write
 
+/-- A current-state training input for an arbitrary supplied descent
+direction.  The canonical transition subtracts the supplied raw gradient,
+so the gradient field is exactly `-D`; cost, risk and writes stay external. -/
+noncomputable def batchDirectionTrainInput
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : TrainingInput n c where
+  grad j := (-D S).ofLp j
+  eta := batchDirectionSafeEta X (coreParameters S) y (D S)
+  opCost := opCost
+  opRisk := opRisk
+  write := write
+
 /-- The explicit two-sample current-state input.  Its gradient is the exact
 minimum-norm point of the segment between the two current raw residual
 gradients; all other fields retain the existing minimum-norm policy. -/
@@ -126,6 +140,28 @@ theorem coreParameters_trainStep_batchMinimumNormTrainInput
       (batchGradientMinimizer X (coreParameters S) y).ofLp j =
     S.model.weights j + batchCommonSafeEta X (coreParameters S) y *
       -(batchGradientMinimizer X (coreParameters S) y).ofLp j
+  ring
+
+/-- Subtracting `-D` through the canonical transition is exactly addition
+along `D` at the arbitrary-direction certified step from BatchCEDescent. -/
+theorem coreParameters_trainStep_batchDirectionTrainInput
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    coreParameters (trainStep S
+      (batchDirectionTrainInput X y D S opCost opRisk write)) =
+      batchDirectionNextParameters X (coreParameters S) y (D S) := by
+  apply PiLp.ext
+  intro j
+  change S.model.weights j -
+      batchDirectionSafeEta X (coreParameters S) y (D S) * (-D S).ofLp j =
+    S.model.weights j + batchDirectionSafeEta X (coreParameters S) y (D S) *
+      (D S).ofLp j
+  change S.model.weights j -
+      batchDirectionSafeEta X (coreParameters S) y (D S) * -(D S).ofLp j =
+    S.model.weights j + batchDirectionSafeEta X (coreParameters S) y (D S) *
+      (D S).ofLp j
   ring
 
 /-- Adapters are unchanged by the existing backbone-weight transition. -/
@@ -601,6 +637,200 @@ theorem qual_guardedBatchTrainStep
   · rw [guardedBatchTrainStep_of_active X y inputFor S h,
       trainStep_quality_unchanged]
   · rw [guardedBatchTrainStep_of_inactive X y inputFor S h]
+
+/-- The arbitrary-direction specialization of the existing generic
+current-state guard from Cycle125c.  No second guard or transition is
+introduced; the direction and all training fields are recomputed at `S`. -/
+noncomputable def batchDirectionTrainStep
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : TrainState n a r c k :=
+  guardedBatchTrainStep X y
+    (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S
+
+/-- The generic pointwise guard protects every supplied sample, including
+when the totalized direction certificate fails and selects zero eta. -/
+theorem batchSampleCE_batchDirectionTrainStep_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) :
+    batchSampleCE X y b (batchDirectionTrainStep X y D S opCost opRisk write) ≤
+      batchSampleCE X y b S :=
+  batchSampleCE_guardedBatchTrainStep_le X y
+    (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S b
+
+/-- The guarded arbitrary-direction transition non-increases actual supplied-
+batch mean CE, including the totalized empty-batch convention. -/
+theorem batchCEObjective_batchDirectionTrainStep_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchCEObjective X y (batchDirectionTrainStep X y D S opCost opRisk write) ≤
+      batchCEObjective X y S :=
+  batchCEObjective_guardedBatchTrainStep_le X y
+    (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S
+
+/-- Canonical accounting under the existing guard preserves a nonnegative
+initial declared budget. -/
+theorem batchDirectionTrainStep_budget_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (hbudget : 0 ≤ S.res.budget) :
+    0 ≤ (batchDirectionTrainStep X y D S opCost opRisk write).res.budget :=
+  guardedBatchTrainStep_budget_nonneg X y
+    (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S hbudget
+
+/-- The arbitrary-direction specialization preserves stored external quality
+telemetry; this is not a claim that training improves that telemetry. -/
+theorem qual_batchDirectionTrainStep
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    (batchDirectionTrainStep X y D S opCost opRisk write).qual = S.qual :=
+  qual_guardedBatchTrainStep X y
+    (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S
+
+/-- Nonnegative affordable cost and the current negative-derivative
+certificate admit the canonical arbitrary-direction candidate.  Strict
+model-level CE descent supplies the guard's nonincrease premise. -/
+theorem batchDirectionTrainStep_of_active
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0) :
+    batchDirectionTrainStep X y D S opCost opRisk write =
+      trainStep S (batchDirectionTrainInput X y D S opCost opRisk write) := by
+  let _ : Nonempty (Fin B) := hcert.1
+  apply guardedBatchTrainStep_of_active
+  refine ⟨hcost, ?_⟩
+  intro b
+  change Hagi.ceOneHot (y b) (ceLogits (X b)
+      (coreParameters (trainStep S
+        (batchDirectionTrainInput X y D S opCost opRisk write)))) ≤
+    Hagi.ceOneHot (y b) (ceLogits (X b) (coreParameters S))
+  rw [coreParameters_trainStep_batchDirectionTrainInput]
+  exact (ceOneHot_batchDirectionNextParameters_lt
+    X (coreParameters S) y (D S) hcert.2 b).le
+
+/-- Failure of the nonnegative/affordable cost condition rejects the complete
+candidate through the generic guard, independently of the direction. -/
+theorem batchDirectionTrainStep_of_inactive
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ¬ (0 ≤ opCost ∧ opCost ≤ S.res.budget)) :
+    batchDirectionTrainStep X y D S opCost opRisk write = S := by
+  apply guardedBatchTrainStep_of_inactive
+  intro h
+  exact hcost h.1
+
+/-- After admission, canonical execution has exactly the model-level
+arbitrary-direction parameters at the same current state. -/
+theorem coreParameters_batchDirectionTrainStep
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0) :
+    coreParameters (batchDirectionTrainStep X y D S opCost opRisk write) =
+      batchDirectionNextParameters X (coreParameters S) y (D S) := by
+  rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert]
+  exact coreParameters_trainStep_batchDirectionTrainInput
+    X y D S opCost opRisk write
+
+/-- Under feasible cost and the complete current certificate, every supplied
+sample's actual CE strictly decreases after guarded execution. -/
+theorem batchSampleCE_batchDirectionTrainStep_lt
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0) (b : Fin B) :
+    batchSampleCE X y b (batchDirectionTrainStep X y D S opCost opRisk write) <
+      batchSampleCE X y b S := by
+  let _ : Nonempty (Fin B) := hcert.1
+  rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert]
+  change Hagi.ceOneHot (y b) (ceLogits (X b)
+      (coreParameters (trainStep S
+        (batchDirectionTrainInput X y D S opCost opRisk write)))) <
+    Hagi.ceOneHot (y b) (ceLogits (X b) (coreParameters S))
+  rw [coreParameters_trainStep_batchDirectionTrainInput]
+  exact ceOneHot_batchDirectionNextParameters_lt
+    X (coreParameters S) y (D S) hcert.2 b
+
+/-- The same feasible-cost/current-certificate hypotheses give strict actual
+arithmetic-mean CE descent, transported directly from BatchCEDescent. -/
+theorem batchCEObjective_batchDirectionTrainStep_lt
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0) :
+    batchCEObjective X y (batchDirectionTrainStep X y D S opCost opRisk write) <
+      batchCEObjective X y S := by
+  let _ : Nonempty (Fin B) := hcert.1
+  rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert]
+  rw [batchCEObjective, batchCEObjective,
+    coreParameters_trainStep_batchDirectionTrainInput]
+  exact batchLoss_batchDirectionNextParameters_lt
+    X (coreParameters S) y (D S) hcert.2
+
+/-- Accepted arbitrary-direction execution adds exactly the abstract supplied
+`opCost`; direction selection, certificate checks and CE evaluation are not
+silently included in this declared ledger increment. -/
+theorem batchDirectionTrainStep_flops_of_active
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hcert : Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0) :
+    (batchDirectionTrainStep X y D S opCost opRisk write).res.flops =
+      S.res.flops + opCost := by
+  rw [batchDirectionTrainStep_of_active X y D S opCost opRisk write hcost hcert,
+    trainStep_flops]
+  rfl
+
+/-- Without the complete current certificate the arbitrary-direction step
+preserves backbone weights on both guard branches.  An admitted zero-eta
+candidate can still update optimizer state and spend its supplied cost; no
+complete-state fallback or unspent-budget assertion is made here. -/
+theorem coreParameters_batchDirectionTrainStep_eq_of_not_certificate
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcert : ¬ (Nonempty (Fin B) ∧ ∀ b,
+      dirAction (X b) (coreParameters S) (y b) (D S) < 0)) :
+    coreParameters (batchDirectionTrainStep X y D S opCost opRisk write) =
+      coreParameters S := by
+  by_cases h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b
+        (trainStep S (batchDirectionTrainInput X y D S opCost opRisk write)) ≤
+      batchSampleCE X y b S
+  · rw [batchDirectionTrainStep, guardedBatchTrainStep_of_active X y
+      (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S h,
+      coreParameters_trainStep_batchDirectionTrainInput]
+    exact batchDirectionNextParameters_eq_zero
+      X (coreParameters S) y (D S) hcert
+  · rw [batchDirectionTrainStep, guardedBatchTrainStep_of_inactive X y
+      (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S h]
 
 /-- The minimum-norm candidate uses the existing current-state guard; no
 second acceptance predicate or alternate state transition is introduced. -/
