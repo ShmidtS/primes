@@ -298,6 +298,7 @@ import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
 import Hagi.Probability.GibbsInfoCore
+import Hagi.Probability.LinkedFlip
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
