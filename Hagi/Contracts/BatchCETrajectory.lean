@@ -30,52 +30,8 @@ open Filter Topology
 variable {V : Type} [Fintype V]
 variable {B n a r c k : ℕ}
 
-/-- Nonnegative majorizer residual for the selected common batch step.  The
-zero-range branch is literal zero; no positive certificate is fabricated. -/
-noncomputable def batchCertifiedDrop (X : Fin B → Matrix V (Fin n) ℝ)
-    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) : ℝ :=
-  if batchRangeSquare X θ y = 0 then 0
-  else 2 * batchAlignment X θ y ^ 2 / batchRangeSquare X θ y
 
-/-- Both branches of the certified residual are nonnegative. -/
-theorem batchCertifiedDrop_nonneg (X : Fin B → Matrix V (Fin n) ℝ)
-    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) :
-    0 ≤ batchCertifiedDrop X θ y := by
-  rw [batchCertifiedDrop]
-  split_ifs with hR
-  · exact le_rfl
-  · exact div_nonneg (mul_nonneg (by norm_num) (sq_nonneg _))
-      (batchRangeSquare_nonneg X θ y)
 
-/-- Actual CE on one fixed finite batch has the existing termwise nonnegative
-bound.  Empty batches retain Lean's conventional raw mean zero. -/
-theorem batchLoss_nonneg [Nonempty V] (X : Fin B → Matrix V (Fin n) ℝ)
-    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) :
-    0 ≤ batchLoss X θ y := by
-  unfold batchLoss Hagi.Probability.FiniteFamilyConfidence.empiricalMean
-  exact div_nonneg (Finset.sum_nonneg fun _ _ => CEHeldout.ceOneHot_nonneg _ _)
-    (Nat.cast_nonneg B)
-
-/-- The unmodified transition's exact loss decrease is at least the computed
-nonnegative majorizer residual at the same old weights. -/
-theorem batchCertifiedDrop_le_actualDrop [Nonempty V]
-    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
-    (S : TrainState n a r c k) (opCost opRisk : ℝ)
-    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
-    batchCertifiedDrop X (coreParameters S) y ≤
-      batchCEObjective X y S -
-        batchCEObjective X y (batchTrainStep X y S opCost opRisk write) := by
-  rw [batchCertifiedDrop]
-  split_ifs with hR
-  · rw [batchCEObjective_batchTrainStep_eq_of_rangeSquare_eq_zero
-      X y S opCost opRisk write hR]
-    exact sub_nonneg.mpr le_rfl
-  · have hRpos : 0 < batchRangeSquare X (coreParameters S) y :=
-      lt_of_le_of_ne (batchRangeSquare_nonneg X (coreParameters S) y)
-        (Ne.symm hR)
-    have hbound := batchLoss_safeStep_le_residual X (coreParameters S) y hRpos
-    rw [batchCEObjective, batchCEObjective, coreParameters_batchTrainStep]
-    linarith
 
 /-- Execute repeatedly on the same finite batch, recomputing the mean residual
 and safe step from every actual successor.  Ledger/write arguments stay fixed

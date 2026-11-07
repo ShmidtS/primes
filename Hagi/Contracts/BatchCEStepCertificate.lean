@@ -1,5 +1,7 @@
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Model.BatchCEDescent
+import Hagi.Model.CEHeldout
+import Hagi.Unified.ParetoExecution
 
 /-!
 # Executed arithmetic-batch CE descent through the canonical trainStep
@@ -180,6 +182,73 @@ theorem batchCEObjective_batchTrainStep_eq_of_rangeSquare_eq_zero
   rw [batchCEObjective, batchCEObjective, coreParameters_batchTrainStep]
   exact batchLoss_batchNext_eq_of_rangeSquare_eq_zero X (coreParameters S) y hR
 
+end Hagi.Contracts.BatchCEStep
+
+namespace Hagi.Contracts.BatchCETrajectory
+
+open Hagi.State Hagi.Model Hagi.Model.BatchCEDescent Hagi.Contracts.CEStep
+open Hagi.Contracts.BatchCEStep
+open Filter Topology
+
+variable {V : Type} [Fintype V]
+variable {B n a r c k : ℕ}
+
+/-- The raw finite arithmetic-mean loss is nonnegative when the target
+vocabulary is inhabited; the separate empty-batch convention is checked below. -/
+theorem batchLoss_nonneg [Nonempty V] (X : Fin B → Matrix V (Fin n) ℝ)
+    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) :
+    0 ≤ batchLoss X θ y := by
+  unfold batchLoss Hagi.Probability.FiniteFamilyConfidence.empiricalMean
+  exact div_nonneg (Finset.sum_nonneg fun _ _ => CEHeldout.ceOneHot_nonneg _ _)
+    (Nat.cast_nonneg B)
+
+/-- The existing nonnegative majorizer residual for the canonical batch step. -/
+noncomputable def batchCertifiedDrop (X : Fin B → Matrix V (Fin n) ℝ)
+    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) : ℝ :=
+  if batchRangeSquare X θ y = 0 then 0
+  else 2 * batchAlignment X θ y ^ 2 / batchRangeSquare X θ y
+
+/-- Both branches of the certified residual are nonnegative. -/
+theorem batchCertifiedDrop_nonneg (X : Fin B → Matrix V (Fin n) ℝ)
+    (θ : EuclideanSpace ℝ (Fin n)) (y : Fin B → V) :
+    0 ≤ batchCertifiedDrop X θ y := by
+  rw [batchCertifiedDrop]
+  split_ifs with hR
+  · exact le_rfl
+  · exact div_nonneg (mul_nonneg (by norm_num) (sq_nonneg _))
+      (batchRangeSquare_nonneg X θ y)
+
+/-- The canonical transition's exact loss decrease dominates the nonnegative
+majorizer residual at the same old weights. -/
+theorem batchCertifiedDrop_le_actualDrop [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchCertifiedDrop X (coreParameters S) y ≤
+      batchCEObjective X y S -
+        batchCEObjective X y (batchTrainStep X y S opCost opRisk write) := by
+  rw [batchCertifiedDrop]
+  split_ifs with hR
+  · rw [batchCEObjective_batchTrainStep_eq_of_rangeSquare_eq_zero
+      X y S opCost opRisk write hR]
+    exact sub_nonneg.mpr le_rfl
+  · have hRpos : 0 < batchRangeSquare X (coreParameters S) y :=
+      lt_of_le_of_ne (batchRangeSquare_nonneg X (coreParameters S) y)
+        (Ne.symm hR)
+    have hbound := batchLoss_safeStep_le_residual X (coreParameters S) y hRpos
+    rw [batchCEObjective, batchCEObjective, coreParameters_batchTrainStep]
+    linarith
+
+end Hagi.Contracts.BatchCETrajectory
+
+namespace Hagi.Contracts.BatchCEStep
+
+open Hagi.State Hagi.Model Hagi.Model.BatchCEDescent Hagi.Contracts.CEStep
+open Hagi.Unified.HonestTransition Hagi.Unified.CertifiedLoop
+
+variable {V : Type} [Fintype V]
+variable {B n a r c k : ℕ}
+
 /-- Distinct finite feature matrices I and 2I with genuinely mixed labels. -/
 abbrev heterogeneousFeatures : Fin 2 → Matrix (Fin 2) (Fin 2) ℝ :=
   fun b v j => if v = j then (if b = 0 then 1 else 2) else 0
@@ -310,3 +379,308 @@ noncomputable def heterogeneousStepCert :
     (by change (1 / 2 : ℝ) ≤ 2; norm_num)
 
 end Hagi.Contracts.BatchCEStep
+
+namespace Hagi.Contracts.BudgetedBatchCE
+
+open Hagi.State Hagi.Model Hagi.Model.BatchCEDescent Hagi.Contracts.CEStep
+open Hagi.Contracts.BatchCEStep
+
+variable {V : Type} [Fintype V]
+variable {B n a r c k : ℕ}
+
+/-- Exact one-sample CE inside the supplied finite batch, evaluated on the
+actual current backbone parameters. -/
+noncomputable def batchSampleCE (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (b : Fin B) (S : TrainState n a r c k) : ℝ :=
+  Hagi.ceOneHot (y b) (ceLogits (X b) (coreParameters S))
+
+/-- Each sample supplies the inhabited vocabulary for one-target CE;
+empty-batch cases do not pretend to have a sample. -/
+theorem batchSampleCE_nonneg (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (b : Fin B) (S : TrainState n a r c k) :
+    0 ≤ batchSampleCE X y b S := by
+  let _ : Nonempty V := ⟨y b⟩
+  exact Hagi.Model.CEHeldout.ceOneHot_nonneg _ _
+
+/-- The empty batch keeps the previously established raw zero convention. -/
+theorem emptyBatchCEObjective_zero
+    (X : Fin 0 → Matrix V (Fin n) ℝ) (y : Fin 0 → V)
+    (S : TrainState n a r c k) : batchCEObjective X y S = 0 := by
+  exact (empty_batch_convention X (coreParameters S) y).1
+
+/-- The arithmetic mean objective is nonnegative for every batch size; an
+empty batch is handled without constructing a target that does not exist. -/
+theorem batchCEObjective_nonneg (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (S : TrainState n a r c k) :
+    0 ≤ batchCEObjective X y S := by
+  cases B with
+  | zero => rw [emptyBatchCEObjective_zero]
+  | succ B =>
+      let _ : Nonempty V := ⟨y 0⟩
+      exact Hagi.Contracts.BatchCETrajectory.batchLoss_nonneg
+        X (coreParameters S) y
+
+/-- The canonical batch step is non-increasing in actual mean CE without an
+extra nonempty-vocabulary premise. Positive range supplies a nonempty batch. -/
+theorem batchCEObjective_batchTrainStep_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchCEObjective X y (batchTrainStep X y S opCost opRisk write) ≤
+      batchCEObjective X y S := by
+  by_cases hR : batchRangeSquare X (coreParameters S) y = 0
+  · rw [batchCEObjective_batchTrainStep_eq_of_rangeSquare_eq_zero
+      X y S opCost opRisk write hR]
+  · have hRpos : 0 < batchRangeSquare X (coreParameters S) y :=
+      lt_of_le_of_ne (batchRangeSquare_nonneg X (coreParameters S) y)
+        (Ne.symm hR)
+    have hBpos : 0 < B :=
+      batch_pos_of_rangeSquare_pos X (coreParameters S) y hRpos
+    let _ : Nonempty V := ⟨y ⟨0, hBpos⟩⟩
+    exact le_of_lt (batchCEObjective_batchTrainStep_lt
+      X y S opCost opRisk write hRpos)
+
+/-- Accept the canonical batch transition only if nonnegative supplied cost
+fits declared budget and every finite-batch component does not increase. -/
+noncomputable def budgetedParetoBatchTrainStep
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : TrainState n a r c k :=
+  if (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S then
+    batchTrainStep X y S opCost opRisk write
+  else
+    S
+
+/-- In the fully admitted branch, execute the complete canonical transition. -/
+theorem budgetedParetoBatchTrainStep_of_active
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S) :
+    budgetedParetoBatchTrainStep X y S opCost opRisk write =
+      batchTrainStep X y S opCost opRisk write := by
+  exact ite_eq_left h
+
+/-- Any rejected budget or pointwise condition returns the whole input state. -/
+theorem budgetedParetoBatchTrainStep_of_inactive
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (h : ¬ ((0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S)) :
+    budgetedParetoBatchTrainStep X y S opCost opRisk write = S := by
+  exact ite_eq_right h
+
+/-- The guarded transition preserves every component CE of the supplied batch;
+this is non-regression, not strict descent or a held-out guarantee. -/
+theorem batchSampleCE_budgetedParetoBatchTrainStep_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) :
+    batchSampleCE X y b (budgetedParetoBatchTrainStep X y S opCost opRisk write) ≤
+      batchSampleCE X y b S := by
+  by_cases h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S
+  · rw [budgetedParetoBatchTrainStep_of_active X y S opCost opRisk write h]
+    exact h.2 b
+  · rw [budgetedParetoBatchTrainStep_of_inactive X y S opCost opRisk write h]
+
+/-- Actual batch-mean CE cannot increase under the pointwise-budget guard. -/
+theorem batchCEObjective_budgetedParetoBatchTrainStep_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchCEObjective X y (budgetedParetoBatchTrainStep X y S opCost opRisk write) ≤
+      batchCEObjective X y S := by
+  by_cases h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S
+  · rw [budgetedParetoBatchTrainStep_of_active X y S opCost opRisk write h]
+    exact batchCEObjective_batchTrainStep_le X y S opCost opRisk write
+  · rw [budgetedParetoBatchTrainStep_of_inactive X y S opCost opRisk write h]
+
+/-- A nonnegative initial declared budget stays nonnegative; the per-sample
+veto supplies an extra reason to stay without compromising this invariant. -/
+theorem budgetedParetoBatchTrainStep_budget_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hbudget : 0 ≤ S.res.budget) :
+    0 ≤ (budgetedParetoBatchTrainStep X y S opCost opRisk write).res.budget := by
+  by_cases h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S
+  · rw [budgetedParetoBatchTrainStep_of_active X y S opCost opRisk write h,
+      batchTrainStep, trainStep_budget, batchTrainInput]
+    exact sub_nonneg.mpr h.1.2
+  · rw [budgetedParetoBatchTrainStep_of_inactive X y S opCost opRisk write h]
+    exact hbudget
+
+/-- The guarded canonical step preserves stored telemetry, not conflating it
+with actual mean CE or any of the sample CE components. -/
+theorem qual_budgetedParetoBatchTrainStep
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    (budgetedParetoBatchTrainStep X y S opCost opRisk write).qual = S.qual := by
+  by_cases h : (0 ≤ opCost ∧ opCost ≤ S.res.budget) ∧ ∀ b,
+      batchSampleCE X y b (batchTrainStep X y S opCost opRisk write) ≤
+        batchSampleCE X y b S
+  · rw [budgetedParetoBatchTrainStep_of_active X y S opCost opRisk write h]
+    exact qual_batchTrainStep X y S opCost opRisk write
+  · rw [budgetedParetoBatchTrainStep_of_inactive X y S opCost opRisk write h]
+
+/-- The same two identical-feature, identical-label samples form a concrete
+nonvacuous acceptance probe for the budgeted Pareto guard. -/
+noncomputable def identityParetoBatchStep : TrainState 2 0 0 0 0 :=
+  budgetedParetoBatchTrainStep mixedFeatures sameZeroLabels
+    identityInitialState (1 / 2) (1 / 4) none
+
+/-- Every initial sample has CE `log 2` in the concrete same-label batch. -/
+theorem batchSampleCE_sameZero_initial (b : Fin 2) :
+    batchSampleCE mixedFeatures sameZeroLabels b identityInitialState =
+      Real.log 2 := by
+  have hzero : coreParameters identityInitialState = 0 := rfl
+  simpa [batchSampleCE, mixedFeatures, sameZeroLabels, hzero] using
+    (identity_CE_zero_parameters (0 : Fin 2))
+
+/-- The pointwise guard accepts this concrete transition; it genuinely calls
+the existing canonical batch update rather than merely assigning budgets. -/
+theorem identityParetoBatchStep_eq_batchTrainStep :
+    identityParetoBatchStep = batchTrainStep mixedFeatures sameZeroLabels
+      identityInitialState (1 / 2) (1 / 4) none := by
+  have hmean := sameZero_batchLoss_after_lt_log_two
+  have hzero : coreParameters identityInitialState = 0 := rfl
+  unfold batchLoss Hagi.Probability.FiniteFamilyConfidence.empiricalMean at hmean
+  rw [Fin.sum_univ_two] at hmean
+  simp only [mixedFeatures, sameZeroLabels] at hmean
+  unfold identityParetoBatchStep
+  apply budgetedParetoBatchTrainStep_of_active
+  refine ⟨?_, ?_⟩
+  · refine ⟨by norm_num, ?_⟩
+    change (1 / 2 : ℝ) ≤ 2
+    norm_num
+  · intro b
+    rw [batchSampleCE_sameZero_initial]
+    change Hagi.ceOneHot (sameZeroLabels b)
+      (ceLogits (mixedFeatures b)
+        (coreParameters (batchTrainStep mixedFeatures sameZeroLabels
+          identityInitialState (1 / 2) (1 / 4) none))) ≤ Real.log 2
+    rw [coreParameters_batchTrainStep, hzero]
+    fin_cases b <;>
+      dsimp [mixedFeatures, sameZeroLabels] at * <;>
+      linarith only [hmean]
+
+/-- Two control successors: identity and the budget/pointwise-guarded batch
+transition with the same supplied optimizer, resource and optional write inputs. -/
+noncomputable def batchParetoStepFun
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (action : Fin 2) (S : TrainState n a r c k) : TrainState n a r c k :=
+  if action = 1 then
+    budgetedParetoBatchTrainStep X y S opCost opRisk write
+  else
+    S
+
+/-- The finite-batch Pareto controller. Its model operation index is `B` per
+update action, not a count of physical FLOPs or estimator evaluations. -/
+noncomputable def batchParetoProblem
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Hagi.Unified.ParetoExecution.ControllerProblem (Fin 2) (TrainState n a r c k) where
+  value := fun S => -batchCEObjective X y S
+  step := batchParetoStepFun X y opCost opRisk write
+  memory := fun action => action.val
+  operations := fun action => B * action.val
+  safe := fun action => ∀ S : TrainState n a r c k,
+    batchCEObjective X y (batchParetoStepFun X y opCost opRisk write action S) ≤
+      batchCEObjective X y S
+
+/-- Both finite actions are decided by the proved batch CE guards, not by an
+unsubstantiated executable safety certificate. -/
+noncomputable instance batchParetoProblemSafeDecidable
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    DecidablePred (batchParetoProblem (n := n) (a := a) (r := r) (k := k)
+      X y opCost opRisk write).safe :=
+  fun action =>
+    if h : action = 0 then
+      isTrue (by
+        subst action
+        intro S
+        simp [batchParetoStepFun])
+    else
+      isTrue (by
+        have ha_one : action = 1 := by
+          have hval : action.val = 0 ∨ action.val = 1 := by omega
+          rcases hval with hzero | hone
+          · exact False.elim (h (Fin.ext hzero))
+          · exact Fin.ext hone
+        subst action
+        intro S
+        simpa [batchParetoStepFun] using
+          (batchCEObjective_budgetedParetoBatchTrainStep_le
+            X y S opCost opRisk write))
+
+@[simp] theorem batchParetoProblem_step_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (batchParetoProblem X y opCost opRisk write).step 0 S = S := by
+  simp [batchParetoProblem, batchParetoStepFun]
+
+@[simp] theorem batchParetoProblem_step_one
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (batchParetoProblem X y opCost opRisk write).step 1 S =
+      budgetedParetoBatchTrainStep X y S opCost opRisk write := by
+  simp [batchParetoProblem, batchParetoStepFun]
+
+open Hagi.Unified.ParetoExecution
+
+/-- The stay action is feasible under every logical resource cap pair. -/
+theorem batchPareto_stay_feasible
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (M C : ℕ) :
+    (0 : Fin 2) ∈ feasible (batchParetoProblem (n := n) (a := a) (r := r)
+      (k := k) X y opCost opRisk write) M C := by
+  apply mem_feasible.mpr
+  refine ⟨?_, ?_, ?_⟩
+  · intro S
+    rw [show batchParetoStepFun X y opCost opRisk write 0 S = S by
+      simp [batchParetoStepFun]]
+  · simp [batchParetoProblem]
+  · simp [batchParetoProblem]
+
+/-- Update feasibility is exactly one memory index unit and at most `B`
+logical operation-index units. It does not measure physical execution. -/
+theorem batchPareto_one_feasible_iff
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (M C : ℕ) :
+    (1 : Fin 2) ∈ feasible (batchParetoProblem (n := n) (a := a) (r := r)
+      (k := k) X y opCost opRisk write) M C ↔ 1 ≤ M ∧ B ≤ C := by
+  constructor
+  · intro h
+    have hresources := (mem_feasible.mp h).2
+    simp only [batchParetoProblem] at hresources
+    omega
+  · rintro ⟨hM, hC⟩
+    apply mem_feasible.mpr
+    refine ⟨?_, ?_, ?_⟩
+    · intro S
+      rw [show batchParetoStepFun X y opCost opRisk write 1 S =
+        budgetedParetoBatchTrainStep X y S opCost opRisk write by
+          simp [batchParetoStepFun]]
+      exact batchCEObjective_budgetedParetoBatchTrainStep_le
+        X y S opCost opRisk write
+    · simpa [batchParetoProblem] using hM
+    · simpa [batchParetoProblem] using hC
+
+end Hagi.Contracts.BudgetedBatchCE
