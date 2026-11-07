@@ -1261,3 +1261,336 @@ theorem identityMinimumNormScaledBatchCEPath_one :
   exact hnext.trans hstep
 
 end Hagi.Contracts.BatchCETrajectory
+
+namespace Hagi.Contracts.BatchCETrajectory
+
+open Hagi.State Hagi.Model Hagi.Model.BatchCEDescent Hagi.Contracts.CEStep
+open Hagi.Contracts.BatchCEStep Hagi.Contracts.BudgetedBatchCE
+open Filter Topology
+
+variable {V : Type} [Fintype V]
+variable {B n a r c k : ℕ}
+
+/-- Repeatedly execute the arbitrary-direction current-state guard on the
+same finite batch. Directions and certified steps use each current state. -/
+noncomputable def directionBatchState (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : ℕ → TrainState n a r c k
+  | 0 => S
+  | t + 1 => batchDirectionTrainStep X y D
+      (directionBatchState X y D S opCost opRisk write t) opCost opRisk write
+
+@[simp] theorem directionBatchState_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    directionBatchState X y D S opCost opRisk write 0 = S := rfl
+
+@[simp] theorem directionBatchState_succ
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) :
+    directionBatchState X y D S opCost opRisk write (t + 1) =
+      batchDirectionTrainStep X y D
+        (directionBatchState X y D S opCost opRisk write t) opCost opRisk write := rfl
+
+/-- Actual sample CE and its current local guaranteed margin along the path. -/
+noncomputable def directionBatchSampleCE (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) (t : ℕ) : ℝ :=
+  batchSampleCE X y b (directionBatchState X y D S opCost opRisk write t)
+
+noncomputable def directionBatchMargin (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) (t : ℕ) : ℝ :=
+  batchDirectionMargin X
+    (coreParameters (directionBatchState X y D S opCost opRisk write t)) y
+      (D (directionBatchState X y D S opCost opRisk write t)) b
+
+noncomputable def directionBatchObjective (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) : ℝ :=
+  batchCEObjective X y (directionBatchState X y D S opCost opRisk write t)
+
+noncomputable def directionBatchMeanMargin (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) : ℝ :=
+  (∑ b, directionBatchMargin X y D S opCost opRisk write b t) / (B : ℝ)
+
+theorem directionBatchMargin_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) (t : ℕ) :
+    0 ≤ directionBatchMargin X y D S opCost opRisk write b t :=
+  batchDirectionMargin_nonneg _ _ _ _ _
+
+theorem directionBatchSampleCE_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) (t : ℕ) :
+    0 ≤ directionBatchSampleCE X y D S opCost opRisk write b t :=
+  batchSampleCE_nonneg _ _ _ _
+
+theorem directionBatchObjective_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) :
+    0 ≤ directionBatchObjective X y D S opCost opRisk write t :=
+  batchCEObjective_nonneg _ _ _
+
+theorem directionBatchMeanMargin_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) :
+    0 ≤ directionBatchMeanMargin X y D S opCost opRisk write t :=
+  div_nonneg (Finset.sum_nonneg fun b _hb =>
+    directionBatchMargin_nonneg X y D S opCost opRisk write b t)
+      (Nat.cast_nonneg B)
+
+theorem directionBatchSampleCE_succ_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) (t : ℕ) :
+    directionBatchSampleCE X y D S opCost opRisk write b (t + 1) ≤
+      directionBatchSampleCE X y D S opCost opRisk write b t := by
+  exact batchSampleCE_batchDirectionTrainStep_le X y D
+    (directionBatchState X y D S opCost opRisk write t) opCost opRisk write b
+
+theorem directionBatchObjective_succ_le
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) :
+    directionBatchObjective X y D S opCost opRisk write (t + 1) ≤
+      directionBatchObjective X y D S opCost opRisk write t := by
+  exact batchCEObjective_batchDirectionTrainStep_le X y D
+    (directionBatchState X y D S opCost opRisk write t) opCost opRisk write
+
+theorem directionBatchSampleCE_antitone
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) :
+    Antitone (directionBatchSampleCE X y D S opCost opRisk write b) :=
+  antitone_nat_of_succ_le (directionBatchSampleCE_succ_le
+    X y D S opCost opRisk write b)
+
+theorem directionBatchObjective_antitone
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Antitone (directionBatchObjective X y D S opCost opRisk write) :=
+  antitone_nat_of_succ_le (directionBatchObjective_succ_le
+    X y D S opCost opRisk write)
+
+theorem directionBatchSampleCE_tendsto_ciInf
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) :
+    Tendsto (directionBatchSampleCE X y D S opCost opRisk write b) atTop
+      (𝓝 (⨅ t, directionBatchSampleCE X y D S opCost opRisk write b t)) :=
+  ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (directionBatchSampleCE_antitone X y D S opCost opRisk write b)
+    (directionBatchSampleCE_nonneg X y D S opCost opRisk write b)
+
+theorem directionBatchObjective_tendsto_ciInf
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (directionBatchObjective X y D S opCost opRisk write) atTop
+      (𝓝 (⨅ t, directionBatchObjective X y D S opCost opRisk write t)) :=
+  ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (directionBatchObjective_antitone X y D S opCost opRisk write)
+    (directionBatchObjective_nonneg X y D S opCost opRisk write)
+
+theorem directionBatchSampleCE_ciInf_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin B) :
+    0 ≤ ⨅ t, directionBatchSampleCE X y D S opCost opRisk write b t :=
+  ObjectiveTrajectory.ciInf_nonneg _
+    (directionBatchSampleCE_nonneg X y D S opCost opRisk write b)
+
+theorem directionBatchObjective_ciInf_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    0 ≤ ⨅ t, directionBatchObjective X y D S opCost opRisk write t :=
+  ObjectiveTrajectory.ciInf_nonneg _
+    (directionBatchObjective_nonneg X y D S opCost opRisk write)
+
+theorem directionBatchState_budget_nonneg
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (hbudget : 0 ≤ S.res.budget) :
+    ∀ t, 0 ≤ (directionBatchState X y D S opCost opRisk write t).res.budget := by
+  intro t
+  induction t with
+  | zero => exact hbudget
+  | succ t ih =>
+      exact batchDirectionTrainStep_budget_nonneg X y D
+        (directionBatchState X y D S opCost opRisk write t)
+          opCost opRisk write ih
+
+theorem directionBatchSampleCE_succ_le_margin
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (b : Fin B) (t : ℕ) :
+    directionBatchSampleCE X y D S opCost opRisk write b (t + 1) ≤
+      directionBatchSampleCE X y D S opCost opRisk write b t -
+        directionBatchMargin X y D S opCost opRisk write b t := by
+  exact batchSampleCE_batchDirectionTrainStep_le_margin X y D
+    (directionBatchState X y D S opCost opRisk write t) opCost opRisk write
+      (hcost t) b
+
+theorem directionBatchObjective_succ_le_margin
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (t : ℕ) :
+    directionBatchObjective X y D S opCost opRisk write (t + 1) ≤
+      directionBatchObjective X y D S opCost opRisk write t -
+        directionBatchMeanMargin X y D S opCost opRisk write t := by
+  exact batchCEObjective_batchDirectionTrainStep_le_margin_sum X y D
+    (directionBatchState X y D S opCost opRisk write t) opCost opRisk write
+      (hcost t)
+
+theorem directionBatchMargin_sum_le_initial
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (b : Fin B) (T : ℕ) :
+    ∑ t ∈ Finset.range T, directionBatchMargin X y D S opCost opRisk write b t ≤
+      batchSampleCE X y b S := by
+  calc
+    ∑ t ∈ Finset.range T, directionBatchMargin X y D S opCost opRisk write b t ≤
+      directionBatchSampleCE X y D S opCost opRisk write b 0 -
+        directionBatchSampleCE X y D S opCost opRisk write b T :=
+      ObjectiveTrajectory.sum_drop_le_initial_sub _ _ T (fun t => by
+        have h := directionBatchSampleCE_succ_le_margin
+          X y D S opCost opRisk write hcost b t
+        linarith)
+    _ ≤ directionBatchSampleCE X y D S opCost opRisk write b 0 :=
+      sub_le_self _ (directionBatchSampleCE_nonneg X y D S opCost opRisk write b T)
+    _ = batchSampleCE X y b S := rfl
+
+theorem directionBatchMeanMargin_sum_le_initial
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (T : ℕ) :
+    ∑ t ∈ Finset.range T, directionBatchMeanMargin X y D S opCost opRisk write t ≤
+      batchCEObjective X y S := by
+  calc
+    ∑ t ∈ Finset.range T, directionBatchMeanMargin X y D S opCost opRisk write t ≤
+      directionBatchObjective X y D S opCost opRisk write 0 -
+        directionBatchObjective X y D S opCost opRisk write T :=
+      ObjectiveTrajectory.sum_drop_le_initial_sub _ _ T (fun t => by
+        have h := directionBatchObjective_succ_le_margin
+          X y D S opCost opRisk write hcost t
+        linarith)
+    _ ≤ directionBatchObjective X y D S opCost opRisk write 0 :=
+      sub_le_self _ (directionBatchObjective_nonneg X y D S opCost opRisk write T)
+    _ = batchCEObjective X y S := rfl
+
+theorem directionBatchMargin_summable
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (b : Fin B) :
+    Summable (directionBatchMargin X y D S opCost opRisk write b) :=
+  summable_of_sum_range_le
+    (directionBatchMargin_nonneg X y D S opCost opRisk write b)
+      (directionBatchMargin_sum_le_initial X y D S opCost opRisk write hcost b)
+
+theorem directionBatchMeanMargin_summable
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget) :
+    Summable (directionBatchMeanMargin X y D S opCost opRisk write) :=
+  summable_of_sum_range_le
+    (directionBatchMeanMargin_nonneg X y D S opCost opRisk write)
+      (directionBatchMeanMargin_sum_le_initial X y D S opCost opRisk write hcost)
+
+theorem directionBatchMargin_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (b : Fin B) :
+    Tendsto (directionBatchMargin X y D S opCost opRisk write b) atTop (𝓝 0) :=
+  (directionBatchMargin_summable X y D S opCost opRisk write hcost b).tendsto_atTop_zero
+
+theorem directionBatchMeanMargin_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget) :
+    Tendsto (directionBatchMeanMargin X y D S opCost opRisk write) atTop (𝓝 0) :=
+  (directionBatchMeanMargin_summable X y D S opCost opRisk write hcost).tendsto_atTop_zero
+
+theorem directionBatchMargin_tsum_le_initial
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget)
+    (b : Fin B) :
+    ∑' t, directionBatchMargin X y D S opCost opRisk write b t ≤ batchSampleCE X y b S :=
+  (directionBatchMargin_summable X y D S opCost opRisk write hcost b).tsum_le_of_sum_range_le
+    (directionBatchMargin_sum_le_initial X y D S opCost opRisk write hcost b)
+
+theorem directionBatchMeanMargin_tsum_le_initial
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ∀ t, 0 ≤ opCost ∧
+      opCost ≤ (directionBatchState X y D S opCost opRisk write t).res.budget) :
+    ∑' t, directionBatchMeanMargin X y D S opCost opRisk write t ≤ batchCEObjective X y S :=
+  (directionBatchMeanMargin_summable X y D S opCost opRisk write hcost).tsum_le_of_sum_range_le
+    (directionBatchMeanMargin_sum_le_initial X y D S opCost opRisk write hcost)
+
+end Hagi.Contracts.BatchCETrajectory
