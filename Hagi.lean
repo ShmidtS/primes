@@ -433,6 +433,7 @@ import Hagi.Step.NoisyPL
 import Hagi.Unified.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
+import Hagi.Unified.GuardedRobustLogit
 import Hagi.Unified.GuardedRobustSelection
 import Hagi.Unified.GuardedRobustResourceMin
 import Hagi.Unified.QualityResourceMin
