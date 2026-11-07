@@ -370,6 +370,53 @@ theorem batchGradientMinimizer_norm_le_mean {V : Type} [Fintype V] {B d : ℕ}
       ‖WithLp.toLp 2 (meanResidualTranspose X θ y)‖ :=
   batchGradientMinimizer_norm_le X θ y (meanResidualTranspose_mem_convexHull X θ y)
 
+/-- On a two-sample batch, the indexed raw residual gradients are exactly
+the unordered pair of the two sample gradients. -/
+theorem batchGradientRange_pair {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 2 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 2 → V) :
+    Set.range (fun b : Fin 2 => batchResidualGradient (X b) θ (y b)) =
+      {batchResidualGradient (X 0) θ (y 0),
+        batchResidualGradient (X 1) θ (y 1)} := by
+  apply Set.ext
+  intro g
+  constructor
+  · rintro ⟨b, rfl⟩
+    fin_cases b
+    · exact Set.mem_insert _ _
+    · exact Set.mem_insert_of_mem _ (Set.mem_singleton _)
+  · intro hg
+    rw [Set.mem_insert_iff, Set.mem_singleton_iff] at hg
+    rcases hg with rfl | rfl
+    · exact ⟨0, rfl⟩
+    · exact ⟨1, rfl⟩
+
+/-- For two samples, the raw residual-gradient convex hull is the segment
+between the two actual gradients at the current parameters. -/
+theorem batchGradientHull_pair {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 2 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 2 → V) :
+    convexHull ℝ (Set.range fun b : Fin 2 =>
+        batchResidualGradient (X b) θ (y b)) =
+      segment ℝ (batchResidualGradient (X 0) θ (y 0))
+        (batchResidualGradient (X 1) θ (y 1)) := by
+  rw [batchGradientRange_pair, convexHull_pair]
+
+/-- The selected minimum-norm point on a two-sample residual-gradient hull
+is exactly the closed-form segment minimum from `Hagi.Step`. -/
+theorem batchGradientMinimizer_pair {V : Type} [Fintype V] {d : ℕ}
+    (X : Fin 2 → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin 2 → V) :
+    batchGradientMinimizer X θ y =
+      Hagi.Step.segmentMinNorm (batchResidualGradient (X 0) θ (y 0))
+        (batchResidualGradient (X 1) θ (y 1)) := by
+  apply Hagi.Step.eq_segmentMinNorm_of_mem_of_forall_norm_le
+  · rw [← batchGradientHull_pair X θ y]
+    exact batchGradientMinimizer_mem X θ y
+  · intro p hp
+    rw [← batchGradientHull_pair X θ y] at hp
+    exact batchGradientMinimizer_norm_le X θ y hp
+
 /-- Residual action is the dot product with the generating direction. -/
 theorem dirAction_eq_dot {V : Type} [Fintype V] {d : ℕ}
     (X : Matrix V (Fin d) ℝ) (θ D : EuclideanSpace ℝ (Fin d)) (t : V) :

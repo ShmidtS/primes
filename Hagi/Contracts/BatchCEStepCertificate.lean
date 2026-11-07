@@ -54,6 +54,35 @@ noncomputable def batchMinimumNormTrainInput (X : Fin B → Matrix V (Fin n) ℝ
   opRisk := opRisk
   write := write
 
+/-- The explicit two-sample current-state input.  Its gradient is the exact
+minimum-norm point of the segment between the two current raw residual
+gradients; all other fields retain the existing minimum-norm policy. -/
+noncomputable def batchPairMinimumNormTrainInput
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : TrainingInput n c where
+  grad j := (Hagi.Step.segmentMinNorm
+    (batchResidualGradient (X 0) (coreParameters S) (y 0))
+    (batchResidualGradient (X 1) (coreParameters S) (y 1))).ofLp j
+  eta := batchCommonSafeEta X (coreParameters S) y
+  opCost := opCost
+  opRisk := opRisk
+  write := write
+
+/-- On a two-sample batch, the explicit segment input is definitionally the
+same policy as the classically selected minimum-norm input, up to the proved
+pointwise gradient equality. -/
+theorem batchPairMinimumNormTrainInput_eq_batchMinimumNormTrainInput
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchPairMinimumNormTrainInput X y S opCost opRisk write =
+      batchMinimumNormTrainInput X y S opCost opRisk write := by
+  unfold batchPairMinimumNormTrainInput batchMinimumNormTrainInput
+  congr 1
+  funext j
+  rw [← batchGradientMinimizer_pair X (coreParameters S) y]
+
 /-- Actual execution of the unmodified canonical training transition. -/
 noncomputable def batchTrainStep (X : Fin B → Matrix V (Fin n) ℝ)
     (y : Fin B → V) (S : TrainState n a r c k) (opCost opRisk : ℝ)
@@ -728,6 +757,150 @@ theorem batchMinimumNormTrainStep_flops_of_active
     trainStep_flops]
   rfl
 
+/-- The explicit two-sample input executed through the existing generic
+current-state guard.  No second guard or replacement state is introduced. -/
+noncomputable def batchPairMinimumNormTrainStep
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) : TrainState n a r c k :=
+  guardedBatchTrainStep X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) S
+
+/-- The explicit pair policy and the prior minimum-norm policy produce the
+same complete guarded state, including both acceptance and rejection. -/
+theorem batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchPairMinimumNormTrainStep X y S opCost opRisk write =
+      batchMinimumNormTrainStep X y S opCost opRisk write := by
+  unfold batchPairMinimumNormTrainStep batchMinimumNormTrainStep
+  apply congrArg (fun inputFor => guardedBatchTrainStep X y inputFor S)
+  funext T
+  exact batchPairMinimumNormTrainInput_eq_batchMinimumNormTrainInput
+    X y T opCost opRisk write
+
+/-- An affordable nonnegative cost admits the explicit pair candidate through
+the old minimum-norm acceptance theorem. -/
+theorem batchPairMinimumNormTrainStep_of_active
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget) :
+    batchPairMinimumNormTrainStep X y S opCost opRisk write =
+      trainStep S (batchPairMinimumNormTrainInput X y S opCost opRisk write) := by
+  calc
+    batchPairMinimumNormTrainStep X y S opCost opRisk write =
+        batchMinimumNormTrainStep X y S opCost opRisk write :=
+      batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep
+        X y S opCost opRisk write
+    _ = trainStep S (batchMinimumNormTrainInput X y S opCost opRisk write) :=
+      batchMinimumNormTrainStep_of_active X y S opCost opRisk write hcost
+    _ = trainStep S (batchPairMinimumNormTrainInput X y S opCost opRisk write) := by
+      rw [batchPairMinimumNormTrainInput_eq_batchMinimumNormTrainInput]
+
+/-- Failure of the cost side of the generic guard rejects the whole pair
+candidate, exactly as for the original minimum-norm candidate. -/
+theorem batchPairMinimumNormTrainStep_of_inactive
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : ¬ (0 ≤ opCost ∧ opCost ≤ S.res.budget)) :
+    batchPairMinimumNormTrainStep X y S opCost opRisk write = S := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchMinimumNormTrainStep_of_inactive X y S opCost opRisk write hcost
+
+/-- Every pair sample is nonincreasing under the guarded full transition. -/
+theorem batchSampleCE_batchPairMinimumNormTrainStep_le
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (b : Fin 2) :
+    batchSampleCE X y b (batchPairMinimumNormTrainStep X y S opCost opRisk write) ≤
+      batchSampleCE X y b S := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchSampleCE_batchMinimumNormTrainStep_le X y S opCost opRisk write b
+
+/-- The explicit pair transition non-increases actual supplied-batch mean CE. -/
+theorem batchCEObjective_batchPairMinimumNormTrainStep_le
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    batchCEObjective X y (batchPairMinimumNormTrainStep X y S opCost opRisk write) ≤
+      batchCEObjective X y S := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchCEObjective_batchMinimumNormTrainStep_le X y S opCost opRisk write
+
+/-- The pair transition inherits canonical nonnegative-budget preservation. -/
+theorem batchPairMinimumNormTrainStep_budget_nonneg
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (hbudget : 0 ≤ S.res.budget) :
+    0 ≤ (batchPairMinimumNormTrainStep X y S opCost opRisk write).res.budget := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchMinimumNormTrainStep_budget_nonneg
+    X y S opCost opRisk write hbudget
+
+/-- The pair transition preserves stored external quality telemetry. -/
+theorem qual_batchPairMinimumNormTrainStep
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    (batchPairMinimumNormTrainStep X y S opCost opRisk write).qual = S.qual := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact qual_batchMinimumNormTrainStep X y S opCost opRisk write
+
+/-- After acceptance, pair execution has the prior common minimum-norm
+parameters.  This is the same update, not an additional optimizer result. -/
+theorem coreParameters_batchPairMinimumNormTrainStep
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget) :
+    coreParameters (batchPairMinimumNormTrainStep X y S opCost opRisk write) =
+      batchCommonNextParameters X (coreParameters S) y := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact coreParameters_batchMinimumNormTrainStep X y S opCost opRisk write hcost
+
+/-- At a nonzero prior minimizer, an accepted pair step strictly decreases
+every supplied sample's CE. -/
+theorem batchSampleCE_batchPairMinimumNormTrainStep_lt
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hω : batchGradientMinimizer X (coreParameters S) y ≠ 0) (b : Fin 2) :
+    batchSampleCE X y b (batchPairMinimumNormTrainStep X y S opCost opRisk write) <
+      batchSampleCE X y b S := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchSampleCE_batchMinimumNormTrainStep_lt
+    X y S opCost opRisk write hcost hω b
+
+/-- The same nonzero-minimizer and acceptance hypotheses give strict actual
+mean CE descent for the explicit pair step. -/
+theorem batchCEObjective_batchPairMinimumNormTrainStep_lt
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hω : batchGradientMinimizer X (coreParameters S) y ≠ 0) :
+    batchCEObjective X y (batchPairMinimumNormTrainStep X y S opCost opRisk write) <
+      batchCEObjective X y S := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchCEObjective_batchMinimumNormTrainStep_lt
+    X y S opCost opRisk write hcost hω
+
+/-- Accepted pair execution adds exactly its supplied abstract `opCost`; the
+algebraic dual selection does not assert a physical FLOP reduction. -/
+theorem batchPairMinimumNormTrainStep_flops_of_active
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget) :
+    (batchPairMinimumNormTrainStep X y S opCost opRisk write).res.flops =
+      S.res.flops + opCost := by
+  rw [batchPairMinimumNormTrainStep_eq_batchMinimumNormTrainStep]
+  exact batchMinimumNormTrainStep_flops_of_active X y S opCost opRisk write hcost
+
 /-- Accept the canonical batch transition only if nonnegative supplied cost
 fits declared budget and every finite-batch component does not increase. -/
 noncomputable def budgetedParetoBatchTrainStep
@@ -1039,6 +1212,89 @@ theorem minimumNormBatchPareto_one_feasible_iff
       (k := k) X y opCost opRisk write) M C ↔ 1 ≤ M ∧ B ≤ C :=
   guardedBatchPareto_one_feasible_iff X y
     (fun S => batchMinimumNormTrainInput X y S opCost opRisk write) M C
+
+/-- The reusable two-sample specialization of the generic finite-batch
+Pareto problem, using the explicit current-state segment input. -/
+noncomputable def pairMinimumNormBatchParetoProblem
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Hagi.Unified.ParetoExecution.ControllerProblem (Fin 2) (TrainState n a r c k) :=
+  guardedBatchParetoProblem X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write)
+
+/-- Both pair-controller actions inherit generic safety; no new safety
+decider, resource model or trajectory is constructed. -/
+noncomputable instance pairMinimumNormBatchParetoProblemSafeDecidable
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    DecidablePred (pairMinimumNormBatchParetoProblem (n := n) (a := a) (r := r) (k := k)
+      X y opCost opRisk write).safe :=
+  guardedBatchParetoProblemSafeDecidable X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write)
+
+/-- The explicit pair controller is exactly the prior minimum-norm
+controller, by function extensionality of its current-state input. -/
+theorem pairMinimumNormBatchParetoProblem_eq_minimumNormBatchParetoProblem
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    pairMinimumNormBatchParetoProblem (n := n) (a := a) (r := r) (k := k)
+        X y opCost opRisk write =
+      minimumNormBatchParetoProblem (n := n) (a := a) (r := r) (k := k)
+        X y opCost opRisk write := by
+  unfold pairMinimumNormBatchParetoProblem minimumNormBatchParetoProblem
+  apply congrArg (guardedBatchParetoProblem X y)
+  funext S
+  exact batchPairMinimumNormTrainInput_eq_batchMinimumNormTrainInput
+    X y S opCost opRisk write
+
+/-- The pair-controller value is negative actual supplied-batch mean CE. -/
+@[simp] theorem pairMinimumNormBatchParetoProblem_value
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (pairMinimumNormBatchParetoProblem X y opCost opRisk write).value S =
+      -batchCEObjective X y S :=
+  guardedBatchParetoProblem_value X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) S
+
+/-- The pair-controller stay action is inherited unchanged. -/
+@[simp] theorem pairMinimumNormBatchParetoProblem_step_zero
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (pairMinimumNormBatchParetoProblem X y opCost opRisk write).step 0 S = S :=
+  guardedBatchParetoProblem_step_zero X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) S
+
+/-- The pair-controller update action is the guarded explicit pair step. -/
+@[simp] theorem pairMinimumNormBatchParetoProblem_step_one
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (S : TrainState n a r c k) :
+    (pairMinimumNormBatchParetoProblem X y opCost opRisk write).step 1 S =
+      batchPairMinimumNormTrainStep X y S opCost opRisk write :=
+  guardedBatchParetoProblem_step_one X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) S
+
+/-- The pair controller's stay action is feasible under every cap pair. -/
+theorem pairMinimumNormBatchPareto_stay_feasible
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (M C : ℕ) :
+    (0 : Fin 2) ∈ feasible (pairMinimumNormBatchParetoProblem
+      (n := n) (a := a) (r := r) (k := k) X y opCost opRisk write) M C :=
+  guardedBatchPareto_stay_feasible X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) M C
+
+/-- Pair update feasibility retains the generic logical resource condition:
+one memory unit and at most two operation-index units. -/
+theorem pairMinimumNormBatchPareto_one_feasible_iff
+    (X : Fin 2 → Matrix V (Fin n) ℝ) (y : Fin 2 → V)
+    (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (M C : ℕ) :
+    (1 : Fin 2) ∈ feasible (pairMinimumNormBatchParetoProblem
+      (n := n) (a := a) (r := r) (k := k) X y opCost opRisk write) M C ↔
+        1 ≤ M ∧ 2 ≤ C :=
+  guardedBatchPareto_one_feasible_iff X y
+    (fun S => batchPairMinimumNormTrainInput X y S opCost opRisk write) M C
 
 /-- Two control successors: identity and the budget/pointwise-guarded batch
 transition with the same supplied optimizer, resource and optional write inputs. -/
