@@ -336,4 +336,204 @@ theorem growthMinResource_cost_min (S : BoundedBatchState V B a r c k capacity)
 
 end Candidates
 
+section AdmissionYield
+
+variable
+    (Zs : A → (_ : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+    (Ds : A → ∀ S : BoundedBatchState V B a r c k capacity,
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : A → ℕ)
+    (risks : A → ℝ) (writes : A → Option (Σ _ : ℕ, Fin c → ℝ))
+    (admissions : ∀ (idx : A) (T : BoundedBatchState V B a r c k capacity),
+      GrowthAdmission V T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx))
+
+/-- Supplied-batch CE margin per one-additive model operation-counter increment. -/
+noncomputable def smoothedGrowthYield (S T : BoundedBatchState V B a r c k capacity) : ℝ :=
+  (growthObjective S - growthObjective T) / (T.state.res.flops - S.state.res.flops + 1)
+
+/-- Raw admissions are zero-cost unless their constructor is fully verified. -/
+noncomputable def growthAdmissionMemoryIncrement
+    (S : BoundedBatchState V B a r c k capacity) (idx : A) : ℕ :=
+  match admissions idx S with
+  | .fullyVerified _ =>
+      growthCandidateMemoryIncrement Zs Ds costs memoryCaps operationCaps S idx
+  | .conditional _ _ => 0
+  | .empiricalOnly _ => 0
+  | .budgetViolation _ => 0
+  | .unknown => 0
+
+/-- Raw admissions consume no declared guarded-trainer operations unless verified. -/
+noncomputable def growthAdmissionOperationIncrement
+    (S : BoundedBatchState V B a r c k capacity) (idx : A) : ℕ :=
+  match admissions idx S with
+  | .fullyVerified _ =>
+      growthCandidateOperationIncrement Zs Ds costs memoryCaps operationCaps S idx
+  | .conditional _ _ => 0
+  | .empiricalOnly _ => 0
+  | .budgetViolation _ => 0
+  | .unknown => 0
+
+/-- The existing finite problem with actual quarantined steps and reference-state costs. -/
+noncomputable def growthAdmissionProblemAt (S : BoundedBatchState V B a r c k capacity) :
+    ControllerProblem A (BoundedBatchState V B a r c k capacity) := by
+  classical
+  exact
+    { growthProblemAt Zs Ds costs memoryCaps operationCaps risks writes S with
+      value := smoothedGrowthYield S
+      step := fun idx T => quarantinedGrowStep T (Zs idx T) (Ds idx T) (costs idx)
+        (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx) (writes idx)
+      safe := fun idx => ∀ T,
+        growthObjective (quarantinedGrowStep T (Zs idx T) (Ds idx T) (costs idx)
+          (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx)
+          (writes idx)) ≤ growthObjective T
+      memory := growthAdmissionMemoryIncrement Zs Ds costs memoryCaps operationCaps admissions S
+      operations := growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+        admissions S }
+
+/-- Quarantined nonincrease decides the model-level safety predicate. -/
+noncomputable instance growthAdmissionProblemAt_decidable_safe
+    (S : BoundedBatchState V B a r c k capacity) :
+    DecidablePred (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes
+      admissions S).safe := by
+  intro idx
+  exact isTrue (fun T => growthObjective_quarantinedGrowStep_le T (Zs idx T) (Ds idx T)
+    (costs idx) (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx)
+    (writes idx))
+
+variable [Fintype A]
+
+/-- Every quarantined candidate is feasible under the common verified-operation cap. -/
+theorem growthAdmission_mem_feasible (S : BoundedBatchState V B a r c k capacity)
+    (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (idx : A) :
+    idx ∈ feasible (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes
+      admissions S) (growthMemoryIncrement B V) operationBudget := by
+  classical
+  apply mem_feasible.mpr
+  refine ⟨?_, ?_, ?_⟩
+  · intro T
+    exact growthObjective_quarantinedGrowStep_le T (Zs idx T) (Ds idx T) (costs idx)
+      (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx) (writes idx)
+  · cases hadm : admissions idx S with
+    | fullyVerified hlegal =>
+        simp only [growthAdmissionProblemAt, growthAdmissionMemoryIncrement, hadm,
+          growthCandidateMemoryIncrement, hlegal, ite_true]
+        exact le_rfl
+    | conditional _ _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionMemoryIncrement, hadm]
+        exact Nat.zero_le _
+    | empiricalOnly _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionMemoryIncrement, hadm]
+        exact Nat.zero_le _
+    | budgetViolation _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionMemoryIncrement, hadm]
+        exact Nat.zero_le _
+    | unknown =>
+        simp only [growthAdmissionProblemAt, growthAdmissionMemoryIncrement, hadm]
+        exact Nat.zero_le _
+  · cases hadm : admissions idx S with
+    | fullyVerified hlegal =>
+        simpa only [growthAdmissionProblemAt, growthAdmissionOperationIncrement, hadm,
+          growthCandidateOperationIncrement, hlegal, ite_true] using hop idx
+    | conditional _ _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionOperationIncrement, hadm]
+        exact Nat.zero_le _
+    | empiricalOnly _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionOperationIncrement, hadm]
+        exact Nat.zero_le _
+    | budgetViolation _ =>
+        simp only [growthAdmissionProblemAt, growthAdmissionOperationIncrement, hadm]
+        exact Nat.zero_le _
+    | unknown =>
+        simp only [growthAdmissionProblemAt, growthAdmissionOperationIncrement, hadm]
+        exact Nat.zero_le _
+
+/-- Thin reuse of the existing exact finite selector. -/
+noncomputable def growthAdmissionSelection (S : BoundedBatchState V B a r c k capacity)
+    (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) : A :=
+  selection (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes
+    admissions S) S (growthMemoryIncrement B V) operationBudget a0
+    (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions S
+      operationBudget hop a0)
+
+/-- The selected actual quarantined successor maximizes yield in this feasible finite bank. -/
+theorem growthAdmissionSelection_smoothedGrowthYield_ge_candidate
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (hfeasible : idx ∈ feasible
+      (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+      (growthMemoryIncrement B V) operationBudget) :
+    smoothedGrowthYield S (quarantinedGrowStep S (Zs idx S) (Ds idx S) (costs idx)
+        (memoryCaps idx) (operationCaps idx) (admissions idx S) (risks idx) (writes idx)) ≤
+      smoothedGrowthYield S (selectedNext
+        (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+        S (growthMemoryIncrement B V) operationBudget a0
+        (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions
+          S operationBudget hop a0)) :=
+  selection_quality_optimal
+    (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+    S (growthMemoryIncrement B V) operationBudget a0
+    (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions S
+      operationBudget hop a0) idx hfeasible
+
+/-- Selected quarantined safety gives supplied-batch CE nonincrease at the reference state. -/
+theorem growthAdmissionSelection_objective_le_current
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    growthObjective (selectedNext
+      (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+      S (growthMemoryIncrement B V) operationBudget a0
+      (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0)) ≤ growthObjective S := by
+  have hselected := selection_admissible
+    (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+    S (growthMemoryIncrement B V) operationBudget a0
+    (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions S
+      operationBudget hop a0)
+  have hsafe := (mem_feasible.mp hselected).1
+  exact hsafe S
+
+omit [Fintype A] in
+/-- Actual quarantined successors never decrease the model operation counter. -/
+theorem quarantinedGrowStep_flops_sub_nonneg
+    (T : BoundedBatchState V B a r c k capacity) (idx : A) :
+    0 ≤ (quarantinedGrowStep T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+      (operationCaps idx) (admissions idx T) (risks idx) (writes idx)).state.res.flops -
+        T.state.res.flops := by
+  cases admissions idx T with
+  | fullyVerified hlegal =>
+      rw [quarantinedGrowStep, boundedGrowStep_flops_of_legal T (Zs idx T) (Ds idx T)
+        (costs idx) (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx) hlegal]
+      simpa only [add_sub_cancel_left] using
+        Nat.cast_nonneg (α := ℝ) (growthOperations B V (costs idx))
+  | conditional _ _ => simp only [quarantinedGrowStep, sub_self, le_refl]
+  | empiricalOnly _ => simp only [quarantinedGrowStep, sub_self, le_refl]
+  | budgetViolation _ => simp only [quarantinedGrowStep, sub_self, le_refl]
+  | unknown => simp only [quarantinedGrowStep, sub_self, le_refl]
+
+omit [Fintype A] in
+/-- Actual quarantined successors have nonnegative one-additive smoothed yield. -/
+theorem smoothedGrowthYield_quarantinedGrowStep_nonneg
+    (T : BoundedBatchState V B a r c k capacity) (idx : A) :
+    0 ≤ smoothedGrowthYield T (quarantinedGrowStep T (Zs idx T) (Ds idx T) (costs idx)
+      (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx) (writes idx)) := by
+  have hnumerator : 0 ≤ growthObjective T - growthObjective
+      (quarantinedGrowStep T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx) (admissions idx T) (risks idx) (writes idx)) :=
+    sub_nonneg.mpr (growthObjective_quarantinedGrowStep_le T (Zs idx T) (Ds idx T)
+      (costs idx) (memoryCaps idx) (operationCaps idx) (admissions idx T) (risks idx)
+      (writes idx))
+  have hflops := quarantinedGrowStep_flops_sub_nonneg Zs Ds costs memoryCaps operationCaps
+    risks writes admissions T idx
+  exact div_nonneg hnumerator (by linarith)
+
+/-- Equal actual successors have zero smoothed yield without a special zero-denominator case. -/
+theorem smoothedGrowthYield_self (S : BoundedBatchState V B a r c k capacity) :
+    smoothedGrowthYield S S = 0 := by
+  simp [smoothedGrowthYield]
+
+end AdmissionYield
+
 end Hagi.Contracts.BatchCEGrowthSelection
