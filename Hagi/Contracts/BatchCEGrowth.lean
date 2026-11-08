@@ -20,7 +20,7 @@ namespace Hagi.Contracts.BatchCEGrowth
 
 open Hagi.Contracts.BatchCEStep Hagi.Contracts.CEStep
 open Hagi.Contracts.BudgetedBatchCE Hagi.Model.BatchCEDescent
-open Hagi.Model.CEExpansion Hagi.State
+open Hagi.Model.CEExpansion Hagi.State Hagi.Model
 
 /-- A current batch, model and optimizer at one explicitly bounded width. -/
 structure BoundedBatchState (V : Type) [Fintype V]
@@ -379,6 +379,123 @@ noncomputable def growthObjective (S : BoundedBatchState V B a r c k capacity) :
 theorem growthObjective_nonneg (S : BoundedBatchState V B a r c k capacity) :
     0 ≤ growthObjective S :=
   batchCEObjective_nonneg S.features S.labels S.state
+
+/-- Target-minus-softmax residual features supplied at the actual current state. -/
+noncomputable def residualFeatures {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) : Fin B → V → ℝ :=
+  fun b v => -(ceResidual (S.features b) (coreParameters S.state) (S.labels b) v)
+
+/-- The unit direction varying only the newly appended readout coefficient. -/
+noncomputable def residualDirection {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) :
+    EuclideanSpace ℝ (Fin (S.width + 1)) :=
+  expandedParameters (0 : EuclideanSpace ℝ (Fin S.width)) 1
+
+/-- The current residual direction has exact per-sample squared action. -/
+theorem dirAction_residual_expandedParameters_zero_one
+    {V : Type} [Fintype V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (Z : V → ℝ) (t : V)
+    (hZ : ∀ v, Z v = -(ceResidual X θ t v)) :
+    dirAction (expandedFeatures X Z) (expandedParameters θ 0) t
+        (expandedParameters (0 : EuclideanSpace ℝ (Fin d)) 1) =
+      -∑ v, (ceResidual X θ t v) ^ 2 := by
+  have hzero : ceLogits (expandedFeatures X Z) (expandedParameters θ 0) =
+      ceLogits X θ := by
+    funext v
+    simpa using ceLogits_expandedParameters X θ Z 0 v
+  have hres : ceResidual (expandedFeatures X Z) (expandedParameters θ 0) t =
+      ceResidual X θ t := by
+    unfold ceResidual
+    rw [hzero]
+  have hdir (v : V) : ceLogits (expandedFeatures X Z)
+      (expandedParameters (0 : EuclideanSpace ℝ (Fin d)) 1) v = Z v := by
+    simpa [ceLogits, Matrix.mulVec, dotProduct] using
+      ceLogits_expandedParameters X (0 : EuclideanSpace ℝ (Fin d)) Z 1 v
+  unfold dirAction
+  rw [hres]
+  calc
+    (∑ v, ceResidual X θ t v * ceLogits (expandedFeatures X Z)
+        (expandedParameters (0 : EuclideanSpace ℝ (Fin d)) 1) v) =
+        ∑ v, ceResidual X θ t v * Z v := by
+      apply Finset.sum_congr rfl
+      intro v _hv
+      rw [hdir]
+    _ = -∑ v, (ceResidual X θ t v) ^ 2 := by
+      rw [← Finset.sum_neg_distrib]
+      apply Finset.sum_congr rfl
+      intro v _hv
+      rw [hZ]
+      ring
+
+/-- A vocabulary with at least two classes gives positive residual energy. -/
+theorem residualEnergy_pos {V : Type} [Fintype V] [Nonempty V]
+    [Fact (1 < Fintype.card V)] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t : V) :
+    0 < ∑ v, (ceResidual X θ t v) ^ 2 := by
+  let _ : Nontrivial V := Fintype.one_lt_card_iff_nontrivial.mp Fact.out
+  obtain ⟨v, hvt⟩ := exists_ne t
+  have hp : 0 < ceResidual X θ t v := by
+    simpa [ceResidual, hvt] using Hagi.Energy.smax_pos (ceLogits X θ) v
+  exact Finset.sum_pos' (fun w _hw => sq_nonneg (ceResidual X θ t w))
+    ⟨v, Finset.mem_univ v, sq_pos_of_pos hp⟩
+
+/-- Explicit resource premises make the residual policy legal at this state. -/
+theorem residualGrowthLegal {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} [Nonempty V]
+    [Nonempty (Fin B)] [Fact (1 < Fintype.card V)]
+    (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (hcap : S.width + 1 ≤ capacity)
+    (hmem : growthMemoryIncrement B V ≤ memoryLimit)
+    (hops : growthOperations B V trainingCost ≤ operationLimit)
+    (hbudget : (growthOperations B V trainingCost : ℝ) ≤ S.state.res.budget) :
+    GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit := by
+  refine ⟨hcap, hmem, hops, hbudget, inferInstance, ?_⟩
+  intro b
+  have haction := dirAction_residual_expandedParameters_zero_one
+    (X := S.features b) (θ := coreParameters S.state)
+    (Z := residualFeatures S b) (t := S.labels b)
+    (fun v => rfl)
+  rw [coreParameters_expandedTrainState, residualDirection, haction]
+  exact neg_lt_zero.mpr (residualEnergy_pos (S.features b) (coreParameters S.state)
+    (S.labels b))
+
+/-- An admitted residual step actually learns a positive new readout weight. -/
+theorem coreParameters_residualGrowth_last_pos {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} [Nonempty V] [Nonempty (Fin B)]
+    [Fact (1 < Fintype.card V)]
+    (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (h : GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit) :
+    0 < (coreParameters (grownBatchState S (residualFeatures S)
+      (residualDirection S) trainingCost memoryLimit operationLimit opRisk write h).state).ofLp
+        (Fin.last S.width) := by
+  have hcost : 0 ≤ (trainingCost : ℝ) ∧
+      (expandedFeatureEvaluationCount B V : ℝ) + (trainingCost : ℝ) ≤
+        S.state.res.budget := by
+    refine ⟨by positivity, ?_⟩
+    simpa only [growthOperations, Nat.cast_add] using h.2.2.2.1
+  have hbudget : (expandedFeatureEvaluationCount B V : ℝ) + trainingCost ≤
+      (expandedTrainState S.state).res.budget := by
+    simpa only [expandedTrainState] using hcost.2
+  have hlast := coreParameters_expandedHalfTrainStep_last S.features S.labels
+    (residualFeatures S) (residualDirection S) S.state (trainingCost : ℝ) opRisk write
+    hcost h.2.2.2.2
+  have heta := (batchDirectionHalfEta_pos_iff
+    (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+    (coreParameters (expandedTrainState S.state)) S.labels (residualDirection S)).2
+    h.2.2.2.2
+  change 0 < (coreParameters (expandedHalfTrainStep S.features S.labels
+    (residualFeatures S) (residualDirection S) S.state (trainingCost : ℝ) opRisk write)).ofLp
+      (Fin.last S.width)
+  rw [hlast]
+  simpa [residualDirection, expandedParameters] using heta
 
 section GrowthTrajectory
 
