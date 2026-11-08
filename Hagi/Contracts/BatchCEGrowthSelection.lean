@@ -796,4 +796,400 @@ theorem growthObjective_iteratedGrowthAdmissionSelection_tendsto_ciInf
 
 end AdmissionYield
 
+section FiniteOpenLoop
+
+variable
+    (Zs : A → (_ : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+    (Ds : A → ∀ S : BoundedBatchState V B a r c k capacity,
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : A → ℕ)
+    (risks : A → ℝ) (writes : A → Option (Σ _ : ℕ, Fin c → ℝ))
+    (admissions : ∀ (idx : A) (T : BoundedBatchState V B a r c k capacity),
+      GrowthAdmission V T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx))
+
+/-- One current-state quarantined step and its constructor-aware resource totals. -/
+noncomputable def growthAdmissionPlanStep
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (idx : A) :
+    BoundedBatchState V B a r c k capacity × ℕ × ℕ :=
+  (quarantinedGrowStep w.1 (Zs idx w.1) (Ds idx w.1) (costs idx) (memoryCaps idx)
+      (operationCaps idx) (admissions idx w.1) (risks idx) (writes idx),
+    w.2.1 + growthAdmissionMemoryIncrement Zs Ds costs memoryCaps operationCaps
+      admissions w.1 idx,
+    w.2.2 + growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+      admissions w.1 idx)
+
+/-- One open-loop rollout step never increases supplied-batch CE. -/
+theorem growthAdmissionPlanStep_objective_le
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (idx : A) :
+    growthObjective (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w idx).1 ≤ growthObjective w.1 := by
+  exact growthObjective_quarantinedGrowStep_le w.1 (Zs idx w.1) (Ds idx w.1)
+    (costs idx) (memoryCaps idx) (operationCaps idx) (admissions idx w.1)
+    (risks idx) (writes idx)
+
+/-- All five admission constructors preserve an initially nonnegative budget. -/
+theorem growthAdmissionPlanStep_budget_nonneg
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (idx : A)
+    (hinitial : 0 ≤ w.1.state.res.budget) :
+    0 ≤ (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+      risks writes admissions w idx).1.state.res.budget := by
+  change 0 ≤ (quarantinedGrowStep w.1 (Zs idx w.1) (Ds idx w.1) (costs idx)
+    (memoryCaps idx) (operationCaps idx) (admissions idx w.1) (risks idx)
+    (writes idx)).state.res.budget
+  cases admissions idx w.1 with
+  | fullyVerified hlegal =>
+      exact boundedGrowStep_budget_nonneg_of_legal w.1 (Zs idx w.1) (Ds idx w.1)
+        (costs idx) (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx) hlegal
+  | conditional _ _ => exact hinitial
+  | empiricalOnly _ => exact hinitial
+  | budgetViolation _ => exact hinitial
+  | unknown => exact hinitial
+
+variable [Fintype A]
+
+omit [Fintype A] in
+/-- List rollout CE nonincrease needs no operation-cap premise. -/
+theorem growthAdmissionPlanFold_objective_le
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (xs : List A) :
+    growthObjective (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps
+        operationCaps risks writes admissions) w xs).1 ≤ growthObjective w.1 := by
+  induction xs generalizing w with
+  | nil => exact le_rfl
+  | cons idx xs ih =>
+      simp only [List.foldl_cons]
+      exact le_trans (ih (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w idx))
+        (growthAdmissionPlanStep_objective_le Zs Ds costs memoryCaps operationCaps
+          risks writes admissions w idx)
+
+omit [Fintype A] in
+/-- The four-way contract for an arbitrary list and an arbitrary resource accumulator. -/
+theorem growthAdmissionPlanFold_contract [Finite A]
+    (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget)
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (xs : List A) :
+    growthObjective (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps
+        operationCaps risks writes admissions) w xs).1 ≤ growthObjective w.1 ∧
+      (0 ≤ w.1.state.res.budget →
+        0 ≤ (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps
+          operationCaps risks writes admissions) w xs).1.state.res.budget) ∧
+      (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+          risks writes admissions) w xs).2.1 ≤
+        w.2.1 + xs.length * growthMemoryIncrement B V ∧
+      (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+          risks writes admissions) w xs).2.2 ≤
+        w.2.2 + xs.length * operationBudget := by
+  let _ := Fintype.ofFinite A
+  induction xs generalizing w with
+  | nil =>
+      simp only [List.foldl_nil, List.length_nil, Nat.zero_mul, Nat.add_zero]
+      exact ⟨le_rfl, fun h => h, le_rfl, le_rfl⟩
+  | cons idx xs ih =>
+      have hstepCE := growthAdmissionPlanStep_objective_le Zs Ds costs memoryCaps
+        operationCaps risks writes admissions w idx
+      have hstepBudget := growthAdmissionPlanStep_budget_nonneg Zs Ds costs memoryCaps
+        operationCaps risks writes admissions w idx
+      have hfeasible := growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w.1 operationBudget hop idx
+      have hmemStep : growthAdmissionMemoryIncrement Zs Ds costs memoryCaps operationCaps
+          admissions w.1 idx ≤ growthMemoryIncrement B V := by
+        simpa only [growthAdmissionProblemAt] using (mem_feasible.mp hfeasible).2.1
+      have hopsStep : growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+          admissions w.1 idx ≤ operationBudget := by
+        simpa only [growthAdmissionProblemAt] using (mem_feasible.mp hfeasible).2.2
+      have h := ih (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w idx)
+      have hmem : (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+          risks writes admissions)
+          (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+            risks writes admissions w idx) xs).2.1 ≤
+          w.2.1 + growthAdmissionMemoryIncrement Zs Ds costs memoryCaps operationCaps
+            admissions w.1 idx + xs.length * growthMemoryIncrement B V := by
+        simpa only [growthAdmissionPlanStep, Nat.add_assoc] using h.2.2.1
+      have hops : (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+          risks writes admissions)
+          (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+            risks writes admissions w idx) xs).2.2 ≤
+          w.2.2 + growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+            admissions w.1 idx + xs.length * operationBudget := by
+        simpa only [growthAdmissionPlanStep, Nat.add_assoc] using h.2.2.2
+      simp only [List.foldl_cons]
+      refine ⟨le_trans h.1 hstepCE, ?_, ?_, ?_⟩
+      · intro hw
+        exact h.2.1 (hstepBudget hw)
+      · simp only [List.length_cons, Nat.succ_mul]
+        omega
+      · simp only [List.length_cons, Nat.succ_mul]
+        omega
+
+/-- Full plan evaluation from one current state with initially zero declared totals. -/
+noncomputable def growthAdmissionPlanRollout {H : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) (plan : Fin H → A) :
+    BoundedBatchState V B a r c k capacity × ℕ × ℕ :=
+  List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+    risks writes admissions) (S, 0, 0) (List.ofFn plan)
+
+/-- Fixed-state finite controller problem whose actions are exact open-loop plans. -/
+noncomputable def growthAdmissionPlanProblemAt (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) :
+    ControllerProblem (Fin H → A) (BoundedBatchState V B a r c k capacity) := by
+  classical
+  exact
+    { value := fun T => -growthObjective T
+      step := fun plan T =>
+        (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions T plan).1
+      memory := fun plan =>
+        (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan).2.1
+      operations := fun plan =>
+        (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan).2.2
+      safe := fun plan => ∀ T,
+        growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions T plan).1 ≤ growthObjective T }
+
+/-- Current-state rollout safety supplies the plan-local decidable predicate. -/
+noncomputable instance growthAdmissionPlanProblemAt_decidable_safe (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) :
+    DecidablePred (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0).safe := by
+  intro plan
+  apply isTrue
+  intro T
+  exact growthAdmissionPlanFold_objective_le Zs Ds costs memoryCaps operationCaps
+    risks writes admissions (T, 0, 0) (List.ofFn plan)
+
+/-- Every supplied plan is safe and has its two horizon-scaled resource caps. -/
+theorem growthAdmissionPlan_mem_feasible (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (plan : Fin H → A) :
+    plan ∈ feasible (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+        risks writes admissions H S0)
+      (H * growthMemoryIncrement B V) (H * operationBudget) := by
+  apply mem_feasible.mpr
+  have h := growthAdmissionPlanFold_contract Zs Ds costs memoryCaps operationCaps
+    risks writes admissions operationBudget hop (S0, 0, 0) (List.ofFn plan)
+  refine ⟨?_, ?_, ?_⟩
+  · intro T
+    exact growthAdmissionPlanFold_objective_le Zs Ds costs memoryCaps operationCaps
+      risks writes admissions (T, 0, 0) (List.ofFn plan)
+  · simpa only [growthAdmissionPlanProblemAt, growthAdmissionPlanRollout,
+      List.length_ofFn, Nat.zero_add] using h.2.2.1
+  · simpa only [growthAdmissionPlanProblemAt, growthAdmissionPlanRollout,
+      List.length_ofFn, Nat.zero_add] using h.2.2.2
+
+/-- Exact existing finite selection, with a constant supplied action as its witness. -/
+noncomputable def growthAdmissionPlanSelection (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) : Fin H → A :=
+  selection (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0) S0
+    (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+    (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0))
+
+/-- The selected plan has minimum terminal supplied-batch CE among all feasible plans. -/
+theorem growthAdmissionPlanSelection_objective_le (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A)
+    (plan : Fin H → A)
+    (hfeasible : plan ∈ feasible (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps
+        operationCaps risks writes admissions H S0)
+      (H * growthMemoryIncrement B V) (H * operationBudget)) :
+    growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).1 ≤
+      growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 plan).1 := by
+  have h := selection_quality_optimal
+    (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0) S0
+    (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+    (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0)) plan hfeasible
+  change -growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+      risks writes admissions S0 plan).1 ≤
+    -growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+      risks writes admissions S0
+      (selection (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0) S0
+        (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+        (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0)))).1 at h
+  simpa only [growthAdmissionPlanSelection] using neg_le_neg_iff.mp h
+
+/-- Selected declared memory is bounded by the horizon-scaled cap. -/
+theorem growthAdmissionPlanSelection_memory_le (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).2.1 ≤
+      H * growthMemoryIncrement B V := by
+  have h := selection_memory_le
+    (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0) S0
+    (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+    (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0))
+  simpa only [growthAdmissionPlanProblemAt, growthAdmissionPlanSelection] using h
+
+/-- Selected declared operations are bounded by the horizon-scaled cap. -/
+theorem growthAdmissionPlanSelection_operations_le (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).2.2 ≤
+      H * operationBudget := by
+  have h := selection_operations_le
+    (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0) S0
+    (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+    (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0))
+  simpa only [growthAdmissionPlanProblemAt, growthAdmissionPlanSelection] using h
+
+/-- A nonnegative initial real budget survives the entire selected rollout. -/
+theorem growthAdmissionPlanSelection_budget_nonneg (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A)
+    (hinitial : 0 ≤ S0.state.res.budget) :
+    0 ≤ (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+      risks writes admissions S0
+      (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+        risks writes admissions H S0 operationBudget hop a0)).1.state.res.budget := by
+  exact (growthAdmissionPlanFold_contract Zs Ds costs memoryCaps operationCaps
+    risks writes admissions operationBudget hop (S0, 0, 0)
+    (List.ofFn (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop a0))).2.1 hinitial
+
+/-- Full terminal-objective/resource lex comparison against any feasible plan. -/
+theorem growthAdmissionPlanSelection_lt_or_eq_and_resource_lex (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A)
+    (plan : Fin H → A)
+    (hfeasible : plan ∈ feasible (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps
+        operationCaps risks writes admissions H S0)
+      (H * growthMemoryIncrement B V) (H * operationBudget)) :
+    growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).1 <
+        growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan).1 ∨
+      (growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+            risks writes admissions H S0 operationBudget hop a0)).1 =
+        growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan).1 ∧
+        toLex
+          (-((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.1 : ℤ),
+            -((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.2 : ℤ)) ≤
+        toLex
+          (-((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+              (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+                risks writes admissions H S0 operationBudget hop a0)).2.1 : ℤ),
+            -((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+              (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+                risks writes admissions H S0 operationBudget hop a0)).2.2 : ℤ))) := by
+  have h := selection_optimal
+    (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0) S0
+    (H * growthMemoryIncrement B V) (H * operationBudget) (fun _ : Fin H => a0)
+    (growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes admissions H S0 operationBudget hop (fun _ : Fin H => a0)) plan hfeasible
+  change toLex
+      (-growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan).1,
+        toLex
+          (-((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.1 : ℤ),
+            -((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.2 : ℤ))) ≤
+    toLex
+      (-growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+            risks writes admissions H S0 operationBudget hop a0)).1,
+        toLex
+          (-((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+              (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+                risks writes admissions H S0 operationBudget hop a0)).2.1 : ℤ),
+            -((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+              (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+                risks writes admissions H S0 operationBudget hop a0)).2.2 : ℤ))) at h
+  rcases Prod.Lex.toLex_le_toLex.mp h with hlt | ⟨heq, hresources⟩
+  · exact Or.inl (neg_lt_neg_iff.mp hlt)
+  · exact Or.inr ⟨by linarith, hresources⟩
+
+/-- The finite schedule cardinal is a size fact, not an execution-time bound. -/
+theorem fintypeCard_growthAdmissionPlan (H : ℕ) :
+    Fintype.card (Fin H → A) = Fintype.card A ^ H := by
+  classical
+  exact Fintype.card_pi_const A H
+
+end FiniteOpenLoop
+
+section Boundaries
+
+variable
+    (Zs : A → (_ : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+    (Ds : A → ∀ S : BoundedBatchState V B a r c k capacity,
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : A → ℕ)
+    (risks : A → ℝ) (writes : A → Option (Σ _ : ℕ, Fin c → ℝ))
+
+/-- At zero horizon the rollout is the original state with zero accumulated totals. -/
+theorem growthAdmissionPlanRollout_zero
+    (admissions : ∀ (idx : A) (T : BoundedBatchState V B a r c k capacity),
+      GrowthAdmission V T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx))
+    (S : BoundedBatchState V B a r c k capacity) (plan : Fin 0 → A) :
+    growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+      risks writes admissions S plan = (S, 0, 0) := by
+  rfl
+
+/-- Entirely unknown plans hold at every step and consume zero declared resources. -/
+theorem growthAdmissionPlanRollout_unknown {H : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) (plan : Fin H → A) :
+    growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes
+      (fun _ _ => .unknown) S plan = (S, 0, 0) := by
+  unfold growthAdmissionPlanRollout
+  generalize List.ofFn plan = xs
+  induction xs generalizing S with
+  | nil => rfl
+  | cons idx xs ih =>
+      rw [List.foldl_cons]
+      change List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes (fun _ _ => .unknown)) (S, 0, 0) xs = (S, 0, 0)
+      exact ih S
+
+/-- Empirical metadata alone is also a literal hold with zero declared resources. -/
+theorem growthAdmissionPlanRollout_empiricalOnly {H : ℕ} (testRuns : ℕ)
+    (S : BoundedBatchState V B a r c k capacity) (plan : Fin H → A) :
+    growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes
+      (fun _ _ => .empiricalOnly testRuns) S plan = (S, 0, 0) := by
+  unfold growthAdmissionPlanRollout
+  generalize List.ofFn plan = xs
+  induction xs generalizing S with
+  | nil => rfl
+  | cons idx xs ih =>
+      rw [List.foldl_cons]
+      change List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes (fun _ _ => .empiricalOnly testRuns)) (S, 0, 0) xs = (S, 0, 0)
+      exact ih S
+
+end Boundaries
+
 end Hagi.Contracts.BatchCEGrowthSelection
