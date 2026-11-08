@@ -162,6 +162,46 @@ theorem selection_score_eq_selectionIn
       (selectionIn p s kept stay h_stay)
       (hsub hkept.1)
 
+/-- Feasible actions weakly dominating some action in kept. -/
+noncomputable def scoreDominatingIn
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (s : S) (M C : ℕ) (kept : Finset A) : Finset A :=
+  by
+    classical
+    exact (feasible p M C).filter
+      (fun a => ∃ b ∈ kept, score p s b ≤ score p s a)
+
+/-- The bank-dominating envelope preserves the exact selected score
+without a separate coverage hypothesis. -/
+theorem selection_score_eq_selectionIn_scoreDominatingIn
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (s : S) (M C : ℕ)
+    (kept : Finset A) (stay : A)
+    (h_stay : stay ∈ kept)
+    (hsub : kept ⊆ feasible p M C) :
+    score p s (selection p s M C stay (hsub h_stay)) =
+      score p s (selectionIn p s (scoreDominatingIn p s M C kept) stay
+        (by
+          exact Finset.mem_filter.mpr
+            ⟨hsub h_stay, stay, h_stay, le_rfl⟩)) := by
+  classical
+  let h_new_stay : stay ∈ scoreDominatingIn p s M C kept := by
+    exact Finset.mem_filter.mpr ⟨hsub h_stay, stay, h_stay, le_rfl⟩
+  have hsub_new : scoreDominatingIn p s M C kept ⊆ feasible p M C := by
+    intro a ha
+    exact (Finset.mem_filter.mp ha).1
+  apply selection_score_eq_selectionIn p s M C
+    (scoreDominatingIn p s M C kept) stay h_new_stay hsub_new
+  intro a ha
+  let m := selection p s M C stay (hsub h_stay)
+  have hm_feasible : m ∈ feasible p M C := by
+    exact selection_admissible p s M C stay (hsub h_stay)
+  have hm_new : m ∈ scoreDominatingIn p s M C kept := by
+    apply Finset.mem_filter.mpr
+    refine ⟨hm_feasible, stay, h_stay, ?_⟩
+    exact selection_optimal p s M C stay (hsub h_stay) stay (hsub h_stay)
+  exact ⟨m, hm_new, selection_optimal p s M C stay (hsub h_stay) a ha⟩
+
 /-- With two feasible actions, a strict objective increase from action `0`
 to action `1` forces the lexicographic selection to choose action `1`. -/
 theorem selection_eq_one_of_value_lt {S : Type*}
