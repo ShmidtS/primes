@@ -872,4 +872,132 @@ theorem residualPath_budget_nonneg {V : Type} [Fintype V]
 
 end ResidualTrajectory
 
+section ProofTier
+
+/-- Evidence levels for one actual bounded-growth admission policy. -/
+inductive GrowthAdmission (V : Type) [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ) where
+  | fullyVerified (h : GrowthLegal V S Z D trainingCost memoryLimit operationLimit)
+  | conditional (debt : Prop)
+      (close : debt → GrowthLegal V S Z D trainingCost memoryLimit operationLimit)
+  | empiricalOnly (testRuns : ℕ)
+  | budgetViolation (h : S.state.res.budget < 0)
+  | unknown
+
+/-- Only discharged conditional evidence may become a proof of legality. -/
+def GrowthAdmission.debt {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} {S : BoundedBatchState V B a r c k capacity}
+    {Z : Fin B → V → ℝ} {D : EuclideanSpace ℝ (Fin (S.width + 1))}
+    {trainingCost memoryLimit operationLimit : ℕ}
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit) : Prop :=
+  match a with
+  | .fullyVerified _ => True
+  | .conditional H _ => H
+  | .empiricalOnly _ => False
+  | .budgetViolation _ => False
+  | .unknown => False
+
+/-- Explicitly discharged debt yields exactly the existing admission proof. -/
+theorem GrowthAdmission.proof {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} {S : BoundedBatchState V B a r c k capacity}
+    {Z : Fin B → V → ℝ} {D : EuclideanSpace ℝ (Fin (S.width + 1))}
+    {trainingCost memoryLimit operationLimit : ℕ}
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (h : a.debt) : GrowthLegal V S Z D trainingCost memoryLimit operationLimit := by
+  cases a with
+  | fullyVerified hLegal => exact hLegal
+  | conditional _ close => exact close h
+  | empiricalOnly _ => exact False.elim h
+  | budgetViolation _ => exact False.elim h
+  | unknown => exact False.elim h
+
+/-- Promotion is available only from actual discharged proof debt. -/
+def GrowthAdmission.promote {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} {S : BoundedBatchState V B a r c k capacity}
+    {Z : Fin B → V → ℝ} {D : EuclideanSpace ℝ (Fin (S.width + 1))}
+    {trainingCost memoryLimit operationLimit : ℕ}
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (h : a.debt) : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit :=
+  .fullyVerified (a.proof h)
+
+/-- Negative current real budget contradicts the existing resource premise. -/
+theorem not_growthLegal_of_negative_budget {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} {S : BoundedBatchState V B a r c k capacity}
+    {Z : Fin B → V → ℝ} {D : EuclideanSpace ℝ (Fin (S.width + 1))}
+    {trainingCost memoryLimit operationLimit : ℕ}
+    (hneg : S.state.res.budget < 0) :
+    ¬ GrowthLegal V S Z D trainingCost memoryLimit operationLimit := by
+  intro hlegal
+  have hbudget := hlegal.2.2.2.1
+  have hnonneg : (0 : ℝ) ≤
+      ((growthOperations B V trainingCost : ℕ) : ℝ) := Nat.cast_nonneg _
+  linarith
+
+/-- Only fully verified evidence reaches the actual bounded-growth executor. -/
+noncomputable def quarantinedGrowStep {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (admission : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    BoundedBatchState V B a r c k capacity :=
+  match admission with
+  | .fullyVerified _ => boundedGrowStep S Z D trainingCost memoryLimit operationLimit
+      opRisk write
+  | .conditional _ _ => S
+  | .empiricalOnly _ => S
+  | .budgetViolation _ => S
+  | .unknown => S
+
+/-- Explicit promotion delegates to the original bounded transition. -/
+theorem quarantinedGrowStep_of_promote {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (h : a.debt) (opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    quarantinedGrowStep S Z D trainingCost memoryLimit operationLimit
+        (a.promote h) opRisk write =
+      boundedGrowStep S Z D trainingCost memoryLimit operationLimit opRisk write := by
+  cases a with
+  | fullyVerified _ => rfl
+  | conditional _ _ => rfl
+  | empiricalOnly _ => exact False.elim h
+  | budgetViolation _ => exact False.elim h
+  | unknown => exact False.elim h
+
+/-- Any un-promoted constructor retains the complete old batch state. -/
+theorem quarantinedGrowStep_of_not_fullyVerified {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (h : ∀ legal, a ≠ .fullyVerified legal) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    quarantinedGrowStep S Z D trainingCost memoryLimit operationLimit a opRisk write = S := by
+  cases a with
+  | fullyVerified hLegal => exact False.elim (h hLegal rfl)
+  | conditional _ _ => rfl
+  | empiricalOnly _ => rfl
+  | budgetViolation _ => rfl
+  | unknown => rfl
+
+/-- After actual debt discharge, the promoted call strictly lowers supplied-batch CE. -/
+theorem growthObjective_quarantinedGrowStep_lt_of_promote {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (h : a.debt) (opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    growthObjective (quarantinedGrowStep S Z D trainingCost memoryLimit operationLimit
+      (a.promote h) opRisk write) < growthObjective S := by
+  rw [quarantinedGrowStep_of_promote S Z D trainingCost memoryLimit operationLimit
+    a h opRisk write]
+  exact batchCEObjective_boundedGrowStep_lt_of_legal S Z D trainingCost memoryLimit
+    operationLimit opRisk write (a.proof h)
+
+end ProofTier
+
 end Hagi.Contracts.BatchCEGrowth
