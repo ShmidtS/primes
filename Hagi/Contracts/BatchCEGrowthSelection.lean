@@ -534,6 +534,266 @@ theorem smoothedGrowthYield_self (S : BoundedBatchState V B a r c k capacity) :
     smoothedGrowthYield S S = 0 := by
   simp [smoothedGrowthYield]
 
+open Filter Topology
+
+/-- The actual quarantined successor selected at the current state. -/
+noncomputable def growthAdmissionSelectionNext
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    BoundedBatchState V B a r c k capacity :=
+  selectedNext
+    (growthAdmissionProblemAt Zs Ds costs memoryCaps operationCaps risks writes admissions S)
+    S (growthMemoryIncrement B V) operationBudget a0
+    (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions S
+      operationBudget hop a0)
+
+/-- The selected successor is the quarantined step at the selected current-state index. -/
+theorem growthAdmissionSelectionNext_eq_quarantinedGrowStep
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0 =
+      quarantinedGrowStep S
+        (Zs (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0) S)
+        (Ds (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0) S)
+        (costs (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0))
+        (memoryCaps (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S operationBudget hop a0))
+        (operationCaps (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S operationBudget hop a0))
+        (admissions
+          (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes admissions S
+            operationBudget hop a0) S)
+        (risks (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S operationBudget hop a0))
+        (writes (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S operationBudget hop a0)) := by
+  rfl
+
+/-- Standard iteration of the actual selected successor, with no separate state framework. -/
+noncomputable def growthAdmissionSelectionPath
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) (n : ℕ) :
+    BoundedBatchState V B a r c k capacity :=
+  (fun T => growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes
+    admissions T operationBudget hop a0)^[n] S0
+
+/-- Only the selected constructor contributes declared operations;
+  bank evaluation is not charged. -/
+theorem growthAdmissionSelectionNext_flops
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0).state.res.flops =
+      S.state.res.flops +
+        (growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps admissions S
+          (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes admissions S
+            operationBudget hop a0) : ℝ) := by
+  rw [growthAdmissionSelectionNext_eq_quarantinedGrowStep]
+  cases hadm : admissions
+      (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0) S with
+  | fullyVerified hlegal =>
+      rw [quarantinedGrowStep, boundedGrowStep_flops_of_legal S
+        (Zs (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0) S)
+        (Ds (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0) S)
+        (costs (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop a0))
+        (memoryCaps (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S operationBudget hop a0))
+        (operationCaps (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S operationBudget hop a0)) (risks _) (writes _) hlegal]
+      simp only [growthAdmissionOperationIncrement, hadm, growthCandidateOperationIncrement,
+        hlegal, ite_true]
+  | conditional _ _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm, Nat.cast_zero,
+        add_zero]
+  | empiricalOnly _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm, Nat.cast_zero,
+        add_zero]
+  | budgetViolation _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm, Nat.cast_zero,
+        add_zero]
+  | unknown =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm, Nat.cast_zero,
+        add_zero]
+
+/-- A positive actual current-state candidate yield forces strict supplied-batch CE progress. -/
+theorem growthAdmissionSelectionNext_objective_lt_of_candidate_pos
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (hpositive : 0 < smoothedGrowthYield S
+      (quarantinedGrowStep S (Zs idx S) (Ds idx S) (costs idx) (memoryCaps idx)
+        (operationCaps idx) (admissions idx S) (risks idx) (writes idx))) :
+    growthObjective
+      (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S operationBudget hop a0) < growthObjective S := by
+  have hle : smoothedGrowthYield S
+      (quarantinedGrowStep S (Zs idx S) (Ds idx S) (costs idx) (memoryCaps idx)
+        (operationCaps idx) (admissions idx S) (risks idx) (writes idx)) ≤
+      smoothedGrowthYield S (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S operationBudget hop a0) := by
+    simpa only [growthAdmissionSelectionNext] using
+      growthAdmissionSelection_smoothedGrowthYield_ge_candidate
+        Zs Ds costs memoryCaps operationCaps risks writes admissions S operationBudget hop a0 idx
+        (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S
+          operationBudget hop idx)
+  have hselectedPos : 0 < smoothedGrowthYield S
+      (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0) := lt_of_lt_of_le hpositive hle
+  have hflops : 0 ≤
+      (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0).state.res.flops - S.state.res.flops := by
+    rw [growthAdmissionSelectionNext_eq_quarantinedGrowStep]
+    exact quarantinedGrowStep_flops_sub_nonneg Zs Ds costs memoryCaps operationCaps risks writes
+      admissions S
+      (growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0)
+  have hdenom : 0 <
+      (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions S
+        operationBudget hop a0).state.res.flops - S.state.res.flops + 1 := by
+    linarith
+  unfold smoothedGrowthYield at hselectedPos
+  have hnumerator : 0 < growthObjective S -
+      growthObjective (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S operationBudget hop a0) :=
+    (div_pos_iff_of_pos_right hdenom).mp hselectedPos
+  exact sub_pos.mp hnumerator
+
+/-- Supplied-batch CE is antitone along the selected iterates. -/
+theorem growthObjective_iteratedGrowthAdmissionSelection_antitone
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    Antitone (fun n : ℕ => growthObjective
+      (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        operationBudget hop a0 n)) := by
+  apply antitone_nat_of_succ_le
+  intro n
+  unfold growthAdmissionSelectionPath
+  rw [Function.iterate_succ_apply']
+  simpa only [growthAdmissionSelectionNext] using
+    growthAdmissionSelection_objective_le_current Zs Ds costs memoryCaps operationCaps risks writes
+      admissions
+      (((fun T : BoundedBatchState V B a r c k capacity =>
+        growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions T
+          operationBudget hop a0)^[n]) S0)
+      operationBudget hop a0
+
+/-- Nonnegative initial budget persists along every selected quarantined iterate. -/
+theorem iteratedGrowthAdmissionSelection_budget_nonneg
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A)
+    (hinitial : 0 ≤ S0.state.res.budget) (n : ℕ) :
+    0 ≤ (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+      operationBudget hop a0 n).state.res.budget := by
+  unfold growthAdmissionSelectionPath
+  induction n with
+  | zero => exact hinitial
+  | succ n ih =>
+      rw [Function.iterate_succ_apply']
+      set S := ((fun T : BoundedBatchState V B a r c k capacity =>
+        growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions T
+          operationBudget hop a0)^[n]) S0
+      rw [growthAdmissionSelectionNext_eq_quarantinedGrowStep]
+      let idx := growthAdmissionSelection Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S operationBudget hop a0
+      change 0 ≤ (quarantinedGrowStep S (Zs idx S) (Ds idx S) (costs idx) (memoryCaps idx)
+        (operationCaps idx) (admissions idx S) (risks idx) (writes idx)).state.res.budget
+      cases admissions idx S with
+      | fullyVerified hlegal =>
+          exact boundedGrowStep_budget_nonneg_of_legal S (Zs idx S) (Ds idx S) (costs idx)
+            (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx) hlegal
+      | conditional _ _ => exact ih
+      | empiricalOnly _ => exact ih
+      | budgetViolation _ => exact ih
+      | unknown => exact ih
+
+/-- Compare a fixed candidate at each selected state, not
+  fixed-candidate trajectories or global-horizon optimality. -/
+theorem growthAdmissionSelection_sum_smoothedGrowthYield_ge_candidate
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A) (T : ℕ) :
+    (∑ t ∈ Finset.range T, smoothedGrowthYield
+      (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        operationBudget hop a0 t)
+      (quarantinedGrowStep
+        (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 t)
+        (Zs idx (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S0 operationBudget hop a0 t))
+        (Ds idx (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps risks writes
+          admissions S0 operationBudget hop a0 t))
+        (costs idx) (memoryCaps idx) (operationCaps idx)
+        (admissions idx (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes
+          admissions S0 operationBudget hop a0 t))
+        (risks idx) (writes idx))) ≤
+      ∑ t ∈ Finset.range T, smoothedGrowthYield
+        (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 t)
+        (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 (t + 1)) := by
+  have hstep (t : ℕ) :
+      growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 (t + 1) =
+        growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes admissions
+          (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+            operationBudget hop a0 t) operationBudget hop a0 := by
+    unfold growthAdmissionSelectionPath
+    rw [Function.iterate_succ_apply']
+  apply Finset.sum_le_sum
+  intro t _ht
+  rw [hstep]
+  simpa only [growthAdmissionSelectionNext] using
+    growthAdmissionSelection_smoothedGrowthYield_ge_candidate
+      Zs Ds costs memoryCaps operationCaps risks writes admissions
+      (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        operationBudget hop a0 t)
+      operationBudget hop a0 idx
+      (growthAdmission_mem_feasible Zs Ds costs memoryCaps operationCaps risks writes admissions
+        (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 t) operationBudget hop idx)
+
+/-- The nonnegative antitone selected path converges only to its own historical infimum. -/
+theorem growthObjective_iteratedGrowthAdmissionSelection_tendsto_ciInf
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    Tendsto (fun t : ℕ => growthObjective
+      (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        operationBudget hop a0 t)) atTop
+      (𝓝 (⨅ t : ℕ, growthObjective
+        (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+          operationBudget hop a0 t))) := by
+  exact ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (growthObjective_iteratedGrowthAdmissionSelection_antitone
+      Zs Ds costs memoryCaps operationCaps risks writes admissions S0 operationBudget hop a0)
+    (fun _ => growthObjective_nonneg _)
+
+
 end AdmissionYield
 
 end Hagi.Contracts.BatchCEGrowthSelection
