@@ -240,6 +240,57 @@ theorem growthSelection_objective_le_candidate (S : BoundedBatchState V B a r c 
   simpa only [selectedNext, growthProblemAt, growthSelectionNext, growthSelection,
     neg_neg] using neg_le_neg h
 
+/-- Uniform supplied-batch CE error bounds the estimate-selected actual successor;
+this supplies neither an estimator nor a held-out accuracy guarantee. -/
+theorem growthDominatingSelection_objective_le_candidate_of_uniform_error
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (estimate : BoundedBatchState V B a r c k capacity → ℝ) (eps : ℝ)
+    (heps : 0 ≤ eps)
+    (herr : ∀ idx, |estimate (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+      risks writes S idx) -
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx)| ≤ eps) :
+    let p := growthProblemAt Zs Ds costs memoryCaps operationCaps risks writes S
+    let pE := withEstimatedValue p (fun T => -estimate T)
+    let E := scoreDominatingIn pE S (growthMemoryIncrement B V) operationBudget Finset.univ
+    let hStayE : a0 ∈ E := Finset.mem_filter.mpr
+      ⟨(mem_feasible_withEstimatedValue p (fun T => -estimate T)).mpr
+          (growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+            risks writes S operationBudget hop a0),
+        a0, Finset.mem_univ a0, le_rfl⟩
+    growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S (selectionIn pE S E a0 hStayE)) ≤
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx) + 2 * eps := by
+  classical
+  let p := growthProblemAt Zs Ds costs memoryCaps operationCaps risks writes S
+  let pE := withEstimatedValue p (fun T => -estimate T)
+  let E := scoreDominatingIn pE S (growthMemoryIncrement B V) operationBudget Finset.univ
+  let hStayE : a0 ∈ E := Finset.mem_filter.mpr
+    ⟨(mem_feasible_withEstimatedValue p (fun T => -estimate T)).mpr
+        (growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+          risks writes S operationBudget hop a0),
+      a0, Finset.mem_univ a0, le_rfl⟩
+  have hsub : Finset.univ ⊆ feasible p (growthMemoryIncrement B V) operationBudget := by
+    intro i _
+    exact growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes S operationBudget hop i
+  have herr' : ∀ i : A,
+      |p.value (p.step i S) - (fun T => -estimate T) (p.step i S)| ≤ eps := by
+    intro i
+    simpa only [p, growthProblemAt, neg_sub_neg] using herr i
+  have h := robust_quality_lower_selectionIn_scoreDominatingIn p
+    (fun T => -estimate T) S (growthMemoryIncrement B V) operationBudget
+    Finset.univ a0 (Finset.mem_univ a0) hsub eps heps herr' idx
+    (growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+      risks writes S operationBudget hop idx)
+  change -growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+      risks writes S idx) - 2 * eps ≤
+    -growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+      risks writes S (selectionIn pE S E a0 hStayE)) at h
+  linarith
+
 /-- Nonregression follows through the supplied witness, not an assumed identity action. -/
 theorem growthSelection_objective_le_current (S : BoundedBatchState V B a r c k capacity)
     (operationBudget : ℕ)
