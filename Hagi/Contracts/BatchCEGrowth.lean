@@ -1000,4 +1000,158 @@ theorem growthObjective_quarantinedGrowStep_lt_of_promote {V : Type} [Fintype V]
 
 end ProofTier
 
+section ResidualAdmissionMargin
+
+/-- The existing worst-sample quadratic residual at the actual common eta. -/
+noncomputable def residualStepMargin {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) : ℝ := by
+  classical
+  exact if hB : Nonempty (Fin B) then
+    let _ : Nonempty (Fin B) := hB
+    batchDirectionMinQuadraticMargin
+      (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+      (coreParameters (expandedTrainState S.state)) S.labels (residualDirection S)
+      (batchDirectionHalfEta
+        (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+        (coreParameters (expandedTrainState S.state)) S.labels (residualDirection S))
+  else 0
+
+/-- The pure residual margin exactly when the complete admission gate holds. -/
+noncomputable def residualAdmissionMargin {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ) : ℝ := by
+  classical
+  exact if h : GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit then residualStepMargin S else 0
+
+theorem residualAdmissionMargin_pos_of_legal {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (h : GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit) :
+    0 < residualAdmissionMargin S trainingCost memoryLimit operationLimit := by
+  classical
+  let hcert := h.2.2.2.2
+  let _ : Nonempty (Fin B) := hcert.1
+  rw [residualAdmissionMargin, dite_eq_left h, residualStepMargin, dite_eq_left hcert.1,
+    batchDirectionMinQuadraticMargin, ← Finset.inf'_univ_eq_ciInf]
+  apply (Finset.lt_inf'_iff Finset.univ_nonempty).2
+  intro b _hb
+  exact lt_of_lt_of_le
+    (batchDirectionHalfMargin_pos_of_neg
+      (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+      (coreParameters (expandedTrainState S.state)) S.labels (residualDirection S)
+      hcert.2 b)
+    (batchDirectionHalfMargin_le_quadraticMargin
+      (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+      (coreParameters (expandedTrainState S.state)) S.labels (residualDirection S) b)
+
+theorem residualAdmissionMargin_nonneg {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ) :
+    0 ≤ residualAdmissionMargin S trainingCost memoryLimit operationLimit := by
+  classical
+  by_cases h : GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit
+  · exact (residualAdmissionMargin_pos_of_legal S trainingCost memoryLimit
+      operationLimit h).le
+  · simp [residualAdmissionMargin, h]
+
+theorem residualAdmissionMargin_le_objective_sub {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    residualAdmissionMargin S trainingCost memoryLimit operationLimit ≤
+      growthObjective S - growthObjective
+        (boundedGrowStep S (residualFeatures S) (residualDirection S)
+          trainingCost memoryLimit operationLimit opRisk write) := by
+  classical
+  by_cases h : GrowthLegal V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit
+  · let hcert := h.2.2.2.2
+    let _ : Nonempty (Fin B) := hcert.1
+    have hcost : 0 ≤ (trainingCost : ℝ) ∧
+        (expandedFeatureEvaluationCount B V : ℝ) + (trainingCost : ℝ) ≤
+          S.state.res.budget :=
+      growthLegal_expandedCost h
+    have hper (b : Fin B) :
+        batchSampleCE
+            (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+            S.labels b
+            (expandedHalfTrainStep S.features S.labels (residualFeatures S)
+              (residualDirection S) S.state (trainingCost : ℝ) opRisk write) ≤
+          batchSampleCE S.features S.labels b S.state - residualStepMargin S := by
+      have hb := batchSampleCE_expandedHalfTrainStep_le_minQuadraticMargin
+        S.features S.labels (residualFeatures S) (residualDirection S) S.state
+        (trainingCost : ℝ) opRisk write hcost hcert b
+      simpa only [residualStepMargin, dite_eq_left hcert.1] using hb
+    have hsum :
+        (∑ b, batchSampleCE
+            (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+            S.labels b
+            (expandedHalfTrainStep S.features S.labels (residualFeatures S)
+              (residualDirection S) S.state (trainingCost : ℝ) opRisk write)) ≤
+          ∑ b, (batchSampleCE S.features S.labels b S.state - residualStepMargin S) :=
+      Finset.sum_le_sum fun b _hb => hper b
+    have hBnat : 0 < B := by
+      simpa only [Fintype.card_fin] using Fintype.card_pos_iff.mpr hcert.1
+    have hB : 0 < (B : ℝ) := by exact_mod_cast hBnat
+    have hdiv := div_le_div_of_nonneg_right hsum (Nat.cast_nonneg B)
+    have hmean :
+        (∑ b, batchSampleCE
+            (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+            S.labels b
+            (expandedHalfTrainStep S.features S.labels (residualFeatures S)
+              (residualDirection S) S.state (trainingCost : ℝ) opRisk write)) /
+            (B : ℝ) ≤
+          (∑ b, batchSampleCE S.features S.labels b S.state) / (B : ℝ) -
+            residualStepMargin S := by
+      calc
+        _ ≤ (∑ b, (batchSampleCE S.features S.labels b S.state -
+            residualStepMargin S)) / (B : ℝ) := hdiv
+        _ = (∑ b, batchSampleCE S.features S.labels b S.state) / (B : ℝ) -
+            residualStepMargin S := by
+          rw [Finset.sum_sub_distrib, sub_div]
+          simp only [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, Fintype.card_fin]
+          field_simp [ne_of_gt hB]
+    rw [residualAdmissionMargin, dite_eq_left h,
+      boundedGrowStep_of_legal S (residualFeatures S) (residualDirection S)
+        trainingCost memoryLimit operationLimit opRisk write h]
+    change residualStepMargin S ≤
+      (∑ b, batchSampleCE S.features S.labels b S.state) / (B : ℝ) -
+        (∑ b, batchSampleCE
+          (fun b => expandedFeatures (S.features b) (residualFeatures S b))
+          S.labels b
+          (expandedHalfTrainStep S.features S.labels (residualFeatures S)
+            (residualDirection S) S.state (trainingCost : ℝ) opRisk write)) / (B : ℝ)
+    linarith
+  · rw [residualAdmissionMargin, dite_eq_right h,
+      boundedGrowStep_of_not_legal S (residualFeatures S) (residualDirection S)
+        trainingCost memoryLimit operationLimit opRisk write h, sub_self]
+
+theorem residualPath_sum_admissionMargins_le_initial_sub {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ) (risks : ℕ → ℝ)
+    (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) (T : ℕ) :
+    (∑ t ∈ Finset.range T, residualAdmissionMargin
+      (residualPath S0 costs memoryCaps operationCaps risks writes t)
+      (costs t) (memoryCaps t) (operationCaps t)) ≤
+      growthObjective (residualPath S0 costs memoryCaps operationCaps risks writes 0) -
+        growthObjective (residualPath S0 costs memoryCaps operationCaps risks writes T) := by
+  apply Hagi.Contracts.ObjectiveTrajectory.sum_drop_le_initial_sub
+    (fun t => growthObjective
+      (residualPath S0 costs memoryCaps operationCaps risks writes t))
+    (fun t => residualAdmissionMargin
+      (residualPath S0 costs memoryCaps operationCaps risks writes t)
+      (costs t) (memoryCaps t) (operationCaps t)) T
+  intro t
+  simpa only [residualPath] using
+    (residualAdmissionMargin_le_objective_sub
+      (residualPath S0 costs memoryCaps operationCaps risks writes t)
+      (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t))
+
+
+end ResidualAdmissionMargin
+
 end Hagi.Contracts.BatchCEGrowth
