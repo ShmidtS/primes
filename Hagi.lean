@@ -177,6 +177,7 @@ import Hagi.Model.SoftmaxStep
 import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
 import Hagi.Model.CEQuantized
+import Hagi.Model.CEJacobianMajorizer
 import Hagi.Model.CEPackedStep
 import Hagi.Model.CEScaleSelection
 import Hagi.Model.CEGroupedScale
