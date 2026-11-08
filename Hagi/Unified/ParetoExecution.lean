@@ -92,14 +92,22 @@ arbitrary scalar weights. -/
 def score (p : ControllerProblem A S) (s : S) (a : A) : ℝ ×ₗ (ℤ ×ₗ ℤ) :=
   toLex (p.value (p.step a s), toLex (-(p.memory a : ℤ), -(p.operations a : ℤ)))
 
+omit [Fintype A] in
+/-- A maximal-`score` action in an explicit nonempty finite set `kept`.
+Unlike `selection`, this raw choice needs neither `Fintype A` nor a safety instance. -/
+noncomputable def selectionIn
+    (p : ControllerProblem A S) (s : S)
+    (kept : Finset A) (stay : A) (h_stay : stay ∈ kept) : A :=
+  Classical.choose
+    (Finset.exists_max_image kept (score p s) ⟨stay, h_stay⟩)
+
 /-- Selected action: a `Classical.choose` max-`score` witness over the
 nonempty feasible set (exact finite selection via
 `Finset.exists_max_image`; noncomputable because `ℝ` scores are not
 decidable in general). -/
 noncomputable def selection (p : ControllerProblem A S) [DecidablePred p.safe] (s : S) (M C : ℕ)
     (stay : A) (h_stay : stay ∈ feasible p M C) : A :=
-  Classical.choose
-    (Finset.exists_max_image (feasible p M C) (score p s) ⟨stay, h_stay⟩)
+  selectionIn p s (feasible p M C) stay h_stay
 
 /-- Master specification of the selection: feasibility of the selected
 action plus the feasible-set lex maximum property. -/
@@ -126,15 +134,6 @@ theorem selection_optimal (p : ControllerProblem A S) [DecidablePred p.safe]
     (h_stay : stay ∈ feasible p M C) :
     ∀ a ∈ feasible p M C, score p s a ≤ score p s (selection p s M C stay h_stay) :=
   (selection_spec p s M C stay h_stay).2
-
-omit [Fintype A] in
-/-- A maximal-`score` action in an explicit nonempty finite set `kept`.
-Unlike `selection`, this raw choice needs neither `Fintype A` nor a safety instance. -/
-noncomputable def selectionIn
-    (p : ControllerProblem A S) (s : S)
-    (kept : Finset A) (stay : A) (h_stay : stay ∈ kept) : A :=
-  Classical.choose
-    (Finset.exists_max_image kept (score p s) ⟨stay, h_stay⟩)
 
 /-- Restricting feasible actions to a score-covering subset preserves the
 selected score: both selections attain the same lexicographic maximum. -/
