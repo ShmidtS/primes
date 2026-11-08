@@ -1154,4 +1154,43 @@ theorem residualPath_sum_admissionMargins_le_initial_sub {V : Type} [Fintype V]
 
 end ResidualAdmissionMargin
 
+section QuantifiedAdmission
+
+/-- Every value of the local admission sum gives nonincreasing supplied-batch CE. -/
+theorem growthObjective_quarantinedGrowStep_le {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} (S : BoundedBatchState V B a r c k capacity)
+    (Z : Fin B → V → ℝ) (D : EuclideanSpace ℝ (Fin (S.width + 1)))
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (a : GrowthAdmission V S Z D trainingCost memoryLimit operationLimit)
+    (opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    growthObjective (quarantinedGrowStep S Z D trainingCost memoryLimit operationLimit
+      a opRisk write) ≤ growthObjective S := by
+  cases a with
+  | fullyVerified _ =>
+      exact batchCEObjective_boundedGrowStep_le S Z D
+        trainingCost memoryLimit operationLimit opRisk write
+  | conditional _ _ => rfl
+  | empiricalOnly _ => rfl
+  | budgetViolation _ => rfl
+  | unknown => rfl
+
+theorem residualAdmissionMargin_le_growthObjective_sub_quarantinedGrowStep_of_promote
+    {V : Type} [Fintype V] {B a r c k capacity : ℕ}
+    (S : BoundedBatchState V B a r c k capacity)
+    (trainingCost memoryLimit operationLimit : ℕ)
+    (a : GrowthAdmission V S (residualFeatures S) (residualDirection S)
+      trainingCost memoryLimit operationLimit)
+    (h : a.debt) (opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    residualAdmissionMargin S trainingCost memoryLimit operationLimit ≤
+      growthObjective S - growthObjective
+        (quarantinedGrowStep S (residualFeatures S) (residualDirection S)
+          trainingCost memoryLimit operationLimit (a.promote h) opRisk write) := by
+  rw [quarantinedGrowStep_of_promote S (residualFeatures S) (residualDirection S)
+    trainingCost memoryLimit operationLimit a h opRisk write]
+  exact residualAdmissionMargin_le_objective_sub S trainingCost memoryLimit operationLimit
+    opRisk write
+
+
+end QuantifiedAdmission
+
 end Hagi.Contracts.BatchCEGrowth
