@@ -1283,4 +1283,81 @@ theorem growthAdmissionPlanSelection_objective_le_realized_path (H : ℕ)
 
 end RealizedGreedyTrace
 
+section PlanResourceAccounting
+
+variable
+    (Zs : A → (_ : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+    (Ds : A → ∀ S : BoundedBatchState V B a r c k capacity,
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : A → ℕ)
+    (risks : A → ℝ) (writes : A → Option (Σ _ : ℕ, Fin c → ℝ))
+    (admissions : ∀ (idx : A) (T : BoundedBatchState V B a r c k capacity),
+      GrowthAdmission V T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx))
+
+/-- One arbitrary plan step adds exactly its constructor-aware declared operations. -/
+theorem growthAdmissionPlanStep_flops
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (idx : A) :
+    (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps risks writes admissions
+        w idx).1.state.res.flops =
+      w.1.state.res.flops +
+        (growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+          admissions w.1 idx : ℝ) := by
+  change (quarantinedGrowStep w.1 (Zs idx w.1) (Ds idx w.1) (costs idx)
+      (memoryCaps idx) (operationCaps idx) (admissions idx w.1) (risks idx)
+      (writes idx)).state.res.flops =
+    w.1.state.res.flops +
+      (growthAdmissionOperationIncrement Zs Ds costs memoryCaps operationCaps
+        admissions w.1 idx : ℝ)
+  cases hadm : admissions idx w.1 with
+  | fullyVerified _ =>
+      simpa only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm,
+        growthCandidateStep] using
+        (growthCandidate_flops Zs Ds costs memoryCaps operationCaps risks writes w.1 idx)
+  | conditional _ _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm,
+        Nat.cast_zero, add_zero]
+  | empiricalOnly _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm,
+        Nat.cast_zero, add_zero]
+  | budgetViolation _ =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm,
+        Nat.cast_zero, add_zero]
+  | unknown =>
+      simp only [quarantinedGrowStep, growthAdmissionOperationIncrement, hadm,
+        Nat.cast_zero, add_zero]
+
+/-- Exact declared-flops balance for a fold from arbitrary memory/operation totals. -/
+theorem growthAdmissionPlanFold_flops
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (xs : List A) :
+    (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions) w xs).1.state.res.flops + (w.2.2 : ℝ) =
+      w.1.state.res.flops +
+        ((List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+          risks writes admissions) w xs).2.2 : ℝ) := by
+  induction xs generalizing w with
+  | nil => simp only [List.foldl_nil]
+  | cons idx xs ih =>
+      rw [List.foldl_cons]
+      have hfold := ih (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w idx)
+      rw [growthAdmissionPlanStep_flops Zs Ds costs memoryCaps operationCaps
+        risks writes admissions w idx] at hfold
+      simp only [growthAdmissionPlanStep, Nat.cast_add] at hfold ⊢
+      linarith only [hfold]
+
+/-- A rollout from zero declared totals ends with initial flops plus final operations. -/
+theorem growthAdmissionPlanRollout_flops {H : ℕ}
+    (S : BoundedBatchState V B a r c k capacity) (plan : Fin H → A) :
+    (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes admissions
+        S plan).1.state.res.flops =
+      S.state.res.flops +
+        ((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S plan).2.2 : ℝ) := by
+  have h := growthAdmissionPlanFold_flops Zs Ds costs memoryCaps operationCaps
+    risks writes admissions (S, 0, 0) (List.ofFn plan)
+  simpa only [growthAdmissionPlanRollout, Nat.cast_zero, add_zero] using h
+
+end PlanResourceAccounting
+
 end Hagi.Contracts.BatchCEGrowthSelection
