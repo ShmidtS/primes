@@ -770,4 +770,106 @@ theorem growthPath_flops_le_initial_budget_add_flops
 
 end GrowthTrajectory
 
+section ResidualTrajectory
+
+/-- The residual policy evaluated from the completed current state, rather
+than from an externally fixed feature sequence. -/
+noncomputable def residualPath {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) :
+    ℕ → BoundedBatchState V B a r c k capacity
+  | 0 => S0
+  | t + 1 =>
+    let S := residualPath S0 costs memoryCaps operationCaps risks writes t
+    boundedGrowStep S (residualFeatures S) (residualDirection S)
+      (costs t) (memoryCaps t) (operationCaps t) (risks t) (writes t)
+
+/-- The state-derived residual policy is an exact specialization of the
+existing generic bounded growth trajectory. -/
+theorem residualPath_eq_growthPath {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ) :
+    residualPath S0 costs memoryCaps operationCaps risks writes t =
+      growthPath S0
+        (fun u => residualFeatures (residualPath S0 costs memoryCaps operationCaps risks writes u))
+        (fun _ S => residualDirection S) costs memoryCaps operationCaps risks writes t := by
+  induction t with
+  | zero => rfl
+  | succ t ih =>
+    simp only [residualPath, growthPath_succ]
+    rw [ih]
+
+/-- Current resources admit the residual update at every supplied path time. -/
+theorem residualPath_growthLegal {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ} [Nonempty V]
+    [Nonempty (Fin B)] [Fact (1 < Fintype.card V)]
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) (t : ℕ)
+    (hcap : (residualPath S0 costs memoryCaps operationCaps risks writes t).width + 1 ≤ capacity)
+    (hmem : growthMemoryIncrement B V ≤ memoryCaps t)
+    (hops : growthOperations B V (costs t) ≤ operationCaps t)
+    (hbudget : (growthOperations B V (costs t) : ℝ) ≤
+      (residualPath S0 costs memoryCaps operationCaps risks writes t).state.res.budget) :
+    GrowthLegal V (residualPath S0 costs memoryCaps operationCaps risks writes t)
+      (residualFeatures (residualPath S0 costs memoryCaps operationCaps risks writes t))
+      (residualDirection (residualPath S0 costs memoryCaps operationCaps risks writes t))
+      (costs t) (memoryCaps t) (operationCaps t) :=
+  residualGrowthLegal (residualPath S0 costs memoryCaps operationCaps risks writes t)
+    (costs t) (memoryCaps t) (operationCaps t) hcap hmem hops hbudget
+
+/-- The actual supplied-batch objective remains antitone on this trajectory. -/
+theorem residualPath_objective_antitone {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Antitone (fun t => growthObjective
+      (residualPath S0 costs memoryCaps operationCaps risks writes t)) := by
+  have hanti := growthPath_objective_antitone S0
+    (fun u => residualFeatures (residualPath S0 costs memoryCaps operationCaps risks writes u))
+    (fun _ S => residualDirection S) costs memoryCaps operationCaps risks writes
+  intro t u htu
+  change growthObjective (residualPath S0 costs memoryCaps operationCaps risks writes u) ≤
+    growthObjective (residualPath S0 costs memoryCaps operationCaps risks writes t)
+  rw [residualPath_eq_growthPath S0 costs memoryCaps operationCaps risks writes t,
+    residualPath_eq_growthPath S0 costs memoryCaps operationCaps risks writes u]
+  exact hanti htu
+
+/-- The finite bounded trajectory literally stabilizes as a whole state. -/
+theorem residualPath_eventually_constant {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ)) :
+    ∃ N, ∀ t ≥ N, residualPath S0 costs memoryCaps operationCaps risks writes t =
+      residualPath S0 costs memoryCaps operationCaps risks writes N := by
+  obtain ⟨N, hN⟩ := growthPath_eventually_constant S0
+    (fun u => residualFeatures (residualPath S0 costs memoryCaps operationCaps risks writes u))
+    (fun _ S => residualDirection S) costs memoryCaps operationCaps risks writes
+  refine ⟨N, ?_⟩
+  intro t ht
+  rw [residualPath_eq_growthPath S0 costs memoryCaps operationCaps risks writes t,
+    residualPath_eq_growthPath S0 costs memoryCaps operationCaps risks writes N]
+  exact hN t ht
+
+/-- Nonnegative initial real budget is preserved by all admitted/rejected steps. -/
+theorem residualPath_budget_nonneg {V : Type} [Fintype V]
+    {B a r c k capacity : ℕ}
+    (S0 : BoundedBatchState V B a r c k capacity)
+    (costs memoryCaps operationCaps : ℕ → ℕ)
+    (risks : ℕ → ℝ) (writes : ℕ → Option (Σ _ : ℕ, Fin c → ℝ))
+    (hinitial : 0 ≤ S0.state.res.budget) (t : ℕ) :
+    0 ≤ (residualPath S0 costs memoryCaps operationCaps risks writes t).state.res.budget := by
+  rw [residualPath_eq_growthPath S0 costs memoryCaps operationCaps risks writes t]
+  exact growthPath_budget_nonneg S0
+    (fun u => residualFeatures (residualPath S0 costs memoryCaps operationCaps risks writes u))
+    (fun _ S => residualDirection S) costs memoryCaps operationCaps risks writes hinitial t
+
+end ResidualTrajectory
+
 end Hagi.Contracts.BatchCEGrowth
