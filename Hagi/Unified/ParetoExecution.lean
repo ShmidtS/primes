@@ -465,6 +465,54 @@ theorem robust_quality_lower_selectionIn
     (selectionIn (withEstimatedValue p estimate) s kept stay h_stay))).1
   linarith only [ha2, hopt, hest, hn1]
 
+/-- The bank-dominating envelope keeps the bounded true-quality guarantee
+without a separate coverage premise. The envelope's own maximizer covers
+the full feasible family by the exact global-versus-restricted score equality. -/
+theorem robust_quality_lower_selectionIn_scoreDominatingIn
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ)
+    (kept : Finset A) (stay : A) (h_stay : stay ∈ kept)
+    (hsub : kept ⊆ feasible p M C)
+    (eps : ℝ) (_heps : 0 ≤ eps)
+    (herr : ∀ a : A,
+      |p.value (p.step a s) - estimate (p.step a s)| ≤ eps) :
+    ∀ a ∈ feasible p M C,
+      p.value (p.step a s) - 2 * eps ≤
+        p.value (p.step
+          (selectionIn (withEstimatedValue p estimate)
+            s (scoreDominatingIn (withEstimatedValue p estimate)
+              s M C kept) stay (by
+                exact Finset.mem_filter.mpr
+                  ⟨(mem_feasible_withEstimatedValue p estimate).mpr
+                    (hsub h_stay), stay, h_stay, le_rfl⟩)) s) := by
+  classical
+  let pE := withEstimatedValue p estimate
+  let E := scoreDominatingIn pE s M C kept
+  have hsubE : kept ⊆ feasible pE M C := by
+    intro a ha
+    exact (mem_feasible_withEstimatedValue p estimate).mpr (hsub ha)
+  have hStayE : stay ∈ E := by
+    exact Finset.mem_filter.mpr ⟨hsubE h_stay, stay, h_stay, le_rfl⟩
+  have hEnvelopeSub : E ⊆ feasible pE M C := by
+    intro a ha
+    exact (Finset.mem_filter.mp ha).1
+  have hscore := selection_score_eq_selectionIn_scoreDominatingIn
+    pE s M C kept stay h_stay hsubE
+  have hrestricted :
+      selectionIn pE s E stay hStayE ∈ E :=
+    (Classical.choose_spec
+      (Finset.exists_max_image E (score pE s) ⟨stay, hStayE⟩)).1
+  have hcover : ∀ a ∈ feasible pE M C,
+      ∃ b ∈ E, score pE s a ≤ score pE s b := by
+    intro a ha
+    refine ⟨selectionIn pE s E stay hStayE, hrestricted, ?_⟩
+    exact (selection_optimal pE s M C stay (hsubE h_stay) a ha).trans_eq hscore
+  have hsubActual : E ⊆ feasible p M C := by
+    intro a ha
+    exact (mem_feasible_withEstimatedValue p estimate).mp (hEnvelopeSub ha)
+  exact robust_quality_lower_selectionIn p estimate s M C E stay hStayE
+    hsubActual hcover eps _heps herr
+
 /-- **Elimination of the contradictory gap.** Under the same bounded
 error, no feasible candidate's ACTUAL quality can strictly exceed the
 robust successor's by more than `2*eps`. This is direct elimination
