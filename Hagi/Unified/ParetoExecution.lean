@@ -381,6 +381,51 @@ theorem robust_quality_lower (p : ControllerProblem A S) [DecidablePred p.safe]
   change p.value (p.step a s) - 2 * eps ≤ p.value (p.step sel s)
   linarith
 
+/-- A retained-full-proxy-score family keeps the bounded true-quality guarantee. -/
+theorem robust_quality_lower_selectionIn
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : S → ℝ) (s : S) (M C : ℕ)
+    (kept : Finset A) (stay : A) (h_stay : stay ∈ kept)
+    (hsub : kept ⊆ feasible p M C)
+    (hcover : ∀ a ∈ feasible (withEstimatedValue p estimate) M C,
+      ∃ b ∈ kept,
+        score (withEstimatedValue p estimate) s a ≤
+          score (withEstimatedValue p estimate) s b)
+    (eps : ℝ) (_heps : 0 ≤ eps)
+    (herr : ∀ a : A,
+      |p.value (p.step a s) - estimate (p.step a s)| ≤ eps) :
+    ∀ a ∈ feasible p M C,
+      p.value (p.step a s) - 2 * eps ≤
+        p.value (p.step
+          (selectionIn (withEstimatedValue p estimate)
+            s kept stay h_stay) s) := by
+  have hsube : kept ⊆ feasible (withEstimatedValue p estimate) M C :=
+    fun _ ha => (mem_feasible_withEstimatedValue p estimate).mpr (hsub ha)
+  have hscore := selection_score_eq_selectionIn
+    (withEstimatedValue p estimate) s M C kept stay h_stay hsube hcover
+  have hfst_le := Prod.Lex.monotone_fst _ _ hscore.le
+  have hfst_ge := Prod.Lex.monotone_fst _ _ hscore.ge
+  change estimate (p.step (selection (withEstimatedValue p estimate)
+      s M C stay (hsube h_stay)) s) ≤
+    estimate (p.step (selectionIn (withEstimatedValue p estimate)
+      s kept stay h_stay) s) at hfst_le
+  change estimate (p.step (selectionIn (withEstimatedValue p estimate)
+      s kept stay h_stay) s) ≤
+    estimate (p.step (selection (withEstimatedValue p estimate)
+      s M C stay (hsube h_stay)) s) at hfst_ge
+  have hest := le_antisymm hfst_le hfst_ge
+  intro a ha
+  have hopt := selection_quality_optimal (withEstimatedValue p estimate)
+    s M C stay (hsube h_stay) a
+    ((mem_feasible_withEstimatedValue p estimate).mpr ha)
+  change estimate (p.step a s) ≤
+    estimate (p.step (selection (withEstimatedValue p estimate)
+      s M C stay (hsube h_stay)) s) at hopt
+  have ha2 := (abs_le.mp (herr a)).2
+  have hn1 := (abs_le.mp (herr
+    (selectionIn (withEstimatedValue p estimate) s kept stay h_stay))).1
+  linarith only [ha2, hopt, hest, hn1]
+
 /-- **Elimination of the contradictory gap.** Under the same bounded
 error, no feasible candidate's ACTUAL quality can strictly exceed the
 robust successor's by more than `2*eps`. This is direct elimination
