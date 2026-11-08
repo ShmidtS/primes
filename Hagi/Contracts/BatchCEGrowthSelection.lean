@@ -1358,6 +1358,67 @@ theorem growthAdmissionPlanRollout_flops {H : ℕ}
     risks writes admissions (S, 0, 0) (List.ofFn plan)
   simpa only [growthAdmissionPlanRollout, Nat.cast_zero, add_zero] using h
 
+
+/-- At equal terminal CE and declared memory, exact plan selection also uses no
+more terminal real declared flops than any feasible alternative plan. -/
+theorem growthAdmissionPlanSelection_flops_le_of_objective_eq_and_memory_eq
+    [Fintype A] (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A)
+    (plan : Fin H → A)
+    (hfeasible : plan ∈ feasible (growthAdmissionPlanProblemAt Zs Ds costs memoryCaps
+        operationCaps risks writes admissions H S0)
+      (H * growthMemoryIncrement B V) (H * operationBudget))
+    (hce :
+      growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).1 =
+      growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 plan).1)
+    (hmemory :
+      (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).2.1 =
+      (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 plan).2.1) :
+    (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0
+      (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+        risks writes admissions H S0 operationBudget hop a0)).1.state.res.flops ≤
+      (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 plan).1.state.res.flops := by
+  rcases growthAdmissionPlanSelection_lt_or_eq_and_resource_lex Zs Ds costs memoryCaps
+      operationCaps risks writes admissions H S0 operationBudget hop a0 plan hfeasible with
+    hce_lt | ⟨_, hresources⟩
+  · exact (ne_of_lt hce_lt hce).elim
+  · rcases Prod.Lex.toLex_le_toLex.mp hresources with hmemory_lt | ⟨_, hoperations⟩
+    · rw [hmemory] at hmemory_lt
+      exact (lt_irrefl _ hmemory_lt).elim
+    · have hopsZ :
+          ((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+            (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+              risks writes admissions H S0 operationBudget hop a0)).2.2 : ℤ) ≤
+          ((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.2 : ℤ) := by
+        exact neg_le_neg_iff.mp hoperations
+      have hopsReal :
+          ((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0
+            (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+              risks writes admissions H S0 operationBudget hop a0)).2.2 : ℝ) ≤
+          ((growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+              risks writes admissions S0 plan).2.2 : ℝ) := by
+        exact_mod_cast hopsZ
+      rw [growthAdmissionPlanRollout_flops Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 (growthAdmissionPlanSelection Zs Ds costs memoryCaps
+          operationCaps risks writes admissions H S0 operationBudget hop a0),
+        growthAdmissionPlanRollout_flops Zs Ds costs memoryCaps operationCaps
+          risks writes admissions S0 plan]
+      linarith only [hopsReal]
+
 end PlanResourceAccounting
 
 end Hagi.Contracts.BatchCEGrowthSelection
