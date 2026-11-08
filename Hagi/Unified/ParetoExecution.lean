@@ -127,6 +127,42 @@ theorem selection_optimal (p : ControllerProblem A S) [DecidablePred p.safe]
     ∀ a ∈ feasible p M C, score p s a ≤ score p s (selection p s M C stay h_stay) :=
   (selection_spec p s M C stay h_stay).2
 
+omit [Fintype A] in
+/-- A maximal-`score` action in an explicit nonempty finite set `kept`.
+Unlike `selection`, this raw choice needs neither `Fintype A` nor a safety instance. -/
+noncomputable def selectionIn
+    (p : ControllerProblem A S) (s : S)
+    (kept : Finset A) (stay : A) (h_stay : stay ∈ kept) : A :=
+  Classical.choose
+    (Finset.exists_max_image kept (score p s) ⟨stay, h_stay⟩)
+
+/-- Restricting feasible actions to a score-covering subset preserves the
+selected score: both selections attain the same lexicographic maximum. -/
+theorem selection_score_eq_selectionIn
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (s : S) (M C : ℕ)
+    (kept : Finset A) (stay : A)
+    (h_stay : stay ∈ kept)
+    (hsub : kept ⊆ feasible p M C)
+    (hcover : ∀ a ∈ feasible p M C,
+      ∃ b ∈ kept, score p s a ≤ score p s b) :
+    score p s (selection p s M C stay (hsub h_stay)) =
+      score p s (selectionIn p s kept stay h_stay) := by
+  have hkept :
+      selectionIn p s kept stay h_stay ∈ kept ∧
+        ∀ a ∈ kept,
+          score p s a ≤ score p s (selectionIn p s kept stay h_stay) :=
+    Classical.choose_spec
+      (Finset.exists_max_image kept (score p s) ⟨stay, h_stay⟩)
+  apply le_antisymm
+  · obtain ⟨b, hb_kept, hb_score⟩ :=
+      hcover (selection p s M C stay (hsub h_stay))
+        (selection_admissible p s M C stay (hsub h_stay))
+    exact hb_score.trans (hkept.2 b hb_kept)
+  · exact selection_optimal p s M C stay (hsub h_stay)
+      (selectionIn p s kept stay h_stay)
+      (hsub hkept.1)
+
 /-- With two feasible actions, a strict objective increase from action `0`
 to action `1` forces the lexicographic selection to choose action `1`. -/
 theorem selection_eq_one_of_value_lt {S : Type*}
