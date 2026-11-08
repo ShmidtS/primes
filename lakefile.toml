@@ -19,6 +19,11 @@ name = "mathlib"
 scope = "leanprover-community"
 path = "C:/Users/shmid/mathlib4"
 
+[[require]]
+name = "natural"
+git = "https://github.com/medovina/natural_lean.git"
+rev = "14305b83fab2ae2681c63605af4af8312084c55c"
+
 [[lean_lib]]
 name = "Hagi"
 

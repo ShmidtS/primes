@@ -471,6 +471,7 @@ import Hagi.Contracts.GatedCETrajectory
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCEGrowth
 import Hagi.Contracts.BatchCEGrowthSelection
+import Hagi.Contracts.NaturalLean
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
 import Hagi.Contracts.BatchCEBestResidual

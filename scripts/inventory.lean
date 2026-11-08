@@ -24,15 +24,15 @@ open Lean
           | some ranges => (ranges.range.pos.line, ranges.selectionRange.pos.line,
               ranges.range.endPos.line)
           | none => (0, 0, 0)
-        let mut constructors : List String := []
+        let mut constructorMetadata : List String := []
         if let .inductInfo info := ci then
           for constructor in info.ctors do
             let some constructorInfo := env.find? constructor
               | throwError "missing constructor {constructor} of {n}"
-            constructors := constructors ++ [s!"{constructor}={constructorInfo.type.hash}"]
+            constructorMetadata := constructorMetadata ++ [s!"{constructor}={constructorInfo.type.hash}"]
         if let some structureInfo := getStructureInfo? env n then
-          constructors := constructors ++ ["fields=" ++
+          constructorMetadata := constructorMetadata ++ ["fields=" ++
             String.intercalate "," (structureInfo.fieldNames.toList.map (·.toString))]
           for field in structureInfo.fieldInfo do
-            constructors := constructors ++ [field.projFn.toString]
-        IO.println s!"{n}\t{userName}\t{sourceModule}\t{startLine}\t{selectionLine}\t{endLine}\t{ci.type.hash}\t{String.intercalate "," constructors}\t{isAlias}"
+            constructorMetadata := constructorMetadata ++ [field.projFn.toString]
+        IO.println s!"{n}\t{userName}\t{sourceModule}\t{startLine}\t{selectionLine}\t{endLine}\t{ci.type.hash}\t{String.intercalate "," constructorMetadata}\t{isAlias}"
