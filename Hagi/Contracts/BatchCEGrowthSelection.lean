@@ -1192,4 +1192,95 @@ theorem growthAdmissionPlanRollout_empiricalOnly {H : ℕ} (testRuns : ℕ)
 
 end Boundaries
 
+section RealizedGreedyTrace
+
+variable
+    (Zs : A → (_ : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+    (Ds : A → ∀ S : BoundedBatchState V B a r c k capacity,
+      EuclideanSpace ℝ (Fin (S.width + 1)))
+    (costs memoryCaps operationCaps : A → ℕ)
+    (risks : A → ℝ) (writes : A → Option (Σ _ : ℕ, Fin c → ℝ))
+    (admissions : ∀ (idx : A) (T : BoundedBatchState V B a r c k capacity),
+      GrowthAdmission V T (Zs idx T) (Ds idx T) (costs idx) (memoryCaps idx)
+        (operationCaps idx))
+
+variable [Fintype A]
+
+/-- The action selected at each state actually reached by the current-state selector. -/
+noncomputable def growthAdmissionSelectionTrace (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) : Fin H → A :=
+  fun t => growthAdmissionSelection Zs Ds costs memoryCaps operationCaps risks writes admissions
+    (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps risks writes admissions S0
+      operationBudget hop a0 t.val) operationBudget hop a0
+
+/-- Rolling out the realized trace preserves the selected path and arbitrary resource totals. -/
+theorem growthAdmissionSelectionTrace_fold_state
+    (w : BoundedBatchState V B a r c k capacity × ℕ × ℕ) (H : ℕ) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    (List.foldl (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps
+        risks writes admissions) w
+      (List.ofFn (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps
+        risks writes admissions H w.1 operationBudget hop a0))).1 =
+      growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps risks writes admissions
+        w.1 operationBudget hop a0 H := by
+  induction H generalizing w with
+  | zero => rfl
+  | succ H ih =>
+      rw [List.ofFn_succ, List.foldl_cons]
+      have hstep :
+          (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps risks writes admissions w
+            (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes
+              admissions (H + 1) w.1 operationBudget hop a0 0)).1 =
+            growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes
+              admissions w.1 operationBudget hop a0 := by
+        simp only [growthAdmissionSelectionTrace, Fin.val_zero, growthAdmissionSelectionPath,
+          Function.iterate_zero_apply, growthAdmissionPlanStep]
+        rw [growthAdmissionSelectionNext_eq_quarantinedGrowStep]
+      have htail :
+          (fun i : Fin H => growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps
+              risks writes admissions (H + 1) w.1 operationBudget hop a0 i.succ) =
+            growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes
+              admissions H
+                (growthAdmissionSelectionNext Zs Ds costs memoryCaps operationCaps risks writes
+                  admissions w.1 operationBudget hop a0) operationBudget hop a0 := by
+        funext i
+        simp only [growthAdmissionSelectionTrace, Fin.val_succ, growthAdmissionSelectionPath,
+          Function.iterate_succ_apply]
+      rw [htail, growthAdmissionSelectionPath, Function.iterate_succ_apply]
+      simpa only [hstep, growthAdmissionSelectionPath] using
+        ih (growthAdmissionPlanStep Zs Ds costs memoryCaps operationCaps risks writes admissions w
+          (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes
+            admissions (H + 1) w.1 operationBudget hop a0 0))
+
+/-- Exact finite open-loop selection has terminal CE no larger than the realized greedy path. -/
+theorem growthAdmissionPlanSelection_objective_le_realized_path (H : ℕ)
+    (S0 : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 : A) :
+    growthObjective (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0
+        (growthAdmissionPlanSelection Zs Ds costs memoryCaps operationCaps
+          risks writes admissions H S0 operationBudget hop a0)).1 ≤
+      growthObjective (growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps
+        risks writes admissions S0 operationBudget hop a0 H) := by
+  have hstate := growthAdmissionSelectionTrace_fold_state Zs Ds costs memoryCaps operationCaps
+    risks writes admissions (S0, 0, 0) H operationBudget hop a0
+  change (growthAdmissionPlanRollout Zs Ds costs memoryCaps operationCaps risks writes admissions
+    S0 (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes admissions
+      H S0 operationBudget hop a0)).1 =
+    growthAdmissionSelectionPath Zs Ds costs memoryCaps operationCaps risks writes admissions S0
+      operationBudget hop a0 H at hstate
+  have hfeasible := growthAdmissionPlan_mem_feasible Zs Ds costs memoryCaps operationCaps
+    risks writes admissions H S0 operationBudget hop
+    (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes admissions
+      H S0 operationBudget hop a0)
+  have hle := growthAdmissionPlanSelection_objective_le Zs Ds costs memoryCaps operationCaps
+    risks writes admissions H S0 operationBudget hop a0
+    (growthAdmissionSelectionTrace Zs Ds costs memoryCaps operationCaps risks writes admissions
+      H S0 operationBudget hop a0) hfeasible
+  rw [hstate] at hle
+  exact hle
+
+end RealizedGreedyTrace
+
 end Hagi.Contracts.BatchCEGrowthSelection
