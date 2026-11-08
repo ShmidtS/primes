@@ -462,6 +462,7 @@ import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.FiniteEMTrajectory
 import Hagi.Contracts.ChangingEMTrajectory
 import Hagi.Contracts.MixtureEMTrajectory
+import Hagi.Contracts.FactorizedMixtureEM
 import Hagi.Contracts.GuardedLogitTrajectory
 import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
