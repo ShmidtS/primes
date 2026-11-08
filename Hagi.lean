@@ -205,7 +205,6 @@ import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
 import Hagi.Architecture.FactorRank
 import Hagi.Growth.GainDecomposition
-import Hagi.Growth.DisagreementChain
 import Hagi.Growth.ChainToCone
 import Hagi.Growth.ChainUnification
 import Hagi.Growth.T3Ignition
@@ -312,7 +311,6 @@ import Hagi.Probability.SphericalAngle
 import Hagi.Unified.CertifiedGrowth
 import Hagi.Unified.DerivAlong
 import Hagi.Unified.AdvanceWitness
-import Hagi.Examples.EdgeTests
 import Hagi.Unified.FannesComplete
 import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.InterpretiveGrowth

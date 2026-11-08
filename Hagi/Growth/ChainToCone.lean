@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Growth.DisagreementChain
+import Hagi.Growth.GainDecomposition
 
 /-!
 # ChainToCone — from the disagreement chain to the growth cone
