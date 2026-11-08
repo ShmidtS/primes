@@ -459,6 +459,7 @@ import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
 import Hagi.State.Transition
 import Hagi.Contracts.ObjectiveTrajectory
+import Hagi.Contracts.FiniteEMTrajectory
 import Hagi.Contracts.GuardedLogitTrajectory
 import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate

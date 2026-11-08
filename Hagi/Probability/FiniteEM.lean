@@ -122,7 +122,8 @@ theorem fromPMF_kl_nonneg {X : Type} [Fintype X]
     (fun _ => ENNReal.toReal_nonneg) (fun _ => ENNReal.toReal_nonneg)
     (fromPMF_sum p) (fromPMF_sum q) (fromPMF_pos_map p q hpq)
 
-private theorem fromPMF_kl_eq_zero_iff {X : Type} [Fintype X]
+/-- Support-aware KL divergence is zero exactly when two finite PMFs agree. -/
+theorem fromPMF_kl_eq_zero_iff {X : Type} [Fintype X]
     (p q : PMF X) (hpq : p.support ⊆ q.support) :
     klDef (fromPMF p) (fromPMF q) = 0 ↔ q = p := by
   obtain ⟨x, hx⟩ := p.support_nonempty
