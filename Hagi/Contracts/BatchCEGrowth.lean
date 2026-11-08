@@ -1193,4 +1193,87 @@ theorem residualAdmissionMargin_le_growthObjective_sub_quarantinedGrowStep_of_pr
 
 end QuantifiedAdmission
 
+section IteratedQuarantine
+
+variable {V : Type} [Fintype V] {B a r c k capacity : ℕ}
+variable (trainingCost memoryLimit operationLimit : ℕ) (opRisk : ℝ)
+  (write : Option (Σ _ : ℕ, Fin c → ℝ))
+variable (Zs : (T : BoundedBatchState V B a r c k capacity) → Fin B → V → ℝ)
+variable (Ds : (T : BoundedBatchState V B a r c k capacity) →
+  EuclideanSpace ℝ (Fin (T.width + 1)))
+variable (admissions : (T : BoundedBatchState V B a r c k capacity) →
+  GrowthAdmission V T (Zs T) (Ds T) trainingCost memoryLimit operationLimit)
+variable (S0 : BoundedBatchState V B a r c k capacity)
+
+/-- Current-state-gated quarantined growth has nonincreasing supplied-batch CE. -/
+theorem growthObjective_iteratedQuarantinedGrowStep_antitone :
+    Antitone (fun n : ℕ => growthObjective
+      (((fun T : BoundedBatchState V B a r c k capacity =>
+        quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+          (admissions T) opRisk write)^[n]) S0)) := by
+  apply antitone_nat_of_succ_le
+  intro n
+  rw [Function.iterate_succ_apply']
+  exact growthObjective_quarantinedGrowStep_le
+    (((fun T : BoundedBatchState V B a r c k capacity =>
+      quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+        (admissions T) opRisk write)^[n]) S0)
+    (Zs (((fun T : BoundedBatchState V B a r c k capacity =>
+      quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+        (admissions T) opRisk write)^[n]) S0))
+    (Ds (((fun T : BoundedBatchState V B a r c k capacity =>
+      quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+        (admissions T) opRisk write)^[n]) S0))
+    trainingCost memoryLimit operationLimit
+    (admissions (((fun T : BoundedBatchState V B a r c k capacity =>
+      quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+        (admissions T) opRisk write)^[n]) S0)) opRisk write
+
+/-- Nonnegative initial budget persists along the exact current-state iterates. -/
+theorem iteratedQuarantinedGrowStep_budget_nonneg
+    (hinitial : 0 ≤ S0.state.res.budget) (n : ℕ) :
+    0 ≤ (((fun T : BoundedBatchState V B a r c k capacity =>
+      quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+        (admissions T) opRisk write)^[n]) S0).state.res.budget := by
+  induction n with
+  | zero => exact hinitial
+  | succ n ih =>
+      rw [Function.iterate_succ_apply']
+      cases admissions (((fun T : BoundedBatchState V B a r c k capacity =>
+        quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+          (admissions T) opRisk write)^[n]) S0) with
+      | fullyVerified hlegal =>
+          exact boundedGrowStep_budget_nonneg_of_legal
+            (((fun T : BoundedBatchState V B a r c k capacity =>
+              quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+                (admissions T) opRisk write)^[n]) S0)
+            (Zs (((fun T : BoundedBatchState V B a r c k capacity =>
+              quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+                (admissions T) opRisk write)^[n]) S0))
+            (Ds (((fun T : BoundedBatchState V B a r c k capacity =>
+              quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+                (admissions T) opRisk write)^[n]) S0))
+            trainingCost memoryLimit operationLimit opRisk write hlegal
+      | conditional _ _ => exact ih
+      | empiricalOnly _ => exact ih
+      | budgetViolation _ => exact ih
+      | unknown => exact ih
+
+/-- The nonnegative antitone current-state objective path converges to its infimum. -/
+theorem growthObjective_iteratedQuarantinedGrowStep_tendsto_ciInf :
+    Tendsto (fun t : ℕ => growthObjective
+      (((fun T : BoundedBatchState V B a r c k capacity =>
+        quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+          (admissions T) opRisk write)^[t]) S0)) atTop
+      (𝓝 (⨅ t : ℕ, growthObjective
+        (((fun T : BoundedBatchState V B a r c k capacity =>
+          quarantinedGrowStep T (Zs T) (Ds T) trainingCost memoryLimit operationLimit
+            (admissions T) opRisk write)^[t]) S0))) := by
+  exact ObjectiveTrajectory.tendsto_ciInf_of_antitone_nonneg _
+    (growthObjective_iteratedQuarantinedGrowStep_antitone
+      trainingCost memoryLimit operationLimit opRisk write Zs Ds admissions S0)
+    (fun _ => growthObjective_nonneg _)
+
+end IteratedQuarantine
+
 end Hagi.Contracts.BatchCEGrowth
