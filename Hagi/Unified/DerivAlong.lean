@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Foundations.StageCalculus
 import Hagi.Energy.Quantizer
 import Hagi.System.GrowthState
+import Hagi.Model.CEJacobianMajorizer
 import Mathlib
 open InnerProductSpace
 /-!
@@ -330,5 +331,77 @@ theorem core_premises_compress_operational
       = kappa * |x - Hagi.Energy.gridQ Δ hΔ x| := by ring
   rw [h']
   linarith [hupper, hjoint]
+
+/-- C153's local CE/Jacobian remainder supplies exactly the scalar smoothness
+obligation of the existing `GrowthState` joint potential law. -/
+theorem potential_joint_of_ceOneHot_jacobian_remainder
+    {X V : Type} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    [Fintype V] [Nonempty V]
+    (S : Hagi.System.GrowthState X) (f : X → V → ℝ)
+    (J : X →L[ℝ] (V → ℝ)) (y : V) (r R ρ : ℝ)
+    (hf : HasFDerivAt f J S.params)
+    (hgrad : ∀ z, fderiv ℝ (fun w => Hagi.ceOneHot y (f w)) S.params z =
+      ⟪S.grad, z⟫_ℝ)
+    (hRminus : ∀ u v, -(J S.stepDir u - J S.stepDir v) ≤ R)
+    (hrem : ∀ w ∈ Metric.closedBall S.params r,
+      ‖f w - f S.params - J (w - S.params)‖ ≤ ρ * ‖w - S.params‖ ^ 2)
+    (hD : S.stepDir ≠ 0)
+    (hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ)
+    (hL : 0 < S.sp.L)
+    (hLdef : S.sp.L = 2 * (R ^ 2 / 8 + 2 * ρ * ‖S.stepDir‖ ^ 2) /
+      ‖S.stepDir‖ ^ 2)
+    (heta0 : 0 ≤ S.sp.eta) (hetaL : S.sp.eta ≤ 1 / S.sp.L)
+    (hcap : S.sp.eta * ‖S.stepDir‖ ≤ r)
+    (hCEold : S.energy = Hagi.ceOneHot y (f S.params))
+    (hCEnew : S.effects.jointEnergy =
+      Hagi.ceOneHot y (f (S.params - S.sp.eta • S.stepDir))) :
+    Hagi.System.potential (Hagi.System.joint S) - Hagi.System.potential S ≤
+      -Hagi.System.gainJoint S + Hagi.System.riskJoint S := by
+  have hA : ⟪S.grad, S.stepDir⟫_ℝ =
+      -(fderiv ℝ (fun w => Hagi.ceOneHot y (f w)) S.params (-S.stepDir)) := by
+    rw [hgrad (-S.stepDir), inner_neg_right, neg_neg]
+  have hR : ∀ u v, J (-S.stepDir) u - J (-S.stepDir) v ≤ R := by
+    intro u v
+    calc
+      J (-S.stepDir) u - J (-S.stepDir) v =
+          -(J S.stepDir u - J S.stepDir v) := by
+        simp only [map_neg, Pi.neg_apply]
+        ring
+      _ ≤ R := hRminus u v
+  have hcapNeg : S.sp.eta * ‖-S.stepDir‖ ≤ r := by
+    rw [norm_neg]
+    exact hcap
+  have hmajor :=
+    Hagi.Model.CEJacobianMajorizer.ceOneHot_local_line_majorize_of_jacobian_remainder
+      (f := f) (J := J) (θ := S.params) (d := -S.stepDir) (y := y)
+      (r := r) (R := R) (ρ := ρ) (A := ⟪S.grad, S.stepDir⟫_ℝ)
+      (η := S.sp.eta) (hf := hf) (hA := hA) (hR := hR) (hrem := hrem)
+      (hη := heta0) (hcap := hcapNeg)
+  have hendpoint : S.params + S.sp.eta • (-S.stepDir) =
+      S.params - S.sp.eta • S.stepDir := by
+    rw [smul_neg, sub_eq_add_neg]
+  rw [hendpoint] at hmajor
+  rw [norm_neg] at hmajor
+  have hN : ‖S.stepDir‖ ^ 2 ≠ 0 :=
+    pow_ne_zero 2 (norm_ne_zero_iff.mpr hD)
+  have hquadratic :
+      S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 =
+        S.sp.eta ^ 2 * (R ^ 2 / 8 + 2 * ρ * ‖S.stepDir‖ ^ 2) := by
+    rw [hLdef]
+    calc
+      2 * (R ^ 2 / 8 + 2 * ρ * ‖S.stepDir‖ ^ 2) / ‖S.stepDir‖ ^ 2 *
+          S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 =
+        (‖S.stepDir‖ ^ 2 / ‖S.stepDir‖ ^ 2) * S.sp.eta ^ 2 *
+          (R ^ 2 / 8 + 2 * ρ * ‖S.stepDir‖ ^ 2) := by ring
+      _ = _ := by rw [div_self hN, one_mul]
+  refine Hagi.System.potential_joint S hL hetaL heta0 hdescent ?_
+  calc
+    S.effects.jointEnergy =
+        Hagi.ceOneHot y (f (S.params - S.sp.eta • S.stepDir)) := hCEnew
+    _ ≤ Hagi.ceOneHot y (f S.params) - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ +
+        S.sp.eta ^ 2 * (R ^ 2 / 8 + 2 * ρ * ‖S.stepDir‖ ^ 2) := hmajor
+    _ = S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ +
+        S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
+      rw [← hCEold, hquadratic]
 
 end Hagi.Unified
