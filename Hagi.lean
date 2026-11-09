@@ -65,6 +65,7 @@ import Hagi.Pretraining.Grokking
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustMeasure
+import Hagi.Omni.ConditionalInformation
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.OmniState
 import Hagi.Omni.OmniInvariant
