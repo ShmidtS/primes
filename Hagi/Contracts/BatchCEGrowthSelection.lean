@@ -321,6 +321,49 @@ theorem growthDominatingSelection_objective_lt_current_of_margin
   dsimp only at h ⊢
   exact lt_of_le_of_lt h hmargin
 
+/-- Strict supplied-batch CE progress when twice the uniform error is below
+the actual residual admission margin of a supplied candidate. -/
+theorem growthDominatingSelection_objective_lt_current_of_residualAdmissionMargin
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (estimate : BoundedBatchState V B a r c k capacity → ℝ) (eps : ℝ)
+    (heps : 0 ≤ eps)
+    (herr : ∀ idx, |estimate (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+      risks writes S idx) -
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx)| ≤ eps)
+    (hZ : Zs idx S = residualFeatures S)
+    (hD : Ds idx S = residualDirection S)
+    (hsep : 2 * eps < residualAdmissionMargin S (costs idx) (memoryCaps idx)
+      (operationCaps idx)) :
+    let p := growthProblemAt Zs Ds costs memoryCaps operationCaps risks writes S
+    let pE := withEstimatedValue p (fun T => -estimate T)
+    let E := scoreDominatingIn pE S (growthMemoryIncrement B V) operationBudget Finset.univ
+    let hStayE : a0 ∈ E := Finset.mem_filter.mpr
+      ⟨(mem_feasible_withEstimatedValue p (fun T => -estimate T)).mpr
+          (growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+            risks writes S operationBudget hop a0),
+        a0, Finset.mem_univ a0, le_rfl⟩
+    growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S (selectionIn pE S E a0 hStayE)) < growthObjective S := by
+  have hbound :
+      residualAdmissionMargin S (costs idx) (memoryCaps idx)
+          (operationCaps idx) ≤
+        growthObjective S -
+          growthObjective (growthCandidateStep Zs Ds costs
+            memoryCaps operationCaps risks writes S idx) := by
+    simpa only [growthCandidateStep, hZ, hD] using
+      (residualAdmissionMargin_le_objective_sub S (costs idx)
+        (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx))
+  have hmargin :
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps
+          operationCaps risks writes S idx) +
+        2 * eps < growthObjective S := by
+    linarith only [hbound, hsep]
+  exact growthDominatingSelection_objective_lt_current_of_margin
+    Zs Ds costs memoryCaps operationCaps risks writes S
+    operationBudget hop a0 idx estimate eps heps herr hmargin
+
 /-- Nonregression follows through the supplied witness, not an assumed identity action. -/
 theorem growthSelection_objective_le_current (S : BoundedBatchState V B a r c k capacity)
     (operationBudget : ℕ)
