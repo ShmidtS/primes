@@ -63,6 +63,22 @@ run_cmd do
     throwError "ALLOWED_AXIOMS: FAIL {axs.toList}"
 '''
 
+_PRIVATE_FIXTURE = r'''
+namespace Hagi.AxiomRegressionPrivate
+axiom hidden_forbidden : False
+private theorem hidden_witness : False := hidden_forbidden
+end Hagi.AxiomRegressionPrivate
+
+open Lean Elab Command in
+run_cmd do
+  let (axs, _) ← unsafe AllAxiomCheck.collectAll (← getEnv)
+  if axs.contains (`Hagi.AxiomRegressionPrivate.hidden_forbidden) then
+    logInfo "PRIVATE_AXIOM: PASS"
+  else
+    throwError "PRIVATE_AXIOM: FAIL -- missed unreferenced private theorem"
+'''
+
+
 
 class TestAllAxiomCheck(unittest.TestCase):
     """Compile the production source with deliberate ignored fixtures."""
@@ -86,6 +102,9 @@ class TestAllAxiomCheck(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         for marker in markers:
             self.assertIn(marker, result.stdout)
+
+    def test_private_seed_reaches_hidden_axiom(self) -> None:
+        self.runProbe("private-seed", _PRIVATE_FIXTURE, ("PRIVATE_AXIOM: PASS",))
 
     def test_all_dependency_classes(self) -> None:
         # Root causes are asserted by actual kernel dependency collection.

@@ -26,7 +26,8 @@ type+value каждой константы; visited-HashMap: каждая
 def collectAll (env : Environment) : IO (Array Name × Nat) := do
   let mut seeds : Array Name := #[]
   for (nm, ci) in env.constants.toList do
-    if nm.toString.startsWith "Hagi" && ci.isTheorem then
+    let userName := privateToUserName? nm |>.getD nm
+    if (`Hagi).isPrefixOf userName && ci.isTheorem then
       seeds := seeds.push nm
   let mut visited : Std.HashMap Name Unit := {}
   let mut axioms : Array Name := #[]
