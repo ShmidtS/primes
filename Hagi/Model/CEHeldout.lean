@@ -299,4 +299,108 @@ theorem codebook_population_mean_gap_lower_confidence {G n : ℕ} {V : Type}
       (fun (c : JointCode G) (_i : Fin n) (t : V) => normalizedCE e X c t)
       (fun c _i t => normalizedCE_mem_unit e X c t) hn eps heps baseline candidate)
 
+/-- Raw-CE lower confidence after sample-adaptive selection inside the
+fixed decoded codebook.  Only the two code indices may depend on the
+observed product sample; the codebook, features, decoder, coordinate laws,
+and normalized loss family remain fixed.  The proof transports the generic
+selected finite-family theorem at radius `eps / ceBound X`. -/
+theorem codebook_raw_selected_population_mean_gap_lower_confidence {G n : ℕ}
+    {V : Type} [Fintype V] [Nonempty V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ)
+    (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
+    (baseline candidate : (Fin n → V) → JointCode G) :
+    1 - 2 * (61965 ^ G : ℕ) * Real.exp (-2 * (n : ℝ) * (eps / ceBound X) ^ 2) ≤
+      prodPq p (fun ω =>
+        empiricalMean (fun _i t =>
+          Hagi.ceOneHot t (ceLogits X (decodeJoint e (baseline ω)))) ω -
+        empiricalMean (fun _i t =>
+          Hagi.ceOneHot t (ceLogits X (decodeJoint e (candidate ω)))) ω - 2 * eps ≤
+          populationMean p (fun _i t =>
+            Hagi.ceOneHot t (ceLogits X (decodeJoint e (baseline ω)))) -
+          populationMean p (fun _i t =>
+            Hagi.ceOneHot t (ceLogits X (decodeJoint e (candidate ω))))) := by
+  classical
+  have hB : 0 < ceBound X := ceBound_pos X
+  have hnormalized :
+      1 - 2 * (61965 ^ G : ℕ) *
+          Real.exp (-2 * (n : ℝ) * (eps / ceBound X) ^ 2) ≤
+        prodPq p (fun ω =>
+          empiricalMean (fun _i t => normalizedCE e X (baseline ω) t) ω -
+            empiricalMean (fun _i t => normalizedCE e X (candidate ω) t) ω -
+              2 * (eps / ceBound X) ≤
+            populationMean p (fun _i t => normalizedCE e X (baseline ω) t) -
+              populationMean p (fun _i t => normalizedCE e X (candidate ω) t)) := by
+    simpa [card_jointCode] using
+      (finite_family_selected_population_mean_gap_lower_confidence p hp
+        (fun (c : JointCode G) (_i : Fin n) (t : V) => normalizedCE e X c t)
+        (fun c _i t => normalizedCE_mem_unit e X c t) hn
+        (eps / ceBound X) (div_pos heps hB) baseline candidate)
+  refine le_trans hnormalized ?_
+  apply prodPq_mono p hp
+  intro ω hω
+  let RawBase : Fin n → V → ℝ := fun _i t =>
+    Hagi.ceOneHot t (ceLogits X (decodeJoint e (baseline ω)))
+  let RawCandidate : Fin n → V → ℝ := fun _i t =>
+    Hagi.ceOneHot t (ceLogits X (decodeJoint e (candidate ω)))
+  let NormBase : Fin n → V → ℝ := fun _i t => normalizedCE e X (baseline ω) t
+  let NormCandidate : Fin n → V → ℝ := fun _i t =>
+    normalizedCE e X (candidate ω) t
+  change empiricalMean NormBase ω - empiricalMean NormCandidate ω -
+    2 * (eps / ceBound X) ≤
+      populationMean p NormBase - populationMean p NormCandidate at hω
+  change empiricalMean RawBase ω - empiricalMean RawCandidate ω - 2 * eps ≤
+    populationMean p RawBase - populationMean p RawCandidate
+  have hRawBase : (fun i t => ceBound X * NormBase i t) = RawBase := by
+    funext i t
+    dsimp [NormBase, RawBase, normalizedCE]
+    exact mul_div_cancel₀ _ (ne_of_gt hB)
+  have hRawCandidate : (fun i t => ceBound X * NormCandidate i t) = RawCandidate := by
+    funext i t
+    dsimp [NormCandidate, RawCandidate, normalizedCE]
+    exact mul_div_cancel₀ _ (ne_of_gt hB)
+  have hEB := Hagi.Probability.FiniteFamilyConfidence.empiricalMean_const_mul
+    NormBase ω (ceBound X)
+  have hEC := Hagi.Probability.FiniteFamilyConfidence.empiricalMean_const_mul
+    NormCandidate ω (ceBound X)
+  have hPB := Hagi.Probability.FiniteFamilyConfidence.populationMean_const_mul
+    p NormBase (ceBound X)
+  have hPC := Hagi.Probability.FiniteFamilyConfidence.populationMean_const_mul
+    p NormCandidate (ceBound X)
+  rw [← hRawBase, ← hRawCandidate, hEB, hEC, hPB, hPC]
+  calc
+    ceBound X * empiricalMean NormBase ω -
+        ceBound X * empiricalMean NormCandidate ω - 2 * eps =
+      ceBound X * (empiricalMean NormBase ω - empiricalMean NormCandidate ω -
+        2 * (eps / ceBound X)) := by
+      field_simp [ne_of_gt hB]
+    _ ≤ ceBound X *
+        (populationMean p NormBase - populationMean p NormCandidate) :=
+      mul_le_mul_of_nonneg_left hω hB.le
+    _ = ceBound X * populationMean p NormBase -
+        ceBound X * populationMean p NormCandidate := by ring
+
+/-- For one fixed linear head, cross-entropy at the midpoint of two
+parameter vectors is at most the mean of their endpoint cross-entropies.
+The inverse-scalar notation is the EuclideanSpace midpoint operation.
+This is a non-strict pointwise bound for the stated features only. -/
+theorem ceOneHot_mean_ceLogits_le {V : Type} [Fintype V] [Nonempty V]
+    {d : ℕ} (X : Matrix V (Fin d) ℝ)
+    (w1 w2 : EuclideanSpace ℝ (Fin d)) (t : V) :
+    Hagi.ceOneHot t (ceLogits X ((2 : ℝ)⁻¹ • (w1 + w2))) ≤
+      (Hagi.ceOneHot t (ceLogits X w1) +
+        Hagi.ceOneHot t (ceLogits X w2)) / 2 := by
+  have hlogits : ceLogits X ((2 : ℝ)⁻¹ • (w1 + w2)) =
+      (ceLogits X w1 + ceLogits X w2) / 2 := by
+    change X *ᵥ ((2 : ℝ)⁻¹ • (w1.ofLp + w2.ofLp)) =
+      (X *ᵥ w1.ofLp + X *ᵥ w2.ofLp) / 2
+    rw [Matrix.mulVec_smul, Matrix.mulVec_add]
+    ext v
+    change (2 : ℝ)⁻¹ * ((X *ᵥ w1.ofLp) v + (X *ᵥ w2.ofLp) v) =
+      ((X *ᵥ w1.ofLp) v + (X *ᵥ w2.ofLp) v) / 2
+    ring
+  rw [hlogits]
+  exact Hagi.Core.ensemble_ce_le_mean t (ceLogits X w1) (ceLogits X w2)
+
 end Hagi.Model.CEHeldout
