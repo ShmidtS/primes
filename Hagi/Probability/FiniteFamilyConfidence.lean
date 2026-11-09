@@ -35,6 +35,60 @@ noncomputable def empiricalMean {n : ℕ} (X : Fin n → V → ℝ)
   (∑ i, X i (ω i)) / (n : ℝ)
 
 omit [Nonempty V] in
+/-- Population means commute with multiplication by an arbitrary real
+constant.  No probability or nonzero-sample assumption is needed for this
+algebraic identity. -/
+theorem populationMean_const_mul {V : Type} [Fintype V] {n : ℕ}
+    (p : Fin n → V → ℝ) (L : Fin n → V → ℝ) (B : ℝ) :
+    populationMean p (fun i t => B * L i t) = B * populationMean p L := by
+  unfold populationMean
+  calc
+    (∑ i, coordMean p (fun j t => B * L j t) i) / (n : ℝ) =
+        (∑ i, B * coordMean p L i) / (n : ℝ) := by
+      congr 1
+      apply Finset.sum_congr rfl
+      intro i _hi
+      unfold coordMean
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro t _ht
+      ring
+    _ = B * ((∑ i, coordMean p L i) / (n : ℝ)) := by
+      rw [← Finset.mul_sum, mul_div_assoc]
+
+omit [Nonempty V] in
+/-- Empirical means commute with multiplication by an arbitrary real
+constant, including when the finite sample is empty. -/
+theorem empiricalMean_const_mul {V : Type} {n : ℕ}
+    (L : Fin n → V → ℝ) (ω : Fin n → V) (B : ℝ) :
+    empiricalMean (fun i t => B * L i t) ω = B * empiricalMean L ω := by
+  unfold empiricalMean
+  calc
+    (∑ i, B * L i (ω i)) / (n : ℝ) =
+        (B * ∑ i, L i (ω i)) / (n : ℝ) := by rw [Finset.mul_sum]
+    _ = B * ((∑ i, L i (ω i)) / (n : ℝ)) := by rw [mul_div_assoc]
+
+omit [Nonempty V] in
+/-- A normalized mean comparison implies the corresponding comparison for
+any genuine pointwise positive rescaling.  The raw loss is an explicit
+argument, so the premise cannot silently substitute another loss. -/
+theorem populationMean_le_empiricalMean_of_scale {V : Type} [Fintype V]
+    {n : ℕ} (p : Fin n → V → ℝ) (normalized raw : Fin n → V → ℝ)
+    (ω : Fin n → V) (B eps : ℝ) (hB : 0 < B)
+    (hraw : ∀ i t, B * normalized i t = raw i t)
+    (h : populationMean p normalized ≤ empiricalMean normalized ω + eps) :
+    populationMean p raw ≤ empiricalMean raw ω + B * eps := by
+  have hfun : (fun i t => B * normalized i t) = raw := by
+    funext i t
+    exact hraw i t
+  rw [← hfun, populationMean_const_mul, empiricalMean_const_mul]
+  calc
+    B * populationMean p normalized ≤
+        B * (empiricalMean normalized ω + eps) :=
+      mul_le_mul_of_nonneg_left h hB.le
+    _ = B * empiricalMean normalized ω + B * eps := by rw [mul_add]
+
+omit [Nonempty V] in
 /-- The centered-sum certificate implies the corresponding mean comparison. -/
 theorem population_le_empirical_of_centered {n : ℕ} (p : Fin n → V → ℝ)
     (X : Fin n → V → ℝ) (ω : Fin n → V) (eps : ℝ) (hn : 0 < n)
