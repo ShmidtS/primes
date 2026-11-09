@@ -43,7 +43,7 @@ variable {m n r' : Type} [Fintype m] [Fintype n] [Fintype r']
 
 /-- Внешнее произведение `v ⊗ x` (ранг-1 матрица). -/
 def outerProd (v : m → ℝ) (x : n → ℝ) : Matrix m n ℝ :=
-  Matrix.of fun i j => v i * x j
+  Hagi.Core.outer v x
 
 /-- Ранг-1 блок из пары (v, x): факторы единичного ранга,
 `Aᵀ * B = v ⊗ x`. -/
@@ -58,6 +58,7 @@ theorem rank1Block_eq_outer (v : m → ℝ) (x : n → ℝ) :
   funext i j
   simp [rank1Block, Matrix.mul_apply, Matrix.transpose_apply,
     dotProduct, outerProd]
+  rfl
 
 /-- Эффективные веса после принятия блока: блок + прежние
 эффективные веса. -/

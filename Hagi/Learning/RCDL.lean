@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+import Hagi.Core.FrobOuter
 
 set_option linter.style.header false
 
@@ -38,7 +39,7 @@ variable {d T : ℕ}
 
 /-- Внешнее произведение: (outer v x) i j = v i * x j. -/
 def outer (v x : Fin d → ℝ) : Matrix (Fin d) (Fin d) ℝ :=
-  Matrix.of fun i j => v i * x j
+  Hagi.Core.outer v x
 
 /-- SGD-обновление весов через внешние произведения. -/
 def dualW (W0 : Matrix (Fin d) (Fin d) ℝ)
@@ -57,7 +58,7 @@ theorem dual_apply (W0 : Matrix (Fin d) (Fin d) ℝ)
   -- поэлементно: разворачиваем все определения
   unfold dualW
   simp only [Matrix.add_mulVec, Matrix.sum_apply, Matrix.add_apply,
-    Matrix.of_apply, Matrix.mulVec, dotProduct, outer]
+    Matrix.of_apply, Matrix.mulVec, dotProduct, outer, Hagi.Core.outer]
   -- осталось: Σ_j (W0 i j + Σ_t vs t i * xs t j) * q j
   --         = Σ_j W0 i j * q j + Σ_t (Σ_j xs t j * q j) * vs t i
   have hsplit : ∀ j : Fin d,

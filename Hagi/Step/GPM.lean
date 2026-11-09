@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Step.SafeQP
+import Hagi.Core.FrobOuter
 set_option linter.style.header false
 
 /-!
@@ -38,7 +39,7 @@ variable {m n K : ℕ}
 
 /-- Внешнее произведение: `outerP v w = v·wᵀ`. -/
 def outerP (v w : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
-  Matrix.of fun i j => v i * w j
+  Hagi.Core.outer v w
 
 /-- Ковариация активаций старых задач:
 `actSigma xs l j = Σ_k x_k(l)·x_k(j)` (PSD по построению). -/
