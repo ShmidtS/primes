@@ -403,4 +403,30 @@ theorem ceOneHot_mean_ceLogits_le {V : Type} [Fintype V] [Nonempty V]
   rw [hlogits]
   exact Hagi.Core.ensemble_ce_le_mean t (ceLogits X w1) (ceLogits X w2)
 
+/-- The uniform finite code applied to the `2`-inverse scalar midpoint
+has raw CE bounded by the endpoint mean plus the explicit quantization
+penalty.  The bound is deterministic and non-strict. -/
+theorem ceOneHot_decodeJoint_encodeJoint_mean_le_ceQuantPenalty
+    {G : ℕ} {V : Type} [Fintype V] [Nonempty V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ)
+    (w1 w2 : EuclideanSpace ℝ (Fin (5 * G))) (t : V)
+    (k : DyadicScaleCode) :
+    Hagi.ceOneHot t (ceLogits X
+      (decodeJoint e (encodeJoint e ((2 : ℝ)⁻¹ • (w1 + w2)) (fun _ => k)))) ≤
+      (Hagi.ceOneHot t (ceLogits X w1) +
+        Hagi.ceOneHot t (ceLogits X w2)) / 2 +
+      CEQuantized.ceQuantPenalty X ((2 : ℝ)⁻¹ • (w1 + w2)) (dyadicLevel k) := by
+  have hparams :
+      decodeJoint e (encodeJoint e ((2 : ℝ)⁻¹ • (w1 + w2)) (fun _ => k)) =
+        CEQuantized.ternaryCEParameters (dyadicLevel k)
+          ((2 : ℝ)⁻¹ • (w1 + w2)) := by
+    rw [decodeJoint_encodeJoint]
+    rfl
+  rw [hparams]
+  have hquant := CEQuantized.ceOneHot_ternary_le_ceQuantPenalty X t
+    (dyadicLevel k) ((2 : ℝ)⁻¹ • (w1 + w2)) (dyadicLevel_pos k)
+  have hmean := ceOneHot_mean_ceLogits_le X w1 w2 t
+  exact hquant.trans (add_le_add hmean (le_refl _))
+
 end Hagi.Model.CEHeldout
