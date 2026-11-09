@@ -214,4 +214,76 @@ theorem raw_bank_freedman_confidence
     exact if_congr (hgood ω).symm rfl rfl
   simpa only [v, g, μ, F, B] using hraw
 
+
+/-- On the guarded simultaneous Good event, a strict observed raw-CE
+baseline-minus-selected gap gives a strictly positive conditional raw-CE
+mean gap for the actual finite coded model bank. -/
+theorem raw_bank_selected_conditional_ce_gap_pos_of_good
+    {G m : ℕ} {Label : Type} [Fintype Label] [Nonempty Label]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix Label (Fin (5 * G)) ℝ)
+    (K : ℕ → ((Fin m → JointCode G) × Label) →
+      PMF ((Fin m → JointCode G) × Label))
+    (T : ℕ) (b : Fin m)
+    (σ : History ((Fin m → JointCode G) × Label) T → Fin m)
+    (r V : ℝ) (ω : History ((Fin m → JointCode G) × Label) T)
+    (hGood : ∀ i : Fin m,
+      historyCounter (fun k a => pmfMean (K k a)
+        (fun next => (Hagi.ceOneHot next.2
+          (ceLogits X (decodeJoint e (a.1 i))) -
+            pmfMean (K k a) (fun next => Hagi.ceOneHot next.2
+              (ceLogits X (decodeJoint e (a.1 i))))) ^ 2)) T T ω ≤ V →
+        |historyAdditive (fun k a next =>
+          Hagi.ceOneHot next.2 (ceLogits X (decodeJoint e (a.1 i))) -
+            pmfMean (K k a) (fun next => Hagi.ceOneHot next.2
+              (ceLogits X (decodeJoint e (a.1 i))))) T T ω| < r)
+    (hbv : historyCounter (fun k a => pmfMean (K k a)
+      (fun next => (Hagi.ceOneHot next.2
+        (ceLogits X (decodeJoint e (a.1 b))) -
+          pmfMean (K k a) (fun next => Hagi.ceOneHot next.2
+            (ceLogits X (decodeJoint e (a.1 b))))) ^ 2)) T T ω ≤ V)
+    (hσv : historyCounter (fun k a => pmfMean (K k a)
+      (fun next => (Hagi.ceOneHot next.2
+        (ceLogits X (decodeJoint e (a.1 (σ ω)))) -
+          pmfMean (K k a) (fun next => Hagi.ceOneHot next.2
+            (ceLogits X (decodeJoint e (a.1 (σ ω)))))) ^ 2)) T T ω ≤ V)
+    (hobs : 2 * r <
+      historyAdditive (fun _k a next => Hagi.ceOneHot next.2
+        (ceLogits X (decodeJoint e (a.1 b)))) T T ω -
+      historyAdditive (fun _k a next => Hagi.ceOneHot next.2
+        (ceLogits X (decodeJoint e (a.1 (σ ω))))) T T ω) :
+    0 < historyAdditive (fun k a _ => pmfMean (K k a)
+      (fun next => Hagi.ceOneHot next.2
+        (ceLogits X (decodeJoint e (a.1 b))))) T T ω -
+      historyAdditive (fun k a _ => pmfMean (K k a)
+        (fun next => Hagi.ceOneHot next.2
+          (ceLogits X (decodeJoint e (a.1 (σ ω)))))) T T ω := by
+  let F : Fin m → ℕ → ((Fin m → JointCode G) × Label) →
+      ((Fin m → JointCode G) × Label) → ℝ :=
+    fun i _ a next => Hagi.ceOneHot next.2 (ceLogits X (decodeJoint e (a.1 i)))
+  let μ : Fin m → ℕ → ((Fin m → JointCode G) × Label) → ℝ :=
+    fun i k a => pmfMean (K k a) (F i k a)
+  let g : Fin m → ℕ → ((Fin m → JointCode G) × Label) →
+      ((Fin m → JointCode G) × Label) → ℝ :=
+    fun i k a next => F i k a next - μ i k a
+  let v : Fin m → ℕ → ((Fin m → JointCode G) × Label) → ℝ :=
+    fun i k a => pmfMean (K k a)
+      (fun next => (F i k a next - μ i k a) ^ 2)
+  have hgood : ∀ i ∈ (Finset.univ : Finset (Fin m)),
+      historyCounter (v i) T T ω ≤ V →
+        |historyAdditive (fun k a next =>
+          F i (k + 1) a next - pmfMean (K k a)
+            (fun next => F i (k + 1) a next)) T T ω| < r := by
+    intro i _ hi
+    have hraw : |historyAdditive (g i) T T ω| < r := by
+      exact hGood i (by simpa only [v, μ, F] using hi)
+    simpa only [g, μ, F] using hraw
+  have hgap := finite_family_selected_conditional_gap_pos_of_good
+    K T (Finset.univ : Finset (Fin m)) F v b σ r V ω
+    (Finset.mem_univ b) (Finset.mem_univ (σ ω)) hgood
+    (by simpa only [v, μ, F] using hbv)
+    (by simpa only [v, μ, F] using hσv)
+    (by simpa only [F] using hobs)
+  simpa only [F] using hgap
+
 end Hagi.Model.CEMarkovConfidence
