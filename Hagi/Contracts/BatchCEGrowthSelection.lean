@@ -291,6 +291,36 @@ theorem growthDominatingSelection_objective_le_candidate_of_uniform_error
       risks writes S (selectionIn pE S E a0 hStayE)) at h
   linarith
 
+/-- Strict supplied-batch CE progress when the actual candidate margin exceeds
+the uniform supplied-batch CE error; no estimator or oracle is supplied. -/
+theorem growthDominatingSelection_objective_lt_current_of_margin
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (estimate : BoundedBatchState V B a r c k capacity → ℝ) (eps : ℝ)
+    (heps : 0 ≤ eps)
+    (herr : ∀ idx, |estimate (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+      risks writes S idx) -
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx)| ≤ eps)
+    (hmargin : growthObjective
+        (growthCandidateStep Zs Ds costs memoryCaps operationCaps risks writes S idx) +
+      2 * eps < growthObjective S) :
+    let p := growthProblemAt Zs Ds costs memoryCaps operationCaps risks writes S
+    let pE := withEstimatedValue p (fun T => -estimate T)
+    let E := scoreDominatingIn pE S (growthMemoryIncrement B V) operationBudget Finset.univ
+    let hStayE : a0 ∈ E := Finset.mem_filter.mpr
+      ⟨(mem_feasible_withEstimatedValue p (fun T => -estimate T)).mpr
+          (growthCandidate_mem_feasible Zs Ds costs memoryCaps operationCaps
+            risks writes S operationBudget hop a0),
+        a0, Finset.mem_univ a0, le_rfl⟩
+    growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S (selectionIn pE S E a0 hStayE)) < growthObjective S := by
+  have h := growthDominatingSelection_objective_le_candidate_of_uniform_error
+    Zs Ds costs memoryCaps operationCaps risks writes S operationBudget hop a0 idx
+    estimate eps heps herr
+  dsimp only at h ⊢
+  exact lt_of_le_of_lt h hmargin
+
 /-- Nonregression follows through the supplied witness, not an assumed identity action. -/
 theorem growthSelection_objective_le_current (S : BoundedBatchState V B a r c k capacity)
     (operationBudget : ℕ)
