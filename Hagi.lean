@@ -414,6 +414,7 @@ import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.Schelling
 import Hagi.Optimization.SchellingPercolation
+import Hagi.Optimization.GraphDistanceRouting
 import Hagi.Optimization.MarkovPercolation
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
