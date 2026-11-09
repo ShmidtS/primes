@@ -240,51 +240,9 @@ theorem gibbs_from_mirror {V : Type*} [Fintype V] [Nonempty V]
     (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
     -T * Real.log (∑ v, Real.exp (-(ℓ v)/T))
       ≤ (∑ v, ρ v * ℓ v) + T * (∑ v, ρ v * Real.log (ρ v)) := by
-  have hcard : (0:ℝ) < Fintype.card V :=
-    Nat.cast_pos.mpr Fintype.card_pos
-  have hcardne : ((Fintype.card V : ℝ)) ≠ 0 := ne_of_gt hcard
-  have hρ₀pos : ∀ v : V, (0:ℝ) < 1 / (Fintype.card V : ℝ) := by
-    intro v; positivity
-  have hρ₀1 : ∑ v : V, 1 / (Fintype.card V : ℝ) = 1 := by
-    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul,
-      one_div, mul_inv_cancel₀ hcardne]
-  have hfl := mirror_descent_floor
-    (fun _ => 1 / (Fintype.card V : ℝ)) ℓ T hT hρ₀pos ρ hρ hρ1
-  -- Z = (1/n)·Σ e^{−ℓ/T}
-  have hZ : (∑ w, (1 / (Fintype.card V : ℝ))
-        * Real.exp (-(ℓ w)/T))
-      = (∑ v, Real.exp (-(ℓ v)/T)) / (Fintype.card V : ℝ) := by
-    rw [← Finset.mul_sum, one_div, inv_mul_eq_div]
-  -- KL-слагаемое: Σ ρ log(ρ·n) = Σ ρ log ρ + log n
-  have hKL : (∑ v, ρ v
-        * Real.log (ρ v / (1 / (Fintype.card V : ℝ))))
-      = (∑ v, ρ v * Real.log (ρ v))
-        + Real.log (Fintype.card V : ℝ) := by
-    have hsplit : ∀ v : V, ρ v
-        * Real.log (ρ v / (1 / (Fintype.card V : ℝ)))
-        = ρ v * Real.log (ρ v)
-          + ρ v * Real.log (Fintype.card V : ℝ) := by
-      intro v
-      have hrw : ρ v / (1 / (Fintype.card V : ℝ))
-          = ρ v * (Fintype.card V : ℝ) := by
-        field_simp
-      rw [hrw, Real.log_mul (hρ v).ne' hcardne]
-      ring
-    rw [Finset.sum_congr rfl (fun v _ => hsplit v),
-      Finset.sum_add_distrib]
-    rw [← Finset.sum_mul, hρ1, one_mul]
-  rw [hKL] at hfl
-  -- log Z = log Σ − log n
-  have hZpos : (0:ℝ) < ∑ v, Real.exp (-(ℓ v)/T) :=
-    Finset.sum_pos (fun v _ => Real.exp_pos _)
-      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
-  have hlogZ : Real.log ((∑ v, Real.exp (-(ℓ v)/T))
-      / (Fintype.card V : ℝ))
-      = Real.log (∑ v, Real.exp (-(ℓ v)/T))
-        - Real.log (Fintype.card V : ℝ) :=
-    Real.log_div hZpos.ne' hcardne
-  rw [hZ, hlogZ] at hfl
-  nlinarith [hfl]
+  classical
+  exact Hagi.Probability.gibbs_variational ℓ T hT ρ hρ hρ1
+
 
 /-- ОДНОШАГОВОЕ ТОЖДЕСТВО ПРОГРЕССА зеркального спуска:
 для любого ρ ∈ Δ и шага γ = mirrorStep ρ₀ ℓ T:
