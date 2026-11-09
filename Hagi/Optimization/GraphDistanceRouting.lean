@@ -165,5 +165,81 @@ theorem historyLaw_shortestToTarget_hitBy_card_eq_one [Fintype V]
     obtain ⟨hadj, hd⟩ := (mem_shorterNeighborFinset G target v b).mp hmem
     exact ⟨hadj, targetRank_strictMono G (hreach v) hd⟩
 
+/-- Every supported full history first reaches the target after exactly its
+initial shortest-path distance, provided the horizon covers that distance. -/
+theorem first_target_at_initial_dist_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (hreach : ∀ v, G.Reachable v target) (initial : PMF V)
+    {T : ℕ} (hT : ∀ v ∈ initial.support, G.dist v target ≤ T)
+    (ω : History V T)
+    (hω : ω ∈ (historyLaw initial
+      (shortestToTargetKernel G target hreach) T T).support) :
+    let D := G.dist (ω (historyIndex T 0)) target
+    ω (historyIndex T D) = target ∧
+      ∀ j < D, ω (historyIndex T j) ≠ target := by
+  dsimp only
+  obtain ⟨hstart, hsteps⟩ := start_and_steps_of_historyLaw_support
+    initial (shortestToTargetKernel G target hreach) le_rfl ω hω
+  have hDT : G.dist (ω (historyIndex T 0)) target ≤ T := hT _ hstart
+  have hclock : ∀ j ≤ G.dist (ω (historyIndex T 0)) target,
+      G.dist (ω (historyIndex T j)) target + j =
+          G.dist (ω (historyIndex T 0)) target ∧
+        (j < G.dist (ω (historyIndex T 0)) target →
+          ω (historyIndex T j) ≠ target) := by
+    intro j
+    induction j with
+    | zero =>
+        intro _
+        constructor
+        · simp
+        · intro hD htarget
+          simp [htarget] at hD
+    | succ j ih =>
+        intro hjD
+        have hjlt : j < G.dist (ω (historyIndex T 0)) target := by omega
+        have hjT : j < T := by omega
+        obtain ⟨hprev, hnone⟩ := ih (by omega)
+        have hcur : ω (historyIndex T j) ≠ target := hnone hjlt
+        have hnext := hsteps j hjT
+        have hdist := dist_add_one_eq_of_mem_support G target hreach hcur hnext
+        constructor
+        · omega
+        · intro _ htarget
+          simp only [htarget, SimpleGraph.dist_self] at hdist
+          omega
+  have hDclock := (hclock _ le_rfl).1
+  have hzero : G.dist
+      (ω (historyIndex T (G.dist (ω (historyIndex T 0)) target))) target = 0 := by
+    omega
+  exact ⟨(hreach _).dist_eq_zero_iff.mp hzero,
+    fun j hj => (hclock j (by omega)).2 hj⟩
+
+/-- The pure-start exact first-hit event has outer mass one under any
+horizon covering that start's shortest-path distance. -/
+theorem historyLaw_shortestToTarget_firstHit_dist_eq_one
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (hreach : ∀ v, G.Reachable v target) (s : V)
+    {T : ℕ} (hT : G.dist s target ≤ T) :
+    (historyLaw (PMF.pure s)
+      (shortestToTargetKernel G target hreach) T T).toOuterMeasure
+      {ω | ω (historyIndex T (G.dist s target)) = target ∧
+        ∀ j < G.dist s target,
+          ω (historyIndex T j) ≠ target} = 1 := by
+  apply (PMF.toOuterMeasure_apply_eq_one_iff _ _).mpr
+  intro ω hω
+  obtain ⟨hstart, _⟩ := start_and_steps_of_historyLaw_support
+    (PMF.pure s) (shortestToTargetKernel G target hreach) le_rfl ω hω
+  rw [PMF.mem_support_pure_iff] at hstart
+  have hT' : ∀ v ∈ (PMF.pure s).support, G.dist v target ≤ T := by
+    intro v hv
+    rw [PMF.mem_support_pure_iff] at hv
+    subst v
+    exact hT
+  have hfirst := first_target_at_initial_dist_of_historyLaw_support
+    G target hreach (PMF.pure s) hT' ω hω
+  dsimp only at hfirst
+  change ω (historyIndex T (G.dist s target)) = target ∧
+    ∀ j < G.dist s target, ω (historyIndex T j) ≠ target
+  simpa only [hstart] using hfirst
 
 end Hagi.Optimization.GraphDistanceRouting
