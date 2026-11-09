@@ -279,4 +279,24 @@ theorem joint_upper_confidence {G n : ℕ} {V : Type}
   rw [decodeJoint_encodeJoint e w scales] at h
   exact h
 
+/-- Fixed-codebook fresh-label lower confidence for a population mean gap.
+Both normalized losses use the same finite dictionary fixed before sampling;
+the two codes are selected from that dictionary, not from observed labels. -/
+theorem codebook_population_mean_gap_lower_confidence {G n : ℕ} {V : Type}
+    [Fintype V] [Nonempty V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ)
+    (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
+    (baseline candidate : JointCode G) :
+    1 - 2 * (61965 ^ G : ℕ) * Real.exp (-2 * (n : ℝ) * eps ^ 2) ≤
+      prodPq p (fun ω => empiricalMean (fun _i t => normalizedCE e X baseline t) ω -
+        empiricalMean (fun _i t => normalizedCE e X candidate t) ω - 2 * eps ≤
+          populationMean p (fun _i t => normalizedCE e X baseline t) -
+            populationMean p (fun _i t => normalizedCE e X candidate t)) := by
+  simpa [card_jointCode] using
+    (finite_family_population_mean_gap_lower_confidence p hp
+      (fun (c : JointCode G) (_i : Fin n) (t : V) => normalizedCE e X c t)
+      (fun c _i t => normalizedCE_mem_unit e X c t) hn eps heps baseline candidate)
+
 end Hagi.Model.CEHeldout
