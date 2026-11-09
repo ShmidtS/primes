@@ -239,4 +239,45 @@ theorem twoModel_scaled_confidence :
   · rw [twoModel_scaled_probability]
     exact twoModel_confidence.trans_eq twoModelGood_probability
 
+/-- Delta-oriented raw-CE lower confidence after sample-adaptive selection
+inside the fixed decoded codebook.  The raw sample budget accounts for the
+full factor `2 * 61965 ^ G`; the good event is exactly the parent raw-selected
+event, with no further rescaling or additional union bound. -/
+theorem codebook_raw_selected_population_mean_gap_lower_confidence_delta {G n : ℕ}
+    {V : Type} [Fintype V] [Nonempty V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ)
+    (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
+    (delta : ℝ) (hdelta : 0 < delta)
+    (hbudget : ceBound X ^ 2 *
+        Real.log ((2 * (61965 ^ G : ℕ) : ℝ) / delta) /
+          (2 * eps ^ 2) ≤ (n : ℝ))
+    (baseline candidate : (Fin n → V) → JointCode G) :
+    1 - delta ≤
+      prodPq p (fun ω =>
+        empiricalMean (fun _i t =>
+          Hagi.ceOneHot t (ceLogits X (decodeJoint e (baseline ω)))) ω -
+        empiricalMean (fun _i t =>
+          Hagi.ceOneHot t (ceLogits X (decodeJoint e (candidate ω)))) ω - 2 * eps ≤
+          populationMean p (fun _i t =>
+            Hagi.ceOneHot t (ceLogits X (decodeJoint e (baseline ω)))) -
+          populationMean p (fun _i t =>
+            Hagi.ceOneHot t (ceLogits X (decodeJoint e (candidate ω))))) := by
+  have hB : 0 < ceBound X := ceBound_pos X
+  have hN : 0 < (2 * (61965 ^ G : ℕ) : ℝ) := by positivity
+  have hnormalizedBudget :
+      Real.log ((2 * (61965 ^ G : ℕ) : ℝ) / delta) /
+          (2 * (eps / ceBound X) ^ 2) ≤ (n : ℝ) := by
+    rw [sample_budget_normalized_eq_raw _ _ _ _
+      (ceBound_ne X) (ne_of_gt heps)]
+    exact hbudget
+  have hexp : (2 * (61965 ^ G : ℕ) : ℝ) *
+      Real.exp (-2 * (n : ℝ) * (eps / ceBound X) ^ 2) ≤ delta :=
+    mul_exp_neg_sq_le_of_sample_budget _ _ _ hN hdelta
+      (div_pos heps hB) hnormalizedBudget
+  exact le_trans (sub_le_sub_left hexp 1)
+    (CEHeldout.codebook_raw_selected_population_mean_gap_lower_confidence
+      e X p hp hn eps heps baseline candidate)
+
 end Hagi.Model.CEConfidenceScale
