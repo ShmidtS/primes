@@ -117,6 +117,36 @@ theorem growthCandidate_flops (S : BoundedBatchState V B a r c k capacity) (idx 
       (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx) hlegal]
     simp [growthCandidateOperationIncrement, hlegal]
 
+/-- Strict actual CE descent admits the candidate and identifies its exact declared resources. -/
+theorem growthCandidate_legal_width_succ_flops_of_objective_lt_current
+    (S : BoundedBatchState V B a r c k capacity) (idx : A)
+    (hlt : growthObjective
+      (growthCandidateStep Zs Ds costs memoryCaps operationCaps risks writes S idx) <
+        growthObjective S) :
+    GrowthLegal V S (Zs idx S) (Ds idx S) (costs idx) (memoryCaps idx)
+        (operationCaps idx) ∧
+      (growthCandidateStep Zs Ds costs memoryCaps operationCaps risks writes S idx).width =
+        S.width + 1 ∧
+      (growthCandidateStep Zs Ds costs memoryCaps operationCaps risks writes S
+        idx).state.res.flops =
+        S.state.res.flops + (growthOperations B V (costs idx) : ℝ) := by
+  classical
+  by_cases hlegal : GrowthLegal V S (Zs idx S) (Ds idx S) (costs idx)
+      (memoryCaps idx) (operationCaps idx)
+  · refine ⟨hlegal, ?_, ?_⟩
+    · exact (boundedGrowStep_legal_iff_width_succ S (Zs idx S) (Ds idx S) (costs idx)
+        (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx)).mp hlegal
+    · have hflops := growthCandidate_flops Zs Ds costs memoryCaps operationCaps
+        risks writes S idx
+      simp only [growthCandidateOperationIncrement, hlegal, ite_true] at hflops
+      exact hflops
+  · have hnext : growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx = S :=
+      boundedGrowStep_of_not_legal S (Zs idx S) (Ds idx S) (costs idx)
+        (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx) hlegal
+    rw [hnext] at hlt
+    exact (lt_irrefl _ hlt).elim
+
 /-- The conditional operation increment is exactly subtracted from real remaining budget. -/
 theorem growthCandidate_budget (S : BoundedBatchState V B a r c k capacity) (idx : A) :
     (growthCandidateStep Zs Ds costs memoryCaps operationCaps risks writes S idx).state.res.budget =
