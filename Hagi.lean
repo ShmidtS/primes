@@ -410,6 +410,7 @@ import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
+import Hagi.Optimization.Schelling
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
