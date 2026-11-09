@@ -251,4 +251,29 @@ theorem finite_family_selected_conditional_gap_of_good
   rw [hcenter (σ ω)] at hσc
   linarith
 
+/-- A strict observed baseline-minus-selected gap gives a strictly positive
+conditional-risk gap on the existing simultaneous Good event. -/
+theorem finite_family_selected_conditional_gap_pos_of_good
+    {α ι : Type*} [Fintype α]
+    (K : ℕ → α → PMF α) (T : ℕ)
+    (s : Finset ι) (f : ι → ℕ → α → α → ℝ) (v : ι → ℕ → α → ℝ)
+    (b : ι) (σ : History α T → ι) (r V : ℝ) (ω : History α T)
+    (hb : b ∈ s) (hσ : σ ω ∈ s)
+    (hgood : ∀ i ∈ s, historyCounter (v i) T T ω ≤ V →
+      |historyAdditive (fun k a next =>
+        f i (k + 1) a next - pmfMean (K k a) (fun next => f i (k + 1) a next))
+        T T ω| < r)
+    (hbv : historyCounter (v b) T T ω ≤ V)
+    (hσv : historyCounter (v (σ ω)) T T ω ≤ V)
+    (hobserved : 2 * r <
+      historyAdditive (fun k a next => f b (k + 1) a next) T T ω -
+      historyAdditive (fun k a next => f (σ ω) (k + 1) a next) T T ω) :
+    0 < historyAdditive (fun k a _ =>
+        pmfMean (K k a) (fun next => f b (k + 1) a next)) T T ω -
+      historyAdditive (fun k a _ =>
+        pmfMean (K k a) (fun next => f (σ ω) (k + 1) a next)) T T ω := by
+  have hgap := finite_family_selected_conditional_gap_of_good
+    K T s f v b σ r V ω hb hσ hgood hbv hσv
+  linarith
+
 end Hagi.Probability.FreedmanFamilyConfidence
