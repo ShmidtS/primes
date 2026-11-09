@@ -242,4 +242,155 @@ theorem historyLaw_shortestToTarget_firstHit_dist_eq_one
     ∀ j < G.dist s target, ω (historyIndex T j) ≠ target
   simpa only [hstart] using hfirst
 
+abbrev targetComponent (G : SimpleGraph V) (target : V) : G.ConnectedComponent :=
+  G.connectedComponentMk target
+
+def targetPoint (G : SimpleGraph V) (target : V) : targetComponent G target :=
+  ⟨target, SimpleGraph.ConnectedComponent.connectedComponentMk_mem⟩
+
+theorem mem_targetComponent_iff (G : SimpleGraph V) (target v : V) :
+    v ∈ targetComponent G target ↔ G.Reachable v target := by
+  change G.connectedComponentMk v = G.connectedComponentMk target ↔ _
+  exact SimpleGraph.ConnectedComponent.eq
+
+theorem reachable_targetPoint (G : SimpleGraph V) (target : V)
+    (v : targetComponent G target) :
+    (targetComponent G target).toSimpleGraph.Reachable v (targetPoint G target) := by
+  exact (targetComponent G target).reachable_toSimpleGraph v.property
+    SimpleGraph.ConnectedComponent.connectedComponentMk_mem
+
+open Classical in
+noncomputable def partialShortestToTargetRows [Fintype V]
+    (G : SimpleGraph V) (target : V) : ℕ → V → Option (PMF V) :=
+  fun t v =>
+    if hv : v ∈ targetComponent G target then
+      some ((shortestToTargetKernel
+        (targetComponent G target).toSimpleGraph (targetPoint G target)
+        (reachable_targetPoint G target) t ⟨v, hv⟩).map Subtype.val)
+    else none
+
+private theorem walk_support_mem_targetComponent {G : SimpleGraph V}
+    {target u v : V} (p : G.Walk u v) :
+    u ∈ targetComponent G target →
+      ∀ x ∈ p.support, x ∈ targetComponent G target := by
+  induction p with
+  | nil =>
+      intro hu x hx
+      simp only [SimpleGraph.Walk.support_nil, List.mem_singleton] at hx
+      subst x
+      exact hu
+  | @cons u w v hadj p ih =>
+      intro hu x hx
+      rw [SimpleGraph.Walk.support_cons, List.mem_cons] at hx
+      rcases hx with rfl | hx
+      · exact hu
+      · exact ih ((targetComponent G target).mem_supp_of_adj_mem_supp hu hadj) x hx
+
+theorem dist_targetComponent_eq (G : SimpleGraph V) (target : V)
+    (u v : targetComponent G target) :
+    (targetComponent G target).toSimpleGraph.dist u v = G.dist u v := by
+  apply Nat.le_antisymm
+  · obtain ⟨p, hp⟩ := ((targetComponent G target).reachable_of_mem_supp
+      u.property v.property).exists_walk_length_eq_dist
+    let hw := walk_support_mem_targetComponent (target := target) p u.property
+    calc
+      (targetComponent G target).toSimpleGraph.dist u v ≤
+          (p.induce (targetComponent G target).supp hw).length :=
+        SimpleGraph.dist_le _
+      _ = p.length := by
+        rw [← SimpleGraph.Walk.length_map
+          (SimpleGraph.Embedding.induce (targetComponent G target).supp).toHom
+          (p.induce (targetComponent G target).supp hw),
+          SimpleGraph.Walk.map_induce]
+        rfl
+      _ = G.dist u v := hp
+  · obtain ⟨q, hq⟩ := (targetComponent G target).connected_toSimpleGraph
+      |>.exists_walk_length_eq_dist u v
+    calc
+      G.dist u v ≤ (q.map (targetComponent G target).toSimpleGraph_hom).length :=
+        SimpleGraph.dist_le _
+      _ = q.length := SimpleGraph.Walk.length_map _ _
+      _ = (targetComponent G target).toSimpleGraph.dist u v := hq
+
+open Classical in
+theorem partialShortestToTargetRows_eq_some [Fintype V]
+    (G : SimpleGraph V) (target : V) {v : V}
+    (hv : v ∈ targetComponent G target) (t : ℕ) :
+    partialShortestToTargetRows G target t v =
+      some ((shortestToTargetKernel (targetComponent G target).toSimpleGraph
+        (targetPoint G target) (reachable_targetPoint G target)
+        t ⟨v, hv⟩).map Subtype.val) := by
+  simp only [partialShortestToTargetRows, dite_eq_left hv]
+
+open Classical in
+theorem partialShortestToTargetRows_eq_none [Fintype V]
+    (G : SimpleGraph V) (target : V) {v : V}
+    (hv : v ∉ targetComponent G target) (t : ℕ) :
+    partialShortestToTargetRows G target t v = none := by
+  simp only [partialShortestToTargetRows, dite_eq_right hv]
+
+open Classical in
+theorem partialShortestToTargetRows_target [Fintype V]
+    (G : SimpleGraph V) (target : V) (t : ℕ) :
+    partialShortestToTargetRows G target t target = some (PMF.pure target) := by
+  rw [partialShortestToTargetRows_eq_some G target
+    SimpleGraph.ConnectedComponent.connectedComponentMk_mem t]
+  change some ((shortestToTargetKernel (targetComponent G target).toSimpleGraph
+    (targetPoint G target) (reachable_targetPoint G target)
+    t (targetPoint G target)).map Subtype.val) = some (PMF.pure target)
+  rw [shortestToTargetKernel_target, PMF.pure_map]
+  rfl
+
+open Classical in
+theorem rowReady_partialShortestToTargetRows_iff [Fintype V]
+    (G : SimpleGraph V) (target : V) (t : ℕ) (v : V) :
+    RowReady (partialShortestToTargetRows G target) G.Adj (fun v => v = target)
+      (targetRank G target) t v ↔ v ∈ targetComponent G target := by
+  constructor
+  · rintro (rfl | ⟨p, hrows, _⟩)
+    · exact SimpleGraph.ConnectedComponent.connectedComponentMk_mem
+    · by_contra hv
+      rw [partialShortestToTargetRows_eq_none G target hv t] at hrows
+      simp at hrows
+  · intro hv
+    by_cases hvt : v = target
+    · exact Or.inl hvt
+    · refine Or.inr ⟨(shortestToTargetKernel
+          (targetComponent G target).toSimpleGraph (targetPoint G target)
+          (reachable_targetPoint G target) t ⟨v, hv⟩).map Subtype.val,
+        partialShortestToTargetRows_eq_some G target hv t, ?_⟩
+      intro b hb
+      obtain ⟨c, hc, rfl⟩ := (PMF.mem_support_map_iff _ _ _).mp hb
+      have hv' : (⟨v, hv⟩ : targetComponent G target) ≠ targetPoint G target := by
+        intro h
+        exact hvt (congrArg Subtype.val h)
+      have hc' := (mem_shortestToTargetKernel_support
+        (targetComponent G target).toSimpleGraph (targetPoint G target)
+        (reachable_targetPoint G target) hv' t c).mp hc
+      obtain ⟨hadj, hd⟩ := (mem_shorterNeighborFinset
+        (targetComponent G target).toSimpleGraph (targetPoint G target)
+        ⟨v, hv⟩ c).mp hc'
+      refine ⟨SimpleGraph.induce_adj.mp hadj, ?_⟩
+      apply targetRank_strictMono G ((mem_targetComponent_iff G target v).mp hv)
+      rw [dist_targetComponent_eq, dist_targetComponent_eq] at hd
+      change G.dist (c : V) target < G.dist v target at hd
+      exact hd
+
+open Classical in
+theorem historyLaw_targetComponent_firstHit_dist_eq_one [Fintype V]
+    (G : SimpleGraph V) (target : V) (s : targetComponent G target) {T : ℕ}
+    (hT : G.dist s target ≤ T) :
+    (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).toOuterMeasure
+      {ω | ω (historyIndex T (G.dist s target)) = targetPoint G target ∧
+        ∀ j < G.dist s target, ω (historyIndex T j) ≠ targetPoint G target} = 1 := by
+  have hdist : (targetComponent G target).toSimpleGraph.dist s
+      (targetPoint G target) = G.dist s target :=
+    dist_targetComponent_eq G target s (targetPoint G target)
+  rw [← hdist] at hT ⊢
+  exact historyLaw_shortestToTarget_firstHit_dist_eq_one
+    (targetComponent G target).toSimpleGraph (targetPoint G target)
+    (reachable_targetPoint G target) s hT
+
 end Hagi.Optimization.GraphDistanceRouting
