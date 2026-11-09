@@ -270,6 +270,53 @@ theorem growthSelection_objective_le_candidate (S : BoundedBatchState V B a r c 
   simpa only [selectedNext, growthProblemAt, growthSelectionNext, growthSelection,
     neg_neg] using neg_le_neg h
 
+/-- A positive residual admission margin at a supplied comparator gives the
+actual canonical selected successor strict descent and its exact resources. -/
+theorem growthSelection_legal_width_succ_flops_of_residualAdmissionMargin_pos
+    (S : BoundedBatchState V B a r c k capacity) (operationBudget : ℕ)
+    (hop : ∀ i, growthOperations B V (costs i) ≤ operationBudget) (a0 idx : A)
+    (hZ : Zs idx S = residualFeatures S)
+    (hD : Ds idx S = residualDirection S)
+    (hpositive : 0 < residualAdmissionMargin S (costs idx) (memoryCaps idx)
+      (operationCaps idx)) :
+    let sel := growthSelection Zs Ds costs memoryCaps operationCaps risks writes S
+      operationBudget hop a0
+    GrowthLegal V S (Zs sel S) (Ds sel S) (costs sel) (memoryCaps sel)
+        (operationCaps sel) ∧
+      (growthSelectionNext Zs Ds costs memoryCaps operationCaps risks writes S
+        operationBudget hop a0).width = S.width + 1 ∧
+      (growthSelectionNext Zs Ds costs memoryCaps operationCaps risks writes S
+        operationBudget hop a0).state.res.flops =
+        S.state.res.flops + (growthOperations B V (costs sel) : ℝ) := by
+  dsimp only
+  have hbound :
+      residualAdmissionMargin S (costs idx) (memoryCaps idx)
+          (operationCaps idx) ≤
+        growthObjective S -
+          growthObjective (growthCandidateStep Zs Ds costs
+            memoryCaps operationCaps risks writes S idx) := by
+    simpa only [growthCandidateStep, hZ, hD] using
+      (residualAdmissionMargin_le_objective_sub S (costs idx)
+        (memoryCaps idx) (operationCaps idx) (risks idx) (writes idx))
+  have hcomparator :
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S idx) < growthObjective S := by
+    linarith only [hbound, hpositive]
+  have hselected :=
+    lt_of_le_of_lt
+      (growthSelection_objective_le_candidate Zs Ds costs memoryCaps operationCaps
+        risks writes S operationBudget hop a0 idx) hcomparator
+  have hselected' :
+      growthObjective (growthCandidateStep Zs Ds costs memoryCaps operationCaps
+        risks writes S (growthSelection Zs Ds costs memoryCaps operationCaps
+          risks writes S operationBudget hop a0)) < growthObjective S := by
+    simpa only [growthSelectionNext] using hselected
+  have h := growthCandidate_legal_width_succ_flops_of_objective_lt_current
+    Zs Ds costs memoryCaps operationCaps risks writes S
+    (growthSelection Zs Ds costs memoryCaps operationCaps risks writes S
+      operationBudget hop a0) hselected'
+  simpa only [growthSelectionNext] using h
+
 /-- Uniform supplied-batch CE error bounds the estimate-selected actual successor;
 this supplies neither an estimator nor a held-out accuracy guarantee. -/
 theorem growthDominatingSelection_objective_le_candidate_of_uniform_error
