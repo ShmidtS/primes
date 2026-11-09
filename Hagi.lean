@@ -159,6 +159,7 @@ import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.MarkovPathSupport
 import Hagi.Probability.FreedmanFamilyConfidence
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
@@ -412,6 +413,7 @@ import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.Schelling
 import Hagi.Optimization.SchellingPercolation
+import Hagi.Optimization.MarkovPercolation
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
