@@ -303,4 +303,28 @@ theorem finite_family_population_mean_gap_lower_confidence {n : ℕ} {ι : Type}
   have hc := abs_le.mp (hω candidate)
   linarith
 
+/-- Sample-adaptive comparison within a family fixed before sampling.  The
+selectors are arbitrary functions of the observed product sample, not
+necessarily computable empirical minimizers; only the selected indices, not
+the family, may depend on that sample.  The same simultaneous all-family
+event covers both selections, so no second union bound is incurred. -/
+theorem finite_family_selected_population_mean_gap_lower_confidence {n : ℕ}
+    {ι : Type} [Fintype ι]
+    (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (X : ι → Fin n → V → ℝ)
+    (hX : ∀ m i v, 0 ≤ X m i v ∧ X m i v ≤ 1)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
+    (baseline candidate : (Fin n → V) → ι) :
+    1 - 2 * (Fintype.card ι : ℝ) * Real.exp (-2 * (n : ℝ) * eps ^ 2) ≤
+      prodPq p (fun ω => empiricalMean (X (baseline ω)) ω -
+        empiricalMean (X (candidate ω)) ω - 2 * eps ≤
+          populationMean p (X (baseline ω)) -
+            populationMean p (X (candidate ω))) := by
+  refine le_trans (finite_family_abs_error_confidence p hp X hX hn eps heps) ?_
+  apply prodPq_mono p hp
+  intro ω hω
+  have hb := abs_le.mp (hω (baseline ω))
+  have hc := abs_le.mp (hω (candidate ω))
+  linarith
+
 end Hagi.Probability.FiniteFamilyConfidence
