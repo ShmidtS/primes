@@ -163,4 +163,71 @@ theorem twoModel_confidence_pos : 0 < 1 - 2 * Real.exp (-1) := by
   rw [div_lt_one hp]
   linarith
 
+omit [Nonempty V] in
+private theorem mean_abs_error_of_not_two_tails {n : ℕ}
+    (p : Fin n → V → ℝ) (X : Fin n → V → ℝ)
+    (ω : Fin n → V) (eps : ℝ) (hn : 0 < n)
+    (hupper : ¬ (n : ℝ) * eps ≤ centeredSum p X ω)
+    (hlower : ¬ centeredSum p X ω ≤ -(n : ℝ) * eps) :
+    |populationMean p X - empiricalMean X ω| ≤ eps := by
+  have hu : centeredSum p X ω < (n : ℝ) * eps := lt_of_not_ge hupper
+  have hl : -(n : ℝ) * eps < centeredSum p X ω := lt_of_not_ge hlower
+  have hnR : (0 : ℝ) < (n : ℝ) := Nat.cast_pos.mpr hn
+  have heq : centeredSum p X ω =
+      (n : ℝ) * (empiricalMean X ω - populationMean p X) := by
+    unfold centeredSum populationMean empiricalMean
+    field_simp
+  have hu' : empiricalMean X ω - populationMean p X < eps := by
+    apply (mul_lt_mul_iff_of_pos_left hnR).mp
+    rw [← heq]
+    exact hu
+  have hl' : -eps < empiricalMean X ω - populationMean p X := by
+    apply (mul_lt_mul_iff_of_pos_left hnR).mp
+    rw [← heq]
+    nlinarith
+  rw [abs_le]
+  constructor <;> linarith
+
+/-- Simultaneous two-sided Hoeffding confidence for a fixed finite family on
+an independent finite product. The family may be empty and the confidence
+need not be positive. -/
+theorem finite_family_abs_error_confidence {n : ℕ} {ι : Type} [Fintype ι]
+    (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (X : ι → Fin n → V → ℝ)
+    (hX : ∀ m i v, 0 ≤ X m i v ∧ X m i v ≤ 1)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps) :
+    1 - 2 * (Fintype.card ι : ℝ) * Real.exp (-2 * (n : ℝ) * eps ^ 2) ≤
+      prodPq p (fun ω => ∀ m,
+        |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps) := by
+  classical
+  have hA : ∀ m ∈ (Finset.univ : Finset ι),
+      1 - 2 * Real.exp (-2 * (n : ℝ) * eps ^ 2) ≤
+        prodPq p (fun ω =>
+          |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps) := by
+    intro m _hm
+    let Bad : (Fin n → V) → Prop := fun ω =>
+      (n : ℝ) * eps ≤ centeredSum p (X m) ω ∨
+        centeredSum p (X m) ω ≤ -(n : ℝ) * eps
+    have htail := hoeffding_two_sided p hp (X m) (hX m) hn eps heps
+    have hmono : prodPq p (fun ω => ¬ Bad ω) ≤
+        prodPq p (fun ω =>
+          |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps) := by
+      apply prodPq_mono p hp
+      intro ω hω
+      exact mean_abs_error_of_not_two_tails p (X m) ω eps hn
+        (not_or.mp hω).1 (not_or.mp hω).2
+    rw [prodPq_compl p hp Bad] at hmono
+    linarith
+  calc
+    1 - 2 * (Fintype.card ι : ℝ) * Real.exp (-2 * (n : ℝ) * eps ^ 2) =
+        1 - (Fintype.card ι : ℝ) *
+          (2 * Real.exp (-2 * (n : ℝ) * eps ^ 2)) := by ring
+    _ ≤ prodPq p (fun ω => ∀ m,
+          |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps) := by
+      simpa only [Finset.card_univ, Finset.mem_univ, forall_const] using
+        premises_union_confidence p hp (Finset.univ : Finset ι)
+          (fun m ω =>
+            |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps)
+          (2 * Real.exp (-2 * (n : ℝ) * eps ^ 2)) hA
+
 end Hagi.Probability.FiniteFamilyConfidence
