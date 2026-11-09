@@ -230,4 +230,23 @@ theorem finite_family_abs_error_confidence {n : ℕ} {ι : Type} [Fintype ι]
             |populationMean p (X m) - empiricalMean (X m) ω| ≤ eps)
           (2 * Real.exp (-2 * (n : ℝ) * eps ^ 2)) hA
 
+/-- On the same simultaneous absolute-error good event, the empirical mean
+gap is a lower bound on the population mean gap after subtracting `2 * eps`. -/
+theorem finite_family_population_mean_gap_lower_confidence {n : ℕ} {ι : Type}
+    [Fintype ι] (p : Fin n → V → ℝ) (hp : IsProbSys p)
+    (X : ι → Fin n → V → ℝ)
+    (hX : ∀ m i v, 0 ≤ X m i v ∧ X m i v ≤ 1)
+    (hn : 0 < n) (eps : ℝ) (heps : 0 < eps)
+    (baseline candidate : ι) :
+    1 - 2 * (Fintype.card ι : ℝ) * Real.exp (-2 * (n : ℝ) * eps ^ 2) ≤
+      prodPq p (fun ω => empiricalMean (X baseline) ω -
+        empiricalMean (X candidate) ω - 2 * eps ≤
+          populationMean p (X baseline) - populationMean p (X candidate)) := by
+  refine le_trans (finite_family_abs_error_confidence p hp X hX hn eps heps) ?_
+  apply prodPq_mono p hp
+  intro ω hω
+  have hb := abs_le.mp (hω baseline)
+  have hc := abs_le.mp (hω candidate)
+  linarith
+
 end Hagi.Probability.FiniteFamilyConfidence
