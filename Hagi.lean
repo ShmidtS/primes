@@ -160,6 +160,7 @@ import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.MarkovPathSupport
+import Hagi.Probability.RankedStopRouting
 import Hagi.Probability.FreedmanFamilyConfidence
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
