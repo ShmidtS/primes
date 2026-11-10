@@ -269,4 +269,51 @@ example : ∃ K : Hagi.Percolation.V 2 → PMF (Hagi.Percolation.V 2),
     uniformNeighborKernel_support _ _
   exact ⟨K, hK, exists_walk_history_support_of_crossing hK parity_crossing2⟩
 
+open scoped BigOperators
+
+universe v
+
+variable {W : Type v}
+
+/-- Zero a weight field outside the actual graph-neighbor relation. -/
+noncomputable def maskedNeighborWeights (G : SimpleGraph W) (w : W → W → ENNReal) :
+    W → W → ENNReal := fun a => (G.neighborSet a).indicator (w a)
+
+/-- Normalize a masked weight field only where every row has nonzero
+finite mass; no pure/default row is supplied when these premises fail. -/
+noncomputable def weightedNeighborKernel (G : SimpleGraph W) (w : W → W → ENNReal)
+    (h0 : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ 0)
+    (htop : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ ⊤) : W → PMF W :=
+  fun a => PMF.normalize (maskedNeighborWeights G w a) (h0 a) (htop a)
+
+/-- Point mass under explicit masked normalization. -/
+theorem weightedNeighborKernel_apply (G : SimpleGraph W) (w : W → W → ENNReal)
+    (h0 : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ 0)
+    (htop : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ ⊤) (a b : W) :
+    weightedNeighborKernel G w h0 htop a b =
+      maskedNeighborWeights G w a b * (∑' c, maskedNeighborWeights G w a c)⁻¹ := by
+  exact PMF.normalize_apply (h0 a) (htop a) b
+
+/-- Support is graph adjacency with nonzero original weight. -/
+theorem mem_weightedNeighborKernel_support_iff (G : SimpleGraph W)
+    (w : W → W → ENNReal)
+    (h0 : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ 0)
+    (htop : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ ⊤) (a b : W) :
+    b ∈ (weightedNeighborKernel G w h0 htop a).support ↔
+      G.Adj a b ∧ w a b ≠ 0 := by
+  classical
+  rw [weightedNeighborKernel, PMF.mem_support_normalize_iff]
+  by_cases hab : G.Adj a b <;> simp [maskedNeighborWeights, hab]
+
+/-- Exact support requires positivity on every actual graph edge. -/
+theorem weightedNeighborKernel_support (G : SimpleGraph W)
+    (w : W → W → ENNReal)
+    (h0 : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ 0)
+    (htop : ∀ a, (∑' b, maskedNeighborWeights G w a b) ≠ ⊤)
+    (hpos : ∀ a b, G.Adj a b → w a b ≠ 0) :
+    supportedRoutingKernel G (weightedNeighborKernel G w h0 htop) := by
+  intro a b
+  rw [mem_weightedNeighborKernel_support_iff G w h0 htop]
+  exact ⟨fun h => h.1, fun hab => ⟨hab, hpos a b hab⟩⟩
+
 end Hagi.Optimization.MarkovPercolation
