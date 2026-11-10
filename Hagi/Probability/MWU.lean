@@ -1091,6 +1091,183 @@ theorem selectedLoss_optimalPropensity_mse_lt_uniform_iff
       ((hnorm i).trans (hnorm j).symm)
 
 
+/-- Expected squared Euclidean error of one inverse-propensity selected
+vector for the fixed full-sum target.  This is a sum-target objective,
+not an arithmetic-mean or covariance-matrix claim. -/
+noncomputable def selectedGradientMSE {B I : Type*} [Fintype B] [Fintype I]
+    (p : PMF B) (g : B → EuclideanSpace ℝ I) : ℝ :=
+  pmfMean p (fun b => ‖(p b).toReal⁻¹ • g b - ∑ a, g a‖ ^ 2)
+
+/-- Coordinate expansion of the selected-vector squared-error trace. -/
+private theorem selectedGradientMSE_trace {B I : Type*}
+    [Fintype B] [Fintype I] (p : PMF B) (m : B → EuclideanSpace ℝ I)
+    (v : EuclideanSpace ℝ I) :
+    pmfMean p (fun b => ‖(p b).toReal⁻¹ • m b - v‖ ^ 2) =
+      ∑ i, pmfMean p (fun b =>
+        ((p b).toReal⁻¹ * m b i - v i) ^ 2) := by
+  unfold pmfMean
+  simp_rw [EuclideanSpace.real_norm_sq_eq]
+  calc
+    (∑ b, (p b).toReal *
+        ∑ i, (((p b).toReal⁻¹ • m b - v) i) ^ 2) =
+        ∑ b, ∑ i, (p b).toReal *
+          ((p b).toReal⁻¹ * m b i - v i) ^ 2 := by
+      apply Finset.sum_congr rfl
+      intro b _
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro i _
+      simp only [WithLp.ofLp_sub, Pi.sub_apply, WithLp.ofLp_smul,
+        Pi.smul_apply, smul_eq_mul]
+    _ = ∑ i, ∑ b, (p b).toReal *
+          ((p b).toReal⁻¹ * m b i - v i) ^ 2 := Finset.sum_comm
+
+/-- Exact selected-gradient MSE under target-wise support.  Zero gradients
+may have zero propensity; without support there is no such closed form. -/
+theorem selectedGradientMSE_eq_sum {B I : Type*} [Fintype B] [Fintype I]
+    (p : PMF B) (g : B → EuclideanSpace ℝ I)
+    (h_support : ∀ b, p b ≠ 0 ∨ g b = 0) :
+    selectedGradientMSE p g =
+      (∑ b, ‖g b‖ ^ 2 / (p b).toReal) - ‖∑ a, g a‖ ^ 2 := by
+  have hmean (i : I) :
+      pmfMean p (fun b => (p b).toReal⁻¹ * g b i) = (∑ a, g a) i := by
+    unfold pmfMean
+    simp only [WithLp.ofLp_sum, Finset.sum_apply]
+    apply Finset.sum_congr rfl
+    intro b _
+    by_cases hb : p b = 0
+    · have hzero : g b = 0 := (h_support b).elim (fun hne => (hne hb).elim) (fun hzero => hzero)
+      simp [hb, hzero]
+    · have hbReal : (p b).toReal ≠ 0 :=
+        ENNReal.toReal_ne_zero.mpr ⟨hb, p.apply_ne_top b⟩
+      field_simp
+  have hmoment (i : I) :
+      pmfMean p (fun b => ((p b).toReal⁻¹ * g b i) ^ 2) =
+        ∑ b, (g b i) ^ 2 / (p b).toReal := by
+    unfold pmfMean
+    apply Finset.sum_congr rfl
+    intro b _
+    by_cases hb : p b = 0
+    · have hzero : g b = 0 := (h_support b).elim (fun hne => (hne hb).elim) (fun hzero => hzero)
+      simp [hb, hzero]
+    · have hbReal : (p b).toReal ≠ 0 :=
+        ENNReal.toReal_ne_zero.mpr ⟨hb, p.apply_ne_top b⟩
+      field_simp
+  have hcomponent (i : I) :
+      pmfMean p (fun b => ((p b).toReal⁻¹ * g b i - (∑ a, g a) i) ^ 2) =
+        (∑ b, (g b i) ^ 2 / (p b).toReal) - ((∑ a, g a) i) ^ 2 := by
+    rw [pmfMean_sq_sub, hmean, hmoment]
+    ring
+  unfold selectedGradientMSE
+  rw [selectedGradientMSE_trace p g (∑ a, g a)]
+  simp_rw [hcomponent]
+  rw [Finset.sum_sub_distrib, Finset.sum_comm]
+  congr 1
+  · calc
+      (∑ b, ∑ i, (g b i) ^ 2 / (p b).toReal) =
+          ∑ b, (∑ i, (g b i) ^ 2) / (p b).toReal := by
+        apply Finset.sum_congr rfl
+        intro b _
+        rw [Finset.sum_div]
+      _ = ∑ b, ‖g b‖ ^ 2 / (p b).toReal := by
+        apply Finset.sum_congr rfl
+        intro b _
+        rw [EuclideanSpace.real_norm_sq_eq]
+  · rw [EuclideanSpace.real_norm_sq_eq]
+
+/-- Exact MSE attained by norm-proportional selected-gradient sampling. -/
+private theorem selectedGradientMSE_optimalPropensity_value {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (hL : 0 < ∑ b, ‖g b‖) :
+    selectedGradientMSE
+        (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL)) g =
+      (∑ b, ‖g b‖) ^ 2 - ‖∑ a, g a‖ ^ 2 := by
+  have h_support : ∀ b,
+      selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL) b ≠ 0 ∨ g b = 0 := by
+    simpa only [abs_norm, norm_eq_zero] using
+      selectedLoss_optimalPropensity_support (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL)
+  rw [selectedGradientMSE_eq_sum _ _ h_support]
+  have hsecond : ∑ b, ‖g b‖ ^ 2 /
+      (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL) b).toReal =
+        ∑ b, ‖g b‖ * ∑ a, ‖g a‖ := by
+    apply Finset.sum_congr rfl
+    intro b _
+    rw [selectedLoss_optimalPropensity_apply]
+    simp only [abs_norm]
+    by_cases hzero : g b = 0
+    · simp [hzero]
+    · field_simp [norm_eq_zero, hL.ne', hzero]
+  rw [hsecond, ← Finset.sum_mul]
+  ring
+
+/-- The norm-proportional proposal minimizes selected-gradient MSE among
+all target-wise supported finite PMFs. -/
+theorem selectedGradientMSE_optimalPropensity_le {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (hL : 0 < ∑ b, ‖g b‖) (q : PMF B)
+    (h_support : ∀ b, q b ≠ 0 ∨ g b = 0) :
+    selectedGradientMSE
+        (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL)) g ≤
+      selectedGradientMSE q g := by
+  have scalar_support : ∀ b, q b ≠ 0 ∨ ‖g b‖ = 0 := by
+    simpa only [norm_eq_zero] using h_support
+  rw [selectedGradientMSE_optimalPropensity_value g hL,
+    selectedGradientMSE_eq_sum q g h_support]
+  have scalar_le := selectedLoss_optimalPropensity_mse_le
+    (fun b => ‖g b‖) (by simpa only [abs_norm] using hL) q scalar_support
+  simp only [selectedLoss_optimalPropensity_mse,
+    selectedLossMSE_eq_sum q (fun b => ‖g b‖) scalar_support,
+    abs_norm] at scalar_le
+  linarith
+
+/-- Norm-proportional selection strictly improves on normalized uniform
+selection exactly when some batch gradients have different Euclidean norms. -/
+theorem selectedGradientMSE_optimalPropensity_lt_uniform_iff {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (hL : 0 < ∑ b, ‖g b‖) (q : PMF B)
+    (h_unit : ∀ b, (q b).toReal = 1 / (Fintype.card B : ℝ)) :
+    selectedGradientMSE
+        (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL)) g <
+      selectedGradientMSE q g ↔ ¬ (∀ i j, ‖g i‖ = ‖g j‖) := by
+  obtain ⟨o, _, ho⟩ := Finset.exists_ne_zero_of_sum_ne_zero
+    (s := Finset.univ) (f := fun b => ‖g b‖) hL.ne'
+  have hcard : (0 : ℝ) < (Fintype.card B : ℝ) :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨o⟩)
+  have support_q : ∀ b, q b ≠ 0 ∨ g b = 0 := by
+    intro b
+    apply Or.inl
+    apply (ENNReal.toReal_ne_zero.mp ?_).1
+    rw [h_unit]
+    exact one_div_ne_zero hcard.ne'
+  have scalar_support : ∀ b, q b ≠ 0 ∨ ‖g b‖ = 0 := by
+    simpa only [norm_eq_zero] using support_q
+  calc
+    selectedGradientMSE
+          (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL)) g <
+        selectedGradientMSE q g ↔
+        selectedLossMSE
+          (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+        (by simpa only [abs_norm] using hL))
+          (fun b => ‖g b‖) < selectedLossMSE q (fun b => ‖g b‖) := by
+      rw [selectedGradientMSE_optimalPropensity_value g hL,
+        selectedGradientMSE_eq_sum q g support_q,
+        selectedLoss_optimalPropensity_mse,
+        selectedLossMSE_eq_sum q (fun b => ‖g b‖) scalar_support]
+      simp only [abs_norm]
+      constructor <;> intro h <;> linarith
+    _ ↔ ¬ (∀ i j, |‖g i‖| = |‖g j‖|) :=
+      selectedLoss_optimalPropensity_mse_lt_uniform_iff
+        (fun b => ‖g b‖) (by simpa only [abs_norm] using hL) q h_unit
+    _ ↔ ¬ (∀ i j, ‖g i‖ = ‖g j‖) := by simp only [abs_norm]
+
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
