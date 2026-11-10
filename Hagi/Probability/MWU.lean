@@ -558,6 +558,78 @@ theorem pmfMean_selectedLoss {V : Type*} [Fintype V]
   exact selectedLoss_sum_real (fun a => (p a).toReal) ℓ b hbReal
 
 
+open scoped Classical in
+/-- If a target loss is zero, its selected inverse-weighted estimator is zero
+even when that target has zero propensity. Otherwise nonzero propensity
+suffices: zero-loss arms need not be observed. -/
+theorem selectedLoss_sum_real_support {V : Type*} [Fintype V]
+    (p ℓ : V → ℝ) (b : V) (hb : p b ≠ 0 ∨ ℓ b = 0) :
+    ∑ a, p a * (if a = b then ℓ a / p a else 0) = ℓ b := by
+  classical
+  rcases hb with hb | hzero
+  · exact selectedLoss_sum_real p ℓ b hb
+  · simp_rw [mul_ite, mul_zero]
+    rw [Fintype.sum_ite_eq' b]
+    simp [hzero]
+
+open scoped Classical in
+/-- Finite-PMF unbiasedness only needs the propensity required to recover
+that fixed target. A zero target can have zero selection probability. -/
+theorem pmfMean_selectedLoss_support {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) (b : V) (hb : p b ≠ 0 ∨ ℓ b = 0) :
+    pmfMean p (fun a => if a = b then ℓ a / (p a).toReal else 0) = ℓ b := by
+  exact selectedLoss_sum_real_support (fun a => (p a).toReal) ℓ b
+    (hb.imp (fun hb => ENNReal.toReal_ne_zero.mpr ⟨hb, p.apply_ne_top b⟩)
+      (fun hzero => hzero))
+
+open scoped Classical in
+/-- Exact finite variance of one selected inverse-propensity observation.
+At zero target loss, both sides are zero even at zero propensity. This is
+not a variance upper bound or a claim of reduced computational cost. -/
+theorem pmfMean_selectedLoss_variance {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) (b : V) (hb : p b ≠ 0 ∨ ℓ b = 0) :
+    pmfMean p (fun a => (if a = b then ℓ a / (p a).toReal else 0) ^ 2)
+      - (pmfMean p (fun a => if a = b then ℓ a / (p a).toReal else 0)) ^ 2
+      = (ℓ b) ^ 2 * (1 / (p b).toReal - 1) := by
+  have hmean :
+      pmfMean p (fun a =>
+        if a = b then ℓ a / (p a).toReal else 0) = ℓ b :=
+    pmfMean_selectedLoss_support p ℓ b hb
+  rw [hmean]
+  by_cases hpb : p b = 0
+  · have hzeroLoss : ℓ b = 0 :=
+      hb.elim (fun hne => (hne hpb).elim) (fun hzero => hzero)
+    have hzero : ∀ a,
+        (if a = b then ℓ a / (p a).toReal else 0) = 0 := by
+      intro a
+      split_ifs with ha
+      · subst a
+        simp [hzeroLoss]
+      · rfl
+    simp [pmfMean, hzero, hzeroLoss]
+  · have hpbReal : (p b).toReal ≠ 0 :=
+      ENNReal.toReal_ne_zero.mpr ⟨hpb, p.apply_ne_top b⟩
+    have hmoment :
+        pmfMean p (fun a =>
+          (if a = b then ℓ a / (p a).toReal else 0) ^ 2)
+          = (ℓ b) ^ 2 / (p b).toReal := by
+      calc
+        pmfMean p (fun a =>
+            (if a = b then ℓ a / (p a).toReal else 0) ^ 2)
+            = ∑ a, if a = b then
+                (p a).toReal * (ℓ a / (p a).toReal) ^ 2 else 0 := by
+          simp only [pmfMean]
+          apply Finset.sum_congr rfl
+          intro a _
+          split_ifs <;> simp [div_pow]
+        _ = (p b).toReal * (ℓ b / (p b).toReal) ^ 2 := by
+          rw [Fintype.sum_ite_eq' b]
+        _ = (ℓ b) ^ 2 / (p b).toReal := by
+          rw [div_pow]
+          field_simp [hpbReal]
+    rw [hmoment]
+    ring
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
