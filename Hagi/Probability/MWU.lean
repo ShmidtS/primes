@@ -758,6 +758,131 @@ theorem selectedLoss_optimalPropensity_mse_le {V : Type*} [Fintype V]
     selectedLossMSE_eq_sum q ℓ h_support]
   linarith
 
+
+open scoped Classical
+
+/-- Selected-coordinate MSE is a sum of expectations of nonnegative
+squared errors, so it is nonnegative for every finite PMF and loss. -/
+theorem selectedLossMSE_nonneg {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) : 0 ≤ selectedLossMSE p ℓ := by
+  unfold selectedLossMSE
+  apply Finset.sum_nonneg
+  intro b _
+  apply pmfMean_nonneg
+  intro a _
+  exact sq_nonneg _
+
+/-- Zero total absolute loss means every fixed loss is zero. There is
+no normalization need and no nonzero selected coordinate can occur. -/
+theorem selectedLossMSE_eq_zero_of_abs_sum_eq_zero {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) (hL : ∑ i, |ℓ i| = 0) :
+    selectedLossMSE p ℓ = 0 := by
+  have hzero (b : V) : ℓ b = 0 := by
+    have habs : |ℓ b| = 0 :=
+      (Finset.sum_eq_zero_iff_of_nonneg
+        (fun i _ => abs_nonneg (ℓ i))).mp hL b (Finset.mem_univ b)
+    exact abs_eq_zero.mp habs
+  simp [selectedLossMSE, hzero]
+
+/-- In the zero-normalizer branch, every supplied PMF has zero MSE and
+is therefore a minimizer. This explicitly avoids a uniqueness claim. -/
+theorem selectedLossMSE_le_of_abs_sum_eq_zero {V : Type*} [Fintype V]
+    (p q : PMF V) (ℓ : V → ℝ)
+    (hL : ∑ i, |ℓ i| = 0) :
+    selectedLossMSE p ℓ ≤ selectedLossMSE q ℓ := by
+  rw [selectedLossMSE_eq_zero_of_abs_sum_eq_zero p ℓ hL]
+  exact selectedLossMSE_nonneg q ℓ
+
+/-- With positive total loss magnitude, the loss-proportional PMF is the
+unique supported least-MSE proposal. The proof recovers the constant
+nonzero-weight ratios using strict Jensen, with zero-weight losses
+handled by the given support rather than an all-positive-assumption. -/
+theorem selectedLoss_optimalPropensity_eq_of_mse_eq {V : Type*} [Fintype V]
+    (ℓ : V → ℝ) (hL : 0 < ∑ i, |ℓ i|)
+    (q : PMF V) (h_support : ∀ b, q b ≠ 0 ∨ ℓ b = 0)
+    (h_mse : selectedLossMSE (selectedLoss_optimalPropensity ℓ hL) ℓ =
+      selectedLossMSE q ℓ) :
+    selectedLoss_optimalPropensity ℓ hL = q := by
+  have hmul (i : V) :
+      (q i).toReal * (|ℓ i| / (q i).toReal) = |ℓ i| := by
+    by_cases hzero : (q i).toReal = 0
+    · have hqi : q i = 0 :=
+        ((ENNReal.toReal_eq_zero_iff (q i)).mp hzero).resolve_right
+          (q.apply_ne_top i)
+      have hloss : ℓ i = 0 := (h_support i).elim
+        (fun hne => (hne hqi).elim) (fun hz => hz)
+      simp [hzero, hloss]
+    · calc
+        (q i).toReal * (|ℓ i| / (q i).toReal) =
+            |ℓ i| / (q i).toReal * (q i).toReal := mul_comm _ _
+        _ = |ℓ i| := div_mul_cancel₀ _ hzero
+  have hsq (i : V) :
+      (q i).toReal * (|ℓ i| / (q i).toReal) ^ 2 =
+        (ℓ i) ^ 2 / (q i).toReal := by
+    by_cases hzero : (q i).toReal = 0
+    · have hqi : q i = 0 :=
+        ((ENNReal.toReal_eq_zero_iff (q i)).mp hzero).resolve_right
+          (q.apply_ne_top i)
+      have hloss : ℓ i = 0 := (h_support i).elim
+        (fun hne => (hne hqi).elim) (fun hz => hz)
+      simp [hzero, hloss]
+    · calc
+        (q i).toReal * (|ℓ i| / (q i).toReal) ^ 2 =
+            ((q i).toReal * (|ℓ i| / (q i).toReal)) *
+              (|ℓ i| / (q i).toReal) := by ring
+        _ = |ℓ i| * (|ℓ i| / (q i).toReal) := by rw [hmul i]
+        _ = |ℓ i| ^ 2 / (q i).toReal := by ring
+        _ = (ℓ i) ^ 2 / (q i).toReal := by rw [sq_abs]
+  have hmean : ∑ i, (q i).toReal * (|ℓ i| / (q i).toReal) =
+      ∑ i, |ℓ i| := by
+    apply Finset.sum_congr rfl
+    intro i _
+    exact hmul i
+  have hsecond : ∑ i, (q i).toReal * (|ℓ i| / (q i).toReal) ^ 2 =
+      ∑ i, (ℓ i) ^ 2 / (q i).toReal := by
+    apply Finset.sum_congr rfl
+    intro i _
+    exact hsq i
+  rw [selectedLoss_optimalPropensity_mse] at h_mse
+  have hobjective := selectedLossMSE_eq_sum q ℓ h_support
+  have hvalue : (∑ i, (ℓ i) ^ 2 / (q i).toReal) =
+      (∑ i, |ℓ i|) ^ 2 := by
+    linarith
+  have hjensen := (strictConvexOn_pow (n := 2) (by norm_num)).map_sum_eq_iff'
+    (t := Finset.univ)
+    (w := fun i => (q i).toReal)
+    (p := fun i => |ℓ i| / (q i).toReal)
+    (fun i _ => ENNReal.toReal_nonneg)
+    (pmf_weight_sum q)
+    (fun i _ => div_nonneg (abs_nonneg (ℓ i)) ENNReal.toReal_nonneg)
+  have hw_eq : ∀ b, (q b).toReal ≠ 0 →
+      |ℓ b| / (q b).toReal = ∑ i, |ℓ i| := by
+    have hsquare : (∑ i, (q i).toReal * (|ℓ i| / (q i).toReal)) ^ 2 =
+        ∑ i, (q i).toReal * (|ℓ i| / (q i).toReal) ^ 2 := by
+      rw [hmean, hsecond, hvalue]
+    have hj := hjensen.mp hsquare
+    intro b hb
+    have hb_eq := hj b (Finset.mem_univ b) hb
+    simpa only [smul_eq_mul, hmean] using hb_eq
+  apply PMF.ext
+  intro b
+  apply (ENNReal.toReal_eq_toReal_iff'
+    ((selectedLoss_optimalPropensity ℓ hL).apply_ne_top b)
+    (q.apply_ne_top b)).mp
+  rw [selectedLoss_optimalPropensity_apply]
+  by_cases hzero : (q b).toReal = 0
+  · have hqi : q b = 0 :=
+      ((ENNReal.toReal_eq_zero_iff (q b)).mp hzero).resolve_right
+        (q.apply_ne_top b)
+    have hloss : ℓ b = 0 := (h_support b).elim
+      (fun hne => (hne hqi).elim) (fun hz => hz)
+    simp [hzero, hloss]
+  · apply (div_eq_iff hL.ne').mpr
+    calc
+      |ℓ b| = (∑ i, |ℓ i|) * (q b).toReal :=
+        (div_eq_iff hzero).mp (hw_eq b hzero)
+      _ = (q b).toReal * ∑ i, |ℓ i| := mul_comm _ _
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
