@@ -1,5 +1,47 @@
 # STATUS — состояние формализации HAGI
 
+## Текущий snapshot: C200
+
+Принятый commit: `5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`.
+Проект: Lean 4.35.0; Mathlib revision
+`56a005855ea17e0b0958f73ec801ae140b0a1679`.
+
+- 494 модуля `Hagi/` (139341 строка); `Hagi.lean` содержит
+  492 прямых import-ов, ещё два модуля достижимы транзитивно.
+  Внутри модулей 622 уникальных внутренних import-ребра.
+- Root inventory: 12076 compiled constants; 9054 записи ALLAXIOMS;
+  Freeze: 6170 declarations; intrinsic declarations: 313.
+  Это разные метрики, включая generated records, а не число
+  вручную названных публичных теорем.
+- Полный CI на C200: PASS, 16 проверок (`scripts/ci.sh`), 221 секунда;
+  log SHA-256
+  `6e5154ad664e21e753a54d4c2770afbdfc130bd84710d08d8c5c77d5aa557b1b`.
+- Все проверенные теоремы допускают только `propext`,
+  `Classical.choice`, `Quot.sound`; 0 sorry и 0 кастомных аксиом.
+  Отсутствие `sorry` не означает отсутствие модельных предпосылок.
+- LayerLint: PASS с одной явной baseline-записью
+  `External/MemT/GDN2 -> Optimization/InexactContraction`.
+- AssumptionScan: 36 файлов, 116 lexical labels
+  (5 доказанных declarations с тем же prefix + 111 premise labels),
+  10 primitive defs, 7 operational names. Это инвентарь идентификаторов,
+  а не 111 доказанно неиспользуемых предпосылок.
+- Старый `declarations.lock`: 4354 baseline-записи против 6170 текущих;
+  1816 additions требуют отдельной управляемой регенерации Freeze.
+  Generated `scripts/namepool.txt` и `declarations.lock` игнорируются Git;
+  tracked генератор — `scripts/NamePool.lean`, а реестр посылок —
+  `scripts/assumptions.lock`.
+- `spec_manifest.toml` — исторический R237 snapshot, не текущий SSOT.
+
+C199/C200 связывают поддерживаемую importance-sampling оценку с
+настоящим `BatchCEDescent.batchResidualGradient` и выводят MSE-доступные
+norm-proportional и upper-envelope propensity-правила. Это теоремы о
+конечной supported модели, а не доказательство generalization, regret,
+held-out convergence, физической экономии FLOPs или универсально
+оптимальной архитектуры/обучения.
+
+Записи ниже — история соответствующих циклов. Старые counts и paths
+сохранены как исторические данные, а не как текущий snapshot.
+
 ## Корпус
 
 - 431 Lean-модулей в `Hagi/`; 4357 declarations (Freeze);
@@ -462,7 +504,7 @@
   аналитический потолок η (`safeqpEtaMax`).
 - **Трёхвалютная MDL-цель**, variance gate (R²/8
   контрактируется квадратично), проекция на trust region.
-- **Мост h_emp-троицы** (полностью выведена):
+- **Мост h_emp-троицы на специализированных моделях**:
   h_emp_lip: |E(w)−E(q)| ≤ κ‖w−q‖ (MVT, κ = sup‖∇E‖);
   h_emp_smooth: E(q+dir) ≤ E(q) + ⟨∇E,dir⟩ + L‖dir‖²/2
   (Newton–Leibniz + Коши–Шварц);

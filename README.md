@@ -1,8 +1,8 @@
 # HAGI_v2 formalization (`Hagi/`)
 
-Lean 4 / Mathlib (v4.34.1) formalization of the mathematical
-core of the HAGI_v2 project — the ternary RD-channel causal
-language model grown from small domain experts. Empirical
+Lean 4.35.0 / Mathlib formalization of the mathematical
+core of the HAGI_v2 project — the intended ternary RD-channel
+causal language model grown from small domain experts. Empirical
 measurements (benchmarks, RMS errors, saturation curves) are
 not mathematical statements and are out of scope.
 
@@ -16,34 +16,24 @@ Detailed per-round history: `STATUS.md`.
 | Core, Architecture, Spectral, Depth | Linear algebra of the merge: Sylvester–Hadamard orthonormality, Kronecker products, DFT-3/F₃ unitarity, real 6×6 lift, block-diagonal step-0 equivalence, parent-preserving lift, leaf selection theory, factorized merge, cortex/fiber geometry. |
 | Energy | Ternary quantization (trits, nearest-grid rounding, error ≤ half-step), free-energy identities (KL descent, geometric pool), variance recursion, normalization seam. |
 | Data, Information | Distillation identities (CE/KL), entropy preservation under recursion, mixture KKT, Fannes/Pinsker conditional forms, memory-capacity floors. |
-| Probability | Finite concentration: Hoeffding, Azuma, batch variance = Var/B, success concentration → exponential takeoff, KLS/Poincaré interface (conditional), Friedman-type bound on finite histories (original). Gibbs concentration vertical: entropy bounds (second law S ≥ 0, Nernst along the thermostat), energy sandwich E* ≤ ⟨E⟩ ≤ E*+Δ(n−1)e^{−δ/T}, free-energy F ≤ E*, cross-entropy/KL identities; MWU/hedge vertical: potential squeeze ηℓ_min ≤ −ln Z′ ≤ 2η⟨ℓ⟩, telescoping, √-balanced regret −ln W ≤ 2√(ηL̄·ln n), Gibbs = hedge at η = 1/T; PAC-Bayes/Catoni bridge: log-decomposition of the Gibbs weight and the KL identity KL(ρ‖unif) = −ln Z − ⟨E⟩/T + ln n (thermodynamics ↔ PAC-Bayes formally closed). Information-theory core: general second law KL(ρ‖γ) ≥ 0 for arbitrary pairs, log-sum inequality (full and on subsets), KL data-processing inequality, two-point log concavity (weighted AM-GM) and the convexity arc x·ln x → x·ln(x/y) → KL-in-first-argument, KL additivity on products (chain rule for independents), entropy subadditivity, Shannon chain rule S(V,W) = S(V) + Σμ·S(cond), nonnegative conditional entropy, mutual information ≥ 0, F-identity −T·ln Z = ⟨E⟩ + T·Σγ·lnγ at equilibrium; AIF/active-inference vertical (arXiv 2607.13612): entropy-proxy safety dichotomy (lower proxies preserve the surprise certificate, upper strictly lose it), three-source gap decomposition with graceful degradation, geometric Lipschitz error compounding (L^H, L^(2H)), EFE ceiling G = P − I ≤ P with the state-epistemic gap = mutual information, amortised-policy 2c-guarantee for surrogate argmin.. MWU capstone: two-regime bound -ln((1/n)Σe^{-ηℓ}) ≤ max(2√(η⟨ℓ⟩·ln n), 2η⟨ℓ⟩) closing the classical η-substitution route. Pinsker family: TV ≤ positive part of KL on the excess set, Bhattacharyya coefficient BC ≤ 1 (Finset Cauchy), 1−BC ≤ KL/2, full TV ≤ √(KL) and Bretagnolle–Huber TV ≤ √(1−e^{−KL}) via −ln BC ≤ KL/2 (BC ≥ e^{−KL/2}), dual characterization |E_p f − E_q f| ≤ TV for all 0 ≤ f ≤ 1, and joint convexity KL(c·p₁+(1−c)·p₂ ‖ c·q₁+(1−c)·q₂) ≤ c·KL₁ + (1−c)·KL₂ — the classical information-theory core is complete.. Donsker-Varadhan variational form (lower bound via softmax tilt and sup attained at f = ln(p/q); exact characterization KL = sup_f (E_p f − ln E_q e^f)), Cramér-Chernoff vertical (tilt/sup/CGF forms and sub-Gaussian deviation (E_p g − μ)²/(2σ²) ≤ KL), Chernoff event bound and finite Markov inequality, exponential interpolation (Hoeffding brick via two-point AM-GM), mean-shift bound |E_p g − E_q g| ≤ (b−a)·TV, and Hellinger bricks (H² = 1−BC, H² ≤ KL/2). Moment vertical (R492–497): Popoviciu Var ≤ (b−a)²/4, Chebyshev and Cantelli one-sided tails, E|g−μ| ≤ (b−a)/2, Bhatia–Davis Var ≤ (b−μ)(μ−a) with the AM-GM bridge. Lp vertical (R498–508, ExpChord): exp/log chord bricks via ConvexOn, weighted AM-GM → Young → Hölder → Minkowski (both plain and weighted, absorption w = w^{1/p}w^{1/q}), L1 ≤ Lp·n^{1/q}, E|g| ≤ (E|g|^p)^{1/p}; Gibbs energy fluctuations Var ≤ Δ²(n−1)e^{−δ/T} as a thermostat stop-gate candidate. |
+| Probability | Finite-sample probability and selected-batch inference: Hoeffding, Azuma and Freedman-type bounds; supported importance-weighted loss and Euclidean-gradient MSE, exact propensity optima and upper-envelope guarantees; MWU/hedge, Gibbs/PAC-Bayes and information-theory identities. These are statements about the declared finite models, not sampling-runtime or generalization guarantees. |
 | Ensemble | Jensen-gap law (twoGap: exact cosh form, CE identity, quadratic bound), Hoeffding kernel, recursive distillation (telescoping, compound gain, harvest budget, greedy horizon-optimality), merge scaling. |
 | Step, Pretraining | SafeQP controller (existence/uniqueness, stochastic and adaptive variants with explicit constants), joint-step regression laws, domination, STE step model; zeroth-order (Dust) estimator laws: exact unbiasedness, 1/K variance, alignment; RCDL mode-A: exact descent-history ⟷ rank-1 LiveDelta bridge, additive Frobenius consolidation budget, three-currency MDL objective with double-counting detector and no-compression-below-entropy bridge. |
 | Budget | Bit allocation (marginal exchange, factor-2 balance, termination), water-filling, KV allocation, compute budget laws. |
 | Growth | Cone/takeoff family: frontier-scaling invariant (sustained takeoff from production dynamics), gain renewal, disagreement chains, gain-operator chain, cone unification. Thermostat vertical: T_t = T₀α^t annealing, monotone cooling, concentration gates, certified-state capstones (stop ∧ gate ∧ concentration ∧ ε-representative point) and the four purities along the anneal (TV → 0, ⟨E⟩ → E*, F → E*, S → 0, excess ⟨E⟩−F → 0), calorimetric excess bound, admission-margin soundness of the memory controller; full six-pair bridge graph (Gibbs ↔ thermostat ↔ Hoeffding ↔ MWU). |
 | Dynamics, External, Deployment, Discovery, Autonomy, Omni, Pretraining | Contraction/endpoint budgets; imported laws (μP, vocab critical point, phase metric); proxy-shift budget; PPT discovery (MH kernels, truncation bias); exponential-weights routing, supervisor viability (halving), insight channel; omni (cross-modal gap = mutual information, capability gates, Φ-monotonicity). |
 | System, Unified | The state-and-cycle layer: `GrowthState` (core state + `StageEffects` measured ledger + `Certificate`/`Metrics`/`Candidate`), `StageCertificate` with the per-generation soundness and the multi-generation telescope (`stage_certificate_telescope`), the conditional capstones (`MasterHAGI*`, `GrandSynthesis`, `ArchitectureTheorem` with `HAGICert` on `Fin I` domain families), `CertifiedHAGIInvariant`/`CoupledHAGIInvariant` with numeric nonvacuity witnesses, the assumptions record (`Assumptions.Trunc` + idle witness), the merge bridge, the state-level takeoff, the end-to-end live-weights cycle; the memory-management cycle: admission controller (novelty ∧ certified gain), consolidation quality bound, quantized safe-update window. |
-| Model, Generalization, Runtime | Gap-law model; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. |
+| Model, Generalization, Runtime | Finite CE/batch-gradient models and bridges to selected-gradient MSE; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. None of these is by itself a held-out guarantee or an optimal architecture theorem. |
 
-## Consolidated thematic modules (repository cleanup)
+## Module organization
 
-Одна тема — один файл (namespace-блоки и имена деклараций
-сохранены; список слияний см. в истории `refactor(...)`):
-
-- Unified: `RateTheory` (PL-скорости), `EFTheory` (теория
-  error feedback), `SignComp` (знаковый компрессор),
-  `QuadMachine` + `MachineProto` (эталонная машина и её
-  протоколы), `NCStepCert` (нейрокомпьютер);
-- Model: `Attention`, `RL`, `Adaptive`, `Losses`,
-  `Generative`, `Memory`, `SpecDecoding`, `NormAct`,
-  `RVCore` — каталог техник из 76 мини-файлов стал
-  46 тематическими;
-- Step: `Muon`, `LazyAdam`, `VariantSafeQP`;
-- Probability: `GibbsCore` (канон + мосты);
-- `Information/Capacity`, `Omni/OmniState`,
-  `Growth/{Takeoff,Ceilings}`, `Dynamics/Laws`,
-  `Architecture/Configuration`, `Energy/Quantizer`,
-  `Audit/Audit`.
+Modules follow declaration carriers, proof dependencies and consumers,
+not merely topic names or directory size. Existing cohesive
+consolidations are retained; further joins require a bounded reviewed
+packet with declaration/type/body retention and consumer checks.
+`Hagi.lean` is the import root. The non-root `Hagi/` tree currently has
+494 modules; two are reached transitively rather than directly.
+A consolidation is not evidence of reduced training cost or FLOPs.
 
 ## The three layers (honest status)
 
@@ -65,13 +55,23 @@ Detailed per-round history: `STATUS.md`.
      mean CE − Jensen gap, gap ≥ 0);
    - `Assumptions.Trunc`: the capstone premise set as one
      named record.
-   Deriving the remaining `h_emp_*` premises (h_emp_grow,
-   h_emp_smooth, h_emp_lip) from the Core layer is open.
+   Deriving an arbitrary stage model's `h_emp_grow`,
+   `h_emp_smooth` or `h_emp_lip` from Core alone is not
+   established. Selected premises are derived only for their
+   specialized carriers; that does not discharge the same-named
+   premises of every other model.
 
-Current corpus: 429 modules, 3718 frozen declarations, 2909
-theorem/lemma, 0 sorry, 0 LayerLint exceptions. Per-module
-state with the derived formulas: `STATUS.md`; the algorithms
-implied by the proven theorems: `ALGORITHMS.md`.
+**C200 snapshot** (`5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`):
+494 modules, 12,076 Root constants, 9,054 ALLAXIOMS records,
+6,170 Freeze declarations and 313 intrinsic declarations; 0 sorry.
+LayerLint passes with one explicit retained cross-layer exception.
+Per-cycle history: `STATUS.md`; algorithms and latest supported
+sampling results: `ALGORITHMS.md`.
+
+The current Freeze lock has 4,354 baseline entries; its controlled
+regeneration is tracked separately from the theorem result. AssumptionScan
+reports 36 files/116 lexical labels (5 proved declarations plus 111
+premise labels), not 111 unused or automatically removable assumptions.
 
 ## The canonical capstone (Gen-3)
 
@@ -98,14 +98,12 @@ was removed as a verbatim wrapper).
 
 ## Repo layout
 
-- `Hagi/` — the HAGI_v2 formalization (399 modules; see `STATUS.md`,
-  `ALGORITHMS.md`, `PREMISES.md`);
-- `Primes/` — an independent lean library kept in this repo (2,2k lines:
-  additive-combinatorics bricks for Erdos-problem attempts — wheel sieve,
-  singular series, von Mangoldt chains, unitary divisors, covers #708).
-  It has no Hagi imports and builds via `lake build Primes`;
+- `Hagi/` — 494 modules of the HAGI_v2 formalization, imported by
+  `Hagi.lean`; see `STATUS.md` and `ALGORITHMS.md`;
 - `scripts/` — the CI lint battery and audit tooling (`ci.sh` is the
-  single entry point).
+  single entry point); lexical assumption data: `assumptions.lock`.
+  The older `spec_manifest.toml` is a historical R237 snapshot, not
+  the current corpus manifest.
 
 ## Build and checks
 
@@ -115,13 +113,15 @@ bash scripts/ci.sh              # build + lint battery
 ```
 
 Checks: TrivialLint (no sorry, no custom axioms, no
-trivialities), Freeze.py (declaration statements locked in
+trivialities), Freeze.py (declaration statements checked against
 `declarations.lock`), DocLint (docstring names/numbers
 match code), StatusLint, LayerLint (folder-layer import
 order, shrinking whitelist), DupLint/NsLint, CHALLENGE
 (Gen-3 comparator capstone), STMDUP, MACHINEDIFF
 (differential machine tests), ALLAXIOMS (axiom purity of
-every theorem). 16 gates total, all PASS.
+every theorem). All 16 gates passed at C200; see `STATUS.md`
+for the exact snapshot. Passing CI is not a proof of physical
+runtime fidelity or optimal model quality.
 
 ## Conventions
 
@@ -130,4 +130,5 @@ every theorem). 16 gates total, all PASS.
 - Empirical/derived claims that are NOT theorems are marked
   in the module docstrings.
 - Namespace `Hagi.*`; canonical definitions live in
-  `Prelude.Info`, `Foundations.*` (dedup via delegation).
+  `Prelude.Info`, `Foundations.*` (deduplicate by proved delegation
+  only when carrier and assumptions agree).

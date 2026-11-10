@@ -1,10 +1,90 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4 / Mathlib (Hagi/, 4357 declarations, 0 sorry,
-аксиомы только propext/Classical.choice/Quot.sound).
+формализации Lean 4.35.0 / Mathlib (Hagi/, snapshot C200:
+6170 Freeze declarations, 0 sorry; аксиомы только
+propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
+Ниже нового блока сохранены исторические записи циклов;
+их локальные счётчики не заменяют текущий snapshot из STATUS.md.
+
+## Supported importance selection: C191–C200
+
+### Observable error and allocation
+
+Для конечного batch и supported PMF p обозначим estimator математически
+(без введения нового Lean-имени): `Z_b(a) = if a = b then ℓ a / (p a).toReal else 0`.
+Здесь и ниже support означает `p b ≠ 0 ∨ target b = 0`;
+zero mass допустим только при zero target.
+
+- `pmfMean_selectedLoss` и `pmfMean_selectedLoss_support` доказывают
+  finite first-order unbiasedness на этом carrier. Для скалярного loss
+  `pmfMean_selectedLoss_variance` даёт Var(Z_b) = ℓ_b²(1/p_b − 1).
+  Это variance явного estimator, а не generalization error.
+- При L = Σ|ℓ| > 0 используется `selectedLoss_optimalPropensity`:
+  q_b = |ℓ_b|/L. Теорема
+  `selectedLoss_optimalPropensity_mse_le` — supported optimum;
+  `selectedLoss_optimalPropensity_eq_of_mse_eq` — единственность
+  supported minimizer при L > 0. Случай L = 0 не объявляется unique.
+- `selectedLoss_optimalPropensity_mse_eq_zero_iff_single_nonzero`
+  характеризует zero MSE одной активной loss-координатой.
+  `selectedLoss_optimalPropensity_mse_lt_uniform_iff` характеризует
+  строгое улучшение против uniform неодинаковостью модулей потерь.
+  Разложение/оценка требуют support включая предлагаемую q.
+
+### Vector gradients and arithmetic means
+
+Для Euclidean gradients g_b пусть G = Σg_b и L = Σ‖g_b‖.
+C197 для supported p доказывает
+
+```text
+selectedGradientMSE p g = Σ_b ‖g_b‖²/(p b).toReal − ‖G‖².
+```
+
+При L > 0 norm-proportional q_b = ‖g_b‖/L даёт L² − ‖G‖²
+(`selectedGradientMSE_optimalPropensity_le`). Строгое сравнение
+с uniform дано `selectedGradientMSE_optimalPropensity_lt_uniform_iff`.
+Единый полный gradient target — заранее выбранный G, а не произвольный
+runtime center и не обучаемый оптимизатор.
+
+C198 переносит это на arithmetic mean: estimator
+`(card B * p_b)⁻¹ • g_b`; положительная cardinality и support заданы
+явно, MSE масштабируется как `(card B)⁻²`.
+См. `selectedMeanGradientMSE_optimalPropensity_le` и
+`selectedMeanGradientMSE_optimalPropensity_lt_uniform_iff`.
+
+Если фактические norm неизвестны, но известны ‖g_b‖ ≤ a_b и
+Σ|a_b| > 0, C200 даёт upper-envelope allocation с гарантией
+MSE ≤ (Σ|a|)² − ‖G‖² и точным mean scaling. Это
+`selectedGradientMSE_upperBoundPropensity_le` и
+`selectedMeanGradientMSE_upperBoundPropensity_le`.
+Surrogate upper bound не выдаётся за фактический optimal gradient norm.
+
+### Bridge to actual batch CE
+
+C199 (`Model/BatchCEDescent.lean`) связывает эти формулы с настоящим
+`BatchCEDescent.batchResidualGradient`, а не с energy surrogate:
+
+- `mean_batchResidualGradient` — raw mean identity;
+- `selectedMeanGradientMSE_batchResidual_eq_pmfMean` — точная
+  MSE representation для CE residual gradients при
+  `0 < Fintype.card (Fin B)`; support для этой identity не требуется;
+- `pmfMean_selectedMean_batchResidualGradient` — coordinatewise
+  first-order unbiasedness при одновременных positive cardinality и
+  raw-gradient support.
+
+Пустой batch totalization не называется PMF или unbiased estimator.
+Численный witness C199: два класса, один feature, θ = 0, labels 0/1;
+raw gradients [−1/2], [1], mean 1/4, optimal mean MSE 1/2 против
+uniform 9/16. C200 Euclidean witness даёт raw 5/2 ≤ 7 и
+mean 5/8 ≤ 7/4. Это математические finite-model примеры, не benchmark.
+
+Не выведено этим семейством: sampling-history/runtime adapter,
+held-out CE/generalization, convergence/regret оптимального обучения,
+минимум памяти/FLOPs или универсальная архитектура. Feature-only
+`.tmp/C201SupportProbe.lean` остаётся исследовательским probe и не
+входит в Root public API.
 
 ## Analytic finite-carrier closures (цикл 78)
 
@@ -1033,9 +1113,12 @@ Probability/GibbsConcentration)
 
 ## Честные границы (что НЕ выведено)
 
-- `h_emp_grow`, `h_emp_smooth`, `h_emp_lip` — измеряемые
-  посылки stage-теорем; их вывод из Core-слоя открыт
-  (merge и compress закрыты мостами).
+- Специализированные carriers имеют выводы для отдельных
+  `h_emp_grow`, `h_emp_smooth`, `h_emp_lip`; произвольные
+  stage-теоремы остаются условными. Их merge/compress-предпосылки
+  также зависят от конкретного носителя и модели.
+- Из списка AssumptionScan нельзя автоматически удалять premise:
+  нужен derivation оставшегося binders и анализ всех callers.
 - γ-дефицит mixer.gain→0 — не закрыт (контрпримерная зона).
 - Плоские капстоуны (`MasterHAGI*`, `grand_synthesis`)
   депрекнуты и НЕ заменены выводом — их содержание

@@ -1,9 +1,12 @@
-# HAGI_v2 spec manifest — SSOT bindings (plan §1.2, R225-docs)
-# Linked authorities:
+# HAGI_v2 spec manifest — historical R237 snapshot (not current SSOT)
+# Current facts come from root-imported Lean code and scripts/ci.sh.
+# Linked authorities at the time of the R237 snapshot:
 # - inventory probe: scripts/inventory.lean (count authority)
 # - CI: bash scripts/ci.sh (exit 0 = PASS)
 # - layers: python scripts/LayerLint.py
 # - baseline: inventory_baseline.txt (regenerated per commit)
+# The inventory values below belong to as_of_commit; rounds.open is a
+# historical planning queue, not a current list of unproved declarations.
 
 [inventory]
 constant_count = 1639
