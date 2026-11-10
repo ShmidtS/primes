@@ -9,6 +9,31 @@ propext/Classical.choice/Quot.sound).
 Ниже нового блока сохранены исторические записи циклов;
 их локальные счётчики не заменяют текущий snapshot из STATUS.md.
 
+## Physical join: spectral projector → SafeQP
+
+Это consolidation carrier/consumer, а не новый алгоритм обучения:
+
+- Orthogonal projector, exact residual/tail energy и rank+quantization
+  triangle теперь находятся в `Hagi/Step/SafeQP.lean`, рядом со своим
+  consumer `spectral_safeQP_target`. Их FQNs в `Hagi.Spectral`,
+  statements, proof bodies и FiniteDimensional premises не изменены.
+- Старый StepCore module import path удалён, а не замаскирован forwarding
+  модулем: внешний потребитель использует SafeQP или root `Hagi`.
+  Все 12 существующих `Hagi` reexports проверены компилятором после join.
+- Полный Root census сохранил 17+14 OWNER identities (включая
+  structure/generated records), 1213 IR records и 38 CONSUMER rows.
+  Для всех 31 declarations совпадают baseline type/body hashes; для 22
+  теорем получены только стандартные три аксиомы. Четыре auxiliary
+  записи без доступного kernel ConstantInfo сохранены с явным
+  unavailable metadata, без выдумывания их тел.
+- Имеется ровно 10 фактических owner-qualified range transitions;
+  private rename map пуст. Итоговые counters не изменились:
+  12074 Root constants, 9052 ALLAXIOMS, 6168 Freeze и 313 intrinsic.
+- Физический corpus: 493 non-root modules, 139319 строк и 621 internal
+  non-root edge. Уменьшение числа source модулей не означает меньшую
+  сеть, меньше параметров или вычислений; новых гарантий оптимального
+  обучения, runtime, FLOPs или model quality этот join не даёт.
+
 ## R1/P1-D: consolidation без нового обучающего правила
 
 Этот пакет убирает повторные доказательства, не меняя математические

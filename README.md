@@ -32,7 +32,7 @@ not merely topic names or directory size. Existing cohesive
 consolidations are retained; further joins require a bounded reviewed
 packet with declaration/type/body retention and consumer checks.
 `Hagi.lean` is the import root. The non-root `Hagi/` tree currently has
-494 modules; two are reached transitively rather than directly.
+493 modules; one is reached transitively rather than directly.
 A consolidation is not evidence of reduced training cost or FLOPs.
 
 ## The three layers (honest status)
@@ -84,6 +84,26 @@ Post-packet facts: 12,074 Root constants = 8,014 public + 513 private +
 change. `scripts/StatementDupCheck.py` has zero groups. These are formal consolidation counters,
 not evidence of improved training, lower model size, runtime or FLOPs.
 
+The **StepCore → SafeQP physical join** then retains the spectral
+projector and its consumer on one carrier. The provider file is gone;
+its original declarations remain in the original `Hagi.Spectral`
+namespace inside `Hagi/Step/SafeQP.lean`, alongside the existing
+`Hagi.Step` declarations and all twelve explicit public reexports.
+The old StepCore module import path is not retained as a forwarding
+module: direct external imports must migrate to SafeQP or root `Hagi`.
+
+The real Root census retains all 17+14 packet OWNER identities, including
+structures and generated records, and all four explicitly unavailable
+child auxiliary records; 22 retained theorems use only the established
+standard axioms. There is no private renaming or ordinary/generated
+body waiver. Ten actual range changes are permitted individually by
+owner-qualified old/new records. Root totals remain 12,074 constants,
+9,052 ALLAXIOMS, 6,168 Freeze declarations, 313 intrinsic declarations
+and 38 tracked consumers. Physical source counts are 493 non-root
+modules, 139,319 lines, 492 root imports and 621 internal non-root
+edges. This is proof-source consolidation, not a model-size, runtime,
+FLOP, training-quality or architecture-optimality theorem.
+
 The former 4,354-row legacy Freeze lock was first reconciled to the
 6,170 declarations of the C200 source snapshot, then received the reviewed
 R1/P1-D update to 6,168. Generated `declarations.lock` and
@@ -116,7 +136,7 @@ was removed as a verbatim wrapper).
 
 ## Repo layout
 
-- `Hagi/` — 494 modules of the HAGI_v2 formalization, imported by
+- `Hagi/` — 493 modules of the HAGI_v2 formalization, imported by
   `Hagi.lean`; see `STATUS.md` and `ALGORITHMS.md`;
 - `scripts/` — the CI lint battery and audit tooling (`ci.sh` is the
   single entry point); lexical assumption data: `assumptions.lock`.

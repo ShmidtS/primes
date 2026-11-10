@@ -1,5 +1,46 @@
 # STATUS — состояние формализации HAGI
 
+## StepCore → SafeQP: physical carrier/consumer join
+
+База этого пакета — последний R1/P1-D commit
+`2acb3be30fcb7ee1cdd04fb802cfdf3d3d402f39`.
+Итоговый Git identity фиксируется только фактическим commit и ledger,
+не прогнозируется как доказательство здесь.
+
+- Провайдер `Hagi/Spectral/StepCore.lean` внесён в его единственного
+  consumer `Hagi/Step/SafeQP.lean` существующим provider-before-consumer
+  helper-ом. Diff: receiver +175/−1, удалённый provider −178; других
+  изменений Lean-кода нет. `Hagi.lean` byte-identical: прямые imports
+  остаются 492.
+- Это удаление сохраняет declarations, но не старый module import path.
+  Внешние импорты StepCore должны перейти на SafeQP или root `Hagi`;
+  пустой forwarding-модуль не создаётся. FQNs в пространствах
+  `Hagi.Spectral` и `Hagi.Step`, а также двенадцать явных `Hagi` reexports
+  сохраняются. Успех старого cached import не используется как доказательство.
+- Actual Root environment: 494 модуля включая root, то есть 493
+  non-root, вместо 495 включая root. Все 17+14 OWNER identities,
+  в том числе structure/generated records, сохранены с прежними
+  type/body hashes под новым owner SafeQP. Проверены 22 теоремы:
+  только `propext`, `Classical.choice`, `Quot.sound`.
+- Все 1213 IR-записей сохранены; четыре auxiliary имени провайдера
+  остаются явно unavailable kernel ConstantInfo, а не выдуманными
+  телами. Все 38 CONSUMER records и 313 intrinsic nodes сохранены;
+  private rename map пуст.
+- Comparator разрешает ровно десять фактических range transitions с
+  sourceModule, name и old/new range. Остальные ranges и поля строгие;
+  нет blanket private/generated/proof-irrelevance waiver.
+- Фактический corpus: 493 non-root модуля, 139319 строк, 621 unique
+  internal non-root edge, 1113 edges вместе с root. Root counters не
+  изменились: 12074 constants, 9052 ALLAXIOMS, 6168 Freeze. NamePool
+  остаётся 829219 имен. AssumptionScan и его lock не изменились.
+- Ни один h_emp binder в этом пакете не удалён. Сами statements,
+  carriers и FiniteDimensional premises не изменены. Это физическая
+  агрегация зависимых proof модулей, а не новое обучающее правило,
+  сжатие весов, FLOP/runtime gain или оптимальная архитектура.
+
+Полный CI и отдельные semantic/scope reviews остаются проверками promotion,
+а не заменяют вышеприведённый compiled census и API witness.
+
 ## R1/P1-D: semantic proof consolidation
 
 База последнего production/document reconciliation:
