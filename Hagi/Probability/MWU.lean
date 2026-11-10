@@ -883,6 +883,121 @@ theorem selectedLoss_optimalPropensity_eq_of_mse_eq {V : Type*} [Fintype V]
         (div_eq_iff hzero).mp (hw_eq b hzero)
       _ = (q b).toReal * ∑ i, |ℓ i| := mul_comm _ _
 
+/-- Positive-normalizer optimal propensity supports every nonzero target
+coordinate. Zero propensity forces that coordinate's target loss to vanish. -/
+theorem selectedLoss_optimalPropensity_support {V : Type*} [Fintype V]
+    (ell : V → ℝ) (hL : 0 < ∑ i, |ell i|) :
+    ∀ b, selectedLoss_optimalPropensity ell hL b ≠ 0 ∨ ell b = 0 := by
+  intro b
+  by_cases hzero : ell b = 0
+  · exact Or.inr hzero
+  · apply Or.inl
+    have hne : (selectedLoss_optimalPropensity ell hL b).toReal ≠ 0 := by
+      rw [selectedLoss_optimalPropensity_apply]
+      exact div_ne_zero (abs_ne_zero.mpr hzero) hL.ne'
+    exact (ENNReal.toReal_ne_zero.mp hne).1
+
+/-- For positive total absolute loss, the optimal supported estimator has
+zero MSE exactly when its propensity is a singleton mass. This finite trace
+criterion does not assert determinism of real-valued losses generally, nor
+that the losses used to construct the normalized distribution are cheap. -/
+theorem selectedLoss_optimalPropensity_mse_eq_zero_iff_apply_eq_one
+    {V : Type*} [Fintype V] (ell : V → ℝ) (hL : 0 < ∑ i, |ell i|) :
+    selectedLossMSE (selectedLoss_optimalPropensity ell hL) ell = 0 ↔
+      ∃ b, selectedLoss_optimalPropensity ell hL b = 1 := by
+  classical
+  let q : V → ℝ := fun b =>
+    (selectedLoss_optimalPropensity ell hL b).toReal
+  have hq_apply (b : V) : q b = |ell b| / ∑ i, |ell i| := by
+    dsimp [q]
+    rw [selectedLoss_optimalPropensity_apply]
+  have hq_nonneg (b : V) : 0 ≤ q b := ENNReal.toReal_nonneg
+  have hq_sum : ∑ b, q b = 1 := by
+    simpa only [q] using pmf_weight_sum (selectedLoss_optimalPropensity ell hL)
+  have hq_le_one (b : V) : q b ≤ 1 := by
+    calc
+      q b ≤ ∑ a, q a := Finset.single_le_sum
+        (fun a _ => hq_nonneg a) (Finset.mem_univ b)
+      _ = 1 := hq_sum
+  have hmul (b : V) : q b * (∑ i, |ell i|) = |ell b| := by
+    rw [hq_apply]
+    exact div_mul_cancel₀ _ hL.ne'
+  have hsq (b : V) :
+      (ell b) ^ 2 = (∑ i, |ell i|) ^ 2 * (q b) ^ 2 := by
+    calc
+      (ell b) ^ 2 = |ell b| ^ 2 := (sq_abs _).symm
+      _ = (q b * (∑ i, |ell i|)) ^ 2 :=
+        congrArg (fun x : ℝ => x ^ 2) (hmul b).symm
+      _ = (∑ i, |ell i|) ^ 2 * (q b) ^ 2 := by ring
+  have hsquares : ∑ b, (ell b) ^ 2 =
+      ∑ b, (∑ i, |ell i|) ^ 2 * (q b) ^ 2 := by
+    exact Finset.sum_congr rfl (fun b _ => hsq b)
+  have hmse : selectedLossMSE (selectedLoss_optimalPropensity ell hL) ell =
+      (∑ i, |ell i|) ^ 2 * ∑ b, q b * (1 - q b) := by
+    rw [selectedLoss_optimalPropensity_mse]
+    calc
+      (∑ i, |ell i|) ^ 2 - ∑ b, (ell b) ^ 2 =
+          (∑ i, |ell i|) ^ 2 * (∑ b, q b) -
+            ∑ b, (∑ i, |ell i|) ^ 2 * (q b) ^ 2 := by
+        rw [hq_sum, mul_one, hsquares]
+      _ = (∑ b, (∑ i, |ell i|) ^ 2 * q b) -
+            ∑ b, (∑ i, |ell i|) ^ 2 * (q b) ^ 2 := by
+        rw [Finset.mul_sum]
+      _ = ∑ b, ((∑ i, |ell i|) ^ 2 * q b -
+            (∑ i, |ell i|) ^ 2 * (q b) ^ 2) :=
+        (Finset.sum_sub_distrib _ _).symm
+      _ = ∑ b, (∑ i, |ell i|) ^ 2 * (q b * (1 - q b)) := by
+        apply Finset.sum_congr rfl
+        intro b _
+        ring
+      _ = (∑ i, |ell i|) ^ 2 * ∑ b, q b * (1 - q b) :=
+        (Finset.mul_sum _ _ _).symm
+  constructor
+  · intro hmse_zero
+    have hsum_zero : ∑ b, q b * (1 - q b) = 0 := by
+      apply (mul_eq_zero.mp ?_).resolve_left (pow_ne_zero 2 hL.ne')
+      rwa [← hmse]
+    have hterm_zero (b : V) : q b * (1 - q b) = 0 :=
+      (Finset.sum_eq_zero_iff_of_nonneg (fun a _ =>
+        mul_nonneg (hq_nonneg a) (sub_nonneg.mpr (hq_le_one a)))).mp
+          hsum_zero b (Finset.mem_univ b)
+    have hq_zero_or_one (b : V) : q b = 0 ∨ q b = 1 := by
+      rcases mul_eq_zero.mp (hterm_zero b) with hb | hb
+      · exact Or.inl hb
+      · exact Or.inr (sub_eq_zero.mp hb).symm
+    obtain ⟨b, _, hb⟩ := Finset.exists_ne_zero_of_sum_ne_zero
+      (s := Finset.univ) (f := q) (by rw [hq_sum]; exact one_ne_zero)
+    have hbq : q b = 1 := (hq_zero_or_one b).resolve_left hb
+    refine ⟨b, ?_⟩
+    apply (ENNReal.toReal_eq_toReal_iff'
+      ((selectedLoss_optimalPropensity ell hL).apply_ne_top b)
+      ENNReal.one_ne_top).mp
+    change q b = (1 : ENNReal).toReal
+    rw [hbq, ENNReal.toReal_one]
+  · rintro ⟨b, hb⟩
+    have hbq : q b = 1 := by
+      change (selectedLoss_optimalPropensity ell hL b).toReal = 1
+      rw [hb, ENNReal.toReal_one]
+    have hothers : ∀ a, a ≠ b → q a = 0 := by
+      intro a ha
+      have hadd := Finset.add_sum_erase Finset.univ q (Finset.mem_univ b)
+      rw [hbq, hq_sum] at hadd
+      have hzero : ∑ x ∈ Finset.univ.erase b, q x = 0 := by linarith
+      exact (Finset.sum_eq_zero_iff_of_nonneg
+        (fun x _ => hq_nonneg x)).mp hzero a
+          (Finset.mem_erase.mpr ⟨ha, Finset.mem_univ a⟩)
+    rw [hmse]
+    have hzero : ∀ a, q a * (1 - q a) = 0 := by
+      intro a
+      by_cases ha : a = b
+      · subst a
+        rw [hbq]
+        ring
+      · rw [hothers a ha]
+        ring
+    rw [Finset.sum_eq_zero (fun a _ => hzero a), mul_zero]
+
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
