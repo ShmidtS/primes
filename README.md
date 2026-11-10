@@ -61,17 +61,35 @@ A consolidation is not evidence of reduced training cost or FLOPs.
    specialized carriers; that does not discharge the same-named
    premises of every other model.
 
-**C200 snapshot** (`5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`):
+The **C200 source snapshot**
+(`5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`) has
 494 modules, 12,076 Root constants, 9,054 ALLAXIOMS records,
 6,170 Freeze declarations and 313 intrinsic declarations; 0 sorry.
 LayerLint passes with one explicit retained cross-layer exception.
-Per-cycle history: `STATUS.md`; algorithms and latest supported
-sampling results: `ALGORITHMS.md`.
+Per-cycle history: `STATUS.md`; algorithms and supported sampling
+results: `ALGORITHMS.md`.
 
-The current Freeze lock has 4,354 baseline entries; its controlled
-regeneration is tracked separately from the theorem result. AssumptionScan
-reports 36 files/116 lexical labels (5 proved declarations plus 111
-premise labels), not 111 unused or automatically removable assumptions.
+The **R1/P1-D packet** preserves that mathematical API while eliminating
+four exact statement-duplicate groups. Two original public theorem names
+are genuine Batteries aliases to their canonical proofs. A public
+`posterior_congr_of_model_eq` now owns the shared EM posterior transport;
+the guarded-logit duplicate reuses its retained same-file private theorem.
+Across the six changed modules their preserved statements, nine redirected
+calls and two alias bodies account for exactly 11 compiled body changes;
+the four asymmetric-cost consumer bodies are unchanged.
+
+Post-packet facts: 12,074 Root constants = 8,014 public + 513 private +
+3,547 generated; 9,052 ALLAXIOMS records; 6,168 Freeze declarations;
+313 intrinsic declarations; 1,213 retained IR entries and no module-count
+change. `scripts/StatementDupCheck.py` has zero groups. These are formal consolidation counters,
+not evidence of improved training, lower model size, runtime or FLOPs.
+
+The former 4,354-row legacy Freeze lock was first reconciled to the
+6,170 declarations of the C200 source snapshot, then received the reviewed
+R1/P1-D update to 6,168. Generated `declarations.lock` and
+`scripts/namepool.txt` are ignored by Git. AssumptionScan still reports
+36 files/116 lexical labels (5 proved declarations plus 111 premise
+binders), not 111 unused or automatically removable assumptions.
 
 ## The canonical capstone (Gen-3)
 

@@ -1,13 +1,44 @@
 # ALGORITHMS.md — алгоритмы HAGI, выведенные из доказанных теорем
 
 Каждый алгоритм — прямое следствие машинно-верифицированной
-формализации Lean 4.35.0 / Mathlib (Hagi/, snapshot C200:
-6170 Freeze declarations, 0 sorry; аксиомы только
+формализации Lean 4.35.0 / Mathlib (Hagi/; после R1/P1-D:
+6168 Freeze declarations, 0 sorry; аксиомы только
 propext/Classical.choice/Quot.sound).
 Ссылки: `Hagi/<Каталог>/<Модуль>.lean`. Измеряемые посылки
 помечены `h_emp_` и никогда не скрыты.
 Ниже нового блока сохранены исторические записи циклов;
 их локальные счётчики не заменяют текущий snapshot из STATUS.md.
+
+## R1/P1-D: consolidation без нового обучающего правила
+
+Этот пакет убирает повторные доказательства, не меняя математические
+носители или training rules:
+
+- Два сохранённых public имени стали настоящими compatibility aliases:
+  `minimumNormBatchCEProblem_value_le_zero` →
+  `minimumNormBatchParetoProblem_value_nonpos` и
+  `asymmetric_cost_feasible` → `identityMinimumNormBatchStep_cost_feasible`.
+  Проверены `AliasInfo.plain`, одинаковые elaborated types и canonical
+  targets. Ложно удалить public API или просто исключить дубликат
+  из линтера не разрешалось.
+- `posterior_congr_of_model_eq` в `FiniteBayes` доказывает, что posterior
+  при равенстве двух моделей не зависит от выбора доказательств положительной
+  evidence. Обе positive-evidence premises и равенство моделей остаются
+  явными; они не упакованы в class и не скрыты. Два старых private EM
+  helper-а заменены этим общим proofs-sharing result в трёх вызовах.
+- Удалённый guarded-logit duplicate равен сохранённому same-file
+  `logitProblem_stay_step` по elaborated statement. Его шесть consumers
+  используют именно этот retained proof; для доступа к private declaration
+  не создан новый публичный wrapper.
+- Census: 12076 → 12074 Root constants, 9054 → 9052 ALLAXIOMS,
+  6170 → 6168 Freeze. Все 1213 extra/IR entries и 38 отслеживаемых
+  consumer rows сохранены. Изменены ровно 11 retained bodies:
+  2 alias + 3 posterior + 6 guarded. Четыре observed asymmetric-cost
+  consumer bodies не изменились, а generated и ordinary-definition
+  bodies не получили допуск на изменение.
+- Итог — уменьшение повторного формального кода при сохранении API и
+  statements. Он не является минимизацией весов, сокращением FLOPs,
+  новым optimum обучения или runtime-измерением.
 
 ## Supported importance selection: C191–C200
 

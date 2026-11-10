@@ -361,14 +361,6 @@ theorem mixtureTrajectoryBank_succ {n : ℕ} {I X Y : Type} [Fintype I] [Fintype
         (seed t a i).1 (seed t a i).2 := by
   rfl
 
-private theorem mixtureTrajectory_posterior_of_model_eq {X Y : Type} [Fintype X]
-    (m₀ m₁ : PMF X × (X → PMF Y)) (obs : Y)
-    (h₀ : 0 < observationEvidence m₀.1 m₀.2 obs)
-    (h₁ : 0 < observationEvidence m₁.1 m₁.2 obs) (h : m₀ = m₁) :
-    posterior m₀.1 m₀.2 obs h₀ = posterior m₁.1 m₁.2 obs h₁ := by
-  subst m₁
-  rfl
-
 private noncomputable def mixtureCanonicalPath {n : ℕ} {I X Y : Type} [Fintype I] [Fintype X]
     (y : I → Y) (initial : I → PMF X × (X → PMF Y))
     (initialPositive : ∀ i, 0 < observationEvidence (initial i).1 (initial i).2 (y i))
@@ -403,7 +395,7 @@ private theorem mixtureTrajectory_replay {n : ℕ} {I X Y : Type} [Fintype I] [F
       have hq : qB = q := by
         dsimp only [qB]
         funext i
-        exact mixtureTrajectory_posterior_of_model_eq _ _ _ _ _ (congrFun hmodel i)
+        exact posterior_congr_of_model_eq _ _ _ _ _ (congrFun hmodel i)
       change (batchMStep qB y F, F (batchMStep qB y F)) =
         (batchMStep q y F, F (batchMStep q y F))
       rw [hq]
@@ -451,7 +443,7 @@ private theorem mixtureTrajectory_close {n : ℕ} {I X Y : Type} [Fintype I] [Fi
   have hmodel : mixtureTrajectoryBank y initial initialPositive seed t
       (mixtureCanonicalPath y initial initialPositive seed t) = s.model :=
     mixtureTrajectory_selected_model y initial initialPositive seed t
-  have hp := mixtureTrajectory_posterior_of_model_eq _ _ (y i)
+  have hp := posterior_congr_of_model_eq _ _ (y i)
     (mixtureTrajectoryBank_evidence y initial initialPositive seed t
       (mixtureCanonicalPath y initial initialPositive seed t) i) (s.positive i)
     (congrFun hmodel i)

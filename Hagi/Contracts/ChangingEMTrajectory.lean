@@ -42,14 +42,6 @@ private theorem currentPosterior_def {A I X Y : Type} [Fintype I] [Fintype X]
     currentPosterior y c hE a t =
       fun i => posterior (c t (a t) i).1 (c t (a t) i).2 (y i) (hE t (a t) i) := rfl
 
-private theorem posterior_of_model_eq {X Y : Type} [Fintype X]
-    (m₀ m₁ : PMF X × (X → PMF Y)) (obs : Y)
-    (h₀ : 0 < observationEvidence m₀.1 m₀.2 obs)
-    (h₁ : 0 < observationEvidence m₁.1 m₁.2 obs) (h : m₀ = m₁) :
-    posterior m₀.1 m₀.2 obs h₀ = posterior m₁.1 m₁.2 obs h₁ := by
-  subst m₁
-  rfl
-
 section
 variable {A I X Y : Type} [Fintype A] [Nonempty A] [Fintype I] [Fintype X]
 variable (y : I → Y) (c : ℕ → A → I → PMF X × (X → PMF Y))
@@ -124,7 +116,7 @@ theorem changingEMPath_nll_succ_le (t : ℕ) :
     intro i
     have hi : c (t + 1) (base t) i = c t (changingEMPath y c hE a₀ t) i :=
       congrFun (hKeep t) i
-    exact posterior_of_model_eq _ _ _ _ _ hi.symm
+    exact posterior_congr_of_model_eq _ _ _ _ _ hi.symm
   have h := current_totalNegativeLogEvidence_le_batchMStep
     (currentPosterior y c hE (changingEMPath y c hE a₀) t) y (c (t + 1))
     (hE (t + 1)) (fun d i => hClose t d i) (base t) hq

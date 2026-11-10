@@ -59,6 +59,16 @@ noncomputable def posterior {X Y : Type} [Fintype X]
       p₀ x * K x y / observationEvidence p₀ K y := by
   rfl
 
+/-- The normalized posterior depends only on the model, not on the chosen
+positive-evidence proofs. -/
+theorem posterior_congr_of_model_eq {X Y : Type} [Fintype X]
+    (m₀ m₁ : PMF X × (X → PMF Y)) (obs : Y)
+    (h₀ : 0 < observationEvidence m₀.1 m₀.2 obs)
+    (h₁ : 0 < observationEvidence m₁.1 m₁.2 obs) (h : m₀ = m₁) :
+    posterior m₀.1 m₀.2 obs h₀ = posterior m₁.1 m₁.2 obs h₁ := by
+  subst m₁
+  rfl
+
 /-- Real posterior masses sum to one on the nonempty finite carrier. -/
 theorem posterior_sum_toReal {X Y : Type} [Fintype X]
     (p₀ : PMF X) (K : X → PMF Y) (y : Y)

@@ -230,11 +230,6 @@ open Hagi.Contracts.GuardedLogitTrajectory
 open Hagi.Unified.FixedBiasBinaryProgress
 open Filter Topology
 
-private theorem fixedBiasLogit_stay_step (eta : ℝ) :
-    ∀ w, (logitProblem eta).step (0 : Fin 2) w = w := by
-  intro w
-  exact logitStepFun_zero eta w
-
 private theorem logitUpgrade_one_spec (eta : ℝ) (M C : ℕ) (w : ℝ)
     (hup : estimatedUpgrade (logitProblem eta) logitEstimate (1 / 2) w M C
       (0 : Fin 2)) :
@@ -336,7 +331,7 @@ theorem guardedLogitDrop_eq_zero_or_one_le (eta : ℝ) (M C : ℕ) (w : ℝ)
       1 ≤ guardedLogitDrop eta M C w t := by
   rw [guardedLogitDrop_eq_fixedBiasBinaryGain]
   exact fixedBiasBinaryGain_eq_zero_or_one_le (logitProblem eta) M C
-    (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) t
+    (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) t
 
 /-- Number of outer steps with strictly positive actual logistic-CE decrease.
 This counts no estimator evaluations, primitive operations, or wall-clock
@@ -368,7 +363,7 @@ theorem guardedLogitProgressCount_le_logitCE (eta : ℝ) (M C : ℕ) (w : ℝ)
       logitCE (guardedLogitPath eta M C w 0) := by
   rw [guardedLogitProgressCount_eq_fixedBiasBinaryProgressCount]
   have hbound := fixedBiasBinaryProgressCount_le (logitProblem eta) M C
-    (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) 0
+    (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) 0
     (fixedBiasLogitPath_value_le_zero eta M C w) T
   rw [← guardedLogitPath_eq_fixedBiasBinaryPath] at hbound
   simpa only [logitProblem_value, zero_sub, neg_neg] using hbound
@@ -383,7 +378,7 @@ theorem guardedLogitPath_forall_eq_of_CE_lt_one (eta : ℝ) (M C : ℕ) (w : ℝ
     rw [← guardedLogitPath_eq_fixedBiasBinaryPath]
     simpa only [logitProblem_value, zero_sub, neg_neg] using hsmall
   have hconst := fixedBiasBinaryPath_forall_eq_of_gap_lt_one (logitProblem eta)
-    M C (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) 0
+    M C (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) 0
     (fixedBiasLogitPath_value_le_zero eta M C w) hgap
   intro t
   rw [guardedLogitPath_eq_fixedBiasBinaryPath]
@@ -395,7 +390,7 @@ theorem guardedLogitPath_eventually_succ_eq (eta : ℝ) (M C : ℕ) (w : ℝ) :
     ∃ N, ∀ t ≥ N,
       guardedLogitPath eta M C w (t + 1) = guardedLogitPath eta M C w t := by
   have h := fixedBiasBinaryPath_eventually_succ_eq (logitProblem eta) M C
-    (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) 0
+    (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) 0
     (fixedBiasLogitPath_value_le_zero eta M C w)
   rw [← guardedLogitPath_eq_fixedBiasBinaryPath] at h
   exact h
@@ -405,7 +400,7 @@ theorem guardedLogitPath_eventually_eq (eta : ℝ) (M C : ℕ) (w : ℝ) :
     ∃ N, ∀ t ≥ N, guardedLogitPath eta M C w t =
       guardedLogitPath eta M C w N := by
   have h := fixedBiasBinaryPath_eventually_eq (logitProblem eta) M C
-    (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) 0
+    (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) 0
     (fixedBiasLogitPath_value_le_zero eta M C w)
   rw [← guardedLogitPath_eq_fixedBiasBinaryPath] at h
   exact h
@@ -415,7 +410,7 @@ theorem guardedLogitPath_tendsto_eventual_value (eta : ℝ) (M C : ℕ) (w : ℝ
     ∃ N, Tendsto (guardedLogitPath eta M C w) atTop
       (𝓝 (guardedLogitPath eta M C w N)) := by
   have h := fixedBiasBinaryPath_tendsto_eventual_value (logitProblem eta) M C
-    (logit_feasible_zero eta M C) w (fixedBiasLogit_stay_step eta) 0
+    (logit_feasible_zero eta M C) w (logitProblem_stay_step eta) 0
     (fixedBiasLogitPath_value_le_zero eta M C w)
   rw [← guardedLogitPath_eq_fixedBiasBinaryPath] at h
   exact h

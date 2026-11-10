@@ -957,12 +957,8 @@ theorem minimumNormBatchSampleCEPath_tendsto_ciInf
     (fun S => batchMinimumNormTrainInput X y S opCost opRisk write) δ M C h0 S0 b
 
 /-- Nonnegative mean CE bounds the minimum-norm controller value by zero. -/
-theorem minimumNormBatchCEProblem_value_le_zero
-    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V) (opCost opRisk : ℝ)
-    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (S : TrainState n a r c k) :
-    (minimumNormBatchParetoProblem X y opCost opRisk write).value S ≤ 0 :=
-  guardedBatchCEProblem_value_le_zero X y
-    (fun S => batchMinimumNormTrainInput X y S opCost opRisk write) S
+alias minimumNormBatchCEProblem_value_le_zero :=
+  Hagi.Contracts.BudgetedBatchCE.minimumNormBatchParetoProblem_value_nonpos
 
 /-- Positive-gain count on the minimum-norm path is bounded by the initial
 actual supplied-batch mean CE divided by the positive threshold. -/

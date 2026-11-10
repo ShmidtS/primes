@@ -2234,10 +2234,7 @@ theorem batchCEObjective_asymmetricMeanBatchStep_lt :
     identityInitialState (1 / 2) (1 / 4) none asymmetricRangeSquare_pos
 
 /-- The common supplied cost is nonnegative and fits the initial budget two. -/
-theorem asymmetric_cost_feasible :
-    0 ≤ (1 / 2 : ℝ) ∧ (1 / 2 : ℝ) ≤ identityInitialState.res.budget := by
-  change 0 ≤ (1 / 2 : ℝ) ∧ (1 / 2 : ℝ) ≤ 2
-  norm_num
+alias asymmetric_cost_feasible := identityMinimumNormBatchStep_cost_feasible
 
 /-- The existing combined budget/pointwise guard vetoes the mean candidate and
 returns the complete old state, solely because sample zero's CE increases. -/

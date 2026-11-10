@@ -1,6 +1,48 @@
 # STATUS — состояние формализации HAGI
 
-## Текущий snapshot: C200
+## R1/P1-D: semantic proof consolidation
+
+База последнего production/document reconciliation:
+ce5e740964ce864678a8020deb81707442e9a28c;
+фактический Git identity финального R1/P1-D commit фиксируется Git и
+отдельным post-commit receipt, а не предугадывается внутри этого файла.
+
+- Изменены ровно шесть Lean-модулей: `BatchCETrajectory`,
+  `BatchCEStepCertificate`, `FiniteBayes`, `ChangingEMTrajectory`,
+  `MixtureEMTrajectory`, `GuardedLogitTrajectory`. Imports, carriers,
+  namespaces и `h_emp_`-параметры не изменены.
+- `minimumNormBatchCEProblem_value_le_zero` и
+  `asymmetric_cost_feasible` сохранены как настоящие Batteries
+  compatibility aliases, проверенные через `AliasInfo.plain`,
+  прежний elaborated type и canonical target. Четыре caller с
+  `asymmetric_cost_feasible` сохраняют точные старые compiled bodies.
+- `posterior_congr_of_model_eq` теперь находится у
+  `FiniteBayes`. Он заменяет два одинаковых private EM helper-а;
+  три вызова используют общий транспорт равных моделей при явных
+  positive-evidence premises. Шесть guarded-логистических вызовов
+  переиспользуют сохранённый same-file private `logitProblem_stay_step`.
+- Полный old/new census подтвердил ровно три удалённых private theorem,
+  один новый public posterior и 11 ожидаемых изменений retained bodies.
+  Остальные fields, 1213 IR records и все 38 SafeQP consumer rows
+  сохранены; 167 изменённых ranges разрешены покадрово только у
+  этих шести модулей. Это не blanket-допуск для generated/private
+  переименований или opaque runtime behavior.
+- Post-packet counters: 12074 Root constants (8014 public, 513 private,
+  3547 generated), 9052 ALLAXIOMS, 6168 Freeze, 313 intrinsic.
+  Модулей по-прежнему 494, в них 139323 строки.
+- `scripts/StatementDupCheck.py`: PASS, 0 groups. AssumptionScan остаётся
+  36 файлов / 116 occurrences (5 доказанных declarations + 111
+  premise binders), 10 primitive defs, 7 operational names;
+  `scripts/assumptions.lock` не изменён.
+- Полный `bash scripts/ci.sh`: PASS, 219 секунд; log SHA-256
+  `190f8d9c10f16689ca0c32934793bda54b4422aba032b424027b2b929f5be2c1`.
+  Freeze, AssumptionScan, StatusLint, CHALLENGE, STMDUP, MACHINEDIFF и
+  ALLAXIOMS — PASS вместе со всеми остальными gates этого скрипта.
+- Это proof-sharing/refactor на сохранённых carriers, не новый алгоритм
+  обучения и не доказательство прироста качества модели, объёма весов,
+  времени, FLOPs, generalization или оптимальной архитектуры.
+
+## Базовый snapshot: C200
 
 Принятый commit: `5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`.
 Проект: Lean 4.35.0; Mathlib revision
@@ -13,8 +55,9 @@
   Freeze: 6170 declarations; intrinsic declarations: 313.
   Это разные метрики, включая generated records, а не число
   вручную названных публичных теорем.
-- Полный CI на C200: PASS, 16 проверок (`scripts/ci.sh`), 221 секунда;
-  log SHA-256
+- Полный CI на C200: исторический PASS, 16 проверок (`scripts/ci.sh`),
+  221 секунда; он использовал тогдашний legacy Freeze lock, а не
+  последующую 6170-строчную регистрацию и не R1/P1-D. Log SHA-256
   `6e5154ad664e21e753a54d4c2770afbdfc130bd84710d08d8c5c77d5aa557b1b`.
 - Все проверенные теоремы допускают только `propext`,
   `Classical.choice`, `Quot.sound`; 0 sorry и 0 кастомных аксиом.
@@ -25,9 +68,12 @@
   (5 доказанных declarations с тем же prefix + 111 premise labels),
   10 primitive defs, 7 operational names. Это инвентарь идентификаторов,
   а не 111 доказанно неиспользуемых предпосылок.
-- Старый `declarations.lock`: 4354 baseline-записи против 6170 текущих;
-  1816 additions требуют отдельной управляемой регенерации Freeze.
-  Generated `scripts/namepool.txt` и `declarations.lock` игнорируются Git;
+- История реестров: прежний `declarations.lock` с 4354 baseline-записями
+  был отдельно reconciled к 6170 declarations исходного C200.
+  Это добавило 1816 отсутствовавших записей и выявило четыре точные
+  statement-duplicate группы. Последующий reviewed R1/P1-D update
+  выше даёт 6168 и ноль таких групп.
+  Generated `declarations.lock` и `scripts/namepool.txt` игнорируются Git;
   tracked генератор — `scripts/NamePool.lean`, а реестр посылок —
   `scripts/assumptions.lock`.
 - `spec_manifest.toml` — исторический R237 snapshot, не текущий SSOT.
