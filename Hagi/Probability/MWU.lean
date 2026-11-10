@@ -1,4 +1,5 @@
 import Hagi.Probability.GibbsConcentration
+import Hagi.Probability.FreedmanTwoSided
 
 namespace Hagi.Probability
 
@@ -531,6 +532,30 @@ theorem mwu_regret_regimes {V : Type*} [Fintype V]
     refine le_max_of_le_right ?_
     rw [← hb]
     exact h2
+
+
+open Classical in
+/-- The selected inverse-weighted loss collapses to the fixed target loss by
+finite-sum cancellation. This finite-sum identity uses no normalization,
+nonnegativity or nonempty hypothesis. -/
+theorem selectedLoss_sum_real {V : Type*} [Fintype V]
+    (p ℓ : V → ℝ) (b : V) (hb : p b ≠ 0) :
+    ∑ a, p a * (if a = b then ℓ a / p a else 0) = ℓ b := by
+  classical
+  simp_rw [mul_ite, mul_zero]
+  rw [Fintype.sum_ite_eq' b]
+  exact mul_div_cancel₀ (ℓ b) hb
+
+open Classical in
+/-- Under a PMF, observing only a selected action's loss with inverse
+propensity yields exactly its expectation for each fixed arm with positive
+selection probability.  This is not a variance or learning-regret claim. -/
+theorem pmfMean_selectedLoss {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) (b : V) (hb : p b ≠ 0) :
+    pmfMean p (fun a => if a = b then ℓ a / (p a).toReal else 0) = ℓ b := by
+  have hbReal : (p b).toReal ≠ 0 :=
+    ENNReal.toReal_ne_zero.mpr ⟨hb, p.apply_ne_top b⟩
+  exact selectedLoss_sum_real (fun a => (p a).toReal) ℓ b hbReal
 
 
 end Hagi.Probability
