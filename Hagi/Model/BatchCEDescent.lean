@@ -3,6 +3,7 @@ import Hagi.Model.CEGroupedScale
 import Hagi.Probability.FiniteFamilyConfidence
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
+import Hagi.Probability.MWU
 
 /-!
 # Common-direction arithmetic-batch cross-entropy descent
@@ -2150,5 +2151,77 @@ theorem batchLoss_batchDirectionHalfNextParameters_le_margin_sum
   have hbound := batchLoss_batchDirectionHalfNextParameters_le_quadraticMargin_sum
     X θ y D
   linarith
+
+open scoped Classical BigOperators Matrix
+open Hagi.Probability
+
+/-- The actual arithmetic-mean raw residual gradient, without a nonempty
+premise: both totalized sides also agree on the empty batch. -/
+theorem mean_batchResidualGradient {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V) :
+    (B : ℝ)⁻¹ • ∑ b, batchResidualGradient (X b) θ (y b) =
+      WithLp.toLp 2 (meanResidualTranspose X θ y) := by
+  apply PiLp.ext
+  intro j
+  simp only [WithLp.ofLp_smul, Pi.smul_apply, smul_eq_mul,
+    WithLp.ofLp_sum, Finset.sum_apply, batchResidualGradient_ofLp,
+    meanResidualTranspose]
+  rw [div_eq_inv_mul]
+
+/-- The arithmetic-mean selected-gradient objective about the public actual
+batch residual-mean transpose. Support is unnecessary for this scaling law. -/
+theorem selectedMeanGradientMSE_batchResidual_eq_pmfMean
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V) (q : PMF (Fin B))
+    (h_card : 0 < Fintype.card (Fin B)) :
+    Hagi.Probability.selectedMeanGradientMSE q
+        (fun b => batchResidualGradient (X b) θ (y b)) =
+      pmfMean q (fun b =>
+        ‖((B : ℝ) * (q b).toReal)⁻¹ • batchResidualGradient (X b) θ (y b) -
+          WithLp.toLp 2 (meanResidualTranspose X θ y)‖ ^ 2) := by
+  simpa only [Fintype.card_fin, mean_batchResidualGradient] using
+    Hagi.Probability.selectedMeanGradientMSE_eq_sum q
+      (fun b => batchResidualGradient (X b) θ (y b)) h_card
+
+/-- Coordinatewise unbiasedness of the supported actual CE-gradient draw for
+its arithmetic-mean target. Zero propensity forces a zero residual vector. -/
+theorem pmfMean_selectedMean_batchResidualGradient
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V) (q : PMF (Fin B))
+    (h_support : ∀ b, q b ≠ 0 ∨ batchResidualGradient (X b) θ (y b) = 0)
+    (h_card : 0 < Fintype.card (Fin B)) (j : Fin d) :
+    pmfMean q (fun b =>
+      (((Fintype.card (Fin B) : ℝ) * (q b).toReal)⁻¹ •
+        batchResidualGradient (X b) θ (y b)) j) =
+      (WithLp.toLp 2 (meanResidualTranspose X θ y)) j := by
+  have h_card_fin : 0 < B := by
+    simpa only [Fintype.card_fin] using h_card
+  have h_card_real : (0 : ℝ) < (B : ℝ) := Nat.cast_pos.mpr h_card_fin
+  have hterm (b : Fin B) :
+      (q b).toReal * (((B : ℝ) * (q b).toReal)⁻¹ *
+          (batchResidualGradient (X b) θ (y b)) j) =
+        (B : ℝ)⁻¹ * (batchResidualGradient (X b) θ (y b)) j := by
+    by_cases hb : q b = 0
+    · have hzero : batchResidualGradient (X b) θ (y b) = 0 :=
+        (h_support b).elim (fun hne => (hne hb).elim) (fun hz => hz)
+      simp [hb, hzero]
+    · have hbReal : (q b).toReal ≠ 0 :=
+        ENNReal.toReal_ne_zero.mpr ⟨hb, q.apply_ne_top b⟩
+      field_simp
+  unfold pmfMean
+  simp only [WithLp.ofLp_smul, Pi.smul_apply, smul_eq_mul, Fintype.card_fin]
+  calc
+    (∑ b, (q b).toReal * (((B : ℝ) * (q b).toReal)⁻¹ *
+        (batchResidualGradient (X b) θ (y b)) j)) =
+        ∑ b, (B : ℝ)⁻¹ * (batchResidualGradient (X b) θ (y b)) j :=
+      Finset.sum_congr rfl (fun b _ => hterm b)
+    _ = (B : ℝ)⁻¹ * ∑ b, (batchResidualGradient (X b) θ (y b)) j := by
+      rw [Finset.mul_sum]
+    _ = meanResidualTranspose X θ y j := by
+      simp only [batchResidualGradient_ofLp, meanResidualTranspose,
+        div_eq_inv_mul]
 
 end Hagi.Model.BatchCEDescent
