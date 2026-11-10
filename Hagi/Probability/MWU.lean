@@ -1349,6 +1349,70 @@ theorem selectedMeanGradientMSE_optimalPropensity_lt_uniform_iff
         g hL q h_unit).mpr h) hfactor
 
 
+open scoped Classical BigOperators
+open Real
+
+/-- Any norm upper bound gives a nonnegative allocation weight, and a zero
+weight forces the corresponding gradient to vanish.  For the induced
+propensity, the selected-gradient trace is at most the squared total norm
+bound minus the squared norm of the target gradient sum. -/
+theorem selectedGradientMSE_upperBoundPropensity_le {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (a : B → ℝ) (hA : 0 < ∑ b, |a b|) (h_bound : ∀ b, ‖g b‖ ≤ a b) :
+    selectedGradientMSE (selectedLoss_optimalPropensity a hA) g ≤
+      (∑ b, |a b|) ^ 2 - ‖∑ b, g b‖ ^ 2 := by
+  let p := selectedLoss_optimalPropensity a hA
+  have h_zero (b : B) (hb : |a b| = 0) : g b = 0 := by
+    have ha : a b = 0 := abs_eq_zero.mp hb
+    have hn : ‖g b‖ ≤ 0 := by simpa only [ha] using h_bound b
+    exact norm_eq_zero.mp (le_antisymm hn (norm_nonneg _))
+  have h_support : ∀ b, p b ≠ 0 ∨ g b = 0 := by
+    intro b
+    by_cases hb : |a b| = 0
+    · exact Or.inr (h_zero b hb)
+    · apply Or.inl
+      apply (ENNReal.toReal_ne_zero.mp ?_).1
+      dsimp only [p]
+      rw [selectedLoss_optimalPropensity_apply]
+      exact div_ne_zero hb hA.ne'
+  have hpoint (b : B) :
+      ‖g b‖ ^ 2 / (p b).toReal ≤ (∑ c, |a c|) * |a b| := by
+    dsimp only [p]
+    rw [selectedLoss_optimalPropensity_apply]
+    by_cases hb : |a b| = 0
+    · simp [h_zero b hb, hb]
+    · have hbpos : 0 < |a b| := lt_of_le_of_ne (abs_nonneg _) (Ne.symm hb)
+      have hsquare : ‖g b‖ ^ 2 ≤ |a b| ^ 2 := by
+        nlinarith [norm_nonneg (g b), h_bound b, sq_abs (a b)]
+      rw [div_div_eq_mul_div]
+      apply (div_le_iff₀ hbpos).2
+      calc
+        ‖g b‖ ^ 2 * (∑ c, |a c|) ≤ |a b| ^ 2 * (∑ c, |a c|) :=
+          mul_le_mul_of_nonneg_right hsquare hA.le
+        _ = (∑ c, |a c|) * |a b| * |a b| := by ring
+  have hsum : (∑ b, ‖g b‖ ^ 2 / (p b).toReal) ≤ (∑ b, |a b|) ^ 2 := by
+    calc
+      (∑ b, ‖g b‖ ^ 2 / (p b).toReal) ≤ ∑ b, (∑ c, |a c|) * |a b| :=
+        Finset.sum_le_sum (fun b _ => hpoint b)
+      _ = (∑ c, |a c|) * ∑ b, |a b| := (Finset.mul_sum _ _ _).symm
+      _ = (∑ b, |a b|) ^ 2 := by ring
+  change selectedGradientMSE p g ≤ (∑ b, |a b|) ^ 2 - ‖∑ b, g b‖ ^ 2
+  rw [selectedGradientMSE_eq_sum p g h_support]
+  exact sub_le_sub_right hsum _
+
+/-- The arithmetic-mean error inherits the propensity upper bound with the
+exact squared inverse-cardinality scaling, without a separate
+cardinal-positivity premise. -/
+theorem selectedMeanGradientMSE_upperBoundPropensity_le {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (a : B → ℝ) (hA : 0 < ∑ b, |a b|) (h_bound : ∀ b, ‖g b‖ ≤ a b) :
+    selectedMeanGradientMSE (selectedLoss_optimalPropensity a hA) g ≤
+      (Fintype.card B : ℝ)⁻¹ ^ 2 *
+        ((∑ b, |a b|) ^ 2 - ‖∑ b, g b‖ ^ 2) := by
+  unfold selectedMeanGradientMSE
+  exact mul_le_mul_of_nonneg_left
+    (selectedGradientMSE_upperBoundPropensity_le g a hA h_bound) (sq_nonneg _)
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
