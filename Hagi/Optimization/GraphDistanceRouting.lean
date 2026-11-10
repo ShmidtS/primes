@@ -393,4 +393,177 @@ theorem historyLaw_targetComponent_firstHit_dist_eq_one [Fintype V]
     (targetComponent G target).toSimpleGraph (targetPoint G target)
     (reachable_targetPoint G target) s hT
 
+/-- Embed a history on the target component by projecting each point. -/
+def embedTargetComponentHistory (G : SimpleGraph V) (target : V) {T : ℕ}
+    (ω : History (targetComponent G target) T) : History V T :=
+  fun i => (ω i).val
+
+open Classical in
+/-- One supported component transition is a valid step of the ambient raw
+classifier. At the target this is the terminal pure-row branch, not an edge. -/
+theorem stepOKAt_partialShortestToTargetRows_of_mem_shortestToTargetKernel_support
+    [Fintype V] (G : SimpleGraph V) (target : V) {t : ℕ}
+    (x y : targetComponent G target)
+    (hy : y ∈ (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target) t x).support) :
+    StepOKAt (partialShortestToTargetRows G target) G.Adj
+      (fun v => v = target) (targetRank G target) t (x : V) (y : V) := by
+  by_cases hx : x = targetPoint G target
+  · subst x
+    rw [shortestToTargetKernel_target, PMF.mem_support_pure_iff] at hy
+    subst y
+    exact Or.inl ⟨rfl, rfl, partialShortestToTargetRows_target G target t⟩
+  · have hxval : (x : V) ≠ target := by
+      intro h
+      apply hx
+      apply Subtype.ext
+      exact h
+    have hy' := (mem_shortestToTargetKernel_support
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target) hx t y).mp hy
+    obtain ⟨hadj, hd⟩ := (mem_shorterNeighborFinset
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      x y).mp hy'
+    refine Or.inr ⟨hxval, (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target) t x).map Subtype.val,
+      partialShortestToTargetRows_eq_some G target x.property t, ?_,
+      SimpleGraph.induce_adj.mp hadj, ?_⟩
+    · exact (PMF.mem_support_map_iff _ _ _).mpr ⟨y, hy, rfl⟩
+    · apply targetRank_strictMono G ((mem_targetComponent_iff G target (x : V)).mp x.property)
+      rw [dist_targetComponent_eq, dist_targetComponent_eq] at hd
+      exact hd
+
+open Classical in
+/-- The mass-one component first-hit event holds at every supported history. -/
+private theorem firstHit_targetPoint_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (s : targetComponent G target) {T : ℕ} (hT : G.dist s target ≤ T)
+    (ω : History (targetComponent G target) T)
+    (hω : ω ∈ (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).support) :
+    ω (historyIndex T (G.dist s target)) = targetPoint G target ∧
+      ∀ j < G.dist s target, ω (historyIndex T j) ≠ targetPoint G target := by
+  exact (PMF.toOuterMeasure_apply_eq_one_iff _ _).mp
+    (historyLaw_targetComponent_firstHit_dist_eq_one G target s hT) hω
+
+open Classical in
+/-- A supported component history remains at its target after its exact first
+hit, including every coordinate obtained by clamping an arbitrary query. -/
+theorem targetPoint_at_historyIndex_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (s : targetComponent G target) {T : ℕ} (hT : G.dist s target ≤ T)
+    (ω : History (targetComponent G target) T)
+    (hω : ω ∈ (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).support)
+    {k : ℕ} (hk : G.dist s target ≤ k) :
+    ω (historyIndex T k) = targetPoint G target := by
+  obtain ⟨_, hsteps⟩ := start_and_steps_of_historyLaw_support
+    (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) le_rfl ω hω
+  have hbounded : ∀ n, G.dist s target ≤ n → n ≤ T →
+      ω (historyIndex T n) = targetPoint G target := by
+    intro n hDn
+    induction n, hDn using Nat.le_induction with
+    | base =>
+        intro _
+        exact (firstHit_targetPoint_of_historyLaw_support G target s hT ω hω).1
+    | succ n hDn ih =>
+        intro hnT
+        have hnext := hsteps n (by omega)
+        rw [ih (by omega), shortestToTargetKernel_target,
+          PMF.mem_support_pure_iff] at hnext
+        exact hnext
+  have hindex : historyIndex T k = historyIndex T (min k T) := by
+    apply Fin.ext
+    simp only [historyIndex_val, Nat.min_assoc, Nat.min_self]
+  rw [hindex]
+  exact hbounded (min k T) ((Nat.le_min).mpr ⟨hk, hT⟩) (Nat.min_le_right _ _)
+
+open Classical in
+/-- Every raw prefix of a projected supported history is valid. Beyond the
+recorded horizon, both clamped endpoints are the same pure terminal target. -/
+theorem prefixOKAt_embedTargetComponentHistory_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (s : targetComponent G target) {T : ℕ} (hT : G.dist s target ≤ T)
+    (ω : History (targetComponent G target) T)
+    (hω : ω ∈ (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).support) (k : ℕ) :
+    PrefixOKAt (partialShortestToTargetRows G target) G.Adj
+      (fun v => v = target) (targetRank G target) T k
+      (embedTargetComponentHistory G target ω) := by
+  obtain ⟨_, hsteps⟩ := start_and_steps_of_historyLaw_support
+    (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) le_rfl ω hω
+  intro j hj
+  change StepOKAt (partialShortestToTargetRows G target) G.Adj
+    (fun v => v = target) (targetRank G target) j
+    (ω (historyIndex T j) : V) (ω (historyIndex T (j + 1)) : V)
+  by_cases hjT : j < T
+  · exact stepOKAt_partialShortestToTargetRows_of_mem_shortestToTargetKernel_support
+      G target _ _ (hsteps j hjT)
+  · have hDj : G.dist s target ≤ j := hT.trans (Nat.le_of_not_lt hjT)
+    have hDnext : G.dist s target ≤ j + 1 := hDj.trans (Nat.le_succ j)
+    have hcur := targetPoint_at_historyIndex_of_historyLaw_support
+      G target s hT ω hω hDj
+    have hnext := targetPoint_at_historyIndex_of_historyLaw_support
+      G target s hT ω hω hDnext
+    rw [hcur, hnext]
+    exact Or.inl ⟨rfl, rfl, partialShortestToTargetRows_target G target j⟩
+
+open Classical in
+/-- Before the exact first hit, the ambient raw classifier holds. -/
+theorem classifyRouting_embedTargetComponentHistory_eq_hold_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (s : targetComponent G target) {T : ℕ} (hT : G.dist s target ≤ T)
+    (ω : History (targetComponent G target) T)
+    (hω : ω ∈ (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).support)
+    {k : ℕ} (hk : k < G.dist s target) :
+    classifyRouting (partialShortestToTargetRows G target) G.Adj
+      (fun v => v = target) (targetRank G target) T k
+      (embedTargetComponentHistory G target ω) = .Hold := by
+  apply classifyRouting_eq_hold _ _ _ _ _ _ _ (by omega)
+    (prefixOKAt_embedTargetComponentHistory_of_historyLaw_support
+      G target s hT ω hω k)
+  · exact (rowReady_partialShortestToTargetRows_iff G target k _).mpr
+      (ω (historyIndex T k)).property
+  · change (ω (historyIndex T k) : V) ≠ target
+    intro hval
+    have hcur : ω (historyIndex T k) = targetPoint G target := by
+      apply Subtype.ext
+      exact hval
+    exact (firstHit_targetPoint_of_historyLaw_support G target s hT ω hω).2 k hk hcur
+
+open Classical in
+/-- At or after the exact first hit, the ambient raw classifier reports that
+actual target. This includes all excess queries on the same clamped history. -/
+theorem classifyRouting_embedTargetComponentHistory_eq_arrived_of_historyLaw_support
+    [Fintype V] (G : SimpleGraph V) (target : V)
+    (s : targetComponent G target) {T : ℕ} (hT : G.dist s target ≤ T)
+    (ω : History (targetComponent G target) T)
+    (hω : ω ∈ (historyLaw (PMF.pure s) (shortestToTargetKernel
+      (targetComponent G target).toSimpleGraph (targetPoint G target)
+      (reachable_targetPoint G target)) T T).support)
+    {k : ℕ} (hk : G.dist s target ≤ k) :
+    classifyRouting (partialShortestToTargetRows G target) G.Adj
+      (fun v => v = target) (targetRank G target) T k
+      (embedTargetComponentHistory G target ω) = .Arrived target := by
+  have hcur := targetPoint_at_historyIndex_of_historyLaw_support
+    G target s hT ω hω hk
+  have hcurval : embedTargetComponentHistory G target ω (historyIndex T k) = target :=
+    congrArg Subtype.val hcur
+  have hclass := classifyRouting_eq_arrived _ _ _ _ _ _ _
+    (prefixOKAt_embedTargetComponentHistory_of_historyLaw_support
+      G target s hT ω hω k) hcurval
+  rw [hcurval] at hclass
+  exact hclass
+
 end Hagi.Optimization.GraphDistanceRouting
