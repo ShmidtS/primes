@@ -2644,4 +2644,89 @@ theorem expandedHalfTrainStep_flops_of_active
     opRisk write ⟨hcombined, hbudget⟩ hcert
   simpa only [expandedHalfTrainStep, expandedTrainState] using h
 
+/-! ## Computed five-task batch evaluation through the actual MGDA step
+
+`batchCEMeasured` is a mathematical, parameter-computed evaluation of named
+supervised tasks.  It does not read stored `TrainState.qual`, make those five
+sample indices into external task categories, or assert fresh-data confidence.
+The negative-CE orientation matches `FloorKept`: higher evaluation is better.
+-/
+open Hagi.Unified.HonestTransition Hagi.Unified.CertifiedLoop
+  Hagi.Unified.LinkedQVec
+
+/-- Actual per-task CE, negated for the higher-is-better quality-floor API. -/
+noncomputable def batchCEMeasured (X : Fin 5 → Matrix V (Fin n) ℝ)
+    (y : Fin 5 → V) : MeasuredState (TrainState n a r c k) where
+  evaluate := fun S i => -batchSampleCE X y i S
+
+/-- Any supplied-batch computed quality floor survives the existing guarded
+minimum-norm transition, including a rejected update that returns `S`. -/
+theorem floor_kept_batchMinimumNormTrainStep
+    (X : Fin 5 → Matrix V (Fin n) ℝ) (y : Fin 5 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) (floor : QualityVector)
+    (hfloor : FloorKept (batchCEMeasured X y) S floor) :
+    FloorKept (batchCEMeasured X y)
+      (batchMinimumNormTrainStep X y S opCost opRisk write) floor := by
+  intro i
+  have hle := batchSampleCE_batchMinimumNormTrainStep_le
+    X y S opCost opRisk write i
+  exact (hfloor i).trans (neg_le_neg hle)
+
+/-- Strict mean-CE descent on the admitted nonzero-minimizer MGDA successor,
+using the exact old-minus-new objective gap rather than an assigned effect. -/
+noncomputable def batchMinimumNormMinimalCert
+    (X : Fin 5 → Matrix V (Fin n) ℝ) (y : Fin 5 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hω : batchGradientMinimizer X (coreParameters S) y ≠ 0) :
+    CertStep (batchCEObjective X y) S
+      (batchMinimumNormTrainStep X y S opCost opRisk write) where
+  drop := batchCEObjective X y S -
+    batchCEObjective X y (batchMinimumNormTrainStep X y S opCost opRisk write)
+  drop_pos := sub_pos.mpr (batchCEObjective_batchMinimumNormTrainStep_lt
+    X y S opCost opRisk write hcost hω)
+  actual := by
+    have hlt := batchCEObjective_batchMinimumNormTrainStep_lt
+      X y S opCost opRisk write hcost hω
+    linarith
+
+/-- A full certificate for the actually executed nonzero-minimizer update:
+strict supplied-batch mean-CE descent and preservation of all five computed
+per-task evaluation floors.  Costs and risk are logical inputs, not runtime
+measurements; this says nothing about external quality or generalization. -/
+noncomputable def evaluatedBatchMinimumNormCert
+    (X : Fin 5 → Matrix V (Fin n) ℝ) (y : Fin 5 → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ))
+    (floor : QualityVector) (riskLim : ℝ)
+    (hcost : 0 ≤ opCost ∧ opCost ≤ S.res.budget)
+    (hω : batchGradientMinimizer X (coreParameters S) y ≠ 0)
+    (hrisk : 0 ≤ opRisk) (hriskLim : opRisk ≤ riskLim)
+    (hfloor : FloorKept (batchCEMeasured X y) S floor) :
+    StepCert (batchCEObjective X y) (batchCEMeasured X y) floor riskLim S
+      (batchMinimumNormTrainStep X y S opCost opRisk write) S.res.budget
+      (batchMinimumNormTrainStep X y S opCost opRisk write).res.budget where
+  riskSpend := opRisk
+  budgetSpend := opCost
+  trans :=
+    { objectiveDrop :=
+        (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).drop
+      objectiveDrop_pos :=
+        (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).drop_pos
+      actualDescent :=
+        (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).actual
+      riskBound := hriskLim
+      budgetBound := batchMinimumNormTrainStep_budget_nonneg
+        X y S opCost opRisk write (le_trans hcost.1 hcost.2) }
+  hriskSpend_nn := hrisk
+  hbudgetSpend_nn := hcost.1
+  hdec := by
+    rw [batchMinimumNormTrainStep_of_active X y S opCost opRisk write hcost]
+    exact le_of_eq (trainStep_budget S
+      (batchMinimumNormTrainInput X y S opCost opRisk write))
+  quality := floor_kept_batchMinimumNormTrainStep
+    X y S opCost opRisk write floor hfloor
+
 end Hagi.Contracts.BudgetedBatchCE
