@@ -1268,6 +1268,87 @@ theorem selectedGradientMSE_optimalPropensity_lt_uniform_iff {B I : Type*}
     _ ↔ ¬ (∀ i j, ‖g i‖ = ‖g j‖) := by simp only [abs_norm]
 
 
+/-- Expected squared Euclidean error of the arithmetic-mean estimator
+obtained from one inverse-propensity selected batch gradient. -/
+noncomputable def selectedMeanGradientMSE {B I : Type*} [Fintype B] [Fintype I]
+    (p : PMF B) (g : B → EuclideanSpace ℝ I) : ℝ :=
+  (Fintype.card B : ℝ)⁻¹ ^ 2 * selectedGradientMSE p g
+
+/-- On a nonempty finite batch, the scaled sum-gradient MSE is exactly the
+expected squared error for the estimator `(n*q)⁻¹ • g` and target `n⁻¹ • G`.
+No support hypothesis is needed: this is algebra, including zero masses. -/
+theorem selectedMeanGradientMSE_eq_sum {B I : Type*} [Fintype B] [Fintype I]
+    (p : PMF B) (g : B → EuclideanSpace ℝ I)
+    (h_card : 0 < Fintype.card B) :
+    selectedMeanGradientMSE p g =
+      pmfMean p (fun b =>
+        ‖((Fintype.card B : ℝ) * (p b).toReal)⁻¹ • g b -
+          (Fintype.card B : ℝ)⁻¹ • ∑ a, g a‖ ^ 2) := by
+  have h_card_real : (0 : ℝ) < (Fintype.card B : ℝ) :=
+    Nat.cast_pos.mpr h_card
+  have h_scale (b : B) :
+      ‖((Fintype.card B : ℝ) * (p b).toReal)⁻¹ • g b -
+          (Fintype.card B : ℝ)⁻¹ • ∑ a, g a‖ ^ 2 =
+        (Fintype.card B : ℝ)⁻¹ ^ 2 *
+          ‖(p b).toReal⁻¹ • g b - ∑ a, g a‖ ^ 2 := by
+    have hvector :
+        ((Fintype.card B : ℝ) * (p b).toReal)⁻¹ • g b -
+            (Fintype.card B : ℝ)⁻¹ • ∑ a, g a =
+          (Fintype.card B : ℝ)⁻¹ •
+            ((p b).toReal⁻¹ • g b - ∑ a, g a) := by
+      simp only [smul_sub, smul_smul]
+      rw [mul_inv_rev, mul_comm ((p b).toReal⁻¹) ((Fintype.card B : ℝ)⁻¹)]
+    rw [hvector, norm_smul, norm_inv, Real.norm_eq_abs,
+      abs_of_pos h_card_real]
+    ring
+  unfold selectedMeanGradientMSE selectedGradientMSE
+  rw [← pmfMean_const_mul]
+  apply congrArg (pmfMean p)
+  funext b
+  exact (h_scale b).symm
+
+/-- Norm-proportional selection minimizes arithmetic-mean selected-gradient
+MSE among every target-wise supported finite competitor. -/
+theorem selectedMeanGradientMSE_optimalPropensity_le {B I : Type*}
+    [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (hL : 0 < ∑ b, ‖g b‖) (q : PMF B)
+    (h_support : ∀ b, q b ≠ 0 ∨ g b = 0) :
+    selectedMeanGradientMSE
+        (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+          (by simpa only [abs_norm] using hL)) g ≤
+      selectedMeanGradientMSE q g := by
+  unfold selectedMeanGradientMSE
+  exact mul_le_mul_of_nonneg_left
+    (selectedGradientMSE_optimalPropensity_le g hL q h_support) (sq_nonneg _)
+
+/-- Arithmetic-mean selection strictly improves on normalized uniform
+selection exactly when batch-gradient Euclidean norms are not all equal. -/
+theorem selectedMeanGradientMSE_optimalPropensity_lt_uniform_iff
+    {B I : Type*} [Fintype B] [Fintype I] (g : B → EuclideanSpace ℝ I)
+    (hL : 0 < ∑ b, ‖g b‖) (q : PMF B)
+    (h_unit : ∀ b, (q b).toReal = 1 / (Fintype.card B : ℝ)) :
+    selectedMeanGradientMSE
+        (selectedLoss_optimalPropensity (fun b => ‖g b‖)
+          (by simpa only [abs_norm] using hL)) g <
+      selectedMeanGradientMSE q g ↔ ¬ (∀ i j, ‖g i‖ = ‖g j‖) := by
+  obtain ⟨o, _, _⟩ := Finset.exists_ne_zero_of_sum_ne_zero
+    (s := Finset.univ) (f := fun b => ‖g b‖) hL.ne'
+  have h_card : (0 : ℝ) < (Fintype.card B : ℝ) :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨o⟩)
+  have hfactor : (0 : ℝ) < (Fintype.card B : ℝ)⁻¹ ^ 2 :=
+    sq_pos_of_pos (inv_pos_of_pos h_card)
+  unfold selectedMeanGradientMSE
+  constructor
+  · intro h
+    apply (selectedGradientMSE_optimalPropensity_lt_uniform_iff
+      g hL q h_unit).mp
+    exact lt_of_mul_lt_mul_left h hfactor.le
+  · intro h
+    exact mul_lt_mul_of_pos_left
+      ((selectedGradientMSE_optimalPropensity_lt_uniform_iff
+        g hL q h_unit).mpr h) hfactor
+
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
