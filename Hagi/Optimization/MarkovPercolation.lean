@@ -46,6 +46,43 @@ def walkHistory {G : SimpleGraph V} {u v : V} (w : G.Walk u v) :
     walkHistory w (historyIndex w.length w.length) = v := by
   simp [walkHistory, historyIndex]
 
+/-- Every actual edge is a supported kernel transition.  The converse is
+deliberately not asserted: a one-way kernel may put mass on nonedges. -/
+def adjSupportedRoutingKernel (G : SimpleGraph V) (K : V → PMF V) : Prop :=
+  ∀ a b, G.Adj a b → b ∈ (K a).support
+
+/-- Equality-support supplies the forward direction needed by one-way support. -/
+theorem adjSupportedRoutingKernel_of_supportedRoutingKernel
+    (G : SimpleGraph V) (K : V → PMF V)
+    (hK : supportedRoutingKernel G K) : adjSupportedRoutingKernel G K :=
+  fun a b hab => (hK a b).mpr hab
+
+/-- Only transitions actually occurring before the walk endpoint are required.
+This is an adapter to the existing full-history theorem, not another induction. -/
+theorem historyLaw_walk_support_of_steps (G : SimpleGraph V) (K : ℕ → V → PMF V)
+    {u v : V} (w : G.Walk u v) {initial : PMF V}
+    (hu : u ∈ initial.support)
+    (hsteps : ∀ j < w.length,
+      w.getVert (j + 1) ∈ (K j (w.getVert j)).support) :
+    walkHistory w ∈
+      (historyLaw initial K w.length w.length).support := by
+  apply historyLaw_full_support
+  · simpa [walkHistory, historyIndex] using hu
+  · intro j hj
+    simpa only [walkHistory, historyIndex_val, Nat.min_eq_left hj.le,
+      Nat.min_eq_left (by omega : j + 1 ≤ w.length)] using hsteps j hj
+
+/-- Any supplied graph walk is supported by a homogeneous one-way kernel. -/
+theorem historyLaw_walk_support_of_adjSupported
+    (G : SimpleGraph V) (K : V → PMF V)
+    (hK : adjSupportedRoutingKernel G K) {u v : V} (w : G.Walk u v)
+    {initial : PMF V} (hu : u ∈ initial.support) :
+    walkHistory w ∈
+      (historyLaw initial (fun _ => K) w.length w.length).support := by
+  apply historyLaw_walk_support_of_steps G (fun _ => K) w hu
+  intro j hj
+  exact hK _ _ (w.adj_getVert_succ hj)
+
 /-- Any graph walk is a supported full history for the homogeneous supported
 routing kernel and any initial law supporting its first vertex. -/
 theorem historyLaw_walk_support (G : SimpleGraph V) (K : V → PMF V)
@@ -53,12 +90,8 @@ theorem historyLaw_walk_support (G : SimpleGraph V) (K : V → PMF V)
     {initial : PMF V} (hu : u ∈ initial.support) :
     walkHistory w ∈
       (historyLaw initial (fun _ => K) w.length w.length).support := by
-  apply historyLaw_full_support
-  · simpa [walkHistory, historyIndex] using hu
-  · intro j hj
-    simp only [walkHistory, historyIndex_val, Nat.min_eq_left hj.le,
-      Nat.min_eq_left (by omega : j + 1 ≤ w.length)]
-    exact (hK _ _).mpr (w.adj_getVert_succ hj)
+  exact historyLaw_walk_support_of_adjSupported G K
+    (adjSupportedRoutingKernel_of_supportedRoutingKernel G K hK) w hu
 
 /-- Positive point-mass form of `historyLaw_walk_support`. -/
 theorem historyLaw_walk_apply_pos (G : SimpleGraph V) (K : V → PMF V)
@@ -66,6 +99,20 @@ theorem historyLaw_walk_apply_pos (G : SimpleGraph V) (K : V → PMF V)
     {initial : PMF V} (hu : u ∈ initial.support) :
     0 < historyLaw initial (fun _ => K) w.length w.length (walkHistory w) :=
   (PMF.apply_pos_iff _ _).mpr (historyLaw_walk_support G K hK w hu)
+
+/-- The existing existential crossing supplies a pair and a walk whose exact
+history is supported from a pure start under the weaker one-way premise. -/
+theorem exists_walk_history_support_of_crossing_of_adjSupported {L M : ℕ}
+    {top bottom : Hagi.Percolation.V L → Prop} {qv : ℕ} {ω : Hagi.Percolation.V L → Fin M}
+    {K : Hagi.Percolation.V L → PMF (Hagi.Percolation.V L)}
+    (hK : adjSupportedRoutingKernel (openGraph (openAt qv ω)) K)
+    (hcross : crossing top bottom qv ω) :
+    ∃ (a b : Hagi.Percolation.V L) (w : (openGraph (openAt qv ω)).Walk a b),
+      top a ∧ bottom b ∧
+        walkHistory w ∈
+          (historyLaw (PMF.pure a) (fun _ => K) w.length w.length).support := by
+  obtain ⟨a, b, ha, hb, ⟨w⟩⟩ := hcross
+  exact ⟨a, b, w, ha, hb, historyLaw_walk_support_of_adjSupported _ _ hK w (by simp)⟩
 
 /-- The existing existential crossing supplies a pair and a walk whose exact
 history is supported from a pure start. -/
@@ -78,8 +125,8 @@ theorem exists_walk_history_support_of_crossing {L M : ℕ}
       top a ∧ bottom b ∧
         walkHistory w ∈
           (historyLaw (PMF.pure a) (fun _ => K) w.length w.length).support := by
-  obtain ⟨a, b, ha, hb, ⟨w⟩⟩ := hcross
-  exact ⟨a, b, w, ha, hb, historyLaw_walk_support _ _ hK w (by simp)⟩
+  exact exists_walk_history_support_of_crossing_of_adjSupported
+    (adjSupportedRoutingKernel_of_supportedRoutingKernel _ _ hK) hcross
 
 /-- Universal top starts are available only from an explicit universal
 reachability premise.  Different walks retain their independent horizons. -/
@@ -126,5 +173,100 @@ theorem uniformNeighborKernel_support [Fintype V] (G : SimpleGraph V)
     rw [PMF.mem_support_iff, uniformNeighborKernel,
       Hagi.Probability.PMF.uniformOfFinset_apply, ite_eq_left hmem]
     exact ENNReal.inv_ne_zero.mpr (ENNReal.natCast_ne_top _)
+
+/-- Uniform routing at non-isolated vertices, with a pure row at isolated
+vertices.  The latter is row totalization, not a graph self-edge, temporal
+terminal stop, or `Option.none` fallback. -/
+noncomputable def neighborOrStayKernel [Fintype V] (G : SimpleGraph V)
+    [SimpleGraph.LocallyFinite G] : V → PMF V := by
+  classical
+  exact fun v => if hv : (G.neighborFinset v).Nonempty then
+    Hagi.Probability.PMF.uniformOfFinset (G.neighborFinset v) hv
+  else PMF.pure v
+
+/-- Adjacency is sufficient for support in the total neighbor-or-stay kernel. -/
+theorem neighborOrStayKernel_adjSupported [Fintype V]
+    (G : SimpleGraph V) [SimpleGraph.LocallyFinite G] :
+    adjSupportedRoutingKernel G (neighborOrStayKernel G) := by
+  classical
+  intro a b hab
+  have hmem : b ∈ G.neighborFinset a := (G.mem_neighborFinset a b).mpr hab
+  have hne : (G.neighborFinset a).Nonempty := ⟨b, hmem⟩
+  rw [PMF.mem_support_iff, neighborOrStayKernel, dite_eq_left hne,
+    Hagi.Probability.PMF.uniformOfFinset_apply, ite_eq_left hmem]
+  exact ENNReal.inv_ne_zero.mpr (ENNReal.natCast_ne_top _)
+
+/-- At an isolated vertex the actual PMF row is the pure PMF. -/
+theorem neighborOrStayKernel_isolated [Fintype V]
+    (G : SimpleGraph V) [SimpleGraph.LocallyFinite G] {a : V}
+    (ha : G.IsIsolated a) : neighborOrStayKernel G a = PMF.pure a := by
+  classical
+  have hne : ¬ (G.neighborFinset a).Nonempty := by
+    rintro ⟨b, hb⟩
+    exact ha b ((G.mem_neighborFinset a b).mp hb)
+  simp [neighborOrStayKernel, hne]
+
+open Hagi.Optimization.Schelling
+
+open Classical in
+/-- qv=1: equality-support is impossible at the isolated closed cell, while
+the total one-way kernel, its actual pure row and a nil history are available.
+The last conjunct separately consumes not-crossing evidence. -/
+example :
+    ¬ (∃ K, supportedRoutingKernel (openGraph (openAt 1 paritySeed)) K) ∧
+    adjSupportedRoutingKernel (openGraph (openAt 1 paritySeed))
+      (neighborOrStayKernel (openGraph (openAt 1 paritySeed))) ∧
+    neighborOrStayKernel (openGraph (openAt 1 paritySeed)) ((0, 1) : Hagi.Percolation.V 2) =
+      PMF.pure ((0, 1) : Hagi.Percolation.V 2) ∧
+    (∃ w : (openGraph (openAt 1 paritySeed)).Walk ((0, 1) : Hagi.Percolation.V 2)
+        ((0, 1) : Hagi.Percolation.V 2),
+      walkHistory w ∈
+        (historyLaw (PMF.pure ((0, 1) : Hagi.Percolation.V 2))
+          (fun _ => neighborOrStayKernel (openGraph (openAt 1 paritySeed)))
+          w.length w.length).support) ∧
+    ¬ crossing rowTop rowBot 1 paritySeed := by
+  have hclosed : ¬ openAt 1 paritySeed ((0, 1) : Hagi.Percolation.V 2) := by
+    norm_num [openAt, paritySeed, Percolation.seedParity]
+  have hisolated :
+      (openGraph (openAt 1 paritySeed)).IsIsolated ((0, 1) : Hagi.Percolation.V 2) := by
+    intro b hab
+    exact hclosed hab.2.1
+  refine ⟨?_, neighborOrStayKernel_adjSupported _,
+    neighborOrStayKernel_isolated _ hisolated, ?_, parity_not_crossing1⟩
+  · rintro ⟨K, hK⟩
+    obtain ⟨b, hb⟩ := (K ((0, 1) : Hagi.Percolation.V 2)).support_nonempty
+    exact hisolated b ((hK _ b).mp hb)
+  · refine ⟨SimpleGraph.Walk.nil, ?_⟩
+    exact historyLaw_walk_support_of_adjSupported _ _
+      (neighborOrStayKernel_adjSupported _) SimpleGraph.Walk.nil (by simp)
+
+open Classical in
+/-- qv=2: the explicit finite all-open 2×2 graph has nonempty neighbor
+finsets, an equality-support kernel and a supported crossing history. -/
+example : ∃ K : Hagi.Percolation.V 2 → PMF (Hagi.Percolation.V 2),
+    supportedRoutingKernel (openGraph (openAt 2 paritySeed)) K ∧
+    ∃ (a b : Hagi.Percolation.V 2) (w : (openGraph (openAt 2 paritySeed)).Walk a b),
+      rowTop a ∧ rowBot b ∧
+        walkHistory w ∈
+          (historyLaw (PMF.pure a) (fun _ => K) w.length w.length).support := by
+  have hne : ∀ c, ((openGraph (openAt 2 paritySeed)).neighborFinset c).Nonempty := by
+    intro c
+    fin_cases c
+    · exact ⟨(0, 1), by
+        norm_num [SimpleGraph.mem_neighborFinset, openGraph, openAt,
+          paritySeed, seedParity, cellAdj, step]⟩
+    · exact ⟨(0, 0), by
+        norm_num [SimpleGraph.mem_neighborFinset, openGraph, openAt,
+          paritySeed, seedParity, cellAdj, step]⟩
+    · exact ⟨(1, 1), by
+        norm_num [SimpleGraph.mem_neighborFinset, openGraph, openAt,
+          paritySeed, seedParity, cellAdj, step]⟩
+    · exact ⟨(1, 0), by
+        norm_num [SimpleGraph.mem_neighborFinset, openGraph, openAt,
+          paritySeed, seedParity, cellAdj, step]⟩
+  let K := uniformNeighborKernel (openGraph (openAt 2 paritySeed)) hne
+  have hK : supportedRoutingKernel (openGraph (openAt 2 paritySeed)) K :=
+    uniformNeighborKernel_support _ _
+  exact ⟨K, hK, exists_walk_history_support_of_crossing hK parity_crossing2⟩
 
 end Hagi.Optimization.MarkovPercolation
