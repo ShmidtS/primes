@@ -630,6 +630,134 @@ theorem pmfMean_selectedLoss_variance {V : Type*} [Fintype V]
     rw [hmoment]
     ring
 
+
+open scoped Classical
+
+/-- One selected observation's expected sum of coordinate-wise squared
+errors for a fixed finite loss vector. PmfMean is linear, so this also
+expresses its expected Euclidean squared error; no independence claim. -/
+noncomputable def selectedLossMSE {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ) : ℝ :=
+  ∑ b, pmfMean p (fun a =>
+    ((if a = b then ℓ a / (p a).toReal else 0) - ℓ b) ^ 2)
+
+/-- Loss-magnitude-proportional propensity. The positive normalizer
+ensures a genuine PMF, including zero propensity for zero losses.
+This normalized construction is for one fixed finite loss vector. -/
+noncomputable def selectedLoss_optimalPropensity {V : Type*} [Fintype V]
+    (ℓ : V → ℝ) (hL : 0 < ∑ i, |ℓ i|) : PMF V := by
+  let q : V → ℝ := fun i => |ℓ i| / ∑ a, |ℓ a|
+  have hq_nonneg : ∀ i, 0 ≤ q i := by
+    intro i
+    exact div_nonneg (abs_nonneg (ℓ i)) hL.le
+  have hq_sum : ∑ i, q i = 1 := by
+    dsimp [q]
+    calc
+      (∑ i, |ℓ i| / ∑ a, |ℓ a|) = (∑ i, |ℓ i|) / ∑ a, |ℓ a| :=
+        (Finset.sum_div _ _ _).symm
+      _ = 1 := div_self hL.ne'
+  refine PMF.ofFintype (fun i => ENNReal.ofReal (q i)) ?_
+  calc
+    ∑ i, ENNReal.ofReal (q i) = ENNReal.ofReal (∑ i, q i) :=
+      (ENNReal.ofReal_sum_of_nonneg (fun i _ => hq_nonneg i)).symm
+    _ = 1 := by rw [hq_sum, ENNReal.ofReal_one]
+
+@[simp] theorem selectedLoss_optimalPropensity_apply {V : Type*} [Fintype V]
+    (ℓ : V → ℝ) (hL : 0 < ∑ i, |ℓ i|) (b : V) :
+    (selectedLoss_optimalPropensity ℓ hL b).toReal =
+      |ℓ b| / ∑ i, |ℓ i| := by
+  change (ENNReal.ofReal (|ℓ b| / ∑ i, |ℓ i|)).toReal =
+    |ℓ b| / ∑ i, |ℓ i|
+  exact ENNReal.toReal_ofReal (div_nonneg (abs_nonneg (ℓ b)) hL.le)
+
+/-- Exact objective under target-wise support. The formula identifies
+sum-of-coordinate-error MSE with the trace of marginal variances;
+there is no covariance-independence or scalar-total-variance claim. -/
+theorem selectedLossMSE_eq_sum {V : Type*} [Fintype V]
+    (p : PMF V) (ℓ : V → ℝ)
+    (h_support : ∀ b, p b ≠ 0 ∨ ℓ b = 0) :
+    selectedLossMSE p ℓ =
+      (∑ b, (ℓ b) ^ 2 / (p b).toReal) - ∑ b, (ℓ b) ^ 2 := by
+  unfold selectedLossMSE
+  calc
+    ∑ b, pmfMean p (fun a =>
+        ((if a = b then ℓ a / (p a).toReal else 0) - ℓ b) ^ 2)
+        = ∑ b, (ℓ b) ^ 2 * (1 / (p b).toReal - 1) := by
+      apply Finset.sum_congr rfl
+      intro b _
+      have hmean := pmfMean_selectedLoss_support p ℓ b (h_support b)
+      have hvar := pmfMean_selectedLoss_variance p ℓ b (h_support b)
+      rw [pmfMean_sq_sub, hmean]
+      rw [hmean] at hvar
+      linarith
+    _ = (∑ b, (ℓ b) ^ 2 / (p b).toReal) - ∑ b, (ℓ b) ^ 2 := by
+      rw [← Finset.sum_sub_distrib]
+      apply Finset.sum_congr rfl
+      intro b _
+      ring
+
+/-- Exact MSE attained by loss-magnitude-proportional propensity.
+Zero losses may have zero mass without losing unbiasedness. -/
+theorem selectedLoss_optimalPropensity_mse {V : Type*} [Fintype V]
+    (ℓ : V → ℝ) (hL : 0 < ∑ i, |ℓ i|) :
+    selectedLossMSE (selectedLoss_optimalPropensity ℓ hL) ℓ =
+      (∑ i, |ℓ i|) ^ 2 - ∑ i, (ℓ i) ^ 2 := by
+  have h_support : ∀ b,
+      selectedLoss_optimalPropensity ℓ hL b ≠ 0 ∨ ℓ b = 0 := by
+    intro b
+    by_cases hzero : ℓ b = 0
+    · exact Or.inr hzero
+    · apply Or.inl
+      have hne : (selectedLoss_optimalPropensity ℓ hL b).toReal ≠ 0 := by
+        rw [selectedLoss_optimalPropensity_apply]
+        exact div_ne_zero (abs_ne_zero.mpr hzero) hL.ne'
+      exact (ENNReal.toReal_ne_zero.mp hne).1
+  rw [selectedLossMSE_eq_sum _ _ h_support]
+  have hsecond : ∑ b,
+      (ℓ b) ^ 2 / (selectedLoss_optimalPropensity ℓ hL b).toReal =
+        ∑ b, |ℓ b| * ∑ i, |ℓ i| := by
+    apply Finset.sum_congr rfl
+    intro b _
+    rw [selectedLoss_optimalPropensity_apply]
+    by_cases hzero : ℓ b = 0
+    · simp [hzero]
+    · rw [← sq_abs]
+      field_simp [abs_ne_zero.mpr hzero, hL.ne']
+  rw [hsecond, ← Finset.sum_mul]
+  ring
+
+/-- Global finite MSE optimum among supported PMFs, proved using
+zero-safe finite Cauchy-Schwarz, not stationary-point optimality. -/
+theorem selectedLoss_optimalPropensity_mse_le {V : Type*} [Fintype V]
+    (ℓ : V → ℝ) (hL : 0 < ∑ i, |ℓ i|)
+    (q : PMF V) (h_support : ∀ b, q b ≠ 0 ∨ ℓ b = 0) :
+    selectedLossMSE (selectedLoss_optimalPropensity ℓ hL) ℓ ≤
+      selectedLossMSE q ℓ := by
+  have hCS : (∑ i, |ℓ i|) ^ 2 ≤
+      (∑ i, (ℓ i) ^ 2 / (q i).toReal) * ∑ i, (q i).toReal := by
+    apply Finset.sum_sq_le_sum_mul_sum_of_sq_le_mul
+    · intro i _
+      exact div_nonneg (sq_nonneg (ℓ i)) ENNReal.toReal_nonneg
+    · intro i _
+      exact ENNReal.toReal_nonneg
+    · intro i _
+      by_cases hzero : (q i).toReal = 0
+      · have hqi : q i = 0 := by
+          have hz : q i = 0 ∨ q i = ⊤ :=
+            (ENNReal.toReal_eq_zero_iff (q i)).mp hzero
+          exact hz.resolve_right (q.apply_ne_top i)
+        have hloss : ℓ i = 0 := (h_support i).elim
+          (fun hne => (hne hqi).elim) (fun hzero => hzero)
+        simp [hzero, hloss]
+      · rw [sq_abs]
+        exact le_of_eq (div_mul_cancel₀ ((ℓ i) ^ 2) hzero).symm
+  have hbound : (∑ i, |ℓ i|) ^ 2 ≤
+      ∑ i, (ℓ i) ^ 2 / (q i).toReal := by
+    simpa only [pmf_weight_sum q, mul_one] using hCS
+  rw [selectedLoss_optimalPropensity_mse,
+    selectedLossMSE_eq_sum q ℓ h_support]
+  linarith
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
