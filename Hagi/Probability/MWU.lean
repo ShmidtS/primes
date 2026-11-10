@@ -998,6 +998,45 @@ theorem selectedLoss_optimalPropensity_mse_eq_zero_iff_apply_eq_one
     rw [Finset.sum_eq_zero (fun a _ => hzero a), mul_zero]
 
 
+/-- For positive total absolute loss, the optimal supported estimator
+has zero MSE exactly when there is one genuinely nonzero loss
+coordinate (all other coordinates are zero). -/
+theorem selectedLoss_optimalPropensity_mse_eq_zero_iff_single_nonzero
+    {V : Type*} [Fintype V] (ell : V → ℝ) (hL : 0 < ∑ i, |ell i|) :
+    selectedLossMSE (selectedLoss_optimalPropensity ell hL) ell = 0 ↔
+      ∃ b, ell b ≠ 0 ∧ ∀ a, a ≠ b → ell a = 0 := by
+  classical
+  rw [selectedLoss_optimalPropensity_mse_eq_zero_iff_apply_eq_one]
+  constructor
+  · rintro ⟨b, hb⟩
+    have hbne : ell b ≠ 0 := by
+      intro hzero
+      have hbreal : (selectedLoss_optimalPropensity ell hL b).toReal = 1 :=
+        (ENNReal.toReal_eq_one_iff _).mpr hb
+      rw [selectedLoss_optimalPropensity_apply, hzero, abs_zero, zero_div] at hbreal
+      exact zero_ne_one hbreal
+    refine ⟨b, hbne, ?_⟩
+    intro a ha
+    have hnot : a ∉ (selectedLoss_optimalPropensity ell hL).support := by
+      rw [((selectedLoss_optimalPropensity ell hL).apply_eq_one_iff b).mp hb]
+      simp [ha]
+    have ha0 : selectedLoss_optimalPropensity ell hL a = 0 :=
+      ((selectedLoss_optimalPropensity ell hL).apply_eq_zero_iff a).mpr hnot
+    have hareal : (selectedLoss_optimalPropensity ell hL a).toReal = 0 := by
+      rw [ha0, ENNReal.toReal_zero]
+    rw [selectedLoss_optimalPropensity_apply] at hareal
+    exact abs_eq_zero.mp ((div_eq_zero_iff.mp hareal).resolve_right (ne_of_gt hL))
+  · rintro ⟨b, hb, hothers⟩
+    refine ⟨b, ?_⟩
+    apply (ENNReal.toReal_eq_one_iff _).mp
+    have hsum : ∑ i, |ell i| = |ell b| := by
+      apply Fintype.sum_eq_single b
+      intro a ha
+      rw [hothers a ha, abs_zero]
+    rw [selectedLoss_optimalPropensity_apply, hsum]
+    exact div_self (abs_ne_zero.mpr hb)
+
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
