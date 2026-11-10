@@ -1037,6 +1037,60 @@ theorem selectedLoss_optimalPropensity_mse_eq_zero_iff_single_nonzero
     exact div_self (abs_ne_zero.mpr hb)
 
 
+/-- For positive total absolute loss, the optimal supported estimator
+strictly beats a normalized uniform reference exactly when not all loss
+magnitudes are equal. -/
+theorem selectedLoss_optimalPropensity_mse_lt_uniform_iff
+    {V : Type*} [Fintype V] (ell : V → ℝ)
+    (hL : 0 < ∑ i, |ell i|) (q : PMF V)
+    (h_unit : ∀ b, (q b).toReal = 1 / (Fintype.card V : ℝ)) :
+    selectedLossMSE (selectedLoss_optimalPropensity ell hL) ell <
+      selectedLossMSE q ell ↔ ¬ (∀ i j, |ell i| = |ell j|) := by
+  obtain ⟨o, _, ho⟩ := Finset.exists_ne_zero_of_sum_ne_zero
+    (s := Finset.univ) (f := fun i => |ell i|) hL.ne'
+  have hcard : (0 : ℝ) < (Fintype.card V : ℝ) :=
+    Nat.cast_pos.mpr (Fintype.card_pos_iff.mpr ⟨o⟩)
+  have hq (b : V) : q b ≠ 0 := by
+    apply (ENNReal.toReal_ne_zero.mp ?_).1
+    rw [h_unit]
+    exact one_div_ne_zero hcard.ne'
+  have h_support : ∀ b, q b ≠ 0 ∨ ell b = 0 :=
+    fun b => Or.inl (hq b)
+  have hle := selectedLoss_optimalPropensity_mse_le ell hL q h_support
+  constructor
+  · intro hlt hconst
+    have hL_const : (∑ i, |ell i|) =
+        (Fintype.card V : ℝ) * |ell o| := by
+      calc
+        (∑ i, |ell i|) = ∑ _i : V, |ell o| :=
+          Finset.sum_congr rfl (fun i _ => hconst i o)
+        _ = (Fintype.card V : ℝ) * |ell o| := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+    have hpq : selectedLoss_optimalPropensity ell hL = q := by
+      apply PMF.ext
+      intro b
+      apply (ENNReal.toReal_eq_toReal_iff'
+        ((selectedLoss_optimalPropensity ell hL).apply_ne_top b)
+        (q.apply_ne_top b)).mp
+      rw [selectedLoss_optimalPropensity_apply, h_unit,
+        hconst b o, hL_const]
+      field_simp [hcard.ne', ho]
+    exact (ne_of_lt hlt) (congrArg (fun p => selectedLossMSE p ell) hpq)
+  · intro hnot
+    apply lt_of_le_of_ne hle
+    intro heq
+    apply hnot
+    have hpq := selectedLoss_optimalPropensity_eq_of_mse_eq
+      ell hL q h_support heq
+    have hnorm (i : V) : |ell i| / (∑ j, |ell j|) =
+        1 / (Fintype.card V : ℝ) := by
+      rw [← selectedLoss_optimalPropensity_apply ell hL i, hpq, h_unit]
+    intro i j
+    apply mul_right_cancel₀ hL.ne'
+    exact (div_eq_div_iff hL.ne' hL.ne').mp
+      ((hnorm i).trans (hnorm j).symm)
+
+
 end Hagi.Probability
 
 export Hagi.Probability (mwu_potential_step)
