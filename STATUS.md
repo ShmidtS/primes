@@ -1484,6 +1484,19 @@
   held-out качество, произвольный stopping time, strict `StepCert`,
   оптимальная константа или снижение вычислительной стоимости.
 
+
+## Hagi/Model/CEMarkovSelectedPrefix.lean
+
+- `raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`: для банка raw
+  CE, kernel `K` и одновременного события для всех `j ≤ T`, явно задаются
+  baseline `b`, full-history selector `σ` и bounded prefix `τ`, причём
+  `0 ≤ τ ω ≤ T`. Если conditional бюджеты `v` у `b` и `σ ω` не превосходят
+  `V` на этом префиксе, а наблюдаемая разность raw CE больше `2*r`, то
+  conditional mean разность «baseline минус выбранный» на `τ ω` строго
+  положительна. Сохранён raw baseline/selected gap; stationary kernel не
+  предполагается. Это pointwise conditional результат, не безусловный
+  expected loss, causal stopping-time policy, optimal bank selection,
+  training progress или `StepCert`; hobs не выводится из Freedman-события.
 ## Hagi/Model/CEPackedStep.lean
 
 - `packedStep_payload` фиксирует 16-битный объект со значением `8311`;

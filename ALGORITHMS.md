@@ -702,6 +702,28 @@ v_i(k,a)   = E_(b∼K(k,a)) (g_i(k,a,b))².
 установленной производительности, CE-обучении или strict `StepCert`. Для детерминированного accepted CE-шага
 по-прежнему нужны весь его guard и его отдельные предпосылки.
 
+
+На уже зафиксированной истории можно задать baseline `b`, селектор `σ ω`
+и bounded prefix `τ ω ≤ T`. Здесь `σ` и `τ` — снабжённые функции всей
+history, включая последующее состояние; одна эта проверка не делает их
+адаптированной или causal политикой. Обозначим сумму raw CE до `τ ω` через
+A_i, сумму её conditional PMF mean через M_i, а residual через g_i.
+Если одновременное prefix confidence-событие выполнено, обе границы
+`historyCounter v T (τ ω) ω ≤ V` для `b` и `σ ω` выполнены и
+`2*r < A_b − A_(σ ω)`, то
+[`raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`](Hagi/Model/CEMarkovSelectedPrefix.lean)
+доказывает `0 < M_b − M_(σ ω)`. Разложение `A_i = historyAdditive g_i + M_i`
+и `|historyAdditive g_i| < r` делают conditional gap не меньше raw gap
+минус суммарный radius `2r`; условие hobs остаётся посылкой.
+
+Это сравнение на guarded realization, а не безусловная граница
+ожидаемого риска или обещание оптимального селектора. Одно центрирование
+`g = F − μ` сохраняет весь observed gap, поэтому здесь не возникает слабого
+радиуса `r` или потерянного raw residual. При `τ ω = 0` premise `2r < 0`
+несовместим с получаемым из good `0 < r`: нулевой prefix не является
+наблюдаемым улучшением. Результат не создаёт CE-training, causal stopping,
+произвольное stopping time, held-out качество, `StepCert` или ускорение;
+для детерминированного commit по-прежнему необходимы полные guards.
 ## 9. Исполнение: guards, router и охлаждение
 
 Для произвольного `inputFor(S)` сначала вычисляем proposed successor и
