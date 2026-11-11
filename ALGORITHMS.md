@@ -582,6 +582,41 @@ payload с выбранными параметрами. Classical choose в exac
 доказывает `totalErrorCont c f ≤ totalErrorCont c g`.
 Применяем его только при уже найденном equalizing `f`, не как конструктор.
 
+### 6.3 BF16: guarded delta-read с безопасным re-anchor
+
+Логический носитель — [`Hagi.Runtime.BF16Delta.Code`](Hagi/Runtime/BF16Delta.lean):
+знак, raw exponent `0..254` и fraction описывают все конечные BF16-коды.
+`decode` отображает их точно в `ℚ`, включая signed zeros и subnormals.
+Это не упакованный 16-bit layout и не native-память.
+
+Для guard `Hagi.Runtime.BF16Delta.SamePositiveNormalBinade` требуются
+неотрицательные знаки, равные raw exponents и ненулевой exponent.
+Порядок по величине не ограничен. Тогда
+[`Hagi.Runtime.BF16Delta.exists_sameBinade_difference`](Hagi/Runtime/BF16Delta.lean)
+строит точную разность в `Code`, включая zero, negative и subnormal cases.
+
+Два таких кандидата должны иметь pointwise nearest-посылки для самого
+бэкенда; существование `exists_IsNearest` не задаёт executable RNE или tie rule.
+Для двух уже представленных кодов, исходного и нового, рецепт следующий:
+
+- получить delta с посылкой
+  `Hagi.Runtime.BF16Delta.IsNearest (decode new - decode anchor) delta`;
+- при guard получить readback с посылкой
+  `Hagi.Runtime.BF16Delta.IsNearest (decode delta + decode anchor) readback`;
+  вне guard использовать `decode new` независимо от readback;
+- применить
+  [`Hagi.Runtime.BF16Delta.guardedRead_nearest_returns_new`](Hagi/Runtime/BF16Delta.lean)
+  для возврата значения `decode new`.
+
+FTZ при subnormal delta может нарушить ближайшую посылку. Вне guard
+[`Hagi.Runtime.BF16Delta.extreme_nearest_delta_loses_update`](Hagi/Runtime/BF16Delta.lean)
+показывает потерю ненулевого обновления: для anchor `2^127` и new `129/128`
+nearest delta равна `-anchor`, а nearest reconstruction имеет значение нуля.
+Поэтому идеальное `(new-anchor)+anchor` нельзя подставлять вместо fallback.
+
+Пока не доказаны packed storage, GDN/runtime integration, поддержка FTZ,
+физическая экономия памяти/времени или улучшение обучения и held-out CE.
+
 ## 7. HNet: стартовый ratio из continuous cost-модели
 
 Для `a,b,T,r>0` обозначим `C(r)=aTr+bT²/r²`: локальная pooling-цена плюс

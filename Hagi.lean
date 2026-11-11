@@ -250,6 +250,7 @@ import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.TopLevel
 import Hagi.Energy.STEStep
+import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact
 import Hagi.Runtime.TernaryCodec
 import Hagi.Runtime.DyadicTernary

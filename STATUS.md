@@ -2798,6 +2798,22 @@
 - `cooldown_tail_constant`: при `sigma ≥ 0`, `c > 1`, `Bd 0 > 0` и геометрическом росте для `t < n_d` сумма фазы затухания не превосходит `sigma^2*c/(Bd 0*(c-1))`.
 - `wsqd_noise_budget` объединяет ровно две суммы: стабильную длину n_w и длину затухания n_d, с `B0 > 0`, `Bd 0 = B0` и теми же условиями роста. Отдельного слагаемого разогрева в теореме нет.
 
+## Hagi/Runtime/BF16Delta.lean
+
+- `Code` и `decode` задают все конечные BF16-коды с точным значением в `ℚ`,
+  включая signed zeros и subnormals. `exists_IsNearest` строит ближайший код
+  для каждого рационального аргумента без глобальной RNE/tie-breaking функции.
+- `extreme_nearest_delta_loses_update`: при двух pointwise nearest-посылках
+  обновление от anchor `2^127` к `129/128` может оказаться нулевым после
+  nearest delta/recovery. Поэтому наивная rounded delta-write не сертифицируется.
+- `exists_sameBinade_difference`: для положительных кодов с равным ненулевым
+  exponent точная разность представима в обоих порядках, включая subnormal.
+- `guardedRead_nearest_returns_new`: под этим guard две nearest-посылки
+  возвращают `decode new`; вне guard функция также возвращает `decode new`
+  непосредственно, не используя readback.
+- Это логический code contract, не packed RAM, support FTZ, GDN adapter или
+  доказательство memory/latency saving и улучшения качества обучения.
+
 ## Hagi/Runtime/ControllerGates.lean
 
 - `logitRange_scale` при `tau > 0` даёт линейное масштабирование диапазона, `variance_gate_contract` при `tau ≥ 1` — сокращение квадратичной величины `range^2/8`, а `variance_gate_normalize` при `Rbar > 0` и `Rbar ≤ range f` нормализует диапазон ровно к `R̄`.
