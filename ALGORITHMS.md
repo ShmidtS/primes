@@ -348,6 +348,51 @@ Counterexample: два identity features и смешанные метки `[0,1]
 individual predictions. Произвольные affine/full-rank features, сходимость
 параметров, held-out качество и вычислительная оптимальность не доказаны.
 
+### 3.6 Guarded Pareto CE: адаптер к StepContract
+
+Для конечного типа `V` положим
+`T = budgetedParetoBatchTrainStep X y S opCost opRisk write` и передадим
+только условие `0≤opRisk`. Адаптер
+[`budgetedParetoStepContract`](Hagi/Contracts/BudgetedParetoStepContract.lean)
+возвращает обычный [`StepContract`](Hagi/Unified/StepContract.lean), где
+
+```
+decrease    = batchCEObjective X y S - batchCEObjective X y T,
+riskCost    = T.saf.risk - S.saf.risk,
+budgetSpend = S.res.budget - T.res.budget.
+```
+
+Это фактическая CE как функция параметров и данных, а не норма параметров,
+saved effects или телеметрия. Структура требует именно nonnegative
+`StepContract.decrease`, `StepContract.riskCost` и
+`StepContract.budgetSpend`; universal strict progress не требуется.
+
+При активном guard проверяем `0≤opCost≤S.res.budget` и samplewise CE
+non-regression на реально вычисленном batch successor. Тогда арифметическое
+среднее CE не возрастает, расход равен `opCost≥0`, а
+`StepContract.riskCost=opRisk≥0`.
+Общее условие `0≤opCost` не добавляем. Guard не проверяет риск, поэтому
+посылку `0≤opRisk` опускать нельзя: она необходима даже при `B=0` и `V=Empty`.
+При любом отказе guard возвращает целое `S`; все три дельты обнуляются,
+и hold остаётся допустимым шагом обычной структуры.
+
+Для положительного контроля используем прежний доказанный двухэлементный
+same-label mean-CE drop
+[`sameZeroInitialMeanDrop_pos`](Hagi/Contracts/BatchCETrajectory.lean):
+соответствующий `StepContract.decrease` действительно положителен. При
+начальном бюджете `2`, `opCost=1/2` и `opRisk=1/4` получаем остаток бюджета
+`3/2`, `StepContract.budgetSpend=1/2`, новый риск `1/4` при нулевом старом и
+`StepContract.riskCost=1/4`. Это контроль одного commit, а не отдельный strict StepCert.
+При `opCost=-1` или недоступном `opCost=3` возникает hold. На смешанном batch
+не путаем нулевой mean residual с полным hold: настоящий asymmetric CE veto
+возвращает `S`, поэтому обе resource/risk дельты и CE delta равны нулю.
+
+`StepContract.budgetSpend≥0` — это не утверждение о nonnegative новом бюджете
+для произвольного `S`; следующий бюджет является отдельным инвариантом с его
+посылками. Адаптер не выбирает оптимальное действие и не доказывает
+индивидуальный mixed-batch CE descent, параметрическую или оптимальную
+сходимость, generalization, bounded последующий risk, экономию FLOP/time.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`

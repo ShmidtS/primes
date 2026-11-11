@@ -328,6 +328,32 @@
   сходимость параметров, правильность individual predictions в mixed batch,
   произвольные affine X, held-out качество или runtime-выигрыш.
 
+## Hagi/Contracts/BudgetedParetoStepContract.lean
+
+- `budgetedParetoStepContract` для `[Fintype V]` и `0≤opRisk` переводит
+  реальный `budgetedParetoBatchTrainStep` в обычный `StepContract`.
+  Для его successor `T` поле `StepContract.decrease` равно старому минус
+  новому `batchCEObjective`, `StepContract.riskCost = T.saf.risk-S.saf.risk`,
+  а `StepContract.budgetSpend = S.res.budget-T.res.budget`.
+- Активный guard обеспечивает samplewise CE non-regression и nonnegative
+  affordable cost; вместе с `0≤opRisk` этого достаточно для всех трёх
+  nonnegative полей. Не требуется глобального условия `0≤opCost`,
+  `Nonempty V`, строгого CE drop или nonnegative старого бюджета.
+  Неактивный guard возвращает целое `S`, поэтому все три дельты равны нулю.
+- На genuine positive commit прежний `sameZeroInitialMeanDrop_pos` даёт
+  положительное уменьшение CE: бюджет `2→3/2`,
+  `StepContract.budgetSpend=1/2`, риск `0→1/4`,
+  `StepContract.riskCost=1/4`. Отрицательный и неподъёмный cost дают hold.
+  Guard не проверяет risk, поэтому `0≤opRisk` необходимо даже при `B=0`
+  и пустом типе vocabulary, без создания фиктивного элемента или `y 0`.
+- Реальный asymmetric CE veto возвращает `S`; нулевой mean residual не
+  используется как доказательство полного hold и не означает индивидуальный
+  CE descent. Уменьшение задаётся CE, а не нормой параметров или saved effects.
+- Это одношаговый nonnegative адаптер, включая hold, а не строгий или
+  вероятностный StepCert. Nonnegative нового бюджета для произвольного `S`
+  здесь отдельно не утверждается; не следуют также parameter/optimum/CE
+  convergence, generalization, оптимальное действие, runtime/FLOP выигрыш.
+
 ## Hagi/Contracts/MixtureEMTrajectory.lean
 
 - `mixtureTrajectoryBank_succ`: для положительной исходной свидетельствуемости банк на шаге `t + 1` получается смешиванием текущей модели с соответствующей seed-моделью и весом `mixtureGridWeight`.
