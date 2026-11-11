@@ -90,6 +90,23 @@ Loss выбирается на supplied finite examples; held-out качеств
 формулы не следует. При усреднении параметров midpoint-CE снова оценивается
 только pointwise, как в [`ceOneHot_mean_ceLogits_le`](Hagi/Model/CEHeldout.lean).
 
+Для `[Fintype V]`, `[Nonempty V]` и явного `[DecidableEq V]` имеем
+`p = Pi.single t 1`, `q = Hagi.Prelude.softDef z`.
+Связь с канонической информационной семантикой точная:
+[`ceOneHot_eq_ceDef_pi_single`](Hagi/Core/Concat.lean),
+[`ceOneHot_eq_klDef_pi_single`](Hagi/Core/Concat.lean):
+
+```
+ceOneHot t z = Hagi.Prelude.ceDef p q = Hagi.Prelude.klDef p q.
+```
+
+Масса one-hot равна единице; softmax строго положителен и нормирован.
+[`KLSupported_pi_single_softDef`](Hagi/Core/Concat.lean) доказывает условие
+поддержки `q v ≠ 0 ∨ p v = 0`: нули one-hot вне цели допускаются.
+Поэтому к этому случаю применимы существующие результаты о неотрицательности
+KL. Это точечное соответствие для one-hot, а не утверждение о произвольной
+дистилляции, оптимальности обучения, вычислениях или held-out качестве.
+
 ## 3. Направление и сертифицированный размер шага
 
 ### 3.1 Базовый одношаговый safe CE update

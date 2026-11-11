@@ -356,6 +356,14 @@
 - `lse_mean_le_mean_lse`: для непустого `k`, `N ≠ 0` и `N` семейств логитов `lse` их поэлементного среднего не превосходит среднего отдельных `lse`.
 - `ensemble_ce_le_mean_general`: для непустого `k` и `N ≠ 0` величина `ceOneHot t` средних логитов не превосходит среднего значений `ceOneHot t` отдельных экспертов.
 - `softmax_gap_mass_ratio`: если `z b + g ≤ z a`, то `softmaxP z a ≥ Real.exp g * softmaxP z b`.
+- `ceOneHot_eq_ceDef_pi_single` и `ceOneHot_eq_klDef_pi_single`: для
+  `[Fintype V]`, `[Nonempty V]`, `[DecidableEq V]` и `p=Pi.single t 1`,
+  `q=Hagi.Prelude.softDef z` доказано
+  `ceOneHot t z = Hagi.Prelude.ceDef p q = Hagi.Prelude.klDef p q`.
+- `KLSupported_pi_single_softDef`: при тех же посылках one-hot имеет единичную
+  массу, softmax строго положителен и нормирован, а условие поддержки
+  `q v ≠ 0 ∨ p v = 0` допускает нули one-hot вне цели. Это открывает применение
+  существующей неотрицательности KL, но не новый алгоритм дистилляции.
 
 ## Hagi/Core/Element.lean
 

@@ -381,3 +381,57 @@ end Hagi.Core
 namespace Hagi
 export Hagi.Core (lse lse_midpoint_le ceOneHot ensemble_ce_le_mean_general)
 end Hagi
+
+namespace Hagi.Core
+
+section InfoBridge
+
+variable {V : Type*} [Fintype V] [Nonempty V] [DecidableEq V]
+
+/-- `ceOneHot` at a one-hot target equals `Hagi.Prelude.ceDef`
+against `Hagi.Prelude.softDef`. -/
+theorem ceOneHot_eq_ceDef_pi_single (t : V) (z : V → ℝ) :
+    ceOneHot t z = Hagi.Prelude.ceDef (Pi.single t 1) (Hagi.Prelude.softDef z) := by
+  unfold Hagi.Prelude.ceDef
+  rw [Finset.sum_eq_single t]
+  · rw [softDef_eq_exp_sub_lse, Real.log_exp]
+    simp [ceOneHot]
+  · intro b _hb hbt
+    simp [hbt]
+  · simp
+
+/-- `ceOneHot` at a one-hot target also equals `Hagi.Prelude.klDef`
+against `Hagi.Prelude.softDef`. -/
+theorem ceOneHot_eq_klDef_pi_single (t : V) (z : V → ℝ) :
+    ceOneHot t z = Hagi.Prelude.klDef (Pi.single t 1) (Hagi.Prelude.softDef z) := by
+  have hp : ∀ v, Hagi.Prelude.softDef z v ≠ 0 :=
+    fun v => ne_of_gt (Hagi.Prelude.softDef_pos z v)
+  have hself : Hagi.Prelude.ceDef (Pi.single t (1 : ℝ)) (Pi.single t 1) = 0 := by
+    unfold Hagi.Prelude.ceDef
+    rw [Finset.sum_eq_single t]
+    · simp
+    · intro b _hb hbt
+      simp [hbt]
+    · simp
+  rw [Hagi.Prelude.klDef_eq_ceDef_sub _ _ hp, hself, sub_zero]
+  exact ceOneHot_eq_ceDef_pi_single t z
+
+/-- A one-hot target and `Hagi.Prelude.softDef` satisfy
+`Hagi.Prelude.KLSupported`. -/
+theorem KLSupported_pi_single_softDef (t : V) (z : V → ℝ) :
+    Hagi.Prelude.KLSupported (Pi.single t 1) (Hagi.Prelude.softDef z) := by
+  refine ⟨?_, ?_, Hagi.Prelude.softDef_pos z, Hagi.Prelude.softDef_sum_one z⟩
+  · intro v
+    by_cases hvt : v = t
+    · subst v
+      simp
+    · simp [hvt]
+  · rw [Finset.sum_eq_single t]
+    · simp
+    · intro b _hb hbt
+      simp [hbt]
+    · simp
+
+end InfoBridge
+
+end Hagi.Core
