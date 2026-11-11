@@ -125,6 +125,42 @@ and now contain 139,485 lines. These finite supported-estimation and MSE
 results are not a sampled runtime path, a training/runtime/FLOP improvement,
 or an optimal architecture theorem.
 
+The subsequent C202 packet adds an exact continuous minimizer to the existing
+HNet cost model without changing imports or the earlier floor theorem. For
+strictly positive real a,b,T and r>0, write C(r)=a*T*r+b*T²/r²; C is documentation
+notation, not a new declaration. `Hagi.Model.HNet.hnetOptRatio` defines the exact
+noncomputable Real.rpow value rstar=(2bT/a)^(1/3). `Hagi.Model.HNet.hnet_opt_ratio`
+proves C(rstar)≤C(r), and `Hagi.Model.HNet.hnet_opt_ratio_unique` proves that
+C(r)=C(rstar) implies r=rstar. This is stronger than naming a candidate ratio:
+the proof establishes its positive cube identity, the global minimum on r>0,
+and uniqueness.
+
+With s=rstar, s³=2bT/a and hence a*T*s³=2*b*T². The exact gap is
+C(r)-C(s)=b*T²*(r-s)²*(2r+s)/(r²*s³). Positivity makes this gap nonnegative;
+equality forces the square to vanish. The exact witness a=b=1, T=4 gives
+rstar=2, C(2)=12≤20=C(1), and gap 8; the uniqueness theorem is also applied to
+reject equality at r=1. These are exact real-number facts, not benchmarks or
+approximate cube-root evaluation.
+
+The actual Root census is now 12,092 OWNER records = 8,021 public + 522 private
++ 3,549 generated. Its delta is exactly eight: three public, three private, and
+two generated declarations, Hagi.Model.HNet.hnetOptRatio._proof_1 and
+Hagi.Model.HNet.hnetOptRatio._proof_2. The latter are inspected numeral
+AtLeastTwo compiler auxiliaries at range 0, each with only propext, not extra
+model hypotheses or new codegen paths. All 12,084 baseline OWNER rows are
+retained. Current registries are Freeze 6,184, ALLAXIOMS 9,068 theorem seeds,
+NamePool 829,237 lines, and StatementDup zero groups; the assumptions lock is
+unchanged.
+
+The result is conditional on the stated strictly positive real parameters and
+concerns only the nonnegative gap in this abstract continuous cost model. It
+provides no Nat/integer minimizer or rounding rule, learned router, end-to-end
+chunk learning, runtime argmin solver, physical-FLOP or hardware bound, training
+quality guarantee, or architecture/AGI optimality claim. The separate
+`Hagi.Model.HNet.hier_seq_shorten` compression context (1<r, 0<T, with r<T in
+its descriptive setting) does not make every positive real ratio a physical
+chunk count.
+
 The former 4,354-row legacy Freeze lock was first reconciled to the
 6,170 declarations of the C200 source snapshot, then received the reviewed
 R1/P1-D update to 6,168. Generated `declarations.lock` and

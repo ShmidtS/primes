@@ -173,6 +173,42 @@ architecture. The earlier `.tmp/C201SupportProbe.lean` resulted in these four
 public declarations; the unsuccessful Frobenius/sqrt2 alternative is not
 production evidence.
 
+## Continuous positive-real HNet ratio: C202
+
+For strictly positive real a,b,T, consider only the abstract cost
+C(r)=a*T*r+b*T²/r² on r>0; C is notation, not a new Lean declaration.
+`Hagi.Model.HNet.hnetOptRatio` defines rstar=(2bT/a)^(1/3) by exact,
+noncomputable Real.rpow. `Hagi.Model.HNet.hnet_opt_ratio` evaluates the starting
+ratio inside this selected model and proves C(rstar)≤C(r) for every positive r.
+`Hagi.Model.HNet.hnet_opt_ratio_unique` proves that equality of the two costs
+implies r=rstar. Thus this is an actual continuous optimum and uniqueness
+result, not merely a name for a candidate.
+
+This strengthens, but does not rename or alias, the earlier
+`Hagi.Model.HNet.hnet_cost_floor`; its statement, imports and proof are retained.
+For s=rstar the proof establishes s³=2bT/a and a*T*s³=2*b*T², then uses the
+exact identity
+
+```text
+C(r) - C(s) = b*T²*(r-s)²*(2r+s)/(r²*s³).
+```
+
+The retained b*T² factor is essential. Positive parameters make the displayed
+gap nonnegative; when costs are equal, the nonzero factors force (r-s)²=0.
+At a=b=1, T=4, exact evaluation gives rstar=2, C(2)=12 versus C(1)=20, hence
+gap 8. The witness also derives a contradiction from assumed equality at r=1
+through the public uniqueness theorem.
+
+Practical meaning is deliberately narrow: the theorem selects a real starting
+ratio only within this declared cost expression. It supplies no Nat minimizer,
+integer rounding rule, runtime argmin solver, learned router or end-to-end chunk
+learning. Exact noncomputable rpow is not an approximate Root/sqrt computation.
+The separate `Hagi.Model.HNet.hier_seq_shorten` compression setting must not be
+used to infer physical chunk counts from arbitrary r>0. No hardware/physical
+FLOP bound, training-quality improvement, architecture optimality or AGI claim
+follows. This is not a C200/C201 MSE result, a bf16/GDN statement, an h_emp
+discharge, or a new public cost definition/join/alias.
+
 ## Analytic finite-carrier closures (цикл 78)
 
 - Reuse `signR`/`HC`; `rademacherLaw` is a true finite product of fair

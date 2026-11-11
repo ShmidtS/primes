@@ -1,5 +1,86 @@
 # STATUS — состояние формализации HAGI
 
+## C202: continuous HNet cost minimum
+
+База: `35299e80f9a1f16ed57917ae5ffdeaa2da23fed2`. Математический scope —
+только `Hagi/Model/HNet.lean`, additive `+81/-0`; старые raw bytes, imports и
+тела теорем сохранены. Нового module/join/alias, изменения import или удаления
+h_emp нет. Это текущий незакоммиченный math packet, а не будущий C202 landing.
+
+В `Hagi.Model.HNet` добавлены три public declarations:
+
+- `Hagi.Model.HNet.hnetOptRatio` — noncomputable точное
+  rstar=(2*b*T/a)^((3:ℝ)⁻¹) через Real.rpow.
+- `Hagi.Model.HNet.hnet_opt_ratio` — при a,b,T,r>0 доказывает
+  C(rstar)≤C(r) для обозначения C(r)=a*T*r+b*T²/r².
+- `Hagi.Model.HNet.hnet_opt_ratio_unique` — при тех же условиях из
+  C(r)=C(rstar) выводит r=rstar.
+
+Здесь C — только документационная нотация, не новый hnetCost. Три private helper —
+hnetOptRatio_pos, hnetOptRatio_cube и hnet_cost_gap. При a,b,T,r,s>0 и s=rstar
+имеем s³=2bT/a, следовательно a*T*s³=2*b*T², и точную формулу
+C(r)-C(s)=b*T²*(r-s)²*(2r+s)/(r²*s³). Коэффициент именно b*T². Positivity даёт
+nonnegativity gap и глобальный минимум на r>0; при равенстве стоимостей
+положительные сомножители сокращаются, поэтому квадрат равен нулю и r=s.
+Real.rpow и natural cube точные; приближённого Root/sqrt вычисления нет.
+
+Exact witness (a=b=1, T=4): rstar=2, C(2)=12≤20=C(1), gap=8. Отдельный пример
+действительно применяет unique theorem к предположению равенства при r=1 и
+получает противоречие 1=2. Это exact math facts, не benchmark. Существующий
+`Hagi.Model.HNet.hier_seq_shorten` остаётся отдельным compression результатом
+(1<r, 0<T, r<T в описываемом контексте): из одной positivity r не следует
+физическое integer chunk count.
+
+Focused и Root axiom witnesses для всех трёх public names дают только
+`propext`, `Quot.sound`, `Classical.choice`. Root owner witness подтверждает
+owner `Hagi.Model.HNet`, kinds definition/theorem/theorem, value presence и
+unsafe=false, partial=false. Полный `lake build`: rc 0, 18 s, 9550 jobs.
+Последующий `scripts/ci.sh` в parent lane: rc 0, 267.909 s, `CI: PASS`;
+фактический протокол: `.tmp/C202/final-ci/ci.log`.
+
+Fresh Root census: ровно 8 additions = 3 public + 3 private + 2 generated.
+Generated — конкретно Hagi.Model.HNet.hnetOptRatio._proof_1 и
+Hagi.Model.HNet.hnetOptRatio._proof_2, а не ноль и не часть authored six.
+Inspected declarations равны соответственно
+(1+1).AtLeastTwo := Nat.instAtLeastTwoHAddOfNat 1 и
+(2+1).AtLeastTwo := Nat.instAtLeastTwoHAddOfNat 2; range=0, axioms=[propext].
+Это symbolic/numeral compiler auxiliaries, не дополнительные training hypotheses,
+unsafe declarations или новые codegen paths.
+
+Текущий OWNER = 12,092 = 8,021 public + 522 private + 3,549 generated;
+kind totals: 2,671 definitions, 9,108 theorems, 113 constructors,
+100 inductives и 100 recursors. Все 12,084 baseline OWNER rows сохранены
+без изменений type/body/range/owner/kind/value/unsafe/partial/global flags.
+IR = 1,213 без изменений (31 present + 1,182 явно unavailable), все 38
+CONSUMER rows и 313 intrinsic nodes сохранены; foreign/omitted rows нет.
+Root fingerprint: `11800210908100294467`; census SHA256:
+`7e9da6db19ef11a6dd810c77afccf40c03b5f4a77077fab739ad21cc59431d62`.
+
+Реестры — отдельные populations: Freeze = 6,184 = 6,178 old + 3 public +
+3 private (generated numeral aux исключены правилом этой population);
+ALLAXIOMS = 9,068 theorem seeds, включая 2 public + 3 private + 2 generated,
+только разрешённые стандартные axioms, PASS. StatementDup = 0 групп;
+NamePool = 829,237 lines / 39,129,317 bytes. AssumptionScan остаётся
+36 files / 116 occurrences (5 proven + 111 binders), а
+`scripts/assumptions.lock` не изменён (SHA256
+`22879473afed2b52897a38f04b23156ef04125c5f456cea73f663c005954efbd`).
+
+Physical corpus: 493 non-root modules, 492 Root direct imports, 139,566
+logical lines / 139,559 raw LF; 494 sources включая Root. Root source raw
+SHA256 остаётся
+`2986e59c861643059d5bc431ce702901db726a26b5c60a88f17bac46786784a9`.
+Previous ledger 6 shares / 2 joins / 486 reviews этим math packet не меняется.
+Controls: 49/49 expected outcomes; 46 negative controls под `python -O`
+корректно отклонены (42 rc 1, четыре loader/schema failures rc 2);
+BASELINE_SELF, physical APPLIED и isolated synthetic positive имеют rc 0.
+
+Результат относится только к nonnegative gap выбранной continuous positive-real
+cost model при явных условиях. Нет Nat minimizer/rounding, learned router,
+end-to-end chunk learning, runtime argmin solver, Hardware/FLOP bounds,
+training-quality или AGI/architecture optimality claim. C202 не относится к
+C200/C201 MSE-family, bf16/GDN или h_emp discharge. Независимое semantic
+approval, full CI и будущие commit/tree identities не подменяются этими данными.
+
 ## C201: feature-only CE estimator
 
 База пакета: `4d13a3600540fe76dbe9f387a44205cd721a8d4c`. Математический источник

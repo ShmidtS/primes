@@ -94,5 +94,86 @@ theorem hnet_cost_floor (a b T r : ℝ) (ha : 0 < a) (hb : 0 < b)
   rw [hcancel] at hstep
   linarith [hstep]
 
+noncomputable def hnetOptRatio (a b T : ℝ) : ℝ :=
+  (2*b*T/a) ^ ((3:ℝ)⁻¹)
+
+-- Exact rpow API reference: Mathlib/Analysis/SpecialFunctions/Pow/Real.lean.
+private theorem hnetOptRatio_pos (a b T : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hT : 0 < T) :
+    0 < hnetOptRatio a b T := by
+  unfold hnetOptRatio
+  apply Real.rpow_pos_of_pos
+  positivity
+
+private theorem hnetOptRatio_cube (a b T : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hT : 0 < T) :
+    a*T*(hnetOptRatio a b T)^3 = 2*b*T^2 := by
+  have hbase : 0 ≤ 2*b*T/a := by positivity
+  have hcube : (hnetOptRatio a b T)^3 = 2*b*T/a := by
+    unfold hnetOptRatio
+    simpa only [Nat.cast_ofNat] using
+      (Real.rpow_inv_natCast_pow hbase (by norm_num : (3 : ℕ) ≠ 0))
+  rw [hcube]
+  field_simp [ha.ne']
+
+private theorem hnet_cost_gap (a b T r s : ℝ)
+    (hT : 0 < T) (hr : 0 < r) (hs : 0 < s)
+    (hcube : a * T * s ^ 3 = 2 * b * T ^ 2) :
+    a*T*r + b*T^2/r^2 - (a*T*s + b*T^2/s^2) =
+      b*T^2*(r-s)^2*(2*r+s)/(r^2*s^3) := by
+  have hcube' : a*s^3 = 2*b*T := by
+    apply mul_left_cancel₀ hT.ne'
+    calc
+      T*(a*s^3) = a*T*s^3 := by ring
+      _ = 2*b*T^2 := hcube
+      _ = T*(2*b*T) := by ring
+  field_simp [hr.ne', hs.ne']
+  linear_combination (r - s) * r^2 * hcube'
+
+theorem hnet_opt_ratio (a b T r : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hT : 0 < T) (hr : 0 < r) :
+    a*T*(hnetOptRatio a b T) + b*T^2/(hnetOptRatio a b T)^2 ≤
+      a*T*r + b*T^2/r^2 := by
+  have hs : 0 < hnetOptRatio a b T := hnetOptRatio_pos a b T ha hb hT
+  have hcube : a*T*(hnetOptRatio a b T)^3 = 2*b*T^2 :=
+    hnetOptRatio_cube a b T ha hb hT
+  have hgap := hnet_cost_gap a b T r (hnetOptRatio a b T)
+    hT hr hs hcube
+  have hnonneg :
+      0 ≤ b*T^2*(r-hnetOptRatio a b T)^2*(2*r+hnetOptRatio a b T)/
+        (r^2*(hnetOptRatio a b T)^3) := by positivity
+  linarith
+
+theorem hnet_opt_ratio_unique (a b T r : ℝ)
+    (ha : 0 < a) (hb : 0 < b) (hT : 0 < T) (hr : 0 < r) :
+    a*T*r + b*T^2/r^2 =
+      a*T*(hnetOptRatio a b T) + b*T^2/(hnetOptRatio a b T)^2 →
+    r = hnetOptRatio a b T := by
+  intro hcost
+  have hs : 0 < hnetOptRatio a b T := hnetOptRatio_pos a b T ha hb hT
+  have hcube : a*T*(hnetOptRatio a b T)^3 = 2*b*T^2 :=
+    hnetOptRatio_cube a b T ha hb hT
+  have hgap := hnet_cost_gap a b T r (hnetOptRatio a b T)
+    hT hr hs hcube
+  have hzero :
+      b*T^2*(r-hnetOptRatio a b T)^2*(2*r+hnetOptRatio a b T)/
+        (r^2*(hnetOptRatio a b T)^3) = 0 := by
+    linarith
+  have hden : r^2*(hnetOptRatio a b T)^3 ≠ 0 :=
+    mul_ne_zero (pow_ne_zero 2 hr.ne') (pow_ne_zero 3 hs.ne')
+  have hnum :
+      b*T^2*(r-hnetOptRatio a b T)^2*(2*r+hnetOptRatio a b T) = 0 :=
+    ((div_eq_zero_iff).mp hzero).resolve_right hden
+  have hsquare : (r-hnetOptRatio a b T)^2 = 0 := by
+    rcases mul_eq_zero.mp hnum with h | h
+    · rcases mul_eq_zero.mp h with h | h
+      · rcases mul_eq_zero.mp h with h | h
+        · exact (hb.ne' h).elim
+        · exact ((pow_ne_zero 2 hT.ne') h).elim
+      · exact h
+    · exact ((by positivity : 2*r+hnetOptRatio a b T ≠ 0) h).elim
+  have hrs : r-hnetOptRatio a b T = 0 := (sq_eq_zero_iff).mp hsquare
+  linarith
+
 end Hagi.Model.HNet
 
