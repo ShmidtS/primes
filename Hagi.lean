@@ -190,6 +190,7 @@ import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEMarkovConfidence
+import Hagi.Model.CEMarkovMaximalConfidence
 import Hagi.Model.CEStorageBound
 import Hagi.Model.CEConfidenceScale
 import Hagi.Model.CEPadding

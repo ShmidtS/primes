@@ -1466,6 +1466,24 @@
   `σ ω` и наблюдаемой разности исходного CE `> 2*r`, условная средняя
   разность «исходный вариант минус выбранный» строго положительна.
 
+## Hagi/Model/CEMarkovMaximalConfidence.lean
+
+- `raw_bank_freedman_maximal_confidence`: для исходной (не нормированной)
+  CE, вычисленной по фиксированному decodeJoint на парах «банк — метка», пусть
+  `g = F − μ`, где `μ` — conditional PMF mean следующей CE, а `v` — точный
+  conditional second moment `g`. При `0 < r`, `0 ≤ V`, нижняя граница
+  `1 - 2*m*(T+1)*exp(-r^2/(4*(V + ceBound X*r)))` относится к индикатору
+  одновременного события: для каждого `i : Fin m` и каждого префикса `j ≤ T`,
+  если `historyCounter v T j ≤ V`, то `|historyAdditive g T j| < r`.
+  Банк объединяется через Freedman и union bound; времена не ограничены
+  одним конечным `T T` внутри события, хотя сам горизонт конечен.
+- Условный диапазон выводится из `0 ≤ F,μ ≤ ceBound X`, без подмены raw CE
+  диапазоном `[0,1]`. Пустой банк `m=0` остаётся допустимым vacuous случаем.
+  Доказано вероятностное утверждение для данной конечной Markov-истории;
+  не следуют individual CE improvement, causal stopping/selection,
+  held-out качество, произвольный stopping time, strict `StepCert`,
+  оптимальная константа или снижение вычислительной стоимости.
+
 ## Hagi/Model/CEPackedStep.lean
 
 - `packedStep_payload` фиксирует 16-битный объект со значением `8311`;
