@@ -150,6 +150,41 @@ lake build                      # full build (use LAKE_JOBS=1 on low RAM)
 bash scripts/ci.sh              # build + lint battery
 ```
 
+### Bounded module merge helper
+
+```bash
+python scripts/merge_module.py CHILD.lean PARENT.lean [--append] [--retarget PATH ...|--retarget-all]
+```
+
+Merge provider CHILD (C) into receiver PARENT (P), delete C, and update Root.
+DEFAULT requires P to import C directly and places C's body before P's. `--append`
+places C after P, forbids P→C, and relies on the caller asserting that P does
+not depend on C. Preserve all provider plain imports and receiver import order,
+with exact-identifier deduplication and only the requested C/P edits. Root is
+implicit; every other direct importer requires exact repeated `--retarget`
+coverage or computed `--retarget-all`. `Hagi.lean` physically lists imports, but
+placing a provider after its direct importer tree has no general fresh-checkout
+compatibility guarantee.
+
+Support is narrow: strict UTF-8 without BOM, ordinary source, plain header
+imports only. `module`, prelude, public/meta/all imports, trailing forms,
+and body imports are unsupported mutations. Discovery parsing is not universal
+module/private-scope support. Body private is not equivalent to public module
+scope; actual use requires a reviewed full census. No name guessing, declaration
+reordering, AXLE rewriting, or set_option stripping occurs. Namespaces/FQNs
+remain source text; private/generated retention needs per-use witnesses.
+
+Raw body spans preserve non-ASCII UTF-8, LF/CRLF, and final-newline state, not
+whole-file normalization. Missing sources, cycles, and retarget mismatches fail
+before mutation; multi-file outputs are computed from raw snapshots. Handled
+write/unlink errors attempt per-file byte rollback, including deleted C, and
+verify exact bytes. This is not cross-file atomicity, crash/power durability, or
+guaranteed rollback if restoration fails. Only selected C/P/Root/exact retargets
+change. Production caches are neither cleaned nor evidence against stale old-path
+imports; external importer migration is explicit per actual packet. Fixture tests
+never authorize real merges: each family needs semantic, import-graph, census,
+witness, registry, and full-CI review.
+
 Checks: TrivialLint (no sorry, no custom axioms, no
 trivialities), Freeze.py (declaration statements checked against
 `declarations.lock`), DocLint (docstring names/numbers

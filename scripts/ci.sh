@@ -74,6 +74,19 @@ case "$out" in *"FREEZE: PASS"*) ;; *) echo "FREEZE: FAIL"; fail=1;; esac
 step "AssumptionScan (h_emp premise + primitive registry, lock-gated)"
 python scripts/TestAssumptionScan.py || { echo "ASSUMPTIONSCAN: regression FAIL"; fail=1; }
 python scripts/TestFreeze.py || { echo "FREEZE: regression FAIL"; fail=1; }
+
+step "MergeModule (source merge tests + Lean fixtures)"
+out=$(lake env python scripts/TestMergeModule.py 2>&1)
+rc=$?
+printf '%s\n' "$out" | tail -20
+if [ "$rc" -ne 0 ]; then
+  echo "MERGEMODULE: FAIL (exit $rc)"
+  fail=1
+elif ! printf '%s\n' "$out" | grep -Eq 'MERGEMODULE: PASS \([1-9][0-9]* tests; Lean modes=2\)'; then
+  echo "MERGEMODULE: FAIL (missing positive-count Lean modes=2 PASS marker)"
+  fail=1
+fi
+
 out=$(python scripts/AssumptionScan.py 2>&1 | tail -1)
 echo "$out"; case "$out" in ASSUMPTIONSCAN:\ PASS*) ;; *) echo "ASSUMPTIONSCAN: FAIL"; fail=1;; esac
 
