@@ -1,5 +1,64 @@
 # STATUS — состояние формализации HAGI
 
+## C201: feature-only CE estimator
+
+База пакета: `4d13a3600540fe76dbe9f387a44205cd721a8d4c`. Математический источник
+ограничен `Hagi/Model/BatchCEDescent.lean`, additive `+166/-0`; imports, старые
+предпосылки и тела не изменены. Это новая estimator-family, не module join и не
+удаление предпосылок.
+
+В `Hagi.Model.BatchCEDescent` добавлены четыре public результата:
+
+- `featureNormSum` — сумма Euclidean норм строк input feature matrix на
+  Euclidean-space носителе; это row-ℓ², не entrywise-ℓ¹ из
+  `Hagi.Model.CEGroupedScale.featureAbsSum`.
+- `norm_batchResidualGradient_le_featureNormSum` — норма фактического CE
+  residual transpose не превосходит этой зависящей только от features величины.
+- `pmfMean_featureNormSum_optimalPropensity` — точное coordinatewise равенство
+  scaled selected estimator целевому
+  `Hagi.Model.BatchResidual.meanResidualTranspose`, при условии
+  `q b ≠ 0 ∨ gradient b = 0`.
+- `selectedMeanGradientMSE_featureNormSum_le` — C200 finite upper-MSE envelope
+  для arithmetic-mean estimator.
+
+Положительная сумма feature масс задаёт `q_b ∝ |F_b|` и доказывает card
+positivity batch; пустой batch этой предпосылке не удовлетворяет. Обратного
+утверждения «zero feature mass iff zero gradient» нет: opposing residual rows
+могут сокращаться. Это ровно `selectedLoss_optimalPropensity`, применённый к
+features, а не утверждение об actual Neyman/NH-optimal propensity по градиентам.
+
+Численный non-vacuous real CE example: `F = [1, 2]`, `q = [1/3, 2/3]`, сырые
+градиенты `[-1/2, 1]`, mean coordinate `1/4`. Exact selected mean MSE равен
+`1/2`; отдельно вычисленный более слабый C201/C200 envelope RHS равен `35/16`.
+Zero-features, empty-batch inconsistency, cancellation и поддержанный
+`q0 = 0 ∧ g0 = 0` controls выполнены; общего ненулевого target при zero
+propensity не утверждается.
+
+Fresh `lake build`: rc 0, 142 с, 9550 jobs. Полный Root census сохранил все
+12,074 OWNER identity/type/body/range/value/safety records; ровно 10 additions:
+4 public + 6 private, 0 новых generated. Текущий OWNER = 12,084 = 8,018 public
++ 519 private + 3,547 generated. Все 1,213 IR rows сохранены (31 present и
+1,182 явно unavailable), все 38 CONSUMER rows и 313 intrinsic nodes без
+потерь. Duplicate-main/global mismatches = 0; private rename map пуст.
+Источников осталось 494 с Root / 493 non-root, non-root имеет 139,485 строк;
+Root direct imports остаются 492.
+
+Root fingerprint: `1625435968566747439`; census SHA256:
+ec1e8d2548243cf6b4cdd076293f710fb546276781634615ca76f573edbe1286.
+Freeze = 6,178 (ровно 4 public + 6 private additions, без потерь/изменений).
+ALLAXIOMS = 9,061 theorem seeds; только `propext`, `Quot.sound`,
+`Classical.choice`. StatementDup = 0 групп; NamePool = 829,229 строк.
+`AssumptionScan` остался 36 files / 116 occurrences; `assumptions.lock` не
+изменён. Тесты Assumptions (5), Freeze (11) и 23 negative comparator controls под
+`python -O` прошли. Полный CI и независимые reviews не заменяют этот census и
+API witness для promotion.
+
+Это не доказывает sampling-history/RNG execution, held-out CE/generalization,
+convergence/regret, оптимальное обучение, memory/FLOP/runtime выигрыш или
+универсальную архитектуру. Если прежний Frobenius probe упоминается в ignored
+research, он не является production evidence и его неудачные `sorryAx` logs не
+используются.
+
 ## StepCore → SafeQP: physical carrier/consumer join
 
 База этого пакета — последний R1/P1-D commit

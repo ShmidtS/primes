@@ -104,6 +104,27 @@ modules, 139,319 lines, 492 root imports and 621 internal non-root
 edges. This is proof-source consolidation, not a model-size, runtime,
 FLOP, training-quality or architecture-optimality theorem.
 
+The follow-on C201 packet introduces a feature-only allocation for the actual
+CE residual transpose. `featureNormSum` sums Euclidean row norms of the input
+feature matrix, and `norm_batchResidualGradient_le_featureNormSum` bounds the
+raw CE residual gradient by that feature mass. With positive total mass,
+`pmfMean_featureNormSum_optimalPropensity` gives exact coordinatewise mean
+transport to the C199 arithmetic-mean target, with zero propensity permitted
+only with a zero target. `selectedMeanGradientMSE_featureNormSum_le`
+specializes the C200 upper-envelope MSE bound; it is not an actual
+oracle-gradient Neyman optimum.
+
+The real two-class CE witness has feature masses 1 and 2 and proposal weights
+1/3 and 2/3. Its selected arithmetic-mean MSE is 1/2, while the separately
+evaluated upper envelope is 35/16. The fresh Root census adds exactly ten
+OWNER records (four public, six private) and preserves all 12,074 retained
+records, all 1,213 IR entries and all 38 CONSUMER rows. Current counters are
+12,084 OWNER records, 6,178 Freeze declarations, 9,061 allowed-axiom theorem
+seeds, and 313 intrinsic nodes; physical non-root sources remain 493 modules
+and now contain 139,485 lines. These finite supported-estimation and MSE
+results are not a sampled runtime path, a training/runtime/FLOP improvement,
+or an optimal architecture theorem.
+
 The former 4,354-row legacy Freeze lock was first reconciled to the
 6,170 declarations of the C200 source snapshot, then received the reviewed
 R1/P1-D update to 6,168. Generated `declarations.lock` and

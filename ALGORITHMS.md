@@ -136,11 +136,42 @@ raw gradients [−1/2], [1], mean 1/4, optimal mean MSE 1/2 против
 uniform 9/16. C200 Euclidean witness даёт raw 5/2 ≤ 7 и
 mean 5/8 ≤ 7/4. Это математические finite-model примеры, не benchmark.
 
-Не выведено этим семейством: sampling-history/runtime adapter,
-held-out CE/generalization, convergence/regret оптимального обучения,
-минимум памяти/FLOPs или универсальная архитектура. Feature-only
-`.tmp/C201SupportProbe.lean` остаётся исследовательским probe и не
-входит в Root public API.
+C201 solidifies the feature-only alternative as four public results in
+`Hagi.Model.BatchCEDescent`. Put `F_b = featureNormSum (X_b)`; this is a sum
+of Euclidean ℓ² norms of input-feature rows on the WithLp carrier. It must
+not be confused with `Hagi.Model.CEGroupedScale.featureAbsSum`, whose mass
+is entrywise ℓ¹. The actual residual transpose satisfies
+`‖batchResidualGradient X θ y‖ ≤ featureNormSum X`: residual coordinates
+have absolute value at most one, so no second-order oracle is used.
+
+With `hF : 0 < Σ_b |F_b|`, define the PMF
+`q = selectedLoss_optimalPropensity (fun b => F_b) hF`; in real weights,
+`q_b = |F_b| / Σ_a |F_a|`. Then every sample has `q_b ≠ 0` or a zero actual
+raw-gradient target. The estimator `(n*q_b)⁻¹ • g_b` has exact coordinatewise
+pmfMean equal to `meanResidualTranspose X θ y` through
+`pmfMean_featureNormSum_optimalPropensity`. Positive mass proves positive
+batch cardinality; an empty batch cannot satisfy hF. Zero feature mass implies
+zero raw gradient, but the converse is false: opposing residual rows cancel.
+No nonzero target at zero propensity is admitted through totalized division.
+
+`selectedMeanGradientMSE_featureNormSum_le` is exactly the C200
+upper-envelope theorem instantiated with this feature bound. Its right-hand
+side is B⁻² · ((Σ_b |F_b|)² − ‖Σ_b g_b‖²), where B is the batch cardinality.
+Thus the feature bound controls the supported arithmetic-mean estimator
+without knowing the individual gradients before choosing q.
+The feature policy is not called the actual gradient-oracle Neyman optimum.
+The same real two-class CE example as above has `F_0 = 1`, `F_1 = 2`,
+`q = [1/3, 2/3]`; its mean is `1/4`, its exact selected mean MSE is `1/2`,
+and its separately calculated upper envelope is `35/16`. Those two MSE
+numbers are not equated. The Root census also preserves all 12,074 old
+OWNER records and adds exactly four public plus six private declarations.
+
+Still not derived: sampling-history/RNG execution, held-out
+CE/generalization, convergence/regret of an optimal training algorithm,
+minimum memory, physical FLOP/runtime improvement or a universal optimal
+architecture. The earlier `.tmp/C201SupportProbe.lean` resulted in these four
+public declarations; the unsuccessful Frobenius/sqrt2 alternative is not
+production evidence.
 
 ## Analytic finite-carrier closures (цикл 78)
 
