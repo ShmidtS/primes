@@ -393,6 +393,54 @@ same-label mean-CE drop
 индивидуальный mixed-batch CE descent, параметрическую или оптимальную
 сходимость, generalization, bounded последующий risk, экономию FLOP/time.
 
+### 3.7 Accepted-only Pareto CE: строгий StepCert
+
+Для `T = budgetedParetoBatchTrainStep X y S opCost opRisk write` следующий
+адаптер не добавляет второй guard и не смягчает существующий. Требуются
+положительный [`batchRangeSquare`](Hagi/Model/BatchCEDescent.lean),
+`0≤opRisk`, ограничение opRisk значением riskLim сверху,
+исходный `FloorHeld S floor` и полная активность
+существующего guard: nonnegative affordable cost вместе с samplewise CE
+non-regression на каноническом `batchTrainStep`.
+
+[`budgetedParetoStepCert`](Hagi/Contracts/BudgetedParetoStepCert.lean) вызывает
+уже доказанный `batchTrainStepCert` и через фактическое равенство активной
+ветки переносит его на действительный guarded successor `T`. Результатом
+является существующий [`StepCert`](Hagi/Unified/CertifiedLoop.lean):
+
+- `StepCert.budgetSpend` равен заданной opCost, а
+  `StepCert.riskSpend` — заданной opRisk; positivity поля
+  `Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop` принадлежит
+  переходу к `T`, а `Hagi.Unified.HonestTransition.HonestTransition.actualDescent`
+  даёт строгий спуск arithmetic-mean CE на supplied batch;
+- `Hagi.Unified.CertifiedLoop.StepCert.hdec` связывает действительный новый
+  бюджет с `S.res.budget` минус заданная opCost, а
+  `Hagi.Unified.HonestTransition.HonestTransition.budgetBound` даёт его nonnegativity;
+- исходный quality floor сохраняется на `T`, поскольку stored quality
+  не меняется. Это не новое измерение held-out качества.
+
+Отдельной посылки `Nonempty V` нет. Положительный range доказывает `0<B`,
+после чего поданная метка первого элемента `Fin B` строит локальный witness
+vocabulary nonempty. При `B=0` такое положительное range невозможно; фиктивный
+`y 0` не создаётся. Зависимые данные `Hagi.Unified.CertifiedLoop.StepCert.trans`,
+`Hagi.Unified.CertifiedLoop.StepCert.hdec` и
+`Hagi.Unified.CertifiedLoop.StepCert.quality` переносятся через
+canonical accepted equality, а не целое record через opaque cast.
+
+Для контроля берутся ровно два same-label примера `Fin 2`, не singleton:
+`Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop > 0` у реального
+guarded successor, бюджет `2→3/2`,
+`StepCert.budgetSpend=1/2`, риск `0→1/4`, `StepCert.riskSpend=1/4`.
+При opCost=3 относительно такого бюджета affordability ложна, и получить
+strict certificate не удаётся. Поэтому hold из раздела 3.6 остаётся обычным
+nonnegative `StepContract`, а не источником строгого прогресса.
+
+Strictness относится к среднему CE, а не к каждому sample: guard даёт лишь
+pointwise non-regression. riskLim ограничивает opRisk одного шага, но не
+накопленный риск. Не следуют также CE→0, параметрическая сходимость,
+generalization, оптимальное действие, гарантия для нелинейного backbone,
+новое качественное измерение или экономия FLOP/time.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`

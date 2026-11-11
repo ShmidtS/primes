@@ -354,6 +354,41 @@
   здесь отдельно не утверждается; не следуют также parameter/optimum/CE
   convergence, generalization, оптимальное действие, runtime/FLOP выигрыш.
 
+## Hagi/Contracts/BudgetedParetoStepCert.lean
+
+- `budgetedParetoStepCert` возвращает существующий `StepCert` для реального
+  `T = budgetedParetoBatchTrainStep X y S opCost opRisk write`.
+  Требуются положительный `batchRangeSquare`, `0≤opRisk`, `opRisk≤riskLim`,
+  исходный `FloorHeld S floor` и полная активная guard-посылка: nonnegative affordable opCost и CE non-regression для каждого supplied sample на каноническом
+  `batchTrainStep`. Строительство использует существующий
+  `batchTrainStepCert` и accepted equality, а не новый guard или record cast.
+- Поля `StepCert.budgetSpend` и `StepCert.riskSpend` задаются явно и равны
+  соответственно opCost и opRisk. Положительный
+  `Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop` и
+  `Hagi.Unified.HonestTransition.HonestTransition.actualDescent` дают строгий
+  arithmetic-mean supplied-batch CE descent у настоящего guarded successor.
+  `Hagi.Unified.CertifiedLoop.StepCert.hdec` ограничивает новый бюджет через
+  `S.res.budget` минус opCost, а
+  `Hagi.Unified.HonestTransition.HonestTransition.budgetBound` даёт nonnegative бюджет. Это abstract ledger,
+  а не фактически измеренные FLOP/time или общий budget спуск после HOLD.
+- Из положительного range следует `0<B`; метка первого supplied элемента
+  создаёт только локальный `Nonempty V`, без отдельной class-посылки и без
+  фиктивного `y 0` при пустом batch.
+  `Hagi.Unified.CertifiedLoop.StepCert.trans`,
+  `Hagi.Unified.CertifiedLoop.StepCert.hdec` и
+  `Hagi.Unified.CertifiedLoop.StepCert.quality` переносятся по accepted equality. Старый quality floor сохраняется благодаря
+  неизменности stored quality, а не предположению о его улучшении.
+- Контроль содержит два same-label примера `Fin 2`: реальный guarded
+  `Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop` положителен, бюджет `2→3/2`, риск `0→1/4`,
+  `StepCert.budgetSpend=1/2`, `StepCert.riskSpend=1/4`.
+  При opCost=3 affordability ложна и strict constructor не применяется.
+  Обычный hold остаётся предметом C207 с nonnegative `StepContract`.
+- Это accepted-only strict средний CE, а не strict CE каждого sample:
+  guard требует лишь non-regression. per-step bound для opRisk≤riskLim, а не cumulative/final risk bound. Не следуют CE→0, сходимость параметров,
+  generalization, held-out качество, оптимальность, новое качественное
+  измерение, аналитическая гарантия для нелинейного backbone или runtime/FLOP
+  экономия.
+
 ## Hagi/Contracts/MixtureEMTrajectory.lean
 
 - `mixtureTrajectoryBank_succ`: для положительной исходной свидетельствуемости банк на шаге `t + 1` получается смешиванием текущей модели с соответствующей seed-моделью и весом `mixtureGridWeight`.
