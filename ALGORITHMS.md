@@ -306,6 +306,48 @@ old CE = `softplus(0)`, new CE = `softplus(-1/4)`, и фактическое
 невозрастание потенциала. Universal strict progress, сходимость,
 generalization, held-out качество и выигрыш времени/FLOPs не утверждаются.
 
+### 3.5 Identity features: предел средней вероятности
+
+Для `X : Fin B → Matrix (Fin n) (Fin n) ℝ`, `y : Fin B → Fin n`, `0 < B`
+и условия `hX : ∀ b, X b = 1` возьмём прежнюю фактическую траекторию
+`θ_t = coreParameters (fixedBatchState X y S opCost opRisk write t)`.
+Непосредственно применяется
+[`Hagi.Contracts.BatchCEAlignmentBudget.fixedBatch_meanGradient_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean),
+без добавления посылки предела.
+
+`meanPrediction X θ` усредняет именно вероятности
+`softDef (ceLogits (X b) θ)`, а не параметры или logits.
+`empiricalTarget y` — такое же среднее `(Pi.single (y b) 1 : Fin n → ℝ)`.
+Private helper доказывает строго с этим знаком:
+
+```
+meanPrediction X θ v − empiricalTarget y v = meanResidualTranspose X θ y v.
+```
+
+Identity multiplication и `B ≠ 0` из `0 < B` доказывают равенство
+в каждой координате. Определения средних totalized и при `B=0`, но
+вероятностная интерпретация и публичные limit theorems требуют `0 < B`.
+
+Следствие
+[`Hagi.Contracts.IdentityMomentConvergence.fixedBatch_meanPrediction_tendsto_empiricalTarget`](Hagi/Contracts/IdentityMomentConvergence.lean):
+`meanPrediction X θ_t → empiricalTarget y` в finite-product topology.
+Непрерывность координатной оценки на PiLp переносит предельный нуль C205
+на разность, после чего добавляется постоянная empirical-координата.
+
+Для `B=1` отдельная теорема
+`fixedBatch_meanPrediction_tendsto_empiricalTarget_batch_one` даёт
+`softDef (ceLogits (X 0) θ_t) → Pi.single (y 0) 1`.
+Это утверждение только о предсказании для единственного supplied примера,
+а не о правильности каждого individual prediction в смешанном batch.
+
+Counterexample: два identity features и смешанные метки `[0,1]` при нулевых
+параметрах уже дают одинаковые mean prediction и empirical target
+`(1/2,1/2)` и нулевой mean residual, но оба individual `ceDirection`
+ненулевые. `mixed_batchLoss_before_eq_log_two` даёт CE=`log 2`.
+Следовательно, marginal matching не означает нулевую CE или правильность
+individual predictions. Произвольные affine/full-rank features, сходимость
+параметров, held-out качество и вычислительная оптимальность не доказаны.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`

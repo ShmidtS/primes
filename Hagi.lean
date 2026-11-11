@@ -486,6 +486,7 @@ import Hagi.Contracts.SchellingMarkovRouting
 import Hagi.Contracts.NaturalLean
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchCEAlignmentBudget
+import Hagi.Contracts.IdentityMomentConvergence
 import Hagi.Contracts.BatchCEBestResidual
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent

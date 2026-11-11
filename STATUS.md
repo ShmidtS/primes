@@ -303,6 +303,31 @@
 - `guardedLogitPath_eventually_eq`: сам путь после некоторого `N` постоянен; `guardedLogitPath_tendsto_eventual_value` доказывает сходимость к этому значению.
 - Предельная CE не отождествляется с нулём или глобальным оптимумом; внешняя калибровка и обобщение не оцениваются.
 
+## Hagi/Contracts/IdentityMomentConvergence.lean
+
+- `meanPrediction` при заданном θ усредняет по supplied batch отдельные
+  `softDef (ceLogits ...)`; `empiricalTarget` так же усредняет
+  `(Pi.single (y b) 1 : Fin n → ℝ)`. Это средние вероятностей и one-hot
+  меток, а не среднее параметров или logits.
+- При `∀b, X b = 1` и `0<B` разность
+  `meanPrediction X θ v − empiricalTarget y v` точно равна
+  `meanResidualTranspose X θ y v`. Ограничение на batch отделяет
+  вероятностную интерпретацию от пустого totalized average.
+- `fixedBatch_meanPrediction_tendsto_empiricalTarget`: для identity features
+  и `0<B` mean prediction на фактической `fixedBatchState`-траектории
+  стремится к `empiricalTarget y`. Предел mean residual напрямую даёт C205,
+  без дополнительной посылки новой дополнительной посылки предела.
+- `fixedBatch_meanPrediction_tendsto_empiricalTarget_batch_one`: при `B=1`
+  `softDef (ceLogits (X 0) θ_t)` стремится к
+  `(Pi.single (y 0) (1:ℝ) : Fin n → ℝ)`; это результат для данного одного
+  примера, не для всех индивидуальных целей mixed batch.
+- Для двух identity features со смешанными метками `[0,1]` при нулевых
+  параметрах marginal match `(1/2,1/2)` и нулевой mean residual
+  сосуществуют с ненулевыми individual `ceDirection` и CE=`log 2` по
+  `mixed_batchLoss_before_eq_log_two`. Это не доказывает нулевую CE,
+  сходимость параметров, правильность individual predictions в mixed batch,
+  произвольные affine X, held-out качество или runtime-выигрыш.
+
 ## Hagi/Contracts/MixtureEMTrajectory.lean
 
 - `mixtureTrajectoryBank_succ`: для положительной исходной свидетельствуемости банк на шаге `t + 1` получается смешиванием текущей модели с соответствующей seed-моделью и весом `mixtureGridWeight`.
