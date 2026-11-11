@@ -162,6 +162,37 @@ eta_b = batchSafeStep X θ y = if Q̄=0 then 0 else 4Ā/Q̄,
 иначе оставляет параметры без изменения. Локальный margin каждого примера
 фиксируется [`ceOneHot_batchDirectionNextParameters_le_margin`](Hagi/Model/BatchCEDescent.lean).
 
+Для фиксированных `X,y` и фактической guarded-траектории
+`θ_t = coreParameters (fixedBatchState X y S opCost opRisk write t)`
+при непустом `V` имеется конечный запас squared mean residuals.
+С `K = rangeCurvature X`, [`batchRangeSquare_le_rangeCurvature_mul_alignment`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
+даёт `Q̄_t ≤ K·Ā_t`. Отсюда
+[`fixedBatch_sum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
+ограничивает каждую конечную сумму, а
+[`fixedBatch_alignment_summable`](Hagi/Contracts/BatchCEAlignmentBudget.lean) и
+[`fixedBatch_tsum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean) —
+суммируемость и полный запас:
+
+```
+∑t, Ā_t ≤ ((K + 1) / 2) * batchCEObjective X y S.
+```
+
+Важно не ограничиваться средним за префикс или minimizer-observer.
+[`fixedBatch_meanGradient_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
+доказывает, что `WithLp.toLp 2 (meanResidualTranspose X θ_t y)` стремится к нулю
+на последнем итерате; [`fixedBatch_meanDirection_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
+даёт тот же предел для `batchMeanDirection X θ_t y = -ḡ_t`.
+Эти последние две теоремы допускают пустой batch, помещая непустоту
+`V` только в ветку `B+1`, где она следует из `y 0`; скрытого witness
+при `B=0` нет. Условия для конечного запаса и среднего Чезаро
+[`fixedAlignmentCesaro_le`](Hagi/Contracts/BatchCEAlignmentBudget.lean) сохраняются:
+это отдельная мажоранта при непустом `V`, не rate для отдельного `Ā_t`.
+
+Это доказанный предел только общего среднего градиента и направления
+на фиксированном batch. Отдельные residual gradients при смешанных
+целях могут оставаться ненулевыми; сходимость параметров,
+индивидуальных логитов, CE к оптимуму или held-out качества не утверждается.
+
 ### 3.3 Min-norm/MGDA и SafeQP
 
 Если нужен per-sample guard, альтернатива — минимальная по норме точка

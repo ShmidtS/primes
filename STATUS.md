@@ -219,9 +219,11 @@
 
 ## Hagi/Contracts/BatchCEAlignmentBudget.lean
 
-- `fixedAlignmentCesaro_nonneg`: среднее Чезаро квадратов `fixedAlignmentCesaro` неотрицательно.
-- `fixedAlignmentCesaro_le`: при непустом словаре `V` среднее за `T` шагов не превосходит `(((rangeCurvature X + 1) / 2) * batchCEObjective X y S) / T`.
-- `fixedAlignmentCesaro_tendsto_zero`: при непустом `V` эта последовательность средних стремится к нулю; сходимость отдельного невязки, параметров или значения цели к оптимуму не утверждается.
+- `rangeCurvature_nonneg` и `batchRangeSquare_le_rangeCurvature_mul_alignment`: `0 ≤ rangeCurvature X` и `batchRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y`; граница сохраняется при тотализации пустого batch.
+- `fixedBatch_sum_alignment_le_initial`, `fixedBatch_alignment_summable` и `fixedBatch_tsum_alignment_le_initial`: при непустом `V` суммы `batchAlignment` по фактической `fixedBatchState`-траектории сходятся, а конечные суммы и `∑' t, batchAlignment ...` ограничены `((rangeCurvature X + 1) / 2) * batchCEObjective X y S`.
+- `fixedBatch_minNorm_tendsto_zero` и `fixedBatch_meanGradient_tendsto_zero`: при непустом `V` наблюдаемая точка `batchGradientMinimizer` стремится к нулю; фактический `WithLp.toLp 2 (meanResidualTranspose X (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)` стремится к нулю без дополнительной посылки непустого `V`, включая случай `B = 0`.
+- `fixedBatch_meanDirection_tendsto_zero`: общее направление `batchMeanDirection` на той же фактической траектории стремится к нулю, также включая пустой batch. Это не утверждение о нулевых отдельных residual gradients, сходимости параметров или оптимальности CE.
+- `fixedAlignmentCesaro_nonneg`, `fixedAlignmentCesaro_le` и `fixedAlignmentCesaro_tendsto_zero`: среднее Чезаро `fixedAlignmentCesaro` неотрицательно; при непустом `V` оно не превосходит `(((rangeCurvature X + 1) / 2) * batchCEObjective X y S) / T` и стремится к нулю. Это слабее отдельного последнего итерата и не даёт held-out качества.
 
 ## Hagi/Contracts/BatchCEBestResidual.lean
 

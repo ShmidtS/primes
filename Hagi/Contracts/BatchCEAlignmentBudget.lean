@@ -348,4 +348,93 @@ theorem fixedAlignmentCesaro_tendsto_zero [Nonempty V]
     (fixedAlignmentCesaro_le X y S opCost opRisk write)
   exact tendsto_const_div_atTop_nhds_zero_nat _
 
+/-- The existing fixed-batch finite alignment budget gives summability. -/
+theorem fixedBatch_alignment_summable [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Summable (fun t => batchAlignment X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y) := by
+  exact summable_of_sum_range_le (fun t => batchAlignment_nonneg _ _ _)
+    (fixedBatch_sum_alignment_le_initial X y S opCost opRisk write)
+
+/-- The total squared mean-residual budget is bounded by initial batch CE. -/
+theorem fixedBatch_tsum_alignment_le_initial [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    ∑' t, batchAlignment X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y ≤
+      ((rangeCurvature X + 1) / 2) * batchCEObjective X y S := by
+  exact (fixedBatch_alignment_summable X y S opCost opRisk write).tsum_le_of_sum_range_le
+    (fixedBatch_sum_alignment_le_initial X y S opCost opRisk write)
+
+/-- Populated-vocabulary implementation of mean-gradient stationarity. -/
+private theorem fixedBatch_meanGradient_tendsto_zero_of_nonempty [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (fun t => WithLp.toLp 2 (meanResidualTranspose X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y))
+      atTop (𝓝 0) := by
+  have hsquared :=
+    (fixedBatch_alignment_summable X y S opCost opRisk write).tendsto_atTop_zero
+  have hsq (t : ℕ) :
+      ‖WithLp.toLp 2 (meanResidualTranspose X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)‖ ^ 2 =
+      batchAlignment X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y := by
+    rw [EuclideanSpace.real_norm_sq_eq]
+    rfl
+  simp_rw [← hsq] at hsquared
+  have hnorm := hsquared.sqrt
+  exact tendsto_zero_iff_norm_tendsto_zero.2 (by
+    simpa only [Real.sqrt_zero, Real.sqrt_sq (norm_nonneg _)] using hnorm)
+
+/-- The actual last-iterate mean residual transpose tends to zero in the
+Euclidean norm along the fixed-batch safe-step trajectory. -/
+theorem fixedBatch_meanGradient_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (fun t => WithLp.toLp 2 (meanResidualTranspose X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y))
+      atTop (𝓝 0) := by
+  cases B with
+  | zero =>
+      have hzero : (fun t => WithLp.toLp 2 (meanResidualTranspose X
+          (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)) =
+          (fun _ : ℕ => (0 : EuclideanSpace ℝ (Fin n))) := by
+        funext t
+        apply PiLp.ext
+        intro j
+        simp [meanResidualTranspose]
+      rw [hzero]
+      exact tendsto_const_nhds
+  | succ B =>
+      let _ : Nonempty V := ⟨y 0⟩
+      exact fixedBatch_meanGradient_tendsto_zero_of_nonempty X y S opCost opRisk write
+
+/-- The actual common mean negative-residual direction tends to zero along
+the same fixed-batch safe-step trajectory. -/
+theorem fixedBatch_meanDirection_tendsto_zero
+    (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
+    (S : TrainState n a r c k) (opCost opRisk : ℝ)
+    (write : Option (Σ _ : ℕ, Fin c → ℝ)) :
+    Tendsto (fun t => batchMeanDirection X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)
+      atTop (𝓝 0) := by
+  have h := fixedBatch_meanGradient_tendsto_zero X y S opCost opRisk write
+  have hEq : (fun t => batchMeanDirection X
+      (coreParameters (fixedBatchState X y S opCost opRisk write t)) y) =
+      (fun t => -(WithLp.toLp 2 (meanResidualTranspose X
+        (coreParameters (fixedBatchState X y S opCost opRisk write t)) y))) := by
+    funext t
+    rw [batchMeanDirection_eq_neg_meanResidualTranspose]
+    apply PiLp.ext
+    intro j
+    rfl
+  rw [hEq]
+  simpa using h.neg
+
 end Hagi.Contracts.BatchCEAlignmentBudget
