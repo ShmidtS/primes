@@ -1,264 +1,106 @@
-# HAGI_v2 formalization (`Hagi/`)
+# HAGI_v2
 
-Lean 4.35.0 / Mathlib formalization of the mathematical
-core of the HAGI_v2 project — the intended ternary RD-channel
-causal language model grown from small domain experts. Empirical
-measurements (benchmarks, RMS errors, saturation curves) are
-not mathematical statements and are out of scope.
+Формализация на Lean 4.35.0 / Mathlib математической основы
+HAGI_v2 — предполагаемой архитектуры тернарной RD-канальной
+причинной языковой модели, развиваемой из небольших доменных
+экспертов.
 
-Detailed per-round history: `STATUS.md`.
+Проект исследует, как объединение специализированных компонентов,
+совместное обучение, сжатие и последующий рост могут описываться
+как связанная система состояний, переходов и ресурсных ограничений.
+Его исследовательская цель — улучшение качества обучения при
+ограниченном бюджете модели, памяти и вычислений. Репозиторий
+представляет формальную основу этой цели, а не сообщение о её
+достижении для реальной системы.
 
-## Structure
+## Общая идея
 
-| Directory | Content |
-| --- | --- |
-| Prelude, Foundations | Information-theoretic definitions (KL, entropy, TV, softmax); recurrence/telescope laws; Hoeffding/chord lemmas; the canonical scalar HAGI potential. |
-| Core, Architecture, Spectral, Depth | Linear algebra of the merge: Sylvester–Hadamard orthonormality, Kronecker products, DFT-3/F₃ unitarity, real 6×6 lift, block-diagonal step-0 equivalence, parent-preserving lift, leaf selection theory, factorized merge, cortex/fiber geometry. |
-| Energy | Ternary quantization (trits, nearest-grid rounding, error ≤ half-step), free-energy identities (KL descent, geometric pool), variance recursion, normalization seam. |
-| Data, Information | Distillation identities (CE/KL), entropy preservation under recursion, mixture KKT, Fannes/Pinsker conditional forms, memory-capacity floors. |
-| Probability | Finite-sample probability and selected-batch inference: Hoeffding, Azuma and Freedman-type bounds; supported importance-weighted loss and Euclidean-gradient MSE, exact propensity optima and upper-envelope guarantees; MWU/hedge, Gibbs/PAC-Bayes and information-theory identities. These are statements about the declared finite models, not sampling-runtime or generalization guarantees. |
-| Ensemble | Jensen-gap law (twoGap: exact cosh form, CE identity, quadratic bound), Hoeffding kernel, recursive distillation (telescoping, compound gain, harvest budget, greedy horizon-optimality), merge scaling. |
-| Step, Pretraining | SafeQP controller (existence/uniqueness, stochastic and adaptive variants with explicit constants), joint-step regression laws, domination, STE step model; zeroth-order (Dust) estimator laws: exact unbiasedness, 1/K variance, alignment; RCDL mode-A: exact descent-history ⟷ rank-1 LiveDelta bridge, additive Frobenius consolidation budget, three-currency MDL objective with double-counting detector and no-compression-below-entropy bridge. |
-| Budget | Bit allocation (marginal exchange, factor-2 balance, termination), water-filling, KV allocation, compute budget laws. |
-| Growth | Cone/takeoff family: frontier-scaling invariant (sustained takeoff from production dynamics), gain renewal, disagreement chains, gain-operator chain, cone unification. Thermostat vertical: T_t = T₀α^t annealing, monotone cooling, concentration gates, certified-state capstones (stop ∧ gate ∧ concentration ∧ ε-representative point) and the four purities along the anneal (TV → 0, ⟨E⟩ → E*, F → E*, S → 0, excess ⟨E⟩−F → 0), calorimetric excess bound, admission-margin soundness of the memory controller; full six-pair bridge graph (Gibbs ↔ thermostat ↔ Hoeffding ↔ MWU). |
-| Dynamics, External, Deployment, Discovery, Autonomy, Omni, Pretraining | Contraction/endpoint budgets; imported laws (μP, vocab critical point, phase metric); proxy-shift budget; PPT discovery (MH kernels, truncation bias); exponential-weights routing, supervisor viability (halving), insight channel; omni (cross-modal gap = mutual information, capability gates, Φ-monotonicity). |
-| System, Unified | The state-and-cycle layer: `GrowthState` (core state + `StageEffects` measured ledger + `Certificate`/`Metrics`/`Candidate`), `StageCertificate` with the per-generation soundness and the multi-generation telescope (`stage_certificate_telescope`), the conditional capstones (`MasterHAGI*`, `GrandSynthesis`, `ArchitectureTheorem` with `HAGICert` on `Fin I` domain families), `CertifiedHAGIInvariant`/`CoupledHAGIInvariant` with numeric nonvacuity witnesses, the assumptions record (`Assumptions.Trunc` + idle witness), the merge bridge, the state-level takeoff, the end-to-end live-weights cycle; the memory-management cycle: admission controller (novelty ∧ certified gain), consolidation quality bound, quantized safe-update window. |
-| Model, Generalization, Runtime | Finite CE/batch-gradient models and bridges to selected-gradient MSE; generalization telemetry (`GenMetrics`, `Qgen`, gen-safe step); ternary exact accounting. None of these is by itself a held-out guarantee or an optimal architecture theorem. |
+Центральный объект проекта — не один изолированный алгоритм, а
+контур адаптивного обучения. В нём состояние модели связывается с
+энергией или целевым функционалом, измеренными эффектами, оценками
+качества, памятью, стоимостью перехода и правилами accept/hold.
+Отдельные математические компоненты отвечают за подготовку данных,
+выбор батча, шаг оптимизации, объединение экспертов, квантование,
+консолидацию памяти и анализ траекторий.
 
-## Module organization
+Такой контур позволяет формулировать точные вопросы: что сохраняется
+при переходе, какие ресурсы расходуются и какие свойства доказаны
+на заданном носителе. Архитектурная схема здесь является объектом
+математического исследования, а не описанием уже обученной
+полноразмерной сети.
+## Три уровня результата
 
-Modules follow declaration carriers, proof dependencies and consumers,
-not merely topic names or directory size. Existing cohesive
-consolidations are retained; further joins require a bounded reviewed
-packet with declaration/type/body retention and consumer checks.
-`Hagi.lean` is the import root. The non-root `Hagi/` tree currently has
-493 modules; one is reached transitively rather than directly.
-A consolidation is not evidence of reduced training cost or FLOPs.
+1. **Математическая база.** Конечные алгебраические, вероятностные,
+   информационные и энергетические утверждения, доказываемые без
+   экспериментальных предпосылок.
+2. **Условные сертификаты.** Свойства шага или конечной траектории,
+   получаемые из явно перечисленных входных условий. Если свойство
+   реального обучения задано как посылка, теорема использует его, но
+   не доказывает его выполнение автоматически.
+3. **Мосты между ними.** Связи отдельных условий с конкретными
+   моделями и доказанными механизмами. Такие мосты имеют собственную
+   область применимости и не устраняют посылки произвольной модели.
+`Hagi.Unified.CertifiedLoop.certified_loop` задаёт верхнеуровневую
+теорему о конечной цепочке сертифицированных переходов с общей целью,
+ограничениями качества и учётом бюджета при её посылках.
 
-## The three layers (honest status)
+Формализация сама по себе не доказывает достижение AGI, оптимальность
+архитектуры, качество обучения или преимущество по времени и объёму
+вычислений. Утверждения о held-out данных и обобщении относятся к
+отдельным моделям и не следуют автоматически из сертификата одного шага.
 
-1. **Unconditional mathematics** — linear algebra, convexity,
-   concentration, quantization: proved from scratch on finite
-   carriers, no measured premises.
-2. **Conditional certificates** — the capstone theorems
-   (`MasterHAGI`, `MasterHAGI_trunc`, `grand_synthesis`)
-   take the measured stage laws (`h_emp_*`) as explicit
-   hypotheses. They are conditional statements about the
-   loop, not derivations of the premises.
-3. **Bridges (open frontier)** — the partially closed gap
-   between the layers:
-   - `Unified/Nonvacuity`: `CorePremises` is satisfiable —
-     a concrete cycle with the quantization-distortion
-     premise derived from the ternary rounding theorem;
-   - `Unified/MergeBridge`: the merge stage law derived
-     from the Core `lse` ensemble theory (merged CE =
-     mean CE − Jensen gap, gap ≥ 0);
-   - `Assumptions.Trunc`: the capstone premise set as one
-     named record.
-   Deriving an arbitrary stage model's `h_emp_grow`,
-   `h_emp_smooth` or `h_emp_lip` from Core alone is not
-   established. Selected premises are derived only for their
-   specialized carriers; that does not discharge the same-named
-   premises of every other model.
+## Математический охват
 
-The **C200 source snapshot**
-(`5a3fb7116f1a279c156e63ca8b6d41ba1af1fa69`) has
-494 modules, 12,076 Root constants, 9,054 ALLAXIOMS records,
-6,170 Freeze declarations and 313 intrinsic declarations; 0 sorry.
-LayerLint passes with one explicit retained cross-layer exception.
-Per-cycle history: `STATUS.md`; algorithms and supported sampling
-results: `ALGORITHMS.md`.
+- Базовый аппарат на конечных носителях: линейная алгебра,
+  спектральные конструкции, факторизация, информация и вероятность.
+- Объединение и согласование экспертов, дистилляция, рекуррентные
+  преобразования и геометрия архитектурных состояний.
+- Тернарное квантование, энергетические оценки, нормировка и бюджеты
+  памяти, ёмкости и вычислений.
+- Концентрация, конечновыборочные оценки, выбор батча и свойства
+  явно заданных функций потерь.
+- Шаги обучения, контроллеры и их гейты, телеметрия, состояния и
+  траектории, включая рост и изменение ресурсов.
+- Условные связи между отдельными компонентами и интегрированными
+  сертификатами состояния или конечного контура.
 
-The **R1/P1-D packet** preserves that mathematical API while eliminating
-four exact statement-duplicate groups. Two original public theorem names
-are genuine Batteries aliases to their canonical proofs. A public
-`posterior_congr_of_model_eq` now owns the shared EM posterior transport;
-the guarded-logit duplicate reuses its retained same-file private theorem.
-Across the six changed modules their preserved statements, nine redirected
-calls and two alias bodies account for exactly 11 compiled body changes;
-the four asymmetric-cost consumer bodies are unchanged.
+Точные формулировки, носители и предпосылки находятся в исходниках;
+README не заменяет их математическую спецификацию.
 
-Post-packet facts: 12,074 Root constants = 8,014 public + 513 private +
-3,547 generated; 9,052 ALLAXIOMS records; 6,168 Freeze declarations;
-313 intrinsic declarations; 1,213 retained IR entries and no module-count
-change. `scripts/StatementDupCheck.py` has zero groups. These are formal consolidation counters,
-not evidence of improved training, lower model size, runtime or FLOPs.
+## Структура репозитория
 
-The **StepCore → SafeQP physical join** then retains the spectral
-projector and its consumer on one carrier. The provider file is gone;
-its original declarations remain in the original `Hagi.Spectral`
-namespace inside `Hagi/Step/SafeQP.lean`, alongside the existing
-`Hagi.Step` declarations and all twelve explicit public reexports.
-The old StepCore module import path is not retained as a forwarding
-module: direct external imports must migrate to SafeQP or root `Hagi`.
+`Hagi.lean` — корневой модуль библиотеки и общая точка импорта.
+Дерево `Hagi/` сгруппировано по математическим и системным доменам:
 
-The real Root census retains all 17+14 packet OWNER identities, including
-structures and generated records, and all four explicitly unavailable
-child auxiliary records; 22 retained theorems use only the established
-standard axioms. There is no private renaming or ordinary/generated
-body waiver. Ten actual range changes are permitted individually by
-owner-qualified old/new records. Root totals remain 12,074 constants,
-9,052 ALLAXIOMS, 6,168 Freeze declarations, 313 intrinsic declarations
-and 38 tracked consumers. Physical source counts are 493 non-root
-modules, 139,319 lines, 492 root imports and 621 internal non-root
-edges. This is proof-source consolidation, not a model-size, runtime,
-FLOP, training-quality or architecture-optimality theorem.
+| Домен | Каталоги | Содержание на верхнем уровне |
+| --- | --- | --- |
+| База | [`Hagi/Prelude`](Hagi/Prelude), [`Hagi/Foundations`](Hagi/Foundations), [`Hagi/Core`](Hagi/Core), [`Hagi/Numerics`](Hagi/Numerics), [`Hagi/Geometry`](Hagi/Geometry), [`Hagi/Spectral`](Hagi/Spectral), [`Hagi/StatMech`](Hagi/StatMech) | Общие определения, конечные носители, алгебраические и геометрические результаты. |
+| Архитектура | [`Hagi/Architecture`](Hagi/Architecture), [`Hagi/Ensemble`](Hagi/Ensemble), [`Hagi/Sparsity`](Hagi/Sparsity) | Композиция компонентов, объединение экспертов и структурные ограничения. |
+| Энергия и ресурсы | [`Hagi/Energy`](Hagi/Energy), [`Hagi/Budget`](Hagi/Budget), [`Hagi/Runtime`](Hagi/Runtime) | Квантование, энергия, ресурсный учёт и точные представления исполнения. |
+| Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |
+| Переходы обучения | [`Hagi/Step`](Hagi/Step), [`Hagi/Pretraining`](Hagi/Pretraining), [`Hagi/Planning`](Hagi/Planning), [`Hagi/Contracts`](Hagi/Contracts) | Шаги, контроллеры, контракты переходов и конечные траектории. |
+| Рост и динамика | [`Hagi/Growth`](Hagi/Growth), [`Hagi/Dynamics`](Hagi/Dynamics), [`Hagi/State`](Hagi/State) | Состояния роста, устойчивость, бюджеты и динамические законы. |
+| Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
+| Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy), [`Hagi/Discovery`](Hagi/Discovery), [`Hagi/Omni`](Hagi/Omni), [`Hagi/Percolation`](Hagi/Percolation) | Маршрутизация, обнаружение, межмодальные и смежные модели. |
+| Примеры и сопровождение | [`Hagi/Examples`](Hagi/Examples), [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Конкретные носители, сравнительные формулировки, аудит и внешние математические связи. |
 
-The follow-on C201 packet introduces a feature-only allocation for the actual
-CE residual transpose. `featureNormSum` sums Euclidean row norms of the input
-feature matrix, and `norm_batchResidualGradient_le_featureNormSum` bounds the
-raw CE residual gradient by that feature mass. With positive total mass,
-`pmfMean_featureNormSum_optimalPropensity` gives exact coordinatewise mean
-transport to the C199 arithmetic-mean target, with zero propensity permitted
-only with a zero target. `selectedMeanGradientMSE_featureNormSum_le`
-specializes the C200 upper-envelope MSE bound; it is not an actual
-oracle-gradient Neyman optimum.
+Каталог `scripts/` содержит вспомогательные средства сопровождения
+формализации. Математическим источником остаются файлы `Hagi/**/*.lean`.
 
-The real two-class CE witness has feature masses 1 and 2 and proposal weights
-1/3 and 2/3. Its selected arithmetic-mean MSE is 1/2, while the separately
-evaluated upper envelope is 35/16. The fresh Root census adds exactly ten
-OWNER records (four public, six private) and preserves all 12,074 retained
-records, all 1,213 IR entries and all 38 CONSUMER rows. Current counters are
-12,084 OWNER records, 6,178 Freeze declarations, 9,061 allowed-axiom theorem
-seeds, and 313 intrinsic nodes; physical non-root sources remain 493 modules
-and now contain 139,485 lines. These finite supported-estimation and MSE
-results are not a sampled runtime path, a training/runtime/FLOP improvement,
-or an optimal architecture theorem.
+## Документация
 
-The subsequent C202 packet adds an exact continuous minimizer to the existing
-HNet cost model without changing imports or the earlier floor theorem. For
-strictly positive real a,b,T and r>0, write C(r)=a*T*r+b*T²/r²; C is documentation
-notation, not a new declaration. `Hagi.Model.HNet.hnetOptRatio` defines the exact
-noncomputable Real.rpow value rstar=(2bT/a)^(1/3). `Hagi.Model.HNet.hnet_opt_ratio`
-proves C(rstar)≤C(r), and `Hagi.Model.HNet.hnet_opt_ratio_unique` proves that
-C(r)=C(rstar) implies r=rstar. This is stronger than naming a candidate ratio:
-the proof establishes its positive cube identity, the global minimum on r>0,
-and uniqueness.
+- **[ALGORITHMS.md](ALGORITHMS.md)** — архитектура и алгоритмы
+  обучения, связь рецептов с формальными результатами и их посылками.
+- **[STATUS.md](STATUS.md)** — главные доказанные результаты
+  по каждому Lean-файлу Root, с существенными условиями.
+- **[Hagi.lean](Hagi.lean)** — карта импортов для перехода к
+  непосредственным определениям и теоремам в дереве `Hagi/`.
 
-With s=rstar, s³=2bT/a and hence a*T*s³=2*b*T². The exact gap is
-C(r)-C(s)=b*T²*(r-s)²*(2r+s)/(r²*s³). Positivity makes this gap nonnegative;
-equality forces the square to vanish. The exact witness a=b=1, T=4 gives
-rstar=2, C(2)=12≤20=C(1), and gap 8; the uniqueness theorem is also applied to
-reject equality at r=1. These are exact real-number facts, not benchmarks or
-approximate cube-root evaluation.
+## Сборка
 
-The actual Root census is now 12,092 OWNER records = 8,021 public + 522 private
-+ 3,549 generated. Its delta is exactly eight: three public, three private, and
-two generated declarations, Hagi.Model.HNet.hnetOptRatio._proof_1 and
-Hagi.Model.HNet.hnetOptRatio._proof_2. The latter are inspected numeral
-AtLeastTwo compiler auxiliaries at range 0, each with only propext, not extra
-model hypotheses or new codegen paths. All 12,084 baseline OWNER rows are
-retained. Current registries are Freeze 6,184, ALLAXIOMS 9,068 theorem seeds,
-NamePool 829,237 lines, and StatementDup zero groups; the assumptions lock is
-unchanged.
-
-The result is conditional on the stated strictly positive real parameters and
-concerns only the nonnegative gap in this abstract continuous cost model. It
-provides no Nat/integer minimizer or rounding rule, learned router, end-to-end
-chunk learning, runtime argmin solver, physical-FLOP or hardware bound, training
-quality guarantee, or architecture/AGI optimality claim. The separate
-`Hagi.Model.HNet.hier_seq_shorten` compression context (1<r, 0<T, with r<T in
-its descriptive setting) does not make every positive real ratio a physical
-chunk count.
-
-The former 4,354-row legacy Freeze lock was first reconciled to the
-6,170 declarations of the C200 source snapshot, then received the reviewed
-R1/P1-D update to 6,168. Generated `declarations.lock` and
-`scripts/namepool.txt` are ignored by Git. AssumptionScan still reports
-36 files/116 lexical labels (5 proved declarations plus 111 premise
-binders), not 111 unused or automatically removable assumptions.
-
-## The canonical capstone (Gen-3)
-
-The master result is `CertifiedLoop.certified_loop`
-(Unified/CertifiedLoop.lean): a chain of `StepCert` steps —
-dependent honest descent (`HonestTransition.actualDescent`:
-obj s' ≤ obj s − drop), componentwise quality floor
-(`FloorKept`), honest budget (b' ≤ b − spend) — yields
-simultaneously Σdrops ≤ obj₀ − objₙ, quality on every
-intermediate state (`certified_loop_all`), strict descent
-for n ≥ 1 (`certified_loop_strict`) and the budget
-telescope. The gate `gate_never_increases` (commit/hold)
-keeps energy non-increasing always. Non-vacuity: the
-executable quadratic machine instantiates the certificates
-on any horizon (`quad_loop_horizon`, `quad_witness_T3`,
-`quad_witness_T10`); the CI CHALLENGE gate pins the
-Gen-3 statement (`master_hagi_challenge_v3`).
-
-The old flat Gen-1 capstones (`MasterHAGI*`,
-`grand_synthesis`) are `@[deprecated]`: the copied-effects
-semantics is provably inconsistent at T = 2
-(the obstruction is documented in the audit trail; the module
-was removed as a verbatim wrapper).
-
-## Repo layout
-
-- `Hagi/` — 493 modules of the HAGI_v2 formalization, imported by
-  `Hagi.lean`; see `STATUS.md` and `ALGORITHMS.md`;
-- `scripts/` — the CI lint battery and audit tooling (`ci.sh` is the
-  single entry point); lexical assumption data: `assumptions.lock`.
-  The older `spec_manifest.toml` is a historical R237 snapshot, not
-  the current corpus manifest.
-
-## Build and checks
+Версия Lean закреплена в `lean-toolchain`, зависимости и цели — в
+`lakefile.toml`. Сборка корневой библиотеки:
 
 ```bash
-lake build                      # full build (use LAKE_JOBS=1 on low RAM)
-bash scripts/ci.sh              # build + lint battery
+lake build
 ```
-
-### Bounded module merge helper
-
-```bash
-python scripts/merge_module.py CHILD.lean PARENT.lean [--append] [--retarget PATH ...|--retarget-all]
-```
-
-Merge provider CHILD (C) into receiver PARENT (P), delete C, and update Root.
-DEFAULT requires P to import C directly and places C's body before P's. `--append`
-places C after P, forbids P→C, and relies on the caller asserting that P does
-not depend on C. Preserve all provider plain imports and receiver import order,
-with exact-identifier deduplication and only the requested C/P edits. Root is
-implicit; every other direct importer requires exact repeated `--retarget`
-coverage or computed `--retarget-all`. `Hagi.lean` physically lists imports, but
-placing a provider after its direct importer tree has no general fresh-checkout
-compatibility guarantee.
-
-Support is narrow: strict UTF-8 without BOM, ordinary source, plain header
-imports only. `module`, prelude, public/meta/all imports, trailing forms,
-and body imports are unsupported mutations. Discovery parsing is not universal
-module/private-scope support. Body private is not equivalent to public module
-scope; actual use requires a reviewed full census. No name guessing, declaration
-reordering, AXLE rewriting, or set_option stripping occurs. Namespaces/FQNs
-remain source text; private/generated retention needs per-use witnesses.
-
-Raw body spans preserve non-ASCII UTF-8, LF/CRLF, and final-newline state, not
-whole-file normalization. Missing sources, cycles, and retarget mismatches fail
-before mutation; multi-file outputs are computed from raw snapshots. Handled
-write/unlink errors attempt per-file byte rollback, including deleted C, and
-verify exact bytes. This is not cross-file atomicity, crash/power durability, or
-guaranteed rollback if restoration fails. Only selected C/P/Root/exact retargets
-change. Production caches are neither cleaned nor evidence against stale old-path
-imports; external importer migration is explicit per actual packet. Fixture tests
-never authorize real merges: each family needs semantic, import-graph, census,
-witness, registry, and full-CI review.
-
-Checks: TrivialLint (no sorry, no custom axioms, no
-trivialities), Freeze.py (declaration statements checked against
-`declarations.lock`), DocLint (docstring names/numbers
-match code), StatusLint, LayerLint (folder-layer import
-order, shrinking whitelist), DupLint/NsLint, CHALLENGE
-(Gen-3 comparator capstone), STMDUP, MACHINEDIFF
-(differential machine tests), ALLAXIOMS (axiom purity of
-every theorem). All 16 gates passed at C200; see `STATUS.md`
-for the exact snapshot. Passing CI is not a proof of physical
-runtime fidelity or optimal model quality.
-
-## Conventions
-
-- Measured premises carry the `h_emp_` prefix; each is an
-  explicit hypothesis, never hidden.
-- Empirical/derived claims that are NOT theorems are marked
-  in the module docstrings.
-- Namespace `Hagi.*`; canonical definitions live in
-  `Prelude.Info`, `Foundations.*` (deduplicate by proved delegation
-  only when carrier and assumptions agree).
