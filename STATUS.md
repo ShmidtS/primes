@@ -3269,6 +3269,16 @@
   `eta‖stepDir‖ ≤ r`, точных значений CE до/после и
   `L = 2(R²/8 + 2ρ‖stepDir‖²)/‖stepDir‖²`
   получается `potential(joint S)−potential S ≤ −gainJoint S + riskJoint S`.
+- `potential_joint_of_ceLinear_residualDirection`: для `GrowthState` на
+  `EuclideanSpace ℝ (Fin d)`, конечного непустого `V`, матрицы
+  `X : Matrix V (Fin d) ℝ` и цели `t` требуются
+  `S.stepDir = -ceDirection X S.params t`, `S.grad = S.stepDir`, `0 < S.sp.L`,
+  `S.sp.L = featureAbsSum X ^ 2`, `0 ≤ S.sp.eta ≤ 1 / S.sp.L`, а также
+  идентификации старой энергии с CE текущих logits и
+  `S.effects.jointEnergy` с CE в фактических `(joint S).params`. Получается
+  `potential(joint S)−potential S ≤ −gainJoint S + riskJoint S`; нулевое
+  направление допускается, global smoothness и universal strict descent не
+  утверждаются.
 
 ## Hagi/Unified/DescentCore.lean
 

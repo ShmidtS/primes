@@ -177,6 +177,87 @@ eta ≤ min 1 (⨅i 2(eps_i+⟪g_i,d⟫)/(L_i‖d‖²)),
 `(R/‖x‖)•x` на ball из [`trust_region_nearest`](Hagi/Runtime/ControllerGates.lean),
 но не объявляем её заменой всех ограничений QP.
 
+### 3.4 Конечная log-linear CE и joint potential
+
+Для состояния `S` на `EuclideanSpace ℝ (Fin d)`, конечного непустого `V`,
+матрицы `X : Matrix V (Fin d) ℝ` и цели `t` положим
+
+```
+D = ceDirection X S.params t,
+A = featureAbsSum X,
+R = ceStepRange X S.params t.
+```
+
+Теорема
+[`potential_joint_of_ceLinear_residualDirection`](Hagi/Unified/DerivAlong.lean)
+имеет ровно следующие содержательные посылки:
+
+```
+hstep  : S.stepDir = -ceDirection X S.params t,
+hgrad  : S.grad = S.stepDir,
+hL     : 0 < S.sp.L,
+hLdef  : S.sp.L = featureAbsSum X ^ 2,
+heta   : S.sp.eta ≤ 1 / S.sp.L,
+heta0  : 0 ≤ S.sp.eta,
+hCEold : S.energy = ceOneHot t (ceLogits X S.params),
+hCEnew : S.effects.jointEnergy =
+  ceOneHot t (ceLogits X (joint S).params).
+```
+
+В частности, hCEnew — явная идентификация measured post-energy, а не
+автоматическое следствие операции joint. Заключение для потенциала Φ:
+
+```
+Φ(joint S) - Φ S ≤ -gainJoint S + riskJoint S.
+```
+
+Из hstep получается фактическое обновление параметров:
+
+```
+(joint S).params = S.params - S.sp.eta • S.stepDir
+  = ceNextParameters X S.params t S.sp.eta.
+```
+
+Вместе с hgrad это даёт
+`⟪S.grad,S.stepDir⟫ = ‖S.stepDir‖² = ceAlignment X S.params t`.
+Одношаговая CE-мажоранта и singleton range bound дают
+
+```
+CE(next) ≤ CE(old) - eta*ceAlignment + (eta*R)²/8,
+R² ≤ 4*A²*‖D‖²,
+(eta*R)²/8 ≤ A²*eta²*‖D‖²/2.
+```
+
+Так hLdef выбирает допустимую, но вообще говоря грубую кривизну `A²`,
+а существующая [`potential_joint`](Hagi/System/GrowthState.lean) завершает
+вывод. Деления на направление нет и посылки `D≠0` не требуется.
+Это не утверждение о глобальной или оптимальной smoothness/curvature,
+не новый результат о fderiv, PL или сходимости.
+
+Для identity witness с `X=I₂`, `t=0`, нулевыми параметрами, `eta=1/4`,
+`A=2`, `L=4` имеем
+
+```
+D = [+1/2,-1/2],       stepDir = grad = [-1/2,+1/2],
+‖D‖² = 1/2,            R = 2,
+4A²‖D‖² = 8,           new joint logits = [+1/8,-1/8],
+gainJoint = eta*‖stepDir‖²/2 = 1/16.
+```
+
+Здесь старые logits равны `[0,0]`; после шага other-minus-target gap
+равен `-1/4`, а target-minus-other gap равен `+1/4`. Поэтому
+old CE = `softplus(0)`, new CE = `softplus(-1/4)`, и фактическое
+уменьшение CE равно `softplus(0)-softplus(-1/4) ≥ 1/16`.
+При `riskJoint=0` фактическое уменьшение потенциала также не меньше
+`1/16`; ни одно из этих уменьшений не объявляется равным `1/16`.
+Отдельный [`safeStepSize`](Hagi/Model/CEDescent.lean) здесь был бы `1/2`,
+но это другая формула, не удовлетворяющая окну `eta≤1/L=1/4`.
+
+При повторяющихся строках возможен `D=0` даже при тех же `A=2`, `L=4`,
+`eta=1/4`; тогда gain равен нулю. При нулевом риске заключение даёт лишь
+невозрастание потенциала. Universal strict progress, сходимость,
+generalization, held-out качество и выигрыш времени/FLOPs не утверждаются.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`

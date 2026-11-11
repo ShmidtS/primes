@@ -5,6 +5,7 @@ import Hagi.Foundations.StageCalculus
 import Hagi.Energy.Quantizer
 import Hagi.System.GrowthState
 import Hagi.Model.CEJacobianMajorizer
+import Hagi.Model.BatchCEDescent
 import Mathlib
 open InnerProductSpace
 /-!
@@ -21,7 +22,6 @@ open InnerProductSpace
 open scoped BigOperators
 
 namespace Hagi.Unified
-
 /-- **Градиентная липшицевость (R563)**: дифференцируемая
 энергия с ограниченной производной κ-Липшицева на всём
 пространстве (MVT на сегменте). Это модель h_emp_lip:
@@ -403,5 +403,92 @@ theorem potential_joint_of_ceOneHot_jacobian_remainder
     _ = S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ +
         S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
       rw [← hCEold, hquadratic]
+
+/-- The pointwise finite log-linear CE majorant at the actual `joint` state
+yields the existing joint potential bound. The residual-direction, gradient,
+curvature and old/new CE identifications are explicit premises; this is not a
+global Lipschitz or PL claim, a convergence theorem, or universal strict descent. -/
+theorem potential_joint_of_ceLinear_residualDirection
+    {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
+    (S : Hagi.System.GrowthState (EuclideanSpace ℝ (Fin d)))
+    (X : Matrix V (Fin d) ℝ) (t : V)
+    (hstep : S.stepDir = -Hagi.Model.ceDirection X S.params t)
+    (hgrad : S.grad = S.stepDir)
+    (hL : 0 < S.sp.L)
+    (hLdef : S.sp.L = (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2)
+    (heta : S.sp.eta ≤ 1 / S.sp.L) (heta0 : 0 ≤ S.sp.eta)
+    (hCEold : S.energy = Hagi.ceOneHot t (Hagi.Model.ceLogits X S.params))
+    (hCEnew : S.effects.jointEnergy =
+      Hagi.ceOneHot t (Hagi.Model.ceLogits X (Hagi.System.joint S).params)) :
+    Hagi.System.potential (Hagi.System.joint S) - Hagi.System.potential S ≤
+      -Hagi.System.gainJoint S + Hagi.System.riskJoint S := by
+  have hjoint : (Hagi.System.joint S).params =
+      Hagi.Model.ceNextParameters X S.params t S.sp.eta := by
+    change S.params - S.sp.eta • S.stepDir = _
+    rw [hstep]
+    simp [Hagi.Model.ceNextParameters]
+  have hnorm : ‖S.stepDir‖ ^ 2 =
+      Hagi.Model.ceAlignment X S.params t := by
+    rw [hstep, norm_neg, EuclideanSpace.real_norm_sq_eq]
+    unfold Hagi.Model.ceAlignment
+    apply Finset.sum_congr rfl
+    intro j _hj
+    rw [show (Hagi.Model.ceDirection X S.params t) j =
+      -Hagi.Model.residualTranspose X S.params t j from
+        Hagi.Model.ceDirection_ofLp X S.params t j]
+    ring
+  have hnormStep : ‖S.stepDir‖ ^ 2 =
+      ‖Hagi.Model.ceDirection X S.params t‖ ^ 2 := by
+    rw [hstep, norm_neg]
+  have hdescent : ‖S.stepDir‖ ^ 2 ≤ ⟪S.grad, S.stepDir⟫_ℝ := by
+    rw [hgrad, real_inner_self_eq_norm_sq]
+  have hinner : ⟪S.grad, S.stepDir⟫_ℝ =
+      Hagi.Model.ceAlignment X S.params t := by
+    rw [hgrad, real_inner_self_eq_norm_sq]
+    exact hnorm
+  have hrange0 :=
+    Hagi.Model.BatchCEDescent.dirRange_sq_le_batchFeatureRangeCoefficient_mul_norm_sq
+      (X := fun _ : Fin 1 => X)
+      (D := Hagi.Model.ceDirection X S.params t) (0 : Fin 1)
+  have hrange : (Hagi.Model.ceStepRange X S.params t) ^ 2 ≤
+      4 * (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2 *
+        ‖Hagi.Model.ceDirection X S.params t‖ ^ 2 := by
+    simpa [Hagi.Model.ceStepRange,
+      Hagi.Model.BatchCEDescent.dirRange,
+      Hagi.Model.BatchCEDescent.batchFeatureRangeCoefficient] using hrange0
+  have hquad : (S.sp.eta * Hagi.Model.ceStepRange X S.params t) ^ 2 / 8 ≤
+      (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2 * S.sp.eta ^ 2 *
+        ‖Hagi.Model.ceDirection X S.params t‖ ^ 2 / 2 := by
+    have hmul := mul_le_mul_of_nonneg_left hrange (sq_nonneg S.sp.eta)
+    calc
+      (S.sp.eta * Hagi.Model.ceStepRange X S.params t) ^ 2 / 8 =
+          S.sp.eta ^ 2 * (Hagi.Model.ceStepRange X S.params t) ^ 2 / 8 := by ring
+      _ ≤ S.sp.eta ^ 2 *
+          (4 * (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2 *
+            ‖Hagi.Model.ceDirection X S.params t‖ ^ 2) / 8 :=
+        div_le_div_of_nonneg_right hmul (by norm_num)
+      _ = (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2 * S.sp.eta ^ 2 *
+          ‖Hagi.Model.ceDirection X S.params t‖ ^ 2 / 2 := by ring
+  have hCEnew' : S.effects.jointEnergy =
+      Hagi.ceOneHot t (Hagi.Model.ceNextLogits X S.params t S.sp.eta) := by
+    rw [hjoint] at hCEnew
+    exact hCEnew
+  refine Hagi.System.potential_joint S hL heta heta0 hdescent ?_
+  calc
+    S.effects.jointEnergy =
+        Hagi.ceOneHot t (Hagi.Model.ceNextLogits X S.params t S.sp.eta) := hCEnew'
+    _ ≤ Hagi.ceOneHot t (Hagi.Model.ceLogits X S.params) -
+        S.sp.eta * Hagi.Model.ceAlignment X S.params t +
+          (S.sp.eta * Hagi.Model.ceStepRange X S.params t) ^ 2 / 8 :=
+      Hagi.Model.ceOneHot_next_le X S.params t heta0
+    _ ≤ Hagi.ceOneHot t (Hagi.Model.ceLogits X S.params) -
+        S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ +
+          (Hagi.Model.CEGroupedScale.featureAbsSum X) ^ 2 * S.sp.eta ^ 2 *
+            ‖Hagi.Model.ceDirection X S.params t‖ ^ 2 / 2 := by
+      rw [← hinner]
+      linarith only [hquad]
+    _ = S.energy - S.sp.eta * ⟪S.grad, S.stepDir⟫_ℝ +
+        S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
+      rw [← hCEold, hLdef, hnormStep]
 
 end Hagi.Unified
