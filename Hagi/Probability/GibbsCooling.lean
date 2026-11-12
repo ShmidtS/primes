@@ -36,12 +36,6 @@ GibbsConcentration (куда сходится охлаждение) —
 термодинамический каркас обучения. -/
 open Finset Real
 
--- Bridge arithmetic: 1 - x ≤ 1 / (1 + x) for x ≥ 0 (C221).
-private theorem one_sub_le_inv_one_add {x : ℝ} (hx : 0 ≤ x) :
-    1 - x ≤ 1 / (1 + x) := by
-  rw [le_div_iff₀ (by linarith)]
-  nlinarith [mul_self_nonneg x]
-
 theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
     (E : V → ℝ) (δ : ℝ) (vstar : V)
     (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
@@ -71,7 +65,7 @@ theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
       = gibbsW E T vstar / gibbsZ E T := by
     simp only [gibbsW, gibbsZ]
   rw [hlhs, hcard]
-  exact (one_sub_le_inv_one_add hx).trans hcanon
+  exact (one_div_ge_sub hx).trans hcanon
 
 open Filter in
 /-- **Предел концентрации при охлаждении (R387)**: вдоль
