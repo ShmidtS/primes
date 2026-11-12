@@ -1360,6 +1360,65 @@ causal stability supplied representations, stateful packed mask,
 BF16/Float, runtime, минимальная память, training quality, target-ratio cap,
 глобально завершённая или оптимальная модель HAGI.
 
+- C215 добавляет `boundaryHeads`: heads фактического маршрута C213,
+  `boundaryHeads boundary xs = (boundaryChunks boundary xs).map List.head?`,
+  носитель `List (Option α)`. `length_boundaryHeads` сохраняет точный счёт
+  chunks; `isSome_of_mem_boundaryHeads` доказывает, что каждый head —
+  реальный токен (пустой head невозможен из-за непустоты chunks);
+  `mem_of_mem_boundaryHeads` возвращает каждый head-токен в исходный вход.
+- `boundaryHeads_head?_cons` принуждает первый head быть первым токеном
+  входа независимо от его флага — структурный аналог forced first head
+  H-Net v2 `p₁ = 1`, без Q/K, cosine, порога и normalization epsilon.
+  `boundary_of_mem_boundaryHeads_tail` доказывает, что каждый не-первой
+  head лежит точно на boundary-токене (private-помощник
+  `head_boundary_of_mem_tail` проходит по цепочке `List.splitBy`), поэтому
+  chunk-start mask восстанавливается из самих heads.
+- На paired route C214 `boundaryHeads_adjacent_first` даёт первым headом
+  ровно dummy seed (a, a): seed структурно играет роль forced first head,
+  а `theta_of_mem_adjacentHeads_tail` переносит свойство границ на
+  θ-пар: каждый не-первой head paired маршрута удовлетворяет θ p = true.
+- Nodup честно не заявляется: при boundary = (· == 1) вход [1,1] даёт
+  chunks [[1],[1]] и heads [some 1, some 1]; heads — позиции первых
+  токенов chunks, а не множество уникальных значений. Пример [0,1,2] с
+  той же boundary даёт chunks [[0],[1,2]], heads [some 0, some 1]:
+  первый head принуждён при boundary 0 = false, не-первой лежит на границе.
+- Итого здесь одна публичная функция и семь публичных теорем:
+  `boundaryHeads`, `length_boundaryHeads`, `isSome_of_mem_boundaryHeads`,
+  `mem_of_mem_boundaryHeads`, `boundaryHeads_head?_cons`,
+  `boundary_of_mem_boundaryHeads_tail`, `boundaryHeads_adjacent_first`,
+  `theta_of_mem_adjacentHeads_tail`; `head_boundary_of_mem_tail` private.
+- Evidence (cycle C215): установленный источник
+  Hagi/Model/AdaptiveChunking.lean SHA-256
+  f0faeaf7f6abeb57fce47491fcabda8cd49e50765f1b1bcedc3a5913e12edbf4
+  (27244 bytes / 582 LF / 0 CR, +128 строк против C214, дифф чисто
+  аддитивный); plan GO
+  c919c621ff86523ba1e7607cc725713b9292b8c59e0dfa602a32c529a31dbcc6;
+  source-statement GO
+  b7eeb600ac18edd9e5d61861b7c2ef3d6ce98ff3aff82853f6f654c3f0835f8e;
+  root-build log
+  e1453aaef85dcbbb2ff29eb0e753f51eceeb731745ede75eafb19cb96f141e53;
+  rootapi log
+  c09bab4958680997359dabb04607ea52bb37f101ad2ce1d30f288dd4d3fb010d;
+  triviallint log
+  11ef18a234f4357f375fc0d4188c803f819811ad44816ded0790cc79b4af92dc.
+  Census (fresh, .tmp/C215/validation/census-report.md, TSV SHA
+  bcd363f63a758a5d79843363a9a65183a0440134968bc60f9dc3408a20fdb711,
+  2928937 bytes / 14104 LF / 0 CR): OWNER 12270 → 12281 (модуль
+  AdaptiveChunking 51 → 62, +11: 8 публичных, 1 private, 2
+  compiler-generated), IR 1261 → 1264 (+3 codegen aux), CONSUMER 38 без
+  изменений и byte-identical, fingerprint 12672784764919925193 →
+  4917100471297953757; NamePool delta 11/0 (ADDED=11, REMOVED=0).
+
+Это структурные свойства детерминированного фактического маршрута над
+supplied предикатом, а не learned/differentiable/causal/online router и не
+routing-quality утверждение. Forced first head — следствие `List.splitBy`,
+а не H-Net gate; head selection H-Net отдельно отбрасывает non-head
+представления. Не доказаны полная head-mask equivalence, Nodup heads,
+learned sparsity, encoder, Q/K projection, cosine, zero-norm/tie, causal
+stability supplied representations, stateful packed mask, BF16/Float,
+runtime, минимальная память, training/held-out качество или глобальная
+оптимальность HAGI.
+
 ## Hagi/Model/AlignmentRisk.lean
 
 - Для непустого конечного `V` и строго положительных нормированных

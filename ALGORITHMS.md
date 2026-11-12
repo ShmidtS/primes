@@ -908,6 +908,95 @@ training/held-out качество или глобальная оптималь�
 ratio loss не задают actual cap; логический count сам по себе не является
 physical cost.
 
+### 7.4 Head-position recovery over the boundary route
+
+Зададим для supplied Boolean-предиката границ boundary : α → Bool и
+конечного `xs : List α` recovery-функцию
+[`boundaryHeads`](Hagi/Model/AdaptiveChunking.lean):
+
+```
+boundaryHeads boundary xs = (boundaryChunks boundary xs).map List.head?
+```
+
+Она возвращает носитель `List (Option α)`: head-токен каждого фактически
+полученного chunk маршрута C213. Все утверждения ниже относятся к этому
+фактическому маршруту; отдельного supplied θ-маршрута здесь не строится,
+а capacity/floor варианты C213 в этой секции не переносятся.
+
+Сохранение счёта даёт
+[`length_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean): число heads
+равно точному числу chunks `boundaryChunks`, включая `0` для пустого входа
+и `1 + tail.countP boundary` для непустого. Каждый head — реальный токен:
+[`isSome_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean)
+доказывает `isSome = true` для каждого члена результата, опираясь на
+непустоту `ne_nil_of_mem_boundaryChunks`; пустой head невозможен.
+[`mem_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean)
+доказывает, что каждый head-токен лежит в исходном входе: heads
+восстанавливают позиции входных значений, а не порождают новые.
+
+Первый head структурно принуждён:
+[`boundaryHeads_head?_cons`](Hagi/Model/AdaptiveChunking.lean) даёт
+`head? = some (some a)` для входа `a :: rest` — первый head обязан быть
+первым токеном входа независимо от флага `boundary a`. Каждый не-первый
+head лежит точно на границе:
+[`boundary_of_mem_boundaryHeads_tail`](Hagi/Model/AdaptiveChunking.lean)
+доказывает `boundary x = true` для всякого `some x` из tail результата
+(служебная private-лемма `head_boundary_of_mem_tail` проходит по цепочке
+`List.splitBy`). Поэтому chunk-start mask восстанавливается из самих
+heads: первый head — всегда старт (принуждён), каждый следующий head —
+токен с истинным boundary-флагом, и других стартов маршрут не создаёт.
+
+Это структурный аналог forced first head H-Net v2: [paper v2, equation
+(4)](https://arxiv.org/html/2507.07955v2#S2.E4) фиксирует `p₁ = 1` —
+первый токен всегда head. Здесь принуждение — следствие фактического
+первого непустого chunk `List.splitBy`, а не learned prior и не routing-решение;
+gate-механика Q/K, cosine, порога `≥ 0.5` и normalization epsilon не
+моделируется. На paired route C214 (`adjacentPairs` с dummy seed `(a,a)`)
+той же теоремой переносится
+[`boundaryHeads_adjacent_first`](Hagi/Model/AdaptiveChunking.lean):
+первым head paired маршрута оказывается ровно dummy seed `(a,a)`. Тем
+самым seed на paired route структурно играет роль forced first head; его
+θ-флаг, как и в C214, в разбиение не входит. Для θ-пар то же свойство
+границ даёт [`theta_of_mem_adjacentHeads_tail`](Hagi/Model/AdaptiveChunking.lean):
+каждый не-первой head paired маршрута удовлетворяет `θ p = true`.
+
+Проверочный пример. При `boundary = (· == 1)` вход `[0,1,2]` даёт chunks
+`[[0],[1,2]]` и heads `[some 0, some 1]`: первый head `0` принуждён,
+хотя `boundary 0 = false`; не-первой head `1` лежит на границе.
+
+Nodup честно не заявляется. Повторяющиеся граничные токены дают
+повторяющиеся heads: при `boundary = (· == 1)` вход `[1,1]` даёт chunks
+`[[1],[1]]` и heads `[some 1, some 1]`. Heads — позиции первых токенов
+chunks фактического маршрута, а не множество уникальных значений.
+
+Итого здесь одна публичная функция и семь публичных теорем:
+`boundaryHeads`, `length_boundaryHeads`, `isSome_of_mem_boundaryHeads`,
+`mem_of_mem_boundaryHeads`, `boundaryHeads_head?_cons`,
+`boundary_of_mem_boundaryHeads_tail`, `boundaryHeads_adjacent_first` и
+`theta_of_mem_adjacentHeads_tail`; private-помощник `head_boundary_of_mem_tail`
+в публичный API не входит.
+
+Census-измерение C215 (fresh,
+`.tmp/C215/validation/census-report.md`, TSV SHA
+bcd363f63a758a5d79843363a9a65183a0440134968bc60f9dc3408a20fdb711,
+2928937 bytes / 14104 LF / 0 CR): OWNER 12270 → 12281 (модуль
+AdaptiveChunking 51 → 62, +11: 8 публичных, 1 private и 2
+compiler-generated), IR 1261 → 1264 (+3 codegen aux), CONSUMER 38 без
+изменений, consumers byte-identical, fingerprint
+12672784764919925193 → 4917100471297953757; NamePool delta 11/0.
+Физический размер модуля 21722 → 27244 bytes (+128 строк против C214).
+
+Это структурные свойства детерминированного фактического маршрута, а не
+learned/differentiable/causal/online router и не утверждение о качестве
+routing. Forced first head здесь — структурное следствие `List.splitBy`, а не
+H-Net gate `p₁ = 1`; head selection H-Net отдельно отбрасывает non-head
+представления, что не является этим восстановлением. Не доказаны полная
+head-mask equivalence, Nodup heads, learned sparsity, encoder, Q/K
+projection, cosine, zero-norm/tie, causal stability supplied
+representations, stateful packed mask, BF16/Float-семантика, runtime,
+минимальная память, training/held-out качество или глобальная
+оптимальность HAGI. Логический счёт heads сам по себе не является
+physical cost.
 ## 8. Конечный выбор архитектуры и качества оценки
 
 Кандидат — действие с настоящим `step`, model safety, памятью и числом

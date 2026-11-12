@@ -451,4 +451,132 @@ theorem ne_nil_of_mem_floorAdjacent_projection {α : Type*} (L r : ℝ)
   obtain ⟨rawChunk, hraw, rfl⟩ := List.mem_map.mp hmem
   simpa using ne_nil_of_mem_cappedBoundaryChunks hSuccess hraw
 -- C214_ADJACENT_BLOCK_END
+/-! C215 probe: head-position recovery over `boundaryChunks`. -/
+
+/-- Candidate definition: head token of every boundary chunk, Option carrier. -/
+def boundaryHeads {α : Type*} (boundary : α → Bool) (xs : List α) : List (Option α) :=
+  (boundaryChunks boundary xs).map List.head?
+
+/-- Heads count equals the exact C213 route count. -/
+theorem length_boundaryHeads {α : Type*} (boundary : α → Bool) (xs : List α) :
+    (boundaryHeads boundary xs).length = (boundaryChunks boundary xs).length := by
+  simp [boundaryHeads]
+
+/-- Every head is a real token (no none), since no chunk is empty. -/
+theorem isSome_of_mem_boundaryHeads {α : Type*} {boundary : α → Bool}
+    {xs : List α} {o : Option α}
+    (h : o ∈ boundaryHeads boundary xs) : o.isSome = true := by
+  obtain ⟨c, hc, hhead⟩ := List.mem_map.mp h
+  cases hc2 : c with
+  | nil =>
+    simp only [hc2] at hc
+    exact absurd rfl (ne_nil_of_mem_boundaryChunks hc)
+  | cons y ys =>
+    simp only [hc2] at hhead
+    rw [← hhead]
+    rfl
+
+/-- Every head token lies in the original input (heads recover input positions). -/
+theorem mem_of_mem_boundaryHeads {α : Type*} {boundary : α → Bool}
+    {xs : List α} {x : α}
+    (h : some x ∈ boundaryHeads boundary xs) : x ∈ xs := by
+  obtain ⟨c, hc, hhead⟩ := List.mem_map.mp h
+  have hxc : x ∈ c := by
+    cases hc2 : c with
+    | nil =>
+      simp only [hc2] at hc
+      exact absurd rfl (ne_nil_of_mem_boundaryChunks hc)
+    | cons y ys =>
+      simp_all
+  have hflat : x ∈ (boundaryChunks boundary xs).flatten :=
+    List.mem_flatten.mpr ⟨c, hc, hxc⟩
+  simpa using hflat
+
+/-- The first head is exactly the first input token (forced-first-head). -/
+theorem boundaryHeads_head?_cons {α : Type*} {boundary : α → Bool}
+    {a : α} {rest : List α} :
+    (boundaryHeads boundary (a :: rest)).head? = some (some a) := by
+  have hc : boundaryChunks boundary (a :: rest) ≠ [] := by
+    intro h
+    have hf := flatten_boundaryChunks boundary (a :: rest)
+    rw [h] at hf; simp at hf
+  simp only [boundaryChunks] at hc
+  obtain ⟨c0, r, hcr⟩ := List.exists_cons_of_ne_nil hc
+  have hc0mem : c0 ∈ List.splitBy (fun _ next => !boundary next) (a :: rest) := by
+    rw [hcr]; simp
+  have hc0ne : c0 ≠ [] := List.ne_nil_of_mem_splitBy hc0mem
+  obtain ⟨y, ys, rfl⟩ := List.exists_cons_of_ne_nil hc0ne
+  have h1 := List.head_head_splitBy (fun _ next => !boundary next)
+    (List.cons_ne_nil a rest)
+  simp only [hcr, List.head_cons] at h1
+  have hgoal : (boundaryChunks boundary (a :: rest)).head? = some (y :: ys) := by
+    simp [boundaryChunks, hcr]
+  simp only [boundaryHeads, List.head?_map, hgoal]
+  simp [h1]
+
+/-- Adjacent-chain helper: any non-first chunk starts on a boundary token. -/
+private theorem head_boundary_of_mem_tail {α : Type*} (boundary : α → Bool) :
+    ∀ (l : List (List α)),
+      l.IsChain (fun a b => ∃ (_ha : a ≠ []), ∃ hb, (!boundary (b.head hb)) = false) →
+      ∀ ⦃c : List α⦄, c ∈ l.tail → ∃ hb, boundary (c.head hb) = true := by
+  intro l
+  induction l with
+  | nil => intro _ c hcm; simp at hcm
+  | cons a l ih =>
+    intro hchain c hcm
+    obtain ⟨hhead, htail⟩ := List.isChain_cons.mp hchain
+    cases l with
+    | nil => simp at hcm
+    | cons b r =>
+      rcases List.mem_cons.mp hcm with rfl | hcm'
+      · obtain ⟨_, hb, hfalse⟩ := hhead c (by simp)
+        refine ⟨hb, ?_⟩
+        simpa using hfalse
+      · exact ih htail hcm'
+
+/-- Every non-first head sits exactly on a boundary token. -/
+theorem boundary_of_mem_boundaryHeads_tail {α : Type*} {boundary : α → Bool}
+    {xs : List α} {x : α}
+    (h : some x ∈ (boundaryHeads boundary xs).tail) : boundary x = true := by
+  have htail : (boundaryHeads boundary xs).tail =
+      (boundaryChunks boundary xs).tail.map List.head? := by
+    simp [boundaryHeads]
+  rw [htail] at h
+  obtain ⟨c, hc, hhead⟩ := List.mem_map.mp h
+  have hchain := List.isChain_getLast_head_splitBy
+    (fun _ next => !boundary next) xs
+  cases chunks : List.splitBy (fun _ next => !boundary next) xs with
+  | nil => simp [boundaryChunks, chunks] at hc
+  | cons c0 rest =>
+    rw [chunks] at hchain
+    have hc' : c ∈ rest := by simpa [boundaryChunks, chunks] using hc
+    have ⟨hb, hfalse⟩ := head_boundary_of_mem_tail boundary _ hchain hc'
+    cases hc2 : c with
+    | nil =>
+      simp only [hc2] at hc'
+      have hnil : [] ∈ List.splitBy (fun _ next => !boundary next) xs := by
+        simp only [chunks]
+        exact List.mem_cons.mpr (Or.inr hc')
+      exact absurd rfl (List.ne_nil_of_mem_splitBy hnil)
+    | cons y ys =>
+      simp only [hc2, List.head_cons, List.head?_cons, Option.some.injEq] at hfalse hhead ⊢
+      rw [← hhead]
+      exact hfalse
+
+
+/-! Paired-route transport (C214 style). -/
+
+/-- The paired route's first head is the dummy seed (a, a), playing the
+role of H-Net's forced first head. -/
+theorem boundaryHeads_adjacent_first {α : Type*} {θ : α × α → Bool}
+    {a : α} {rest : List α} :
+    (boundaryHeads θ (adjacentPairs (a :: rest))).head? = some (some (a, a)) := by
+  have h := boundaryHeads_head?_cons (boundary := θ) (a := (a, a)) (rest := (a :: rest).zip rest)
+  simpa [adjacentPairs] using h
+
+/-- Every non-first head of the paired route lies exactly on a θ-token. -/
+theorem theta_of_mem_adjacentHeads_tail {α : Type*} {θ : α × α → Bool}
+    {xs : List α} {p : α × α}
+    (h : some p ∈ (boundaryHeads θ (adjacentPairs xs)).tail) : θ p = true :=
+  boundary_of_mem_boundaryHeads_tail h
 end Hagi.Model.AdaptiveChunking
