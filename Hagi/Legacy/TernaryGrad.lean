@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Hagi.Unified.TopLevel
+import Hagi.Legacy.TopLevel
 import Hagi.Foundations.PerronCone
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer

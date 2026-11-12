@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Probability.CertifiedEstimator
-import Hagi.Unified.MasterHAGITrunc
+import Hagi.Legacy.MasterHAGITrunc
 /-!
 # CertifiedTakeoff — сертифицируемый конус (R554)
 

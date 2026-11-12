@@ -1,8 +1,8 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Unified.MasterHAGI
-import Hagi.Unified.Assumptions
+import Hagi.Legacy.MasterHAGI
+import Hagi.Legacy.Assumptions
 import Hagi.Model.StageSemantics
 import Hagi.Model.CertifiedTransition
 

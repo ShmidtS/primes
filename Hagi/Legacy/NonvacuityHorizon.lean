@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Unified.ArchitectureTheorem
+import Hagi.Legacy.ArchitectureTheorem
 import Hagi.Optimization.ComputeScaling
 import Hagi.Foundations.PerronCone
 import Hagi.Dynamics.Laws

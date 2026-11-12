@@ -1,4 +1,4 @@
-import Hagi.Unified.CorePremisesDerived
+import Hagi.Legacy.CorePremisesDerived
 
 /-!
 # Concrete-слой: квадратичная функция потерь (аудит v6, §3)

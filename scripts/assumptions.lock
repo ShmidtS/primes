@@ -15,8 +15,6 @@ Hagi/Discovery/PPT.lean: h_emp_dist h_emp_fiber
 Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
 Hagi/Energy/STEStep.lean: h_emp_res
 Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
-Hagi/Examples/Nonvacuity.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_merge_of_bridge
-Hagi/Examples/NonvacuityHorizon.lean: h_emp_takeoff_exponential
 Hagi/Foundations/PerronCone.lean: h_emp_dyn h_emp_dyn_explicit h_emp_dyn_linear_growth h_emp_gain_geometric h_emp_takeoff_exponential
 Hagi/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smooth
 Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
@@ -24,7 +22,17 @@ Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
 Hagi/Growth/Grow.lean: h_emp_pl
 Hagi/Growth/SeedOnly.lean: h_emp_disp_step h_emp_lip
 Hagi/Growth/Takeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
+Hagi/Legacy/AdvanceWitness.lean: h_emp_memwrite
+Hagi/Legacy/ArchitectureTheorem.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
+Hagi/Legacy/Assumptions.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
+Hagi/Legacy/CorePremisesDerived.lean: h_emp_G h_emp_dist h_emp_grow h_emp_merge
+Hagi/Legacy/MasterHAGI.lean: h_emp_01 h_emp_G h_emp_dist h_emp_fit h_emp_grow h_emp_indep h_emp_lip h_emp_meas h_emp_merge h_emp_p h_emp_smooth
+Hagi/Legacy/MasterHAGITrunc.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
+Hagi/Legacy/Nonvacuity.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_merge_of_bridge
+Hagi/Legacy/NonvacuityHorizon.lean: h_emp_takeoff_exponential
 Hagi/Legacy/RecursiveGrowth.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_quad h_emp_smooth
+Hagi/Legacy/StateTakeoff.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod
+Hagi/Legacy/TopLevel.lean: h_emp_conc h_emp_lip h_emp_smooth
 Hagi/Pretraining/ProbeError.lean: h_emp_attsmooth
 Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate
 Hagi/Probability/ConditionalSuccess.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
@@ -36,16 +44,8 @@ Hagi/Step/ProjectionDescent.lean: h_emp_smooth
 Hagi/Step/SafeQPStep.lean: h_emp_smooth
 Hagi/Step/StochasticSafeQP.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
 Hagi/System/GrowthState.lean: h_emp_dist h_emp_grow h_emp_lip h_emp_merge h_emp_smooth
-Hagi/Unified/AdvanceWitness.lean: h_emp_memwrite
 Hagi/Unified/AnytimeMartingale.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
-Hagi/Unified/ArchitectureTheorem.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
-Hagi/Unified/Assumptions.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
-Hagi/Unified/CorePremisesDerived.lean: h_emp_G h_emp_dist h_emp_grow h_emp_merge
 Hagi/Unified/GrowthBridge.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
-Hagi/Unified/MasterHAGI.lean: h_emp_01 h_emp_G h_emp_dist h_emp_fit h_emp_grow h_emp_indep h_emp_lip h_emp_meas h_emp_merge h_emp_p h_emp_smooth
-Hagi/Unified/MasterHAGITrunc.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
-Hagi/Unified/StateTakeoff.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod
-Hagi/Unified/TopLevel.lean: h_emp_conc h_emp_lip h_emp_smooth
 
 [derived h_emp-named theorems (PROVEN, not premises)]
 h_emp_dyn_explicit
@@ -77,4 +77,4 @@ hexecb
 
 [unprefixed empirical premises (per-file counts, shrink-only, not a name-registry)]
 Hagi/Generalization/ModeState.lean: h_C_cap=2 hβ_eased=2
-Hagi/Unified/MasterHAGI.lean: h_step=3 h_gain_prod=3 h_dyn=2 h_C_cap=2 hβ=2
+Hagi/Legacy/MasterHAGI.lean: h_step=3 h_gain_prod=3 h_dyn=2 h_C_cap=2 hβ=2

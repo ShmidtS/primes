@@ -207,7 +207,7 @@
 - `weightedExpAllocation_marginal`: при дополнительном `0 < c i` маргинальные величины `c i * κ i * exp (-κ i * allocation i)` равны `weightedExpPrice c κ w B * w i`.
 - `weightedExpAllocation_optimal`: для любого вещественного `r` с тем же взвешенным бюджетом экспоненциальный остаток построенного распределения не больше остатка `r`; это непрерывная, а не целочисленная оптимальность.
 
-## Hagi/Challenge/MasterChallenge.lean
+## Hagi/Legacy/MasterChallenge.lean
 
 - `master_hagi_core_comparator`: при `0 ≤ lam`, `0 ≤ nu`, `0 ≤ epsQ` и `CorePremises S S' epsQ w` потенциал после перехода не превосходит исходного минус `verify.decrease`, плюс `lam * verify.riskSpend + nu * epsQ`.
 - Та же теорема доказывает точное бюджетное равенство `S'.toGrowthState.budget = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend`; все условия `CorePremises` остаются посылками.
@@ -778,18 +778,55 @@
 - `calibrated_good_point`: при `0 < θ < 1` и `2*card K*θ < 1` тот же вывод получен с радиусом `(b−a)*√(log(1/θ)/2)`.
 - `calibrated_two_sided_mass`: без дополнительного условия `2*card K*θ < 1` масса точек, одновременно удовлетворяющих этому радиусу, оценивается снизу величиной `1 − 2*card K*θ`.
 
-## Hagi/Examples/HAGICertWitness.lean
+## Hagi/Legacy/HAGICertWitness.lean
 
 - `hagicert_nonvacuous`: построены последовательности состояний и числовые параметры, для которых выполнен `HAGICert … T`. Это свидетель совместимости формального контракта на конкретных данных, а не оценка качества реального обучения.
 
-## Hagi/Examples/Nonvacuity.lean
+## Hagi/Legacy/Nonvacuity.lean
 
 - `merge_energy_bridge`: для midpoint-логитов доказано точное `CE(mid) = (CE(z₁)+CE(z₂))/2 − jensenGap z₁ z₂`, а также неотрицательность зазора.
 - `h_emp_merge_of_bridge` — доказанная теорема, а не внешняя посылка: она выводит одновременно `CE(mid) ≤ meanCE − jensenGap` и `0 ≤ jensenGap`.
 - `corePremises_nonvacuous_strict`: для любого `E` существуют состояния, `epsQ,w`, удовлетворяющие `CorePremises`, с положительными gap и growGain.
 - `corePremises_single_step_obstruction`: два подряд `CorePremises` несовместимы с `gap > 0`, `growGain ≥ 0` и `kappa = 0`; это отрицательный результат о статической модели эффектов, а не про всякое обучение.
 
-## Hagi/Examples/NonvacuityHorizon.lean
+- C219 (legacy quarantine B2, аудит P0a; 19 модулей): все
+  модули Hagi/{Unified,Examples,Challenge}/*.lean из карантинного
+  списка B2 перенесены в Hagi/Legacy/ без изменения математических
+  тел: 3 файла — чистые renames (ArchitectureTheorem, MasterHAGI,
+  TopLevel, 0 байт изменений), 16 — import-переписывание только
+  Hagi.Unified.X → Hagi.Legacy.X среди перенесённых модулей
+  (18 строк ±). Мотив — вакуумные свидетельства на самом дереве
+  наследия (Nonvacuity.lean:521/586/1011 —
+  corePremises_two_step_decrease_nonpos,
+  full_cycle_two_step_growth_inconsistent,
+  state_capability_two_step_inconsistent): карантин отделяет
+  наследие от живого корневого import-замыкания; Hagi.lean больше
+  не импортирует их, umbrella Hagi/Legacy.lean и lean_lib
+  Hagi.Legacy сохраняют собираемость и CI-покрытие.
+- Census (.tmp/C219/validation/root-census.tsv SHA-256
+  1f1473c24bb7cbbd5a1d24799edc0fced083576b6bb067606985cb590bce6ba0):
+  OWNER 12284 → 11862 (−422 = ровно 19 модулей), IR −17 → 1247,
+  CONSUMER 38, модули 499 → 480; 2 дублирующихся имени
+  (Hagi.System.gainJoint.eq_1, Hagi.Generalization.Qvec.eq_1)
+  объяснены OWNER-строками в двух перенесённых модулях; NamePool:
+  owner_gone=418, gone_in_pool=0.
+- Evidence (cycle C219): lake build rc=0 (.tmp/C219/build2.log);
+  полный CI rc=0 (.tmp/C219/final-ci/ci.log SHA-256
+  148cb1dcf7349e915872330e327224eb4f2a4d246e4e6d30b70cf9de5d84e5ed,
+  1×CI: PASS, 1×ALLAXIOMS: PASS); Freeze PASS, lock идентичен
+  снапшоту (.tmp/C219/declarations-before.lock, нулевой diff);
+  ReachLint PASS (21 legacy-exempt; отрицательная проба:
+  временный недостижимый файл даёт FAIL rc=1); NsLint/DocLint/
+  StatusLint PASS; AssumptionScan 1 path-ключ, assumptions.lock
+  11 path-only секций (+11/−11). Plan GO
+  .tmp/C219/reviews/plan-review.md SHA-256
+  ab083f2b26439957b2f2daaae109e80ce5b690e89d2c44262088802b122b3eb6.
+
+Заявление — перенос и карантин 19 модулей без изменения
+доказательств; не утверждаются новые математические результаты,
+wall-clock, сжатие весов или улучшение качества.
+
+## Hagi/Legacy/NonvacuityHorizon.lean
 
 - `sat_step_laws`: при `γ ≠ 0` параметрическая траектория одновременно удовлетворяет шагу `C(t+1)=C(t)+γ*F(t)` и насыщению `C(t+1)=C(t)+σ*(Cstar−C(t))`.
 - `sat_cone_iff`: при `γ > 0` условие `k*satC … t ≤ satF … t` эквивалентно `γ*k*Cstar ≤ (γ*k+σ)*Δ*(1−σ)^t`.
@@ -800,7 +837,7 @@
 - `quadE_qhalf`: после `t` полушагов энергия равна `quadE a (qhalf a x t) = (1/4^t)*quadE a x`.
 - `quad_loop_horizon`: если `quadGrad a x ≠ 0` и `n ≥ 1`, то `quadE a (qhalf a x n) < quadE a x`; `quad_witness_T3` и `quad_witness_T10` — конкретные специализации.
 
-## Hagi/Examples/QuadraticConcrete.lean
+## Hagi/Legacy/QuadraticConcrete.lean
 
 - `quad_core_premises`: для любых `a : ℝ` и `w : Fin 5 → ℝ` построены квадратичные состояния, удовлетворяющие `CorePremises (quadGen a) (quadGen' a) 0 w`.
 - `quad_kappa_at0` даёт `‖fderiv ℝ (quadE a) 0‖ ≤ 1+|a|`; `quad_conj13` проверяет соответствующее неравенство для квантованного скалярного шага с тем же коэффициентом.
@@ -3484,7 +3521,7 @@ one-hot CE.
 - `unified_step_certificate` одновременно фиксирует положительную нормировку
   гиббсовых весов и ту же решётчатую ошибку для фактического композитного шага.
 
-## Hagi/Unified/AdvanceWitness.lean
+## Hagi/Legacy/AdvanceWitness.lean
 
 - `certified_invariant_advance_witness`: на горизонте `2` фактические поля
   траектории удовлетворяют `CertifiedHAGIInvariant` с `alpha=1`;
@@ -3513,7 +3550,7 @@ one-hot CE.
   `t ≤ n`, для которого `S t > (ψt + log(1/δ))/lam`, не превосходит `δ`.
   Условие супермартингала является частью теоремы, а не выводится из формулы `L`.
 
-## Hagi/Unified/ArchitectureTheorem.lean
+## Hagi/Legacy/ArchitectureTheorem.lean
 
 - `entropy_continuity_pinsker`: если уже доказана граница
   `|H(p)−H(q)| ≤ τ log(|V|−1) + h₂(τ)`, а также `0 ≤ τ ≤ 1/2`,
@@ -3528,7 +3565,7 @@ one-hot CE.
 - `budget_horizon_nonneg`: из `B T ≥ 0`, `spend t ≥ 0` и
   `B t = B0 − Σ_{j<t}spend j` следует `B t ≥ 0` для всех `t ≤ T`.
 
-## Hagi/Unified/Assumptions.lean
+## Hagi/Legacy/Assumptions.lean
 
 - `masterhagi_trunc_of_assumptions`: пакет `Trunc S lam nu Qtarget Emin T`
   заменяет стадийные, бюджетные и нижние энергетические предпосылки;
@@ -3570,7 +3607,7 @@ one-hot CE.
   сертификатов `ExecutedCert` при неотрицательных заданных рисках и бюджетах,
   без отдельной постановки шаговой гипотезы `StepContract`.
 
-## Hagi/Unified/CertifiedGrowth.lean
+## Hagi/Legacy/CertifiedGrowth.lean
 
 - `certified_gainprod_takeoff`: для `[0,1]`-наблюдений, `n,eps > 0`,
   `alpha,gamma,C0 > 0`, `rho ≥ 0`, начального конуса, принятого моста
@@ -3613,7 +3650,7 @@ one-hot CE.
 - `quant_bound_of_gridQ`: при `Δ > 0` сумма квадратов ошибок решётки
   не превосходит `|k|·Δ²/4`.
 
-## Hagi/Unified/CorePremisesDerived.lean
+## Hagi/Legacy/CorePremisesDerived.lean
 
 - `core_premises_joint_operational` и `core_premises_compress_operational`
   выводят квадратичный joint и квантованный compress из дифференцируемости,
@@ -3794,7 +3831,7 @@ one-hot CE.
 - `seq_dev_exact` при `s ≠ 1` даёт точное решение скалярной модели
   `x_t−c/(1−s) = s^t·(x₀−c/(1−s))`.
 
-## Hagi/Unified/GrandSynthesis.lean
+## Hagi/Legacy/GrandSynthesis.lean
 
 - `grand_synthesis_weak`: при заданных границах сертификации стадий,
   `κD t ≤ E_raw`, производственной динамике, начальном конусе
@@ -3917,7 +3954,7 @@ one-hot CE.
   `G t ≤ gMax·wLive` и `alpha·C t ≤ G t` получается
   `C t ≤ gMax·wLive/alpha`; это оценка в заданной модели прироста.
 
-## Hagi/Unified/LearningKernel.lean
+## Hagi/Legacy/LearningKernel.lean
 
 - `grow_premise_derived`: если `LearningKernel` даёт
   `capability' ≤ energy'` и `energy' = energy−growEnergy`, а дополнительно
@@ -3941,7 +3978,7 @@ one-hot CE.
 - `qgen_hides` даёт равные скалярные свёртки для разных координатных векторов,
   а `floor_catches` показывает, что покомпонентный floor их различает.
 
-## Hagi/Unified/LinkedWitness.lean
+## Hagi/Legacy/LinkedWitness.lean
 
 - `wTraj_certified_family`: три конкретных перехода удовлетворяют
   `CertifiedTransition` при сумме стадийных рисков как пределе.
@@ -4007,7 +4044,7 @@ one-hot CE.
   начального; `fsTraj_count_le` ограничивает число принятых шагов
   начальным счётчиком плюс горизонт.
 
-## Hagi/Unified/MasterHAGI.lean
+## Hagi/Legacy/MasterHAGI.lean
 
 - `MasterHAGI`: при `lam ≥ 0`, `nu > 0`, `epsQ ≥ 0`, `CorePremises`,
   SafeQP-окнах, суммировании доменных рисков,
@@ -4053,7 +4090,7 @@ one-hot CE.
 математические результаты, wall-clock, сжатие весов или
 улучшение качества.
 
-## Hagi/Unified/MasterHAGICoupled.lean
+## Hagi/Legacy/MasterHAGICoupled.lean
 
 - `CoupledHAGIInvariant` связывает канал capability непосредственно с
   состояниями и содержит отдельные неотрицательные spend/risk,
@@ -4068,7 +4105,7 @@ one-hot CE.
   для каждого `t < T` `0 < verify(S(t+1)).decrease` и
   `∑_{t<T} verify(S(t+1)).decrease ≤ energy(S0) − energy(ST)`.
 
-## Hagi/Unified/MasterHAGITrunc.lean
+## Hagi/Legacy/MasterHAGITrunc.lean
 
 - `MasterHAGI_trunc`: формулировка `MasterHAGI` требует посылки роста только
   для `t < T`, сохраняя SafeQP, `CorePremises`, net-cover, риск, бюджет,
@@ -4341,7 +4378,7 @@ wall-clock, сжатие весов или улучшение качества.
   `lion_descent` требует отдельной согласованности momentum с градиентом
   и `0 < eta ≤ 1/L`.
 
-## Hagi/Unified/StateTakeoff.lean
+## Hagi/Legacy/StateTakeoff.lean
 
 - `state_capability_takeoff`: при `FullCycleRefinement`,
   `alpha,gamma > 0`, `rho ≥ 0`, положительной начальной capability,
@@ -4363,7 +4400,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `chain_budget` и `chain_risk` доказывают, что составной контракт
   содержит соответственно суммы бюджетных и рисковых затрат звеньев.
 
-## Hagi/Unified/TernaryGrad.lean
+## Hagi/Legacy/TernaryGrad.lean
 
 - `quantized_net_gain`: из `gamma·D ≤ Graw` и `Graw−G ≤ p`
   следует `gamma·D−p ≤ G`.
@@ -4396,7 +4433,7 @@ wall-clock, сжатие весов или улучшение качества.
   переход к `quantOpt` имеет положительный фактический drop при нулевых
   риске и расходе. `ternaryStepCert` упаковывает тот же переход в `StepCert`.
 
-## Hagi/Unified/TopLevel.lean
+## Hagi/Legacy/TopLevel.lean
 
 - `quant_residual_norm` и `quant_energy_bridge`: если
   `|w i−q i| ≤ s/2`, то `Σᵢ(w i−q i)² ≤ n(s/2)²`;

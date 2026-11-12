@@ -1,4 +1,4 @@
-import Hagi.Unified.MasterHAGI
+import Hagi.Legacy.MasterHAGI
 
 /-!
 # LearningProblem — склейка (b) аудита v5 (ядро)

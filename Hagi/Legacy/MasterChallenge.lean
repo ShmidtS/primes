@@ -1,4 +1,4 @@
-import Hagi.Unified.CorePremisesDerived
+import Hagi.Legacy.CorePremisesDerived
 
 /-!
 # Comparator-Challenge: MasterHAGICore (аудит v6, шаг 2)

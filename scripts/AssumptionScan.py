@@ -36,7 +36,7 @@ IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
 # empirical (documented blindness). The list may only shrink in
 # future cycles; growth or drift in registered files FAILs.
 UNPREFIXED_EMPIRICAL = {
-    'Hagi/Unified/MasterHAGI.lean':
+    'Hagi/Legacy/MasterHAGI.lean':
         {'h_step': 3, 'h_gain_prod': 3, 'h_dyn': 2, 'h_C_cap': 2,
          'hβ': 2},
     'Hagi/Generalization/ModeState.lean':

@@ -1,4 +1,4 @@
-import Hagi.Unified.MasterHAGI
+import Hagi.Legacy.MasterHAGI
 -- Продуктивный T=2 свидетель итогового инварианта из advance-переходов.
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
