@@ -17,11 +17,18 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 BASELINE = os.path.join(os.path.dirname(__file__), "nslint_baseline.txt")
 NS_RE = re.compile(r"^namespace\s+([\w.]+)", re.M)
 
+# C217 quarantine: files under Hagi/Legacy/ keep their original
+# namespaces (avoids declaration-name churn); exempt from the
+# namespace-matches-folder rule.
+LEGACY_PREFIX = "Hagi/Legacy/"
+
 
 def violations():
     out = []
     for p in sorted(ROOT.rglob("*.lean")):
         rel = p.relative_to(ROOT.parent).as_posix()
+        if rel.startswith(LEGACY_PREFIX) or rel == "Hagi/Legacy.lean":
+            continue
         folder = rel.split("/")[1]
         ns_prefix = "Hagi." + folder
         nss = NS_RE.findall(p.read_text(encoding="utf-8", errors="replace"))

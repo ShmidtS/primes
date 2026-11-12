@@ -9,6 +9,7 @@ Proof bodies are deliberately excluded. A compatibility alias remains tracked
 Run: lake env lean scripts/inventory.lean > inventory.txt
 -/
 import Hagi
+import Hagi.Legacy
 import Batteries.Tactic.Alias
 open Lean
 

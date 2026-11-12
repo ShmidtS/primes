@@ -137,7 +137,6 @@ import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization
 import Hagi.External.Flywheel.MDLRank
 import Hagi.Core.RootContrast
-import Hagi.Unified.RecursiveGrowth
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.Laws
 import Hagi.Autonomy.TTTStability

@@ -15,6 +15,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 HAGI_ROOT = ROOT / "Hagi.lean"
 
+# C217 quarantine: modules under Hagi/Legacy/ are intentionally
+# outside the root import closure (vacuous-stack quarantine, audit
+# P0a). They must still build (separate lean_lib, default target).
+LEGACY_PREFIX = "Hagi/Legacy/"
+
 IMPORT = re.compile(r"^\s*import\s+(Hagi\.[A-Za-z0-9_.]+)", re.M)
 
 
@@ -30,6 +35,8 @@ def imports_of(path: Path):
 
 def main() -> int:
     all_modules = {module_of(p) for p in (ROOT / "Hagi").rglob("*.lean")}
+    legacy = {module_of(p) for p in (ROOT / "Hagi" / "Legacy").rglob("*.lean")}
+    legacy.add("Hagi.Legacy")  # umbrella module of the quarantine lib
     # BFS from the root
     seen = set()
     frontier = imports_of(HAGI_ROOT)
@@ -43,7 +50,7 @@ def main() -> int:
             if f.exists():
                 nxt |= imports_of(f)
         frontier = nxt - seen
-    unreachable = sorted(all_modules - seen)
+    unreachable = sorted((all_modules - seen) - legacy)
     if unreachable:
         print(f"REACHLINT: FAIL — {len(unreachable)} module(s) not "
               f"reachable from Hagi.lean (wire the import or delete):")
@@ -51,7 +58,7 @@ def main() -> int:
             print(f"  {m}")
         return 1
     print(f"REACHLINT: PASS — all {len(all_modules)} Hagi modules "
-          f"reachable from the root import closure")
+          f"reachable ({len(legacy)} legacy-exempt, quarantine C217)")
     return 0
 
 

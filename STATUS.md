@@ -4202,7 +4202,7 @@ one-hot CE.
 - `piR_le_one`: для `z j∈[0,1]` при `j<N`
   доля `piR z N` лежит в `[0,1]`.
 
-## Hagi/Unified/RecursiveGrowth.lean
+## Hagi/Legacy/RecursiveGrowth.lean
 
 - `macro_step_decrease`: при merge-выигрыше `G ≥ 0`, `0 < L`,
   `0 ≤ eta ≤ 1/L`, `dnorm² ≤ inner`, квадратичной joint-оценке,
@@ -4212,6 +4212,45 @@ one-hot CE.
   `E(t+1) ≤ E t−eta t·dn t²/2`, `etamin > 0`,
   `eta t ≥ etamin`, `eps > 0` и `dn t² ≥ eps²`
   горизонт удовлетворяет `n ≤ 2(E0−Emin)/(etamin·eps²)`.
+- C217 (legacy quarantine, аудит P0a): модуль перенесён без
+  изменения байтов из Hagi/Unified/RecursiveGrowth.lean в
+  Hagi/Legacy/RecursiveGrowth.lean (SHA-256
+  ef6907ef5ce1c44f4b85c308148860acf799326f2ce165de15e1d56e0d6933b0,
+  14644 байт / 347 строк / 0 CR) и выведен из корневого
+  import-замыкания: Hagi.lean больше не импортирует его; новый
+  umbrella-модуль Hagi/Legacy.lean и отдельная lean_lib
+  Hagi.Legacy (defaultTargets += Hagi.Legacy) сохраняют
+  собираемость и CI-покрытие. Утверждения `macro_step_decrease`
+  и `safeqp_eps_critical` сохранены дословно: это карантинный
+  рефакторинг, а не новое доказательство.
+- Освобождения точечные, кодового уровня: ReachLint исключает
+  только модули Hagi/Legacy/** плюс umbrella Hagi.Legacy
+  (временный недостижимый не-Legacy файл всё ещё даёт FAIL,
+  rc=1 — отрицательная проба воспроизведена); NsLint исключает
+  только префикс Hagi/Legacy/ и файл Hagi/Legacy.lean, baseline
+  не тронут; ClosureReport переименован только путь записи;
+  assumptions.lock — path-only move секции (+1/−1, тот же список
+  h_emp_-посылок). Все гейты для не-Legacy кода остаются
+  строгими.
+- Census (fresh, .tmp/C217/validation/root-census.tsv SHA-256
+  0e08fa29c070902eeb06f80d257165908e22adc17313ab4184e2ec3dd66771eb):
+  OWNER 12308 → 12284, ровно −24 = строки модуля
+  Hagi.Unified.RecursiveGrowth, теперь 0; NamePool −24 / +0;
+  модули 500 → 499; fingerprint
+  11502919156674973306 → 6171893465292583947.
+- Evidence (cycle C217): lake build Hagi Hagi.Legacy rc=0; полный
+  CI rc=0 (.tmp/C217/final-ci/ci2.log SHA-256
+  41a88367222fe38f1aefb4ee01e8c1b58edb6708cdac33f1448daa0e01bc3519,
+  1×CI: PASS, 1×ALLAXIOMS: PASS); Freeze NO-OP (declarations.lock
+  не изменён, SHA-256
+  1af9d36899cb8420eafe38b5634c9bcda4f0a7d4f6120a7de666b2e90b222621
+  до и после); plan GO
+  .tmp/C217/reviews/plan-review-final.md SHA-256
+  ac334c9d0107225c21941e4a145bce790cbc2b62592e52c83ca7d482b4d0ec24.
+
+Заявление — перенос и карантин модуля без изменения
+доказательств; не утверждаются новые математические результаты,
+wall-clock, сжатие весов или улучшение качества.
 
 ## Hagi/Unified/RobustCostSensitivity.lean
 

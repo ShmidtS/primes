@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Hagi"]
+defaultTargets = ["Hagi", "Hagi.Legacy"]
 
 [leanOptions]
 pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
@@ -33,6 +33,10 @@ name = "Hagi.Architecture"
 globs = ["Hagi.Architecture.+"]
 
 # Review stage 6: per-directory package for incremental builds.
+[[lean_lib]]
+name = "Hagi.Legacy"
+globs = ["Hagi.Legacy", "Hagi.Legacy.+"]
+
 [[lean_lib]]
 name = "Hagi.Audit"
 globs = ["Hagi.Audit.+"]
