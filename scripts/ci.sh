@@ -9,7 +9,7 @@ fail=0
 step() { echo; echo "=== $1 ==="; }
 
 step "lake build (default target: Hagi)"
-LAKE_JOBS=16 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
+LAKE_JOBS=32 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
   || { echo "BUILD: FAIL"; fail=1; }
 
 step "ReachLint (every module reachable from Hagi.lean root)"
