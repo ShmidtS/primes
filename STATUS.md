@@ -341,6 +341,15 @@
 - `guardedLogitPath_eventually_eq`: сам путь после некоторого `N` постоянен; `guardedLogitPath_tendsto_eventual_value` доказывает сходимость к этому значению.
 - Предельная CE не отождествляется с нулём или глобальным оптимумом; внешняя калибровка и обобщение не оцениваются.
 
+## Hagi/Contracts/HadamardTernaryBridge.lean
+
+- `hadamard_satTail_zero_of_l2_bound`: при `s > 0`, `0 ≤ μ ≤ 1`, оценке `‖x‖₂ ≤ s·√(2^k)` и посылке μ-некогерентности `‖Hx‖∞ ≤ μ·‖x‖₂/√(2^k)` каждая координата ортонормального Адамара-образа лежит в `ternInRange s` и `satTail` переиндексированного образа равен нулю. μ-некогерентность — посылка, НЕ следствие структуры Адамара: `hadamard_not_universally_incoherent` пинирует контрпример (`k = 1`, `x = (2, 2)`, первая координата `2√2 > 3/2` насыщает при `s = 1`, эффективное μ = √2 > 1).
+- `hadamard_quant_error_le_of_l2_bound`: при тех же посылках суммарная квадратичная ошибка `qTern` на образе не превосходит `(2^k)·(s/2)²` — чистое полу-шаговое округление без хвоста насыщения.
+- `satTail_eq_zero_of_forall_ternInRange`: генерическая лемма зануления `satTail` при тотальной вхождения-в-диапазон (используется редукцией штрафа).
+- `hadamardOrthonormal_transpose`, `hadamard_logits_invariance_mulVec`: симметрия `Hᵀ = H` и точная инвариантность логитов до квантования, `(W·Hᵀ) *ᵥ (H *ᵥ x) = W *ᵥ x` (ассоциативность + `Hᵀ·H = 1`).
+- `blockPenalty_le_of_all_ternInRange`: если все сырые веса блока в `ternInRange (dyadicLevel k)`, хвост в `groupStructuralPenalty` исчезает и `blockPenalty` (мин наблюдаемой и структурной ветвей) не превосходит `2·featureAbsSum·√5·lvl/2`.
+- `hadamard_ce_blockPenalty_reduction`: объединённый мост — Адамар-образ некогерентного источника в блоке даёт точную логит-инвариантность с компенсированными весами `W·Hᵀ` и одновременно оценку `blockPenalty` чистым rounding-членом. Никаких post-quantization логит-гарантий или утверждений об универсальном подавлении ∞-норм.
+
 ## Hagi/Contracts/LogitGrad.lean
 
 - `logitGrad z N c v = smax (z c) v − N c v`: строчный носитель

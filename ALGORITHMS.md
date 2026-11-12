@@ -964,6 +964,40 @@ GradientBottleneck.lean): всякое достижимое логит-обно�
 эффективного ранга/энтропии роутера (addendum item 4, отдельная
 lane).
 
+### 6.7 Мост Хadamard-некогерентности ↔ тернарной квантизации
+
+Мотивация — QuIP# (Thm 4.1), формализована математика, а не статья.
+Ключевая честность: μ-некогерентность — всегда ПОСЫЛКА.
+Адамар НЕ подавляет ∞-норм универсально: контрпример
+[`hadamard_not_universally_incoherent`](Hagi/Contracts/HadamardTernaryBridge.lean)
+при `k = 1`, `x = (2, 2)` даёт `‖Hx‖∞ = ‖x‖₂ = 2√2`
+(эффективное μ = √d = √2 > 1), и координата `2√2 > 3/2`
+насыщает тернарную сетку при `s = 1`.
+
+- [`hadamard_satTail_zero_of_l2_bound`](Hagi/Contracts/HadamardTernaryBridge.lean):
+  при `‖x‖₂ ≤ s·√d` (d = 2^k, s > 0) и посылке μ-некогерентности
+  `‖Hx‖∞ ≤ μ·‖x‖₂/√d` с `0 ≤ μ ≤ 1` каждая координата `Hx` лежит в
+  тернарном диапазоне `|y| ≤ 3s/2`, и хвост насыщения `satTail`
+  зануляется.
+- [`hadamard_quant_error_le_of_l2_bound`](Hagi/Contracts/HadamardTernaryBridge.lean):
+  тогда суммарная квадратичная ошибка квантователя не превосходит
+  `d·(s/2)²` — чистое полу-шаговое округление, без хвоста.
+- [`hadamard_logits_invariance_mulVec`](Hagi/Contracts/HadamardTernaryBridge.lean):
+  до квантования логиты в точности инвариантны:
+  `(W·Hᵀ) *ᵥ (H *ᵥ x) = W *ᵥ x` (ассоциативность + `Hᵀ·H = 1`);
+  после квантования тождество приближённое и управляется границей
+  ошибки теоремы 1.
+- [`blockPenalty_le_of_all_ternInRange`](Hagi/Contracts/HadamardTernaryBridge.lean)
+  и [`hadamard_ce_blockPenalty_reduction`](Hagi/Contracts/HadamardTernaryBridge.lean):
+  если сырые веса блока — Адамар-образ некогерентного источника, все
+  веса в диапазоне, хвост в `groupStructuralPenalty` исчезает, и
+  сертифицированная локальная цель `blockPenalty` (реальный
+  потребитель из CEGroupedScale) оценивается чистым rounding-членом
+  `2·featureAbsSum·√5·lvl/2`.
+
+Отложено (не утверждается): никаких утверждений о подавлении
+∞-норм самим Адамаром; никаких post-quantization логит-гарантий.
+
 ## 7. HNet: стартовый ratio из continuous cost-модели
 
 Для `a,b,T,r>0` обозначим `C(r)=aTr+bT²/r²`: локальная pooling-цена плюс

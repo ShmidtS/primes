@@ -478,6 +478,7 @@ import Hagi.Contracts.IdentityMomentConvergence
 import Hagi.Contracts.BatchCEBestResidual
 import Hagi.Contracts.GradientBottleneck
 import Hagi.Contracts.LogitGrad
+import Hagi.Contracts.HadamardTernaryBridge
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor
