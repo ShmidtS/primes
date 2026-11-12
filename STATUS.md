@@ -1598,6 +1598,75 @@ runtime, минимальная память, training/held-out качество
   `B⁻¹^2 * ((∑ b, |featureNormSum (X b)|)^2 -
   ‖∑ b, batchResidualGradient (X b) θ (y b)‖^2)`.
 
+- C223 (batch range-step mirror of C216) добавляет в batch engine
+  острую константу диапазона: `dirLogitRange` = `sup d − inf d`
+  directional logit displacement (`sup' d + sup' (−d)`, общий witness
+  `Finset.univ_nonempty`); `dirLogitRange_nonneg`, `dirLogit_sub_le`,
+  `dir_logitDisplacement_logitRange` (η-масштабированная разностная
+  оценка в `lse_shift_upper`) и `dirLogitRange_le_dirRange`
+  (`R' ≤ R = dirRange`). Per-example мажоранта
+  `ceOneHot_alongNext_le_logitRange`:
+  `CE(θ+ηD) ≤ CE(θ) + η·dirAction + (ηR')²/8`; batch-агрегация
+  `batchLogitRangeSquare` (среднее квадратов острых диапазонов общего
+  `batchMeanDirection`) с `batchLogitRangeSquare_nonneg`,
+  `batch_pos_of_logitRangeSquare_pos` и
+  `batchAlignment_pos_of_logitRangeSquare_pos` (зеркало
+  `batchAlignment_pos_of_rangeSquare_pos`).
+- Averaged majorizer `batchLogitMajorizer` = `L − ηA + η²R'²/8`,
+  certified step `batchLogitSafeStep` = `4A/R'²` при `0 < R'²`
+  (иначе 0), общий update `batchLogitNextParameters`.
+  `batchLoss_alongNext_le_batchLogitMajorizer` усредняет per-example
+  оценки, `batchLogitMajorizer_logitSafeStep_eq` даёт точное значение
+  мажоранты на шаге, MAIN `batchLoss_logitSafeStep_le_residual`:
+  `batchLoss(batchLogitNextParameters) ≤ batchLoss − 2A²/R'²`;
+  `batchLoss_logitSafeStep_lt` — строгий спуск. Сосуществование
+  аддитивное: `batchLogitRangeSquare_le_batchRangeSquare` и
+  `batchLogitSafeStep_ge_batchSafeStep` (новый шаг ≥ старого
+  `batchSafeStep` при `0 < R'²`); вырожденный случай честен: `R'² = 0`
+  даёт нулевой шаг (`dirLogitRange_eq_zero_of_forall_eq_zero`),
+  фиктивного witness нет.
+- Numeric controls (V=2, RootApi, независимая проверка
+  `.tmp/C223/production/RootApi.lean`): `dirRange = 4` против
+  `dirLogitRange = 2` (строгое `2 < 4`), certified step и residual
+  выигрывают до 4×; neg1/neg2 — отрицательные пробы.
+- Census (C223, .tmp/C223/validation/root-census.tsv SHA-256
+  492e9386457b1915e460de938ce353b5d52683b3d4327775901211486d255081,
+  2850509 bytes / 13664 LF / 0 CR): OWNER 11849 → 11878 (+29 =
+  22 source-level + 7 компиляторных `.eq_1`/`.congr_simp`, ровно
+  NamePool ADDED по множествам), IR 1247 без изменений, CONSUMER 38
+  без изменений, модуль Hagi.Model.BatchCEDescent 249 → 278,
+  fingerprint 14718226048161838198 → 14249654862734778222; retained
+  rows byte-identical. NamePool delta: ADDED 32 (22 OWNER), REMOVED 16
+  — все удалённые имена предшествуют C223 (автогенерируемые
+  вспомогательные и приватизация C221), в BatchCEDescent удалений нет
+  (.tmp/C223/validation/namepool-delta.txt).
+- Evidence (cycle C223): установленный источник
+  Hagi/Model/BatchCEDescent.lean SHA-256
+  f78dbd7c71c64c3d0f012eee5e69c49da9d7740cfe64098ddb4ecd3265508686
+  (135605 bytes, CRLF 1:1, 0 `\r\r`, canonical LF blob
+  87bce31dad70397d7d096352a04bbdf3b244e65a; дифф против родителя
+  чисто аддитивный +342/−0, блок перед финальным end-маркером, без новых
+  imports); source GO
+  45ac5af84c59946d124610a337f6a0a1b133bfd4aec9aaeb4575769bb66255ac;
+  plan GO
+  681277405c4e0218cfe96e8a7cabda3b474a52b6b0fa71efcbcaa6d0723cff9f;
+  fresh lake build rc=0
+  (.tmp/C223/production/root-build.log); RootApi rc=0 (22 exact-type
+  + axioms clean [propext, Classical.choice, Quot.sound] + V=2
+  controls + 2 negatives; rootapi.log
+  3cbca894553bf6361d52fcaa66d81c7901e533c034516c506b8001a95dd8d853);
+  TrivialLint new:0 PASS
+  55886cbdc75579f4e02f801675b7d22464e29492d84225f29c93bc544af4969a;
+  census-report
+  56b54c333b80e5a98b6bc54d5b2c071ffd51babe739f13d222dc45d8742119f6;
+  полный CI rc=0 (см. .tmp/C223/precommit/scope-review.md и
+  .tmp/C223/precommit/ci.log); DocLint/StatusLint PASS.
+
+Заявление — только certified descent одношаговой верхней оценки
+arithmetic-mean batch loss и размера certified step; не утверждаются
+wall-clock, сходимость итерации, CE→0, generalization, samplewise
+гарантии или применимость вне log-linear one-hot CE.
+
 ## Hagi/Model/BlockNorm.lean
 
 - Для `Blocks m = Fin 3 → Fin m → ℝ` `global_eq_mean_blocks` доказывает

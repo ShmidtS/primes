@@ -555,6 +555,122 @@ generalization, поведение при нелинейном backbone, пре�
 семейства log-linear one-hot CE или оптимальность шага среди всех
 возможных.
 
+### 3.9 Batch mirror: range-based safe step для arithmetic-mean batch loss
+
+Сертификат раздела 3.2 мажорирует сдвиг arithmetic-mean batch loss
+через `batchRangeSquare` — среднее квадратов `dirRange` (сумма модулей
+логитов по словарю) общего направления `batchMeanDirection`. C223
+переносит острую константу C216 (раздел 3.8) в batch engine: вместо
+суммы по словарю берётся диапазон смещения логитов. Базовый
+строительный блок — [`dirLogitRange`](Hagi/Model/BatchCEDescent.lean):
+для произвольного направления `D`
+
+```
+R' = sup_v ceLogits X D v − inf_v ceLogits X D v
+```
+
+(записан как `sup' + sup' (−)` с общим Mathlib canonical
+`Finset.univ_nonempty` witness).
+[`dirLogitRange_nonneg`](Hagi/Model/BatchCEDescent.lean) даёт
+неотрицательность; [`dirLogit_sub_le`](Hagi/Model/BatchCEDescent.lean)
+фиксирует поточечную оценку разности directional logits, а
+[`dir_logitDisplacement_logitRange`](Hagi/Model/BatchCEDescent.lean)
+переносит её на фактическое η-масштабированное смещение, питая
+`lse_shift_upper` — прямой batch-аналог C216
+`ce_logitDisplacement_range`.
+[`dirLogitRange_le_dirRange`](Hagi/Model/BatchCEDescent.lean) доказывает
+`R' ≤ R = dirRange`: острая константа никогда не хуже словарной,
+а на разреженных направлениях — существенно меньше.
+
+Per-example мажоранта —
+[`ceOneHot_alongNext_le_logitRange`](Hagi/Model/BatchCEDescent.lean):
+для любого `0 ≤ η`
+
+```
+CE(θ + η·D) ≤ CE(θ) + η·dirAction X θ t D + (η·R')²/8,
+```
+
+та же сборка Böhning-типа, что у `ceOneHot_alongNext_le`, но с острым
+диапазоном вместо словарной суммы; острота квадратичного члена (`r²/8`)
+не изменена. Batch-агрегация: [`batchLogitRangeSquare`](Hagi/Model/BatchCEDescent.lean)
+= арифметическое среднее квадратов `dirLogitRange` общего направления;
+[`batchLogitRangeSquare_nonneg`](Hagi/Model/BatchCEDescent.lean) —
+неотрицательность,
+[`batch_pos_of_logitRangeSquare_pos`](Hagi/Model/BatchCEDescent.lean)
+исключает пустой батч из положительной ветви, а
+[`batchAlignment_pos_of_logitRangeSquare_pos`](Hagi/Model/BatchCEDescent.lean)
+даёт `0 < batchAlignment` (зеркало `batchAlignment_pos_of_rangeSquare_pos`:
+нулевой alignment обнуляет общее направление, а с ним и каждый range).
+
+Отсюда averaged majorizer
+[`batchLogitMajorizer`](Hagi/Model/BatchCEDescent.lean) =
+`L − η·A + η²·R'²/8` (A = `batchAlignment`), certified step
+[`batchLogitSafeStep`](Hagi/Model/BatchCEDescent.lean) = `4A/R'²` при
+`R'² > 0` (иначе `0`;
+[`batchLogitSafeStep_nonneg`](Hagi/Model/BatchCEDescent.lean),
+[`batchLogitSafeStep_pos_of_logitRangeSquare_pos`](Hagi/Model/BatchCEDescent.lean))
+и общий update
+[`batchLogitNextParameters`](Hagi/Model/BatchCEDescent.lean) =
+`alongNext θ (batchMeanDirection) (batchLogitSafeStep)`.
+Усреднение per-example оценок фиксирует
+[`batchLoss_alongNext_le_batchLogitMajorizer`](Hagi/Model/BatchCEDescent.lean),
+точное значение мажоранты на шаге —
+[`batchLogitMajorizer_logitSafeStep_eq`](Hagi/Model/BatchCEDescent.lean),
+а главный результат
+[`batchLoss_logitSafeStep_le_residual`](Hagi/Model/BatchCEDescent.lean):
+
+```
+L(θ') ≤ L(θ) − 2·A²/R'².
+
+```
+
+[`batchLoss_logitSafeStep_lt`](Hagi/Model/BatchCEDescent.lean) усиливает
+до строгого спуска arithmetic-mean batch loss при `0 < R'²`
+(строгость из положительного alignment).
+
+Соотношение со старым batch-сертификатом раздела 3.2 — аддитивное
+сосуществование. [`batchLogitRangeSquare_le_batchRangeSquare`](Hagi/Model/BatchCEDescent.lean)
+доказывает `R'² ≤ batchRangeSquare`, а
+[`batchLogitSafeStep_ge_batchSafeStep`](Hagi/Model/BatchCEDescent.lean) —
+что при `0 < R'²` новый certified step не меньше старого `batchSafeStep`.
+Старый сертификат (`batchLoss_safeStep_le_residual`, `batchSafeStep`,
+`batchRangeSquare` и их леммы) не изменён; движок не переключается
+принудительно.
+
+Вырожденный случай обработан честно. При `R'² = 0`
+`batchLogitSafeStep` тотальна и равна `0`
+([`dirLogitRange_eq_zero_of_forall_eq_zero`](Hagi/Model/BatchCEDescent.lean):
+тождественно нулевые directional logits влекут нулевой range);
+фиктивного шага или witness не создаётся, `batchLogitNextParameters`
+совпадает с `θ`.
+
+Numeric controls (V=2, matrix `!![1, 1; -1, 1]`, направление
+`single 0 1`; logits `(1, −1)`): измерено независимой RootApi-проверкой
+(`.tmp/C223/production/RootApi.lean`, norm_num/fin_cases examples,
+не поставляемый код модуля): `dirRange = 4`, `dirLogitRange = 2`
+(строгое `2 < 4`), т.е. на этом примере словарная range-square `16`
+против острой `4` — certified step и residual выигрывают до `4×`;
+отдельная generic-инстанциация прогоняет
+`batchLogitSafeStep_ge_batchSafeStep` на произвольном положительном
+экземпляре. Две отрицательные пробы (neg1/neg2) подтверждают,
+что ослабленные/противоречивые версии не доказуемы.
+
+Census (измерено, fresh,
+`.tmp/C223/validation/census-report.md`, TSV SHA-256
+`492e9386457b1915e460de938ce353b5d52683b3d4327775901211486d255081`,
+2850509 bytes / 13664 LF / 0 CR): OWNER 11849 → 11878 (+29: 22
+source-level объявления + 7 компиляторных `.eq_1`/`.congr_simp`),
+IR 1247 без изменений, CONSUMER 38 без изменений, модуль
+`Hagi.Model.BatchCEDescent` OWNER 249 → 278, root source fingerprint
+14718226048161838198 → 14249654862734778222, retained rows
+byte-identical; +29 OWNER == NamePool ADDED по множествам.
+
+Область заявления — только certified-descent arithmetic-mean batch loss:
+одношаговая верхняя оценка и размер certified step. Не утверждаются
+wall-clock ускорение, сходимость итерации, CE→0, generalization,
+поведение при нелинейном backbone, samplewise-гарантии за пределами
+среднего или оптимальность шага среди всех возможных.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`
