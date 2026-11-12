@@ -21,6 +21,9 @@ sorry_count = 0
 as_of_commit = "9e19985"
 
 [layers]
+# R-независимое примечание (C222): исторический снапшот; текущая
+# схема слоёв — 35 слоёв в scripts/LayerLint.py (CI-гейт). Эти 8
+# значений не синхронизируются и не являются SSOT.
 prelude = -1
 foundations = 0
 information = 1
