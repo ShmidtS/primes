@@ -1291,6 +1291,75 @@ Throughput, sparsity, compression и качество router не доказыв
 latency/runtime, training/held-out CE, BF16/RNE, глобальная оптимальность HAGI
 и вывод worst-case из average ratio не утверждаются.
 
+- C214 добавляет `adjacentPairs`: `[] ↦ []`, а
+  `a :: rest ↦ (a,a) :: (a :: rest).zip rest`. Все пары после seed имеют
+  вид `(previous,current)`; `map_snd_adjacentPairs` восстанавливает исходные
+  значения через `Prod.snd`, а `length_adjacentPairs` сохраняет их число.
+  Первый `(a,a)` — детерминированный dummy seed, чей флаг C213 игнорирует,
+  а не learned prior или forced first flag H-Net. Полярность
+  `Prod.fst` неверна: на `[0,1]` получается `[0,0]`.
+- Для supplied θ : α × α → Bool маршрут остаётся существующим
+  `boundaryChunks θ (adjacentPairs xs)`; `List.splitBy` видит флаг следующей
+  пары, поэтому `true` режет перед current, `false` продолжает chunk, а
+  dummy в счёт не входит. `flatten_map_snd_adjacentBoundary` возвращает все
+  исходные значения после `chunks.map (List.map Prod.snd)` и flatten;
+  `length_adjacentBoundary_projection` сохраняет фактический raw route
+  count. `length_adjacentBoundary_projection_exact` даёт `0` для пустого
+  входа и `tail.countP θ + 1` для непустого paired tail;
+  `ne_nil_of_mem_adjacentBoundary_projection` исключает пустые projected
+  члены.
+- При фактическом hSuccess : cappedBoundaryChunks capacity θ
+  (adjacentPairs xs) = some chunks теоремы
+  `flatten_cappedAdjacent_projection`, `length_cappedAdjacent_projection_le`
+  и `ne_nil_of_mem_cappedAdjacent_projection` доказывают lossless erasure,
+  projected count ≤ capacity и непустоту членов одного фактически успешного
+  raw route. В противном случае Option даёт none; пустой успешный fallback
+  или произвольный count не создаются.
+- При фактическом hSuccess : floorBoundaryChunks L r θ
+  (adjacentPairs xs) = some chunks теорема
+  `floorAdjacent_projection_flatten` сохраняет вход;
+  `floorAdjacent_projection_length_le` при `0 ≤ L`, `0 < r` использует
+  точную ёмкость Nat floor `⌊L / r⌋₊` и даёт
+  `((chunks.map (List.map Prod.snd)).length : ℝ) ≤ L / r`;
+  `ne_nil_of_mem_floorAdjacent_projection` доказывает непустоту членов.
+  Для конечного k, неотрицательных c и тех же hL/hr/hSuccess
+  `floorAdjacent_projection_adaptive_le_static` ограничивает
+  `adaptiveCost c (fun _ => projectedCount)` суммой
+  `∑ l, c l * (L / r) ^ 2`. Строгая
+  `floorAdjacent_projection_adaptive_lt_of_strict` дополнительно требует
+  выбранный l₀, `0 < c l₀` и фактический projected count < L / r. Все cost
+  формулы используют один фактический count, не caller M или average ratio.
+- Итого здесь одна определённая функция и четырнадцать публичных теорем:
+  перечисленные `adjacentPairs`, `map_snd_adjacentPairs`,
+  `length_adjacentPairs`, `flatten_map_snd_adjacentBoundary`,
+  `length_adjacentBoundary_projection`,
+  `length_adjacentBoundary_projection_exact`,
+  `ne_nil_of_mem_adjacentBoundary_projection`,
+  `flatten_cappedAdjacent_projection`, `length_cappedAdjacent_projection_le`,
+  `ne_nil_of_mem_cappedAdjacent_projection`,
+  `floorAdjacent_projection_flatten`, `floorAdjacent_projection_length_le`,
+  `floorAdjacent_projection_adaptive_le_static`,
+  `floorAdjacent_projection_adaptive_lt_of_strict` и
+  `ne_nil_of_mem_floorAdjacent_projection`.
+- Проверенная локальная тестовая θ `!(p.1 + 1 == p.2)` даёт
+  `[0,1,3,4,10] ↦ [[0,1],[3,4],[10]]`, а direct successor как cut —
+  неверное `[[0],[1,3],[4,10]]`. На `[0,1,1,2,10,11,11]` получается
+  `[[0,1],[1,2],[10,11],[11]]`: равные current значения могут принимать
+  разные решения в зависимости от previous. Отдельной production-декларации
+  nonSuccessorCut нет.
+
+Это generic finite Boolean adjacency над supplied значениями, а не learned,
+differentiable, causal, online или per-level router. Paper v2 использует
+`Q(current)/K(previous)`, `p₁ = 1`, `≥ 0.5`; pinned code main 3673fe...
+использует `Q(previous)/K(current)`, strict step `> 0.5` и normalization
+epsilon; источники не усредняются. Lossless относится только к erasure paired
+chunks, тогда как H-Net head selection отбрасывает non-head значения.
+Первый флаг для будущей head-mask equivalence требуется отдельно; dummy его
+не задаёт. Не утверждаются encoder, projection, cosine, zero-norm/tie,
+causal stability supplied representations, stateful packed mask,
+BF16/Float, runtime, минимальная память, training quality, target-ratio cap,
+глобально завершённая или оптимальная модель HAGI.
+
 ## Hagi/Model/AlignmentRisk.lean
 
 - Для непустого конечного `V` и строго положительных нормированных

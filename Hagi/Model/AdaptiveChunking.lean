@@ -316,4 +316,139 @@ theorem floorBoundaryChunks_adaptive_lt_of_strict {α : Type*} (c : k → ℝ)
     l₀ hc₀ hstrict
 
 -- C213_BOUNDARY_BLOCK_END
+-- C214_ADJACENT_BLOCK_START
+/-! ## Adjacent previous/current tags with plain-erasure projection -/
+
+-- Proof route: reviewed A-snd probe at
+-- `.tmp/C214/research/AdjacentPrefixProbe.lean`, using C213 transport.
+/-- Tag each value with its predecessor; the seed is a dummy pair. -/
+def adjacentPairs {α : Type*} : List α → List (α × α)
+  | [] => []
+  | a :: rest => (a, a) :: (a :: rest).zip rest
+
+/-- Second projection recovers every plain value, including the seed. -/
+theorem map_snd_adjacentPairs {α : Type*} (xs : List α) :
+    (adjacentPairs xs).map Prod.snd = xs := by
+  cases xs with
+  | nil => rfl
+  | cons a rest =>
+    simp only [adjacentPairs, List.map_cons]
+    rw [List.map_snd_zip (by simp)]
+
+/-- Adjacent tagging preserves the input length by plain-value reconstruction. -/
+theorem length_adjacentPairs {α : Type*} (xs : List α) :
+    (adjacentPairs xs).length = xs.length := by
+  have h := congrArg List.length (map_snd_adjacentPairs xs)
+  simpa using h
+
+/-- Projecting every actual boundary chunk erases tags without loss. -/
+theorem flatten_map_snd_adjacentBoundary {α : Type*} (θ : α × α → Bool)
+    (xs : List α) :
+    ((boundaryChunks θ (adjacentPairs xs)).map (List.map Prod.snd)).flatten = xs := by
+  rw [← List.map_flatten, flatten_boundaryChunks, map_snd_adjacentPairs]
+
+/-- Projection preserves the actual boundary route count. -/
+theorem length_adjacentBoundary_projection {α : Type*} (θ : α × α → Bool)
+    (xs : List α) :
+    ((boundaryChunks θ (adjacentPairs xs)).map (List.map Prod.snd)).length =
+      (boundaryChunks θ (adjacentPairs xs)).length := by
+  simp only [List.length_map]
+
+/-- Projection transfers C213's exact boundary route count. -/
+theorem length_adjacentBoundary_projection_exact {α : Type*} (θ : α × α → Bool)
+    (xs : List α) :
+    ((boundaryChunks θ (adjacentPairs xs)).map (List.map Prod.snd)).length =
+      match adjacentPairs xs with
+      | [] => 0
+      | _ :: tail => tail.countP θ + 1 := by
+  cases xs <;> simp [adjacentPairs]
+
+/-- Every member of the projected boundary route is nonempty. -/
+theorem ne_nil_of_mem_adjacentBoundary_projection {α : Type*} {θ : α × α → Bool}
+    {xs : List α} {chunk : List α}
+    (hmem : chunk ∈ (boundaryChunks θ (adjacentPairs xs)).map (List.map Prod.snd)) :
+    chunk ≠ [] := by
+  obtain ⟨rawChunk, hraw, rfl⟩ := List.mem_map.mp hmem
+  simpa using ne_nil_of_mem_boundaryChunks hraw
+
+/-- A successful capped paired route flattens losslessly after projection. -/
+theorem flatten_cappedAdjacent_projection {α : Type*} {capacity : ℕ}
+    {θ : α × α → Bool} {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : cappedBoundaryChunks capacity θ (adjacentPairs xs) = some chunks) :
+    (chunks.map (List.map Prod.snd)).flatten = xs := by
+  have hchunks := (cappedBoundaryChunks_eq_some_iff.mp hSuccess).1
+  rw [hchunks]
+  exact flatten_map_snd_adjacentBoundary θ xs
+
+/-- Projection preserves the actual successful capped route's capacity bound. -/
+theorem length_cappedAdjacent_projection_le {α : Type*} {capacity : ℕ}
+    {θ : α × α → Bool} {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : cappedBoundaryChunks capacity θ (adjacentPairs xs) = some chunks) :
+    (chunks.map (List.map Prod.snd)).length ≤ capacity := by
+  have h := length_cappedBoundaryChunks_le hSuccess
+  simpa only [List.length_map] using h
+
+/-- Every member of a successful projected capped route is nonempty. -/
+theorem ne_nil_of_mem_cappedAdjacent_projection {α : Type*} {capacity : ℕ}
+    {θ : α × α → Bool} {xs : List α} {chunks : List (List (α × α))}
+    {chunk : List α}
+    (hSuccess : cappedBoundaryChunks capacity θ (adjacentPairs xs) = some chunks)
+    (hmem : chunk ∈ chunks.map (List.map Prod.snd)) : chunk ≠ [] := by
+  obtain ⟨rawChunk, hraw, rfl⟩ := List.mem_map.mp hmem
+  simpa using ne_nil_of_mem_cappedBoundaryChunks hSuccess hraw
+
+/-- A successful floor-cap paired route flattens losslessly after projection. -/
+theorem floorAdjacent_projection_flatten {α : Type*} (L r : ℝ)
+    {θ : α × α → Bool} {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : floorBoundaryChunks L r θ (adjacentPairs xs) = some chunks) :
+    (chunks.map (List.map Prod.snd)).flatten = xs := by
+  unfold floorBoundaryChunks at hSuccess
+  exact flatten_cappedAdjacent_projection hSuccess
+
+/-- The projected successful floor route inherits C213's real count bound. -/
+theorem floorAdjacent_projection_length_le {α : Type*} (L r : ℝ)
+    (hL : 0 ≤ L) (hr : 0 < r) {θ : α × α → Bool}
+    {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : floorBoundaryChunks L r θ (adjacentPairs xs) = some chunks) :
+    ((chunks.map (List.map Prod.snd)).length : ℝ) ≤ L / r := by
+  have h := floorBoundaryChunks_length_le L r hL hr hSuccess
+  simpa only [List.length_map] using h
+
+/-- The projected floor route count transports C213's static cost bound. -/
+theorem floorAdjacent_projection_adaptive_le_static
+    {α k : Type*} [Fintype k] (c : k → ℝ) (hc : ∀ l, 0 ≤ c l)
+    (L r : ℝ) (hL : 0 ≤ L) (hr : 0 < r) {θ : α × α → Bool}
+    {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : floorBoundaryChunks L r θ (adjacentPairs xs) = some chunks) :
+    adaptiveCost c (fun _ => ((chunks.map (List.map Prod.snd)).length : ℝ)) ≤
+      ∑ l, c l * (L / r) ^ 2 := by
+  have h := floorBoundaryChunks_adaptive_le_static c hc L r hL hr hSuccess
+  simpa only [List.length_map] using h
+
+/-- Strictness at the selected positive-price level transports unchanged. -/
+theorem floorAdjacent_projection_adaptive_lt_of_strict
+    {α k : Type*} [Fintype k] (c : k → ℝ) (hc : ∀ l, 0 ≤ c l)
+    (L r : ℝ) (hL : 0 ≤ L) (hr : 0 < r) {θ : α × α → Bool}
+    {xs : List α} {chunks : List (List (α × α))}
+    (hSuccess : floorBoundaryChunks L r θ (adjacentPairs xs) = some chunks)
+    (l₀ : k) (hc₀ : 0 < c l₀)
+    (hstrict : ((chunks.map (List.map Prod.snd)).length : ℝ) < L / r) :
+    adaptiveCost c (fun _ => ((chunks.map (List.map Prod.snd)).length : ℝ)) <
+      ∑ l, c l * (L / r) ^ 2 := by
+  have hstrictRaw : (chunks.length : ℝ) < L / r := by
+    simpa only [List.length_map] using hstrict
+  have h := floorBoundaryChunks_adaptive_lt_of_strict c hc L r hL hr hSuccess
+    l₀ hc₀ hstrictRaw
+  simpa only [List.length_map] using h
+
+/-- Every member of a successful projected floor route is nonempty. -/
+theorem ne_nil_of_mem_floorAdjacent_projection {α : Type*} (L r : ℝ)
+    {θ : α × α → Bool} {xs : List α} {chunks : List (List (α × α))}
+    {chunk : List α}
+    (hSuccess : floorBoundaryChunks L r θ (adjacentPairs xs) = some chunks)
+    (hmem : chunk ∈ chunks.map (List.map Prod.snd)) : chunk ≠ [] := by
+  unfold floorBoundaryChunks at hSuccess
+  obtain ⟨rawChunk, hraw, rfl⟩ := List.mem_map.mp hmem
+  simpa using ne_nil_of_mem_cappedBoundaryChunks hSuccess hraw
+-- C214_ADJACENT_BLOCK_END
 end Hagi.Model.AdaptiveChunking

@@ -792,6 +792,122 @@ floorBoundaryChunks 4 1 (fun _ => false) [0,1,2] = some [[0,1,2]]
 training/held-out CE, BF16/RNE/FTZ, глобально оптимальная архитектура HAGI или
 worst-case bound из expected/average ratio.
 
+### 7.3 Previous/current tags with plain-erasure projection
+
+Для конечного `xs : List α` зададим supplied Boolean-предикат на парах
+θ : α × α → Bool и сначала применим
+[`adjacentPairs`](Hagi/Model/AdaptiveChunking.lean):
+
+```
+adjacentPairs [] = []
+adjacentPairs (a :: rest) = (a,a) :: (a :: rest).zip rest
+```
+
+В каждой паре после первой поля означают именно `(previous,current)`.
+Восстановление исходного значения всегда использует `Prod.snd`:
+[`map_snd_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) доказывает
+`(adjacentPairs xs).map Prod.snd = xs`, а
+[`length_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) — равенство длин.
+Первый `(a,a)` — детерминированный dummy seed для сохранения одного тега на
+значение. Его флаг C213 игнорирует; это не learned prior и не forced first
+flag H-Net. Равномерный `Prod.fst` здесь неверен: уже на `[0,1]` он даёт
+`[0,0]`.
+
+Дальше используем прежний C213-маршрут
+`boundaryChunks θ (adjacentPairs xs)`, а не второй partition algorithm.
+Его `List.splitBy`-компаратор видит флаг следующей пары: `true` начинает новый
+chunk **перед current**, `false` продолжает прежний chunk. На dummy seed
+компаратор не вызывается, поэтому seed не добавляет счёт.
+[`length_adjacentBoundary_projection_exact`](Hagi/Model/AdaptiveChunking.lean)
+переносит точный счёт C213: `0` для пустого входа и `tail.countP θ + 1` для
+непустого paired tail.
+
+Проецируем каждый фактически полученный paired chunk операцией
+`chunks.map (List.map Prod.snd)`.
+[`flatten_map_snd_adjacentBoundary`](Hagi/Model/AdaptiveChunking.lean)
+доказывает, что flatten полного projected route возвращает все исходные
+значения с сохранением порядка;
+[`ne_nil_of_mem_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean)
+сохраняет непустоту каждого возвращённого chunk. Главное для capacity и cost
+— **проекция сохраняет фактический route count**: это
+[`length_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean).
+
+Capacity применяется уже к raw pair chunks через существующий
+`cappedBoundaryChunks capacity θ (adjacentPairs xs)`. Из фактического успеха
+
+```
+hSuccess : cappedBoundaryChunks capacity θ (adjacentPairs xs) = some chunks
+```
+
+следуют
+[`flatten_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean),
+[`length_cappedAdjacent_projection_le`](Hagi/Model/AdaptiveChunking.lean) и
+[`ne_nil_of_mem_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean):
+все значения восстанавливаются, projected count ≤ capacity и каждый член
+projected route непуст. При отказе Option возвращает none; не появляется
+успешный empty fallback или caller-chosen count. Пустой вход может законно
+дать `some []`, а непустой не может успешно потерять значения.
+
+`floorBoundaryChunks L r θ (adjacentPairs xs)` использует точную ёмкость
+Nat floor `⌊L / r⌋₊`. Его фактический hSuccess обеспечивает
+[`floorAdjacent_projection_flatten`](Hagi/Model/AdaptiveChunking.lean);
+[`floorAdjacent_projection_length_le`](Hagi/Model/AdaptiveChunking.lean)
+дополнительно требует `0 ≤ L`, `0 < r` и даёт
+`((chunks.map (List.map Prod.snd)).length : ℝ) ≤ L / r`. Это не caller-chosen
+M, default empty list, expected ratio или average count.
+
+Для конечного носителя уровней k и `∀ l, 0 ≤ c l` обе cost-теоремы
+используют один и тот же фактический projected route count на всех уровнях.
+При указанных hSuccess, `0 ≤ L` и `0 < r`
+[`floorAdjacent_projection_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean)
+даёт
+
+```
+adaptiveCost c (fun _ => ((chunks.map (List.map Prod.snd)).length : ℝ)) ≤
+  ∑ l, c l * (L / r) ^ 2.
+```
+
+Строгая [`floorAdjacent_projection_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean)
+сохраняет те же посылки и дополнительно требует выбранный `l₀ : k`,
+`0 < c l₀` и фактическое
+`((chunks.map (List.map Prod.snd)).length : ℝ) < L / r`; лишь тогда знак
+сменяется на `<`. Непустоту членов успешного floor route отдельно доказывает
+[`ne_nil_of_mem_floorAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean).
+Это неравенства объявленной модели `adaptiveCost`, а не доказательство
+физической эффективности.
+
+Проверочная локальная θ для полярности имеет вид
+`θ p = !(p.1 + 1 == p.2)`. На `[0,1,3,4,10]` она даёт
+`[[0,1],[3,4],[10]]`, тогда как ошибочное прямое использование successor
+как cut flag даёт другое разбиение `[[0],[1,3],[4,10]]`. На повторяющихся
+значениях `[0,1,1,2,10,11,11]` та же локальная θ даёт
+`[[0,1],[1,2],[10,11],[11]]`: current `1` продолжает после `0`, но режет
+после `1`; current `11` продолжает после `10`, но режет после `11`.
+Поэтому решение зависит от пары, а не только от current. Здесь θ — supplied
+local test predicate; production не объявляет отдельную per-symbol функцию
+nonSuccessorCut. Фиксированный параметр θ может зависеть от данных, но не
+обучается через параметры модели в этой формализации.
+
+Отношение к первичным H-Net источникам ограничено формой adjacency.
+[Paper v2, equation (4)](https://arxiv.org/html/2507.07955v2#S2.E4)
+использует `Q(current)/K(previous)`, `p₁ = 1` и нестрогий порог `≥ 0.5`.
+[Pinned code main 3673fe...](https://github.com/goombalab/hnet/blob/3673fe1217ebeb0d1438c7c71d58d32bdd190ec2/hnet/modules/dc.py)
+использует `Q(previous)/K(current)`, строгий step-порог `> 0.5` и
+normalization epsilon. Эти семантики намеренно не усредняются и не
+подменяются generic θ; dummy seed также не является доказательством forced
+first flag.
+
+Lossless здесь означает только erasure значений из paired chunks. H-Net
+head selection отдельно отбрасывает non-head представления и не является
+этим lossless восстановлением. Для будущей head-mask equivalence первый флаг
+нужно рассматривать отдельно. Не доказаны learned/differentiable/causal/
+online/per-level router, encoder, Q/K projection, cosine, zero-norm, tie,
+causal stability уже supplied representations, stateful packed-mask
+эквивалентность, BF16/Float-семантика, runtime, минимальная память,
+training/held-out качество или глобальная оптимальность HAGI. Target ratio и
+ratio loss не задают actual cap; логический count сам по себе не является
+physical cost.
+
 ## 8. Конечный выбор архитектуры и качества оценки
 
 Кандидат — действие с настоящим `step`, model safety, памятью и числом
