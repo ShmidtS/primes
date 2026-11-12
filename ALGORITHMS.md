@@ -643,6 +643,49 @@ C(r)-C(s) = bT²(r-s)²(2r+s)/(r²s³).
 cost-модели. Нет Nat rounding, learned chunking, runtime argmin,
 architectural/neuron-level optimality или гарантии training quality.
 
+### 7.1 Finite capped lossless chunks
+
+Для конечного `xs : List α` выбираем `capacity width : ℕ` с natural fit
+`xs.length ≤ capacity * width` и вызываем
+[`cappedChunks`](Hagi/Model/AdaptiveChunking.lean), либо берём точную
+Nat-ёмкость `⌊L / r⌋₊` в `floorCappedChunks L r width xs`. Это не native
+floating-point, expected или average ratio. Успешный existential outcome
+фиксируем равенством `hsuccess : cappedChunks capacity width xs = some chunks`
+(или его `floorCappedChunks`-аналогом): именно оно нужно и для границ, и для
+сохранения, и для стоимости. Тогда `length_cappedChunks_le` даёт
+`chunks.length ≤ capacity`, а `flatten_cappedChunks` — `chunks.flatten = xs`;
+`ne_nil_of_mem_cappedChunks` исключает пустые члены результата.
+
+Определение применяет `List.splitLengths` к `List.replicate capacity width`,
+затем удаляет только пустые padding-чанки. Последний непустой chunk может
+быть короче width. При нарушении fit получаем none: нулевые capacity или
+width не принимают непустой вход, а пустой вход законно даёт `some []`.
+Отказ не является успешным zero-cost разбиением; для непустого `xs`
+равенство flatten не позволяет незаметно вернуть `chunks = []`.
+
+При `0 ≤ L`, `0 < r` тот же `hsuccess` даёт
+`floorCappedChunks_length_le : (chunks.length : ℝ) ≤ L / r` и
+`floorCappedChunks_flatten : chunks.flatten = xs`. Для конечного `k`,
+`c : k → ℝ` с `∀ l, 0 ≤ c l` подставляем в обе cost-теоремы одну и ту же
+константу `M := fun _ => (chunks.length : ℝ)`:
+
+```
+adaptiveCost c M ≤ ∑ l, c l * (⌊L / r⌋₊ : ℝ) ^ 2,
+adaptiveCost c M ≤ ∑ l, c l * (L / r) ^ 2.
+```
+
+Первая оценка — `floorCappedChunks_cost_le_floor`, вторая —
+`floorCappedChunks_adaptive_le_static`, прямо использующая прежнюю
+`adaptive_le_static`. Это не оценка произвольного per-level router.
+
+Семантически здесь одно детерминированное fixed-width разбиение входного списка, а не learned/adaptive per-level H-Net routing, causal-поведение,
+дифференцируемые границы, физическое хранение или runtime-engineering
+adapter. Формальные неравенства относятся к `adaptiveCost` при указанных
+nonnegativity/cap hypotheses: не следуют FLOPs, physical RAM, wall-time,
+training quality, held-out CE, IEEE/RNE/BF16, оптимальная end-to-end
+архитектура или глобальный HAGI. Throughput, sparsity, compression и
+качество router также не доказываются.
+
 ## 8. Конечный выбор архитектуры и качества оценки
 
 Кандидат — действие с настоящим `step`, model safety, памятью и числом

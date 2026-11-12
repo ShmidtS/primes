@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Mathlib.Data.List.SplitLengths
 
 /-!
 # AdaptiveChunking (приоритет 3 «HAGI Neural Computer»,
@@ -63,5 +64,111 @@ theorem adaptive_lt_of_strict (c : k → ℝ) (hc : ∀ l, 0 ≤ c l)
     exact mul_lt_mul_of_pos_left hkey hc₀
   exact Finset.sum_lt_sum (fun l _ => h1 l)
     ⟨l₀, Finset.mem_univ l₀, hstrictl⟩
+
+/-! ## Finite capped lossless chunks -/
+
+def cappedChunks {α : Type} (capacity width : ℕ) (xs : List α) :
+    Option (List (List α)) :=
+  if xs.length ≤ capacity * width then
+    some (((List.replicate capacity width).splitLengths xs).filter
+      (fun chunk => !chunk.isEmpty))
+  else
+    none
+
+noncomputable def floorCappedChunks {α : Type} (L r : ℝ) (width : ℕ)
+    (xs : List α) : Option (List (List α)) :=
+  cappedChunks ⌊L / r⌋₊ width xs
+
+theorem length_cappedChunks_le {α : Type} {capacity width : ℕ}
+    {xs : List α} {chunks : List (List α)}
+    (hsuccess : cappedChunks capacity width xs = some chunks) :
+    chunks.length ≤ capacity := by
+  unfold cappedChunks at hsuccess
+  by_cases hfit : xs.length ≤ capacity * width
+  · rw [if_pos hfit] at hsuccess
+    have hchunks := Option.some.inj hsuccess
+    subst chunks
+    simpa only [List.length_splitLengths, List.length_replicate] using
+      (List.length_filter_le
+        (fun chunk : List α => !chunk.isEmpty)
+        ((List.replicate capacity width).splitLengths xs))
+  · rw [if_neg hfit] at hsuccess
+    simp at hsuccess
+
+theorem flatten_cappedChunks {α : Type} {capacity width : ℕ}
+    {xs : List α} {chunks : List (List α)}
+    (hsuccess : cappedChunks capacity width xs = some chunks) :
+    chunks.flatten = xs := by
+  unfold cappedChunks at hsuccess
+  by_cases hfit : xs.length ≤ capacity * width
+  · rw [if_pos hfit] at hsuccess
+    have hchunks := Option.some.inj hsuccess
+    subst chunks
+    rw [List.flatten_filter_not_isEmpty]
+    apply List.flatten_splitLengths
+    simpa only [List.sum_replicate_nat] using hfit
+  · rw [if_neg hfit] at hsuccess
+    simp at hsuccess
+
+theorem ne_nil_of_mem_cappedChunks {α : Type} {capacity width : ℕ}
+    {xs : List α} {chunks : List (List α)} {chunk : List α}
+    (hsuccess : cappedChunks capacity width xs = some chunks)
+    (hmem : chunk ∈ chunks) : chunk ≠ [] := by
+  unfold cappedChunks at hsuccess
+  by_cases hfit : xs.length ≤ capacity * width
+  · rw [if_pos hfit] at hsuccess
+    have hchunks := Option.some.inj hsuccess
+    subst chunks
+    have hbool : (!chunk.isEmpty) = true := (List.mem_filter.mp hmem).2
+    apply List.isEmpty_eq_false_iff.mp
+    cases hi : chunk.isEmpty <;> simp_all
+  · rw [if_neg hfit] at hsuccess
+    simp at hsuccess
+
+theorem floorCappedChunks_length_le {α : Type} (L r : ℝ)
+    (hL : 0 ≤ L) (hr : 0 < r) {width : ℕ} {xs : List α}
+    {chunks : List (List α)}
+    (hsuccess : floorCappedChunks L r width xs = some chunks) :
+    (chunks.length : ℝ) ≤ L / r := by
+  unfold floorCappedChunks at hsuccess
+  have hcap : chunks.length ≤ ⌊L / r⌋₊ := length_cappedChunks_le hsuccess
+  calc
+    (chunks.length : ℝ) ≤ (⌊L / r⌋₊ : ℝ) := by exact_mod_cast hcap
+    _ ≤ L / r := Nat.floor_le (div_nonneg hL hr.le)
+
+theorem floorCappedChunks_flatten {α : Type} (L r : ℝ) {width : ℕ}
+    {xs : List α} {chunks : List (List α)}
+    (hsuccess : floorCappedChunks L r width xs = some chunks) :
+    chunks.flatten = xs := by
+  unfold floorCappedChunks at hsuccess
+  exact flatten_cappedChunks hsuccess
+
+theorem floorCappedChunks_cost_le_floor {α : Type} (c : k → ℝ)
+    (hc : ∀ l, 0 ≤ c l) (L r : ℝ) (hL : 0 ≤ L) (hr : 0 < r)
+    {width : ℕ} {xs : List α} {chunks : List (List α)}
+    (hsuccess : floorCappedChunks L r width xs = some chunks) :
+    adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤
+      ∑ l, c l * (⌊L / r⌋₊ : ℝ) ^ 2 := by
+  unfold floorCappedChunks at hsuccess
+  have hcap : chunks.length ≤ ⌊L / r⌋₊ := length_cappedChunks_le hsuccess
+  have hbound :
+      adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤
+        ∑ l, c l * ((⌊L / r⌋₊ : ℝ) / 1) ^ 2 :=
+    adaptive_le_static c hc (fun _ => (chunks.length : ℝ))
+      (⌊L / r⌋₊ : ℝ) 1 (Nat.cast_nonneg _) (by norm_num)
+      (fun _ => Nat.cast_nonneg _) (fun _ => by
+        rw [div_one]
+        exact_mod_cast hcap)
+  simpa only [div_one] using hbound
+
+theorem floorCappedChunks_adaptive_le_static {α : Type} (c : k → ℝ)
+    (hc : ∀ l, 0 ≤ c l) (L r : ℝ) (hL : 0 ≤ L) (hr : 0 < r)
+    {width : ℕ} {xs : List α} {chunks : List (List α)}
+    (hsuccess : floorCappedChunks L r width xs = some chunks) :
+    adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤
+      ∑ l, c l * (L / r) ^ 2 := by
+  exact adaptive_le_static c hc (fun _ => (chunks.length : ℝ)) L r hL hr
+    (fun _ => Nat.cast_nonneg _)
+    (fun _ => floorCappedChunks_length_le L r hL hr hsuccess)
 
 end Hagi.Model.AdaptiveChunking

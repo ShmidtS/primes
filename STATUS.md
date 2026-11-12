@@ -1232,6 +1232,40 @@
 - `adaptive_lt_of_strict`: при тех же условиях, если дополнительно
   `0 < c l₀` и `M l₀ < L / r`, неравенство стоимостей строгое.
 
+- `cappedChunks capacity width xs` при fit `xs.length ≤ capacity * width`
+  разбивает список по `List.replicate capacity width` и удаляет только пустые
+  padding-чанки; короткий последний chunk допустим. Из
+  `hsuccess : cappedChunks capacity width xs = some chunks` теоремы
+  `length_cappedChunks_le`, `flatten_cappedChunks` и
+  `ne_nil_of_mem_cappedChunks` дают соответственно `chunks.length ≤ capacity`,
+  `chunks.flatten = xs` и непустоту каждого члена результата.
+- `floorCappedChunks L r width xs` — тот же producer с точной ёмкостью
+  `⌊L / r⌋₊`, без floating-point или expected-ratio вычисления. Из его
+  `hsuccess` `floorCappedChunks_flatten` даёт `chunks.flatten = xs`; при
+  `0 ≤ L`, `0 < r` `floorCappedChunks_length_le` дополнительно даёт
+  `(chunks.length : ℝ) ≤ L / r`.
+- При `[Fintype k]`, `∀ l, 0 ≤ c l`, `0 ≤ L`, `0 < r` и том же `hsuccess`
+  `floorCappedChunks_cost_le_floor` и `floorCappedChunks_adaptive_le_static`
+  используют общий для всех уровней возвращённый счётчик
+  `M := fun _ => (chunks.length : ℝ)` и доказывают соответственно
+  `adaptiveCost c M ≤ ∑ l, c l * (⌊L / r⌋₊ : ℝ) ^ 2` и
+  `adaptiveCost c M ≤ ∑ l, c l * (L / r) ^ 2`; вторая применяет неизменённую
+  `adaptive_le_static`. Это специализация к конечному `k` и одному общему
+  `chunks.length`, не универсальный arbitrary per-level router.
+- Root API использует singleton `floorCappedChunks 1 1 1 [42] = some [[42]]`
+  для точного сохранения и прямых применений обеих cost-оценок. Training
+  gains не заявляются. Нулевые capacity или width не принимают непустой вход;
+  пустой вход законно даёт `some []`. Отказ не является успешным zero-cost
+  разбиением, а при непустом входе flatten coverage исключает пустой результат.
+
+Это одно детерминированное fixed-width разбиение входного списка, не
+learned/adaptive per-level H-Net routing, causal-поведение, дифференцируемые
+границы, физическое хранение или runtime-engineering adapter. Неравенства
+относятся только к `adaptiveCost` при указанных nonnegativity/cap hypotheses:
+не следуют FLOPs, physical RAM, wall-time, training quality, held-out CE,
+IEEE/RNE/BF16, оптимальная end-to-end архитектура или глобальный HAGI.
+Throughput, sparsity, compression и качество router не доказываются.
+
 ## Hagi/Model/AlignmentRisk.lean
 
 - Для непустого конечного `V` и строго положительных нормированных
