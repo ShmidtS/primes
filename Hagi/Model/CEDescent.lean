@@ -437,31 +437,27 @@ theorem identityTwoClass_safeStepSize_test :
 
 variable {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
 
-/-- Fixed nonemptiness witness so `sup'` terms share syntax. -/
-private theorem c216_univNE : (Finset.univ : Finset V).Nonempty :=
-  Finset.univ_nonempty_iff.mpr ‹_›
-
 /-! ## The range-based quantity -/
 
 /-- The logit RANGE of the one-unit directional displacement `d`:
 `sup d − inf d`, written as `sup' d + sup' (-d)` over the vocabulary. -/
 noncomputable def ceStepLogitRange (X : Matrix V (Fin d) ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (t : V) : ℝ :=
-  Finset.sup' Finset.univ c216_univNE
+  Finset.sup' Finset.univ Finset.univ_nonempty
       (fun v => ceLogits X (ceDirection X θ t) v)
-  + Finset.sup' Finset.univ c216_univNE
+  + Finset.sup' Finset.univ Finset.univ_nonempty
       (fun v => -ceLogits X (ceDirection X θ t) v)
 
 theorem ceStepLogitRange_nonneg (X : Matrix V (Fin d) ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (t : V) :
     0 ≤ ceStepLogitRange X θ t := by
-  obtain ⟨v₀, _⟩ : (Finset.univ : Finset V).Nonempty := c216_univNE
+  obtain ⟨v₀, _⟩ : (Finset.univ : Finset V).Nonempty := Finset.univ_nonempty
   have h1 : ceLogits X (ceDirection X θ t) v₀
-      ≤ Finset.sup' Finset.univ c216_univNE
+      ≤ Finset.sup' Finset.univ Finset.univ_nonempty
           (fun v => ceLogits X (ceDirection X θ t) v) :=
     Finset.le_sup' _ (Finset.mem_univ v₀)
   have h2 : -ceLogits X (ceDirection X θ t) v₀
-      ≤ Finset.sup' Finset.univ c216_univNE
+      ≤ Finset.sup' Finset.univ Finset.univ_nonempty
           (fun w => -ceLogits X (ceDirection X θ t) w) :=
     Finset.le_sup' (fun w => -ceLogits X (ceDirection X θ t) w)
       (Finset.mem_univ v₀)
@@ -474,11 +470,11 @@ theorem ceDirectionLogit_sub_le (X : Matrix V (Fin d) ℝ)
     ceLogits X (ceDirection X θ t) u - ceLogits X (ceDirection X θ t) v
       ≤ ceStepLogitRange X θ t := by
   have h1 : ceLogits X (ceDirection X θ t) u
-      ≤ Finset.sup' Finset.univ c216_univNE
+      ≤ Finset.sup' Finset.univ Finset.univ_nonempty
           (fun v => ceLogits X (ceDirection X θ t) v) :=
     Finset.le_sup' _ (Finset.mem_univ u)
   have h2 : -ceLogits X (ceDirection X θ t) v
-      ≤ Finset.sup' Finset.univ c216_univNE
+      ≤ Finset.sup' Finset.univ Finset.univ_nonempty
           (fun w => -ceLogits X (ceDirection X θ t) w) :=
     Finset.le_sup' (fun w => -ceLogits X (ceDirection X θ t) w)
       (Finset.mem_univ v)
@@ -504,17 +500,17 @@ range: `range ≤ 2·Σ_v |d v| = ceStepRange`. -/
 theorem ceStepLogitRange_le_ceStepRange (X : Matrix V (Fin d) ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (t : V) :
     ceStepLogitRange X θ t ≤ ceStepRange X θ t := by
-  have h1 : Finset.sup' Finset.univ c216_univNE
+  have h1 : Finset.sup' Finset.univ Finset.univ_nonempty
         (fun v => ceLogits X (ceDirection X θ t) v)
       ≤ ∑ v, |ceLogits X (ceDirection X θ t) v| := by
-    refine (Finset.sup'_le_iff c216_univNE _).mpr fun v _hv => ?_
+    refine (Finset.sup'_le_iff Finset.univ_nonempty _).mpr fun v _hv => ?_
     exact le_trans (le_abs_self _) (Finset.single_le_sum
       (f := fun z => |ceLogits X (ceDirection X θ t) z|)
       (fun z _hz => abs_nonneg _) (Finset.mem_univ v))
-  have h2 : Finset.sup' Finset.univ c216_univNE
+  have h2 : Finset.sup' Finset.univ Finset.univ_nonempty
         (fun v => -ceLogits X (ceDirection X θ t) v)
       ≤ ∑ v, |ceLogits X (ceDirection X θ t) v| := by
-    refine (Finset.sup'_le_iff c216_univNE _).mpr fun v _hv => ?_
+    refine (Finset.sup'_le_iff Finset.univ_nonempty _).mpr fun v _hv => ?_
     exact le_trans (neg_le_abs _) (Finset.single_le_sum
       (f := fun z => |ceLogits X (ceDirection X θ t) z|)
       (fun z _hz => abs_nonneg _) (Finset.mem_univ v))
@@ -529,8 +525,8 @@ theorem ceStepLogitRange_eq_zero_of_eq_zero (X : Matrix V (Fin d) ℝ)
   have hneg : ∀ v, -ceLogits X (ceDirection X θ t) v = 0 :=
     fun v => by rw [h v]; ring
   unfold ceStepLogitRange
-  rw [Finset.sup'_congr c216_univNE rfl (fun v _hv => h v),
-    Finset.sup'_congr c216_univNE rfl (fun v _hv => hneg v)]
+  rw [Finset.sup'_congr Finset.univ_nonempty rfl (fun v _hv => h v),
+    Finset.sup'_congr Finset.univ_nonempty rfl (fun v _hv => hneg v)]
   simp
 
 /-- Positive range forces strictly positive alignment. -/

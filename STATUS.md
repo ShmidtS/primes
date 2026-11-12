@@ -76,7 +76,6 @@
 ## Hagi/Autonomy/HedgeSurvivor.lean
 
 - `hsurv_derived`: для потерь `0 ≤ l t i ≤ 1` и `0 ≤ eta ≤ 1` выводится точная экспоненциальная нижняя оценка выживания через нормированные веса `ewNorm` и член `T * eta ^ 2 / 2`.
-- `ew_regret`: при `0 < eta ≤ 1` и тех же границах потерь сожаление относительно любого фиксированного `i` не превосходит `Real.log (Fintype.card ι) / eta + eta * T / 2`.
 - `ewNorm_as_mirror`: вес `ewNorm l eta t i` равен соответствующему `mirrorStep` с накопленными потерями и параметром `1 / eta`.
 
 ## Hagi/Autonomy/Insight.lean
@@ -821,6 +820,40 @@
   11 path-only секций (+11/−11). Plan GO
   .tmp/C219/reviews/plan-review.md SHA-256
   ab083f2b26439957b2f2daaae109e80ce5b690e89d2c44262088802b122b3eb6.
+
+- C220 (удаление zero-consumer дубликатов, 8 теорем): удалены
+  ew_regret (HedgeSurvivor), mwu_regret_static и mwu_regret_regimes
+  (MWU), mirror_regret_uniform (MirrorDescent),
+  info_preservation_regret (InfoPreservation),
+  forward_thinking_regret (Imagination), hoeffding_fin_via_mgf
+  (Ensemble/Hoeffding), gibbs_concentration_via_canon (GibbsCore)
+  — только удаления, математические тела соседей не тронуты.
+  Sign-off (удалено → канонический выживший): ew_regret →
+  router_regret_bound (Hedge.lean); mwu_regret_static /
+  mwu_regret_regimes / mirror_regret_uniform /
+  info_preservation_regret → mirror_regret;
+  forward_thinking_regret → router_regret_bound;
+  hoeffding_fin_via_mgf → Ensemble.hoeffding_fin + Foundations
+  mgf_hoeffding; gibbs_concentration_via_canon →
+  gibbs_concentration_canon. Orphans (осознанное продуктовое
+  решение, компилируются, каскадных удалений нет):
+  router_regret_bound, mirror_regret, hsurv_derived, mwu_partition_sum,
+  mwu_sqrt_bound, one_div_ge_sub — теперь zero-consumer;
+  исторические логи .omc с упоминаниями удалённых имён намеренно
+  не тронуты.
+- Census (C220, .tmp/C220/validation/root-census.tsv SHA-256
+  99a557e74773e71545b0a1bda30ff316297969fc3d95f05f93f5d39aaf24f024):
+  OWNER 11862 → 11847 (−15 = 8 теорем + 7 компиляторных
+  mirror_regret_uniform._simp_* строк), added 0; names_gone —
+  ровно эти 15. Freeze --update: lock diff = ровно −8 имён
+  (+1 строка path-rename Hagi/Examples/Nonvacuity → Hagi/Legacy
+  из C219; +118 additions — pre-existing backlog циклов C214–C219,
+  каждое имя проверено в более ранних коммитах git log -S).
+- Evidence (cycle C220): lake build rc=0 (.tmp/C220/build2.log);
+  полный CI rc=0 (см. .tmp/C220/precommit/scope-review.md);
+  DocLint/StatusLint/ReachLint/NsLint PASS. Plan GO
+  .tmp/C220/reviews/plan-review-final.md SHA-256
+  32b526f0b0946a67bf4813f8c0166772cbebf5a83913da95e3e601da8301f03d.
 
 Заявление — перенос и карантин 19 модулей без изменения
 доказательств; не утверждаются новые математические результаты,
@@ -1600,7 +1633,7 @@ runtime, минимальная память, training/held-out качество
 
 - C216 добавляет range-based сертификат в CE engine:
   `ceStepLogitRange` = `sup d − inf d` directional logit displacement
-  (`sup' d + sup' (−d)` с общим private-witness `c216_univNE`);
+  (`sup' d + sup' (−d)` с общим witness `Finset.univ_nonempty`);
   `ceStepLogitRange_nonneg` даёт неотрицательность,
   `ceDirectionLogit_sub_le` и `ce_logitDisplacement_range` — поточечную
   разностную оценку смещения, `ceStepLogitRange_le_ceStepRange`
@@ -2613,10 +2646,9 @@ one-hot CE.
 
 ## Hagi/Optimization/InfoPreservation.lean
 
-- `info_preservation_regret`: для строго положительных нормированных
-  `ρ₀ ρstar`, `0 < T`, `0 < n` средние потери `mirrorIterate` сдвинуты
-  на один шаг и ограничены средними потерями `ρstar` плюс
-  `T*KL(ρstar‖ρ₀)/n`.
+- C220 (удаление zero-consumer дубликатов): regret-обёртка
+  этого модуля удалена; каноническая regret-оценка — `mirror_regret`
+  (Hagi/Optimization/MirrorDescent.lean).
 
 ## Hagi/Optimization/LLRD.lean
 
@@ -2791,7 +2823,10 @@ one-hot CE.
 
 ## Hagi/Planning/Imagination.lean
 
-- `forward_thinking_regret`: если `|V̂ π - V π| ≤ ε` для всех планов и `π*` максимизирует `V̂`, то для любого `π_best` выполнено `V π_best - 2*ε ≤ V π*`.
+- C220 (удаление zero-consumer дубликатов): forward-thinking
+  regret-утверждение удалено; родственная доказанная граница той же
+  формы `A − L* ≤ log K/eta + eta*T/2` — `router_regret_bound`
+  (Hagi/Autonomy/Hedge.lean).
 - `imagination_compounding`: при пошаговой ошибке прогноза не более `ε` на `k < K` и `L`-липшицевости каждой `V k` на `k ≤ K` разность `∑ V k (oh k) - ∑ V k (o k)` не превышает `K*L*ε`. Доказана односторонняя, а не абсолютная, оценка.
 - `adaptive_first_sufficient`: из `|Vhat π₁ - V π₁| ≤ ε` и `θ ≤ Vhat π₁` следует `θ - ε ≤ V π₁`. `branching_avoids_detectable_failure` использует одностороннюю ошибку `Vhat - V ≤ ε` и посылку `θ < Vhat π` для исполняемых планов; `branching_dominates_linear` затем отделяет заведомо плохой `π₁` от исполняемого `πb`.
 
@@ -3003,7 +3038,7 @@ one-hot CE.
 ## Hagi/Probability/GibbsCore.lean
 
 - `gibbsW_pos`, `gibbsZ_pos` и `gibbs_normalize` при `T > 0` вводят положительные веса и нормировку; `gibbsZ_shift` вычисляет сдвиг энергии на константу как множитель `exp(-c/T)`.
-- `gibbs_concentration_canon` даёт нижнюю долю минимизатора `1/(1 + (card V - 1)*exp(-δ/T))`; `gibbs_concentration_via_canon` записывает эквивалентную более слабую форму с `1 - (card V - 1)*exp(-δ/T)`.
+- `gibbs_concentration_canon` даёт нижнюю долю минимизатора `1/(1 + (card V - 1)*exp(-δ/T))`.
 - `gibbs_mean_energy_gap` при зазоре `δ` и общей верхней границе `E v ≤ E vstar + Δ` ограничивает среднюю энергию через `E vstar + Δ*(card V - 1)*exp(-δ/T)`.
 
 ## Hagi/Probability/GibbsInfoCore.lean
@@ -3028,9 +3063,10 @@ one-hot CE.
 ## Hagi/Probability/MWU.lean
 
 - `mwu_potential_step`: при положительных нормированных весах, `ℓ ≥ 0`, `η > 0` и `η*ℓ ≤ 1/2` выполнено `log Z' ≥ -2*η*∑w*ℓ`.
-- `mwu_regret_static` для накопленных потерь с `η*∑ℓ v ≤ 1/2` даёт существование vmin, чьи потери не превосходят отрицательный log-потенциал, и верхнюю оценку потенциала через удвоенные средние потери. `mwu_sqrt_bound` и `mwu_regret_regimes` дают квадратично-корневую и двухрежимную оценки при явных условиях баланса.
+- `mwu_sqrt_bound` даёт квадратично-корневую оценку regret при явных условиях баланса. C220: статический и двухрежимный regret-варианты удалены как zero-consumer дубликаты; канонический regret-результат — `mirror_regret` (Hagi/Optimization/MirrorDescent.lean).
 - `selectedLoss_optimalPropensity_mse` при `0 < ∑|ℓ|` равен `(∑|ℓ|)^2 - ∑ℓ^2`. Строгое улучшение относительно равномерного PMF эквивалентно непостоянству `|ℓ|`; нулевой MSE эквивалентен наличию ровно одного ненулевого слагаемого.
 - Аналогичные `selectedGradientMSE` и `selectedMeanGradientMSE` результаты при `0 < ∑‖g‖` дают строгое улучшение относительно равномерного распределения в точности при непостоянных нормах градиентов; `selectedGradientMSE_upperBoundPropensity_le` ограничивает MSE через `(∑|a|)^2 - ‖∑g‖^2` при `0 < ∑|a|` и `‖g b‖ ≤ a b`.
+- Lint repair (C220): the lock refresh exposed a C216 private nonemptiness witness duplicating the Runtime one (equal statement hash; the lock had been stale since C216). Fixed by deleting the private duplicate and using Mathlib canonical `Finset.univ_nonempty` at all 13 sites (proof-body-level only; public statements unchanged; census −16 = 8 theorems + 7 simp rows + the duplicate).
 
 ## Hagi/Probability/MarkovPathSupport.lean
 

@@ -259,35 +259,6 @@ theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η
       = ∑ v : V, Real.exp (-(η * ∑ t ∈ Finset.range T, ℓs t v)) :=
   Finset.sum_congr rfl (fun v _ => mwu_prod_exp ℓs η T v)
 
-/-- **Статический MWU-regret (R440)**:
-потенциал в произведенческой
-форме зажат:
-ηL_min ≤ −ln((1/n)∑∏ e^{−ηℓ_t})
-  ≤ 2η·⟨L⟩_unif
-(R439-перепись + R436 на
-кумулятивных потерях).
-Полная многошаговая
-механика MWU сведена к
-одношаговому сертификату. -/
-theorem mwu_regret_static {V : Type*} [Fintype V]
-    [Nonempty V] (ℓs : ℕ → V → ℝ) (η : ℝ) (T : ℕ)
-    (hℓ : ∀ t ∈ Finset.range T, ∀ v, 0 ≤ ℓs t v)
-    (hη : 0 < η)
-    (hsmall : ∀ v, η * (∑ t ∈ Finset.range T, ℓs t v) ≤ 1/2) :
-    ∃ vmin : V,
-      η * (∑ t ∈ Finset.range T, ℓs t vmin)
-        ≤ -(Real.log ((1/(Fintype.card V : ℝ))
-            * ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))))
-      ∧ -(Real.log ((1/(Fintype.card V : ℝ))
-            * ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))))
-        ≤ 2 * η * (∑ v : V, (1/(Fintype.card V : ℝ))
-            * ∑ t ∈ Finset.range T, ℓs t v) := by
-  -- rewrite product form to Gibbs form via R439
-  rw [mwu_partition_sum ℓs η T, Finset.mul_sum]
-  have hLnn : ∀ v : V, 0 ≤ ∑ t ∈ Finset.range T, ℓs t v :=
-    fun v => Finset.sum_nonneg (fun t ht => hℓ t ht v)
-  exact mwu_uniform_squeeze (fun v => ∑ t ∈ Finset.range T, ℓs t v) η
-    hLnn hη hsmall
 
 /-- **Гиббс = hedge при η = 1/T (R441)** —
 мост вертикалей:
@@ -493,45 +464,6 @@ theorem mwu_sqrt_bound {V : Type*} [Fintype V]
           (η * Lbar * Real.log (Fintype.card V : ℝ)))
         rw [← sq, h2]
 
-open Finset Real in
-/-- **Двухрежимный regret-капстоун
-MWU (R468)**: безусловная
-объединённая граница:
-−ln((1/n)∑e^{−ηℓ}) ≤
-max(2√(η〈ℓ〉·ln n),
-2η〈ℓ〉).
-Малый режим (η〈ℓ〉 ≤ ln n):
-√-балансировка R444;
-большой — линейная
-одношаговая R436.
-Выбор η = √(ln n/〈ℓ〉)
-даёт классический
-2√(〈ℓ〉·ln n) regret. -/
-theorem mwu_regret_regimes {V : Type*} [Fintype V]
-    [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
-    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
-    (hsmall : ∀ v, η * ℓ v ≤ 1/2)
-    (hn : (0:ℝ) < Real.log (Fintype.card V : ℝ)) :
-    -(Real.log ((1/(Fintype.card V : ℝ))
-        * ∑ v : V, Real.exp (-(η * ℓ v))))
-    ≤ max (2 * Real.sqrt (η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
-        * Real.log (Fintype.card V : ℝ)))
-      (2 * η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)) := by
-  by_cases hbal : η * (∑ v : V, (1/(Fintype.card V : ℝ)) * ℓ v)
-      ≤ Real.log (Fintype.card V : ℝ)
-  · have h := mwu_sqrt_bound ℓ η hℓ hη hsmall hn hbal
-    exact le_max_of_le_left h
-  · obtain ⟨_, _, h2⟩ := mwu_uniform_squeeze ℓ η hℓ hη hsmall
-    have hb : (∑ v : V, (1/(Fintype.card V : ℝ))
-        * Real.exp (-(η * ℓ v)))
-        = (1/(Fintype.card V : ℝ))
-          * ∑ v : V, Real.exp (-(η * ℓ v)) :=
-      (Finset.mul_sum Finset.univ
-        (fun v => Real.exp (-(η * ℓ v)))
-        (1/(Fintype.card V : ℝ))).symm
-    refine le_max_of_le_right ?_
-    rw [← hb]
-    exact h2
 
 
 open Classical in

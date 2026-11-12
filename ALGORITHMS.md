@@ -455,7 +455,7 @@ R' = sup_v d v − inf_v d v,
 ```
 
 записанный как `sup' d + sup' (−d)` над конечным словарём с общим
-fixed nonemptiness witness (`c216_univNE`).
+Mathlib canonical `Finset.univ_nonempty` witness.
 [`ceStepLogitRange_nonneg`](Hagi/Model/CEDescent.lean) даёт
 неотрицательность;
 [`ceDirectionLogit_sub_le`](Hagi/Model/CEDescent.lean) фиксирует
@@ -1256,7 +1256,7 @@ A_i, сумму её conditional PMF mean через M_i, а residual через
 [`ewWeight`](Hagi/Autonomy/HedgeSurvivor.lean) обновляет
 `w_{t+1,i}=w_{t,i}exp(-eta l_{t,i})`, [`ewNorm`](Hagi/Autonomy/HedgeSurvivor.lean)
 нормализует веса. Если `0<eta≤1` и `0≤l_{t,i}≤1`, то
-[`ew_regret`](Hagi/Autonomy/HedgeSurvivor.lean) даёт для любого эксперта
+[`router_regret_bound`](Hagi/Autonomy/Hedge.lean) даёт для любого эксперта
 
 ```
 A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.

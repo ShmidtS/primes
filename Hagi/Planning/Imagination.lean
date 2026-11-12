@@ -17,26 +17,6 @@ namespace Hagi.Planning
 
 open Finset
 
-/-- FORWARD THINKING REGRET: агент сравнивает B кандидатов
-по ПРЕДСКАЗАННОЙ ценности V̂ с ошибкой |V̂−V| ≤ ε и выбирает
-argmax V̂. Истинная ценность выбранного плана не менее
-max V − 2ε: воображение с ограниченной ошибкой теряет не
-более 2ε от лучшего плана (граница неточности argmax). -/
-theorem forward_thinking_regret {P : Type*} [Fintype P]
-    [Nonempty P] (V Vhat : P → ℝ) (ε : ℝ) (_hε : 0 ≤ ε)
-    (herr : ∀ π : P, abs (Vhat π - V π) ≤ ε)
-    (pstar : P) (hbest : ∀ π : P, Vhat π ≤ Vhat pstar)
-    (pbest : P) :
-    V pstar ≥ V pbest - 2 * ε := by
-  -- V(pbest) ≤ V̂(pbest) + ε ≤ V̂(pstar) + ε ≤ V(pstar) + 2ε
-  have h1 : V pbest - Vhat pbest ≤ ε := by
-    have := herr pbest
-    linarith [abs_le.mp this]
-  have h2 : Vhat pbest ≤ Vhat pstar := hbest pbest
-  have h3 : Vhat pstar - V pstar ≤ ε := by
-    have := herr pstar
-    linarith [abs_le.mp this]
-  linarith
 
 /-- КОМПАУНДИНГ ОШИБКИ ВООБРАЖЕНИЯ: K-шаговый open-loop
 план использует предсказанные состояния ô_k вместо

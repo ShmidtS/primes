@@ -220,20 +220,6 @@ theorem hsurv_derived (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
           ∑ i, ewNorm l eta t i * l t i + (T:ℝ) * eta ^ 2 / 2)
         * (Fintype.card ι : ℝ) := by ring
 
-/-- ИТОГ — REGRET СКЛЕЕН: A − L* ≤ ln K/η + ηT/2, где A —
-реальные EW-потери. Полная цепочка hedge_step →
-hedge_telescope-монотонность → hsurv → router_regret_bound. -/
-theorem ew_regret (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
-    (heta : 0 < eta ∧ eta ≤ 1)
-    (hl : ∀ t < T, ∀ i, 0 ≤ l t i ∧ l t i ≤ 1) :
-    (∑ t ∈ Finset.range T, ∑ i, ewNorm l eta t i * l t i)
-      - ∑ t ∈ Finset.range T, l t i
-      ≤ Real.log (Fintype.card ι) / eta + eta * T / 2 := by
-  have hsurv := hsurv_derived l eta T i hl ⟨heta.1.le, heta.2⟩
-  exact router_regret_bound (Fintype.card ι) T eta
-    (∑ t ∈ Finset.range T, ∑ i, ewNorm l eta t i * l t i)
-    (∑ t ∈ Finset.range T, l t i)
-    (Fintype.card_pos) heta.1 hsurv
 
 open Hagi.Optimization
 

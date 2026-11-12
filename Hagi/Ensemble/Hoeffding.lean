@@ -936,49 +936,6 @@ theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)
 
 end HoeffdingFin
 
-theorem hoeffding_fin_via_mgf {V : Type} [Fintype V] [Nonempty V]
-    (w d : V → ℝ) (a b : ℝ)
-    (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v, w v = 1)
-    (hlo : ∀ v, a ≤ d v) (hhi : ∀ v, d v ≤ b)
-    (hc : ∑ v, w v * d v = 0) (t : ℝ) (ht : 0 ≤ t) :
-    ∑ v, w v * Real.exp (t * d v)
-      ≤ Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := by
-  -- канон: h = t·d ∈ [t·a, t·b]
-  have hlo' : ∀ v, t * a ≤ t * d v := fun v =>
-    mul_le_mul_of_nonneg_left (hlo v) ht
-  have hhi' : ∀ v, t * d v ≤ t * b := fun v =>
-    mul_le_mul_of_nonneg_left (hhi v) ht
-  have h1 := Hagi.Foundations.mgf_hoeffding_ab w
-    (fun v => t * d v) (fun v => hw v) hw1 (t * a) (t * b)
-    hlo' hhi'
-  -- Σ w·(t·d) = t·Σw·d = 0
-  have hcenter : ∑ v, w v * (t * d v) = 0 := by
-    have hsplit : ∑ v, w v * (t * d v)
-        = t * (∑ v, w v * d v) := by
-      rw [Finset.mul_sum]
-      exact Finset.sum_congr rfl fun v _ => by ring
-    rw [hsplit, hc, mul_zero]
-  rw [hcenter] at h1
-  -- log ≤ t²(b−a)²/8 → exp-монотонность
-  have h2 : Real.log (∑ v, w v * Real.exp (t * d v))
-      ≤ t ^ 2 * (b - a) ^ 2 / 8 := by
-    have hspan : t * b - t * a = t * (b - a) := by ring
-    rw [hspan] at h1
-    rw [show t ^ 2 * (b - a) ^ 2 = (t * (b - a)) ^ 2 from by ring]
-    linarith
-  have hpos : 0 < ∑ v, w v * Real.exp (t * d v) := by
-    apply Finset.sum_pos' (fun v _ => mul_nonneg (hw v)
-      (Real.exp_pos _).le)
-    obtain ⟨v0, _, hv0ne⟩ := Finset.exists_ne_zero_of_sum_ne_zero (by
-      rw [hw1]; exact one_ne_zero)
-    have hv0pos : 0 < w v0 := lt_of_le_of_ne (hw v0)
-      (fun hc => hv0ne hc.symm)
-    exact ⟨v0, Finset.mem_univ v0, mul_pos hv0pos (Real.exp_pos _)⟩
-  calc ∑ v, w v * Real.exp (t * d v)
-      = Real.exp (Real.log (∑ v, w v * Real.exp (t * d v))) :=
-        (Real.exp_log hpos).symm
-    _ ≤ Real.exp (t ^ 2 * (b - a) ^ 2 / 8) :=
-        Real.exp_le_exp.mpr h2
 
 end Hagi.Ensemble
 
