@@ -1643,3 +1643,29 @@ gate активен, разность «риск-остаток − операц
 медленного consumer'а. Rewiring BatchCEAlignmentBudget
 (`rangeCurvature` против более точного `batchLogitRangeSquare`) —
 отложен (см. `.omc/tech-debt.md`, R2).
+
+## 13. Средне-скоростной optimizer-стек: EF21-Muon (C231)
+
+Средняя петля обучения по addendum A5 — coherence curriculum
+с EF21-Muon телом и тернарной проекцией через EF21 Markov feedback.
+Формальный слой (C231):
+
+```
+IsContractive C α                    : ‖C u − u‖₂ ≤ (1−α)‖u‖₂ (контракт)
+ef21_update_norm_le                  : ‖v + C(g−v) − g‖ ≤ (1−α)‖g−v‖ (точный перенос)
+ef21_lyapunov_descent                : η ≤ 1/(2L) → f' ≤ f − (η/2)(1−2Lη)‖g‖² + (η/2)(1+2Lη)δ²
+ef21_pl_linear_rate                  : gate c₂cδ < 2μc₁, cap → ρ = 1−2μc₁+c₂cδ ∈ [0,1)
+doublyStochastic_sq_le               : DS M → ‖Mx‖₂ ≤ ‖x‖₂ (Jensen/Коши, построчно)
+rowStochastic_opNorm_le_one          : ‖M‖_op ≤ 1 (ℓ∞-инстанс ErrorProp)
+mhc_stack_no_growth                  : DS-стек + нулевой residual → ‖propagate L δ₀‖ ≤ ‖δ₀‖
+one_sub_nsStep                       : 1 − t(3−t²)/2 = (1−t)²(t+2)/2 (скалярный NS)
+nsIter_dist_sq                       : 1 − φ(iter) ≤ (3/2)(1−iter)² (квадратичная скорость)
+```
+
+Доказанные инстансы контракта: identity (α=1), zero (α=0),
+scaling `u ↦ c•u` (α=c ∈ [0,1]). qTern/TopK — документированные, не
+доказанные. Связь Muon/Newton-Schulz — ЧЕСТНО скалярная: сертификат
+`one_sub_nsStep`/`nsIter_dist_sq` относится к сингулярным значениям в
+(0,√3); матричное нерасширение NS-полинома остаётся гипотезой `hP`
+в `Hagi/Step/Muon.lean`. mHC: Sinkhorn не требуется — M дважды
+стохастическая посылкой; оценка точная на перестановках.

@@ -24,6 +24,13 @@
 - `fiberPythagoras`: при `IsOrthoCol U`, `IsOrthoCol V` и `Uᵀ * V = 0` энергия суммы `U *ᵥ z + V *ᵥ w` равна `z ⬝ᵥ z + w ⬝ᵥ w`.
 - `fiberParamCount`: при `r < d` выполняется `r * d < d * d`.
 
+## Hagi/Architecture/ManifoldHyperConn.lean
+
+- `IsRowStochastic` / `IsDoublyStochastic`: premise-form гипотезы (неотрицательные элементы, суммы строк = 1, суммы столбцов = 1); Sinkhorn-балансировка не нужна и не утверждается.
+- `doublyStochastic_sq_le` (MAIN): дважды стохастическая M сжимает L2 — `Σ (Mx)ᵢ² ≤ Σ xⱼ²` — через построчный взвешенный Коши–Шварц (`Finset.sum_sq_le_sum_mul_sum_of_sq_le_mul`) и суммы столбцов; оценка точная (перстановочные матрицы дают равенство), посылка столбцовых сумм нагружена (row-stochastic-only может расширять L2).
+- `rowStochastic_opNorm_le_one`: ℓ∞-операторная норма строчно-стохастической M ≤ 1 (того же scoped-инстанса, что потребляет `Hagi.Core.propagate_bound_contractive`).
+- `mhc_stack_no_growth`: стек глубины L из дважды стохастических слоёв с нулевым свежим residual не растит ошибку — `‖propagate L δ₀‖ ≤ ‖δ₀‖` делегированием существующему `Hagi.Core.propagate_bound_contractive` при ρ = 0.
+
 ## Hagi/Architecture/FactorRank.lean
 
 - `nonnegFactorization M k` означает точное разложение `M = W * H` с поэлементно неотрицательными `W`, `H`; `nonnegRank M` задаёт наименьшую допустимую внутреннюю размерность.
@@ -2709,6 +2716,13 @@ one-hot CE.
 - `adagrad_step_anti`: при `0 ≤ eta` и `0 < adagradAcc g t`
   `eta/√(acc+g t^2) ≤ eta/√acc`.
 
+## Hagi/Optimization/EF21Markov.lean
+
+- `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор (α=0), scaling-компрессор `u ↦ c•u` (α=c, c ∈ [0,1] — недегенеративный инстанс); qTern/TopK — документированные, но НЕ доказанные инстансы (их контрактивность — нетривиальная теорема, отложена).
+- `ef21_update_norm_le`: точный одношаговый перенос сжатия Markov-обновления `v + C(g−v)`: `‖v_{t+1} − g‖₂² ≤ (1−α)²‖g − v_t‖₂²` без зазора.
+- `ef21_lyapunov_descent`: одношаговый спуск значения функции (premise-form): L-гладкость + дефект выравнивания δ + дефект нормы при `η ≤ 1/(2L)` дают `f' ≤ f − (η/2)(1−2Lη)‖g‖₂² + (η/2)(1+2Lη)δ²` — константы точные (разница = `η/2·(1+Lη)(s−δ)²/2 ≥ 0`, ring-тождество).
+- `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Unified/EFTheory.lean` концептуально субсумируется — дедуп в будущем, ничего не удалено.
+
 ## Hagi/Optimization/AdamBias.lean
 
 - `adamM_recur` доказывает `adamM β g 0=0` и
@@ -3551,6 +3565,8 @@ one-hot CE.
 - `newton_polar_scalar_error` при `x > 0` даёт точное `newtonStep x - 1 = (x-1)^2/(2*x)`; одновременно `newtonStep x ≥ 1`. На ветви `x ≥ 1` доказаны `newton_step_descent` и оценка ошибки `≤ (x-1)^2/2`.
 - `newton_polar_convergence` для любого `x₀ ≥ 1` и конечного `T` даёт `|newtonIter x₀ T - 1| ≤ 2*((x₀-1)/2)^(2^T)`, а `newton_iter_bracket` сохраняет `1 ≤ iter ≤ x₀`.
 - Предельный результат `newton_polar_tendsto_one` доказан только при `1 ≤ x₀ < 3`. Конечная формула сама по себе не расширяет эту область сходимости на произвольный `x₀`.
+- C231 (Newton–Schulz scalar): `nsStep t = t(3−t²)/2` — скалярная NS-карта. Ядро: точное тождество `one_sub_nsStep` (`1 − φ(t) = (1−t)²(t+2)/2`, ring). Следствия: `nsStep_nonneg`/`nsStep_le_one` (φ отображает [0,√3] в [0,1]), `le_nsStep_of_le_one` (монотонный подъём на [0,1]), `nsIter_mem`/`nsIter_mono` (инвариантность и монотонность траектории), `nsStep_dist_sq`/`nsIter_dist_sq` (квадратичное сжатие дефицита `1 − φ(t) ≤ (3/2)(1−t)²`). Матричное утверждение НЕ доказано: связь с Muon (`hP : ‖P‖ ≤ 1` в `Hagi/Step/Muon.lean`) остаётся гипотезой — скалярный сертификат только.
+
 
 ## Hagi/Step/NoisyPL.lean
 

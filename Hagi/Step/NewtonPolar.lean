@@ -213,3 +213,110 @@ theorem newton_iter_bracket (x₀ : ℝ) (hx₀ : 1 ≤ x₀) (T : ℕ) :
     exact le_trans (newton_step_descent _ h1) h2
 
 end Hagi.Step
+
+/-!
+### Newton–Schulz polar iteration — scalar certificate
+
+The Muon mid-speed body orthogonalizes with the Newton–Schulz
+polynomial; on the singular spectrum in (0, √3) each singular value
+flows under the scalar map `φ(t) = t(3 − t²)/2`. This section
+certifies the SCALAR lemma rigorously; the matrix statement (ℓ∞/ℓ2
+operator-norm non-expansion of the matrix NS map) remains the
+documented hypothesis `hP : ‖P‖ ≤ 1` of `Hagi.Step.Muon` — the
+Muon/Newton-Schulz connection here is scalar-only, honestly.
+-/
+
+namespace Hagi.Step
+
+section NewtonSchulzScalar
+
+/-- The Newton–Schulz scalar map `φ(t) = t (3 − t²) / 2`. -/
+noncomputable def nsStep (t : ℝ) : ℝ := t * (3 - t ^ 2) / 2
+
+/-- EXACT identity: `1 − φ(t) = (1 − t)² (t + 2) / 2` — the whole
+scalar theory hangs off this polynomial identity (by `ring`). -/
+theorem one_sub_nsStep (t : ℝ) :
+    1 - nsStep t = (1 - t) ^ 2 * (t + 2) / 2 := by
+  unfold nsStep
+  ring
+
+/-- `φ` maps `[0, √3]` into the nonnegative reals. -/
+theorem nsStep_nonneg (t : ℝ) (ht0 : 0 ≤ t) (_ht3 : t ^ 2 ≤ 3) :
+    0 ≤ nsStep t := by
+  have h3 : 0 ≤ 3 - t ^ 2 := by linarith
+  unfold nsStep
+  positivity
+
+/-- `φ` maps `[0, √3]` into `[0, 1]`: the deficit is exactly
+`(1 − t)² (t + 2) / 2 ≥ 0`. -/
+theorem nsStep_le_one (t : ℝ) (ht0 : 0 ≤ t) (_ht3 : t ^ 2 ≤ 3) :
+    nsStep t ≤ 1 := by
+  have h := one_sub_nsStep t
+  have hp : 0 ≤ (1 - t) ^ 2 * (t + 2) / 2 := by
+    have h2 : 0 ≤ t + 2 := by linarith
+    positivity
+  unfold nsStep at h ⊢
+  linarith
+
+/-- On `[0, 1]` the map ascends: `t ≤ φ(t) ≤ 1` (ascent half; the
+upper half is `nsStep_le_one`). -/
+theorem le_nsStep_of_le_one (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    t ≤ nsStep t := by
+  have h : nsStep t - t = t * (1 - t ^ 2) / 2 := by
+    unfold nsStep
+    ring
+  have h1 : 0 ≤ 1 - t ^ 2 := by nlinarith
+  have h2 : 0 ≤ t * (1 - t ^ 2) / 2 := by positivity
+  linarith
+
+/-- Quadratic distance contraction on `[0, 1]`:
+`1 − φ(t) ≤ (3/2) (1 − t)²` (constant sharp at `t = 1`). -/
+theorem nsStep_dist_sq (t : ℝ) (_ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    1 - nsStep t ≤ 3 / 2 * (1 - t) ^ 2 := by
+  have h := one_sub_nsStep t
+  have h2 : (t + 2) / 2 ≤ 3 / 2 := by linarith
+  have hp : 0 ≤ (1 - t) ^ 2 := sq_nonneg _
+  have hm := mul_le_mul_of_nonneg_right h2 hp
+  linarith
+
+/-- The NS scalar trajectory: `nsIter t₀ k = φ^(k)(t₀)`. -/
+noncomputable def nsIter (t₀ : ℝ) : ℕ → ℝ := fun k => Nat.iterate nsStep k t₀
+
+theorem nsIter_succ (t₀ : ℝ) (k : ℕ) :
+    nsIter t₀ (k + 1) = nsStep (nsIter t₀ k) := by
+  unfold nsIter nsStep
+  exact Function.iterate_succ_apply' _ _ _
+
+/-- Invariance: the trajectory from `[0, 1]` stays in `[0, 1]`. -/
+theorem nsIter_mem (t₀ : ℝ) (ht0 : 0 ≤ t₀) (ht1 : t₀ ≤ 1) :
+    ∀ k, 0 ≤ nsIter t₀ k ∧ nsIter t₀ k ≤ 1 := by
+  intro k
+  induction k with
+  | zero => exact ⟨ht0, ht1⟩
+  | succ k ih =>
+      obtain ⟨h0, h1⟩ := ih
+      rw [nsIter_succ]
+      exact ⟨nsStep_nonneg _ h0 (by nlinarith), nsStep_le_one _ h0 (by nlinarith)⟩
+
+/-- Monotone ascent along the trajectory. -/
+theorem nsIter_mono (t₀ : ℝ) (ht0 : 0 ≤ t₀) (ht1 : t₀ ≤ 1) :
+    ∀ k, nsIter t₀ k ≤ nsIter t₀ (k + 1) := by
+  intro k
+  have hmem := nsIter_mem t₀ ht0 ht1 k
+  obtain ⟨h0, h1⟩ := hmem
+  rw [nsIter_succ]
+  exact le_nsStep_of_le_one _ h0 h1
+
+/-- Iterated quadratic distance contraction: the deficit to 1
+SQUARES (up to the sharp constant 3/2) at every step — the
+quantitative content of Newton–Schulz scalar convergence. -/
+theorem nsIter_dist_sq (t₀ : ℝ) (ht0 : 0 ≤ t₀) (ht1 : t₀ ≤ 1) (k : ℕ) :
+    1 - nsIter t₀ (k + 1) ≤ 3 / 2 * (1 - nsIter t₀ k) ^ 2 := by
+  have hmem := nsIter_mem t₀ ht0 ht1 k
+  obtain ⟨h0, h1⟩ := hmem
+  rw [nsIter_succ]
+  exact nsStep_dist_sq _ h0 h1
+
+end NewtonSchulzScalar
+
+end Hagi.Step

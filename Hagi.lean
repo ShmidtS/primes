@@ -82,6 +82,7 @@ import Hagi.StatMech.Hopfield.Concentration
 import Hagi.StatMech.Hopfield.LowerBound
 import Hagi.StatMech.Hopfield.CharPatterns
 import Hagi.StatMech.Hopfield.SubMemory
+import Hagi.Optimization.EF21Markov
 import Hagi.Optimization.MomentumHB
 import Hagi.Optimization.HBRate
 import Hagi.Learning.ToyTrajectory
@@ -110,6 +111,7 @@ import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.VariantSafeQP
 import Hagi.Architecture.CortexFiber
+import Hagi.Architecture.ManifoldHyperConn
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.Heterarchy
