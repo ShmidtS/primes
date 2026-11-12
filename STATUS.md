@@ -1556,6 +1556,74 @@ runtime, минимальная память, training/held-out качество
   одношаговое снижение CE. При нулевом диапазоне безопасный шаг равен нулю;
   глобальная минимизация и сходимость итерации не утверждаются.
 
+- C216 добавляет range-based сертификат в CE engine:
+  `ceStepLogitRange` = `sup d − inf d` directional logit displacement
+  (`sup' d + sup' (−d)` с общим private-witness `c216_univNE`);
+  `ceStepLogitRange_nonneg` даёт неотрицательность,
+  `ceDirectionLogit_sub_le` и `ce_logitDisplacement_range` — поточечную
+  разностную оценку смещения, `ceStepLogitRange_le_ceStepRange`
+  доказывает `R' ≤ R = ceStepRange = 2Σ|d|`.
+- `ceRangeMajorizer` (CE − ηA + (ηR')²/8, та же острота `r²/8` из
+  `lse_shift_upper`, но диапазон вместо суммы по словарю) и
+  `ceRangeSafeStep = 4A/R'²` дают certified step с
+  `ceRangeMajorizer_safeStep_eq` (точное значение мажоранты на шаге) и
+  главным `ceOneHot_rangeSafeStep_le_residual`:
+  `CE(θ') ≤ CE(θ) − 2A²/R'²`; `ceOneHot_rangeSafeStep_lt` даёт строгий
+  спуск при `0 < R'` (строгость из
+  `ceAlignment_pos_of_logitRange_pos`: `R' > 0 ⟹ A > 0`).
+- Сосуществование аддитивное: `ceRangeSafeStep_ge_safeStepSize`
+  (при `0 < R'` новый шаг ≥ старого) и `ceRange_residual_ge` (новый
+  certified residual ≥ старого); потенциальный выигрыш шага до `V²`.
+  Старый сертификат (`ceMajorizer`, `ceOneHot_next_le`, `safeStepSize`)
+  не изменён. Вырожденный случай честен: `R' = 0` влечёт `A = 0` и
+  нулевой старый шаг (Lean-теорема рецензента в
+  `.tmp/C216/review-negative2.lean`), условие `0 < R'`
+  эквивалентно `0 < R`.
+- Numeric controls (identity 2-class): `identityTwoClass_logitRange_test`
+  R 2 → R' 1, `identityTwoClass_rangeSafeStep_test` шаг 1/2 → 2,
+  `identityTwoClass_step_comparison_test` 1/2 < 2 (4×),
+  `identityTwoClass_residual_comparison_test` residual 1/8 → 1/2 (4×).
+  Закрывает пункт P0c аудита
+  `.omc/analysis/external-architecture-audit-2026-11-12.md`.
+- Итого здесь три публичные функции и восемнадцать публичных теорем
+  (последние четыре — тесты; всего 21 имя, плюс 2 private `c216_*`): `ceStepLogitRange`,
+  `ceStepLogitRange_nonneg`, `ceDirectionLogit_sub_le`,
+  `ce_logitDisplacement_range`, `ceStepLogitRange_le_ceStepRange`,
+  `ceStepLogitRange_eq_zero_of_eq_zero`,
+  `ceAlignment_pos_of_logitRange_pos`, `ceRangeMajorizer`,
+  `ceRangeSafeStep`, `ceRangeSafeStep_nonneg`,
+  `ceRangeSafeStep_pos_of_logitRange_pos`,
+  `ceRangeMajorizer_safeStep_eq`, `ceOneHot_next_le_rangeMajorizer`,
+  `ceOneHot_rangeSafeStep_le_residual`,
+  `ceOneHot_rangeSafeStep_lt`, `ceRangeSafeStep_ge_safeStepSize`,
+  `ceRange_residual_ge`, `identityTwoClass_logitRange_test`,
+  `identityTwoClass_rangeSafeStep_test`,
+  `identityTwoClass_step_comparison_test`,
+  `identityTwoClass_residual_comparison_test`.
+- Evidence (cycle C216): установленный источник
+  Hagi/Model/CEDescent.lean SHA-256
+  5a05958db6cade2dc093479cc48fdcfce70bd756f35e5ed617e347755fec70f0
+  (748 строк, +311 против C215, дифф чисто аддитивный); source GO
+  7cfdb02d6c0c6aa1f27ed8ac7cf27f25eeae3fe3437ca00a305cdc681b02d2f1;
+  plan GO
+  06f238bff9cd722941610965833d040eb87bf698dc6b406f303e343defcda651;
+  research report
+  c85b09ba406a75202dcb3074617b9b4fe494c6e28103919a773954a2804d6f54;
+  rootapi log
+  d382ace68cffebf5de9f94bb7c2ab396c1f7738f573322462865838034afea36.
+  Census (fresh, .tmp/C216/validation/census-report.md, TSV SHA
+  1f2f63279977e1aa634fcbbdaf36363313ad79e6b2eaf81d06fb7e6390dc5e06,
+  2933930 bytes / 14131 LF / 0 CR): OWNER 12281 → 12308 (модуль
+  Hagi.Model.CEDescent 328 → 355, +27 = ровно namepool ADDED, включая
+  2 private mangled c216_*), IR 1264 → 1264 (+0), CONSUMER 38 без
+  изменений, fingerprint 4917100471297953757 → 11502919156674973306;
+  retained rows byte-identical.
+
+Заявление — только certified descent одношаговой верхней оценки CE и
+размера certified step; не утверждаются wall-clock, сходимость
+итерации, CE→0, generalization или применимость вне log-linear
+one-hot CE.
+
 ## Hagi/Model/CEExpansion.lean
 
 - `ceLogits_expandedParameters`: новый логит равен

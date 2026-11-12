@@ -441,6 +441,120 @@ pointwise non-regression. riskLim ограничивает opRisk одного �
 generalization, оптимальное действие, гарантия для нелинейного backbone,
 новое качественное измерение или экономия FLOP/time.
 
+### 3.8 Range-based safe step: диапазон смещения логитов вместо суммы по словарю
+
+Базовый сертификат раздела 3.1 мажорирует сдвиг CE квадратичной
+константой `ceStepRange` = `2∑|d v|` — суммой модулей directional logit
+displacement по всему словарю. C216 добавляет в CE engine вторую,
+более острую константу:
+[`ceStepLogitRange`](Hagi/Model/CEDescent.lean) — диапазон того же
+смещения `d = ceDirection X θ t`,
+
+```
+R' = sup_v d v − inf_v d v,
+```
+
+записанный как `sup' d + sup' (−d)` над конечным словарём с общим
+fixed nonemptiness witness (`c216_univNE`).
+[`ceStepLogitRange_nonneg`](Hagi/Model/CEDescent.lean) даёт
+неотрицательность;
+[`ceDirectionLogit_sub_le`](Hagi/Model/CEDescent.lean) фиксирует
+поточечную оценку разности логитов через две sup'-грани, а
+[`ce_logitDisplacement_range`](Hagi/Model/CEDescent.lean) переносит её
+на весь directional logit displacement.
+[`ceStepLogitRange_le_ceStepRange`](Hagi/Model/CEDescent.lean)
+доказывает `R' ≤ R = ceStepRange = 2∑|d|`: новая константа никогда не
+хуже старой, а на разреженных направлениях — существенно меньше
+(диапазон учитывает лишь крайние значения, а не всю сумму по словарю).
+
+Ключевой шаг мажоранты —
+[`ceOneHot_next_le_rangeMajorizer`](Hagi/Model/CEDescent.lean): для
+любого `0 ≤ η`
+
+```
+CE(θ + η·dir) ≤ CE(θ) − η·A + (η·R')²/8,
+```
+
+где `A = ceAlignment X θ t`. Острота квадратичного члена та же, что у
+базового сертификата (`r²/8` из `lse_shift_upper`, без изменения
+sharpness-константы), но аргумент использует диапазон смещения, а не
+сумму по словарю — весь вклад дальних от крайних классов сокращается
+до одной константы `R'`. Отсюда
+[`ceRangeMajorizer`](Hagi/Model/CEDescent.lean) — миноризирующая
+квадратичная мажоранта `CE − ηA + (ηR')²/8` — и certified step
+[`ceRangeSafeStep`](Hagi/Model/CEDescent.lean) = `4A/R'²` при
+`R' > 0` (иначе `0`)
+([`ceRangeSafeStep_nonneg`](Hagi/Model/CEDescent.lean),
+[`ceRangeSafeStep_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean)).
+[`ceRangeMajorizer_safeStep_eq`](Hagi/Model/CEDescent.lean) даёт
+точное значение мажоранты на этом шаге, а главный результат
+[`ceOneHot_rangeSafeStep_le_residual`](Hagi/Model/CEDescent.lean)
+переносит оценку на фактический CE:
+
+```
+CE(θ') ≤ CE(θ) − 2A²/R'².
+```
+
+[`ceOneHot_rangeSafeStep_lt`](Hagi/Model/CEDescent.lean) усиливает до
+строгого спуска при `R' > 0` (строгость даёт
+[`ceAlignment_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean):
+`R' > 0 ⟹ A > 0`).
+
+Соотношение со старым сертификатом — аддитивное сосуществование, не
+замена. [`ceRangeSafeStep_ge_safeStepSize`](Hagi/Model/CEDescent.lean)
+доказывает: при `0 < R'` новый certified step не меньше старого
+`safeStepSize` (равного `4A/R` при `R > 0`), а
+[`ceRange_residual_ge`](Hagi/Model/CEDescent.lean) — что сертифицированный
+residual `2A²/R'²` не меньше старого `2A²/R²`. Поскольку `R' ≤ R`,
+потенциальный выигрыш в размере шага — до `V²` (отношение `R/R'`
+ограничено суммой `V` членов против двух крайних). Старый сертификат
+(`ceMajorizer`, `ceOneHot_next_le`, `safeStepSize` и их леммы) сохранён
+без изменений: оба сертификата сосуществуют, движок не переключается
+принудительно.
+
+Вырожденный случай обработан честно, без фиктивного шага.
+[`ceStepLogitRange_eq_zero_of_eq_zero`](Hagi/Model/CEDescent.lean)
+даёт: тождественно нулевые directional logits влекут `R' = 0`
+(`ceRangeSafeStep` тотальна и равна `0` при `R' = 0`). Рецензент
+C216 доказал в Lean (теорема reviewer_degenerate_no_old_step,
+`.tmp/C216/review-negative2.lean`), что режим `R' = 0` при ненулевом
+старом шаге в этом движке невозможен: `R' = 0` значит `d` константен,
+а поскольку `Σ_v ceResidual v = 0`, alignment `A` обязан исчезнуть,
+так что и старый `safeStepSize = 4A/R` равен нулю. Следовательно,
+условие `0 < R'` эквивалентно `0 < R`: новый сертификат молча не
+теряет ни один режим старого, и вырождение честно даёт нулевой шаг
+в обоих сертификатах.
+
+Numeric controls (identity two-class example, measured as
+`#eval`-проверенные равенства в коде модуля):
+[`identityTwoClass_logitRange_test`](Hagi/Model/CEDescent.lean) —
+`R = 2` против `R' = 1`;
+[`identityTwoClass_rangeSafeStep_test`](Hagi/Model/CEDescent.lean) —
+шаг `1/2` против `2`;
+[`identityTwoClass_step_comparison_test`](Hagi/Model/CEDescent.lean) —
+строгое `1/2 < 2` (4×);
+[`identityTwoClass_residual_comparison_test`](Hagi/Model/CEDescent.lean)
+— сертифицированный residual `1/8` против `1/2` (4×). Это закрывает
+пункт P0c внешнего архитектурного аудита
+(`.omc/analysis/external-architecture-audit-2026-11-12.md`).
+
+Census (измерено, fresh,
+`.tmp/C216/validation/census-report.md`, TSV SHA
+`1f2f63279977e1aa634fcbbdaf36363313ad79e6b2eaf81d06fb7e6390dc5e06`,
+2933930 bytes / 14131 LF / 0 CR): OWNER 12281 → 12308 (+27, ровно
+namepool ADDED, включая 2 private mangled `c216_*`), IR 1264 → 1264
+(+0), CONSUMER 38 без изменений (новая публичная часть не приобрела
+consumers), модуль `Hagi.Model.CEDescent` OWNER 328 → 355, fingerprint
+4917100471297953757 → 11502919156674973306, retained rows
+byte-identical.
+
+Область заявления — только certified-descent: одношаговая верхняя
+оценка CE и размер certified step. Не утверждаются wall-clock
+ускорение, скорость или факт сходимости итерации, CE→0,
+generalization, поведение при нелинейном backbone, преимущества вне
+семейства log-linear one-hot CE или оптимальность шага среди всех
+возможных.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`
