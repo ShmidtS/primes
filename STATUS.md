@@ -317,12 +317,38 @@
   квадратичная форма `∑‖∇L‖²` этим не доказана (нужна отдельная
   оценка кривизны, линейная по alignment).
 
+## Hagi/Contracts/GradientBottleneck.lean
+
+- `logitGradM`: квадратный n×n комплексный матричный вид логит-градиента
+  (вещественные записи коэрцированы) — носитель, требуемый Flywheel
+  SVD API; прямоугольный C×V случай отложен.
+- `gradient_bottleneck_bound`: при посылке `rank Δ ≤ k` всякое достижимое
+  логит-обновление `Δ` оставляет Frobenius-остаток не меньше
+  квадратичного хвоста сингулярных чисел `logitGradM` за `k` — прямое
+  следствие `eckart_young_lower_bound` (C226). Вывод «голова ранга D ⇒
+  ранг обновлений ≤ 2D» и нетривиальность хвоста (Prop A.5) отложены
+  и не утверждаются; при `k ≥ n` оценка тривиальна.
+
 ## Hagi/Contracts/GuardedLogitTrajectory.lean
 
 - `guardedLogitPath_logitCE_antitone` и `guardedLogitPath_logitCE_tendsto_ciInf`: для фиксированного скалярного защищённого контроллера CE не возрастает и сходится к своей точной нижней грани.
 - `guardedLogitDrop_tendsto_zero` и `guardedLogitDrop_tsum_le`: уменьшения CE стремятся к нулю, а их полная сумма не превосходит начальную CE.
 - `guardedLogitPath_eventually_eq`: сам путь после некоторого `N` постоянен; `guardedLogitPath_tendsto_eventual_value` доказывает сходимость к этому значению.
 - Предельная CE не отождествляется с нулём или глобальным оптимумом; внешняя калибровка и обобщение не оцениваются.
+
+## Hagi/Contracts/LogitGrad.lean
+
+- `logitGrad z N c v = smax (z c) v − N c v`: строчный носитель
+  логит-градиента CE; обобщает форму ceResidual на произвольные
+  суб-вероятностные `N` (one-hot или частоты).
+- `logitGrad_row_sum_zero`: строчные суммы ноль при вероятностных
+  строках `N`.
+- `logitGrad_pos_off_target`: вне one-hot цели запись строго
+  положительна; `logitGrad_neg_at_target`: в цели строго отрицательна
+  при явной посылке `∃ w ≠ t c` (синглтон-словарь даёт ноль, не
+  отрицательное); новый строчный ингредиент — `smax_lt_one`.
+- `abs_logitGrad_row_le_two`: абсолютная строчная масса ≤ 2 для
+  суб-вероятностных `N` (0 ≤ N, ∑ ≤ 1).
 
 ## Hagi/Contracts/IdentityMomentConvergence.lean
 
