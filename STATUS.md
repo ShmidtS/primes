@@ -302,6 +302,21 @@
 - `fixedGatedAlignment_tendsto_zero_uniform`: сам текущий `fixedGatedAlignment` стремится к нулю.
 - `fixedGatedResidualTranspose_tendsto_zero_uniform`: каждая координата текущего `gatedResidualTranspose` также стремится к нулю; это не утверждение о внешнем качестве или глобальном оптимуме.
 
+## Hagi/Contracts/GatedCEGradientNorm.lean
+
+- `gatedGrad` отождествляет градиент гейтированного одноцелевого CE
+  с `-gatedDirection`; `gatedGrad_ofLp` даёт покоординатное равенство
+  с `gatedResidualTranspose` без предположений сверх `Fintype V`.
+- `fderiv_gatedCE_apply` и `fderiv_gatedCE_apply_inner` выражают
+  Fréchet-производную CE как действие / вещественное скалярное
+  произведение с `gatedGrad` при `[Nonempty V] [DecidableEq V]`.
+- `norm_gatedGrad_sq`: `‖gatedGrad‖² = gatedAlignment` определительно.
+- `gated_grad_sum_fourth_le_uniform`: для канонической исполненной
+  траектории `∑ s ∈ range T, ‖∇L(θₛ)‖⁴ ≤ 4·gatedCurvatureUniformBound X·L₀`
+  — точная переформулировка `fixedGatedAlignment_sum_sq_le_uniform`;
+  квадратичная форма `∑‖∇L‖²` этим не доказана (нужна отдельная
+  оценка кривизны, линейная по alignment).
+
 ## Hagi/Contracts/GuardedLogitTrajectory.lean
 
 - `guardedLogitPath_logitCE_antitone` и `guardedLogitPath_logitCE_tendsto_ciInf`: для фиксированного скалярного защищённого контроллера CE не возрастает и сходится к своей точной нижней грани.

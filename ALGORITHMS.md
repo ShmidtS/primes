@@ -671,6 +671,33 @@ wall-clock ускорение, сходимость итерации, CE→0, ge
 поведение при нелинейном backbone, samplewise-гарантии за пределами
 среднего или оптимальность шага среди всех возможных.
 
+### 3.10 Gated CE: отождествление нормы градиента и траекторный запас
+
+Для гейтированного одноцелевого CE (tanh-гейтинг, `gatedForward`)
+градиент по параметрам — это в точности транспонированный остаток
+через sech²-якобиан: [`gatedGrad`](Hagi/Contracts/GatedCEGradientNorm.lean)
+= `-gatedDirection`, покоординатно `gatedResidualTranspose`
+([`gatedGrad_ofLp`](Hagi/Contracts/GatedCEGradientNorm.lean)); Fréchet-
+производная действует как скалярное произведение с `gatedGrad`
+([`fderiv_gatedCE_apply_inner`](Hagi/Contracts/GatedCEGradientNorm.lean)),
+и `‖gatedGrad‖² = gatedAlignment`
+([`norm_gatedGrad_sq`](Hagi/Contracts/GatedCEGradientNorm.lean)) —
+определительно, без предположений сверх `Fintype V`.
+
+Так как исполненный безопасный шаг `η = A/(2C)` с константой кривизны
+`C(X) = 1 + 2Q + (2U)²/8` имеет точное падение `A²/(4C)`,
+траекторный запас — четвёртая степень нормы градиента:
+[`gated_grad_sum_fourth_le_uniform`](Hagi/Contracts/GatedCEGradientNorm.lean)
+
+```
+∑s∈[0,T) ‖∇L(θs)‖⁴ ≤ 4·C(X)·L₀.
+```
+
+Квадратичная форма `∑‖∇L‖² ≤ const·L₀` этим НЕ доказана: она
+потребовала бы новой оценки `gatedCurvature ≤ κ(X)·gatedAlignment`
+(линейной по A падения), что — отдельная задача. Эмпирических
+посылок нет; цель `t` фиксированная one-hot.
+
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
 Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`
