@@ -473,6 +473,7 @@ import Hagi.Contracts.SchellingCandidateSelection
 import Hagi.Contracts.SchellingMarkovRouting
 import Hagi.Contracts.NaturalLean
 import Hagi.Contracts.BatchCETrajectory
+import Hagi.Contracts.BatchRangeBF16Cert
 import Hagi.Contracts.BatchCEAlignmentBudget
 import Hagi.Contracts.IdentityMomentConvergence
 import Hagi.Contracts.BatchCEBestResidual
@@ -487,6 +488,7 @@ import Hagi.Model.GatedCEPositiveCurvature
 import Hagi.Model.GatedCEUniformCurvature
 import Hagi.Model.Routing
 import Hagi.Cert.Core
+import Hagi.Cert.Adapters
 
 set_option linter.style.header false
 

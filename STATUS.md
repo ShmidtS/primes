@@ -223,10 +223,25 @@
 - `HoldStep` без утверждения прогресса всегда доступен (`HoldStep.id`); `TransitionStep` = `progress | hold`.
 - Композиция: `CertStep.trans` (те же obligations), `CertStep.trans'` (второй шаг против поточечно сильных obligations `obl₁.floor t ≤ obl₂.floor t`); телескопы `trajectory_telescope` (по `Finset.range n`) и `trajectory_telescope_fin` ограничивают терминальный objective суммой drop'ов.
 
+## Hagi/Cert/Adapters.lean
+
+- Генерические адаптеры между конкретными сертификатами спуска и каноническим ядром `Hagi.Cert` (импортирует только `Hagi.Cert.Core` — batch-CE-инстанциация живёт в Contracts из-за LayerLint).
+- `zeroFloorObligations` и `floorsKept_zeroFloor` — тривиальные obligations (floor 0), держатся при неотрицательном objective.
+- `descentCertStep`: положительный drop + реальный спуск + сохранённые уровни budget/risk (нулевой расход) + floors → канонический `CertStep`; `holdTransition`: FloorsKept → `TransitionStep` через `HoldStep.id`.
+- `protectedRisk_le_of_riskRem` — R1-срез рисковой полярности: если уровень риска ядра в состоянии есть разность «лимит минус защищённый риск», неотрицательный остаток риска шага конвертируется в оценку «защищённый риск + расход ≤ лимит» (GrowthState-носитель в карантине Legacy, поэтому — отдельная лемма против ядра).
+
 ## Hagi/Challenge/MasterChallengeV3.lean
 
 - `master_hagi_challenge_v3`: для цепочки `StepCert`, согласованных drops и spends, начального `FloorKept` и `0 ≤ b 0`, при `1 ≤ n` доказаны `obj (f n) < obj (f 0)` и `∑ t < n, drops t ≤ obj (f 0) - obj (f n)`.
 - На конечном состоянии сохраняются `FloorKept`, `0 ≤ b n` и `b n ≤ b 0 - ∑ t < n, spends t`.
+
+## Hagi/Contracts/BatchRangeBF16Cert.lean
+
+- BF16-гард для C223 batch-шага (C230): certified drop — точное выражение `2·batchAlignment²/batchLogitRangeSquare`; по-логитная bf16-ошибка — ПОСЫЛКА, универсального утверждения об округлении нет.
+- `batchLoss_le_of_logitPerturbation`: равномерная по-логитная `eps`-ошибка сдвигает истинный batchLoss не более чем на `2·eps` (2-липшицевость one-hot CE, `CEQuantized.ceOneHot_le_of_abs_sub_le`).
+- `bf16_guarded_ceRange_descent_le` / `bf16_guarded_ceRange_descent`: при строгом gate `4·eps < 2·A²/R'` реальный bf16-step строго уменьшает истинный batchLoss на `Δ = 2·A²/R' − 2·eps > 0`; `bf16_exact_binade_ceRange_descent` — режим `eps = 0` (точный logit-readback; на уровне кодов — `BF16Delta.exists_sameBinade_difference`).
+- `batchCEMetrics`: SystemMetrics на носителе параметров (objective = истинный batchLoss, risk/budget = константные остатки; R1-полярность «риск-остаток = лимит − защищённый риск» даётся вызывающей стороной — GrowthState в карантине Legacy).
+- `batchCE_bf16_transitionStep_progress`: progress-TransitionStep при активном gate и неотрицательной разности «риск-остаток − операционный риск» (операционный риск остаётся символическим до появления slow-loop consumer); `batchCE_transitionStep_hold`: hold-ветка через `HoldStep.id`.
 
 ## Hagi/Contracts/BatchCEAlignmentBudget.lean
 

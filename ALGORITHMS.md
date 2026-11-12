@@ -1592,3 +1592,54 @@ trajectory_telescope n t steps :
 композицией. Дублирование имени `CertStep` с
 `Hagi.Unified.HonestTransition.CertStep` — транзиторный долг
 (см. `.omc/tech-debt.md`); поглощение старой структуры — Track S3.
+
+## 12. BF16-гард для batch-шага и переход в Cert/Core (C230)
+
+Срез двухступенчатого gate (addendum A5): стадия 3a (pre-screen)
+теперь формально заземлена. Сертифицированный спуск — точное
+выражение C223 `2·batchAlignment²/batchLogitRangeSquare`
+(`batchLoss_logitSafeStep_le_residual`), НЕ сокращение «2A²/R̄'²».
+
+BF16-гард — посылка, а не вывод: если логитный апдейт проходит через
+BF16-представление с равномерной по-логитной ошибкой
+
+```
+|ceLogits (X b) θbf v − ceLogits (X b) (batchLogitNextParameters X θ y) v| ≤ eps
+```
+
+и строгий gate `4·eps < 2·A²/R'` выполнен, то реальный bf16-следующий
+параметр строго уменьшает истинный batchCEObjective на
+`Δ = 2·A²/R' − 2·eps > 0`:
+
+```
+batchLoss_le_of_logitPerturbation : per-logit eps → потеря сдвигается ≤ 2·eps
+bf16_guarded_ceRange_descent_le   : gate → batchLoss θbf ≤ batchLoss θ − (drop − 2·eps)
+bf16_guarded_ceRange_descent      : gate → ∃ Δ > 0, batchLoss θbf ≤ batchLoss θ − Δ
+```
+
+Средний штраф возмущения равен `2·eps` (2-липшицевость one-hot CE,
+`CEQuantized.ceOneHot_le_of_abs_sub_le`); gate держит 2× запас.
+Режим `eps = 0` (`bf16_exact_binade_ceRange_descent`) — точный logit-
+readback; на уровне кодов это сертифицировано
+`BF16Delta.exists_sameBinade_difference` (одинаковый положительный
+нормальный binade ⇒ разность представима точно), но перенос ℚ→ℝ не
+мостится автоматически, поэтому eps=0-теорема берёт точное равенство
+логитов посылкой. Универсального утверждения о bf16-округлении НЕТ
+(контрпример: θbf=(1,2) на identity-признаках строго УВЕЛИЧИВАЕТ
+потерю).
+
+Переход в Cert/Core: `batchCEMetrics` (objective = истинный batchLoss
+на EuclideanSpace-носителе параметров, risk/budget = константные
+остатки; R1-полярность «риск-остаток = лимит − защищённый риск»
+даётся вызывающей стороной — носитель GrowthState в карантине
+Legacy), `batchCE_bf16_transitionStep_progress` (progress-ветка:
+gate активен, разность «риск-остаток − операционный риск»
+неотрицательна, drop = 2·A²/R' − 2·eps),
+`batchCE_transitionStep_hold` (hold-ветка через `HoldStep.id`).
+Генерические адаптеры — `Hagi/Cert/Adapters.lean` (слой 2, импортирует
+только Cert.Core): `descentCertStep`, `holdTransition`,
+`protectedRisk_le_of_riskRem` (остаток риска ядра ⇒ защищённый риск
+под лимитом). Операционный риск остаётся символическим до появления
+медленного consumer'а. Rewiring BatchCEAlignmentBudget
+(`rangeCurvature` против более точного `batchLogitRangeSquare`) —
+отложен (см. `.omc/tech-debt.md`, R2).
