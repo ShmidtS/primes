@@ -965,6 +965,11 @@
 - `selector_skips_dominated`: при строго положительных весах скаляризации глобальный argmin не равен строго доминируемому checkpoint.
 - `qgen_frontier_bridge_invariant`: при `0<α`, `0<γ`, `0≤ρ`, `0≤ηQ`, положительных `C t`, начальном конусе `α/γ*C 0≤D 0`, заданной `ΔQ`-усиленной динамике `h_emp_dyn`, капе и ослабленном пороге `hβ_eased` конус `α/γ*C t≤D t` сохраняется для всех `t`.
 
+- C218: подсчитанные здесь binder-сайты эмпирических посылок
+  (h_C_cap=2, hβ_eased=2) занесены в per-file shrink-only реестр
+  `AssumptionScan.py` (см. запись C218 в разделе
+  Hagi/Unified/MasterHAGI.lean).
+
 ## Hagi/Geometry/SphericalSimplex.lean
 
 - `dihedral_angle_ge_pi_div_three` и `dihedral_angle_lt_pi_div_two`: при `x≥2` выполнено `π/3≤arccos(1/x)`, а при `x>1` — `arccos(1/x)<π/2`.
@@ -4017,6 +4022,36 @@ one-hot CE.
 - `certifiedHAGI_nonvacuous_strict`: при `alpha,c0,delta,s > 0` и `e ≥ 0`
   существует траектория с одновременным ростом, убыванием потенциала,
   риском и ненулевыми расходами, удовлетворяющая инварианту.
+
+- C218 (unprefixed empirical premise registry, аудит P0b, tooling-only):
+  в `AssumptionScan.py` добавлен реестр UNPREFIXED_EMPIRICAL —
+  per-file подсчёт binder-сайтов признанных эмпирических посылок
+  без h_emp_-префикса: MasterHAGI.lean — h_step=3, h_gain_prod=3,
+  h_dyn=2, h_C_cap=2, hβ=2 (docstring 84–92); ModeState.lean —
+  h_C_cap=2, hβ_eased=2. Проверка unprefixed_check() сравнивает
+  фактическое число binder-сайтов `(NAME :` в comment-stripped
+  источнике с зарегистрированным: любое отклонение FAIL; рост
+  запрещён outright, сжатие требует сознательного обновления
+  реестра через план-ревью (shrink-only политика). Реестр — НЕ
+  name-registry: имена вроде hbeta имеют ~60 структурных binder-сайтов
+  в других файлах репозитория, поэтому кросс-файловое сравнение
+  по имени ложно регистрировало бы структурные гипотезы как
+  эмпирические (задокументированная слепота: пер-файловость).
+  assumptions.lock расширен секцией (+4 строки, только новая
+  секция); TestAssumptionScan.py +4 теста (baseline, shrink,
+  growth, missing file) — 9/9 OK.
+- Evidence (cycle C218): полный CI rc=0
+  (.tmp/C218/final-ci/ci.log SHA-256
+  23cdf320b8877e7396612682ab6fdcdfc9677257c65b1c640ff85960a9b96ff6,
+  1×CI: PASS, 1×ALLAXIOMS: PASS); AssumptionScan PASS на текущем
+  дереве; plan GO
+  .tmp/C218/reviews/plan-review-final.md SHA-256
+  784533e355b6eb3023f7e771b86cd5e24b5afd77fbb8a6abb049ebc14db7b134.
+
+Заявление — расширение аудиторского инструментария (реестр
+непрефиксованных эмпирических посылок); не утверждаются новые
+математические результаты, wall-clock, сжатие весов или
+улучшение качества.
 
 ## Hagi/Unified/MasterHAGICoupled.lean
 

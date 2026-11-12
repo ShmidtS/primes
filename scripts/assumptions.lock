@@ -74,3 +74,7 @@ hdescent
 hdescent'
 hexec
 hexecb
+
+[unprefixed empirical premises (per-file counts, shrink-only, not a name-registry)]
+Hagi/Generalization/ModeState.lean: h_C_cap=2 hβ_eased=2
+Hagi/Unified/MasterHAGI.lean: h_step=3 h_gain_prod=3 h_dyn=2 h_C_cap=2 hβ=2

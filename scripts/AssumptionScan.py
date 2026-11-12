@@ -27,6 +27,22 @@ IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
 # `ceQuantWitness_shortcutScales_strict_descent` is not a premise
 # named `hortcutScales_strict_descent`.  Both guards exclude partial matches;
 # suffixes and primed identifiers are preserved instead of truncated.
+# C218 (audit P0b): unprefixed empirical premise registry.
+# PER-FILE, SHRINK-ONLY: each entry names binder names that are
+# acknowledged empirical premises in that specific file (MasterHAGI
+# docstring 84-92; ModeState). NOT a name-registry: names like hbeta
+# have ~60 structural binder sites elsewhere in the repo, so
+# cross-file matching would misregister structural hypotheses as
+# empirical (documented blindness). The list may only shrink in
+# future cycles; growth or drift in registered files FAILs.
+UNPREFIXED_EMPIRICAL = {
+    'Hagi/Unified/MasterHAGI.lean':
+        {'h_step': 3, 'h_gain_prod': 3, 'h_dyn': 2, 'h_C_cap': 2,
+         'hβ': 2},
+    'Hagi/Generalization/ModeState.lean':
+        {'h_C_cap': 2, 'hβ_eased': 2},
+}
+
 OPERATIONAL = re.compile(
     r"(?<![A-Za-z0-9_'])h[A-Za-z0-9_']*"
     r"(?:Exec|exec|Descent|descent|Sample|sample)[A-Za-z0-9_']*"
@@ -39,6 +55,35 @@ DECL = re.compile(
 PRIM = re.compile(
     r"^\s*(?:noncomputable\s+)?def\s+((?:kl|tv|ent|entropy|softmax|lse)[A-Za-z0-9_']*)",
     re.M)
+
+
+def unprefixed_check():
+    """Per-file binder-count verification for UNPREFIXED_EMPIRICAL.
+
+    A binder site is `(NAME :` in comment-stripped source. The
+    registered count is the acknowledged baseline; the registry
+    may only shrink (count decrease = deliberate shrink, FAILs
+    until the registry is updated through plan review; count
+    increase = growth, FAILs outright).
+    """
+    problems = []
+    for rel, counts in UNPREFIXED_EMPIRICAL.items():
+        f = ROOT / rel
+        if not f.exists():
+            problems.append(f"unprefixed registry: file missing: {rel}")
+            continue
+        code = strip_comments(f.read_text(encoding="utf-8",
+                                          errors="replace"))
+        for n, want in counts.items():
+            pat = re.compile(r"[(]\s*" + re.escape(n) + r"\s*:")
+            got = len(pat.findall(code))
+            if got != want:
+                direction = ("shrink (update registry deliberately)"
+                             if got < want else "GROWTH (forbidden)")
+                problems.append(
+                    f"unprefixed registry: binder {n} in {rel}: "
+                    f"{got} sites vs {want} registered — {direction}")
+    return problems
 
 
 def scan():
@@ -72,6 +117,9 @@ def scan():
     return hmap, prims, proven, operational
 
 
+
+
+
 def registry(hmap, prims, proven, operational):
     total = sum(len(v) for v in hmap.values())
     lines = [f"h_emp files: {len(hmap)}",
@@ -93,10 +141,20 @@ def registry(hmap, prims, proven, operational):
     lines += sorted(prims)
     lines += ["", "[operational]"]
     lines += sorted(operational)
+    lines += ["", "[unprefixed empirical premises "
+              "(per-file counts, shrink-only, not a name-registry)]"]
+    for rel in sorted(UNPREFIXED_EMPIRICAL):
+        lines.append(rel + ": " + " ".join(
+            f"{n}={c}" for n, c in UNPREFIXED_EMPIRICAL[rel].items()))
     return "\n".join(lines) + "\n"
 
 
 def main():
+    problems = unprefixed_check()
+    if problems:
+        for p in problems:
+            print(f"ASSUMPTIONSCAN: FAIL ({p})")
+        return 1
     hmap, prims, proven, operational = scan()
     reg = registry(hmap, prims, proven, operational)
     update = "--update" in sys.argv

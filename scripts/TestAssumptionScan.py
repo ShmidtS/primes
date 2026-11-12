@@ -82,5 +82,48 @@ example (h_sample_input' : True) : True := by trivial
             report)
 
 
+class UnprefixedEmpiricalRegistry(unittest.TestCase):
+    """C218: per-file count registry (shrink-only, not a name-registry)."""
+
+    def setUp(self):
+        self.saved = dict(AssumptionScan.UNPREFIXED_EMPIRICAL)
+        self.target = AssumptionScan.ROOT / "Hagi" / "Probe.lean"
+
+    def tearDown(self):
+        AssumptionScan.UNPREFIXED_EMPIRICAL = self.saved
+        if self.target.exists():
+            self.target.unlink()
+
+    def test_baseline_check_passes_on_current_tree(self):
+        self.assertEqual(AssumptionScan.unprefixed_check(), [])
+
+    def test_shrink_is_detected(self):
+        AssumptionScan.UNPREFIXED_EMPIRICAL = {
+            "Hagi/Probe.lean": {"h_step": 2}}
+        self.target.write_text(
+            "theorem a (h_step : True) : True := h_step" + chr(10),
+            encoding="utf-8")
+        problems = AssumptionScan.unprefixed_check()
+        self.assertTrue(any("h_step" in p and "shrink" in p
+                            for p in problems), problems)
+
+    def test_growth_is_detected(self):
+        AssumptionScan.UNPREFIXED_EMPIRICAL = {
+            "Hagi/Probe.lean": {"h_step": 1}}
+        self.target.write_text(
+            "theorem a (h_step : True) : True := h_step" + chr(10)
+            + "theorem b (h_step : True) : True := h_step" + chr(10),
+            encoding="utf-8")
+        problems = AssumptionScan.unprefixed_check()
+        self.assertTrue(any("h_step" in p and "GROWTH" in p
+                            for p in problems), problems)
+
+    def test_missing_file_is_stale(self):
+        AssumptionScan.UNPREFIXED_EMPIRICAL = {
+            "Hagi/DoesNotExist.lean": {"h_step": 1}}
+        problems = AssumptionScan.unprefixed_check()
+        self.assertTrue(any("file missing" in p for p in problems))
+
+
 if __name__ == "__main__":
     unittest.main()
