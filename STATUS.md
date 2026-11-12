@@ -1266,6 +1266,31 @@ learned/adaptive per-level H-Net routing, causal-поведение, диффе�
 IEEE/RNE/BF16, оптимальная end-to-end архитектура или глобальный HAGI.
 Throughput, sparsity, compression и качество router не доказываются.
 
+- Для данной конечной последовательности и выбранной функции границ
+  `boundaryChunks` начинает новую непустую группу перед каждым следующим
+  токеном с флагом true; флаг первого токена игнорируется и не создаёт пустой
+  префикс. `length_boundaryChunks` даёт 0 для пустого входа и
+  1 + tail.countP boundary для first :: tail. `flatten_boundaryChunks`
+  сохраняет вход, `ne_nil_of_mem_boundaryChunks` подтверждает непустоту
+  возвращённых групп, а `length_boundaryChunks_le` ограничивает их число длиной
+  входа.
+- `cappedBoundaryChunks_eq_some_iff` связывает успех с тем же вычисленным
+  разбиением и его фактическим count ≤ capacity; пустой вход может успешно
+  вернуть some [], а непустой не может вернуть пустой результат.
+  `floorBoundaryChunks_length_le` при 0 ≤ L, 0 < r и фактическом успехе даёт
+  (chunks.length : ℝ) ≤ L / r. Для конечного k и неотрицательных c
+  `floorBoundaryChunks_adaptive_le_static` ограничивает adaptiveCost одним
+  возвращённым chunks.length на всех уровнях через
+  ∑ l, c l * (L / r) ^ 2. `floorBoundaryChunks_adaptive_lt_of_strict` делает
+  оценку строгой лишь при положительной цене c l₀ и фактическом
+  (chunks.length : ℝ) < L / r.
+
+Это детерминированный конечный token-functor, не learned/causal/online или
+дифференцируемый H-Net router и не произвольный per-level router. Capacity —
+абстрактный count, не байты или native память. Model quality, RAM, FLOPs,
+latency/runtime, training/held-out CE, BF16/RNE, глобальная оптимальность HAGI
+и вывод worst-case из average ratio не утверждаются.
+
 ## Hagi/Model/AlignmentRisk.lean
 
 - Для непустого конечного `V` и строго положительных нормированных

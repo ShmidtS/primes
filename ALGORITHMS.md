@@ -686,6 +686,112 @@ training quality, held-out CE, IEEE/RNE/BF16, оптимальная end-to-end
 архитектура или глобальный HAGI. Throughput, sparsity, compression и
 качество router также не доказываются.
 
+### 7.2 Finite boundary-driven lossless chunks
+
+Для конечной последовательности xs и выбранной функции boundary : α → Bool
+конструктор [`boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) задаёт
+
+```
+boundaryChunks boundary xs = xs.splitBy (fun _ next => !boundary next)
+```
+
+Значение true на следующем токене next начинает новый chunk перед этим
+токеном; false продолжает прежний chunk. Первый токен сам создаёт первый
+непустой chunk без запроса его флага. Поэтому даже true на первом токене не
+создаёт пустой префикс или дополнительный chunk: singleton с первым true
+остаётся одним singleton-chunk. [`length_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean)
+даёт точный счёт, включая хвост без первого токена:
+
+```
+(boundaryChunks boundary xs).length =
+  match xs with
+  | [] => 0
+  | _ :: tail => tail.countP boundary + 1
+```
+
+[`flatten_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) сохраняет
+исходную последовательность,
+[`ne_nil_of_mem_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) исключает
+пустые возвращённые группы, а
+[`length_boundaryChunks_le`](Hagi/Model/AdaptiveChunking.lean) ограничивает
+число групп длиной входа.
+
+Проверяемые конечные примеры:
+
+- пустой вход даёт [], счёт 0;
+- sparse-флаги fun _ => false на [0,1,2] дают [[0,1,2]], счёт 1;
+- dense-флаги fun _ => true на [0,1,2] дают [[0],[1],[2]], счёт 3;
+- alternating boundary n := n % 2 == 1 на [0,1,2,3,4] даёт
+  [[0],[1,2],[3,4]], счёт 3;
+- boundary n := n == 0 на [0,1,2] игнорирует true первого токена и даёт
+  [[0,1,2]], а fun _ => true на [0] даёт [[0]], не два chunk.
+
+Capacity guard у [`cappedBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean)
+проверяет именно фактический счёт вычисленного разбиения:
+
+```
+if (boundaryChunks boundary xs).length ≤ capacity then
+  some (boundaryChunks boundary xs)
+else
+  none
+```
+
+[`cappedBoundaryChunks_eq_some_iff`](Hagi/Model/AdaptiveChunking.lean)
+эквивалентно связывает успех с тем же разбиением и его bound:
+
+```
+cappedBoundaryChunks capacity boundary xs = some chunks ↔
+  chunks = boundaryChunks boundary xs ∧ chunks.length ≤ capacity
+```
+
+Нельзя подменить успешный результат другим разбиением или превратить отказ в
+пустой успех через getD. Пустой вход законно даёт some [] даже при capacity 0.
+Непустой вход имеет хотя бы одну группу и при capacity 0 отвергается; равенство
+flatten также исключает some [] для непустого входа.
+
+[`floorBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean) использует точный
+Nat floor ёмкости ⌊L / r⌋₊, без floating-point или физического rate. Из
+фактического hSuccess, условий 0 ≤ L и 0 < r теорема
+[`floorBoundaryChunks_length_le`](Hagi/Model/AdaptiveChunking.lean) получает
+
+```
+(chunks.length : ℝ) ≤ L / r
+```
+
+а [`floorBoundaryChunks_flatten`](Hagi/Model/AdaptiveChunking.lean) сохраняет
+тот же вход. Прежние adaptive_le_static и adaptive_lt_of_strict не меняются.
+Для конечного k и неотрицательных c обе новые cost-специализации используют
+на каждом уровне один и тот же фактически возвращённый chunks.length:
+[`floorBoundaryChunks_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean)
+даёт
+
+```
+adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤
+  ∑ l, c l * (L / r) ^ 2
+```
+
+[`floorBoundaryChunks_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean)
+заменяет ≤ на < только при выбранном положительном c l₀ и фактическом
+hstrict : (chunks.length : ℝ) < L / r; hSuccess здесь поставляет hdom.
+
+Конкретный strict-пример для Fin 1: l₀ = 0, c 0 = 1 > 0, L = 4, r = 1. Sparse
+route выше действительно успешен:
+
+```
+floorBoundaryChunks 4 1 (fun _ => false) [0,1,2] = some [[0,1,2]]
+```
+
+Его фактический счёт 1 даёт 1 < 4, поэтому строгая специализация имеет вид
+1 < 16; нестрогая при том же успешном результате даёт 1 ≤ 16. Это одна
+конкретная условная специализация, а не строгое улучшение для всех входов.
+
+Здесь детерминированный конечный token-functor, не learned, causal, online,
+дифференцируемый или произвольный per-level H-Net router. Capacity — абстрактный
+предел числа групп, не байтовая ёмкость или native memory footprint. Не
+следуют measured model quality, RAM, FLOPs, latency/native runtime,
+training/held-out CE, BF16/RNE/FTZ, глобально оптимальная архитектура HAGI или
+worst-case bound из expected/average ratio.
+
 ## 8. Конечный выбор архитектуры и качества оценки
 
 Кандидат — действие с настоящим `step`, model safety, памятью и числом
