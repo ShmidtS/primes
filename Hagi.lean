@@ -131,7 +131,9 @@ import Hagi.External.Diversity
 import Hagi.External.MemT.GDN2
 import Hagi.External.Flywheel.NormSupport
 import Hagi.External.Flywheel.FrobeniusNorm
+import Hagi.External.Flywheel.EckartYoungLower
 import Hagi.External.Flywheel.TruncatedSVDRank1
+import Hagi.External.Flywheel.NegDiagRank
 import Hagi.External.Flywheel.MatrixNormRelations
 import Hagi.External.Flywheel.SpectralNormGap
 import Hagi.External.Flywheel.CoherenceCharacterization

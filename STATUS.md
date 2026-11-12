@@ -951,6 +951,10 @@ wall-clock, сжатие весов или улучшение качества.
 - `courantFischer_maxMin_bounds`: для эрмитовой `A` и `k>0` head-подпространство достигает `rayleighInf ≥ λ_{k−1}`, а всякое `k`-мерное ненулевое подпространство имеет `rayleighInf ≤ λ_{k−1}`.
 - `courantFischer_minMax_bounds`: tail-подпространство даёт `rayleighSup ≤ λ_{k−1}`, а всякое подпространство размерности `n−k+1` имеет `rayleighSup ≥ λ_{k−1}`. Совместно это две вариационные формы Куранта–Фишера.
 
+## Hagi/External/Flywheel/EckartYoungLower.lean
+
+- `eckart_young_lower_bound`: для любой `B` с `rank B ≤ k` доказано `∑ i, (truncatedSingularValues_tail A k i)² ≤ ‖A−B‖²` — общая нижняя граница Эккарта–Юнга в хвостовой форме, замыкающая TODO из TruncatedSVDRank1.lean в полной общности.
+
 ## Hagi/External/Flywheel/FrobeniusNorm.lean
 
 - `frobenius_norm_sq_eq_trace`: доказано `‖A‖² = Re(trace(Aᴴ*A))`; `frobenius_norm_unitary_mul` даёт инвариантность нормы при левом умножении на унитарную матрицу.
@@ -960,6 +964,11 @@ wall-clock, сжатие весов или улучшение качества.
 
 - `mdlJ_first_order`: при `lam*c>0`, `kstar < card n`, `σ_{kstar}² ≤ lam*c` и стартовом условии `kstar=0 ∨ lam*c < σ_{kstar−1}²` выбранный `k*` минимизирует `mdlJ A lam c` по всем `k`.
 - `mdl_rank_ce`: для `kappaF ≥ 0` и kappaF-липшицева по Frobenius-норме функционала ell доказано `|ell A−ell(truncatedSVD A k)| ≤ kappaF*√(Σ tailSingularValues²)`.
+
+## Hagi/External/Flywheel/NegDiagRank.lean
+
+- `neg_diag_pos_off_diag_kernel_trivial`: если `M i i < 0`, `M i j ≥ 0` при `i ≠ j` и все строчные суммы строго отрицательны, то ядро `M *ᵥ` тривиально (max-|x| аргумент, самодостаточно).
+- `neg_diag_pos_off_diag_injective`: при тех же посылках `mulVecLin M` инъективен. Слабая версия (суммы `≤ 0`) ложна: лапласианов пример в файле убивает константный вектор; поэтому лендится только строгая версия.
 
 ## Hagi/External/Flywheel/MatrixNormRelations.lean
 
