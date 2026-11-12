@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
+import Hagi.Probability.GibbsCore
 
 set_option linter.style.header false
 
@@ -35,6 +36,12 @@ GibbsConcentration (куда сходится охлаждение) —
 термодинамический каркас обучения. -/
 open Finset Real
 
+-- Bridge arithmetic: 1 - x ≤ 1 / (1 + x) for x ≥ 0 (C221).
+private theorem one_sub_le_inv_one_add {x : ℝ} (hx : 0 ≤ x) :
+    1 - x ≤ 1 / (1 + x) := by
+  rw [le_div_iff₀ (by linarith)]
+  nlinarith [mul_self_nonneg x]
+
 theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
     (E : V → ℝ) (δ : ℝ) (vstar : V)
     (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
@@ -43,83 +50,28 @@ theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
       ≥ 1 - ((Finset.univ.erase vstar).card : ℝ)
           * Real.exp (-δ / T) := by
   -- shift energies: numerator/denominator divided by e^{-E*/T}
-  have hpos : (0:ℝ) < ∑ v, Real.exp (-(E v) / T) :=
-    Finset.sum_pos (fun v _ => exp_pos _) (⟨Classical.arbitrary V, Finset.mem_univ _⟩)
-  -- denominator = e^{-E*/T} * (1 + S), S = sum over competitors
-  set S : ℝ := ∑ v ∈ Finset.univ.erase vstar,
-      Real.exp (-(E v - E vstar) / T) with hS
-  have hden : ∑ v, Real.exp (-(E v) / T)
-      = Real.exp (-(E vstar) / T) * (1 + S) := by
-    have hsplit : ∑ v, Real.exp (-(E v) / T)
-        = ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v) / T)
-          + Real.exp (-(E vstar) / T) := by
-      rw [Finset.sum_erase_add (Finset.univ : Finset V)
-        (fun v => Real.exp (-(E v) / T))
-        (Finset.mem_univ vstar)]
-    rw [hsplit]
-    have hfact : ∑ v ∈ Finset.univ.erase vstar,
-        Real.exp (-(E v) / T)
-        = Real.exp (-(E vstar) / T) * S := by
-      calc ∑ v ∈ Finset.univ.erase vstar, Real.exp (-(E v) / T)
-          = ∑ v ∈ Finset.univ.erase vstar,
-              Real.exp (-(E vstar) / T)
-                * Real.exp (-(E v - E vstar) / T) :=
-            Finset.sum_congr rfl (fun v _ => by
-              rw [← Real.exp_add]
-              congr 1
-              field_simp
-              ring)
-        _ = Real.exp (-(E vstar) / T) * S := by
-            rw [Finset.mul_sum]
-    rw [hfact]
+  -- card bridge: erase-card = card V - 1
+  have hcard : ((Finset.univ.erase vstar).card : ℝ)
+      = (Fintype.card V : ℝ) - 1 := by
+    have h1 : 1 ≤ Fintype.card V := Fintype.card_pos_iff.mpr ‹Nonempty V›
+    rw [Finset.card_erase_of_mem (Finset.mem_univ vstar), Finset.card_univ,
+      Nat.cast_sub h1]
+    push_cast
     ring
-  -- bound S
-  have hSpos : (0:ℝ) ≤ S := Finset.sum_nonneg
-    (fun v _ => le_of_lt (exp_pos _))
-  have hSbound : S ≤ ((Finset.univ.erase vstar).card : ℝ)
-      * Real.exp (-δ / T) := by
-    have hterm : ∀ v ∈ Finset.univ.erase vstar,
-        Real.exp (-(E vstar + δ - E vstar) / T)
-          = Real.exp (-δ / T) := by
-      intro v _
-      congr 1
-      congr 1
-      ring
-    calc S ≤ ∑ v ∈ Finset.univ.erase vstar,
-          Real.exp (-(E vstar + δ - E vstar) / T) := by
-          refine Finset.sum_le_sum ?_
-          intro v hv
-          have hvne : v ≠ vstar := (Finset.mem_erase.mp hv).1
-          have hE : E vstar + δ - E vstar ≤ E v - E vstar :=
-            by
-            have := hgap v hvne
-            linarith
-          exact Real.exp_le_exp.mpr (by
-            rw [div_le_div_iff₀ hT hT]
-            nlinarith [hT])
-      _ = ∑ v ∈ Finset.univ.erase vstar,
-          Real.exp (-δ / T) :=
-            Finset.sum_congr rfl (fun v hv => hterm v hv)
-      _ = ((Finset.univ.erase vstar).card : ℝ)
-          * Real.exp (-δ / T) := by
-          rw [Finset.sum_const]
-          norm_num
-  -- final: share = 1/(1+S) >= 1 - card*e^{-δ/T}
-  set Ce : ℝ := ((Finset.univ.erase vstar).card : ℝ)
-      * Real.exp (-δ / T) with hCe
-  have hCenn : (0:ℝ) ≤ Ce := mul_nonneg
-    (by positivity) (le_of_lt (exp_pos _))
-  have hdiv : Real.exp (-(E vstar) / T)
-      / (Real.exp (-(E vstar) / T) * (1 + S)) = 1 / (1 + S) := by
-    field_simp
-  rw [hden, hdiv]
-  have hmono1 : 1 / (1 + Ce) ≤ 1 / (1 + S) := by
-    rw [div_le_div_iff₀ (by linarith) (by linarith)]
-    linarith
-  have hmono2 : 1 - Ce ≤ 1 / (1 + Ce) := by
-    rw [le_div_iff₀ (by linarith : (0:ℝ) < 1 + Ce)]
-    nlinarith [mul_self_nonneg Ce]
-  exact hmono2.trans hmono1
+  -- canonical concentration instantiated
+  have hcanon := gibbs_concentration_canon E T hT δ vstar hgap
+  -- tail bound nonneg
+  have hcn : (1:ℝ) ≤ (Fintype.card V : ℝ) := by
+    exact_mod_cast Fintype.card_pos_iff.mpr ‹Nonempty V›
+  have hx : (0:ℝ) ≤ ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-δ / T) :=
+    mul_nonneg (sub_nonneg.mpr hcn) (le_of_lt (exp_pos _))
+  -- target LHS is canon's RHS definitionally
+  have hlhs : Real.exp (-(E vstar) / T) / ∑ v, Real.exp (-(E v) / T)
+      = gibbsW E T vstar / gibbsZ E T := by
+    simp only [gibbsW, gibbsZ]
+  rw [hlhs, hcard]
+  exact (one_sub_le_inv_one_add hx).trans hcanon
 
 open Filter in
 /-- **Предел концентрации при охлаждении (R387)**: вдоль

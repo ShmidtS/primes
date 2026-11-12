@@ -855,6 +855,30 @@
   .tmp/C220/reviews/plan-review-final.md SHA-256
   32b526f0b0946a67bf4813f8c0166772cbebf5a83913da95e3e601da8301f03d.
 
+- C221 (Gibbs corollary): `gibbs_concentration`
+  (Hagi/Probability/GibbsCooling.lean) — формулировка байт-в-байт
+  неизменна (361 байт, сверка с HEAD-блобом программно), независимое
+  ~86-строчное доказательство заменено тонкой ~31-строчной
+  конструкцией поверх канонического `gibbs_concentration_canon`
+  (GibbsCore): card-мост `(univ.erase vstar).card = card V - 1`,
+  дефинициональный мост `exp/∑ = gibbsW/gibbsZ` и private мост
+  `one_sub_le_inv_one_add` (`1 - x ≤ 1/(1 + x)` при `x ≥ 0`).
+  GibbsCooling теперь импортирует GibbsCore; мёртвый обратный
+  import удалён (цикла нет). Потребители (NernstFannes,
+  Thermostat, gibbs_concentration_tendsto) не тронуты.
+- Census (C221, .tmp/C221/validation/root-census.tsv SHA-256
+  4601e915df73d9c5869379dff8bc28c7c8ac49383f15dc885b605f3d7289246e):
+  OWNER 11846 → 11849 (+3 = private one_sub_le_inv_one_add +
+  компиляторные gibbsW.eq_1 / gibbsZ.eq_1 из новых использований),
+  IR 1247 без изменений, gone 0.
+- Evidence (cycle C221): lake build rc=0 (.tmp/C221/build2.log);
+  `#print axioms gibbs_concentration` = [propext, Classical.choice,
+  Quot.sound]; Freeze PASS без --update (6293, ничего не потеряно/
+  не изменено); STMDUP PASS; полный CI rc=0 (см.
+  .tmp/C221/precommit/scope-review.md); DocLint/StatusLint PASS.
+  Plan GO .tmp/C221/reviews/plan-review.md SHA-256
+  464ee293b221a66915494686c9b50c6dd7711f9da11ad9d0c6f073718791d0b0.
+
 Заявление — перенос и карантин 19 модулей без изменения
 доказательств; не утверждаются новые математические результаты,
 wall-clock, сжатие весов или улучшение качества.
@@ -3030,7 +3054,7 @@ one-hot CE.
 
 ## Hagi/Probability/GibbsCooling.lean
 
-- `gibbs_concentration`: при `T > 0` и зазоре `E vstar + δ ≤ E v` для всех `v ≠ vstar` доля Гиббса минимизатора не меньше `1 - card(univ.erase vstar)*exp(-δ/T)`.
+- `gibbs_concentration`: при `T > 0` и зазоре `E vstar + δ ≤ E v` для всех `v ≠ vstar` доля Гиббса минимизатора не меньше `1 - card(univ.erase vstar)*exp(-δ/T)`. C221: формулировка байт-в-байт неизменна, доказательство — тонкий королларий канонического `gibbs_concentration_canon` (GibbsCore) с card-мостом и мостом `1 - x ≤ 1/(1 + x)`.
 - На последовательности температур `δ/(n+1)` с `δ > 0` доказаны `gibbs_concentration_tendsto` и `gibbs_tv_tendsto`; при дополнительной верхней границе превышения `Δ` также `gibbs_expected_energy_tendsto` и `gibbs_entropy_tendsto_zero`. Свободная энергия стремится к `E vstar` по `free_energy_tendsto`.
 - `free_energy_sandwich` даёт `Emin - T*log(card V) ≤ -T*log Z ≤ Emin`; `free_energy_sharp_lower` усиливает нижнюю границу через `log(1 + ((Finset.univ.erase vstar).card : ℝ)*exp(-δ/T))`.
 - `gibbs_posterior_ratio` при `E vstar + δ ≤ E v` связывает доли `v` и `v*` множителем `exp(-δ/T)`; это пошаговое неравенство, а не только предельное утверждение.
