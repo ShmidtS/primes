@@ -221,6 +221,50 @@ theorem hsurv_derived (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
         * (Fintype.card ι : ℝ) := by ring
 
 
+/-- АНТИ-ЛОК-ИН: при неотрицательных потерях и η ≥ 0
+нормированный вес ЛЮБОГО ключа после T шагов удовлетворяет
+экспоненциальной нижней оценке выживания
+`ewNorm ≥ (1/K)·exp(−η·Σ_{t<T} ℓ t i)`. Вес может убывать не
+быстрее, чем экспоненциально по собственной накопленной потере —
+он никогда не ноль: роутер не может навсегда shut out ключ с
+ограниченными потерями. (Обёртка над `ewWeight_exp`; посылки
+слабее, чем у `hsurv_derived` — только ℓ ≥ 0, регрет-сторона при
+этом НЕ утверждается.) -/
+theorem ewNorm_survivor_lower (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
+    (heta : 0 ≤ eta) (hl : ∀ t, ∀ j, 0 ≤ l t j) :
+    (1 / (Fintype.card ι : ℝ))
+      * Real.exp (-eta * ∑ t ∈ Finset.range T, l t i)
+      ≤ ewNorm l eta T i := by
+  have hwle1 : ∀ j, ewWeight l eta T j ≤ 1 := by
+    intro j
+    rw [ewWeight_exp]
+    have hL : 0 ≤ ∑ t ∈ Finset.range T, l t j :=
+      Finset.sum_nonneg fun t _ => hl t j
+    calc Real.exp (-eta * ∑ t ∈ Finset.range T, l t j)
+        ≤ Real.exp (0:ℝ) := (Real.exp_le_exp).2 (by nlinarith [mul_nonneg heta hL])
+      _ = 1 := Real.exp_zero
+  have hWpos : 0 < ewPot l eta T := ewPot_pos l eta T
+  have hcardpos : (0:ℝ) < (Fintype.card ι : ℝ) := by
+    exact_mod_cast Fintype.card_pos
+  have hEpos : 0 < Real.exp (-eta * ∑ t ∈ Finset.range T, l t i) :=
+    Real.exp_pos _
+  have hW : ewPot l eta T ≤ (Fintype.card ι : ℝ) := by
+    calc ewPot l eta T = ∑ j, ewWeight l eta T j := rfl
+      _ ≤ ∑ j : ι, (1:ℝ) := Finset.sum_le_sum fun j _ => hwle1 j
+      _ = (Fintype.card ι : ℝ) := by simp
+  have hone : (1:ℝ) / (Fintype.card ι : ℝ) ≤ 1 / ewPot l eta T := by
+    rw [le_div_iff₀ hWpos, div_mul_eq_mul_div, div_le_one]
+    · rw [one_mul]; exact hW
+    · exact_mod_cast Fintype.card_pos
+  calc (1 / (Fintype.card ι : ℝ))
+      * Real.exp (-eta * ∑ t ∈ Finset.range T, l t i)
+      ≤ (1 / ewPot l eta T)
+        * Real.exp (-eta * ∑ t ∈ Finset.range T, l t i) :=
+        mul_le_mul_of_nonneg_right hone hEpos.le
+    _ = ewNorm l eta T i := by
+        unfold ewNorm
+        rw [ewWeight_exp, div_mul_eq_mul_div, one_mul]
+
 open Hagi.Optimization
 
 variable {ι : Type} [Fintype ι] [Nonempty ι]
