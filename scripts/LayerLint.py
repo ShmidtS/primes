@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 # import lower). Unification target per audit 2026-10-05.
 LAYERS = {
     "Prelude": -1,
+    "Cert": 2,        # C224: canonical certification kernel (master plan v3 S1+S2)
     "Information": 1,   # R200: information-theoretic capacity layer      # R198: the information-theory prelude below everything
     "Foundations": 0,
     "Audit": 0,          # de-facto foundations (to be split)

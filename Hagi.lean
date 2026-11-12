@@ -479,6 +479,7 @@ import Hagi.Model.TanhTaylor
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.GatedCEPositiveCurvature
 import Hagi.Model.GatedCEUniformCurvature
+import Hagi.Cert.Core
 
 set_option linter.style.header false
 

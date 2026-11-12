@@ -211,6 +211,13 @@
 - `master_hagi_core_comparator`: при `0 ≤ lam`, `0 ≤ nu`, `0 ≤ epsQ` и `CorePremises S S' epsQ w` потенциал после перехода не превосходит исходного минус `verify.decrease`, плюс `lam * verify.riskSpend + nu * epsQ`.
 - Та же теорема доказывает точное бюджетное равенство `S'.toGrowthState.budget = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend`; все условия `CorePremises` остаются посылками.
 
+## Hagi/Cert/Core.lean
+
+- Каноническое ядро сертификации (master plan v3, S1+S2): `SystemMetrics` (objective/risk/budget/task как функции состояния), `StepObligations` (отдельная структура с floor), `FloorsKept` — контракт нижних граней.
+- `CertStep` — сертифицированный прогресс: положительный drop, спуск `objective s' ≤ objective s − drop`, точные законы потребления budget_next/risk_next с неотрицательными остатками  и floorsKept; `CertStep.budgetBound`/`CertStep.riskBound` — производные точечные оценки.
+- `HoldStep` без утверждения прогресса всегда доступен (`HoldStep.id`); `TransitionStep` = `progress | hold`.
+- Композиция: `CertStep.trans` (те же obligations), `CertStep.trans'` (второй шаг против поточечно сильных obligations `obl₁.floor t ≤ obl₂.floor t`); телескопы `trajectory_telescope` (по `Finset.range n`) и `trajectory_telescope_fin` ограничивают терминальный objective суммой drop'ов.
+
 ## Hagi/Challenge/MasterChallengeV3.lean
 
 - `master_hagi_challenge_v3`: для цепочки `StepCert`, согласованных drops и spends, начального `FloorKept` и `0 ≤ b 0`, при `1 ≤ n` доказаны `obj (f n) < obj (f 0)` и `∑ t < n, drops t ≤ obj (f 0) - obj (f n)`.
@@ -862,13 +869,14 @@
   конструкцией поверх канонического `gibbs_concentration_canon`
   (GibbsCore): card-мост `(univ.erase vstar).card = card V - 1`,
   дефинициональный мост `exp/∑ = gibbsW/gibbsZ` и private мост
-  `one_sub_le_inv_one_add` (`1 - x ≤ 1/(1 + x)` при `x ≥ 0`).
+  арифметики `1 - x ≤ 1/(1 + x)` при `x ≥ 0` (C224: дедуплицирован
+  в пользу канона `one_div_ge_sub`, GibbsCore).
   GibbsCooling теперь импортирует GibbsCore; мёртвый обратный
   import удалён (цикла нет). Потребители (NernstFannes,
   Thermostat, gibbs_concentration_tendsto) не тронуты.
 - Census (C221, .tmp/C221/validation/root-census.tsv SHA-256
   4601e915df73d9c5869379dff8bc28c7c8ac49383f15dc885b605f3d7289246e):
-  OWNER 11846 → 11849 (+3 = private one_sub_le_inv_one_add +
+  OWNER 11846 → 11849 (+3 = private bridge-теорема +
   компиляторные gibbsW.eq_1 / gibbsZ.eq_1 из новых использований),
   IR 1247 без изменений, gone 0.
 - Evidence (cycle C221): lake build rc=0 (.tmp/C221/build2.log);

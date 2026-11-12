@@ -1409,3 +1409,35 @@ quantization/certification error, declared resources, HNet cost.
 held-out преимущества, physical FLOP/time saving нет. Это ограниченный
 research-model recipe: исполняемые определения, finite certificates и
 явные измеряемые предпосылки не смешиваются.
+
+## 11. Каноническое ядро сертификации (Hagi/Cert/Core.lean)
+
+Тонкий интерфейс сертифицированных переходов (master plan v3, Track
+S1+S2), без зависимостей от остальной библиотеки:
+
+- `SystemMetrics S TaskId` — objective, risk, budget (S → ℝ) и task-тег;
+- `StepObligations TaskId` — отдельная структура obligations с floor;
+- `FloorsKept` — `∀ t, obl.floor t ≤ M.objective s`;
+- `CertStep` — прогресс: `0 < drop`, `objective s' ≤ objective s − drop`,
+точные законы потребления `budget s' = budget s − budgetSpend`,
+`risk s' = risk s − riskSpend` с `0 ≤ budget s'`, `0 ≤ risk s'`,
+плюс floorsKept; производные оценки `CertStep.budgetBound` /
+`CertStep.riskBound`;
+- `HoldStep` (`s' = s`, floors kept) всегда доступен через `HoldStep.id`;
+  `TransitionStep` = progress | hold.
+
+Законы композиции и телескопа:
+
+```
+CertStep.trans h₁ h₂        -- тот же obl: drop'ы и spend'ы складываются
+CertStep.trans' h₁ h₂ h_fl  -- obl₂ ⊵ obl₁ поточечно: композиция против obl₁
+trajectory_telescope n t steps :
+  M.objective (t n) ≤ M.objective (t 0) − ∑ j ∈ Finset.range n, (steps j).drop
+```
+
+`FloorsKept` — независимое поле, не выводится из descent (descent
+связывает objective одного состояния с другим, floors — разные
+обязательства); держится посылкой каждого шага и переносится
+композицией. Дублирование имени `CertStep` с
+`Hagi.Unified.HonestTransition.CertStep` — транзиторный долг
+(см. `.omc/tech-debt.md`); поглощение старой структуры — Track S3.
