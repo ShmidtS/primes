@@ -871,6 +871,26 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `first_crossing_le_lifetime`: если `θ (T * kmin) > θtarget`, то существует первый `n ≤ T` с `θ (n * kmin) > θtarget`, до которого таких пересечений нет.
 - `landauer_cooling_floor`: при `0 < T₀`, `0 < ρ < 1`, `0 < cUnit`, `0 ≤ bits` и посылке `h_emp_cooling` для всех `t < N` сумма диссипаций не меньше `cUnit * bits * (T₀ * (1 - ρ^N) / (1 - ρ))`; геометрическая сумма затрат охлаждения также ограничена `cUnit * bits * T₀ / (1 - ρ)`.
 
+## Hagi/Energy/PairwiseCategorical.lean
+
+- Track E1 (addendum A9, CRAM 2611.17309): дискретная парная энергия
+  `pairwiseEnergy B K x = Σ B i (x i) + (1/2)·pairwiseInteractionSum K x`
+  на конечных переменных/доменах; КОНВЕНЦИЯ: ordered-pair сумма
+  Σ_{j≠i}, 1/2 вне её, симметрия K НЕ предполагается (пин E1).
+- `pairwise_energy_onehot` — (E1a) точное тождество
+  `meanFieldFreeEnergy β B K (oneHotState x) = pairwiseEnergy B K x`
+  при ЛЮБОМ β (энтропийный член 1·log 1 = 0): вершина продукт-симплекса
+  есть сама конфигурация.
+- `meanfield_decomposition` — (E1b) точная декомпозиция
+  `F(p) = expectedPairwiseEnergy B K p + (1/β)·ΣΣ p i a·log (p i a)`
+  (= E_{∏p_i}[H] − (1/β)·Σ H(p_i) в шенноновской форме); содержание
+  продукт-меры — в определении `expectedPairwiseEnergy` (P(X_i=a,X_j=b)
+  = p i a·p j b), тождество — точная перестановка сырой формы CRAM.
+- Знаковая конвенция задокументирована в docstring: CRAM exp(−E/T),
+  классический Hopfield — exp(βE); мост только через явный sign-адаптер
+  (не утверждается). Vacuity-аудит на носителе Fin 2 × Bool
+  (interaction 0 и 4, H(xtt) = 5) — примеры в файле.
+
 ## Hagi/Energy/PoEBound.lean
 
 - `poe_logZ_second_order`: для конечных `V` (непустого) и `K`, весов `w i ≥ 0` с суммой 1 и границы `R i` на размах `z i − Σₗ w l·z l` доказано `|log Z_w − Σᵢ w i·log Z_i| ≤ (1/8)·Σᵢ w i·(R i)²`, где `Z_w = Σ_v exp(Σᵢ w i·z i v)`.
@@ -2249,6 +2269,21 @@ one-hot CE.
   неотрицательной начальной способности `honest_trajectory_global`
   доказывает точный рекуррентный рост способности, невозрастание энергии и
   точное вычитание суммы `μ*C_t` из бюджета.
+
+## Hagi/Model/EnergyReasoning/Pseudolikelihood.lean
+
+- Track E1: псевдоправдоподобие как локальная условная CE на каноническом
+  Prelude-стержне. Логиты `conditionalLogit B K y i a = −pairwiseEnergy B K
+  (update y i a)` (CRAM-знак), условные `conditionalDist = softDef` от них,
+  цель `pseudolikelihoodObjective = (Σ ceOneHot (y i) z_i)/|ι|`.
+- `pseudolikelihood_eq_conditional_ce` — (E1 MAIN) J равна среднему
+  `ceDef (Pi.single (y i) 1) (softDef z_i)` почленно через
+  `Hagi.Core.ceOneHot_eq_ceDef_pi_single`: machinery CEDescent применим
+  по построению, новой CE-теории нет.
+- `pseudolikelihood_nonneg` — 0 ≤ J (каждый локальный член
+  lse z − z(y i) ≥ 0; |ι| > 0).
+- Границы: PL ≠ полная likelihood; CertTrain/CertReason — отдельные
+  сертификаты (E2+); Hopfield-мост — только через sign-адаптер.
 
 ## Hagi/Model/DiffAttention.lean
 

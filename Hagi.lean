@@ -45,6 +45,7 @@ import Hagi.Step.StochasticSafeQP
 import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
 import Hagi.Energy.FreeEnergy
+import Hagi.Energy.PairwiseCategorical
 import Hagi.Dynamics.GrowthBridge
 import Hagi.Growth.GainRenewal
 import Hagi.Growth.LinearCone
@@ -173,6 +174,7 @@ import Hagi.Model.TanhCEStep
 import Hagi.Model.CEPackedStep
 import Hagi.Model.CEScaleSelection
 import Hagi.Model.CEGroupedScale
+import Hagi.Model.EnergyReasoning.Pseudolikelihood
 import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
