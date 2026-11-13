@@ -148,3 +148,39 @@ GrowthBridge)" should read "cone core in Hagi/Growth/LinearCone +
 bridges in Hagi/Dynamics/GrowthBridge" — a Dynamics home for
 LinearCone is unreachable while Growth-layer consumers
 (StateBinding, Takeoff) exist.
+
+## TD A5-R3-C239 — toy-witness quarantine 18→4 reality; 0/10 dirs disbanded
+
+C239 (HEAD parent 8a7c3011). Two A5 §R3 tail items landed with honest
+deviations:
+
+1. "18 toy -> Benchmarks": ~14 of the 18 were already quarantined by C217
+   (Hagi/Legacy/Nonvacuity, QuadraticConcrete, *Witness files). C239 moved
+   the remaining 4 root-reachable toy leaves to the new
+   Hagi/Benchmarks quarantine lib (C217 pattern: separate default-target
+   lean_lib, ReachLint/NsLint exemptions, Freeze still tracks via
+   inventory.lean umbrella import): QuadLoopWitness, QuarticWitness,
+   QuadraticEndToEnd (Hagi/Examples/ dir thereby disbanded),
+   Unified/TernaryWitness. Main census 12121→12032 (−89 rows, all from the
+   4 namespaces; Freeze zero-diff proves no statement lost).
+   KEEP (load-bearing, NOT quarantined): Unified/QuadMachine (QuadGate/
+   QuadTrajectory/QuadBudget consumed by MachineProto), Unified/
+   DescentCoreQuad(+Diag) (consumed by RateTheory/LoopInstances),
+   Foundations/QuadEta (quadLossAt: TrainingTransition/MomentumHB/State),
+   Learning/ToyTrajectory (TrainingTransition consumer), Unified/
+   LoopInstances (instantiation layer).
+2. "disband 11 single-file dirs (keep Cert/)": 0 disbanded. Legal blocker:
+   Freeze forbids public FQN churn and NsLint requires folder==namespace,
+   so disbanding = namespace rename = mass statement rename signal; the
+   only legal mechanism is a Benchmarks/Legacy-style exempt quarantine,
+   which none of the 10 qualifies for. Per-dir keep reasons (all verified
+   single-file): Prelude/InfoCore (layer −1 base, 20+ consumers);
+   Geometry/SphericalSimplex, Spectral/RankGrowth, Numerics/SoftmaxFix,
+   Sparsity/SparseStep0, Planning/Imagination (real formalizations, not
+   toy; their A5 L1 "Math" target dirs do not exist yet); Generalization/
+   ModeState (Legacy/MasterHAGI consumer); Percolation/Site (root consumer
+   SchellingPercolation; A5 R4 is its designated beat); Audit/Audit
+   (layer-0 foundations, "to be split"); Challenge/MasterChallengeV3
+   (ChallengeCheck gate target); Cert/ (3 files, A5 keeps).
+   scripts/ClosureReport.py still lists pre-C217 module paths (stale
+   inventory, not part of ci.sh battery) — left untouched, out of scope.

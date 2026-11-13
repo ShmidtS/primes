@@ -71,7 +71,6 @@ import Hagi.Omni.OmniInvariant
 import Hagi.Foundations.StageCalculus
 import Hagi.Unified.CostComposition
 import Hagi.Unified.EFTheory
-import Hagi.Unified.TernaryWitness
 import Hagi.Unified.TernaryProbe
 import Hagi.StatMech.Hopfield.Model
 import Hagi.StatMech.Hopfield.Concentration
@@ -206,8 +205,6 @@ import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
 import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
-import Hagi.Examples.QuadLoopWitness
-import Hagi.Examples.QuarticWitness
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter
 import Hagi.Ensemble.QFormerBridge
@@ -360,7 +357,6 @@ import Hagi.Unified.LoopInstances
 import Hagi.Unified.CertUnify
 import Hagi.Unified.Ctv2Telescope
 import Hagi.Model.BYOL
-import Hagi.Examples.QuadraticEndToEnd
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
 import Hagi.Model.AttentionSpend

@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Hagi", "Hagi.Legacy"]
+defaultTargets = ["Hagi", "Hagi.Legacy", "Hagi.Benchmarks"]
 
 [leanOptions]
 pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
@@ -156,10 +156,10 @@ globs = ["Hagi.Step.+"]
 name = "Hagi.Unified"
 globs = ["Hagi.Unified.+"]
 
-# Stage-3: witness/nonvacuity examples (top layer).
+# C239: quarantined toy-witness benchmark modules (A5 R3; Legacy pattern).
 [[lean_lib]]
-name = "Hagi.Examples"
-globs = ["Hagi.Examples.+"]
+name = "Hagi.Benchmarks"
+globs = ["Hagi.Benchmarks", "Hagi.Benchmarks.+"]
 
 [[lean_lib]]
 name = "Hagi.Geometry"

@@ -989,7 +989,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `sat_cone_iff`: при `γ > 0` условие `k*satC … t ≤ satF … t` эквивалентно `γ*k*Cstar ≤ (γ*k+σ)*Δ*(1−σ)^t`.
 - `witness_achieves_horizon`: при положительных `γ,k,Cstar,C0`, `0<σ<1`, `C0<Cstar`, `1≤T` и геометрическом условии для всех `t<T` доказаны оба закона шага, конус и строгое `satC 0 < satC T`.
 
-## Hagi/Examples/QuadLoopWitness.lean
+## Hagi/Benchmarks/QuadLoopWitness.lean
 
 - `quadE_qhalf`: после `t` полушагов энергия равна `quadE a (qhalf a x t) = (1/4^t)*quadE a x`.
 - `quad_loop_horizon`: если `quadGrad a x ≠ 0` и `n ≥ 1`, то `quadE a (qhalf a x n) < quadE a x`; `quad_witness_T3` и `quad_witness_T10` — конкретные специализации.
@@ -999,13 +999,13 @@ wall-clock, сжатие весов или улучшение качества.
 - `quad_core_premises`: для любых `a : ℝ` и `w : Fin 5 → ℝ` построены квадратичные состояния, удовлетворяющие `CorePremises (quadGen a) (quadGen' a) 0 w`.
 - `quad_kappa_at0` даёт `‖fderiv ℝ (quadE a) 0‖ ≤ 1+|a|`; `quad_conj13` проверяет соответствующее неравенство для квантованного скалярного шага с тем же коэффициентом.
 
-## Hagi/Examples/QuadraticEndToEnd.lean
+## Hagi/Benchmarks/QuadraticEndToEnd.lean
 
 - `qStep_descent`: при `0 < eta < 1` и `x ≠ a` шаг `qStep` строго уменьшает `qLoss a`.
 - `qIter_loss`: после `t` итераций потеря точно равна `(1−2*eta)^(2*t)*(x−a)^2`.
 - `qQuant_err_bound`: при `Δ>0` и `|y−a| ≤ R` увеличение потери после `gridQ` не превышает `(Δ/2)*(2R+Δ/2)`.
 
-## Hagi/Examples/QuarticWitness.lean
+## Hagi/Benchmarks/QuarticWitness.lean
 
 - `quartic_two_steps`: построенные два шага дают `qE w2 < qE w0`, сохраняют `FloorKept qMeasured w2 qFloor` и удовлетворяют явному бюджетному условию `0 ≤ 9 ∧ 9 ≤ 10−1`.
 - `quartic_drops_pos`: оба сертифицированных objectiveDrop строго положительны; `qFloor_kept` отдельно проверяет покомпонентный нижний барьер качества при `qE w ≤ qE w0`.
@@ -4723,7 +4723,7 @@ wall-clock, сжатие весов или улучшение качества.
   верхний bound по `σ`; сравнение справа — `probeCost(σ)`, а не фактическая
   ошибка другого шага.
 
-## Hagi/Unified/TernaryWitness.lean
+## Hagi/Benchmarks/TernaryWitness.lean
 
 - `quantOpt_energy_bound`: при `s > 0` и `ternInRange s (a i)`
   для всех `i` энергия `quadE a (quantOpt s a)` не превосходит
