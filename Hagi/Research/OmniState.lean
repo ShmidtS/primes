@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Hagi.Omni.CrossModalGap
+import Hagi.Research.CrossModalGap
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.CortexFiber
 import Hagi.Optimization.Momentum

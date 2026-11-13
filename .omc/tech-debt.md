@@ -184,3 +184,29 @@ deviations:
    (ChallengeCheck gate target); Cert/ (3 files, A5 keeps).
    scripts/ClosureReport.py still lists pre-C217 module paths (stale
    inventory, not part of ci.sh battery) — left untouched, out of scope.
+
+## TD A5-R4-C240 — Research quarantine landed; MDL disposition (2026-11-13)
+
+1. Research quarantine DONE (C240): 12 modules moved byte-identical
+   (statements untouched; only intra-cluster import lines rewritten) to
+   Hagi/Research/ (C239 Benchmarks pattern: separate default-target
+   lean_lib Hagi.Research, ReachLint/NsLint exemptions, Freeze tracks via
+   inventory.lean): Omni/{ConditionalInformation,CrossModalGap,
+   OmniInvariant,OmniState}, Percolation/Site, Discovery/{PPT,PPTCanonical},
+   Optimization/{Schelling,SchellingPercolation,MarkovPercolation},
+   Contracts/{SchellingCandidateSelection,SchellingMarkovRouting}.
+   Closed cluster — zero root consumers beyond Hagi.lean (survey
+   .tmp/C240/survey.md §A); namespaces kept → public FQNs unchanged.
+   Main census 12032→11783 (−249 OWNER rows, all from the 12 moved
+   sourceModules).
+2. MDLThreeCurrency "double-counting fix" (A5 §R4) — DISPOSITION: no docs
+   misaccounting found (STATUS/README/ALGORITHMS describe
+   `double_counting_identified` accurately; ALGORITHMS.md has no MDL/J3
+   text). The theorem is a feature: it algebraically IDENTIFIES the naive
+   identification `cst = Lpred` (state cost := data code length) as double
+   counting. J3 family has zero consumers — nothing in the corpus actually
+   double counts. Honest fix requires MATH (future beat): define a
+   C_state bridge (state-code length ≠ data-code length, e.g. bits of
+   packed weights post-consolidation) so the identification is impossible
+   structurally, then wire C_state to the consolidation loop (MDLRank/
+   BitAlloc). No half-fix in a refactor beat — documented here only.

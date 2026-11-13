@@ -3,8 +3,8 @@ Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Contracts.SchellingCandidateSelection
-import Hagi.Optimization.MarkovPercolation
+import Hagi.Research.SchellingCandidateSelection
+import Hagi.Research.MarkovPercolation
 
 /-! Structural admission to exact Markov history support, with independent walk
 horizons and no endpoint-marginal, common-hitting-time, or quality claim. -/

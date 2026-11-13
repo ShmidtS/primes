@@ -19,8 +19,11 @@ HAGI_ROOT = ROOT / "Hagi.lean"
 # are intentionally outside the root import closure (vacuous-stack and
 # toy-witness quarantines). They must still build (separate lean_lib,
 # default target).
+# C217/C239/C240 quarantine: modules under Hagi/Legacy/, Hagi/Benchmarks/
+# and Hagi/Research/ are intentionally outside the root import closure
 LEGACY_PREFIX = "Hagi/Legacy/"
 BENCH_PREFIX = "Hagi/Benchmarks/"
+RESEARCH_PREFIX = "Hagi/Research/"
 
 IMPORT = re.compile(r"^\s*import\s+(Hagi\.[A-Za-z0-9_.]+)", re.M)
 
@@ -41,6 +44,8 @@ def main() -> int:
     legacy.add("Hagi.Legacy")  # umbrella module of the quarantine lib
     legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Benchmarks").rglob("*.lean")}
     legacy.add("Hagi.Benchmarks")  # umbrella module of the quarantine lib
+    legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Research").rglob("*.lean")}
+    legacy.add("Hagi.Research")  # umbrella module of the quarantine lib
     # BFS from the root
     seen = set()
     frontier = imports_of(HAGI_ROOT)
@@ -62,8 +67,8 @@ def main() -> int:
             print(f"  {m}")
         return 1
     print(f"REACHLINT: PASS — all {len(all_modules)} Hagi modules "
-          f"reachable ({len(legacy)} legacy/benchmark-exempt, "
-          "quarantine C217/C239)")
+          f"reachable ({len(legacy)} legacy/benchmark/research-exempt, "
+          "quarantine C217/C239/C240)")
     return 0
 
 

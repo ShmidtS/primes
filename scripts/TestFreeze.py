@@ -170,9 +170,9 @@ class FreezeRegression(unittest.TestCase):
         self.assertEqual(changed, ["Hagi.Unified.StepCert.StepContract"])
 
         self.metadata = environment
-        percolation = (repo / "Hagi/Percolation/Site.lean").read_text(
+        percolation = (repo / "Hagi/Research/Site.lean").read_text(
             encoding="utf-8")
-        rows = self.collect("Percolation/Site.lean", text=percolation,
+        rows = self.collect("Research/Site.lean", text=percolation,
                             semantic=True)
         self.assertIn("Hagi.Percolation.ThresholdSystem",
                       {row[0] for row in rows})

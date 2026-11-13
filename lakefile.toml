@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Hagi", "Hagi.Legacy", "Hagi.Benchmarks"]
+defaultTargets = ["Hagi", "Hagi.Legacy", "Hagi.Benchmarks", "Hagi.Research"]
 
 [leanOptions]
 pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
@@ -62,9 +62,6 @@ name = "Hagi.Data"
 globs = ["Hagi.Data.+"]
 
 # Review stage 6: per-directory package for incremental builds.
-[[lean_lib]]
-name = "Hagi.Discovery"
-globs = ["Hagi.Discovery.+"]
 
 # Review stage 6: per-directory package for incremental builds.
 [[lean_lib]]
@@ -112,9 +109,10 @@ name = "Hagi.Model"
 globs = ["Hagi.Model.+"]
 
 # Review stage 6: per-directory package for incremental builds.
+# C240: quarantined research-model modules (A5 R4; Legacy/Benchmarks pattern).
 [[lean_lib]]
-name = "Hagi.Omni"
-globs = ["Hagi.Omni.+"]
+name = "Hagi.Research"
+globs = ["Hagi.Research", "Hagi.Research.+"]
 
 # Review stage 6: per-directory package for incremental builds.
 [[lean_lib]]
@@ -173,9 +171,6 @@ globs = ["Hagi.Numerics.+"]
 name = "Hagi.Optimization"
 globs = ["Hagi.Optimization.+"]
 
-[[lean_lib]]
-name = "Hagi.Percolation"
-globs = ["Hagi.Percolation.+"]
 
 [[lean_lib]]
 name = "Hagi.Planning"

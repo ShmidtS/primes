@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Discovery.PPT
+import Hagi.Research.PPT
 import Hagi.Probability.PMFBridge
 
 /-!

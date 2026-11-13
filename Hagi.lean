@@ -64,10 +64,6 @@ import Hagi.Pretraining.Grokking
 import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustMeasure
-import Hagi.Omni.ConditionalInformation
-import Hagi.Omni.CrossModalGap
-import Hagi.Omni.OmniState
-import Hagi.Omni.OmniInvariant
 import Hagi.Foundations.StageCalculus
 import Hagi.Unified.CostComposition
 import Hagi.Unified.EFTheory
@@ -211,8 +207,6 @@ import Hagi.Ensemble.QFormerBridge
 import Hagi.Step.HybridState
 import Hagi.Step.SNRWeights
 import Hagi.Autonomy.SupervisorSafety
-import Hagi.Discovery.PPT
-import Hagi.Discovery.PPTCanonical
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.System.GrowthState
@@ -371,10 +365,7 @@ import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
-import Hagi.Optimization.Schelling
-import Hagi.Optimization.SchellingPercolation
 import Hagi.Optimization.GraphDistanceRouting
-import Hagi.Optimization.MarkovPercolation
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
@@ -397,7 +388,6 @@ import Hagi.Optimization.DirectionPacking
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Pretraining.TrustRegion
-import Hagi.Percolation.Site
 import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion
@@ -443,8 +433,6 @@ import Hagi.Contracts.BudgetedParetoStepContract
 import Hagi.Contracts.BudgetedParetoStepCert
 import Hagi.Contracts.BatchCEGrowth
 import Hagi.Contracts.BatchCEGrowthSelection
-import Hagi.Contracts.SchellingCandidateSelection
-import Hagi.Contracts.SchellingMarkovRouting
 import Hagi.Contracts.NaturalLean
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchRangeBF16Cert

@@ -11,6 +11,7 @@ Run: lake env lean scripts/inventory.lean > inventory.txt
 import Hagi
 import Hagi.Legacy
 import Hagi.Benchmarks
+import Hagi.Research
 import Batteries.Tactic.Alias
 open Lean
 

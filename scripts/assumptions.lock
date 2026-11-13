@@ -11,7 +11,6 @@ Structural/Math: all other parameter hypotheses
 
 [h_emp]
 Hagi/Autonomy/Insight.lean: h_emp_second
-Hagi/Discovery/PPT.lean: h_emp_dist h_emp_fiber
 Hagi/Dynamics/GrowthBridge.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
 Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
 Hagi/Energy/STEStep.lean: h_emp_res
@@ -38,6 +37,7 @@ Hagi/Pretraining/ProbeError.lean: h_emp_attsmooth
 Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate
 Hagi/Probability/ConditionalSuccess.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
 Hagi/Probability/Freedman.lean: h_emp_var
+Hagi/Research/PPT.lean: h_emp_dist h_emp_fiber
 Hagi/Runtime/TernaryExact.lean: h_emp_lip
 Hagi/Step/AdaptiveSafeQP.lean: h_emp_noise_bound h_emp_noise_indep h_emp_noise_meas h_emp_noise_zero
 Hagi/Step/Compound.lean: h_emp_c h_emp_decay h_emp_gap
@@ -58,12 +58,12 @@ h_emp_takeoff_exponential
 Hagi/Core/Concat.lean:lse
 Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
-Hagi/Omni/OmniState.lean:entryCount
 Hagi/Prelude/InfoCore.lean:entDef
 Hagi/Prelude/InfoCore.lean:entropy
 Hagi/Prelude/InfoCore.lean:klDef
 Hagi/Prelude/InfoCore.lean:tvDef
 Hagi/Prelude/InfoCore.lean:tvHalf
+Hagi/Research/OmniState.lean:entryCount
 Hagi/Step/Upgrades.lean:softmaxW
 
 [operational]

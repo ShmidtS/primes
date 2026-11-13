@@ -89,8 +89,9 @@ README не заменяет их математическую специфик�
 | Переходы обучения | [`Hagi/Step`](Hagi/Step), [`Hagi/Pretraining`](Hagi/Pretraining), [`Hagi/Planning`](Hagi/Planning), [`Hagi/Contracts`](Hagi/Contracts) | Шаги, контроллеры, контракты переходов и конечные траектории. |
 | Рост и динамика | [`Hagi/Growth`](Hagi/Growth), [`Hagi/Dynamics`](Hagi/Dynamics), [`Hagi/State`](Hagi/State) | Состояния роста, устойчивость, бюджеты и динамические законы. |
 | Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
-| Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy), [`Hagi/Discovery`](Hagi/Discovery), [`Hagi/Omni`](Hagi/Omni), [`Hagi/Percolation`](Hagi/Percolation) | Маршрутизация, обнаружение, межмодальные и смежные модели. |
-| Примеры и сопровождение | [`Hagi/Examples`](Hagi/Examples), [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Конкретные носители, сравнительные формулировки, аудит и внешние математические связи. |
+| Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy) | Маршрутизация и смежные автономные модели. |
+| Примеры и сопровождение | [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Сравнительные формулировки, аудит и внешние математические связи. |
+| Карантин и сертификаты | [`Hagi/Cert`](Hagi/Cert), [`Hagi/Legacy`](Hagi/Legacy), [`Hagi/Benchmarks`](Hagi/Benchmarks), [`Hagi/Research`](Hagi/Research) | Ядро сертификации (`Hagi/Cert`), а также модули вне корневого замыкания `Hagi.lean`: исторические результаты (`Legacy`), демонстрационные свидетели (`Benchmarks`) и исследовательские модели Omni/Percolation/Schelling/Discovery (`Research`). Собираются отдельными целями `lake`. |
 
 Каталог `scripts/` содержит вспомогательные средства сопровождения
 формализации. Математическим источником остаются файлы `Hagi/**/*.lean`.

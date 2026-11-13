@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.Dominate
-import Hagi.Omni.CrossModalGap
+import Hagi.Research.CrossModalGap
 /-!
 # Omni capability growth
 

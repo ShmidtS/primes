@@ -504,12 +504,12 @@
 - `summable_and_tsum_le_of_sum_two_mul_div_le`: при дополнительном `0 ≤ f t` последовательность `f` суммируема и `∑' t, f t ≤ κ * A / 2`.
 - `exists_le_of_sum_two_mul_div_le`: при `0 < T` найдётся `t < T` с `f t ≤ κ * A / (2 * T)`; это оценка некоторого элемента префикса, а не всех поздних элементов.
 
-## Hagi/Contracts/SchellingCandidateSelection.lean
+## Hagi/Research/SchellingCandidateSelection.lean
 
 - `mem_feasible_withStructuralConstraint`: допустимость контроллера `a` в усиленной задаче эквивалентна конъюнкции исходной допустимости `a ∈ feasible p M C` и `structuralConstraint (graphOf a) compatibility k top bottom`.
 - Структурные условия локальной совместимости и маршрута от каждой верхней вершины к некоторой нижней вершине конечны; физическая безопасность и качество задачи из них не выводятся.
 
-## Hagi/Contracts/SchellingMarkovRouting.lean
+## Hagi/Research/SchellingMarkovRouting.lean
 
 - `walkHistory_support_of_mem_feasible_withStructuralConstraint_of_adjSupported`: для ядра `K`, согласованного со смежностью допустимого графа, из каждой верхней вершины `s` существуют нижняя вершина `t` и путь `w`, чья `walkHistory w` лежит в носителе соответствующего марковского закона.
 - `walkHistory_support_of_mem_feasible_withStructuralConstraint`: доказывает ту же поддержку истории для семейства ядер `K a` при условии `supportedRoutingKernel` на каждом допустимом контроллере.
@@ -708,14 +708,14 @@
 - `log_weighted_jensen`: для строго положительной нормированной `q` и строго положительного `x` сумма `∑ i, q i * log (x i)` не превосходит `log (∑ i, q i * x i)`.
 - `gibbs_variational`: для строго положительных нормированных `q`, `p` выполняется `∑ i, q i * f i ≤ ∑ i, q i * log (q i / p i) + log (∑ i, p i * exp (f i))`; вероятностный шаг PAC-Bayes здесь не доказывается.
 
-## Hagi/Discovery/PPT.lean
+## Hagi/Research/PPT.lean
 
 - `truncation_bias`: если ядро `K` не выходит из `S`, а `pi` стационарно, то существование `y₀ ∉ S` с `0 < pi y₀` невозможно.
 - `pptMixing`: для `pptKernel K`, входного ограничения `eps ≤ K x y`, нормированных неотрицательных `mu`, `pi` и стационарной `pi` выполняется `TV(chainAt mu K n, pi) ≤ (1 - card Seq * eps)^n * TV(mu, pi)`.
 - `stationary_value_ge`: при `0 ≤ V x` и неотрицательной нормированной `pi` выполняется `gamma * Pr_pi[V ≥ gamma] ≤ ∑ x, pi x * V x`.
 - `pptSuccess_lower`: из `p ≤ Pr[V(sample) ≥ gamma]` следует `p - Pr[pptRejectGood] - Pr[pptOverrun] ≤ Pr[pptSuccess]`; события проверки и бюджета остаются исходными условиями модели.
 
-## Hagi/Discovery/PPTCanonical.lean
+## Hagi/Research/PPTCanonical.lean
 
 - `discovery_prob_stationary_identity`: на конечном непустом измеримом пространстве с измеримыми одноэлементными множествами для неотрицательной нормированной `pi` вероятность события `gamma ≤ V x` при тождественном выборе из `toPMF pi` равна `∑ x ∈ goodSet V gamma, pi x`.
 - Результат касается сконструированного конечного распределения и не описывает инициализацию или смешивание другой цепи.
@@ -2675,7 +2675,7 @@ one-hot CE.
   `expTilt_uniform_is_softDef` отождествляет наклон равномерной ссылки с
   `softDef`.
 
-## Hagi/Omni/ConditionalInformation.lean
+## Hagi/Research/ConditionalInformation.lean
 
 - Для строго положительной нормированной `p` на `X×(Z×Y)` и условной
   положительной нормированной ссылки `q : X→Y→ℝ`
@@ -2688,7 +2688,7 @@ one-hot CE.
   конечное цепное правило: условная взаимная информация исходной пары
   равна такой величине после суммирования по `W` плюс величина расширения при дополнительном условии `(X,Z)`.
 
-## Hagi/Omni/CrossModalGap.lean
+## Hagi/Research/CrossModalGap.lean
 
 - Для непустых конечных `X Y` и строго положительной нормированной
   `p : X×Y→ℝ`
@@ -2697,7 +2697,7 @@ one-hot CE.
 - `crossModalGap_zero_iff_indep`: разрыв равен нулю тогда и только тогда,
   когда `p(x,y)=margX p x*margY p y` для всех `x y`.
 
-## Hagi/Omni/OmniInvariant.lean
+## Hagi/Research/OmniInvariant.lean
 
 - На непустых конечных `Y1 Y2`, для положительной нормированной `p`,
   `omniStep C gIntra gCross cComp cRisk =
@@ -2710,7 +2710,7 @@ one-hot CE.
   одновременно доказаны невозрастание `omniPhi`, строгий рост способности,
   coverage-неравенство и неотрицательный остаток бюджета.
 
-## Hagi/Omni/OmniState.lean
+## Hagi/Research/OmniState.lean
 
 - `driftTube_closed`: при `ρ ≠ 1`
   `driftTube ρ e d0 t = ρ^t*d0 + e*(1-ρ^t)/(1-ρ)`;
@@ -2910,7 +2910,7 @@ one-hot CE.
 - `lookahead_range`: если `0 ≤ α ≤ 1` и `w x` находятся в `[lo,hi]`,
   новый якорь также находится в `[lo,hi]`.
 
-## Hagi/Optimization/MarkovPercolation.lean
+## Hagi/Research/MarkovPercolation.lean
 
 - `historyLaw_walk_support`: любой маршрут графа поддерживается однородным
   `historyLaw` для `supportedRoutingKernel`, если его первая вершина
@@ -3019,13 +3019,13 @@ one-hot CE.
 - `sam_mono`: при `0 ≤ r1 ≤ r2`, `0 ≤ r2` и ограниченности сверху образа на большем шаре `samW L r1 w ≤ samW L r2 w`.
 - `sam_flat`: если `L (w+e) = L w` для всех `e ∈ ball rho`, `0 ≤ rho` и образ ограничен сверху, то `samW L rho w = L w`.
 
-## Hagi/Optimization/Schelling.lean
+## Hagi/Research/Schelling.lean
 
 - `localCompatibleDegree` считает соседей `w` с `k ≤ compatibility v w`, а `locallySatisfied` требует не менее `min k (G.degree v)` таких соседей. Нулевой порог и изолированная вершина удовлетворены автоматически.
 - Доказаны `localCompatibleDegree_le_degree` и, при `G.degree v ≤ k`, эквивалентность `locallySatisfied_iff_forall_of_degree_le`: удовлетворённость означает выполнение порога совместимости для каждого соседа.
 - `locallySatisfied_disconnected` строит на `Fin 4` граф из двух ребер: все вершины локально удовлетворены при `k = 1`, но вершины `0` и `2` недостижимы друг из друга и выполнено `¬ disconnectedGraph.Preconnected`. Динамика переселения не формализуется.
 
-## Hagi/Optimization/SchellingPercolation.lean
+## Hagi/Research/SchellingPercolation.lean
 
 - `locallySatisfied_mono_of_le`: при `G ≤ G'` локальная удовлетворённость сохраняется только с дополнительной посылкой `k ≤ G.degree v`; без неё квота `min k degree` может вырасти при добавлении рёбер.
 - `parity_boundary1` точно вычисляет две диагональные открытые клетки при пороге `1`: все клетки изолированы, локальная удовлетворённость при отрицательной совместимости выполнена вакуумно, а `crossing rowTop rowBot` отсутствует.
@@ -3042,7 +3042,7 @@ one-hot CE.
 - `projResidual u v = v - ∑ i, ⟪u i,v⟫ • u i`. Для единичного попарно ортогонального семейства остаток ортогонален каждому `u i`, выполнено `projResidual_self_inner`, а `projResidual_le_norm` даёт `‖projResidual u v‖ ≤ ‖v‖`.
 - `growth_finite`: если `δ > 0`, `C (k+1) ≤ C k - δ` и все `C k ≥ 0`, то `(k : ℝ)*δ ≤ C 0`. Это ограничение на длину такой числовой траектории, а не самостоятельное доказательство остановки конкретного алгоритма.
 
-## Hagi/Percolation/Site.lean
+## Hagi/Research/Site.lean
 
 - На конечной решётке определены `openAt`, `openGraph`, `crossing` и равномерная по всем конфигурациям затравки вероятность `R`. `card_Ω` равен `M^(L*L)`, а `crossing_mono` и `R_monotone` доказывают монотонность по порогу на одном пространстве затравок.
 - Для чётной затравки на решётке `2×2` доказаны `parity_not_crossing1` и `parity_crossing2`; `emergence_jump_witness` упаковывает этот пример, а `R_strict_jump` даёт строгое `R 2 rowTop rowBot 1 < R 2 rowTop rowBot 2`.

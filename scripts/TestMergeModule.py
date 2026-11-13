@@ -437,7 +437,7 @@ class RawCliRegression(unittest.TestCase):
                 self.assert_snapshot(before)
 
     def test_actual_module_header_discovers_without_mutation(self):
-        path = REPO / "Hagi" / "Optimization" / "Schelling.lean"
+        path = REPO / "Hagi" / "Research" / "Schelling.lean"
         if not path.is_file():
             self.fail(f"required real module fixture missing: {path}")
         before = path.read_bytes()
