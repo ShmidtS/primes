@@ -1,4 +1,4 @@
-import Hagi.Energy.Cooling
+import Hagi.Probability.GibbsCore
 
 /-!
 # ComputeScaling — compute-optimal нижняя граница потерь

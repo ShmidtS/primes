@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Probability.MWU
+import Hagi.Optimization.MirrorHedge
 import Hagi.Ensemble.UniformCert
 set_option linter.style.header false
 

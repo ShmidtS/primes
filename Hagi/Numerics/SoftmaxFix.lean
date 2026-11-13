@@ -1,5 +1,5 @@
 import Hagi.Prelude.InfoCore
-import Hagi.Optimization.MirrorDescent
+import Hagi.Optimization.MirrorHedge
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
 namespace Hagi.Numerics

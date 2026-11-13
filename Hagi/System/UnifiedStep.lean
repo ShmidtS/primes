@@ -1,6 +1,6 @@
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer
-import Hagi.Energy.Cooling
+import Hagi.Probability.GibbsCore
 
 set_option linter.style.header false
 

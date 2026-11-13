@@ -121,8 +121,6 @@ import Hagi.Ensemble.MergeScaling
 import Hagi.Core.F3Root
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
-import Hagi.Energy.Variational
-import Hagi.Energy.Cooling
 import Hagi.Energy.PoEBound
 import Hagi.Step.Upgrades
 import Hagi.External.Diversity
@@ -140,8 +138,6 @@ import Hagi.Core.RootContrast
 import Hagi.Dynamics.EndpointContraction
 import Hagi.Dynamics.Laws
 import Hagi.Autonomy.TTTStability
-import Hagi.Autonomy.Hedge
-import Hagi.Autonomy.HedgeSurvivor
 import Hagi.Data.PACBayes
 import Hagi.Autonomy.Insight
 import Hagi.Unified.LinkedProjects
@@ -165,8 +161,6 @@ import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
 import Hagi.Probability.ThermoAxes
-import Hagi.Probability.GibbsConcentration
-import Hagi.Probability.MWU
 import Hagi.Probability.WSqD
 import Hagi.Growth.RecursiveSelfDevelopment
 import Hagi.Growth.Takeoff
@@ -289,7 +283,6 @@ import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
-import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.LinkedFlip
 import Hagi.Probability.FiniteBayes
 import Hagi.Probability.FiniteHamming
@@ -400,7 +393,7 @@ import Hagi.Optimization.MarkovPercolation
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
-import Hagi.Optimization.MirrorDescent
+import Hagi.Optimization.MirrorHedge
 import Hagi.Numerics.SoftmaxFix
 import Hagi.Planning.Imagination
 import Hagi.Geometry.SphericalSimplex

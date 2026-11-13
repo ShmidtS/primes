@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Optimization.MirrorDescent
+import Hagi.Optimization.MirrorHedge
 
 /-!
 # InfoPreservation (аудит v16, Test 6: information

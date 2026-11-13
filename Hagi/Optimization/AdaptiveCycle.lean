@@ -6,8 +6,8 @@ import Mathlib.Tactic
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.DirectionPacking
-import Hagi.Energy.Variational
-import Hagi.Energy.Cooling
+import Hagi.Probability.GibbsCore
+import Hagi.Probability.GibbsCore
 
 set_option linter.style.header false
 

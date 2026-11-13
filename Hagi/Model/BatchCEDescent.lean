@@ -3,7 +3,7 @@ import Hagi.Model.CEGroupedScale
 import Hagi.Probability.FiniteFamilyConfidence
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
-import Hagi.Probability.MWU
+import Hagi.Optimization.MirrorHedge
 
 /-!
 # Common-direction arithmetic-batch cross-entropy descent

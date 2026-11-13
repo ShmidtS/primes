@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Optimization.MirrorDescent
+import Hagi.Optimization.MirrorHedge
 import Hagi.Learning.HRCN
 
 set_option linter.style.header false

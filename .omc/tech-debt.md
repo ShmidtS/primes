@@ -64,3 +64,27 @@ Probability/PinskerTV — needs Probability peers, same-folder DAG).
 7→2 file count per A5; namespaces preserved (FQN-stable). When the
 Math layer is created, move both canons + update LAYERS + umbrella
 imports (Freeze-clean, module-field-only census changes).
+
+## TD A5-R3-C236: Gibbs/mirror-Hedge placement deviations (2026-11-13)
+
+A5 §R3 slice 3 (C236): Gibbs/Hedge/MWU 10 files → GibbsCore +
+MirrorHedge. Two legality-driven deviations, both documented in
+.tmp/C236/{survey,plan,review}.md:
+1. GibbsConcentration could NOT move "onto GibbsCore": it imports
+   GibbsCooling (which imports GibbsCore — cycle) and the four
+   Probability siblings EntropyConvexity/FannesPinsker/ChernoffCGF/
+   MomentBounds (each importing GibbsCooling — no Gibbs-file can
+   absorb it). Legal lowest common home = MirrorHedge (its only
+   consumer was MWU, co-located there); ns Hagi.Probability
+   preserved, FQN-stable.
+2. MirrorHedge landed in Hagi/Optimization (layer 3), not beside
+   Hedge in Autonomy: MWU's consumers include Optimization-layer
+   modules; Optimization is the legal lowest common home. Ns blocks
+   Hagi.Probability / Hagi.Optimization / Hagi.Autonomy all live in
+   the one file (NsLint any-rule). When the Math layer unification
+   beat lands (cf. C234/C235 notes), consider a dedicated
+   Probability-level Gibbs superset module to host GibbsConcentration
+   semantics closer to the Gibbs canon.
+C228's ewNorm_survivor_lower preserved verbatim (verified in
+RootApi). Freeze: only 2 private MWU helpers re-keyed by module
+path (stmt hashes identical); typeHash changes 0.

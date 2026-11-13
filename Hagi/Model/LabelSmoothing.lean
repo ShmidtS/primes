@@ -1,6 +1,6 @@
 import Mathlib
 import Hagi.Probability.EntropyConvexity
-import Hagi.Energy.Cooling
+import Hagi.Probability.GibbsCore
 
 /-!
 # LabelSmoothing (источник №74: "Rethinking the Inception
