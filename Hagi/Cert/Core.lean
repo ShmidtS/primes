@@ -258,4 +258,73 @@ theorem delta_telescope {S : Type*} {TaskId : Type*}
     | m + 1 => exact (steps m).delta_nonneg
   linarith [strong n]
 
+
+/-! ## Optimizer-state carrier (C248, A8 F5): HoldStep covers (m, v, t)
+
+A8 empirical finding (Class-D evidence, motivation only): a hold step
+that restores the weight state but NOT the optimizer buffers keeps
+stale momentum and flips the certified bias sign (+0.040 observed vs
+−0.117 honest).  The carrier-level fix: pair the certified core state
+with the optimizer buffers so that `HoldStep.hold : s' = s` covers
+the buffers exactly.  Additive — the bare `CertStep`/`HoldStep` kernel
+is untouched. -/
+
+/-- Additive carrier pairing a certified core state with optimizer
+buffers (momentum `m`, second moment `v`, step count `t`).  A
+`HoldStep` on this carrier is a hold of the WHOLE optimizer state. -/
+structure StateWithOptimizer (S : Type*) (O : Type*) where
+  core : S
+  opt : O
+
+/-- Equality of the paired state is exactly equality of BOTH
+components (constructor injectivity as the hold contract). -/
+theorem StateWithOptimizer.ext_iff {S O : Type*}
+    {p q : StateWithOptimizer S O} :
+    p = q ↔ p.core = q.core ∧ p.opt = q.opt := by
+  constructor
+  · intro h
+    exact ⟨by rw [h], by rw [h]⟩
+  · rintro ⟨h1, h2⟩
+    cases p
+    cases q
+    simp_all
+
+/-- The carrier-level fix: a hold step on the optimizer-paired state
+leaves the optimizer buffers exactly unchanged (stale momentum is NOT
+a hold). -/
+theorem HoldStep.optimizer_state_fixed {S O : Type*}
+    {M : SystemMetrics (StateWithOptimizer S O) TaskId}
+    {obl : StepObligations TaskId}
+    {p q : StateWithOptimizer S O} (h : HoldStep M obl p q) :
+    q.opt = p.opt := by
+  rw [← h.hold]
+
+/-- Core-state readout of paired metrics at a reference optimizer
+value. -/
+def SystemMetrics.onCore {S O : Type*}
+    (M : SystemMetrics (StateWithOptimizer S O) TaskId) (o₀ : O) :
+    SystemMetrics S TaskId where
+  objective s := M.objective ⟨s, o₀⟩
+  risk s := M.risk ⟨s, o₀⟩
+  budget s := M.budget ⟨s, o₀⟩
+  task s := M.task ⟨s, o₀⟩
+
+/-- Lift: a hold on the paired carrier projects to a hold on the core
+metrics, PROVIDED the objective readout is optimizer-independent
+(explicit premise — an objective may legitimately depend on optimizer
+state; no smuggling). -/
+theorem HoldStep.project_core {S O : Type*} (o₀ : O)
+    {M : SystemMetrics (StateWithOptimizer S O) TaskId}
+    {obl : StepObligations TaskId}
+    (hobj : ∀ p q : StateWithOptimizer S O,
+      p.core = q.core → M.objective p = M.objective q)
+    {p q : StateWithOptimizer S O} (h : HoldStep M obl p q) :
+    HoldStep (M.onCore o₀) obl p.core q.core where
+  hold := by rw [← h.hold]
+  floorsKept := fun t => by
+    have hb := h.floorsKept t
+    show obl.floor t ≤ M.objective ⟨q.core, o₀⟩
+    rw [← hobj q ⟨q.core, o₀⟩ rfl]
+    exact hb
+
 end Hagi.Cert

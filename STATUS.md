@@ -237,6 +237,16 @@ delta_next из явного носителя `deltaLevel : S → ℝ` с нео
 композиция `CertStepDelta.trans` и телескоп `delta_telescope`
 (Σ δ_k ≤ deltaLevel (t 0) при явной посылке 0 ≤ deltaLevel (t 0)).
 `CertStep` байт-идентичен (Freeze: только additions).
+- C248 (A8 F5): `StateWithOptimizer S O` — аддитивный носитель
+  core-состояние + оптимизаторные буферы (m, v, t); эмпирическое
+  обоснование (A8, Class-D): hold без отката буферов держит stale
+  momentum, сертифицированный bias разворачивается (+0.040 vs −0.117).
+  `StateWithOptimizer.ext_iff` (равенство = обе компоненты),
+  `HoldStep.optimizer_state_fixed` (hold ⇒ буферы точно неизменны —
+  stale momentum НЕ hold), `SystemMetrics.onCore` +
+  `HoldStep.project_core` (lift на core-метрики при явной посылке
+  оптимизатор-независимости objective). Базовое ядро не меняется
+  (Freeze: только additions).
 
 ## Hagi/Cert/Empirical.lean
 
@@ -2010,6 +2020,16 @@ one-hot CE.
 - `ceQuantWitness_decoded_packedBlock_strict_descent` поставляет явный
   декодированный вектор на `Fin 5` со строгим спуском для одноблочного
   примера.
+- C248 (A8 F5): `selectedGroupScalesExec` — исполняемый поблочный
+  селектор: явный `List.foldl`-argmin по `List.finRange 255` с seed
+  `knownSampleScale` (def остаётся noncomputable — классическое сравнение на ℝ,
+  но алгоритм — конечный fold по данным, не оператор выбора; TD
+  A5-R5-C241 закрыт). Инвариант fold — `foldl_argmin_inv`;
+  минимальность над всей 255-семейёй — `selectedGroupScalesExec_score_le`;
+  мост COST EQUALITY с choose-каноном —
+  `selectedGroupScalesExec_cost_eq` (штрафы равны, тайсы допустимы,
+  паттерн finiteSelection); `selectedGroupScalesExec_total_le` —
+  сурогатная сумма против любого назначения.
 
 ## Hagi/Model/CEHeldout.lean
 
@@ -3925,6 +3945,18 @@ one-hot CE.
   `ville_anytime_false_alarm` (no duplication of the Ville
   stopping-time proof). The countable family is postponed (documented):
   the 3b slow-gate commits on finitely many e-processes.
+- C248 (A8 F5): Freedman empirical-variance comparison —
+  `freedman_exp_empirical_le_fixed` (при бюджете предсказуемой
+  дисперсии V ≤ c² и явных посылках положительности знаменателей
+  hd1/hd2 эмпирический экспонент exp(−r²/(4(V+B·r))) ≤ фиксированного
+  c²-экспонента; форма raw_bank_freedman_maximal_confidence),
+  аддитивная форма доверия `freedman_empirical_confidence_ge_fixed`
+  (рамка 1 − 2m(T+1)·exp), поточечная монотонность
+  `stitching_master_mono` (w ≥ 0) и superset-аларм
+  `stitching_alarm_superset` (эмпирический master фиксирует каждый
+  аларм фиксированного при том же пороге — мощность drift-детекции,
+  A8 Class-D мотивация 6% → 63% при ≤5% FPR). Ville не
+  дублируется — аддитивное расширение C232.
 
 ## Hagi/Architecture/SpaceDecoupling.lean
 

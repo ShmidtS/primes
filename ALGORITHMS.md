@@ -824,6 +824,20 @@ payload с выбранными параметрами. Classical choose в exac
 Разрешимость конечного поиска и стоимостная (не конструктивная) природа
 проблемы 255^G — см. §16.
 
+Исполняемый селектор (C248, TD A5-R5-C241 закрыт):
+[`selectedGroupScalesExec`](Hagi/Model/CEGroupedScale.lean) — явный
+foldl-argmin по `List.finRange 255` с seed `knownSampleScale` (тот же
+seed, что у choose-канона). Мост — COST EQUALITY
+`selectedGroupScalesExec_cost_eq : blockPenalty (exec g) =
+blockPenalty (selectedGroupScales g)` (штрафы равны, коды на тайсах
+могут различаться — паттерн finiteSelection); минимальность над всей
+255-семейёй — `selectedGroupScalesExec_score_le`, сурогатная сумма —
+`selectedGroupScalesExec_total_le`. Честная граница: сравнение на ℝ
+классическое, def остаётся noncomputable — исполняем АЛГОРИТМ
+(конечный fold по данным), не оператор выбора. Эмпирическая мотивация
+(A8 F5, Class-D): динамический пер-блочный скейлинг 2.64x лучше L2
+округления; в Lean — только форма, не цифры.
+
 При `e_l(b)=layerError c_l b=c_l/2^b` перенос одного бита из `k` в `j`
 меняет ошибку на `e_k-e_j/2` по [`transfer_exact`](Hagi/Budget/BitAlloc.lean).
 Делаем перенос, если `j≠k`, `2e_k<e_j` и `f_k>0`: тогда ошибка строго падает по
@@ -1719,6 +1733,22 @@ rank(Δ) ≤ 2D из ранга головы — посылка, как и в к
 Slow-loop gate 3b теперь формально замкнут на stitching: конечный
 набор anytime-сертификатов с priors Σ ≤ 1 даёт один anytime-гейт.
 
+Эмпирическая дисперсия Фридмана (C248, A8 F5): при бюджетe
+предсказуемой дисперсии `V ≤ c²` эмпирический экспонент
+`exp(−r²/(4(V+B·r)))` (форма `raw_bank_freedman_maximal_confidence`,
+V — накопленная предсказуемая дисперсия, B — потолок диапазона)
+не превосходит фиксированный c²-экспонент
+(`freedman_exp_empirical_le_fixed`, положительность знаменателей —
+явные посылки hd1/hd2: при c=0, B=0 оба вырождаются); аддитивная
+форма доверия `freedman_empirical_confidence_ge_fixed` (рамка
+`1 − 2m(T+1)·exp`); поточечная монотонность master'а
+`stitching_master_mono` (w ≥ 0) и superset-алармов
+`stitching_alarm_superset`: эмпирический master при том же пороге
+фиксирует каждый аларм фиксированного — statement мощности
+drift-детекции (A8: 6% → 63% при ≤5% FPR, Class-D мотивация, в Lean
+только одно-направленное неравенство). Ville-механика не
+дублируется — это аддитивное расширение C232.
+
 ## 15. R2: подключение острых range-констант к consumer'ам (C233)
 
 Addendum A5 §R2: константы C216 (`ceStepLogitRange`, sup−inf) и C223
@@ -1898,6 +1928,27 @@ delta_telescope n t L h0 steps :
 Посылка `h0 : 0 ≤ deltaLevel (t 0)` честно явная (не выводима).
 Перенос поля внутрь `CertStep` — Phase-2 merger cert carriers
 (statement change под Freeze-дисциплиной).
+
+**`Hagi/Cert/Core.lean` — `StateWithOptimizer` (носитель с
+оптимизаторным состоянием, C248 A8 F5).** Эмпирическое обоснование
+(A8, Class-D): hold, восстанавливающий веса, но НЕ откатывающий
+буферы оптимизатора (m, v, t), держит stale momentum — сертифицированный
+bias разворачивается (+0.040 против честного −0.117). Carrier-level
+фикс — аддитивная пара core-состояния и буферов:
+
+```
+StateWithOptimizer S O            : core + opt (m, v, t)
+StateWithOptimizer.ext_iff        : p = q ↔ core = core ∧ opt = opt
+HoldStep.optimizer_state_fixed h  : hold ⇒ q.opt = p.opt (точно)
+HoldStep.project_core o₀ hobj h   : lift на core-метрики при
+                                    оптимизатор-независимом objective
+```
+
+`HoldStep.hold : s' = s` на этом носителе покрывает буферы ровно:
+шаг, сохраняющий веса, но прокатывающий momentum вперёд, НЕ может
+построить HoldStep здесь. Посылка hobj (objective может законно
+зависеть от буферов) — явная, без контрабанды. Базовое ядро
+CertStep/HoldStep не меняется.
 
 **`Hagi/State/Views.lean` — view-паттерн для TrainState.**
 `toSystemMetrics` подаёт канонический TrainState в сертификационное

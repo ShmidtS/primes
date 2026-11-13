@@ -128,4 +128,83 @@ theorem stitching_eprocess_anytime (w : k → ℝ) (hw : ∀ i, 0 ≤ w i)
       _ ≤ 1 := hwsum
   exact ville_anytime_false_alarm hM hMnn hmass n hdelta
 
+
+/-! ## Freedman empirical predictable variance (C248, A8 F5)
+
+Extension of the C232 stitching gate with the empirical-variance
+comparison: when the cumulative predictable variance satisfies the
+budget `V ≤ c²`, the empirical Freedman exponent
+`exp (-r² / (4 * (V + B * r)))` (the bound shape of
+`raw_bank_freedman_maximal_confidence`, with `V` the empirical
+predictable variance and `B` the increment range ceiling) is at most
+the fixed-`c²` exponent — smaller variance ⇒ tighter concentration ⇒
+larger confidence.  The stitched empirical master then fires every
+anytime alarm the fixed master fires at the same threshold
+(`stitching_alarm_superset`) — the drift-detection power statement
+behind A8's measured 6% → 63% detection at ≤ 5% FPR (Class-D
+evidence, motivation only).  Denominator positivity is an explicit
+premise (at `c = 0`, `B = 0` both denominators vanish — degenerate
+case excluded honestly, not derived). -/
+
+section FreedmanEmpirical
+
+/-- Exponent comparison: under the predictable-variance budget
+`V ≤ c²` and nondegenerate denominators, the empirical Freedman
+exponent is at most the fixed-c² exponent. -/
+theorem freedman_exp_empirical_le_fixed {r V c B : ℝ} (hr : 0 < r)
+    (hV : 0 ≤ V) (hB : 0 ≤ B) (hVc : V ≤ c ^ 2)
+    (hd1 : 0 < V + B * r) (hd2 : 0 < c ^ 2 + B * r) :
+    Real.exp (-r ^ 2 / (4 * (V + B * r))) ≤
+      Real.exp (-r ^ 2 / (4 * (c ^ 2 + B * r))) := by
+  have h1 : (0:ℝ) < 4 * (V + B * r) := by nlinarith
+  have h2 : (0:ℝ) < 4 * (c ^ 2 + B * r) := by nlinarith
+  rw [Real.exp_le_exp, div_le_div_iff₀ h1 h2]
+  have key : (0:ℝ) ≤ 4 * r ^ 2 * (c ^ 2 - V) := by
+    apply mul_nonneg <;> nlinarith
+  nlinarith [key]
+
+/-- Additive confidence form: the empirical-variance confidence is at
+least the fixed-c² confidence (same multiplicative frame `2 * m * (T+1)`
+as `raw_bank_freedman_maximal_confidence`). -/
+theorem freedman_empirical_confidence_ge_fixed {r V c B m T : ℝ}
+    (hr : 0 < r) (hV : 0 ≤ V) (hB : 0 ≤ B) (hVc : V ≤ c ^ 2)
+    (hd1 : 0 < V + B * r) (hd2 : 0 < c ^ 2 + B * r)
+    (hm : 0 ≤ m) (hT : 0 ≤ T) :
+    1 - 2 * m * (T + 1) * Real.exp (-r ^ 2 / (4 * (c ^ 2 + B * r))) ≤
+      1 - 2 * m * (T + 1) * Real.exp (-r ^ 2 / (4 * (V + B * r))) := by
+  have hexp := freedman_exp_empirical_le_fixed hr hV hB hVc hd1 hd2
+  have hmul : 2 * m * (T + 1) *
+      Real.exp (-r ^ 2 / (4 * (V + B * r))) ≤
+      2 * m * (T + 1) * Real.exp (-r ^ 2 / (4 * (c ^ 2 + B * r))) :=
+    mul_le_mul_of_nonneg_left hexp (by nlinarith)
+  linarith
+
+/-- Pointwise monotonicity of the stitched master (nonnegative
+weights, as everywhere in this file). -/
+theorem stitching_master_mono (w : k → ℝ) (hw : ∀ i, 0 ≤ w i)
+    (E F : k → ℕ → Ω → ℝ)
+    (hEF : ∀ i t ω, E i t ω ≤ F i t ω) (t : ℕ) (ω : Ω) :
+    stitchedMaster w E t ω ≤ stitchedMaster w F t ω := by
+  unfold stitchedMaster
+  simp only [Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+  exact Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left
+    (hEF i t ω) (hw i)
+
+/-- Power statement (alarm superset): if the fixed-c² master is
+pointwise dominated by the empirical-variance master, then every
+anytime alarm the fixed master fires is also fired by the empirical
+master at the SAME threshold — the empirical gate detects at least
+as much. -/
+theorem stitching_alarm_superset (w : k → ℝ) (hw : ∀ i, 0 ≤ w i)
+    (E F : k → ℕ → Ω → ℝ) (hEF : ∀ i t ω, F i t ω ≤ E i t ω)
+    {delta : ℝ} (n : ℕ) :
+    {ω | ∃ t ∈ Finset.range (n + 1), delta⁻¹ ≤ stitchedMaster w F t ω} ⊆
+      {ω | ∃ t ∈ Finset.range (n + 1), delta⁻¹ ≤ stitchedMaster w E t ω} := by
+  intro ω hω
+  obtain ⟨t, ht, hle⟩ := hω
+  exact ⟨t, ht, le_trans hle (stitching_master_mono w hw F E
+    (fun i t ω => hEF i t ω) t ω)⟩
+
+end FreedmanEmpirical
+
 end Hagi.Unified

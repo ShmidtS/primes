@@ -222,10 +222,16 @@ finiteSelection_cost_eq_minimumResource). The 255^G joint search is
 decidable-finite; its problem is cost, not constructivity
 (ALGORITHMS.md §16).
 
-Deferred work (no consumer today, YAGNI): a computable per-block
-selector `selectedGroupScalesExec g = ((List.finRange 255).argmin
-(blockPenalty e X w g)).getD knownSampleScale` plus a cost-equality
-theorem `blockPenalty (exec g) = blockPenalty (selectedGroupScales
-... g)` (pattern: finiteSelection tie-handling — equality of costs,
-not of codes). Trigger: any future runtime/codec consumer that
-needs to evaluate the selected scale as data.
+CLOSED (C248, A8 F5, 2026-11-13): landed in
+Hagi/Model/CEGroupedScale.lean — `selectedGroupScalesExec` (explicit
+`List.foldl` argmin over `List.finRange 255`, seed
+`knownSampleScale`), fold invariant `foldl_argmin_inv`, minimality
+`selectedGroupScalesExec_score_le`, COST EQUALITY
+`selectedGroupScalesExec_cost_eq` (tie-tolerant, finiteSelection
+pattern), surrogate total `selectedGroupScalesExec_total_le`.
+Empirical grounding (A8 F5, Class-D, motivation only): dynamic
+per-block scale 2.64x better than L2 rounding. Honesty note: def
+stays `noncomputable` (classical ℝ comparison) — the algorithm is an
+explicit finite fold, not a choice operator; the deferred item asked
+for exactly this shape. No runtime consumer yet — the selector is now
+evaluable as data when one arrives.

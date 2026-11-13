@@ -760,4 +760,95 @@ theorem ceQuantWitness_decoded_packedBlock_strict_descent :
       ceQuantWitness_joint_selected_eq_quantizedBlock]
   · exact ceQuantWitness_selectedGroupScales_strict_descent
 
+
+/-! ## Computable per-block scale selector (C248, TD A5-R5-C241)
+
+The executable counterpart of `selectedGroupScales`: an explicit
+`List.foldl` argmin over all 255 dyadic codes, seeded at
+`knownSampleScale` (the same nonemptiness witness as the choose-based
+canon).  Honesty: the comparison on ℝ is classical, so the definition
+stays `noncomputable`, but the selection ALGORITHM is an explicit
+finite fold over concrete data — not a choice operator.  The bridge to
+the canon is COST EQUALITY (penalties equal, minimizing codes possibly
+different on ties — the `finiteSelection` cost-bridge pattern). -/
+
+open Classical in
+/-- Fold invariant of the explicit argmin: the folded seed attains the
+minimum of `f` over the seed and the whole traversed list. -/
+theorem foldl_argmin_inv (f : Hagi.Runtime.DyadicScaleCode → ℝ)
+    (l : List Hagi.Runtime.DyadicScaleCode) :
+    ∀ seed : Hagi.Runtime.DyadicScaleCode,
+      f (l.foldl (fun acc k => if f k < f acc then k else acc) seed) ≤ f seed ∧
+        ∀ k ∈ l,
+          f (l.foldl (fun acc k => if f k < f acc then k else acc) seed) ≤ f k := by
+  induction l with
+  | nil =>
+    intro seed
+    exact ⟨le_rfl, fun k hk => absurd hk (by simp)⟩
+  | cons a l ih =>
+    intro seed
+    obtain ⟨h1, h2⟩ := ih (if f a < f seed then a else seed)
+    have hstep_le_seed : f (if f a < f seed then a else seed) ≤ f seed := by
+      split_ifs with h
+      · exact le_of_lt h
+      · exact le_rfl
+    have hstep_le_a : f (if f a < f seed then a else seed) ≤ f a := by
+      split_ifs with h
+      · exact le_rfl
+      · exact not_lt.mp h
+    refine ⟨le_trans h1 hstep_le_seed, fun k hk => ?_⟩
+    rcases List.mem_cons.mp hk with rfl | hk'
+    · exact le_trans h1 hstep_le_a
+    · exact h2 k hk'
+
+open Classical in
+/-- The executable per-block scale selector: an explicit foldl argmin
+over all 255 dyadic codes, seeded at `knownSampleScale`.  Empirical
+backing (A8 F5, Class-D): 2.64x better than L2 rounding via the
+dynamic scale selection this selector makes evaluable as data. -/
+noncomputable def selectedGroupScalesExec {G : ℕ} {V : Type} [Fintype V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
+    (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) :
+    Hagi.Runtime.DyadicScaleCode :=
+  (List.finRange 255).foldl
+    (fun acc k =>
+      if blockPenalty e X w g k < blockPenalty e X w g acc then k else acc)
+    Hagi.Runtime.knownSampleScale
+
+/-- The exec selector's block score is no larger than any candidate's
+— same shape as `selectedGroupScales_score_le`. -/
+theorem selectedGroupScalesExec_score_le {G : ℕ} {V : Type} [Fintype V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
+    (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G)
+    (k : Hagi.Runtime.DyadicScaleCode) :
+    blockPenalty e X w g (selectedGroupScalesExec e X w g) ≤
+      blockPenalty e X w g k := by
+  have := (foldl_argmin_inv (blockPenalty e X w g) (List.finRange 255)
+    Hagi.Runtime.knownSampleScale).2 k (List.mem_finRange (n := 255) k)
+  exact this
+
+/-- COST EQUALITY with the choose-based canon (the honest tie-tolerant
+form: identical penalties, possibly different minimizing codes — the
+`finiteSelection` cost-bridge pattern). -/
+theorem selectedGroupScalesExec_cost_eq {G : ℕ} {V : Type} [Fintype V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
+    (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) :
+    blockPenalty e X w g (selectedGroupScalesExec e X w g) =
+      blockPenalty e X w g (selectedGroupScales e X w g) :=
+  le_antisymm
+    (selectedGroupScalesExec_score_le e X w g (selectedGroupScales e X w g))
+    (selectedGroupScales_score_le e X w g (selectedGroupScalesExec e X w g))
+
+/-- Executable total: the separable certificate bound holds verbatim
+for the exec selector. -/
+theorem selectedGroupScalesExec_total_le {G : ℕ} {V : Type} [Fintype V]
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
+    (w : EuclideanSpace ℝ (Fin (5 * G)))
+    (alternative : Fin G → Hagi.Runtime.DyadicScaleCode) :
+    (∑ g, blockPenalty e X w g (selectedGroupScalesExec e X w g)) ≤
+      ∑ g, blockPenalty e X w g (alternative g) := by
+  apply Finset.sum_le_sum
+  intro g _hg
+  exact selectedGroupScalesExec_score_le e X w g (alternative g)
+
 end Hagi.Model.CEGroupedScale
