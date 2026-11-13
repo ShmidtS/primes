@@ -2201,3 +2201,39 @@ head) возвращает 94%+. Формальный срез (`Hagi/Budget/Res
 Prescription: биты на фактор — по закону (e+f+ef)²; на
 произведении — только через резидуальную вторую стадию
 (аддитивная, а не мультипликативная композиция ошибки).
+
+## 22. Remaining bridges: heldout anytime, GDN lag-1, kernel adapter, MDL C_state (C254/A8 F6)
+
+Эмпирика A8 (только мотивация, не Lean-посылки): юнион-баунд
+61965^G по словарю вакуозен при умеренных G (anytime-граница
+0.1465 достижима там, где юнион требует n ≥ 1.13M); lag-1
+выравнивание ключа GDN критично (рассинхрон ~50% против ~99.6%);
+стоимость состояния — упакованные блоки, а не длина кода данных.
+
+- Heldout (`Hagi/Model/CEHeldout.lean`): именованный юнион-фактор
+  `unionConfFactor`; вакуозность `union_confidence_vacuous`;
+  доминирование любой anytime-конфиденс 1−δ ∈ [0,1)
+  (`anytime_confidence_dominates_vacuous`). G-free замена —
+  существующая time-uniform машина (anytime_catoni,
+  stitching_eprocess_anytime); мост к ней (супермартингалность
+  Hoeffding-процесса на normalized-CE) — отдельный будущий бит.
+- GDN lag-1 (`Hagi/Model/GDNBridge.lean`): контракт выравнивания
+  k_{t−1}→v_t — `gdn_lag1_read_miss` (чтение по другому адресу
+  возвращает старую строку) и сводная `gdn_lag1_alignment`
+  (hit = записанное значение через `gdn_ram_roundtrip`).
+- Kernel adapter (`Hagi/Unified/HonestTransition.lean`):
+  `HonestTransition.toKernelCertStep` — честный переход в ПОЛНОЕ
+  каноническое ядро Hagi.Cert.CertStep (бюджет/риск-учёт из
+  реальных полей перехода, premise-form метрики; риск-остаток 0 —
+  интерпретация remaining-risk, задокументирована).
+- MDL C_state (`Hagi/Step/MDLThreeCurrency.lean`):
+  `cstateBlocks` — счёт 16-бит упакованных блоков (инстанс
+  DyadicTernary dyadicBlock; прямой импорт запрещён layer-слоем);
+  учётная лемма `double_counting_identification_forced`: коллапс
+  двойного учёта cst = L_pred возможен только при явном
+  проверяемом равенстве «счёт блоков = функция потерь» (λ_M ≠ 0).
+
+Prescription: для heldout-конфиденса в широких словарях — anytime
+(e-process) вместо юниона по словарю; для GDN-RAM — lag-1
+выравнивание ключа; для MDL — валюты разделены структурно
+(block count ≠ data code length), подмена опознаётся леммой.

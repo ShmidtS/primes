@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Hagi.Cert.Core
 
 /-!
 # HonestTransition 
@@ -106,5 +107,51 @@ def HonestTransition.toCertStep {obj : S → ℝ} {s s' : S}
   drop := T.objectiveDrop
   drop_pos := T.objectiveDrop_pos
   actual := T.actualDescent
+
+/-! ### S3-адаптер: HonestTransition → каноническое ядро Hagi.Cert
+
+Единственный отсутствующий мост (аудит A8 F6, S3): Adapters-слой
+(`Hagi/Cert/Adapters.lean`) намеренно импортирует только Cert.Core и
+не может видеть HonestTransition; Unified-сторона имела мост лишь в
+МИНИМАЛЬНОЕ ядро CertStep. Ниже — мост в ПОЛНОЕ каноническое ядро
+`Hagi.Cert.CertStep` с бюджетным/рисковым учётом: реальные поля
+перехода (objectiveDrop, actualDescent, траты rs/bs) pulled в ядро
+через premise-form пучок метрик. -/
+
+/-- С3-адаптер: честный переход + пучок системных метрик, чья
+цель совпадает с целью перехода, бюджет убывает ровно на
+budgetSpend перехода (остаток b' ≥ 0), а риск-уровень — это
+remaining-risk, полностью списываемый тратой rs (остаток 0),
+собираются в канонический `Hagi.Cert.CertStep`.
+
+Посылки-моделирование (честно, явно):
+* `hobj : M.objective = obj` — метрики измеряют ту же цель;
+* `hbud : M.budget s = b' + bs`, `hbud' : M.budget s' = b'` —
+  бюджет тратится ровно на bs, остаток b' неотрицателен
+  (hT.budgetBound);
+* `hrisk : M.risk s = rs`, `hrisk' : M.risk s' = 0` — риск-уровень
+  интерпретируется как remaining-risk, списываемый полностью
+  (выбор в пользу простоты; альтернативный ненулевой остаток
+  требует лишь замены hrisk' на пару равенств). -/
+def HonestTransition.toKernelCertStep {S TaskId : Type*}
+    {obj : S → ℝ} {s s' : S} {rs rl bs b' : ℝ}
+    (hT : HonestTransition obj s s' rs rl bs b')
+    (M : Hagi.Cert.SystemMetrics S TaskId)
+    (hobj : M.objective = obj)
+    (hbud : M.budget s = b' + bs) (hbud' : M.budget s' = b')
+    (hrisk : M.risk s = rs) (hrisk' : M.risk s' = 0)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s') :
+    Hagi.Cert.CertStep M obl s s' where
+  drop := hT.objectiveDrop
+  drop_pos := hT.objectiveDrop_pos
+  descent := by rw [hobj]; exact hT.actualDescent
+  budgetSpend := bs
+  budget_next := by rw [hbud, hbud']; linarith [hT.budgetBound]
+  budget_nonneg := by rw [hbud']; exact hT.budgetBound
+  riskSpend := rs
+  risk_next := by rw [hrisk, hrisk']; ring
+  risk_nonneg := by rw [hrisk']
+  floorsKept := hfloors
 
 end Hagi.Unified.HonestTransition

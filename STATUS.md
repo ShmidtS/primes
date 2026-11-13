@@ -5002,6 +5002,30 @@ merger cert carriers (Freeze-дисциплина: statement change).
   venn2_adder_correct/venn2_suber_correct/venn2_adder_real,
   мосты venn2_sum/carry/borrow_head через vennHead_exact).
 
+- C254 (A8 F6): bridges packet — (1) CEHeldout anytime-замена
+  вакуозного юнион-баунда: именованный фактор
+  `unionConfFactor = 61965^G·exp(−2nε²)`, вакуозность
+  `union_confidence_vacuous` (фактор ≥ 1 ⇒ конфиденс ≤ 0),
+  доминирование `anytime_confidence_dominates_vacuous`
+  (любая anytime-конфиденс 1−δ ∈ [0,1) лучше; G-free замена —
+  существующие anytime_catoni / stitching_eprocess_anytime,
+  указаны в docstring, эмпирика — только мотивация);
+  (2) GDNBridge lag-1 выравнивание k_{t−1}→v_t:
+  `gdn_lag1_read_miss` (рассинхронный адрес — старая строка;
+  эмпирический ~50% потолок рассинхрона — в docstring) и
+  сводная premise-form `gdn_lag1_alignment` (hit=roundtrip,
+  miss=старая строка); (3) S3-адаптер
+  `HonestTransition.toKernelCertStep` — недостающий мост из
+  честного перехода в ПОЛНОЕ каноническое ядро
+  Hagi.Cert.CertStep с бюджетным/рисковым учётом (premise-form
+  SystemMetrics пучок; remaining-risk списывается полностью);
+  (4) MDLThreeCurrency C_state = счёт упакованных 16-бит
+  блоков: `cstateBlocks` + `cstateBlocks_nonneg` + учётная
+  лемма `double_counting_identification_forced` (наивный
+  коллапс cst=L_pred — только при явном равенстве «счёт
+  блоков = функция потерь», λ_M≠0). DEFER: matrix Newton–
+  Schulz hP-removal (функциональное исчисление — техдолг
+  C254).
 - C253 (A8 F2): ResidualVQ product error theorem — новый модуль
   `Hagi/Budget/ResidualVQ.lean`: точное разложение
   (A+EA)(B+EB) − AB = EA·B + A·EB + EA·EB

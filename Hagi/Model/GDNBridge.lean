@@ -167,4 +167,43 @@ theorem gdn_ram_roundtrip {m n : ℕ}
   rw [gdn_onehot_read]
   exact Matrix.updateRow_self
 
+/-- LAG-1 ALIGNMENT (misaligned read): запись в адрес
+i в момент t−1 (ключ k_{t−1} = e_i); чтение в момент t
+по ДРУГОМУ адресу j ≠ i возвращает старую строку
+S j — незатронутые адреса не изменились.
+
+Эмпирическое обоснование (Class-D, только мотивация,
+не посылка): в синтез-архитектуре Arch3 (mHC + Lag-1
+GDN + RoPE, A8 вердикт 6) выравнивание ключа k_{t−1} с
+записываемым значением v_t критично: рассинхронный
+доступ к адресу даёт эмпирический потолок ~50%
+против ~99.6% при выровненном lag-1 доступе. -/
+theorem gdn_lag1_read_miss {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i j : Fin m)
+    (v : Fin n → ℝ) (hj : j ≠ i) :
+    (Pi.single j (1:ℝ) : Fin m → ℝ) ᵥ*
+      Hagi.Model.GDNRAM.ramWrite S i v = S j := by
+  change (Pi.single j (1:ℝ) : Fin m → ℝ) ᵥ*
+    (Matrix.updateRow S i v) = S j
+  rw [gdn_onehot_read]
+  exact Matrix.updateRow_ne hj
+
+/-- LAG-1 ALIGNMENT (полный контракт, premise-form):
+чтение в момент t по адресу j после записи в адрес i
+в момент t−1 (k_{t−1} = e_i, значение v_t = v) возвращает
+v при j = i (совпавший адрес — см. также
+`gdn_ram_roundtrip`) и старую строку S j при j ≠ i
+(рассинхрон — `gdn_lag1_read_miss`). -/
+theorem gdn_lag1_alignment {m n : ℕ}
+    (S : Matrix (Fin m) (Fin n) ℝ) (i j : Fin m)
+    (v : Fin n → ℝ) :
+    (Pi.single j (1:ℝ) : Fin m → ℝ) ᵥ*
+      Hagi.Model.GDNRAM.ramWrite S i v =
+        if j = i then v else S j := by
+  by_cases h : j = i
+  · rw [h, if_pos rfl]
+    exact gdn_ram_roundtrip S i v
+  · rw [if_neg h]
+    exact gdn_lag1_read_miss S i j v h
+
 end Hagi.Model.GDNBridge

@@ -235,3 +235,20 @@ stays `noncomputable` (classical ℝ comparison) — the algorithm is an
 explicit finite fold, not a choice operator; the deferred item asked
 for exactly this shape. No runtime consumer yet — the selector is now
 evaluable as data when one arrives.
+
+## TD A8-F6-C254 — Matrix Newton–Schulz hP removal (2026-11-13)
+
+DEFERRED (C254, item 3). Target: remove the hypothesis
+`hP : ∀ z, ‖P z‖ ≤ ‖z‖` from `muon_step_bound`/`muon_pl_rate`
+(Hagi/Step/Muon.lean) by proving contraction for the actual
+Newton–Schulz polar iterate U ← U(3I−UᵀU)/2. Honest analysis:
+the scalar certificate exists (`nsStep_dist_sq`, `nsIter_mem`,
+C231), but lifting the scalar map σ ↦ σ(3−σ²)/2 to the matrix
+iterate requires functional-calculus / spectral-transfer machinery
+(singular values of the iterate vs the map applied pointwise),
+which Mathlib does not provide off-the-shelf here. No cheap slice
+exists: `muonDir P g = P g`, so the bound IS the contraction
+contract. Future beat: matrix spectral transfer for NS iterations
+(eigenvalue/singular-value interlacing or polynomial composition
+argument), then instantiate hP. Expected outcome was DEFER — no
+gold-plating attempted.

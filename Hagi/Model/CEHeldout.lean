@@ -429,4 +429,44 @@ theorem ceOneHot_decodeJoint_encodeJoint_mean_le_ceQuantPenalty
   have hmean := ceOneHot_mean_ceLogits_le X w1 w2 t
   exact hquant.trans (add_le_add hmean (le_refl _))
 
+/-! ### Anytime-замена вакуозного юнион-баунда (A8 F6)
+
+Юнион-фактор `61965^G · exp(−2 n ε²)` растёт по G и делает
+нижнюю доверительную границу отрицательной (вакуозной)
+уже при умеренных G: юнион-баунд по всему декодированному
+словарю непомерно платит за его мощность. Замена —
+существующая time-uniform машина без юниона по словарю:
+`Hagi.Unified.AnytimePACBayes.anytime_catoni` и
+`Hagi.Unified.StitchingEProcess.stitching_eprocess_anytime`
+(конфиденс 1−δ, НЕ зависит от G). Здесь формализована
+честная часть: вакуозность юнион-баунда в его вакуозном
+режиме и доминирование любой anytime-конфиденс 1−δ ∈ [0,1)
+над ним. Эмпирические числа (0.1465 против n ≥ 1.13M) —
+Class-D мотивация, не посылки и не утверждения. -/
+
+/-- Именованный юнион-фактор фиксированного словаря:
+мощность словаря × Hoeffding-затухание. -/
+noncomputable def unionConfFactor (G n : ℕ) (eps : ℝ) : ℝ :=
+  (61965 ^ G : ℕ) * Real.exp (-2 * (n : ℝ) * eps ^ 2)
+
+/-- Вакуозный режим: юнион-фактор ≥ 1 делает нижнюю
+доверительную границу `1 − фактор` неположительной —
+юнион-баунд по словарю ничего не гарантирует. -/
+theorem union_confidence_vacuous {G n : ℕ} {eps : ℝ}
+    (hvac : (1 : ℝ) ≤ unionConfFactor G n eps) :
+    1 - unionConfFactor G n eps ≤ 0 := by
+  unfold unionConfFactor at hvac ⊢
+  linarith
+
+/-- В вакуозном режиме любая anytime-конфиденс
+1 − δ ∈ [0, 1) доминирует юнион-баунд: time-uniform
+граница (anytime_catoni / stitching_eprocess_anytime,
+без юниона по словарю) строго лучше вакуозной. -/
+theorem anytime_confidence_dominates_vacuous {G n : ℕ}
+    {eps delta : ℝ} (_hdelta : 0 < delta) (hdelta1 : delta ≤ 1)
+    (hvac : (1 : ℝ) ≤ unionConfFactor G n eps) :
+    1 - unionConfFactor G n eps ≤ 1 - delta := by
+  unfold unionConfFactor at hvac ⊢
+  linarith
+
 end Hagi.Model.CEHeldout

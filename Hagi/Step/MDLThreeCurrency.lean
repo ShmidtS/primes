@@ -114,4 +114,48 @@ theorem no_compression_below_entropy (p q : V → ℝ)
     Hagi.kl_nonneg p q hp hq hsump hsumq
   linarith
 
+/-! ### C_state как счёт упакованных блоков (A8 F6)
+
+Техдолг A5 §2 требовал структурного моста для C_state:
+стоимость состояния — НЕ длина кода данных, а счёт
+упакованных блоков фиксированной ширины (намеченный
+инстанс — 16-битные `dyadicBlock` из
+`Hagi/Runtime/DyadicTernary.lean`; прямой импорт невозможен
+по LayerLint: Step и Runtime — один слой 3, разные папки).
+Ниже C_state определена как счёт блоков над ЛЮБЫМ
+инъективным 16-битным упаковщиком; учётная лемма делает
+наивное отождествление `cst = L_pred` явным проверяемым
+равенством «счёт блоков = функция потерь» — двойной учёт
+невозможен молча. Подключение к MDLRank/BitAlloc —
+отдельный будущий бит. -/
+
+/-- C_state как счёт упакованных блоков фиксированной
+ширины 16 бит (инстанс: DyadicTernary dyadicBlock). -/
+def cstateBlocks {ι : Type} [Fintype ι]
+    (blocks : ι → BitVec 16) : ℝ := (Fintype.card ι : ℝ)
+/-- Счёт блоков неотрицателен. -/
+theorem cstateBlocks_nonneg {ι : Type} [Fintype ι]
+    (blocks : ι → BitVec 16) : 0 ≤ cstateBlocks blocks := by
+  exact_mod_cast Nat.cast_nonneg _
+
+/-- Учётная лемма: при C_state = счёт блоков наивный коллапс
+J3 → (1 + λ_M)·L_pred + λ_R·R (двойной учёт из
+`double_counting_identified`) возможен ТОЛЬКО при явном
+равенстве «счёт блоков = предсказательная потеря» —
+ошибка подмены валют становится проверяемой, а не молча
+(при λ_M ≠ 0 — иначе член состояния невзвешен и
+отождествление не выводимо). -/
+theorem double_counting_identification_forced
+    (Lpred Rprot lamM lamR : ℝ) {ι : Type} [Fintype ι]
+    (blocks : ι → BitVec 16) (hlamM : lamM ≠ 0)
+    (h : J3 Lpred (cstateBlocks blocks) Rprot lamM lamR
+      = (1 + lamM) * Lpred + lamR * Rprot) :
+    cstateBlocks blocks = Lpred := by
+  unfold J3 at h
+  unfold cstateBlocks at h ⊢
+  ring_nf at h
+  have h2 : lamM * ((Fintype.card ι : ℕ) : ℝ) = lamM * Lpred := by
+    linarith
+  exact_mod_cast mul_left_cancel₀ hlamM h2
+
 end Hagi.Step
