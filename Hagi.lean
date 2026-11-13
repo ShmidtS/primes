@@ -315,6 +315,7 @@ import Hagi.Optimization.Lookahead
 import Hagi.Probability.BatchSNR
 import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
+import Hagi.Data.BoolVenn
 import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
 import Hagi.Model.GDNBridge
@@ -449,6 +450,7 @@ import Hagi.Model.GatedCESafeStep
 import Hagi.Model.GatedCEPositiveCurvature
 import Hagi.Model.GatedCEUniformCurvature
 import Hagi.Model.Routing
+import Hagi.Model.Logic.VennHead
 import Hagi.Cert.Core
 import Hagi.Cert.Adapters
 import Hagi.Cert.CertifiedArgmax

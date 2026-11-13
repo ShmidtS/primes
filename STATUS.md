@@ -638,6 +638,21 @@
 - `meanBound_greedy`: если `newcomer ≤ mean`, то `(N * mean + newcomer) / (N + 1) ≤ mean`.
 - `selection_hurts`: построен контрпример, в котором `ceOneHot t₁ zB < ceOneHot t₁ zC`, но `ceOneHot t₂ (ens zA zB) > ceOneHot t₂ (ens zA zC)`; отбор по одиночной CE может ухудшить ансамбль.
 
+## Hagi/Data/BoolVenn.lean
+
+- Булевозначная решётка Венна для 16 функций двух переменных (Track B7,
+  addendum A4, C242): `atomIdx`/`vennBool` — маска как таблица истинности;
+  `venn_universal` — каждая `Bool → Bool → Bool` функция есть маска
+  (16×4 = 64 случая, конструктивно).
+- `rank_histogram` — гистограмма рангов `1-4-6-4-1` (биномиальные C(4,r),
+  16 масок, decide); `maskRank` — число активных атомов.
+- `de_morgan`/`de_morgan_involution` — инволюция решётки: дополнение
+  маски_negates функцию на ТЕХ ЖЕ входах (вариант с отрицанием входов
+  ЛОЖЕН: индекс атома отрицанных входов есть `3-k`, опровергнуто decide
+  в C229-зонде).
+- `hasse_edges` — ровно 32 ориентированных ребра Хассе (Хэмминг 1 И
+  строго растущий ранг; неориентированный счёт даёт 64).
+
 ## Hagi/Data/BytePatch.lean
 
 - `seg_length`: длина сегмента `seg s a b` равна `b - a` в натуральной арифметике.
@@ -2269,6 +2284,29 @@ one-hot CE.
 - `dhcStep_abs_bound`: при `0 ≤ rho ≤ 1`, `0 ≤ kappa`, `0 ≤ C`,
   `T ≠ 0`, `0 < K`
   `|a' i| ≤ (1-rho)*|a i| + rho*|s i| + kappa*∑|C i j|`.
+
+## Hagi/Model/Logic/VennHead.lean
+
+- Точная нейро-символьная голова (Track B7, C242): атомы Венна как
+  ReLU-нейроны `vAtom` на {−1,+1}-входах — ровно один активен
+  (`vAtoms_sum_one`, `vAtoms_mem`); голова `vennHead` линейна по атомам
+  с {0,1}-маской (`vennHead_mem`).
+- `vennHead_exact` — 64-случайный мост: на знаковых входах голова
+  вычисляет значение истинности маски `Hagi.Data.BoolVenn` (16 масок ×
+  4 входа).
+- `venn_pair_win`/`venn_certified` — голова испускает логит-пару
+  `![f, 1−f]` (eps-зазор ровно 1), композиция с
+  `Hagi.Data.CertifiedArgmax.certified_argmax_strict` при est = v
+  (нулевая ошибка): для любого ε с 2ε < 1 сертифицированный argmax-индекс
+  ЕСТЬ значение истинности булевой функции.
+- `venn_mask_ternary` — тернарная представимость: реальный квантователь
+  `Hagi.Runtime.qTern` при масштабе 1 тождественен на {0,1} — штраф
+  квантования {0,1}-весов головы ровно 0 (а не просто ≤ s/2, как в
+  `Hagi.Energy.roundTern_error`).
+- Граница честная: точность для логики двух переменных (16-функциональная
+  решётка), не «логика вообще»; масштаб mask-линейных голов — n ≤ 4-5.
+  bf16-точность малых целых — отложено (не compos'ится с BF16Delta API
+  этого бита без нового API; tech-debt note).
 
 ## Hagi/Model/LabelSmoothing.lean
 
