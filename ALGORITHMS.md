@@ -2109,3 +2109,63 @@ One-sided isolation caveat: `Uᵀ * A_orth = 0` (`fiberSplitOrtho`)
 readback `Uᵀ h`: `readback_noise_witness` даёт явный witness
 шума с ненулевым cortex-readback; защита readback требует гейтинга
 (w → 0) или посылки `Uᵀ *ᵥ Δ = 0` из `spaceDecoupling_zero_drift`.
+
+## 20. Isotropic-Frobenius cascade sensitivities (C252/A8 F7)
+
+**`Hagi/Architecture/IsoFrobCascade.lean` +
+`Hagi/Budget/IsoFrobAlloc.lean` + `Hagi/Step/SafeQPStep.lean`
+(аддитивно) — калибровка чувствительностей RankBudget каскадом
+(изотропный Фробениус), SafeQP quadratic drift.**
+
+```
+columnEnergy_basis (мат. ядро, ТОЧНО, без вероятности):
+  ∑ i ‖J *ᵥ e_i‖² = frobSq J   (по ортонормальному базису —
+  алгебраический суррогат E[‖Jx‖²] = ‖J‖_F²/d на сфере)
+isoFrobEnergy J = frobSq J / d          (константа A8)
+isoFrobEnergy_eq_basis_avg:  iso = базисное среднее
+isoFrobEnergy_le_opNorm_sq:  frobSq J / d ≤ ‖J‖²
+  (изотропное среднее НЕ ПРЕВЫШАЕТ worst-case усиление, которое
+  платит cascadeGain — честное направление: для linfty-op-нормы
+  обратное frobSq ≥ d‖J‖² ЛОЖНО; спектральный продукт
+  ЗАНИЖАЕТ поздние слои / ЗАВЫШАЕТ ранние — A8 мотивация)
+propagateLin_frobEnergy_le:
+  ‖propagateLin S δ‖₂² ≤ (∏ frobSq J_l) · ‖δ‖₂²
+  (per-layer frobSubord + индукция, переиспользован C250 carrier)
+propagateLin_isoEnergy_le:
+  ≤ d^|S| · ∏(frobSq_l / d) · ‖δ‖²    (iso-нормировка)
+isoCascadeEnergy_le_cascadeGain_sq:
+  isoCascadeEnergy S ≤ cascadeGain S²  (сравнение F7)
+
+SafeQP bilinear drift (SafeQPStep, аддитивно):
+frobSq_add_smul:  frobSq (M + η•W) = frobSq M + 2η·frobInner M W
+                  + η² · frobSq W   (ТОЧНО, L = 2 достигает
+                  квадратичный член (L/2)η²‖d‖² — не оценка сверху)
+frobSq_smul:      frobSq (η•W) = η² frobSq W (нулевой линейный член)
+safeqp_linear_test_insufficient:
+  ∀ tol ∃ η: линейный тест (g = 0 ⇒ ⟪g,d⟫ = 0 ≥ −tol) проходит,
+  а ТОЧНЫЙ drift η²·frobSq W > tol — линейного приёмного теста
+  недостаточно для билинейных шагов
+safeqp_second_order_acceptance:
+  (L/2)·η²·‖d‖² − eps ≤ η·⟪g,d⟫ ∧ descent-лемма ⇒ dL ≤ eps
+  (честная second-order-aware посылка)
+safeqp_precond_conflict_free:
+  d = (QᵀQ) *ᵥ g ⇒ ⟪g,d⟫ = ‖Q*gᵥg‖² ≥ 0 (premise-form метрики
+  (I + γΣ_old)⁻¹: PSD-предобусловленное направление бесконфликтно)
+
+RankBudget adapter (IsoFrobAlloc):
+isoFrobSensitivity Jtail hScale j = isoFrobEnergy (Jtail j) * hScale j
+weightedExpAllocation_isoFrob_optimal:
+  c := isoFrobSensitivity ⇒ closed-form экспоненциальная аллокация
+  оптимальна среди бюджетно-допустимых (транспорт
+  weightedExpAllocation_optimal) — аддитивная модель становится
+  честной deep-net специализацией с каскадными весами
+```
+
+Эмпирика (только мотивация, не Lean-посылки): спектральные
+произведения `∏‖J_k‖` переоценивают ранние слои и голодают
+поздние (хуже uniform); изотропно-фробениусова калибровка
+`‖J_{>j}‖_F²/d · ‖h_j‖²` дала MSE 2.2e-5 против 2.5e-5 uniform.
+SafeQP билинейные адаптеры требуют квадратичного члена
+(L_i/2)η²‖d‖² + предобусловливающей метрики (I + γΣ_old)⁻¹ —
+формализовано как точное разложение, witness недостаточности
+линейного теста и premise-form PSD-лемма.

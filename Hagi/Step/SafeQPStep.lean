@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
+import Hagi.Core.FrobOuter
 /-!
 # CurvatureSafe — учитывающий кривизну SafeQP (trust region)
 
@@ -276,6 +277,128 @@ theorem safeqp_eta_max_conflict_free (g : K → X) (eps L : K → ℝ)
     ((le_safeqpEtaMax_iff g eps L d).mpr ⟨hone, hmargin⟩)
 
 end SafeQPStep
+
+section SafeQPBilinearDrift
+
+variable {d : ℕ}
+
+open scoped Matrix
+open Finset
+
+/-! ## Bilinear quadratic drift (A8 F7)
+
+For bilinear (`A @ B`-shaped) adapter steps the SafeQP linear
+acceptance `⟪g, d⟫ ≥ −tol` is insufficient: the Frobenius energy
+of a bilinear step expands EXACTLY with a genuine quadratic term
+(attained at `L = 2`), so the second-order-aware acceptance
+`(L/2)·η²·‖d‖² − eps ≤ η·⟪g, d⟫` of
+`safeqp_second_order_acceptance` is the honest form. The
+preconditioner metric `(I + γΣ_old)⁻¹` enters as premise-form:
+a PSD-factored direction `d = (QᵀQ) *ᵥ g` is conflict-free
+(`safeqp_precond_conflict_free`). -/
+
+open Finset
+
+/-- Frobenius inner product (entrywise). -/
+def frobInner (M W : Matrix (Fin d) (Fin d) ℝ) : ℝ :=
+  ∑ i, ∑ j, M i j * W i j
+
+/-- Sum-of-three split for double sums. -/
+theorem sum_three_split (F G H : Fin d → Fin d → ℝ) :
+    (∑ i, (∑ j, (F i j + G i j + H i j)))
+      = (∑ i, (∑ j, F i j)) + (∑ i, (∑ j, G i j))
+          + (∑ i, (∑ j, H i j)) := by
+  have hin : ∀ i : Fin d, (∑ j, (F i j + G i j + H i j))
+      = (∑ j, F i j) + (∑ j, G i j) + (∑ j, H i j) := by
+    intro i
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+  rw [Finset.sum_congr rfl (fun i _ => hin i), Finset.sum_add_distrib,
+    Finset.sum_add_distrib]
+
+/-- EXACT bilinear drift: for a bilinear adapter step
+`M ↦ M + η • W` the Frobenius energy expands EXACTLY — the
+quadratic term `(L/2)·η²·‖d‖²` is attained with `L = 2`, not
+merely an upper bound. -/
+theorem frobSq_add_smul (M W : Matrix (Fin d) (Fin d) ℝ) (η : ℝ) :
+    Hagi.Core.frobSq (M + η • W)
+      = Hagi.Core.frobSq M + 2 * η * frobInner M W
+          + η ^ 2 * Hagi.Core.frobSq W := by
+  have key : ∀ i j : Fin d,
+      (M i j + η * W i j) ^ 2
+        = (M i j) ^ 2 + 2 * (η * (M i j * W i j))
+            + η ^ 2 * (W i j) ^ 2 := by
+    intro i j; ring
+  unfold Hagi.Core.frobSq frobInner
+  simp only [Matrix.add_apply, Matrix.smul_apply, smul_eq_mul]
+  rw [Finset.sum_congr rfl (fun i _ =>
+    Finset.sum_congr rfl (fun j _ => key i j))]
+  rw [sum_three_split]
+  simp only [Finset.mul_sum, Finset.sum_mul, mul_assoc]
+
+theorem frobSq_zero (d : ℕ) :
+    Hagi.Core.frobSq (0 : Matrix (Fin d) (Fin d) ℝ) = 0 := by
+  unfold Hagi.Core.frobSq; simp
+
+theorem frobInner_zero_left (W : Matrix (Fin d) (Fin d) ℝ) :
+    frobInner (0 : Matrix (Fin d) (Fin d) ℝ) W = 0 := by
+  unfold frobInner; simp
+
+theorem frobSq_smul (W : Matrix (Fin d) (Fin d) ℝ) (η : ℝ) :
+    Hagi.Core.frobSq (η • W) = η ^ 2 * Hagi.Core.frobSq W := by
+  have hz : (0 : Matrix (Fin d) (Fin d) ℝ) + η • W = η • W := by
+    ext i j; simp
+  have h := frobSq_add_smul 0 W η
+  rw [frobSq_zero, frobInner_zero_left] at h
+  rw [← hz] at h
+  simpa using h
+
+/-- The A8 insufficiency witness: for every `tol ≥ 0` and every
+nonzero bilinear direction `W` there is a step size `η` at which
+the EXACT quadratic drift exceeds `tol` even though the linear
+term is identically zero (so the linear-only acceptance test
+passes for every tolerance). -/
+theorem safeqp_linear_test_insufficient (tol : ℝ) (htol : 0 ≤ tol)
+    (W : Matrix (Fin d) (Fin d) ℝ) (hW : 0 < Hagi.Core.frobSq W) :
+    ∃ η : ℝ, tol < Hagi.Core.frobSq (η • W)
+        - Hagi.Core.frobSq (0 : Matrix (Fin d) (Fin d) ℝ) := by
+  refine ⟨Real.sqrt ((tol + 1) / Hagi.Core.frobSq W), ?_⟩
+  have h0 := frobSq_zero d
+  have hx : 0 ≤ (tol + 1) / Hagi.Core.frobSq W :=
+    div_nonneg (by linarith) (le_of_lt hW)
+  have hsq : (Real.sqrt ((tol + 1) / Hagi.Core.frobSq W)) ^ 2
+      = (tol + 1) / Hagi.Core.frobSq W := Real.sq_sqrt hx
+  rw [h0, sub_zero, frobSq_smul, hsq,
+    div_mul_cancel₀ _ (ne_of_gt hW)]
+  linarith
+
+/-- The second-order-aware acceptance premise (the honest bilinear
+descent certificate): with the descent-lemma bound and the
+quadratic-aware acceptance `(L/2)·η²·‖d‖² − eps ≤ η·⟪g, d⟫`, the
+loss increase is at most `eps` — the form the bilinear case
+NEEDS (the linear-only test cannot supply the acceptance side). -/
+theorem safeqp_second_order_acceptance (inner eps L dnorm eta dL : ℝ)
+    (h_lipline : dL ≤ -eta * inner + L * eta * eta * dnorm / 2)
+    (hacc : L * eta * eta * dnorm / 2 - eps ≤ eta * inner) :
+    dL ≤ eps := by linarith
+
+/-- Preconditioner-metric premise-form (A8 `(I + γΣ_old)⁻¹`):
+a PSD-preconditioned direction `d = (QᵀQ) *ᵥ g` is conflict-free
+— `⟪g, d⟫ = ‖Q *ᵥ g‖² ≥ 0`. -/
+theorem safeqp_precond_conflict_free {n : ℕ}
+    (Q : Matrix (Fin n) (Fin n) ℝ) (g : Fin n → ℝ) :
+    g ⬝ᵥ ((Qᵀ * Q) *ᵥ g) = (Q *ᵥ g) ⬝ᵥ (Q *ᵥ g) := by
+  rw [show ((Qᵀ * Q) *ᵥ g) = Qᵀ *ᵥ (Q *ᵥ g) from
+      (Matrix.mulVec_mulVec g Qᵀ Q).symm,
+    Matrix.dotProduct_mulVec, Matrix.vecMul_transpose]
+
+theorem safeqp_precond_conflict_free_nonneg {n : ℕ}
+    (Q : Matrix (Fin n) (Fin n) ℝ) (g : Fin n → ℝ) :
+    0 ≤ g ⬝ᵥ ((Qᵀ * Q) *ᵥ g) := by
+  rw [safeqp_precond_conflict_free]
+  unfold dotProduct
+  exact Finset.sum_nonneg (fun i _ => mul_self_nonneg _)
+
+end SafeQPBilinearDrift
 
 end Hagi.Step
 

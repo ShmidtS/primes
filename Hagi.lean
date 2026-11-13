@@ -27,6 +27,7 @@ import Hagi.Step.Muon
 import Hagi.Step.Compound
 import Hagi.Budget.RankBudget
 import Hagi.Budget.WeightedExpAlloc
+import Hagi.Budget.IsoFrobAlloc
 import Hagi.Data.DField
 import Hagi.Data.DataMixing
 import Hagi.Data.InfoNCE
@@ -106,6 +107,7 @@ import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.SpaceDecoupling
 import Hagi.Architecture.CascadeLeak
+import Hagi.Architecture.IsoFrobCascade
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.Configuration
 import Hagi.Budget.ActiveCompute

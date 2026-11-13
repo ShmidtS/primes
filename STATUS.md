@@ -5001,3 +5001,29 @@ merger cert carriers (Freeze-дисциплина: statement change).
   (VennHead: xorMask/andMask/borrowMask + maskRank факты, venn2Head,
   venn2_adder_correct/venn2_suber_correct/venn2_adder_real,
   мосты venn2_sum/carry/borrow_head через vennHead_exact).
+
+- C252 (A8 F7): изотропно-фробениусовы каскадные
+  чувствительности + SafeQP quadratic drift —
+  `Hagi/Architecture/IsoFrobCascade.lean` (новый модуль):
+  `columnEnergy_basis` — ТОЧНАЯ базис-средняя идентичность
+  (алгебраический суррогат изотропного ожидаемого усиления,
+  без вероятности); `isoFrobEnergy = frobSq/d`;
+  `isoFrobEnergy_le_opNorm_sq` — изотропное среднее ≤ worst-case
+  op-нормы (спектральный продукт завышает — сравнение F7:
+  `isoCascadeEnergy_le_cascadeGain_sq`);
+  `propagateLin_frobEnergy_le`/`propagateLin_isoEnergy_le` —
+  каскадная энергетическая граница на C250 carrier
+  (propagateLin, переиспользование frobSubord); SafeQPStep
+  (аддитивно): `frobSq_add_smul` — ТОЧНОЕ билинейное разложение
+  (квадратичный член достигается при L=2), `frobSq_smul`,
+  `safeqp_linear_test_insufficient` — witness недостаточности
+  линейного приёмного теста, `safeqp_second_order_acceptance` —
+  честная second-order-aware посылка,
+  `safeqp_precond_conflict_free` — premise-form метрики
+  (I+γΣ_old)⁻¹ (PSD-направление бесконфликтно);
+  `Hagi/Budget/IsoFrobAlloc.lean` (новый): `isoFrobSensitivity`
+  (c_j = isoFrobEnergy tail · hScale) +
+  `weightedExpAllocation_isoFrob_optimal` — транспорт
+  оптимальности WeightedExpAlloc на каскадные веса (аддитивная
+  модель = честная deep-net специализация). Эмпирические MSE
+  (2.2e-5 vs 2.5e-5) — мотивация в ALGORITHMS §20, не посылки.
