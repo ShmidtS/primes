@@ -37,7 +37,6 @@ import Hagi.Data.DFieldKKT
 import Hagi.Data.DBridge
 import Hagi.Data.Distill
 import Hagi.Data.DistillRecursion
-import Hagi.Data.CertifiedArgmax
 import Hagi.Step.SafeQP
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
@@ -106,7 +105,6 @@ import Hagi.Learning.HadamardParseval
 import Hagi.Learning.SpectralBudget
 import Hagi.Information.Capacity
 import Hagi.Probability.PinskerTV
-import Hagi.Growth.AdaptiveQuery
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.VariantSafeQP
@@ -209,7 +207,6 @@ import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.PerronCone
 import Hagi.Foundations.MesoScale
 import Hagi.Foundations.ConeCorridor
-import Hagi.Budget.CertifiedArgmax
 import Hagi.Ensemble.SigmaKernel
 import Hagi.Growth.RsiCriterion
 import Hagi.Architecture.FactorRank
@@ -493,6 +490,7 @@ import Hagi.Model.GatedCEUniformCurvature
 import Hagi.Model.Routing
 import Hagi.Cert.Core
 import Hagi.Cert.Adapters
+import Hagi.Cert.CertifiedArgmax
 
 set_option linter.style.header false
 
