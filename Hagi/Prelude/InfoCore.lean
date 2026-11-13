@@ -2,7 +2,192 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Prelude.Info
+
+set_option linter.style.header false
+
+
+/-!
+# Prelude.Info — the single information-theory prelude
+
+The canonical information-theoretic definitions:
+
+* `klDef q p := ∑ v, q v * log (q v / p v)` — KL divergence
+  (`q` is the sampling distribution);
+* `ceDef q p := −∑ v, q v * log (p v)` — cross-entropy
+  (CE_q(p), the standard minus sign); canonical for all
+  downstream CE names (Data.crossEntropy, Data.CE);
+* `entDef p := −∑ v, p v * log (p v)` — Shannon entropy;
+* `tvDef p q := (∑ v, |p v − q v|)/2` — total variation;
+* `softDef z := exp(z)/Σexp` — softmax.
+
+Bridge identities to historical consumer names are stated in
+the consumers, each as a one-line `rfl`.
+-/
+namespace Hagi.Prelude
+
+open Finset
+
+variable {V : Type*} [Fintype V]
+
+/-- KL divergence: `∑ v, q v * log (q v / p v)` (`q` is the
+sampling distribution). -/
+noncomputable def klDef (q p : V → ℝ) : ℝ :=
+  ∑ v, q v * Real.log (q v / p v)
+
+/-- КОНТРАКТ ДОПУСТИМОСТИ KL (аудит v4 §3.9): klDef определена
+на произвольных вещественных векторах, где log(0) и деление
+на 0 дают конечные значения Lean — математическая KL при
+q ≰ p (носитель q не вложен в носитель p) равна +∞.
+Допустимый вход: вероятностные векторы с вложенным носителем
+(q ≪ p); на них конечная klDef совпадает с математической
+KL и корректна (kl_nonneg и все мосты уже требуют p > 0). -/
+def KLSupported (q p : V → ℝ) : Prop :=
+  (∀ v, 0 ≤ q v) ∧ (∑ v, q v = 1)
+    ∧ (∀ v, 0 < p v) ∧ (∑ v, p v = 1)
+
+/-- Допустимость даёт строгую положительность p всюду —
+частный случай вложения носителей (наиболее общий случай
+поддержки сведён к строгой положительности; расширенная
+ENNReal-семантика остаётся отдельным слоем). -/
+theorem KLSupported_pos (q p : V → ℝ) (h : KLSupported q p) :
+    ∀ v, 0 < p v := h.2.2.1
+
+/-- На допустимых входах слагаемые klDef корректны:
+конечные логарифмы положительных отношений (для активных
+компонент q v > 0; слагаемые с q v = 0 равны нулю и
+семантически корректны как 0·log 0 = 0). -/
+theorem klDef_terms_finite (q p : V → ℝ) (h : KLSupported q p)
+    (v : V) (hq : 0 < q v) : 0 < q v / p v :=
+  div_pos hq (h.2.2.1 v)
+
+/-- Cross-entropy of p against q: `ceDef q p = −∑ v, q v * log (p v)`
+(the standard minus sign; q is the sampling distribution). -/
+noncomputable def ceDef (q p : V → ℝ) : ℝ :=
+  -∑ v, q v * Real.log (p v)
+
+/-- Shannon entropy: `−∑ v, p v * log (p v)`. -/
+noncomputable def entDef (p : V → ℝ) : ℝ :=
+  -∑ v, p v * Real.log (p v)
+
+/-- On a nonempty finite carrier, a nonnegative probability vector has
+Shannon entropy at most the logarithm of the carrier's cardinality. -/
+theorem sum_negMulLog_le_log_card {V : Type*} [Fintype V] [Nonempty V]
+    (p : V → ℝ) (hp : ∀ i, 0 ≤ p i) (hsum : ∑ i, p i = 1) :
+    (∑ i, Real.negMulLog (p i)) ≤ Real.log (Fintype.card V : ℝ) := by
+  let d : ℝ := Fintype.card V
+  have hd : 0 < d := by dsimp [d]; exact_mod_cast (Fintype.card_pos (α := V))
+  have h := Real.concaveOn_negMulLog.le_map_sum (t := Finset.univ)
+    (w := fun _ : V ↦ d⁻¹) (p := p)
+    (fun _ _ ↦ inv_nonneg.mpr hd.le)
+    (by simp only [Finset.sum_const,Finset.card_univ,nsmul_eq_mul]; exact mul_inv_cancel₀ hd.ne')
+    (fun i _ ↦ (show p i ∈ Set.Ici 0 from hp i))
+  simp only [smul_eq_mul,← Finset.mul_sum,hsum,mul_one,Real.negMulLog,Real.log_inv] at h
+  have hh := mul_le_mul_of_nonneg_left h hd.le
+  dsimp only [d] at *
+  calc
+    _ = (Fintype.card V : ℝ) * ((Fintype.card V : ℝ)⁻¹ * ∑ i, Real.negMulLog (p i)) := by
+      rw [← mul_assoc,mul_inv_cancel₀ hd.ne',one_mul]
+    _ ≤ _ := hh
+    _ = _ := by field_simp
+
+/-- Self cross-entropy is the entropy: `ceDef q q = entDef q`. -/
+theorem ceDef_self (q : V → ℝ) : ceDef q q = entDef q := rfl
+
+/-- Total variation distance (half the L1 distance). -/
+noncomputable def tvDef (p q : V → ℝ) : ℝ :=
+  (∑ v, |p v - q v|) / 2
+
+/-- The softmax: `exp (z a) / ∑ b, exp (z b)`. -/
+noncomputable def softDef {k : Type*} [Fintype k] (z : k → ℝ) : k → ℝ :=
+  fun a => Real.exp (z a) / ∑ b, Real.exp (z b)
+
+/-- Softmax is strictly positive (exp positive over a positive
+normalizer). -/
+theorem softDef_pos {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) (a : k) :
+    0 < softDef z a := by
+  unfold softDef
+  exact div_pos (Real.exp_pos _)
+    (Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty)
+
+/-- Softmax normalizes: `∑ a, softDef z a = 1`. -/
+theorem softDef_sum_one {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) :
+    ∑ a, softDef z a = 1 := by
+  have hZ : 0 < ∑ b : k, Real.exp (z b) :=
+    Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
+  unfold softDef
+  rw [← Finset.sum_div (Finset.univ : Finset k)]
+  rw [div_self (Ne.symm (ne_of_lt hZ))]
+
+/-- **KL ≥ 0 при нулевых вероятностях q** (§1.2 аудита v3:
+явная постановка для q ≥ 0, p > 0): KL-расхождение
+неотрицательно, когда q лишь неотрицательно (слагаемые с
+q v = 0 равны 0: 0 · log 0 = 0). Строгая положительность
+требуется только от p. -/
+theorem kl_nonneg_of_nonneg (q p : V → ℝ)
+    (hq : ∀ v, 0 ≤ q v) (hp : ∀ v, 0 < p v)
+    (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1) :
+    0 ≤ klDef q p := by
+  have hterm : ∀ v : V, q v - p v ≤ q v * Real.log (q v / p v) := by
+    intro v
+    by_cases hq0 : q v = 0
+    · rw [hq0, zero_div, Real.log_zero, mul_zero]
+      linarith [hp v]
+    · have hqpos : 0 < q v := lt_of_le_of_ne (hq v) (Ne.symm hq0)
+      have h1 : Real.log (p v / q v) ≤ p v / q v - 1 :=
+        Real.log_le_sub_one_of_pos (div_pos (hp v) hqpos)
+      have h2 : Real.log (p v / q v) = -Real.log (q v / p v) := by
+        rw [Real.log_div (ne_of_gt (hp v)) (ne_of_gt hqpos),
+            Real.log_div (ne_of_gt hqpos) (ne_of_gt (hp v))]
+        ring
+      rw [h2] at h1
+      have h3 : q v * (-(Real.log (q v / p v))) ≤ q v * (p v / q v - 1) :=
+        mul_le_mul_of_nonneg_left h1 (le_of_lt hqpos)
+      have h4 : q v * (p v / q v - 1) = p v - q v := by
+        have hqv : q v ≠ 0 := ne_of_gt hqpos
+        have h : p v / q v - 1 = (p v - q v) / q v := by
+          field_simp [hqv]
+        rw [h]
+        exact mul_div_cancel₀ (p v - q v) hqv
+      rw [h4, mul_neg] at h3
+      linarith
+  have hsum : ∑ v, (q v - p v) ≤ ∑ v, q v * Real.log (q v / p v) :=
+    Finset.sum_le_sum fun v _ => hterm v
+  unfold klDef at hsum ⊢
+  rw [Finset.sum_sub_distrib, hsumq, hsump] at hsum
+  norm_num at hsum
+  exact hsum
+
+/-- KL is the excess cross-entropy over the entropy baseline:
+`klDef q p = ceDef q p − ceDef q q`. Requires only that the
+second argument p be everywhere nonzero (total Real.log/div
+semantics: q = 0 contributes 0 on both sides; under extended
+mathematical KL the identity needs the support condition on q
+as well). -/
+theorem klDef_eq_ceDef_sub (q p : V → ℝ) (hp : ∀ v, p v ≠ 0) :
+    klDef q p = ceDef q p - ceDef q q := by
+  unfold klDef ceDef
+  rw [← Finset.sum_neg_distrib, ← Finset.sum_neg_distrib,
+    ← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun v _ => ?_
+  by_cases hq : q v = 0
+  · simp [hq]
+  · rw [Real.log_div hq (hp v)]
+    ring
+
+/-- **KL ≥ 0 (Gibbs)**: для строго положительных вероятностных
+векторов KL-расхождение неотрицательно. Канон R334:
+потребители (`Data/DField.KLdiv`, `Energy/Variational.kldiv'`,
+все rfl-мосты к `klDef`) делегируют сюда. -/
+theorem kl_nonneg (q p : V → ℝ)
+    (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
+    (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1) :
+    0 ≤ klDef q p := by
+  -- dedup: the strict case is the special case q > 0 of the
+  -- zero-tolerant canon below (one-line delegation)
+  exact kl_nonneg_of_nonneg q p (fun v => le_of_lt (hq v)) hp hsumq hsump
+
+end Hagi.Prelude
+
 /-!
 # SpectralEntropy — entropy from the spectral theorem
 (h2-Fannes port, layer 2/N)
@@ -1153,3 +1338,173 @@ theorem discrete_fannes_coupling [Nonempty ι] (p q : ι → ℝ)
 end DiagPSD
 
 end Hagi.Information
+
+/-!
+# FannesSmooth: entropy continuity in the non-singular regime
+
+The full Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)`
+remains open (the singular h₂ term needs the zero-mass
+rearrangement machinery absent from Mathlib). This module
+closes the smooth part of the remainder: on the interior of
+the simplex (both distributions δ-separated from the
+boundary), entropy is Lipschitz in total variation with an
+explicit constant — via the mean-value bound for log.
+
+**Results.**
+
+* `abs_log_sub_le` — the log increment bound:
+  `|log a − log b| ≤ |a − b| / min a b` for positive `a, b`.
+
+* `entropy_lipschitz_smooth` — under the hypothesis that
+  probability vectors `p, q` on `V` have all masses in
+  `[δ, 1]` (δ > 0),
+
+  `|H(p) − H(q)| ≤ (2/δ + 2·log(1/δ)) · TV(p, q)`.
+
+  The full Fannes bound with the singular `h₂(τ)` term is
+  not proven here.
+-/
+
+namespace Hagi.Data
+
+open Finset Real
+
+variable {V : Type} [Fintype V] [Nonempty V]
+
+
+
+/-- **The log increment bound**: for positive `a ≤ b`,
+`log b − log a ≤ (b − a)/a` (the mean-value bound for log);
+symmetrically, `|log a − log b| ≤ |a − b| / min a b`. -/
+theorem log_sub_le_div (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hle : a ≤ b) :
+    Real.log b - Real.log a ≤ (b - a) / a := by
+  rw [← Real.log_div (ne_of_gt hb) (ne_of_gt ha),
+    show (b - a) / a = b / a - 1 from by field_simp]
+  exact Real.log_le_sub_one_of_pos (div_pos hb ha)
+
+theorem abs_log_sub_le (a b : ℝ) (ha : 0 < a) (hb : 0 < b) :
+    |Real.log a - Real.log b| ≤ |a - b| / min a b := by
+  rcases le_total a b with hab | hba
+  · have hmin : min a b = a := min_eq_left hab
+    rw [hmin]
+    have habs : |b - a| = b - a := abs_of_nonneg (sub_nonneg_of_le hab)
+    have h1 : Real.log a ≤ Real.log b := Real.log_le_log ha hab
+    have habsl : |Real.log a - Real.log b| = Real.log b - Real.log a := by
+      rw [abs_of_nonpos (by have : Real.log b - Real.log a ≥ 0 := sub_nonneg.mpr h1; linarith)]
+      ring
+    rw [habsl]
+    calc Real.log b - Real.log a ≤ (b - a) / a := log_sub_le_div a b ha hb hab
+      _ = |b - a| / a := by rw [habs]
+      _ = |a - b| / a := by rw [abs_sub_comm]
+  · have hmin : min a b = b := min_eq_right hba
+    rw [hmin]
+    have habs : |a - b| = a - b := abs_of_nonneg (sub_nonneg_of_le hba)
+    have h1 : Real.log b ≤ Real.log a := Real.log_le_log hb hba
+    have habsl : |Real.log a - Real.log b| = Real.log a - Real.log b := by
+      rw [abs_of_nonneg (sub_nonneg.mpr h1)]
+    rw [habsl]
+    calc Real.log a - Real.log b ≤ (a - b) / b := log_sub_le_div b a hb ha hba
+      _ = |a - b| / b := by rw [habs]
+
+/-- **Smooth Fannes**: on the δ-interior of the simplex the
+entropy is Lipschitz in total variation with the explicit
+constant `2/δ + 2·log(1/δ)` — the non-singular half of the
+Fannes program. The singular h₂ term (zero-mass boundary)
+remains open, as documented. -/
+theorem entropy_lipschitz_smooth (p q : V → ℝ) (delta : ℝ) (hdelta : 0 < delta)
+    (hdelta1 : delta ≤ 1)
+    (hp : ∀ v, delta ≤ p v) (hq : ∀ v, delta ≤ q v)
+    (hp1 : ∀ v, p v ≤ 1) (hq1 : ∀ v, q v ≤ 1) :
+    |Hagi.Prelude.entDef p - Hagi.Prelude.entDef q| ≤ (2 / delta + 2 * Real.log (1 / delta)) * Hagi.Prelude.tvDef p q := by
+  -- the log magnitude bound on the interior
+  have hlogb : ∀ v, |Real.log (q v)| ≤ Real.log (1 / delta) := by
+    intro v
+    have hqpos : 0 < q v := lt_of_lt_of_le hdelta (hq v)
+    have hle1 : Real.log (q v) ≤ 0 := by
+      have := Real.log_le_log hqpos (hq1 v)
+      simpa using this
+    have hge : Real.log delta ≤ Real.log (q v) :=
+      Real.log_le_log hdelta (hq v)
+    have hinv : Real.log (1 / delta) = -Real.log delta := by
+      have h1 : (1 / delta) = delta⁻¹ := one_div delta
+      rw [h1]
+      exact Real.log_inv delta
+    rw [abs_of_nonpos hle1, hinv]
+    linarith
+  -- the decomposition: Hagi.Prelude.entDef p - Hagi.Prelude.entDef q = sum (q-p) log q + sum p (log q - log p)
+  have hdecomp : Hagi.Prelude.entDef p - Hagi.Prelude.entDef q
+      = (∑ v, (q v - p v) * Real.log (q v))
+        + (∑ v, p v * (Real.log (q v) - Real.log (p v))) := by
+    unfold Hagi.Prelude.entDef
+    rw [neg_sub_neg (a := ∑ v, p v * Real.log (p v)) (b := ∑ v, q v * Real.log (q v)),
+      ← Finset.sum_sub_distrib, ← Finset.sum_add_distrib]
+    exact Finset.sum_congr rfl fun v _ => by ring
+  rw [hdecomp]
+  -- the two components
+  set L := ∑ v, |q v - p v| with hL
+  have hA : |∑ v, (q v - p v) * Real.log (q v)| ≤ Real.log (1 / delta) * L := by
+    calc |∑ v, (q v - p v) * Real.log (q v)|
+        ≤ ∑ v, |(q v - p v) * Real.log (q v)| :=
+          Finset.abs_sum_le_sum_abs (fun v => (q v - p v) * Real.log (q v)) Finset.univ
+      _ ≤ ∑ v, |q v - p v| * Real.log (1 / delta) := by
+          refine Finset.sum_le_sum fun v _ => ?_
+          calc |(q v - p v) * Real.log (q v)| ≤ |q v - p v| * |Real.log (q v)| :=
+                (abs_mul _ _).le
+            _ ≤ |q v - p v| * Real.log (1 / delta) :=
+                mul_le_mul_of_nonneg_left (hlogb v) (abs_nonneg _)
+      _ = Real.log (1 / delta) * L := by
+          rw [Finset.mul_sum]
+          exact Finset.sum_congr rfl fun v _ => mul_comm _ _
+  have hstep : ∀ v : V,
+      |q v - p v| / min (p v) (q v) ≤ |q v - p v| / delta := by
+    intro v
+    have hp0 : 0 < p v := lt_of_lt_of_le hdelta (hp v)
+    have hq0 : 0 < q v := lt_of_lt_of_le hdelta (hq v)
+    have hm : delta ≤ min (p v) (q v) := le_min (hp v) (hq v)
+    have hmin0 : 0 < min (p v) (q v) := by positivity
+    rw [div_le_div_iff₀ hmin0 hdelta]
+    nlinarith [abs_nonneg (q v - p v)]
+  have hB : ∑ v, p v * |Real.log (q v) - Real.log (p v)| ≤ (1 / delta) * L := by
+    calc ∑ v, p v * |Real.log (q v) - Real.log (p v)|
+        ≤ ∑ v, p v * (|q v - p v| / min (p v) (q v)) := by
+          refine Finset.sum_le_sum fun v _ => ?_
+          refine le_trans (mul_le_mul_of_nonneg_left
+            (abs_log_sub_le (q v) (p v) (lt_of_lt_of_le hdelta (hq v))
+              (lt_of_lt_of_le hdelta (hp v))) (le_trans hdelta.le (hp v))) ?_
+          rw [min_comm]
+      _ ≤ ∑ v, p v * (|q v - p v| / delta) := by
+          refine Finset.sum_le_sum fun v _ => ?_
+          exact mul_le_mul_of_nonneg_left (hstep v) (le_trans hdelta.le (hp v))
+      _ ≤ (1 / delta) * L := by
+          have hsum : ∑ v, p v * (|q v - p v| / delta)
+              ≤ ∑ v, (1:ℝ) * (|q v - p v| / delta) := by
+            refine Finset.sum_le_sum fun v _ => ?_
+            exact mul_le_mul_of_nonneg_right (hp1 v) (by positivity)
+          have hsimp : ∑ v, (1:ℝ) * (|q v - p v| / delta)
+              = (1 / delta) * ∑ v, |q v - p v| := by
+            rw [Finset.mul_sum]
+            exact Finset.sum_congr rfl fun v _ => by ring
+          exact le_trans hsum (by rw [hL]; exact le_of_eq hsimp)
+  -- combine
+  have hsplit : (2 / delta + 2 * Real.log (1 / delta)) * Hagi.Prelude.tvDef p q
+      = Real.log (1 / delta) * L + (1 / delta) * L := by
+    rw [Hagi.Prelude.tvDef, hL]
+    field_simp
+    simp only [abs_sub_comm]
+    ring
+  calc |∑ v, (q v - p v) * Real.log (q v)
+        + ∑ v, p v * (Real.log (q v) - Real.log (p v))|
+      ≤ |∑ v, (q v - p v) * Real.log (q v)|
+        + |∑ v, p v * (Real.log (q v) - Real.log (p v))| :=
+          abs_add_le _ _
+    _ ≤ |∑ v, (q v - p v) * Real.log (q v)|
+        + ∑ v, p v * |Real.log (q v) - Real.log (p v)| := by
+          refine add_le_add (le_refl _) ?_
+          refine le_trans (Finset.abs_sum_le_sum_abs
+            (fun v => p v * (Real.log (q v) - Real.log (p v))) Finset.univ) ?_
+          refine Finset.sum_le_sum fun v _ => ?_
+          rw [abs_mul, abs_of_nonneg (le_trans hdelta.le (hp v))]
+    _ ≤ Real.log (1 / delta) * L + (1 / delta) * L := add_le_add hA hB
+    _ = (2 / delta + 2 * Real.log (1 / delta)) * Hagi.Prelude.tvDef p q := hsplit.symm
+
+end Hagi.Data

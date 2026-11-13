@@ -1,4 +1,4 @@
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 -- Формализация ядра arXiv 2610.31592v1 (углы сферического симплекса).
 open Finset Real
 

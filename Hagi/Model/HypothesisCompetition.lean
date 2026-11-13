@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Mathlib
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 set_option linter.style.header false
 
 /-!

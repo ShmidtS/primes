@@ -1,4 +1,4 @@
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 
 /-!
 Формализация точной математики arXiv 2610.26845v1

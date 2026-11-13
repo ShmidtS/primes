@@ -55,7 +55,7 @@ import Hagi.Budget.BitAlloc
 import Hagi.Budget.BitAllocTermination
 import Hagi.Data.NessDissipation
 import Hagi.Probability.StationaryFlatness
-import Hagi.Data.FannesSmooth
+import Hagi.Prelude.InfoCore
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.ProbeError
@@ -68,10 +68,8 @@ import Hagi.Omni.ConditionalInformation
 import Hagi.Omni.CrossModalGap
 import Hagi.Omni.OmniState
 import Hagi.Omni.OmniInvariant
-import Hagi.Prelude.Info
 import Hagi.Foundations.GrowthDynamics
 import Hagi.Foundations.StageCalculus
-import Hagi.Information.DiscreteFannes
 import Hagi.Unified.CostComposition
 import Hagi.Unified.EFTheory
 import Hagi.Unified.TernaryWitness
@@ -94,7 +92,7 @@ import Hagi.Learning.RegCovPD
 import Hagi.Learning.TernaryPert
 import Hagi.Learning.PertTelescope
 import Hagi.Learning.FOOFUnique
-import Hagi.Unified.InfoCanonical
+import Hagi.Probability.FannesPinsker
 import Hagi.Learning.RouterMix
 import Hagi.Learning.BitBudget
 import Hagi.Learning.TrainingTransition
@@ -104,7 +102,6 @@ import Hagi.Learning.HadamardComplete
 import Hagi.Learning.HadamardParseval
 import Hagi.Learning.SpectralBudget
 import Hagi.Information.Capacity
-import Hagi.Probability.PinskerTV
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Step.VariantSafeQP
@@ -303,11 +300,9 @@ import Hagi.Probability.FiniteMultiEM
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.DerivAlong
-import Hagi.Unified.FannesComplete
 import Hagi.Unified.GaugeQuotient
 import Hagi.Unified.InterpretiveGrowth
 import Hagi.Unified.ModelComparison
-import Hagi.Unified.NernstFannes
 import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
 import Hagi.Model.CertifiedTransition

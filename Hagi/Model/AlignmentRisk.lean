@@ -1,5 +1,5 @@
 import Hagi.Model.RL
-import Hagi.Probability.PinskerTV
+import Hagi.Probability.FannesPinsker
 
 /-!
 # Alignment-риск: KL-штраф → сертифицированный риск-канал

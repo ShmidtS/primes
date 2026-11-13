@@ -1,4 +1,4 @@
-import Hagi.Unified.FannesComplete
+import Hagi.Probability.FannesPinsker
 
 /-!
 # Дистилляция знаний: температурный информационный диал (№19)

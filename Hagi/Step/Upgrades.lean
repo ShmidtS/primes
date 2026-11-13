@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 import Hagi.External.Diversity
 /-!
 # The value of information: the bounded-regression reading policy

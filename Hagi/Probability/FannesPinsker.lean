@@ -1,11 +1,726 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Prelude.Info
+import Mathlib
+import Hagi.Prelude.InfoCore
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.GibbsInfoCore
 import Hagi.Probability.GibbsCooling
+
 set_option linter.style.header false
+
+/-!
+# FannesPinsker — consolidated Fannes + Pinsker canon (A5 §R3, C235)
+
+Merge of `Hagi.Unified.FannesComplete` (discrete Fannes, mixed-entropy
+bounds; namespace `Hagi.Unified` preserved), `Hagi.Unified.InfoCanonical`
+(entDef/tvDef-world bridges), `Hagi.Unified.NernstFannes` (Nernst via
+Fannes), and `Hagi.Probability.PinskerTV` (Pinsker family; namespaces
+`Hagi.Probability` and tail `Hagi.Information` preserved). FQNs of all
+moved declarations preserved via namespace blocks (C234 pattern);
+statements byte-identical. Definitions live in `Hagi.Prelude.InfoCore`.
+-/
+
+/-!
+# Полная Fannes-граница без моста (R532)
+
+Закрытие открытого пункта STATUS «полная Fannes-граница»:
+безусловная дискретная refined-Fannes для весовых векторов,
+без hbridge-гипотезы (entropy диагонали = Shannon —
+сортированные корни диагонали отсутствуют в Mathlib v4.34.1).
+
+Ядро — чисто вещественная KL-иерархия:
+
+* `nml_mul` — расщепление negMulLog(c·x);
+* `xlogx_superadd` — супераддитивность x·log x (Дженсен
+  против нуля = монотонность логарифма);
+* `mix_point` — поэлементная верхняя оценка смеси;
+* `mix_entropy_upper` — H(aq+bû) ≤ aH(q)+bH(û)+h₂(b);
+* `zs_kl` — zero-safe KL ≥ 0 (носитель-сужение
+  log_sum_ineq_on);
+* `mix_entropy_lower` — вогнутость aH(q)+bH(û) ≤ H(aq+bû);
+* `shannon_le_log_card` — H ≤ log d (KL с uniform);
+* `fannes_unconditional` — ГЛАВНАЯ: H(p)−H(q) ≤ t·log d +
+  (1+t)·h₂(t/(1+t)), t = Hagi.Information.tvHalf p q.
+-/
+
+namespace Hagi.Unified
+
+open Real Finset
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+theorem zs_kl {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (A B : ι → ℝ) (hA : ∀ i, 0 ≤ A i) (hB : ∀ i, 0 ≤ B i)
+    (hA1 : ∑ i, A i = 1) (hB1 : ∑ i, B i ≤ 1)
+    (hsupp : ∀ i, 0 < A i → 0 < B i) :
+    0 ≤ ∑ i, A i * Real.log (A i / B i) := by
+  classical
+  set S : Finset ι := Finset.filter (fun i => 0 < A i) Finset.univ with hSdef
+  have hAz : ∀ i, i ∉ S → A i = 0 := by
+    intro i hi
+    by_contra hne
+    exact hi (Finset.mem_filter.mpr ⟨Finset.mem_univ i,
+      lt_of_le_of_ne (hA i) (Ne.symm hne)⟩)
+  have hSne : S.Nonempty := by
+    by_contra hempty
+    rw [Finset.not_nonempty_iff_eq_empty] at hempty
+    have hz : ∑ i, A i = 0 :=
+      Finset.sum_eq_zero (fun i _ => hAz i (fun hmem =>
+        absurd hmem (by rw [hempty]; simp)))
+    linarith
+  have hha : ∀ i ∈ S, 0 < A i := fun i hi => Finset.mem_filter.mp hi |>.2
+  have hhb : ∀ i ∈ S, 0 < B i := fun i hi => hsupp i (hha i hi)
+  have key : ∀ (f : ι → ℝ), (∀ i, i ∉ S → f i = 0) → ∑ i, f i = ∑ i ∈ S, f i :=
+    fun f hf => (Finset.sum_subset S.subset_univ
+      (fun i _ hi => hf i hi)).symm
+  have hsumA : ∑ i ∈ S, A i = 1 := by rw [← key A (fun i hi => hAz i hi)]; exact hA1
+  -- ∑_S B ≤ 1
+  have hsumB : ∑ i ∈ S, B i ≤ 1 := by
+    have hkey2 : ∑ i ∈ S, (fun i => if i ∈ S then B i else 0) i
+        = ∑ i ∈ Finset.univ, (fun i => if i ∈ S then B i else 0) i :=
+      Finset.sum_subset S.subset_univ (fun i _ hi => by simp [hi])
+    have hSS : ∑ i ∈ S, (fun i => if i ∈ S then B i else 0) i = ∑ i ∈ S, B i :=
+      Finset.sum_congr rfl (fun i hi => by simp [hi])
+    have hle : ∀ i ∈ Finset.univ,
+        (fun i => if i ∈ S then B i else 0) i ≤ B i := by
+      intro i _
+      simp only []
+      by_cases hi : i ∈ S
+      · rw [if_pos hi]
+      · rw [if_neg hi]
+        exact hB i
+    have htot : ∑ i ∈ Finset.univ, (fun i => if i ∈ S then B i else 0) i
+        ≤ ∑ i ∈ Finset.univ, B i := Finset.sum_le_sum hle
+    rw [← hkey2, hSS] at htot
+    simpa using htot.trans hB1
+  have hsplit : ∑ i, A i * Real.log (A i / B i)
+      = ∑ i ∈ S, A i * Real.log (A i / B i) :=
+    key _ (fun i hi => by rw [hAz i hi, zero_mul])
+  have hSne2 := hSne
+  obtain ⟨j, hj⟩ := hSne2
+  have hposB : 0 < ∑ i ∈ S, B i := by
+    have h1 : (0:ℝ) < B j := hhb j hj
+    have h2 : B j ≤ ∑ i ∈ S, B i :=
+      Finset.single_le_sum (f := B) (fun i _ => hB i) hj
+    linarith
+  rw [hsplit]
+  have hli := log_sum_ineq_on S hSne A B hha hhb
+  rw [hsumA] at hli
+  have hlog : 0 ≤ Real.log (1 / (∑ i ∈ S, B i)) := by
+    apply Real.log_nonneg
+    rw [one_le_div_iff]
+    exact Or.inl ⟨hposB, hsumB⟩
+  have hone : (1:ℝ) * Real.log (1 / ∑ i ∈ S, B i)
+      = Real.log (1 / ∑ i ∈ S, B i) := by ring
+  rw [hone] at hli
+  linarith
+
+
+lemma nml_mul (c x : ℝ) (hc : 0 ≤ c) (hx : 0 ≤ x) :
+    Real.negMulLog (c * x) = c * Real.negMulLog x + x * Real.negMulLog c := by
+  by_cases hc0 : c = 0
+  · simp [hc0, Real.negMulLog]
+  by_cases hx0 : x = 0
+  · simp [hx0, Real.negMulLog]
+  have hcpos : 0 < c := lt_of_le_of_ne hc (Ne.symm hc0)
+  have hxpos : 0 < x := lt_of_le_of_ne hx (Ne.symm hx0)
+  have hlog : Real.log (c * x) = Real.log c + Real.log x :=
+    Real.log_mul hcpos.ne' hxpos.ne'
+  unfold Real.negMulLog
+  rw [hlog]
+  ring_nf
+
+-- superadditivity of x·log x (Jensen against 0 = log monotonicity)
+lemma xlogx_superadd (s t : ℝ) (hs : 0 ≤ s) (ht : 0 ≤ t) :
+    s * Real.log s + t * Real.log t ≤ (s + t) * Real.log (s + t) := by
+  have hkey : ∀ x y : ℝ, 0 ≤ x → 0 ≤ y →
+      x * Real.log x ≤ x * Real.log (x + y) := by
+    intro x y hx hy
+    by_cases hx0 : x = 0
+    · rw [hx0, zero_mul, zero_mul]
+    · have hxpos : 0 < x := lt_of_le_of_ne hx (Ne.symm hx0)
+      have hle : Real.log x ≤ Real.log (x + y) :=
+        Real.log_le_log hxpos (by linarith)
+      exact mul_le_mul_of_nonneg_left hle hx
+  have h1 := hkey s t hs ht
+  have h2 := hkey t s ht hs
+  have hring : s * Real.log (s + t) + t * Real.log (t + s)
+      = (s + t) * Real.log (s + t) := by
+    rw [add_comm t s]
+    ring
+  linarith
+
+open Finset
+-- elementwise upper: negMulLog(ax+by) ≤ a·negMulLog x + b·negMulLog y + x·negMulLog a + y·negMulLog b
+lemma mix_point (x y a b : ℝ) (hx : 0 ≤ x) (hy : 0 ≤ y) (ha : 0 ≤ a) (hb : 0 ≤ b) :
+    Real.negMulLog (a * x + b * y)
+      ≤ a * Real.negMulLog x + b * Real.negMulLog y
+        + x * Real.negMulLog a + y * Real.negMulLog b := by
+  have h1 := xlogx_superadd (a * x) (b * y) (mul_nonneg ha hx) (mul_nonneg hb hy)
+  have hnp : ∀ z : ℝ, z * Real.log z = -(Real.negMulLog z) := by
+    intro z; unfold Real.negMulLog; ring
+  rw [hnp, hnp, hnp] at h1
+  -- LHS: (ax+by)·log(ax+by) = -negMulLog(ax+by) — expand the two summands
+  rw [nml_mul a x ha hx, nml_mul b y hb hy] at h1
+  linarith
+
+-- summation: H(aq+bû) ≤ aH(q)+bH(û)+negMulLog a+negMulLog b = ...+h₂(b)
+theorem mix_entropy_upper {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (q u : ι → ℝ) (a b : ℝ)
+    (hq : ∀ i, 0 ≤ q i) (hu : ∀ i, 0 ≤ u i)
+    (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1)
+    (hq1 : ∑ i, q i = 1) (hu1 : ∑ i, u i = 1) :
+    ∑ i, Real.negMulLog (a * q i + b * u i)
+      ≤ a * ∑ i, Real.negMulLog (q i)
+        + b * ∑ i, Real.negMulLog (u i)
+        + Real.binEntropy b := by
+  have hsum : ∑ i, (Real.negMulLog (a * q i + b * u i))
+      ≤ ∑ i, (a * Real.negMulLog (q i) + b * Real.negMulLog (u i)
+        + q i * Real.negMulLog a + u i * Real.negMulLog b) :=
+    Finset.sum_le_sum (fun i _ =>
+      mix_point (q i) (u i) a b (hq i) (hu i) ha hb)
+  -- distribute the four sums
+  have hs1 : ∑ i, a * Real.negMulLog (q i) = a * ∑ i, Real.negMulLog (q i) :=
+    (Finset.mul_sum Finset.univ (fun i => Real.negMulLog (q i)) a).symm
+  have hs2 : ∑ i, b * Real.negMulLog (u i) = b * ∑ i, Real.negMulLog (u i) :=
+    (Finset.mul_sum Finset.univ (fun i => Real.negMulLog (u i)) b).symm
+  have hs3 : ∑ i, q i * Real.negMulLog a = Real.negMulLog a := by
+    rw [← Finset.sum_mul, hq1, one_mul]
+  have hs4 : ∑ i, u i * Real.negMulLog b = Real.negMulLog b := by
+    rw [← Finset.sum_mul, hu1, one_mul]
+  -- combine
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib] at hsum
+  have heq : ∑ i, a * Real.negMulLog (q i) + ∑ i, b * Real.negMulLog (u i)
+      + Real.negMulLog a + Real.negMulLog b
+      = a * ∑ i, Real.negMulLog (q i) + b * ∑ i, Real.negMulLog (u i)
+        + Real.negMulLog a + Real.negMulLog b := by
+    rw [hs1, hs2]
+  -- binEntropy b = negMulLog b + negMulLog (1-b), 1-b = a
+  have hbE : Real.binEntropy b
+      = Real.negMulLog b + Real.negMulLog a := by
+    have hba : 1 - b = a := by linarith
+    rw [Real.binEntropy_eq_negMulLog_add_negMulLog_one_sub, hba]
+  rw [hbE]
+  linarith [hsum, heq]
+
+
+/-- **Вогнутость (нижняя оценка смеси, R532)**:
+aH(q)+bH(û) ≤ H(aq+bû) для весов и вероятностных векторов. -/
+theorem mix_entropy_lower (q u : ι → ℝ) (a b : ℝ)
+    (hq : ∀ i, 0 ≤ q i) (hu : ∀ i, 0 ≤ u i)
+    (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+    a * ∑ i, Real.negMulLog (q i) + b * ∑ i, Real.negMulLog (u i)
+      ≤ ∑ i, Real.negMulLog (a * q i + b * u i) := by
+  have hpoint : ∀ i : ι, a * Real.negMulLog (q i) + b * Real.negMulLog (u i)
+      ≤ Real.negMulLog (a * q i + b * u i) := by
+    intro i
+    have h := Real.concaveOn_negMulLog.le_map_sum
+      (t := (Finset.univ : Finset (Fin 2)))
+      (w := ![a, b]) (p := ![q i, u i])
+      (fun j _ => by
+        fin_cases j
+        · exact ha
+        · exact hb)
+      (by
+        show (∑ j : Fin 2, (![a, b] : Fin 2 → ℝ) j) = 1
+        rw [Fin.sum_univ_two]
+        simp only [Matrix.cons_val_zero, Matrix.cons_val_one]
+        linarith)
+      (fun j _ => by
+        fin_cases j
+        · exact hq i
+        · exact hu i)
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one,
+      smul_eq_mul] at h
+    exact h
+  have hsum : a * ∑ i, Real.negMulLog (q i) + b * ∑ i, Real.negMulLog (u i)
+      = ∑ i, (a * Real.negMulLog (q i) + b * Real.negMulLog (u i)) := by
+    rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+  rw [hsum]
+  exact Finset.sum_le_sum (fun i _ => hpoint i)
+
+/-- **H ≤ log d (R532)**: энтропия вероятностного вектора на
+носителе из d точек не превосходит log d (zero-safe KL с
+uniform). -/
+theorem shannon_le_log_card (p : ι → ℝ) (hp : ∀ i, 0 ≤ p i)
+    (hp1 : ∑ i, p i = 1) :
+    ∑ i, Real.negMulLog (p i)
+      ≤ Real.log (Fintype.card ι) := by
+  rcases Nat.eq_zero_or_pos (Fintype.card ι) with hc0 | hcpos
+  · -- пустой носитель: Σp = 1 невозможно, противоречие
+    exfalso
+    have : IsEmpty ι := Fintype.card_eq_zero_iff.mp hc0
+    have h0 : ∑ i, p i = 0 := by
+      simp [Finset.univ_eq_empty_iff]
+    linarith
+  · letI : Nonempty ι := Fintype.card_pos_iff.mp hcpos
+    exact Hagi.Prelude.sum_negMulLog_le_log_card p hp hp1
+
+/-- **Полная Fannes без моста (R532, ГЛАВНАЯ)**: для весовых
+векторов p, q ≥ 0 с Σ = 1 каждый и t = ½‖p−q‖₁:
+H(p) − H(q) ≤ t·log d + (1+t)·h₂(t/(1+t)). -/
+theorem fanes_unconditional
+    (p q : ι → ℝ) (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
+    (hps : ∑ i, p i = 1) (hqs : ∑ i, q i = 1) :
+    Hagi.Information.shannon p - Hagi.Information.shannon q ≤
+      (Hagi.Information.tvHalf p q) * Real.log (Fintype.card ι : ℝ)
+      + (1 + Hagi.Information.tvHalf p q)
+        * Real.binEntropy (Hagi.Information.tvHalf p q
+          / (1 + Hagi.Information.tvHalf p q)) := by
+  classical
+  set r := Hagi.Information.posPart p q with hr
+  set s := Hagi.Information.negPart p q with hs
+  have hsums := Hagi.Information.pos_neg_sums p q hps hqs
+  -- t = Σr = Σs = tvHalf
+  have habs : (∑ i, r i) + (∑ i, s i) = ∑ i, |p i - q i| := hsums.2
+  have ht : Hagi.Information.tvHalf p q = ∑ i, r i := by
+    unfold Hagi.Information.tvHalf
+    have := hsums.1
+    linarith [habs]
+  -- разбор вырожденного случая p = q
+  rcases eq_or_ne (∑ i, |p i - q i|) 0 with hzero | hposL1
+  · -- p = q: цель 0 ≤ 0 + 1·h₂(0) = 0
+    have hpq : ∀ i, p i = q i := by
+      intro i
+      by_contra hne
+      have hgt : 0 < |p i - q i| := abs_pos.mpr (sub_ne_zero.mpr hne)
+      have hle : |p i - q i| ≤ ∑ j, |p j - q j| :=
+        Finset.single_le_sum (f := fun j => |p j - q j|)
+          (fun j _ => abs_nonneg _) (Finset.mem_univ i)
+      linarith
+    have hsh : Hagi.Information.shannon p = Hagi.Information.shannon q := by
+      unfold Hagi.Information.shannon
+      exact Finset.sum_congr rfl (fun i _ => by rw [hpq i])
+    rw [hsh, sub_self]
+    have htv : Hagi.Information.tvHalf p q = 0 := by
+      unfold Hagi.Information.tvHalf
+      rw [hzero, zero_div]
+    rw [htv]
+    norm_num
+  -- основная ветка: t > 0
+  have htpos : 0 < ∑ i, r i := by
+    have h2 : ∑ i, |p i - q i| = (∑ i, r i) + (∑ i, s i) := habs.symm
+    rcases lt_trichotomy (0:ℝ) (∑ i, r i) with h | h | h
+    · exact h
+    · have hs0 : ∑ i, s i = 0 := by linarith [hsums.1, h]
+      have hzz : ∑ i, |p i - q i| = 0 := by linarith [h2, h, hs0]
+      exact absurd hzz hposL1
+    · have hs_lt : ∑ i, s i < 0 := by linarith [hsums.1, h]
+      have hs_nn : 0 ≤ ∑ i, s i :=
+        Finset.sum_nonneg (fun i _ => Hagi.Information.negPart_nonneg p q i)
+      linarith
+  -- нормированные векторы: û = r/t, v̂ = s/t
+  set u : ι → ℝ := fun i => (∑ i, r i)⁻¹ * r i with hu
+  set v : ι → ℝ := fun i => (∑ i, s i)⁻¹ * s i with hv
+  have hs_pos : 0 < ∑ i, s i := by rw [← hsums.1]; exact htpos
+  have hu_nneg : ∀ i, 0 ≤ u i := by
+    intro i; exact mul_nonneg (inv_nonneg.mpr htpos.le) (Hagi.Information.posPart_nonneg p q i)
+  have hv_nneg : ∀ i, 0 ≤ v i := by
+    intro i; exact mul_nonneg (inv_nonneg.mpr hs_pos.le) (Hagi.Information.negPart_nonneg p q i)
+  have hu1 : ∑ i, u i = 1 := by
+    show ∑ i, (∑ j, r j)⁻¹ * r i = 1
+    rw [← Finset.mul_sum, inv_mul_cancel₀ (ne_of_gt htpos)]
+
+  have hv_le_one : ∀ i, v i ≤ 1 := by
+    intro i
+    have hle : s i ≤ ∑ j, s j :=
+      Finset.single_le_sum (f := s) (fun j _ => Hagi.Information.negPart_nonneg p q j)
+        (Finset.mem_univ i)
+    rw [hv, inv_mul_le_one₀ hs_pos]
+    exact hle
+  have hv1 : ∑ i, v i = 1 := by
+    show ∑ i, (∑ j, s j)⁻¹ * s i = 1
+    rw [← Finset.mul_sum, inv_mul_cancel₀ (ne_of_gt hs_pos)]
+  -- смесевые параметры
+  set t : ℝ := ∑ i, r i with htdef
+  set a : ℝ := 1 / (1 + t) with ha
+  set b : ℝ := t / (1 + t) with hb
+  have h1t : 0 < 1 + t := by positivity
+  have hab : a + b = 1 := by
+    rw [ha, hb]
+    field_simp
+  -- w-тождество: a*q + b*v = (q+s)/(1+t) = (p+r)/(1+t) = a*p + b*u
+  have hts : t = ∑ i, s i := htdef.trans hsums.1
+  have hwq : ∀ i, a * q i + b * u i = (q i + r i) / (1 + t) := by
+    intro i
+    show (1/(1+t)) * q i + (t/(1+t)) * ((∑ j, r j)⁻¹ * r i) = (q i + r i) / (1 + t)
+    have hkey : t * ((∑ j, r j)⁻¹ * r i) = r i := by
+      rw [htdef, mul_inv_cancel_left₀ (ne_of_gt htpos)]
+    have hsplit : (t/(1+t)) * ((∑ j, r j)⁻¹ * r i)
+        = (1/(1+t)) * (t * ((∑ j, r j)⁻¹ * r i)) := by field_simp
+    rw [hsplit, hkey]
+    field_simp
+  have hwp : ∀ i, a * p i + b * v i = (p i + s i) / (1 + t) := by
+    intro i
+    show (1/(1+t)) * p i + (t/(1+t)) * ((∑ j, s j)⁻¹ * s i) = (p i + s i) / (1 + t)
+    have hkey : t * ((∑ j, s j)⁻¹ * s i) = s i := by
+      rw [hts, mul_inv_cancel_left₀ (ne_of_gt hs_pos)]
+    have hsplit : (t/(1+t)) * ((∑ j, s j)⁻¹ * s i)
+        = (1/(1+t)) * (t * ((∑ j, s j)⁻¹ * s i)) := by field_simp
+    rw [hsplit, hkey]
+    field_simp
+  have hsame : ∀ i, (q i + r i) / (1 + t) = (p i + s i) / (1 + t) := by
+    intro i
+    have h : p i + s i = q i + r i :=
+      Hagi.Information.posPart_negPart_pointwise p q i
+    rw [div_eq_div_iff (ne_of_gt h1t) (ne_of_gt h1t)]
+    nlinarith [h]
+  -- вогнутость (нижняя): a·H(p) + b·H(u) ≤ H(w), w = a·p + b·u
+  set w : ι → ℝ := fun i => a * p i + b * u i with hwdef
+  have hlower := mix_entropy_lower p v a b hp hv_nneg
+    (by rw [ha]; exact div_nonneg (by norm_num : (0:ℝ) ≤ 1) h1t.le)
+    (by rw [hb]; exact div_nonneg htpos.le h1t.le) hab
+  -- верх: H(w') ≤ a·H(q) + b·H(v) + h₂(b), w' = a·q + b·v
+  have hupper := mix_entropy_upper q u a b hq hu_nneg
+    (by rw [ha]; exact div_nonneg (by norm_num : (0:ℝ) ≤ 1) h1t.le)
+    (by rw [hb]; exact div_nonneg htpos.le h1t.le) hab hqs hu1
+  -- H(w) = H(w') поэлементно
+  have hw_eq : ∀ i, a * p i + b * v i = a * q i + b * u i := by
+    intro i
+    rw [hwp i, hwq i]
+    exact (hsame i).symm
+  have hsum_eq : ∑ i, Real.negMulLog (a * p i + b * v i)
+      = ∑ i, Real.negMulLog (a * q i + b * u i) :=
+    Finset.sum_congr rfl (fun i _ => by rw [hw_eq i])
+  rw [hsum_eq] at hlower
+  -- H(u) ≥ 0 и H(v) ≤ log d
+  have hHu_le : ∑ i, Real.negMulLog (u i) ≤ Real.log (Fintype.card ι : ℝ) :=
+    shannon_le_log_card u hu_nneg hu1
+  have hHv_ge : 0 ≤ ∑ i, Real.negMulLog (v i) := by
+    apply Finset.sum_nonneg
+    intro i _
+    apply Real.negMulLog_nonneg
+    · exact hv_nneg i
+    · exact hv_le_one i
+  -- цепочка: a·H(p) + b·H(v) ≤ a·H(q) + b·H(u) + h₂(b)
+  -- ⟹ a(H(p) − H(q)) ≤ b(H(v) − H(u)) + h₂(b) ≤ b·log d + h₂(b)
+  have hchain : a * (∑ i, Real.negMulLog (p i))
+      ≤ a * (∑ i, Real.negMulLog (q i)) + b * Real.log (Fintype.card ι : ℝ)
+        + Real.binEntropy b := by
+    have h1 : a * ∑ i, Real.negMulLog (p i) + b * ∑ i, Real.negMulLog (v i)
+        ≤ a * ∑ i, Real.negMulLog (q i) + b * ∑ i, Real.negMulLog (u i)
+          + Real.binEntropy b := by
+      have hlow2 : a * ∑ i, Real.negMulLog (p i) + b * ∑ i, Real.negMulLog (v i)
+          ≤ ∑ i, Real.negMulLog (a * q i + b * u i) := hlower
+      exact le_trans hlow2 hupper
+    have hbnng : 0 ≤ b * ∑ i, Real.negMulLog (v i) := by
+      have hb0 : 0 ≤ b := by rw [hb]; exact div_nonneg htpos.le h1t.le
+      exact mul_nonneg hb0 (Finset.sum_nonneg (fun i _ => Real.negMulLog_nonneg (hv_nneg i) (hv_le_one i)))
+    have hb0 : 0 ≤ b := by rw [hb]; exact div_nonneg htpos.le h1t.le
+    have hbu_le : b * ∑ i, Real.negMulLog (u i)
+        ≤ b * Real.log (Fintype.card ι : ℝ) :=
+      mul_le_mul_of_nonneg_left hHu_le hb0
+    nlinarith [h1, hbu_le, hbnng]
+  -- финальное масштабирование
+  have hapos : 0 < a := by rw [ha]; exact div_pos (by norm_num) h1t
+  have hbscale : b / a = t := by
+    rw [ha, hb]
+    field_simp
+  have hhscale : Real.binEntropy b / a = (1 + t) * Real.binEntropy b := by
+    have : a = 1 / (1 + t) := ha
+    rw [this]
+    field_simp
+  have hbb : b = t / (1 + t) := hb
+  -- заменяем Σ|p−q| = 2t в цели
+  have hsumAbs : (∑ i, |p i - q i|) / 2 = t := by
+    have := ht
+    unfold Hagi.Information.tvHalf at this
+    linarith
+  unfold Hagi.Information.shannon Hagi.Information.tvHalf
+  rw [hsumAbs]
+  -- из hchain делением на a
+  have hkey : a * ((∑ i, Real.negMulLog (p i)) - ∑ i, Real.negMulLog (q i))
+      ≤ b * Real.log (Fintype.card ι : ℝ) + Real.binEntropy b := by
+    nlinarith [hchain]
+  -- a·H ≤ b·log d + h₂(b); делим на a и подставляем масштабы
+  have hscale : b * Real.log (Fintype.card ι : ℝ) + Real.binEntropy b
+      = a * (t * Real.log (Fintype.card ι : ℝ)
+        + (1 + t) * Real.binEntropy (t / (1 + t))) := by
+    have hbt : b = t / (1 + t) := hb
+    have hat : a = 1 / (1 + t) := ha
+    rw [hbt, hat]
+    field_simp
+  rw [hscale] at hkey
+  nlinarith [hkey, hapos]
+
+
+end Hagi.Unified
+
+
+/-!
+# InfoCanonical — канонические мосты теории информации (TD-03, цикл 15)
+# (в Unified: мост потребляет FannesComplete из того же слоя)
+
+Дублирование определений (аудит TD-03): энтропия/TV определены
+независимо в `Prelude.Info` (entDef/tvDef) и
+`Information.DiscreteFannes` (shannon/tvHalf). Мосты ниже
+устанавливают ТОЧНЫЕ тождества, после чего любой набор теорем
+(Пинскер из Probability.PinskerTV, Фаннес из
+Unified.FannesComplete) применим к обоим мирам без дублей —
+merge-before-delete: сначала мосты, удаление дублирующих
+обёрток — отдельное решение после аудита потребителей.
+-/
+
+open Finset
+
+namespace Hagi.Unified.InfoCanonical
+
+/-- Энтропии совпадают: shannon = entDef. -/
+theorem shannon_eq_entDef {V : Type*} [Fintype V] (p : V → ℝ) :
+    Hagi.Information.shannon p = Hagi.Prelude.entDef p := by
+  simp [Hagi.Information.shannon, Hagi.Prelude.entDef,
+    Real.negMulLog]
+
+/-- Полная вариация: tvHalf = tvDef. -/
+theorem tvHalf_eq_tvDef {V : Type*} [Fintype V] (p q : V → ℝ) :
+    Hagi.Information.tvHalf p q = Hagi.Prelude.tvDef p q := by
+  rfl
+
+/-- ПРИМЕР ДЕЛЕГАЦИИ: фаннес-граница Фаннеса в мире Prelude:
+через мост переносится главная теорема FannesComplete. -/
+theorem fanes_entDef {V : Type*} [Fintype V] [DecidableEq V]
+    (p q : V → ℝ) (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
+    (hp1 : ∑ i, p i = 1) (hq1 : ∑ i, q i = 1) :
+    Hagi.Prelude.entDef p - Hagi.Prelude.entDef q
+      ≤ (Hagi.Prelude.tvDef p q) * Real.log (Fintype.card V)
+        + (1 + Hagi.Prelude.tvDef p q)
+          * Real.binEntropy (Hagi.Prelude.tvDef p q
+            / (1 + Hagi.Prelude.tvDef p q)) := by
+  have hkey := Hagi.Unified.fanes_unconditional (ι := V) p q hp hq
+    hp1 hq1
+  rw [shannon_eq_entDef p, shannon_eq_entDef q, tvHalf_eq_tvDef] at hkey
+  exact hkey
+
+end Hagi.Unified.InfoCanonical
+
+/-!
+# Нернст через Фаннес (R539)
+
+Третья теорема термодинамики для обучения: энтропия
+Гиббс-распределения стремится к нулю при охлаждении.
+Ядро статьи — композиция двух уже доказанных машин:
+
+* переводчик δ-зазора в TV-расстояние до дирака: если
+  минимум энергии отделён зазором δ, то полная масса вне
+  минимума t_n = Σ_{v≠v*} p_{T_n}(v) ≤ C·e^{−δ/T_n}
+  (граница R386 `gibbs_concentration`);
+* Fannes-граница (R532 `fanes_unconditional`): энтропия
+  распределения,-close к дираку на t, ограничена
+  t·log d + (1+t)·h₂(t/(1+t)).
+
+Итог: S(p_T) ≤ C·e^{−δ/T}·log d + (1+C·e^{−δ/T})·h₂(·) —
+явная экспоненциальная оценка, стремящаяся к нулю при
+T → 0⁺ (термин экспоненциально мал, Nernst).
+
+* `shannon_dirac_zero` — энтропия дирака равна нулю;
+* `tvHalf_dirac_eq` — tvHalf p (dirac v*) = масса вне v*;
+* `nernst_fannes` — S(p) ≤ t·log d + (1+t)·h₂(t/(1+t)),
+  t = масса вне v*;
+* `nernst_explicit` — при Gibbs-весах с зазором δ: явная
+  экспоненциальная граница S ≤ Ce^{−δ/T}·log d + ….
+-/
+
+namespace Hagi.Unified.NernstFannes
+
+open Finset Real
+
+variable {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
+
+/-- Дирак-вектор массы 1 в точке v*. -/
+noncomputable def dirac (vstar : V) : V → ℝ :=
+  fun v => if v = vstar then 1 else 0
+
+/-- Дирак — вероятностный вектор. -/
+theorem dirac_sum (vstar : V) : ∑ v, dirac vstar v = 1 := by
+  classical
+  rw [Finset.sum_eq_single vstar]
+  · simp [dirac]
+  · intro v _ hv
+    simp [dirac, hv]
+  · simp
+
+/-- Энтропия дирака равна нулю. -/
+theorem shannon_dirac_zero (vstar : V) :
+    Hagi.Information.shannon (dirac vstar) = 0 := by
+  classical
+  unfold Hagi.Information.shannon
+  rw [Finset.sum_eq_single vstar]
+  · simp [dirac]
+  · intro v _ hv
+    simp [dirac, hv]
+  · simp
+
+/-- Полная масса вне v* для дирак-сравнения: tvHalf = t. -/
+theorem tvHalf_dirac_eq (p : V → ℝ) (vstar : V)
+    (hp : ∀ v, 0 ≤ p v) (hps : ∑ v, p v = 1)
+    (t : ℝ) (ht : ∑ v ∈ univ.erase vstar, p v = t) :
+    Hagi.Information.tvHalf p (dirac vstar) = t := by
+  classical
+  unfold Hagi.Information.tvHalf
+  have hsplit : ∑ v, |p v - dirac vstar v|
+      = |p vstar - dirac vstar vstar|
+        + ∑ v ∈ univ.erase vstar, |p v - dirac vstar v| := by
+    have hsum := Finset.sum_filter_add_sum_filter_not
+      Finset.univ (fun v => v = vstar) (fun v => |p v - dirac vstar v|)
+    have hfil : univ.filter (fun v => v = vstar) = {vstar} := by
+      ext v
+      by_cases hv : v = vstar
+      · subst hv
+        simp
+      · simp [hv]
+    have hnot : univ.filter (fun v => ¬ v = vstar) = univ.erase vstar := by
+      ext v
+      by_cases hv : v = vstar
+      · subst hv
+        simp
+      · simp [hv]
+    rw [hfil, Finset.sum_singleton, hnot] at hsum
+    exact hsum.symm
+  rw [hsplit, add_div]
+  have h1 : |p vstar - dirac vstar vstar| = ∑ v ∈ univ.erase vstar, p v := by
+    have hdir1 : dirac vstar vstar = 1 := by unfold dirac; norm_num
+    have hsplit2 : ∑ v ∈ univ.erase vstar, p v + p vstar = ∑ v, p v := by
+      exact Finset.sum_erase_add (s := univ) p (a := vstar)
+        (Finset.mem_univ vstar)
+    rw [ht] at hsplit2
+    have hps2 : p vstar = 1 - t := by linarith [hsplit2, hps]
+    rw [hdir1, hps2]
+    show |1 - t - 1| = ∑ v ∈ univ.erase vstar, p v
+    have htv : t = 1 - p vstar := by linarith [hsplit2, hps]
+    have hple : p vstar ≤ 1 := by
+      have hmem : vstar ∈ univ := Finset.mem_univ vstar
+      have hsingle := Finset.single_le_sum (f := p)
+        (fun v _ => hp v) hmem
+      linarith [hsplit2, hps]
+    have htnn : 0 ≤ t := by linarith [htv, hple]
+    have hneg : (1:ℝ) - t - 1 = -t := by ring
+    rw [hneg, abs_neg, abs_of_nonneg htnn, ht]
+  have h2 : ∑ v ∈ univ.erase vstar, |p v - dirac vstar v|
+      = ∑ v ∈ univ.erase vstar, p v := by
+    refine Finset.sum_congr rfl (fun v hv => ?_)
+    have hvne : v ≠ vstar := Finset.ne_of_mem_erase hv
+    have hdir0 : dirac vstar v = 0 := by unfold dirac; simp [hvne]
+    show |p v - dirac vstar v| = p v
+    rw [hdir0, sub_zero, abs_of_nonneg (hp v)]
+  show |p vstar - dirac vstar vstar| / 2
+      + (∑ v ∈ univ.erase vstar, |p v - dirac vstar v|) / 2 = t
+  rw [h1, h2, ht]
+  ring
+
+/-- **Нернст-ядро через Фаннес (R539)**: если p — вероятностный
+вектор с полной массой t вне v*, то энтропия ограничена
+Fannes-границей с дирак-сравнением: S(p) ≤ t·log d +
+(1+t)·h₂(t/(1+t)). При t → 0 энтропия → 0 — третья
+теорема термодинамики. -/
+theorem nernst_fannes (p : V → ℝ) (vstar : V)
+    (hp : ∀ v, 0 ≤ p v) (hps : ∑ v, p v = 1)
+    (t : ℝ) (ht : ∑ v ∈ univ.erase vstar, p v = t) :
+    Hagi.Information.shannon p
+      ≤ t * Real.log (Fintype.card V : ℝ)
+        + (1 + t) * Real.binEntropy (t / (1 + t)) := by
+  have hkey := Hagi.Unified.fanes_unconditional p (dirac vstar)
+    hp (fun v => by
+      by_cases hv : v = vstar
+      · simp [dirac, hv]
+      · simp [dirac, hv]) hps (dirac_sum vstar)
+  rw [tvHalf_dirac_eq p vstar hp hps t ht] at hkey
+  have hzero : Hagi.Information.shannon (dirac vstar) = 0 :=
+    shannon_dirac_zero vstar
+  rw [hzero, sub_zero] at hkey
+  exact hkey
+
+
+/-- **Гиббс + Нернст (R549)**: у Гиббс-распределения с δ-зазором
+энтропия экспоненциально затухает при охлаждении: с
+t̂ = (d−1)·e^{−δ/T} (оценка массы вне v* из `gibbs_concentration`):
+S(p_T) ≤ t̂·log d + (1+t̂)·log 2 — третий закон с явной
+экспоненциальной скоростью (композиция gibbs_concentration +
+nernst_fannes + binEntropy ≤ log 2). -/
+theorem gibbs_nernst {V : Type*} [Fintype V] [DecidableEq V]
+    [Nonempty V]
+    (E : V → ℝ) (δ : ℝ) (vstar : V)
+    (hgap : ∀ v, v ≠ vstar → E vstar + δ ≤ E v)
+    (T : ℝ) (hT : 0 < T) :
+    Hagi.Information.shannon
+        (fun v => Real.exp (-(E v) / T)
+          / ∑ w, Real.exp (-(E w) / T))
+      ≤ ((Finset.univ.erase vstar).card : ℝ) * Real.exp (-δ / T)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ((Finset.univ.erase vstar).card : ℝ)
+          * Real.exp (-δ / T)) * Real.log 2 := by
+  classical
+  set p : V → ℝ := fun v => Real.exp (-(E v) / T)
+      / ∑ w, Real.exp (-(E w) / T) with hpdef
+  set t : ℝ := ((Finset.univ.erase vstar).card : ℝ)
+      * Real.exp (-δ / T) with htdef
+  -- нормировка и неотрицательность Гиббса
+  have hZpos : 0 < ∑ w, Real.exp (-(E w) / T) :=
+    Finset.sum_pos (fun v _ => Real.exp_pos _)
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hpsum : ∑ v, p v = 1 := by
+    rw [hpdef, ← Finset.sum_div, div_self (ne_of_gt hZpos)]
+  have hpnn : ∀ v, 0 ≤ p v := fun v => by
+    unfold p
+    positivity
+  -- масса вне v* : hm ≤ t  (обращение gibbs_concentration)
+  have hconc := gibbs_concentration E δ vstar hgap T hT
+  have hmass : ∑ v ∈ Finset.univ.erase vstar, p v
+      + p vstar = ∑ v, p v := by
+    exact Finset.sum_erase_add (s := Finset.univ) p (a := vstar)
+      (Finset.mem_univ vstar)
+  have hpvs : p vstar = Real.exp (-(E vstar) / T)
+      / ∑ w, Real.exp (-(E w) / T) := rfl
+  have hmass1 : ∑ v ∈ Finset.univ.erase vstar, p v + p vstar = 1 := by
+    rw [hmass, hpsum]
+  have hmle : ∑ v ∈ Finset.univ.erase vstar, p v ≤ t := by
+    have hkey : ∑ v ∈ Finset.univ.erase vstar, p v
+        + (Real.exp (-(E vstar) / T) / ∑ w, Real.exp (-(E w) / T))
+      = 1 := by rw [← hpvs]; exact hmass1
+    linarith [hkey, hconc]
+  -- Фаннес-граница при фактической массе (Σ вне v*)
+  have hS0 : 0 ≤ ∑ v ∈ Finset.univ.erase vstar, p v :=
+    Finset.sum_nonneg (fun v _ => hpnn v)
+  have hfact := nernst_fannes p vstar hpnn hpsum _ rfl
+  -- грубая форма: h₂ ≤ log 2 и монотонность по массе ≤ t
+  have hh2 : ∀ x : ℝ, Real.binEntropy (x / (1 + x)) ≤ Real.log 2 :=
+    fun x => Real.binEntropy_le_log_two
+  have hlin : ∀ x : ℝ, x ≤ t → 0 ≤ x →
+      x * Real.log (Fintype.card V : ℝ)
+        + (1 + x) * Real.log 2 ≤
+      t * Real.log (Fintype.card V : ℝ) + (1 + t) * Real.log 2 := by
+    intro x hx h0
+    have hcard : (1 : ℝ) ≤ Fintype.card V := by
+      have : 0 < Fintype.card V :=
+        Fintype.card_pos_iff.mpr ⟨Classical.arbitrary V⟩
+      exact_mod_cast this
+    have hlogd : 0 ≤ Real.log (Fintype.card V : ℝ) :=
+      Real.log_nonneg hcard
+    have h1 : x * Real.log (Fintype.card V : ℝ)
+        ≤ t * Real.log (Fintype.card V : ℝ) :=
+      mul_le_mul_of_nonneg_right hx hlogd
+    have h2 : (1 + x) * Real.log 2 ≤ (1 + t) * Real.log 2 :=
+      mul_le_mul_of_nonneg_right (by linarith)
+        (Real.log_pos (by norm_num)).le
+    linarith
+  calc Hagi.Information.shannon p
+      ≤ (∑ v ∈ Finset.univ.erase vstar, p v)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ∑ v ∈ Finset.univ.erase vstar, p v)
+            * Real.binEntropy
+              ((∑ v ∈ Finset.univ.erase vstar, p v)
+                / (1 + ∑ v ∈ Finset.univ.erase vstar, p v)) := hfact
+    _ ≤ (∑ v ∈ Finset.univ.erase vstar, p v)
+          * Real.log (Fintype.card V : ℝ)
+        + (1 + ∑ v ∈ Finset.univ.erase vstar, p v) * Real.log 2 :=
+        by
+          refine add_le_add_right (mul_le_mul_of_nonneg_left
+            (hh2 _) (by linarith)) _
+    _ ≤ t * Real.log (Fintype.card V : ℝ) + (1 + t) * Real.log 2 :=
+        hlin _ hmle hS0
+
+end Hagi.Unified.NernstFannes
+
 
 namespace Hagi.Probability
 

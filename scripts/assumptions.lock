@@ -58,12 +58,12 @@ h_emp_takeoff_exponential
 Hagi/Core/Concat.lean:lse
 Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
-Hagi/Information/DiscreteFannes.lean:entropy
-Hagi/Information/DiscreteFannes.lean:tvHalf
 Hagi/Omni/OmniState.lean:entryCount
-Hagi/Prelude/Info.lean:entDef
-Hagi/Prelude/Info.lean:klDef
-Hagi/Prelude/Info.lean:tvDef
+Hagi/Prelude/InfoCore.lean:entDef
+Hagi/Prelude/InfoCore.lean:entropy
+Hagi/Prelude/InfoCore.lean:klDef
+Hagi/Prelude/InfoCore.lean:tvDef
+Hagi/Prelude/InfoCore.lean:tvHalf
 Hagi/Step/Upgrades.lean:softmaxW
 
 [operational]

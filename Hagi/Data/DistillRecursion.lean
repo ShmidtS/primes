@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
 import Hagi.Data.Distill
-import Hagi.Information.DiscreteFannes
+import Hagi.Prelude.InfoCore
 
 set_option linter.style.header false
 

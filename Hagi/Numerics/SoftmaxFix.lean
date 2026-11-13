@@ -1,4 +1,4 @@
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 import Hagi.Optimization.MirrorDescent
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 

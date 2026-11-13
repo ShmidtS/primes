@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 import Hagi.Data.Distill
 import Hagi.Data.DField
-import Hagi.Data.FannesSmooth
 import Hagi.Data.DistillRecursion
 import Hagi.Data.DField
 

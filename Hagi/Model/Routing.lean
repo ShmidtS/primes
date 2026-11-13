@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Prelude.Info
+import Hagi.Prelude.InfoCore
 
 /-!
 # Routing dynamics: softmax odds-ratchet, deadlock witness
