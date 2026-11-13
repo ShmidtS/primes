@@ -5002,6 +5002,24 @@ merger cert carriers (Freeze-дисциплина: statement change).
   venn2_adder_correct/venn2_suber_correct/venn2_adder_real,
   мосты venn2_sum/carry/borrow_head через vennHead_exact).
 
+- C253 (A8 F2): ResidualVQ product error theorem — новый модуль
+  `Hagi/Budget/ResidualVQ.lean`: точное разложение
+  (A+EA)(B+EB) − AB = EA·B + A·EB + EA·EB
+  (`quantProd_decompose`); прямоугольная фробениусова
+  субмультипликативность `frobSq_mul_le` (закрыт открытый
+  hbridge-кандидат ElementQuant — per-entry Cauchy–Schwarz на
+  Hagi.Core.frobSq); `quantProd_frob_bound` (трёхчленная граница
+  с перекрёстным членом); относительная форма
+  `quantProd_relError(_sq)`: frobSq(prodErr) ≤ (e+f+ef)²·frobSqA·
+  frobSqB; `quantProd_crossTerm_amplifies` (2e ≤ e+e+e·e —
+  формальный «2× single-factor» закон one-stage провала);
+  двухстадийная резидуальная композиция: точная
+  `residualTwoStage_exact`, острая `residualTwoStage_error_le`
+  (≤ ε2), аддитивная `residualTwoStage_error_le_add` (≤ ε1+ε2),
+  BF16-head `residualHeadBudget` (≤ ε1 + 2⁻⁸·ε1, premise-form
+  композиция с C249). Эмпирические бит-ширины — мотивация в
+  ALGORITHMS §21, не посылки Lean.
+
 - C252 (A8 F7): изотропно-фробениусовы каскадные
   чувствительности + SafeQP quadratic drift —
   `Hagi/Architecture/IsoFrobCascade.lean` (новый модуль):
