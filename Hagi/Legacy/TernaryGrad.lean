@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Hagi.Legacy.TopLevel
-import Hagi.Foundations.PerronCone
+import Hagi.Growth.LinearCone
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer
 import Hagi.Step.SignSGD

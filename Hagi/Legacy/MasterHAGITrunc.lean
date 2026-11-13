@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Legacy.MasterHAGI
 import Hagi.Unified.CertifiedLoop
-import Hagi.Foundations.GrowthDynamics
+import Hagi.Growth.LinearCone
 set_option linter.style.header false
 
 /-!

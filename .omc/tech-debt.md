@@ -122,3 +122,29 @@ discrete BitAlloc transfer". Survey (.tmp/C237/survey.md) findings:
    two_layer_*, WaterFilling.exists_balanced_allocation,
    BitAllocTermination chain) and WaterFillingMoE (generic KKT
    bookkeeping + channel dictionary, not exp-tangent).
+
+## TD A5-R3-C238 — linear-cone consolidation 16→5 (not 16→2)
+
+A5 §R3 nominal "16 cone files -> 2" is ILLEGAL under LayerLint + the
+import-cycle structure; the landed honest maximum is 16→5 (13 files
+merged into Hagi/Growth/LinearCone.lean and Hagi/Dynamics/
+GrowthBridge.lean; every decl moved byte-identically, Freeze
+zero-diff). Three keepers, with reasons:
+
+1. Hagi/Foundations/ConeTakeoff.lean stays in Foundations(0):
+   Generalization/ModeState(4) and Legacy consumers; any Growth(4)
+   home is a cross-folder equal-layer violation.
+2. Hagi/Foundations/GrowthBand.lean stays: Model/MeasuredEffects(4)
+   consumer.
+3. Hagi/Growth/Takeoff.lean stays: Growth-layer consumers
+   (GainDecomposition, Saturation); merging into LinearCone would
+   cycle LinearCone→GainDecomposition→StateBinding→LinearCone
+   (via FrontierScaling), and ChainToCone cannot join LinearCone for
+   the same reason — hence ChainToCone landed in Dynamics/
+   GrowthBridge (it is a bridge: disagreement-chain → cone; its sole
+   in-family consumer T3Ignition moved with it).
+Amendment recommendation: A5 L3 wording "Hagi/Dynamics (LinearCone,
+GrowthBridge)" should read "cone core in Hagi/Growth/LinearCone +
+bridges in Hagi/Dynamics/GrowthBridge" — a Dynamics home for
+LinearCone is unreachable while Growth-layer consumers
+(StateBinding, Takeoff) exist.

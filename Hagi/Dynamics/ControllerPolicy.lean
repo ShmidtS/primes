@@ -3,7 +3,7 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Dynamics.FastGrowth
+import Hagi.Dynamics.GrowthBridge
 set_option linter.style.header false
 
 /-!
