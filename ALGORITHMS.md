@@ -1960,3 +1960,55 @@ TaskId = Unit); спецификации — rfl. Унификация носи�
 `Hagi/Unified/Ctv2Telescope.lean`, namespace `Hagi.Unified.CertUnify`
 и statements сохранены байт-идентично (Freeze PASS без aliases).
 
+
+**`Hagi/Model/BatchCEDescent.lean` — стохастический minibatch
+R'-шаг (C249 A8 F3).** Один обратный-propensity шаг по сырому CE
+residual-градиенту с честной теоремой ожидаемого спуска:
+
+```
+stochasticStepDraw X θ y q b   = (B·q b)⁻¹ • batchResidualGradient
+batchLoss_expectedStochasticStep_le:
+  E_q[L(θ − η·ĝ)] ≤ L(θ) − η·‖m‖² + (η²/8)·cfc·E_q[‖ĝ‖²]
+  (посылки: 0 < B, 0 ≤ η, покоординатная несмещённость)
+pmfMean_normSq_stochasticStepDraw_eq:
+  E[‖ĝ‖²] = selectedMeanGradientMSE q g + ‖m‖²   (точная bias-variance)
+batchLoss_expectedStochasticStep_featureNormSum_le:
+  E[L] ≤ L − η·‖m‖² + (η²/8)·cfc·(Σ|featureNormSum|)²/B²
+batchLoss_expectedStochasticStep_featureNormSum_lt:
+  0 < η ∧ η·cfc·V̂ < 8·‖m‖² ⇒ E[L] < L   (демпфированный шаг,
+  несовместимо с m = 0 — пустых веток нет)
+```
+
+Член спуска — из несмещённости + линейности (A8 verdict 5:
+featureNormSum-пропенсити как условие сходимости), кривизна — из
+глобального (все η ≥ 0) бёнинг-мажоратора C216 без window-посылок,
+дисперсия — из C200 selectedMeanGradientMSE_featureNormSum_le.
+Константа cfc — batch-сумма 4·Σ featureAbsSum² (консервативно против
+поточечной суммы, задокументировано). Ville/концентрация не
+дублируются — это одношаговый statement об ожидании.
+
+**`Hagi/Runtime/BF16Delta.lean` + `Hagi/Contracts/BatchRangeBF16Cert.lean`
+— ℚ→ℝ BF16 мост с производным eps (C249 A8 F3).** Относительная
+ошибка nearest-кода над рациональным носителем:
+
+```
+abs_sub_le_of_isNearest_normal (BF16Delta):
+  x ≠ 0, 2⁻¹²⁶ ≤ |x| ≤ 2¹²⁷, IsNearest x c
+    ⇒ |decode c − x| ≤ 2⁻⁸·|x|
+bf16_logitPerturbation_of_nearestNormalCodes (Cert):
+  рациональные логиты в нормальном диапазоне, прочитанные через
+  nearest-коды ⇒ пертурбация ≤ (2⁻⁸:ℝ)·M
+bf16_guarded_ceRange_descent_of_nearestNormalCodes (Cert):
+  гейт 4·(2⁻⁸·M) < certified drop ⇒ строгий спуск (∃ Δ > 0)
+bf16_nearestRoundTrip_relativeError_gt (BF16Delta):
+  якорный round-trip теряет весь малый апдейт —
+  2⁻⁸·|129/128| < |0 − 129/128| (FP32-мастер необходим, цитирует
+  extreme_nearest_delta_loses_update)
+```
+
+Константа 2⁻⁸ выведена из носителя (fraction : Fin 128 + неявная
+единица ⇒ 8 значащих бит ⇒ ulp/бинада-пол = 2⁻⁷, пол-ulp = 2⁻⁸),
+не постулирована. Посылка рациональности целевых логитов явная
+(A8 verdict 1: PURE bf16 stalls, worst_CE 0.735 против 0.081 —
+FP32-мастер; формализовано как документированный corollary, не
+перепроверка).

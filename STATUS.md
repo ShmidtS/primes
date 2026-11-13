@@ -286,6 +286,20 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `batchCEMetrics`: SystemMetrics на носителе параметров (objective = истинный batchLoss, risk/budget = константные остатки; R1-полярность «риск-остаток = лимит − защищённый риск» даётся вызывающей стороной — GrowthState в карантине Legacy).
 - `batchCE_bf16_transitionStep_progress`: progress-TransitionStep при активном gate и неотрицательной разности «риск-остаток − операционный риск» (операционный риск остаётся символическим до появления slow-loop consumer); `batchCE_transitionStep_hold`: hold-ветка через `HoldStep.id`.
 
+- C249 (A8 F3): ℚ→ℝ мост производного eps —
+  `bf16_logitPerturbation_of_nearestNormalCodes`: если каждый
+  целевой логит есть cast рационального в нормальном диапазоне bf16 и
+  bf16-состояние читает логиты через nearest-коды, то пертурбация
+  на логит ≤ (2⁻⁸:ℝ)·M для любой границы M на |логиты| (eps =
+  2⁻⁸·maxAbsLogit становится производным, а не ручной посылкой;
+  посылка рациональности явная — рациональный носитель не округляет
+  произвольные вещественные логиты);
+  `bf16_guarded_ceRange_descent_of_nearestNormalCodes` —
+  инстанциация C223 guarded-гейта производным eps (гейт
+  4·(2⁻⁸·M) < certified drop ⇒ ∃ Δ > 0, batchLoss θbf ≤
+  batchLoss θ − Δ). FP32-мастер-необходимость документирована
+  якорным контрпримером BF16Delta (не перепроверяется).
+
 ## Hagi/Contracts/BatchCEAlignmentBudget.lean
 
 - C233 (R2): `batchLogitRangeSquare_le_rangeCurvature_mul_alignment` — без посылок, острая средняя `batchLogitRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y` (транзитивность `R' ≤ R ≤ K·A`); `alignment_le_scaled_logitCertifiedDrop` — при `0 < batchLogitRangeSquare X θ y` бюджетная константа `2·A/(K+1)` сертифицирует острый residual `batchLogitCertifiedDrop` (выражение C230 bf16-gate), переносом через `batchCertifiedDrop_le_batchLogitCertifiedDrop`. Константа телескопа `(K+1)/2` не сужается (честная граница); закрывает деферрал C230 из `.omc/tech-debt.md`.
@@ -1853,6 +1867,27 @@ runtime, минимальная память, training/held-out качество
 arithmetic-mean batch loss и размера certified step; не утверждаются
 wall-clock, сходимость итерации, CE→0, generalization, samplewise
 гарантии или применимость вне log-linear one-hot CE.
+
+- C249 (A8 F3): стохастический minibatch R'-шаг —
+  `stochasticStepDraw X θ y q b = ((B·q b)⁻¹) • batchResidualGradient`
+  (обратная propensity-оценка среднего градиента CE);
+  `batchLoss_expectedStochasticStep_le` (общая q, посылки: 0 < B,
+  0 ≤ η, покоординатная несмещённость draw для
+  meanResidualTranspose): E[L(θ − η·ĝ)] ≤ L(θ) − η·‖m‖² +
+  (η²/8)·batchFeatureRangeCoefficient·E[‖ĝ‖²] — член спуска из
+  несмещённости, кривизна из глобального (при всех η ≥ 0) бёNING-
+  мажоратора C216, без скрытых window-посылок;
+  точная декомпозиция второго момента
+  `pmfMean_normSq_stochasticStepDraw_eq` (E‖ĝ‖² = MSE + ‖m‖²);
+  для featureNormSum-пропенсити
+  `pmfMean_normSq_stochasticStepDraw_featureNormSum_le`
+  (E‖ĝ‖² ≤ (Σ|featureNormSum|)²/B², из
+  selectedMeanGradientMSE_featureNormSum_le) и
+  `batchLoss_expectedStochasticStep_featureNormSum_le`
+  (E[L] ≤ L − η‖m‖² + (η²/8)·cfc·(Σ|fns|)²/B²); демпфированный
+  шаг `batchLoss_expectedStochasticStep_featureNormSum_lt`
+  (0 < η ∧ η·cfc·V̂ < 8‖m‖² ⇒ строгое ожидаемое снижение; калибровка
+  несовместима с нулевым средним градиентом — пустых веток нет).
 
 ## Hagi/Model/BlockNorm.lean
 
@@ -3493,6 +3528,20 @@ one-hot CE.
   непосредственно, не используя readback.
 - Это логический code contract, не packed RAM, support FTZ, GDN adapter или
   доказательство memory/latency saving и улучшения качества обучения.
+
+- C249 (A8 F3): относительная ошибка округления nearest-кода в
+  нормальном диапазоне над рациональным носителем —
+  `abs_sub_le_of_isNearest_normal` (x ≠ 0, 2⁻¹²⁶ ≤ |x| ≤ 2¹²⁷,
+  IsNearest ⇒ |decode c − x| ≤ 2⁻⁸·|x|). Константа 2⁻⁸ ВЫВЕДЕНА из
+  носителя: fraction : Fin 128 (7 явных бит) + неявная ведущая
+  единица ⇒ 8 значащих бит; ulp = 2^(E−134) против бинады-пола
+  128·2^(E−134) ⇒ пол-ulp = 2⁻⁸·бинада-пол ≤ 2⁻⁸·|x|. Граничный
+  случай вершины бинады (n = 256) — бамп экспоненты (E ≤ 254
+  гарантирован hmax). Corollary FP32-мастер-необходимости:
+  `bf16_nearestRoundTrip_relativeError_gt` — nearest-кодирование
+  дельты + nearest-восстановление на экстремальном якоре теряет весь
+  малый апдейт (относительная ошибка 1 > 2⁻⁸·|129/128|), цитирует
+  существующий extreme_nearest_delta_loses_update.
 
 ## Hagi/Runtime/ControllerGates.lean
 

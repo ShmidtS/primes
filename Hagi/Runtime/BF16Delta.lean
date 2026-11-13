@@ -389,4 +389,290 @@ theorem guardedRead_nearest_returns_new (anchor new delta recovered : Code)
     exact decode_eq_of_isNearest_decode hrecovered
   · simp [guardedRead, hGuard]
 
+
+/-! ## C249 nearest-normal relative rounding error (A8 F3)
+
+The `Fin 128` fraction carrier plus the implicit leading one give 8
+significant bits, so nearest selection inside the normal range
+`2 ^ (-126) ≤ |x| ≤ 2 ^ 127` has relative error at most `2 ^ (-8)`
+over the exact rational carrier. The constant is derived from the
+carrier arithmetic (`ulp = 2 ^ (E - 134)` against the binade floor
+`128 * 2 ^ (E - 134)`), never assumed. Below the normal range the
+relative bound genuinely fails — the anchor round-trip corollary
+documents why the FP32 master accumulation is necessary. -/
+
+private theorem exists_round_le_half (r : ℚ) :
+    ∃ n : ℤ, |(n : ℚ) - r| ≤ 1 / 2 := by
+  refine ⟨⌊r + 1 / 2⌋, ?_⟩
+  have h1 := Int.floor_le (r + 1 / 2)
+  have h2 := Int.sub_one_lt_floor (r + 1 / 2)
+  rw [abs_le]
+  constructor <;> linarith
+
+private theorem exists_binade_bracket {t : ℚ} (ht : 0 < t) :
+    ∃ k : ℤ, (2 : ℚ) ^ k ≤ t ∧ t < (2 : ℚ) ^ (k + 1) := by
+  obtain ⟨k, hk⟩ := exists_mem_Ico_zpow ht (by norm_num : (1 : ℚ) < 2)
+  exact ⟨k, hk.1, hk.2⟩
+
+private theorem abs_sub_le_of_isNearest_pos {t : ℚ} (ht : 0 < t)
+    (hmin : (2 : ℚ) ^ (-126 : ℤ) ≤ t) (hmax : t ≤ (2 : ℚ) ^ (127 : ℤ))
+    {c : Code} (h : IsNearest t c) :
+    |decode c - t| ≤ (2 : ℚ) ^ (-8 : ℤ) * t := by
+  obtain ⟨k, hk1, hk2⟩ := exists_binade_bracket ht
+  have hq : (1 : ℚ) < 2 := by norm_num
+  have hz2 : (2 : ℚ) ≠ 0 := by norm_num
+  have hkge : (-126 : ℤ) ≤ k := by
+    by_contra hcon
+    push_neg at hcon
+    have h1 : ((2 : ℚ) ^ (-126 : ℤ)) < (2 : ℚ) ^ ((k : ℤ) + 1) :=
+      lt_of_le_of_lt hmin hk2
+    have h2 : (2 : ℚ) ^ ((k : ℤ) + 1) ≤ (2 : ℚ) ^ (-126 : ℤ) :=
+      zpow_le_zpow_right₀ (le_of_lt hq) (by linarith)
+    exact lt_irrefl _ (lt_of_lt_of_le h1 h2)
+  have hkle : k ≤ (127 : ℤ) := by
+    by_contra hcon
+    push_neg at hcon
+    have h1 : (2 : ℚ) ^ ((127 : ℤ) + 1) ≤ (2 : ℚ) ^ k :=
+      zpow_le_zpow_right₀ (le_of_lt hq) (by linarith)
+    have h2 : t < (2 : ℚ) ^ ((127 : ℤ) + 1) :=
+      lt_of_le_of_lt hmax (zpow_lt_zpow_right₀ hq (by norm_num))
+    exact not_lt_of_ge (h1.trans hk1) h2
+  have hqm : (0 : ℚ) < (2 : ℚ) ^ (k - 7) := by positivity
+  have him : (0 : ℚ) < (2 : ℚ) ^ (-(k - 7)) := by positivity
+  have hmulcancel : (2 : ℚ) ^ (k - 7) * (2 : ℚ) ^ (-(k - 7)) = 1 := by
+    rw [← zpow_add₀ hz2]
+    norm_num
+  have hmant128 : (128 : ℚ) * (2 : ℚ) ^ (k - 7) = (2 : ℚ) ^ k := by
+    have h2 := zpow_add₀ (a := (2 : ℚ)) hz2 (7 : ℤ) (k - 7)
+    have h128 : (128 : ℚ) = (2 : ℚ) ^ (7 : ℤ) := by norm_num
+    rw [h128, ← h2]
+    congr 1
+    ring
+  have hmant256 : (256 : ℚ) * (2 : ℚ) ^ (k - 7) = (2 : ℚ) ^ (k + 1) := by
+    have h2 := zpow_add₀ (a := (2 : ℚ)) hz2 (8 : ℤ) (k - 7)
+    have h256 : (256 : ℚ) = (2 : ℚ) ^ (8 : ℤ) := by norm_num
+    rw [h256, ← h2]
+    congr 1
+    ring
+  have hlow : (128 : ℚ) * (2 : ℚ) ^ (k - 7) ≤ t := by
+    rw [hmant128]; exact hk1
+  have hhigh : t < (256 : ℚ) * (2 : ℚ) ^ (k - 7) := by
+    rw [hmant256]; exact hk2
+  have hrlo : (128 : ℚ) ≤ t * (2 : ℚ) ^ (-(k - 7)) := by
+    calc (128 : ℚ) = (128 : ℚ) * (2 : ℚ) ^ (k - 7) *
+        (2 : ℚ) ^ (-(k - 7)) := by
+          rw [mul_assoc, hmulcancel, mul_one]
+      _ ≤ t * (2 : ℚ) ^ (-(k - 7)) :=
+        mul_le_mul_of_nonneg_right hlow him.le
+  have hrhi : t * (2 : ℚ) ^ (-(k - 7)) < (256 : ℚ) := by
+    calc t * (2 : ℚ) ^ (-(k - 7)) <
+        (256 : ℚ) * (2 : ℚ) ^ (k - 7) * (2 : ℚ) ^ (-(k - 7)) :=
+          mul_lt_mul_of_pos_right hhigh him
+      _ = (256 : ℚ) := by rw [mul_assoc, hmulcancel, mul_one]
+  obtain ⟨n, hn⟩ := exists_round_le_half (t * (2 : ℚ) ^ (-(k - 7)))
+  have hnnlo : ((128 : ℤ)) ≤ n := by
+    have habs := abs_le.mp hn
+    have h1 : (255 : ℚ) ≤ 2 * (n : ℚ) := by linarith
+    have h2 : (255 : ℤ) ≤ 2 * n := by exact_mod_cast h1
+    linarith
+  have hnnhi : n ≤ ((256 : ℤ)) := by
+    have habs := abs_le.mp hn
+    have h1 : 2 * (n : ℚ) ≤ (513 : ℚ) := by linarith
+    have h2 : 2 * n ≤ (513 : ℤ) := by exact_mod_cast h1
+    linarith
+  have hEpos : (0 : ℤ) ≤ k + 127 := by linarith
+  have hElt : k + 127 ≤ 254 := by linarith
+  have hhalf : ((1 : ℚ) / 2) * (2 : ℚ) ^ (k - 7) = (2 : ℚ) ^ (k - 8) := by
+    rw [show ((1 : ℚ) / 2) = (2 : ℚ) ^ (-1 : ℤ) by norm_num,
+      ← zpow_add₀ hz2]
+    congr 1
+    ring
+  have hcand : ∃ d : Code, |decode d - t| ≤ (2 : ℚ) ^ (k - 8) := by
+    by_cases hn256 : n = 256
+    · have hrge : ((255 : ℚ) + 1 / 2) ≤
+          t * (2 : ℚ) ^ (-(k - 7)) := by
+        have habs := abs_le.mp hn
+        rw [hn256] at habs
+        linarith
+      have hk126 : k ≤ 126 := by
+        by_contra hcon
+        push_neg at hcon
+        have hprod : (2 : ℚ) ^ (127 : ℤ) * (2 : ℚ) ^ (-(k - 7)) =
+            (2 : ℚ) ^ (134 - k) := by
+          rw [← zpow_add₀ hz2]
+          congr 1
+          ring
+        have hb1 : t * (2 : ℚ) ^ (-(k - 7)) ≤
+            (2 : ℚ) ^ (127 : ℤ) * (2 : ℚ) ^ (-(k - 7)) :=
+          mul_le_mul_of_nonneg_right hmax him.le
+        have hb2 : (2 : ℚ) ^ (134 - k) ≤ (2 : ℚ) ^ (7 : ℤ) :=
+          zpow_le_zpow_right₀ (le_of_lt hq) (by omega)
+        have hb3 : (2 : ℚ) ^ (7 : ℤ) = (128 : ℚ) := by norm_num
+        have hble : t * (2 : ℚ) ^ (-(k - 7)) ≤ (128 : ℚ) :=
+          le_trans (le_trans hb1 hprod.le) (hb2.trans_eq hb3)
+        linarith
+      have hE1pos : (0 : ℤ) ≤ k + 128 := by linarith
+      have hE1lt : k + 128 ≤ 254 := by linarith
+      refine ⟨⟨false, ⟨(k + 128).toNat, by
+          have := hE1lt
+          omega⟩, ⟨0, by omega⟩⟩, ?_⟩
+      have hexpne : ((k + 128).toNat) ≠ 0 := by
+        have h1 : (((k + 128).toNat : ℤ)) ≠ 0 := by
+          rw [Int.toNat_of_nonneg hE1pos]
+          omega
+        exact fun h => h1 (by exact_mod_cast h)
+      have hdec : decode ⟨false, ⟨(k + 128).toNat, by
+          have := hE1lt
+          omega⟩, ⟨0, by omega⟩⟩ =
+          (256 : ℚ) * (2 : ℚ) ^ (k - 7) := by
+        simp only [decode, Bool.false_eq_true, ↓reduceIte, one_mul, hexpne]
+        rw [Int.toNat_of_nonneg hE1pos]
+        have hzpow : (2 : ℚ) ^ ((k : ℤ) + 128 - 134) =
+            (2 : ℚ) ^ (k - 6) := by
+          congr 1
+          ring
+        have h2 : (2 : ℚ) ^ (k - 6) = 2 * (2 : ℚ) ^ (k - 7) := by
+          conv_lhs => rw [show (k - 6 : ℤ) = 1 + (k - 7) by ring]
+          rw [zpow_add₀ hz2]
+          norm_num
+        rw [hzpow, h2]
+        norm_num
+        ring
+      rw [hdec]
+      have hpos : (0 : ℚ) ≤ (256 : ℚ) * (2 : ℚ) ^ (k - 7) - t := by
+        have := hrhi
+        linarith
+      rw [abs_of_nonneg hpos]
+      have hsplit : (256 : ℚ) * (2 : ℚ) ^ (k - 7) - t =
+          ((256 : ℚ) - (t * (2 : ℚ) ^ (-(k - 7)))) * (2 : ℚ) ^ (k - 7) := by
+        have hcancel : t * (2 : ℚ) ^ (-(k - 7)) * (2 : ℚ) ^ (k - 7) = t := by
+          rw [mul_assoc, mul_comm ((2 : ℚ) ^ (-(k - 7)))
+            ((2 : ℚ) ^ (k - 7)), hmulcancel, mul_one]
+        rw [sub_mul, hcancel]
+      rw [hsplit]
+      have hbound : ((256 : ℚ) - (t * (2 : ℚ) ^ (-(k - 7)))) ≤ 1 / 2 := by
+        have habs := abs_le.mp hn
+        rw [hn256] at habs
+        linarith
+      calc ((256 : ℚ) - (t * (2 : ℚ) ^ (-(k - 7)))) * (2 : ℚ) ^ (k - 7) ≤
+          ((1 : ℚ) / 2) * (2 : ℚ) ^ (k - 7) :=
+            mul_le_mul_of_nonneg_right hbound hqm.le
+        _ = (2 : ℚ) ^ (k - 8) := hhalf
+    · have hn255 : n ≤ 255 := by omega
+      refine ⟨⟨false, ⟨(k + 127).toNat, by
+          have := hElt
+          omega⟩, ⟨(n - 128).toNat, by
+          have := hn255
+          have := hnnlo
+          omega⟩⟩, ?_⟩
+      have hexpne : ((k + 127).toNat) ≠ 0 := by
+        have h1 : (((k + 127).toNat : ℤ)) ≠ 0 := by
+          rw [Int.toNat_of_nonneg hEpos]
+          omega
+        exact fun h => h1 (by exact_mod_cast h)
+      have hdec : decode ⟨false, ⟨(k + 127).toNat, by
+          have := hElt
+          omega⟩, ⟨(n - 128).toNat, by
+          have := hn255
+          have := hnnlo
+          omega⟩⟩ =
+          ((n : ℚ)) * (2 : ℚ) ^ (k - 7) := by
+        simp only [decode, Bool.false_eq_true, ↓reduceIte, one_mul, hexpne]
+        have hfraccast : (((n - 128).toNat : ℕ) : ℚ) =
+            ((n : ℤ) - 128) := by
+          have hnn : (0 : ℤ) ≤ n - 128 := by omega
+          exact_mod_cast Int.toNat_of_nonneg hnn
+        rw [Int.toNat_of_nonneg hEpos, hfraccast]
+        have hzpow : (2 : ℚ) ^ ((k : ℤ) + 127 - 134) =
+            (2 : ℚ) ^ (k - 7) := by
+          congr 1
+          ring
+        rw [hzpow]
+        ring
+      rw [hdec]
+      have hsplit : ((n : ℚ)) * (2 : ℚ) ^ (k - 7) - t =
+          ((n : ℚ) - (t * (2 : ℚ) ^ (-(k - 7)))) * (2 : ℚ) ^ (k - 7) := by
+        have hcancel : t * (2 : ℚ) ^ (-(k - 7)) * (2 : ℚ) ^ (k - 7) = t := by
+          rw [mul_assoc, mul_comm ((2 : ℚ) ^ (-(k - 7)))
+            ((2 : ℚ) ^ (k - 7)), hmulcancel, mul_one]
+        rw [sub_mul, hcancel]
+      rw [hsplit, abs_mul, abs_of_pos hqm]
+      calc |((n : ℚ) - (t * (2 : ℚ) ^ (-(k - 7))))| * (2 : ℚ) ^ (k - 7) ≤
+          ((1 : ℚ) / 2) * (2 : ℚ) ^ (k - 7) :=
+            mul_le_mul_of_nonneg_right hn hqm.le
+        _ = (2 : ℚ) ^ (k - 8) := hhalf
+  obtain ⟨d, hd⟩ := hcand
+  have hfin : |decode c - t| ≤ (2 : ℚ) ^ (k - 8) := (h d).trans hd
+  have hrel : (2 : ℚ) ^ (k - 8) = (2 : ℚ) ^ (-8 : ℤ) * (2 : ℚ) ^ k := by
+    rw [← zpow_add₀ hz2]
+    congr 1
+    ring
+  rw [hrel] at hfin
+  exact hfin.trans (mul_le_mul_of_nonneg_left hk1
+    (by positivity : (0 : ℚ) ≤ (2 : ℚ) ^ (-8 : ℤ)))
+
+
+/-- Public sign-symmetric form of the nearest-normal relative bound. -/
+theorem abs_sub_le_of_isNearest_normal {x : ℚ} (hx0 : x ≠ 0)
+    (hmin : (2 : ℚ) ^ (-126 : ℤ) ≤ |x|)
+    (hmax : |x| ≤ (2 : ℚ) ^ (127 : ℤ))
+    {c : Code} (h : IsNearest x c) :
+    |decode c - x| ≤ (2 : ℚ) ^ (-8 : ℤ) * |x| := by
+  rcases lt_or_ge x 0 with hxlt | hxge
+  · have hpos : (0 : ℚ) < -x := by linarith
+    have hmin' : (2 : ℚ) ^ (-126 : ℤ) ≤ -x := by
+      rw [abs_of_neg hxlt] at hmin
+      linarith
+    have hmax' : -x ≤ (2 : ℚ) ^ (127 : ℤ) := by
+      rw [abs_of_neg hxlt] at hmax
+      linarith
+    have hsymm : IsNearest (-x) (negate c) := by
+      intro alternative
+      have hle := h (negate alternative)
+      rw [decode_negate] at hle
+      have h1 : |decode (negate c) - (-x)| = |decode c - x| := by
+        rw [decode_negate]
+        have hneg : (-(decode c)) - (-x) = -(decode c - x) := by ring
+        rw [hneg, abs_neg]
+      have h2 : |decode alternative - (-x)| =
+          |decode (negate alternative) - x| := by
+        rw [decode_negate]
+        have hneg : decode alternative - (-x) =
+            -((-(decode alternative)) - x) := by ring
+        rw [hneg, abs_neg]
+      rw [h1]
+      calc |decode c - x| ≤ |-decode alternative - x| := hle
+        _ = |decode alternative - (-x)| := by
+            have h3 : |-decode alternative - x| =
+                |-(decode alternative - (-x))| := by
+              congr 1
+              ring
+            rw [h3, abs_neg]
+    have hbound := abs_sub_le_of_isNearest_pos hpos hmin' hmax' hsymm
+    rw [decode_negate] at hbound
+    have hrewb : |(-(decode c)) - (-x)| = |decode c - x| := by
+      rw [show ((-(decode c)) - (-x)) = -(decode c - x) from by ring, abs_neg]
+    rw [hrewb] at hbound
+    rw [abs_of_neg hxlt]
+    exact hbound
+  · have hpos : (0 : ℚ) < x := by
+      rcases eq_or_lt_of_le hxge with rfl | h
+      · exact absurd rfl hx0
+      · exact h
+    rw [abs_of_pos hpos] at hmin hmax ⊢
+    exact abs_sub_le_of_isNearest_pos hpos hmin hmax h
+
+/-- FP32-master necessity: the nearest-round-trip update reconstruction at the
+extreme anchor loses the whole small update — relative error 1 > 2⁻⁸. -/
+theorem bf16_nearestRoundTrip_relativeError_gt
+    (delta recovered : Code)
+    (hdelta : IsNearest (decode nextAboveOne - decode anchor) delta)
+    (hrecovered : IsNearest (decode delta + decode anchor) recovered) :
+    (2 : ℚ) ^ (-8 : ℤ) * |decode nextAboveOne| <
+      |decode recovered - decode nextAboveOne| := by
+  rw [extreme_nearest_delta_loses_update delta recovered hdelta hrecovered,
+    decode_nextAboveOne, zero_sub, abs_neg]
+  norm_num
+
+
 end Hagi.Runtime.BF16Delta

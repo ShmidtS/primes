@@ -5,6 +5,7 @@ import Hagi.Model.BatchCEDescent
 import Hagi.Model.CEQuantized
 import Hagi.Cert.Adapters
 import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Runtime.BF16Delta
 
 /-!
 # BF16-guarded batch range-safe-step descent and cert transition
@@ -250,5 +251,90 @@ noncomputable def batchCE_transitionStep_hold {V : Type} [Fintype V]
       (zeroFloorObligations Unit) θ θ :=
   holdTransition (floorsKept_zeroFloor
     (Hagi.Contracts.BatchCETrajectory.batchLoss_nonneg X θ y))
+
+
+/-! ## C249 derived-eps bridge from the rational BF16 carrier (A8 F3)
+
+The eps premise of the guarded-descent gate is normally supplied by
+the caller. For rational-valued target logits inside the bf16 normal
+range read back through nearest codes, the per-logit perturbation is
+bounded by the DERIVED `eps = 2 ^ (-8) * M` (unit roundoff of the
+8-significant-bit carrier, `Hagi.Runtime.BF16Delta.abs_sub_le_of_isNearest_normal`),
+removing the manual eps premise. The FP32-master necessity is
+documented by the anchor round-trip counterexample
+`Hagi.Runtime.BF16Delta.bf16_nearestRoundTrip_relativeError_gt`. -/
+
+/-- `bf16_logitPerturbation_of_nearestNormalCodes`: if every target
+logit of `θtarget` is the cast of a rational in the bf16 normal range
+and the bf16 next state `θbf` reads each logit back through a nearest
+finite code, then the uniform per-logit perturbation is at most the
+derived `eps = 2 ^ (-8) * M` for any bound `M` on the target logits.
+The rational-logit premise is explicit — a rational carrier cannot
+round arbitrary real logits, and no universal rounding claim is made. -/
+theorem bf16_logitPerturbation_of_nearestNormalCodes
+    {V : Type} [Fintype V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ)
+    (θtarget θbf : EuclideanSpace ℝ (Fin d))
+    (M : ℝ) (hM : 0 ≤ M)
+    (hlogit : ∀ b v, |ceLogits (X b) θtarget v| ≤ M)
+    (hcode : ∀ b v, ∃ q : ℚ, ∃ c : Hagi.Runtime.BF16Delta.Code,
+      ceLogits (X b) θtarget v = (q : ℝ) ∧
+        (2 : ℚ) ^ (-126 : ℤ) ≤ |q| ∧ |q| ≤ (2 : ℚ) ^ (127 : ℤ) ∧
+        Hagi.Runtime.BF16Delta.IsNearest q c ∧
+        ceLogits (X b) θbf v = ((Hagi.Runtime.BF16Delta.decode c : ℚ) : ℝ)) :
+    ∀ b v, |ceLogits (X b) θbf v - ceLogits (X b) θtarget v| ≤
+      ((2 : ℚ) ^ (-8 : ℤ) : ℝ) * M := by
+  intro b v
+  obtain ⟨q, c, hq, hmin, hmax, hnear, hread⟩ := hcode b v
+  have hq0 : q ≠ 0 := by
+    intro h
+    rw [h, abs_zero] at hmin
+    exact absurd hmin (not_le.mpr (by positivity))
+  have hbound := Hagi.Runtime.BF16Delta.abs_sub_le_of_isNearest_normal hq0 hmin hmax hnear
+  rw [hread, hq]
+  have hcast : |((Hagi.Runtime.BF16Delta.decode c : ℚ) : ℝ) - ((q : ℚ) : ℝ)| =
+      (((|Hagi.Runtime.BF16Delta.decode c - q| : ℚ)) : ℝ) := by
+    rw [Rat.cast_abs]
+    congr 1
+    push_cast
+    ring
+  rw [hcast]
+  have h2 := (by exact_mod_cast hbound :
+    (((|Hagi.Runtime.BF16Delta.decode c - q| : ℚ)) : ℝ) ≤
+      (((2 : ℚ) ^ (-8 : ℤ) * |q| : ℚ) : ℝ))
+  rw [Rat.cast_mul, show (((|q| : ℚ)) : ℝ) =
+    |ceLogits (X b) θtarget v| from by rw [Rat.cast_abs, ← hq]] at h2
+  push_cast at h2 ⊢
+  exact h2.trans (mul_le_mul_of_nonneg_left (hlogit b v)
+    (by positivity : (0 : ℝ) ≤ ((2 : ℚ) ^ (-8 : ℤ) : ℝ)))
+
+/-- `bf16_guarded_ceRange_descent_of_nearestNormalCodes`: the C223
+guarded-descent gate with the eps premise DERIVED from the rational
+BF16 carrier instead of supplied manually: whenever the nearest-code
+readback hypotheses of the bridge hold and the strict gate
+`4 * (2 ^ (-8) * M) < 2 * batchAlignment^2 / batchLogitRangeSquare`
+holds, the real bf16 next state strictly decreases the true batch
+cross-entropy by some positive certified margin. -/
+theorem bf16_guarded_ceRange_descent_of_nearestNormalCodes
+    {V : Type} [Fintype V] [Nonempty V] {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (θbf : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) (M : ℝ) (hM : 0 ≤ M)
+    (hlogit : ∀ b v,
+      |ceLogits (X b) (batchLogitNextParameters X θ y) v| ≤ M)
+    (hcode : ∀ b v, ∃ q : ℚ, ∃ c : Hagi.Runtime.BF16Delta.Code,
+      ceLogits (X b) (batchLogitNextParameters X θ y) v = (q : ℝ) ∧
+        (2 : ℚ) ^ (-126 : ℤ) ≤ |q| ∧ |q| ≤ (2 : ℚ) ^ (127 : ℤ) ∧
+        Hagi.Runtime.BF16Delta.IsNearest q c ∧
+        ceLogits (X b) θbf v = ((Hagi.Runtime.BF16Delta.decode c : ℚ) : ℝ))
+    (hR : 0 < batchLogitRangeSquare X θ y)
+    (hgate : 4 * (((2 : ℚ) ^ (-8 : ℤ) : ℝ) * M) <
+      2 * batchAlignment X θ y ^ 2 / batchLogitRangeSquare X θ y) :
+    ∃ Δ : ℝ, 0 < Δ ∧ batchLoss X θbf y ≤ batchLoss X θ y - Δ := by
+  have hheps : 0 ≤ ((2 : ℚ) ^ (-8 : ℤ) : ℝ) * M :=
+    mul_nonneg (by positivity) hM
+  have hbf := bf16_logitPerturbation_of_nearestNormalCodes X
+    (batchLogitNextParameters X θ y) θbf M hM hlogit hcode
+  exact bf16_guarded_ceRange_descent X θ θbf y hheps hbf hR hgate
 
 end Hagi.Contracts.BatchRangeBF16Cert
