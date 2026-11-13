@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
 import Hagi.Foundations.Recurrence
+import Hagi.Budget.RankBudget
 /-!
 # RecursiveDistill: the grow-compress loop at fixed width (§6b.1, gen8 line)
 
@@ -683,67 +684,47 @@ theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
     (hsumf : ∑ i, f i = B) (hsumg : ∑ i, g i = B)
     (halign : ∀ i j, c i / 2 ^ (f i) = c j / 2 ^ (f j)) :
     totalErrorCont c f ≤ totalErrorCont c g := by
-  have hterm : ∀ (h : Fin n → ℝ) (i : Fin n),
-      c i / 2 ^ (h i)
-        = Real.exp (Real.log (c i) - h i * Real.log 2) := by
-    intro h i
-    rw [← Real.exp_log (div_pos (hc i)
-      (Real.rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) (h i)))]
+  -- C237: reduced to the shared exponential water-filling core
+  -- `RankBudget.rankResidual_equalized` with κ = log 2 and unit
+  -- budget weights (the dictionary 2^x = exp (x log 2); the former
+  -- Jensen engine is superseded by the canon tangent bound).
+  have hlogtwo : (0:ℝ) < Real.log 2 := Real.log_pos one_lt_two
+  have hkey : ∀ (hh : Fin n → ℝ) (i : Fin n),
+      c i / 2 ^ (hh i) = c i * Real.exp (-(Real.log 2) * hh i) := by
+    intro hh i
+    rw [Real.rpow_def_of_pos two_pos, div_eq_mul_inv, ← Real.exp_neg]
     congr 1
-    rw [Real.log_div (hc i).ne'
-      (Real.rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) (h i)).ne']
-    rw [Real.log_rpow (by norm_num : (0:ℝ) < 2) (h i)]
-  -- equal total log-sums
-  have hsumy : (∑ i, (Real.log (c i) - f i * Real.log 2))
-      = (∑ i, (Real.log (c i) - g i * Real.log 2)) := by
-    have hsub : (∑ i, (Real.log (c i) - f i * Real.log 2))
-        - (∑ i, (Real.log (c i) - g i * Real.log 2))
-        = ∑ i, ((Real.log (c i) - f i * Real.log 2)
-            - (Real.log (c i) - g i * Real.log 2)) :=
-      (Finset.sum_sub_distrib _ _).symm
-    have hzero : (∑ i, (Real.log (c i) - f i * Real.log 2))
-        - (∑ i, (Real.log (c i) - g i * Real.log 2)) = 0 := by
-      rw [hsub, Finset.sum_congr rfl (fun i _ =>
-        show (Real.log (c i) - f i * Real.log 2)
-            - (Real.log (c i) - g i * Real.log 2)
-          = (g i - f i) * Real.log 2 by ring),
-        ← Finset.sum_mul, Finset.sum_sub_distrib, hsumf, hsumg,
-        sub_self, zero_mul]
-    exact sub_eq_zero.mp hzero
-  -- Jensen for yg
-  have hj := jensen_exp_sum_le hn
-    (fun i => Real.log (c i) - g i * Real.log 2)
-  -- yf constant
-  have hconst : ∀ i : Fin n,
-      (Real.log (c i) - f i * Real.log 2)
-        = (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
-    intro i
-    have h1 : Real.exp (Real.log (c i) - f i * Real.log 2)
-        = Real.exp (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
-      rw [← hterm f i, ← hterm f ⟨0, hn⟩]
-      exact halign i ⟨0, hn⟩
-    exact Real.exp_injective h1
-  -- rewrite goal in exp-sums
+    ring
+  have hmu : (0:ℝ) < c ⟨0, hn⟩ / 2 ^ (f ⟨0, hn⟩) :=
+    div_pos (hc _) (Real.rpow_pos_of_pos two_pos _)
+  have heqf : ∀ j, c j * Real.exp (-(Real.log 2) * f j)
+      = c ⟨0, hn⟩ / 2 ^ (f ⟨0, hn⟩) := by
+    intro j
+    rw [← hkey f j]
+    exact halign j ⟨0, hn⟩
+  have hcore := rankResidual_equalized
+    (c := c) (κ := fun _ => Real.log 2)
+    (m := fun _ => 0) (n := fun _ => 1)
+    (rstar := f) (r := g)
+    (lam := Real.log 2 * (c ⟨0, hn⟩ / 2 ^ (f ⟨0, hn⟩)))
+    hc (fun _ => hlogtwo) (mul_pos hlogtwo hmu)
+    (fun j => by
+      have hj := heqf j
+      have hassoc : c j * Real.log 2 * Real.exp (-(Real.log 2) * f j)
+          = Real.log 2 * (c j * Real.exp (-(Real.log 2) * f j)) := by ring
+      rw [hassoc, hj]
+      ring)
+    (by simp only [zero_add, mul_one]
+        exact hsumf.trans hsumg.symm)
   unfold totalErrorCont
-  rw [Finset.sum_congr rfl (fun i _ => hterm f i),
-    Finset.sum_congr rfl (fun i _ => hterm g i)]
-  -- LHS = n * exp(Σyf/n) since yf const
-  have hsumc : (∑ i, (Real.log (c i) - f i * Real.log 2))
-      = n * (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) := by
-    rw [Finset.sum_congr rfl (fun i _ => hconst i)]
-    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
-  have hnR : ((n:ℝ)) ≠ 0 := (Nat.cast_pos.2 hn).ne'
-  have hleft : ∑ i, Real.exp (Real.log (c i) - f i * Real.log 2)
-      = n * Real.exp ((∑ i, (Real.log (c i) - f i * Real.log 2)) / n) := by
-    rw [Finset.sum_congr rfl (fun i _ =>
-        show Real.exp (Real.log (c i) - f i * Real.log 2)
-          = Real.exp (Real.log (c ⟨0, hn⟩) - f ⟨0, hn⟩ * Real.log 2) from
-        congrArg Real.exp (hconst i))]
-    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
-    push_cast
-    rw [hsumc, mul_div_cancel_left₀ _ hnR]
-  rw [hleft, hsumy]
-  exact hj
+  have hf : ∑ i, c i / 2 ^ (f i)
+      = ∑ i, c i * Real.exp (-(Real.log 2) * f i) :=
+    Finset.sum_congr rfl (fun i _ => hkey f i)
+  have hg : ∑ i, c i / 2 ^ (g i)
+      = ∑ i, c i * Real.exp (-(Real.log 2) * g i) :=
+    Finset.sum_congr rfl (fun i _ => hkey g i)
+  rw [hf, hg]
+  exact hcore
 
 /-- **Two-layer clamped water-filling corner** (R381): with
 the nonnegativity constraint `b ≥ 0`, when even the FULL

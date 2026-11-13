@@ -88,3 +88,37 @@ MirrorHedge. Two legality-driven deviations, both documented in
 C228's ewNorm_survivor_lower preserved verbatim (verified in
 RootApi). Freeze: only 2 private MWU helpers re-keyed by module
 path (stmt hashes identical); typeHash changes 0.
+
+## TD A5-R3-C237: water-filling x5 disposition + first adapter (2026-11-13)
+
+A5 §R3 slice 4 (C237): "water-filling x5 -> WeightedExpAlloc; keep
+discrete BitAlloc transfer". Survey (.tmp/C237/survey.md) findings:
+1. `Hagi/Budget/WeightedExpAlloc.lean` ALREADY landed as the
+   parameterized canon (cycle 66, 4ce97b2) on top of the abstract
+   core `RankBudget.rankResidual_equalized` (exp-tangent
+   equalized-marginal certificate, per-index κ + budget weights).
+2. First adapter landed THIS beat: BitAlloc's continuous section —
+   `water_filling_inner_optimum` reproofed as a genuine reduction to
+   `rankResidual_equalized` (κ = log 2, unit weights; C221-pattern
+   corollary reproof, statement byte-identical). The duplicate
+   Jensen engine in the proof is superseded; `jensen_exp_sum_le`
+   kept (byte-identical, reusable).
+3. DEFERRED adapter #2 (documented plan, NOT landed):
+   KVWater.waterfilling_bound. Reduction path: κ > 0 → core with
+   weights ≡ 1, Λ = κ·λ, 0 < c derived from heq; κ = 0 → both
+   residuals equal ∑ c (trivial); κ < 0 (outside the κ = log 2
+   exponential-SNR model; the hypothesis set of the frozen statement
+   does not exclude it) → local tangent argument retained, making
+   the adapter a hybrid. Deferred rather than shipping a half-
+   genuine reduction in the canon's flagship module.
+4. A5 AMENDMENT RECOMMENDED: NeuronAlloc (Σ c/n loss, Cauchy–
+   Schwarz, n ∝ √c, Engel structure) has a genuinely different
+   mathematical premise (power-law residual vs exponential decay)
+   and is NOT reducible to WeightedExpAlloc. It belongs to the
+   compute-scaling/Engel family, not water-filling. Semantic
+   honesty invariant: no forced unification.
+5. Kept as A5 prescribes: the discrete BitAlloc transfer family
+   (transfer_exact, imbalance_yields_gain, stable_factor_two,
+   two_layer_*, WaterFilling.exists_balanced_allocation,
+   BitAllocTermination chain) and WaterFillingMoE (generic KKT
+   bookkeeping + channel dictionary, not exp-tangent).
