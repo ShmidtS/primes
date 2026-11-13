@@ -252,6 +252,7 @@
 
 ## Hagi/Contracts/BatchCEAlignmentBudget.lean
 
+- C233 (R2): `batchLogitRangeSquare_le_rangeCurvature_mul_alignment` — без посылок, острая средняя `batchLogitRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y` (транзитивность `R' ≤ R ≤ K·A`); `alignment_le_scaled_logitCertifiedDrop` — при `0 < batchLogitRangeSquare X θ y` бюджетная константа `2·A/(K+1)` сертифицирует острый residual `batchLogitCertifiedDrop` (выражение C230 bf16-gate), переносом через `batchCertifiedDrop_le_batchLogitCertifiedDrop`. Константа телескопа `(K+1)/2` не сужается (честная граница); закрывает деферрал C230 из `.omc/tech-debt.md`.
 - `rangeCurvature_nonneg` и `batchRangeSquare_le_rangeCurvature_mul_alignment`: `0 ≤ rangeCurvature X` и `batchRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y`; граница сохраняется при тотализации пустого batch.
 - `fixedBatch_sum_alignment_le_initial`, `fixedBatch_alignment_summable` и `fixedBatch_tsum_alignment_le_initial`: при непустом `V` суммы `batchAlignment` по фактической `fixedBatchState`-траектории сходятся, а конечные суммы и `∑' t, batchAlignment ...` ограничены `((rangeCurvature X + 1) / 2) * batchCEObjective X y S`.
 - `fixedBatch_minNorm_tendsto_zero` и `fixedBatch_meanGradient_tendsto_zero`: при непустом `V` наблюдаемая точка `batchGradientMinimizer` стремится к нулю; фактический `WithLp.toLp 2 (meanResidualTranspose X (coreParameters (fixedBatchState X y S opCost opRisk write t)) y)` стремится к нулю без дополнительной посылки непустого `V`, включая случай `B = 0`.
@@ -278,6 +279,7 @@
 
 ## Hagi/Contracts/BatchCEStepCertificate.lean
 
+- C233 (R2): `batchLogitCertifiedDrop` — острый сертифицированный residual `if batchLogitRangeSquare = 0 then 0 else 2·A²/R'` (ns `BatchCETrajectory`, `[Nonempty V]`); `batchLogitCertifiedDrop_nonneg`; `batchCertifiedDrop_le_batchLogitCertifiedDrop` — при `0 < batchLogitRangeSquare` старый residual не превосходит острый (посылка несущая: при `R' = 0 < R` старый residual положителен, острый нуль; негативные контроли `.tmp/C233/neg1.lean`, `neg2.lean`).
 - `batchCEObjective_batchTrainStep_lt`: при непустом `V` и `0 < batchRangeSquare X (coreParameters S) y` фактический `batchTrainStep` строго уменьшает среднюю пакетную CE.
 - `expandedHalfTrainStep_budget_nonneg`: при `0 ≤ trainingCost` и достаточном исходном бюджете для `expandedFeatureEvaluationCount + trainingCost` бюджет после шага неотрицателен.
 - `expandedHalfTrainStep_flops_of_active`: при тех же бюджетных условиях, непустом пакете и строгом условии направления `dirAction ... < 0` счётчик flops увеличивается ровно на заданную сумму стоимости признаков и обучения.
@@ -3984,6 +3986,7 @@ one-hot CE.
 
 ## Hagi/Unified/DerivAlong.lean
 
+- C233 (R2): `ceStepLogitRange_sq_le_featureMass_sq_norm_sq` — острая по-примерная `ceStepLogitRange² ≤ 4·featureAbsSum²·‖ceDirection‖²`; `ceStepLogitQuad_le_engine` — `(eta·R'ᵢ)²/8 ≤ featureAbsSum²·eta²·‖D‖²/2` (острый квадратичный член не хуже engine); `jointEnergy_le_ceLinear_logitRange` — заострённая точечная majorant `jointEnergy ≤ S.energy − eta·⟪grad,stepDir⟫ + (eta·ceStepLogitRange)²/8` на тех же посылках, что `potential_joint_of_ceLinear_residualDirection` (C216-мажоризатор `ceOneHot_next_le_rangeMajorizer`).
 - `lip_energy_from_gradient`: если `E` всюду дифференцируема и
   `‖fderiv E w‖ ≤ κ`, то `|E w−E q| ≤ κ‖w−q‖` для любых `w,q`.
 - `smooth_from_lipschitz_gradient`: при дифференцируемости,

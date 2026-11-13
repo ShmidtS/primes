@@ -1700,3 +1700,46 @@ spaceDecoupling_capacity           : P_R·v = v ≠ 0 — ёмкость R-на�
 rank(Δ) ≤ 2D из ранга головы — посылка, как и в квадратной версии.
 Slow-loop gate 3b теперь формально замкнут на stitching: конечный
 набор anytime-сертификатов с priors Σ ≤ 1 даёт один anytime-гейт.
+
+## 15. R2: подключение острых range-констант к consumer'ам (C233)
+
+Addendum A5 §R2: константы C216 (`ceStepLogitRange`, sup−inf) и C223
+(`batchLogitRangeSquare`) врываются в существующие consumer'ы
+additive-мостами, без правки старых утверждений:
+
+```
+batchLogitCertifiedDrop                        : if R'=0 then 0 else 2·A²/R'
+batchLogitCertifiedDrop_nonneg                 : 0 ≤ drop'
+batchCertifiedDrop_le_batchLogitCertifiedDrop  : 0 < R' → drop ≤ drop'
+batchLogitRangeSquare_le_rangeCurvature_mul_alignment : R' ≤ K·A (без посылок)
+alignment_le_scaled_logitCertifiedDrop         : 0 < R' → 2·A/(K+1) ≤ drop'
+ceStepLogitRange_sq_le_featureMass_sq_norm_sq  : R'ᵢ² ≤ 4·(Σ|X|)²·‖D‖²
+ceStepLogitQuad_le_engine                      : (η·R'ᵢ)²/8 ≤ (Σ|X|)²·η²·‖D‖²/2
+jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,d⟫ + (η·R'ᵢ)²/8
+```
+
+Провода (R2-статус по файлам):
+- `BatchCEStepCertificate.lean` — WIRED: острый сертифицированный
+  residual `batchLogitCertifiedDrop` + мост «старый ≤ новый».
+- `BatchCEAlignmentBudget.lean` — WIRED (закрывает деферрал C230):
+  тот же curvature-констант K контролирует и острую R' (безусловно), а
+  бюджетная константа `2/(K+1)` сертифицирует острый drop (при
+  `0 < R'`) — именно выражение C230 bf16-gate теперь связано с
+  бюджетом. Сама константа `(K+1)/2` телескопа НЕ сужается — честно:
+  из `R' ≤ R` более острая curvature-константа не выводится.
+- `Unified/DerivAlong.lean` — WIRED: острая по-примерная квадратура и
+  заострённая точечная majorant для jointEnergy (C216-мажоризатор),
+  с relation-леммой к engine-члену.
+- `BudgetedParetoStepContract/Cert.lean` — SKIP (честный анализ):
+  дельты контракта привязаны к `budgetedParetoBatchTrainStep`, чей η
+  идёт от `batchSafeStep` внутри машины состояний TrainState; rewiring =
+  новая пара train-step + репликация guard-веток (dependent-type
+  surgery, не additive). Аддитивного моста нет: спуск исполненного
+  старого шага НЕ доминирует residual острого шага (разные шаги);
+  мост drop ≤ drop' требует `0 < R'`, что не транспортируется на
+  исполненный шаг.
+
+Посылка `0 < batchLogitRangeSquare` в мостах несущая: при
+`R' = 0 < R` (постоянные направленные логиты при ненулевой
+alignment) старый residual положителен, острый — нуль. Отрицательные
+контроли: `.tmp/C233/neg1.lean`, `neg2.lean` (оба обязаны фейлиться).

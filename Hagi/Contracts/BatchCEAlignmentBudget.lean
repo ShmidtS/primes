@@ -437,4 +437,31 @@ theorem fixedBatch_meanDirection_tendsto_zero
   rw [hEq]
   simpa using h.neg
 
+/-! ## Sharp-range wiring (C233 R2, resolves the C230 deferral) -/
+
+/-- The sharp mean logit-range square is controlled by the same explicit
+feature-curvature constant as the engine range square: transitivity of
+`batchLogitRangeSquare` ≤ `batchRangeSquare` through
+`batchRangeSquare_le_rangeCurvature_mul_alignment`. -/
+theorem batchLogitRangeSquare_le_rangeCurvature_mul_alignment [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (θ : EuclideanSpace ℝ (Fin n))
+    (y : Fin B → V) :
+    batchLogitRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y :=
+  (Hagi.Model.BatchCEDescent.batchLogitRangeSquare_le_batchRangeSquare X θ y).trans
+    (batchRangeSquare_le_rangeCurvature_mul_alignment X θ y)
+
+/-- Under a positive sharp mean range-square the budget constant
+`2 / (rangeCurvature + 1)` certifies the SHARP-range residual
+`batchLogitCertifiedDrop` (the exact C223/C230 gate expression), not only
+the engine residual: the old bound transports through
+`batchCertifiedDrop_le_batchLogitCertifiedDrop`. -/
+theorem alignment_le_scaled_logitCertifiedDrop [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (θ : EuclideanSpace ℝ (Fin n))
+    (y : Fin B → V) (hR : 0 < batchLogitRangeSquare X θ y) :
+    2 * batchAlignment X θ y / (rangeCurvature X + 1) ≤
+      Hagi.Contracts.BatchCETrajectory.batchLogitCertifiedDrop X θ y :=
+  (alignment_le_scaled_certifiedDrop X θ y).trans
+    (Hagi.Contracts.BatchCETrajectory.batchCertifiedDrop_le_batchLogitCertifiedDrop
+      X θ y hR)
+
 end Hagi.Contracts.BatchCEAlignmentBudget

@@ -333,6 +333,48 @@ theorem batchCertifiedDrop_le_actualDrop [Nonempty V]
     rw [batchCEObjective, batchCEObjective, coreParameters_batchTrainStep]
     linarith
 
+/-! ## Sharp-range certified drop (C233 R2 wiring) -/
+
+/-- Sharp-range certified residual: the exact C223 expression
+`2 * batchAlignment^2 / batchLogitRangeSquare` under the same zero-branch
+convention as `batchCertifiedDrop`, with the sharp mean logit range
+`batchLogitRangeSquare` in place of `batchRangeSquare`. -/
+noncomputable def batchLogitCertifiedDrop [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (θ : EuclideanSpace ℝ (Fin n))
+    (y : Fin B → V) : ℝ :=
+  if batchLogitRangeSquare X θ y = 0 then 0
+  else 2 * batchAlignment X θ y ^ 2 / batchLogitRangeSquare X θ y
+
+/-- Both branches of the sharp-range residual are nonnegative. -/
+theorem batchLogitCertifiedDrop_nonneg [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (θ : EuclideanSpace ℝ (Fin n))
+    (y : Fin B → V) :
+    0 ≤ batchLogitCertifiedDrop X θ y := by
+  rw [batchLogitCertifiedDrop]
+  split_ifs with hR
+  · exact le_rfl
+  · exact div_nonneg (mul_nonneg (by norm_num) (sq_nonneg _))
+      (batchLogitRangeSquare_nonneg X θ y)
+
+/-- Under a positive sharp mean range-square the engine's certified
+residual never exceeds the sharp-range one: `batchRangeSquare` dominates
+`batchLogitRangeSquare`, so the sharp divisor gives the larger drop.  The
+positivity premise is load-bearing: a zero sharp range with positive
+vocabulary-sum range (constant directional logits, nonzero alignment)
+makes the engine residual positive and the sharp one zero. -/
+theorem batchCertifiedDrop_le_batchLogitCertifiedDrop [Nonempty V]
+    (X : Fin B → Matrix V (Fin n) ℝ) (θ : EuclideanSpace ℝ (Fin n))
+    (y : Fin B → V) (hR : 0 < batchLogitRangeSquare X θ y) :
+    batchCertifiedDrop X θ y ≤ batchLogitCertifiedDrop X θ y := by
+  have hle := batchLogitRangeSquare_le_batchRangeSquare X θ y
+  have hRold : 0 < batchRangeSquare X θ y := lt_of_lt_of_le hR hle
+  have hA : 0 ≤ batchAlignment X θ y := batchAlignment_nonneg X θ y
+  rw [batchCertifiedDrop, ite_eq_right (ne_of_gt hRold),
+    batchLogitCertifiedDrop, ite_eq_right (ne_of_gt hR),
+    div_le_div_iff₀ hRold hR]
+  exact mul_le_mul_of_nonneg_left hle
+    (mul_nonneg (by norm_num : (0 : ℝ) ≤ 2) (sq_nonneg _))
+
 end Hagi.Contracts.BatchCETrajectory
 
 namespace Hagi.Contracts.BatchCEStep
