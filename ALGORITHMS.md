@@ -1666,8 +1666,23 @@ nsIter_dist_sq                       : 1 − φ(iter) ≤ (3/2)(1−iter)² (к�
 ```
 
 Доказанные инстансы контракта: identity (α=1), zero (α=0),
-scaling `u ↦ c•u` (α=c ∈ [0,1]). qTern/TopK — документированные, не
-доказанные. Связь Muon/Newton-Schulz — ЧЕСТНО скалярная: сертификат
+scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
+`Hagi/Optimization/EF21Quantizer.lean`): TopK (fixed-support) и
+тернарный лифт `qTernVec` — доказанные α=0-инстансы
+(`topK_contractive`, `qTernVec_contractive_zero`); для α ∈ (0,1]
+контрактивность ОПРОВЕРГНУТА явными свидетелями
+(`topK_not_contractive_pos`, `qTernVec_not_contractive` —
+полушаговый свидетель u=s/2 округляется в 0, ‖Q u−u‖=‖u‖).
+Аддитивный контракт `IsInexactCompressor C α ε` (‖C u−u‖₂ ≤
+(1−α)‖u‖₂+ε) переносится через Markov-обновление
+(`ef21_update_norm_le_inexact`) и даёт одношаговый спуск Ляпунова
+`ef21_inexact_descent` (дефекты выравнивания/нормы выведены
+Коши–Шварцем, константы точные); инстансы: `topK_inexact`,
+`qTernVec_inexact` (ε=0), полушаговый бюджет `‖Q u−u‖₂ ≤ √n·s/2`
+при in-range (`qTernVec_error_inrange`). Остаются premise-only:
+относительная контрактивность c<1 (пер-векторный скейлинг
+литературы EF21) и saturation-tail инстанс (в energy-форме —
+`ternary_split_le`, Hagi/Runtime/TernaryExact.lean). Связь Muon/Newton-Schulz — ЧЕСТНО скалярная: сертификат
 `one_sub_nsStep`/`nsIter_dist_sq` относится к сингулярным значениям в
 (0,√3); матричное нерасширение NS-полинома остаётся гипотезой `hP`
 в `Hagi/Step/Muon.lean`. mHC: Sinkhorn не требуется — M дважды

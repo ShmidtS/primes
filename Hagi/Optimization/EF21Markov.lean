@@ -32,11 +32,16 @@ that loop:
   to the canon `Hagi.Foundations.recurrence_pure` (same dedup
   discipline as `Hagi.Optimization.pl_linear_convergence`).
 
-Honest boundary: qTern (median ternary quantization) and TopK with
-per-step scaling ARE contractive compressors in the literature
-(EF21, Richtárik–Safaryan–Horváth), but their contractivity proofs
-are nontrivial; here they are DOCUMENTED instances, not proven ones
-(the scaling compressor carries the non-degenerate proof duty).
+Honest boundary: the REAL quantizer instances are bridged in
+`Hagi/Optimization/EF21Quantizer.lean` (C247, A7 bridge 2): fixed-
+support TopK and the ternary lift `qTernVec` are `α = 0`
+contractive, NOT `α > 0` contractive (both refuted with explicit
+witnesses), and the additive-error contract `IsInexactCompressor`
+carries them through `ef21_inexact_descent`. What remains
+documented-only: per-vector-scaled relative contractivity
+(`c < 1`, the EF21 literature route) and the saturation-tail
+inexact instantiation (proven in energy form in
+`Hagi/Runtime/TernaryExact.lean`).
 The toy-quadratic EF theory (`Hagi/Unified/EFTheory.lean`: exact
 telescoping, quality transfer on quadratics) is subsumed in spirit
 by the abstract contractor analysis; the dedup is future work —
