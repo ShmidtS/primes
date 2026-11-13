@@ -223,6 +223,7 @@ import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact
 import Hagi.Runtime.TernaryCodec
 import Hagi.Runtime.DyadicTernary
+import Hagi.Runtime.VennPacking
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Budget.JointCost

@@ -1900,6 +1900,56 @@ CHOICE-CE (прогресс обучения к размеченной маск�
 мире. Пункт 3 addendum A4 закрыт; из B7 остался testbed роста решётки
 Хассе (пункт 4).
 
+### C251: спецификации процессора Венна (A8 F4)
+
+Addendum A8 F4 — точные спецификации упаковки, роли H₄, CE-пола и
+композиции Хассе, все на фактических определениях кодека/головы.
+
+- **Упаковка** ([`Hagi/Runtime/VennPacking.lean`](Hagi/Runtime/VennPacking.lean)):
+  16×4 {0,1}-матрица решётки = 64 трита (`vennTrits_count`,
+  `vennTritRow` — фактический `ternaryValueEncode` на уровне 1).
+  Таблица вариантов: flat 5-тритные блоки `ternaryByteBlock` →
+  `tritsBytes 64 = 13` байт (`flatVennBytes`), плотно снизу —
+  12 байт невозможно (`flatVenn_twelve_byte_impossible`, 3^64 > 2^96);
+  построчно — 4 трита на строку, инстанцировано на всех 16 масках:
+  `rowByte_injective`, `rowBytes_card = 16` различных байт;
+  dyadic с масштабом на блок (`dyadicBlock : BitVec 16`) → 26 байт
+  (`dyadicVennBytes`); общий масштаб — 13 payload + 1 байт масштаба
+  (`scaleCode_byte`, `sharedScaleVennBytes`) = 14 байт. Flat/dyadic
+  счёты — абстрактная формула ⌈n/5⌉ на конкретном размере, потоковый
+  кодировщик 64 символов не инстанцирован (задокументировано).
+- **Коррекция роли H₄** ([`Hagi/Data/BoolVenn.lean`](Hagi/Data/BoolVenn.lean)):
+  отождествление маска↔таблица истинности на 4 атомах — ТОЖДЕСТВО
+  (`mask_truth_table_identity`, `atomIdx_atomBools`), а Уолша–Адамар
+  `vennWalsh` (= `Core.sylvester` порядка 4 в атомной индексации) —
+  преобразование спектра: `vennWalsh_sq` (H·H = 4•1, decide),
+  `vennWalsh_mul_transpose`, `(1/2)•vennWalshReal` ортонормален
+  (`vennWalshOrthonormal` через Core `smul_orthonormal`).
+- **CE-пол 16 классов на single-atom батчах** (там же): A8-число
+  log 8 ПРОВЕРЕНО как поточечный (сильнее worst-case) пол
+  лог-линейной головы: softmax-вероятность любой маски ≤ 1/8
+  (`qAtom_le` — 8 масок делят сторону атома), значит средний CE ≥
+  log 8 при любых θ и m (`singleAtomCE_floor`), инфимум ровно log 8
+  (`singleAtomCE_align` замкнутая форма log 8 + log(1+e^{-t}),
+  `singleAtomCE_tight`). КОРРЕКЦИЯ worst-case прочтения A8: против
+  adversary-маски (холодной где θ горячий) любая параметризация
+  платит ≥ log 16 (`singleAtomCE_minimax`, `qAtom_worst_le ≤ 1/16`)
+  — minimax равен log 16 (равномерная θ), log 8 — это пол на маску,
+  не minimax. Вопреки полу: sign(θ>0) восстанавливает все 16 масок
+  (`sign_recover`). Скоуп: только лог-линейная single-atom голова
+  (C243 `choiceFeatures`), не произвольные предикторы.
+- **Композиция Хассе ADD4/SUB4**
+  ([`Hagi/Model/Logic/VennHead.lean`](Hagi/Model/Logic/VennHead.lean)):
+  двухканальная голова `venn2Head` из двух 1-слойных: sum = XOR
+  (`xorMask`, ранг 2), carry = AND (`andMask`, ранг 1, двухвходовое
+  большинство), borrow = ¬x∧y (`borrowMask`, ранг 1);
+  `venn2_adder_correct` ((2·AND+XOR) % 4 = (x+y) % 4),
+  `venn2_suber_correct` (мод-4 вычитание), `venn2_adder_real`
+  (точное 2·carry+sum = x+y), мосты каналов через C242
+  `vennHead_exact`. Грунт эмпирических ADD4/SUB4 100% на
+  decide/norm_num уровне; трёхвходовой полный сумматор вне
+  двухпеременной решётки (заявлений нет).
+
 ## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
 
 Два аддитивных контракта addendum A7 (Freeze: только additions,

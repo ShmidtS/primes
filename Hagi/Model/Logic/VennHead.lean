@@ -32,6 +32,13 @@ Exactness is end-to-end and certified:
 Boundary, honestly: this is exactness for two-variable boolean logic
 (the 16-function Venn lattice), not logic in general; the honest
 scalability boundary of mask-linear heads is `n ≤ 4-5` inputs.
+
+C251 additions (A8 F4): the two-layer Hasse composition — the 2-bit
+adder/subtractor built from two 1-layer heads over bit-split
+channels (`venn2Head`): sum = XOR (`xorMask`, rank two), carry =
+AND (`andMask`, rank one, the two-input majority), borrow =
+`¬x ∧ y` (`borrowMask`, rank one), with exact two-bit arithmetic
+(`venn2_adder_correct`, `venn2_suber_correct`, `venn2_adder_real`).
 -/
 
 set_option linter.style.header false
@@ -169,5 +176,94 @@ theorem venn_mask_ternary {w : ℝ} (hw : w = 0 ∨ w = 1) :
     qTern 1 w = w := by
   rcases hw with hw | hw <;> subst hw <;>
     unfold qTern roundTern <;> norm_num
+
+/-! ## C251: 2-layer Hasse composition (ADD4 / SUB4 grounding) -/
+
+/-- The XOR mask (rank two). -/
+def xorMask : Fin 4 → Bool := ![false, true, true, false]
+
+/-- The AND mask (rank one). -/
+def andMask : Fin 4 → Bool := ![true, false, false, false]
+
+/-- The borrow mask `¬x ∧ y` (rank one). -/
+def borrowMask : Fin 4 → Bool := ![false, false, true, false]
+
+theorem vennBool_xor : ∀ (a b : Bool), vennBool xorMask a b = xor a b := by
+  decide
+
+theorem vennBool_and : ∀ (a b : Bool), vennBool andMask a b = (a && b) := by
+  decide
+
+theorem vennBool_borrow : ∀ (a b : Bool),
+    vennBool borrowMask a b = (!a && b) := by
+  decide
+
+theorem maskRank_xor : maskRank xorMask = 2 := by decide
+
+theorem maskRank_and : maskRank andMask = 1 := by decide
+
+theorem maskRank_borrow : maskRank borrowMask = 1 := by decide
+
+/-- The two-channel head: two 1-layer Venn heads over bit-split
+outputs (channel zero = the carry/borrow head, channel one = the
+sum/diff head). -/
+noncomputable def venn2Head (mo mc : Fin 4 → Bool) (A B : ℝ) : Fin 2 → ℝ :=
+  ![vennHead (maskReal mo) A B, vennHead (maskReal mc) A B]
+
+/-- `{0,1}` value of a Bool. -/
+def bval (a : Bool) : ℕ := if a then 1 else 0
+
+/-- ADD composition: sum bit = XOR, carry = AND (the two-input
+majority); the two-channel head computes two-bit addition exactly
+(`ADD4` modulo four). -/
+theorem venn2_adder_correct (x y : Bool) :
+    (2 * bval (x && y) + bval (xor x y)) % 4
+      = (bval x + bval y) % 4 := by
+  cases x <;> cases y <;> norm_num [bval]
+
+/-- SUB composition: diff bit = XOR, borrow = `¬x ∧ y`; two-bit
+subtraction modulo four (`SUB4`). -/
+theorem venn2_suber_correct (x y : Bool) :
+    (2 * bval (!x && y) + bval (xor x y)) % 4
+      = (bval x + (4 - bval y)) % 4 := by
+  cases x <;> cases y <;> norm_num [bval]
+
+/-- The executed sum channel equals the XOR truth value (the C242
+bridge `vennHead_exact` on the XOR mask). -/
+theorem venn2_sum_head (x y : Bool) :
+    vennHead (maskReal xorMask) (s x) (s y)
+      = (if xor x y then (1 : ℝ) else 0) := by
+  rw [vennHead_exact]
+  rw [vennBool_xor]
+
+/-- The executed carry channel equals the AND truth value. -/
+theorem venn2_carry_head (x y : Bool) :
+    vennHead (maskReal andMask) (s x) (s y)
+      = (if x && y then (1 : ℝ) else 0) := by
+  rw [vennHead_exact]
+  rw [vennBool_and]
+
+/-- The executed borrow channel equals the `¬x ∧ y` truth value. -/
+theorem venn2_borrow_head (x y : Bool) :
+    vennHead (maskReal borrowMask) (s x) (s y)
+      = (if !x && y then (1 : ℝ) else 0) := by
+  rw [vennHead_exact]
+  rw [vennBool_borrow]
+
+/-- The two-channel adder head on sign inputs produces exactly the
+`(carry, sum)` pair of truth values. -/
+theorem venn2Head_add (x y : Bool) :
+    venn2Head andMask xorMask (s x) (s y)
+      = ![if x && y then (1 : ℝ) else 0, if xor x y then (1 : ℝ) else 0] := by
+  rw [venn2Head, venn2_carry_head, venn2_sum_head]
+
+/-- Real-valued composition: `2 * carry + sum = x + y` on the nose
+(no modulus needed — the two-bit sum is at most two). -/
+theorem venn2_adder_real (x y : Bool) :
+    2 * vennHead (maskReal andMask) (s x) (s y)
+      + vennHead (maskReal xorMask) (s x) (s y)
+      = (bval x : ℝ) + (bval y : ℝ) := by
+  rw [venn2_carry_head, venn2_sum_head]
+  cases x <;> cases y <;> norm_num [bval]
 
 end Hagi.Model.Logic

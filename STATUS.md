@@ -4986,3 +4986,18 @@ merger cert carriers (Freeze-дисциплина: statement change).
   one-sided isolation caveat (инъекция защищена, readback Uᵀh — нет,
   без гейтинга/посылки UᵀΔ=0). Нелинейные эмпирические константы —
   мотивация в ALGORITHMS, не Lean-посылки.
+
+- C251 (A8 F4): спецификации процессора Венна — упаковка
+  (`Hagi/Runtime/VennPacking.lean`: flatVennBytes 13 байт, плотно
+  снизу flatVenn_twelve_byte_impossible; rowByte_injective/
+  rowBytes_card 16 байт построчно; dyadicVennBytes 26;
+  sharedScaleVennBytes 14 + scaleCode_byte); коррекция роли H₄
+  (BoolVenn: mask_truth_table_identity — тождество I₄, vennWalsh =
+  Core.sylvester на атомах, vennWalsh_sq/mul_transpose,
+  vennWalshOrthonormal); CE-пол single-atom батчей (qAtom_le ≤ 1/8,
+  singleAtomCE_floor log 8 поточечно, singleAtomCE_align/tight
+  инфимум = log 8, singleAtomCE_minimax ≥ log 16 — КОРРЕКЦИЯ
+  worst-case прочтения A8, sign_recover 16/16); композиция Хассе
+  (VennHead: xorMask/andMask/borrowMask + maskRank факты, venn2Head,
+  venn2_adder_correct/venn2_suber_correct/venn2_adder_real,
+  мосты venn2_sum/carry/borrow_head через vennHead_exact).
