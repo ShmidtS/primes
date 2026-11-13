@@ -349,7 +349,6 @@ import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
 import Hagi.Unified.LogitGrowth
 import Hagi.Unified.LoopInstances
-import Hagi.Unified.CertUnify
 import Hagi.Unified.Ctv2Telescope
 import Hagi.Model.BYOL
 import Hagi.Model.MeasuredEffects
@@ -418,6 +417,7 @@ import Hagi.Unified.NegativeTests
 import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
 import Hagi.State.Transition
+import Hagi.State.Views
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.FiniteEMTrajectory
 import Hagi.Contracts.ChangingEMTrajectory
@@ -453,6 +453,7 @@ import Hagi.Model.Routing
 import Hagi.Model.Logic.VennHead
 import Hagi.Contracts.LogicChoiceCert
 import Hagi.Cert.Core
+import Hagi.Cert.Empirical
 import Hagi.Cert.Adapters
 import Hagi.Cert.CertifiedArgmax
 

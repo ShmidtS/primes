@@ -1854,3 +1854,43 @@ CHOICE-CE (прогресс обучения к размеченной маск�
 а точная голова верно вычисляет маску, которая может быть ложной о
 мире. Пункт 3 addendum A4 закрыт; из B7 остался testbed роста решётки
 Хассе (пункт 4).
+
+## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
+
+Два аддитивных контракта addendum A7 (Freeze: только additions,
+старые statements байт-идентичны):
+
+**`Hagi/Cert/Empirical.lean` — `Empirical P`.** Типизированная
+обёртка эмпирических посылок (класс D по A7): measuredLaw, tolerance
+(+ `0 ≤ tolerance`), modelRef, premise. Конструкция требует
+предъявить `P` — контрабанда посылок невозможна; `Empirical.out`
+возвращает ровно предъявленное. Заместительный путь для голых
+`h_emp_*` (миграции нет; AssumptionScan остаётся).
+
+**`Hagi/Cert/Core.lean` — `CertStepDelta` (четвёртый ресурс).**
+Пошаговый бюджет вероятности ложного коммита delta списывается
+равенством `deltaLevel s' = deltaLevel s − delta` из явного носителя
+`deltaLevel : S → ℝ` с неотрицательным остатком — та же
+телескопируемая форма, что у budget/risk:
+
+```
+CertStepDelta.deltaBound h   : h.delta ≤ deltaLevel s
+CertStepDelta.trans h₁ h₂    : drop'ы, spend'ы и δ складываются
+delta_telescope n t L h0 steps :
+  ∑ j ∈ Finset.range n, (steps j).delta ≤ L (t 0)   -- Σ δ_k ≤ δ
+```
+
+Посылка `h0 : 0 ≤ deltaLevel (t 0)` честно явная (не выводима).
+Перенос поля внутрь `CertStep` — Phase-2 merger cert carriers
+(statement change под Freeze-дисциплиной).
+
+**`Hagi/State/Views.lean` — view-паттерн для TrainState.**
+`toSystemMetrics` подаёт канонический TrainState в сертификационное
+ядро (objective = energy, risk = riskOf, budget = budgetOf,
+TaskId = Unit); спецификации — rfl. Унификация носителей — Phase 2/3.
+
+**Слияние CertUnify.** Файл `Hagi/Unified/CertUnify.lean` удалён:
+контент слит в единственного потребителя
+`Hagi/Unified/Ctv2Telescope.lean`, namespace `Hagi.Unified.CertUnify`
+и statements сохранены байт-идентично (Freeze PASS без aliases).
+

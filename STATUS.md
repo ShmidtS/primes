@@ -230,6 +230,32 @@
 - `HoldStep` без утверждения прогресса всегда доступен (`HoldStep.id`); `TransitionStep` = `progress | hold`.
 - Композиция: `CertStep.trans` (те же obligations), `CertStep.trans'` (второй шаг против поточечно сильных obligations `obl₁.floor t ≤ obl₂.floor t`); телескопы `trajectory_telescope` (по `Finset.range n`) и `trajectory_telescope_fin` ограничивают терминальный objective суммой drop'ов.
 
+- C245 (Phase 1, A7): `CertStepDelta` — четвёртый ресурс: пошаговый
+бюджет вероятности ложного коммита delta, списываемый равенством
+delta_next из явного носителя `deltaLevel : S → ℝ` с неотрицательным
+остатком delta_nonneg; производная оценка `CertStepDelta.deltaBound`,
+композиция `CertStepDelta.trans` и телескоп `delta_telescope`
+(Σ δ_k ≤ deltaLevel (t 0) при явной посылке 0 ≤ deltaLevel (t 0)).
+`CertStep` байт-идентичен (Freeze: только additions).
+
+## Hagi/Cert/Empirical.lean
+
+- C245 (Phase 1, A7): `Empirical P` — типизированная обёртка
+эмпирических посылок (заместительный путь для голых `h_emp_*`;
+миграции нет, AssumptionScan остаётся): поля measuredLaw/tolerance
+(+ tolerance_nonneg)/modelRef/premise; `Empirical.out` распаковывает
+ровно предъявленную посылку. Надёжностной класс D (addendum A7).
+
+## Hagi/State/Views.lean
+
+- C245 (Phase 1, A7): survey носителей состояния (TrainState — канон
+спеки §4; GrowthState — legacy c `GrowthStateViews`; FunctionalState;
+MachineProto/MeasureProto; NC-мир) + минимальный честный view:
+`toSystemMetrics` (TrainState как `Hagi.Cert.SystemMetrics`:
+objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
+со спецификациями `toSystemMetrics_objective/_risk/_budget` (rfl).
+Массовая унификация носителей — Phase 2/3.
+
 ## Hagi/Cert/Adapters.lean
 
 - Генерические адаптеры между конкретными сертификатами спуска и каноническим ядром `Hagi.Cert` (импортирует только `Hagi.Cert.Core` — batch-CE-инстанциация живёт в Contracts из-за LayerLint).
@@ -3961,15 +3987,6 @@ one-hot CE.
   условии `alpha·capability 0 < growGain 0` первый шаг строго превосходит
   `(1+alpha)·capability 0`.
 
-## Hagi/Unified/CertUnify.lean
-
-- `tc_consequence`: из цепочки `StepCert` и нижней границы
-  `Φ_min ≤ obj(f t)` для всех `t ≤ n` следует
-  `Σ objectiveDrop ≤ obj(f 0) − Φ_min + Σ riskSpend`.
-- `ec_chain_to_tc`: тот же телескоп получается из связанных исполнением
-  сертификатов `ExecutedCert` при неотрицательных заданных рисках и бюджетах,
-  без отдельной постановки шаговой гипотезы `StepContract`.
-
 ## Hagi/Legacy/CertifiedGrowth.lean
 
 - `certified_gainprod_takeoff`: для `[0,1]`-наблюдений, `n,eps > 0`,
@@ -4048,6 +4065,15 @@ one-hot CE.
 - `verify_family_telescope`: если дополнительно `0 ≤ eta`, `0 ≤ κ,s`
   и `quantErr ≤ 1/2` на каждом шаге, то сумма `verify(S(t+1)).decrease`
   ограничена тем же фактическим убыванием.
+
+Секция CertUnify (файл Hagi/Unified/CertUnify.lean удалён в C245, Phase 1: контент слит в этот файл, namespace `Hagi.Unified.CertUnify` сохранён, statements байт-идентичны):
+
+- `tc_consequence`: из цепочки `StepCert` и нижней границы
+  `Φ_min ≤ obj(f t)` для всех `t ≤ n` следует
+  `Σ objectiveDrop ≤ obj(f 0) − Φ_min + Σ riskSpend`.
+- `ec_chain_to_tc`: тот же телескоп получается из связанных исполнением
+  сертификатов `ExecutedCert` при неотрицательных заданных рисках и бюджетах,
+  без отдельной постановки шаговой гипотезы `StepContract`.
 
 ## Hagi/Unified/DerivAlong.lean
 
@@ -4841,3 +4867,16 @@ wall-clock, сжатие весов или улучшение качества.
   `e(s+1) ≤ q·e s + σ²/(B0·c^s)` получается
   `e t ≤ Estar + q^t(e0−Estar) + σ²/(B0(1−q))`.
   Постоянный шумовой член — консервативная граница данной рекуррентности.
+
+## C245 deferrals (Phase 1, documented)
+
+- Quarantines out of defaultTargets (A7 Phase-1 item): DEFERRED.
+Причина: `scripts/ci.sh` строит только default target, после чего
+`scripts/Freeze.py` запускает `lake env lean scripts/inventory.lean`,
+который импортирует `Hagi.Legacy`/`Hagi.Benchmarks`/`Hagi.Research`
+и требует их oleans (`lake env` не собирает). На свежем checkout
+удаление из defaultTargets ломает FREEZE в ci.sh, который править
+в рамках C245 запрещено. Корректный фикс — одним инфра-пакетом с
+переводом mathlib на git-зависимость (см. комментарии ci.yml).
+- Слияние CertStepDelta в ядро CertStep (перенос поля) — Phase-2
+merger cert carriers (Freeze-дисциплина: statement change).
