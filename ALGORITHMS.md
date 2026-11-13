@@ -202,7 +202,7 @@ convex hull raw gradients. [`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.
 при `u=g1-g0≠0`, `τ=min 1 (max 0 (-⟪g0,u⟫/‖u‖²))`,
 `ω=g0+τu`; [`segmentMinNorm_norm_le`](Hagi/Step/ProjectionDescent.lean)
 подтверждает минимальность. [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean)
-связывает её с общим случаем.
+связывает её с общим случаем. Сводка исполняемый/spec — см. §16.
 
 На real inner-product пространстве `X` с `[FiniteDimensional ℝ X]` и конечном
 индексе nonempty `K` общий SafeQP выбирает ближайшую к `g0` точку из
@@ -817,10 +817,12 @@ CE(joint selected) ≤ CE(raw) + ∑g blockPenalty_g.
 ```
 
 При `G>0` [`localEvaluationCount_le_jointCandidateCount`](Hagi/Model/CEGroupedScale.lean)
-сравнивает `255G` logical score calls с `255^G` assignments, а
+сравнивает `255G` logical score calls с 255^G assignments, а
 [`decodeStep_packedBlocks`](Hagi/Model/CEGroupedScale.lean) связывает
 payload с выбранными параметрами. Classical choose в exact selector не
 выдаём за native поиск; счёт также не является временем/FLOPs/памятью ABI.
+Разрешимость конечного поиска и стоимостная (не конструктивная) природа
+проблемы 255^G — см. §16.
 
 При `e_l(b)=layerError c_l b=c_l/2^b` перенос одного бита из `k` в `j`
 меняет ошибку на `e_k-e_j/2` по [`transfer_exact`](Hagi/Budget/BitAlloc.lean).
@@ -1390,10 +1392,11 @@ physical cost.
 проверяет floor на фактическом successor. Пустое семейство не имеет
 такого witness. Оба Lean-selectorа используют Classical.choose: это
 noncomputable finite selection contracts, не native optimizer или runner.
+Сводка исполняемый/spec — см. §16.
 
 Для реализации дискретного guard используем
 [`finiteSelection`](Hagi/Unified/ExecutableController.lean):
-фильтр supplied action list по Bool admission и `List.argmin` resourceCost.
+фильтр supplied action list по Bool admission и List.argmin resourceCost.
 [`finiteSelection_none_iff`](Hagi/Unified/ExecutableController.lean)
 не выбирает ничего, только если все входные guards false;
 [`selectionReport_guardCalls`](Hagi/Unified/ExecutableController.lean)
@@ -1743,3 +1746,57 @@ jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,
 `R' = 0 < R` (постоянные направленные логиты при ненулевой
 alignment) старый residual положителен, острый — нуль. Отрицательные
 контроли: `.tmp/C233/neg1.lean`, `neg2.lean` (оба обязаны фейлиться).
+
+## 16. Исполняемый путь против spec-селекторов (C241/R5)
+
+Addendum A5 §R5: неконструктивные селекторы изолированы от исполняемого
+пути обучения. Критерий изоляции — Classical.choose/existence-witness
+в `def`, а НЕ lean-флаг noncomputable: над ℝ почти каждая замкнутая
+формула (`batchLogitSafeStep`, `segmentMinNorm`) помечена
+noncomputable лишь потому, что ℝ классический; choose-селекторы —
+математические selection contracts, потребляемые только теоремами.
+
+Исполняемый путь (компьютабельные примитивы, на которых стоит обучение):
+
+- шаг: [`batchLogitSafeStep`](Hagi/Model/BatchCEDescent.lean) —
+  замкнутая формула if R'=0 then 0 else 4A/R'²;
+- направление (B=2): [`segmentMinNorm`](Hagi/Step/ProjectionDescent.lean)
+  — замкнутая формула `g0+τ(g1−g0)`; связь с общим случаем —
+  [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean);
+- bound шага QP: [`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean);
+- дискретный выбор: [`finiteSelection`](Hagi/Unified/ExecutableController.lean)
+  — истинно компьютабелен (Bool `admissionGuard` + List.argmin),
+  стоимостный мост —
+  [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ExecutableController.lean);
+- кодек: `dyadicPayload`/`dyadicBlock` (BitVec 16) и packed-decode
+  теоремы.
+
+Spec-only селекторы (Classical.choose; только теоремы-потребители,
+исполняемых потребителей нет и не было):
+
+- [`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.lean) —
+  existence-witness минимальной нормы над convex hull;
+- [`safeQP_exists_unique`](Hagi/Step/SafeQP.lean) — сам теорема
+  (premise-form), choose-def не поставляется;
+- [`minimumResource`](Hagi/Unified/QualityResourceMin.lean) и
+  [`robustMinimumResource`](Hagi/Unified/RobustResourceMin.lean) —
+  noncomputable selection contracts; компьютабельная альтернатива
+  `finiteSelection` уже подключена (§8); robust-вариант исполняется
+  как `finiteSelection` с консервативным floor `qfloor+eps`;
+- [`selectedGroupScales`](Hagi/Model/CEGroupedScale.lean) и
+  [`selectedCoupledScales`](Hagi/Model/CEJointScale.lean) — точные
+  конечные селекторы над dyadic-кодами.
+
+Честная запись про 255^G: оба scale-селектора — разрешимо-конечный
+поиск (255 кодов/блок; Fin 255), не выбор по неразрешимому
+предикату; Classical.choose здесь — презентационная форма
+`Finset.exists_min_image`. Проблема joint-селектора
+`selectedCoupledScales` (всё пространство 255^G присваиваний,
+`jointCandidateCount`) — СТОИМОСТЬ, а не конструктивность;
+исполняемая форма — поблочный суррогат `selectedGroupScales`
+(255·G logical score calls, `localEvaluationCount_le_jointCandidateCount`).
+Компьютабельный List.argmin-вариант поблочного выбора (по образцу
+`finiteSelection`) не имеет потребителей и отложен
+(TD A5-R5-C241-GROUPSCALE-EXEC).
+
+Обзорная таблица и инвентаризация: `.tmp/C241/survey.md`.

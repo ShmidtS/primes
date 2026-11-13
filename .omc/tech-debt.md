@@ -210,3 +210,22 @@ deviations:
    packed weights post-consolidation) so the identification is impossible
    structurally, then wire C_state to the consolidation loop (MDLRank/
    BitAlloc). No half-fix in a refactor beat — documented here only.
+
+## TD A5-R5-C241 — GROUPSCALE-EXEC: computable per-block scale argmin (2026-11-13)
+
+R5 isolation (C241) verified: all Classical.choose selectors
+(batchGradientMinimizer, minimumResource, robustMinimumResource,
+selectedGroupScales, selectedCoupledScales) are consumed only by
+theorems; the executable path already rests on batchLogitSafeStep,
+segmentMinNorm, safeqpEtaMax, finiteSelection (cost bridge
+finiteSelection_cost_eq_minimumResource). The 255^G joint search is
+decidable-finite; its problem is cost, not constructivity
+(ALGORITHMS.md §16).
+
+Deferred work (no consumer today, YAGNI): a computable per-block
+selector `selectedGroupScalesExec g = ((List.finRange 255).argmin
+(blockPenalty e X w g)).getD knownSampleScale` plus a cost-equality
+theorem `blockPenalty (exec g) = blockPenalty (selectedGroupScales
+... g)` (pattern: finiteSelection tie-handling — equality of costs,
+not of codes). Trigger: any future runtime/codec consumer that
+needs to evaluate the selected scale as data.
