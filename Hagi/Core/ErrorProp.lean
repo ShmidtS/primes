@@ -23,6 +23,12 @@ affine recursion `δ_{l+1} = J_l δ_l + r_l`, folded by `propagate`.
   residual, the squared error satisfies
   `‖δ_L‖² ≤ α^(2L) ‖δ₀‖² + Σ_l w_l ρ_l²` with the layer weights
   `w_l = Π_{k>l} α_k²` given by `weightedResidual`.
+* `propagate_sub` — the affine difference identity: the residuals
+  cancel between two passes, leaving the linear fold `propagateLin`.
+* `propagateLin_norm_le` — the linear fold contracts by
+  `cascadeGain L = ∏ ‖J_l‖` (per-layer product, sharper than a
+  uniform `α ^ L`); `cascadeGain_le_one` collapses it for
+  non-expansive stacks.
 -/
 
 namespace Hagi.Core
@@ -151,6 +157,114 @@ theorem propagate_sq_bound (α : ℝ) (hα : 0 ≤ α)
     nlinarith [hmul, sq_nonneg (α ^ (2 * L.length))]
 
 end SecondMoment
+
+/-! ## Linear cascade machinery: the leak of a projected adapter
+
+The difference of two passes over the SAME stack cancels the
+per-layer residuals (they appear in both evaluations), so the
+perturbation (`leak`) obeys a purely linear recursion governed by
+the product of the per-layer operator norms. This is the cascade
+side of the A8 F1 composition bound (consumed by
+`Hagi.Architecture.CascadeLeak`). -/
+
+section LinearCascade
+
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- The pure linear part of the telescopic pass: the fold
+`δ ↦ p.1 *ᵥ δ` over the stack, without the per-layer residuals. -/
+def propagateLin
+    (L : List (Matrix n n ℝ × (n → ℝ))) (δ₀ : n → ℝ) : n → ℝ :=
+  L.foldl (fun δ p => p.1 *ᵥ δ) δ₀
+
+/-- The affine difference identity: the residuals of the two passes
+cancel BETWEEN the evaluations, and the difference is exactly the
+linear fold of the input difference. -/
+theorem propagate_sub
+    (L : List (Matrix n n ℝ × (n → ℝ))) (a b : n → ℝ) :
+    propagate L a - propagate L b = propagateLin L (a - b) := by
+  induction L generalizing a b with
+  | nil => simp [propagate, propagateLin]
+  | cons p L ih =>
+    rw [propagate_cons, propagate_cons, ih]
+    have hstep : p.1 *ᵥ a + p.2 - (p.1 *ᵥ b + p.2) = p.1 *ᵥ (a - b) := by
+      funext i
+      have hi : ∀ x : n, p.1 i x * (a x - b x)
+          = p.1 i x * a x - p.1 i x * b x := fun _ => by ring
+      simp only [Matrix.mulVec, dotProduct, Pi.add_apply, Pi.sub_apply]
+      rw [Finset.sum_congr rfl (fun x _ => hi x), Finset.sum_sub_distrib]
+      ring
+    rw [hstep]
+    rfl
+
+/-- The linear fold is exactly homogeneous in the entering vector. -/
+theorem propagateLin_smul
+    (L : List (Matrix n n ℝ × (n → ℝ))) (w : ℝ) (δ₀ : n → ℝ) :
+    propagateLin L (w • δ₀) = w • propagateLin L δ₀ := by
+  induction L generalizing δ₀ with
+  | nil => simp [propagateLin]
+  | cons p L ih =>
+    have hstep : p.1 *ᵥ (w • δ₀) = w • (p.1 *ᵥ δ₀) := by
+      funext i
+      simp [Matrix.mulVec, dotProduct_smul]
+    show propagateLin L (p.1 *ᵥ (w • δ₀)) = w • propagateLin L (p.1 *ᵥ δ₀)
+    rw [hstep, ih]
+
+/-- The stack gain: the product of the per-layer operator norms.
+This is the honest `L_stack = ∏ L_m` of the cascade leak bound
+(sharper than the uniform `α ^ L.length` of `propagate_bound`). -/
+noncomputable def cascadeGain
+    (L : List (Matrix n n ℝ × (n → ℝ))) : ℝ :=
+  (L.map fun p => ‖p.1‖).prod
+
+/-- The linear fold contracts by the stack gain:
+`‖propagateLin L δ₀‖ ≤ cascadeGain L * ‖δ₀‖`. -/
+theorem propagateLin_norm_le
+    (L : List (Matrix n n ℝ × (n → ℝ))) (δ₀ : n → ℝ) :
+    ‖propagateLin L δ₀‖ ≤ cascadeGain L * ‖δ₀‖ := by
+  induction L generalizing δ₀ with
+  | nil => simp [propagateLin, cascadeGain]
+  | cons p L ih =>
+    have key : ‖p.1 *ᵥ δ₀‖ ≤ ‖p.1‖ * ‖δ₀‖ :=
+      (Matrix.linfty_opNorm_mulVec p.1 δ₀).trans
+        (mul_le_mul_of_nonneg_right le_rfl (norm_nonneg δ₀))
+    have hprod : 0 ≤ cascadeGain L :=
+      List.prod_nonneg (by
+        intro x hx
+        simp only [List.mem_map] at hx
+        obtain ⟨q, _, rfl⟩ := hx
+        exact norm_nonneg q.1)
+    show ‖propagateLin L (p.1 *ᵥ δ₀)‖ ≤ cascadeGain (p :: L) * ‖δ₀‖
+    simp only [cascadeGain, List.map_cons, List.prod_cons]
+    calc ‖propagateLin L (p.1 *ᵥ δ₀)‖ ≤ cascadeGain L * ‖p.1 *ᵥ δ₀‖ := ih _
+      _ ≤ cascadeGain L * (‖p.1‖ * ‖δ₀‖) :=
+          mul_le_mul_of_nonneg_left key hprod
+      _ = ‖p.1‖ * cascadeGain L * ‖δ₀‖ := by ring
+
+/-- If every layer is non-expansive (`‖p.1‖ ≤ 1`, the hypothesis
+shape of `propagate_bound_contractive`), the stack gain is at most
+one. -/
+theorem cascadeGain_le_one
+    (L : List (Matrix n n ℝ × (n → ℝ))) (hα : ∀ p ∈ L, ‖p.1‖ ≤ 1) :
+    cascadeGain L ≤ 1 := by
+  induction L with
+  | nil => simp [cascadeGain]
+  | cons p L ih =>
+    have hL : ∀ q ∈ L, ‖q.1‖ ≤ 1 := fun q hq => hα q (List.Mem.tail p hq)
+    have hp : ‖p.1‖ ≤ 1 := hα p (List.Mem.head L)
+    have hnn : 0 ≤ cascadeGain L :=
+      List.prod_nonneg (by
+        intro x hx
+        simp only [List.mem_map] at hx
+        obtain ⟨q, _, rfl⟩ := hx
+        exact norm_nonneg q.1)
+    have hnn' : 0 ≤ (List.map (fun q : Matrix n n ℝ × (n → ℝ) => ‖q.1‖) L).prod := hnn
+    have hpp := mul_le_mul hp (ih hL) hnn' zero_le_one
+    simp only [cascadeGain] at hpp
+    simp only [cascadeGain, List.map_cons, List.prod_cons]
+    linarith [hpp]
+
+end LinearCascade
 
 end Hagi.Core
 

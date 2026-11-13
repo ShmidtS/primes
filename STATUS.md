@@ -4970,3 +4970,19 @@ wall-clock, сжатие весов или улучшение качества.
 переводом mathlib на git-зависимость (см. комментарии ci.yml).
 - Слияние CertStepDelta в ядро CertStep (перенос поля) — Phase-2
 merger cert carriers (Freeze-дисциплина: statement change).
+- C250 (A8 F1): каскадная граница утечки для projected adapters —
+  `propagate_sub`/`propagateLin`/`cascadeGain` (ErrorProp, additive;
+  разница двух проходов гасит residuалы — чисто линейная рекурсия
+  с произведением per-layer норм вместо равномерного α^L);
+  `cascade_leak_bound`/`cascade_leak_bound_op`/`cascade_leak_bound_
+  contractive` (CascadeLeak, новый модуль Architecture): leak ≤
+  |w_route| · L_stack · ‖Δ_R‖_op · ‖P_R x‖, P_R = projR
+  (SpaceDecoupling); `cascade_leak_router_linear` — точная
+  линейность в router-весе (w=0.1 ровно 1/10 от w=1);
+  `cascade_leak_eq_empty` — достижимость границы (nonvacuity);
+  `tailDiag`+`tailDiag_mulVec_norm_le`+`cascade_leak_bound_rhoTail`
+  — привязка спектрального хвоста rhoTail (RootContrast): adapter-norm
+  сторона ≤ sqrt(rhoTail · ∑ s²); `readback_noise_witness` —
+  one-sided isolation caveat (инъекция защищена, readback Uᵀh — нет,
+  без гейтинга/посылки UᵀΔ=0). Нелинейные эмпирические константы —
+  мотивация в ALGORITHMS, не Lean-посылки.

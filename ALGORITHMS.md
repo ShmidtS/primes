@@ -2012,3 +2012,50 @@ bf16_nearestRoundTrip_relativeError_gt (BF16Delta):
 (A8 verdict 1: PURE bf16 stalls, worst_CE 0.735 против 0.081 —
 FP32-мастер; формализовано как документированный corollary, не
 перепроверка).
+
+
+## 19. Cascade leak bound для projected adapters (C250/A8 F1)
+
+**`Hagi/Core/ErrorProp.lean` + `Hagi/Architecture/CascadeLeak.lean`
+— композиционая граница утечки через каскад (C250 A8 F1).** На
+абстрактном линейно-каскадном носителе `propagate` (никакой новой
+модели сети):
+
+```
+propagate_sub (ErrorProp, additive):
+  propagate L a − propagate L b = propagateLin L (a − b)
+  (резидуалы гасятся МЕЖДУ двумя проходами — разница чисто линейна)
+cascadeGain L = ∏_m ‖J_m‖          (честный L_stack, острее α^L)
+propagateLin_norm_le: ‖propagateLin L δ‖ ≤ cascadeGain L · ‖δ‖
+cascadeGain_le_one:   (∀ p ∈ L, ‖p.1‖ ≤ 1) → cascadeGain L ≤ 1
+
+cascade_leak_bound (CascadeLeak):
+  ‖propagate S (x + w • ε) − propagate S x‖ ≤ |w| · cascadeGain S · ‖ε‖
+cascade_leak_bound_op:
+  ε = ΔR *ᵥ (projR U *ᵥ x) ⇒
+  ‖net(W + w·Δ_R, x) − net(W, x)‖ ≤ |w| · L_stack · ‖ΔR‖ · ‖P_R x‖
+cascade_leak_bound_contractive: (∀ ‖p.1‖ ≤ 1) ⇒ gain выпадает
+cascade_leak_router_linear: leak(w) = w • leak(1)  (ТОЧНО)
+cascade_leak_eq_empty: S = [] ⇒ равенство (граница достигается)
+tailDiag_mulVec_norm_le:
+  ‖tailDiag m r s *ᵥ y‖ ≤ sqrt(rhoTail m s r · ∑ s j²) · ‖y‖
+cascade_leak_bound_rhoTail:
+  leak ≤ |w| · L_stack · sqrt(rhoTail · ∑ s j²) · ‖P_R x‖
+readback_noise_witness (0 < c ⇒ ∃ n ≠ 0, Uᵀ *ᵥ n ≠ 0)
+```
+
+Эмпирическая сверка (A8 verdict 4, качественно): router-вес даёт
+ТОЧНУЮ линейность утечки в каскадной модели (w = 0.1 — ровно 1/10
+утечки при w = 1, `cascade_leak_router_linear`); P_R-проекция сама
+по себе НИКОГДА не обнуляет границу (выживают ‖P_R x‖ и gain) —
+убивают утечку только router (w → 0) или rank-capture
+(rhoTail → 0), что соответствует «router is load-bearing»
+(измерено: P_R alone ForgettingCE +1.710 при w = 1 против +0.002 с
+router). Нелинейная часть вердикта — вне линейного среза,
+задокументирована как граница модели, не контрабанда premises.
+
+One-sided isolation caveat: `Uᵀ * A_orth = 0` (`fiberSplitOrtho`)
+защищает ИНЪЕКЦИЮ (`fiber_injection_preserves_cortex`), но не
+readback `Uᵀ h`: `readback_noise_witness` даёт явный witness
+шума с ненулевым cortex-readback; защита readback требует гейтинга
+(w → 0) или посылки `Uᵀ *ᵥ Δ = 0` из `spaceDecoupling_zero_drift`.

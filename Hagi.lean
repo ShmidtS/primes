@@ -105,6 +105,7 @@ import Hagi.Architecture.ManifoldHyperConn
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
 import Hagi.Architecture.SpaceDecoupling
+import Hagi.Architecture.CascadeLeak
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.Configuration
 import Hagi.Budget.ActiveCompute
