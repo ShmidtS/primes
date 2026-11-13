@@ -1826,8 +1826,31 @@ Spec-only селекторы (Classical.choose; только теоремы-по
 
 Граница результата, честно: это точность для логики ДВУХ переменных
 (16-функциональная решётка Венна), а не «решение логики вообще»;
-честный масштаб mask-линейных голов — `n ≤ 4-5` входов. Выбор маски
-CE-обучением под guard (LogicChoiceCert, пункт 3 addendum A4) и
-testbed роста решётки Хассе (пункт 4) — следующие биты; bf16-точность
+честный масштаб mask-линейных голов — `n ≤ 4-5` входов. bf16-точность
 малых целых отложена (не композится с `Hagi/Runtime/BF16Delta.lean`
 без нового API).
+
+### C243: CE-обученный выбор маски под сертифицированным гвардом
+
+[`Hagi/Contracts/LogicChoiceCert.lean`](Hagi/Contracts/LogicChoiceCert.lean)
+(Track B7 item 3 addendum A4) — первый гибридный нейро-символьный
+сертификат: выбор маски как CE-задача. 16 масок решётки — классы
+(`Fintype (Fin 4 → Bool)`); лог-линейная голова по атомным признакам
+`choiceFeatures v j = vAtoms·maskReal`: при единичных параметрах логит
+класса v РОВНО выходу `vennHead (cand v)` (мост
+`choiceFeatures_logit_ones`). Спуск — СУЩЕСТВУЮЩАЯ C223-машина
+(`batchLoss_logitSafeStep_le_residual`) на choice-batch; канонический
+TransitionStep (`choiceCEMetrics` + `choiceCE_transitionStep_progress`):
+CertStep-objective — спуск choice-CE с certified drop `2·A²/R'`, floor'ы
+тривиальны (`batchLoss_nonneg`), исполнение точно (`vennHead_exact`).
+Витнес `choice_certified_behavior`: батч из двух кандидатов
+(const-false, AND), `R' = 1/4` посчитан точно, строгий спуск ∧ точное
+исполнение каждого кандидата.
+
+ГРАНИЦА (qwenbend 'exact ≠ true'), явно: сертификат покрывает СПУСК
+CHOICE-CE (прогресс обучения к размеченной маске) и ТОЧНОЕ ИСПОЛНЕНИЕ
+выбранной маски. Он НЕ сертифицирует, что выбранная функция —
+правильная: голова может верно спускать CE и выбрать неверную маску,
+а точная голова верно вычисляет маску, которая может быть ложной о
+мире. Пункт 3 addendum A4 закрыт; из B7 остался testbed роста решётки
+Хассе (пункт 4).

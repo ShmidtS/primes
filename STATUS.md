@@ -298,6 +298,33 @@
 - `coreCEObjective_ceTrainStep_lt`: при непустом `V` и `0 < ceStepRange X (coreParameters S) t` выполненный `ceTrainStep` строго уменьшает категориальную CE.
 - `coreCEObjective_identityCEStep_lt` и `batchCEObservation_identityCEStep_lt`: для конкретного двумерного начального состояния доказано строгое уменьшение обеих соответствующих целей; `batchCEObservation_identityInitial_eq` даёт начальному значению `Real.log 2`.
 
+## Hagi/Contracts/LogicChoiceCert.lean
+
+- Первый гибридный нейро-символьный сертификат (Track B7 item 3, addendum
+  A4, C243): выбор маски как CE-задача — 16 масок решётки Венна суть
+  классы (`Fintype (Fin 4 → Bool)`), лог-линейная голова по атомным
+  признакам `choiceFeatures` (любое candidate-семейство; полный латтис —
+  `ι = (Fin 4 → Bool)`, 16 классов).
+- `choiceFeatures_logit_ones` — МОСТ: при единичных параметрах логит
+  класса v РОВНО выходу `vennHead` маски `cand v` на тех же входах
+  (скоринг выбора = точный выход логического слоя).
+- Спуск — существующая C223-машина без новой математики:
+  `batchLoss_logitSafeStep_le_residual` / `…_lt` на choice-batch.
+- `choiceCEMetrics` (objective = истинный choice-CE; R1-полярность как
+  в `batchCEMetrics`) + `choiceCE_transitionStep_progress` —
+  канонический TransitionStep: CertStep-objective — спуск choice-CE с
+  certified drop `2·A²/R'`, floor'ы тривиальны (`batchLoss_nonneg`).
+- `choice_certified_behavior` — витнес: конкретный батч (Fin 2
+  кандидата: const-false и AND; B = 1; входы (1,1); θ = 0; таргет AND):
+  `batchLogitRangeSquare = 1/4` (посчитано точно), строгий спуск
+  choice-CE ∧ исполненная голова каждого кандидата точна
+  (`vennHead_exact`).
+- ГРАНИЦА ЧЕСТНАЯ (qwenbend 'exact ≠ true'): сертификат покрывает спуск
+  choice-CE и точное ИСПОЛНЕНИЕ выбранной маски, но НЕ «выбранная функция
+  — правильная»: голова может верно спускать CE и выбрать неверную
+  маску; точная голова верно вычисляет маску, которая может быть ложна
+  о мире.
+
 ## Hagi/Contracts/ChangingEMTrajectory.lean
 
 - `changingEMPath_nll_antitone`: при `∀ t a i, 0 < observationEvidence (c t a i).1 (c t a i).2 (y i)`, сохранении текущих пар (условие hKeep) и включении носителей текущих постериоров в носители постериоров всех кандидатов следующего шага (условие hClose) агрегированная наблюдаемая NLL не возрастает.
