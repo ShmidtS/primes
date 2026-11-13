@@ -1,0 +1,295 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+
+import Mathlib
+import Hagi.Probability.GibbsCore
+import Hagi.Probability.GibbsCooling
+import Hagi.Probability.EntropyConvexity
+import Hagi.Probability.FannesPinsker
+import Hagi.Probability.ChernoffCGF
+import Hagi.Probability.MomentBounds
+import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.MirrorHedgeMWUSelectedGradient
+
+set_option linter.style.header false
+
+/-!
+# MirrorHedgeCore
+
+Зеркальный шаг (вариационный принцип): mirrorStep, тождество зеркального спуска, floor/attainment, AIF-EFO, hedge_free_energy_step, mirror_progress_identity.
+Split from `MirrorHedge` (C259).
+-/
+
+/-
+MirrorDescent: единый вариационный принцип.
+
+Зеркальный шаг с энтропийным зеркалом: для любой ссылки ρ₀
+(равномерной в Гиббсе, предыдущих весов в MWU/Hedge,
+априорных убеждений в Active Inference) решение задачи
+argmin_{ρ ∈ Δ} { ⟨ρ, ℓ⟩ + T·KL(ρ‖ρ₀) } — мера
+γ_v ∝ ρ₀_v·e^{−ℓ_v/T}: Гиббс, MWU-обновление и EFE-минимум
+AIF — одно и то же аналитическое решение с минимальным
+значением −T·log Z. Тождество:
+T·KL(ρ‖γ) = ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀) + T·log Z.
+-/
+
+namespace Hagi.Optimization
+
+open Finset
+
+/-- Зеркальный шаг (энтропийное зеркало): γ_v = ρ₀_v·e^{−ℓ_v/T}/Z,
+где Z = Σ_v ρ₀_v·e^{−ℓ_v/T} — нормировка. -/
+noncomputable def mirrorStep {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) : V → ℝ :=
+  fun v => ρ₀ v * Real.exp (-(ℓ v)/T)
+    / ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)
+
+/-- Позитивность зеркального шага при T > 0 и ρ₀ > 0. -/
+theorem mirrorStep_pos {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) (v : V) :
+    0 < mirrorStep ρ₀ ℓ T v := by
+  have hZpos : (0:ℝ) < ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T) :=
+    Finset.sum_pos (fun w _ => mul_pos (hρ₀ w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  unfold mirrorStep
+  exact div_pos (mul_pos (hρ₀ v) (Real.exp_pos _)) hZpos
+
+/-- Зеркальный шаг — распределение: сумма равна 1. -/
+theorem mirrorStep_sum_one {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    ∑ v, mirrorStep ρ₀ ℓ T v = 1 := by
+  have hZpos : (0:ℝ) < ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T) :=
+    Finset.sum_pos (fun w _ => mul_pos (hρ₀ w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  unfold mirrorStep
+  rw [← Finset.sum_div]
+  exact div_self hZpos.ne'
+
+/-- ТОЖДЕСТВО ЗЕРКАЛЬНОГО ШАГА: для γ = mirrorStep ρ₀ ℓ T и
+любого ρ ∈ Δ:
+T·KL(ρ‖γ) = ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀) + T·log Z.
+Следствие неотрицательности KL: ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀)
+минимизируется мерой γ, минимум равен −T·log Z —
+Гиббс (ρ₀ равномерна), MWU-обновление (ρ₀ = предыдущие
+веса) и EFE-минимум AIF — одно и то же решение. -/
+theorem mirror_descent_identity {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ)
+    (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    T * (∑ v, ρ v * Real.log (ρ v
+        / mirrorStep ρ₀ ℓ T v))
+      = (∑ v, ρ v * ℓ v)
+        + T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v))
+        + T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)) := by
+  have hZpos : (0:ℝ) < ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T) :=
+    Finset.sum_pos (fun w _ => mul_pos (hρ₀ w) (Real.exp_pos _))
+      ⟨Classical.arbitrary V, Finset.mem_univ _⟩
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  set Z := ∑ w, ρ₀ w * Real.exp (-(ℓ w)/T) with hZ
+  have hlogγ : ∀ v : V, Real.log (mirrorStep ρ₀ ℓ T v)
+      = Real.log (ρ₀ v) - ℓ v / T - Real.log Z := by
+    intro v
+    unfold mirrorStep
+    have hnum : (0:ℝ) < ρ₀ v * Real.exp (-(ℓ v)/T) :=
+      mul_pos (hρ₀ v) (Real.exp_pos _)
+    rw [Real.log_div hnum.ne' hZpos.ne',
+      Real.log_mul (hρ₀ v).ne' (Real.exp_pos _).ne',
+      Real.log_exp]
+    ring
+  -- почленное разложение под суммой
+  have hsplit : ∀ v : V,
+      T * (ρ v * Real.log (ρ v / mirrorStep ρ₀ ℓ T v))
+      = ρ v * ℓ v
+        + T * (ρ v * Real.log (ρ v / ρ₀ v))
+        + ρ v * (T * Real.log Z) := by
+    intro v
+    rw [Real.log_div (hρ v).ne' (hγpos v).ne',
+      Real.log_div (hρ v).ne' (hρ₀ v).ne', hlogγ v]
+    field_simp
+    ring
+  -- суммирование трёх частей
+  rw [Finset.mul_sum,
+    Finset.sum_congr rfl (fun v _ => hsplit v),
+    Finset.sum_add_distrib, Finset.sum_add_distrib,
+    ← Finset.mul_sum,
+    ← Finset.sum_mul, hρ1, one_mul]
+
+/-- НИЖНЯЯ ГРАНЬ ЗЕРКАЛЬНОГО ШАГА (унификация): для любого
+ρ ∈ Δ выполнено ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀) ≥ −T·log Z, где
+Z = Σ ρ₀·e^{−ℓ/T}; равенство достигается на γ = mirrorStep:
+единая нижняя грань для меры Гиббса, MWU/Hedge-потенциала
+и свободной энергии EFE из Active Inference. -/
+theorem mirror_descent_floor {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ)
+    (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    -T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T))
+      ≤ (∑ v, ρ v * ℓ v)
+        + T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v)) := by
+  classical
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hKL : (0:ℝ) ≤ ∑ v, ρ v * Real.log (ρ v
+      / mirrorStep ρ₀ ℓ T v) :=
+    finite_kl_nonneg ρ (mirrorStep ρ₀ ℓ T) hρ hρ1 hγpos hγ1
+  have hid := mirror_descent_identity ρ₀ ℓ T hT hρ₀ ρ hρ hρ1
+  have hTnn : (0:ℝ) ≤ T := le_of_lt hT
+  have hTKL : (0:ℝ) ≤ T * (∑ v, ρ v * Real.log (ρ v
+      / mirrorStep ρ₀ ℓ T v)) := mul_nonneg hTnn hKL
+  linarith
+
+/-- ДОСТИЖИМОСТЬ ПОЛА ЗЕРКАЛЬНОГО ШАГА: на мере
+γ = mirrorStep ρ₀ ℓ T свободная энергия ⟨γ,ℓ⟩+T·KL(γ‖ρ₀)
+равна в точности −T·log Z — нижняя грань mirror_descent_floor
+достигается: γ — минимизатор вариационной задачи,
+полнота унификации Гиббса/MWU/EFE. -/
+theorem mirror_descent_attainment {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ)
+    (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    (∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+      + T * (∑ v, mirrorStep ρ₀ ℓ T v
+          * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v))
+      = -T * Real.log (∑ w, ρ₀ w * Real.exp (-(ℓ w)/T)) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have h := mirror_descent_identity ρ₀ ℓ T hT hρ₀
+    (mirrorStep ρ₀ ℓ T) hγpos hγ1
+  have hsum : (∑ v, mirrorStep ρ₀ ℓ T v
+      * Real.log (mirrorStep ρ₀ ℓ T v
+        / mirrorStep ρ₀ ℓ T v)) = 0 := by
+    refine Finset.sum_eq_zero ?_
+    intro v _
+    rw [div_self (hγpos v).ne', Real.log_one, mul_zero]
+  rw [hsum, mul_zero] at h
+  linarith
+
+/-- МОСТ MWU ↔ ЗЕРКАЛЬНЫЙ СПУСК: hedge-обновление
+γ = mirrorStep w ℓ (1/η) — в точности зеркальный шаг с
+T = 1/η; комбинируя достижимость пола (F(γ) = −T log Z) с
+оценкой нормировки MWU (log Z ≥ −2η⟨ℓ⟩_w при ηℓ ≤ 1/2),
+получаем F(γ) ≤ 2⟨ℓ⟩_w: свободная энергия обновлённой смеси
+не более удвоенных текущих средних потерь — мост между
+экспоненциальными весами и вариационным принципом. -/
+theorem hedge_free_energy_step {V : Type*} [Fintype V]
+    [Nonempty V] (w ℓ : V → ℝ) (η : ℝ)
+    (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
+    (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
+    (hsmall : ∀ v, η * ℓ v ≤ 1/2) :
+    (∑ v, mirrorStep w ℓ (1/η) v * ℓ v)
+      + (1/η) * (∑ v, mirrorStep w ℓ (1/η) v
+          * Real.log (mirrorStep w ℓ (1/η) v / w v))
+      ≤ 2 * (∑ v, w v * ℓ v) := by
+  -- достижимость: F(γ) = −(1/η)·log Z
+  have hT : (0:ℝ) < 1/η := one_div_pos.mpr hη
+  have hatt := mirror_descent_attainment w ℓ (1/η) hT hw
+  -- MWU-оценка нормировки: log Z ≥ −2η⟨ℓ⟩_w
+  have hmwu := mwu_potential_step w ℓ η hw hw1 hℓ hη hsmall
+  -- Z в обоих утверждениях совпадает: exp(−ηℓ) = exp(−ℓ/(1/η))
+  have hZeq : (∑ v, w v * Real.exp (-(ℓ v)/(1/η)))
+      = ∑ v, w v * Real.exp (-(η * ℓ v)) := by
+    refine Finset.sum_congr rfl fun v _ => ?_
+    congr 1
+    field_simp
+  rw [hZeq] at hatt
+  -- F(γ) = (1/η)·(−log Z) ≤ (1/η)·2η⟨ℓ⟩_w = 2⟨ℓ⟩_w
+  have hneg : -Real.log (∑ v, w v * Real.exp (-(η * ℓ v)))
+      ≤ 2 * η * (∑ v, w v * ℓ v) := by linarith
+  have hmul := mul_le_mul_of_nonneg_left hneg hT.le
+  have hconv : (1/η) * (2 * η * (∑ v, w v * ℓ v))
+      = 2 * (∑ v, w v * ℓ v) := by
+    field_simp
+  have hsplit : (∑ v, mirrorStep w ℓ (1/η) v * ℓ v)
+      + (1/η) * (∑ v, mirrorStep w ℓ (1/η) v
+          * Real.log (mirrorStep w ℓ (1/η) v / w v))
+      = (1/η) * (-Real.log (∑ v, w v * Real.exp (-(η * ℓ v)))) := by
+    rw [hatt]
+    ring
+  rw [hsplit]
+  calc (1/η) * (-Real.log (∑ v, w v * Real.exp (-(η * ℓ v))))
+      ≤ (1/η) * (2 * η * (∑ v, w v * ℓ v)) := hmul
+    _ = 2 * (∑ v, w v * ℓ v) := hconv
+
+/-- EFE-ШАГ ACTIVE INFERENCE = ЗЕРКАЛЬНЫЙ ШАГ: при разложении
+потерь ℓ = surprise − information gain минимизатор ожидаемой
+свободной энергии — мера mirrorStep ρ₀ (s−g) T, и её свободная
+энергия равна в точности −T·log Z(s−g): третий член
+унификации Гиббс == MWU == EFE. -/
+theorem aif_efe_attainment {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ s g : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v) :
+    (∑ v, mirrorStep ρ₀ (fun v => s v - g v) T v * (s v - g v))
+      + T * (∑ v, mirrorStep ρ₀ (fun v => s v - g v) T v
+          * Real.log (mirrorStep ρ₀ (fun v => s v - g v) T v
+            / ρ₀ v))
+      = -T * Real.log (∑ w, ρ₀ w
+          * Real.exp (-(s w - g w)/T)) :=
+  mirror_descent_attainment ρ₀ (fun v => s v - g v) T hT hρ₀
+
+/-- EFE-ДОМИНИРОВАНИЕ: EFE-шаг не хуже любого убеждения ρ ∈ Δ:
+−T·log Z(s−g) ≤ ⟨ρ, s−g⟩ + T·KL(ρ‖ρ₀) — ожидаемая свободная
+энергия mirrorStep-убеждения доминируется снизу единой
+вариационной гранью (специализация mirror_descent_floor). -/
+theorem aif_efe_floor {V : Type*} [Fintype V] [Nonempty V]
+    (ρ₀ s g : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    -T * Real.log (∑ w, ρ₀ w * Real.exp (-(s w - g w)/T))
+      ≤ (∑ v, ρ v * (s v - g v))
+        + T * (∑ v, ρ v * Real.log (ρ v / ρ₀ v)) :=
+  mirror_descent_floor ρ₀ (fun v => s v - g v) T hT hρ₀
+    ρ hρ hρ1
+
+/-- ГИББС = ЗЕРКАЛЬНЫЙ ШАГ С РАВНОМЕРНОЙ ССЫЛКОЙ:
+вариационная грань Гиббса (R421, gibbs_variational)
+выводится из mirror_descent_floor при ρ₀ = 1/n:
+-T·log(Σ e^{-ℓ/T}) ≤ ⟨ρ,ℓ⟩ + T·Σ ρ log ρ —
+слагаемые T·log n сокращаются: мера Гиббса, MWU и EFE —
+три проекции одного зеркального шага. -/
+theorem gibbs_from_mirror {V : Type*} [Fintype V] [Nonempty V]
+    (ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    -T * Real.log (∑ v, Real.exp (-(ℓ v)/T))
+      ≤ (∑ v, ρ v * ℓ v) + T * (∑ v, ρ v * Real.log (ρ v)) := by
+  classical
+  exact Hagi.Probability.gibbs_variational ℓ T hT ρ hρ hρ1
+
+
+/-- ОДНОШАГОВОЕ ТОЖДЕСТВО ПРОГРЕССА зеркального спуска:
+для любого ρ ∈ Δ и шага γ = mirrorStep ρ₀ ℓ T:
+⟨ρ,ℓ⟩ − F(γ) = T·(KL(ρ‖γ) − KL(ρ‖ρ₀)), где F(γ) — свободная
+энергия γ (достигаемый пол): превышение любых потерь над
+полом равно приросту расстояния Брегмана до цели ρ — база
+телескопирования регрета MWU/Hedge. -/
+theorem mirror_progress_identity {V : Type*} [Fintype V]
+    [Nonempty V] (ρ₀ ℓ : V → ℝ) (T : ℝ) (hT : 0 < T)
+    (hρ₀ : ∀ v, 0 < ρ₀ v)
+    (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v, ρ v = 1) :
+    (∑ v, ρ v * ℓ v)
+      - ((∑ v, mirrorStep ρ₀ ℓ T v * ℓ v)
+          + T * (∑ v, mirrorStep ρ₀ ℓ T v
+              * Real.log (mirrorStep ρ₀ ℓ T v / ρ₀ v)))
+      = T * ((∑ v, ρ v * Real.log (ρ v
+              / mirrorStep ρ₀ ℓ T v))
+          - (∑ v, ρ v * Real.log (ρ v / ρ₀ v))) := by
+  have hγpos : ∀ v, 0 < mirrorStep ρ₀ ℓ T v :=
+    mirrorStep_pos ρ₀ ℓ T hT hρ₀
+  have hγ1 : ∑ v, mirrorStep ρ₀ ℓ T v = 1 :=
+    mirrorStep_sum_one ρ₀ ℓ T hT hρ₀
+  have hid := mirror_descent_identity ρ₀ ℓ T hT hρ₀ ρ hρ hρ1
+  have hatt := mirror_descent_attainment ρ₀ ℓ T hT hρ₀
+  rw [hatt]
+  linarith
+
+
+end Hagi.Optimization
