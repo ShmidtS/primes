@@ -213,6 +213,52 @@ def diff(old_rows, new_rows):
     return lost, renamed, changed, added
 
 
+def verify_aliases(rows, aliases):
+    """Check aliases.lock pairs against collected rows.
+
+    Each alias: the OLD name must still exist as a Lean `alias` (shim)
+    and its statement hash must equal the CANONICAL's. Returns errors.
+    """
+    by_name = {}
+    for name, _, statement, kind in rows:
+        by_name.setdefault(name, set()).add((kind, statement))
+    errors = []
+    for old, new in aliases:
+        old_rows = by_name.get(old, set())
+        new_rows = by_name.get(new, set())
+        if not old_rows:
+            errors.append(f'{old}: alias/shim missing (not found)')
+            continue
+        if not any(kind == 'alias' for kind, _ in old_rows):
+            errors.append(f'{old}: exists but is not an alias (kinds: '
+                          f'{sorted(kind for kind, _ in old_rows)})')
+        if not new_rows:
+            errors.append(f'{old}: canonical target {new} missing')
+            continue
+        new_hashes = {statement for _, statement in new_rows}
+        for kind, statement in old_rows:
+            if kind == 'alias' and statement not in new_hashes:
+                errors.append(f'{old}: alias statement hash != {new}')
+    return errors
+
+
+def load_aliases(path='aliases.lock'):
+    """Read optional oldFQN<TAB>newFQN pairs; absent file -> []."""
+    if not os.path.exists(path):
+        return []
+    aliases = []
+    with open(path, encoding='utf-8') as fh:
+        for number, line in enumerate(fh.read().splitlines(), 1):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split('\t')
+            if len(parts) != 2 or not all(parts):
+                raise RuntimeError(f'{path}:{number}: expected old<TAB>new')
+            aliases.append((parts[0], parts[1]))
+    return aliases
+
+
 def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     lock = 'declarations.lock'
@@ -230,6 +276,16 @@ def main():
         old_rows = [tuple(line.split('\t'))
                     for line in fh.read().splitlines() if line]
     lost, renamed, changed, added = diff(old_rows, rows)
+    alias_errors = []
+    try:
+        alias_errors = verify_aliases(rows, load_aliases())
+    except (OSError, RuntimeError) as error:
+        print(f'FREEZE: {error}')
+        sys.exit(1)
+    if alias_errors:
+        print('FREEZE: ALIASES.lock violations (shim missing or hash drift):')
+        for error in alias_errors:
+            print('  - ', error)
     if lost:
         print('FREEZE: LOST statements (removed, no alias):')
         for name in lost:
@@ -244,11 +300,11 @@ def main():
             print('  - ', name)
     if added:
         print(f'FREEZE: {len(added)} new declarations (fine)')
-    if lost or changed:
+    if lost or changed or alias_errors:
         print('FREEZE: FAIL')
         sys.exit(1)
     print(f'FREEZE: PASS ({len(rows)} declarations, '
-          f'{len(renamed)} aliased, nothing lost/changed)')
+      f'{len(renamed)} aliased, nothing lost/changed)')
 
 
 if __name__ == '__main__':

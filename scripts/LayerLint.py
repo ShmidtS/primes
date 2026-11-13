@@ -10,10 +10,16 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent / "Hagi"
-
 # layer assignment of Hagi/<Folder> (higher = later = may
 # import lower). Unification target per audit 2026-10-05.
 LAYERS = {
+    # A7 target 5-layer DAG (C244). Dirs do NOT exist yet — entries are
+    # inert until Phase 1-3 create them; they activate automatically then.
+    "HagiMath": 0,
+    "HagiCert": 1,
+    "HagiModel": 2,
+    "HagiLoop": 3,
+    "HagiRecipes": 4,
     "Prelude": -1,
     "Cert": 2,        # C224: canonical certification kernel (master plan v3 S1+S2)
     "Information": 1,   # R200: information-theoretic capacity layer      # R198: the information-theory prelude below everything
@@ -73,28 +79,32 @@ IMPORT_RE = re.compile(r"^import\s+Hagi\.([A-Za-z0-9_.]+)\s*$", re.M)
 def rel(p: Path) -> str:
     return p.relative_to(ROOT).as_posix()
 
+def check_source(src: str, text: str) -> list:
+    """Layer violations for one Hagi file (path relative to Hagi/)."""
+    folder = src.split("/")[0]
+    my = LAYERS.get(folder)
+    if my is None:
+        return []
+    violations = []
+    for m in IMPORT_RE.finditer(text):
+        segs = m.group(1).split(".")
+        tgt = "/".join(segs) + ".lean"
+        tfolder = segs[0]
+        tl = LAYERS.get(tfolder)
+        if tl is None:
+            continue
+        # правило: импорт только из СТРОГО НИЖНИХ слоёв;
+        # внутри своей папки (same folder) допустим DAG
+        violates = tl > my or (tl == my and tfolder != folder)
+        if violates and (src, tgt) not in LAYER_EXCEPTIONS:
+            violations.append(f"{src} -> {tgt} (import layer {tl} >= own {my})")
+    return violations
+
 def main() -> int:
     bad = []
     for f in sorted(ROOT.rglob("*.lean")):
         src = rel(f)
-        folder = src.split("/")[0]
-        my = LAYERS.get(folder)
-        if my is None:
-            continue
-        m = IMPORT_RE.search(f.read_text(encoding="utf-8"))
-        for m in IMPORT_RE.finditer(f.read_text(encoding="utf-8")):
-            segs = m.group(1).split(".")
-            tgt = "/".join(segs) + ".lean"
-            tfolder = segs[0]
-            myfolder = src.split("/")[0]
-            tl = LAYERS.get(tfolder)
-            if tl is None:
-                continue
-            # правило: импорт только из СТРОГО НИЖНИХ слоёв;
-            # внутри своей папки (same folder) допустим DAG
-            violates = tl > my or (tl == my and tfolder != myfolder)
-            if violates and (src, tgt) not in LAYER_EXCEPTIONS:
-                bad.append(f"{src} -> {tgt} (import layer {tl} >= own {my})")
+        bad += check_source(src, f.read_text(encoding="utf-8"))
     if bad:
         print("LAYERLINT: FAIL")
         for b in bad:

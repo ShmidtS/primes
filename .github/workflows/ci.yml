@@ -1,0 +1,48 @@
+# CI — Phase 0 scaffolding (C244, addendum A7).
+#
+# HONEST LIMITATIONS (documented, deliberate):
+# 1. `lean-toolchain` in this repo is a LOCAL Windows path
+#    (C:\Users\shmid\lean-toolchains\...), so elan cannot install from
+#    it on runners; we pin the matching version explicitly below.
+#    Keep in sync with scripts/mathlib-rev.txt (`toolchain` line) when
+#    the local toolchain changes.
+# 2. Mathlib is a PATH dependency (C:/Users/shmid/mathlib4) per
+#    lakefile.toml — it does not exist on GitHub runners, so
+#    `lake build` inside scripts/ci.sh cannot succeed remotely until
+#    Phase 1 switches mathlib to a git dependency. `lake exe cache get`
+#    is best-effort (`|| true`) for the same reason.
+# 3. The workflow is the standard mathlib caching pattern so that the
+#    Phase 1 lakefile change turns it green with no workflow edits.
+#
+# Local CI (bash scripts/ci.sh) remains the authoritative gate.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lean (elan)
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain leanprover/lean4:v4.35.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache .lake
+        uses: actions/cache@v4
+        with:
+          path: .lake
+          key: lake-${{ runner.os }}-${{ hashFiles('scripts/mathlib-rev.txt', 'lakefile.toml') }}
+          restore-keys: lake-${{ runner.os }}-
+
+      - name: Fetch Mathlib cache (best-effort)
+        run: lake exe cache get || true
+
+      - name: CI battery (build + lint suite)
+        run: bash scripts/ci.sh

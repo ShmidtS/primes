@@ -704,24 +704,24 @@ wall-clock ускорение, сходимость итерации, CE→0, ge
 только при
 условии `q_b ≠ 0 ∨ g_b = 0` для всех `b`. Один draw оценивает arithmetic mean
 как `(B q_b)⁻¹ • g_b`. [`pmfMean_selectedMean_batchResidualGradient`](Hagi/Model/BatchCEDescent.lean)
-доказывает coordinatewise unbiasedness; [`selectedMeanGradientMSE_eq_sum`](Hagi/Probability/MWU.lean)
+доказывает coordinatewise unbiasedness; [`selectedMeanGradientMSE_eq_sum`](Hagi/Optimization/MirrorHedge.lean)
 даёт точный squared-error объект, не covariance/independence claim.
 
 Если `0 < ∑b |ℓ_b|`, строим
-[`selectedLoss_optimalPropensity`](Hagi/Probability/MWU.lean)
+[`selectedLoss_optimalPropensity`](Hagi/Optimization/MirrorHedge.lean)
 с `q_b = |ℓ_b|/∑i |ℓ_i|`.
-[`selectedLoss_optimalPropensity_mse`](Hagi/Probability/MWU.lean)
+[`selectedLoss_optimalPropensity_mse`](Hagi/Optimization/MirrorHedge.lean)
 фиксирует
 
 ```
 MSE = (∑|ℓ|)² - ∑ℓ²,
 ```
 
-а [`selectedLoss_optimalPropensity_mse_le`](Hagi/Probability/MWU.lean)
+а [`selectedLoss_optimalPropensity_mse_le`](Hagi/Optimization/MirrorHedge.lean)
 — минимум среди всех supported конкурентов. Для `ℓ_b=‖g_b‖`
-используем [`selectedGradientMSE_optimalPropensity_le`](Hagi/Probability/MWU.lean);
+используем [`selectedGradientMSE_optimalPropensity_le`](Hagi/Optimization/MirrorHedge.lean);
 arithmetic-mean масштаб добавляет ровно `B⁻²` через
-[`selectedMeanGradientMSE_optimalPropensity_le`](Hagi/Probability/MWU.lean).
+[`selectedMeanGradientMSE_optimalPropensity_le`](Hagi/Optimization/MirrorHedge.lean).
 
 Когда настоящие gradient norms не вычислены заранее, берём feature-only
 `F_b = featureNormSum X_b`, сумму Euclidean row norms матрицы.
@@ -953,7 +953,7 @@ GradientBottleneck.lean): всякое достижимое логит-обно�
 ≤ ε·M — полезный-но-игнорируемый ключ обучает запрос медленно.
 
 Анти-лок-ин гарантия — `ewNorm_survivor_lower`
-(Hagi/Autonomy/HedgeSurvivor.lean): при неотрицательных потерях и
+(Hagi/Optimization/MirrorHedge.lean): при неотрицательных потерях и
 η ≥ 0 нормированный вес любого ключа ≥ (1/K)·exp(−η·Σℓ) — вес
 убывает не быстрее экспоненциально по собственной накопленной
 потере, роутер не может навсегда shut out ключ с ограниченными
@@ -1410,7 +1410,7 @@ noncomputable finite selection contracts, не native optimizer или runner.
 [`robustMinimumResource`](Hagi/Unified/RobustResourceMin.lean):
 [`robustMinimumResource_actual_quality_ge`](Hagi/Unified/RobustResourceMin.lean)
 даёт истинный floor, но cost-min только среди certified family. На конечном `I`
-для [`argmax_select_certified`](Hagi/Budget/CertifiedArgmax.lean) требуем
+для [`argmax_select_certified`](Hagi/Cert/CertifiedArgmax.lean) требуем
 `0≤eps`, `∀k, |GammaHat k-Gamma k|≤eps`, estimated argmax
 `∀k, GammaHat k≤GammaHat sel` и gap `2eps<GammaHat sel-GammaHat k`
 для всех `sel≠k`; без разрыва не объявляем истинный argmax.
@@ -1420,7 +1420,7 @@ noncomputable finite selection contracts, не native optimizer или runner.
 действует лишь при доказанном максимуме ratio, `Gamma≥0` и nonnegative allocations.
 
 Структурный graph filter опционален:
-[`withStructuralConstraint`](Hagi/Contracts/SchellingCandidateSelection.lean)
+[`withStructuralConstraint`](Hagi/Research/SchellingCandidateSelection.lean)
 добавляет local compatible quota и top-to-bottom reachability к уже
 существующим safe/caps. Это finite Schelling admission, не percolation,
 динамика сходимости или доказательство качества сети.
@@ -1523,10 +1523,10 @@ A_i, сумму её conditional PMF mean через M_i, а residual через
 доказанным implication для принятого successor, а не с желаемым результатом.
 
 Для router экспертов отдельно допустимый bounded-loss Hedge:
-[`ewWeight`](Hagi/Autonomy/HedgeSurvivor.lean) обновляет
-`w_{t+1,i}=w_{t,i}exp(-eta l_{t,i})`, [`ewNorm`](Hagi/Autonomy/HedgeSurvivor.lean)
+[`ewWeight`](Hagi/Optimization/MirrorHedge.lean) обновляет
+`w_{t+1,i}=w_{t,i}exp(-eta l_{t,i})`, [`ewNorm`](Hagi/Optimization/MirrorHedge.lean)
 нормализует веса. Если `0<eta≤1` и `0≤l_{t,i}≤1`, то
-[`router_regret_bound`](Hagi/Autonomy/Hedge.lean) даёт для любого эксперта
+[`router_regret_bound`](Hagi/Optimization/MirrorHedge.lean) даёт для любого эксперта
 
 ```
 A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.
@@ -1535,7 +1535,7 @@ A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.
 Это regret bounded-router, не снижение CE backbone и не runtime-optimality.
 
 Когда router задан как Gibbs `softDef(-L/T)`, положительные `T` дают
-[`gibbs_mixture_quality`](Hagi/Energy/Cooling.lean):
+[`gibbs_mixture_quality`](Hagi/Probability/GibbsCore.lean):
 `∑w_iL_i ≤ m + T log(card ι)` для достигнутого finite minimum `m`.
 Можно охлаждать по `T_t=T0 α^t`, `0<α<1`; для `0<T0,δ`, `0<θ<1`
 точной stop bound относительно `exp(-δ/T_t)` даёт
@@ -1817,7 +1817,7 @@ Spec-only селекторы (Classical.choose; только теоремы-по
   точность end-to-end: атомы ровно one-hot на {−1,+1}-входах
   (`vAtoms_sum_one`); `vennHead_exact` — 64-случайный мост
   голова↔таблица истинности; `venn_certified` — композиция с
-  `Hagi.Data.CertifiedArgmax.certified_argmax_strict`: логит-пара
+  `Hagi.Cert.CertifiedArgmax.certified_argmax_strict`: логит-пара
   `![f, 1−f]` с eps-зазором ровно 1, сертифицированный argmax-индекс
   равен значению истинности при любом ε с `2ε < 1`;
   `venn_mask_ternary` — реальный квантователь `Hagi.Runtime.qTern`

@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import Freeze
+import LayerLint
 import StatusLint
 
 
@@ -227,6 +228,66 @@ class FreezeRegression(unittest.TestCase):
                             semantic=True)
         self.assertEqual([row[0] for row in rows],
                          ["Hagi.Probe.IsProjection.foo"])
+
+
+class AliasLockTest(unittest.TestCase):
+    """C244 Freeze v2: aliases.lock shim + statement-hash verification."""
+
+    def rows(self, alias_hash, canonical_hash, has_alias=True,
+             has_canonical=True, alias_kind="alias"):
+        rows = []
+        if has_alias:
+            rows.append(("Hagi.Old.name", "h1", alias_hash, alias_kind))
+        if has_canonical:
+            rows.append(("Hagi.New.name", "h2", canonical_hash, "theorem"))
+        return rows
+
+    def test_matching_hash_passes(self):
+        rows = self.rows("stmt-a", "stmt-a")
+        self.assertEqual(Freeze.verify_aliases(
+            rows, [("Hagi.Old.name", "Hagi.New.name")]), [])
+
+    def test_mismatched_hash_fails(self):
+        rows = self.rows("stmt-a", "stmt-B")
+        self.assertTrue(Freeze.verify_aliases(
+            rows, [("Hagi.Old.name", "Hagi.New.name")]))
+
+    def test_missing_canonical_target_fails(self):
+        rows = self.rows("stmt-a", "stmt-a", has_canonical=False)
+        self.assertTrue(Freeze.verify_aliases(
+            rows, [("Hagi.Old.name", "Hagi.New.name")]))
+
+    def test_missing_old_shim_fails(self):
+        rows = self.rows("stmt-a", "stmt-a", has_alias=False)
+        self.assertTrue(Freeze.verify_aliases(
+            rows, [("Hagi.Old.name", "Hagi.New.name")]))
+
+    def test_old_not_an_alias_fails(self):
+        rows = self.rows("stmt-a", "stmt-a", alias_kind="theorem")
+        self.assertTrue(Freeze.verify_aliases(
+            rows, [("Hagi.Old.name", "Hagi.New.name")]))
+
+
+class LayerLintProbeTest(unittest.TestCase):
+    """C244: A7 5-layer target is inert now, but enforced once dirs exist."""
+
+    def test_hagimath_importing_upward_fails(self):
+        text = "import Hagi.HagiCert.Core\ntheorem t : True := trivial\n"
+        violations = LayerLint.check_source("HagiMath/Prob/Basic.lean", text)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("HagiCert", violations[0])
+
+    def test_hagimath_pure_mathlib_is_clean(self):
+        text = "import Mathlib.Analysis.Convex.Basic\ntheorem t : True := trivial\n"
+        self.assertEqual(
+            LayerLint.check_source("HagiMath/Prob/Basic.lean", text), [])
+
+    def test_new_layer_dirs_absent(self):
+        for folder in ("HagiMath", "HagiCert", "HagiModel", "HagiLoop",
+                       "HagiRecipes"):
+            self.assertIn(folder, LayerLint.LAYERS)
+            self.assertFalse((LayerLint.ROOT / folder).exists(),
+                             f"{folder} exists: 5-layer target no longer inert")
 
 
 if __name__ == "__main__":

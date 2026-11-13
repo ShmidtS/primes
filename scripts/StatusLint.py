@@ -46,6 +46,12 @@ SKIP_WORDS = {
 
 IDENT = re.compile(r"`([A-Za-z_][A-Za-z0-9_'′?]*)`")
 
+# C244 (A7): doc links / headings must reference REAL repo files.
+# Markdown link targets [`name`](Hagi/Foo/Bar.lean) and `## Hagi/…​.lean`
+# headings; anchors and queries stripped before the disk check.
+PATH_RE = re.compile(r"(?:\]\(|^##\s+)(Hagi/[A-Za-z0-9_/]+\.lean)(?:[)#]|$)",
+                     re.M)
+
 
 def is_skip(ident: str) -> bool:
     low = ident.lower()
@@ -68,6 +74,12 @@ def is_skip(ident: str) -> bool:
 def check(fname: str, names: set, baseline: set) -> list:
     txt = (ROOT / fname).read_text(encoding="utf-8")
     missing = []
+    for m in PATH_RE.finditer(txt):
+        path = m.group(1)
+        if not (ROOT / path).is_file():
+            missing.append((fname, path))
+    if missing:
+        return missing
     for m in IDENT.finditer(txt):
         ident = m.group(1)
         if ident in names or ident in RUNTIME_NAMES:
@@ -100,7 +112,10 @@ def main() -> int:
     if missing:
         print("STATUSLINT: FAIL")
         for f, i in sorted(set(missing)):
-            print(f"  {f}: `{i}` not found in Hagi/ or RUNTIME_NAMES")
+            if i.startswith("Hagi/") and i.endswith(".lean"):
+                print(f"  {f}: path `{i}` does not exist on disk")
+            else:
+                print(f"  {f}: `{i}` not found in Hagi/ or RUNTIME_NAMES")
         return 1
     print("STATUSLINT: PASS")
     return 0

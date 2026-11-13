@@ -74,13 +74,13 @@
 - `amgm_uniqueness`: при `0 < c`, `0 < B`, `0 ≤ Bn`, `0 ≤ t0` равенство в этой оценке обратно влечёт `B^2 = Bn * t0 / c`.
 - `batch_T_min`: при `0 < B`, неотрицательных `Bn`, `t0`, `c` величина `(1 + Bn / B) * (t0 + c * B)` не меньше `t0 + c * Bn + 2 * Real.sqrt (c * Bn * t0)`.
 
-## Hagi/Autonomy/Hedge.lean
+## Hagi/Optimization/MirrorHedge.lean
 
 - `hedge_step`: для вероятностного `p`, потерь `0 ≤ l i ≤ 1` и `0 ≤ eta ≤ 1` сумма `∑ i, p i * exp (-eta * l i)` не превосходит `1 - eta * ∑ i, p i * l i + eta ^ 2 / 2`.
 - `hedge_telescope`: если `0 ≤ 1 + u t` для всех `t`, то `∏ t < T, (1 + u t) ≤ exp (∑ t < T, u t)`.
 - `router_regret_bound`: при `0 < K`, `0 < eta` и посылке hsurv выполняется `A - Lstar ≤ Real.log K / eta + eta * T / 2`.
 
-## Hagi/Autonomy/HedgeSurvivor.lean
+## Hagi/Optimization/MirrorHedge.lean
 
 - `hsurv_derived`: для потерь `0 ≤ l t i ≤ 1` и `0 ≤ eta ≤ 1` выводится точная экспоненциальная нижняя оценка выживания через нормированные веса `ewNorm` и член `T * eta ^ 2 / 2`.
 - `ewNorm_as_mirror`: вес `ewNorm l eta t i` равен соответствующему `mirrorStep` с накопленными потерями и параметром `1 / eta`.
@@ -151,7 +151,7 @@
 - `improving_chain_injective`: такая последовательность распределений не содержит повторов.
 - `no_infinite_improving_chain`: последовательности с постоянной суммой `∑ i, seq t i = B` и строго убывающей `totalError` не существует, поскольку пространство таких распределений конечно.
 
-## Hagi/Budget/CertifiedArgmax.lean
+## Hagi/Cert/CertifiedArgmax.lean
 
 - `argmax_pair_certified`: при `0 ≤ eps`, `|GammaHat k - Gamma k| ≤ eps` и `2 * eps < GammaHat i - GammaHat j` следует `Gamma j < Gamma i`.
 - `argmax_select_certified`: если sel максимизирует Γ̂ и отделён от каждого другого варианта больше чем на `2 * eps`, то sel максимизирует истинный Γ.
@@ -686,7 +686,7 @@
 - `patchBytes_nat`: при `0 < p` и `K ≤ patchCount N p` сумма длин первых `K` патчей равна `min (K * p) N`.
 - `patchSeq_total_length`: при `0 < p` сумма длин всех списков `patchSeq s N p` равна `N`.
 
-## Hagi/Data/CertifiedArgmax.lean
+## Hagi/Cert/CertifiedArgmax.lean
 
 - `certified_argmax_strict`: если `|est i - v i| ≤ ε` и истинный отрыв `v imax - v i` строго больше `2 * ε` для всякого `i ≠ imax`, то `est i < est imax`.
 - `certified_argmax_ambiguity`: при `0 < ε`, `0 < g ≤ ε` существуют `v`, est с погрешностью не более `ε`, для которых `v 0 > v 1`, но `est 1 > est 0`.
@@ -728,7 +728,7 @@
 - `fresh_data_prevents_collapse`: если дополнительно `H(d) - δ / ν ≤ H(p 0)`, то нижняя граница `H(d) - δ / ν` сохраняется во всех поколениях.
 - `fresh_data_prevents_collapse_uniform`: при `δ ≤ ν * ε` и начальном `H(d) - ε ≤ H(p 0)` во всех поколениях сохраняется `H(d) - ε ≤ H(p T)`.
 
-## Hagi/Data/FannesSmooth.lean
+## Hagi/Probability/FannesPinsker.lean
 
 - `log_sub_le_div`: при `0 < a ≤ b` выполняется `log b - log a ≤ (b - a) / a`.
 - `abs_log_sub_le`: для положительных `a`, `b` справедливо `|log a - log b| ≤ |a - b| / min a b`.
@@ -773,7 +773,7 @@
 - `endpoint_geometric_tail`: если дополнительно `0 ≤ cbar` и `c t ≤ cbar`, то `x T ≤ κ^T * x 0 + β * cbar / (1 - κ)`.
 - `endpoint_depth_budget`: при `0 < κ < 1`, `0 < ε` и `x 0 / ε ≤ (1 / κ)^T` получается `x T ≤ β * cbar / (1 - κ) + ε`.
 
-## Hagi/Dynamics/FastGrowth.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `capability_takeoff_floor`: при `0 < alpha`, `0 ≤ C 0`, `C (t + 1) ≥ C t * (1 + alpha)^(s t)` и `N ≤ ∑ t < T, s t` выполняется `C T ≥ C 0 * (1 + alpha)^N`.
 - `risk_takeoff_counted`: при `0 < beta < 1` и `R (t + 1) ≤ R t * (1 - beta)^(s t)` получается `R T ≤ R 0 * (1 - beta)^(∑ t < T, s t)`.
@@ -791,13 +791,13 @@
 - `guarantee_horizon_bound`: если `0 < c ≤ e t + delta t` для всех `t` и бюджет жив на горизонте `T`, то `(T : ℝ) * c ≤ eps`.
 - `shift_paid_from_budget`: при `0 ≤ e t`, `0 ≤ delta t`, `S ⊆ range T` и `BudgetAlive e delta eps T` сумма `delta t` по `S` не превосходит `eps`; малость самого сдвига не доказывается.
 
-## Hagi/Dynamics/WallClockTakeoff.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `wallclock_rate_from_cone`: при `0 < alpha`, `0 < tau`, `0 < C 0`, мультипликативном росте по `s t` и `p0 * T - Delta ≤ ∑ t < T, s t` нижняя грань `C T` равна `C 0 * exp ((p0 * log (1 + alpha) / tau) * (T * tau) - log (1 + alpha) * Delta)`.
 - `wallclock_rate_from_cone_concentrated`: подставляет `concDelta T delta` вместо произвольного `Delta`; концентрационная оценка, дающая такую нижнюю сумму успехов, остаётся посылкой.
 - `wallclock_rate_avg_tau`: при `0 < tauBar`, `0 ≤ p0`, `T ≠ 0`, `∑ t < T, tau t ≤ T * tauBar` и аналогичной нижней сумме `s t` получается экспоненциальная грань с фактическим `∑ t < T, tau t` и коэффициентом `p0 * log (1 + alpha) / tauBar`.
 
-## Hagi/Energy/Cooling.lean
+## Hagi/Probability/GibbsCore.lean
 
 - `partition_hot_limit`: на конечном непустом `V` сумма `∑ v, exp (-(ℓ v) / T)` при `T → +∞` стремится к `Fintype.card V`.
 - `two_level_meanEnergy_strictMono`: для двухуровневой системы с `0 < ε` средняя энергия `ε / (1 + exp (ε / T))` строго возрастает при `0 < T₁ < T₂`.
@@ -850,7 +850,7 @@
 - `roundTern_error_scaled`: при `s > 0` и `|x| ≤ 3s/2` ошибка `|x − s*roundTern(x/s)| ≤ s/2`; `clampInt4_error` аналогично даёт ошибку `≤ 1/2` при `|x| ≤ 15/2`.
 - `lsScale_optimal`: если `Σᵢ(q i)^2 > 0`, коэффициент `(Σq*x)/(Σq*q)` минимизирует `Σ(x i − s*q i)^2` по всем вещественным `s`.
 
-## Hagi/Energy/Variational.lean
+## Hagi/Probability/GibbsCore.lean
 
 - `kl_tilted_decompose`: для строго положительных нормированных `q,p` выполнено `KL(q‖tilted p U) = KL(q‖p) − ΣqU + log(Σ_w p w*exp(U w))`.
 - `free_energy_variational`: при тех же условиях доказано `ΣqU − KL(q‖p) ≤ log(Σ_w p w*exp(U w))`.
@@ -1132,7 +1132,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `exp_chord_ab`: для `a<b` и `x∈[a,b]` доказана хордовая оценка `exp x ≤ ((b−x)/(b−a))*exp a + ((x−a)/(b−a))*exp b`; `exp_chord_r` — форма для `exp(r*x)`.
 - `log_cosh_le`: для любого вещественного `M` доказано `log(cosh M) ≤ M²/2`.
 
-## Hagi/Foundations/ConeCorridor.lean
+## Hagi/Growth/LinearCone.lean
 
 - `cone_exact_exponential`: при `α≥0`, `γ>0`, `ρ≥0`, `C t>0`, начальном конусе, капе `C(t+1)≤(1+α)C t`, динамике `D`, пороге на `β`, шаге `C(t+1)=C t+G t` и `γD≤G` доказано одновременно `(1+α)^T*C0 ≤ C T` и `C T ≤ (1+α)^T*C0`.
 
@@ -1147,7 +1147,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `saturation_gap`: при `0≤σ≤1` и шаге насыщения зазор точно равен `Cstar−C T=(1−σ)^T*(Cstar−C0)`.
 - `saturation_ceiling`: если дополнительно `C0≤Cstar`, то `C T≤Cstar−(1−σ)^T*(Cstar−C0)` и `C T≤Cstar`.
 
-## Hagi/Foundations/GrowthDynamics.lean
+## Hagi/Growth/LinearCone.lean
 
 - `band_guaranteed_growth_range`: из `C(t+1)=C t+G t`, `b*(1−σ)^t≤G t` для `t<T` и `0<σ≤1` следует `C T ≥ C0 + b*(1−(1−σ)^T)/σ`.
 - `time_to_target_log`: при `b≥0`, `0<σ<1`, `C0≤Cstar`, `σ*(Cstar−C0)<b` и `log(1−σ*(Cstar−C0)/b)/log(1−σ)≤T` доказано достижение `Cstar≤C T`.
@@ -1169,7 +1169,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `ortho_norm_sq`: для ортонормального семейства `v` на конечном `ι` доказано `‖Σᵢ c i•v i‖²=Σᵢ(c i)²`; имеется и вариант по произвольному `Finset`.
 - `gating_tail_bound`: квадрат нормы разности полной суммы и суммы по `s` равен `Σ_{i∈sᶜ}(c i)²`.
 
-## Hagi/Foundations/PerronCone.lean
+## Hagi/Growth/LinearCone.lean
 
 - `cone_eigenvector_iff`: равенство `coneMatrix γ β ρ *ᵥ coneVec k = (1+γ*k)•coneVec k` эквивалентно `β=γ*k²+(1−ρ)*k`.
 - `cone_perron_growth`: при точных линейных шагах `C,D`, этом условии на `β` и `D0=k*C0` доказаны `C T=(1+γ*k)^T*C0` и `D T=k*C T`.
@@ -1213,14 +1213,14 @@ wall-clock, сжатие весов или улучшение качества.
 - C218: подсчитанные здесь binder-сайты эмпирических посылок
   (h_C_cap=2, hβ_eased=2) занесены в per-file shrink-only реестр
   `AssumptionScan.py` (см. запись C218 в разделе
-  Hagi/Unified/MasterHAGI.lean).
+  Hagi/Legacy/MasterHAGI.lean).
 
 ## Hagi/Geometry/SphericalSimplex.lean
 
 - `dihedral_angle_ge_pi_div_three` и `dihedral_angle_lt_pi_div_two`: при `x≥2` выполнено `π/3≤arccos(1/x)`, а при `x>1` — `arccos(1/x)<π/2`.
 - `euclid_sum_bounds`: для `n≥2` и `K=n(n+1)/2` доказано `(π/3)*K ≤ K*arccos(1/n) < (π/2)*K`.
 
-## Hagi/Growth/AdaptiveQuery.lean
+## Hagi/Cert/CertifiedArgmax.lean
 
 - `avgRadius_shrinks`: при `e≥0` и `0<K≤L` выполнено `e/√L≤e/√K`, а при одном запросе радиус равен `e`.
 - `certified_gain_select_avg`: если ошибки всех оценок не превышают `avgRadius e K`, безопасный `a₀` имеет `g a₀>3*avgRadius e K`, то найдётся безопасный `a'` с `g a'>0` и `g a₀−2*avgRadius e K≤g a'`.
@@ -1231,7 +1231,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `frozen_saturation`: для неотрицательного `V` и шага `V(t+1)≤V t−eps t` сумма `eps` на любом `Ico m T` с `m≤T` не превосходит `V m`.
 - `growth_dichotomy`: при `V(t+1)≤V t−eps t+b t` либо суммы `b` неограниченно растут, либо существует `B`, для которого все `Σ_{t<T}eps t≤V0+B`.
 
-## Hagi/Growth/ChainToCone.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `chain_feeds_cone`: при `β,κ,D≥0`, нижней границе `β` для четырёх стадийных коэффициентов и `κ*D≤E_raw` доказано `β^4*κ*D≤G_cap`.
 - `cone_two_sided_certificate`: помимо `0≤k`, неотрицательных `C,D`, начального конуса `k*C 0≤D 0`, шага и нижней оценки `γD≤G`, требуются верхняя `G≤gbar D`, динамика `D`, `gbar*k≤ρ` и порог на `β`; тогда `k*C t≤D t` сохраняется до `T`.
@@ -1242,7 +1242,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `training_core_is_measurement_tail`: если `E_dev=E_aligned`, `G_cap=η_p*η_o*η_s*E_dev`, а E_aligned и `α_align` ненулевые, то `η_p*η_o*η_s=α_trunc*α_safe*α_cap`.
 - `deficit_factorizes`: при ненулевых семи измеренных знаменателях отношение двух произведений равно произведению соответствующих семи отношений.
 
-## Hagi/Growth/ConeDynamics.lean
+## Hagi/Growth/LinearCone.lean
 
 - `cone_reinvest_invariant`: при `C t>0`, `k≥0`, `γ*k≤ρ`, текущем конусе, динамике `ρD+βC≤D'`, капе `C'≤C+γD` и пороге `γ*k²+(1−ρ)*k≤β` следует `k*C'≤D'`.
 - `cone_ratio_step_is_reinvest`: те же вывод получается при точном шаге `C'=C+γD`; это специализация reinvest-формы, а не безусловный закон роста.
@@ -1252,13 +1252,13 @@ wall-clock, сжатие весов или улучшение качества.
 - `configs_injective_on_separated` и `used_configs_lower_bound`: если разделённые задачи обслуживаются своими конфигурациями, отображение конфигураций инъективно на семействе и `tasks.card ≤ card(image cfg tasks)`.
 - `fiber_params_floor`: если у каждой использованной конфигурации `rank q≥rmin`, то суммарное `Σ rank q*d` не меньше `tasks.card*rmin*d`.
 
-## Hagi/Growth/FrontierProduction.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `injection_law_of_measured`: если `D(t+1)≥κ*dis t` и потребность `ρD t+βC t−ξ t≤κ*dis t` для всех `t`, то выполнен `InjectionLaw D C ξ ρ β`.
 - `certified_cycle_renewal`: для продуктовой `IsProbSys`, `Y i v∈[0,1]`, `n>0`, `ε>0`, `0≤thr≤1`, `κ≥0` и условий на `D(t+1)` и thr вероятность импликации «большая сумма проб → renewal-неравенство» не меньше `1−2*exp(−2*n*ε²)`.
 - `takeoff_lifts_utility`: из `CapabilitySound C U` (то есть `C t≤U t` для всех `t`) и `C0*(1+α)^T≤C T` следует та же нижняя граница для `U T`.
 
-## Hagi/Growth/FrontierScaling.lean
+## Hagi/Growth/LinearCone.lean
 
 - `takeoff_edge_forced`: при `γ>0`, точном шаге `C=C+G`, нижнем gain-законе, конусе и капе в каждый момент одновременно выполнены `G=α*C`, `D=α/γ*C` и `C'=(1+α)*C`.
 - `sustained_takeoff_from_production`: при `α,γ>0`, `ρ≥0`, `C0>0`, начальном конусе, заданных динамике `D`, капе и пороге на `β` доказано `C0*(1+α)^T≤C T`.
@@ -1288,7 +1288,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `grow_epsilon_stop`: если `cstar≤c` и уже `certifiedGain N M cstar<ε`, то и `certifiedGain N M c<ε`.
 - `pl_stop_certificate`: при `mu>0` и посылке `h_emp_pl : mu*(Lw−Lstar)≤gnorm²/2` следует `Lw−Lstar≤gnorm²/(2*mu)`.
 
-## Hagi/Growth/GrowthGate.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `verdict_ttt`: при `eps>0`, `eps≤GF` и `R≤eps` доказаны `0≤GF−R` и `eps≤GF`.
 - `verdict_grow`: при `eps<R` получается `0<R−eps`; `verdict_exhausted` просто соединяет `GF<eps` и `eps<R`.
@@ -1304,7 +1304,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `disagreement_convergence_floor`: при `0≤κ<1`, `σ≥0`, `Dseq 0≤D₀` и `Dseq(t+1)≤κDseq t+σ²/N` доказано `Dseq t≤κ^t D₀+(σ²/N)*(1−κ^t)/(1−κ)`.
 - `fiber_merge_denoise`: residual ошибки равен `avgVec n−n i`, а его квадрат нормы точно равен `σ²*(1−1/N)` при тех же предположениях ортогональности.
 
-## Hagi/Growth/NonlinearCone.lean
+## Hagi/Growth/LinearCone.lean
 
 - `sqrt_gain_step`: при `γ,k,x>0` доказано `√x+γ√k/(2+γ√k/√x)≤√(x+γ√(k*x))`.
 - `sqrt_gain_takeoff`: если `C0>0`, все `C t>0` и `C(t+1)=C t+sqrtGain γ k (C t)`, то `C T≥(√C0+γ√k/(2+γ√k/√C0)*T)^2`.
@@ -1355,7 +1355,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `candidate_completeness_find`: из `0≤eps`, `CandidateComplete gen G safe eps`, безопасного `a₀` и `eps<G a₀` следует существование сгенерированного безопасного `a'` с `G a'>0` и `G a₀−eps≤G a'`.
 - `usableFrontier_renewal`: из ingest-неравенства для dataField и оценки `β*capability−ξ≤r` выводится требуемая frontier-динамика.
 
-## Hagi/Growth/T3Ignition.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `ignitionGate_nonneg`: при `k>0` и `(1−ρ)*k≤cbeta` величина `(cbeta−(1−ρ)k)/k²` неотрицательна.
 - `ignitionCeiling_pos`: при `k,ρ>0` и строгом `(1−ρ)*k<cbeta` минимум `min(ρ/k,(cbeta−(1−ρ)k)/k²)` положителен.
@@ -1378,7 +1378,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `router_capacity_bound`: в аналогичной модели с `encode : A→Q` и `card Q≤2^B` получается `tasks.card≤2^B`. Отдельная `bits_floor` доказывает лишь неотрицательность `logb 2 (card S)` для непустого конечного `S`, а не оценку взаимной информации.
 - `recoverable_avg`: при `N>0` и `0<devEnergyF dev` существует `k`, для которого `devEnergyF dev/N≤dev k ⬝ᵥ dev k`.
 
-## Hagi/Information/DiscreteFannes.lean
+## Hagi/Prelude/InfoCore.lean
 
 - `entropy_le_diagonal`: для положительно полуопределённой `A` энтропия не превосходит `Σᵢ negMulLog(Re(A i i))`; `concaveOn_entropy` доказывает вогнутость энтропии на PSD-состояниях.
 - `discrete_fannes_coupling`: для вероятностных `p,q` на непустом конечном `ι` и посылки hbridge, отождествляющей энтропию неотрицательной диагонали с `shannon`, доказано `shannon p−shannon q≤tvHalf*log(card ι)+(1+tvHalf)*binEntropy(tvHalf/(1+tvHalf))`.
@@ -2323,7 +2323,7 @@ one-hot CE.
   4 входа).
 - `venn_pair_win`/`venn_certified` — голова испускает логит-пару
   `![f, 1−f]` (eps-зазор ровно 1), композиция с
-  `Hagi.Data.CertifiedArgmax.certified_argmax_strict` при est = v
+  `Hagi.Cert.CertifiedArgmax.certified_argmax_strict` при est = v
   (нулевая ошибка): для любого ε с 2ε < 1 сертифицированный argmax-индекс
   ЕСТЬ значение истинности булевой функции.
 - `venn_mask_ternary` — тернарная представимость: реальный квантователь
@@ -2940,7 +2940,7 @@ one-hot CE.
 
 - C220 (удаление zero-consumer дубликатов): regret-обёртка
   этого модуля удалена; каноническая regret-оценка — `mirror_regret`
-  (Hagi/Optimization/MirrorDescent.lean).
+  (Hagi/Optimization/MirrorHedge.lean).
 
 ## Hagi/Optimization/LLRD.lean
 
@@ -2992,7 +2992,7 @@ one-hot CE.
   взвешенное ядро поддерживается ровно графом; принадлежность точечному носителю
   эквивалентна `G.Adj a b ∧ w a b ≠ 0`.
 
-## Hagi/Optimization/MirrorDescent.lean
+## Hagi/Optimization/MirrorHedge.lean
 
 - Для строго положительных нормированных `ρ₀ ρ` и `0 < T`
   `mirror_regret` ограничивает суммарное превышение потерь
@@ -3118,11 +3118,11 @@ one-hot CE.
 - C220 (удаление zero-consumer дубликатов): forward-thinking
   regret-утверждение удалено; родственная доказанная граница той же
   формы `A − L* ≤ log K/eta + eta*T/2` — `router_regret_bound`
-  (Hagi/Autonomy/Hedge.lean).
+  (Hagi/Optimization/MirrorHedge.lean).
 - `imagination_compounding`: при пошаговой ошибке прогноза не более `ε` на `k < K` и `L`-липшицевости каждой `V k` на `k ≤ K` разность `∑ V k (oh k) - ∑ V k (o k)` не превышает `K*L*ε`. Доказана односторонняя, а не абсолютная, оценка.
 - `adaptive_first_sufficient`: из `|Vhat π₁ - V π₁| ≤ ε` и `θ ≤ Vhat π₁` следует `θ - ε ≤ V π₁`. `branching_avoids_detectable_failure` использует одностороннюю ошибку `Vhat - V ≤ ε` и посылку `θ < Vhat π` для исполняемых планов; `branching_dominates_linear` затем отделяет заведомо плохой `π₁` от исполняемого `πb`.
 
-## Hagi/Prelude/Info.lean
+## Hagi/Prelude/InfoCore.lean
 
 - Введены конечные `klDef`, `ceDef`, `entDef`, `tvDef` и `softDef`. При `p v ≠ 0` тождество `klDef_eq_ceDef_sub` выражает KL как `ceDef q p - ceDef q q`, а `ceDef_self` даёт `ceDef q q = entDef q`.
 - `kl_nonneg_of_nonneg` требует неотрицательные `q`, положительные `p` и суммы обеих функций, равные `1`; `kl_nonneg` вариант с положительными `q`. Для неотрицательного распределения на непустом типе `sum_negMulLog_le_log_card` ограничивает энтропию через `log (Fintype.card V)`.
@@ -3313,7 +3313,7 @@ one-hot CE.
 - `history_additive_freedman` при `c > 0`, `r > 0`, `V ≥ 0` даёт фиксированный `k`-хвост для суммы центрированных вкладов. `history_additive_freedman_two_sided` для единых `r V` ограничивает событие `∃j ≤ T` с нарушением абсолютного порога через `2*(T+1)*exp(-r^2/(4*(V+c*r)))`.
 - `anytime_freedman_thresholds` и `anytime_freedman_thresholds_two_sided` допускают разные `r j > 0` и `V j ≥ 0`: итоговые границы равны сумме по `j ∈ range (T+1)` соответствующих экспонент, с коэффициентом `2` в двустороннем случае.
 
-## Hagi/Probability/GibbsConcentration.lean
+## Hagi/Probability/GibbsCore.lean
 
 - При единственном минимизаторе `v*`, зазоре `δ > 0` и верхней границе энергетического превышения `Δ` доказано `gibbs_var_tendsto_zero`: дисперсия энергии по Гиббсу при температуре `δ/(n+1)` стремится к нулю.
 - `gibbs_var_steps_bound` даёт конечную оценку `≤ eps` при дополнительном условии `log (Δ^2 * card(univ.erase vstar) / eps) ≤ n+1`, положительных `Δ`, `eps` и ненулевом числе конкурентов.
@@ -3333,7 +3333,7 @@ one-hot CE.
 - `gibbs_concentration_canon` даёт нижнюю долю минимизатора `1/(1 + (card V - 1)*exp(-δ/T))`.
 - `gibbs_mean_energy_gap` при зазоре `δ` и общей верхней границе `E v ≤ E vstar + Δ` ограничивает среднюю энергию через `E vstar + Δ*(card V - 1)*exp(-δ/T)`.
 
-## Hagi/Probability/GibbsInfoCore.lean
+## Hagi/Probability/GibbsCore.lean
 
 - `finite_kl_nonneg` доказывает неотрицательность KL для положительных нормированных законов. `gibbs_variational` при `T > 0` даёт `-T*log Z ≤ ∑ρ E + T*∑ρ log ρ` для любого такого `ρ`.
 - `gibbs_free_energy_lower` и `free_energy_upper` образуют границы `Emin - T*log(card V) ≤ -T*log Z ≤ E vstar`, где вторая оценка верна для любого выбранного `v*`.
@@ -3352,10 +3352,10 @@ one-hot CE.
 - При `(neighbors a).card ≤ k` размер поддержки маски и `changedCount` после инверсии битов не превосходят `k+1`; якорь включается в это число.
 - `uniformPlane_bind` доказывает сохранение равномерного закона после связанного канала, а `decodeByteRows_encodeBytePlane` и `encodeBytePlane_decodeByteRows` — обратимость конечного байтового представления. Смешивание цепи и равномерность эмпирических данных не утверждаются.
 
-## Hagi/Probability/MWU.lean
+## Hagi/Optimization/MirrorHedge.lean
 
 - `mwu_potential_step`: при положительных нормированных весах, `ℓ ≥ 0`, `η > 0` и `η*ℓ ≤ 1/2` выполнено `log Z' ≥ -2*η*∑w*ℓ`.
-- `mwu_sqrt_bound` даёт квадратично-корневую оценку regret при явных условиях баланса. C220: статический и двухрежимный regret-варианты удалены как zero-consumer дубликаты; канонический regret-результат — `mirror_regret` (Hagi/Optimization/MirrorDescent.lean).
+- `mwu_sqrt_bound` даёт квадратично-корневую оценку regret при явных условиях баланса. C220: статический и двухрежимный regret-варианты удалены как zero-consumer дубликаты; канонический regret-результат — `mirror_regret` (Hagi/Optimization/MirrorHedge.lean).
 - `selectedLoss_optimalPropensity_mse` при `0 < ∑|ℓ|` равен `(∑|ℓ|)^2 - ∑ℓ^2`. Строгое улучшение относительно равномерного PMF эквивалентно непостоянству `|ℓ|`; нулевой MSE эквивалентен наличию ровно одного ненулевого слагаемого.
 - Аналогичные `selectedGradientMSE` и `selectedMeanGradientMSE` результаты при `0 < ∑‖g‖` дают строгое улучшение относительно равномерного распределения в точности при непостоянных нормах градиентов; `selectedGradientMSE_upperBoundPropensity_le` ограничивает MSE через `(∑|a|)^2 - ‖∑g‖^2` при `0 < ∑|a|` и `‖g b‖ ≤ a b`.
 - Lint repair (C220): the lock refresh exposed a C216 private nonemptiness witness duplicating the Runtime one (equal statement hash; the lock had been stale since C216). Fixed by deleting the private duplicate and using Mathlib canonical `Finset.univ_nonempty` at all 13 sites (proof-body-level only; public statements unchanged; census −16 = 8 theorems + 7 simp rows + the duplicate).
@@ -3382,7 +3382,7 @@ one-hot CE.
 - `toPMF` строит PMF из неотрицательной функции `q` с суммой `1`, а `fromPMF` переводит массы через `ENNReal.toReal`; `toPMF_apply` даёт `ENNReal.ofReal (q v)`, `fromPMF_sum` — сумму вещественных масс, равную `1`.
 - `fromPMF_toPMF` и `toPMF_fromPMF` доказывают оба обратных тождества на конечном носителе. Мост между `klDef` и интегральной KL-дивергенцией на мерах этими теоремами не устанавливается.
 
-## Hagi/Probability/PinskerTV.lean
+## Hagi/Probability/FannesPinsker.lean
 
 - `pinsker_sqrt_kl` даёт `TV ≤ sqrt(KL)` для положительных нормированных законов, `tv_le_sqrt_one_minus_exp` — оценку `TV ≤ sqrt(1-exp(-KL))`, а `tv_le_pos_part_kl` ограничивает TV положительной частью KL-суммы.
 - `kl_variational_lower` доказывает вариационную нижнюю границу KL через произвольную `f`; `pac_chernoff_events` при `KL(p‖q) ≤ κ` ограничивает `p(s)` через `κ + log(1 + (exp 1 - 1)*q(s))`.
@@ -4165,7 +4165,7 @@ one-hot CE.
 - `telescope_measured`: по исполненной цепочке из `n` шагов
   `Σm ≤ obj(s)−obj(traj step s n) + Σd`, и все шаговые `(cs t).drop` положительны.
 
-## Hagi/Unified/FannesComplete.lean
+## Hagi/Probability/FannesPinsker.lean
 
 - `shannon_le_log_card`: для вектора вероятностей на конечном носителе
   `H(p) ≤ log|ι|`.
@@ -4210,7 +4210,7 @@ one-hot CE.
   `grand_synthesis_weak` дополнительно принимает локальные risk/probe условия
   и даёт соответствующие risk/qfloor выводы.
 
-## Hagi/Unified/GrowthBridge.lean
+## Hagi/Dynamics/GrowthBridge.lean
 
 - `growth_state_takeoff`: при `alpha > 0`, `sigma t ≤ 1`,
   положительной capability и gate `alpha·C_t ≤ growGain` на каждом
@@ -4299,7 +4299,7 @@ one-hot CE.
 - `honest_two_steps_existent`: построен числовой свидетель двух
   последовательных положительных спусков на квадратичной цели.
 
-## Hagi/Unified/InfoCanonical.lean
+## Hagi/Probability/FannesPinsker.lean
 
 - `shannon_eq_entDef` и `tvHalf_eq_tvDef` доказывают точные равенства двух
   пар информационных определений.
@@ -4539,7 +4539,7 @@ one-hot CE.
   пост-состояние RAM-записи равно точному `Matrix.updateRow`, а любой адрес,
   отличный от записанного, сохраняет прежнюю строку.
 
-## Hagi/Unified/NernstFannes.lean
+## Hagi/Probability/FannesPinsker.lean
 
 - `nernst_fannes`: если `p` нормировано и масса вне `v*` равна `t`,
   то `H(p) ≤ t·log|V| + (1+t)·h₂(t/(1+t))`;
@@ -4649,7 +4649,7 @@ one-hot CE.
   `eta t ≥ etamin`, `eps > 0` и `dn t² ≥ eps²`
   горизонт удовлетворяет `n ≤ 2(E0−Emin)/(etamin·eps²)`.
 - C217 (legacy quarantine, аудит P0a): модуль перенесён без
-  изменения байтов из Hagi/Unified/RecursiveGrowth.lean в
+  изменения байтов из Hagi/Legacy/RecursiveGrowth.lean в
   Hagi/Legacy/RecursiveGrowth.lean (SHA-256
   ef6907ef5ce1c44f4b85c308148860acf799326f2ce165de15e1d56e0d6933b0,
   14644 байт / 347 строк / 0 CR) и выведен из корневого
