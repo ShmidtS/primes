@@ -4,7 +4,7 @@
 
 | Проект | Фокус | Соответствие в HAGI | Действие |
 |---|---|---|---|
-| [FormalSLT](https://github.com/Robby955/FormalSLT) ([Reservoir](https://reservoir.lean-lang.org/@Robby955/formal-slt)) | finite-sample learning theory, confidence sequences, e-processes | Unified/AnytimeMartingale (Ville, e-process), Unified/AnytimePACBayes (time-uniform Catoni — №71) | заимствовать stitching-технику при расширении, без подмены monitoring-risk гарантией остановки |
+| [FormalSLT](https://github.com/Robby955/FormalSLT) ([Reservoir](https://reservoir.lean-lang.org/@Robby955/formal-slt)) | finite-sample learning theory, confidence sequences, e-processes | Unified/AnytimeMartingale (Ville, e-process), Unified/StitchingEProcess (C232: конечное сшивание master e-processes), Unified/AnytimePACBayes (time-uniform Catoni — №71) | конечное сшивание доказано; заимствовать счётную технику при необходимости, без подмены monitoring-risk гарантией остановки |
 | [TorchLean](https://github.com/lean-dojo/TorchLean) | spec→exec→verify, FloatLib/ATen trust boundaries, CROWN/IBP | Model/CertifiedTransition (execution cert), Energy/Quantizer | принцип: связать вычисление с сертификатом; внешнее GPU-исполнение не считать Lean-доказательством |
 | LeanAgent | continual learning, forgetting | Unified/MemoryCycle, Foundations/GrowthDynamics | идеи консолидации памяти |
 | ArtificialTheorems | SGD conv., Robbins-Siegmund, spec/proof split | Optimization/RobbinsMonro, Examples/QuadraticEndToEnd | паттерн разделения спецификации |
@@ -28,11 +28,12 @@ Mathlib-pin); связь — только на уровне теорем и ло
   `inexact_contraction_bound` (‖V_k − V*‖ ≤ γ^k·‖V_0 − V*‖ +
   ε(1−γ^k)/(1−γ)); их SGD/Robbins–Siegmund соседствует с
   Optimization/RobbinsMonro и Unified/RateTheory.
-- **FormalSLT** anytime-PAC-Bayes master e-processes: наш
-  слой сегодня — один master
-  (AnytimeMartingale/AnytimePACBayes/Freedman*); их countable
-  master над каталогом стратегий — кандидат в
-  расширение (stitching-техника).
+- **FormalSLT** anytime-PAC-Bayes master e-processes: конечное
+  сшивание ДОКАЗАНО (C232, Unified/StitchingEProcess: master
+  Σ wᵏ•Eᵏ над конечным семейством с priors Σ ≤ 1 — Ville
+  time-uniform контроль). Gap сузился до: счётный master над
+  каталогом стратегий (tsum-замыкание) и конструкции
+  per-strategy e-processes.
 - **TorchLean** spec→exec→verify: наш аналог исполнительного
   слоя — ReferenceMachine/MachineBridge; принцип
   «одно определение и учится, и

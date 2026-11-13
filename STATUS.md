@@ -348,13 +348,26 @@
 
 - `logitGradM`: квадратный n×n комплексный матричный вид логит-градиента
   (вещественные записи коэрцированы) — носитель, требуемый Flywheel
-  SVD API; прямоугольный C×V случай отложен.
+  SVD API.
 - `gradient_bottleneck_bound`: при посылке `rank Δ ≤ k` всякое достижимое
   логит-обновление `Δ` оставляет Frobenius-остаток не меньше
   квадратичного хвоста сингулярных чисел `logitGradM` за `k` — прямое
   следствие `eckart_young_lower_bound` (C226). Вывод «голова ранга D ⇒
   ранг обновлений ≤ 2D» и нетривиальность хвоста (Prop A.5) отложены
   и не утверждаются; при `k ≥ n` оценка тривиальна.
+- C232 (прямоугольный): `selP inj`/`coSelQ inj` — row-embedding с
+  `coSelQ_mul_selP` (Q·P = 1), `emb_rank_eq` (точное сохранение
+  ранга), `frobenius_selP_eq` (изометрия Фробениуса).
+  `eckart_young_lower_bound_rect`: прямоугольная EY-оценка снизу для
+  B : m×n с rank ≤ k — перенос квадратной через изометрию.
+  `gradient_bottleneck_bound_rect`: прямоугольный
+  (контексты × словарь) bottleneck через `logitGradRectM`. Хвост —
+  хвост ВСТРОЕННОЙ квадратной матрицы (Flywheel truncated-SVD
+  квадратный — заметка аудита «уже прямоугольный» ошибочна);
+  идентификация с прямоугольным singularValues-спектром отложена;
+  при k = 0 оценка сводится к честному ‖A‖² ≤ ‖A−B‖².
+  `factor_update_rank_le`: rank(A·Bᵀ) ≤ card r — близнец
+  `Hagi.Architecture.block_rank_le` (ориентация Aᵀ·B).
 
 ## Hagi/Contracts/GuardedLogitTrajectory.lean
 
@@ -3792,6 +3805,39 @@ one-hot CE.
 - `anytime_safety_stochastic` применяет это к минибатч-ограничениям с
   измеримыми центрированными независимыми шумами, `δ0,ρ ∈ (0,1)` и
   `δ0/(1−ρ) ≤ δ < 1`, `δ > 0` и шумовыми поправками на каждом шаге.
+
+## Hagi/Unified/StitchingEProcess.lean
+
+- `stitchedMaster w E = Σ i, w i • E i`; `stitching_master_supermartingale`:
+  a finite family of supermartingales with nonnegative weights stitches
+  into a supermartingale (Finset-induction, Mathlib canon
+  Mathlib Supermartingale.add / Supermartingale.smul_nonneg; the
+  empty case is gated by
+  `[Nonempty k]` — the zero-process certificate needs an unavailable
+  norm instance on the bare Pi type).
+- `stitching_master_initial_mass`: μ[M₀] = Σ w i · μ[E i 0]
+  (integrability from `Supermartingale.integrable`).
+- `stitching_eprocess_anytime` (MAIN): for weights Σ ≤ 1 and
+  unit-budget experts (μ[E i 0] ≤ 1, the hE0 premise):
+  μ.real{∃t ≤ n, δ⁻¹ ≤ M_t} ≤ δ uniformly in n — direct corollary of
+  `ville_anytime_false_alarm` (no duplication of the Ville
+  stopping-time proof). The countable family is postponed (documented):
+  the 3b slow-gate commits on finitely many e-processes.
+
+## Hagi/Architecture/SpaceDecoupling.lean
+
+- `projI U = U·Uᵀ`, `projR U = 1 − U·Uᵀ`; `projI_add_projR`
+  (P_I + P_R = 1 exactly), `projI_idem`/`projR_idem`
+  (idempotence under `IsOrthoCol U`).
+- `spaceDecoupling_zero_drift`: an update Δ with Uᵀ·Δ = 0 leaves the
+  I-coordinates of any state exactly (Uᵀ(x+Δ) = Uᵀx) — the
+  projection-level twin of GPM `gpm_zero_forgetting`.
+- `exists_orth_direction`: for rank(I) = c < d the complement is
+  nontrivial (∃ v ≠ 0, Uᵀv = 0; finrank-contradiction — an injective
+  Fin d → Fin c linear map cannot exist).
+- `spaceDecoupling_capacity`: for such a direction
+  P_R·v = v ≠ 0 — nonzero capacity on R is real. Jointly with
+  zero-drift the pair is nonvacuous exactly under rank(I) < d.
 
 ## Hagi/Unified/AnytimePACBayes.lean
 

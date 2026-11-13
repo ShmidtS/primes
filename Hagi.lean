@@ -114,6 +114,7 @@ import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.ManifoldHyperConn
 import Hagi.Architecture.AlignedMerge
 import Hagi.Architecture.OrthoInjection
+import Hagi.Architecture.SpaceDecoupling
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.Configuration
 import Hagi.Budget.ActiveCompute
@@ -246,6 +247,7 @@ import Hagi.System.StepCertificate
 import Hagi.System.GrowthStateViews
 import Hagi.Unified.GrowthBridge
 import Hagi.Unified.AnytimeMartingale
+import Hagi.Unified.StitchingEProcess
 import Hagi.Energy.STEStep
 import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact

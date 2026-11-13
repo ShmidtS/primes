@@ -1669,3 +1669,34 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). qTern/TopK — документиров�
 (0,√3); матричное нерасширение NS-полинома остаётся гипотезой `hP`
 в `Hagi/Step/Muon.lean`. mHC: Sinkhorn не требуется — M дважды
 стохастическая посылкой; оценка точная на перестановках.
+
+## 14. Anytime stitching + прямоугольный bottleneck + space decoupling (C232)
+
+Три моста addendum A5 §C232:
+
+```
+stitching_master_supermartingale   : Σ wᵏ•Eᵏ — супермартингал (Finset-индукция)
+stitching_master_initial_mass      : μ[M₀] = Σ wᵏ·μ[Eᵏ₀]
+stitching_eprocess_anytime         : Σw ≤ 1, μ[Eᵏ₀] ≤ 1 → Pr[∃t≤n, Mₜ ≥ 1/δ] ≤ δ
+                                     (равномерно по n; через ville_anytime_false_alarm)
+coSelQ_mul_selP / emb_rank_eq      : row-embedding — изометрия ранга
+frobenius_selP_eq                  : ‖selP·C‖_F = ‖C‖_F (изометрия Фробениуса)
+eckart_young_lower_bound_rect      : rank B ≤ k → tail_rect(A,k) ≤ ‖A−B‖²_F
+gradient_bottleneck_bound_rect     : прямоугольный (Ctxt×Voc) градиентный bottleneck
+factor_update_rank_le              : rank(A·Bᵀ) ≤ r (близнец block_rank_le, ориентация A·Bᵀ)
+projI_add_projR / projI_idem / projR_idem : P_I = UUᵀ, P_R = I−UUᵀ, P_I+P_R = 1
+spaceDecoupling_zero_drift         : UᵀΔ = 0 → I-координаты нетронуты точно
+exists_orth_direction              : c < d → ∃ v ≠ 0, Uᵀv = 0 (finrank-противоречие)
+spaceDecoupling_capacity           : P_R·v = v ≠ 0 — ёмкость R-направлений реальна
+```
+
+Честные границы: (1) счётное сшивание отложено — consumer 3b-gate
+работает с конечным числом e-процессов; нормировка μ[E i 0] ≤ 1
+каждого эксперта — посылка hE0 (premise-form). (2) Хвост прямоугольного EY — хвост
+ВСТРОЕННОЙ квадратной матрицы (Flywheel truncated-SVD квадратный;
+аудит-заметка «уже прямоугольный» — ошибочна, см. §выше);
+идентификация со спектром прямоугольных `singularValues` отложена;
+при k = 0 bound вырождается в честное `‖A‖² ≤ ‖A−B‖²`. (3) вывод
+rank(Δ) ≤ 2D из ранга головы — посылка, как и в квадратной версии.
+Slow-loop gate 3b теперь формально замкнут на stitching: конечный
+набор anytime-сертификатов с priors Σ ≤ 1 даёт один anytime-гейт.
