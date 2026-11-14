@@ -2700,3 +2700,62 @@ Finset упорядоченных пар, граф — симметрическ�
   принимает при марже > 2⁻⁷·max_b|L i b|. Ниже нормального диапазона
   относительная оценка ломается (свидетель BF16 anchor round-trip) —
   премиза там НЕ заявляется (reuse, не redefine).
+
+### B3 (дополнение A11): attention-связь L_ij(z) — мост CRAM+Z в ядро
+
+Настоящая связь latent→visible ЧЕРЕЗ ВНИМАНИЕ, а не только
+аддитивный bias (аддитивный маршрут — visibleBiasWithZ, E3-шов;
+оба существуют)
+([AttentionCoupling](Hagi/Model/EnergyReasoning/AttentionCoupling.lean)):
+
+- КОНСТРУКЦИЯ: L_ij(a,b) = κ_ij·w_ij·f(a,b) + κ_ji·w_ji·f(b,a),
+  где w = attentionWeights s — softmax-веса α_ij = exp(s_ij)/Σ_k
+  exp(s_ik) при ЗАМОРОЖЕННОМ z в скорах s (z дискретен/заморожен,
+  дифференцируемость по z НЕ заявляется); факты softmax-симплекса:
+  неотрицательность, ≤ 1, сумма по строке = 1 (премиза
+  [Nonempty ι] — на пустом типе softmax нет).
+- СИММЕТРИЯ ПО ПОСТРОЕНИЮ (B3 MAIN):
+  `Hagi.Model.EnergyReasoning.attention_coupling_symmetric` —
+  L_ij(a,b) = L_ji(b,a): два направленных вклада меняются местами
+  ТОЧНО (add_comm, НИКАКОЙ премизы симметрии на κ или w) — приём
+  «верхнего треугольника» A9: оба направленных ребра встроены в
+  каждый L_ij, поэтому ядро K(z) удовлетворяет премизе hK из C261
+  по построению. Fin 3 числовой якорь — с НАМЕРЕННО асимметричным
+  κ (κa3 i j = (i+2j)/4+1): якорь ловит любую путаницу ролей
+  индексов.
+- ОГРАНИЧЕННОСТЬ:
+  `Hagi.Model.EnergyReasoning.attention_coupling_bounded` —
+  0 ≤ κ ≤ κmax, w ∈ [0,1], |f| ≤ fmax ⇒ |L_ij(a,b)| ≤ 2·κmax·fmax;
+  константа 2 ТОЧНАЯ (два направленных вклада, каждый ≤ κmax·fmax;
+  свидетель — f ≡ ±fmax).
+- ПОДКЛЮЧЕНИЕ К ПАРНОЙ ЭНЕРГИИ: `Hagi.Model.EnergyReasoning.
+  attentionK` — ядро K(z) при замороженном z;
+  `attention_K_symmetric` — hK-премиза C261 дословно;
+  `frozen_z_field_with_attention` — локальное поле для K(z)
+  определено и машина C261 применяется при замороженном z: ход в
+  минимизатор локального поля не увеличивает
+  pairwiseEnergy B (attentionK κ (attentionWeights s) f). Честно:
+  premise-form для спуска, совместной (z,y)-теоремы НЕТ (E3
+  two-phase протокол неизменен).
+- СВЯЗЬ LATENT-ОШИБКИ:
+  `Hagi.Model.EnergyReasoning.attention_coupling_field_diff` —
+  дрейф весов |w1 − w2| ≤ δ ⇒ возмущение локального поля ≤
+  |S_i|·2κmax·fmax·δ (S_i = univ \ {i}); каждый вклад diff =
+  κ·|Δw|·|f| в каждом из двух направленных слагаемых (треугольник +
+  sum_abs + sum_const).
+- КОМПОЗИРОВАННЫЙ КОНТРАКТ (B3 MAIN, premise-form, честно):
+  `Hagi.Model.EnergyReasoning.latent_error_couples_field` —
+  ‖z − z*‖ ≤ η + softmax-Липшиц ПРЕМИЗА |w(z) − w(z*)| ≤ L_sm·η
+  (лемма для этого носителя НЕ заявляется) ⇒ поле K(z) внутри
+  |S_i|·2κmax·fmax·L_sm·η от поля K(z*).
+- ГВАРД ПОГЛОЩАЕТ LATENT-ОШИБКУ:
+  `Hagi.Model.EnergyReasoning.latent_attention_guarded_drop` — при
+  ε := |S_i|·2κmax·fmax·L_sm·η вычисленная маржа 2ε < L̂(y_i) − L̂(a)
+  на полях K(z) ⇒ СТРОГИЙ спуск ИСТИННОЙ энергии
+  pairwiseEnergy B (attentionK κ w2 f) — рецепт 2ε-гварда C270
+  (guarded_energy_delta), инстанцированный на границу coupling.
+  Отвержение информации не несёт (честность C270 сохранена).
+- Честные границы (docstring): это СТРУКТУРНЫЙ мост CRAM+Z; полная
+  семантика Maze-Hard (носитель z*, достижимость, совместные
+  (z,y)-обновления) остаётся ОТКРЫТОЙ; softmax-Липшиц по z —
+  премиза, не теорема.

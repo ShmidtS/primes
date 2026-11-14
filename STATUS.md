@@ -5495,3 +5495,43 @@ merger cert carriers (Freeze-дисциплина: statement change).
   2⁻⁸·max_b|L i b| через Rat.cast_le записан в docstring (reuse, не
   redefine); ниже нормального диапазона относительная оценка не
   имеет места — премиза там НЕ заявляется.
+
+## Hagi/Model/EnergyReasoning/AttentionCoupling.lean
+
+- Track B3 (дополнение A11 B-level): attention-связь L_ij(z) —
+  настоящий мост CRAM+Z в видимое парное ядро (не только
+  аддитивный bias).
+- `Hagi.Model.EnergyReasoning.attentionWeights` + факты
+  (`attentionWeights_nonneg`, `attentionWeights_le_one`,
+  `attentionWeights_sum`) — softmax-веса α_ij при ЗАМОРОЖЕННОМ z в
+  скорах s; премиза [Nonempty ι] (пустой тип — softmax нет).
+- `Hagi.Model.EnergyReasoning.attention_coupling_symmetric` —
+  (B3 MAIN) L_ij(a,b) = L_ji(b,a) ПО ПОСТРОЕНИЮ: оба направленных
+  вклада входят в каждый L_ij и меняются местами точно (приём
+  «верхнего треугольника» A9); НЕТ премизы симметрии на κ/w. Fin 3
+  якорь с намеренно асимметричным κ.
+- `Hagi.Model.EnergyReasoning.attention_coupling_bounded` —
+  |L_ij| ≤ 2·κmax·fmax (0 ≤ κ ≤ κmax, w ∈ [0,1], |f| ≤ fmax);
+  константа 2 tight (два направленных вклада).
+- `Hagi.Model.EnergyReasoning.attentionK` /
+  `attention_K_symmetric` / `frozen_z_field_with_attention` — ядро
+  K(z) при замороженном z удовлетворяет hK C261 дословно; локальное
+  поле определено; ход в минимизатор не увеличивает pairwiseEnergy
+  B (attentionK κ (attentionWeights s) f). Premise-form спуска;
+  совместной (z,y)-теоремы НЕТ (E3).
+- `Hagi.Model.EnergyReasoning.attention_coupling_field_diff` —
+  |w1 − w2| ≤ δ ⇒ возмущение локального поля ≤
+  |S_i|·2κmax·fmax·δ (S_i = univ \ {i}).
+- `Hagi.Model.EnergyReasoning.latent_error_couples_field` —
+  (B3 MAIN) составной контракт: ‖z − z*‖ ≤ η + softmax-Липшиц
+  ПРЕМИЗА |w(z) − w(z*)| ≤ L_sm·η ⇒ возмущение поля ≤
+  |S_i|·2κmax·fmax·L_sm·η. Премиза честная: леммы Липшица softmax
+  для этого носителя не существует/не заявляется.
+- `Hagi.Model.EnergyReasoning.latent_attention_guarded_drop` —
+  (B3 MAIN) гвард C270 поглощает latent-ошибку: ε :=
+  |S_i|·2κmax·fmax·L_sm·η; вычисленная маржа > 2ε ⇒ СТРОГИЙ спуск
+  истинной pairwiseEnergy B (attentionK κ w2 f). Отвержение
+  информации не несёт (C270-честность).
+- Честные границы: структурный мост CRAM+Z; полная семантика
+  Maze-Hard (носитель z*, достижимость, совместные обновления)
+  открыта; softmax-Липшиц по z — премиза.
