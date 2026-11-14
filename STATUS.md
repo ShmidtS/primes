@@ -452,6 +452,38 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   2e^{−256r²} ≤ бюджета удовлетворяет r > 0.14 > 1/20 — фиксированный-n
   гейт непригоден (качественно совпадает с аудитом).
 
+## Hagi/Contracts/AuditLedger.lean
+
+- C274 (audit E7): формальный audit ledger — Lean-мост Python
+  HoeffdingAudit: alpha spending, disjoint cursors
+  (proposal-independent slices как полуинтервалы [lo,hi) на ℕ),
+  old-task harm, rejected consumption, repeat-task floors, final
+  test untouched.
+- `AuditStream`/`AuditLedger` — машина состояний над срезами с
+  полями-инвариантами (streamsDisjoint, spentNonneg, spentTotal,
+  finalIsolated); шаги: `auditSpend`, `auditAdvance`, `auditReject`,
+  `auditTouchFinal`.
+- `audit_consume_alpha_exact`/`audit_consume_alpha_valid` — расход α
+  уменьшает remaining ровно на α, Σ ≤ δtotal, остаток ≥ 0.
+- `audit_streams_disjoint` — продвижение курсора сохраняет попарное
+  непересечение (границы не трогаются); `audit_rejected_consumed` —
+  потреблённые отклонённым потоком индексы не входят в свежий срез
+  никакого потока (пост-состояние, монотонный курсор).
+- `audit_false_harm_bounded` (MASTER): P(Bad t) ≤ spent t ⟹ P(ни
+  одного ложного вреда старым задачам) ≥ 1 − δtotal — прямое
+  применение C264 `gate_pipeline_false_commit` (β := spent); мост, а
+  не новая union-математика.
+- `audit_alpha_spends_radius` — радиус 2e^{−2nε²} ≤ spent t ⟹ хвост
+  покрыт бюджетом (CertifiedEstimator `hoeffding_two_sided`).
+- `final_test_untouched` + `audit_touch_final_flips`/
+  `audit_touch_final_breaks` — held-out гарантия: flag=false ⟹
+  потоки вне финального интервала; касание переключает флаг и ломает
+  валидность.
+- Честные границы: floors/current gain — поля/docstrings без
+  вакуозных теорем; идентификация «per-task check» vs C264 «per-check
+  β» — в docstring (α/(1+m)-агрегация этажей = gate_pipeline_budget,
+  цитируется, не перепроверяется).
+
 ## Hagi/Contracts/GradientBottleneck.lean
 
 - `logitGradM`: квадратный n×n комплексный матричный вид логит-градиента

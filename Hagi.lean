@@ -466,6 +466,7 @@ import Hagi.Contracts.GradientBottleneck
 import Hagi.Contracts.LogitGrad
 import Hagi.Contracts.HadamardTernaryBridge
 import Hagi.Contracts.GatePipeline
+import Hagi.Contracts.AuditLedger
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor

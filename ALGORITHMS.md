@@ -1773,6 +1773,55 @@ Freedman (C248 `freedman_exp_empirical_le_fixed`/`stitching_alarm_superset`)
 фиксированный радиус на n = 512 несовместим с допуском 1/20
 (качественно совпадает с непригодностью радиуса из аудита A10).
 
+### 14b. Audit ledger (C274, audit E7): HoeffdingAudit как машина состояний
+
+Lean-мост Python HoeffdingAudit-протокола — `Hagi/Contracts/AuditLedger.lean`:
+реестр аудита (машина состояний над срезами тестов) + связка его
+инвариантов с уже доказанными границами C264/CertifiedEstimator
+(новой концентрационной математики нет — мост есть суть E7):
+
+```
+AuditStream                  : полуинтервал [lo,hi) на ℕ с курсором
+                               (disjoint cursors / proposal-independent
+                               slices: срез = только интервал индексов)
+AuditLedger (σ,ι)            : δtotal, streams, floors (repeat-task
+                               floors: taskId → floor), spent (α per
+                               task), rejected, finalTest/Lo/Hi +
+                               поля-инварианты: streamsDisjoint,
+                               spentNonneg, spentTotal (Σ spent ≤ δ),
+                               finalIsolated (flag=false → потоки вне
+                               финального интервала)
+audit_consume_alpha_exact    : трата α уменьшает remaining РОВНО на α
+audit_consume_alpha_valid    : Σ spent' = Σ spent + α ≤ δtotal,
+                               остаток ≥ 0 (nonneg remainder)
+audit_streams_disjoint       : продвижение курсора НЕ ломает попарное
+                               непересечение (lo/hi нетронуты)
+audit_rejected_consumed      : индекс ниже продвинутого курсора
+                               отклонённого потока НЕ входит в свежий
+                               срез НИКАКОГО потока (пост-состояние;
+                               курсоры только вперёд)
+audit_false_harm_bounded     : MASTER: P(Bad t) ≤ spent t ⟹ P(ни
+                               одного ложного вреда старым задачам) ≥
+                               1 − δtotal — ПРЯМОЕ применение C264
+                               gate_pipeline_false_commit (β := spent,
+                               δ := δtotal; поле spentTotal = посылка
+                               Σ β ≤ δ гейта)
+audit_alpha_spends_radius    : 2e^{−2nε²} (hoeffding_two_sided) ≤
+                               spent t ⟹ хвост покрыт бюджетом —
+                               радиус ОПРАВДЫВАЕТ расход α
+final_test_untouched         : flag=false ⟹ ни один поток не покрывает
+                               индекс финального теста (held-out
+                               инвариант)
+audit_touch_final_flips /
+audit_touch_final_breaks     : касание финального теста переключает
+                               флаг; валидность аудита требует flag=false
+```
+
+Честные границы: floors/current gain — поля и docstring-мосты (теорема
+о «выигрыше» потребовала бы полной семантики гейта — вне E7; вред
+старым задачам входит через Bad t в мастер-теореме); семантика метрик —
+на стороне измерения (как в CertifiedEstimator).
+
 ## 15. R2: подключение острых range-констант к consumer'ам (C233)
 
 Addendum A5 §R2: константы C216 (`ceStepLogitRange`, sup−inf) и C223
