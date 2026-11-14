@@ -2392,6 +2392,59 @@ one-hot CE.
   (z, p)-обновления ломают аргумент Ляпунова — совместной теоремы нет
   (RootApi-пин: имя visible_descent_joint_z отсутствует).
 
+
+## Hagi/Model/EnergyReasoning/EnergySearch.lean
+
+- Track E4 (addendum A9 §E4 + A9-supplement, CRAM): heat-bath ядро Гиббс-
+  поиска как явная политика + фокусная смесь: обратимость (detailed
+  balance), стационарность, сохранение клампов.
+- `heatbathWeight` — вес heat-bath `softDef (fun c => −L_i(c)/T) a`
+  (РЕЮЗ softmax из Hagi.Prelude.InfoCore, нового softmax нет); L_i —
+  localField C261.
+- `heatbath_detailed_balance` — (E4 MAIN) при симметричном K и T ≠ 0 ядро
+  обратимо относительно ненормированной плотности Больцмана
+  `boltzmannDensity B K T y = exp(−E(y)/T)`: доказательство — ТОЧНО
+  тождество дельты C261 `single_cell_move_energy_delta_symm` +
+  инвариантность localField вне движимой ячейки (`localField_kcond`);
+  нормализатор softmax сокращается. Числовой якорь Fin 2 × Bool:
+  `heatbathKernel Bex Kex 1 0 xtt (update xtt 0 false) = 1/(1+exp(−3))`.
+- `heatbathKernel_rowsum` — строки суммы 1 без премиз (a ↦ y^{i←a} —
+  биекция на носитель строки, Finset.sum_bij); `heatbath_stationary` —
+  (E4 MAIN) обратимость + стохастичность строк ⇒ стационарность
+  (`reversible_stationary`). СТАЦИОНАРНОСТЬ ≠ МОНОТОННОСТЬ: при T > 0 вес
+  ХУДШЕГО значения строго положителен (свидетель в фикстуре) — спуска
+  не обещано.
+- `mixture_reversible` / `focused_mixture_stationary` — (E4 MAIN)
+  фокусная смесь `Q = Σ_i w(y)_i·Q_i` обратима/стационарна при ДВУХ
+  load-bearing премизах: SUPPORT (Q_i двигает только ячейку i,
+  `heatbathKernel_supported`) и INVARIANCE (`w(y^{i←a})_i = w(y)_i` —
+  вес выбора ячейки i инвариантен к ходам самой i). Без инвариантности
+  утверждение дополнения ЛОЖНО (контрпример flip-vs-stay на двух
+  состояниях; RootApi-пин: имя
+  focused_mixture_stationarity_without_invariance отсутствует).
+- `focused_heatbath_mixture_stationary` — (E4 MAIN) следствие: family
+  heat-bath удовлетворяет SUPPORT структурно, остаются hK, T ≠ 0,
+  INVARIANCE и Σ_i w(y)_i = 1.
+- `focused_mixture_preserves_givens` — клампы сохранены (premise-form):
+  если веса выбора обнуляются на данных ячейках (free-cells-only), то
+  ненулевой переход смеси сохраняет каждое данное значение точно.
+
+## Hagi/Model/EnergyReasoning/EnergyStopping.lean
+
+- Track E4 (cert-kernel A9-supplement): сертифицированная остановка —
+  ДВА РАЗЛИЧНЫХ сертификата, никогда не смешиваемых.
+- `EnergyStop` — событие ЭФФЕКТИВНОСТИ: конфигурация y с
+  `pairwiseEnergy B K y ≤ τ` (порог энергии — эвристика поиска, НЕ
+  корректность).
+- `ValidityCertificate` — ПРОДАКШН-сертификат (AcceptedSolution):
+  preserves_givens + satisfies_constraints; об энергии ничего не говорит.
+- `stopping_sound_of_separation` — (E4 MAIN, def-продюсер сертификата):
+  премиза разделения (∀ y', E(y') ≤ τ ⇒ givens + constraints) переносит
+  EnergyStop в ValidityCertificate; вся нагрузка — на премизе (та же
+  форма certified-gate, что 2ε-зазоры certified-argmax). Свидетель
+  провала без разделения: нуль-энергетическая невалидная доска
+  (фикстура Fin 2 × Bool).
+
 ## Hagi/Model/DiffAttention.lean
 
 - `sm_shift`: `sm (fun j => x j + c) i = sm x i`; общий аддитивный сдвиг

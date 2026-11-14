@@ -2356,3 +2356,55 @@ Gibbs-поиск и сертифицированная остановка — E4
   ограничивать полное изменение энергии, аргумент Ляпунова рушится;
   совместной теоремы спуска НЕ существует (RootApi-пин: имя
   visible_descent_joint_z отсутствует).
+
+### E4: heat-bath ядро Гиббс-поиска — обратимость, стационарность смеси, сертифицированная остановка
+
+Heat-bath политика и её сохранение меры
+([`heatbath_detailed_balance`](Hagi/Model/EnergyReasoning/EnergySearch.lean)):
+
+- HEAT-BATH ЯДРО: вес значения a в ячейке i — РЕЮЗ softmax
+  `heatbathWeight B K T y i a = softDef (fun c => −L_i(c)/T) a`
+  (нового softmax нет); ядро `heatbathKernel B K T i y z` равно весу
+  `z i`, если z отличается от y только в ячейке i, иначе 0. Ядро НЕ
+  зажимает клампы само: сохранение — теорема с премизой.
+- ОБРАТИМОСТЬ (E4 MAIN, [`heatbath_detailed_balance`]): при
+  симметричном K (K_ij(a,b) = K_ji(b,a)) и T ≠ 0 ядро обратимо
+  относительно ненормированной плотности Больцмана
+  `exp(−E(y)/T)`: доказательство — в точности дельта-тождество C261
+  `single_cell_move_energy_delta_symm` + инвариантность localField вне
+  движимой ячейки; нормализатор softmax сокращается (оба веса — на
+  полях ОДНОГО состояния). Числовой якорь Fin 2 × Bool: вес хода в
+  худшее значение = exp(−3)/(1+exp(−3)).
+- СТАЦИОНАРНОСТЬ ([`heatbath_stationary`]): строки суммы 1 без премиз
+  (`a ↦ y^{i←a}` — биекция на носитель строки,
+  [`heatbathKernel_rowsum`]); обратимость + стохастичность ⇒
+  стационарность ([`reversible_stationary`]). СТАЦИОНАРНОСТЬ ≠
+  МОНОТОННОСТЬ: при T > 0 вес худшего значения строго положителен —
+  ядро МОЖЕТ поднять энергию; спуска не обещано.
+- ФОКУСНАЯ СМЕСЬ (E4 MAIN, [`focused_mixture_stationary`]):
+  `Q = Σ_i w(y)_i·Q_i` сохраняет меру при ДВУХ load-bearing премизах —
+  SUPPORT (каждое Q_i двигает только свою ячейку) и INVARIANCE
+  (`w(y^{i←a})_i = w(y)_i`: вес выбора ячейки инвариантен к ходам самой
+  ячейки; зависимость от ДРУГИХ ячеек/замороженных латентов — можно).
+  Фраза дополнения «state-dependent mixture preserves stationarity» как
+  безусловная — ЛОЖНА (контрпример flip-vs-stay на двух состояниях);
+  INVARIANCE — ровно то, что контрпример нарушает (RootApi-пин: имя
+  focused_mixture_stationarity_without_invariance отсутствует).
+  Следствие [`focused_heatbath_mixture_stationary`]: для family heat-bath
+  SUPPORT структурен — остаются hK, T ≠ 0, INVARIANCE, Σ_i w(y)_i = 1.
+- КЛАМПЫ (premise-form, [`focused_mixture_preserves_givens`]): если веса
+  выбора обнулены на данных ячейках (free-cells-only), ненулевой переход
+  смеси сохраняет каждое данное значение точно.
+
+Сертифицированная остановка
+([`stopping_sound_of_separation`](Hagi/Model/EnergyReasoning/EnergyStopping.lean)):
+
+- ДВА РАЗЛИЧНЫХ сертификата: `EnergyStop` (y, E(y) ≤ τ) — событие
+  ЭФФЕКТИВНОСТИ (порог — эвристика, не корректность);
+  `ValidityCertificate` (y, preserves_givens + satisfies_constraints) —
+  ПРОДАКШН-сертификат (AcceptedSolution из cert-kernel дополнения).
+- ПЕРЕНОС РАЗДЕЛЕНИЯ (E4 MAIN): премиза «∀ y', E(y') ≤ τ ⇒ валиден»
+  переносит EnergyStop в ValidityCertificate — вся нагрузка на премизе
+  (форма certified-gate, как 2ε-зазоры certified-argmax). Свидетель
+  провала без разделения: нуль-энергетическая невалидная доска (Fin 2 ×
+  Bool, фикстура); валидность об энергии ничего не говорит.
