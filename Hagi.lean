@@ -325,6 +325,7 @@ import Hagi.Model.Memory
 import Hagi.Model.Perceiver
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
+import Hagi.Unified.StepProvider
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory

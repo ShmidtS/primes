@@ -1,5 +1,7 @@
 import Mathlib
 import Hagi.Foundations.Telescope
+import Hagi.Cert.Core
+import Hagi.Cert.StepGen
 
 /-!
 # StepContract — единый моноид сертификатов шага (аудит v15 §4.3)
@@ -158,4 +160,51 @@ def constContract (eps : ℝ) (heps : 0 ≤ eps) : StepContract where
   hDecreasePos := heps
   hRiskNonneg := le_refl 0
   hBudgetNonneg := le_refl 0
+
+/-! ### C280: мост в каноническое ядро `Hagi.Cert.CertStepGen`
+
+Замыкает диспозицию survey-строки 7 (merge map A10: Step + Optimization →
+StepProvider interface): `StepContract` остаётся моноидом учёта
+(decrease/riskCost/budgetSpend без носителя), а канонический шаг
+строится посылочно. Честность двух краёв:
+
+* `decrease` контракта лишь ≥ 0 (моноидная единица = 0 — это HOLD,
+  не прогресс): ядро требует СТРОГОГО спуска, поэтому строгость —
+  явная посылка `hdrop`; нулевой контракт — носитель `HoldStep`, не
+  `CertStepGen` (смешение прогресса и hold — дефект класса C254).
+* `riskRem` — СВОБОДНЫЙ параметр + посылки split/next/nonneg
+  (паттерн снятия 0-пиннинга C278/C279): контракт не имеет
+  рискового носителя, остаток задаёт потребитель. -/
+/-- С280-адаптер: контракт + пучок системных метрик с посылками
+собираются в канонический `CertStepGen` (δ-канал нулевой на
+тривиальном носителе `fun _ => 0`). -/
+def StepContract.toCertStepGen {S TaskId : Type*}
+    {M : Hagi.Cert.SystemMetrics S TaskId}
+    (c : StepContract) (riskRem : ℝ) {s s' : S}
+    (hdrop : 0 < c.decrease)
+    (hdesc : M.objective s' ≤ M.objective s - c.decrease)
+    (hbud : M.budget s' = M.budget s - c.budgetSpend)
+    (hbud' : 0 ≤ M.budget s')
+    (hrisk : M.risk s = c.riskCost + riskRem)
+    (hrisk' : M.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s') :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s s' where
+  drop := c.decrease
+  drop_pos := hdrop
+  descent := hdesc
+  budgetSpend := c.budgetSpend
+  budget_next := hbud
+  budget_nonneg := hbud'
+  riskSpend := c.riskCost
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
+
 end Hagi.Unified.StepCert
