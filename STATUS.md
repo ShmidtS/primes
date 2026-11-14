@@ -2357,6 +2357,41 @@ one-hot CE.
 - Границы: PL ≠ полная likelihood; CertTrain/CertReason — отдельные
   сертификаты (E2+); Hopfield-мост — только через sign-адаптер.
 
+## Hagi/Model/EnergyReasoning/LatentEnergy.lean
+
+- Track E3 (addendum A9 §E3 + A9-supplement, CRAM Maze-Hard): латентная
+  квадратичная энергия на конечном графе-носителе, строгая выпуклость,
+  ℓ∞-сжатие обновления, двухфазный протокол видимого спуска.
+- КОНВЕНЦИЯ (пин): сосед-суммовая форма `latentQuadraticForm N m w =
+  Σ i, (m/2·w i^2 − (1/2)·w i·Σ_{j∈N i} w j)` — при симметричной
+  смежности равна реберной; закреплена числовым якорем на path-фикстуре
+  Fin 4 (m = 3, G = 0, `zstar4` = 21/55-решётка — точная неподвижная
+  точка `latentUpdate pathN 3 0 zstar4 = zstar4`).
+- `latent_hessian_diag_dominant` — (E3 MAIN) диагональное доминирование
+  `((m−Δ)/2)·Σw² ≤ Q(w)`: колононная часть двойной суммы ограничена Δ
+  только через симметрию смежности hNsymm (load-bearing). Свидетели: m = Δ —
+  полуопределённость (loopN2), m < Δ — отрицательные значения.
+- `latent_quad_pos`, `latent_strict_convex` (Bregman-chord:
+  `latent_quad_chord`, add-remainder `latent_energy_add`,
+  гомогенность `latent_quad_smul`), `latent_unique_min` (midpoint),
+  `latent_fixed_iff_grad` (fixed-point ⟺ нулевой градиент),
+  `latent_quad_nonneg`, `latent_min_of_grad_zero`,
+  `latent_grad_zero_of_min` (однокоординатный тест t = −g/(2q)).
+- `latent_update_contraction` — (E3 MAIN) обновление есть карта
+  неподвижной точки, сжатие Δ/m < 1 в ℓ∞ (Pi sup-норма);
+  `latent_update_fixed_exists` — Банах (ContractingWith +
+  exists_fixedPoint) + цепочка к глобальному минимизатору.
+- `latent_iterate_err_bound` — (E3 MAIN) `‖z^k − z*‖ ≤ (Δ/m)^k·‖z^0 − z*‖`
+  РЕЮЗОМ `Hagi.Optimization.inexact_contraction_bound` при ε = 0
+  (premise 0 < Δ честна; вырожденный Δ = 0 вне области — в docstring);
+  `latent_settle_tolerance` — толерансная форма ε_z фазы 1.
+- `visible_descent_frozen_z` — (E3 MAIN, thin by design) двухфазная
+  композиция: замороженный z-вклад `visibleBiasWithZ B zc` (zc не
+  функция y — структурная премиза) делает видимый CRAM-спуск C261
+  (`greedy_single_cell_nonincreasing`) применимым дословно; совместные
+  (z, p)-обновления ломают аргумент Ляпунова — совместной теоремы нет
+  (RootApi-пин: имя visible_descent_joint_z отсутствует).
+
 ## Hagi/Model/DiffAttention.lean
 
 - `sm_shift`: `sm (fun j => x j + c) i = sm x i`; общий аддитивный сдвиг
