@@ -4,6 +4,7 @@ import Hagi.Model.CEExpansion
 import Hagi.Model.CEHeldout
 import Hagi.Unified.ParetoExecution
 import Hagi.Contracts.BatchCEStepCore
+import Hagi.Model.SoftmaxHead
 
 /-!
 # BatchCEBudgetGuard
@@ -434,3 +435,47 @@ theorem coreParameters_batchDirectionTrainStep_eq_of_not_certificate
   · rw [batchDirectionTrainStep, guardedBatchTrainStep_of_inactive X y
       (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S h]
 
+/-!
+## C286 tranche three: parametric (SoftmaxHead) bridges of the P-FLOOR
+wrappers
+
+Migration tranche three (`.tmp/C286/ledger.md`): the C6 contracts
+wrappers that restate the core CE statements are bridged to the
+parametric instances of `Hagi.Model.SoftmaxHead`.  The wrapper
+definitions and frozen originals above are untouched; the bridges carry
+the same conclusion constants.
+-/
+
+/-- Definitional bridge (C6): the wrapper's per-sample CE IS the
+parametric `headCE` at `LogitMap.ident` on the state's core logits. -/
+theorem batchSampleCE_param (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (b : Fin B) (S : TrainState n a r c k) :
+    batchSampleCE X y b S =
+      Hagi.Model.SoftmaxHead.headCE .ident (y b)
+        (ceLogits (X b) (coreParameters S)) := rfl
+
+/-- Parametric instance (C286) of P-FLOOR: the bridge form of
+`batchSampleCE_nonneg`, with the identical conclusion constant `0`,
+derived from the C283 parametric floor `headCE_nonneg`. -/
+theorem batchSampleCE_nonneg_param (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (b : Fin B) (S : TrainState n a r c k) :
+    0 ≤ batchSampleCE X y b S := by
+  let _ : Nonempty V := ⟨y b⟩
+  rw [batchSampleCE_param X y b S]
+  exact Hagi.Model.SoftmaxHead.headCE_nonneg .ident _ _
+
+/-- Parametric instance (C286) of P-FLOOR at batch level: the bridge
+form of `batchCEObjective_nonneg`, with the identical conclusion
+constant `0`, derived from the C285 unconditional parametric batch
+floor `batchLoss_nonneg_param`; the empty-batch case keeps the frozen
+zero convention, so no hypothesis is added at the statement level. -/
+theorem batchCEObjective_nonneg_param (X : Fin B → Matrix V (Fin n) ℝ)
+    (y : Fin B → V) (S : TrainState n a r c k) :
+    0 ≤ batchCEObjective X y S := by
+  cases B with
+  | zero =>
+      rw [emptyBatchCEObjective_zero X y S]
+  | succ B' =>
+      let _ : Nonempty V := ⟨y ⟨0, Nat.succ_pos B'⟩⟩
+      exact Hagi.Model.SoftmaxHead.batchLoss_nonneg_param X
+        (coreParameters S) y

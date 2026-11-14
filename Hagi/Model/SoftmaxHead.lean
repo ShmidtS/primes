@@ -7,6 +7,7 @@ import Hagi.Model.CEQuantized
 import Hagi.Model.CEPadding
 import Hagi.Model.BatchCEDescentArithmetic
 import Hagi.Model.BatchCEDescentDirection
+import Hagi.Model.BatchCEDescentHalfEta
 
 /-!
 # Parametric softmax head core
@@ -398,3 +399,104 @@ theorem ceOneHot_decodeJoint_le_ceBound_param {G : ℕ}
   have hmass := Hagi.Model.CEHeldout.featureAbsSum_nonneg X
   unfold Hagi.Model.CEHeldout.ceBound at *
   linarith
+
+/-!
+## C286 tranche three: the remaining C5 P-DESCENT margin-sum pair and
+the C6 contracts wrapper bridges
+
+Migration tranche three (`.tmp/C286/ledger.md`): survey §4 cluster C5
+remainder — the eta-adaptive half-window margin-sum theorems of
+`BatchCEDescentHalfEta`, bridged through the C285 P-AGGREGATE core
+composed with the frozen per-example descent facts (the parametric
+descent template IS the aggregation theorem; no new core needed). The
+C6 contracts wrapper bridges (P-FLOOR wrappers of
+`Hagi.Contracts.BatchCEBudgetGuard`) live in that Contracts file, this
+side of the layer boundary. The majorizer-aggregate descent statements
+(`batchLoss_alongNext_le_batchMajorizer` etc.) are recorded
+not-parametric-with-reason in the ledger: their RHS is a
+Jensen-gap aggregate, not a `∑ w * F` composition.
+-/
+
+/-- Parametric instance (C286) of P-DESCENT at the eta-adaptive half
+window: the bridge form of `BatchCEDescentHalfEta.
+batchLoss_batchDirectionHalfNextParameters_le_quadraticMargin_sum`, with
+the identical conclusion constants (`- (∑ quadraticMargin (halfEta)) /
+↑B`, eta application verbatim); the per-example hypothesis is the
+frozen per-example quadratic-margin theorem, used, not restated. -/
+theorem batchLoss_batchDirectionHalfNextParameters_le_quadraticMargin_sum_param
+    {B d : ℕ} (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V)
+    (D : EuclideanSpace ℝ (Fin d)) :
+    Hagi.Model.BatchCEDescent.batchLoss X
+        (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D) y ≤
+      Hagi.Model.BatchCEDescent.batchLoss X θ y -
+        (∑ b, Hagi.Model.BatchCEDescent.batchDirectionQuadraticMargin X θ y D
+          (Hagi.Model.BatchCEDescent.batchDirectionHalfEta X θ y D) b) /
+          (B : ℝ) := by
+  have hcore :=
+    headLoss_le_of_forall_headCE_le
+      (⟨.ident, .weighted fun _ => (B : ℝ)⁻¹⟩ : HeadConfig (Fin B)) y
+      (fun b => Hagi.Model.ceLogits (X b)
+        (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D))
+      (fun b => Hagi.Model.ceLogits (X b) θ)
+      (fun b => -Hagi.Model.BatchCEDescent.batchDirectionQuadraticMargin X θ y D
+          (Hagi.Model.BatchCEDescent.batchDirectionHalfEta X θ y D) b)
+      (fun i => inv_nonneg.mpr (Nat.cast_nonneg B))
+      (fun b =>
+        Hagi.Model.BatchCEDescent.ceOneHot_batchDirectionHalfNextParameters_le_quadraticMargin
+          X θ y D b)
+  rw [batchLoss_param X
+      (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D) y,
+    batchLoss_param X θ y] at hcore
+  have hsum : ∑ i : Fin B, (B : ℝ)⁻¹ *
+      (-Hagi.Model.BatchCEDescent.batchDirectionQuadraticMargin X θ y D
+          (Hagi.Model.BatchCEDescent.batchDirectionHalfEta X θ y D) i) =
+      -((∑ b, Hagi.Model.BatchCEDescent.batchDirectionQuadraticMargin X θ y D
+          (Hagi.Model.BatchCEDescent.batchDirectionHalfEta X θ y D) b) /
+          (B : ℝ)) := by
+    rw [← Finset.mul_sum, Finset.sum_neg_distrib, ← neg_div,
+      div_eq_inv_mul]
+  simp only [Reduction.weight] at hcore
+  rw [hsum] at hcore
+  rw [sub_eq_add_neg]
+  exact hcore
+
+/-- Parametric instance (C286) of P-DESCENT at the eta-adaptive half
+window: the bridge form of `BatchCEDescentHalfEta.
+batchLoss_batchDirectionHalfNextParameters_le_margin_sum`, with the
+identical conclusion constants (`- (∑ batchDirectionMargin) / ↑B`);
+the per-example hypothesis is the frozen per-example margin theorem,
+used, not restated. -/
+theorem batchLoss_batchDirectionHalfNextParameters_le_margin_sum_param
+    {B d : ℕ} (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V)
+    (D : EuclideanSpace ℝ (Fin d)) :
+    Hagi.Model.BatchCEDescent.batchLoss X
+        (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D) y ≤
+      Hagi.Model.BatchCEDescent.batchLoss X θ y -
+        (∑ b, Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b) /
+          (B : ℝ) := by
+  have hcore :=
+    headLoss_le_of_forall_headCE_le
+      (⟨.ident, .weighted fun _ => (B : ℝ)⁻¹⟩ : HeadConfig (Fin B)) y
+      (fun b => Hagi.Model.ceLogits (X b)
+        (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D))
+      (fun b => Hagi.Model.ceLogits (X b) θ)
+      (fun b => -Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b)
+      (fun i => inv_nonneg.mpr (Nat.cast_nonneg B))
+      (fun b =>
+        Hagi.Model.BatchCEDescent.ceOneHot_batchDirectionHalfNextParameters_le_margin
+          X θ y D b)
+  rw [batchLoss_param X
+      (Hagi.Model.BatchCEDescent.batchDirectionHalfNextParameters X θ y D) y,
+    batchLoss_param X θ y] at hcore
+  have hsum : ∑ i : Fin B, (B : ℝ)⁻¹ *
+      (-Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D i) =
+      -((∑ b, Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b) /
+          (B : ℝ)) := by
+    rw [← Finset.mul_sum, Finset.sum_neg_distrib, ← neg_div,
+      div_eq_inv_mul]
+  simp only [Reduction.weight] at hcore
+  rw [hsum] at hcore
+  rw [sub_eq_add_neg]
+  exact hcore
