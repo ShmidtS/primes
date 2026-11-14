@@ -2948,3 +2948,36 @@ namespace `Hagi.Discovery`, НЕ импортируется) на CRAM heat-bath
   RootApi negative pins heatbath_irreducible / heatbath_aperiodic);
   фокусная смесь вне области (C268 — нарушение INVARIANCE);
   spectral gap / cutoff не заявлены.
+
+### E2 (дополнение A10, C281): прямоугольная спектральная идентификация — Eckart-Young true-tail мост
+
+Замыкание отложенной идентификации C232 (хвост встроенной
+квадратной матрицы ↔ спектр прямоугольных singularValues).
+Модуль `Hagi/Contracts/GradientBottleneckIdentification.lean`:
+
+```
+selP_conjTranspose_mul_selP        : inj injective → (selP inj)ᴴ·selP inj = 1
+                                     (ортонормированные столбцы селектора)
+embedded_gram_eq                   : (selP inj·A)ᴴ·(selP inj·A) = Aᴴ·A
+                                     (Gram-матрицы совпадают — мост)
+embedded_eigenvalues₀_eq           : eigenvalues₀ встроенного Gram = eigenvalues₀ Aᴴ·A
+                                     (через charpoly: sort_roots_charpoly_eq_eigenvalues₀)
+embedded_singularValues_eq_rect    : singularValues₀ (selP inj·A) = Rectangular.singularValues A
+                                     на Fin(min #m #n) — сама идентификация
+singularValues_pos_of_lt_rank_rect : k < rank A → σₖ > 0
+                                     (rank-head импликация: premise-form → теорема;
+                                     антонность + rank = #{σ ≠ 0})
+rectangularTail / tail_sum_sq_truncatedSingularValues_tail_eq
+                                   : хвост-сумма C232 = Σ (истинный прямоугольный хвост)²
+eckart_young_lower_bound_rect_true_tail : rank B ≤ k → Σ tail_rect(A,k)² ≤ ‖A−B‖²_F
+gradient_bottleneck_bound_rect_true_tail : consumer для logitGradRectM
+```
+
+Честные границы: вывод rank(Δ) ≤ 2D из ранга головы остаётся
+premise-form (как в C232); Mathlib
+`LinearMap.singularValues` (Analysis.InnerProductSpace.SingularValues)
+содержит аналогичный API, но мост matrix↔LinearMap в репозитории
+не закреплён — работаем в матричном/`eigenvalues₀`-носителе.
+Симметричный перенос C232-«dedup» не требуется: квадратные
+tail-формы не дублируют общую форму (общей прямоугольной формы до
+C281 не существовало).

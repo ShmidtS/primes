@@ -5692,3 +5692,28 @@ merger cert carriers (Freeze-дисциплина: statement change).
   структурные view-конверсии носителей — следующие биты (Freeze v2
   хеширует конструкторы/проекции структур: abbrev-замена меняет
   элаборированный тип).
+
+## Hagi/Contracts/GradientBottleneckIdentification.lean (C281, E2 addendum A10)
+
+- Мост спектральной идентификации C232: `selP_conjTranspose_mul_selP`
+  (ортонормированные столбцы row-селектора) → `embedded_gram_eq`
+  (Gram-матрицы встроенного и прямоугольного совпадают) →
+  `embedded_eigenvalues₀_eq` (перенос спектра через
+  `sort_roots_charpoly_eq_eigenvalues₀`: равные матрицы — равные
+  charpoly — равные отсортированные спектры) →
+  `embedded_singularValues_eq_rect` (square singularValues₀
+  встроенной = Rectangular.singularValues на Fin(min)).
+- Хвост-идентификация: `rectangularTail` + 
+  `tail_sum_sq_truncatedSingularValues_tail_eq` — хвост-сумма C232
+  равна сумме квадратов ИСТИННОГО прямоугольного хвоста (за min
+  вклад нулевой — eigenvalues₀_zero_beyond_min через Gram-мост).
+- MAIN: `eckart_young_lower_bound_rect_true_tail` — C232-бонус с
+  идентифицированным хвостом; consumer
+  `gradient_bottleneck_bound_rect_true_tail` (premise-form hΔ
+  сохранён).
+- Rank-head: `singularValues_pos_of_lt_rank_rect` — k < rank A ⇒ σₖ > 0
+  (премиза-форма импликации ранг-головы стала теоремой; антонность
+  спектра + rank_eq_card_nonzero_singularValues_rect).
+- Честные границы: rank-D⇒2D вывод — по-прежнему посылка (как
+  C232); Mathlib LinearMap.singularValues доступен, но мост не
+  закреплён (см. ALGORITHMS §E2).
