@@ -5414,3 +5414,38 @@ merger cert carriers (Freeze-дисциплина: statement change).
   Стационарность практического фокусного сэмплера НЕ
   сертифицирована (premise-form only); y_{−i}-политика не
   проектируется (вне рамок аудита).
+
+## Hagi/Model/EnergyReasoning/ValiditySeparation.lean
+
+- Track P1-remainder (дополнение A11, item A5): concrete validity
+  separation для penalty-энергий — премиза сепарации E4
+  доказана для семейства раскраски графов.
+- `Hagi.Model.EnergyReasoning.energy_threshold_lt_min_penalty_
+  implies_valid` — (A5 CORE, premise-form) энергия = сумма
+  неотрицательных штрафов, каждый ненулевой ≥ pmin > 0, нулевые
+  штрафы ⇒ валидность ⇒ энергия < pmin ⇒ валидность (by_contra +
+  single_le_sum + linarith). Переиспользуемое ядро; судоку/
+  n-ферзей покрываются абстрактно в premise-form.
+- `Hagi.Model.EnergyReasoning.coloringCoupling` /
+  `Hagi.Model.EnergyReasoning.coloringField` /
+  `Hagi.Model.EnergyReasoning.isProperColoring` — реализация:
+  K_ij(a,b) = 1[(i,j)∈edges ∧ a=b] (энергия конфликтов ЕСТЬ
+  pairwiseEnergy по конвенции E1 — H есть счётчик конфликтов по
+  построению), унарный штраф givens, правильность раскраски.
+- `Hagi.Model.EnergyReasoning.graph_coloring_zero_energy_iff_valid`
+  — (B = 0, hnodiag) энергия конфликтов = 0 ⇔ раскраска правильная.
+- `Hagi.Model.EnergyReasoning.graph_coloring_separation` —
+  премиза сепарации ДОКАЗАНА при τ < 1 (hsym + hnodiag):
+  энергия ≤ τ ⇒ givens сохранены (через ядро A5, pmin = 1) ∧
+  раскраска правильная (нарушенное неориентированное ребро стоит
+  ровно 1 — оба упорядоченных индикатора × ½).
+- `Hagi.Model.EnergyReasoning.graph_coloring_stop_sep_valid` —
+  EnergyStop при τ < 1 производит ValidityCertificate через
+  stopping_sound_of_separation с доказанной премизой; унарный слот C
+  = «отличаться от каждого данного (given)-цветного соседа»;
+  бинарное содержание — спутник
+  `Hagi.Model.EnergyReasoning.graph_coloring_stop_proper`.
+- Честные границы (docstring): learned-энергии сепарации НЕ имеют
+  (приём только через независимый валидатор — CRAMAcceptedSolution);
+  τ < 1 требует hsym; фикстуры Fin 3: 2 цветов нет, 3 — энергия 0,
+  монохром — ≠ 0.
