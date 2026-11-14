@@ -169,6 +169,7 @@ import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
 import Hagi.Ensemble.CompressionCert
 import Hagi.Model.SoftmaxStep
+import Hagi.Model.SoftmaxHead
 import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
 import Hagi.Model.CEQuantized
