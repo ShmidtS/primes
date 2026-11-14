@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Probability.CertifiedEstimator
+import Hagi.Probability.FiniteFamilyConfidenceEmpirical
 
 /-!
 # Confidence for a fixed finite family on a finite independent product
@@ -29,10 +30,8 @@ noncomputable def populationMean {n : ℕ} (p : Fin n → V → ℝ)
     (X : Fin n → V → ℝ) : ℝ :=
   (∑ i, coordMean p X i) / (n : ℝ)
 
-/-- Empirical coordinate-average loss on one product sample. -/
-noncomputable def empiricalMean {n : ℕ} (X : Fin n → V → ℝ)
-    (ω : Fin n → V) : ℝ :=
-  (∑ i, X i (ω i)) / (n : ℝ)
+/- `empiricalMean` moved to `Hagi.Probability.FiniteFamilyConfidenceEmpirical`
+(same namespace, C276). -/
 
 omit [Nonempty V] in
 /-- Population means commute with multiplication by an arbitrary real

@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CEScaleSelection
+import Hagi.Model.CEGroupedScaleBasic
 
 /-!
 # Independent finite scales for disjoint five-weight blocks
@@ -139,11 +140,8 @@ noncomputable def blockWeights {G : ℕ}
     (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) : Fin 5 → ℝ :=
   fun i => w.ofLp (e (g, i))
 
-/-- Full absolute feature mass.  No within-block factor is substituted
-for the full sum over all feature columns and all logits. -/
-noncomputable def featureAbsSum {V : Type} [Fintype V] {d : ℕ}
-    (X : Matrix V (Fin d) ℝ) : ℝ :=
-  ∑ v, ∑ j, |X v j|
+/- `featureAbsSum` moved to `Hagi.Model.CEGroupedScaleBasic` (same
+namespace, C276). -/
 
 /-- Twice the actual sum of absolute logit changes of one block. -/
 noncomputable def groupObservedPenalty {G : ℕ} {V : Type} [Fintype V]

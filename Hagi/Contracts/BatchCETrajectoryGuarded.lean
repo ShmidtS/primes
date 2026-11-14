@@ -1,7 +1,14 @@
-import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.CEHeldout
 import Hagi.Unified.GuardedRobustTrajectory
+import Hagi.Unified.GuardedRobustSelection
+import Hagi.Unified.ParetoExecution
+import Hagi.State.TrainState
+import Hagi.State.Transition
+import Hagi.Contracts.CEStepCertificate
+import Hagi.Contracts.BatchCEStepCore
+import Hagi.Model.BatchCEDescent
+import Hagi.Contracts.BatchCEBudgetIdentity
 
 /-!
 # BatchCETrajectoryGuarded

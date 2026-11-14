@@ -1,8 +1,4 @@
 import Hagi.Model.CEDescent
-import Hagi.Model.CEGroupedScale
-import Hagi.Probability.FiniteFamilyConfidence
-import Hagi.Step.ProjectionDescent
-import Hagi.Step.SafeQPStep
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.MirrorHedgeMWUSelectedGradient
 import Hagi.Probability.MirrorHedgeMWUSelectedLoss

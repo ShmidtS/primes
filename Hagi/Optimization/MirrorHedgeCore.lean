@@ -11,6 +11,7 @@ import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.MirrorHedgeMWUSelectedGradient
+import Hagi.Probability.MirrorHedgeMWU
 
 set_option linter.style.header false
 
@@ -37,6 +38,7 @@ T·KL(ρ‖γ) = ⟨ρ,ℓ⟩ + T·KL(ρ‖ρ₀) + T·log Z.
 namespace Hagi.Optimization
 
 open Finset
+open Hagi.Probability
 
 /-- Зеркальный шаг (энтропийное зеркало): γ_v = ρ₀_v·e^{−ℓ_v/T}/Z,
 где Z = Σ_v ρ₀_v·e^{−ℓ_v/T} — нормировка. -/

@@ -1,4 +1,6 @@
-import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.BatchCEBudgetGuard
+import Hagi.State.TrainState
+import Hagi.State.Transition
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.CEHeldout
 import Hagi.Unified.GuardedRobustTrajectory

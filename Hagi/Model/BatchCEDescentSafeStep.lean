@@ -1,8 +1,5 @@
 import Hagi.Model.CEDescent
-import Hagi.Model.CEGroupedScale
-import Hagi.Probability.FiniteFamilyConfidence
-import Hagi.Step.ProjectionDescent
-import Hagi.Step.SafeQPStep
+import Hagi.Probability.FiniteFamilyConfidenceEmpirical
 import Hagi.Model.BatchCEDescentCommon
 import Hagi.Model.BatchCEDescentArithmetic
 
