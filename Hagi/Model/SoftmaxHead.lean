@@ -5,6 +5,8 @@ import Hagi.Core.Concat
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEQuantized
 import Hagi.Model.CEPadding
+import Hagi.Model.BatchCEDescentArithmetic
+import Hagi.Model.BatchCEDescentDirection
 
 /-!
 # Parametric softmax head core
@@ -249,3 +251,150 @@ theorem ceOneHot_padVector_param {d : ℕ}
       (fun v => by rw [abs_sub_comm]; exact hrw v)
   simp only [mul_zero, add_zero] at h1 h2
   exact le_antisymm h1 h2
+
+/-!
+## C285 tranche two: the batch aggregation core theorem and the C4/C5
+bridges
+
+Migration tranche two (`.tmp/C285/ledger.md`): survey §4 clusters C5
+(batch descent, priority 2) and C4 (confidence/held-out, priority 5).
+One new batch parametric core theorem (the `Finset.sum` composition
+every C5 file repeats inline), the definitional bridge from
+`BatchCEDescent.batchLoss` to `headLoss` at the inverse-card weighted
+reduction, a P-FLOOR batch corollary, the bridge of the batch margin
+sum theorem, and the C4 decoded-codebook range-bound bridges (closing
+the C284 ledger row-7 partial).  The original statements in
+`BatchCEDescent*` and `CEHeldout` are unchanged and remain the frozen
+originals; the bridges carry the same conclusion constants.
+-/
+
+/-- P-AGGREGATE (batch parametric core, task item 2): nonnegative
+weights lift a per-example CE bound to the batch loss.  This is the
+`Finset.sum_le_sum` composition the batch descent family repeats
+inline in every file; the parametric form states it once, for every
+logit map and every reduction. -/
+theorem headLoss_le_of_forall_headCE_le
+    (cfg : HeadConfig ι) (t : ι → V) (z z' : ι → V → ℝ) (F : ι → ℝ)
+    (hw : ∀ i, 0 ≤ cfg.reduction.weight i)
+    (h : ∀ i, headCE cfg.logitMap (t i) (z i) ≤
+      headCE cfg.logitMap (t i) (z' i) + F i) :
+    headLoss cfg t z ≤ headLoss cfg t z' +
+      ∑ i, cfg.reduction.weight i * F i := by
+  unfold headLoss
+  have hsum : ∑ i, cfg.reduction.weight i *
+      headCE cfg.logitMap (t i) (z i) ≤
+      ∑ i, (cfg.reduction.weight i *
+        headCE cfg.logitMap (t i) (z' i) +
+        cfg.reduction.weight i * F i) :=
+    Finset.sum_le_sum (fun i _hi => by
+      have hb := mul_le_mul_of_nonneg_left (h i) (hw i)
+      linarith)
+  rw [Finset.sum_add_distrib] at hsum
+  exact hsum
+
+/-- Definitional bridge (C5): the batch family's `batchLoss` IS the
+parametric `headLoss` at `LogitMap.ident` with the inverse-card
+weighted reduction.  Unconditional, including the empty batch (both
+sides are `0` there). -/
+theorem batchLoss_param {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) :
+    headLoss ⟨.ident, .weighted fun _ => (B : ℝ)⁻¹⟩ y
+        (fun b => Hagi.Model.ceLogits (X b) θ) =
+      Hagi.Model.BatchCEDescent.batchLoss X θ y := by
+  unfold headLoss Hagi.Model.BatchCEDescent.batchLoss
+    Hagi.Probability.FiniteFamilyConfidence.empiricalMean headCE
+    Reduction.weight
+  rw [div_eq_inv_mul, ← Finset.mul_sum]
+  rfl
+
+/-- P-FLOOR at batch level (new-constant corollary, no original
+restated): the batch family's loss is nonnegative, from the C284
+parametric batch floor. -/
+theorem batchLoss_nonneg_param {B d : ℕ}
+    (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (y : Fin B → V) :
+    0 ≤ Hagi.Model.BatchCEDescent.batchLoss X θ y := by
+  rw [← batchLoss_param X θ y]
+  refine headLoss_nonneg_of_nonneg_weight
+    ⟨.ident, .weighted fun _ => (B : ℝ)⁻¹⟩ y _ ?_
+  intro i
+  exact inv_nonneg.mpr (Nat.cast_nonneg B)
+
+/-- Parametric instance (C285) of P-AGGREGATE at the batch family's
+margin bound: the bridge form of
+`BatchCEDescent.batchLoss_batchDirectionNextParameters_le_margin_sum`,
+with the identical conclusion constants (`- (∑ margin) / ↑B`); the
+per-example hypothesis is the frozen original margin theorem, used,
+not restated. -/
+theorem batchLoss_batchDirectionNextParameters_le_margin_sum_param
+    {B d : ℕ} (X : Fin B → Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (y : Fin B → V)
+    (D : EuclideanSpace ℝ (Fin d)) :
+    Hagi.Model.BatchCEDescent.batchLoss X
+        (Hagi.Model.BatchCEDescent.batchDirectionNextParameters X θ y D) y ≤
+      Hagi.Model.BatchCEDescent.batchLoss X θ y -
+        (∑ b, Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b) /
+          (B : ℝ) := by
+  have hcore :=
+    headLoss_le_of_forall_headCE_le
+      (⟨.ident, .weighted fun _ => (B : ℝ)⁻¹⟩ :
+        HeadConfig (Fin B)) y
+      (fun b => Hagi.Model.ceLogits (X b)
+        (Hagi.Model.BatchCEDescent.batchDirectionNextParameters X θ y D))
+      (fun b => Hagi.Model.ceLogits (X b) θ)
+      (fun b => -Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b)
+      (fun i => inv_nonneg.mpr (Nat.cast_nonneg B))
+      (fun b =>
+        Hagi.Model.BatchCEDescent.ceOneHot_batchDirectionNextParameters_le_margin X θ y D b)
+  rw [batchLoss_param X
+      (Hagi.Model.BatchCEDescent.batchDirectionNextParameters X θ y D) y,
+    batchLoss_param X θ y] at hcore
+  have hsum : ∑ i : Fin B, (B : ℝ)⁻¹ *
+      (-Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D i) =
+      -((∑ b, Hagi.Model.BatchCEDescent.batchDirectionMargin X θ y D b) /
+          (B : ℝ)) := by
+    rw [← Finset.mul_sum, Finset.sum_neg_distrib, ← neg_div,
+      div_eq_inv_mul]
+  simp only [Reduction.weight] at hcore
+  rw [hsum] at hcore
+  rw [sub_eq_add_neg]
+  exact hcore
+
+/-- Parametric instance (C285) of P-RANGE-BOUND over decoded codebook
+logits: the bridge form of
+`CEHeldout.ceOneHot_decodeJoint_le_log_card_add`, with the identical
+conclusion constants (`log card + 4 * featureAbsSum`); the
+range-bound hypothesis is the frozen `abs_ceLogits_decodeJoint_le`
+at radius `2 * featureAbsSum`.  Closes the C284 ledger row-7 partial.
+-/
+theorem ceOneHot_decodeJoint_le_log_card_add_param {G : ℕ}
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ) (t : V)
+    (c : Hagi.Model.CEHeldout.JointCode G) :
+    headCE .ident t
+        (Hagi.Model.ceLogits X (Hagi.Model.CEHeldout.decodeJoint e c)) ≤
+      Real.log (Fintype.card V : ℝ) +
+        4 * Hagi.Model.CEGroupedScale.featureAbsSum X := by
+  have h := headCE_le_two_add_log_card .ident t
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.CEHeldout.decodeJoint e c) v)
+      (2 * Hagi.Model.CEGroupedScale.featureAbsSum X)
+      (fun v => Hagi.Model.CEHeldout.abs_ceLogits_decodeJoint_le e X c v)
+  refine le_trans h ?_
+  linarith
+
+/-- Parametric instance (C285): the ceBound corollary, bridge form of
+`CEHeldout.ceOneHot_decodeJoint_le_ceBound`, with the identical
+conclusion constant `ceBound X`, derived from the range-bound bridge
+above plus nonnegativity of the feature mass. -/
+theorem ceOneHot_decodeJoint_le_ceBound_param {G : ℕ}
+    (e : (Fin G × Fin 5) ≃ Fin (5 * G))
+    (X : Matrix V (Fin (5 * G)) ℝ) (t : V)
+    (c : Hagi.Model.CEHeldout.JointCode G) :
+    headCE .ident t
+        (Hagi.Model.ceLogits X (Hagi.Model.CEHeldout.decodeJoint e c)) ≤
+      Hagi.Model.CEHeldout.ceBound X := by
+  have h := ceOneHot_decodeJoint_le_log_card_add_param e X t c
+  have hmass := Hagi.Model.CEHeldout.featureAbsSum_nonneg X
+  unfold Hagi.Model.CEHeldout.ceBound at *
+  linarith
