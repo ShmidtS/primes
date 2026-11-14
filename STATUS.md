@@ -5381,3 +5381,36 @@ merger cert carriers (Freeze-дисциплина: statement change).
   оптимальности WeightedExpAlloc на каскадные веса (аддитивная
   модель = честная deep-net специализация). Эмпирические MSE
   (2.2e-5 vs 2.5e-5) — мотивация в ALGORITHMS §20, не посылки.
+
+## Hagi/Model/EnergyReasoning/GreedyTermination.lean
+
+- Track P1-remainder (дополнение A11): конечная терминация жадного
+  строго улучшающегося поиска + аудит инвариантности практической
+  фокусной политики.
+- `Hagi.Model.EnergyReasoning.greedy_strict_search_terminates` —
+  (A6 MAIN) на конечном типе конфигураций строго улучшающаяся
+  траектория (List.Pairwise строгого убывания энергии H) имеет
+  длину ≤ Fintype.card (Set.image H univ) — числа различных
+  значений энергии: строгая монотонность даёт Nodup образа
+  (nodup_map_energy_of_pairwise), образ вкладывается в subtype
+  образа через attach.map, List.Nodup.length_le_card. Бесконечной
+  строго убывающей цепи нет; rate/сложность НЕ утверждаются.
+- `Hagi.Model.EnergyReasoning.
+  greedy_search_terminal_is_coordinate_minimum` — (A6 MAIN)
+  терминальное состояние строгого улучшения (нет положительной
+  маржи C261 ни в одной ячейке) есть IsCoordinateMinimum
+  (переиспользование C261 дословно: дельта-тождество
+  single_cell_move_energy_delta_symm + not_lt + linarith).
+  Координатный минимум ≠ глобальный ≠ валидное решение.
+- `Hagi.Model.EnergyReasoning.focusedDisagreementWeight` —
+  практическое фокусное правило выбора (несогласие собственной
+  ячейки Σ_a max 0 (L_i(y_i) − L_i(a)); зависит от y_i самого).
+- `Hagi.Model.EnergyReasoning.
+  concrete_focus_policy_violates_invariance` — (A7 MAIN,
+  негативное свидетельство) премиза INVARIANCE теоремы C263
+  focused_mixture_stationary ЛОЖНА для практической политики:
+  фикстура Fin 2 × Bool (Bex/Kex/xtt, L_0(c) = if c then 3 else 0
+  зависит только от y_1): w(xtt)_0 = 3, после хода 0←f вес = 0.
+  Стационарность практического фокусного сэмплера НЕ
+  сертифицирована (premise-form only); y_{−i}-политика не
+  проектируется (вне рамок аудита).
