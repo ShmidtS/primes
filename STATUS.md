@@ -5569,3 +5569,32 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Якорь: Fin 4, 2 из 3 соседей, sparse = dense, 8 < 12 (decide).
 - Честные границы: счёт — без асимптотики и модели арифметики;
   носитель — премиза (не теорема существования малого N).
+
+## Hagi/Model/EnergyReasoning/LatentSupport.lean
+
+- Track B2 (дополнение A11 B-level): support/connectivity свойства
+  скрытой фиксированной точки z* = latentUpdate-неподвижной точки
+  (z i = (Σ_{j ∈ N i} z j + 1[i=G])/m, m > Δ).
+- `Hagi.Model.EnergyReasoning.latent_fixed_unique` — единственность
+  неподвижной точки (Δ/m-контракция C272 сцигтирована).
+- `Hagi.Model.EnergyReasoning.latent_fixed_nonneg` — (B2 MAIN)
+  неотрицательность всей точки (мин-аргумент: m·z i ≥ card(N i)·z i,
+  m > Δ ≥ card; выводится, не предполагается).
+- `Hagi.Model.EnergyReasoning.latent_fixed_goal_pos` — 1/m ≤ z* G
+  (целевой источник);
+  `Hagi.Model.EnergyReasoning.latent_fixed_ge_of_neighbour` —
+  i ∈ N j ⇒ z* j/m ≤ z* i (симметрия load-bearing).
+- `LatentPath` — индуктивная достижимость от цели (длина = рёбра);
+  `Hagi.Model.EnergyReasoning.latent_fixed_pos_of_reachable` —
+  (B2 MAIN) LatentPath N G i k ⇒ (1/m)^(k+1) ≤ z* i > 0.
+- `Hagi.Model.EnergyReasoning.latent_fixed_upper_bound` — глобальная
+  sup-оценка z* i ≤ 1/(m − Δ) (максимум-зеркало мин-аргумента).
+- `Hagi.Model.EnergyReasoning.latent_fixed_zero_off_closed` —
+  (B2 MAIN) z* = 0 на замкнутом по соседям без-целевом C'
+  (заплатка-аргумент + единственность).
+- Якорь: zstar4 = ![21/55, 8/55, 3/55, 1/55] (Fin 4): все > 0,
+  1/81 ≤ 1/55, 21/55 ≤ 1; emptyN2/zstar2 (Fin 2): z* = ![1/3, 0],
+  нуль на C' = {1}.
+- Честные границы: decay-upper на дистанции НЕ заявлен (нужно больше
+  структуры графа; negative pin latent_fixed_decay_upper); всё — о
+  неподвижной точке, итеративные оценки не дублируются (C272).
