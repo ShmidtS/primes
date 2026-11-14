@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Core.Concat
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEQuantized
+import Hagi.Model.CEPadding
 
 /-!
 # Parametric softmax head core
@@ -157,3 +158,94 @@ theorem headLoss_nonneg_uniform (m : LogitMap) (t : ι → V)
   refine headLoss_nonneg_of_nonneg_weight _ t z ?_
   intro i
   simp [Reduction.weight]
+
+/-!
+## C284 tranche one: the parametric range bound and ident bridges
+
+Migration tranche one (`.tmp/C284/ledger.md`): the range-bound class
+and the `LogitMap.ident` bridges for the floor, Lipschitz and padding
+statements of the variant files, each derived from the parametric core
+above.  The original statements in `CEHeldout`, `CEQuantized` and
+`CEPadding` are unchanged and remain the frozen originals; the bridges
+carry the same conclusion constants, with `headCE .ident` in place of
+`Hagi.ceOneHot` (definitionally equal by `headCE_ident`).
+-/
+
+/-- P-RANGE-BOUND, parametric in the logit map: a uniform bound on the
+mapped logits bounds the parametric CE by twice that bound plus the
+log-cardinality, for every `LogitMap`.  Proved by one application of
+the `CEHeldout` statement to the mapped logit vector. -/
+theorem headCE_le_two_add_log_card (m : LogitMap) (t : V) (z : V → ℝ)
+    (r : ℝ) (h : ∀ v, |m.apply (z v)| ≤ r) :
+    headCE m t z ≤ 2 * r + Real.log (Fintype.card V : ℝ) :=
+  Hagi.Model.CEHeldout.ceOneHot_le_two_add_log_card t _ r h
+
+/-- Parametric instance (C283 core): the saturating `tanh` head always
+satisfies the range-bound hypothesis at `r = 1`, because
+`|tanh| < 1`; this is the constant-`2` special case of the saturating
+family (a NEW constant bound, not a bridge of an existing statement). -/
+theorem headCE_tanh_le_two_add_log_card (t : V) (z : V → ℝ) :
+    headCE .tanh t z ≤ 2 * 1 + Real.log (Fintype.card V : ℝ) := by
+  refine headCE_le_two_add_log_card _ t z 1 ?_
+  intro v
+  exact le_of_lt (Real.abs_tanh_lt_one _)
+
+/-- Parametric instance (C283 core) of P-FLOOR at `LogitMap.ident`:
+the bridge form of `CEHeldout.ceOneHot_nonneg`, with the identical
+conclusion constant `0`, derived from `headCE_nonneg`. -/
+theorem ceOneHot_nonneg_param (t : V) (z : V → ℝ) :
+    0 ≤ headCE .ident t z :=
+  headCE_nonneg .ident t z
+
+/-- Parametric instance (C283 core) of P-LIPSCHITZ at
+`LogitMap.ident`: the bridge form of
+`CEQuantized.ceOneHot_le_of_abs_sub_le`, with the identical conclusion
+constant `2 * r` and the identical hypothesis pattern, derived from
+`headCE_le_of_abs_sub_le`. -/
+theorem ceOneHot_le_of_abs_sub_le_param (t : V) (z y : V → ℝ) (r : ℝ)
+    (h : ∀ v, |z v - y v| ≤ r) :
+    headCE .ident t z ≤ headCE .ident t y + 2 * r :=
+  headCE_le_of_abs_sub_le .ident t z y r h
+
+/-- Parametric instance (C283 core) of P-RANGE-BOUND at
+`LogitMap.ident`: the bridge form of
+`CEHeldout.ceOneHot_le_two_add_log_card`, with the identical conclusion
+constant `2 * r + log card`, derived from `headCE_le_two_add_log_card`.
+-/
+theorem ceOneHot_le_two_add_log_card_param (t : V) (z : V → ℝ) (r : ℝ)
+    (hz : ∀ v, |z v| ≤ r) :
+    headCE .ident t z ≤ 2 * r + Real.log (Fintype.card V : ℝ) :=
+  headCE_le_two_add_log_card .ident t z r hz
+
+/-- Parametric instance (C283 core) of P-LIPSCHITZ at radius zero:
+the bridge form of `CEPadding.ceOneHot_padVector`, the equality of the
+cross-entropy before and after zero padding, derived from two
+applications of `headCE_le_of_abs_sub_le` at `r = 0` (the pad-specific
+content `CEPadding.ceLogits_padVector_fun` supplies the hypothesis).
+-/
+theorem ceOneHot_padVector_param {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (w : EuclideanSpace ℝ (Fin d)) (t : V) :
+    headCE .ident t (Hagi.Model.ceLogits X w) =
+      headCE .ident t (Hagi.Model.ceLogits
+        (CEPadding.padFeatures X) (CEPadding.padVector w)) := by
+  have hfun : Hagi.Model.ceLogits X w =
+      Hagi.Model.ceLogits (CEPadding.padFeatures X)
+        (CEPadding.padVector w) :=
+    CEPadding.ceLogits_padVector_fun X w
+  have hrw : ∀ v, |Hagi.Model.ceLogits X w v -
+      Hagi.Model.ceLogits (CEPadding.padFeatures X)
+        (CEPadding.padVector w) v| ≤ 0 := by
+    intro v
+    rw [hfun]
+    simp
+  have h1 : headCE .ident t (Hagi.Model.ceLogits X w) ≤
+      headCE .ident t (Hagi.Model.ceLogits
+        (CEPadding.padFeatures X) (CEPadding.padVector w)) + 2 * 0 :=
+    headCE_le_of_abs_sub_le .ident t _ _ 0 hrw
+  have h2 : headCE .ident t (Hagi.Model.ceLogits
+        (CEPadding.padFeatures X) (CEPadding.padVector w)) ≤
+      headCE .ident t (Hagi.Model.ceLogits X w) + 2 * 0 :=
+    headCE_le_of_abs_sub_le .ident t _ _ 0
+      (fun v => by rw [abs_sub_comm]; exact hrw v)
+  simp only [mul_zero, add_zero] at h1 h2
+  exact le_antisymm h1 h2
