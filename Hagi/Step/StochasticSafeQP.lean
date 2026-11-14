@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.SafeQP
+import Hagi.Probability.Concentration
 import Mathlib.Probability.Moments.SubGaussian
 
 set_option linter.style.header false
@@ -485,6 +486,30 @@ theorem lr_batch_equivalence {m k : ℕ} (hm : 0 < m) (hk : 0 < k)
   rw [sqrt_div_sq
     (2 * Real.log ((Fintype.card K : ℝ) / delta) / m) (k:ℝ) hk']
   field_simp
+
+/-! ### C287: мост к единому concentration API -/
+
+/-- C287: единичный шумовой радиус R = 1/2 — частный случай
+`minibatch_inner_tail`, инстанцирующий единый
+`Hagi.Probability.concConfidence ε m` API: экспонента
+`−m·ε²/(2·(1/2)²) = −2mε²` совпадает с канонической. -/
+theorem minibatch_inner_tail_via_conc {m : ℕ} (hm : 0 < m)
+    (N : Fin m → Ω → ℝ)
+    (h_meas : ∀ j, Measurable (N j))
+    (h_indep : iIndepFun N μ)
+    (h_zero : ∀ j, μ[N j] = 0)
+    (h_bound : ∀ j ω, |N j ω| ≤ 1/2)
+    {ε : ℝ} (hε : 0 ≤ ε) :
+    μ.real {ω | (m : ℝ) * ε ≤ ∑ j, -N j ω}
+      ≤ Hagi.Probability.concConfidence ε m := by
+  have h := minibatch_inner_tail hm N (1/2) (by norm_num) h_meas h_indep
+    h_zero h_bound hε
+  have hid : Real.exp (- (m : ℝ) * ε ^ 2 / (2 * ((1/2:ℝ)) ^ 2))
+      = Hagi.Probability.concConfidence ε m := by
+    simp only [Hagi.Probability.concConfidence]
+    congr 1
+    field_simp
+  exact h.trans (le_of_eq hid)
 
 end StochasticSafeQP
 

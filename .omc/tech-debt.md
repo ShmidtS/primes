@@ -252,3 +252,19 @@ contract. Future beat: matrix spectral transfer for NS iterations
 (eigenvalue/singular-value interlacing or polynomial composition
 argument), then instantiate hP. Expected outcome was DEFER — no
 gold-plating attempted.
+
+## TD A10-C287 — HoeffdingBridge quarantine (2026-11-15)
+
+QUARANTINE FLAG (C287, A10 merge map: "Concentration single
+radius/confidence API + e-process core, delete HoeffdingBridge").
+Target: `Hagi/Ensemble/HoeffdingBridge.lean`
+(`hoeffding_tail_via_weighted`, bound `exp(−t²/(2n²))`). NOT deleted:
+the freeze lock (`declarations.lock`) blocks deletion until
+`scripts/Freeze.py --update` after review. Deletion evidence now
+formalized: `Hagi.Probability.hoeffdingBridge_weaker`
+(Concentration.lean, C287) proves the canonical exponent
+`exp(−2t²/n)` implies the bridge exponent `exp(−t²/(2n²))`
+(exponent gap factor n/4 at every n ≥ 1); the bridge is an in-tree
+leaf (survey `.tmp/C287/survey.md`: no consumers). Disposition:
+awaiting `Freeze.py --update`, then remove module + `Hagi.lean`
+import `Hagi.Ensemble.HoeffdingBridge`.

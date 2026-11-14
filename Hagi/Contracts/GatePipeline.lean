@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Probability.CertifiedEstimator
+import Hagi.Probability.Concentration
 import Hagi.Unified.StitchingEProcess
 set_option linter.style.header false
 
@@ -325,5 +326,47 @@ theorem gate_fixed_radius_unusable (r : ℝ) (hr0 : 0 ≤ r)
           mul_le_mul_of_nonneg_left hlow (by norm_num)
   have hcontra : (2:ℝ)/729 ≤ 1/27000 := le_trans hlower hr
   norm_num at hcontra
+
+/-! ## C287: мосты к единому concentration API
+
+`Hagi.Probability.Concentration` — единый radius/confidence API
+(A10 merge map). Гейтова форма — частный случай: [−1,1]-радиус η это
+[0,1]-радиус η/2 (`concConfidence_pm1_rescale`). -/
+
+/-- C287: двусторонняя [−1,1]-граница гейта `2e^{−nη²/2}` это в точности
+`2 · concConfidence (η/2) n` — C264 gate radius инстанцирует единый
+`Hagi.Probability` concentration API. -/
+theorem hoeffding_pm1_two_sided_via_conc {n : ℕ} (p : Fin n → V → ℝ)
+    (hp : Hagi.Probability.IsProbSys p) (X : Fin n → V → ℝ)
+    (hX : ∀ i v, -1 ≤ X i v ∧ X i v ≤ 1)
+    (hn : 0 < n) (eta : ℝ) (heta : 0 < eta) :
+    Hagi.Probability.prodPq p (fun ω =>
+      (n : ℝ) * eta ≤ Hagi.Probability.centeredSum p X ω
+        ∨ Hagi.Probability.centeredSum p X ω ≤ - (n : ℝ) * eta)
+      ≤ 2 * Hagi.Probability.concConfidence (eta / 2) n := by
+  have h := hoeffding_pm1_two_sided p hp X hX hn eta heta
+  rw [Hagi.Probability.concConfidence_pm1_rescale hn eta] at h
+  exact h
+
+/-- C287: гейтов радиус-константа `e^{−256·r²}` — это
+`concConfidence (r/2) 512` (n = 512, [−1,1]-радиус r, [0,1]-радиус
+r/2: 2·512·(r/2)² = 256·r²). -/
+theorem gate_fixed_radius_conc (r : ℝ) :
+    Real.exp (-256 * r ^ 2) = Hagi.Probability.concConfidence (r / 2) 512 := by
+  simp only [Hagi.Probability.concConfidence]
+  congr 1
+  have hsq : ((r / 2) ^ 2) = r ^ 2 / 4 := by ring
+  rw [hsq]
+  field_simp
+  ring
+
+/-- C287: `gate_fixed_radius_unusable` через единый API: если
+`2 · concConfidence (r/2) 512 ≤ 1/27000`, то фиксированный радиус
+непригоден (`0.14 < r`). -/
+theorem gate_fixed_radius_unusable_via_conc (r : ℝ) (hr0 : 0 ≤ r)
+    (hr : 2 * Hagi.Probability.concConfidence (r / 2) 512 ≤ 1/27000) :
+    0.14 < r := by
+  rw [← gate_fixed_radius_conc] at hr
+  exact gate_fixed_radius_unusable r hr0 hr
 
 end Hagi.Contracts.GatePipeline
