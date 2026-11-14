@@ -46,6 +46,9 @@ import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
 import Hagi.Energy.FreeEnergy
 import Hagi.Energy.PairwiseCategorical
+import Hagi.Energy.SingleCellDescent
+import Hagi.Energy.EnergyCoordinateStep
+import Hagi.Energy.EnergyFlow
 import Hagi.Dynamics.GrowthBridge
 import Hagi.Growth.GainRenewal
 import Hagi.Growth.LinearCone

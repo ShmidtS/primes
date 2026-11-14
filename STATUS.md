@@ -891,6 +891,78 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   (не утверждается). Vacuity-аудит на носителе Fin 2 × Bool
   (interaction 0 и 4, H(xtt) = 5) — примеры в файле.
 
+## Hagi/Energy/SingleCellDescent.lean
+
+- Track E2 (addendum A9 + A9-supplement, CRAM 2611.17309): дискретное
+  одно-клеточное ядро — точная дельта энергии переноса ОДНОЙ клетки.
+- `localField` — локальное поле `L_i(a) = B_i(a) + Σ_{j≠i} K_ij(a, y_j)`
+  (форма A9-supplement); `transposeLocalField` — транспонированный
+  компаньон (без симметрии они различны).
+- `single_cell_move_energy_delta` — (E2a MAIN, общая, БЕЗ симметрии):
+  `E(y^{i←a}) − E(y) = (1/2)·((Ld a + Lt a) − (Ld b + Lt b)) +
+  (B_i(a) − B_i(b))` — все партиционные члены без клетки i сокращаются
+  ТОЧНО (чистота куплена конвенцией C260: ordered-pair, 1/2 снаружи).
+- `single_cell_move_energy_delta_symm` — при симметричной K (CRAM
+  W = sym(K)): дельта = `localField a − localField (y i)` точно.
+- `greedy_single_cell_nonincreasing` / `strict_drop_of_positive_margin` —
+  жадный перенос в argmin локального поля не увеличивает энергию;
+  положительный марж даёт строгое падение (обе под hK).
+- ТРИ РАЗЛИЧНЫХ определения, никогда не смешиваются: `IsCoordinateMinimum`
+  (одно-клеточные переносы), `IsGlobalMinimum` (все y'),
+  `IsValidSolution` (по-клеточный сертификат ограничений — дух A9
+  'AcceptedSolution'); доказана единственная импликация
+  `global_minimum_is_coordinate_minimum`; witness на Fin 2 × Bool
+  (Bc-фикстура: (t,f) координатный минимум с E=2, глобальный минимум
+  (f,t) с E=1) пинит разрыв coordinate-min ↛ global-min; зазоры
+  global-min ↛ valid и обратно — в docstring.
+
+## Hagi/Energy/EnergyCoordinateStep.lean
+
+- Track E2: координатная минимизация как ТОЧНЫЙ KL-сертификат —
+  безопасная дискретная альтернатива Эйлеровым шагам непрерывного
+  потока (собственное предостережение статьи CRAM).
+- `log_softDef` — перепаковка логарифма софтмакса
+  `log (softDef z a) = z a − log (Σ exp z)`; `sum_mul_right_eq` —
+  вынос константы справа из суммы.
+- `singleCellFreeEnergy` — одно-переменная свободная энергия
+  `F_i(p) = (1/β)·Σ p log p + Σ hz p + c` (сырая форма CRAM с
+  y_{-i}-константой c, которая сокращается в любой разности).
+- `coordinate_kl_identity` — (E2b MAIN): для любого вероятностного
+  вектора p и β ≠ 0: `F_i(p) − F_i(q_i) = (1/β)·klDef p q_i`,
+  `q_i = softDef (−β·hz)` — локальный гиббсовский минимизатор;
+  ТОЧНО, без аппроксимации; q_i > 0 автоматически (softDef).
+- `coordinate_kl_nonneg` — при β > 0: `0 ≤ F_i(p) − F_i(q_i)` — мягкие
+  координатные обновления не увеличивают одно-клеточную свободную
+  энергию (kl_nonneg_of_nonneg без support-церемоний).
+
+## Hagi/Energy/EnergyFlow.lean
+
+- Track E2 (уточнение A9-supplement): непрерывная часть, разделённая на
+  (1) алгебраические тождества и (2) supplied-trajectory теорему —
+  БЕЗ какого-либо ODE-existence API.
+- Алгебраический слой: `quadraticVar` — дисперсионная форма
+  uᵀ(diag p − ppᵀ)u = Σ p u² − (Σ p u)² (гессиан logsumexp без тяжёлой
+  матричной машинерии); `quadraticVar_eq` (тождество дисперсии = Σ
+  квадратов отклонений); `quadraticVar_nonneg` (PSD); `quadraticVar_const`
+  (калибровочное нулевое направление H1 = 0);
+  `softmax_legendre_identity` (vᵀp − β⁻¹ log Σ e^{βv} = β⁻¹ Σ p log p);
+  `logsumexp_grad_along_dir` (градиент logsumexp ЕСТЬ p, направленная
+  форма); `soft_curve_deriv` (ṗ = β·p·(u' − Σ p u')).
+- `localMeanField` — поле на убеждениях `B_i(a) + Σ_{j≠i,b} K_ij(a,b)·p_j(b)`.
+- `cram_energy_hasDerivAt` — (E2c MAIN) SUPPLIED-TRAJECTORY производная:
+  при фиксированных β > 0, τ > 0, симметричной K (W = sym(K)),
+  покомпонентной дифференцируемости кривой v в точке t со скоростью u(t)
+  и поточечном CRAM ODE `u = −(1/τ)·(v + localMeanField p)`,
+  p = softDef(βv): производная свободной энергии вдоль траектории равна
+  `−τβ·Σᵢ Var_{pᵢ}(uᵢ)` — калибровочные константы лог-стат-сумм
+  сокращаются (тень GaugeQuotient, E4+ scope).
+- `cram_continuous_energy_nonincreasing` — следствие: производная ≤ 0.
+  Имя утверждает ТОЛЬКО невозрастание вдоль ПОСТАВЛЕННОЙ траектории:
+  ни сходимости, ни аттрактивности, ни существования ODE. Дискретные
+  Эйлеровы шаги НЕ покрываются (предостережение статьи) — безопасный
+  дискретный сертификат это `coordinate_kl_identity` из
+  `Hagi/Energy/EnergyCoordinateStep.lean`.
+
 ## Hagi/Energy/PoEBound.lean
 
 - `poe_logZ_second_order`: для конечных `V` (непустого) и `K`, весов `w i ≥ 0` с суммой 1 и границы `R i` на размах `z i − Σₗ w l·z l` доказано `|log Z_w − Σᵢ w i·log Z_i| ≤ (1/8)·Σᵢ w i·(R i)²`, где `Z_w = Σ_v exp(Σᵢ w i·z i v)`.
