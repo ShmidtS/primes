@@ -1,4 +1,5 @@
 import Hagi.System.GrowthState
+import Hagi.Cert.StepGen
 
 /-!
 # StepCertificate — полный сертификат шага (P2.10)
@@ -97,5 +98,49 @@ theorem safe_feasible_selection_productive
   refine ⟨c, ?_, hpos⟩
   exact List.mem_filter.mpr ⟨hc, by
     simp [StepFeasible, hrisk, hbud]⟩
+
+/-! ### C279-адаптер: StepCertificate → общее ядро CertStepGen
+
+A10 item 2 (adapter batch 2): полный сертификат шага — view над
+общим ядром `Hagi.Cert.CertStepGen`. Носитель содержит ЧИСЛА
+(`base.decrease` / `base.riskSpend` / `base.budgetSpend`) без
+законов: спуск, точные бюджетный и риск-законы — посылки
+потребителя. `riskRem` — СВОБОДНЫЙ параметр: остаток риска в
+носителе не записан, это данные потребителя (без молчаливого
+0-пиннинга); траты берутся из чисел носителя. -/
+
+/-- C279: полный сертификат шага как шаг общего ядра
+(premise-form: числа-траты — носителя, точные законы —
+посылки потребителя; riskRem — свободный параметр). -/
+noncomputable def StepCertificate.toCertStepGen {TaskId : Type*}
+    {S : Type*} (c : StepCertificate X)
+    (hpos : 0 < c.base.decrease)
+    (M : Hagi.Cert.SystemMetrics S TaskId) (s s' : S)
+    (hdesc : M.objective s' ≤ M.objective s - c.base.decrease)
+    {b' riskRem : ℝ}
+    (hbud : M.budget s = b' + c.base.budgetSpend)
+    (hbud' : M.budget s' = b')
+    (hbudnn : 0 ≤ b')
+    (hrisk : M.risk s = c.base.riskSpend + riskRem)
+    (hrisk' : M.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s') :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s s' where
+  drop := c.base.decrease
+  drop_pos := hpos
+  descent := hdesc
+  budgetSpend := c.base.budgetSpend
+  budget_next := by rw [hbud, hbud']; linarith
+  budget_nonneg := by rw [hbud']; exact hbudnn
+  riskSpend := c.base.riskSpend
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.System

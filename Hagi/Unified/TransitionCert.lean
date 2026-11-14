@@ -5,6 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Model.CertifiedTransition
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.StepContract
+import Hagi.Cert.StepGen
 
 set_option linter.style.header false
 
@@ -126,6 +127,54 @@ noncomputable def TransitionCert.toCertStep {obj risk : State → ℝ}
   drop := obj s - obj (step s)
   drop_pos := by linarith [C.actual_descent]
   actual := by linarith [C.actual_descent]
+
+/-! ### C279-адаптер: TransitionCert → общее ядро CertStepGen
+
+A10 item 2 (adapter batch 2): единый сертификат перехода — view
+над общим ядром `Hagi.Cert.CertStepGen` (переориентация моста
+цикла 41 с минимального ядра). Честность risk-канала: носитель
+даёт риск ТОЛЬКО в форме неравенства (`risk_bound : ≤ +
+riskLim`), точный split-закон ядра — посылки потребителя со
+СВОБОДНЫМИ `rs` и `riskRem` (0-пиннинг отсутствует по
+построению ядра). Бюджетного канала в носителе нет — точный
+бюджетный закон тоже посылки. -/
+
+/-- C279: единый сертификат перехода как шаг общего ядра
+(premise-form: спад — ТОЧНОЕ равенство из фактического
+строгого спада носителя; бюджет/риск-остаток — данные
+потребителя, у носителя их нет). -/
+noncomputable def TransitionCert.toCertStepGen
+    {State TaskId : Type*}
+    {obj risk : State → ℝ} {step : State → State} {s : State}
+    {riskLim : ℝ} (C : TransitionCert obj risk step s riskLim)
+    (M : Hagi.Cert.SystemMetrics State TaskId)
+    (hobj : M.objective = obj)
+    {bs b' rs riskRem : ℝ}
+    (hbud : M.budget s = b' + bs) (hbud' : M.budget (step s) = b')
+    (hbudnn : 0 ≤ b')
+    (hrisk : M.risk s = rs + riskRem)
+    (hrisk' : M.risk (step s) = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl (step s)) :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s (step s) where
+  drop := obj s - obj (step s)
+  drop_pos := by linarith [C.actual_descent]
+  descent := by
+    rw [hobj]
+    linarith
+  budgetSpend := bs
+  budget_next := by rw [hbud, hbud']; linarith
+  budget_nonneg := by rw [hbud']; exact hbudnn
+  riskSpend := rs
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.Unified.TC
 

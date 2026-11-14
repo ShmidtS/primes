@@ -3,6 +3,7 @@ import Hagi.Model.CycleCertificate
 import Hagi.System.StepCertificate
 import Hagi.Optimization.LRSchedule
 import Hagi.System.Certificates
+import Hagi.Cert.StepGen
 
 /-!
 # CertifiedTransition — зависимый сертификат перехода
@@ -517,5 +518,58 @@ theorem stageLaws_mono_quantErr (S : Hagi.System.GrowthState X)
       ≤ u.sp.kappa * u.sp.s * qe₀ :=
     mul_le_mul_of_nonneg_left hqe hksnn
   linarith
+
+/-! ### C279-адаптер: CertifiedTransitionV3 → общее ядро CertStepGen
+
+A10 item 2 (adapter batch 2): V3-переход — view над общим ядром
+`Hagi.Cert.CertStepGen`. Содержание носителя: СТРОГИЙ фактический
+спад энергии (`hActualDescent` — дроп = S.energy − S'.energy,
+спуск — равенство) и ТОЧНЫЙ бюджетный ledger (`resources`).
+Риск-канал носителя — только неравенства (`safety`/`hRiskLim`),
+точный split-закон ядра — посылки со СВОБОДНЫМ `riskRem`
+(0-пиннинг отсутствует; выравнивание риска с метриками —
+на потребителе). -/
+
+/-- C279: V3-переход как шаг общего ядра (premise-form: дроп и
+бюджет — из носителя, риск-split — посылки потребителя). -/
+noncomputable def CertifiedTransitionV3.toCertStepGen
+    {TaskId : Type*}
+    {S S' : Hagi.System.GrowthState X}
+    {u : StageInput X} {riskLim : ℝ}
+    (hc : CertifiedTransitionV3 S S' u riskLim)
+    (M : Hagi.Cert.SystemMetrics (Hagi.System.GrowthState X) TaskId)
+    (hobj : M.objective = fun St : Hagi.System.GrowthState X => St.energy)
+    (hbud : M.budget S = S.budget) (hbud' : M.budget S' = S'.budget)
+    (hbudnn : 0 ≤ S'.budget)
+    {rs riskRem : ℝ}
+    (hrisk : M.risk S = rs + riskRem)
+    (hrisk' : M.risk S' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl S') :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) S S' where
+  drop := S.energy - S'.energy
+  drop_pos := by linarith [hc.hActualDescent]
+  descent := by
+    simp only [hobj]
+    show S'.energy ≤ S.energy - (S.energy - S'.energy)
+    linarith
+  budgetSpend := u.eff.growCost + u.eff.mergeCost
+    + u.eff.jointCost + u.eff.compressCost
+  budget_next := by
+    rw [hbud, hbud']
+    exact hc.toCertifiedTransitionV2.base.resources
+  budget_nonneg := by
+    rw [hbud']
+    exact hbudnn
+  riskSpend := rs
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.Model

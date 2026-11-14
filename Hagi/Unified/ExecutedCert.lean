@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Hagi.Unified.HonestTransition
+import Hagi.Cert.StepGen
 
 /-!
 # ExecutedCert 
@@ -101,5 +102,50 @@ noncomputable def ExecutedCert.toCertStep {obj : S → ℝ}
   drop := C.drop
   drop_pos := C.drop_pos
   actual := C.actual
+
+/-! ### C279-адаптер: ExecutedCert → общее ядро CertStepGen
+
+A10 item 2 (adapter batch 2): исполнительный сертификат — view
+над общим ядром `Hagi.Cert.CertStepGen` (переориентация моста
+с минимального ядра). Носитель НЕ содержит риск-понятия
+вообще (канал `delta` — ошибка ИЗМЕРЕНИЯ, не риск-остаток) —
+поэтому `riskRem` — СВОБОДНЫЙ параметр с посылками-выравниваниями
+(без молчаливого 0-пиннинга); бюджетного канала тоже нет — точные
+законы даёт потребитель. δ-канал измерения остаётся вне ядра
+(как и в мосте цикла 41). -/
+
+/-- C279: сертификат исполненного измеренного шага как шаг
+общего ядра (premise-form: спад — декларация носителя,
+подкреплённая `actual`; riskRem — свободный параметр, в
+носителе риск-понятия нет). -/
+noncomputable def ExecutedCert.toCertStepGen {TaskId : Type*}
+    {obj : S → ℝ} {step : S → S} {s : S} {m d : ℝ}
+    (C : ExecutedCert obj step s m d)
+    (M : Hagi.Cert.SystemMetrics S TaskId)
+    (hobj : M.objective = obj)
+    {bs b' rs riskRem : ℝ}
+    (hbud : M.budget s = b' + bs) (hbud' : M.budget (step s) = b')
+    (hbudnn : 0 ≤ b')
+    (hrisk : M.risk s = rs + riskRem)
+    (hrisk' : M.risk (step s) = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl (step s)) :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s (step s) where
+  drop := C.drop
+  drop_pos := C.drop_pos
+  descent := by rw [hobj]; exact C.actual
+  budgetSpend := bs
+  budget_next := by rw [hbud, hbud']; linarith
+  budget_nonneg := by rw [hbud']; exact hbudnn
+  riskSpend := rs
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.Unified.ExecutedCert

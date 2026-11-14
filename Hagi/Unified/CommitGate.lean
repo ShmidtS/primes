@@ -1,5 +1,6 @@
 import Mathlib
 import Hagi.Energy.Quantizer
+import Hagi.Cert.StepGen
 
 /-!
 # CommitGate: инвариант
@@ -122,5 +123,53 @@ theorem quant_bound_of_gridQ (delta : ℝ) (hdelta : 0 < delta)
       have hq : (delta/2)^2 = delta^2/4 := by rw [div_pow]; norm_num
       rw [hq]
       ring
+
+/-! ### C279-адаптер: GateCert → общее ядро CertStepGen
+
+A10 item 2 (adapter batch 2): гейт коммита — view над общим
+ядром `Hagi.Cert.CertStepGen`. Носитель БЕЗСОСТОЯТЕЛЕН (V —
+число, не состояние): состояния и выравнивание метрик даёт
+потребитель (`hobj`/`hobj'`). Содержание адаптера — ветвление
+gate ⟹ СТРОГИЙ дроп (commitProductive в форме ядра). Риск-
+понятия в носителе нет — `riskRem` СВОБОДНЫЙ параметр с
+посылками (без молчаливого 0); структурное слияние гейта в
+Loop-слой — отдельный бит (карта слияния A10). -/
+
+/-- C279: коммит-ветвь гейта как шаг общего ядра (premise-form:
+`hgate` даёт строгий дроп; выравнивание потенциала — посылки). -/
+noncomputable def GateCert.toCertStepGen {S TaskId : Type*}
+    (c : GateCert) (hgate : gate c)
+    (M : Hagi.Cert.SystemMetrics S TaskId) (s s' : S)
+    (hobj : M.objective s = c.V)
+    (hobj' : M.objective s' = commitV c)
+    {bs b' rs riskRem : ℝ}
+    (hbud : M.budget s = b' + bs) (hbud' : M.budget s' = b')
+    (hbudnn : 0 ≤ b')
+    (hrisk : M.risk s = rs + riskRem)
+    (hrisk' : M.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s') :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s s' where
+  drop := c.dStep + c.gap - (c.quant + c.gen)
+  drop_pos := by
+    unfold gate at hgate
+    linarith
+  descent := by
+    rw [hobj, hobj']
+    unfold commitV
+    linarith
+  budgetSpend := bs
+  budget_next := by rw [hbud, hbud']; linarith
+  budget_nonneg := by rw [hbud']; exact hbudnn
+  riskSpend := rs
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.Unified.CommitGate
