@@ -1749,6 +1749,30 @@ drift-детекции (A8: 6% → 63% при ≤5% FPR, Class-D мотивац�
 только одно-направленное неравенство). Ville-механика не
 дублируется — это аддитивное расширение C232.
 
+### 14a. Gate pipeline (C264, addendum A10 P1): гейт как он реально используется
+
+Формальная опора Python-гейта — весь конвейер
+«измерение → Hoeffding-граница → δ-расписание → этажи → решение»
+одним Lean-модулем `Hagi/Contracts/GatePipeline.lean`:
+
+```
+hoeffding_pm1_two_sided      : [−1,1]·X, допуск η → P(|ΣX−Σμ| ≥ nη) ≤ 2e^{−nη²/2}
+                               (rescale Y=(X+1)/2 — радиус УДВАИВАЕТСЯ)
+gate_delta_schedule_sum_le   : K ≤ шести → Σ_{k<K} 6/(π²k²) ≤ 1 (S₆, π>3; Базеля в Mathlib нет)
+gate_pipeline_false_commit   : P(Bad k) ≤ β k, Σβ ≤ δ → P(ни одного ложного commit) ≥ 1 − δ
+gate_pipeline_budget         : β k = δ·6/(π²(k+1)²)/(1+m) по (1+m) этажам — Σ ≤ δ точно
+gate_anytime_valid           : (∀t, F t ⊆ {δ⁻¹ ≤ M_t}) → μ.real{∃t≤n, F t} ≤ δ ∀n сразу (C232)
+gate_fixed_radius_unusable   : n=512, δ=1/20, k=10, m=8: любой r с 2e^{−256r²} ≤ β — r > 0.14
+```
+
+Посылки честные: свежесть потока = `IsProbSys p`; вложение
+anytime-события — явная посылка. ПРОДАКШН-РЕКОМЕНДАЦИЯ: anytime-гейт
+(`gate_anytime_valid`) с адаптивным n и эмпирической дисперсией
+Freedman (C248 `freedman_exp_empirical_le_fixed`/`stitching_alarm_superset`)
+вместо фиксированного n — негативный свидетель показывает, что
+фиксированный радиус на n = 512 несовместим с допуском 1/20
+(качественно совпадает с непригодностью радиуса из аудита A10).
+
 ## 15. R2: подключение острых range-констант к consumer'ам (C233)
 
 Addendum A5 §R2: константы C216 (`ceStepLogitRange`, sup−inf) и C223
