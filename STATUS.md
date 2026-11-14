@@ -5449,3 +5449,49 @@ merger cert carriers (Freeze-дисциплина: statement change).
   (приём только через независимый валидатор — CRAMAcceptedSolution);
   τ < 1 требует hsym; фикстуры Fin 3: 2 цветов нет, 3 — энергия 0,
   монохром — ≠ 0.
+
+## Hagi/Model/EnergyReasoning/NumericalRobustness.lean
+
+- Track P3 (дополнение A11, первый item): числовые мосты ошибок для
+  CRAM-решателя — гвардированный спуск по энергии под шумом
+  вычисленных локальных полей.
+- `Hagi.Model.EnergyReasoning.guarded_energy_delta_error` — (P3
+  CORE) премиза |L̂_i(a) − L_i(a)| ≤ ε (вычисленные поля, напр.
+  BF16-округлённые) ⇒ ошибка energy-delta
+  |Δ̂ − Δ| ≤ 2ε, где Δ = E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)
+  (симметричная K, `single_cell_move_energy_delta_symm`): delta
+  содержит ДВЕ оценки поля (L̂ a и L̂ (y i)), каждая ±ε; константа
+  2ε точная (tight), ε-only — ошибка одного оценивания.
+- `Hagi.Model.EnergyReasoning.guarded_energy_delta` — гвард ЗВУЧЕН:
+  вычисленная маржа улучшения 2ε < L̂(y_i) − L̂(a) ⇒ ИСТИННАЯ энергия
+  строго убывает (приём только при марже > 2ε; обе стороны честны —
+  отвергнутый ход НЕ несёт информации, свидетель: истинная маржа 2 >
+  0, вычисленная 0 ≤ 2ε = 2 при ε = 1 — гвард консервативно
+  отвергает истинный спуск, возможен stall ниже шумового пола 2ε).
+- `Hagi.Model.EnergyReasoning.localField_visibleBiasWithZ` — шов
+  композиции: замороженный z-сдвиг.bias добавляет константу zc i к
+  каждому значению локального поля ячейки i.
+- `Hagi.Model.EnergyReasoning.guarded_greedy_strict_drop` — (P3
+  MAIN, композиция с C261 `strict_drop_of_positive_margin`)
+  гвардированный приём в two-phase frozen-z постановке:
+  `pairwiseEnergy (visibleBiasWithZ B zc) K` строго убывает при
+  вычисленной марже > 2ε — апгрейд точной арифметики C261 до
+  noise-robust спуска; совместные (z, y)-обновления по-прежнему
+  запрещены (E3).
+- `Hagi.Model.EnergyReasoning.latent_update_degree_zero_exact_after_
+  one` / `Hagi.Model.EnergyReasoning.
+  latent_update_degree_zero_one_step_is_fixed` — (B1-low)
+  вырожденный случай Δ = 0 (все окрестности пусты): обновление —
+  константное отображение 1[i=G]/m, ТОЧНОЕ за один шаг; любая
+  стартовая точка достигает неподвижной точки за один шаг. Отдельные
+  теоремы: `latent_iterate_err_bound` требует 0 < Δ (фактор
+  сжатия ∈ (0,1), асимптотический пол ε_round/(1−q) существует
+  только при настоящем сжатии) — случай Δ = 0 не спрятан и не
+  смешан.
+- BF16-инстанциация (target 4, mapping): премиза ε инстанцируется
+  существующей моделью `Hagi.Runtime.BF16Delta.
+  abs_sub_le_of_isNearest_normal` (|decode c − x| ≤ 2⁻⁸·|x| в
+  нормальном диапазоне, ℚ-носитель); рецепт абсолютной ε =
+  2⁻⁸·max_b|L i b| через Rat.cast_le записан в docstring (reuse, не
+  redefine); ниже нормального диапазона относительная оценка не
+  имеет места — премиза там НЕ заявляется.
