@@ -3,7 +3,7 @@ import Hagi.Model.BatchCEDescent
 import Hagi.Model.CEExpansion
 import Hagi.Model.CEHeldout
 import Hagi.Unified.ParetoExecution
-import Hagi.Contracts.BatchCEBudgetAsym
+import Hagi.Contracts.BatchCEBudgetHalf
 
 /-!
 # BatchCEBudgetExpanded

@@ -2,7 +2,7 @@ import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.CEHeldout
 import Hagi.Unified.GuardedRobustTrajectory
-import Hagi.Contracts.BatchCETrajectoryCanonical
+import Hagi.Contracts.BatchCETrajectoryGuarded
 
 /-!
 # BatchCETrajectoryMinNorm

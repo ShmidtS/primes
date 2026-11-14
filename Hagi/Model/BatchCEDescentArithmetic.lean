@@ -3,7 +3,6 @@ import Hagi.Model.CEGroupedScale
 import Hagi.Probability.FiniteFamilyConfidence
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
-import Hagi.Optimization.MirrorHedge
 import Hagi.Model.BatchCEDescentCommon
 
 /-!
