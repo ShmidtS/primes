@@ -2900,3 +2900,51 @@ Finset упорядоченных пар, граф — симметрическ�
 - Честные границы: всё — о НЕПОДВИЖНОЙ ТОЧКЕ (итеративные оценки —
   C272 latent_iterate_err_bound, не дублируются); decay-upper —
   честный DEFER.
+
+### A8 (E-track аудит, addendum A11 контекст): Doeblin-миноризация heat-bath ядра — контракция и геометрическое смешивание
+
+Перенос Doeblin-контракции из карантина ([Research/PPT](Hagi/Research/PPT.lean),
+namespace `Hagi.Discovery`, НЕ импортируется) на CRAM heat-bath ядро —
+математика пере-выведена в main с нуля на generic-носителе
+([HeatBathMixing](Hagi/Model/EnergyReasoning/HeatBathMixing.lean)):
+- УСТРОЙСТВО: `doeblinMinorized K c := 0 < c ∧ ∀ x y, c ≤ K x y`;
+  `vecMul`/`hbChain` — одношаговый pushforward и n-шаговая цепь.
+- ПАРНАЯ КОНТРАКЦИЯ (A8 MAIN, из первых принципов):
+  `Hagi.Model.EnergyReasoning.tv_pair_contraction` — row-stochastic ядро
+  с entrywise-полом `c` сжимает ЛЮБУЮ пару равномассовых векторов:
+  TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν); разложение знаковой разности на
+  положительную/отрицательную части, тождество
+  |P − Q| = P + Q − 2·min(P,Q); стационарность НЕ нужна (входит только
+  в следствия `tv_contraction_stationary_sharp` /
+  `tv_contraction_stationary` — слабая форма `(1 − c)` из текста
+  аудита); константа 1 − |S|·c — острая (аудит-текст 1 − c — слабое
+  следствие).
+- ПОЛ ВЕСОВ: `heatbathWeight_floor` — премиза разброса локальных полей
+  |L_i(a) − L_i(b)| ≤ M при T > 0 ⇒ каждый heat-bath вес ≥
+  exp(−M/T)/card α.
+- ДОЕБЛИН-ПОЛ (A8 MAIN, премиза-форма):
+  `Hagi.Model.EnergyReasoning.heatbath_doeblin_floor` — при разбросе
+  полей И премизе носителя (каждая цель — одноячеечный ход) ядро
+  Doeblin-миноризовано с c = exp(−M/T)/card α;
+  `heatbath_doeblin_floor_subsingleton` — носитель-премиза бесплатна
+  при card ι ≤ 1 (одноклеточное пространство).
+- СТАЦИОНАРНАЯ ПЛОТНОСТЬ: `stationaryDensity` — нормированная
+  Болцмановская; стационарность переносится из `heatbath_stationary`
+  линейностью.
+- КОНТРАКЦИЯ К π̂ (A8 MAIN): `heatbath_tv_contraction` —
+  Doeblin-премиза на ядре ⇒ TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂) (острая
+  константа — `heatbath_tv_contraction_sharp`).
+- СМЕШИВАНИЕ (A8 MAIN): `heatbath_mixing` — TV(μKⁿ, π̂) ≤ (1 − c)ⁿ;
+  `heatbath_mixing_time` — n ≥ log e / log(1 − c) шагов достаточно
+  для TV ≤ e (маршрут exp·nat-mul, без rpow).
+- Якорь: Bex/Kex/xtt, разброс 3 при T = 1: голые числа
+  exp(−3)/2 ≤ 1/(1 + exp(−3)) и тот же пол через
+  `heatbathWeight_floor`; Fin 2 × Bool uniform-якорь парной
+  контракции — в зонде C277 (точное равенство 0 = 0 на константе
+  1 − |Bool|·(1/2)).
+- Честные границы: entrywise-пол для card ι ≥ 2 БЕЗ премизы носителя
+  ЛОЖЕН (вне-носительные переходы нулевые); ирредуцибельность /
+  апериодичность безусловного ядра НЕ заявлены (пол их поглощает;
+  RootApi negative pins heatbath_irreducible / heatbath_aperiodic);
+  фокусная смесь вне области (C268 — нарушение INVARIANCE);
+  spectral gap / cutoff не заявлены.

@@ -182,6 +182,7 @@ import Hagi.Model.EnergyReasoning.PseudolikelihoodLocalField
 import Hagi.Model.EnergyReasoning.CramContracts
 import Hagi.Model.EnergyReasoning.LatentEnergy
 import Hagi.Model.EnergyReasoning.EnergySearch
+import Hagi.Model.EnergyReasoning.HeatBathMixing
 import Hagi.Model.EnergyReasoning.EnergyStopping
 import Hagi.Model.EnergyReasoning.GreedyTermination
 import Hagi.Model.EnergyReasoning.ValiditySeparation

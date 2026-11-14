@@ -5630,3 +5630,32 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Честные границы: decay-upper на дистанции НЕ заявлен (нужно больше
   структуры графа; negative pin latent_fixed_decay_upper); всё — о
   неподвижной точке, итеративные оценки не дублируются (C272).
+
+## Hagi/Model/EnergyReasoning/HeatBathMixing.lean
+
+- `Hagi.Model.EnergyReasoning.tv_pair_contraction` — row-stochastic
+  ядро с entrywise-полом c сжимает TV любой пары равномассовых
+  векторов: TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν) (разложение знаковой
+  разности; без стационарности и неотрицательности векторов).
+- `Hagi.Model.EnergyReasoning.heatbathWeight_floor` — разброс
+  локальных полей |L_i(a) − L_i(b)| ≤ M, T > 0 ⇒ каждый heat-bath вес
+  ≥ exp(−M/T)/card α.
+- `Hagi.Model.EnergyReasoning.heatbath_doeblin_floor` — (премиза-форма)
+  разброс полей + премиза носителя (каждая цель — одноячеечный ход) ⇒
+  ядро `doeblinMinorized` с c = exp(−M/T)/card α;
+  `heatbath_doeblin_floor_subsingleton` — при card ι ≤ 1 премиза
+  носителя выводится автоматически.
+- `Hagi.Model.EnergyReasoning.stationaryDensity` — нормированная
+  Болцмановская плотность; стационарна для heat-bath ядра
+  (`stationaryDensity_stationary`, из `heatbath_stationary`).
+- `Hagi.Model.EnergyReasoning.heatbath_tv_contraction` — Doeblin-премиза
+  ⇒ TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂); острая константа
+  1 − |ι→α|·c в `heatbath_tv_contraction_sharp`.
+- `Hagi.Model.EnergyReasoning.heatbath_mixing` — TV(μKⁿ, π̂) ≤
+  (1 − c)ⁿ; `Hagi.Model.EnergyReasoning.heatbath_mixing_time` —
+  n ≥ log e / log(1 − c) шагов ⇒ TV ≤ e.
+- Якорь: fixture Bex/Kex/xtt — exp(−3)/2 ≤ вес 1/(1 + exp(−3)).
+- Честные границы: entrywise-пол — ПРЕМИЗА (для card ι ≥ 2 вне
+  носителя нули); ирредуцибельность/апериодичность не заявлены
+  (negative pins heatbath_irreducible / heatbath_aperiodic);
+  фокусная смесь вне области (C268).
