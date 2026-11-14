@@ -2,6 +2,7 @@ import Mathlib.Tactic
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.LinkedQVec
 import Hagi.Unified.CanonicalParams
+import Hagi.Cert.StepGen
 
 /-!
 # CertifiedLoop — КАПСТОН: единый замкнутый цикл обучения
@@ -219,5 +220,56 @@ theorem certified_loop_risk (obj : S → ℝ) (M : MeasuredState S)
         rfl)
     rw [hconv]
     linarith
+
+/-! ### C278-адаптер: StepCert → общее ядро CertStepGen
+
+A10 item 2 (второй адаптер, капстон-цикл): шаг цикла — view над
+общим ядром `Hagi.Cert.CertStepGen`. Индекс задач `TaskId := Fin 5`
+демонстрирует поглощение жёсткого `Fin 5`-индекса общим типом
+ядра (сам `StepCert`/`FloorKept` не меняются — Freeze).
+
+Честные границы (premise-form, паттерн C254/C267):
+* точный бюджетный закон `hbudeq : b' = bt - budgetSpend` — посылка
+  (в самом цикле закон нестрогий `hdec : b' ≤ bt - budgetSpend`);
+* риск-канал — посылки `hrisk`/`hrisk'` со свободным остатком
+  `riskRem` (0-пиннинг C254 отсутствует);
+* ядерный floor (`hfloors`) — на ОБЪЕКТИВЕ, а качество цикла
+  `FloorKept` — на измерителе `evaluate`; адаптер их НЕ
+  отождествляет, обе посылки задаёт потребитель.
+-/
+
+/-- C278: шаг капстон-цикла как шаг общего ядра (premise-form,
+`TaskId := Fin 5` — частный случай общего индекса ядра). -/
+def StepCert.toCertStepGen {S : Type*} {obj : S → ℝ}
+    {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
+    {s s' : S} {bt b' riskRem : ℝ}
+    (hstep : StepCert obj M floor riskLim s s' bt b')
+    (K : Hagi.Cert.SystemMetrics S (Fin 5))
+    (hobj : K.objective = obj)
+    (hbud : K.budget s = bt) (hbudeq : b' = bt - hstep.budgetSpend)
+    (hbud' : K.budget s' = b')
+    (hrisk : K.risk s = hstep.riskSpend + riskRem)
+    (hrisk' : K.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (hfloors : Hagi.Cert.FloorsKept K ⟨floor⟩ s') :
+    Hagi.Cert.CertStepGen K ⟨floor⟩ (fun _ => 0) s s' where
+  drop := hstep.trans.objectiveDrop
+  drop_pos := hstep.trans.objectiveDrop_pos
+  descent := by rw [hobj]; exact hstep.trans.actualDescent
+  budgetSpend := hstep.budgetSpend
+  budget_next := by
+    show K.budget s' = K.budget s - hstep.budgetSpend
+    rw [hbud, hbud']
+    exact hbudeq
+  budget_nonneg := by rw [hbud']; exact hstep.trans.budgetBound
+  riskSpend := hstep.riskSpend
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
 
 end Hagi.Unified.CertifiedLoop

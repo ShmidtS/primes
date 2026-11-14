@@ -5659,3 +5659,36 @@ merger cert carriers (Freeze-дисциплина: statement change).
   носителя нули); ирредуцибельность/апериодичность не заявлены
   (negative pins heatbath_irreducible / heatbath_aperiodic);
   фокусная смесь вне области (C268).
+
+## Hagi/Cert/StepGen.lean (C278, A10 item 2 step 1)
+
+- `Hagi.Cert.CertStepGen` — ОБЩЕЕ ядро сертифицированного шага
+  (A10 target): общий индекс задач `TaskId : Type*` (жёсткий `Fin 5`
+  цикла — инстанциация, не ограничение ядра), остаток риска — ПОЛЕ
+  riskRem с законом расщепления risk_split (0-пиннинг C254
+  невозможен по построению), свёрнутый δ-бюджет (C245) на явном
+  носителе deltaLevel.
+- Мосты: `Hagi.Cert.certStep_to_gen` (каждое замороженное `CertStep`
+  вложено; нулевой δ-носитель), `Hagi.Cert.CertStepGen.toCertStep`
+  (проекция обратно, δ-канал отбрасывается),
+  `Hagi.Cert.certStepDelta_to_gen` (свёртка C245-надстройки).
+- Композиция `Hagi.Cert.CertStepGen.trans` и телескопы:
+  `trajectory_telescope_gen` (спуск), `delta_telescope_gen`
+  (Σ δ ≤ δ₀ при δ₀ ≥ 0 — явная посылка), `risk_telescope_gen`
+  (Σ трат риска ≤ r₀ при r₀ ≥ 0).
+- Производные: `CertStepGen.riskBound`, `CertStepGen.budgetBound`.
+- Первые адаптеры (premise-form, паттерн C254/C267):
+  `Hagi.Unified.HonestTransition.HonestTransition.toCertStepGen`
+  (остаток риска — свободный параметр; дефект «тратить риск может
+  только последний шаг» снят),
+  `Hagi.Unified.CertifiedLoop.StepCert.toCertStepGen`
+  (`TaskId := Fin 5` — общий индекс поглощает жёсткий индекс цикла;
+  точный бюджетный закон — явная посылка, цикловый hdec остаётся
+  нестрогим),
+  `Hagi.Model.EnergyReasoning.CRAMEnergyDescentStep.toCertStepGen`
+  (остаток риска = чтение носителя `s'.riskRem` — ненулевой;
+  δ-канал на deltaRem).
+- Замороженное `CertStep`/`CertStepDelta` НЕ изменены (Freeze);
+  структурные view-конверсии носителей — следующие биты (Freeze v2
+  хеширует конструкторы/проекции структур: abbrev-замена меняет
+  элаборированный тип).

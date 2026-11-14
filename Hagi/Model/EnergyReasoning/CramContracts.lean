@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Cert.Core
+import Hagi.Cert.StepGen
 import Hagi.Energy.SingleCellDescent
 import Hagi.Model.EnergyReasoning.PseudolikelihoodLocalField
 import Hagi.Model.EnergyReasoning.EnergyStopping
@@ -444,5 +445,54 @@ theorem _root_.Hagi.Cert.HoldStep.cram_state_components {TaskId : Type*}
   have e : s' = s := h.hold
   subst e
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-! ### C278-адаптер: CRAMEnergyDescentStep → общее ядро CertStepGen
+
+A10 item 2 (третий адаптер): спускной шаг CRAM как шаг общего ядра
+`Hagi.Cert.CertStepGen`. Отличия от C267-моста `toKernelCertStep`:
+остаток риска — НЕ пиннинг, а чтение носителя `s'.riskRem`
+(ненулевой остаток допустим по построению), и δ-канал ядра
+живёт на носителе `deltaRem` (нулевой расход у спускового шага —
+запись явная, свёрнутый C245-канал). -/
+
+/-- C278: спускной шаг CRAM — шаг общего ядра (premise-form:
+метрики читают энергию доски, вычислительный бюджет и остаток
+риска; δ-канал — на носителе `deltaRem`, спуск δ не тратит;
+неотрицательность δ-остатка — явная посылка `hdelta` — в самом
+`CRAMState` ограничения на `deltaRem` нет). -/
+noncomputable def CRAMEnergyDescentStep.toCertStepGen {TaskId : Type*}
+    (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)
+    {s s' : CRAMState ι α} (h : CRAMEnergyDescentStep B K s s')
+    (M : Hagi.Cert.SystemMetrics (CRAMState ι α) TaskId)
+    (hobj : M.objective = fun t => pairwiseEnergy B K t.board)
+    (hbud : M.budget = fun t => t.computeBudget)
+    (hrisk : M.risk = fun t => t.riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s')
+    (hdelta : 0 ≤ s.deltaRem) :
+    Hagi.Cert.CertStepGen M obl (fun t => t.deltaRem) s s' where
+  drop := pairwiseEnergy B K s.board - pairwiseEnergy B K s'.board
+  drop_pos := by linarith [h.strictDrop]
+  descent := by
+    simp only [hobj]
+    linarith [h.strictDrop]
+  budgetSpend := h.computeCost
+  budget_next := by simp only [hbud]; exact h.compute_next
+  budget_nonneg := by simp only [hbud]; exact h.compute_nonneg
+  riskSpend := h.margin
+  riskRem := s'.riskRem
+  risk_next := by simp only [hrisk]
+  risk_split := by
+    simp only [hrisk]
+    have e := h.risk_next
+    linarith
+  risk_nonneg := h.risk_nonneg
+  delta := 0
+  delta_next := by simp; exact h.delta_next
+  delta_nonneg := by
+    have e := h.delta_next
+    simp
+    linarith
+  floorsKept := hfloors
 
 end Hagi.Model.EnergyReasoning

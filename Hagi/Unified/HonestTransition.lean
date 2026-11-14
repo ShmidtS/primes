@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Hagi.Cert.Core
+import Hagi.Cert.StepGen
 
 /-!
 # HonestTransition 
@@ -152,6 +153,48 @@ def HonestTransition.toKernelCertStep {S TaskId : Type*}
   riskSpend := rs
   risk_next := by rw [hrisk, hrisk']; ring
   risk_nonneg := by rw [hrisk']
+  floorsKept := hfloors
+
+/-! ### C278-адаптер: HonestTransition → общее ядро CertStepGen
+
+A10 item 2 (первый адаптер): переход в ЕДИНОЕ общее ядро
+`Hagi.Cert.CertStepGen` (общий индекс задач, остаток риска —
+ПОЛЕ, свёрнутый δ-бюджет). Дефект C254 устранён по построению:
+посылка `hrisk' : M.risk s' = 0` (остаток риска запинен в ноль —
+тратить риск мог только последний шаг траектории) заменена парой
+`hrisk : M.risk s = rs + riskRem`, `hrisk' : M.risk s' = riskRem`
+со СВОБОДНЫМ параметром `riskRem` (нулевой остаток — частный
+случай `riskRem := 0`; неотрицательность остатка — явная посылка
+`hrem`, в самом HonestTransition её нет). -/
+
+/-- C278: честный переход собирается в общее ядро `CertStepGen`:
+остаток риска — свободный параметр (0-пиннинг C254 снят),
+δ-канал нулевой на тривиальном носителе `fun _ => 0`. -/
+def HonestTransition.toCertStepGen {S TaskId : Type*}
+    {obj : S → ℝ} {s s' : S} {rs rl bs b' riskRem : ℝ}
+    (hT : HonestTransition obj s s' rs rl bs b')
+    (M : Hagi.Cert.SystemMetrics S TaskId)
+    (hobj : M.objective = obj)
+    (hbud : M.budget s = b' + bs) (hbud' : M.budget s' = b')
+    (hrisk : M.risk s = rs + riskRem) (hrisk' : M.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (obl : Hagi.Cert.StepObligations TaskId)
+    (hfloors : Hagi.Cert.FloorsKept M obl s') :
+    Hagi.Cert.CertStepGen M obl (fun _ => 0) s s' where
+  drop := hT.objectiveDrop
+  drop_pos := hT.objectiveDrop_pos
+  descent := by rw [hobj]; exact hT.actualDescent
+  budgetSpend := bs
+  budget_next := by rw [hbud, hbud']; linarith [hT.budgetBound]
+  budget_nonneg := by rw [hbud']; exact hT.budgetBound
+  riskSpend := rs
+  riskRem := riskRem
+  risk_next := hrisk'
+  risk_split := hrisk
+  risk_nonneg := hrem
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
   floorsKept := hfloors
 
 end Hagi.Unified.HonestTransition

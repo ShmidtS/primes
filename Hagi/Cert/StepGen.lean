@@ -1,0 +1,266 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Mathlib.Tactic
+import Hagi.Cert.Core
+
+/-!
+# General certification kernel (master plan v3 addendum A10, item 2)
+
+Target canonical kernel per A10: ONE certified-step structure with the
+remaining step-carriers as views/adapters.  `CertStepGen` generalizes
+the frozen `CertStep` (which stays untouched, Freeze-locked) in the two
+directions the audit demanded:
+
+* general index type: `TaskId` stays an arbitrary type parameter —
+  the hard `Fin 5` floor index of the loop carriers (StepCert,
+  NCStepCert) is a CONSUMER instantiation, not a kernel constraint;
+* risk-remainder as a FIELD: `riskRem` is explicit data with the split
+  law `M.risk s = riskSpend + riskRem`, so adapters no longer pin the
+  remainder to zero (the C254 `toKernelCertStep` defect: only the last
+  step of a trajectory could spend risk);
+* folded delta budget: the fourth resource of `CertStepDelta` (C245,
+  A7 — false-commit probability budget) is a kernel field, with the
+  same exact telescoping law.
+
+Bridges: `certStep_to_gen` embeds every frozen `CertStep` (at the zero
+delta level); `CertStepGen.toCertStep` projects back (dropping the
+delta channel); `certStepDelta_to_gen` folds the C245 add-on in.
+Composition `CertStepGen.trans` and the drop/delta telescopes mirror
+the kernel laws.
+-/
+
+set_option relaxedAutoImplicit false
+
+namespace Hagi.Cert
+
+variable {S TaskId : Type*}
+variable (M : SystemMetrics S TaskId) (obl : StepObligations TaskId)
+
+/-- General certified progress step (A10 target kernel): positive
+drop, real descent, exact budget law, risk law SPLIT into an explicit
+spend and an explicit nonzero-allowed REMAINDER field (not pinned to
+zero), the folded delta (false-commit probability) budget against an
+explicit carrier `deltaLevel`, and floors kept at the post-state. -/
+structure CertStepGen (deltaLevel : S → ℝ) (s s' : S) where
+  /-- Certified lower bound on the objective drop. -/
+  drop : ℝ
+  drop_pos : 0 < drop
+  descent : M.objective s' ≤ M.objective s - drop
+  /-- Compute budget spent by the step. -/
+  budgetSpend : ℝ
+  budget_next : M.budget s' = M.budget s - budgetSpend
+  budget_nonneg : 0 ≤ M.budget s'
+  /-- Risk budget spent by the step. -/
+  riskSpend : ℝ
+  /-- The risk REMAINDER as explicit data (the audit field: adapters
+  may keep a nonzero remainder; pinning to zero was the C254 defect). -/
+  riskRem : ℝ
+  /-- The post-risk level IS the remainder. -/
+  risk_next : M.risk s' = riskRem
+  /-- The pre-risk level splits exactly into spend plus remainder. -/
+  risk_split : M.risk s = riskSpend + riskRem
+  risk_nonneg : 0 ≤ riskRem
+  /-- Delta budget (false-commit probability) spent by the step. -/
+  delta : ℝ
+  /-- Exact delta law against the explicit carrier (C245 form). -/
+  delta_next : deltaLevel s' = deltaLevel s - delta
+  delta_nonneg : 0 ≤ deltaLevel s'
+  floorsKept : FloorsKept M obl s'
+
+/-- Derived pointwise bound: the risk spend is bounded by the
+available risk level (from the split law and the nonnegative
+remainder). -/
+theorem CertStepGen.riskBound {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGen M obl deltaLevel s s') :
+    h.riskSpend ≤ M.risk s := by
+  have e1 := h.risk_split
+  have e2 := h.risk_nonneg
+  linarith
+
+/-- Derived pointwise bound: the budget spend is bounded by the
+available budget. -/
+theorem CertStepGen.budgetBound {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGen M obl deltaLevel s s') :
+    h.budgetSpend ≤ M.budget s :=
+  sub_nonneg.mp (by rw [← h.budget_next]; exact h.budget_nonneg)
+
+/-! ## Bridges to the frozen kernel -/
+
+/-- Embedding: every frozen `CertStep` is a `CertStepGen` at the zero
+delta level, with the risk remainder read off the post-state (the
+frozen kernel's implicit remainder made explicit).  The frozen
+`CertStep` itself is untouched (Freeze). -/
+def certStep_to_gen {s s' : S} (h : CertStep M obl s s') :
+    CertStepGen M obl (fun _ => 0) s s' where
+  drop := h.drop
+  drop_pos := h.drop_pos
+  descent := h.descent
+  budgetSpend := h.budgetSpend
+  budget_next := h.budget_next
+  budget_nonneg := h.budget_nonneg
+  riskSpend := h.riskSpend
+  riskRem := M.risk s'
+  risk_next := rfl
+  risk_split := by
+    have e := h.risk_next
+    linarith
+  risk_nonneg := h.risk_nonneg
+  delta := 0
+  delta_next := by simp
+  delta_nonneg := by norm_num
+  floorsKept := h.floorsKept
+
+/-- Projection: a `CertStepGen` is a frozen `CertStep` — the risk law
+collapses to the one-equation form by the split law, and the delta
+channel is dropped. -/
+def CertStepGen.toCertStep {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGen M obl deltaLevel s s') :
+    CertStep M obl s s' where
+  drop := h.drop
+  drop_pos := h.drop_pos
+  descent := h.descent
+  budgetSpend := h.budgetSpend
+  budget_next := h.budget_next
+  budget_nonneg := h.budget_nonneg
+  riskSpend := h.riskSpend
+  risk_next := by
+    have e1 := h.risk_next
+    have e2 := h.risk_split
+    linarith
+  risk_nonneg := by rw [h.risk_next]; exact h.risk_nonneg
+  floorsKept := h.floorsKept
+
+/-- Fold-in of the C245 fourth-resource add-on: every `CertStepDelta`
+is a `CertStepGen` at the same delta level (risk remainder read off
+the post-state).  `CertStepDelta` stays verbatim (Freeze). -/
+def certStepDelta_to_gen {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepDelta M obl deltaLevel s s') :
+    CertStepGen M obl deltaLevel s s' where
+  drop := h.step.drop
+  drop_pos := h.step.drop_pos
+  descent := h.step.descent
+  budgetSpend := h.step.budgetSpend
+  budget_next := h.step.budget_next
+  budget_nonneg := h.step.budget_nonneg
+  riskSpend := h.step.riskSpend
+  riskRem := M.risk s'
+  risk_next := rfl
+  risk_split := by
+    have e := h.step.risk_next
+    linarith
+  risk_nonneg := h.step.risk_nonneg
+  delta := h.delta
+  delta_next := h.delta_next
+  delta_nonneg := h.delta_nonneg
+  floorsKept := h.step.floorsKept
+
+/-! ## Composition -/
+
+/-- Composition of two general steps against the same metrics,
+obligations and delta level: drops, spends and deltas add; the risk
+split of the composite has the SECOND step's remainder (the first
+step's remainder is exactly the second step's pre-risk level). -/
+def CertStepGen.trans {deltaLevel : S → ℝ} {s₁ s₂ s₃ : S}
+    (h₁ : CertStepGen M obl deltaLevel s₁ s₂)
+    (h₂ : CertStepGen M obl deltaLevel s₂ s₃) :
+    CertStepGen M obl deltaLevel s₁ s₃ where
+  drop := h₁.drop + h₂.drop
+  drop_pos := add_pos h₁.drop_pos h₂.drop_pos
+  descent := by
+    have e₁ := h₁.descent
+    have e₂ := h₂.descent
+    linarith
+  budgetSpend := h₁.budgetSpend + h₂.budgetSpend
+  budget_next := by
+    rw [h₂.budget_next, h₁.budget_next]
+    ring
+  budget_nonneg := h₂.budget_nonneg
+  riskSpend := h₁.riskSpend + h₂.riskSpend
+  riskRem := h₂.riskRem
+  risk_next := h₂.risk_next
+  risk_split := by
+    have e₁ := h₁.risk_split
+    have e₂ := h₂.risk_split
+    have e₁' := h₁.risk_next
+    linarith
+  risk_nonneg := h₂.risk_nonneg
+  delta := h₁.delta + h₂.delta
+  delta_next := by
+    rw [h₂.delta_next, h₁.delta_next]
+    ring
+  delta_nonneg := h₂.delta_nonneg
+  floorsKept := h₂.floorsKept
+
+/-! ## Telescopes -/
+
+/-- Drop telescope for the general kernel: the terminal objective is
+bounded by the initial objective minus the sum of certified drops. -/
+theorem trajectory_telescope_gen (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
+    M.objective (t n) ≤ M.objective (t 0)
+      - ∑ j ∈ Finset.range n, (steps j).drop := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have e := (steps n).descent
+    simp only [Finset.sum_range_succ]
+    linarith
+
+/-- Delta telescope for the general kernel (C245 form, folded): the
+sum of per-step false-commit budgets is bounded by the initial delta
+level, provided the initial level is nonnegative (honest explicit
+premise). -/
+theorem delta_telescope_gen (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (h0 : 0 ≤ deltaLevel (t 0))
+    (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
+    ∑ j ∈ Finset.range n, (steps j).delta ≤ deltaLevel (t 0) := by
+  have strong : ∀ m : ℕ,
+      ∑ j ∈ Finset.range m, (steps j).delta
+        ≤ deltaLevel (t 0) - deltaLevel (t m) := by
+    intro m
+    induction m with
+    | zero => simp
+    | succ m ih =>
+      have e := (steps m).delta_next
+      simp only [Finset.sum_range_succ]
+      linarith
+  have hnn : 0 ≤ deltaLevel (t n) := by
+    match n with
+    | 0 => exact h0
+    | m + 1 => exact (steps m).delta_nonneg
+  linarith [strong n]
+
+/-- Risk telescope for the general kernel: the sum of per-step risk
+spends is bounded by the initial risk level (remainder field makes
+the accounting explicit; no zero-pinning anywhere).  The initial
+level's nonnegativity is an honest explicit premise (per-step spends
+are unconstrained in sign, so it is not derivable). -/
+theorem risk_telescope_gen (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (h0 : 0 ≤ M.risk (t 0))
+    (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
+    ∑ j ∈ Finset.range n, (steps j).riskSpend ≤ M.risk (t 0) := by
+  have strong : ∀ m : ℕ,
+      ∑ j ∈ Finset.range m, (steps j).riskSpend
+        ≤ M.risk (t 0) - M.risk (t m) := by
+    intro m
+    induction m with
+    | zero => simp
+    | succ m ih =>
+      have e := (steps m).risk_split
+      have e' := (steps m).risk_next
+      simp only [Finset.sum_range_succ]
+      linarith
+  have hnn : 0 ≤ M.risk (t n) := by
+    match n with
+    | 0 => exact h0
+    | m + 1 =>
+      have h := (steps m).risk_nonneg
+      rw [(steps m).risk_next]
+      exact h
+  linarith [strong n]
+
+end Hagi.Cert
