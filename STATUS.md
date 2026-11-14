@@ -963,6 +963,23 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `coordinate_kl_nonneg` — при β > 0: `0 ≤ F_i(p) − F_i(q_i)` — мягкие
   координатные обновления не увеличивают одно-клеточную свободную
   энергию (kl_nonneg_of_nonneg без support-церемоний).
+- Мост B1 (дополнение A11): `meanFieldField` — локальное поле
+  `B i a + (1/2)·Σ_{j≠i}Σ_b (K i j a b + K j i b a)·p j b` (1/2 вне
+  ordered-суммы, оба направления; числовой якорь на асимметричной K,
+  Fin 2 × Bool).
+- `meanField_coordinate_update_eq_singleCell` — (B1 MAIN) обновление
+  одной координаты меняет ПОЛНУЮ meanFieldFreeEnergy РОВНО на
+  одно-клеточную разность SC(hz, 0, q) − SC(hz, 0, p i) (hz на
+  замороженном фоне; чистая линейность, без вероятностных премиз;
+  инвариантность членов без клетки i — несущий шаг, проверен
+  interact_split'ом: строка i, столбец i, инвариантный остаток).
+- `meanField_coordinate_gibbs_nonincreasing` — β > 0: гиббсовское
+  обновление не увеличивает ПОЛНУЮ энергию (C261
+  coordinate_kl_nonneg переиспользован дословно);
+  `meanField_coordinate_strict_drop_of_ne` — строгое убывание при
+  p i ≠ q_i через `kl_pos_of_ne` (строгая KL-положительность q ≥ 0,
+  p > 0, q ≠ p; t·log t − t + 1 > 0 при t ≠ 1 через
+  log_lt_sub_one_of_pos на 1/t).
 
 ## Hagi/Energy/EnergyFlow.lean
 
