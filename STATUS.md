@@ -2403,6 +2403,40 @@ one-hot CE.
 - Границы: PL ≠ полная likelihood; CertTrain/CertReason — отдельные
   сертификаты (E2+); Hopfield-мост — только через sign-адаптер.
 
+## Hagi/Model/EnergyReasoning/PseudolikelihoodLocalField.lean
+
+- Мост B2 (дополнение A11): PL → локально-полевая CE с β и свободными
+  клетками + градиент.
+- `CRAMProblem` — конкретный носитель ограничений (allowed / givens /
+  hgiven / hnonempty; поле названо givens, т.к. идентификатор given
+  запрещён парсером Lean в терм-позиции); `CRAMProblem.freeCells` —
+  маска свободных клеток {i : givens i = none}.
+- `conditionalLogit_eq_neg_localField_add_const` — (B2 MAIN) при
+  симметричной K: −H(y^{i←a}) = −L_i(a) + C_i(y), C_i(y) = L_i(y_i) −
+  H(y) — дельта-машинерия C261 (single_cell_move_energy_delta_symm)
+  прочитана как константа (числовой якорь Fin 2 × Bool: LF_0(t)=3,
+  LF_0(f)=0, H(t,t)=5, H(f,t)=2).
+- `conditionalDist_eq_localField_softmax` — softDef(−β·H-варианта) =
+  softDef(−β·L_i) для ЛЮБОГО β (константа β·C_i сокращается в softmax
+  безусловно); shift-инвариантность в Prelude ОТСУТСТВУЕТ (аудит C266)
+  — минимальные приватные softDef_add_const / ceOneHot_add_const в
+  новом файле (additive, Prelude не тронут).
+- `pseudolikelihood_eq_local_CE_beta` — freeCellPseudolikelihood
+  (энергетическая форма, среднее ceOneHot по свободным клеткам от
+  −β·H(y^{i←a})) = среднее ceOneHot (y i) (localFieldLogit −β·L_i);
+  чистая алгебра без премиз на y (пустое F даёт равные пустые средние).
+- `pseudolikelihood_local_field_gradient` — (premise-form) при
+  HasFDerivAt Lmap Lmap' θ: fderiv ceOneHot t (−β·Lmap) в точке θ на
+  направлении h = Σ_v (q_v − 1[v=t])·(−β·Lmap' h v) — СУЩЕСТВУЮЩИЙ
+  CEGradient.fderiv_ceOneHot_comp_apply на масштабированном поле.
+- `pseudolikelihood_freeCell_B_gradient` — (chain rule) B входит в L_i
+  аффинно (производная proj i): fderiv цели по B в направлении h =
+  (1/|F|)·Σ_{i∈F} Σ_a (q_i(a) − 1[a=y_i])·(−β·h i a); носитель значений
+  α : Type (стержень CEGradient вселенной 0); K-градиент НЕ утверждается
+  (rank-1 оператор на литералах соседей — отложен честно).
+- `symmetrizeCoupling` / `symmetric_parameterization_preserves_hK` —
+  конструктивный симметризатор (K̃+K̃ᵀ)/2 даёт премизу hK по построению.
+
 ## Hagi/Model/EnergyReasoning/LatentEnergy.lean
 
 - Track E3 (addendum A9 §E3 + A9-supplement, CRAM Maze-Hard): латентная

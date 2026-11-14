@@ -2468,3 +2468,50 @@ C260 — сертификат перестаёт быть периферийны
   обновления не покрываются (hz сдвигается), сходимость НЕ утверждается
   (RootApi-пины: meanField_coordinate_joint_update_eq_singleCell,
   meanField_coordinate_convergence отсутствуют).
+
+### B2 (дополнение A11): PL → локально-полевая CE с β и свободными клетками
+
+Мост
+([`conditionalLogit_eq_neg_localField_add_const`](Hagi/Model/EnergyReasoning/PseudolikelihoodLocalField.lean))
+от псевдоправдоподобия C259 к ЛОКАЛЬНОМУ ПОЛЮ C261: off-i энергия —
+константа кандидата, PL обучает ровно CE на −β·L_i по СВОБОДНЫМ
+клеткам:
+
+- НОСИТЕЛЬ: `CRAMProblem` (allowed / givens / hgiven / hnonempty;
+  поле названо givens (идентификатор given запрещён парсером Lean в
+  терм-позиции)); freeCells = {i : givens i = none} — маска
+  свободных клеток, по которой усредняется цель.
+- СОКРАЩЕНИЕ (B2 MAIN): при симметричной K дельта-тождество C261
+  (`single_cell_move_energy_delta_symm`, переиспользовано дословно)
+  читается как константа: −H(y^{i←a}) = −L_i(a) + C_i(y), C_i(y) =
+  L_i(y_i) − H(y) не зависит от a. Числовой якорь Fin 2 × Bool:
+  LF_0(t)=3, LF_0(f)=0, H(t,t)=5, H(f,t)=2 — обе ветви (probe C266).
+- SHIFT-ИНВАРИАНТНОСТЬ (аудит-пин): лемма «softmax от константного
+  сдвига» в Prelude/Concat/SoftmaxFix ОТСУТСТВУЕТ (проверено rg) —
+  добавлены минимальные приватные `softDef_add_const` /
+  `ceOneHot_add_const` в новом файле (additive; Prelude не тронут).
+  Следствия: `conditionalDist_eq_localField_softmax` —
+  softDef(−β·H-варианта) = softDef(−β·L_i) для ЛЮБОГО β (сдвиг
+  сокращается безусловно, без знаковых премиз на β);
+  `pseudolikelihood_eq_local_CE_beta` — J_PL (энергетическая форма) =
+  среднее по свободным клеткам ceOneHot (y i)(−β·L_i) — константы
+  сокращаются и в CE.
+- ГРАДИЕНТ (premise-form + chain rule):
+  `pseudolikelihood_local_field_gradient` — при HasFDerivAt Lmap Lmap' θ
+  производная локальной CE = Σ_v (q_v − 1[v=t])·(−β·Lmap' h v) —
+  СУЩЕСТВУЮЩИЙ CEGradient.fderiv_ceOneHot_comp_apply instantiated на
+  (−β)•Lmap (const_smul), новой CE-теории нет;
+  `pseudolikelihood_freeCell_B_gradient` — B входит в L_i аффинно
+  (производная proj i), поэтому fderiv J_PL по B в направлении h =
+  (1/|F|)·Σ_{i∈F}Σ_a (q_i(a) − 1[a=y_i])·(−β·h i a); носитель значений
+  α : Type — стержень CEGradient вселенной-0, универсальность α
+  сохранена на уровне идентичностей (Type*), градиент фиксирует Type.
+- ПАРАМЕТРИЗАЦИЯ: `symmetrizeCoupling` (K̃+K̃ᵀ)/2 удовлетворяет hK по
+  построению (`symmetric_parameterization_preserves_hK`, ring).
+- Честные границы: K-градиент НЕ утверждается (K входит в L_i через
+  литералы соседей y_j — rank-1 оператор на параметр, отложен);
+  сходимости/десцента нет (формула, не сертификат обучения);
+  идентичности свободных клеток — беспремизная алгебра (пустое F даёт
+  равные пустые средние); hK — реальная премиза сокращения
+  (RootApi-пины: pseudolikelihood_K_gradient,
+  freeCellPseudolikelihood_descent отсутствуют).
