@@ -91,4 +91,65 @@ theorem floor_catches :
     have h0 := h 0
     norm_num at h0
 
+/-! ### Общий индекс (C282, план-мастер v3 A10, остатки): ядро без
+жёсткого `Fin 5`
+
+Замороженный `MeasuredState` (Freeze) остаётся нетронутым; общая
+версия `MeasuredStateG` параметризует индекс качества — жёсткий
+`Fin 5` становится выбором ПОТРЕБИТЕЛЯ (NCStepCert, StepCert), а не
+ограничением ядра (паттерн CertStepGen, C278). Мосты в обе стороны
+при `Idx = Fin 5`. -/
+
+/-- Состояние с закреплённым измерителем качества ОБЩЕГО индекса:
+`evaluate : S → (Idx → ℝ)`; `Idx = Fin 5` даёт замороженный
+`MeasuredState`. -/
+structure MeasuredStateG (S Idx : Type*) where
+  evaluate : S → (Idx → ℝ)
+
+/-- МОСТ замороженный → общий: каждый `MeasuredState` (Fin 5)
+является `MeasuredStateG` при `Idx = Fin 5`. -/
+def MeasuredState.toMeasuredStateG (M : MeasuredState S) :
+    MeasuredStateG S (Fin 5) where
+  evaluate := M.evaluate
+
+/-- МОСТ общий → замороженный: общий носитель при `Idx = Fin 5`
+является `MeasuredState`. -/
+def MeasuredStateG.toMeasuredState (M : MeasuredStateG S (Fin 5)) :
+    MeasuredState S where
+  evaluate := M.evaluate
+
+/-- Покомпонентный floor-контракт общего индекса. -/
+def FloorKeptG {S Idx : Type*} (M : MeasuredStateG S Idx)
+    (s : S) (floor : Idx → ℝ) : Prop :=
+  ∀ i, floor i ≤ M.evaluate s i
+
+/-- Общий аналог `floor_preserved`: итоговое состояние траектории
+сохраняет floor, если каждое состояние цепочки его держит — для
+произвольного индекса качества (не только `Fin 5`). -/
+theorem floor_preserved_g {S Idx : Type*} (M : MeasuredStateG S Idx)
+    (floor : Idx → ℝ) (s₀ : S)
+    (steps : List S)
+    (h₀ : FloorKeptG M s₀ floor)
+    (hchain : ∀ s ∈ steps, FloorKeptG M s floor) :
+    FloorKeptG M (steps.foldl (fun _ s => s) s₀) floor := by
+  have key : ∀ (l : List S) (z : S),
+      l.foldl (fun _ s => s) z = l.getLastD z := by
+    intro l z
+    induction l generalizing z with
+    | nil => rfl
+    | cons s rest ih =>
+      rw [List.foldl_cons, ih, List.getLastD_cons]
+  rw [key]
+  cases steps with
+  | nil => exact h₀
+  | cons s rest =>
+    rw [List.getLastD_cons]
+    induction rest generalizing s with
+    | nil => exact hchain s (List.mem_cons_self ..)
+    | cons t tl ih =>
+      rw [List.getLastD_cons]
+      apply ih
+      intro x hx
+      exact hchain x (List.mem_cons_of_mem s hx)
+
 end Hagi.Unified.LinkedQVec
