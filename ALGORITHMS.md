@@ -2759,3 +2759,49 @@ Finset упорядоченных пар, граф — симметрическ�
   семантика Maze-Hard (носитель z*, достижимость, совместные
   (z,y)-обновления) остаётся ОТКРЫТОЙ; softmax-Липшиц по z —
   премиза, не теорема.
+
+### D3 (дополнение A11): sparse local field — эквивалентность и счёт операций
+
+Заявленное FLOP-преимущество ЛОКАЛЬНЫХ (sparse) связей — как ТЕОРЕМЫ
+([SparseField](Hagi/Model/EnergyReasoning/SparseField.lean)):
+
+- НОСИТЕЛЬ: соседство `N : ι → Finset ι`; премиза-форма носителя
+  связи `couplingSupportedOn N K` (j ∉ N i → K i j a b = 0,
+  пофункционально); `sparseLocalField N B K y i a = B i a +
+  ∑_{j ∈ N i} K i j a (y j)` — сумма ТОЛЬКО по соседям.
+- КОНВЕНЦИЯ (C260, challenge-pin): плотное поле C261 суммирует по
+  `univ \ {i}` (упорядоченные пары, 1/2 СНАРУЖИ в энергии);
+  `sparse_neighbours_subset`: без само-соседей (∀ i, i ∉ N i)
+  `N i ⊆ univ \ {i}` ДОСЛОВНО — сплит не создаёт и не разрушает
+  диагональных вкладов; премиза hN load-bearing.
+- ЭКВИВАЛЕННОСТЬ (D3 MAIN):
+  `Hagi.Model.EnergyReasoning.sparse_localField_eq_dense` — при
+  носителе связи и без само-соседей sparse-поле РАВНО плотному
+  `localField` (нулевые связи не вносят ничего; Finset.sum_subset).
+- ДЕЛЬТА (D3 MAIN):
+  `Hagi.Model.EnergyReasoning.sparse_update_energy_delta_eq` — при
+  симметричном K точная дельта одно-клеточного хода плотной
+  pairwiseEnergy равна разности SPARSE-полей — тождество C261
+  `single_cell_move_energy_delta_symm` СЦИТИРОВАНО (rw), не
+  перепроверено.
+- СЧЁТ ОПЕРАЦИЙ (D3 MAIN): `localField_dense_work` /
+  `localField_sparse_work` (ℕ-произведения card·(card α)²,
+  Σ_{j∈N i} card α² одной формулой; work-model ОПРЕДЕЛЕНИЯ, не
+  асимптотика); `localField_op_count_le` (N i ⊆ univ \ {i} ⇒
+  sparse ≤ dense, Finset.card_le_card под общим множителем (card α)²);
+  `localField_op_count_lt` (СТРОГО при собственном подмножестве
+  соседей и 0 < card α — премиза НЕОБХОДИМА: пустой α обнуляет оба
+  произведения); `neighbour_card_le` ((N i).card ≤ card ι,
+  subset_univ).
+- СИММЕТРИЧНОЕ ХРАНЕНИЕ: `sparse_support_of_symmetric` —
+  симметричный K + носитель ⇒ транспонированная сторона тоже нулевая
+  (i ∉ N j → K i j a b = 0): симметричное хранение не протаскивает
+  ненулевую связь мимо соседних множеств.
+- Числовые якоря: Fin 4, клетка 0 с 2 из 3 соседей {1,3};
+  sparse = dense (все клетки/значения); работа 2·4 = 8 < 12 = 3·4
+  (decide).
+- Честные границы (docstring): счёт — ℕ-произведения (без
+  арифметической модели и O-нотаций); носитель — премиза (что
+  произвольный K допускает малое N — НЕ теорема); для конструктивно
+  симметризованного ядра (рецепт C271 attentionCoupling) носитель
+  даёт N i ∪ N j-формы — замечание-документация, не теорема.

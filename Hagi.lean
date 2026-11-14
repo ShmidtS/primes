@@ -187,6 +187,7 @@ import Hagi.Model.EnergyReasoning.GreedyTermination
 import Hagi.Model.EnergyReasoning.ValiditySeparation
 import Hagi.Model.EnergyReasoning.NumericalRobustness
 import Hagi.Model.EnergyReasoning.AttentionCoupling
+import Hagi.Model.EnergyReasoning.SparseField
 import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout

@@ -5535,3 +5535,37 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Честные границы: структурный мост CRAM+Z; полная семантика
   Maze-Hard (носитель z*, достижимость, совместные обновления)
   открыта; softmax-Липшиц по z — премиза.
+
+## Hagi/Model/EnergyReasoning/SparseField.lean
+
+- Track D3 (дополнение A11 P3): sparse field update correctness —
+  FLOP-преимущество локальных связей как теоремы (эквивалентность
+  полей + счёт операций).
+- `Hagi.Model.EnergyReasoning.couplingSupportedOn` — премиза-форма
+  носителя связи (j ∉ N i → K i j a b = 0);
+  `sparseLocalField` — поле по соседям только.
+- `Hagi.Model.EnergyReasoning.sparse_neighbours_subset` — без
+  само-соседей N i ⊆ univ \ {i} ДОСЛОВНО (конвенция C260
+  упорядоченных пар, challenge-pin; hN load-bearing).
+- `Hagi.Model.EnergyReasoning.sparse_localField_eq_dense` —
+  (D3 MAIN) sparse-поле = плотное localField (нулевые связи не
+  вносят ничего; Finset.sum_subset).
+- `Hagi.Model.EnergyReasoning.sparse_update_energy_delta_eq` —
+  (D3 MAIN) при симметричном K дельта энергии одно-клеточного хода =
+  разность sparse-полей (C261 single_cell_move_energy_delta_symm
+  сцигтирован, не перепроверен).
+- `Hagi.Model.EnergyReasoning.localField_dense_work` /
+  `localField_sparse_work` — ℕ-произведения card·(card α)² (work-model
+  определения; Σ_{j∈N i} card α² одной формулой);
+  `Hagi.Model.EnergyReasoning.localField_op_count_le` — sparse ≤
+  dense; `Hagi.Model.EnergyReasoning.localField_op_count_lt` — СТРОГО
+  при собственном подмножестве соседей и 0 < card α (премиза
+  необходима: пустой α обнуляет оба);
+  `Hagi.Model.EnergyReasoning.neighbour_card_le` — (N i).card ≤
+  card ι.
+- `Hagi.Model.EnergyReasoning.sparse_support_of_symmetric` —
+  симметричное хранение не протаскивает ненулевую связь мимо
+  соседних множеств (транспонированный носитель).
+- Якорь: Fin 4, 2 из 3 соседей, sparse = dense, 8 < 12 (decide).
+- Честные границы: счёт — без асимптотики и модели арифметики;
+  носитель — премиза (не теорема существования малого N).
