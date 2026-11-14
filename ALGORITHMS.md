@@ -2515,3 +2515,59 @@ C260 — сертификат перестаёт быть периферийны
   равные пустые средние); hK — реальная премиза сокращения
   (RootApi-пины: pseudolikelihood_K_gradient,
   freeCellPseudolikelihood_descent отсутствуют).
+
+### B3 (дополнение A11): типизированные CRAM-переходы → каноническое Cert-ядро
+
+CRAM-переходы
+([CramContracts](Hagi/Model/EnergyReasoning/CramContracts.lean))
+становятся типизированными premise-form контрактами над носителем
+CRAMState с точными ресурсными законами (budget' = budget − cost,
+неотрицательный остаток) и мостом в каноническое ядро Hagi.Cert:
+
+- ПОЛЯРНОСТЬ (typed): `MetricDirection` (UtilityFloor | LossCeiling)
+  с match-предикатами kept / improves; мост-фикс полярности
+  `MetricDirection.kept_lossCeiling_neg`: потолок потерь c ⇔ пол полезности −c для
+  НЕГАТИРОВАННОЙ цели — ядерная FloorsKept (форма пола) читает
+  потери negацией — типизированно и явно (энергодесцент = LossCeiling).
+  Прямой мост kept_floor_forwards безусловен; обратный
+  kept_floor_iff требует Nonempty TaskId (пустое пространство задач
+  даёт вакуумную FloorsKept — премиза нагружена, не декоративна).
+- НОСИТЕЛЬ: `CRAMState` (problem : CRAMProblem C266, board, latent
+  Option, searchBudget ℕ, computeBudget ℝ, riskRem, deltaRem) +
+  компонентная ext_iff.
+- ОБУЧЕНИЕ: `CRAMTrainStep` — measured-drop премиза на цели
+  freeCellPseudolikelihood (J(newB) ≤ J(oldB) − drop, drop ≥ 0;
+  градиентного доказательства НЕТ — premise-form) + точные
+  ресурсные законы; majorizer-вход measured_of_majorizer (суррогат
+  заякорен равенством на старых параметрах, новая цель бьёт
+  суррогат на drop) — классическая majorize-minimize форма.
+- ЭНЕРГОДЕСЦЕНТ: `CRAMEnergyDescentStep` — строго положительная
+  локально-полевая маржа C261 (margin_pos в форме L_i(y_i) −
+  L_i(move) > 0), строгое падение strictDrop переиспользует
+  strict_drop_of_positive_margin ДОСЛОВНО (board_next = update);
+  MarginBudget-учёт: маржа списывается из riskRem (risk_next =
+  riskRem − margin, остаток ≥ 0); toLossCeilingDrop упаковывает
+  дроп как типизированный LossCeiling improves.
+- ЭКСПЛОРАЦИЯ: `CRAMExplorationStep` — легальный переход
+  (положительная масса ядра), row-stochastic премиза ядра (форма
+  C263 mixture_rowsum), клампы (givens) сохранены, поиск
+  потребляется строго. ДЕСЦЕНТ НЕ УТВЕРЖДАЕТСЯ: поле энергии
+  отсутствует, стационарность ≠ монотонность (ядро может поднять
+  энергию; RootApi-пин: CRAMExplorationStep.descent отсутствует).
+- ПРОДУКЦИЯ: `CRAMAcceptedSolution` — ValidityCertificate C263
+  (givens сохранены + ограничения удовлетворены) согласован с
+  доской; энерго-граница опциональна (validity ничего не говорит
+  об энергии — E4 сепарация).
+- МОСТ В ЯДРО: `CRAMEnergyDescentStep.toKernelCertStep` (паттерн
+  HonestTransition.toKernelCertStep C254): при явных премизах
+  чтения метрик (objective = энергия доски, budget =
+  computeBudget, risk = riskRem) десцент-шаг ЕСТЬ канонический
+  Hagi.Cert.CertStep — телескоп ядра применим к сертифицированным
+  CRAM-траекториям. Hold = полное равенство состояния:
+  HoldStep.cram_state_components фиксирует все 7 компонент
+  (problem/board/latent/budgets/risk/delta), ядро HoldStep
+  переиспользовано без изменений.
+- Честные границы: measured/majorizer — премизы (градиентная
+  формула B2 не сворачивается в сертификат здесь); десксент
+  эксплорации не утверждается; адаптер не постулирует ambient
+  SystemMetrics — все чтения явные премизы.

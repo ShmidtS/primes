@@ -2437,6 +2437,43 @@ one-hot CE.
 - `symmetrizeCoupling` / `symmetric_parameterization_preserves_hK` —
   конструктивный симметризатор (K̃+K̃ᵀ)/2 даёт премизу hK по построению.
 
+## Hagi/Model/EnergyReasoning/CramContracts.lean
+
+- Мост B3 (дополнение A11): типизированные CRAM-переходы →
+  каноническое Cert-ядро с точными ресурсными законами.
+- `MetricDirection` (UtilityFloor | LossCeiling) + kept / improves —
+  типизированная полярность метрик; kept_lossCeiling_neg — фикс
+  полярности: потолок потерь ⇔ пол для негативированной цели
+  (ядерная FloorsKept читает потери negацией); kept_floor_forwards
+  безусловен, kept_floor_iff требует Nonempty TaskId (нагруженная
+  премиза — пустое пространство задач даёт вакуумную FloorsKept).
+- `CRAMState` — носитель переходов (problem / board / latent /
+  searchBudget ℕ / computeBudget ℝ / riskRem / deltaRem) +
+  компонентная ext_iff.
+- `CRAMTrainStep` — контракт обучения на freeCellPseudolikelihood:
+  measured-drop премиза (premise-form, без градиентного
+  доказательства) + точные законы бюджетов;
+  `CRAMTrainStep.measured_of_majorizer` — majorizer-вход (суррогат
+  заякорен равенством на старых параметрах).
+- `CRAMEnergyDescentStep` — десцент из C261: margin_pos (форма
+  L_i(y_i) − L_i(move) > 0) → strictDrop переиспользует
+  strict_drop_of_positive_margin дословно; MarginBudget-учёт
+  (маржа списывается из riskRem, остаток ≥ 0);
+  toLossCeilingDrop — дроп как типизированный LossCeiling
+  improves; toKernelCertStep — мост в канонический
+  Hagi.Cert.CertStep (паттерн HonestTransition.toKernelCertStep
+  C254) при явных премизах чтения метрик — телескоп ядра
+  применим.
+- `CRAMExplorationStep` — легальный переход (положительная масса
+  ядра + row-stochastic премиза формы C263 + клампы сохранены +
+  поиск потребляется строго); ДЕСЦЕНТ НЕ УТВЕРЖДАЕТСЯ (поля
+  энергии нет; стационарность ≠ монотонность).
+- `CRAMAcceptedSolution` — ValidityCertificate C263 согласован с
+  доской; энерго-граница опциональна (E4 сепарация).
+- `Hagi.Cert.HoldStep.cram_state_components` — Hold = полное
+  равенство состояния (все 7 компонент; ядро HoldStep
+  переиспользовано без изменений).
+
 ## Hagi/Model/EnergyReasoning/LatentEnergy.lean
 
 - Track E3 (addendum A9 §E3 + A9-supplement, CRAM Maze-Hard): латентная

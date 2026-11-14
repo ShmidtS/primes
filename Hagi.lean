@@ -179,6 +179,7 @@ import Hagi.Model.CEScaleSelection
 import Hagi.Model.CEGroupedScale
 import Hagi.Model.EnergyReasoning.Pseudolikelihood
 import Hagi.Model.EnergyReasoning.PseudolikelihoodLocalField
+import Hagi.Model.EnergyReasoning.CramContracts
 import Hagi.Model.EnergyReasoning.LatentEnergy
 import Hagi.Model.EnergyReasoning.EnergySearch
 import Hagi.Model.EnergyReasoning.EnergyStopping
