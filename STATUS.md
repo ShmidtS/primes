@@ -5625,6 +5625,26 @@ merger cert carriers (Freeze-дисциплина: statement change).
   суммируемости R1; сама суммируемость НЕ заявлена.
 - Числовые якоря: fan2/yan2 (Fin 2/Bool) — ПРИКЛАДНОЙ якорь:
   энергия 0 → −2 через саму раунд-теорему (w1 = w2, ε = 0).
+- `Hagi.Model.EnergyReasoning.alternating_round_slack_summable`
+  — (B4 N1, C294) суммируемость слэка раунда: геометрическое
+  затухание (премиза `slack (t+1) ≤ (Δ/m)·slack t`; поставка
+  C·η_t-части — alternating_zphase_one_step_error) ⇒ все частичные
+  суммы ≤ `slack 0 · m/(m−Δ)`. Затухание — гипотеза, не вывод.
+- `Hagi.Model.EnergyReasoning.alternating_trajectory_bound` /
+  `alternating_trajectory_descent_budget` — (B4 N2, C294)
+  телескопирование траекторий: пошаговые спады `d t` (премиза)
+  ⇒ `E (y N) ≤ E (y 0) − Σ d t`; пол Emin — ПРЕМИЗА (не вывод),
+  бюджет спада ≤ `E (y 0) − Emin`.
+- `Hagi.Model.EnergyReasoning.alternating_rounds_converge` —
+  (B4 N3, C294) терминальная конечная форма: на конечном
+  пространстве конфигураций строго убывающие раунды терминистируют
+  (длина ≤ мощности образа энергии; C268-ranking переиспользован,
+  greedy_strict_search_terminates процитирован). ТОЛЬКО конечная/
+  строгая версия: безусловная аналитическая сходимость
+  alternating_round_converges остаётся ОТКРЫТОЙ (негатив-пин
+  неизменен; терминация ≠ сходимость к минимуму).
+- Числовые якоря (C294, через сами новые теоремы): Σ (1/2)^t ≤ 2;
+  телескоп 10−t: 7 ≤ 10 − 3.
 - Честные границы: premise-form по всей длине (неточность z-фазы
   и числовая ошибка — гипотезы); безусловной совместной (z,y)-
   теоремы НЕТ: alternating_round_converges /
