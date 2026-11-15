@@ -6477,3 +6477,40 @@ merger cert carriers (Freeze-дисциплина: statement change).
   асимптотик; нет вероятности и эмпирических констант.
   Негативы (unstructured/NP-трудность) проверены отсутствием
   деклараций (rootapi-негативы, `.tmp/C328/rootapi-neg.log`).
+
+## Hagi/Contracts/ComputeToQuality.lean (C330)
+- Цель GOAL «минимизация вычислений» end-to-end: total compute to
+  quality = (шаги до ε) × (FLOP на шаг) — обе несущие уже
+  приземлены (C291 descent rate, C328 FLOP-учёт), новая только
+  КОМПОЗИЦИЯ на ядре C278 CertStepGen.
+- `budget_telescope_gen`: недостающий четвёртый телескоп ядра —
+  ТОЧНАЯ бюджетная идентичность `budget(t n) = budget(t 0) −
+  Σ spends` (раньше телескопировались только drop/delta/risk).
+- `steps_to_quality` (MAIN 1): равномерный сертифицированный
+  спуск d на шаг (premise-интерфейс к C291: точный safe-step drop
+  2A²/R² из `ceOneHot_safeStep_le_residual` процитирован в
+  docstring, КОНСТАНТ в утверждениях нет) + зазор Δ₀ ≤ n·d ⟹
+  `objective(t n) ≤ ε` (C294-стиль на шагах тренировки, движок —
+  `trajectory_telescope_gen`).
+- `total_compute_to_quality` (MAIN 2) + `totalComputeProduct`:
+  честная потолочная арифметика — минимальность числа шагов
+  (`n·d ≤ Δ₀ + d`, n = ⌈Δ₀/d⌉) это PREMISE (probe-итерация
+  поймала: из спуска следует только Δ₀ ≤ n·d, траектория может
+  «пере-шагать») ⟹ Σ spends ≤ (Δ₀+d)/d · W ≤ (Δ₀/d + 1)·W.
+- `lowrank_total_compute_le`: sparsity-трейдофф в честной
+  premise-форме — если у сжатой конфигурации константа спуска не
+  лучше (`d ≤ d'` — посылка, НЕ утверждение, что компрессия
+  сохраняет скорость спуска), Δ₀ ≥ 0 и 2k ≤ n (условие C328
+  `lowrank_op_count_le`), то идеализированный low-rank тотал
+  (Δ₀/d')·2kn бьёт плотный (Δ₀/d)·n². Фронтир (d, W) эмпирический.
+- `compute_budget_certificate` (MAIN 3): resource-ledger-упаковка
+  (бюджетный закон C267 для вычислений) — одновременно: качество
+  достигнуто, бюджет сходится точно `budget(t n) = budget(t 0) −
+  n·W`, тотал-леджер Σ spends = n·W.
+- Якоря (Anchor): Δ₀=1, d=1/100 ⟹ 100 шагов (`anchor_gap`);
+  W=1000 ⟹ `totalComputeProduct 1 (1/100) 1000 = 100000` FLOPs
+  (`anchor_total`, norm_num).
+- Честные границы: ТОЛЬКО детерминированный спуск (никакой
+  адаптивности/SGD-шума); минимальность шагов — посылка; фронт
+  (d, W) эмпиричен, числа — только в числовых якорях; work-model
+  C328 (entry-reads), без асимптотик и вероятности.
