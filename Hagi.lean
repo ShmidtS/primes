@@ -192,6 +192,7 @@ import Hagi.Model.EnergyReasoning.AttentionCoupling
 import Hagi.Model.EnergyReasoning.AlternatingRound
 import Hagi.Model.EnergyReasoning.SparseField
 import Hagi.Model.EnergyReasoning.LatentSupport
+import Hagi.Model.EnergyReasoning.EnergyClassGeneralization
 import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
