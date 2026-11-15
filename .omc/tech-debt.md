@@ -381,3 +381,24 @@ RMSNorm unit-RMS giving bounded logit scale feeding C291 constants
 (`Hagi/Model/RMSNorm.lean`); (5) chain rungs 1-4 into
 `resStack_transfer_descent` for the full FastArch3 stack. Not
 claimed anywhere: full forward/backward certificate.
+
+## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
+
+E5 Venn/RAM compiler bridges (rank 3 of the C292-C297 analysis).
+C301 lands the ANF CORE seed
+(`Hagi/Data/AnfTransform.lean`): the Zhegalkin/Möbius transform
+as the recursive butterfly on truth tables
+(`(Fin n → Bool) → Bool`), its INVOLUTION (`anf_inversion` —
+Möbius inversion on the Boolean lattice, butterfly induction +
+GF(2) linearity `anf_add`), the subcube parity characterization
+(`anf_subcube`: c_S = parity of f over {x ⊆ S}, in ZMod 2), and
+the compile roundtrip (`anf_eval_eq`: eval ∘ transform = id) with
+Fin 2 XOR/AND decide anchors. REMAINING LADDER (each rung a
+candidate beat): (1) compose3 — the ternary Venn composition on
+the Python side mapped onto the two-variable lattice carriers;
+(2) context signatures — the Python V3 context-signature extraction
+as a typed statement over the same carriers; (3) argument ranges —
+range/dispatch correctness for compiled Venn arguments; (4)
+collision abstention — the abstain-on-collision policy as a
+certified predicate. Not claimed anywhere: end-to-end Python V3
+compiler equivalence.

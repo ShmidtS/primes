@@ -2088,6 +2088,16 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   `vennHead_exact`. Грунт эмпирических ADD4/SUB4 100% на
   decide/norm_num уровне; трёхвходовой полный сумматор вне
   двухпеременной решётки (заявлений нет).
+- **ANF/Möbius ядро (E5 seed)** ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
+  преобразование Жегалкина `anfTransform` (рекурсивная бабочка на
+  носителе таблиц истинности `(Fin n → Bool) → Bool`) — ИНВОЛЮЦИЯ
+  (`anf_inversion`, обращение Мёбиуса на булевой решётке);
+  коэффициент = чётность по подкубу (`anf_subcube`,
+  `c_S = ⊕_{x ⊆ S} f(x)` в ZMod 2); roundtrip компилятора ANF:
+  синтез + вычисление возвращает исходную функцию (`anf_eval_eq`,
+  все n); якоря Fin 2 XOR/AND (`anfFin2_xor/and`,
+  `anfFin2_xor_coeffs`). compose3/контекстные сигнатуры/диапазоны/
+  abstention — не заявлены (лестница TD E5-C301).
 
 ## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
 

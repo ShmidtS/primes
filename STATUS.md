@@ -5879,3 +5879,31 @@ merger cert carriers (Freeze-дисциплина: statement change).
   два блока 21/100 ≥ 1/5). Честная граница: attention-якобианы,
   RoPE-точность, GDN RAM-звено, RMSNorm-константы — НЕ заявлены
   (лестница продолжений в tech-debt E4-C300).
+
+## Hagi/Data/AnfTransform.lean
+
+- C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
+  `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная
+  «бабочка» на последней координате (`T f = (T f₀, T f₀ ⊕ T f₁)`,
+  вычислимое, носитель `(Fin n → Bool) → Bool` — таблицы истинности
+  над конечным типом, маски `Hagi.Data.BoolVenn` суть случай n=2).
+- `anf_inversion` — ядро корректности: преобразование — ИНВОЛЮЦИЯ
+  (`anfTransform (anfTransform f) = f` для всех n) — обращение
+  Мёбиуса на булевой решётке; доказано бабочка-индукцией: ложная
+  половина — IH, истинная — линейность `anf_add` + сокращение GF(2)
+  `a ⊕ (a ⊕ b) = b`.
+- `anf_subcube` — характеристика через таблицу истинности:
+  коэффициент ANF при `S` есть чётность `f` по подкубу `x ⊆ S`
+  (`c_S = ⊕_{x ⊆ S} f(x)`, в арифметике чётности `ZMod 2`,
+  `anfBit`); бабочка и подкуб-сумма — одно и то же преобразование.
+- `anfEval` + `anf_eval_eq` — seed корректности компилятора ANF:
+  синтез коэффициентов из таблицы истинности и вычисление ANF
+  обратно возвращает исходную функцию (roundtrip `eval ∘ transform
+  = id`, все n).
+- Числовые якоря (Fin 2, decide): `anfFin2_xor` / `anfFin2_and` —
+  transform→eval→original для XOR/AND; `anfFin2_xor_coeffs` —
+  преобразование XOR есть линейный ANF (константный коэффициент
+  false, одно-переменный true).
+- Честная граница: compose3, контекстные сигнатуры, диапазоны
+  аргументов, collision abstention — НЕ заявлены (лестница E5 в
+  tech-debt TD E5-C301).
