@@ -401,6 +401,65 @@ theorem ceOneHot_decodeJoint_le_ceBound_param {G : ℕ}
   linarith
 
 /-!
+## C291 tranche four: the C1 single-example descent bridge
+
+Migration tranche four (`.tmp/C291/`): closes the C286 ledger row 9
+(the C285 receipt "C1 single-example P-DESCENT").  The C1 one-step
+descent certificate `CEDescent.ceOneHot_next_le` lives entirely on the
+pointwise CE functional, so it bridges to `headCE` at `LogitMap.ident`
+definitionally (constants verbatim), and the batch axis composes
+trivially through the C285 P-AGGREGATE core at `Reduction.uniform`
+over the singleton batch — the only tranche exercising `.uniform`.
+The frozen original is used, not restated; `ce_first_order_eq` (the
+row-9 companion) is proof-level machinery consumed inside the frozen
+proof, used as-is.
+-/
+
+/-- Parametric instance (C291) of P-DESCENT at the C1 single-example
+certificate: the bridge form of `CEDescent.ceOneHot_next_le`, with the
+identical conclusion constants (`- eta * ceAlignment +
+(eta * ceStepRange) ^ 2 / 8`); proved by the frozen original through
+the definitional `headCE_ident`. -/
+theorem ceOneHot_next_le_param {V : Type} [Fintype V] [Nonempty V]
+    {d : ℕ} (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
+    (t : V) {eta : ℝ} (heta : 0 ≤ eta) :
+    headCE .ident t (Hagi.Model.ceNextLogits X θ t eta) ≤
+      headCE .ident t (Hagi.Model.ceLogits X θ) -
+        eta * Hagi.Model.ceAlignment X θ t
+        + (eta * Hagi.Model.ceStepRange X θ t) ^ 2 / 8 :=
+  Hagi.Model.ceOneHot_next_le X θ t heta
+
+/-- Parametric instance (C291): the single-example descent composed
+through the batch aggregation core at `Reduction.uniform` +
+`LogitMap.ident` over the singleton batch, conclusion in collapsed
+constant form (same constants as the frozen original). -/
+theorem headLoss_uniform_next_le_param {V : Type} [Fintype V]
+    [Nonempty V] {d : ℕ} (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) {eta : ℝ} (heta : 0 ≤ eta) :
+    headLoss (⟨.ident, .uniform⟩ : HeadConfig (Fin 1)) (fun _ => t)
+        (fun _ => Hagi.Model.ceNextLogits X θ t eta) ≤
+      headLoss (⟨.ident, .uniform⟩ : HeadConfig (Fin 1)) (fun _ => t)
+        (fun _ => Hagi.Model.ceLogits X θ) -
+        eta * Hagi.Model.ceAlignment X θ t
+        + (eta * Hagi.Model.ceStepRange X θ t) ^ 2 / 8 := by
+  have h := headLoss_le_of_forall_headCE_le
+    (⟨.ident, .uniform⟩ : HeadConfig (Fin 1)) (fun _ => t)
+    (fun _ => Hagi.Model.ceNextLogits X θ t eta)
+    (fun _ => Hagi.Model.ceLogits X θ)
+    (fun _ => -eta * Hagi.Model.ceAlignment X θ t
+      + (eta * Hagi.Model.ceStepRange X θ t) ^ 2 / 8)
+    (fun i => by simp [Reduction.weight])
+    (fun i => by
+      show headCE LogitMap.ident t (Hagi.Model.ceNextLogits X θ t eta) ≤
+        headCE LogitMap.ident t (Hagi.Model.ceLogits X θ) +
+        (-eta * Hagi.Model.ceAlignment X θ t
+          + (eta * Hagi.Model.ceStepRange X θ t) ^ 2 / 8)
+      linarith [ceOneHot_next_le_param X θ t heta])
+  simp only [headLoss, Reduction.weight, Fin.sum_univ_one, one_mul]
+    at h ⊢
+  linarith
+
+/-!
 ## C286 tranche three: the remaining C5 P-DESCENT margin-sum pair and
 the C6 contracts wrapper bridges
 
