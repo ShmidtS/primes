@@ -263,4 +263,62 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
       exact h
   linarith [strong n]
 
+/-! ## TransitionStep lift (C290, kernel-unification closeout)
+
+The frozen `TransitionStep` (progress | hold) is lifted to the gen
+kernel through the C278 embedding `certStep_to_gen`.  A hold is
+honestly `none`: the kernel demands a POSITIVE certified drop and a
+hold makes no progress claim — faking a zero-drop certificate would
+be a defect, so the bridge is Option-valued (the C280 StepProvider
+precedent: Option = "no certified step from here").  The trajectory
+composition lemma links OLD progress trajectories to the EXISTING
+gen telescope (C278 already provides `trajectory_telescope_gen`;
+nothing is re-proved here). -/
+
+/-- Bridge embedding the frozen `TransitionStep` into the gen
+kernel at the zero delta level: progress lands on the C278
+`certStep_to_gen` embedding, hold honestly yields `none`. -/
+def transitionStep_to_gen {s s' : S}
+    (h : TransitionStep M obl s s') :
+    Option (CertStepGen M obl (fun _ => 0) s s') :=
+  match h with
+  | .progress c => some (certStep_to_gen M obl c)
+  | .hold _ => none
+
+/-- The progress case of the bridge lands EXACTLY on the C278
+embedding (the bridge composes with `certStep_to_gen`; no third
+adapter is introduced). -/
+theorem transitionStep_to_gen_progress {s s' : S}
+    (c : CertStep M obl s s') :
+    transitionStep_to_gen M obl (TransitionStep.progress c)
+      = some (certStep_to_gen M obl c) := rfl
+
+/-- Extract form for consumers (premise-form, the C278 bridge
+pattern): a `TransitionStep` witnessed as progress carries the gen
+certificate obtained through the existing embedding. -/
+theorem transitionStep_progress_to_gen {s s' : S}
+    (h : TransitionStep M obl s s') (c : CertStep M obl s s')
+    (hc : h = TransitionStep.progress c) :
+    transitionStep_to_gen M obl h = some (certStep_to_gen M obl c) := by
+  rw [hc]
+  exact transitionStep_to_gen_progress M obl c
+
+/-- Composition lemma linking old trajectories through the bridge to
+the EXISTING gen-kernel telescope (C278 `trajectory_telescope_gen`):
+a trajectory of `TransitionStep`s in which every step is witnessed
+progress satisfies the gen telescope bound.  The all-progress premise
+is honest — a hold makes no drop claim and cannot appear in a
+progress telescope.  No new telescope is proved; this is transport
+through the bridge. -/
+theorem trajectory_telescope_progress_bridge
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, TransitionStep M obl (t j) (t (j + 1)))
+    (hprog : ∀ j : ℕ, ∃ c : CertStep M obl (t j) (t (j + 1)),
+      steps j = TransitionStep.progress c) :
+    M.objective (t n) ≤ M.objective (t 0)
+      - ∑ j ∈ Finset.range n,
+        (certStep_to_gen M obl (Classical.choose (hprog j))).drop := by
+  exact trajectory_telescope_gen M obl (fun _ => 0) n t
+    (fun j => certStep_to_gen M obl (Classical.choose (hprog j)))
+
 end Hagi.Cert
