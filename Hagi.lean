@@ -486,6 +486,7 @@ import Hagi.Contracts.GradientBottleneck
 import Hagi.Contracts.GradientBottleneckIdentification
 import Hagi.Contracts.LogitGrad
 import Hagi.Contracts.HadamardTernaryBridge
+import Hagi.Contracts.HadamardSpread
 import Hagi.Contracts.GatePipeline
 import Hagi.Contracts.AuditLedger
 import Hagi.Model.GatedCEGradient
