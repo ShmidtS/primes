@@ -360,7 +360,7 @@ Freeze PASS + STMDUP PASS post-bake. First full bake since C258
 (b) STMDUP check on candidate lock, (c) minimal-diff proof vs
 pre-edit clean-bake, (d) Freeze+STMDUP PASS post-bake.
 
-## TD E4-C300 — nonlinear backbone composition ladder (OPEN, seeded)
+## TD E4-C300 — nonlinear backbone composition ladder (CLOSED C300–C311)
 
 E4 full nonlinear backbone certificate (rank 2 of the C292-C297
 analysis). C300 lands the SEED
@@ -381,6 +381,17 @@ RMSNorm unit-RMS giving bounded logit scale feeding C291 constants
 (`Hagi/Model/RMSNorm.lean`); (5) chain rungs 1-4 into
 `resStack_transfer_descent` for the full FastArch3 stack. Not
 claimed anywhere: full forward/backward certificate.
+
+LADDER STATUS AT C312 (health beat): rungs 1-5 LANDED by C307
+(softmax-map μatt, TD E4-C307), C308 (rope isometry μ=0, TD
+E4-C308), C310 (GDN mHC state-mixing form, TD E4-C310), C309
+(RMSNorm Lipschitz constant μn feeding the C307 pre-norm premise
+- not the unit-RMS→C291-constants route originally sketched, TD
+E4-C309), and C311 (end-to-end FastArch3-shaped certificate +
+premise ledger, TD E4-C311). Full forward/backward certificate
+still not claimed anywhere. Residue: per-instance premise
+discharge (μg gate Lipschitz, P7) tracked in TD E4-C311
+remaining item (2). Ladder CLOSED (was OPEN, seeded).
 
 ## TD E4-C307 — attention block transfer composition (DONE)
 
@@ -569,7 +580,10 @@ the Python side mapped onto the two-variable lattice carriers;
 as a typed statement over the same carriers; (3) argument ranges —
 range/dispatch correctness for compiled Venn arguments; (4)
 collision abstention — the abstain-on-collision policy as a
-certified predicate. Not claimed anywhere: end-to-end Python V3
+certified predicate — LANDED by C306 (TD E5-C306); still open:
+(1) compose3 degree API (see TD E5-C302), (2) context
+signatures, (3) argument ranges, (5) multi-candidate priority
+dispatch. Not claimed anywhere: end-to-end Python V3
 compiler equivalence.
 
 ## TD E5-C302 — ANF compose3 seed + guarded support (OPEN, seeded)
@@ -591,8 +605,8 @@ no monomial/degree API on the carrier yet. REMAINING LADDER:
 (1) degree API + the degree bound as a theorem; (2) context
 signatures — typed extraction statement; (3) argument ranges —
 range/dispatch correctness; (4) collision abstention — certified
-abstain predicate. Not claimed anywhere: end-to-end Python V3
-compiler equivalence.
+abstain predicate — LANDED by C306 (TD E5-C306). Not claimed
+anywhere: end-to-end Python V3 compiler equivalence.
 
 ## TD E5-C306 — ANF dispatch collision abstention (DONE)
 
