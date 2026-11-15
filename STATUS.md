@@ -4386,6 +4386,36 @@ one-hot CE.
   A8 Class-D мотивация 6% → 63% при ≤5% FPR). Ville не
   дублируется — аддитивное расширение C232.
 
+## Hagi/Unified/CountableStitching.lean (C295, P4 E3)
+
+- `stitchedMasterCountable w E t = ∑' k, w k * E k t` — счётное
+  (tsum) сшивание мастером; веса на ℕ с посылкой `Summable w`
+  (load-bearing: без неё junk-tsum опровергает теорему,
+  контрпример w = (3/2)^k с E ≡ 2^{-k} задокументирован в шапке
+  модуля).
+- `stitching_countable_initial_mass`: μ[M₀] = ∑' w k · μ[E k 0] —
+  счётный аналог `stitching_master_initial_mass`; tsum/integral
+  interchange через Mathlib-леммы integral_tsum и
+  ofReal_integral_norm_eq_lintegral_enorm (ennreal-кастинг —
+  вся счётная бухгалтерия).
+- `stitching_countable_ville` (MAIN): Summable w, ∑' w ≤ 1,
+  точечная суммируемость смеси, μ[E k 0] ≤ 1 →
+  μ.real{∃t ≤ n, δ⁻¹ ≤ Mₜ} ≤ δ равномерно по n — та же форма, что
+  конечный `stitching_eprocess_anytime`. Маршрут редукции
+  (аудит C295): существующая конструкция смешивает ВСЕ компоненты
+  во ВСЕ моменты времени (без activation-schedule), поэтому
+  честная редукция — монотонные конечные префиксы: строгий
+  level-c аларм лежит в возрастающем объединении конечных алармов,
+  каждый ограничен конечной теоремой на Fin (K+1); непрерывность
+  снизу (`Monotone.measure_iUnion`) + архимедово сжатие дают порог
+  δ. Конечный движок переиспользован дословно.
+- `stitching_countable_geometric_weights`: ∑' (1/2)^(k+1) = 1 —
+  числовой якорь и конкретное счётное расписание с ДОКАЗАННОЙ
+  суммируемостью (через Mathlib-лемму tsum_geometric_two).
+- Честные границы: счётный супермартингальный closure (condexp
+  tsum) НЕ утверждается и не нужен — мастер сертифицируется только
+  через конечные префиксы; никаких новых concentration-утверждений.
+
 ## Hagi/Architecture/SpaceDecoupling.lean
 
 - `projI U = U·Uᵀ`, `projR U = 1 − U·Uᵀ`; `projI_add_projR`

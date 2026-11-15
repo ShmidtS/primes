@@ -239,6 +239,7 @@ import Hagi.System.StepCertificate
 import Hagi.System.GrowthStateViews
 import Hagi.Unified.AnytimeMartingale
 import Hagi.Unified.StitchingEProcess
+import Hagi.Unified.CountableStitching
 import Hagi.Energy.STEStep
 import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact
