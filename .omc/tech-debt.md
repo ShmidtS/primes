@@ -560,7 +560,11 @@ certified descent for the FastArch3-SHAPED model UNDER the
 ledgered premises — NOT a claim about trained weights or the
 Python runtime; no full forward/backward certificate; softmax-map
 not discharged. Remaining (post-ladder): per-instance μg and P7
-readout-constant discharges (C309 pattern).
+readout-constant discharges — LANDED by C313
+(`gdnGateTanh_lipschitz`, μg = 1 tanh-family; `fastarch3_head_Lc`,
+Lc = 2 ident-logit headCE; premise ledger v2
+`.tmp/C313/premise-ledger-v2.md`); other gate families / non-ident
+logit maps keep their own per-instance constants.
 
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
 
@@ -629,10 +633,12 @@ composition, holding without supportedness; degenerate both-empty
 pair excluded by the Nonempty side-condition and documented), and
 the Fin 2 decide anchors (colliding pair → abstain; disjoint pair
 → dispatch ok). REMAINING LADDER: (1) multi-candidate (>2)
-dispatch with the Python arg-range PRIORITY ordering; (2) degree
-API + degree bound theorem; (3) typed context-signature
-extraction statement. Not claimed anywhere: end-to-end Python V3
-compiler equivalence.
+dispatch with the Python arg-range PRIORITY ordering — LANDED by
+C314 (`dispatchPriority` + `_sound`/`_shadow`/`_agree_sound`, both
+C306-abstention and C314-priority semantics coexist by design); (2)
+degree API + degree bound theorem (open); (3) typed
+context-signature extraction statement (open). Not claimed
+anywhere: end-to-end Python V3 compiler equivalence.
 
 ## TD A12-C304 — credo quarantine deletions step 1 (DONE)
 
