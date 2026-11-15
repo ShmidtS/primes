@@ -586,8 +586,11 @@ range/dispatch correctness for compiled Venn arguments; (4)
 collision abstention — the abstain-on-collision policy as a
 certified predicate — LANDED by C306 (TD E5-C306); still open:
 (1) compose3 degree API (see TD E5-C302), (2) context
-signatures, (3) argument ranges, (5) multi-candidate priority
-dispatch. Not claimed anywhere: end-to-end Python V3
+signatures, (3) argument ranges, (5) multi-candidate
+priority dispatch — LANDED by C314 (`dispatchPriority` +
+`_sound`/`_shadow`/`_agree_sound`, TD E5-C306 cross-ref; both
+C306-abstention and C314-priority semantics coexist by design;
+C323 audit sync). Not claimed anywhere: end-to-end Python V3
 compiler equivalence.
 
 ## TD E5-C302 — ANF compose3 seed + guarded support (OPEN, seeded)
