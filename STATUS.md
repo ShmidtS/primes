@@ -6277,3 +6277,42 @@ merger cert carriers (Freeze-дисциплина: statement change).
   сатурация (2−1)² = 1 пика превращена вращением в полушаговое
   округление (`hsq_two`/`hsqrt_big`/`hsqrt_32`/`x0_two_term_sum` —
   вычислительные кирпичи якорей).
+
+## Hagi/Budget/RDAlloc.lean
+
+- C322 — аудит §7 п.7 (slow-loop композиция RD-сжатия):
+  побитное распределение + закон ошибки по стадиям +
+  изо-Фробениус чувствительность + пересертификация собраны в
+  ОДИН шаговый сертификат. Композиция ONLY: вся математика
+  цитируется из своих носителей (C237/C252/C253/C278), новый —
+  только клей и упаковка.
+- `RDAlloc` — premise-form побитное распределение стадий: bᵢ ≥ 0,
+  εᵢ ≥ 0, ∑bᵢ ≤ bitBudget. HONEST SCOPE: распределение только
+  БЮДЖЕТНОЕ; оптимальность water-filling — C237
+  (`rankResidual_equalized`, `rankResidual_allocation`,
+  `weightedExpAllocation_isoFrob_optimal`), процитирована, НЕ
+  перепроверяется. `rdAllocBytes` = ∑bᵢ/8 (байты), `rdAllocError`
+  = ∑εᵢ (качество), обе неотрицательны.
+- `rd_stage_product_eps` — εᵢ-рецепт факторизованной стадии:
+  КВАДРАТНАЯ форма закона произведения C253
+  (`quantProd_relError_sq` verbatim): frobSq((A+Eᵃ)(B+Eᵇ)−AB) ≤
+  (e+f+ef)²·‖A‖²_F·‖B‖²_F — кросс-член e+f+ef точный, без
+  sqrt-конверсии (sqrt-мир остаётся потребителю).
+- `rd_step_error_bound` (ГЛАВНЫЙ) — composed slow-loop ошибка
+  сжатия: двухстадийный residuary конвейер Ŵ = R1+R2 с
+  аддитивным законом C253 (`residualTwoStage_error_le_add`
+  verbatim: ε₁ знак-посылка, ε₂ вторая невязка) через считывание
+  φ с чувствительностью sens (premise-form изо-Фробениус
+  Lipschitz, C252) ⟹ |φ(Ŵ)−φ(W)| ≤ sens·(ε₁+ε₂); `frobSq_neg` —
+  клей направления знака (квадраты убивают знак).
+- `rd_step_anchor` — числовой якорь 2 стадий: ε₁=1/10, ε₂=1/20,
+  sens=2 ⟹ 3/10 (через ГЛАВНУЮ теорему, не bare norm_num).
+- `rd_step_certified` — шаг сжатия КАК сертифицированный переход
+  (`Hagi.Cert.CertStepGen`, C278): budgetSpend = байты
+  (budget' = budget − bytes, неотрицательность — посилка),
+  riskSpend = ∑εᵢ в risk-канале с СВОБОДНЫМ остатком (урок C254:
+  без зануления), дельта-канал premise-form, спуск в drop-форме
+  obj s' ≤ obj s − drop — в точности полярность LossCeiling C267
+  (`MetricDirection.improves_lossCeiling_intro`, docstring-проводка, без
+  импорта). `rd_step_certified_budgetSpend`/`_errorSpend` —
+  rfl-проекции трат.

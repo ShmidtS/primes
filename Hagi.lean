@@ -252,6 +252,7 @@ import Hagi.Runtime.VennPacking
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Budget.ResidualVQ
+import Hagi.Budget.RDAlloc
 import Hagi.Budget.JointCost
 import Hagi.Growth.SeedOnly
 import Hagi.Spectral.RankGrowth
