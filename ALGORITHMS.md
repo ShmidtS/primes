@@ -1627,6 +1627,29 @@ C300. Wiring: `gdn_block_transfer` (утечка Lc·μg·‖dx‖),
 Честная граница: гейт premise-форма; Sinkhorn не заявлен; полный
 FastArch3 certificate не заявлен.
 
+### FastArch3 end-to-end transfer assembly (C311, E4 FINAL rung)
+
+Финальное звено лестницы E4
+(`Hagi/Model/FastArch3Transfer.lean`): end-to-end FastArch3-SHAPED
+certified-descent теорема — параметрический SoftmaxHead (C283/C291)
+поверх гибридного стека (C307 attention + C308 RoPE + C309 RMSNorm
++ C310 GDN), собранная КАК КОМПОЗИЦИЯ уложенных носителей, с
+явным PREMISE LEDGER (P1–P9, `.tmp/C311/premise-ledger.md`).
+Форма: `FA3Block` (att a R | gdn g), `FastArch3Spec` (blocks +
+`HeadConfig`), `fa3BlockList`/`fa3Stack`/`fa3Gain` (∏(1+μᵢ);
+attention μn·μatt — RoPE-обёртка константу не меняет, C308; GDN
+μg), `fa3BlockList_lipschitz` (dispatch посылок: C307-адаптер ∘
+C308-изометрия; C310-адаптер), `fa3Objective`, ГЛАВНАЯ теорема
+`fastarch3_transfer_descent` (+ `_strict`): сертифицированный
+спуск головы δ (форма посылки C291) + Lc-липшицева потеря головы
+(P7) + гард `Lc·(∏(1+μᵢ)−1)·‖dx‖ < δ` ⇒ end-to-end objective
+строго убывает. Якоря: rotEuc — изометрия (P4); 2-блочный инстанс
+(att 1.4·0.4 = 0.56, gdn 0.2 ⇒ утечка 0.872; drop 0.5 >
+0.5·0.872·1). Честная граница: certified descent для
+FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение о
+обученных весах или Python runtime; softmax-map не разряжен (P1);
+полный forward/backward certificate не заявлен.
+
 ## 10. Сборка рецепта и граница результата
 
 Порядок одного цикла:

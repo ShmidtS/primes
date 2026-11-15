@@ -515,8 +515,41 @@ and GDNBridge RAM semantics not certified as state contractions;
 softmax premise-form (C307); full FastArch3 forward/backward NOT
 claimed. REMAINING LADDER (updated): (1) chain all rungs
 (attention C307, RoPE C308, RMSNorm C309, GDN C310) into the
-full FastArch3 stack certificate; (2) per-instance gate
-Lipschitz discharge (μg), as C309 did for μn.
+full FastArch3 stack certificate — LANDED by C311 in the
+assembly + premise-ledger form (see TD E4-C311); (2) per-instance
+gate Lipschitz discharge (μg), as C309 did for μn.
+
+## TD E4-C311 — fastarch3 end-to-end transfer assembly (DONE)
+
+E4 FINAL rung (TD E4-C300 remaining rung "chain all rungs").
+C311 lands `Hagi/Model/FastArch3Transfer.lean`: the end-to-end
+FastArch3-SHAPED certified-descent theorem as COMPOSITION ONLY of
+the landed carriers — `FA3Block` (att a R | gdn g: C307 attention
+block with a rope wrap R, Isometry premise instantiated by C308
+rotEuc at unchanged constant; C310 GDN block), `FastArch3Spec`
+(blocks + C283 `HeadConfig`), `fa3BlockList`/`fa3Stack`/`fa3Gain`
+(C300 stack, gain ∏(1+μᵢ): attention μn·μatt, GDN μg),
+`fa3BlockList_lipschitz` (premise-ledger dispatch: C307 adapter ∘
+C308 isometry pattern; C310 adapter), `fa3Objective`, THE theorem
+`fastarch3_transfer_descent` (+ `_strict`): the C300 stack theorem
+on the FastArch3 block list — head certified drop δ (C291 premise
+shape, instantiable via `ceOneHot_next_le_param`) + head-loss
+Lipschitz premise Lc, guard `Lc·(∏(1+μᵢ)−1)·‖dx‖ < δ` ⇒ strict
+decrease of the end-to-end objective. PREMISE LEDGER (the E4
+deliverable, `.tmp/C311/premise-ledger.md` + STATUS): P1 softmax
+weight-map (lived-with), P2 value μatt (per-instance), P3 μn
+(DISCHARGED C309), P4 rope Isometry (DISCHARGED C308), P5 GDN
+gate μg (lived-with, follow-up), P6 IsDoublyStochastic (lived-with,
+C231 boundary), P7 head Lc Euclidean (premise; sup-norm
+2-Lipschitz exists), P8 head drop δ (per-instance C291), P9
+identity-path dx (structural C300). Anchors: rotEuc isometry; spec
+nonvacuity; 2-block instance (att 0.56, gdn 0.2 ⇒ leak 0.872;
+drop 0.5 > 0.436). E4 ladder CLOSED in this form. HONEST SCOPE:
+certified descent for the FastArch3-SHAPED model UNDER the
+ledgered premises — NOT a claim about trained weights or the
+Python runtime; no full forward/backward certificate; softmax-map
+not discharged. Remaining (post-ladder): per-instance μg and P7
+readout-constant discharges (C309 pattern).
 
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
 

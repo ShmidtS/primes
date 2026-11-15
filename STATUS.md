@@ -5978,6 +5978,43 @@ merger cert carriers (Freeze-дисциплина: statement change).
   softmax — premise-форма (C307); полный FastArch3 certificate НЕ
   заявлен.
 
+## Hagi/Model/FastArch3Transfer.lean
+- C311 (E4 FINAL rung — FastArch3 end-to-end transfer assembly):
+  end-to-end FastArch3-SHAPED certified-descent теорема —
+  параметрический SoftmaxHead (C283/C291) поверх гибридного стека
+  (C307 attention + C308 RoPE + C309 RMSNorm + C310 GDN), чистая
+  КОМПОЗИЦИЯ уложенных носителей с явным PREMISE LEDGER. Форма:
+  `FA3Block n ι` (inductive: `att a R` — attention-блок C307 с
+  RoPE-обёрткой R — посылка Isometry, инстанцируется rotEuc C308,
+  константа не меняется; `gdn g` — GDN-блок C310), `FastArch3Spec`
+  (blocks + C283 `HeadConfig`), `fa3BlockList` (attention μn·μatt,
+  GDN μg), `fa3Stack`/`fa3Gain` (∏(1+μᵢ), C300 stackGain),
+  `fa3BlockList_lipschitz` (dispatch: C307-адаптер ∘ изометрия
+  C308-паттерном (hR.lipschitzWith, mul_one); C310-адаптер),
+  `fa3Objective` (потеря на выходе стека — полная objective
+  модели), ГЛАВНАЯ `fastarch3_transfer_descent` (+ `_strict`):
+  теорема C300 на списке FastArch3-блоков — сертифицированный
+  спуск головы δ (посылка формы C291, инстанцируется
+  `ceOneHot_next_le_param`) + Lc-липшицева потеря головы ⇒ утечка
+  `Lc·(∏(1+μᵢ)−1)·‖dx‖`; гвард δ > утечки ⇒ STRICT убывание
+  end-to-end objective. Якоря: rotEuc изометрия; spec-невакуум-
+  ность; 2-блочный инстанс (att μn·μatt = 1.4·0.4 = 0.56, gdn
+  μg = 0.2 ⇒ утечка (1.56)(1.2)−1 = 0.872; drop 0.5 > 0.436).
+- PREMISE LEDGER (P1–P9, полный реестр `.tmp/C311/premise-ledger.md`):
+  P1 softmax weight-map simplex (C307, lived-with); P2 value
+  μatt-липшицевость (C307, per-instance); P3 pre-norm μn —
+  РАЗРЯЖЕНА C309 (region 2√n/r; ε-форма 2/√ε); P4 rope Isometry —
+  РАЗРЯЖЕНА C308 (rotEuc); P5 GDN gate μg (C310, lived-with,
+  follow-up по образцу C309); P6 IsDoublyStochastic (C231,
+  lived-with, Sinkhorn не заявлен); P7 головная Lc-липшицевость на
+  евклидовом носителе (assembly; sup-norm 2-липшицевость есть:
+  CEQuantized); P8 сертифицированный спуск головы δ (C291,
+  per-instance); P9 реализованный шаг dx по identity-пути (C300,
+  структурная посылка). Честная граница: certified descent для
+  FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение об
+  обученных весах или Python runtime; полный forward/backward
+  certificate не заявлен.
+
 ## Hagi/Data/AnfTransform.lean
 - C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
   `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная
