@@ -6000,15 +6000,18 @@ merger cert carriers (Freeze-дисциплина: statement change).
   end-to-end objective. Якоря: rotEuc изометрия; spec-невакуум-
   ность; 2-блочный инстанс (att μn·μatt = 1.4·0.4 = 0.56, gdn
   μg = 0.2 ⇒ утечка (1.56)(1.2)−1 = 0.872; drop 0.5 > 0.436).
-- PREMISE LEDGER (P1–P9, полный реестр `.tmp/C311/premise-ledger.md`):
+- PREMISE LEDGER (P1–P9, полный реестр `.tmp/C311/premise-ledger.md`,
+  v2 `.tmp/C313/premise-ledger-v2.md`):
   P1 softmax weight-map simplex (C307, lived-with); P2 value
   μatt-липшицевость (C307, per-instance); P3 pre-norm μn —
   РАЗРЯЖЕНА C309 (region 2√n/r; ε-форма 2/√ε); P4 rope Isometry —
-  РАЗРЯЖЕНА C308 (rotEuc); P5 GDN gate μg (C310, lived-with,
-  follow-up по образцу C309); P6 IsDoublyStochastic (C231,
-  lived-with, Sinkhorn не заявлен); P7 головная Lc-липшицевость на
-  евклидовом носителе (assembly; sup-norm 2-липшицевость есть:
-  CEQuantized); P8 сертифицированный спуск головы δ (C291,
+  РАЗРЯЖЕНА C308 (rotEuc); P5 GDN gate μg — РАЗРЯЖЕНА C313
+  per-instance для tanh-семейства (`gdnGateTanh_lipschitz`,
+  μg = 1; δ/β/σ-композиции — по-прежнему per-instance); P6
+  IsDoublyStochastic (C231,
+  lived-with, Sinkhorn не заявлен); P7 головная Lc-липшицевость —
+  РАЗРЯЖЕНА C313 per-instance (`fastarch3_head_Lc`, ident-logit
+  headCE на фиксированной метке, Lc = 2); P8 сертифицированный спуск головы δ (C291,
   per-instance); P9 реализованный шаг dx по identity-пути (C300,
   структурная посылка). Честная граница: certified descent для
   FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение об

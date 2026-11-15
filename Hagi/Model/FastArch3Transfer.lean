@@ -38,6 +38,10 @@ Structure (a thin config over existing carriers — KISS):
   block's C300 block hypothesis from its carrier premises
   (C307 adapter composed with the C308 isometry pattern for
   attention; C310 adapter for GDN).
+* `fa3HeadLoss` / `fastarch3_head_Lc` — P7 per-instance discharge
+  (C313): the ident-logit headCE at a fixed label is `2`-Lipschitz
+  on the Euclidean carrier (`Lc = 2`, via `euclid_coord_abs_sub_le`
+  `‖·‖∞ ≤ ‖·‖₂` and the C283 sup-norm estimate).
 * `fa3Objective` — the END-TO-END objective: the loss evaluated at
   the stack output (the head loss composed through the backbone).
 * `fastarch3_transfer_descent` (+ `_strict`) — THE assembly
@@ -56,9 +60,9 @@ PREMISE LEDGER (every hypothesis of the final theorem):
 | P2 | value maps `v i` are `μatt`-Lipschitz | C307 | per-instance |
 | P3 | pre-norm `μn`-Lipschitz | C307 premise | DISCHARGED by C309 (region `2√n/r`, ε-form `2/√ε`) |
 | P4 | rope wrap `R` is an `Isometry` | C308 | DISCHARGED (`rotEuc`) |
-| P5 | GDN gate `μg`-Lipschitz | C310 | lived-with (follow-up) |
+| P5 | GDN gate `μg`-Lipschitz | C310 | DISCHARGED per-instance by C313 (`gdnGateTanh_lipschitz`, tanh family, μg = 1; other gate families remain per-instance) |
 | P6 | mixing matrix doubly stochastic | C231/C310 | lived-with |
-| P7 | head loss `Lc`-Lipschitz (Euclidean carrier) | assembly | premise (sup-norm 2-Lipschitz: CEQuantized) |
+| P7 | head loss `Lc`-Lipschitz (Euclidean carrier) | assembly | DISCHARGED per-instance by C313 (`fastarch3_head_Lc`, ident-logit headCE at fixed label, Lc = 2) |
 | P8 | head certified drop `δ` | C291 | per-instance via `ceOneHot_next_le_param` |
 | P9 | realized step `dx` on the identity path | C300 form | structural |
 
@@ -214,6 +218,65 @@ theorem fastarch3_transfer_descent_strict (bs : List (FA3Block n ι))
     fa3Objective bs loss (x + dx) < fa3Objective bs loss x :=
   resStack_transfer_descent_strict _
     (fa3BlockList_lipschitz bs hatt hgdn) hloss x dx hdrop hstrict
+
+/-!
+## P7 per-instance discharge: the head loss on the Euclidean
+ carrier (C313)
+
+The abstract head-loss premise `LipschitzWith Lc loss` is
+discharged per-instance for the C283 parametric head at the
+identity logit map, fixed label: the sup-norm 2-Lipschitz
+estimate `headCE_le_of_abs_sub_le` transported to the Euclidean
+carrier through the coordinate bound `|x i − y i| ≤ ‖x − y‖`
+(‖·‖∞ ≤ ‖·‖₂), giving the honest constant `Lc = 2`. Non-ident
+logit maps would need the map's own constant — not claimed.
+-/
+
+/-- The head CE of the carrier readout at a fixed label `t`
+(identity logit map): the P7 per-instance loss candidate. -/
+noncomputable def fa3HeadLoss {n : Type} [Fintype n] [Nonempty n]
+    (t : n) (x : EuclideanSpace ℝ n) : ℝ :=
+  Hagi.Model.SoftmaxHead.headCE .ident t (WithLp.ofLp x)
+
+/-- Coordinate bound on the Euclidean carrier: the sup-norm is
+dominated by the Euclidean norm (`‖·‖∞ ≤ ‖·‖₂`). -/
+theorem euclid_coord_abs_sub_le {n : Type} [Fintype n]
+    (x y : EuclideanSpace ℝ n) (i : n) :
+    |x i - y i| ≤ ‖x - y‖ := by
+  have h : (x i - y i) ^ 2 ≤ ‖x - y‖ ^ 2 := by
+    have hs := Finset.single_le_sum
+      (f := fun j : n => (x j - y j) ^ 2)
+      (fun j _ => sq_nonneg _) (Finset.mem_univ i)
+    have heq : ‖(x - y : EuclideanSpace ℝ n)‖ ^ 2
+        = ∑ j, ((x - y : EuclideanSpace ℝ n) : n → ℝ) j ^ 2 :=
+      EuclideanSpace.real_norm_sq_eq _
+    rw [heq]
+    simpa using hs
+  have hb : 0 ≤ ‖(x - y : EuclideanSpace ℝ n)‖ := norm_nonneg _
+  obtain ⟨h1, h2⟩ := abs_le_of_sq_le_sq' h hb
+  exact abs_le.2 ⟨h1, h2⟩
+
+/-- P7 DISCHARGE (per-instance, C313): the head CE at the identity
+logit map and fixed label is `2`-Lipschitz on the Euclidean
+carrier — the honest readout constant `Lc = 2` (the C283 sup-norm
+estimate at `r = ‖x − y‖`). -/
+theorem fastarch3_head_Lc {n : Type} [Fintype n] [Nonempty n]
+    (t : n) : LipschitzWith 2 (fa3HeadLoss t) := by
+  refine LipschitzWith.of_dist_le_mul fun x y => ?_
+  have hxy : ∀ i, |WithLp.ofLp x i - WithLp.ofLp y i| ≤ ‖x - y‖ :=
+    fun i => euclid_coord_abs_sub_le x y i
+  have hxy' : ∀ i, |Hagi.Model.SoftmaxHead.LogitMap.ident.apply
+      (WithLp.ofLp x i) - Hagi.Model.SoftmaxHead.LogitMap.ident.apply
+      (WithLp.ofLp y i)| ≤ ‖x - y‖ := fun i => hxy i
+  have h1 := Hagi.Model.SoftmaxHead.headCE_le_of_abs_sub_le
+    .ident t (WithLp.ofLp x) (WithLp.ofLp y) ‖x - y‖ hxy'
+  have h2 := Hagi.Model.SoftmaxHead.headCE_le_of_abs_sub_le
+    .ident t (WithLp.ofLp y) (WithLp.ofLp x) ‖x - y‖
+    (fun i => by rw [abs_sub_comm]; exact hxy' i)
+  have habs : |fa3HeadLoss t x - fa3HeadLoss t y| ≤ 2 * ‖x - y‖ := by
+    simp only [fa3HeadLoss]
+    exact abs_le.2 ⟨by linarith, by linarith⟩
+  simpa [dist_eq_norm, Real.dist_eq] using habs
 
 /-!
 ## Anchors (nonvacuity + numeric instance)

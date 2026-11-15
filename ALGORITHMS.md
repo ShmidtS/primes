@@ -1649,6 +1649,13 @@ C308-изометрия; C310-адаптер), `fa3Objective`, ГЛАВНАЯ т
 FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение о
 обученных весах или Python runtime; softmax-map не разряжен (P1);
 полный forward/backward certificate не заявлен.
+C313: P5 и P7 разряжены per-instance — `gdnGateTanh_lipschitz`
+(тanh-семейство гейта, μg = 1, MVT-маршрут `1/cosh² ≤ 1`) и
+`fastarch3_head_Lc` (ident-logit headCE, Lc = 2, транспорт
+sup-norm → евклидов носитель через `euclid_coord_abs_sub_le`);
+реестр v2 — `.tmp/C313/premise-ledger-v2.md`; другие семейства
+гейтов/не-ident logit maps несут собственные per-instance
+константы (без отмывания).
 
 ## 10. Сборка рецепта и граница результата
 

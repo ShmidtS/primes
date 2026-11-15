@@ -44,6 +44,14 @@ through the same WithLp transport as C309.
   the `real_norm_sq_eq` bridge (`gdnMix_norm_sub_le`).
 * `gdn_branch_lipschitz` — pre-gate μg ∘ mixing ⇒ `μg`-Lipschitz:
   the C300 block hypothesis shape with the gate honest premise.
+* `gdnGateTanh` / `gdnGateTanh_lipschitz` — P5 PER-INSTANCE
+  DISCHARGE (C313, the C309 pattern): the componentwise-saturating
+  tanh gate family is `1`-Lipschitz on the Euclidean carrier
+  (μg = 1 exact: per-coordinate |tanh x − tanh y| ≤ |x − y| via
+  the Mathlib mean-value route, transported through the
+  `real_norm_sq_eq` bridge).
+* `gdn_branch_lipschitz_tanh` / `gdn_block_transfer_tanh` — the
+  gate and block theorems instantiated at the tanh gate (μg = 1).
 * `gdn_block_transfer` — one GDN block (gate + doubly-stochastic
   mixing + residual) satisfies the C300 leak bound `Lc·μg·‖dx‖`.
 * `GdnBlock` / `gdnBlockList` / `gdnStack` / `gdnGain` /
@@ -69,7 +77,7 @@ full FastArch3 forward/backward certificate is NOT claimed here.
 
 namespace Hagi.Model.GDNTransfer
 
-open Matrix Hagi.Model.Residual Hagi.Model.BackboneTransfer
+open Matrix Set Hagi.Model.Residual Hagi.Model.BackboneTransfer
   Hagi.Model.AttentionTransfer Hagi.Architecture.ManifoldHyperConn
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
@@ -154,6 +162,119 @@ theorem gdn_block_transfer {gate : EuclideanSpace ℝ n → EuclideanSpace ℝ n
       ≤ loss (resStep (fun y => gdnMix M (gate y)) x + dx)
         + Lc * μg * ‖dx‖ :=
   residual_transfer_le (gdn_branch_lipschitz hg hM) hloss x dx
+
+/-!
+## P5 per-instance discharge: the tanh gate family (C313)
+
+The abstract gate premise `LipschitzWith μg gate` is discharged
+per-instance for the componentwise-saturating tanh family — the
+scalar activation shape of the GDN2 δ/β/σ gate — with the honest
+constant `μg = 1`. Multi-argument δ/β/σ gate compositions are NOT
+claimed 1-Lipschitz (their constants remain per-instance data).
+-/
+
+/-- Scalar fact: `Real.tanh` is `1`-Lipschitz (mean-value route:
+the derivative `1 / cosh² ≤ 1` since `cosh ≥ 1`). -/
+private theorem tanh_abs_sub_le (x y : ℝ) :
+    |Real.tanh x - Real.tanh y| ≤ |x - y| := by
+  have hcosh : ∀ t, Real.cosh t ≠ 0 := fun t => by positivity
+  have hderiv : ∀ t, HasDerivAt Real.tanh (1 / Real.cosh t ^ 2) t := by
+    intro t
+    have h : HasDerivAt (fun s => Real.sinh s / Real.cosh s)
+        ((Real.cosh t * Real.cosh t - Real.sinh t * Real.sinh t)
+          / Real.cosh t ^ 2) t :=
+      (Real.hasDerivAt_sinh t).div (Real.hasDerivAt_cosh t) (hcosh t)
+    have hident : (fun s => Real.sinh s / Real.cosh s) = Real.tanh := by
+      funext s; rw [Real.tanh_eq_sinh_div_cosh]
+    rw [hident] at h
+    have heq2 : Real.cosh t * Real.cosh t
+        - Real.sinh t * Real.sinh t = 1 := by
+      have := Real.cosh_sq_sub_sinh_sq t; linarith
+    convert h using 1
+    rw [div_eq_div_iff
+      (ne_of_gt (by positivity : (0:ℝ) < Real.cosh t ^ 2))
+      (ne_of_gt (by positivity : (0:ℝ) < Real.cosh t ^ 2)), heq2]
+  have hbound : ∀ t ∈ Icc (min x y) (max x y),
+      ‖1 / Real.cosh t ^ 2‖ ≤ 1 := by
+    intro t _
+    rw [Real.norm_eq_abs,
+      abs_of_nonneg (by positivity : (0:ℝ) ≤ 1 / Real.cosh t ^ 2),
+      one_div, inv_le_one_iff₀]
+    exact Or.inr (by nlinarith [Real.one_le_cosh t])
+  have hkey := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+    (s := Icc (min x y) (max x y)) (f := Real.tanh)
+    (f' := fun t => 1 / Real.cosh t ^ 2) (C := 1)
+    (fun t _ => (hderiv t).hasDerivWithinAt) hbound (convex_Icc _ _)
+    (mem_Icc.mpr ⟨min_le_left x y, le_max_left x y⟩)
+    (mem_Icc.mpr ⟨min_le_right x y, le_max_right x y⟩)
+  rw [abs_sub_comm (Real.tanh x) (Real.tanh y), abs_sub_comm x y]
+  simpa [Real.dist_eq] using hkey
+
+/-- The componentwise-saturating tanh gate on the Euclidean
+ carrier (the scalar activation shape of the GDN δ/β/σ gate). -/
+noncomputable def gdnGateTanh (x : EuclideanSpace ℝ n) :
+    EuclideanSpace ℝ n :=
+  WithLp.toLp 2 (fun i => Real.tanh (WithLp.ofLp x i))
+
+/-- P5 DISCHARGE (per-instance, C313): the componentwise tanh
+gate is `1`-Lipschitz on the Euclidean carrier — the honest
+constant `μg = 1` (each coordinate 1-Lipschitz, transported
+through the `real_norm_sq_eq` bridge). -/
+theorem gdnGateTanh_lipschitz :
+    LipschitzWith 1 (gdnGateTanh (n := n)) := by
+  refine LipschitzWith.of_dist_le_mul fun x y => ?_
+  have h1 : ‖gdnGateTanh x - gdnGateTanh y‖ ^ 2
+      = ∑ i, (Real.tanh (WithLp.ofLp x i)
+        - Real.tanh (WithLp.ofLp y i)) ^ 2 := by
+    have hsub : gdnGateTanh x - gdnGateTanh y
+        = WithLp.toLp 2 (fun i => Real.tanh (WithLp.ofLp x i)
+          - Real.tanh (WithLp.ofLp y i)) := by
+      unfold gdnGateTanh
+      ext i
+      simp [WithLp.ofLp_sub]
+    rw [hsub, EuclideanSpace.real_norm_sq_eq, WithLp.ofLp_toLp]
+  have h2 : ‖x - y‖ ^ 2
+      = ∑ i, (WithLp.ofLp x i - WithLp.ofLp y i) ^ 2 := by
+    rw [EuclideanSpace.real_norm_sq_eq, WithLp.ofLp_sub]
+    simp only [Pi.sub_apply]
+  have h3 : ∀ i, (Real.tanh (WithLp.ofLp x i)
+      - Real.tanh (WithLp.ofLp y i)) ^ 2
+      ≤ (WithLp.ofLp x i - WithLp.ofLp y i) ^ 2 := fun i => by
+    have h := tanh_abs_sub_le (WithLp.ofLp x i) (WithLp.ofLp y i)
+    have h1 : (Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)) ^ 2
+        = |Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)|
+          * |Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)| := by
+      rw [abs_mul_abs_self]; ring_nf
+    have h2 : (WithLp.ofLp x i - WithLp.ofLp y i) ^ 2
+        = |WithLp.ofLp x i - WithLp.ofLp y i|
+          * |WithLp.ofLp x i - WithLp.ofLp y i| := by
+      rw [abs_mul_abs_self]; ring_nf
+    rw [h1, h2]
+    exact mul_le_mul h h (abs_nonneg _) (abs_nonneg _)
+  have h4 : ‖gdnGateTanh x - gdnGateTanh y‖ ^ 2 ≤ ‖x - y‖ ^ 2 := by
+    rw [h1, h2]
+    exact Finset.sum_le_sum fun i _ => h3 i
+  rw [dist_eq_norm]
+  have h5 := le_of_sq_le_sq h4 (norm_nonneg _)
+  simpa [mul_one, dist_eq_norm] using h5
+
+/-- The gated branch instantiated at the tanh gate: `1`-Lipschitz
+(μg = 1 composed with the `1`-Lipschitz doubly-stochastic mix). -/
+theorem gdn_branch_lipschitz_tanh {M : Matrix n n ℝ}
+    (hM : IsDoublyStochastic M) :
+    LipschitzWith 1 (fun x => gdnMix M (gdnGateTanh x)) :=
+  gdn_branch_lipschitz gdnGateTanh_lipschitz hM
+
+/-- One GDN block with the tanh gate satisfies the C300 leak bound
+at the honest constant `Lc·1·‖dx‖`. -/
+theorem gdn_block_transfer_tanh {loss : EuclideanSpace ℝ n → ℝ}
+    {Lc : NNReal} {M : Matrix n n ℝ}
+    (hM : IsDoublyStochastic M)
+    (hloss : LipschitzWith Lc loss) (x dx : EuclideanSpace ℝ n) :
+    loss (resStep (fun y => gdnMix M (gdnGateTanh y)) (x + dx))
+      ≤ loss (resStep (fun y => gdnMix M (gdnGateTanh y)) x + dx)
+        + Lc * 1 * ‖dx‖ :=
+  gdn_block_transfer gdnGateTanh_lipschitz hM hloss x dx
 
 /-!
 ## Stack of GDN blocks
@@ -350,5 +471,13 @@ weaker). -/
 example : (3 / 10 + 2 / 10 : ℝ)
     ≤ (1 + 3 / 10) * (1 + 2 / 10) - 1 := by
   norm_num
+
+/-- ANCHOR (C313): numeric μg composition — a GDN block with the
+tanh gate (μg = 1, `gdnGateTanh_lipschitz`) has per-unit leak
+`(1 + 1) − 1 = 1`, and the multiplicative form dominates the
+additive damping sum (Σ form weaker, as in the hybrid anchor). -/
+example : (1 + (1:ℝ)) - 1 = 1 := by norm_num
+
+example : ((1:ℝ)) ≤ (1 + 1) - 1 := by norm_num
 
 end Hagi.Model.GDNTransfer
