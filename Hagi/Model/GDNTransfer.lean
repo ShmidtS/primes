@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Hagi.Model.AttentionTransfer
+import Hagi.Model.GatedCEGradient
 import Hagi.Architecture.ManifoldHyperConn
 
 set_option linter.style.header false
@@ -171,44 +172,12 @@ per-instance for the componentwise-saturating tanh family — the
 scalar activation shape of the GDN2 δ/β/σ gate — with the honest
 constant `μg = 1`. Multi-argument δ/β/σ gate compositions are NOT
 claimed 1-Lipschitz (their constants remain per-instance data).
--/
 
-/-- Scalar fact: `Real.tanh` is `1`-Lipschitz (mean-value route:
-the derivative `1 / cosh² ≤ 1` since `cosh ≥ 1`). -/
-private theorem tanh_abs_sub_le (x y : ℝ) :
-    |Real.tanh x - Real.tanh y| ≤ |x - y| := by
-  have hcosh : ∀ t, Real.cosh t ≠ 0 := fun t => by positivity
-  have hderiv : ∀ t, HasDerivAt Real.tanh (1 / Real.cosh t ^ 2) t := by
-    intro t
-    have h : HasDerivAt (fun s => Real.sinh s / Real.cosh s)
-        ((Real.cosh t * Real.cosh t - Real.sinh t * Real.sinh t)
-          / Real.cosh t ^ 2) t :=
-      (Real.hasDerivAt_sinh t).div (Real.hasDerivAt_cosh t) (hcosh t)
-    have hident : (fun s => Real.sinh s / Real.cosh s) = Real.tanh := by
-      funext s; rw [Real.tanh_eq_sinh_div_cosh]
-    rw [hident] at h
-    have heq2 : Real.cosh t * Real.cosh t
-        - Real.sinh t * Real.sinh t = 1 := by
-      have := Real.cosh_sq_sub_sinh_sq t; linarith
-    convert h using 1
-    rw [div_eq_div_iff
-      (ne_of_gt (by positivity : (0:ℝ) < Real.cosh t ^ 2))
-      (ne_of_gt (by positivity : (0:ℝ) < Real.cosh t ^ 2)), heq2]
-  have hbound : ∀ t ∈ Icc (min x y) (max x y),
-      ‖1 / Real.cosh t ^ 2‖ ≤ 1 := by
-    intro t _
-    rw [Real.norm_eq_abs,
-      abs_of_nonneg (by positivity : (0:ℝ) ≤ 1 / Real.cosh t ^ 2),
-      one_div, inv_le_one_iff₀]
-    exact Or.inr (by nlinarith [Real.one_le_cosh t])
-  have hkey := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
-    (s := Icc (min x y) (max x y)) (f := Real.tanh)
-    (f' := fun t => 1 / Real.cosh t ^ 2) (C := 1)
-    (fun t _ => (hderiv t).hasDerivWithinAt) hbound (convex_Icc _ _)
-    (mem_Icc.mpr ⟨min_le_left x y, le_max_left x y⟩)
-    (mem_Icc.mpr ⟨min_le_right x y, le_max_right x y⟩)
-  rw [abs_sub_comm (Real.tanh x) (Real.tanh y), abs_sub_comm x y]
-  simpa [Real.dist_eq] using hkey
+Dedup note (C319): the scalar fact `|tanh x - tanh y| ≤ |x - y|`
+(formerly a private `tanh_abs_sub_le` twin here) lives as the
+public `Hagi.Model.GatedCEGradient.abs_tanh_sub_le` — the private
+twin was a statement duplicate exposed by the lock regeneration.
+-/
 
 /-- The componentwise-saturating tanh gate on the Euclidean
  carrier (the scalar activation shape of the GDN δ/β/σ gate). -/
@@ -240,7 +209,7 @@ theorem gdnGateTanh_lipschitz :
   have h3 : ∀ i, (Real.tanh (WithLp.ofLp x i)
       - Real.tanh (WithLp.ofLp y i)) ^ 2
       ≤ (WithLp.ofLp x i - WithLp.ofLp y i) ^ 2 := fun i => by
-    have h := tanh_abs_sub_le (WithLp.ofLp x i) (WithLp.ofLp y i)
+    have h := GatedCEGradient.abs_tanh_sub_le (WithLp.ofLp x i) (WithLp.ofLp y i)
     have h1 : (Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)) ^ 2
         = |Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)|
           * |Real.tanh (WithLp.ofLp x i) - Real.tanh (WithLp.ofLp y i)| := by
