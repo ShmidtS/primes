@@ -6292,12 +6292,10 @@ merger cert carriers (Freeze-дисциплина: statement change).
   (`rankResidual_equalized`, `rankResidual_allocation`,
   `weightedExpAllocation_isoFrob_optimal`), процитирована, НЕ
   перепроверяется. `rdAllocBytes` = ∑bᵢ/8 (байты), `rdAllocError`
-  = ∑εᵢ (качество), обе неотрицательны.
-- `rd_stage_product_eps` — εᵢ-рецепт факторизованной стадии:
-  КВАДРАТНАЯ форма закона произведения C253
-  (`quantProd_relError_sq` verbatim): frobSq((A+Eᵃ)(B+Eᵇ)−AB) ≤
-  (e+f+ef)²·‖A‖²_F·‖B‖²_F — кросс-член e+f+ef точный, без
-  sqrt-конверсии (sqrt-мир остаётся потребителю).
+  = ∑εᵢ (качество), обе неотрицательны. εᵢ-рецепт факторизованной
+  стадии — квадратная форма закона произведения C253
+  (`quantProd_relError_sq` verbatim, C326: дубликат-обёртка
+  удалена).
 - `rd_step_error_bound` (ГЛАВНЫЙ) — composed slow-loop ошибка
   сжатия: двухстадийный residuary конвейер Ŵ = R1+R2 с
   аддитивным законом C253 (`residualTwoStage_error_le_add`

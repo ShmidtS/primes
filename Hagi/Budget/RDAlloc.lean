@@ -26,9 +26,10 @@ from its own carrier; only the COMPOSITION is new:
   (`Hagi.Budget.residualTwoStage_error_le_add`: two-stage
   residual quantization composes additively, ε₁ + ε₂) and the
   per-stage product law
-  (`quantProd_relError_sq`: (e + f + e·f)² cross-term law) —
-  `rd_stage_product_eps` is its exact squared form, the εᵢ recipe
-  for factorized (LoRA-style) stages;
+  (`quantProd_relError_sq`: (e + f + e·f)² cross-term law) — the
+  εᵢ recipe for factorized (LoRA-style) stages is that same law
+  cited verbatim (same namespace, C326 dedup removed the former
+  statement-identical wrapper);
 * the sensitivity scaling is the iso-Frobenius cascade
   calibration of C252 (`Hagi.Budget.isoFrobSensitivity`:
   c_j = isoFrobEnergy(J_{>j})·hScale_j) — the Lipschitz premise
@@ -74,9 +75,9 @@ budget (`hbudget`); water-filling optimality is C237's
 (`rankResidual_equalized` / `rankResidual_allocation`), cited —
 not re-proven here. The per-stage `eps i` is the error constant
 εᵢ(bᵢ) of stage i at the allocated width (the C321
-`hadamard_ternary_error_bound_of_spread` bound is the recipe for
-Hadamard-wrapped stages; `rd_stage_product_eps` below is the
-recipe for factorized stages). -/
+  hadamard_ternary_error_bound_of_spread` bound is the recipe for
+  Hadamard-wrapped stages; `Hagi.Budget.quantProd_relError_sq` is the
+  recipe for factorized stages). -/
 structure RDAlloc (ι : Type*) [Fintype ι] where
   /-- Per-stage bit widths bᵢ. -/
   bits : ι → ℝ
@@ -107,23 +108,6 @@ match the sensitivity premise direction). -/
 theorem frobSq_neg (X : Matrix m n ℝ) : frobSq (-X) = frobSq X := by
   unfold frobSq
   simp [Matrix.neg_apply]
-
-/-- The εᵢ RECIPE for a factorized stage (SQUARED form of
-C253's product law, constants exact): a stage implemented as the
-product of two quantized factors with per-factor relative errors
-e, f has squared Frobenius error ≤ (e+f+e·f)²·‖A‖_F²·‖B‖_F² —
-the cross-term `(e+f+ef)` law of `Hagi.Budget.quantProd_relError_sq`
-verbatim in the squared/Frobenius-squared world (no sqrt
-conversion; the sqrt form is the consumer's to take if ever
-needed). -/
-theorem rd_stage_product_eps (A : Matrix m r ℝ) (B : Matrix r n ℝ)
-    (EA : Matrix m r ℝ) (EB : Matrix r n ℝ) (e f : ℝ)
-    (he : 0 ≤ e) (hf : 0 ≤ f)
-    (hEA : frobSq EA ≤ e ^ 2 * frobSq A)
-    (hEB : frobSq EB ≤ f ^ 2 * frobSq B) :
-    frobSq ((A + EA) * (B + EB) - A * B)
-      ≤ (e + f + e * f) ^ 2 * frobSq A * frobSq B :=
-  quantProd_relError_sq A B EA EB e f he hf hEA hEB
 
 /-- **MAIN — the composed slow-loop compression error**: the
 two-stage residual pipeline Ŵ = R1 + R2 with the C253 additive
