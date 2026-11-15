@@ -148,7 +148,6 @@ import Hagi.Dynamics.ControllerPolicy
 import Hagi.Probability.ConditionalSuccess
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Concentration
-import Hagi.Ensemble.HoeffdingBridge
 import Hagi.Growth.SelfDevelopment
 import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController

@@ -1093,10 +1093,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `hoeffding_tail`: если `d v ∈ [a,b]`, `a < b`, веса `w` неотрицательны и нормированы (`∀ v, 0 ≤ w v`, `∑ v, w v = 1`) и `Σw*d = 0`, то масса точек с `ε ≤ d v` не превышает `exp(−2ε²/(b−a)^2)` при `ε ≥ 0`.
 - `hoeffding_union_tail`: для конечного семейства `K` таких центрированных функций и тех же неотрицательных нормированных весов `w` масса объединения событий `∃k, ε ≤ d k v` ограничена `card K·exp(−2ε²/(b−a)^2)`.
 
-## Hagi/Ensemble/HoeffdingBridge.lean
-
-- `hoeffding_tail_via_weighted`: для `IsProbSys p`, `0 ≤ X i v ≤ 1`, `n > 0` и `t ≥ 0` вероятность `prodPq` события `t ≤ centeredSum p X` ограничена `exp(−t²/(2*n²))`. Случайный носитель здесь — произведение компонент, а не произвольная зависимая выборка.
-
 ## Hagi/Ensemble/MergeIdentity.lean
 
 - `softmax_shift_invariance`: на конечном `V` общий сдвиг логитов `z v + c` не меняет softmax.

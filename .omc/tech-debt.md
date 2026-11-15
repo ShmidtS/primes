@@ -253,7 +253,35 @@ contract. Future beat: matrix spectral transfer for NS iterations
 argument), then instantiate hP. Expected outcome was DEFER — no
 gold-plating attempted.
 
-## TD A10-C287 — HoeffdingBridge quarantine (2026-11-15)
+## TD A10-C287 — HoeffdingBridge quarantine (2026-11-15) — DONE (C288)
+
+RESOLVED in C288 (`refactor: delete weaker hoeffding bridge leaf`,
+parent 5a2de978): `Hagi/Ensemble/HoeffdingBridge.lean` deleted,
+`Hagi.lean` import removed, lock row
+`Hagi.Ensemble.hoeffding_tail_via_weighted` removed surgically
+(declarations.lock 6670→6669 rows; Freeze verify PASS, 372 known
+non-fatal additions since C258 left out per repo convention).
+Justification: `Hagi.Probability.hoeffdingBridge_weaker` (C287)
+proves canonical exponent ⇒ bridge exponent; 0 consumers (fresh
+rg scan, C288 plan). RootApi NEG-1 confirms the FQN no longer
+resolves.
+
+## TD C288 — latent STMDUP twins in BatchCEBudgetGuard (2026-11-15)
+
+DISCOVERED in C288: commit 4448280 (C286, "parametric instances for
+ce variants tranche three") added `batchSampleCE_nonneg_param` and
+`batchCEObjective_nonneg_param` (Hagi/Contracts/
+BatchCEBudgetGuard.lean L460/L472) with statement hashes IDENTICAL
+to the pre-existing `batchSampleCE_nonneg` / `batchCEObjective_
+nonneg`. Masked because declarations.lock was stale since C258
+(verify-mode counts additions "fine", STMDUP reads the lock).
+Reproduced: clean HEAD 5a2de978 + full `Freeze.py --update` ⇒
+STMDUP FAIL (2 groups). Disposition for a dedicated beat: delete or
+restrengthen the `_param` twins (differentiate statements), then
+run `Freeze.py --update` baking the accumulated 372-row addition
+drift; STMDUP must PASS on the refreshed lock.
+
+Original quarantine record (C287):
 
 QUARANTINE FLAG (C287, A10 merge map: "Concentration single
 radius/confidence API + e-process core, delete HoeffdingBridge").
