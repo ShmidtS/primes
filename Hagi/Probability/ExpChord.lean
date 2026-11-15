@@ -22,8 +22,6 @@ x in [a,b], a < b. Базовый кирпич Hoeffding/Bennett CGF-оцено�
 Процесс-урок: приоритет оператора `•` выше `/` — веса в smul
 нужны в скобках: `((b - x) / (b - a)) • a`.
 -/
-@[deprecated Hagi.Foundations.exp_chord_r]
-alias exp_chord := _root_.Hagi.Foundations.exp_chord_r
 
 /-! ## Шаг Хёффдинга: взвешенное хордовое MGF (R499)
 
@@ -51,7 +49,7 @@ theorem hoeffding_chord_mgf {V : Type*} [Fintype V] [Nonempty V]
       ≤ q v * ((b - μ - (g v - μ)) / (b - μ - (a - μ)) * Real.exp (r * (a - μ))
         + (g v - μ - (a - μ)) / (b - μ - (a - μ)) * Real.exp (r * (b - μ))) :=
     fun v => mul_le_mul_of_nonneg_left
-      (exp_chord (a := a - μ) (b := b - μ) hlt (hdev v).1 (hdev v).2 r)
+      (Hagi.Foundations.exp_chord_r (a := a - μ) (b := b - μ) hlt (hdev v).1 (hdev v).2 r)
       (le_of_lt (hq v))
   refine le_trans (Finset.sum_le_sum (fun v _ => hchord v)) ?_
   · -- sum of weights times chord = RHS (weights sum to 1)
@@ -847,5 +845,3 @@ theorem lyapunov_moment_mono {V : Type*} [Fintype V] (w g : V → ℝ)
   rwa [hcollapse] at hstep
 
 end Hagi.Probability
-
-export Hagi.Probability (exp_chord)

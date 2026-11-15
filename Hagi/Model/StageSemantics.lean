@@ -706,7 +706,7 @@ noncomputable def wTraj2 : Trajectory ℝ where
 /-- VACUITY-GATE WITNESS (audit v9, P1): рост на T = 2
 СТРОГО реализован семантикой Gen-2 — (1+1)^2 * 1 = 4 —
 минимальный горизонт гейта, на котором старый Gen-1
-(`MasterHAGI_linked`) уже противоречив. -/
+(linked-форма капстоуна Gen-1) уже противоречив. -/
 theorem witness_takeoff_realized_T2 :
     (1 + (1:ℝ)) ^ 2 * (wTraj2.state 0).capability
       ≤ (wTraj2.state 2).capability := by
@@ -736,7 +736,7 @@ theorem witness_takeoff_realized_T2 :
 /-- The amplification theorem instantiated on the witness: the
 state-linked geometric takeoff `(1+1)^3 * 1 = 8` IS REALIZED —
 the repaired semantics proves the capstone growth the OLD model
-could only state vacuously (`MasterHAGI_linked` was inconsistent
+could only state vacuously (linked-форма Gen-1 была inconsistent
 at `T >= 2`). -/
 theorem witness_takeoff_realized :
     (1 + (1:ℝ)) ^ 3 * (wTraj.state 0).capability

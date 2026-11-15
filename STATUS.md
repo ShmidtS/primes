@@ -4968,16 +4968,17 @@ one-hot CE.
 
 ## Hagi/Legacy/MasterHAGI.lean
 
+- C304 (A12 credo quarantine): linked-вариант капстоуна
+  (R362) удалён — deprecated, 0 потребителей; `MasterHAGI`/
+  `MasterHAGICore` оставлены — живые потребители
+  (`MasterHAGICoreOperational_v2`, nonvacuity-witness в
+  `Hagi/Legacy/Nonvacuity.lean`).
 - `MasterHAGI`: при `lam ≥ 0`, `nu > 0`, `epsQ ≥ 0`, `CorePremises`,
   SafeQP-окнах, суммировании доменных рисков,
   условии `lam·riskSpend + nu·epsQ ≤ decrease`, достаточном бюджете,
   неотрицательном риске, нижней энергии и заданных производственных законах
-  роста получается `CertifiedHAGIInvariant`. Производственные предпосылки
-  включают `C(t+1)=C t+G t`, `γD t ≤ G t`, динамику `D`
-  и верхний темп `(1+alpha)` с β-порогом.
-- `MasterHAGI_linked`: при дополнительной связи `C t = capability(S t)`
-  и тех же остальных условиях экспоненциальная нижняя граница утверждается
-  уже о фактической capability состояния.
+  роста получается `CertifiedHAGIInvariant`.
+- linked-вариант капстоуна удалён (C304, 0 потребителей).
 - `certifiedHAGI_nonvacuous_strict`: при `alpha,c0,delta,s > 0` и `e ≥ 0`
   существует траектория с одновременным ростом, убыванием потенциала,
   риском и ненулевыми расходами, удовлетворяющая инварианту.
@@ -5029,10 +5030,8 @@ one-hot CE.
 
 ## Hagi/Legacy/MasterHAGITrunc.lean
 
-- `MasterHAGI_trunc`: формулировка `MasterHAGI` требует посылки роста только
-  для `t < T`, сохраняя SafeQP, `CorePremises`, net-cover, риск, бюджет,
-  энергетический floor и probe-ограничения. Условие отдельного capability
-  ceiling в заключение не входит.
+- `MasterHAGI_trunc`: сохранён (C304 recheck: живой потребитель —
+  capstone-мост в `Hagi/Legacy/Assumptions.lean`).
 - `masterhagi_growth_witness`: при `C t=G t=D t=2^t`,
   `alpha=gamma=1`, `rho=0`, `beta=2`, `xi=0` все усечённые посылки верны
   для `T ≤ 6`.

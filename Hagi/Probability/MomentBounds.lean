@@ -414,12 +414,6 @@ theorem bhatia_davis {V : Type*} [Fintype V] [Nonempty V]
   rw [hvar]
   linarith [hsum, hexp]
 
-/-- [deprecated] `bhatia_implies_popoviciu` was a verbatim
-restatement of `popoviciu_var` (same statement; kept as an alias for
-the exported facade). -/
-@[deprecated Hagi.Probability.popoviciu_var]
-alias bhatia_implies_popoviciu := _root_.Hagi.Probability.popoviciu_var
-
 /-- Excess-variance bridge: Var_q(g) <= (b-a) * (mu - a) —
 Bhatia-Davis R496 with b - mu <= b - a.  For the Gibbs vertical
 this gives Var_{p_T}(E) <= Delta * (⟨E⟩ - E*) — fluctuations

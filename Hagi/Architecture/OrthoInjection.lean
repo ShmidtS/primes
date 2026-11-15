@@ -93,11 +93,6 @@ orthogonal to the retained cortex state:
 
 namespace Hagi.Architecture
 
-/-- [deprecated] Copy of `fiberSplitOrtho` (verbatim; the name
-survives for facade consumers). -/
-@[deprecated Hagi.Architecture.fiberSplitOrtho]
-alias fiber_cortex_zero := _root_.Hagi.Architecture.fiberSplitOrtho
-
 /-- The cortex coordinates of the state are unchanged by the
 injection, for any payload `x`. -/
 theorem fiber_injection_preserves_cortex {d c r : ℕ}
@@ -108,7 +103,7 @@ theorem fiber_injection_preserves_cortex {d c r : ℕ}
       = Uᵀ *ᵥ h := by
   have h1 : Uᵀ *ᵥ ((A - U * (Uᵀ * A)) *ᵥ x) = 0 := by
     have hz : Uᵀ * (A - U * (Uᵀ * A)) = 0 :=
-      fiber_cortex_zero U hU A
+      fiberSplitOrtho U hU A
     rw [Matrix.mulVec_mulVec, hz, Matrix.zero_mulVec]
   rw [Matrix.mulVec_add, h1, add_zero]
 

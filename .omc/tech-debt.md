@@ -424,3 +424,29 @@ signatures — typed extraction statement; (3) argument ranges —
 range/dispatch correctness; (4) collision abstention — certified
 abstain predicate. Not claimed anywhere: end-to-end Python V3
 compiler equivalence.
+
+## TD A12-C304 — credo quarantine deletions step 1 (DONE)
+
+Executed the C282 §1.2 flagged-but-frozen shim list with the
+C288/C289/C299 protocol (fresh 0-consumer scan → surgical lock row
+removal → bake verify → per-name ledger). DELETED (5 names, all 0
+external consumers; in-file use rewritten to canonical):
+Hagi.Architecture.fiber_cortex_zero (alias; in-file caller switched
+to fiberSplitOrtho), Hagi.Data.entTV_nonneg, Hagi.Probability.exp_chord
+(alias; hoeffding_chord_mgf rewritten to Foundations.exp_chord_r;
+export removed), Hagi.Probability.bhatia_implies_popoviciu (alias),
+Hagi.Unified.MasterHAGI_linked (closed consumer set of one).
+KEPT with fresh consumer evidence (build-hard): MasterHAGICore
+(consumer: MasterHAGICoreOperational_v2 in Legacy/CorePremisesDerived),
+MasterHAGI (consumer: nonvacuity witness in Legacy/Nonvacuity),
+MasterHAGI_trunc (consumer: capstone bridge in Legacy/Assumptions).
+KEPT by audit: ResidualVQ Model vs Budget — NOT statement duplicates
+(zero shared statements, STMDUP 0); CertifiedTransition V1/V2/V3 —
+live consumers (Ctv2Telescope, TransitionCert, LogitGrowth,
+ProductiveTransition). Lock: 7114 → 7109 (surgical −5 rows; bake
+diff vs surgical lock = exactly the 18 C303 RamProtocol drift rows,
+not baked per C289 convention). AssumptionScan UNPREFIXED registry
+MasterHAGI.lean row shrunk 3/3/2/2/2 → 2/2/1/1/1 (conscious
+shrink-only update via C304 plan review; script dict + assumptions.lock
+both updated). LOC: tracked Lean 162320 → 162254 (−66). Root census
+main=13430. CI 1×PASS + ALLAXIOMS PASS (.tmp/C304/battery3.log).

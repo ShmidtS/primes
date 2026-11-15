@@ -24,7 +24,8 @@ Pinsker + явная непрерывность энтропии (Fannes-фор�
 **Теоремы:**
 
 * `entTV` (полная вариация), h2 (двоичная энтропия) — defs.
-* `entTV_nonneg/symm/le_one` — базовые свойства.
+* `entTV_symm/le_one` — базовые свойства (неотрицательность —
+  часть определения модуля).
 * h2_le_log2 — h₂(τ) ≤ log 2 (грубая форма для гейтов).
 * `entropy_continuity_pinsker` — ГЛАВНАЯ граница (T5): при
   measured-посылке смеси-разложения (сертифицируемое
@@ -61,10 +62,6 @@ def FannesDecomp (p q : V → ℝ) (τ : ℝ)
     ∧ (∀ v, q v = (1 - τ) * u' v + τ * w' v)
     ∧ (∀ v, 0 ≤ u v ∧ 0 ≤ u' v ∧ 0 ≤ w v ∧ 0 ≤ w' v)
     ∧ (∑ v, u v) = 1 ∧ (∑ v, u' v) = 1
-
-@[deprecated] theorem entTV_nonneg (p q : V → ℝ) : 0 ≤ Hagi.Prelude.tvDef p q :=
-  div_nonneg (Finset.sum_nonneg fun v _ => abs_nonneg (p v - q v))
-    (by norm_num)
 
 theorem entTV_symm (p q : V → ℝ) : Hagi.Prelude.tvDef p q = Hagi.Prelude.tvDef q p := by
   rw [Hagi.Prelude.tvDef]
