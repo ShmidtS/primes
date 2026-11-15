@@ -1712,9 +1712,13 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
 матричную часть на диагональном подпространстве
 (`nsMatrixStep_diagonal_contraction`, sup-норма) + ортогональная
 эквивариантность итерата (`nsMatrixStep_orth`) — транспортный
-ингредиент; общее нерасширение NS-полинома в спектральной норме
-остаётся гипотезой `hP` в `Hagi/Step/Muon.lean` (spectral-norm Matrix
-API в Mathlib отсутствует, честная граница C296). mHC: Sinkhorn не требуется — M дважды
+ингредиент; C297 (`Hagi/Step/NewtonSchulzSpectral.lean`) снимает
+спектрально-нормовую контракцию при SVD-посылке
+(`ns_contraction_svd`, `muon_step_bound_ns_svd`): scoped
+`Matrix.Norms.L2Operator` API закреплённого Mathlib + C*-тождество
+дают `nsSpectralNorm_orth_inv` (ортогональную инвариантность
+‖·‖₂). Без SVD-посылки `hP` в `Hagi/Step/Muon.lean` остаётся
+гипотезой (честная граница C297). mHC: Sinkhorn не требуется — M дважды
 стохастическая посылкой; оценка точная на перестановках.
 
 ## 14. Anytime stitching + прямоугольный bottleneck + space decoupling (C232)

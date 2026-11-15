@@ -238,16 +238,19 @@ evaluable as data when one arrives.
 
 ## TD A8-F6-C254 — Matrix Newton–Schulz hP removal (2026-11-13)
 
-PARTIALLY RESOLVED (C296, `feat: matrix newton schulz diagonal
-contraction`, parent fc25d1d3). Proven: diagonal action +
-sup-norm contraction of the matrix NS iterate
-(`nsMatrixStep_diagonal_contraction`, entries in [0,1]) and
-orthogonal equivariance (`nsMatrixStep_orth`); consumer
-`muon_step_bound_ns_diagonal` discharges hP for the
-diagonal/bounded case. REMAINS OPEN: the general spectral-norm
-discharge (Mathlib Matrix.opNorm is the linfty-structure norm,
-not orthogonally invariant; no spectral-norm Matrix API +
-real-SVD existence here). Original entry follows.
+FURTHER RESOLVED (C297, `feat: spectral norm svd transport
+contraction`, parent 12f0e390). C296 proven: diagonal action +
+sup-norm contraction + orthogonal equivariance. C297 adds the
+spectral-norm transport: the pinned Mathlib DOES have a
+spectral-norm Matrix API (scoped `Matrix.Norms.L2Operator`,
+CStarRing identity) — the C296 "absent" verdict was stale;
+`nsSpectralNorm_orth_inv` (orthogonal invariance) +
+`ns_contraction_svd` (SVD-premise spectral contraction,
+`A = U Σ Vᵀ`, entries in [0,1]) + consumer `muon_step_bound_ns_svd`
+(Euclidean-space hP discharge under the SVD premise). REMAINS
+OPEN: SVD existence (the decomposition is a premise), iterate
+lifting, and the fully general hP-free Muon statement. Original
+entry follows.
 
 DEFERRED (C254, item 3). Target: remove the hypothesis
 `hP : ∀ z, ‖P z‖ ≤ ‖z‖` from `muon_step_bound`/`muon_pl_rate`
