@@ -6316,3 +6316,49 @@ merger cert carriers (Freeze-дисциплина: statement change).
   (`MetricDirection.improves_lossCeiling_intro`, docstring-проводка, без
   импорта). `rd_step_certified_budgetSpend`/`_errorSpend` —
   rfl-проекции трат.
+
+## Hagi/Deployment/CanaryRamp.lean
+
+- C324 — аудит §7 p.1 по ранжированию
+  `.omc/analysis/period-c313-c323-analysis.md` (canary-приёмка):
+  вес маршрута w непрерывен, канареечный разгон 0→1, утечка линейна
+  по w (`cascade_leak_router_linear`, C250), e-процесс следит за
+  вредом (Ville, C264/C295 — процитированы premise-form, Unified
+  слой 6 выше Deployment 5). Композиция ONLY: новый файл — клей и
+  упаковка поверх C250 + C278.
+- `CanaryRamp` — GENERIC ramp policy premise: любая неубывающая
+  последовательность весов в [0,1] (mono/nonneg/le_one). Форма
+  рампы — ПОСЫЛКА: теоремы верны для любой такой
+  последовательности. `linearRamp` — стандартная рампа wₜ = t/T;
+  `linearRamp_canary` — [0,1]-клэмп совпадает с ней на окне j ≤ T.
+- `canaryStepLeak` — КОНСТАНТНАЯ ФОРМА C250 verbatim:
+  w·L_stack·‖ΔR‖·‖projR U *ᵥ x‖, L_stack = cascadeGain S (честное
+  по-слойное произведение, БЕЗ предположения контрактивности);
+  `canary_step_leak_bound` = `cascade_leak_bound_op` при |w| = w.
+- `canary_ramp_harm_bound` — кумулятивная экспозиция рампы:
+  ∑ leak(w j) = (∑ w j)·L·dR·px. `canary_ramp_linear_sum` +
+  `canary_linear_ramp_harm` — для стандартной рампы t ∈ [0,T]:
+  ∑ = (T+1)/2·L·dR·px — конечная контролируемая экспозиция всего
+  разгона (окно T+1 шагов включая w=0 — канареечный старт).
+- `canary_step_certified` — шаг рампы КАК `Hagi.Cert.CertStepGen`
+  (паттерн C322 `rd_step_certified`): leak в risk-канале со
+  СВОБОДНЫМ остатком (урок C254), дельта-канал premise-form,
+  спуск/бюджет/полы — посылки (сертификат об УЧЁТЕ, не об
+  исполненном rollout); `_riskSpend` — rfl-проекция.
+- `canaryVilleMonitorHold` — контракт монитора (PREMISE-form):
+  пересечение Ville-порога e-процессом ⇒ шаг = сертифицированный
+  HOLD; бэкинг процитирован (`gate_anytime_valid` C264,
+  `stitching_eprocess_anytime` C295), вероятность НЕ импортируется.
+- `canary_ramp_completion_bound` — оконный клон телескопа C278
+  (`risk_telescope_gen`): все-прогресс рампа с тратами =
+  leak(w j) держит ∑ leak ≤ M.risk (t 0). Оконная форма (закон
+  ядра ∀ℕ-индексирован; конечной рампе нужны шаги только j < T).
+- `canary_ramp_acceptance` — КОНТРАКТ канареечной приёмки: ЛИБО
+  какой-то j < T пересёк порог и шаг j — сертифицированный hold
+  (свидетель ИЗ посылки монитора, не голый случай), ЛИБО полный
+  разгон завершается с ∑ leak(w j) ≤ M.risk (t 0). Честный пин:
+  траектория принимается на нулевом дельта-уровне (встраивание
+  `certStep_to_gen` не несёт дельта-канала).
+- `canary_ramp_anchor_3step` — числовой якорь: рамка T=2, w =
+  0, 1/2, 1, L = dR = px = 1 ⟹ суммарная экспозиция 3/2 = (T+1)/2
+  (через ГЛАВНЫЕ теоремы, не bare norm_num).

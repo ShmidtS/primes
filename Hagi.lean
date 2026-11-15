@@ -50,6 +50,7 @@ import Hagi.Energy.SingleCellDescent
 import Hagi.Energy.EnergyCoordinateStep
 import Hagi.Energy.EnergyFlow
 import Hagi.Dynamics.GrowthBridge
+import Hagi.Deployment.CanaryRamp
 import Hagi.Growth.GainRenewal
 import Hagi.Growth.LinearCone
 import Hagi.Ensemble.MergeIdentity
