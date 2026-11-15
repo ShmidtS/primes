@@ -95,6 +95,7 @@ import Hagi.Learning.FOOFUnique
 import Hagi.Probability.FannesPinsker
 import Hagi.Learning.RouterMix
 import Hagi.Learning.SoftRouterMix
+import Hagi.Learning.SoftRouterTotal
 import Hagi.Learning.BitBudget
 import Hagi.Learning.TrainingTransition
 import Hagi.Unified.OptimalConfig
