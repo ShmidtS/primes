@@ -6431,3 +6431,49 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Негативы (границы выигрыша/адаптивного адверсария) проверены
   отсутствием соответствующих деклараций (rootapi-негативы,
   `.tmp/C327/rootapi-neg.log`).
+
+## Hagi/Contracts/SparseInferenceCert.lean (C328)
+- Audit §8 inference-сторона разреженности: sparsity-certified
+  inference — спектральная маска + compute-доля, вся упаковка
+  новая, все ингредиенты процитированы.
+- `sparse_inference_error` (MAIN 1): маска `B` ранга-k достигает
+  хвостовой ошибки (premise `hE : ‖A−B‖ ≤ (∑ rectangularTail²)^½`;
+  точное равенство — усечённая спектральная маска, квадратный
+  случай `frobenius_error_truncatedSVD`, прямоугольный мост
+  отложен с C232/C281) ⟹ всякий sens-липшицев readout φ меняется
+  не более чем на sens·(∑ хвост²)^½ (C300/C322
+  Lipschitz-transfer). Направление честное: EY — оценка СНИЗУ на
+  ошибку маски, функциональная граница НЕ следует из EY для
+  произвольного B (ловушка направления поймана probe-итерацией,
+  plan-review A1).
+- `sparse_mask_minimal`: Eckart-Young процитирован ДОСЛОВНО
+  (`eckart_young_lower_bound_rect_true_tail` C281) — ни одна
+  маска ранга-k не бьёт хвост: сертификат оптимальности посылки
+  hE.
+- Op-count семейство (дисциплина C272 work-model): defs
+  `denseMatVecWork n = n²`, `lowRankMatVecWork k n = 2kn`
+  (честный двухпроходный факторизованный matvec; per-pass доля
+  k/n — в docstring), `lowrank_op_count_le` (2k ≤ n),
+  `lowrank_op_count_lt` (2k < n), `lowrank_op_ratio` (точное
+  тождество 2kn = (2k/n)·n²).
+- `sparse_step_certified` (+ budgetSpend/errorSpend rfl-леммы):
+  C322 `rd_step_certified` паттерн на ядре C278 CertStepGen —
+  budget-канал тратит lowRank-matvec работу (compute-учёт),
+  risk-канал — сертифицированную ошибку sens·хвост^½; остатки
+  явные (C254).
+- Якоря (Anchor): 2×3 (Fin 2 × Fin 3) rank-1 матрица
+  `Aex = Uex·Vex` (ранг ≤ 1: Mathlib-леммы rank_mul_le_left и
+  rank_le_card_width, ℂ-близнец репозиторного
+  `factor_update_rank_le` C232);
+  `tail_zero` — числовой хвост при k=1 равен 0 (antitone +
+  `rank_eq_card_nonzero_singularValues_rect`; ненулевой числовой
+  спектр не механизруется — root-sorting, деферрал C232/C281);
+  `anchor_error` (граница функции sens·0 — маска точна),
+  `anchor_count` (6 ≤ 9, decide), `anchor_ratio` (6 = (2/3)·9).
+- Честные границы: ТОЛЬКО спектральная (low-rank) разреженность;
+  unstructured/entrywise маска НЕ утверждается — оптимальная
+  неструктурированная маска NP-трудна (Natarajan 1995),
+  признана, не формализована; work-model — entry-reads без
+  асимптотик; нет вероятности и эмпирических констант.
+  Негативы (unstructured/NP-трудность) проверены отсутствием
+  деклараций (rootapi-негативы, `.tmp/C328/rootapi-neg.log`).

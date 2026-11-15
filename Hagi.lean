@@ -488,6 +488,7 @@ import Hagi.Contracts.IdentityMomentConvergence
 import Hagi.Contracts.BatchCEBestResidual
 import Hagi.Contracts.GradientBottleneck
 import Hagi.Contracts.GradientBottleneckIdentification
+import Hagi.Contracts.SparseInferenceCert
 import Hagi.Contracts.LogitGrad
 import Hagi.Contracts.HadamardTernaryBridge
 import Hagi.Contracts.HadamardSpread
