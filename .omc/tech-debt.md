@@ -668,3 +668,20 @@ MasterHAGI.lean row shrunk 3/3/2/2/2 → 2/2/1/1/1 (conscious
 shrink-only update via C304 plan review; script dict + assumptions.lock
 both updated). LOC: tracked Lean 162320 → 162254 (−66). Root census
 main=13430. CI 1×PASS + ALLAXIOMS PASS (.tmp/C304/battery3.log).
+
+## TD C323-open1 — sleeping-experts regret gap — CLOSED (C325)
+
+The C323 period analysis listed (open inventory item 1) the C320
+honest gap: router bundle held only vs always-available experts.
+CLOSED by C325 (`feat: sleeping experts router regret`, parent
+263d820): `Hagi/Learning/SleepingRouter.lean` — imputed-loss
+reduction; KEY IDENTITY `swWeight_eq_ewWeight` makes the process
+definitionally `ewWeight` on imputed losses, so the entire Hedge
+carrier (`hsurv_derived`, `router_regret_bound`) applies verbatim;
+MAIN `sleeping_hedge_regret` = masked regret log K/η + η·T/2 on
+each expert's own awake rounds. No fixed-share fallback needed;
+no carrier proof touched (Freeze PASS at C325). Canary (C324) and
+sparse (C328) honest-scope deferrals are period-analysis inventory
+items (rectangular spectral bridge; unstructured NP-hard boundary;
+Ville monitor premise-form), NOT tech-debt rows — receipts + STATUS
+carry them (DRY).
