@@ -2619,6 +2619,30 @@ one-hot CE.
 - `colUpdate_inert` сохраняет все адреса `b ≠ i`;
   `colUpdate_waw` отождествляет две записи в один адрес с последней.
 
+## Hagi/Model/RamProtocol.lean
+
+- C303 (E6 — RAM induction: протокол store/load + нормализация
+  заикания): `ramStore`/`ramLoad` — протокольный API поверх
+  GDNRAM-носителя; `ram_store_load_roundtrip` — store→load по
+  тому же адресу возвращает значение в точности (упаковка
+  идеального one-hot roundtrip), `ram_store_isolation` — load по
+  другому адресу не затронут записью (one-hot независимость
+  слотов, режим lag-1).
+- Stutter-ядро Python-чанкинера: `stutterNorm` (foldr-свёртка,
+  схлопывание подряд идущих дубликатов) —
+  `stutterNorm_idempotent` (norm ∘ norm = norm),
+  `stutterNorm_length_le` (не удлиняет),
+  `stutterNorm_head?`/`stutterNorm_getLast?` (первый/последний
+  сохраняются).
+- Мост `ram_load_stutter_head`: первое чтение RAM по заикающейся
+  последовательности адресов = первому чтению по
+  нормализованной (без промежуточных записей повторы адреса не
+  меняют чтение). Полная эквивалентность потоков (чанк на серию
+  повторов) — НЕ заявлена, следующая ступень E6.
+- Якоря (decide): stutterNorm [1,1,2,2,1] = [1,2,1]; Fin 3 RAM —
+  запись двух значений в два слота, чтение обоих через
+  roundtrip + изоляцию.
+
 ## Hagi/Model/GatedCEDescent.lean
 
 - Для непустого конечного `V` производная CE вдоль

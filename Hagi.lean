@@ -350,6 +350,7 @@ import Hagi.Data.AnfCompose
 import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
 import Hagi.Model.GDNBridge
+import Hagi.Model.RamProtocol
 import Hagi.Step.CPUFreeze
 import Hagi.Model.AdaptiveChunking
 import Hagi.Model.NeuralComputer

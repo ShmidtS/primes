@@ -2384,6 +2384,17 @@ Prescription: биты на фактор — по закону (e+f+ef)²; на
   k_{t−1}→v_t — `gdn_lag1_read_miss` (чтение по другому адресу
   возвращает старую строку) и сводная `gdn_lag1_alignment`
   (hit = записанное значение через `gdn_ram_roundtrip`).
+- RAM store/load протокол + stutter norm, E6
+  (`Hagi/Model/RamProtocol.lean`): протокольный API
+  `ramStore`/`ramLoad` на GDNRAM-носителе —
+  `ram_store_load_roundtrip` (store→load roundtrip) и
+  `ram_store_isolation` (запись в один слот не трогает другие);
+  `stutterNorm` — ядро Python stutter-чанкинера (схлопывание
+  подряд идущих дубликатов): идемпотентность, длина не растёт,
+  первый/последний сохраняются; мост `ram_load_stutter_head` —
+  первое чтение заикающегося адресного потока = первому чтению
+  нормализованного (без промежуточных записей). Полная
+  эквивалентность потоков чанкинга — не заявлена (ступень E6).
 - Kernel adapter (`Hagi/Unified/HonestTransition.lean`):
   `HonestTransition.toKernelCertStep` — честный переход в ПОЛНОЕ
   каноническое ядро Hagi.Cert.CertStep (бюджет/риск-учёт из
