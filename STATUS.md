@@ -5852,6 +5852,36 @@ merger cert carriers (Freeze-дисциплина: statement change).
   (лестница продолжений в tech-debt E4-C300).
 
 
+## Hagi/Model/AttentionTransfer.lean
+- C307 (E4 attention rung — attention block transfer composition):
+  `attnBranch` — softmax-взвешенная композиция ценностей
+  `∑ i, p i • v i x` (веса premise-form: фиксированное
+  вероятностное распределение инкапсулирует QK^T-структуру).
+  `attn_branch_damped` — интерфейс демпфирования: отклонение
+  ветви при возмущении ограничено максимальным откликом
+  value-отображений (инстанция `Hagi.Core.attention_error_damped`
+  с ошибками `e i = v i (x+dx) − v i x`). `attn_branch_lipschitz`
+  — равномерное демпфирование value-отображений μatt даёт
+  LipschitzWith μatt ветви. `attn_norm_branch_lipschitz` —
+  pre-norm (посылка μn) ∘ ветвь даёт LipschitzWith (μn·μatt) —
+  в точности форма блочной гипотезы C300.
+  `attention_block_transfer` — один attention-блок (pre-norm +
+  взвешенная ветвь + residual) удовлетворяет C300-границе утечки
+  `Lc·(μn·μatt)·‖dx‖`. Стек: `AttnBlock`/`attnBlockList`/
+  `attnStack`/`attnGain` (`∏(1+μnᵢ·μattᵢ)`),
+  `attnBlockList_lipschitz`,
+  `attention_stack_transfer_descent` и
+  `attention_stack_transfer_descent_strict` — теорема C300 о
+  стеке в применении к attention-блокам с композицией
+  демпфирований. Скалярные якоря (μ_att=3/10, μ_res=2/10:
+  (1+0.3)(1+0.2)−1 = 28/50 ≥ 1/2). Честная граница: softmax-карта
+  весов (p от x через QK^T) — premise-форма; Lipschitz RMSNorm —
+  посылка μn (звено 4 лестницы); изометрия RoPE на
+  нормированном носителе (`rot_norm` сохраняет `pairInner`, не
+  норму нормированного пространства) — СЛЕДУЮЩЕЕ звено; полный
+  forward/backward FastArch3 НЕ заявлен.
+
+
 ## Hagi/Data/AnfTransform.lean
 - C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
   `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная

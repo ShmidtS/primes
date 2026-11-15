@@ -397,6 +397,7 @@ import Hagi.Step.GradClip
 import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Model.BackboneTransfer
+import Hagi.Model.AttentionTransfer
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.GraphDistanceRouting

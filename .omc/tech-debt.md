@@ -374,13 +374,45 @@ route is bypassed at the composition level). REMAINING LADDER
 (each rung a candidate beat): (1) attention-softmax Lipschitz
 premise — turn `attention_error_damped`
 (`Hagi/Core/Attention.lean`) into a mu_attn bound on the softmax
-map itself; (2) RoPE exactness — rotation isometry giving a mu=0
+map itself — LANDED by C307 (see TD E4-C307); (2) RoPE exactness — rotation isometry giving a mu=0
 rung (`Hagi/Core/RoPEMoments.lean` context); (3) GDN RAM
 read/write perturbation rung (`Hagi/Model/GDNBridge.lean`); (4)
 RMSNorm unit-RMS giving bounded logit scale feeding C291 constants
 (`Hagi/Model/RMSNorm.lean`); (5) chain rungs 1-4 into
 `resStack_transfer_descent` for the full FastArch3 stack. Not
 claimed anywhere: full forward/backward certificate.
+
+## TD E4-C307 — attention block transfer composition (DONE)
+
+E4 ladder rung 1 (TD E4-C300 remaining rung 1). C307 lands
+`Hagi/Model/AttentionTransfer.lean`: the attention error-damping
+certificate (`Hagi.Core.attention_error_damped`) wired into the
+C300 residual-transfer stack. Interface verdict: the carrier
+bounds the WEIGHTED-OUTPUT deviation (value errors e i); the
+bridge is e i := v i (x+dx) − v i x (value-map response), giving
+`attn_branch_damped` (branch perturbation ≤ max_i value response)
+and `attn_branch_lipschitz` (uniform LipschitzWith μatt value
+premise ⇒ LipschitzWith μatt branch). Pre-norm enters as a
+LipschitzWith μn premise (RMSNorm rung 4 instantiates it later);
+`attn_norm_branch_lipschitz` gives LipschitzWith (μn·μatt) — the
+exact C300 block-hypothesis shape — so `attention_block_transfer`
+(one pre-norm + softmax-weighted branch + residual block)
+inherits the C300 leak bound and the stack
+(`AttnBlock`/`attnStack`/`attnGain` =
+∏(1+μnᵢ·μattᵢ)) inherits `attention_stack_transfer_descent`
+(+`_strict`) via `resStack_transfer_descent`. Numeric anchors
+(μ_att=0.3, μ_res=0.2: (1.3)(1.2)−1 = 0.56 ≥ 0.5). HONEST SCOPE:
+softmax weight map (p from x through QK^T) is premise-form (fixed
+probability distribution); RMSNorm Lipschitz is premise-form;
+RoPE exactness is NOT landed (`rot_norm` preserves `pairInner`,
+not a normed-space norm — a norm-carrier isometry lemma needs a
+new norm surface = next rung); full FastArch3 forward/backward
+certificate NOT claimed. REMAINING LADDER (updated): (1) RoPE
+norm-carrier isometry rung (rope_norm_preserved); (2) GDN RAM
+read/write perturbation rung (`Hagi/Model/GDNBridge.lean`); (3)
+RMSNorm unit-RMS feeding bounded logit scale (`Hagi/Model/RMSNorm.lean`);
+(4) chain all rungs into the full FastArch3 stack certificate.
+Not claimed anywhere: full forward/backward certificate.
 
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
 

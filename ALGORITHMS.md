@@ -1545,6 +1545,29 @@ piecewise dynamics и универсальный analytic entropy limit сюда
 RAM-звено, RMSNorm-константы) НЕ заявлены — это лестница
 продолжений (см. tech-debt E4-C300).
 
+### Композиция attention-блока в переносе спуска (C307, E4 attention rung)
+
+Attention-звено лестницы E4
+(`Hagi/Model/AttentionTransfer.lean`): существующий сертификат
+демпфирования ошибок softmax (`Hagi.Core.attention_error_damped`)
+подключён к стеку C300. Ветвь
+[`attnBranch`](Hagi/Model/AttentionTransfer.lean) p v x =
+∑ i, p i • v i x (веса — фиксированное распределение
+вероятностей, premise-форма для QK^T-структуры);
+`attn_branch_damped` — отклонение ветви ≤ max_i ‖v i (x+dx) −
+v i x‖ (инстанция демпфирования с e i = отклик value-карты);
+`attn_branch_lipschitz` — LipschitzWith μatt ветви при
+равномерном μatt-демпфировании value-карт; pre-norm посылка μn
+компонирует в LipschitzWith (μn·μatt) — форма блочной гипотезы
+C300 (`attention_block_transfer`: утечка Lc·(μn·μatt)·‖dx‖).
+Стек attention-блоков наследует мультипликативную границу C300
+(`attention_stack_transfer_descent`: утечка
+Lc·(∏(1+μnᵢ·μattᵢ)−1)·‖dx‖; якорь μ_att=0.3, μ_res=0.2:
+(1.3)(1.2)−1 = 0.56). Честная граница: softmax-карта весов —
+premise-форма; Lipschitz RMSNorm — посылка (звено 4); изометрия
+RoPE на нормированном носителе — следующее звено; полный
+FastArch3 certificate НЕ заявлен.
+
 ## 10. Сборка рецепта и граница результата
 
 Порядок одного цикла:
