@@ -2075,6 +2075,22 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   (`anfFin2_compose`, `anfFin2_compose_spot`, decide). Степенная
   оценка — docstring-заметка; collision abstention/диапазоны — не
   заявлены (лестница TD E5-C302).
+- **ANF-dispatch с collision abstention (E5 rung 3)**
+  ([`Hagi/Data/AnfDispatch.lean`](Hagi/Data/AnfDispatch.lean)):
+  `dispatchOrAbstain` — сертифицированный двухкандидатный
+  dispatch Python V3: применим ровно один → его значение; ни
+  одного → default; оба → проверка согласия, разногласие →
+  `Option.none`-абстенция. `inRange` (точное совпадение множества
+  позиций контекста и `AnfCand.argRanges` кандидата; чтение-подмножество
+  отвергнуто — пустые диапазоны дают ложную коллизию),
+  `dispatch_sound`/`dispatch_sound_default` (корректность
+  приёма/default), `abstain_sound` (коллизия ⇒ абстенция, нет
+  ложного покрытия), `guard_disjoint_no_collision`
+  (непересекающиеся непустые диапазоны никогда не коллизуют —
+  композиция с `stencil_guard_sound` C302, без гипотезы
+  опорности); якоря Fin 2 decide (`anfFin2_dispatch_abstain/ok`).
+  Мульти-кандидатный (>2) dispatch с приоритетами и сквозная
+  эквивалентность Python V3 — не заявлены (лестница TD E5-C306).
 
 ## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
 

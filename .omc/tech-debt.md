@@ -425,6 +425,32 @@ range/dispatch correctness; (4) collision abstention — certified
 abstain predicate. Not claimed anywhere: end-to-end Python V3
 compiler equivalence.
 
+## TD E5-C306 — ANF dispatch collision abstention (DONE)
+
+E5 ladder rung 3 (TD E5-C302 remaining rungs 3+4). C306 lands
+`Hagi/Data/AnfDispatch.lean`: the Python V3 dispatch/abstention
+policy as a certified two-candidate dispatch on the AnfTransform
+carriers — `AnfCand` (stencil + `argRanges` Finset),
+`inRange` (EXACT-match range model: the context's position set
+equals the candidate's range, `∀ i, x i = decide (i ∈ R)`,
+decidable; the subset reading is REFUTED — empty/nonempty disjoint
+ranges both-applicable counterexamples make the required
+disjointness lemma false), `collides` (both in range + outputs
+disagree), `dispatchOrAbstain` (one applicable → its value; none
+→ default; both → agreement check, disagree → `none`),
+`dispatch_sound`/`dispatch_sound_default` (acceptance/default
+correctness), `abstain_sound` (collision ⇒ abstain, no false
+coverage), `guard_disjoint_no_collision` (disjoint NONEMPTY
+ranges ⇒ never collide — the C302 stencil_guard_sound
+composition, holding without supportedness; degenerate both-empty
+pair excluded by the Nonempty side-condition and documented), and
+the Fin 2 decide anchors (colliding pair → abstain; disjoint pair
+→ dispatch ok). REMAINING LADDER: (1) multi-candidate (>2)
+dispatch with the Python arg-range PRIORITY ordering; (2) degree
+API + degree bound theorem; (3) typed context-signature
+extraction statement. Not claimed anywhere: end-to-end Python V3
+compiler equivalence.
+
 ## TD A12-C304 — credo quarantine deletions step 1 (DONE)
 
 Executed the C282 §1.2 flagged-but-frozen shim list with the
