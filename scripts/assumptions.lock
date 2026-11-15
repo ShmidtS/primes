@@ -2,11 +2,11 @@ h_emp files: 36
 h_emp identifiers: 116
 h_emp proven theorems: 5
 primitive defs: 10
-operational premise names: 8
+operational premise names: 10
 
 [premise classes]
 Empirical: h_emp_* binders (statistical, external)
-Operational: 8 execution-link binders
+Operational: 10 execution-link binders
 Structural/Math: all other parameter hypotheses
 
 [h_emp]
@@ -75,6 +75,8 @@ hdescent'
 hexec
 hexecb
 hsample
+hybrid_stack_transfer_descent
+hybrid_stack_transfer_descent_strict
 
 [unprefixed empirical premises (per-file counts, shrink-only, not a name-registry)]
 Hagi/Generalization/ModeState.lean: h_C_cap=2 hβ_eased=2

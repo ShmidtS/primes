@@ -5940,6 +5940,44 @@ merger cert carriers (Freeze-дисциплина: statement change).
   весов — premise-форма (C307); полный FastArch3 certificate НЕ
   заявлен.
 
+## Hagi/Model/GDNTransfer.lean
+- C310 (E4 GDN rung — GDN block transfer + hybrid stack): GDN-сто-
+  рона гибридного attention+GDN backbone встроена в C300 transfer
+  stack, посажена HYBRID-теорема (стек из attention- и GDN-блоков
+  спускается с произведением gain). Вердикт по форме GDN (pin):
+  в репо три формы — (1) GDNBridge one-hot RAM-адресация (C254,
+  семантика чтения/записи, не state-оператор); (2) GDN2 memory
+  update `M̃' = (I−UᵀU)·D·M̃ + Uᵀ(ω⊙V)` (аффинен по памяти,
+  rowSumNorm `gdn2_step_bound`, матричное пространство); (3) mHC
+  STATE MIXING `x ↦ M *ᵥ x` с M дважды стохастической (C231).
+  Блок GDN здесь — форма (3): mixing-ветвь с GDN-гейтом в
+  PREMISE-форме (μg-липшицев пред-гейт, зеркально пре-норм C307).
+  Транспорт носителя: `gdnMix M x = toLp 2 (M *ᵥ ofLp x)` на
+  `EuclideanSpace ℝ n` (как в C309). ГЛАВНАЯ лемма:
+  `gdnMix_lipschitz` — `IsDoublyStochastic M ⇒ LipschitzWith 1
+  (gdnMix M)` — сжатие C231 `doublyStochastic_sq_le` на разности,
+  поднятая в евклидову норму мостом `EuclideanSpace.real_norm_sq_eq`
+  (`gdnMix_norm_sub_le`). `gdn_branch_lipschitz` — гейт μg ∘
+  mixing ⇒ μg-липшицева ветвь (форма гипотезы блока C300);
+  `gdn_block_transfer` — утечка C300 `Lc·μg·‖dx‖` на одном блоке.
+  Стек: `GdnBlock`/`gdnBlockList`/`gdnStack`/`gdnGain`,
+  `gdn_stack_transfer_descent` (+ `_strict`), gain `∏ (1+μgᵢ)`
+  (mixing 1-липшицев — роста нет, C231). HYBRID (payoff звена):
+  `HybBlock` (inductive: конструкторы att | gdn), `hybBlockList`/
+  `hybStack`/`hybGain`, `hybBlockList_lipschitz` (диспетчеризация
+  по конструктору: C307-адаптер для attention, C231-бэкед для
+  GDN), `hybrid_stack_transfer_descent` (+ `_strict`) — теорема
+  C300 на гетерогенном списке блоков, каждый со своим μᵢ
+  (attention μn·μatt, GDN μg). Якоря: единичная матрица дважды
+  стохастическая (невакуумность посылки mixing); числовая μ-ком-
+  позиция hybrid (att 3/10, gdn 2/10 ⇒ утечка (1+3/10)(1+2/10)−1
+  = 14/25); мультипликативность ≥ аддитивности. Честная граница:
+  GDNBridge RAM-чтение/запись и GDN2 memory update НЕ заявлены
+  как state-сжатия; нелинейный гейт — premise-форма μg; Sinkhorn
+  НЕ заявлен (IsDoublyStochastic — посылка, граница C231);
+  softmax — premise-форма (C307); полный FastArch3 certificate НЕ
+  заявлен.
+
 ## Hagi/Data/AnfTransform.lean
 - C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
   `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная

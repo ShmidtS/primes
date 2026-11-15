@@ -477,8 +477,46 @@ in the carrier (constants carry no g-scaling; if added later they
 scale by max|g|); softmax weight map stays premise-form (C307);
 full FastArch3 forward/backward certificate NOT claimed.
 REMAINING LADDER (updated): (1) GDN RAM read/write perturbation
-rung (`Hagi/Model/GDNBridge.lean`); (2) chain all rungs into the
+rung (`Hagi/Model/GDNBridge.lean`) — LANDED by C310 in the mHC
+state-mixing form (see TD E4-C310); (2) chain all rungs into the
 full FastArch3 stack certificate.
+
+## TD E4-C310 — gdn block transfer + hybrid stack (DONE)
+
+E4 ladder rung (TD E4-C300 GDN side / C309 remaining rung 1).
+C310 lands `Hagi/Model/GDNTransfer.lean`: the GDN side of the
+hybrid attention+GDN backbone wired into the C300 transfer stack
+(`Hagi.Model.BackboneTransfer`), plus the HYBRID payoff theorem.
+GDN-FORM VERDICT (pin): three GDN forms in-repo — GDNBridge
+one-hot RAM addressing (C254, read/write semantics, no state
+operator); GDN2 memory update `(I−UᵀU)·D·M̃ + Uᵀ(ω⊙V)` (affine
+in memory, rowSumNorm-bounded, matrix space); mHC STATE MIXING
+`x ↦ M *ᵥ x` with M doubly stochastic (C231). The wired block is
+the mHC form: mixing branch + GDN nonlinear gate PREMISE-form
+(μg-Lipschitz pre-gate, mirroring C307 pre-norm; GDN2/RAM forms
+NOT claimed as state contractions). MAIN LEMMA `gdnMix_lipschitz`:
+IsDoublyStochastic M ⇒ LipschitzWith 1 (gdnMix M) on
+EuclideanSpace ℝ n — C231 `doublyStochastic_sq_le` on the
+difference lifted through `real_norm_sq_eq` (`gdnMix_norm_sub_le`);
+branch μg (`gdn_branch_lipschitz`), block leak `gdn_block_transfer`
+(Lc·μg·‖dx‖), stack `gdn_stack_transfer_descent` (+ `_strict`)
+with gain ∏(1+μgᵢ). HYBRID: `HybBlock` (`att` | `gdn`),
+`hybBlockList`/`hybStack`/`hybGain`, `hybBlockList_lipschitz`
+(dispatch: C307 adapter for attention, C231-backed for GDN),
+`hybrid_stack_transfer_descent` (+ `_strict`) — C300 stack
+theorem over the HETEROGENEOUS blocks list, product gain over
+per-block μᵢ (attention μn·μatt, GDN μg). Anchors: identity
+matrix doubly stochastic (premise nonvacuity); hybrid numeric
+composition (att 3/10, gdn 2/10 ⇒ leak 14/25; multiplicative ≥
+additive). HONEST SCOPE: gate premise-form μg (per-instance
+discharge follow-up, C309 pattern); Sinkhorn NOT claimed
+(IsDoublyStochastic premise — C231 boundary); GDN2 memory update
+and GDNBridge RAM semantics not certified as state contractions;
+softmax premise-form (C307); full FastArch3 forward/backward NOT
+claimed. REMAINING LADDER (updated): (1) chain all rungs
+(attention C307, RoPE C308, RMSNorm C309, GDN C310) into the
+full FastArch3 stack certificate; (2) per-instance gate
+Lipschitz discharge (μg), as C309 did for μn.
 
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
 

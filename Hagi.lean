@@ -400,6 +400,7 @@ import Hagi.Model.BackboneTransfer
 import Hagi.Model.AttentionTransfer
 import Hagi.Model.RMSNormTransfer
 import Hagi.Model.RoPETransfer
+import Hagi.Model.GDNTransfer
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon
 import Hagi.Optimization.GraphDistanceRouting

@@ -1606,6 +1606,27 @@ Wiring: `attention_block_transfer_rmsnorm` — блок C307 с
 (отрицание); веса g в носителе нет; softmax — premise-форма;
 полный FastArch3 certificate НЕ заявлен.
 
+### GDN block transfer + гибридный стек (C310, E4 GDN rung)
+
+GDN-звено лестницы E4
+(`Hagi/Model/GDNTransfer.lean`): GDN-сторона гибридного
+attention+GDN backbone встроена в C300 transfer stack, посажена
+HYBRID-теорема. Вердикт по форме: блок GDN — mHC state mixing
+`x ↦ M *ᵥ x` с M дважды стохастической (C231), GDN-гейт —
+premise-форма μg (зеркально пре-норм C307; GDN2 memory update и
+GDNBridge RAM-семантика честно НЕ заявлены как state-сжатия).
+ГЛАВНАЯ лемма `gdnMix_lipschitz`: IsDoublyStochastic M ⇒
+LipschitzWith 1 (gdnMix M) — сжатие C231 в форме гипотезы блока
+C300. Wiring: `gdn_block_transfer` (утечка Lc·μg·‖dx‖),
+`gdn_stack_transfer_descent` (+ `_strict`), HYBRID:
+`hybrid_stack_transfer_descent` (+ `_strict`) — стек из attention-
+и GDN-блоков (`HybBlock`, конструкторы att | gdn), каждый со своим μᵢ
+(attention μn·μatt, GDN μg), спускается с произведением gain
+`∏ (1+μᵢ)`. Якоря: единичная матрица дважды стохастическая;
+гибридная μ-композиция (att 3/10, gdn 2/10 ⇒ утечка 14/25).
+Честная граница: гейт premise-форма; Sinkhorn не заявлен; полный
+FastArch3 certificate не заявлен.
+
 ## 10. Сборка рецепта и граница результата
 
 Порядок одного цикла:
