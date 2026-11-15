@@ -19,3 +19,5 @@ UNUSED_PARAM|Hagi.Unified.hagi_synthesis
 UNUSED_PARAM|Hagi.Unified.sustained_takeoff_struct
 UNUSED_PARAM|Hagi.Unified.MemorySemantics.certified_gain_margin
 UNUSED_PARAM|Hagi.Unified.TC.certs_telescope
+UNUSED_PARAM|Hagi.Learning.ContinualForgetting.floorsKept_trajectory
+UNUSED_PARAM|Hagi.Learning.ContinualForgetting.floor_floor_telescope
