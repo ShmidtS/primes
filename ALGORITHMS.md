@@ -1589,6 +1589,23 @@ RoPE-звено лестницы E4
 softmax/RMSNorm — premise-форма; полный FastArch3 certificate НЕ
 заявлен.
 
+### Разрядка константы Липшица RMSNorm (C309, E4 rmsnorm rung)
+
+RMSNorm-звено лестницы E4
+(`Hagi/Model/RMSNormTransfer.lean`): предпосылка `μn` из C307
+разряжена в явные честные константы, согласованные с точным
+носителем `rnVec` (чистая форма: без ε-пола, без веса g).
+Чистый носитель НЕ липшицев глобально — закреплено отрицанием
+`rnEuc_not_lipschitz_with` (n ≥ 2, свидетели у нуля); на области
+`r ≤ ‖z‖` — `rn_lipschitz_region` с μn(r) = 2√n/r; ε-полный
+вариант глобально (2/√ε)-липшицев (`rnEpsEuc_lipschitz`).
+Wiring: `attention_block_transfer_rmsnorm` — блок C307 с
+разряженной μn(r)·μatt; `attention_stack_transfer_rmsnorm_eps` —
+стек-инстанс с μn(ε) = 2/√ε. Якорь (n=4): ‖rnEuc (3,4,0,0)‖ = 2.
+Честная граница: глобальный липшиц чистого носителя НЕ заявлен
+(отрицание); веса g в носителе нет; softmax — premise-форма;
+полный FastArch3 certificate НЕ заявлен.
+
 ## 10. Сборка рецепта и граница результата
 
 Порядок одного цикла:

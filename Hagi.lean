@@ -398,6 +398,7 @@ import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
 import Hagi.Model.BackboneTransfer
 import Hagi.Model.AttentionTransfer
+import Hagi.Model.RMSNormTransfer
 import Hagi.Model.RoPETransfer
 import Hagi.Unified.Distillation
 import Hagi.Model.Sidon

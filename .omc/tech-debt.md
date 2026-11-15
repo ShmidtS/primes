@@ -446,6 +446,40 @@ unit-RMS feeding bounded logit scale (`Hagi/Model/RMSNorm.lean`);
 (3) chain all rungs into the full FastArch3 stack certificate.
 Not claimed anywhere: full forward/backward certificate.
 
+## TD E4-C309 — rmsnorm lipschitz constant discharge (DONE)
+
+E4 ladder rung (TD E4-C300/C307 premise-form note "Lipschitz для
+RMSNorm premise-form (μn, звено 4)"). C309 lands
+`Hagi/Model/RMSNormTransfer.lean`: the C307 pre-norm Lipschitz
+premise μn discharged into explicit constants matched to the
+EXACT carrier `rnVec` (pure Zhang–Sennrich base form — no
+ε-floor, no affine weight g). Route verdict: the pure carrier is
+NOT globally Lipschitz — pinned by the honest NEGATIVE
+`rnEuc_not_lipschitz_with` (n ≥ 2: near-zero directions δ•eₐ,
+δ•e_b map to FIXED unit-RMS directions √n•eₐ, √n•e_b while
+‖x−y‖ ~ δ√2 → 0); the region discharge is
+`rn_lipschitz_region` with μn(r) = 2√n/r (radial form
+`rnEuc x = (√n/‖x‖)•x` + reverse triangle, exact norm bridge
+`norm_eq_sqrt`); the ε-floored variant `rnEpsEuc ε x i =
+x i / sqrt (msE x + ε)` is GLOBALLY (2/√ε)-Lipschitz
+(`rnEpsEuc_lipschitz`) via the exact conjugate identity
+(gy−gx)(gy+gx) = △msE and Euclidean Cauch–Schwarz
+(`msE_abs_sub_le`) — no calculus. Wiring:
+`residual_transfer_le_pointwise` (pointwise C300 leak),
+`attention_block_transfer_rmsnorm` (THE rung theorem: composed
+constant Lc·((2√n/r)·μatt) explicit, region premises on both
+step endpoints), stack instance
+`attention_stack_transfer_rmsnorm_eps` (+ `_strict`) with
+μnEps ε = 2/√ε. Anchors (n=4): region constant 2√4/1 = 4;
+‖rnEuc (3,4,0,0)‖ = 2 (3-4-5). HONEST SCOPE: no global Lipschitz
+claim for the pure carrier (negative pinned); no affine weight g
+in the carrier (constants carry no g-scaling; if added later they
+scale by max|g|); softmax weight map stays premise-form (C307);
+full FastArch3 forward/backward certificate NOT claimed.
+REMAINING LADDER (updated): (1) GDN RAM read/write perturbation
+rung (`Hagi/Model/GDNBridge.lean`); (2) chain all rungs into the
+full FastArch3 stack certificate.
+
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)
 
 E5 Venn/RAM compiler bridges (rank 3 of the C292-C297 analysis).

@@ -5906,6 +5906,40 @@ merger cert carriers (Freeze-дисциплина: statement change).
   и RMSNorm — premise-форма (C307); полный FastArch3 НЕ заявлен.
 
 
+## Hagi/Model/RMSNormTransfer.lean
+- C309 (E4 rmsnorm rung — RMSNorm Lipschitz constant discharge):
+  предпосылка `μn` из C307 разряжена в ЯВНЫЕ честные константы,
+  согласованные с точным определением носителя `rnVec x i =
+  x i / sqrt (ms x)` (чистая форма Zhang–Sennrich: без ε-пола,
+  без аффинного веса g). Транспорт носителя: `msE`/`rnEuc`/
+  `rnEpsEuc` на `EuclideanSpace ℝ (Fin n)` поточечно через
+  `WithLp.ofLp`/`WithLp.toLp`, точный мост норм `norm_eq_sqrt`
+  (‖x‖ = √n·√(msE x)). Честный вердикт по константам: чистый
+  носитель НЕ липшицев глобально — закреплено ОТРИЦАНИЕМ
+  `rnEuc_not_lipschitz_with` (n ≥ 2: направления δ•eₐ, δ•e_b
+  переходят в ФИКСИРОВанные единично-RMS направления √n•eₐ,
+  √n•e_b при ‖x−y‖ ~ δ√2 → 0); на области `{z | r ≤ ‖z‖}` —
+  `rn_lipschitz_region` с константой μn(r) = 2√n/r (радиальная
+  форма `rnEuc x = (√n/‖x‖)•x` + обратное неравенство
+  треугольника); ε-полный вариант `rnEpsEuc ε x i =
+  x i / sqrt (msE x + ε)` ГЛОБАЛЬНО (2/√ε)-липшицев
+  (`rnEpsEuc_lipschitz`) через точное сопряжение
+  (gy−gx)(gy+gx) = △msE и евклидову Коши–Шварца `msE_abs_sub_le`.
+  Wiring: `residual_transfer_le_pointwise` (утечка C300 в точке
+  шага из поточечной оценки отклика ветви), `attention_block_
+  transfer_rmsnorm` — ТЕОРЕМА ЗВЕНА: блок C307 с разряженной μn
+  (посылки области на обоих концах шага), составная константа
+  Lc·((2√n/r)·μatt) явная; стек-инстанс `attention_stack_
+  transfer_rmsnorm_eps` (+ `_strict`) — теорема C307 c μn(ε) =
+  2/√ε через ε-полные pre-norms (`μnEps`). Якоря (n=4):
+  константа области 2·√4/1 = 4; ‖rnEuc (3,4,0,0)‖ = 2
+  (треугольник 3-4-5 через `rnEuc_eq` + `norm_eq_sqrt`). Честная
+  граница: глобального липшица чистого носителя НЕ заявлено
+  (закреплено отрицанием); аффинного веса g в носителе нет (если
+  появится — константы масштабируются на max|g|); softmax-карта
+  весов — premise-форма (C307); полный FastArch3 certificate НЕ
+  заявлен.
+
 ## Hagi/Data/AnfTransform.lean
 - C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
   `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная
