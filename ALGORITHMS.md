@@ -2096,8 +2096,19 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   `c_S = ⊕_{x ⊆ S} f(x)` в ZMod 2); roundtrip компилятора ANF:
   синтез + вычисление возвращает исходную функцию (`anf_eval_eq`,
   все n); якоря Fin 2 XOR/AND (`anfFin2_xor/and`,
-  `anfFin2_xor_coeffs`). compose3/контекстные сигнатуры/диапазоны/
-  abstention — не заявлены (лестница TD E5-C301).
+  `anfFin2_xor_coeffs`).
+- **ANF-композиция compose3 (E5 rung 1)** ([`Hagi/Data/AnfCompose.lean`](Hagi/Data/AnfCompose.lean)):
+  `anfCompose` (Python compose3(f,g,h)=f(g(x),h(x)) на носителе
+  таблиц истинности); `anfCompose_coeff` (коэффициенты = transform
+  составной таблицы, подкуб-форма) и `anfCompose_eval` (roundtrip
+  компиляции композиции) — инстансы ядра C301, упакованные как
+  compose3 API; `stencil_guard_sound` — опорная зависимость
+  (context-guard) композиционна: S-опорные g,h дают S-опорную
+  композицию для любого внешнего f (направление no-false-coverage
+  контекст-сигнатурной абстенции); якорь Fin 2 OR∘(AND,XOR)
+  (`anfFin2_compose`, `anfFin2_compose_spot`, decide). Степенная
+  оценка — docstring-заметка; collision abstention/диапазоны — не
+  заявлены (лестница TD E5-C302).
 
 ## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
 

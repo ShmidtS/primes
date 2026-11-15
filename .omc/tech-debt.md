@@ -402,3 +402,25 @@ range/dispatch correctness for compiled Venn arguments; (4)
 collision abstention — the abstain-on-collision policy as a
 certified predicate. Not claimed anywhere: end-to-end Python V3
 compiler equivalence.
+
+## TD E5-C302 — ANF compose3 seed + guarded support (OPEN, seeded)
+
+E5 ladder rung 2 (TD E5-C301 rung 1). C302 lands the compose3 SEED
+(`Hagi/Data/AnfCompose.lean`): truth-table-level composition
+`anfCompose f g h x = f (g x) (h x)` (outer Bool×Bool, inner on
+the shared Fin n carrier), its ANF synthesis instances
+(`anfCompose_coeff` — subcube-parity coefficients of the composed
+table, instance of anf_subcube; `anfCompose_eval` — compile
+roundtrip, instance of anf_eval_eq — packaged as the Python
+compose3 API), context-guard soundness (`anfAgreeOn`/
+`anfSupportedOn`/`stencil_guard_sound`: support-dependence
+composes for ANY outer f — the no-false-coverage direction of the
+Python context-signature abstention; converse false, not claimed),
+and the Fin 2 OR∘(AND,XOR) decide anchor. Degree bound
+deg(f∘(g,h)) ≤ deg f · max(deg g, deg h): docstring NOTE only —
+no monomial/degree API on the carrier yet. REMAINING LADDER:
+(1) degree API + the degree bound as a theorem; (2) context
+signatures — typed extraction statement; (3) argument ranges —
+range/dispatch correctness; (4) collision abstention — certified
+abstain predicate. Not claimed anywhere: end-to-end Python V3
+compiler equivalence.

@@ -5907,3 +5907,29 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Честная граница: compose3, контекстные сигнатуры, диапазоны
   аргументов, collision abstention — НЕ заявлены (лестница E5 в
   tech-debt TD E5-C301).
+## Hagi/Data/AnfCompose.lean
+
+- C302 (E5 rung 1 — ANF composition / compose3 seed + guarded
+  support): `anfCompose` — композиция на уровне таблиц истинности
+  (Python compose3(f, g, h) = f(g(x), h(x)): внешний
+  `f : Bool → Bool → Bool`, внутренние `g, h` на общем наборе
+  переменных `Fin n`).
+- `anfCompose_coeff` — коэффициенты ANF композиции = transform от
+  составной таблицы в подкуб-чётностной форме (инстанс
+  `anf_subcube`, упакованный как compose3 API); `anfCompose_eval` —
+  roundtrip компиляции для композиции (инстанс `anf_eval_eq`):
+  синтез + вычисление воспроизводит `f (g x) (h x)` для всех n.
+- `anfAgreeOn` / `anfSupportedOn` / `stencil_guard_sound` — seed
+  корректности контекст-гардов: опорная зависимость
+  (`g x = g y`, когда `x`, `y` согласованы на индексном множестве
+  `S`) КОМПОЗИЦИОННА — S-опорные `g`, `h` дают S-опорную композицию
+  для любого внешнего `f` (направление «no false coverage»
+  Python-абстенции по контекстной сигнатуре; обратное неверно —
+  константный внешний `f` убивает зависимость — и не заявлено).
+- Якорь Fin 2 (f = OR, g = AND, h = XOR): `anfFin2_compose` —
+  compose→transform→eval roundtrip; `anfFin2_compose_spot` —
+  decide-прогон через весь конвейер.
+- Степенная оценка deg(f∘(g,h)) ≤ deg f · max(deg g, deg h) —
+  docstring-заметка, теоремой НЕ заявлена (нет API мономов).
+- Честная граница: collision abstention и диапазоны аргументов —
+  НЕ заявлены (лестница TD E5-C302).

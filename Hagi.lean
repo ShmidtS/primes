@@ -346,6 +346,7 @@ import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
 import Hagi.Data.BoolVenn
 import Hagi.Data.AnfTransform
+import Hagi.Data.AnfCompose
 import Hagi.Optimization.InfoPreservation
 import Hagi.Optimization.CautiousOptimizer
 import Hagi.Model.GDNBridge
