@@ -1610,6 +1610,16 @@ trajectory_telescope n t steps :
 `Hagi.Unified.HonestTransition.CertStep` — транзиторный долг
 (см. `.omc/tech-debt.md`); поглощение старой структуры — Track S3.
 
+Обобщение ядра (C278, addendum A10): `Hagi/Cert/StepGen.lean` вводит
+ОБЩЕЕ ядро `Hagi.Cert.CertStepGen` — произвольный индекс задач
+TaskId (жёсткий `Fin 5` цикла становится инстанциацией), остаток
+риска как ПОЛЕ с законом расщепления и свёрнутый δ-канал C245 на
+явном носителе. Замороженное `CertStep` вкладывается
+(`Hagi.Cert.certStep_to_gen`). К C278–C290 все 13 строк носителей
+scoreboard адаптированы к общему ядру (переходной канал поднят в
+C290); интерфейсный слой — `Hagi/Unified/StepProvider.lean` (C280).
+Итоги фазы — §24.
+
 ## 12. BF16-гард для batch-шага и переход в Cert/Core (C230)
 
 Срез двухступенчатого gate (addendum A5): стадия 3a (pre-screen)
@@ -1727,7 +1737,8 @@ spaceDecoupling_capacity           : P_R·v = v ≠ 0 — ёмкость R-на�
 каждого эксперта — посылка hE0 (premise-form). (2) Хвост прямоугольного EY — хвост
 ВСТРОЕННОЙ квадратной матрицы (Flywheel truncated-SVD квадратный;
 аудит-заметка «уже прямоугольный» — ошибочна, см. §выше);
-идентификация со спектром прямоугольных `singularValues` отложена;
+идентификация со спектром прямоугольных `singularValues` была
+отложена на момент C232 и замкнута позже в §E2 (C281);
 при k = 0 bound вырождается в честное `‖A‖² ≤ ‖A−B‖²`. (3) вывод
 rank(Δ) ≤ 2D из ранга головы — посылка, как и в квадратной версии.
 Slow-loop gate 3b теперь формально замкнут на stitching: конечный
@@ -2076,7 +2087,10 @@ CertStep/HoldStep не меняется.
 **`Hagi/State/Views.lean` — view-паттерн для TrainState.**
 `toSystemMetrics` подаёт канонический TrainState в сертификационное
 ядро (objective = energy, risk = riskOf, budget = budgetOf,
-TaskId = Unit); спецификации — rfl. Унификация носителей — Phase 2/3.
+TaskId = Unit); спецификации — rfl. Унификация носителей:
+адаптер-уровень завершён в C278–C290 (все 13 строк scoreboard
+переведены на CertStepGen); структурная view-конверсия носителей
+остаётся открытой (Freeze-deferred).
 
 **Слияние CertUnify.** Файл `Hagi/Unified/CertUnify.lean` удалён:
 контент слит в единственного потребителя
@@ -2298,7 +2312,12 @@ Prescription: биты на фактор — по закону (e+f+ef)²; на
   `HonestTransition.toKernelCertStep` — честный переход в ПОЛНОЕ
   каноническое ядро Hagi.Cert.CertStep (бюджет/риск-учёт из
   реальных полей перехода, premise-form метрики; риск-остаток 0 —
-  интерпретация remaining-risk, задокументирована).
+  интерпретация remaining-risk, задокументирована). С C278
+  используется обобщённый адаптер
+  `Hagi.Unified.HonestTransition.HonestTransition.toCertStepGen`
+  (остаток риска — свободный параметр, дефект «тратить риск может
+  только последний шаг» снят); C290 поднял переходной канал на
+  CertStepGen.
 - MDL C_state (`Hagi/Step/MDLThreeCurrency.lean`):
   `cstateBlocks` — счёт 16-бит упакованных блоков (инстанс
   DyadicTernary dyadicBlock; прямой импорт запрещён layer-слоем);
@@ -2981,3 +3000,24 @@ premise-form (как в C232); Mathlib
 Симметричный перенос C232-«dedup» не требуется: квадратные
 tail-формы не дублируют общую форму (общей прямоугольной формы до
 C281 не существовало).
+
+## 24. Итоги фазы C263–C291
+
+Фаза из 29 циклов (коммиты eacd3ff…182a756, аудит-приоритеты A10/A11
+и parametric-CE): (1) гейт-теорема конвейера с anytime-мостом (C264,
+`Hagi/Contracts/GatePipeline.lean`); (2) унификация ядра — общее ядро
+`Hagi.Cert.CertStepGen` (C278) с адаптерами C279–C280 и закрытием
+переходного канала в C290, все 13 строк носителей scoreboard
+переведены на общее ядро; (3) единый concentration-API
+`Hagi/Probability/Concentration.lean` (C287: `concConfidence`/
+`concRadius` + duality) с удалением более слабого Hoeffding-моста
+(C288); (4) parametric-CE семейство — ядро `Hagi/Model/SoftmaxHead.lean`
+(C283) с тремя траншами инстансов (C284–C286) и закрытием последней
+чистой строки ledger'а в C291 (16 parametric-инстансов + 2
+короллария над двумя ядрами); (5) E-track закрыт полностью
+C265–C273 (координатное тождество, локальные поля, CRAM-контракты,
+терминация жадного поиска, Doeblin-смешивание C277). Канонический
+пересказ фазы с per-commit строками — phase-analysis цикла C291
+(артефакт цикла, вне git). Открытое: структурная view-конверсия
+носителей (Freeze-deferred), joint latent-descent (требует
+собственного ядра mean-of-margin), счётное сшивание.

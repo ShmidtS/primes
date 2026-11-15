@@ -3076,6 +3076,30 @@ one-hot CE.
   `logitCE_total_descent_bounded` ограничивает эту сумму величиной
   `logitCE(w 0)`.
 
+## Hagi/Model/SoftmaxHead.lean
+
+- C283 parametric softmax-head core: оси CE-семейства (gated, tanh,
+  packed, grouped/joint scale, padding, held-out confidence, batch
+  descent) становятся конфигурацией — `LogitMap` (ident/tanh;
+  `LogitMap.apply` — единственная точка рекурсии), `Reduction` с
+  весами, `HeadConfig`; функционал `headCE` определён рекурсией по
+  конфигурации, `headLoss` — агрегация по reduction. SSOT остаётся
+  `Hagi.ceOneHot`: существующие утверждения — инстансы при
+  `LogitMap.ident` (`headCE_ident` — определительное равенство);
+  ни одно утверждение существующих модулей не меняется. Scale/quantizer
+  ось сознательно НЕ конструктор (меняет константы штрафов, не
+  функционал).
+- Транши миграции: C284 — класс range-bound + ident-мосты
+  (P-FLOOR/P-LIPSCHITZ/padding, `headCE_nonneg`,
+  `headCE_le_of_abs_sub_le`, `ceOneHot_padVector_param`); C285 —
+  P-AGGREGATE batch-ядро `headLoss_le_of_forall_headCE_le` +
+  `batchLoss_param`/`batchLoss_nonneg_param`; C286 — C6-обёртки и
+  decoded-codebook radius (`ceOneHot_decodeJoint_le_log_card_add_param`,
+  `ceOneHot_decodeJoint_le_ceBound_param`); C291 — мосты
+  одношагового спуска `ceOneHot_next_le_param` и
+  `headLoss_uniform_next_le_param` (константы дословно из замороженных
+  оригиналов).
+
 ## Hagi/Model/SourceMixture.lean
 
 - `mixture_sum_one`: если `Σλ=1` и каждый источник нормирован, смесь
@@ -3661,6 +3685,21 @@ one-hot CE.
 - `chernoff_subgauss_tail`: при `q > 0`, `σ2 > 0`, `u > 0` и ограничении центрированного CGF через `c^2*σ2/2` масса `{μ+u ≤ g}` не превышает `exp (-u^2/(2*σ2))`. `tail_complement` отдельно нормирует дополнение хвоста при `∑q = 1`.
 - `kl_dv_attained`, `cramer_cgf` и `cramer_sup_le_kl` связывают KL с вариационным функционалом и супремумом Чернова; `subgauss_dev_kl` выводит нижнюю оценку KL через квадрат сдвига среднего, делённый на `2*σ2`.
 - `mean_shift_tv` для ограниченной `g ∈ [a,b]`, `a < b`, оценивает сдвиг среднего через `(b-a)` и половину `L¹`-расстояния между положительными нормированными законами.
+
+## Hagi/Probability/Concentration.lean
+
+- C287 (A10): единый concentration-API для Hoeffding-семейства
+  средних хвостов: `concConfidence ε n = exp(−2nε²)` — канонический
+  односторонний [0,1] confidence; `concConfidenceTwoSided ε n =
+  2·exp(−2nε²)`; парный радиус `concRadius δ n = sqrt(log(1/δ)/(2n))`
+  с двойственностью `concRadius_valid`; `concConfidence_pm1_rescale` —
+  [−1,1]-форма гейта C264 `exp(−nη²/2)` есть `concConfidence (η/2) n`
+  (радиус на [−1,1] удваивается).
+- Каноническая цепочка через API: `hoeffding_mean_tail_api`,
+  `hoeffding_two_sided_api`, `cert_upper_api`.
+- `hoeffdingBridge_weaker`: граница удалённого C288-моста
+  `exp(−t²/(2n²))` следует из канонической `exp(−2t²/n)` —
+  доказательство удаления более слабого листа.
 
 ## Hagi/Probability/ConditionalSuccess.lean
 
@@ -5713,3 +5752,22 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Честные границы: rank-D⇒2D вывод — по-прежнему посылка (как
   C232); Mathlib LinearMap.singularValues доступен, но мост не
   закреплён (см. ALGORITHMS §E2).
+
+## Hagi/Unified/StepProvider.lean (C280, merge map A10)
+
+- Интерфейсный слой над `Hagi.Cert.CertStepGen`: `StepProposal`
+  (следующее состояние + канонический сертификат CertStepGen —
+  носитель неотделим от доказательства), `StepProvider`
+  (init + оракул `step : s → Option (StepProposal …)`); провайдер —
+  ЗНАЧЕНИЕ (выбор провайдера — решение политики, не typeclass),
+  none = сертифицированного продвижения нет (прогресс и hold
+  разделены — `HoldStep`).
+- Потребительская теорема `telescope`: при явном успехе оракула вдоль
+  траектории (hsome/hnext) цель терминального состояния ограничена
+  целью старта минус сумма сертифицированных drop'ов — интерфейс
+  кормит телескоп ядра.
+- Три инстанса не-вакуозности: `quadContractProvider` через НОВЫЙ
+  адаптер `StepContract.toCertStepGen` (спуск 3/4·w² при w > 0,
+  равенство), `honestQuadProvider` через
+  `HonestTransition.toCertStepGen`, `cramDescentProvider`
+  (premise-form оракул CRAM-спуска).
