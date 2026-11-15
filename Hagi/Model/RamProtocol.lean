@@ -231,4 +231,131 @@ example : ∀ (S : Matrix (Fin 3) (Fin 2) ℝ) (v w : Fin 2 → ℝ),
     exact ram_store_load_roundtrip S 0 v
   · exact ram_store_load_roundtrip _ _ _
 
+/-!
+## C317: span offsets (аддитивное окно по смещению)
+
+Модель адресов C303 — `Fin m` (строки GDNRAM), без усечений:
+каждый адрес конструируется корректным. Окно-адрес — explicit
+mod-wrap (единственное честное сведение `base + off` к `Fin m`);
+внутри окна перенос НЕ срабатывает (`ram_span_no_wrap`), так что
+аддитивная семантика смещений точна, пока окно лежит в адресном
+пространстве (Python RAM читает только обнаруженные in-range
+спаны общего словаря).
+
+Честная граница: сам DISCOVERY спанов общего словаря
+(индуктивный, Python-сторона) НЕ заявлен.
+-/
+
+/-- ОКНО-АДРЕС: base + off с явным mod-переносом в Fin m
+(премиза `hm : 0 < m`; усечения нет — в C303 адреса всегда
+корректны, перенос инертен внутри окна). -/
+def ramSpanAddr {m : ℕ} (hm : 0 < m) (base : Fin m) (off : ℕ) :
+    Fin m := ⟨(base.val + off) % m, Nat.mod_lt _ hm⟩
+
+/-- ЧТЕНИЕ ПО СМЕЩЕНИЮ: значение в окне с базой base по индексу
+off (`ramLoad` по окно-адресу `ramSpanAddr`). -/
+def ramLoadSpan (S : Matrix (Fin m) (Fin n) ℝ) (base : Fin m)
+    (off : ℕ) (hm : 0 < m) : Fin n → ℝ :=
+  ramLoad S (ramSpanAddr hm base off)
+
+/-- SPAN-ROUNDTRIP: запись по адресу base+off и чтение окном с
+базой base по индексу off возвращают записанное значение
+(композиция C303 `ram_store_load_roundtrip` на окно-адресе). -/
+theorem ram_span_offset_roundtrip (S : Matrix (Fin m) (Fin n) ℝ)
+    (base : Fin m) (off : ℕ) (hm : 0 < m) (v : Fin n → ℝ) :
+    ramLoadSpan (ramStore S (ramSpanAddr hm base off) v) base off hm
+      = v :=
+  ram_store_load_roundtrip S _ v
+
+/-- ОКНО В ПРЕДЕЛАХ: чтение окном остаётся в адресном
+пространстве — out-of-bounds невозможен конструктивно
+(премизы `off < w`, `w ≤ m` — оконная дисциплина; валидность —
+следствие mod-конструкции `ramSpanAddr`). -/
+theorem ram_span_within (base : Fin m) (off w : ℕ) (hm : 0 < m)
+    (_h : off < w) (_hw : w ≤ m) :
+    (ramSpanAddr hm base off).val < m := by
+  have := Nat.mod_lt (base.val + off) hm
+  omega
+
+/-- БЕЗ ПЕРЕНОСА: пока base + off < m, окно-адрес РАВЕН
+base + off (mod-перенос не срабатывает — семантика смещений
+точна внутри окна). -/
+theorem ram_span_no_wrap (base : Fin m) (off : ℕ) (hm : 0 < m)
+    (h : base.val + off < m) :
+    (ramSpanAddr hm base off).val = base.val + off :=
+  Nat.mod_eq_of_lt h
+
+/-!
+## C317: разделение selection/gate (RamAccess)
+
+Дисциплина Python-стороны: выбор адреса (диспетчер) отделён от
+решения о допуске (gate); никаких захардкоженных token ID —
+модель параметрична по типам адресов (`Fin m`) и значений
+(`Fin n → ℝ`) ПО КОНСТРУКЦИИ.
+-/
+structure RamAccess (m n : ℕ) : Type where
+  /-- Выбранный адрес (решение диспетчера). -/
+  sel : Fin m
+  /-- Флаг допуска (решение гейта). -/
+  gate : Bool
+  /-- Прочитанное значение (нет допуска — none). -/
+  val : Option (Fin n → ℝ)
+
+/-- СБОРКА ДОСТУПА: gate=true — допущенное чтение `ramLoad` по
+sel; gate=false — none (гейт только фильтрует). -/
+def ramAccess (S : Matrix (Fin m) (Fin n) ℝ) (a : Fin m)
+    (g : Bool) : RamAccess m n where
+  sel := a
+  gate := g
+  val := if g then some (ramLoad S a) else none
+
+/-- ГЕЙТ НЕ ФАБРИКУЕТ: при gate=true и val=some w значение w
+есть в точности `ramLoad` по выбранному адресу sel — допуск
+только фильтрует, никогда не создаёт значений. -/
+theorem ram_access_gate_sound (S : Matrix (Fin m) (Fin n) ℝ)
+    (a : Fin m) (g : Bool) (w : Fin n → ℝ)
+    (hg : (ramAccess S a g).gate = true)
+    (hv : (ramAccess S a g).val = some w) :
+    w = ramLoad S a := by
+  cases g with
+  | true =>
+      simp only [ramAccess] at hv ⊢
+      exact (Option.some.inj hv).symm
+  | false => simp [ramAccess] at hg
+
+/-- ВЫБОР НЕ МЕНЯЕТ ПАМЯТЬ: любые два допущенных доступа по
+ТОМУ ЖЕ sel дают одно значение — `val` зависит только от
+состояния и sel (selection чист: `ramAccess` не пишет, в
+согласии с C303-изоляцией записей). -/
+theorem ram_access_selection_free (S : Matrix (Fin m) (Fin n) ℝ)
+    (a : Fin m) (g₁ g₂ : Bool) (w₁ w₂ : Fin n → ℝ)
+    (h₁ : (ramAccess S a g₁).val = some w₁)
+    (h₂ : (ramAccess S a g₂).val = some w₂) :
+    w₁ = w₂ := by
+  cases g₁ <;> cases g₂ <;> simp_all [ramAccess]
+
+/-! ## Якоря C317 (decide) -/
+
+/-- Якорь span-офсетов на Fin 8: окно с базой 2 и смещением 3
+указывает на адрес 5. -/
+example : (ramSpanAddr (by decide : 0 < 8) ⟨2, by decide⟩ 3).val
+    = 5 := by decide
+
+/-- Якорь span-офсетов: roundtrip через окно base=2 off=3. -/
+example : ∀ (S : Matrix (Fin 8) (Fin 3) ℝ),
+    ramLoadSpan (ramStore S
+      (ramSpanAddr (by decide : 0 < 8) ⟨2, by decide⟩ 3)
+      ![(0:ℝ),1,0]) ⟨2, by decide⟩ 3 (by decide)
+      = ![(0:ℝ),1,0] := by
+  intro S
+  exact ram_span_offset_roundtrip S _ _ _ _
+
+/-- Якорь гейт-фильтрации: gate=true — допущенное чтение,
+gate=false — none. -/
+example : ∀ (S : Matrix (Fin 8) (Fin 3) ℝ) (a : Fin 8),
+    (ramAccess S a true).val = some (ramLoad S a) ∧
+    (ramAccess S a false).val = none := by
+  intro S a
+  constructor <;> rfl
+
 end Hagi.Model.RamProtocol

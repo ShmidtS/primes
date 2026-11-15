@@ -6155,3 +6155,26 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - Честная граница: НЕ заявлены непрерывные классы, Rademacher/VC,
   стабильность; [0,1]-нормализация лосса — внешняя премиза
   (рескейл [0,L] есть в FiniteFamilyConfidence).
+
+- C317 (E6 оставшиеся рунги — span offsets + selection/gate
+  separation, носитель RamProtocol): `ramSpanAddr`/`ramLoadSpan` —
+  аддитивное окно по смещению с явным mod-переносом в `Fin m`;
+  `ram_span_offset_roundtrip` — запись base+off и чтение окном
+  (base, off) возвращают значение (композиция C303 roundtrip);
+  `ram_span_within` — оконные чтения всегда в адресном
+  пространстве (OOB невозможен конструктивно);
+  `ram_span_no_wrap` — внутри окна перенос инертен (адрес =
+  base+off, семантика смещений точна).
+- `RamAccess`/`ramAccess` — разделение ВЫБОРА (sel — диспетчер)
+  и ДОПУСКА (`gate`): `ram_access_gate_sound` — гейт не фабрикует
+  значения (gate=true ∧ val=some w ⇒ w = ramLoad по sel — допуск
+  только фильтрует); `ram_access_selection_free` — значение зависит
+  только от состояния и sel (selection чист, без побочных
+  эффектов — согласовано с C303-изоляцией). Модель параметрична
+  по адресам/значениям — захардкоженных token ID нет по
+  конструкции.
+- Якорь: Fin 8, окно base=2 off=3 ⇒ адрес 5; span-roundtrip;
+  гейт-фильтрация (true ⇒ some, false ⇒ none).
+- Честная граница: discovery спанов общего словаря (индуктивный,
+  Python) НЕ заявлен; stream bridge (полная эквивалентность
+  потоков чтения) остаётся отложенным.
