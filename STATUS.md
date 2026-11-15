@@ -6362,3 +6362,35 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - `canary_ramp_anchor_3step` — числовой якорь: рамка T=2, w =
   0, 1/2, 1, L = dR = px = 1 ⟹ суммарная экспозиция 3/2 = (T+1)/2
   (через ГЛАВНЫЕ теоремы, не bare norm_num).
+
+## Hagi/Learning/SleepingRouter.lean
+
+- C325 — ранжирование #2 `.omc/analysis/period-c313-c323-analysis.md`:
+  закрывает honest gap C320 (sleeping experts — у Hedge-носителя нет
+  механизма спящих экспертов, regret не покрывает конкуренцию с
+  лучшим ДОСТУПНЫМ экспертом). Маршрут — классический imputed-loss
+  трюк (Freund–Schapire share updates / specialists; вывод —
+  `.tmp/C325/research.md`).
+- `swWeight`/`swMixLoss`/`swLoss` — спящий процесс: awake-эксперты
+  обновляются своей потерей, asleep — потерей смеси m_t;
+  `swWeight_eq_ewWeight` — KEY IDENTITY: процесс определениями
+  совпадает с `ewWeight (swLoss)` ⇒ весь носитель
+  (`hsurv_derived` + `router_regret_bound`) применим дословно.
+- `algLoss_eq_mixLoss` — SELF-CONSISTENCY: потери алгоритма на
+  импутированных потерях РАВНЫ m_t ((P/W)·m + (1−P/W)·m = m).
+- `sleeping_hedge_regret` (ГЛАВНЫЙ НОСИТЕЛЬ) — regret на СОБСТВЕННЫХ
+  awake-раундах эксперта i: Σ_{t: i awake}(m_t − ℓ_t^i) ≤
+  log K/η + η·T/2; асимные члены сокращаются ТОЧНО (равенство).
+- `swPredW` + `swPredW_ce` + `sleeping_router_total_bound` (ГЛАВНАЯ
+  КОМПОЗИЦИЯ) — апгрейд C320: калибровка C319 на awake-supported
+  симплекс-весах; total CE смеси на awake-раундах эксперта i ≤ CE_i
+  там же + log N/η + η·T/2.
+- `sleeping_router_anchor` — числовая проверка: 2 эксперта (az из
+  C320), чередующаяся доступность ((t+i)%2=0), 4 раунда, η = 1/2:
+  total = 2·log(1+e⁻²) + 2·log 2 точно (singleton awake ⇒ смесь
+  вырождена), regret-сторона LHS = 0 ≤ 2·log 2 + 1.
+- Honest scope: oblivious-последовательности (адаптивный адверсарий
+  НЕ заявлен — скоуп носителя); awake-nonempty — СТОЯЩАЯ предпосылка
+  (раунд без доступных экспертов не имеет предсказания); m_t ∈ [0,1]
+  ВЫВЕДЕНО (`mixLossOf_mem`), не предположено; best-switching
+  последовательность экспертов НЕ заявлена.
