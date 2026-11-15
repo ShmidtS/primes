@@ -6514,3 +6514,54 @@ merger cert carriers (Freeze-дисциплина: statement change).
   адаптивности/SGD-шума); минимальность шагов — посылка; фронт
   (d, W) эмпиричен, числа — только в числовых якорях; work-model
   C328 (entry-reads), без асимптотик и вероятности.
+
+## Hagi/Contracts/KVCacheCert.lean (C331)
+- Цель: KV-cache inference certificate — расширение
+  compute-сертификации (C328/C330) на последовательный инференс:
+  cached attention (новый токен attends по сохранённым
+  keys/values через бегущий summary) имеет per-token work `t+1`
+  против recompute-режима, который на каждом шаге ре-attend'ит
+  ВСЁ прошлое; и cached выход ТОЧНО равен полной рекомпутации.
+- Route (b) (выбор анализа): softmax-веса НЕ разлагаются
+  аддитивно (нормализатор глобальный), но пара (den, num)
+  разлагается: den = Σ e^{q·k}, num = Σ e^{q·k}·v — обычные
+  суммы по списку токенов; инкремент = ровно один новый член.
+  Route (a) (линейный/GDN-style additive summary, контраст
+  `Hagi.External.MemT.GDN2`) упомянут в docstring, не
+  формализуется здесь.
+- `kv_cache_exact` (MAIN 1): cachedAttn (tokKV q toks) (q·k) v =
+  tokFull q (toks ++ [(k,v)]) — ТОЧНОЕ равенство cached = full
+  recompute на List-носителе; движок — `foldl_den_eq`/
+  `foldl_num_eq` (foldl-аккумулятор = map-sum, индукция) +
+  `tokDen_append`/`tokNum_append` (map_append+sum_append).
+- lse-слой: `lseCombine a b = log(eᵃ+eᵇ)`, `lse_combine_assoc`
+  (ТОЧНО, через Real.exp_log + add_assoc), `den_pos`,
+  `lse_cache_step` — бегущий logsumexp: log den(toks++[t]) =
+  lseCombine (log den toks) (score t) (посылка toks ≠ []).
+- Work-model (C272/C328, ℕ, без деления): `cachedTokenWork t =
+  t+1` (один проход нового query по t сохранённым ключам),
+  `recomputeTokenWork t = Σ_{s≤t}(s+1)` (каждый прошлый токен
+  ре-attend'ится); `recompute_step_split` (recompute = cached +
+  ре-attended прошлое); `cached_total_work_eq`: 2·cachedTotal n =
+  n(n+1) (квадратично); `recompute_total_work_eq`: 6·recomputeTotal
+  n = n(n+1)(n+2) (кубично); `kv_work_ratio` (MAIN 2): точное
+  отношение 3·recompute = (n+2)·cached, т.е. (n+2)/3;
+  `kv_total_work_lt` (MAIN 3): строго cached < recompute при n ≥ 2;
+  `cached_step_work_le`: per-token ≤ C·(t+1) при C ≥ 1.
+- Упаковка (паттерн C328 `sparse_step_certified` на ядре C278
+  CertStepGen): `kv_step_certified` — бюджетный канал тратит
+  cachedTokenWork, риск-канал тратит НОЛЬ (`kv_step_certified_
+  zeroError`): точность `kv_cache_exact` делает error spend
+  нулевым — сертификат = correctness + cost в одном объекте.
+- Якоря (3 токена, scores 0, values 1,2,3, q=1): `anchor_cached`
+  (третий токен из кэша ЧЕРЕЗ kv_cache_exact = 2), `anchor_lse`
+  (lseCombine (log 2) 0 = log 3), `anchor_work` (cachedTotal 3 =
+  6, recomputeTotal 3 = 10; отношение (3+2)/3 = 10/6).
+- Честные границы: SINGLE head, СКАЛЯРНЫЙ носитель (score = q·k,
+  value ∈ ℝ, пары (k,v) без List.zip); streaming incremental
+  форма; НЕТ memory-layout утверждений (нет paged/blocked
+  кэша/эвикции); НЕТ d²-учёта проекций — проекции исключены из
+  ОБОИХ режимов, сертификат — только контраст attention-проходов;
+  work = entry-reads (модель C328), без асимптотик в утверждениях;
+  числа — только в якорях. Негативы (multihead, memory-layout)
+  проверены отсутствием деклараций (rootapi-негативы).

@@ -490,6 +490,7 @@ import Hagi.Contracts.GradientBottleneck
 import Hagi.Contracts.GradientBottleneckIdentification
 import Hagi.Contracts.SparseInferenceCert
 import Hagi.Contracts.ComputeToQuality
+import Hagi.Contracts.KVCacheCert
 import Hagi.Contracts.LogitGrad
 import Hagi.Contracts.HadamardTernaryBridge
 import Hagi.Contracts.HadamardSpread

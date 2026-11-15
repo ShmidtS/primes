@@ -1,7 +1,7 @@
 h_emp files: 36
 h_emp identifiers: 116
 h_emp proven theorems: 5
-primitive defs: 10
+primitive defs: 11
 operational premise names: 10
 
 [premise classes]
@@ -55,6 +55,7 @@ h_emp_merge_of_bridge
 h_emp_takeoff_exponential
 
 [primitives]
+Hagi/Contracts/KVCacheCert.lean:lseCombine
 Hagi/Core/Concat.lean:lse
 Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
