@@ -408,10 +408,42 @@ RoPE exactness is NOT landed (`rot_norm` preserves `pairInner`,
 not a normed-space norm — a norm-carrier isometry lemma needs a
 new norm surface = next rung); full FastArch3 forward/backward
 certificate NOT claimed. REMAINING LADDER (updated): (1) RoPE
-norm-carrier isometry rung (rope_norm_preserved); (2) GDN RAM
-read/write perturbation rung (`Hagi/Model/GDNBridge.lean`); (3)
-RMSNorm unit-RMS feeding bounded logit scale (`Hagi/Model/RMSNorm.lean`);
-(4) chain all rungs into the full FastArch3 stack certificate.
+norm-carrier isometry rung — LANDED by C308 (see TD E4-C308);
+(2) GDN RAM read/write perturbation rung
+(`Hagi/Model/GDNBridge.lean`); (3) RMSNorm unit-RMS feeding
+bounded logit scale (`Hagi/Model/RMSNorm.lean`); (4) chain all
+rungs into the full FastArch3 stack certificate.
+Not claimed anywhere: full forward/backward certificate.
+
+## TD E4-C308 — rope isometry transfer composition (DONE)
+
+E4 ladder rung (TD E4-C300 remaining rung 2 / C307 next-rung
+note). C308 lands `Hagi/Model/RoPETransfer.lean`: the RoPE
+rotation as a genuine NORMED-SPACE isometry wired into the
+C300/C307 transfer stack. Route verdict: `rot_norm` gives only
+the same-vector form (pairInner (R x) (R x) = pairInner x x) — NOT
+enough for an isometry; the carrier-supported bridge is the FULL
+bilinear preservation `rope_pair_inner` (per-block 2x2 rotation
+orthogonal), plus the explicit transport `toEuc`/`fromEuc` to
+`EuclideanSpace R (Fin d ⊕ Fin d)` with the exact-norm lemma
+`toEuc_norm_sq` (‖toEuc x‖² = pairInner x x). Then
+`rotEuc = toEuc ∘ rotVec ∘ fromEuc` is an `Isometry`
+(`rope_isometry`); isometry pre/post-composition keeps Lipschitz
+constants (`rope_block_transfer`, `rope_block_post_transfer`), a
+rope-wrapped pre-norm attention block satisfies the SAME C300
+leak bound at unchanged μn·μatt (`attention_block_rope_transfer`),
+and stacks of wrapped blocks descend with the UNCHANGED gain
+(`attnRopeGain_eq`, `attention_rope_stack_transfer_descent` +
+`_strict`). Anchor: d=2, θ≡π/3, m=1 on ![(3,4),(0,0)] — norm 5
+preserved. HONEST SCOPE: no matrix-orthogonality (RᵀR=I) or
+operator-norm statement (the Euclidean isometry via pairInner is
+the proved route); no existing statement changed (rot_norm
+untouched); softmax weight map and RMSNorm constants stay
+premise-form (C307); full FastArch3 forward/backward certificate
+NOT claimed. REMAINING LADDER (updated): (1) GDN RAM read/write
+perturbation rung (`Hagi/Model/GDNBridge.lean`); (2) RMSNorm
+unit-RMS feeding bounded logit scale (`Hagi/Model/RMSNorm.lean`);
+(3) chain all rungs into the full FastArch3 stack certificate.
 Not claimed anywhere: full forward/backward certificate.
 
 ## TD E5-C301 — Venn/ANF compiler bridge ladder (OPEN, seeded)

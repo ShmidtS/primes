@@ -5881,6 +5881,30 @@ merger cert carriers (Freeze-дисциплина: statement change).
   норму нормированного пространства) — СЛЕДУЮЩЕЕ звено; полный
   forward/backward FastArch3 НЕ заявлен.
 
+## Hagi/Model/RoPETransfer.lean
+- C308 (E4 rope rung — rope isometry transfer composition):
+  `rope_pair_inner` — ПОЛНАЯ билинейная сохранность
+  `pairInner (rotVec θ m x) (rotVec θ m y) = pairInner x y`
+  (блочное 2×2-вращение ортогонально; `rot_norm` — диагональная
+  специализация y = x). Транспорт носителя: `toEuc`/`fromEuc`
+  переносят `Fin d → ℝ × ℝ` в `EuclideanSpace ℝ (Fin d ⊕ Fin d)`
+  с точным равенством норм `‖toEuc x‖² = pairInner x x`
+  (`toEuc_norm_sq`). `rope_isometry` — перенесённое вращение
+  `rotEuc = toEuc ∘ rotVec ∘ fromEuc` — ИЗОМЕТРИЯ носителя
+  (`‖R a − R b‖ = ‖a − b‖`). Композиция: `rope_block_transfer` /
+  `rope_block_post_transfer` — пре/пост-композиция с изометрией
+  сохраняет константу Липшица (μ неизменно).
+  `attention_block_rope_transfer` — RoPE-обёрнутый pre-norm
+  attention-блок удовлетворяет ТОЙ ЖЕ C300-границе утечки при
+  неизменном μn·μatt. Стек: `attnRopeBlockList`/`attnRopeStack`/
+  `attnRopeGain` = `attnGain` (`attnRopeGain_eq`: обёртка не
+  меняет фактор утечки), `attnRopeBlockList_lipschitz`,
+  `attention_rope_stack_transfer_descent` и `_strict` — теорема
+  C300 дословно на обёрнутых блоках. Якорь: d=2, θ≡π/3, m=1 на
+  ![(3,4),(0,0)] — норма 5 сохранена. Честная граница: нет
+  матричной ортогональности (RᵀR=I) и операторной нормы; softmax
+  и RMSNorm — premise-форма (C307); полный FastArch3 НЕ заявлен.
+
 
 ## Hagi/Data/AnfTransform.lean
 - C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
