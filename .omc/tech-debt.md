@@ -236,7 +236,7 @@ explicit finite fold, not a choice operator; the deferred item asked
 for exactly this shape. No runtime consumer yet — the selector is now
 evaluable as data when one arrives.
 
-## TD A8-F6-C254 — Matrix Newton–Schulz hP removal (2026-11-13)
+## TD A8-F6-C254 — Matrix Newton–Schulz hP removal (2026-11-13) — CLOSED (C296+C297)
 
 FURTHER RESOLVED (C297, `feat: spectral norm svd transport
 contraction`, parent 12f0e390). C296 proven: diagonal action +
@@ -327,3 +327,23 @@ formalized: `Hagi.Probability.hoeffdingBridge_weaker`
 leaf (survey `.tmp/C287/survey.md`: no consumers). Disposition:
 awaiting `Freeze.py --update`, then remove module + `Hagi.lean`
 import `Hagi.Ensemble.HoeffdingBridge`.
+
+## TD C298 — latent STMDUP twin compounding_bound/slack_geometric_decay (2026-11-15) — OPEN
+
+DISCOVERED in C298 health beat (clean-bake Freeze experiment,
+`.tmp/C298/bake.log` + `stmdup.log`, C289 protocol): fresh
+`python scripts/Freeze.py --update` on clean HEAD 3553af58 ⇒ 7074
+declarations, `scripts/StatementDupCheck.py` ⇒ **STMDUP: FAIL
+(1 group)**: `Hagi.Probability.compounding_bound` ≡
+`Hagi/Model/EnergyReasoning/AlternatingRound.lean:Hagi.Model.
+EnergyReasoning.slack_geometric_decay` (identical statement hash;
+the AlternatingRound twin was added in C293/C294 and is part of
+the un-baked drift since C258 — lock still 6669 rows, which is why
+normal CI passes: STMDUP reads the lock). Lock restored
+byte-identical after the experiment; Freeze verify PASS on the
+surgical lock (`.tmp/C298/freeze.log`). Disposition for a
+dedicated beat: consumer scan, then delete the weaker twin or
+restate one with a differentiated statement; then bake the
+accumulated addition drift (6669→7074) so STMDUP guards the real
+tree again. No fix attempted in C298 (analysis beat, no Lean
+changes).
