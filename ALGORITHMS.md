@@ -1557,6 +1557,28 @@ A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.
 Используем этот закон только на конечном energy family. Адаптивную
 piecewise dynamics и универсальный analytic entropy limit сюда не подставляем.
 
+### Сертифицированный перенос спуска через residual-блоки (C300, E4 seed)
+
+Первая композиция нелинейного backbone-сертификата
+(`Hagi/Model/BackboneTransfer.lean`): спуск головы (C291-форма,
+посылка hdrop) переносится через residual-блок `x + f x`
+(`resStep`, источник №22) с явной утечкой — паттерн каскадной
+границы C250, применённый к ПУТИ ОБНОВЛЕНИЯ. Если `f`
+`μ`-липшицева, а loss `Lc`-липшицев, то
+[`residual_transfer_descent`](Hagi/Model/BackboneTransfer.lean):
+`L(x+dx+f(x+dx)) ≤ L(x+f x) − δ + Lc·μ·‖dx‖`; при `Lc·μ·‖dx‖ < δ`
+— строгое убывание (`residual_transfer_descent_strict`). Для стека
+из B блоков утечка компонуется мультипликативно в паттерне
+`cascadeGain` (механика `Hagi/Core/ErrorProp.lean`):
+`‖G(x+dx) − G x − dx‖ ≤ (∏(1+μᵢ) − 1)·‖dx‖`
+(`resStack_leak_le`) и
+`L(G(x+dx)) ≤ L(G x) − δ + Lc·(∏(1+μᵢ)−1)·‖dx‖`
+(`resStack_transfer_descent`). Никакой дифференцируемости не
+требуется (premise-form LipschitzWith). Честная граница C300:
+внутренности FastArch3 (attention-якобианы, RoPE-точность, GDN
+RAM-звено, RMSNorm-константы) НЕ заявлены — это лестница
+продолжений (см. tech-debt E4-C300).
+
 ## 10. Сборка рецепта и граница результата
 
 Порядок одного цикла:

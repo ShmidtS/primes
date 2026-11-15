@@ -5858,3 +5858,24 @@ merger cert carriers (Freeze-дисциплина: statement change).
   равенство), `honestQuadProvider` через
   `HonestTransition.toCertStepGen`, `cramDescentProvider`
   (premise-form оракул CRAM-спуска).
+
+## Hagi/Model/BackboneTransfer.lean
+
+- C300 (E4 first composition — residual transfer of certified
+  descent): `resStep_lipschitz` — residual-шаг `(1+μ)`-липшицев при
+  `μ`-липшицевой ветви `f`. `residual_transfer_le`,
+  `residual_transfer_descent`,
+  `residual_transfer_descent_strict`: сертифицированный спуск
+  головы `δ` (C291-посылка hdrop) переносится через один
+  residual-блок с утечкой `Lc·μ·‖dx‖` (паттерн C250
+  entering-vector на пути обновления; `μ=0` — нулевая утечка).
+  Стек: `resStack`/`stackGain` (`∏(1+μᵢ)`, паттерн `cascadeGain`
+  из `Hagi.Core.ErrorProp`), `stackGain_ge_one`, `resStack_bounds`
+  (взаимная индукция липшицевости и утечки), `resStack_lipschitz`,
+  `resStack_leak_le` (`‖G(x+dx)−G x−dx‖ ≤ (∏(1+μᵢ)−1)·‖dx‖`,
+  мультипликативная композиция), `resStack_transfer_descent`
+  и `resStack_transfer_descent_strict` — перенос спуска через весь
+  стек. Скалярные якоря невырожденности (μ=1/10: один блок 1/10,
+  два блока 21/100 ≥ 1/5). Честная граница: attention-якобианы,
+  RoPE-точность, GDN RAM-звено, RMSNorm-константы — НЕ заявлены
+  (лестница продолжений в tech-debt E4-C300).

@@ -359,3 +359,25 @@ Freeze PASS + STMDUP PASS post-bake. First full bake since C258
 — precedent policy: bake only with (a) pre-edit clean-bake log,
 (b) STMDUP check on candidate lock, (c) minimal-diff proof vs
 pre-edit clean-bake, (d) Freeze+STMDUP PASS post-bake.
+
+## TD E4-C300 — nonlinear backbone composition ladder (OPEN, seeded)
+
+E4 full nonlinear backbone certificate (rank 2 of the C292-C297
+analysis). C300 lands the SEED
+(`Hagi/Model/BackboneTransfer.lean`): the residual-transfer
+induction step — certified head drop through one residual block
+with leak `Lc*mu*||dx||` — plus the multiplicative stack bound
+`(prod(1+mu_i)-1)*||dx||` (cascadeGain pattern, C250 machinery
+cited not reproved). No differentiability hypotheses
+(premise-form LipschitzWith; the R3-rejected z-differentiability
+route is bypassed at the composition level). REMAINING LADDER
+(each rung a candidate beat): (1) attention-softmax Lipschitz
+premise — turn `attention_error_damped`
+(`Hagi/Core/Attention.lean`) into a mu_attn bound on the softmax
+map itself; (2) RoPE exactness — rotation isometry giving a mu=0
+rung (`Hagi/Core/RoPEMoments.lean` context); (3) GDN RAM
+read/write perturbation rung (`Hagi/Model/GDNBridge.lean`); (4)
+RMSNorm unit-RMS giving bounded logit scale feeding C291 constants
+(`Hagi/Model/RMSNorm.lean`); (5) chain rungs 1-4 into
+`resStack_transfer_descent` for the full FastArch3 stack. Not
+claimed anywhere: full forward/backward certificate.
