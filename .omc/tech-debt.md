@@ -266,7 +266,24 @@ proves canonical exponent ⇒ bridge exponent; 0 consumers (fresh
 rg scan, C288 plan). RootApi NEG-1 confirms the FQN no longer
 resolves.
 
-## TD C288 — latent STMDUP twins in BatchCEBudgetGuard (2026-11-15)
+## TD C288 — latent STMDUP twins in BatchCEBudgetGuard (2026-11-15) — DONE (C289)
+
+RESOLVED in C289 (`fix: dedup param twin in budget guard`, parent
+b9fba226): both `_param` twins DELETED (0 consumers, fresh rg scan,
+`.tmp/C289/plan.md`); not alias-converted (dead name, YAGNI). No
+lock surgery: the twins were never in declarations.lock (un-baked
+drift; lock stays 6669 rows, Freeze verify PASS, byte-identical
+restore after bake test). Clean-bake verification: fresh
+`Freeze.py --update` on fixed tree ⇒ 7039 declarations, STMDUP PASS
+(0 groups) — the duplicate is gone (`.tmp/C289/bake-postfix.log`,
+`stmdup-postfix.log`; pre-fix reproduction `stmdup-prefail.log`).
+NamePool delta: exactly the 2 twin names removed, 0 added.
+Drift-baking disposition: the 370-row addition drift (372 − 2 twins)
+remains NOT baked, per the repo convention since C258 (C288
+precedent); the STMDUP barrier to a future bake is now removed —
+the next `--update` after review will bake cleanly.
+
+Original record:
 
 DISCOVERED in C288: commit 4448280 (C286, "parametric instances for
 ce variants tranche three") added `batchSampleCE_nonneg_param` and
