@@ -5603,6 +5603,34 @@ merger cert carriers (Freeze-дисциплина: statement change).
   Maze-Hard (носитель z*, достижимость, совместные обновления)
   открыта; softmax-Липшиц по z — премиза.
 
+## Hagi/Model/EnergyReasoning/AlternatingRound.lean
+
+- Track B4 (дополнение A11, C293): alternating (z,y)-раунд —
+  дизайн-решение (R1 чередующиеся раунды с потолками на раунд;
+  мотивировка: z* не зависит от y ⇒ нет пола ε_round/(1−q);
+  маршруты R2/R3 отклонены в docstring с причинами) + первые
+  честные раундовые теоремы.
+- `Hagi.Model.EnergyReasoning.alternating_round_nonincreasing` —
+  (B4 MAIN) раунд-теорема (строгая форма): премиза z-фазы
+  (hsoft : |w(z_t) − w(z*)| ≤ L_sm·η; поставка η — потолок
+  оседания latent_settle_tolerance) + числовая ошибка ε (C270) +
+  составной гвард 2·(ε + |S_i|·2κmax·fmax·L_sm·η) < маржа ⇒
+  СТРОГИЙ спуск pairwiseEnergy B (attentionK κ w2 f) на ИСТИННОМ
+  ядре замороженного z*. Композиция guarded_energy_delta +
+  latent_error_couples_field (треугольник); аддитивно к C271
+  (отдельная ε поверх coupling-η).
+- `Hagi.Model.EnergyReasoning.alternating_zphase_one_step_error`
+  — η-бухгалтерия: один шаг z-фазы сжимает ошибку к статическому
+  фикспойнту (‖latentUpdate z − z*‖ ≤ (Δ/m)·‖z − z*‖); вход
+  суммируемости R1; сама суммируемость НЕ заявлена.
+- Числовые якоря: fan2/yan2 (Fin 2/Bool) — ПРИКЛАДНОЙ якорь:
+  энергия 0 → −2 через саму раунд-теорему (w1 = w2, ε = 0).
+- Честные границы: premise-form по всей длине (неточность z-фазы
+  и числовая ошибка — гипотезы); безусловной совместной (z,y)-
+  теоремы НЕТ: alternating_round_converges /
+  visible_descent_joint_z не существуют (RootApi-негатив-пины);
+  отвержение ниже слэка информации не несёт (C270-честность).
+
 ## Hagi/Model/EnergyReasoning/SparseField.lean
 
 - Track D3 (дополнение A11 P3): sparse field update correctness —
