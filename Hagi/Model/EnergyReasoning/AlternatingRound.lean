@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.EnergyReasoning.AttentionCoupling
 import Hagi.Model.EnergyReasoning.GreedyTermination
+import Hagi.Probability.MirrorHedgeCertificates
 
 set_option linter.style.header false
 
@@ -184,24 +185,13 @@ end ZPhase
 /-! ## N1: round-error summability (geometric slack budget) -/
 section SlackSummable
 
-private theorem slack_geometric_decay {q : ℝ} (hq0 : 0 ≤ q)
-    (slack : ℕ → ℝ) (hslack : ∀ t, slack (t + 1) ≤ q * slack t) :
-    ∀ t, slack t ≤ q ^ t * slack 0 := by
-  intro t
-  induction t with
-  | zero => simp
-  | succ n ih =>
-    calc slack (n + 1) ≤ q * slack n := hslack n
-      _ ≤ q * (q ^ n * slack 0) := mul_le_mul_of_nonneg_left ih hq0
-      _ = q ^ (n + 1) * slack 0 := by rw [pow_succ]; ring
-
 private theorem slack_partial_sum {q : ℝ} (hq0 : 0 ≤ q) (hq1 : q < 1)
     (slack : ℕ → ℝ) (hs0 : 0 ≤ slack 0)
     (hslack : ∀ t, slack (t + 1) ≤ q * slack t) (N : ℕ) :
     ∑ t ∈ Finset.range N, slack t
       ≤ slack 0 * (1 - q ^ N) / (1 - q) := by
-  have hdec : ∀ t, slack t ≤ q ^ t * slack 0 :=
-    slack_geometric_decay hq0 slack hslack
+  have hdec : ∀ t, slack t ≤ q ^ t * slack 0 := fun t =>
+    Hagi.Probability.compounding_bound q hq0 slack hslack t
   induction N with
   | zero => simp
   | succ n ih =>

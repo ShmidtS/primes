@@ -328,7 +328,7 @@ leaf (survey `.tmp/C287/survey.md`: no consumers). Disposition:
 awaiting `Freeze.py --update`, then remove module + `Hagi.lean`
 import `Hagi.Ensemble.HoeffdingBridge`.
 
-## TD C298 — latent STMDUP twin compounding_bound/slack_geometric_decay (2026-11-15) — OPEN
+## TD C298 — latent STMDUP twin compounding_bound/slack_geometric_decay (2026-11-15) — CLOSED (C299)
 
 DISCOVERED in C298 health beat (clean-bake Freeze experiment,
 `.tmp/C298/bake.log` + `stmdup.log`, C289 protocol): fresh
@@ -347,3 +347,15 @@ restate one with a differentiated statement; then bake the
 accumulated addition drift (6669→7074) so STMDUP guards the real
 tree again. No fix attempted in C298 (analysis beat, no Lean
 changes).
+
+CLOSED by C299 (`fix: dedup compounding twin and bake lock`):
+private twin `slack_geometric_decay` deleted (single consumer
+`slack_partial_sum` re-pointed to the public
+`Hagi.Probability.compounding_bound` via per-t bridge; public API
+kept — zero in-repo consumers but lock row 4787). Lock baked
+6669→7073 (7074 clean-bake minus the twin): bake diff minimal
+(exactly one removed row, statement hash match 3a6d46574483e4b8);
+Freeze PASS + STMDUP PASS post-bake. First full bake since C258
+— precedent policy: bake only with (a) pre-edit clean-bake log,
+(b) STMDUP check on candidate lock, (c) minimal-diff proof vs
+pre-edit clean-bake, (d) Freeze+STMDUP PASS post-bake.
