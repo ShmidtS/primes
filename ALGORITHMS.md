@@ -1706,10 +1706,15 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
 при in-range (`qTernVec_error_inrange`). Остаются premise-only:
 относительная контрактивность c<1 (пер-векторный скейлинг
 литературы EF21) и saturation-tail инстанс (в energy-форме —
-`ternary_split_le`, Hagi/Runtime/TernaryExact.lean). Связь Muon/Newton-Schulz — ЧЕСТНО скалярная: сертификат
-`one_sub_nsStep`/`nsIter_dist_sq` относится к сингулярным значениям в
-(0,√3); матричное нерасширение NS-полинома остаётся гипотезой `hP`
-в `Hagi/Step/Muon.lean`. mHC: Sinkhorn не требуется — M дважды
+`ternary_split_le`, Hagi/Runtime/TernaryExact.lean). Связь Muon/Newton-Schulz: скалярный сертификат
+`one_sub_nsStep`/`nsIter_dist_sq` (C231) относится к сингулярным
+значениям в (0,√3); C296 (`Hagi/Step/NewtonSchulzMatrix.lean`) снимает
+матричную часть на диагональном подпространстве
+(`nsMatrixStep_diagonal_contraction`, sup-норма) + ортогональная
+эквивариантность итерата (`nsMatrixStep_orth`) — транспортный
+ингредиент; общее нерасширение NS-полинома в спектральной норме
+остаётся гипотезой `hP` в `Hagi/Step/Muon.lean` (spectral-norm Matrix
+API в Mathlib отсутствует, честная граница C296). mHC: Sinkhorn не требуется — M дважды
 стохастическая посылкой; оценка точная на перестановках.
 
 ## 14. Anytime stitching + прямоугольный bottleneck + space decoupling (C232)

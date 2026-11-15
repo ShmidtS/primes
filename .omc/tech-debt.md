@@ -238,6 +238,17 @@ evaluable as data when one arrives.
 
 ## TD A8-F6-C254 — Matrix Newton–Schulz hP removal (2026-11-13)
 
+PARTIALLY RESOLVED (C296, `feat: matrix newton schulz diagonal
+contraction`, parent fc25d1d3). Proven: diagonal action +
+sup-norm contraction of the matrix NS iterate
+(`nsMatrixStep_diagonal_contraction`, entries in [0,1]) and
+orthogonal equivariance (`nsMatrixStep_orth`); consumer
+`muon_step_bound_ns_diagonal` discharges hP for the
+diagonal/bounded case. REMAINS OPEN: the general spectral-norm
+discharge (Mathlib Matrix.opNorm is the linfty-structure norm,
+not orthogonally invariant; no spectral-norm Matrix API +
+real-SVD existence here). Original entry follows.
+
 DEFERRED (C254, item 3). Target: remove the hypothesis
 `hP : ∀ z, ‖P z‖ ≤ ‖z‖` from `muon_step_bound`/`muon_pl_rate`
 (Hagi/Step/Muon.lean) by proving contraction for the actual
