@@ -492,6 +492,7 @@ import Hagi.Contracts.SparseInferenceCert
 import Hagi.Contracts.ComputeToQuality
 import Hagi.Contracts.DataToQuality
 import Hagi.Contracts.KVCacheCert
+import Hagi.Contracts.DepthExitCert
 import Hagi.Contracts.LogitGrad
 import Hagi.Contracts.HadamardTernaryBridge
 import Hagi.Contracts.HadamardSpread
