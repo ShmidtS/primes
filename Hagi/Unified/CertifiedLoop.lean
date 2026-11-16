@@ -272,4 +272,99 @@ def StepCert.toCertStepGen {S : Type*} {obj : S → ℝ}
   delta_nonneg := by norm_num
   floorsKept := hfloors
 
+/-! ### C344-адаптер: StepCert → bounded-ядро (hbudeq разряжена)
+
+A14 QW3: точная бюджетная посылка `hbudeq` C278-адаптера больше
+не нужна — нестрогого `hdec` самого цикла достаточно для bounded
+ядра `Hagi.Cert.CertStepGenBounded`, а точное ядро получается
+ФОРМАЛЬНО БЕЗ ПОСЫЛОК через `Hagi.Cert.CertStepGenBounded.toExact`
+(точная трата ОПРЕДЕЛЕНА как разность состояний, равенство по
+построению — `sub_sub_cancel`). Честность: точная трата может
+ПРЕВЫШАТЬ заявленную (нижнее обязательство) — теорема
+`stepCert_to_bounded_to_exact_budgetBound`. -/
+
+/-- C344: шаг цикла как bounded-шаг ядра (premise-form без
+hbudeq: нестрогий hdec цикла даёт budget_next_le). -/
+def StepCert.toCertStepGenBounded {S : Type*} {obj : S → ℝ}
+    {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
+    {s s' : S} {bt b' riskRem : ℝ}
+    (hstep : StepCert obj M floor riskLim s s' bt b')
+    (K : Hagi.Cert.SystemMetrics S (Fin 5))
+    (hobj : K.objective = obj)
+    (hbud : K.budget s = bt) (hbud' : K.budget s' = b')
+    (hrisk : K.risk s = hstep.riskSpend + riskRem)
+    (hrisk' : K.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (hfloors : Hagi.Cert.FloorsKept K ⟨floor⟩ s') :
+    Hagi.Cert.CertStepGenBounded K ⟨floor⟩ (fun _ => 0) s s' where
+  drop := hstep.trans.objectiveDrop
+  drop_pos := hstep.trans.objectiveDrop_pos
+  descent := by rw [hobj]; exact hstep.trans.actualDescent
+  budgetSpend := hstep.budgetSpend
+  budget_next_le := by rw [hbud, hbud']; exact hstep.hdec
+  budget_nonneg := by rw [hbud']; exact hstep.trans.budgetBound
+  riskSpend := hstep.riskSpend
+  risk_next_le := by rw [hrisk, hrisk']; simp
+  risk_nonneg := by rw [hrisk']; exact hrem
+  delta := 0
+  delta_next_le := by simp
+  delta_nonneg := by norm_num
+  floorsKept := hfloors
+
+/-- C344 corollary: БЕЗ-HBUDEQ маршрут StepCert → bounded → точное
+ядро; точная бюджетная трата — ОПРЕДЕЛЕНИЕ как разность считываний
+состояния (посылка-форма адаптера становится безызбыточной по
+точности: точность приходит из определения, а не из посылки). -/
+def stepCert_to_bounded_to_exact {S : Type*} {obj : S → ℝ}
+    {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
+    {s s' : S} {bt b' riskRem : ℝ}
+    (hstep : StepCert obj M floor riskLim s s' bt b')
+    (K : Hagi.Cert.SystemMetrics S (Fin 5))
+    (hobj : K.objective = obj)
+    (hbud : K.budget s = bt) (hbud' : K.budget s' = b')
+    (hrisk : K.risk s = hstep.riskSpend + riskRem)
+    (hrisk' : K.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (hfloors : Hagi.Cert.FloorsKept K ⟨floor⟩ s') :
+    Hagi.Cert.CertStepGen K ⟨floor⟩ (fun _ => 0) s s' :=
+  Hagi.Cert.CertStepGenBounded.toExact K ⟨floor⟩
+    (StepCert.toCertStepGenBounded hstep K hobj hbud hbud'
+      hrisk hrisk' hrem hfloors)
+
+/-- Точная трата моста — дефинициональная разность считываний
+(равенство rfl-уровня). -/
+theorem stepCert_to_bounded_to_exact_budget {S : Type*} {obj : S → ℝ}
+    {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
+    {s s' : S} {bt b' riskRem : ℝ}
+    (hstep : StepCert obj M floor riskLim s s' bt b')
+    (K : Hagi.Cert.SystemMetrics S (Fin 5))
+    (hobj : K.objective = obj)
+    (hbud : K.budget s = bt) (hbud' : K.budget s' = b')
+    (hrisk : K.risk s = hstep.riskSpend + riskRem)
+    (hrisk' : K.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (hfloors : Hagi.Cert.FloorsKept K ⟨floor⟩ s') :
+    (stepCert_to_bounded_to_exact hstep K hobj hbud hbud'
+      hrisk hrisk' hrem hfloors).budgetSpend
+      = K.budget s - K.budget s' := rfl
+
+/-- Честность bounded→exact: заявленная трата цикла — НИЖНЯЯ
+граница дефинициональной траты точного ядра. -/
+theorem stepCert_to_bounded_to_exact_budgetBound {S : Type*}
+    {obj : S → ℝ} {M : MeasuredState S} {floor : Fin 5 → ℝ}
+    {riskLim : ℝ} {s s' : S} {bt b' riskRem : ℝ}
+    (hstep : StepCert obj M floor riskLim s s' bt b')
+    (K : Hagi.Cert.SystemMetrics S (Fin 5))
+    (hobj : K.objective = obj)
+    (hbud : K.budget s = bt) (hbud' : K.budget s' = b')
+    (hrisk : K.risk s = hstep.riskSpend + riskRem)
+    (hrisk' : K.risk s' = riskRem)
+    (hrem : 0 ≤ riskRem)
+    (hfloors : Hagi.Cert.FloorsKept K ⟨floor⟩ s') :
+    hstep.budgetSpend
+      ≤ (stepCert_to_bounded_to_exact hstep K hobj hbud hbud'
+        hrisk hrisk' hrem hfloors).budgetSpend :=
+  (StepCert.toCertStepGenBounded hstep K hobj hbud hbud'
+    hrisk hrisk' hrem hfloors).budgetSpend_le_actual
+
 end Hagi.Unified.CertifiedLoop

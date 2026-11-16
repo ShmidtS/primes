@@ -263,6 +263,158 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
       exact h
   linarith [strong n]
 
+/-! ## Bounded variant (A14 QW3, C344): ≤-law constructor
+
+The exact kernel demands EQUALITY consumption laws; legacy loop
+carriers (e.g. `StepCert`) only certify the ≤ law (hdec).  The
+bounded variant mirrors the carrier fields with ≤ laws, and the
+bridge `CertStepGenBounded.toExact` upgrades it to the exact
+kernel PREMISE-FREE: the exact spends are DEFINED as the actual
+state differences, so the equality holds by construction. -/
+
+/-- Bounded certified progress step (≤-law lens on the gen
+kernel): positive drop, ≤ descent, ≤ budget/risk/delta
+consumption laws with nonnegative post-levels, floors kept.  The
+remainders are the post-state readouts themselves (no separate
+fields). -/
+structure CertStepGenBounded (deltaLevel : S → ℝ) (s s' : S) where
+  /-- Certified lower bound on the objective drop. -/
+  drop : ℝ
+  drop_pos : 0 < drop
+  descent : M.objective s' ≤ M.objective s - drop
+  /-- Declared compute-budget spend (a lower commitment). -/
+  budgetSpend : ℝ
+  budget_next_le : M.budget s' ≤ M.budget s - budgetSpend
+  budget_nonneg : 0 ≤ M.budget s'
+  /-- Declared risk-budget spend. -/
+  riskSpend : ℝ
+  risk_next_le : M.risk s' ≤ M.risk s - riskSpend
+  risk_nonneg : 0 ≤ M.risk s'
+  /-- Declared delta (false-commit probability) spend. -/
+  delta : ℝ
+  delta_next_le : deltaLevel s' ≤ deltaLevel s - delta
+  delta_nonneg : 0 ≤ deltaLevel s'
+  floorsKept : FloorsKept M obl s'
+
+/-- The declared budget spend is bounded by the DEFINITIONAL spend
+(the actual state difference) — honesty: upgrading to the exact
+kernel may spend MORE than the declared lower commitment. -/
+theorem CertStepGenBounded.budgetSpend_le_actual
+    {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGenBounded M obl deltaLevel s s') :
+    h.budgetSpend ≤ M.budget s - M.budget s' := by
+  have e := h.budget_next_le
+  have e' := h.budget_nonneg
+  linarith
+
+/-- The declared risk spend is bounded by the definitional spend. -/
+theorem CertStepGenBounded.riskSpend_le_actual
+    {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGenBounded M obl deltaLevel s s') :
+    h.riskSpend ≤ M.risk s - M.risk s' := by
+  have e := h.risk_next_le
+  have e' := h.risk_nonneg
+  linarith
+
+/-- The declared delta spend is bounded by the definitional spend. -/
+theorem CertStepGenBounded.delta_le_actual
+    {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGenBounded M obl deltaLevel s s') :
+    h.delta ≤ deltaLevel s - deltaLevel s' := by
+  have e := h.delta_next_le
+  have e' := h.delta_nonneg
+  linarith
+
+/-- PREMISE-FREE bounded→exact bridge (the QW3 key): from a bounded
+certificate one GETS an exact `CertStepGen` with NO extra
+witnesses — the exact spends are DEFINED as the actual state
+differences (`budgetSpend := M.budget s - M.budget s'` etc.), so
+the equalities hold by construction (the hbudeq problem of the
+premise-form adapters dissolves). -/
+def CertStepGenBounded.toExact {deltaLevel : S → ℝ} {s s' : S}
+    (h : CertStepGenBounded M obl deltaLevel s s') :
+    CertStepGen M obl deltaLevel s s' where
+  drop := h.drop
+  drop_pos := h.drop_pos
+  descent := h.descent
+  budgetSpend := M.budget s - M.budget s'
+  budget_next := by
+    show M.budget s' = M.budget s - (M.budget s - M.budget s')
+    rw [sub_sub_cancel]
+  budget_nonneg := h.budget_nonneg
+  riskSpend := M.risk s - M.risk s'
+  riskRem := M.risk s'
+  risk_next := rfl
+  risk_split := by
+    show M.risk s = (M.risk s - M.risk s') + M.risk s'
+    rw [sub_add_cancel]
+  risk_nonneg := h.risk_nonneg
+  delta := deltaLevel s - deltaLevel s'
+  delta_next := by
+    show deltaLevel s'
+      = deltaLevel s - (deltaLevel s - deltaLevel s')
+    rw [sub_sub_cancel]
+  delta_nonneg := h.delta_nonneg
+  floorsKept := h.floorsKept
+
+/-! ### Bounded telescopes (≤, level form) -/
+
+/-- Drop telescope, bounded form: the terminal objective is ≤ the
+initial objective minus the sum of declared drops. -/
+theorem trajectory_telescope_gen_bounded (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
+    M.objective (t n) ≤ M.objective (t 0)
+      - ∑ j ∈ Finset.range n, (steps j).drop := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have e := (steps n).descent
+    simp only [Finset.sum_range_succ]
+    linarith
+
+/-- Budget telescope, bounded form: the terminal budget level is ≤
+the initial level minus the sum of declared spends. -/
+theorem budget_telescope_gen_bounded (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
+    M.budget (t n) ≤ M.budget (t 0)
+      - ∑ j ∈ Finset.range n, (steps j).budgetSpend := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have e := (steps n).budget_next_le
+    simp only [Finset.sum_range_succ]
+    linarith
+
+/-- Risk telescope, bounded form: the terminal risk level is ≤ the
+initial level minus the sum of declared risk spends. -/
+theorem risk_telescope_gen_bounded (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
+    M.risk (t n) ≤ M.risk (t 0)
+      - ∑ j ∈ Finset.range n, (steps j).riskSpend := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have e := (steps n).risk_next_le
+    simp only [Finset.sum_range_succ]
+    linarith
+
+/-- Delta telescope, bounded form: the terminal delta level is ≤
+the initial level minus the sum of declared deltas. -/
+theorem delta_telescope_gen_bounded (deltaLevel : S → ℝ)
+    (n : ℕ) (t : ℕ → S)
+    (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
+    deltaLevel (t n) ≤ deltaLevel (t 0)
+      - ∑ j ∈ Finset.range n, (steps j).delta := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have e := (steps n).delta_next_le
+    simp only [Finset.sum_range_succ]
+    linarith
+
 /-! ## TransitionStep lift (C290, kernel-unification closeout)
 
 The frozen `TransitionStep` (progress | hold) is lifted to the gen

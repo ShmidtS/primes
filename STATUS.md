@@ -5862,6 +5862,36 @@ merger cert carriers (Freeze-дисциплина: statement change).
   хеширует конструкторы/проекции структур: abbrev-замена меняет
   элаборированный тип).
 
+## Hagi/Cert/StepGen.lean — bounded-конструктор (C344, A14 QW3)
+
+- `Hagi.Cert.CertStepGenBounded` — ≤-вариант общего ядра: те же
+  носители, но нестрогие законы списания (budget_next_le,
+  risk_next_le, delta_next_le); остатки — сами пост-считывания.
+- `Hagi.Cert.CertStepGenBounded.toExact` — БЕЗПОСЫЛОЧНЫЙ мост в
+  точное ядро: точные траты ОПРЕДЕЛЕНЫ как разности состояний
+  (равенства по построению: sub_sub_cancel / rfl / sub_add_cancel)
+  — проблема hbudeq premise-форм адаптеров растворяется: точность
+  приходит из определения, а не из посылки.
+- Производные честности:
+  `Hagi.Cert.CertStepGenBounded.budgetSpend_le_actual`,
+  `Hagi.Cert.CertStepGenBounded.riskSpend_le_actual`,
+  `Hagi.Cert.CertStepGenBounded.delta_le_actual` (заявленная трата
+  ≤ дефинициональной — точное ядро может тратить БОЛЬШЕ).
+- ≤-телескопы (уровневая форма):
+  `Hagi.Cert.trajectory_telescope_gen_bounded`,
+  `Hagi.Cert.budget_telescope_gen_bounded`,
+  `Hagi.Cert.risk_telescope_gen_bounded`,
+  `Hagi.Cert.delta_telescope_gen_bounded` (aₙ ≤ a₀ − Σ трат).
+- Королларий капстон-цикла:
+  `Hagi.Unified.CertifiedLoop.StepCert.toCertStepGenBounded`
+  (точная бюджетная посылка hbudeq C278-адаптера больше не нужна —
+  нестрогого hdec цикла достаточно) и без-hbudeq маршрут
+  `Hagi.Unified.CertifiedLoop.stepCert_to_bounded_to_exact` с
+  теоремами `stepCert_to_bounded_to_exact_budget` (трата —
+  дефинициональная разность, rfl) и
+  `stepCert_to_bounded_to_exact_budgetBound` (заявленная трата ≤
+  дефинициональной). Полное поглощение S3 — следующий бит (QW4/5).
+
 ## Hagi/Contracts/GradientBottleneckIdentification.lean (C281, E2 addendum A10)
 
 - Мост спектральной идентификации C232: `selP_conjTranspose_mul_selP`
