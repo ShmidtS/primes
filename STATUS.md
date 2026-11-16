@@ -6565,3 +6565,19 @@ merger cert carriers (Freeze-дисциплина: statement change).
   work = entry-reads (модель C328), без асимптотик в утверждениях;
   числа — только в якорях. Негативы (multihead, memory-layout)
   проверены отсутствием деклараций (rootapi-негативы).
+
+## Фаза C324–C331: compute-сертификация (итог)
+
+Дуга «минимизация вычислений» замкнута end-to-end: per-step FLOP
+(`Hagi/Contracts/SparseInferenceCert.lean`, C328) → steps-to-ε
+(`Hagi/Contracts/ComputeToQuality.lean`, C330: `steps_to_quality`,
+`total_compute_to_quality`, `lowrank_total_compute_le`,
+`compute_budget_certificate`) → inference cost
+(`Hagi/Contracts/KVCacheCert.lean`, C331: `kv_cache_exact`,
+`kv_work_ratio`, `kv_total_work_lt`, `kv_step_certified` с нулевым
+риск-спендом) — от тренировочного тотала до инференс-контраста
+cached/recompute с точным отношением (n+2)/3, плюс
+compression-трейдофф dense vs low-rank. Ядро C278 CertStepGen
+дополнено четвёртым телескопом `budget_telescope_gen` (бюджетная
+идентичность). Анализ периода —
+`.omc/analysis/period-c330-c332-analysis.md`.

@@ -3315,3 +3315,28 @@ mod-перенос инертен в окне) и разделение выбо�
 (`RamAccess`); E6 аудит-список исчерпан, stream bridge
 остаётся отложенным. Канонический health-пересказ фазы —
 `.tmp/C318/` (артефакт цикла).
+
+## 26. Итоги фазы C324–C331 (compute-сертификация)
+
+Хвост фазы (C330–C331) замыкает GOAL-ось «минимизация вычислений»
+end-to-end: (1) C330 — `Hagi/Contracts/ComputeToQuality.lean`:
+`steps_to_quality` (равномерный сертифицированный спуск ⇒ ε за
+⌈Δ₀/d⌉ шагов, premise-интерфейс к C291), `total_compute_to_
+quality` (тотал = шаги × FLOP/шаг, честная premise-минимальность),
+`lowrank_total_compute_le` (трейдофф компрессии: при d ≤ d' и
+2k ≤ n идеализированный low-rank тотал (Δ₀/d')·2kn бьёт плотный
+(Δ₀/d)·n²), `compute_budget_certificate` (resource-ledger:
+качество + ТОЧНЫЙ бюджетный телескоп) + `budget_telescope_gen` —
+четвёртый телескоп ядра C278 CertStepGen (бюджетная идентичность);
+(2) C331 — `Hagi/Contracts/KVCacheCert.lean`: route (b) — softmax-
+веса не разлагаются, пара (den, num) простых сумм разлагается
+точно: `kv_cache_exact` (cached = full recompute, List-носитель),
+`lse_combine_assoc`/`lse_cache_step` (бегущий logsumexp, ТОЧНО),
+безделительные ℕ-тождества 2W=n(n+1), 6R=n(n+1)(n+2),
+`kv_work_ratio` (точное отношение 3R=(n+2)W), `kv_total_work_lt`
+(строго при n ≥ 2), `kv_step_certified` (риск-канал тратит НОЛЬ —
+первый zero-error сертификат). Дуга теперь полная: per-step FLOP
+(C328) + steps-to-ε (C330) + inference cost (C331) + compression
+tradeoff (C330). Канонический анализ фазы —
+`.omc/analysis/period-c330-c332-analysis.md`; карточки файлов —
+STATUS.md (C330/C331).
