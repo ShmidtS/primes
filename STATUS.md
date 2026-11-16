@@ -6613,3 +6613,18 @@ compression-трейдофф dense vs low-rank. Ядро C278 CertStepGen
 дополнено четвёртым телескопом `budget_telescope_gen` (бюджетная
 идентичность). Анализ периода —
 `.omc/analysis/period-c330-c332-analysis.md`.
+
+
+## Hagi/Contracts/TruncatedSVDTail.lean (C343)
+
+Rectangular spectral-tail bridge (A13 P-3): under the SVD premise
+(A = U·Sigma·V^H with carrier rectangular singular values sigma),
+the truncated approximant approxK satisfies
+`truncated_svd_error_eq_tail`:
+||A - A_k||^2_F = sum_{i>k} sigma_i^2 (trace/rotation route),
+and `sparse_premise_discharged` composes with
+`Hagi.Contracts.SparseInferenceCert.sparse_inference_error`,
+turning the premise-form hE into theorem-form for explicit
+SVD-decomposable A. Numeric anchor (diag(3,1), k=1) deferred
+honestly: carrier-index casts resist decide reduction (classical
+card instances); the main theorems carry the content.
