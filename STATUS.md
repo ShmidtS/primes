@@ -6567,6 +6567,37 @@ merger cert carriers (Freeze-дисциплина: statement change).
   числа — только в якорях. Негативы (multihead, memory-layout)
   проверены отсутствием деклараций (rootapi-негативы).
 
+## Hagi/Contracts/DataToQuality.lean (C334)
+- Цель GOAL «минимизация данных» — data-efficiency / sample-complexity
+  сертификат: сколько СЭМПЛОВ сертифицируют, что выбранный energy-модель
+  оптимальна по population PL-risk (дополнение compute-дуги C330).
+- `sampleComplexity m δ η = log(m/δ)/(2η²)` + инверсия радиуса C287
+  `concConfidence_le_of_sample_bound`: `n ≥ sampleComplexity m δ η ⟹
+  concConfidence η n ≤ δ/m` — ТОЧНАЯ алгебра обращения канонической
+  экспоненты exp(−2nε²) (exp монотонен + exp(−log x) = 1/x), никакой
+  новой концентрационной математики.
+- `samples_to_quality` (MAIN 1): конечный класс + margin-посылка C315
+  (победитель бьёт всех на ≥ 2η эмпирически) + явное число сэмплов
+  `n ≥ log(2|ι|/δ)/(2η²)` ⟹ w.p. ≥ 1−δ выбранный — population-best
+  (композиция: C315 `finite_class_pl_margin_argmax` + инверсия на
+  кратности объединения m = 2|ι| — константа 2 двустороннего события
+  C264). `samples_to_quality_subopt`: γ-ослабление («в пределах γ от
+  лучшего»), η играет роль точности γ−ε.
+- `data_compute_budget` (MAIN 2): совместный data-compute леджер —
+  ТРИ независимые книги: data (событие отбора, вероятностное),
+  compute (`steps_to_quality` C330: objective ≤ ε) и ресурсный счёт
+  `n·w + Σ spends ≤ (sampleComplexity+1)·w + (Δ₀+d)/d·W`.
+  Минимальность ОБЕИХ величин — честные посылки (потолочная посылка C330 в стиле total_compute_to_quality).
+- Якорь: |ι|=10, δ=0.05, η=0.1 ⟹ sampleComplexity 20 0.05 0.1 =
+  log 400/0.02 ≈ 299.6 (float, ориентация; 300 сэмплов хватает);
+  доказанная честная форма ≤ 450 через log 400 ≤ 9 (2^9 ≤ e^9),
+  стиль C315 (`sample_complexity_anchor_334`).
+- Честные границы: ТОЛЬКО конечные классы; margin — ПОСЫЛКА на
+  сэмпл (интерфейс C315); НЕТ active learning / curriculum / adaptive
+  sampling (отдельные кандидаты фронтира, здесь НЕ утверждаются);
+  data-книга и compute-книга НЕЗАВИСИМЫ (не утверждается, что модель
+  улучшает спуск); числа — только в якоре.
+
 ## Фаза C324–C331: compute-сертификация (итог)
 
 Дуга «минимизация вычислений» замкнута end-to-end: per-step FLOP
