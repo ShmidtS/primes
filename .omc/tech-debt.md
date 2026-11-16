@@ -701,3 +701,15 @@ C_state bridge (future math beat), A8-F6-C254 residue (SVD
 premise, iterate lifting). Standing structural row C224
 (CertStep legacy absorption) unchanged. Nothing to merge or
 delete (Zawinski check: no new rules/skills added by the period).
+
+## TD C338 — period C336–C337 audit (2026-11-16) — NO NEW OPEN ROWS
+
+Health-beat audit (`.omc/analysis/period-c336-c338-analysis.md` +
+`.tmp/C338/`): no tech-debt rows OPENED by C336–C337 (both pure
+feature adds, Freeze-clean). P0 reproducibility: local-path leaks
+in `lean-toolchain` (absolute path) and `lakefile.toml` (mathlib
+path override) DOCUMENTED this beat — canonical fallback in a
+lakefile comment + README "Воспроизводимость" section; the actual
+config swap stays env-blocked (elan/clean-checkout fetch not
+verifiable here). Standing rows unchanged: E5-C301/C302, C234–C236,
+C239 keepers, C240 MDL C_state bridge, A8-F6-C254, C224.

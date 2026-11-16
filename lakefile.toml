@@ -13,7 +13,19 @@ maxSynthPendingDepth = 3
 # which ones a given proof does not use directly.
 weak.linter.unusedHypotheses = true
 
-# Local prebuilt Mathlib (lean-4.35.0 toolchain, built at C:/Users/shmid/mathlib4).
+# Local prebuilt Mathlib override (developer machine, lean-4.35.0
+# toolchain built at C:/Users/shmid/mathlib4). For a FRESH CLONE
+# without that path, replace this require block with the canonical
+# fetch config, pinned to scripts/mathlib-rev.txt:
+#   [[require]]
+#   name = "mathlib"
+#   scope = "leanprover-community"
+#   git = "https://github.com/leanprover-community/mathlib4.git"
+#   rev = "56a005855ea17e0b0958f73ec801ae140b0a1679"
+# then delete lake-manifest.json's mathlib `dir` entry (or the whole
+# manifest) and run `lake build` (fetches ~several GB; MATHLIBPIN gate
+# checks the same pin). Toolchain: see lean-toolchain + the pinned
+# Lean commit in scripts/mathlib-rev.txt line 2.
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
