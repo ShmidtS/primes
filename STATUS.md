@@ -6446,10 +6446,11 @@ merger cert carriers (Freeze-дисциплина: statement change).
   ошибку маски, функциональная граница НЕ следует из EY для
   произвольного B (ловушка направления поймана probe-итерацией,
   plan-review A1).
-- `sparse_mask_minimal`: Eckart-Young процитирован ДОСЛОВНО
+- Eckart-Young процитирован ДОСЛОВНО
   (`eckart_young_lower_bound_rect_true_tail` C281) — ни одна
   маска ранга-k не бьёт хвост: сертификат оптимальности посылки
-  hE.
+  hE. (C333: делегирующий близнец sparse_mask_minimal удалён
+  как дубликат C281, STMDUP-протокол; каноническое имя выше.)
 - Op-count семейство (дисциплина C272 work-model): defs
   `denseMatVecWork n = n²`, `lowRankMatVecWork k n = 2kn`
   (честный двухпроходный факторизованный matvec; per-pass доля

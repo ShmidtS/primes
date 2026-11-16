@@ -20,8 +20,9 @@ carrier; only the PACKAGING is new:
 * the mask error law is Eckart-Young — cited EXACTLY as
   `Hagi.Contracts.GradientBottleneckIdentification.
   eckart_young_lower_bound_rect_true_tail` (C281, true rectangular
-  tail): NO rank-`k` approximant beats the tail
-  (`sparse_mask_minimal`); NOT re-proven here;
+  tail): NO rank-`k` approximant beats the tail — cited directly at
+  the `hE` premise sites; NOT re-proven here (the C333 dedup removed the
+  delegation twin of C281);
 * the function-level transfer is the C300/C322 Lipschitz-readout
   route (`Hagi.Budget.rd_step_error_bound` pattern): weight-space
   error becomes function error through a sensitivity-`sens`
@@ -77,7 +78,7 @@ rank-`k` spectral mask `B` achieves the spectral-tail error bound
 (premise-form `hE : ‖A − B‖ ≤ (∑ i, (rectangularTail A k i)²)^{1/2}`;
 true with equality for the truncated spectral mask — square case
 `frobenius_error_truncatedSVD`, and unimprovable by
-`sparse_mask_minimal`), then every `sens`-Lipschitz readout `phi`
+C281 `eckart_young_lower_bound_rect_true_tail`), then every `sens`-Lipschitz readout `phi`
 (C300 pattern: the head-input perturbation through the backbone
 sensitivity) changes by at most `sens` times the tail root:
 `|phi B − phi A| ≤ sens · (∑ tail²)^{1/2}`. The mask structure is
@@ -94,16 +95,6 @@ theorem sparse_inference_error
     _ = sens * ‖A - B‖ := by rw [norm_sub_rev]
     _ ≤ sens * (∑ i, (rectangularTail A k i)^2).sqrt :=
       mul_le_mul_of_nonneg_left hE hsens
-
-/-- **Mask minimality** — Eckart-Young cited EXACTLY (C281
-`eckart_young_lower_bound_rect_true_tail`, not re-proven): no
-rank-`k` mask beats the spectral tail. This certificates that the
-premise `hE` of `sparse_inference_error` is the best possible
-error budget for any rank-`k` restriction of `A`. -/
-theorem sparse_mask_minimal (inj : m → n) (hinj : Function.Injective inj)
-    (A B : Matrix m n ℂ) (k : ℕ) (hB : B.rank ≤ k) :
-    ∑ i, (rectangularTail A k i)^2 ≤ ‖A - B‖^2 :=
-  eckart_young_lower_bound_rect_true_tail inj hinj A B k hB
 
 /-! ## The op-count family (C272 work-model discipline) -/
 
