@@ -13,6 +13,20 @@
       "pinned_types": {
         "Hagi.Unified.CertifiedLoop.StepCert": "{S : Type u_1} → (S → ℝ) → Hagi.Unified.LinkedQVec.MeasuredState S → (Fin 5 → ℝ) → ℝ → S → S → ℝ → ℝ → Type"
       }
+    },
+    {
+      "name": "master-hagi-challenge-v4-kernel",
+      "description": "Kernel-form Gen-4 master statement: over a generic-TaskId CertStepGenBounded chain (bounded consumption laws), cumulative descent sum drops <= obj0 - objN, kernel FloorsKept at terminal, budget nonneg, budget telescope, risk ledger sum risks <= risk0, delta ledger sum deltas <= delta0",
+      "theorem": "Hagi.Challenge.master_hagi_challenge_v4_kernel",
+      "module": "Hagi.Challenge.MasterChallengeV4Kernel",
+      "allowed_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
+      "pinned_types": {
+        "Hagi.Cert.CertStepGenBounded": "{S : Type u_1} → {TaskId : Type u_2} → Hagi.Cert.SystemMetrics S TaskId → Hagi.Cert.StepObligations TaskId → (S → ℝ) → S → S → Type"
+      }
     }
   ]
 }

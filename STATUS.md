@@ -5892,6 +5892,43 @@ merger cert carriers (Freeze-дисциплина: statement change).
   `stepCert_to_bounded_to_exact_budgetBound` (заявленная трата ≤
   дефинициональной). Полное поглощение S3 — следующий бит (QW4/5).
 
+## Hagi/Unified/CertifiedLoopKernel.lean — капстон на ядре (C345, A14 QW4+QW5)
+
+- `certified_loop_kernel` — КАПСТОН НА ЯДРЕ: bounded-цепь
+  `CertStepGenBounded` с ПРОИЗВОЛЬНЫМ TaskId (жёсткий `Fin 5`
+  цикла — инстанциация, не ограничение) даёт одновременно
+  Σ drops ≤ obj₀ − objₙ, ядерный `FloorsKept`, 0 ≤ budget n,
+  бюджетный телескоп, риск- и δ-леджери; посылки hrisk0/hdelta0 —
+  честные начальные неотрицательности (паттерн
+  `risk_telescope_gen`). Вспомогательные: `kernel_core`,
+  `risk_ledger_fin`, `delta_ledger_fin` (Fin n-форма, сильные
+  телескопы уровня).
+- Мост legacy → ядро (premise-free на уровне траектории):
+  `bridgeMetrics` (состояние ℕ × S: бюджет по времени, риск-носитель
+  = остаток лимита (n − j)·riskLim с riskLim ≥ 0, ВЫВЕДЕННЫМ из
+  riskBound + неотрицательности траты), `bridgeObl` (floor = obj
+  терминала, держится монотонностью), `stepCert_to_kernel_bounded`
+  (один шаг; посылки hbudeq/hrisk/hrisk'/hfloors C278-адаптера НЕ
+  нужны), `legacy_chain` (вся Fin n-цепь), `legacy_obj_anti`
+  (монотонность obj по цепи, посылка hdrops-формы как у legacy),
+  качество `FloorKept` — канал исполнения, восстанавливается
+  индукцией внутри моста (НЕ подменяется ядерным floor).
+- `certified_loop_eq_kernel` — заключения legacy `certified_loop`
+  ВЫВЕДЕНЫ из ядерного капстона (4 legacy-заключения + бонус —
+  риск-агрегация Σ riskSpend ≤ n·riskLim, вывод
+  `certified_loop_risk` как инстанциация ядра); legacy-формулировка
+  НЕ тронута (Freeze), доказательство legacy `certified_loop` НЕ
+  вызывается.
+- Якорь `kernel_anchor_quad`: траектория 2 → 1 → 1/2 (obj w = w²),
+  бюджет 10 → 9 → 15/2, riskLim 1 — ядерный капстон даёт ТЕСНЫЕ
+  (равенства) спуск и бюджетный телескоп.
+- Challenge pin v4 (kernel-form, аддитивно): `master_hagi_challenge_v4_kernel`
+  (Hagi/Challenge/MasterChallengeV4Kernel.lean) — заключение ядра
+  прописано полностью, делегирует `certified_loop_kernel`.
+- QW4 (HonestTransition → kernel view) честно отложен:
+  HonestTransition не несёт бюджетного закона (только 0 ≤ b'),
+  bounded-мост потребовал бы бюджетную посылку — не «дёшево».
+
 ## Hagi/Contracts/GradientBottleneckIdentification.lean (C281, E2 addendum A10)
 
 - Мост спектральной идентификации C232: `selP_conjTranspose_mul_selP`

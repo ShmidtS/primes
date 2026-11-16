@@ -262,6 +262,7 @@ import Hagi.Spectral.RankGrowth
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState
 import Hagi.Challenge.MasterChallengeV3
+import Hagi.Challenge.MasterChallengeV4Kernel
 import Hagi.System.Certificates
 import Hagi.System.DiscreteStep
 import Hagi.System.UnifiedStep
@@ -385,6 +386,7 @@ import Hagi.Unified.CanonicalParams
 import Hagi.Unified.LinkedQVec
 import Hagi.Unified.ExecutedCert
 import Hagi.Unified.CertifiedLoop
+import Hagi.Unified.CertifiedLoopKernel
 import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
 import Hagi.Unified.LogitGrowth
