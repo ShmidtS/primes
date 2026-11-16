@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
+import Hagi.Foundations.Telescope
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.CEHeldout
 import Hagi.Model.GatedCEPositiveCurvature
@@ -112,7 +113,15 @@ theorem fixedGatedObjective_actual_telescope
         (fixedGatedObjective X t S opCost opRisk write s -
           fixedGatedObjective X t S opCost opRisk write (s + 1)) =
       gatedCEObjective X t S - fixedGatedObjective X t S opCost opRisk write T := by
-  simpa using Finset.sum_range_sub' (fixedGatedObjective X t S opCost opRisk write) T
+  have htel := Hagi.Foundations.telescope_sub_sum
+    (T := T)
+    (f := fixedGatedObjective X t S opCost opRisk write)
+    (c := fun s => fixedGatedObjective X t S opCost opRisk write s
+      - fixedGatedObjective X t S opCost opRisk write (s + 1))
+    (fun s _ => by ring)
+  have h0 : fixedGatedObjective X t S opCost opRisk write 0
+    = gatedCEObjective X t S := rfl
+  linarith
 
 /-- The total actual loss decrease dominates the total computed majorizer
 drops, each evaluated at that step's actual current parameters. -/

@@ -92,32 +92,13 @@ theorem warmup_telescope_bound (T : ℕ) (Δ g eta : ℕ → ℝ)
       ≤ Δ t - eta t / 2 * g t ^ 2) :
     ∃ t < T, g t ^ 2 * (∑ i ∈ Finset.range T, eta i)
       ≤ 2 * Δ 0 := by
-  -- Δ не возрастает (вычитается неотрицательное)
-  have hΔmono : ∀ n ≤ T, Δ n ≤ Δ 0 := by
-    intro n
-    induction n with
-    | zero => intro _; exact le_refl (Δ 0)
-    | succ m ih =>
-      intro hm
-      have hs := hstep m (by omega)
-      have hg0 : 0 ≤ eta m / 2 * g m ^ 2 :=
-        mul_nonneg (by linarith [heta m]) (sq_nonneg _)
-      exact le_trans (by linarith) (ih (by omega))
   -- усиленный инвариант: Σ_{t<n} (η_t/2)g_t² ≤ Δ₀ − Δ_n
+  -- (C349: миграция на generic-ядро telescope_sum_floor_le)
   have hstrong : ∀ n ≤ T,
       ∑ i ∈ Finset.range n, eta i / 2 * g i ^ 2
-        ≤ Δ 0 - Δ n := by
-    intro n hn
-    induction n with
-    | zero => simp
-    | succ m ih =>
-      have hstepm := hstep m (by omega)
-      have hrec := ih (by omega)
-      have hg0 : 0 ≤ eta m / 2 * g m ^ 2 :=
-        mul_nonneg (by linarith [heta m]) (sq_nonneg _)
-      rw [Finset.sum_range_succ]
-      have : Δ m ≤ Δ 0 := hΔmono m (by omega)
-      linarith [hstepm, hrec, hΔpos (m + 1)]
+        ≤ Δ 0 - Δ n := fun n hn =>
+    Hagi.Foundations.telescope_sum_floor_le (Δ n)
+      (fun t ht => hstep t (lt_of_lt_of_le ht hn)) (le_refl _)
   -- минимум ≤ взвешенное среднее: argmin по диапазону
   obtain ⟨m, hmMin⟩ :=
     (Finset.range T).exists_min_image (fun t => g t ^ 2)

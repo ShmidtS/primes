@@ -1,5 +1,6 @@
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
+import Hagi.Foundations.Telescope
 import Hagi.Model.CEHeldout
 import Hagi.Unified.GuardedRobustTrajectory
 
@@ -100,7 +101,15 @@ theorem fixedBatchObjective_actual_telescope
         (fixedBatchObjective X y S opCost opRisk write t -
           fixedBatchObjective X y S opCost opRisk write (t + 1)) =
       batchCEObjective X y S - fixedBatchObjective X y S opCost opRisk write T := by
-  simpa using Finset.sum_range_sub' (fixedBatchObjective X y S opCost opRisk write) T
+  have htel := Hagi.Foundations.telescope_sub_sum
+    (T := T)
+    (f := fixedBatchObjective X y S opCost opRisk write)
+    (c := fun t => fixedBatchObjective X y S opCost opRisk write t
+      - fixedBatchObjective X y S opCost opRisk write (t + 1))
+    (fun t _ => by ring)
+  have h0 : fixedBatchObjective X y S opCost opRisk write 0
+    = batchCEObjective X y S := rfl
+  linarith
 
 /-- Total actual loss decrease over a finite trajectory dominates the total
 computed certified residuals.  This does not equal the residuals to extra CE

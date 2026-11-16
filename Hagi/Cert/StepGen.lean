@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Cert.Core
+import Hagi.Foundations.Telescope
 
 /-!
 # General certification kernel (master plan v3 addendum A10, item 2)
@@ -201,12 +202,10 @@ theorem trajectory_telescope_gen (deltaLevel : S → ℝ)
     (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
     M.objective (t n) ≤ M.objective (t 0)
       - ∑ j ∈ Finset.range n, (steps j).drop := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).descent
-    simp only [Finset.sum_range_succ]
-    linarith
+  exact Hagi.Foundations.telescope_le_sub
+    (f := fun k => M.objective (t k))
+    (c := fun j => (steps j).drop)
+    (fun j _ => (steps j).descent)
 
 /-- Delta telescope for the general kernel (C245 form, folded): the
 sum of per-step false-commit budgets is bounded by the initial delta
@@ -217,21 +216,14 @@ theorem delta_telescope_gen (deltaLevel : S → ℝ)
     (h0 : 0 ≤ deltaLevel (t 0))
     (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
     ∑ j ∈ Finset.range n, (steps j).delta ≤ deltaLevel (t 0) := by
-  have strong : ∀ m : ℕ,
-      ∑ j ∈ Finset.range m, (steps j).delta
-        ≤ deltaLevel (t 0) - deltaLevel (t m) := by
-    intro m
-    induction m with
-    | zero => simp
-    | succ m ih =>
-      have e := (steps m).delta_next
-      simp only [Finset.sum_range_succ]
-      linarith
   have hnn : 0 ≤ deltaLevel (t n) := by
     match n with
     | 0 => exact h0
     | m + 1 => exact (steps m).delta_nonneg
-  linarith [strong n]
+  simpa using Hagi.Foundations.telescope_sum_floor_le 0
+    (f := fun k => deltaLevel (t k))
+    (c := fun j => (steps j).delta)
+    (fun j _ => (steps j).delta_next.le) hnn
 
 /-- Risk telescope for the general kernel: the sum of per-step risk
 spends is bounded by the initial risk level (remainder field makes
@@ -243,17 +235,6 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
     (h0 : 0 ≤ M.risk (t 0))
     (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
     ∑ j ∈ Finset.range n, (steps j).riskSpend ≤ M.risk (t 0) := by
-  have strong : ∀ m : ℕ,
-      ∑ j ∈ Finset.range m, (steps j).riskSpend
-        ≤ M.risk (t 0) - M.risk (t m) := by
-    intro m
-    induction m with
-    | zero => simp
-    | succ m ih =>
-      have e := (steps m).risk_split
-      have e' := (steps m).risk_next
-      simp only [Finset.sum_range_succ]
-      linarith
   have hnn : 0 ≤ M.risk (t n) := by
     match n with
     | 0 => exact h0
@@ -261,7 +242,12 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
       have h := (steps m).risk_nonneg
       rw [(steps m).risk_next]
       exact h
-  linarith [strong n]
+  simpa using Hagi.Foundations.telescope_sum_floor_le 0
+    (f := fun k => M.risk (t k))
+    (c := fun j => (steps j).riskSpend)
+    (fun j _ => le_of_eq (by
+      rw [(steps j).risk_next, (steps j).risk_split]
+      ring)) hnn
 
 /-! ## Bounded variant (A14 QW3, C344): ≤-law constructor
 
@@ -366,12 +352,10 @@ theorem trajectory_telescope_gen_bounded (deltaLevel : S → ℝ)
     (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
     M.objective (t n) ≤ M.objective (t 0)
       - ∑ j ∈ Finset.range n, (steps j).drop := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).descent
-    simp only [Finset.sum_range_succ]
-    linarith
+  exact Hagi.Foundations.telescope_le_sub
+    (f := fun k => M.objective (t k))
+    (c := fun j => (steps j).drop)
+    (fun j _ => (steps j).descent)
 
 /-- Budget telescope, bounded form: the terminal budget level is ≤
 the initial level minus the sum of declared spends. -/
@@ -380,12 +364,10 @@ theorem budget_telescope_gen_bounded (deltaLevel : S → ℝ)
     (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
     M.budget (t n) ≤ M.budget (t 0)
       - ∑ j ∈ Finset.range n, (steps j).budgetSpend := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).budget_next_le
-    simp only [Finset.sum_range_succ]
-    linarith
+  exact Hagi.Foundations.telescope_le_sub
+    (f := fun k => M.budget (t k))
+    (c := fun j => (steps j).budgetSpend)
+    (fun j _ => (steps j).budget_next_le)
 
 /-- Risk telescope, bounded form: the terminal risk level is ≤ the
 initial level minus the sum of declared risk spends. -/
@@ -394,12 +376,10 @@ theorem risk_telescope_gen_bounded (deltaLevel : S → ℝ)
     (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
     M.risk (t n) ≤ M.risk (t 0)
       - ∑ j ∈ Finset.range n, (steps j).riskSpend := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).risk_next_le
-    simp only [Finset.sum_range_succ]
-    linarith
+  exact Hagi.Foundations.telescope_le_sub
+    (f := fun k => M.risk (t k))
+    (c := fun j => (steps j).riskSpend)
+    (fun j _ => (steps j).risk_next_le)
 
 /-- Delta telescope, bounded form: the terminal delta level is ≤
 the initial level minus the sum of declared deltas. -/
@@ -408,12 +388,10 @@ theorem delta_telescope_gen_bounded (deltaLevel : S → ℝ)
     (steps : ∀ j : ℕ, CertStepGenBounded M obl deltaLevel (t j) (t (j + 1))) :
     deltaLevel (t n) ≤ deltaLevel (t 0)
       - ∑ j ∈ Finset.range n, (steps j).delta := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).delta_next_le
-    simp only [Finset.sum_range_succ]
-    linarith
+  exact Hagi.Foundations.telescope_le_sub
+    (f := fun k => deltaLevel (t k))
+    (c := fun j => (steps j).delta)
+    (fun j _ => (steps j).delta_next_le)
 
 /-! ## TransitionStep lift (C290, kernel-unification closeout)
 
