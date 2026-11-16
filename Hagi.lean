@@ -491,6 +491,7 @@ import Hagi.Contracts.GradientBottleneckIdentification
 import Hagi.Contracts.SparseInferenceCert
 import Hagi.Contracts.ComputeToQuality
 import Hagi.Contracts.DataToQuality
+import Hagi.Contracts.CurriculumCert
 import Hagi.Contracts.KVCacheCert
 import Hagi.Contracts.DepthExitCert
 import Hagi.Contracts.LogitGrad
