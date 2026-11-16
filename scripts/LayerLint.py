@@ -15,7 +15,10 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 LAYERS = {
     # A7 target 5-layer DAG (C244). Dirs do NOT exist yet — entries are
     # inert until Phase 1-3 create them; they activate automatically then.
-    "HagiMath": 0,
+    # C348 (A14 QW8): Hagi/Math activated — canonical math carrier
+    # at layer 0 (renamed from the inert A7 "HagiMath" entry; the
+    # dir chosen by QW8 is Hagi/Math, namespaces stay file-declared).
+    "Math": 0,
     "HagiCert": 1,
     "HagiModel": 2,
     "HagiLoop": 3,

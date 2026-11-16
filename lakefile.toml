@@ -127,9 +127,11 @@ name = "Hagi.Research"
 globs = ["Hagi.Research", "Hagi.Research.+"]
 
 # Review stage 6: per-directory package for incremental builds.
+# C348: Hagi/Math layer activated (A14 QW8); Prelude dir retired
+# (its only module moved to Math, FQNs preserved).
 [[lean_lib]]
-name = "Hagi.Prelude"
-globs = ["Hagi.Prelude.+"]
+name = "Hagi.Math"
+globs = ["Hagi.Math.+"]
 
 # Review stage 6: per-directory package for incremental builds.
 [[lean_lib]]

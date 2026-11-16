@@ -59,7 +59,7 @@ import Hagi.Budget.BitAlloc
 import Hagi.Budget.BitAllocTermination
 import Hagi.Data.NessDissipation
 import Hagi.Probability.StationaryFlatness
-import Hagi.Prelude.InfoCore
+import Hagi.Math.Info.InfoCore
 import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.ProbeError

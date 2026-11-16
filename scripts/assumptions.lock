@@ -59,11 +59,11 @@ Hagi/Contracts/KVCacheCert.lean:lseCombine
 Hagi/Core/Concat.lean:lse
 Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
-Hagi/Prelude/InfoCore.lean:entDef
-Hagi/Prelude/InfoCore.lean:entropy
-Hagi/Prelude/InfoCore.lean:klDef
-Hagi/Prelude/InfoCore.lean:tvDef
-Hagi/Prelude/InfoCore.lean:tvHalf
+Hagi/Math/Info/InfoCore.lean:entDef
+Hagi/Math/Info/InfoCore.lean:entropy
+Hagi/Math/Info/InfoCore.lean:klDef
+Hagi/Math/Info/InfoCore.lean:tvDef
+Hagi/Math/Info/InfoCore.lean:tvHalf
 Hagi/Research/OmniState.lean:entryCount
 Hagi/Step/Upgrades.lean:softmaxW
 

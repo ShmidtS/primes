@@ -1639,7 +1639,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `recoverable_avg`: при `N>0` и `0<devEnergyF dev` существует `k`, для которого `devEnergyF dev/N≤dev k ⬝ᵥ dev k`.
 
 
-## Hagi/Prelude/InfoCore.lean
+## Hagi/Math/Info/InfoCore.lean (moved from Hagi/Prelude/, C348)
 - `entropy_le_diagonal`: для положительно полуопределённой `A` энтропия не превосходит `Σᵢ negMulLog(Re(A i i))`; `concaveOn_entropy` доказывает вогнутость энтропии на PSD-состояниях.
 - `discrete_fannes_coupling`: для вероятностных `p,q` на непустом конечном `ι` и посылки hbridge, отождествляющей энтропию неотрицательной диагонали с `shannon`, доказано `shannon p−shannon q≤tvHalf*log(card ι)+(1+tvHalf)*binEntropy(tvHalf/(1+tvHalf))`.
 

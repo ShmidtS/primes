@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Prelude.InfoCore
+import Hagi.Math.Info.InfoCore
 import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.GibbsCore
 import Hagi.Probability.GibbsCooling
@@ -18,7 +18,7 @@ bounds; namespace `Hagi.Unified` preserved), `Hagi.Unified.InfoCanonical`
 Fannes), and `Hagi.Probability.PinskerTV` (Pinsker family; namespaces
 `Hagi.Probability` and tail `Hagi.Information` preserved). FQNs of all
 moved declarations preserved via namespace blocks (C234 pattern);
-statements byte-identical. Definitions live in `Hagi.Prelude.InfoCore`.
+statements byte-identical. Definitions live in `Hagi.Math.Info.InfoCore`.
 -/
 
 /-!

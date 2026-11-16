@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Prelude.InfoCore
+import Hagi.Math.Info.InfoCore
 import Hagi.Energy.SingleCellDescent
 import Hagi.Model.EnergyReasoning.EnergySearch
 

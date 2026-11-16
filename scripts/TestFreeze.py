@@ -272,18 +272,25 @@ class LayerLintProbeTest(unittest.TestCase):
     """C244: A7 5-layer target is inert now, but enforced once dirs exist."""
 
     def test_hagimath_importing_upward_fails(self):
+        # C348: HagiMath entry activated as Math (layer 0); the guard
+        # must fire on the active path.
         text = "import Hagi.HagiCert.Core\ntheorem t : True := trivial\n"
-        violations = LayerLint.check_source("HagiMath/Prob/Basic.lean", text)
+        violations = LayerLint.check_source("Math/Prob/Basic.lean", text)
         self.assertEqual(len(violations), 1)
         self.assertIn("HagiCert", violations[0])
 
     def test_hagimath_pure_mathlib_is_clean(self):
         text = "import Mathlib.Analysis.Convex.Basic\ntheorem t : True := trivial\n"
         self.assertEqual(
-            LayerLint.check_source("HagiMath/Prob/Basic.lean", text), [])
+            LayerLint.check_source("Math/Prob/Basic.lean", text), [])
 
     def test_new_layer_dirs_absent(self):
-        for folder in ("HagiMath", "HagiCert", "HagiModel", "HagiLoop",
+        # C348 (A14 QW8): Math activated at Hagi/Math (layer 0); the
+        # remaining A7 target dirs stay inert until their phases.
+        self.assertIn("Math", LayerLint.LAYERS)
+        self.assertTrue((LayerLint.ROOT / "Math").exists(),
+                        "Math layer activated (C348)")
+        for folder in ("HagiCert", "HagiModel", "HagiLoop",
                        "HagiRecipes"):
             self.assertIn(folder, LayerLint.LAYERS)
             self.assertFalse((LayerLint.ROOT / folder).exists(),

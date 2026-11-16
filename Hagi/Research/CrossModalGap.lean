@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
-import Hagi.Prelude.InfoCore
+import Hagi.Math.Info.InfoCore
 
 /-!
 # CrossModalGap — the cross-modal information gain
