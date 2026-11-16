@@ -57,8 +57,15 @@ The two halves are deliberately independent:
   `Fin d → ℝ`.  Transporting `ConvexOn` to the
   `EuclideanSpace ℝ (Fin d)` carrier of `Hagi.Model.CEGradient` is
   a linear-isometry transport not formalized here.
-* The O(1/T) rate without PL (Fejér monotonicity, telescoping,
-  averaged iterate) is not formalized here.
+* The O(1/T) rate WITHOUT PL is formalized here for the linear head
+  (`ce_rate_no_pl_ident`): convexity + the derived smoothness give the
+  per-step progress `δ ← δ − δ²/(2LR²)` and a nonlinear recursion yields
+  `f(θ_T) − f* ≤ 2·L·R²/(T+1)` for every `T ≥ 1` (simultaneously a
+  min- and last-iterate bound; the averaged-iterate form is not
+  formalized).  Its pinned premises: the loss floor `f*`, ATTAINMENT
+  `f(θstar) ≤ f*` (without it the statement is false), and an R-bound
+  on ALL iterates' distance to a minimizer (level-set boundedness not
+  formalized).
 
 Reference search (research notes, `.tmp/C351/research.md`) found no
 logsumexp or PL API in the pinned Mathlib commit; the two-point
@@ -745,4 +752,400 @@ theorem ce_global_convergence_ident (X : Matrix V (Fin d) ℝ) (t : V)
 
 end IdentSmoothness
 
+/-! ## Part 4: the PL-free O(1/T) sublinear rate
+
+Classical convex + L-smooth gradient descent (step `1/L`), NO
+Polyak-Łojasiewicz premise.  Route (cf. Bubeck, *Convex Optimization:
+Algorithms and Complexity*, Thm 3.3; Nesterov, *Introductory Lectures*,
+§1.2.3): the descent lemma gives `f(x⁺) ≤ f(x) − ‖∇f(x)‖²/(2L)`; first
+order convexity plus Cauchy-Schwarz gives the suboptimality gap
+`δ ≤ ⟨∇f(x), x − θstar⟩ ≤ ‖∇f(x)‖·R`; hence the nonlinear recursion
+`δ_{t+1} ≤ δ_t − δ_t²/(2LR²)`, closed by a division-free nonlinear
+telescope (`nonlin_rec_bound`) to `δ_T ≤ 2LR²/(T+1)` for every `T ≥ 1`.
+
+Honesty ledger: the bound holds for EVERY iterate index `t ≥ 1`, so it
+is simultaneously the min-iterate and the last-iterate form; the
+classical AVERAGED-iterate rate `f(θ̄_T) − f* ≤ LR²/T` (Jensen over the
+iterate average) is NOT formalized here.  `h_attains : f θstar ≤ fstar`
+is required: `fstar` is otherwise only a floor, and with all iterates
+pinned at `θstar` the gap would be an arbitrary constant (the statement
+fails).  The R-bound on all iterates (a level-set boundedness
+consequence for CE) remains a premise.
+-/
+
+section TangentLower
+
+variable {V : Type} [Fintype V] [Nonempty V]
+
+/-- First-order (tangent) lower bound for the log-sum-exp: the linear
+underestimator at `a` evaluated at the direction `b`.  Mean value
+theorem on the line `s ↦ lse (a + s • b)`: `G 1 − G 0 = G'(η)` for
+some `η ∈ (0,1)`, and the monotonicity of the line gradient
+(`grad_line_bounds`) gives `G'(0) ≤ G'(η)`.  The first-order form of
+`ce_loglinear_convex`'s convexity. -/
+theorem lse_tangent_lower (a b : V → ℝ) :
+    Hagi.lse a + ∑ v, Hagi.Prelude.softDef a v * b v
+      ≤ Hagi.lse (a + b) := by
+  set G : ℝ → ℝ := fun s => Real.log (∑ v, Real.exp (a v + s * b v)) with hG
+  have hGd : ∀ x : ℝ, HasDerivAt G
+      ((∑ v, b v * Real.exp (a v + x * b v))
+        / ∑ v, Real.exp (a v + x * b v)) x :=
+    fun x => (hasDerivAt_exp_sum_line a b x).log
+      (ne_of_gt (exp_sum_line_pos a b x))
+  have hcont : ContinuousOn G (Set.Icc 0 1) := fun x _ =>
+    (hGd x).continuousAt.continuousWithinAt
+  have hdiff : DifferentiableOn ℝ G (Set.Ioo 0 1) := fun x hx =>
+    (hGd x).differentiableAt.differentiableWithinAt
+  obtain ⟨η, hη, hηd⟩ := exists_deriv_eq_slope G (by norm_num) hcont hdiff
+  rw [(hGd η).deriv] at hηd
+  have hmono := grad_line_bounds a b (le_of_lt hη.1)
+  have hG1 : G 1 = Hagi.lse (a + b) := by
+    simp only [hG]
+    congr 1
+    exact Finset.sum_congr rfl (fun v _ => by simp [Pi.add_apply])
+  have hG0 : G 0 = Hagi.lse a := by
+    simp only [hG]
+    congr 1
+    exact Finset.sum_congr rfl (fun v _ => by simp [Pi.add_apply])
+  have hsoft : (∑ v, b v * Real.exp (a v)) / ∑ v, Real.exp (a v)
+      = ∑ v, Hagi.Prelude.softDef a v * b v := by
+    have hdef : ∀ v : V, Real.exp (a v) / ∑ c, Real.exp (a c)
+        = Hagi.Prelude.softDef a v := fun _ => rfl
+    have hrw : ∑ v, Hagi.Prelude.softDef a v * b v
+        = ∑ v, Real.exp (a v) * b v / ∑ c, Real.exp (a c) :=
+      Finset.sum_congr rfl (fun v _ => by rw [← hdef v]; ring)
+    rw [hrw, Finset.sum_div]
+    exact Finset.sum_congr rfl (fun v _ => by ring)
+  have hslope : G 1 - G 0
+      = (∑ v, b v * Real.exp (a v + η * b v))
+        / ∑ v, Real.exp (a v + η * b v) := by
+    rw [hηd]
+    field_simp
+    ring
+  linarith [hG1, hG0, hslope, hmono, hsoft]
+
+end TangentLower
+
+section NoPL
+
+variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- One-step progress under convexity + smoothness (NO PL): a single
+`plStep` (step size `1/L`) decreases the loss gap by at least the
+square of the gap over `2LR²`.  The descent half is the
+`pl_descent_step` computation; the convexity half is the first-order
+inequality at the minimizer `θstar` plus Cauchy-Schwarz.  The premise
+`h_attains : f θstar ≤ fstar` is REQUIRED (with `h_floor` it pins
+`fstar = f θstar`); the `R = 0` reading of the division is the trivial
+`δ' ≤ δ` (Lean's `x / 0 = 0`). -/
+theorem gd_progress_convex (f : E → ℝ) (grad : E → E) (L fstar R : ℝ)
+    (θstar θ : E) (hL : 0 < L) (hR : 0 ≤ R)
+    (h_smooth : ∀ x y : E, f y ≤ f x + ⟪grad x, y - x⟫_ℝ
+      + L / 2 * ‖y - x‖ ^ 2)
+    (h_convex : ∀ x y : E, f x + ⟪grad x, y - x⟫_ℝ ≤ f y)
+    (h_floor : ∀ x : E, fstar ≤ f x)
+    (h_attains : f θstar ≤ fstar)
+    (h_dist : ‖θ - θstar‖ ≤ R) :
+    f (plStep grad L θ) - fstar
+      ≤ (f θ - fstar)
+        - (f θ - fstar) ^ 2 / (2 * L * R ^ 2) := by
+  -- descent half (the pl_descent_step computation)
+  have hstep := h_smooth θ (plStep grad L θ)
+  rw [plStep] at hstep
+  have hin : ⟪grad θ, θ - (1 / L) • grad θ - θ⟫_ℝ
+      = -(1 / L) * ‖grad θ‖ ^ 2 := by
+    rw [show θ - (1 / L) • grad θ - θ = -(1 / L) • grad θ by module,
+      inner_smul_right, real_inner_self_eq_norm_sq]
+  rw [hin] at hstep
+  have hcoef : L / 2 * ((1 / L) ^ 2 * ‖grad θ‖ ^ 2)
+      = ‖grad θ‖ ^ 2 / (2 * L) := by
+    field_simp
+  have hnorm : ‖θ - (1 / L) • grad θ - θ‖ ^ 2
+      = (1 / L) ^ 2 * ‖grad θ‖ ^ 2 := by
+    rw [show θ - (1 / L) • grad θ - θ = -(1 / L) • grad θ by module,
+      norm_smul, Real.norm_eq_abs, abs_neg, abs_of_pos (by positivity)]
+    ring
+  rw [hnorm, hcoef] at hstep
+  have hXY : f θ + -(1 / L) * ‖grad θ‖ ^ 2 + ‖grad θ‖ ^ 2 / (2 * L)
+      = f θ - ‖grad θ‖ ^ 2 / (2 * L) := by
+    field_simp
+    ring
+  rw [hXY] at hstep
+  -- convexity half
+  have hcvx := h_convex θ θstar
+  have hinner : ⟪grad θ, θstar - θ⟫_ℝ = -⟪grad θ, θ - θstar⟫_ℝ := by
+    rw [show θstar - θ = -(θ - θstar) from (neg_sub θ θstar).symm,
+      inner_neg_right]
+  rw [hinner] at hcvx
+  have hcs : ⟪grad θ, θ - θstar⟫_ℝ ≤ ‖grad θ‖ * ‖θ - θstar‖ :=
+    real_inner_le_norm _ _
+  have hdelta : f θ - fstar ≤ ‖grad θ‖ * R := by
+    have h1 : f θ - fstar ≤ ⟪grad θ, θ - θstar⟫_ℝ := by
+      have h2 := sub_le_sub_right hcvx (f θ)
+      linarith [h2, h_attains]
+    have h2 : ‖grad θ‖ * ‖θ - θstar‖ ≤ ‖grad θ‖ * R :=
+      mul_le_mul_of_nonneg_left h_dist (norm_nonneg _)
+    exact le_trans h1 (le_trans hcs h2)
+  set δ : ℝ := f θ - fstar with hδ
+  have hδnn : 0 ≤ δ := sub_nonneg.2 (h_floor θ)
+  have hgnn : (0:ℝ) ≤ ‖grad θ‖ := norm_nonneg _
+  rcases eq_or_lt_of_le hR with rfl | hRpos
+  · -- R = 0: δ ≤ 0, the division degenerates to 0
+    have h0 : δ ≤ 0 := by
+      have hm0 : ‖grad θ‖ * 0 = 0 := mul_zero _
+      linarith [hdelta, hm0]
+    have hzero2 : (2 * L * (0:ℝ) ^ 2) = 0 := by ring
+    have hgnn2 : (0:ℝ) ≤ ‖grad θ‖ ^ 2 / (2 * L) :=
+      div_nonneg (sq_nonneg _) (by positivity)
+    rw [hzero2, div_zero]
+    rw [plStep]
+    linarith [hstep, h0, hgnn2]
+  · have hkey : δ ^ 2 ≤ ‖grad θ‖ ^ 2 * R ^ 2 := by
+      nlinarith [hdelta, sq_nonneg δ, sq_nonneg ‖grad θ‖,
+        mul_nonneg hgnn hR]
+    have h2 : δ ^ 2 / (2 * L * R ^ 2) ≤ ‖grad θ‖ ^ 2 / (2 * L) := by
+      rw [div_le_div_iff₀ (by positivity) (by positivity)]
+      nlinarith [hkey]
+    rw [plStep]
+    linarith [hstep, h2, hδ]
+
+/-- Nonlinear telescope (division-free form): from the recursion
+`a (n+1) ≤ a n − c·(a n)²` with `a ≥ 0` and `c > 0` conclude
+`c·(m+2)·a (m+1) ≤ 1`, i.e. `a (m+1) ≤ 1/(c·(m+2))`.  Base by AM-GM
+(`x − c·x² ≤ 1/(4c)`); step by the monotonicity of `x ↦ x·(1−c·x)` on
+`[0, 1/(2c)]` (case split on `(m+3)·c·a (m+1) ≥ 1`). -/
+theorem nonlin_rec_bound {a : ℕ → ℝ} {c : ℝ} (hc : 0 < c)
+    (hnn : ∀ n, 0 ≤ a n)
+    (hrec : ∀ n, a (n + 1) ≤ a n - c * (a n) ^ 2) (m : ℕ) :
+    c * ((m:ℝ) + 2) * a (m + 1) ≤ 1 := by
+  induction m with
+  | zero =>
+    have h2 := hrec 0
+    have hsq : (1 - 2 * c * (a 0)) ^ 2 ≥ 0 := sq_nonneg _
+    have hA : (0:ℝ) ≤ a 0 - c * (a 0) ^ 2 := by nlinarith [h2, hnn 1]
+    have hA1 : c * a 1 ≤ c * (a 0 - c * (a 0) ^ 2) :=
+      mul_le_mul_of_nonneg_left h2 hc.le
+    have hA2 : 2 * c * (a 0 - c * (a 0) ^ 2) ≤ 1 := by nlinarith [hsq]
+    have hA3 : 2 * (c * (a 0 - c * (a 0) ^ 2))
+        ≤ 2 * c * (a 0 - c * (a 0) ^ 2) := by nlinarith [hA]
+    have hA4 : 2 * c * a 1 ≤ 2 * c * (a 0 - c * (a 0) ^ 2) := by
+      nlinarith [hA1]
+    have hfin : 2 * c * a 1 ≤ 1 := by nlinarith [hA2, hA3, hA4]
+    have hgoal : c * 2 * a (0 + 1) ≤ 1 := by
+      have e : c * 2 * a (0 + 1) = 2 * c * a 1 := by ring
+      rw [e]
+      exact hfin
+    simpa using hgoal
+  | succ m ih =>
+    have hcz : (0:ℝ) ≤ c * a (m + 1) := mul_nonneg hc.le (hnn (m + 1))
+    have hrecn := hrec (m + 1)
+    have hw : c * a (m + 1 + 1) ≤ c * (a (m + 1) - c * (a (m + 1) ^ 2)) :=
+      mul_le_mul_of_nonneg_left hrecn hc.le
+    have key : c * (((m:ℝ) + 1) + 2) * a (m + 1 + 1)
+        ≤ (((m:ℝ) + 1) + 2) * (c * a (m + 1))
+          - (((m:ℝ) + 1) + 2) * (c * a (m + 1)) * (c * a (m + 1)) := by
+      have m1 : (((m:ℝ) + 1 + 2)) * (c * a (m + 1 + 1))
+          ≤ (((m:ℝ) + 1 + 2)) * (c * (a (m + 1) - c * a (m + 1) ^ 2)) :=
+        mul_le_mul_of_nonneg_left hw (by positivity)
+      have e : (((m:ℝ) + 1 + 2)) * (c * (a (m + 1) - c * a (m + 1) ^ 2))
+          = (((m:ℝ) + 1 + 2)) * (c * a (m + 1))
+            - (((m:ℝ) + 1 + 2)) * (c * a (m + 1)) * (c * a (m + 1)) := by
+        ring
+      have e2 : c * (((m:ℝ) + 1 + 2) * a (m + 1 + 1))
+          = (((m:ℝ) + 1 + 2)) * (c * a (m + 1 + 1)) := by ring
+      nlinarith [m1, e, e2]
+    have hIH : (((m:ℝ) + 1) + 1) * (c * a (m + 1)) ≤ 1 := by
+      have e : (((m:ℝ) + 1) + 1) * (c * a (m + 1))
+          = c * ((m:ℝ) + 2) * a (m + 1) := by ring
+      rw [e]
+      exact ih
+    rcases lt_or_ge 1 ((((m:ℝ) + 1) + 2) * (c * a (m + 1))) with hA' | hB
+    · -- 1 < u: the u·(c·a) product dominates the c·a term
+      have hA : (1:ℝ) ≤ (((m:ℝ) + 1 + 2)) * (c * a (m + 1)) :=
+        le_of_lt hA'
+      have step : (((m:ℝ) + 1 + 2)) * (c * a (m + 1))
+          - (((m:ℝ) + 1 + 2)) * (c * a (m + 1)) * (c * a (m + 1)) ≤ 1 := by
+        have e3 : (((m:ℝ) + 1 + 2)) * (c * a (m + 1)) - (c * a (m + 1))
+            = (((m:ℝ) + 1) + 1) * (c * a (m + 1)) := by ring
+        nlinarith [hA, hIH, hcz, e3]
+      show c * (((m + 1 : ℕ) : ℝ) + 2) * a (m + 1 + 1) ≤ 1
+      rw [show ((m + 1 : ℕ) : ℝ) = (m:ℝ) + 1 from by norm_num]
+      linarith [key, step]
+    · -- u ≤ 1: the product term is nonnegative
+      have step : (((m:ℝ) + 1 + 2)) * (c * a (m + 1))
+          - (((m:ℝ) + 1 + 2)) * (c * a (m + 1)) * (c * a (m + 1)) ≤ 1 := by
+        nlinarith [hB, hcz]
+      show c * (((m + 1 : ℕ) : ℝ) + 2) * a (m + 1 + 1) ≤ 1
+      rw [show ((m + 1 : ℕ) : ℝ) = (m:ℝ) + 1 from by norm_num]
+      linarith [key, step]
+
+/-- **Sublinear O(1/T) rate WITHOUT PL**: for convex + L-smooth `f`,
+gradient descent with step `1/L` satisfies
+`f (θ_T) − fstar ≤ 2·L·R²/(T+1)` for every `T ≥ 1`, where `R` bounds
+the distance of EVERY iterate (including `θ₀`) to a minimizer
+`θstar` attaining `fstar` (`h_attains`).  No PL, no strong
+convexity.  The bound holds for every iterate index, so it is both the
+min-iterate and the last-iterate form; the averaged-iterate form is
+not formalized. -/
+theorem ce_rate_no_pl (f : E → ℝ) (grad : E → E) (L fstar R : ℝ)
+    (hL : 0 < L) (hR : 0 ≤ R)
+    (h_smooth : ∀ x y : E, f y ≤ f x + ⟪grad x, y - x⟫_ℝ
+      + L / 2 * ‖y - x‖ ^ 2)
+    (h_convex : ∀ x y : E, f x + ⟪grad x, y - x⟫_ℝ ≤ f y)
+    (h_floor : ∀ x : E, fstar ≤ f x)
+    (θstar θ₀ : E) (h_attains : f θstar ≤ fstar)
+    (h_dist : ∀ t : ℕ,
+      ‖(plStep grad L)^[t] θ₀ - θstar‖ ≤ R)
+    (T : ℕ) (hT : 0 < T) :
+    f ((plStep grad L)^[T] θ₀) - fstar
+      ≤ 2 * L * R ^ 2 / (T + 1) := by
+  rcases eq_or_lt_of_le hR with rfl | hRpos
+  · -- R = 0: convexity + attainment force zero gap at every iterate
+    have hzero : ∀ t : ℕ,
+        f ((plStep grad L)^[t] θ₀) - fstar ≤ 0 := by
+      intro t
+      have hcvx := h_convex ((plStep grad L)^[t] θ₀) θstar
+      have hd0 : ‖(plStep grad L)^[t] θ₀ - θstar‖ ≤ 0 := h_dist t
+      have hinner : ⟪grad ((plStep grad L)^[t] θ₀),
+          θstar - (plStep grad L)^[t] θ₀⟫_ℝ = 0 := by
+        have hnorm0 : (plStep grad L)^[t] θ₀ - θstar = 0 :=
+          norm_le_zero_iff.mp hd0
+        have hsub : θstar - (plStep grad L)^[t] θ₀
+            = -((plStep grad L)^[t] θ₀ - θstar) := (neg_sub _ _).symm
+        rw [hsub, inner_neg_right, hnorm0, inner_zero_right, neg_zero]
+      rw [hinner] at hcvx
+      linarith
+    have hrw : 2 * L * (0:ℝ) ^ 2 / (T + 1) = 0 := by
+      rw [div_eq_zero_iff]
+      exact Or.inl (by ring)
+    rw [hrw]
+    exact hzero T
+  · -- R > 0: nonlinear recursion with c = 1/(2LR²)
+    set c : ℝ := 1 / (2 * L * R ^ 2) with hc
+    have hcpos : 0 < c := by
+      rw [hc]
+      exact div_pos (by positivity) (by positivity)
+    obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (ne_of_gt hT)
+    have hprog : ∀ n : ℕ,
+        f ((plStep grad L)^[n + 1] θ₀) - fstar
+        ≤ (f ((plStep grad L)^[n] θ₀) - fstar)
+          - (f ((plStep grad L)^[n] θ₀) - fstar) ^ 2 / (2 * L * R ^ 2) := by
+      intro n
+      have h := gd_progress_convex f grad L fstar R θstar
+        ((plStep grad L)^[n] θ₀) hL hR
+        h_smooth h_convex h_floor h_attains (h_dist n)
+      rwa [Function.iterate_succ_apply']
+    have hnn : ∀ n, 0 ≤ f ((plStep grad L)^[n] θ₀) - fstar :=
+      fun n => sub_nonneg.2 (h_floor _)
+    have hrec : ∀ n, (fun t => f ((plStep grad L)^[t] θ₀) - fstar) (n + 1)
+        ≤ (fun t => f ((plStep grad L)^[t] θ₀) - fstar) n
+        - c * (fun t => f ((plStep grad L)^[t] θ₀) - fstar) n ^ 2 := by
+      intro n
+      have hconv : ∀ z : ℝ, c * z = z / (2 * L * R ^ 2) := by
+        intro z; rw [hc]; field_simp
+      have hp := hprog n
+      show f ((plStep grad L)^[n + 1] θ₀) - fstar ≤ _ - c * _
+      rw [hconv _]
+      exact hp
+    have hbound := nonlin_rec_bound hcpos hnn hrec m
+    have hpos : (0:ℝ) < c * ((m:ℝ) + 2) :=
+      mul_pos hcpos (by positivity)
+    have hfinal : f ((plStep grad L)^[m + 1] θ₀) - fstar
+        ≤ 1 / (c * ((m:ℝ) + 2)) := by
+      rw [le_div_iff₀ hpos]
+      have he : (f ((plStep grad L)^[m + 1] θ₀) - fstar) * (c * ((m:ℝ) + 2))
+          = c * ((m:ℝ) + 2)
+            * (f ((plStep grad L)^[m + 1] θ₀) - fstar) := by ring
+      rw [he]
+      exact hbound
+    have hrw : 1 / (c * ((m:ℝ) + 2)) = 2 * L * R ^ 2 / ((m:ℝ) + 1 + 1) := by
+      have h1 : c * ((m:ℝ) + 2) = ((m:ℝ) + 2) / (2 * L * R ^ 2) := by
+        rw [hc]; field_simp
+      rw [h1, one_div_div]
+      congr 1
+      ring
+    rw [hrw] at hfinal
+    rw [show ((m + 1 : ℕ) : ℝ) + 1 = (m:ℝ) + 1 + 1 from by norm_num]
+    exact hfinal
+
+end NoPL
+
+/-! ## Part 4b: the PL-free rate instantiated on the linear head -/
+
+section IdentNoPL
+
+variable {V : Type} [Fintype V] [Nonempty V] [DecidableEq V] {d : ℕ}
+
+/-- First-order convexity of the ident-head CE, DISCHARGED (not a
+premise): the tangent underestimator at `θ` evaluated at `θ'`.
+`lse_tangent_lower` plus the exact linear `- (X·) t` part; the
+gradient pairing via `ceGrad_inner`.  The first-order form of
+`ce_loglinear_convex`, on the `EuclideanSpace` carrier. -/
+theorem ce_convex_ident (X : Matrix V (Fin d) ℝ) (t : V)
+    (θ θ' : EuclideanSpace ℝ (Fin d)) :
+    Hagi.ceOneHot t (X *ᵥ θ.ofLp)
+      + ⟪ceGrad X t θ, θ' - θ⟫_ℝ
+      ≤ Hagi.ceOneHot t (X *ᵥ θ'.ofLp) := by
+  have hsplit : ∀ w : EuclideanSpace ℝ (Fin d),
+      Hagi.ceOneHot t (X *ᵥ w.ofLp)
+        = Hagi.lse (X *ᵥ w.ofLp) - (X *ᵥ w.ofLp) t := fun _ => rfl
+  have hadd : X *ᵥ θ'.ofLp = X *ᵥ θ.ofLp + X *ᵥ (θ' - θ).ofLp := by
+    have h1 : (θ' - θ).ofLp = θ'.ofLp - θ.ofLp := by
+      simp [WithLp.ofLp_sub]
+    rw [h1, Matrix.mulVec_sub]
+    try ring
+  have hlow := lse_tangent_lower (X *ᵥ θ.ofLp) (X *ᵥ (θ' - θ).ofLp)
+  rw [← hadd] at hlow
+  have hlin : (X *ᵥ θ'.ofLp) t
+      = (X *ᵥ θ.ofLp) t + (X *ᵥ (θ' - θ).ofLp) t := by
+    rw [hadd, Pi.add_apply]
+  have hsoftpair : ∑ v, Hagi.Prelude.softDef (X *ᵥ θ.ofLp) v
+        * (X *ᵥ (θ' - θ).ofLp) v - (X *ᵥ (θ' - θ).ofLp) t
+      = ∑ v, (Hagi.Prelude.softDef (X *ᵥ θ.ofLp) v
+          - if v = t then 1 else 0) * (X *ᵥ (θ' - θ).ofLp) v := by
+    have hte : (X *ᵥ (θ' - θ).ofLp) t
+        = ∑ v, (if v = t then 1 else 0) * (X *ᵥ (θ' - θ).ofLp) v := by
+      simp
+    rw [hte, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl (fun v _ => by ring)
+  have hinner := ceGrad_inner X t θ (θ' - θ)
+  rw [hsplit θ', hsplit θ, hlin]
+  linarith [hlow, hsoftpair, hinner]
+
+set_option maxHeartbeats 4000000 in
+/-- **PL-free sublinear rate for the real log-linear CE head.**  No PL
+premise: convexity is supplied by `ce_convex_ident` (derived) and
+smoothness by `ce_smooth_ident` (C354, `L = ceSmoothL X`), giving
+`f (θ_T) − fstar ≤ 2·ceSmoothL X·R²/(T+1)` for every `T ≥ 1`.
+
+Honest premise ledger: the loss floor (`h_floor`), attainment
+(`h_attains` : `f θstar ≤ fstar`), and the R-bound over all iterates
+(`h_dist`) remain explicit.  Level-set boundedness of the CE (which
+would discharge `R`/`h_dist` for a suitable sublevel set) and
+existence of a minimizer are separate formalization tasks.  `X ≠ 0`
+excludes the degenerate constant-loss case (`L = 0`). -/
+theorem ce_rate_no_pl_ident (X : Matrix V (Fin d) ℝ) (t : V)
+    (fstar R : ℝ) (hne : X ≠ 0) (hR : 0 ≤ R)
+    (h_floor : ∀ θ : EuclideanSpace ℝ (Fin d),
+      fstar ≤ Hagi.ceOneHot t (X *ᵥ θ.ofLp))
+    (θstar θ₀ : EuclideanSpace ℝ (Fin d))
+    (h_attains : Hagi.ceOneHot t (X *ᵥ θstar.ofLp) ≤ fstar)
+    (h_dist : ∀ n : ℕ,
+      ‖((plStep (ceGrad X t) (ceSmoothL X))^[n] θ₀) - θstar‖ ≤ R)
+    (T : ℕ) (hT : 0 < T) :
+    Hagi.ceOneHot t (X *ᵥ ((plStep (ceGrad X t) (ceSmoothL X))^[T]
+      θ₀).ofLp) - fstar
+      ≤ 2 * ceSmoothL X * R ^ 2 / (T + 1) := by
+  have main := ce_rate_no_pl
+    (fun θ => Hagi.ceOneHot t (X *ᵥ θ.ofLp))
+    (ceGrad X t) (ceSmoothL X) fstar R
+    (ceSmoothL_pos X hne) hR
+    (fun x y => ce_smooth_ident X t x y)
+    (fun x y => ce_convex_ident X t x y) h_floor θstar θ₀ h_attains
+    h_dist T hT
+  exact main
+
+end IdentNoPL
+
 end Hagi.Model.CEGlobalConvergence
+
