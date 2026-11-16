@@ -49,10 +49,8 @@ import Hagi.Energy.PairwiseCategorical
 import Hagi.Energy.SingleCellDescent
 import Hagi.Energy.EnergyCoordinateStep
 import Hagi.Energy.EnergyFlow
-import Hagi.Dynamics.GrowthBridge
 import Hagi.Deployment.CanaryRamp
 import Hagi.Growth.GainRenewal
-import Hagi.Growth.LinearCone
 import Hagi.Ensemble.MergeIdentity
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
@@ -154,7 +152,6 @@ import Hagi.Probability.ConditionalSuccess
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Concentration
 import Hagi.Growth.SelfDevelopment
-import Hagi.Growth.StateBinding
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
 import Hagi.Probability.FreedmanTwoSided
@@ -166,10 +163,6 @@ import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
 import Hagi.Probability.ThermoAxes
 import Hagi.Probability.WSqD
-import Hagi.Growth.RecursiveSelfDevelopment
-import Hagi.Growth.Takeoff
-import Hagi.Growth.Saturation
-import Hagi.Growth.Ceilings
 import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
 import Hagi.Ensemble.CompressionCert
@@ -217,14 +210,10 @@ import Hagi.Foundations.Telescope
 import Hagi.Foundations.ConeTakeoff
 import Hagi.Foundations.MesoScale
 import Hagi.Ensemble.SigmaKernel
-import Hagi.Growth.RsiCriterion
 import Hagi.Architecture.FactorRank
-import Hagi.Growth.GainDecomposition
-import Hagi.Growth.ChainUnification
 import Hagi.Growth.NoiseDisentangle
 import Hagi.Growth.FiberNecessity
 import Hagi.Growth.IntegrationOrder
-import Hagi.Growth.RoundViability
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
@@ -257,7 +246,6 @@ import Hagi.Budget.ElementQuant
 import Hagi.Budget.ResidualVQ
 import Hagi.Budget.RDAlloc
 import Hagi.Budget.JointCost
-import Hagi.Growth.SeedOnly
 import Hagi.Spectral.RankGrowth
 import Hagi.Architecture.FactorizedMerge
 import Hagi.Generalization.ModeState

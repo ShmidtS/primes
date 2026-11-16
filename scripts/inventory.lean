@@ -12,6 +12,20 @@ import Hagi
 import Hagi.Legacy
 import Hagi.Benchmarks
 import Hagi.Research
+/- C347: quarantined speculative growth modules (A14 QW7) stay
+frozen-tracked though outside the root closure. -/
+import Hagi.Growth.Takeoff
+import Hagi.Growth.LinearCone
+import Hagi.Growth.Saturation
+import Hagi.Growth.Ceilings
+import Hagi.Growth.RsiCriterion
+import Hagi.Growth.RecursiveSelfDevelopment
+import Hagi.Growth.SeedOnly
+import Hagi.Growth.GainDecomposition
+import Hagi.Growth.StateBinding
+import Hagi.Growth.ChainUnification
+import Hagi.Growth.RoundViability
+import Hagi.Dynamics.GrowthBridge
 import Batteries.Tactic.Alias
 open Lean
 

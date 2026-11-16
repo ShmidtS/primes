@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Foundations.Telescope
-import Hagi.Growth.Ceilings
-import Hagi.Growth.LinearCone
 import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 import Hagi.Unified.StepProvider

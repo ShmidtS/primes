@@ -25,6 +25,25 @@ LEGACY_PREFIX = "Hagi/Legacy/"
 BENCH_PREFIX = "Hagi/Benchmarks/"
 RESEARCH_PREFIX = "Hagi/Research/"
 
+# C347 quarantine (A14 QW7): speculative growth modules stay in repo at
+# their frozen FQNs (no dir move allowed), outside the root import
+# closure. Per-module exempt because the dir-prefix pattern does not
+# apply without renaming modules.
+QUARANTINED = {
+    "Hagi.Growth.Takeoff",
+    "Hagi.Growth.LinearCone",
+    "Hagi.Growth.Saturation",
+    "Hagi.Growth.Ceilings",
+    "Hagi.Growth.RsiCriterion",
+    "Hagi.Growth.RecursiveSelfDevelopment",
+    "Hagi.Growth.SeedOnly",
+    "Hagi.Growth.GainDecomposition",
+    "Hagi.Growth.StateBinding",
+    "Hagi.Growth.ChainUnification",
+    "Hagi.Growth.RoundViability",
+    "Hagi.Dynamics.GrowthBridge",
+}
+
 IMPORT = re.compile(r"^\s*import\s+(Hagi\.[A-Za-z0-9_.]+)", re.M)
 
 
@@ -59,7 +78,7 @@ def main() -> int:
             if f.exists():
                 nxt |= imports_of(f)
         frontier = nxt - seen
-    unreachable = sorted((all_modules - seen) - legacy)
+    unreachable = sorted((all_modules - seen) - legacy - QUARANTINED)
     if unreachable:
         print(f"REACHLINT: FAIL — {len(unreachable)} module(s) not "
               f"reachable from Hagi.lean (wire the import or delete):")
@@ -68,7 +87,8 @@ def main() -> int:
         return 1
     print(f"REACHLINT: PASS — all {len(all_modules)} Hagi modules "
           f"reachable ({len(legacy)} legacy/benchmark/research-exempt, "
-          "quarantine C217/C239/C240)")
+          f"quarantine C217/C239/C240; "
+          f"{len(QUARANTINED)} growth-quarantine-exempt, C347)")
     return 0
 
 

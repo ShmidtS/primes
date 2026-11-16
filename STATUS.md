@@ -6695,3 +6695,20 @@ turning the premise-form hE into theorem-form for explicit
 SVD-decomposable A. Numeric anchor (diag(3,1), k=1) deferred
 honestly: carrier-index casts resist decide reduction (classical
 card instances); the main theorems carry the content.
+
+
+## Speculative growth quarantine (C347, A14 QW7)
+
+Twelve speculative growth modules left the ROOT import closure
+(FQNs unchanged, files stay in repo, Freeze-tracked via
+scripts/inventory.lean imports): Hagi.Growth.Takeoff, LinearCone,
+Saturation, Ceilings, RsiCriterion, RecursiveSelfDevelopment,
+SeedOnly, GainDecomposition, StateBinding, ChainUnification,
+RoundViability and Hagi.Dynamics.GrowthBridge (h_emp-heavy
+RSI/takeoff/cone scaffolding per the A14 audit). Kept in root:
+measurement-admission ledgers Grow, GainRenewal, PlasticityLedger,
+GammaDeficit, Thermostat, FiberNecessity, NoiseDisentangle,
+IntegrationOrder, SelfDevelopment. Root closure 566 -> 554 modules;
+h_emp binders in root 377 -> 331. ReachLint gains a per-module
+growth-quarantine exempt (C347); quarantined decls remain #check-able
+via direct import.
