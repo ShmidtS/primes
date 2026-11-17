@@ -499,6 +499,7 @@ import Hagi.Contracts.GatePipeline
 import Hagi.Contracts.AuditLedger
 import Hagi.Contracts.VilleMonitor
 import Hagi.Contracts.TruncatedSVDTail
+import Hagi.Contracts.TotalError
 import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.TanhTaylor
