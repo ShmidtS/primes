@@ -134,14 +134,6 @@
 ## Hagi/Autonomy/TTTStability.lean
 - `ttt_bibo`: из `abs W ≤ 1` следует `abs (W ^ T * x) ≤ abs x` для любого натурального `T`.
 - `ttt_chain_bounded`: если `abs (W t) ≤ 1` для всех `t`, то произведение первых `T` операторов, применённое к `x`, также имеет модуль не больше `abs x`.
-
-
-## Hagi/Budget/ActiveCompute.lean
-- `active_flops`: доказано арифметическое разложение `(c + r) * d = c * d + r * d`; это заданная модель стоимости, а не измерение оборудования.
-- `switching_never_exceeds_dense`: при `c + r ≤ d` выполняется `(c + r) * d ≤ d * d`.
-- `active_beats_dense_family`: при `c + r ≤ d` и `2 ≤ N` одновременно доказаны `N * ((c + r) * d) ≤ N * (d * d)`, `(c + r) * d ≤ d * d` и `d * d ≤ N * d * d`.
-
-
 ## Hagi/Budget/AnytimeCondensation.lean
 - `pointwise_upper_band`: при `0 < T`, если ни для одного `v` не существует `t < T` с `μ + u ≤ g v`, то `g v < μ + u`.
 - `anytime_condensation`: для положительной нормированной `q`, `0 < T`, `0 < σ2`, `0 < α < 1`, субгауссова ограничения hcgf и отсутствия выходов `g` и `2 * μ - g` за порог `μ + √(2 * σ2 * log (T / α))` доказано `ceOneHot t (m + (g - μ)) / 2 + ceOneHot t (m - (g - μ)) / 2 - ceOneHot t m ≤ 2 * σ2 * log (T / α)`.
@@ -190,24 +182,17 @@
 - `factor_quant_go`: если `‖dE - AB‖ = tail`, `‖AB - QAB‖ = qerr` и `tail + qerr < qdirect`, то `‖dE - QAB‖ < qdirect`.
 - `ternary_factor_qerr_bound`: при `0 < s` и принадлежности всех элементов `M` диапазону `ternInRange s` сумма квадратов ошибок округления не превосходит `(card m * card r) * (s / 2) ^ 2`.
 - `ternary_pair_qerr_sum`: аналогичная оценка для двух факторов `A`, `B` ограничивает сумму их квадратичных ошибок величиной `(card m * card r + card r * card n) * (s / 2) ^ 2`.
-
-
-## Hagi/Budget/FlopsEconomy.lean
-- `equal_budget_baseline`: при `0 < f_B` и `T_B * f_B = F` получается `T_B = F / f_B`.
-- `pipeline_beats_baseline_iff`: для любых вещественных `Q₀`, `ΔP`, `ΔB` доказана эквивалентность `Q₀ + ΔP ≥ Q₀ + ΔB ↔ ΔP ≥ ΔB`; сравнение самих приростов остаётся исходными данными.
-
-
 ## Hagi/Budget/JointCost.lean
 - `nsIter_block_le`: при `2 ≤ N`, `0 < h` и `0 ≤ r ≤ h` стоимость `N * nsIter h h + 3 * nsIter r (N * h)` не превосходит `nsIter (N * h) (N * h)`.
 - `amdahl_ceiling`: при `0 < f < 1` и `0 < k` выполняется `1 / (f + (1 - f) * k) ≤ 1 / f`.
 - `offdiag_pythagoras`: если `Wbd i j * Woff i j = 0` для всех индексов, то сумма квадратов `Wbd + Woff` равна сумме квадратов двух компонент отдельно.
 
+- `active_flops`: доказано арифметическое разложение `(c + r) * d = c * d + r * d`; это заданная модель стоимости, а не измерение оборудования.
+- `switching_never_exceeds_dense`: при `c + r ≤ d` выполняется `(c + r) * d ≤ d * d`.
+- `active_beats_dense_family`: при `c + r ≤ d` и `2 ≤ N` одновременно доказаны `N * ((c + r) * d) ≤ N * (d * d)`, `(c + r) * d ≤ d * d` и `d * d ≤ N * d * d`.
 
-## Hagi/Budget/KVWater.lean
-- `waterfilling_bound`: при `0 < lam`, равенстве `c i * exp (-kappa * bstar i) = lam` и одинаковых суммах `b` и `b*` остаток `kvResidual c kappa bstar` не превосходит остатка для `b`.
-- `waterfilling_inactive_clamp`: при `0 < c_i`, `0 < lam`, `0 < kappa` и `c_i ≤ lam` выражение `max 0 ((1 / kappa) * log (c_i / lam))` равно нулю.
-
-
+- `equal_budget_baseline`: при `0 < f_B` и `T_B * f_B = F` получается `T_B = F / f_B`.
+- `pipeline_beats_baseline_iff`: для любых вещественных `Q₀`, `ΔP`, `ΔB` доказана эквивалентность `Q₀ + ΔP ≥ Q₀ + ΔB ↔ ΔP ≥ ΔB`; сравнение самих приростов остаётся исходными данными.
 ## Hagi/Budget/RankBudget.lean
 - `rankResidual_equalized`: при `0 < c j`, `0 < κ j`, `0 < lam`, равенстве `c j * κ j * exp (-κ j * rstar j) = lam * (m j + n j)` и одинаковой взвешенной стоимости распределений суммарный `rankResidual` для `r*` не больше, чем для `r`.
 - `rankResidual_allocation`: при `0 < c j`, `0 < κ j`, `0 < lam`, `0 < L` доказано `(log (c j * κ j) - log L) / κ j = -(1 / κ j) * log (L / (c j * κ j))`.
@@ -228,13 +213,12 @@
 - `exists_balanced_allocation`: для `0 ≤ c l` и любого натурального `B` существует натуральное распределение `f` с `∑ l, f l ≤ B`, при котором `layerError (c j) (f j) ≤ 2 * layerError (c k) (f k)` для всех `j`, `k` с `f k ≠ 0`.
 - Доказательство выбирает минимум на конечном множестве распределений; оно не строит целочисленный оптимальный алгоритм и не оценивает время вычисления.
 
+- `waterfilling_bound`: при `0 < lam`, равенстве `c i * exp (-kappa * bstar i) = lam` и одинаковых суммах `b` и `b*` остаток `kvResidual c kappa bstar` не превосходит остатка для `b`.
+- `waterfilling_inactive_clamp`: при `0 < c_i`, `0 < lam`, `0 < kappa` и `c_i ≤ lam` выражение `max 0 ((1 / kappa) * log (c_i / lam))` равно нулю.
 
-## Hagi/Budget/WaterFillingMoE.lean
 - `genMean_assoc`: для конечных `ι`, `κ` повторное усреднение `genMean (fun i => genMean (fun j => ce (i, j)))` равно `genMean (fun p => ce p)`.
 - `marginalValue_law`: из `marg j = lam * c j` следует `∑ j, marg j = lam * ∑ j, c j`.
 - `activeSet_structure`: на непустом конечном `J`, если `marg0 j > lam * c j` для всех `j`, то `lam * ∑ j, c j < ∑ j, marg0 j`.
-
-
 ## Hagi/Budget/WeightedExpAlloc.lean
 - `weightedExpAllocation_budget`: на конечном непустом `ι` при `0 < κ i` и `0 < w i` построенное распределение точно удовлетворяет `∑ i, w i * weightedExpAllocation c κ w B i = B`.
 - `weightedExpAllocation_marginal`: при дополнительном `0 < c i` маргинальные величины `c i * κ i * exp (-κ i * allocation i)` равны `weightedExpPrice c κ w B * w i`.
@@ -3700,14 +3684,6 @@ one-hot CE.
   (Hagi/Optimization/MirrorHedge.lean).
 - `imagination_compounding`: при пошаговой ошибке прогноза не более `ε` на `k < K` и `L`-липшицевости каждой `V k` на `k ≤ K` разность `∑ V k (oh k) - ∑ V k (o k)` не превышает `K*L*ε`. Доказана односторонняя, а не абсолютная, оценка.
 - `adaptive_first_sufficient`: из `|Vhat π₁ - V π₁| ≤ ε` и `θ ≤ Vhat π₁` следует `θ - ε ≤ V π₁`. `branching_avoids_detectable_failure` использует одностороннюю ошибку `Vhat - V ≤ ε` и посылку `θ < Vhat π` для исполняемых планов; `branching_dominates_linear` затем отделяет заведомо плохой `π₁` от исполняемого `πb`.
-
-
-## Hagi/Pretraining/DataPruning.lean
-- `pruning_nfl`: если `p ∉ kept` и результат `g` зависит только от значений на kept, то для двух функций-таргетов, совпадающих везде кроме `p` и принимающих там значения `0` и `1`, сумма абсолютных ошибок в `p` не меньше `1`.
-- `pruning_free_for_constant` показывает границу применимости: если `g` возвращает общую константу `c` для согласованных данных, аналогичная сумма ошибок равна `0`.
-- `pruning_recovery_bound` — независимая липшицева оценка: при `x0 ≤ t ≤ x1` и `|x1-x0| ≤ δ` получается `|f t - f x0| ≤ L*δ`.
-
-
 ## Hagi/Pretraining/Dust.lean
 - `hcDelta` вычисляет среднее `signR (u i) * signR (u j)` по булеву кубу как `if i = j then 1 else 0`. `esUnbiased` при `σ ≠ 0` доказывает точное равенство среднего симметричной разности `esEst` и `quadfGrad` для квадратичной модели.
 - `varianceHalving` для центрированного векторного поля даёт точное уменьшение среднего квадрата суммы двух независимых выборок вдвое; `dustNoiseHalving` переносит это на ошибку `esEst - quadfGrad`.
@@ -3724,14 +3700,6 @@ one-hot CE.
 - `rademacherLaw` получает вероятностную меру честного булева произведения; `rademacher_expect_sign` и `rademacher_projection_mean` дают нулевые средние знака и проекции шума.
 - `rademacher_projection_independent` доказывает независимость проекций по координатам `j : Fin m` для фиксированных эксперта `i` и направления `d`, с отдельными результатами измеримости.
 - Если каждое `u i` имеет единичную норму, `rademacherNoise_norm_le_one` даёт `‖rademacherNoise u i j ω‖ ≤ 1`. Независимость между экспертами или моментами времени не вводится.
-
-
-## Hagi/Pretraining/Grokking.lean
-- `drift_hasDeriv` проверяет производную `w0 * exp (-lam*t)`, а `drift_half_life` при `lam > 0` вычисляет значение в момент `(log 2)/lam` как `|w0|/2`. Также доказаны неувеличение модуля для `t ≥ 0` и оценка полной вариации через `|w0|`.
-- `grokking_timescale_separation`: для любых `T_fast > 0` и `k > 0` существует `lam > 0`, для которого `(log 2)/lam > k*T_fast`.
-- Это результаты о выбранной экспоненциальной траектории и её временном масштабе, а не доказательство двухфазной динамики или обобщения нейросети.
-
-
 ## Hagi/Pretraining/ProbeError.lean
 - `fd_probe_error`: при `σ > 0` и модельной гладкости с константой `L` абсолютная ошибка прямой разности не превышает `(L/2)*σ*‖v‖^2`; `linear_probe_exact` даёт точность для аффинной функции.
 - `centralQuadraticProbe_exact` восстанавливает квадратичный градиент точно, тогда как `forwardQuadraticProbe_error` для `x v : X` при `0 ≤ L` и `0 < σ` вычисляет ошибку прямой пробы как `(L/2)*σ*‖v‖^2`. Для кубической модели `centralCubicProbe_remainder` равен `(c/6)*σ^2*‖v‖^6`; `noisyCentralCubicProbe_optimal_bound` ограничивает ошибку через `probeCost` при ограниченных шумах.
@@ -3762,12 +3730,16 @@ one-hot CE.
   тогда отношение τ/(C_s + T_s*c_s) строго больше τ/(T_p*c_s).
 - `task_selection_marginal`: на конечном непустом семействе с заданным условием `0 < c j` существует jmax, максимизирующий `g j / c j` среди всех кандидатов.
 
+- `pruning_nfl`: если `p ∉ kept` и результат `g` зависит только от значений на kept, то для двух функций-таргетов, совпадающих везде кроме `p` и принимающих там значения `0` и `1`, сумма абсолютных ошибок в `p` не меньше `1`.
+- `pruning_free_for_constant` показывает границу применимости: если `g` возвращает общую константу `c` для согласованных данных, аналогичная сумма ошибок равна `0`.
+- `pruning_recovery_bound` — независимая липшицева оценка: при `x0 ≤ t ≤ x1` и `|x1-x0| ≤ δ` получается `|f t - f x0| ≤ L*δ`.
 
-## Hagi/Pretraining/TrustRegion.lean
+- `drift_hasDeriv` проверяет производную `w0 * exp (-lam*t)`, а `drift_half_life` при `lam > 0` вычисляет значение в момент `(log 2)/lam` как `|w0|/2`. Также доказаны неувеличение модуля для `t ≥ 0` и оценка полной вариации через `|w0|`.
+- `grokking_timescale_separation`: для любых `T_fast > 0` и `k > 0` существует `lam > 0`, для которого `(log 2)/lam > k*T_fast`.
+- Это результаты о выбранной экспоненциальной траектории и её временном масштабе, а не доказательство двухфазной динамики или обобщения нейросети.
+
 - `hadamardRows_sup_bound`: при `Q*Qᵀ = 1` каждая координата `Q *ᵥ δ` по модулю не превосходит `Real.sqrt (∑ j, δ j * δ j)`.
 - `transpose_mul_self_of_mul_transpose` выводит `Qᵀ*Q = 1`, а `orthonormal_mulVec_isometry` доказывает равенство суммы квадратов `Q *ᵥ δ` и `δ`. Результаты относятся к квадратным вещественным матрицам с этой ортогональностью.
-
-
 ## Hagi/Probability/AdaptiveSuccess.lean
 - `adaptive_success_count_floor`: на конечном независимом произведении, для `X i v ∈ [0,1]`, общего пола `SuccessFloor p X p0`, `n > 0` и `t > 0` вероятность события `n*p0 - t ≤ ∑ i, X i (ω i)` не меньше `1 - exp (-2*t^2/n)`.
 - `adaptive_success_concentrated` при `0 < delta < 1` даёт вероятность не меньше `1-delta` для порога `n*p0 - sqrt (n*log(1/delta)/2)`.
@@ -4365,14 +4337,6 @@ one-hot CE.
 - Тип `StageCycleCertChain` фиксирует совпадение начальных энергий
   последующих стадий с конечными энергиями предыдущих; условие не следует
   только из наличия полей сертификатов — нужна показанная цена hprice.
-
-
-## Hagi/System/DiscreteStep.lean
-- `quantized_descent_telescope`: при `Δ > 0` и фактических обновлениях
-  `x(t+1) = gridQ Δ (x t − γg t)` для `t < T` выполняется
-  `x T ≤ x 0 − Σ_{t<T}γg t + T·Δ/2`.
-
-
 ## Hagi/System/GrowthComputed.lean
 - `growthQuad_step`: для `growthQuad w = Σᵢwᵢ²/2` градиентный шаг
   даёт точное равенство `growthQuad(growthStep w eta) = (1−eta)²growthQuad w`.
@@ -4426,6 +4390,10 @@ one-hot CE.
   а ошибка `gridQ` композитного обновления не превышает `Δ/2`.
 - `unified_step_certificate` одновременно фиксирует положительную нормировку
   гиббсовых весов и ту же решётчатую ошибку для фактического композитного шага.
+
+- `quantized_descent_telescope`: при `Δ > 0` и фактических обновлениях
+  `x(t+1) = gridQ Δ (x t − γg t)` для `t < T` выполняется
+  `x T ≤ x 0 − Σ_{t<T}γg t + T·Δ/2`.
 
 
 ## Hagi/Legacy/AdvanceWitness.lean

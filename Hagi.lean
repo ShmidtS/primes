@@ -15,7 +15,6 @@ import Hagi.Core.Concat
 import Hagi.Core.Ridge
 import Hagi.Core.Select
 import Hagi.Core.Mix
-import Hagi.Budget.KVWater
 import Hagi.Core.Ambig
 import Hagi.Growth.Grow
 import Hagi.Ensemble.GapLaw
@@ -64,8 +63,6 @@ import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.ProbeError
 import Hagi.Pretraining.RobustnessLaw
-import Hagi.Pretraining.Grokking
-import Hagi.Pretraining.DataPruning
 import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustMeasure
 import Hagi.Foundations.StageCalculus
@@ -117,9 +114,6 @@ import Hagi.Architecture.CascadeLeak
 import Hagi.Architecture.IsoFrobCascade
 import Hagi.Architecture.Heterarchy
 import Hagi.Architecture.Configuration
-import Hagi.Budget.ActiveCompute
-import Hagi.Budget.FlopsEconomy
-import Hagi.Budget.WaterFillingMoE
 import Hagi.Architecture.ResidualSplit
 import Hagi.Budget.TokenWeightBias
 import Hagi.Core.F3Root
@@ -250,7 +244,6 @@ import Hagi.Generalization.ModeState
 import Hagi.Challenge.MasterChallengeV3
 import Hagi.Challenge.MasterChallengeV4Kernel
 import Hagi.System.Certificates
-import Hagi.System.DiscreteStep
 import Hagi.System.UnifiedStep
 import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
@@ -421,7 +414,6 @@ import Hagi.Optimization.AdaptiveCycle
 import Hagi.Optimization.DirectionPacking
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
-import Hagi.Pretraining.TrustRegion
 import Hagi.Optimization.AdaGrad
 import Hagi.Optimization.Checkpoint
 import Hagi.Optimization.Lion

@@ -54,7 +54,7 @@ CE(t, v ↦ (∑a z_a(v))/N) ≤ (∑a CE(t,z_a))/N.
   `3r < (N-1)h`, то структурированное представление меньше dense по
   [`block_lowrank_lt_dense_iff`](Hagi/Budget/JointCost.lean);
 - если активна одна конфигурация и `2 ≤ N`, `c+r ≤ d`, счётная модель multiply-add
-  имеет счёт `(c+r)d`; [`active_beats_dense_family`](Hagi/Budget/ActiveCompute.lean)
+  имеет счёт `(c+r)d`; [`active_beats_dense_family`](Hagi/Budget/JointCost.lean)
   сравнивает её с `N d²`. Это declared operation count, не wall-clock.
 
 Точность всех пяти error terms проверяем на модели; из неравенств параметров
