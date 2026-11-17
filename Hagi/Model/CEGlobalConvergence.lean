@@ -51,7 +51,11 @@ The two halves are deliberately independent:
   holds for CE only under additional conditions (realizable logits
   with margin-type separability), not formalized in this snapshot;
   `ce_global_convergence_ident` states the corollary with
-  `h_smooth` discharged and PL/floor still explicit.
+  `h_smooth` discharged and PL/floor still explicit. Part 5
+  DISCHARGES PL for the ℓ2-REGULARIZED objective (`ceReg`, weight
+  decay): strong convexity `λ` ⟹ PL `μ = λ` (`strong_convex_pl`),
+  giving `ce_global_convergence_reg` with PL/smoothness derived;
+  the unregularized margin-based route stays pinned open.
 * Fixed step `1 / L` only; no adaptive step sizes.
 * `ce_loglinear_convex` is stated on the plain parameter space
   `Fin d → ℝ`.  Transporting `ConvexOn` to the
@@ -1146,6 +1150,183 @@ theorem ce_rate_no_pl_ident (X : Matrix V (Fin d) ℝ) (t : V)
   exact main
 
 end IdentNoPL
+
+/-! ## Part 5: PL discharged via regularization
+
+The PL premise of `ce_global_convergence_ident` (Part 3) is NOT
+derivable for the unregularized CE: even with realizable data the
+loss is not strongly convex and PL in gradient-norm form fails in
+general.  The honest tractable route is `ℓ2`-REGULARIZATION: the
+regularized objective `ceReg = ceOneHot t (Xθ) + (λ/2)‖θ‖²` is
+λ-strongly convex (the convex CE tangent of `ce_convex_ident` plus
+the quadratic identity), and first-order strong convexity PLUS
+attainment of `fstar` yields the PL inequality with `μ = λ` by
+completing the square — this is `strong_convex_pl`.  No smoothness
+is needed for the PL derivation itself; the descent lemma for
+`ceReg` with `L = ceSmoothL X + λ` (`ceReg_smooth_ident`) is the
+CE bound of C354 plus the exact quadratic shift.  The corollary
+`ce_global_convergence_reg` instantiates the C351 rate machine for
+the REAL regularized model: geometric factor
+`1 − λ/(ceSmoothL X + λ)` with only `λ > 0`, the floor `fstar`, and
+attainment (`h_att`, the C355 pattern) explicit — PL and smoothness
+are fully discharged. -/
+
+section StrongConvexPL
+
+variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Norm-square additivity identity: `‖x+y‖² = ‖x‖² + 2⟪x,y⟫ + ‖y‖²`
+on a real inner product space. -/
+private theorem norm_add_sq' (x y : E) :
+    ‖x + y‖ ^ 2 = ‖x‖ ^ 2 + 2 * ⟪x, y⟫_ℝ + ‖y‖ ^ 2 := by
+  have h1 : ‖x + y‖ ^ 2 = ⟪x + y, x + y⟫_ℝ := by
+    rw [real_inner_self_eq_norm_sq]
+  rw [h1, inner_add_left, inner_add_right, inner_add_right,
+    real_inner_comm y x, real_inner_self_eq_norm_sq,
+    real_inner_self_eq_norm_sq]
+  ring
+
+/-- **Strong convexity implies PL** (gradient-norm form, `μ = λ`):
+from the first-order strong-convexity inequality and ATTAINMENT of
+`fstar` at `θstar`, the PL inequality `2λ(f x − fstar) ≤ ‖grad x‖²`
+follows by completing the square in the direction `θstar − x`.
+No smoothness is used.  Attainment is REQUIRED: with `fstar` merely
+a floor the statement is false (`fstar` could lie far below `f`). -/
+theorem strong_convex_pl (f : E → ℝ) (grad : E → E) (lam fstar : ℝ)
+    (hlam : 0 < lam)
+    (h_sconvex : ∀ x y : E, f x + ⟪grad x, y - x⟫_ℝ
+      + lam / 2 * ‖y - x‖ ^ 2 ≤ f y)
+    (θstar : E) (h_att : f θstar ≤ fstar) (x : E) :
+    2 * lam * (f x - fstar) ≤ ‖grad x‖ ^ 2 := by
+  have hstep := h_sconvex x θstar
+  -- square completion: -‖g‖² ≤ 2λ(⟪g, d⟫ + λ/2‖d‖²)
+  have hsc : -(‖grad x‖ ^ 2)
+      ≤ 2 * lam * (⟪grad x, θstar - x⟫_ℝ + lam / 2 * ‖θstar - x‖ ^ 2) := by
+    have hexp := norm_add_sq' (θstar - x) ((1 / lam) • grad x)
+    rw [inner_smul_right, norm_smul, Real.norm_eq_abs,
+      abs_of_pos (by positivity), mul_pow] at hexp
+    have hnn : (0:ℝ) ≤ ‖(θstar - x) + (1 / lam) • grad x‖ ^ 2 :=
+      sq_nonneg _
+    have heq : lam * lam * (‖(θstar - x) + (1 / lam) • grad x‖ ^ 2)
+        = ‖grad x‖ ^ 2 + 2 * lam * ⟪θstar - x, grad x⟫_ℝ
+          + lam * lam * ‖θstar - x‖ ^ 2 := by
+      rw [hexp]
+      field_simp
+      ring
+    rw [real_inner_comm (θstar - x) (grad x)]
+    nlinarith [hnn, heq]
+  nlinarith [hstep, hsc, h_att, hlam]
+
+end StrongConvexPL
+
+section IdentReg
+
+variable {V : Type} [Fintype V] [Nonempty V] [DecidableEq V] {d : ℕ}
+variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Exact quadratic shift: `λ/2‖x‖² + λ⟪x,δ⟫ + λ/2‖δ‖² = λ/2‖x+δ‖²`
+(an identity; used for BOTH the strong-convexity lower bound and
+the smoothness upper bound of the regularizer). -/
+private theorem quad_shift (lam : ℝ) (x δ : E) :
+    lam / 2 * ‖x‖ ^ 2 + lam * ⟪x, δ⟫_ℝ + lam / 2 * ‖δ‖ ^ 2
+      = lam / 2 * ‖x + δ‖ ^ 2 := by
+  have h := norm_add_sq' x δ
+  rw [h]
+  ring
+
+/-- The ℓ2-regularized log-linear CE objective:
+`ceOneHot t (X *ᵥ θ) + (λ/2)‖θ‖²` (weight decay). -/
+noncomputable def ceReg {V : Type} [Fintype V] [Nonempty V] [DecidableEq V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) : ℝ :=
+  Hagi.ceOneHot t (X *ᵥ θ.ofLp) + lam / 2 * ‖θ‖ ^ 2
+
+/-- The gradient of the regularized objective:
+`ceGrad X t θ + λ • θ`. -/
+noncomputable def ceGradReg {V : Type} [Fintype V] [Nonempty V] [DecidableEq V] {d : ℕ}
+    (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) : EuclideanSpace ℝ (Fin d) :=
+  ceGrad X t θ + lam • θ
+
+/-- First-order strong convexity of the regularized objective:
+`ceReg` is λ-strongly convex in the first-order sense (the convex
+CE tangent `ce_convex_ident` plus the exact quadratic shift). -/
+theorem ceReg_strong_convex_ident (X : Matrix V (Fin d) ℝ) (t : V)
+    (lam : ℝ) (θ θ' : EuclideanSpace ℝ (Fin d)) :
+    ceReg X t lam θ + ⟪ceGradReg X t lam θ, θ' - θ⟫_ℝ
+      + lam / 2 * ‖θ' - θ‖ ^ 2
+      ≤ ceReg X t lam θ' := by
+  have hcvx := ce_convex_ident X t θ θ'
+  have hq : lam / 2 * ‖θ‖ ^ 2 + lam * ⟪θ, θ' - θ⟫_ℝ
+      + lam / 2 * ‖θ' - θ‖ ^ 2 = lam / 2 * ‖θ'‖ ^ 2 := by
+    have h := quad_shift lam θ (θ' - θ)
+    rwa [show θ + (θ' - θ) = θ' by abel] at h
+  have hin : ⟪ceGradReg X t lam θ, θ' - θ⟫_ℝ
+      = ⟪ceGrad X t θ, θ' - θ⟫_ℝ + lam * ⟪θ, θ' - θ⟫_ℝ := by
+    rw [ceGradReg, inner_add_left, real_inner_smul_left]
+  simp only [ceReg, hin]
+  linarith [hcvx, hq]
+
+/-- **Descent lemma for the regularized objective** with the
+constant `ceSmoothL X + λ`: the C354 CE bound plus the exact
+quadratic shift. -/
+theorem ceReg_smooth_ident (X : Matrix V (Fin d) ℝ) (t : V)
+    (lam : ℝ) (θ θ' : EuclideanSpace ℝ (Fin d)) :
+    ceReg X t lam θ' ≤ ceReg X t lam θ + ⟪ceGradReg X t lam θ, θ' - θ⟫_ℝ
+      + (ceSmoothL X + lam) / 2 * ‖θ' - θ‖ ^ 2 := by
+  have hsm := ce_smooth_ident X t θ θ'
+  have hq : lam / 2 * ‖θ'‖ ^ 2
+      = lam / 2 * ‖θ‖ ^ 2 + lam * ⟪θ, θ' - θ⟫_ℝ
+      + lam / 2 * ‖θ' - θ‖ ^ 2 := by
+    have h := quad_shift lam θ (θ' - θ)
+    rwa [show θ + (θ' - θ) = θ' by abel, eq_comm] at h
+  have hin : ⟪ceGradReg X t lam θ, θ' - θ⟫_ℝ
+      = ⟪ceGrad X t θ, θ' - θ⟫_ℝ + lam * ⟪θ, θ' - θ⟫_ℝ := by
+    rw [ceGradReg, inner_add_left, real_inner_smul_left]
+  have hcoef : (ceSmoothL X + lam) / 2 * ‖θ' - θ‖ ^ 2
+      = ceSmoothL X / 2 * ‖θ' - θ‖ ^ 2 + lam / 2 * ‖θ' - θ‖ ^ 2 := by
+    ring
+  simp only [ceReg, hin, hcoef]
+  linarith [hsm, hq]
+
+/-- **Global geometric convergence for the REAL ℓ2-regularized
+log-linear CE head — PL fully discharged.**  Instantiates the C351
+rate machine `ce_global_convergence` with `f = ceReg`, gradient
+`ceGradReg`, `L = ceSmoothL X + λ` and `μ = λ`: the smoothness and
+PL premises are DERIVED (`ceReg_smooth_ident`, `ceReg_strong_convex_ident`
++ `strong_convex_pl`), not assumed.
+
+Honest premise ledger: `hlam : 0 < λ` (the regularization strength;
+the PL constant is exactly `λ`, contributed by the regularizer
+alone), the loss floor `h_floor`, and ATTAINMENT `h_att : ceReg θstar
+≤ fstar` (with `h_floor` it pins `fstar = ceReg θstar`) remain
+explicit.  Existence of a minimizer (provable for this coercive
+finite-dimensional objective by a compactness argument) is not
+formalized here.  The unregularized PL of Part 3 stays a premise:
+without the regularizer PL fails in general even for realizable
+data; the margin-based route is pinned open.  Unlike Part 3, `X = 0`
+is allowed (`L = λ > 0`). -/
+theorem ce_global_convergence_reg (X : Matrix V (Fin d) ℝ) (t : V)
+    (lam fstar : ℝ) (hlam : 0 < lam)
+    (h_floor : ∀ θ : EuclideanSpace ℝ (Fin d), fstar ≤ ceReg X t lam θ)
+    (θstar θ₀ : EuclideanSpace ℝ (Fin d))
+    (h_att : ceReg X t lam θstar ≤ fstar) (T : ℕ) :
+    ceReg X t lam
+        ((plStep (ceGradReg X t lam) (ceSmoothL X + lam))^[T] θ₀) - fstar
+      ≤ (1 - lam / (ceSmoothL X + lam)) ^ T
+        * (ceReg X t lam θ₀ - fstar) := by
+  have hLnn : (0:ℝ) ≤ ceSmoothL X := Finset.sum_nonneg (fun v _ =>
+    Finset.sum_nonneg (fun j _ => mul_self_nonneg _))
+  have hLpos : (0:ℝ) < ceSmoothL X + lam := by nlinarith
+  exact ce_global_convergence (ceReg X t lam) (ceGradReg X t lam)
+    (ceSmoothL X + lam) lam fstar hLpos (by nlinarith)
+    (fun x y => ceReg_smooth_ident X t lam x y)
+    (fun x => strong_convex_pl (ceReg X t lam) (ceGradReg X t lam)
+      lam fstar hlam (fun a b => ceReg_strong_convex_ident X t lam a b)
+      θstar h_att x)
+    h_floor θ₀ T
+
+end IdentReg
 
 end Hagi.Model.CEGlobalConvergence
 
