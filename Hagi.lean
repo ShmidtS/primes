@@ -490,6 +490,7 @@ import Hagi.Cert.CertifiedArgmax
 import Hagi.Training.MacroStatCert
 import Hagi.Training.TransitionCert
 import Hagi.Semantics.Split
+import Hagi.Semantics.StateUnification
 
 set_option linter.style.header false
 
