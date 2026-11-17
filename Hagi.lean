@@ -96,7 +96,7 @@ import Hagi.Learning.SleepingRouter
 import Hagi.Learning.ContinualForgetting
 import Hagi.Learning.BitBudget
 import Hagi.Learning.TrainingTransition
-import Hagi.Unified.OptimalConfig
+import Hagi.Unified.CandidateConfig
 import Hagi.Learning.NetworkBudget
 import Hagi.Learning.HadamardComplete
 import Hagi.Learning.HadamardParseval

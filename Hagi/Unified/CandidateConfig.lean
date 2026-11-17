@@ -7,7 +7,13 @@ import Hagi.Learning.RegCovPD
 set_option linter.style.header false
 
 /-!
-# OptimalConfig — замкнутый вывод конфигурации (цикл 22)
+# CandidateConfig — замкнутый вывод конфигурации (цикл 22)
+
+ЧЕСТНОЕ НАЗВАНИЕ (аудит A17): это КАНДИДАТНАЯ конфигурация —
+все параметры вычисляются, а не подбираются, НО глобальная
+оптимальность конфигурации НЕ доказана (и не заявляется).
+Доказаны только: тождество скорости, условия устойчивости,
+одношаговый спуск, бюджет битов, кривизна.
 
 Сведение теории воедино: НИ ОДИН параметр модели не
 подбирается наугад — все параметры РАССЧИТЫВАЮТСЯ как функции
@@ -37,11 +43,13 @@ T=1), cfg_bits (бюджет весов ↔ допуск ε).
 
 open Finset Hagi.Optimization.MomentumHB
 
-namespace Hagi.Unified.OptimalConfig
+namespace Hagi.Unified.CandidateConfig
 
-/-- Целевая конфигурация: ВСЕ параметры — вычислимые функции
-целевых величин ρ (скорость) и ε (допуск), подбора нет. -/
-structure OptimalConfig (rho eps : ℝ) where
+/-- Кандидатная конфигурация (optimality not proven): ВСЕ
+параметры — вычислимые функции целевых величин ρ (скорость)
+и ε (допуск), подбора нет. Это кандидат, а не доказанно
+оптимальная конфигурация. -/
+structure CandidateConfig (rho eps : ℝ) where
   /-- Momentum: β = ρ² (из |λ*| = √β = ρ). -/
   beta : ℝ := rho ^ 2
   /-- Скорость обучения: η = (1−ρ)² (критическое демпфирование). -/
@@ -51,7 +59,7 @@ structure OptimalConfig (rho eps : ℝ) where
 
 /-- Конфигурация по умолчанию: конструктор от (ρ, ε),
 все поля вычислены. -/
-def mkConfig (rho eps : ℝ) : OptimalConfig rho eps :=
+def mkConfig (rho eps : ℝ) : CandidateConfig rho eps :=
   ⟨rho ^ 2, (1 - rho) ^ 2, (2 * eps) ^ 2⟩
 
 /-- Momentum как функция цели: β(ρ) = ρ². -/
@@ -188,4 +196,4 @@ theorem cfg_curvature (X : Matrix (Fin d) (Fin T) ℝ) (mu : ℝ)
   unfold cfgLam
   linarith
 
-end Hagi.Unified.OptimalConfig
+end Hagi.Unified.CandidateConfig

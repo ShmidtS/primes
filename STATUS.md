@@ -5367,7 +5367,10 @@ one-hot CE.
   отличный от записанного, сохраняет прежнюю строку.
 
 
-## Hagi/Unified/OptimalConfig.lean
+## Hagi/Unified/CandidateConfig.lean
+- `CandidateConfig`: кандидатная конфигурация — все параметры
+  вычисляются как функции целей; глобальная оптимальность
+  НЕ доказана и не заявляется (аудит A17).
 - `cfg_rate`: при `rho > 0` `√cfgBeta(rho) = rho`;
   `cfg_stability` при `0 < rho < 1` даёт `0 ≤ cfgBeta < 1`,
   `0 < cfgEta ≤ 1−cfgBeta`.
