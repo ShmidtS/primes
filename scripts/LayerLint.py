@@ -67,6 +67,10 @@ LAYERS = {
     # C384 (A16): semantics layer — independent ModelSpec/ObjectiveSpec
     # records and their combinations; above Model (4), below Unified (6).
     "Semantics": 5,
+    # C387 (A17 stage 2): theory-chain facade layer — the unified CE
+    # chain reusing pieces from Model(4)/Unified(6); nothing imports it
+    # from below, so it caps the import DAG like Contracts/Challenge.
+    "Theory": 7,
 }
 
 # known violations, to be removed one by one (audit list):
