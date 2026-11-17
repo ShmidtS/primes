@@ -163,8 +163,6 @@ import Hagi.Probability.FreedmanFamilyConfidence
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
-import Hagi.Probability.ThermoAxes
-import Hagi.Probability.WSqD
 import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
 import Hagi.Ensemble.CompressionCert
@@ -266,7 +264,6 @@ import Hagi.Unified.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
-import Hagi.Probability.BernoulliFactory
 import Hagi.Step.MDLObjective
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule
@@ -293,7 +290,6 @@ import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
 import Hagi.Probability.LinkedFlip
 import Hagi.Probability.FiniteBayes
-import Hagi.Probability.FiniteHamming
 import Hagi.Probability.FiniteJointLogScore
 import Hagi.Probability.FiniteLogScore
 import Hagi.Probability.FiniteEM
@@ -341,7 +337,6 @@ import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
 import Hagi.Model.LabelSmoothing
 import Hagi.Optimization.Lookahead
-import Hagi.Probability.BatchSNR
 import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
 import Hagi.Data.BoolVenn

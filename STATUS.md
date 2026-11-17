@@ -3787,13 +3787,13 @@ one-hot CE.
 - `adaptive_success_azuma`: для `S t pref ∈ [0,1]` и префиксных полов `p0 ≤ ∑ v, q v * S (t+1) (snoc pref v)` вероятность `n*p0 - Δ ≤ azumaSum S n ω` не меньше `1 - exp (-Δ^2/(2*n))`.
 
 
-## Hagi/Probability/BatchSNR.lean
+## Hagi/Probability/ThermoBridge.lean (BatchSNR)
 - `snr_realized` записывает SNR как квадрат среднего, делённый на дисперсию batchMean; `snr_linear` даёт точное `snr g B = B * snr g 1`.
 - При `popMean g ≠ 0` и `0 < popVar g` теорема `snr_ge_one_iff` эквивалентно связывает `snr g B ≥ 1` и `criticalBatch g ≤ B`.
 - `gain_decreasing_past_critical`: при положительных `Bstar alpha beta` и `Bstar ≤ B1 < B2` значение `gainPerCost` строго убывает от `B1` к `B2`.
 
 
-## Hagi/Probability/BernoulliFactory.lean
+## Hagi/Probability/PMFBridge.lean (BernoulliFactory)
 - `probAccept_eq_bernPoly` доказывает равенство двух явных сумм `probAccept` и `bernPoly`; `binomWeight` содержит биномиальные веса `choose n j * p^j * (1-p)^(n-j)`.
 - При `0 ≤ p ≤ 1` и `0 ≤ c j ≤ 1` для `j ∈ range (n+1)` теорема `probAccept_bounds` даёт `0 ≤ probAccept n p c ≤ binomMass n p`.
 - Это точные тождества и границы конечной Bernstein-конструкции; равенство `binomMass n p = 1` отдельной теоремой файла не сформулировано.
@@ -3866,7 +3866,7 @@ one-hot CE.
 - `finite_family_selected_population_mean_gap_lower_confidence` сохраняет тот же двусторонний уровень для `baseline ω` и `candidate ω`, выбранных после наблюдения: эмпирический разрыв минус `2*eps` ограничивает разрыв истинных средних. Оценка опирается на границу вероятности объединения по всему заранее заданному семейству, а не на независимость выбранного индекса.
 
 
-## Hagi/Probability/FiniteHamming.lean
+## Hagi/Probability/FiniteBayes.lean (FiniteHamming)
 - `changedCount_eq_sum` и `hammingRisk_eq_sum_coordinateLoss` разлагают число изменённых битов и его математическое ожидание по координатам, отличая эту цель от потерь всей плоскости.
 - `coordinateMode_zeroOneLoss_le` выбирает моду каждой координаты; `hammingRisk_coordinateDecoder_le` доказывает глобальную минимальность покоординатного декодера по ожидаемому риску Хэмминга.
 - `posterior_coordinateDecoder_le` переносит минимальность на апостериорный закон при положительном свидетельстве наблюдения; `posterior_coordinateDecoder_le_observation` дополнительно сравнивает его риск с риском самого наблюдения.
@@ -3970,7 +3970,7 @@ one-hot CE.
 - `flatness_moment_bound`: если `C ≥ 0` и каждый хвост `probGe q X (k+1) ≤ C*(k+1)⁻¹^2`, то `expectNat q X ≤ 2*C`. Связь этого вывода с обобщением модели не доказывается.
 
 
-## Hagi/Probability/ThermoAxes.lean
+## Hagi/Probability/ThermoBridge.lean (ThermoAxes)
 - `noise_axes_coincide`: при `r^2*c = 1`, `eta0^2*B0 = 1` и `B0 ≠ 0` для каждого `t` выполнено `eta0^2*r^(2*t) = 1/(B0*c^t)`.
 - `noise_budget_axes_equal` при тех же посылках доказывает равенство конечных сумм по `range n`. Это почленное алгебраическое совпадение двух заданных последовательностей, а не эквивалентность траекторий обучения.
 
@@ -3980,7 +3980,7 @@ one-hot CE.
 - `batchVar_expQ` для непустого `Fin b` переносит точный закон дисперсии в этот интерфейс: `expQ` центрированного квадрата `batchMean` равен `popVar g / b`.
 
 
-## Hagi/Probability/WSqD.lean
+## Hagi/Probability/ThermoBridge.lean (WSqD)
 - `stable_phase_noise` при `B0 ≠ 0` вычисляет сумму по n_w стабильных шагов как `sigma^2*n_w/B0`.
 - `cooldown_tail_constant`: при `sigma ≥ 0`, `c > 1`, `Bd 0 > 0` и геометрическом росте для `t < n_d` сумма фазы затухания не превосходит `sigma^2*c/(Bd 0*(c-1))`.
 - `wsqd_noise_budget` объединяет ровно две суммы: стабильную длину n_w и длину затухания n_d, с `B0 > 0`, `Bd 0 = B0` и теми же условиями роста. Отдельного слагаемого разогрева в теореме нет.
