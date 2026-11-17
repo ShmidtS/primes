@@ -64,6 +64,9 @@ LAYERS = {
     # C380 (A16 TT-CAT): training layer — macro-loop certificates above
     # Contracts (7: EProcMonitor reuse) and Unified (6: Ville engine).
     "Training": 8,
+    # C384 (A16): semantics layer — independent ModelSpec/ObjectiveSpec
+    # records and their combinations; above Model (4), below Unified (6).
+    "Semantics": 5,
 }
 
 # known violations, to be removed one by one (audit list):
