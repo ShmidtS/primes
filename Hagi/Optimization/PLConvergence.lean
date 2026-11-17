@@ -1,5 +1,5 @@
-import Hagi.Foundations.Telescope
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Telescope
+import Hagi.Math.Foundations.Recurrence
 
 /-!
 # PLConvergence — линейная сходимость Полака–Лоясевича

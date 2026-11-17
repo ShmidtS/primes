@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Foundations.QuadEta
+import Hagi.Math.Foundations.QuadEta
 
 /-!
 # ToyTrajectory — нетривиальный свидетель обучения + телескоп траектории

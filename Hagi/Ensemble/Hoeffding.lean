@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Ensemble.GapLaw
-import Hagi.Foundations.Chord
-import Hagi.Foundations.Hoeffding
+import Hagi.Math.Foundations.Chord
+import Hagi.Math.Foundations.Hoeffding
 set_option linter.style.header false
 
 /-!

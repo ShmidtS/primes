@@ -6,7 +6,7 @@ Authors: HAGI_v2 formalization team
 import Mathlib
 import Hagi.Core.ErrorProp
 import Hagi.System.GrowthState
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 set_option linter.style.header false
 
 /-!

@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Hagi.Foundations.StageCalculus
+import Hagi.Math.Foundations.StageCalculus
 
 /-!
 # ProjectionDescent — канонический Step-слой вертикали спуска проекции

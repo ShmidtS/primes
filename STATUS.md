@@ -1403,7 +1403,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `gdn2_reset_bound`: при `0<q<1` память, начатая с нуля, ограничена `b*(1−q^t)/(1−q)`.
 
 
-## Hagi/Foundations/Chord.lean
+## Hagi/Math/Foundations/Chord.lean
 - `exp_chord_ab`: для `a<b` и `x∈[a,b]` доказана хордовая оценка `exp x ≤ ((b−x)/(b−a))*exp a + ((x−a)/(b−a))*exp b`; `exp_chord_r` — форма для `exp(r*x)`.
 - `log_cosh_le`: для любого вещественного `M` доказано `log(cosh M) ≤ M²/2`.
 
@@ -1429,57 +1429,57 @@ wall-clock, сжатие весов или улучшение качества.
 - `sqrt_gain_takeoff`: если `C0>0`, все `C t>0` и `C(t+1)=C t+sqrtGain γ k (C t)`, то `C T≥(√C0+γ√k/(2+γ√k/√C0)*T)^2`.
 
 
-## Hagi/Foundations/ConeTakeoff.lean
+## Hagi/Math/Foundations/ConeTakeoff.lean
 - `takeoff_from_cone`: если `γ,k≥0`, на `range T` выполнен шаг `C(t+1)=C t+γD t`, а на `range (T+1)` — конус `k*C t≤D t`, то `C0*(1+γ*k)^T ≤ C T`.
 - `frontier_cone_inductive`: при `α>0`, `γ>0`, `ρ≥0`, `C t>0`, текущем конусе, динамике `ρ*D t + β*C t − ξ t ≤ D(t+1)`, капе и условии `α/γ*((1+α)−ρ)+ξ t/C t≤β` конус сохраняется на следующем шаге; `frontier_cone_invariant` при начальном конусе `α/γ*C 0 ≤ D 0` и выполнении тех же динамики, капа и β-порога для всех `t` распространяет это на все `t`.
 
 
-## Hagi/Foundations/GrowthBand.lean
+## Hagi/Math/Foundations/GrowthBand.lean
 - `growth_band_iter`: при `0≤αmin≤αmax` и двустороннем шаге `(1+αmin)C t≤C(t+1)≤(1+αmax)C t` доказаны обе границы `(1+αmin)^T*C0≤C T≤(1+αmax)^T*C0`.
 - `saturation_gap`: при `0≤σ≤1` и шаге насыщения зазор точно равен `Cstar−C T=(1−σ)^T*(Cstar−C0)`.
 - `saturation_ceiling`: если дополнительно `C0≤Cstar`, то `C T≤Cstar−(1−σ)^T*(Cstar−C0)` и `C T≤Cstar`.
 
 
-## Hagi/Foundations/Hoeffding.lean
+## Hagi/Math/Foundations/Hoeffding.lean
 - `bern_mgf_bound`: для `0≤θ≤1` и любого `s` доказано `1−θ+θ*exp s ≤ exp(θ*s+s²/8)`.
 - `mgf_hoeffding_ab`: для конечного непустого `V`, нормированных неотрицательных `q` и `h v∈[a,b]` выполнено `log E_q[e^h] ≤ E_q[h]+(b−a)²/8`.
 - `mgf_hoeffding`: если для любых `u,v` выполнено `h u−h v≤D`, то та же верхняя оценка имеет добавку `D²/8`.
 
 
-## Hagi/Foundations/MesoScale.lean
+## Hagi/Math/Foundations/MesoScale.lean
 - `macro_collapse`: для неотрицательных `A,L` с оценками `A ℓ≤a0*ℓ^p`, `L ℓ≤L0*ℓ^(−q)` и `p<q` доказано `A ℓ*L ℓ → 0` при `ℓ→∞`.
 - `micro_collapse`: для неотрицательных `A,L` при `p>0`, `A ℓ≤a0*ℓ^p` и ограниченной `L` произведение стремится к нулю справа при `ℓ→0`.
 - `meso_peak_exists`: если `EI` непрерывна на `ℓ>0`, положительна в одной точке и стремится к нулю на обоих концах, то существует глобальный максимум на положительной полуоси.
 
 
-## Hagi/Foundations/Ortho.lean
+## Hagi/Math/Foundations/Ortho.lean
 - `ortho_norm_sq`: для ортонормального семейства `v` на конечном `ι` доказано `‖Σᵢ c i•v i‖²=Σᵢ(c i)²`; имеется и вариант по произвольному `Finset`.
 - `gating_tail_bound`: квадрат нормы разности полной суммы и суммы по `s` равен `Σ_{i∈sᶜ}(c i)²`.
 
 
-## Hagi/Foundations/Potential.lean
+## Hagi/Math/Foundations/Potential.lean
 - `hagiPotential_penalty_drop`: при `epsQ≥0` и `q−epsQ≤q'` доказано `max 0 (qTarget−q') ≤ max 0 (qTarget−q)+epsQ`.
 - `sum_sub_mean_zero`: для `n>0` сумма отклонений от среднего равна нулю; `sq_decomp` даёт точное `Σ(r−c)²−Σ(r−mean r)²=n*(mean r−c)²`.
 
 
-## Hagi/Foundations/QuadEta.lean
+## Hagi/Math/Foundations/QuadEta.lean
 - `quad_eta_identity`: для `quadLossAt a w = ½‖w−a‖²` градиентный шаг даёт точное `E(w−η∇E)= (1−η)²*E(w)`.
 - `quad_eta_descent`: при `0<eta<2` и `0<quadLossAt a w` новая потеря строго меньше исходной.
 
 
-## Hagi/Foundations/Recurrence.lean
+## Hagi/Math/Foundations/Recurrence.lean
 - `recurrence_upper`: при `0≤ρ<1` и `x(t+1)≤ρ*x t+c` для `t<T` доказано `x T≤ρ^T*x0+c*(1−ρ^T)/(1−ρ)`.
 - `contraction_limit`: при постоянном `δ≥0` и аналогичной рекуррентности получается `x T≤ρ^T*x0+δ/(1−ρ)`.
 - `growing_batch_stabilized`: при `0<ρ<1`, `ρ=1−ηL`, `σ²≥0`, `b0>0`, `δ≥1`, `ρδ>1`, `T≥1` и заданной шумовой рекурренте доказана явная граница `E T≤ρ^T E0+(η²σ²/b0)*ρ^(T−1)/(1−(ρδ)⁻¹)`.
 
 
-## Hagi/Foundations/StageCalculus.lean
+## Hagi/Math/Foundations/StageCalculus.lean
 - `compress_stage`: при `κ,s≥0`, `h_emp_dist : dnorm≤1/2` и `h_emp_lip : E3−E2pre≤κ*s*dnorm` следует `E3−E2pre≤κ*s/2`.
 - `joint_stage_cap_optimal`: при `L>0`, `dnorm²≤inner` и посылке `h_emp_smooth` для шага `1/L` доказано `E2≤E1−dnorm²/(2L)`.
 - `compound_budget`: при `α≥0`, `αD+J≤ε_c` и `G_next≤D` получается `α*G_next+J≤ε_c`; `adaptive_ns_exists` при `eps≥0` и `e 100=0` лишь даёт существование `s` с `e s≤eps`.
 
 
-## Hagi/Foundations/Telescope.lean
+## Hagi/Math/Foundations/Telescope.lean
 - `lyapunov_telescope_fin`: если `E(t+1)≤E t−eps` для всех `t<k`, то `E k≤E0−k*eps`.
 - `lyapunov_gain_noise`: из `V(t+1)≤V t−gain t+noise t` на горизонте `T` следует `V T≤V0−Σgain+Σnoise`.
 - `lyapunov_termination_fin`: при нижней границе `Emin≤E t`, постоянном спуске `eps>0` получается `(k:ℝ)≤(E0−Emin)/eps`.
@@ -4965,7 +4965,7 @@ one-hot CE.
 - `quad_eta_identity`: для `quadE a w = ½Σᵢ(wᵢ−aᵢ)²` и градиента
   `w−a` выполняется `quadE(w−eta·grad) = (1−eta)²quadE a w`
   (мост над `Hagi.Foundations.quad_eta_identity` из
-  Hagi/Foundations/QuadEta.lean — та же идея на носителе Unified).
+  Hagi/Math/Foundations/QuadEta.lean — та же идея на носителе Unified).
 - `quad_eta_descent`: при `0 < eta < 2` и `quadE a w > 0` энергия строго
   убывает; при `eta=1` тождество даёт нулевую энергию только для этой цели.
 

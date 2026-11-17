@@ -7,7 +7,7 @@ import Hagi.Growth.Saturation
 import Hagi.Step.SafeQP
 import Hagi.Growth.StateBinding
 import Hagi.Data.DistillRecursion
-import Hagi.Foundations.ConeTakeoff
+import Hagi.Math.Foundations.ConeTakeoff
 /-!
 # T5 AntiCollapse — честная непрерывность энтропии
 

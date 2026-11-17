@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 import Hagi.Core.RootContrast
 /-!
 # CycleChannel — generation-decay law and channel switching

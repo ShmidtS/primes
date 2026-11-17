@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Foundations.Potential
+import Hagi.Math.Foundations.Potential
 
 /-!
 # Certificates — typed per-stage certificates

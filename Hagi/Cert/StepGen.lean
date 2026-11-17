@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Cert.Core
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 
 /-!
 # General certification kernel (master plan v3 addendum A10, item 2)

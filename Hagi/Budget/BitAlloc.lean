@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 import Hagi.Budget.RankBudget
 /-!
 # RecursiveDistill: the grow-compress loop at fixed width (§6b.1, gen8 line)

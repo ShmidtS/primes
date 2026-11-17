@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 

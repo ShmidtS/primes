@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.Potential
+import Hagi.Math.Foundations.Potential
 import Hagi.Model.RMSNorm
 
 /-!

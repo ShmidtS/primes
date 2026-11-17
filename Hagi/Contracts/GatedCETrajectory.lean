@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.CEHeldout
 import Hagi.Model.GatedCEPositiveCurvature

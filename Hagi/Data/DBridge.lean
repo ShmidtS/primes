@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Data.DField
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 /-!
 # WeightedVar — the weighted-variance core
 

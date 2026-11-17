@@ -7,7 +7,7 @@ import Hagi.Generalization.ModeState
 import Hagi.Growth.LinearCone
 import Hagi.Dynamics.GrowthBridge
 import Hagi.Step.SafeQPStep
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 import Hagi.Unified.CertifiedLoop
 set_option linter.style.header false
 

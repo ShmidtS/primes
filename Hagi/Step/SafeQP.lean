@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Foundations.Ortho
+import Hagi.Math.Foundations.Ortho
 /-!
 # Spectral selection: orthogonal projectors, tail energy, budget chains
 

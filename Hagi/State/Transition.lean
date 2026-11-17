@@ -1,6 +1,6 @@
 import Mathlib
 import Hagi.State.TrainState
-import Hagi.Foundations.QuadEta
+import Hagi.Math.Foundations.QuadEta
 
 /-!
 # Transition — единая семантика перехода (Gate 3, спека §5)

@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Foundations.StageCalculus
+import Hagi.Math.Foundations.StageCalculus
 
 set_option linter.style.header false
 

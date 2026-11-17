@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.JointPreserve
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 import Hagi.Optimization.Momentum
 set_option linter.style.header false
 

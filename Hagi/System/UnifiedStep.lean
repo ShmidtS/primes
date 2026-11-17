@@ -1,7 +1,7 @@
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer
 import Hagi.Probability.GibbsCore
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 
 set_option linter.style.header false
 

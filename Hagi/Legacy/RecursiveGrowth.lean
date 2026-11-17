@@ -3,9 +3,9 @@ Copyright (c) 2025 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Hagi.Foundations.Ortho
+import Hagi.Math.Foundations.Ortho
 import Hagi.Step.ProjectionDescent
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 /-!
 # The per-stage Lyapunov decomposition of the macro cycle
 

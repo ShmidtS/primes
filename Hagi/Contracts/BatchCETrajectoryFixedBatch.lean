@@ -1,6 +1,6 @@
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 import Hagi.Model.CEHeldout
 import Hagi.Unified.GuardedRobustTrajectory
 

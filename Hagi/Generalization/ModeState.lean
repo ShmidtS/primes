@@ -1,8 +1,8 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Foundations.ConeTakeoff
-import Hagi.Foundations.Potential
+import Hagi.Math.Foundations.ConeTakeoff
+import Hagi.Math.Foundations.Potential
 import Hagi.System.GrowthComputed
 import Hagi.System.GrowthState
 

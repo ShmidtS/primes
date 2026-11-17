@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 
 /-!
 # Оптимальные LR-расписания: позднее затухание (источник №11)

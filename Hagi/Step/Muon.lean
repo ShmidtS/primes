@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 
 import Mathlib.Tactic
 import Mathlib
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 
 /-!
 # Muon-семейство (объединённое)

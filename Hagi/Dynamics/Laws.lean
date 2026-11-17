@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Hagi.Foundations.Telescope
+import Hagi.Math.Foundations.Telescope
 import Mathlib.Tactic
 import Hagi.Dynamics.EndpointContraction
 

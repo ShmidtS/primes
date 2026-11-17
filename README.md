@@ -82,7 +82,7 @@ README не заменяет их математическую специфик�
 
 | Домен | Каталоги | Содержание на верхнем уровне |
 | --- | --- | --- |
-| База | [`Hagi/Prelude`](Hagi/Prelude), [`Hagi/Foundations`](Hagi/Foundations), [`Hagi/Core`](Hagi/Core), [`Hagi/Numerics`](Hagi/Numerics), [`Hagi/Geometry`](Hagi/Geometry), [`Hagi/Spectral`](Hagi/Spectral), [`Hagi/StatMech`](Hagi/StatMech) | Общие определения, конечные носители, алгебраические и геометрические результаты. |
+| База | [`Hagi/Prelude`](Hagi/Prelude), [`Hagi/Core`](Hagi/Core), [`Hagi/Numerics`](Hagi/Numerics), [`Hagi/Geometry`](Hagi/Geometry), [`Hagi/Spectral`](Hagi/Spectral), [`Hagi/StatMech`](Hagi/StatMech) | Общие определения, конечные носители, алгебраические и геометрические результаты. |
 | Архитектура | [`Hagi/Architecture`](Hagi/Architecture), [`Hagi/Ensemble`](Hagi/Ensemble), [`Hagi/Sparsity`](Hagi/Sparsity) | Композиция компонентов, объединение экспертов и структурные ограничения. |
 | Энергия и ресурсы | [`Hagi/Energy`](Hagi/Energy), [`Hagi/Budget`](Hagi/Budget), [`Hagi/Runtime`](Hagi/Runtime) | Квантование, энергия, ресурсный учёт и точные представления исполнения. |
 | Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |

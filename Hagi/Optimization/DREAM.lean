@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 import Hagi.Optimization.LRSchedule
 
 /-!

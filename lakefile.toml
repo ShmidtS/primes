@@ -95,12 +95,7 @@ globs = ["Hagi.Ensemble.+"]
 name = "Hagi.External"
 globs = ["Hagi.External.+"]
 
-# Review stage 6: per-directory package for incremental builds.
-[[lean_lib]]
-name = "Hagi.Foundations"
-globs = ["Hagi.Foundations.+"]
-
-# Review stage 6: per-directory package for incremental builds.
+# C377: Foundations consolidated into Hagi/Math (dir merge);
 [[lean_lib]]
 name = "Hagi.Generalization"
 globs = ["Hagi.Generalization.+"]

@@ -1,6 +1,6 @@
 import Mathlib
 import Hagi.Unified.DescentCore
-import Hagi.Foundations.QuadEta
+import Hagi.Math.Foundations.QuadEta
 
 /-!
 # DescentCoreQuad: первый

@@ -1,5 +1,5 @@
 import Mathlib
-import Hagi.Foundations.GrowthBand
+import Hagi.Math.Foundations.GrowthBand
 import Hagi.System.GrowthState
 
 /-!

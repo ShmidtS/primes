@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Step.StochasticSafeQP
 import Mathlib.Probability.Martingale.OptionalStopping
 import Hagi.Core.Concat
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 /-!
 # The merge stage and the anytime-validity budget
 

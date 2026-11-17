@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Foundations.QuadEta
+import Hagi.Math.Foundations.QuadEta
 import Hagi.Learning.ToyTrajectory
 
 set_option linter.style.header false

@@ -3,8 +3,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
-import Hagi.Foundations.ConeTakeoff
-import Hagi.Foundations.GrowthBand
+import Hagi.Math.Foundations.ConeTakeoff
+import Hagi.Math.Foundations.GrowthBand
 import Hagi.Growth.GainRenewal
 
 set_option linter.style.header false

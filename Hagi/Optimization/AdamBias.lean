@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-import Hagi.Foundations.Recurrence
+import Hagi.Math.Foundations.Recurrence
 
 /-!
 # Adam bias correction (источник №28)

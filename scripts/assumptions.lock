@@ -15,7 +15,6 @@ Hagi/Dynamics/GrowthBridge.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
 Hagi/Energy/Landauer.lean: h_emp_cooling h_emp_credit h_emp_finite_time h_emp_landauer h_emp_memwrite
 Hagi/Energy/STEStep.lean: h_emp_res
 Hagi/Ensemble/PolicyCompatibility.lean: h_emp_scaling
-Hagi/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smooth
 Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
 Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
 Hagi/Growth/Grow.lean: h_emp_pl
@@ -33,6 +32,7 @@ Hagi/Legacy/NonvacuityHorizon.lean: h_emp_takeoff_exponential
 Hagi/Legacy/RecursiveGrowth.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_quad h_emp_smooth
 Hagi/Legacy/StateTakeoff.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod
 Hagi/Legacy/TopLevel.lean: h_emp_conc h_emp_lip h_emp_smooth
+Hagi/Math/Foundations/StageCalculus.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_smooth
 Hagi/Pretraining/ProbeError.lean: h_emp_attsmooth
 Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate
 Hagi/Probability/ConditionalSuccess.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
