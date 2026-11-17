@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 import Hagi.Core.Concat
 import Hagi.Model.SoftmaxHead
+import Hagi.Model.GatedCEUniformCurvature
 
 /-!
 # Global convergence for the log-linear CE head under PL
@@ -316,18 +317,6 @@ private theorem exp_line_cs (a b : V → ℝ) (s : ℝ) :
             * Real.exp (a v + s * b v) := by ring
       rw [h])
 
-/-- Every softmax coordinate is at most one (local copy of
-`GatedCEUniformCurvature.softDef_le_one`, kept private to avoid a
-module dependency for one line). -/
-private theorem softDef_le_one (a : V → ℝ) (v : V) :
-    Hagi.Prelude.softDef a v ≤ 1 := by
-  have h : Hagi.Prelude.softDef a v
-      = Real.exp (a v) / ∑ c, Real.exp (a c) := rfl
-  rw [h]
-  exact (div_le_one (Hagi.Core.exp_sum_pos a)).2
-    (Finset.single_le_sum (f := fun c => Real.exp (a c))
-      (fun c _ => Real.exp_nonneg _) (Finset.mem_univ v))
-
 /-- Nonnegativity of the second derivative (variance form). -/
 private theorem second_deriv_nonneg (a b : V → ℝ) (s : ℝ) :
     (0:ℝ) ≤ ((∑ v, b v * b v * Real.exp (a v + s * b v))
@@ -372,7 +361,7 @@ private theorem second_deriv_le (a b : V → ℝ) (s : ℝ) :
   calc ∑ v, Hagi.Prelude.softDef (fun w => a w + s * b w) v * (b v * b v)
       ≤ ∑ v, 1 * (b v * b v) :=
         Finset.sum_le_sum (fun v _ => mul_le_mul_of_nonneg_right
-          (softDef_le_one (fun w => a w + s * b w) v) (mul_self_nonneg _))
+          (GatedCEUniformCurvature.softDef_le_one _ v) (mul_self_nonneg _))
     _ = ∑ v, b v * b v := by simp
 
 /-- Mean-value bound on the line gradient: the derivative of the
