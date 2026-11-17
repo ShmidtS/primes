@@ -25,6 +25,7 @@ import Hagi.Core.Element
 import Hagi.Step.Joint
 import Hagi.Step.Muon
 import Hagi.Step.Compound
+import Hagi.Step.DirectionProvider
 import Hagi.Budget.RankBudget
 import Hagi.Budget.WeightedExpAlloc
 import Hagi.Budget.IsoFrobAlloc
