@@ -495,6 +495,7 @@ import Hagi.Semantics.StateUnification
 import Hagi.Theory.CEChain
 import Hagi.Theory.StochasticSafeStep
 import Hagi.Theory.CompressedSafeStep
+import Hagi.Theory.MasterTheorem
 
 set_option linter.style.header false
 
