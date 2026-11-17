@@ -427,9 +427,11 @@ import Hagi.Unified.VerticalCapstone
 import Hagi.Unified.NegativeTests
 import Hagi.Math.Foundations.QuadEta
 import Hagi.State.TrainState
+import Hagi.Cert.EvalBinding
 import Hagi.State.CanonicalTrainState
 import Hagi.State.Transition
 import Hagi.State.TrainTrajectory
+import Hagi.State.EvalBindingCert
 import Hagi.State.Views
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.FiniteEMTrajectory
