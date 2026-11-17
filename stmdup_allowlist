@@ -1,0 +1,6 @@
+# Intentional restatement pins (STMDUP exemptions). One FQN per line,
+# `#` starts the justification. Must shrink, never rot: an entry that
+# disappears from declarations.lock or stops being duplicated FAILs.
+# C345 challenge pin: Comparator-restatement of certified_loop_kernel
+# (conclusion pinned fully; compilation fails on shape divergence).
+Hagi.Challenge.master_hagi_challenge_v4_kernel
