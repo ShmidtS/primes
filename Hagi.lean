@@ -378,6 +378,7 @@ import Hagi.Unified.ExecutedCert
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.CertifiedLoopKernel
 import Hagi.Unified.StochasticLoop
+import Hagi.Unified.StochasticCELearning
 import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
 import Hagi.Unified.LogitGrowth
