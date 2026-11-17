@@ -428,6 +428,7 @@ import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
 import Hagi.State.CanonicalTrainState
 import Hagi.State.Transition
+import Hagi.State.TrainTrajectory
 import Hagi.State.Views
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Contracts.FiniteEMTrajectory

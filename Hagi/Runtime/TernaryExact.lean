@@ -238,6 +238,32 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
   rw [heq]
   exact hmain
 
+/-- C375 instantiation (audit 5.3): coordinatewise ternary rounding
+(qTern, in-range) + an L-Lipschitz objective (in the sum of
+coordinate deviations) bounds the objective error by
+`L·(m·s/2)` — the concrete rounding feed for the State-layer
+trajectory theorem's binder (`Hagi.State.coord_err_bound`; the
+import Runtime→State is barred by LayerLint cross-folder rule,
+so the concrete form lives beside `qTern`). -/
+theorem ternary_coord_err {m : ℕ} (w w' : Fin m → ℝ) (s L : ℝ)
+    (F : (Fin m → ℝ) → ℝ)
+    (hs : 0 < s) (hin : ∀ i, ternInRange s (w i))
+    (hw' : ∀ i, w' i = qTern s (w i))
+    (hL : 0 ≤ L)
+    (hLip : |F w' - F w| ≤ L * ∑ i, |w' i - w i|) :
+    |F w' - F w| ≤ L * m * s / 2 := by
+  have hcoord : ∀ i, |w' i - w i| ≤ s / 2 := by
+    intro i
+    rw [hw' i, abs_sub_comm]
+    exact qTern_error_in s (w i) hs (hin i)
+  calc |F w' - F w| ≤ L * ∑ i, |w' i - w i| := hLip
+    _ ≤ L * ∑ i, (s / 2 : ℝ) :=
+        mul_le_mul_of_nonneg_left
+          (Finset.sum_le_sum (fun i _ => hcoord i)) hL
+    _ = L * m * s / 2 := by
+        simp [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+        ring
+
 end Hagi.Runtime
 
 namespace Hagi
