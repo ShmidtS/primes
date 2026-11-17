@@ -489,6 +489,7 @@ import Hagi.Cert.Adapters
 import Hagi.Cert.CertifiedArgmax
 import Hagi.Training.MacroStatCert
 import Hagi.Training.TransitionCert
+import Hagi.Training.Admission
 import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
 import Hagi.Theory.CEChain
