@@ -161,6 +161,7 @@ import Hagi.Model.SoftmaxHead
 import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
 import Hagi.Model.CEGlobalConvergence
+import Hagi.Model.CEMarginPL
 import Hagi.Model.CEQuantized
 import Hagi.Model.CEJacobianMajorizer
 import Hagi.Model.CEModel
