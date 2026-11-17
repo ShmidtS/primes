@@ -1,5 +1,8 @@
 /.lake
-.omc/
+.omc/*
+!.omc/analysis/
+.omc/analysis/*
+!.omc/analysis/generated/
 __pycache__/
 .context-mode/
 

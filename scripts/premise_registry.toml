@@ -1,0 +1,308 @@
+# Typed premise registry (C361, audit step 2.2).
+# Layered ON TOP of scripts/assumptions.lock (string-prefix lock stays
+# gate-critical). Every premise name found by a fresh
+# scripts/AssumptionScan.py scan MUST be classified here, and every
+# entry here MUST still be found by the scan (fail-closed both ways).
+# Validated by scripts/PremiseRegistry.py; tests: TestPremiseRegistry.py.
+#
+# type enum: mathematical | model | empirical | operational | approximation
+# empirical entries require `measured` (how measured / pointer).
+
+[premises.h_emp_01]
+type = "empirical"
+note = "Bernoulli base-rate scale premise of the success-statistics pack"
+measured = "external trial base rate; statistical premise, see STATUS.md Hagi/Probability/ConditionalSuccess"
+
+[premises.h_emp_indep]
+type = "empirical"
+note = "independence of success events"
+measured = "external sampling premise; concentration diagnostics, see STATUS.md ConditionalSuccess / Freedman"
+
+[premises.h_emp_meas]
+type = "empirical"
+note = "measurability of the success event"
+measured = "measure-theoretic premise on the external data space, see STATUS.md ConditionalSuccess"
+
+[premises.h_emp_p]
+type = "empirical"
+note = "success probability value/bound"
+measured = "estimated from external trial frequencies, see STATUS.md ConditionalSuccess"
+
+[premises.h_emp_var]
+type = "empirical"
+note = "variance bound for Freedman concentration"
+measured = "sample variance bound from data, see STATUS.md Hagi/Probability/Freedman"
+
+[premises.h_emp_noise_bound]
+type = "empirical"
+note = "martingale-noise magnitude bound (SafeQP stochastic step)"
+measured = "noise norm statistics from the stochastic oracle, see STATUS.md Hagi/Step/StochasticSafeQP"
+
+[premises.h_emp_noise_indep]
+type = "empirical"
+note = "noise independence across steps"
+measured = "external sampling premise, see STATUS.md StochasticSafeQP / AnytimeMartingale"
+
+[premises.h_emp_noise_meas]
+type = "empirical"
+note = "noise measurability"
+measured = "measure-theoretic premise on the noise space, see STATUS.md StochasticSafeQP"
+
+[premises.h_emp_noise_zero]
+type = "empirical"
+note = "zero-mean noise (unbiased oracle)"
+measured = "calibration check on oracle residuals, see STATUS.md StochasticSafeQP"
+
+[premises.h_emp_gate]
+type = "empirical"
+note = "synthetic-pretrain gate premise"
+measured = "gate activation statistic from pretraining probe, see STATUS.md Hagi/Pretraining/SyntheticPretrain"
+
+[premises.h_emp_step]
+type = "empirical"
+note = "measured one-step improvement law (legacy growth pack)"
+measured = "external growth-curve measurement, see STATUS.md Hagi/Legacy/Assumptions"
+
+[premises.h_emp_dyn]
+type = "empirical"
+note = "measured dynamics law premise (legacy/takeoff packs)"
+measured = "external dynamics fit, see STATUS.md Hagi/Legacy/Assumptions"
+
+[premises.h_emp_G]
+type = "empirical"
+note = "growth gain bound"
+measured = "external gain measurement, see STATUS.md Hagi/Legacy/CorePremisesDerived"
+
+[premises.h_emp_fit]
+type = "empirical"
+note = "fit quality bound (ModeState)"
+measured = "residual fit statistic, see STATUS.md Hagi/Generalization/ModeState"
+
+[premises.h_emp_gain_prod]
+type = "empirical"
+note = "per-step gain product bound (legacy pack)"
+measured = "external growth measurement, see STATUS.md Hagi/Legacy/Assumptions"
+
+[premises.h_emp_gap]
+type = "empirical"
+note = "observed suboptimality gap (compound step)"
+measured = "loss-gap measurement from training trace, see STATUS.md Hagi/Step/Compound"
+
+[premises.h_emp_credit]
+type = "empirical"
+note = "credit-assignment accounting premise (Landauer pack)"
+measured = "energy accounting measurement, see STATUS.md Hagi/Energy/Landauer"
+
+[premises.h_emp_second]
+type = "empirical"
+note = "second-order statistic premise (Insight)"
+measured = "external second-moment measurement, see STATUS.md Hagi/Autonomy/Insight"
+
+[premises.h_emp_cooling]
+type = "empirical"
+note = "cooling-law premise (Landauer pack)"
+measured = "thermodynamic measurement, see STATUS.md Hagi/Energy/Landauer"
+
+[premises.h_emp_landauer]
+type = "empirical"
+note = "Landauer bound premise"
+measured = "physical constant / memory-write energy measurement, see STATUS.md Hagi/Energy/Landauer"
+
+[premises.h_emp_memwrite]
+type = "empirical"
+note = "memory-write energy premise"
+measured = "write-energy measurement, see STATUS.md Hagi/Energy/Landauer"
+
+[premises.h_emp_res]
+type = "empirical"
+note = "STE residual statistic"
+measured = "straight-through residual measurement, see STATUS.md Hagi/Energy/STEStep"
+
+[premises.h_emp_fiber]
+type = "empirical"
+note = "PPT fiber premise"
+measured = "external fiber statistic, see STATUS.md Hagi/Research/PPT"
+
+[premises.h_emp_disp_step]
+type = "empirical"
+note = "dispersion step premise (SeedOnly)"
+measured = "growth dispersion measurement, see STATUS.md Hagi/Growth/SeedOnly"
+
+[premises.h_emp_dist]
+type = "model"
+note = "distance/divergence regularity of the data distribution model"
+
+[premises.h_emp_lip]
+type = "model"
+note = "Lipschitz regularity of the loss/dynamics model"
+
+[premises.h_emp_smooth]
+type = "model"
+note = "smoothness (curvature bound) of the loss model"
+
+[premises.h_emp_conc]
+type = "model"
+note = "concavity premise of the legacy top-level model"
+
+[premises.h_emp_attsmooth]
+type = "model"
+note = "attention-smoothness premise (probe error model)"
+
+[premises.h_emp_decay]
+type = "model"
+note = "decay-rate premise (compound step model)"
+
+[premises.h_emp_c]
+type = "model"
+note = "constant-scale parameter bound (compound step model)"
+
+[premises.h_emp_cone]
+type = "model"
+note = "growth-cone containment premise (takeoff model)"
+
+[premises.h_emp_cone0]
+type = "model"
+note = "initial cone premise (takeoff model)"
+
+[premises.h_emp_C_cap]
+type = "model"
+note = "capability cap bound (legacy master model)"
+
+[premises.h_emp_beta]
+type = "model"
+note = "easing/interpolation parameter premise (legacy master model)"
+
+[premises.h_emp_grow]
+type = "model"
+note = "growth-map premise of the master model"
+
+[premises.h_emp_merge]
+type = "mathematical"
+note = "algebraic merge-law premise (stated as a hypothesis of the merge calculus)"
+
+[premises.h_emp_quad]
+type = "model"
+note = "quadratic-approximation premise (legacy recursive growth)"
+
+[premises.h_emp_finite_time]
+type = "model"
+note = "finite-time horizon premise (Landauer pack)"
+
+[premises.h_emp_pl]
+type = "approximation"
+note = "power-law scaling approximation of frontier growth"
+
+[premises.h_emp_frontier_scaling]
+type = "approximation"
+note = "frontier scaling approximation (GainRenewal)"
+
+[premises.h_emp_scaling]
+type = "approximation"
+note = "policy-compatibility scaling approximation"
+
+# operational premises: execution-link binders (exec/descent/sample)
+
+[premises.hActualDescent]
+type = "operational"
+note = "actual-descent execution link"
+
+[premises.h_descent]
+type = "operational"
+note = "descent execution link"
+
+[premises.h_exec]
+type = "operational"
+note = "exec execution link"
+
+[premises.h_step_descent]
+type = "operational"
+note = "per-step descent execution link"
+
+[premises.hdescent]
+type = "operational"
+note = "descent execution link (compact naming)"
+
+[premises."hdescent'"]
+type = "operational"
+note = "primed descent execution link"
+
+[premises.hexec]
+type = "operational"
+note = "exec execution link (compact naming)"
+
+[premises.hexecb]
+type = "operational"
+note = "b-variant exec execution link"
+
+[premises.hsample]
+type = "operational"
+note = "sampling execution link"
+
+[premises.hybrid_stack_transfer_descent]
+type = "operational"
+note = "hybrid stack transfer descent link"
+
+[premises.hybrid_stack_transfer_descent_strict]
+type = "operational"
+note = "strict hybrid stack transfer descent link"
+
+# unprefixed empirical premises: per-file (shrink-only in
+# AssumptionScan.UNPREFIXED_EMPIRICAL), keyed FILE::NAME
+
+[premises."Hagi/Legacy/MasterHAGI.lean::h_step"]
+type = "empirical"
+note = "unprefixed measured step premise (legacy master)"
+measured = "external growth-curve measurement, see STATUS.md Hagi/Legacy/MasterHAGI"
+
+[premises."Hagi/Legacy/MasterHAGI.lean::h_gain_prod"]
+type = "empirical"
+note = "unprefixed gain-product premise (legacy master)"
+measured = "external growth measurement, see STATUS.md Hagi/Legacy/MasterHAGI"
+
+[premises."Hagi/Legacy/MasterHAGI.lean::h_dyn"]
+type = "empirical"
+note = "unprefixed dynamics premise (legacy master)"
+measured = "external dynamics fit, see STATUS.md Hagi/Legacy/MasterHAGI"
+
+[premises."Hagi/Legacy/MasterHAGI.lean::h_C_cap"]
+type = "empirical"
+note = "unprefixed capability cap (legacy master)"
+measured = "capability ceiling estimate, see STATUS.md Hagi/Legacy/MasterHAGI"
+
+[premises."Hagi/Legacy/MasterHAGI.lean::hβ"]
+type = "empirical"
+note = "unprefixed easing parameter (legacy master)"
+measured = "schedule parameter estimate, see STATUS.md Hagi/Legacy/MasterHAGI"
+
+[premises."Hagi/Generalization/ModeState.lean::h_C_cap"]
+type = "empirical"
+note = "unprefixed capability cap (ModeState)"
+measured = "capability ceiling estimate, see STATUS.md Hagi/Generalization/ModeState"
+
+[premises."Hagi/Generalization/ModeState.lean::hβ_eased"]
+type = "empirical"
+note = "unprefixed eased parameter (ModeState)"
+measured = "schedule parameter estimate, see STATUS.md Hagi/Generalization/ModeState"
+
+# module status inputs (C361 step 2.1)
+
+[modules]
+# C347 speculative growth quarantine (A14 QW7) — Speculative
+quarantine = [
+  "Hagi/Growth/Takeoff.lean",
+  "Hagi/Growth/LinearCone.lean",
+  "Hagi/Growth/Saturation.lean",
+  "Hagi/Growth/Ceilings.lean",
+  "Hagi/Growth/RsiCriterion.lean",
+  "Hagi/Growth/RecursiveSelfDevelopment.lean",
+  "Hagi/Growth/SeedOnly.lean",
+  "Hagi/Growth/GainDecomposition.lean",
+  "Hagi/Growth/StateBinding.lean",
+  "Hagi/Growth/ChainUnification.lean",
+  "Hagi/Growth/RoundViability.lean",
+  "Hagi/Dynamics/GrowthBridge.lean",
+]
+# research tree — Speculative
+research_prefixes = ["Hagi/Research/"]
+# legacy quarantine (C219, audit P0a) — Deprecated
+deprecated_prefixes = ["Hagi/Legacy/"]
