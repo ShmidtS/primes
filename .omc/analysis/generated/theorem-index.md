@@ -12,12 +12,12 @@ theorems.
 
 ## Summary
 
-- modules: 590
-- theorems: 11792
-- defs: 4031
-- noncomputable decls: 1120
-- status Proven: 510 modules
-- status Conditional: 25 modules
+- modules: 593
+- theorems: 11895
+- defs: 4205
+- noncomputable decls: 1125
+- status Proven: 512 modules
+- status Conditional: 26 modules
 - status Empirical: 11 modules
 - status Speculative: 24 modules
 - status Deprecated: 20 modules
@@ -129,7 +129,7 @@ theorems.
 | Hagi.Contracts.StepCertificate | 8 | 3 | trainStepCert, trainMeasured, trainStepMinimalCert | yes | Conditional |
 | Hagi.Contracts.TotalError | 5 | 0 | - | no | Proven |
 | Hagi.Contracts.TruncatedSVDTail | 10 | 2 | tailCarrier, approxK | no | Proven |
-| Hagi.Contracts.VilleMonitor | 23 | 16 | monitorAnchorQuiet, monitorAnchor | no | Proven |
+| Hagi.Contracts.VilleMonitor | 24 | 16 | monitorAnchorQuiet, monitorAnchor | no | Proven |
 | Hagi.Core.Ambig | 9 | 0 | - | no | Proven |
 | Hagi.Core.Attention | 3 | 0 | - | no | Proven |
 | Hagi.Core.BlockDiag | 3 | 1 | - | no | Proven |
@@ -430,7 +430,7 @@ theorems.
 | Hagi.Probability.Azuma | 17 | 7 | - | no | Proven |
 | Hagi.Probability.CertifiedEstimator | 38 | 6 | - | no | Proven |
 | Hagi.Probability.ChernoffCGF | 26 | 0 | - | no | Proven |
-| Hagi.Probability.Concentration | 25 | 3 | concConfidenceTwoSided, concConfidence, concRadius | no | Proven |
+| Hagi.Probability.Concentration | 46 | 31 | concConfidenceTwoSided, concConfidence, concOneDrawConfidence, concRadius | no | Proven |
 | Hagi.Probability.ConditionalSuccess | 18 | 1 | concDelta | yes | Empirical |
 | Hagi.Probability.EntropyConvexity | 34 | 0 | - | no | Proven |
 | Hagi.Probability.ExpChord | 18 | 0 | - | no | Proven |
@@ -543,14 +543,20 @@ theorems.
 | Hagi.System.GrowthStateViews | 17 | 63 | - | no | Proven |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
+| Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
+| Hagi.Theory.GaugeQuotient | 20 | 17 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
+| Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
+| Hagi.Theory.TwoDomainConfidence | 2 | 0 | - | no | Proven |
 | Hagi.Training.Admission | 25 | 34 | admissionMargin, admitRule | yes | Conditional |
-| Hagi.Training.MacroStatCert | 31 | 35 | macroDecide, macroCertAnchor | no | Proven |
+| Hagi.Training.CRMSM | 35 | 97 | blockGram | no | Proven |
+| Hagi.Training.MacroStatCert | 32 | 35 | macroDecide, macroCertAnchor | no | Proven |
+| Hagi.Training.ModelComparison | 18 | 16 | zIndicator, zOf, Score, modelGap | no | Proven |
 | Hagi.Training.TransitionCert | 24 | 38 | - | no | Proven |
 | Hagi.Unified.AnytimeMartingale | 32 | 0 | - | yes | Empirical |
-| Hagi.Unified.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Unified.CandidateConfig | 16 | 20 | - | no | Proven |
 | Hagi.Unified.CanonicalParams | 4 | 4 | canonWeights | no | Proven |
 | Hagi.Unified.CapabilityLocal | 2 | 0 | - | no | Proven |
@@ -572,7 +578,6 @@ theorems.
 | Hagi.Unified.ExecutableSelection | 17 | 10 | - | no | Proven |
 | Hagi.Unified.ExecutedCert | 16 | 13 | toCertStep, toCertStepGen | no | Proven |
 | Hagi.Unified.FunctionalState | 6 | 16 | fsCapa, fsEnergy, funStep, funStepJoint | no | Proven |
-| Hagi.Unified.GaugeQuotient | 20 | 17 | quotientResidual, seq, rot | no | Proven |
 | Hagi.Unified.GrowthComputedCert | 3 | 2 | next, stepCert | no | Proven |
 | Hagi.Unified.GuardedRobustLogit | 11 | 1 | guardedLogitNext | no | Proven |
 | Hagi.Unified.GuardedRobustResourceMin | 7 | 1 | guardedMinimumResource | no | Proven |
@@ -591,7 +596,6 @@ theorems.
 | Hagi.Unified.MemoryCycle | 43 | 36 | frobNorm | no | Proven |
 | Hagi.Unified.MemorySemantics | 15 | 21 | ramWriteCert_of_updateRow | no | Proven |
 | Hagi.Unified.MicroStepCert | 4 | 2 | - | no | Proven |
-| Hagi.Unified.ModelComparison | 18 | 16 | zIndicator, zOf, Score, modelGap | no | Proven |
 | Hagi.Unified.NCStepCert | 20 | 6 | ncContract, ncTraj, ncStepCert, ncMinimalStepCert, ncCertStep, ncMeasured | no | Proven |
 | Hagi.Unified.NegativeTests | 6 | 0 | - | no | Proven |
 | Hagi.Unified.ParetoExecution | 38 | 25 | robustNext, selection, selectedNext, selectionIn, scoreDominatingIn | no | Proven |
@@ -615,5 +619,4 @@ theorems.
 | Hagi.Unified.TelescopeInstances | 9 | 0 | - | no | Proven |
 | Hagi.Unified.TernaryProbe | 7 | 3 | ternaryRoundCap, ternaryCubicStepBudget, ternaryCentralCubicProbe | no | Proven |
 | Hagi.Unified.TransitionCert | 16 | 6 | toCertStepGen, toCertStep, ctContract | yes | Conditional |
-| Hagi.Unified.TwoDomainConfidence | 2 | 0 | - | no | Proven |
 | Hagi.Unified.VerticalCapstone | 9 | 0 | - | no | Proven |
