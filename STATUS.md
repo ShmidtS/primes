@@ -3307,6 +3307,23 @@ one-hot CE.
   неотрицательность `u.riskSpend`.
 
 
+## Hagi/Model/NonlinearCE.lean
+- `ceOneHot_nonlinear_descent_le`: нелинейная лемма о спуске — при
+  посылках мажоризатора Якобиана (оструктуренный остаток
+  `‖f w-f θ-J(w-θ)‖ ≤ ρ*‖w-θ‖^2` на шаре `r`, диапазон `(J d) ≤ R`,
+  `η*‖d‖ ≤ r`) `CE(f(θ+ηd)) ≤ CE(fθ) - η*A +
+  (nonlinearCurvature R ρ ‖d‖^2 / 2)*η^2`, где составная кривизна
+  `nonlinearCurvature R ρ dn = R^2/4 + 4*ρ*dn` (без отброшенных
+  перекрёстных членов).
+- `ceOneHot_nonlinear_safeStep_le` / `_lt`: безопасный шаг
+  `nonlinearSafeStep A L = A / L` гарантирует спуск
+  `CE ≤ CE - A^2/(2*L)` (строго при `0 < A`, `0 < L`); композиционный
+  градиент — существующий `fderiv_ceOneHot_comp_apply`.
+- Инстанциация: tanh-голова `tanhHead x = ![Real.tanh x, 0]`
+  (`ρ = 2` глобально, `R = 1`, `A = 1/2`, кривизна `33/4`, шаг
+  `2/33`): `ceOneHot_tanhHead_safeStep_le` / `_lt`.
+
+
 ## Hagi/Model/NormAct.lean
 - PreNorm: `preNorm_step_bound` ограничивает шаг суммой норм;
   `preNorm_depth_bound` при `‖fs t‖ ≤ B` даёт
