@@ -486,6 +486,7 @@ import Hagi.Cert.StepGen
 import Hagi.Cert.Empirical
 import Hagi.Cert.Adapters
 import Hagi.Cert.CertifiedArgmax
+import Hagi.Training.MacroStatCert
 
 set_option linter.style.header false
 
@@ -550,4 +551,3 @@ Empirical measurements (RMS errors, benchmark scores, saturation
 curves) are not mathematical statements and are intentionally out of
 scope.
 -/
-

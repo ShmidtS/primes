@@ -61,6 +61,9 @@ LAYERS = {
     "Omni": 5,
     "Unified": 6,
     "Examples": 7,
+    # C380 (A16 TT-CAT): training layer — macro-loop certificates above
+    # Contracts (7: EProcMonitor reuse) and Unified (6: Ville engine).
+    "Training": 8,
 }
 
 # known violations, to be removed one by one (audit list):
