@@ -121,6 +121,45 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
         field_simp
 
 
+/-- C365 общий ингредиент концентрационных доказательств: проекция
+шума на направление ограничена `σ·‖d‖` (Коши–Шварц). Ранее
+байт-в-байт дублировался в `minibatch_inner_concentration` и
+`minibatch_inner_concentration_upper`. -/
+theorem noise_proj_abs_le {m : ℕ} (d : X) (sigma : ℝ)
+    (xi : K → Fin m → Ω → X)
+    (h_emp_noise_bound : ∀ i j ω, ‖xi i j ω‖ ≤ sigma)
+    (hsigma : 0 < sigma) (i j ω) :
+    |⟪xi i j ω, d⟫_ℝ| ≤ sigma * ‖d‖ := by
+  calc |⟪xi i j ω, d⟫_ℝ| = ‖⟪xi i j ω, d⟫_ℝ‖ := (Real.norm_eq_abs _).symm
+    _ ≤ ‖xi i j ω‖ * ‖d‖ := norm_inner_le_norm _ _
+    _ ≤ sigma * ‖d‖ :=
+        mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg d)
+
+/-- C365 общий ингредиент: тождество показателя хвоста
+`m·noiseEps² = 2·(σ‖d‖)²·log(|K|/δ)`. Ранее дублировался
+байт-в-байт в обоих концентрационных доказательствах. -/
+theorem noiseEps_sq_identity {m : ℕ} [Nonempty K] (hm : 0 < m)
+    (d : X) (hd : d ≠ 0) (sigma : ℝ) (hsigma : 0 < sigma)
+    (delta : ℝ) (hdelta : delta ∈ Set.Ioo 0 1) :
+    m * (noiseEps K sigma d m delta) ^ 2
+      = 2 * (sigma * ‖d‖) ^ 2 * Real.log ((Fintype.card K : ℝ) / delta) := by
+  have hmp : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
+  obtain ⟨hd1, hd2⟩ := Set.mem_Ioo.mp hdelta
+  have hcard : (1 : ℝ) ≤ (Fintype.card K : ℝ) := by exact_mod_cast Fintype.card_pos
+  have hLpos : 0 < Real.log ((Fintype.card K : ℝ) / delta) := by
+    have h1 : 1 < (Fintype.card K : ℝ) / delta :=
+      (one_lt_div hd1).mpr (lt_of_lt_of_le hd2 hcard)
+    exact Real.log_pos h1
+  have hs2 : 0 ≤ 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) := by
+    apply div_nonneg _ hmp.le
+    linarith
+  unfold noiseEps
+  have hsqr : (Real.sqrt (2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ))) ^ 2
+      = 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) :=
+    Real.sq_sqrt hs2
+  rw [mul_pow, hsqr]
+  field_simp
+
 /-- При `d ≠ 0`, `0 < σ`, статистических посылках на
 проекции шума (измеримость, среднее нулевое, поштучная
 независимость, `‖ξ‖ ≤ σ`) и `δ ∈ (0,1)`:
@@ -145,11 +184,8 @@ theorem minibatch_inner_concentration {m : ℕ} (hm : 0 < m)
   -- the noise projections are bounded by R = σ‖d‖ (Cauchy-Schwarz)
   have hB : ∀ i j ω, |⟪xi i j ω, d⟫_ℝ| ≤ R := by
     intro i j ω
-    calc |⟪xi i j ω, d⟫_ℝ| = ‖⟪xi i j ω, d⟫_ℝ‖ := (Real.norm_eq_abs _).symm
-      _ ≤ ‖xi i j ω‖ * ‖d‖ := norm_inner_le_norm _ _
-      _ ≤ R := by
-          rw [hRdef]
-          exact mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg d)
+    rw [hRdef]
+    exact noise_proj_abs_le d sigma xi h_emp_noise_bound hsigma i j ω
   -- ε_noise ≥ 0 (the log is nonnegative: |K| ≥ 1 > δ)
   have hcard : (1 : ℝ) ≤ (Fintype.card K : ℝ) := by exact_mod_cast Fintype.card_pos
   obtain ⟨hd1, hd2⟩ := Set.mem_Ioo.mp hdelta
@@ -163,17 +199,8 @@ theorem minibatch_inner_concentration {m : ℕ} (hm : 0 < m)
   -- the exponent identity: m·ε_noise² / (2R²) = log(|K|/δ)
   have hsq : m * (noiseEps K sigma d m delta) ^ 2
       = 2 * R ^ 2 * Real.log ((Fintype.card K : ℝ) / delta) := by
-    have hmp : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
-    have hs2 : 0 ≤ 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) := by
-      apply div_nonneg _ hmp.le
-      linarith
-    unfold noiseEps
-    have hnn : (sigma * ‖d‖) ^ 2 = R ^ 2 := by rw [hRdef]
-    have hsqr : (Real.sqrt (2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ))) ^ 2
-        = 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) :=
-      Real.sq_sqrt hs2
-    rw [mul_pow, hsqr, hnn]
-    field_simp
+    rw [hRdef]
+    exact noiseEps_sq_identity hm d hd sigma hsigma delta hdelta
   -- the per-domain tail equals exactly δ/|K|
   have htailval : ∀ i : K,
       μ.real {ω | (m : ℝ) * noiseEps K sigma d m delta
@@ -284,11 +311,8 @@ theorem minibatch_inner_concentration_upper {m : ℕ} (hm : 0 < m)
   -- the noise projections are bounded by R = σ‖d‖ (Cauchy-Schwarz)
   have hB : ∀ i j ω, |⟪xi i j ω, d⟫_ℝ| ≤ R := by
     intro i j ω
-    calc |⟪xi i j ω, d⟫_ℝ| = ‖⟪xi i j ω, d⟫_ℝ‖ := (Real.norm_eq_abs _).symm
-      _ ≤ ‖xi i j ω‖ * ‖d‖ := norm_inner_le_norm _ _
-      _ ≤ R := by
-          rw [hRdef]
-          exact mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg d)
+    rw [hRdef]
+    exact noise_proj_abs_le d sigma xi h_emp_noise_bound hsigma i j ω
   -- ε_noise ≥ 0 (the log is nonnegative: |K| ≥ 1 > δ)
   have hcard : (1 : ℝ) ≤ (Fintype.card K : ℝ) := by exact_mod_cast Fintype.card_pos
   obtain ⟨hd1, hd2⟩ := Set.mem_Ioo.mp hdelta
@@ -302,17 +326,8 @@ theorem minibatch_inner_concentration_upper {m : ℕ} (hm : 0 < m)
   -- the exponent identity: m·ε_noise² / (2R²) = log(|K|/δ)
   have hsq : m * (noiseEps K sigma d m delta) ^ 2
       = 2 * R ^ 2 * Real.log ((Fintype.card K : ℝ) / delta) := by
-    have hmp : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
-    have hs2 : 0 ≤ 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) := by
-      apply div_nonneg _ hmp.le
-      linarith
-    unfold noiseEps
-    have hnn : (sigma * ‖d‖) ^ 2 = R ^ 2 := by rw [hRdef]
-    have hsqr : (Real.sqrt (2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ))) ^ 2
-        = 2 * Real.log ((Fintype.card K : ℝ) / delta) / (m : ℝ) :=
-      Real.sq_sqrt hs2
-    rw [mul_pow, hsqr, hnn]
-    field_simp
+    rw [hRdef]
+    exact noiseEps_sq_identity hm d hd sigma hsigma delta hdelta
   -- the per-domain tail equals exactly δ/|K|
   have htailval : ∀ i : K,
       μ.real {ω | (m : ℝ) * noiseEps K sigma d m delta

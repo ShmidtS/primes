@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 610
-- theorems: 11273
-- defs: 3618
-- noncomputable decls: 1076
-- status Proven: 532 modules
+- modules: 612
+- theorems: 11310
+- defs: 3677
+- noncomputable decls: 1079
+- status Proven: 534 modules
 - status Conditional: 23 modules
 - status Empirical: 11 modules
 - status Speculative: 24 modules
@@ -327,6 +327,7 @@ theorems.
 | Hagi.Model.CEMarkovConfidence | 5 | 0 | - | no | Proven |
 | Hagi.Model.CEMarkovMaximalConfidence | 2 | 1 | - | no | Proven |
 | Hagi.Model.CEMarkovSelectedPrefix | 1 | 0 | - | no | Proven |
+| Hagi.Model.CEModel | 16 | 15 | singleSampleCE, batchCE | no | Proven |
 | Hagi.Model.CEPackedStep | 7 | 4 | packedStep, decodeStep, rawSuccessor, encodedWord | no | Proven |
 | Hagi.Model.CEPadding | 67 | 10 | - | no | Proven |
 | Hagi.Model.CEQuantized | 20 | 5 | ceQuantPenalty, ceQuantObservedPenalty, ternaryCEParameters, ceQuantStructuralPenalty | no | Proven |
@@ -521,6 +522,7 @@ theorems.
 | Hagi.StatMech.Hopfield.LowerBound | 4 | 0 | - | no | Proven |
 | Hagi.StatMech.Hopfield.Model | 3 | 5 | partition, freeEnergyDensity, energy | no | Proven |
 | Hagi.StatMech.Hopfield.SubMemory | 12 | 1 | subsetEnergy | no | Proven |
+| Hagi.State.CanonicalTrainState | 21 | 44 | trainMetrics | no | Proven |
 | Hagi.State.TrainState | 19 | 90 | qualityScalar | no | Proven |
 | Hagi.State.Transition | 27 | 36 | lossOf, trainStep, guidedTrainStep | no | Proven |
 | Hagi.State.Views | 3 | 1 | - | no | Proven |

@@ -222,6 +222,20 @@ theorem success_count_lower_p0 {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 : �
 
 variable {C : ℕ → Ω → ℝ}
 
+/-- C365 общий телескоп лог-разностей, однократно: сумма
+`f (t+1) − f t` по `t < T` равна `f T − f 0`. Ранее этот блок
+(с точностью до знака от `Finset.sum_range_sub'`) дублировался
+байт-в-байт в `log_growth` и `takeoff_time_form`. -/
+theorem sum_range_succ_sub_eq (f : ℕ → ℝ) (T : ℕ) :
+    ∑ t ∈ Finset.range T, (f (t + 1) - f t) = f T - f 0 := by
+  have h0 := Finset.sum_range_sub' f T
+  have heq : ∑ t ∈ Finset.range T, (f (t + 1) - f t)
+      = -∑ t ∈ Finset.range T, (f t - f (t + 1)) := by
+    rw [← Finset.sum_neg_distrib]
+    exact Finset.sum_congr rfl fun t _ => by ring
+  rw [heq, h0]
+  ring
+
 /-- **The composed stochastic growth law (log form)**: with
 independent [0,1]-valued success indicators bounded below in
 mean by p₀, and the POINTWISE log-form capability bridge
@@ -259,16 +273,7 @@ theorem log_growth {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} {eps : 
     intro ω hω
     simp only [Set.mem_ofPred_eq] at hω ⊢
     -- telescope the log differences
-    have h0 := Finset.sum_range_sub' (fun t => Real.log (C t ω)) T
-    have htele : ∑ t ∈ Finset.range T,
-        (Real.log (C (t + 1) ω) - Real.log (C t ω))
-        = Real.log (C T ω) - Real.log (C 0 ω) := by
-      have heq : ∑ t ∈ Finset.range T, (Real.log (C (t + 1) ω) - Real.log (C t ω))
-          = -∑ t ∈ Finset.range T, (Real.log (C t ω) - Real.log (C (t + 1) ω)) := by
-        rw [← Finset.sum_neg_distrib]
-        exact Finset.sum_congr rfl fun t _ => by ring
-      rw [heq, h0]
-      ring
+    have htele := sum_range_succ_sub_eq (fun t => Real.log (C t ω)) T
     -- sum the bridge inequalities
     have hstep : a * ∑ t ∈ Finset.range T, S t ω - ∑ t ∈ Finset.range T, eps t
         ≤ ∑ t ∈ Finset.range T, (Real.log (C (t + 1) ω) - Real.log (C t ω)) := by
@@ -314,16 +319,7 @@ theorem takeoff_time_form {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} 
     intro ω hω
     simp only [Set.mem_ofPred_eq] at hω ⊢
     -- the log-form bound on this sample point
-    have h0 := Finset.sum_range_sub' (fun t => Real.log (C t ω)) T
-    have htele : ∑ t ∈ Finset.range T,
-        (Real.log (C (t + 1) ω) - Real.log (C t ω))
-        = Real.log (C T ω) - Real.log (C 0 ω) := by
-      have heq : ∑ t ∈ Finset.range T, (Real.log (C (t + 1) ω) - Real.log (C t ω))
-          = -∑ t ∈ Finset.range T, (Real.log (C t ω) - Real.log (C (t + 1) ω)) := by
-        rw [← Finset.sum_neg_distrib]
-        exact Finset.sum_congr rfl fun t _ => by ring
-      rw [heq, h0]
-      ring
+    have htele := sum_range_succ_sub_eq (fun t => Real.log (C t ω)) T
     have hstep : a * ∑ t ∈ Finset.range T, S t ω - ∑ t ∈ Finset.range T, eps t
         ≤ ∑ t ∈ Finset.range T, (Real.log (C (t + 1) ω) - Real.log (C t ω)) := by
       have hle : ∑ t ∈ Finset.range T, (a * S t ω - eps t)
