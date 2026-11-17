@@ -457,6 +457,7 @@ import Hagi.Unified.VerticalCapstone
 import Hagi.Unified.NegativeTests
 import Hagi.Foundations.QuadEta
 import Hagi.State.TrainState
+import Hagi.State.CanonicalTrainState
 import Hagi.State.Transition
 import Hagi.State.Views
 import Hagi.Contracts.ObjectiveTrajectory
