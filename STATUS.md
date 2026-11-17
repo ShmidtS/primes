@@ -4768,7 +4768,7 @@ one-hot CE.
   zero-drift the pair is nonvacuous exactly under rank(I) < d.
 
 
-## Hagi/Unified/AnytimePACBayes.lean
+## Hagi/Theory/AnytimePACBayes.lean
 - `anytime_catoni`: при `lam > 0`, неотрицательном супермартингале `L`
   с `E[L0] ≤ 1`, `L t = exp(lam·S t − ψt)` и `δ > 0` вероятность существования
   `t ≤ n`, для которого `S t > (ψt + log(1/δ))/lam`, не превосходит `δ`.
@@ -5038,7 +5038,7 @@ one-hot CE.
   а не копирует старое значение.
 
 
-## Hagi/Unified/GaugeQuotient.lean
+## Hagi/Theory/GaugeQuotient.lean
 - `quotientResidual_gauge_invariant`: остаток
   `r_G(z) = inf_φ‖Tz−e^{iφ}z‖` не меняется при фазовом вращении.
 - `relativeEquilibrium_residual_zero`: если `Tz = rot φ₀ z`, то `r_G(z)=0`;
@@ -5340,7 +5340,7 @@ one-hot CE.
   энергия строго убывает при сохранении всех этих действий на входах.
 
 
-## Hagi/Unified/ModelComparison.lean
+## Hagi/Training/ModelComparison.lean
 - `delta_pos_of_dominates`: при `λ > 0`, `ρ ≥ 0`,
   `logS−logR ≤ ρ` и `cS−cR > ρ/λ`
   разность `loglik−λ·complexity` строго положительна.
@@ -5641,7 +5641,7 @@ wall-clock, сжатие весов или улучшение качества.
   при `T > 0` цель строго убывает, а `risk(x T) ≤ risk(x0)+T·riskLim`.
 
 
-## Hagi/Unified/TwoDomainConfidence.lean
+## Hagi/Theory/TwoDomainConfidence.lean
 - `finite_family_two_domain_guarded_improvement`: на конечном product-law
   для `[0,1]`-targets, `n,eps_old,eps_target > 0`,
   при вероятности общей старой ошибки не менее `1−δ`,

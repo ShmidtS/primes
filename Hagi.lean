@@ -273,9 +273,9 @@ import Hagi.Probability.FiniteMultiEM
 import Hagi.Probability.MomentBounds
 import Hagi.Probability.SphericalAngle
 import Hagi.Unified.DerivAlong
-import Hagi.Unified.GaugeQuotient
+import Hagi.Theory.GaugeQuotient
 import Hagi.Unified.InterpretiveGrowth
-import Hagi.Unified.ModelComparison
+import Hagi.Training.ModelComparison
 import Hagi.Unified.RecursiveClean
 import Hagi.Model.StageSemantics
 import Hagi.Model.CertifiedTransition
@@ -307,7 +307,7 @@ import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory
 import Hagi.Unified.DescentCore
-import Hagi.Unified.AnytimePACBayes
+import Hagi.Theory.AnytimePACBayes
 import Hagi.Model.MeasurementCert
 import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
@@ -414,7 +414,7 @@ import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
 import Hagi.Unified.GuardedRobustLogit
 import Hagi.Unified.GuardedRobustSelection
-import Hagi.Unified.TwoDomainConfidence
+import Hagi.Theory.TwoDomainConfidence
 import Hagi.Unified.GuardedRobustTrajectory
 import Hagi.Unified.GuardedRobustResourceMin
 import Hagi.Unified.QualityResourceMin
