@@ -493,6 +493,7 @@ import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
 import Hagi.Theory.CEChain
 import Hagi.Theory.StochasticSafeStep
+import Hagi.Theory.CompressedSafeStep
 
 set_option linter.style.header false
 
