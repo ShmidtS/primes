@@ -2483,8 +2483,6 @@ one-hot CE.
 - Границы: PL ≠ полная likelihood; CertTrain/CertReason — отдельные
   сертификаты (E2+); Hopfield-мост — только через sign-адаптер.
 
-
-## Hagi/Model/EnergyReasoning/PseudolikelihoodLocalField.lean
 - Мост B2 (дополнение A11): PL → локально-полевая CE с β и свободными
   клетками + градиент.
 - `CRAMProblem` — конкретный носитель ограничений (allowed / givens /
@@ -2517,8 +2515,6 @@ one-hot CE.
 - `symmetrizeCoupling` / `symmetric_parameterization_preserves_hK` —
   конструктивный симметризатор (K̃+K̃ᵀ)/2 даёт премизу hK по построению.
 
-
-## Hagi/Model/EnergyReasoning/CramContracts.lean
 - Мост B3 (дополнение A11): типизированные CRAM-переходы →
   каноническое Cert-ядро с точными ресурсными законами.
 - `MetricDirection` (UtilityFloor | LossCeiling) + kept / improves —
@@ -2554,8 +2550,6 @@ one-hot CE.
   равенство состояния (все 7 компонент; ядро HoldStep
   переиспользовано без изменений).
 
-
-## Hagi/Model/EnergyReasoning/LatentEnergy.lean
 - Track E3 (addendum A9 §E3 + A9-supplement, CRAM Maze-Hard): латентная
   квадратичная энергия на конечном графе-носителе, строгая выпуклость,
   ℓ∞-сжатие обновления, двухфазный протокол видимого спуска.
@@ -2589,8 +2583,6 @@ one-hot CE.
   (z, p)-обновления ломают аргумент Ляпунова — совместной теоремы нет
   (RootApi-пин: имя visible_descent_joint_z отсутствует).
 
-
-## Hagi/Model/EnergyReasoning/EnergySearch.lean
 - Track E4 (addendum A9 §E4 + A9-supplement, CRAM): heat-bath ядро Гиббс-
   поиска как явная политика + фокусная смесь: обратимость (detailed
   balance), стационарность, сохранение клампов.
@@ -2625,8 +2617,6 @@ one-hot CE.
   если веса выбора обнуляются на данных ячейках (free-cells-only), то
   ненулевой переход смеси сохраняет каждое данное значение точно.
 
-
-## Hagi/Model/EnergyReasoning/EnergyStopping.lean
 - Track E4 (cert-kernel A9-supplement): сертифицированная остановка —
   ДВА РАЗЛИЧНЫХ сертификата, никогда не смешиваемых.
 - `EnergyStop` — событие ЭФФЕКТИВНОСТИ: конфигурация y с
@@ -2641,8 +2631,6 @@ one-hot CE.
   провала без разделения: нуль-энергетическая невалидная доска
   (фикстура Fin 2 × Bool).
 
-
-## Hagi/Model/EnergyReasoning/EnergyClassGeneralization.lean
 - C315 (P4 frontier — генерализация для выученных энергий,
   двухуровневая рамка): `finite_class_pl_uniform` — равномерная
   сходимость PL-лосса над КОНЕЧНЫМ классом энергий (индексируемым
@@ -2667,6 +2655,284 @@ one-hot CE.
 - Честная граница: НЕ заявлены непрерывные классы, Rademacher/VC,
   стабильность; [0,1]-нормализация лосса — внешняя премиза
   (рескейл [0,L] есть в FiniteFamilyConfidence).
+
+- Track P1-remainder (дополнение A11): конечная терминация жадного
+  строго улучшающегося поиска + аудит инвариантности практической
+  фокусной политики.
+- `Hagi.Model.EnergyReasoning.greedy_strict_search_terminates` —
+  (A6 MAIN) на конечном типе конфигураций строго улучшающаяся
+  траектория (List.Pairwise строгого убывания энергии H) имеет
+  длину ≤ Fintype.card (Set.image H univ) — числа различных
+  значений энергии: строгая монотонность даёт Nodup образа
+  (nodup_map_energy_of_pairwise), образ вкладывается в subtype
+  образа через attach.map, List.Nodup.length_le_card. Бесконечной
+  строго убывающей цепи нет; rate/сложность НЕ утверждаются.
+- `Hagi.Model.EnergyReasoning.
+  greedy_search_terminal_is_coordinate_minimum` — (A6 MAIN)
+  терминальное состояние строгого улучшения (нет положительной
+  маржи C261 ни в одной ячейке) есть IsCoordinateMinimum
+  (переиспользование C261 дословно: дельта-тождество
+  single_cell_move_energy_delta_symm + not_lt + linarith).
+  Координатный минимум ≠ глобальный ≠ валидное решение.
+- `Hagi.Model.EnergyReasoning.focusedDisagreementWeight` —
+  практическое фокусное правило выбора (несогласие собственной
+  ячейки Σ_a max 0 (L_i(y_i) − L_i(a)); зависит от y_i самого).
+- `Hagi.Model.EnergyReasoning.
+  concrete_focus_policy_violates_invariance` — (A7 MAIN,
+  негативное свидетельство) премиза INVARIANCE теоремы C263
+  focused_mixture_stationary ЛОЖНА для практической политики:
+  фикстура Fin 2 × Bool (Bex/Kex/xtt, L_0(c) = if c then 3 else 0
+  зависит только от y_1): w(xtt)_0 = 3, после хода 0←f вес = 0.
+  Стационарность практического фокусного сэмплера НЕ
+  сертифицирована (premise-form only); y_{−i}-политика не
+  проектируется (вне рамок аудита).
+
+- Track P1-remainder (дополнение A11, item A5): concrete validity
+  separation для penalty-энергий — премиза сепарации E4
+  доказана для семейства раскраски графов.
+- `Hagi.Model.EnergyReasoning.energy_threshold_lt_min_penalty_
+  implies_valid` — (A5 CORE, premise-form) энергия = сумма
+  неотрицательных штрафов, каждый ненулевой ≥ pmin > 0, нулевые
+  штрафы ⇒ валидность ⇒ энергия < pmin ⇒ валидность (by_contra +
+  single_le_sum + linarith). Переиспользуемое ядро; судоку/
+  n-ферзей покрываются абстрактно в premise-form.
+- `Hagi.Model.EnergyReasoning.coloringCoupling` /
+  `Hagi.Model.EnergyReasoning.coloringField` /
+  `Hagi.Model.EnergyReasoning.isProperColoring` — реализация:
+  K_ij(a,b) = 1[(i,j)∈edges ∧ a=b] (энергия конфликтов ЕСТЬ
+  pairwiseEnergy по конвенции E1 — H есть счётчик конфликтов по
+  построению), унарный штраф givens, правильность раскраски.
+- `Hagi.Model.EnergyReasoning.graph_coloring_zero_energy_iff_valid`
+  — (B = 0, hnodiag) энергия конфликтов = 0 ⇔ раскраска правильная.
+- `Hagi.Model.EnergyReasoning.graph_coloring_separation` —
+  премиза сепарации ДОКАЗАНА при τ < 1 (hsym + hnodiag):
+  энергия ≤ τ ⇒ givens сохранены (через ядро A5, pmin = 1) ∧
+  раскраска правильная (нарушенное неориентированное ребро стоит
+  ровно 1 — оба упорядоченных индикатора × ½).
+- `Hagi.Model.EnergyReasoning.graph_coloring_stop_sep_valid` —
+  EnergyStop при τ < 1 производит ValidityCertificate через
+  stopping_sound_of_separation с доказанной премизой; унарный слот C
+  = «отличаться от каждого данного (given)-цветного соседа»;
+  бинарное содержание — спутник
+  `Hagi.Model.EnergyReasoning.graph_coloring_stop_proper`.
+- Честные границы (docstring): learned-энергии сепарации НЕ имеют
+  (приём только через независимый валидатор — CRAMAcceptedSolution);
+  τ < 1 требует hsym; фикстуры Fin 3: 2 цветов нет, 3 — энергия 0,
+  монохром — ≠ 0.
+
+- Track P3 (дополнение A11, первый item): числовые мосты ошибок для
+  CRAM-решателя — гвардированный спуск по энергии под шумом
+  вычисленных локальных полей.
+- `Hagi.Model.EnergyReasoning.guarded_energy_delta_error` — (P3
+  CORE) премиза |L̂_i(a) − L_i(a)| ≤ ε (вычисленные поля, напр.
+  BF16-округлённые) ⇒ ошибка energy-delta
+  |Δ̂ − Δ| ≤ 2ε, где Δ = E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)
+  (симметричная K, `single_cell_move_energy_delta_symm`): delta
+  содержит ДВЕ оценки поля (L̂ a и L̂ (y i)), каждая ±ε; константа
+  2ε точная (tight), ε-only — ошибка одного оценивания.
+- `Hagi.Model.EnergyReasoning.guarded_energy_delta` — гвард ЗВУЧЕН:
+  вычисленная маржа улучшения 2ε < L̂(y_i) − L̂(a) ⇒ ИСТИННАЯ энергия
+  строго убывает (приём только при марже > 2ε; обе стороны честны —
+  отвергнутый ход НЕ несёт информации, свидетель: истинная маржа 2 >
+  0, вычисленная 0 ≤ 2ε = 2 при ε = 1 — гвард консервативно
+  отвергает истинный спуск, возможен stall ниже шумового пола 2ε).
+- `Hagi.Model.EnergyReasoning.localField_visibleBiasWithZ` — шов
+  композиции: замороженный z-сдвиг.bias добавляет константу zc i к
+  каждому значению локального поля ячейки i.
+- `Hagi.Model.EnergyReasoning.guarded_greedy_strict_drop` — (P3
+  MAIN, композиция с C261 `strict_drop_of_positive_margin`)
+  гвардированный приём в two-phase frozen-z постановке:
+  `pairwiseEnergy (visibleBiasWithZ B zc) K` строго убывает при
+  вычисленной марже > 2ε — апгрейд точной арифметики C261 до
+  noise-robust спуска; совместные (z, y)-обновления по-прежнему
+  запрещены (E3).
+- `Hagi.Model.EnergyReasoning.latent_update_degree_zero_exact_after_
+  one` / `Hagi.Model.EnergyReasoning.
+  latent_update_degree_zero_one_step_is_fixed` — (B1-low)
+  вырожденный случай Δ = 0 (все окрестности пусты): обновление —
+  константное отображение 1[i=G]/m, ТОЧНОЕ за один шаг; любая
+  стартовая точка достигает неподвижной точки за один шаг. Отдельные
+  теоремы: `latent_iterate_err_bound` требует 0 < Δ (фактор
+  сжатия ∈ (0,1), асимптотический пол ε_round/(1−q) существует
+  только при настоящем сжатии) — случай Δ = 0 не спрятан и не
+  смешан.
+- BF16-инстанциация (target 4, mapping): премиза ε инстанцируется
+  существующей моделью `Hagi.Runtime.BF16Delta.
+  abs_sub_le_of_isNearest_normal` (|decode c − x| ≤ 2⁻⁸·|x| в
+  нормальном диапазоне, ℚ-носитель); рецепт абсолютной ε =
+  2⁻⁸·max_b|L i b| через Rat.cast_le записан в docstring (reuse, не
+  redefine); ниже нормального диапазона относительная оценка не
+  имеет места — премиза там НЕ заявляется.
+
+- Track B3 (дополнение A11 B-level): attention-связь L_ij(z) —
+  настоящий мост CRAM+Z в видимое парное ядро (не только
+  аддитивный bias).
+- `Hagi.Model.EnergyReasoning.attentionWeights` + факты
+  (`attentionWeights_nonneg`, `attentionWeights_le_one`,
+  `attentionWeights_sum`) — softmax-веса α_ij при ЗАМОРОЖЕННОМ z в
+  скорах s; премиза [Nonempty ι] (пустой тип — softmax нет).
+- `Hagi.Model.EnergyReasoning.attention_coupling_symmetric` —
+  (B3 MAIN) L_ij(a,b) = L_ji(b,a) ПО ПОСТРОЕНИЮ: оба направленных
+  вклада входят в каждый L_ij и меняются местами точно (приём
+  «верхнего треугольника» A9); НЕТ премизы симметрии на κ/w. Fin 3
+  якорь с намеренно асимметричным κ.
+- `Hagi.Model.EnergyReasoning.attention_coupling_bounded` —
+  |L_ij| ≤ 2·κmax·fmax (0 ≤ κ ≤ κmax, w ∈ [0,1], |f| ≤ fmax);
+  константа 2 tight (два направленных вклада).
+- `Hagi.Model.EnergyReasoning.attentionK` /
+  `attention_K_symmetric` / `frozen_z_field_with_attention` — ядро
+  K(z) при замороженном z удовлетворяет hK C261 дословно; локальное
+  поле определено; ход в минимизатор не увеличивает pairwiseEnergy
+  B (attentionK κ (attentionWeights s) f). Premise-form спуска;
+  совместной (z,y)-теоремы НЕТ (E3).
+- `Hagi.Model.EnergyReasoning.attention_coupling_field_diff` —
+  |w1 − w2| ≤ δ ⇒ возмущение локального поля ≤
+  |S_i|·2κmax·fmax·δ (S_i = univ \ {i}).
+- `Hagi.Model.EnergyReasoning.latent_error_couples_field` —
+  (B3 MAIN) составной контракт: ‖z − z*‖ ≤ η + softmax-Липшиц
+  ПРЕМИЗА |w(z) − w(z*)| ≤ L_sm·η ⇒ возмущение поля ≤
+  |S_i|·2κmax·fmax·L_sm·η. Премиза честная: леммы Липшица softmax
+  для этого носителя не существует/не заявляется.
+- `Hagi.Model.EnergyReasoning.latent_attention_guarded_drop` —
+  (B3 MAIN) гвард C270 поглощает latent-ошибку: ε :=
+  |S_i|·2κmax·fmax·L_sm·η; вычисленная маржа > 2ε ⇒ СТРОГИЙ спуск
+  истинной pairwiseEnergy B (attentionK κ w2 f). Отвержение
+  информации не несёт (C270-честность).
+- Честные границы: структурный мост CRAM+Z; полная семантика
+  Maze-Hard (носитель z*, достижимость, совместные обновления)
+  открыта; softmax-Липшиц по z — премиза.
+
+- Track B4 (дополнение A11, C293): alternating (z,y)-раунд —
+  дизайн-решение (R1 чередующиеся раунды с потолками на раунд;
+  мотивировка: z* не зависит от y ⇒ нет пола ε_round/(1−q);
+  маршруты R2/R3 отклонены в docstring с причинами) + первые
+  честные раундовые теоремы.
+- `Hagi.Model.EnergyReasoning.alternating_round_nonincreasing` —
+  (B4 MAIN) раунд-теорема (строгая форма): премиза z-фазы
+  (hsoft : |w(z_t) − w(z*)| ≤ L_sm·η; поставка η — потолок
+  оседания latent_settle_tolerance) + числовая ошибка ε (C270) +
+  составной гвард 2·(ε + |S_i|·2κmax·fmax·L_sm·η) < маржа ⇒
+  СТРОГИЙ спуск pairwiseEnergy B (attentionK κ w2 f) на ИСТИННОМ
+  ядре замороженного z*. Композиция guarded_energy_delta +
+  latent_error_couples_field (треугольник); аддитивно к C271
+  (отдельная ε поверх coupling-η).
+- `Hagi.Model.EnergyReasoning.alternating_zphase_one_step_error`
+  — η-бухгалтерия: один шаг z-фазы сжимает ошибку к статическому
+  фикспойнту (‖latentUpdate z − z*‖ ≤ (Δ/m)·‖z − z*‖); вход
+  суммируемости R1; сама суммируемость НЕ заявлена.
+- Числовые якоря: fan2/yan2 (Fin 2/Bool) — ПРИКЛАДНОЙ якорь:
+  энергия 0 → −2 через саму раунд-теорему (w1 = w2, ε = 0).
+- `Hagi.Model.EnergyReasoning.alternating_round_slack_summable`
+  — (B4 N1, C294) суммируемость слэка раунда: геометрическое
+  затухание (премиза `slack (t+1) ≤ (Δ/m)·slack t`; поставка
+  C·η_t-части — alternating_zphase_one_step_error) ⇒ все частичные
+  суммы ≤ `slack 0 · m/(m−Δ)`. Затухание — гипотеза, не вывод.
+- `Hagi.Model.EnergyReasoning.alternating_trajectory_bound` /
+  `alternating_trajectory_descent_budget` — (B4 N2, C294)
+  телескопирование траекторий: пошаговые спады `d t` (премиза)
+  ⇒ `E (y N) ≤ E (y 0) − Σ d t`; пол Emin — ПРЕМИЗА (не вывод),
+  бюджет спада ≤ `E (y 0) − Emin`.
+- `Hagi.Model.EnergyReasoning.alternating_rounds_converge` —
+  (B4 N3, C294) терминальная конечная форма: на конечном
+  пространстве конфигураций строго убывающие раунды терминистируют
+  (длина ≤ мощности образа энергии; C268-ranking переиспользован,
+  greedy_strict_search_terminates процитирован). ТОЛЬКО конечная/
+  строгая версия: безусловная аналитическая сходимость
+  alternating_round_converges остаётся ОТКРЫТОЙ (негатив-пин
+  неизменен; терминация ≠ сходимость к минимуму).
+- Числовые якоря (C294, через сами новые теоремы): Σ (1/2)^t ≤ 2;
+  телескоп 10−t: 7 ≤ 10 − 3.
+- Честные границы: premise-form по всей длине (неточность z-фазы
+  и числовая ошибка — гипотезы); безусловной совместной (z,y)-
+  теоремы НЕТ: alternating_round_converges /
+  visible_descent_joint_z не существуют (RootApi-негатив-пины);
+  отвержение ниже слэка информации не несёт (C270-честность).
+
+- Track D3 (дополнение A11 P3): sparse field update correctness —
+  FLOP-преимущество локальных связей как теоремы (эквивалентность
+  полей + счёт операций).
+- `Hagi.Model.EnergyReasoning.couplingSupportedOn` — премиза-форма
+  носителя связи (j ∉ N i → K i j a b = 0);
+  `sparseLocalField` — поле по соседям только.
+- `Hagi.Model.EnergyReasoning.sparse_neighbours_subset` — без
+  само-соседей N i ⊆ univ \ {i} ДОСЛОВНО (конвенция C260
+  упорядоченных пар, challenge-pin; hN load-bearing).
+- `Hagi.Model.EnergyReasoning.sparse_localField_eq_dense` —
+  (D3 MAIN) sparse-поле = плотное localField (нулевые связи не
+  вносят ничего; Finset.sum_subset).
+- `Hagi.Model.EnergyReasoning.sparse_update_energy_delta_eq` —
+  (D3 MAIN) при симметричном K дельта энергии одно-клеточного хода =
+  разность sparse-полей (C261 single_cell_move_energy_delta_symm
+  сцигтирован, не перепроверен).
+- `Hagi.Model.EnergyReasoning.localField_dense_work` /
+  `localField_sparse_work` — ℕ-произведения card·(card α)² (work-model
+  определения; Σ_{j∈N i} card α² одной формулой);
+  `Hagi.Model.EnergyReasoning.localField_op_count_le` — sparse ≤
+  dense; `Hagi.Model.EnergyReasoning.localField_op_count_lt` — СТРОГО
+  при собственном подмножестве соседей и 0 < card α (премиза
+  необходима: пустой α обнуляет оба);
+  `Hagi.Model.EnergyReasoning.neighbour_card_le` — (N i).card ≤
+  card ι.
+- `Hagi.Model.EnergyReasoning.sparse_support_of_symmetric` —
+  симметричное хранение не протаскивает ненулевую связь мимо
+  соседних множеств (транспонированный носитель).
+- Якорь: Fin 4, 2 из 3 соседей, sparse = dense, 8 < 12 (decide).
+- Честные границы: счёт — без асимптотики и модели арифметики;
+  носитель — премиза (не теорема существования малого N).
+
+- Track B2 (дополнение A11 B-level): support/connectivity свойства
+  скрытой фиксированной точки z* = latentUpdate-неподвижной точки
+  (z i = (Σ_{j ∈ N i} z j + 1[i=G])/m, m > Δ).
+- `Hagi.Model.EnergyReasoning.latent_fixed_unique` — единственность
+  неподвижной точки (Δ/m-контракция C272 сцигтирована).
+- `Hagi.Model.EnergyReasoning.latent_fixed_nonneg` — (B2 MAIN)
+  неотрицательность всей точки (мин-аргумент: m·z i ≥ card(N i)·z i,
+  m > Δ ≥ card; выводится, не предполагается).
+- `Hagi.Model.EnergyReasoning.latent_fixed_goal_pos` — 1/m ≤ z* G
+  (целевой источник);
+  `Hagi.Model.EnergyReasoning.latent_fixed_ge_of_neighbour` —
+  i ∈ N j ⇒ z* j/m ≤ z* i (симметрия load-bearing).
+- `LatentPath` — индуктивная достижимость от цели (длина = рёбра);
+  `Hagi.Model.EnergyReasoning.latent_fixed_pos_of_reachable` —
+  (B2 MAIN) LatentPath N G i k ⇒ (1/m)^(k+1) ≤ z* i > 0.
+- `Hagi.Model.EnergyReasoning.latent_fixed_upper_bound` — глобальная
+  sup-оценка z* i ≤ 1/(m − Δ) (максимум-зеркало мин-аргумента).
+- `Hagi.Model.EnergyReasoning.latent_fixed_zero_off_closed` —
+  (B2 MAIN) z* = 0 на замкнутом по соседям без-целевом C'
+  (заплатка-аргумент + единственность).
+- Якорь: zstar4 = ![21/55, 8/55, 3/55, 1/55] (Fin 4): все > 0,
+  1/81 ≤ 1/55, 21/55 ≤ 1; emptyN2/zstar2 (Fin 2): z* = ![1/3, 0],
+  нуль на C' = {1}.
+- Честные границы: decay-upper на дистанции НЕ заявлен (нужно больше
+  структуры графа; negative pin latent_fixed_decay_upper); всё — о
+  неподвижной точке, итеративные оценки не дублируются (C272).
+
+- `Hagi.Model.EnergyReasoning.tv_pair_contraction` — row-stochastic
+  ядро с entrywise-полом c сжимает TV любой пары равномассовых
+  векторов: TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν) (разложение знаковой
+  разности; без стационарности и неотрицательности векторов).
+- `Hagi.Model.EnergyReasoning.heatbathWeight_floor` — разброс
+  локальных полей |L_i(a) − L_i(b)| ≤ M, T > 0 ⇒ каждый heat-bath вес
+  ≥ exp(−M/T)/card α.
+- `Hagi.Model.EnergyReasoning.heatbath_doeblin_floor` — (премиза-форма)
+  разброс полей + премиза носителя (каждая цель — одноячеечный ход) ⇒
+  ядро `doeblinMinorized` с c = exp(−M/T)/card α;
+  `heatbath_doeblin_floor_subsingleton` — при card ι ≤ 1 премиза
+  носителя выводится автоматически.
+- `Hagi.Model.EnergyReasoning.stationaryDensity` — нормированная
+  Болцмановская плотность; стационарна для heat-bath ядра
+  (`stationaryDensity_stationary`, из `heatbath_stationary`).
+- `Hagi.Model.EnergyReasoning.heatbath_tv_contraction` — Doeblin-премиза
+  ⇒ TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂); острая константа
+  1 − |ι→α|·c в `heatbath_tv_contraction_sharp`.
+- `Hagi.Model.EnergyReasoning.heatbath_mixing` — TV(μKⁿ, π̂) ≤
+  (1 − c)ⁿ; `Hagi.Model.EnergyReasoning.heatbath_mixing_time` —
+  n ≥ log e / log(1 − c) шагов ⇒ TV ≤ e.
+- Якорь: fixture Bex/Kex/xtt — exp(−3)/2 ≤ вес 1/(1 + exp(−3)).
+- Честные границы: entrywise-пол — ПРЕМИЗА (для card ι ≥ 2 вне
+  носителя нули); ирредуцибельность/апериодичность не заявлены
+  (negative pins heatbath_irreducible / heatbath_aperiodic);
+  фокусная смесь вне области (C268).
 
 
 ## Hagi/Model/DiffAttention.lean
@@ -5496,299 +5762,6 @@ merger cert carriers (Freeze-дисциплина: statement change).
   модель = честная deep-net специализация). Эмпирические MSE
   (2.2e-5 vs 2.5e-5) — мотивация в ALGORITHMS §20, не посылки.
 
-
-## Hagi/Model/EnergyReasoning/GreedyTermination.lean
-- Track P1-remainder (дополнение A11): конечная терминация жадного
-  строго улучшающегося поиска + аудит инвариантности практической
-  фокусной политики.
-- `Hagi.Model.EnergyReasoning.greedy_strict_search_terminates` —
-  (A6 MAIN) на конечном типе конфигураций строго улучшающаяся
-  траектория (List.Pairwise строгого убывания энергии H) имеет
-  длину ≤ Fintype.card (Set.image H univ) — числа различных
-  значений энергии: строгая монотонность даёт Nodup образа
-  (nodup_map_energy_of_pairwise), образ вкладывается в subtype
-  образа через attach.map, List.Nodup.length_le_card. Бесконечной
-  строго убывающей цепи нет; rate/сложность НЕ утверждаются.
-- `Hagi.Model.EnergyReasoning.
-  greedy_search_terminal_is_coordinate_minimum` — (A6 MAIN)
-  терминальное состояние строгого улучшения (нет положительной
-  маржи C261 ни в одной ячейке) есть IsCoordinateMinimum
-  (переиспользование C261 дословно: дельта-тождество
-  single_cell_move_energy_delta_symm + not_lt + linarith).
-  Координатный минимум ≠ глобальный ≠ валидное решение.
-- `Hagi.Model.EnergyReasoning.focusedDisagreementWeight` —
-  практическое фокусное правило выбора (несогласие собственной
-  ячейки Σ_a max 0 (L_i(y_i) − L_i(a)); зависит от y_i самого).
-- `Hagi.Model.EnergyReasoning.
-  concrete_focus_policy_violates_invariance` — (A7 MAIN,
-  негативное свидетельство) премиза INVARIANCE теоремы C263
-  focused_mixture_stationary ЛОЖНА для практической политики:
-  фикстура Fin 2 × Bool (Bex/Kex/xtt, L_0(c) = if c then 3 else 0
-  зависит только от y_1): w(xtt)_0 = 3, после хода 0←f вес = 0.
-  Стационарность практического фокусного сэмплера НЕ
-  сертифицирована (premise-form only); y_{−i}-политика не
-  проектируется (вне рамок аудита).
-
-
-## Hagi/Model/EnergyReasoning/ValiditySeparation.lean
-- Track P1-remainder (дополнение A11, item A5): concrete validity
-  separation для penalty-энергий — премиза сепарации E4
-  доказана для семейства раскраски графов.
-- `Hagi.Model.EnergyReasoning.energy_threshold_lt_min_penalty_
-  implies_valid` — (A5 CORE, premise-form) энергия = сумма
-  неотрицательных штрафов, каждый ненулевой ≥ pmin > 0, нулевые
-  штрафы ⇒ валидность ⇒ энергия < pmin ⇒ валидность (by_contra +
-  single_le_sum + linarith). Переиспользуемое ядро; судоку/
-  n-ферзей покрываются абстрактно в premise-form.
-- `Hagi.Model.EnergyReasoning.coloringCoupling` /
-  `Hagi.Model.EnergyReasoning.coloringField` /
-  `Hagi.Model.EnergyReasoning.isProperColoring` — реализация:
-  K_ij(a,b) = 1[(i,j)∈edges ∧ a=b] (энергия конфликтов ЕСТЬ
-  pairwiseEnergy по конвенции E1 — H есть счётчик конфликтов по
-  построению), унарный штраф givens, правильность раскраски.
-- `Hagi.Model.EnergyReasoning.graph_coloring_zero_energy_iff_valid`
-  — (B = 0, hnodiag) энергия конфликтов = 0 ⇔ раскраска правильная.
-- `Hagi.Model.EnergyReasoning.graph_coloring_separation` —
-  премиза сепарации ДОКАЗАНА при τ < 1 (hsym + hnodiag):
-  энергия ≤ τ ⇒ givens сохранены (через ядро A5, pmin = 1) ∧
-  раскраска правильная (нарушенное неориентированное ребро стоит
-  ровно 1 — оба упорядоченных индикатора × ½).
-- `Hagi.Model.EnergyReasoning.graph_coloring_stop_sep_valid` —
-  EnergyStop при τ < 1 производит ValidityCertificate через
-  stopping_sound_of_separation с доказанной премизой; унарный слот C
-  = «отличаться от каждого данного (given)-цветного соседа»;
-  бинарное содержание — спутник
-  `Hagi.Model.EnergyReasoning.graph_coloring_stop_proper`.
-- Честные границы (docstring): learned-энергии сепарации НЕ имеют
-  (приём только через независимый валидатор — CRAMAcceptedSolution);
-  τ < 1 требует hsym; фикстуры Fin 3: 2 цветов нет, 3 — энергия 0,
-  монохром — ≠ 0.
-
-
-## Hagi/Model/EnergyReasoning/NumericalRobustness.lean
-- Track P3 (дополнение A11, первый item): числовые мосты ошибок для
-  CRAM-решателя — гвардированный спуск по энергии под шумом
-  вычисленных локальных полей.
-- `Hagi.Model.EnergyReasoning.guarded_energy_delta_error` — (P3
-  CORE) премиза |L̂_i(a) − L_i(a)| ≤ ε (вычисленные поля, напр.
-  BF16-округлённые) ⇒ ошибка energy-delta
-  |Δ̂ − Δ| ≤ 2ε, где Δ = E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)
-  (симметричная K, `single_cell_move_energy_delta_symm`): delta
-  содержит ДВЕ оценки поля (L̂ a и L̂ (y i)), каждая ±ε; константа
-  2ε точная (tight), ε-only — ошибка одного оценивания.
-- `Hagi.Model.EnergyReasoning.guarded_energy_delta` — гвард ЗВУЧЕН:
-  вычисленная маржа улучшения 2ε < L̂(y_i) − L̂(a) ⇒ ИСТИННАЯ энергия
-  строго убывает (приём только при марже > 2ε; обе стороны честны —
-  отвергнутый ход НЕ несёт информации, свидетель: истинная маржа 2 >
-  0, вычисленная 0 ≤ 2ε = 2 при ε = 1 — гвард консервативно
-  отвергает истинный спуск, возможен stall ниже шумового пола 2ε).
-- `Hagi.Model.EnergyReasoning.localField_visibleBiasWithZ` — шов
-  композиции: замороженный z-сдвиг.bias добавляет константу zc i к
-  каждому значению локального поля ячейки i.
-- `Hagi.Model.EnergyReasoning.guarded_greedy_strict_drop` — (P3
-  MAIN, композиция с C261 `strict_drop_of_positive_margin`)
-  гвардированный приём в two-phase frozen-z постановке:
-  `pairwiseEnergy (visibleBiasWithZ B zc) K` строго убывает при
-  вычисленной марже > 2ε — апгрейд точной арифметики C261 до
-  noise-robust спуска; совместные (z, y)-обновления по-прежнему
-  запрещены (E3).
-- `Hagi.Model.EnergyReasoning.latent_update_degree_zero_exact_after_
-  one` / `Hagi.Model.EnergyReasoning.
-  latent_update_degree_zero_one_step_is_fixed` — (B1-low)
-  вырожденный случай Δ = 0 (все окрестности пусты): обновление —
-  константное отображение 1[i=G]/m, ТОЧНОЕ за один шаг; любая
-  стартовая точка достигает неподвижной точки за один шаг. Отдельные
-  теоремы: `latent_iterate_err_bound` требует 0 < Δ (фактор
-  сжатия ∈ (0,1), асимптотический пол ε_round/(1−q) существует
-  только при настоящем сжатии) — случай Δ = 0 не спрятан и не
-  смешан.
-- BF16-инстанциация (target 4, mapping): премиза ε инстанцируется
-  существующей моделью `Hagi.Runtime.BF16Delta.
-  abs_sub_le_of_isNearest_normal` (|decode c − x| ≤ 2⁻⁸·|x| в
-  нормальном диапазоне, ℚ-носитель); рецепт абсолютной ε =
-  2⁻⁸·max_b|L i b| через Rat.cast_le записан в docstring (reuse, не
-  redefine); ниже нормального диапазона относительная оценка не
-  имеет места — премиза там НЕ заявляется.
-
-
-## Hagi/Model/EnergyReasoning/AttentionCoupling.lean
-- Track B3 (дополнение A11 B-level): attention-связь L_ij(z) —
-  настоящий мост CRAM+Z в видимое парное ядро (не только
-  аддитивный bias).
-- `Hagi.Model.EnergyReasoning.attentionWeights` + факты
-  (`attentionWeights_nonneg`, `attentionWeights_le_one`,
-  `attentionWeights_sum`) — softmax-веса α_ij при ЗАМОРОЖЕННОМ z в
-  скорах s; премиза [Nonempty ι] (пустой тип — softmax нет).
-- `Hagi.Model.EnergyReasoning.attention_coupling_symmetric` —
-  (B3 MAIN) L_ij(a,b) = L_ji(b,a) ПО ПОСТРОЕНИЮ: оба направленных
-  вклада входят в каждый L_ij и меняются местами точно (приём
-  «верхнего треугольника» A9); НЕТ премизы симметрии на κ/w. Fin 3
-  якорь с намеренно асимметричным κ.
-- `Hagi.Model.EnergyReasoning.attention_coupling_bounded` —
-  |L_ij| ≤ 2·κmax·fmax (0 ≤ κ ≤ κmax, w ∈ [0,1], |f| ≤ fmax);
-  константа 2 tight (два направленных вклада).
-- `Hagi.Model.EnergyReasoning.attentionK` /
-  `attention_K_symmetric` / `frozen_z_field_with_attention` — ядро
-  K(z) при замороженном z удовлетворяет hK C261 дословно; локальное
-  поле определено; ход в минимизатор не увеличивает pairwiseEnergy
-  B (attentionK κ (attentionWeights s) f). Premise-form спуска;
-  совместной (z,y)-теоремы НЕТ (E3).
-- `Hagi.Model.EnergyReasoning.attention_coupling_field_diff` —
-  |w1 − w2| ≤ δ ⇒ возмущение локального поля ≤
-  |S_i|·2κmax·fmax·δ (S_i = univ \ {i}).
-- `Hagi.Model.EnergyReasoning.latent_error_couples_field` —
-  (B3 MAIN) составной контракт: ‖z − z*‖ ≤ η + softmax-Липшиц
-  ПРЕМИЗА |w(z) − w(z*)| ≤ L_sm·η ⇒ возмущение поля ≤
-  |S_i|·2κmax·fmax·L_sm·η. Премиза честная: леммы Липшица softmax
-  для этого носителя не существует/не заявляется.
-- `Hagi.Model.EnergyReasoning.latent_attention_guarded_drop` —
-  (B3 MAIN) гвард C270 поглощает latent-ошибку: ε :=
-  |S_i|·2κmax·fmax·L_sm·η; вычисленная маржа > 2ε ⇒ СТРОГИЙ спуск
-  истинной pairwiseEnergy B (attentionK κ w2 f). Отвержение
-  информации не несёт (C270-честность).
-- Честные границы: структурный мост CRAM+Z; полная семантика
-  Maze-Hard (носитель z*, достижимость, совместные обновления)
-  открыта; softmax-Липшиц по z — премиза.
-
-
-## Hagi/Model/EnergyReasoning/AlternatingRound.lean
-- Track B4 (дополнение A11, C293): alternating (z,y)-раунд —
-  дизайн-решение (R1 чередующиеся раунды с потолками на раунд;
-  мотивировка: z* не зависит от y ⇒ нет пола ε_round/(1−q);
-  маршруты R2/R3 отклонены в docstring с причинами) + первые
-  честные раундовые теоремы.
-- `Hagi.Model.EnergyReasoning.alternating_round_nonincreasing` —
-  (B4 MAIN) раунд-теорема (строгая форма): премиза z-фазы
-  (hsoft : |w(z_t) − w(z*)| ≤ L_sm·η; поставка η — потолок
-  оседания latent_settle_tolerance) + числовая ошибка ε (C270) +
-  составной гвард 2·(ε + |S_i|·2κmax·fmax·L_sm·η) < маржа ⇒
-  СТРОГИЙ спуск pairwiseEnergy B (attentionK κ w2 f) на ИСТИННОМ
-  ядре замороженного z*. Композиция guarded_energy_delta +
-  latent_error_couples_field (треугольник); аддитивно к C271
-  (отдельная ε поверх coupling-η).
-- `Hagi.Model.EnergyReasoning.alternating_zphase_one_step_error`
-  — η-бухгалтерия: один шаг z-фазы сжимает ошибку к статическому
-  фикспойнту (‖latentUpdate z − z*‖ ≤ (Δ/m)·‖z − z*‖); вход
-  суммируемости R1; сама суммируемость НЕ заявлена.
-- Числовые якоря: fan2/yan2 (Fin 2/Bool) — ПРИКЛАДНОЙ якорь:
-  энергия 0 → −2 через саму раунд-теорему (w1 = w2, ε = 0).
-- `Hagi.Model.EnergyReasoning.alternating_round_slack_summable`
-  — (B4 N1, C294) суммируемость слэка раунда: геометрическое
-  затухание (премиза `slack (t+1) ≤ (Δ/m)·slack t`; поставка
-  C·η_t-части — alternating_zphase_one_step_error) ⇒ все частичные
-  суммы ≤ `slack 0 · m/(m−Δ)`. Затухание — гипотеза, не вывод.
-- `Hagi.Model.EnergyReasoning.alternating_trajectory_bound` /
-  `alternating_trajectory_descent_budget` — (B4 N2, C294)
-  телескопирование траекторий: пошаговые спады `d t` (премиза)
-  ⇒ `E (y N) ≤ E (y 0) − Σ d t`; пол Emin — ПРЕМИЗА (не вывод),
-  бюджет спада ≤ `E (y 0) − Emin`.
-- `Hagi.Model.EnergyReasoning.alternating_rounds_converge` —
-  (B4 N3, C294) терминальная конечная форма: на конечном
-  пространстве конфигураций строго убывающие раунды терминистируют
-  (длина ≤ мощности образа энергии; C268-ranking переиспользован,
-  greedy_strict_search_terminates процитирован). ТОЛЬКО конечная/
-  строгая версия: безусловная аналитическая сходимость
-  alternating_round_converges остаётся ОТКРЫТОЙ (негатив-пин
-  неизменен; терминация ≠ сходимость к минимуму).
-- Числовые якоря (C294, через сами новые теоремы): Σ (1/2)^t ≤ 2;
-  телескоп 10−t: 7 ≤ 10 − 3.
-- Честные границы: premise-form по всей длине (неточность z-фазы
-  и числовая ошибка — гипотезы); безусловной совместной (z,y)-
-  теоремы НЕТ: alternating_round_converges /
-  visible_descent_joint_z не существуют (RootApi-негатив-пины);
-  отвержение ниже слэка информации не несёт (C270-честность).
-
-
-## Hagi/Model/EnergyReasoning/SparseField.lean
-- Track D3 (дополнение A11 P3): sparse field update correctness —
-  FLOP-преимущество локальных связей как теоремы (эквивалентность
-  полей + счёт операций).
-- `Hagi.Model.EnergyReasoning.couplingSupportedOn` — премиза-форма
-  носителя связи (j ∉ N i → K i j a b = 0);
-  `sparseLocalField` — поле по соседям только.
-- `Hagi.Model.EnergyReasoning.sparse_neighbours_subset` — без
-  само-соседей N i ⊆ univ \ {i} ДОСЛОВНО (конвенция C260
-  упорядоченных пар, challenge-pin; hN load-bearing).
-- `Hagi.Model.EnergyReasoning.sparse_localField_eq_dense` —
-  (D3 MAIN) sparse-поле = плотное localField (нулевые связи не
-  вносят ничего; Finset.sum_subset).
-- `Hagi.Model.EnergyReasoning.sparse_update_energy_delta_eq` —
-  (D3 MAIN) при симметричном K дельта энергии одно-клеточного хода =
-  разность sparse-полей (C261 single_cell_move_energy_delta_symm
-  сцигтирован, не перепроверен).
-- `Hagi.Model.EnergyReasoning.localField_dense_work` /
-  `localField_sparse_work` — ℕ-произведения card·(card α)² (work-model
-  определения; Σ_{j∈N i} card α² одной формулой);
-  `Hagi.Model.EnergyReasoning.localField_op_count_le` — sparse ≤
-  dense; `Hagi.Model.EnergyReasoning.localField_op_count_lt` — СТРОГО
-  при собственном подмножестве соседей и 0 < card α (премиза
-  необходима: пустой α обнуляет оба);
-  `Hagi.Model.EnergyReasoning.neighbour_card_le` — (N i).card ≤
-  card ι.
-- `Hagi.Model.EnergyReasoning.sparse_support_of_symmetric` —
-  симметричное хранение не протаскивает ненулевую связь мимо
-  соседних множеств (транспонированный носитель).
-- Якорь: Fin 4, 2 из 3 соседей, sparse = dense, 8 < 12 (decide).
-- Честные границы: счёт — без асимптотики и модели арифметики;
-  носитель — премиза (не теорема существования малого N).
-
-
-## Hagi/Model/EnergyReasoning/LatentSupport.lean
-- Track B2 (дополнение A11 B-level): support/connectivity свойства
-  скрытой фиксированной точки z* = latentUpdate-неподвижной точки
-  (z i = (Σ_{j ∈ N i} z j + 1[i=G])/m, m > Δ).
-- `Hagi.Model.EnergyReasoning.latent_fixed_unique` — единственность
-  неподвижной точки (Δ/m-контракция C272 сцигтирована).
-- `Hagi.Model.EnergyReasoning.latent_fixed_nonneg` — (B2 MAIN)
-  неотрицательность всей точки (мин-аргумент: m·z i ≥ card(N i)·z i,
-  m > Δ ≥ card; выводится, не предполагается).
-- `Hagi.Model.EnergyReasoning.latent_fixed_goal_pos` — 1/m ≤ z* G
-  (целевой источник);
-  `Hagi.Model.EnergyReasoning.latent_fixed_ge_of_neighbour` —
-  i ∈ N j ⇒ z* j/m ≤ z* i (симметрия load-bearing).
-- `LatentPath` — индуктивная достижимость от цели (длина = рёбра);
-  `Hagi.Model.EnergyReasoning.latent_fixed_pos_of_reachable` —
-  (B2 MAIN) LatentPath N G i k ⇒ (1/m)^(k+1) ≤ z* i > 0.
-- `Hagi.Model.EnergyReasoning.latent_fixed_upper_bound` — глобальная
-  sup-оценка z* i ≤ 1/(m − Δ) (максимум-зеркало мин-аргумента).
-- `Hagi.Model.EnergyReasoning.latent_fixed_zero_off_closed` —
-  (B2 MAIN) z* = 0 на замкнутом по соседям без-целевом C'
-  (заплатка-аргумент + единственность).
-- Якорь: zstar4 = ![21/55, 8/55, 3/55, 1/55] (Fin 4): все > 0,
-  1/81 ≤ 1/55, 21/55 ≤ 1; emptyN2/zstar2 (Fin 2): z* = ![1/3, 0],
-  нуль на C' = {1}.
-- Честные границы: decay-upper на дистанции НЕ заявлен (нужно больше
-  структуры графа; negative pin latent_fixed_decay_upper); всё — о
-  неподвижной точке, итеративные оценки не дублируются (C272).
-
-
-## Hagi/Model/EnergyReasoning/HeatBathMixing.lean
-- `Hagi.Model.EnergyReasoning.tv_pair_contraction` — row-stochastic
-  ядро с entrywise-полом c сжимает TV любой пары равномассовых
-  векторов: TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν) (разложение знаковой
-  разности; без стационарности и неотрицательности векторов).
-- `Hagi.Model.EnergyReasoning.heatbathWeight_floor` — разброс
-  локальных полей |L_i(a) − L_i(b)| ≤ M, T > 0 ⇒ каждый heat-bath вес
-  ≥ exp(−M/T)/card α.
-- `Hagi.Model.EnergyReasoning.heatbath_doeblin_floor` — (премиза-форма)
-  разброс полей + премиза носителя (каждая цель — одноячеечный ход) ⇒
-  ядро `doeblinMinorized` с c = exp(−M/T)/card α;
-  `heatbath_doeblin_floor_subsingleton` — при card ι ≤ 1 премиза
-  носителя выводится автоматически.
-- `Hagi.Model.EnergyReasoning.stationaryDensity` — нормированная
-  Болцмановская плотность; стационарна для heat-bath ядра
-  (`stationaryDensity_stationary`, из `heatbath_stationary`).
-- `Hagi.Model.EnergyReasoning.heatbath_tv_contraction` — Doeblin-премиза
-  ⇒ TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂); острая константа
-  1 − |ι→α|·c в `heatbath_tv_contraction_sharp`.
-- `Hagi.Model.EnergyReasoning.heatbath_mixing` — TV(μKⁿ, π̂) ≤
-  (1 − c)ⁿ; `Hagi.Model.EnergyReasoning.heatbath_mixing_time` —
-  n ≥ log e / log(1 − c) шагов ⇒ TV ≤ e.
-- Якорь: fixture Bex/Kex/xtt — exp(−3)/2 ≤ вес 1/(1 + exp(−3)).
-- Честные границы: entrywise-пол — ПРЕМИЗА (для card ι ≥ 2 вне
-  носителя нули); ирредуцибельность/апериодичность не заявлены
-  (negative pins heatbath_irreducible / heatbath_aperiodic);
-  фокусная смесь вне области (C268).
 
 ## Hagi/Cert/StepGen.lean (C278, A10 item 2 step 1)
 

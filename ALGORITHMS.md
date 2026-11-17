@@ -2602,7 +2602,7 @@ Gibbs-поиск и сертифицированная остановка — E4
 ### E3: латентное энергетическое поле — строгая выпуклость + ℓ∞-сжатие + двухфазный протокол
 
 Латентная квадратичная энергия Maze-Hard на конечном графе-носителе
-([`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/LatentEnergy.lean)):
+([`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - КОНВЕНЦИЯ (пин 1): сосед-суммовая форма `E_z = (m/2)·Σz² −
   (1/2)·Σ_i z_i·(Σ_{j∈N i} z_j) − z_G`; при симметричной смежности
@@ -2612,7 +2612,7 @@ Gibbs-поиск и сертифицированная остановка — E4
   z* = 21/55-решётка решает уравнение z*_i = (Σ_{j∈N i} z*_j +
   1[i=G])/m точно).
 - ДИАГОНАЛЬНОЕ ДОМИНИРОВАНИЕ (E3 MAIN,
-  [`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/LatentEnergy.lean)):
+  [`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
   `((m−Δ)/2)·Σw² ≤ Q(w)` — диагональ m строго доминирует off-diagonal
   row-sum Δ симметризованной формы; честный вывод через 2|w_i||w_j| ≤
   w_i²+w_j², причём колононная часть двойной суммы ограничена Δ ТОЛЬКО
@@ -2621,7 +2621,7 @@ Gibbs-поиск и сертифицированная остановка — E4
   m = Δ — форма всего лишь полуопределена (witness Fin 2 loop-граф),
   m < Δ — принимает отрицательные значения.
 - СТРОГАЯ ВЫПУКЛОСТЬ + УНИКАЛЬНОСТЬ ([`latent_strict_convex`]
-  (Hagi/Model/EnergyReasoning/LatentEnergy.lean), [`latent_unique_min`]):
+  (Hagi/Model/EnergyReasoning/Pseudolikelihood.lean), [`latent_unique_min`]):
   Bregman-chord тождество `Q(λa+(1−λ)b) = λQ(a)+(1−λ)Q(b) −
   λ(1−λ)Q(a−b)` (add-remainder форма `E(z+w) = E(z)+⟨∇E(z),w⟩+Q(w)`)
   даёт строгую выпуклость при m > Δ и единственность минимизатора
@@ -2653,7 +2653,7 @@ Gibbs-поиск и сертифицированная остановка — E4
 ### E4: heat-bath ядро Гиббс-поиска — обратимость, стационарность смеси, сертифицированная остановка
 
 Heat-bath политика и её сохранение меры
-([`heatbath_detailed_balance`](Hagi/Model/EnergyReasoning/EnergySearch.lean)):
+([`heatbath_detailed_balance`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - HEAT-BATH ЯДРО: вес значения a в ячейке i — РЕЮЗ softmax
   `heatbathWeight B K T y i a = softDef (fun c => −L_i(c)/T) a`
@@ -2690,7 +2690,7 @@ Heat-bath политика и её сохранение меры
   смеси сохраняет каждое данное значение точно.
 
 Сертифицированная остановка
-([`stopping_sound_of_separation`](Hagi/Model/EnergyReasoning/EnergyStopping.lean)):
+([`stopping_sound_of_separation`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - ДВА РАЗЛИЧНЫХ сертификата: `EnergyStop` (y, E(y) ≤ τ) — событие
   ЭФФЕКТИВНОСТИ (порог — эвристика, не корректность);
@@ -2741,7 +2741,7 @@ C260 — сертификат перестаёт быть периферийны
 ### B2 (дополнение A11): PL → локально-полевая CE с β и свободными клетками
 
 Мост
-([`conditionalLogit_eq_neg_localField_add_const`](Hagi/Model/EnergyReasoning/PseudolikelihoodLocalField.lean))
+([`conditionalLogit_eq_neg_localField_add_const`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean))
 от псевдоправдоподобия C259 к ЛОКАЛЬНОМУ ПОЛЮ C261: off-i энергия —
 константа кандидата, PL обучает ровно CE на −β·L_i по СВОБОДНЫМ
 клеткам:
@@ -2788,7 +2788,7 @@ C260 — сертификат перестаёт быть периферийны
 ### B3 (дополнение A11): типизированные CRAM-переходы → каноническое Cert-ядро
 
 CRAM-переходы
-([CramContracts](Hagi/Model/EnergyReasoning/CramContracts.lean))
+([CramContracts](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean))
 становятся типизированными premise-form контрактами над носителем
 CRAMState с точными ресурсными законами (budget' = budget − cost,
 неотрицательный остаток) и мостом в каноническое ядро Hagi.Cert:
@@ -2844,7 +2844,7 @@ CRAMState с точными ресурсными законами (budget' = bud
 ### P1-остаток (дополнение A11): конечная терминация жадного поиска + аудит инвариантности фокусной политики
 
 Два честных замыкания истории жадного одноячеечного поиска
-([GreedyTermination](Hagi/Model/EnergyReasoning/GreedyTermination.lean)):
+([GreedyTermination](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - A6 ТЕРМИНАЦИЯ: `Hagi.Model.EnergyReasoning.greedy_strict_search_
   terminates` — на КОНЕЧНОМ пространстве конфигураций строго
@@ -2884,7 +2884,7 @@ CRAMState с точными ресурсными законами (budget' = bud
 
 Инстанциация премизы сепарации E4 «H(y) ≤ τ ⇒ valid(y)» для
 КОНКРЕТНЫХ penalty-энергий — доказанная, не аксиоматическая
-([ValiditySeparation](Hagi/Model/EnergyReasoning/ValiditySeparation.lean)).
+([ValiditySeparation](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)).
 Первичный инстанс — раскраска графов (adjacency-agnostic: рёбра —
 Finset упорядоченных пар, граф — симметрическая оболочка):
 
@@ -2931,7 +2931,7 @@ Finset упорядоченных пар, граф — симметрическ�
 
 Мост от числовой премизы «вычисленные локальные поля ошибаются на ε»
 к точной арифметике C261
-([NumericalRobustness](Hagi/Model/EnergyReasoning/NumericalRobustness.lean)):
+([NumericalRobustness](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - ОШИБКА DELTA = 2ε: `Hagi.Model.EnergyReasoning.
   guarded_energy_delta_error` — из |L̂_i(a) − L_i(a)| ≤ ε следует
@@ -2975,7 +2975,7 @@ Finset упорядоченных пар, граф — симметрическ�
 Настоящая связь latent→visible ЧЕРЕЗ ВНИМАНИЕ, а не только
 аддитивный bias (аддитивный маршрут — visibleBiasWithZ, E3-шов;
 оба существуют)
-([AttentionCoupling](Hagi/Model/EnergyReasoning/AttentionCoupling.lean)):
+([AttentionCoupling](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - КОНСТРУКЦИЯ: L_ij(a,b) = κ_ij·w_ij·f(a,b) + κ_ji·w_ji·f(b,a),
   где w = attentionWeights s — softmax-веса α_ij = exp(s_ij)/Σ_k
@@ -3104,7 +3104,7 @@ Joint latent-visible спуск организован как ЧЕРЕДУЮЩИ
 ### D3 (дополнение A11): sparse local field — эквивалентность и счёт операций
 
 Заявленное FLOP-преимущество ЛОКАЛЬНЫХ (sparse) связей — как ТЕОРЕМЫ
-([SparseField](Hagi/Model/EnergyReasoning/SparseField.lean)):
+([SparseField](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - НОСИТЕЛЬ: соседство `N : ι → Finset ι`; премиза-форма носителя
   связи `couplingSupportedOn N K` (j ∉ N i → K i j a b = 0,
@@ -3151,8 +3151,8 @@ Joint latent-visible спуск организован как ЧЕРЕДУЮЩИ
 
 Семантика носителя СКРЫТОЙ фиксированной точки z* уравнения
 `z* i = (Σ_{j ∈ N i} z* j + 1[i = G])/m` (m > Δ, симметричная
-смежность; переносчик C272 [LatentEnergy](Hagi/Model/EnergyReasoning/LatentEnergy.lean)) —
-как ТЕОРЕМЫ ([LatentSupport](Hagi/Model/EnergyReasoning/LatentSupport.lean)):
+смежность; переносчик C272 [LatentEnergy](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)) —
+как ТЕОРЕМЫ ([LatentSupport](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 
 - ЗНАКОПРЕОБРАЗОВАНИЕ (challenge-pin): инъекция цели ПОЛОЖИТЕЛЬНА
   (1[i = G], знак +), соседние члены со знаком + — «мин-аргумент»
@@ -3198,7 +3198,7 @@ Joint latent-visible спуск организован как ЧЕРЕДУЮЩИ
 Перенос Doeblin-контракции из карантина ([Research/PPT](Hagi/Research/PPT.lean),
 namespace `Hagi.Discovery`, НЕ импортируется) на CRAM heat-bath ядро —
 математика пере-выведена в main с нуля на generic-носителе
-([HeatBathMixing](Hagi/Model/EnergyReasoning/HeatBathMixing.lean)):
+([HeatBathMixing](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
 - УСТРОЙСТВО: `doeblinMinorized K c := 0 < c ∧ ∀ x y, c ≤ K x y`;
   `vecMul`/`hbChain` — одношаговый pushforward и n-шаговая цепь.
 - ПАРНАЯ КОНТРАКЦИЯ (A8 MAIN, из первых принципов):
@@ -3305,8 +3305,7 @@ P4-frontier, Python-зеркало, E6-хвост):
 (3) C315 — двухуровневая рамка генерализации для выученных
 энергий: конечный класс + concRadius (без новой
 концентрационной математики), карантин корректности от
-генерализационного долга (`Hagi/Model/EnergyReasoning/
-EnergyClassGeneralization.lean`);
+генерализационного долга (`Hagi/Model/EnergyReasoning/Pseudolikelihood.lean`);
 (4) C316 — Python CRAMExpert референс (numpy-зеркало,
 конечно-разностная верификация градиентов/тождеств против
 Lean FQN; артефакты `.tmp/C316/`, вне git по прецеденту C246);

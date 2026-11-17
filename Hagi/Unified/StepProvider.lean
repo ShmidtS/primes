@@ -3,7 +3,7 @@ import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 import Hagi.Unified.StepContract
 import Hagi.Unified.HonestTransition
-import Hagi.Model.EnergyReasoning.CramContracts
+import Hagi.Model.EnergyReasoning.Pseudolikelihood
 
 /-!
 # StepProvider — интерфейс сертифицированного шага (merge map A10)
