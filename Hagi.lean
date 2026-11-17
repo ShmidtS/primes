@@ -52,7 +52,6 @@ import Hagi.Energy.EnergyCoordinateStep
 import Hagi.Energy.EnergyFlow
 import Hagi.Deployment.CanaryRamp
 import Hagi.Growth.GainRenewal
-import Hagi.Ensemble.MergeIdentity
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
 import Hagi.Runtime.ControllerGates
@@ -123,7 +122,6 @@ import Hagi.Budget.FlopsEconomy
 import Hagi.Budget.WaterFillingMoE
 import Hagi.Architecture.ResidualSplit
 import Hagi.Budget.TokenWeightBias
-import Hagi.Ensemble.MergeScaling
 import Hagi.Core.F3Root
 import Hagi.Energy.PreNorm
 import Hagi.Budget.DesignOpt
@@ -165,7 +163,6 @@ import Hagi.Probability.Freedman
 import Hagi.Probability.NoiseTemperature
 import Hagi.Dynamics.ProxyGap
 import Hagi.Growth.PlasticityLedger
-import Hagi.Ensemble.CompressionCert
 import Hagi.Model.SoftmaxStep
 import Hagi.Model.SoftmaxHead
 import Hagi.Model.CEGradient
@@ -219,7 +216,6 @@ import Hagi.Growth.IntegrationOrder
 import Hagi.Step.GPM
 import Hagi.Ensemble.MergePrice
 import Hagi.Ensemble.PolicyCompatibility
-import Hagi.Ensemble.MergeMixture
 import Hagi.Core.NonlinearStep0
 import Hagi.Core.RoPEMoments
 import Hagi.Step.CausalFilter

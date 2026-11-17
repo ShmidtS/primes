@@ -28,9 +28,9 @@ CE(t, v ↦ (∑a z_a(v))/N) ≤ (∑a CE(t,z_a))/N.
 ```
 
 Это только pointwise CE-мажоранта среднего логита. Для смеси матриц при
-фиксированном router применяем [`merged_output_exact`](Hagi/Ensemble/MergeMixture.lean);
+фиксированном router применяем [`merged_output_exact`](Hagi/Ensemble/MergePrice.lean);
 при смене `w` на `w'` добавляем явный drift-budget из
-[`routing_drift_bound`](Hagi/Ensemble/MergeMixture.lean).
+[`routing_drift_bound`](Hagi/Ensemble/MergePrice.lean).
 
 Перед spectral/rank/ternary сжатием суммируем не «экономию качества», а сумму
 ошибок из [`unified_error_budget`](Hagi/Architecture/FactorizedMerge.lean):

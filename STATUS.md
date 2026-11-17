@@ -1159,11 +1159,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `lsScale_optimal`: если `Σᵢ(q i)^2 > 0`, коэффициент `(Σq*x)/(Σq*q)` минимизирует `Σ(x i − s*q i)^2` по всем вещественным `s`.
 
 
-## Hagi/Ensemble/CompressionCert.lean
-- `deltaCost_concat` и обобщение `deltaCost_sum`: стоимость конкатенации дельт равна сумме стоимостей, в том числе `deltaCost (flatMap Δ (range K)) = Σ_{k<K} deltaCost (Δ k)`.
-- `merged_bound`: если для каждого добавления задано `risk (δ₀ ++ Δ k) ≤ risk δ₀ + lambda*deltaCost(Δ k) + mu` и `lambda ≥ 0`, то после `K` добавлений `risk ≤ risk [] + lambda*Σcost + K*mu`. Это индуктивная аддитивная оценка риска при переданной посылке happly, а не самостоятельная PAC-Bayes-теорема.
-
-
+## Hagi/Ensemble/MergePrice.lean
 ## Hagi/Ensemble/GapLaw.lean
 - `twoGap_nonneg`: для строго положительного `p` с суммой 1 зазор `twoGap p d` неотрицателен; `twoGap_zero_iff` утверждает равенство нулю тогда и только тогда, когда `d u = c` для некоторой константы `c` и всех `u`.
 - `twoGap_cosh`: двойная сумма с `exp(d u − d v)` точно равна двойной сумме с `cosh(d u − d v)`.
@@ -1176,12 +1172,10 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `hoeffding_union_tail`: для конечного семейства `K` таких центрированных функций и тех же неотрицательных нормированных весов `w` масса объединения событий `∃k, ε ≤ d k v` ограничена `card K·exp(−2ε²/(b−a)^2)`.
 
 
-## Hagi/Ensemble/MergeIdentity.lean
 - `softmax_shift_invariance`: на конечном `V` общий сдвиг логитов `z v + c` не меняет softmax.
 - `geometric_mean_logit_mean`: для непустых конечных `V,K`, при `Zᵢ = ∑ᵤ exp(z i u)` доказано поточечное равенство `(∏ᵢ (exp(z i v) / Zᵢ))^(1/card K) = exp((∑ᵢ z i v) / card K) / (∏ᵢ Zᵢ)^(1/card K)`; общий по `v` множитель `(∏ᵢ Zᵢ)^(−1/card K)` сокращается при последующей softmax-нормировке.
 
 
-## Hagi/Ensemble/MergeMixture.lean
 - `merged_output_exact`: для любых вещественных весов `w` линейность даёт `(Σᵢ w i • W i) *ᵥ x = Σᵢ w i • (W i *ᵥ x)`.
 - `routing_drift_bound`: если `‖W i *ᵥ x‖ ≤ B` для каждого `i`, то смена маршрутных весов `w` на `w'` меняет выход по норме не более чем на `Σᵢ |w' i − w i|*B`.
 
@@ -1192,7 +1186,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `merge_gate_certified`: из выполненного предиката `MergeApproved` заключается `Σᵢ w i*sigmaPrice(xs i)(devs i) + κ*(n'*s)/2 < twoGap`; это распаковка сертифицированного порога, а не доказательство качества произвольного слияния.
 
 
-## Hagi/Ensemble/MergeScaling.lean
 - `two_channel_step_law`: при `a > 0`, `b > 0`, `N > 0` доказана лишь точная эквивалентность `2*a/N^3 − b = 0 ↔ N^3 = 2*a/b`. Утверждений об ускорении обучения, параметрическом паритете или найденном экспериментальном минимуме теорема не содержит.
 
 
