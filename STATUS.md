@@ -3632,14 +3632,12 @@ one-hot CE.
   `eta/√(acc+g t^2) ≤ eta/√acc`.
 
 
-## Hagi/Optimization/EF21Markov.lean
+## Hagi/Optimization/EF21Quantizer.lean
 - `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор (α=0), scaling-компрессор `u ↦ c•u` (α=c, c ∈ [0,1] — недегенеративный инстанс); инстансы квантователей (TopK, qTernVec) — см. `Hagi/Optimization/EF21Quantizer.lean` (C247: α=0 доказаны, α ∈ (0,1] опровергнуты свидетелями).
 - `ef21_update_norm_le`: точный одношаговый перенос сжатия Markov-обновления `v + C(g−v)`: `‖v_{t+1} − g‖₂² ≤ (1−α)²‖g − v_t‖₂²` без зазора.
 - `ef21_lyapunov_descent`: одношаговый спуск значения функции (premise-form): L-гладкость + дефект выравнивания δ + дефект нормы при `η ≤ 1/(2L)` дают `f' ≤ f − (η/2)(1−2Lη)‖g‖₂² + (η/2)(1+2Lη)δ²` — константы точные (разница = `η/2·(1+Lη)(s−δ)²/2 ≥ 0`, ring-тождество).
 - `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Unified/EFTheory.lean` концептуально субсумируется — дедуп в будущем, ничего не удалено.
 
-
-## Hagi/Optimization/EF21Quantizer.lean
 - `topK` / `topK_contractive` / `topK_not_contractive_pos`: fixed-support TopK-компрессор — α=0-контрактивен (зануление хвоста не расширяет); при `S ≠ univ` контрактивность α ∈ (0,1] ОПРОВЕРГНУТА (свидетель — вектор на хвосте, `‖Q u−u‖=‖u‖`).
 - `qTernVec` / `qTern_pointwise_le` / `qTernVec_contractive_zero`: векторный лифт тернарного квантователя (`s•roundTern(·/s)`, та же формула что `Hagi.Runtime.qTern`) — покоординатно `|x−s•roundTern(x/s)| ≤ |x|`, α=0-контрактивен.
 - `qTernVec_not_contractive`: чистое тернарное округление НЕ контрактивно ни при каком α ∈ (0,1] (непустой носитель): полушаговый свидетель `u=s/2` округляется в 0, относительная контрактивность c<1 опровергнута (литературный EF21 решает это пер-векторным скейлингом — не смоделирован, честная граница).
@@ -4448,19 +4446,13 @@ one-hot CE.
 - `anchor_cadence_criterion` при `gamma rho eps > 0` доказывает критерий остановки: для любого `s ≤ gamma*eps/rho` выполнено `rho*s/gamma ≤ eps`.
 
 
-## Hagi/Step/NewtonPolar.lean
+## Hagi/Step/NewtonSchulzMatrix.lean
 - `newton_polar_scalar_error` при `x > 0` даёт точное `newtonStep x - 1 = (x-1)^2/(2*x)`; одновременно `newtonStep x ≥ 1`. На ветви `x ≥ 1` доказаны `newton_step_descent` и оценка ошибки `≤ (x-1)^2/2`.
 - `newton_polar_convergence` для любого `x₀ ≥ 1` и конечного `T` даёт `|newtonIter x₀ T - 1| ≤ 2*((x₀-1)/2)^(2^T)`, а `newton_iter_bracket` сохраняет `1 ≤ iter ≤ x₀`.
 - Предельный результат `newton_polar_tendsto_one` доказан только при `1 ≤ x₀ < 3`. Конечная формула сама по себе не расширяет эту область сходимости на произвольный `x₀`.
-- C231 (Newton–Schulz scalar): `nsStep t = t(3−t²)/2` — скалярная NS-карта. Ядро: точное тождество `one_sub_nsStep` (`1 − φ(t) = (1−t)²(t+2)/2`, ring). Следствия: `nsStep_nonneg`/`nsStep_le_one` (φ отображает [0,√3] в [0,1]), `le_nsStep_of_le_one` (монотонный подъём на [0,1]), `nsIter_mem`/`nsIter_mono` (инвариантность и монотонность траектории), `nsStep_dist_sq`/`nsIter_dist_sq` (квадратичное сжатие дефицита `1 − φ(t) ≤ (3/2)(1−t)²`). Матричная часть: диагональный случай и ортогональная эквивариантность сняты в C296 (`Hagi/Step/NewtonSchulzMatrix.lean`); спектрально-нормовая контракция при SVD-посылке снята в C297 (`Hagi/Step/NewtonSchulzSpectral.lean`); без SVD-посылки `hP` остаётся гипотезой (см. ниже).
+- C231 (Newton–Schulz scalar): `nsStep t = t(3−t²)/2` — скалярная NS-карта. Ядро: точное тождество `one_sub_nsStep` (`1 − φ(t) = (1−t)²(t+2)/2`, ring). Следствия: `nsStep_nonneg`/`nsStep_le_one` (φ отображает [0,√3] в [0,1]), `le_nsStep_of_le_one` (монотонный подъём на [0,1]), `nsIter_mem`/`nsIter_mono` (инвариантность и монотонность траектории), `nsStep_dist_sq`/`nsIter_dist_sq` (квадратичное сжатие дефицита `1 − φ(t) ≤ (3/2)(1−t)²`). Матричная часть: диагональный случай и ортогональная эквивариантность сняты в C296 (`Hagi/Step/NewtonSchulzMatrix.lean`); спектрально-нормовая контракция при SVD-посылке снята в C297 (`Hagi/Step/NewtonSchulzMatrix.lean`); без SVD-посылки `hP` остаётся гипотезой (см. ниже).
 
-
-## Hagi/Step/NewtonSchulzMatrix.lean
-- C296 (matrix NS diagonal contraction): `nsMatrixStep` — матричный NS-полярный итерат `X ← X(3I−XᵀX)/2` (entrywise-форма, `nsMatrixStep_eq_smul` — мост к smul-форме). `nsMatrixStep_diagonal`: на диагональном входе итерат диагонален с элементами `nsStep` от входных — скалярно→матричный подъём как честное матричное умножение. `nsMatrixStep_diagonal_contraction`: при элементах входа в [0,1] итерат — контракция на `n → ℝ` с sup-нормой (гипотеза `hP` из Muon снята для диагонального случая). `nsMatrixStep_orth`: эквивариантность `nsMatrixStep (U A Vᵀ) = U (nsMatrixStep A) Vᵀ` при `UᵀU = VᵀV = 1` (транспортный ингредиент общего спектрального маршрута). Consumer: `muon_step_bound_ns_diagonal` — `muon_step_bound` с `P` = NS-итерат ограниченного диагонального входа, `hP` разряжена. Честная граница: контракция в sup-норме; спектральное обобщение снято в C297 (`Hagi/Step/NewtonSchulzSpectral.lean`: scoped `Matrix.Norms.L2Operator` API закреплённого Mathlib, C*-тождество даёт ортогональную инвариантность).
-
-
-## Hagi/Step/NewtonSchulzSpectral.lean
-- C297 (spectral-norm SVD transport): `nsOrthogonal_mul_star_self` — компаньон `V Vᵀ = 1` ортогональной `VᵀV = 1` (det/unit маршрут C296). `nsSpectralNorm_orth_inv` — недостающий кусок C296: ортогональная инвариантность спектральной (L2 операторной) нормы `‖U A Vᵀ‖₂ = ‖A‖₂` при `UᵀU = VᵀV = 1` (C*-тождество `‖AᴴA‖ = ‖A‖²` + симметрия сопряжения; норма — scoped `Matrix.Norms.L2Operator` из закреплённого Mathlib; вердикт C296 «API отсутствует» устарел для этого пина). `ns_contraction_svd`: при SVD-посылке `A = U Σ Vᵀ` (Σ диагональна, элементы в [0,1]) спектральная норма NS-итерата ≤ 1 (композиция: эквивариантность C296 → инвариантность → диагональный случай с нормой диагонали = sup-норма вектора). Consumer: `muon_step_bound_ns_svd` — `muon_step_bound` на `EuclideanSpace ℝ n`, `hP` разряжена при SVD-посылке. Честная граница: SVD — ПОСЫЛКА (существование вещественного SVD не формализовано); один шаг NS (подъём итератов — механическое следствие, не заявлено); общее Muon-утверждение с гипотезой `hP` не тронуто.
+- C296 (matrix NS diagonal contraction): `nsMatrixStep` — матричный NS-полярный итерат `X ← X(3I−XᵀX)/2` (entrywise-форма, `nsMatrixStep_eq_smul` — мост к smul-форме). `nsMatrixStep_diagonal`: на диагональном входе итерат диагонален с элементами `nsStep` от входных — скалярно→матричный подъём как честное матричное умножение. `nsMatrixStep_diagonal_contraction`: при элементах входа в [0,1] итерат — контракция на `n → ℝ` с sup-нормой (гипотеза `hP` из Muon снята для диагонального случая). `nsMatrixStep_orth`: эквивариантность `nsMatrixStep (U A Vᵀ) = U (nsMatrixStep A) Vᵀ` при `UᵀU = VᵀV = 1` (транспортный ингредиент общего спектрального маршрута). Consumer: `muon_step_bound_ns_diagonal` — `muon_step_bound` с `P` = NS-итерат ограниченного диагонального входа, `hP` разряжена. Честная граница: контракция в sup-норме; спектральное обобщение снято в C297 (`Hagi/Step/NewtonSchulzMatrix.lean`: scoped `Matrix.Norms.L2Operator` API закреплённого Mathlib, C*-тождество даёт ортогональную инвариантность).
 
 
 ## Hagi/Step/NoisyPL.lean

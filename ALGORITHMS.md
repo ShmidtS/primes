@@ -1812,7 +1812,7 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
 матричную часть на диагональном подпространстве
 (`nsMatrixStep_diagonal_contraction`, sup-норма) + ортогональная
 эквивариантность итерата (`nsMatrixStep_orth`) — транспортный
-ингредиент; C297 (`Hagi/Step/NewtonSchulzSpectral.lean`) снимает
+ингредиент; C297 (`Hagi/Step/NewtonSchulzMatrix.lean`) снимает
 спектрально-нормовую контракцию при SVD-посылке
 (`ns_contraction_svd`, `muon_step_bound_ns_svd`): scoped
 `Matrix.Norms.L2Operator` API закреплённого Mathlib + C*-тождество
