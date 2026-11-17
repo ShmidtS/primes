@@ -1326,6 +1326,146 @@ theorem ce_global_convergence_reg (X : Matrix V (Fin d) ℝ) (t : V)
       θstar h_att x)
     h_floor θ₀ T
 
+/-! ### Attainment: the last analytic premise discharged
+
+The ℓ2-regularized objective is COERCIVE (`ceReg_coerce`: CE ≥ 0, so
+`ceReg ≥ (λ/2)‖θ‖²`) and continuous (`ceReg_continuous`), hence on
+the finite-dimensional parameter space it attains its minimum
+(`ceReg_attains`).  This discharges the attainment premise of
+`ce_global_convergence_reg` and yields the fully closed endgame
+`ce_global_convergence_reg_closed` whose only analytic premise is
+`0 < λ`.
+
+Pinned (honest negative): the UNREGULARIZED head of C355
+(`ce_rate_no_pl`) keeps `h_attains` as a premise by mathematical
+necessity — bare CE is not coercive (e.g. `X = 0` gives a constant
+objective); the margin/realizability route stays open. -/
+
+/-- Continuity of log-sum-exp: `lse z = log (∑ v, exp (z v))`, the
+sum being strictly positive since `V` is nonempty and each `exp`
+is positive. -/
+private theorem continuous_lse : Continuous (Hagi.Core.lse : (V → ℝ) → ℝ) := by
+  have hsum : Continuous (fun z : V → ℝ => ∑ v, Real.exp (z v)) := by
+    apply continuous_finsetSum
+    intro v _
+    exact Real.continuous_exp.comp (continuous_apply v)
+  refine hsum.log fun z => ne_of_gt ?_
+  exact Finset.sum_pos (fun v _ => Real.exp_pos (z v)) Finset.univ_nonempty
+
+/-- One-hot cross-entropy is continuous in the logits: `lse` minus a
+coordinate functional. -/
+private theorem continuous_ceOneHot (t : V) :
+    Continuous (Hagi.ceOneHot t : (V → ℝ) → ℝ) :=
+  continuous_lse.sub (continuous_apply t)
+
+/-- The linear feature map `θ ↦ X *ᵥ θ.ofLp` is continuous: each
+output coordinate is a finite sum of scaled parameter coordinates
+(`PiLp.continuous_apply`). -/
+private theorem continuous_mulVec_ofLp (X : Matrix V (Fin d) ℝ) :
+    Continuous (fun w : EuclideanSpace ℝ (Fin d) => X *ᵥ w.ofLp) := by
+  have hsum : ∀ v : V,
+      Continuous (fun w : EuclideanSpace ℝ (Fin d) => ∑ j, X v j * w.ofLp j) := by
+    intro v
+    apply continuous_finsetSum
+    intro j _
+    exact continuous_const.mul (PiLp.continuous_apply (p := 2) (β := fun _ : Fin d => ℝ) j)
+  refine continuous_pi fun v => (hsum v).congr fun w => ?_
+  simp only [Matrix.mulVec, dotProduct]
+
+/-- The ℓ2-regularized objective is continuous (CE through the linear
+feature map, plus the continuous quadratic penalty). -/
+theorem ceReg_continuous (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ) :
+    Continuous (fun w : EuclideanSpace ℝ (Fin d) => ceReg X t lam w) := by
+  have hquad : Continuous
+      (fun w : EuclideanSpace ℝ (Fin d) => lam / 2 * ‖w‖ ^ 2) := by
+    fun_prop
+  unfold ceReg
+  exact ((continuous_ceOneHot t).comp (continuous_mulVec_ofLp X)).add hquad
+
+/-- **Coercivity bound** for the regularized objective: since one-hot
+CE is nonnegative (`Hagi.Model.CEHeldout.ceOneHot_nonneg`), the
+regularizer alone gives `ceReg ≥ (λ/2)‖θ‖²`; for `λ > 0` the
+objective diverges along `‖θ‖ → ∞`. -/
+theorem ceReg_coerce (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ)
+    (hlam : 0 ≤ lam) (θ : EuclideanSpace ℝ (Fin d)) :
+    lam / 2 * ‖θ‖ ^ 2 ≤ ceReg X t lam θ := by
+  have hnn := Hagi.Model.CEHeldout.ceOneHot_nonneg t (X *ᵥ θ.ofLp)
+  unfold ceReg
+  linarith
+
+/-- **Attainment**: for `λ > 0` the regularized objective attains its
+global minimum.  Route: the sublevel set `{θ | ceReg θ ≤ ceReg 0}` is
+closed (continuity) and bounded (coercivity: `‖θ‖ ≤ √(2·ceReg 0/λ)`),
+hence compact in the finite-dimensional `EuclideanSpace`; the extreme
+value theorem `IsCompact.exists_isMinOn` gives the minimizer, and any
+point outside the sublevel has value strictly above `ceReg 0 ≥ ceReg
+θstar`. -/
+theorem ceReg_attains (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ)
+    (hlam : 0 < lam) :
+    ∃ θstar : EuclideanSpace ℝ (Fin d), ∀ θ,
+      ceReg X t lam θstar ≤ ceReg X t lam θ := by
+  set f : EuclideanSpace ℝ (Fin d) → ℝ := ceReg X t lam
+  have hcont : Continuous f := ceReg_continuous X t lam
+  have h0 : (0 : EuclideanSpace ℝ (Fin d)) ∈ {θ | f θ ≤ f 0} :=
+    Set.mem_ofPred.2 le_rfl
+  have hclosed : IsClosed {θ : EuclideanSpace ℝ (Fin d) | f θ ≤ f 0} :=
+    isClosed_le hcont continuous_const
+  have hbdd : Bornology.IsBounded {θ : EuclideanSpace ℝ (Fin d) | f θ ≤ f 0} := by
+    have hsub : {θ : EuclideanSpace ℝ (Fin d) | f θ ≤ f 0} ⊆
+        Metric.ball (0 : EuclideanSpace ℝ (Fin d)) (Real.sqrt (2 * f 0 / lam) + 1) := by
+      intro θ hθ
+      have hle : lam / 2 * ‖θ‖ ^ 2 ≤ f 0 :=
+        (ceReg_coerce X t lam hlam.le θ).trans hθ
+      have hf0 : (0:ℝ) ≤ f 0 := by
+        have h := ceReg_coerce X t lam hlam.le 0
+        simpa using h
+      have hnorm : ‖θ‖ ≤ Real.sqrt (2 * f 0 / lam) := by
+        refine (Real.le_sqrt (norm_nonneg θ)
+          (div_nonneg (by nlinarith [hf0]) hlam.le)).2 ?_
+        rw [le_div_iff₀ hlam]
+        nlinarith [hle, sq_nonneg ‖θ‖]
+      have hpos : (0:ℝ) < Real.sqrt (2 * f 0 / lam) + 1 := by positivity
+      rw [Metric.mem_ball, dist_zero_right]
+      linarith
+    exact Metric.isBounded_ball.subset hsub
+  have hcomp : IsCompact {θ : EuclideanSpace ℝ (Fin d) | f θ ≤ f 0} :=
+    Metric.isCompact_iff_isClosed_bounded.2 ⟨hclosed, hbdd⟩
+  obtain ⟨θstar, hmem, hmin⟩ :=
+    hcomp.exists_isMinOn ⟨0, h0⟩ hcont.continuousOn
+  refine ⟨θstar, fun θ => ?_⟩
+  by_cases hθ : θ ∈ {θ : EuclideanSpace ℝ (Fin d) | f θ ≤ f 0}
+  · exact hmin hθ
+  · have hlt : f 0 < f θ := by
+      by_contra hc
+      exact hθ (not_lt.1 hc)
+    exact (hmin h0).trans hlt.le
+
+/-- **ENDGAME — geometric convergence for the real ℓ2-regularized
+log-linear CE head with every analytic premise discharged.**
+Instantiates `ce_global_convergence_reg` with `fstar := ceReg θstar`,
+where `θstar` is supplied by `ceReg_attains` (attainment gives BOTH
+the floor `h_floor` and the attainment `h_att`).
+
+Honest premise ledger: the ONLY analytic premise is `hlam : 0 < lam`
+(the regularization strength).  No `h_floor`, no `h_att`, no explicit
+`θstar` binder (it is existential inside).  Data `X`, target `t`,
+start `θ₀` and horizon `T` are explicit.  `X = 0` is admissible (the
+objective degenerates to `(λ/2)‖θ‖²` with minimizer `0` and `L = λ`).
+The unregularized C355 rate keeps its `h_attains` premise by
+mathematical necessity (bare CE is not coercive). -/
+theorem ce_global_convergence_reg_closed (X : Matrix V (Fin d) ℝ) (t : V)
+    (lam : ℝ) (hlam : 0 < lam)
+    (θ₀ : EuclideanSpace ℝ (Fin d)) (T : ℕ) :
+    ∃ θstar : EuclideanSpace ℝ (Fin d),
+      ceReg X t lam
+          ((plStep (ceGradReg X t lam) (ceSmoothL X + lam))^[T] θ₀)
+        - ceReg X t lam θstar
+      ≤ (1 - lam / (ceSmoothL X + lam)) ^ T
+        * (ceReg X t lam θ₀ - ceReg X t lam θstar) := by
+  obtain ⟨θstar, hmin⟩ := ceReg_attains X t lam hlam
+  exact ⟨θstar, ce_global_convergence_reg X t lam (ceReg X t lam θstar) hlam
+    (fun _ => hmin _) θstar θ₀ (le_refl _) T⟩
+
 end IdentReg
 
 end Hagi.Model.CEGlobalConvergence
