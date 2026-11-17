@@ -496,6 +496,7 @@ import Hagi.Theory.CEChain
 import Hagi.Theory.StochasticSafeStep
 import Hagi.Theory.CompressedSafeStep
 import Hagi.Theory.MasterTheorem
+import Hagi.Theory.MasterEF
 
 set_option linter.style.header false
 
