@@ -492,6 +492,7 @@ import Hagi.Training.TransitionCert
 import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
 import Hagi.Theory.CEChain
+import Hagi.Theory.StochasticSafeStep
 
 set_option linter.style.header false
 
