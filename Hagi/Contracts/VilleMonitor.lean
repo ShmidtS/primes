@@ -7,6 +7,7 @@ import Mathlib.Tactic
 import Hagi.Unified.StitchingEProcess
 import Hagi.Unified.CountableStitching
 import Hagi.Deployment.CanaryRamp
+import Hagi.Probability.Concentration
 set_option linter.style.header false
 
 /-!
@@ -241,5 +242,24 @@ theorem monitor_anchor_traj :
     ∃ t ∈ Finset.range 3, monitorAnchor.α⁻¹ ≤ (2 : ℝ) ^ t := by
   rw [show monitorAnchor.α = 1 / 4 from rfl]
   exact ⟨2, by norm_num, by norm_num⟩
+
+/-! ## The unified Ville channel (C394, A17 stage 4) -/
+
+/-- **The anytime-valid master on the unified premise record**
+(C394): for a `ConcVilleChannel` — level α, filtration, e-process
+with the supermartingale / nonnegativity / unit-budget premises —
+the crossing probability is at most α for EVERY horizon n at
+once. One citation of the C232 Ville engine
+(`ville_anytime_false_alarm`) against the layer-2 record
+`Hagi.Probability.ConcVilleChannel`; `monitor_ville_valid` above
+is the EProcMonitor-shaped view of the SAME statement. Adaptive-
+data caveat inherited unchanged: the e-process premises are
+premise-form (C341/C380 pins). -/
+theorem concVilleAnytime {Ω : Type*} {m0 : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (C : Hagi.Probability.ConcVilleChannel μ) (n : ℕ) :
+    μ.real {ω | ∃ t ∈ Finset.range (n + 1), C.level⁻¹ ≤ C.L t ω}
+      ≤ C.level :=
+  Hagi.Unified.ville_anytime_false_alarm C.hsuper C.hnn C.hL0 n C.hlevel
 
 end Hagi.Contracts.VilleMonitor

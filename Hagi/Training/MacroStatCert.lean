@@ -2,6 +2,7 @@ import Mathlib.Tactic
 import Hagi.Contracts.VilleMonitor
 import Hagi.State.CanonicalTrainState
 import Hagi.Cert.EvalBinding
+import Hagi.Probability.Concentration
 
 /-!
 # MacroStatCert — statistically valid macro-cycle certificate (A16 TT-CAT, C380)
@@ -237,7 +238,11 @@ theorem commit_sound {S : Type*} {objective : S → ℝ}
       ¬ ∃ t ∈ Finset.range (n + 1), cert.mon.α⁻¹ ≤ L t ω) :
     μ.real {ω | cert.decision = MacroDecision.commit ∧ ¬ goodGain ω}
       ≤ cert.mon.α := by
-  have hmain := monitor_ville_valid cert.mon hL hLnn hL0 n
+  -- C394: the radius now flows through the unified premise record
+  -- (`ConcVilleChannel`) instead of the raw C341 monitor form.
+  have hmain := Hagi.Contracts.VilleMonitor.concVilleAnytime
+    (C := ⟨cert.mon.α, cert.mon.α_pos, 𝒢, L, hL, hLnn, hL0⟩) n
+
   refine le_trans ?_ hmain
   refine measureReal_mono ?_ (by finiteness)
   rintro ω ⟨hcom, hbad⟩

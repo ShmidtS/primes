@@ -5,6 +5,7 @@ import Hagi.Theory.CEChain
 import Hagi.Cert.StepGen
 import Hagi.State.CanonicalTrainState
 import Hagi.Unified.StochasticCELearning
+import Hagi.Probability.Concentration
 
 /-!
 # The central stochastic safe step with the Freedman radius (C388)
@@ -107,42 +108,7 @@ theorem noise_tail_le (law : PMF Ω) (g : Ω → ℝ) (c σ r : ℝ)
     (hvar : pmfMean law (fun ω => g ω ^ 2) ≤ σ) :
     pmfMean law (fun ω => if r ≤ g ω then 1 else 0)
       ≤ Real.exp (-r ^ 2 / (4 * σ)) := by
-  have hlam : 0 ≤ r / (2 * σ) := by positivity
-  have hclam : r / (2 * σ) * c ≤ 1 := by
-    rw [div_mul_eq_mul_div]
-    exact (div_le_iff₀ (by positivity : (0 : ℝ) < 2 * σ)).mpr (by linarith)
-  have hmgf := pmfMean_exp_le law g c σ (r / (2 * σ)) hlam hclam
-    hbounded hmean.le hvar
-  have hcomp : pmfMean law
-      (fun ω => Real.exp (r / (2 * σ) * g ω - (r / (2 * σ)) ^ 2 * σ)) ≤ 1 := by
-    have hmul : pmfMean law
-        (fun ω => Real.exp (r / (2 * σ) * g ω - (r / (2 * σ)) ^ 2 * σ))
-        = pmfMean law (fun ω => Real.exp (r / (2 * σ) * g ω))
-          * Real.exp (-(r / (2 * σ)) ^ 2 * σ) := by
-      rw [← pmfMean_mul_const]
-      apply pmfMean_congr
-      intro ω _
-      rw [← Real.exp_add]
-      congr 1
-      ring
-    rw [hmul]
-    calc pmfMean law (fun ω => Real.exp (r / (2 * σ) * g ω))
-          * Real.exp (-(r / (2 * σ)) ^ 2 * σ)
-        ≤ Real.exp ((r / (2 * σ)) ^ 2 * σ)
-          * Real.exp (-(r / (2 * σ)) ^ 2 * σ) :=
-          mul_le_mul_of_nonneg_right hmgf (Real.exp_pos _).le
-      _ = 1 := by rw [← Real.exp_add]; simp
-  have htail := pmfMean_compensated_tail law g (fun _ => σ)
-    (r / (2 * σ)) r σ hlam hcomp
-  have hex : -(r / (2 * σ)) * r + (r / (2 * σ)) ^ 2 * σ
-      = -r ^ 2 / (4 * σ) := by
-    field_simp
-    ring
-  rw [hex] at htail
-  convert htail using 1
-  apply pmfMean_congr
-  intro ω _
-  simp
+  exact Hagi.Probability.concOneDrawRadius law g c σ r hσ hr hrc hbounded hmean hvar
 
 /-! ## Stage 2 — the stochastic proposal record -/
 
