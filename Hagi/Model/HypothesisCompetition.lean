@@ -3,7 +3,12 @@ Copyright (c) 2026 HAGI_v2 Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
-import Mathlib
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Analysis.SpecialFunctions.Exp
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Real.Sqrt
+import Mathlib.Tactic
 import Hagi.Math.Info.InfoCore
 set_option linter.style.header false
 

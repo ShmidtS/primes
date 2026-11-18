@@ -2,7 +2,12 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Mathlib
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Analysis.SpecialFunctions.Exp
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Real.Sqrt
+import Mathlib.Tactic
 import Hagi.Model.Memory
 
 /-!

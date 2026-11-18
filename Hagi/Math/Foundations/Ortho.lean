@@ -2,7 +2,11 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Mathlib
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Normed.Group.Basic
+import Mathlib.Analysis.RCLike.Basic
+import Mathlib.Tactic
 
 
 

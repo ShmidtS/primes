@@ -1,4 +1,7 @@
-import Mathlib
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
 import Hagi.State.TrainState
 import Hagi.Math.Foundations.QuadEta
 

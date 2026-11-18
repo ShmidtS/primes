@@ -3,7 +3,13 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Architecture.LiveDelta
 import Hagi.Core.FrobOuter
-import Mathlib
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Algebra.Order.Chebyshev
+import Mathlib.Analysis.SpecialFunctions.Exp
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Real.Sqrt
+import Mathlib.Tactic
 /-!
 # DeltaHistory — точный мост: история шагов спуска ⟷ LiveDelta
 
