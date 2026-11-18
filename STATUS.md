@@ -4891,7 +4891,7 @@ one-hot CE.
   а не измеренные аппаратные затраты.
 
 
-## Hagi/Unified/Ctv2Telescope.lean
+## Hagi/Training/Ctv2Telescope.lean
 - `ctv2_family_telescope`: для фактических `S(t+1)=advance(S t,u t)`,
   сертификатов `CertifiedTransitionV2`, grow/merge-оценок, `0 < L`,
   `eta ≤ 1/L`, `‖stepDir‖² ≤ inner`, квадратичного joint и
@@ -5021,7 +5021,7 @@ one-hot CE.
   на каждый входной элемент. Счётчики относятся к логическим вызовам.
 
 
-## Hagi/Unified/ExecutedCert.lean
+## Hagi/Training/ExecutedCert.lean
 - `measured_honest` и `measured_lower`: зависимый сертификат связывает
   измерение `m`, фактический спуск `C.drop` и ошибку `d` неравенствами
   `drop−d ≤ m ≤ obj(s)−obj(step s)+d`, а `drop > 0` входит в сертификат.
@@ -5310,7 +5310,7 @@ one-hot CE.
   `C'=(1+alpha)C`; это свойство этих посылок, а не более общий вывод роста.
 
 
-## Hagi/Unified/MemoryCycle.lean
+## Hagi/State/MemoryCycle.lean
 - `descentFold_eq_effective`: для истории пар `(v,x)` плотная свёртка
   `W₀+Σ outerProd(v,x)` точно равна эффективным весам представления
   `fromHistory W₀ hist`.
@@ -5322,7 +5322,7 @@ one-hot CE.
   `≤ εᵢ` и `L`-липшицевой функции потерь `|loss(old)−loss(new)| ≤ L√(k·Σεᵢ)`.
 
 
-## Hagi/Unified/MemorySemantics.lean
+## Hagi/Semantics/MemorySemantics.lean
 - `RamWriteCert` требует `post = Matrix.updateRow pre address value`,
   чтение по address возвращает value, посторонние адреса неизменны,
   повторная запись идемпотентна.
@@ -5900,7 +5900,7 @@ merger cert carriers (Freeze-дисциплина: statement change).
   C232); Mathlib LinearMap.singularValues доступен, но мост не
   закреплён (см. ALGORITHMS §E2).
 
-## Hagi/Unified/StepProvider.lean (C280, merge map A10)
+## Hagi/Training/StepProvider.lean (C280, merge map A10)
 
 - Интерфейсный слой над `Hagi.Cert.CertStepGen`: `StepProposal`
   (следующее состояние + канонический сертификат CertStepGen —

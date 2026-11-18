@@ -238,7 +238,7 @@ import Hagi.Architecture.LiveDelta
 import Hagi.Runtime.LiveDeltaQuant
 import Hagi.Step.LiveDeltaSafe
 import Hagi.Growth.Thermostat
-import Hagi.Unified.MemoryCycle
+import Hagi.State.MemoryCycle
 import Hagi.Unified.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
@@ -302,7 +302,7 @@ import Hagi.Model.Memory
 import Hagi.Model.Perceiver
 import Hagi.Model.LogitPSV
 import Hagi.Unified.StepContract
-import Hagi.Unified.StepProvider
+import Hagi.Training.StepProvider
 import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory
@@ -347,7 +347,7 @@ import Hagi.Model.Grokfast
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.CanonicalParams
 import Hagi.Unified.LinkedQVec
-import Hagi.Unified.ExecutedCert
+import Hagi.Training.ExecutedCert
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.CertifiedLoopKernel
 import Hagi.Unified.StochasticLoop
@@ -356,8 +356,8 @@ import Hagi.Unified.EmpiricalPremises
 import Hagi.Unified.LogitCert
 import Hagi.Unified.LogitGrowth
 import Hagi.Unified.LoopInstances
-import Hagi.Unified.Ctv2Telescope
-import Hagi.Unified.TelescopeInstances
+import Hagi.Training.Ctv2Telescope
+import Hagi.Training.TelescopeInstances
 import Hagi.Model.BYOL
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
@@ -409,7 +409,7 @@ import Hagi.Step.BatchBudget
 import Hagi.Step.RobustDescent
 import Hagi.Audit.Audit
 import Hagi.Step.NoisyPL
-import Hagi.Unified.MemorySemantics
+import Hagi.Semantics.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Unified.ParetoLogit
 import Hagi.Unified.GuardedRobustLogit

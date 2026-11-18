@@ -6,7 +6,7 @@ Authors: HAGI_v2 formalization team
 import Hagi.Math.Foundations.Telescope
 import Hagi.Cert.Core
 import Hagi.Cert.StepGen
-import Hagi.Unified.StepProvider
+import Hagi.Training.StepProvider
 import Mathlib.Tactic
 set_option linter.style.header false
 

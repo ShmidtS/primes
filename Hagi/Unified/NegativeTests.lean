@@ -1,6 +1,6 @@
 import Hagi.Unified.NCStepCert
 import Hagi.Unified.CertifiedLoop
-import Hagi.Unified.MemorySemantics
+import Hagi.Semantics.MemorySemantics
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.LinkedQVec
 

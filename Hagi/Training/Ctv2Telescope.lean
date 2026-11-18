@@ -3,7 +3,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.StepContract
 import Hagi.Unified.MachineProto
 import Hagi.Model.MeasurementCert
-import Hagi.Unified.ExecutedCert
+import Hagi.Training.ExecutedCert
 
 /-!
 # CertUnify : сведение сертификатных миров
