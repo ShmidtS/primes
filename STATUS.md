@@ -5013,7 +5013,7 @@ one-hot CE.
   `List.argmin` по memory-first стоимости среди допущенных элементов списка.
 
 
-## Hagi/Unified/ExecutableSelection.lean
+### Hagi.Unified.ExecutableSelection — merged into ParetoExecution (C406)
 - `auditedArgmin_fst`: инструментированный fold выбирает ровно тот же
   элемент, что `List.argmin` по заданной стоимости.
 - `auditedArgmin_snd`: число сравнений равно `as.length − 1`;
@@ -5110,7 +5110,7 @@ one-hot CE.
   фактическое качество не убывает относительно stay.
 
 
-## Hagi/Unified/GuardedRobustTrajectory.lean
+### Hagi.Unified.GuardedRobustTrajectory — merged into ParetoExecution (C406)
 - `guardedRobustPath_quality_monotone`: если stay тождествен на состояниях,
   а на каждом шаге ошибки оценки всех допустимых преемников не превосходят
   `eps t`, фактическое качество монотонно; при верхней границе `B`

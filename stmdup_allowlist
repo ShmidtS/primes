@@ -4,3 +4,8 @@
 # C345 challenge pin: Comparator-restatement of certified_loop_kernel
 # (conclusion pinned fully; compilation fails on shape divergence).
 Hagi.Challenge.master_hagi_challenge_v4_kernel
+# C406: Theory cannot import Contracts (LayerLint), so the C330 budget
+# telescope law is intentionally re-proved in Hagi.Theory as
+# budget_ledger_telescope with the same statement as
+# Hagi.Contracts.ComputeToQuality.budget_telescope_gen (docstring says so).
+Hagi.Theory.budget_ledger_telescope

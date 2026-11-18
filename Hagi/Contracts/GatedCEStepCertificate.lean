@@ -2,7 +2,7 @@ import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.GatedCESafeStep
 import Hagi.Model.CEHeldout
-import Hagi.Unified.GuardedRobustTrajectory
+import Hagi.Unified.ParetoExecution
 
 /-!
 # Gated categorical-CE execution through the canonical training transition

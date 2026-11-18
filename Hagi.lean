@@ -412,8 +412,6 @@ import Hagi.Step.NoisyPL
 import Hagi.Semantics.MemorySemantics
 import Hagi.Unified.ParetoExecution
 import Hagi.Theory.TwoDomainConfidence
-import Hagi.Unified.GuardedRobustTrajectory
-import Hagi.Unified.ExecutableSelection
 import Hagi.Dynamics.ProductiveTransition
 import Hagi.Unified.TransitionCert
 import Hagi.Theory.VerticalCapstone
