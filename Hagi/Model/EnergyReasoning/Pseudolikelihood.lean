@@ -3496,7 +3496,7 @@ greedy single-cell search story on a FINITE configuration space.
   state of greedy search is only a coordinate minimum (ties allowed;
   witness in `Hagi.Energy.SingleCellDescent`: coordinate-min state
   that is not global); energy says nothing about constraints (E4
-  separation in `Hagi.Model.EnergyReasoning.EnergyStopping`).
+  separation in `EnergyStop`).
 * The termination bound is a LIST bound on a finite type; no
   measure-theoretic packaging, no mixing-time, no convergence rate.
 * A7 is a NEGATIVE result by design: it closes the audit question of
@@ -3576,7 +3576,7 @@ then `y` is an `IsCoordinateMinimum` (no single-cell move decreases
 the energy; ties allowed). HONEST SCOPE: a coordinate minimum is NOT
 the global minimum (witness in `Hagi.Energy.SingleCellDescent`) and
 NOT a validity certificate (E4 separation in
-`Hagi.Model.EnergyReasoning.EnergyStopping`). -/
+`EnergyStop`). -/
 theorem greedy_search_terminal_is_coordinate_minimum (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (hK : ∀ i j a b, K i j a b = K j i b a)
     (y : ι → α)
@@ -3735,7 +3735,7 @@ conflict-count energy realized as the pairwise energy
   certificate alone encodes proper coloring.
 * LEARNED energies have NO such separation: a low learned energy
   does NOT imply validity (the E4 zero-field witness in
-  `Hagi.Model.EnergyReasoning.EnergyStopping`: zero energy, invalid
+  `EnergyStop`: zero energy, invalid
   board). Acceptance of learned-sampler output is only via an
   independent validator — the `CRAMAcceptedSolution` route of the
   A9-supplement cert-kernel.
@@ -4906,7 +4906,7 @@ remainder), bridged into the canonical certification kernel
   RAISE the energy (stationarity is not monotonicity).
 * `CRAMAcceptedSolution` — production certificate: a
   `ValidityCertificate` (givens preserved + constraints
-  satisfied, C263 `EnergyStopping`) agreeing with the board,
+  satisfied, C263 `EnergyStop`) agreeing with the board,
   with an OPTIONAL energy bound.
 * `CRAMEnergyDescentStep.toKernelCertStep` — the canonical-kernel
   bridge (pattern: `HonestTransition.toKernelCertStep`, C254):
@@ -5267,7 +5267,7 @@ structure CRAMExplorationStep (s s' : CRAMState ι α) where
 /-! ## CRAMAcceptedSolution: production certificate -/
 
 /-- The production certificate: a `ValidityCertificate` (givens
-preserved + constraints satisfied — C263 `EnergyStopping`)
+preserved + constraints satisfied — C263 `EnergyStop`)
 agreeing with the current board, with an OPTIONAL energy bound.
 Validity says NOTHING about energy (E4 separation: the bound is
 optional data, and an energy threshold alone certifies nothing). -/
