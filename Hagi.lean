@@ -484,6 +484,7 @@ import Hagi.Theory.CompressedSafeStep
 import Hagi.Theory.MasterTheorem
 import Hagi.Theory.MasterEF
 import Hagi.Theory.MasterBudget
+import Hagi.Theory.OnlinePL
 
 set_option linter.style.header false
 
