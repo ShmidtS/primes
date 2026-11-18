@@ -1,7 +1,7 @@
 import Mathlib.Tactic
 import Hagi.Unified.HonestTransition
 import Hagi.Unified.LinkedQVec
-import Hagi.Unified.CanonicalParams
+import Hagi.Semantics.CanonicalParams
 import Hagi.Cert.StepGen
 
 /-!

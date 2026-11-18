@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 
 import Mathlib
 import Hagi.Unified.QuadMachine
-import Hagi.Unified.FunctionalState
+import Hagi.Semantics.FunctionalState
 
 /-!
 # Протоколы эталонной машины (объединённые)

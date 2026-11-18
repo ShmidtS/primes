@@ -3653,7 +3653,7 @@ one-hot CE.
 - `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор (α=0), scaling-компрессор `u ↦ c•u` (α=c, c ∈ [0,1] — недегенеративный инстанс); инстансы квантователей (TopK, qTernVec) — см. `Hagi/Optimization/EF21Quantizer.lean` (C247: α=0 доказаны, α ∈ (0,1] опровергнуты свидетелями).
 - `ef21_update_norm_le`: точный одношаговый перенос сжатия Markov-обновления `v + C(g−v)`: `‖v_{t+1} − g‖₂² ≤ (1−α)²‖g − v_t‖₂²` без зазора.
 - `ef21_lyapunov_descent`: одношаговый спуск значения функции (premise-form): L-гладкость + дефект выравнивания δ + дефект нормы при `η ≤ 1/(2L)` дают `f' ≤ f − (η/2)(1−2Lη)‖g‖₂² + (η/2)(1+2Lη)δ²` — константы точные (разница = `η/2·(1+Lη)(s−δ)²/2 ≥ 0`, ring-тождество).
-- `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Unified/EFTheory.lean` концептуально субсумируется — дедуп в будущем, ничего не удалено.
+- `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Theory/EFTheory.lean` концептуально субсумируется — дедуп в будущем, ничего не удалено.
 
 - `topK` / `topK_contractive` / `topK_not_contractive_pos`: fixed-support TopK-компрессор — α=0-контрактивен (зануление хвоста не расширяет); при `S ≠ univ` контрактивность α ∈ (0,1] ОПРОВЕРГНУТА (свидетель — вектор на хвосте, `‖Q u−u‖=‖u‖`).
 - `qTernVec` / `qTern_pointwise_le` / `qTernVec_contractive_zero`: векторный лифт тернарного квантователя (`s•roundTern(·/s)`, та же формула что `Hagi.Runtime.qTern`) — покоординатно `|x−s•roundTern(x/s)| ≤ |x|`, α=0-контрактивен.
@@ -4804,7 +4804,7 @@ one-hot CE.
   без утверждения о фактическом обучающем прогрессе.
 
 
-## Hagi/Unified/CanonicalParams.lean
+## Hagi/Semantics/CanonicalParams.lean
 - `advance_params_ne`: для перехода с `u.stepDir ≠ 0`
   канонические `S.params` действительно различаются; положительность шага
   закреплена типом входного перехода.
@@ -4813,7 +4813,7 @@ one-hot CE.
   на `Fin d → ℝ`.
 
 
-## Hagi/Unified/CapabilityLocal.lean
+## Hagi/Growth/CapabilityLocal.lean
 - `capability_geometric_of_local`: при `alpha > 0`,
   `capability(t+1) = capability t + growGain t` и
   `alpha·capability t ≤ growGain t` для всех `t` получается
@@ -4979,7 +4979,7 @@ one-hot CE.
   `attention_no_scale_saturates`: если `s > 0`, то `softProb(s·n) → 1`.
 
 
-## Hagi/Unified/EFTheory.lean
+## Hagi/Theory/EFTheory.lean
 - `ef_iterate_shadow`: при `e(t+1)=d t+e t−comp(d t+e t)`,
   рекуррентностях сжатой и полной траекторий с общим началом
   получается точное `xC n−xF n = eta·(e n−e 0)`.
@@ -5029,7 +5029,7 @@ one-hot CE.
   `Σm ≤ obj(s)−obj(traj step s n) + Σd`, и все шаговые `(cs t).drop` положительны.
 
 
-## Hagi/Unified/FunctionalState.lean
+## Hagi/Semantics/FunctionalState.lean
 - `fs_two_steps_productive`: при `0 < eta < 2`, `eta ≠ 1`, `a ≠ w`
   и `s.weights = w` два последовательных `funStepJoint` строго убывают
   энергию на каждом шаге. Условие `eta ≠ 1` гарантирует ненулевой остаток
@@ -5062,7 +5062,7 @@ one-hot CE.
   и даёт соответствующие risk/qfloor выводы.
 
 
-## Hagi/Unified/GrowthComputedCert.lean
+## Hagi/Training/GrowthComputedCert.lean
 Именованных top-level theorem-деклараций нет; носители результата —
 две definitions.
 - `next S eta`: сохраняет все каналы `S`, кроме замены `S.weights`
@@ -5136,7 +5136,7 @@ one-hot CE.
   последовательных положительных спусков на квадратичной цели.
 
 
-## Hagi/Unified/InterpretiveGrowth.lean
+## Hagi/Growth/InterpretiveGrowth.lean
 - `pointEffect` и `causalEffect` неотрицательны; нулевое изменение выхода
   на всём выбранном наборе даёт нулевой эффект, а существование точки с
   положительным эффектом делает средний эффект положительным.
@@ -5207,7 +5207,7 @@ one-hot CE.
   `(eta/2)(1/(1+exp w))²` не превосходит фактического убывания CE.
 
 
-## Hagi/Unified/LogitGrowth.lean
+## Hagi/Theory/LogitGrowth.lean
 - `step_params`, `step_energy` и `step_capability`: вычисленный преемник имеет
   `params' = next(S.params,eta)`, `energy' = logitCE(params')`, а при
   `capability = −logitCE(params)` и `capability' = −logitCE(params')`.
@@ -5403,7 +5403,7 @@ one-hot CE.
     Σ_{t<n}eta t·(1/(1+exp(w t)))²/2`.
 
 
-## Hagi/Unified/ProductiveTransition.lean
+## Hagi/Dynamics/ProductiveTransition.lean
 - `idle_not_productive`: при `δC,δL > 0` переход `S → S`
   не удовлетворяет предикату `Productive`.
 - `ctv3_idle_contra`: `CertifiedTransitionV3` несовместим с равенством
@@ -5431,7 +5431,7 @@ one-hot CE.
   предикат; это не физическая гарантия и не минимум вне заданного семейства.
 
 
-## Hagi/Unified/QuantSafeUpdate.lean
+## Hagi/Numerics/QuantSafeUpdate.lean
 - `quantized_safe_window`: при `L i,eps i,eta ≥ 0`, идеальном окне,
   `‖δ‖ ≤ q` и линейной оценке возмущённого шага получается
   `dL i ≤ eps i + eta‖g i‖q + L i·eta²(‖d‖q+q²/2)` для всех `i`.
@@ -5596,7 +5596,7 @@ wall-clock, сжатие весов или улучшение качества.
   без второй ошибки квантования.
 
 
-## Hagi/Unified/TernaryProbe.lean
+## Hagi/Benchmarks/TernaryProbe.lean
 - `ternaryCubicShift_abs_error_le_stepBudget`: при `level,σmax > 0`
   и `|t| ≤ σmax` ошибка насыщающего тернарного квантования сдвинутой
   кубической энергии ограничена вычисленным `ternaryCubicStepBudget`.
@@ -5655,7 +5655,7 @@ wall-clock, сжатие весов или улучшение качества.
   при выборе действия.
 
 
-## Hagi/Unified/VerticalCapstone.lean
+## Hagi/Theory/VerticalCapstone.lean
 - `accuracy_for_budget`: при `0 ≤ q < 1`, `σ ≥ 0`, `B0 > 0`,
   `c > 1`, `Estar ≥ 0` и
   `e(s+1) ≤ q·e s + σ²/(B0·c^s)` получается
