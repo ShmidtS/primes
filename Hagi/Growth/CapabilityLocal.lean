@@ -15,7 +15,7 @@ C : ℕ → ℝ, слабо связанный с (S t).capability. Правил
   capability_T ≥ (1 + α)^T · capability_0.
 
 Это чистая индукция без конуса/фронтира — минимальная
-честная версия K8; capability_takeoff_state остаётся
+честная версия K8; capability_geometric_growth_state остаётся
 усиленной конусной версией поверх той же привязки.
 -/
 

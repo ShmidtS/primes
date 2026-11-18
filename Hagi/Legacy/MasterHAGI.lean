@@ -37,7 +37,7 @@ those theorems plus honest telescoping/bridging algebra.
   `top_level_cycle_bound`, R88): the macro-cycle potential law
   Φ(compress∘joint∘merge∘grow S) ≤ Φ(S) − decrease + riskSpend.
 * **Renewal / Growth** — `Hagi/Growth/FrontierScaling` (R107)
-  `sustained_takeoff_from_production`: the cone invariant
+  `sustained_geometric_growth_from_production`: the cone invariant
   D_t ≥ (α/γ)C_t DERIVED from the production dynamics
   D_{t+1} ≥ ρD_t + βC_t − ξ_t supplies the gate, giving
   C_T ≥ C₀(1+α)^T with NO free h_emp_frontier_scaling.
@@ -50,7 +50,7 @@ those theorems plus honest telescoping/bridging algebra.
   budget minus the declared budgetSpend; telescoped over T
   cycles.
 * **Probability** — `Hagi/Probability/ConditionalSuccess`
-  (R95) `takeoff_time_form` / `Hagi/Dynamics/WallClockTakeoff`
+  (R95) `exp_growth_prob_form` / `Hagi/Dynamics/WallClockTakeoff`
   (R110) `wallclock_rate_from_cone`: with constant per-cycle
   wall cost τ and the success-count floor
   Σs_t ≥ p₀T − Δ (the R95 concentration hypothesis form), the
@@ -446,7 +446,7 @@ theorem MasterHAGI {K : Type*} [Fintype K] [Nonempty K]
       (f := fun t => (S t).toGrowthState.budget)
       (c := fun t => (verify (S t).toGrowthState).budgetSpend) hbud_step
   -- ### Growth: the R107 derived takeoff
-  have hcap := sustained_takeoff_from_production C G D xi alpha gamma rho beta
+  have hcap := sustained_geometric_growth_from_production C G D xi alpha gamma rho beta
     hα hγ hρ hC0 h_cone0 h_step h_gain_prod h_dyn h_C_cap hβ T
   -- ### Gen floor: extract from the Φ_HAGI bound
   have hfloor := hagi_gen_floor (S T) lam nu Qtarget
@@ -527,7 +527,7 @@ theorem MasterHAGI_wallclock (C G D : ℕ → ℝ) (gamma' alpha tau p0 Delta : 
 
 /-- **The multiplier→log bridge**: positivity plus the
 per-success multiplier law give the log-form bridge of R95's
-`log_growth`/`takeoff_time_form` with rate a := ln(1+α) and
+`log_growth`/`exp_growth_prob_form` with rate a := ln(1+α) and
 ZERO friction. -/
 
 theorem log_bridge_from_multiplier (C : ℕ → ℝ) (s : ℕ → ℕ) (alpha : ℝ)
@@ -566,7 +566,7 @@ probability ≥ 1 − δ
   C_T ≥ C₀·exp(ln(1+α)·(p₀·T − Δ(T,δ))),
 
 Δ(T,δ) = √(2T·log(1/δ)) the explicit Hoeffding concentration
-price. This is `takeoff_time_form` (R95) applied with
+price. This is `exp_growth_prob_form` (R95) applied with
 a := ln(1+α) and zero friction, fed by the log bridge below
 (positivity + `Real.log_mul`/`Real.exp_log` algebra). -/
 
@@ -602,7 +602,7 @@ theorem MasterHAGI_probability {Om : Type*} [MeasurableSpace Om]
     intro t om
     have := hbridge t om
     linarith
-  have hmain := takeoff_time_form (S := Sc) (T := T) (delta := delta)
+  have hmain := exp_growth_prob_form (S := Sc) (T := T) (delta := delta)
     (p0 := p0) (a := Real.log (1 + alpha)) (eps := fun _ => 0)
     hdelta hdelta1 ha hCpos hbridge0 h_emp_meas h_emp_01 h_emp_indep h_emp_p
   refine le_trans hmain ?_

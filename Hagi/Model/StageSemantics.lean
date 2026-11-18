@@ -23,7 +23,7 @@ regressions (`corePremises_two_step_decrease_nonpos`,
 * the growth law is stated as a WINDOW
   `(1+α_min)·C_t ≤ C_{t+1} ≤ (1+α_cap)·C_t` with
   `α_min ≤ α_cap` — no squeezing into exact saturation
-  (contrast `FrontierScaling.takeoff_edge_forced`).
+  (contrast `FrontierScaling.cone_edge_geometric_growth`).
 
 Main items:
 
@@ -355,7 +355,7 @@ the capability stays in the window
 `(1+α_min)·C_t ≤ C_{t+1} ≤ (1+α_cap)·C_t` — both bounds are
 simultaneously satisfiable BECAUSE they differ (contrast the
 exact saturation `C_{t+1} = (1+α)·C_t` forced when the same α
-plays both roles, `FrontierScaling.takeoff_edge_forced`). -/
+plays both roles, `FrontierScaling.cone_edge_geometric_growth`). -/
 theorem cone_growth_window (C G D : ℕ → ℝ) (α_min α_cap γ : ℝ)
     (hγ : 0 < γ) (hmin : 0 ≤ α_min) (hsep : α_min ≤ α_cap)
     (h_step : ∀ t, C (t + 1) = C t + G t)
@@ -558,14 +558,14 @@ theorem advance_capability (S : GrowthState X) (u : StageInput X) :
 /-- **State-linked geometric amplification** (the repaired takeoff):
 if every cycle of a trajectory measures a gain of at least
 `alpha * C_t` (the cone+production collapse of
-`takeoff_edge_forced`, now with per-cycle gains FREE to vary), the
+`cone_edge_geometric_growth`, now with per-cycle gains FREE to vary), the
 capability grows geometrically:
 `(state T).capability >= (1+alpha)^T * (state 0).capability`.
 Unlike `state_capability_takeoff`-style hypotheses (unsatisfiable
 at `T >= 2` under the fixed-effects model,
 `full_cycle_two_step_growth_inconsistent`), these hypotheses are
 REALIZED by the witness below. -/
-theorem capability_takeoff_amplified (tr : Trajectory X) (alpha : ℝ)
+theorem capability_growth_amplified (tr : Trajectory X) (alpha : ℝ)
     (hα : 0 ≤ alpha)
     (hgain : ∀ t < tr.T,
       alpha * (tr.state t).capability ≤ (tr.input t).eff.growGain)
@@ -707,7 +707,7 @@ noncomputable def wTraj2 : Trajectory ℝ where
 СТРОГО реализован семантикой Gen-2 — (1+1)^2 * 1 = 4 —
 минимальный горизонт гейта, на котором старый Gen-1
 (linked-форма капстоуна Gen-1) уже противоречив. -/
-theorem witness_takeoff_realized_T2 :
+theorem witness_geometric_growth_realized_T2 :
     (1 + (1:ℝ)) ^ 2 * (wTraj2.state 0).capability
       ≤ (wTraj2.state 2).capability := by
   have hα : 0 ≤ (1:ℝ) := by norm_num
@@ -720,7 +720,7 @@ theorem witness_takeoff_realized_T2 :
     all_goals simp [wTraj2, advance, wS0, wU0, wU1]
     all_goals norm_num
   have hT : (2:ℕ) ≤ wTraj2.T := by simp [wTraj2]
-  have hres := capability_takeoff_amplified wTraj2 (1:ℝ) hα hg 2 hT
+  have hres := capability_growth_amplified wTraj2 (1:ℝ) hα hg 2 hT
   have hstate2 : wTraj2.state 2
       = advance (advance wS0 wU0) wU1 := by
     simp [wTraj2]
@@ -738,7 +738,7 @@ state-linked geometric takeoff `(1+1)^3 * 1 = 8` IS REALIZED —
 the repaired semantics proves the capstone growth the OLD model
 could only state vacuously (linked-форма Gen-1 была inconsistent
 at `T >= 2`). -/
-theorem witness_takeoff_realized :
+theorem witness_geometric_growth_realized :
     (1 + (1:ℝ)) ^ 3 * (wTraj.state 0).capability
       ≤ (wTraj.state 3).capability := by
   have hα : 0 ≤ (1:ℝ) := by norm_num
@@ -751,7 +751,7 @@ theorem witness_takeoff_realized :
     all_goals simp [wTraj, advance, wS0, wU0, wU1, wU2]
     all_goals norm_num
   have hT : (3:ℕ) ≤ wTraj.T := by simp [wTraj]
-  have hres := capability_takeoff_amplified wTraj (1:ℝ) hα hg 3 hT
+  have hres := capability_growth_amplified wTraj (1:ℝ) hα hg 3 hT
   have hstate3 : wTraj.state 3
       = advance (advance (advance wS0 wU0) wU1) wU2 := by
     simp [wTraj]
@@ -1311,7 +1311,7 @@ theorem wTraj_budget_risk_invariants :
 равен текущей capability: 1,2,4), поэтому
 C_0·(1+1)^t ≤ C_t на всём горизонте — связка канонической
 семантики с cone/takeoff-механикой. -/
-theorem wTraj_takeoff :
+theorem wTraj_geometric_growth :
     ∀ t ≤ 3, (1:ℝ) * (wTraj.state t).capability
       ≤ (wTraj.state (t + 1)).capability
         ∧ (wTraj.state 0).capability * 2 ^ t
@@ -1352,7 +1352,7 @@ theorem advance_verify_decrease_pos {X : Type*}
 фиксированный (независимый от состояния) gain дал бы лишь
 линейный рост — конфликт семантик разрешён в пользу
 пересчёта (audit two-step inconsistency). -/
-theorem advance_trajectory_takeoff {X : Type*}
+theorem advance_trajectory_geometric_growth {X : Type*}
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (tr : Trajectory X) (D : ℕ → ℝ) (γ k : ℝ)
     (hγ : 0 ≤ γ) (hγk : 0 ≤ 1 + γ * k)
@@ -1486,7 +1486,7 @@ theorem growth_corridor {X : Type*}
     (hcap : ∀ t < tr.T, (tr.state (t + 1)).capability
       ≤ (1 + α) * (tr.state t).capability) :
     (1 + γ * k) ^ (tr.T : ℝ) ≤ (1 + α) ^ ((tr.state 0).budget / c) := by
-  have hlow := advance_trajectory_takeoff tr D γ k hγ hγk hcone hgain
+  have hlow := advance_trajectory_geometric_growth tr D γ k hγ hγk hcone hgain
   have hhigh := budget_capability_ceiling tr α c hα hc hcost
     hbudget (le_of_lt hC0) hcap
   have hlow' : (1 + γ * k) ^ (tr.T : ℝ)
@@ -1583,7 +1583,7 @@ theorem sufficient_horizon {X : Type*}
     (hT : Cstar ≤ (1 + γ * k) ^ (tr.T : ℝ)
       * (tr.state 0).capability) :
     Cstar ≤ (tr.state tr.T).capability := by
-  have hlow := advance_trajectory_takeoff tr D γ k hγ hγk
+  have hlow := advance_trajectory_geometric_growth tr D γ k hγ hγk
     hcone hgain
   have hT' : Cstar ≤ (1 + γ * k) ^ (tr.T : ℕ)
       * (tr.state 0).capability := by

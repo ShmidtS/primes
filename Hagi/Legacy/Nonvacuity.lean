@@ -575,7 +575,7 @@ theorem corePremises_two_step_decrease_nonpos {X : Type*} [NormedAddCommGroup X]
 capability grow additively by the SAME measured `growGain` every
 step (the effects record is copied verbatim), while the cone +
 production + matching cap force the multiplicative saturation
-`C(t+1) = (1+alpha) * C(t)` (`takeoff_edge_forced`). On the
+`C(t+1) = (1+alpha) * C(t)` (`cone_edge_geometric_growth`). On the
 horizon `T = 2` this demands
 `alpha * C0 = growGain = alpha * C1` with
 `C1 = (1+alpha) * C0` — impossible for `alpha > 0`, `C0 > 0`.
@@ -592,7 +592,7 @@ theorem full_cycle_two_step_growth_inconsistent {X : Type*} [NormedAddCommGroup 
     (h12 : (S 2).toGrowthState
       = Hagi.compress (Hagi.joint (Hagi.merge (Hagi.grow (S 1).toGrowthState))))
     -- cone + production + cap, collapsed to the forced bound
-    -- alpha * C t <= growGain_t (takeoff_edge_forced, t < 2)
+    -- alpha * C t <= growGain_t (cone_edge_geometric_growth, t < 2)
     (hgain : ∀ t < 2, alpha * (S t).toGrowthState.capability
       <= (S t).toGrowthState.effects.growGain)
     (hcap : ∀ t < 2, (S (t + 1)).toGrowthState.capability

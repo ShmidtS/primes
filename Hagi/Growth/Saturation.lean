@@ -21,7 +21,7 @@ set_option linter.style.header false
   `ε > 0` существует T с `C* − ε ≤ C t` при всех `t ≥ T`;
 * `pl_gap_geometric_lo`: при `hpl_up` и `C 0 ≤ C*`
   `(1−σ)^t·(C* − C 0) ≤ C* − C t`;
-* `takeoff_with_saturation`: двусторонняя полоса
+* `geometric_band_with_saturation`: двусторонняя полоса
   `C 0·(1+γk)^T ≤ C T ≤ C* − (1−σ)^T·(C* − C 0)`
   при посылках обоих законов.
 
@@ -194,10 +194,10 @@ theorem pl_gap_geometric_lo (C : ℕ → ℝ) (Cstar σ : ℝ)
             mul_le_mul_of_nonneg_left ih hσ1m
         _ ≤ Cstar - C (t + 1) := hstep
 
-/-- При посылках `ratio_takeoff` (точный шаг, конус) и
+/-- При посылках `cone_ratio_geometric_growth` (точный шаг, конус) и
 обеих PL-формах с `C 0 ≤ Cstar` выполнено
 `C 0·(1+γk)^T ≤ C T ≤ Cstar − (1−σ)^T·(Cstar − C 0)`. -/
-theorem takeoff_with_saturation (C D : ℕ → ℝ)
+theorem geometric_band_with_saturation (C D : ℕ → ℝ)
     (γ k Cstar σ : ℝ)
     (hγ : 0 < γ) (hk : 0 < k) (hσ1 : σ ≤ 1)
     (hstep : ∀ t, C (t + 1) = C t + γ * D t)
@@ -207,7 +207,7 @@ theorem takeoff_with_saturation (C D : ℕ → ℝ)
     (hC0 : C 0 ≤ Cstar) (T : ℕ) :
     C 0 * (1 + γ * k) ^ T ≤ C T
       ∧ C T ≤ Cstar - (1 - σ) ^ T * (Cstar - C 0) := by
-  refine ⟨ratio_takeoff C D γ k hγ hk hstep hcone T, ?_⟩
+  refine ⟨cone_ratio_geometric_growth C D γ k hγ hk hstep hcone T, ?_⟩
   linarith [pl_gap_geometric_lo C Cstar σ hσ1 hpl_up hC0 T]
 
 end Hagi.Growth

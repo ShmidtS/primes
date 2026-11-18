@@ -441,7 +441,7 @@ C (t+1) = C t + G t и γ·D t ≤ G t дают экспоненциальный
 capability: C T ≥ (1+α)^T·C 0 — вся цепочка от эмпирических
 посылок к takeoff (trunc_cone_invariance ⟹
 h_emp_takeoff_exponential при k = α/γ, γk = α). -/
-theorem trunc_premises_takeoff (C D G ξ : ℕ → ℝ) (α γ ρ β : ℝ)
+theorem trunc_premises_geometric_growth (C D G ξ : ℕ → ℝ) (α γ ρ β : ℝ)
     (hα : 0 ≤ α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
     (hC : ∀ t, 0 < C t)
     (hcone0 : α / γ * C 0 ≤ D 0)
@@ -491,7 +491,7 @@ theorem cone_exact_exponential (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
       ∧ C T ≤ (1 + alpha) ^ T * C 0 := by
   constructor
   · -- нижняя: конусная динамика (существующий капстоун)
-    exact trunc_premises_takeoff C D G xi alpha gamma rho beta
+    exact trunc_premises_geometric_growth C D G xi alpha gamma rho beta
       hα hγ hρ hCpos hcone0 hcap hdyn hbeta hstep hgain T
   · -- верхняя: индукция по cap
     have hmain : ∀ n : ℕ, n ≤ T →
@@ -987,7 +987,7 @@ section C238_nonlin
 * `sqrt_gain_step`: при `0 < γ`, `0 < k`, `0 < x` —
   `√x + γ√k/(2 + γ√k/√x) ≤ √(x + γ√(k·x))` — прирост `√C`
   ограничен снизу константой;
-* `sqrt_gain_takeoff`: если `C (t+1) = C t + sqrtGain γ k (C t)`
+* `sqrt_gain_geometric_growth`: если `C (t+1) = C t + sqrtGain γ k (C t)`
   и `C t > 0`, то `C T ≥ (√C₀ + c₀·T)²`, где
   `c₀ = γ√k/(2 + γ√k/√C₀)` — квадратичный рост;
 * `nonlinear_zero_kill`: если `0 ≤ phiE` и `η ≤ 0`, то
@@ -1111,7 +1111,7 @@ theorem sqrt_gain_step (γ k x : ℝ) (hγ : 0 < γ) (hk : 0 < k)
 `C (t+1) = C t + sqrtGain γ k (C t)`, то при всех T
 `(√(C 0) + c₀·T)² ≤ C T`, где
 `c₀ = γ√k/(2 + γ√k/√(C 0))`. -/
-theorem sqrt_gain_takeoff (C : ℕ → ℝ) (γ k : ℝ)
+theorem sqrt_gain_geometric_growth (C : ℕ → ℝ) (γ k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k) (hC0 : 0 < C 0)
     (hmono : ∀ t, 0 < C t)
     (hstep : ∀ t, C (t + 1) = C t + sqrtGain γ k (C t)) :
@@ -1246,14 +1246,14 @@ section C238_frontier
 
   пороге `(α/γ)·((1+α) − ρ) + ξ t / C t ≤ β` (нужно `0 < C t`);
 (Конусный шаг/инвариант перенесён в Foundations/ConeTakeoff — R326.)
-* `takeoff_edge_forced`: при точном шаге, gain-законе, конусе
+* `cone_edge_geometric_growth`: при точном шаге, gain-законе, конусе
   и капе выполнены тождества `G = α·C`, `D = (α/γ)·C`,
   `C' = (1+α)·C` — модель ПОЛНОСТЬЮ НАСЫЩЕННОГО режима
   (одновременные нижняя и верхняя границы роста): точное
   равенство каждой итерации. Это не устойчивая гарантия для
   произвольного обучения с шумом — вне насыщения применять
   нельзя (оговорка );
-* `sustained_takeoff_from_production`: из указанных посылок —
+* `sustained_geometric_growth_from_production`: из указанных посылок —
   `C 0 * (1 + α) ^ T ≤ C T` для всех T (без свободной
   гипотезы «α·C ≤ γ·D»: ворота выводятся из конуса);
 * `frontier_asymptotic`: если `ξ t ≤ ξ̄·C t`, порог стягивается
@@ -1273,7 +1273,7 @@ namespace Hagi.Growth
 gain-законе `γ·D t ≤ G t`, конусе `α/γ·C t ≤ D t` и капе
 `C (t+1) ≤ (1+α)·C t` выполнены тождества
 `G t = α·C t`, `D t = α/γ·C t` и `C (t+1) = (1+α)·C t`. -/
-theorem takeoff_edge_forced (C G D : ℕ → ℝ) (α γ : ℝ)
+theorem cone_edge_geometric_growth (C G D : ℕ → ℝ) (α γ : ℝ)
     (hγ : 0 < γ)
     (h_step : ∀ t, C (t + 1) = C t + G t)
     (h_gain_prod : ∀ t, γ * D t ≤ G t)
@@ -1353,8 +1353,8 @@ private theorem cone_and_pos (C G D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
 `α/γ·((1+α) − ρ) + ξ t / C t ≤ β` выводится
 `C 0 * (1 + α) ^ T ≤ C T` для всех `T`: ворота
 `α·C t ≤ γ·D t` выводятся из конус-инварианта и применяется
-`renewal_feeds_takeoff`. -/
-theorem sustained_takeoff_from_production (C G D ξ : ℕ → ℝ)
+`renewal_feeds_geometric_growth`. -/
+theorem sustained_geometric_growth_from_production (C G D ξ : ℕ → ℝ)
     (α γ ρ β : ℝ)
     (hα : 0 < α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
     (hC0 : 0 < C 0)
@@ -1379,11 +1379,11 @@ theorem sustained_takeoff_from_production (C G D ξ : ℕ → ℝ)
     have e : γ * (α / γ * C t) = α * C t := by
       field_simp
     linarith
-  exact renewal_feeds_takeoff C G D α γ hα h_step h_gain_prod hgate T
+  exact renewal_feeds_geometric_growth C G D α γ hα h_step h_gain_prod hgate T
 
 /-! ## The asymptotic (constant-threshold) corollary -/
 
-/-- Версия `sustained_takeoff_from_production` с постоянным
+/-- Версия `sustained_geometric_growth_from_production` с постоянным
 порогом: если дополнительно `ξ t ≤ ξ̄·C t` при всех t и
 `α/γ·((1+α) − ρ) + ξ̄ ≤ β`, то `C 0 * (1 + α) ^ T ≤ C T`. -/
 theorem frontier_asymptotic (C G D ξ : ℕ → ℝ)
@@ -1413,13 +1413,13 @@ theorem frontier_asymptotic (C G D ξ : ℕ → ℝ)
     have e : γ * (α / γ * C t) = α * C t := by
       field_simp
     linarith
-  exact renewal_feeds_takeoff C G D α γ hα h_step h_gain_prod hgate T
+  exact renewal_feeds_geometric_growth C G D α γ hα h_step h_gain_prod hgate T
 
 end Hagi.Growth
 
 
 namespace Hagi
-export Hagi.Growth (sustained_takeoff_from_production)
+export Hagi.Growth (sustained_geometric_growth_from_production)
 export Hagi.Foundations.GrowthBand (growth_band_step growth_band_iter)
 end Hagi
 

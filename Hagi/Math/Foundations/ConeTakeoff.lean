@@ -15,7 +15,7 @@ set_option linter.style.header false
 
 * `cone_invariant_horizon` — инвариантность конуса
   `k * C t ≤ D t` на `0..T` при усечённых посылках.
-* `takeoff_from_cone` — из конуса и шага
+* `geometric_growth_from_cone` — из конуса и шага
   `C (t+1) = C t + gamma * D t` следует
   `C 0 * (1 + gamma * k) ^ T ≤ C T`.
 -/
@@ -86,7 +86,7 @@ theorem cone_invariant_horizon (C D : ℕ → ℝ)
 /-- При конусе `k * C t ≤ D t` на `0..T` и шаге
 `C (t + 1) = C t + gamma * D t` выполнено
 `C 0 * (1 + gamma * k) ^ T ≤ C T`. -/
-theorem takeoff_from_cone (C D : ℕ → ℝ)
+theorem geometric_growth_from_cone (C D : ℕ → ℝ)
     (gamma k : ℝ) (T : ℕ)
     (hgk : 0 ≤ gamma * k) (hg : 0 ≤ gamma) (hk : 0 ≤ k)
     (hstep : ∀ t ∈ Finset.range T,

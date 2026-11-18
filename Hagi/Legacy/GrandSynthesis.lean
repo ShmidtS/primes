@@ -95,7 +95,7 @@ theorem grand_synthesis
     -- 2. budget nonincreasing (derived from the exact ledger)
     ∧ budget T ≤ budget 0 := by
   constructor
-  · exact Hagi.Growth.takeoff_from_certificate C D G stages T
+  · exact Hagi.Growth.geometric_growth_from_certificate C D G stages T
       beta kappa gbar rho cbeta k hβ hκ hk hD hC hcert hdiv
       hstep hG hup hdyn hrhogk hbeta' hcone0
   · exact budget_nonincreasing_of_nonneg_spend budget spend T

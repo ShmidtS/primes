@@ -16,7 +16,7 @@ set_option linter.style.header false
 * `multiplicative_growth`: если
   `C (t+1) ≥ C t·exp(α·S t − ε t)` при всех t, то
   `C 0·exp(α·ΣS − Σε) ≤ C T`;
-* `closed_loop_takeoff`: композиция с
+* `closed_loop_conditional_growth`: композиция с
   `adaptive_success_concentrated` — при условных success-полах
   ≥ p₀ с вероятностью ≥ 1−δ выполнено
   `C 0·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σε) ≤ C n`.
@@ -121,7 +121,7 @@ theorem sum_realized {n : ℕ} (Y : Fin n → V → ℝ) (omega : Fin n → V) :
 и `0 < δ < 1`: с вероятностью ≥ 1−δ из события
 `n·p₀ − √(n log(1/δ)/2) ≤ Σ Y i (ω i)` следует
 `C 0·exp(α·(n·p₀ − √(n log(1/δ)/2)) − Σ_{t<n} ε t) ≤ C n`. -/
-theorem closed_loop_takeoff {n : ℕ} (p : Fin n → V → ℝ)
+theorem closed_loop_conditional_growth {n : ℕ} (p : Fin n → V → ℝ)
     (hp : IsProbSys p)
     (Y : Fin n → V → ℝ) (hY : ∀ i v, 0 ≤ Y i v ∧ Y i v ≤ 1)
     (p0 : ℝ) (hfloor : SuccessFloor p Y p0)

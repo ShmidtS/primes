@@ -9,7 +9,7 @@ set_option linter.style.header false
 
 The CENTRAL missing stochastic half of the fast-growth chain
 (roadmap §12–14, external review §10): `Hagi.Dynamics.FastGrowth`
-proved the deterministic core `capability_takeoff_counted`
+proved the deterministic core `capability_exp_growth_counted`
 (C_T ≥ C₀·(1+α)^{Σs_t}) — exponential in the SUCCESS COUNT —
 but the probability layer that turns the success count into
 p·T was open. This module closes that gap at the composition
@@ -38,7 +38,7 @@ with per-step success means μ[S t] ≥ p₀. Then:
   NO independence between S_t and C_t is assumed BEYOND the
   pointwise bridge hypothesis — the composition is a
   per-sample-point telescope on the concentration good event.
-* `takeoff_time_form` — the exponential form:
+* `exp_growth_prob_form` — the exponential form:
   Pr[ C_T ≥ C₀·exp(a·(p₀·T − Δ) − Σ_{t<T} ε_t) ] ≥ 1 − δ.
   With p₀ > 0, a > 0 and constant friction ε_t = ε̄ < a·p₀,
   the growth exponent a·p₀·T − a·√(2T·log(1/δ)) − ε̄·T is
@@ -225,7 +225,7 @@ variable {C : ℕ → Ω → ℝ}
 /-- C365 общий телескоп лог-разностей, однократно: сумма
 `f (t+1) − f t` по `t < T` равна `f T − f 0`. Ранее этот блок
 (с точностью до знака от `Finset.sum_range_sub'`) дублировался
-байт-в-байт в `log_growth` и `takeoff_time_form`. -/
+байт-в-байт в `log_growth` и `exp_growth_prob_form`. -/
 theorem sum_range_succ_sub_eq (f : ℕ → ℝ) (T : ℕ) :
     ∑ t ∈ Finset.range T, (f (t + 1) - f t) = f T - f 0 := by
   have h0 := Finset.sum_range_sub' f T
@@ -298,8 +298,8 @@ With p₀ > 0, a > 0 and constant friction ε̄ < a·p₀ the
 exponent a·p₀·T − a·√(2T·log(1/δ)) − ε̄·T is linear in T:
 exponential capability takeoff, with the explicit
 √T·√(log(1/δ))·a concentration price — the stochastic half of
-`capability_takeoff_counted`. -/
-theorem takeoff_time_form {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} {eps : ℕ → ℝ}
+`capability_exp_growth_counted`. -/
+theorem exp_growth_prob_form {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 a : ℝ} {eps : ℕ → ℝ}
     (hdelta : 0 < delta) (hdelta1 : delta < 1)
     (ha : 0 ≤ a)
     (hCpos : ∀ t ω, 0 < C t ω)
@@ -349,5 +349,5 @@ end ConditionalSuccess
 end Hagi.Probability
 
 namespace Hagi
-export Hagi.Probability (concDelta takeoff_time_form)
+export Hagi.Probability (concDelta exp_growth_prob_form)
 end Hagi

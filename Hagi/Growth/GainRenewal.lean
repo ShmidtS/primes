@@ -21,10 +21,10 @@ from its usable disagreement `D t`, `γ·D t ≤ G t ≤ γ·D t`;
   `G t ≥ γ(inj − ξ)`;
 * `gain_renewal_growth_one`: for `ρ = 1`, linear growth
   `G t ≥ G 0 + γ(inj − ξ)·t`;
-* `sustained_takeoff_window_lift`: with the additive step
+* `sustained_geometric_growth_window_lift`: with the additive step
   `C (t+1) = C t + G t` and gate `α·C t ≤ G t` at every t,
   `C 0·(1+α)^T ≤ C T`;
-* `renewal_feeds_takeoff`: the same conclusion from the
+* `renewal_feeds_geometric_growth`: the same conclusion from the
   frontier-scaling hypothesis `α·C t ≤ γ·D t` (an empirical
   premise, not derived here);
 * `bounded_frontier_no_sustained_growth`: if `G t ≤ γ·D t`,
@@ -193,7 +193,7 @@ theorem gain_renewal_growth_one (G D : ℕ → ℝ) (γ inj ξ : ℝ)
 
 /-- If `0 < α`, `C (t+1) = C t + G t`, and `α·C t ≤ G t` at
 every t, then `C 0·(1 + α)^T ≤ C T`. -/
-theorem sustained_takeoff_window_lift (C G : ℕ → ℝ) (α : ℝ)
+theorem sustained_geometric_growth_window_lift (C G : ℕ → ℝ) (α : ℝ)
     (hα : 0 < α)
     (h_step : ∀ t, C (t + 1) = C t + G t)
     (h_gate : ∀ t, α * C t ≤ G t)
@@ -221,14 +221,14 @@ then `C 0·(1 + α)^T ≤ C T`. The scaling hypothesis is an
 empirical premise, not derived here (see
 `bounded_frontier_no_sustained_growth` for the converse under
 a bounded frontier). -/
-theorem renewal_feeds_takeoff (C G D : ℕ → ℝ) (α γ : ℝ)
+theorem renewal_feeds_geometric_growth (C G D : ℕ → ℝ) (α γ : ℝ)
     (hα : 0 < α)
     (h_step : ∀ t, C (t + 1) = C t + G t)
     (h_gain_prod : ∀ t, γ * D t ≤ G t)
     (h_emp_frontier_scaling : ∀ t, α * C t ≤ γ * D t)
     (T : ℕ) :
     C 0 * (1 + α) ^ T ≤ C T :=
-  sustained_takeoff_window_lift C G α hα h_step
+  sustained_geometric_growth_window_lift C G α hα h_step
     (fun t => le_trans (h_emp_frontier_scaling t) (h_gain_prod t)) T
 
 /-- If `0 < α`, `G t ≤ γ·D t`, `D t ≤ D̄`, and `α·C t ≤ G t`,
@@ -250,5 +250,5 @@ theorem bounded_frontier_no_sustained_growth (C G D : ℕ → ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (renewal_feeds_takeoff bounded_frontier_no_sustained_growth)
+export Hagi.Growth (renewal_feeds_geometric_growth bounded_frontier_no_sustained_growth)
 end Hagi

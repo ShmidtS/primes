@@ -35,7 +35,7 @@ namespace Hagi.Foundations
 со счётчиками `s t ∈ ℕ`, то
 `C T ≥ C 0 * (1 + alpha) ^ (∑ t < T, s t)`: рост
 экспоненциален по числу успехов, неуспехи нейтральны. -/
-theorem capability_takeoff_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
+theorem capability_exp_growth_counted (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
     (T : ℕ) :
@@ -74,12 +74,12 @@ set_option linter.style.header false
 * `capability_multiplicative`: при `C (t+1) ≥ C t·(1+α)` —
   `C T ≥ C 0·(1+α)^T` (T-кратная композиция пошагового
   закона — посылка, не вывод);
-* `capability_takeoff_counted`: при
+* `capability_exp_growth_counted`: при
   `C (t+1) ≥ C t·(1+α)^(s t)` —
   `C T ≥ C 0·(1+α)^(Σ s t)` (экспонента по числу успехов);
-* `capability_takeoff_floor`: при `N ≤ Σ s t` —
+* `capability_exp_growth_floor`: при `N ≤ Σ s t` —
   `C T ≥ C 0·(1+α)^N`;
-* `risk_takeoff_counted`: при
+* `risk_exp_decay_counted`: при
   `R (t+1) ≤ R t·(1−β)^(s t)` —
   `R T ≤ R 0·(1−β)^(Σ s t)`;
 * `risk_epsilon_floor`: при
@@ -165,13 +165,13 @@ theorem capability_multiplicative (C : ℕ → ℝ) (_succ : ℕ → ℕ)
 
 /-- При `0 < α`, `0 ≤ C 0`, `C (t+1) ≥ C t·(1+α)^(s t)` и
 `N ≤ Σ_{t<T} s t` — `C T ≥ C 0·(1+α)^N`. -/
-theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
+theorem capability_exp_growth_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha) (hC0 : 0 ≤ C 0)
     (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
     (T N : ℕ)
     (hcount : N ≤ ∑ t ∈ Finset.range T, s t) :
     C T ≥ C 0 * (1 + alpha) ^ N := by
-  have hlaw := Hagi.Foundations.capability_takeoff_counted C s alpha halpha hmul T
+  have hlaw := Hagi.Foundations.capability_exp_growth_counted C s alpha halpha hmul T
   have hmono : (1 + alpha) ^ N ≤ (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
     pow_le_pow_right₀ (by linarith : (1:ℝ) ≤ 1 + alpha) hcount
   have hmul2 : C 0 * (1 + alpha) ^ N ≤ C 0 * (1 + alpha) ^ (∑ t ∈ Finset.range T, s t) :=
@@ -180,7 +180,7 @@ theorem capability_takeoff_floor (C : ℕ → ℝ) (s : ℕ → ℕ)
 
 /-- При `β < 1` и `R (t+1) ≤ R t·(1−β)^(s t)`:
 `R T ≤ R 0·(1−β)^(Σ_{t<T} s t)`. -/
-theorem risk_takeoff_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
+theorem risk_exp_decay_counted (R : ℕ → ℝ) (s : ℕ → ℕ)
     (beta : ℝ) (_hbeta : 0 < beta) (hbeta1 : beta < 1)
     (hmul : ∀ t, R (t + 1) ≤ R t * (1 - beta) ^ (s t))
     (T : ℕ) :
@@ -263,12 +263,12 @@ section C238_wallclock
   `x − x²/2 ≤ log(1+x)` и `exp(x − x²/2) ≤ 1 + x` при x ≥ 0
   (без ограничения x ≤ 1);
 * `per_cycle_time_rate`: определение гипотезы;
-* `wallclock_takeoff_product`: `C T ≥ C 0·∏(1 + k·τ t)`;
-* `wallclock_takeoff`: `C T ≥ C 0·exp(k·Στ − (k²/2)·Στ²)` —
+* `wallclock_exp_growth_product`: `C T ≥ C 0·∏(1 + k·τ t)`;
+* `wallclock_exp_growth`: `C T ≥ C 0·exp(k·Στ − (k²/2)·Στ²)` —
   экспонента с явным второпорядковым слэком;
-* `wallclock_takeoff_small_steps`: при `k·τ t ≤ η` —
+* `wallclock_exp_growth_small_steps`: при `k·τ t ≤ η` —
   `C T ≥ C 0·exp(k·T_wall·(1 − η/2))`;
-* `counted_takeoff_exp`: при
+* `counted_exp_growth`: при
   `C (t+1) ≥ C t·exp(a·s t)` — `C T ≥ C 0·exp(a·Σs t)`;
 * `wallclock_rate_from_cone`: при пер-цикловом множителе
   `(1+α)^(s t)`, полу успеха `p₀·T − Δ ≤ Σ s t` и константном τ:
@@ -370,7 +370,7 @@ def per_cycle_time_rate (C τ : ℕ → ℝ) (k : ℝ) : Prop :=
 /-! ## Закон произведения -/
 /-- При `0 ≤ k`, `0 ≤ τ t` и `per_cycle_time_rate C τ k`:
 `C T ≥ C 0·∏_{t<T}(1 + k·τ t)` (индукция). -/
-theorem wallclock_takeoff_product (C τ : ℕ → ℝ) (k : ℝ)
+theorem wallclock_exp_growth_product (C τ : ℕ → ℝ) (k : ℝ)
     (hk : 0 ≤ k) (hτ : ∀ t, 0 ≤ τ t)
     (hstep : per_cycle_time_rate C τ k)
     (T : ℕ) :
@@ -420,13 +420,13 @@ private lemma prod_exp_le_prod_one_add (τ : ℕ → ℝ) (k : ℝ) (n : ℕ)
 `C T ≥ C 0·exp(k·Στ − (k²/2)·Στ²)` — экспонента с явным
 второпорядковым слэком (из `exp_le_one_add` пофакторно и
 `exp(Σ) = ∏exp`). -/
-theorem wallclock_takeoff (C τ : ℕ → ℝ) (k : ℝ)
+theorem wallclock_exp_growth (C τ : ℕ → ℝ) (k : ℝ)
     (hk : 0 ≤ k) (hC0 : 0 ≤ C 0) (hτ : ∀ t, 0 ≤ τ t)
     (hstep : per_cycle_time_rate C τ k)
     (T : ℕ) :
     C T ≥ C 0 * Real.exp (k * ∑ t ∈ Finset.range T, τ t
       - (k ^ 2 / 2) * ∑ t ∈ Finset.range T, (τ t) ^ 2) := by
-  have hprod := wallclock_takeoff_product C τ k hk hτ hstep T
+  have hprod := wallclock_exp_growth_product C τ k hk hτ hstep T
   -- each factor dominates its slack-ed exponent
   have hf : ∀ t ∈ Finset.range T,
       Real.exp (k * τ t - (k * τ t) ^ 2 / 2) ≤ 1 + k * τ t := fun t _ =>
@@ -459,15 +459,15 @@ theorem wallclock_takeoff (C τ : ℕ → ℝ) (k : ℝ)
 
 /-! ## Режим малых шагов -/
 
-/-- При посылках `wallclock_takeoff` и `k·τ t ≤ η` для всех t:
+/-- При посылках `wallclock_exp_growth` и `k·τ t ≤ η` для всех t:
 `C T ≥ C 0·exp(k·(Στ)·(1 − η/2))`. -/
-theorem wallclock_takeoff_small_steps (C τ : ℕ → ℝ) (k η : ℝ)
+theorem wallclock_exp_growth_small_steps (C τ : ℕ → ℝ) (k η : ℝ)
     (hk : 0 ≤ k) (hC0 : 0 ≤ C 0) (hτ : ∀ t, 0 ≤ τ t)
     (hη : ∀ t, k * τ t ≤ η)
     (hstep : per_cycle_time_rate C τ k)
     (T : ℕ) :
     C T ≥ C 0 * Real.exp (k * (∑ t ∈ Finset.range T, τ t) * (1 - η / 2)) := by
-  have hmain := wallclock_takeoff C τ k hk hC0 hτ hstep T
+  have hmain := wallclock_exp_growth C τ k hk hC0 hτ hstep T
   -- the slack bound: (k²/2)Στ² ≤ (η/2)·k·Στ
   have hslack : (k ^ 2 / 2) * ∑ t ∈ Finset.range T, (τ t) ^ 2
       ≤ (η / 2) * (k * ∑ t ∈ Finset.range T, τ t) := by
@@ -500,8 +500,8 @@ theorem wallclock_takeoff_small_steps (C τ : ℕ → ℝ) (k η : ℝ)
 
 /-- При `C (t+1) ≥ C t·exp(a·s t)` для всех t:
 `C T ≥ C 0·exp(a·Σ s t)` (экспоненциальный двойник
-`capability_takeoff_counted`; s t = 0 нейтрально). -/
-theorem counted_takeoff_exp (C s : ℕ → ℝ) (a : ℝ)
+`capability_exp_growth_counted`; s t = 0 нейтрально). -/
+theorem counted_exp_growth (C s : ℕ → ℝ) (a : ℝ)
     (hmul : ∀ t, C (t + 1) ≥ C t * Real.exp (a * s t))
     (T : ℕ) :
     C T ≥ C 0 * Real.exp (a * ∑ t ∈ Finset.range T, s t) := by
@@ -540,7 +540,7 @@ theorem wallclock_rate_from_cone (C : ℕ → ℝ) (s : ℕ → ℕ)
     have h := hmul t
     rw [hpowexp t, mul_comm ((s t : ℝ)) L] at h
     exact h
-  have hmain := counted_takeoff_exp C (fun t => (s t : ℝ)) L hmul' T
+  have hmain := counted_exp_growth C (fun t => (s t : ℝ)) L hmul' T
   -- the exponent with the concentration floor substituted
   have hcount' : L * (p0 * (T : ℝ) - Delta)
       ≤ L * ∑ t ∈ Finset.range T, (s t : ℝ) :=
@@ -613,7 +613,7 @@ theorem wallclock_rate_avg_tau (C : ℕ → ℝ) (s : ℕ → ℕ) (tau : ℕ �
     have h := hmul t
     rw [hpowexp t, mul_comm ((s t : ℝ)) L] at h
     exact h
-  have hmain := counted_takeoff_exp C (fun t => (s t : ℝ)) L hmul' T
+  have hmain := counted_exp_growth C (fun t => (s t : ℝ)) L hmul' T
   have hexpfloor : Real.exp (L * (p0 * (W / tauBar) - Delta))
       ≤ Real.exp (L * ∑ t ∈ Finset.range T, (s t : ℝ)) :=
     Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left hsumfloor hLpos.le)
@@ -649,7 +649,7 @@ section C238_frontprod
   выводится здесь; многoцикловая версия не формализована.
 * `CapabilitySound` (IV): `C t ≤ U t` для всех t; связка C с
   реальной моделью — посылка.
-* `takeoff_lifts_utility`: если `CapabilitySound C U` и
+* `geometric_growth_lifts_utility`: если `CapabilitySound C U` и
   `C 0 * (1 + alpha) ^ T ≤ C T`, то `C 0 * (1 + alpha) ^ T ≤ U T`.
 -/
 
@@ -761,7 +761,7 @@ def CapabilitySound (C U : ℕ → ℝ) : Prop := ∀ t, C t ≤ U t
 
 /-- Если `CapabilitySound C U` и `C 0 * (1 + alpha) ^ T ≤ C T`,
 то `C 0 * (1 + alpha) ^ T ≤ U T`. -/
-theorem takeoff_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : ℕ)
+theorem geometric_growth_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : ℕ)
     (hsnd : CapabilitySound C U)
     (hgr : C 0 * (1 + alpha) ^ T ≤ C T) :
     C 0 * (1 + alpha) ^ T ≤ U T :=
@@ -830,7 +830,7 @@ section C238_chain
   `k * C t ≤ D t` is preserved up to `T`.
   A one-sided lower certificate alone is not sufficient for this
   proof (the upper bound `G t ≤ gbar * D t` is a hypothesis).
-* `takeoff_from_certificate`: combining per-step lower certificates
+* `geometric_growth_from_certificate`: combining per-step lower certificates
   via `chain_feeds_cone` with `cone_two_sided_certificate` yields
   `C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`.
 -/
@@ -944,7 +944,7 @@ conversion factors of `stages t` are at least `beta`,
 the increments satisfy `G t ≤ gbar * D t`, and the hypotheses
 of `cone_two_sided_certificate` hold, then
 `C 0 * (1 + (beta^4 * kappa) * k) ^ T ≤ C T`. -/
-theorem takeoff_from_certificate
+theorem geometric_growth_from_certificate
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa gbar rho cbeta k : ℝ)
     (hβ : 0 ≤ beta) (hκ : 0 ≤ kappa) (hk : 0 ≤ k)
@@ -1022,7 +1022,7 @@ section C238_t3
   `ignitionCeiling_pos` — положительность при `0 < k`,
   `0 < ρ`, `(1−ρ)k < cbeta`;
 * `T3_ignition`: если `β⁴·κ ≤ ignitionCeiling` и выполнены
-  сертификаты `takeoff_from_certificate` (стадийные полы β,
+  сертификаты `geometric_growth_from_certificate` (стадийные полы β,
   κ-доля, шаг, верхняя лента прироста на той же ставке
   `β⁴κ`, динамика), то `C 0·(1 + β⁴κ·k)^T ≤ C T`.
 -/
@@ -1104,7 +1104,7 @@ theorem T3_ignition
     rw [div_mul_eq_mul_div, mul_div_cancel_right₀ _ hk20] at h4
     linarith
   -- применяем конус-мост с точной лентой
-  exact takeoff_from_certificate C D G stages T
+  exact geometric_growth_from_certificate C D G stages T
     beta kappa (beta^4 * kappa) rho cbeta k
     hβ.le hκ.le hk.le hD hC hcert hdiv hstep hG hup hdyn
     hsupport hcurv hcone0
@@ -1124,15 +1124,15 @@ capability increment as the factor `1 + growGain / capability`;
 `growMul`/`growCycle` iterate the transition; `growCycle_capability`
 gives the exact closed form `C₀ + t·G` (G invariant).
 
-* `growth_state_takeoff`: with success indicators `sigma t ≤ 1`
+* `growth_state_geometric_growth`: with success indicators `sigma t ≤ 1`
   and per-cycle gate `alpha * C_t ≤ G` on successes,
   `(growCycle T S).capability ≥ S.capability * (1+alpha) ^ Σσ`.
-* `growth_state_takeoff_window`: with a fixed gain, the success
+* `growth_state_geometric_growth_window`: with a fixed gain, the success
   count and the certified factor are bounded by constants
   (`Σσ ≤ 1/alpha + 1 − C₀/G`, factor ≤ exp(1 + alpha −
   alpha·C₀/G)); sustained takeoff needs a capability-dependent
   gain and is not claimed here.
-* `growth_state_takeoff_probabilistic`: with h_emp_ independent
+* `growth_state_geometric_growth_probabilistic`: with h_emp_ independent
   [0,1]-success indicators (mean ≥ p0) and a pointwise log-bridge,
   Pr[(growCycle T S ω).capability ≥ S ω.capability *
   exp(a·(p0·T − Δ(T,δ)) − Σε)] ≥ 1 − δ.
@@ -1213,9 +1213,9 @@ theorem growCycle_capability (t : ℕ) (S : GrowthState X) :
 trajectory, and the success gate `alpha * C_t ≤ S.effects.growGain` on
 every successful cycle:
 `(growCycle T S).capability ≥ S.capability * (1 + alpha) ^ Σσ`.
-See `growth_state_takeoff_window`: with a fixed gain the
+See `growth_state_geometric_growth_window`: with a fixed gain the
 certified takeoff is bounded. -/
-theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
+theorem growth_state_geometric_growth (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hgnonneg : 0 ≤ S.effects.growGain)
     (hCpos : ∀ t, 0 < (growCycle t S).capability)
@@ -1247,7 +1247,7 @@ theorem growth_state_takeoff (S : GrowthState X) (sigma : ℕ → ℕ)
           _ ≥ (growCycle t S).capability * (1 + alpha) := hm
           _ = (growCycle t S).capability * (1 + alpha) ^ (sigma t) := by
               rw [hs1, pow_one]
-    exact Hagi.Foundations.capability_takeoff_counted
+    exact Hagi.Foundations.capability_exp_growth_counted
       (fun t => (growCycle t S).capability) sigma alpha halpha hmul T
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
@@ -1262,7 +1262,7 @@ successful cycle (evaluated along the exact trajectory
 gain the certified takeoff is a bounded transient; sustained
 takeoff would need a capability-dependent gain and is not
 claimed. -/
-theorem growth_state_takeoff_window (S : GrowthState X) (sigma : ℕ → ℕ)
+theorem growth_state_geometric_growth_window (S : GrowthState X) (sigma : ℕ → ℕ)
     (alpha : ℝ) (halpha : 0 < alpha)
     (hG : 0 < S.effects.growGain)
     (hgate0 : alpha * S.capability ≤ S.effects.growGain)
@@ -1417,8 +1417,8 @@ the pointwise log-bridge `log C_{t+1} − log C_t ≥ a·s t − eps t`,
 the event
 `(growCycle T S ω).capability ≥ S ω.capability *
 exp(a·(p0·T − concDelta T delta) − Σ eps t)` has probability
-≥ `1 − delta` (instantiates `takeoff_time_form`). -/
-theorem growth_state_takeoff_probabilistic
+≥ `1 − delta` (instantiates `exp_growth_prob_form`). -/
+theorem growth_state_geometric_growth_probabilistic
     (S : Ω → GrowthState X) (s : ℕ → Ω → ℝ)
     {T : ℕ} {delta p0 a : ℝ} {eps : ℕ → ℝ}
     (hdelta : 0 < delta) (hdelta1 : delta < 1)
@@ -1435,7 +1435,7 @@ theorem growth_state_takeoff_probabilistic
       ≥ 1 - delta := by
   -- the capability trajectory of the random state, an Ω-indexed scalar path
   set C : ℕ → Ω → ℝ := fun t ω => (growCycle t (S ω)).capability with hC
-  have hmain := takeoff_time_form (S := s) (C := C) (T := T) (delta := delta)
+  have hmain := exp_growth_prob_form (S := s) (C := C) (T := T) (delta := delta)
     (p0 := p0) (a := a) (eps := eps) hdelta hdelta1 ha
     (fun t ω => hCpos t ω) (fun t ω => hbridge t ω)
     h_emp_meas h_emp_01 h_emp_indep h_emp_p

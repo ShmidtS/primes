@@ -443,7 +443,7 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 `C' = C + γ·usableFrontier`, динамике `D' ≥ ρ·D + β·C`,
 `ρ ≥ γk`, пороге `β ≥ γk² + (1−ρ)k` и старте в конусе —
 `(S 0).capability·(1+γk)^T ≤ (S T).capability`
-(композиция `ratio_takeoff` и `cone_ratio_invariant`). -/
+(композиция `cone_ratio_geometric_growth` и `cone_ratio_invariant`). -/
 theorem state_closed_takeoff (S : ℕ → GrowthState X)
     (γ ρ β k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k)
@@ -457,7 +457,7 @@ theorem state_closed_takeoff (S : ℕ → GrowthState X)
     (h_emp_cone0 : k * (S 0).capability ≤ usableFrontier (S 0))
     (T : ℕ) :
     (S 0).capability * (1 + γ * k) ^ T ≤ (S T).capability := by
-  exact ratio_takeoff (fun t => (S t).capability)
+  exact cone_ratio_geometric_growth (fun t => (S t).capability)
     (fun t => usableFrontier (S t)) γ k hγ hk h_emp_step
     (cone_ratio_invariant (fun t => (S t).capability)
       (fun t => usableFrontier (S t)) γ ρ β k hCpos h_emp_step h_emp_dyn
@@ -531,7 +531,7 @@ theorem state_closed_band (S : ℕ → GrowthState X)
     (S 0).capability * (1 + γ * k) ^ T ≤ (S T).capability
       ∧ (S T).capability
         ≤ Cstar - (1 - σ) ^ T * (Cstar - (S 0).capability) := by
-  exact takeoff_with_saturation (fun t => (S t).capability)
+  exact geometric_band_with_saturation (fun t => (S t).capability)
     (fun t => usableFrontier (S t)) γ k Cstar σ hγ hk hσ1 h_emp_step
     hpl_up hpl_lo
     (cone_ratio_invariant (fun t => (S t).capability)
@@ -811,7 +811,7 @@ theorem takeoff_lower_trunc (C D : ℕ → ℝ) (γ k : ℝ) (T : ℕ)
     (hstep : ∀ t ∈ Finset.range T,
       C (t + 1) = C t + γ * D t)
     (hcone : ∀ t ∈ Finset.range (T + 1), k * C t ≤ D t) :
-    C 0 * (1 + γ * k) ^ T ≤ C T := Foundations.takeoff_from_cone C D γ k T
+    C 0 * (1 + γ * k) ^ T ≤ C T := Foundations.geometric_growth_from_cone C D γ k T
     (mul_nonneg hγ hk) hγ hk hstep hcone
 
 /-- Truncated band UPPER bound: from the upper PL form at

@@ -21,7 +21,7 @@ set_option linter.style.header false
 * `elasticity_chain`: если `(1 + e t)·x t ≤ x (t+1)` при
   всех t и `1 + e t > 0` на горизонте T, то
   `x 0·∏_{t<T}(1 + e t) ≤ x T`;
-* `takeoff_elasticity`: если дополнительно
+* `elasticity_growth`: если дополнительно
   `1 < ∏_{t<T}(1 + e t)` и `0 < x 0`, то `x 0 < x T`;
 * `decay_elasticity`: если `x (t+1) ≤ (1 + e t)·x t`,
   `0 < x 0` и `∏_{t<T}(1 + e t) < 1`, то `x T < x 0`.
@@ -63,7 +63,7 @@ theorem elasticity_chain (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
 
 /-- При посылках `elasticity_chain`, `1 < ∏_{t<T}(1 + e t)`
 и `0 < x 0` выполнено `x 0 < x T`. -/
-theorem takeoff_elasticity (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
+theorem elasticity_growth (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
     (hstep : ∀ t, (1 + e t) * x t ≤ x (t + 1))
     (hpos : ∀ t ∈ Finset.range T, 0 < 1 + e t)
     (hprod : 1 < ∏ t ∈ Finset.range T, (1 + e t))
@@ -106,7 +106,7 @@ theorem decay_elasticity (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
 требуется только внутри горизонта `t < T` (внешние шаги
 не контролируются). Канонический позвоночник для takeoff-
 теорем, чьи эмпирические посылки даны на `range T`, а не на всём `ℕ`
-(например, ChainToCone.takeoff_from_certificate). -/
+(например, ChainToCone.geometric_growth_from_certificate). -/
 theorem elasticity_chain_horizon (x : ℕ → ℝ) (e : ℕ → ℝ) (T : ℕ)
     (hstep : ∀ t < T, (1 + e t) * x t ≤ x (t + 1))
     (hpos : ∀ t ∈ Finset.range T, 0 < 1 + e t) :
@@ -152,7 +152,7 @@ set_option linter.style.header false
   `β ≥ γk² + (1−ρ)k` конус `k·C t ≤ D t` переходит из t в t+1
   (одностороннее неравенство: `D' − kC' ≥ (ρ−γk)(D−kC) + margin·C`);
 * `cone_ratio_invariant`: индукция — конус при всех t;
-* `ratio_takeoff`: при конусе `C 0·(1+γk)^T ≤ C T`, без h_C_cap;
+* `cone_ratio_geometric_growth`: при конусе `C 0·(1+γk)^T ≤ C T`, без h_C_cap;
 * `frontier_decay_no_growth`: при `D (t+1) ≤ ρ·D t` выполнено
   `D T ≤ ρ^T·D 0`.
 
@@ -204,7 +204,7 @@ theorem cone_ratio_invariant (C D : ℕ → ℝ) (γ ρ β k : ℝ)
 
 /-- Если `0 < γ`, `0 < k`, `C (t+1) = C t + γ·D t` и
 `ConeRatio C D k`, то `C 0·(1+γk)^T ≤ C T`. -/
-theorem ratio_takeoff (C D : ℕ → ℝ) (γ k : ℝ)
+theorem cone_ratio_geometric_growth (C D : ℕ → ℝ) (γ k : ℝ)
     (hγ : 0 < γ) (hk : 0 < k)
     (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
     (h_emp_cone : ConeRatio C D k) (T : ℕ) :
@@ -245,5 +245,5 @@ theorem frontier_decay_no_growth (D : ℕ → ℝ) (ρ : ℝ)
 end Hagi.Growth
 
 namespace Hagi
-export Hagi.Growth (ConeRatio cone_ratio_invariant ratio_takeoff)
+export Hagi.Growth (ConeRatio cone_ratio_invariant cone_ratio_geometric_growth)
 end Hagi

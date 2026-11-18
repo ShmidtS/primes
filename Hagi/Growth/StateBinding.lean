@@ -12,10 +12,10 @@ set_option linter.style.header false
 # StateBinding — связывание процессов-теней с полями состояния + полнота кандидатов
 
 * `usableFrontier`: поле frontier состояния (`S.dataField`);
-* `capability_takeoff_state`: если
+* `capability_geometric_growth_state`: если
   `C t = (S t).capability`, `G t = (S t).effects.growGain`,
   `D t = usableFrontier (S t)` и выполнены посылки
-  `sustained_takeoff_from_production`, то
+  `sustained_geometric_growth_from_production`, то
   `(S 0).capability·(1+α)^T ≤ (S T).capability`;
 * `CandidateComplete`: полнота генератора — если существует
   safe-кандидат с gain ≥ g, генератор выдаёт safe-кандидат
@@ -40,11 +40,11 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 /-- Поле frontier состояния: `usableFrontier S = S.dataField`. -/
 def usableFrontier (S : GrowthState X) : ℝ := S.dataField
 
-/-- Если выполнены посылки `sustained_takeoff_from_production`
+/-- Если выполнены посылки `sustained_geometric_growth_from_production`
 для `C t = (S t).capability`, `G t = (S t).effects.growGain`,
 `D t = usableFrontier (S t)`, то
 `(S 0).capability·(1+α)^T ≤ (S T).capability`. -/
-theorem capability_takeoff_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
+theorem capability_geometric_growth_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
     (alpha gamma rho beta : ℝ)
     (halpha : 0 < alpha) (hgamma : 0 < gamma) (hrho : 0 ≤ rho)
     (hC0 : 0 < (S 0).capability)
@@ -60,7 +60,7 @@ theorem capability_takeoff_state (S : ℕ → GrowthState X) (xi : ℕ → ℝ)
       + xi t / (S t).capability ≤ beta)
     (T : ℕ) :
     (S 0).capability * (1 + alpha) ^ T ≤ (S T).capability :=
-  sustained_takeoff_from_production
+  sustained_geometric_growth_from_production
     (fun t => (S t).capability) (fun t => (S t).effects.growGain)
     (fun t => usableFrontier (S t)) xi
     alpha gamma rho beta halpha hgamma hrho hC0 h_cone0 h_step h_gain_prod

@@ -263,7 +263,7 @@ end Hagi
   `pairwise_variance_identity`);
 * `gainop_ignition`: если условия выполнены на каждом цикле и
   старт в конусе, то `ConeRatio` инвариантен и
-  `C₀·(1+γk)^T ≤ C_T` (композиция с `ratio_takeoff`).
+  `C₀·(1+γk)^T ≤ C_T` (композиция с `cone_ratio_geometric_growth`).
 
 Существование оператора с `η > 0` на реальном runtime — посылка
 (в модуле он не строится); метрика η здесь безразмерно смешивает
@@ -394,7 +394,7 @@ theorem gainop_ignition {Xs : Type*}
           (usableFrontier (S t)) (S (t + 1)).capability
           (usableFrontier (S (t + 1))) γ ρ k ξ η (dev t)
           (hstep t) (hop t) hrhogk ih (hsuff t)
-  exact ⟨hcone, ratio_takeoff (fun t => (S t).capability)
+  exact ⟨hcone, cone_ratio_geometric_growth (fun t => (S t).capability)
     (fun t => usableFrontier (S t)) γ k hγ hk hstep hcone T⟩
 
 end Hagi.Growth

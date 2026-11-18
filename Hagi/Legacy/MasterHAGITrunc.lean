@@ -95,7 +95,7 @@ t < T) — C_T >= C0 * (1+alpha)^T. Совместимость с потолко
 см. cert_horizon_bound (ArchitectureTheorem). 
 АУДИТ v4 §3.8-2: при том же `alpha` в `h_emp_C_cap` и в конусе
 посылки принуждают C (t+1) = (1+alpha)·C t (точную экспоненту).
-Путь БЕЗ потолка: `Foundations.trunc_premises_takeoff`
+Путь БЕЗ потолка: `Foundations.trunc_premises_geometric_growth`
 доказывает ту же нижнюю границу из конусного блока без
 `h_emp_C_cap` — разделяйте минимальный темп (прогресс) и
 потолок (насыщение), как в `Model.cone_growth_window`;
@@ -334,7 +334,7 @@ theorem masterhagi_growth_witness :
 Это НЕ слабость доказательства, а свойство контракта: точный
 темп роста является частью модели (законом перехода), а не
 выводом из более слабых принципов. Слабая (честно выводная)
-версия — `Hagi.Foundations.takeoff_from_cone`: только конус +
+версия — `Hagi.Foundations.geometric_growth_from_cone`: только конус +
 шаг, без потолка, выводит `C 0·(1+γk)^T ≤ C T`. -/
 theorem cone_premises_force_exact (C G D : ℕ → ℝ)
     (alpha gamma : ℝ) (t : ℕ)

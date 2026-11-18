@@ -135,7 +135,7 @@ theorem written_bits_cap (B cUnit F : ℝ) (hcUnit : 0 < cUnit)
 costs at least `n * (log 3) * cUnit`; with budget `B` the growth
 of the weight count per cycle is bounded:
 `n <= B / (cUnit * log 3)`. Combined with the cone takeoff
-(`capability_takeoff_amplified`): the thermodynamic budget is the
+(`capability_growth_amplified`): the thermodynamic budget is the
 physical ceiling on `alpha` — architecture growth is not free, it
 is LR-priced by memory. -/
 theorem ternary_weight_growth_cap (B cUnit n : ℝ) (hcUnit : 0 < cUnit)

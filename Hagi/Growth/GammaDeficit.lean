@@ -10,7 +10,7 @@ set_option linter.style.header false
 Закрытие открытого пункта «γ-дефицит mixer.gain→0»: взлёт
 capability требует минимального коэффициента урожая γ.
 Контрапозиция `bounded_frontier_no_sustained_growth` и
-`sustained_takeoff_window_lift`:
+`sustained_geometric_growth_window_lift`:
 1. `gamma_min_for_target` — чтобы gate `α·C t ≤ G t` с
    frontier-scaling вёл C к цели C* > 0, обязано быть
    γ ≥ α·C*/D̄ (иначе потолок γ·D̄/α < C*).

@@ -244,7 +244,7 @@ theorem trunc_nonvacuous {X : Type*} [NormedAddCommGroup X]
 
 /-- ЗАМЫКАНИЕ МАСТЕР-ЦЕПОЧКИ: конусный блок эмпирических
 посылок trunc + шаги C/G дают экспоненциальный takeoff
-(trunc_premises_takeoff), закрывающий capability_growth-поле
+(trunc_premises_geometric_growth), закрывающий capability_growth-поле
 CertifiedHAGIInvariant; остальные поля (risk/phi/budget/gen) —
 операционные посылки. Инвариант следует без старой
 статичной effects-семантики. -/
@@ -268,7 +268,7 @@ theorem premises_to_certified (T : ℕ)
     CertifiedHAGIInvariant T risk phi C budget spend genq
       epsReg α Qfloor := by
   refine ⟨hrisk, hphi, ?_, hbudget, hgen⟩
-  have h := Hagi.Foundations.trunc_premises_takeoff C D G ξ α γ ρ β
+  have h := Hagi.Foundations.trunc_premises_geometric_growth C D G ξ α γ ρ β
     hα hγ hρ hC hcone0 hcap hdyn hbeta hstepC hgain T
   rwa [mul_comm] at h
 

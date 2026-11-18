@@ -116,7 +116,7 @@ set_option linter.style.header false
 * `muon_step_bound`: при контракции `‖P z‖ ≤ ‖z‖` для всех z
   — `‖muonDir P g‖ ≤ ‖g‖` (направление Muon не превышает
   сырой градиент по норме — совместимо с SafeQP);
-* `muon_pl_rate`: `‖muonDir P g‖² ≤ ‖g‖²` при той же
+* `muonDir_norm_sq_le`: `‖muonDir P g‖² ≤ ‖g‖²` при той же
   контракции.
 
 Свойство `‖P‖_op ≤ 1` Newton-Schulz — гипотеза hP
@@ -141,7 +141,7 @@ theorem muon_step_bound {W : Type} [NormedAddCommGroup W]
 
 /-- Если `‖P z‖ ≤ ‖z‖` для всех z, то
 `‖muonDir P g‖^2 ≤ ‖g‖^2`. -/
-theorem muon_pl_rate {W : Type} [NormedAddCommGroup W]
+theorem muonDir_norm_sq_le {W : Type} [NormedAddCommGroup W]
     (P : W → W) (g : W)
     (hP : ∀ z, ‖P z‖ ≤ ‖z‖) :
     ‖muonDir P g‖^2 ≤ ‖g‖^2 := by

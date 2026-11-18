@@ -926,8 +926,8 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 (merged from Hagi/Dynamics/Laws.lean in C419)
 ## Hagi/Dynamics/GrowthBridge.lean
-- `capability_takeoff_floor`: при `0 < alpha`, `0 ≤ C 0`, `C (t + 1) ≥ C t * (1 + alpha)^(s t)` и `N ≤ ∑ t < T, s t` выполняется `C T ≥ C 0 * (1 + alpha)^N`.
-- `risk_takeoff_counted`: при `0 < beta < 1` и `R (t + 1) ≤ R t * (1 - beta)^(s t)` получается `R T ≤ R 0 * (1 - beta)^(∑ t < T, s t)`.
+- `capability_exp_growth_floor`: при `0 < alpha`, `0 ≤ C 0`, `C (t + 1) ≥ C t * (1 + alpha)^(s t)` и `N ≤ ∑ t < T, s t` выполняется `C T ≥ C 0 * (1 + alpha)^N`.
+- `risk_exp_decay_counted`: при `0 < beta < 1` и `R (t + 1) ≤ R t * (1 - beta)^(s t)` получается `R T ≤ R 0 * (1 - beta)^(∑ t < T, s t)`.
 - `risk_epsilon_floor`: при `0 < eps`, `0 < R0`, `eps ≤ R0`, `0 < beta < 1` и достаточно большом `N` из логарифмического условия следует `R0 * (1 - beta)^N ≤ eps`.
 
 - `wallclock_rate_from_cone`: при `0 < alpha`, `0 < tau`, `0 < C 0`, мультипликативном росте по `s t` и `p0 * T - Delta ≤ ∑ t < T, s t` нижняя грань `C T` равна `C 0 * exp ((p0 * log (1 + alpha) / tau) * (T * tau) - log (1 + alpha) * Delta)`.
@@ -936,11 +936,11 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - `chain_feeds_cone`: при `β,κ,D≥0`, нижней границе `β` для четырёх стадийных коэффициентов и `κ*D≤E_raw` доказано `β^4*κ*D≤G_cap`.
 - `cone_two_sided_certificate`: помимо `0≤k`, неотрицательных `C,D`, начального конуса `k*C 0≤D 0`, шага и нижней оценки `γD≤G`, требуются верхняя `G≤gbar D`, динамика `D`, `gbar*k≤ρ` и порог на `β`; тогда `k*C t≤D t` сохраняется до `T`.
-- `takeoff_from_certificate`: при `β,κ,k≥0`, начальном конусе `k*C 0≤D 0`, стадийных сертификатах, верхней ленте прироста и двусторонней конусной динамике следует `C0*(1+(β^4*κ)*k)^T≤C T`.
+- `geometric_growth_from_certificate`: при `β,κ,k≥0`, начальном конусе `k*C 0≤D 0`, стадийных сертификатах, верхней ленте прироста и двусторонней конусной динамике следует `C0*(1+(β^4*κ)*k)^T≤C T`.
 
 - `injection_law_of_measured`: если `D(t+1)≥κ*dis t` и потребность `ρD t+βC t−ξ t≤κ*dis t` для всех `t`, то выполнен `InjectionLaw D C ξ ρ β`.
 - `certified_cycle_renewal`: для продуктовой `IsProbSys`, `Y i v∈[0,1]`, `n>0`, `ε>0`, `0≤thr≤1`, `κ≥0` и условий на `D(t+1)` и thr вероятность импликации «большая сумма проб → renewal-неравенство» не меньше `1−2*exp(−2*n*ε²)`.
-- `takeoff_lifts_utility`: из `CapabilitySound C U` (то есть `C t≤U t` для всех `t`) и `C0*(1+α)^T≤C T` следует та же нижняя граница для `U T`.
+- `geometric_growth_lifts_utility`: из `CapabilitySound C U` (то есть `C t≤U t` для всех `t`) и `C0*(1+α)^T≤C T` следует та же нижняя граница для `U T`.
 
 - `verdict_ttt`: при `eps>0`, `eps≤GF` и `R≤eps` доказаны `0≤GF−R` и `eps≤GF`.
 - `verdict_grow`: при `eps<R` получается `0<R−eps`; `verdict_exhausted` просто соединяет `GF<eps` и `eps<R`.
@@ -949,15 +949,15 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `ignitionCeiling_pos`: при `k,ρ>0` и строгом `(1−ρ)*k<cbeta` минимум `min(ρ/k,(cbeta−(1−ρ)k)/k²)` положителен.
 - `T3_ignition`: при `β,κ,k>0`, неотрицательных `C,D` на нужном горизонте, `β^4*κ≤ignitionCeiling` и всех стадийных, верхних gain- и динамических сертификатах доказано `C0*(1+(β^4*κ)*k)^T≤C T`.
 
-- `growth_state_takeoff`: при `alpha > 0`, `sigma t ≤ 1`,
+- `growth_state_geometric_growth`: при `alpha > 0`, `sigma t ≤ 1`,
   положительной capability и gate `alpha·C_t ≤ growGain` на каждом
   успешном шаге итог не меньше `C0·(1+alpha)^{Σsigma}`.
-- `growth_state_takeoff_window`: для фиксированного положительного
+- `growth_state_geometric_growth_window`: для фиксированного положительного
   `G = S.effects.growGain`, начального gate и того же gate при успехах
   `Σsigma ≤ 1/alpha + 1 − C0/G` и
   `(1+alpha)^{Σsigma} ≤ exp(1+alpha−alpha·C0/G)`.
   Так фиксированный gain даёт только ограниченное окно роста.
-- `growth_state_takeoff_probabilistic`: при `0 < δ < 1`, `a ≥ 0`,
+- `growth_state_geometric_growth_probabilistic`: при `0 < δ < 1`, `a ≥ 0`,
   измеримых независимых `[0,1]`-индикаторах со средними `≥ p0`,
   положительной capability и поточечном log-bridge нижняя экспоненциальная граница с
   `a(p0T−concDelta(T,δ))−Σeps` имеет вероятность не менее `1−δ`.
@@ -1420,16 +1420,16 @@ wall-clock, сжатие весов или улучшение качества.
 - `cone_reinvest_invariant`: при `C t>0`, `k≥0`, `γ*k≤ρ`, текущем конусе, динамике `ρD+βC≤D'`, капе `C'≤C+γD` и пороге `γ*k²+(1−ρ)*k≤β` следует `k*C'≤D'`.
 - `cone_ratio_step_is_reinvest`: те же вывод получается при точном шаге `C'=C+γD`; это специализация reinvest-формы, а не безусловный закон роста.
 
-- `takeoff_edge_forced`: при `γ>0`, точном шаге `C=C+G`, нижнем gain-законе, конусе и капе в каждый момент одновременно выполнены `G=α*C`, `D=α/γ*C` и `C'=(1+α)*C`.
-- `sustained_takeoff_from_production`: при `α,γ>0`, `ρ≥0`, `C0>0`, начальном конусе, заданных динамике `D`, капе и пороге на `β` доказано `C0*(1+α)^T≤C T`.
+- `cone_edge_geometric_growth`: при `γ>0`, точном шаге `C=C+G`, нижнем gain-законе, конусе и капе в каждый момент одновременно выполнены `G=α*C`, `D=α/γ*C` и `C'=(1+α)*C`.
+- `sustained_geometric_growth_from_production`: при `α,γ>0`, `ρ≥0`, `C0>0`, начальном конусе, заданных динамике `D`, капе и пороге на `β` доказано `C0*(1+α)^T≤C T`.
 - `frontier_asymptotic`: достаточная замена поточечного порога — `ξ t≤ξbar*C t` и `α/γ*((1+α)−ρ)+ξbar≤β`; вывод о горизонтальном взлёте сохраняется.
 
 - `sqrt_gain_step`: при `γ,k,x>0` доказано `√x+γ√k/(2+γ√k/√x)≤√(x+γ√(k*x))`.
-- `sqrt_gain_takeoff`: если `C0>0`, все `C t>0` и `C(t+1)=C t+sqrtGain γ k (C t)`, то `C T≥(√C0+γ√k/(2+γ√k/√C0)*T)^2`.
+- `sqrt_gain_geometric_growth`: если `C0>0`, все `C t>0` и `C(t+1)=C t+sqrtGain γ k (C t)`, то `C T≥(√C0+γ√k/(2+γ√k/√C0)*T)^2`.
 
 
 ## Hagi/Math/Foundations/ConeTakeoff.lean
-- `takeoff_from_cone`: если `γ,k≥0`, на `range T` выполнен шаг `C(t+1)=C t+γD t`, а на `range (T+1)` — конус `k*C t≤D t`, то `C0*(1+γ*k)^T ≤ C T`.
+- `geometric_growth_from_cone`: если `γ,k≥0`, на `range T` выполнен шаг `C(t+1)=C t+γD t`, а на `range (T+1)` — конус `k*C t≤D t`, то `C0*(1+γ*k)^T ≤ C T`.
 - `frontier_cone_inductive`: при `α>0`, `γ>0`, `ρ≥0`, `C t>0`, текущем конусе, динамике `ρ*D t + β*C t − ξ t ≤ D(t+1)`, капе и условии `α/γ*((1+α)−ρ)+ξ t/C t≤β` конус сохраняется на следующем шаге; `frontier_cone_invariant` при начальном конусе `α/γ*C 0 ≤ D 0` и выполнении тех же динамики, капа и β-порога для всех `t` распространяет это на все `t`.
 
 
@@ -1561,7 +1561,7 @@ wall-clock, сжатие весов или улучшение качества.
 ## Hagi/Growth/RecursiveSelfDevelopment.lean
 - `opportunity_renewal`: из `ρD+βC−ξ≤D'` и `(1−ρ)D+δ_O≤βC−ξ` следует `D+δ_O≤D'`; `recursive_self_development` при `C≤C'`, `D≥0`, `δ_O>0` дополнительно даёт `D'>0`.
 - `multiplicative_growth`: из `C(t+1)≥C t*exp(αS t−eps t)` для всех `t` следует `C0*exp(α*Σ_{t<T}S t−Σeps)≤C T`.
-- `closed_loop_takeoff`: для продуктовой вероятности, `Y i v∈[0,1]`, `SuccessFloor`, `n>0`, `0<δ<1`, `C0≥0`, `eps t≥0`, `α≥0` и заданного шага `C` вероятность импликации «нижняя сумма успехов → экспоненциальная нижняя граница `C n`» не меньше `1−δ`; это не безусловное утверждение роста.
+- `closed_loop_conditional_growth`: для продуктовой вероятности, `Y i v∈[0,1]`, `SuccessFloor`, `n>0`, `0<δ<1`, `C0≥0`, `eps t≥0`, `α≥0` и заданного шага `C` вероятность импликации «нижняя сумма успехов → экспоненциальная нижняя граница `C n`» не меньше `1−δ`; это не безусловное утверждение роста.
 
 
 ## Hagi/Growth/RoundViability.lean
@@ -1577,7 +1577,7 @@ wall-clock, сжатие весов или улучшение качества.
 ## Hagi/Growth/Saturation.lean
 - `saturation_limit`: при `0<σ≤1` и нижнем PL-шаге для любого `ε>0` найдётся `T`, после которого `Cstar−ε≤C t`.
 - `pl_gap_geometric_lo`: при `σ≤1`, верхнем PL-шаге и `C0≤Cstar` доказано `(1−σ)^t*(Cstar−C0)≤Cstar−C t`.
-- `takeoff_with_saturation`: при `γ,k>0`, `σ≤1`, точном cone-шаге, обеих PL-оценках, `ConeRatio` и `C0≤Cstar` доказана двусторонняя полоса `C0*(1+γ*k)^T≤C T≤Cstar−(1−σ)^T*(Cstar−C0)`.
+- `geometric_band_with_saturation`: при `γ,k>0`, `σ≤1`, точном cone-шаге, обеих PL-оценках, `ConeRatio` и `C0≤Cstar` доказана двусторонняя полоса `C0*(1+γ*k)^T≤C T≤Cstar−(1−σ)^T*(Cstar−C0)`.
 
 
 ## Hagi/Growth/SeedOnly.lean
@@ -1593,14 +1593,14 @@ wall-clock, сжатие весов или улучшение качества.
 
 
 ## Hagi/Growth/StateBinding.lean
-- `capability_takeoff_state`: при `0<α`, `0<γ`, `0≤ρ`, положительной начальной capability, начальном конусе, полевых законах шага, gain- и frontier-динамики, капе и пороге на `β` доказано `(S 0).capability*(1+α)^T≤(S T).capability`.
+- `capability_geometric_growth_state`: при `0<α`, `0<γ`, `0≤ρ`, положительной начальной capability, начальном конусе, полевых законах шага, gain- и frontier-динамики, капе и пороге на `β` доказано `(S 0).capability*(1+α)^T≤(S T).capability`.
 - `candidate_completeness_find`: из `0≤eps`, `CandidateComplete gen G safe eps`, безопасного `a₀` и `eps<G a₀` следует существование сгенерированного безопасного `a'` с `G a'>0` и `G a₀−eps≤G a'`.
 - `usableFrontier_renewal`: из ingest-неравенства для dataField и оценки `β*capability−ξ≤r` выводится требуемая frontier-динамика.
 
 
 ## Hagi/Growth/Takeoff.lean
 - `elasticity_chain`: если `(1+e t)*x t≤x(t+1)` и `1+e t>0` на `range T`, то `x0*∏_{t<T}(1+e t)≤x T`.
-- `ratio_takeoff`: при `γ,k>0`, шаге `C(t+1)=C t+γD t` и глобальном `ConeRatio C D k` доказано `C0*(1+γ*k)^T≤C T`.
+- `cone_ratio_geometric_growth`: при `γ,k>0`, шаге `C(t+1)=C t+γD t` и глобальном `ConeRatio C D k` доказано `C0*(1+γ*k)^T≤C T`.
 - `frontier_decay_no_growth`: при `ρ≥0` и `D(t+1)≤ρD t` получается `D T≤ρ^T*D0`; это верхняя оценка затухания frontier, а не самостоятельный вывод отсутствия всякого роста capability.
 
 
@@ -4046,7 +4046,7 @@ one-hot CE.
 ## Hagi/Probability/ConditionalSuccess.lean
 - `success_count_lower` и `success_count_lower_p0`: при `0 < delta < 1`, измеримости, значениях `S t ∈ [0,1]` и `iIndepFun S μ` сумма успехов с вероятностью не меньше `1-delta` ограничена снизу суммой средних минус `concDelta T delta`, а при поле `p0 ≤ μ[S t]` — величиной `p0*T - concDelta T delta`.
 - `log_growth` добавляет поточечную посылку `log C(t+1) - log C t ≥ a*S t - eps t`, `a ≥ 0` и положительность `C`; на том же стохастическом событии получается нижняя граница логарифма роста с вычетом `∑eps`.
-- `takeoff_time_form` превращает её в `C T ≥ C 0 * exp (a*(p0*T - concDelta T delta) - ∑eps)` с вероятностью не меньше `1-delta`. Независимость успехов остаётся явной посылкой `h_emp_indep`.
+- `exp_growth_prob_form` превращает её в `C T ≥ C 0 * exp (a*(p0*T - concDelta T delta) - ∑eps)` с вероятностью не меньше `1-delta`. Независимость успехов остаётся явной посылкой `h_emp_indep`.
 
 
 ## Hagi/Probability/EntropyConvexity.lean
@@ -4417,7 +4417,7 @@ one-hot CE.
 
 
 ## Hagi/Step/Muon.lean
-- `muon_step_bound` и квадратичный `muon_pl_rate`: если `‖P z‖ ≤ ‖z‖` для всех `z`, то `muonDir P g` не увеличивает норму и квадрат нормы.
+- `muon_step_bound` и квадратичный `muonDir_norm_sq_le`: если `‖P z‖ ≤ ‖z‖` для всех `z`, то `muonDir P g` не увеличивает норму и квадрат нормы.
 - `MuonNS.ns_error_factor` даёт `1 - ns u = (u-1)^2*(u+2)/2`; на `0 < u ≤ 1` доказаны инвариант и монотонность, а на `0 < u < 1` — строгое `u < ns u < 1`.
 - `MuonAlign.muon_alignment_optimal`: для `sig i ≥ 0` и комплексной `Q` с `Qᴴ*Q = 1` сумма `sig i*(Q i i).re` не превышает суммы `sig i`.
 - `grad_norm_grows` для линейной квадратичной модели со всеми весами `1` равен `m*d^3`; `mup_grad_invariant` при `m ≥ 1` и весах `1/sqrt m` равен `d^3`.
