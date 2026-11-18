@@ -35,7 +35,7 @@ noncomputable def ceLogits {V : Type} [Fintype V] {d : ℕ}
 noncomputable def ceResidual {V : Type} [Fintype V] {d : ℕ}
     (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t : V) : V → ℝ := by
   classical
-  exact fun v => Hagi.Energy.smax (ceLogits X θ) v - if v = t then 1 else 0
+  exact fun v => Hagi.Prelude.softDef (ceLogits X θ) v - if v = t then 1 else 0
 
 /-- The transpose of the actual residual through the current features. -/
 noncomputable def residualTranspose {V : Type} [Fintype V] {d : ℕ}
@@ -265,10 +265,11 @@ theorem ceOneHot_next_le_majorizer {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
     simp
   simp only [ceResidual, sub_mul, Finset.sum_sub_distrib] at hlin
   rw [honehot, ht] at hlin
-  have hsoft : ∑ v, Hagi.Energy.smax (ceLogits X θ) v
+  have hsoft : ∑ v, Hagi.Prelude.softDef (ceLogits X θ) v
       * (ceNextLogits X θ t eta v - ceLogits X θ v)
       = -eta * ceAlignment X θ t + eta * ceLogits X (ceDirection X θ t) t := by
     linarith
+  rw [Hagi.Energy.smax_eq_softDef (ceLogits X θ)] at hlse
   rw [hsoft] at hlse
   unfold Hagi.ceOneHot Hagi.Core.lse
   unfold ceMajorizer
@@ -395,7 +396,7 @@ theorem fderiv_ceDirection {V : Type} [Fintype V] [Nonempty V]
   apply Finset.sum_congr rfl
   intro v _hv
   by_cases hv : v = t <;>
-    simp [ceResidual, ceLogits, Hagi.Energy.smax, hv]
+    simp [ceResidual, ceLogits, Hagi.Prelude.softDef, hv]
 
 /-! ## Elementary checks -/
 
@@ -410,14 +411,14 @@ alignment `1/2`. -/
 theorem identityTwoClass_alignment_test :
     ceAlignment (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 1 / 2 := by
   norm_num [ceAlignment, residualTranspose, ceResidual, ceLogits,
-    Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two]
 
 /-- The same nondegenerate two-class example has computed range `2`. -/
 theorem identityTwoClass_range_test :
     ceStepRange (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 2 := by
   norm_num [ceStepRange, ceAlignment, residualTranspose, ceResidual,
-    ceDirection, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+    ceDirection, ceLogits, Hagi.Prelude.softDef,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two]
 
 /-- Consequently its total safe step is positive and equals `1/2`. -/
@@ -425,11 +426,11 @@ theorem identityTwoClass_safeStepSize_test :
     safeStepSize (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 1 / 2 := by
   have hr : ceStepRange (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 2 := by
     norm_num [ceStepRange, ceAlignment, residualTranspose, ceResidual,
-      ceDirection, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+      ceDirection, ceLogits, Hagi.Prelude.softDef,
       Matrix.mulVec, dotProduct, Fin.sum_univ_two]
   have hA : ceAlignment (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 1 / 2 := by
     norm_num [ceAlignment, residualTranspose, ceResidual, ceLogits,
-      Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+      Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
       Fin.sum_univ_two]
   simp [safeStepSize, hr, hA]
   norm_num
@@ -584,10 +585,11 @@ theorem ceOneHot_next_le_rangeMajorizer (X : Matrix V (Fin d) ℝ)
     simp
   simp only [ceResidual, sub_mul, Finset.sum_sub_distrib] at hlin
   rw [honehot, ht] at hlin
-  have hsoft : ∑ v, Hagi.Energy.smax (ceLogits X θ) v
+  have hsoft : ∑ v, Hagi.Prelude.softDef (ceLogits X θ) v
       * (ceNextLogits X θ t eta v - ceLogits X θ v)
       = -eta * ceAlignment X θ t + eta * ceLogits X (ceDirection X θ t) t := by
     linarith
+  rw [Hagi.Energy.smax_eq_softDef (ceLogits X θ)] at hlse
   rw [hsoft] at hlse
   unfold Hagi.ceOneHot Hagi.Core.lse
   unfold ceRangeMajorizer
@@ -711,7 +713,7 @@ theorem identityTwoClass_logitRange_test :
         (ceDirection (1 : Matrix (Fin 2) (Fin 2) ℝ) 0 0) v) = 1
   rw [c216_sup_univ_two, c216_sup_univ_two]
   norm_num [ceDirection, ceLogits, ceResidual, ceAlignment,
-    residualTranspose, Hagi.Energy.smax, Hagi.Prelude.softDef,
+    residualTranspose, Hagi.Prelude.softDef,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two]
 
 /-- Its range-based safe step is `2`, vs the engine's `1/2`. -/

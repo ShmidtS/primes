@@ -48,7 +48,7 @@ theorem mixed_own_directions_cancel :
   intro j
   fin_cases j <;>
     norm_num [mixedFeatures, mixedLabels, ceDirection, residualTranspose,
-      ceResidual, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+      ceResidual, ceLogits, Hagi.Prelude.softDef,
       Matrix.mulVec, dotProduct, Fin.sum_univ_two]
 
 /-- The common mean direction, rather than the own directions, is zero. -/
@@ -58,13 +58,13 @@ theorem mixed_meanDirection_eq_zero :
   intro j
   fin_cases j <;>
     norm_num [batchMeanDirection, mixedFeatures, mixedLabels, ceDirection,
-      residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+      residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
       Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
 
 theorem mixed_alignment_eq_zero :
     batchAlignment mixedFeatures 0 mixedLabels = 0 := by
   norm_num [batchAlignment, meanResidualTranspose, mixedFeatures, mixedLabels,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
 
 /-- The arithmetic mean of squared ranges is zero because the common direction
@@ -119,7 +119,7 @@ theorem old_target_zero_next :
   intro i
   fin_cases i <;>
     norm_num [ceNextParameters, ceDirection, residualTranspose, ceResidual,
-      ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec,
+      ceLogits, Hagi.Prelude.softDef, Matrix.mulVec,
       dotProduct, Fin.sum_univ_two]
 
 /-- The old one-target update raises the mixed-label raw arithmetic mean,
@@ -151,14 +151,14 @@ theorem sameZero_alignment :
     batchAlignment mixedFeatures 0 sameZeroLabels = 1 / 2 := by
   norm_num [batchAlignment, meanResidualTranspose, mixedFeatures,
     sameZeroLabels, residualTranspose, ceResidual, ceLogits,
-    Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two]
 
 theorem sameZero_rangeSquare :
     batchRangeSquare mixedFeatures 0 sameZeroLabels = 4 := by
   norm_num [batchRangeSquare, batchMeanDirection, dirRange, mixedFeatures,
     sameZeroLabels, ceDirection, residualTranspose, ceResidual, ceLogits,
-    Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two]
 
 theorem sameZero_rangeSquare_pos :

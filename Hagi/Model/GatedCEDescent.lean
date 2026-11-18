@@ -743,7 +743,8 @@ theorem ceOneHot_add_le_of_range [Nonempty V] [DecidableEq V]
   simp only [Hagi.ceOneHot, Hagi.Core.ceOneHot, Hagi.Core.lse,
     sub_mul, Finset.sum_sub_distrib, hone]
   change Real.log (∑ v, Real.exp (z v + delta v)) ≤ _ at hlse
-  simp only [Hagi.Energy.smax, add_sub_cancel_left] at hlse
+  rw [Hagi.Energy.smax_eq_softDef z] at hlse
+  simp only [add_sub_cancel_left] at hlse
   linarith
 
 /-- Curvature `2 * M + range^2 / 8` of the gated quadratic majorizer. -/

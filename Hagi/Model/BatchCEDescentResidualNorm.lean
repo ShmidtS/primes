@@ -117,16 +117,16 @@ private theorem abs_ceResidual_le_one {V : Type} [Fintype V] {d : ℕ}
     (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t v : V) :
     |ceResidual X θ t v| ≤ 1 := by
   let : Nonempty V := ⟨t⟩
-  have hnonneg : 0 ≤ Hagi.Energy.smax (ceLogits X θ) v :=
-    Hagi.Energy.smax_nonneg _ _
-  have hle : Hagi.Energy.smax (ceLogits X θ) v ≤ 1 := by
+  have hnonneg : 0 ≤ Hagi.Prelude.softDef (ceLogits X θ) v :=
+    Hagi.Prelude.softDef_nonneg _ _
+  have hle : Hagi.Prelude.softDef (ceLogits X θ) v ≤ 1 := by
     calc
-      Hagi.Energy.smax (ceLogits X θ) v ≤
-          ∑ w, Hagi.Energy.smax (ceLogits X θ) w :=
+      Hagi.Prelude.softDef (ceLogits X θ) v ≤
+          ∑ w, Hagi.Prelude.softDef (ceLogits X θ) w :=
         Finset.single_le_sum
-          (fun w _hw => Hagi.Energy.smax_nonneg (ceLogits X θ) w)
+          (fun w _hw => Hagi.Prelude.softDef_nonneg (ceLogits X θ) w)
           (Finset.mem_univ v)
-      _ = 1 := Hagi.Energy.smax_sum_one _
+      _ = 1 := Hagi.Prelude.softDef_sum_one _
   by_cases hvt : v = t
   · subst v
     simp only [ceResidual, ↓reduceIte]

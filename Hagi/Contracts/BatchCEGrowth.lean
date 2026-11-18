@@ -438,7 +438,7 @@ theorem residualEnergy_pos {V : Type} [Fintype V] [Nonempty V]
   let _ : Nontrivial V := Fintype.one_lt_card_iff_nontrivial.mp Fact.out
   obtain ⟨v, hvt⟩ := exists_ne t
   have hp : 0 < ceResidual X θ t v := by
-    simpa [ceResidual, hvt] using Hagi.Energy.smax_pos (ceLogits X θ) v
+    simpa [ceResidual, hvt] using Hagi.Prelude.softDef_pos (ceLogits X θ) v
   exact Finset.sum_pos' (fun w _hw => sq_nonneg (ceResidual X θ t w))
     ⟨v, Finset.mem_univ v, sq_pos_of_pos hp⟩
 

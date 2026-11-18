@@ -45,7 +45,7 @@ private theorem meanPrediction_sub_empiricalTarget_eq_meanResidualTranspose
       residualTranspose (X b) θ (y b) v =
         softDef (ceLogits (X b) θ) v - ((Pi.single (y b) (1 : ℝ) : Fin n → ℝ)) v := by
     rw [hX b]
-    simp [residualTranspose, ceResidual, Hagi.Energy.smax, Matrix.one_apply,
+    simp [residualTranspose, ceResidual, Hagi.Prelude.softDef, Matrix.one_apply,
       Pi.single_apply]
   unfold meanPrediction empiricalTarget meanResidualTranspose
   simp_rw [hres]

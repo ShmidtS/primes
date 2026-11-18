@@ -131,10 +131,11 @@ theorem ceOneHot_alongNext_le_logitRange
     simp
   simp only [ceResidual, sub_mul, Finset.sum_sub_distrib] at hlin
   rw [honehot, ht] at hlin
-  have hsoft : ∑ v, Hagi.Energy.smax (ceLogits X θ) v *
+  have hsoft : ∑ v, Hagi.Prelude.softDef (ceLogits X θ) v *
       (ceLogits X (alongNext θ D eta) v - ceLogits X θ v) =
       eta * dirAction X θ t D + eta * ceLogits X D t := by
     linarith
+  rw [Hagi.Energy.smax_eq_softDef (ceLogits X θ)] at hlse
   rw [hsoft] at hlse
   unfold Hagi.ceOneHot Hagi.Core.lse
   rw [ht]

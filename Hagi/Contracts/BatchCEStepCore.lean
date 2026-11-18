@@ -387,7 +387,7 @@ theorem heterogeneous_meanDirection_zero :
       (coreParameters identityInitialState) mixedLabels).ofLp 0 = -1 / 4 := by
   change (batchMeanDirection heterogeneousFeatures 0 mixedLabels).ofLp 0 = -1 / 4
   norm_num [batchMeanDirection, heterogeneousFeatures, mixedLabels, ceDirection,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Matrix.one_apply, Matrix.smul_apply, smul_eq_mul]
 
@@ -397,7 +397,7 @@ theorem heterogeneous_meanDirection_one :
       (coreParameters identityInitialState) mixedLabels).ofLp 1 = 1 / 4 := by
   change (batchMeanDirection heterogeneousFeatures 0 mixedLabels).ofLp 1 = 1 / 4
   norm_num [batchMeanDirection, heterogeneousFeatures, mixedLabels, ceDirection,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Matrix.one_apply, Matrix.smul_apply, smul_eq_mul]
 
@@ -407,7 +407,7 @@ theorem heterogeneous_alignment :
       (coreParameters identityInitialState) mixedLabels = 1 / 8 := by
   change batchAlignment heterogeneousFeatures 0 mixedLabels = 1 / 8
   norm_num [batchAlignment, meanResidualTranspose, heterogeneousFeatures,
-    mixedLabels, residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    mixedLabels, residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Matrix.one_apply, Matrix.smul_apply, smul_eq_mul]
 
@@ -418,7 +418,7 @@ theorem heterogeneous_rangeSquare :
   change batchRangeSquare heterogeneousFeatures 0 mixedLabels = 5 / 2
   norm_num [batchRangeSquare, batchMeanDirection, dirRange,
     heterogeneousFeatures, mixedLabels, ceDirection, residualTranspose,
-    ceResidual, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+    ceResidual, ceLogits, Hagi.Prelude.softDef,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.one_apply,
     Matrix.smul_apply, smul_eq_mul]
 

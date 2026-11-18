@@ -1861,7 +1861,7 @@ theorem minimumNormIdentity_residualGradient_zero :
       (coreParameters identityInitialState) 0).ofLp 0 = -1 / 2 := by
   change residualTranspose (1 : Matrix (Fin 2) (Fin 2) ℝ)
     (0 : EuclideanSpace ℝ (Fin 2)) (0 : Fin 2) 0 = -1 / 2
-  norm_num [residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+  norm_num [residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Matrix.one_apply, Matrix.smul_apply, smul_eq_mul]
 
@@ -1871,7 +1871,7 @@ theorem minimumNormIdentity_residualGradient_one :
       (coreParameters identityInitialState) 0).ofLp 1 = 1 / 2 := by
   change residualTranspose (1 : Matrix (Fin 2) (Fin 2) ℝ)
     (0 : EuclideanSpace ℝ (Fin 2)) (0 : Fin 2) 1 = 1 / 2
-  norm_num [residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+  norm_num [residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Matrix.one_apply, Matrix.smul_apply, smul_eq_mul]
 
@@ -2013,7 +2013,7 @@ theorem asymmetric_residualGradient_zero_zero :
   change residualTranspose (asymmetricFeatures 0)
     (0 : EuclideanSpace ℝ (Fin 2)) (asymmetricLabels 0) 0 = -1 / 2
   norm_num [asymmetricFeatures, asymmetricLabels, residualTranspose, ceResidual,
-    ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    ceLogits, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two, smul_eq_mul]
 
 /-- Second coordinate of the first raw residual gradient at zero weights. -/
@@ -2023,7 +2023,7 @@ theorem asymmetric_residualGradient_zero_one :
   change residualTranspose (asymmetricFeatures 0)
     (0 : EuclideanSpace ℝ (Fin 2)) (asymmetricLabels 0) 1 = -1 / 2
   norm_num [asymmetricFeatures, asymmetricLabels, residualTranspose, ceResidual,
-    ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    ceLogits, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two, smul_eq_mul]
 
 /-- First coordinate of the second raw residual gradient at zero weights. -/
@@ -2033,7 +2033,7 @@ theorem asymmetric_residualGradient_one_zero :
   change residualTranspose (asymmetricFeatures 1)
     (0 : EuclideanSpace ℝ (Fin 2)) (asymmetricLabels 1) 0 = 1 / 2
   norm_num [asymmetricFeatures, asymmetricLabels, residualTranspose, ceResidual,
-    ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    ceLogits, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two, smul_eq_mul]
 
 /-- Second coordinate of the second raw residual gradient at zero weights. -/
@@ -2043,7 +2043,7 @@ theorem asymmetric_residualGradient_one_one :
   change residualTranspose (asymmetricFeatures 1)
     (0 : EuclideanSpace ℝ (Fin 2)) (asymmetricLabels 1) 1 = 3 / 2
   norm_num [asymmetricFeatures, asymmetricLabels, residualTranspose, ceResidual,
-    ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
+    ceLogits, Hagi.Prelude.softDef, Matrix.mulVec, dotProduct,
     Fin.sum_univ_two, smul_eq_mul]
 
 /-- The common mean descent direction has zero first coordinate. -/
@@ -2052,7 +2052,7 @@ theorem asymmetric_meanDirection_zero :
       (coreParameters identityInitialState) asymmetricLabels).ofLp 0 = 0 := by
   change (batchMeanDirection asymmetricFeatures 0 asymmetricLabels).ofLp 0 = 0
   norm_num [batchMeanDirection, asymmetricFeatures, asymmetricLabels, ceDirection,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     smul_eq_mul]
 
@@ -2062,7 +2062,7 @@ theorem asymmetric_meanDirection_one :
       (coreParameters identityInitialState) asymmetricLabels).ofLp 1 = -1 / 2 := by
   change (batchMeanDirection asymmetricFeatures 0 asymmetricLabels).ofLp 1 = -1 / 2
   norm_num [batchMeanDirection, asymmetricFeatures, asymmetricLabels, ceDirection,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     smul_eq_mul]
 
@@ -2071,7 +2071,7 @@ theorem asymmetric_alignment : batchAlignment asymmetricFeatures
       (coreParameters identityInitialState) asymmetricLabels = 1 / 4 := by
   change batchAlignment asymmetricFeatures 0 asymmetricLabels = 1 / 4
   norm_num [batchAlignment, meanResidualTranspose, asymmetricFeatures,
-    asymmetricLabels, residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    asymmetricLabels, residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     smul_eq_mul]
 
@@ -2081,7 +2081,7 @@ theorem asymmetric_rangeSquare : batchRangeSquare asymmetricFeatures
   change batchRangeSquare asymmetricFeatures 0 asymmetricLabels = 5
   norm_num [batchRangeSquare, batchMeanDirection, dirRange,
     asymmetricFeatures, asymmetricLabels, ceDirection, residualTranspose,
-    ceResidual, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+    ceResidual, ceLogits, Hagi.Prelude.softDef,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, smul_eq_mul]
 
 /-- The mean raw residual has zero first coordinate. -/
@@ -2090,7 +2090,7 @@ theorem asymmetric_meanResidualTranspose_zero :
       (coreParameters identityInitialState) asymmetricLabels 0 = 0 := by
   change meanResidualTranspose asymmetricFeatures 0 asymmetricLabels 0 = 0
   norm_num [meanResidualTranspose, asymmetricFeatures, asymmetricLabels,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     smul_eq_mul]
 
@@ -2100,7 +2100,7 @@ theorem asymmetric_meanResidualTranspose_one :
       (coreParameters identityInitialState) asymmetricLabels 1 = 1 / 2 := by
   change meanResidualTranspose asymmetricFeatures 0 asymmetricLabels 1 = 1 / 2
   norm_num [meanResidualTranspose, asymmetricFeatures, asymmetricLabels,
-    residualTranspose, ceResidual, ceLogits, Hagi.Energy.smax,
+    residualTranspose, ceResidual, ceLogits, Hagi.Prelude.softDef,
     Hagi.Prelude.softDef, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     smul_eq_mul]
 

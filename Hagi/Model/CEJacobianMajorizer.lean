@@ -90,7 +90,8 @@ theorem ceOneHot_local_line_majorize_of_jacobian_remainder
     simp only [Hagi.ceOneHot, Hagi.Core.ceOneHot, Hagi.Core.lse,
       sub_mul, Finset.sum_sub_distrib, hone]
     change Real.log (∑ v, Real.exp (f θ v + q v)) ≤ _ at hlse
-    simp only [Hagi.Energy.smax, add_sub_cancel_left] at hlse
+    rw [Hagi.Energy.smax_eq_softDef (f θ)] at hlse
+    simp only [add_sub_cancel_left] at hlse
     linarith
   have hlinear :
       (∑ v, (Hagi.Prelude.softDef (f θ) v -

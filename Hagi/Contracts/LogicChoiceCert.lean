@@ -116,8 +116,8 @@ theorem wit_logits_zero (v : Fin 2) : ceLogits (witX 0) witθ v = 0 := by
   simp [ceLogits, witθ]
 
 theorem wit_smax (v : Fin 2) :
-    Hagi.Energy.smax (ceLogits (witX 0) witθ) v = 1 / 2 := by
-  unfold Hagi.Energy.smax Hagi.Prelude.softDef
+    Hagi.Prelude.softDef (ceLogits (witX 0) witθ) v = 1 / 2 := by
+  unfold Hagi.Prelude.softDef
   simp only [wit_logits_zero]
   simp
 

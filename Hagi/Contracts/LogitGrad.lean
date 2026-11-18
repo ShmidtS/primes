@@ -18,7 +18,7 @@ The carrier is a plain function `C → V → ℝ`; the square complex matrix
 view needed by the Flywheel SVD API is built only in
 `Hagi.Contracts.GradientBottleneck`.
 
-Main results (row facts, all from existing `Hagi.Energy.smax` lemmas):
+Main results (row facts, all from existing `Hagi.Prelude.softDef` lemmas):
 
 * `logitGrad_row_sum_zero` — rows sum to zero when `N` rows are
   probability vectors.
@@ -47,14 +47,14 @@ matrix, `smax (z c) − N c`, with `N c` the empirical next-token
 distribution (one-hot or frequencies) for context `c`. -/
 noncomputable def logitGrad (z : C → V → ℝ) (N : C → V → ℝ)
     (c : C) (v : V) : ℝ :=
-  Hagi.Energy.smax (z c) v - N c v
+  Hagi.Prelude.softDef (z c) v - N c v
 
 /-- Row sums vanish when `N` rows are probability vectors. -/
 theorem logitGrad_row_sum_zero (z : C → V → ℝ) (N : C → V → ℝ)
     (hN : ∀ c, ∑ v, N c v = 1) (c : C) :
     ∑ v, logitGrad z N c v = 0 := by
   simp only [logitGrad]
-  rw [Finset.sum_sub_distrib, Hagi.Energy.smax_sum_one, hN c]
+  rw [Finset.sum_sub_distrib, Hagi.Prelude.softDef_sum_one, hN c]
   ring
 
 /-- Off the empirical one-hot target the logit gradient is strictly
@@ -62,23 +62,23 @@ positive. -/
 theorem logitGrad_pos_off_target (z : C → V → ℝ) (t : C → V)
     (c : C) {v : V} (hvt : v ≠ t c) :
     0 < logitGrad z (fun c' v' => if v' = t c' then 1 else 0) c v := by
-  show 0 < Hagi.Energy.smax (z c) v
+  show 0 < Hagi.Prelude.softDef (z c) v
         - (if v = t c then (1:ℝ) else 0)
   rw [ite_eq_right (fun h => hvt h), sub_zero]
-  exact Hagi.Energy.smax_pos (z c) v
+  exact Hagi.Prelude.softDef_pos (z c) v
 
 /-- A single softmax entry is strictly below one whenever some other
 token exists. -/
 theorem smax_lt_one (x : V → ℝ) {v : V} (hw : ∃ w, w ≠ v) :
-    Hagi.Energy.smax x v < 1 := by
+    Hagi.Prelude.softDef x v < 1 := by
   obtain ⟨w, hwv⟩ := hw
-  have hsum : Hagi.Energy.smax x v + Hagi.Energy.smax x w
-      ≤ ∑ u ∈ Finset.univ, Hagi.Energy.smax x u :=
+  have hsum : Hagi.Prelude.softDef x v + Hagi.Prelude.softDef x w
+      ≤ ∑ u ∈ Finset.univ, Hagi.Prelude.softDef x u :=
     Finset.add_le_sum
-      (fun u _ => Hagi.Energy.smax_nonneg x u)
+      (fun u _ => Hagi.Prelude.softDef_nonneg x u)
       (Finset.mem_univ v) (Finset.mem_univ w) hwv.symm
-  rw [Hagi.Energy.smax_sum_one] at hsum
-  have : Hagi.Energy.smax x w > 0 := Hagi.Energy.smax_pos x w
+  rw [Hagi.Prelude.softDef_sum_one] at hsum
+  have : Hagi.Prelude.softDef x w > 0 := Hagi.Prelude.softDef_pos x w
   linarith
 
 /-- At the empirical one-hot target the logit gradient is strictly
@@ -87,10 +87,10 @@ singleton vocabulary makes the entry zero instead). -/
 theorem logitGrad_neg_at_target (z : C → V → ℝ) (t : C → V)
     (c : C) (hw : ∃ w : V, w ≠ t c) :
     logitGrad z (fun c' v' => if v' = t c' then 1 else 0) c (t c) < 0 := by
-  show Hagi.Energy.smax (z c) (t c)
+  show Hagi.Prelude.softDef (z c) (t c)
         - (if (t c) = t c then (1:ℝ) else 0) < 0
   rw [ite_eq_left (rfl : (t c) = t c)]
-  have : Hagi.Energy.smax (z c) (t c) < 1 := smax_lt_one (z c) hw
+  have : Hagi.Prelude.softDef (z c) (t c) < 1 := smax_lt_one (z c) hw
   linarith
 
 /-- Each row of the logit gradient carries absolute mass at most two
@@ -99,16 +99,16 @@ theorem abs_logitGrad_row_le_two (z : C → V → ℝ) (N : C → V → ℝ)
     (hN0 : ∀ c v, 0 ≤ N c v) (hN1 : ∀ c, ∑ v, N c v ≤ 1) (c : C) :
     ∑ v, |logitGrad z N c v| ≤ 2 := by
   have h1 : ∀ v : V, |logitGrad z N c v|
-      ≤ Hagi.Energy.smax (z c) v + N c v := by
+      ≤ Hagi.Prelude.softDef (z c) v + N c v := by
     intro v
     exact abs_sub_le_iff.mpr ⟨by
-      linarith [Hagi.Energy.smax_nonneg (z c) v, hN0 c v],
-      by linarith [Hagi.Energy.smax_nonneg (z c) v, hN0 c v]⟩
+      linarith [Hagi.Prelude.softDef_nonneg (z c) v, hN0 c v],
+      by linarith [Hagi.Prelude.softDef_nonneg (z c) v, hN0 c v]⟩
   calc ∑ v, |logitGrad z N c v|
-      ≤ ∑ v, (Hagi.Energy.smax (z c) v + N c v) :=
+      ≤ ∑ v, (Hagi.Prelude.softDef (z c) v + N c v) :=
         Finset.sum_le_sum fun v _ => h1 v
     _ = 1 + ∑ v, N c v := by
-        rw [Finset.sum_add_distrib, Hagi.Energy.smax_sum_one]
+        rw [Finset.sum_add_distrib, Hagi.Prelude.softDef_sum_one]
     _ ≤ 2 := by linarith [hN1 c]
 
 end Hagi.Contracts.LogitGrad

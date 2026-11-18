@@ -109,6 +109,11 @@ theorem softDef_pos {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) (a : k)
   exact div_pos (Real.exp_pos _)
     (Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty)
 
+/-- Softmax is nonnegative. -/
+theorem softDef_nonneg {k : Type*} [Fintype k] [Nonempty k]
+    (z : k → ℝ) (a : k) : 0 ≤ softDef z a :=
+  le_of_lt (softDef_pos z a)
+
 /-- Softmax normalizes: `∑ a, softDef z a = 1`. -/
 theorem softDef_sum_one {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) :
     ∑ a, softDef z a = 1 := by

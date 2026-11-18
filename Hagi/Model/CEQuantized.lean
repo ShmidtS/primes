@@ -227,7 +227,7 @@ def ceQuantWitnessFeatures : Matrix (Fin 2) (Fin 5) ℝ :=
 theorem ceQuantWitness_range :
     ceStepRange ceQuantWitnessFeatures 0 0 = 2 := by
   norm_num [ceStepRange, ceAlignment, residualTranspose, ceResidual,
-    ceDirection, ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+    ceDirection, ceLogits, Hagi.Prelude.softDef,
     ceQuantWitnessFeatures, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
     Fin.sum_univ_succ]
 
@@ -235,7 +235,7 @@ theorem ceQuantWitness_range :
 theorem ceQuantWitness_alignment :
     ceAlignment ceQuantWitnessFeatures 0 0 = 1 / 2 := by
   norm_num [ceAlignment, residualTranspose, ceResidual, ceLogits,
-    Hagi.Energy.smax, Hagi.Prelude.softDef, ceQuantWitnessFeatures,
+    Hagi.Prelude.softDef, ceQuantWitnessFeatures,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Fin.sum_univ_succ]
 
 /-- The actual Cycle81 safe successor, derived by expanding
@@ -252,7 +252,7 @@ theorem ceQuantWitness_safeSuccessor :
   ext j
   fin_cases j <;>
     norm_num [ceNextParameters, ceDirection, residualTranspose, ceResidual,
-      ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef,
+      ceLogits, Hagi.Prelude.softDef,
       ceQuantWitnessFeatures, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
       Fin.sum_univ_succ]
 

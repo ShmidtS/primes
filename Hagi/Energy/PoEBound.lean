@@ -89,10 +89,17 @@ namespace Hagi.Energy
 
 /-! ## Pillar 2: the log-sum-exp deviation bounds -/
 
-/-- The softmax of the logits `x` over a finite vocabulary. -/
+/-- DEPRECATED bridge alias: the softmax of the logits `x` over a
+finite vocabulary. Canonical definition is `Hagi.Prelude.softDef`
+(single-softmax unification, audit A18.1); see `smax_eq_softDef`.
+Kept as a shim so existing names survive the freeze. -/
 noncomputable def smax {V : Type} [Fintype V] (x : V → ℝ) : V → ℝ :=
-  --: = Prelude.softDef (historical name kept)
   Hagi.Prelude.softDef x
+
+/-- Bridge: `smax` is definitionally the canonical softmax
+`Hagi.Prelude.softDef` (audit A18.1 unification). -/
+theorem smax_eq_softDef {V : Type} [Fintype V] (x : V → ℝ) :
+    smax x = Hagi.Prelude.softDef x := rfl
 
 theorem sum_exp_pos {V : Type} [Fintype V] [Nonempty V] (x : V → ℝ) :
     0 < ∑ v, Real.exp (x v) :=

@@ -2318,9 +2318,9 @@ theorem batchGradientMinimizer_repeatedIdentity_ne_zero
   intro h
   have hcoord := congrArg
     (fun z : EuclideanSpace ℝ (Fin 2) => z.ofLp 1) h
-  have hp : 0 < Hagi.Energy.smax
+  have hp : 0 < Hagi.Prelude.softDef
       (ceLogits (1 : Matrix (Fin 2) (Fin 2) ℝ) θ) 1 :=
-    Hagi.Energy.smax_pos _ _
+    Hagi.Prelude.softDef_pos _ _
   norm_num [batchResidualGradient_ofLp, residualTranspose, ceResidual,
     Fin.sum_univ_two, Matrix.one_apply] at hcoord
   linarith

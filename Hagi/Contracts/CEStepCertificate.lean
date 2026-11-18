@@ -196,7 +196,7 @@ theorem coreParameters_identityCEStep :
   intro i
   fin_cases i <;>
     norm_num [ceNextParameters, ceDirection, residualTranspose, ceResidual,
-      ceLogits, Hagi.Energy.smax, Hagi.Prelude.softDef, Matrix.mulVec,
+      ceLogits, Hagi.Prelude.softDef, Matrix.mulVec,
       dotProduct, Fin.sum_univ_two]
 
 /-- Strict CE descent for the concrete executed state. -/
