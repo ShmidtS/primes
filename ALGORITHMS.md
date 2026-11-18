@@ -1375,13 +1375,13 @@ noncomputable finite selection contracts, не native optimizer или runner.
 Сводка исполняемый/spec — см. §16.
 
 Для реализации дискретного guard используем
-[`finiteSelection`](Hagi/Unified/ExecutableController.lean):
+[`finiteSelection`](Hagi/Unified/ParetoExecution.lean):
 фильтр supplied action list по Bool admission и List.argmin resourceCost.
-[`finiteSelection_none_iff`](Hagi/Unified/ExecutableController.lean)
+[`finiteSelection_none_iff`](Hagi/Unified/ParetoExecution.lean)
 не выбирает ничего, только если все входные guards false;
-[`selectionReport_guardCalls`](Hagi/Unified/ExecutableController.lean)
+[`selectionReport_guardCalls`](Hagi/Unified/ParetoExecution.lean)
 считает лишь logical guard calls. Если list покрывает все действия,
-[`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ExecutableController.lean)
+[`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ParetoExecution.lean)
 сравнивает стоимость с mathematical minimum в integer-cast модели.
 Это исполняемый discrete selection, не вычисление raw CE на ℝ.
 
@@ -2026,10 +2026,10 @@ noncomputable лишь потому, что ℝ классический; choose
   — замкнутая формула `g0+τ(g1−g0)`; связь с общим случаем —
   [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean);
 - bound шага QP: [`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean);
-- дискретный выбор: [`finiteSelection`](Hagi/Unified/ExecutableController.lean)
+- дискретный выбор: [`finiteSelection`](Hagi/Unified/ParetoExecution.lean)
   — истинно компьютабелен (Bool `admissionGuard` + List.argmin),
   стоимостный мост —
-  [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ExecutableController.lean);
+  [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ParetoExecution.lean);
 - кодек: `dyadicPayload`/`dyadicBlock` (BitVec 16) и packed-decode
   теоремы.
 

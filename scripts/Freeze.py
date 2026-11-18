@@ -181,8 +181,8 @@ def collect(root='Hagi', semantic=None):
 
 def index(rows):
     result = {}
-    for name, h, _, statement in rows:
-        result.setdefault(name, collections.Counter())[h, statement] += 1
+    for name, _, statement, kind in rows:
+        result.setdefault(name, collections.Counter())[statement, kind] += 1
     return result
 
 
@@ -197,8 +197,8 @@ def diff(old_rows, new_rows):
         if name in new and values != new[name]:
             changed.append(name)
     changed.sort()
-    aliases = collections.Counter({s: count
-        for name in added for (_, s), count in new[name].items() if s is not None})
+    aliases = collections.Counter({key: count
+        for name in added for key, count in new[name].items()})
     lost = []
     renamed = []
     for name, deletions in sorted(removed.items()):
@@ -206,8 +206,8 @@ def diff(old_rows, new_rows):
             continue
         remaining = sum(deletions.values())
         for key, count in deletions.items():
-            matched = min(count, aliases[key[1]])
-            aliases[key[1]] -= matched
+            matched = min(count, aliases[key])
+            aliases[key] -= matched
             remaining -= matched
         (lost if remaining else renamed).append(name)
     return lost, renamed, changed, added

@@ -178,6 +178,47 @@ class FreezeRegression(unittest.TestCase):
         self.assertIn("Hagi.Percolation.ThresholdSystem",
                       {row[0] for row in rows})
 
+    def test_private_path_move_verifies_as_rename(self):
+        # C405: private decls get path-keyed names; moving the file
+        # (statement unchanged) must verify as a rename, not LOST.
+        self.metadata["Hagi/Probe.lean", "hidden"] = [
+            record("Hagi.Probe.hidden", private=True)]
+        old = self.collect("Probe.lean",
+            "private theorem hidden : True := by trivial\n", semantic=True)
+        self.assertTrue(old[0][0].endswith(
+            "Hagi/Probe.lean:Hagi.Probe.hidden"), old[0][0])
+        old_name = old[0][0]
+        (self.root / "Probe.lean").unlink()
+        self.metadata["Hagi/Moved.lean", "hidden"] = [
+            record("Hagi.Probe.hidden", private=True)]
+        new = self.collect("Moved.lean",
+            "private theorem hidden : True := by trivial\n", semantic=True)
+        self.assertTrue(new[0][0].endswith(
+            "Hagi/Moved.lean:Hagi.Probe.hidden"), new[0][0])
+        new_name = new[0][0]
+        lost, renamed, changed, added = Freeze.diff(old, new)
+        self.assertEqual((lost, changed), ([], []))
+        self.assertEqual(renamed, [old_name])
+        self.assertEqual(added, [new_name])
+
+    def test_private_statement_change_still_fails(self):
+        # C405 fail-closed guard: a changed statement hash on the
+        # moved private decl must remain LOST, never a rename.
+        self.metadata["Hagi/Probe.lean", "hidden"] = [
+            record("Hagi.Probe.hidden", private=True)]
+        old = self.collect("Probe.lean",
+            "private theorem hidden : True := by trivial\n", semantic=True)
+        (self.root / "Probe.lean").unlink()
+        self.metadata["Hagi/Moved.lean", "hidden"] = [
+            record("Hagi.Probe.hidden", private=True,
+                   type_hash="different-type")]
+        new = self.collect("Moved.lean",
+            "private theorem hidden : False := by trivial\n", semantic=True)
+        lost, renamed, changed, added = Freeze.diff(old, new)
+        self.assertEqual(len(lost), 1)
+        self.assertTrue(lost[0].endswith("Probe.lean:Hagi.Probe.hidden"))
+        self.assertEqual(renamed, [])
+
     def test_cli_uses_repository_root(self):
         repo = Path(__file__).resolve().parents[1]
         result = subprocess.run(

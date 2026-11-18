@@ -5001,7 +5001,7 @@ one-hot CE.
   `noiseSigma = 0 ∨ noiseSigma > 0`.
 
 
-## Hagi/Unified/ExecutableController.lean
+## Hagi/Unified/ParetoExecution.lean
 - `finiteSelection_cost_eq_minimumResource`: если вычислимый список
   содержит все действия, выбранная стоимость совпадает со стоимостью
   математического минимума в cast-модели; совпадение самих действий при равных
