@@ -25,9 +25,15 @@ Checks (only `ConstantInfo.thmInfo` declarations in namespace `Hagi.*`):
   TRIV_CONJ   conclusion is an ∧-chain with >= half (and >= 2) of its
               conjuncts syntactically equal to (∧-flattened) premise types —
               component-wise restatement of hypotheses.
-  UNUSED_PARA a non-`h`/non-`_` data parameter whose binder never occurs in a
-              later premise type or the conclusion (bvar positional analysis;
+  UNUSED_PARA a non-`h`/non-`_` data parameter whose binder never occurs in
+              a later premise type or the conclusion (bvar positional analysis;
               conservative over-approximation of usage).
+  UNFOLD_ECHO proof term's application-head is one of the theorem's own
+              premise fvars (bare `h`-transfer, no math) AND the conclusion
+              is `isDefEq` to that premise's type (default transparency:
+              full/partial delta) but NOT syntactically equal (that is
+              TRIV_PREM). Legitimate bridges (deprecated-name shims) are
+              suppressed via `scripts/unfold_echo_allowlist.txt` (WARN lines).
   BAD_AXIOM   (removed 2026-10, perf: see comment at checkTheorem; gated
               by lake build + AxiomCheck instead).
 
@@ -247,6 +253,27 @@ def checkTheorem (name : Name) (ty : Expr) (val : Expr) : MetaM (Array Finding) 
         findings := findings.push
           { flag := "UNUSED_PARAM", decl := name
             detail := s!"parameter `{nm}` is not referenced by any later premise or the conclusion" }
+  -- UNFOLD_ECHO: proof is a bare premise reference (head of the app spine
+  -- is one of the theorem's own premise fvars) while the conclusion differs
+  -- from that premise's type ONLY up to definitional unfolding (isDefEq at
+  -- default transparency => delta). Syntactic equality is TRIV_PREM's job.
+  -- `h.symm`/constructor-bridges/`Iff.trans` have non-fvar heads => safe.
+  if !(premises.any (Expr.equal · concl)) then
+    let echo? : Option Finding ←
+      try
+        forallTelescope ty fun fvars body => do
+          let pv := (stripLams val).instantiateRev fvars
+          if let .fvar id := pv.getAppFn then
+            if fvars.any (·.fvarId! == id) then
+              let premTy ← id.getType
+              let hn ← id.getUserName
+              let defeq ← isDefEq body premTy
+              if defeq && !(Expr.equal body premTy) then
+                let d := s!"conclusion is the delta-unfolding of premise `{hn}` (proof = premise reference)"
+                return some { flag := "UNFOLD_ECHO", decl := name, detail := d }
+          return none
+      catch _ => pure none
+    if let some f := echo? then findings := findings.push f
   -- BAD_AXIOM: REMOVED 2026-10 (perf): transitive proof-term walking in
   -- the interpreted script dominated runtime (~19 min). Axiom hygiene is
   -- gated by `lake build` (sorry warnings) and scripts/AxiomCheck.lean
@@ -296,13 +323,22 @@ private theorem okHonestConj (a b : Nat) (h : a = b) :
     a + 0 = b ∧ b = a := by constructor <;> omega
 private theorem okUnusedHypNamed (x : Nat) (hx : 0 < x) : True := trivial
 
+-- UNFOLD_ECHO controls (audit A18.2 / C424)
+private def EchoGate : Prop := 2 = 1 + 1
+private def EchoGate2 (a : Nat) : Prop := a + 0 = a
+private theorem unfoldEchoPos (h : EchoGate) : 2 = 1 + 1 := h
+private theorem okRflBridge (a : Nat) : EchoGate2 a := rfl
+private theorem okConstructorBridge (h : 2 = 1 + 1) : 2 = 1 + 1 ∧ 1 + 1 = 2 := ⟨h, h⟩
+private theorem okAppliedPrem (h : Nat → 2 = 1 + 1) : 2 = 1 + 1 := h 0
+
 /-- Expected findings for the planted theorems above. -/
 def expected : List (String × Name) :=
   [ ("TRIV_RFL", ``trivRfl)
   , ("TRIV_AEQ_A", ``trivAeqA)
   , ("TRIV_PREM", ``trivPrem)
   , ("TRIV_CONJ", ``trivConj)
-  , ("UNUSED_PARAM", ``unusedParamSelf) ]
+  , ("UNUSED_PARAM", ``unusedParamSelf)
+  , ("UNFOLD_ECHO", ``unfoldEchoPos) ]
 
 /-- Run `checkTheorem` over the planted set and report mismatches. `main`
 sets `Core.State.env` to the SCRIPT's elaboration environment (which contains
@@ -319,7 +355,8 @@ def run : MetaM (List String) := do
         errs := s!"self-test MISS: {name} expected {flag}, got {found.map (·.flag)}" :: errs
     | _ => errs := s!"self-test MISS: {name} not found in environment" :: errs
   for name in [``okUnfold, ``okReal, ``okUsedParam, ``okHonestConj,
-               ``okUnusedHypNamed] do
+               ``okUnusedHypNamed, ``okRflBridge, ``okConstructorBridge,
+               ``okAppliedPrem] do
     let env ← getEnv
     match env.find? name with
     | some (.thmInfo t) =>
@@ -367,6 +404,23 @@ unsafe def main : IO Unit := do
     return (thms.size, acc)
   let findings := findings.qsort fun a b =>
     if a.flag != b.flag then a.flag < b.flag else a.decl.toString < b.decl.toString
+  -- UNFOLD_ECHO allowlist (audit A18.2 / C424): legitimate echo-bridges
+  -- (e.g. deprecated-name shims) listed one `Name` per line are suppressed
+  -- from the gate and reported separately; everything else gates as usual.
+  let allowTxt? : IO (Option String) := do
+    try return some (← IO.FS.readFile "scripts/unfold_echo_allowlist.txt")
+    catch _ => return none
+  let allowSet : List String :=
+    match (← allowTxt?) with
+    | some txt => (txt.splitOn "\n").map (fun l => l.trimAscii.toString) |>.filter (· != "")
+    | none => []
+  let allowEcho := findings.filter
+    (fun f => f.flag == "UNFOLD_ECHO" && allowSet.contains f.decl.toString)
+  let findings := findings.filter
+    (fun f => !(f.flag == "UNFOLD_ECHO" && allowSet.contains f.decl.toString))
+  unless allowEcho.isEmpty do
+    for f in allowEcho do
+      IO.println s!"WARN allowlisted UNFOLD_ECHO | {f.decl} | {declLocation env f.decl}"
   IO.println s!"=== TrivialLint: {scanned} theorems scanned in `Hagi.*` ==="
   if findings.isEmpty then
     IO.println "no findings"
