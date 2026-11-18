@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
+import Hagi.Cert.Telescope
 
 /-!
 # Canonical certification kernel (master plan v3, Track S1+S2)
@@ -159,6 +160,15 @@ def CertStep.trans' {S : Type*} {TaskId : Type*}
 
 /-! ## Telescope -/
 
+/-! ### AdditiveLedger инстансы (A18.3): certified drop / δ-канал -/
+
+/-- `CertStep` списывает certified drop из objective (≤-закон:
+declared drop — нижняя граница, не точное списание). -/
+instance certStep_objective :
+    AdditiveLedger S M.objective (CertStep M obl) where
+  spend c := c.drop
+  step_descend c := c.descent
+
 /-- Trajectory telescope over `n` certified steps: the objective at
 the terminal state is bounded by the initial objective minus the
 sum of all certified drops. -/
@@ -167,13 +177,8 @@ theorem trajectory_telescope {S : Type*} {TaskId : Type*}
     (n : ℕ) (t : ℕ → S)
     (steps : ∀ j : ℕ, CertStep M obl (t j) (t (j + 1))) :
     M.objective (t n) ≤ M.objective (t 0)
-      - ∑ j ∈ Finset.range n, (steps j).drop := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have e := (steps n).descent
-    simp only [Finset.sum_range_succ]
-    linarith
+      - ∑ j ∈ Finset.range n, (steps j).drop :=
+  Hagi.Cert.additive_ledger_telescope (level := M.objective) n t steps
 
 /-- `Fin n`-indexed corollary of `trajectory_telescope`: the same
 bound for a step supply indexed by `Fin n`. -/
@@ -233,6 +238,12 @@ def CertStepDelta.trans {deltaLevel : S → ℝ} {s₁ s₂ s₃ : S}
     ring
   delta_nonneg := h₂.delta_nonneg
 
+/-- `CertStepDelta` списывает δ из носителя `deltaLevel` точно. -/
+instance certStepDelta_delta {deltaLevel : S → ℝ} :
+    ExactAdditiveLedger S deltaLevel (CertStepDelta M obl deltaLevel) where
+  spend c := c.delta
+  step_exact c := c.delta_next
+
 /-- Телескоп по δ-ресурсу: сумма пошаговых бюджетов ложного коммита
 не превосходит начального уровня носителя (Σ δ_k ≤ δ; носитель в
 старте неотрицателен — посылка честно явная). -/
@@ -242,21 +253,12 @@ theorem delta_telescope {S : Type*} {TaskId : Type*}
     (h0 : 0 ≤ deltaLevel (t 0))
     (steps : ∀ j : ℕ, CertStepDelta M obl deltaLevel (t j) (t (j + 1))) :
     ∑ j ∈ Finset.range n, (steps j).delta ≤ deltaLevel (t 0) := by
-  have strong : ∀ m : ℕ,
-      ∑ j ∈ Finset.range m, (steps j).delta
-        ≤ deltaLevel (t 0) - deltaLevel (t m) := by
-    intro m
-    induction m with
-    | zero => simp
-    | succ m ih =>
-      have e := (steps m).delta_next
-      simp only [Finset.sum_range_succ]
-      linarith
   have hnn : 0 ≤ deltaLevel (t n) := by
     match n with
     | 0 => exact h0
     | m + 1 => exact (steps m).delta_nonneg
-  linarith [strong n]
+  exact Hagi.Cert.additive_ledger_telescope_floor
+    (level := deltaLevel) n t hnn steps
 
 
 /-! ## Optimizer-state carrier (C248, A8 F5): HoldStep covers (m, v, t)

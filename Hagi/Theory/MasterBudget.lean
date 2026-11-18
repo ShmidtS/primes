@@ -1,5 +1,6 @@
 import Hagi.Theory.MasterTheorem
 import Hagi.Cert.StepGen
+import Hagi.Cert.Telescope
 import Mathlib.Tactic
 
 /-!
@@ -69,20 +70,16 @@ variable (obl : Hagi.Cert.StepObligations TaskId)
 
 /-- Телескоп ресурсного ledger-а над kernel-полем
 `CertStepGen.budget_next` (тот же паттерн, что C330
-`budget_telescope_gen`; пере-доказан здесь: Contracts недоступен
-из Theory по LayerLint). Терминальный бюджет = начальный минус
+`budget_telescope_gen`; с A18.3/С425 — one-line специализация
+обобщённого `additive_ledger_telescope_eq` через budget-инстанс
+`Hagi.Cert.ExactAdditiveLedger`). Терминальный бюджет = начальный минус
 ТОЧНАЯ сумма per-step трат — закон ресурсного учёта. -/
 theorem budget_ledger_telescope (deltaLevel : S → ℝ)
     (T : ℕ) (traj : ℕ → S)
     (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1))) :
     M.budget (traj T) = M.budget (traj 0)
-      - ∑ j ∈ Finset.range T, (steps j).budgetSpend := by
-  induction T with
-  | zero => simp
-  | succ T ih =>
-    have e := (steps T).budget_next
-    rw [e, ih, Finset.sum_range_succ]
-    ring
+      - ∑ j ∈ Finset.range T, (steps j).budgetSpend :=
+  Hagi.Cert.additive_ledger_telescope_eq (level := M.budget) T traj steps
 
 /-! ## Мост: master cost-канал ⟷ resource ledger -/
 

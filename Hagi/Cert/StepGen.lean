@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Cert.Core
+import Hagi.Cert.Telescope
 import Hagi.Math.Foundations.Telescope
 
 /-!
@@ -195,19 +196,43 @@ def CertStepGen.trans {deltaLevel : S → ℝ} {s₁ s₂ s₃ : S}
 
 /-! ## Telescopes -/
 
+/-! ### AdditiveLedger инстансы (A18.3): CertStepGen-каналы -/
+
+/-- `CertStepGen`: objective-канал (declared drop, ≤-закон). -/
+instance certStepGen_objective {deltaLevel : S → ℝ} :
+    AdditiveLedger S M.objective (CertStepGen M obl deltaLevel) where
+  spend c := c.drop
+  step_descend c := c.descent
+
+/-- `CertStepGen`: δ-канал (точный закон `delta_next`). -/
+instance certStepGen_delta {deltaLevel : S → ℝ} :
+    ExactAdditiveLedger S deltaLevel (CertStepGen M obl deltaLevel) where
+  spend c := c.delta
+  step_exact c := c.delta_next
+
+/-- `CertStepGen`: budget-канал (точный закон `budget_next`). -/
+instance certStepGen_budget {deltaLevel : S → ℝ} :
+    ExactAdditiveLedger S M.budget (CertStepGen M obl deltaLevel) where
+  spend c := c.budgetSpend
+  step_exact c := c.budget_next
+
+/-- `CertStepGen`: risk-канал (точный закон из split: post-risk =
+remainder, pre-risk = spend + remainder). -/
+instance certStepGen_risk {deltaLevel : S → ℝ} :
+    ExactAdditiveLedger S M.risk (CertStepGen M obl deltaLevel) where
+  spend c := c.riskSpend
+  step_exact c := by rw [c.risk_next, c.risk_split]; ring
+
 /-- Drop telescope for the general kernel: the terminal objective is
 bounded by the initial objective minus the sum of certified drops. -/
 theorem trajectory_telescope_gen (deltaLevel : S → ℝ)
     (n : ℕ) (t : ℕ → S)
     (steps : ∀ j : ℕ, CertStepGen M obl deltaLevel (t j) (t (j + 1))) :
     M.objective (t n) ≤ M.objective (t 0)
-      - ∑ j ∈ Finset.range n, (steps j).drop := by
-  exact Hagi.Foundations.telescope_le_sub
-    (f := fun k => M.objective (t k))
-    (c := fun j => (steps j).drop)
-    (fun j _ => (steps j).descent)
+      - ∑ j ∈ Finset.range n, (steps j).drop :=
+  Hagi.Cert.additive_ledger_telescope (level := M.objective) n t steps
 
-/-- Delta telescope for the general kernel (C245 form, folded): the
+/-- Delta telescope for the general kernel
 sum of per-step false-commit budgets is bounded by the initial delta
 level, provided the initial level is nonnegative (honest explicit
 premise). -/
@@ -220,10 +245,8 @@ theorem delta_telescope_gen (deltaLevel : S → ℝ)
     match n with
     | 0 => exact h0
     | m + 1 => exact (steps m).delta_nonneg
-  simpa using Hagi.Foundations.telescope_sum_floor_le 0
-    (f := fun k => deltaLevel (t k))
-    (c := fun j => (steps j).delta)
-    (fun j _ => (steps j).delta_next.le) hnn
+  exact Hagi.Cert.additive_ledger_telescope_floor
+    (level := deltaLevel) n t hnn steps
 
 /-- Risk telescope for the general kernel: the sum of per-step risk
 spends is bounded by the initial risk level (remainder field makes
@@ -242,12 +265,8 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
       have h := (steps m).risk_nonneg
       rw [(steps m).risk_next]
       exact h
-  simpa using Hagi.Foundations.telescope_sum_floor_le 0
-    (f := fun k => M.risk (t k))
-    (c := fun j => (steps j).riskSpend)
-    (fun j _ => le_of_eq (by
-      rw [(steps j).risk_next, (steps j).risk_split]
-      ring)) hnn
+  exact Hagi.Cert.additive_ledger_telescope_floor
+    (level := M.risk) n t hnn steps
 
 /-! ## Bounded variant (A14 QW3, C344): ≤-law constructor
 

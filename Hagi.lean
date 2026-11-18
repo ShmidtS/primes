@@ -435,6 +435,7 @@ import Hagi.Model.Routing
 import Hagi.Model.Logic.VennHead
 import Hagi.Contracts.LogicChoiceCert
 import Hagi.Cert.Core
+import Hagi.Cert.Telescope
 import Hagi.Cert.StepGen
 import Hagi.Cert.Empirical
 import Hagi.Cert.Adapters
