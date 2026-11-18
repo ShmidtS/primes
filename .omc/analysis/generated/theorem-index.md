@@ -12,13 +12,13 @@ theorems.
 
 ## Summary
 
-- modules: 571
-- theorems: 11955
-- defs: 4285
-- noncomputable decls: 1129
-- status Proven: 490 modules
+- modules: 558
+- theorems: 11941
+- defs: 4299
+- noncomputable decls: 1139
+- status Proven: 478 modules
 - status Conditional: 26 modules
-- status Empirical: 11 modules
+- status Empirical: 10 modules
 - status Speculative: 24 modules
 - status Deprecated: 20 modules
 - global axioms of all Hagi.* theorems: Classical.choice, Quot.sound, propext (OK)
@@ -44,8 +44,8 @@ theorems.
 | Hagi.Audit.Audit | 63 | 0 | - | no | Proven |
 | Hagi.Autonomy.Insight | 10 | 1 | scalarQuadraticKl | yes | Empirical |
 | Hagi.Autonomy.ParetoController | 15 | 1 | dirTau | no | Proven |
-| Hagi.Autonomy.SupervisorSafety | 20 | 37 | capMember | no | Proven |
-| Hagi.Autonomy.SupervisorViability | 30 | 14 | LittlestoneDim | no | Proven |
+| Hagi.Autonomy.SupervisorSafety | 20 | 38 | capMember | no | Proven |
+| Hagi.Autonomy.SupervisorViability | 27 | 13 | LittlestoneDim | no | Proven |
 | Hagi.Autonomy.TTTStability | 2 | 0 | - | no | Proven |
 | Hagi.Benchmarks | 0 | 0 | - | no | Proven |
 | Hagi.Benchmarks.QuadLoopWitness | 24 | 2 | qhalf, halfStepCert | no | Proven |
@@ -70,7 +70,7 @@ theorems.
 | Hagi.Budget.WeightedExpAlloc | 22 | 4 | weightedExpBudget, weightedExpPrice, weightedExpLogCoeff, weightedExpAllocation | no | Proven |
 | Hagi.Cert.Adapters | 4 | 3 | - | yes | Conditional |
 | Hagi.Cert.CertifiedArgmax | 11 | 3 | avgRadius | no | Proven |
-| Hagi.Cert.Core | 50 | 79 | - | no | Proven |
+| Hagi.Cert.Core | 50 | 80 | - | no | Proven |
 | Hagi.Cert.Empirical | 5 | 13 | - | no | Proven |
 | Hagi.Cert.EvalBinding | 29 | 61 | - | no | Proven |
 | Hagi.Cert.StepGen | 61 | 36 | - | no | Proven |
@@ -80,22 +80,22 @@ theorems.
 | Hagi.Contracts.BatchCEAlignmentBudget | 30 | 2 | fixedAlignmentCesaro, rangeCurvature | no | Proven |
 | Hagi.Contracts.BatchCEBestResidual | 4 | 0 | - | no | Proven |
 | Hagi.Contracts.BatchCEBudgetGuard | 160 | 32 | batchParetoProblemSafeDecidable, identityParetoBatchStep, batchParetoProblem, pairMinimumNormBatchParetoProblemSafeDecidable, expandedTrainState, batchDirectionHalfTrainInput, batchCEMeasured, batchSampleCE, batchDirectionHalfTrainStep, batchParetoStepFun, guardedBatchTrainStep, asymmetricPairMinimumNormBatchStep, guardedBatchParetoStepFun, guardedBatchParetoProblemSafeDecidable, evaluatedBatchMinimumNormCert, pairMinimumNormBatchParetoProblem, minimumNormBatchParetoProblem, batchMinimumNormMinimalCert, expandedHalfTrainStep, batchMinimumNormTrainStep, minimumNormBatchParetoProblemSafeDecidable, batchPairMinimumNormTrainStep, identityMinimumNormBatchStep, asymmetricMeanBatchStep, guardedBatchParetoProblem, budgetedParetoBatchTrainStep, batchDirectionTrainStep | no | Proven |
-| Hagi.Contracts.BatchCEGrowth | 108 | 58 | residualDirection, residualAdmissionMargin, residualStepMargin, residualFeatures, grownBatchState, quarantinedGrowStep, growthObjective, residualPath, growthPath, boundedGrowStep | no | Proven |
-| Hagi.Contracts.BatchCEGrowthSelection | 94 | 23 | growthAdmissionProblemAt_decidable_safe, growthAdmissionPlanStep, growthCandidateOperationIncrement, growthAdmissionMemoryIncrement, growthCandidateStep, smoothedGrowthYield, growthSelection, growthAdmissionPlanRollout, growthAdmissionPlanSelection, growthProblemAt, growthAdmissionOperationIncrement, growthAdmissionSelectionTrace, growthAdmissionSelection, growthAdmissionSelectionPath, growthAdmissionPlanProblemAt, growthAdmissionSelectionNext, growthAdmissionPlanProblemAt_decidable_safe, growthProblemAt_decidable_safe, growthSelectionNext, growthCandidateMemoryIncrement, growthAdmissionProblemAt | no | Proven |
+| Hagi.Contracts.BatchCEGrowth | 105 | 58 | residualDirection, residualAdmissionMargin, residualStepMargin, residualFeatures, grownBatchState, quarantinedGrowStep, growthObjective, residualPath, growthPath, boundedGrowStep | no | Proven |
+| Hagi.Contracts.BatchCEGrowthSelection | 89 | 22 | growthAdmissionProblemAt_decidable_safe, growthAdmissionPlanStep, growthCandidateOperationIncrement, growthAdmissionMemoryIncrement, growthCandidateStep, smoothedGrowthYield, growthSelection, growthAdmissionPlanRollout, growthAdmissionPlanSelection, growthProblemAt, growthAdmissionOperationIncrement, growthAdmissionSelectionTrace, growthAdmissionSelection, growthAdmissionSelectionPath, growthAdmissionPlanProblemAt, growthAdmissionSelectionNext, growthAdmissionPlanProblemAt_decidable_safe, growthProblemAt_decidable_safe, growthSelectionNext, growthCandidateMemoryIncrement, growthAdmissionProblemAt | no | Proven |
 | Hagi.Contracts.BatchCEStepCertificate | 0 | 0 | - | no | Proven |
 | Hagi.Contracts.BatchCEStepCore | 47 | 13 | heterogeneousStepCert, batchDirectionTrainInput, batchPairMinimumNormTrainInput, batchTrainStepCert, batchTrainStepMinimalCert, batchCEObjective, batchTrainInput, batchTrainStep, batchLogitCertifiedDrop, batchMinimumNormTrainInput, batchCertifiedDrop, heterogeneousStep | no | Proven |
-| Hagi.Contracts.BatchCETrajectory | 155 | 25 | directionBatchObjective, identityScaledBatchCEPath, directionBatchSampleCE, directionBatchMargin, directionBatchMeanMargin, sameZeroInitialMeanDrop, minimumNormIdentityScaledThreshold, guardedBatchInputPath, fixedBatchState, directionBatchHalfState, directionBatchState, minimumNormIdentityInitialMeanDrop, directionBatchMinNormSquaredBudget, fixedBatchObjective, directionBatchHalfBindingMargin, identityMinimumNormScaledBatchCEPath, directionBatchHalfQuadraticMargin, directionBatchHalfMeanQuadraticMargin, sameZeroScaledThreshold | no | Proven |
+| Hagi.Contracts.BatchCETrajectory | 152 | 24 | directionBatchObjective, identityScaledBatchCEPath, directionBatchSampleCE, directionBatchMargin, directionBatchMeanMargin, sameZeroInitialMeanDrop, minimumNormIdentityScaledThreshold, guardedBatchInputPath, fixedBatchState, directionBatchHalfState, directionBatchState, minimumNormIdentityInitialMeanDrop, directionBatchMinNormSquaredBudget, fixedBatchObjective, directionBatchHalfBindingMargin, identityMinimumNormScaledBatchCEPath, directionBatchHalfQuadraticMargin, directionBatchHalfMeanQuadraticMargin, sameZeroScaledThreshold | no | Proven |
 | Hagi.Contracts.BatchRangeBF16Cert | 18 | 3 | batchCEMetrics, batchCE_transitionStep_hold, batchCE_bf16_transitionStep_progress | no | Proven |
 | Hagi.Contracts.BudgetedParetoStepCert | 6 | 1 | budgetedParetoStepCert | no | Proven |
 | Hagi.Contracts.BudgetedParetoStepContract | 3 | 1 | budgetedParetoStepContract | no | Proven |
 | Hagi.Contracts.CEStepCertificate | 36 | 10 | ceTrainInput, batchCEObservation, identityStepCert, identityInitialState, identityCEStep, ceTrainStepCert, ceTrainStep, ceTrainStepMinimalCert, coreCEObjective, coreParameters | no | Proven |
-| Hagi.Contracts.ChangingEMTrajectory | 32 | 10 | changingEMPath, changingEMPathDrop, changingEMPathMGain, changingEMPathNLL, currentPosterior, changingEMPathKLResidual | no | Proven |
+| Hagi.Contracts.ChangingEMTrajectory | 29 | 9 | changingEMPath, changingEMPathDrop, changingEMPathMGain, changingEMPathNLL, currentPosterior, changingEMPathKLResidual | no | Proven |
 | Hagi.Contracts.ComputeToQuality | 14 | 1 | totalComputeProduct | no | Proven |
 | Hagi.Contracts.CurriculumCert | 7 | 1 | curriculumTotal | no | Proven |
 | Hagi.Contracts.DataToQuality | 13 | 1 | sampleComplexity | no | Proven |
-| Hagi.Contracts.DepthExitCert | 34 | 27 | d2, d1 | no | Proven |
+| Hagi.Contracts.DepthExitCert | 30 | 26 | d2, d1 | no | Proven |
 | Hagi.Contracts.FactorizedMixtureEM | 16 | 4 | mixtureUnitScore, factorizedMixtureLabels, mixtureCurrentPosterior, mixtureVectorBank | no | Proven |
-| Hagi.Contracts.FiniteEMTrajectory | 23 | 7 | currentPosterior, finiteEMPathNLL, finiteEMPath | no | Proven |
+| Hagi.Contracts.FiniteEMTrajectory | 20 | 6 | currentPosterior, finiteEMPathNLL, finiteEMPath | no | Proven |
 | Hagi.Contracts.GatePipeline | 25 | 0 | - | no | Proven |
 | Hagi.Contracts.GatedCEGradientNorm | 5 | 1 | gatedGrad | no | Proven |
 | Hagi.Contracts.GatedCEStepCertificate | 67 | 13 | gatedCEProblemSafeDecidable, identityScaledGatedCEPath, gatedCETrainStepCert, gatedCETrainStep, identityGatedCEStep, gatedCETrainInput, gatedCETrainStepMinimalCert, gatedCEProblem, gatedCEStepFun, gatedCEValueEstimate, budgetedGatedCETrainStep, gatedCEObjective, identityGatedStepCert | no | Proven |
@@ -109,7 +109,7 @@ theorems.
 | Hagi.Contracts.KVCacheCert | 44 | 27 | lseCombine, tokFull, tokKV, kv_step_certified, tokDen, kvStep, cachedAttn, tokNum | no | Proven |
 | Hagi.Contracts.LogicChoiceCert | 31 | 8 | witX, choiceCEMetrics, onesV, choiceCE_transitionStep_progress, witθ, choiceFeatures | no | Proven |
 | Hagi.Contracts.LogitGrad | 6 | 1 | logitGrad | no | Proven |
-| Hagi.Contracts.MixtureEMTrajectory | 44 | 27 | mixtureState, mixtureGridWeight, mixtureJointMass, mixtureModel, mixtureCanonicalPath, mixtureStateStep, mixtureChannel, mixtureFamily, mixtureTrajectoryModel, mixturePriorMass, mixtureTrajectoryBank | no | Proven |
+| Hagi.Contracts.MixtureEMTrajectory | 42 | 26 | mixtureState, mixtureGridWeight, mixtureJointMass, mixtureModel, mixtureCanonicalPath, mixtureStateStep, mixtureChannel, mixtureFamily, mixtureTrajectoryModel, mixturePriorMass, mixtureTrajectoryBank | no | Proven |
 | Hagi.Contracts.NaturalLean | 0 | 0 | - | no | Proven |
 | Hagi.Contracts.ObjectiveTrajectory | 20 | 0 | - | no | Proven |
 | Hagi.Contracts.SparseInferenceCert | 28 | 8 | sparse_step_certified | no | Proven |
@@ -122,7 +122,7 @@ theorems.
 | Hagi.Core.BlockDiag | 3 | 1 | - | no | Proven |
 | Hagi.Core.Concat | 34 | 4 | lse, ceOneHot, softmaxP | no | Proven |
 | Hagi.Core.Element | 6 | 1 | - | no | Proven |
-| Hagi.Core.ErrorProp | 20 | 9 | cascadeGain | no | Proven |
+| Hagi.Core.ErrorProp | 17 | 8 | cascadeGain | no | Proven |
 | Hagi.Core.F3Root | 3 | 0 | - | no | Proven |
 | Hagi.Core.FrobOuter | 3 | 3 | - | no | Proven |
 | Hagi.Core.Hadamard | 20 | 4 | hadamardOrthonormal | no | Proven |
@@ -137,8 +137,8 @@ theorems.
 | Hagi.Core.RootContrast | 17 | 4 | rhoCaptured, rootPart, contrastPart, rhoTail | no | Proven |
 | Hagi.Core.Select | 8 | 7 | zB, zC, ens, zA | no | Proven |
 | Hagi.Data.AnfCompose | 5 | 3 | - | no | Proven |
-| Hagi.Data.AnfDispatch | 22 | 21 | - | no | Proven |
-| Hagi.Data.AnfTransform | 30 | 9 | - | no | Proven |
+| Hagi.Data.AnfDispatch | 19 | 20 | - | no | Proven |
+| Hagi.Data.AnfTransform | 27 | 8 | - | no | Proven |
 | Hagi.Data.BoolVenn | 37 | 15 | signDecode, qAtom, singleAtomCE, worstMask | no | Proven |
 | Hagi.Data.BytePatch | 22 | 3 | patchCount, patchSeq | no | Proven |
 | Hagi.Data.DBridge | 3 | 1 | negEntropy | no | Proven |
@@ -171,25 +171,25 @@ theorems.
 | Hagi.Energy.Ternary | 39 | 4 | roundHalf, roundTern | no | Proven |
 | Hagi.Ensemble.GapLaw | 6 | 2 | twoGap | no | Proven |
 | Hagi.Ensemble.Hoeffding | 42 | 0 | - | no | Proven |
-| Hagi.Ensemble.MergePrice | 29 | 19 | sigmaPrice, deltaCost, QuadModel | no | Proven |
+| Hagi.Ensemble.MergePrice | 29 | 20 | sigmaPrice, deltaCost, QuadModel | no | Proven |
 | Hagi.Ensemble.PolicyCompatibility | 4 | 2 | integration_net_gain | yes | Conditional |
 | Hagi.Ensemble.QFormerBridge | 6 | 2 | - | no | Proven |
 | Hagi.Ensemble.SigmaKernel | 5 | 0 | - | no | Proven |
 | Hagi.Ensemble.UniformCert | 13 | 0 | - | no | Proven |
 | Hagi.External.Diversity | 4 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.CoherenceCharacterization | 123 | 16 | kroneckerCoherence, spectralOptimalRank1, spectralGap, effectiveRank, coherenceFactor, kroneckerErrorCoherence, normalizedSingularValueSq | no | Proven |
-| Hagi.External.Flywheel.CourantFischer | 117 | 11 | rayleighQuotient, rayleighInf, rayleighSup | no | Proven |
+| Hagi.External.Flywheel.CourantFischer | 117 | 11 | rayleighQuotient, eigenvectorSpan, eigenvectorSpanTail, rayleighInf, rayleighSup, eigenvectorSpanHead | no | Proven |
 | Hagi.External.Flywheel.EckartYoungLower | 1 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.FrobeniusNorm | 31 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.MDLRank | 21 | 3 | mdlErr, mdlJ, mdlDj | no | Proven |
-| Hagi.External.Flywheel.MatrixNormRelations | 76 | 12 | frobeniusNorm', maxSingularValue, frobeniusNorm'', instCStarAlgebraMatrix, truncatedSVD | no | Proven |
+| Hagi.External.Flywheel.MatrixNormRelations | 75 | 11 | frobeniusNorm', maxSingularValue, frobeniusNorm'', instCStarAlgebraMatrix, truncatedSVD | no | Proven |
 | Hagi.External.Flywheel.NegDiagRank | 2 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.NormSupport | 5 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.SVD | 0 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.SVDCore | 62 | 14 | singularValues, leftSingularVectorExtended, leftSingularVectorNonzero, singularValues₀, onbToMatrix, singularDiagonal, leftUnitary, sqrtConjTransposeMulSelf, constructedU, extendedONB, leftSingularVectorEuclidean, rightUnitary | no | Proven |
 | Hagi.External.Flywheel.SVDDiagonal | 8 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.SVDEigenvalues | 17 | 0 | - | no | Proven |
-| Hagi.External.Flywheel.SVDReal | 45 | 12 | leftSingularVectorExtended_real, realAV, realSingularValues, constructedU_real, leftSingularVectorNonzero_real, onbToMatrix_real, extendedONB_real, rightOrthogonal, singularValues, leftSingularVectorEuclidean_real | no | Proven |
+| Hagi.External.Flywheel.SVDReal | 44 | 12 | leftSingularVectorExtended_real, realAV, realSingularValues, constructedU_real, leftSingularVectorNonzero_real, onbToMatrix_real, extendedONB_real, rightOrthogonal, singularValues, leftSingularVectorEuclidean_real | no | Proven |
 | Hagi.External.Flywheel.SVDRectangular | 34 | 18 | embedMinToM, leftSingularVectorNonzero_rectangular, leftUnitary, embedMinToN, rightUnitary, singularValues, finMinOfAbstract, singularValueFromEigenvalue, eigenvaluesBijection, singularDiagonal | no | Proven |
 | Hagi.External.Flywheel.SVDRectangularCoherence | 32 | 4 | coherenceFactorRect, frobeniusNormRect | no | Proven |
 | Hagi.External.Flywheel.SVDRectangularDecomposition | 33 | 14 | extendedONB_rectangular, leftSingularVectorEuclidean_rectangular, extendedONB_rectangular_v2, correspondingN, constructedU_rectangular, leftSingularVectorExtended_rectangular, leftSingularVectorByM, diagonalK | no | Proven |
@@ -199,8 +199,7 @@ theorems.
 | Hagi.External.Flywheel.SpectralNormGap | 30 | 0 | - | no | Proven |
 | Hagi.External.Flywheel.TruncatedSVDRank1 | 5 | 4 | - | no | Proven |
 | Hagi.External.Flywheel.WeylInequality | 62 | 4 | - | no | Proven |
-| Hagi.External.MemT.GDN2 | 27 | 10 | gdn2ApproxIter, gdn2Iter, gdn2Update, rowSumNorm | no | Proven |
-| Hagi.Foundations.Recurrence | 46 | 0 | - | no | Proven |
+| Hagi.External.MemT.GDN2 | 22 | 9 | gdn2ApproxIter, gdn2Iter, gdn2Update, rowSumNorm | no | Proven |
 | Hagi.Generalization.ModeState | 29 | 33 | computedGenStep, hagiPotential | yes | Empirical |
 | Hagi.Geometry.SphericalSimplex | 9 | 0 | - | no | Proven |
 | Hagi.Growth.CapabilityLocal | 2 | 0 | - | no | Proven |
@@ -239,12 +238,12 @@ theorems.
 | Hagi.Learning.RCDL | 12 | 4 | expw, weightedSoftmax | no | Proven |
 | Hagi.Learning.RegCovPD | 5 | 0 | - | no | Proven |
 | Hagi.Learning.RouterMix | 3 | 1 | routerMix | no | Proven |
-| Hagi.Learning.SleepingRouter | 45 | 14 | swWeight, sleep_anchor_loss, awPot, swLoss, mixLossOf, swMixLoss, swPredW | no | Proven |
+| Hagi.Learning.SleepingRouter | 42 | 13 | swWeight, sleep_anchor_loss, awPot, swLoss, mixLossOf, swMixLoss, swPredW | no | Proven |
 | Hagi.Learning.SoftRouterMix | 13 | 3 | ceDist | no | Proven |
-| Hagi.Learning.SoftRouterTotal | 9 | 2 | anchorMix, az | no | Proven |
+| Hagi.Learning.SoftRouterTotal | 12 | 3 | anchorMix, az | no | Proven |
 | Hagi.Learning.SpectralBudget | 3 | 0 | - | no | Proven |
 | Hagi.Learning.TernaryPert | 3 | 3 | eunorm, outNorm | no | Proven |
-| Hagi.Learning.ToyTrajectory | 21 | 29 | lossS, traj | yes | Conditional |
+| Hagi.Learning.ToyTrajectory | 18 | 28 | lossS, traj | yes | Conditional |
 | Hagi.Learning.TrainingTransition | 14 | 15 | taskQual, taskEnergy | no | Proven |
 | Hagi.Legacy | 0 | 0 | - | no | Proven |
 | Hagi.Legacy.AdvanceWitness | 3 | 0 | - | yes | Deprecated |
@@ -260,7 +259,7 @@ theorems.
 | Hagi.Legacy.MasterHAGI | 21 | 5 | - | yes | Deprecated |
 | Hagi.Legacy.MasterHAGICoupled | 21 | 11 | coupledGrowthTraj | no | Deprecated |
 | Hagi.Legacy.MasterHAGITrunc | 20 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.Nonvacuity | 75 | 15 | Spos, Spos', MwEffects, S₀, Mw0, mergeOperationalCertStep, mergeStrictCertStep, S₁, jensenGap, Mw, witnessGap | yes | Deprecated |
+| Hagi.Legacy.Nonvacuity | 72 | 14 | Spos, Spos', MwEffects, S₀, Mw0, mergeOperationalCertStep, mergeStrictCertStep, S₁, jensenGap, Mw, witnessGap | yes | Deprecated |
 | Hagi.Legacy.NonvacuityHorizon | 6 | 2 | satF, satC | no | Deprecated |
 | Hagi.Legacy.QuadraticConcrete | 17 | 4 | quadGen, quadE, quadGen', quadState | no | Deprecated |
 | Hagi.Legacy.RecursiveGrowth | 24 | 0 | - | yes | Deprecated |
@@ -309,10 +308,8 @@ theorems.
 | Hagi.Model.CEHeldout | 35 | 6 | decodeJoint, encodeJoint, normalizedCE, ceBound, unionConfFactor | no | Proven |
 | Hagi.Model.CEJacobianMajorizer | 1 | 0 | - | no | Proven |
 | Hagi.Model.CEJointScale | 34 | 4 | selectedCoupledScales, jointObservedPenalty, packedCoupledScales, coupledPenalty | no | Proven |
-| Hagi.Model.CEMarginPL | 49 | 5 | scalarCE, muBall, scalarCEGrad, rho | no | Proven |
-| Hagi.Model.CEMarkovConfidence | 5 | 0 | - | no | Proven |
-| Hagi.Model.CEMarkovMaximalConfidence | 2 | 1 | - | no | Proven |
-| Hagi.Model.CEMarkovSelectedPrefix | 1 | 0 | - | no | Proven |
+| Hagi.Model.CEMarginPL | 99 | 9 | scalarCE, gapHead, muBall, muBallV, gapHeadGrad, sigmaV, scalarCEGrad, rho | no | Proven |
+| Hagi.Model.CEMarkovConfidence | 8 | 1 | - | no | Proven |
 | Hagi.Model.CEModel | 16 | 15 | singleSampleCE, batchCE | no | Proven |
 | Hagi.Model.CEPackedStep | 7 | 4 | packedStep, decodeStep, rawSuccessor, encodedWord | no | Proven |
 | Hagi.Model.CEPadding | 67 | 10 | - | no | Proven |
@@ -325,20 +322,16 @@ theorems.
 | Hagi.Model.CycleCertificate | 23 | 14 | growSeq_cycle_certificate | no | Proven |
 | Hagi.Model.DiffAttention | 5 | 2 | sm, diffW | no | Proven |
 | Hagi.Model.DistillCert | 13 | 16 | quantStudent | no | Proven |
-| Hagi.Model.EnergyReasoning.Pseudolikelihood | 300 | 171 | conditionalDist, zstar4, attentionCoupling, toCertStepGen, yan2, toKernelCertStep, freeCellPseudolikelihood, zstar2, κa3, vecMul, hbChain, Kex4, wa3, pseudolikelihoodObjective, latentGradient, latentEnergy, latentQuadraticForm, toLossCeilingDrop, heatbathWeight, heatbathKernel, localFieldLogit, sparseLocalField, latentUpdate, stationaryDensity, fan2, attentionK, focusedMixture, focusedDisagreementWeight, symmetrizeCoupling, attentionWeights, visibleBiasWithZ, conditionalLogit, boltzmannDensity | no | Proven |
-| Hagi.Model.FastArch3Transfer | 16 | 30 | fa3HeadLoss, fa3Objective, fa3BlockList, fa3Gain, fa3Stack | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood | 298 | 171 | conditionalDist, zstar4, attentionCoupling, toCertStepGen, yan2, toKernelCertStep, freeCellPseudolikelihood, zstar2, κa3, vecMul, hbChain, Kex4, wa3, pseudolikelihoodObjective, latentGradient, latentEnergy, latentQuadraticForm, toLossCeilingDrop, heatbathWeight, heatbathKernel, localFieldLogit, sparseLocalField, latentUpdate, stationaryDensity, fan2, attentionK, focusedMixture, focusedDisagreementWeight, symmetrizeCoupling, attentionWeights, visibleBiasWithZ, conditionalLogit, boltzmannDensity | no | Proven |
+| Hagi.Model.FastArch3Transfer | 16 | 31 | fa3HeadLoss, fa3Objective, fa3BlockList, fa3Gain, fa3Stack | no | Proven |
 | Hagi.Model.GDNBridge | 13 | 4 | gdnUpdate | no | Proven |
-| Hagi.Model.GDNTransfer | 24 | 35 | gdnBlockBranch, gdnGain, hybStack, hybBlockList, gdnMix, gdnBlockList, hybGain, gdnGateTanh, gdnStack | yes | Conditional |
-| Hagi.Model.GatedCEDescent | 11 | 5 | gatedAlignment, gatedLineObjective, gatedDirection, gatedResidualTranspose, gatedNextParameters | no | Proven |
-| Hagi.Model.GatedCEGradient | 23 | 4 | gatedProjection, gatedJacobian, gatedForward, gatedAction | no | Proven |
-| Hagi.Model.GatedCEPositiveCurvature | 3 | 0 | - | no | Proven |
-| Hagi.Model.GatedCESafeStep | 52 | 11 | gatedSafeDrop, gatedStepRange, gatedCurvature, gatedDisplacement, gatedResidual, gatedMajorizer, gatedLogitRemainder, gatedUnitAbsLogit, gatedSafeStepSize, gatedResidualSecondOrderMass, gatedUnitSecondOrderMass | no | Proven |
-| Hagi.Model.GatedCEUniformCurvature | 17 | 4 | gatedColumnAbsSum, gatedSecondOrderFeatureMass, gatedCurvatureUniformBound, gatedFirstOrderFeatureMass | no | Proven |
+| Hagi.Model.GDNTransfer | 24 | 36 | gdnBlockBranch, gdnGain, hybStack, hybBlockList, gdnMix, gdnBlockList, hybGain, gdnGateTanh, gdnStack | yes | Conditional |
+| Hagi.Model.GatedCEDescent | 108 | 25 | gatedJacobian, gatedLineObjective, gatedAlignment, gatedProjection, gatedColumnAbsSum, gatedDirection, gatedSafeDrop, gatedSecondOrderFeatureMass, gatedStepRange, gatedResidualTranspose, gatedCurvatureUniformBound, gatedCurvature, gatedNextParameters, gatedForward, gatedDisplacement, gatedFirstOrderFeatureMass, gatedAction, sechSq, gatedResidual, gatedMajorizer, gatedLogitRemainder, gatedUnitAbsLogit, gatedSafeStepSize, gatedResidualSecondOrderMass, gatedUnitSecondOrderMass | no | Proven |
 | Hagi.Model.Generative | 11 | 2 | alphaBar, flowPath | no | Proven |
 | Hagi.Model.Grokfast | 4 | 3 | gLow, ampDir, gHigh | no | Proven |
 | Hagi.Model.HNet | 19 | 1 | hnetOptRatio | no | Proven |
 | Hagi.Model.HNet2 | 11 | 3 | hier2Cost, denseCost, hier2Positions | no | Proven |
-| Hagi.Model.HypothesisCompetition | 29 | 8 | dhcStep, dhcTotal, dhcOrbit, dhcWeights | no | Proven |
+| Hagi.Model.HypothesisCompetition | 26 | 7 | dhcStep, dhcTotal, dhcOrbit, dhcWeights | no | Proven |
 | Hagi.Model.LabelSmoothing | 5 | 2 | lsH, lsTarget | no | Proven |
 | Hagi.Model.LayerNorm | 13 | 3 | variance, mean, lnVec | no | Proven |
 | Hagi.Model.Logic.VennHead | 27 | 11 | vennHead, vAtoms, relu, vAtom, venn2Head | no | Proven |
@@ -346,7 +339,7 @@ theorems.
 | Hagi.Model.Losses | 29 | 6 | gnWeight, tanhE, tl, softcap, vh, nt2 | no | Proven |
 | Hagi.Model.MachineBridge | 12 | 2 | machineStageInputN, machineStageInput | no | Proven |
 | Hagi.Model.MambaSSM | 11 | 0 | - | no | Proven |
-| Hagi.Model.MeasuredEffects | 24 | 66 | - | no | Proven |
+| Hagi.Model.MeasuredEffects | 23 | 65 | - | no | Proven |
 | Hagi.Model.MeasurementCert | 11 | 13 | - | no | Proven |
 | Hagi.Model.Memory | 7 | 4 | wtParams, untiedParams | no | Proven |
 | Hagi.Model.Mixup | 2 | 2 | mixLabel, mixScore | no | Proven |
@@ -363,20 +356,19 @@ theorems.
 | Hagi.Model.RMSNorm | 14 | 2 | ms, rnVec | no | Proven |
 | Hagi.Model.RMSNormTransfer | 53 | 4 | μnEps, rnEpsEuc, rnEuc, msE | no | Proven |
 | Hagi.Model.RVCore | 14 | 5 | - | no | Proven |
-| Hagi.Model.RamProtocol | 32 | 25 | - | no | Proven |
+| Hagi.Model.RamProtocol | 30 | 24 | - | no | Proven |
 | Hagi.Model.ReferenceMachine | 63 | 12 | machineStep, energyE, quantErr, quantErrNorm, energy, compressQE, compressQ, machineGap | no | Proven |
 | Hagi.Model.Residual | 4 | 10 | - | no | Proven |
 | Hagi.Model.ResidualVQ | 74 | 6 | latQ, refineStageEffects, reconstruct | no | Proven |
 | Hagi.Model.RoPETransfer | 17 | 6 | attnRopeStack, attnRopeGain, rotEuc, attnRopeBlockList | no | Proven |
 | Hagi.Model.Routing | 10 | 3 | dwScores, vstep, adv | no | Proven |
 | Hagi.Model.Sidon | 6 | 1 | - | no | Proven |
-| Hagi.Model.SoftmaxHead | 42 | 45 | apply, headCE, headLoss | no | Proven |
+| Hagi.Model.SoftmaxHead | 38 | 45 | apply, headCE, headLoss | no | Proven |
 | Hagi.Model.SoftmaxStep | 26 | 2 | logitGrad, logitCE | yes | Conditional |
 | Hagi.Model.SourceMixture | 4 | 3 | successDist | no | Proven |
-| Hagi.Model.SpecDecoding | 20 | 6 | anchorSeq | no | Proven |
-| Hagi.Model.StageSemantics | 131 | 42 | wS0, wU2, growInput, growSeq, wTraj, growTraj, wU1, wTraj2, wU0 | no | Proven |
+| Hagi.Model.SpecDecoding | 15 | 4 | anchorSeq | no | Proven |
+| Hagi.Model.StageSemantics | 128 | 41 | wS0, wU2, growInput, growSeq, wTraj, growTraj, wU1, wTraj2, wU0 | no | Proven |
 | Hagi.Model.TanhCEStep | 25 | 3 | tanhJacobian, tanhEmbedding, tanhModel | no | Proven |
-| Hagi.Model.TanhTaylor | 5 | 1 | sechSq | no | Proven |
 | Hagi.Numerics.QuantSafeUpdate | 9 | 0 | - | no | Proven |
 | Hagi.Numerics.SoftmaxFix | 30 | 2 | expTilt, logitMargin | no | Proven |
 | Hagi.Optimization.AdaGrad | 3 | 1 | adagradAcc | no | Proven |
@@ -391,20 +383,18 @@ theorems.
 | Hagi.Optimization.EF21Quantizer | 20 | 4 | qTernVec | no | Proven |
 | Hagi.Optimization.GradAccum | 1 | 2 | fullGrad, microGrad | no | Proven |
 | Hagi.Optimization.GraphDistanceRouting | 52 | 7 | targetRank, shortestToTargetKernel, partialShortestToTargetRows, shorterNeighborFinset | no | Proven |
-| Hagi.Optimization.HBRate | 39 | 2 | - | no | Proven |
 | Hagi.Optimization.InexactContraction | 5 | 0 | - | no | Proven |
 | Hagi.Optimization.InfoPreservation | 0 | 0 | - | no | Proven |
 | Hagi.Optimization.LLRD | 4 | 1 | - | no | Proven |
-| Hagi.Optimization.LRSchedule | 9 | 2 | cosLR | no | Proven |
+| Hagi.Optimization.LRSchedule | 13 | 5 | cosLR, polyStepUpdate, polyWeights, polyDelta | no | Proven |
 | Hagi.Optimization.Lion | 2 | 2 | signStep, sgn | no | Proven |
 | Hagi.Optimization.Lookahead | 3 | 1 | - | no | Proven |
-| Hagi.Optimization.MirrorHedge | 105 | 14 | ewNorm, mirrorIterate, stepNorm, mirrorStep, ewPot, ewWeight | no | Proven |
+| Hagi.Optimization.MirrorHedge | 102 | 13 | ewNorm, mirrorIterate, stepNorm, mirrorStep, ewPot, ewWeight | no | Proven |
 | Hagi.Optimization.Momentum | 50 | 1 | momentumRate | no | Proven |
-| Hagi.Optimization.MomentumHB | 8 | 3 | hbErr | no | Proven |
+| Hagi.Optimization.MomentumHB | 47 | 5 | hbErr | no | Proven |
 | Hagi.Optimization.NeuronAlloc | 3 | 0 | - | no | Proven |
 | Hagi.Optimization.PLConvergence | 9 | 0 | - | no | Proven |
 | Hagi.Optimization.PPOClip | 6 | 1 | - | no | Proven |
-| Hagi.Optimization.PolyStep | 4 | 3 | polyStepUpdate, polyWeights, polyDelta | no | Proven |
 | Hagi.Optimization.RobbinsMonro | 3 | 0 | - | no | Proven |
 | Hagi.Optimization.SAM | 5 | 3 | samW, norm2 | no | Proven |
 | Hagi.Optimization.SphericalDamping | 7 | 0 | - | no | Proven |
@@ -418,10 +408,10 @@ theorems.
 | Hagi.Pretraining.Speedrun | 15 | 1 | ceLogit | no | Proven |
 | Hagi.Pretraining.SyntheticPretrain | 22 | 2 | synthGain, TimeToCapability | yes | Empirical |
 | Hagi.Probability.AdaptiveSuccess | 2 | 1 | - | no | Proven |
-| Hagi.Probability.Azuma | 17 | 7 | - | no | Proven |
+| Hagi.Probability.Azuma | 16 | 7 | - | no | Proven |
 | Hagi.Probability.CertifiedEstimator | 38 | 6 | - | no | Proven |
 | Hagi.Probability.ChernoffCGF | 26 | 0 | - | no | Proven |
-| Hagi.Probability.Concentration | 46 | 31 | concConfidenceTwoSided, concConfidence, concOneDrawConfidence, concRadius | no | Proven |
+| Hagi.Probability.Concentration | 48 | 31 | concConfidenceTwoSided, concConfidence, concOneDrawConfidence, concRadius | no | Proven |
 | Hagi.Probability.ConditionalSuccess | 18 | 1 | concDelta | yes | Empirical |
 | Hagi.Probability.EntropyConvexity | 34 | 0 | - | no | Proven |
 | Hagi.Probability.ExpChord | 18 | 0 | - | no | Proven |
@@ -435,12 +425,12 @@ theorems.
 | Hagi.Probability.FiniteMultiEM | 7 | 1 | batchMStep | no | Proven |
 | Hagi.Probability.Freedman | 9 | 3 | - | yes | Empirical |
 | Hagi.Probability.FreedmanFamilyConfidence | 6 | 1 | - | no | Proven |
-| Hagi.Probability.FreedmanStep | 27 | 15 | stochastic_safe_step_closed, stochastic_safe_step, driftAdditive, stochastic_safe_step_variance | yes | Conditional |
-| Hagi.Probability.FreedmanTwoSided | 101 | 17 | historyInitial, historyAdditive, historyIncrement, historyNoise, historyLaw, historyKernel, markovLaw, historyCounter, pmfMean, historyCounterRate, uniformOfFinset | no | Proven |
+| Hagi.Probability.FreedmanStep | 54 | 15 | stochastic_safe_step_closed, stochastic_safe_step, driftAdditive, stochastic_safe_step_variance | yes | Conditional |
+| Hagi.Probability.FreedmanTwoSided | 98 | 16 | historyInitial, historyAdditive, historyIncrement, historyNoise, historyLaw, historyKernel, markovLaw, historyCounter, pmfMean, historyCounterRate, uniformOfFinset | no | Proven |
 | Hagi.Probability.GibbsCooling | 46 | 0 | - | no | Proven |
 | Hagi.Probability.GibbsCore | 96 | 3 | tilted, gibbsW, gibbsZ | no | Proven |
 | Hagi.Probability.KLSBridge | 14 | 4 | - | no | Proven |
-| Hagi.Probability.LinkedFlip | 41 | 18 | eventMask, support, uniformPlane, linkedChannel, linkedMask, changedCount | no | Proven |
+| Hagi.Probability.LinkedFlip | 39 | 17 | eventMask, support, uniformPlane, linkedChannel, linkedMask, changedCount | no | Proven |
 | Hagi.Probability.MarkovPathSupport | 11 | 1 | - | no | Proven |
 | Hagi.Probability.MirrorHedgeCertificates | 11 | 0 | - | no | Proven |
 | Hagi.Probability.MirrorHedgeGibbs | 6 | 0 | - | no | Proven |
@@ -450,7 +440,7 @@ theorems.
 | Hagi.Probability.MomentBounds | 16 | 0 | - | no | Proven |
 | Hagi.Probability.NoiseTemperature | 61 | 5 | popVar, popMean, batchMean, uniP, centered | no | Proven |
 | Hagi.Probability.PMFBridge | 10 | 6 | - | no | Proven |
-| Hagi.Probability.RankedStopRouting | 33 | 17 | classifyRouting | no | Proven |
+| Hagi.Probability.RankedStopRouting | 33 | 18 | classifyRouting | no | Proven |
 | Hagi.Probability.SphericalAngle | 57 | 1 | sphericalAngle | no | Proven |
 | Hagi.Probability.StationaryFlatness | 10 | 2 | expectNat, probGe | no | Proven |
 | Hagi.Probability.ThermoBridge | 32 | 5 | snr, stepCost, gainPerCost, criticalBatch, batchGain | no | Proven |
@@ -486,14 +476,13 @@ theorems.
 | Hagi.StatMech.Hopfield.LowerBound | 4 | 0 | - | no | Proven |
 | Hagi.StatMech.Hopfield.Model | 3 | 5 | partition, freeEnergyDensity, energy | no | Proven |
 | Hagi.StatMech.Hopfield.SubMemory | 12 | 1 | subsetEnergy | no | Proven |
-| Hagi.State.CanonicalTrainState | 21 | 44 | trainMetrics | no | Proven |
+| Hagi.State.CanonicalTrainState | 21 | 45 | trainMetrics | no | Proven |
 | Hagi.State.EvalBindingCert | 9 | 12 | canonicalEval | no | Proven |
 | Hagi.State.MemoryCycle | 43 | 36 | frobNorm | no | Proven |
 | Hagi.State.TrainState | 19 | 90 | qualityScalar | no | Proven |
 | Hagi.State.TrainTrajectory | 28 | 38 | stepDrop, stepExecErr, stepDrop | no | Proven |
-| Hagi.State.Transition | 27 | 36 | lossOf, trainStep, guidedTrainStep | no | Proven |
+| Hagi.State.Transition | 25 | 35 | lossOf, trainStep, guidedTrainStep | no | Proven |
 | Hagi.State.Views | 3 | 1 | - | no | Proven |
-| Hagi.Step.AdaptiveSafeQP | 17 | 4 | adaptiveNoiseEps, latticeStep, latticeNet | yes | Empirical |
 | Hagi.Step.ArmijoAcceptance | 9 | 0 | - | no | Proven |
 | Hagi.Step.BatchBudget | 10 | 0 | - | no | Proven |
 | Hagi.Step.CPUFreeze | 4 | 1 | - | no | Proven |
@@ -522,13 +511,10 @@ theorems.
 | Hagi.Step.RiemannNewtonPolar | 8 | 0 | - | no | Proven |
 | Hagi.Step.RobustDescent | 3 | 0 | - | no | Proven |
 | Hagi.Step.SNRWeights | 9 | 0 | - | no | Proven |
-| Hagi.Step.SafeQP | 22 | 6 | - | no | Proven |
+| Hagi.Step.SafeQP | 89 | 14 | transportedGrad, noiseEps, adaptiveNoiseEps, latticeStep, latticeNet | yes | Empirical |
 | Hagi.Step.SafeQPStep | 36 | 3 | safeqpEtaMax, safeqpEtaMaxConflictFree | yes | Conditional |
 | Hagi.Step.SignSGD | 5 | 1 | sgn1 | no | Proven |
-| Hagi.Step.StochasticSafeQP | 40 | 1 | noiseEps | yes | Empirical |
-| Hagi.Step.SubspaceSafeQP | 1 | 0 | - | no | Proven |
 | Hagi.Step.Upgrades | 19 | 3 | nce_per_sample_corrected, softmaxW | no | Proven |
-| Hagi.Step.VariantSafeQP | 10 | 3 | transportedGrad | no | Proven |
 | Hagi.Step.WarmupSchedule | 5 | 1 | warmupEta | no | Proven |
 | Hagi.Step.WeightDecay | 8 | 0 | - | no | Proven |
 | Hagi.System.Certificates | 39 | 82 | - | no | Proven |
@@ -542,26 +528,27 @@ theorems.
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
-| Hagi.Theory.GaugeQuotient | 20 | 17 | quotientResidual, seq, rot | no | Proven |
-| Hagi.Theory.LogitGrowth | 45 | 12 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
+| Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
 | Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
 | Hagi.Theory.TwoDomainConfidence | 1 | 0 | - | no | Proven |
 | Hagi.Theory.VerticalCapstone | 9 | 0 | - | no | Proven |
 | Hagi.Training.AdaptiveAnytime | 21 | 15 | adaptiveRoundWeights | no | Proven |
 | Hagi.Training.Admission | 25 | 34 | admissionMargin, admitRule | yes | Conditional |
-| Hagi.Training.AlternatingJoint | 46 | 66 | stepPenalty, stepDamage, stepDrop | no | Proven |
-| Hagi.Training.CRMSM | 35 | 97 | blockGram | no | Proven |
+| Hagi.Training.AlternatingJoint | 77 | 100 | stepPenalty, stepDamage, derivedStepDamage, stepDrop', stepPenalty', stepDrop | no | Proven |
+| Hagi.Training.CRMSM | 35 | 98 | blockGram | no | Proven |
 | Hagi.Training.Ctv2Telescope | 22 | 7 | protoMeasured, stepDrop, scOf, ecToSc, ctv2Honest, smToExec | yes | Conditional |
 | Hagi.Training.ExecutedCert | 16 | 13 | toCertStep, toCertStepGen | no | Proven |
 | Hagi.Training.GrowthComputedCert | 3 | 2 | next, stepCert | no | Proven |
-| Hagi.Training.MacroStatCert | 32 | 35 | macroDecide, macroCertAnchor | no | Proven |
+| Hagi.Training.MacroStatCert | 32 | 36 | macroDecide, macroCertAnchor | no | Proven |
 | Hagi.Training.ModelComparison | 18 | 16 | zIndicator, zOf, Score, modelGap | no | Proven |
 | Hagi.Training.StepProvider | 42 | 30 | honestQuadStep, cramDescentProvider, quadContractProvider, quadContract, honestQuadProvider | no | Proven |
 | Hagi.Training.TelescopeInstances | 9 | 0 | - | no | Proven |
-| Hagi.Training.TransitionCert | 24 | 38 | - | no | Proven |
+| Hagi.Training.TransitionCert | 22 | 37 | - | no | Proven |
 | Hagi.Unified.AnytimeMartingale | 32 | 0 | - | yes | Empirical |
 | Hagi.Unified.CandidateConfig | 16 | 20 | - | no | Proven |
 | Hagi.Unified.CertifiedLoop | 27 | 17 | - | no | Proven |
@@ -583,18 +570,18 @@ theorems.
 | Hagi.Unified.Liveness | 3 | 0 | - | no | Proven |
 | Hagi.Unified.LogitCert | 12 | 6 | logitStepCert', logitStepCert, logitStepCertExact', logitStepCertExactCore, logitMeasured, logitStepCertExact | yes | Conditional |
 | Hagi.Unified.LoopInstances | 11 | 7 | quadStepCert, quadFloor, quadMeasured, quadCert | no | Proven |
-| Hagi.Unified.MachineProto | 26 | 21 | fsTraj, fsGate, evalCapa, machineProto | no | Proven |
+| Hagi.Unified.MachineProto | 23 | 20 | fsTraj, fsGate, evalCapa, machineProto | no | Proven |
 | Hagi.Unified.MicroStepCert | 4 | 2 | - | no | Proven |
 | Hagi.Unified.NCStepCert | 20 | 6 | ncContract, ncTraj, ncStepCert, ncMinimalStepCert, ncCertStep, ncMeasured | no | Proven |
 | Hagi.Unified.NegativeTests | 6 | 0 | - | no | Proven |
-| Hagi.Unified.ParetoExecution | 247 | 102 | minimumResource, fixedBiasBinaryPath, guardedMinimumResource, guardedRobustNext, robustNext, scaledBiasBinaryValueEstimate, logitEstimate, scaledBiasBinaryPath, estimatedMaxValue, scaledBiasBinaryProgressCount, inverseScaledController, selection, logitProblem, logitTrajCert, selectedNext, logitProblemSafeDecidable, selectionIn, fixedBiasBinaryValueEstimate, fixedBiasBinaryGain, scoreDominatingIn, guardedRobustPath, guardedLogitNext, guardedRobustGain, scaledBiasBinaryGain, logitStepFun, logitSafeDecidable, robustMinimumResource, fixedBiasBinaryProgressCount | no | Proven |
-| Hagi.Unified.QuadMachine | 22 | 10 | machineCert, commitInd, commitCount, gateTraj, quantLift, gateStep | no | Proven |
-| Hagi.Unified.RateTheory | 27 | 7 | - | no | Proven |
+| Hagi.Unified.ParetoExecution | 243 | 100 | minimumResource, fixedBiasBinaryPath, guardedMinimumResource, guardedRobustNext, robustNext, scaledBiasBinaryValueEstimate, logitEstimate, scaledBiasBinaryPath, estimatedMaxValue, scaledBiasBinaryProgressCount, inverseScaledController, selection, logitProblem, logitTrajCert, selectedNext, logitProblemSafeDecidable, selectionIn, fixedBiasBinaryValueEstimate, fixedBiasBinaryGain, scoreDominatingIn, guardedRobustPath, guardedLogitNext, guardedRobustGain, scaledBiasBinaryGain, logitStepFun, logitSafeDecidable, robustMinimumResource, fixedBiasBinaryProgressCount | no | Proven |
+| Hagi.Unified.QuadMachine | 19 | 9 | machineCert, commitInd, commitCount, gateTraj, quantLift, gateStep | no | Proven |
+| Hagi.Unified.RateTheory | 24 | 6 | - | no | Proven |
 | Hagi.Unified.RecursiveClean | 19 | 21 | timeConsistency, piR, indepMass, branchLocality | no | Proven |
 | Hagi.Unified.SignComp | 22 | 6 | signDrop, signStep, signStepCert | no | Proven |
 | Hagi.Unified.SignDescent | 25 | 1 | signScale | no | Proven |
 | Hagi.Unified.StepContract | 28 | 18 | - | no | Proven |
 | Hagi.Unified.StitchingEProcess | 9 | 1 | - | no | Proven |
-| Hagi.Unified.StochasticCELearning | 47 | 13 | stepRealized, quadNoise, noiseKernel, stepNoise, thetaFun, inducedNoise, stepDrift | no | Proven |
+| Hagi.Unified.StochasticCELearning | 44 | 12 | stepRealized, quadNoise, noiseKernel, stepNoise, thetaFun, inducedNoise, stepDrift | no | Proven |
 | Hagi.Unified.StochasticLoop | 18 | 5 | - | no | Proven |
 | Hagi.Unified.TransitionCert | 16 | 6 | toCertStepGen, toCertStep, ctContract | yes | Conditional |
