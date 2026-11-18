@@ -80,6 +80,33 @@ commit; the derivation is self-contained.
 no reference: the explicit constant μ = a²·e^{−aB}/8 is derived here
 from classical inequalities (`log (1+u) ≤ u`, AM-GM on `u`); no
 formalization source found.
+
+## C414: the multiclass extension (V classes, explicit μ(a,B,V))
+
+C407 queue item 4.  The scalar 2-class head above generalizes to a
+V-class gap head: correct logit `a·θ`, every wrong logit `0`, loss
+`gapHead a θ = log (1 + c·e^{−aθ})` with `c = card V − 1` (bridged by
+`gapHead_eq_ceOneHot`; `c = 0` degenerates to the constant zero loss).
+The multiclass margin-PL constant is
+`muBallV a B = a²·c·e^{−aB}/(2·(1+c·e^{aB})²)` — on the ball
+`|θ| ≤ B` the PL inequality holds with this explicit constant
+(`margin_pl_multiclass`); the V-dependence is polynomial (through
+`c`), the margin decay exponential — same family as C376.  The
+curvature route is V-independent (`|sigmaV'| ≤ 1/4`, AM-GM on
+`w = c·e^{−x}`), so smoothness stays `L = a²/2` and the corollary
+`ce_global_convergence_multiclass` gives the rate
+`(1 − muBallV/(a²/2))^T` with confinement pinned as a premise.
+
+Honest scope pins (C414): PL is proven for the GAP-HEAD logit
+structure only; PL in parameter space for general `X·θ` heads
+(needs rank/injectivity of `Xᵀ`) and confinement of iterates remain
+open premises.  Two general logit-space margin lemmas carry the
+premise-form margin `∀ v ≠ t, γ ≤ z t − z v`:
+`ce_margin_le` (softmax-margin-to-loss) and `softDef_margin_lb`
+(softmax-margin-to-probability, `1/(1+c·e^{−γ}) =
+e^{γ}/(e^{γ}+c)`).  Probe evidence: numeric sweep (2·10⁵ points,
+max(2μf − f'²) = −8.5e−19 ≤ 0) plus Lean crux pre-verification
+(`.tmp/C414/probe.lean`, research in `.tmp/C414/research.md`).
 -/
 
 set_option relaxedAutoImplicit false
@@ -557,5 +584,611 @@ theorem ce_global_convergence_margin (a B : ℝ) (ha : 0 < a) (hB : 0 ≤ B)
       show 2 * muBall a B * (scalarCE a x - 0) ≤ |deriv (scalarCE a) x| ^ 2
       rw [sq_abs]
       exact hb) θ₀ T h_conf
+
+
+/-! ## The multiclass gap head: margin PL with explicit μ(a,B,V) -/
+
+/-- `(Fintype.card V : ℝ) ≥ 1` for a nonempty vocabulary. -/
+theorem cardV_pos {V : Type} [Fintype V] [Nonempty V] :
+    (1:ℝ) ≤ (Fintype.card V : ℝ) := by
+  have h := Fintype.card_pos_iff.2 (inferInstance : Nonempty V)
+  exact_mod_cast h
+
+/-- The wrong-class count as a real coefficient `c = card V − 1 ≥ 0`
+(the number of incorrect classes; `c = 0` exactly for a singleton
+vocabulary). -/
+theorem gapHeadCard_nonneg {V : Type} [Fintype V] [Nonempty V] :
+    (0:ℝ) ≤ (Fintype.card V : ℝ) - 1 :=
+  by linarith [cardV_pos (V := V)]
+
+/-- The V-class gap head: the correct logit is `a * θ`, every wrong
+logit is `0`, so `ceOneHot t` on these logits is
+`log (1 + c·exp (-(a*θ)))` with `c = card V − 1`
+(`gapHead_eq_ceOneHot`).  Generalizes the Bool gap head
+(`scalarCE`) from two classes to `V` classes; the V-dependence of
+every downstream constant runs through `c`. -/
+noncomputable def gapHead {V : Type} [Fintype V] (a θ : ℝ) : ℝ :=
+  Real.log (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θ)))
+
+/-- The wrong-class probability mass: `sigmaV x = c·e^{−x}/(1+c·e^{−x})`,
+the total softmax mass on the incorrect classes of the gap head.  The
+V-class analog of `rho`. -/
+noncomputable def sigmaV {V : Type} [Fintype V] (x : ℝ) : ℝ :=
+  ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))
+    / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)))
+
+/-- THE BRIDGE: `ceOneHot` on the V-class gap logits (correct logit
+`a*θ`, wrong logits `0`) is exactly `gapHead`. -/
+theorem gapHead_eq_ceOneHot {V : Type} [Fintype V] [Nonempty V]
+    [DecidableEq V] (t : V) (a θ : ℝ) :
+    Hagi.ceOneHot t (fun v => if v = t then a * θ else 0)
+      = gapHead (V := V) a θ := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hsum : ∑ v, Real.exp ((fun v => if v = t then a * θ else 0) v)
+      = Real.exp (a * θ) + ((Fintype.card V : ℝ) - 1) := by
+    have hsplit : ∀ v : V, Real.exp ((fun v => if v = t then a * θ else 0) v)
+        = 1 + (if v = t then Real.exp (a * θ) - 1 else 0) := by
+      intro v
+      by_cases h : v = t <;> simp [h]
+    rw [Finset.sum_congr rfl (fun v _ => hsplit v), Finset.sum_add_distrib,
+      Finset.sum_const, Finset.sum_ite_eq' Finset.univ t
+        (fun _ => Real.exp (a * θ) - 1)]
+    simp
+    ring
+  have hxs : Real.exp (a * θ) * Real.exp (-(a * θ)) = 1 := by
+    rw [← Real.exp_add]
+    simp
+  have hsplit : Real.exp (a * θ) + ((Fintype.card V : ℝ) - 1)
+      = Real.exp (a * θ) * (1 + ((Fintype.card V : ℝ) - 1)
+          * Real.exp (-(a * θ))) := by
+    nlinarith [hxs]
+  show Real.log (∑ v, Real.exp ((fun v => if v = t then a * θ else 0) v))
+    - (fun v => if v = t then a * θ else 0) t = _
+  simp only []
+  rw [hsum, hsplit,
+    Real.log_mul (by positivity)
+      (by have hu := Real.exp_pos (-(a * θ)); nlinarith [hcnn, hu]),
+    Real.log_exp]
+  simp only [ite_true]
+  unfold gapHead
+  ring
+
+/-- The derivative of the wrong-class mass: `sigmaV' x
+= −c·e^{−x}/(1+c·e^{−x})²`. -/
+theorem hasDerivAt_sigmaV {V : Type} [Fintype V] [Nonempty V] (x : ℝ) :
+    HasDerivAt (sigmaV (V := V))
+      (-(((Fintype.card V : ℝ) - 1) * Real.exp (-(x))
+        / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))) ^ 2)) x := by
+  have h1 : HasDerivAt (fun y => Real.exp (-(y)))
+      (Real.exp (-(x)) * (-1)) x := ((hasDerivAt_id x).neg).exp
+  have h2 : HasDerivAt (fun y => ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-(y)))
+      (((Fintype.card V : ℝ) - 1) * (Real.exp (-(x)) * (-1))) x :=
+    h1.const_mul _
+  have h3 : HasDerivAt (fun y => 1 + ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-(y)))
+      (((Fintype.card V : ℝ) - 1) * (Real.exp (-(x)) * (-1))) x := by
+    have h := h2.add_const 1
+    convert h using 1
+    · funext y
+      ring_nf
+  have hpos : (0:ℝ) < 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)) := by
+    have hcnn := gapHeadCard_nonneg (V := V)
+    have hu := Real.exp_pos (-(x))
+    nlinarith [hcnn, hu]
+  have hne : 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)) ≠ 0 := by
+    have hcnn := gapHeadCard_nonneg (V := V)
+    have hu := Real.exp_pos (-(x))
+    nlinarith [hcnn, hu]
+  have h5 : HasDerivAt (sigmaV (V := V))
+      (-(((Fintype.card V : ℝ) - 1) * Real.exp (-(x))
+        / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))) ^ 2)) x := by
+    unfold sigmaV
+    have hdiv := h2.div h3 hne
+    convert hdiv using 1
+    field_simp
+    ring
+  exact h5
+
+/-- The derivative of the gap head: `deriv (gapHead a) θ
+= -(a * sigmaV (a * θ))`, the V-class analog of `deriv_scalarCE`
+(the wrong-class mass replaces the single wrong-class probability). -/
+theorem hasDerivAt_gapHead {V : Type} [Fintype V] [Nonempty V] (a θ : ℝ) :
+    HasDerivAt (gapHead (V := V) a) (-(a * sigmaV (V := V) (a * θ))) θ := by
+  have h1 : HasDerivAt (fun y => -(a * y)) (-a) θ := by
+    have h := ((hasDerivAt_id θ).mul_const a).neg
+    convert h using 1
+    funext y
+    simp [mul_comm]
+    ring
+  have h2 : HasDerivAt (fun y => Real.exp (-(a * y)))
+      (Real.exp (-(a * θ)) * (-a)) θ := h1.exp
+  have h3 : HasDerivAt (fun y => 1 + ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-(a * y)))
+      (((Fintype.card V : ℝ) - 1) * (Real.exp (-(a * θ)) * (-a))) θ := by
+    have h : HasDerivAt (fun y => ((Fintype.card V : ℝ) - 1)
+        * Real.exp (-(a * y)) + 1)
+        (((Fintype.card V : ℝ) - 1) * (Real.exp (-(a * θ)) * (-a))) θ :=
+      (h2.const_mul _).add_const 1
+    convert h using 1
+    · funext y
+      ring_nf
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hu := Real.exp_pos (-(a * θ))
+  have hne : 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θ)) ≠ 0 := by
+    nlinarith [hcnn, hu]
+  have h4 : HasDerivAt (gapHead (V := V) a)
+      ((((Fintype.card V : ℝ) - 1) * (Real.exp (-(a * θ)) * (-a)))
+        / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θ)))) θ :=
+    h3.log hne
+  convert h4 using 1
+  · unfold sigmaV
+    field_simp
+
+theorem deriv_gapHead {V : Type} [Fintype V] [Nonempty V] (a θ : ℝ) :
+    deriv (gapHead (V := V) a) θ = -(a * sigmaV (V := V) (a * θ)) :=
+  (hasDerivAt_gapHead a θ).deriv
+
+/-- The gap head is nonnegative (a log of at least one). -/
+theorem gapHead_nonneg {V : Type} [Fintype V] [Nonempty V] (a θ : ℝ) :
+    0 ≤ gapHead (V := V) a θ := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hle : (1:ℝ) ≤ 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θ)) := by
+    have hu := Real.exp_pos (-(a * θ))
+    nlinarith [hcnn, hu]
+  have h1 : Real.log 1 ≤ Real.log
+      (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θ))) :=
+    Real.log_le_log (by norm_num) hle
+  rw [Real.log_one] at h1
+  exact h1
+
+/-- THE MULTICLASS MARGIN-PL CONSTANT:
+`muBallV a B = a²·c·e^{−aB}/(2·(1+c·e^{aB})²)` with `c = card V − 1`.
+In margin parametrization `γ = a*θstar` realized at `|θstar| ≤ B`
+(so `γ ≤ a*B`), substituting `a = γ/B` gives a constant decaying
+exponentially in `γ` with the V-polynomial factor `c`: margin beats
+the V-count exactly when the data is well separable. -/
+noncomputable def muBallV {V : Type} [Fintype V] (a B : ℝ) : ℝ :=
+  a ^ 2 * (((Fintype.card V : ℝ) - 1) * Real.exp (-(a * B)))
+    / (2 * (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (a * B)) ^ 2)
+
+/-- THE MULTICLASS MARGIN-PL THEOREM: on the ball `|θ| ≤ B`, the
+unregularized V-class gap-head CE satisfies the PL inequality in
+gradient-norm form with the explicit constant `muBallV a B`.  Route:
+`u = e^{−aθ} ∈ [m, M]`, `m = e^{−aB}`, `M = e^{aB}`, and the key
+`m·(1+c·u)² ≤ u·(1+c·M)²` (from `m ≤ u ≤ M` and `c ≥ 0`), combined
+with `log (1+w) ≤ w` for `w = c·u`. -/
+theorem margin_pl_multiclass {V : Type} [Fintype V] [Nonempty V]
+    (a B : ℝ) (ha : 0 < a) (_hB : 0 ≤ B) (θ : ℝ) (hθ : |θ| ≤ B) :
+    2 * muBallV (V := V) a B * (gapHead (V := V) a θ - 0)
+      ≤ (deriv (gapHead (V := V) a)) θ ^ 2 := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  set c : ℝ := ((Fintype.card V : ℝ) - 1) with hc
+  set u : ℝ := Real.exp (-(a * θ)) with hu
+  set m : ℝ := Real.exp (-(a * B)) with hm
+  set M : ℝ := Real.exp (a * B) with hM
+  have hθge : -B ≤ θ := (abs_le.1 hθ).1
+  have hθle : θ ≤ B := (abs_le.1 hθ).2
+  have hmle : m ≤ u := by
+    have h1 : -(a * B) ≤ -(a * θ) := by
+      rw [neg_le_neg_iff]
+      exact mul_le_mul_of_nonneg_left hθle ha.le
+    exact (Real.exp_le_exp).2 h1
+  have hule : u ≤ M := by
+    have h1 : -(a * θ) ≤ a * B := by nlinarith [hθge, ha]
+    exact (Real.exp_le_exp).2 h1
+  have hlog : Real.log (1 + c * u) ≤ c * u := by
+    have hu1 : (1:ℝ) + c * u ≤ Real.exp (c * u) := by
+      rw [add_comm]
+      exact Real.add_one_le_exp (c * u)
+    have h1 : Real.log (1 + c * u) ≤ Real.log (Real.exp (c * u)) :=
+      Real.log_le_log (by
+        have hupos : (0:ℝ) < u := Real.exp_pos (-(a * θ))
+        nlinarith [hcnn, hupos]) hu1
+    rw [Real.log_exp] at h1
+    exact h1
+  have hdu : deriv (gapHead (V := V) a) θ
+      = -(a * (c * u / (1 + c * u))) := by
+    rw [deriv_gapHead, sigmaV, ← hu, ← hc]
+  have hf : gapHead (V := V) a θ = Real.log (1 + c * u) := rfl
+  have hposcu : (0:ℝ) < 1 + c * u := by
+    have hupos : (0:ℝ) < u := Real.exp_pos (-(a * θ))
+    nlinarith [hcnn, hupos]
+  have hkey : m * (1 + c * u) ^ 2 ≤ u * (1 + c * M) ^ 2 := by
+    have hcum : c * u ≤ c * M := mul_le_mul_of_nonneg_left hule hcnn
+    have hposM' : (0:ℝ) < 1 + c * M := by
+      have hMpos : (0:ℝ) < M := Real.exp_pos (a * B)
+      nlinarith [hcnn, hMpos]
+    have h1 : -(1 + c * M) ≤ 1 + c * u := by
+      have hMpos : (0:ℝ) < M := Real.exp_pos (a * B)
+      nlinarith [hposM', hposcu]
+    have h2 : 1 + c * u ≤ 1 + c * M := by linarith [hcum]
+    have hsq : (1 + c * u) ^ 2 ≤ (1 + c * M) ^ 2 :=
+      sq_le_sq' h1 h2
+    have hnn : (0:ℝ) ≤ (1 + c * u) ^ 2 := sq_nonneg _
+    have hu_nn : (0:ℝ) ≤ u := le_of_lt (Real.exp_pos (-(a * θ)))
+    calc m * (1 + c * u) ^ 2 ≤ u * (1 + c * u) ^ 2 :=
+          mul_le_mul_of_nonneg_right hmle hnn
+      _ ≤ u * (1 + c * M) ^ 2 := by nlinarith [hsq, hu_nn]
+  have h2mu : 2 * muBallV (V := V) a B
+      = a ^ 2 * (c * m) / (1 + c * M) ^ 2 := by
+    simp only [muBallV, hm, hM, hc]
+    field_simp
+  have hcunn : (0:ℝ) ≤ c * u := by
+    have hupos : (0:ℝ) < u := Real.exp_pos (-(a * θ))
+    nlinarith [hcnn, hupos]
+  rw [hf, h2mu, sub_zero, hdu]
+  have hs : (-(a * (c * u / (1 + c * u)))) ^ 2
+      = a ^ 2 * (c * u) ^ 2 / (1 + c * u) ^ 2 := by
+    rw [neg_sq, mul_pow, div_pow]
+    ring
+  rw [hs]
+  have hposM : (0:ℝ) < 1 + c * M := by
+    have hMpos : (0:ℝ) < M := Real.exp_pos (a * B)
+    nlinarith [hcnn, hMpos]
+  have s1 : a ^ 2 * (c * m) / (1 + c * M) ^ 2 * Real.log (1 + c * u)
+      ≤ a ^ 2 * (c * m) / (1 + c * M) ^ 2 * (c * u) :=
+    mul_le_mul_of_nonneg_left hlog (by positivity)
+  have s2 : a ^ 2 * (c * m) / (1 + c * M) ^ 2 * (c * u)
+      ≤ a ^ 2 * (c * u) ^ 2 / (1 + c * u) ^ 2 := by
+    have hupos : (0:ℝ) < u := Real.exp_pos (-(a * θ))
+    rcases eq_or_lt_of_le hcunn with h0 | hpos
+    · rw [← h0]
+      simp
+    · have hcpos : (0:ℝ) < c := by nlinarith [hpos, hupos]
+      have hp : (0:ℝ) < a ^ 2 * c * u := by positivity
+      have hmul : a ^ 2 * c * u * (m * (1 + c * u) ^ 2)
+          ≤ a ^ 2 * c * u * (u * (1 + c * M) ^ 2) :=
+        mul_le_mul_of_nonneg_left hkey hp.le
+      have hstep : c * (a ^ 2 * c * u * (m * (1 + c * u) ^ 2))
+          ≤ c * (a ^ 2 * c * u * (u * (1 + c * M) ^ 2)) :=
+        mul_le_mul_of_nonneg_left hmul hcnn
+      rw [div_mul_eq_mul_div, div_le_div_iff₀
+        (show (0:ℝ) < (1 + c * M) ^ 2 by positivity)
+        (show (0:ℝ) < (1 + c * u) ^ 2 by positivity)]
+      have hL : a ^ 2 * (c * m) * (c * u) * (1 + c * u) ^ 2
+          = c * (a ^ 2 * c * u * (m * (1 + c * u) ^ 2)) := by ring
+      have hR : a ^ 2 * (c * u) ^ 2 * (1 + c * M) ^ 2
+          = c * (a ^ 2 * c * u * (u * (1 + c * M) ^ 2)) := by ring
+      rw [hL, hR]
+      exact hstep
+  linarith [s1, s2]
+
+
+/-- The curvature bound `|sigmaV'| ≤ 1/4`: the V-class analog of
+`abs_deriv_rho_le`.  With `w = c·e^{−x} ≥ 0`, the derivative is
+`−w/(1+w)²` and `(1+w)² ≥ 4w` (AM-GM, i.e. `(1−w)² ≥ 0`); the
+bound is V-INDEPENDENT — the worst case is the binary split of the
+wrong mass. -/
+theorem abs_deriv_sigmaV_le {V : Type} [Fintype V] [Nonempty V] (x : ℝ) :
+    |deriv (sigmaV (V := V)) x| ≤ 1 / 4 := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hu : (0:ℝ) < Real.exp (-(x)) := Real.exp_pos _
+  have hw : (0:ℝ) ≤ ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)) := by
+    nlinarith [hcnn, hu]
+  have hd : deriv (sigmaV (V := V)) x
+      = -(((Fintype.card V : ℝ) - 1) * Real.exp (-(x))
+        / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))) ^ 2) :=
+    (hasDerivAt_sigmaV x).deriv
+  have hpos : (0:ℝ) < 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)) := by
+    nlinarith [hw]
+  have h4 : 4 * ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))
+      ≤ (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-(x))) ^ 2 := by
+    nlinarith [hw, sq_nonneg
+      (1 - ((Fintype.card V : ℝ) - 1) * Real.exp (-(x)))]
+  rw [hd, abs_neg, abs_div, abs_of_nonneg hw,
+    abs_of_nonneg (sq_nonneg _)]
+  rw [div_le_iff₀ (show (0:ℝ) < (1 + ((Fintype.card V : ℝ) - 1)
+      * Real.exp (-(x))) ^ 2 by positivity)]
+  have hq : (0:ℝ) < 1 / 4 := by norm_num
+  nlinarith [h4, hq, hpos]
+
+theorem sigmaV_lipschitz {V : Type} [Fintype V] [Nonempty V] (s t : ℝ) :
+    |sigmaV (V := V) s - sigmaV (V := V) t| ≤ |s - t| / 4 := by
+  have hcont : Continuous (sigmaV (V := V)) := by
+    rw [continuous_iff_continuousAt]
+    intro p
+    exact ((hasDerivAt_sigmaV p).differentiableAt.continuousAt)
+  have h := mvt_abs_le (sigmaV (V := V)) (fun x => deriv (sigmaV (V := V)) x)
+    (1/4) (by norm_num) hcont
+    (fun x => ((hasDerivAt_sigmaV x).differentiableAt).hasDerivAt)
+    abs_deriv_sigmaV_le s t
+  calc |sigmaV (V := V) s - sigmaV (V := V) t| ≤ (1/4) * |s - t| := h
+    _ = |s - t| / 4 := by ring
+
+/-- The gradient of the V-class gap head is `(a^2/4)`-Lipschitz — the
+logistic conditioning bound, V-independent exactly as in the 2-class
+case (`scalarCE_grad_lip`). -/
+theorem gapHead_grad_lip {V : Type} [Fintype V] [Nonempty V] (a : ℝ)
+    (p q : ℝ) :
+    |deriv (gapHead (V := V) a) p - deriv (gapHead (V := V) a) q|
+      ≤ (a ^ 2 / 4) * |p - q| := by
+  rw [deriv_gapHead, deriv_gapHead]
+  have hr := sigmaV_lipschitz (V := V) (a * p) (a * q)
+  have hle : a ≤ |a| := le_abs_self a
+  have h2 : |a| * |a| = a ^ 2 := by
+    calc |a| * |a| = |a * a| := (abs_mul a a).symm
+      _ = |a ^ 2| := by rw [sq]
+      _ = a ^ 2 := abs_sq a
+  have ham : |a * p - a * q| = |a| * |p - q| := by
+    rw [← abs_mul, mul_sub]
+  calc |-(a * sigmaV (V := V) (a * p)) - -(a * sigmaV (V := V) (a * q))|
+      = |a| * |sigmaV (V := V) (a * p) - sigmaV (V := V) (a * q)| := by
+        rw [show -(a * sigmaV (V := V) (a * p)) - -(a * sigmaV (V := V) (a * q))
+            = -a * (sigmaV (V := V) (a * p) - sigmaV (V := V) (a * q)) by ring,
+          abs_mul, abs_neg]
+    _ ≤ |a| * (|a * p - a * q| / 4) :=
+        mul_le_mul_of_nonneg_left hr (abs_nonneg a)
+    _ = |a| * (|a| * |p - q| / 4) := by rw [ham]
+    _ = (|a| * |a|) * |p - q| / 4 := by ring
+    _ = a ^ 2 / 4 * |p - q| := by rw [h2]; ring
+
+/-- Descent lemma for the V-class gap head, MVT route: smoothness
+constant `L = a^2/2` (same documented 2× slack as the 2-class
+`scalarCE_smooth`). -/
+theorem gapHead_smooth {V : Type} [Fintype V] [Nonempty V] (a x y : ℝ) :
+    gapHead (V := V) a y ≤ gapHead (V := V) a x
+      + deriv (gapHead (V := V) a) x * (y - x)
+      + (a ^ 2 / 4) * (y - x) ^ 2 := by
+  have hcont : Continuous (gapHead (V := V) a) := by
+    rw [continuous_iff_continuousAt]
+    intro p
+    exact ((hasDerivAt_gapHead a p).differentiableAt.continuousAt)
+  have hdiff : ∀ p, HasDerivAt (gapHead (V := V) a)
+      (deriv (gapHead (V := V) a) p) p :=
+    fun p => ((hasDerivAt_gapHead a p).differentiableAt).hasDerivAt
+  have hlip := gapHead_grad_lip (V := V) a
+  have hL : (0:ℝ) ≤ a ^ 2 / 4 := by positivity
+  rcases lt_trichotomy x y with h | h | h
+  · obtain ⟨c, hcmem, hcslope⟩ := exists_hasDerivAt_eq_slope
+      (gapHead (V := V) a) (deriv (gapHead (V := V) a)) h
+      hcont.continuousOn (fun p _ => hdiff p)
+    have h1 : gapHead (V := V) a y - gapHead (V := V) a x
+        = deriv (gapHead (V := V) a) c * (y - x) := by
+      rw [hcslope]
+      field_simp
+    have hcx : |c - x| ≤ |y - x| := by
+      rw [abs_of_nonneg (sub_nonneg.2 hcmem.1.le),
+        abs_of_nonneg (sub_nonneg.2 h.le)]
+      linarith [hcmem.2]
+    exact descent_tail (gapHead (V := V) a) (a ^ 2 / 4) hL x y c h1
+      (hlip c x) hcx
+  · rw [h, sub_self]
+    have hthis : (0:ℝ) ≤ (a ^ 2 / 4) * (y - x) ^ 2 := by positivity
+    linarith [hthis]
+  · obtain ⟨c, hcmem, hcslope⟩ := exists_hasDerivAt_eq_slope
+      (gapHead (V := V) a) (deriv (gapHead (V := V) a)) h
+      hcont.continuousOn (fun p _ => hdiff p)
+    have h1 : gapHead (V := V) a y - gapHead (V := V) a x
+        = deriv (gapHead (V := V) a) c * (y - x) := by
+      rw [hcslope]
+      field_simp
+      ring
+    have hcx : |c - x| ≤ |y - x| := by
+      rw [abs_of_nonpos (sub_nonpos.2 hcmem.2.le),
+        abs_of_nonpos (sub_nonpos.2 h.le)]
+      linarith [hcmem.1]
+    exact descent_tail (gapHead (V := V) a) (a ^ 2 / 4) hL x y c h1
+      (hlip c x) hcx
+
+/-- The gradient map of the V-class gap head as `plStep` expects it. -/
+noncomputable def gapHeadGrad {V : Type} [Fintype V] [Nonempty V]
+    (a : ℝ) : ℝ → ℝ := fun θ => deriv (gapHead (V := V) a) θ
+
+open scoped InnerProductSpace in
+/-- Smoothness of the V-class gap head in inner-product form (on `ℝ`
+the inner product is multiplication, the norm the absolute value):
+`L = a^2/2`. -/
+theorem gapHead_smooth_ip {V : Type} [Fintype V] [Nonempty V] (a x y : ℝ) :
+    gapHead (V := V) a y ≤ gapHead (V := V) a x
+      + ⟪gapHeadGrad (V := V) a x, y - x⟫_ℝ
+      + (a ^ 2 / 2) / 2 * ‖y - x‖ ^ 2 := by
+  have h := gapHead_smooth (V := V) a x y
+  have hinner : ⟪gapHeadGrad (V := V) a x, y - x⟫_ℝ
+      = deriv (gapHead (V := V) a) x * (y - x) := by
+    simp [gapHeadGrad]
+    ring
+  have hnorm : ‖y - x‖ ^ 2 = (y - x) ^ 2 := by
+    rw [Real.norm_eq_abs, sq_abs]
+  rw [hinner, hnorm]
+  have hcoef : (a ^ 2 / 2) / 2 = a ^ 2 / 4 := by ring
+  rw [hcoef]
+  exact h
+
+/-- The rate condition `muBallV ≤ L = a^2/2`: the margin-PL constant
+fits under the smoothness constant. -/
+theorem muBallV_le {V : Type} [Fintype V] [Nonempty V] (a B : ℝ)
+    (ha : 0 < a) (hB : 0 ≤ B) :
+    muBallV (V := V) a B ≤ a ^ 2 / 2 := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hM : (0:ℝ) < Real.exp (a * B) := Real.exp_pos _
+  have hmM : Real.exp (-(a * B)) ≤ Real.exp (a * B) := by
+    have h1 : -(a * B) ≤ a * B := by nlinarith [ha, hB]
+    exact (Real.exp_le_exp).2 h1
+  have hkey : ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * B))
+      ≤ (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (a * B)) ^ 2 := by
+    have hcm : ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * B))
+        ≤ ((Fintype.card V : ℝ) - 1) * Real.exp (a * B) := by
+      nlinarith [hcnn, hmM]
+    nlinarith [hcm, sq_nonneg
+      (1 - ((Fintype.card V : ℝ) - 1) * Real.exp (a * B))]
+  have hpos : (0:ℝ)
+      < 2 * (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (a * B)) ^ 2 := by
+    positivity
+  have h2 : (0:ℝ) < a ^ 2 := by positivity
+  unfold muBallV
+  rw [div_le_iff₀ hpos]
+  nlinarith [hkey, h2, hpos]
+
+open scoped InnerProductSpace in
+/-- THE MULTICLASS MARGIN COROLLARY (unregularized): gradient descent
+on the unregularized V-class gap-head CE (`ceOneHot t (gap logits)`
+by `gapHead_eq_ceOneHot`), with PL discharged by the multiclass margin
+geometry (`margin_pl_multiclass`) and smoothness `L = a^2/2`, drives
+the loss to zero geometrically at rate `1 − muBallV a B / (a^2/2)`,
+PROVIDED the iterates stay confined to the ball (premise `h_conf` —
+the honest pin, same as the 2-class `ce_global_convergence_margin`).
+The floor `fstar = 0` is the unattained infimum; the rate bounds the
+loss, not the parameter. -/
+theorem ce_global_convergence_multiclass {V : Type} [Fintype V]
+    [Nonempty V] (a B : ℝ) (ha : 0 < a) (hB : 0 ≤ B)
+    (θ₀ : ℝ) (T : ℕ)
+    (h_conf : ∀ t ≤ T,
+      |(CEGlobalConvergence.plStep (gapHeadGrad (V := V) a)
+          (a ^ 2 / 2))^[t] θ₀| ≤ B) :
+    gapHead (V := V) a
+        ((CEGlobalConvergence.plStep (gapHeadGrad (V := V) a)
+          (a ^ 2 / 2))^[T] θ₀) - 0
+      ≤ (1 - muBallV (V := V) a B / (a ^ 2 / 2)) ^ T
+        * (gapHead (V := V) a θ₀ - 0) := by
+  have hL : (0:ℝ) < a ^ 2 / 2 := by positivity
+  have hμL := muBallV_le (V := V) a B ha hB
+  exact margin_pl_convergence (gapHead (V := V) a)
+    (gapHeadGrad (V := V) a) (a ^ 2 / 2) (muBallV (V := V) a B) 0 B
+    hL hμL (gapHead_smooth_ip (V := V) a) (fun x => gapHead_nonneg (V := V) a x)
+    (fun x hx => by
+      have hb := margin_pl_multiclass (V := V) a B ha hB x hx
+      show 2 * muBallV (V := V) a B * (gapHead (V := V) a x - 0)
+        ≤ |deriv (gapHead (V := V) a) x| ^ 2
+      rw [sq_abs]
+      exact hb) θ₀ T h_conf
+
+/-! ### Logit-space margin lemmas (premise-form margin) -/
+
+/-- SOFTMAX-MARGIN-TO-LOSS: if every wrong logit trails the correct
+one by at least `γ` (the premise-form margin), the V-class
+cross-entropy is at most `log (1 + c·e^{−γ})` with `c = card V − 1`:
+the log-sum-exp of the gaps is dominated by the correct term plus the
+wrong mass.  General logit vector — no gap-head structure needed. -/
+theorem ce_margin_le {V : Type} [Fintype V] [Nonempty V] [DecidableEq V]
+    (t : V) (z : V → ℝ) (γ : ℝ) (hγ : ∀ v, v ≠ t → γ ≤ z t - z v) :
+    Hagi.ceOneHot t z
+      ≤ Real.log (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ)) := by
+  have hcard : ∑ v, (if v = t then (1:ℝ) else Real.exp (-γ))
+      = 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ) := by
+    have hsplit2 : ∀ v : V, (if v = t then (1:ℝ) else Real.exp (-γ))
+        = Real.exp (-γ) + (if v = t then 1 - Real.exp (-γ) else 0) := by
+      intro v
+      by_cases h : v = t <;> simp [h]
+    rw [Finset.sum_congr rfl (fun v _ => hsplit2 v), Finset.sum_add_distrib,
+      Finset.sum_const, Finset.sum_ite_eq' Finset.univ t
+        (fun _ => 1 - Real.exp (-γ))]
+    simp
+    ring
+  have hsplit : ∀ v : V, Real.exp (z v - z t)
+      ≤ (if v = t then (1:ℝ) else Real.exp (-γ)) := by
+    intro v
+    by_cases h : v = t
+    · subst h
+      simp
+    · have hg := hγ v h
+      have hle : z v - z t ≤ -γ := by linarith
+      rw [ite_eq_right h]
+      exact (Real.exp_le_exp).2 hle
+  have hsum : ∑ v, Real.exp (z v - z t)
+      ≤ 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ) := by
+    have hsumle := Finset.sum_le_sum (s := Finset.univ)
+      (fun v _ => hsplit v)
+    linarith [hsumle, hcard]
+  have hpos : (0:ℝ) < ∑ v, Real.exp (z v - z t) := by
+    have h0 : (0:ℝ) < Real.exp (z t - z t) := by
+      rw [sub_self]
+      exact Real.exp_pos _
+    have hmem : Real.exp (z t - z t) ≤ ∑ v, Real.exp (z v - z t) :=
+      Finset.single_le_sum (fun v _ => Real.exp_nonneg _)
+        (Finset.mem_univ t)
+    linarith
+  have hshift : Hagi.ceOneHot t z
+      = Real.log (∑ v, Real.exp (z v - z t)) := by
+    unfold Hagi.ceOneHot Hagi.lse
+    have hfac : ∑ v, Real.exp (z v)
+        = Real.exp (z t) * ∑ v, Real.exp (z v - z t) := by
+      have hterm : ∀ v : V, Real.exp (z v)
+          = Real.exp (z t) * Real.exp (z v - z t) := by
+        intro v
+        rw [← Real.exp_add]
+        congr 1
+        ring
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl (fun v _ => hterm v)
+    rw [hfac, Real.log_mul (by positivity) (by positivity), Real.log_exp]
+    ring
+  rw [hshift]
+  exact Real.log_le_log hpos (by linarith [hsum])
+
+/-- SOFTMAX-MARGIN-TO-PROBABILITY: under the same premise-form
+margin, the correct-class softmax probability is at least
+`1/(1+c·e^{−γ}) = e^{γ}/(e^{γ}+c)` — the multiclass margin
+domination bound, `c = card V − 1`. -/
+theorem softDef_margin_lb {V : Type} [Fintype V] [Nonempty V] [DecidableEq V]
+    (t : V) (z : V → ℝ) (γ : ℝ) (hγ : ∀ v, v ≠ t → γ ≤ z t - z v) :
+    1 / (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ))
+      ≤ Hagi.Prelude.softDef z t := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hposg : (0:ℝ) < Real.exp (-γ) := Real.exp_pos _
+  have hden : (0:ℝ)
+      < 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ) := by
+    nlinarith [hcnn, hposg]
+  have hsum : ∑ v, Real.exp (z v)
+      ≤ Real.exp (z t) * (1 + ((Fintype.card V : ℝ) - 1)
+          * Real.exp (-γ)) := by
+    have hcard : ∑ v, (if v = t then (1:ℝ) else Real.exp (-γ))
+        = 1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ) := by
+      have hsplit2 : ∀ v : V, (if v = t then (1:ℝ) else Real.exp (-γ))
+          = Real.exp (-γ) + (if v = t then 1 - Real.exp (-γ) else 0) := by
+        intro v
+        by_cases h : v = t <;> simp [h]
+      rw [Finset.sum_congr rfl (fun v _ => hsplit2 v), Finset.sum_add_distrib,
+        Finset.sum_const, Finset.sum_ite_eq' Finset.univ t
+          (fun _ => 1 - Real.exp (-γ))]
+      simp
+      ring
+    have hg : ∀ v : V, Real.exp (z v)
+        ≤ Real.exp (z t) * (if v = t then (1:ℝ) else Real.exp (-γ)) := by
+      intro v
+      by_cases h : v = t
+      · subst h
+        simp [mul_one]
+      · have hle : z v - z t ≤ -γ := by
+          have := hγ v h
+          linarith
+        have hexp := (Real.exp_le_exp).2 hle
+        rw [ite_eq_right h]
+        calc Real.exp (z v) = Real.exp (z t) * Real.exp (z v - z t) := by
+              rw [← Real.exp_add]
+              congr 1
+              ring
+          _ ≤ Real.exp (z t) * Real.exp (-γ) :=
+              mul_le_mul_of_nonneg_left hexp (Real.exp_nonneg _)
+    calc ∑ v, Real.exp (z v)
+        ≤ ∑ v, Real.exp (z t) * (if v = t then (1:ℝ) else Real.exp (-γ)) :=
+          Finset.sum_le_sum (s := Finset.univ) (fun v _ => hg v)
+      _ = Real.exp (z t) * ∑ v, (if v = t then (1:ℝ) else Real.exp (-γ)) :=
+          (Finset.mul_sum _ _ _).symm
+      _ = Real.exp (z t) * (1 + ((Fintype.card V : ℝ) - 1)
+          * Real.exp (-γ)) := by rw [hcard]
+  have hSt : (0:ℝ) < ∑ v, Real.exp (z v) :=
+    Finset.sum_pos (fun v _ => Real.exp_pos _) Finset.univ_nonempty
+  unfold Hagi.Prelude.softDef
+  rw [div_le_div_iff₀ hden hSt]
+  linarith [hsum]
+
+/-- The multiclass warm-start anchor: a realized margin `γ ≤ a*θstar`
+bounds the gap-head loss by `log (1+c·e^{−γ})` (which is in turn at
+most `c·e^{−γ}` by `log (1+w) ≤ w`, not stated here) — the margin
+anchor of C376, V-class form. -/
+theorem margin_anchor_multiclass {V : Type} [Fintype V] [Nonempty V]
+    (a θstar γ : ℝ) (hgap : γ ≤ a * θstar) :
+    gapHead (V := V) a θstar
+      ≤ Real.log (1 + ((Fintype.card V : ℝ) - 1) * Real.exp (-γ)) := by
+  have hcnn := gapHeadCard_nonneg (V := V)
+  have hmono : ((Fintype.card V : ℝ) - 1) * Real.exp (-(a * θstar))
+      ≤ ((Fintype.card V : ℝ) - 1) * Real.exp (-γ) := by
+    have h1 : -(a * θstar) ≤ -γ := by linarith
+    exact mul_le_mul_of_nonneg_left ((Real.exp_le_exp).2 h1) hcnn
+  exact Real.log_le_log (by
+    have hcnn' := gapHeadCard_nonneg (V := V)
+    have hpos := Real.exp_pos (-(a * θstar))
+    nlinarith [hcnn', hpos]) (by linarith [hmono])
 
 end Hagi.Model.CEMarginPL
