@@ -184,6 +184,7 @@ import Hagi.Autonomy.SupervisorSafety
 import Hagi.Pretraining.SyntheticPretrain
 import Hagi.Sparsity.SparseStep0
 import Hagi.System.GrowthState
+import Hagi.System.DerivedState
 import Hagi.Training.GrowthComputedCert
 import Hagi.System.StepCertificate
 import Hagi.Unified.AnytimeMartingale
@@ -449,6 +450,7 @@ import Hagi.Training.AdaptiveAnytime
 import Hagi.Training.TTCAT
 import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
+import Hagi.Semantics.DerivedStateCoherence
 import Hagi.Theory.CEChain
 import Hagi.Theory.BlockSmooth
 import Hagi.Theory.Confinement
