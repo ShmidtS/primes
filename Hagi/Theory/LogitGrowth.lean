@@ -315,11 +315,12 @@ theorem two_step_nonvacuous (w : ℝ) :
       (orbit (initial w 2) unitEta unitEta_pos 2).budget = 0 :=
   ⟨finite_strict w 2 2 (by norm_num), unit_budget_zero w 2⟩
 
+set_option maxRecDepth 10000 in
 theorem hundred_step_nonvacuous (w : ℝ) :
     (initial w 100).capability <
       (orbit (initial w 100) unitEta unitEta_pos 100).capability ∧
       (orbit (initial w 100) unitEta unitEta_pos 100).budget = 0 :=
-  ⟨finite_strict w 100 100 (by norm_num), unit_budget_zero w 100⟩
+  ⟨finite_strict w 100 100 (by omega), unit_budget_zero w 100⟩
 
 theorem first_parameter_nonzero :
     (orbit (initial 0 1) unitEta unitEta_pos 1).params = 1 / 2 := by

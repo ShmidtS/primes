@@ -184,8 +184,7 @@ theorem lse_midpoint_le (z₁ z₂ : k → ℝ) :
     norm_num
   have hcauchy := Finset.sum_mul_sq_le_sq_mul_sq Finset.univ
     (fun v => Real.exp (z₁ v / 2)) (fun v => Real.exp (z₂ v / 2))
-  rw [Finset.sum_congr rfl fun v _ => hf2 v,
-    Finset.sum_congr rfl fun v _ => hg2 v] at hcauchy
+  simp only [hf2, hg2] at hcauchy
   have hlhs : ∑ v, Real.exp (z₁ v / 2) * Real.exp (z₂ v / 2)
       = ∑ v, Real.exp ((z₁ v + z₂ v) / 2) :=
     Finset.sum_congr rfl fun v _ => hfg v
@@ -194,7 +193,7 @@ theorem lse_midpoint_le (z₁ z₂ : k → ℝ) :
   set P := ∑ v, Real.exp (z₁ v) with hP
   set Q := ∑ v, Real.exp (z₂ v) with hQ
   set A := ∑ v, Real.exp ((z₁ v + z₂ v) / 2) with hA
-  have hApos : 0 < A := exp_sum_pos ((z₁ + z₂) / 2)
+  have hApos : 0 < A := by rw [hA]; exact exp_sum_pos _
   have hstep : A ≤ Real.sqrt (P * Q) := by
     rw [← Real.sqrt_mul_self (le_of_lt hApos), ← pow_two]
     exact Real.sqrt_le_sqrt hcauchy

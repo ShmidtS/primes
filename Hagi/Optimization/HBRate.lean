@@ -407,7 +407,7 @@ theorem hb_repeated_root_closed_form (e : ℕ → ℝ) (rho C D : ℝ)
     ∀ n, e n = (C + D * n) * rho ^ n := by
   intro n
   induction n using Nat.strong_induction_on with
-  | h n ih =>
+  | ind n ih =>
     match n with
     | 0 => simpa using h0
     | 1 => simpa using h1
@@ -488,7 +488,7 @@ theorem hb_two_root_closed_form (e : ℕ → ℂ) (t beta lam1 lam2 A B : ℂ)
     ∀ n, e n = A * lam1 ^ n + B * lam2 ^ n := by
   intro n
   induction n using Nat.strong_induction_on with
-  | h n ih =>
+  | ind n ih =>
     match n with
     | 0 => simpa using h0
     | 1 => simpa using h1

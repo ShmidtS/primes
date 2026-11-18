@@ -70,7 +70,12 @@ theorem frobenius_norm_sq_eq_trace (A : Matrix n n ℂ) :
     ‖A‖^2 = (trace (Aᴴ * A)).re := by
   -- Show the sum part directly using ℝ powers
   have key : ∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ) = (trace (Aᴴ * A)).re := by
-    simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+    show ∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ) = (∑ j : n, (Aᴴ * A) j j).re
+    have h_entry : ∀ j, (Aᴴ * A) j j = ∑ i, star (A i j) * A i j := by
+      intro j
+      show ∑ i, Aᴴ j i * A i j = _
+      simp only [conjTranspose_apply]
+    simp only [h_entry]
     rw [Finset.sum_comm]
     conv_rhs => rw [Complex.re_sum]
     apply Finset.sum_congr rfl
@@ -158,7 +163,12 @@ theorem frobenius_norm_mul_unitary (A : Matrix n n ℂ) (V : unitaryGroup n ℂ)
 theorem frobenius_norm_sq_diagonal (d : n → ℂ) :
     ‖diagonal d‖^2 = ∑ i : n, ‖d i‖^2 := by
   rw [frobenius_norm_sq_eq_trace]
-  simp only [trace, diag_apply, mul_apply, conjTranspose_apply, diagonal_apply]
+  show (∑ i : n, ((diagonal d)ᴴ * diagonal d) i i).re = ∑ i : n, ‖d i‖^2
+  have h_entry : ∀ i, ((diagonal d)ᴴ * diagonal d) i i =
+      ∑ j, star (if j = i then d j else 0) * (if j = i then d j else 0) := by
+    intro i
+    show ∑ j, (diagonal d)ᴴ i j * diagonal d j i = _
+    simp only [conjTranspose_apply, diagonal_apply]
   -- Simplify inner sums: only j = i contributes
   have inner_sum_eq : ∀ i : n, ∑ j : n, star (if j = i then d j else 0) * (if j = i then d j else 0) =
                                 star (d i) * d i := by
@@ -175,6 +185,7 @@ theorem frobenius_norm_sq_diagonal (d : n → ℂ) :
     apply Finset.sum_congr rfl
     intro i _
     exact inner_sum_eq i
+  simp only [h_entry]
   rw [sum_eq]
   rw [Complex.re_sum]
   apply Finset.sum_congr rfl
@@ -380,7 +391,14 @@ lemma frobenius_sq_diagonal_minus_matrix (d : n → ℂ) (C : Matrix n n ℂ) :
   -- By commutativity of sum = Σⱼ Σᵢ |Aⱼᵢ|² = Σᵢ Σⱼ |Aᵢⱼ|² (relabeling)
   have h_expand : (trace ((diagonal d - C)ᴴ * (diagonal d - C))).re =
                   ∑ i, ∑ j, ‖(diagonal d - C) i j‖^2 := by
-    simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+    show (∑ i, ((diagonal d - C)ᴴ * (diagonal d - C)) i i).re =
+      ∑ i, ∑ j, ‖(diagonal d - C) i j‖^2
+    have h_entry : ∀ i, ((diagonal d - C)ᴴ * (diagonal d - C)) i i =
+        ∑ j, star ((diagonal d - C) j i) * (diagonal d - C) j i := by
+      intro i
+      show ∑ j, (diagonal d - C)ᴴ i j * (diagonal d - C) j i = _
+      simp only [conjTranspose_apply]
+    simp only [h_entry]
     rw [Complex.re_sum]
     -- Swap the sum order: Σᵢ Σⱼ |Mⱼᵢ|² = Σⱼ Σᵢ |Mⱼᵢ|² = Σᵢ Σⱼ |Mᵢⱼ|²
     rw [Finset.sum_comm]

@@ -224,7 +224,11 @@ theorem frobenius_spectral_ratio_le_sqrt_dim (A : Matrix n n ℂ) (hA : A ≠ 0)
         = ∑ i, SVD.singularValues A i ^ 2 := by
           -- frobeniusNorm' A² = trace(Aᴴ A) = ∑ σᵢ² (SVD characterization)
           rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-          simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+          have h_entry : ∀ i, (Aᴴ * A) i i = ∑ x, star (A x i) * A x i := by
+            intro i
+            show ∑ x, Aᴴ i x * A x i = _
+            simp only [conjTranspose_apply]
+          simp only [trace, diag_apply, h_entry]
           rw [Finset.sum_comm]
           simp [Complex.re_sum, Complex.normSq]
       _ ≤ Fintype.card n * (Finset.sup' Finset.univ Finset.univ_nonempty (SVD.singularValues A)) ^ 2 :=
@@ -289,7 +293,11 @@ theorem coherenceFactor_le_one (E : Matrix n n ℂ) : coherenceFactor E ≤ 1 :=
       calc frobeniusNorm' E ^ 2
           = ∑ i, SVD.singularValues E i ^ 2 := by
             rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-            simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+            have h_entry : ∀ i, (Eᴴ * E) i i = ∑ x, star (E x i) * E x i := by
+              intro i
+              show ∑ x, Eᴴ i x * E x i = _
+              simp only [conjTranspose_apply]
+            simp only [trace, diag_apply, h_entry]
             rw [Finset.sum_comm]
             simp [Complex.re_sum, Complex.normSq]
         _ ≤ E.rank * M ^ 2 := sum_singularValues_sq_le_rank_mul_max_sq E
@@ -782,7 +790,11 @@ theorem flat_spectrum_coherence_eq_one (E : Matrix n n ℂ) (hE : E ≠ 0)
     calc frobeniusNorm' E ^ 2
         = ∑ i, SVD.singularValues E i ^ 2 := by
           rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-          simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+          have h_entry : ∀ i, (Eᴴ * E) i i = ∑ x, star (E x i) * E x i := by
+            intro i
+            show ∑ x, Eᴴ i x * E x i = _
+            simp only [conjTranspose_apply]
+          simp only [trace, diag_apply, h_entry]
           rw [Finset.sum_comm]
           simp [Complex.re_sum, Complex.normSq]
       _ = ∑ i ∈ Finset.univ.filter (fun i => SVD.singularValues E i ≠ 0),
@@ -932,7 +944,11 @@ theorem normalizedSingularValueSq_sum_eq_one (E : Matrix n n ℂ) :
     rw [← Finset.sum_div]
     have h_sum : ∑ i, SVD.singularValues E i ^ 2 = frobeniusNorm' E ^ 2 := by
       rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-      simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+      have h_entry : ∀ i, (Eᴴ * E) i i = ∑ x, star (E x i) * E x i := by
+        intro i
+        show ∑ x, Eᴴ i x * E x i = _
+        simp only [conjTranspose_apply]
+      simp only [trace, diag_apply, h_entry]
       rw [Finset.sum_comm]
       simp [Complex.re_sum, Complex.normSq]
     rw [h_sum]
@@ -1241,7 +1257,11 @@ theorem effectiveRank_eq_rank_of_flat_spectrum (E : Matrix n n ℂ) (hE : E ≠ 
   -- So pᵢ = c²/(|S|·c²) = 1/|S| for i ∈ S
   have h_frob_sq_eq : frobeniusNorm' E ^ 2 = ∑ i, SVD.singularValues E i ^ 2 := by
     rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-    simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+    have h_entry : ∀ i, (Eᴴ * E) i i = ∑ x, star (E x i) * E x i := by
+      intro i
+      show ∑ x, Eᴴ i x * E x i = _
+      simp only [conjTranspose_apply]
+    simp only [trace, diag_apply, h_entry]
     rw [Finset.sum_comm]
     simp [Complex.re_sum, Complex.normSq]
 

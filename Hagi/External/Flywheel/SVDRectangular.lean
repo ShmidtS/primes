@@ -455,7 +455,8 @@ lemma AV_column_norm_sq_rectangular (A : Matrix m n ℂ) (j : n) :
   simp only at h_diag
   -- (AVᴴ * AV)ⱼⱼ = ∑ᵢ star(AV i j) * (AV i j)
   have h_entry : (AVᴴ * AV) j j = ∑ i, star (AV i j) * AV i j := by
-    simp only [conjTranspose_apply, mul_apply]
+    show ∑ i, AVᴴ j i * AV i j = _
+    simp only [conjTranspose_apply]
   rw [← h_entry, h_diag, diagonal_apply_eq, Function.comp_apply]
 
 /-- Columns of A*V are orthogonal (rectangular case).
@@ -468,7 +469,8 @@ lemma AV_columns_orthogonal_rectangular (A : Matrix m n ℂ) (j j' : n) (hjj' : 
   have h_diag := conjTranspose_AV_mul_AV_rectangular A
   simp only at h_diag
   have h_entry : (AVᴴ * AV) j j' = ∑ i, star (AV i j) * AV i j' := by
-    simp only [conjTranspose_apply, mul_apply]
+    show ∑ i, AVᴴ j i * AV i j' = _
+    simp only [conjTranspose_apply]
   rw [← h_entry, h_diag, diagonal_apply, if_neg hjj']
 
 /-! #### Left Singular Vectors for Rectangular Matrices

@@ -52,6 +52,7 @@ theorem norm_rot (φ : ℝ) (z : ℂ) : ‖rot φ z‖ = ‖z‖ := by
   unfold rot
   rw [norm_mul, norm_exp_ofReal_mul_I, mul_one]
 
+set_option maxHeartbeats 1000000 in
 /-- Перенормировка разности фаз: факторизация вращения. -/
 theorem norm_rot_sub (φ₀ φ' : ℝ) (a b : ℂ) :
     ‖rot φ₀ a - rot φ' b‖ = ‖a - rot (φ' - φ₀) b‖ := by

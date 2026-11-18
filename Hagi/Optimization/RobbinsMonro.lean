@@ -71,7 +71,7 @@ theorem robbins_monro_decay (x η : ℕ → ℝ)
         x 0 * Real.exp (-(∑ k ∈ Finset.range s, η k)) < ε := by
       have hmem : ∀ᶠ s in Filter.atTop,
           Real.exp (-(∑ k ∈ Finset.range s, η k)) < ε / x 0 :=
-        Filter.Tendsto.eventually hexpbot
+        Filter.Tendsto.eventually (p := fun y : ℝ => y < ε / x 0) hexpbot
           (gt_mem_nhds (div_pos hε hx0pos))
       refine hmem.mono fun s hs => ?_
       rw [mul_comm]

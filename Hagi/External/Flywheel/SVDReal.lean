@@ -47,7 +47,9 @@ lemma real_conjTranspose_mul_self (A : Matrix n n ℝ) :
     (A.map Complex.ofReal)ᴴ * (A.map Complex.ofReal) = (Aᵀ * A).map Complex.ofReal := by
   rw [real_matrix_conjTranspose_eq_transpose]
   ext i j
-  simp only [mul_apply, map_apply, transpose_apply]
+  show ∑ k, (A.map Complex.ofReal)ᵀ i k * (A.map Complex.ofReal) k j
+    = ((Aᵀ * A).map Complex.ofReal) i j
+  simp only [map_apply, transpose_apply, Matrix.mul_apply]
   conv_lhs =>
     arg 2
     ext k
@@ -108,7 +110,7 @@ Key insight: Over ℝ, `unitaryGroup = orthogonalGroup` and `star = transpose`.
 /-- The right orthogonal matrix V for SVD, obtained from eigenvectors of Aᵀ * A. -/
 noncomputable def rightOrthogonal (A : Matrix n n ℝ) : orthogonalGroup n ℝ :=
   let hHerm := transpose_mul_self_isHermitian' A
-  ⟨hHerm.eigenvectorUnitary, hHerm.eigenvectorUnitary.2⟩
+  hHerm.eigenvectorUnitary
 
 /-- A * V, the key intermediate matrix for SVD construction. -/
 noncomputable def realAV (A : Matrix n n ℝ) : Matrix n n ℝ :=
@@ -155,7 +157,8 @@ lemma realAV_columns_orthogonal (A : Matrix n n ℝ) (i j : n) (hij : i ≠ j) :
     ∑ k, (realAV A) k i * (realAV A) k j = 0 := by
   have h := transpose_realAV_mul_realAV A
   have h_entry : ((realAV A).transpose * realAV A) i j = ∑ k, (realAV A) k i * (realAV A) k j := by
-    simp only [mul_apply, transpose_apply]
+    show ∑ k, (realAV A).transpose i k * (realAV A) k j = _
+    simp only [transpose_apply]
   have h_diag : (diagonal (transpose_mul_self_isHermitian' A).eigenvalues) i j = 0 := by
     simp only [diagonal_apply, hij, ↓reduceIte]
   rw [← h_entry, h, h_diag]
@@ -165,7 +168,8 @@ lemma realAV_column_norm_sq (A : Matrix n n ℝ) (i : n) :
     ∑ k, (realAV A) k i * (realAV A) k i = (realSingularValues A i) ^ 2 := by
   have h := transpose_realAV_mul_realAV A
   have h_entry : ((realAV A).transpose * realAV A) i i = ∑ k, (realAV A) k i * (realAV A) k i := by
-    simp only [mul_apply, transpose_apply]
+    show ∑ k, (realAV A).transpose i k * (realAV A) k i = _
+    simp only [transpose_apply]
   rw [← h_entry, h, diagonal_apply_eq]
   simp only [realSingularValues]
   rw [Real.sq_sqrt]
@@ -241,14 +245,20 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero_real (A : Matrix n n �
 /-- Extend orthonormal left singular vectors to a full orthonormal basis. -/
 noncomputable def extendedONB_real (A : Matrix n n ℝ) :
     OrthonormalBasis n ℝ (EuclideanSpace ℝ n) :=
-  ((leftSingularVectorExtended_orthonormal_on_nonzero_real A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace).choose
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (𝕜 := ℝ) (E := EuclideanSpace ℝ n) (ι := n)
+    (v := leftSingularVectorExtended_real A) (s := nonzeroSingularIndices_real A)
+    finrank_euclideanSpace
+    (leftSingularVectorExtended_orthonormal_on_nonzero_real A)).choose
 
 /-- The extended ONB agrees with left singular vectors on nonzero singular value indices. -/
 theorem extendedONB_real_spec (A : Matrix n n ℝ) :
     ∀ i, i ∈ nonzeroSingularIndices_real A → (extendedONB_real A) i = leftSingularVectorExtended_real A i :=
-  ((leftSingularVectorExtended_orthonormal_on_nonzero_real A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace).choose_spec
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (𝕜 := ℝ) (E := EuclideanSpace ℝ n) (ι := n)
+    (v := leftSingularVectorExtended_real A) (s := nonzeroSingularIndices_real A)
+    finrank_euclideanSpace
+    (leftSingularVectorExtended_orthonormal_on_nonzero_real A)).choose_spec
 
 /-- Convert an orthonormal basis of EuclideanSpace ℝ n to a matrix (column j = basis vector j). -/
 noncomputable def onbToMatrix_real (b : OrthonormalBasis n ℝ (EuclideanSpace ℝ n)) : Matrix n n ℝ :=
@@ -259,7 +269,9 @@ theorem onbToMatrix_real_mem_orthogonalGroup (b : OrthonormalBasis n ℝ (Euclid
     onbToMatrix_real b ∈ orthogonalGroup n ℝ := by
   rw [mem_orthogonalGroup_iff']
   ext i j
-  simp only [mul_apply, transpose_apply, one_apply, onbToMatrix_real]
+  show ∑ k, (onbToMatrix_real b).transpose i k * onbToMatrix_real b k j
+    = if i = j then 1 else 0
+  simp only [onbToMatrix_real, transpose_apply]
   have h_inner : @inner ℝ (EuclideanSpace ℝ n) _ (b i) (b j) = if i = j then 1 else 0 := by
     have h_on := b.orthonormal
     rw [orthonormal_iff_ite] at h_on
@@ -301,7 +313,9 @@ lemma realAV_column_zero_of_singularValue_zero (A : Matrix n n ℝ) (i : n)
 theorem realAV_eq_constructedU_real_mul_sigma (A : Matrix n n ℝ) :
     realAV A = (constructedU_real A : Matrix n n ℝ) * diagonal (realSingularValues A) := by
   ext i j
-  simp only [mul_apply, diagonal_apply]
+  show (realAV A) i j
+    = ∑ x, (constructedU_real A : Matrix n n ℝ) i x *
+      (if x = j then realSingularValues A x else 0)
   -- RHS: ∑ x, U i x * (if x = j then σ x else 0) = U i j * σ j
   have h_rhs : ∑ x, (constructedU_real A : Matrix n n ℝ) i x *
                (if x = j then realSingularValues A x else 0) =

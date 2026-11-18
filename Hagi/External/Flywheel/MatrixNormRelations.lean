@@ -301,8 +301,6 @@ theorem hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
   -- Convert: (↑‖x‖₊ : ENNReal).toReal to |x| for reals
   have h_eq : ∀ i, (↑(‖hH.eigenvalues i‖₊) : ENNReal).toReal = |hH.eigenvalues i| := fun i => by
     simp only [ENNReal.toReal, ENNReal.toNNReal_coe]
-    -- Now goal is: ↑‖hH.eigenvalues i‖₊ = |hH.eigenvalues i| (NNReal → ℝ coercion)
-    simp only [nnnorm, Real.norm_eq_abs]
     rfl
   simp_rw [h_eq]
   -- For finite nonempty type: iSup over Fintype = Finset.sup' over univ
@@ -404,7 +402,13 @@ theorem spectral_norm_le_frobenius_norm [Nonempty n] (A : Matrix n n ℂ) :
         ≤ ∑ i, SVD.singularValues A i ^ 2 := spectral_norm_sq_le_sum_singularValues_sq A
       _ = frobeniusNorm' A ^ 2 := by
           rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-          simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+          show (Aᴴ * A).trace.re = ∑ i, ∑ j, Complex.normSq (A i j)
+          show (∑ i, (Aᴴ * A) i i).re = ∑ i, ∑ j, Complex.normSq (A i j)
+          have h_entry : ∀ i, (Aᴴ * A) i i = ∑ j, star (A j i) * A j i := by
+            intro i
+            show ∑ j, Aᴴ i j * A j i = _
+            simp only [conjTranspose_apply]
+          simp only [h_entry]
           rw [Finset.sum_comm]
           simp [Complex.re_sum, Complex.normSq]
   exact le_of_sq_le_sq h_sq (frobeniusNorm'_nonneg A)
@@ -502,7 +506,8 @@ lemma diagonal_conjTranspose_mul_self (d : n → ℝ) :
     (diagonal (Complex.ofReal ∘ d))ᴴ * diagonal (Complex.ofReal ∘ d) =
     diagonal (Complex.ofReal ∘ (fun i => (d i)^2)) := by
   ext i j
-  simp only [conjTranspose_apply, mul_apply, diagonal_apply, Function.comp_apply]
+  rw [Matrix.mul_apply]
+  simp only [conjTranspose_apply, diagonal_apply, Function.comp_apply]
   by_cases h : i = j
   · subst h
     simp only [↓reduceIte]

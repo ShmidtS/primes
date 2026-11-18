@@ -242,7 +242,9 @@ lemma AV_conjTranspose_mul_AV_apply (A : Matrix n n ℂ) (i j : n) :
     let V : Matrix n n ℂ := rightUnitary A
     let AV := A * V
     (AVᴴ * AV) i j = ∑ k, star (AV k i) * AV k j := by
-  simp only [conjTranspose_apply, mul_apply]
+  intro V AV
+  show ∑ k, AVᴴ i k * AV k j = _
+  simp only [conjTranspose_apply]
 
 /-- Columns of A*V are orthogonal: for i ≠ j, the inner product is 0. -/
 lemma AV_columns_orthogonal (A : Matrix n n ℂ) (i j : n) (hij : i ≠ j) :
@@ -251,9 +253,10 @@ lemma AV_columns_orthogonal (A : Matrix n n ℂ) (i j : n) (hij : i ≠ j) :
     ∑ k, star (AV k i) * AV k j = 0 := by
   intro V AV
   have h2 := conjTranspose_AV_mul_AV A
-  simp only at h2
+  dsimp only at h2
   have h1 : (AVᴴ * AV) i j = ∑ k, star (AV k i) * AV k j := by
-    simp only [conjTranspose_apply, mul_apply]
+    show ∑ k, AVᴴ i k * AV k j = _
+    simp only [conjTranspose_apply]
   rw [h1.symm, h2, diagonal_apply, Function.comp_apply, if_neg hij]
 
 /-- Squared norm of column i of A*V equals σᵢ² (using singularValues). -/
@@ -263,9 +266,10 @@ lemma AV_column_norm_sq (A : Matrix n n ℂ) (i : n) :
     ∑ k, star (AV k i) * AV k i = Complex.ofReal ((singularValues A i) ^ 2) := by
   intro V AV
   have h2 := conjTranspose_AV_mul_AV A
-  simp only at h2
+  dsimp only at h2
   have h1 : (AVᴴ * AV) i i = ∑ k, star (AV k i) * AV k i := by
-    simp only [conjTranspose_apply, mul_apply]
+    show ∑ k, AVᴴ i k * AV k i = _
+    simp only [conjTranspose_apply]
   simp only [singularValues]
   rw [h1.symm, h2, diagonal_apply_eq, Function.comp_apply]
   congr 1
@@ -428,17 +432,25 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero (A : Matrix n n ℂ) :
     · next heq => exact absurd (Subtype.ext_iff.mp heq) h
     · exact leftSingularVectorNonzero_orthogonal A i j hi hj h
 
+set_option maxHeartbeats 1000000 in
 /-- Extend the orthonormal left singular vectors to a full orthonormal basis. -/
 noncomputable def extendedONB (A : Matrix n n ℂ) :
     OrthonormalBasis n ℂ (EuclideanSpace ℂ n) :=
-  ((leftSingularVectorExtended_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace).choose
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (𝕜 := ℂ) (E := EuclideanSpace ℂ n) (ι := n)
+    (v := leftSingularVectorExtended A) (s := nonzeroSingularIndices A)
+    finrank_euclideanSpace
+    (leftSingularVectorExtended_orthonormal_on_nonzero A)).choose
 
+set_option maxHeartbeats 1000000 in
 /-- The extended ONB agrees with left singular vectors on nonzero singular value indices. -/
 theorem extendedONB_spec (A : Matrix n n ℂ) :
     ∀ i, i ∈ nonzeroSingularIndices A → (extendedONB A) i = leftSingularVectorExtended A i :=
-  ((leftSingularVectorExtended_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace).choose_spec
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (𝕜 := ℂ) (E := EuclideanSpace ℂ n) (ι := n)
+    (v := leftSingularVectorExtended A) (s := nonzeroSingularIndices A)
+    finrank_euclideanSpace
+    (leftSingularVectorExtended_orthonormal_on_nonzero A)).choose_spec
 
 /-- Convert an orthonormal basis of EuclideanSpace ℂ ι to a matrix
 (column j = basis vector j). General form: covers both square and
@@ -453,7 +465,8 @@ lemma onbToMatrix_inner {ι : Type*} [Fintype ι] [DecidableEq ι]
     (b : OrthonormalBasis ι ℂ (EuclideanSpace ℂ ι)) (i j : ι) :
     (star (onbToMatrix b) * onbToMatrix b) i j =
     @inner ℂ (EuclideanSpace ℂ ι) _ (b i) (b j) := by
-  simp only [mul_apply, star_apply, onbToMatrix]
+  show ∑ k, (onbToMatrix b)ᴴ i k * onbToMatrix b k j = _
+  simp only [onbToMatrix, conjTranspose_apply]
   rw [PiLp.inner_apply]
   simp only [RCLike.inner_apply]
   congr 1
@@ -466,7 +479,8 @@ theorem onbToMatrix_mem_unitaryGroup {ι : Type*} [Fintype ι] [DecidableEq ι]
     onbToMatrix b ∈ unitaryGroup ι ℂ := by
   rw [mem_unitaryGroup_iff']
   ext i j
-  rw [onbToMatrix_inner, one_apply]
+  rw [onbToMatrix_inner]
+  show @inner ℂ (EuclideanSpace ℂ ι) _ (b i) (b j) = if i = j then 1 else 0
   have h_on : Orthonormal ℂ b := b.orthonormal
   rw [orthonormal_iff_ite] at h_on
   exact h_on i j
@@ -496,8 +510,9 @@ theorem AV_eq_constructedU_mul_sigma (A : Matrix n n ℂ) :
     A * (rightUnitary A : Matrix n n ℂ) =
     (constructedU A : Matrix n n ℂ) * diagonal (Complex.ofReal ∘ singularValues A) := by
   ext i j
-  simp only [mul_apply, diagonal_apply, Function.comp_apply]
-  -- RHS simplifies: ∑ x, U i x * (if x = j then σ x else 0) = U i j * σ j
+  show ∑ x, A i x * (rightUnitary A : Matrix n n ℂ) x j =
+    ∑ x, (constructedU A : Matrix n n ℂ) i x *
+      (if x = j then Complex.ofReal (singularValues A x) else 0)
   have h_rhs : ∑ x, (constructedU A : Matrix n n ℂ) i x *
                (if x = j then Complex.ofReal (singularValues A x) else 0) =
                (constructedU A : Matrix n n ℂ) i j * Complex.ofReal (singularValues A j) := by
@@ -517,7 +532,7 @@ theorem AV_eq_constructedU_mul_sigma (A : Matrix n n ℂ) :
     have hj' : (Complex.ofReal (singularValues A j) : ℂ) ≠ 0 := by
       simp only [ne_eq, Complex.ofReal_eq_zero]; exact hj
     -- LHS is (A * V) i j by definition
-    simp only [mul_apply]
+    rw [Matrix.mul_apply]
     field_simp
   · -- Case σⱼ = 0: both sides are 0
     push_neg at hj

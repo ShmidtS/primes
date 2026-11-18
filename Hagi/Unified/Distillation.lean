@@ -69,7 +69,7 @@ theorem soft_dial_zero : Tendsto softProb (nhds 0) (nhds (1/2)) := by
     refine Continuous.div continuous_const (continuous_const.add ?_) ?_
     · exact continuous_exp.comp continuous_neg
     · intro x
-      positivity
+      exact ne_of_gt (add_pos zero_lt_one (Real.exp_pos _))
   convert hcont.tendsto 0 using 2
   norm_num [softProb]
 

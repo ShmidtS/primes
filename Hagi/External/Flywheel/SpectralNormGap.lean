@@ -596,9 +596,13 @@ theorem frobenius_norm_sq_eq_sum_singularValues_sq {n' : Type*} [Fintype n'] [De
     rw [← Complex.normSq_eq_norm_sq]
   rw [h_norm_sq]
   -- Now show: ∑ᵢⱼ Complex.normSq (A i j) = Complex.re (trace (Aᴴ * A))
-  simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+  show ∑ i, ∑ j, Complex.normSq (A i j) = (∑ i, (Aᴴ * A) i i).re
+  have h_entry : ∀ i, (Aᴴ * A) i i = ∑ j, star (A j i) * A j i := by
+    intro i
+    show ∑ j, Aᴴ i j * A j i = _
+    simp only [conjTranspose_apply]
   rw [Finset.sum_comm]
-  simp only [Complex.re_sum]
+  simp only [h_entry, Complex.re_sum]
   apply Finset.sum_congr rfl; intro i _
   apply Finset.sum_congr rfl; intro j _
   -- Goal: Complex.normSq (A j i) = (star (A j i) * A j i).re

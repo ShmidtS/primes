@@ -328,18 +328,18 @@ theorem rayleigh_achieves_min (A : Matrix n n ℂ) (hA : A.IsHermitian) :
 /-! ### Subspace-Restricted Bounds -/
 
 /-- The span of a subset of eigenvectors. -/
-def eigenvectorSpan (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpan (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (S : Finset n) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : S => hA.eigenvectorBasis i.val))
 
 /-- The span of the first k eigenvectors (in sorted eigenvalue order). -/
-def eigenvectorSpanHead (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpanHead (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (k : Fin (Fintype.card n + 1)) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : Fin k =>
     hA.eigenvectorBasis ((Fintype.equivOfCardEq (Fintype.card_fin _)) (Fin.castLE (Nat.lt_succ_iff.mp k.isLt) i))))
 
 /-- The span of eigenvectors from index k to n-1 (tail of sorted order). -/
-def eigenvectorSpanTail (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpanTail (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (k : Fin (Fintype.card n)) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : Fin (Fintype.card n - k) =>
     hA.eigenvectorBasis ((Fintype.equivOfCardEq (Fintype.card_fin _)) ⟨k + i, by omega⟩)))
@@ -1147,6 +1147,7 @@ theorem singularValue₀_sq_eq_eigenvalue₀ (A : Matrix n n ℂ) (k : Fin (Fint
 /-! ### Rayleigh Quotient on AᴴA -/
 
 omit [Nonempty n] in
+set_option maxRecDepth 10000 in
 /-- For unit vectors in the tail eigenvector span of AᴴA, the Rayleigh quotient
     is bounded by the k-th eigenvalue. This translates to ‖Ax‖² ≤ σₖ². -/
 theorem rayleigh_AHA_tail_bound (A : Matrix n n ℂ) (k : Fin (Fintype.card n))
@@ -1189,6 +1190,7 @@ theorem norm_sq_mul_eq_inner_AHA (A : Matrix n n ℂ) (x : EuclideanSpace ℂ n)
 /-! ### Dimension Counting Lemmas -/
 
 omit [Nonempty n] in
+set_option maxRecDepth 10000 in
 /-- The tail eigenvector span has dimension n - k.
     This follows from eigenvectorSpanTail being the span of n - k orthonormal vectors. -/
 theorem tail_span_dim (A : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
@@ -1255,6 +1257,7 @@ private lemma finrank_ker_toEuclideanLin_ge (C : Matrix n n ℂ) :
   omega
 
 omit [Nonempty n] in
+set_option maxRecDepth 10000 in
 /-- For a matrix C with rank(C) + k < n, there exists a unit vector x that is:
     1. In the kernel of C (so Cx = 0)
     2. In the tail eigenvector span of AᴴA (so ‖Ax‖² ≤ σₖ²)

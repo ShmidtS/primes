@@ -738,6 +738,7 @@ theorem ce_global_convergence_ident (X : Matrix V (Fin d) ℝ) (t : V)
       ≤ (1 - μ / ceSmoothL X) ^ T
         * (Hagi.ceOneHot t (X *ᵥ θ₀.ofLp) - fstar) := by
   refine ce_global_convergence
+    (E := EuclideanSpace ℝ (Fin d))
     (fun θ => Hagi.ceOneHot t (X *ᵥ θ.ofLp)) (ceGrad X t)
     (ceSmoothL X) μ fstar ?_ ?_ ?_ ?_ ?_ θ₀ T <;>
     [exact ceSmoothL_pos X hne; exact h_rate;
@@ -1130,6 +1131,7 @@ theorem ce_rate_no_pl_ident (X : Matrix V (Fin d) ℝ) (t : V)
       θ₀).ofLp) - fstar
       ≤ 2 * ceSmoothL X * R ^ 2 / (T + 1) := by
   have main := ce_rate_no_pl
+    (E := EuclideanSpace ℝ (Fin d))
     (fun θ => Hagi.ceOneHot t (X *ᵥ θ.ofLp))
     (ceGrad X t) (ceSmoothL X) fstar R
     (ceSmoothL_pos X hne) hR

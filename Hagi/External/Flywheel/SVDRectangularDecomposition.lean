@@ -161,14 +161,20 @@ theorem leftSingularVectorByM_orthonormal_on_nonzero (A : Matrix m n ℂ) :
     that agrees with the left singular vectors on the diagonal nonzero positions. -/
 noncomputable def extendedONB_rectangular_v2 (A : Matrix m n ℂ) :
     OrthonormalBasis m ℂ (EuclideanSpace ℂ m) :=
-  (leftSingularVectorByM_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace |>.choose
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (v := leftSingularVectorByM A) (s := nonzeroSingularIndicesM A)
+    (E := EuclideanSpace ℂ m)
+    finrank_euclideanSpace
+    (leftSingularVectorByM_orthonormal_on_nonzero A)).choose
 
 /-- The extended ONB agrees with left singular vectors on the nonzero diagonal positions. -/
 theorem extendedONB_rectangular_v2_spec (A : Matrix m n ℂ) (k : m) (hk : k ∈ nonzeroSingularIndicesM A) :
     (extendedONB_rectangular_v2 A) k = leftSingularVectorByM A k :=
-  (leftSingularVectorByM_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
-    finrank_euclideanSpace |>.choose_spec k hk
+  (Orthonormal.exists_orthonormalBasis_extension_of_card_eq
+    (v := leftSingularVectorByM A) (s := nonzeroSingularIndicesM A)
+    (E := EuclideanSpace ℂ m)
+    finrank_euclideanSpace
+    (leftSingularVectorByM_orthonormal_on_nonzero A)).choose_spec k hk
 
 /-! ##### Original Orthonormal Basis Extension (kept for compatibility) -/
 
@@ -386,7 +392,8 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
     A * (rightUnitary A : Matrix n n ℂ) =
     (constructedU_rectangular A : Matrix m m ℂ) * singularDiagonal A := by
   ext i j
-  simp only [mul_apply]
+  show ∑ x, A i x * (rightUnitary A : Matrix n n ℂ) x j
+    = ∑ x, (constructedU_rectangular A : Matrix m m ℂ) i x * singularDiagonal A x j
   -- RHS: ∑ k, U i k * S k j
   -- S k j is nonzero only when k = diagonalK j (the diagonal position for j)
 

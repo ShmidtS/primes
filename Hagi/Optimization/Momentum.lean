@@ -226,7 +226,8 @@ theorem momentum_achievability (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
       tendsto_pow_atTop_nhds_zero_of_lt_one hρpos.le hρ1
     have hev : ∀ᶠ s in Filter.atTop, C * ρ ^ s < ε := by
       have hmem : ∀ᶠ s in Filter.atTop, ρ ^ s < ε / C :=
-        Filter.Tendsto.eventually htend (gt_mem_nhds (div_pos hε hCpos))
+        Filter.Tendsto.eventually (p := fun y : ℝ => y < ε / C) htend
+          (gt_mem_nhds (div_pos hε hCpos))
       refine hmem.mono fun s hs => ?_
       have := (lt_div_iff₀ hCpos).mp hs
       rw [mul_comm] at this
@@ -255,7 +256,7 @@ theorem momentum_entry_horizon (C ρ ε : ℝ) (hC : 0 < C)
     tendsto_pow_atTop_nhds_zero_of_lt_one hρ0.le hρ1
   have hpos : 0 < ε / C := div_pos hε hC
   have hev : ∀ᶠ s in Filter.atTop, ρ ^ s < ε / C :=
-    Filter.Tendsto.eventually htend (gt_mem_nhds hpos)
+    Filter.Tendsto.eventually (p := fun y : ℝ => y < ε / C) htend (gt_mem_nhds hpos)
   rw [Filter.eventually_atTop] at hev
   obtain ⟨T, hT⟩ := hev
   refine ⟨T, ?_, fun s hs => ?_⟩
@@ -577,7 +578,7 @@ theorem nesterov_achievability (e : ℕ → ℝ) (q β δ : ℝ)
       tendsto_pow_atTop_nhds_zero_of_lt_one hq'0.le hq'1
     have hev : ∀ᶠ s in Filter.atTop, q' ^ s * e 0 < ε := by
       have hmem : ∀ᶠ s in Filter.atTop, q' ^ s < ε / e 0 :=
-        Filter.Tendsto.eventually htend
+        Filter.Tendsto.eventually (p := fun y : ℝ => y < ε / e 0) htend
           (gt_mem_nhds (div_pos hε hpos))
       refine hmem.mono fun s hs => ?_
       have h3 := (lt_div_iff₀ hpos).mp hs
@@ -618,7 +619,8 @@ theorem nesterov_entry_horizon (e : ℕ → ℝ) (q β δ : ℝ)
       (nhds 0) :=
     tendsto_pow_atTop_nhds_zero_of_lt_one hq'0.le hq'1
   have hmem : ∀ᶠ s in Filter.atTop, q' ^ s < ε / e 0 :=
-    Filter.Tendsto.eventually htend (gt_mem_nhds (div_pos hε he0))
+    Filter.Tendsto.eventually (p := fun y : ℝ => y < ε / e 0) htend
+      (gt_mem_nhds (div_pos hε he0))
   have hev : ∀ᶠ s in Filter.atTop, q' ^ s * e 0 < ε :=
     hmem.mono fun s hs => by
       have h3 := (lt_div_iff₀ he0).mp hs

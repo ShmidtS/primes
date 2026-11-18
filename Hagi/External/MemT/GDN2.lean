@@ -351,7 +351,7 @@ theorem gdn2_stabilizes (U : Matrix k d ℝ) (D : Matrix d d ℝ)
         exact (mul_comm (rowSumNorm M) y) ▸ hy
       have hev : ∀ᶠ t in Filter.atTop, (rowSumNorm ((1 : Matrix d d ℝ)
           - Uᵀ * U) * rowSumNorm D) ^ t * rowSumNorm M < ε :=
-        Filter.Tendsto.eventually htend h2
+        Filter.Tendsto.eventually (p := fun y : ℝ => y * rowSumNorm M < ε) htend h2
       rw [Filter.eventually_atTop] at hev
       obtain ⟨T, hT⟩ := hev
       exact ⟨T, (hT T (le_refl T)).le⟩

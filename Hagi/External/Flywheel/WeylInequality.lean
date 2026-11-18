@@ -583,6 +583,7 @@ lemma norm_toEuclideanLin_le_add_singularValue₀ (A B : Matrix n n ℂ)
     norm_toEuclideanLin_le_singularValue₀ (A - B) x hx
   linarith
 
+set_option maxRecDepth 10000 in
 /-- **Weyl's Singular Value Perturbation** (one direction):
     σₖ(A) ≤ σₖ(B) + σ₁(A - B) -/
 theorem weyl_singularValue_upper_aux (A B : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
@@ -866,8 +867,12 @@ lemma finrank_ker_toEuclideanLin_ge' (C : Matrix n n ℂ) :
         rfl
     rw [h_range]
     exact (Submodule.equivMapOfInjective e.toLinearMap e.injective _).finrank_eq
+  set a := Module.finrank ℂ (LinearMap.range (Matrix.toEuclideanLin C)) with ha
+  set b := Module.finrank ℂ (LinearMap.ker (Matrix.toEuclideanLin C)) with hb
   omega
 
+set_option maxRecDepth 10000 in
+set_option maxHeartbeats 1000000 in
 /-- **Thompson's Singular Value Interlacing Inequality**
 
 For matrices A, B with rank(B) ≤ r:

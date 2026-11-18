@@ -305,6 +305,7 @@ theorem entropy_le_diagonal {A : Matrix ι ι ℂ} (hA : A.PosSemidef) :
   rwa [entropy_eq_sum hA.isHermitian]
 
 
+set_option maxHeartbeats 1000000 in
 /-- Entropy is invariant under every unitary basis change. -/
 theorem entropy_unitary_conj (U : Matrix.unitaryGroup ι ℂ)
     {A : Matrix ι ι ℂ} (hA : A.IsHermitian) :
@@ -323,6 +324,7 @@ theorem entropy_unitary_conj (U : Matrix.unitaryGroup ι ℂ)
       congrArg (fun P : Matrix ι ι ℂ ↦ P.trace.re) hm.symm
     _ = _ := congrArg Complex.re (trace_unitary_conj U _)
 
+set_option maxHeartbeats 1000000 in
 /-- The full matrix entropy, not just normalized-state entropy, is concave on
 positive semidefinite matrices. -/
 theorem concaveOn_entropy :
@@ -715,6 +717,8 @@ theorem spectralFactor_column {A : Matrix ι ι ℂ} (hA : A.PosSemidef) (k : ι
 section
 variable {ι : Type u_1} {α : Type u_4} [Fintype ι] [DecidableEq ι] [Fintype α] [DecidableEq α]
 
+set_option maxHeartbeats 1000000 in
+set_option maxRecDepth 10000 in
 theorem entropy_sum_le (A : α → Matrix ι ι ℂ) (hA : ∀ a, (A a).PosSemidef) :
     entropy (∑ a, A a) ≤ ∑ a, entropy (A a) := by
   let F : Matrix ι (α × ι) ℂ := fun i ak ↦ Information.GAD.spectralFactor (hA ak.1) i ak.2

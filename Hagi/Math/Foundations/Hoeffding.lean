@@ -84,12 +84,9 @@ private theorem bernRho_deriv_le {θ : ℝ} (h0 : 0 < θ) (h1 : θ < 1) (t : ℝ
 
 private theorem bernRho_cont {θ : ℝ} (h0 : 0 < θ) (h1 : θ < 1) :
     Continuous (bernRho θ) := by
-  unfold bernRho bernDenom
-  refine Continuous.div (by continuity) (by continuity) (fun t => ?_)
-  have hq : (0:ℝ) < 1 - θ := by linarith
-  have hp : (0:ℝ) < θ * Real.exp t := mul_pos h0 (Real.exp_pos t)
-  intro hcon
-  linarith
+  refine Continuous.div (continuous_const.mul Real.continuous_exp)
+    (by exact continuous_const.add (continuous_const.mul Real.continuous_exp))
+    (bernDenom_ne_zero h0 h1)
 
 private theorem bernRho_diff {θ : ℝ} (h0 : 0 < θ) (h1 : θ < 1) :
     Differentiable ℝ (bernRho θ) := by

@@ -110,6 +110,7 @@ private lemma eigenvalues_diagonal_of_sorted (f : Fin (Fintype.card n) → ℝ) 
   -- Extract function equality from list equality
   exact List.ofFn_injective h_eq_lists
 
+set_option maxHeartbeats 1000000 in
 lemma eigenvalues_sq {A : Matrix n n ℂ} (hA : A.PosSemidef) (i : n) :
     (hA.isHermitian.pow 2).eigenvalues i = (hA.isHermitian.eigenvalues i) ^ 2 := by
   /-
@@ -184,8 +185,8 @@ lemma eigenvalues_sq {A : Matrix n n ℂ} (hA : A.PosSemidef) (i : n) :
     ext j
     show star ((↑(hA.isHermitian.eigenvalues j) : ℂ) ^ 2) = (↑(hA.isHermitian.eigenvalues j)) ^ 2
     rw [star_pow]
-    congr 1
-    exact Complex.conj_ofReal _
+    try congr 1
+    try exact Complex.conj_ofReal _
 
   -- By eigenvalues_eq_eigenvalues_iff: matrices with same charpoly have same eigenvalues
   have h_eigenvalues_eq : (hA.isHermitian.pow 2).eigenvalues = h_D_herm.eigenvalues := by

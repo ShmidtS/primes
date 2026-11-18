@@ -48,8 +48,13 @@ theorem Matrix.SVD.Rectangular.frobeniusNorm_sq_eq_sum_singularValues_sq_rect (A
     norm_num
   rw [h_sq_sqrt]
   -- Goal: ∑ i, ∑ j, ‖A i j‖ ^ 2 = trace(Aᴴ*A).re
-  simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
+  have h_entry : ∀ j, (Aᴴ * A) j j = ∑ i, star (A i j) * A i j := by
+    intro j
+    show ∑ i, Aᴴ j i * A i j = _
+    simp only [conjTranspose_apply]
+  show ∑ i, ∑ j, ‖A i j‖ ^ (2 : ℝ) = (∑ j, (Aᴴ * A) j j).re
   rw [Finset.sum_comm]
+  simp only [h_entry]
   -- RHS is (∑ x, ∑ x_1, star (A x_1 x) * A x_1 x).re
   rw [Complex.re_sum]
   apply Finset.sum_congr rfl
@@ -137,7 +142,6 @@ private theorem hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
   rw [ENNReal.toReal_iSup h_ne_top]
   have h_eq : ∀ i, (↑(‖hH.eigenvalues i‖₊) : ENNReal).toReal = |hH.eigenvalues i| := fun i => by
     simp only [ENNReal.toReal, ENNReal.toNNReal_coe]
-    simp only [nnnorm, Real.norm_eq_abs]
     rfl
   simp_rw [h_eq]
   symm

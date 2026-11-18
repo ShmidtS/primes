@@ -410,6 +410,7 @@ theorem anytime_safety_stochastic (m : ℕ → ℕ) (hm : ∀ t, 0 < m t)
           ∪ ⋂ i : K, {ω : Ω | -(eps t i + noiseEps K sigma (d t) (m t) (delta0 * rho ^ t))
             ≤ ⟪g t i, d t⟫_ℝ} := by
       ext ω
+      rw [hGooddef]
       simp only [Set.mem_ofPred_eq, Set.mem_compl_iff, Set.mem_iInter, Set.mem_union]
       tauto
     rw [hEq2]

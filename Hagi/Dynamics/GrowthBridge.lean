@@ -326,7 +326,7 @@ theorem log_one_add_ge_sub_half_sq {x : ℝ} (hx : 0 ≤ x) :
           exact absurd h (by have := ht.1; linarith))
     have h3 : ContinuousOn (fun t : ℝ => t ^ 2 / 2) (Set.Icc 0 x) :=
       Continuous.continuousOn
-        (Continuous.div (continuous_id.pow 2) continuous_const (by norm_num))
+        (Continuous.div (continuous_id.pow 2) continuous_const (by exact fun _ => ne_of_gt two_pos))
     exact (h2.sub continuous_id.continuousOn).add h3
   -- differentiability + nonneg derivative on the interior
   have hdiff : DifferentiableOn ℝ (fun t : ℝ => Real.log (1 + t) - t + t ^ 2 / 2)
