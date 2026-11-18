@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Research.SchellingPercolation
-import Hagi.Unified.GuardedRobustResourceMin
+import Hagi.Unified.ParetoExecution
 
 /-!
 # Bounded structural admission for finite candidate controllers

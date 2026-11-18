@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Probability.FiniteFamilyConfidence
-import Hagi.Unified.GuardedRobustSelection
+import Hagi.Unified.ParetoExecution
 
 /-!
 # Conditional two-domain confidence transport for guarded selection

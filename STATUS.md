@@ -5073,7 +5073,7 @@ one-hot CE.
   и фактического неравенства, но не являются отдельными top-level теоремами.
 
 
-## Hagi/Unified/GuardedRobustLogit.lean
+### Hagi.Unified.GuardedRobustLogit — merged into ParetoExecution (C404)
 - `logitCE_guardedLogitNext_le`: для скалярной логистической модели
   выбранный преемник никогда не увеличивает `logitCE`; без estimated upgrade
   он равен текущему состоянию.
@@ -5086,7 +5086,7 @@ one-hot CE.
   Меньший спуск не обязан проходить guard с радиусом `1/2`.
 
 
-## Hagi/Unified/GuardedRobustResourceMin.lean
+### Hagi.Unified.GuardedRobustResourceMin — merged into ParetoExecution (C404)
 - `guardedMinimumResource_feasible`: при допустимом stay и односторонней
   ошибке базового действия выбранное действие остаётся в исходном `feasible`.
 - `guardedMinimumResource_quality_ge_stay`: если абсолютная ошибка оценки
@@ -5101,7 +5101,7 @@ one-hot CE.
   Это сравнение только с указанными конкурентами, не всеобщий минимум.
 
 
-## Hagi/Unified/GuardedRobustSelection.lean
+### Hagi.Unified.GuardedRobustSelection — merged into ParetoExecution (C404)
 - `guardedRobustNext_exists`: guard возвращает фактический преемник
   некоторого исходного допустимого действия; без estimated upgrade —
   именно преемник stay.
@@ -5392,7 +5392,7 @@ one-hot CE.
   семействе. Глобальная или аппаратная оптимальность не утверждается.
 
 
-## Hagi/Unified/ParetoLogit.lean
+### Hagi.Unified.ParetoLogit — merged into ParetoExecution (C404)
 - `logit_budget_loop`: для рекуррентности
   `w(t+1)=w t+eta t/(1+exp(w t))`, `0 < eta t ≤ 2`,
   `b(t+1)=b t−eta t`, `0 ≤ eta t ≤ b t` и `0 ≤ b0`
@@ -5421,7 +5421,7 @@ one-hot CE.
   `commitCount ≤ T`.
 
 
-## Hagi/Unified/QualityResourceMin.lean
+### Hagi.Unified.QualityResourceMin — merged into ParetoExecution (C404)
 - `minimumResource_next_quality_ge`: при непустом `qualityEligible`
   фактический преемник выбора удовлетворяет `qfloor ≤ value`.
 - `minimumResource_cost_min`: ни один элемент того же конечного
@@ -5509,7 +5509,7 @@ one-hot CE.
 wall-clock, сжатие весов или улучшение качества.
 
 
-## Hagi/Unified/RobustCostSensitivity.lean
+### Hagi.Unified.RobustCostSensitivity — merged into ParetoExecution (C404)
 - `robustEligible_mono_epsilon`: при `eps1 ≤ eps2` всякий допустимый
   в большем радиусе кандидат допустим и в меньшем.
 - `robustMinimumResource_cost_mono`: если заданы witnesses для обоих
@@ -5519,7 +5519,7 @@ wall-clock, сжатие весов или улучшение качества.
   только для памяти; монотонность operations из неё не утверждается.
 
 
-## Hagi/Unified/RobustRadius.lean
+### Hagi.Unified.RobustRadius — merged into ParetoExecution (C404)
 - `robust_eligible_iff_radius_le_margin`: для конечного контроллера
   с допустимым stay существование floor-certified кандидата равносильно
   `eps ≤ estimatedMaxValue − qfloor`, включая равенство.
@@ -5528,7 +5528,7 @@ wall-clock, сжатие весов или улучшение качества.
   показывает, что максимум берётся по оценкам фактических преемников.
 
 
-## Hagi/Unified/RobustResourceMin.lean
+### Hagi.Unified.RobustResourceMin — merged into ParetoExecution (C404)
 - `robustMinimumResource_actual_quality_ge`: если оценка всех фактических
   преемников отличается от ценности не более чем на `eps`, выбор удовлетворяет
   истинному qfloor.

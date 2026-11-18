@@ -1366,9 +1366,9 @@ physical cost.
 операций; это контур выбора, а не дополнительный neural layer.
 
 Основной вариант — минимизация ресурсов при quality floor.
-[`minimumResource`](Hagi/Unified/QualityResourceMin.lean) выбирает
+[`minimumResource`](Hagi/Unified/ParetoExecution.lean) выбирает
 `(memory,operations)` в memory-first Lex только внутри eligible finite
-семейства; [`minimumResource_next_quality_ge`](Hagi/Unified/QualityResourceMin.lean)
+семейства; [`minimumResource_next_quality_ge`](Hagi/Unified/ParetoExecution.lean)
 проверяет floor на фактическом successor. Пустое семейство не имеет
 такого witness. Оба Lean-selectorа используют Classical.choose: это
 noncomputable finite selection contracts, не native optimizer или runner.
@@ -1387,8 +1387,8 @@ noncomputable finite selection contracts, не native optimizer или runner.
 
 При оценке значения с абсолютной ошибкой не более eps на всех successors
 используем conservative floor, равный истинному floor плюс eps, и
-[`robustMinimumResource`](Hagi/Unified/RobustResourceMin.lean):
-[`robustMinimumResource_actual_quality_ge`](Hagi/Unified/RobustResourceMin.lean)
+[`robustMinimumResource`](Hagi/Unified/ParetoExecution.lean):
+[`robustMinimumResource_actual_quality_ge`](Hagi/Unified/ParetoExecution.lean)
 даёт истинный floor, но cost-min только среди certified family. На конечном `I`
 для [`argmax_select_certified`](Hagi/Cert/CertifiedArgmax.lean) требуем
 `0≤eps`, `∀k, |GammaHat k-Gamma k|≤eps`, estimated argmax
@@ -2040,8 +2040,8 @@ Spec-only селекторы (Classical.choose; только теоремы-по
   existence-witness минимальной нормы над convex hull;
 - [`safeQP_exists_unique`](Hagi/Step/SafeQP.lean) — сам теорема
   (premise-form), choose-def не поставляется;
-- [`minimumResource`](Hagi/Unified/QualityResourceMin.lean) и
-  [`robustMinimumResource`](Hagi/Unified/RobustResourceMin.lean) —
+- [`minimumResource`](Hagi/Unified/ParetoExecution.lean) и
+  [`robustMinimumResource`](Hagi/Unified/ParetoExecution.lean) —
   noncomputable selection contracts; компьютабельная альтернатива
   `finiteSelection` уже подключена (§8); robust-вариант исполняется
   как `finiteSelection` с консервативным floor `qfloor+eps`;

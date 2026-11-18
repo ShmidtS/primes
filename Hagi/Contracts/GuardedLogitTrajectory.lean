@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Unified.GuardedRobustTrajectory
-import Hagi.Unified.GuardedRobustLogit
+import Hagi.Unified.ParetoExecution
 import Hagi.Contracts.ObjectiveTrajectory
 set_option linter.style.header false
 

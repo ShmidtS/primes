@@ -4,7 +4,6 @@ import Hagi.Unified.GuardedRobustTrajectory
 import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Math.Foundations.Telescope
-import Hagi.Unified.GuardedRobustSelection
 import Hagi.Unified.ParetoExecution
 import Hagi.State.TrainState
 import Hagi.State.Transition
