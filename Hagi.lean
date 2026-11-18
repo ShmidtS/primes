@@ -195,6 +195,7 @@ import Hagi.Energy.STEStep
 import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact
 import Hagi.Runtime.VennPacking
+import Hagi.Runtime.CertChecker
 import Hagi.Step.JointPreserve
 import Hagi.Budget.ElementQuant
 import Hagi.Budget.ResidualVQ
