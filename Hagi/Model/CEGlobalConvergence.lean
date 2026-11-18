@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 import Hagi.Core.Concat
 import Hagi.Model.SoftmaxHead
-import Hagi.Model.GatedCEUniformCurvature
+import Hagi.Model.GatedCEDescent
 
 /-!
 # Global convergence for the log-linear CE head under PL

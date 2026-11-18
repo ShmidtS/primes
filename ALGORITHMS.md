@@ -1435,7 +1435,7 @@ v_i(k,a)   = E_(b∼K(k,a)) (g_i(k,a,b))².
 `|g_i| ≤ ceBound X`; центрирование `E g_i = 0` является определением,
 а не дополнительным статистическим допущением. Выбираем `r > 0`, `V ≥ 0`
 и используем один `historyLaw initial K T T` для всего банка.
-[`raw_bank_freedman_maximal_confidence`](Hagi/Model/CEMarkovMaximalConfidence.lean)
+[`raw_bank_freedman_maximal_confidence`](Hagi/Model/CEMarkovConfidence.lean)
 даёт нижнюю границу математического ожидания индикатора
 
 ```
@@ -1464,7 +1464,7 @@ A_i, сумму её conditional PMF mean через M_i, а residual через
 Если одновременное prefix confidence-событие выполнено, обе границы
 `historyCounter v T (τ ω) ω ≤ V` для `b` и `σ ω` выполнены и
 `2*r < A_b − A_(σ ω)`, то
-[`raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`](Hagi/Model/CEMarkovSelectedPrefix.lean)
+[`raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`](Hagi/Model/CEMarkovConfidence.lean)
 доказывает `0 < M_b − M_(σ ω)`. Разложение `A_i = historyAdditive g_i + M_i`
 и `|historyAdditive g_i| < r` делают conditional gap не меньше raw gap
 минус суммарный radius `2r`; условие hobs остаётся посылкой.

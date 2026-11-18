@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CEModel
-import Hagi.Model.GatedCESafeStep
+import Hagi.Model.GatedCEDescent
 import Hagi.Model.CEGlobalConvergence
 import Hagi.Model.CEMarginPL
 import Hagi.Unified.StochasticCELearning

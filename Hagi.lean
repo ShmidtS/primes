@@ -175,8 +175,6 @@ import Hagi.Model.CEJointScale
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEMarkovConfidence
-import Hagi.Model.CEMarkovMaximalConfidence
-import Hagi.Model.CEMarkovSelectedPrefix
 import Hagi.Model.NonlinearCE
 import Hagi.Model.CEStorageBound
 import Hagi.Model.CEConfidenceScale
@@ -463,12 +461,7 @@ import Hagi.Contracts.AuditLedger
 import Hagi.Contracts.VilleMonitor
 import Hagi.Contracts.TruncatedSVDTail
 import Hagi.Contracts.TotalError
-import Hagi.Model.GatedCEGradient
 import Hagi.Model.GatedCEDescent
-import Hagi.Model.TanhTaylor
-import Hagi.Model.GatedCESafeStep
-import Hagi.Model.GatedCEPositiveCurvature
-import Hagi.Model.GatedCEUniformCurvature
 import Hagi.Model.Routing
 import Hagi.Model.Logic.VennHead
 import Hagi.Contracts.LogicChoiceCert

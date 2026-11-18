@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Hagi.Model.AttentionTransfer
-import Hagi.Model.GatedCEGradient
+import Hagi.Model.GatedCEDescent
 import Hagi.Architecture.ManifoldHyperConn
 
 set_option linter.style.header false

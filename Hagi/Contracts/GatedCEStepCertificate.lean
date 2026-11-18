@@ -1,6 +1,6 @@
 import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.ObjectiveTrajectory
-import Hagi.Model.GatedCESafeStep
+import Hagi.Model.GatedCEDescent
 import Hagi.Model.CEHeldout
 import Hagi.Unified.ParetoExecution
 

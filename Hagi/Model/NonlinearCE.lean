@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Model.CEJacobianMajorizer
-import Hagi.Model.TanhTaylor
+import Hagi.Model.GatedCEDescent
 
 /-!
 # Nonlinear cross-entropy safe step via the Jacobian residual

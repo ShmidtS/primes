@@ -2340,7 +2340,6 @@ one-hot CE.
   разность «исходный вариант минус выбранный» строго положительна.
 
 
-## Hagi/Model/CEMarkovMaximalConfidence.lean
 - `raw_bank_freedman_maximal_confidence`: для исходной (не нормированной)
   CE, вычисленной по фиксированному decodeJoint на парах «банк — метка», пусть
   `g = F − μ`, где `μ` — conditional PMF mean следующей CE, а `v` — точный
@@ -2358,7 +2357,6 @@ one-hot CE.
   оптимальная константа или снижение вычислительной стоимости.
 
 
-## Hagi/Model/CEMarkovSelectedPrefix.lean
 - `raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`: для банка raw
   CE, kernel `K` и одновременного события для всех `j ≤ T`, явно задаются
   baseline `b`, full-history selector `σ` и bounded prefix `τ`, причём
@@ -3020,7 +3018,6 @@ one-hot CE.
   шага в этой теореме не вычисляется.
 
 
-## Hagi/Model/GatedCEGradient.lean
 - `hasFDerivAt_gatedForward` задаёт точный якобиан обучаемого
   `gatedForward`, а `fderiv_ceOneHot_gatedForward` выражает производную CE
   как сумму произведений компонент softmax-остатка на
@@ -3030,17 +3027,6 @@ one-hot CE.
   1-липшицевость `Real.tanh`.
 
 
-## Hagi/Model/GatedCEPositiveCurvature.lean
-- Из `0 < gatedAlignment X θ t`
-  `gatedResidualSecondOrderMass_pos_of_alignment_pos` получает строго
-  положительную вторую моментную массу остатка, а
-  `gatedCurvature_pos_of_alignment_pos` — положительную полную кривизну
-  квадратичного мажоризатора.
-- `gatedSafeStepSize_eq_div_of_alignment_pos`: в этой ветви
-  `gatedSafeStepSize = gatedAlignment / (2*gatedCurvature)`.
-
-
-## Hagi/Model/GatedCESafeStep.lean
 - `gatedDisplacement_eq_linear_add_remainder` точно разделяет линейное
   якобианово смещение и остаток; `abs_gatedLogitRemainder_le` ограничивает
   остаток величиной `2*η^2*gatedUnitSecondOrderMass X D v`.
@@ -3055,7 +3041,15 @@ one-hot CE.
   мажоризатор.
 
 
-## Hagi/Model/GatedCEUniformCurvature.lean
+- Из `0 < gatedAlignment X θ t`
+  `gatedResidualSecondOrderMass_pos_of_alignment_pos` получает строго
+  положительную вторую моментную массу остатка, а
+  `gatedCurvature_pos_of_alignment_pos` — положительную полную кривизну
+  квадратичного мажоризатора.
+- `gatedSafeStepSize_eq_div_of_alignment_pos`: в этой ветви
+  `gatedSafeStepSize = gatedAlignment / (2*gatedCurvature)`.
+
+
 - `gatedResidualSecondOrderMass_direction_le` ограничивает вторую
   моментную массу остатка величиной `gatedSecondOrderFeatureMass X`;
   `gatedCurvature_le_uniformBound` ограничивает кривизну функцией только от
@@ -3063,6 +3057,13 @@ one-hot CE.
 - `gatedCurvatureUniformBound_pos`: эта зависящая только от признаков
   верхняя граница строго положительна, включая нулевые признаки и нулевую
   размерность.
+
+
+- `norm_deriv_sechSq_le`: `‖deriv sechSq x‖ ≤ 2`;
+  `abs_sechSq_sub_le` доказывает глобальную 2-липшицевость `sechSq`.
+- `abs_tanh_taylor_sub_le`:
+  `|tanh y-tanh x-sechSq x*(y-x)| ≤ 2*(y-x)^2`
+  для произвольных вещественных `x y`.
 
 
 ## Hagi/Model/Generative.lean
@@ -3563,14 +3564,6 @@ one-hot CE.
   имеет радиус `1` и коэффициент `2`.
 - `ceOneHot_tanh_step_lt` делает спуск строгим; равенство фактического
   спада величине `1/66` не утверждается.
-
-
-## Hagi/Model/TanhTaylor.lean
-- `norm_deriv_sechSq_le`: `‖deriv sechSq x‖ ≤ 2`;
-  `abs_sechSq_sub_le` доказывает глобальную 2-липшицевость `sechSq`.
-- `abs_tanh_taylor_sub_le`:
-  `|tanh y-tanh x-sechSq x*(y-x)| ≤ 2*(y-x)^2`
-  для произвольных вещественных `x y`.
 
 
 ## Hagi/Numerics/SoftmaxFix.lean

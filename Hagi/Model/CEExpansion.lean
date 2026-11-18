@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CEDescent
 import Hagi.Model.CEJacobianMajorizer
-import Hagi.Model.GatedCEUniformCurvature
+import Hagi.Model.GatedCEDescent
 
 /-!
 # One-coordinate latent/readout expansion of a finite categorical head
