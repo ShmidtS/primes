@@ -5666,6 +5666,28 @@ wall-clock, сжатие весов или улучшение качества.
   специализируется, safe step η = 1/2 доводит sample loss точно
   до нуля (single-sample constant-field — pin).
 
+## Hagi/Theory/Interpretability.lean
+- `RebuildSystem`/`Rebuildable`: контракт C421 — интерпретируемость
+  как description-length bound (iWSP rebuild bottleneck, arXiv
+  2611.18114): сертификат = существование описания d бюджетом ≤ B,
+  чей rebuild R(d) сохраняет качество в пределах ε по лоссу ℓ.
+- `rebuildable_of_compressible`: мост сжатие→rebuild — короткое
+  описание + ограниченное смещение параметров (dist M̃ M ≤ δ) дают
+  сертификат с ε_rebuild = lip·δ, ВЫВЕДЕНО через липшицев transport
+  (алгебра C389, premise-binder).
+- `exists_good_not_reachable`/`exists_not_rebuildable`/
+  `exists_not_exact_rebuildable`: конечный counting bound
+  (pigeonhole через card_le_of_injective): бюджет-B описаний над
+  конечным алфавитом достигают ≤ card Sig^B моделей; при большей
+  мощности ε-good множества (premise) некоторая ε-good модель не
+  является rebuild ни одного описания — interpretability-is-special
+  (без kolmogorov-претензий: чистая кардинальная арифметика).
+- `withDescCost_le`/`admission_margin_mono_descCost`: указатель
+  C390 — бюджет описания входит в admission margin как
+  memoryCost-подобный неотрицательный ресурсный канал; его
+  удержание может только СЖАТЬ маржу, не создать admission
+  (abstract-margin указатель без импорта Training-слоя — layering).
+
 ## C245 deferrals (Phase 1, documented)
 
 - Quarantines out of defaultTargets (A7 Phase-1 item): DEFERRED.
