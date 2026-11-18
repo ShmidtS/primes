@@ -5648,6 +5648,24 @@ wall-clock, сжатие весов или улучшение качества.
   `e t ≤ Estar + q^t(e0−Estar) + σ²/(B0(1−q))`.
   Постоянный шумовой член — консервативная граница данной рекуррентности.
 
+## Hagi/Theory/FlowMatching.lean
+- `cfmPsi`/`cfmOtField`/`cfmSigma`: OT-условный путь и замкнутый
+  conditional VF (equations 20–22 статьи Flow Matching), честно
+  дискретно — на конечном словаре `V`.
+- `cfmSampleLoss` + `cfmSampleLoss_eq_sqDiff`: per-sample CFM loss
+  === инстанциация C384 `sqDiffObjective` на паре
+  (v t (ψ_t x₀), otField) — мост definitional (rfl).
+- `cfmLoss`/`cfmLoss_nested`/`cfm_expected_diff`: конечное
+  ожидание по joint (uniform-сетка ⊗ q ⊗ p, pmfMean); закон
+  полного ожидания и unbiasedness разности per-sample оценок
+  (дискретный аналог роли Theorem 2; непрерывный оригинал НЕ
+  формализован — pin).
+- `cfmLinStep`/`cfm_lin_descent`/`cfm_lin_safe_step_zero`:
+  linearized VF как `UniversalSafeStep` (C387) с majorizer-
+  EQUALITY (A = C = 4‖θ−u‖²); universal certified drop
+  специализируется, safe step η = 1/2 доводит sample loss точно
+  до нуля (single-sample constant-field — pin).
+
 ## C245 deferrals (Phase 1, documented)
 
 - Quarantines out of defaultTargets (A7 Phase-1 item): DEFERRED.
