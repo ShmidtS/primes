@@ -42,8 +42,6 @@ import Hagi.Data.DistillRecursion
 import Hagi.Step.SafeQP
 import Hagi.Step.ProjectionDescent
 import Hagi.Step.SafeQPStep
-import Hagi.Step.StochasticSafeQP
-import Hagi.Step.AdaptiveSafeQP
 import Hagi.Step.Dominate
 import Hagi.Energy.FreeEnergy
 import Hagi.Energy.PairwiseCategorical
@@ -77,9 +75,7 @@ import Hagi.StatMech.Hopfield.CharPatterns
 import Hagi.StatMech.Hopfield.SubMemory
 import Hagi.Optimization.EF21Quantizer
 import Hagi.Optimization.MomentumHB
-import Hagi.Optimization.HBRate
 import Hagi.Learning.ToyTrajectory
-import Hagi.Step.SubspaceSafeQP
 import Hagi.Learning.RCDL
 import Hagi.Learning.HadamardProjectors
 import Hagi.Learning.HRCN
@@ -104,7 +100,6 @@ import Hagi.Learning.SpectralBudget
 import Hagi.Information.Capacity
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
-import Hagi.Step.VariantSafeQP
 import Hagi.Architecture.CortexFiber
 import Hagi.Architecture.ManifoldHyperConn
 import Hagi.Architecture.AlignedMerge
@@ -392,7 +387,6 @@ import Hagi.Optimization.ComputeScaling
 import Hagi.Optimization.PLConvergence
 import Hagi.Optimization.NeuronAlloc
 import Hagi.Optimization.LRSchedule
-import Hagi.Optimization.PolyStep
 import Hagi.Optimization.DREAM
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.AdaptiveCycle

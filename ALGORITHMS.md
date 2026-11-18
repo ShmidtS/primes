@@ -729,15 +729,15 @@ RNG runtime, generalization, меньший FLOP count или улучшенны
 - HeavyBall: используем только квадратичную модальную модель. Для
   `0<μ≤L` полагаем
   `β=((√L-√μ)/(√L+√μ))²`, `eta=4/(√L+√μ)²`.
-  [`hb_general_window`](Hagi/Optimization/HBRate.lean) покрывает
+  [`hb_general_window`](Hagi/Optimization/MomentumHB.lean) покрывает
   `μ≤λ≤L`. Для характеристических корней и Jordan-оценки дополнительно
   требуем `0<μ<L` (тогда `0<β<1`, `ρ=√β>0`) и соответствующие
-  root/recurrence посылки: [`hb_spectral_mode`](Hagi/Optimization/HBRate.lean)
+  root/recurrence посылки: [`hb_spectral_mode`](Hagi/Optimization/MomentumHB.lean)
   даёт `|root|²=β` для заданного root-уравнения.
   Это не траекторный `Cβ^(t/2)` результат: при кратном корне есть
-  Jordan-фактор [`hb_critical_trajectory_bound`](Hagi/Optimization/HBRate.lean),
+  Jordan-фактор [`hb_critical_trajectory_bound`](Hagi/Optimization/MomentumHB.lean),
   а у фактической пары HeavyBall второй коэффициент —
-  `β+eta(1-β)` по [`hb_pair_second_order`](Hagi/Optimization/HBRate.lean).
+  `β+eta(1-β)` по [`hb_pair_second_order`](Hagi/Optimization/MomentumHB.lean).
 
 ## 6. Квантование и распределение памяти/битов
 

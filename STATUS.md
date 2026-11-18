@@ -3757,26 +3757,6 @@ one-hot CE.
   до первого попадания и `.Arrived target` начиная с него.
 
 
-## Hagi/Optimization/HBRate.lean
-- `hb_discriminant_interval`: при `0 < β < 1` и
-  `(1-√β)^2 ≤ η*μ ≤ (1+√β)^2` дискриминант неположителен;
-  `hb_root_modulus` для корня `λ²-tλ+β=0` с `0 < β` и
-  дискриминантом `≤0` даёт `normSq λ = β`.
-- `hb_cfg_rate`: при `0 < ρ < 1` и корне характеристического уравнения
-  конфигурации `β=ρ²`, `η=(1-ρ)²` имеет место `normSq λ = ρ²`.
-- `hb_repeated_root_closed_form` даёт `e n=(C+D*n)*ρ^n`;
-  `hb_critical_trajectory_bound` для `0 < ρ` оценивает критическую
-  скалярную моду через `(|e0|+|e1/ρ-e0|*n)*ρ^n`, сохраняя жорданов фактор.
-- `hb_two_root_closed_form` разлагает траекторию в
-  `A*λ1^n+B*λ2^n`; при `‖λ1‖=‖λ2‖=rho`
-  `hb_two_root_common_norm_bound` даёт `‖e n‖≤(‖A‖+‖B‖)*rho^n`.
-- Для исходной пары Heavy Ball `hb_pair_second_order` получает свободный
-  коэффициент `β+η*(1-β)`. При корнях с общей границей `rho i` и
-  `0 < gap i ≤ ‖λ1 i-λ2 i‖` `hb_pair_l2_initial_gap_bound` ограничивает
-  `‖e n‖` корнем из суммы квадратов
-  `(2*(‖e1 i‖+rho i*‖e0 i‖)/gap i * rho i^n)^2`.
-
-
 ## Hagi/Optimization/InexactContraction.lean
 - `inexact_contraction_halt`: при `0 < q < 1`, `0 ≤ ε`,
   `x(k+1)≤q*x k+ε`, `0 < B`, `x0≤B` и
@@ -3802,6 +3782,10 @@ one-hot CE.
 
 
 ## Hagi/Optimization/LRSchedule.lean
+- Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт `polyWeights C eps w < polyWeights C eps u`.
+- `polyDelta` образует взвешенную сумму направлений, а `polyStepUpdate` прибавляет её с коэффициентом `ℓ` к `θ`.
+- `polyDelta_basis_sum`: если `dirs v j = if v = j then 1 else 0`, то при непустом конечном `n` сумма координат `polyDelta dirs C eps` равна `1`; это не утверждение о невырожденности каждой координаты или о качестве обновления.
+
 - `late_phase_bound`: при `plRec`, `0 ≤ mu etaMax`, `0 ≤ eta t ≤ etaMax`,
   `0 ≤ e t`, `mu*eta t ≤ 1`
   `e(m+k) ≤ e m+k*sig^2*etaMax^2` (устойчивая фаза и фаза затухания).
@@ -3866,6 +3850,24 @@ one-hot CE.
 
 
 ## Hagi/Optimization/MomentumHB.lean
+- `hb_discriminant_interval`: при `0 < β < 1` и
+  `(1-√β)^2 ≤ η*μ ≤ (1+√β)^2` дискриминант неположителен;
+  `hb_root_modulus` для корня `λ²-tλ+β=0` с `0 < β` и
+  дискриминантом `≤0` даёт `normSq λ = β`.
+- `hb_cfg_rate`: при `0 < ρ < 1` и корне характеристического уравнения
+  конфигурации `β=ρ²`, `η=(1-ρ)²` имеет место `normSq λ = ρ²`.
+- `hb_repeated_root_closed_form` даёт `e n=(C+D*n)*ρ^n`;
+  `hb_critical_trajectory_bound` для `0 < ρ` оценивает критическую
+  скалярную моду через `(|e0|+|e1/ρ-e0|*n)*ρ^n`, сохраняя жорданов фактор.
+- `hb_two_root_closed_form` разлагает траекторию в
+  `A*λ1^n+B*λ2^n`; при `‖λ1‖=‖λ2‖=rho`
+  `hb_two_root_common_norm_bound` даёт `‖e n‖≤(‖A‖+‖B‖)*rho^n`.
+- Для исходной пары Heavy Ball `hb_pair_second_order` получает свободный
+  коэффициент `β+η*(1-β)`. При корнях с общей границей `rho i` и
+  `0 < gap i ≤ ‖λ1 i-λ2 i‖` `hb_pair_l2_initial_gap_bound` ограничивает
+  `‖e n‖` корнем из суммы квадратов
+  `(2*(‖e1 i‖+rho i*‖e0 i‖)/gap i * rho i^n)^2`.
+
 - `hb_pair_recurrence` задаёт компонентное
   `e'=(1-eta)*e+v`; `hb_char_eq_1d` проверяет соответствующее
   характеристическое тождество второго порядка.
@@ -3902,12 +3904,6 @@ one-hot CE.
 - `ppoClip r lb ub = max lb (min ub r)`; доказаны монотонность по `r` и `ppoClip_fixed`: при `lb ≤ r ≤ ub` отсечка равна `r`.
 - `ppo_clip_term_abs_bound` при `0 ≤ e` даёт `|ppoClip r (1-e) (1+e) * A| ≤ (1+e) * |A|`.
 - `ppo_surr_upper_bound` ограничивает `min (r*A) (ppoClip r (1-e) (1+e) * A)` сверху той же величиной `(1+e)*|A|`. Нижняя граница суррогатной цели и сходимость оптимизации здесь не утверждаются.
-
-
-## Hagi/Optimization/PolyStep.lean
-- Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт `polyWeights C eps w < polyWeights C eps u`.
-- `polyDelta` образует взвешенную сумму направлений, а `polyStepUpdate` прибавляет её с коэффициентом `ℓ` к `θ`.
-- `polyDelta_basis_sum`: если `dirs v j = if v = j then 1 else 0`, то при непустом конечном `n` сумма координат `polyDelta dirs C eps` равна `1`; это не утверждение о невырожденности каждой координаты или о качестве обновления.
 
 
 ## Hagi/Optimization/RobbinsMonro.lean
@@ -4335,13 +4331,6 @@ one-hot CE.
 - `trainStep_write_semantics` обновляет выбранную строку памяти и увеличивает `mem.consolidated` на `1`. При отсутствии записи память сохраняется, а при записи по адресу `i` остальные адреса не меняются по `trainStep_foreign_address_intact`.
 
 
-## Hagi/Step/AdaptiveSafeQP.lean
-- `latticeNet_covers`: при `n > 0`, `D ≥ 0`, `epsDir > 0`, `D*sqrt n/epsDir + 1 ≤ M` и `‖x‖ ≤ D` существует точка сетки на расстоянии не более `ε_dir`; `latticeNet_card_le` ограничивает размер через `(2*M+1)^n`.
-- `adaptive_net_concentration` при `m > 0`, `sigma > 0`, `delta ∈ Ioo 0 1` и посылках нулевого среднего, независимости, измеримости и ограниченности шума на всём шаре `D+epsDir` даёт равномерную по сетке концентрацию с вероятностью не меньше `1-delta`.
-- `adaptive_direction_concentration` переносит её на любое `dstar ω` с `‖dstar ω‖ ≤ D`, добавляя `sigma*epsDir`; измеримость `d*` отдельно не требуется.
-- `adaptive_safeQP_feasibility` на событии вероятности не меньше `1-delta`: если градиенты мини-батча выполняют `-(eps i) ≤ ⟪g i + noise, dstar⟫`, то истинные градиенты выполняют `-(eps i + adaptiveNoiseEps + sigma*epsDir) ≤ ⟪g i,dstar⟫`.
-
-
 ## Hagi/Step/ArmijoAcceptance.lean
 - `armijo_sufficient_decrease`: из направленности `⟪g,d⟫ ≤ -c1*‖d‖^2`, `c1 > 0`, `alpha > 0` и квадратичной гладкости следует `J(alpha•d) ≤ J 0 - (c1 - L*alpha/2)*alpha*‖d‖^2`.
 - `armijo_step_size` добавляет `L ≥ 0` и `alpha ≤ c1/L` и получает упрощённую гарантию `J(alpha•d) ≤ J 0 - (c1/2)*alpha*‖d‖^2`. Это одношаговая оценка при заданной посылке гладкости.
@@ -4500,6 +4489,42 @@ one-hot CE.
 
 
 ## Hagi/Step/SafeQP.lean
+- Минибатч-оценка `ĝᵢ = gᵢ + m⁻¹Σⱼ ξᵢⱼ` имеет точную проекцию
+  `⟪ĝᵢ,d⟫ = ⟪gᵢ,d⟫ + m⁻¹Σⱼ⟪ξᵢⱼ,d⟫`.
+  При фиксированном `d ≠ 0`, `σ > 0`, `0 < δ < 1` и измеримых, центрированных,
+  независимых по `j < m` проекциях с `‖ξᵢⱼ‖ ≤ σ`,
+  `stochastic_safeQP_feasibility` переносит оценочные ограничения
+  `−eps i ≤ ⟪ĝᵢ,d⟫` в истинные `−(eps i + noiseEps) ≤ ⟪gᵢ,d⟫`
+  с вероятностью не менее `1 − δ`.
+- Здесь `noiseEps = σ‖d‖√(2 log(|K|/δ)/m)`.
+  `lr_batch_equivalence` даёт точное тождество
+  `(k eta)·noiseEps(m) = eta·noiseEps(k²m)` в смысле преобразования
+  `(eta,m) ↦ (k·eta,k²·m)` при `k,m > 0`; это тождество шумового бюджета,
+  не утверждение о времени обучения.
+
+- `latticeNet_covers`: при `n > 0`, `D ≥ 0`, `epsDir > 0`, `D*sqrt n/epsDir + 1 ≤ M` и `‖x‖ ≤ D` существует точка сетки на расстоянии не более `ε_dir`; `latticeNet_card_le` ограничивает размер через `(2*M+1)^n`.
+- `adaptive_net_concentration` при `m > 0`, `sigma > 0`, `delta ∈ Ioo 0 1` и посылках нулевого среднего, независимости, измеримости и ограниченности шума на всём шаре `D+epsDir` даёт равномерную по сетке концентрацию с вероятностью не меньше `1-delta`.
+- `adaptive_direction_concentration` переносит её на любое `dstar ω` с `‖dstar ω‖ ≤ D`, добавляя `sigma*epsDir`; измеримость `d*` отдельно не требуется.
+- `adaptive_safeQP_feasibility` на событии вероятности не меньше `1-delta`: если градиенты мини-батча выполняют `-(eps i) ≤ ⟪g i + noise, dstar⟫`, то истинные градиенты выполняют `-(eps i + adaptiveNoiseEps + sigma*epsDir) ≤ ⟪g i,dstar⟫`.
+
+- `subspace_eps_le_full`: при `r ≤ n`, `D,epsDir,σ ≥ 0`, `m > 0`, `δ > 0`
+  и `δ ≤ 2|K|(2M+1)^r` выполняется
+  `adaptiveNoiseEps K r D epsDir M σ m δ
+    ≤ adaptiveNoiseEps K n D epsDir M σ m δ`.
+- Тем самым меньшая размерность сети не увеличивает тот же модельный порог
+  концентрации; утверждение ограничивается сравнением этих двух порогов.
+
+- `mProject_exists_unique`: в вещественном `InnerProductSpace X` с
+  `[FiniteDimensional ℝ X]`, при `eps i ≥ 0` и непрерывном линейном
+  автоморфизме `A` существует единственный минимизатор `mDist A d d0`
+  на `safeSet g eps`. Через `mDist_eq` это евклидова проекция в координатах `A d`.
+- `klsSafeQP_certified`: при `C ≥ 0`, `B > 0`, принятых условиях Пуанкаре,
+  границе чувствительности и некоррелированности батча, точной девиации
+  оценки, `t > 0` и
+  `eps + |gd|t ≤ gd·trueInner x` для всех `x`, масса события
+  `eps ≤ gd·estInner` не меньше
+  `1 − (C·L²‖a‖²/B)/t²`.
+
 - `spectral_tail_energy`: для ортонормированного семейства `v` и
   `x = Σᵢ⟪x,vᵢ⟫vᵢ` энергия отброшенного хвоста равна
   `‖x − spectralProj s x‖² = Σ_{i∈sᶜ}⟪x,vᵢ⟫²`.
@@ -4531,30 +4556,6 @@ one-hot CE.
   каждая координата принадлежит `{−1,0,1}`.
 
 
-## Hagi/Step/StochasticSafeQP.lean
-- Минибатч-оценка `ĝᵢ = gᵢ + m⁻¹Σⱼ ξᵢⱼ` имеет точную проекцию
-  `⟪ĝᵢ,d⟫ = ⟪gᵢ,d⟫ + m⁻¹Σⱼ⟪ξᵢⱼ,d⟫`.
-  При фиксированном `d ≠ 0`, `σ > 0`, `0 < δ < 1` и измеримых, центрированных,
-  независимых по `j < m` проекциях с `‖ξᵢⱼ‖ ≤ σ`,
-  `stochastic_safeQP_feasibility` переносит оценочные ограничения
-  `−eps i ≤ ⟪ĝᵢ,d⟫` в истинные `−(eps i + noiseEps) ≤ ⟪gᵢ,d⟫`
-  с вероятностью не менее `1 − δ`.
-- Здесь `noiseEps = σ‖d‖√(2 log(|K|/δ)/m)`.
-  `lr_batch_equivalence` даёт точное тождество
-  `(k eta)·noiseEps(m) = eta·noiseEps(k²m)` в смысле преобразования
-  `(eta,m) ↦ (k·eta,k²·m)` при `k,m > 0`; это тождество шумового бюджета,
-  не утверждение о времени обучения.
-
-
-## Hagi/Step/SubspaceSafeQP.lean
-- `subspace_eps_le_full`: при `r ≤ n`, `D,epsDir,σ ≥ 0`, `m > 0`, `δ > 0`
-  и `δ ≤ 2|K|(2M+1)^r` выполняется
-  `adaptiveNoiseEps K r D epsDir M σ m δ
-    ≤ adaptiveNoiseEps K n D epsDir M σ m δ`.
-- Тем самым меньшая размерность сети не увеличивает тот же модельный порог
-  концентрации; утверждение ограничивается сравнением этих двух порогов.
-
-
 ## Hagi/Step/Upgrades.lean
 - `skip_bound`: если `p = softmaxW s` — распределение и масса `δ`
   пропущенного множества меньше `1`, после удаления этого множества и
@@ -4564,19 +4565,6 @@ one-hot CE.
 - `sink_cost_bound` повторяет ту же оценку `2δ` для перенормированного
   распределения после отбрасывания массы `δ`; `sink_window_substitutes`
   из `T > 0` и `T(W+S)=C` получает `W+S=C/T`.
-
-
-## Hagi/Step/VariantSafeQP.lean
-- `mProject_exists_unique`: в вещественном `InnerProductSpace X` с
-  `[FiniteDimensional ℝ X]`, при `eps i ≥ 0` и непрерывном линейном
-  автоморфизме `A` существует единственный минимизатор `mDist A d d0`
-  на `safeSet g eps`. Через `mDist_eq` это евклидова проекция в координатах `A d`.
-- `klsSafeQP_certified`: при `C ≥ 0`, `B > 0`, принятых условиях Пуанкаре,
-  границе чувствительности и некоррелированности батча, точной девиации
-  оценки, `t > 0` и
-  `eps + |gd|t ≤ gd·trueInner x` для всех `x`, масса события
-  `eps ≤ gd·estInner` не меньше
-  `1 − (C·L²‖a‖²/B)/t²`.
 
 
 ## Hagi/Step/WarmupSchedule.lean
