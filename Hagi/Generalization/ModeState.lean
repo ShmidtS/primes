@@ -3,7 +3,6 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Math.Foundations.ConeTakeoff
 import Hagi.Math.Foundations.Potential
-import Hagi.System.GrowthComputed
 import Hagi.System.GrowthState
 
 set_option linter.style.header false

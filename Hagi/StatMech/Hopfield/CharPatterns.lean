@@ -1,6 +1,6 @@
 import Mathlib.Tactic
 import Hagi.StatMech.Hopfield.Model
-import Hagi.Learning.HadamardParseval
+import Hagi.Learning.HadamardProjectors
 
 set_option linter.style.header false
 

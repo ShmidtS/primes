@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+import Mathlib.LinearAlgebra.Matrix.PosDef
 
 set_option linter.style.header false
 
@@ -89,3 +90,176 @@ theorem foof_step_identity (W0 : Matrix (Fin d) (Fin d) ℝ)
   abel
 
 end Hagi.Learning.FOOF
+
+set_option linter.style.header false
+
+/-!
+# RegCovPD — положительная определённость XXᵀ + λI (цикл 10)
+
+Замыкает посылку обратимости FOOF: при λ > 0 регуляризованная
+ковариация C = XXᵀ + λI строго положительно определена
+(следовательно det C > 0 и C обратима) — без спектральной
+теоремы, через прямое коши-подобное тождество:
+
+  v ⬝ᵥ (C *ᵥ v) = ‖Xᵀ *ᵥ v‖² + λ·‖v‖² > 0  (v ≠ 0, λ > 0).
+-/
+
+open Finset Matrix Hagi.Learning.FOOF
+
+namespace Hagi.Learning.RegCovPD
+
+variable {d T : ℕ}
+
+/-- Квадратичная форма ковариации: точное тождество. -/
+theorem regCov_quad (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) (v : Fin d → ℝ) :
+    dotProduct v ((regCov X lam) *ᵥ v)
+      = (∑ i : Fin T, (∑ j : Fin d, X j i * v j) ^ 2)
+        + lam * ∑ j, v j ^ 2 := by
+  have h1 : dotProduct v ((X * Xᵀ) *ᵥ v)
+      = ∑ t : Fin T, (∑ i : Fin d, X i t * v i) ^ 2 := by
+    rw [dot_mulVec_eq_sum_sum (v := v) (A := X * Xᵀ) (w := v)]
+    have hexpand : ∀ (i j : Fin d),
+        (X * Xᵀ) i j = ∑ t : Fin T, X i t * X j t := by
+      intro i j
+      rfl
+    simp only [hexpand, Finset.mul_sum, Finset.sum_mul]
+    have hinner : ∀ (k : Fin d),
+        ∑ (j : Fin d), ∑ (s : Fin T), v j * (X j s * X k s) * v k
+          = ∑ (s : Fin T), ∑ (j : Fin d), v j * (X j s * X k s) * v k :=
+      fun k => Finset.sum_comm
+    have hswap : ∑ (k : Fin d), ∑ (j : Fin d), ∑ (s : Fin T),
+        v j * (X j s * X k s) * v k
+          = ∑ (s : Fin T), ∑ (k : Fin d), ∑ (j : Fin d),
+              v j * (X j s * X k s) * v k := by
+      rw [Finset.sum_congr rfl (fun k _ => hinner k), Finset.sum_comm]
+    rw [hswap]
+    refine Finset.sum_congr rfl (fun s _ => ?_)
+    have hpull : ∀ (k : Fin d), ∑ (j : Fin d), v j * (X j s * X k s) * v k
+        = (∑ j : Fin d, v j * X j s) * (X k s * v k) := by
+      intro k
+      rw [Finset.sum_mul]
+      exact Finset.sum_congr rfl (fun j _ => by ring)
+    rw [Finset.sum_congr rfl (fun k _ => hpull k), ← Finset.mul_sum, sq]
+    congr 1
+    exact Finset.sum_congr rfl (fun i _ => by ring)
+  have h2 : dotProduct v ((Matrix.diagonal fun _ => lam) *ᵥ v)
+      = lam * ∑ j, v j ^ 2 := by
+    have hmvec : (Matrix.diagonal fun _ => lam) *ᵥ v
+        = fun j => lam * v j := by
+      funext j
+      have hsum : (∑ j_1 : Fin d, (if j = j_1 then lam else 0) * v j_1)
+          = lam * v j := by simp
+      show (∑ j_1 : Fin d, (if j = j_1 then lam else 0) * v j_1)
+        = lam * v j
+      exact hsum
+    rw [hmvec, dotProduct]
+    rw [Finset.sum_congr rfl (fun i (_ : i ∈ Finset.univ) =>
+      show v i * (lam * v i) = (v i * v i) * lam by ring),
+      ← Finset.sum_mul, mul_comm, ← Finset.sum_congr rfl (fun j _ => (sq (v j)).symm)]
+  unfold regCov
+  rw [Matrix.add_mulVec, dotProduct_add, h1, h2]
+
+
+/-! ### Строгая положительность и обратимость -/
+
+/-- Квадратичная форма строго положительна при λ > 0 и v ≠ 0. -/
+theorem regCov_quad_pos (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ)
+    (hlam : 0 < lam) {v : Fin d → ℝ} (hv : v ≠ 0) :
+    0 < dotProduct v ((regCov X lam) *ᵥ v) := by
+  rw [regCov_quad]
+  have hsq : ∀ i : Fin T, (0:ℝ) ≤ (∑ j : Fin d, X j i * v j) ^ 2 :=
+    fun i => sq_nonneg _
+  have hv2 : 0 < ∑ j : Fin d, v j ^ 2 := by
+    have hterm : ∀ j : Fin d, (0:ℝ) ≤ v j ^ 2 := fun j => sq_nonneg _
+    obtain ⟨j, hj⟩ : ∃ j : Fin d, v j ≠ 0 := by
+      by_contra hcon
+      push_neg at hcon
+      exact hv (funext hcon)
+    exact Finset.sum_pos' (fun i _ => sq_nonneg _)
+      ⟨j, Finset.mem_univ j, by positivity⟩
+  have h1 : (0:ℝ) ≤ ∑ i : Fin T, (∑ j : Fin d, X j i * v j) ^ 2 :=
+    Finset.sum_nonneg (fun i _ => sq_nonneg _)
+  calc (0:ℝ) < 0 + lam * ∑ j : Fin d, v j ^ 2 := by
+        rw [zero_add]; exact mul_pos hlam hv2
+    _ ≤ ∑ i : Fin T, (∑ j : Fin d, X j i * v j) ^ 2
+          + lam * ∑ j : Fin d, v j ^ 2 := by
+          exact add_le_add_left h1 _
+
+/-- Симметричность regCov. -/
+theorem regCov_transpose (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) :
+    (regCov X lam)ᵀ = regCov X lam := by
+  unfold regCov
+  rw [Matrix.transpose_add, Matrix.transpose_mul,
+    Matrix.transpose_transpose, Matrix.diagonal_transpose]
+
+/-- RegCov положительно определена при λ > 0. -/
+theorem regCov_posDef [DecidableEq (Fin d)]
+    (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) (hlam : 0 < lam) :
+    (regCov X lam).PosDef :=
+  Matrix.posDef_iff_dotProduct_mulVec.mpr
+    ⟨regCov_transpose X lam, fun v hv =>
+      regCov_quad_pos X lam hlam hv⟩
+
+
+/-- ЗАМЫКАНИЕ ПОСЫЛКИ FOOF: при λ > 0 матрица C = XXᵀ+λI
+обратима (det > 0 по положительной определённости) —
+предпосылка hinv в foof_normal_eq/foof_step_identity теперь
+ТЕОРЕМА, а не гипотеза. -/
+theorem regCov_det_unit [DecidableEq (Fin d)]
+    (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) (hlam : 0 < lam) :
+    IsUnit (regCov X lam).det := by
+  have hpos : 0 < (regCov X lam).det := (regCov_posDef X lam hlam).det_pos
+  exact isUnit_iff_ne_zero.mpr (ne_of_gt hpos)
+
+end Hagi.Learning.RegCovPD
+
+set_option linter.style.header false
+
+/-!
+# FOOFUnique — единственность решения Mesa/FOOF (цикл 13)
+
+Если оба W₁ и W₂ удовлетворяют нормальному уравнению
+W·(XXᵀ+λI) = VXᵀ и C = XXᵀ+λI обратима (теорема regCov_det_unit
+при λ>0), то W₁ = W₂ — аналитический оптимум регуляризованной
+least-squares задачи ЕДИНСТВЕНЕН.
+-/
+
+open Finset Matrix
+
+namespace Hagi.Learning.FOOFUnique
+
+open Hagi.Learning.FOOF Hagi.Learning.RegCovPD
+
+variable {d T : ℕ}
+
+/-- ЕДИНСТВЕННОСТЬ: нормальное уравнение имеет не более одного
+решения при обратимой C. -/
+theorem foof_normal_unique (V X : Matrix (Fin d) (Fin T) ℝ)
+    (lam : ℝ) (hinv : IsUnit (regCov X lam).det)
+    (W1 W2 : Matrix (Fin d) (Fin d) ℝ)
+    (h1 : W1 * regCov X lam = V * Xᵀ)
+    (h2 : W2 * regCov X lam = V * Xᵀ) :
+    W1 = W2 := by
+  have hdiff : (W1 - W2) * regCov X lam = 0 := by
+    rw [Matrix.sub_mul, h1, h2, sub_self]
+  have hcanc : W1 - W2 = 0 := by
+    have hkey : W1 - W2
+        = (W1 - W2) * regCov X lam * (regCov X lam)⁻¹ := by
+      rw [Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hinv,
+        Matrix.mul_one]
+    rw [hdiff, zero_mul] at hkey
+    exact hkey
+  exact eq_of_sub_eq_zero hcanc
+
+/-- СЛЕДСТВИЕ: foofW — единственное решение нормального
+уравнения (при обратимости C, обеспечиваемой regCov_det_unit
+при λ > 0 в согласованном контексте DecidableEq). -/
+theorem foofW_unique (V X : Matrix (Fin d) (Fin T) ℝ)
+    (lam : ℝ) (hinv : IsUnit (regCov X lam).det)
+    (W : Matrix (Fin d) (Fin d) ℝ)
+    (hW : W * regCov X lam = V * Xᵀ) :
+    W = foofW V X lam :=
+  (foof_normal_unique V X lam hinv W (foofW V X lam) hW
+    (foof_normal_eq V X lam hinv))
+
+end Hagi.Learning.FOOFUnique

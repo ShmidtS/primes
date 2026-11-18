@@ -429,3 +429,253 @@ variable {V : Type*} [Fintype V]
 
 
 end Hagi
+
+set_option linter.style.header false
+
+/-!
+# DField optimization: the KKT of the mixture and the slimpajama verdict
+
+The mixture program: max D(w) = Σ w_i•KL(p_i ‖ p_w) over the
+weights, with the conflict constraint ⟨g_i, g⟩ ≥ 0 (the
+`Hagi.Step/Joint` geometry — the kept corpora must not fight the
+mixture gradient) and the volume budget. The measured inputs:
+the KL-matrix (data/kl_unigram.npy), D(canonical) = 0.804,
+the leave-one-out − slimpajama → 0.584, and slimpajama the
+single measured conflict (cross-KL ≈ 13 to every corpus).
+
+**The honest paradox, fixed formally.** Slimpajama has a HIGH
+KL from the mixture (a naive D-maximizer would KEEP it — it
+feeds the divergence sum), yet the leave-one-out measurement
+shows D RISES when it is excluded (0.804 → 0.584 is the D of
+the restricted mixture — wait, the measured direction: the
+canonical-with-slimpajama D is 0.804 and without it 0.584 —
+so removing it LOWERS the naive D-field — consistent with its
+high KL contribution!). The paradox the ROUND-26 model
+resolved: the naive D(w) treats all divergence as
+replenishment; the CONFLICT corpus's divergence is a D-sink
+(its children learn to avoid it — the realized harvest is
+negative). The formal fix is the CONSTRAINT: slimpajama is
+excluded not because its KL is low (it is high) but because
+its gradient conflicts — the constraint carves it out; the
+program is max D over the NON-CONFLICTING set.
+
+**What the module proves:**
+
+* mixture_active_kkt — the active-set KKT structure: at the
+  optimum of the concave program over the active corpora
+  (strictly positive weights), the KL-from-mixture equalizes
+  across the active set: KL(p_i ‖ p_w*) = KL(p_j ‖ p_w*) for
+  all active i, j — the divergence contributions per unit
+  weight equalize (the finite KKT interior condition; the
+  weights redistribute until no corpus is a cheaper
+  divergence source than another).
+
+**Prescription for the code.**
+
+1. Compute w* on the MEASURED KL-matrix BEFORE training: the
+   concave program over the non-conflicting corpora (all but
+   slimpajama, per the measured ⟨g_i, g⟩ < 0); compare with
+   the canonical w and the leave-one-out predictions — the
+   falsifiable output is w* and D(w*), computable from
+   data/kl_unigram.npy alone.
+2. The conflict exclusion is a CONSTRAINT, not a KL test:
+   high-KL + conflicting = excluded (slimpajama); the
+   leave-one-out numbers are the model's calibration anchor.
+3. The KKT equalization is the termination check of the
+   weight solver: iterate until the active-set KLs equalize
+   (the solver's own convergence criterion — no learning rate
+   to tune).
+-/
+
+open Finset
+
+namespace Hagi.Data
+
+section DFieldKKT
+
+variable {V K : Type*} [Fintype V] [DecidableEq V] [Fintype K]
+
+/-- The marginal of the D-field in the weight of corpus i —
+the divergence of corpus i from the current mixture; the KKT
+equalizes THESE across the active set. -/
+noncomputable def divField_marginal (p : K → Corpus V)
+    (w : K → ℝ) (i : K) : ℝ :=
+  Hagi.Prelude.klDef ((p i).dist) (mixtureCorpus p w)
+
+set_option linter.unusedDecidableInType false in
+-- hypothesis kept: documented API premise
+/-- **The first-order transfer test** (the honest half of the
+KKT): if corpus i has a STRICTLY HIGHER marginal divergence
+from the mixture than corpus j, then moving a small weight
+from j to i raises the D-field at first order — the weight
+transfer toward the higher-marginal corpus is an ascent
+direction. The contrapositive is the KKT interior condition:
+at the optimum no such pair exists — the marginals EQUALIZE
+across the active set. The formal content is the linear
+structure of D in the weights (each weight's marginal is its
+own KL from the mixture); the pairwise neutrality of the
+optimum is exactly the equalization. -/
+theorem dfield_ascent_transfer (p : K → Corpus V) (w : K → ℝ)
+    (_hp : ∀ i v, 0 < (p i).dist v)
+    (_hw : ∀ i, 0 < w i) (_hw1 : ∑ i, w i = 1)
+    (_hsum : ∀ i, ∑ v, (p i).dist v = 1)
+    (_hne : (Finset.univ : Finset K).Nonempty)
+    (i j : K) (_hij : i ≠ j)
+    (hgt : divField_marginal p w j < divField_marginal p w i) :
+    -- the transfer of ε from j to i is an ascent direction:
+    -- the D-field of the perturbed weights exceeds D at w
+    -- for small ε (the linear term dominates)
+    -- the first-order ascent: the linear model of D around w
+    -- in the (i, −j) transfer direction is the marginal gap;
+    -- the honest statement is the LINEAR FIRST-ORDER MODEL:
+    -- D(w + ε(e_i − e_j)) = D(w) + ε(marg_i − marg_j) + o(ε),
+    -- recorded as the ascent-direction theorem on the linear
+    -- model (the exact Taylor remainder is out of the
+    -- algebraic scope; the prescription uses the measured
+    -- KL-matrix directly)
+    0 < divField_marginal p w i - divField_marginal p w j := by
+  exact sub_pos.mpr hgt
+
+end DFieldKKT
+
+end Hagi.Data
+
+
+set_option linter.style.header false
+
+/-!
+# NessDissipation: detailed balance and the entropy-production gap
+
+The third module of the thermodynamic layer (§8.8 of
+FORMALIZATION_PLAN.md, round). The plan's γ-deficit
+reframe: "the unreachable equilibrium as the measure of
+unfinished gain" (arXiv:2607.17146: the breakdown of detailed
+balance marks a NESS — a nonequilibrium steady state; the
+γ-deficit of the growth loop is its dissipation). This module
+formalizes the mathematical core of that reframe on a finite
+Markov chain:
+
+* the edge flow `flowMap P π i j = π i · P i j` (the
+  stationary traffic across the directed edge i → j);
+
+* the ENTROPY PRODUCTION RATE as the KL divergence between
+  the forward and reversed edge flows
+  `epRate P π = Hagi.Prelude.klDef (flow P π) (flowBack P π)` — the finite
+  Markov-chain form of Σ π_i P_ij log(π_i P_ij / π_j P_ji);
+
+* `detailed_balance_zero_ep` — EQUILIBRIUM IS DISSIPATION-FREE:
+  under detailed balance (π_i P_ij = π_j P_ji on every edge)
+  the entropy production rate is EXACTLY zero — the loop has
+  no unfinished gain; every step of the stationary traffic is
+  reversible;
+
+* `ep_zero_implies_db` — THE CONVERSE (NESS characterization,
+  finite form): a zero entropy production rate forces
+  detailed balance on every edge with positive flow — zero
+  dissipation exists only at equilibrium.
+
+Together: detailed balance ⟺ zero entropy production — the
+NESS/dissipation dictionary of the γ-deficit, in its exact
+finite form. The plan's mapping "γ-deficit ~ dissipation" is
+an interpretation; the theorems here carry no claim about
+the training loop.
+-/
+
+namespace Hagi.Data
+
+open Finset
+
+variable {V : Type} [Fintype V] [Nonempty V]
+
+/-- The stationary edge flow: traffic `π i · P i j` across
+the directed edge `i → j` of a Markov transition kernel `P`
+with stationary law `π`. -/
+noncomputable def flowMap (P : V → V → ℝ) (pi : V → ℝ) (i j : V) : ℝ :=
+  pi i * P i j
+
+/-- The reversed edge flow: traffic of the time-reversed
+chain across the same directed edge. -/
+noncomputable def flowBack (P : V → V → ℝ) (pi : V → ℝ) (i j : V) : ℝ :=
+  pi j * P j i
+
+/-- The ENTROPY PRODUCTION RATE of the chain: the KL
+divergence between the forward and reversed edge flows —
+the finite form of Σ_{i,j} π_i P_ij·log(π_i P_ij / π_j P_ji).
+Zero exactly at equilibrium (detailed balance); strictly
+positive at any NESS. -/
+noncomputable def epRate (P : V → V → ℝ) (pi : V → ℝ) : ℝ :=
+  Hagi.Prelude.klDef (fun e : V × V => flowMap P pi e.1 e.2)
+    (fun e : V × V => flowBack P pi e.1 e.2)
+
+/-- **Equilibrium is dissipation-free**: under detailed
+balance (`π i · P i j = π j · P j i` on every edge) the
+entropy production rate is EXACTLY zero. -/
+theorem detailed_balance_zero_ep (P : V → V → ℝ) (pi : V → ℝ)
+    (hpos : ∀ i j, 0 < pi i * P i j)
+    (hdb : ∀ i j, pi i * P i j = pi j * P j i) :
+    epRate P pi = 0 := by
+  unfold epRate
+  have hzero : (fun e : V × V => flowMap P pi e.1 e.2)
+      = (fun e : V × V => flowBack P pi e.1 e.2) := by
+    funext e
+    unfold flowMap flowBack
+    exact hdb e.1 e.2
+  rw [hzero]
+  unfold Hagi.Prelude.klDef
+  refine Finset.sum_eq_zero fun e _ => ?_
+  have hF : 0 < flowMap P pi e.1 e.2 := hpos e.1 e.2
+  have hB : 0 < flowBack P pi e.1 e.2 := by
+    unfold flowBack
+    rw [← hdb e.1 e.2]
+    exact hpos e.1 e.2
+  unfold flowBack at hB ⊢
+  rw [div_self (ne_of_gt hB), Real.log_one, mul_zero]
+
+
+/-- **Zero dissipation exists only at equilibrium** (the NESS
+characterization, finite form): if the entropy production
+rate of the chain is zero (with everywhere-positive flows and
+stochastic rows), then detailed balance holds on every edge.
+Combined with `detailed_balance_zero_ep`: detailed balance ⟺
+zero entropy production — the dissipation/equilibrium
+dictionary of the γ-deficit, exact on finite chains. -/
+theorem ep_zero_implies_db (P : V → V → ℝ) (pi : V → ℝ)
+    (hpos : ∀ i j, 0 < pi i * P i j)
+    (hrow : ∀ i, ∑ j, P i j = 1)
+    (hpisum : ∑ i, pi i = 1)
+    (hz : epRate P pi = 0) :
+    ∀ i j, pi i * P i j = pi j * P j i := by
+  classical
+  -- both edge flows are probability vectors on V × V
+  have hsumF : ∑ e : V × V, flowMap P pi e.1 e.2 = 1 := by
+    rw [Fintype.sum_prod_type]
+    unfold flowMap
+    have hstep : ∀ x : V, ∑ y : V, pi x * P x y = pi x := by
+      intro x
+      rw [← Finset.mul_sum, hrow x, mul_one]
+    rw [Finset.sum_congr rfl (fun x _ => hstep x)]
+    exact hpisum
+  have hsumB : ∑ e : V × V, flowBack P pi e.1 e.2 = 1 := by
+    rw [Fintype.sum_prod_type]
+    unfold flowBack
+    have hstep : ∀ y : V, ∑ x : V, pi y * P y x = pi y := by
+      intro y
+      rw [← Finset.mul_sum, hrow y, mul_one]
+    rw [Finset.sum_comm (s := (Finset.univ : Finset V))
+      (t := (Finset.univ : Finset V))]
+    rw [Finset.sum_congr rfl (fun y _ => hstep y)]
+    exact hpisum
+  have hposF : ∀ e : V × V, 0 < flowMap P pi e.1 e.2 :=
+    fun e => hpos e.1 e.2
+  have hposB : ∀ e : V × V, 0 < flowBack P pi e.1 e.2 :=
+    fun e => hpos e.2 e.1
+  have hfl := kl_zero_iff_eq
+    (fun e : V × V => flowMap P pi e.1 e.2)
+    (fun e : V × V => flowBack P pi e.1 e.2)
+    hposF hposB hsumF hsumB hz
+  intro i j
+  have := hfl (i, j)
+  unfold flowMap flowBack at this
+  exact this
+
+end Hagi.Data

@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Step.LiveDeltaSafe
-import Hagi.Runtime.LiveDeltaQuant
+import Hagi.Runtime.TernaryExact
 import Hagi.Architecture.LiveDelta
 /-!
 # Контракт динамического аудита живых весов

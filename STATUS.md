@@ -265,7 +265,7 @@ delta_next из явного носителя `deltaLevel : S → ℝ` с нео
 
 ## Hagi/State/Views.lean
 - C245 (Phase 1, A7): survey носителей состояния (TrainState — канон
-спеки §4; GrowthState — legacy c `GrowthStateViews`; FunctionalState;
+спеки §4; GrowthState — legacy с GrowthStateViews (модуль слит в GrowthState, C419); FunctionalState;
 MachineProto/MeasureProto; NC-мир) + минимальный честный view:
 `toSystemMetrics` (TrainState как `Hagi.Cert.SystemMetrics`:
 objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
@@ -816,11 +816,20 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `dfield_smoothing`: при `0 ≤ p v`, `0 < u v` и `0 < alpha < 1` смесь `(1 - alpha) * p v + alpha * u v` строго положительна для каждого `v`.
 
 
-## Hagi/Data/DFieldKKT.lean
+
+- `detailed_balance_zero_ep`: если все потоки `pi i * P i j` положительны и выполнено детальное равновесие `pi i * P i j = pi j * P j i`, то `epRate P pi = 0`.
+- `ep_zero_implies_db`: при положительности потоков, стохастичности строк `P`, нормировке `pi` и `epRate P pi = 0` детальное равновесие выполняется для всех `i`, `j`.
+
+
+
+(merged from Hagi/Data/NessDissipation.lean in C419)
+
 - `dfield_ascent_transfer`: если `divField_marginal p w j < divField_marginal p w i`, то разность `divField_marginal p w i - divField_marginal p w j` строго положительна.
 - Доказан знак линейной первого порядковой модели переноса веса; равенство KL на активном множестве, вогнутость общей задачи и глобальный KKT-оптимум не утверждаются.
 
 
+
+(merged from Hagi/Data/DFieldKKT.lean in C419)
 ## Hagi/Data/DataMixing.lean
 - `mixing_loss_convex`: при `0 ≤ K` функция `rho ↦ mixingLoss K c rho` выпукла на всём пространстве пропорций.
 - `chunked_sum_exact`: сумма по `range (n * w)` равна двойной сумме по `c < n`, `j < w` значений `f (c * w + j)`.
@@ -834,13 +843,23 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `cooling_topk_bias`: если `m ≤ L v`, минимум `m` достигается, `0 < T` и `card V * exp (-(s / T)) < 1`, отрицательный логарифм оставшейся нормированной массы Гиббса не превосходит `(card V * exp (-(s / T))) / (1 - card V * exp (-(s / T)))`.
 
 
-## Hagi/Data/DistillRecursion.lean
+
+- `ce_ge_entropy`: для строго положительных нормированных `q`, `p` выполняется `entDef q ≤ crossEntropy q p`.
+- `infonce_never_overestimates`: при тех же условиях `k - crossEntropy q p ≤ k - entDef q`.
+- `infonce_gap_is_kl`: если все `q v`, `p v` ненулевые, разность этих двух величин равна `klDef q p`.
+
+
+
+(merged from Hagi/Data/InfoNCE.lean in C419)
+
 - `entropy_mix_ge`: при `0 ≤ ν ≤ 1` и строго положительных нормированных `p`, `d` энтропия `freshMix ν p d` не меньше `(1 - ν) * H(p) + ν * H(d)`.
 - `entropy_floor`: при `0 < ν ≤ 1`, `0 ≤ δ`, положительных нормированных поколениях и сертификате `H(freshMix ν (p k) d) - δ ≤ H(p (k + 1))` доказано `H(d) - δ / ν - (1 - ν)^T * (H(d) - δ / ν - H(p 0)) ≤ H(p T)`.
 - `fresh_data_prevents_collapse`: если дополнительно `H(d) - δ / ν ≤ H(p 0)`, то нижняя граница `H(d) - δ / ν` сохраняется во всех поколениях.
 - `fresh_data_prevents_collapse_uniform`: при `δ ≤ ν * ε` и начальном `H(d) - ε ≤ H(p 0)` во всех поколениях сохраняется `H(d) - ε ≤ H(p T)`.
 
 
+
+(merged from Hagi/Data/DistillRecursion.lean in C419)
 ## Hagi/Probability/FannesPinsker.lean
 - `log_sub_le_div`: при `0 < a ≤ b` выполняется `log b - log a ≤ (b - a) / a`.
 - `abs_log_sub_le`: для положительных `a`, `b` справедливо `|log a - log b| ≤ |a - b| / min a b`.
@@ -875,17 +894,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `̂t·log|V| + (1+̂t)·log 2`, где `̂t=(|V|−1)e^{−δ/T}`.
 
 
-## Hagi/Data/InfoNCE.lean
-- `ce_ge_entropy`: для строго положительных нормированных `q`, `p` выполняется `entDef q ≤ crossEntropy q p`.
-- `infonce_never_overestimates`: при тех же условиях `k - crossEntropy q p ≤ k - entDef q`.
-- `infonce_gap_is_kl`: если все `q v`, `p v` ненулевые, разность этих двух величин равна `klDef q p`.
-
-
-## Hagi/Data/NessDissipation.lean
-- `detailed_balance_zero_ep`: если все потоки `pi i * P i j` положительны и выполнено детальное равновесие `pi i * P i j = pi j * P j i`, то `epRate P pi = 0`.
-- `ep_zero_implies_db`: при положительности потоков, стохастичности строк `P`, нормировке `pi` и `epRate P pi = 0` детальное равновесие выполняется для всех `i`, `j`.
-
-
 ## Hagi/Data/PACBayes.lean
 - `log_weighted_jensen`: для строго положительной нормированной `q` и строго положительного `x` сумма `∑ i, q i * log (x i)` не превосходит `log (∑ i, q i * x i)`.
 - `gibbs_variational`: для строго положительных нормированных `q`, `p` выполняется `∑ i, q i * f i ≤ ∑ i, q i * log (q i / p i) + log (∑ i, p i * exp (f i))`; вероятностный шаг PAC-Bayes здесь не доказывается.
@@ -903,17 +911,20 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - Результат касается сконструированного конечного распределения и не описывает инициализацию или смешивание другой цепи.
 
 
-## Hagi/Dynamics/ControllerPolicy.lean
-- `ratio_dominance`: при `0 < K i`, максимальном отношении `Gam ibest / K ibest` и `0 ≤ B` выполняется `Gam j * (B / K j) ≤ Gam ibest * (B / K ibest)`.
-- `budget_allocation_dominance`: при `0 ≤ Gam i`, `0 ≤ alloc a` и `∑ a, alloc a * K (idx a) ≤ B` суммарный выигрыш не превосходит `(Gam ibest / K ibest) * B`.
-
-
 ## Hagi/Dynamics/EndpointContraction.lean
 - `endpoint_bivariate_bound`: при `0 ≤ κ < 1`, `0 ≤ β` и `x (t + 1) ≤ κ * x t + β * c t` выполняется `x T ≤ κ^T * x 0 + β * ∑ i < T, κ^i * c (T - 1 - i)`.
 - `endpoint_geometric_tail`: если дополнительно `0 ≤ cbar` и `c t ≤ cbar`, то `x T ≤ κ^T * x 0 + β * cbar / (1 - κ)`.
 - `endpoint_depth_budget`: при `0 < κ < 1`, `0 < ε` и `x 0 / ε ≤ (1 / κ)^T` получается `x T ≤ β * cbar / (1 - κ) + ε`.
 
 
+
+- `patient_configuration_reaches`: при `0 < κ < 1`, `0 ≤ β`, `0 < ε`, ограничении `c t ≤ cbar`, рекурсии `x (t + 1) ≤ κ * x t + β * c t` и `x 0 / ε ≤ (1 / κ)^T₀` доказано `x T₀ ≤ β * cbar / (1 - κ) + ε`.
+- `kl_contraction_budget`: при `0 < κ_KL < 1`, `0 < δ`, `kl (t + 1) ≤ κ_KL * kl t` и `kl 0 / δ ≤ (1 / κ_KL)^T` получается `kl T ≤ δ`.
+- `kl_half_steps`: из `kl 0 ≤ KL₀` и `kl (t + 1) ≤ (1 / 2) * kl t` следует `kl T ≤ KL₀ * (1 / 2)^T`.
+
+
+
+(merged from Hagi/Dynamics/Laws.lean in C419)
 ## Hagi/Dynamics/GrowthBridge.lean
 - `capability_takeoff_floor`: при `0 < alpha`, `0 ≤ C 0`, `C (t + 1) ≥ C t * (1 + alpha)^(s t)` и `N ≤ ∑ t < T, s t` выполняется `C T ≥ C 0 * (1 + alpha)^N`.
 - `risk_takeoff_counted`: при `0 < beta < 1` и `R (t + 1) ≤ R t * (1 - beta)^(s t)` получается `R T ≤ R 0 * (1 - beta)^(∑ t < T, s t)`.
@@ -950,18 +961,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   измеримых независимых `[0,1]`-индикаторах со средними `≥ p0`,
   положительной capability и поточечном log-bridge нижняя экспоненциальная граница с
   `a(p0T−concDelta(T,δ))−Σeps` имеет вероятность не менее `1−δ`.
-
-
-## Hagi/Dynamics/Laws.lean
-- `patient_configuration_reaches`: при `0 < κ < 1`, `0 ≤ β`, `0 < ε`, ограничении `c t ≤ cbar`, рекурсии `x (t + 1) ≤ κ * x t + β * c t` и `x 0 / ε ≤ (1 / κ)^T₀` доказано `x T₀ ≤ β * cbar / (1 - κ) + ε`.
-- `kl_contraction_budget`: при `0 < κ_KL < 1`, `0 < δ`, `kl (t + 1) ≤ κ_KL * kl t` и `kl 0 / δ ≤ (1 / κ_KL)^T` получается `kl T ≤ δ`.
-- `kl_half_steps`: из `kl 0 ≤ KL₀` и `kl (t + 1) ≤ (1 / 2) * kl t` следует `kl T ≤ KL₀ * (1 / 2)^T`.
-
-
-## Hagi/Dynamics/ProxyGap.lean
-- `budget_consumed`: при `0 ≤ e t + delta t` свойство `BudgetAlive e delta eps (T + 1)` влечёт `BudgetAlive e delta eps T`.
-- `guarantee_horizon_bound`: если `0 < c ≤ e t + delta t` для всех `t` и бюджет жив на горизонте `T`, то `(T : ℝ) * c ≤ eps`.
-- `shift_paid_from_budget`: при `0 ≤ e t`, `0 ≤ delta t`, `S ⊆ range T` и `BudgetAlive e delta eps T` сумма `delta t` по `S` не превосходит `eps`; малость самого сдвига не доказывается.
 
 
 ## Hagi/Probability/GibbsCore.lean
@@ -1625,33 +1624,28 @@ wall-clock, сжатие весов или улучшение качества.
 - На непустом конечном индексе `softDef_pos` и `softDef_sum_one` доказывают положительность и нормировку softmax.
 
 
-## Hagi/Learning/BitBudget.lean
-- `ternary_bit_error_bound`: если покомпонентно `|QR i j−R i j|≤1/2`, то выходная ошибка ограничена `(√(layerBits m r/bitsPerTrit)/2)*eunorm x`; `bitsPerTrit_pos` отдельно подтверждает положительность знаменателя.
-
-
 ## Hagi/Learning/FOOF.lean
 - `foof_normal_eq`: при обратимости `regCov X lam` определённый `foofW V X lam` удовлетворяет `foofW*regCov=V*Xᵀ`.
 - `foof_step_identity`: при той же обратимости точно `foofW−W0=(V−W0*X)*Xᵀ*regCov⁻¹−lam • (W0*regCov⁻¹)`. Второе слагаемое является частью доказанного тождества и не опускается.
 
 
-## Hagi/Learning/FOOFUnique.lean
+
+- `regCov_posDef`: при `lam>0` матрица `XXᵀ+lam*I` строго положительно определена; `regCov_transpose` подтверждает симметричность.
+- `regCov_det_unit`: при `lam>0` детерминант этой матрицы является обратимым элементом, что даёт условие обратимости для FOOF.
+
+
+
+(merged from Hagi/Learning/RegCovPD.lean in C419)
+
 - `foof_normal_unique`: если `regCov X lam` обратима и обе матрицы `W1,W2` удовлетворяют одному нормальному уравнению `W*regCov=V*Xᵀ`, то `W1=W2`.
 - `foofW_unique`: любая матрица `W`, удовлетворяющая этому уравнению, равна каноническому `foofW V X lam`.
 
 
+
+(merged from Hagi/Learning/FOOFUnique.lean in C419)
 ## Hagi/Learning/HRCN.lean
 - `domainTerm_gauge_shift`: при ненулевом знаменателе сдвиг значений `vs i` на `ws i • b` меняет доменный вклад ровно на `charProjR w b`.
 - `hrcn_cross_talk_zero`: для `w≠u` проекция такого изменения вклада домена `w` на характер `u` равна нулю при том же условии ненулевого знаменателя.
-
-
-## Hagi/Learning/HadamardComplete.lean
-- `charRow_sum_offdiag_zero`: для `x≠y` сумма по всем `w` произведений вещественных характеров `charRowR w x*charRowR w y` равна нулю.
-- `charProjR_sum_eq_self`: для любого вещественного сигнала на булевом кубе `Σ_w charProjR w v=v`.
-
-
-## Hagi/Learning/HadamardParseval.lean
-- `charProjR_cross_zero`: проекции на разные характеры ортогональны относительно скалярного произведения `⬝ᵥ`; `charProjR_norm_sq` вычисляет квадрат нормы проекции через `(charRowR w ⬝ᵥ v)²/2^k`.
-- `parseval`: доказано `v ⬝ᵥ v=Σ_w (charProjR w v ⬝ᵥ charProjR w v)`.
 
 
 ## Hagi/Learning/HadamardProjectors.lean
@@ -1659,59 +1653,25 @@ wall-clock, сжатие весов или улучшение качества.
 - `charProjR_orthog`: при `w≠u` выполнено `charProjR w (charProjR u v)=0`; `charProjR_add` отдельно подтверждает аддитивность проектора.
 
 
-## Hagi/Learning/NetworkBudget.lean
-- `exists_layer_ge_average`: для `n>0`, неотрицательных `a i` с суммой `N` существует слой `i` с `N/n≤a i`.
-- `network_bit_error`: при `L≥1`, `N≥0`, `n>0` и `n` парах слоёв, где номинальные слои `L`-липшицевы и каждая ошибка ограничена `√(N/n)/2`, ошибка композиции не превышает `(√(n*N)/2)*L^n`.
+
+- `charProjR_cross_zero`: проекции на разные характеры ортогональны относительно скалярного произведения `⬝ᵥ`; `charProjR_norm_sq` вычисляет квадрат нормы проекции через `(charRowR w ⬝ᵥ v)²/2^k`.
+- `parseval`: доказано `v ⬝ᵥ v=Σ_w (charProjR w v ⬝ᵥ charProjR w v)`.
 
 
-## Hagi/Learning/PertTelescope.lean
-- `lip_composition`: при `L≥0` и `L`-липшицевых слоях композиция имеет оценку `L^length` для нормы разности выходов.
-- `pert_telescope`: при `L≥1`, `delta≥0` и поточечной ошибке каждой пары слоёв не более delta ошибка всей композиции ограничена `length*delta*L^length`.
+
+(merged from Hagi/Learning/HadamardParseval.lean in C419)
+
+- `charRow_sum_offdiag_zero`: для `x≠y` сумма по всем `w` произведений вещественных характеров `charRowR w x*charRowR w y` равна нулю.
+- `charProjR_sum_eq_self`: для любого вещественного сигнала на булевом кубе `Σ_w charProjR w v=v`.
 
 
+
+(merged from Hagi/Learning/HadamardComplete.lean in C419)
 ## Hagi/Learning/RCDL.lean
 - `dual_apply`: для `dualW W0 xs vs` доказана поточечная формула `(W0*q)i+Σ_t dotProduct(xs t)q*vs t i`.
 - `gauge_shift`: при ненулевом знаменателе замена `vs i` на `vs i+ws i • b` даёт `weightedSoftmax … q = weightedSoftmax … vs q + b`; выход сдвигается на `b`, а не остаётся буквально инвариантным.
 - `gauge_exists`: для `g≠0` и `eps>0` существует `b`, для которого `dotProduct g (s+b)≥eps`.
 
-
-## Hagi/Learning/RegCovPD.lean
-- `regCov_posDef`: при `lam>0` матрица `XXᵀ+lam*I` строго положительно определена; `regCov_transpose` подтверждает симметричность.
-- `regCov_det_unit`: при `lam>0` детерминант этой матрицы является обратимым элементом, что даёт условие обратимости для FOOF.
-
-
-## Hagi/Learning/RouterMix.lean
-- `routerMix_apply`: выход по координате `i` равен `Σ_{w∈doms} p w*domainTerm w ks ws vs q i`.
-- `router_is_simplex`: при `T>0` и строго положительных `p₀` результат `mirrorStep` строго положителен и имеет сумму 1.
-- `routerMix_switch`: доказано алгебраическое сокращение `(routerMix p−p'w•term+p'w•term)=routerMix p`; это тождество отмены слагаемых, а не независимость `routerMix` от самих весов `p`.
-
-
-## Hagi/Learning/SoftRouterTotal.lean
-
-- C320 — сквозная композиция аудита §7 (роутер): C319
-  (`soft_router_ce_bound`, по-раундовая калибровка смеси логитов) +
-  регрет-носитель Hedge (`router_regret_bound` + `hsurv_derived`).
-  Итог `soft_router_total_bound`: за T раундов с Hedge-весами
-  wᵗ = ewNorm CE-потерь и посылкой CE ≤ 1 (exact-expert abstention)
-  суммарный CE мягкой смеси ≤ суммарный CE ЛЮБОГО одиночного
-  эксперта + log N/η + η·T/2 — конкурентность с лучшим экспертом в
-  ретроспективе при калиброванном CE на каждом шаге; новая
-  математика — только кирпич `ceOneHot_nonneg` (lse z ≥ z t) и
-  суммирование-склейка.
-- Честные границы (challenge-pins в докстрингах): CE ≤ 1 — реальная
-  посылка (уверенно неверные эксперты уровня wz2 с CE ≈ 2.13
-  исключены); эксперты — `Fin N` (вселенная носителя Type 0);
-  sleeping-experts regret НЕ заявлен — бандл верен относительно
-  любого одиночного (в т.ч. guard-доступного) эксперта,
-  анти-лок-ин носителя `ewNorm_survivor_lower` процитирован как
-  контекст; без drift/адаптивности; константа регрета ровно как у
-  носителя, без подобранного η.
-- Якорь `total_bound_anchor` (2 эксперта, 3 раунда, η = 1/2):
-  числовая проверка композиции — веса раунда 0 равномерны (1/2,
-  1/2), смесь (3/2, 1/2) даёт строго положительный CE
-  (невакунность); инстанциация бандла даёт total ≤ 3·L + 2·log 2 +
-  3/4 < 4·L + 3 при L = log(1+e⁻²) (`az`, `az_ce`,
-  `az_ce_le_one`, `anchorMix`).
 
 ## Hagi/Learning/SpectralBudget.lean
 - `spectral_budget`: если для каждого `w` квадрат доменной ошибки не превосходит `delta²*‖charProjR w v‖²`, `delta≥0`, то `‖v−Q‖²≤delta²*‖v‖²` в форме скалярного произведения `⬝ᵥ`.
@@ -1723,6 +1683,26 @@ wall-clock, сжатие весов или улучшение качества.
 - `ternary_layer_pert`: если `|QR i j−R i j|≤1/2` покомпонентно, ошибка выхода ограничена `√(m*r*(1/2)^2)*eunorm x`.
 
 
+
+- `lip_composition`: при `L≥0` и `L`-липшицевых слоях композиция имеет оценку `L^length` для нормы разности выходов.
+- `pert_telescope`: при `L≥1`, `delta≥0` и поточечной ошибке каждой пары слоёв не более delta ошибка всей композиции ограничена `length*delta*L^length`.
+
+
+
+(merged from Hagi/Learning/PertTelescope.lean in C419)
+
+- `exists_layer_ge_average`: для `n>0`, неотрицательных `a i` с суммой `N` существует слой `i` с `N/n≤a i`.
+- `network_bit_error`: при `L≥1`, `N≥0`, `n>0` и `n` парах слоёв, где номинальные слои `L`-липшицевы и каждая ошибка ограничена `√(N/n)/2`, ошибка композиции не превышает `(√(n*N)/2)*L^n`.
+
+
+
+(merged from Hagi/Learning/NetworkBudget.lean in C419)
+
+- `ternary_bit_error_bound`: если покомпонентно `|QR i j−R i j|≤1/2`, то выходная ошибка ограничена `(√(layerBits m r/bitsPerTrit)/2)*eunorm x`; `bitsPerTrit_pos` отдельно подтверждает положительность знаменателя.
+
+
+
+(merged from Hagi/Learning/BitBudget.lean in C419)
 ## Hagi/Learning/ToyTrajectory.lean
 - `honest_step_cert`: при `0<eta<2`, `cost≤s.budget` и `lossS a s>0` существуют положительный drop и соответствующий `StepCertT`.
 - `traj_energy_explicit`: после `T` шагов энергия равна `(1−eta)^(2*T)*lossS a s`.
@@ -4257,29 +4237,35 @@ one-hot CE.
 - `dynamic_branch_variance` при `L > 0` и `v ≥ 0` вычисляет сумму `L` одинаковых вкладов `((sqrt(2*L))⁻¹)^2*v` как `v/2`.
 
 
-## Hagi/Runtime/DyadicTernary.lean
-- `dyadicLevel_pos` подтверждает положительность всех 255 масштабов, а `dyadicLevel_zero` равен `1/128`. `dyadicPayload_injective`, `dyadicBlock_injective` и `dyadicBlockDecode_encode` доказывают инъективность и точное декодирование пары масштаба с пятью тритами.
-- Декодер отклоняет нулевой старший байт и зарезервированные байты троичного кода; пример `knownSample_decode_reconstruction` восстанавливает `![1/4, -1/4, 0, 0, 0]`.
-- `dyadicBlock_eight_bit_impossible` и `dyadicBlock_fifteen_bit_impossible` исключают инъективные коды соответствующей ширины. `reference64BitCounter_eq = 320` и `16 < reference64BitCounter` относятся только к явно названной модели подсчёта, не к физической памяти или времени.
-
-
-## Hagi/Runtime/LiveDeltaQuant.lean
-- `quantMat_entry`: при `s > 0` и `ternInRange s (M i j)` поэлементная ошибка `|M i j - quantMat s M i j|` не превышает `s/2`.
-- `quantMat_sq_bound`: если условие диапазона выполнено для всех элементов, суммарная квадратичная ошибка не превосходит `(card m * card n)*(s/2)^2`. Сатурированные элементы в эту формулу не входят.
-
-
-## Hagi/Runtime/TernaryCodec.lean
-- `ternaryValueDecode_encode` восстанавливает именно `qTern level value`; `ternaryBlockDecode_encode` декодирует каждый из пяти тритов, а `packedTernarySamples_decode_point` даёт покоординатное `qTern level (values i)` после упаковки.
-- `ternaryByteBlock_injective` доказывает инъективность байтового блока; `ternaryOneBit_impossible` исключает вложение трита в один бит, а `ternaryBlock_seven_bit_impossible` — вложение пяти тритов в семь бит.
-- Это свойства фиксированного логического кодека, а не восстановление исходных вещественных значений или оценка размещения данных в памяти компьютера.
-
-
 ## Hagi/Runtime/TernaryExact.lean
 - `qTern_error_in` при `s > 0` ограничивает ошибку внутри диапазона через `s/2`, а `qTern_error_out` вне его даёт точное `|x - qTern s x| = |x| - s`. `ternary_split_bound` разлагает полную квадратичную ошибку на сумму внутри диапазона и `satTail`.
 - `ternary_split_le` даёт `∑ ошибок² ≤ n*(s/2)^2 + satTail`; `quant_energy_bridge_saturation` при `κ ≥ 0` и посылке `dE ≤ κ*sqrt(∑ошибок²)` выводит `dE ≤ κ*(sqrt n*s/2 + sqrt satTail)`.
 - `no_saturation_recover` при условии `ternInRange` для всех координат возвращает одновременно глобальную оценку `κ*sqrt n*s/2` и поэлементные границы `s/2`.
 
 
+
+- `ternaryValueDecode_encode` восстанавливает именно `qTern level value`; `ternaryBlockDecode_encode` декодирует каждый из пяти тритов, а `packedTernarySamples_decode_point` даёт покоординатное `qTern level (values i)` после упаковки.
+- `ternaryByteBlock_injective` доказывает инъективность байтового блока; `ternaryOneBit_impossible` исключает вложение трита в один бит, а `ternaryBlock_seven_bit_impossible` — вложение пяти тритов в семь бит.
+- Это свойства фиксированного логического кодека, а не восстановление исходных вещественных значений или оценка размещения данных в памяти компьютера.
+
+
+
+(merged from Hagi/Runtime/TernaryCodec.lean in C419)
+
+- `quantMat_entry`: при `s > 0` и `ternInRange s (M i j)` поэлементная ошибка `|M i j - quantMat s M i j|` не превышает `s/2`.
+- `quantMat_sq_bound`: если условие диапазона выполнено для всех элементов, суммарная квадратичная ошибка не превосходит `(card m * card n)*(s/2)^2`. Сатурированные элементы в эту формулу не входят.
+
+
+
+(merged from Hagi/Runtime/LiveDeltaQuant.lean in C419)
+
+- `dyadicLevel_pos` подтверждает положительность всех 255 масштабов, а `dyadicLevel_zero` равен `1/128`. `dyadicPayload_injective`, `dyadicBlock_injective` и `dyadicBlockDecode_encode` доказывают инъективность и точное декодирование пары масштаба с пятью тритами.
+- Декодер отклоняет нулевой старший байт и зарезервированные байты троичного кода; пример `knownSample_decode_reconstruction` восстанавливает `![1/4, -1/4, 0, 0, 0]`.
+- `dyadicBlock_eight_bit_impossible` и `dyadicBlock_fifteen_bit_impossible` исключают инъективные коды соответствующей ширины. `reference64BitCounter_eq = 320` и `16 < reference64BitCounter` относятся только к явно названной модели подсчёта, не к физической памяти или времени.
+
+
+
+(merged from Hagi/Runtime/DyadicTernary.lean in C419)
 ## Hagi/Sparsity/SparseStep0.lean
 - `sparse_step0`: для ортонормированного семейства `v`, `tol ≥ 0` и строгого условия `∑_{i∈sᶜ} c i^2 < tol^2` норма разности полной и сохранённой сумм строго меньше tol.
 - Оценка не зависит от числа отброшенных индексов: вся их совместная энергия уже учтена в посылке htail.
@@ -4593,18 +4579,6 @@ one-hot CE.
 - Тип `StageCycleCertChain` фиксирует совпадение начальных энергий
   последующих стадий с конечными энергиями предыдущих; условие не следует
   только из наличия полей сертификатов — нужна показанная цена hprice.
-## Hagi/System/GrowthComputed.lean
-- `growthQuad_step`: для `growthQuad w = Σᵢwᵢ²/2` градиентный шаг
-  даёт точное равенство `growthQuad(growthStep w eta) = (1−eta)²growthQuad w`.
-- `growthQuad_descent`: при `0 < eta < 2` и `Σᵢwᵢ² ≠ 0` энергия строго
-  убывает.
-- `growEnergy_derived`: если `S.energy = growthQuad S.weights`, а
-  `S.effects.growEnergy` равна энергии после того же шага, то при этих условиях
-  доказывается одновременно неравенство
-  `growEnergy ≤ S.energy − (1−(1−eta)²)growthQuad S.weights`
-  и положительность вычтенного gain.
-
-
 ## Hagi/System/GrowthState.lean
 - Определение `joint` задаёт именно `params' = params − eta·stepDir`,
   `energy' = effects.jointEnergy`,
@@ -4624,7 +4598,7 @@ one-hot CE.
   `S.budget − verify(S).budgetSpend`.
 
 
-## Hagi/System/GrowthStateViews.lean
+
 - `GrowthState_parts_roundtrip`: разбиение состояния на модельные, метрические,
   ресурсные, оптимизаторные и памятные проекции обратимо:
   `ofParts(toParts S) = S`.
@@ -4632,6 +4606,22 @@ one-hot CE.
   равенство самих состояний.
 
 
+
+(merged from Hagi/System/GrowthStateViews.lean in C419)
+
+- `growthQuad_step`: для `growthQuad w = Σᵢwᵢ²/2` градиентный шаг
+  даёт точное равенство `growthQuad(growthStep w eta) = (1−eta)²growthQuad w`.
+- `growthQuad_descent`: при `0 < eta < 2` и `Σᵢwᵢ² ≠ 0` энергия строго
+  убывает.
+- `growEnergy_derived`: если `S.energy = growthQuad S.weights`, а
+  `S.effects.growEnergy` равна энергии после того же шага, то при этих условиях
+  доказывается одновременно неравенство
+  `growEnergy ≤ S.energy − (1−(1−eta)²)growthQuad S.weights`
+  и положительность вычтенного gain.
+
+
+
+(merged from Hagi/System/GrowthComputed.lean in C419)
 ## Hagi/System/StepCertificate.lean
 - `stepCertificate_base`: базовая часть сертификата, построенного по
   состоянию и `epsG ≥ 0`, совпадает с `verify S`.
@@ -5392,6 +5382,21 @@ one-hot CE.
   при фактическом спаде не меньше `δL > 0`.
 
 
+
+- `budget_consumed`: при `0 ≤ e t + delta t` свойство `BudgetAlive e delta eps (T + 1)` влечёт `BudgetAlive e delta eps T`.
+- `guarantee_horizon_bound`: если `0 < c ≤ e t + delta t` для всех `t` и бюджет жив на горизонте `T`, то `(T : ℝ) * c ≤ eps`.
+- `shift_paid_from_budget`: при `0 ≤ e t`, `0 ≤ delta t`, `S ⊆ range T` и `BudgetAlive e delta eps T` сумма `delta t` по `S` не превосходит `eps`; малость самого сдвига не доказывается.
+
+
+
+(merged from Hagi/Dynamics/ProxyGap.lean in C419)
+
+- `ratio_dominance`: при `0 < K i`, максимальном отношении `Gam ibest / K ibest` и `0 ≤ B` выполняется `Gam j * (B / K j) ≤ Gam ibest * (B / K ibest)`.
+- `budget_allocation_dominance`: при `0 ≤ Gam i`, `0 ≤ alloc a` и `∑ a, alloc a * K (idx a) ≤ B` суммарный выигрыш не превосходит `(Gam ibest / K ibest) * B`.
+
+
+
+(merged from Hagi/Dynamics/ControllerPolicy.lean in C419)
 ## Hagi/Unified/QuadMachine.lean
 - `quadE_eq_energy` и `quadGrad_eq_grad`: квадратичная энергия и градиент
   вычислительной машины совпадают с соответствующими определениями
@@ -6116,33 +6121,7 @@ merger cert carriers (Freeze-дисциплина: statement change).
   tech-debt TD E5-C301).
 
 
-## Hagi/Data/AnfCompose.lean
-- C302 (E5 rung 1 — ANF composition / compose3 seed + guarded
-  support): `anfCompose` — композиция на уровне таблиц истинности
-  (Python compose3(f, g, h) = f(g(x), h(x)): внешний
-  `f : Bool → Bool → Bool`, внутренние `g, h` на общем наборе
-  переменных `Fin n`).
-- `anfCompose_coeff` — коэффициенты ANF композиции = transform от
-  составной таблицы в подкуб-чётностной форме (инстанс
-  `anf_subcube`, упакованный как compose3 API); `anfCompose_eval` —
-  roundtrip компиляции для композиции (инстанс `anf_eval_eq`):
-  синтез + вычисление воспроизводит `f (g x) (h x)` для всех n.
-- `anfAgreeOn` / `anfSupportedOn` / `stencil_guard_sound` — seed
-  корректности контекст-гардов: опорная зависимость
-  (`g x = g y`, когда `x`, `y` согласованы на индексном множестве
-  `S`) КОМПОЗИЦИОННА — S-опорные `g`, `h` дают S-опорную композицию
-  для любого внешнего `f` (направление «no false coverage»
-  Python-абстенции по контекстной сигнатуре; обратное неверно —
-  константный внешний `f` убивает зависимость — и не заявлено).
-- Якорь Fin 2 (f = OR, g = AND, h = XOR): `anfFin2_compose` —
-  compose→transform→eval roundtrip; `anfFin2_compose_spot` —
-  decide-прогон через весь конвейер.
-- Степенная оценка deg(f∘(g,h)) ≤ deg f · max(deg g, deg h) —
-  docstring-заметка, теоремой НЕ заявлена (нет API мономов).
-- Честная граница: collision abstention и диапазоны аргументов —
-  НЕ заявлены (лестница TD E5-C302).
 
-## Hagi/Data/AnfDispatch.lean
 - C306 (E5 rung 3 — ANF dispatch с collision abstention): `AnfCand`
   — кандидат (стенсил `(Fin n → Bool) → Bool` + `AnfCand.argRanges` —
   диапазонные данные контекстной сигнатуры, `Finset (Fin n)`
@@ -6202,6 +6181,36 @@ merger cert carriers (Freeze-дисциплина: statement change).
   re-ranking НЕ заявлен; сквозная эквивалентность Python V3 — НЕ
   заявлена.
 
+
+(merged from Hagi/Data/AnfDispatch.lean in C419)
+
+- C302 (E5 rung 1 — ANF composition / compose3 seed + guarded
+  support): `anfCompose` — композиция на уровне таблиц истинности
+  (Python compose3(f, g, h) = f(g(x), h(x)): внешний
+  `f : Bool → Bool → Bool`, внутренние `g, h` на общем наборе
+  переменных `Fin n`).
+- `anfCompose_coeff` — коэффициенты ANF композиции = transform от
+  составной таблицы в подкуб-чётностной форме (инстанс
+  `anf_subcube`, упакованный как compose3 API); `anfCompose_eval` —
+  roundtrip компиляции для композиции (инстанс `anf_eval_eq`):
+  синтез + вычисление воспроизводит `f (g x) (h x)` для всех n.
+- `anfAgreeOn` / `anfSupportedOn` / `stencil_guard_sound` — seed
+  корректности контекст-гардов: опорная зависимость
+  (`g x = g y`, когда `x`, `y` согласованы на индексном множестве
+  `S`) КОМПОЗИЦИОННА — S-опорные `g`, `h` дают S-опорную композицию
+  для любого внешнего `f` (направление «no false coverage»
+  Python-абстенции по контекстной сигнатуре; обратное неверно —
+  константный внешний `f` убивает зависимость — и не заявлено).
+- Якорь Fin 2 (f = OR, g = AND, h = XOR): `anfFin2_compose` —
+  compose→transform→eval roundtrip; `anfFin2_compose_spot` —
+  decide-прогон через весь конвейер.
+- Степенная оценка deg(f∘(g,h)) ≤ deg f · max(deg g, deg h) —
+  docstring-заметка, теоремой НЕ заявлена (нет API мономов).
+- Честная граница: collision abstention и диапазоны аргументов —
+  НЕ заявлены (лестница TD E5-C302).
+
+
+(merged from Hagi/Data/AnfCompose.lean in C419)
 ## Hagi/Learning/SoftRouterMix.lean
 
 - Аудит §7 (T): «Мягкая калиброванная смесь вместо жёстких ±10:
@@ -6236,6 +6245,77 @@ merger cert carriers (Freeze-дисциплина: statement change).
   «вогнутость softmax» не используется (причина — выпуклость
   lse + линейность целевого члена).
 
+
+
+- C325 — ранжирование #2 `.omc/analysis/period-c313-c323-analysis.md`:
+  закрывает honest gap C320 (sleeping experts — у Hedge-носителя нет
+  механизма спящих экспертов, regret не покрывает конкуренцию с
+  лучшим ДОСТУПНЫМ экспертом). Маршрут — классический imputed-loss
+  трюк (Freund–Schapire share updates / specialists; вывод —
+  `.tmp/C325/research.md`).
+- `swWeight`/`swMixLoss`/`swLoss` — спящий процесс: awake-эксперты
+  обновляются своей потерей, asleep — потерей смеси m_t;
+  `swWeight_eq_ewWeight` — KEY IDENTITY: процесс определениями
+  совпадает с `ewWeight (swLoss)` ⇒ весь носитель
+  (`hsurv_derived` + `router_regret_bound`) применим дословно.
+- `algLoss_eq_mixLoss` — SELF-CONSISTENCY: потери алгоритма на
+  импутированных потерях РАВНЫ m_t ((P/W)·m + (1−P/W)·m = m).
+- `sleeping_hedge_regret` (ГЛАВНЫЙ НОСИТЕЛЬ) — regret на СОБСТВЕННЫХ
+  awake-раундах эксперта i: Σ_{t: i awake}(m_t − ℓ_t^i) ≤
+  log K/η + η·T/2; асимные члены сокращаются ТОЧНО (равенство).
+- `swPredW` + `swPredW_ce` + `sleeping_router_total_bound` (ГЛАВНАЯ
+  КОМПОЗИЦИЯ) — апгрейд C320: калибровка C319 на awake-supported
+  симплекс-весах; total CE смеси на awake-раундах эксперта i ≤ CE_i
+  там же + log N/η + η·T/2.
+- `sleeping_router_anchor` — числовая проверка: 2 эксперта (az из
+  C320), чередующаяся доступность ((t+i)%2=0), 4 раунда, η = 1/2:
+  total = 2·log(1+e⁻²) + 2·log 2 точно (singleton awake ⇒ смесь
+  вырождена), regret-сторона LHS = 0 ≤ 2·log 2 + 1.
+- Honest scope: oblivious-последовательности (адаптивный адверсарий
+  НЕ заявлен — скоуп носителя); awake-nonempty — СТОЯЩАЯ предпосылка
+  (раунд без доступных экспертов не имеет предсказания); m_t ∈ [0,1]
+  ВЫВЕДЕНО (`mixLossOf_mem`), не предположено; best-switching
+  последовательность экспертов НЕ заявлена.
+
+
+(merged from Hagi/Learning/SleepingRouter.lean in C419)
+
+
+- C320 — сквозная композиция аудита §7 (роутер): C319
+  (`soft_router_ce_bound`, по-раундовая калибровка смеси логитов) +
+  регрет-носитель Hedge (`router_regret_bound` + `hsurv_derived`).
+  Итог `soft_router_total_bound`: за T раундов с Hedge-весами
+  wᵗ = ewNorm CE-потерь и посылкой CE ≤ 1 (exact-expert abstention)
+  суммарный CE мягкой смеси ≤ суммарный CE ЛЮБОГО одиночного
+  эксперта + log N/η + η·T/2 — конкурентность с лучшим экспертом в
+  ретроспективе при калиброванном CE на каждом шаге; новая
+  математика — только кирпич `ceOneHot_nonneg` (lse z ≥ z t) и
+  суммирование-склейка.
+- Честные границы (challenge-pins в докстрингах): CE ≤ 1 — реальная
+  посылка (уверенно неверные эксперты уровня wz2 с CE ≈ 2.13
+  исключены); эксперты — `Fin N` (вселенная носителя Type 0);
+  sleeping-experts regret НЕ заявлен — бандл верен относительно
+  любого одиночного (в т.ч. guard-доступного) эксперта,
+  анти-лок-ин носителя `ewNorm_survivor_lower` процитирован как
+  контекст; без drift/адаптивности; константа регрета ровно как у
+  носителя, без подобранного η.
+- Якорь `total_bound_anchor` (2 эксперта, 3 раунда, η = 1/2):
+  числовая проверка композиции — веса раунда 0 равномерны (1/2,
+  1/2), смесь (3/2, 1/2) даёт строго положительный CE
+  (невакунность); инстанциация бандла даёт total ≤ 3·L + 2·log 2 +
+  3/4 < 4·L + 3 при L = log(1+e⁻²) (`az`, `az_ce`,
+  `az_ce_le_one`, `anchorMix`).
+
+
+(merged from Hagi/Learning/SoftRouterTotal.lean in C419)
+
+- `routerMix_apply`: выход по координате `i` равен `Σ_{w∈doms} p w*domainTerm w ks ws vs q i`.
+- `router_is_simplex`: при `T>0` и строго положительных `p₀` результат `mirrorStep` строго положителен и имеет сумму 1.
+- `routerMix_switch`: доказано алгебраическое сокращение `(routerMix p−p'w•term+p'w•term)=routerMix p`; это тождество отмены слагаемых, а не независимость `routerMix` от самих весов `p`.
+
+
+
+(merged from Hagi/Learning/RouterMix.lean in C419)
 ## Hagi/Contracts/HadamardSpread.lean
 
 - C321 — аудит A10 §9 п.5 («теорема о контракции реального
@@ -6354,38 +6434,6 @@ merger cert carriers (Freeze-дисциплина: statement change).
 - `canary_ramp_anchor_3step` — числовой якорь: рамка T=2, w =
   0, 1/2, 1, L = dR = px = 1 ⟹ суммарная экспозиция 3/2 = (T+1)/2
   (через ГЛАВНЫЕ теоремы, не bare norm_num).
-
-## Hagi/Learning/SleepingRouter.lean
-
-- C325 — ранжирование #2 `.omc/analysis/period-c313-c323-analysis.md`:
-  закрывает honest gap C320 (sleeping experts — у Hedge-носителя нет
-  механизма спящих экспертов, regret не покрывает конкуренцию с
-  лучшим ДОСТУПНЫМ экспертом). Маршрут — классический imputed-loss
-  трюк (Freund–Schapire share updates / specialists; вывод —
-  `.tmp/C325/research.md`).
-- `swWeight`/`swMixLoss`/`swLoss` — спящий процесс: awake-эксперты
-  обновляются своей потерей, asleep — потерей смеси m_t;
-  `swWeight_eq_ewWeight` — KEY IDENTITY: процесс определениями
-  совпадает с `ewWeight (swLoss)` ⇒ весь носитель
-  (`hsurv_derived` + `router_regret_bound`) применим дословно.
-- `algLoss_eq_mixLoss` — SELF-CONSISTENCY: потери алгоритма на
-  импутированных потерях РАВНЫ m_t ((P/W)·m + (1−P/W)·m = m).
-- `sleeping_hedge_regret` (ГЛАВНЫЙ НОСИТЕЛЬ) — regret на СОБСТВЕННЫХ
-  awake-раундах эксперта i: Σ_{t: i awake}(m_t − ℓ_t^i) ≤
-  log K/η + η·T/2; асимные члены сокращаются ТОЧНО (равенство).
-- `swPredW` + `swPredW_ce` + `sleeping_router_total_bound` (ГЛАВНАЯ
-  КОМПОЗИЦИЯ) — апгрейд C320: калибровка C319 на awake-supported
-  симплекс-весах; total CE смеси на awake-раундах эксперта i ≤ CE_i
-  там же + log N/η + η·T/2.
-- `sleeping_router_anchor` — числовая проверка: 2 эксперта (az из
-  C320), чередующаяся доступность ((t+i)%2=0), 4 раунда, η = 1/2:
-  total = 2·log(1+e⁻²) + 2·log 2 точно (singleton awake ⇒ смесь
-  вырождена), regret-сторона LHS = 0 ≤ 2·log 2 + 1.
-- Honest scope: oblivious-последовательности (адаптивный адверсарий
-  НЕ заявлен — скоуп носителя); awake-nonempty — СТОЯЩАЯ предпосылка
-  (раунд без доступных экспертов не имеет предсказания); m_t ∈ [0,1]
-  ВЫВЕДЕНО (`mixLossOf_mem`), не предположено; best-switching
-  последовательность экспертов НЕ заявлена.
 
 ## Hagi/Learning/ContinualForgetting.lean
 

@@ -763,7 +763,7 @@ RNG runtime, generalization, меньший FLOP count или улучшенны
 `h_emp_lip: dE ≤ κ*√(∑i(w_i-qTern s w_i)²)`.
 [`tritEncode_injective`](Hagi/Energy/Ternary.lean) и
 [`tritEncode_lt`](Hagi/Energy/Ternary.lean) подтверждают injective
-five-trits byte block; [`packedTernarySamples_decode_point`](Hagi/Runtime/TernaryCodec.lean)
+five-trits byte block; [`packedTernarySamples_decode_point`](Hagi/Runtime/TernaryExact.lean)
 возвращает quantized, не raw values. Это формат, не гарантия ABI/heap size.
 
 При фиксированном pattern `q`, `0<∑q_i²`, выбираем
@@ -1396,7 +1396,7 @@ noncomputable finite selection contracts, не native optimizer или runner.
 для всех `sel≠k`; без разрыва не объявляем истинный argmax.
 При ratio `Gamma/K` ещё требуем `K>0`, budget-feasibility
 `∑a alloc_a*K(idx_a)≤B`;
-[`budget_allocation_dominance`](Hagi/Dynamics/ControllerPolicy.lean)
+[`budget_allocation_dominance`](Hagi/Dynamics/ProductiveTransition.lean)
 действует лишь при доказанном максимуме ratio, `Gamma≥0` и nonnegative allocations.
 
 Структурный graph filter опционален:
@@ -2175,7 +2175,7 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   синтез + вычисление возвращает исходную функцию (`anf_eval_eq`,
   все n); якоря Fin 2 XOR/AND (`anfFin2_xor/and`,
   `anfFin2_xor_coeffs`).
-- **ANF-композиция compose3 (E5 rung 1)** ([`Hagi/Data/AnfCompose.lean`](Hagi/Data/AnfCompose.lean)):
+- **ANF-композиция compose3 (E5 rung 1)** ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
   `anfCompose` (Python compose3(f,g,h)=f(g(x),h(x)) на носителе
   таблиц истинности); `anfCompose_coeff` (коэффициенты = transform
   составной таблицы, подкуб-форма) и `anfCompose_eval` (roundtrip
@@ -2188,7 +2188,7 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   оценка — docstring-заметка; collision abstention/диапазоны — не
   заявлены (лестница TD E5-C302).
 - **ANF-dispatch с collision abstention (E5 rung 3)**
-  ([`Hagi/Data/AnfDispatch.lean`](Hagi/Data/AnfDispatch.lean)):
+  ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
   `dispatchOrAbstain` — сертифицированный двухкандидатный
   dispatch Python V3: применим ровно один → его значение; ни
   одного → default; оба → проверка согласия, разногласие →

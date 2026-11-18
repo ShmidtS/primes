@@ -1,4 +1,4 @@
-import Hagi.System.GrowthComputed
+import Hagi.System.GrowthState
 import Hagi.Unified.HonestTransition
 
 set_option linter.style.header false

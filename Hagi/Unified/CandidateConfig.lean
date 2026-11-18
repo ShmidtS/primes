@@ -1,8 +1,8 @@
 import Mathlib.Tactic
 import Hagi.Optimization.MomentumHB
 import Hagi.Learning.TrainingTransition
-import Hagi.Learning.BitBudget
-import Hagi.Learning.RegCovPD
+import Hagi.Learning.TernaryPert
+import Hagi.Learning.FOOF
 
 set_option linter.style.header false
 

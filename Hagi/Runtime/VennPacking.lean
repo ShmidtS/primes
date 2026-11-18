@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Runtime.DyadicTernary
+import Hagi.Runtime.TernaryExact
 import Hagi.Data.BoolVenn
 
 set_option linter.style.header false

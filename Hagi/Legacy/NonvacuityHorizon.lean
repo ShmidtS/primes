@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Legacy.ArchitectureTheorem
 import Hagi.Optimization.ComputeScaling
 import Hagi.Growth.LinearCone
-import Hagi.Dynamics.Laws
+import Hagi.Dynamics.EndpointContraction
 import Hagi.Optimization.PLConvergence
 import Hagi.Pretraining.RobustnessLaw
 set_option linter.style.header false

@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CEQuantized
-import Hagi.Runtime.DyadicTernary
+import Hagi.Runtime.TernaryExact
 
 /-!
 # The quantized safe step as an actual packed parameter payload
