@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CEGlobalConvergence
 import Hagi.Model.CEMarginPL
+import Hagi.Dynamics.EndpointContraction
 
 /-!
 # Online PL tracking rate for a frozen extractor (streaming head)
@@ -272,58 +273,6 @@ theorem loss_dist_bound (f : E → ℝ) (grad : E → E) (L : ℝ)
   rw [h_star, inner_zero_left] at hs
   linarith
 
-/-- The affine tracking recursion: `d(n+1) ≤ q·d n + Δ` with
-`0 ≤ q < 1` and `0 ≤ Δ` implies `d n ≤ q^n·d 0 + Δ/(1−q)`.
-Direct induction with the geometric partial sum (the C355
-`nonlin_rec_bound` is a quadratic recursion — different algebra). With
-`q = 1 − μ/L` the steady-state radius is `Δ/(1−q) = Δ·L/μ`. -/
-theorem track_rec_bound {d : ℕ → ℝ} {q Δ : ℝ} (hq : 0 ≤ q) (hq1 : q < 1)
-    (hΔ : 0 ≤ Δ) (hrec : ∀ n : ℕ, d (n + 1) ≤ q * d n + Δ) (n : ℕ) :
-    d n ≤ q ^ n * d 0 + Δ / (1 - q) := by
-  have hq1le : q ≤ 1 := le_of_lt hq1
-  have hkey : ∀ n : ℕ, d n ≤ q ^ n * d 0 + Δ * (1 - q ^ n) / (1 - q) := by
-    intro n
-    induction n with
-    | zero => simp
-    | succ n ih =>
-      have h := hrec n
-      have hqpow : 0 ≤ q ^ n := pow_nonneg hq n
-      have hne : (1:ℝ) - q ≠ 0 := sub_ne_zero_of_ne (by linarith)
-      have hfield : q * (Δ * (1 - q ^ n) / (1 - q)) + Δ
-          = Δ * (1 - q ^ (n + 1)) / (1 - q) := by
-        rw [pow_succ]
-        field_simp
-        ring
-      have hmul : q * d n
-          ≤ q * (q ^ n * d 0 + Δ * (1 - q ^ n) / (1 - q)) :=
-        mul_le_mul_of_nonneg_left ih hq
-      have hlast : q * (q ^ n * d 0 + Δ * (1 - q ^ n) / (1 - q)) + Δ
-          = q ^ (n + 1) * d 0 + Δ * (1 - q ^ (n + 1)) / (1 - q) := by
-        have hd : q * (q ^ n * d 0 + Δ * (1 - q ^ n) / (1 - q)) + Δ
-            = q * q ^ n * d 0 + (q * (Δ * (1 - q ^ n) / (1 - q)) + Δ) := by
-          ring
-        rw [hd, hfield]
-        simp only [pow_succ]
-        ring
-      linarith [h, hmul, hlast]
-  have hqn : q ^ n ≤ 1 := by
-    induction n with
-    | zero => simp
-    | succ k ih =>
-      have h2 : q * q ^ k ≤ q * 1 := mul_le_mul_of_nonneg_left ih hq
-      rw [mul_one] at h2
-      rw [pow_succ]
-      linarith
-  have hmul2 : Δ * (1 - q ^ n) ≤ Δ := by
-    have hle1 : (1:ℝ) - q ^ n ≤ 1 := by linarith [pow_nonneg hq n]
-    have h3 : Δ * (1 - q ^ n) ≤ Δ * 1 := mul_le_mul_of_nonneg_left hle1 hΔ
-    rw [mul_one] at h3
-    exact h3
-  have hdiv : Δ * (1 - q ^ n) / (1 - q) ≤ Δ / (1 - q) := by
-    have hpos : (0:ℝ) < 1 - q := by linarith
-    exact (div_le_div_iff_of_pos_right hpos).mpr hmul2
-  linarith [hkey n, hdiv]
-
 /-- MAIN TRACKING THEOREM: online gradient descent on the head
 (`θ(t+1) = plStep (grad t) L (θ t)`) under frozen extractor tracks
 the drifting optimum `θs t` within the geometric-plus-steady-state
@@ -367,7 +316,10 @@ theorem online_tracking (f : ℕ → E → ℝ) (grad : ℕ → E → E) (L μ �
     rw [h_step t] at htri
     rw [← hqdef] at hcontr
     linarith
-  have hmain := track_rec_bound hq hq1 hΔ hrec n
+  -- C415: affine tracking recursion bound is
+  -- Hagi.Dynamics.contraction_limit (α-duplicate restatement removed).
+  have hmain := Hagi.Dynamics.contraction_limit
+    (fun t => ‖θ t - θs t‖) q Δ hq hq1 hΔ hrec n
   have hconv : Δ / (1 - q) = Δ * L / μ := by
     rw [hqdef]
     have h1 : (1:ℝ) - (1 - μ / L) = μ / L := by ring

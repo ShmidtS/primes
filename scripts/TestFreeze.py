@@ -219,6 +219,28 @@ class FreezeRegression(unittest.TestCase):
         self.assertTrue(lost[0].endswith("Probe.lean:Hagi.Probe.hidden"))
         self.assertEqual(renamed, [])
 
+    def test_alpha_equivalent_statements_hash_identically(self):
+        # C415: the statement-hash column is built from the elaborated
+        # type hash only — binder-renamed source duplicates (λx vs λy)
+        # must collide ( Freeze rename-detection + STMDUP catch them ),
+        # while real statement change still diverges.
+        self.metadata["Hagi/Probe.lean", "alphaA"] = [
+            record("Hagi.Probe.alphaA", type_hash="hash-lambda-x")]
+        a = self.collect("Probe.lean",
+            "theorem alphaA : ∀ (x : Nat), x = x := by rfl\n", semantic=True)[0]
+        self.metadata["Hagi/Probe.lean", "alphaB"] = [
+            record("Hagi.Probe.alphaB", type_hash="hash-lambda-x")]
+        b = self.collect("Probe.lean",
+            "theorem alphaB : ∀ (y : Nat), y = y := by rfl\n", semantic=True)[0]
+        self.assertNotEqual(a[0], b[0])          # distinct names
+        self.assertEqual(a[2], b[2])             # alpha-equal statements
+        self.assertEqual(a[3], b[3])             # same kind
+        self.metadata["Hagi/Probe.lean", "alphaB"] = [
+            record("Hagi.Probe.alphaB", type_hash="hash-lambda-z")]
+        drifted = self.collect("Probe.lean",
+            "theorem alphaB : ∀ (z : Nat), z ≠ z := by rfl\n", semantic=True)[0]
+        self.assertNotEqual(a[2], drifted[2])    # drift still detected
+
     def test_cli_uses_repository_root(self):
         repo = Path(__file__).resolve().parents[1]
         result = subprocess.run(

@@ -41,6 +41,25 @@ id (own user-name leaf + own normalized type). Self-references map to
 `⟦priv.self⟧`. Types without private references hash exactly as
 before, so unaffected statement-hashes are preserved by construction. -/
 
+/- C415: alpha-invariant statement hashing.
+
+Lean `Expr` is de Bruijn internally: bound variables are indices and
+binder names are display-only annotations. `Expr.hash` happens to
+ignore them, but that is an undocumented emergent property (Hyrum
+risk: any future name-sensitive printer/fold re-opens the gap and
+α-renamed duplicates slip past Freeze/STMDUP). `alphaCanonical`
+makes α-invariance explicit by construction: every lam/forallE/letE
+binder name is erased before hashing. Since the hash ignored names
+already, all statement hashes are VALUE-UNCHANGED by this layer
+(proven: old- vs new-scheme bake on identical tree -> byte-identical
+8035-row lock).
+
+Scope boundary: α-equivalence (binder renaming) is IN; defeq but
+structurally different statements (`a+b` vs `b+a`) are OUT — proof-
+reduction equality is undecidable to enumerate at hashing time.
+BinderInfo differences were already ignored by `Expr.hash`; left
+as-is (over-merge only, never a miss). -/
+
 abbrev Markers := NameMap String
 
 def replaceConst (ids : Markers) (self : Name) (e : Expr) : Option Expr :=
@@ -53,8 +72,20 @@ def replaceConst (ids : Markers) (self : Name) (e : Expr) : Option Expr :=
     | none => none
   else none
 
+/-- Erase binder names (lam/forallE/letE), recursing into all
+subterms. Alpha-equivalent expressions become structurally equal. -/
+partial def alphaCanonical (e : Expr) : Expr :=
+  match e with
+  | .app f a => .app (alphaCanonical f) (alphaCanonical a)
+  | .lam _ t b bi => .lam Name.anonymous (alphaCanonical t) (alphaCanonical b) bi
+  | .forallE _ t b bi => .forallE Name.anonymous (alphaCanonical t) (alphaCanonical b) bi
+  | .letE _ t v b nd => .letE Name.anonymous (alphaCanonical t) (alphaCanonical v) (alphaCanonical b) nd
+  | .mdata m e => .mdata m (alphaCanonical e)
+  | .proj t i e => .proj t i (alphaCanonical e)
+  | e => e
+
 def canonHash (ids : Markers) (self : Name) (e : Expr) : UInt64 :=
-  (e.replace (replaceConst ids self)).hash
+  (alphaCanonical (e.replace (replaceConst ids self))).hash
 
 def leafOf (n : Name) : String :=
   match n with
@@ -67,6 +98,28 @@ def canonName (ids : Markers) (n : Name) : String :=
   | none => n.toString
 
 end CanonPrivate
+
+/- C415 fail-closed self-check: canonical hashing is alpha-invariant
+(lam/forallE/letE binder renames collide) and still distinguishes
+non-alpha-equivalent bodies. Throws on violation; runs on every
+inventory invocation (i.e. every Freeze gate). -/
+#eval show CoreM Unit from do
+  let n : Expr := .const `Nat []
+  let alphaPairs : List (Expr × Expr) :=
+    [(.lam `x n (.bvar 0) .default, .lam `y n (.bvar 0) .default),
+     (.forallE `x n (.bvar 0) .default, .forallE `y n (.bvar 0) .default),
+     (.letE `x n (.bvar 0) (.bvar 0) true,
+      .letE `y n (.bvar 0) (.bvar 0) true)]
+  for (a, b) in alphaPairs do
+    let ca := CanonPrivate.alphaCanonical a
+    let cb := CanonPrivate.alphaCanonical b
+    unless ca == cb && ca.hash == cb.hash do
+      throwError "C415 self-check: alpha-equivalent pair split by canonical hash"
+  let d1 : Expr := .forallE `x n (.bvar 0) .default
+  let d2 : Expr := .forallE `x n (.app (.const `id [0]) (.bvar 0)) .default
+  if CanonPrivate.alphaCanonical d1 == CanonPrivate.alphaCanonical d2
+      || d1.hash == d2.hash then
+    throwError "C415 self-check: non-alpha-equivalent pair collided"
 
 #eval show CoreM Unit from do
   let env ← getEnv
