@@ -1,10 +1,5 @@
 import Hagi.Contracts.BatchCEStepCore
 import Hagi.Contracts.BatchCEBudgetGuard
-import Hagi.Contracts.BatchCEBudgetHalf
-import Hagi.Contracts.BatchCEBudgetPareto
-import Hagi.Contracts.BatchCEBudgetIdentity
-import Hagi.Contracts.BatchCEBudgetAsym
-import Hagi.Contracts.BatchCEBudgetExpanded
 
 /-!
 # Executed arithmetic-batch CE descent through the canonical trainStep

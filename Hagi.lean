@@ -447,6 +447,7 @@ import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.GatedCETrajectory
 import Hagi.Contracts.GatedCEGradientNorm
 import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Contracts.BudgetedParetoStepContract
 import Hagi.Contracts.BudgetedParetoStepCert
 import Hagi.Contracts.BatchCEGrowth
