@@ -335,6 +335,35 @@ theorem concOneDrawRadius {Ω : Type} [Fintype Ω] (law : PMF Ω)
   intro ω _
   simp
 
+/-- The full Freedman radius (C410): the Bennett-chord form
+`exp(−r²/(2(V + c·r/3)))` through the unified premise record,
+with NO regime premise (the λ = r/(V+cr/3) optimization is
+admissible whenever V > 0). Direct citation of the C410
+`freedman_full`. Strictly dominates `concRadiusMixed` (constants
+4 → 2, c·r → c·r/3; equality only at c·r = 0) and is
+incomparable with the variance-regime `concRadiusVar`: the
+regime split is explicit in the comparison lemmas
+(`freedman_full_exp_le_variance_exp` at c·r/3 ≤ V,
+`freedman_variance_exp_le_full_exp` at V ≤ c·r/3). -/
+theorem concRadiusFull {α : Type*} [Fintype α] (P : ConcPremise α)
+    (k : ℕ) (r V : ℝ) (hr : 0 < r) (hV : 0 < V) :
+    pmfMean (historyLaw P.initial P.K P.T k)
+      (fun ω => if r ≤ historyAdditive P.g P.T k ω ∧
+        historyCounter P.v P.T k ω ≤ V then 1 else 0)
+      ≤ Real.exp (-r ^ 2 / (2 * (V + P.c * r / 3))) :=
+  freedman_full P.initial P.K P.g P.v P.T P.c P.hc.le
+    P.hbounded P.hmean P.hvar k r V hr hV
+
+/-- The full radius dominates the mixed radius (C410): through
+the record, exp(−r²/(2(V+cr/3))) ≤ exp(−r²/(4(V+cr))) with NO
+regime premise — the unified API now serves the strongest
+all-regime bound. -/
+theorem concRadiusFull_le_mixed {α : Type*} [Fintype α]
+    (P : ConcPremise α) (r V : ℝ) (hr : 0 < r) (hV : 0 ≤ V) :
+    Real.exp (-r ^ 2 / (2 * (V + P.c * r / 3)))
+      ≤ Real.exp (-r ^ 2 / (4 * (V + P.c * r))) :=
+  freedman_full_exp_le_mixed_exp r V P.c hr hV P.hc
+
 section VilleChannel
 
 open MeasureTheory ProbabilityTheory
