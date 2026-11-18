@@ -450,6 +450,7 @@ import Hagi.Training.TTCAT
 import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
 import Hagi.Theory.CEChain
+import Hagi.Theory.BlockSmooth
 import Hagi.Theory.FlowMatching
 import Hagi.Theory.Interpretability
 import Hagi.Theory.StochasticSafeStep
