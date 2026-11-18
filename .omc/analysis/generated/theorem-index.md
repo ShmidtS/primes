@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 558
-- theorems: 11941
-- defs: 4299
-- noncomputable decls: 1139
-- status Proven: 478 modules
+- modules: 536
+- theorems: 11977
+- defs: 4356
+- noncomputable decls: 1145
+- status Proven: 456 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 24 modules
@@ -136,27 +136,18 @@ theorems.
 | Hagi.Core.RoPEMoments | 20 | 4 | cosSum, ropeScore, rotVec | no | Proven |
 | Hagi.Core.RootContrast | 17 | 4 | rhoCaptured, rootPart, contrastPart, rhoTail | no | Proven |
 | Hagi.Core.Select | 8 | 7 | zB, zC, ens, zA | no | Proven |
-| Hagi.Data.AnfCompose | 5 | 3 | - | no | Proven |
-| Hagi.Data.AnfDispatch | 19 | 20 | - | no | Proven |
-| Hagi.Data.AnfTransform | 27 | 8 | - | no | Proven |
+| Hagi.Data.AnfTransform | 51 | 31 | - | no | Proven |
 | Hagi.Data.BoolVenn | 37 | 15 | signDecode, qAtom, singleAtomCE, worstMask | no | Proven |
 | Hagi.Data.BytePatch | 22 | 3 | patchCount, patchSeq | no | Proven |
 | Hagi.Data.DBridge | 3 | 1 | negEntropy | no | Proven |
-| Hagi.Data.DField | 23 | 12 | divField | no | Proven |
-| Hagi.Data.DFieldKKT | 1 | 1 | divField_marginal | no | Proven |
+| Hagi.Data.DField | 26 | 16 | flowMap, flowBack, epRate, divField, divField_marginal | no | Proven |
 | Hagi.Data.DataMixing | 11 | 1 | mixingLoss | no | Proven |
-| Hagi.Data.Distill | 28 | 2 | truncNorm, crossEntropy | no | Proven |
-| Hagi.Data.DistillRecursion | 12 | 1 | - | no | Proven |
-| Hagi.Data.InfoNCE | 8 | 1 | CE | no | Proven |
-| Hagi.Data.NessDissipation | 2 | 3 | flowMap, flowBack, epRate | no | Proven |
+| Hagi.Data.Distill | 48 | 4 | CE, truncNorm, crossEntropy | no | Proven |
 | Hagi.Data.PACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Deployment.CanaryRamp | 27 | 15 | linearRamp, canary_step_certified | no | Proven |
-| Hagi.Dynamics.ControllerPolicy | 2 | 0 | - | no | Proven |
-| Hagi.Dynamics.EndpointContraction | 13 | 0 | - | no | Proven |
-| Hagi.Dynamics.GrowthBridge | 90 | 12 | ignitionCeiling, ignitionGate, disMean | yes | Speculative |
-| Hagi.Dynamics.Laws | 8 | 0 | - | no | Proven |
-| Hagi.Dynamics.ProductiveTransition | 3 | 1 | - | yes | Conditional |
-| Hagi.Dynamics.ProxyGap | 3 | 1 | - | no | Proven |
+| Hagi.Dynamics.EndpointContraction | 21 | 0 | - | no | Proven |
+| Hagi.Dynamics.GrowthBridge | 89 | 12 | ignitionCeiling, ignitionGate, disMean | yes | Speculative |
+| Hagi.Dynamics.ProductiveTransition | 8 | 2 | - | yes | Conditional |
 | Hagi.Energy.EnergyCoordinateStep | 31 | 2 | singleCellFreeEnergy, meanFieldField | no | Proven |
 | Hagi.Energy.EnergyFlow | 54 | 2 | localMeanField | no | Proven |
 | Hagi.Energy.EntropyProduction | 8 | 4 | entropyProduction | no | Proven |
@@ -225,24 +216,14 @@ theorems.
 | Hagi.Growth.Takeoff | 13 | 1 | - | yes | Speculative |
 | Hagi.Growth.Thermostat | 33 | 0 | - | no | Proven |
 | Hagi.Information.Capacity | 11 | 3 | repRate | no | Proven |
-| Hagi.Learning.BitBudget | 11 | 2 | layerBits, bitsPerTrit | no | Proven |
 | Hagi.Learning.ContinualForgetting | 24 | 6 | anchorLedger, adelta, atask, achain | no | Proven |
-| Hagi.Learning.FOOF | 3 | 2 | foofW | no | Proven |
-| Hagi.Learning.FOOFUnique | 2 | 0 | - | no | Proven |
+| Hagi.Learning.FOOF | 10 | 2 | foofW | no | Proven |
 | Hagi.Learning.HRCN | 3 | 1 | domainTerm | no | Proven |
-| Hagi.Learning.HadamardComplete | 2 | 0 | - | no | Proven |
-| Hagi.Learning.HadamardParseval | 28 | 0 | - | no | Proven |
-| Hagi.Learning.HadamardProjectors | 12 | 4 | charProj, charProjR | no | Proven |
-| Hagi.Learning.NetworkBudget | 16 | 0 | - | no | Proven |
-| Hagi.Learning.PertTelescope | 5 | 1 | - | no | Proven |
+| Hagi.Learning.HadamardProjectors | 42 | 4 | charProj, charProjR | no | Proven |
 | Hagi.Learning.RCDL | 12 | 4 | expw, weightedSoftmax | no | Proven |
-| Hagi.Learning.RegCovPD | 5 | 0 | - | no | Proven |
-| Hagi.Learning.RouterMix | 3 | 1 | routerMix | no | Proven |
-| Hagi.Learning.SleepingRouter | 42 | 13 | swWeight, sleep_anchor_loss, awPot, swLoss, mixLossOf, swMixLoss, swPredW | no | Proven |
-| Hagi.Learning.SoftRouterMix | 13 | 3 | ceDist | no | Proven |
-| Hagi.Learning.SoftRouterTotal | 12 | 3 | anchorMix, az | no | Proven |
+| Hagi.Learning.SoftRouterMix | 67 | 20 | swWeight, sleep_anchor_loss, anchorMix, awPot, az, swLoss, mixLossOf, swMixLoss, swPredW, routerMix, ceDist | no | Proven |
 | Hagi.Learning.SpectralBudget | 3 | 0 | - | no | Proven |
-| Hagi.Learning.TernaryPert | 3 | 3 | eunorm, outNorm | no | Proven |
+| Hagi.Learning.TernaryPert | 35 | 6 | layerBits, eunorm, outNorm, bitsPerTrit | no | Proven |
 | Hagi.Learning.ToyTrajectory | 18 | 28 | lossS, traj | yes | Conditional |
 | Hagi.Learning.TrainingTransition | 14 | 15 | taskQual, taskEnergy | no | Proven |
 | Hagi.Legacy | 0 | 0 | - | no | Proven |
@@ -256,7 +237,7 @@ theorems.
 | Hagi.Legacy.LearningKernel | 5 | 3 | - | no | Deprecated |
 | Hagi.Legacy.LinkedWitness | 2 | 1 | - | no | Deprecated |
 | Hagi.Legacy.MasterChallenge | 1 | 0 | - | no | Deprecated |
-| Hagi.Legacy.MasterHAGI | 21 | 5 | - | yes | Deprecated |
+| Hagi.Legacy.MasterHAGI | 18 | 5 | - | yes | Deprecated |
 | Hagi.Legacy.MasterHAGICoupled | 21 | 11 | coupledGrowthTraj | no | Deprecated |
 | Hagi.Legacy.MasterHAGITrunc | 20 | 0 | - | yes | Deprecated |
 | Hagi.Legacy.Nonvacuity | 72 | 14 | Spos, Spos', MwEffects, S₀, Mw0, mergeOperationalCertStep, mergeStrictCertStep, S₁, jensenGap, Mw, witnessGap | yes | Deprecated |
@@ -459,10 +440,7 @@ theorems.
 | Hagi.Research.Site | 29 | 22 | percolationSystem, R | no | Speculative |
 | Hagi.Runtime.BF16Delta | 74 | 30 | - | no | Proven |
 | Hagi.Runtime.ControllerGates | 38 | 1 | - | no | Proven |
-| Hagi.Runtime.DyadicTernary | 38 | 8 | dyadicLevel | no | Proven |
-| Hagi.Runtime.LiveDeltaQuant | 2 | 1 | quantMat | no | Proven |
-| Hagi.Runtime.TernaryCodec | 9 | 5 | ternaryValueEncode, packedTernarySamples, ternaryValueDecode | no | Proven |
-| Hagi.Runtime.TernaryExact | 14 | 3 | satTail, qTern | yes | Conditional |
+| Hagi.Runtime.TernaryExact | 61 | 17 | dyadicLevel, ternaryValueEncode, satTail, quantMat, packedTernarySamples, ternaryValueDecode, qTern | yes | Conditional |
 | Hagi.Runtime.VennPacking | 15 | 4 | vennTritRow, rowByte, rowWord | no | Proven |
 | Hagi.Semantics.CanonicalParams | 4 | 4 | canonWeights | no | Proven |
 | Hagi.Semantics.FunctionalState | 6 | 16 | fsCapa, fsEnergy, funStep, funStepJoint | no | Proven |
@@ -518,17 +496,16 @@ theorems.
 | Hagi.Step.WarmupSchedule | 5 | 1 | warmupEta | no | Proven |
 | Hagi.Step.WeightDecay | 8 | 0 | - | no | Proven |
 | Hagi.System.Certificates | 39 | 82 | - | no | Proven |
-| Hagi.System.GrowthComputed | 5 | 2 | growthQuad | no | Proven |
-| Hagi.System.GrowthState | 43 | 127 | stageCertificate, gainJoint, verify, costCompress | yes | Conditional |
-| Hagi.System.GrowthStateRecompute | 23 | 9 | witEffects, witState, witParams | no | Proven |
-| Hagi.System.GrowthStateViews | 17 | 63 | - | no | Proven |
+| Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
+| Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
@@ -547,6 +524,7 @@ theorems.
 | Hagi.Training.MacroStatCert | 32 | 36 | macroDecide, macroCertAnchor | no | Proven |
 | Hagi.Training.ModelComparison | 18 | 16 | zIndicator, zOf, Score, modelGap | no | Proven |
 | Hagi.Training.StepProvider | 42 | 30 | honestQuadStep, cramDescentProvider, quadContractProvider, quadContract, honestQuadProvider | no | Proven |
+| Hagi.Training.TTCAT | 18 | 32 | - | no | Proven |
 | Hagi.Training.TelescopeInstances | 9 | 0 | - | no | Proven |
 | Hagi.Training.TransitionCert | 22 | 37 | - | no | Proven |
 | Hagi.Unified.AnytimeMartingale | 32 | 0 | - | yes | Empirical |
