@@ -6722,3 +6722,19 @@ IntegrationOrder, SelfDevelopment. Root closure 566 -> 554 modules;
 h_emp binders in root 377 -> 331. ReachLint gains a per-module
 growth-quarantine exempt (C347); quarantined decls remain #check-able
 via direct import.
+
+
+## Adaptive majorizer port proposal (C466, THEORY_ALIGNMENT)
+
+Roadmap C464 top-2: proposal for porting the C462 variance-adaptive
+CE majorizer (`Hagi.Theory.AdaptiveMajorizer`: `ce_adaptive_descent`
+— safe step η = A/(2C), certified drop A²/(4C), curvature
+`ceAdaptiveCurv` = e^R·Var_p(δz) with the mandatory η ≤ 1 cap) into
+the HAGI_v2 runtime `CertifiedStepLM._certified_step` (hagi/lm.py),
+replacing/augmenting the range step η = 4A/R'² whose steps throttle
+to zero in the late-training one-hot regime. Self-contained spec for
+the HAGI_v2 agent: docs/PROPOSAL-adaptive-majorizer.md (formulas,
+minimal-diff pseudocode with fallback branches, Lean anchors,
+loop-5 validation criterion, honest limits, sanity table:
+cert ≤ true drop in all cells; late regime ≈ 20x better certified
+drop). Primes SSOT unchanged (docs-only beat).
