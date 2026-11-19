@@ -448,6 +448,7 @@ import Hagi.Theory.HoldoutRisk
 import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertTernaryJump
 import Hagi.Theory.BlockAdmission
+import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.AnytimeHoldoutStop
 import Hagi.Theory.BlockSmooth
 import Hagi.Theory.Confinement
