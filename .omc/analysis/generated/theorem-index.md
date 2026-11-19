@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 536
-- theorems: 11977
-- defs: 4356
-- noncomputable decls: 1145
-- status Proven: 456 modules
+- modules: 543
+- theorems: 12052
+- defs: 4423
+- noncomputable decls: 1152
+- status Proven: 463 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 24 modules
@@ -70,10 +70,11 @@ theorems.
 | Hagi.Budget.WeightedExpAlloc | 22 | 4 | weightedExpBudget, weightedExpPrice, weightedExpLogCoeff, weightedExpAllocation | no | Proven |
 | Hagi.Cert.Adapters | 4 | 3 | - | yes | Conditional |
 | Hagi.Cert.CertifiedArgmax | 11 | 3 | avgRadius | no | Proven |
-| Hagi.Cert.Core | 50 | 80 | - | no | Proven |
+| Hagi.Cert.Core | 50 | 82 | - | no | Proven |
 | Hagi.Cert.Empirical | 5 | 13 | - | no | Proven |
 | Hagi.Cert.EvalBinding | 29 | 61 | - | no | Proven |
-| Hagi.Cert.StepGen | 61 | 36 | - | no | Proven |
+| Hagi.Cert.StepGen | 61 | 40 | - | no | Proven |
+| Hagi.Cert.Telescope | 5 | 16 | - | no | Proven |
 | Hagi.Challenge.MasterChallengeV3 | 1 | 0 | - | no | Proven |
 | Hagi.Challenge.MasterChallengeV4Kernel | 1 | 0 | - | no | Proven |
 | Hagi.Contracts.AuditLedger | 50 | 40 | - | no | Proven |
@@ -154,7 +155,7 @@ theorems.
 | Hagi.Energy.FreeEnergy | 4 | 1 | - | no | Proven |
 | Hagi.Energy.Landauer | 24 | 1 | landauerUnit | yes | Empirical |
 | Hagi.Energy.PairwiseCategorical | 12 | 9 | xtt, pairwiseEnergy, pairwiseInteractionSum, xex, meanFieldFreeEnergy, Bex, expectedPairwiseEnergy, Kex, oneHotState | no | Proven |
-| Hagi.Energy.PoEBound | 16 | 1 | smax | no | Proven |
+| Hagi.Energy.PoEBound | 17 | 1 | smax | no | Proven |
 | Hagi.Energy.PreNorm | 5 | 0 | - | no | Proven |
 | Hagi.Energy.Quantizer | 30 | 2 | gridQ, gridQVec | no | Proven |
 | Hagi.Energy.STEStep | 12 | 1 | tern | yes | Empirical |
@@ -258,7 +259,7 @@ theorems.
 | Hagi.Math.Foundations.Recurrence | 46 | 0 | - | no | Proven |
 | Hagi.Math.Foundations.StageCalculus | 10 | 0 | - | yes | Conditional |
 | Hagi.Math.Foundations.Telescope | 8 | 0 | - | no | Proven |
-| Hagi.Math.Info.InfoCore | 145 | 24 | ceDef, softDef, logDetShift, entropy, spectralFactor, entDef, klDef, tvDef, logEntropyPrimitive, shannon, tvHalf, logGram | no | Proven |
+| Hagi.Math.Info.InfoCore | 146 | 24 | ceDef, softDef, logDetShift, entropy, spectralFactor, entDef, klDef, tvDef, logEntropyPrimitive, shannon, tvHalf, logGram | no | Proven |
 | Hagi.Model.Adaptive | 20 | 1 | - | no | Proven |
 | Hagi.Model.AdaptiveChunking | 50 | 12 | floorCappedChunks, adaptiveCost, floorBoundaryChunks | no | Proven |
 | Hagi.Model.AlignmentRisk | 3 | 0 | - | no | Proven |
@@ -280,7 +281,7 @@ theorems.
 | Hagi.Model.BlockNorm | 17 | 5 | globalRms, globalNorm, blockNorm, blockRms | no | Proven |
 | Hagi.Model.CEConfidenceScale | 19 | 0 | - | no | Proven |
 | Hagi.Model.CECoupledShortcut | 18 | 2 | shortcutScales, packedShortcutScales | no | Proven |
-| Hagi.Model.CEDescent | 63 | 13 | ceAlignment, ceMajorizer, ceRangeMajorizer, ceStepLogitRange, ceLogits, ceDirection, ceRangeSafeStep, ceResidual, safeStepSize, ceNextLogits, ceNextParameters, residualTranspose, ceStepRange | no | Proven |
+| Hagi.Model.CEDescent | 62 | 13 | ceAlignment, ceMajorizer, ceRangeMajorizer, ceStepLogitRange, ceLogits, ceDirection, ceRangeSafeStep, ceResidual, safeStepSize, ceNextLogits, ceNextParameters, residualTranspose, ceStepRange | no | Proven |
 | Hagi.Model.CEExpansion | 10 | 4 | expandedReadoutJacobian, expandedParameters | no | Proven |
 | Hagi.Model.CEGlobalConvergence | 85 | 5 | ceGrad, plStep, ceGradReg, ceReg | no | Proven |
 | Hagi.Model.CEGradient | 25 | 3 | featureCLM, lseDeriv | no | Proven |
@@ -439,10 +440,12 @@ theorems.
 | Hagi.Research.SchellingPercolation | 11 | 0 | - | no | Speculative |
 | Hagi.Research.Site | 29 | 22 | percolationSystem, R | no | Speculative |
 | Hagi.Runtime.BF16Delta | 74 | 30 | - | no | Proven |
+| Hagi.Runtime.CertChecker | 17 | 27 | - | no | Proven |
 | Hagi.Runtime.ControllerGates | 38 | 1 | - | no | Proven |
 | Hagi.Runtime.TernaryExact | 61 | 17 | dyadicLevel, ternaryValueEncode, satTail, quantMat, packedTernarySamples, ternaryValueDecode, qTern | yes | Conditional |
 | Hagi.Runtime.VennPacking | 15 | 4 | vennTritRow, rowByte, rowWord | no | Proven |
 | Hagi.Semantics.CanonicalParams | 4 | 4 | canonWeights | no | Proven |
+| Hagi.Semantics.DerivedStateCoherence | 5 | 1 | derivedProj | no | Proven |
 | Hagi.Semantics.FunctionalState | 6 | 16 | fsCapa, fsEnergy, funStep, funStepJoint | no | Proven |
 | Hagi.Semantics.MemorySemantics | 15 | 21 | ramWriteCert_of_updateRow | no | Proven |
 | Hagi.Semantics.Split | 23 | 27 | ceOneHotObjective, linearHeadSpec | no | Proven |
@@ -496,12 +499,15 @@ theorems.
 | Hagi.Step.WarmupSchedule | 5 | 1 | warmupEta | no | Proven |
 | Hagi.Step.WeightDecay | 8 | 0 | - | no | Proven |
 | Hagi.System.Certificates | 39 | 82 | - | no | Proven |
+| Hagi.System.DerivedState | 21 | 16 | smoothL, energyOf, derivedEffects, derivedGrowthState, gradOf | no | Proven |
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
+| Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
+| Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
@@ -541,6 +547,7 @@ theorems.
 | Hagi.Unified.DescentCoreQuad | 11 | 3 | quadE, quadObjective | no | Proven |
 | Hagi.Unified.Distillation | 13 | 2 | binEntropy, softProb | no | Proven |
 | Hagi.Unified.EmpiricalPremises | 7 | 16 | - | no | Proven |
+| Hagi.Unified.FiniteMeasureBridge | 4 | 0 | - | no | Proven |
 | Hagi.Unified.HonestTransition | 23 | 24 | quadObj | no | Proven |
 | Hagi.Unified.LinkedProjects | 1 | 0 | - | no | Proven |
 | Hagi.Unified.LinkedQVec | 10 | 26 | qgen | no | Proven |
