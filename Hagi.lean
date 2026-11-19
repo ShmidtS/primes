@@ -450,6 +450,7 @@ import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertifyThenCommit
 import Hagi.Theory.CertTernaryJump
 import Hagi.Theory.BlockAdmission
+import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.AdaptiveMajorizer
 import Hagi.Theory.AnytimeHoldoutStop
