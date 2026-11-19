@@ -139,6 +139,7 @@ import Hagi.Model.SoftmaxStep
 import Hagi.Model.SoftmaxHead
 import Hagi.Model.CEGradient
 import Hagi.Model.CEDescent
+import Hagi.Model.LMCompose
 import Hagi.Model.CEGlobalConvergence
 import Hagi.Model.CEMarginPL
 import Hagi.Model.CEQuantized
