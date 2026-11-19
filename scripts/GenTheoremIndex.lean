@@ -26,14 +26,8 @@ import Hagi.Research
 import Hagi.Growth.Takeoff
 import Hagi.Growth.LinearCone
 import Hagi.Growth.Saturation
-import Hagi.Growth.Ceilings
-import Hagi.Growth.RsiCriterion
-import Hagi.Growth.RecursiveSelfDevelopment
-import Hagi.Growth.SeedOnly
 import Hagi.Growth.GainDecomposition
 import Hagi.Growth.StateBinding
-import Hagi.Growth.ChainUnification
-import Hagi.Growth.RoundViability
 import Hagi.Dynamics.GrowthBridge
 open Lean
 
@@ -76,11 +70,8 @@ unsafe def main : IO Unit := do
   initSearchPath (← findSysroot)
   let roots : Array Name := #[`Hagi, `Hagi.Legacy, `Hagi.Benchmarks,
     `Hagi.Research, `Hagi.Growth.Takeoff, `Hagi.Growth.LinearCone,
-    `Hagi.Growth.Saturation, `Hagi.Growth.Ceilings,
-    `Hagi.Growth.RsiCriterion, `Hagi.Growth.RecursiveSelfDevelopment,
-    `Hagi.Growth.SeedOnly, `Hagi.Growth.GainDecomposition,
-    `Hagi.Growth.StateBinding, `Hagi.Growth.ChainUnification,
-    `Hagi.Growth.RoundViability, `Hagi.Dynamics.GrowthBridge]
+    `Hagi.Growth.Saturation, `Hagi.Growth.GainDecomposition,
+    `Hagi.Growth.StateBinding, `Hagi.Dynamics.GrowthBridge]
   let imports := roots.map (fun m => { module := m : Import })
   let env ← importModules imports ∅ (trustLevel := 1024)
   for (sourceModule, moduleData) in env.header.moduleNames.zip env.header.moduleData do
