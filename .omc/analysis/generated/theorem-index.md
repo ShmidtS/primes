@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 544
-- theorems: 12191
-- defs: 4535
-- noncomputable decls: 1165
-- status Proven: 463 modules
+- modules: 547
+- theorems: 12254
+- defs: 4559
+- noncomputable decls: 1169
+- status Proven: 466 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -514,11 +514,14 @@ theorems.
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
 | Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
+| Hagi.Theory.KnobMomentum | 27 | 14 | vel, clampIdx, idxTraj, qround | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
+| Hagi.Theory.MDLPrune | 20 | 3 | - | no | Proven |
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
 | Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
+| Hagi.Theory.SelfEditGate | 16 | 7 | - | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
 | Hagi.Theory.TwoDomainConfidence | 1 | 0 | - | no | Proven |
 | Hagi.Theory.VerticalCapstone | 9 | 0 | - | no | Proven |
