@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 547
-- theorems: 12254
-- defs: 4559
-- noncomputable decls: 1169
-- status Proven: 466 modules
+- modules: 549
+- theorems: 12319
+- defs: 4596
+- noncomputable decls: 1171
+- status Proven: 468 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -499,6 +499,7 @@ theorems.
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
+| Hagi.Theory.AdaptiveMajorizer | 36 | 2 | ceAdaptiveCurv, varWeight | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
@@ -506,6 +507,7 @@ theorems.
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
 | Hagi.Theory.CertTernaryJump | 4 | 1 | - | no | Proven |
+| Hagi.Theory.CertifyThenCommit | 29 | 35 | - | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
