@@ -1,4 +1,4 @@
-import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.BatchCEBudgetGuard
 
 set_option relaxedAutoImplicit false
 

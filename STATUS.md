@@ -106,6 +106,15 @@
 - Аналогичные `selectedGradientMSE` и `selectedMeanGradientMSE` результаты при `0 < ∑‖g‖` дают строгое улучшение относительно равномерного распределения в точности при непостоянных нормах градиентов; `selectedGradientMSE_upperBoundPropensity_le` ограничивает MSE через `(∑|a|)^2 - ‖∑g‖^2` при `0 < ∑|a|` и `‖g b‖ ≤ a b`.
 - Lint repair (C220): the lock refresh exposed a C216 private nonemptiness witness duplicating the Runtime one (equal statement hash; the lock had been stale since C216). Fixed by deleting the private duplicate and using Mathlib canonical `Finset.univ_nonempty` at all 13 sites (proof-body-level only; public statements unchanged; census −16 = 8 theorems + 7 simp rows + the duplicate).
 
+- C220 (удаление zero-consumer дубликатов): regret-обёртка
+  этого модуля удалена; каноническая regret-оценка — `mirror_regret`
+  (Hagi/Optimization/MirrorHedge.lean).
+
+
+- `llrd_strict_mono`: при `0 < eta`, `0 < gamma < 1`,
+  `l1 < l2 ≤ L` `layerLR eta gamma L l1 < layerLR eta gamma L l2`.
+- `llrd_nonneg`: при `0 ≤ eta gamma` все `layerLR` неотрицательны.
+
 
 ## Hagi/Autonomy/Insight.lean
 - `tldr_two_tier_safety`: если `B.mulVec x = 0`, то `(A * B).mulVec x = 0`; если дополнительно `kl ≤ ⟪dW, F dW⟫_ℝ / 2` и `⟪dW, F dW⟫_ℝ ≤ 2 * eps`, то `kl ≤ eps`.
@@ -334,7 +343,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - Счётчики относятся к абстрактной модели кандидатов, а не к физической памяти или времени вычислений.
 
 
-## Hagi/Contracts/BatchCEStepCertificate.lean
+## Hagi/Contracts/BatchCEBudgetGuard.lean
 - C233 (R2): `batchLogitCertifiedDrop` — острый сертифицированный residual `if batchLogitRangeSquare = 0 then 0 else 2·A²/R'` (ns `BatchCETrajectory`, `[Nonempty V]`); `batchLogitCertifiedDrop_nonneg`; `batchCertifiedDrop_le_batchLogitCertifiedDrop` — при `0 < batchLogitRangeSquare` старый residual не превосходит острый (посылка несущая: при `R' = 0 < R` старый residual положителен, острый нуль; негативные контроли `.tmp/C233/neg1.lean`, `neg2.lean`).
 - `batchCEObjective_batchTrainStep_lt`: при непустом `V` и `0 < batchRangeSquare X (coreParameters S) y` фактический `batchTrainStep` строго уменьшает среднюю пакетную CE.
 - `expandedHalfTrainStep_budget_nonneg`: при `0 ≤ trainingCost` и достаточном исходном бюджете для `expandedFeatureEvaluationCount + trainingCost` бюджет после шага неотрицателен.
@@ -1143,6 +1152,13 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 
 ## Hagi/Ensemble/MergePrice.lean
+
+- `merge_price_quad`: при `M − Wi = −dev` квадратичная модель `QuadModel xs Wi M` точно равна `sigmaPrice xs dev`.
+- `price_zero_iff_ker`: `sigmaPrice xs dev = 0` тогда и только тогда, когда `dotProduct (xs x) dev = 0` для всех `x`.
+- `merge_gate_certified`: из выполненного предиката `MergeApproved` заключается `Σᵢ w i*sigmaPrice(xs i)(devs i) + κ*(n'*s)/2 < twoGap`; это распаковка сертифицированного порога, а не доказательство качества произвольного слияния.
+
+
+- `two_channel_step_law`: при `a > 0`, `b > 0`, `N > 0` доказана лишь точная эквивалентность `2*a/N^3 − b = 0 ↔ N^3 = 2*a/b`. Утверждений об ускорении обучения, параметрическом паритете или найденном экспериментальном минимуме теорема не содержит.
 ## Hagi/Ensemble/GapLaw.lean
 - `twoGap_nonneg`: для строго положительного `p` с суммой 1 зазор `twoGap p d` неотрицателен; `twoGap_zero_iff` утверждает равенство нулю тогда и только тогда, когда `d u = c` для некоторой константы `c` и всех `u`.
 - `twoGap_cosh`: двойная сумма с `exp(d u − d v)` точно равна двойной сумме с `cosh(d u − d v)`.
@@ -1161,15 +1177,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - `merged_output_exact`: для любых вещественных весов `w` линейность даёт `(Σᵢ w i • W i) *ᵥ x = Σᵢ w i • (W i *ᵥ x)`.
 - `routing_drift_bound`: если `‖W i *ᵥ x‖ ≤ B` для каждого `i`, то смена маршрутных весов `w` на `w'` меняет выход по норме не более чем на `Σᵢ |w' i − w i|*B`.
-
-
-## Hagi/Ensemble/MergePrice.lean
-- `merge_price_quad`: при `M − Wi = −dev` квадратичная модель `QuadModel xs Wi M` точно равна `sigmaPrice xs dev`.
-- `price_zero_iff_ker`: `sigmaPrice xs dev = 0` тогда и только тогда, когда `dotProduct (xs x) dev = 0` для всех `x`.
-- `merge_gate_certified`: из выполненного предиката `MergeApproved` заключается `Σᵢ w i*sigmaPrice(xs i)(devs i) + κ*(n'*s)/2 < twoGap`; это распаковка сертифицированного порога, а не доказательство качества произвольного слияния.
-
-
-- `two_channel_step_law`: при `a > 0`, `b > 0`, `N > 0` доказана лишь точная эквивалентность `2*a/N^3 − b = 0 ↔ N^3 = 2*a/b`. Утверждений об ускорении обучения, параметрическом паритете или найденном экспериментальном минимуме теорема не содержит.
 
 
 ## Hagi/Ensemble/PolicyCompatibility.lean
@@ -3616,7 +3623,7 @@ one-hot CE.
   `2*√frobSq(VᵀW)*‖r‖*‖s‖`.
 
 
-## Hagi/Optimization/AdaGrad.lean
+## Hagi/Optimization/OptimizerVariants.lean
 - `acc_mono`: `adagradAcc g t ≤ adagradAcc g (t+1)`.
 - `adagrad_step_anti`: при `0 ≤ eta` и `0 < adagradAcc g t`
   `eta/√(acc+g t^2) ≤ eta/√acc`.
@@ -3636,7 +3643,6 @@ one-hot CE.
 - `topK_inexact` / `qTernVec_inexact` / `qTernVec_error_inrange`: инстансы неточного контракта (ε=0) и полушаговый бюджет `‖Q u−u‖₂ ≤ √n·s/2` при in-range `|u i| ≤ 3s/2`; saturation-tail-форма осталась в `Hagi/Runtime/TernaryExact.lean` (energy-форма, `ternary_split_le`).
 
 
-## Hagi/Optimization/AdamBias.lean
 - `adamM_recur` доказывает `adamM β g 0=0` и
   `adamM β g (t+1)=β*adamM β g t+(1-β)*g`;
   `adam_bias_bound` раскрывает `adamM β g t = g-β^t*g`.
@@ -3644,7 +3650,6 @@ one-hot CE.
   `adamM β g t/(1-β^t) = g`.
 
 
-## Hagi/Optimization/AdamW.lean
 - `adamw_shrink`: при `0 < lam ≤ 1`, `w ≠ 0` и нулевом градиенте
   `|adamwStep lam eta w 0| < |w|`.
 - `l2_decay_diluted`: при `0 < lam`, `0 ≤ vhat` и
@@ -3665,7 +3670,6 @@ one-hot CE.
   `s τ ε`.
 
 
-## Hagi/Optimization/CautiousOptimizer.lean
 - `cautiousMask_abs_le`: `|cautiousMask u g| ≤ |u|`;
   `cautiousAligned`: `0 ≤ cautiousMask u g*g`.
 - При `0 < u*g` `cautiousId` возвращает `u`, а при `u*g ≤ 0`
@@ -3715,7 +3719,6 @@ one-hot CE.
   `(M+1)/(1+M*μ^2) ≤ d`.
 
 
-## Hagi/Optimization/GradAccum.lean
 - `accum_equiv`: для разбиения `c : Fin N → Fin k`
   `∑ i, microGrad c f i = fullGrad f`; это точное равенство сумм по
   слоям разбиения, а не приближение градиентов.
@@ -3749,18 +3752,6 @@ one-hot CE.
   `(θ*q)^K < (τ-ε/(1-θ*q))/B` и даёт `x K < τ`.
 
 
-## Hagi/Optimization/InfoPreservation.lean
-- C220 (удаление zero-consumer дубликатов): regret-обёртка
-  этого модуля удалена; каноническая regret-оценка — `mirror_regret`
-  (Hagi/Optimization/MirrorHedge.lean).
-
-
-## Hagi/Optimization/LLRD.lean
-- `llrd_strict_mono`: при `0 < eta`, `0 < gamma < 1`,
-  `l1 < l2 ≤ L` `layerLR eta gamma L l1 < layerLR eta gamma L l2`.
-- `llrd_nonneg`: при `0 ≤ eta gamma` все `layerLR` неотрицательны.
-
-
 ## Hagi/Optimization/LRSchedule.lean
 - Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт `polyWeights C eps w < polyWeights C eps u`.
 - `polyDelta` образует взвешенную сумму направлений, а `polyStepUpdate` прибавляет её с коэффициентом `ℓ` к `θ`.
@@ -3779,12 +3770,10 @@ one-hot CE.
   доказывает невозрастание.
 
 
-## Hagi/Optimization/Lion.lean
 - `sign_sq_le_one`: `(sgn x)^2 ≤ 1`; `lion_step_norm_bound` даёт точную
   суммарную оценку `∑ i, (signStep eta m i)^2 ≤ eta^2*d` на `Fin d`.
 
 
-## Hagi/Optimization/Lookahead.lean
 - `lookahead_mem`: при `0 ≤ α ≤ 1` новый якорь лежит между `min w x` и
   `max w x`; `lookahead_gap` при `0 ≤ α` даёт
   `|slowStep w x α-w| = α*|x-w|`.
@@ -3880,7 +3869,6 @@ one-hot CE.
   `(1-μ/L)^t*(E0-Estar)≤ε` доказывает `E t-Estar≤ε`.
 
 
-## Hagi/Optimization/PPOClip.lean
 - `ppoClip r lb ub = max lb (min ub r)`; доказаны монотонность по `r` и `ppoClip_fixed`: при `lb ≤ r ≤ ub` отсечка равна `r`.
 - `ppo_clip_term_abs_bound` при `0 ≤ e` даёт `|ppoClip r (1-e) (1+e) * A| ≤ (1+e) * |A|`.
 - `ppo_surr_upper_bound` ограничивает `min (r*A) (ppoClip r (1-e) (1+e) * A)` сверху той же величиной `(1+e)*|A|`. Нижняя граница суррогатной цели и сходимость оптимизации здесь не утверждаются.
@@ -3892,7 +3880,6 @@ one-hot CE.
 - `robbins_monro_bias`: из `x (k+1) ≤ (1-η k)*x k + D*η k` и расходимости суммы шагов следует существование хвоста с `x s ≤ D + ε`. Это верхняя граница хвоста, а не равенство предела `D`.
 
 
-## Hagi/Optimization/SAM.lean
 - `samW L rho w` — супремум значений `L (w+e)` на `ball rho`, где `norm2 e ≤ rho^2`. При `0 ≤ rho` и ограниченности сверху образа `sam_ge` даёт `L w ≤ samW L rho w`.
 - `sam_mono`: при `0 ≤ r1 ≤ r2`, `0 ≤ r2` и ограниченности сверху образа на большем шаре `samW L r1 w ≤ samW L r2 w`.
 - `sam_flat`: если `L (w+e) = L w` для всех `e ∈ ball rho`, `0 ≤ rho` и образ ограничен сверху, то `samW L rho w = L w`.
@@ -4404,13 +4391,11 @@ one-hot CE.
 - `updateNewest_cost` — равенство двух вычисленных счётчиков размеров списка и матриц, а не измерение физической памяти или времени обновления.
 
 
-## Hagi/Step/MDLObjective.lean
+## Hagi/Step/MDLThreeCurrency.lean
 - `mdlObjective_delta` раскладывает изменение цели в изменение ошибки предсказания плюс `λ` на изменение длины описания.
 - `mdlObjective_nonincreasing` при `lam ≥ 0` и невозрастании обеих частей доказывает невозрастание всей цели.
 - `mdlObjective_tradeoff`: при `lam ≥ 0`, выигрыше предсказания не меньше `δ ≥ 0`, `0 < c` и кодовой добавке не более `δ-c` получается строгое улучшение с запасом `c`; `mdlObjective_lambda_zero` устраняет кодовую часть.
 
-
-## Hagi/Step/MDLThreeCurrency.lean
 - `J3_nonincreasing`: если ошибка предсказания, стоимость состояния и защищённый риск не возрастают, а `lamM lamR ≥ 0`, суммарная цель `J3` не возрастает.
 - `double_counting_identified` при `cst = Lpred` упрощает цель до `(1+lamM)*Lpred + lamR*Rprot`, явно выявляя повторный учёт одной величины.
 - `no_compression_below_entropy` для положительных нормированных `p q` доказывает `sourceEntropy p ≤ dataCodeLen p q`.
@@ -4991,6 +4976,25 @@ one-hot CE.
   `auditedFilter_snd` насчитывает ровно один вызов составного guard
   на каждый входной элемент. Счётчики относятся к логическим вызовам.
 
+- `selection_pareto`: внутри конечного множества допустимых действий
+  никакой кандидат не может иметь качество не ниже выбранного и одновременно
+  не большие память и operations, если хотя бы одно из трёх сравнений строго.
+  При всех трёх нестрогих улучшениях все три величины равны.
+- Выбор рассматривает фактический преемник `step a s` и лексикографическую
+  цель `(value,−memory,−operations)` при заданном непустом допустимом
+  семействе. Глобальная или аппаратная оптимальность не утверждается.
+
+
+### Hagi.Unified.ParetoLogit — merged into ParetoExecution (C404)
+- `logit_budget_loop`: для рекуррентности
+  `w(t+1)=w t+eta t/(1+exp(w t))`, `0 < eta t ≤ 2`,
+  `b(t+1)=b t−eta t`, `0 ≤ eta t ≤ b t` и `0 ≤ b0`
+  сохраняются качественные floors на всём пути, телескоп CE-спусков,
+  неотрицательный и ограниченный бюджет; при `n ≥ 1` CE строго убывает.
+- `logit_quadratic_bound`: при тех же рекуррентности и окне шагов
+  `logitCE(w n) ≤ logitCE(w0) −
+    Σ_{t<n}eta t·(1/(1+exp(w t)))²/2`.
+
 
 ## Hagi/Training/ExecutedCert.lean
 - `measured_honest` и `measured_lower`: зависимый сертификат связывает
@@ -5351,27 +5355,6 @@ one-hot CE.
 - `cfg_bits`: если `eps > 0`, `m·r ≤ (2eps)²` и все поэлементные ошибки
   `|QR−R| ≤ 1/2`, выходная норма квантованного возмущения не превосходит
   `eps·‖x‖`.
-
-
-## Hagi/Unified/ParetoExecution.lean
-- `selection_pareto`: внутри конечного множества допустимых действий
-  никакой кандидат не может иметь качество не ниже выбранного и одновременно
-  не большие память и operations, если хотя бы одно из трёх сравнений строго.
-  При всех трёх нестрогих улучшениях все три величины равны.
-- Выбор рассматривает фактический преемник `step a s` и лексикографическую
-  цель `(value,−memory,−operations)` при заданном непустом допустимом
-  семействе. Глобальная или аппаратная оптимальность не утверждается.
-
-
-### Hagi.Unified.ParetoLogit — merged into ParetoExecution (C404)
-- `logit_budget_loop`: для рекуррентности
-  `w(t+1)=w t+eta t/(1+exp(w t))`, `0 < eta t ≤ 2`,
-  `b(t+1)=b t−eta t`, `0 ≤ eta t ≤ b t` и `0 ≤ b0`
-  сохраняются качественные floors на всём пути, телескоп CE-спусков,
-  неотрицательный и ограниченный бюджет; при `n ≥ 1` CE строго убывает.
-- `logit_quadratic_bound`: при тех же рекуррентности и окне шагов
-  `logitCE(w n) ≤ logitCE(w0) −
-    Σ_{t<n}eta t·(1/(1+exp(w t)))²/2`.
 
 
 ## Hagi/Dynamics/ProductiveTransition.lean

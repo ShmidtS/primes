@@ -5,7 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 import Hagi.Math.Foundations.Potential
 import Hagi.Math.Info.InfoCore
-import Hagi.Optimization.AdamBias
+import Hagi.Optimization.OptimizerVariants
 
 /-!
 # RL/post-training семейство (объединённое)

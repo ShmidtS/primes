@@ -717,7 +717,7 @@ RNG runtime, generalization, меньший FLOP count или улучшенны
   alignment; при `0<eta≤1/L` [`sign_descent`](Hagi/Unified/SignDescent.lean)
   даёт `f(x-etaD) ≤ f(x)-eta(1-L eta/2)‖D‖²`. Без нормализации
   такого вывода нет.
-- Lion: [`lion_step_norm_bound`](Hagi/Optimization/Lion.lean)
+- Lion: [`lion_step_norm_bound`](Hagi/Optimization/OptimizerVariants.lean)
   ограничивает сырой `eta·sign(m)` лишь `eta²·d` в squared norm. Для спуска
   дополнительно нужна coherence градиента с моментом; тогда используем
   [`lion_descent`](Hagi/Unified/SignDescent.lean) с той же `signScale`.
@@ -1480,10 +1480,10 @@ A_i, сумму её conditional PMF mean через M_i, а residual через
 ## 9. Исполнение: guards, router и охлаждение
 
 Для произвольного `inputFor(S)` сначала вычисляем proposed successor и
-лишь потом commit. [`guardedBatchTrainStep`](Hagi/Contracts/BatchCEStepCertificate.lean)
+лишь потом commit. [`guardedBatchTrainStep`](Hagi/Contracts/BatchCEBudgetGuard.lean)
 принимает его только если `0≤opCost≤budget` и CE каждого supplied sample
 не увеличивается; иначе возвращает `S`.
-[`batchSampleCE_guardedBatchTrainStep_le`](Hagi/Contracts/BatchCEStepCertificate.lean)
+[`batchSampleCE_guardedBatchTrainStep_le`](Hagi/Contracts/BatchCEBudgetGuard.lean)
 подтверждает samplewise non-regression. Не принимаем post-energy автоматически:
 оно проверяется на настоящем successor.
 
@@ -1984,7 +1984,7 @@ jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,
 ```
 
 Провода (R2-статус по файлам):
-- `BatchCEStepCertificate.lean` — WIRED: острый сертифицированный
+- `BatchCEBudgetGuard.lean` (ex-BatchCEStepCertificate) — WIRED: острый сертифицированный
   residual `batchLogitCertifiedDrop` + мост «старый ≤ новый».
 - `BatchCEAlignmentBudget.lean` — WIRED (закрывает деферрал C230):
   тот же curvature-констант K контролирует и острую R' (безусловно), а

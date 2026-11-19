@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Model.BatchCEDescent
 import Hagi.Model.CEQuantized
 import Hagi.Cert.Adapters
-import Hagi.Contracts.BatchCEStepCertificate
+import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Runtime.BF16Delta
 
 /-!

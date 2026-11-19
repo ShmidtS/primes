@@ -217,7 +217,6 @@ import Hagi.State.MemoryCycle
 import Hagi.Numerics.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
-import Hagi.Step.MDLObjective
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule
 import Hagi.Step.WeightDecay
@@ -287,13 +286,10 @@ import Hagi.Model.MeasurementCert
 import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
 import Hagi.Model.LabelSmoothing
-import Hagi.Optimization.Lookahead
 import Hagi.Model.QuantizedAdvance
 import Hagi.Data.BytePatch
 import Hagi.Data.BoolVenn
 import Hagi.Data.AnfTransform
-import Hagi.Optimization.InfoPreservation
-import Hagi.Optimization.CautiousOptimizer
 import Hagi.Model.GDNBridge
 import Hagi.Model.RamProtocol
 import Hagi.Step.CPUFreeze
@@ -304,7 +300,6 @@ import Hagi.Model.DistillCert
 import Hagi.Model.RVCore
 import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
-import Hagi.Optimization.SAM
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.CommitGate
 import Hagi.Model.BlockNorm
@@ -336,11 +331,6 @@ import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture
 import Hagi.Model.AttentionSpend
 import Hagi.Model.AlignmentRisk
-import Hagi.Optimization.AdamBias
-import Hagi.Optimization.AdamW
-import Hagi.Optimization.GradAccum
-import Hagi.Optimization.LLRD
-import Hagi.Optimization.PPOClip
 import Hagi.Step.GradClip
 import Hagi.Unified.MicroStepCert
 import Hagi.Model.Residual
@@ -373,9 +363,8 @@ import Hagi.Optimization.AdaptiveCycle
 import Hagi.Optimization.DirectionPacking
 import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
-import Hagi.Optimization.AdaGrad
+import Hagi.Optimization.OptimizerVariants
 import Hagi.Optimization.Checkpoint
-import Hagi.Optimization.Lion
 import Hagi.Probability.GibbsCore
 import Hagi.Step.BatchBudget
 import Hagi.Step.RobustDescent
@@ -407,7 +396,6 @@ import Hagi.Contracts.CEStepCertificate
 import Hagi.Contracts.GatedCEStepCertificate
 import Hagi.Contracts.GatedCETrajectory
 import Hagi.Contracts.GatedCEGradientNorm
-import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Contracts.BudgetedParetoStepContract
 import Hagi.Contracts.BudgetedParetoStepCert

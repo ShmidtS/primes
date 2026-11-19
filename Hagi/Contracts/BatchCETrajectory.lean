@@ -1,6 +1,5 @@
 import Hagi.Contracts.ObjectiveTrajectory
 import Hagi.Model.CEHeldout
-import Hagi.Contracts.BatchCEStepCertificate
 import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Math.Foundations.Telescope
 import Hagi.Unified.ParetoExecution

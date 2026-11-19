@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 
 import Hagi.Unified.DescentCore
 import Hagi.Step.SignSGD
-import Hagi.Optimization.SAM
+import Hagi.Optimization.OptimizerVariants
 
 /-!
 # Мост SignSGD → DescentCore
