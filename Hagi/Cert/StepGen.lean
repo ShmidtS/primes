@@ -470,4 +470,18 @@ theorem trajectory_telescope_progress_bridge
   exact trajectory_telescope_gen M obl (fun _ => 0) n t
     (fun j => certStep_to_gen M obl (Classical.choose (hprog j)))
 
+/-! ### Journal bridge (C449, A19.2): gen kernel → StepRecord -/
+
+/-- Журнальная запись gen-шага (C449): drop-ядро + траты бюджет/риск
+и δ-канал как телеметрия. Законы потребления остаются в `CertStepGen`. -/
+def CertStepGen.toRecord {deltaLevel : S → ℝ} {s s' : S}
+    (c : CertStepGen M obl deltaLevel s s') :
+    StepRecord M.objective s s' where
+  drop := c.drop
+  drop_pos := c.drop_pos
+  descent := c.descent
+  budgetSpend := c.budgetSpend
+  riskSpend := c.riskSpend
+  delta := c.delta
+
 end Hagi.Cert

@@ -116,17 +116,30 @@ theorem certs_telescope {obj risk : State → ℝ}
       exact h⟩
 
 
-/-! ### Мост в ядро CertStep (цикл 41) -/
+/-! ### Мост в ядро StepRecord (цикл 41 → C449) -/
 
-/-- TransitionCert → CertStep: строгий спад даёт drop =
-obj s − obj (step s) > 0 — ядро с ТОЧНЫМ спуском. -/
+/-- TransitionCert → StepRecord: строгий спад даёт drop =
+obj s − obj (step s) > 0 — запись с ТОЧНЫМ спуском; risk-канал
+носителя (рост ≤ riskLim) в spend-телеметрию не попадает —
+это семантика (c), не трата. -/
+noncomputable def TransitionCert.toRecord {obj risk : State → ℝ}
+    {step : State → State} {s : State} {riskLim : ℝ}
+    (C : TransitionCert obj risk step s riskLim) :
+    Hagi.Cert.StepRecord obj s (step s) where
+  drop := obj s - obj (step s)
+  drop_pos := by linarith [C.actual_descent]
+  descent := by linarith [C.actual_descent]
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
+
+/-- TransitionCert → CertStep (deprecated-алиас StepRecord):
+старый мост цикла 41 — теперь запись журнала. -/
 noncomputable def TransitionCert.toCertStep {obj risk : State → ℝ}
     {step : State → State} {s : State} {riskLim : ℝ}
     (C : TransitionCert obj risk step s riskLim) :
-    Hagi.Unified.HonestTransition.CertStep obj s (step s) where
-  drop := obj s - obj (step s)
-  drop_pos := by linarith [C.actual_descent]
-  actual := by linarith [C.actual_descent]
+    Hagi.Unified.HonestTransition.CertStep obj s (step s) :=
+    C.toRecord
 
 /-! ### C279-адаптер: TransitionCert → общее ядро CertStepGen
 

@@ -85,29 +85,38 @@ theorem honest_two_steps_existent :
   refine ⟨3, 3 / 4, by norm_num, by norm_num, ?_, ?_⟩ <;> norm_num [quadObj]
 
 
-/-! ### CertStep — минимальное ядро сертификата (цикл 41, аудит #8 п.9) -/
+/-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord (C449, A19.2)
 
-/-- ЯДРО СЕРТИФИКАТА (план аудита: Cert.Step obj s s' =
-{drop > 0, obj s' ≤ obj s − drop}). Все сертификаты HAGI
-(HonestTransition, StepCert, ExecutedCert, TransitionCert,
-CertifiedTransitionV3, StepCertT) сводятся к нему; новые
-сертификаты ОБЯЗАНЫ давать мост в CertStep. -/
-structure CertStep (obj : S → ℝ) (s s' : S) where
-  /-- Сертифицированная нижняя граница спуска. -/
-  drop : ℝ
-  /-- Спуск положителен: шаг реально убывает цель. -/
-  drop_pos : 0 < drop
-  /-- Фактический спуск из исполнения. -/
-  actual : obj s' ≤ obj s - drop
+C449 (аудит A19 N2): минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
+было единственным истинным дублем класса (a) — оно сливается с новой
+ЕДИНОЙ записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
+телеметрия budget/risk/δ). Старое имя — deprecated-алиас; все
+сертификаты HAGI обязаны давать мост в StepRecord (toRecord/toCertStep). -/
+
+/-- ЕДИНАЯ запись журнала сертифицированного шага (бывшее локальное
+ядро CertStep цикла 41 — класс (a) дубль, слит в C449).
+Deprecated: используйте `Hagi.Cert.StepRecord` напрямую. -/
+@[deprecated Hagi.Cert.StepRecord (since := "2026-11-19")]
+abbrev CertStep (obj : S → ℝ) (s s' : S) : Type :=
+  Hagi.Cert.StepRecord obj s s'
+
+/-- HonestTransition → StepRecord (риск/бюджет — в телеметрии
+записи: spend-семантика границ остаётся в самом переходе). -/
+def HonestTransition.toRecord {obj : S → ℝ} {s s' : S}
+    {rs rl bs b' : ℝ} (T : HonestTransition obj s s' rs rl bs b') :
+    Hagi.Cert.StepRecord obj s s' where
+  drop := T.objectiveDrop
+  drop_pos := T.objectiveDrop_pos
+  descent := T.actualDescent
+  budgetSpend := bs
+  riskSpend := rs
+  delta := 0
 
 /-- HonestTransition → CertStep (риск/бюджет отбрасываются —
 они не входят в ядро спуска). -/
 def HonestTransition.toCertStep {obj : S → ℝ} {s s' : S}
     {rs rl bs b' : ℝ} (T : HonestTransition obj s s' rs rl bs b') :
-    CertStep obj s s' where
-  drop := T.objectiveDrop
-  drop_pos := T.objectiveDrop_pos
-  actual := T.actualDescent
+    CertStep obj s s' := T.toRecord
 
 /-! ### S3-адаптер: HonestTransition → каноническое ядро Hagi.Cert
 

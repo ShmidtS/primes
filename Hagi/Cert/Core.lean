@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Cert.Telescope
+import Hagi.Cert.StepRecord
 
 /-!
 # Canonical certification kernel (master plan v3, Track S1+S2)
@@ -260,6 +261,32 @@ theorem delta_telescope {S : Type*} {TaskId : Type*}
   exact Hagi.Cert.additive_ledger_telescope_floor
     (level := deltaLevel) n t hnn steps
 
+
+/-! ### Journal bridges (C449, A19.2): kernel steps → StepRecord -/
+
+/-- Журнальная запись замороженного шага: drop-ядро + точные траты
+бюджета/риска как телеметрия (δ-канала в ядре нет — 0). Законы
+остаются в `CertStep`; запись только фиксирует данные. -/
+def CertStep.toRecord {s s' : S} (c : CertStep M obl s s') :
+    StepRecord M.objective s s' where
+  drop := c.drop
+  drop_pos := c.drop_pos
+  descent := c.descent
+  budgetSpend := c.budgetSpend
+  riskSpend := c.riskSpend
+  delta := 0
+
+/-- Журнальная запись шага с δ-каналом (C449): как выше, δ-трата
+из четвёртого ресурса. -/
+def CertStepDelta.toRecord {deltaLevel : S → ℝ} {s s' : S}
+    (c : CertStepDelta M obl deltaLevel s s') :
+    StepRecord M.objective s s' where
+  drop := c.step.drop
+  drop_pos := c.step.drop_pos
+  descent := c.step.descent
+  budgetSpend := c.step.budgetSpend
+  riskSpend := c.step.riskSpend
+  delta := c.delta
 
 /-! ## Optimizer-state carrier (C248, A8 F5): HoldStep covers (m, v, t)
 

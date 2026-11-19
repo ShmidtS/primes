@@ -204,9 +204,12 @@ noncomputable def batchTrainStepMinimalCert [Nonempty V]
     batchCEObjective X y (batchTrainStep X y S opCost opRisk write)
   drop_pos := sub_pos.mpr
     (batchCEObjective_batchTrainStep_lt X y S opCost opRisk write hR)
-  actual := by
+  descent := by
     have hlt := batchCEObjective_batchTrainStep_lt X y S opCost opRisk write hR
     linarith
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- Complete canonical certificate for real executed mean-CE descent.  The
 stored external quality floor is preserved unchanged; this does not equate
@@ -231,7 +234,7 @@ noncomputable def batchTrainStepCert [Nonempty V]
       objectiveDrop_pos :=
         (batchTrainStepMinimalCert X y S opCost opRisk write hR).drop_pos
       actualDescent :=
-        (batchTrainStepMinimalCert X y S opCost opRisk write hR).actual
+        (batchTrainStepMinimalCert X y S opCost opRisk write hR).descent
       riskBound := hriskLim
       budgetBound := by
         rw [batchTrainStep, trainStep_budget, batchTrainInput]

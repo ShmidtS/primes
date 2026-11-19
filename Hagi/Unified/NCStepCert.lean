@@ -61,9 +61,12 @@ noncomputable def ncMinimalStepCert (S : NCState) (u : NCInput)
     (hd : 0 < u.gain) : CertStep (fun St => St.energy) S (ncCertStep S u) where
   drop := u.gain
   drop_pos := hd
-  actual := by
+  descent := by
     show (ncCertStep S u).energy ≤ S.energy - u.gain
     rw [ncCertStep_energy]
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- Заплативший за рост шаг имеет capability-прирост,
 полностью покрытый энергийным спуском (связка каналов:

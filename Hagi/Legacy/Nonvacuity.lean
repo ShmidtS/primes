@@ -203,10 +203,13 @@ noncomputable def mergeOperationalCertStep {k : Type} [Fintype k]
       (Hagi.ceOneHot t ((z₁ + z₂) / 2)) where
   drop := jensenGap z₁ z₂
   drop_pos := hgap
-  actual := by
+  descent := by
     show Hagi.ceOneHot t ((z₁ + z₂) / 2)
       ≤ (Hagi.ceOneHot t z₁ + Hagi.ceOneHot t z₂) / 2 - jensenGap z₁ z₂
     rw [merge_energy_bridge]
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- Невырожденный merge CertStep: z₁=0, z₂=(a,−a), a≠0.
 Строгий gap получен из `jensenGap_pos_witness`, не декларирован. -/

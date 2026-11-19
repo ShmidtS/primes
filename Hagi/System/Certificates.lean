@@ -26,10 +26,10 @@ namespace Hagi.System
 
 /-! ## Per-stage certificates -/
 
-/-- The stage-drop certificate (C440 consolidation of the former
-`GrowCertificate` and `MergeCertificate`, which were field-shape
-duplicates): a stage enters with `preEnergy` and exits with
-`energy`, dropping it BY the certified nonnegative amount `drop`.
+/-- The stage-drop certificate (C440 consolidation of two former
+field-shape-duplicate stage certificates, grow and merge): a stage
+enters with `preEnergy` and exits with `energy`, dropping it BY the
+certified nonnegative amount `drop`.
 For the grow stage `drop` is the capability gain; for the merge
 stage `drop` is the nonnegative Jensen gap. Physical risk is
 nonnegative. -/

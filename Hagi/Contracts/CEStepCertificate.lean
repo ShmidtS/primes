@@ -109,9 +109,12 @@ noncomputable def ceTrainStepMinimalCert [Nonempty V]
   drop := coreCEObjective X t S -
     coreCEObjective X t (ceTrainStep X t S opCost opRisk write)
   drop_pos := sub_pos.mpr (coreCEObjective_ceTrainStep_lt X t S opCost opRisk write hr)
-  actual := by
+  descent := by
     have hlt := coreCEObjective_ceTrainStep_lt X t S opCost opRisk write hr
     linarith
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- Full canonical certificate for the real CE objective.  Only the external
 stored `qual` is preserved for the floor: CE descent does not imply a quality
@@ -134,7 +137,7 @@ noncomputable def ceTrainStepCert [Nonempty V]
     { objectiveDrop := (ceTrainStepMinimalCert X t S opCost opRisk write hr).drop
       objectiveDrop_pos :=
         (ceTrainStepMinimalCert X t S opCost opRisk write hr).drop_pos
-      actualDescent := (ceTrainStepMinimalCert X t S opCost opRisk write hr).actual
+      actualDescent := (ceTrainStepMinimalCert X t S opCost opRisk write hr).descent
       riskBound := hriskLim
       budgetBound := by
         rw [ceTrainStep, trainStep_budget, ceTrainInput]

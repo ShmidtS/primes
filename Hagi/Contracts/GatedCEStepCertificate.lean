@@ -131,9 +131,12 @@ noncomputable def gatedCETrainStepMinimalCert [Nonempty V]
     gatedCEObjective X t (gatedCETrainStep X t S opCost opRisk write)
   drop_pos := sub_pos.mpr
     (gatedCEObjective_gatedCETrainStep_lt X t S opCost opRisk write hA)
-  actual := by
+  descent := by
     have hlt := gatedCEObjective_gatedCETrainStep_lt X t S opCost opRisk write hA
     linarith
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- Full existing canonical certificate for actual gated one-target CE.  Its
 quality floor concerns only preserved stored telemetry.  Optimizer moments,
@@ -158,7 +161,7 @@ noncomputable def gatedCETrainStepCert [Nonempty V]
       objectiveDrop_pos :=
         (gatedCETrainStepMinimalCert X t S opCost opRisk write hA).drop_pos
       actualDescent :=
-        (gatedCETrainStepMinimalCert X t S opCost opRisk write hA).actual
+        (gatedCETrainStepMinimalCert X t S opCost opRisk write hA).descent
       riskBound := hriskLim
       budgetBound := by
         rw [gatedCETrainStep, trainStep_budget, gatedCETrainInput]

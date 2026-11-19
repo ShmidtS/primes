@@ -1400,10 +1400,13 @@ noncomputable def batchMinimumNormMinimalCert
     batchCEObjective X y (batchMinimumNormTrainStep X y S opCost opRisk write)
   drop_pos := sub_pos.mpr (batchCEObjective_batchMinimumNormTrainStep_lt
     X y S opCost opRisk write hcost hω)
-  actual := by
+  descent := by
     have hlt := batchCEObjective_batchMinimumNormTrainStep_lt
       X y S opCost opRisk write hcost hω
     linarith
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 /-- A full certificate for the actually executed nonzero-minimizer update:
 strict supplied-batch mean-CE descent and preservation of all five computed
@@ -1429,7 +1432,7 @@ noncomputable def evaluatedBatchMinimumNormCert
       objectiveDrop_pos :=
         (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).drop_pos
       actualDescent :=
-        (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).actual
+        (batchMinimumNormMinimalCert X y S opCost opRisk write hcost hω).descent
       riskBound := hriskLim
       budgetBound := batchMinimumNormTrainStep_budget_nonneg
         X y S opCost opRisk write (le_trans hcost.1 hcost.2) }

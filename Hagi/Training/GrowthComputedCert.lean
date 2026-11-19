@@ -39,11 +39,14 @@ noncomputable def stepCert {X : Type*} [NormedAddCommGroup X]
         nlinarith [sq_nonneg (1 - eta), hleft, hright]
       linarith
     exact mul_pos hcoef (growthQuad_pos_of_nonzero S.weights hw)
-  actual := by
+  descent := by
     change growthQuad (growthStep S.weights eta)
       ≤ growthQuad S.weights - (1 - (1 - eta) ^ 2) * growthQuad S.weights
     rw [growthQuad_step]
     ring_nf
     exact le_rfl
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 end Hagi.Unified.GrowthComputedCert

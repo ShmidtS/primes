@@ -49,7 +49,10 @@ noncomputable def trainStepMinimalCert (S : TrainState n a r c k)
     have hdescent := trainStep_energy_descent S u heta hcond
     rw [trainStep_energy_identity] at hdescent
     linarith
-  actual := le_of_eq (trainStep_actualDescent S u)
+  descent := le_of_eq (trainStep_actualDescent S u)
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
 
 noncomputable def trainStepCert (S : TrainState n a r c k)
     (u : TrainingInput n c) (floor : QualityVector) (riskLim : ℝ)

@@ -93,15 +93,27 @@ theorem telescope_measured (obj : S → ℝ) (step : S → S)
     linarith
 
 
-/-! ### Мост в ядро CertStep (цикл 41) -/
+/-! ### Мост в ядро StepRecord (цикл 41 → C449) -/
 
-/-- ExecutedCert → CertStep (δ-канал измерения вне ядра). -/
-noncomputable def ExecutedCert.toCertStep {obj : S → ℝ}
+/-- ExecutedCert → StepRecord (δ-канал измерения — вне записи:
+это ошибка измерения, не трата; журнал фиксирует только
+drop-ядро и нулевую телеметрию — бюджетного канала нет). -/
+noncomputable def ExecutedCert.toRecord {obj : S → ℝ}
     {step : S → S} {s : S} {m d : ℝ} (C : ExecutedCert obj step s m d) :
-    Hagi.Unified.HonestTransition.CertStep obj s (step s) where
+    Hagi.Cert.StepRecord obj s (step s) where
   drop := C.drop
   drop_pos := C.drop_pos
-  actual := C.actual
+  descent := C.actual
+  budgetSpend := 0
+  riskSpend := 0
+  delta := 0
+
+/-- ExecutedCert → CertStep (deprecated-алиас StepRecord;
+δ-канал измерения вне ядра). -/
+noncomputable def ExecutedCert.toCertStep {obj : S → ℝ}
+    {step : S → S} {s : S} {m d : ℝ} (C : ExecutedCert obj step s m d) :
+    Hagi.Unified.HonestTransition.CertStep obj s (step s) :=
+    C.toRecord
 
 /-! ### C279-адаптер: ExecutedCert → общее ядро CertStepGen
 
