@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 546
-- theorems: 12116
-- defs: 4479
+- modules: 549
+- theorems: 12145
+- defs: 4504
 - noncomputable decls: 1160
-- status Proven: 466 modules
+- status Proven: 469 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 24 modules
@@ -506,8 +506,11 @@ theorems.
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
+| Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
 | Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
+| Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
+| Hagi.Theory.CertTernaryJump | 4 | 1 | - | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
