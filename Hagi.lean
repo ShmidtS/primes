@@ -461,6 +461,7 @@ import Hagi.Theory.MasterTheorem
 import Hagi.Theory.MasterEF
 import Hagi.Theory.MasterBudget
 import Hagi.Theory.OnlinePL
+import Hagi.Theory.SelfEditGate
 
 set_option linter.style.header false
 
