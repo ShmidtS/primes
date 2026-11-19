@@ -133,6 +133,7 @@ import Hagi.Probability.RankedStopRouting
 import Hagi.Probability.FreedmanFamilyConfidence
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
+import Hagi.Probability.FreedmanAdaptive
 import Hagi.Probability.NoiseTemperature
 import Hagi.Growth.PlasticityLedger
 import Hagi.Model.SoftmaxStep
