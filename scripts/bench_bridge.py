@@ -682,6 +682,229 @@ def emit_lean_grow(path, start, traj, reject=None):
     print(f"written: {path}", file=sys.stderr)
 
 
+# ----------------------------------------------------------------
+# C446: anytime holdout admission-stop (--mode grow-stop)
+#
+# PIN (gap C445): the C444 grow loop admits blocks on the train-
+# side margin alone; holdout telemetry may DEGRADE with no stop --
+# growth continues while generalization collapses. This mode adds
+# the Ville anytime stop (Hagi/Theory/AnytimeHoldoutStop):
+#
+#   e-process  L_t = exp(lam * D_t),  D_t = holdout_t - holdout_0
+#   (accumulated holdout degradation), supermartingale under the
+#   ZERO-degradation contract (martingale holdout increments --
+#   C435 holdout_unbiased premise, model fixed before the draw);
+#   Ville: P[sup_t L_t >= 1/delta] <= delta  -- an ANYTIME detector:
+#   the stop may fire at any adaptively chosen step.
+#
+# RATIONAL detector (no exp, exact Fractions): since
+#   log(1/delta) <= 1/delta - 1   (log x <= x - 1)
+# the threshold tau' = 1/delta - 1 is CONSERVATIVE: firing
+# lam * D_t >= 1/delta - 1 implies the e-value crossed 1/delta
+# (Lean: stop_implies_evalue), so the false-stop probability is
+# bounded by delta (Lean: grow_stop_sound / false_stop_bound).
+# The detector fires LATER than the exact e-value stop -- we pay
+# sensitivity, never validity.
+#
+# PIN (honest overfitting scenario): normalized polynomial blocks
+# (x/3)^d, d = 2..11; train points x in {1,2,3}, holdout x = 4.
+# Each block's certified candidate step has positive measured
+# gain (blockGainOk passes: lamM = lamR = eps = 0 pass-through
+# growth gate -- the honest C445 gap: the admission gate alone does
+# NOT stop overfitting), but the holdout value (4/3)^d makes the
+# accumulated degradation D_t explode -- the anytime stop fires and
+# every later block is REFUSED with reason STOP (admitWithStop /
+# stop_blocks_admission).
+
+GS_LAM = F(8)        # detector weight lambda (exact Fraction)
+GS_DELTA = F(1, 4)   # anytime false-stop budget delta
+GS_THRESH = F(1) / GS_DELTA - F(1)  # conservative rational threshold
+GS_DMAX = 11         # candidate blocks (x/3)^d, d = 2..GS_DMAX
+
+
+def gs_stop_fires(d_cum):
+    """The executable rational stop rule (Lean holdoutStopRule):
+    stopThreshold delta <= lam * D. Conservative subset of the
+    e-value crossing {exp(lam*D) >= 1/delta} (Ville)."""
+    return GS_THRESH <= GS_LAM * d_cum
+
+
+def grow_stop_run(base_steps=2, grown_steps=4):
+    """Certified growth with the anytime holdout stop: base steps,
+    then normalized polynomial blocks decided by the C444 margin
+    (pass-through parameters here -- the honest gap) AND the C446
+    Ville stop. Once the stop fires, later blocks are logged as
+    refused (reason STOP) and NOTHING is emitted for them."""
+    feats = [list(XS) + [XHO_GROW]]
+    w = [F(0)]
+    raw = []
+    admissions = []
+
+    def do_step(phase, feats, wcur, extra=None, only_last=False):
+        L = grow_smooth([feats[-1]]) if only_last \
+            else grow_smooth(feats)
+        eta = F(1) / L
+        obj = grow_loss(wcur, feats)
+        risk = grow_holdout_risk(wcur, feats)
+        g = grow_grad(wcur, feats)
+        if only_last:
+            w2 = list(wcur)
+            w2[-1] = wcur[-1] - eta * g[-1]
+        else:
+            w2 = [wcur[j] - eta * g[j] for j in range(len(wcur))]
+        obj2 = grow_loss(w2, feats)
+        risk2 = grow_holdout_risk(w2, feats)
+        d = {"phase": phase, "obj": obj, "obj'": obj2,
+             "drop": obj - obj2, "risk": risk, "risk'": risk2}
+        if extra:
+            d.update(extra)
+        return d, w2
+
+    for t in range(base_steps):
+        d, w2 = do_step("base", feats, w)
+        raw.append(d)
+        w = w2
+
+    h0 = grow_holdout_risk(w, feats)
+    stopped = False
+    stop_rec = None
+    for dd in range(2, GS_DMAX + 1):
+        c = [x ** dd / F(3) ** dd for x in XS] \
+            + [(XHO_GROW / F(3)) ** dd]
+        feats2 = feats + [c]
+        d, w2 = do_step("grow-candidate", feats2, list(w) + [F(0)],
+                        extra={"candidate": f"(x/3)^{dd}"},
+                        only_last=True)
+        gain = d["drop"]
+        # C444 margin with pass-through parameters: the gate itself
+        # would admit (positive certified gain) -- honest C445 gap
+        rec = {"candidate": f"(x/3)^{dd}", "gain": gain,
+               "holdout": grow_holdout_risk(w2, feats2),
+               "D": grow_holdout_risk(w2, feats2) - h0,
+               "admitted": False, "reason": ""}
+        if stopped:
+            rec["reason"] = ("STOP already fired: admitWithStop "
+                             "blocks every later block "
+                             "(stop_blocks_admission)")
+            admissions.append(rec)
+            continue
+        if not (0 < d["drop"] and d["drop"] <= d["obj"] - d["obj'"]
+                and 0 <= d["risk'"]):
+            sys.exit(f"ABORT: grow-stop candidate step failed "
+                     f"certified check: {d}")
+        raw.append(d)
+        w, feats = w2, feats2
+        # grown certified steps on the extended model
+        for t in range(grown_steps):
+            d, w2 = do_step("grown", feats, w)
+            raw.append(d)
+            w = w2
+        h = grow_holdout_risk(w, feats)
+        d_cum = h - h0
+        rec["admitted"] = True
+        rec["holdout"] = h
+        rec["D"] = d_cum
+        rec["lamD"] = GS_LAM * d_cum
+        rec["margin_excess"] = -gain
+        if gs_stop_fires(d_cum):
+            stopped = True
+            rec["stopped"] = True
+            rec["reason"] = ("STOP: lam*D >= 1/delta - 1 => e-value "
+                             ">= 1/delta (stop_implies_evalue); "
+                             "false-stop prob <= delta (Ville, "
+                             "grow_stop_sound)")
+            stop_rec = dict(rec)
+        else:
+            rec["stopped"] = False
+        admissions.append(rec)
+
+    if not stopped:
+        sys.exit("ABORT: honest overfitting scenario did not fire "
+                 "the anytime stop -- tune GS_LAM/GS_DELTA")
+
+    n = F(len(raw))
+    for t, dd in enumerate(raw):
+        dd["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        dd["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(dd):
+            sys.exit(f"ABORT: grow-stop step {t} ({dd['phase']}) "
+                     f"failed certified admission: {dd}")
+    return raw[0]["obj"], raw, admissions, h0, stop_rec
+
+
+def _proof_grow_stop(prefix, ok):
+    thm = "valid" if ok else "invalid"
+    val = "true" if ok else "false"
+    return (f"theorem growstop_traj_{thm}{prefix} :\n"
+            f"    checkTrajectory benchStartGrowStop{prefix} "
+            f"benchTrajectoryGrowStop{prefix} = {val} := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartGrowStop{prefix}, "
+            f"benchTrajectoryGrowStop{prefix}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+
+
+def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
+    """C446 witness: literal trajectory + #eval + norm_num theorem,
+    the machine-checked STOP (the rational rule fired on the exact
+    literals) and the negative: the FIRST blocked candidate had a
+    POSITIVE measured gain -- without the stop the cycle would have
+    continued (no_stop_admits)."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartGrowStop : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryGrowStop : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrowStop "
+                "benchTrajectoryGrowStop\n\n")
+        f.write(_proof_grow_stop("", True))
+        f.write(
+            "\n/-- Machine-checked STOP (C446): the conservative "
+            "rational rule fired --\n1/delta - 1 <= lam * D on the "
+            "exact measured literals, hence the e-value\ncrossed "
+            "1/delta (stop_implies_evalue) and admission is "
+            "blocked for every later\nblock "
+            "(Hagi.Theory.AnytimeHoldoutStop). -/\n"
+            "theorem growstop_fired :\n"
+            f"    {rat(GS_THRESH)} <= {rat(GS_LAM)} * "
+            f"{rat(stop_rec['D'])} := by\n"
+            "  norm_num\n")
+        f.write(
+            "\n/-- Negative (cycle would continue without the "
+            "stop): the FIRST blocked\ncandidate has POSITIVE "
+            "measured certified gain -- the C444 margin alone would\n"
+            "admit it (no_stop_admits). The stop is the ONLY "
+            "reason growth halted. -/\n"
+            "theorem growstop_blocked_would_admit :\n"
+            f"    0 < {rat(blocked['gain'])} := by\n"
+            "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_grow_stop(path, start, traj):
+    """C446 negative control: inflated declared drop -- the checker
+    must reject the trajectory."""
+    bad = [dict(d) for d in traj]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartGrowStopBad : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryGrowStopBad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in bad)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrowStopBad "
+                "benchTrajectoryGrowStopBad\n\n")
+        f.write(_proof_grow_stop("Bad", False))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def emit_bad_grow(path, start, traj):
     """C444 negative: inflated declared drop — the checker must
     reject the trajectory."""
@@ -705,7 +928,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
-                             "grow"],
+                             "grow", "grow-stop"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -713,10 +936,12 @@ def main():
                          "quantization jump cycle; "
                          "grow: C444 certified block "
                          "admission for LM growth")
-    ap.add_argument("--grad-steps", type=int, default=1,
-                    help="cert-tern: gradient phase steps")
-    ap.add_argument("--ft-steps", type=int, default=1,
-                    help="cert-tern: finetune phase steps")
+    ap.add_argument("--grad-steps", type=int, default=None,
+                    help="cert-tern: gradient phase steps "
+                         "(default 1; grow-stop: base steps, default 2)")
+    ap.add_argument("--ft-steps", type=int, default=None,
+                    help="cert-tern: finetune phase steps "
+                         "(default 1; grow-stop: grown steps, default 1)")
     ap.add_argument("--steps", type=int, default=None)
     ap.add_argument("--emit-lean", metavar="PATH")
     ap.add_argument("--corrupt", metavar="PATH")
@@ -726,9 +951,42 @@ def main():
                          "must reject)")
     args = ap.parse_args()
 
+    if args.mode == "grow-stop":
+        gs_base = args.grad_steps if args.grad_steps is not None \
+            else 2
+        gs_grown = args.ft_steps if args.ft_steps is not None \
+            else 1
+        start, traj, admissions, h0, stop_rec = grow_stop_run(
+            gs_base, gs_grown)
+        blocked = next((a for a in admissions
+                        if stop_rec is not None and not a["admitted"]),
+                       None)
+        print(json.dumps({
+            "mode": "grow-stop",
+            "lam": str(GS_LAM), "delta": str(GS_DELTA),
+            "threshold": str(GS_THRESH),
+            "holdout_0": str(h0),
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "stop": {k: str(v) for k, v in stop_rec.items()},
+            "admissions": [{k: (str(v) if not isinstance(v, bool)
+                                else v) for k, v in a.items()}
+                           for a in admissions],
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_grow_stop(args.emit_lean, start, traj,
+                                stop_rec, blocked)
+        if args.corrupt:
+            emit_bad_grow_stop(args.corrupt, start, traj)
+        return
+
     if args.mode == "grow":
         start, traj, admissions, hist = grow_run(
-            args.grad_steps, args.ft_steps)
+            args.grad_steps if args.grad_steps is not None else 1,
+            args.ft_steps if args.ft_steps is not None else 1)
         rej = next((a for a in admissions if not a["admitted"]),
                    None)
         print(json.dumps({
@@ -755,7 +1013,8 @@ def main():
 
     if args.mode == "cert-tern":
         start, traj, holds, states, jump = train_tern(
-            args.grad_steps, args.ft_steps)
+            args.grad_steps if args.grad_steps is not None else 1,
+            args.ft_steps if args.ft_steps is not None else 1)
         print(json.dumps({
             "mode": "cert-tern",
             "eta": str(F(1) / ce_L()), "L": str(ce_L()),
