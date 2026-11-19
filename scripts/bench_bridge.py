@@ -447,14 +447,272 @@ def emit_bad_ce(path, start, traj):
     emit_lean_ce(path, start, bad, name_suffix="_bad", ok=False)
 
 
+# ----------------------------------------------------------------
+# C444: certified block admission for LM growth (--mode grow)
+#
+# PIN (model): a linear model on rational data (MSE, exact
+# Fractions): base model y ~ w*x (one feature). A growth
+# candidate = adding a FEATURE (fiber dimension extension: the
+# Python face of the Lean OrthoInjection candidate
+# mkOrthoFiberBlock in Hagi/Theory/BlockAdmission.lean): the new
+# column acts only in the fresh direction; u = 0 at admission
+# keeps the base objective exact (cortex coordinates unchanged).
+#
+# PIN (admission criterion == Lean blockGainOk, ONE inequality):
+# lamM*dCost + lamR*dRisk + eps_cert <= gain, all exact Fractions:
+#   gain  = measured certified drop of ONE exact GD step on the
+#           EXTENDED model from u = 0 (inline check_step before
+#           the step may be emitted; abort otherwise);
+#   dCost = measured cost increment of the candidate column
+#           (feature-dimension units: one weight + one KV column
+#           — the Python face of kvCostOfBlock / lmKVCost_grow);
+#   dRisk = holdout risk increment (ONE held-out point, C435
+#           honesty: telemetry, may rise);
+#   eps_cert = explicit safety slack.
+# A REJECTED candidate is a HOLD: model unchanged, the candidate
+# is logged in `admissions` telemetry (NOT a CertStepData — a
+# zero-gain candidate has drop = 0 and checkStep demands 0 < drop,
+# exactly the Lean costly_zero_gain_block_refused /
+# noBlockAdmissionWithoutMargin negatives).
+#
+# PIN (reject candidate, honest zero gain): the second candidate is
+# a synthetic noise feature g constructed orthogonal to the CURRENT
+# residual vector (g = (r2, -r1, 0) on r = (r1, r2, r3)): its exact
+# gradient is identically zero, so the measured certified gain is
+# exactly 0 while dCost > 0 — the MemoryCycle 'novelty without
+# gain' shape; nothing is tuned to fake a rejection: the gradient
+# is computed exactly.
+
+GROW_LAMM = F(1, 4)     # cost exchange weight (explicit parameter)
+GROW_LAMR = F(1, 4)     # risk exchange weight (explicit parameter)
+GROW_EPS = F(1, 100)    # admission safety slack
+XHO_GROW, YHO_GROW = F(4), F(9)   # holdout point (not in train)
+
+
+def grow_loss(w, feats):
+    """MSE of the linear model on the feature columns `feats`
+    (each column: 3 train values + 1 holdout value in position 3)."""
+    n = F(len(XS))
+    return sum(((sum((wi * f[i] for wi, f in zip(w, feats)), F(0))
+                 - YS[i]) ** 2 for i in range(len(XS))), F(0)) / n
+
+
+def grow_grad(w, feats):
+    """Exact rational gradient of grow_loss (train part)."""
+    n = F(len(XS))
+    g = [F(0)] * len(w)
+    for i in range(len(XS)):
+        r = sum((wi * f[i] for wi, f in zip(w, feats)), F(0)) - YS[i]
+        for j, f in enumerate(feats):
+            g[j] += F(2) * r * f[i]
+    return [t / n for t in g]
+
+
+def grow_smooth(feats):
+    """Frobenius smoothness estimate ||X||^2_F (BlockSmooth/C442
+    pattern): sum of squared train feature entries — sets eta = 1/L."""
+    return sum((f[i] ** 2 for f in feats
+                for i in range(len(XS))), F(0))
+
+
+def grow_holdout_risk(w, feats):
+    """Holdout risk: squared error on the held-out point
+    (column position 3 — the holdout value of each feature)."""
+    pred = sum((wi * f[3] for wi, f in zip(w, feats)), F(0))
+    return (pred - YHO_GROW) ** 2
+
+
+def admission_margin(gain, dcost, drisk):
+    """lamM*dCost + lamR*dRisk + eps - gain (positive => REJECT:
+    the Lean criterion blockGainOk needs the excess <= 0)."""
+    return (GROW_LAMM * dcost + GROW_LAMR * drisk + GROW_EPS
+            - gain)
+
+
+def grow_run(base_steps=1, grown_steps=1):
+    """Certified growth cycle: base certified steps, ONE growth
+    candidate (feature x^2) decided by the exact admission
+    criterion, certified steps on the grown model, then a costly
+    zero-gain candidate REJECTED (HOLD). Every emitted step passes
+    the inline check_step mirror; any failure aborts."""
+    feats0 = [list(XS) + [XHO_GROW]]   # base column + holdout value
+    w = [F(0)]
+    raw = []
+    admissions = []
+    hist = [tuple(w)]
+
+    x2 = [x * x for x in XS] + [XHO_GROW * XHO_GROW]  # feature x^2
+
+    def do_step(phase, feats, wcur, extra=None, only_last=False):
+        L = grow_smooth([feats[-1]]) if only_last \
+            else grow_smooth(feats)
+        eta = F(1) / L
+        obj = grow_loss(wcur, feats)
+        risk = grow_holdout_risk(wcur, feats)
+        g = grow_grad(wcur, feats)
+        if only_last:
+            # candidate step: the base is FROZEN, only the new
+            # block's weight moves (lm_head_safeStep_lt shape:
+            # trunk fixed, head updated)
+            w2 = list(wcur)
+            w2[-1] = wcur[-1] - eta * g[-1]
+        else:
+            w2 = [wcur[j] - eta * g[j] for j in range(len(wcur))]
+        obj2 = grow_loss(w2, feats)
+        risk2 = grow_holdout_risk(w2, feats)
+        d = {"phase": phase, "obj": obj, "obj'": obj2,
+             "drop": obj - obj2, "risk": risk, "risk'": risk2}
+        if extra:
+            d.update(extra)
+        return d, w2
+
+    # phase 1: base certified steps
+    for t in range(base_steps):
+        d, w2 = do_step("base", feats0, w)
+        raw.append(d)
+        w = w2
+        hist.append(tuple(w))
+
+    # growth candidate 1: feature x^2 (informative)
+    featsG = [feats0[0], x2]
+    dcost = F(2)                       # one weight + one KV column
+    d, w2 = do_step("grow-candidate", featsG, [w[0], F(0)],
+                    extra={"candidate": "x^2"}, only_last=True)
+    gain, drisk = d["drop"], d["risk'"] - d["risk"]
+    margin = admission_margin(gain, dcost, drisk)
+    admissions.append({"candidate": "x^2", "gain": gain,
+                       "dCost": dcost, "dRisk": drisk,
+                       "margin_excess": margin,
+                       "admitted": bool(margin <= 0)})
+    if margin <= 0:
+        if not (0 < d["drop"] and d["drop"] <= d["obj"]
+                - d["obj'"] and 0 <= d["risk'"]):
+            sys.exit(f"ABORT: grow step failed certified "
+                     f"admission: {d}")
+        raw.append(d)
+        w = w2
+        hist.append(tuple(w))
+        # phase 3: certified steps on the GROWN model
+        for t in range(grown_steps):
+            d, w2 = do_step("grown", featsG, w)
+            raw.append(d)
+            w = w2
+            hist.append(tuple(w))
+    else:
+        admissions[-1]["reason"] = (
+            "margin > 0: HOLD, model unchanged (Hagi.Theory."
+            "BlockAdmission noBlockAdmissionWithoutMargin)")
+
+    # growth candidate 2: noise feature orthogonal to the current
+    # residual (exact zero gradient => zero certified gain)
+    r = [YS[i] - sum((wi * f[i] for wi, f in zip(w, featsG)), F(0))
+         for i in range(len(XS))]
+    gcol = [r[1], -r[0], F(0), F(0)]   # orthogonal to r, holdout 0
+    featsN = [feats0[0], x2, gcol]
+    dcost2 = F(2)
+    d2, _ = do_step("grow-candidate", featsN, list(w) + [F(0)],
+                    extra={"candidate": "noise"}, only_last=True)
+    gain2, drisk2 = d2["drop"], d2["risk'"] - d2["risk"]
+    margin2 = admission_margin(gain2, dcost2, drisk2)
+    admissions.append({"candidate": "noise", "gain": gain2,
+                       "dCost": dcost2, "dRisk": drisk2,
+                       "margin_excess": margin2,
+                       "admitted": bool(margin2 <= 0),
+                       "reason": "zero gradient (orthogonal to "
+                                 "residual): measured gain = 0, "
+                                 "cost > 0 => REJECT "
+                                 "(costly_zero_gain_block_refused)"})
+    # REJECT: nothing emitted, model unchanged (refuse_safe shape)
+
+    # fill budget fields over the ACCEPTED steps, re-verify each
+    n = F(len(raw))
+    for t, dd in enumerate(raw):
+        dd["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        dd["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(dd):
+            sys.exit(f"ABORT: grow step {t} ({dd['phase']}) "
+                     f"failed certified admission: {dd}")
+    return raw[0]["obj"], raw, admissions, hist
+
+
+def _proof_grow(prefix, ok):
+    thm = "valid" if ok else "invalid"
+    val = "true" if ok else "false"
+    return (f"theorem grow_traj_{thm}{prefix} :\n"
+            f"    checkTrajectory benchStartGrow{prefix} "
+            f"benchTrajectoryGrow{prefix} = {val} := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartGrow{prefix}, benchTrajectoryGrow{prefix}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+
+
+def emit_lean_grow(path, start, traj, reject=None):
+    """C444 witness: literal trajectory + #eval + norm_num theorem,
+    plus (if `reject` given) the machine-checked ADMISSION REFUSAL
+    of the costly zero-gain candidate: the criterion inequality is
+    FALSE on the exact measured literals."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartGrow : ℚ := {rat(start)}\n\n"
+                "def benchTrajectoryGrow : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrow "
+                "benchTrajectoryGrow\n\n")
+        f.write(_proof_grow("", True))
+        if reject is not None:
+            f.write(
+                "\n/-- Machine-checked refusal of the costly "
+                "zero-gain candidate (C444 negative (c)): the "
+                "admission criterion\nlamM·Δcost + lamR·Δrisk + "
+                "ε_cert ≤ gain is FALSE on the exact measured "
+                "literals, so\nblockAdmissionRule refuses "
+                "(Hagi.Theory.BlockAdmission."
+                "noBlockAdmissionWithoutMargin). -/\n"
+                "theorem grow_reject_margin :\n"
+                "    ¬ ((1/4 : ℚ) * "
+                f"{rat(reject['dCost'])} + (1/4 : ℚ) * "
+                f"{rat(reject['dRisk'])} + {rat(GROW_EPS)}"
+                f"\n        ≤ {rat(reject['gain'])}) := by\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_grow(path, start, traj):
+    """C444 negative: inflated declared drop — the checker must
+    reject the trajectory."""
+    bad = [dict(d) for d in traj]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartGrowBad : ℚ := {rat(start)}\n\n"
+                "def benchTrajectoryGrowBad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in bad)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrowBad "
+                "benchTrajectoryGrowBad\n\n")
+        f.write(_proof_grow("Bad", False))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["quad", "cert-ce", "cert-tern"],
+    ap.add_argument("--mode",
+                    choices=["quad", "cert-ce", "cert-tern",
+                             "grow"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
                          "cert-tern: C443 certified ternary "
-                         "quantization jump cycle")
+                         "quantization jump cycle; "
+                         "grow: C444 certified block "
+                         "admission for LM growth")
     ap.add_argument("--grad-steps", type=int, default=1,
                     help="cert-tern: gradient phase steps")
     ap.add_argument("--ft-steps", type=int, default=1,
@@ -467,6 +725,33 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "grow":
+        start, traj, admissions, hist = grow_run(
+            args.grad_steps, args.ft_steps)
+        rej = next((a for a in admissions if not a["admitted"]),
+                   None)
+        print(json.dumps({
+            "mode": "grow",
+            "lamM": str(GROW_LAMM), "lamR": str(GROW_LAMR),
+            "eps_cert": str(GROW_EPS),
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "admissions": [{k: (str(v) if not isinstance(v, bool)
+                                else v) for k, v in a.items()}
+                           for a in admissions],
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+            "weights": ["[" + ", ".join(map(str, w)) + "]"
+                        for w in hist],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_grow(args.emit_lean, start, traj,
+                           reject=rej)
+        if args.corrupt:
+            emit_bad_grow(args.corrupt, start, traj)
+        return
 
     if args.mode == "cert-tern":
         start, traj, holds, states, jump = train_tern(
