@@ -710,7 +710,7 @@ theorem ceSmoothL_pos (X : Matrix V (Fin d) ℝ) (hne : X ≠ 0) :
   ext v j
   simp [hall v j]
 
-set_option maxHeartbeats 4000000 in
+set_option maxHeartbeats 400000 in
 /-- **Global convergence for the real log-linear CE head with the
 smoothness premise discharged.**  Instantiates `ce_global_convergence`
 on `E = EuclideanSpace ℝ (Fin d)` with `f θ = ceOneHot t (X *ᵥ θ)`
@@ -1106,7 +1106,7 @@ theorem ce_convex_ident (X : Matrix V (Fin d) ℝ) (t : V)
   rw [hsplit θ', hsplit θ, hlin]
   linarith [hlow, hsoftpair, hinner]
 
-set_option maxHeartbeats 4000000 in
+set_option maxHeartbeats 400000 in
 /-- **PL-free sublinear rate for the real log-linear CE head.**  No PL
 premise: convexity is supplied by `ce_convex_ident` (derived) and
 smoothness by `ce_smooth_ident` (C354, `L = ceSmoothL X`), giving

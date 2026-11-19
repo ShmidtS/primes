@@ -202,7 +202,7 @@ theorem hb_rate_critical (beta : ℝ) (h0 : 0 ≤ beta)
 end Canonical
 
 set_option linter.style.header false
-set_option maxHeartbeats 800000
+set_option maxHeartbeats 400000
 
 /-!
 # HBRate — ЧЕСТНАЯ скорость heavy-ball на модах (цикл 32)

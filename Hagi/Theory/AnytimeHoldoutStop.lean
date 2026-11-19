@@ -184,7 +184,7 @@ theorem grow_stop_sound {S : ℕ → Ω → ℝ} {lam : ℝ} {δ : ℚ}
     (hcast : ∀ t ω, (r t : ℝ) = lam * S t ω) :
     μ.real {ω | ∃ t ∈ Finset.range (n + 1),
       stopThreshold δ ≤ r t} ≤ (δ : ℝ) := by
-  set_option maxHeartbeats 1000000 in
+  set_option maxHeartbeats 400000 in
   have hcpos : 0 < 1 / (δ : ℝ) := by positivity
   have hv := ville_supermartingale hL hLnn n (c := 1 / (δ : ℝ))
     hcpos

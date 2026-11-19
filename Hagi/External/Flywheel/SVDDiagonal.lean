@@ -110,7 +110,7 @@ private lemma eigenvalues_diagonal_of_sorted (f : Fin (Fintype.card n) → ℝ) 
   -- Extract function equality from list equality
   exact List.ofFn_injective h_eq_lists
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 lemma eigenvalues_sq {A : Matrix n n ℂ} (hA : A.PosSemidef) (i : n) :
     (hA.isHermitian.pow 2).eigenvalues i = (hA.isHermitian.eigenvalues i) ^ 2 := by
   /-

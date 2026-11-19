@@ -174,7 +174,7 @@ theorem quant_loss_bridge {m n : ℕ} (W Wq : Matrix (Fin m) (Fin n) ℝ)
         mul_le_mul_of_nonneg_left hpert hk
     _ = kappa * D * Real.sqrt (m * n) * Real.sqrt (∑ j, x j ^ 2) := by ring
 
-set_option maxHeartbeats 8000000 in
+set_option maxHeartbeats 400000 in
 /-- **Frobenius-уровень цены квантования**
 (единый план §6.2/§6.3):
 при покомпонентной ошибке ≤ D

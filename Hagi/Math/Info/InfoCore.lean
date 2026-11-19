@@ -722,7 +722,8 @@ theorem spectralFactor_column {A : Matrix ι ι ℂ} (hA : A.PosSemidef) (k : ι
 section
 variable {ι : Type u_1} {α : Type u_4} [Fintype ι] [DecidableEq ι] [Fintype α] [DecidableEq α]
 
-set_option maxHeartbeats 1000000 in
+-- C455 heartbeat tranche: elaborates within 400k (was 1000000).
+set_option maxHeartbeats 400000 in
 set_option maxRecDepth 10000 in
 theorem entropy_sum_le (A : α → Matrix ι ι ℂ) (hA : ∀ a, (A a).PosSemidef) :
     entropy (∑ a, A a) ≤ ∑ a, entropy (A a) := by

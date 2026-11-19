@@ -193,7 +193,7 @@ private lemma eigenvalues_conjTranspose_mul_self_eq_sq {A : Matrix n n ℂ} (hA 
   apply (IsHermitian.eigenvalues_eq_eigenvalues_iff _ _).mpr
   rw [h_eq]
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- Eigenvalues of A² equal (λᵢ)² as multisets (Hermitian A). -/
 private lemma eigenvalues_sq_multiset (A : Matrix n n ℂ) (hA : A.IsHermitian) :
     Multiset.map ((hA.pow 2).eigenvalues ·) Finset.univ.val =
@@ -262,7 +262,7 @@ private lemma eigenvalues_sq_multiset (A : Matrix n n ℂ) (hA : A.IsHermitian) 
   simp only [← Multiset.map_map] at key
   exact Multiset.map_injective Complex.ofReal_injective key
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- For a Hermitian matrix, the multiset of singular values equals the multiset of absolute
     values of eigenvalues. Note: pointwise equality does NOT hold in general because
     singular values are sorted decreasingly (all positive), while eigenvalues are sorted

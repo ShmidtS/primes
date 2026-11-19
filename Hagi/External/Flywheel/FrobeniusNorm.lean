@@ -219,7 +219,7 @@ private lemma star_unitary_mem (V : unitaryGroup n ℂ) :
 private lemma sq_abs_eq_sq_of_nonneg {r : ℝ} (h : 0 ≤ r) : |r|^2 = r^2 := by
   rw [abs_of_nonneg h]
 
-set_option maxHeartbeats 800000 in
+set_option maxHeartbeats 400000 in
 /-- The Frobenius norm squared of A - Aₖ equals the sum of squared tail singular values.
     This is the key formula for the Eckart-Young theorem.
 

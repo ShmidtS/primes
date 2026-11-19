@@ -13,7 +13,7 @@ import Hagi.External.Flywheel.FrobeniusNorm
 и оптимальный ранг — первый k с σ_{k+1}² ≤ λ·c (first-order критерий).
 -/
 
-set_option maxHeartbeats 4000000
+set_option maxHeartbeats 400000
 
 open Matrix
 open Hagi.External.Flywheel.Matrix
@@ -135,7 +135,7 @@ theorem mdlJ_argmin_exists (A : Matrix n n ℂ) (lam c : ℝ)
 noncomputable def mdlDj (A : Matrix n n ℂ) (lam c : ℝ) (k : ℕ) : ℝ :=
   mdlJ A lam c (k + 1) - mdlJ A lam c k
 
-set_option maxHeartbeats 16000000 in
+set_option maxHeartbeats 400000 in
 /-- Внутри диапазона: прирост = λc − σ_k² (из mdlErr_step). -/
 theorem mdlDj_eq (A : Matrix n n ℂ) (lam c : ℝ) {k : ℕ}
     (hk : k < Fintype.card n) :
@@ -148,7 +148,7 @@ theorem mdlDj_eq (A : Matrix n n ℂ) (lam c : ℝ) {k : ℕ}
   rw [hmul]
   linarith
 
-set_option maxHeartbeats 16000000 in
+set_option maxHeartbeats 400000 in
 /-- За пределами: ошибка уже нулевая, прирост = цена λc. -/
 theorem mdlDj_ge_card (A : Matrix n n ℂ) (lam c : ℝ) {k : ℕ}
     (hk : Fintype.card n ≤ k) :
@@ -162,7 +162,7 @@ theorem mdlDj_ge_card (A : Matrix n n ℂ) (lam c : ℝ) {k : ℕ}
   rw [hmul]
   linarith
 
-set_option maxHeartbeats 16000000 in
+set_option maxHeartbeats 400000 in
 /-- **First-order критерий MDL-оптимального ранга**: если в точке k*
 прирост качества σ_{k*}² уже не окупает цену λ·c, а на
 предыдущем шаге ещё окупал (λ·c < σ_{k*−1}², либо k* = 0),

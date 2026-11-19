@@ -432,7 +432,7 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero (A : Matrix n n ℂ) :
     · next heq => exact absurd (Subtype.ext_iff.mp heq) h
     · exact leftSingularVectorNonzero_orthogonal A i j hi hj h
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- Extend the orthonormal left singular vectors to a full orthonormal basis. -/
 noncomputable def extendedONB (A : Matrix n n ℂ) :
     OrthonormalBasis n ℂ (EuclideanSpace ℂ n) :=
@@ -442,7 +442,7 @@ noncomputable def extendedONB (A : Matrix n n ℂ) :
     finrank_euclideanSpace
     (leftSingularVectorExtended_orthonormal_on_nonzero A)).choose
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- The extended ONB agrees with left singular vectors on nonzero singular value indices. -/
 theorem extendedONB_spec (A : Matrix n n ℂ) :
     ∀ i, i ∈ nonzeroSingularIndices A → (extendedONB A) i = leftSingularVectorExtended A i :=

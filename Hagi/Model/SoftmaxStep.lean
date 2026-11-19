@@ -288,7 +288,7 @@ certified descent stage for the real model — the first
 closed bridge from an explicit model to the stage
 calculus. -/
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- Certified joint stage for the explicit logit-CE model
 (R350). Here `d` is a descent DIRECTION (along `-grad`), so
 the certified-descent premise reads `d^2 ≤ (-logitGrad w)*d`

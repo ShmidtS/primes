@@ -2,7 +2,7 @@ import Mathlib.Tactic
 import Hagi.Learning.RCDL
 import Hagi.Learning.HadamardProjectors
 
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 
 set_option linter.style.header false
 

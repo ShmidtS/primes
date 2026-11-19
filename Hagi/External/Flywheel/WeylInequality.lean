@@ -872,7 +872,7 @@ lemma finrank_ker_toEuclideanLin_ge' (C : Matrix n n ℂ) :
   omega
 
 set_option maxRecDepth 10000 in
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 400000 in
 /-- **Thompson's Singular Value Interlacing Inequality**
 
 For matrices A, B with rank(B) ≤ r:

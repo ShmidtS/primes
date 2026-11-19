@@ -677,7 +677,7 @@ theorem stepNoise_abs_le (X : Matrix V (Fin d) ℝ) (t : V) (lam γr : ℝ)
 
 
 
-set_option maxHeartbeats 2000000 in
+set_option maxHeartbeats 400000 in
 /-- **Bounded conditional variance of the step noise** (bridge
 premise form, `σ := c²` where `c` is the stepNoise bound): on the
 kernel, `E[stepNoise²] ≤ c²` with
@@ -789,7 +789,7 @@ theorem stepDrift_ge_floor (X : Matrix V (Fin d) ℝ) (t : V) (lam γr : ℝ)
     mul_le_mul_of_nonneg_left hqn.2 hB0
   linarith
 
-set_option maxHeartbeats 2000000 in
+set_option maxHeartbeats 400000 in
 /-- **THE FIRST END-TO-END STOCHASTIC LEARNING THEOREM** (C360).
 
 Training the REAL ℓ2-regularized log-linear CE head `ceReg X t lam`
