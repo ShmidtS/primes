@@ -151,6 +151,7 @@ import Hagi.Model.CEScaleSelection
 import Hagi.Model.CEGroupedScale
 import Hagi.Model.EnergyReasoning.Pseudolikelihood
 import Hagi.Model.CEJointScale
+import Hagi.Model.CEScaleChoice
 import Hagi.Model.CECoupledShortcut
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEMarkovConfidence
