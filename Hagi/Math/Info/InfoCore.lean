@@ -1151,9 +1151,13 @@ noncomputable def shannon (p : ι → ℝ) : ℝ := ∑ i, Real.negMulLog (p i)
 /-- Total-variation half-distance. -/
 noncomputable def tvHalf (p q : ι → ℝ) : ℝ := (∑ i, |p i - q i|) / 2
 
+omit [DecidableEq ι] in
 /-- ДЕДУП (аудит v5 п.5): tvHalf — то же определение, что
 каноническое Prelude.tvDef (половина L1-расстояния);
-связь rfl. -/
+связь rfl. Канонический дубля-моста A19.3 (C451):
+`Hagi.Unified.InfoCanonical.tvHalf_eq_tvDef` — deprecated alias
+на ЭТУ теорему; binder `DecidableEq` не используется (omit) —
+канонический тип совпадает с типом алиаса-копии. -/
 theorem tvHalf_eq_tvDef (p q : ι → ℝ) :
     tvHalf p q = Hagi.Prelude.tvDef p q := rfl
 

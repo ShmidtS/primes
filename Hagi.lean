@@ -217,6 +217,7 @@ import Hagi.State.MemoryCycle
 import Hagi.Numerics.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
+import Hagi.Probability.Substrate
 import Hagi.Step.MDLThreeCurrency
 import Hagi.Step.WarmupSchedule
 import Hagi.Step.WeightDecay

@@ -472,10 +472,11 @@ theorem shannon_eq_entDef {V : Type*} [Fintype V] (p : V → ℝ) :
   simp [Hagi.Information.shannon, Hagi.Prelude.entDef,
     Real.negMulLog]
 
-/-- Полная вариация: tvHalf = tvDef. -/
-theorem tvHalf_eq_tvDef {V : Type*} [Fintype V] (p q : V → ℝ) :
-    Hagi.Information.tvHalf p q = Hagi.Prelude.tvDef p q := by
-  rfl
+/-- Полная вариация: tvHalf = tvDef. ДЕДУП (A19.3, C451):
+канонический мост — `Hagi.Information.tvHalf_eq_tvDef`;
+здесь — deprecated alias на него. -/
+@[deprecated Hagi.Information.tvHalf_eq_tvDef (since := "2026-11-19")]
+alias tvHalf_eq_tvDef := Hagi.Information.tvHalf_eq_tvDef
 
 /-- ПРИМЕР ДЕЛЕГАЦИИ: фаннес-граница Фаннеса в мире Prelude:
 через мост переносится главная теорема FannesComplete. -/
@@ -489,7 +490,8 @@ theorem fanes_entDef {V : Type*} [Fintype V] [DecidableEq V]
             / (1 + Hagi.Prelude.tvDef p q)) := by
   have hkey := Hagi.Unified.fanes_unconditional (ι := V) p q hp hq
     hp1 hq1
-  rw [shannon_eq_entDef p, shannon_eq_entDef q, tvHalf_eq_tvDef] at hkey
+  rw [shannon_eq_entDef p, shannon_eq_entDef q,
+    Hagi.Information.tvHalf_eq_tvDef] at hkey
   exact hkey
 
 end Hagi.Unified.InfoCanonical
