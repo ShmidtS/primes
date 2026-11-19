@@ -447,6 +447,7 @@ import Hagi.Semantics.DerivedStateCoherence
 import Hagi.Theory.CEChain
 import Hagi.Theory.HoldoutRisk
 import Hagi.Theory.CertCEHoldout
+import Hagi.Theory.CertifyThenCommit
 import Hagi.Theory.CertTernaryJump
 import Hagi.Theory.BlockAdmission
 import Hagi.Theory.FunctionPreservingGrowth
