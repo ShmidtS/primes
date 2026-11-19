@@ -7,7 +7,7 @@ import Hagi.Math.Foundations.Potential
 # Certificates — typed per-stage certificates
 
 Per-stage measured (h_emp_-contract) structures:
-`GrowCertificate`, `MergeCertificate`, `JointCertificate`
+`StageDropCertificate` (grow/merge), `JointCertificate`
 (SafeQP alignment + quadratic slack), `CompressionCertificate`
 (energy increases by at most `kappa * qerr`),
 `GeneralizationCertificate` (probe drop `epsQ ≥ 0`), and the
@@ -26,26 +26,20 @@ namespace Hagi.System
 
 /-! ## Per-stage certificates -/
 
-/-- The grow-stage certificate: nonneg capability gain,
-energy drop BY the gain, physical (nonneg) risk. -/
-structure GrowCertificate where
+/-- The stage-drop certificate (C440 consolidation of the former
+`GrowCertificate` and `MergeCertificate`, which were field-shape
+duplicates): a stage enters with `preEnergy` and exits with
+`energy`, dropping it BY the certified nonnegative amount `drop`.
+For the grow stage `drop` is the capability gain; for the merge
+stage `drop` is the nonnegative Jensen gap. Physical risk is
+nonnegative. -/
+structure StageDropCertificate where
   preEnergy : ℝ
   energy : ℝ
-  gain : ℝ
+  drop : ℝ
   risk : ℝ
-  hgain : 0 ≤ gain
-  hdrop : energy ≤ preEnergy - gain
-  hrisk : 0 ≤ risk
-
-/-- The merge-stage certificate: nonnegative Jensen gap,
-energy drops BY the gap, physical risk. -/
-structure MergeCertificate where
-  preEnergy : ℝ
-  energy : ℝ
-  gap : ℝ
-  risk : ℝ
-  hgap : 0 ≤ gap
-  hdrop : energy ≤ preEnergy - gap
+  hdrop : 0 ≤ drop
+  hdesc : energy ≤ preEnergy - drop
   hrisk : 0 ≤ risk
 
 /-- The safe joint-step certificate: the SafeQP descent
@@ -88,8 +82,8 @@ structure GeneralizationCertificate where
 /-- The full cycle certificate: the bundle + the stage
 chaining (each pre-state IS the previous post-state). -/
 structure StageCycleCertChain where
-  grow : GrowCertificate
-  merge : MergeCertificate
+  grow : StageDropCertificate
+  merge : StageDropCertificate
   joint : JointCertificate
   compress : CompressionCertificate
   generalization : GeneralizationCertificate
@@ -116,7 +110,7 @@ theorem cycle_certificate_sound
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
     (hprice : lam * (cert.grow.risk + cert.merge.risk
         + cert.joint.risk) + nu * cert.generalization.epsQ
-      ≤ cert.merge.gap + cert.joint.eta * cert.joint.inner
+      ≤ cert.merge.drop + cert.joint.eta * cert.joint.inner
         - cert.joint.lip * cert.joint.eta
           * cert.joint.eta * cert.joint.dnorm2 / 2
         - cert.compress.kappa * cert.compress.qerr) :
@@ -127,7 +121,7 @@ theorem cycle_certificate_sound
       ≤ Hagi.Foundations.hagiPotential cert.grow.preEnergy R nu qTarget
         cert.generalization.q lam := by
   -- the certified net decrease
-  set dec : ℝ := cert.merge.gap + cert.joint.eta
+  set dec : ℝ := cert.merge.drop + cert.joint.eta
       * cert.joint.inner - cert.joint.lip * cert.joint.eta
       * cert.joint.eta * cert.joint.dnorm2 / 2
       - cert.compress.kappa * cert.compress.qerr with hdec
@@ -135,12 +129,12 @@ theorem cycle_certificate_sound
   have hE : cert.compress.energy ≤ cert.grow.preEnergy - dec := by
     have h1 := cert.compress.hslack
     have h2 := cert.joint.hquad
-    have h3 := cert.merge.hdrop
-    have h4 := cert.grow.hdrop
+    have h3 := cert.merge.hdesc
+    have h4 := cert.grow.hdesc
     rw [cert.chain_jc] at h1
     rw [cert.chain_mj] at h2
     rw [cert.chain_gm] at h3
-    linarith [cert.grow.hgain]
+    linarith [cert.grow.hdrop]
   -- penalty bookkeeping (multiplicative wrap: nu*M'
   -- is an atom, so lift the bound through nu >= 0)
   have hpen := penalty_drop_bound qTarget
