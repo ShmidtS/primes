@@ -35,7 +35,7 @@ The concrete instantiation `batchCEMetrics` puts the true batch loss
 on the Euclidean parameter carrier with constant remaining budget/risk
 levels (R1 polarity slice: `riskRem = riskTotalLimit - protectedRisk`
 supplied by the caller, since the GrowthState carrier lives in
-quarantined `Hagi.Legacy`), and the two `TransitionStep` constructors
+quarantined `Hagi.Research.Legacy`), and the two `TransitionStep` constructors
 realize the two-stage acceptance gate slice: progress when the gate is
 active and `0 ≤ riskRem - opRisk`, hold via `HoldStep.id` otherwise.
 These are formal one-step certificates, not runtime code.
@@ -159,7 +159,7 @@ open Hagi.Cert.Adapters
 parameter carrier: the objective is the true arithmetic-mean batch
 loss; risk and budget are the concrete remaining levels (R1 polarity
 slice: the caller supplies `riskRem = riskTotalLimit - protectedRisk`,
-since the GrowthState carrier lives in quarantined `Hagi.Legacy`);
+since the GrowthState carrier lives in quarantined `Hagi.Research.Legacy`);
 the task tag is `Unit`. -/
 noncomputable def batchCEMetrics {V : Type} [Fintype V] {B d : ℕ}
     (X : Fin B → Matrix V (Fin d) ℝ) (y : Fin B → V)

@@ -104,7 +104,7 @@ CAPSTONES = [
     "Hagi.Unified.NernstFannes",
     "Hagi.Unified.QuantSafeUpdate",
     "Hagi.Unified.RecursiveClean",
-    "Hagi.Legacy.RecursiveGrowth",
+    "Hagi.Research.Legacy.RecursiveGrowth",
     "Hagi.Unified.StateTakeoff",
     "Hagi.Unified.TopLevel",
     "Hagi.Unified.Unified",

@@ -23,7 +23,7 @@ model class — a linear block `W` followed by the CE head
   gives `L = L_soft · ‖W‖_F = 2·‖W‖_F`.
 
 The consumption theorem `quant_loss_bridge_derived` is the
-premise-free derived variant of `Hagi.Legacy.TopLevel.quant_loss_bridge`
+premise-free derived variant of `Hagi.Research.Legacy.TopLevel.quant_loss_bridge`
 (whose `hlip`/kappa premise is its own documented "h_emp_lip-style
 premise"): quantizing a linear block with componentwise error `D`
 changes the CE of its output by at most `2·D·√(m·n)·‖x‖₂`, with the
@@ -218,7 +218,7 @@ changes by at most
   `|CE t (Wq.mulVec x) − CE t (W.mulVec x)| ≤ 2 · D · √(m·n) · ‖x‖₂`,
 
 with NO Lipschitz premise: the `hlip`/`kappa` hypothesis of
-`Hagi.Legacy.TopLevel.quant_loss_bridge` (its documented h_emp_lip-style
+`Hagi.Research.Legacy.TopLevel.quant_loss_bridge` (its documented h_emp_lip-style
 premise) is DERIVED here with `kappa = 2` for the linear-block +
 softmax-CE head. Pins: linear/ident-CE class only; Frobenius bound. -/
 theorem quant_loss_bridge_derived (t : V) (W Wq : Matrix V (Fin n) ℝ)

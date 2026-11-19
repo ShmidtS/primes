@@ -91,7 +91,7 @@ README не заменяет их математическую специфик�
 | Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
 | Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy) | Маршрутизация и смежные автономные модели. |
 | Примеры и сопровождение | [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Сравнительные формулировки, аудит и внешние математические связи. |
-| Карантин и сертификаты | [`Hagi/Cert`](Hagi/Cert), [`Hagi/Legacy`](Hagi/Legacy), [`Hagi/Benchmarks`](Hagi/Benchmarks), [`Hagi/Research`](Hagi/Research) | Ядро сертификации (`Hagi/Cert`), а также модули вне корневого замыкания `Hagi.lean`: исторические результаты (`Legacy`), демонстрационные свидетели (`Benchmarks`) и исследовательские модели Omni/Percolation/Schelling/Discovery (`Research`). Собираются отдельными целями `lake`. |
+| Карантин и сертификаты | [`Hagi/Cert`](Hagi/Cert), [`Hagi/Benchmarks`](Hagi/Benchmarks), [`Hagi/Research`](Hagi/Research) | Ядро сертификации (`Hagi/Cert`), а также модули вне корневого замыкания `Hagi.lean`: демонстрационные свидетели (`Benchmarks`), исследовательские модели Omni/Percolation/Schelling/Discovery (`Research`) и архив исторических результатов Legacy (`Hagi/Research/Legacy`, C456; сборка целью `Hagi.Research`). |
 
 Каталог `scripts/` содержит вспомогательные средства сопровождения
 формализации. Математическим источником остаются файлы `Hagi/**/*.lean`.

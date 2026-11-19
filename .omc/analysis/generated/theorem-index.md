@@ -12,14 +12,14 @@ theorems.
 
 ## Summary
 
-- modules: 540
-- theorems: 12186
+- modules: 544
+- theorems: 12191
 - defs: 4535
 - noncomputable decls: 1165
-- status Proven: 460 modules
+- status Proven: 463 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
-- status Speculative: 24 modules
+- status Speculative: 25 modules
 - status Deprecated: 20 modules
 - global axioms of all Hagi.* theorems: Classical.choice, Quot.sound, propext (OK)
 
@@ -221,27 +221,6 @@ theorems.
 | Hagi.Learning.TernaryPert | 35 | 6 | layerBits, eunorm, outNorm, bitsPerTrit | no | Proven |
 | Hagi.Learning.ToyTrajectory | 18 | 28 | lossS, traj | yes | Conditional |
 | Hagi.Learning.TrainingTransition | 14 | 15 | taskQual, taskEnergy | no | Proven |
-| Hagi.Legacy | 0 | 0 | - | no | Proven |
-| Hagi.Legacy.AdvanceWitness | 3 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.ArchitectureTheorem | 79 | 9 | forwardKlTarget, reverseKlTarget, l1Norm, binEnt, distillEfficiency | yes | Deprecated |
-| Hagi.Legacy.Assumptions | 29 | 16 | trunc_idle_witness, idleTraj | yes | Deprecated |
-| Hagi.Legacy.CertifiedGrowth | 6 | 0 | - | no | Deprecated |
-| Hagi.Legacy.CorePremisesDerived | 6 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.GrandSynthesis | 6 | 1 | - | no | Deprecated |
-| Hagi.Legacy.HAGICertWitness | 6 | 2 | witnessTraj, witnessState | no | Deprecated |
-| Hagi.Legacy.LearningKernel | 5 | 3 | - | no | Deprecated |
-| Hagi.Legacy.LinkedWitness | 2 | 1 | - | no | Deprecated |
-| Hagi.Legacy.MasterChallenge | 1 | 0 | - | no | Deprecated |
-| Hagi.Legacy.MasterHAGI | 18 | 5 | - | yes | Deprecated |
-| Hagi.Legacy.MasterHAGICoupled | 21 | 11 | coupledGrowthTraj | no | Deprecated |
-| Hagi.Legacy.MasterHAGITrunc | 20 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.Nonvacuity | 72 | 14 | Spos, Spos', MwEffects, S₀, Mw0, mergeOperationalCertStep, mergeStrictCertStep, S₁, jensenGap, Mw, witnessGap | yes | Deprecated |
-| Hagi.Legacy.NonvacuityHorizon | 6 | 2 | satF, satC | no | Deprecated |
-| Hagi.Legacy.QuadraticConcrete | 17 | 4 | quadGen, quadE, quadGen', quadState | no | Deprecated |
-| Hagi.Legacy.RecursiveGrowth | 24 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.StateTakeoff | 4 | 0 | - | yes | Deprecated |
-| Hagi.Legacy.TernaryGrad | 6 | 0 | - | no | Deprecated |
-| Hagi.Legacy.TopLevel | 15 | 0 | - | yes | Deprecated |
 | Hagi.Math.Foundations.Chord | 4 | 0 | - | no | Proven |
 | Hagi.Math.Foundations.ConeTakeoff | 18 | 0 | - | no | Proven |
 | Hagi.Math.Foundations.GrowthBand | 4 | 0 | - | no | Proven |
@@ -298,7 +277,11 @@ theorems.
 | Hagi.Model.CycleCertificate | 23 | 14 | growSeq_cycle_certificate | no | Proven |
 | Hagi.Model.DiffAttention | 5 | 2 | sm, diffW | no | Proven |
 | Hagi.Model.DistillCert | 13 | 16 | quantStudent | no | Proven |
-| Hagi.Model.EnergyReasoning.Pseudolikelihood | 298 | 171 | conditionalDist, zstar4, attentionCoupling, toCertStepGen, yan2, toKernelCertStep, freeCellPseudolikelihood, zstar2, κa3, vecMul, hbChain, Kex4, wa3, pseudolikelihoodObjective, latentGradient, latentEnergy, latentQuadraticForm, toLossCeilingDrop, heatbathWeight, heatbathKernel, localFieldLogit, sparseLocalField, latentUpdate, stationaryDensity, fan2, attentionK, focusedMixture, focusedDisagreementWeight, symmetrizeCoupling, attentionWeights, visibleBiasWithZ, conditionalLogit, boltzmannDensity | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood | 0 | 0 | - | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood.CRAM | 100 | 98 | toCertStepGen, toKernelCertStep, freeCellPseudolikelihood, toLossCeilingDrop, localFieldLogit, symmetrizeCoupling | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood.Core | 76 | 39 | conditionalDist, zstar4, pseudolikelihoodObjective, latentGradient, latentEnergy, latentQuadraticForm, heatbathWeight, heatbathKernel, latentUpdate, focusedMixture, visibleBiasWithZ, conditionalLogit, boltzmannDensity | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood.LocalField | 60 | 19 | attentionCoupling, zstar2, κa3, wa3, sparseLocalField, attentionK, Kex4, attentionWeights | no | Proven |
+| Hagi.Model.EnergyReasoning.Pseudolikelihood.Mixing | 67 | 15 | yan2, vecMul, hbChain, stationaryDensity, fan2, focusedDisagreementWeight | no | Proven |
 | Hagi.Model.FastArch3Transfer | 16 | 31 | fa3HeadLoss, fa3Objective, fa3BlockList, fa3Gain, fa3Stack | no | Proven |
 | Hagi.Model.GDNBridge | 13 | 4 | gdnUpdate | no | Proven |
 | Hagi.Model.GDNTransfer | 24 | 36 | gdnBlockBranch, gdnGain, hybStack, hybBlockList, gdnMix, gdnBlockList, hybGain, gdnGateTanh, gdnStack | yes | Conditional |
@@ -418,6 +401,27 @@ theorems.
 | Hagi.Research.ChainUnification | 9 | 0 | - | no | Speculative |
 | Hagi.Research.ConditionalInformation | 33 | 4 | conditionalMutualInformation | no | Speculative |
 | Hagi.Research.CrossModalGap | 10 | 3 | crossModalGap | no | Speculative |
+| Hagi.Research.Legacy | 0 | 0 | - | no | Speculative |
+| Hagi.Research.Legacy.AdvanceWitness | 3 | 0 | - | yes | Deprecated |
+| Hagi.Research.Legacy.ArchitectureTheorem | 79 | 9 | forwardKlTarget, reverseKlTarget, l1Norm, binEnt, distillEfficiency | yes | Deprecated |
+| Hagi.Research.Legacy.Assumptions | 29 | 16 | trunc_idle_witness, idleTraj | yes | Deprecated |
+| Hagi.Research.Legacy.CertifiedGrowth | 6 | 0 | - | no | Deprecated |
+| Hagi.Research.Legacy.CorePremisesDerived | 6 | 0 | - | yes | Deprecated |
+| Hagi.Research.Legacy.GrandSynthesis | 6 | 1 | - | no | Deprecated |
+| Hagi.Research.Legacy.HAGICertWitness | 6 | 2 | witnessTraj, witnessState | no | Deprecated |
+| Hagi.Research.Legacy.LearningKernel | 5 | 3 | - | no | Deprecated |
+| Hagi.Research.Legacy.LinkedWitness | 2 | 1 | - | no | Deprecated |
+| Hagi.Research.Legacy.MasterChallenge | 1 | 0 | - | no | Deprecated |
+| Hagi.Research.Legacy.MasterHAGI | 18 | 5 | - | yes | Deprecated |
+| Hagi.Research.Legacy.MasterHAGICoupled | 21 | 11 | coupledGrowthTraj | no | Deprecated |
+| Hagi.Research.Legacy.MasterHAGITrunc | 20 | 0 | - | yes | Deprecated |
+| Hagi.Research.Legacy.Nonvacuity | 72 | 14 | Spos, Spos', MwEffects, S₀, Mw0, mergeOperationalCertStep, mergeStrictCertStep, S₁, jensenGap, Mw, witnessGap | yes | Deprecated |
+| Hagi.Research.Legacy.NonvacuityHorizon | 6 | 2 | satF, satC | no | Deprecated |
+| Hagi.Research.Legacy.QuadraticConcrete | 17 | 4 | quadGen, quadE, quadGen', quadState | no | Deprecated |
+| Hagi.Research.Legacy.RecursiveGrowth | 24 | 0 | - | yes | Deprecated |
+| Hagi.Research.Legacy.StateTakeoff | 4 | 0 | - | yes | Deprecated |
+| Hagi.Research.Legacy.TernaryGrad | 6 | 0 | - | no | Deprecated |
+| Hagi.Research.Legacy.TopLevel | 15 | 0 | - | yes | Deprecated |
 | Hagi.Research.MarkovPercolation | 22 | 7 | weightedNeighborKernel, maskedNeighborWeights, neighborOrStayKernel, uniformNeighborKernel | no | Speculative |
 | Hagi.Research.OmniInvariant | 10 | 2 | - | no | Speculative |
 | Hagi.Research.OmniState | 12 | 2 | - | no | Speculative |

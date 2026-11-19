@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Hagi.Legacy.TopLevel
+import Hagi.Research.Legacy.TopLevel
 import Hagi.Growth.LinearCone
 import Mathlib.Tactic
 import Hagi.Energy.Quantizer

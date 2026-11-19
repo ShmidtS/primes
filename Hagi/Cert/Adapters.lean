@@ -22,7 +22,7 @@ risk-polarity slice: when the kernel risk level is the remaining-risk
 `riskTotalLimit - protectedRisk`, the kernel's nonnegative risk
 remainder converts into the protected-risk-under-limit bound.  The
 GrowthState carrier for `protectedRisk` lives in quarantined
-`Hagi/Legacy`, so the polarity adapter is stated against the canonical
+`Hagi/Research/Legacy`, so the polarity adapter is stated against the canonical
 kernel with explicit premises only.
 -/
 

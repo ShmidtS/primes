@@ -20,7 +20,7 @@ Consumer: scripts/GenTheoremIndex.py (writes
 .omc/analysis/generated/theorem-index.md).
 -/
 import Hagi
-import Hagi.Legacy
+import Hagi.Research.Legacy
 import Hagi.Benchmarks
 import Hagi.Research
 import Hagi.Growth.Takeoff
@@ -68,7 +68,7 @@ def collectAll (env : Environment) : IO (Array Name × Nat) := do
 
 unsafe def main : IO Unit := do
   initSearchPath (← findSysroot)
-  let roots : Array Name := #[`Hagi, `Hagi.Legacy, `Hagi.Benchmarks,
+  let roots : Array Name := #[`Hagi, `Hagi.Research.Legacy, `Hagi.Benchmarks,
     `Hagi.Research, `Hagi.Growth.Takeoff, `Hagi.Growth.LinearCone,
     `Hagi.Growth.Saturation, `Hagi.Growth.GainDecomposition,
     `Hagi.Growth.StateBinding, `Hagi.Dynamics.GrowthBridge]

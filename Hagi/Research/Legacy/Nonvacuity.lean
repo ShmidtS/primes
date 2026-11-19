@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Legacy.MasterHAGI
+import Hagi.Research.Legacy.MasterHAGI
 import Hagi.Unified.HonestTransition
 import Hagi.Runtime.TernaryExact
 import Hagi.Core.Concat
-import Hagi.Legacy.StateTakeoff
+import Hagi.Research.Legacy.StateTakeoff
 /-!
 # R263 (audit §7.1): the h_emp_merge bridge from the Core layer
 

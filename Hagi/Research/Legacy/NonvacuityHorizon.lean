@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Hagi.Legacy.ArchitectureTheorem
+import Hagi.Research.Legacy.ArchitectureTheorem
 import Hagi.Optimization.ComputeScaling
 import Hagi.Growth.LinearCone
 import Hagi.Dynamics.EndpointContraction

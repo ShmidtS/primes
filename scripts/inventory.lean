@@ -9,7 +9,7 @@ Proof bodies are deliberately excluded. A compatibility alias remains tracked
 Run: lake env lean scripts/inventory.lean > inventory.txt
 -/
 import Hagi
-import Hagi.Legacy
+import Hagi.Research.Legacy
 import Hagi.Benchmarks
 import Hagi.Research
 /- C347: quarantined speculative growth modules (A14 QW7) stay

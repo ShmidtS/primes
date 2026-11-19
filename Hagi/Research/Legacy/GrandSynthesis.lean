@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Dynamics.GrowthBridge
-import Hagi.Legacy.MasterHAGICoupled
+import Hagi.Research.Legacy.MasterHAGICoupled
 import Hagi.Unified.LinkedQVec
 import Hagi.Growth.LinearCone
 

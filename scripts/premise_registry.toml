@@ -61,17 +61,17 @@ measured = "gate activation statistic from pretraining probe, see STATUS.md Hagi
 [premises.h_emp_step]
 type = "empirical"
 note = "measured one-step improvement law (legacy growth pack)"
-measured = "external growth-curve measurement, see STATUS.md Hagi/Legacy/Assumptions"
+measured = "external growth-curve measurement, see STATUS.md Hagi/Research/Legacy/Assumptions"
 
 [premises.h_emp_dyn]
 type = "empirical"
 note = "measured dynamics law premise (legacy/takeoff packs)"
-measured = "external dynamics fit, see STATUS.md Hagi/Legacy/Assumptions"
+measured = "external dynamics fit, see STATUS.md Hagi/Research/Legacy/Assumptions"
 
 [premises.h_emp_G]
 type = "empirical"
 note = "growth gain bound"
-measured = "external gain measurement, see STATUS.md Hagi/Legacy/CorePremisesDerived"
+measured = "external gain measurement, see STATUS.md Hagi/Research/Legacy/CorePremisesDerived"
 
 [premises.h_emp_fit]
 type = "empirical"
@@ -81,7 +81,7 @@ measured = "residual fit statistic, see STATUS.md Hagi/Generalization/ModeState"
 [premises.h_emp_gain_prod]
 type = "empirical"
 note = "per-step gain product bound (legacy pack)"
-measured = "external growth measurement, see STATUS.md Hagi/Legacy/Assumptions"
+measured = "external growth measurement, see STATUS.md Hagi/Research/Legacy/Assumptions"
 
 [premises.h_emp_gap]
 type = "empirical"
@@ -249,30 +249,30 @@ note = "strict hybrid stack transfer descent link"
 # unprefixed empirical premises: per-file (shrink-only in
 # AssumptionScan.UNPREFIXED_EMPIRICAL), keyed FILE::NAME
 
-[premises."Hagi/Legacy/MasterHAGI.lean::h_step"]
+[premises."Hagi/Research/Legacy/MasterHAGI.lean::h_step"]
 type = "empirical"
 note = "unprefixed measured step premise (legacy master)"
-measured = "external growth-curve measurement, see STATUS.md Hagi/Legacy/MasterHAGI"
+measured = "external growth-curve measurement, see STATUS.md Hagi/Research/Legacy/MasterHAGI"
 
-[premises."Hagi/Legacy/MasterHAGI.lean::h_gain_prod"]
+[premises."Hagi/Research/Legacy/MasterHAGI.lean::h_gain_prod"]
 type = "empirical"
 note = "unprefixed gain-product premise (legacy master)"
-measured = "external growth measurement, see STATUS.md Hagi/Legacy/MasterHAGI"
+measured = "external growth measurement, see STATUS.md Hagi/Research/Legacy/MasterHAGI"
 
-[premises."Hagi/Legacy/MasterHAGI.lean::h_dyn"]
+[premises."Hagi/Research/Legacy/MasterHAGI.lean::h_dyn"]
 type = "empirical"
 note = "unprefixed dynamics premise (legacy master)"
-measured = "external dynamics fit, see STATUS.md Hagi/Legacy/MasterHAGI"
+measured = "external dynamics fit, see STATUS.md Hagi/Research/Legacy/MasterHAGI"
 
-[premises."Hagi/Legacy/MasterHAGI.lean::h_C_cap"]
+[premises."Hagi/Research/Legacy/MasterHAGI.lean::h_C_cap"]
 type = "empirical"
 note = "unprefixed capability cap (legacy master)"
-measured = "capability ceiling estimate, see STATUS.md Hagi/Legacy/MasterHAGI"
+measured = "capability ceiling estimate, see STATUS.md Hagi/Research/Legacy/MasterHAGI"
 
-[premises."Hagi/Legacy/MasterHAGI.lean::hβ"]
+[premises."Hagi/Research/Legacy/MasterHAGI.lean::hβ"]
 type = "empirical"
 note = "unprefixed easing parameter (legacy master)"
-measured = "schedule parameter estimate, see STATUS.md Hagi/Legacy/MasterHAGI"
+measured = "schedule parameter estimate, see STATUS.md Hagi/Research/Legacy/MasterHAGI"
 
 [premises."Hagi/Generalization/ModeState.lean::h_C_cap"]
 type = "empirical"
@@ -302,4 +302,4 @@ quarantine = [
 # research tree — Speculative
 research_prefixes = ["Hagi/Research/"]
 # legacy quarantine (C219, audit P0a) — Deprecated
-deprecated_prefixes = ["Hagi/Legacy/"]
+deprecated_prefixes = ["Hagi/Research/Legacy/"]

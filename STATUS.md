@@ -234,7 +234,7 @@
 - `weightedExpAllocation_optimal`: для любого вещественного `r` с тем же взвешенным бюджетом экспоненциальный остаток построенного распределения не больше остатка `r`; это непрерывная, а не целочисленная оптимальность.
 
 
-## Hagi/Legacy/MasterChallenge.lean
+## Hagi/Research/Legacy/MasterChallenge.lean
 - `master_hagi_core_comparator`: при `0 ≤ lam`, `0 ≤ nu`, `0 ≤ epsQ` и `CorePremises S S' epsQ w` потенциал после перехода не превосходит исходного минус `verify.decrease`, плюс `lam * verify.riskSpend + nu * epsQ`.
 - Та же теорема доказывает точное бюджетное равенство `S'.toGrowthState.budget = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend`; все условия `CorePremises` остаются посылками.
 
@@ -1200,11 +1200,11 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `calibrated_two_sided_mass`: без дополнительного условия `2*card K*θ < 1` масса точек, одновременно удовлетворяющих этому радиусу, оценивается снизу величиной `1 − 2*card K*θ`.
 
 
-## Hagi/Legacy/HAGICertWitness.lean
+## Hagi/Research/Legacy/HAGICertWitness.lean
 - `hagicert_nonvacuous`: построены последовательности состояний и числовые параметры, для которых выполнен `HAGICert … T`. Это свидетель совместимости формального контракта на конкретных данных, а не оценка качества реального обучения.
 
 
-## Hagi/Legacy/Nonvacuity.lean
+## Hagi/Research/Legacy/Nonvacuity.lean
 - `merge_energy_bridge`: для midpoint-логитов доказано точное `CE(mid) = (CE(z₁)+CE(z₂))/2 − jensenGap z₁ z₂`, а также неотрицательность зазора.
 - `h_emp_merge_of_bridge` — доказанная теорема, а не внешняя посылка: она выводит одновременно `CE(mid) ≤ meanCE − jensenGap` и `0 ≤ jensenGap`.
 - `corePremises_nonvacuous_strict`: для любого `E` существуют состояния, `epsQ,w`, удовлетворяющие `CorePremises`, с положительными gap и growGain.
@@ -1212,7 +1212,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - C219 (legacy quarantine B2, аудит P0a; 19 модулей): все
   модули Hagi/{Unified,Examples,Challenge}/*.lean из карантинного
-  списка B2 перенесены в Hagi/Legacy/ без изменения математических
+  списка B2 перенесены в Hagi/Research/Legacy/ без изменения математических
   тел: 3 файла — чистые renames (ArchitectureTheorem, MasterHAGI,
   TopLevel, 0 байт изменений), 16 — import-переписывание только
   Hagi.Unified.X → Hagi.Legacy.X среди перенесённых модулей
@@ -1307,7 +1307,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 wall-clock, сжатие весов или улучшение качества.
 
 
-## Hagi/Legacy/NonvacuityHorizon.lean
+## Hagi/Research/Legacy/NonvacuityHorizon.lean
 - `sat_step_laws`: при `γ ≠ 0` параметрическая траектория одновременно удовлетворяет шагу `C(t+1)=C(t)+γ*F(t)` и насыщению `C(t+1)=C(t)+σ*(Cstar−C(t))`.
 - `sat_cone_iff`: при `γ > 0` условие `k*satC … t ≤ satF … t` эквивалентно `γ*k*Cstar ≤ (γ*k+σ)*Δ*(1−σ)^t`.
 - `witness_achieves_horizon`: при положительных `γ,k,Cstar,C0`, `0<σ<1`, `C0<Cstar`, `1≤T` и геометрическом условии для всех `t<T` доказаны оба закона шага, конус и строгое `satC 0 < satC T`.
@@ -1318,7 +1318,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `quad_loop_horizon`: если `quadGrad a x ≠ 0` и `n ≥ 1`, то `quadE a (qhalf a x n) < quadE a x`; `quad_witness_T3` и `quad_witness_T10` — конкретные специализации.
 
 
-## Hagi/Legacy/QuadraticConcrete.lean
+## Hagi/Research/Legacy/QuadraticConcrete.lean
 - `quad_core_premises`: для любых `a : ℝ` и `w : Fin 5 → ℝ` построены квадратичные состояния, удовлетворяющие `CorePremises (quadGen a) (quadGen' a) 0 w`.
 - `quad_kappa_at0` даёт `‖fderiv ℝ (quadE a) 0‖ ≤ 1+|a|`; `quad_conj13` проверяет соответствующее неравенство для квантованного скалярного шага с тем же коэффициентом.
 
@@ -1500,7 +1500,7 @@ wall-clock, сжатие весов или улучшение качества.
 - C218: подсчитанные здесь binder-сайты эмпирических посылок
   (h_C_cap=2, hβ_eased=2) занесены в per-file shrink-only реестр
   `AssumptionScan.py` (см. запись C218 в разделе
-  Hagi/Legacy/MasterHAGI.lean).
+  Hagi/Research/Legacy/MasterHAGI.lean).
 
 
 ## Hagi/Geometry/SphericalSimplex.lean
@@ -4639,7 +4639,7 @@ one-hot CE.
   `x T ≤ x 0 − Σ_{t<T}γg t + T·Δ/2`.
 
 
-## Hagi/Legacy/AdvanceWitness.lean
+## Hagi/Research/Legacy/AdvanceWitness.lean
 - `certified_invariant_advance_witness`: на горизонте `2` фактические поля
   траектории удовлетворяют `CertifiedHAGIInvariant` с `alpha=1`;
   capability проходит `1→2→4`, бюджет `100→98→96`.
@@ -4743,7 +4743,7 @@ one-hot CE.
   Условие супермартингала является частью теоремы, а не выводится из формулы `L`.
 
 
-## Hagi/Legacy/ArchitectureTheorem.lean
+## Hagi/Research/Legacy/ArchitectureTheorem.lean
 - `entropy_continuity_pinsker`: если уже доказана граница
   `|H(p)−H(q)| ≤ τ log(|V|−1) + h₂(τ)`, а также `0 ≤ τ ≤ 1/2`,
   `τ ≤ √(kl/2) ≤ 1/2`, `log(|V|−1) ≥ 0` и монотонность `binEnt`
@@ -4758,7 +4758,7 @@ one-hot CE.
   `B t = B0 − Σ_{j<t}spend j` следует `B t ≥ 0` для всех `t ≤ T`.
 
 
-## Hagi/Legacy/Assumptions.lean
+## Hagi/Research/Legacy/Assumptions.lean
 - `masterhagi_trunc_of_assumptions`: пакет `Trunc S lam nu Qtarget Emin T`
   заменяет стадийные, бюджетные и нижние энергетические предпосылки;
   при отдельных SafeQP-окнах и усечённых законах роста он даёт тот же
@@ -4791,7 +4791,7 @@ one-hot CE.
   `(1+alpha)·capability 0`.
 
 
-## Hagi/Legacy/CertifiedGrowth.lean
+## Hagi/Research/Legacy/CertifiedGrowth.lean
 - `certified_gainprod_takeoff`: для `[0,1]`-наблюдений, `n,eps > 0`,
   `alpha,gamma,C0 > 0`, `rho ≥ 0`, начального конуса, принятого моста
   от средних к `γD t ≤ G t` и усечённых законов
@@ -4834,7 +4834,7 @@ one-hot CE.
   не превосходит `|k|·Δ²/4`.
 
 
-## Hagi/Legacy/CorePremisesDerived.lean
+## Hagi/Research/Legacy/CorePremisesDerived.lean
 - `core_premises_joint_operational` и `core_premises_compress_operational`
   выводят квадратичный joint и квантованный compress из дифференцируемости,
   ограничений производной и операциональных равенств энергий, а не из
@@ -5034,7 +5034,7 @@ one-hot CE.
   `x_t−c/(1−s) = s^t·(x₀−c/(1−s))`.
 
 
-## Hagi/Legacy/GrandSynthesis.lean
+## Hagi/Research/Legacy/GrandSynthesis.lean
 - `grand_synthesis_weak`: при заданных границах сертификации стадий,
   `κD t ≤ E_raw`, производственной динамике, начальном конусе
   `kC0 ≤ D0`, неотрицательных `C,D` и условиях связывания коэффициентов
@@ -5134,7 +5134,7 @@ one-hot CE.
   `C t ≤ gMax·wLive/alpha`; это оценка в заданной модели прироста.
 
 
-## Hagi/Legacy/LearningKernel.lean
+## Hagi/Research/Legacy/LearningKernel.lean
 - `grow_premise_derived`: если `LearningKernel` даёт
   `capability' ≤ energy'` и `energy' = energy−growEnergy`, а дополнительно
   `growGain ≤ capability'−capability` и `capability ≥ 0`, то
@@ -5158,7 +5158,7 @@ one-hot CE.
   а `floor_catches` показывает, что покомпонентный floor их различает.
 
 
-## Hagi/Legacy/LinkedWitness.lean
+## Hagi/Research/Legacy/LinkedWitness.lean
 - `wTraj_certified_family`: три конкретных перехода удовлетворяют
   `CertifiedTransition` при сумме стадийных рисков как пределе.
 - `linkedHAGI_witness`: эта непустая траектория с `capability 1→8` и
@@ -5224,12 +5224,12 @@ one-hot CE.
   начальным счётчиком плюс горизонт.
 
 
-## Hagi/Legacy/MasterHAGI.lean
+## Hagi/Research/Legacy/MasterHAGI.lean
 - C304 (A12 credo quarantine): linked-вариант капстоуна
   (R362) удалён — deprecated, 0 потребителей; `MasterHAGI`/
   `MasterHAGICore` оставлены — живые потребители
   (`MasterHAGICoreOperational_v2`, nonvacuity-witness в
-  `Hagi/Legacy/Nonvacuity.lean`).
+  `Hagi/Research/Legacy/Nonvacuity.lean`).
 - `MasterHAGI`: при `lam ≥ 0`, `nu > 0`, `epsQ ≥ 0`, `CorePremises`,
   SafeQP-окнах, суммировании доменных рисков,
   условии `lam·riskSpend + nu·epsQ ≤ decrease`, достаточном бюджете,
@@ -5271,7 +5271,7 @@ one-hot CE.
 улучшение качества.
 
 
-## Hagi/Legacy/MasterHAGICoupled.lean
+## Hagi/Research/Legacy/MasterHAGICoupled.lean
 - `CoupledHAGIInvariant` связывает канал capability непосредственно с
   состояниями и содержит отдельные неотрицательные spend/risk,
   векторный probe-floor и бюджетную бухгалтерию.
@@ -5286,9 +5286,9 @@ one-hot CE.
   `∑_{t<T} verify(S(t+1)).decrease ≤ energy(S0) − energy(ST)`.
 
 
-## Hagi/Legacy/MasterHAGITrunc.lean
+## Hagi/Research/Legacy/MasterHAGITrunc.lean
 - `MasterHAGI_trunc`: сохранён (C304 recheck: живой потребитель —
-  capstone-мост в `Hagi/Legacy/Assumptions.lean`).
+  capstone-мост в `Hagi/Research/Legacy/Assumptions.lean`).
 - `masterhagi_growth_witness`: при `C t=G t=D t=2^t`,
   `alpha=gamma=1`, `rho=0`, `beta=2`, `xi=0` все усечённые посылки верны
   для `T ≤ 6`.
@@ -5440,7 +5440,7 @@ one-hot CE.
   доля `piR z N` лежит в `[0,1]`.
 
 
-## Hagi/Legacy/RecursiveGrowth.lean
+## Hagi/Research/Legacy/RecursiveGrowth.lean
 - `macro_step_decrease`: при merge-выигрыше `G ≥ 0`, `0 < L`,
   `0 ≤ eta ≤ 1/L`, `dnorm² ≤ inner`, квадратичной joint-оценке,
   `κ,s,dnormq ≥ 0`, `dnormq ≤ 1/2` и compress-Lipschitz оценке
@@ -5450,8 +5450,8 @@ one-hot CE.
   `eta t ≥ etamin`, `eps > 0` и `dn t² ≥ eps²`
   горизонт удовлетворяет `n ≤ 2(E0−Emin)/(etamin·eps²)`.
 - C217 (legacy quarantine, аудит P0a): модуль перенесён без
-  изменения байтов из Hagi/Legacy/RecursiveGrowth.lean в
-  Hagi/Legacy/RecursiveGrowth.lean (SHA-256
+  изменения байтов из Hagi/Research/Legacy/RecursiveGrowth.lean в
+  Hagi/Research/Legacy/RecursiveGrowth.lean (SHA-256
   ef6907ef5ce1c44f4b85c308148860acf799326f2ce165de15e1d56e0d6933b0,
   14644 байт / 347 строк / 0 CR) и выведен из корневого
   import-замыкания: Hagi.lean больше не импортирует его; новый
@@ -5461,10 +5461,10 @@ one-hot CE.
   и `safeqp_eps_critical` сохранены дословно: это карантинный
   рефакторинг, а не новое доказательство.
 - Освобождения точечные, кодового уровня: ReachLint исключает
-  только модули Hagi/Legacy/** плюс umbrella Hagi.Legacy
+  только модули Hagi/Research/Legacy/** плюс umbrella Hagi.Legacy
   (временный недостижимый не-Legacy файл всё ещё даёт FAIL,
   rc=1 — отрицательная проба воспроизведена); NsLint исключает
-  только префикс Hagi/Legacy/ и файл Hagi/Legacy.lean, baseline
+  только префикс Hagi/Research/Legacy/ и файл Hagi/Legacy.lean, baseline
   не тронут; ClosureReport переименован только путь записи;
   assumptions.lock — path-only move секции (+1/−1, тот же список
   h_emp_-посылок). Все гейты для не-Legacy кода остаются
@@ -5544,7 +5544,7 @@ wall-clock, сжатие весов или улучшение качества.
   и `0 < eta ≤ 1/L`.
 
 
-## Hagi/Legacy/StateTakeoff.lean
+## Hagi/Research/Legacy/StateTakeoff.lean
 - `state_capability_takeoff`: при `FullCycleRefinement`,
   `alpha,gamma > 0`, `rho ≥ 0`, положительной начальной capability,
   начальном конусе, `γD t ≤ growGain t`, производственной динамике,
@@ -5566,7 +5566,7 @@ wall-clock, сжатие весов или улучшение качества.
   содержит соответственно суммы бюджетных и рисковых затрат звеньев.
 
 
-## Hagi/Legacy/TernaryGrad.lean
+## Hagi/Research/Legacy/TernaryGrad.lean
 - `quantized_net_gain`: из `gamma·D ≤ Graw` и `Graw−G ≤ p`
   следует `gamma·D−p ≤ G`.
 - `quantized_cone_gain`: при `kC ≤ D`, `gamma ≥ 0`,
@@ -5599,7 +5599,7 @@ wall-clock, сжатие весов или улучшение качества.
   риске и расходе. `ternaryStepCert` упаковывает тот же переход в `StepCert`.
 
 
-## Hagi/Legacy/TopLevel.lean
+## Hagi/Research/Legacy/TopLevel.lean
 - `quant_residual_norm` и `quant_energy_bridge`: если
   `|w i−q i| ≤ s/2`, то `Σᵢ(w i−q i)² ≤ n(s/2)²`;
   при `s,κ ≥ 0` и `dE ≤ κ√Σ(w−q)²` получается `dE ≤ κ√n·s/2`.
@@ -5688,7 +5688,7 @@ wall-clock, сжатие весов или улучшение качества.
 - Quarantines out of defaultTargets (A7 Phase-1 item): DEFERRED.
 Причина: `scripts/ci.sh` строит только default target, после чего
 `scripts/Freeze.py` запускает `lake env lean scripts/inventory.lean`,
-который импортирует `Hagi.Legacy`/`Hagi.Benchmarks`/`Hagi.Research`
+который импортирует `Hagi.Research.Legacy`/`Hagi.Benchmarks`/`Hagi.Research`
 и требует их oleans (`lake env` не собирает). На свежем checkout
 удаление из defaultTargets ломает FREEZE в ci.sh, который править
 в рамках C245 запрещено. Корректный фикс — одним инфра-пакетом с

@@ -1,7 +1,7 @@
 name = "primes"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Hagi", "Hagi.Legacy", "Hagi.Benchmarks", "Hagi.Research"]
+defaultTargets = ["Hagi", "Hagi.Benchmarks", "Hagi.Research"]
 
 [leanOptions]
 pp.unicode.fun = true                 # pretty-prints `fun a ↦ b`
@@ -44,10 +44,8 @@ name = "Hagi"
 name = "Hagi.Architecture"
 globs = ["Hagi.Architecture.+"]
 
-# Review stage 6: per-directory package for incremental builds.
-[[lean_lib]]
-name = "Hagi.Legacy"
-globs = ["Hagi.Legacy", "Hagi.Legacy.+"]
+# C456: Hagi.Legacy lib retired — modules archived under Hagi/Research/Legacy
+# (A19.1; C448 precedent), now covered by the Hagi.Research globs below.
 
 [[lean_lib]]
 name = "Hagi.Audit"

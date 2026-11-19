@@ -1,4 +1,4 @@
-import Hagi.Legacy.MasterHAGICoupled
+import Hagi.Research.Legacy.MasterHAGICoupled
 import Hagi.Model.CertifiedTransition
 
 /-!

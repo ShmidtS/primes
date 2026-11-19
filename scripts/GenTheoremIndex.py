@@ -14,7 +14,7 @@ Per-module premise status (enum Proven|Conditional|Empirical|
 Speculative|Deprecated):
   Speculative  — module in the C347 growth quarantine or under
                  Hagi/Research/;
-  Deprecated   — module under Hagi/Legacy/;
+  Deprecated   — module under Hagi/Research/Legacy/ (C456);
   Empirical    — an empirical-class premise appears in the module;
   Conditional  — only mathematical/model/operational/approximation
                  premises appear;
@@ -92,14 +92,17 @@ def classify_modules(hmap, operational_by_file, data):
 
 
 def module_status(rel, base_status, modules):
+    # C456: deprecated_prefixes (Hagi/Research/Legacy/) checked BEFORE
+    # research_prefixes — Deprecated is more specific than Speculative,
+    # or archived Legacy modules would silently reclassify.
+    for p in modules.get("deprecated_prefixes", []):
+        if rel.startswith(p):
+            return "Deprecated"
     if rel in modules.get("quarantine", []):
         return "Speculative"
     for p in modules.get("research_prefixes", []):
         if rel.startswith(p):
             return "Speculative"
-    for p in modules.get("deprecated_prefixes", []):
-        if rel.startswith(p):
-            return "Deprecated"
     return base_status
 
 

@@ -1,4 +1,4 @@
-import Hagi.Legacy.MasterHAGI
+import Hagi.Research.Legacy.MasterHAGI
 import Hagi.Unified.DerivAlong
 
 /-!

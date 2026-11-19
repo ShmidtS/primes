@@ -21,6 +21,8 @@ HAGI_ROOT = ROOT / "Hagi.lean"
 # default target).
 # C217/C239/C240 quarantine: modules under Hagi/Legacy/, Hagi/Benchmarks/
 # and Hagi/Research/ are intentionally outside the root import closure
+# C456: Legacy archived under Hagi/Research/Legacy/ (covered by
+# RESEARCH_PREFIX); legacy prefix kept for history, dir scan is a no-op.
 LEGACY_PREFIX = "Hagi/Legacy/"
 BENCH_PREFIX = "Hagi/Benchmarks/"
 RESEARCH_PREFIX = "Hagi/Research/"
@@ -56,7 +58,6 @@ def imports_of(path: Path):
 def main() -> int:
     all_modules = {module_of(p) for p in (ROOT / "Hagi").rglob("*.lean")}
     legacy = {module_of(p) for p in (ROOT / "Hagi" / "Legacy").rglob("*.lean")}
-    legacy.add("Hagi.Legacy")  # umbrella module of the quarantine lib
     legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Benchmarks").rglob("*.lean")}
     legacy.add("Hagi.Benchmarks")  # umbrella module of the quarantine lib
     legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Research").rglob("*.lean")}
