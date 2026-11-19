@@ -247,7 +247,9 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
   have hcompE : (compress (joint (merge (grow S.toGrowthState)))).energy
       ≤ S.toGrowthState.energy - (verify S.toGrowthState).decrease := by
     linarith
-  have h_emp_fit : S'.toGrowthState.energy
+  -- C439: доказанный факт (из certificate_sound), не предпосылка —
+  -- честное имя (h_emp_* резервируется для premise binders).
+  have hfit_derived : S'.toGrowthState.energy
       ≤ S.toGrowthState.energy - (verify S.toGrowthState).decrease := by
     rw [hcE]; exact hcompE
   -- the risk increment IS the declared riskSpend (R91's account)
@@ -258,7 +260,7 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
     linarith
   refine ⟨generalization_safe_step S S' lam nu Qtarget w hlam hnu
     (verify S.toGrowthState).decrease epsQ (verify S.toGrowthState).riskSpend
-    h_epsQ h_emp_fit h_risk h_emp_G, ?_⟩
+    h_epsQ hfit_derived h_risk h_emp_G, ?_⟩
   rw [hcB]
   exact budget_account S.toGrowthState
 
