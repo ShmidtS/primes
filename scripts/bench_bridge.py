@@ -18,6 +18,17 @@ Modes:
                      with exact rational arithmetic, per-step checker
                      admission (abort on a non-certified step) and
                      holdout risk telemetry (C435 tie). See below.
+  --mode cert-tern   C443: certified ternary quantization jump — the
+                     C442 CE loop extended with a train→quantize→
+                     finetune cycle: gradient steps, then ONE ternary
+                     jump w → s*·roundTern(w/s₀) with the LS-optimal
+                     scale (lsScale formula, exact Fractions),
+                     accepted only by the exact certified criterion
+                     drop > 0 (rejected ⇒ HOLD: weights unchanged,
+                     the hold step is EXCLUDED from the trajectory —
+                     checkStep demands 0 < drop — and logged in the
+                     `holds` telemetry), then certified finetune GD
+                     steps on the quantized weights.
 """
 
 import argparse
@@ -163,6 +174,181 @@ def train_ce(steps):
     return traj[0]["obj"], traj, states, eta, L
 
 
+# ----------------------------------------------------------------
+# C443: certified ternary quantization jump (--mode cert-tern)
+#
+# PIN (setup): the C442 CE machinery (data, surrogate, eta=1/L)
+# is reused unchanged; the ternary mode starts from TERN_W0 =
+# [2, 1, 2] (a free design choice fixed before the run, like
+# CE_W0 in C442). Ddrops are exact measured differences — nothing
+# is tuned to make a step pass; every accepted step is re-proved
+# by the executable checker.
+#
+# PIN (quantizer): pattern q = roundTern(w / s0) with s0 =
+# max|w| (in-range by construction), then the LS-OPTIMAL scale
+# s* = (Σ q·w)/(Σ q·q) — the exact `lsScale_optimal` formula in
+# Fractions (optimal for the FIXED pattern q in weight space;
+# joint (q, s) optimality is NOT claimed). w' = s*·q.
+#
+# PIN (acceptance): the jump is admitted ONLY by the exact
+# certified criterion drop = obj − obj' > 0 — the executable form
+# of the corpus inequality k·s²/8 < E with E' ≤ k·s²/8
+# (quantOpt_energy_bound / quant_jump_honest premise). A rejected
+# jump is a HOLD: weights unchanged, the hold step is EXCLUDED
+# from the emitted trajectory (checkStep demands 0 < drop — see
+# Hagi/Theory/CertTernaryJump.lean `ternary_hold_rejected`) and
+# logged in the `holds` telemetry array. Distortion energy
+# Σ(w−w')² vs the corpus ceiling k·s*²/8 is reported as honest
+# telemetry; it is NOT an admission input.
+
+TERN_W0 = [F(2), F(1), F(2)]      # ternary-mode initial weights
+
+
+def round_tern(fr):
+    """Exact round-half-away-from-zero to {-1, 0, 1} domain input."""
+    n, d = fr.numerator, fr.denominator
+    if n >= 0:
+        return F((2 * n + d) // (2 * d))
+    return -F((2 * (-n) + d) // (2 * d))
+
+
+def tern_quantize(w):
+    """Ternary quantization with the LS-optimal scale (exact).
+
+    Returns (w', s, q, s0): pattern q on the {-1,0,1} grid from the
+    in-range scale s0 = max|w|, LS-optimal s = Σ q·w / Σ q·q
+    (lsScale formula), quantized weights w' = s·q (exact multiples
+    of s)."""
+    s0 = max(abs(t) for t in w) or F(1)
+    q = [round_tern(t / s0) for t in w]
+    qq = sum((t * t for t in q), F(0))
+    if qq == 0:                       # all-zero pattern: free zero jump
+        return [F(0)] * CE_K, F(0), q, s0
+    s = sum((q[i] * w[i] for i in range(CE_K)), F(0)) / qq
+    return [s * t for t in q], s, q, s0
+
+
+def train_tern(grad_steps, ft_steps):
+    """Certified train → quantize → finetune cycle.
+
+    Phase 1: `grad_steps` certified GD steps (C442 machinery).
+    Phase 2: ONE ternary jump, admitted only by the exact criterion
+    drop > 0; a rejected jump is a HOLD (excluded from the emitted
+    trajectory, logged in `holds`).
+    Phase 3: `ft_steps` certified GD steps on the quantized weights.
+    Every emitted step passes the in-line checkStep mirror; any
+    failure aborts (the trainer only ever emits certified steps).
+    Returns (start_obj, [raw steps], holds, states, jump_info)."""
+    w = list(TERN_W0)
+    states = [tuple(w)]
+    raw = []   # accepted steps: dicts with phase + readouts
+    holds = [] # rejected jumps: honest telemetry, NOT steps
+    jump = {}
+
+    def record(phase, obj, obj2, risk, risk2, w2, **extra):
+        raw.append({"phase": phase, "obj": obj, "obj'": obj2,
+                    "drop": obj - obj2, "risk": risk,
+                    "risk'": risk2, **extra})
+        states.append(tuple(w2))
+
+    for t in range(grad_steps):
+        obj, risk = ce_train_loss(w), ce_holdout_risk(w)
+        g = ce_grad(w)
+        w2 = [w[c] - (F(1) / ce_L()) * g[c] for c in range(CE_K)]
+        record("grad", obj, ce_train_loss(w2), risk,
+               ce_holdout_risk(w2), w2)
+        w = w2
+
+    # ternary jump
+    obj, risk = ce_train_loss(w), ce_holdout_risk(w)
+    wq, s, q, s0 = tern_quantize(w)
+    obj2, risk2 = ce_train_loss(wq), ce_holdout_risk(wq)
+    drop = obj - obj2
+    dist = sum(((w[i] - wq[i]) ** 2 for i in range(CE_K)), F(0))
+    ceiling = F(CE_K) * s * s / 8
+    jump = {"obj": obj, "obj'": obj2, "drop": drop, "s": s,
+            "pattern": [int(t) for t in q], "s0": s0,
+            "distortion": dist, "ceiling_k_s2_over_8": ceiling,
+            "distortion_within_ceiling": bool(dist <= ceiling)}
+    if drop > 0:
+        jump["accepted"] = True
+        record("jump", obj, obj2, risk, risk2, wq, s=s, pattern=q)
+        w = wq
+    else:
+        jump["accepted"] = False
+        holds.append({"phase": "jump", "obj": obj, "obj'": obj2,
+                      "drop": drop, "s": s, "pattern": q,
+                      "reason": "drop <= 0: HOLD, weights unchanged,"
+                                " step excluded (checkStep needs 0<drop)"})
+
+    for t in range(ft_steps):
+        obj, risk = ce_train_loss(w), ce_holdout_risk(w)
+        g = ce_grad(w)
+        w2 = [w[c] - (F(1) / ce_L()) * g[c] for c in range(CE_K)]
+        record("finetune", obj, ce_train_loss(w2), risk,
+               ce_holdout_risk(w2), w2)
+        w = w2
+
+    # fill budget fields over the ACCEPTED steps only, then
+    # re-verify every emitted step against the checker mirror
+    n = F(len(raw))
+    for t, d in enumerate(raw):
+        d["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        d["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(d):
+            sys.exit(f"ABORT: ternary step {t} ({d['phase']}) "
+                     f"failed certified admission: {d}")
+    return raw[0]["obj"], raw, holds, states, jump
+
+
+def emit_lean_tern(path, start, traj, name_suffix="", ok=True,
+                   thm_prefix="tern_traj"):
+    """C443 witness for the certified ternary trajectory (same
+    literal / #eval / norm_num pattern as C442/C434)."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStart{name_suffix} : \u211a := {rat(start)}\n\n"
+                f"def benchTrajectory{name_suffix} : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                + "]\n\n"
+                f"#eval checkTrajectory benchStart{name_suffix} "
+                f"benchTrajectory{name_suffix}\n\n")
+        thm = ("valid" if ok else "invalid")
+        val = ("true" if ok else "false")
+        f.write(f"theorem {thm_prefix}_{thm} :\n"
+                f"    checkTrajectory benchStart{name_suffix} "
+                f"benchTrajectory{name_suffix} = {val} := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                f"benchStart{name_suffix}, benchTrajectory{name_suffix}, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_tern(path, start, traj):
+    """C443 negative (a): inflated declared drop — the checker must
+    reject the trajectory."""
+    bad = [dict(d) for d in traj]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    emit_lean_tern(path, start, bad, name_suffix="_bad", ok=False)
+
+
+def emit_hold_tern(path, start, traj):
+    """C443 negative (b): a HOLD (rejected-jump) step CANNOT ride the
+    trajectory — the checker rejects the identity record with
+    drop = 0 (machine-checked reason holds are excluded from the
+    List; see Hagi/Theory/CertTernaryJump.lean ternary_hold_rejected)."""
+    last = traj[-1]
+    hold = {"obj": last["obj'"], "obj'": last["obj'"], "drop": F(0),
+            "budget": last["budget'"], "budget'": last["budget'"],
+            "risk": last["risk'"], "risk'": last["risk'"]}
+    emit_lean_tern(path, start, traj + [hold],
+                   name_suffix="_hold", ok=False,
+                   thm_prefix="tern_hold_traj")
+
+
 def rat(q):
     """Fraction -> exact Lean rational literal."""
     return f"({q.numerator}/{q.denominator} : ℚ)" if q.denominator != 1 \
@@ -263,14 +449,50 @@ def emit_bad_ce(path, start, traj):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["quad", "cert-ce"],
+    ap.add_argument("--mode", choices=["quad", "cert-ce", "cert-tern"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
-                         "cert-ce: C442 certified CE loop")
+                         "cert-ce: C442 certified CE loop; "
+                         "cert-tern: C443 certified ternary "
+                         "quantization jump cycle")
+    ap.add_argument("--grad-steps", type=int, default=1,
+                    help="cert-tern: gradient phase steps")
+    ap.add_argument("--ft-steps", type=int, default=1,
+                    help="cert-tern: finetune phase steps")
     ap.add_argument("--steps", type=int, default=None)
     ap.add_argument("--emit-lean", metavar="PATH")
     ap.add_argument("--corrupt", metavar="PATH")
+    ap.add_argument("--hold-demo", metavar="PATH",
+                    help="cert-tern: emit the HOLD negative witness "
+                         "(a drop=0 identity step the checker "
+                         "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "cert-tern":
+        start, traj, holds, states, jump = train_tern(
+            args.grad_steps, args.ft_steps)
+        print(json.dumps({
+            "mode": "cert-tern",
+            "eta": str(F(1) / ce_L()), "L": str(ce_L()),
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "jump": {k: (str(v) if not isinstance(v, (bool, list))
+                         else v) for k, v in jump.items()},
+            "holds": [{k: (str(v) if not isinstance(v, (bool, list))
+                           else v) for k, v in h.items()} for h in holds],
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+            "weights": ["[" + ", ".join(map(str, w)) + "]"
+                        for w in states],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_tern(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_tern(args.corrupt, start, traj)
+        if args.hold_demo:
+            emit_hold_tern(args.hold_demo, start, traj)
+        return
 
     if args.mode == "cert-ce":
         steps = args.steps if args.steps is not None else 2

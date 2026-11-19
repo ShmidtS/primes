@@ -458,6 +458,7 @@ import Hagi.Semantics.DerivedStateCoherence
 import Hagi.Theory.CEChain
 import Hagi.Theory.HoldoutRisk
 import Hagi.Theory.CertCEHoldout
+import Hagi.Theory.CertTernaryJump
 import Hagi.Theory.BlockSmooth
 import Hagi.Theory.Confinement
 import Hagi.Theory.FlowMatching
