@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # BytePatch (источник №77: Cartesia "From Tokens to Bytes"

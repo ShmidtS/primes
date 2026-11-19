@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 
-import Mathlib
+import Mathlib.LinearAlgebra.Matrix.Rank
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Tactic
 
 
 set_option linter.style.header false

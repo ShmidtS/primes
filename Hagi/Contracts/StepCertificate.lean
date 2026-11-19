@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.State.Transition
 import Hagi.Unified.CertifiedLoop
 

@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Runtime.TernaryExact
 import Hagi.Unified.HonestTransition
