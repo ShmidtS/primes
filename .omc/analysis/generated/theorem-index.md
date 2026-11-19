@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 543
-- theorems: 12052
-- defs: 4423
-- noncomputable decls: 1152
-- status Proven: 463 modules
+- modules: 546
+- theorems: 12116
+- defs: 4479
+- noncomputable decls: 1160
+- status Proven: 466 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 24 modules
@@ -314,6 +314,7 @@ theorems.
 | Hagi.Model.HNet | 19 | 1 | hnetOptRatio | no | Proven |
 | Hagi.Model.HNet2 | 11 | 3 | hier2Cost, denseCost, hier2Positions | no | Proven |
 | Hagi.Model.HypothesisCompetition | 26 | 7 | dhcStep, dhcTotal, dhcOrbit, dhcWeights | no | Proven |
+| Hagi.Model.LMCompose | 27 | 48 | lmLogits, lmHeadUpdate, lmFeatures, lmProbs, headLip | no | Proven |
 | Hagi.Model.LabelSmoothing | 5 | 2 | lsH, lsTarget | no | Proven |
 | Hagi.Model.LayerNorm | 13 | 3 | variance, mean, lnVec | no | Proven |
 | Hagi.Model.Logic.VennHead | 27 | 11 | vennHead, vAtoms, relu, vAtom, venn2Head | no | Proven |
@@ -406,6 +407,7 @@ theorems.
 | Hagi.Probability.FiniteLogScore | 18 | 0 | - | no | Proven |
 | Hagi.Probability.FiniteMultiEM | 7 | 1 | batchMStep | no | Proven |
 | Hagi.Probability.Freedman | 9 | 3 | - | yes | Empirical |
+| Hagi.Probability.FreedmanAdaptive | 20 | 15 | - | no | Proven |
 | Hagi.Probability.FreedmanFamilyConfidence | 6 | 1 | - | no | Proven |
 | Hagi.Probability.FreedmanStep | 54 | 15 | stochastic_safe_step_closed, stochastic_safe_step, driftAdditive, stochastic_safe_step_variance | yes | Conditional |
 | Hagi.Probability.FreedmanTwoSided | 98 | 16 | historyInitial, historyAdditive, historyIncrement, historyNoise, historyLaw, historyKernel, markovLaw, historyCounter, pmfMean, historyCounterRate, uniformOfFinset | no | Proven |
@@ -498,7 +500,7 @@ theorems.
 | Hagi.Step.Upgrades | 19 | 3 | nce_per_sample_corrected, softmaxW | no | Proven |
 | Hagi.Step.WarmupSchedule | 5 | 1 | warmupEta | no | Proven |
 | Hagi.Step.WeightDecay | 8 | 0 | - | no | Proven |
-| Hagi.System.Certificates | 39 | 82 | - | no | Proven |
+| Hagi.System.Certificates | 33 | 69 | - | no | Proven |
 | Hagi.System.DerivedState | 21 | 16 | smoothL, energyOf, derivedEffects, derivedGrowthState, gradOf | no | Proven |
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
@@ -511,6 +513,7 @@ theorems.
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
