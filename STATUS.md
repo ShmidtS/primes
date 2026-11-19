@@ -2356,14 +2356,6 @@ one-hot CE.
   training progress или `StepCert`; hobs не выводится из Freedman-события.
 
 
-## Hagi/Model/CEPackedStep.lean
-- `packedStep_payload` фиксирует 16-битный объект со значением `8311`;
-  `decodeStep_packedStep = some (ternaryCEParameters (1/4) rawSuccessor)`.
-- `decoded_packedStep_strict_descent`: существует декодированный
-  `w : EuclideanSpace ℝ (Fin 5)` из этого представления, для которого
-  фактический CE строго меньше CE нулевых параметров на заданном примере.
-
-
 ## Hagi/Model/CEPadding.lean
 - Для любого `d` `d ≤ paddedDimension d`,
   `paddedLogicalBits d = 16*((d+4)/5)`; `unpadVector (padVector w) = w`.
@@ -2404,6 +2396,11 @@ one-hot CE.
   декодированный вектор со строгим спуском на одноблочном примере.
 
 
+- (Слит из Hagi/Model/CEPackedStep.lean, C452) `packedStep_payload`,
+  `decodeStep_packedStep`, `decoded_packedStep_strict_descent`:
+  16-битное пакованное кодовое слово (8311) декодируется ровно в
+  тритарные параметры, и существует декодированный вектор со строгим
+  спуском CE относительно нулевых параметров.
 ## Hagi/Model/CEStorageBound.lean
 - `card_jointCode_le_payload`: `card (JointCode G) ≤ 2^(groupPayloadBits G)`;
   `log_card_jointCode_le_payload` даёт ту же границу для `log₂ card`.
