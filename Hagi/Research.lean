@@ -10,6 +10,12 @@ import Hagi.Research.SchellingPercolation
 import Hagi.Research.MarkovPercolation
 import Hagi.Research.SchellingCandidateSelection
 import Hagi.Research.SchellingMarkovRouting
+import Hagi.Research.Ceilings
+import Hagi.Research.ChainUnification
+import Hagi.Research.RecursiveSelfDevelopment
+import Hagi.Research.RoundViability
+import Hagi.Research.RsiCriterion
+import Hagi.Research.SeedOnly
 
 /-!
 # Hagi.Research — quarantined research models (C240, A5 §R4)

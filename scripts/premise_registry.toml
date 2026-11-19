@@ -287,19 +287,16 @@ measured = "schedule parameter estimate, see STATUS.md Hagi/Generalization/ModeS
 # module status inputs (C361 step 2.1)
 
 [modules]
-# C347 speculative growth quarantine (A14 QW7) — Speculative
+# C347 speculative growth quarantine (A14 QW7) — Speculative.
+# A19.1 (C448): Ceilings, RsiCriterion, RecursiveSelfDevelopment,
+# SeedOnly, ChainUnification, RoundViability moved to Hagi/Research/
+# (covered by research_prefixes below; status Speculative preserved).
 quarantine = [
   "Hagi/Growth/Takeoff.lean",
   "Hagi/Growth/LinearCone.lean",
   "Hagi/Growth/Saturation.lean",
-  "Hagi/Growth/Ceilings.lean",
-  "Hagi/Growth/RsiCriterion.lean",
-  "Hagi/Growth/RecursiveSelfDevelopment.lean",
-  "Hagi/Growth/SeedOnly.lean",
   "Hagi/Growth/GainDecomposition.lean",
   "Hagi/Growth/StateBinding.lean",
-  "Hagi/Growth/ChainUnification.lean",
-  "Hagi/Growth/RoundViability.lean",
   "Hagi/Dynamics/GrowthBridge.lean",
 ]
 # research tree — Speculative

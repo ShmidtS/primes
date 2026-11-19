@@ -19,7 +19,6 @@ Hagi/Generalization/ModeState.lean: h_emp_G h_emp_dyn h_emp_fit
 Hagi/Growth/GainRenewal.lean: h_emp_frontier_scaling
 Hagi/Growth/Grow.lean: h_emp_pl
 Hagi/Growth/LinearCone.lean: h_emp_dyn h_emp_dyn_explicit h_emp_dyn_linear_growth h_emp_gain_geometric h_emp_takeoff_exponential
-Hagi/Growth/SeedOnly.lean: h_emp_disp_step h_emp_lip
 Hagi/Growth/Takeoff.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
 Hagi/Legacy/AdvanceWitness.lean: h_emp_memwrite
 Hagi/Legacy/ArchitectureTheorem.lean: h_emp_cone h_emp_cone0 h_emp_dyn h_emp_step
@@ -38,6 +37,7 @@ Hagi/Pretraining/SyntheticPretrain.lean: h_emp_gate
 Hagi/Probability/ConditionalSuccess.lean: h_emp_01 h_emp_indep h_emp_meas h_emp_p
 Hagi/Probability/Freedman.lean: h_emp_var
 Hagi/Research/PPT.lean: h_emp_dist h_emp_fiber
+Hagi/Research/SeedOnly.lean: h_emp_disp_step h_emp_lip
 Hagi/Runtime/TernaryExact.lean: h_emp_lip
 Hagi/Step/Compound.lean: h_emp_c h_emp_decay h_emp_gap
 Hagi/Step/DirectionProvider.lean: h_emp_smooth
@@ -56,12 +56,12 @@ h_emp_takeoff_exponential
 
 [primitives]
 Hagi/Contracts/KVCacheCert.lean:lseCombine
-Hagi/Core/Concat.lean:lse
-Hagi/Core/Concat.lean:softmaxP
 Hagi/Energy/EntropyProduction.lean:entropyProduction
 Hagi/Math/Info/InfoCore.lean:entDef
 Hagi/Math/Info/InfoCore.lean:entropy
 Hagi/Math/Info/InfoCore.lean:klDef
+Hagi/Math/Info/InfoCore.lean:lse
+Hagi/Math/Info/InfoCore.lean:softmaxP
 Hagi/Math/Info/InfoCore.lean:tvDef
 Hagi/Math/Info/InfoCore.lean:tvHalf
 Hagi/Research/OmniState.lean:entryCount

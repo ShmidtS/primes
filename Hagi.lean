@@ -325,7 +325,6 @@ import Hagi.Unified.LogitCert
 import Hagi.Theory.LogitGrowth
 import Hagi.Unified.LoopInstances
 import Hagi.Training.Ctv2Telescope
-import Hagi.Training.TelescopeInstances
 import Hagi.Model.BYOL
 import Hagi.Model.MeasuredEffects
 import Hagi.Model.SourceMixture

@@ -1508,13 +1508,13 @@ wall-clock, сжатие весов или улучшение качества.
 - `euclid_sum_bounds`: для `n≥2` и `K=n(n+1)/2` доказано `(π/3)*K ≤ K*arccos(1/n) < (π/2)*K`.
 
 
-## Hagi/Growth/Ceilings.lean
+## Hagi/Research/Ceilings.lean
 - `gain_product_bound`: норма композиции непрерывных линейных операторов не превосходит произведения норм; `gain_stack_ceiling` при `q≥0` и `‖T‖≤q` для всех слоёв даёт `‖stackComp Ts‖≤q^Ts.length`.
 - `frozen_saturation`: для неотрицательного `V` и шага `V(t+1)≤V t−eps t` сумма `eps` на любом `Ico m T` с `m≤T` не превосходит `V m`.
 - `growth_dichotomy`: при `V(t+1)≤V t−eps t+b t` либо суммы `b` неограниченно растут, либо существует `B`, для которого все `Σ_{t<T}eps t≤V0+B`.
 
 
-## Hagi/Growth/ChainUnification.lean
+## Hagi/Research/ChainUnification.lean
 - `training_core_is_measurement_tail`: если `E_dev=E_aligned`, `G_cap=η_p*η_o*η_s*E_dev`, а E_aligned и `α_align` ненулевые, то `η_p*η_o*η_s=α_trunc*α_safe*α_cap`.
 - `deficit_factorizes`: при ненулевых семи измеренных знаменателях отношение двух произведений равно произведению соответствующих семи отношений.
 
@@ -1565,18 +1565,18 @@ wall-clock, сжатие весов или улучшение качества.
 - `radius_zero_of_eq`: если все `P i` совпадают и положительны, радиус равен нулю.
 
 
-## Hagi/Growth/RecursiveSelfDevelopment.lean
+## Hagi/Research/RecursiveSelfDevelopment.lean
 - `opportunity_renewal`: из `ρD+βC−ξ≤D'` и `(1−ρ)D+δ_O≤βC−ξ` следует `D+δ_O≤D'`; `recursive_self_development` при `C≤C'`, `D≥0`, `δ_O>0` дополнительно даёт `D'>0`.
 - `multiplicative_growth`: из `C(t+1)≥C t*exp(αS t−eps t)` для всех `t` следует `C0*exp(α*Σ_{t<T}S t−Σeps)≤C T`.
 - `closed_loop_conditional_growth`: для продуктовой вероятности, `Y i v∈[0,1]`, `SuccessFloor`, `n>0`, `0<δ<1`, `C0≥0`, `eps t≥0`, `α≥0` и заданного шага `C` вероятность импликации «нижняя сумма успехов → экспоненциальная нижняя граница `C n`» не меньше `1−δ`; это не безусловное утверждение роста.
 
 
-## Hagi/Growth/RoundViability.lean
+## Hagi/Research/RoundViability.lean
 - `round_exhausted`: при `devEnergy dev=0` и `GainOp` доказаны `ρD−ξ≤D'` и `η*devEnergy dev=0`; `cycle_criterion` — импликативная форма.
 - `round_viable`: при точном шаге `C'=C+γD`, `GainOp`, `γ*k≤ρ`, конусе, пороге на `(η_p*η_s)*devEnergy dev` и `devEnergy dev>0` следует `k*C'≤D'`.
 
 
-## Hagi/Growth/RsiCriterion.lean
+## Hagi/Research/RsiCriterion.lean
 - `rsi_step_growth`: из `ρD t+βC t−ξ t≤D(t+1)` и строгого `ξ t+(1−ρ)D t<βC t` следует `D t<D(t+1)`.
 - `rsi_cone_criterion`: при `γ>0`, `C t>0`, `ρ≤1`, `D t≤α/γ*C t` и `(1−ρ)*α+γ*ξ t/C t<β*γ` получается тот же строгий рост `D`.
 
@@ -1587,7 +1587,7 @@ wall-clock, сжатие весов или улучшение качества.
 - `geometric_band_with_saturation`: при `γ,k>0`, `σ≤1`, точном cone-шаге, обеих PL-оценках, `ConeRatio` и `C0≤Cstar` доказана двусторонняя полоса `C0*(1+γ*k)^T≤C T≤Cstar−(1−σ)^T*(Cstar−C0)`.
 
 
-## Hagi/Growth/SeedOnly.lean
+## Hagi/Research/SeedOnly.lean
 - `cycle_decay_mono`: при `s≥0`, `F>0`, `0<k<F+s` новое `F*(1−k/(F+s))` строго меньше `F` и неотрицательно; `cycle_decay_ratio` даёт точное отношение соседних приростов.
 - `channel_switch`: при положительных `F,k,s,b,Cm,Cr` и `√F*(k*Cr)<b*Cm*s` индекс rank-канала строго больше movement-индекса.
 - `seed_only_disp_bound`: при посылках `h_emp_lip`, `h_emp_disp_step`, `a,s≥0` и `dispP 0=0` доказано `dispL t≤Lam²*s*Σ_{i<t}a^i`.

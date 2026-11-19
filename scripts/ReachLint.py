@@ -26,21 +26,17 @@ BENCH_PREFIX = "Hagi/Benchmarks/"
 RESEARCH_PREFIX = "Hagi/Research/"
 
 # C347 quarantine (A14 QW7): speculative growth modules stay in repo at
-# their frozen FQNs (no dir move allowed), outside the root import
-# closure. Per-module exempt because the dir-prefix pattern does not
-# apply without renaming modules.
+# their frozen FQNs (no dir move of DECLARATIONS), outside the root import
+# closure. A19.1 (C448): Ceilings, ChainUnification,
+# RecursiveSelfDevelopment, RoundViability, RsiCriterion, SeedOnly moved
+# to Hagi/Research/ (Research-prefix quarantine; FQNs and namespaces
+# preserved, now compiled by the Hagi.Research target).
 QUARANTINED = {
     "Hagi.Growth.Takeoff",
     "Hagi.Growth.LinearCone",
     "Hagi.Growth.Saturation",
-    "Hagi.Growth.Ceilings",
-    "Hagi.Growth.RsiCriterion",
-    "Hagi.Growth.RecursiveSelfDevelopment",
-    "Hagi.Growth.SeedOnly",
     "Hagi.Growth.GainDecomposition",
     "Hagi.Growth.StateBinding",
-    "Hagi.Growth.ChainUnification",
-    "Hagi.Growth.RoundViability",
     "Hagi.Dynamics.GrowthBridge",
 }
 
