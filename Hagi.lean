@@ -475,6 +475,7 @@ import Hagi.Theory.SelfEditGate
 import Hagi.Theory.MDLPrune
 import Hagi.Theory.KnobMomentum
 import Hagi.Theory.ProvenTrunk
+import Hagi.Theory.ContinualBench
 
 set_option linter.style.header false
 

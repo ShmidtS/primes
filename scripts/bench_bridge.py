@@ -2179,13 +2179,255 @@ def emit_lean_real(path, start, traj, witness_steps=4,
     print(f"written: {path}", file=sys.stderr)
 
 
+# C485: CONTINUAL two-task bench (--mode continual)
+#
+# PIN (scenario, GPM / Saha et al. ICLR'21): task A -> task B.
+# Phase 1 trains a certified linear head on task A (few-shot);
+# phase 2 trains on task B TWO ways: (a) naive certified GD
+# (may forget A - MEASURED), (b) GPM: the gradient step is
+# PROJECTED onto the orthogonal complement of span(xs_A) via an
+# exact rational Gram-Schmidt projector Q = I - sum u u^T/(u.u)
+# (no sqrt); by Hagi.Step.gpm_zero_forgetting the projected step
+# satisfies gpmOrth DeltaW xs_A EXACTLY, so loss_A is bit-exact
+# invariant while B is learned through the complement
+# directions (Hagi.Spectral.rank_orthogonal_growth).
+#
+# PIN (few-shot A): with |A| >= 4 generic rational points in Q^4
+# span(xs_A) = R^4 and the exact full-span complement is {0} -
+# the GPM step would be identically zero. Task A is therefore 2
+# deterministic points (first + median of the ce-sorted ledger);
+# rank(span A) <= 2 < 4 keeps the complement >= 2-dimensional.
+# No spectral truncation is used - it would break the EXACT
+# invariance (honest full-span version).
+#
+# Certified content per step = C481/C484 form: ANALYTIC exact
+# gradient (linear MSE), candidate snap_{1/1000}(w - eta*g)
+# [GPM: the SNAPPED delta is then projected; Q*u = 0 keeps
+# gpmOrth exact], admission ONLY by MEASURED drop > 0 on the
+# phase objective (guarded rollback). Per-step asserts verify
+# gpmOrth (delta . x_k = 0 for all A inputs) and loss_A
+# invariance exactly in Fractions.
+
+CL_D = 4                         # feature dim (matches C484)
+CL_ETA = F(1, 10)                # step size
+CL_GRID = F(1, 1000)             # snap grid
+CL_STEPS = 6                     # default steps per phase
+
+
+def cl_gs_basis(vectors):
+    """Exact rational Gram-Schmidt (no sqrt); orthogonal basis
+    of span(vectors) as Fraction vectors."""
+    basis = []
+    for v in vectors:
+        u = list(v)
+        for b in basis:
+            d = sum((u[i] * b[i] for i in range(CL_D)), F(0))
+            nb = sum((b[i] * b[i] for i in range(CL_D)), F(0))
+            u = [u[i] - d / nb * b[i] for i in range(CL_D)]
+        if any(u):
+            basis.append(u)
+    return basis
+
+
+def cl_complement_projector(basis):
+    """Q = I - sum_j u_j u_j^T / (u_j . u_j): exact rational
+    projection onto the orthogonal complement of span(basis)."""
+    Q = [[F(1) if i == j else F(0) for j in range(CL_D)]
+         for i in range(CL_D)]
+    for u in basis:
+        nb = sum((u[i] * u[i] for i in range(CL_D)), F(0))
+        for i in range(CL_D):
+            for j in range(CL_D):
+                Q[i][j] -= u[i] * u[j] / nb
+    return Q
+
+
+def cl_apply(Q, v):
+    return [sum((v[k] * Q[k][j] for k in range(CL_D)), F(0))
+            for j in range(CL_D)]
+
+
+def cl_snap(v):
+    out = []
+    for t in v:
+        n = t / CL_GRID
+        r = (n.numerator + n.denominator // 2) // n.denominator \
+            if n >= 0 else \
+            -((-n.numerator + n.denominator // 2) // n.denominator)
+        out.append(F(r) * CL_GRID)
+    return out
+
+
+def cl_pred(w, x):
+    return sum((w[i] * x[i] for i in range(CL_D)), F(0))
+
+
+def cl_mse(w, data):
+    return sum(((cl_pred(w, x) - y) ** 2 for x, y in data),
+               F(0)) / F(len(data))
+
+
+def cl_grad(w, data):
+    """Exact analytic gradient of the linear-MSE objective."""
+    g = [F(0)] * CL_D
+    for x, y in data:
+        r = cl_pred(w, x) - y
+        for i in range(CL_D):
+            g[i] += F(2) * r * x[i]
+    return [t / F(len(data)) for t in g]
+
+
+def cl_split(pts):
+    """Deterministic continual split: sort by (ce, key); task A
+    = first + median point (few-shot, PIN); task B = the rest."""
+    s = sorted(pts, key=lambda p: (p[2], p[0]))   # (key, x, y)
+    ia = {0, len(s) // 2}
+    A = [(s[i][1], s[i][2]) for i in sorted(ia)]
+    B = [(x, y) for i, (_, x, y) in enumerate(s) if i not in ia]
+    return A, B
+
+
+def cl_certified_loop(w, data_obj, risk_data, steps, Q=None,
+                      ortho_data=None):
+    """Certified GD loop on data_obj (risk = MSE on risk_data,
+    telemetry). If Q is given, each snapped step delta is
+    projected with Q (GPM); gpmOrth and (for GPM) exact loss_A
+    invariance are ASSERTED per commit."""
+    raw, tel = [], {"holds": [], "steps": []}
+    for t in range(steps):
+        obj, risk = cl_mse(w, data_obj), cl_mse(w, risk_data)
+        g = cl_grad(w, data_obj)
+        delta = cl_snap([-CL_ETA * gi for gi in g])
+        if Q is not None:
+            delta = cl_apply(Q, delta)
+            for x, _ in ortho_data:      # gpmOrth, exact
+                assert sum((delta[i] * x[i]
+                            for i in range(CL_D)), F(0)) == 0, \
+                    "ABORT: gpmOrth violated (projection bug)"
+        cand = [w[i] + delta[i] for i in range(CL_D)]
+        obj2, risk2 = cl_mse(cand, data_obj), cl_mse(cand,
+                                                    risk_data)
+        if Q is not None:                # gpm_zero_forgetting
+            assert cl_mse(cand, ortho_data) == cl_mse(w,
+                                                      ortho_data), \
+                "ABORT: loss_A moved under GPM step"
+        drop = obj - obj2
+        if drop > 0:
+            raw.append({"obj": obj, "obj'": obj2, "drop": drop,
+                        "risk": risk, "risk'": risk2})
+            tel["steps"].append({"t": t, "drop": drop})
+            w = cand
+        else:
+            tel["holds"].append({"t": t, "drop": drop,
+                                 "reason": "drop <= 0: HOLD, "
+                                           "rolled back"})
+    n = len(raw)
+    assert n > 0, "ABORT: continual loop committed no steps"
+    for t, d in enumerate(raw):
+        d["budget"] = F(n - t) / n
+        d["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for d in raw:
+        if not check_step(d):
+            sys.exit(f"ABORT: continual step failed certified "
+                     f"admission: {d}")
+    return raw, tel, w
+
+
+def continual_run(ledger_path, steps=CL_STEPS):
+    """Full continual scenario: phase 1 on A, phase 2 on B both
+    ways (naive vs GPM)."""
+    pts = rd_load_dataset(ledger_path)
+    assert len(pts) >= 100, \
+        f"ABORT: expected 100+ real points, got {len(pts)}"
+    A, B = cl_split(pts)
+    basis = cl_gs_basis([x for x, _ in A])
+    assert 0 < len(basis) < CL_D, \
+        "ABORT: need 0 < rank(span A) < 4 for a nontrivial " \
+        "complement (few-shot PIN)"
+    Q = cl_complement_projector(basis)
+    w0 = [F(0)] * CL_D
+    traj1, tel1, wA = cl_certified_loop(w0, A, B, steps)
+    lossA_after1 = cl_mse(wA, A)
+    trajN, telN, wN = cl_certified_loop(wA, B, A, steps)
+    lossA_naive = cl_mse(wN, A)
+    trajG, telG, wG = cl_certified_loop(wA, B, A, steps, Q=Q,
+                                        ortho_data=A)
+    lossA_gpm = cl_mse(wG, A)
+    assert lossA_gpm == lossA_after1, \
+        "ABORT: GPM phase must preserve loss_A exactly"
+    return {
+        "startA": cl_mse(w0, A), "traj1": traj1, "tel1": tel1,
+        "startB": cl_mse(wA, B), "trajN": trajN, "telN": telN,
+        "trajG": trajG, "telG": telG,
+        "lossA_after1": lossA_after1,
+        "lossB_before2": cl_mse(wA, B),
+        "lossB_naive": trajN[-1]["obj'"],
+        "lossB_gpm": trajG[-1]["obj'"],
+        "lossA_naive": lossA_naive, "lossA_gpm": lossA_gpm,
+        "forget_naive": lossA_naive - lossA_after1,
+        "forget_gpm": lossA_gpm - lossA_after1,
+        "rankA": len(basis), "n_A": len(A), "n_B": len(B),
+        "n_points": len(pts), "wA": wA, "wN": wN, "wG": wG,
+    }
+
+
+def emit_lean_cont(path, res, witness_steps=4):
+    """C485 witness: three literal trajectories (phase 1 on A,
+    phase 2 naive on B, phase 2 GPM on B) + #eval checkTrajectory
+    + valid theorems; header documents FULL counts honestly."""
+    blocks = [("A", res["startA"], res["traj1"]),
+              ("BN", res["startB"], res["trajN"]),
+              ("BG", res["startB"], res["trajG"])]
+    out = ["-- C485 continual bench witness (real unified_ledger "
+           "data).\n"
+           f"-- task A: {res['n_A']} pts (rank {res['rankA']}), "
+           f"task B: {res['n_B']} pts; FULL accepted steps: "
+           f"phase1={len(res['traj1'])}, naive="
+           f"{len(res['trajN'])}, gpm={len(res['trajG'])}; "
+           "first machine-checked prefixes below.\n"
+           "-- GPM phase preserves loss_A EXACTLY "
+           "(Hagi.Theory.ContinualBench.gpm_bench_bridge;\n"
+           "-- numeric telemetry: loss_A before/after GPM phase "
+           "are equal Fractions).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.ContinualBench\n\n"
+           "open Hagi.Runtime\n\n"]
+    for name, start, traj in blocks:
+        ds = [dict(d) for d in traj[:witness_steps]]
+        out.append(f"def benchStartC485{name} : \u211a := "
+                   f"{rat(start)}\n\n"
+                   f"def benchTrajectoryC485{name} : List "
+                   "Hagi.Runtime.CertStepData :=\n"
+                   + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                   + "\n]\n\n"
+                   f"#eval checkTrajectory benchStartC485{name} "
+                   f"benchTrajectoryC485{name}\n\n"
+                   f"theorem continual_bench_{name.lower()}_valid "
+                   ":\n"
+                   f"    checkTrajectory benchStartC485{name} "
+                   f"benchTrajectoryC485{name} = true := by\n"
+                   "  set_option linter.unusedSimpArgs false in\n"
+                   "  simp only [checkTrajectory, checkStep, "
+                   f"benchStartC485{name}, "
+                   f"benchTrajectoryC485{name}, "
+                   "Bool.and_eq_true, decide_eq_true_eq]\n"
+                   "  norm_num\n\n")
+    out.append("#check @Hagi.Theory.ContinualBench.gpm_bench_bridge\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
                              "hadamard-tern", "ef21-step", "grow",
                              "grow-stop", "full-pipeline",
-                             "trunk-train", "real-data"],
+                             "trunk-train", "real-data",
+                             "continual"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -2211,7 +2453,10 @@ def main():
                          "(unified_ledger.json ce targets + domain "
                          "file byte features, 184 rational points), "
                          "certified trunk training + train/holdout "
-                         "MSE + C435-style concentration stats")
+                         "MSE + C435-style concentration stats; "
+                         "continual: C485 two-task continual bench "
+                         "(GPM zero forgetting vs naive GD, real "
+                         "unified_ledger data)")
     ap.add_argument("--data", metavar="PATH",
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -2230,6 +2475,61 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "continual":
+        res = continual_run(
+            args.data, args.steps if args.steps is not None
+            else CL_STEPS)
+        print(json.dumps({
+            "mode": "continual",
+            "n_points": res["n_points"],
+            "n_taskA": res["n_A"], "n_taskB": res["n_B"],
+            "rank_spanA": res["rankA"],
+            "model": "linear head w in Q^4 (GPM theorem "
+                     "setting), loss = MSE",
+            "guarantee": "per-step MEASURED drop > 0 + guarded "
+                         "rollback (C481 form); GPM steps "
+                         "gpmOrth-exact (asserted per step)",
+            "phase1": {
+                "lossA_before": str(res["startA"]),
+                "lossA_after": str(res["lossA_after1"]),
+                "n_steps": len(res["traj1"]),
+                "loss_track": [str(d["obj"]) for d in
+                               res["traj1"]]
+                              + [str(res["traj1"][-1]["obj'"])]},
+            "phase2": {
+                "lossB_before": str(res["lossB_before2"]),
+                "lossB_naive": str(res["lossB_naive"]),
+                "lossB_gpm": str(res["lossB_gpm"]),
+                "lossA_after_naive": str(res["lossA_naive"]),
+                "lossA_after_gpm": str(res["lossA_gpm"]),
+                "forgetting_naive": str(res["forget_naive"]),
+                "forgetting_gpm": str(res["forget_gpm"]),
+                "forgetting_naive_float":
+                    float(res["forget_naive"]),
+                "forgetting_gpm_float":
+                    float(res["forget_gpm"]),
+                "n_steps_naive": len(res["trajN"]),
+                "n_steps_gpm": len(res["trajG"])},
+            "holds": {
+                "phase1": [{k: str(v) for k, v in h.items()}
+                           for h in res["tel1"]["holds"]],
+                "naive": [{k: str(v) for k, v in h.items()}
+                          for h in res["telN"]["holds"]],
+                "gpm": [{k: str(v) for k, v in h.items()}
+                        for h in res["telG"]["holds"]]},
+            "trajectory_phase1": [{k: str(v) for k, v in
+                                   d.items()}
+                                  for d in res["traj1"]],
+            "trajectory_naive": [{k: str(v) for k, v in
+                                  d.items()} for d in
+                                 res["trajN"]],
+            "trajectory_gpm": [{k: str(v) for k, v in d.items()}
+                               for d in res["trajG"]],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_cont(args.emit_lean, res)
+        return
 
     if args.mode == "real-data":
         start, traj, tel, stats, _ = real_data_run(
