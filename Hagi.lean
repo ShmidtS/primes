@@ -452,6 +452,7 @@ import Hagi.Theory.HadamardIncoherence
 import Hagi.Theory.HoldoutRisk
 import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertifyThenCommit
+import Hagi.Theory.FullPipeline
 import Hagi.Theory.CertTernaryJump
 import Hagi.Theory.EF21InStep
 import Hagi.Theory.BlockAdmission

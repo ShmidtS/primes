@@ -543,6 +543,383 @@ def train_ht(grad_steps, ft_steps):
     return raw[0]["obj"], raw, holds, states, jump
 
 # ----------------------------------------------------------------
+# C479: unified full pipeline (--mode full-pipeline)
+#
+# PIN (unification): ONE task — linear regression on the SAME
+# rational data as grow/grow-stop (XS/YS, holdout (4,9)) — passes
+# ALL SIX phases back to back on ONE objective chain:
+#   (a) TRAIN: 2 certified GD steps (eta = 1/L, BlockSmooth);
+#   (b) EF21: 2 in-step quantized steps with error feedback
+#       (m = g + e, d = tern_s(m), s = 1/4 fixed; reject => HOLD
+#       telemetry, C474 semantics);
+#   (c) HADAMARD-TERN: measured cohSq gate (C477) on the dim-4
+#       weight vector (base features [1, x/3, (x/3)^2, (x/3)^3]
+#       — dim 4 = 2^2 for the Sylvester H2), ternary jump with
+#       the C443 lsScale recipe + derotation H^T/4, admitted only
+#       by drop > 0; then 1 certified finetune GD step;
+#   (d) GROW: candidate feature (x/3)^4 decided by the C444 exact
+#       admission margin (admit => only_last step from u = 0, so
+#       the obj chain stays EXACTLY continuous: L_new(w||0) =
+#       L_old(w)); a noise candidate orthogonal to the residual
+#       (zero gradient => zero gain) is REJECTED — telemetry,
+#       not a step;
+#   (e) MERGE: side finetune branch (2 certified GD steps from
+#       the current weights — branch telemetry, NOT trajectory
+#       steps: the trace is one state chain), merged = midpoint;
+#       the C476 measured-delta gate: delta_meas = linResidual of
+#       the linearization L(wA) + t*G (G = grad(wA)·(wB−wA)) over
+#       the grid t in {1/4, 1/2, 3/4, 1}; SAFETY gate
+#       obj(mid) <= obj(wA) + delta_meas; ADMISSION to the trace
+#       still demands drop > 0 (checkStep) — a gate-passing merge
+#       with drop <= 0 is an honest HOLD (telemetry);
+#   (f) STOP: normalized polynomial candidates (x/3)^d, d = 4..;
+#       each admits a certified step (positive gain — the honest
+#       C445 gap: the admission gate alone does not stop
+#       overfitting), the C446 Ville stop fires on
+#       lam*D >= 1/delta - 1 (D = holdout - h0, h0 fixed at the
+#       stop-phase start); after the STOP every later candidate is
+#       refused (telemetry). If the stop never fires the run
+#       ABORTS (the C446 discipline).
+#
+# PIN (why linear, not softmax-CE): the C442 rational-softmax
+# surrogate has degree-4 dynamics — beyond T=2 steps the exact
+# denominators explode past kernel reach (the C442 trajectory
+# pin); the quadratic MSE carrier keeps the full 6-phase chain
+# within norm_num's reach while exercising every phase honestly.
+#
+# The WHOLE cycle is ONE CertStepData trace (obj' of step N = obj
+# of step N+1 — asserted; the executable checker re-verifies the
+# chain) plus per-phase telemetry: drops/costs/risks, admits /
+# rejects / holds, the holdout track and the stop record.
+
+FP_W0 = [F(1), F(0), F(0), F(0)]   # fixed before the run (dim 4)
+FP_EF21_S = F(1, 4)               # fixed EF21 ternary scale
+FP_TRAIN_STEPS = 2
+FP_EF21_STEPS = 2
+FP_FT_STEPS = 1
+FP_BRANCH_STEPS = 2               # merge side branch (telemetry)
+FP_MERGE_GRID = [F(1, 4), F(1, 2), F(3, 4), F(1)]
+FP_STOP_DMIN, FP_STOP_DMAX = 4, 8  # candidate degrees (x/3)^d
+
+
+def fp_base_feats():
+    """The four normalized base columns [1, x/3, (x/3)^2, (x/3)^3]
+    (each: 3 train values + the holdout value in position 3)."""
+    return [[F(1)] * 4,
+            [x / F(3) for x in XS] + [XHO_GROW / F(3)],
+            [(x / F(3)) ** 2 for x in XS]
+            + [(XHO_GROW / F(3)) ** 2],
+            [(x / F(3)) ** 3 for x in XS]
+            + [(XHO_GROW / F(3)) ** 3]]
+
+
+def fp_col(dd):
+    """Normalized polynomial candidate column (x/3)^dd."""
+    return [(x / F(3)) ** dd for x in XS] \
+        + [(XHO_GROW / F(3)) ** dd]
+
+
+def full_pipeline_run():
+    """The unified 6-phase certified cycle. Returns
+    (start_obj, [accepted steps], telemetry, final weights, feats)."""
+    feats = fp_base_feats()
+    w = list(FP_W0)
+    raw = []
+    tel = {"phases": [], "rejects": [], "holds": [], "admissions": []}
+
+    def record(phase, obj, obj2, risk, risk2, w2, **extra):
+        raw.append({"phase": phase, "obj": obj, "obj'": obj2,
+                    "drop": obj - obj2, "risk": risk,
+                    "risk'": risk2, **extra})
+        return w2
+
+    def gd(wcur, fs, only_last=False):
+        L = grow_smooth([fs[-1]]) if only_last else grow_smooth(fs)
+        eta = F(1) / L
+        g = grow_grad(wcur, fs)
+        if only_last:
+            w2 = list(wcur)
+            w2[-1] = wcur[-1] - eta * g[-1]
+        else:
+            w2 = [wcur[j] - eta * g[j] for j in range(len(wcur))]
+        return w2
+
+    obj0 = grow_loss(w, feats)
+
+    # (a) TRAIN: certified GD steps
+    for _ in range(FP_TRAIN_STEPS):
+        obj, risk = grow_loss(w, feats), grow_holdout_risk(w, feats)
+        w2 = gd(w, feats)
+        w = record("train", obj, grow_loss(w2, feats), risk,
+                   grow_holdout_risk(w2, feats), w2)
+    tel["phases"].append({"phase": "train",
+                          "steps": FP_TRAIN_STEPS,
+                          "final_obj": str(grow_loss(w, feats))})
+
+    # (b) EF21: in-step quantized steps with error feedback
+    e = [F(0)] * len(w)
+    eta = F(1) / grow_smooth(feats)
+    for t in range(FP_EF21_STEPS):
+        obj, risk = grow_loss(w, feats), grow_holdout_risk(w, feats)
+        g = grow_grad(w, feats)
+        m = [g[c] + e[c] for c in range(len(w))]
+        d = ef21_tern_vec(m, FP_EF21_S)
+        w2 = [w[c] - eta * d[c] for c in range(len(w))]
+        drop = obj - grow_loss(w2, feats)
+        if drop > 0:
+            e = [m[c] - d[c] for c in range(len(w))]
+            w = record("ef21", obj, grow_loss(w2, feats), risk,
+                       grow_holdout_risk(w2, feats), w2)
+        else:
+            tel["rejects"].append({"phase": "ef21", "t": t,
+                                   "drop": drop,
+                                   "reason": "drop <= 0: HOLD, "
+                                             "weights and residual "
+                                             "unchanged "
+                                             "(ef21_reject_hold)"})
+    tel["phases"].append({"phase": "ef21", "scale": str(FP_EF21_S),
+                          "accepted": sum(1 for r in raw
+                                          if r["phase"] == "ef21"),
+                          "rejected": len(tel["rejects"]),
+                          "final_obj": str(grow_loss(w, feats))})
+
+    # (c) HADAMARD-TERN: measured cohSq gate + ternary jump
+    obj, risk = grow_loss(w, feats), grow_holdout_risk(w, feats)
+    hw = ht_matvec(HT_H, w)
+    c_before, c_after = coh_sq(w), coh_sq(hw)
+    gate = c_after < c_before
+    src = hw if gate else w
+    s0 = max(abs(t) for t in src) or F(1)
+    q = [round_tern(t / s0) for t in src]
+    qq = sum((t * t for t in q), F(0))
+    if qq == 0:
+        wq, s = [F(0)] * len(w), F(0)
+    else:
+        s = sum((q[i] * src[i] for i in range(len(w))), F(0)) / qq
+        scaled = [s * t for t in q]
+        wq = [t / F(4) for t in ht_matvec(HT_H, scaled)] if gate \
+            else scaled
+    obj2, risk2 = grow_loss(wq, feats), grow_holdout_risk(wq, feats)
+    jump = {"coh_sq_before": c_before, "coh_sq_after": c_after,
+            "gate_passed": bool(gate),
+            "basis": "hadamard" if gate else "direct",
+            "s": s, "pattern": [int(t) for t in q],
+            "drop": obj - obj2, "accepted": bool(obj - obj2 > 0)}
+    if obj - obj2 > 0:
+        w = record("hadamard-jump", obj, obj2, risk, risk2, wq)
+    else:
+        tel["holds"].append({"phase": "hadamard-jump",
+                             "drop": obj - obj2,
+                             "reason": "drop <= 0: HOLD, weights "
+                                       "unchanged (ternary_hold_"
+                                       "rejected)"})
+    for _ in range(FP_FT_STEPS):
+        obj, risk = grow_loss(w, feats), grow_holdout_risk(w, feats)
+        w2 = gd(w, feats)
+        w = record("hadamard-finetune", obj, grow_loss(w2, feats),
+                   risk, grow_holdout_risk(w2, feats), w2)
+    tel["phases"].append({"phase": "hadamard-tern", "jump": {
+        k: (str(v) if not isinstance(v, (bool, list)) else v)
+        for k, v in jump.items()},
+        "final_obj": str(grow_loss(w, feats))})
+
+    # (d) GROW: candidate (x/3)^4 by the C444 exact margin
+    featsG = feats + [fp_col(4)]
+    dcost = F(2)
+    wext = list(w) + [F(0)]          # u = 0: obj chain EXACT
+    obj, risk = grow_loss(wext, featsG), grow_holdout_risk(wext, featsG)
+    w2 = gd(wext, featsG, only_last=True)
+    obj2, risk2 = grow_loss(w2, featsG), grow_holdout_risk(w2, featsG)
+    gain, drisk = obj - obj2, risk2 - risk
+    margin = admission_margin(gain, dcost, drisk)
+    tel["admissions"].append({"candidate": "(x/3)^4", "gain": gain,
+                              "dCost": dcost, "dRisk": drisk,
+                              "margin_excess": margin,
+                              "admitted": bool(margin <= 0)})
+    if margin <= 0 and gain > 0:
+        w = record("grow-admit", obj, obj2, risk, risk2, w2)
+        feats = featsG
+    else:
+        tel["admissions"][-1]["reason"] = \
+            "margin > 0: HOLD (noBlockAdmissionWithoutMargin)"
+        tel["holds"].append({"phase": "grow", "drop": gain,
+                             "reason": "admission margin > 0: model "
+                                       "unchanged"})
+    tel["phases"].append({"phase": "grow",
+                          "final_obj": str(grow_loss(w, feats))})
+    # noise candidate: orthogonal to the residual => zero gradient
+    r = [YS[i] - sum((wi * f[i] for wi, f in zip(w, feats)), F(0))
+         for i in range(len(XS))]
+    gcol = [r[1], -r[0], F(0), F(0)]
+    featsN = feats + [gcol]
+    gn = grow_grad(list(w) + [F(0)], featsN)
+    tel["admissions"].append({"candidate": "noise",
+                              "gain": F(0), "dCost": F(2),
+                              "margin_excess": admission_margin(
+                                  F(0), F(2), F(0)),
+                              "admitted": False,
+                              "reason": "zero gradient (orthogonal to "
+                                        "residual): measured gain = 0, "
+                                        "cost > 0 => REJECT "
+                                        "(costly_zero_gain_block_"
+                                        "refused)",
+                              "grad_last": gn[-1]})
+
+    # (e) MERGE: side branch + measured-delta gate (C476)
+    wA = list(w)
+    wB = list(wA)
+    branch = []
+    for _ in range(FP_BRANCH_STEPS):
+        wB = gd(wB, feats)
+        branch.append(str(grow_loss(wB, feats)))
+    LA = grow_loss(wA, feats)
+    gA = grow_grad(wA, feats)
+    G = sum((gA[i] * (wB[i] - wA[i]) for i in range(len(wA))), F(0))
+    delta_meas = F(0)
+    for t in FP_MERGE_GRID:
+        wi = [wA[i] + t * (wB[i] - wA[i]) for i in range(len(wA))]
+        delta_meas += abs(grow_loss(wi, feats) - (LA + t * G))
+    mid = [(wA[i] + wB[i]) / 2 for i in range(len(wA))]
+    objM, riskM = grow_loss(mid, feats), grow_holdout_risk(mid, feats)
+    gate_ok = objM <= LA + delta_meas
+    merge = {"branch_losses": branch, "lin_slope_G": G,
+             "delta_meas": delta_meas,
+             "obj_branch": grow_loss(wB, feats), "obj_merged": objM,
+             "safety_gate_passed": bool(gate_ok),
+             "drop": LA - objM,
+             "accepted": bool(gate_ok and LA - objM > 0)}
+    if gate_ok and LA - objM > 0:
+        w = record("merge", LA, objM, grow_holdout_risk(wA, feats),
+                   riskM, mid, delta_meas=delta_meas)
+    else:
+        tel["holds"].append({"phase": "merge", "drop": LA - objM,
+                             "reason": ("safety gate failed (merge_"
+                                        "unsafe_without_measurement)"
+                                        if not gate_ok else
+                                        "drop <= 0: HOLD despite "
+                                        "delta-gate pass "
+                                        "(checkStep needs 0 < drop)")})
+    tel["phases"].append({"phase": "merge", "merge": {
+        k: (str(v) if not isinstance(v, (bool, list)) else v)
+        for k, v in merge.items()},
+        "final_obj": str(grow_loss(w, feats))})
+
+    # (f) STOP: Ville anytime holdout stop over (x/3)^d candidates
+    h0 = grow_holdout_risk(w, feats)
+    stopped = False
+    stop_rec = None
+    for dd in range(FP_STOP_DMIN, FP_STOP_DMAX + 1):
+        featsS = feats + [fp_col(dd)]
+        ws0 = list(w) + [F(0)]
+        obj, risk = grow_loss(ws0, featsS), grow_holdout_risk(w, feats)
+        w2 = gd(ws0, featsS, only_last=True)
+        obj2 = grow_loss(w2, featsS)
+        rec = {"candidate": f"(x/3)^{dd}", "gain": obj - obj2}
+        if stopped:
+            rec.update({"admitted": False,
+                        "reason": "STOP already fired: admitWithStop "
+                                  "blocks every later block "
+                                  "(stop_blocks_admission)"})
+            tel["admissions"].append(rec)
+            continue
+        if obj - obj2 <= 0:
+            rec.update({"admitted": False,
+                        "reason": "gain <= 0: HOLD"})
+            tel["admissions"].append(rec)
+            continue
+        risk2 = grow_holdout_risk(w2, featsS)
+        w = record("stop-candidate", obj, obj2, risk, risk2, w2)
+        feats = featsS
+        D = grow_holdout_risk(w, feats) - h0
+        rec.update({"admitted": True, "D": D, "lamD": GS_LAM * D,
+                    "stopped": bool(gs_stop_fires(D))})
+        tel["admissions"].append(rec)
+        if gs_stop_fires(D):
+            stopped = True
+            stop_rec = dict(rec)
+            stop_rec["reason"] = ("STOP: lam*D >= 1/delta - 1 => "
+                                  "e-value >= 1/delta "
+                                  "(stop_implies_evalue); false-stop "
+                                  "prob <= delta (Ville, "
+                                  "grow_stop_sound)")
+    if not stopped:
+        sys.exit("ABORT: full-pipeline overfitting scenario did not "
+                 "fire the anytime stop -- tune FP_STOP_DMAX/GS_LAM")
+    tel["stop"] = {k: str(v) if not isinstance(v, bool) else v
+                   for k, v in stop_rec.items()}
+    tel["phases"].append({"phase": "stop",
+                          "final_obj": str(grow_loss(w, feats)),
+                          "holdout_0": str(h0),
+                          "holdout_final": str(grow_holdout_risk(w,
+                                                                 feats))})
+
+    # obj-chain continuity assertions + budget fill + re-verify
+    for i in range(len(raw) - 1):
+        if raw[i]["obj'"] != raw[i + 1]["obj"]:
+            sys.exit(f"ABORT: obj chain broken at step {i}: "
+                     f"{raw[i]['obj']} != {raw[i + 1]['obj']}")
+    n = F(len(raw))
+    for t, d in enumerate(raw):
+        d["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        d["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(d):
+            sys.exit(f"ABORT: full-pipeline step {t} ({d['phase']}) "
+                     f"failed certified admission: {d}")
+    return obj0, raw, tel, w, feats
+
+
+def _proof_full(name_suffix, ok):
+    thm = "valid" if ok else "invalid"
+    val = "true" if ok else "false"
+    return (f"theorem full_traj_{thm}{name_suffix} :\n"
+            f"    checkTrajectory benchStartFull{name_suffix} "
+            f"benchTrajectoryFull{name_suffix} = {val} := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartFull{name_suffix}, "
+            f"benchTrajectoryFull{name_suffix}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+
+
+def emit_lean_full(path, start, traj):
+    """C479 witness: the unified 6-phase trajectory literal +
+    #eval + norm_num theorem."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartFull : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryFull : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartFull "
+                "benchTrajectoryFull\n\n"
+                + _proof_full("", True))
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_full(path, start, traj):
+    """C479 negative: broken phase — inflated declared drop on the
+    last step; the checker must reject the whole trajectory."""
+    bad = [dict(d) for d in traj]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                "def benchStartFullBad : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryFullBad : "
+                "List Hagi.Runtime.CertStepData :=\n["
+                + ",\n".join(lean_step(d) for d in bad)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartFullBad "
+                "benchTrajectoryFullBad\n\n"
+                + _proof_full("Bad", False))
+    print(f"written: {path}", file=sys.stderr)
+
+
+# ----------------------------------------------------------------
 # C474: EF21 in-step quantized training loop (--mode ef21-step)
 #
 # PIN (P3 of the A19 audit): the C443 mode quantizes POST HOC (a
@@ -1301,7 +1678,7 @@ def main():
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
                              "hadamard-tern", "ef21-step", "grow",
-                             "grow-stop"],
+                             "grow-stop", "full-pipeline"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -1312,7 +1689,11 @@ def main():
                          "grow: C444 certified block "
                          "admission for LM growth; "
                          "ef21-step: C474 EF21 in-step quantized "
-                         "loop")
+                         "loop; "
+                         "full-pipeline: C479 unified 6-phase "
+                         "certified cycle (train, EF21, "
+                         "hadamard-tern, grow, merge, stop) on ONE "
+                         "objective chain")
     ap.add_argument("--grad-steps", type=int, default=None,
                     help="cert-tern: gradient phase steps "
                          "(default 1; grow-stop: base steps, default 2)")
@@ -1327,6 +1708,42 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "full-pipeline":
+        start, traj, tel, wfin, featsfin = full_pipeline_run()
+        print(json.dumps({
+            "mode": "full-pipeline",
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "n_steps": len(traj),
+            "phase_steps": {p: sum(1 for r in traj if r["phase"] == p)
+                            for p in dict.fromkeys(r["phase"]
+                                                   for r in traj)},
+            "loss_track": [str(r["obj"]) for r in traj]
+                          + [str(traj[-1]["obj'"])],
+            "holdout_track": [str(r["risk"]) for r in traj]
+                             + [str(traj[-1]["risk'"])],
+            "telemetry": {
+                "phases": tel["phases"],
+                "rejects": [{k: str(v) for k, v in rr.items()}
+                            for rr in tel["rejects"]],
+                "holds": [{k: str(v) for k, v in hh.items()}
+                          for hh in tel["holds"]],
+                "admissions": [{k: (str(v) if not isinstance(v, bool)
+                                    else v) for k, v in aa.items()}
+                               for aa in tel["admissions"]],
+                "stop": tel.get("stop")},
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+            "weights_final": "[" + ", ".join(map(str, wfin)) + "]",
+            "feats_dim": len(featsfin),
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_full(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_full(args.corrupt, start, traj)
+        return
 
     if args.mode == "hadamard-tern":
         start, traj, holds, states, jump = train_ht(
