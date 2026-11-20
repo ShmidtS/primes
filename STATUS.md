@@ -6758,3 +6758,29 @@ boilerplate → hub lemma); ChangingEMTrajectory private
 bounded_nonnegative_budget body → hub alias. Adds-only freeze (+3
 public); ChallengeCheck pins untouched. Net −11 lines (49+/60−) at a
 true dedup seam; no Contracts→Cert edge (LayerLint clean).
+
+
+## HAGI_v2 port-package proposals (C480)
+
+Docs-only beat (primes SSOT unchanged, Freeze 8462 untouched): four
+self-contained port proposals for the HAGI_v2 implementation agent,
+precedent C466. docs/PROPOSAL-tight-kappa.md (C471: tight Bennett
+kappa R=(e^R-1-R)/R^2 replaces the C466 weak e^R multiplier in the
+adaptive CE step — certified-drop gain e^R/kappa: 2.77x/3.79x/6.73x
+at R=0.5/1/2, weaker dominance premise R^2/(8 kappa R); C466 marked
+SUPERSEDED in the index); docs/PROPOSAL-fisher-quant.md (C472:
+exact second-order identity quadLoss_second_order, Gershgorin
+colCurv, dL <= sum|g|e + 1/2 sum c e^2, fisher_alloc_mono — Fisher
+weights instead of uniform budgets in the ternary jump / self-edit
+weight prune); docs/PROPOSAL-joint-step.md (C475: joint_head_trunk_
+step_le CE <= -2A^2/R^2 + 2*HL*dd with measured trunk displacement,
+parametric lip constants for RMSNorm-gain/MLP atoms, strict-commit
+and joint-vs-alternating window); docs/PROPOSAL-merge-meas.md (C476:
+linResidualGrid measured residual, nonlinear_merge_bound,
+MergeApprovedMeas delta-gate sum price + delta_bound + kappa*n'*s/2
+< twoGap as the merge_gate_certified replacement in MDL-prune,
+negative merge_unsafe_without_measurement). Plus
+docs/PROPOSAL-index.md (5 entries, statuses; C466 superseded).
+Sanity scripts (Fraction/float, all pass, real >= certified in
+every cell): .tmp/C480/sanity-{tight-kappa,fisher-quant,joint-step,
+merge-meas}.py. All Lean anchors rg-verified exact FQNs.
