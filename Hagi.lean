@@ -480,6 +480,7 @@ import Hagi.Theory.ContinualMulti
 import Hagi.Theory.RationalSoftmax
 import Hagi.Theory.CertSandwichBench
 import Hagi.Theory.MiniHagi
+import Hagi.Theory.MiniHagi2
 import Hagi.Theory.HoldoutWithoutReplacement
 
 set_option linter.style.header false
