@@ -35,6 +35,12 @@ theorem tendsto_ciInf_of_antitone_nonneg
 theorem ciInf_nonneg (E : ℕ → ℝ) (hnn : ∀ t, 0 ≤ E t) :
     0 ≤ ⨅ t, E t := le_ciInf hnn
 
+/-- Exact finite telescope of consecutive objective differences,
+including at horizon zero. -/
+theorem sum_range_drop_eq (E : ℕ → ℝ) (T : ℕ) :
+    ∑ t ∈ Finset.range T, (E t - E (t + 1)) = E 0 - E T := by
+  simpa using Finset.sum_range_sub' E T
+
 /-- Scaling removes the common positive denominator in a weighted
 finite budget without any infinite-sum or convergence premise. -/
 theorem sum_le_of_sum_two_mul_div_le {κ A : ℝ} {f : ℕ → ℝ}
@@ -86,5 +92,29 @@ theorem exists_le_of_sum_two_mul_div_le
     field_simp [ne_of_gt hTpos]
   rw [hconst] at hstrict
   exact (not_lt_of_ge hscaled) hstrict
+
+/-- One-step drops dominated by a nonnegative objective's actual
+differences yield the full flat budget package: bounded prefixes,
+summability, vanishing terms, and a total at most the initial value. -/
+theorem budget4_of_drop_le (E δ : ℕ → ℝ) (hnn : ∀ t, 0 ≤ E t)
+    (hδ : ∀ t, 0 ≤ δ t) (hdrop : ∀ t, δ t ≤ E t - E (t + 1)) :
+    (∀ T, ∑ t ∈ Finset.range T, δ t ≤ E 0) ∧ Summable δ ∧
+      Tendsto δ atTop (𝓝 0) ∧ ∑' t, δ t ≤ E 0 := by
+  have hfinite (T : ℕ) : ∑ t ∈ Finset.range T, δ t ≤ E 0 :=
+    (sum_drop_le_initial_sub E δ T hdrop).trans
+      (sub_le_self _ (hnn T))
+  have hs : Summable δ := summable_of_sum_range_le hδ hfinite
+  exact ⟨hfinite, hs, hs.tendsto_atTop_zero,
+    hs.tsum_le_of_sum_range_le hfinite⟩
+
+/-- A uniform finite-prefix bound on a nonnegative sequence yields the
+grouped budget package: the bound itself, summability, vanishing terms,
+and the total at most the same bound. -/
+theorem budget4_of_sum_le (F : ℕ → ℝ) (R : ℝ)
+    (hF : ∀ t, 0 ≤ F t) (hbound : ∀ T, ∑ t ∈ Finset.range T, F t ≤ R) :
+    (∀ T, ∑ t ∈ Finset.range T, F t ≤ R) ∧
+      (Summable F ∧ Tendsto F atTop (𝓝 0) ∧ ∑' t, F t ≤ R) := by
+  have hs : Summable F := summable_of_sum_range_le hF hbound
+  exact ⟨hbound, hs, hs.tendsto_atTop_zero, hs.tsum_le_of_sum_range_le hbound⟩
 
 end Hagi.Contracts.ObjectiveTrajectory

@@ -6738,3 +6738,23 @@ minimal-diff pseudocode with fallback branches, Lean anchors,
 loop-5 validation criterion, honest limits, sanity table:
 cert ≤ true drop in all cells; late regime ≈ 20x better certified
 drop). Primes SSOT unchanged (docs-only beat).
+
+
+## Contracts BatchCE dedup tranche (C467)
+
+CE-compression tranche (roadmap C464 п.5, honest option: common-lemma
+dedup, files kept — each BatchCE* module is a separate contract, merges
+would break freeze identity or grow megafiles). The existing
+ObjectiveTrajectory hub (ns `Hagi.Contracts.ObjectiveTrajectory`) gains
+three generic real-sequence lemmas: `sum_range_drop_eq` (exact finite
+telescope ∑(E t − E (t+1)) = E 0 − E T), `budget4_of_drop_le` (flat
+budget package ∀T-bound ∧ Summable ∧ Tendsto 0 ∧ tsum ≤ E 0 from one-step
+drop domination + nonnegativity), `budget4_of_sum_le` (grouped package
+from a uniform prefix bound). Rewired boilerplate consumers (statements
+and FQNs unchanged): BatchCETrajectory margin/meanMargin/minNorm budget
+tails + fixedBatchObjective_actual_telescope; GatedCETrajectory
+fixedGatedObjective_actual_telescope (Foundations.telescope_sub_sum
+boilerplate → hub lemma); ChangingEMTrajectory private
+bounded_nonnegative_budget body → hub alias. Adds-only freeze (+3
+public); ChallengeCheck pins untouched. Net −11 lines (49+/60−) at a
+true dedup seam; no Contracts→Cert edge (LayerLint clean).

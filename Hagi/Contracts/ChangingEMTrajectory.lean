@@ -195,8 +195,7 @@ private theorem bounded_nonnegative_budget (F : ℕ → ℝ) (R : ℝ)
     (hF : ∀ t, 0 ≤ F t) (hbound : ∀ T, ∑ t ∈ Finset.range T, F t ≤ R) :
     (∀ T, ∑ t ∈ Finset.range T, F t ≤ R) ∧
       (Summable F ∧ Tendsto F atTop (nhds 0) ∧ ∑' t, F t ≤ R) := by
-  have hs : Summable F := summable_of_sum_range_le hF hbound
-  exact ⟨hbound, hs, hs.tendsto_atTop_zero, hs.tsum_le_of_sum_range_le hbound⟩
+  exact Hagi.Contracts.ObjectiveTrajectory.budget4_of_sum_le F R hF hbound
 
 /-- Finite prefixes, summability, vanishing terms and the total actual NLL-drop
 information budget, with the infinite conclusions outside every `T`. -/

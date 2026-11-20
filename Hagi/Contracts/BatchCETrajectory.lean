@@ -1129,21 +1129,11 @@ theorem guardedBatchInputPath_margin_budget
     have h := hbound (guardedBatchInputPath X y inputFor S t) (hcost t) b
     rw [guardedBatchInputPath_succ]
     linarith
-  have hfinite (T : ℕ) : ∑ t ∈ Finset.range T,
-      margin b (guardedBatchInputPath X y inputFor S t) ≤ batchSampleCE X y b S := by
-    calc
-      ∑ t ∈ Finset.range T, margin b (guardedBatchInputPath X y inputFor S t) ≤
-        batchSampleCE X y b (guardedBatchInputPath X y inputFor S 0) -
-          batchSampleCE X y b (guardedBatchInputPath X y inputFor S T) :=
-        ObjectiveTrajectory.sum_drop_le_initial_sub _ _ T (fun t => hle t)
-      _ ≤ batchSampleCE X y b (guardedBatchInputPath X y inputFor S 0) :=
-        sub_le_self _ (batchSampleCE_nonneg X y b (guardedBatchInputPath X y inputFor S T))
-      _ = batchSampleCE X y b S := rfl
-  have hsummable : Summable
-      (fun t => margin b (guardedBatchInputPath X y inputFor S t)) :=
-    summable_of_sum_range_le (fun t => hmargin b _) hfinite
-  exact ⟨hfinite, hsummable, hsummable.tendsto_atTop_zero,
-    hsummable.tsum_le_of_sum_range_le hfinite⟩
+  exact ObjectiveTrajectory.budget4_of_drop_le
+    (fun t => batchSampleCE X y b (guardedBatchInputPath X y inputFor S t))
+    (fun t => margin b (guardedBatchInputPath X y inputFor S t))
+    (fun t => batchSampleCE_nonneg X y b (guardedBatchInputPath X y inputFor S t))
+    (fun t => hmargin b _) (fun t => hle t)
 
 /-- The averaged counterpart of a generic local sample-margin law.  The
 only batch denominator is on the averaged current margin. -/
@@ -1199,24 +1189,13 @@ theorem guardedBatchInputPath_meanMargin_budget
         batchCEObjective X y (guardedBatchInputPath X y inputFor S (t + 1)) := by
     have h := hsucc t
     linarith [hsucc t]
-  have hfinite (T : ℕ) : ∑ t ∈ Finset.range T,
-      ((∑ b, margin b (guardedBatchInputPath X y inputFor S t)) / (B : ℝ)) ≤
-        batchCEObjective X y S := by
-    calc
-      ∑ t ∈ Finset.range T, ((∑ b,
-          margin b (guardedBatchInputPath X y inputFor S t)) / (B : ℝ)) ≤
-        batchCEObjective X y (guardedBatchInputPath X y inputFor S 0) -
-          batchCEObjective X y (guardedBatchInputPath X y inputFor S T) :=
-        ObjectiveTrajectory.sum_drop_le_initial_sub _ _ T (fun t => hle t)
-      _ ≤ batchCEObjective X y (guardedBatchInputPath X y inputFor S 0) :=
-        sub_le_self _ (batchCEObjective_nonneg X y (guardedBatchInputPath X y inputFor S T))
-      _ = batchCEObjective X y S := rfl
-  have hsummable : Summable (fun t => (∑ b,
-      margin b (guardedBatchInputPath X y inputFor S t)) / (B : ℝ)) :=
-    summable_of_sum_range_le (fun t => div_nonneg
-      (Finset.sum_nonneg (fun b _hb => hmargin b _)) (Nat.cast_nonneg B)) hfinite
-  exact ⟨hfinite, hsummable, hsummable.tendsto_atTop_zero,
-    hsummable.tsum_le_of_sum_range_le hfinite⟩
+  exact ObjectiveTrajectory.budget4_of_drop_le
+    (fun t => batchCEObjective X y (guardedBatchInputPath X y inputFor S t))
+    (fun t => (∑ b, margin b (guardedBatchInputPath X y inputFor S t)) / (B : ℝ))
+    (fun t => batchCEObjective_nonneg X y (guardedBatchInputPath X y inputFor S t))
+    (fun t => div_nonneg
+      (Finset.sum_nonneg (fun b _hb => hmargin b _)) (Nat.cast_nonneg B))
+    (fun t => hle t)
 
 noncomputable def directionBatchState (X : Fin B → Matrix V (Fin n) ℝ)
     (y : Fin B → V) (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))
@@ -1958,15 +1937,8 @@ theorem directionBatchMinNormSquaredBudget_budget
           (directionBatchHalfState X y
             (fun T => -batchGradientMinimizer X (coreParameters T) y)
             S opCost opRisk write t) opCost opRisk write)).trans (hbase.1 T)
-  have hsummable : Summable (fun t => directionBatchMinNormSquaredBudget X y
-      (directionBatchHalfState X y
-        (fun T => -batchGradientMinimizer X (coreParameters T) y)
-        S opCost opRisk write t)) :=
-    summable_of_sum_range_le
-      (fun t => directionBatchMinNormSquaredBudget_nonneg X y _)
-      hfinit
-  exact ⟨hfinit, hsummable, hsummable.tendsto_atTop_zero,
-    hsummable.tsum_le_of_sum_range_le hfinit⟩
+  exact ObjectiveTrajectory.budget4_of_sum_le _ _
+    (fun t => directionBatchMinNormSquaredBudget_nonneg X y _) hfinit
 
 /-- Along minimum-norm half-window guarded training, the current minimum-norm
 point's square tends to zero on the actual path. This is not global CE
@@ -2461,15 +2433,9 @@ theorem fixedBatchObjective_actual_telescope
         (fixedBatchObjective X y S opCost opRisk write t -
           fixedBatchObjective X y S opCost opRisk write (t + 1)) =
       batchCEObjective X y S - fixedBatchObjective X y S opCost opRisk write T := by
-  have htel := Hagi.Foundations.telescope_sub_sum
-    (T := T)
-    (f := fixedBatchObjective X y S opCost opRisk write)
-    (c := fun t => fixedBatchObjective X y S opCost opRisk write t
-      - fixedBatchObjective X y S opCost opRisk write (t + 1))
-    (fun t _ => by ring)
   have h0 : fixedBatchObjective X y S opCost opRisk write 0
-    = batchCEObjective X y S := rfl
-  linarith
+      = batchCEObjective X y S := rfl
+  rw [Hagi.Contracts.ObjectiveTrajectory.sum_range_drop_eq, h0]
 
 /-- Total actual loss decrease over a finite trajectory dominates the total
 computed certified residuals.  This does not equal the residuals to extra CE
