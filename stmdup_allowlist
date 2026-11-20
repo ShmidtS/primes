@@ -18,3 +18,7 @@ Hagi.Theory.MDLPrune.prune_negative_experts_improve_sum
 Hagi.Model.CEScaleChoice.grouped_scale_choice_sum_le
 Hagi.Model.CEScaleChoice.joint_scale_choice_le
 Hagi.Theory.AdaptiveMajorizer.ceOneHot_next_le_linear_of_zero_var_tight
+# C482: C481 TrunkTrain is composition GLUE in the C479 FullPipeline
+# pattern; trunk_traj_drop_pos restates full_traj_drop_pos verbatim
+# (same justification family as the C476 twins).
+Hagi.Theory.TrunkTrain.trunk_traj_drop_pos
