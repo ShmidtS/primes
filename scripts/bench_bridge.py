@@ -2420,6 +2420,93 @@ def emit_lean_cont(path, res, witness_steps=4):
     print(f"written: {path}", file=sys.stderr)
 
 
+
+# C487: WITHOUT-REPLACEMENT holdout bound bench (--mode wrbound)
+#
+# Compares the C487 Freedman-adaptive without-replacement bound
+#   2*exp(-k*eps^2/(2*(s2*(2N-k)/N + eps)))
+# against the C435/C484 with-replacement Hoeffding form
+#   2*exp(-2*k*eps^2)
+# on the FIXED final real-data trunk model (same certified loop
+# as --mode real-data). Per-point losses u_i = sqerr_i / L in
+# [0,1]; s2 = population variance (exact Fractions).
+#
+# PIN (N=185): the corpus is LIVE (206 entries at bench time);
+# N is pinned to the first 185 sorted ledger keys (deterministic
+# snapshot), k = 37 = |{i < 185 : i % 5 == 4}| (the C484-style
+# every-5th holdout split). delta = 0.05; eps* by float
+# bisection (report-only, same convention as rd_concentration).
+
+WR_DELTA = 0.05
+
+
+def wrbound_run(ledger_path, steps=RD_STEPS):
+    import math
+    pts = rd_load_dataset(ledger_path)
+    assert len(pts) >= 185,         f"ABORT: expected 185+ real points, got {len(pts)}"
+    pts = pts[:185]                       # N = 185 pinned
+    N, k = len(pts), 37
+    train = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 != 4]
+    hold = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 == 4]
+    assert len(hold) == k
+    cfix = max(sum((abs(v) for v in x), F(0))
+               for _, x, _ in pts) + RD_EPS
+    # same certified trunk loop as real-data (C481 form)
+    p = rd_init()
+    for t in range(steps):
+        obj = rd_mse(p, train, cfix)
+        gfd = []
+        for j in range(RD_NPAR):
+            q = list(p)
+            q[j] = q[j] + RD_H
+            gfd.append((rd_mse(q, train, cfix) - obj) / RD_H)
+        cand = [rd_snap(p[j] - RD_ETA * gfd[j])
+                for j in range(RD_NPAR)]
+        if obj - rd_mse(cand, train, cfix) > 0:
+            p = cand
+    # per-point losses of the FIXED final model, normalized
+    ls = [(rd_forward(p, x, cfix) - y) ** 2 for _, x, y in pts]
+    L = max(ls)
+    u = [l / L for l in ls]
+    mu = sum(u, F(0)) / F(N)
+    s2 = sum(((ui - mu) ** 2 for ui in u), F(0)) / F(N)
+    fpc = (2 * N - k) / N                  # exact Fraction
+    vden = float(s2) * float(fpc)          # sigma^2*(2N-k)/N
+    # bisection: eps_* = smallest eps with bound <= delta
+    def bis(bound):
+        lo, hi = 0.0, 1.0
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if bound(mid) <= WR_DELTA:
+                hi = mid
+            else:
+                lo = mid
+        return hi
+    eps_hoe = bis(lambda e: 2 * math.exp(-2 * k * e * e))
+    eps_wr = bis(lambda e: 2 * math.exp(
+        -k * e * e / (2 * (vden + e))))
+    cond = vden + eps_wr <= 0.25           # (d) comparison premise
+    # exact check: actual holdout gap vs the wr bound
+    hold_mean = sum((u[i] for i in range(N) if i % 5 == 4),
+                    F(0)) / F(k)
+    gap = abs(hold_mean - mu)
+    return {
+        "N": N, "k": k, "delta": WR_DELTA,
+        "L_max_loss": str(L),
+        "mu_normalized": str(mu), "sigma2": str(s2),
+        "fpc_factor": str(fpc), "vden": vden,
+        "eps_hoeffding": eps_hoe, "eps_wr": eps_wr,
+        "wr_le_hoe": eps_wr <= eps_hoe,
+        "condition_d_premise": cond,
+        "condition_d_value": vden + eps_wr,
+        "win_eps_absolute": eps_hoe - eps_wr,
+        "win_loss_units": (eps_hoe - eps_wr) * float(L),
+        "actual_gap_normalized": str(gap),
+        "gap_le_wr_bound": gap <= F(int(eps_wr * 10**9), 10**9),
+        "n_train": len(train),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -2427,7 +2514,7 @@ def main():
                              "hadamard-tern", "ef21-step", "grow",
                              "grow-stop", "full-pipeline",
                              "trunk-train", "real-data",
-                             "continual"],
+                             "continual", "wrbound"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -2456,7 +2543,12 @@ def main():
                          "MSE + C435-style concentration stats; "
                          "continual: C485 two-task continual bench "
                          "(GPM zero forgetting vs naive GD, real "
-                         "unified_ledger data)")
+                         "unified_ledger data); "
+                         "wrbound: C487 without-replacement holdout "
+                         "concentration bench (Freedman-adaptive "
+                         "wr-bound vs C435 with-replacement "
+                         "Hoeffding on the real trunk model, "
+                         "N=185 pinned, k=37)")
     ap.add_argument("--data", metavar="PATH",
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -2475,6 +2567,20 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "wrbound":
+        res = wrbound_run(
+            args.data, args.steps if args.steps is not None
+            else RD_STEPS)
+        print(json.dumps({"mode": "wrbound",
+            "theorem": "Hagi.Theory.HoldoutWithoutReplacement."
+                       "holdout_wr_concentration (C487) vs "
+                       "Hagi.Theory.HoldoutRisk."
+                       "holdout_concentration (C435)",
+            "model": "real-data certified trunk (C484 loop, "
+                     "fixed final model), u = sqerr/L in [0,1]",
+            **res}, indent=1))
+        return
 
     if args.mode == "continual":
         res = continual_run(
