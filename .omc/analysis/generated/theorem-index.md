@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 568
-- theorems: 12694
-- defs: 4691
-- noncomputable decls: 1201
-- status Proven: 487 modules
+- modules: 570
+- theorems: 12699
+- defs: 4692
+- noncomputable decls: 1202
+- status Proven: 489 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -510,6 +510,7 @@ theorems.
 | Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
+| Hagi.Theory.CertSandwichBench | 2 | 0 | - | no | Proven |
 | Hagi.Theory.CertTernaryJump | 4 | 1 | - | no | Proven |
 | Hagi.Theory.CertifyThenCommit | 29 | 35 | - | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
@@ -533,6 +534,7 @@ theorems.
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
 | Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.NonlinearMerge | 26 | 8 | curvRemainder, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
