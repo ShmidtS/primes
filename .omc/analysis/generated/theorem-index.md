@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 564
-- theorems: 12527
-- defs: 4677
+- modules: 565
+- theorems: 12530
+- defs: 4678
 - noncomputable decls: 1192
-- status Proven: 483 modules
+- status Proven: 484 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -514,6 +514,7 @@ theorems.
 | Hagi.Theory.CertifyThenCommit | 29 | 35 | - | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
+| Hagi.Theory.ContinualBench | 3 | 1 | - | no | Proven |
 | Hagi.Theory.EF21InStep | 11 | 5 | - | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
 | Hagi.Theory.FisherQuant | 21 | 4 | quadLoss | no | Proven |
