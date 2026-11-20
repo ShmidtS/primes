@@ -29,6 +29,16 @@ Modes:
                      checkStep demands 0 < drop — and logged in the
                      `holds` telemetry), then certified finetune GD
                      steps on the quantized weights.
+  --mode ef21-step  C474: EF21 IN-STEP quantized training loop — the
+                     update is compressed INSIDE every gradient step
+                     with error feedback: m = g + e (exact gradient +
+                     accumulated residual); d = tern_s(m) (fixed-scale
+                     ternary quantizer); e' = m − d (error feedback);
+                     trial step θ − η·d, admitted ONLY by the exact
+                     certified criterion drop > 0 (a rejected trial —
+                     possibly with NEGATIVE drop — is a HOLD: weights
+                     and residual unchanged, the step is EXCLUDED from
+                     the trajectory and logged as reject telemetry).
 """
 
 import argparse
@@ -348,6 +358,185 @@ def emit_hold_tern(path, start, traj):
                    name_suffix="_hold", ok=False,
                    thm_prefix="tern_hold_traj")
 
+
+# ----------------------------------------------------------------
+# C474: EF21 in-step quantized training loop (--mode ef21-step)
+#
+# PIN (P3 of the A19 audit): the C443 mode quantizes POST HOC (a
+# separate jump after training); this mode compresses the update
+# INSIDE each gradient step with error feedback:
+#   m = g + e   (exact Fraction gradient + accumulated residual)
+#   d = tern_s(m)  fixed-scale ternary quantizer (see EF21_S pin)
+#   e' = m − d  (error feedback: unquantized remainder carried fwd)
+#   trial θ' = θ − η·d; drop = obj(θ) − obj(θ') measured exactly.
+#
+# PIN (quantizer scale): FIXED scale EF21_S, NOT the LS-optimal
+# per-step scale of cert-tern — a stable recursive contract is
+# needed for the EF telescoping identities; the scale is fixed
+# BEFORE the run (design choice, not tuned to outcomes). The
+# quantizer is honestly NOT contractive for alpha in (0, 1]
+# (Hagi.Optimization.EF21Quantizer.qTernVec_not_contractive), so
+# EF21 Lyapunov guarantees do NOT transfer; only the exact
+# identities (Hagi/Theory/EF21InStep.lean: telescope, energy split)
+# and the inexact floor (qTernVec_inexact, alpha = 0) carry over.
+#
+# PIN (admission): the trial is admitted ONLY by the exact certified
+# criterion drop > 0 plus the full check_step mirror. A rejected
+# trial (drop <= 0 — with coarse quantization the compressed step
+# may climb, giving NEGATIVE drop) is a HOLD: weights AND the
+# residual e stay unchanged (the trial's feedback is burned — the
+# honest reject semantics; see the module docstring pins), the step
+# is EXCLUDED from the emitted trajectory (checkStep demands
+# 0 < drop — ef21_reject_hold) and logged in `rejects` telemetry
+# with the reject rate.
+
+EF21_S = F(1, 5)           # fixed ternary scale (exact Fraction;
+                          # pinned before the run — coarse enough that
+                          # late-loop saturated messages quantize to 0,
+                          # exercising the honest reject path)
+EF21_W0 = [F(2), F(1), F(2)]   # ef21-mode initial weights
+                                # (same pin as TERN_W0: fixed
+                                # before the run; w = 0 is a
+                                # degenerate point of the CE
+                                # surrogate: S = 0)
+EF21_STEPS_DEFAULT = 20
+
+
+def ef21_tern_vec(v, s=EF21_S):
+    """Fixed-scale ternary vector quantizer s·roundTern(v/s)
+    (the qTernVec pattern; NOT LS-optimal — fixed recursive
+    contract, see the module pins)."""
+    return [round_tern(t / s) * s for t in v]
+
+
+def train_ef21(steps):
+    """EF21 in-step quantized certified loop.
+
+    Every step: exact gradient g, message m = g + e, compressed
+    direction d = tern(m), trial weights θ − η·d. Admitted only if
+    the measured drop > 0 and the full check_step mirror passes;
+    otherwise HOLD (θ, e unchanged) logged in `rejects`.
+    Returns (start_obj, [accepted steps], rejects, states, stats)."""
+    w = list(EF21_W0)
+    e = [F(0)] * CE_K
+    states = [tuple(w)]
+    raw = []
+    rejects = []
+    eta = F(1) / ce_L()
+    accepted = 0
+
+    for t in range(steps):
+        obj, risk = ce_train_loss(w), ce_holdout_risk(w)
+        g = ce_grad(w)
+        m = [g[c] + e[c] for c in range(CE_K)]
+        d = ef21_tern_vec(m)
+        w2 = [w[c] - eta * d[c] for c in range(CE_K)]
+        obj2, risk2 = ce_train_loss(w2), ce_holdout_risk(w2)
+        drop = obj - obj2
+        step = {"phase": "ef21-step", "obj": obj, "obj'": obj2,
+                "drop": drop, "risk": risk, "risk'": risk2,
+                "t": t, "quantized_d": d,
+                "residual_norm2": sum((m[c] - d[c]) ** 2
+                                      for c in range(CE_K))}
+        if drop > 0:
+            # accepted: error feedback consumed, weights move
+            e = [m[c] - d[c] for c in range(CE_K)]
+            raw.append(step)
+            states.append(tuple(w2))
+            w = w2
+            accepted += 1
+        else:
+            # HOLD: weights AND residual unchanged (trial burned)
+            rejects.append({**step,
+                            "reason": "drop <= 0: HOLD, weights and "
+                                      "residual unchanged, step "
+                                      "excluded (ef21_reject_hold)"})
+
+    n = F(len(raw))
+    for t, d_ in enumerate(raw):
+        d_["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        d_["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(d_):
+            sys.exit(f"ABORT: ef21 step {t} failed certified "
+                     f"admission: {d_}")
+    stats = {"total_trials": steps, "accepted": accepted,
+             "rejected": len(rejects),
+             "reject_rate": (F(len(rejects), steps) if steps
+                             else F(0)),
+             "eta": eta, "scale": EF21_S}
+    if not raw:
+        sys.exit("ABORT: no accepted ef21 steps — trajectory empty")
+    return raw[0]["obj"], raw, rejects, states, stats
+
+
+def _proof_ef21(name_suffix, ok):
+    thm = "valid" if ok else "invalid"
+    val = "true" if ok else "false"
+    head = (f"theorem ef21_traj_{thm} :\n"
+            f"    checkTrajectory benchStartEF21{name_suffix} "
+            f"benchTrajectoryEF21{name_suffix} = {val} := by\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartEF21{name_suffix}, "
+            f"benchTrajectoryEF21{name_suffix}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+    if ok:
+        return head
+    return ("set_option linter.unusedSimpArgs false in\n" + head)
+
+
+def emit_lean_ef21(path, start, traj, rejects):
+    """C474 witness: literal trajectory + #eval + norm_num theorem,
+    plus the reject control: the FIRST rejected trial's measured
+    drop is <= 0, so its CertStepData can never pass checkStep
+    (ef21_reject_hold) — machine-checked on the exact literals."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartEF21 : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryEF21 : "
+                "List Hagi.Runtime.CertStepData :=\n["
+                + ",\n".join(lean_step(d) for d in traj)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartEF21 "
+                "benchTrajectoryEF21\n\n")
+        f.write(_proof_ef21("", True))
+        if rejects:
+            r = rejects[0]
+            # the identity hold record the trainer WOULD emit:
+            # weights unchanged => obj' = obj, drop = measured drop
+            f.write(
+                "\n/- Reject control (C474): the first rejected "
+                "trial's measured\ndrop is <= 0 (a compressed step "
+                "that does not descend — with coarse\nquantization "
+                "possibly NEGATIVE), so the identity hold record "
+                "can never pass\ncheckStep: the machine-checked "
+                "reason rejected steps are excluded from\nthe "
+                "trajectory (Hagi.Theory.EF21InStep.ef21_reject_hold). "
+                "-/\n"
+                "theorem ef21_rejected_drop :\n"
+                f"    ({rat(r['drop'])} : \u211a) <= 0 := by\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_ef21(path, start, traj):
+    """C474 negative control: inflate the last declared drop beyond
+    the actual descent — the checker must reject the trajectory."""
+    bad = [dict(d) for d in traj]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartEF21Bad : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryEF21Bad : "
+                "List Hagi.Runtime.CertStepData :=\n["
+                + ",\n".join(lean_step(d) for d in bad)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartEF21Bad "
+                "benchTrajectoryEF21Bad\n\n"
+                + _proof_ef21("Bad", False))
+    print(f"written: {path}", file=sys.stderr)
 
 def rat(q):
     """Fraction -> exact Lean rational literal."""
@@ -928,14 +1117,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
-                             "grow", "grow-stop"],
+                             "ef21-step", "grow", "grow-stop"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
                          "cert-tern: C443 certified ternary "
                          "quantization jump cycle; "
                          "grow: C444 certified block "
-                         "admission for LM growth")
+                         "admission for LM growth; "
+                         "ef21-step: C474 EF21 in-step quantized "
+                         "loop")
     ap.add_argument("--grad-steps", type=int, default=None,
                     help="cert-tern: gradient phase steps "
                          "(default 1; grow-stop: base steps, default 2)")
@@ -950,6 +1141,33 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "ef21-step":
+        steps = args.steps if args.steps is not None             else EF21_STEPS_DEFAULT
+        start, traj, rejects, states, stats = train_ef21(steps)
+        print(json.dumps({
+            "mode": "ef21-step",
+            "eta": str(stats["eta"]), "scale": str(stats["scale"]),
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "stats": {k: (str(v) if not isinstance(v, int)
+                          else v) for k, v in stats.items()},
+            "rejects": [{k: (str(v) if not isinstance(v, (bool, list))
+                             else ([str(t) for t in v]
+                                   if isinstance(v, list) else v))
+                         for k, v in r.items()} for r in rejects],
+            "trajectory": [{k: (str(v) if not isinstance(v, list)
+                                else [str(t) for t in v])
+                            for k, v in d.items()} for d in traj],
+            "weights": ["[" + ", ".join(map(str, w)) + "]"
+                        for w in states],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_ef21(args.emit_lean, start, traj, rejects)
+        if args.corrupt:
+            emit_bad_ef21(args.corrupt, start, traj)
+        return
 
     if args.mode == "grow-stop":
         gs_base = args.grad_steps if args.grad_steps is not None \
