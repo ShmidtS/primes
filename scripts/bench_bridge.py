@@ -2179,6 +2179,336 @@ def emit_lean_real(path, start, traj, witness_steps=4,
     print(f"written: {path}", file=sys.stderr)
 
 
+# C491: CERTIFIED SANDWICH CE training on real data
+# (--mode cert-sandwich)
+#
+# PIN (objective): the C442 z^2/Sum z^2 surrogate is REPLACED by
+# the C489 sandwich certificate. Per point with max-shifted
+# logits s_c = z_c - max z in [-R, 0] (guard R < n = m = 4),
+# lo_c = (1 + s_c/4)^4 <= e^{s_c} <= (1 - s_c/4)^(-4) = hi_c
+# (expLower_le_exp / exp_le_expUpper, all exact Fractions).
+# certCE_le gives -log(lo_u/Sum hi) >= true one-hot CE, so the
+# bench objective is the exact rational product
+#   OBJ = prod_i (Sum_c hi_c) / lo_{y_i}:
+# log monotonicity makes descent of OBJ EQUIVALENT to descent of
+# the mean certificate CE -(1/N) Sum -log(lo_y/Sum hi).  NO log
+# is ever evaluated in the certified channel (logs are
+# irrational); CertStepData carries OBJ (obj/obj'/drop measured
+# ON the certificate).  The bridge to the true CE is the theorem
+# Hagi.Theory.CertSandwichBench.certCE_descent: certificate drop
+# minus the initial gap-width bound <= true-CE drop.
+#
+# PIN (snap-to-grid, C481/C484 family): features snapped to the
+# 1/10 grid (input preprocessing, exact), weights and updates to
+# the 1/100 grid.  The shifted logits s stay EXACT rationals -
+# snapping the logits themselves was probed and REJECTED: it
+# makes the objective piecewise-constant (zero gradient, every
+# step HOLD).
+#
+# PIN (eta): no smoothness constant is certified for the
+# sandwich objective; the provable minimum is the C481 guarded
+# admission - EXACT analytic gradient of log OBJ (rational),
+# normalized direction, fixed step 1/100, snap to grid, accept
+# IFF the MEASURED OBJ drop > 0 (else HOLD, step excluded).
+# Adaptive-majorizer eta (Hagi.Theory.AdaptiveMajorizer) is a
+# future bit.
+#
+# PIN (dataset, live corpus): unified_ledger.json + domains/
+# (C484 loader family).  The corpus is LIVE: 185 points at C484,
+# fewer today; ledger keys without a bin file are skipped, N is
+# reported and asserted > 0 (N >= 100 pin UNMET by the current
+# environment corpus - documented, not fabricated).
+#
+# PIN (telemetry): float true-CE (softmax via math.exp) and the
+# float mirror of cert-CE are TELEMETRY ONLY - outside the
+# certificate; the certified content is the exact OBJ
+# trajectory (per-step checker admission).
+
+CS_K, CS_D = 2, 4              # classes / feature dim
+CS_NM = 4                      # n = m of the (1+x/n)^n family
+CS_FGRID = F(1, 10)            # feature snap grid
+CS_WGRID = F(1, 100)           # weight snap grid
+CS_ETA = F(1, 100)             # normalized step size
+CS_STEPS = 8                   # default steps
+CS_W0 = [F(3, 2), F(1, 2), F(1, 2), F(1, 2),
+         F(1, 2), F(3, 2), F(1, 2), F(1, 2)]
+
+
+def cs_snap(v, g):
+    """Snap a Fraction to the g grid (round to nearest, exact)."""
+    n = v / g
+    if n >= 0:
+        r = (n.numerator + n.denominator // 2) // n.denominator
+    else:
+        r = -((-n.numerator + n.denominator // 2) // n.denominator)
+    return F(r) * g
+
+
+def cs_load_dataset(ledger_path):
+    """Real dataset (C484 family): features snapped 1/10, labels
+    K=2 median split of the exact measured ce."""
+    import os
+    with open(ledger_path, encoding="utf-8") as f:
+        led = json.load(f)
+    dom = os.path.join(os.path.dirname(os.path.abspath(
+        ledger_path)), "domains")
+    pts = []
+    for k in sorted(led):
+        if not os.path.exists(os.path.join(dom, k + ".bin")):
+            continue                      # live corpus: skip
+        b = open(os.path.join(dom, k + ".bin"), "rb").read()
+        s = len(b)
+        x = [cs_snap(F(s, 1 << 20), CS_FGRID),
+             cs_snap(F(sum(1 for c in b if c == 0), s), CS_FGRID),
+             cs_snap(F(sum(1 for c in b if 32 <= c < 127), s),
+                     CS_FGRID),
+             cs_snap(F(sum(b), 256 * s), CS_FGRID)]
+        pts.append((k, x, F(led[k]["ce"])))
+    ces = sorted(y for _, _, y in pts)
+    med = ces[len(ces) // 2]
+    return pts, med
+
+
+def cs_logits(w, x):
+    return [sum((w[c * CS_D + j] * x[j] for j in range(CS_D)),
+                F(0)) for c in range(CS_K)]
+
+
+def cs_terms(z):
+    """C489 sandwich terms on max-shifted logits (exact)."""
+    M = max(z)
+    s = [v - M for v in z]               # in [-R, 0]
+    if -min(s) >= CS_NM:
+        return None                      # range guard: HOLD
+    lo = [(F(1) + sv / CS_NM) ** CS_NM for sv in s]
+    hi = [(F(1) - sv / CS_NM) ** (-CS_NM) for sv in s]
+    return lo, hi
+
+
+def cs_obj(w, data):
+    """Exact certificate product prod (Sum hi)/lo_y."""
+    prod = F(1)
+    for x, y in data:
+        t = cs_terms(cs_logits(w, x))
+        if t is None:
+            return None
+        lo, hi = t
+        prod *= sum(hi, F(0)) / lo[y]
+    return prod
+
+
+def cs_grad_log(w, data):
+    """Exact analytic gradient of log OBJ (all rationals)."""
+    g = [F(0)] * (CS_K * CS_D)
+    for x, y in data:
+        z = cs_logits(w, x)
+        am = z.index(max(z))
+        s = [v - max(z) for v in z]
+        lou = [F(1) + sv / CS_NM for sv in s]
+        hiu = [F(1) - sv / CS_NM for sv in s]
+        lop = [u ** (CS_NM - 1) for u in lou]
+        hip = [u ** (-(CS_NM + 1)) for u in hiu]
+        lov = [u ** CS_NM for u in lou]
+        hiv = [u ** (-CS_NM) for u in hiu]
+        Sh = sum(hiv, F(0))
+        for k in range(CS_K):
+            for j in range(CS_D):
+                def ds(c):
+                    return ((x[j] if c == k else F(0))
+                            - (x[j] if am == k else F(0)))
+                dl = sum((hip[c] * ds(c)
+                          for c in range(CS_K)), F(0)) / Sh
+                dr = lop[y] * ds(y) / lov[y]
+                g[k * CS_D + j] += dl - dr
+    return g
+
+
+def cs_true_ce(w, data):
+    """FLOAT TELEMETRY ONLY (outside the certificate)."""
+    import math
+    tot = 0.0
+    for x, y in data:
+        z = [float(v) for v in cs_logits(w, x)]
+        m = max(z)
+        e = [math.exp(v - m) for v in z]
+        S = sum(e)
+        tot += -math.log(e[y] / S)
+    return tot / len(data)
+
+
+def cs_cert_ce_float(w, data):
+    """Float mirror of the rational certificate (telemetry)."""
+    import math
+    tot = 0.0
+    for x, y in data:
+        lo, hi = cs_terms(cs_logits(w, x))
+        tot += -math.log(float(lo[y] / sum(hi, F(0))))
+    return tot / len(data)
+
+
+def cs_gap_width(w, data):
+    """Float mirror of the certified width bound (telemetry)."""
+    import math
+    tot = 0.0
+    for x, y in data:
+        lo, hi = cs_terms(cs_logits(w, x))
+        tot += math.log(float((hi[y] * sum(hi, F(0)))
+                              / (lo[y] * sum(lo, F(0)))))
+    return tot / len(data)
+
+
+def cs_c442(w, data):
+    """C442 z^2/Sum z^2 surrogate mean on the same weights
+    (exact Fractions; comparison telemetry)."""
+    tot = F(0)
+    for x, y in data:
+        z = cs_logits(w, x)
+        S = sum(v * v for v in z)
+        tot += F(1) - z[y] * z[y] / S
+    return tot / F(len(data))
+
+
+def cert_sandwich_run(ledger_path, steps=CS_STEPS):
+    """Certified sandwich-CE training loop (C491).  Returns
+    (start, traj, tel, stats, final_w)."""
+    pts, med = cs_load_dataset(ledger_path)
+    assert len(pts) > 0, "ABORT: no usable real points"
+    data = [(x, 0 if y <= med else 1) for _, x, y in pts]
+    w = list(CS_W0)
+    obj0 = cs_obj(w, data)
+    assert obj0 is not None
+    raw, tel = [], {"holds": [], "steps": []}
+    for t in range(steps):
+        obj, risk = obj0, cs_obj(w, data[4::5])   # holdout OBJ
+        budget = F(steps - t, steps)
+        g = cs_grad_log(w, data)
+        mx = max(abs(v) for v in g)
+        cand = [cs_snap(w[k] - CS_ETA * g[k] / mx, CS_WGRID)
+                for k in range(CS_K * CS_D)]
+        obj2 = cs_obj(cand, data)
+        if obj2 is None:
+            tel["holds"].append({"t": t, "reason":
+                                 "range >= n: HOLD"})
+            continue
+        risk2 = cs_obj(cand, data[4::5])
+        drop = obj - obj2
+        if drop > 0:
+            raw.append({"obj": obj, "obj'": obj2, "drop": drop,
+                        "risk": risk, "risk'": risk2})
+            tel["steps"].append({
+                "t": t, "drop": drop,
+                "certCE": cs_cert_ce_float(w, data),
+                "certCE'": cs_cert_ce_float(cand, data),
+                "trueCE": cs_true_ce(w, data),
+                "trueCE'": cs_true_ce(cand, data),
+                "gapW": cs_gap_width(w, data),
+                "gapW'": cs_gap_width(cand, data)})
+            w = cand
+            obj0 = obj2
+        else:
+            tel["holds"].append({"t": t, "drop": drop,
+                                 "reason": "drop <= 0: HOLD"})
+    n = len(raw)
+    assert n > 0, "ABORT: cert-sandwich committed no steps"
+    for t, d in enumerate(raw):
+        d["budget"] = F(n - t) / n
+        d["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for d in raw:
+        if not check_step(d):
+            sys.exit(f"ABORT: cert-sandwich step failed "
+                     f"certified admission: {d}")
+    acc = sum(1 for x, y in data
+              if cs_logits(w, x).index(max(cs_logits(w, x))) == y)
+    w0 = list(CS_W0)
+    stats = {
+        "n_points": len(pts), "source": ledger_path,
+        "n_train": len(data), "n_holdout": len(data[4::5]),
+        "init": {"certCE_float": cs_cert_ce_float(w0, data),
+                 "trueCE_float": cs_true_ce(w0, data),
+                 "gapW_float": cs_gap_width(w0, data),
+                 "c442": str(cs_c442(w0, data)),
+                 "c442_float": float(cs_c442(w0, data))},
+        "final": {"certCE_float": cs_cert_ce_float(w, data),
+                  "trueCE_float": cs_true_ce(w, data),
+                  "gapW_float": cs_gap_width(w, data),
+                  "c442": str(cs_c442(w, data)),
+                  "c442_float": float(cs_c442(w, data))},
+        "train_acc": f"{acc}/{len(data)}",
+        "theorem": "Hagi.Theory.CertSandwichBench."
+                   "certCE_descent (C491)",
+    }
+    return raw[0]["obj"], raw, tel, stats, w
+
+
+def emit_lean_cs(path, start, traj, witness_steps=2,
+                 full_steps=None):
+    """C491 witness: literal CertStepData trajectory of the
+    FIRST witness_steps accepted steps of the REAL run (same
+    benchBridge pattern as C484; obj values are the exact
+    certificate products)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    full = full_steps if full_steps is not None else len(traj)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(
+            "-- C491 certified sandwich CE bench witness.\n"
+            f"-- FULL accepted trajectory: {full} steps; the "
+            f"first {len(ds)} are machine-checked below\n"
+            "-- (obj/obj'/drop are the EXACT rational "
+            "certificate products; Hagi.Theory.\n"
+            "-- CertSandwichBench.certCE_descent links the "
+            "certificate drop to the true-CE drop).\n"
+            "import Hagi.Runtime.CertChecker\n\n"
+            "open Hagi.Runtime\n\n"
+            f"def benchStartSand : \u211a := {rat(start)}\n\n"
+            "def benchTrajectorySand : List "
+            "Hagi.Runtime.CertStepData :=\n"
+            + "[\n" + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            "#eval checkTrajectory benchStartSand "
+            "benchTrajectorySand\n\n"
+            "theorem sand_bench_valid :\n"
+            "    checkTrajectory benchStartSand "
+            "benchTrajectorySand = true := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            "benchStartSand, benchTrajectorySand, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_cs(path, start, traj):
+    """Negative control: inflate the last drop beyond the actual
+    certificate descent - the checker MUST reject."""
+    bad = [dict(d) for d in traj[:2]]
+    last = bad[-1]
+    last["drop"] = last["drop"] + last["obj"]
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(
+            "-- C491 negative control: last drop inflated by obj "
+            "(drop > obj - obj').\n"
+            "import Hagi.Runtime.CertChecker\n\n"
+            "open Hagi.Runtime\n\n"
+            f"def benchStartSandBad : \u211a := {rat(start)}\n\n"
+            "def benchTrajectorySandBad : "
+            "List Hagi.Runtime.CertStepData :=\n["
+            + ",\n".join(lean_step(d) for d in bad)
+            + "\n]\n\n"
+            "#eval checkTrajectory benchStartSandBad "
+            "benchTrajectorySandBad\n\n"
+            "theorem sand_bench_invalid :\n"
+            "    checkTrajectory benchStartSandBad "
+            "benchTrajectorySandBad = false := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            "benchStartSandBad, benchTrajectorySandBad, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C485: CONTINUAL two-task bench (--mode continual)
 #
 # PIN (scenario, GPM / Saha et al. ICLR'21): task A -> task B.
@@ -2723,7 +3053,7 @@ def main():
                              "grow-stop", "full-pipeline",
                              "trunk-train", "real-data",
                              "continual", "continual-multi",
-                             "wrbound"],
+                             "wrbound", "cert-sandwich"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -2763,7 +3093,13 @@ def main():
                          "concentration bench (Freedman-adaptive "
                          "wr-bound vs C435 with-replacement "
                          "Hoeffding on the real trunk model, "
-                         "N=185 pinned, k=37)")
+                         "N=185 pinned, k=37); "
+                         "cert-sandwich: C491 certified "
+                         "sandwich-CE training on the real "
+                         "ledger - the C442 z^2/Sum z^2 surrogate "
+                         "replaced by the C489 rational sandwich "
+                         "certificate (exact Fractions, guarded "
+                         "measured-drop steps)")
     ap.add_argument("--data", metavar="PATH",
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -2937,6 +3273,40 @@ def main():
         if args.emit_lean:
             emit_lean_real(args.emit_lean, start, traj,
                            witness_steps=4, full_steps=len(traj))
+        return
+
+    if args.mode == "cert-sandwich":
+        start, traj, tel, stats, wfin = cert_sandwich_run(
+            args.data, args.steps if args.steps is not None
+            else CS_STEPS)
+        print(json.dumps({
+            "mode": "cert-sandwich",
+            "start": str(start),
+            "n_steps": len(traj),
+            "cert_track": [s["certCE"] for s in tel["steps"]]
+                          + [tel["steps"][-1]["certCE'"]],
+            "trueCE_track": [s["trueCE"] for s in tel["steps"]]
+                            + [tel["steps"][-1]["trueCE'"]],
+            "gapW_track": [s["gapW"] for s in tel["steps"]]
+                          + [tel["steps"][-1]["gapW'"]],
+            "drop_track": [str(s["drop"]) for s in tel["steps"]],
+            "stats": stats,
+            "telemetry": {
+                "steps": [{k: (str(v) if not isinstance(
+                    v, float) else v)
+                    for k, v in s.items()}
+                    for s in tel["steps"]],
+                "holds": [{k: str(v) for k, v in
+                           h.items()} for h in tel["holds"]],
+            },
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_cs(args.emit_lean, start, traj,
+                         witness_steps=2, full_steps=len(traj))
+        if args.corrupt:
+            emit_bad_cs(args.corrupt, start, traj)
         return
 
     if args.mode == "trunk-train":
