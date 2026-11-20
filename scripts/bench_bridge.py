@@ -3045,6 +3045,136 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
     }
 
 
+# C497: VS-TRAINER — mini-HAGI against the REAL trainer
+# (--mode vs-trainer)
+#
+# The C484 task (inputs = model byte-features, outputs = the
+# real trainer's measured ce) with a NEW certified-evaluation
+# layer: after certified sandwich training (C491 family) on
+# the train split, every holdout model gets a CERTIFIED
+# prediction (C495): its rational sandwich intervals are
+# computed exactly; if the normalized class bands
+# [lo v/Sum hi, hi v/Sum lo] are pairwise DISJOINT
+# (hi a/Sum lo < lo b/Sum hi), the argmax is certified —
+# no point estimate involved. Accuracy = correct argmax
+# among CERTIFIED predictions only (an uncertified point —
+# range guard or overlapping bands — is honestly reported,
+# never guessed).
+#
+# The Lean side: Hagi.Theory.TrainerBenchmark.
+# certified_forecast_sound — disjoint certified intervals +
+# the measured reality-inside-band premise (BandDescribes,
+# Describes-type) make the certified forecast coincide with
+# the argmax of the true ranking.
+#
+# Selfloop telemetry (C461): the round/COMMIT count of the
+# live HAGI_v2 experiments/selfloop_result.json is re-read
+# at run time (fail-closed field checks, C461 bridge).
+#
+# PIN (corpus, honest): the live checkpoint ledger holds 32
+# entries / 31 usable models today (it PRUNES across
+# sessions); N is reported, never fabricated.
+
+SELFLOOP_DEFAULT = ("C:/HAGI_v2/experiments/"
+                    "selfloop_result.json")
+
+
+def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
+    """C497: certified-prediction evaluation of mini-HAGI on
+    holdout models of the real trainer. Returns (stats, w)."""
+    pts, med = cs_load_dataset(ledger_path)
+    assert len(pts) > 0, "ABORT: no usable real points"
+    data = [(x, 0 if y <= med else 1) for _, x, y in pts]
+    train = [d for i, d in enumerate(data) if i % 5 != 4]
+    hold = [(k, d[0], d[1]) for i, (k, d) in
+            enumerate(zip([p[0] for p in pts], data)) if i % 5 == 4]
+    w = list(CS_W0)
+    committed, holds = 0, []
+    for t in range(steps):
+        g = cs_grad_log(w, train)
+        mx = max(abs(v) for v in g)
+        cand = [cs_snap(w[k] - CS_ETA * g[k] / mx, CS_WGRID)
+                for k in range(CS_K * CS_D)]
+        o1, o2 = cs_obj(w, train), cs_obj(cand, train)
+        if o2 is not None and o2 < o1:
+            w = cand
+            committed += 1
+        else:
+            holds.append({"t": t, "reason":
+                          "range guard or drop <= 0: HOLD"})
+    rows, n_cert, n_ok, n_sm_ok = [], 0, 0, 0
+    import math
+    for k, x, y in hold:
+        t = cs_terms(cs_logits(w, x))
+        if t is None:
+            rows.append({"key": k, "certified": False,
+                         "reason": "range >= n (guard)"})
+            continue
+        lo, hi = t
+        slo, shi = sum(lo, F(0)), sum(hi, F(0))
+        loN = [lo[c] / shi for c in range(CS_K)]
+        hiN = [hi[c] / slo for c in range(CS_K)]
+        sep = [c for c in range(CS_K)
+               if all(hiN[a] < loN[c] for a in range(CS_K)
+                      if a != c)]
+        # float true-softmax argmax: TELEMETRY only
+        z = [float(v) for v in cs_logits(w, x)]
+        sm = z.index(max(z))
+        if len(sep) != 1:
+            rows.append({"key": k, "certified": False,
+                         "reason": "bands overlap",
+                         "bands": [[float(loN[c]), float(hiN[c])]
+                                   for c in range(CS_K)],
+                         "true_softmax_argmax": sm})
+            continue
+        pred = sep[0]
+        n_cert += 1
+        n_ok += (pred == y)
+        n_sm_ok += (pred == sm)
+        rows.append({"key": k, "certified": True, "pred": pred,
+                     "label": y, "correct": pred == y,
+                     "bands": [[float(loN[c]), float(hiN[c])]
+                               for c in range(CS_K)],
+                     "true_softmax_argmax": sm,
+                     "agrees_softmax": pred == sm,
+                     "bands_exact": [[str(loN[c]), str(hiN[c])]
+                                     for c in range(CS_K)]})
+    sl = {"rounds": None, "commits": None, "actions": None}
+    try:
+        with open(selfloop_path, encoding="utf-8") as f:
+            doc = json.load(f)
+        rounds = doc.get("rounds")
+        assert rounds, "no rounds in selfloop telemetry"
+        acts = []
+        for r in rounds:
+            gate = r.get("gate")
+            assert gate and "action" in gate, \
+                "selfloop round missing gate.action"
+            acts.append(gate["action"])
+        sl = {"rounds": len(rounds), "commits": acts.count("COMMIT"),
+              "actions": acts}
+    except FileNotFoundError:
+        sl["error"] = "selfloop_result.json not found"
+    stats = {
+        "mode": "vs-trainer", "n_points": len(pts),
+        "n_train": len(train), "n_holdout": len(hold),
+        "train_committed_steps": committed,
+        "train_holds": holds,
+        "n_certified": n_cert,
+        "n_certified_correct": n_ok,
+        "accuracy_certified": (f"{n_ok}/{n_cert}"
+                               if n_cert else "0/0"),
+        "agreement_with_true_softmax": (
+            f"{n_sm_ok}/{n_cert}" if n_cert else "0/0"),
+        "holdout": rows,
+        "selfloop": sl,
+        "theorem": "Hagi.Theory.TrainerBenchmark."
+                   "certified_forecast_sound (C497)",
+        "source": ledger_path,
+    }
+    return stats, w
+
+
 # C492: MINI-HAGI - the FULL bench in ONE certified run on the
 # REAL corpus (--mode mini-hagi)
 #
@@ -4047,7 +4177,7 @@ def main():
                              "trunk-train", "real-data",
                              "continual", "continual-multi",
                              "wrbound", "cert-sandwich", "mini-hagi",
-                             "mini-hagi2"],
+                             "mini-hagi2", "vs-trainer"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -4107,7 +4237,16 @@ def main():
                          "tasks, 2 fiber grows, GPM, quant, "
                          "Ville stop on ONE canonical-objective "
                          "CertStepData chain (obj = mean MSE "
-                         "over the 3 live tasks)")
+                         "over the 3 live tasks); "
+                         "vs-trainer: C497 certified "
+                         "trainer-benchmark comparison - mini-HAGI "
+                         "(C491 sandwich trainer) vs the REAL "
+                         "HAGI_v2 trainer on its live "
+                         "unified_ledger corpus: certified "
+                         "predictions (C495 disjoint sandwich "
+                         "intervals) on holdout models, accuracy "
+                         "among certified only + live selfloop "
+                         "round/COMMIT telemetry (C461)")
     ap.add_argument("--data", metavar="PATH",
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -4125,7 +4264,17 @@ def main():
                     help="cert-tern: emit the HOLD negative witness "
                          "(a drop=0 identity step the checker "
                          "must reject)")
+    ap.add_argument("--selfloop", metavar="PATH",
+                    default=SELFLOOP_DEFAULT,
+                    help="vs-trainer: path to the live "
+                         "experiments/selfloop_result.json")
     args = ap.parse_args()
+
+    if args.mode == "vs-trainer":
+        stats, w = vs_trainer_run(args.data, args.selfloop,
+                                  args.steps or CS_STEPS)
+        print(json.dumps(stats, indent=1, default=str))
+        return
 
     if args.mode == "mini-hagi2":
         start, traj, tel, stats = mini_hagi2_run(args.data)
