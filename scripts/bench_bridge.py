@@ -1673,12 +1673,263 @@ def emit_bad_grow(path, start, traj):
     print(f"written: {path}", file=sys.stderr)
 
 
+# ----------------------------------------------------------------
+# C481: certified TRUNK training (--mode trunk-train)
+#
+# PIN (model): the bench model finally has a NON-LINEAR trunk,
+# trained jointly with the linear head by certified steps (the
+# C475 Hagi/Training/JointTrunkHead.lean theory moved into the
+# Python cycle):  v = g*x/(|x|+eps)  ->  a = W1*v  ->  relu
+# ->  t = W2*r  ->  z = Wh*t  (K = 3 classes, hidden dim 2,
+# 18 rational parameters). Everything is Fraction-exact.
+#
+# PIN (rational RMSNorm surrogate): true RMSNorm divides by
+# sqrt(sum x^2/n), which is IRRATIONAL over Q. Chosen KISS fix
+# (task-sanctioned): L1-denominator normalization x/(|x|+eps),
+# eps = 1/1000 — rational throughout; the gain g keeps the C475
+# rmsN-atom shape. sqrt via certified Newton bounds rejected
+# (YAGNI).
+#
+# PIN (degenerate-label guard): with labels forming a permutation
+# of all classes (e.g. [0,1,2]) and an x-independent logit
+# direction (scalar input), the surrogate mean loss is
+# IDENTICALLY 2/3: sum_points z_y^2/S = sum_c z_c^2/S = 1. Found
+# by probe; YTR = [0,1,0] (a repeat) avoids it.
+#
+# PIN (grid-snapped candidate): the trial step is
+# theta' = snap_{1/1000}(theta - (1/10)*g_fd) where g_fd is the
+# forward finite-difference gradient (h = 1/1000, exact
+# Fractions). Snapping the candidate to the 1/1000 rational grid
+# keeps exact denominators within kernel reach (measured: pure
+# fd-GD reaches 3605-digit denominators by step 2; snapped: <= 13
+# digits) — the precedent is the C443 ternary jump, where the
+# candidate is quantized by construction. The CERTIFIED content
+# is unaffected: admission is the MEASURED drop obj - obj' > 0
+# computed exactly on the ACTUAL (snapped) parameters, with
+# guarded rollback (drop <= 0 => HOLD, parameters restored, the
+# step is excluded from the trajectory — C443/C474 semantics).
+#
+# PIN (honest guarantee form): a finite-difference gradient is an
+# APPROXIMATE direction, so NO 2A^2/R^2-style certified descent
+# is claimed. The live guarantee is per-step measured descent +
+# rollback + the executable checkTrajectory. The C475 majorizer
+# readouts — A (linear-model predicted drop -sum g_fd*(theta'-
+# theta)), R (sup over train points of the logit range), dd
+# (measured logit displacement of the TRUNK change alone, new
+# trunk with the OLD head, before the head part of the joint
+# step) — are telemetry; the C475 strict-commit criterion
+# 2*HL*dd < 2*A^2/R^2 is logged ADVISORY only.
+
+TT_K, TT_HID = 3, 2                    # classes / hidden units
+TT_EPS = F(1, 1000)                    # L1-norm epsilon (rational)
+TT_H = F(1, 1000)                      # finite-difference step
+TT_ETA = F(1, 10)                      # joint step size
+TT_GRID = F(1, 1000)                   # candidate snap grid
+TT_STEPS = 4                           # default joint steps
+TT_XTR, TT_YTR = [F(1), F(2), F(3)], [0, 1, 0]   # repeat label!
+TT_XHO, TT_YHO = F(1), 2               # holdout point
+TT_NPAR = 1 + TT_HID + TT_K * TT_HID + TT_K * TT_K  # = 18
+
+
+def tt_init():
+    """Initial (g, W1, W2, Wh) parameters, all on the 1/1000 grid
+    (W1, W2 small random-free fractions; Wh starts at identity
+    scaled 1/2 so the head is non-trivial but small)."""
+    g = F(1)
+    W1 = [F(1, 2), F(-1, 3)]
+    W2 = [[F(1, 2), F(1, 4)], [F(-1, 4), F(1, 2)],
+          [F(1, 4), F(-1, 3)]]
+    Wh = [[F(1, 2) if c == c2 else F(0) for c2 in range(TT_K)]
+          for c in range(TT_K)]
+    return (g, W1, W2, Wh)
+
+
+def tt_flat(theta):
+    g, W1, W2, Wh = theta
+    return [g] + list(W1) + [e for row in W2 for e in row] \
+        + [e for row in Wh for e in row]
+
+
+def tt_unflat(p):
+    i = 1
+    W1 = p[i:i + TT_HID]
+    i += TT_HID
+    W2 = [p[i + c * TT_HID:i + (c + 1) * TT_HID]
+          for c in range(TT_K)]
+    i += TT_K * TT_HID
+    Wh = [p[i + c * TT_K:i + (c + 1) * TT_K] for c in range(TT_K)]
+    return (p[0], W1, W2, Wh)
+
+
+def tt_logits(theta, x, head=None):
+    """Forward pass: L1-rms-surrogate norm -> W1 -> ReLU -> W2 ->
+    (head Wh if given, else the model's own head). Exact
+    Fractions."""
+    g, W1, W2, Wh = theta
+    v = g * x / (abs(x) + TT_EPS)
+    r = [max(W1[j] * v, F(0)) for j in range(TT_HID)]
+    t = [sum((W2[c][j] * r[j] for j in range(TT_HID)), F(0))
+         for c in range(TT_K)]
+    H = Wh if head is None else head
+    return [sum((H[c][c2] * t[c2] for c2 in range(TT_K)), F(0))
+            for c in range(TT_K)]
+
+
+def tt_point_loss(theta, x, y):
+    z = tt_logits(theta, x)
+    S = sum((c * c for c in z), F(0))
+    return F(1) - z[y] ** 2 / S
+
+
+def tt_train_loss(theta):
+    n = F(len(TT_XTR))
+    return sum((tt_point_loss(theta, x, y)
+                for x, y in zip(TT_XTR, TT_YTR)), F(0)) / n
+
+
+def tt_holdout_risk(theta):
+    return tt_point_loss(theta, TT_XHO, TT_YHO)
+
+
+def tt_fd_grad(theta):
+    """Forward finite-difference gradient over all 18 parameters
+    (exact Fractions; h = 1/1000)."""
+    p = tt_flat(theta)
+    o = tt_train_loss(theta)
+    g = []
+    for k in range(len(p)):
+        q = list(p)
+        q[k] = q[k] + TT_H
+        g.append((tt_train_loss(tt_unflat(q)) - o) / TT_H)
+    return g
+
+
+def tt_snap(p):
+    """Snap every parameter to the 1/1000 rational grid (round to
+    nearest grid point; exact Fractions)."""
+    out = []
+    for t in p:
+        n = t / TT_GRID
+        r = (n.numerator + n.denominator // 2) // n.denominator \
+            if n >= 0 else -((-n.numerator + n.denominator // 2)
+                             // n.denominator)
+        out.append(F(r) * TT_GRID)
+    return out
+
+
+def tt_logit_range(theta):
+    """R = sup over train points of (max_c z_c - min_c z_c)."""
+    return max(max(tt_logits(theta, x)) - min(tt_logits(theta, x))
+               for x in TT_XTR)
+
+
+def tt_trunk_disp(theta_old, theta_new):
+    """dd = sup over train points / classes of the logit shift
+    caused by the TRUNK change ALONE (new trunk, OLD head) — the
+    C475 measured displacement binder, computed directly."""
+    _, _, _, old_head = theta_old
+    return max(abs(a - b)
+               for x in TT_XTR
+               for a, b in zip(tt_logits(theta_new, x, old_head),
+                               tt_logits(theta_old, x, old_head)))
+
+
+def trunk_train_run(steps=TT_STEPS):
+    """Joint certified trunk+head training: each step is a guarded
+    fd-gradient snap step; commit only on measured drop > 0.
+    Returns (start_obj, [accepted steps], telemetry, final theta)."""
+    theta = tt_init()
+    raw, tel = [], {"holds": [], "steps": [], "model": {
+        "trunk": "L1-rms-surrogate -> Linear W1 -> ReLU -> "
+                 "Linear W2 (nonlinear, C475 mlp atom)",
+        "head": "linear Wh", "params": TT_NPAR,
+        "grad": "forward finite differences h=1/1000 (Fraction)",
+        "step": "snap_{1/1000}(theta - (1/10)*g_fd) joint",
+        "guarantee": "per-step MEASURED drop > 0 + guarded "
+                     "rollback; A/R/dd telemetry advisory (C475)"}}
+    obj0 = tt_train_loss(theta)
+    for t in range(steps):
+        obj, risk = tt_train_loss(theta), tt_holdout_risk(theta)
+        gfd = tt_fd_grad(theta)
+        p = tt_flat(theta)
+        cand = tt_snap([p[k] - TT_ETA * gfd[k]
+                        for k in range(TT_NPAR)])
+        theta2 = tt_unflat(cand)
+        obj2, risk2 = tt_train_loss(theta2), \
+            tt_holdout_risk(theta2)
+        drop = obj - obj2
+        # C475 telemetry (advisory; NOT the admission criterion)
+        A = -sum((gfd[k] * (cand[k] - p[k])
+                  for k in range(TT_NPAR)), F(0))
+        R = tt_logit_range(theta2)
+        dd = tt_trunk_disp(theta, theta2)
+        rec = {"obj": obj, "obj'": obj2, "drop": drop,
+               "risk": risk, "risk'": risk2,
+               "A": A, "R": R, "dd": dd,
+               "R*dd": R * dd}
+        if drop > 0:
+            theta = theta2
+            raw.append(rec)
+            tel["steps"].append({"t": t, "drop": drop, "A": A,
+                                 "R": R, "dd": dd,
+                                 "advisory_strict":
+                                     2 * R * dd < 2 * A * A})
+        else:
+            tel["holds"].append({"t": t, "drop": drop,
+                                 "reason": "drop <= 0: HOLD, "
+                                           "parameters rolled "
+                                           "back (guarded)"})
+    # budget fill over accepted steps + obj-chain re-verify
+    n = len(raw)
+    assert n > 0, "ABORT: trunk-train committed no steps"
+    for t, d in enumerate(raw):
+        d["budget"] = F(len(raw) - t) / n
+        d["budget'"] = F(len(raw) - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for d in raw:
+        if not check_step(d):
+            sys.exit(f"ABORT: trunk-train step failed certified "
+                     f"admission: {d}")
+    return obj0, raw, tel, theta
+
+
+def emit_lean_trunk(path, start, traj, bad=False):
+    """C481 witness: literal trunk-training trajectory + #eval
+    checkTrajectory + a norm_num theorem (trunk_bench_valid), or
+    the negative control (inflated drop — the checker must
+    reject)."""
+    ds = [dict(d) for d in traj]
+    name, thm = ("benchTrajectoryTrunkBad", "trunk_bench_invalid") \
+        if bad else ("benchTrajectoryTrunk", "trunk_bench_valid")
+    if bad:
+        ds[-1]["drop"] = ds[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartTrunk : \u211a := {rat(start)}\n\n"
+                f"def {name} : List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                f"#eval checkTrajectory benchStartTrunk {name}\n\n"
+                f"theorem {thm} :\n"
+                f"    checkTrajectory benchStartTrunk {name} = "
+                f"{'false' if bad else 'true'} := by\n"
+                "  set_option linter.unusedSimpArgs false in\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartTrunk, "
+                f"{name}, Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
                              "hadamard-tern", "ef21-step", "grow",
-                             "grow-stop", "full-pipeline"],
+                             "grow-stop", "full-pipeline",
+                             "trunk-train"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -1693,7 +1944,13 @@ def main():
                          "full-pipeline: C479 unified 6-phase "
                          "certified cycle (train, EF21, "
                          "hadamard-tern, grow, merge, stop) on ONE "
-                         "objective chain")
+                         "objective chain; "
+                         "trunk-train: C481 certified JOINT "
+                         "trunk+head training - nonlinear trunk "
+                         "(L1-rms-surrogate norm, W1, ReLU, W2) "
+                         "with a linear head, fd-gradient "
+                         "grid-snapped steps admitted only by "
+                         "measured drop > 0 (guarded rollback)")
     ap.add_argument("--grad-steps", type=int, default=None,
                     help="cert-tern: gradient phase steps "
                          "(default 1; grow-stop: base steps, default 2)")
@@ -1708,6 +1965,36 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "trunk-train":
+        start, traj, tel, theta = trunk_train_run(
+            args.steps if args.steps is not None else TT_STEPS)
+        print(json.dumps({
+            "mode": "trunk-train",
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "n_steps": len(traj),
+            "loss_track": [str(d["obj"]) for d in traj]
+                          + [str(traj[-1]["obj'"])],
+            "holdout_track": [str(d["risk"]) for d in traj]
+                             + [str(traj[-1]["risk'"])],
+            "telemetry": {
+                "model": tel["model"],
+                "steps": [{k: str(v) for k, v in s.items()}
+                          for s in tel["steps"]],
+                "holds": [{k: str(v) for k, v in h.items()}
+                          for h in tel["holds"]],
+            },
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+            "params_final": str(tt_flat(theta)),
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_trunk(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_lean_trunk(args.corrupt, start, traj, bad=True)
+        return
 
     if args.mode == "full-pipeline":
         start, traj, tel, wfin, featsfin = full_pipeline_run()
