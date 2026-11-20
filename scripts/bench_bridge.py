@@ -3045,6 +3045,460 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
     }
 
 
+# C492: MINI-HAGI - the FULL bench in ONE certified run on the
+# REAL corpus (--mode mini-hagi)
+#
+# PIN (unification): ONE run on the live unified_ledger corpus
+# chaining ALL bench components on ONE CertStepData trace:
+#   (A) TRUNK-TRAIN (C481 form): the trunk is the FIXED byte-
+#       feature map (C484 family); the head over it is trained
+#       by analytic-gradient snap_{1/10000} steps admitted ONLY
+#       by MEASURED drop > 0 (guarded rollback). GPM
+#       zero-forgetting and C444 grow mechanics are linear-
+#       readout statements, so the KISS reading of "trunk" here
+#       is the fixed feature trunk (the nonlinear C481 trunk is
+#       its own certified mode).
+#   (B) GROW (C444): ONE deterministic fiber candidate
+#       x5 = snap_{1/1000}(x0*x1); the extended model starts at
+#       w||[0] (predictions IDENTICAL => obj chain EXACTLY
+#       continuous, asserted); the grown only_last certified
+#       step is admitted by the C444 margin (cost/risk pass-
+#       through eps = 0 => margin = canonical gain); margin <= 0
+#       is an honest REJECT (telemetry, model unchanged).
+#   (C) CONTINUAL (C485/C488): task B trained with GPM - each
+#       step projected onto the complement of span(task-A
+#       inputs, dim-generic exact Gram-Schmidt); per commit:
+#       delta orthogonality ASSERTED and MSE_A bit-exact
+#       invariance ASSERTED (gpm_bench_bridge semantics); the
+#       naive (unprojected) arm runs in parallel as TELEMETRY
+#       (its forgetting is MEASURED, not certified away).
+#   (D) QUANT (C443): dim-generic ternary jump with the LS-
+#       optimal scale on the head weights, admitted ONLY by the
+#       measured canonical drop > 0; a rejected jump is an
+#       honest HOLD (telemetry). (Hadamard-tern C477 applies to
+#       power-of-two dims only - an admitted grow leaves dim 5,
+#       so the C443 gate is the honest choice; documented.)
+#   (E) STOP (C446): the Ville anytime detector on the
+#       CANONICAL holdout risk (lam/delta reused from C446);
+#       further certified candidate steps are admitted ONLY
+#       while the stop has not fired; a never-firing stop is an
+#       honest outcome (no degradation detected).
+#
+# THE OBJ RULE (canonical objective - the continuity contract
+# across heterogeneous phases): every trajectory step carries
+#   obj = OBJ(w) = (MSE_A(w) + MSE_B(w)) / 2   (exact Fractions)
+# on the CURRENT model state; admission demands a measured
+# CANONICAL drop > 0; phase boundaries change nothing about the
+# model, so obj' of step N = obj of step N+1 (asserted; the
+# executable checker re-verifies the whole chain). Lean:
+# Hagi.Theory.MiniHagi (mini_hagi_canonical_drop,
+# mini_hagi_gpm_canonical_descent).
+#
+# PIN (corpus, honest): the ledger is LIVE and prunes across
+# sessions (185 -> ~31 usable at C492); like C491 the loader
+# skips keys without .bin, asserts N > 0 and reports the
+# run-time N (the N >= 100 pin of C484/C485 is unmet by the
+# environment - documented, not fabricated).
+
+MH_ETA = F(1, 10)
+MH_GRID = F(1, 10000)      # CLM-family snap grid
+MH_A_STEPS = 4
+MH_C_STEPS = 4
+MH_E_STEPS = 4
+MH_QUANT_FT = 1
+
+
+def mh_load_dataset(ledger_path):
+    """Live-corpus loader (C491 cs family, C484 rd features):
+    skip ledger keys without a .bin sibling."""
+    import os
+    with open(ledger_path, encoding="utf-8") as f:
+        led = json.load(f)
+    dom = os.path.join(os.path.dirname(os.path.abspath(
+        ledger_path)), "domains")
+    pts = []
+    for k in sorted(led):
+        p = os.path.join(dom, k + ".bin")
+        if not os.path.exists(p):
+            continue                      # live corpus: skip
+        b = open(p, "rb").read()
+        s = len(b)
+        x = [rd_snap(F(s, 1 << 20)),
+             rd_snap(F(sum(1 for c in b if c == 0), s)),
+             rd_snap(F(sum(1 for c in b if 32 <= c < 127), s)),
+             rd_snap(F(sum(b), 256 * s))]
+        pts.append((k, x, F(led[k]["ce"])))
+    return pts
+
+
+def mh_pred(w, x):
+    return sum((w[i] * x[i] for i in range(len(w))), F(0))
+
+
+def mh_mse(w, data):
+    return sum(((mh_pred(w, x) - y) ** 2 for x, y in data),
+               F(0)) / F(len(data))
+
+
+def mh_canon(w, A, B):
+    """The canonical objective: mean MSE over the live tasks."""
+    return (mh_mse(w, A) + mh_mse(w, B)) / F(2)
+
+
+def mh_grad(w, data):
+    g = [F(0)] * len(w)
+    for x, y in data:
+        r = mh_pred(w, x) - y
+        for i in range(len(w)):
+            g[i] += F(2) * r * x[i]
+    return [t / F(len(data)) for t in g]
+
+
+def mh_gs_basis(vs, d):
+    """Dim-generic exact rational Gram-Schmidt (C485 form)."""
+    basis = []
+    for v in vs:
+        u = list(v)
+        for b in basis:
+            dq = sum((u[i] * b[i] for i in range(d)), F(0))
+            nb = sum((b[i] * b[i] for i in range(d)), F(0))
+            u = [u[i] - dq / nb * b[i] for i in range(d)]
+        if any(u):
+            basis.append(u)
+    return basis
+
+
+def mh_complement_projector(basis, d):
+    """Q = I - sum u u^T/(u.u), dim-generic (C485 form)."""
+    Q = [[F(1) if i == j else F(0) for j in range(d)]
+         for i in range(d)]
+    for u in basis:
+        nb = sum((u[i] * u[i] for i in range(d)), F(0))
+        for i in range(d):
+            for j in range(d):
+                Q[i][j] -= u[i] * u[j] / nb
+    return Q
+
+
+def mh_tern_quantize(w):
+    """Dim-generic C443 ternary jump: pattern on the {-1,0,1}
+    grid from s0 = max|w|, LS-optimal s = (sum q.w)/(sum q.q)."""
+    s0 = max(abs(t) for t in w) or F(1)
+    q = [round_tern(t / s0) for t in w]
+    qq = sum((t * t for t in q), F(0))
+    if qq == 0:
+        return [F(0)] * len(w), F(0), q, s0
+    s = sum((q[i] * w[i] for i in range(len(w))), F(0)) / qq
+    return [s * t for t in q], s, q, s0
+
+
+def mini_hagi_run(ledger_path):
+    """The unified 5-phase certified cycle on the real corpus.
+    Returns (start_obj, [accepted steps], telemetry, stats)."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    A, B = cl_split(pts)
+    holdA, holdB = cl_split([(kk, x, y) for i, (kk, x, y)
+                            in enumerate(pts) if i % 5 == 4])
+
+    hA, hB = holdA, holdB      # extended alongside the grow
+
+    def risk(w):
+        return (mh_mse(w, hA) + mh_mse(w, hB)) / F(2)
+
+    w = [F(0)] * CL_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "rejects": [], "stop": None, "outcomes": {}}
+
+    def certified_step(phase, wcur, cand, A_, B_, extra=None):
+        """C481 guarded admission on the CANONICAL objective."""
+        o0, o1 = mh_canon(wcur, A_, B_), mh_canon(cand, A_, B_)
+        if o1 < o0:
+            raw.append({"phase": phase, "obj": o0, "obj'": o1,
+                        "drop": o0 - o1,
+                        "risk": risk(wcur), "risk'": risk(cand),
+                        **(extra or {})})
+            return cand
+        tel["holds"].append({"phase": phase, "drop": o0 - o1,
+                             "reason": "canonical drop <= 0: "
+                                       "HOLD, rolled back"})
+        return wcur
+
+    # --- (A) TRUNK-TRAIN on task 1 (C481 form)
+    obj0 = mh_canon(w, A, B)
+    for t in range(MH_A_STEPS):
+        g = mh_grad(w, A)
+        cand = cl_snap([w[i] - MH_ETA * g[i]
+                        for i in range(len(w))], MH_GRID)
+        w = certified_step("A-trunk", w, cand, A, B)
+    tel["phases"].append({"phase": "A-trunk",
+                          "mseA": str(mh_mse(w, A)),
+                          "mseB": str(mh_mse(w, B)),
+                          "canonical": str(mh_canon(w, A, B))})
+
+    # --- (B) GROW: fiber candidate x5 = snap(x0*x1)
+    def ext(data):
+        return [(x + [rd_snap(x[0] * x[1])], y) for x, y in data]
+
+    Ax, Bx, hA, hB = A, B, holdA, holdB   # 4-dim baseline
+    we = list(w)
+    Axt, Bxt = ext(A), ext(B)
+    wet = w + [F(0)]
+    assert mh_canon(wet, Axt, Bxt) == mh_canon(w, A, B), \
+        "ABORT: grow broke the obj chain (w||0 must preserve OBJ)"
+    g = mh_grad(wet, Axt + Bxt)
+    cand = list(wet)
+    cand[-1] = wet[-1] - MH_ETA * g[-1]   # only_last (C479 form)
+    cand = cl_snap(cand, MH_GRID)
+    o0, o1 = mh_canon(wet, Axt, Bxt), mh_canon(cand, Axt, Bxt)
+    gain = o0 - o1
+    margin = admission_margin(gain, F(0), F(0))  # C444, eps = 0
+    if margin > 0:
+        raw.append({"phase": "B-grow", "obj": o0, "obj'": o1,
+                    "drop": gain,
+                    "risk": (mh_mse(wet, ext(holdA))
+                             + mh_mse(wet, ext(holdB))) / F(2),
+                    "risk'": (mh_mse(cand, ext(holdA))
+                              + mh_mse(cand, ext(holdB))) / F(2),
+                    "margin": margin})
+        we, Ax, Bx, hA, hB = cand, Axt, Bxt, \
+            ext(holdA), ext(holdB)
+        tel["admissions"].append(
+            {"phase": "B-grow", "margin": str(margin),
+             "fiber": "x5 = snap_{1/1000}(x0*x1)",
+             "decision": "ADMIT"})
+    else:
+        tel["rejects"].append(
+            {"phase": "B-grow", "margin": str(margin),
+             "decision": "REJECT (model unchanged, 4 features)"})
+    d = len(we)
+    mseA_afterB = mh_mse(we, Ax)
+    tel["phases"].append({"phase": "B-grow", "dim": d,
+                          "mseA": str(mseA_afterB),
+                          "mseB": str(mh_mse(we, Bx)),
+                          "canonical": str(
+                              mh_canon(we, Ax, Bx))})
+
+    # --- (C) CONTINUAL: task 2 with GPM (naive arm = telemetry)
+    basis = mh_gs_basis([x for x, _ in Ax], d)
+    assert 0 < len(basis) < d, \
+        "ABORT: need 0 < rank(span A) < dim for a complement"
+    Q = mh_complement_projector(basis, d)
+
+    def applyQ(v):
+        return [sum((v[k] * Q[k][j] for k in range(d)), F(0))
+                for j in range(d)]
+
+    wn = list(we)                    # naive arm (telemetry)
+    for t in range(MH_C_STEPS):
+        g = mh_grad(wn, Bx)
+        cand = cl_snap([wn[i] - MH_ETA * g[i]
+                        for i in range(d)], MH_GRID)
+        o0, o1 = mh_mse(cand, Bx), mh_mse(wn, Bx)
+        if o1 < o0:
+            wn = cand
+    forgetting_naive = mh_mse(wn, Ax) - mseA_afterB
+
+    wg = list(we)                    # GPM arm (the trace)
+    for t in range(MH_C_STEPS):
+        g = mh_grad(wg, Bx)
+        delta = applyQ(cl_snap([-MH_ETA * t2 for t2 in g],
+                               MH_GRID))
+        for x, _ in Ax:              # gpmOrth, exact
+            assert sum((delta[i] * x[i] for i in range(d)),
+                       F(0)) == 0, \
+                "ABORT: gpmOrth violated (projection bug)"
+        cand = [wg[i] + delta[i] for i in range(d)]
+        assert mh_mse(cand, Ax) == mh_mse(wg, Ax), \
+            "ABORT: loss_A moved under a GPM step"
+        o0, o1 = mh_canon(wg, Ax, Bx), mh_canon(cand, Ax, Bx)
+        if o1 < o0:
+            raw.append({"phase": "C-gpm", "obj": o0, "obj'": o1,
+                        "drop": o0 - o1, "risk": risk(wg),
+                        "risk'": risk(cand)})
+            wg = cand
+        else:
+            tel["holds"].append({"phase": "C-gpm",
+                                 "drop": o0 - o1,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD (GPM arm)"})
+    forgetting_gpm = mh_mse(wg, Ax) - mseA_afterB
+    assert forgetting_gpm == 0, \
+        "ABORT: GPM forgetting must be EXACTLY zero"
+    tel["phases"].append({"phase": "C-gpm",
+                          "mseA": str(mh_mse(wg, Ax)),
+                          "mseB": str(mh_mse(wg, Bx)),
+                          "canonical": str(
+                              mh_canon(wg, Ax, Bx))})
+    tel["outcomes"]["forgetting_naive"] = str(forgetting_naive)
+    tel["outcomes"]["forgetting_gpm"] = str(forgetting_gpm)
+
+    # --- (D) QUANT: C443 ternary jump on the head weights
+    wq, s, q, s0 = mh_tern_quantize(wg)
+    o0, o1 = mh_canon(wg, Ax, Bx), mh_canon(wq, Ax, Bx)
+    if o1 < o0:
+        raw.append({"phase": "D-quant", "obj": o0, "obj'": o1,
+                    "drop": o0 - o1, "risk": risk(wg),
+                    "risk'": risk(wq)})
+        wg = wq
+        tel["admissions"].append(
+            {"phase": "D-quant", "decision": "ADMIT",
+             "scale": str(s),
+             "pattern": [str(t2) for t2 in q]})
+        for t in range(MH_QUANT_FT):
+            g = mh_grad(wg, Ax + Bx)
+            cand = cl_snap([wg[i] - MH_ETA * g[i]
+                            for i in range(d)], MH_GRID)
+            wg = certified_step("D-quant-ft", wg, cand, Ax, Bx)
+    else:
+        tel["holds"].append({"phase": "D-quant", "drop": o0 - o1,
+                             "reason": "quant jump drop <= 0: "
+                                       "HOLD (honest reject)"})
+    tel["phases"].append({"phase": "D-quant",
+                          "mseA": str(mh_mse(wg, Ax)),
+                          "mseB": str(mh_mse(wg, Bx)),
+                          "canonical": str(
+                              mh_canon(wg, Ax, Bx))})
+
+    # --- (E) STOP: Ville anytime detector on canonical holdout
+    h0 = risk(wg)
+    D = F(0)
+    fired = False
+    refused = 0
+    for t in range(MH_E_STEPS):
+        g = mh_grad(wg, Ax + Bx)
+        cand = cl_snap([wg[i] - MH_ETA * g[i]
+                        for i in range(d)], MH_GRID)
+        r1 = risk(cand)
+        D_new = r1 - h0
+        if GS_LAM * D_new >= GS_THRESH:   # conservative Ville
+            fired = True
+            refused += 1
+            tel["holds"].append({"phase": "E-stop",
+                                 "reason": "Ville stop fired: "
+                                           "candidate refused"})
+            continue
+        o0, o1 = mh_canon(wg, Ax, Bx), mh_canon(cand, Ax, Bx)
+        if o1 < o0:
+            raw.append({"phase": "E-stop", "obj": o0, "obj'": o1,
+                        "drop": o0 - o1, "risk": risk(wg),
+                        "risk'": r1})
+            wg = cand
+            D = D_new
+        else:
+            tel["holds"].append({"phase": "E-stop",
+                                 "drop": o0 - o1,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+                               "1/delta - 1 (conservative)",
+                   "lam": str(GS_LAM), "delta": str(GS_DELTA),
+                   "fired": fired, "refused": refused,
+                   "D_final": str(D)}
+    tel["phases"].append({"phase": "E-stop",
+                          "mseA": str(mh_mse(wg, Ax)),
+                          "mseB": str(mh_mse(wg, Bx)),
+                          "canonical": str(
+                              mh_canon(wg, Ax, Bx))})
+
+    n = len(raw)
+    assert n > 0, "ABORT: mini-hagi committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: mini-hagi step failed certified "
+                     f"admission: {dd}")
+    stats = {
+        "n_points": len(pts), "n_A": len(A), "n_B": len(B),
+        "n_holdout": len(holdA) + len(holdB),
+        "source": ledger_path, "dim_final": d,
+        "rank_spanA": len(basis),
+        "grow_admitted": any(a["phase"] == "B-grow"
+                             for a in tel["admissions"]),
+        "quant_admitted": any(a["phase"] == "D-quant"
+                              for a in tel["admissions"]),
+        "canonical_start": str(obj0),
+        "canonical_final": str(raw[-1]["obj'"]),
+        "total_drop": str(obj0 - raw[-1]["obj'"]),
+        "model": "linear head over the fixed byte-feature "
+                 "trunk (C484 family), canonical obj = "
+                 "(MSE_A + MSE_B)/2, admission ONLY by measured "
+                 "canonical drop > 0 (C481 form)",
+        "theorem": "Hagi.Theory.MiniHagi."
+                   "mini_hagi_gpm_canonical_descent (C492)",
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_mini(path, start, traj, witness_steps=3):
+    """C492 witness: the literal mini-HAGI trajectory prefix +
+    #eval checkTrajectory + norm_num theorem; header documents
+    the FULL counts honestly."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C492 mini-HAGI witness (real unified_ledger "
+                "data).\n"
+                f"-- FULL accepted steps: {len(traj)}; phases: "
+                f"{phases};\n-- first {len(ds)} machine-checked "
+                "steps below. Canonical obj = (MSE_A + MSE_B)/2 "
+                "(exact Fractions).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.MiniHagi\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMini : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryMini : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMini "
+                "benchTrajectoryMini\n\n"
+                "theorem mini_hagi_bench_valid :\n"
+                "    checkTrajectory benchStartMini "
+                "benchTrajectoryMini = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMini, benchTrajectoryMini, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.MiniHagi."
+                "mini_hagi_gpm_canonical_descent\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_mini(path, start, traj, witness_steps=3):
+    """C492 negative: inflated declared drop on the last witness
+    step; the checker must reject (theorem = false)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    ds[-1]["drop"] = ds[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C492 mini-HAGI NEGATIVE witness: the last "
+                "declared drop is inflated by 1; the certified "
+                "checker must reject.\n"
+                "import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMiniBad : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryMiniBad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMiniBad "
+                "benchTrajectoryMiniBad\n\n"
+                "theorem mini_hagi_bench_invalid :\n"
+                "    checkTrajectory benchStartMiniBad "
+                "benchTrajectoryMiniBad = false := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMiniBad, benchTrajectoryMiniBad, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -3053,7 +3507,7 @@ def main():
                              "grow-stop", "full-pipeline",
                              "trunk-train", "real-data",
                              "continual", "continual-multi",
-                             "wrbound", "cert-sandwich"],
+                             "wrbound", "cert-sandwich", "mini-hagi"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -3099,7 +3553,15 @@ def main():
                          "ledger - the C442 z^2/Sum z^2 surrogate "
                          "replaced by the C489 rational sandwich "
                          "certificate (exact Fractions, guarded "
-                         "measured-drop steps)")
+                         "measured-drop steps)"
+                         "; mini-hagi: C492 the FULL bench in ONE "
+                         "mini-hagi: C492 the FULL bench in ONE "
+                         "certified run on the real corpus - "
+                         "trunk-train (C481 form), fiber grow "
+                         "(C444), continual GPM (C485), ternary "
+                         "quant (C443), Ville stop (C446) on ONE "
+                         "canonical-objective CertStepData "
+                         "chain")
     ap.add_argument("--data", metavar="PATH",
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -3118,6 +3580,31 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "mini-hagi":
+        start, traj, tel, stats = mini_hagi_run(args.data)
+        if args.emit_lean:
+            emit_lean_mini(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_mini(args.corrupt, start, traj)
+        print(json.dumps({"mode": "mini-hagi", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": [
+                    {k: (v if not isinstance(v, F) else str(v))
+                     for k, v in a.items()}
+                    for a in tel["admissions"]],
+                "rejects": tel["rejects"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]],
+                "stop": tel["stop"],
+                "outcomes": tel["outcomes"]}}, indent=1))
+        return
 
     if args.mode == "wrbound":
         res = wrbound_run(
