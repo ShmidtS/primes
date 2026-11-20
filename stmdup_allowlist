@@ -9,3 +9,12 @@ Hagi.Challenge.master_hagi_challenge_v4_kernel
 # budget_ledger_telescope with the same statement as
 # Hagi.Contracts.ComputeToQuality.budget_telescope_gen (docstring says so).
 Hagi.Theory.budget_ledger_telescope
+# C476: pre-existing intentional restatement twins (STMDUP FAIL at
+# HEAD 54cfc6a predates C476; verified each is a deliberate twin:
+# private wrapper proving by exact reference, or documented
+# "tight twin" / same-statement cross-layer restatement).
+Hagi/Contracts/ChangingEMTrajectory.lean:Hagi.Contracts.ChangingEMTrajectory.bounded_nonnegative_budget
+Hagi.Theory.MDLPrune.prune_negative_experts_improve_sum
+Hagi.Model.CEScaleChoice.grouped_scale_choice_sum_le
+Hagi.Model.CEScaleChoice.joint_scale_choice_le
+Hagi.Theory.AdaptiveMajorizer.ceOneHot_next_le_linear_of_zero_var_tight

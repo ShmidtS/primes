@@ -1,2 +1,3 @@
 Hagi.Ensemble.merge_gate_certified
 Hagi.Model.EnergyReasoning.MetricDirection.improves_lossCeiling_intro
+Hagi.Theory.NonlinearMerge.merge_gate_meas

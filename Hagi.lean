@@ -447,6 +447,7 @@ import Hagi.Semantics.StateUnification
 import Hagi.Semantics.DerivedStateCoherence
 import Hagi.Theory.CEChain
 import Hagi.Theory.FisherQuant
+import Hagi.Theory.NonlinearMerge
 import Hagi.Theory.HoldoutRisk
 import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertifyThenCommit
