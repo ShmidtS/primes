@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 556
-- theorems: 12370
-- defs: 4606
-- noncomputable decls: 1180
-- status Proven: 475 modules
+- modules: 562
+- theorems: 12509
+- defs: 4637
+- noncomputable decls: 1192
+- status Proven: 481 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -502,7 +502,7 @@ theorems.
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
-| Hagi.Theory.AdaptiveMajorizer | 36 | 2 | ceAdaptiveCurv, varWeight | no | Proven |
+| Hagi.Theory.AdaptiveMajorizer | 66 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
@@ -514,10 +514,13 @@ theorems.
 | Hagi.Theory.CertifyThenCommit | 29 | 35 | - | no | Proven |
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
+| Hagi.Theory.EF21InStep | 11 | 5 | - | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
+| Hagi.Theory.FisherQuant | 21 | 4 | quadLoss | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
 | Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
 | Hagi.Theory.KnobMomentum | 27 | 14 | vel, clampIdx, idxTraj, qround | no | Proven |
@@ -526,7 +529,9 @@ theorems.
 | Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
 | Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.NonlinearMerge | 26 | 8 | curvRemainder, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
+| Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
 | Hagi.Theory.SelfEditGate | 16 | 7 | - | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
 | Hagi.Theory.TwoDomainConfidence | 1 | 0 | - | no | Proven |
@@ -538,6 +543,7 @@ theorems.
 | Hagi.Training.Ctv2Telescope | 22 | 7 | protoMeasured, stepDrop, scOf, ecToSc, ctv2Honest, smToExec | yes | Conditional |
 | Hagi.Training.ExecutedCert | 16 | 14 | toRecord, toCertStep, toCertStepGen | no | Proven |
 | Hagi.Training.GrowthComputedCert | 3 | 2 | next, stepCert | no | Proven |
+| Hagi.Training.JointTrunkHead | 18 | 1 | jointUpdate | no | Proven |
 | Hagi.Training.MacroStatCert | 32 | 36 | macroDecide, macroCertAnchor | no | Proven |
 | Hagi.Training.ModelComparison | 18 | 16 | zIndicator, zOf, Score, modelGap | no | Proven |
 | Hagi.Training.StepProvider | 42 | 30 | honestQuadStep, cramDescentProvider, quadContractProvider, quadContract, honestQuadProvider | no | Proven |
