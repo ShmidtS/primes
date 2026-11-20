@@ -439,6 +439,7 @@ import Hagi.Training.TransitionCert
 import Hagi.Training.Admission
 import Hagi.Training.CRMSM
 import Hagi.Training.AlternatingJoint
+import Hagi.Training.JointTrunkHead
 import Hagi.Training.AdaptiveAnytime
 import Hagi.Training.TTCAT
 import Hagi.Semantics.Split
