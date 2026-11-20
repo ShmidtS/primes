@@ -478,6 +478,7 @@ import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.ContinualBench
 import Hagi.Theory.ContinualMulti
 import Hagi.Theory.RationalSoftmax
+import Hagi.Theory.SandwichMonotone
 import Hagi.Theory.CertSandwichBench
 import Hagi.Theory.MiniHagi
 import Hagi.Theory.MiniHagi2
