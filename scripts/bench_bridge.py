@@ -1923,13 +1923,269 @@ def emit_lean_trunk(path, start, traj, bad=False):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C484: REAL-DATASET certified trunk bench (--mode real-data)
+#
+# PIN (dataset, real not invented): points are read from the
+# HAGI_v2 corpus (READ-ONLY): unified_ledger.json (184 entries
+# ns_XXXX with the MEASURED cross-entropy `ce` of each trained
+# model) plus the corresponding domain chunk binaries
+# domains/ns_XXXX.bin. x in Q^4 = byte statistics of the chunk
+# file (size/2^20, zero-byte fraction, printable fraction,
+# mean-byte/256); y = the measured ce. N = 184 >= 100.
+#
+# PIN (float -> Fraction is EXACT): a binary float has a finite
+# dyadic expansion, so fractions.Fraction(float(ce)) is the exact
+# measured value — no approximation is introduced (task pin).
+#
+# PIN (feature quantization): raw byte fractions have per-file
+# denominators (file sizes); each feature is snapped to the
+# 1/1000 rational grid — an exact input-preprocessing choice
+# (same grid family as the C481 parameter snap).
+#
+# PIN (normalization constant): the trunk uses the L1-surrogate
+# normalization v = g*x/CFIX with CFIX = max ||x||_1 + 1/1000 a
+# DATASET-LEVEL constant. The per-point division x/(|x|+eps) of
+# C481 makes the denominators point-coprime (~400 digits over
+# 148 train points, measured by probe); the constant form keeps
+# exact loss denominators <= 58 digits while staying an exact
+# rational L1-norm surrogate (sqrt skipped, C481 pin retained).
+#
+# Certified content = C481 verbatim: forward finite-difference
+# gradient (h = 1/1000, exact Fractions) is only the CANDIDATE
+# generator; admission is the MEASURED drop obj - obj' > 0
+# computed exactly on the ACTUAL grid-snapped parameters, with
+# guarded rollback (drop <= 0 => HOLD, step excluded from the
+# trajectory). Statistics (train/holdout MSE, C435-style
+# concentration) are computed on the FIXED final model.
+
+RD_D, RD_HID, RD_K = 4, 3, 2      # feature dim / hidden / t-dim
+RD_EPS = F(1, 1000)              # CFIX epsilon (rational)
+RD_H = F(1, 1000)                # finite-difference step
+RD_ETA = F(1, 10)                # step size
+RD_GRID = F(1, 1000)             # snap grid (params + features)
+RD_STEPS = 6                     # default joint steps
+RD_NPAR = 1 + RD_HID * RD_D + RD_K * RD_HID + RD_K   # = 21
+RD_DEFAULT_LEDGER = ("C:/HAGI_v2/checkpoints/"
+                     "unified_ledger.json")
+
+
+def rd_snap(v):
+    """Snap a Fraction to the 1/1000 rational grid (round to
+    nearest, exact)."""
+    n = v / RD_GRID
+    if n >= 0:
+        r = (n.numerator + n.denominator // 2) // n.denominator
+    else:
+        r = -((-n.numerator + n.denominator // 2) // n.denominator)
+    return F(r) * RD_GRID
+
+
+def rd_load_dataset(ledger_path):
+    """Parse unified_ledger.json + the sibling domains/ dir into
+    exact rational (x, y) points (see the PINs above)."""
+    import os
+    with open(ledger_path, encoding="utf-8") as f:
+        led = json.load(f)
+    dom = os.path.join(os.path.dirname(os.path.abspath(
+        ledger_path)), "domains")
+    pts = []
+    for k in sorted(led):
+        b = open(os.path.join(dom, k + ".bin"), "rb").read()
+        s = len(b)
+        x = [rd_snap(F(s, 1 << 20)),
+             rd_snap(F(sum(1 for c in b if c == 0), s)),
+             rd_snap(F(sum(1 for c in b if 32 <= c < 127), s)),
+             rd_snap(F(sum(b), 256 * s))]
+        pts.append((k, x, F(led[k]["ce"])))   # float->Fraction EXACT
+    return pts
+
+
+def rd_split(pts):
+    """Deterministic 80/20 split: sorted keys, every 5th point
+    to the holdout."""
+    train = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 != 4]
+    hold = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 == 4]
+    return train, hold
+
+
+def rd_init():
+    """21 parameters on the 1/1000 grid (g, W1 flat, W2 flat,
+    Wh flat)."""
+    return ([F(1)] + [F(1, 2)] * (RD_HID * RD_D)
+            + [F(1, 2)] * (RD_K * RD_HID) + [F(1, 2)] * RD_K)
+
+
+def rd_forward(p, x, cfix):
+    """Trunk forward: v = g*x/CFIX -> W1 -> ReLU -> W2 -> scalar
+    head Wh. Exact Fractions."""
+    g = p[0]
+    i = 1
+    W1 = p[i:i + RD_HID * RD_D]
+    i += RD_HID * RD_D
+    W2 = p[i:i + RD_K * RD_HID]
+    i += RD_K * RD_HID
+    Wh = p[i:]
+    v = [g * xj / cfix for xj in x]
+    r = [max(sum((W1[j * RD_D + k] * v[k]
+                  for k in range(RD_D)), F(0)), F(0))
+         for j in range(RD_HID)]
+    t = [sum((W2[c * RD_HID + j] * r[j]
+              for j in range(RD_HID)), F(0))
+         for c in range(RD_K)]
+    return sum((Wh[c] * t[c] for c in range(RD_K)), F(0))
+
+
+def rd_mse(p, data, cfix):
+    """Mean squared error over data, exact Fractions."""
+    return sum((rd_forward(p, x, cfix) - y) ** 2
+               for x, y in data) / F(len(data))
+
+
+def rd_concentration(p, pts, cfix):
+    """C435-style numerical application of the Hoeffding-63
+    two-sided bound on the FIXED final model. Per-point losses
+    l_i are exact; L = max l_i (data-dependent bound, pin);
+    u_i = l_i/L in [0,1]. For holdout size m the with-
+    replacement bound 2*exp(-2 m eps^2) upper-bounds the actual
+    without-replacement holdout sampling (Serfling/Hoeffding:
+    sampling w/o replacement is at least as concentrated).
+    eps* = smallest eps with bound <= 0.05 (float bisection,
+    report-only); the certified content stays the trajectory.
+    Returns (L, eps_star, bound_scaled, actual_gap_exact)."""
+    import math
+    ls = [(rd_forward(p, x, cfix) - y) ** 2 for _, x, y in pts]
+    L = max(ls)
+    pop = sum(ls, F(0)) / F(len(ls))
+    hold_ls = [ls[i] for i in range(len(ls)) if i % 5 == 4]
+    hold = sum(hold_ls, F(0)) / F(len(hold_ls))
+    gap = abs(hold - pop)          # exact Fraction
+    m = len(hold_ls)
+    lo, hi = 0.0, 1.0
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        if 2 * math.exp(-2 * m * mid * mid) <= 0.05:
+            hi = mid
+        else:
+            lo = mid
+    return L, hi, hi * float(L), gap
+
+
+def real_data_run(ledger_path, steps=RD_STEPS):
+    """Real-dataset certified trunk training: guarded fd-gradient
+    snap steps admitted only by measured drop > 0 (C481)."""
+    pts = rd_load_dataset(ledger_path)
+    assert len(pts) >= 100, \
+        f"ABORT: expected 100+ real points, got {len(pts)}"
+    train, hold = rd_split(pts)
+    cfix = max(sum((abs(v) for v in x), F(0))
+               for _, x, _ in pts) + RD_EPS
+    p = rd_init()
+    raw, tel = [], {"holds": [], "steps": [], "model": {
+        "trunk": "x/CFIX (L1-surrogate, dataset-level constant) "
+                 "-> Linear W1 -> ReLU -> Linear W2",
+        "head": "linear Wh (scalar)", "params": RD_NPAR,
+        "grad": "forward finite differences h=1/1000 (Fraction)",
+        "step": "snap_{1/1000}(theta - (1/10)*g_fd)",
+        "guarantee": "per-step MEASURED drop > 0 + guarded "
+                     "rollback (C481 form)"}}
+    obj0 = rd_mse(p, train, cfix)
+    for t in range(steps):
+        obj, risk = rd_mse(p, train, cfix), rd_mse(p, hold, cfix)
+        gfd = []
+        for k in range(RD_NPAR):
+            q = list(p)
+            q[k] = q[k] + RD_H
+            gfd.append((rd_mse(q, train, cfix) - obj) / RD_H)
+        cand = [rd_snap(p[k] - RD_ETA * gfd[k])
+                for k in range(RD_NPAR)]
+        obj2, risk2 = rd_mse(cand, train, cfix), \
+            rd_mse(cand, hold, cfix)
+        drop = obj - obj2
+        if drop > 0:
+            rec = {"obj": obj, "obj'": obj2, "drop": drop,
+                   "risk": risk, "risk'": risk2}
+            raw.append(rec)
+            tel["steps"].append({"t": t, "drop": drop})
+            p = cand
+        else:
+            tel["holds"].append({"t": t, "drop": drop,
+                                 "reason": "drop <= 0: HOLD, "
+                                           "rolled back"})
+    n = len(raw)
+    assert n > 0, "ABORT: real-data committed no steps"
+    for t, d in enumerate(raw):
+        d["budget"] = F(n - t) / n
+        d["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for d in raw:
+        if not check_step(d):
+            sys.exit(f"ABORT: real-data step failed certified "
+                     f"admission: {d}")
+    L, eps_star, bound_scaled, gap = rd_concentration(
+        p, pts, cfix)
+    stats = {
+        "n_points": len(pts), "n_train": len(train),
+        "n_holdout": len(hold), "source": ledger_path,
+        "train_mse_before": str(obj0),
+        "train_mse_final": str(raw[-1]["obj'"]),
+        "holdout_mse_before": str(raw[0]["risk"]),
+        "holdout_mse_final": str(raw[-1]["risk'"]),
+        "concentration": {
+            "theorem": "Hoeffding-63 two-sided, w/o-replacement "
+                       "sampling upper-bounded by the with-"
+                       "replacement form",
+            "L_max_loss": str(L), "m_holdout": len(hold),
+            "delta": 0.05, "eps_star": eps_star,
+            "bound_scaled": bound_scaled,
+            "actual_gap": str(gap),
+            "actual_le_bound": gap <= F(int(bound_scaled * 10**6),
+                                         10**6)}}
+    return obj0, raw, tel, stats, p
+
+
+def emit_lean_real(path, start, traj, witness_steps=4,
+                   full_steps=None):
+    """C484 witness: literal trajectory of the FIRST witness_steps
+    accepted steps + #eval checkTrajectory (+ valid theorem);
+    the header documents the FULL accepted-step count honestly
+    (task form: first N steps machine-checked)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    full = full_steps if full_steps is not None else len(traj)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(
+            "-- C484 real-dataset trunk bench witness.\n"
+            f"-- FULL accepted trajectory: {full} steps; the "
+            f"first {len(ds)} are machine-checked below\n"
+            "-- (checkTrajectory over a prefix validates the "
+            "chain start, every admission and chaining).\n"
+            "import Hagi.Runtime.CertChecker\n\n"
+            "open Hagi.Runtime\n\n"
+            f"def benchStartReal : \u211a := {rat(start)}\n\n"
+            "def benchTrajectoryReal : List "
+            "Hagi.Runtime.CertStepData :=\n"
+            + "[\n" + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            "#eval checkTrajectory benchStartReal "
+            "benchTrajectoryReal\n\n"
+            "theorem real_bench_valid :\n"
+            "    checkTrajectory benchStartReal "
+            "benchTrajectoryReal = true := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            "benchStartReal, benchTrajectoryReal, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
                              "hadamard-tern", "ef21-step", "grow",
                              "grow-stop", "full-pipeline",
-                             "trunk-train"],
+                             "trunk-train", "real-data"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -1950,7 +2206,16 @@ def main():
                          "(L1-rms-surrogate norm, W1, ReLU, W2) "
                          "with a linear head, fd-gradient "
                          "grid-snapped steps admitted only by "
-                         "measured drop > 0 (guarded rollback)")
+                         "measured drop > 0 (guarded rollback); "
+                         "real-data: C484 real HAGI_v2 dataset "
+                         "(unified_ledger.json ce targets + domain "
+                         "file byte features, 184 rational points), "
+                         "certified trunk training + train/holdout "
+                         "MSE + C435-style concentration stats")
+    ap.add_argument("--data", metavar="PATH",
+                    default=RD_DEFAULT_LEDGER,
+                    help="real-data: path to unified_ledger.json "
+                         "(domains/ dir is resolved as its sibling)")
     ap.add_argument("--grad-steps", type=int, default=None,
                     help="cert-tern: gradient phase steps "
                          "(default 1; grow-stop: base steps, default 2)")
@@ -1965,6 +2230,38 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "real-data":
+        start, traj, tel, stats, _ = real_data_run(
+            args.data, args.steps if args.steps is not None
+            else RD_STEPS)
+        print(json.dumps({
+            "mode": "real-data",
+            "start": str(start),
+            "n_steps": len(traj),
+            "loss_track": [str(d["obj"]) for d in traj]
+                          + [str(traj[-1]["obj'"])],
+            "holdout_track": [str(d["risk"]) for d in traj]
+                             + [str(traj[-1]["risk'"])],
+            "stats": {k: (v if not isinstance(v, dict) else
+                          {kk: (str(vv) if isinstance(vv, F)
+                                else vv)
+                           for kk, vv in v.items()})
+                      for k, v in stats.items()},
+            "telemetry": {
+                "model": tel["model"],
+                "steps": [{k: str(v) for k, v in s.items()}
+                          for s in tel["steps"]],
+                "holds": [{k: str(v) for k, v in h.items()}
+                          for h in tel["holds"]],
+            },
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_real(args.emit_lean, start, traj,
+                           witness_steps=4, full_steps=len(traj))
+        return
 
     if args.mode == "trunk-train":
         start, traj, tel, theta = trunk_train_run(
