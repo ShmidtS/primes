@@ -2247,14 +2247,14 @@ def cl_apply(Q, v):
             for j in range(CL_D)]
 
 
-def cl_snap(v):
+def cl_snap(v, grid=CL_GRID):
     out = []
     for t in v:
-        n = t / CL_GRID
+        n = t / grid
         r = (n.numerator + n.denominator // 2) // n.denominator \
             if n >= 0 else \
             -((-n.numerator + n.denominator // 2) // n.denominator)
-        out.append(F(r) * CL_GRID)
+        out.append(F(r) * grid)
     return out
 
 
@@ -2288,7 +2288,8 @@ def cl_split(pts):
 
 
 def cl_certified_loop(w, data_obj, risk_data, steps, Q=None,
-                      ortho_data=None):
+                      ortho_data=None, eta=CL_ETA,
+                      grid=CL_GRID):
     """Certified GD loop on data_obj (risk = MSE on risk_data,
     telemetry). If Q is given, each snapped step delta is
     projected with Q (GPM); gpmOrth and (for GPM) exact loss_A
@@ -2297,7 +2298,7 @@ def cl_certified_loop(w, data_obj, risk_data, steps, Q=None,
     for t in range(steps):
         obj, risk = cl_mse(w, data_obj), cl_mse(w, risk_data)
         g = cl_grad(w, data_obj)
-        delta = cl_snap([-CL_ETA * gi for gi in g])
+        delta = cl_snap([-eta * gi for gi in g], grid)
         if Q is not None:
             delta = cl_apply(Q, delta)
             for x, _ in ortho_data:      # gpmOrth, exact
@@ -2421,6 +2422,213 @@ def emit_lean_cont(path, res, witness_steps=4):
 
 
 
+# C488: MULTI-TASK CONTINUAL bench with GPM subspace
+# ACCUMULATION (--mode continual-multi)
+#
+# PIN (scenario): T = 3 sequential tasks from the SAME
+# ce-sorted unified_ledger split. Before phase t+1 the GPM
+# subspace is the ACCUMULATED span of the inputs of tasks
+# 1..t (union of spans, exact rational Gram-Schmidt on the
+# concatenation); every certified step of phase t+1 is
+# projected onto its orthogonal complement Q = I - sum u u^T/
+# (u.u). By Hagi.Theory.ContinualMulti.gpm_multi_zero_forgetting
+# (induction over phases, chained gpm_zero_forgetting) the
+# bench losses of ALL previous tasks are bit-exact invariant
+# (asserted per commit against every past task point). Rank
+# track: the accumulated basis grows per task by its number of
+# genuinely NEW independent directions - the
+# Hagi.Spectral.rank_orthogonal_growth setting (k new
+# orthogonal independent rows => rank +k EXACTLY); degenerate
+# candidates (lying inside the current span, rank < sum) are
+# skipped and logged honestly.
+#
+# Split (deterministic, ce-sorted like C485): task 1 = 2
+# few-shot points (first + median; rank 2 PIN - |A| >= 4
+# generic points would span R^4 and kill the complement),
+# task 2 = 1 point chosen greedily as the first sorted point
+# raising the accumulated rank to exactly 3 (leaves a 1-dim
+# complement for task 3), task 3 = all remaining points.
+#
+# Both arms run the same certified loop (C481 form: analytic
+# exact gradient, snap_{1/1000} candidate, admission ONLY by
+# MEASURED drop > 0, guarded rollback): NAIVE (no projection -
+# forgetting matrix MEASURED) vs GPM (accumulated projection -
+# forgetting matrix asserted EXACTLY zero on the past).
+
+CLM_TASKS = 3
+CLM_ETA = F(1, 10)               # same eta as C485
+CLM_GRID = F(1, 10000)           # finer snap grid: the C485
+# 1/1000 grid rounds the tiny projected steps of the 1-point
+# task 2 past the optimum (measured drop < 0 at every step);
+# 1/10000 commits 6/6 in every phase (probe, .tmp/C488)
+
+
+def clm_split(pts):
+    """Deterministic 3-task continual split: sort by (ce, key);
+    task 1 = first + median point (few-shot PIN), task 2 = the
+    first later point raising the accumulated rank to exactly 3
+    (dependent candidates skipped + counted), task 3 = rest."""
+    s = sorted(pts, key=lambda p: (p[2], p[0]))   # (key, x, y)
+    i1 = sorted({0, len(s) // 2})
+    T1 = [(s[i][1], s[i][2]) for i in i1]
+    used = set(i1)
+    basis = cl_gs_basis([x for x, _ in T1])
+    skipped = 0
+    T2, i2 = [], None
+    for i, (_, x, y) in enumerate(s):
+        if i in used:
+            continue
+        nb = cl_gs_basis(basis + [x])
+        if len(nb) == len(basis):
+            skipped += 1                 # degenerate: inside span
+            continue
+        T2, i2, basis = [(x, y)], i, nb
+        break
+    assert T2 and len(basis) == 3, \
+        "ABORT: no rank-3 point found for task 2"
+    used.add(i2)
+    T3 = [(x, y) for i, (_, x, y) in enumerate(s)
+          if i not in used]
+    return [T1, T2, T3], skipped
+
+
+def continual_multi_run(ledger_path, steps=CL_STEPS):
+    """T = 3 sequential phases with ACCUMULATED GPM subspaces,
+    naive control arm; per-phase telemetry: loss of the current
+    task, losses of ALL previous tasks (forgetting matrix),
+    rank track of the accumulated span."""
+    pts = rd_load_dataset(ledger_path)
+    assert len(pts) >= 100, \
+        f"ABORT: expected 100+ real points, got {len(pts)}"
+    tasks, skipped2 = clm_split(pts)
+    T = len(tasks)
+    res = {"n_points": len(pts), "n_tasks": T,
+           "task_sizes": [len(t) for t in tasks],
+           "degenerate_skips_task2": skipped2}
+    rank_track = []
+    past_x = []
+    for t in range(T):
+        r0 = len(past_x)
+        past_x = past_x + [x for x, _ in tasks[t]]
+        rank_track.append({
+            "t": t, "n_inputs_cum": len(past_x),
+            "rank_before": len(cl_gs_basis(
+                past_x[:-len(tasks[t])])),
+            "rank_after": len(cl_gs_basis(past_x)),
+            "n_new_indep": len(cl_gs_basis(past_x))
+            - len(cl_gs_basis(
+                past_x[:-len(tasks[t])]))})
+    res["rank_track"] = rank_track
+    for arm in ("naive", "gpm"):
+        w = [F(0)] * CL_D
+        after = []            # loss on task s right after phase s
+        forget = [[None] * T for _ in range(T)]
+        phases = []
+        for t in range(T):
+            past_x = [x for s_ in range(t)
+                      for x, _ in tasks[s_]]
+            if t == 0:
+                traj, tel, w = cl_certified_loop(
+                    w, tasks[0], tasks[T-1], steps,
+                    eta=CLM_ETA, grid=CLM_GRID)
+            else:
+                basis = cl_gs_basis(past_x)
+                assert len(basis) < CL_D, \
+                    "ABORT: accumulated span full - " \
+                    "complement trivial"
+                Q = cl_complement_projector(basis)
+                ortho = [p for s_ in range(t) for p in tasks[s_]]
+                traj, tel, w = cl_certified_loop(
+                    w, tasks[t], tasks[T-1], steps,
+                    Q=(Q if arm == "gpm" else None),
+                    ortho_data=(ortho if arm == "gpm"
+                                else None),
+                    eta=CLM_ETA, grid=CLM_GRID)
+            after.append(cl_mse(w, tasks[t]))
+            # forgetting matrix row: loss of EVERY task s at the
+            # end of phase t vs right after phase s
+            row = []
+            for s_ in range(T):
+                ls = cl_mse(w, tasks[s_]) if s_ <= t else None
+                if s_ <= t:
+                    forget[t][s_] = ls - after[s_]
+                row.append(str(ls) if ls is not None else None)
+            if arm == "gpm" and t > 0:
+                for s_ in range(t):
+                    assert cl_mse(w, tasks[s_]) == after[s_], \
+                        f"ABORT: task {s_+1} loss moved under " \
+                        f"GPM phase {t+1}"
+            phases.append({
+                "t": t,
+                "loss_task": cl_mse(w, tasks[t]),
+                "all_task_losses": row,
+                "n_steps": len(traj), "w": list(w)})
+            if arm == "gpm":
+                res.setdefault("traj", []).append(traj)
+                res.setdefault("tel", []).append(tel)
+        res[f"phases_{arm}"] = phases
+        res[f"forget_{arm}"] = forget
+        res[f"final_w_{arm}"] = w
+        res[f"after_{arm}"] = after
+    return res
+
+
+def emit_lean_contm(path, res, witness_steps=4):
+    """C488 witness: per-phase GPM-arm literal trajectories
+    (CertStepData prefixes) + #eval checkTrajectory + valid
+    theorems + #check of the multi-task theory and the rank
+    certificate; header documents FULL counts honestly."""
+    out = ["-- C488 multi-task continual witness (real "
+           "unified_ledger data).\n"
+           f"-- tasks: {res['task_sizes']} pts; FULL accepted "
+           "GPM steps per phase: "
+           + ", ".join(str(len(p)) for p in res["phases_gpm"])
+           + "; first machine-checked prefixes below.\n"
+           "-- GPM phases preserve ALL previous task losses "
+           "EXACTLY (Hagi.Theory.ContinualMulti."
+           "gpm_multi_zero_forgetting;\n"
+           "-- per-step asserts: gpmOrth + exact loss "
+           "invariance on every past task point).\n"
+           "-- Rank track certificate: Hagi.Spectral."
+           "rank_orthogonal_growth (k new orthogonal "
+           "independent rows => rank +k exactly).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.ContinualMulti\n"
+           "import Hagi.Spectral.RankGrowth\n\n"
+           "open Hagi.Runtime\n\n"]
+    for t, (ph, traj) in enumerate(zip(res["phases_gpm"],
+                                       res["traj"])):
+        name = f"P{t+1}"
+        start = (res["phases_gpm"][t-1]["loss_task"]
+                 if t else F(0))
+        start = traj[0]["obj"]
+        ds = [dict(d) for d in traj[:witness_steps]]
+        out.append(f"def benchStartC488{name} : ℚ := "
+                   f"{rat(start)}\n\n"
+                   f"def benchTrajectoryC488{name} : List "
+                   "Hagi.Runtime.CertStepData :=\n"
+                   + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                   + "\n]\n\n"
+                   f"#eval checkTrajectory benchStartC488{name} "
+                   f"benchTrajectoryC488{name}\n\n"
+                   f"theorem continual_multi_{name.lower()}_valid"
+                   " :\n"
+                   f"    checkTrajectory benchStartC488{name} "
+                   f"benchTrajectoryC488{name} = true := by\n"
+                   "  set_option linter.unusedSimpArgs false in\n"
+                   "  simp only [checkTrajectory, checkStep, "
+                   f"benchStartC488{name}, "
+                   f"benchTrajectoryC488{name}, "
+                   "Bool.and_eq_true, decide_eq_true_eq]\n"
+                   "  norm_num\n\n")
+    out.append("#check @Hagi.Theory.ContinualMulti."
+               "gpm_multi_zero_forgetting\n"
+               "#check @Hagi.Spectral.rank_orthogonal_growth\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C487: WITHOUT-REPLACEMENT holdout bound bench (--mode wrbound)
 #
 # Compares the C487 Freedman-adaptive without-replacement bound
@@ -2514,7 +2722,8 @@ def main():
                              "hadamard-tern", "ef21-step", "grow",
                              "grow-stop", "full-pipeline",
                              "trunk-train", "real-data",
-                             "continual", "wrbound"],
+                             "continual", "continual-multi",
+                             "wrbound"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -2544,6 +2753,12 @@ def main():
                          "continual: C485 two-task continual bench "
                          "(GPM zero forgetting vs naive GD, real "
                          "unified_ledger data); "
+                         "continual-multi: C488 multi-task (T=3) "
+                         "continual bench with ACCUMULATED GPM "
+                         "subspaces (projection onto the "
+                         "complement of the union span of all "
+                         "past task inputs; forgetting matrix + "
+                         "rank track, naive control arm); "
                          "wrbound: C487 without-replacement holdout "
                          "concentration bench (Freedman-adaptive "
                          "wr-bound vs C435 with-replacement "
@@ -2580,6 +2795,61 @@ def main():
             "model": "real-data certified trunk (C484 loop, "
                      "fixed final model), u = sqerr/L in [0,1]",
             **res}, indent=1))
+        return
+
+    if args.mode == "continual-multi":
+        res = continual_multi_run(
+            args.data, args.steps if args.steps is not None
+            else CL_STEPS)
+        T = res["n_tasks"]
+        print(json.dumps({
+            "mode": "continual-multi",
+            "n_points": res["n_points"],
+            "n_tasks": T,
+            "task_sizes": res["task_sizes"],
+            "degenerate_skips_task2":
+                res["degenerate_skips_task2"],
+            "rank_track": res["rank_track"],
+            "model": "linear head w in Q^4, loss = MSE; "
+                     "GPM arm projects each step of phase t+1 "
+                     "onto the complement of span(inputs of "
+                     "tasks 1..t) (exact rational GS)",
+            "theorem": "Hagi.Theory.ContinualMulti."
+                       "gpm_multi_zero_forgetting (C488)",
+            "rank_certificate": "Hagi.Spectral."
+                                "rank_orthogonal_growth",
+            "forgetting_matrix_gpm": [
+                [str(v) if v is not None else None
+                 for v in row] for row in res["forget_gpm"]],
+            "forgetting_matrix_naive": [
+                [str(v) if v is not None else None
+                 for v in row] for row in res["forget_naive"]],
+            "forgetting_gpm_all_zero": all(
+                v == 0 for row in res["forget_gpm"]
+                for v in row if v is not None),
+            "after_gpm": [str(v) for v in res["after_gpm"]],
+            "after_naive": [str(v) for v in
+                            res["after_naive"]],
+            "phases_gpm": [{"t": p["t"],
+                           "loss_task": str(p["loss_task"]),
+                           "all_task_losses": [v for v in
+                                               p["all_task_"
+                                                 "losses"]],
+                           "n_steps": p["n_steps"]}
+                          for p in res["phases_gpm"]],
+            "phases_naive": [{"t": p["t"],
+                             "loss_task": str(p["loss_task"]),
+                             "n_steps": p["n_steps"]}
+                            for p in res["phases_naive"]],
+            "holds_gpm": [[{k: str(v) for k, v in h.items()}
+                          for h in tel["holds"]]
+                         for tel in res["tel"]],
+            "trajectories_gpm": [
+                [{k: str(v) for k, v in d.items()}
+                 for d in traj] for traj in res["traj"]],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_contm(args.emit_lean, res)
         return
 
     if args.mode == "continual":

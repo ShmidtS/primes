@@ -476,6 +476,7 @@ import Hagi.Theory.MDLPrune
 import Hagi.Theory.KnobMomentum
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.ContinualBench
+import Hagi.Theory.ContinualMulti
 import Hagi.Theory.HoldoutWithoutReplacement
 
 set_option linter.style.header false
