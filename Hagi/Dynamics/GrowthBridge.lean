@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Mathlib
+import Mathlib.Tactic
 import Hagi.System.GrowthState
 import Hagi.Probability.ConditionalSuccess
 import Hagi.Probability.CertifiedEstimator

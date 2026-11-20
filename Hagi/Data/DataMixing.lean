@@ -1,4 +1,5 @@
-import Mathlib
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.Tactic
 
 /-!
 # Законы смешивания данных (источник №13)
