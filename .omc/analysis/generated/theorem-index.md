@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 549
-- theorems: 12319
-- defs: 4596
-- noncomputable decls: 1171
-- status Proven: 468 modules
+- modules: 556
+- theorems: 12370
+- defs: 4606
+- noncomputable decls: 1180
+- status Proven: 475 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -85,7 +85,10 @@ theorems.
 | Hagi.Contracts.BatchCEGrowth | 105 | 58 | residualDirection, residualAdmissionMargin, residualStepMargin, residualFeatures, grownBatchState, quarantinedGrowStep, growthObjective, residualPath, growthPath, boundedGrowStep | no | Proven |
 | Hagi.Contracts.BatchCEGrowthSelection | 89 | 22 | growthAdmissionProblemAt_decidable_safe, growthAdmissionPlanStep, growthCandidateOperationIncrement, growthAdmissionMemoryIncrement, growthCandidateStep, smoothedGrowthYield, growthSelection, growthAdmissionPlanRollout, growthAdmissionPlanSelection, growthProblemAt, growthAdmissionOperationIncrement, growthAdmissionSelectionTrace, growthAdmissionSelection, growthAdmissionSelectionPath, growthAdmissionPlanProblemAt, growthAdmissionSelectionNext, growthAdmissionPlanProblemAt_decidable_safe, growthProblemAt_decidable_safe, growthSelectionNext, growthCandidateMemoryIncrement, growthAdmissionProblemAt | no | Proven |
 | Hagi.Contracts.BatchCEStepCore | 47 | 13 | heterogeneousStepCert, batchDirectionTrainInput, batchPairMinimumNormTrainInput, batchTrainStepCert, batchTrainStepMinimalCert, batchCEObjective, batchTrainInput, batchTrainStep, batchLogitCertifiedDrop, batchMinimumNormTrainInput, batchCertifiedDrop, heterogeneousStep | no | Proven |
-| Hagi.Contracts.BatchCETrajectory | 152 | 24 | directionBatchObjective, identityScaledBatchCEPath, directionBatchSampleCE, directionBatchMargin, directionBatchMeanMargin, sameZeroInitialMeanDrop, minimumNormIdentityScaledThreshold, guardedBatchInputPath, fixedBatchState, directionBatchHalfState, directionBatchState, minimumNormIdentityInitialMeanDrop, directionBatchMinNormSquaredBudget, fixedBatchObjective, directionBatchHalfBindingMargin, identityMinimumNormScaledBatchCEPath, directionBatchHalfQuadraticMargin, directionBatchHalfMeanQuadraticMargin, sameZeroScaledThreshold | no | Proven |
+| Hagi.Contracts.BatchCETrajectory | 0 | 0 | - | no | Proven |
+| Hagi.Contracts.BatchCETrajectory.Core | 53 | 0 | - | no | Proven |
+| Hagi.Contracts.BatchCETrajectory.Direction | 65 | 14 | directionBatchObjective, directionBatchSampleCE, directionBatchMargin, directionBatchMeanMargin, guardedBatchInputPath, directionBatchHalfState, directionBatchState, directionBatchMinNormSquaredBudget, directionBatchHalfBindingMargin, directionBatchHalfQuadraticMargin, directionBatchHalfMeanQuadraticMargin | no | Proven |
+| Hagi.Contracts.BatchCETrajectory.FixedBatch | 36 | 11 | identityScaledBatchCEPath, sameZeroInitialMeanDrop, minimumNormIdentityScaledThreshold, fixedBatchState, minimumNormIdentityInitialMeanDrop, fixedBatchObjective, identityMinimumNormScaledBatchCEPath, sameZeroScaledThreshold | no | Proven |
 | Hagi.Contracts.BatchRangeBF16Cert | 18 | 3 | batchCEMetrics, batchCE_transitionStep_hold, batchCE_bf16_transitionStep_progress | no | Proven |
 | Hagi.Contracts.BudgetedParetoStepCert | 6 | 1 | budgetedParetoStepCert | no | Proven |
 | Hagi.Contracts.BudgetedParetoStepContract | 3 | 1 | budgetedParetoStepContract | no | Proven |
@@ -112,7 +115,7 @@ theorems.
 | Hagi.Contracts.LogitGrad | 6 | 1 | logitGrad | no | Proven |
 | Hagi.Contracts.MixtureEMTrajectory | 42 | 26 | mixtureState, mixtureGridWeight, mixtureJointMass, mixtureModel, mixtureCanonicalPath, mixtureStateStep, mixtureChannel, mixtureFamily, mixtureTrajectoryModel, mixturePriorMass, mixtureTrajectoryBank | no | Proven |
 | Hagi.Contracts.NaturalLean | 0 | 0 | - | no | Proven |
-| Hagi.Contracts.ObjectiveTrajectory | 20 | 0 | - | no | Proven |
+| Hagi.Contracts.ObjectiveTrajectory | 23 | 0 | - | no | Proven |
 | Hagi.Contracts.SparseInferenceCert | 28 | 8 | sparse_step_certified | no | Proven |
 | Hagi.Contracts.StepCertificate | 8 | 3 | trainStepCert, trainMeasured, trainStepMinimalCert | yes | Conditional |
 | Hagi.Contracts.TotalError | 5 | 0 | - | no | Proven |
@@ -503,6 +506,7 @@ theorems.
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
+| Hagi.Theory.BlockLipschitz | 42 | 9 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
 | Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
@@ -565,7 +569,10 @@ theorems.
 | Hagi.Unified.MicroStepCert | 4 | 2 | - | no | Proven |
 | Hagi.Unified.NCStepCert | 20 | 6 | ncContract, ncTraj, ncStepCert, ncMinimalStepCert, ncCertStep, ncMeasured | no | Proven |
 | Hagi.Unified.NegativeTests | 6 | 0 | - | no | Proven |
-| Hagi.Unified.ParetoExecution | 243 | 100 | minimumResource, fixedBiasBinaryPath, guardedMinimumResource, guardedRobustNext, robustNext, scaledBiasBinaryValueEstimate, logitEstimate, scaledBiasBinaryPath, estimatedMaxValue, scaledBiasBinaryProgressCount, inverseScaledController, selection, logitProblem, logitTrajCert, selectedNext, logitProblemSafeDecidable, selectionIn, fixedBiasBinaryValueEstimate, fixedBiasBinaryGain, scoreDominatingIn, guardedRobustPath, guardedLogitNext, guardedRobustGain, scaledBiasBinaryGain, logitStepFun, logitSafeDecidable, robustMinimumResource, fixedBiasBinaryProgressCount | no | Proven |
+| Hagi.Unified.ParetoExecution | 0 | 0 | - | no | Proven |
+| Hagi.Unified.ParetoExecution.Controller | 112 | 59 | minimumResource, guardedMinimumResource, logitEstimate, estimatedMaxValue, logitProblem, logitTrajCert, logitProblemSafeDecidable, guardedLogitNext, logitStepFun, logitSafeDecidable, robustMinimumResource | no | Proven |
+| Hagi.Unified.ParetoExecution.Selection | 42 | 27 | guardedRobustNext, robustNext, selection, selectedNext, selectionIn, scoreDominatingIn | no | Proven |
+| Hagi.Unified.ParetoExecution.Trajectory | 93 | 14 | fixedBiasBinaryPath, scaledBiasBinaryValueEstimate, scaledBiasBinaryPath, scaledBiasBinaryProgressCount, inverseScaledController, fixedBiasBinaryValueEstimate, fixedBiasBinaryGain, guardedRobustPath, guardedRobustGain, scaledBiasBinaryGain, fixedBiasBinaryProgressCount | no | Proven |
 | Hagi.Unified.QuadMachine | 19 | 9 | machineCert, commitInd, commitCount, gateTraj, quantLift, gateStep | no | Proven |
 | Hagi.Unified.RateTheory | 24 | 6 | - | no | Proven |
 | Hagi.Unified.RecursiveClean | 19 | 21 | timeConsistency, piR, indepMass, branchLocality | no | Proven |
