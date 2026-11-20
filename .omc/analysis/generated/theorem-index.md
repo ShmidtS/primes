@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 565
-- theorems: 12530
-- defs: 4678
-- noncomputable decls: 1192
-- status Proven: 484 modules
+- modules: 568
+- theorems: 12694
+- defs: 4691
+- noncomputable decls: 1201
+- status Proven: 487 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -515,6 +515,7 @@ theorems.
 | Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
 | Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
 | Hagi.Theory.ContinualBench | 3 | 1 | - | no | Proven |
+| Hagi.Theory.ContinualMulti | 5 | 0 | - | no | Proven |
 | Hagi.Theory.EF21InStep | 11 | 5 | - | no | Proven |
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
 | Hagi.Theory.FisherQuant | 21 | 4 | quadLoss | no | Proven |
@@ -524,6 +525,7 @@ theorems.
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
 | Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
+| Hagi.Theory.HoldoutWithoutReplacement | 145 | 12 | sigWR, wrPopMean, muCond, qdWR, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
 | Hagi.Theory.KnobMomentum | 27 | 14 | vel, clampIdx, idxTraj, qround | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
@@ -534,6 +536,7 @@ theorems.
 | Hagi.Theory.NonlinearMerge | 26 | 8 | curvRemainder, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
+| Hagi.Theory.RationalSoftmax | 14 | 1 | - | no | Proven |
 | Hagi.Theory.SelfEditGate | 16 | 7 | - | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
 | Hagi.Theory.TrunkTrain | 4 | 18 | - | no | Proven |
