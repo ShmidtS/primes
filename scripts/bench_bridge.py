@@ -360,6 +360,189 @@ def emit_hold_tern(path, start, traj):
 
 
 # ----------------------------------------------------------------
+# C477: Hadamard-gated ternary quantization (--mode hadamard-tern)
+#
+# PIN (P5 of the A19 audit): the Hadamard rotation before ternary
+# quantization is applied ONLY under a MEASURED incoherence gate
+# (the corpus negative hadamard_not_universally_incoherent pins
+# that the rotation is NOT universally beneficial: it can
+# CONCENTRATE a vector instead of spreading it). The gate is the
+# exact rational coherence comparison cohSq(Hw) < cohSq(w) with
+# cohSq(v) = max|v|^2 / sum(v^2) (the square of the coherence —
+# monotone, so the strict comparison decides the same; computed
+# with the INTEGER +-1 Sylvester matrix because cohSq is
+# scale-invariant, mirroring Hagi/Theory/HadamardIncoherence.lean
+# cohSq_smul — no sqrt/irrationals anywhere).
+#
+# PIN (dimension): cert-tern runs on CE_K = 3 classes, which is not
+# a power of two; this mode uses a K = 4 = 2^2 head (same
+# rational-softmax surrogate, eta = 1/L Frobenius, exact checkStep
+# admission on every emitted step) so the Sylvester H_2 applies.
+#
+# PIN (derotation): quantization happens in the ROTATED basis only
+# when the gate passes; the pattern q and lsScale-optimal s* follow
+# the C443 recipe exactly, and the result is derotated through the
+# symmetric integer inverse w' = H^T (s* q)/4 (H H = 4 I, all
+# Fractions). If the gate fails, the C443 direct quantizer runs
+# unchanged — the machine decides, not a postulate. The jump is
+# admitted ONLY by the exact certified criterion drop > 0; a
+# rejection is a HOLD (excluded from the emitted trajectory).
+
+HT_K = 4                                  # classes = 2^2 (Sylvester order)
+HT_W0 = [F(-3), F(-2), F(-2), F(1)]     # fixed before the run, C443-style
+# Sylvester H_2 (integer +-1, symmetric, H*H = 4 I)
+HT_H = [[1, 1, 1, 1],
+        [1, -1, 1, -1],
+        [1, 1, -1, -1],
+        [1, -1, -1, 1]]
+
+
+def ht_point_loss(w, x, y):
+    """1 - p_true, rational-softmax over squared scores (C442)."""
+    S = sum((w[c] * x) ** 2 for c in range(HT_K))
+    return F(1) - (w[y] * x) ** 2 / S
+
+
+def ht_train_loss(w):
+    n = F(len(CE_XTR))
+    return sum((ht_point_loss(w, x, y)
+                for x, y in zip(CE_XTR, CE_YTR)), F(0)) / n
+
+
+def ht_holdout_risk(w):
+    return ht_point_loss(w, CE_XHO, CE_YHO)
+
+
+def ht_grad(w):
+    """Exact rational gradient of the K=4 CE surrogate."""
+    g = [F(0)] * HT_K
+    n = F(len(CE_XTR))
+    for x, y in zip(CE_XTR, CE_YTR):
+        S = sum((w[c] * x) ** 2 for c in range(HT_K))
+        a = (w[y] * x) ** 2
+        for c in range(HT_K):
+            dS = 2 * x * x * w[c]
+            da = (2 * w[y] * x * x) if c == y else F(0)
+            g[c] += (a * dS) / (S * S) - da / S
+    return [t / n for t in g]
+
+
+def ht_L():
+    return sum((x * x for x in CE_XTR for _ in range(HT_K)), F(0))
+
+
+def ht_matvec(H, w):
+    return [sum((H[r][c] * w[c] for c in range(HT_K)), F(0))
+            for r in range(HT_K)]
+
+
+def coh_sq(w):
+    """Exact rational coherence squared: max|w|^2 / sum(w^2)
+    (mirror of cohSq in Hagi/Theory/HadamardIncoherence.lean)."""
+    l2 = sum((t * t for t in w), F(0))
+    if l2 == 0:
+        return F(0)
+    return max(abs(t) for t in w) ** 2 / l2
+
+
+def ht_quantize(w):
+    """Gated Hadamard ternary jump (rotate-if-measured-better).
+
+    Measures cohSq(w) vs cohSq(H w) exactly in Fractions; rotates
+    only when the strict gate passes; quantizes (C443 lsScale
+    recipe: s0 = max|.|, q = roundTern, s* = sum q w / sum q q);
+    derotates w' = H^T (s* q)/4 when rotated. Returns
+    (w', s, q, s0, gate_info)."""
+    hw = ht_matvec(HT_H, w)
+    c_before = coh_sq(w)
+    c_after = coh_sq(hw)
+    gate = c_after < c_before
+    src, basis = (hw, "hadamard") if gate else (w, "direct")
+    s0 = max(abs(t) for t in src) or F(1)
+    q = [round_tern(t / s0) for t in src]
+    qq = sum((t * t for t in q), F(0))
+    if qq == 0:
+        wq = [F(0)] * HT_K
+        s = F(0)
+    else:
+        s = sum((q[i] * src[i] for i in range(HT_K)), F(0)) / qq
+        scaled = [s * t for t in q]
+        wq = ht_matvec(HT_H, scaled) if gate else scaled
+        if gate:  # derotate: H^T = H, H*H = 4 I  =>  x -> H x / 4
+            wq = [t / F(4) for t in wq]
+    sat = sum((1 for t in src if abs(t) > 3 * s / 2), 0) if s > 0 else HT_K
+    gate_info = {"coh_sq_before": c_before, "coh_sq_after": c_after,
+                 "coh_sq_rotated": c_after if gate else c_before,
+                 "gate_passed": bool(gate), "basis": basis,
+                 "saturated_coords": sat}
+    return wq, s, q, s0, gate_info
+
+
+def train_ht(grad_steps, ft_steps):
+    """Certified K=4 CE train -> HADAMARD-GATED ternary jump ->
+    finetune. Same admission discipline as train_tern: every emitted
+    step passes the in-line checkStep mirror; the jump is admitted
+    only by the exact drop > 0 criterion, otherwise a HOLD."""
+    w = list(HT_W0)
+    states = [tuple(w)]
+    raw = []
+    holds = []
+    jump = {}
+
+    def record(phase, obj, obj2, risk, risk2, w2, **extra):
+        raw.append({"phase": phase, "obj": obj, "obj'": obj2,
+                    "drop": obj - obj2, "risk": risk,
+                    "risk'": risk2, **extra})
+        states.append(tuple(w2))
+
+    for t in range(grad_steps):
+        obj, risk = ht_train_loss(w), ht_holdout_risk(w)
+        g = ht_grad(w)
+        w2 = [w[c] - (F(1) / ht_L()) * g[c] for c in range(HT_K)]
+        record("grad", obj, ht_train_loss(w2), risk,
+               ht_holdout_risk(w2), w2)
+        w = w2
+
+    obj, risk = ht_train_loss(w), ht_holdout_risk(w)
+    wq, s, q, s0, gate_info = ht_quantize(w)
+    obj2, risk2 = ht_train_loss(wq), ht_holdout_risk(wq)
+    drop = obj - obj2
+    dist = sum(((w[i] - wq[i]) ** 2 for i in range(HT_K)), F(0))
+    ceiling = F(HT_K) * s * s / 8
+    jump = {"obj": obj, "obj'": obj2, "drop": drop, "s": s,
+            "pattern": [int(t) for t in q], "s0": s0,
+            "distortion": dist, "ceiling_k_s2_over_8": ceiling,
+            "distortion_within_ceiling": bool(dist <= ceiling),
+            **gate_info}
+    if drop > 0:
+        jump["accepted"] = True
+        record("jump", obj, obj2, risk, risk2, wq, s=s, pattern=q)
+        w = wq
+    else:
+        jump["accepted"] = False
+        holds.append({"phase": "jump", "obj": obj, "obj'": obj2,
+                      "drop": drop, "s": s, "pattern": q,
+                      "reason": "drop <= 0: HOLD, weights unchanged,"
+                                " step excluded (checkStep needs 0<drop)"})
+
+    for t in range(ft_steps):
+        obj, risk = ht_train_loss(w), ht_holdout_risk(w)
+        g = ht_grad(w)
+        w2 = [w[c] - (F(1) / ht_L()) * g[c] for c in range(HT_K)]
+        record("finetune", obj, ht_train_loss(w2), risk,
+               ht_holdout_risk(w2), w2)
+        w = w2
+
+    n = F(len(raw))
+    for t, d in enumerate(raw):
+        d["budget"] = (F(len(raw) - t) / n) if n else F(0)
+        d["budget'"] = (F(len(raw) - t - 1) / n) if n else F(0)
+        if not check_step(d):
+            sys.exit(f"ABORT: hadamard-tern step {t} ({d['phase']}) "
+                     f"failed certified admission: {d}")
+    return raw[0]["obj"], raw, holds, states, jump
+
+# ----------------------------------------------------------------
 # C474: EF21 in-step quantized training loop (--mode ef21-step)
 #
 # PIN (P3 of the A19 audit): the C443 mode quantizes POST HOC (a
@@ -1117,12 +1300,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
-                             "ef21-step", "grow", "grow-stop"],
+                             "hadamard-tern", "ef21-step", "grow",
+                             "grow-stop"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
                          "cert-tern: C443 certified ternary "
                          "quantization jump cycle; "
+                         "hadamard-tern: C477 Hadamard-gated ternary "
+                         "quantization (measured cohSq gate); "
                          "grow: C444 certified block "
                          "admission for LM growth; "
                          "ef21-step: C474 EF21 in-step quantized "
@@ -1141,6 +1327,36 @@ def main():
                          "(a drop=0 identity step the checker "
                          "must reject)")
     args = ap.parse_args()
+
+    if args.mode == "hadamard-tern":
+        start, traj, holds, states, jump = train_ht(
+            args.grad_steps if args.grad_steps is not None else 1,
+            args.ft_steps if args.ft_steps is not None else 1)
+        print(json.dumps({
+            "mode": "hadamard-tern",
+            "K": HT_K,
+            "eta": str(F(1) / ht_L()), "L": str(ht_L()),
+            "start": str(start),
+            "train_loss_final": str(traj[-1]["obj'"]),
+            "holdout_final": str(traj[-1]["risk'"]),
+            "jump": {k: (str(v) if not isinstance(v, (bool, list))
+                         else ([str(t) for t in v]
+                               if isinstance(v, list) else v))
+                     for k, v in jump.items()},
+            "holds": [{k: (str(v) if not isinstance(v, (bool, list))
+                           else ([str(t) for t in v]
+                                 if isinstance(v, list) else v))
+                       for k, v in h.items()} for h in holds],
+            "trajectory": [{k: str(v) for k, v in d.items()}
+                           for d in traj],
+            "weights": ["[" + ", ".join(map(str, w)) + "]"
+                        for w in states],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_tern(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_tern(args.corrupt, start, traj)
+        return
 
     if args.mode == "ef21-step":
         steps = args.steps if args.steps is not None             else EF21_STEPS_DEFAULT
