@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 562
-- theorems: 12509
-- defs: 4637
+- modules: 564
+- theorems: 12527
+- defs: 4677
 - noncomputable decls: 1192
-- status Proven: 481 modules
+- status Proven: 483 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -518,6 +518,7 @@ theorems.
 | Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
 | Hagi.Theory.FisherQuant | 21 | 4 | quadLoss | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
+| Hagi.Theory.FullPipeline | 14 | 22 | - | no | Proven |
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
@@ -534,6 +535,7 @@ theorems.
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
 | Hagi.Theory.SelfEditGate | 16 | 7 | - | no | Proven |
 | Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
+| Hagi.Theory.TrunkTrain | 4 | 18 | - | no | Proven |
 | Hagi.Theory.TwoDomainConfidence | 1 | 0 | - | no | Proven |
 | Hagi.Theory.VerticalCapstone | 9 | 0 | - | no | Proven |
 | Hagi.Training.AdaptiveAnytime | 21 | 15 | adaptiveRoundWeights | no | Proven |
