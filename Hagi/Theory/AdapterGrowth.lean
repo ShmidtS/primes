@@ -649,4 +649,75 @@ theorem trunk_update_needs_projection {m n : ℕ}
 
 end ContinualIsolation
 
+/-!
+## C555: self-compressing adapter loop
+
+Цикл learn→merge→learn: рост знания адаптерами при BOUNDED
+объёме. Итерация: admit ранг-1 уровня (нейтральный B = 0),
+certified fd-шаги (`adapter_step_certified`), merge стека в
+ранг-k адаптер (`adapter_merge_error_bound`); при k = d merge
+ТОЧЕН (ранг Δ = Π(I+E_i) − I не превосходит d структурно —
+`adapter_stack_rank_bound`), потому параметры после каждого
+merge равны `selfCompressParams k d = 2·k·d` и НЕ растут с
+числом итераций, а суммарный certified-drop накапливается
+(телескоп: obj ≤ start + Σ bounds, делегат `grow_snap_cycle_sound`).
+Bench-инстанс: `--mode self-compress-loop` (полный живой корпус
+C551, констант-кластеры + адаптерный остаток, K = d = 4).
+-/
+section SelfCompress
+
+open Hagi.Theory.GrowSnap
+
+/-- Параметр-бюджет self-compress цикла: ранг-k адаптер —
+ровно `2·k·d` параметров (факторы d×k и k×d). После каждого
+merge параметр-счёт цикла равен этому бюджету и не зависит
+от числа итераций (контраст: unmerged-стек L уровней —
+`2·L·d`, линейный рост). -/
+def selfCompressParams (k d : ℕ) : ℕ := 2 * k * d
+
+/-- Бюджет достигается merge'ем: ранг-k адаптер не дороже
+стека из L ранг-1 уровней при `k ≤ L` (переиспользует
+`adapter_merge_params`). -/
+theorem self_compress_params_bounded (k d L : ℕ)
+    (hk : k ≤ L) :
+    selfCompressParams k d ≤ 2 * L * d :=
+  adapter_merge_params d L k hk
+
+/-- Счёт-контраст БЕЗ merge: стек L уровней строго дороже
+ранг-k адаптера при `k < L` и непустом d — параметры
+unmerged-цикла растут ЛИНЕЙНО с числом итераций, self-compress
+цикл держит их на `selfCompressParams k d` (bench-инстанс
+C555: k = d = 4, L = 6 — 32 < 48). -/
+theorem self_compress_params_contrast {k d L : ℕ}
+    (hk : k < L) (hd : 0 < d) :
+    selfCompressParams k d < 2 * L * d := by
+  unfold selfCompressParams
+  exact Nat.mul_lt_mul_of_lt_of_le (by omega)
+    (Nat.le_refl d) hd
+
+/-- **Soundness self-compress цикла (C555)**: композиция
+(admit + certified-шаг + merge) × n итераций даёт
+(а) телескоп-границу `step n ≤ o0 + bs.sum` (admit вклад 0,
+шаги вклад ≤ 0, merge вклад b_i — делегат `grow_snap_cycle_sound`,
+обобщение C533-телескопа на цикл с merge) и (б) параметр-бюджет:
+после каждого merge счёт = `selfCompressParams k d` — потому
+`params n ≤ 2·k·d` при ЛЮБОМ n (знание растёт, объём — нет).
+Первая компонента та же, что у `adapter_snap_cycle_sound`
+(общий делегат), вторая — новая: цикл-инвариант параметров. -/
+theorem self_compress_loop_sound (k d : ℕ) (o0 : ℝ)
+    (bs : List ℝ) (step params : ℕ → ℝ)
+    (h0 : step 0 ≤ o0)
+    (hstep : ∀ i, i < bs.length →
+      step (i + 1) ≤ step i + bs.getD i 0)
+    (hparams : ∀ i, i ≤ bs.length →
+      params i = selfCompressParams k d) :
+    step bs.length ≤ o0 + bs.sum ∧
+      params bs.length ≤ 2 * k * d :=
+  ⟨grow_snap_cycle_sound o0 bs step h0 hstep, by
+    have h := hparams bs.length (Nat.le_refl _)
+    rw [h]
+    exact le_of_eq (by simp [selfCompressParams])⟩
+
+end SelfCompress
+
 end Hagi.Theory.AdapterGrowth

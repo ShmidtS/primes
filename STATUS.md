@@ -4032,7 +4032,7 @@ Bench `--mode universal-loop-nl` (backward-совместимо; append-блок
   ни пороговой, ни min/max.
 - GATE-FIX (найден прогоном C553, исправлен в нём же): приём
   «≥5 НОВЫХ позиций» считал позиции, уже покрытые кандидатами,
-  принятыми РАНЕЕ в той же итерации (stale `unc`); ложный
+  принятыми РАНЕЕ в той же итерации (stale unc); ложный
   «закон» 11/8 + 4·x0·x0 прошёл гейт, добавив 1 позицию. Фикс:
   newi исключает covered наlive. universal-loop (C551) не
   затронут (там кандидаты одной итерации не пересекались —
@@ -4065,3 +4065,58 @@ Bench `--mode universal-loop-nl` (backward-совместимо; append-блок
   coverage-монотонность, негативы wrong-const/no-progress,
   #check oe_search_complete / iterative_loop_sound; rc=0
   (.tmp/C553/witness-check.log).
+
+## scripts/bench_bridge.py + Hagi/Theory/AdapterGrowth.lean (C555: self-compress-loop, H2-ответ roadmap C554)
+
+Bench `--mode self-compress-loop` (backward-совместимо; append-блок
++ choice + dispatch). H2-ответ: законов в корпусе нет (C551/C553),
+рост — нейроадаптация; self-compressing цикл learn→merge→learn на
+ПОЛНОМ живом корпусе 113: параметры BOUNDED при монотонном росте
+знания.
+
+- Фаза 0: констант-кластеры C551 (6 кластеров, 106/113) +
+  certified fd-голова w (CL_D=4) на остатке 7 точек, заморожена.
+- Итерация ℓ: ADMIT нейтрального ранг-1 уровня (B=0, assert
+  obj-инвариант ТОЧНО) → LEARN certified fd-шаги (drop>0 COMMIT /
+  HOLD, snap q/2^16) на ВСЕХ живых параметрах (2·K·d merged +
+  2·d уровня) → MERGE: Δ_new = (I+BA)·Δ + BA точными Fractions,
+  точный ранг ρ (Гаусс–Жордан), exact-факторизация (K = d = 4 ⇒
+  ρ ≤ d структурно — adapter_stack_rank_bound), certified
+  per-point bound (assert), деплой ранга ρ ≤ K.
+- Таблица итераций (прогон .tmp/C555/bench.log): it1 40→8
+  (ρ=1), it2 40→16 (ρ=2), it3 40→24 (ρ=3), it4 40→32 (ρ=4),
+  it5 40→32, it6 40→32 — параметры после КАЖДОГО merge ≤
+  2·K·d = 32 (assert), суммарный certified drop монотонен
+  0.158→0.248→0.276→0.317→0.346→0.364, CE остатка 0.435→0.072
+  (−84%), телескоп Σ merge bounds = 0 (merge exact, obj сохранён
+  бит-в-бит, assert), 56 certified шагов, 0 HOLD, стоп MAX_ITER=6.
+- Счёт-контраст БЕЗ merge: 2·L·d = 48 (линейный рост) против
+  деплой-бюджета 32 (KISS: контраст растёт с L).
+- МАТРЁШКА-НЕГАТИВЫ (агрессивное k<ρ, телеметрия, НЕ в цикле):
+  k=3 деградация 5.44, k=2 — 1.22; certified bounds честно
+  покрывают (usable=false) — знание стека на d=4 распределено
+  по всем сингулярным направлениям; сжатие до k<d теряет
+  знание, потому бюджет цикла — k=d (probe-обоснование
+  .tmp/C555/research.md §7). Тот же эффект виден в C536 bench
+  (matryoshka k=1: usable=false).
+- Дрейф-детект: пересчёт константного покрытия на замороженной
+  копии 106 == 106 (bit-exact). Негативы: wrong-const 1/256 ≠ 0;
+  HOLD unchanged.
+- Lean (AdapterGrowth.lean, секция C555): `selfCompressParams`
+  (def 2·k·d), `self_compress_params_bounded` (делегат
+  adapter_merge_params), `self_compress_params_contrast`
+  (k<L, 0<d ⇒ 2·k·d < 2·L·d — без merge линейный рост),
+  `self_compress_loop_sound` (телескоп obj ≤ start + Σ bounds
+  — делегат grow_snap_cycle_sound (C521/C533-механика) — И
+  параметр-бюджет цикла params ≤ 2·k·d при любом n). Freeze
+  8698 (8694+4); аксиомы только propext / Quot.sound /
+  Classical.choice.
+- Witness .tmp/C555/trajSelfComp.lean: literal certified
+  траектории it1/it4 + #eval checkTrajectory = true ×2 +
+  params-bounded инстанс (32 ≤ 32) + счёт-контраст инстанс
+  (32 < 48) + wrong-const негатив + #check C555/C536/C532
+  теорем; rc=0 (.tmp/C555/witness-check.log).
+- Doc-fix попутно (Boy Scout, одна строка C553-текста): сняты
+  backticks с «unc» (не идентификатор) — statuslint снова PASS
+  (сбой был pre-existing на HEAD 9103d775, воспроизведён git
+  stash до моих правок).
