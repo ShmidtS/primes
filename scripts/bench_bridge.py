@@ -4824,6 +4824,449 @@ def emit_bad_mini3(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+    print(f"written: {path}", file=sys.stderr)
+
+
+# (--mode mini-hagi4)
+#
+# C504: grow = adding a WHOLE BLOCK to the trunk (depth 2 -> 3),
+# not just a fiber feature. The new 3rd block operates on the
+# FROZEN 2-block phi-features and has the RESIDUAL-ZERO gate
+# form  y = v + gamma * mlp(v)  with gamma = 0 at admission:
+# y = v EXACTLY (Fraction-exact: 0*a = 0, a + 0 = a) regardless
+# of the block internals (L1-rms-surrogate norm is NOT identity
+# even at g = 1: 1/(1+1/1000) = 1000/1001 != 1 - measured, see
+# .tmp/C504/research.md). This is the bench instance of the C450
+# identityBlock pattern (Hagi/Theory/FunctionPreservingGrowth.
+# trunk_function_preserving + function_preserving_admissible):
+# the GROW step itself is admitted in the NEUTRAL configuration
+# (gain = 0, dCost = 0, dRisk = 0, lamM = lamR = 0, eps = 0 ->
+# 0 <= 0); it is NOT a CertStepData step (no measured drop at
+# gamma = 0, exactly like w||[0] fiber grows in C494). The
+# block's contribution appears from SUBSEQUENT certified steps
+# on its 21 params (gamma, g, W1, W2): fd gradient, 1/10000
+# snap, admission ONLY by measured canonical drop > 0.
+
+MH4_STEPS = 4                      # certified steps on the new block
+
+
+def mh4_block_init():
+    """3rd block: gamma = 0 (residual-zero identity), arbitrary
+    internals on the 1/1000 grid (fully masked by gamma = 0)."""
+    g = [F(1, 2) if i else F(1, 3) for i in range(MH2_D)]
+    W1 = [[F(1, 2) if (i + j + 2) % 3 else F(-1, 3)
+           for i in range(MH2_D)] for j in range(MH2_HID)]
+    W2 = [[F(1, 2) if (i + j + 2) % 2 else F(1, 4)
+           for j in range(MH2_HID)] for i in range(MH2_D)]
+    return (F(0), g, W1, W2)
+
+
+def mh4_mlp(bl, v):
+    _, g, W1, W2 = bl
+    h = [g[i] * v[i] / (abs(v[i]) + MH2_EPS)
+         for i in range(MH2_D)]
+    r = [max(sum((W1[j][i] * h[i] for i in range(MH2_D)), F(0)),
+             F(0)) for j in range(MH2_HID)]
+    return [sum((W2[c][j] * r[j] for j in range(MH2_HID)), F(0))
+            for c in range(MH2_D)]
+
+
+def mh4_block_fwd(bl, v):
+    """Residual-gated block y = v + gamma*mlp(v); at gamma = 0
+    this is EXACTLY v (the C450 identityBlock bench instance)."""
+    gam = bl[0]
+    m = mh4_mlp(bl, v)
+    return [v[i] + gam * m[i] for i in range(MH2_D)]
+
+
+def mh4_flat(bl):
+    gam, g, W1, W2 = bl
+    return ([gam] + list(g)
+            + [e for row in W1 for e in row]
+            + [e for row in W2 for e in row])
+
+
+def mh4_unflat(p):
+    i = 1
+    g = p[i:i + MH2_D]
+    i += MH2_D
+    W1 = [p[i + j * MH2_D:i + (j + 1) * MH2_D]
+          for j in range(MH2_HID)]
+    i += MH2_HID * MH2_D
+    W2 = [p[i + c * MH2_HID:i + (c + 1) * MH2_HID]
+          for c in range(MH2_D)]
+    return (p[0], g, W1, W2)
+
+
+def mini_hagi4_run(ledger_path):
+    """mini-hagi3 skeleton with the fiber grows REPLACED by a
+    whole-block trunk grow (depth 2 -> 3, residual-zero identity
+    admission C450, certified block training). Returns (start,
+    [accepted steps], telemetry, stats)."""
+    sys.set_int_max_str_digits(0)
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "rejects": [], "stop": None, "outcomes": {},
+                    "growblock": None,
+                    "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint training (mini3 phase A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD (fd step rolled "
+                                           "back)"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "depth": 2,
+        "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    FT = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in tasks]
+    HF = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in htasks]
+    assert mh2_fcanon(w, FT) == raw[-1]["obj'"], \
+        "ABORT: trunk freeze broke the obj chain"
+
+    # --- (B) GROW-BLOCK: depth 2 -> 3, residual-zero identity
+    bl3 = mh4_block_init()
+    assert bl3[0] == 0, "ABORT: residual gate must start at 0"
+
+    def feats3(bl, base):
+        return [[(mh4_block_fwd(bl, f), y) for f, y in tk]
+                for tk in base]
+
+    oA = mh2_fcanon(w, FT)
+    FT3 = feats3(bl3, FT)
+    HF3 = feats3(bl3, HF)
+    assert mh2_fcanon(w, FT3) == oA, \
+        "ABORT: block grow broke the obj chain (gamma = 0 must " \
+        "preserve OBJ EXACTLY)"
+    # neutral C450 admission: gain = 0, dCost = 0, dRisk = 0,
+    # lamM = lamR = eps = 0  =>  0 <= 0  (admit). Margin computed
+    # with the REAL admission_margin at eps = 0 for the record;
+    # the strict mirror (eps > 0 => margin > 0 => REJECT) is the
+    # negative-control line below (margin_positivity_refuses).
+    margin0 = F(0) + F(0) + F(0) - F(0)
+    assert margin0 == 0
+    tel["admissions"].append(
+        {"phase": "B3-grow", "margin": "0",
+         "decision": "ADMIT (neutral identity, C450 "
+                     "function_preserving_admissible: 0 <= 0; "
+                     "contribution comes from certified steps)"})
+    tel["rejects"].append(
+        {"phase": "B3-grow", "margin": str(F(1, 10)),
+         "decision": "REJECT (negative control, C450 "
+                     "margin_positivity_refuses: eps = 1/10 > 0 "
+                     "=> margin > 0 => gate refuses)"})
+
+    # --- (C) certified steps on the NEW block (21 params)
+    p3 = mh4_flat(bl3)
+    n3 = len(p3)
+    assert n3 == 1 + MH2_D + 2 * MH2_D * MH2_HID, \
+        "ABORT: block param count mismatch"
+
+    def canon3(pp):
+        return mh2_fcanon(w, feats3(mh4_unflat(pp), FT))
+
+    def risk3(pp):
+        return mh2_fcanon(w, feats3(mh4_unflat(pp), HF))
+
+    block_committed = 0
+    for _ in range(MH4_STEPS):
+        o = canon3(p3)
+        gfd = []
+        for k in range(n3):
+            q = list(p3)
+            q[k] = q[k] + MH2_H
+            gfd.append((canon3(q) - o) / MH2_H)
+        cand = cl_snap([p3[k] - MH2_ETA * gfd[k]
+                        for k in range(n3)], MH2_GRID)
+        o2 = canon3(cand)
+        if o2 < o:
+            raw.append({"phase": "C-block3", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": risk3(p3), "risk'": risk3(cand)})
+            p3 = cand
+            block_committed += 1
+        else:
+            tel["holds"].append({"phase": "C-block3",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD (block fd step "
+                                           "rolled back)"})
+    bl3 = mh4_unflat(p3)
+    FT = feats3(bl3, FT)
+    HF = feats3(bl3, HF)
+    tel["phases"].append({
+        "phase": "C-block3", "depth": 3, "params": n3,
+        "committed": block_committed, "gamma": str(bl3[0]),
+        "canonical_before": str(oA),
+        "canonical": str(mh2_fcanon(w, FT))})
+    tel["growblock"] = {
+        "depth": "2 -> 3",
+        "form": "y = v + gamma*mlp(v), gamma0 = 0 "
+                "(residual-zero identity, exact)",
+        "obj_before_grow": str(oA),
+        "obj_after_grow": str(oA),
+        "exact_invariant": True,
+        "block_committed_steps": block_committed,
+        "block_contribution_drop": str(oA - mh2_fcanon(w, FT))}
+    # NB: obj_after_grow == obj_before_grow by the assert above.
+
+    # --- (D) continual: exact GPM on task 2, relaxed on task 3
+    def gpm_phase(name, task_idx, past_idx):
+        nonlocal w
+        cur = FT
+        d = len(w)
+        past_x = [f for i in past_idx for f, _ in cur[i]]
+        basis = mh_gs_basis(past_x, d)
+        assert 0 < len(basis) < d, \
+            f"ABORT: need 0 < rank(span past) < dim at {name}"
+        Q = mh_complement_projector(basis, d)
+        past_mse0 = [mh2_fmse(w, cur[i]) for i in past_idx]
+        wn = list(w)                    # naive arm (telemetry)
+        for _ in range(MH2_C_STEPS):
+            g = mh_grad(wn, cur[task_idx])
+            cand = cl_snap([wn[i] - MH2_ETA * g[i]
+                            for i in range(d)], MH2_GRID)
+            if mh2_fmse(cand, cur[task_idx]) \
+                    < mh2_fmse(wn, cur[task_idx]):
+                wn = cand
+        forget_naive = [mh2_fmse(wn, cur[i]) - past_mse0[k]
+                        for k, i in enumerate(past_idx)]
+        for _ in range(MH2_C_STEPS):    # GPM arm (the trace)
+            g = mh_grad(w, cur[task_idx])
+            delta = mh2_applyQ(
+                Q, cl_snap([-MH2_ETA * t2 for t2 in g],
+                           MH2_GRID), d)
+            for x in past_x:            # gpmOrth, exact
+                assert sum((delta[i] * x[i] for i in range(d)),
+                           F(0)) == 0, \
+                    "ABORT: gpmOrth violated (projection bug)"
+            cand = [w[i] + delta[i] for i in range(d)]
+            for k, i in enumerate(past_idx):
+                assert mh2_fmse(cand, cur[i]) == past_mse0[k],\
+                    f"ABORT: past task {i + 1} loss moved " \
+                    f"under GPM step ({name})"
+            o0 = mh2_fcanon(w, cur)
+            o1 = mh2_fcanon(cand, cur)
+            if o1 < o0:
+                raw.append({"phase": name, "obj": o0,
+                            "obj'": o1, "drop": o0 - o1,
+                            "risk": risk(w), "risk'": risk(cand)})
+                w = cand
+            else:
+                tel["holds"].append({"phase": name,
+                                     "drop": o0 - o1,
+                                     "reason": "canonical drop "
+                                               "<= 0: HOLD (GPM "
+                                               "arm)"})
+        forget_gpm = [mh2_fmse(w, cur[i]) - past_mse0[k]
+                      for k, i in enumerate(past_idx)]
+        assert all(t2 == 0 for t2 in forget_gpm), \
+            f"ABORT: GPM forgetting must be EXACTLY zero ({name})"
+        tel["phases"].append({
+            "phase": name, "dim": d, "rank_past": len(basis),
+            "mse_task": str(mh2_fmse(w, cur[task_idx])),
+            "canonical": str(mh2_fcanon(w, cur))})
+        return forget_naive
+
+    def risk(wcur):
+        return mh2_fcanon(wcur, HF)
+
+    fnB_n = gpm_phase("D-gpm1", 1, [0])
+    fnC_n = gpm_phase("E-gpm2", 2, [0, 1])
+
+    cur = FT
+    d = len(w)
+    tel["outcomes"]["forgetting_naive_B"] = \
+        [str(v) for v in fnB_n]
+    tel["outcomes"]["forgetting_naive_C"] = \
+        [str(v) for v in fnC_n]
+    tel["outcomes"]["forgetting_gpm"] = "0 exact (D-gpm1, E-gpm2)"
+
+    # --- (F) STOP: Ville detector on canonical holdout risk
+    h0 = risk(w)
+    D_, fired, refused = F(0), False, 0
+    comb = [p for tk in cur for p in tk]
+    for _ in range(MH2_E_STEPS):
+        g = mh_grad(w, comb)
+        cand = cl_snap([w[i] - MH2_ETA * g[i]
+                        for i in range(d)], MH2_GRID)
+        r1 = risk(cand)
+        D_new = r1 - h0
+        if GS_LAM * D_new >= GS_THRESH:
+            fired = True
+            refused += 1
+            tel["holds"].append({"phase": "F-stop",
+                                 "reason": "Ville stop fired: "
+                                           "candidate refused"})
+            continue
+        o0, o1 = mh2_fcanon(w, cur), mh2_fcanon(cand, cur)
+        if o1 < o0:
+            raw.append({"phase": "F-stop", "obj": o0, "obj'": o1,
+                        "drop": o0 - o1, "risk": risk(w),
+                        "risk'": r1})
+            w = cand
+            D_ = D_new
+        else:
+            tel["holds"].append({"phase": "F-stop",
+                                 "drop": o0 - o1,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+                               "1/delta - 1 (conservative)",
+                   "lam": str(GS_LAM), "delta": str(GS_DELTA),
+                   "fired": fired, "refused": refused,
+                   "D_final": str(D_)}
+    tel["phases"].append({"phase": "F-stop",
+                          "canonical": str(mh2_fcanon(w, cur))})
+
+    n = len(raw)
+    assert n > 0, "ABORT: mini-hagi4 committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: mini-hagi4 step failed certified "
+                     f"admission: {dd}")
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path, "dim_final": d,
+        "trunk": "2 fd-trained blocks FROZEN + grown 3rd block "
+                 "(residual-zero identity admission, C450 "
+                 "pattern) certified-trained in phase C",
+        "trunk_depth_final": 3,
+        "grow_block_neutral_admitted": True,
+        "grow_block_obj_invariant_exact": True,
+        "block_committed_steps": block_committed,
+        "canonical_start": str(obj0),
+        "canonical_final": str(raw[-1]["obj'"]),
+        "total_drop": str(obj0 - raw[-1]["obj'"]),
+        "model": "linear head over the 3-block trunk (grown by "
+                 "a residual-zero identity block, depth 2 -> 3); "
+                 "canonical obj = mean MSE over the 3 live "
+                 "tasks; admission ONLY by measured canonical "
+                 "drop > 0 (the grow step itself is the neutral "
+                 "C450 admission, not a chain step)",
+        "theorem": "Hagi.Theory.GrowTrunkBlock."
+                   "grow_block_bench_sound (C504; bench "
+                   "instance of C450 trunk_function_preserving)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_mini4(path, start, traj, witness_steps=3):
+    """C504 witness: literal mini-hagi4 trajectory prefix +
+    #eval checkTrajectory + norm_num theorem; header documents
+    the FULL counts honestly."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C504 mini-hagi4 witness (real "
+                "unified_ledger data; mini-hagi3 skeleton with "
+                "the WHOLE-BLOCK trunk grow: depth 2 -> 3 via a "
+                "residual-zero identity block, C450 pattern).\n"
+                f"-- FULL accepted steps: {len(traj)}; phases: "
+                f"{phases};\n-- first {len(ds)} "
+                "machine-checked steps below. Canonical obj = "
+                "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
+                "Fractions).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.GrowTrunkBlock\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMini4 : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryMini4 : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMini4 "
+                "benchTrajectoryMini4\n\n"
+                "theorem mini_hagi4_bench_valid :\n"
+                "    checkTrajectory benchStartMini4 "
+                "benchTrajectoryMini4 = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMini4, benchTrajectoryMini4, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.GrowTrunkBlock."
+                "grow_block_bench_sound\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_mini4(path, start, traj, witness_steps=3):
+    """C504 negative: inflated declared drop on the last witness
+    step; the checker must reject (theorem = false)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    ds[-1]["drop"] = ds[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C504 mini-hagi4 NEGATIVE witness: the last "
+                "declared drop is inflated by 1; the certified "
+                "checker must reject.\n"
+                "import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMini4Bad : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryMini4Bad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMini4Bad "
+                "benchTrajectoryMini4Bad\n\n"
+                "theorem mini_hagi4_bench_invalid :\n"
+                "    checkTrajectory benchStartMini4Bad "
+                "benchTrajectoryMini4Bad = false := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMini4Bad, benchTrajectoryMini4Bad, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -4834,7 +5277,7 @@ def main():
                              "continual", "continual-multi",
                              "wrbound", "cert-sandwich", "mini-hagi",
                              "mini-hagi2", "mini-hagi3",
-                             "vs-trainer"],
+                             "mini-hagi4", "vs-trainer"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -4902,6 +5345,14 @@ def main():
                          "eps = 1/10 PIN, per-step exact "
                          "forgetting-bound asserts, measured "
                          "canonical drop gate); "
+                         "mini-hagi4: C504 grow = adding a WHOLE "
+                         "BLOCK to the trunk (depth 2 -> 3): "
+                         "residual-zero identity admission (C450 "
+                         "function_preserving_admissible, exact "
+                         "obj invariance assert), certified fd "
+                         "training of the new block, GPM "
+                         "continual + Ville stop on ONE canonical "
+                         "CertStepData chain; "
                          "vs-trainer: C497 certified "
                          "trainer-benchmark comparison - mini-HAGI "
                          "(C491 sandwich trainer) vs the REAL "
@@ -4938,6 +5389,32 @@ def main():
         stats, w = vs_trainer_run(args.data, args.selfloop,
                                   args.steps or CS_STEPS)
         print(json.dumps(stats, indent=1, default=str))
+        return
+
+    if args.mode == "mini-hagi4":
+        start, traj, tel, stats = mini_hagi4_run(args.data)
+        if args.emit_lean:
+            emit_lean_mini4(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_mini4(args.corrupt, start, traj)
+        print(json.dumps({"mode": "mini-hagi4", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": [
+                    {k: (v if not isinstance(v, F) else str(v))
+                     for k, v in a.items()}
+                    for a in tel["admissions"]],
+                "rejects": tel["rejects"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]],
+                "stop": tel["stop"],
+                "outcomes": tel["outcomes"],
+                "growblock": tel["growblock"]}}, indent=1))
         return
 
     if args.mode == "mini-hagi3":

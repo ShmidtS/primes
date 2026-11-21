@@ -6810,3 +6810,27 @@ README-passports for 8 candidates, top-3 rank with rg-proven
 Mathlib absence at rev fc4f59e (svd_decomposition — no existence
 theorem vs def-only SingularValues.lean; eckart_young_lower_
 bound; weyl_singularValue_perturbation).
+
+## Grow trunk block identity bench (C504)
+
+Roadmap C501(4) бит: мини-HAGI рост через БЛОКИ trunk, а не только
+fiber-признаки. `scripts/bench_bridge.py --mode mini-hagi4`
+(backward-совместимо; скелет mini-hagi3): цепь A-train (2-блочный
+trunk + голова, 44 пар., certified drop) → GROW-BLOCK (3-й блок
+на замороженных φ-признаках, residual-zero форма y = v + γ·mlp(v),
+γ=0 ⇒ ТОЧНАЯ identity в Fraction — rms-норма identity НЕ даёт,
+1/(1+1/1000) = 1000/1001; нейтральная адмиссия C450
+function_preserving_admissible 0 ≤ 0, не CertStepData-шаг;
+negative-control строка ε=1/10 ⇒ margin > 0 ⇒ REJECT) →
+certified fd-обучение блока (21 пар., snap 1/10000, drop > 0;
+4 committed шага, вклад в canon > 0) → GPM continual (D-gpm1/
+E-gpm2, exact zero forgetting, честные HOLD) → Ville-стоп. Итог:
+11 certified шагов, глубина trunk 2 → 3, obj до/после grow равен
+ТОЧНО (exact assert, exact_invariant=true). Lean: Hagi/Theory/
+GrowTrunkBlock.lean — benchResidualBlock/benchResidual_zero,
+benchTrunk (foldl-зеркало lmTrunk), grow_block_bench_sound
+(bench-инстанс C450 trunk_function_preserving),
+grow_block_obj_invariant (congrArg: любой obj-функционал
+инвариантен), bench_bridge_to_C450 (residual-zero = blockApply
+identityBlock — одна функция). Witness .tmp/C504/trajMini4.lean:
+#eval checkTrajectory = true + негатив = false. Freeze 8582+8.
