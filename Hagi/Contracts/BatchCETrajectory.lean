@@ -11,5 +11,13 @@ import Hagi.Contracts.BatchCETrajectory.Core
 import Hagi.Contracts.BatchCETrajectory.Direction
 import Hagi.Contracts.BatchCETrajectory.FixedBatch
 
+/-!
+# BatchCETrajectory — import aggregator
+
+Re-exports the split submodules `Core` / `Direction` / `FixedBatch`
+(repeated common-direction batch CE transitions) under the historical
+`Hagi.Contracts.BatchCETrajectory` namespace. No new declarations.
+-/
+
 namespace Hagi.Contracts.BatchCETrajectory
 end Hagi.Contracts.BatchCETrajectory

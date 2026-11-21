@@ -7,6 +7,15 @@ import Hagi.Math.Foundations.Telescope
 import Hagi.Model.GatedCEDescent
 import Hagi.Model.CEHeldout
 
+/-!
+# Repeated gated CE safe-step trajectory
+
+Trajectory composition of the gated CE safe step on one fixed target:
+`fixedGatedState` iterates the canonical `gatedCETrainStep`, and the
+certified drops telescope into an actual objective decrease (consumer
+of `Hagi.Contracts.GatedCEStepCertificate`, no contract restated).
+-/
+
 set_option relaxedAutoImplicit false
 
 namespace Hagi.Contracts.GatedCETrajectory

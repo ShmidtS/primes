@@ -1,5 +1,14 @@
 import Hagi.Contracts.BatchCEBudgetGuard
 
+/-!
+# Budgeted Pareto step certificate
+
+Lifts the strict arithmetic-mean batch CE safe-step certificate to a
+genuinely admitted guarded budgeted Pareto successor `StepCert`: floor,
+risk limit and budget come from the exact `trainStep` bookkeeping, the
+descent is derived, not assigned.
+-/
+
 set_option relaxedAutoImplicit false
 
 namespace Hagi.Contracts.BudgetedParetoStepCert

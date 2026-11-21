@@ -8,6 +8,9 @@ import Hagi.Contracts.ObjectiveTrajectory
 
 set_option linter.style.header false
 
+/-!
+# Function-preserving batch CE growth with exact capacity counters
+-/
 /-
 Function-preserving growth with explicit capacity and exact narrow rejection.
 The dependent batch carrier retains data at its actual current width. Its

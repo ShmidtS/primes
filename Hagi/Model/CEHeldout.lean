@@ -7,8 +7,8 @@ import Hagi.Probability.FiniteFamilyConfidence
 /-!
 # Held-out confidence for the decoded finite CE codebook
 
-The proofs are promoted from the reviewed Cycle87 prototype
-`.tmp/Cycle87HeldoutAPI.lean`.  The codebook contains decoded finite
+The proofs are promoted from the reviewed Cycle87 prototype.
+The codebook contains decoded finite
 scale/trit codes, not arbitrary real raw weights, and is fixed before the
 independent categorical labels are sampled.  Consequently every actual
 `CEGroupedScale.jointParameters`, including one selected by a shortcut,
