@@ -12,20 +12,17 @@ import re
 import sys
 from pathlib import Path
 
+from _shared import BENCH_PREFIX, LEGACY_PREFIX, RESEARCH_PREFIX
+
 ROOT = Path(__file__).resolve().parent.parent
 HAGI_ROOT = ROOT / "Hagi.lean"
 
-# C217/C239 quarantine: modules under Hagi/Legacy/ and Hagi/Benchmarks/
-# are intentionally outside the root import closure (vacuous-stack and
-# toy-witness quarantines). They must still build (separate lean_lib,
-# default target).
-# C217/C239/C240 quarantine: modules under Hagi/Legacy/, Hagi/Benchmarks/
-# and Hagi/Research/ are intentionally outside the root import closure
+# C217/C239/C240 quarantine: modules under the shared quarantine prefixes
+# (see scripts/_shared.py) are intentionally outside the root import
+# closure (vacuous-stack and toy-witness quarantines). They must still
+# build (separate lean_lib, default target).
 # C456: Legacy archived under Hagi/Research/Legacy/ (covered by
 # RESEARCH_PREFIX); legacy prefix kept for history, dir scan is a no-op.
-LEGACY_PREFIX = "Hagi/Legacy/"
-BENCH_PREFIX = "Hagi/Benchmarks/"
-RESEARCH_PREFIX = "Hagi/Research/"
 
 # C347 quarantine (A14 QW7): speculative growth modules stay in repo at
 # their frozen FQNs (no dir move of DECLARATIONS), outside the root import

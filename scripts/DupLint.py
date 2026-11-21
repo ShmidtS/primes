@@ -12,17 +12,11 @@ Delta-gate, same pattern as the StatusLint baseline:
 """
 import hashlib
 import os
-import re
 import sys
 
+from _shared import DECL_RE
+
 BASELINE = os.path.join(os.path.dirname(__file__), "duplint_baseline.txt")
-DECL_RE = re.compile(
-    r'^(?:@\[[^\]]*\]\s*)?'
-    r'(?:private\s+|protected\s+|noncomputable\s+)?'
-    r'(theorem|lemma|def|structure|abbrev|instance|inductive)\s+'
-    r'([A-Za-z_][A-Za-z0-9_\'!?]*)',
-    re.M,
-)
 
 
 def collect():

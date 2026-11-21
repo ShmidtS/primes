@@ -8,6 +8,8 @@ import re
 import sys
 from pathlib import Path
 
+from _shared import lean_files
+
 ROOT = Path(__file__).resolve().parent.parent
 HAGI = ROOT / "Hagi"
 
@@ -21,7 +23,7 @@ DECL_RE = re.compile(
 def lean_names() -> set:
     names = set()
     for d in (HAGI, ROOT / "Primes"):
-        for f in d.rglob("*.lean"):
+        for f in lean_files(d):
             txt = f.read_text(encoding="utf-8")
             names |= set(DECL_RE.findall(txt))
     return names

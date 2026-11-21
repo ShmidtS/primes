@@ -13,21 +13,21 @@ import re
 import sys
 from pathlib import Path
 
+from _shared import (BENCH_PREFIX, LEGACY_PREFIX, RESEARCH_PREFIX,
+                     lean_files)
+
 ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 BASELINE = os.path.join(os.path.dirname(__file__), "nslint_baseline.txt")
 NS_RE = re.compile(r"^namespace\s+([\w.]+)", re.M)
 
-# C217/C239/C240 quarantine: files under Hagi/Legacy/, Hagi/Benchmarks/ and
-# Hagi/Research/ keep their original namespaces (avoids declaration-name
-# churn); exempt from the namespace-matches-folder rule.
-LEGACY_PREFIX = "Hagi/Legacy/"
-BENCH_PREFIX = "Hagi/Benchmarks/"
-RESEARCH_PREFIX = "Hagi/Research/"
+# C217/C239/C240 quarantine: files under the shared quarantine prefixes
+# (see scripts/_shared.py) keep their original namespaces (avoids
+# declaration-name churn); exempt from the namespace-matches-folder rule.
 
 
 def violations():
     out = []
-    for p in sorted(ROOT.rglob("*.lean")):
+    for p in lean_files(ROOT):
         rel = p.relative_to(ROOT.parent).as_posix()
         if rel.startswith(LEGACY_PREFIX) or rel == "Hagi/Legacy.lean":
             continue

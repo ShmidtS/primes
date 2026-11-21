@@ -18,16 +18,11 @@ import re
 import sys
 from collections import defaultdict
 
+from _shared import DECL_RE
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HAGI = os.path.join(ROOT, 'Hagi')
 
-DECL_RE = re.compile(
-    r'^(?:@\[[^\]]*\]\s*)?'
-    r'(?:private\s+|protected\s+|noncomputable\s+)?'
-    r'(theorem|lemma|def|structure|abbrev|instance|inductive)\s+'
-    r'([A-Za-z_][A-Za-z0-9_\'!?]*)',
-    re.M,
-)
 NS_RE = re.compile(r'^namespace\s+(Hagi\.[A-Za-z0-9_.]+)', re.M)
 IMPORT_RE = re.compile(r'^import\s+(Hagi\.[A-Za-z0-9_.]+)', re.M)
 

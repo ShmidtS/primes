@@ -24,6 +24,8 @@ import re
 import subprocess
 import sys
 
+from _shared import strip_comments  # canonical home (v5 W5); re-exported
+
 DECL_RE = re.compile(
     r'^(?:@\[[^\]]*\]\s*)?'
     r'(?:private\s+|protected\s+|noncomputable\s+)*'
@@ -31,55 +33,6 @@ DECL_RE = re.compile(
     r'([^\W\d][^\s:={}()\[\]<>]*)?',
     re.M,
 )
-
-
-def strip_comments(text):
-    """Strip nested Lean comments without touching quoted strings.
-
-    Adapted from https://github.com/jayeshmepani/comment-remover
-    (C-style string preservation), with Lean's nested comment depth.
-    """
-    out = []
-    i = 0
-    depth = 0
-    quoted = False
-    while i < len(text):
-        pair = text[i:i + 2]
-        if depth:
-            if pair == '/-':
-                depth += 1
-                out.append('  ')
-                i += 2
-            elif pair == '-/':
-                depth -= 1
-                out.append('  ')
-                i += 2
-            else:
-                out.append('\n' if text[i] == '\n' else ' ')
-                i += 1
-        elif quoted:
-            out.append(text[i])
-            if text[i] == '\\' and i + 1 < len(text):
-                out.append(text[i + 1])
-                i += 2
-            else:
-                quoted = text[i] != '"'
-                i += 1
-        elif pair == '/-':
-            depth = 1
-            out.append('  ')
-            i += 2
-        elif pair == '--':
-            end = text.find('\n', i)
-            if end < 0:
-                end = len(text)
-            out.append(' ' * (end - i))
-            i = end
-        else:
-            quoted = text[i] == '"'
-            out.append(text[i])
-            i += 1
-    return ''.join(out)
 
 
 @functools.lru_cache(maxsize=1)

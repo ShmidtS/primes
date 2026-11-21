@@ -12,8 +12,9 @@ update deliberately with `--update` (same workflow as Freeze).
 """
 import re
 import sys
-from Freeze import strip_comments
 from pathlib import Path
+
+from _shared import lean_files, strip_comments
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = Path(__file__).resolve().parent / "assumptions.lock"
@@ -91,7 +92,7 @@ def scan():
     prims = []
     proven = set()
     operational = set()
-    for f in sorted((ROOT / "Hagi").rglob("*.lean")):
+    for f in lean_files(ROOT / "Hagi"):
         rel = f.relative_to(ROOT).as_posix()
         text = f.read_text(encoding="utf-8", errors="replace")
         # Spec 1.4: comments/docstrings are NOT a source of truth, so
