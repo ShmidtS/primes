@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
+import Hagi.Theory.GrowSnap
 
 /-!
 # AdapterGrowth — certified low-rank адаптер роста (C532)
@@ -186,5 +187,85 @@ theorem adapter_step_hold (h : ¬ obj s' < obj s) :
   · rfl
 
 end CertifiedStep
+
+/-! ## C533: snap адаптера и телескоп составного цикла
+
+Композиция C532×C521: рост уровня — адаптер (admission при
+B = 0, ТОЧНЫЙ инвариант), certified fd-обучение только 2·r·d
+параметров, затем snap к q/2^k с certified-границей; следующий
+уровень стартует с грида (знаменатели bounded на КАЖДОМ
+уровне). Bench-инстанс: `--mode adapter-snap-grow` (глубина 8+). -/
+
+section SnapCycle
+
+open Hagi.Theory.GrowSnap
+
+variable {n : ℕ}
+
+/-- Lipschitz-граница снапа для adapter h = B·A·x: если obj
+Lipschitz по ℓ¹-расстоянию признаков с константой L, а снап
+пертурбирует вход ветки на ε с |ε j| ≤ 2^-(k+1) (полуячейка
+сетки q/2^k), то выход-пертурбация δ = B *ᵥ (A *ᵥ ε)
+покоординатно ≤ C·max|ε| (C — ℓ∞-операторный фактор
+произведения B·A — рационально вычислим; ранг-r ⇒ носитель
+узкий, фактор конечен), и obj после снапа ≤ obj до +
+L·n·C·2^-(k+1) — CERTIFIED граница деградации (bench-инстанс
+вычисляет точный per-point bound (2|s−y|+|ds|)·|ds|, ещё
+сильнее). -/
+theorem adapter_snap_bound
+    (obj : (Fin n → ℝ) → ℝ) (L C : ℝ) (hL0 : 0 ≤ L) (hC0 : 0 ≤ C)
+    (k : ℕ) (hn : 0 < n)
+    (hL : ∀ f g : Fin n → ℝ,
+      |obj f - obj g| ≤ L * (∑ i, |f i - g i|))
+    {r : Type*} [Fintype r]
+    (A : Matrix r (Fin n) ℝ) (B : Matrix (Fin n) r ℝ)
+    (hC : ∀ ε : Fin n → ℝ, ∀ i,
+      |(B *ᵥ (A *ᵥ ε)) i| ≤ C * (⨆ j, |ε j|))
+    (f ε : Fin n → ℝ)
+    (herr : ∀ j, |ε j| ≤ (2 : ℝ) ^ (-(k : ℝ) - 1)) :
+    obj (fun i => f i + (B *ᵥ (A *ᵥ ε)) i) ≤
+      obj f + L * n * C * (2 : ℝ) ^ (-(k : ℝ) - 1) := by
+  haveI : Nonempty (Fin n) := ⟨0, hn⟩
+  have hsup : (⨆ j, |ε j|) ≤ (2 : ℝ) ^ (-(k : ℝ) - 1) :=
+    ciSup_le fun j => herr j
+  have hper : ∀ i, |(B *ᵥ (A *ᵥ ε)) i| ≤
+      C * (2 : ℝ) ^ (-(k : ℝ) - 1) :=
+    fun i => le_trans (hC ε i)
+      (mul_le_mul_of_nonneg_left hsup hC0)
+  have h1 := hL (fun i => f i + (B *ᵥ (A *ᵥ ε)) i) f
+  have h2 : (∑ i : Fin n,
+        |(fun i => f i + (B *ᵥ (A *ᵥ ε)) i) i - f i|) ≤
+      n * C * (2 : ℝ) ^ (-(k : ℝ) - 1) := by
+    have h2a : (∑ i : Fin n,
+        |(fun i => f i + (B *ᵥ (A *ᵥ ε)) i) i - f i|) ≤
+        ∑ _i : Fin n, C * (2 : ℝ) ^ (-(k : ℝ) - 1) :=
+      Finset.sum_le_sum fun i _ => by
+        simpa [add_sub_cancel_left] using hper i
+    have h2b : (∑ _i : Fin n, C * (2 : ℝ) ^ (-(k : ℝ) - 1)) =
+        n * C * (2 : ℝ) ^ (-(k : ℝ) - 1) := by
+      simp [Finset.card_univ, nsmul_eq_mul]
+      ring
+    exact le_trans h2a (le_of_eq h2b)
+  have h3 : L * (∑ i : Fin n,
+        |(fun i => f i + (B *ᵥ (A *ᵥ ε)) i) i - f i|) ≤
+      L * (n * C * (2 : ℝ) ^ (-(k : ℝ) - 1)) :=
+    mul_le_mul_of_nonneg_left h2 hL0
+  have h4 := le_abs_self
+    (obj (fun i => f i + (B *ᵥ (A *ᵥ ε)) i) - obj f)
+  linarith
+
+/-- Телескоп составного adapter-snap цикла: admission вклад
+ТОЧНО 0 (adapter_obj_invariant), certified fd-шаги вклад ≤ 0
+(measured drop > 0), snap вклад ≤ b_i — потому итог финала
+≤ старта + Σ b_i. Делегат к `grow_snap_cycle_sound` (C521,
+индукция по списку bound'ов) — не копия доказательства. -/
+theorem adapter_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
+    (step : ℕ → ℝ) (h0 : step 0 ≤ o0)
+    (hstep : ∀ i, i < bs.length →
+      step (i + 1) ≤ step i + bs.getD i 0) :
+    step bs.length ≤ o0 + bs.sum :=
+  grow_snap_cycle_sound o0 bs step h0 hstep
+
+end SnapCycle
 
 end Hagi.Theory.AdapterGrowth

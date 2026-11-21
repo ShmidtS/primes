@@ -13,7 +13,7 @@ theorems.
 ## Summary
 
 - modules: 537
-- theorems: 12782
+- theorems: 12784
 - defs: 4768
 - noncomputable decls: 1214
 - status Proven: 457 modules
@@ -478,7 +478,7 @@ theorems.
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
-| Hagi.Theory.AdapterGrowth | 10 | 2 | adapterStep | no | Proven |
+| Hagi.Theory.AdapterGrowth | 12 | 2 | adapterStep | no | Proven |
 | Hagi.Theory.AdaptiveMajorizer | 59 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |

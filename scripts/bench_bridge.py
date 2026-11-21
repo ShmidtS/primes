@@ -43,6 +43,7 @@ Modes:
 
 import argparse
 import json
+import time
 import sys
 from fractions import Fraction as F
 
@@ -6518,6 +6519,404 @@ def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C533: ADAPTER SNAP COMPOSITE GROW (--mode adapter-snap-grow)
+#
+# The composition breakthrough: adapter-grow (C532, MINIMAL
+# growth volume -- a low-rank side-branch, 2*r*d = 8 params at
+# r=1, d=4) COMPOSED with snap-rational (C521, MINIMAL
+# computation -- q/2^k snap resets feature denominators at
+# every grow boundary) into ONE repeatable deep cycle:
+#
+#   level l:  ADMIT adapter r=1 (A = unit row on coordinate
+#               l mod d, B = 0 -- obj invariant EXACTLY,
+#               the LoRA zero-init core)
+#             TRAIN 4 certified fd steps on ONLY the 8 new
+#               adapter params (h = 1/1000, candidate snap
+#               1/10000, COMMIT by measured drop > 0 / HOLD)
+#             SNAP the adapter weights to q/2^40 (banker's
+#               rounding), recompute + snap the features; the
+#               certified err bound is the EXACT per-point
+#               Lipschitz sum (2|s-y| + |ds|)*|ds| with
+#               ds = w.(f_final - f_orig) covering the WHOLE
+#               snap chain (weight-snap + feature-snap
+#               together); assert obj_after <= obj_before +
+#               bound and maxden <= 2^40 at EVERY level.
+#
+# The trained level is folded EXACTLY into the (grid-bounded)
+# features; the next level starts from the grid -- the C506
+# ~x3.2-per-grow denominator compounding NEVER accumulates,
+# while each level adds only 8 parameters. Telescoped cycle
+# bound: obj_final <= cycle_start + sum(bounds) -- the Lean
+# side is Hagi.Theory.AdapterGrowth.adapter_snap_bound /
+# adapter_snap_cycle_sound (C533).
+
+AS_LEVELS = 8                     # grow levels (depth 2 -> 10;
+                                  # C521-parity depth 8 exceeded)
+AS_K = 40                         # snap grid q/2^k (C521 PIN)
+AS_STEPS = 4                      # certified fd steps per level
+AS_RANK = 1                       # adapter rank per level
+
+
+def adapter_snap_grow_run(ledger_path):
+    """C533 adapter-snap composite grow cycle on the live
+    corpus. Returns (start, [accepted steps], telemetry,
+    stats)."""
+    sys.set_int_max_str_digits(0)
+    t0 = time.perf_counter()
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "levels": [], "snap": [], "budget": [],
+                    "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    def adapter_fwd(f, A, B):
+        """head input f -> f + B(A f), single r=AS_RANK branch"""
+        z = sum((A[0][k] * f[k] for k in range(MH2_D)), F(0))
+        return [f[i] + B[i][0] * z for i in range(MH2_D)]
+
+    def feats_adapt(base, A, B):
+        return [[(adapter_fwd(f, A, B), y) for f, y in tk]
+                for tk in base]
+
+    def snapfeats(base):
+        return [[([gs_snap2k(c) for c in f], y)
+                 for f, y in tk] for tk in base]
+
+    def maxden(base):
+        return max(abs(c.denominator)
+                   for tk in base for f, _ in tk for c in f)
+
+    def obj_bound(base_orig, base_final, wcur):
+        """EXACT certified bound covering the WHOLE snap chain:
+        per point |(s2-y)^2 - (s1-y)^2| <= (2|s1-y| + |ds|)*|ds|,
+        ds = w.(f_final - f_orig)."""
+        Bsum = F(0)
+        cnt = 0
+        for tk, tkf in zip(base_orig, base_final):
+            for (f1, y), (f2, _) in zip(tk, tkf):
+                ds = sum((wcur[i] * (f2[i] - f1[i])
+                          for i in range(MH2_D)), F(0))
+                s = sum((wcur[i] * f1[i]
+                         for i in range(MH2_D)), F(0))
+                Bsum += (2 * abs(s - y) + abs(ds)) * abs(ds)
+                cnt += 1
+        return Bsum / cnt
+
+    # trunk FROZEN: feature matrices (train + holdout), snapped
+    # ONCE to the q/2^k grid (the freeze boundary; every level
+    # then starts from the grid)
+    FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in tasks]
+    HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in htasks]
+    FT = snapfeats(FT_un)
+    HF = snapfeats(HF_un)
+    assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
+        obj_bound(FT_un, FT, w), \
+        "ABORT: freeze snap broke its certified bound"
+
+    # --- (B) ADAPTER SNAP COMPOSITE GROW: AS_LEVELS levels
+    depth = 2
+    cycle_start_obj = mh2_fcanon(w, FT)
+    cumulative_bound = F(0)
+    allowances = [{"phase": "A-freeze-snap",
+                   "obj_before_snap": str(mh2_fcanon(w, FT_un)),
+                   "obj_after_snap": str(cycle_start_obj),
+                   "actual_degradation":
+                       str(cycle_start_obj -
+                           mh2_fcanon(w, FT_un)),
+                   "certified_bound":
+                       str(obj_bound(FT_un, FT, w)),
+                   "bound_ge_actual": True}]
+    for lev in range(AS_LEVELS):
+        r = AS_RANK
+        # ADMIT: A = unit row on coordinate lev mod d, B = 0
+        A_new = [[F(1) if k == lev % MH2_D else F(0)
+                  for k in range(MH2_D)]]
+        B_new = [[F(0)] for _ in range(MH2_D)]
+        oA = mh2_fcanon(w, FT)
+        FTg = feats_adapt(FT, A_new, B_new)
+        assert mh2_fcanon(w, FTg) == oA, \
+            "ABORT: adapter admission #{} broke obj (B = 0 " \
+            "must preserve obj EXACTLY)".format(lev + 1)
+        tel["admissions"].append({
+            "phase": f"B-adapter-l{lev + 1}",
+            "rank": r, "new_params": 2 * r * MH2_D,
+            "coord": lev % MH2_D,
+            "decision": "ADMIT (LoRA zero-init: B = 0, obj "
+                        "invariant asserted EXACTLY)"})
+
+        # TRAIN: certified fd steps on ONLY the 2*r*d new params
+        p = [e for m in (A_new, B_new)
+             for row in m for e in row]
+        npar = len(p)
+        assert npar == 2 * r * MH2_D
+
+        def unflat_ad(pp):
+            return ([pp[0:MH2_D]],
+                    [[pp[MH2_D + c]] for c in range(MH2_D)])
+
+        def canonp(pp, base):
+            A, Bl = unflat_ad(pp)
+            return mh2_fcanon(w, feats_adapt(base, A, Bl))
+
+        phase_name = f"C-adapt-l{lev + 1}"
+        committed = 0
+        for _ in range(AS_STEPS):
+            o = canonp(p, FT)
+            gfd = []
+            for k in range(npar):
+                q = list(p)
+                q[k] = q[k] + MH2_H
+                gfd.append((canonp(q, FT) - o) / MH2_H)
+            cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                            for k in range(npar)], MH2_GRID)
+            o2 = canonp(cand, FT)
+            if o2 < o:
+                raw.append({"phase": phase_name, "obj": o,
+                            "obj'": o2, "drop": o - o2,
+                            "risk": canonp(p, HF),
+                            "risk'": canonp(cand, HF)})
+                p = cand
+                committed += 1
+            else:
+                tel["holds"].append({
+                    "phase": phase_name, "drop": o - o2,
+                    "reason": "canonical drop <= 0: HOLD "
+                              "(adapter fd step rolled back)"})
+
+        # SNAP: adapter weights -> q/2^k; features recomputed
+        # (snapped weights) and snapped; the exact bound covers
+        # the WHOLE chain (weight-snap + feature-snap together)
+        o_before = canonp(p, FT)
+        ps = [gs_snap2k(v) for v in p]
+        As, Bs = unflat_ad(ps)
+        Ao, Bo = unflat_ad(p)
+        FTo = feats_adapt(FT, Ao, Bo)
+        FTc = feats_adapt(FT, As, Bs)
+        HFc = feats_adapt(HF, As, Bs)
+        FT = snapfeats(FTc)              # denominators reset
+        HF = snapfeats(HFc)
+        o_after = mh2_fcanon(w, FT)
+        err_bound = obj_bound(FTo, FT, w)
+        actual = o_after - o_before
+        assert o_after <= o_before + err_bound, \
+            "ABORT: adapter snap broke its certified bound"
+        assert maxden(FT) <= (1 << AS_K), \
+            "ABORT: adapter snap failed to reset denominators"
+        cumulative_bound += err_bound
+        allowances.append({"phase": phase_name,
+                           "obj_before_snap": str(o_before),
+                           "obj_after_snap": str(o_after),
+                           "actual_degradation": str(actual),
+                           "certified_bound": str(err_bound),
+                           "bound_ge_actual": True})
+        tel["snap"].append({
+            "level": lev + 1, "depth": depth + 1,
+            "grid": f"q/2^{AS_K}",
+            "obj_before_snap": str(o_before),
+            "obj_after_snap": str(o_after),
+            "actual_degradation": str(actual),
+            "certified_err_bound": str(err_bound),
+            "maxden_digits": len(str(maxden(FT))),
+            "denominator_reset": True})
+        tel["levels"].append({
+            "level": lev + 1, "rank": r, "params": npar,
+            "committed": committed,
+            "net_gain_after_snap": str(oA - mh2_fcanon(w, FT)),
+            "canonical": str(mh2_fcanon(w, FT))})
+        depth += 1
+        tel["phases"].append({
+            "phase": phase_name, "depth": depth,
+            "params": npar, "committed": committed,
+            "canonical": str(mh2_fcanon(w, FT))})
+        tel["budget"].append({
+            "at_level": lev + 1, "depth": depth,
+            "maxden_digits": len(str(maxden(FT))),
+            "grid_cap_digits": len(str(1 << AS_K)),
+            "steps_used": len(raw),
+            "decision": "LEVEL ADMITTED within budget (snap "
+                        "policy: feature denominators RESET to "
+                        f"<= 2^{AS_K} -- no compounding)"})
+
+    n = len(raw)
+    assert n > 0, "ABORT: adapter-snap-grow committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    # obj chain: EXACT within a phase; across a snap boundary
+    # the rise equals the actual snap delta (<= its bound)
+    snap_deltas = [F(x["obj_after_snap"]) -
+                   F(x["obj_before_snap"]) for x in allowances]
+    si = 0
+    for a, b in zip(raw, raw[1:]):
+        if a["obj'"] == b["obj"]:
+            continue
+        # a phase boundary: the obj rise must equal a sum of
+        # CONSECUTIVE pending snap deltas (>= 1; a level that
+        # committed no fd step spans TWO deltas across one
+        # boundary; deltas may be negative -- scan to a match)
+        needed = b["obj"] - a["obj'"]
+        si0 = si
+        acc = F(0)
+        while si < len(snap_deltas):
+            acc += snap_deltas[si]
+            si += 1
+            if acc == needed:
+                break
+        assert si > si0 and acc == needed, \
+            "ABORT: obj chain broken outside certified snaps"
+    assert si <= len(snap_deltas), \
+        "ABORT: more chain boundaries than certified snaps"
+    # telescoped certified cycle bound (the Lean-side statement)
+    obj_final = raw[-1]["obj'"]
+    assert obj_final <= cycle_start_obj + cumulative_bound, \
+        "ABORT: telescoped adapter-snap cycle bound violated"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: adapter-snap-grow step failed "
+                     f"certified admission: {dd}")
+    elapsed = time.perf_counter() - t0
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path,
+        "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
+                 f"q/2^{AS_K}) + {AS_LEVELS} adapter levels "
+                 "(r=1 each), each certified-trained then "
+                 "SNAP-FOLDED into the grid-bounded features",
+        "trunk_depth_final": depth,
+        "levels": AS_LEVELS,
+        "rank_per_level": AS_RANK,
+        "adapter_params_per_level": 2 * AS_RANK * MH2_D,
+        "adapter_params_total": AS_LEVELS * 2 * AS_RANK * MH2_D,
+        "full_block_params_per_grow": 1 + MH2_D +
+                                       2 * MH2_D * MH2_HID,
+        "param_ratio_per_grow": str(F(2 * AS_RANK * MH2_D,
+                                       1 + MH2_D +
+                                       2 * MH2_D * MH2_HID)),
+        "snap_grid": f"q/2^{AS_K} (per-value err <= 2^-"
+                     f"{AS_K + 1})",
+        "grow_obj_invariant_exact_every": True,
+        "snap_bounds_all_certified": True,
+        "snap_cumulative_certified_bound":
+            str(cumulative_bound),
+        "cycle_obj_start": str(cycle_start_obj),
+        "cycle_certified_bound": str(cycle_start_obj +
+                                     cumulative_bound),
+        "maxden_digits_final": len(str(maxden(FT))),
+        "elapsed_s": round(elapsed, 3),
+        "canonical_start": str(obj0),
+        "canonical_final": str(obj_final),
+        "total_drop": str(obj0 - obj_final),
+        "model": "linear head over the adapter-snap-grown "
+                 f"feature stack (depth 2 -> {depth} via "
+                 f"{AS_LEVELS} LoRA adapter levels r=1, each "
+                 "admitted at B = 0 with EXACT obj invariance, "
+                 "certified fd training of only the 8 new "
+                 "params, then q/2^k snap-fold with certified "
+                 "err bound; denominators bounded at EVERY "
+                 "level)",
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "adapter_snap_bound / adapter_snap_cycle_sound"
+                   " (C533)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
+    """C533 witness: literal adapter-snap-grow trajectory
+    prefix + #eval checkTrajectory + norm_num theorem (the
+    C521/C532 witness pattern)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C533 adapter-snap-grow witness (real "
+                "unified_ledger data; LoRA-style adapter levels "
+                "r=1 admitted at B = 0 with EXACT obj "
+                "invariance, certified fd training of only the "
+                "8 new params per level, q/2^k snap-fold with "
+                "certified err bound at EVERY level).\n"
+                f"-- FULL accepted steps: {len(traj)}; "
+                f"phases: {phases};\n-- first {len(ds)} "
+                "machine-checked steps below (prefix witness; "
+                "the full chain, the neutrality/count/snap-bound "
+                "facts are covered by Hagi.Theory."
+                "AdapterGrowth).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.AdapterGrowth\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartAdapterSnapGrow : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryAdapterSnapGrow : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartAdapterSnapGrow "
+                "benchTrajectoryAdapterSnapGrow\n\n"
+                "theorem adapter_snap_grow_bench_valid :\n"
+                "    checkTrajectory benchStartAdapterSnapGrow "
+                "benchTrajectoryAdapterSnapGrow = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartAdapterSnapGrow, "
+                "benchTrajectoryAdapterSnapGrow, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_snap_bound\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_snap_cycle_sound\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C508: A-GEM vs RANK-TRUNC continual comparison
 # (--mode agem-vs-ranktrunc)
 #
@@ -7170,6 +7569,7 @@ def main():
                              "mini-hagi2", "mini-hagi3",
                              "mini-hagi4", "mini-hagi5",                              "vs-trainer",
                              "grow-snap",
+                             "adapter-snap-grow",
                              "adapter-grow",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
@@ -7365,6 +7765,27 @@ def main():
                 "budget": tel["budget"]}}, indent=1))
         return
 
+
+    if args.mode == "adapter-snap-grow":
+        start, traj, tel, stats = \
+            adapter_snap_grow_run(args.data)
+        if args.emit_lean:
+            emit_lean_adaptersnap(args.emit_lean, start, traj)
+        print(json.dumps({"mode": "adapter-snap-grow", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": tel["admissions"],
+                "levels": tel["levels"],
+                "snap": tel["snap"],
+                "budget": tel["budget"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]]}}, indent=1))
+        return
     if args.mode == "adapter-grow":
         start, traj, tel, stats = adapter_grow_run(args.data)
         if args.emit_lean:
@@ -7379,7 +7800,9 @@ def main():
                 "admissions": tel["admissions"],
                 "adapters": tel["adapters"],
                 "block_head_to_head": tel["block_head_to_head"],
-                "holds": tel["holds"]}}, indent=1))
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]]}}, indent=1))
         return
 
     if args.mode == "mini-hagi3":

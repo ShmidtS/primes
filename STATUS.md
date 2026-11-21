@@ -3667,3 +3667,28 @@ honestly: carrier-index casts resist decide reduction (classical
 card instances); the main theorems carry the content.
 
 
+
+## Hagi/Theory/AdapterGrowth.lean (C533: adapter snap composite grow)
+
+- `adapter_snap_bound`: Lipschitz-форма для адаптера h = B·A·x — при obj
+  Lipschitz по ℓ¹ признакам (L) и ℓ∞-операторном факторе C = ‖B·A‖∞
+  пертурбация ε входа с |ε j| ≤ 2^-(k+1) даёт
+  obj (f + δ) ≤ obj f + L·n·C·2^-(k+1), δ = B·(A·ε).
+- `adapter_snap_cycle_sound`: телескоп цикла admission (вклад 0 ТОЧНО) +
+  certified fd-шаги (вклад ≤ 0) + q/2^k snap (вклад ≤ bound_i) —
+  делегат к `grow_snap_cycle_sound` (intentional restatement pin,
+  файл stmdup_allowlist рядом с declarations.lock).
+- Bench `--mode adapter-snap-grow` (измерено, bench-adapter-snap-grow.json):
+  8 уровней адаптеров r=1 поверх frozen trunk (глубина 2 → 10), по 8 новых
+  параметров на уровень (64 суммарно против 21 у full-блока), admission с
+  ТОЧНОЙ obj-инвариантностью на каждом уровне, snap q/2^40 с certified
+  err-bound на каждой границе. Итог (canonical-шкала): старт ≈ 2.283,
+  certified drop 2.271 (obj → ~0), cumulative snap bound ≈ 2.98e-13
+  (запас ~13 порядков), maxden 13 цифр на каждом уровне, ~4 c.
+- Таблица трёх механизмов роста (измерено, regress-*.json C521/C532/C533):
+  identity-блок (C521 grow-snap): 21 параметр/уровень, знаменатели
+  сбрасываются snap'ом; адаптер без снапа (C532 adapter-grow): 8
+  параметров/уровень (r=1), прогресс ×2.96 против блока, но знаменатели
+  компаундятся по уровням; adapter+snap (C533): 8 параметров/уровень И
+  сброс знаменателей на каждом уровне — минимальный объём и минимальные
+  вычисления одновременно, глубина 10 certified.

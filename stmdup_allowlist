@@ -22,3 +22,8 @@ Hagi.Theory.AdaptiveMajorizer.ceOneHot_next_le_linear_of_zero_var_tight
 # pattern; trunk_traj_drop_pos restates full_traj_drop_pos verbatim
 # (same justification family as the C476 twins).
 Hagi.Theory.TrunkTrain.trunk_traj_drop_pos
+# C533: adapter_snap_cycle_sound is an intentional DELEGATE restatement
+# of GrowSnap.grow_snap_cycle_sound (proof by exact reference; docstring
+# pins the C533 adapter-snap telescope to the C521 law; DupLint-exempt
+# shell per plan-review Challenge 5).
+Hagi.Theory.AdapterGrowth.adapter_snap_cycle_sound
