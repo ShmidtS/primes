@@ -496,4 +496,10 @@ The modules correspond to the mathematical constructions of the project:
 Empirical measurements (RMS errors, benchmark scores, saturation
 curves) are not mathematical statements and are intentionally out of
 scope.
+
+The family-level theory lives in `Hagi/Theory` (31 files: 10 canon
+modules — Continual, Statistics, SelfEdit, Compression, MergeQuant,
+Softmax, SafeStep, MasterTheorem, FullPipeline, BlockLipschitz — plus
+standalone bridges and bench bridges); this root module is the import
+map of the whole closure.
 -/

@@ -211,7 +211,6 @@ theorem holdout_concentration {k : ℕ} (hk : 0 < k) {f : Ω → ℝ}
       (fun _ => f) (fun _ _ => hf _) hk eps heps))
 
 /-! ## (c) Selection bias: the honesty warning (negative theorem) -/
-/-! ## (c) Selection bias: the honesty warning (negative theorem) -/
 
 /-- The two-point counterexample loss: model `j` (of `Fin 2`) has zero
 loss on point `j` and unit loss on the other point. -/

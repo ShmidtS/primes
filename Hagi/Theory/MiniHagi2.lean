@@ -19,12 +19,10 @@ on ONE canonical-objective `CertStepData` chain.
 
 ## The canonical objective rule (T = 3)
 
-`miniHagi2Canonical a b c = (a + b + c) / 3`, the mean MSE over
-the 3 live tasks. Every trajectory step records obj = the
-canonical objective of the CURRENT model state and is admitted
-only by a measured canonical drop > 0; the executable checker
-`Hagi.Runtime.CertChecker.checkTrajectory` re-verifies the
-chain.
+`miniHagi2Canonical a b c = (a + b + c) / 3` — та же канон-правка
+MiniHagi (mean MSE живых задач; шаг допускается только измеренным
+канон-ским drop > 0; `Hagi.Runtime.CertChecker.checkTrajectory`
+проверяет цепь), инстанцированная на T = 3.
 
 ## The bridges
 

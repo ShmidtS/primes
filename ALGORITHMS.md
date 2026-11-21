@@ -3339,3 +3339,42 @@ quality` (тотал = шаги × FLOP/шаг, честная premise-мини�
 tradeoff (C330). Канонический анализ фазы —
 `.omc/analysis/period-c330-c332-analysis.md`; карточки файлов —
 STATUS.md (C330/C331).
+
+## 27. Каноны Theory (v4 T1–T6, C518 карта)
+
+Семейные теории живут в канон-модулях: одно понятие описано ровно один
+раз, исторические пространства имён сохранены внутри одного файла.
+Отдельные файлы — либо теорема-мост, либо bench-носитель.
+
+| Канон-модуль | Семейство (что доказывает) |
+| --- | --- |
+| [`Hagi/Theory/Continual.lean`](Hagi/Theory/Continual.lean) | GPM continual: exact zero forgetting, multi-task accumulation, rank-trunc/A-GEM trade-off, hybrid selection (C485→C510). |
+| [`Hagi/Theory/Statistics.lean`](Hagi/Theory/Statistics.lean) | Holdout/anytime: honest finite-population holdout, anytime e-process (Catoni×Ville), two-domain transport, without-replacement kernel (W3, C435–C487). |
+| [`Hagi/Theory/SelfEdit.lean`](Hagi/Theory/SelfEdit.lean) | Adopt-gate (strict monotone + finiteness ⇒ termination) и momentum-knob над тем же гейтом (C457→C515). |
+| [`Hagi/Theory/Compression.lean`](Hagi/Theory/Compression.lean) | EF-телескоп, EF21 in-step quantized loop, certified ternary jump (C434→C515). |
+| [`Hagi/Theory/MergeQuant.lean`](Hagi/Theory/MergeQuant.lean) | Fisher-квантование (water-filling, anisotropy) + измеряемый merge-гейт (C472, C476). |
+| [`Hagi/Theory/Softmax.lean`](Hagi/Theory/Softmax.lean) | Рациональный exp-сэндвич, certified softmax/CE, monotonicity + certified prediction, band tightening (C486→C516). |
+| [`Hagi/Theory/SafeStep.lean`](Hagi/Theory/SafeStep.lean) | Центральный стохастический safe step с Freedman-радиусом: accept/refuse-дихотомия (C388). |
+| [`Hagi/Theory/MasterTheorem.lean`](Hagi/Theory/MasterTheorem.lean) | Сборная траекторная теорема certified-or-refuse + бюджет/whp-каналы (C392, v4 T6). |
+| [`Hagi/Theory/FullPipeline.lean`](Hagi/Theory/FullPipeline.lean) | Единый шестифазный certified-цикл на одной цели (C479). |
+| [`Hagi/Theory/BlockLipschitz.lean`](Hagi/Theory/BlockLipschitz.lean) | Выведенные lip/causal константы реальных атомов (RMSNorm, MLP, attention; C465). |
+
+Отдельные мосты: [`MasterEF`](Hagi/Theory/MasterEF.lean) (endpoint-only
+EF-штраф), [`CEChain`](Hagi/Theory/CEChain.lean) (унифицированная
+CE-цепочка), [`BlockAdmission`](Hagi/Theory/BlockAdmission.lean) /
+[`FunctionPreservingGrowth`](Hagi/Theory/FunctionPreservingGrowth.lean) /
+[`GrowTrunkBlock`](Hagi/Theory/GrowTrunkBlock.lean) / [`ProvenTrunk`](Hagi/Theory/ProvenTrunk.lean)
+(рост ствола), [`HadamardIncoherence`](Hagi/Theory/HadamardIncoherence.lean),
+[`AdaptiveMajorizer`](Hagi/Theory/AdaptiveMajorizer.lean),
+[`AnytimeHoldoutStop`](Hagi/Theory/AnytimeHoldoutStop.lean),
+[`CertifyThenCommit`](Hagi/Theory/CertifyThenCommit.lean),
+[`OnlinePL`](Hagi/Theory/OnlinePL.lean), [`MDLPrune`](Hagi/Theory/MDLPrune.lean),
+[`FlowMatching`](Hagi/Theory/FlowMatching.lean),
+[`Interpretability`](Hagi/Theory/Interpretability.lean),
+[`GaugeQuotient`](Hagi/Theory/GaugeQuotient.lean),
+[`LogitGrowth`](Hagi/Theory/LogitGrowth.lean).
+Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
+[`CertSandwichBench`](Hagi/Theory/CertSandwichBench.lean),
+[`MiniHagi`](Hagi/Theory/MiniHagi.lean),
+[`MiniHagi2`](Hagi/Theory/MiniHagi2.lean),
+[`TrainerBenchmark`](Hagi/Theory/TrainerBenchmark.lean).

@@ -1,6 +1,6 @@
 # HAGI_v2
 
-Формализация на Lean 4.35.0 / Mathlib математической основы
+Формализация на Lean 4.36.0 / Mathlib математической основы
 HAGI_v2 — предполагаемой архитектуры тернарной RD-канальной
 причинной языковой модели, развиваемой из небольших доменных
 экспертов.
@@ -88,6 +88,7 @@ README не заменяет их математическую специфик�
 | Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |
 | Переходы обучения | [`Hagi/Step`](Hagi/Step), [`Hagi/Pretraining`](Hagi/Pretraining), [`Hagi/Planning`](Hagi/Planning), [`Hagi/Contracts`](Hagi/Contracts) | Шаги, контроллеры, контракты переходов и конечные траектории. |
 | Рост и динамика | [`Hagi/Growth`](Hagi/Growth), [`Hagi/Dynamics`](Hagi/Dynamics), [`Hagi/State`](Hagi/State) | Состояния роста, устойчивость, бюджеты и динамические законы. |
+| Теория и канон-модули | [`Hagi/Theory`](Hagi/Theory) | 31 файл: 10 канон-модулей (Continual, Statistics, SelfEdit, Compression, MergeQuant, Softmax, SafeStep, MasterTheorem, FullPipeline, BlockLipschitz — одно понятие описано один раз, пространства имён слиты стабильно) плюс отдельные теоретические мосты (MasterEF, CEChain, BlockAdmission и др.) и bench-мосты (MiniHagi, MiniHagi2, TrainerBenchmark). |
 | Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
 | Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy) | Маршрутизация и смежные автономные модели. |
 | Примеры и сопровождение | [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Сравнительные формулировки, аудит и внешние математические связи. |
@@ -119,7 +120,7 @@ lake build
 Пины окружения (проверяются гейтом MATHLIBPIN в батарее CI):
 
 - **Версия Lean** — файл `lean-toolchain` (локальная сборка
-  `lean-4.35.0-windows`); канонический пин коммита компилятора —
+  `lean-4.36.0-windows`); канонический пин коммита компилятора —
   `scripts/mathlib-rev.txt`, строка 2 (`toolchain eb6cafb…`).
 - **Версия Mathlib** — `scripts/mathlib-rev.txt`, строка 1
   (`56a0058…`).

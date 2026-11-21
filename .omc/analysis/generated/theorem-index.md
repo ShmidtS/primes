@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 577
-- theorems: 12778
+- modules: 559
+- theorems: 12761
 - defs: 4725
 - noncomputable decls: 1213
-- status Proven: 496 modules
+- status Proven: 478 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -502,55 +502,37 @@ theorems.
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
-| Hagi.Theory.AdaptiveMajorizer | 66 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
+| Hagi.Theory.AdaptiveMajorizer | 59 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
-| Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
-| Hagi.Theory.BandTightening | 27 | 2 | auxG, bandWidth | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
-| Hagi.Theory.BlockLipschitz | 42 | 9 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
-| Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |
+| Hagi.Theory.BlockLipschitz | 48 | 9 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
 | Hagi.Theory.CertSandwichBench | 2 | 0 | - | no | Proven |
-| Hagi.Theory.CertTernaryJump | 4 | 1 | - | no | Proven |
 | Hagi.Theory.CertifyThenCommit | 29 | 35 | - | no | Proven |
-| Hagi.Theory.CompressedSafeStep | 29 | 17 | ternaryCompress, dist2, compressedCertifiedDrop | no | Proven |
-| Hagi.Theory.Confinement | 16 | 1 | safeStepMap | no | Proven |
-| Hagi.Theory.ContinualBench | 3 | 1 | - | no | Proven |
-| Hagi.Theory.ContinualMulti | 5 | 0 | - | no | Proven |
-| Hagi.Theory.EF21InStep | 11 | 5 | - | no | Proven |
-| Hagi.Theory.EFTheory | 37 | 3 | thrComp, signComp | no | Proven |
-| Hagi.Theory.FisherQuant | 21 | 4 | quadLoss | no | Proven |
+| Hagi.Theory.Compression | 52 | 9 | thrComp, signComp | no | Proven |
+| Hagi.Theory.Continual | 30 | 22 | agemStep, nrm, sigmaTail, hybridSelect, hybridStep | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
-| Hagi.Theory.FullPipeline | 14 | 22 | - | no | Proven |
+| Hagi.Theory.FullPipeline | 18 | 40 | - | no | Proven |
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |
-| Hagi.Theory.GPMRelaxed | 11 | 4 | agemStep, nrm, sigmaTail | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
 | Hagi.Theory.GrowTrunkBlock | 9 | 2 | - | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
-| Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
-| Hagi.Theory.HoldoutWithoutReplacement | 145 | 12 | sigWR, wrPopMean, muCond, qdWR, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
-| Hagi.Theory.HybridContinual | 11 | 17 | hybridSelect, hybridStep | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
-| Hagi.Theory.KnobMomentum | 27 | 14 | vel, clampIdx, idxTraj, qround | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
 | Hagi.Theory.MDLPrune | 20 | 3 | - | no | Proven |
-| Hagi.Theory.MasterBudget | 6 | 0 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
-| Hagi.Theory.MasterTheorem | 31 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.MasterTheorem | 46 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.MergeQuant | 46 | 12 | curvRemainder, quadLoss, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.MiniHagi2 | 3 | 1 | miniHagi2Canonical | no | Proven |
-| Hagi.Theory.NonlinearMerge | 26 | 8 | curvRemainder, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
-| Hagi.Theory.RationalSoftmax | 14 | 1 | - | no | Proven |
-| Hagi.Theory.SandwichMonotone | 11 | 4 | sandwichMid | no | Proven |
-| Hagi.Theory.SelfEditGate | 16 | 7 | - | no | Proven |
-| Hagi.Theory.StochasticSafeStep | 29 | 25 | instDecidableAcceptCondition, certifiedDrop, proposalMetrics, acceptStepCert, stochastic_safe_step_certificate, certifiedStepSize | no | Proven |
+| Hagi.Theory.SafeStep | 72 | 43 | instDecidableAcceptCondition, ternaryCompress, certifiedDrop, dist2, proposalMetrics, safeStepMap, acceptStepCert, stochastic_safe_step_certificate, compressedCertifiedDrop, certifiedStepSize | no | Proven |
+| Hagi.Theory.SelfEdit | 43 | 21 | vel, clampIdx, idxTraj, qround | no | Proven |
+| Hagi.Theory.Softmax | 52 | 7 | auxG, bandWidth, sandwichMid | no | Proven |
+| Hagi.Theory.Statistics | 164 | 18 | popMean, sigWR, wrPopMean, muCond, qdWR, popDens, holdoutMean, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
 | Hagi.Theory.TrainerBenchmark | 7 | 3 | loTB, hiTB | no | Proven |
-| Hagi.Theory.TrunkTrain | 4 | 18 | - | no | Proven |
-| Hagi.Theory.TwoDomainConfidence | 1 | 0 | - | no | Proven |
-| Hagi.Theory.VerticalCapstone | 9 | 0 | - | no | Proven |
 | Hagi.Training.AdaptiveAnytime | 21 | 15 | adaptiveRoundWeights | no | Proven |
 | Hagi.Training.Admission | 25 | 34 | admissionMargin, admitRule | yes | Conditional |
 | Hagi.Training.AlternatingJoint | 77 | 100 | stepPenalty, stepDamage, derivedStepDamage, stepDrop', stepPenalty', stepDrop | no | Proven |
