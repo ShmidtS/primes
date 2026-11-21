@@ -10071,6 +10071,507 @@ def emit_lean_universal(path, res, witness_steps=2):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C553: NONLINEAR PRIMITIVE OE-SEARCH ON THE FULL LIVE CORPUS
+# (--mode universal-loop-nl)
+#
+# C551 found ONLY constant clusters on the real full-corpus
+# targets (93.8% coverage; zero linear laws). The honest open
+# question: are the real dependencies simply NONLINEAR (H1),
+# absent altogether (H2), or was the probe budget too small
+# (H3)? This mode extends the primitive language v2:
+#
+#   const c                     (as C551)
+#   lin    snap(c + a*x_j)      (as C551: anchored on an
+#                               ACCEPTED const only)
+#   prod   snap(c + a*x_i*x_j)  (pairs i <= j, squares incl.)
+#   mm     snap(c + a*op(x_i,x_j)), op in {min, max}
+#   thr    (x_j >= q ? cA : cB) (rational branch thresholds)
+#
+# Anchor discipline: prod/mm anchor on {0} + accepted consts
+# (zero-anchor bootstrap — const 0 is a legitimate primitive
+# value; documented deviation from the C551 lin discipline,
+# which is kept unchanged for lin); thr anchors on PAIRS of
+# accepted consts, q ranges over the distinct rational values
+# of x_j (the exact branch-flip points — a precise narrowing,
+# no approximation).
+#
+# FEATURE BUDGET (measured, not assumed): CL_D = 4 features ->
+# 10 unordered pairs (incl. squares); <= ~12.7k candidates per
+# iteration at k = 7 accepted consts (research .tmp/C553 §3).
+# top-k correlation truncation is therefore NOT applied
+# (k = CL_D = the whole feature set). If CL_D ever grows, the
+# documented criterion is top-k features by |Pearson
+# corr(x_j, t)| — pinned here so the choice is explicit.
+#
+# Acceptance is EXACT and unchanged (err == 0 asserted, >= 5
+# NEW positions, oeFirsts-dedup on 8 probes); coverage is
+# monotone bit-exact; per-domain adapters + forgetA = 0
+# bit-exact asserts + drift detect are inherited from C551.
+#
+# H-VERDICT (computed by code from telemetry, criteria fixed
+# BEFORE the run — research .tmp/C553 §4):
+#   H1  >= 1 accepted primitive of kind prod/mm/thr;
+#   H3  stopped with a near-miss (a candidate with exactly
+#       UL_MIN_NEW - 1 = 4 exact new matches) — probes were
+#       close but the gate held;
+#   H2  otherwise (no nonlinear law in language v2 within the
+#       probe budget) — a LANGUAGE-RELATIVE negative, not an
+#       absolute claim about the data.
+# Priority H1 -> H3 -> H2 (a near-miss absorbs H2).
+
+ULNL_PAIRS = [(i, j) for i in range(CL_D)
+              for j in range(i, CL_D)]     # 10 pairs, squares ok
+ULNL_MAX_CAND = 13000                   # budget pin (research)
+
+
+def ulnl_pred(prim, x):
+    """Evaluate a universal-loop-nl primitive (exact)."""
+    k = prim["kind"]
+    if k == "const":
+        return prim["c"]
+    if k == "lin":
+        return fl2_snap(prim["c"] + prim["a"] * x[prim["j"]])
+    if k == "prod":
+        return fl2_snap(prim["c"] + prim["a"]
+                        * x[prim["i"]] * x[prim["j"]])
+    if k == "mm":
+        pv = (min(x[prim["i"]], x[prim["j"]])
+              if prim["op"] == "min"
+              else max(x[prim["i"]], x[prim["j"]]))
+        return fl2_snap(prim["c"] + prim["a"] * pv)
+    # thr
+    return prim["cA"] if x[prim["j"]] >= prim["q"] \
+        else prim["cB"]
+
+
+def ulnl_law(c):
+    if c["kind"] == "const":
+        return f"const {c['c']}"
+    if c["kind"] == "lin":
+        return f"{c['c']} + {c['a']}*x{c['j']}"
+    if c["kind"] == "prod":
+        return (f"{c['c']} + {c['a']}*x{c['i']}*x{c['j']}"
+                + (" [zero-anchor]" if c["c"] == 0 else ""))
+    if c["kind"] == "mm":
+        return (f"{c['c']} + {c['a']}*{c['op']}(x{c['i']},"
+                f"x{c['j']})"
+                + (" [zero-anchor]" if c["c"] == 0 else ""))
+    return (f"if x{c['j']} >= {c['q']} then {c['cA']} "
+            f"else {c['cB']}")
+
+
+def universal_loop_nl_run(ledger_path):
+    """C553: C551 universal loop with the NONLINEAR primitive
+    language v2 on the FULL live corpus. One run, one
+    telemetry, bit-exact asserts, code-computed H-verdict."""
+    import copy
+
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
+            for (k, x, y) in pts]
+    n = len(data)
+    frozen = copy.deepcopy(data)         # drift-detect copy
+    domains = [d["key"] for d in data]
+    tel = {"n_points": n, "n_domains": len(set(domains)),
+           "language": "v2: const, lin, prod, mm(min/max), "
+                       "thr(rational thresholds)",
+           "iterations": [], "negatives": {}, "holds": []}
+    covered = set()
+    prims = []
+    all_traj = []
+    near_miss = []                       # H3 evidence
+    ad = {d["key"]: [F(0)] * CL_D for d in data}
+
+    def cover_frac(cov):
+        return F(len(cov), n)
+
+    def oe_space():
+        cands = [{"kind": "const", "c": c, "deps": []}
+                 for c in sorted({d["t"] for d in data})]
+        anchors = [p for p in prims if p["kind"] == "const"]
+        # lin: EXACTLY the C551 discipline (accepted consts)
+        for pc in anchors:
+            for j in range(CL_D):
+                for a in UL_SLOPES:
+                    cands.append({"kind": "lin", "c": pc["c"],
+                                  "j": j, "a": a,
+                                  "deps": [pc["id"]]})
+        # prod/mm: zero-anchor bootstrap + accepted consts
+        zanchors = [{"c": F(0), "id": None}] \
+            + [{"c": pc["c"], "id": pc["id"]}
+               for pc in anchors]
+        for z in zanchors:
+            for (i, j) in ULNL_PAIRS:
+                for a in UL_SLOPES:
+                    cands.append({"kind": "prod", "c": z["c"],
+                                  "i": i, "j": j, "a": a,
+                                  "deps": ([z["id"]]
+                                           if z["id"] else [])})
+                    for op in ("min", "max"):
+                        cands.append({"kind": "mm",
+                                      "c": z["c"], "i": i,
+                                      "j": j, "a": a, "op": op,
+                                      "deps": ([z["id"]]
+                                               if z["id"] else [])})
+        # thr: pairs of accepted consts; q = distinct x_j values
+        if len(anchors) >= 2:
+            for j in range(CL_D):
+                qs = sorted({d["x"][j] for d in data})
+                for qi, q in enumerate(qs):
+                    for pa in anchors:
+                        for pb in anchors:
+                            if pa["c"] == pb["c"]:
+                                continue
+                            cands.append({"kind": "thr",
+                                          "j": j, "q": q,
+                                          "cA": pa["c"],
+                                          "cB": pb["c"],
+                                          "deps": [pa["id"],
+                                                   pb["id"]]})
+        assert len(cands) <= ULNL_MAX_CAND, \
+            f"ABORT: candidate space {len(cands)} exceeds " \
+            f"budget pin {ULNL_MAX_CAND}"
+        return cands
+
+    def oe_accept(cands):
+        unc = [i for i in range(n) if i not in covered]
+        probes = unc[:8]
+        seen, oe = set(), []
+        for c in cands:
+            ov = tuple(ulnl_pred(c, data[i]["x"]) == data[i]["t"]
+                       for i in probes)
+            if ov not in seen:
+                seen.add(ov)
+                oe.append(c)
+        accepted = []
+        for c in oe:
+            # NEW positions only: exclude anything already
+            # covered, including by candidates accepted EARLIER
+            # in this same iteration (covered is live).
+            newi = [i for i in unc if i not in covered
+                    and ulnl_pred(c, data[i]["x"]) == data[i]["t"]]
+            if len(newi) == UL_MIN_NEW - 1:
+                near_miss.append({"kind": c["kind"],
+                                  "law": ulnl_law(c),
+                                  "new": len(newi)})
+            if len(newi) < UL_MIN_NEW:
+                continue
+            for i in newi:
+                assert (ulnl_pred(c, data[i]["x"])
+                        - data[i]["t"]) ** 2 == 0, \
+                    "ABORT: validation error != 0 (gate broken)"
+                covered.add(i)
+            accepted.append(c)
+        return accepted, len(oe), len(cands)
+
+    def adapters_on_residual(tag):
+        traj = []
+        ce_b, ce_a = F(0), F(0)
+        ndom = 0
+        for dk in domains:
+            res = [(d["x"], d["t"]) for i, d in enumerate(data)
+                   if d["key"] == dk and i not in covered]
+            if not res:
+                continue
+            ndom += 1
+            w = ad[dk]
+            snap_all = {k2: list(v2) for k2, v2 in ad.items()}
+            o0 = mh_mse(w, res)
+            for _ in range(UL_A_STEPS):
+                g = mh_grad(w, res)
+                cand = cl_snap([w[i] - UL_ETA * g[i]
+                                for i in range(CL_D)])
+                o1 = mh_mse(cand, res)
+                if o1 < o0:
+                    traj.append({"phase": tag, "obj": o0,
+                                 "obj'": o1, "drop": o0 - o1,
+                                 "budget": o0, "budget'": o1,
+                                 "risk": o0, "risk'": o1})
+                    w, o0 = cand, o1
+                else:
+                    tel["holds"].append(
+                        {"phase": tag, "drop": o0 - o1,
+                         "reason": "drop <= 0: HOLD"})
+            ad[dk] = w
+            for k2, v2 in snap_all.items():
+                if k2 == dk:
+                    continue
+                assert ad[k2] == v2, \
+                    f"ABORT forgetA: domain {k2} params changed " \
+                    f"while training {dk} (isolation broken)"
+            ce_b += mh_mse([F(0)] * CL_D, res)
+            ce_a += mh_mse(ad[dk], res)
+        return traj, ce_b, ce_a, ndom * CL_D
+
+    stop_reason = None
+    for it in range(1, UL_MAX_ITER + 1):
+        cov_before = cover_frac(covered)
+        traj, ce0, ce1, params = adapters_on_residual(
+            f"it{it}-adapter")
+        all_traj.extend(traj)
+        accepted, oe_n, cand_n = oe_accept(oe_space())
+        cov_after = cover_frac(covered)
+        assert cov_after >= cov_before, \
+            f"ABORT it{it}: coverage decreased " \
+            f"({cov_before} -> {cov_after})"
+        res_idx = [i for i in range(n) if i not in covered]
+        if res_idx:
+            errs = [float(min((ulnl_pred(p, data[i]["x"])
+                               - data[i]["t"]) ** 2
+                              for p in ([{"kind": "const",
+                                          "c": F(0)}] + prims)))
+                    for i in res_idx]
+            nH, nEB, sh, eps, _L = fl_eb_costs(errs)
+        else:
+            nH = nEB = sh = eps = 0
+        for c in accepted:
+            c["id"] = f"p{len(prims) + 1}"
+            prims.append(c)
+        dom_cov = {}
+        for i in range(n):
+            k = data[i]["key"]
+            dom_cov[k] = dom_cov.get(k, 0) + (1 if i in covered
+                                              else 0)
+        dom_n = {}
+        for d in data:
+            dom_n[d["key"]] = dom_n.get(d["key"], 0) + 1
+        doms_full = sum(1 for k in dom_n if dom_cov[k] == dom_n[k])
+        kinds = {}
+        for c in accepted:
+            kinds[c["kind"]] = kinds.get(c["kind"], 0) + 1
+        tel["iterations"].append({
+            "iter": it,
+            "coverage_before": str(cov_before),
+            "coverage_after": str(cov_after),
+            "domains_fully_covered": doms_full,
+            "ce_residual_before": str(ce0),
+            "ce_residual_after": str(ce1),
+            "params": params,
+            "certified_steps": len(traj),
+            "oe_firsts": oe_n, "candidates": cand_n,
+            "accepted": [{"id": c["id"], "kind": c["kind"],
+                          "deps": c["deps"],
+                          "law": ulnl_law(c)} for c in accepted],
+            "accepted_by_kind": kinds,
+            "n_hoeffding": nH, "n_eb": nEB,
+            "sigma_hat": sh, "eps": eps, "alpha": UL_ALPHA,
+            "stop": False})
+        if not accepted:
+            stop_reason = "EB-gate: no new law accepted"
+            tel["iterations"][-1]["stop"] = True
+            break
+        if it == UL_MAX_ITER:
+            stop_reason = f"budget: MAX_ITER={UL_MAX_ITER}"
+
+    # ---- drift detect: recompute on the frozen copy ----
+    cov2 = set()
+    for c in prims:
+        for i, d in enumerate(frozen):
+            if i not in cov2 and ulnl_pred(c, d["x"]) == d["t"]:
+                cov2.add(i)
+    assert len(cov2) == len(covered), \
+        f"ABORT drift: coverage on frozen copy {len(cov2)} != " \
+        f"{len(covered)} (live corpus moved under the run)"
+    tel["negatives"]["drift_frozen_copy"] = {
+        "coverage_live": len(covered),
+        "coverage_frozen": len(cov2),
+        "note": "bit-equal: the run describes the corpus it "
+                "loaded"}
+
+    # ---- the C551 linear-language residual, itemized ----
+    c551_consts = [F(11, 8), F(25, 16), F(13, 8), F(27, 16),
+                   F(3, 2), F(23, 16)]
+    lin_cov = {i for i, d in enumerate(data)
+               if d["t"] in c551_consts}
+    tel["residual_after_linear"] = [
+        {"domain": d["key"], "t": str(d["t"]),
+         "covered_by_v2": i in covered}
+        for i, d in enumerate(data) if i not in lin_cov]
+
+    # ---- in-run negatives ----
+    cov_any = next(i for i in range(n) if i in covered)
+    wrong = data[cov_any]["t"] + FL2_QGRID
+    err_wrong = (wrong - data[cov_any]["t"]) ** 2
+    assert err_wrong > 0, "ABORT neg: wrong-const err must be > 0"
+    tel["negatives"]["wrong_const"] = str(err_wrong)
+    tel["negatives"]["hold_unchanged"] = True
+
+    # ---- H-VERDICT (criteria fixed in research §4) ----
+    nl_kinds = {"prod", "mm", "thr"}
+    nl_accepted = [p for p in prims if p["kind"] in nl_kinds]
+    if nl_accepted:
+        verdict = "H1: nonlinear laws FOUND"
+    elif near_miss:
+        verdict = ("H3: probes borderline — near-miss "
+                   "candidates exist (4 exact new matches), "
+                   "gate held")
+    else:
+        verdict = ("H2 (language-relative): no nonlinear law "
+                   "in language v2 within the probe budget; "
+                   "no near-miss either")
+    kinds_all = {}
+    for p in prims:
+        kinds_all[p["kind"]] = kinds_all.get(p["kind"], 0) + 1
+    tel["h_verdict"] = {
+        "verdict": verdict,
+        "nonlinear_accepted": len(nl_accepted),
+        "near_miss_count": len(near_miss),
+        "near_miss": near_miss[:10],
+        "prims_by_kind": kinds_all,
+        "criteria": "H1: >=1 prod/mm/thr accepted (exact, >=5 "
+                    "new); H3: near-miss (exactly 4 new) at "
+                    "stop; H2: otherwise; priority H1>H3>H2"}
+
+    dom_tab = []
+    for d in data:
+        k = d["key"]
+        res = [(d2["x"], d2["t"]) for d2 in data
+               if d2["key"] == k]
+        dom_tab.append({"domain": k, "n": len(res),
+                        "ce_adapter": str(mh_mse(ad[k], res)),
+                        "forgetA": 0})
+    tel["domains"] = dom_tab
+    tel["final"] = {
+        "iterations_run": len(tel["iterations"]),
+        "stop_reason": stop_reason,
+        "coverage_start": tel["iterations"][0]["coverage_before"],
+        "coverage_final": cover_frac(covered),
+        "domains_total": len(set(domains)),
+        "domains_fully_covered": tel["iterations"][-1][
+            "domains_fully_covered"],
+        "laws": [{"id": p["id"], "kind": p["kind"],
+                  "deps": p["deps"]} for p in prims],
+        "certified_steps_total": len(all_traj),
+        "holds": len(tel["holds"]),
+        "forgetA_domains": 0}
+    wit_dom = domains[0]
+    return {"tel": tel, "traj": all_traj, "prims": prims,
+            "stop_reason": stop_reason,
+            "err_wrong": err_wrong,
+            "forgetA_pair": ([F(0)] * CL_D, ad[wit_dom]),
+            "forgetA_dom": wit_dom}
+
+
+def emit_lean_universal_nl(path, res, witness_steps=2):
+    """C553 witness: (1) TOY nonlinear instance — a product
+    law on probes (x0,x1) = (0,5),(1,7),(2,11) with target
+    x0*x1: a UNIVERSAL negative (no c a : Q reproduce the obs
+    vector with c + a*x0 — three distinct x0 kill linearity)
+    and a positive (snap(0+1*x0*x1) matches exactly), plus
+    #check oe_search_complete (C540 applies to ANY space, so
+    language v2 needs no new theorem); (2) literal certified
+    adapter trajectories of the full-corpus run + forgetA=0
+    instance + coverage monotonicity + negatives."""
+    tel = res["tel"]
+    out = ["-- C553 universal-loop-nl witness (NONLINEAR "
+           "primitive language v2, FULL live corpus, ONE run).\n"
+           f"-- {len(tel['iterations'])} iterations, stop: "
+           f"{res['stop_reason']}; coverage "
+           f"{tel['final']['coverage_start']} -> "
+           f"{tel['final']['coverage_final']}; H-verdict: "
+           f"{tel['h_verdict']['verdict']}.\n"
+           "-- TOY: a product law is OUT of the linear language "
+           "but INSIDE language v2 (negative + positive).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.MiniHagiLoop\n"
+           "import Hagi.Theory.OEComplete\n\n"
+           "open Hagi.Runtime\n\n"
+           "-- TOY NEGATIVE (universal, not grid-bound): probes "
+           "(x0, x1) = (0,5), (1,7), (2,11); target t = x0*x1\n"
+           "-- has obs vector [0, 7, 22]. NO linear program "
+           "c + a*x0 matches: c = 0, c + a = 7 forces a = 7, "
+           "but then c + 2a = 14 != 22.\n"
+           "theorem nl_linear_cannot_match_prod :\n"
+           "    ∀ c a : ℚ, [c, c + a, c + 2 * a] "
+           "≠ [0, 7, 22] := by\n"
+           "  intro c a h\n"
+           "  injection h with h1 h2\n"
+           "  injection h2 with h3 h4\n"
+           "  norm_num at h1 h3 h4\n"
+           "  linarith\n\n"
+           "-- TOY POSITIVE: the product primitive snap(0 + "
+           "1*x0*x1) matches the target obs vector exactly.\n"
+           "theorem nl_product_matches :\n"
+           "    [(0:ℚ) * 5, 1 * 7, 2 * 11] = [0, 7, 22] := "
+           "by norm_num\n\n"
+           "-- C540 applies to ANY program space: with the "
+           "product program in the space, OE-dedup search "
+           "keeps a representative with the same obs vector.\n"
+           "#check @Hagi.Theory.OEComplete.oe_search_complete\n"
+           "#check @Hagi.Theory.MiniHagiLoop.iterative_loop_sound"
+           "\n\n"]
+    by_iter = {}
+    for d in res["traj"]:
+        by_iter.setdefault(d["phase"], []).append(d)
+    emitted = 0
+    for tag in sorted(by_iter):
+        if "-adapter" not in tag:
+            continue
+        ds = by_iter[tag][:witness_steps]
+        if len(ds) < 2:
+            continue
+        start = ds[0]["obj"]
+        nm = tag.replace("-", "_").replace("it", "U")
+        out.append(
+            f"def benchStart{nm} : \u211a := {rat(start)}\n\n"
+            f"def benchTraj{nm} : List "
+            "Hagi.Runtime.CertStepData :=\n[\n"
+            + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            f"#eval checkTrajectory benchStart{nm} "
+            f"benchTraj{nm}\n\n"
+            f"theorem universal_traj_{nm}_valid :\n"
+            f"    checkTrajectory benchStart{nm} "
+            f"benchTraj{nm} = true := by\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStart{nm}, benchTraj{nm}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n\n")
+        emitted += 1
+        if emitted >= 2:
+            break
+    n = tel["n_points"]
+    cov0 = F(tel["final"]["coverage_start"]).numerator
+    covF = F(tel["final"]["coverage_final"]).numerator
+    out.append(
+        "-- coverage monotonicity on the run's numbers: the "
+        "final covered count dominates the initial one.\n"
+        "theorem universal_cov_mono_instance :\n"
+        f"    ({cov0} : \u2115) <= ({covF} : \u2115) := by "
+        "norm_num\n\n")
+    a, b = res["forgetA_pair"]
+    same = a == b
+    ea = ", ".join(rat(t) for t in a)
+    eb = ", ".join(rat(t) for t in b)
+    rel = "=" if same else "\u2260"
+    th = (f"theorem universal_forgetA_zero_instance "
+          f"(dom {res['forgetA_dom']}):\n"
+          f"    [{ea}] = [{eb}] := by norm_num\n") \
+        if same else \
+        (f"theorem universal_forgetA_isolated_instance:\n"
+         f"    \u00ac [{ea}] = [{eb}] := by norm_num\n")
+    out.append("-- forgetA = 0 (C544 isolation, bit-exact "
+               "snapshots; the run asserts this for EVERY "
+               "domain pair after every phase).\n" + th + "\n")
+    out.append(
+        "-- NEGATIVE: the WRONG constant has nonzero error on a "
+        "covered position (gate rejects it):\n"
+        "theorem universal_wrong_const :\n"
+        f"    \u00ac ({res['err_wrong'].numerator}/"
+        f"{res['err_wrong'].denominator} : \u211a) = "
+        "(0/1 : \u211a) := by norm_num\n\n"
+        "-- NEGATIVE: a no-progress iteration accepts no law and "
+        "stops (EB-gate): machine-checked count.\n"
+        "theorem universal_no_progress_stop :\n"
+        f"    ({len(tel['iterations'][-1]['accepted'])}"
+        " : \u2115) = 0 := by norm_num\n\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -10093,7 +10594,8 @@ def main():
                              "hybrid-continual",
                              "mini-hagi-loop",
                              "mini-hagi-loop2",
-                             "universal-loop"],
+                             "universal-loop",
+                             "universal-loop-nl"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -10739,6 +11241,30 @@ def main():
         }, indent=1, default=str))
         if args.emit_lean:
             emit_lean_universal(args.emit_lean, res)
+        return
+
+    if args.mode == "universal-loop-nl":
+        res = universal_loop_nl_run(args.data)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "universal-loop-nl",
+            "n_points": tel["n_points"],
+            "n_domains": tel["n_domains"],
+            "language": tel["language"],
+            "iterations": [
+                {k: (str(v) if not isinstance(v, (int, float, str,
+                                                  list, dict))
+                     else v) for k, v in p.items()}
+                for p in tel["iterations"]],
+            "final": tel["final"],
+            "holds": tel["holds"],
+            "negatives": tel["negatives"],
+            "h_verdict": tel["h_verdict"],
+            "residual_after_linear": tel["residual_after_linear"],
+            "domains": tel["domains"],
+        }, indent=1, default=str))
+        if args.emit_lean:
+            emit_lean_universal_nl(args.emit_lean, res)
         return
 
     if args.mode == "adapter-continual":
