@@ -4168,6 +4168,640 @@ def emit_bad_mini2(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+
+# C500: MINI-HAGI3 - rank-trunc GPM escape from the C494
+# dead end (--mode mini-hagi3)
+#
+# The C494 observation (mini-hagi2, phase E-gpm2): with the
+# accumulated span of T1 u T2 at rank 3 in dim 6, the FULL GPM
+# projection zeroes the snapped gradient step EXACTLY
+# (delta == 0 on the 1/10000 grid): task 3 cannot progress
+# (4 honest HOLDs, 0 committed steps) - the projection has
+# exhausted the space reachable by snapped gradient steps.
+#
+# C500 applies the C498 GPMRelaxed theory
+# (Hagi/Theory/GPMRelaxed.lean, rank_trunc_forgetting_bound):
+#   - keep the top-k Gram-Schmidt directions of the past span
+#     (ordered by carried old-input energy, exact Fractions);
+#   - k = min k with max_old sigmaTail^2 <= eps^2 (squared
+#     budget, C498 docstring pin); eps = 1/10 PIN: eps = 1/100
+#     is INFEASIBLE on the live corpus (min tail2 over k < 3 is
+#     ~0.0028 > 1e-4 - measured, see .tmp/C500/research.md);
+#   - relaxed step delta = Q_topk . snap(-eta*g): orthogonal to
+#     every KEPT direction (exact assert), so per old input x
+#     the forgetting obeys |delta.x|^2 <= ||delta||^2 *
+#     sigmaTail(x)^2 (Cauchy-Schwarz on the tail residual,
+#     exact per-point per-step assert - the bench form of
+#     rank_trunc_forgetting_bound);
+#   - admission ONLY by measured canonical drop > 0 over ALL
+#     live tasks (the certified obj chain stays monotone; the
+#     executable checker re-verifies every relaxed step).
+# Telemetry per step: k-choice, sigma_tail, ACTUAL output-level
+# forgetting vs the ||delta||*sigmaTail bound; the full-GPM arm
+# (exact C494 replica) runs alongside for the honest
+# full-vs-relaxed comparison line.
+
+MH3_EPS = F(1, 10)                # rank-trunc tolerance (PIN)
+
+
+def mh3_resid(x, kept, d):
+    """Residual of x after projecting out the kept GS basis
+    (exact Fractions); sigmaTail^2 = resid . resid."""
+    u = list(x)
+    for b in kept:
+        dq = sum((u[i] * b[i] for i in range(d)), F(0))
+        nb = sum((b[i] * b[i] for i in range(d)), F(0))
+        u = [u[i] - dq / nb * b[i] for i in range(d)]
+    return u
+
+
+def mini_hagi3_run(ledger_path):
+    """mini-hagi2 structure (C494: 2-block trunk, 3 tasks, 2
+    grows) with the gpm2 phase ESCAPED by rank-trunc relaxed
+    GPM (C498 theory) when the full projection is exhausted.
+    Returns (start_obj, [accepted steps], telemetry, stats)."""
+    sys.set_int_max_str_digits(0)
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "rejects": [], "stop": None, "outcomes": {},
+                    "gpm2": None, "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    obj0 = mh2_canon(w, tasks, theta)
+    mse_start = [mh2_mse(w, t, theta) for t in tasks]
+    for t in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD (fd step rolled "
+                                           "back)"})
+    tel["phases"].append({
+        "phase": "A-trunk2", "params": MH2_NPAR,
+        "trunk": "2 blocks x (L1-rms -> W1 -> ReLU -> W2), "
+                 "frozen after phase A",
+        "mse_T1": str(mh2_mse(w, tasks[0], theta)),
+        "mse_T2": str(mh2_mse(w, tasks[1], theta)),
+        "mse_T3": str(mh2_mse(w, tasks[2], theta)),
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    FT = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in tasks]
+    HF = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in htasks]
+    assert mh2_fcanon(w, FT) == raw[-1]["obj'"], \
+        "ABORT: trunk freeze broke the obj chain"
+
+    fibers = []
+
+    def feats_now(base):
+        return base + [fib(base) for fib in fibers]
+
+    def task_feats():
+        return [[(feats_now(f), y) for f, y in tk] for tk in FT]
+
+    def hold_feats():
+        return [[(feats_now(f), y) for f, y in tk] for tk in HF]
+
+    def risk(wcur):
+        return mh2_fcanon(wcur, hold_feats())
+
+    def certified_step(phase, wcur, cand, cur):
+        o0, o1 = mh2_fcanon(wcur, cur), mh2_fcanon(cand, cur)
+        if o1 < o0:
+            raw.append({"phase": phase, "obj": o0, "obj'": o1,
+                        "drop": o0 - o1,
+                        "risk": risk(wcur), "risk'": risk(cand)})
+            return cand
+        tel["holds"].append({"phase": phase, "drop": o0 - o1,
+                             "reason": "canonical drop <= 0: "
+                                       "HOLD, rolled back"})
+        return wcur
+
+    def grow(phase, fib, label):
+        nonlocal w
+        cur = task_feats()
+        nxt = [[(f + [fib(f)], y) for f, y in tk] for tk in cur]
+        hxt = [[(f + [fib(f)], y) for f, y in tk]
+               for tk in hold_feats()]
+
+        def risk_g(wcur):
+            return mh2_fcanon(wcur, hxt)
+
+        wet = w + [F(0)]
+        assert mh2_fcanon(wet, nxt) == mh2_fcanon(w, cur), \
+            "ABORT: grow broke the obj chain (w||0 must " \
+            "preserve OBJ)"
+        comb = [p for tk in nxt for p in tk]
+        g = mh_grad(wet, comb)
+        cand = list(wet)
+        cand[-1] = cl_snap(
+            [wet[-1] - MH2_ETA * g[-1]], MH2_GRID)[0]
+        o0 = mh2_fcanon(wet, nxt)
+        o1 = mh2_fcanon(cand, nxt)
+        margin = admission_margin(o0 - o1, F(0), F(0))
+        if margin > 0:
+            raw.append({"phase": phase, "obj": o0, "obj'": o1,
+                        "drop": o0 - o1,
+                        "risk": risk_g(wet), "risk'": risk_g(cand),
+                        "margin": margin})
+            w, fibers_ = cand, fibers + [fib]
+            fibers[:] = fibers_
+            tel["admissions"].append(
+                {"phase": phase, "margin": str(margin),
+                 "fiber": label, "decision": "ADMIT"})
+            return True
+        tel["rejects"].append({"phase": phase,
+                               "margin": str(margin),
+                               "fiber": label,
+                               "decision": "REJECT (model "
+                                           "unchanged)"})
+        return False
+
+    def gpm_phase(name, task_idx, past_idx):
+        """C492/C494 exact GPM phase (unchanged semantics)."""
+        nonlocal w
+        cur = task_feats()
+        d = len(w)
+        past_x = [f for i in past_idx for f, _ in cur[i]]
+        basis = mh_gs_basis(past_x, d)
+        assert 0 < len(basis) < d, \
+            f"ABORT: need 0 < rank(span past) < dim at {name}"
+        Q = mh_complement_projector(basis, d)
+        past_mse0 = [mh2_fmse(w, cur[i]) for i in past_idx]
+
+        wn = list(w)                    # naive arm (telemetry)
+        for _ in range(MH2_C_STEPS):
+            g = mh_grad(wn, cur[task_idx])
+            cand = cl_snap([wn[i] - MH2_ETA * g[i]
+                            for i in range(d)], MH2_GRID)
+            if mh2_fmse(cand, cur[task_idx]) \
+                    < mh2_fmse(wn, cur[task_idx]):
+                wn = cand
+        forget_naive = [mh2_fmse(wn, cur[i]) - past_mse0[k]
+                        for k, i in enumerate(past_idx)]
+
+        for _ in range(MH2_C_STEPS):    # GPM arm (the trace)
+            g = mh_grad(w, cur[task_idx])
+            delta = mh2_applyQ(
+                Q, cl_snap([-MH2_ETA * t2 for t2 in g],
+                           MH2_GRID), d)
+            for x in past_x:            # gpmOrth, exact
+                assert sum((delta[i] * x[i] for i in range(d)),
+                           F(0)) == 0, \
+                    "ABORT: gpmOrth violated (projection bug)"
+            cand = [w[i] + delta[i] for i in range(d)]
+            for k, i in enumerate(past_idx):
+                assert mh2_fmse(cand, cur[i]) == past_mse0[k],\
+                    f"ABORT: past task {i + 1} loss moved " \
+                    f"under GPM step ({name})"
+            o0 = mh2_fcanon(w, cur)
+            o1 = mh2_fcanon(cand, cur)
+            if o1 < o0:
+                raw.append({"phase": name, "obj": o0,
+                            "obj'": o1, "drop": o0 - o1,
+                            "risk": risk(w), "risk'": risk(cand)})
+                w = cand
+            else:
+                tel["holds"].append({"phase": name,
+                                     "drop": o0 - o1,
+                                     "reason": "canonical drop "
+                                               "<= 0: HOLD (GPM "
+                                               "arm)"})
+        forget_gpm = [mh2_fmse(w, cur[i]) - past_mse0[k]
+                      for k, i in enumerate(past_idx)]
+        assert all(t2 == 0 for t2 in forget_gpm), \
+            f"ABORT: GPM forgetting must be EXACTLY zero " \
+            f"({name})"
+        tel["phases"].append({
+            "phase": name, "dim": d, "rank_past": len(basis),
+            "mse_task": str(mh2_fmse(w, cur[task_idx])),
+            "canonical": str(mh2_fcanon(w, cur))})
+        return forget_naive, forget_gpm
+
+    def gpm2_relaxed_phase(name, task_idx, past_idx):
+        """C500: the gpm2 phase - full-GPM arm (exact C494
+        replica, telemetry) vs rank-trunc relaxed arm (the
+        certified trace)."""
+        nonlocal w
+        cur = task_feats()
+        d = len(w)
+        past_x = [f for i in past_idx for f, _ in cur[i]]
+        basis = mh_gs_basis(past_x, d)
+        r = len(basis)
+        assert 0 < r < d, \
+            f"ABORT: need 0 < rank(span past) < dim at {name}"
+        past_mse = [mh2_fmse(w, cur[i]) for i in past_idx]
+        mse_task0 = mh2_fmse(w, cur[task_idx])
+
+        # --- naive arm (telemetry, as C494)
+        wn = list(w)
+        for _ in range(MH2_C_STEPS):
+            g = mh_grad(wn, cur[task_idx])
+            cand = cl_snap([wn[i] - MH2_ETA * g[i]
+                            for i in range(d)], MH2_GRID)
+            if mh2_fmse(cand, cur[task_idx]) \
+                    < mh2_fmse(wn, cur[task_idx]):
+                wn = cand
+        forget_naive = [mh2_fmse(wn, cur[i]) - past_mse[k]
+                        for k, i in enumerate(past_idx)]
+
+        # --- FULL arm (telemetry only): exact C494 replica
+        Qf = mh_complement_projector(basis, d)
+        wf = list(w)
+        full_comm = 0
+        for _ in range(MH2_C_STEPS):
+            g = mh_grad(wf, cur[task_idx])
+            delta = mh2_applyQ(
+                Qf, cl_snap([-MH2_ETA * t2 for t2 in g],
+                            MH2_GRID), d)
+            cf = [wf[i] + delta[i] for i in range(d)]
+            o0, o1 = mh2_fcanon(wf, cur), mh2_fcanon(cf, cur)
+            if o1 < o0:
+                wf = cf
+                full_comm += 1
+        g0 = mh_grad(w, cur[task_idx])
+        delta0 = mh2_applyQ(
+            Qf, cl_snap([-MH2_ETA * t2 for t2 in g0], MH2_GRID),
+            d)
+        full_zero_delta = all(t2 == 0 for t2 in delta0)
+        full_prog = mse_task0 - mh2_fmse(wf, cur[task_idx])
+
+        # --- relaxed arm (the trace)
+        energy = [sum((sum((b[i] * x[i] for i in range(d)),
+                           F(0)) ** 2 for x in past_x), F(0))
+                  for b in basis]
+        order = sorted(range(r), key=lambda j: energy[j],
+                       reverse=True)
+        kept_for, tail2max = {}, []
+        for k in range(r + 1):
+            kept_for[k] = [basis[j] for j in order[:k]]
+            tail2max.append(max(
+                [sum((t2 * t2 for t2 in mh3_resid(
+                    x, kept_for[k], d)), F(0))
+                 for x in past_x] + [F(0)]))
+        kmin = next((k for k in range(r)
+                     if tail2max[k] <= MH3_EPS ** 2), None)
+
+        relax_tel = {
+            "eps": str(MH3_EPS), "eps2": str(MH3_EPS ** 2),
+            "tail2max_by_k": [str(t2) for t2 in tail2max],
+            "k_min": kmin,
+            "basis_energy_order": [str(energy[j])
+                                   for j in order], "steps": []}
+        n_relax, max_forget = 0, F(0)
+        Qk = mh_complement_projector(kept_for[kmin], d) \
+            if kmin is not None else None
+        for _ in range(MH2_C_STEPS):
+            g = mh_grad(w, cur[task_idx])
+            delta = mh2_applyQ(
+                Qf, cl_snap([-MH2_ETA * t2 for t2 in g],
+                            MH2_GRID), d)
+            cand = [w[i] + delta[i] for i in range(d)]
+            o0 = mh2_fcanon(w, cur)
+            o1 = mh2_fcanon(cand, cur)
+            if o1 < o0:          # exact full-GPM commit
+                for x in past_x:
+                    assert sum((delta[i] * x[i]
+                                for i in range(d)), F(0)) == 0, \
+                        "ABORT: gpmOrth violated (projection bug)"
+                for k2, i in enumerate(past_idx):
+                    assert mh2_fmse(cand, cur[i]) \
+                        == past_mse[k2], \
+                        f"ABORT: past task {i + 1} loss moved " \
+                        f"under full GPM step ({name})"
+                raw.append({"phase": name, "obj": o0,
+                            "obj'": o1, "drop": o0 - o1,
+                            "risk": risk(w), "risk'": risk(cand)})
+                w = cand
+                relax_tel["steps"].append(
+                    {"arm": "full", "committed": True})
+                continue
+            if kmin is None:
+                tel["holds"].append({
+                    "phase": name, "drop": o0 - o1,
+                    "reason": "full-span HOLD and no k < rank "
+                              "within eps-budget: HOLD (C494 "
+                              "dead end persists)"})
+                continue
+            dk = mh2_applyQ(
+                Qk, cl_snap([-MH2_ETA * t2 for t2 in g],
+                            MH2_GRID), d)
+            if all(t2 == 0 for t2 in dk):
+                tel["holds"].append({
+                    "phase": name,
+                    "reason": "relaxed delta snapped to 0: "
+                              "HOLD"})
+                continue
+            cand = [w[i] + dk[i] for i in range(d)]
+            for b in kept_for[kmin]:
+                assert sum((dk[i] * b[i] for i in range(d)),
+                           F(0)) == 0, \
+                    "ABORT: relaxed orthogonality violated " \
+                    "(rank-trunc projection bug)"
+            nrm2 = sum((t2 * t2 for t2 in dk), F(0))
+            step_f, step_b2 = [], []
+            for k2, i in enumerate(past_idx):
+                mf, mb2 = F(0), F(0)
+                for x, _ in cur[i]:
+                    tail = mh3_resid(x, kept_for[kmin], d)
+                    tail2 = sum((t2 * t2 for t2 in tail), F(0))
+                    dx = sum((dk[i2] * x[i2]
+                              for i2 in range(d)), F(0))
+                    assert dx * dx <= nrm2 * tail2, \
+                        f"ABORT: rank-trunc forgetting bound " \
+                        f"violated at {name} (|delta.x| > " \
+                        f"||delta||*sigmaTail)"
+                    if abs(dx) > mf:
+                        mf = abs(dx)
+                    if nrm2 * tail2 > mb2:
+                        mb2 = nrm2 * tail2
+                step_f.append(mf)
+                step_b2.append(mb2)
+                if mf > max_forget:
+                    max_forget = mf
+            o0 = mh2_fcanon(w, cur)
+            o1 = mh2_fcanon(cand, cur)
+            if o1 < o0:
+                forget_mse = [mh2_fmse(cand, cur[i]) - past_mse[k2]
+                              for k2, i in enumerate(past_idx)]
+                raw.append({"phase": name, "obj": o0,
+                            "obj'": o1, "drop": o0 - o1,
+                            "risk": risk(w), "risk'": risk(cand)})
+                w = cand
+                past_mse = [mh2_fmse(w, cur[i])
+                            for i in past_idx]
+                n_relax += 1
+                relax_tel["steps"].append({
+                    "arm": "relaxed", "committed": True,
+                    "k": kmin,
+                    "sigma_tail2_max": str(tail2max[kmin]),
+                    "delta_norm2": str(nrm2),
+                    "forget_out_max": [str(v) for v in step_f],
+                    "forget_bound2": [str(v) for v in step_b2],
+                    "forget_mse": [str(v) for v in forget_mse]})
+            else:
+                tel["holds"].append({
+                    "phase": name, "drop": o0 - o1,
+                    "reason": "relaxed drop <= 0: HOLD"})
+        relax_prog = mse_task0 - mh2_fmse(w, cur[task_idx])
+        tel["phases"].append({
+            "phase": name, "dim": d, "rank_past": r,
+            "k_relax": kmin, "eps": str(MH3_EPS),
+            "mse_task": str(mh2_fmse(w, cur[task_idx])),
+            "canonical": str(mh2_fcanon(w, cur))})
+        tel["gpm2"] = {
+            "full": {"committed": full_comm,
+                     "first_delta_exactly_zero": full_zero_delta,
+                     "task3_mse_progress": str(full_prog)},
+            "relaxed": {"committed": n_relax,
+                        "task3_mse_progress": str(relax_prog),
+                        "max_forgetting_output":
+                            str(max_forget)},
+            "detail": relax_tel}
+        return forget_naive
+
+    # --- (A2) GROW 1
+    grow("B-grow1", lambda f: rd_snap(f[0] * f[1]),
+         "f1 = snap_{1/1000}(phi0*phi1)")
+
+    # --- (B) CONTINUAL task 2 with GPM over span(T1)
+    fnB_n, _ = gpm_phase("C-gpm1", 1, [0])
+
+    # --- (C2) GROW 2
+    grow("D-grow2", lambda f: rd_snap(f[2] * f[3]),
+         "f2 = snap_{1/1000}(phi2*phi3)")
+
+    # --- (C) CONTINUAL task 3: RANK-TRUNC RELAXED GPM (C500)
+    fnC_n = gpm2_relaxed_phase("E-gpm2relax", 2, [0, 1])
+
+    cur = task_feats()
+    d = len(w)
+    tel["outcomes"]["forgetting_naive_B"] = \
+        [str(v) for v in fnB_n]
+    tel["outcomes"]["forgetting_naive_C"] = \
+        [str(v) for v in fnC_n]
+    tel["outcomes"]["forgetting_gpm"] = \
+        "0 exact (C-gpm1); gpm2: relaxed, per-step bound-asserted"
+
+    # --- (F) QUANT
+    wq, s, q, s0 = mh_tern_quantize(w)
+    o0, o1 = mh2_fcanon(w, cur), mh2_fcanon(wq, cur)
+    if o1 < o0:
+        raw.append({"phase": "F-quant", "obj": o0, "obj'": o1,
+                    "drop": o0 - o1, "risk": risk(w),
+                    "risk'": risk(wq)})
+        w = wq
+        tel["admissions"].append(
+            {"phase": "F-quant", "decision": "ADMIT",
+             "scale": str(s), "pattern": [str(t2) for t2 in q]})
+        for _ in range(MH2_QUANT_FT):
+            g = mh_grad(w, [p for tk in cur for p in tk])
+            cand = cl_snap([w[i] - MH2_ETA * g[i]
+                            for i in range(d)], MH2_GRID)
+            w = certified_step("F-quant-ft", w, cand, cur)
+    else:
+        tel["holds"].append({"phase": "F-quant",
+                             "drop": o0 - o1,
+                             "reason": "quant jump drop <= 0: "
+                                       "HOLD (honest reject)"})
+    tel["phases"].append({"phase": "F-quant",
+                          "mse_T1": str(mh2_fmse(w, cur[0])),
+                          "mse_T2": str(mh2_fmse(w, cur[1])),
+                          "mse_T3": str(mh2_fmse(w, cur[2])),
+                          "canonical": str(mh2_fcanon(w, cur))})
+
+    # --- (G) STOP: Ville detector on canonical holdout risk
+    h0 = risk(w)
+    D, fired, refused = F(0), False, 0
+    comb = [p for tk in cur for p in tk]
+    for _ in range(MH2_E_STEPS):
+        g = mh_grad(w, comb)
+        cand = cl_snap([w[i] - MH2_ETA * g[i]
+                        for i in range(d)], MH2_GRID)
+        r1 = risk(cand)
+        D_new = r1 - h0
+        if GS_LAM * D_new >= GS_THRESH:
+            fired = True
+            refused += 1
+            tel["holds"].append({"phase": "G-stop",
+                                 "reason": "Ville stop fired: "
+                                           "candidate refused"})
+            continue
+        o0, o1 = mh2_fcanon(w, cur), mh2_fcanon(cand, cur)
+        if o1 < o0:
+            raw.append({"phase": "G-stop", "obj": o0, "obj'": o1,
+                        "drop": o0 - o1, "risk": risk(w),
+                        "risk'": r1})
+            w = cand
+            D = D_new
+        else:
+            tel["holds"].append({"phase": "G-stop",
+                                 "drop": o0 - o1,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+                               "1/delta - 1 (conservative)",
+                   "lam": str(GS_LAM), "delta": str(GS_DELTA),
+                   "fired": fired, "refused": refused,
+                   "D_final": str(D)}
+    tel["phases"].append({"phase": "G-stop",
+                          "mse_T1": str(mh2_fmse(w, cur[0])),
+                          "mse_T2": str(mh2_fmse(w, cur[1])),
+                          "mse_T3": str(mh2_fmse(w, cur[2])),
+                          "canonical": str(mh2_fcanon(w, cur))})
+
+    n = len(raw)
+    assert n > 0, "ABORT: mini-hagi3 committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: mini-hagi3 step failed certified "
+                     f"admission: {dd}")
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path, "dim_final": d,
+        "trunk": "2 sequential blocks (L1-rms -> W1 -> ReLU -> "
+                 "W2) x2, fd-trained in phase A (44 params), "
+                 "FROZEN afterwards",
+        "grow1_admitted": any(a["phase"] == "B-grow1"
+                              for a in tel["admissions"]),
+        "grow2_admitted": any(a["phase"] == "D-grow2"
+                              for a in tel["admissions"]),
+        "quant_admitted": any(a["phase"] == "F-quant"
+                              for a in tel["admissions"]),
+        "gpm2_full_committed": tel["gpm2"]["full"]["committed"],
+        "gpm2_relaxed_committed":
+            tel["gpm2"]["relaxed"]["committed"],
+        "gpm2_k_relax": tel["gpm2"]["detail"]["k_min"],
+        "gpm2_eps": str(MH3_EPS),
+        "mse_start": [str(v) for v in mse_start],
+        "mse_final": [str(mh2_fmse(w, tk)) for tk in cur],
+        "canonical_start": str(obj0),
+        "canonical_final": str(raw[-1]["obj'"]),
+        "total_drop": str(obj0 - raw[-1]["obj'"]),
+        "model": "linear head over the FROZEN 2-block trunk "
+                 "(C494 structure); gpm2 phase ESCAPED by "
+                 "rank-trunc relaxed GPM (C498 "
+                 "rank_trunc_forgetting_bound: per-step "
+                 "per-old-input exact assert |delta.x|^2 <= "
+                 "||delta||^2 * sigmaTail^2, eps = 1/10 PIN); "
+                 "canonical obj = mean MSE over the 3 live "
+                 "tasks, admission ONLY by measured canonical "
+                 "drop > 0",
+        "theorem": "Hagi.Theory.GPMRelaxed."
+                   "rank_trunc_forgetting_bound (C498, applied "
+                   "bench-side; Lean bridge theorem down-scoped)",
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_mini3(path, start, traj, witness_steps=3):
+    """C500 witness: literal mini-hagi3 trajectory prefix +
+    #eval checkTrajectory + norm_num theorem; header documents
+    the FULL counts honestly."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C500 mini-hagi3 witness (real "
+                "unified_ledger data; C494 structure + rank-trunc "
+                "relaxed GPM escape on the gpm2 phase).\n"
+                f"-- FULL accepted steps: {len(traj)}; phases: "
+                f"{phases};\n-- first {len(ds)} "
+                "machine-checked steps below. Canonical obj = "
+                "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
+                "Fractions).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.GPMRelaxed\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMini3 : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryMini3 : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMini3 "
+                "benchTrajectoryMini3\n\n"
+                "theorem mini_hagi3_bench_valid :\n"
+                "    checkTrajectory benchStartMini3 "
+                "benchTrajectoryMini3 = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMini3, benchTrajectoryMini3, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.GPMRelaxed."
+                "rank_trunc_forgetting_bound\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_mini3(path, start, traj, witness_steps=3):
+    """C500 negative: inflated declared drop on the last witness
+    step; the checker must reject (theorem = false)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    ds[-1]["drop"] = ds[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C500 mini-hagi3 NEGATIVE witness: the last "
+                "declared drop is inflated by 1; the certified "
+                "checker must reject.\n"
+                "import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMini3Bad : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryMini3Bad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMini3Bad "
+                "benchTrajectoryMini3Bad\n\n"
+                "theorem mini_hagi3_bench_invalid :\n"
+                "    checkTrajectory benchStartMini3Bad "
+                "benchTrajectoryMini3Bad = false := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMini3Bad, benchTrajectoryMini3Bad, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -4177,7 +4811,8 @@ def main():
                              "trunk-train", "real-data",
                              "continual", "continual-multi",
                              "wrbound", "cert-sandwich", "mini-hagi",
-                             "mini-hagi2", "vs-trainer"],
+                             "mini-hagi2", "mini-hagi3",
+                             "vs-trainer"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -4238,6 +4873,13 @@ def main():
                          "Ville stop on ONE canonical-objective "
                          "CertStepData chain (obj = mean MSE "
                          "over the 3 live tasks); "
+                         "mini-hagi3: C500 the C494 bench with "
+                         "the gpm2 dead end ESCAPED by "
+                         "rank-trunc relaxed GPM (C498 "
+                         "rank_trunc_forgetting_bound, "
+                         "eps = 1/10 PIN, per-step exact "
+                         "forgetting-bound asserts, measured "
+                         "canonical drop gate); "
                          "vs-trainer: C497 certified "
                          "trainer-benchmark comparison - mini-HAGI "
                          "(C491 sandwich trainer) vs the REAL "
@@ -4274,6 +4916,32 @@ def main():
         stats, w = vs_trainer_run(args.data, args.selfloop,
                                   args.steps or CS_STEPS)
         print(json.dumps(stats, indent=1, default=str))
+        return
+
+    if args.mode == "mini-hagi3":
+        start, traj, tel, stats = mini_hagi3_run(args.data)
+        if args.emit_lean:
+            emit_lean_mini3(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_mini3(args.corrupt, start, traj)
+        print(json.dumps({"mode": "mini-hagi3", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": [
+                    {k: (v if not isinstance(v, F) else str(v))
+                     for k, v in a.items()}
+                    for a in tel["admissions"]],
+                "rejects": tel["rejects"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]],
+                "stop": tel["stop"],
+                "outcomes": tel["outcomes"],
+                "gpm2": tel["gpm2"]}}, indent=1))
         return
 
     if args.mode == "mini-hagi2":
