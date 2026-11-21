@@ -6784,3 +6784,29 @@ docs/PROPOSAL-index.md (5 entries, statuses; C466 superseded).
 Sanity scripts (Fraction/float, all pass, real >= certified in
 every cell): .tmp/C480/sanity-{tight-kappa,fisher-quant,joint-step,
 merge-meas}.py. All Lean anchors rg-verified exact FQNs.
+
+
+## Paper draft + SVD upstream prep (C503)
+
+Docs-only beat (primes SSOT unchanged, Freeze untouched): roadmap
+C501 top-2+3 merged docs-bit, precedent C480. docs/paper-draft.md
+— draft v0.1 «Certify-Then-Commit: A Formally Verified
+Self-Improving Learning System»: abstract (CTC cycle
+PROPOSE→CERTIFY→ADMIT→COMMIT/HOLD/ROLLBACK→LOG, 574 modules /
+12731 theorems / 0 sorry, runtime-assert-checked HAGI_v2 loop,
+mini-HAGI 15 certified steps + rank-trunc escape, vs-trainer 6/6
+certified); sections Related Work / Framework / Components /
+Benchmarks / Honest Limitations (BandDescribes pin, eps=1/10
+measured pin, scale, premise-form channels) / Experiment plan;
+7 theorem boxes with rg-verified anchors (certify_then_commit_
+sound :332, adaptive_descent :541, kappa_le_expR :761,
+fisher_quant_loss_bound :234, rank_trunc_forgetting_bound :125,
+gpm_tradeoff :232, cert_pred_adaptive :375) — appendix anchor
+table at HEAD 8640fb5b. docs/UPSTREAM-SVD.md — Mathlib-вклад
+prep for Flywheel SVD (Apache 2.0, Markovski): inventory of 22
+modules, dependency map (Flywheel self-contained: only Mathlib +
+intra-Flywheel imports; 5 Hagi consumer files to rewire),
+README-passports for 8 candidates, top-3 rank with rg-proven
+Mathlib absence at rev fc4f59e (svd_decomposition — no existence
+theorem vs def-only SingularValues.lean; eckart_young_lower_
+bound; weyl_singularValue_perturbation).
