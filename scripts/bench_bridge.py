@@ -2732,7 +2732,7 @@ def emit_lean_cont(path, res, witness_steps=4):
            "-- numeric telemetry: loss_A before/after GPM phase "
            "are equal Fractions).\n"
            "import Hagi.Runtime.CertChecker\n"
-           "import Hagi.Theory.ContinualBench\n\n"
+           "import Hagi.Theory.Continual\n\n"
            "open Hagi.Runtime\n\n"]
     for name, start, traj in blocks:
         ds = [dict(d) for d in traj[:witness_steps]]
@@ -2932,7 +2932,7 @@ def emit_lean_contm(path, res, witness_steps=4):
            "rank_orthogonal_growth (k new orthogonal "
            "independent rows => rank +k exactly).\n"
            "import Hagi.Runtime.CertChecker\n"
-           "import Hagi.Theory.ContinualMulti\n"
+           "import Hagi.Theory.Continual\n"
            "import Hagi.Spectral.RankGrowth\n\n"
            "open Hagi.Runtime\n\n"]
     for t, (ph, traj) in enumerate(zip(res["phases_gpm"],
@@ -4202,7 +4202,7 @@ def emit_bad_mini2(path, start, traj, witness_steps=3):
 # exhausted the space reachable by snapped gradient steps.
 #
 # C500 applies the C498 GPMRelaxed theory
-# (Hagi/Theory/GPMRelaxed.lean, rank_trunc_forgetting_bound):
+# (Hagi/Theory/Continual.lean (GPMRelaxed section), rank_trunc_forgetting_bound):
 #   - keep the top-k Gram-Schmidt directions of the past span
 #     (ordered by carried old-input energy, exact Fractions);
 #   - k = min k with max_old sigmaTail^2 <= eps^2 (squared
@@ -4774,7 +4774,7 @@ def emit_lean_mini3(path, start, traj, witness_steps=3):
                 "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
                 "Fractions).\n"
                 "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.GPMRelaxed\n\n"
+                "import Hagi.Theory.Continual\n\n"
                 "open Hagi.Runtime\n\n"
                 f"def benchStartMini3 : \u211a := {rat(start)}\n\n"
                 "def benchTrajectoryMini3 : "
@@ -5668,7 +5668,7 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
 # (--mode agem-vs-ranktrunc)
 #
 # The GPM-family empirical closure: BOTH continual mechanisms
-# from C498 (Hagi/Theory/GPMRelaxed.lean) run on the SAME
+# from C498 (Hagi/Theory/Continual.lean (GPMRelaxed section)) run on the SAME
 # C485 scenario (task A -> task B on the live unified_ledger
 # corpus, exact Fractions) with the SAME phase-1 wA, the SAME
 # B data, step budget, eta and snap grid — the ONLY difference
@@ -5881,7 +5881,7 @@ def emit_lean_agn(path, res, witness_steps=3):
            "-- arms differ ONLY in the step-direction "
            "mechanism (same wA, B data, steps, eta, grid).\n"
            "import Hagi.Runtime.CertChecker\n"
-           "import Hagi.Theory.GPMRelaxed\n\n"
+           "import Hagi.Theory.Continual\n\n"
            "open Hagi.Runtime\n\n"]
     for name, traj in blocks:
         ds = [dict(d) for d in traj[:witness_steps]]
@@ -6255,8 +6255,8 @@ def emit_lean_hyb(path, res, witness_steps=3):
            "the measured state (C509 decision table); soundness: "
            "Hagi.Theory.HybridContinual.hybrid_step_sound.\n"
            "import Hagi.Runtime.CertChecker\n"
-           "import Hagi.Theory.HybridContinual\n"
-           "import Hagi.Theory.GPMRelaxed\n\n"
+           "import Hagi.Theory.Continual\n"
+           "import Hagi.Theory.Continual\n\n"
            "open Hagi.Runtime\n\n"
            f"def benchStartC510 : \u211a := {rat(start)}\n\n"
            "def benchTrajectoryC510 : List "

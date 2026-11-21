@@ -105,13 +105,13 @@ dominate uniform ones (`fisher_beats_lipschitz`, :346;
 ### 3.3 GPM-relaxed with σ_tail
 
 > **Theorem (rank_trunc_forgetting_bound).**
-> `Hagi/Theory/GPMRelaxed.lean:125` (C498).
+> `Hagi/Theory/Continual.lean:125` (C498).
 > A rank-truncated GPM step changes the response on an old input
 > by at most `‖row‖ · sigmaTail` — the forgetting budget is tail
 > energy leakage, not zero.
 
 > **Theorem (gpm_tradeoff).**
-> `Hagi/Theory/GPMRelaxed.lean:232` (C498).
+> `Hagi/Theory/Continual.lean:232` (C498).
 > Old-input forgetting and new-input progress are both bounded by
 > the same `‖row‖·sigmaTail` product: shrinking the tail shrinks
 > both. The ε² compromise is exact, not asymptotic.
@@ -212,6 +212,6 @@ not needed: all bands disjoint already at n = m = 4.
 | adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:541 | C462+ |
 | kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:761 | C471 |
 | fisher_quant_loss_bound | Hagi/Theory/FisherQuant.lean:234 | C472 |
-| rank_trunc_forgetting_bound | Hagi/Theory/GPMRelaxed.lean:125 | C498 |
-| gpm_tradeoff | Hagi/Theory/GPMRelaxed.lean:232 | C498 |
+| rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:125 | C498 |
+| gpm_tradeoff | Hagi/Theory/Continual.lean:232 | C498 |
 | cert_pred_adaptive | Hagi/Theory/BandTightening.lean:375 | C495/C502 |

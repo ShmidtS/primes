@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Runtime.CertChecker
-import Hagi.Theory.ContinualBench
+import Hagi.Theory.Continual
 import Mathlib.Tactic
 
 /-!

@@ -476,10 +476,7 @@ import Hagi.Theory.SelfEditGate
 import Hagi.Theory.MDLPrune
 import Hagi.Theory.KnobMomentum
 import Hagi.Theory.ProvenTrunk
-import Hagi.Theory.ContinualBench
-import Hagi.Theory.ContinualMulti
-import Hagi.Theory.GPMRelaxed
-import Hagi.Theory.HybridContinual
+import Hagi.Theory.Continual
 import Hagi.Theory.RationalSoftmax
 import Hagi.Theory.BandTightening
 import Hagi.Theory.SandwichMonotone
