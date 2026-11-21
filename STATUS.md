@@ -3784,3 +3784,28 @@ card instances); the main theorems carry the content.
   P = diag(1,0), W = [3,5], ηλ = 1/2: naive → [3/2,0],
   projected/full → [3,0], негатив naive ≠ projected = true.
   Аксиомы: только propext/Quot.sound/Classical.choice.
+
+## Hagi/Probability/EmpiricalBernstein.lean (C539: empirical bernstein bound — P1)
+
+- P1 внешнего плана (mapping C537, top-2): Empirical-Bernstein
+  confidence как дополнение Freedman-канона (C525) — σ̂-подстановка
+  вместо диапазонной R² (Hoeffding/AuditLedger) + аддитивный
+  диапазонный член (стиль Maurer–Pontil 2009). В Mathlib EB нет
+  (rg: пусто; PMFBridge — Bernoulli-factory полиномы, другая тема).
+- `freedman_tail_two_sided`: P[|ΣX| ≥ Δ] ≤ 2exp(−Δ²/(2(nσ²+bΔ))) —
+  freedman_tail_low для X и −X + prodPq_union_le (двухсторонность,
+  которой нет ни в freedman_confidence, ни в hoeffding_two_sided
+  для мартингалов).
+- `eb_radius_algebra`: инверсия квадратики Freedman — радиус
+  Δ = √(2nσ̂²L) + 2bL даёт exp(−Δ²/(2(nσ²+bΔ))) ≤ exp(−L)
+  (тождество Δ² − 2L(nσ²+bΔ) = 2bL·√(2σ²nL) ≥ 0).
+- `empirical_bernstein_bound` (main): P[|ΣX| < √(2nσ̂²L) + 2bL] ≥
+  1 − α, L = ln(2/α) — EB-радиус с явным √-членом (σ̂) и
+  аддитивным членом (b); σ̂² — измеряемая runtime-посылка
+  (h_emp-стиль канона, честно: без MP λ-трюка о случайности σ̂).
+- `empirical_bernstein_mean_bound`: форма плана |μ̂| <
+  √(2σ̂²L/n) + 2bL/n с вероятностью ≥ 1 − α.
+- Witness .tmp/C539/eb_contrast.py: ΔCE=0.04, R=11.09, σ̂=0.25,
+  α=0.01 — n_Hoeffding = 176,995 (план 177006), n_EB(MP) = 6439
+  (план в точности; 27.49×), n_EB(наша форма) = 4267 (41.5×).
+  Аксиомы: только propext/Quot.sound/Classical.choice.

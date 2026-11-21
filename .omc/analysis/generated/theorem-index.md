@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 538
-- theorems: 12806
+- modules: 539
+- theorems: 12810
 - defs: 4775
 - noncomputable decls: 1216
-- status Proven: 458 modules
+- status Proven: 459 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -350,6 +350,7 @@ theorems.
 | Hagi.Probability.ChernoffCGF | 26 | 0 | - | no | Proven |
 | Hagi.Probability.Concentration | 48 | 31 | concConfidenceTwoSided, concConfidence, concOneDrawConfidence, concRadius | no | Proven |
 | Hagi.Probability.ConditionalSuccess | 18 | 1 | concDelta | yes | Empirical |
+| Hagi.Probability.EmpiricalBernstein | 4 | 0 | - | no | Proven |
 | Hagi.Probability.EntropyConvexity | 34 | 0 | - | no | Proven |
 | Hagi.Probability.ExpChord | 18 | 0 | - | no | Proven |
 | Hagi.Probability.FannesPinsker | 83 | 1 | dirac | no | Proven |
