@@ -13,7 +13,7 @@ theorems.
 ## Summary
 
 - modules: 576
-- theorems: 12765
+- theorems: 12767
 - defs: 4708
 - noncomputable decls: 1211
 - status Proven: 495 modules
@@ -526,7 +526,7 @@ theorems.
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |
 | Hagi.Theory.GPMRelaxed | 11 | 4 | agemStep, nrm, sigmaTail | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
-| Hagi.Theory.GrowTrunkBlock | 7 | 2 | - | no | Proven |
+| Hagi.Theory.GrowTrunkBlock | 9 | 2 | - | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
 | Hagi.Theory.HoldoutRisk | 23 | 6 | popMean, popDens, holdoutMean | no | Proven |
 | Hagi.Theory.HoldoutWithoutReplacement | 145 | 12 | sigWR, wrPopMean, muCond, qdWR, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
