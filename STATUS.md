@@ -3759,3 +3759,28 @@ card instances); the main theorems carry the content.
   bound}. Телескоп obj_merged ≤ cycle_start + Σ snap_i +
   merge_bound (assert). Детерминизм: повтор побитово идентичен.
   Регресс C533/C535: побитово (regress-c53{3,5}-mine.json).
+
+## Hagi/Theory/WeightDecayLeak.lean (C538: weight decay leak — P4)
+
+- P4 внешнего плана (mapping C537, top-1): непроецируемый weight
+  decay рушит GPM-память (SubspaceLeak 1.945), проецируемый —
+  сохраняет ТОЧНО (5.68e-15). Формализовано как проекционный
+  инвариант (взгляд ортогонален Hagi/Step/WeightDecay —
+  норма-шар): параллельная компонента W·P (память) при
+  идемпотентном проекторе P (P*P = P; симметричность не нужна —
+  слабее гипотез proj_compl_orth).
+- `wd_compl_annihilates` / `wd_proj_preserves`: проецируемый
+  decay W ← W − ηλ·(W − W·P) сохраняет W·P ТОЧНО (равенство,
+  не bound).
+- `naive_decay_parallel` / `naive_decay_norm` / `naive_decay_leak`:
+  naive decay (1−ηλ)·W сжимает защищённую компоненту в ТОЧНО
+  (1−ηλ) раз; при W·P ≠ 0 и 0 < ηλ < 1 — СТРОГАЯ утечка
+  (негатив теоремой, не примером).
+- `compl_step_preserves` / `wd_gpm_step_sound` (main): любой
+  шаг в дополнении (momentum/polar-NS/EF21 — чёрный ящик,
+  гипотеза ΔC·P = 0) + проецируемый decay ⇒ W·P неизменно —
+  композиция GPM-механики Continual с weight decay.
+- Witness .tmp/C538/trajWdLeak.lean: точные рационалы (ℚ),
+  P = diag(1,0), W = [3,5], ηλ = 1/2: naive → [3/2,0],
+  projected/full → [3,0], негатив naive ≠ projected = true.
+  Аксиомы: только propext/Quot.sound/Classical.choice.

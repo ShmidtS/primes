@@ -457,6 +457,7 @@ import Hagi.Theory.RollbackGate
 import Hagi.Theory.AdapterGrowth
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.Continual
+import Hagi.Theory.WeightDecayLeak
 import Hagi.Theory.Softmax
 import Hagi.Theory.TrainerBenchmark
 import Hagi.Theory.CertSandwichBench

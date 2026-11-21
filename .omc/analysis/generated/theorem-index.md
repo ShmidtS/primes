@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 537
-- theorems: 12797
+- modules: 538
+- theorems: 12806
 - defs: 4775
 - noncomputable decls: 1216
-- status Proven: 457 modules
+- status Proven: 458 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -512,6 +512,7 @@ theorems.
 | Hagi.Theory.Softmax | 52 | 7 | auxG, bandWidth, sandwichMid | no | Proven |
 | Hagi.Theory.Statistics | 164 | 18 | popMean, sigWR, wrPopMean, muCond, qdWR, popDens, holdoutMean, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
 | Hagi.Theory.TrainerBenchmark | 7 | 3 | loTB, hiTB | no | Proven |
+| Hagi.Theory.WeightDecayLeak | 9 | 0 | - | no | Proven |
 | Hagi.Training.AdaptiveAnytime | 21 | 15 | adaptiveRoundWeights | no | Proven |
 | Hagi.Training.Admission | 25 | 34 | admissionMargin, admitRule | yes | Conditional |
 | Hagi.Training.AlternatingJoint | 77 | 100 | stepPenalty, stepDamage, derivedStepDamage, stepDrop', stepPenalty', stepDrop | no | Proven |
