@@ -3575,8 +3575,8 @@ def mini_hagi_run(ledger_path):
         "quant_admitted": any(a["phase"] == "D-quant"
                               for a in tel["admissions"]),
         "canonical_start": str(obj0),
-        "canonical_final": str(raw[-1]["obj'"]),
-        "total_drop": str(obj0 - raw[-1]["obj'"]),
+        "canonical_final": str(o_adapted),
+        "total_drop": str(obj0 - o_adapted),
         "model": "linear head over the fixed byte-feature "
                  "trunk (C484 family), canonical obj = "
                  "(MSE_A + MSE_B)/2, admission ONLY by measured "
@@ -6146,6 +6146,378 @@ def emit_bad_growsnap(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C532: CERTIFIED ADAPTER GROWTH, LoRA-style
+# (--mode adapter-grow)
+#
+# The previous grow mechanisms add volume WHOLESALE: fiber
+# grow C494 (a full feature column) and identity-block grow
+# C504/C506/C521 (a FULL residual block: 1 + d + 2*d*hid = 21
+# params at d=4, hid=2; ~d^2 at hid ~ d). C532 grows the model
+# by a MINIMAL low-rank side-branch adapter (LoRA form, Hu et
+# al. 2021): the head prediction becomes
+#
+#     pred = w . (f + B (A f)),   A : r x d,  B : d x r,
+#
+# adding 2*r*d parameters (r=1: 8, r=2: 16 at d=4) against the
+# full block's 21 -- the Lean side is
+# Hagi.Theory.AdapterGrowth (adapter_neutral_B/A: EITHER zero
+# factor makes the branch EXACTLY neutral; adapter_param_count:
+# exact 2*r*d count; adapter_param_count_le_block: 2*r*d <=
+# d*d when 2r <= d; adapter_step_certified/hold: certified
+# step semantics).
+#
+# Cycle: phase A joint trunk+head certified fd steps (the C521
+# phase A, unchanged), trunk FROZEN, then adapters r=1 and r=2
+# admitted at B=0 (obj invariant asserted EXACTLY at every
+# admission -- the LoRA zero-init core), certified fd training
+# of ONLY the 2*r*d adapter params (fd h, 1/10000 grid snap,
+# admission ONLY by measured drop > 0, else HOLD), then a
+# head-to-head identity-BLOCK grow (mh5_block_init, gamma=0,
+# 21 params) trained with the SAME number of certified steps
+# for an honest progress-per-parameter comparison.
+
+AG_RANKS = [1, 2]                  # adapter ranks grown in order
+AG_STEPS = 4                       # certified fd steps per growth
+AG_H = F(1, 1000)                  # fd step h (same as MH2_H)
+
+
+def adapter_grow_run(ledger_path):
+    """C532 certified adapter-growth cycle on the live corpus.
+    Returns (start, [accepted steps], telemetry, stats)."""
+    sys.set_int_max_str_digits(0)
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw = []
+    tel = {"phases": [], "holds": [], "admissions": [],
+           "adapters": [], "block_head_to_head": None,
+           "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    # trunk FROZEN: feature matrices (train + holdout)
+    FT = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in tasks]
+    HF = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in htasks]
+    assert mh2_fcanon(w, FT) == raw[-1]["obj'"], \
+        "ABORT: trunk freeze broke the obj chain"
+
+    # --- (B) ADAPTER GROWTH: r = 1 then r = 2 on the head
+    # prediction: s = w.(f + B(A f)); admission at B = 0 keeps
+    # obj EXACTLY invariant (LoRA zero-init core).
+    adapters = []          # list of (A, B) factor pairs, grown
+
+    def adapter_fwd(fs, factors):
+        """head input f -> f + sum over adapters B(A f)"""
+        out = list(fs)
+        for A, B in factors:
+            z = [sum((A[j][k] * fs[k] for k in range(MH2_D)),
+                     F(0)) for j in range(len(A))]
+            d = [sum((B[i][j] * z[j] for j in range(len(A))),
+                     F(0)) for i in range(MH2_D)]
+            out = [out[i] + d[i] for i in range(MH2_D)]
+        return out
+
+    def canon_adapt(wcur, base, factors):
+        """canonical obj: MEAN OVER TASKS of per-task MSE with
+        adapter-modified features (the mh2_fcanon convention --
+        keeps the obj chain EXACT across the freeze boundary)."""
+        per = []
+        for tk in base:
+            tot = F(0)
+            for f, y in tk:
+                fa = adapter_fwd(f, factors)
+                s = sum((wcur[i] * fa[i]
+                         for i in range(MH2_D)), F(0))
+                tot += (s - y) ** 2
+            per.append(tot / F(len(tk)))
+        return sum(per, F(0)) / F(len(per))
+
+    def adapter_flat(factors):
+        return [e for A, B in factors
+                for m in (A, B) for row in m for e in row]
+
+    def adapter_unflat(pflat, ranks):
+        factors, i = [], 0
+        for r in ranks:
+            A = [[pflat[i + j * MH2_D + k]
+                  for k in range(MH2_D)] for j in range(r)]
+            i += r * MH2_D
+            B = [[pflat[i + c * r + j] for j in range(r)]
+                 for c in range(MH2_D)]
+            i += MH2_D * r
+            factors.append((A, B))
+        assert i == len(pflat), "ABORT: adapter flat mismatch"
+        return factors
+
+    for ai, r in enumerate(AG_RANKS):
+        # admission: A = ones-grid (NONZERO -- the point: the
+        # OTHER factor masks the branch), B = 0
+        A_new = [[F(1) if k == 0 else F(0)
+                  for k in range(MH2_D)] for _ in range(r)]
+        B_new = [[F(0)] * r for _ in range(MH2_D)]
+        cand_factors = adapters + [(A_new, B_new)]
+        oA = canon_adapt(w, FT, adapters)
+        oAg = canon_adapt(w, FT, cand_factors)
+        assert oAg == oA, \
+            "ABORT: adapter admission #{} broke obj (B = 0 " \
+            "must preserve obj EXACTLY)".format(ai + 1)
+        npar = 2 * r * MH2_D
+        tel["admissions"].append({
+            "phase": f"B-adapter-r{r}",
+            "rank": r, "new_params": npar,
+            "decision": "ADMIT (LoRA zero-init: B = 0, branch "
+                        "EXACTLY neutral whatever A is; obj "
+                        "invariant asserted exactly)"})
+
+        # certified fd training of ONLY the adapter params
+        ranks = AG_RANKS[:ai + 1]
+        p = adapter_flat(cand_factors)
+        assert len(p) == sum(2 * rr * MH2_D for rr in ranks)
+
+        def canonp(pp, base):
+            return canon_adapt(w, base, adapter_unflat(pp, ranks))
+
+        phase_name = f"C-adapter-r{r}"
+        committed = 0
+        for _ in range(AG_STEPS):
+            o = canonp(p, FT)
+            gfd = []
+            for k in range(len(p)):
+                q = list(p)
+                q[k] = q[k] + AG_H
+                gfd.append((canonp(q, FT) - o) / AG_H)
+            cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                            for k in range(len(p))], MH2_GRID)
+            o2 = canonp(cand, FT)
+            if o2 < o:
+                raw.append({"phase": phase_name, "obj": o,
+                            "obj'": o2, "drop": o - o2,
+                            "risk": canonp(p, HF),
+                            "risk'": canonp(cand, HF)})
+                p = cand
+                committed += 1
+            else:
+                tel["holds"].append({
+                    "phase": phase_name, "drop": o - o2,
+                    "reason": "canonical drop <= 0: HOLD "
+                              "(adapter fd step rolled back)"})
+        adapters = adapter_unflat(p, ranks)
+        tel["adapters"].append({
+            "rank": r,
+            "params": npar,
+            "committed_steps": committed,
+            "obj_before_admission": str(oA),
+            "obj_after_training": str(canon_adapt(w, FT,
+                                                   adapters)),
+            "progress": str(oA - canon_adapt(w, FT, adapters))})
+        tel["phases"].append({
+            "phase": phase_name, "rank": r, "params": npar,
+            "committed": committed,
+            "canonical": str(canon_adapt(w, FT, adapters))})
+
+    o_adapted = canon_adapt(w, FT, adapters)
+    adapt_params = sum(2 * r * MH2_D for r in AG_RANKS)
+
+    # --- (C) HEAD-TO-HEAD: the identity-BLOCK grow (C504/C521
+    # mechanic, 21 params, gamma = 0) trained with the SAME
+    # total number of certified steps as the adapters, from the
+    # same frozen-trunk obj -- progress per parameter compared.
+    oA0 = mh2_fcanon(w, FT)
+    bl = mh5_block_init(0)
+    assert bl[0] == 0, "ABORT: residual gate must start at 0"
+
+    def featsk(blp, base):
+        return [[(mh4_block_fwd(blp, f), y) for f, y in tk]
+                for tk in base]
+
+    assert mh2_fcanon(w, featsk(bl, FT)) == oA0, \
+        "ABORT: identity block admission broke obj (gamma = 0)"
+    p3 = mh4_flat(bl)
+    n3 = len(p3)
+    assert n3 == 1 + MH2_D + 2 * MH2_D * MH2_HID
+    block_steps = AG_STEPS * len(AG_RANKS)
+    committed_b = 0
+    block_raw = []   # separate arm: validated per-step, NOT in
+    # the canonical chain (both arms start from the SAME
+    # frozen-trunk obj oA0; mixing them would break the
+    # exact obj-chain semantics of CertStepData)
+    for _ in range(block_steps):
+        o = mh2_fcanon(w, featsk(mh4_unflat(p3), FT))
+        gfd = []
+        for k in range(n3):
+            q = list(p3)
+            q[k] = q[k] + MH2_H
+            gfd.append((mh2_fcanon(
+                w, featsk(mh4_unflat(q), FT)) - o) / MH2_H)
+        cand = cl_snap([p3[k] - MH2_ETA * gfd[k]
+                        for k in range(n3)], MH2_GRID)
+        o2 = mh2_fcanon(w, featsk(mh4_unflat(cand), FT))
+        if o2 < o:
+            block_raw.append({"phase": "D-block-head2head",
+                        "obj": o, "obj'": o2, "drop": o - o2,
+                        "risk": mh2_fcanon(w, featsk(
+                            mh4_unflat(p3), HF)),
+                        "risk'": mh2_fcanon(w, featsk(
+                            mh4_unflat(cand), HF))})
+            p3 = cand
+            committed_b += 1
+        else:
+            tel["holds"].append({
+                "phase": "D-block-head2head", "drop": o - o2,
+                "reason": "canonical drop <= 0: HOLD (block "
+                          "fd step rolled back)"})
+    o_blocked = mh2_fcanon(w, featsk(mh4_unflat(p3), FT))
+    for t, dd in enumerate(block_raw):
+        dd["budget"] = F(len(block_raw) - t) / len(block_raw)
+        dd["budget'"] = (F(len(block_raw) - t - 1)
+                         / len(block_raw))
+        if not check_step(dd):
+            sys.exit("ABORT: adapter-grow block-arm step "
+                     "failed certified admission: {}".format(dd))
+    tel["block_head_to_head"] = {
+        "same_certified_step_budget": block_steps,
+        "block_params": n3, "adapter_params": adapt_params,
+        "block_committed": committed_b,
+        "adapter_committed": sum(a["committed_steps"]
+                                  for a in tel["adapters"]),
+        "obj_start": str(oA0),
+        "obj_after_adapters": str(o_adapted),
+        "obj_after_block": str(o_blocked),
+        "adapter_progress": str(oA0 - o_adapted),
+        "block_progress": str(oA0 - o_blocked)}
+    tel["phases"].append({
+        "phase": "D-block-head2head", "params": n3,
+        "committed": committed_b,
+        "canonical": str(o_blocked)})
+
+    n = len(raw)
+    assert n > 0, "ABORT: adapter-grow committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], \
+            "ABORT: obj chain broken at a phase boundary"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: adapter-grow step failed "
+                     f"certified admission: {dd}")
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path,
+        "ranks": AG_RANKS,
+        "adapter_params_total": adapt_params,
+        "full_block_params": n3,
+        "param_ratio": str(F(adapt_params, n3)),
+        "d2_full_matrix": MH2_D * MH2_D,
+        "lora_param_identity": "2*r*d (r=1: 8; r=2: 16 at d=4)",
+        "grow_obj_invariant_exact_every": True,
+        "canonical_start": str(obj0),
+        "canonical_final": str(raw[-1]["obj'"]),
+        "total_drop": str(obj0 - raw[-1]["obj'"]),
+        "model": "linear head over the fd-trained FROZEN trunk "
+                 "grown by LoRA-style side-branch adapters "
+                 "(f + B(A f), ranks 1 then 2, admission at "
+                 "B = 0 with EXACT obj invariance, certified fd "
+                 "training of only the 2*r*d adapter params) + "
+                 "identity-block head-to-head arm",
+        "theorem": "Hagi.Theory.AdapterGrowth.adapter_neutral_B "
+                   "/ adapter_param_count / "
+                   "adapter_step_certified (C532)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
+    """C532 witness: literal adapter-grow trajectory prefix +
+    #eval checkTrajectory + norm_num theorem (the C521 witness
+    pattern; prefix only, deep fractions not elaborable)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C532 adapter-grow witness (real "
+                "unified_ledger data; LoRA-style side-branch "
+                "adapters r=1,2 admitted at B = 0 with EXACT "
+                "obj invariance, certified fd training of only "
+                "the 2*r*d adapter params).\n"
+                f"-- FULL accepted steps: {len(traj)}; "
+                f"phases: {phases};\n-- first {len(ds)} "
+                "machine-checked steps below (prefix witness: "
+                "deep fractions are not Lean-elaborable; the "
+                "full chain and the neutrality/count facts are "
+                "covered by Hagi.Theory.AdapterGrowth).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.AdapterGrowth\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartAdapterGrow : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryAdapterGrow : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartAdapterGrow "
+                "benchTrajectoryAdapterGrow\n\n"
+                "theorem adapter_grow_bench_valid :\n"
+                "    checkTrajectory benchStartAdapterGrow "
+                "benchTrajectoryAdapterGrow = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartAdapterGrow, "
+                "benchTrajectoryAdapterGrow, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_neutral_B\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C508: A-GEM vs RANK-TRUNC continual comparison
 # (--mode agem-vs-ranktrunc)
 #
@@ -6798,6 +7170,7 @@ def main():
                              "mini-hagi2", "mini-hagi3",
                              "mini-hagi4", "mini-hagi5",                              "vs-trainer",
                              "grow-snap",
+                             "adapter-grow",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
                     default="quad",
@@ -6990,6 +7363,23 @@ def main():
                 "growcycle": tel["growcycle"],
                 "snap": tel["snap"],
                 "budget": tel["budget"]}}, indent=1))
+        return
+
+    if args.mode == "adapter-grow":
+        start, traj, tel, stats = adapter_grow_run(args.data)
+        if args.emit_lean:
+            emit_lean_adaptergrow(args.emit_lean, start, traj)
+        print(json.dumps({"mode": "adapter-grow", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": tel["admissions"],
+                "adapters": tel["adapters"],
+                "block_head_to_head": tel["block_head_to_head"],
+                "holds": tel["holds"]}}, indent=1))
         return
 
     if args.mode == "mini-hagi3":
