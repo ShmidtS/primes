@@ -78,13 +78,13 @@ source: C399 `adaptive_anytime_valid`, C446 `false_stop_bound`.
 ### 3.1 Adaptive majorizer with tight κ
 
 > **Theorem (adaptive_descent).**
-> `Hagi/Theory/AdaptiveMajorizer.lean:541`.
+> `Hagi/Theory/AdaptiveMajorizer.lean:714`.
 > If `next η ≤ L − η·A + η²·C` for all η ∈ [0,1] with A ≥ 0,
 > C > 0, and η* = A/(2C) ≤ 1, then `next η* ≤ L − A²/(4C)`.
 
 The tight Bennett multiplier κ(R) = (e^R − 1 − R)/R² satisfies
-1/2 ≤ κ(R) ≤ e^R for R > 0 (`kappa_ge_half`, :747;
-`kappa_le_expR`, :761; monotone `kappa_mono`, :721), replacing
+1/2 ≤ κ(R) ≤ e^R for R > 0 (`kappa_ge_half`, :294;
+`kappa_le_expR`, :310; monotone `kappa_mono`, :267), replacing
 the weaker e^R curvature bound and shrinking the certified-drop
 pessimism by e^R/κ(R).
 
@@ -209,8 +209,8 @@ not needed: all bands disjoint already at n = m = 4.
 | Anchor | File:line | Cycle |
 |---|---|---|
 | certify_then_commit_sound | Hagi/Theory/CertifyThenCommit.lean:332 | C463 |
-| adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:541 | C462+ |
-| kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:761 | C471 |
+| adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:714 | C462+ |
+| kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:310 | C471 |
 | fisher_quant_loss_bound | Hagi/Theory/FisherQuant.lean:234 | C472 |
 | rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:125 | C498 |
 | gpm_tradeoff | Hagi/Theory/Continual.lean:232 | C498 |
