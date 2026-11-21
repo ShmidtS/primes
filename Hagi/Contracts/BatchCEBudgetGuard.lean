@@ -5,6 +5,8 @@ import Hagi.Model.CEHeldout
 import Hagi.Unified.ParetoExecution
 import Hagi.Contracts.BatchCEStepCore
 import Hagi.Model.SoftmaxHead
+import Hagi.Model.BatchCEDescentFixtures
+import Hagi.Model.BatchCEDescentHalfEta
 
 /-!
 # BatchCEBudgetGuard

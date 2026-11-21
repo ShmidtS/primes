@@ -1,6 +1,6 @@
 import Hagi.Model.CEDescent
 import Hagi.Probability.FiniteFamilyConfidenceEmpirical
-import Hagi.Model.BatchCEDescentSafeStep
+import Hagi.Model.BatchCEDescent
 
 /-!
 # BatchCEDescentLogitRange

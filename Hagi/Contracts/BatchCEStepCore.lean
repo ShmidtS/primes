@@ -3,6 +3,8 @@ import Hagi.Model.BatchCEDescent
 import Hagi.Model.CEExpansion
 import Hagi.Model.CEHeldout
 import Hagi.Unified.ParetoExecution
+import Hagi.Model.BatchCEDescentFixtures
+import Hagi.Model.BatchCEDescentLogitRange
 
 /-!
 # BatchCEStepCore

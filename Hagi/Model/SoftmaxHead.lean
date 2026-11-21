@@ -5,8 +5,7 @@ import Hagi.Core.Concat
 import Hagi.Model.CEHeldout
 import Hagi.Model.CEQuantized
 import Hagi.Model.CEPadding
-import Hagi.Model.BatchCEDescentArithmetic
-import Hagi.Model.BatchCEDescentDirection
+import Hagi.Model.BatchCEDescent
 import Hagi.Model.BatchCEDescentHalfEta
 
 /-!

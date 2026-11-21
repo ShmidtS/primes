@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Model.CECoupledShortcut
-import Hagi.Model.CEConfidenceScale
+import Hagi.Model.CEHeldout
 
 /-!
 # Arbitrary finite CE dimensions by exact zero padding

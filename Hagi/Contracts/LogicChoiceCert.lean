@@ -3,6 +3,7 @@ import Hagi.Model.BatchCEDescent
 import Hagi.Model.Logic.VennHead
 import Hagi.Cert.Adapters
 import Hagi.Contracts.BatchCETrajectory
+import Hagi.Model.BatchCEDescentLogitRange
 
 /-!
 # CE-trained mask choice over the exact Venn head

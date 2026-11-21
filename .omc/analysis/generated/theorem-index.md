@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 560
-- theorems: 12764
+- modules: 552
+- theorems: 12756
 - defs: 4725
 - noncomputable decls: 1213
-- status Proven: 479 modules
+- status Proven: 471 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -244,35 +244,27 @@ theorems.
 | Hagi.Model.AttentionTransfer | 11 | 19 | attnStack, attnGain, attnBlockBranch, attnBranch, attnBlockList | no | Proven |
 | Hagi.Model.BYOL | 11 | 5 | cosS, qnorm, bl, dsum | no | Proven |
 | Hagi.Model.BackboneTransfer | 18 | 2 | - | no | Proven |
-| Hagi.Model.BatchCEDescent | 0 | 0 | - | no | Proven |
-| Hagi.Model.BatchCEDescentArithmetic | 49 | 11 | batchLoss, batchGradientMinimizer, batchResidualGradient, batchCommonSafeEta, batchAlignment, batchRangeSquare, batchMeanDirection, batchCommonNextParameters, meanResidualTranspose, batchMeanAction, batchCommonSafeWindow | no | Proven |
-| Hagi.Model.BatchCEDescentCommon | 18 | 5 | dirRange, dirAction, batchFeatureRangeCoefficient, dirMajorizer, alongNext | no | Proven |
-| Hagi.Model.BatchCEDescentDirection | 48 | 5 | batchDirectionNextParameters, batchDirectionSafeWindow, batchDirectionQuadraticMargin, batchDirectionSafeEta, batchDirectionMargin | no | Proven |
+| Hagi.Model.BatchCEDescent | 140 | 24 | dirRange, batchLoss, batchGradientMinimizer, batchNextParameters, batchDirectionNextParameters, batchResidualGradient, batchMajorizer, batchCommonSafeEta, batchDirectionSafeWindow, batchAlignment, batchRangeSquare, batchMeanDirection, dirAction, batchDirectionQuadraticMargin, batchSafeStep, batchFeatureRangeCoefficient, dirMajorizer, batchCommonNextParameters, meanResidualTranspose, batchMeanAction, batchCommonSafeWindow, batchDirectionMargin, batchDirectionSafeEta, alongNext | no | Proven |
 | Hagi.Model.BatchCEDescentFixtures | 26 | 3 | - | no | Proven |
 | Hagi.Model.BatchCEDescentHalfEta | 35 | 4 | batchDirectionHalfMargin, batchDirectionMinQuadraticMargin, batchDirectionHalfNextParameters, batchDirectionHalfEta | no | Proven |
 | Hagi.Model.BatchCEDescentLogitRange | 26 | 5 | dirLogitRange, batchLogitSafeStep, batchLogitMajorizer, batchLogitRangeSquare, batchLogitNextParameters | no | Proven |
 | Hagi.Model.BatchCEDescentResidualNorm | 20 | 1 | featureNormSum | no | Proven |
-| Hagi.Model.BatchCEDescentSafeStep | 32 | 3 | batchNextParameters, batchMajorizer, batchSafeStep | no | Proven |
 | Hagi.Model.BatchCEDescentStochastic | 18 | 1 | stochasticStepDraw | yes | Conditional |
 | Hagi.Model.BlockNorm | 17 | 5 | globalRms, globalNorm, blockNorm, blockRms | no | Proven |
-| Hagi.Model.CEConfidenceScale | 19 | 0 | - | no | Proven |
 | Hagi.Model.CECoupledShortcut | 18 | 2 | shortcutScales, packedShortcutScales | no | Proven |
 | Hagi.Model.CEDescent | 62 | 13 | ceAlignment, ceMajorizer, ceRangeMajorizer, ceStepLogitRange, ceLogits, ceDirection, ceRangeSafeStep, ceResidual, safeStepSize, ceNextLogits, ceNextParameters, residualTranspose, ceStepRange | no | Proven |
 | Hagi.Model.CEExpansion | 10 | 4 | expandedReadoutJacobian, expandedParameters | no | Proven |
 | Hagi.Model.CEGlobalConvergence | 85 | 5 | ceGrad, plStep, ceGradReg, ceReg | no | Proven |
 | Hagi.Model.CEGradient | 25 | 3 | featureCLM, lseDeriv | no | Proven |
-| Hagi.Model.CEGroupedScale | 66 | 15 | blockPenalty, packedBlocks, groupStructuralPenalty, groupObservedPenalty, selectedGroupScalesExec, blockParameters, blockWeights, quantizedBlock, selectedGroupScales, jointParameters | no | Proven |
-| Hagi.Model.CEGroupedScaleBasic | 0 | 1 | featureAbsSum | no | Proven |
-| Hagi.Model.CEHeldout | 35 | 6 | decodeJoint, encodeJoint, normalizedCE, ceBound, unionConfFactor | no | Proven |
+| Hagi.Model.CEGroupedScale | 89 | 24 | packedStep, blockPenalty, selectedScale, packedBlocks, groupStructuralPenalty, decodeStep, rawSuccessor, groupObservedPenalty, selectedGroupScalesExec, blockWeights, blockParameters, scalePenalty, encodedWord, quantizedBlock, featureAbsSum, packedSelected, selectedGroupScales, jointParameters | no | Proven |
+| Hagi.Model.CEHeldout | 54 | 6 | decodeJoint, encodeJoint, normalizedCE, ceBound, unionConfFactor | no | Proven |
 | Hagi.Model.CEJacobianMajorizer | 1 | 0 | - | no | Proven |
-| Hagi.Model.CEJointScale | 34 | 4 | selectedCoupledScales, jointObservedPenalty, packedCoupledScales, coupledPenalty | no | Proven |
+| Hagi.Model.CEJointScale | 45 | 16 | selectedCoupledScales, grouped_scale_choice, jointObservedPenalty, packedCoupledScales, coupledPenalty, joint_scale_choice | no | Proven |
 | Hagi.Model.CEMarginPL | 99 | 9 | scalarCE, gapHead, muBall, muBallV, gapHeadGrad, sigmaV, scalarCEGrad, rho | no | Proven |
 | Hagi.Model.CEMarkovConfidence | 8 | 1 | - | no | Proven |
 | Hagi.Model.CEModel | 16 | 15 | singleSampleCE, batchCE | no | Proven |
 | Hagi.Model.CEPadding | 67 | 10 | - | no | Proven |
 | Hagi.Model.CEQuantized | 20 | 5 | ceQuantPenalty, ceQuantObservedPenalty, ternaryCEParameters, ceQuantStructuralPenalty | no | Proven |
-| Hagi.Model.CEScaleChoice | 11 | 12 | grouped_scale_choice, joint_scale_choice | no | Proven |
-| Hagi.Model.CEScaleSelection | 24 | 8 | packedStep, selectedScale, decodeStep, rawSuccessor, scalePenalty, encodedWord, packedSelected | no | Proven |
 | Hagi.Model.CEStorageBound | 4 | 0 | - | no | Proven |
 | Hagi.Model.CertifiedTransition | 36 | 10 | toCertStepGen | yes | Conditional |
 | Hagi.Model.ComputeOptimal | 8 | 1 | chinchillaLoss | no | Proven |

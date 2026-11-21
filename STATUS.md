@@ -2102,7 +2102,7 @@ wall-clock, сходимость итерации, CE→0, generalization, sampl
   всех блоков `b₁ b₂ : Fin 3`, то `globalNorm x = blockNorm x`.
 
 
-## Hagi/Model/CEConfidenceScale.lean
+## Hagi/Model/CEHeldout.lean (вкл. CEConfidenceScale, слит C523)
 - `ceBound_mul_joint_normalizedCE` восстанавливает исходный one-hot CE
   умножением нормированной потери на положительный `ceBound X`;
   `sample_budget_normalized_eq_raw` даёт точное преобразование бюджета
@@ -2384,7 +2384,7 @@ one-hot CE.
   `ceOneHot_ternary_safeStep_lt` доказывает строгий спуск фактического CE.
 
 
-## Hagi/Model/CEScaleSelection.lean
+## Hagi/Model/CEGroupedScale.lean (вкл. CEScaleSelection, слит C523)
 - `scaleEvaluationCount_eq = 255`; `selectedScale_spec` выбирает код,
   минимизирующий `scalePenalty` среди всех `DyadicScaleCode`.
 - `selectedScale_strict_descent_of_exists`: на непустом конечном `V`, при
@@ -2401,7 +2401,7 @@ one-hot CE.
   16-битное пакованное кодовое слово (8311) декодируется ровно в
   тритарные параметры, и существует декодированный вектор со строгим
   спуском CE относительно нулевых параметров.
-## Hagi/Model/CEScaleChoice.lean
+## Hagi/Model/CEJointScale.lean (вкл. CEScaleChoice, слит C523)
 - (C453) `ScaleChoice`: общий интерфейс сертифицированного выбора из
   конечной кодовой книги (выбранный код + принадлежность + доминирование);
   `le_of_mem` — поточечное доминирование, `scaleChoiceSum_le` —

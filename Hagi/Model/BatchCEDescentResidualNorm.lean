@@ -2,7 +2,7 @@ import Hagi.Model.CEDescent
 import Hagi.Probability.FreedmanTwoSided
 import Hagi.Probability.MirrorHedgeMWUSelectedGradient
 import Hagi.Probability.MirrorHedgeMWUSelectedLoss
-import Hagi.Model.BatchCEDescentArithmetic
+import Hagi.Model.BatchCEDescent
 
 /-!
 # BatchCEDescentResidualNorm

@@ -6,6 +6,7 @@ import Hagi.Model.CEQuantized
 import Hagi.Cert.Adapters
 import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Runtime.BF16Delta
+import Hagi.Model.BatchCEDescentLogitRange
 
 /-!
 # BF16-guarded batch range-safe-step descent and cert transition

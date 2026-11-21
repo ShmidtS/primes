@@ -2,7 +2,7 @@ import Hagi.Model.CEDescent
 import Hagi.Model.BatchCEDescentResidualNorm
 import Hagi.Probability.FiniteFamilyConfidenceEmpirical
 
-import Hagi.Model.CEGroupedScaleBasic
+import Hagi.Model.CEGroupedScale
 
 
 /-!
