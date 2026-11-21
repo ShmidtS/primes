@@ -1,6 +1,14 @@
-import Mathlib.Tactic
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Hagi.Cert.StepGen
+import Hagi.Cert.Telescope
+import Hagi.Model.ReferenceMachine
 import Hagi.State.TrainTrajectory
+import Hagi.Step.NoisyPL
 import Hagi.Unified.StochasticLoop
+import Mathlib.Tactic
+
 
 /-!
 # MasterTheorem — сборная траекторная теорема certified-or-refuse
@@ -397,3 +405,284 @@ def master_accept_fullCert {s s' : CanonicalTrainState n a e q r c k}
   risk_nonneg := hrnn
 
 end Hagi.Theory
+
+/-! ## MasterBudget — compute budget as a premise channel (ns Hagi.Theory, section labels preserved) -/
+
+/-!
+# MasterBudget — resource-ledger bridge for the budget clause
+
+C398, ресурсный мост: premise-канал бюджета C392
+(`MasterBudgetCert`: Σ cost ≤ B как явный биндер потребителя)
+закрывается ДОКАЗАННЫМ королларием resource-слоя — телескоп
+бюджетного_LEDGERа C330 (`budget_telescope_gen`: терминальный
+бюджет = начальный − Σ точных трат) плюс доказанная
+неотрицательность остатка (`CertStepGen.budget_nonneg`).
+Кап Σ costs ≤ B ВЫВОДИТСЯ, не предполагается.
+
+## Что мостится (bridged)
+
+- Любой cost-канал, реализующий C278 ledger: явная
+  instantiation-гипотеза `hmatch` (stepCost = budgetSpend)
+  даёт ТОЧНЫЙ баланс Σ costs = budget₀ − budget_T
+  (`budget_from_resource_ledger`), а кап — следствие
+  неотрицательности терминального остатка
+  (`masterBudgetCert_of_resource_ledger` возвращает
+  `MasterBudgetCert` как theorem output).
+- Демо (C331 KV-cache): per-step cost = cached per-token work
+  `cachedTokenWork t = t + 1`; точная сумма
+  2·Σ = T·(T+1) (форма `cached_total_work_eq`) закрывает
+  budget_ok на ТОЧНОМ cached-тотале (`master_budget_kv_cached`);
+  ratio-контекст — `kv_work_ratio` (3·recompute = (n+2)·cached).
+
+## Что остаётся premise-form (честные пины)
+
+- Потребители `MasterBudgetCert` БЕЗ ledger-реализации — кап
+  остаётся биндером (наследуется пин C388).
+- (d, W)-фронт C334 (`data_compute_budget`: десцент-рейт и
+  per-step work — премизы честного интерфейса) здесь не
+  пере-выводится: мост адресует КАНАЛ, не фронт.
+- Демо не строит полный `SystemMetrics`-объект с KV-тратами
+  (`kv_step_certified` — Contracts, слой 7, недоступен Theory по
+  LayerLint); вместо этого — тот же паттерн вывода (точная
+  идентичность вместо предполагаемого капа) на числовой модели.
+- Никакой hardware-модели, никаких асимптотик.
+
+## Layering note
+
+Theory (7) не может импортировать Contracts (7) — телескоп
+пере-доказан локально над ТЕМ ЖЕ kernel-полем
+`CertStepGen.budget_next` (паттерн C330 `budget_telescope_gen`,
+цитируется; переиспользование доказательства, не результата —
+LayerLint-ограничение, не дублирование намерения).
+-/
+
+set_option relaxedAutoImplicit false
+
+namespace Hagi.Theory
+
+open Hagi.State Hagi.Probability
+open scoped BigOperators Classical
+
+variable {n a e q r c k : ℕ}
+
+/-! ## Локальный телескоп ledger-а (паттерн C330) -/
+
+section Bridge
+
+variable {S TaskId : Type*}
+variable (M : Hagi.Cert.SystemMetrics S TaskId)
+variable (obl : Hagi.Cert.StepObligations TaskId)
+
+/-- Телескоп ресурсного ledger-а над kernel-полем
+`CertStepGen.budget_next` (тот же паттерн, что C330
+`budget_telescope_gen`; с A18.3/С425 — one-line специализация
+обобщённого `additive_ledger_telescope_eq` через budget-инстанс
+`Hagi.Cert.ExactAdditiveLedger`). Терминальный бюджет = начальный минус
+ТОЧНАЯ сумма per-step трат — закон ресурсного учёта. -/
+theorem budget_ledger_telescope (deltaLevel : S → ℝ)
+    (T : ℕ) (traj : ℕ → S)
+    (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1))) :
+    M.budget (traj T) = M.budget (traj 0)
+      - ∑ j ∈ Finset.range T, (steps j).budgetSpend :=
+  Hagi.Cert.additive_ledger_telescope_eq (level := M.budget) T traj steps
+
+/-! ## Мост: master cost-канал ⟷ resource ledger -/
+
+/-- МОСТ: если per-step стоимости мастер-траектории — это в
+точности траты resource ledger-а (ЭКСПЛИЦИТНАЯ instantiation-
+гипотеза `hmatch`: два иначе несвязанных канала отождествлены
+сознательно, не по переименованию), то суммарная стоимость
+телескопируется в ТОЧНЫЙ баланс ledger-а: Σ costs = budget₀ −
+budget_T. Это `budget_from_resource_ledger` — счёт, не кап. -/
+theorem budget_from_resource_ledger (deltaLevel : S → ℝ)
+    (T : ℕ) (traj : ℕ → S)
+    (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1)))
+    (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
+      (r := r) (c := c) (k := k) T)
+    (hmatch : ∀ j < T, m.stepCost T j = (steps j).budgetSpend) :
+    ∑ j ∈ Finset.range T, m.stepCost T j
+      = M.budget (traj 0) - M.budget (traj T) := by
+  have htel := budget_ledger_telescope M obl deltaLevel T traj steps
+  have hsum : ∑ j ∈ Finset.range T, (steps j).budgetSpend
+      = ∑ j ∈ Finset.range T, m.stepCost T j :=
+    Finset.sum_congr rfl
+      (fun j hj => (hmatch j (Finset.mem_range.mp hj)).symm)
+  rw [htel, hsum]
+  ring
+
+/-- ПРОИЗВОДНЫЙ КАП: мост + неотрицательность остатка ⇒
+Σ costs ≤ budget₀. Кап НЕ предполагается — он следствие
+ресурсного закона (телескоп) и неотрицательности остатка:
+`hnn` разряжается ДОКАЗАННЫМ полем `CertStepGen.budget_nonneg`
+последнего шага (для T > 0 это проекция сертификата, не новая
+премиза; для T = 0 сумма пуста и `hnn` — то же утверждение о
+budget (traj 0)). -/
+theorem master_budget_of_resource_ledger (deltaLevel : S → ℝ)
+    (T : ℕ) (traj : ℕ → S)
+    (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1)))
+    (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
+      (r := r) (c := c) (k := k) T)
+    (hmatch : ∀ j < T, m.stepCost T j = (steps j).budgetSpend)
+    (hnn : 0 ≤ M.budget (traj T)) :
+    ∑ j ∈ Finset.range T, m.stepCost T j ≤ M.budget (traj 0) := by
+  have h := budget_from_resource_ledger M obl deltaLevel T traj steps m hmatch
+  linarith
+
+/-- УПАКОВКА: budget-клауза мастер-теоремы как theorem output —
+`MasterBudgetCert` при B = budget₀ строится ДОКАЗАТЕЛЬСТВОМ
+(bridge + nonneg), а не предъявляется потребителем. Это и есть
+замена premise-канала ресурсным королларием (beat C397 top-2). -/
+theorem masterBudgetCert_of_resource_ledger (deltaLevel : S → ℝ)
+    (T : ℕ) (traj : ℕ → S)
+    (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1)))
+    (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
+      (r := r) (c := c) (k := k) T)
+    (hmatch : ∀ j < T, m.stepCost T j = (steps j).budgetSpend)
+    (hnn : 0 ≤ M.budget (traj T)) :
+    MasterBudgetCert T m (M.budget (traj 0)) where
+  budget_ok := master_budget_of_resource_ledger
+    M obl deltaLevel T traj steps m hmatch hnn
+
+end Bridge
+
+/-! ## Демо: KV-cache cost-модель (C331) в budget-клаузе -/
+
+/-- Helper: точная сумма cached per-token работ над T шагами в
+форме без деления — 2·Σ_{j<T} ((j:ℝ)+1) = T·(T+1); ℝ-зерка
+identity C331 `cached_total_work_eq` (2·cachedTotalWork n =
+n(n+1), где `cachedTokenWork t = t + 1`). -/
+theorem sum_range_succ_cast_two (T : ℕ) :
+    2 * ∑ j ∈ Finset.range T, ((j : ℝ) + 1) = (T : ℝ) * ((T : ℝ) + 1) := by
+  induction T with
+  | zero => simp
+  | succ T ih =>
+    rw [Finset.sum_range_succ]
+    have h : (T : ℝ) * ((T : ℝ) + 1) + 2 * ((T : ℝ) + 1)
+        = ((T : ℝ) + 1) * ((T : ℝ) + 1 + 1) := by ring
+    push_cast
+    nlinarith [ih, h]
+
+/-- ДЕМО-ИНСТАНЦИАЦИЯ (C331 KV-cache): если per-step стоимость
+мастер-шага j — cached per-token work `cachedTokenWork j = j + 1`
+(реальная ресурсная модель: один проход по кэшу = j+1 чтений), то
+budget-клауза закрывается на ТОЧНОМ cached-тотале
+B = T·(T+1)/2 (форма `cached_total_work_eq`) — кап выведен из
+доказанной суммы, не предъявлен. Контекст экономии: по
+`kv_work_ratio` (3·recompute = (n+2)·cached) рекуррентный режим
+стоил бы ровно (T+2)/3 раза больше. -/
+theorem master_budget_kv_cached (T : ℕ)
+    (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
+      (r := r) (c := c) (k := k) T)
+    (hcost : ∀ j < T, m.stepCost T j = ((j : ℝ) + 1))
+    (B : ℝ) (hB : 2 * B = (T : ℝ) * ((T : ℝ) + 1)) :
+    MasterBudgetCert T m B where
+  budget_ok := by
+    have hsum := sum_range_succ_cast_two T
+    have hcongr : ∑ j ∈ Finset.range T, m.stepCost T j
+        = ∑ j ∈ Finset.range T, ((j : ℝ) + 1) :=
+      Finset.sum_congr rfl
+        (fun j hj => hcost j (Finset.mem_range.mp hj))
+    rw [hcongr]
+    linarith
+
+end Hagi.Theory
+
+
+/-! ## VerticalCapstone — accuracy for budget, the vertical capstone (ns Hagi.Unified preserved) -/
+
+set_option linter.style.header false
+
+/-!
+# VerticalCapstone — итоговая теорема вертикали: точность за бюджет
+
+Композиция всех звеньев сертифицированной цепи: noisy PL-спуск
+(NoisyPL) + термостат-отжиг (ReferenceMachine.batch_anneal_floor).
+Рекуррентность `e(t+1) <= q·e(t) + d(t)`, `d(t) = sigma^2/(B0·c^t)`,
+q < 1, c > 1 даёт `e(t) <= E* + q^t·(e0 - E*) + sigma^2/B0/(1-q)`:
+два экспоненциальных члена (сжатие спуска и охлаждение пола)
+плюс консервативный пол d(0)/(1-q). Точность за бюджет
+(t циклов, B0·c^t измерений) в закрытой форме.
+-/
+
+namespace Hagi.Unified
+
+/-- Лемма о стационарном члене: `q·x/(1-q) + x = x/(1-q)`
+при `q < 1`. -/
+theorem affine_stationary (q x : ℝ) (hq1 : q < 1) :
+    q * (x / (1 - q)) + x = x / (1 - q) := by
+  have hd : (0:ℝ) < 1 - q := by linarith
+  field_simp
+  ring
+
+/-- КАПСТОН ВЕРТИКАЛИ: noisy-спуск с отжигающим полом
+`d(t) = sigma^2/(B0·c^t)`: `e t <= Estar + q^t·(e0 - Estar)
++ sigma^2/B0/(1-q)` — спуск сжимает начальный зазор
+экспоненциально, отжиг измерений опускает пол (floor(t)
+<= d(0)/(1-q) — консервативная закрытая форма). Точность за
+бюджет: t циклов + B0·c^t измерений. -/
+theorem accuracy_for_budget (e : ℕ → ℝ) (Estar q sigma B0 c : ℝ)
+    (hq : 0 ≤ q) (hq1 : q < 1) (hsigma : 0 ≤ sigma)
+    (hB0 : 0 < B0) (hc1 : 1 < c) (hEstar0 : 0 ≤ Estar)
+    (hstep : ∀ s, e (s + 1) ≤ q * e s + sigma ^ 2 / (B0 * c ^ s))
+    (t : ℕ) :
+    e t ≤ Estar + q ^ t * (e 0 - Estar)
+      + sigma ^ 2 / B0 / (1 - q) := by
+  have hqpos : (0:ℝ) < 1 - q := by linarith
+  have hstep' : ∀ s, (e (s + 1) - Estar)
+      ≤ q * (e s - Estar) + sigma ^ 2 / (B0 * c ^ s) := by
+    intro s
+    have h0 := hstep s
+    have hdist : q * (e s - Estar) = q * e s - q * Estar := by
+      ring
+    rw [hdist]
+    have hpos : (0:ℝ) ≤ (1 - q) * Estar := by
+      exact mul_nonneg (by linarith) hEstar0
+    linarith
+  have hmain : ∀ t : ℕ, (e t - Estar)
+      ≤ q ^ t * (e 0 - Estar)
+        + sigma ^ 2 / B0 / (1 - q) := by
+    intro t
+    induction t with
+    | zero =>
+      have h2 : (0:ℝ) ≤ sigma ^ 2 / B0 / (1 - q) := by
+        positivity
+      linarith
+    | succ t ih =>
+      have hst := hstep' t
+      have hshift : e t - Estar
+          ≤ q ^ t * (e 0 - Estar)
+            + sigma ^ 2 / B0 / (1 - q) := ih
+      have hA : q * (sigma ^ 2 / B0 / (1 - q))
+          + sigma ^ 2 / (B0 * c ^ t)
+          ≤ sigma ^ 2 / B0 / (1 - q) := by
+        have hcore := affine_stationary q (sigma ^ 2 / B0) hq1
+        have hle : sigma ^ 2 / (B0 * c ^ t) ≤ sigma ^ 2 / B0 := by
+          have hc0 : (0:ℝ) < c := by linarith
+          have hpow1 : (1:ℝ) ≤ c ^ t := by
+            have hmono : (1:ℝ) ≤ c := by linarith
+            exact one_le_pow₀ hmono (n := t)
+          have hden : B0 * 1 ≤ B0 * c ^ t :=
+            mul_le_mul_of_nonneg_left hpow1 (le_of_lt hB0)
+          rw [mul_one] at hden
+          exact div_le_div_of_nonneg_left (sq_nonneg sigma)
+            hB0 hden
+        linarith [hcore, hle]
+      calc e (t + 1) - Estar
+          ≤ q * (e t - Estar)
+            + sigma ^ 2 / (B0 * c ^ t) := hst
+        _ ≤ q * (q ^ t * (e 0 - Estar)
+              + sigma ^ 2 / B0 / (1 - q))
+            + sigma ^ 2 / (B0 * c ^ t) := by
+            have h1 := mul_le_mul_of_nonneg_left hshift hq
+            linarith
+        _ ≤ q ^ (t + 1) * (e 0 - Estar)
+            + sigma ^ 2 / B0 / (1 - q) := by
+            have hdist : q * (q ^ t * (e 0 - Estar))
+                = q ^ (t + 1) * (e 0 - Estar) := by
+              rw [pow_succ]
+              ring
+            linarith [hdist, hA]
+  linarith [hmain t]
+
+end Hagi.Unified
+

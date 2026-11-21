@@ -5,7 +5,7 @@ import Mathlib.Tactic
 import Hagi.Semantics.Split
 import Hagi.Training.Admission
 import Hagi.Theory.MasterTheorem
-import Hagi.Theory.StochasticSafeStep
+import Hagi.Theory.SafeStep
 
 /-!
 # CR-MSM v2 — architecture skeleton: nonconvex extractor + controlled head

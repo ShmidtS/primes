@@ -3,7 +3,7 @@
 For: the HAGI_v2 implementation agent. Written by the primes agent
 (C480; theory landed in primes C476). Self-contained. All Lean
 anchors are proved and frozen in primes (Freeze 8462, module
-`Hagi/Theory/NonlinearMerge.lean`, namespace
+`Hagi/Theory/MergeQuant.lean` (v4 T4 merge, namespace preserved), namespace
 `Hagi.Theory.NonlinearMerge`).
 
 ## (a) Context (one line)

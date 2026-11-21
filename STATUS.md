@@ -5644,7 +5644,10 @@ wall-clock, сжатие весов или улучшение качества.
   при выборе действия.
 
 
-## Hagi/Theory/VerticalCapstone.lean
+## Hagi/Theory/MasterTheorem.lean (v4 T6: + MasterBudget, VerticalCapstone)
+- Канон master-траектории (v4 T6): MasterTheorem + MasterBudget
+  (бюджет как premise-канал, ns `Hagi.Theory`) + VerticalCapstone
+  (ns `Hagi.Unified`) в одном модуле, имена сохранены.
 - `accuracy_for_budget`: при `0 ≤ q < 1`, `σ ≥ 0`, `B0 > 0`,
   `c > 1`, `Estar ≥ 0` и
   `e(s+1) ≤ q·e s + σ²/(B0·c^s)` получается
@@ -6941,7 +6944,7 @@ degenerate k=2=rank (tail2max=[1.137, 0.113, 0] — ε-бюджет
 --mode agem-vs-ranktrunc ABORT-ит на текущем корпусе (pin
 kmin<rank нарушен дрейфом; воспроизведено на чистом HEAD
 c5b13cf до коммита, .tmp/C510/regression-agn-clean-HEAD.out).
-Lean: Hagi/Theory/HybridContinual.lean (C510, +5 деклараций,
+Lean: Hagi/Theory/Continual.lean (ns Hagi.Theory.HybridContinual preserved; C510, +5 деклараций,
 Freeze 8591→8596): HybridMech, hybridSelect (детерминированный
 селектор), hybridStep, proj_compl_orth (P²=P ∧ Pᵀ=P ⇒
 (g−Pg)⊥range P), hybrid_step_sound (main): выбор механизма по
