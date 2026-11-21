@@ -30,6 +30,13 @@ E_compress=100 — положительный сертификат при рос
 
 namespace Hagi.Unified.HonestTransition
 
+/-! ## Словарь перегрузок: `HonestTransition`, `CertStep`
+Канон-носитель честного перехода — этот файл. Одноимённый
+`CertStep` здесь — адаптация ядра `Hagi.Cert.Core` к
+Unified-слою; исходное определение искать в `Hagi.Cert.Core`.
+Полное переименование — вне v5.
+-/
+
 variable {S : Type*}
 
 /-- Честный переход: спуск связан с objective-функцией

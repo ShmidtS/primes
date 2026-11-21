@@ -31,6 +31,13 @@ set_option relaxedAutoImplicit false
 
 namespace Hagi.Cert
 
+/-! ## Словарь перегрузок: `CertStep`
+Канон-носитель структуры `CertStep` — этот файл (`Hagi.Cert`).
+Одноимённые объявления в `Hagi.Unified.HonestTransition` —
+потребительский вариант поверх того же ядра; при поиске
+определения начинать отсюда. Полное переименование — вне v5.
+-/
+
 /-! ## S1: metrics + obligations -/
 
 variable (S : Type*) (TaskId : Type*)

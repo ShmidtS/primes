@@ -78,6 +78,12 @@ inverse temperature β, over the FREE cells of a CRAM problem.
 
 namespace Hagi.Model.EnergyReasoning
 
+/-! ## Словарь перегрузок: `MetricDirection`
+Канон-носитель направления метрики в CRAM-псевдоправдоподобии —
+этот файл; одноимённые объявления внутри него различают
+нормировки. Полное переименование — вне v5.
+-/
+
 open Hagi.Energy (pairwiseEnergy localField)
 open Hagi.Core (ceOneHot lse)
 open Hagi.Prelude (softDef)

@@ -36,6 +36,13 @@ set_option relaxedAutoImplicit false
 
 namespace Hagi.Cert
 
+/-! ## Словарь перегрузок: `CertStepGen`, `CertStepGenBounded`
+Канон-носители генераторов шаговых сертификатов — этот файл.
+Одноимённые вспомогательные объявления в `Hagi.Cert.EvalBinding`
+связывают генератор с реальной оценкой; определение искать здесь.
+Полное переименование — вне v5.
+-/
+
 variable {S TaskId : Type*}
 variable (M : SystemMetrics S TaskId) (obl : StepObligations TaskId)
 

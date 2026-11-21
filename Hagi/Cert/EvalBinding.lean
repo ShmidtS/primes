@@ -41,6 +41,13 @@ set_option relaxedAutoImplicit false
 
 namespace Hagi.Cert
 
+/-! ## Словарь перегрузок: `EvalBinding`
+Канон-носитель связывания сертификата с реальной оценкой — этот
+файл. Одноимённые записи в нём отличаются ролей (binding/unwrap);
+определения `CertStepGen` искать в `Hagi.Cert.StepGen`.
+Полное переименование — вне v5.
+-/
+
 /-! ## Three type-distinct risk concepts (A16: not one `risk`) -/
 
 /-- Risk EXPOSED at a state: the pre-step risk level, as a typed
