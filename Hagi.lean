@@ -479,6 +479,7 @@ import Hagi.Theory.ContinualBench
 import Hagi.Theory.ContinualMulti
 import Hagi.Theory.GPMRelaxed
 import Hagi.Theory.RationalSoftmax
+import Hagi.Theory.BandTightening
 import Hagi.Theory.SandwichMonotone
 import Hagi.Theory.TrainerBenchmark
 import Hagi.Theory.CertSandwichBench

@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 574
-- theorems: 12731
-- defs: 4704
-- noncomputable decls: 1209
-- status Proven: 493 modules
+- modules: 575
+- theorems: 12758
+- defs: 4706
+- noncomputable decls: 1211
+- status Proven: 494 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -505,6 +505,7 @@ theorems.
 | Hagi.Theory.AdaptiveMajorizer | 66 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.AnytimePACBayes | 2 | 0 | - | no | Proven |
+| Hagi.Theory.BandTightening | 27 | 2 | auxG, bandWidth | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
 | Hagi.Theory.BlockLipschitz | 42 | 9 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
 | Hagi.Theory.BlockSmooth | 6 | 0 | - | no | Proven |

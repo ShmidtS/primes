@@ -2226,6 +2226,7 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 
 CS_K, CS_D = 2, 4              # classes / feature dim
 CS_NM = 4                      # n = m of the (1+x/n)^n family
+CS_NM_EVAL_MAX = 1024          # C502 eval-time adaptive cap (budget)
 CS_FGRID = F(1, 10)            # feature snap grid
 CS_WGRID = F(1, 100)           # weight snap grid
 CS_ETA = F(1, 100)             # normalized step size
@@ -2274,15 +2275,23 @@ def cs_logits(w, x):
                 F(0)) for c in range(CS_K)]
 
 
-def cs_terms(z):
-    """C489 sandwich terms on max-shifted logits (exact)."""
+def cs_terms_nm(z, nm):
+    """C489 sandwich terms on max-shifted logits (exact),
+    parameterized denominator nm (C502 adaptive tightening;
+    bernoulliLower_mono / expUpper_base_mono: larger nm —
+    narrower certified bands)."""
     M = max(z)
     s = [v - M for v in z]               # in [-R, 0]
-    if -min(s) >= CS_NM:
+    if -min(s) >= nm:
         return None                      # range guard: HOLD
-    lo = [(F(1) + sv / CS_NM) ** CS_NM for sv in s]
-    hi = [(F(1) - sv / CS_NM) ** (-CS_NM) for sv in s]
+    lo = [(F(1) + sv / nm) ** nm for sv in s]
+    hi = [(F(1) - sv / nm) ** (-nm) for sv in s]
     return lo, hi
+
+
+def cs_terms(z):
+    """C489 sandwich terms at the fixed training CS_NM."""
+    return cs_terms_nm(z, CS_NM)
 
 
 def cs_obj(w, data):
@@ -3104,39 +3113,50 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
                           "range guard or drop <= 0: HOLD"})
     rows, n_cert, n_ok, n_sm_ok = [], 0, 0, 0
     import math
+    nm_used_all = []
     for k, x, y in hold:
-        t = cs_terms(cs_logits(w, x))
-        if t is None:
-            rows.append({"key": k, "certified": False,
-                         "reason": "range >= n (guard)"})
-            continue
-        lo, hi = t
-        slo, shi = sum(lo, F(0)), sum(hi, F(0))
-        loN = [lo[c] / shi for c in range(CS_K)]
-        hiN = [hi[c] / slo for c in range(CS_K)]
-        sep = [c for c in range(CS_K)
-               if all(hiN[a] < loN[c] for a in range(CS_K)
-                      if a != c)]
-        # float true-softmax argmax: TELEMETRY only
-        z = [float(v) for v in cs_logits(w, x)]
-        sm = z.index(max(z))
+        # C502 adaptive band tightening: double the EVAL-time
+        # denominator n = m from CS_NM until the normalized
+        # class bands are disjoint (Lean: bernoulliLower_mono /
+        # expUpper_base_mono — larger nm, narrower certified
+        # band), bounded by the CS_NM_EVAL_MAX denominator
+        # budget. Training certificate stays at fixed CS_NM.
+        z = cs_logits(w, x)
+        nm, sep, loN, hiN = CS_NM, [], None, None
+        while nm <= CS_NM_EVAL_MAX:
+            t = cs_terms_nm(z, nm)
+            if t is not None:
+                lo, hi = t
+                slo, shi = sum(lo, F(0)), sum(hi, F(0))
+                loN = [lo[c] / shi for c in range(CS_K)]
+                hiN = [hi[c] / slo for c in range(CS_K)]
+                sep = [c for c in range(CS_K)
+                       if all(hiN[a] < loN[c]
+                              for a in range(CS_K) if a != c)]
+                if len(sep) == 1:
+                    break
+            nm *= 2
+        nm_used_all.append(nm if nm <= CS_NM_EVAL_MAX else None)
         if len(sep) != 1:
             rows.append({"key": k, "certified": False,
                          "reason": "bands overlap",
-                         "bands": [[float(loN[c]), float(hiN[c])]
-                                   for c in range(CS_K)],
-                         "true_softmax_argmax": sm})
+                         "nm_eval_tried_max": min(nm, CS_NM_EVAL_MAX),
+                         "bands": ([[float(loN[c]), float(hiN[c])]
+                                    for c in range(CS_K)]
+                                   if loN is not None else None),
+                         "true_softmax_argmax": z.index(max(z))})
             continue
         pred = sep[0]
         n_cert += 1
         n_ok += (pred == y)
-        n_sm_ok += (pred == sm)
+        n_sm_ok += (pred == z.index(max(z)))
         rows.append({"key": k, "certified": True, "pred": pred,
                      "label": y, "correct": pred == y,
+                     "nm_eval": nm,
                      "bands": [[float(loN[c]), float(hiN[c])]
                                for c in range(CS_K)],
-                     "true_softmax_argmax": sm,
-                     "agrees_softmax": pred == sm,
+                     "true_softmax_argmax": z.index(max(z)),
+                     "agrees_softmax": pred == z.index(max(z)),
                      "bands_exact": [[str(loN[c]), str(hiN[c])]
                                      for c in range(CS_K)]})
     sl = {"rounds": None, "commits": None, "actions": None}
@@ -3162,6 +3182,8 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
         "train_holds": holds,
         "n_certified": n_cert,
         "n_certified_correct": n_ok,
+        "adaptive": {"start": CS_NM, "max": CS_NM_EVAL_MAX,
+                     "nm_eval_used": nm_used_all},
         "accuracy_certified": (f"{n_ok}/{n_cert}"
                                if n_cert else "0/0"),
         "agreement_with_true_softmax": (
