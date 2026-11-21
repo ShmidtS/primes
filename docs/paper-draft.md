@@ -1,7 +1,7 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.2 (C531). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD 22576dab), либо измеренный результат прогона с
+Draft v0.3 (C548). Все утверждения — либо Lean-якорь (FQN, файл,
+строка на HEAD ebbd400e), либо измеренный результат прогона с
 указанием витка (Cn), либо явный PIN в §Limitations. Никаких
 недоказанных клеймов.
 
@@ -12,8 +12,8 @@ learning system takes a step only after a machine-checked
 certificate: the loop **PROPOSE → CERTIFY → ADMIT →
 COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by a
 Lean 4 theorem proved against Mathlib; the corpus currently
-counts **536 modules / 12 772 theorems / 0 `sorry`** (generated
-theorem index at HEAD 22576dab). The cycle-level soundness theorem
+counts **543 modules / 12 853 theorems / 0 `sorry`** (generated
+theorem index at HEAD ebbd400e). The cycle-level soundness theorem
 `certify_then_commit_sound` guarantees, per T-round run: objective
 telescoping over the committed ledger, a probability-δtotal bound
 on false commits, an ε-bound on holdout-risk growth, and exact
@@ -29,7 +29,17 @@ two new axes: repeated certified trunk growth now reaches depth
 8 (from 5) after a snap-to-dyadic policy defeated the measured
 ×3.2-per-grow denominator explosion (C506 → C521), and the
 commit/hold decision gained a formally verified rollback gate
-restoring the full pre-step state (C530). We state honest pins: measurement premises
+restoring the full pre-step state (C530). Since v0.2 the loop has
+been extended along two further axes: certified LoRA-style
+adapter growth with snap-folding reaches trunk depth 10 at 64
+parameters with 13-digit denominators (C532–C536, incl. an exact
+rank-2 merge to 16 parameters, −75%, at certified bound 6.6e-8);
+and five external HAGI_v2 observations were absorbed as theorems
+(C537–C545), including the exact weight-decay leak factor (1−ηλ)
+and an Empirical-Bernstein sample saving of 27.49×. The era
+closes with a full self-improving loop in a single trace (C547):
+26 certified steps, 10 adapter parameters, zero-forgetting exact,
+and exact-bypass coverage 99.1%. We state honest pins: measurement premises
 (`BandDescribes`), measured ε-compromises, hybrid degeneration,
 corpus drift, and mini-scale.
 
@@ -261,7 +271,7 @@ COMMIT (no phantom HOLDs), and `weak_gate_loses` is the negative
 twin: forcing a commit without the gate strictly worsens the
 objective.
 
-### 3.10 Rank-truncation escape
+### 3.5 Rank-truncation escape
 
 In the mini-HAGI gpm2 phase, full-GPM honestly HOLDs (4 HOLD
 rounds, first delta exactly zero on the 1/10000 grid — exact
@@ -269,6 +279,165 @@ replica of the C494 phenomenon), and the relaxed rank-truncated
 projection escapes: minimal k with max sigmaTail² ≤ eps², eps =
 1/10 (PIN, §5), gives 4 committed steps with per-step forgetting
 ≤ ‖delta‖·sigmaTail (assert-checked). Measured run: C500.
+
+### 3.10 Adapter era: four certified growth mechanisms (C532–C536)
+
+<!-- source: .tmp/C532/receipt.md; .tmp/C533/receipt.md; .tmp/C535/receipt.md; .tmp/C536/receipt.md -->
+
+The growth mechanism family now spans four certified paths. All
+admit new capacity by an EXACT objective-invariant admission and
+train only the new parameters by certified steps.
+
+| mechanism | cycle | new params/grow | max depth | maxden |
+|---|---|---|---|---|
+| identity/fiber block | C506/C521 | 21 (block) | 8 (snap, C521) | 13 digits (snap) |
+| adapter r=1/r=2 (LoRA side-branch) | C532 | 8/16 (2·r·d) | — | exact Fractions |
+| adapter + snap composite (8 levels r=1) | C533 | 8/level, 64 total | 10 | 13 digits (≤2^40, every level) |
+| SVD-Matryoshka merge (stack → single) | C536 | 16 (rank ρ=2) | 10 → 1 matvec | 13 digits |
+
+Core theory (Hagi/Theory/AdapterGrowth.lean):
+`adapter_neutral_B` (:84) — B = 0 makes the side-branch EXACTLY
+neutral for arbitrary A; `adapter_step_certified` (:173) —
+COMMIT only on a measured strict drop; `adapter_param_count`
+(2·r·d) with `adapter_param_count_le_block` (2rd ≤ d² at 2r ≤ d).
+Measured (C532 bench, obj invariant EXACT at every admission):
+adapter r=1 = 8 and r=2 = 16 parameters vs 21 for the identity
+block; 12 certified steps, 0 holds.
+
+**Composite stack (C533).** 8 admission-train-snap levels of
+r=1 adapters grow the trunk depth 2 → 10 at 8 parameters per
+level (64 total vs 21 for one full block). Each level snaps to
+q/2^40 and folds into the features, so every level restarts
+from the grid — the C506 ×3.2-per-grow denominator compounding
+is structurally excluded (maxden 13 digits at every level).
+Canonical run: start ≈ 2.283, total certified drop 2.271, 21
+steps, 3.2–4.3 s, bit-identical deterministic repeat. The
+cumulative snap error bound ≈ 2.98e-13 against a certified drop
+of 2.27 — a ~13-orders-of-magnitude margin. Lean:
+`adapter_snap_cycle_sound` (:264).
+
+**Rank-adaptive selector (C535).** At each level the selector
+PROBEs r=1 and r=2 on a copy (exact C530 rollback — the live
+state never moves) and selects by measured score =
+probe_drop/params (ties → r=1). `rankSelect` is a deterministic
+function of the measured state (`rank_select_deterministic`);
+`rank_select_sound` (:309) keeps the full guarantee of whichever
+branch is chosen. Measured: score(r=2) ≤ score(r=1) at all 8
+levels, so the selector honestly picks r=1 every time (adaptive
+≡ fix-r1 bit-for-bit, 64 params, drop/param 0.035310, 17 steps);
+the r=2 arm reaches the same drop at ×2 parameters (128, 10
+steps) and is correctly rejected — no degradation.
+
+**SVD-Matryoshka merge (C536).** After the 8-level stack, an
+exact rational Gauss-Jordan rank/ factorization merges the
+stack into a single adapter on the original trunk features:
+`adapter_stack_rank_bound` (:397, rank(Π(I+Eᵢ) − 1) ≤ Σ rank Eᵢ),
+`adapter_merge_error_bound` (:438, σ_tail + ℓ¹-Lipschitz),
+`adapter_merge_params` (:424). Measured (exact rank of Δ = 2):
+
+| model | params | matvec | obj change | certified bound |
+|---|---|---|---|---|
+| stack 8×r=1 | 64 | 8 | final 1.02460e-2 | cycle bound holds |
+| merged k=ρ=2 | 16 (−75%) | 1 | −6.7e-11 (improvement) | 6.60e-8 |
+| merged k=1 | 8 (−87.5%) | 1 | ~0.51 degradation | holds, usable=False |
+
+Honest: k=1 (σ_tail ≈ 0.998) is correctly reported unusable;
+the data gave rank 2 < min(d,L) = 4, so the bound is not vacuum.
+17 certified steps, ~3.6 s, bit-identical repeat.
+
+### 3.11 External absorption: five HAGI_v2 observations as theorems (C537–C545)
+
+<!-- source: .tmp/C538..C541,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md; delivery: docs/PROPOSAL-external-plan.md (C543) -->
+
+A mapping audit (C537) inverted the bridge: instead of porting
+HAGI_v2 code, its top observed defects were formalized as
+theorems (C538–C541, C545) and delivered back with exact
+code-fix mappings (docs/PROPOSAL-external-plan.md, C543).
+
+**(1) Weight-decay leak (C538, P4).** `wd_proj_preserves`:
+projected decay W′ = W − ηλ·(W − W·P) keeps W·P EXACTLY (the
+measured projected leak 5.68e-15 is a machine zero = exact
+zero); naive decay (1−ηλ)·W has the EXACT leak factor (1−ηλ) on
+the protected component (`naive_decay_parallel`,
+`naive_decay_norm`), leaks strictly (`naive_decay_leak`, :128;
+measured naive leak 1.945); `wd_gpm_step_sound` (:159) composes
+a black-box complement step with projected decay.
+
+**(2) Empirical-Bernstein radius (C539, P1).**
+`empirical_bernstein_bound` / `_mean_bound` (+
+`freedman_tail_two_sided`, `eb_radius_algebra`): with measured
+σ̂² and range b, |μ̂| < √(2σ̂²L/n) + 2bL/n at ≥ 1−α. Witness
+contrast (ΔCE=0.04, R=11.09, α=0.01): n_Hoeffding = 176 995 vs
+n_EB(MP form) = 6439 — a **27.49×** sample saving (our form:
+4267, 41.5×). Honest: σ̂ is a runtime premise (no MP λ-trick).
+
+**(3) Observational-equivalence search completeness (C540, P6).**
+`oe_search_complete` (:82): OE-dedup search never loses a
+solution that matches the target on the probes — completeness
+is RELATIVE TO THE PROBES, no semantic equivalence claimed.
+Witness: toy space 343 → 4 visits (~86×); the HAGI_v2 analogue
+compressed 6478 → 896 candidates (7.2×).
+
+**(4) Exact bypass, zero cross-entropy (C541, P8).** On a
+PROVEN_EXACT coverage, CE contribution is EXACTLY zero:
+`ce_pointwise_of_prob_one`, `ce_total_eq_residual` (:92) —
+total = residual, bit-for-bit (witness 4.264244 == 4.264244);
+`exact_gate_sound` (:99) and the negative `exact_gate_rejects_zero`
+(p = 0 ⇒ rejected, junk log never used).
+
+**(5) Polar-Express interval certificate (C545, P3).** A
+scalar, SVD-free interval certificate for the minimax
+Newton–Schulz iteration: three rationalized p(x) = ax+bx³+cx⁵
+polynomials map the spectral box by EXACT rational bounds:
+[1/1000, 1] → [1/256, 1313/1024] → [5/512, 601/512] → final
+[9/512, 1049/1024] ≈ [0.0176, 1.0244] (`polar_express_step3_bound`,
+Hagi/Optimization/PolarExpressCert.lean:373). Honest correction:
+the upper end is 1.0244, i.e. within 2.5% of 1 — no spectral
+explosion, but the iteration does not pin the top of the
+spectrum to exactly 1.
+
+**Adapter continual isolation (C544).** Composing adapters with
+the continual line: per-task adapters give zero forgetting
+STRUCTURALLY — `adapter_isolation_zero_forgetting` (:548) and
+`adapter_per_task_sound` (:563) need no projections or budgets.
+Measured head-to-head (conflict-pinned task B, same
+trunk/data/eta/grid): ISO forgetA = 0 EXACT (bit-exact assert)
+vs SHARED +0.2331 vs naive-trunk +5.5757 (the scenario of
+`trunk_update_needs_projection`, :599, composed with C538).
+PIN: on a same-distribution B the measured forgetting was
+negative (SHARED −0.304 / TRUNK −0.753) — forgetting is a
+conflict phenomenon; the conflict pin is documented in code.
+
+### 3.12 The full self-improving loop in one trace (C547)
+
+<!-- source: .tmp/C547/receipt.md -->
+
+The era closes with all certified components composed into ONE
+live run (`--mode mini-hagi-loop`, real unified_ledger, 113
+points): a single trace, a single JSON, one theorem.
+
+> **Theorem (full_loop_sound).**
+> `Hagi/Theory/MiniHagiLoop.lean:64` (C547).
+> Composition of `exact_gate_sound` + `adapter_step_certified` +
+> `adapter_isolation_zero_forgetting` + `oe_search_complete` +
+> `empirical_bernstein_mean_bound` — no new deep facts, only
+> certified composition.
+
+| phase | mechanism | measured result |
+|---|---|---|
+| P1 bypass | exact-gate (C541) | const 3/2 covers 107/113 (94.7%); CE of covered = 0 EXACT; wrong-const negative err = 1/4 |
+| P2 adapter A | certified steps (C532) | 10 steps, CE 4 → 0.1216, drop > 0; HOLD negative leaves state unchanged |
+| P3 grow | neutral admission + snap (C521/C532) | obj invariant bit-for-bit; 6 steps; CE 0.1214 |
+| P4 continual | per-task isolation (C544) | adapter B 10 steps, forgetA = 0 EXACT; SHARED negative leak = 1.386 |
+| P5 search + gate | OE dedup + EB (C540/C539) | const-2 law accepted (+5 EXACT); coverage 112/113 (99.1%); EB gate n_EB 9649 ≤ n_Hoeffding 10851 |
+| P6 total | full_loop_sound | **26 certified steps, 1 hold, 10 parameters (2 adapters)** |
+
+Honest notes (pinned in §5): the EB contrast on this corpus is
+1.12× (vs 27.49× in the C539 instance) — a property of the
+data, not the bound form; P1 coverage is on snap-quantized
+targets (PIN); one position remains uncovered (the OE space was
+exhausted — completeness does not promise solutions outside the
+space).
 
 ## 4. Benchmarks (measured only)
 
@@ -326,6 +495,21 @@ not needed: all bands disjoint already at n = m = 4.
    measurements; objective values are not comparable across
    corpus versions.
 
+9. **EB contrast is data-dependent.** The live full-loop corpus
+   shows an EB-vs-Hoeffding sample contrast of only 1.12×
+   (n_EB 9649 ≤ n_Hoeffding 10851, C547) against the 27.49× of
+   the C539 calibration point (eps = R/128 on a small residual
+   range) — a property of the data, not of the bound form.
+10. **Polar-Express upper end.** The certified final spectral
+   box is [9/512, 1049/1024] ≈ [0.0176, 1.0244]: the upper end
+   exceeds 1 by 2.4% — an honest correction to the expectation
+   that minimax Newton–Schulz pins the spectrum top at exactly 1.
+11. **OE completeness is probe-relative.** `oe_search_complete`
+   guarantees no loss of probe-consistent solutions inside the
+   enumerated space; it does not promise that a solution exists
+   in the space (one position stayed uncovered in C547 after the
+   space was exhausted), nor semantic program equivalence.
+
 ## 6. Experiment plan (to strengthen before submission)
 
 1. Scale mini-HAGI: tasks 3 → 8+, deeper trunk, measured grow
@@ -343,7 +527,7 @@ not needed: all bands disjoint already at n = m = 4.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (verified at HEAD 22576dab)
+## Appendix A: anchor table (verified at HEAD ebbd400e)
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -359,6 +543,25 @@ not needed: all bands disjoint already at n = m = 4.
 | grow_snap_cycle_sound | Hagi/Theory/GrowSnap.lean:146 | C521 |
 | hybrid_step_sound | Hagi/Theory/Continual.lean:456 | C510 |
 | rollback_gate_sound | Hagi/Theory/RollbackGate.lean:98 | C530 |
+| adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:84 | C532 |
+| adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:173 | C532 |
+| adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:264 | C533 |
+| rank_select_sound | Hagi/Theory/AdapterGrowth.lean:309 | C535 |
+| adapter_stack_rank_bound | Hagi/Theory/AdapterGrowth.lean:397 | C536 |
+| adapter_merge_params | Hagi/Theory/AdapterGrowth.lean:424 | C536 |
+| adapter_merge_error_bound | Hagi/Theory/AdapterGrowth.lean:438 | C536 |
+| naive_decay_leak | Hagi/Theory/WeightDecayLeak.lean:128 | C538 |
+| wd_gpm_step_sound | Hagi/Theory/WeightDecayLeak.lean:159 | C538 |
+| empirical_bernstein_bound | Hagi/Probability/EmpiricalBernstein.lean:208 | C539 |
+| empirical_bernstein_mean_bound | Hagi/Probability/EmpiricalBernstein.lean:286 | C539 |
+| oe_search_complete | Hagi/Theory/OEComplete.lean:82 | C540 |
+| ce_total_eq_residual | Hagi/Theory/ExactBypass.lean:92 | C541 |
+| exact_gate_sound | Hagi/Theory/ExactBypass.lean:99 | C541 |
+| adapter_isolation_zero_forgetting | Hagi/Theory/AdapterGrowth.lean:548 | C544 |
+| adapter_per_task_sound | Hagi/Theory/AdapterGrowth.lean:563 | C544 |
+| trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:599 | C544 |
+| polar_express_step3_bound | Hagi/Optimization/PolarExpressCert.lean:373 | C545 |
+| full_loop_sound | Hagi/Theory/MiniHagiLoop.lean:64 | C547 |
 
-<!-- verified at HEAD 22576dab (C531); anchor lines via rg on
-     Hagi/Theory/*.lean -->
+<!-- verified at HEAD ebbd400e (C548); anchor lines via rg on
+     Hagi/**/*.lean -->
