@@ -125,15 +125,15 @@ phenomenon (`gpm_hold_when_covered`, :256).
 ### 3.4 Sandwich-softmax certified prediction
 
 > **Theorem (cert_pred_adaptive).**
-> `Hagi/Theory/BandTightening.lean:375` (C495/C502).
+> `Hagi/Theory/Softmax.lean:711` (C495/C502).
 > If every class's certified band around the softmax is at most
 > 2ε wide and the true softmax gap exceeds 2ε, the band midpoint
 > argmax is certified.
 
 Refining the walls (larger denominator precision n, m) never
-un-certifies a prediction (`cert_pred_adaptive_mono`, :395;
+un-certifies a prediction (`cert_pred_adaptive_mono`, :731;
 `bandWidth_mono`, same file), built on the sandwich accuracy lemma
-`sandwich_mid_acc` (`Hagi/Theory/SandwichMonotone.lean:171`) and
+`sandwich_mid_acc` (`Hagi/Theory/Softmax.lean:307`) and
 certified descent through bands (`sandwich_descent`,
 `Hagi/Theory/CertSandwichBench.lean:65`).
 
@@ -214,4 +214,4 @@ not needed: all bands disjoint already at n = m = 4.
 | fisher_quant_loss_bound | Hagi/Theory/MergeQuant.lean:204 | C472 |
 | rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:125 | C498 |
 | gpm_tradeoff | Hagi/Theory/Continual.lean:232 | C498 |
-| cert_pred_adaptive | Hagi/Theory/BandTightening.lean:375 | C495/C502 |
+| cert_pred_adaptive | Hagi/Theory/Softmax.lean:711 | C495/C502 |

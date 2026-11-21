@@ -471,9 +471,7 @@ import Hagi.Theory.MDLPrune
 import Hagi.Theory.SelfEdit
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.Continual
-import Hagi.Theory.RationalSoftmax
-import Hagi.Theory.BandTightening
-import Hagi.Theory.SandwichMonotone
+import Hagi.Theory.Softmax
 import Hagi.Theory.TrainerBenchmark
 import Hagi.Theory.CertSandwichBench
 import Hagi.Theory.MiniHagi
