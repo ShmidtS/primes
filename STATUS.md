@@ -6900,3 +6900,56 @@ rank_trunc_forgetting_bound. Freeze 8591 без изменений (нет
 новых Hagi.* деклараций). Известное пре-существующее:
 --mode continual падает на живом корпусе (нет smoke_gpu.bin в
 rd_load_dataset, воспроизведено на HEAD C507 до коммита).
+
+## Hybrid continual mechanism selection (C510)
+
+Roadmap C509 (1): decision-таблица C509 §б превращена в
+самонастройку — continual-цикл где механизм шага выбирается на
+КАЖДОМ шаге DETERMINISTICALLY по измеренному состоянию
+(никакого рандома; пороги — сами измеримые числа). `scripts/
+bench_bridge.py --mode hybrid-continual` (backward-совместимо):
+(a) span-полнота rank(spanA∪B) vs dim — точный рациональный GS;
+при rank < dim → full-GPM (проекция на дополнение span(A),
+per-old-input exact assert δ·x = 0 — bench-форма
+gpm_zero_forgetting); (b) span исчерпан → конфликт-чек знака
+⟨g,g_old⟩: ≥ 0 → A-GEM свободный шаг (free-ветка
+agem_step_nonneg_interf); < 0 → rank-trunc проекция (kept top-k
+по энергии; per-old-input exact assert (δ·x)² ≤ ‖δ‖²·sigmaTail²
+— rank_trunc_forgetting_bound). Admission на каждом шаге —
+certified measured drop > 0 (guarded rollback); траектория
+budget-filled + check_step re-verify + obj-chain. Телеметрия
+per-step: механизм + причина + знак dot + drop + riskA.
+Чистые рукава (rank-trunc, A-GEM) — в том же прогоне, та же
+фаза-1 wA/данные/бюджет 24/eta/сетка.
+Корпус-pin C510: живой unified_ledger дрейфует (46→51→53
+точек); snapshot-пин .tmp/C510/corpus (ledger 09:55, n=53). На
+снапшоте: span исчерпан (rank(A∪B)=4=dim), конфликтов НЕТ
+(⟨g,g_old⟩ ≥ 0 все 24 шага) → селектор честно берёт agemFree
+24/24; hybrid B-прогресс 0.4322 = A-GEM (≥ max чистых: RT
+0.0026), forgetA −0.383 (измеренная телеметрия); RT-arm
+degenerate k=2=rank (tail2max=[1.137, 0.113, 0] — ε-бюджет
+1/100 недостижим на дрейфнувших A-точках; bound выполняется с
+нулевым хвостом; флаг rank_trunc_degenerate). ПрЕ-существующее:
+--mode agem-vs-ranktrunc ABORT-ит на текущем корпусе (pin
+kmin<rank нарушен дрейфом; воспроизведено на чистом HEAD
+c5b13cf до коммита, .tmp/C510/regression-agn-clean-HEAD.out).
+Lean: Hagi/Theory/HybridContinual.lean (C510, +5 деклараций,
+Freeze 8591→8596): HybridMech, hybridSelect (детерминированный
+селектор), hybridStep, proj_compl_orth (P²=P ∧ Pᵀ=P ⇒
+(g−Pg)⊥range P), hybrid_step_sound (main): выбор механизма по
+измеримым предикатам сохраняет гарантию выбранной ветки —
+дизъюнкция трёх механизмов БЕЗ ослабления (fullGPM ⇒ δ⊥x ∀x∈
+range P; agemFree ⇒ 0 ≤ ⟨g,g_old⟩; rankTrunc ⇒
+rank_trunc_forgetting_bound, инстанцирован 1-строчной ΔW),
+case-on-state. Witness .tmp/C510/trajHybrid.lean: #eval
+checkTrajectory = true (префикс 3 шага, шапка честная:
+24/24 agemFree) + негатив = false (simp+norm_num) + #check
+hybrid_step_sound + agem_step_nonneg_interf +
+rank_trunc_forgetting_bound; lake exit 0. Гейты: все PASS
+(Freeze verify 8596/0 aliased; ALLAXIOMS: PASS — только
+propext/Quot.sound/Classical.choice; ReachLint/TrivialLint/
+triviality/DupLint/NsLint/DocLint/LayerLint/StatusLint/STMDup/
+ChallengeCheck/MachineDiffTest/TestFreeze/TestAllAxiomCheck/
+TestAssumptionScan+AssumptionScan/TestPremiseRegistry/
+TestMergeModule exit 0; regression quad exit 0). Index regen:
+theorem-index 12767→12778 (HybridContinual 11 decls, Proven).

@@ -5932,6 +5932,378 @@ def emit_lean_agn(path, res, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C510: HYBRID CONTINUAL MECHANISM SELECTION
+# (--mode hybrid-continual)
+#
+# Roadmap C509 top-1: ONE continual loop whose per-step step
+# mechanism is selected DETERMINISTICALLY from the MEASURED
+# state (the C509 decision table, .omc/analysis/
+# period-c506-508-analysis.md section b):
+#
+#   (a) span fullness (measured once per scenario — an exact
+#       rational Gram-Schmidt fact): rank(span A \u222a B) < dim
+#       -> full-GPM (project onto the complement of span(A);
+#       per-old-input exact assert delta \u00b7 x = 0 — the bench
+#       form of gpm_zero_forgetting);
+#   (b) span exhausted -> per-step conflict check on the exact
+#       sign of <g, g_old>: >= 0 -> A-GEM FREE step (full
+#       gradient, zero cost — the free case of
+#       agem_step_nonneg_interf); < 0 -> rank-trunc (per-point
+#       forgetting bound (delta \u00b7 x)^2 <= ||delta||^2 *
+#       sigmaTail^2 — the C500/C508 mechanics; the decision
+#       table row "span exhausted -> rank-trunc").
+#
+# The selector uses ONLY measurable exact-Fraction quantities
+# (rank vs dim, the dot sign) — no randomness, no float
+# thresholds. Admission at every step is the certified measured
+# drop > 0 gate on B (guarded rollback HOLD otherwise); the
+# trajectory is budget-filled and re-verified by check_step
+# exactly like C485/C508. Pure arms (rank-trunc, A-GEM) come
+# from agn_run on the SAME deterministic phase-1 wA in the same
+# process (fair comparison, C508 pins). Soundness of the
+# selection itself is Hagi.Theory.HybridContinual.
+# hybrid_step_sound (C510): the chosen branch's guarantee holds
+# with no weakening (disjunction of the three mechanisms).
+
+HYB_STEPS = 24            # PIN: same budget as the C508 arms;
+                          # live-measured selector split 5 free /
+                          # 19 rank-trunc steps at 24
+
+
+def hyb_run(ledger_path, steps=HYB_STEPS):
+    """C510: hybrid continual loop — per-step mechanism by the
+    measured state (C509 decision table), plus BOTH pure arms on
+    the SAME data/phase-1/budget for the honest 3-row table.
+
+    Corpus-drift honesty (C510): the C508 `agem-vs-ranktrunc`
+    mode ABORTS on the current live corpus (its rank-trunc pin
+    kmin < rank is violated after the ledger drifted past the
+    C508-era data — PRE-EXISTING, reproduced on clean HEAD c5b13c
+    before this commit). This mode therefore computes the pure
+    rank-trunc arm with the RELAXED k_eff = min(kmin, rank):
+    when the eps-budget forces k_eff = rank the truncation is
+    degenerate (sigmaTail = 0 on old inputs; the per-point
+    forgetting bound still holds, as exact zero-interference
+    asserts), and the telemetry reports `rank_trunc_degenerate`
+    = true with the measured k. All three rows share the SAME
+    wA / B data / steps / eta / snap grid."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    A, B = cl_split(pts)
+    d = CL_D
+    basis = cl_gs_basis([x for x, _ in A])
+    assert 0 < len(basis) < d, \
+        "ABORT: need 0 < rank(span A) < 4 (few-shot PIN)"
+
+    # (a) measured span fullness of the WHOLE scenario
+    r_AB = len(cl_gs_basis([x for x, _ in A] + [x for x, _ in B]))
+    span_full = (r_AB == d)   # True -> full-GPM branch unreachable
+
+    # shared phase-1 wA (identical to the agn_run arms)
+    traj1, tel1, wA = cl_certified_loop([F(0)] * d, A, B, CL_STEPS)
+    lossA_after1 = cl_mse(wA, A)
+
+    # rank-trunc machinery for the conflict branch (C508 pins)
+    r = len(basis)
+    energy = [sum((sum((b[i] * x[i] for i in range(d)), F(0))
+                   ** 2 for x, _ in A), F(0)) for b in basis]
+    order = sorted(range(r), key=lambda j: energy[j], reverse=True)
+    kept_for, tail2max = {}, []
+    for k in range(r + 1):
+        kept_for[k] = [basis[j] for j in order[:k]]
+        tail2max.append(max(
+            [sum((t * t for t in mh3_resid(x, kept_for[k], d)),
+                 F(0)) for x, _ in A] + [F(0)]))
+    kmin = next((k for k in range(r)
+                 if tail2max[k] <= AGN_EPS ** 2), None)
+    # corpus-drift relaxation: eps-budget may force k = rank
+    k_eff = kmin if kmin is not None else r
+    kt_degenerate = (k_eff >= r)
+    kept = kept_for[k_eff]
+    Qk = cl_complement_projector(kept)
+    Qfull = cl_complement_projector(basis)   # full-GPM projector
+
+    # ---------- pure arm 1: rank-trunc (C508 semantics, the
+    # k_eff relaxation above) ----------
+    w = list(wA)
+    rt_raw, rt_holds, rt_relaxed = [], [], 0
+    for _ in range(steps):
+        g = cl_grad(w, B)
+        delta = cl_apply(Qk, cl_snap([-CL_ETA * t_ for t_ in g]))
+        cand = [w[i] + delta[i] for i in range(d)]
+        nrm2 = sum((t_ * t_ for t_ in delta), F(0))
+        for x, _ in A:        # rank_trunc_forgetting_bound
+            tail = mh3_resid(x, kept, d)
+            tail2 = sum((t_ * t_ for t_ in tail), F(0))
+            dx = sum((delta[i] * x[i] for i in range(d)), F(0))
+            assert dx * dx <= nrm2 * tail2, \
+                "ABORT: rank-trunc forgetting bound violated"
+        o0, o1 = cl_mse(w, B), cl_mse(cand, B)
+        if o1 < o0:
+            rt_raw.append({"obj": o0, "obj'": o1,
+                           "drop": o0 - o1,
+                           "risk": cl_mse(w, A),
+                           "risk'": cl_mse(cand, A)})
+            if any(delta):
+                rt_relaxed += 1
+            w = cand
+        else:
+            rt_holds.append({"drop": o0 - o1,
+                             "reason": "drop <= 0: HOLD "
+                                       "(rank-trunc arm)"})
+    rt_forget = cl_mse(w, A) - lossA_after1
+    rt_progress = sum((s["drop"] for s in rt_raw), F(0))
+
+    # ---------- pure arm 2: A-GEM (C498 agemStep, verbatim
+    # C508 arm) ----------
+    w = list(wA)
+    ag_raw, ag_holds = [], []
+    conflicts, free_steps = 0, 0
+    conflict_interf = []
+    for _ in range(steps):
+        g = cl_grad(w, B)
+        g_old = cl_grad(w, A)
+        dd, conflict = agn_agem_step(g, g_old, d)
+        if conflict:
+            conflicts += 1
+            interf = sum((dd[i] * g_old[i] for i in range(d)),
+                         F(0))
+            assert interf >= 0, \
+                "ABORT: agemStep interference < 0 (theorem " \
+                "violated)"
+            conflict_interf.append(interf)
+        else:
+            free_steps += 1
+        delta = cl_snap([-CL_ETA * t_ for t_ in dd])
+        cand = [w[i] + delta[i] for i in range(d)]
+        o0, o1 = cl_mse(w, B), cl_mse(cand, B)
+        if o1 < o0:
+            ag_raw.append({"obj": o0, "obj'": o1,
+                          "drop": o0 - o1,
+                          "risk": cl_mse(w, A),
+                          "risk'": cl_mse(cand, A)})
+            w = cand
+        else:
+            ag_holds.append({"drop": o0 - o1,
+                             "reason": "drop <= 0: HOLD "
+                                       "(A-GEM arm)"})
+    ag_forget = cl_mse(w, A) - lossA_after1
+    ag_progress = sum((s["drop"] for s in ag_raw), F(0))
+
+    # ---------- the hybrid loop ----------
+    w = list(wA)
+    raw, holds = [], []
+    track = []                 # per-step telemetry
+    counts = {"fullGPM": 0, "agemFree": 0, "rankTrunc": 0}
+    hyb_max_forget_out = F(0)
+    for t in range(steps):
+        g = cl_grad(w, B)
+        g_old = cl_grad(w, A)
+        dot = sum((g[i] * g_old[i] for i in range(d)), F(0))
+        mech, reason, bound_note = None, None, None
+        if not span_full:
+            # (a) full-GPM branch: complement of the FULL old span
+            delta = cl_apply(Qfull, cl_snap(
+                [-CL_ETA * t_ for t_ in g]))
+            mech = "fullGPM"
+            reason = (f"span free: rank(A\u222aB)={r_AB} < "
+                      f"dim={d} -> exact GPM projection")
+            for x, _ in A:   # gpm_zero_forgetting bench form
+                dx = sum((delta[i] * x[i] for i in range(d)), F(0))
+                assert dx == 0, \
+                    "ABORT: full-GPM step not orthogonal to " \
+                    "an old input (zero forgetting violated)"
+        elif dot >= 0:
+            # (b) free A-GEM step: full gradient, zero cost
+            delta = cl_snap([-CL_ETA * t_ for t_ in g])
+            mech = "agemFree"
+            reason = ("span exhausted (rank(A\u222aB)=dim), no "
+                      "conflict (dot >= 0) -> free step "
+                      "(agem_step_nonneg_interf free case)")
+        else:
+            # (b) conflict, span exhausted -> rank-trunc
+            delta = cl_apply(Qk, cl_snap([-CL_ETA * t_ for t_ in g]))
+            mech = "rankTrunc"
+            reason = ("span exhausted (rank(A\u222aB)=dim), "
+                      "conflict (dot < 0) -> rank-trunc "
+                      "projection")
+            nrm2 = sum((t_ * t_ for t_ in delta), F(0))
+            for x, _ in A:  # rank_trunc_forgetting_bound form
+                tail = mh3_resid(x, kept, d)
+                tail2 = sum((t_ * t_ for t_ in tail), F(0))
+                dx = sum((delta[i] * x[i] for i in range(d)), F(0))
+                assert dx * dx <= nrm2 * tail2, \
+                    "ABORT: hybrid rank-trunc forgetting bound " \
+                    "violated"
+                if abs(dx) > hyb_max_forget_out:
+                    hyb_max_forget_out = abs(dx)
+            bound_note = "per-point bound asserted on this step"
+        counts[mech] += 1
+        cand = [w[i] + delta[i] for i in range(d)]
+        o0, o1 = cl_mse(w, B), cl_mse(cand, B)
+        step_rec = {"step": t, "mechanism": mech,
+                    "reason": reason, "dot": str(dot),
+                    "dot_ge_0": bool(dot >= 0)}
+        if bound_note:
+            step_rec["rank_trunc_bound"] = bound_note
+        track.append(step_rec)
+        if o1 < o0:      # certified admission: measured drop > 0
+            raw.append({"obj": o0, "obj'": o1,
+                        "drop": o0 - o1,
+                        "risk": cl_mse(w, A),
+                        "risk'": cl_mse(cand, A)})
+            w = cand
+            track[-1]["committed"] = True
+        else:
+            holds.append({"drop": o0 - o1,
+                          "reason": f"drop <= 0: HOLD ({mech})"})
+            track[-1]["committed"] = False
+    hyb_forget = cl_mse(w, A) - lossA_after1
+    hyb_progress = sum((s["drop"] for s in raw), F(0))
+
+    # ---------- certify the hybrid trajectory ----------
+    assert raw, "ABORT: hybrid arm committed no steps"
+    n = len(raw)
+    for t, dd_ in enumerate(raw):
+        dd_["budget"] = F(n - t) / n
+        dd_["budget'"] = F(n - t - 1) / n
+        if not check_step(dd_):
+            sys.exit(f"ABORT: hybrid step {t} failed certified "
+                     f"admission: {dd_}")
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], \
+            "ABORT: hybrid obj chain broken"
+
+    # ---------- certify BOTH pure arm trajectories (C485
+    # form; the k_eff relaxation keeps every assert exact) ----------
+    for name, praw in (("rank-trunc", rt_raw),
+                       ("agem", ag_raw)):
+        assert praw, f"ABORT: {name} arm committed no steps"
+        nn = len(praw)
+        for t, dd_ in enumerate(praw):
+            dd_["budget"] = F(nn - t) / nn
+            dd_["budget'"] = F(nn - t - 1) / nn
+            if not check_step(dd_):
+                sys.exit(f"ABORT: {name} step {t} failed "
+                         f"certified admission: {dd_}")
+        for a, b in zip(praw, praw[1:]):
+            assert a["obj'"] == b["obj"], \
+                f"ABORT: {name} obj chain broken"
+
+    return {
+        "n_points": len(pts), "n_A": len(A), "n_B": len(B),
+        "rankA": r, "rankAB": r_AB, "dim": d,
+        "span_full": span_full, "steps": steps,
+        "eps": str(AGN_EPS), "k_rank_trunc": k_eff,
+        "rank_trunc_degenerate": kt_degenerate,
+        "tail2max_by_k": [str(t_) for t_ in tail2max],
+        "phase1": {"n_steps": len(traj1),
+                   "lossA_after": str(lossA_after1)},
+        "hybrid": {
+            "mech_counts": counts,
+            "committed": len(raw), "holds": len(holds),
+            "B_progress": str(hyb_progress),
+            "B_progress_float": float(hyb_progress),
+            "forgetA": str(hyb_forget),
+            "forgetA_float": float(hyb_forget),
+            "max_forget_out": str(hyb_max_forget_out),
+            "traj": raw, "holds_detail": holds,
+            "track": track},
+        "pure": {
+            "rank_trunc": {
+                "k": k_eff, "rank": r,
+                "degenerate": kt_degenerate,
+                "committed": len(rt_raw), "holds": len(rt_holds),
+                "relaxed_steps": rt_relaxed,
+                "B_progress": str(rt_progress),
+                "B_progress_float": float(rt_progress),
+                "forgetA": str(rt_forget),
+                "forgetA_float": float(rt_forget),
+                "traj": rt_raw, "holds_detail": rt_holds},
+            "agem": {
+                "committed": len(ag_raw), "holds": len(ag_holds),
+                "conflicts": conflicts, "free_steps": free_steps,
+                "conflict_interference_min": (
+                    str(min(conflict_interf))
+                    if conflict_interf else "n/a (no conflicts)"),
+                "B_progress": str(ag_progress),
+                "B_progress_float": float(ag_progress),
+                "forgetA": str(ag_forget),
+                "forgetA_float": float(ag_forget),
+                "traj": ag_raw, "holds_detail": ag_holds}},
+    }
+
+
+def emit_lean_hyb(path, res, witness_steps=3):
+    """C510 witness: hybrid trajectory prefix (header documents
+    FULL counts + mechanism split) + #eval + validity theorem
+    (norm_num) + negative control (inflated last drop -> false)
+    + #check hybrid_step_sound + the two C508 theorem pins."""
+    traj = res["hybrid"]["traj"]
+    start = traj[0]["obj"]
+    out = ["-- C510 hybrid continual mechanism selection witness "
+           "(real unified_ledger data).\n"
+           f"-- span_full={res['span_full']} "
+           f"(rank(A\u222aB)={res['rankAB']} vs dim={res['dim']}); "
+           "FULL accepted steps: "
+           f"{res['hybrid']['committed']} "
+           f"(mechanisms: {res['hybrid']['mech_counts']}); "
+           f"first {witness_steps} machine-checked prefix "
+           "below.\n"
+           "-- per-step mechanism chosen DETERMINISTICALLY from "
+           "the measured state (C509 decision table); soundness: "
+           "Hagi.Theory.HybridContinual.hybrid_step_sound.\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.HybridContinual\n"
+           "import Hagi.Theory.GPMRelaxed\n\n"
+           "open Hagi.Runtime\n\n"
+           f"def benchStartC510 : \u211a := {rat(start)}\n\n"
+           "def benchTrajectoryC510 : List "
+           "Hagi.Runtime.CertStepData :=\n[\n"
+           + ",\n".join(lean_step(d) for d in
+                        [dict(d) for d in traj[:witness_steps]])
+           + "\n]\n\n"
+           "#eval checkTrajectory benchStartC510 "
+           "benchTrajectoryC510\n\n"
+           "theorem hyb_traj_valid :\n"
+           "    checkTrajectory benchStartC510 "
+           "benchTrajectoryC510 = true := by\n"
+           "  set_option linter.unusedSimpArgs false in\n"
+           "  simp only [checkTrajectory, checkStep, "
+           "benchStartC510, benchTrajectoryC510, "
+           "Bool.and_eq_true, decide_eq_true_eq]\n"
+           "  norm_num\n\n"]
+    bad = [dict(d) for d in traj[:witness_steps]]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    out.append(
+        "def benchStartC510Bad : \u211a := "
+        f"{rat(start)}\n\n"
+        "def benchTrajectoryC510Bad : List "
+        "Hagi.Runtime.CertStepData :=\n[\n"
+        + ",\n".join(lean_step(d) for d in bad)
+        + "\n]\n\n"
+        "#eval checkTrajectory benchStartC510Bad "
+        "benchTrajectoryC510Bad\n\n"
+        "theorem hyb_traj_invalid :\n"
+        "    checkTrajectory benchStartC510Bad "
+        "benchTrajectoryC510Bad = false := by\n"
+        "  set_option linter.unusedSimpArgs false in\n"
+        "  simp only [checkTrajectory, checkStep, "
+        "benchStartC510Bad, benchTrajectoryC510Bad, "
+        "Bool.and_eq_true, decide_eq_true_eq]\n"
+        "  norm_num\n\n")
+    out.append("#check @Hagi.Theory.HybridContinual."
+               "hybrid_step_sound\n"
+               "#check @Hagi.Theory.GPMRelaxed."
+               "agem_step_nonneg_interf\n"
+               "#check @Hagi.Theory.GPMRelaxed."
+               "rank_trunc_forgetting_bound\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -5942,8 +6314,9 @@ def main():
                              "continual", "continual-multi",
                              "wrbound", "cert-sandwich", "mini-hagi",
                              "mini-hagi2", "mini-hagi3",
-                             "mini-hagi4", "mini-hagi5", "vs-trainer",
-                             "agem-vs-ranktrunc"],
+                             "mini-hagi4", "mini-hagi5",                              "vs-trainer",
+                             "agem-vs-ranktrunc",
+                             "hybrid-continual"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -6317,6 +6690,102 @@ def main():
         }, indent=1))
         if args.emit_lean:
             emit_lean_agn(args.emit_lean, res)
+        return
+
+    if args.mode == "hybrid-continual":
+        res = hyb_run(
+            args.data, args.steps if args.steps is not None
+            else HYB_STEPS)
+        hyb = res["hybrid"]
+        pure = res["pure"]
+        print(json.dumps({
+            "mode": "hybrid-continual",
+            "n_points": res["n_points"],
+            "n_taskA": res["n_A"], "n_taskB": res["n_B"],
+            "rank_spanA": res["rankA"],
+            "rank_spanAB": res["rankAB"], "dim": res["dim"],
+            "span_full": res["span_full"],
+            "steps": res["steps"],
+            "eps_rank_trunc": res["eps"],
+            "k_rank_trunc": res["k_rank_trunc"],
+            "rank_trunc_degenerate": res["rank_trunc_degenerate"],
+            "decision_table": {
+                "a_span_free": "rank(spanA U B) < dim -> "
+                               "full-GPM (exact projection, "
+                               "delta . x = 0 per old input)",
+                "b_no_conflict": "span exhausted + <g,g_old> >= 0 "
+                                 "-> A-GEM free step "
+                                 "(agem_step_nonneg_interf free "
+                                 "case)",
+                "c_conflict": "span exhausted + <g,g_old> < 0 -> "
+                              "rank-trunc (per-point bound "
+                              "(delta.x)^2 <= ||delta||^2 * "
+                              "sigmaTail^2, rank_trunc_forgetting_"
+                              "bound)"},
+            "model": "linear head w in Q^4 (C485 scenario); "
+                     "per-step mechanism selected "
+                     "DETERMINISTICALLY from the measured state "
+                     "(rank vs dim, dot sign - exact Fractions, "
+                     "no randomness)",
+            "theorem": "Hagi.Theory.HybridContinual."
+                       "hybrid_step_sound (C510): the chosen "
+                       "branch's guarantee holds with no "
+                       "weakening",
+            "guarantee": "every step: certified admission by "
+                         "MEASURED drop > 0 on B (guarded "
+                         "rollback); branch theorems asserted "
+                         "in-branch (delta . x = 0 / dot sign / "
+                         "per-point bound); loss_A drift is "
+                         "MEASURED telemetry",
+            "phase1": res["phase1"],
+            "hybrid": {k: v for k, v in hyb.items()
+                       if k not in ("traj", "holds_detail",
+                                    "track")},
+            "pure_arms": {
+                "rank_trunc": {k: v for k, v in
+                               pure["rank_trunc"].items()
+                               if k not in ("traj",
+                                            "holds_detail")},
+                "agem": {k: v for k, v in pure["agem"].items()
+                         if k not in ("traj", "holds_detail")}},
+            "comparison_table": {
+                "columns": ["B_progress", "forgetA",
+                            "projections", "committed",
+                            "holds"],
+                "rank_trunc": {
+                    "B_progress": pure["rank_trunc"][
+                        "B_progress"],
+                    "forgetA": pure["rank_trunc"]["forgetA"],
+                    "projections": pure["rank_trunc"][
+                        "relaxed_steps"],
+                    "committed": pure["rank_trunc"][
+                        "committed"],
+                    "holds": pure["rank_trunc"]["holds"]},
+                "agem": {
+                    "B_progress": pure["agem"]["B_progress"],
+                    "forgetA": pure["agem"]["forgetA"],
+                    "projections": pure["agem"]["conflicts"],
+                    "committed": pure["agem"]["committed"],
+                    "holds": pure["agem"]["holds"]},
+                "hybrid": {
+                    "B_progress": hyb["B_progress"],
+                    "forgetA": hyb["forgetA"],
+                    "projections": hyb["mech_counts"][
+                        "rankTrunc"],
+                    "free_steps": hyb["mech_counts"][
+                        "agemFree"],
+                    "full_gpm_steps": hyb["mech_counts"][
+                        "fullGPM"],
+                    "committed": hyb["committed"],
+                    "holds": hyb["holds"]}},
+            "holds_detail": hyb["holds_detail"],
+            "hybrid_track": hyb["track"],
+            "trajectory_hybrid": [
+                {k: str(v) for k, v in d.items()}
+                for d in hyb["traj"]],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_hyb(args.emit_lean, res)
         return
 
     if args.mode == "continual":
