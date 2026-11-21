@@ -178,4 +178,26 @@ theorem iterative_loop_sound {Prog ι : Type}
 
 end IterativeLoop
 
+/-! ## `UniversalLoop` (C551): the full live corpus -/
+
+section UniversalLoop
+
+/-- **Union-additivity of corpus coverage (C551)**: if a loop
+state covers every position of domain list `lA` AND every
+position of domain list `lB`, then it covers every position of
+the UNION corpus `lA ++ lB`. Extending the corpus by a union of
+domains never breaks coverage monotonicity. -/
+theorem universal_loop_corpus_mono {Prog ι : Type}
+    (CovP : Prog → ι → Prop) (st : IterState Prog ι)
+    (lA lB : List ι)
+    (hA : ∀ i ∈ lA, coversPrim CovP st i)
+    (hB : ∀ i ∈ lB, coversPrim CovP st i) :
+    ∀ i ∈ lA ++ lB, coversPrim CovP st i := by
+  intro i hi
+  rcases List.mem_append.mp hi with h | h
+  · exact hA i h
+  · exact hB i h
+
+end UniversalLoop
+
 end Hagi.Theory.MiniHagiLoop
