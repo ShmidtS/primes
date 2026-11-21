@@ -6834,3 +6834,36 @@ grow_block_obj_invariant (congrArg: любой obj-функционал
 инвариантен), bench_bridge_to_C450 (residual-zero = blockApply
 identityBlock — одна функция). Witness .tmp/C504/trajMini4.lean:
 #eval checkTrajectory = true + негатив = false. Freeze 8582+8.
+
+## Repeated grow cycle depth budget (C506)
+
+Roadmap C505 top-1 бит: ПОВТОРЯЕМЫЙ grow-цикл — несколько
+identity-grow событий в ОДНОМ прогоне. `scripts/bench_bridge.py
+--mode mini-hagi5` (backward-совместимо; скелет mini-hagi4):
+A-train (2 блока + голова, 44 пар.) → GROW-LOOP глубина 2 → 3 →
+4 → 5: перед КАЖДЫМ grow — бюджет-проверка (cap знаменателей
+признаков 10^4000 цифр, cap 24 certified-шагов), сам grow —
+residual-zero identity (γ=0, seed-варьированные внутренности),
+нейтральная адмиссия C450 0 ≤ 0 + negative-control ε=1/10 ⇒
+REJECT, assert ТОЧНОГО obj-инварианта на КАЖДОМ событии (exact
+Fraction, не зависит от «грязи» знаменателей внизу); после
+каждого grow — certified fd-обучение ТОЛЬКО нового блока (21
+пар., snap 1/10000, admission measured drop > 0; старые блоки
+frozen — GPM-дух, KISS) → Ville-стоп (C446) финально (честные
+HOLD, 0 refused). Итог прогона: 3 grow-события подряд, глубина
+trunk 2 → 5, 16 certified шагов (4 A + 4×3 блоковых), obj строго
+↓ между grow-обучениями и = при каждом grow (exact_invariant на
+всех трёх); per-block вклад: drop длиной 28628/89189/270832
+знаков (block3/4/5); знаменатели признаков ×~3.2 на grow
+(280 → 840 → 2520 цифр, измерено), время 62 s на полный цикл —
+предел вычислительного бюджета ИЗМЕРЕН: следующий grow (глубина
+6) проецируется ~8000 цифр знаменателей / ~150 s (зафиксирован в
+budget-телеметрии как honest limit; caps не сработали — глубина
+5 достигнута в бюджете). Lean: Hagi/Theory/GrowTrunkBlock.lean
++2 — grow_blocks_repeat_sound (два identity-добавления подряд
+сохраняют trunk — двойное grow_block_bench_sound),
+grow_blocks_obj_invariant_repeat (congrArg). Witness
+.tmp/C506/trajMini5.lean: #eval checkTrajectory = true (префикс
+3 шага, шапка честная: полные дроби depth-5 ~10^5 знаков
+непереносимы в Lean) + негатив = false. Regression mini-hagi4/
+mini-hagi3 идентичны (exit 0). Freeze 8589+2.

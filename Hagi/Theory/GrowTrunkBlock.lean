@@ -42,6 +42,13 @@ drop > 0 — вклад блока появляется тут), затем GPM 
 Ville stop на ОДНОЙ канонической CertStepData цепи; obj до/после
 grow равен ТОЧНО (exact Fraction assert).
 
+C506 (`--mode mini-hagi5`): ПОВТОРЯЕМЫЙ grow-цикл — несколько
+identity-grow событий в одном прогоне (глубина 2 → 5, каждое —
+`grow_blocks_repeat_sound` шаг за шагом), между событиями —
+certified-обучение ТОЛЬКО нового блока (старые frozen); весь цикл
+под явным вычислительным бюджетом (cap знаменателей, cap шагов,
+Ville-стоп) — bench-измерение, не теорема.
+
 ## Honest pins (что этот мост НЕ покрывает)
 
 - **Certified-шаги после grow** — measured (drop > 0 в трейсе,
@@ -132,6 +139,36 @@ theorem grow_block_obj_invariant {α : Type}
     f (benchTrunk (bs ++ [benchResidualBlock 0 h]) x)
       = f (benchTrunk bs x) :=
   congrArg f (grow_block_bench_sound bs h x)
+
+/-- **Повторяемый grow (C506)**: ДВА identity-добавления подряд
+(глубина +2) сохраняют trunk-функцию ТОЧНО — двойное применение
+`grow_block_bench_sound`. Это теоретическое ядро повторяемого
+grow-цикла mini-hagi5 (несколько grow-событий в одном прогоне).
+Вычислительный бюджет цикла (рост знаменателей ~3.2x на grow —
+bench-измерение) — свойство носителя, не теорема. -/
+theorem grow_blocks_repeat_sound
+    (bs : List ((ℕ → V → ℝ) → ℕ → V → ℝ))
+    (h1 h2 : (ℕ → V → ℝ) → ℕ → V → ℝ) (x : ℕ → V → ℝ) :
+    benchTrunk (bs ++ [benchResidualBlock 0 h1,
+                      benchResidualBlock 0 h2]) x = benchTrunk bs x := by
+  have h : bs ++ [benchResidualBlock 0 h1,
+      benchResidualBlock 0 h2]
+      = (bs ++ [benchResidualBlock 0 h1])
+        ++ [benchResidualBlock 0 h2] := by simp
+  rw [h, grow_block_bench_sound, grow_block_bench_sound]
+
+/-- **Obj-инвариант повторяемого цикла**: любой функционал от
+trunk-выхода равен до и после ДВУХ identity-grow подряд (congrArg-
+следствие `grow_blocks_repeat_sound`); мини-hagi5 ассертит это
+ТОЧНО на каждом событии. -/
+theorem grow_blocks_obj_invariant_repeat {α : Type}
+    (f : (ℕ → V → ℝ) → α)
+    (bs : List ((ℕ → V → ℝ) → ℕ → V → ℝ))
+    (h1 h2 : (ℕ → V → ℝ) → ℕ → V → ℝ) (x : ℕ → V → ℝ) :
+    f (benchTrunk (bs ++ [benchResidualBlock 0 h1,
+                          benchResidualBlock 0 h2]) x)
+      = f (benchTrunk bs x) :=
+  congrArg f (grow_blocks_repeat_sound bs h1 h2 x)
 
 end Trunk
 
