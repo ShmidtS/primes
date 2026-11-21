@@ -8642,7 +8642,265 @@ def emit_lean_hyb(path, res, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C544: ADAPTER CONTINUAL ISOLATION bench (--mode adapter-continual)
+#
+# Roadmap C542 top-3: continual through ISOLATED adapters
+# (AdapterGrowth C532 x Continual C485/C508/C510 x WeightDecayLeak
+# C538). Scenario (C485 split): task A -> task B.
+#
+#   phase 0: trunk w certified GD on A (2 steps), then FROZEN --
+#   the adapter A still has headroom (honest progress demo);
+#   arm ISO: adapter A (r=1, LoRA admission B = 0 -- obj EXACTLY
+#   invariant, asserted), certified fd training of ONLY the
+#   2*r*d = 8 adapter params on A; then a SEPARATE adapter B
+#   (own admission B = 0) trained on B with adapter A frozen --
+#   task A is evaluated with A's OWN adapter, so forgetA is
+#   EXACTLY 0 (Hagi.Theory.AdapterGrowth.
+#   adapter_per_task_sound: structural zero-forgetting, no
+#   projections, no budgets);
+#   arm SHARED (trunk-shared baseline): ONE adapter trained on
+#   A then CONTINUED on B (continual in the SAME parameters) --
+#   forgetA measured HONESTLY (expected > 0);
+#   arm TRUNK-NEG: naive trunk update on B WITHOUT projection
+#   (C485 naive arm on top of frozen adapter A) -- forgetA > 0
+#   measured: the trunk_update_needs_projection scenario
+#   (unprojected trunk step leaks into the protected output).
+#
+# All steps are certified fd steps on the exact-Fraction grid
+# (admission ONLY by MEASURED drop > 0, guarded rollback,
+# check_step per commit); every arm shares the SAME trunk wA /
+# A / B data / eta / snap grid (fair comparison).
+
+AC_R = 1                          # adapter rank (2*r*d = 8 params)
+AC_TRUNK_STEPS = 2                # trunk phase-0 steps (PIN: keeps
+                                  # adapter-A headroom for progress)
+AC_AD_STEPS = 10                  # certified fd steps per adapter
+AC_H = F(1, 1000)                 # fd step h (PIN, as AG_H)
+
+
+def adapter_continual_run(ledger_path):
+    """C544: adapter continual isolation (ISO vs SHARED vs
+    TRUNK-NEG). Returns a result dict (see dispatch)."""
+    sys.set_int_max_str_digits(0)
+    # live corpus: skip ledger keys without a .bin sibling
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) >= 100, \
+        f"ABORT: expected 100+ real points, got {len(pts)}"
+    A, B0r = cl_split(pts)
+    d = CL_D
+    # CONFLICT PIN (C544): same-distribution B gives POSITIVE
+    # backward transfer on this corpus (measured on the first
+    # cut: SHARED forgetA = -0.304, TRUNK-NEG = -0.753 --
+    # forgetting is a CONFLICT phenomenon, GPM/Saha scenarios
+    # use dissimilar tasks). Task B = the C485 split with
+    # NEGATED targets, so phase-2 training genuinely pulls
+    # against task A (documented, deterministic, exact).
+    B = [(x, -y) for x, y in B0r]
+
+    # ---------- phase 0: trunk certified GD on A, then FROZEN
+    traj0, tel0, wA = cl_certified_loop(
+        [F(0)] * d, A, B, AC_TRUNK_STEPS)
+    lossA_trunk = cl_mse(wA, A)
+
+    # ---------- r=1 adapter machinery on the frozen trunk
+    def aflat(Am, Bm):
+        return Am[0][:] + [Bm[i][0] for i in range(d)]
+
+    def aunflat(p):
+        return [p[:d]], [[p[d + i]] for i in range(d)]
+
+    Ainit = [[F(1) if k == 0 else F(0) for k in range(d)]]
+
+    def apred(wl, Am, Bm, x):
+        z = sum((Am[0][k] * x[k] for k in range(d)), F(0))
+        return sum((wl[i] * (x[i] + Bm[i][0] * z)
+                    for i in range(d)), F(0))
+
+    def amse(wl, Am, Bm, data):
+        return sum(((apred(wl, Am, Bm, x) - y) ** 2
+                    for x, y in data), F(0)) / F(len(data))
+
+    def adapter_certified_loop(wl, p0, data_obj, risk_data,
+                               steps, tag):
+        """Certified fd training of the 8 adapter params p
+        (admission by MEASURED drop > 0, guarded rollback)."""
+        p = list(p0)
+        raw = []
+        for t in range(steps):
+            Am2, Bm2 = aunflat(p)
+            o = amse(wl, Am2, Bm2, data_obj)
+            rk = amse(wl, Am2, Bm2, risk_data)
+            gfd = []
+            for k in range(len(p)):
+                q = list(p)
+                q[k] = q[k] + AC_H
+                gfd.append(
+                    (amse(wl, *aunflat(q), data_obj) - o) / AC_H)
+            cand = cl_snap(
+                [p[k] - CL_ETA * gfd[k] for k in range(len(p))])
+            o2 = amse(wl, *aunflat(cand), data_obj)
+            rk2 = amse(wl, *aunflat(cand), risk_data)
+            dd_ = {"phase": tag, "obj": o, "obj'": o2,
+                   "drop": o - o2,
+                   "budget": F(steps - t, steps),
+                   "budget'": F(steps - t - 1, steps),
+                   "risk": rk, "risk'": rk2}
+            if check_step(dd_):
+                raw.append(dd_)
+                p = cand
+        for a, b in zip(raw, raw[1:]):
+            assert a["obj'"] == b["obj"], \
+                "ABORT: adapter obj chain broken"
+        return raw, p
+
+    B0 = [[F(0)] for _ in range(d)]
+
+    # ---------- arm ISO: adapter A on A, then adapter B on B
+    # (LoRA admission: B = 0 keeps obj EXACTLY invariant)
+    assert amse(wA, Ainit, B0, A) == lossA_trunk, \
+        "ABORT: adapter admission broke obj (B = 0 must be " \
+        "EXACTLY neutral)"
+    trajA, pA = adapter_certified_loop(
+        wA, aflat(Ainit, B0), A, B, AC_AD_STEPS, "ISO-adA")
+    Af, Bf = aunflat(pA)
+    assert trajA, "ABORT: ISO adapter-A committed no steps"
+    lossA_iso1 = amse(wA, Af, Bf, A)
+
+    assert amse(wA, Ainit, B0, B) == cl_mse(wA, B), \
+        "ABORT: adapter-B admission broke obj"
+    trajB, pB = adapter_certified_loop(
+        wA, aflat(Ainit, B0), B, A, AC_AD_STEPS, "ISO-adB")
+    Ab2, Bb2 = aunflat(pB)
+    assert trajB, "ABORT: ISO adapter-B committed no steps"
+    lossB_iso = amse(wA, Ab2, Bb2, B)
+    # task A evaluated with A's OWN (frozen) adapter
+    lossA_iso2 = amse(wA, Af, Bf, A)
+    forgetA_iso = lossA_iso2 - lossA_iso1
+    assert forgetA_iso == 0, \
+        "ABORT: structural zero-forgetting violated (frozen " \
+        "adapter A changed its own output)"
+
+    # ---------- arm SHARED: ONE adapter, A then continued on B
+    trajS, pS = adapter_certified_loop(
+        wA, pA, B, A, AC_AD_STEPS, "SHARED-B")
+    As2, Bs2 = aunflat(pS)
+    assert trajS, "ABORT: SHARED arm committed no steps on B"
+    forgetA_shared = amse(wA, As2, Bs2, A) - lossA_iso1
+
+    # ---------- arm TRUNK-NEG: naive trunk update on B (no
+    # projection), adapter A frozen in the evaluation
+    trajN, telN, wN = cl_certified_loop(wA, B, A, CL_STEPS)
+    forgetA_trunk = amse(wN, Af, Bf, A) - lossA_iso1
+
+    return {
+        "n_points": len(pts), "n_A": len(A), "n_B": len(B),
+        "params_trunk": d, "params_adapter": 2 * AC_R * d,
+        "trunk": {"steps": len(traj0),
+                  "lossA": lossA_trunk},
+        "iso": {"trajA": trajA, "trajB": trajB,
+                "lossA_after_adA": lossA_iso1,
+                "lossA_after_adB": lossA_iso2,
+                "lossB_after_adB": lossB_iso,
+                "forgetA": forgetA_iso},
+        "shared": {"trajS": trajS,
+                   "forgetA": forgetA_shared},
+        "trunk_neg": {"trajN": trajN,
+                      "forgetA": forgetA_trunk,
+                      "lossA_naive_trunk": amse(
+                          wN, Af, Bf, A)},
+    }
+
+
+def emit_lean_adaptercont(path, res, witness_steps=2):
+    """C544 witness: literal adapter-continual trajectories
+    (adapter-A on A; adapter-B on B with A frozen = ISO;
+    SHARED; TRUNK-NEG) + #eval checkTrajectory + valid theorems
+    + the ISO zero-forgetting identity and the NEGATIVE leak
+    facts as literal theorems (norm_num)."""
+    def _start(traj, fb):
+        return traj[0]["obj"] if traj else fb
+    blocks = [
+        ("AdA", _start(res["iso"]["trajA"], 0),
+         res["iso"]["trajA"]),
+        ("AdB", _start(res["iso"]["trajB"], 0),
+         res["iso"]["trajB"]),
+        ("S", _start(res["shared"]["trajS"], 0),
+         res["shared"]["trajS"]),
+        ("N", _start(res["trunk_neg"]["trajN"], 0),
+         res["trunk_neg"]["trajN"]),
+    ]
+    out = ["-- C544 adapter-continual bench witness (real "
+           "unified_ledger data).\n"
+           f"-- task A: {res['n_A']} pts, task B: "
+           f"{res['n_B']} pts; adapter r=1 "
+           f"({res['params_adapter']} params); FULL accepted "
+           "steps: "
+           f"adA={len(res['iso']['trajA'])}, "
+           f"adB={len(res['iso']['trajB'])}, "
+           f"shared={len(res['shared']['trajS'])}, "
+           f"trunk-neg={len(res['trunk_neg']['trajN'])}; "
+           "first machine-checked prefixes below.\n"
+           "-- ISO arm: forgetA EXACTLY 0 "
+           "(Hagi.Theory.AdapterGrowth.adapter_per_task_sound;\n"
+           "-- asserted bit-exact in the bench: task A evaluated "
+           "with its OWN frozen adapter).\n"
+           "-- NEGATIVE: SHARED adapter and naive TRUNK update "
+           "both move loss_A (leak, measured).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.AdapterGrowth\n\n"
+           "open Hagi.Runtime\n\n"]
+    for name, start, traj in blocks:
+        ds = [dict(d) for d in traj[:witness_steps]]
+        out.append(f"def benchStartC544{name} : \u211a := "
+                   f"{rat(start)}\n\n"
+                   f"def benchTrajectoryC544{name} : List "
+                   "Hagi.Runtime.CertStepData :=\n"
+                   + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                   + "\n]\n\n"
+                   f"#eval checkTrajectory benchStartC544{name} "
+                   f"benchTrajectoryC544{name}\n\n"
+                   f"theorem adapter_cont_{name.lower()}_valid :\n"
+                   f"    checkTrajectory benchStartC544{name} "
+                   f"benchTrajectoryC544{name} = true := by\n"
+                   "  set_option linter.unusedSimpArgs false in\n"
+                   "  simp only [checkTrajectory, checkStep, "
+                   f"benchStartC544{name}, "
+                   f"benchTrajectoryC544{name}, "
+                   "Bool.and_eq_true, decide_eq_true_eq]\n"
+                   "  norm_num\n\n")
+    isoA, isoB = (res["iso"]["lossA_after_adA"],
+                  res["iso"]["lossA_after_adB"])
+    out.append(
+        "-- ISO zero-forgetting, bit-exact (task A with its OWN "
+        "frozen adapter before/after adapter-B):\n"
+        "theorem adapter_cont_iso_zero :\n"
+        f"    ({isoA.numerator}/{isoA.denominator} : \u211a) =\n"
+        f"    ({isoB.numerator}/{isoB.denominator} : \u211a) "
+        ":= by norm_num\n\n")
+    for tag, val in [
+            ("shared", res["shared"]["forgetA"]),
+            ("trunk", res["trunk_neg"]["forgetA"])]:
+        out.append(
+            f"-- NEGATIVE: {tag} arm forgetting (loss_A moved, "
+            "leak measured):\n"
+            f"theorem adapter_cont_neg_{tag}_leak :\n"
+            f"    \u00ac ({val.numerator}/{val.denominator} : "
+            "\u211a) = (0/1 : \u211a) := by norm_num\n\n")
+    out.append("#check @Hagi.Theory.AdapterGrowth."
+               "adapter_isolation_zero_forgetting\n"
+               "#check @Hagi.Theory.AdapterGrowth."
+               "adapter_per_task_sound\n"
+               "#check @Hagi.Theory.AdapterGrowth."
+               "adapter_per_task_obj_sound\n"
+               "#check @Hagi.Theory.AdapterGrowth."
+               "trunk_update_needs_projection\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
                     choices=["quad", "cert-ce", "cert-tern",
@@ -8658,6 +8916,7 @@ def main():
                              "adapter-rank-adaptive",
                              "adapter-merge",
                              "adapter-grow",
+                             "adapter-continual",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
                     default="quad",
@@ -9247,7 +9506,68 @@ def main():
             emit_lean_hyb(args.emit_lean, res)
         return
 
+    if args.mode == "adapter-continual":
+        res = adapter_continual_run(args.data)
+        print(json.dumps({
+            "mode": "adapter-continual",
+            "n_points": res["n_points"],
+            "n_taskA": res["n_A"], "n_taskB": res["n_B"],
+            "params": {"trunk": res["params_trunk"],
+                       "adapter": res["params_adapter"]},
+            "model": "frozen trunk w (Q^4, phase-0 certified "
+                     "on A) + per-task LoRA adapters r=1 on the "
+                     "features, linear head; loss = MSE",
+            "theorem": "Hagi.Theory.AdapterGrowth."
+                       "adapter_per_task_sound (C544): "
+                       "structural zero-forgetting -- frozen "
+                       "adapter => task output identical, "
+                       "no projections/budgets",
+            "phase0": {"n_steps": res["trunk"]["steps"],
+                       "lossA": str(res["trunk"]["lossA"])},
+            "iso": {
+                "n_steps_adA": len(res["iso"]["trajA"]),
+                "n_steps_adB": len(res["iso"]["trajB"]),
+                "lossA_after_adA":
+                    str(res["iso"]["lossA_after_adA"]),
+                "lossA_after_adB":
+                    str(res["iso"]["lossA_after_adB"]),
+                "lossB_after_adB":
+                    str(res["iso"]["lossB_after_adB"]),
+                "forgetA": str(res["iso"]["forgetA"]),
+                "forgetA_float":
+                    float(res["iso"]["forgetA"]),
+                "B_progress": str(sum(
+                    (s_["drop"] for s_ in res["iso"]["trajB"]),
+                    F(0)))},
+            "shared_baseline": {
+                "n_steps": len(res["shared"]["trajS"]),
+                "forgetA": str(res["shared"]["forgetA"]),
+                "forgetA_float":
+                    float(res["shared"]["forgetA"]),
+                "B_progress": str(sum(
+                    (s_["drop"] for s_ in res["shared"]["trajS"]),
+                    F(0)))},
+            "trunk_neg": {
+                "n_steps": len(res["trunk_neg"]["trajN"]),
+                "forgetA": str(res["trunk_neg"]["forgetA"]),
+                "forgetA_float":
+                    float(res["trunk_neg"]["forgetA"])},
+            "trajectory_iso_adA": [
+                {k: str(v) for k, v in d.items()}
+                for d in res["iso"]["trajA"]],
+            "trajectory_iso_adB": [
+                {k: str(v) for k, v in d.items()}
+                for d in res["iso"]["trajB"]],
+            "trajectory_shared": [
+                {k: str(v) for k, v in d.items()}
+                for d in res["shared"]["trajS"]],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_adaptercont(args.emit_lean, res)
+        return
+
     if args.mode == "continual":
+
         res = continual_run(
             args.data, args.steps if args.steps is not None
             else CL_STEPS)

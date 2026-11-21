@@ -5,6 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib.Tactic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Hagi.Theory.GrowSnap
+import Hagi.Theory.WeightDecayLeak
 
 /-!
 # AdapterGrowth — certified low-rank адаптер роста (C532)
@@ -500,5 +501,152 @@ theorem adapter_merge_error_bound {n : ℕ} (obj : (Fin n → ℝ) → ℝ)
   linarith
 
 end Merge
+
+/-! ## C544: continual через ИЗОЛИРОВАННЫЕ адаптеры
+
+Композиция AdapterGrowth (C532/533/535/536) × Continual
+(C485/C508/C510) × WeightDecayLeak (C538): continual-обучение
+ЗАДАЧА-ЗА-ЗАДАЧЕЙ, где каждая задача получает СВОЙ адаптер
+(нейтральная инициализация C532), а trunk и все ЗАВЕРШЁННЫЕ
+адаптеры заморожены. Забывание тогда равно нулю СТРУКТУРНО:
+замороженный адаптер не меняется ВООБЩЕ — проще GPM-проекции
+(C485: шаг обязан лежать в ортогональном дополнении span
+старых входов) и A-GEM (C508: пер-шаговая проверка конфликта):
+никакого ограничения на шаг НОВОЙ задачи не нужно, изоляция
+архитектурная. Если же trunk всё же обновляется, защита
+обязана быть проекционной — `trunk_update_needs_projection`
+(композиция с C538 `naive_decay_parallel`/`naive_decay_leak`,
+не дубль: C538 говорит про КОМПОНЕНТУ `W * P`, здесь — про
+ВЫХОД на protected входе). -/
+section ContinualIsolation
+
+open Hagi.Theory.WeightDecayLeak
+
+variable {ι : Type*}
+
+/-- Состояние per-task адаптеров: задача `i` держит свою пару
+факторов (down `A`, up `B`); trunk общий и в эту структуру НЕ
+входит (он заморожен гипотезами ниже). -/
+abbrev AdaptState (r d : Type*) [Fintype r] [Fintype d] :=
+  Matrix r d ℝ × Matrix d r ℝ
+
+/-- Выход задачи `i`: LoRA-ветка СВОЕГО адаптера на входе `x`
+(труnk применяет host-слой к результату — здесь носитель
+`adapterVec` C532 без изменений). -/
+def perTaskVec {r d : Type*} [Fintype r] [Fintype d]
+    (s : ι → AdaptState r d) (i : ι) (x : d → ℝ) : d → ℝ :=
+  adapterVec (s i).1 (s i).2 x
+
+/-- **(a) adapter_isolation_zero_forgetting (C544)**: если
+обновление состояния НЕ тронуло адаптер задачи `i`
+(заморозка: `s' i = s i` — остальные адаптеры произвольны),
+то выход задачи `i` идентичен ТОЧНО — шаг-за-шагом, при любых
+изменениях чужих адаптеров. Инвариант тривиально-точный; сила
+в композиции: admission нейтрален (`adapter_obj_invariant`),
+шаги certified (`adapter_step_certified`), заморозка держит
+выход тождеством. -/
+theorem adapter_isolation_zero_forgetting
+    {r d : Type*} [Fintype r] [Fintype d]
+    (s s' : ι → AdaptState r d) (i : ι)
+    (hfrozen : s' i = s i) (x : d → ℝ) :
+    perTaskVec s' i x = perTaskVec s i x := by
+  rw [perTaskVec, perTaskVec, hfrozen]
+
+/-- **(b) adapter_per_task_sound (C544, структурный
+zero-forgetting)**: continual-цикл `s 0, s 1, …` по задачам
+1..k, каждая своим адаптером; после завершения задачи `i` её
+адаптер заморожен (`∀ t, s (t+1) i = s t i` — шаги задач
+j > i трогают ТОЛЬКО адаптер j и trunk-замороженный носитель).
+Тогда выход на задаче `i` неизменен для ВСЕХ t ≥ 0 —
+zero-forgetting без бюджетов и проекций: изоляция
+архитектурная, доказательство — индукция по t с шагом (a). -/
+theorem adapter_per_task_sound
+    {r d : Type*} [Fintype r] [Fintype d]
+    (s : ℕ → ι → AdaptState r d) (i : ι)
+    (hfroz : ∀ t, s (t + 1) i = s t i) (t : ℕ) :
+    perTaskVec (s t) i = perTaskVec (s 0) i := by
+  induction t with
+  | zero => rfl
+  | succ n ih =>
+      have h := adapter_isolation_zero_forgetting (s n)
+        (s (n + 1)) i (hfroz n)
+      rw [funext h, ih]
+
+/-- **(b, obj-форма)**: при структурной изоляции любой
+функционал от выхода задачи `i` неизменен после завершения
+задачи `i` — сертификат zero-forgetting в obj-терминах bench
+(loss на данных задачи i — частный случай). -/
+theorem adapter_per_task_obj_sound
+    {r d : Type*} [Fintype r] [Fintype d]
+    (s : ℕ → ι → AdaptState r d) (i : ι)
+    (hfroz : ∀ t, s (t + 1) i = s t i) (t : ℕ)
+    (obj : (d → ℝ) → ℝ) (x : d → ℝ) :
+    obj (perTaskVec (s t) i x) = obj (perTaskVec (s 0) i x) := by
+  rw [adapter_per_task_sound s i hfroz t]
+
+/-- **(c) trunk_update_needs_projection (C544, композиция с
+C538)**: если trunk всё же обновляется, то БЕЗ проекции в
+дополнение protected-подпространства происходит утечка: naive
+decay `W' = (1 − c) • W` с `0 < c < 1` и ненулевой
+protected-компонентой строки `i` СТРОГО меняет выход на
+некотором protected входе `x` (столбце идемпотентного
+проектора P: `P *ᵥ x = x`). Существование такого x — мост от
+`naive_decay_parallel` (C538: компонента сжимается фактором
+`1 − c < 1`) к ВЫХОДНОЙ форме: нулевая компонента ⇒ строка
+неизменна, сжатие строго ⇒ строка изменилась ⇒ некоторый её
+вход даёт другой скаляр. Проекционная форма спасения —
+C538 `wd_gpm_step_sound` (цитируется, не дублируется). -/
+theorem trunk_update_needs_projection {m n : ℕ}
+    (W : Matrix (Fin m) (Fin n) ℝ)
+    (P : Matrix (Fin n) (Fin n) ℝ) (hP : P * P = P)
+    (c : ℝ) (hc0 : 0 < c) (i : Fin m)
+    (hne : Hagi.Theory.GPMRelaxed.nrm ((W * P) i) ≠ 0) :
+    ∃ x : Fin n → ℝ, P *ᵥ x = x ∧
+      (((1 - c) • W) *ᵥ x) i ≠ (W *ᵥ x) i := by
+  have hnz : (W * P) i ≠ 0 := fun h0 => hne (by
+    unfold Hagi.Theory.GPMRelaxed.nrm; rw [h0]; simp)
+  -- naive decay shrinks the protected row EXACTLY by (1 - c):
+  -- Δ * P = -(c) • (W * P) ≠ 0, so some column j differs.
+  set Δ : Matrix (Fin m) (Fin n) ℝ := (1 - c) • W - W with hΔ
+  have hsmul : ((1 - c) • W) * P = (1 - c) • (W * P) :=
+    Matrix.smul_mul _ _ _
+  have hΔP : Δ * P = (-(c)) • (W * P) := by
+    rw [hΔ, Matrix.sub_mul, hsmul]; module
+  have hcne : (-(c) : ℝ) ≠ 0 := by linarith
+  have hrow : (Δ * P) i ≠ 0 := by
+    intro h0
+    rw [hΔP] at h0
+    apply hnz
+    funext j
+    have h1 : (-(c)) * (W * P) i j = 0 := by
+      have h1' := congrFun h0 j
+      simpa [Matrix.smul_apply] using h1'
+    rcases mul_eq_zero.mp h1 with h | h
+    · exact absurd h (by linarith)
+    · simpa using h
+  have hex : ∃ j, (Δ * P) i j ≠ 0 := by
+    by_contra hall
+    simp only [not_exists, not_not] at hall
+    apply hrow
+    funext j
+    simpa using hall j
+  obtain ⟨j, hj⟩ := hex
+  refine ⟨fun k => P k j, ?_, ?_⟩
+  · funext k
+    have hpp : (P *ᵥ (fun l => P l j)) k = (P * P) k j := by
+      simp [Matrix.mulVec, dotProduct, Matrix.mul_apply]
+    rw [hpp, hP]
+  · intro heq
+    refine hj ?_
+    have hW : ((1 - c) • W) = W + Δ := by rw [hΔ]; module
+    have hout : (Δ *ᵥ (fun k => P k j)) i = (Δ * P) i j := by
+      simp [Matrix.mulVec, dotProduct, Matrix.mul_apply]
+    have hzero : (Δ *ᵥ (fun k => P k j)) i = 0 := by
+      rw [hW, Matrix.add_mulVec, Pi.add_apply] at heq
+      linarith
+    rw [hout] at hzero
+    exact hzero
+
+end ContinualIsolation
 
 end Hagi.Theory.AdapterGrowth
