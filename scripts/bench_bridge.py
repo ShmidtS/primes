@@ -206,7 +206,7 @@ def train_ce(steps):
 # (quantOpt_energy_bound / quant_jump_honest premise). A rejected
 # jump is a HOLD: weights unchanged, the hold step is EXCLUDED
 # from the emitted trajectory (checkStep demands 0 < drop — see
-# Hagi/Theory/CertTernaryJump.lean `ternary_hold_rejected`) and
+# Hagi/Theory/Compression.lean `ternary_hold_rejected`) and
 # logged in the `holds` telemetry array. Distortion energy
 # Σ(w−w')² vs the corpus ceiling k·s*²/8 is reported as honest
 # telemetry; it is NOT an admission input.
@@ -349,7 +349,7 @@ def emit_hold_tern(path, start, traj):
     """C443 negative (b): a HOLD (rejected-jump) step CANNOT ride the
     trajectory — the checker rejects the identity record with
     drop = 0 (machine-checked reason holds are excluded from the
-    List; see Hagi/Theory/CertTernaryJump.lean ternary_hold_rejected)."""
+    List; see Hagi/Theory/Compression.lean ternary_hold_rejected)."""
     last = traj[-1]
     hold = {"obj": last["obj'"], "obj'": last["obj'"], "drop": F(0),
             "budget": last["budget'"], "budget'": last["budget'"],
@@ -937,7 +937,7 @@ def emit_bad_full(path, start, traj):
 # quantizer is honestly NOT contractive for alpha in (0, 1]
 # (Hagi.Optimization.EF21Quantizer.qTernVec_not_contractive), so
 # EF21 Lyapunov guarantees do NOT transfer; only the exact
-# identities (Hagi/Theory/EF21InStep.lean: telescope, energy split)
+# identities (Hagi/Theory/Compression.lean: telescope, energy split)
 # and the inexact floor (qTernVec_inexact, alpha = 0) carry over.
 #
 # PIN (admission): the trial is admitted ONLY by the exact certified

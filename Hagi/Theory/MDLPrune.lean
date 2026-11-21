@@ -53,7 +53,7 @@ READ-ONLY: `C:\HAGI_v2\hagi\mdl.py`, 185 строк; интеграция —
   формальное содержание контрабаланса — switching-режим);
 * (d) завершаемость — строгая убыль card на каждом erase-шаге
   над конечной библиотекой ⇒ бесконечный prune-цикл невозможен
-  (паттерн C457 `adopt_chain_terminates`, SelfEditGate.lean:139;
+  (паттерн C457 `adopt_chain_terminates`, SelfEdit.lean:134;
   Theory→Theory импорт запрещён LayerLint — переиспользован
   паттерн, не импорт).
 
@@ -269,7 +269,7 @@ theorem pruned_switching_le_dense (r d : ℕ) {s : Library N}
 hagi/mdl.py:129-138), поэтому card строго убывает; строго
 убывающая ℕ-цепочка ограничена card начальной библиотеки ⇒
 бесконечный prune-цикл НЕВОЗМОЖЕН. Паттерн C457
-`adopt_chain_terminates` (SelfEditGate.lean:139: строгий
+`adopt_chain_terminates` (SelfEdit.lean:134: строгий
 gain/убыль + конечность ⇒ нет бесконечной цепочки; здесь
 ℕ-индукция вместо Fintype.card-противоречия, Theory→Theory
 импорт запрещён LayerLint). -/

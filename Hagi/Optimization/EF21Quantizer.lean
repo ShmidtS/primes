@@ -43,7 +43,7 @@ documented-only: per-vector-scaled relative contractivity
 (`c < 1`, the EF21 literature route) and the saturation-tail
 inexact instantiation (proven in energy form in
 `Hagi/Runtime/TernaryExact.lean`).
-The toy-quadratic EF theory (`Hagi/Unified/EFTheory.lean`: exact
+The toy-quadratic EF theory (`Hagi/Theory/Compression.lean`: exact
 telescoping, quality transfer on quadratics) is subsumed in spirit
 by the abstract contractor analysis; the dedup is future work —
 nothing is deleted or changed here.

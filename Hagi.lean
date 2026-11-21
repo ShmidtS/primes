@@ -62,7 +62,7 @@ import Hagi.Pretraining.DustAlign
 import Hagi.Pretraining.DustMeasure
 import Hagi.Math.Foundations.StageCalculus
 import Hagi.Unified.CostComposition
-import Hagi.Theory.EFTheory
+import Hagi.Theory.Compression
 import Hagi.Benchmarks.TernaryProbe
 import Hagi.StatMech.Hopfield.Model
 import Hagi.StatMech.Hopfield.Concentration
@@ -444,8 +444,7 @@ import Hagi.Semantics.Split
 import Hagi.Semantics.StateUnification
 import Hagi.Semantics.DerivedStateCoherence
 import Hagi.Theory.CEChain
-import Hagi.Theory.FisherQuant
-import Hagi.Theory.NonlinearMerge
+import Hagi.Theory.MergeQuant
 import Hagi.Theory.HadamardIncoherence
 import Hagi.Theory.Statistics
 import Hagi.Theory.AnytimeHoldoutStop
@@ -453,8 +452,6 @@ import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertifyThenCommit
 import Hagi.Theory.FullPipeline
 import Hagi.Theory.TrunkTrain
-import Hagi.Theory.CertTernaryJump
-import Hagi.Theory.EF21InStep
 import Hagi.Theory.BlockAdmission
 import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
@@ -470,9 +467,8 @@ import Hagi.Theory.MasterTheorem
 import Hagi.Theory.MasterEF
 import Hagi.Theory.MasterBudget
 import Hagi.Theory.OnlinePL
-import Hagi.Theory.SelfEditGate
 import Hagi.Theory.MDLPrune
-import Hagi.Theory.KnobMomentum
+import Hagi.Theory.SelfEdit
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.Continual
 import Hagi.Theory.RationalSoftmax

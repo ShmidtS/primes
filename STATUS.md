@@ -3645,7 +3645,7 @@ one-hot CE.
 - `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор (α=0), scaling-компрессор `u ↦ c•u` (α=c, c ∈ [0,1] — недегенеративный инстанс); инстансы квантователей (TopK, qTernVec) — см. `Hagi/Optimization/EF21Quantizer.lean` (C247: α=0 доказаны, α ∈ (0,1] опровергнуты свидетелями).
 - `ef21_update_norm_le`: точный одношаговый перенос сжатия Markov-обновления `v + C(g−v)`: `‖v_{t+1} − g‖₂² ≤ (1−α)²‖g − v_t‖₂²` без зазора.
 - `ef21_lyapunov_descent`: одношаговый спуск значения функции (premise-form): L-гладкость + дефект выравнивания δ + дефект нормы при `η ≤ 1/(2L)` дают `f' ≤ f − (η/2)(1−2Lη)‖g‖₂² + (η/2)(1+2Lη)δ²` — константы точные (разница = `η/2·(1+Lη)(s−δ)²/2 ≥ 0`, ring-тождество).
-- `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Theory/EFTheory.lean` концептуально субсумируется — дедуп в будущем, ничего не удалено.
+- `ef21_pl_linear_rate`: PL-линейная скорость с явной константой `ρ = 1 − 2μc₁ + c₂cδ ∈ [0,1)` при gate `c₂cδ < 2μc₁` и cap `2μc₁ ≤ 1`; рекуррента делегирована канону `Foundations.recurrence_pure` (как в `PLConvergence`). Toy-квадратичная теория `Hagi/Theory/Compression.lean` (EF-канон) концептуально субсумируется — дедуп в будущем, ничего не удалено.
 
 - `topK` / `topK_contractive` / `topK_not_contractive_pos`: fixed-support TopK-компрессор — α=0-контрактивен (зануление хвоста не расширяет); при `S ≠ univ` контрактивность α ∈ (0,1] ОПРОВЕРГНУТА (свидетель — вектор на хвосте, `‖Q u−u‖=‖u‖`).
 - `qTernVec` / `qTern_pointwise_le` / `qTernVec_contractive_zero`: векторный лифт тернарного квантователя (`s•roundTern(·/s)`, та же формула что `Hagi.Runtime.qTern`) — покоординатно `|x−s•roundTern(x/s)| ≤ |x|`, α=0-контрактивен.
@@ -4940,7 +4940,7 @@ one-hot CE.
   `attention_no_scale_saturates`: если `s > 0`, то `softProb(s·n) → 1`.
 
 
-## Hagi/Theory/EFTheory.lean
+## Hagi/Theory/Compression.lean
 - `ef_iterate_shadow`: при `e(t+1)=d t+e t−comp(d t+e t)`,
   рекуррентностях сжатой и полной траекторий с общим началом
   получается точное `xC n−xF n = eta·(e n−e 0)`.

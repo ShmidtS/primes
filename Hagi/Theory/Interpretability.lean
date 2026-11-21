@@ -25,6 +25,9 @@ Three honest results:
   C389 Lipschitz transport binder — the same algebra as the C389
   per-step quantization penalty, now read as an interpretability
   certificate instead of an optimization cost.
+  (Termination-style finite-counting arguments follow the
+  SelfEdit canon pattern: see `Hagi.Theory.SelfEditGate` in
+  `Hagi/Theory/SelfEdit.lean`.)
 * `exists_good_not_reachable` / `exists_not_rebuildable` (finite
   counting bound, the interpretability-is-special negative result):
   on a finite model class, budget-`B` descriptions over a finite

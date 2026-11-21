@@ -91,16 +91,16 @@ pessimism by e^R/κ(R).
 ### 3.2 Fisher-quantized updates
 
 > **Theorem (fisher_quant_loss_bound).**
-> `Hagi/Theory/FisherQuant.lean:234`.
+> `Hagi/Theory/MergeQuant.lean:204`.
 > If the loss has coordinatewise-bounded second-order curvature
 > (premise `hcurv`) and per-coordinate quantization |δ_j| ≤ ε_j,
 > then `L(θ0+δ0) − L(θ0) ≤ Σ|g_j|ε_j + ½Σ c_j ε_j²` — quadratic,
 > not linear, in the quantization error.
 
 At a stationary point the price is purely second-order
-(`fisher_quant_loss_bound_opt`, :256); curvature-weighted budgets
-dominate uniform ones (`fisher_beats_lipschitz`, :346;
-`fisher_alloc_mono`, :380).
+(`fisher_quant_loss_bound_opt`, :226); curvature-weighted budgets
+dominate uniform ones (`fisher_beats_lipschitz`, :316;
+`fisher_alloc_mono`, :350).
 
 ### 3.3 GPM-relaxed with σ_tail
 
@@ -211,7 +211,7 @@ not needed: all bands disjoint already at n = m = 4.
 | certify_then_commit_sound | Hagi/Theory/CertifyThenCommit.lean:332 | C463 |
 | adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:714 | C462+ |
 | kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:310 | C471 |
-| fisher_quant_loss_bound | Hagi/Theory/FisherQuant.lean:234 | C472 |
+| fisher_quant_loss_bound | Hagi/Theory/MergeQuant.lean:204 | C472 |
 | rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:125 | C498 |
 | gpm_tradeoff | Hagi/Theory/Continual.lean:232 | C498 |
 | cert_pred_adaptive | Hagi/Theory/BandTightening.lean:375 | C495/C502 |

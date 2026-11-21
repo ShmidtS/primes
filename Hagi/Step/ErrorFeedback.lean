@@ -47,7 +47,7 @@ import Mathlib.Tactic
 (покрывает ℝ-свидетель и Fin n → ℝ). Честные пины: contractive /
 bounded-error посылки, липшицева константа L, покоординатный факт
 квантователя — binders; квадратичные следствия уровня C375/Unified
-(EFTheory, слой 6, отсюда не импортируемый) не дублируются.
+(Compression (EF-канон), слой Theory, отсюда не импортируемый) не дублируются.
 -/
 
 set_option relaxedAutoImplicit false

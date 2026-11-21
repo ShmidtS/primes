@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Theory.StochasticSafeStep
 import Hagi.Runtime.TernaryExact
-import Hagi.Theory.EFTheory
+import Hagi.Theory.Compression
 
 /-!
 # Compression-aware safe step with error budget (C389)
