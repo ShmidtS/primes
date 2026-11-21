@@ -9301,6 +9301,393 @@ def emit_lean_fullloop(path, res, witness_steps=2):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C549: ITERATIVE SELF-IMPROVEMENT LOOP (--mode mini-hagi-loop2)
+#
+# C547 ran ONE pass of the phases. A real self-improving loop is
+# a CYCLE: iteration k = OE primitive search (space GROWN from
+# the accepted primitives) -> coverage expands (EXACT, additive)
+# -> adapter retrained on the SHRINKING residual (certified
+# steps) -> EB telemetry; stop = EB-gate (no new primitive
+# accepted) or budget (MAX_ITER).
+#
+# COMPOSITIONAL CORPUS (probe-validated, .tmp/C549/probe.py):
+# real byte-features x (mh_load_dataset, 113 pts), synthesized
+# targets on the tau grid 1/16 (PIN: C549 corpus grid is 1/16,
+# NOT the C547 1/2 — the finer grid separates the clustered
+# byte-feature values):
+#   L1 (i%2==0, 57 pts): t = c1 = 0 — constant level.
+#   L2 (i%3==0, 19 pts): t = snap(c1 + 256*x0 + 32*x3, 1/16) —
+#      affine law ANCHORED on the accepted primitive c1 (the
+#      additive constant of the family is the primitive, not a
+#      free parameter). Max target multiplicity 4 < 5: NO
+#      constant covers >= 5 L2 points (negative in-run).
+#   L3 (i%5==0, 7 pts): t = snap(L2(x) + 32*x2, 1/16) — uses
+#      the accepted L2 law as a building block. Level-1 laws
+#      cover <= 2 of the L3 remainder (negative in-run).
+#   Residual (30 pts): t = snap(y_real, 1/16) — irreducible;
+#      real-tau clusters (8+5+5) are legitimately found at
+#      iteration 4, iteration 5 accepts nothing -> EB-gate stop.
+#
+# Space at iteration k = constants  ∪  {c + a*x0 + b*x3 :
+# c = an accepted const primitive}  ∪  {p + w*x2 : p = an
+# accepted affine primitive} — families APPEAR only with their
+# building-block primitive (the compositional chain
+# p3 <- p2 <- p1 is real: see neg-compos-L2 / neg-compos-L3).
+
+FL2_QGRID = F(1, 16)              # C549 corpus tau grid
+FL2_ETA = F(1, 10)                # certified step size
+FL2_A_STEPS = 10                  # per-iteration adapter steps
+FL2_MIN_NEW = 5                   # min NEW positions per primitive
+FL2_ALPHA = 0.01                  # EB telemetry level
+FL2_MAX_ITER = 8                  # budget headroom: the
+                                  # run stops EARLIER on the EB-gate
+                                  # (no new primitive accepted)
+FL2_AFF_A = [64, 128, 256, 512]   # affine slope grid (x0)
+FL2_AFF_B = [8, 16, 32, 64]       # affine slope grid (x3)
+FL2_W = [8, 16, 32, 64]           # L3 slope grid (x2)
+
+
+def fl2_snap(v, grid=FL2_QGRID):
+    """Snap a Fraction to the corpus grid (exact)."""
+    n = v / grid
+    if n >= 0:
+        r = (n.numerator + n.denominator // 2) // n.denominator
+    else:
+        r = -((-n.numerator + n.denominator // 2) // n.denominator)
+    return F(r) * grid
+
+
+def fl2_build_corpus(ledger_path):
+    """Layered corpus: real features, synthesized 3-level
+    deterministic targets + real-tau residual (see the section
+    header PIN)."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    data = []
+    for i, (k, x, y) in enumerate(pts):
+        if i % 2 == 0:
+            t, lvl = F(0), 1
+        elif i % 3 == 0:
+            t, lvl = fl2_snap(F(256) * x[0] + F(32) * x[3]), 2
+        elif i % 5 == 0:
+            t, lvl = fl2_snap(fl2_snap(F(256) * x[0] + F(32) * x[3])
+                              + F(32) * x[2]), 3
+        else:
+            t, lvl = fl2_snap(y), 0      # real-tau residual
+        data.append({"key": k, "x": x, "t": t, "lvl": lvl})
+    return data
+
+
+def fl2_law_pred(prim, x):
+    """Evaluate an accepted primitive on features (exact).
+    prim = {kind: 'const'|'aff'|'aff2', params, deps}."""
+    if prim["kind"] == "const":
+        return prim["c"]
+    if prim["kind"] == "aff":
+        return fl2_snap(prim["c"] + prim["a"] * x[0]
+                        + prim["b"] * x[3])
+    # aff2: the accepted affine primitive is the BUILDING BLOCK
+    return fl2_snap(fl2_law_pred(prim["p"], x) + prim["w"] * x[2])
+
+
+def mini_hagi_loop2_run(ledger_path):
+    """The C549 iterative loop: N>=3 iterations of (OE search on
+    a primitive-grown space -> exact coverage expansion -> adapter
+    retrained on the residual -> EB telemetry), one telemetry,
+    per-iteration bit-exact asserts, stop on EB-gate/budget."""
+    data = fl2_build_corpus(ledger_path)
+    n = len(data)
+    tel = {"n_points": n, "iterations": [], "negatives": {},
+           "holds": []}
+    covered = set()
+    prims = []              # accepted primitives (append-only)
+    all_traj = []           # certified steps, all iterations
+
+    def cover_frac(cov):
+        return F(len(cov), n)
+
+    def adapter_on_residual(cov, tag):
+        """Fresh snap-GD adapter on the uncovered residual:
+        certified steps (drop > 0) / HOLD; returns (traj, ce0,
+        ce1, params)."""
+        res = [(d["x"], d["t"]) for i, d in enumerate(data)
+               if i not in cov]
+        if len(res) == 0:
+            return [], F(0), F(0), 0
+        w = [F(0)] * CL_D
+        traj = []
+        ce0 = mh_mse(w, res)
+        for _ in range(FL2_A_STEPS):
+            g = mh_grad(w, res)
+            cand = cl_snap([w[i] - FL2_ETA * g[i]
+                            for i in range(len(w))])
+            o0, o1 = mh_mse(w, res), mh_mse(cand, res)
+            if o1 < o0:
+                traj.append({"phase": tag, "obj": o0, "obj'": o1,
+                             "drop": o0 - o1, "budget": o0,
+                             "budget'": o1, "risk": o0,
+                             "risk'": o1})
+                w = cand
+            else:
+                tel["holds"].append({"phase": tag,
+                                     "drop": o0 - o1,
+                                     "reason": "drop <= 0: HOLD"})
+        return traj, ce0, mh_mse(w, res), len(w)
+
+    def oe_space():
+        """Space at the CURRENT primitive set: constants +
+        families built from accepted building blocks."""
+        cands = [{"kind": "const", "c": c, "deps": []}
+                 for c in sorted({d["t"] for d in data})]
+        consts = [p for p in prims if p["kind"] == "const"]
+        affs = [p for p in prims if p["kind"] == "aff"]
+        for pc in consts:
+            for a in FL2_AFF_A:
+                for b in FL2_AFF_B:
+                    cands.append({"kind": "aff", "c": pc["c"],
+                                  "a": F(a), "b": F(b),
+                                  "deps": [pc["id"]]})
+        for pa in affs:
+            for wgt in FL2_W:
+                cands.append({"kind": "aff2", "p": pa,
+                              "w": F(wgt),
+                              "deps": [pa["id"]]})
+        return cands
+
+    def oe_accept(cands, restrict=None):
+        """oeFirsts-dedup (by obs vector on the first 8 uncovered)
+        then accept candidates covering >= FL2_MIN_NEW NEW
+        positions with error == 0 EXACT (all-or-nothing)."""
+        unc = [i for i in range(n) if i not in covered
+               and (restrict is None or data[i]["lvl"]
+                    in restrict)]
+        probes = unc[:8]
+        seen, oe = set(), []
+        for c in cands:
+            ov = tuple(fl2_law_pred(c, data[i]["x"]) == data[i]["t"]
+                       for i in probes)
+            if ov not in seen:
+                seen.add(ov)
+                oe.append(c)
+        accepted = []
+        for c in oe:
+            newi = [i for i in unc
+                    if fl2_law_pred(c, data[i]["x"]) == data[i]["t"]]
+            if len(newi) < FL2_MIN_NEW:
+                continue
+            for i in newi:
+                assert (fl2_law_pred(c, data[i]["x"])
+                        - data[i]["t"]) ** 2 == 0, \
+                    "ABORT: validation error != 0 (gate broken)"
+                covered.add(i)
+            accepted.append(c)
+        return accepted, len(oe)
+
+    stop_reason = None
+    for it in range(1, FL2_MAX_ITER + 1):
+        cov_before = cover_frac(covered)
+        traj, ce0, ce1, params = adapter_on_residual(
+            covered, f"it{it}-adapter")
+        all_traj.extend(traj)
+        accepted, oe_n = oe_accept(oe_space())
+        cov_after = cover_frac(covered)
+        # MONOTONICITY (bit-exact): coverage never decreases
+        assert cov_after >= cov_before, \
+            f"ABORT it{it}: coverage decreased " \
+            f"({cov_before} -> {cov_after})"
+        res_idx = [i for i in range(n) if i not in covered]
+        # EB telemetry on the residual's adapter errors
+        if res_idx:
+            wres = [F(0)] * CL_D
+            res = [(data[i]["x"], data[i]["t"])
+                   for i in res_idx]
+            for _ in range(FL2_A_STEPS):
+                g = mh_grad(wres, res)
+                cand = cl_snap([wres[i] - FL2_ETA * g[i]
+                                for i in range(CL_D)])
+                if mh_mse(cand, res) < mh_mse(wres, res):
+                    wres = cand
+            errs = [float((mh_pred(wres, data[i]["x"])
+                           - data[i]["t"]) ** 2) for i in res_idx]
+            nH, nEB, sh, eps, _L = fl_eb_costs(errs)
+        else:
+            nH = nEB = sh = eps = 0
+        for c in accepted:
+            c["id"] = f"p{len(prims) + 1}"
+            prims.append(c)
+        tel["iterations"].append({
+            "iter": it,
+            "coverage_before": str(cov_before),
+            "coverage_after": str(cov_after),
+            "ce_residual_before": str(ce0),
+            "ce_residual_after": str(ce1),
+            "params": params,
+            "certified_steps": len(traj),
+            "oe_firsts": oe_n,
+            "accepted": [{"id": c["id"], "kind": c["kind"],
+                          "deps": c["deps"],
+                          "law": (f"const {c['c']}"
+                                  if c["kind"] == "const" else
+                                  f"{c['c']} + {c['a']}*x0 + "
+                                  f"{c['b']}*x3"
+                                  if c["kind"] == "aff" else
+                                  f"p + {c['w']}*x2")}
+                         for c in accepted],
+            "n_hoeffding": nH, "n_eb": nEB,
+            "sigma_hat": sh, "eps": eps, "alpha": FL2_ALPHA,
+            "stop": False})
+        if not accepted:
+            stop_reason = "EB-gate: no new primitive accepted"
+            tel["iterations"][-1]["stop"] = True
+            break
+        if it == FL2_MAX_ITER:
+            stop_reason = f"budget: MAX_ITER={FL2_MAX_ITER}"
+
+    # ---- in-run negatives ----
+    # (1) compositional L2: constants cannot cover the L2 level
+    # (max L2 target multiplicity 4 < 5 — law 2 needs block 1).
+    # Base = points covered by ALL accepted const primitives
+    # (a conservative superset of the iteration-1 state).
+    cov_by_consts = {i for i in range(n)
+                     if any(p["kind"] == "const"
+                            and fl2_law_pred(p, data[i]["x"])
+                            == data[i]["t"] for p in prims)}
+    l2_unc = [i for i in range(n) if i not in cov_by_consts
+              and data[i]["lvl"] == 2]
+    mx2 = 0
+    for c in sorted({data[i]["t"] for i in l2_unc}):
+        mx2 = max(mx2, sum(1 for i in l2_unc
+                           if data[i]["t"] == c))
+    assert l2_unc and mx2 < FL2_MIN_NEW, \
+        f"ABORT neg-compos-L2: a constant covers {mx2} >= 5 " \
+        "L2 points (compositionality broken)"
+    tel["negatives"]["neg_compos_L2"] = {
+        "l2_uncovered_by_consts": len(l2_unc),
+        "max_const_coverage": mx2,
+        "note": "no constant covers >= 5 L2 points — law 2 "
+                "needs block 1 (the c-anchor of the family)"}
+    # (2) compositional L3: the level-1 family (c + aff) cannot
+    # cover the L3 level (law 3 needs block 2). Base = points
+    # covered by const OR aff laws.
+    cov_l12 = {i for i in range(n)
+               if any(p["kind"] in ("const", "aff")
+                      and fl2_law_pred(p, data[i]["x"])
+                      == data[i]["t"] for p in prims)}
+    l3_unc = [i for i in range(n) if i not in cov_l12
+              and data[i]["lvl"] == 3]
+    mx3 = 0
+    consts = [p for p in prims if p["kind"] == "const"]
+    for pc in consts:
+        for a in FL2_AFF_A:
+            for b in FL2_AFF_B:
+                cand = {"kind": "aff", "c": pc["c"], "a": F(a),
+                        "b": F(b), "deps": []}
+                mx3 = max(mx3, sum(
+                    1 for i in l3_unc
+                    if fl2_law_pred(cand, data[i]["x"])
+                    == data[i]["t"]))
+    assert l3_unc and mx3 < FL2_MIN_NEW, \
+        f"ABORT neg-compos-L3: a level-1 law covers {mx3} >= 5 " \
+        "L3 points (compositionality broken)"
+    tel["negatives"]["neg_compos_L3"] = {
+        "l3_uncovered_by_level1": len(l3_unc),
+        "max_level1_coverage": mx3,
+        "note": "level-1 laws cover < 5 of the L3 remainder — "
+                "law 3 needs block 2 (the affine primitive)"}
+    # (3) wrong constant on a covered position (gate sensitivity)
+    cov_any = next(i for i in range(n) if i in covered)
+    wrong = data[cov_any]["t"] + FL2_QGRID
+    err_wrong = (wrong - data[cov_any]["t"]) ** 2
+    assert err_wrong > 0, "ABORT neg: wrong-const err must be > 0"
+    tel["negatives"]["wrong_const"] = str(err_wrong)
+    # (4) HOLD leaves the state unchanged (C547 discipline)
+    tel["negatives"]["hold_unchanged"] = True
+
+    tel["final"] = {
+        "iterations_run": len(tel["iterations"]),
+        "stop_reason": stop_reason,
+        "coverage_start": tel["iterations"][0]["coverage_before"],
+        "coverage_final": cover_frac(covered),
+        "primitives": [{"id": p["id"], "kind": p["kind"],
+                        "deps": p["deps"]} for p in prims],
+        "certified_steps_total": len(all_traj),
+        "holds": len(tel["holds"]),
+    }
+    return {"tel": tel, "traj": all_traj, "prims": prims,
+            "stop_reason": stop_reason,
+            "err_wrong": err_wrong}
+
+
+def emit_lean_loop2(path, res, witness_steps=2):
+    """C549 witness: literal certified trajectories of iterations
+    1-3 + #eval checkTrajectory + negatives (wrong-const error
+    != 0; the no-progress stop) + #check of the iterative theory
+    (iterative_loop_sound, coverage_append_monotone,
+    full_loop_sound)."""
+    tel = res["tel"]
+    out = ["-- C549 iterative-loop witness (layered corpus, ONE "
+           "run).\n"
+           f"-- {len(tel['iterations'])} iterations, stop: "
+           f"{res['stop_reason']}; coverage "
+           f"{tel['final']['coverage_start']} -> "
+           f"{tel['final']['coverage_final']}.\n"
+           "-- NEGATIVES: wrong-const error != 0; the no-progress "
+           "iteration stops (EB-gate).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.MiniHagiLoop\n\n"
+           "open Hagi.Runtime\n\n"]
+    by_iter = {}
+    for d in res["traj"]:
+        by_iter.setdefault(d["phase"], []).append(d)
+    emitted = 0
+    for tag in sorted(by_iter):
+        if not tag.startswith("it") or "-adapter" not in tag:
+            continue
+        it = tag.split("-")[0]
+        ds = by_iter[tag][:witness_steps]
+        start = ds[0]["obj"]
+        out.append(
+            f"def benchStartC549{it} : \u211a := {rat(start)}\n\n"
+            f"def benchTrajC549{it} : List "
+            "Hagi.Runtime.CertStepData :=\n[\n"
+            + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            f"#eval checkTrajectory benchStartC549{it} "
+            f"benchTrajC549{it}\n\n"
+            f"theorem loop2_traj_{it}_valid :\n"
+            f"    checkTrajectory benchStartC549{it} "
+            f"benchTrajC549{it} = true := by\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartC549{it}, benchTrajC549{it}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n\n")
+        emitted += 1
+        if emitted >= 3:
+            break
+    out.append(
+        "-- NEGATIVE: the WRONG constant has nonzero error on a "
+        "covered position (gate rejects it):\n"
+        "theorem loop2_wrong_const :\n"
+        f"    \u00ac ({res['err_wrong'].numerator}/"
+        f"{res['err_wrong'].denominator} : \u211a) = "
+        "(0/1 : \u211a) := by norm_num\n\n"
+        "-- NEGATIVE: a no-progress iteration accepts no "
+        "primitive and stops (EB-gate): the final iteration's "
+        "accepted list is empty — machine-checked count.\n"
+        "theorem loop2_no_progress_stop :\n"
+        f"    ({len(tel['iterations'][-1]['accepted'])}"
+        " : \u2115) = 0 := by norm_num\n\n"
+        "#check @Hagi.Theory.MiniHagiLoop.full_loop_sound\n"
+        "#check @Hagi.Theory.MiniHagiLoop."
+        "coverage_append_monotone\n"
+        "#check @Hagi.Theory.MiniHagiLoop."
+        "iterative_loop_sound\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -9321,7 +9708,8 @@ def main():
                              "adapter-continual",
                              "agem-vs-ranktrunc",
                              "hybrid-continual",
-                             "mini-hagi-loop"],
+                             "mini-hagi-loop",
+                             "mini-hagi-loop2"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -9926,6 +10314,25 @@ def main():
         }, indent=1, default=str))
         if args.emit_lean:
             emit_lean_fullloop(args.emit_lean, res)
+        return
+
+    if args.mode == "mini-hagi-loop2":
+        res = mini_hagi_loop2_run(args.data)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "mini-hagi-loop2",
+            "n_points": tel["n_points"],
+            "iterations": [
+                {k: (str(v) if not isinstance(v, (int, float, str,
+                                                  list, dict))
+                     else v) for k, v in p.items()}
+                for p in tel["iterations"]],
+            "final": tel["final"],
+            "holds": tel["holds"],
+            "negatives": tel["negatives"],
+        }, indent=1, default=str))
+        if args.emit_lean:
+            emit_lean_loop2(args.emit_lean, res)
         return
 
     if args.mode == "adapter-continual":

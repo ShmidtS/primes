@@ -13,8 +13,8 @@ theorems.
 ## Summary
 
 - modules: 543
-- theorems: 12853
-- defs: 4792
+- theorems: 12861
+- defs: 4804
 - noncomputable decls: 1218
 - status Proven: 463 modules
 - status Conditional: 25 modules
@@ -507,7 +507,7 @@ theorems.
 | Hagi.Theory.MergeQuant | 46 | 12 | curvRemainder, quadLoss, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.MiniHagi2 | 3 | 1 | miniHagi2Canonical | no | Proven |
-| Hagi.Theory.MiniHagiLoop | 1 | 0 | - | no | Proven |
+| Hagi.Theory.MiniHagiLoop | 9 | 12 | - | no | Proven |
 | Hagi.Theory.OEComplete | 8 | 6 | - | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
