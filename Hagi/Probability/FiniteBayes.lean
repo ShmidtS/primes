@@ -5,7 +5,7 @@ Authors: HAGI_v2 formalization team
 -/
 import Hagi.Probability.LinkedFlip
 import Hagi.Probability.PMFBridge
-import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.Freedman
 
 /-!
 Finite categorical Bayesian conditioning and sequence-zero-one decisions.

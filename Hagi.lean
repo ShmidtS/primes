@@ -126,14 +126,10 @@ import Hagi.Probability.Concentration
 import Hagi.Growth.SelfDevelopment
 import Hagi.Autonomy.ParetoController
 import Hagi.Probability.AdaptiveSuccess
-import Hagi.Probability.FreedmanTwoSided
-import Hagi.Probability.FreedmanStep
 import Hagi.Probability.MarkovPathSupport
 import Hagi.Probability.RankedStopRouting
-import Hagi.Probability.FreedmanFamilyConfidence
 import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
-import Hagi.Probability.FreedmanAdaptive
 import Hagi.Probability.NoiseTemperature
 import Hagi.Growth.PlasticityLedger
 import Hagi.Model.SoftmaxStep
@@ -243,7 +239,6 @@ import Hagi.Probability.ExpChord
 import Hagi.Probability.GibbsCooling
 import Hagi.Probability.LinkedFlip
 import Hagi.Probability.FiniteBayes
-import Hagi.Probability.FiniteJointLogScore
 import Hagi.Probability.FiniteLogScore
 import Hagi.Probability.FiniteEM
 import Hagi.Probability.FiniteMultiEM
@@ -347,6 +342,7 @@ import Hagi.Optimization.GraphDistanceRouting
 import Hagi.Optimization.SphericalDamping
 import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
+import Hagi.Probability.MirrorHedgeMWU
 import Hagi.Optimization.MirrorHedge
 import Hagi.Numerics.SoftmaxFix
 import Hagi.Planning.Imagination

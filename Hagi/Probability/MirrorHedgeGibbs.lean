@@ -9,7 +9,7 @@ import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.FannesPinsker
 import Hagi.Probability.ChernoffCGF
 import Hagi.Probability.MomentBounds
-import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.Freedman
 
 set_option linter.style.header false
 

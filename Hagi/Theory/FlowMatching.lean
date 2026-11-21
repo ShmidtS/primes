@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Semantics.Split
-import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.Freedman
 import Hagi.Theory.CEChain
 
 /-!

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Research.CrossModalGap
-import Hagi.Probability.FiniteJointLogScore
+import Hagi.Probability.FiniteLogScore
 
 /-!
 Bounded finite conditional mutual information.

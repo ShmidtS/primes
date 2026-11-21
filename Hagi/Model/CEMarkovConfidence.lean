@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: HAGI_v2 formalization team
 -/
 import Hagi.Model.CEHeldout
-import Hagi.Probability.FreedmanFamilyConfidence
+import Hagi.Probability.Freedman
 
 /-!
 # Markov confidence for a finite bank of normalized coded CE losses

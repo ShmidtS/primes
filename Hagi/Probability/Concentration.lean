@@ -1,5 +1,5 @@
 import Hagi.Probability.CertifiedEstimator
-import Hagi.Probability.FreedmanStep
+import Hagi.Probability.Freedman
 
 /-!
 # Unified concentration radius/confidence API (C287, A10 merge map)
@@ -165,7 +165,7 @@ The audit ask: ONE premise shape for the concentration family so
 consumers take the radius from ONE place. The record below
 packages the C350/C356 premise tuple; the radius corollaries are
 BRIDGES (direct citations of the frozen carriers in
-`FreedmanStep`/`FreedmanTwoSided`), not reproofs. The regime
+the Freedman canon (`Hagi.Probability.Freedman`, C525)), not reproofs. The regime
 split is kept honest: the variance-regime bound
 (`concRadiusVar`, `exp(−r²/(4V))` under `c·r ≤ 2·V`) and the
 all-regime mixed bound (`concRadiusMixed`, `exp(−r²/(4(V+c·r)))`)
@@ -262,7 +262,7 @@ theorem concPremise_comp_const {α : Type*} [Fintype α] (P : ConcPremise α)
 at `V := T·σ` the mixed radius is exactly the C350
 `stochastic_safe_step_whp` failure bound
 `exp(−r²/(4·(T·σ + c·r)))`. The consumers of the C350 form take
-the radius from HERE; `FreedmanStep`'s own bridges stay frozen
+the radius from HERE; the Freedman canon's (`Hagi.Probability.Freedman`) own bridges stay frozen
 (pin: they carry drift semantics, not radius derivation). -/
 theorem concRadiusMixed_const {α : Type*} [Fintype α] (P : ConcPremise α)
     {σ : ℝ} (hσ : 0 ≤ σ) (k : ℕ) (r : ℝ)

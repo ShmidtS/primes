@@ -1,7 +1,6 @@
 import Hagi.Model.CEDescent
-import Hagi.Probability.FreedmanTwoSided
-import Hagi.Probability.MirrorHedgeMWUSelectedGradient
-import Hagi.Probability.MirrorHedgeMWUSelectedLoss
+import Hagi.Probability.Freedman
+import Hagi.Probability.MirrorHedgeMWU
 import Hagi.Model.BatchCEDescent
 
 /-!

@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Concentration
-import Hagi.Probability.FreedmanAdaptive
+import Hagi.Probability.Freedman
 import Hagi.Probability.Azuma
 import Hagi.Probability.FiniteFamilyConfidence
 import Hagi.Unified.ParetoExecution

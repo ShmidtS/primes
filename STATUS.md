@@ -4084,13 +4084,12 @@ one-hot CE.
 - `posterior_coordinateDecoder_le` переносит минимальность на апостериорный закон при положительном свидетельстве наблюдения; `posterior_coordinateDecoder_le_observation` дополнительно сравнивает его риск с риском самого наблюдения.
 
 
-## Hagi/Probability/FiniteJointLogScore.lean
 - `ceDef_chain` и `klDef_chain` разлагают совместные CE и KL на маргинальный член и взвешенную сумму условных строк при `p ≥ 0`, поддержке `0 < p z → 0 < q z` и соответствующей поддержке положительных левых маргиналов.
 - Для нулевых маргиналов `conditionalRow` использует нулевую функцию как тотализацию; такая строка не объявляется вероятностным законом.
 - При `leftMarginal q = leftMarginal p` и неотрицательных `p q` теорема `ceDef_eq_self_iff_conditionalRow_eq_of_leftMarginal_eq` характеризует `ceDef p q = ceDef p p` равенством условных строк на положительных маргиналах `p`.
 
 
-## Hagi/Probability/FiniteLogScore.lean
+## Hagi/Probability/FiniteLogScore.lean (вкл. FiniteJointLogScore, слит C525)
 - При неотрицательных нормированных `p q` и поддержке `0 < p x → 0 < q x` доказаны `klDef_nonneg_of_support` и `klDef_eq_zero_iff_of_support`: `klDef p q ≥ 0`, а равенство нулю эквивалентно `q = p`.
 - `ceDef_self_le_of_support` даёт `ceDef p p ≤ ceDef p q`; родственные результаты характеризуют случай равенства через равенство функций на поддержке.
 - `fromPMF_ceDef_self_le` и `posterior_ceDef_self_le` переносят оценку на PMF при включении поддержек, для апостериорного закона дополнительно требуя положительное свидетельство наблюдения.
@@ -4102,20 +4101,18 @@ one-hot CE.
 - `batchMStep_spec` выбирает один глобальный кандидат для всей индексированной семьи и минимизирует суммарную полную кросс-энтропию. `current_totalNegativeLogEvidence_le_batchMStep` при точных старых апостериорных законах доказывает итоговое невозрастание суммы.
 
 
-## Hagi/Probability/Freedman.lean
+## Hagi/Probability/Freedman.lean (вкл. TwoSided/Step/Adaptive/FamilyConfidence, слит C525)
 - `freedman_lemma_prefix`: при `|X| ≤ b`, нулевом условном среднем, `∑q*X^2 ≤ sig` и `lam ≥ 0` MGF не превосходит `exp (lam^2*sig*exp(lam*b)/2)`. `freedman_mgf` итерирует эту границу по префиксам.
 - `freedman_tail_low` при `b ≥ 0`, `sig > 0`, `n > 0`, `Δ > 0` ограничивает `P(azumaSum X n ≤ -Δ)` через `exp (-Δ^2/(2*(n*sig + b*Δ)))`.
 - `adaptive_success_freedman`: для `S ∈ [0,1]`, префиксных полов `p0` и измеренной посылки `∑q*S^2 ≤ sig` вероятность `n*p0 - Δ ≤ azumaSum S n` не меньше `1 - exp (-Δ^2/(2*(n*sig + Δ)))`.
 - `freedman_confidence` для фиксированного `n`: если `A ω ↔ ¬(azumaSum X n ω ≤ -Δ)`, то `A` выполняется с вероятностью не меньше `1 - exp (-Δ^2/(2*(n*sig + b*Δ)))`.
 
 
-## Hagi/Probability/FreedmanFamilyConfidence.lean
 - `finite_family_freedman_confidence`: для заранее фиксированного `s`, `c > 0`, `r > 0`, `V ≥ 0`, ограниченных центрированных приращений и вторых моментов, ограниченных `v`, с вероятностью не меньше `1 - 2*s.card*exp(-r^2/(4*(V+c*r)))` на всех `i ∈ s` из `historyCounter ≤ V` следует `|historyAdditive| < r`.
 - `finite_family_selected_conditional_gap_of_good`: на этом общем событии, если базовый `b` и выбранный `σ ω` принадлежат `s` и оба счётчика не превосходят `V`, наблюдаемый разрыв минус `2*r` ограничивает разрыв условных средних.
 - `finite_family_selected_conditional_gap_pos_of_good` добавляет предположение, что наблюдаемый разрыв больше `2*r`, и выводит положительность разрыва условных средних уже для выбранного по истории кандидата.
 
 
-## Hagi/Probability/FreedmanTwoSided.lean
 - `finite_freedman`: для марковской траектории с `X 0 ≤ 0`, `c > 0`, `r > 0`, `v ≥ 0`, ограниченными приращениями, условным средним приращения не выше нуля и рекурсией накопленной дисперсии фиксированный хвост `{r ≤ X k ∧ V k ≤ v}` не превосходит `exp (-r^2/(4*(v+c*r)))`.
 - `history_additive_freedman` при `c > 0`, `r > 0`, `V ≥ 0` даёт фиксированный `k`-хвост для суммы центрированных вкладов. `history_additive_freedman_two_sided` для единых `r V` ограничивает событие `∃j ≤ T` с нарушением абсолютного порога через `2*(T+1)*exp(-r^2/(4*(V+c*r)))`.
 - `anytime_freedman_thresholds` и `anytime_freedman_thresholds_two_sided` допускают разные `r j > 0` и `V j ≥ 0`: итоговые границы равны сумме по `j ∈ range (T+1)` соответствующих экспонент, с коэффициентом `2` в двустороннем случае.

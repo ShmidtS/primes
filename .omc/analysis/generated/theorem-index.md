@@ -12,12 +12,12 @@ theorems.
 
 ## Summary
 
-- modules: 547
+- modules: 539
 - theorems: 12754
-- defs: 4723
+- defs: 4722
 - noncomputable decls: 1213
-- status Proven: 466 modules
-- status Conditional: 26 modules
+- status Proven: 459 modules
+- status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
 - status Deprecated: 20 modules
@@ -360,24 +360,16 @@ theorems.
 | Hagi.Probability.FiniteEM | 29 | 2 | jointMass, mStep | no | Proven |
 | Hagi.Probability.FiniteFamilyConfidence | 48 | 5 | instDecidablePredForallFinOfNatNatTwoModelGood, populationMean, twoModelP, twoModelGood | no | Proven |
 | Hagi.Probability.FiniteFamilyConfidenceEmpirical | 0 | 1 | empiricalMean | no | Proven |
-| Hagi.Probability.FiniteJointLogScore | 23 | 2 | conditionalRow | no | Proven |
-| Hagi.Probability.FiniteLogScore | 18 | 0 | - | no | Proven |
+| Hagi.Probability.FiniteLogScore | 41 | 2 | conditionalRow | no | Proven |
 | Hagi.Probability.FiniteMultiEM | 7 | 1 | batchMStep | no | Proven |
-| Hagi.Probability.Freedman | 9 | 3 | - | yes | Empirical |
-| Hagi.Probability.FreedmanAdaptive | 20 | 15 | - | no | Proven |
-| Hagi.Probability.FreedmanFamilyConfidence | 6 | 1 | - | no | Proven |
-| Hagi.Probability.FreedmanStep | 54 | 15 | stochastic_safe_step_closed, stochastic_safe_step, driftAdditive, stochastic_safe_step_variance | yes | Conditional |
-| Hagi.Probability.FreedmanTwoSided | 98 | 16 | historyInitial, historyAdditive, historyIncrement, historyNoise, historyLaw, historyKernel, markovLaw, historyCounter, pmfMean, historyCounterRate, uniformOfFinset | no | Proven |
+| Hagi.Probability.Freedman | 187 | 49 | historyInitial, historyAdditive, historyIncrement, historyNoise, historyLaw, stochastic_safe_step_closed, stochastic_safe_step, historyKernel, markovLaw, driftAdditive, historyCounter, pmfMean, historyCounterRate, uniformOfFinset, stochastic_safe_step_variance | yes | Empirical |
 | Hagi.Probability.GibbsCooling | 46 | 0 | - | no | Proven |
 | Hagi.Probability.GibbsCore | 96 | 3 | tilted, gibbsW, gibbsZ | no | Proven |
 | Hagi.Probability.KLSBridge | 14 | 4 | - | no | Proven |
 | Hagi.Probability.LinkedFlip | 39 | 17 | eventMask, support, uniformPlane, linkedChannel, linkedMask, changedCount | no | Proven |
 | Hagi.Probability.MarkovPathSupport | 11 | 1 | - | no | Proven |
-| Hagi.Probability.MirrorHedgeCertificates | 11 | 0 | - | no | Proven |
 | Hagi.Probability.MirrorHedgeGibbs | 6 | 0 | - | no | Proven |
-| Hagi.Probability.MirrorHedgeMWU | 24 | 0 | - | no | Proven |
-| Hagi.Probability.MirrorHedgeMWUSelectedGradient | 20 | 2 | selectedMeanGradientMSE, selectedGradientMSE | no | Proven |
-| Hagi.Probability.MirrorHedgeMWUSelectedLoss | 29 | 2 | selectedLoss_optimalPropensity, selectedLossMSE | no | Proven |
+| Hagi.Probability.MirrorHedgeMWU | 84 | 4 | selectedMeanGradientMSE, selectedGradientMSE, selectedLoss_optimalPropensity, selectedLossMSE | no | Proven |
 | Hagi.Probability.MomentBounds | 16 | 0 | - | no | Proven |
 | Hagi.Probability.NoiseTemperature | 61 | 5 | popVar, popMean, batchMean, uniP, centered | no | Proven |
 | Hagi.Probability.PMFBridge | 10 | 6 | - | no | Proven |

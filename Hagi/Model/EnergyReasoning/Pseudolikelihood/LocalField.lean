@@ -8,7 +8,7 @@ import Hagi.Optimization.InexactContraction
 import Hagi.Energy.SingleCellDescent
 import Mathlib
 import Hagi.Runtime.BF16Delta
-import Hagi.Probability.MirrorHedgeCertificates
+import Hagi.Probability.MirrorHedgeMWU
 import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 import Hagi.Probability.Concentration

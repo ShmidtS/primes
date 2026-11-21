@@ -2,10 +2,9 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
-import Hagi.Probability.FreedmanTwoSided
+import Hagi.Probability.Freedman
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.PMFBridge
-import Hagi.Probability.FreedmanAdaptive
 
 set_option linter.style.header false
 
