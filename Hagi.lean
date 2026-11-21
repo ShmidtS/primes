@@ -438,6 +438,7 @@ import Hagi.Theory.HadamardIncoherence
 import Hagi.Theory.Statistics
 import Hagi.Theory.AnytimeHoldoutStop
 import Hagi.Theory.CertCEHoldout
+import Hagi.Theory.OEComplete
 import Hagi.Theory.CertifyThenCommit
 import Hagi.Theory.FullPipeline
 import Hagi.Theory.BlockAdmission

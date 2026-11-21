@@ -3809,3 +3809,30 @@ card instances); the main theorems carry the content.
   α=0.01 — n_Hoeffding = 176,995 (план 177006), n_EB(MP) = 6439
   (план в точности; 27.49×), n_EB(наша форма) = 4267 (41.5×).
   Аксиомы: только propext/Quot.sound/Classical.choice.
+
+## Hagi/Theory/OEComplete.lean (C540: observational equivalence search completeness — P6)
+
+- P6 внешнего плана (mapping C537, top-3): OE hash-consing в
+  synthesize_batched_mdl (Levin priority queue + отсечение
+  программ с уже виденным вектором значений на пробах; naive
+  6478 узлов без решения vs Levin+OE+MITM 896) — дискретная
+  теорема полноты: дедупликация НЕ теряет решения.
+- `oe_classes_partition`: наблюдательная эквивалентность
+  (obsV p = obsV q, вектор значений на фиксированных пробах) —
+  подлинная эквивалентность/Setoid; OE-классы корректно
+  разбивают пространство программ.
+- `oe_search_complete` (main): если p ∈ space (глубинно-
+  ограниченное пространство = явный список, конечность явная)
+  со спецификационным obs-вектором, OE-дедуп поиск oeFirsts
+  вернёт q с obsV q = obsV p — первый представитель каждого
+  OE-класса достигается. Полнота ОТНОСИТЕЛЬНО ПРОБ (obs-
+  равенство), НЕ семантическая эквивалентность — честно.
+- `oe_search_terminates`: (oeFirsts space).length ≤
+  space.length — дедуп-обход не длиннее полного перебора
+  конечного пространства (терминация структурная).
+- Witness .tmp/C540/trajOE.lean: toy-пространство (операции
+  not/xor/and/id, глубина ≤ 3, 3 пробы): naive 343 посещений
+  vs OE-дедуп 4 (выдача 4 obs-класса), найденный obs-вектор
+  идентичен [false,true,false]; негатив (несовместимый с
+  пробами target [true,false,false]) → none в обоих.
+  Аксиомы: только propext/Quot.sound (def-ы — без аксиом).
