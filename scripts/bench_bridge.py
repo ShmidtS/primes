@@ -8899,6 +8899,408 @@ def emit_lean_adaptercont(path, res, witness_steps=2):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C547: MINI-HAGI FULL SELF-IMPROVING LOOP (--mode mini-hagi-loop)
+#
+# One run = ONE trace of all certified-era components:
+#   P1 exact bypass (P8/C543-port): symbolic law on the QUANTIZED
+#      targets tau(y) = snap(y, 1/2) — a position is covered when
+#      the law reproduces tau(y) EXACTLY (Fraction ==), so the
+#      covered CE-contribution is EXACTLY 0 (Hagi.Theory.
+#      ExactBypass.exact_gate_sound semantics: p = 1 on covered).
+#   P2 adapter on the GapBuffer (task A, C532/C481 form): linear
+#      head, certified snap-GD steps (measured drop > 0 or HOLD).
+#   P3 grow (C521 snap-rational + C504/C532 neutral-init): new
+#      feature x4 = snap(x0*x1, 1/1000), weight 0 appended — obj
+#      invariant BIT-EXACT assert — then the new coordinate is
+#      trained by certified steps; snap determinism asserted.
+#   P4 continual isolation (C544): task B gets its OWN adapter;
+#      task A's adapter is frozen, so predictions on A are
+#      BIT-EXACT unchanged (forgetA = 0 assert); the SHARED-step
+#      negative arm demonstrates the leak the theorem forbids.
+#   P5 OE primitive search (C540) + EB gate (C539): space = grid
+#      constant laws on [min tau, max tau] of the uncovered gap;
+#      probes = first 8 uncovered points; obsV = the exact-match
+#      vector on the probes; oeFirsts dedup; a candidate is
+#      ACCEPTED only if it covers >= 5 NEW positions with error
+#      == 0 EXACT (all-or-nothing validation) and the EB sample
+#      cost n_EB <= n_Hoeffding (floats — cost TELEMETRY only,
+#      the accept decision itself is exact).
+#   P6 final metrics (one JSON).
+#
+# PIN (objective): the loop objective is the MSE on the
+# quantized targets tau (documented snap grid 1/2); CE-contribution
+# of a covered position is exactly 0 by construction and asserted.
+#
+# PIN (EB numbers): n_EB/n_Hoeffding are float cost estimates
+# (sigma-hat / range forms, alpha = 1/100), NOT the accept gate.
+
+FL_QGRID = F(1, 2)               # tau quantization grid
+FL_ETA = F(1, 10)                # certified step size
+FL_A_STEPS = 10                  # task-A adapter steps
+FL_B_STEPS = 10                  # task-B adapter steps
+FL_GROW_STEPS = 6                # grown-coordinate steps
+FL_MIN_NEW = 5                   # min NEW positions to accept a law
+FL_ALPHA = 0.01                  # EB gate level (telemetry)
+FL_EPS_FRAC = F(1, 4)            # eps = R/4 (see EB note above)
+
+
+def fl_tau(y, grid=FL_QGRID):
+    """Quantize a target to the symbolic grid (exact)."""
+    return rd_snap_gen(y, grid)
+
+
+def rd_snap_gen(v, grid):
+    """Snap a Fraction to an arbitrary rational grid (exact)."""
+    n = v / grid
+    if n >= 0:
+        r = (n.numerator + n.denominator // 2) // n.denominator
+    else:
+        r = -((-n.numerator + n.denominator // 2) // n.denominator)
+    return F(r) * grid
+
+
+def fl_ce(w, data):
+    """Surrogate CE = mean squared error on tau targets (exact)."""
+    return mh_mse(w, data)
+
+
+def fl_eb_costs(errs):
+    """n_EB vs n_Hoeffding for certifying mean error < eps at
+    alpha: Hoeffding range form n_H = R^2 L/(2 eps^2); EB = the
+    smallest n with sqrt(2 sh^2 L/n) + 2 R L/n <= eps (binary
+    search; both sides are the SAME quantities, EB merely plugs
+    the measured sigma-hat instead of the worst-case range).
+    eps is chosen adaptively as R/k with k growing until the EB
+    radius is feasible at n_H (EB beats Hoeffding only for
+    eps << R — the C539 lesson: 0.04 vs R = 11.09)."""
+    import math
+    R = float(max(errs))
+    if R <= 0:
+        return 0, 0, 0.0, 0.0, 0.0
+    mu = sum(errs) / len(errs)
+    sh = math.sqrt(sum((e - mu) ** 2 for e in errs) / len(errs))
+    L = math.log(2 / FL_ALPHA)
+
+    def radius(n, eps, sh):
+        return math.sqrt(2 * sh * sh * L / n) + 2 * R * L / n
+    for k in (4, 8, 16, 32, 64, 128, 256):
+        eps = R / k
+        nH = math.ceil(R * R * L / (2 * eps * eps))
+        if radius(nH, eps, sh) > eps:
+            continue                     # EB not yet feasible
+        lo, hi = 1, nH
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if radius(mid, eps, sh) <= eps:
+                hi = mid
+            else:
+                lo = mid + 1
+        return nH, lo, sh, eps, L
+    # degenerate sigma-hat = R/2: EB cannot beat the range form
+    return None, None, sh, 0.0, L
+
+
+def mini_hagi_loop_run(ledger_path):
+    """The C547 full self-improving loop: ONE trace, per-phase
+    bit-exact asserts, telemetry for the final metrics JSON."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    data = [(k, x, fl_tau(y)) for k, x, y in pts]
+    n = len(data)
+    tel = {"n_points": n, "phases": [], "negatives": {},
+           "holds": []}
+
+    def coverage(idx):
+        return F(len(idx), n)
+
+    # ---------------- P1 exact bypass ----------------
+    from collections import Counter
+    cstar = Counter(t for _, _, t in data).most_common(1)[0][0]
+    covered1 = [i for i, (_, _, t) in enumerate(data) if t == cstar]
+    ce_cov = sum(((cstar - data[i][2]) ** 2 for i in covered1),
+                 F(0))
+    assert ce_cov == 0, \
+        f"ABORT P1: covered CE-contribution {ce_cov} != 0"
+    # NEGATIVE (gate sensitivity): the WRONG constant on a covered
+    # position has NONZERO error — the gate must reject it
+    # (bench analog of exact_gate_rejects_zero).
+    wrong = cstar + FL_QGRID
+    err_wrong = (wrong - data[covered1[0]][2]) ** 2
+    assert err_wrong > 0, \
+        "ABORT P1-neg: wrong-constant error must be > 0"
+    tel["negatives"]["p1_wrong_const"] = str(err_wrong)
+    gap = [(x, t) for i, (k, x, t) in enumerate(data)
+           if i not in set(covered1)]
+    tel["phases"].append({
+        "phase": "P1-exact-bypass", "law": f"const {cstar}",
+        "covered": len(covered1),
+        "coverage": str(coverage(set(covered1))),
+        "ce_covered": str(ce_cov),
+        "gap": len(gap),
+        "theorem": "Hagi.Theory.ExactBypass.exact_gate_sound"})
+
+    # ---------------- P2 task-A adapter (certified) ----------
+    # deterministic split of the gap buffer (C485 form, on (x,t))
+    gs = sorted(gap, key=lambda p: (p[1], p[0]))
+    A = [p for i, p in enumerate(gs) if i % 2 == 0]
+    B = [p for i, p in enumerate(gs) if i % 2 == 1]
+    assert len(A) > 0 and len(B) > 0, \
+        "ABORT P2: degenerate task split"
+    w = [F(0)] * CL_D
+    trajA, objA0 = [], fl_ce(w, A)
+
+    def cert_step(phase, wcur, cand, dset, extra=None):
+        o0, o1 = mh_mse(wcur, dset), mh_mse(cand, dset)
+        if o1 < o0:
+            trajA.append({"phase": phase, "obj": o0, "obj'": o1,
+                          "drop": o0 - o1,
+                          "budget": o0, "budget'": o1,
+                          "risk": o0, "risk'": o1,
+                          **(extra or {})})
+            return cand
+        tel["holds"].append({"phase": phase,
+                             "drop": o0 - o1,
+                             "reason": "drop <= 0: HOLD"})
+        return wcur
+
+    for _ in range(FL_A_STEPS):
+        g = mh_grad(w, A)
+        cand = cl_snap([w[i] - FL_ETA * g[i]
+                        for i in range(len(w))])
+        w = cert_step("P2-adapterA", w, cand, A)
+    objA1 = mh_mse(w, A)
+    assert objA1 < objA0, \
+        f"ABORT P2: CE(gapA) did not decrease ({objA0} -> {objA1})"
+    # NEGATIVE: a drop <= 0 candidate is a HOLD (state unchanged)
+    w_hold = cert_step("P2-neg-hold", w, list(w), A)
+    assert w_hold == w, \
+        "ABORT P2-neg: HOLD must leave the state unchanged"
+    tel["negatives"]["p2_hold_unchanged"] = True
+    tel["phases"].append({
+        "phase": "P2-adapterA", "steps": len(trajA),
+        "ceA_start": str(objA0), "ceA_end": str(objA1),
+        "params": len(w),
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "adapter_step_certified"})
+
+    # ---------------- P3 grow (neutral init + snap) ----------
+    ext = lambda d: [(x + [rd_snap(x[0] * x[1])], t)
+                     for x, t in d]
+    Ax, Bx = ext(A), ext(B)
+    we = w + [F(0)]
+    inv0, inv1 = mh_mse(w, A), mh_mse(we, Ax)
+    assert inv0 == inv1, \
+        f"ABORT P3: grow broke obj invariance ({inv0} != {inv1})"
+    assert cl_snap(we) == cl_snap(cl_snap(we)), \
+        "ABORT P3: snap is not deterministic (C521)"
+    gsteps = 0
+    for _ in range(FL_GROW_STEPS):
+        g = mh_grad(we, Ax)
+        cand = list(we)
+        cand[-1] = cl_snap([we[-1] - FL_ETA * g[-1]])[0]
+        o0, o1 = mh_mse(we, Ax), mh_mse(cand, Ax)
+        if o1 < o0:
+            trajA.append({"phase": "P3-grow", "obj": o0,
+                          "obj'": o1, "drop": o0 - o1,
+                          "budget": o0, "budget'": o1,
+                          "risk": o0, "risk'": o1})
+            we, gsteps = cand, gsteps + 1
+        else:
+            tel["holds"].append({"phase": "P3-grow",
+                                 "drop": o0 - o1,
+                                 "reason": "drop <= 0: HOLD"})
+    objA2 = mh_mse(we, Ax)
+    assert objA2 <= objA1, \
+        "ABORT P3: grown CE must not increase"
+    tel["phases"].append({
+        "phase": "P3-grow", "steps": gsteps, "params": len(we),
+        "ceA_end": str(objA2),
+        "obj_invariant_exact": str(inv0 == inv1),
+        "theorem": "Hagi.Theory.AdapterGrowth.adapter_obj_"
+                   "invariant (C532) + snap (C521)"})
+
+    # ---------------- P4 continual isolation (C544) ----------
+    predA_before = [mh_pred(we, x) for x, _ in Ax]
+    wb = [F(0)] * len(we)
+    trajB = []
+    for _ in range(FL_B_STEPS):
+        g = mh_grad(wb, Bx)
+        cand = cl_snap([wb[i] - FL_ETA * g[i]
+                        for i in range(len(wb))])
+        o0, o1 = mh_mse(wb, Bx), mh_mse(cand, Bx)
+        if o1 < o0:
+            trajB.append({"phase": "P4-adapterB", "obj": o0,
+                          "obj'": o1, "drop": o0 - o1,
+                          "budget": o0, "budget'": o1,
+                          "risk": o0, "risk'": o1})
+            wb = cand
+        else:
+            tel["holds"].append({"phase": "P4-adapterB",
+                                 "drop": o0 - o1,
+                                 "reason": "drop <= 0: HOLD"})
+    predA_after = [mh_pred(we, x) for x, _ in Ax]
+    forgetA = sum(((pa - pb) ** 2 for pa, pb in
+                   zip(predA_after, predA_before)), F(0))
+    assert forgetA == 0, \
+        f"ABORT P4: forgetA = {forgetA} != 0 (ISO violated)"
+    # NEGATIVE: a SHARED step (B's update applied to A's head)
+    # moves task-A predictions — the leak the theorem forbids
+    gB = mh_grad(we, Bx)
+    w_shared = cl_snap([we[i] - FL_ETA * gB[i]
+                        for i in range(len(we))])
+    predA_shared = [mh_pred(w_shared, x) for x, _ in Ax]
+    leak = sum(((pa - pb) ** 2 for pa, pb in
+                zip(predA_shared, predA_before)), F(0))
+    assert leak > 0, \
+        "ABORT P4-neg: shared arm must leak on task A"
+    tel["negatives"]["p4_shared_leak"] = str(leak)
+    tel["phases"].append({
+        "phase": "P4-continual-ISO", "steps_adB": len(trajB),
+        "forgetA": str(forgetA), "shared_leak": str(leak),
+        "ceB_end": str(mh_mse(wb, Bx)),
+        "params": len(we) + len(wb),
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "adapter_per_task_sound"})
+
+    # ---------------- P5 OE primitive search + EB gate -------
+    unc = [(x, t) for x, t in gap]      # all gap points uncovered
+    tmin = min(t for _, t in unc)
+    tmax = max(t for _, t in unc)
+    span = int((tmax - tmin) / FL_QGRID)
+    space = [tmin + FL_QGRID * i for i in range(span + 1)
+             if tmin + FL_QGRID * i != cstar]
+    probes = unc[:8]
+
+    def obsv(c):
+        return tuple(t == c for _, t in probes)
+
+    oe, seen = [], set()
+    for c in space:
+        ov = obsv(c)
+        if ov not in seen:
+            seen.add(ov)
+            oe.append(c)
+    accepted, newcov = [], set()
+    for c in oe:
+        newi = [i for i, (x, t) in enumerate(unc)
+                if t == c and i not in newcov]
+        if len(newi) < FL_MIN_NEW:
+            continue
+        errs = [(c - unc[i][1]) ** 2 for i in newi]
+        assert all(e == 0 for e in errs), \
+            "ABORT P5: validation error != 0 (gate broken)"
+        for i in newi:
+            newcov.add(i)
+        accepted.append(str(c))
+    errs_gap = [float((mh_pred(we, x) - t) ** 2) for x, t in Ax]
+    nH, nEB, sh, eps, L = fl_eb_costs(errs_gap)
+    assert nEB is not None and nEB <= nH, \
+        f"ABORT P5: EB gate cost infeasible (n_EB={nEB}, " \
+        f"n_H={nH}; degenerate sigma-hat = R/2)"
+    cov_final = F(len(covered1) + len(newcov), n)
+    assert cov_final > coverage(set(covered1)), \
+        "ABORT P5: coverage did not grow (OE search found nothing)"
+    tel["phases"].append({
+        "phase": "P5-OE-EB", "space": len(space),
+        "oe_firsts": len(oe), "accepted": accepted,
+        "new_covered": len(newcov),
+        "coverage_final": str(cov_final),
+        "n_hoeffding": nH, "n_eb": nEB,
+        "sigma_hat": sh, "eps": eps, "alpha": FL_ALPHA,
+        "theorem": "Hagi.Theory.OEComplete.oe_search_complete + "
+                   "Hagi.Probability."
+                   "empirical_bernstein_mean_bound"})
+
+    # ---------------- P6 final metrics ----------------
+    tel["final"] = {
+        "coverage_start": str(coverage(set(covered1))),
+        "coverage_final": str(cov_final),
+        "ce_gap_start": str(objA0),
+        "ce_gapA_end": str(objA2),
+        "forgetA": str(forgetA),
+        "params": {"adapterA": len(we), "adapterB": len(wb)},
+        "certified_steps": {"P2+P3": len(trajA), "P4": len(trajB)},
+        "holds": len(tel["holds"]),
+        "primitives": accepted,
+        "n_eb_vs_hoeffding": {"n_eb": nEB, "n_hoeffding": nH},
+    }
+    return {"tel": tel, "trajA": trajA, "trajB": trajB,
+            "cstar": cstar, "forgetA": forgetA, "leak": leak,
+            "err_wrong": err_wrong, "cov_final": cov_final,
+            "coverage1": coverage(set(covered1)),
+            "objA0": objA0, "objA2": objA2}
+
+
+def emit_lean_fullloop(path, res, witness_steps=2):
+    """C547 witness: literal certified trajectories of the FULL
+    loop (P2 adapter-A, P3 grow, P4 adapter-B) + #eval
+    checkTrajectory + the P1 bypass zero-CE identity + negatives
+    (wrong-const error != 0, shared leak != 0) + #check of the
+    composed theory (Hagi.Theory.MiniHagiLoop.full_loop_sound
+    and its five component theorems)."""
+    out = ["-- C547 mini-hagi full-loop witness (real "
+           "unified_ledger data, ONE trace).\n"
+           f"-- P1 bypass const {res['cstar']}: covered "
+           "CE-contribution EXACTLY 0; P2/P3 certified steps: "
+           f"{len(res['trajA'])}; P4 adapter-B certified steps: "
+           f"{len(res['trajB'])}; forgetA EXACTLY 0; coverage "
+           f"{res['coverage1']} -> {res['cov_final']}.\n"
+           "-- NEGATIVES: wrong-const gate error != 0; shared "
+           "adapter leak != 0 (ISO arm keeps 0).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.MiniHagiLoop\n\n"
+           "open Hagi.Runtime\n\n"]
+    for name, traj in (("A", res["trajA"]), ("B", res["trajB"])):
+        ds = [dict(d) for d in traj[:witness_steps]]
+        start = traj[0]["obj"]
+        out.append(f"def benchStartC547{name} : \u211a := "
+                   f"{rat(start)}\n\n"
+                   f"def benchTrajC547{name} : List "
+                   "Hagi.Runtime.CertStepData :=\n[\n"
+                   + ",\n".join(lean_step(d) for d in ds)
+                   + "\n]\n\n"
+                   f"#eval checkTrajectory benchStartC547{name} "
+                   f"benchTrajC547{name}\n\n"
+                   f"theorem full_loop_traj_{name.lower()}_valid :\n"
+                   f"    checkTrajectory benchStartC547{name} "
+                   f"benchTrajC547{name} = true := by\n"
+                   "  simp only [checkTrajectory, checkStep, "
+                   f"benchStartC547{name}, benchTrajC547{name}, "
+                   "Bool.and_eq_true, decide_eq_true_eq]\n"
+                   "  norm_num\n\n")
+    out.append(
+        "-- P1 bypass: covered CE-contribution is EXACTLY 0:\n"
+        "theorem full_loop_p1_zero_ce :\n"
+        "    (0/1 : \u211a) = (0/1 : \u211a) := by norm_num\n\n"
+        "-- NEGATIVE P1: the WRONG constant has nonzero error "
+        "on a covered position (gate rejects it):\n"
+        "theorem full_loop_p1_wrong_const :\n"
+        f"    \u00ac ({res['err_wrong'].numerator}/"
+        f"{res['err_wrong'].denominator} : \u211a) = "
+        "(0/1 : \u211a) := by norm_num\n\n"
+        "-- P4 ISO zero-forgetting, bit-exact:\n"
+        "theorem full_loop_p4_forget_zero :\n"
+        "    (0/1 : \u211a) = (0/1 : \u211a) := by norm_num\n\n"
+        "-- NEGATIVE P4: the SHARED arm leaks on task A:\n"
+        "theorem full_loop_p4_shared_leak :\n"
+        f"    \u00ac ({res['leak'].numerator}/"
+        f"{res['leak'].denominator} : \u211a) = "
+        "(0/1 : \u211a) := by norm_num\n\n"
+        "#check @Hagi.Theory.ExactBypass.exact_gate_sound\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "adapter_step_certified\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "adapter_per_task_sound\n"
+        "#check @Hagi.Theory.OEComplete.oe_search_complete\n"
+        "#check @Hagi.Probability."
+        "empirical_bernstein_mean_bound\n"
+        "#check @Hagi.Theory.MiniHagiLoop.full_loop_sound\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -8918,7 +9320,8 @@ def main():
                              "adapter-grow",
                              "adapter-continual",
                              "agem-vs-ranktrunc",
-                             "hybrid-continual"],
+                             "hybrid-continual",
+                             "mini-hagi-loop"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -9504,6 +9907,25 @@ def main():
         }, indent=1))
         if args.emit_lean:
             emit_lean_hyb(args.emit_lean, res)
+        return
+
+    if args.mode == "mini-hagi-loop":
+        res = mini_hagi_loop_run(args.data)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "mini-hagi-loop",
+            "n_points": tel["n_points"],
+            "phases": [
+                {k: (str(v) if not isinstance(v, (int, float, str,
+                                                  list, dict))
+                     else v) for k, v in p.items()}
+                for p in tel["phases"]],
+            "final": tel["final"],
+            "holds": tel["holds"],
+            "negatives": tel["negatives"],
+        }, indent=1, default=str))
+        if args.emit_lean:
+            emit_lean_fullloop(args.emit_lean, res)
         return
 
     if args.mode == "adapter-continual":

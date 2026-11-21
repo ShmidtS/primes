@@ -468,6 +468,7 @@ import Hagi.Theory.CertSandwichBench
 import Hagi.Theory.MiniHagi
 import Hagi.Theory.MiniHagi2
 
+import Hagi.Theory.MiniHagiLoop
 set_option linter.style.header false
 
 /-!

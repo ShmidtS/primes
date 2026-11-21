@@ -3864,3 +3864,48 @@ card instances); the main theorems carry the content.
   (6 покрытых p=1 + 4 остаточных p<1): вклад покрытия 0.0,
   total = residual (4.264244, бит-в-бит); негатив p=0 → гейт
   false. Аксиомы: только propext/Quot.sound/Classical.choice.
+
+## Hagi/Theory/MiniHagiLoop.lean (C547: мини-HAGI полный self-improving loop)
+
+- C546 roadmap top-1: ВСЕ certified-компоненты эры в ОДНОМ
+  прогоне bench (`--mode mini-hagi-loop`, real unified_ledger,
+  113 live pts, один трейс, один JSON): P1 exact-bypass (P8) +
+  P2/P3 адаптерный рост с certified-шагами + snap (C521/C532) +
+  P4 continual-изоляция (C544) + P5 OE-поиск примитивов (C540) с
+  EB-гейтом (C539) + P6 метрики. PIN: цель — квантованные
+  tau-цели (snap 1/2); bypass-закон = константа модального
+  bucket, покрытие = точное равенство (Fraction ==), CE-вклад
+  покрытых == 0 бит-в-бит (assert); EB-числа (n_EB vs
+  n_Hoeffding) — float-телеметрия стоимости, решение exact.
+- Теорема `full_loop_sound` — КОМПОЗИЦИОННАЯ обёртка без новых
+  глубоких фактов: под фазовыми гипотезами (дословно посылки
+  компонент) выводит КОНЪЮНКЦИЮ инвариантов: ceSum covered = 0
+  (`exact_gate_sound`), certified-шаг спускается
+  (`adapter_step_certified`), frozen-адаптер — нулевое
+  забывание (`adapter_isolation_zero_forgetting`), OE-дедуп
+  поиск находит obs-эквивалент (`oe_search_complete`), EB-радиус
+  держит валидационное среднее
+  (`empirical_bernstein_mean_bound`). LayerLint: Theory→
+  Probability (прецедент FlowMatching). Аксиомы: только
+  propext/Quot.sound/Classical.choice (ALLAXIOMS PASS, 11939
+  теорем).
+- Таблица фаз (прогон .tmp/C547/bench.log):
+
+| фаза | компонент | результат |
+|------|-----------|-----------|
+| P1 exact bypass | ExactBypass | закон const 3/2: 107/113 (94.7%) покрыто, CE-вклад 0 EXACT |
+| P2 adapter A | AdapterGrowth | 10 certified-шагов, CE(gapA) 4 → 0.1216 |
+| P3 grow + snap | C532/C521 | фича x0·x1, нейтральный вес 0 (obj инвариант ТОЧНО), 6 шагов, CE 0.1214 |
+| P4 continual ISO | C544 | адаптер B: 10 certified-шагов, forgetA = 0 EXACT; SHARED-негатив leak 1.386 |
+| P5 OE + EB | OEComplete + EB | принят примитив const 2 (+5 позиций): 112/113 (99.1%); n_EB 9649 vs n_Hoeffding 10851 (eps=R/128, σ̂=0.139) |
+| P6 метрики | — | 26 certified-шагов, 1 hold, 10 параметров (2 адаптера по 5) |
+
+- Негативи (в прогоне, assert-чувствительность): неверная
+  константа на покрытой позиции — ошибка 1/4 ≠ 0 (гейт
+  отвергает, аналог exact_gate_rejects_zero); drop ≤ 0 — HOLD,
+  состояние не меняется; shared-шаг на A — forgetA > 0.
+- Witness .tmp/C547/trajFullLoop.lean: literal CertStepData
+  траектории (P2/P3, P4) + #eval checkTrajectory = true ×2 +
+  валид-теоремы + P1 zero-CE + негативы (norm_num) + #check
+  всех 5 компонент и full_loop_sound; компилируется (witness
+  rc=0, .tmp/C547/witness-check.log).

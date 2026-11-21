@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 541
-- theorems: 12827
-- defs: 4784
+- modules: 543
+- theorems: 12853
+- defs: 4792
 - noncomputable decls: 1218
-- status Proven: 461 modules
+- status Proven: 463 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -335,6 +335,7 @@ theorems.
 | Hagi.Optimization.NeuronAlloc | 3 | 0 | - | no | Proven |
 | Hagi.Optimization.OptimizerVariants | 49 | 15 | signStep, samW, cautiousMask, norm2, adagradAcc, l2Step, fullGrad, sgn, microGrad | no | Proven |
 | Hagi.Optimization.PLConvergence | 9 | 0 | - | no | Proven |
+| Hagi.Optimization.PolarExpressCert | 18 | 6 | - | no | Proven |
 | Hagi.Optimization.RobbinsMonro | 3 | 0 | - | no | Proven |
 | Hagi.Optimization.SphericalDamping | 7 | 0 | - | no | Proven |
 | Hagi.Optimization.SubspaceGrowth | 6 | 1 | projResidual | no | Proven |
@@ -479,7 +480,7 @@ theorems.
 | Hagi.System.GrowthState | 87 | 201 | growthQuad, witEffects, witState, stageCertificate, witParams, gainJoint, verify, costCompress | yes | Conditional |
 | Hagi.System.StepCertificate | 12 | 17 | bestFeasibleDecrease, toCertStepGen, stepCertificateOfParts, instDecidablePredStepCertificateStepFeasible | no | Proven |
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
-| Hagi.Theory.AdapterGrowth | 25 | 9 | rankSelect, rankScore, adapterStep | no | Proven |
+| Hagi.Theory.AdapterGrowth | 32 | 11 | rankSelect, rankScore, adapterStep | no | Proven |
 | Hagi.Theory.AdaptiveMajorizer | 59 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
@@ -506,6 +507,7 @@ theorems.
 | Hagi.Theory.MergeQuant | 46 | 12 | curvRemainder, quadLoss, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.MiniHagi2 | 3 | 1 | miniHagi2Canonical | no | Proven |
+| Hagi.Theory.MiniHagiLoop | 1 | 0 | - | no | Proven |
 | Hagi.Theory.OEComplete | 8 | 6 | - | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
