@@ -1,6 +1,6 @@
 # PROPOSAL index — HAGI_v2 port packages from primes
 
-Five self-contained proposals for the HAGI_v2 implementation
+Six self-contained proposals for the HAGI_v2 implementation
 agent. Each cites Lean anchors proved and frozen in primes
 (Freeze 8462), a minimal Python diff, sanity numbers, a validation
 criterion, and honest limits. Proposals are mutually independent —
@@ -13,6 +13,7 @@ apply in any order.
 | 3 | [PROPOSAL-fisher-quant.md](PROPOSAL-fisher-quant.md) | C472 | Proposed | Curvature (Fisher/Gershgorin) per-coordinate quantization budgets for the ternary jump and self-edit weight prune: quadratic ΔL ≤ Σ\|g\|ε + ½Σcε², allocation monotone in curvature. |
 | 4 | [PROPOSAL-joint-step.md](PROPOSAL-joint-step.md) | C475 | Proposed | Simultaneous trunk+head certified step CE ≤ −2A²/R² + 2·HL·dd with measured trunk displacement; strict-commit criterion and the joint-vs-alternating window. |
 | 5 | [PROPOSAL-merge-meas.md](PROPOSAL-merge-meas.md) | C476 | Proposed | Measured (δ-gated) expert merge for MDL-prune: linResidualGrid on a rational t-grid replaces the δ-free quadratic gate; negative theorem pins why measurement is mandatory. |
+| 6 | [PROPOSAL-external-plan.md](PROPOSAL-external-plan.md) | C538–C541 | Proposed | The external optimization plan top-4 ported: projected weight decay (leak factor (1−ηλ) exact), Empirical-Bernstein validation radius (27.49× samples), OE hash-consing prune completeness (relative to probes), PROVEN_EXACT bypass with CE = 0 on covered positions (gate rejects p = 0). |
 
 Statuses: SUPERSEDED = replaced by a strictly stronger version
 (kept for history); Proposed = ready for the HAGI_v2 agent,
