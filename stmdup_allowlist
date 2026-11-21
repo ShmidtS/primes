@@ -22,8 +22,3 @@ Hagi.Theory.AdaptiveMajorizer.ceOneHot_next_le_linear_of_zero_var_tight
 # pattern; trunk_traj_drop_pos restates full_traj_drop_pos verbatim
 # (same justification family as the C476 twins).
 Hagi.Theory.TrunkTrain.trunk_traj_drop_pos
-# C488: C487 HoldoutWithoutReplacement.sum_pair_telesc restates
-# the C365 Probability.sum_range_succ_sub_eq telescope verbatim
-# (identical statement hash); deliberate local twin, Theory module
-# kept self-contained. Discovered by STMDUP at C488 re-run.
-Hagi.Theory.HoldoutWithoutReplacement.sum_pair_telesc

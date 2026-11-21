@@ -282,7 +282,6 @@ import Hagi.Unified.SignDescent
 import Hagi.Unified.SignComp
 import Hagi.Unified.RateTheory
 import Hagi.Unified.DescentCore
-import Hagi.Theory.AnytimePACBayes
 import Hagi.Model.MeasurementCert
 import Hagi.Unified.CertifiedTrajectory
 import Hagi.Model.ModelSoup
@@ -372,7 +371,6 @@ import Hagi.Audit.Audit
 import Hagi.Step.NoisyPL
 import Hagi.Semantics.MemorySemantics
 import Hagi.Unified.ParetoExecution
-import Hagi.Theory.TwoDomainConfidence
 import Hagi.Dynamics.ProductiveTransition
 import Hagi.Unified.TransitionCert
 import Hagi.Theory.VerticalCapstone
@@ -449,7 +447,8 @@ import Hagi.Theory.CEChain
 import Hagi.Theory.FisherQuant
 import Hagi.Theory.NonlinearMerge
 import Hagi.Theory.HadamardIncoherence
-import Hagi.Theory.HoldoutRisk
+import Hagi.Theory.Statistics
+import Hagi.Theory.AnytimeHoldoutStop
 import Hagi.Theory.CertCEHoldout
 import Hagi.Theory.CertifyThenCommit
 import Hagi.Theory.FullPipeline
@@ -461,7 +460,6 @@ import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.GrowTrunkBlock
 import Hagi.Theory.AdaptiveMajorizer
-import Hagi.Theory.AnytimeHoldoutStop
 import Hagi.Theory.BlockSmooth
 import Hagi.Theory.Confinement
 import Hagi.Theory.FlowMatching
@@ -484,7 +482,6 @@ import Hagi.Theory.TrainerBenchmark
 import Hagi.Theory.CertSandwichBench
 import Hagi.Theory.MiniHagi
 import Hagi.Theory.MiniHagi2
-import Hagi.Theory.HoldoutWithoutReplacement
 
 set_option linter.style.header false
 

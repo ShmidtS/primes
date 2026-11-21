@@ -1,79 +1,525 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
+import Hagi.Probability.CertifiedEstimator
+import Hagi.Probability.Concentration
 import Hagi.Probability.FreedmanAdaptive
 import Hagi.Probability.Azuma
+import Hagi.Probability.FiniteFamilyConfidence
+import Hagi.Unified.ParetoExecution
+import Hagi.Unified.AnytimeMartingale
+import Mathlib.Tactic
 
 /-!
-# Holdout без возвращения: Serfling-ориентированная концентрация (C487)
+# Statistics — the holdout / anytime canon (W3, C435–C487)
 
-Закрытие последнего статистического пина C435: holdout-сплит —
-выборка БЕЗ возвращения, а формализация `Hagi.Theory.HoldoutRisk`
-покрывала только with-replacement суррогат.
+One line of development, one canonical module. Each statistical
+concept is described ONCE here; the five sections keep their
+historical namespaces so every fully-qualified name is stable.
 
-## Постановка
+* Honest finite-population holdout risk (W3 / C435): a model
+  fixed BEFORE the draw is a loss table; the holdout law is the
+  uniform product law — unbiasedness, Hoeffding concentration,
+  the selection-bias counterexample, and the finite-codebook
+  uniform guarantee (`Hagi.Theory.HoldoutRisk`).
+* Anytime e-process layer (source #71, FormalSLT direction):
+  the Catoni × Ville composition gives time-uniform bounds —
+  the check time may be adaptive (`Hagi.Unified.AnytimePACBayes`).
+* Conditional two-domain confidence transport for guarded
+  selection (`Hagi.Unified.TwoDomainConfidence`).
+* Holdout WITHOUT replacement (C487): the sequential
+  without-replacement kernel, the Doob martingale identity, and
+  the Freedman-adapted concentration with partial fpc credit —
+  strictly better than the with-replacement surrogate under an
+  explicit checkable variance condition
+  (`Hagi.Theory.HoldoutWithoutReplacement`).
+* The anytime holdout admission-stop (C446, the statistics→growth
+  bridge) lives in `Hagi.Theory.AnytimeHoldoutStop`: it consumes
+  `Hagi.Theory.BlockAdmission`, which sits BELOW this canon
+  (`BlockAdmission → CertCEHoldout → Statistics`), so merging it
+  here would create an import cycle — kept separate, names stable.
 
-Популяция — конечный `Ω` (`N = card Ω`); `k ≤ N − 1` точек
-вытягиваются последовательно БЕЗ возвращения: условный закон
-шага `t` после префикса — равномерный на дополнении диапазона
-префикса (`qdWR`).  Траектории с повторами имеют нулевую
-плотность (`densD_zero_of_noninj`), так что индуцированный закон
-первые `k` компонент — в точности равномерная k-выборка без
-возвращения (первые k компонент равномерной перестановки
-`Equiv.Perm Ω`, card = N!; послылка-конструкция, см. пин 2).
-
-## Главные результаты
-
-* `wr_cond_mean_zero` / `wr_cond_range` / `wr_cond_var` —
-  (b) условная мартингальность: приращение
-  `X_{t+1} = c_t·(f(ω_t) − μ_осталось)`, `c_t = (N−k)/(N−1−t)`,
-  условно центрировано, `|X| ≤ 1`, условная дисперсия — точная
-  «гипергеометрическая» формула шага `SS_C/|C|`.
-* `wr_azuma_identity` — тождество Дуба-мартингала: на
-  инъективных траекториях `azumaSum X k ω = Σf(ω_t) − kμ`
-  (мартингал `M_t = Σ_{s<t} f(ω_s) + (k−t)·μ_t`).
-* `holdout_wr_concentration` — (c) ГЛАВНЫЙ:
-  `P[|wrMean − μ| ≥ ε] ≤ 2·exp(−kε²/(2(σ̂²(2N−k)/N + ε)))`
-  — Freedman-адаптированная форма (машина C438): дисперсионный
-  бюджет `σ̂²k(2N−k)/N` с частичным fpc-кредитом масштаба
-  `c_t = (N−k)/(N−1−t)`.
-* `wr_bound_le_with_replacement` — (d) сравнение с C435
-  (with-replacement Hoeffding `2exp(−2kε²)`): без-возвратная
-  граница СТРОЖЕ при явном проверяемом условии
-  `σ̂²(2N−k)/N + ε ≤ 1/4` — например, при малой дисперсии
-  популяции (bench C484: σ̂² ≈ 0.01 ≪ 1/4).
-
-## Честные границы (пины)
-
-1. **Не Serfling.** Точная Serfling-форма
-   `2exp(−2kε²/(1−(k−1)/N))` строже с ростом k/N, но требует
-   ОЖИДАЕМОЙ дисперсии (истинная Var = kσ̂²(N−k)/(N−1));
-   Freedman-машина платит ПОТРАЕКТОРНЫЙ бюджет (worst-case
-   траектория сохраняет SS ≈ Nσ̂²), поэтому равномерной строгости
-   «wr ≤ with-replacement ∀f» нет: при σ̂² → 1/4 наш бюджет до
-   2× хуже. Доказанная форма — variance-adaptive (Hoeffding'63
-   вообще не видит σ̂²) + частичный fpc-кредит; сравнение (d) —
-   условная теорема.
-2. **Равномерность перестановок — посылка-конструкция.**
-   Последовательный закон = закон первых k компонент равномерной
-   перестановки (стандартный факт: каждая инъективная k-строка
-   имеет (N−k)! продолжений и плотность 1/(N)_k; (N−k)!/N! =
-   1/(N)_k). Bridge-лемма в Lean не формализована; концентрация
-   (c) от неё не зависит — она целиком в последовательностной
-   машине.
-3. **k = N исключено** (`k + 1 ≤ N`): при k = N выборка — вся
-   популяция, `wrMean = μ` детерминированно (тривиальный случай);
-   σ̂² > 0 предполагается (при σ̂² = 0, f константна, событие
-   пусто — тоже тривиально).
-4. **Дрейф vs Serfling.** `σ̂²(2N−k)/N ≥ σ̂²`: per-step условная
-  дисперсия без возвращения НЕ меньше with-replacement (выбор из
-  меньшего множества); выигрыш даёт только масштаб c_t и
-  variance-adaptivity.
+Honest pins live in each section; the with-replacement surrogate
+pin of C435 is closed by the C487 section above it.  Layer
+decision: Theory — consumes the `Hagi.Probability` tower
+(CertifiedEstimator / Concentration / Azuma / FreedmanAdaptive),
+`Hagi.Unified.AnytimeMartingale` (Ville) and
+`Hagi.Unified.ParetoExecution`; the bench mode `wrbound` of
+`scripts/bench_bridge.py` consumes this module directly and
+`grow-stop` via `Hagi.Theory.AnytimeHoldoutStop`.
 -/
 
+set_option relaxedAutoImplicit false
 set_option linter.style.header false
 
-open Finset Real
+/-! ## Honest finite-population holdout (C435) — `Hagi.Theory.HoldoutRisk` -/
+
+namespace Hagi.Theory.HoldoutRisk
+
+open Hagi.Probability
+
+variable {Ω : Type} [Fintype Ω] [Nonempty Ω]
+
+/-! ## The finite-population setup -/
+
+/-- Uniform density over the finite population. -/
+noncomputable def popDens (_ω : Ω) : ℝ := (Fintype.card Ω : ℝ)⁻¹
+
+theorem popDens_sum : ∑ ω : Ω, popDens (Ω := Ω) ω = 1 := by
+  have hn : (Fintype.card Ω : ℝ) ≠ 0 :=
+    mod_cast Fintype.card_ne_zero (α := Ω)
+  simp only [popDens, Finset.sum_const, Finset.card_univ]
+  simp [hn]
+
+/-- The `k`-fold holdout law (uniform product) is a probability
+system in the `CertifiedEstimator` sense. -/
+theorem popIsProb {k : ℕ} :
+    IsProbSys (fun _ : Fin k => popDens (Ω := Ω)) := by
+  intro _
+  exact ⟨fun _ => inv_nonneg.mpr (Nat.cast_nonneg _), popDens_sum⟩
+
+/-- Population (true) risk of a fixed model: the uniform mean. -/
+noncomputable def popMean (f : Ω → ℝ) : ℝ := (∑ ω, f ω) / (Fintype.card Ω : ℝ)
+
+/-- Holdout estimate: the mean loss over the `k` sampled points. -/
+noncomputable def holdoutMean {k : ℕ} (f : Ω → ℝ) (ωs : Fin k → Ω) : ℝ :=
+  (∑ i, f (ωs i)) / (k : ℝ)
+
+omit [Nonempty Ω] in
+/-- Every coordinate mean of the uniform product system is the
+population mean. -/
+theorem coordMean_eq_popMean {k : ℕ} (f : Ω → ℝ) (i : Fin k) :
+    coordMean (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) i
+      = popMean f := by
+  simp only [coordMean, popMean, popDens]
+  rw [div_eq_inv_mul, Finset.mul_sum]
+
+omit [Nonempty Ω] in
+theorem coordSum_eq_popMean {k : ℕ} (f : Ω → ℝ) :
+    ∑ i : Fin k, coordMean (fun _ : Fin k => popDens (Ω := Ω))
+        (fun _ => f) i = ((k : ℕ) : ℝ) * popMean f := by
+  rw [Finset.sum_congr rfl (fun i _ => coordMean_eq_popMean f i),
+    Finset.sum_const, Finset.card_univ, Fintype.card_fin]
+  simp
+
+/-! ## (a) Unbiasedness for a fixed model -/
+
+/-- **Holdout unbiasedness** (fixed model): under the uniform holdout
+law, the expected holdout estimate equals the population risk. -/
+theorem holdout_unbiased {k : ℕ} (hk : 0 < k) (f : Ω → ℝ) :
+    prodE (fun _ : Fin k => popDens (Ω := Ω))
+        (fun ωs => holdoutMean f ωs) = popMean f := by
+  have hkr : ((k : ℕ) : ℝ) ≠ 0 := mod_cast ne_of_gt hk
+  have hmarg : ∑ ωs : Fin k → Ω,
+      prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs * ∑ i, f (ωs i)
+      = ∑ i : Fin k, coordMean
+        (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) i := by
+    have hexpand : ∀ ωs : Fin k → Ω,
+        prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs * ∑ i, f (ωs i)
+          = ∑ i, prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs
+              * f (ωs i) := fun ωs => Finset.mul_sum _ _ _
+    rw [Finset.sum_congr rfl (fun ωs _ => hexpand ωs), Finset.sum_comm]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    exact marginal_prodE (fun _ : Fin k => popDens (Ω := Ω)) popIsProb i f
+  calc prodE (fun _ : Fin k => popDens (Ω := Ω))
+          (fun ωs => holdoutMean f ωs)
+      = ∑ ωs : Fin k → Ω,
+          prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs
+            * ((∑ i, f (ωs i)) / (k : ℝ)) := rfl
+    _ = (∑ ωs : Fin k → Ω,
+          prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs
+            * ∑ i, f (ωs i)) / (k : ℝ) := by
+        rw [Finset.sum_congr rfl (fun ωs _ => (mul_div_assoc
+          (prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs)
+          (∑ i, f (ωs i)) ((k : ℝ))).symm)]
+        exact (Finset.sum_div (Finset.univ)
+          (fun ωs => prodDens (fun _ : Fin k => popDens (Ω := Ω)) ωs
+            * ∑ i, f (ωs i)) ((k : ℝ))).symm
+    _ = (((k : ℕ) : ℝ) * popMean f) / (k : ℝ) := by
+        rw [hmarg, coordSum_eq_popMean]
+    _ = popMean f := by simp [hkr]
+
+/-! ## (b) Concentration for a fixed model -/
+
+omit [Nonempty Ω] in
+/-- The deviation event implies the two-sided centered event of
+`hoeffding_two_sided`: `|holdout − pop| ≥ ε` forces the centered sum
+outside `[−kε, kε]` (only this direction is needed for the bound). -/
+theorem holdout_dev_imp {k : ℕ} (hk : 0 < k) (f : Ω → ℝ) (eps : ℝ)
+    (ωs : Fin k → Ω) (hdev : eps ≤ |holdoutMean f ωs - popMean f|) :
+    ((k : ℝ) * eps ≤ centeredSum (fun _ : Fin k => popDens (Ω := Ω))
+            (fun _ => f) ωs
+        ∨ centeredSum (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+            ≤ -((k : ℝ) * eps)) := by
+  have hkpos : (0 : ℝ) < (k : ℝ) := by positivity
+  have hkey : holdoutMean f ωs - popMean f
+      = centeredSum (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+          / (k : ℝ) := by
+    unfold holdoutMean centeredSum
+    rw [coordSum_eq_popMean]
+    field_simp
+  have habs : eps * (k : ℝ) ≤ |centeredSum
+      (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs| := by
+    rw [hkey, abs_div, abs_of_pos hkpos, le_div_iff₀ hkpos] at hdev
+    exact hdev
+  by_cases hcs : 0 ≤ centeredSum
+        (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+  · exact Or.inl (by
+      rw [abs_of_nonneg hcs] at habs
+      linarith)
+  · exact Or.inr (by
+      have hn : centeredSum (fun _ : Fin k => popDens (Ω := Ω))
+          (fun _ => f) ωs < 0 := lt_of_not_ge hcs
+      rw [abs_of_neg hn] at habs
+      linarith)
+
+/-- **Holdout concentration** (fixed model, [0,1] losses): the
+two-sided Hoeffding guarantee at the canonical exponent. -/
+theorem holdout_concentration {k : ℕ} (hk : 0 < k) {f : Ω → ℝ}
+    (hf : ∀ ω, 0 ≤ f ω ∧ f ω ≤ 1) (eps : ℝ) (heps : 0 < eps) :
+    prodPq (fun _ : Fin k => popDens (Ω := Ω))
+        (fun ωs => eps ≤ |holdoutMean f ωs - popMean f|)
+      ≤ concConfidenceTwoSided eps k := by
+  have hmono := prodPq_mono (fun _ : Fin k => popDens (Ω := Ω)) popIsProb
+    (fun ωs => eps ≤ |holdoutMean f ωs - popMean f|)
+    (fun ωs => ((k : ℝ) * eps ≤ centeredSum
+        (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+      ∨ centeredSum (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+        ≤ -((k : ℝ) * eps)))
+    (fun ωs hdev => holdout_dev_imp hk f eps ωs hdev)
+  unfold concConfidenceTwoSided concConfidence
+  have hconv : prodPq (fun _ : Fin k => popDens (Ω := Ω))
+      (fun ωs => ((k : ℝ) * eps ≤ centeredSum
+          (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+        ∨ centeredSum (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ωs
+          ≤ -((k : ℝ) * eps)))
+    = prodPq (fun _ : Fin k => popDens (Ω := Ω))
+      (fun ω => ((k : ℝ) * eps ≤ centeredSum
+          (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ω
+        ∨ centeredSum (fun _ : Fin k => popDens (Ω := Ω)) (fun _ => f) ω
+          ≤ -((k : ℝ)) * eps)) := by
+    refine prodPq_iff _ _ _ fun ωs => ?_
+    constructor
+    · rintro (h | h)
+      · exact Or.inl h
+      · exact Or.inr (by linarith)
+    · rintro (h | h)
+      · exact Or.inl h
+      · exact Or.inr (by linarith)
+  exact hmono.trans ((le_of_eq hconv).trans
+    (hoeffding_two_sided (fun _ : Fin k => popDens (Ω := Ω)) popIsProb
+      (fun _ => f) (fun _ _ => hf _) hk eps heps))
+
+/-! ## (c) Selection bias: the honesty warning (negative theorem) -/
+/-! ## (c) Selection bias: the honesty warning (negative theorem) -/
+
+/-- The two-point counterexample loss: model `j` (of `Fin 2`) has zero
+loss on point `j` and unit loss on the other point. -/
+def twoPointLoss (j ω : Fin 2) : ℝ := if ω = j then 0 else 1
+
+/-- **Population risk of every counterexample model is 1/2** — no
+model in the two-point codebook beats chance on the population. -/
+theorem selection_bias_pop_eq_half (j : Fin 2) :
+    popMean (twoPointLoss j) = 1 / 2 := by
+  unfold popMean twoPointLoss
+  have hcard : (Fintype.card (Fin 2) : ℝ) = 2 := by simp
+  rw [hcard]
+  fin_cases j
+  all_goals simp [Fin.sum_univ_two]
+
+/-- **Selection bias breaks unbiasedness**: with `k = 1`, choosing the
+model AFTER viewing the holdout point (`sel ωs = ωs 0`, which
+minimizes the holdout loss — the selected model has zero loss on the
+observed point) makes the holdout risk of the selected model
+identically ZERO, while its population risk is 1/2
+(`selection_bias_pop_eq_half`).  The expectation of the data-dependent
+holdout estimate is `E[holdoutRisk θ*] = 0 ≠ 1/2 = E[popRisk θ*]` —
+maximal bias; the fixed-`f` premise of `holdout_unbiased` is
+essential. -/
+theorem selection_bias_holdout_eq_zero (ωs : Fin 1 → Fin 2) :
+    holdoutMean (twoPointLoss (ωs 0)) ωs = 0 := by
+  unfold holdoutMean twoPointLoss
+  simp
+
+/-- The full negative statement: the expected holdout risk of the
+holdout-selected model is ZERO while every model's population risk is
+ONE HALF — unbiasedness fails by the maximal margin 1/2. -/
+theorem selection_bias_expected_gap :
+    prodE (fun _ : Fin 1 => popDens (Ω := Fin 2))
+        (fun ωs => holdoutMean (twoPointLoss (ωs 0)) ωs) = 0
+      ∧ ∀ j : Fin 2, popMean (twoPointLoss j) = 1 / 2 :=
+  ⟨by
+    unfold prodE
+    refine Finset.sum_eq_zero fun ωs _ => ?_
+    show prodDens (fun _ : Fin 1 => popDens (Ω := Fin 2)) ωs
+      * holdoutMean (twoPointLoss (ωs 0)) ωs = 0
+    rw [selection_bias_holdout_eq_zero, mul_zero],
+  fun j => selection_bias_pop_eq_half j⟩
+
+/-! ## (d) Uniform guarantee over a finite codebook -/
+
+omit [Nonempty Ω] in
+/-- Both the holdout and the population mean scale linearly, so the
+deviation event for `g` at radius `eps` IS the deviation event for
+`g / B` at radius `eps / B`. -/
+theorem holdout_dev_rescale {k : ℕ} {B : ℝ} (hB : 0 < B) (g : Ω → ℝ)
+    (ωs : Fin k → Ω) (eps : ℝ) :
+    (eps ≤ |holdoutMean g ωs - popMean g|
+      ↔ eps / B ≤ |holdoutMean (fun ω => g ω / B) ωs
+          - popMean (fun ω => g ω / B)|) := by
+  have h1 : holdoutMean (fun ω => g ω / B) ωs
+      = holdoutMean g ωs / B := by
+    rw [holdoutMean, holdoutMean, ← Finset.sum_div, div_div, div_div,
+      mul_comm B ((k : ℝ))]
+  have h2 : popMean (fun ω => g ω / B) = popMean g / B := by
+    rw [popMean, popMean, ← Finset.sum_div, div_div, div_div,
+      mul_comm B ((Fintype.card Ω : ℝ))]
+  have hsub : holdoutMean g ωs / B - popMean g / B
+      = (holdoutMean g ωs - popMean g) / B :=
+    div_sub_div_same (holdoutMean g ωs) (popMean g) B
+  rw [h1, h2, hsub, abs_div, abs_of_pos hB]
+  constructor
+  · intro h
+    rw [le_div_iff₀ hB, mul_comm, mul_div_cancel₀ _ hB.ne']
+    exact h
+  · intro h
+    have h' := (le_div_iff₀ hB).mp h
+    rwa [mul_comm, mul_div_cancel₀ _ hB.ne'] at h'
+
+/-- **Uniform holdout guarantee for a finite codebook**: losses bounded
+by `B > 0`, codebook `Θ` fixed before sampling.  The CEHeldout
+finite-codebook pattern, now with the population-risk tie: every model
+in the codebook is simultaneously within `eps` of its population risk
+except with probability at most `|Θ| · 2·exp(−2k(eps/B)²)`. -/
+theorem holdout_uniform_codebook {Θ : Type} [Fintype Θ] {k : ℕ} (hk : 0 < k)
+    (ℓ : Θ → Ω → ℝ) {B : ℝ} (hB : 0 < B)
+    (hℓ : ∀ θ ω, 0 ≤ ℓ θ ω ∧ ℓ θ ω ≤ B) (eps : ℝ) (heps : 0 < eps) :
+    prodPq (fun _ : Fin k => popDens (Ω := Ω))
+        (fun ωs => ∃ θ : Θ,
+          eps ≤ |holdoutMean (ℓ θ) ωs - popMean (ℓ θ)|)
+      ≤ (Fintype.card Θ : ℝ) * concConfidenceTwoSided (eps / B) k := by
+  -- mono: the raw exist-event implies the scaled exist-event
+  have himp : ∀ ωs : Fin k → Ω,
+      (∃ θ : Θ, eps ≤ |holdoutMean (ℓ θ) ωs - popMean (ℓ θ)|)
+        → ∃ θ : Θ, eps / B ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+            - popMean (fun ω => ℓ θ ω / B)| :=
+    fun ωs ⟨θ, hθ⟩ => ⟨θ, (holdout_dev_rescale hB (ℓ θ) ωs eps).mp hθ⟩
+  have hmono := prodPq_mono (fun _ : Fin k => popDens (Ω := Ω)) popIsProb
+    (fun ωs => ∃ θ : Θ, eps ≤ |holdoutMean (ℓ θ) ωs - popMean (ℓ θ)|)
+    (fun ωs => ∃ θ : Θ, eps / B ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+        - popMean (fun ω => ℓ θ ω / B)|)
+    himp
+  -- bridge to the ∃ ∈ univ form of the union bound
+  have hmono2 := prodPq_mono (fun _ : Fin k => popDens (Ω := Ω)) popIsProb
+    (fun ωs => ∃ θ : Θ, eps / B ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+        - popMean (fun ω => ℓ θ ω / B)|)
+    (fun ωs => ∃ θ ∈ (Finset.univ : Finset Θ), eps / B
+        ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+            - popMean (fun ω => ℓ θ ω / B)|)
+    (fun ωs ⟨θ, hθ⟩ => ⟨θ, Finset.mem_univ θ, hθ⟩)
+  have hunion := prodPq_union_finset
+    (fun _ : Fin k => popDens (Ω := Ω)) popIsProb (Finset.univ : Finset Θ)
+    (fun θ ωs => eps / B
+      ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+          - popMean (fun ω => ℓ θ ω / B)|)
+  -- per-model concentration at the scaled radius
+  have hbound : ∀ θ : Θ,
+      prodPq (fun _ : Fin k => popDens (Ω := Ω))
+          (fun ωs => eps / B
+            ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+                - popMean (fun ω => ℓ θ ω / B)|)
+        ≤ concConfidenceTwoSided (eps / B) k := by
+    intro θ
+    have hunit : ∀ ω : Ω, 0 ≤ ℓ θ ω / B ∧ ℓ θ ω / B ≤ 1 := by
+      intro ω
+      constructor
+      · exact div_nonneg (hℓ θ ω).1 hB.le
+      · exact (div_le_one hB).2 (hℓ θ ω).2
+    exact holdout_concentration (f := fun ω => ℓ θ ω / B) hk hunit
+      (eps / B) (div_pos heps hB)
+  calc prodPq (fun _ : Fin k => popDens (Ω := Ω))
+        (fun ωs => ∃ θ : Θ,
+          eps ≤ |holdoutMean (ℓ θ) ωs - popMean (ℓ θ)|)
+      ≤ prodPq (fun _ : Fin k => popDens (Ω := Ω))
+          (fun ωs => ∃ θ : Θ, eps / B
+            ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+                - popMean (fun ω => ℓ θ ω / B)|) := hmono
+    _ ≤ prodPq (fun _ : Fin k => popDens (Ω := Ω))
+          (fun ωs => ∃ θ ∈ (Finset.univ : Finset Θ), eps / B
+            ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+                - popMean (fun ω => ℓ θ ω / B)|) := hmono2
+    _ ≤ ∑ θ : Θ, prodPq (fun _ : Fin k => popDens (Ω := Ω))
+          (fun ωs => eps / B
+            ≤ |holdoutMean (fun ω => ℓ θ ω / B) ωs
+                - popMean (fun ω => ℓ θ ω / B)|) := hunion
+    _ ≤ ∑ θ : Θ, concConfidenceTwoSided (eps / B) k :=
+          Finset.sum_le_sum fun θ _ => hbound θ
+    _ = (Fintype.card Θ : ℝ) * concConfidenceTwoSided (eps / B) k := by
+          rw [Finset.sum_const, Finset.card_univ]
+          simp
+
+end Hagi.Theory.HoldoutRisk
+
+/-! ## Anytime PAC-Bayes / Ville e-process (source #71) — `Hagi.Unified.AnytimePACBayes` -/
+
+namespace Hagi.Unified.AnytimePACBayes
+
+open MeasureTheory Hagi.Unified
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+  [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
+
+
+/-- Монотонность реальной меры для вероятностных мер. -/
+theorem real_mono_prob {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+    [IsProbabilityMeasure μ] {s t : Set Ω} (h : s ⊆ t) :
+    μ.real s ≤ μ.real t := by
+  have h1 : μ s ≤ μ t := MeasureTheory.measure_mono h
+  have h2 : μ t ≤ (1 : ENNReal) := by
+    have hu : μ Set.univ = 1 := measure_univ
+    calc μ t ≤ μ Set.univ := MeasureTheory.measure_mono (Set.subset_univ t)
+      _ = (1 : ENNReal) := hu
+  have hu : μ Set.univ = 1 := measure_univ
+  have h4 : μ t ≠ ⊤ := by
+    have h : μ t < ⊤ :=
+      lt_of_le_of_lt (le_trans (MeasureTheory.measure_mono (Set.subset_univ t)) hu.le)
+        ENNReal.one_lt_top
+    exact ne_of_lt h
+  exact ENNReal.toReal_mono h4 h1
+
+/-- ANYTIME CATONI: если L_t = exp(λ·S_t − ψ·t) —
+неотрицательный супермартингал с E[L_0] ≤ 1, то с
+вероятностью ≥ 1−δ при ВСЕХ t ≤ n одновременно
+S_t ≤ (ψ·t + log(1/δ))/λ. Time-uniform гарантия: момент
+проверки можно выбирать адаптивно (в т.ч. по данным),
+неравенство держится равномерно. -/
+theorem anytime_catoni {S : ℕ → Ω → ℝ} {lam ψ : ℝ}
+    (hlam : 0 < lam)
+    (L : ℕ → Ω → ℝ)
+    (hL : Supermartingale L 𝒢 μ) (hLnn : 0 ≤ L)
+    (hL0 : (∫ x, L 0 x ∂μ) ≤ 1)
+    (hexp : ∀ t ω, L t ω = Real.exp (lam * S t ω - ψ * t))
+    (δ : ℝ) (hδ : 0 < δ) (n : ℕ) :
+    μ.real {ω | ∃ t ∈ Finset.range (n + 1),
+      (ψ * t + Real.log (1/δ)) / lam < S t ω} ≤ δ := by
+  have hcpos : 0 < 1 / δ := by positivity
+  have hcross := ville_supermartingale hL hLnn n hcpos
+  -- Markov/Ville: Pr[cross] ≤ E[L₀]/(1/δ) ≤ δ
+  have hbound : (∫ x, L 0 x ∂μ) / (1 / δ) ≤ δ := by
+    rw [div_le_iff₀ hcpos]
+    have hdd : δ * (1 / δ) = 1 := by field_simp
+    linarith [hL0, hdd]
+  -- {S_t > threshold} ⊆ {L_t ≥ 1/δ} via strict monotonicity of exp
+  have hsub : {ω | ∃ t ∈ Finset.range (n + 1),
+      (ψ * ↑t + Real.log (1/δ)) / lam < S t ω}
+      ⊆ {ω | ∃ t ∈ Finset.range (n + 1), 1 / δ ≤ L t ω} := by
+    rintro ω ⟨t, ht, hSt⟩
+    refine ⟨t, ht, ?_⟩
+    rw [hexp t ω]
+    rw [div_lt_iff₀ hlam] at hSt
+    have h2 : Real.log (1/δ) < lam * S t ω - ψ * ↑t := by linarith
+    have h3 : 1 / δ < Real.exp (lam * S t ω - ψ * ↑t) := by
+      have h4 : Real.exp (Real.log (1/δ))
+          < Real.exp (lam * S t ω - ψ * ↑t) :=
+        Real.exp_lt_exp.mpr h2
+      rwa [Real.exp_log hcpos] at h4
+    exact le_of_lt h3
+  calc μ.real {ω | ∃ t ∈ Finset.range (n + 1),
+        (ψ * ↑t + Real.log (1/δ)) / lam < S t ω}
+      ≤ μ.real {ω | ∃ t ∈ Finset.range (n + 1), 1 / δ ≤ L t ω} :=
+        real_mono_prob hsub
+    _ ≤ (∫ x, L 0 x ∂μ) / (1 / δ) := hcross
+    _ ≤ δ := hbound
+
+end Hagi.Unified.AnytimePACBayes
+
+/-! ## Two-domain confidence transport — `Hagi.Unified.TwoDomainConfidence` -/
+
+namespace Hagi.Unified.TwoDomainConfidence
+
+open Hagi.Probability
+open Hagi.Probability.FiniteFamilyConfidence
+open Hagi.Unified.ParetoExecution
+open Hagi.Unified.GuardedRobustSelection
+
+open scoped Classical in
+/-- A common union-bound allowance transports old guarded non-regression and
+an observed fixed-family target margin to a strict population-loss gap. -/
+theorem finite_family_two_domain_guarded_improvement
+    {V A : Type} {S : Type*} [Fintype V] [Nonempty V] [Fintype A]
+    {n : ℕ} (law : Fin n → V → ℝ) (hp : IsProbSys law)
+    (p : ControllerProblem A S) [DecidablePred p.safe]
+    (estimate : (Fin n → V) → S → ℝ)
+    (target : A → Fin n → V → ℝ)
+    (h_target : ∀ a i v, 0 ≤ target a i v ∧ target a i v ≤ 1)
+    (s : S) (M C : ℕ) (stay : A) (h0 : stay ∈ feasible p M C)
+    (eps_old eps_target delta : ℝ)
+    (hn : 0 < n) (h_eps_old : 0 < eps_old) (h_eps_target : 0 < eps_target)
+    (h_old : 1 - delta ≤ prodPq law (fun ω => ∀ a,
+      |p.value (p.step a s) - estimate ω (p.step a s)| ≤ eps_old))
+    (h_delta : 2 * (Fintype.card A : ℝ) *
+      Real.exp (-2 * (n : ℝ) * eps_target ^ 2) ≤ delta)
+    (h_observed : ∀ ω a, a ∈ feasible p M C →
+      guardedRobustNext p (estimate ω) eps_old s M C stay h0 = p.step a s →
+      2 * eps_target < empiricalMean (target stay) ω -
+        empiricalMean (target a) ω) :
+    1 - 2 * delta ≤ prodPq law (fun ω =>
+      p.value (p.step stay s) ≤
+        p.value (guardedRobustNext p (estimate ω) eps_old s M C stay h0) ∧
+      ∃ a ∈ feasible p M C,
+        guardedRobustNext p (estimate ω) eps_old s M C stay h0 = p.step a s ∧
+        0 < populationMean law (target stay) - populationMean law (target a)) := by
+  classical
+  let OldGood : (Fin n → V) → Prop := fun ω => ∀ a,
+    |p.value (p.step a s) - estimate ω (p.step a s)| ≤ eps_old
+  let TargetGood : (Fin n → V) → Prop := fun ω => ∀ a,
+    |populationMean law (target a) - empiricalMean (target a) ω| ≤ eps_target
+  let Branches : Bool → (Fin n → V) → Prop := fun b ω =>
+    if b then TargetGood ω else OldGood ω
+  have hTargetConfidence : 1 - delta ≤ prodPq law TargetGood := by
+    have ht := finite_family_abs_error_confidence law hp target h_target hn
+      eps_target h_eps_target
+    dsimp only [TargetGood]
+    calc
+      1 - delta ≤ 1 - 2 * (Fintype.card A : ℝ) *
+          Real.exp (-2 * (n : ℝ) * eps_target ^ 2) := by linarith
+      _ ≤ prodPq law TargetGood := ht
+  have hBranches : ∀ b ∈ (Finset.univ : Finset Bool),
+      1 - delta ≤ prodPq law (Branches b) := by
+    intro b _hb
+    cases b
+    · simpa only [Branches, Bool.false_eq_true, ↓reduceIte] using h_old
+    · simpa only [Branches, ↓reduceIte] using hTargetConfidence
+  have hmain := probable_conclusion law hp (Finset.univ : Finset Bool) Branches
+    (fun ω =>
+      p.value (p.step stay s) ≤
+        p.value (guardedRobustNext p (estimate ω) eps_old s M C stay h0) ∧
+      ∃ a ∈ feasible p M C,
+        guardedRobustNext p (estimate ω) eps_old s M C stay h0 = p.step a s ∧
+        0 < populationMean law (target stay) - populationMean law (target a))
+    delta hBranches (by
+      intro ω hω
+      have hOldGood : OldGood ω := by
+        simpa only [Branches, Bool.false_eq_true, ↓reduceIte] using
+          hω false (Finset.mem_univ false)
+      have hTargetGood : TargetGood ω := by
+        simpa only [Branches, ↓reduceIte] using
+          hω true (Finset.mem_univ true)
+      have hold := guardedRobustNext_quality_ge_stay p (estimate ω) eps_old
+        s M C stay h0 (fun a _ha => hOldGood a)
+      obtain ⟨a, ha, hnext⟩ := guardedRobustNext_exists p (estimate ω) eps_old
+        s M C stay h0
+      refine ⟨hold, a, ha, hnext, ?_⟩
+      have hobs := h_observed ω a ha hnext
+      have hb := abs_le.mp (hTargetGood stay)
+      have haError := abs_le.mp (hTargetGood a)
+      dsimp only [TargetGood] at hTargetGood
+      linarith)
+  simpa only [Finset.card_univ, Fintype.card_bool, Nat.cast_ofNat] using hmain
+
+end Hagi.Unified.TwoDomainConfidence
+
+/-! ## Holdout without replacement: Serfling-oriented concentration (C487) — `Hagi.Theory.HoldoutWithoutReplacement` -/
 
 namespace Hagi.Theory.HoldoutWithoutReplacement
 
@@ -154,16 +600,14 @@ theorem wrIsProbSysD [Nonempty Ω] : IsProbSysD (qdWR (Ω := Ω)) :=
 
 /-! ## Свойства ядра и условные моменты -/
 
-theorem card_image_le (t : ℕ) (pref : Fin t → Ω) :
-    (Finset.image pref Finset.univ).card ≤ t := by
-  have h1 := Finset.card_image_le (f := pref)
-    (s := (Finset.univ : Finset (Fin t)))
-  rwa [Finset.card_univ, Fintype.card_fin] at h1
 
 theorem prefComp_nonempty (t : ℕ) (pref : Fin t → Ω)
     (ht : t < Fintype.card Ω) :
     0 < (prefComp t pref).card := by
-  have h1 : (Finset.image pref Finset.univ).card ≤ t := card_image_le t pref
+  have h1 : (Finset.image pref Finset.univ).card ≤ t := by
+    have h2 := Finset.card_image_le
+      (f := pref) (s := (Finset.univ : Finset (Fin t)))
+    rwa [Finset.card_univ, Fintype.card_fin] at h2
   have h3 : (prefComp t pref).card + (Finset.image pref Finset.univ).card
       = (Finset.univ : Finset Ω).card :=
     Finset.card_sdiff_add_card_eq_card (Finset.subset_univ _)
@@ -288,15 +732,8 @@ theorem densD_zero_of_noninj : ∀ (n : ℕ), n < Fintype.card Ω →
       by_cases hinj : Function.Injective (Fin.init w)
       · -- из ¬inj w и inj (init w): повтор обязан задействовать последний
         have hcls : ∀ i : Fin (n + 1),
-            (∃ j : Fin n, i = j.castSucc) ∨ i = Fin.last n := by
-          intro i
-          by_cases h : i.val < n
-          · exact Or.inl ⟨⟨i.val, h⟩, by ext; simp [Fin.castSucc]⟩
-          · exact Or.inr (by
-              apply Fin.val_inj.mp
-              have hlt := i.isLt
-              simp only [Fin.val_last]
-              omega)
+            (∃ j : Fin n, i = j.castSucc) ∨ i = Fin.last n :=
+          fun i => Fin.eq_castSucc_or_eq_last i
         have hin : ∀ j : Fin n, Fin.init w j = w (j.castSucc) :=
           fun j => rfl
         have hmem : w (Fin.last n) ∈ Finset.image (Fin.init w)
@@ -495,16 +932,6 @@ theorem sum_prefComp_eq (f : Ω → ℝ) (t : ℕ) (pref : Fin t → Ω)
   have hR : ((prefComp t pref).card : ℝ) ≠ 0 := by exact_mod_cast hC
   field_simp
 
-/-- Каждый элемент `Fin (n+1)` — либо castSucc, либо последний. -/
-theorem fin_castSucc_or_last (n : ℕ) (i : Fin (n + 1)) :
-    (∃ j : Fin n, i = j.castSucc) ∨ i = Fin.last n := by
-  by_cases h : i.val < n
-  · exact Or.inl ⟨⟨i.val, h⟩, by ext; simp [Fin.castSucc]⟩
-  · exact Or.inr (by
-      apply Fin.val_inj.mp
-      have hlt := i.isLt
-      simp only [Fin.val_last]
-      omega)
 
 /-- Значения snoc-префикса: новый элемент плюс старые. -/
 theorem mem_image_snoc {t : ℕ} (p : Fin t → Ω) (v u : Ω) :
@@ -513,7 +940,7 @@ theorem mem_image_snoc {t : ℕ} (p : Fin t → Ω) (v u : Ω) :
   constructor
   · intro h
     obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
-    rcases fin_castSucc_or_last t i with ⟨j, hj⟩ | hlast
+    rcases Fin.eq_castSucc_or_eq_last i with ⟨j, hj⟩ | hlast
     · refine Or.inr (Finset.mem_image.mpr ⟨j, Finset.mem_univ _, ?_⟩)
       rw [← hi, hj, Fin.snoc_castSucc]
     · refine Or.inl ?_
@@ -714,18 +1141,6 @@ theorem wr_azuma_identity [Nonempty Ω] (f : Ω → ℝ) {k : ℕ}
 
 /-! ## Дисперсионный бюджет -/
 
-theorem azumaSum_neg (X : ∀ t, (Fin t → Ω) → ℝ) (n : ℕ) (ω : Fin n → Ω) :
-    azumaSum (fun t w => - X t w) n ω = - azumaSum X n ω := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-      have h1 : azumaSum (fun t w => - X t w) (n + 1) ω
-          = azumaSum (fun t w => - X t w) n (fun i => ω i.castSucc)
-            + (- X (n + 1) ω) := rfl
-      have h2 : azumaSum X (n + 1) ω
-          = azumaSum X n (fun i => ω i.castSucc) + X (n + 1) ω := rfl
-      rw [h1, h2, ih]
-      ring
 
 /-- Среднее минимизирует сумму квадратов (на дополнении). -/
 theorem ss_min_mean (f : Ω → ℝ) (t : ℕ) (pref : Fin t → Ω)
@@ -807,7 +1222,10 @@ theorem sigWR_le (f : Ω → ℝ) (k : ℕ) {t : ℕ} [Nonempty Ω]
   have hss := ss_le_pop f t pref
   have hcard : (Fintype.card Ω : ℝ) - (t : ℝ)
       ≤ ((prefComp t pref).card : ℝ) := by
-    have h1 : (Finset.image pref Finset.univ).card ≤ t := card_image_le t pref
+    have h1 : (Finset.image pref Finset.univ).card ≤ t := by
+      have h2 := Finset.card_image_le
+        (f := pref) (s := (Finset.univ : Finset (Fin t)))
+      rwa [Finset.card_univ, Fintype.card_fin] at h2
     have h3 : (prefComp t pref).card + (Finset.image pref Finset.univ).card
       = (Finset.univ : Finset Ω).card :=
       Finset.card_sdiff_add_card_eq_card (Finset.subset_univ _)
@@ -897,12 +1315,6 @@ theorem term_le_pair (A σ B S : ℝ) (hB : 1 ≤ B) (hS : B + 1 = S)
   field_simp
   nlinarith [h1, mul_nonneg hc (by linarith : (0:ℝ) ≤ S + B)]
 
-/-- Телескоп парных разностей: `Σ_{t<k} (g(t+1) − g t) = g k − g 0`. -/
-theorem sum_pair_telesc (g : ℕ → ℝ) (k : ℕ) :
-    ∑ t ∈ Finset.range k, (g (t + 1) - g t) = g k - g 0 := by
-  induction k with
-  | zero => simp
-  | succ n ih => rw [Finset.sum_range_succ, ih]; ring
 
 /-- Телескопная сумма бюджета: Σ_{t<k} c_t²·Nσ̂²/(N−t) ≤ σ̂²·k·(2N−k)/N
 (почленно `1/(s(s−1)²) ≤ 1/(s−1)² − 1/s²`, затем телескоп по
@@ -1194,7 +1606,7 @@ theorem holdout_wr_upper [Nonempty Ω] {f : Ω → ℝ} (hf : ∀ v, 0 ≤ f v �
   have hAz : ∀ ω : Fin k → Ω,
       azumaSum (fun (t : ℕ) (w : Fin t → Ω) => - wrX f k t w) k ω
         = - azumaSum (wrX f k) k ω :=
-    fun ω => azumaSum_neg (wrX f k) k ω
+    fun ω => Hagi.Probability.azumaSum_neg (wrX f k) k ω
   have hmono := probD_mono (qdWR (Ω := Ω)) wrIsProbSysD
     (fun ω => ε ≤ wrMean f ω - wrPopMean f)
     (fun ω => azumaSum (fun (t : ℕ) (w : Fin t → Ω) => - wrX f k t w) k ω

@@ -1437,7 +1437,7 @@ def emit_lean_grow(path, start, traj, reject=None):
 # PIN (gap C445): the C444 grow loop admits blocks on the train-
 # side margin alone; holdout telemetry may DEGRADE with no stop --
 # growth continues while generalization collapses. This mode adds
-# the Ville anytime stop (Hagi/Theory/AnytimeHoldoutStop):
+# the Ville anytime stop (Hagi/Theory/Statistics, AnytimeHoldoutStop section):
 #
 #   e-process  L_t = exp(lam * D_t),  D_t = holdout_t - holdout_0
 #   (accumulated holdout degradation), supermartingale under the
@@ -1618,7 +1618,7 @@ def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
             "exact measured literals, hence the e-value\ncrossed "
             "1/delta (stop_implies_evalue) and admission is "
             "blocked for every later\nblock "
-            "(Hagi.Theory.AnytimeHoldoutStop). -/\n"
+            "(Hagi.Theory/Statistics, AnytimeHoldoutStop section). -/\n"
             "theorem growstop_fired :\n"
             f"    {rat(GS_THRESH)} <= {rat(GS_LAM)} * "
             f"{rat(stop_rec['D'])} := by\n"

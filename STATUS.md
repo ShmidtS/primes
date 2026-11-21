@@ -4736,13 +4736,6 @@ one-hot CE.
   zero-drift the pair is nonvacuous exactly under rank(I) < d.
 
 
-## Hagi/Theory/AnytimePACBayes.lean
-- `anytime_catoni`: при `lam > 0`, неотрицательном супермартингале `L`
-  с `E[L0] ≤ 1`, `L t = exp(lam·S t − ψt)` и `δ > 0` вероятность существования
-  `t ≤ n`, для которого `S t > (ψt + log(1/δ))/lam`, не превосходит `δ`.
-  Условие супермартингала является частью теоремы, а не выводится из формулы `L`.
-
-
 ## Hagi/Research/Legacy/ArchitectureTheorem.lean
 - `entropy_continuity_pinsker`: если уже доказана граница
   `|H(p)−H(q)| ≤ τ log(|V|−1) + h₂(τ)`, а также `0 ≤ τ ≤ 1/2`,
@@ -5622,7 +5615,22 @@ wall-clock, сжатие весов или улучшение качества.
   при `T > 0` цель строго убывает, а `risk(x T) ≤ risk(x0)+T·riskLim`.
 
 
-## Hagi/Theory/TwoDomainConfidence.lean
+## Hagi/Theory/Statistics.lean
+- Канон статистик (v4 T3): HoldoutRisk + AnytimePACBayes +
+  TwoDomainConfidence + HoldoutWithoutReplacement + AnytimeHoldoutStop
+  в одном модуле, исторические namespace'ы и все имена сохранены.
+- `holdout_concentration` (C435): для фиксированной до дров модели
+  `f : Ω → [0,1]`, k > 0: `P[|holdoutMean − popMean| ≥ ε] ≤ 2exp(−2kε²)`;
+  `selection_bias_*` — негатив: выбор модели ПОСЛЕ просмотра holdout
+  ломает несмещённость.
+- `holdout_wr_concentration` (C487): без-возвратная форма
+  `2exp(−kε²/(2(σ̂²(2N−k)/N + ε)))` — Freedman-механика с частичным
+  fpc-кредитом; `wr_bound_le_with_replacement` — строже with-replacement
+  при проверяемом условии `σ̂²(2N−k)/N + ε ≤ 1/4`.
+- `anytime_catoni` (источник №71): time-uniform Catoni×Ville — момент
+  проверки адаптивен; `degradation_detect_anytime`/`grow_stop_sound`
+  (C446): Ville e-process стоп роста с рациональным порогом 1/δ−1,
+  вероятность ложного стопа ≤ δ.
 - `finite_family_two_domain_guarded_improvement`: на конечном product-law
   для `[0,1]`-targets, `n,eps_old,eps_target > 0`,
   при вероятности общей старой ошибки не менее `1−δ`,
@@ -5631,7 +5639,7 @@ wall-clock, сжатие весов или улучшение качества.
   с вероятностью не менее `1−2δ` одновременно выполняются:
   фактическое качество не ниже stay, выбран допустимый представитель,
   а population-loss строго меньше у него, чем у stay.
-- Результат относится к фиксированному семейству и заданному product-law;
+  Результат относится к фиксированному семейству и заданному product-law;
   наблюдаемый margin остаётся посылкой, селектор не использует target
   при выборе действия.
 
