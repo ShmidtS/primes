@@ -477,6 +477,7 @@ import Hagi.Theory.KnobMomentum
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.ContinualBench
 import Hagi.Theory.ContinualMulti
+import Hagi.Theory.GPMRelaxed
 import Hagi.Theory.RationalSoftmax
 import Hagi.Theory.SandwichMonotone
 import Hagi.Theory.TrainerBenchmark
