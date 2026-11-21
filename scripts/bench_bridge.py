@@ -5664,6 +5664,274 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C508: A-GEM vs RANK-TRUNC continual comparison
+# (--mode agem-vs-ranktrunc)
+#
+# The GPM-family empirical closure: BOTH continual mechanisms
+# from C498 (Hagi/Theory/GPMRelaxed.lean) run on the SAME
+# C485 scenario (task A -> task B on the live unified_ledger
+# corpus, exact Fractions) with the SAME phase-1 wA, the SAME
+# B data, step budget, eta and snap grid — the ONLY difference
+# is the step-direction mechanism:
+#
+#   arm rank-trunc (C500 mechanics): keep the top-k
+#     energy-ordered Gram-Schmidt directions of span(A),
+#     k = min k with max_old sigmaTail^2 <= eps^2; delta =
+#     Q_keptcomplement . snap(-eta*g_B); per-step per-old-input
+#     assert |delta.x|^2 <= ||delta||^2 * sigmaTail^2
+#     (the bench form of rank_trunc_forgetting_bound).
+#
+#   arm A-GEM (C498 agemStep, canonical per-step memory
+#     gradient g_old = grad_A(w)): the step is FREE when
+#     <g, g_old> >= 0; on conflict the direction is one
+#     Gram-Schmidt iteration d = g - (<g,g_old>/<g_old,g_old>)*
+#     g_old with the EXACT assert d . g_old >= 0 (the live
+#     instance of agem_step_nonneg_interf); the applied snapped
+#     step is delta = snap(-eta*d).
+#
+# Both arms: admission ONLY by the MEASURED canonical drop > 0
+# on task B (certified trace, guarded rollback HOLD otherwise).
+# Honest telemetry: loss_A drift is MEASURED (may be negative —
+# improvement — or positive; snapping can break the pre-snap
+# first-order guarantee, the report never claims otherwise).
+
+AGN_EPS = F(1, 10)      # rank-trunc tolerance (C500 PIN)
+AGN_STEPS = 24          # PIN: probe-measured — at 6 steps the
+                        # A-GEM conflict branch never fires; 24
+                        # fires conflicts with interference
+                        # exactly 0 (the honest differentiator)
+
+
+def agn_agem_step(g, g_old, d):
+    """Exact-Fraction agemStep (C498 def): free when
+    <g, g_old> >= 0, else one Gram-Schmidt iteration.
+    Returns (direction, conflict_flag)."""
+    dot = sum((g[i] * g_old[i] for i in range(d)), F(0))
+    if dot >= 0:
+        return list(g), False
+    gg = sum((g_old[i] * g_old[i] for i in range(d)), F(0))
+    return [g[i] - dot / gg * g_old[i] for i in range(d)], True
+
+
+def agn_run(ledger_path, steps=AGN_STEPS):
+    """C508: phase 1 on A (shared), phase 2 on B by BOTH
+    continual mechanisms; per-arm certified trajectories and
+    the honest comparison table."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    A, B = cl_split(pts)
+    d = CL_D
+    basis = cl_gs_basis([x for x, _ in A])
+    assert 0 < len(basis) < d, \
+        "ABORT: need 0 < rank(span A) < 4 (few-shot PIN)"
+
+    # phase 1 (shared by both arms — fairness)
+    traj1, tel1, wA = cl_certified_loop([F(0)] * d, A, B,
+                                        CL_STEPS)
+    lossA_after1 = cl_mse(wA, A)
+    mseB0 = cl_mse(wA, B)
+
+    # ---------- arm 1: rank-trunc relaxed GPM (C500) ----------
+    r = len(basis)
+    energy = [sum((sum((b[i] * x[i] for i in range(d)), F(0))
+                   ** 2 for x, _ in A), F(0)) for b in basis]
+    order = sorted(range(r), key=lambda j: energy[j],
+                   reverse=True)
+    kept_for, tail2max = {}, []
+    for k in range(r + 1):
+        kept_for[k] = [basis[j] for j in order[:k]]
+        tail2max.append(max(
+            [sum((t * t for t in mh3_resid(x, kept_for[k], d)),
+                 F(0)) for x, _ in A] + [F(0)]))
+    kmin = next((k for k in range(r)
+                 if tail2max[k] <= AGN_EPS ** 2), None)
+    assert kmin is not None, \
+        "ABORT: no k < rank within eps-budget on live corpus"
+    Qk = cl_complement_projector(kept_for[kmin])
+
+    w = list(wA)
+    rt_raw, rt_holds, rt_relaxed = [], [], 0
+    rt_max_forget_out = F(0)
+    for _ in range(steps):
+        g = cl_grad(w, B)
+        delta = cl_apply(Qk, cl_snap([-CL_ETA * t for t in g]))
+        cand = [w[i] + delta[i] for i in range(d)]
+        nrm2 = sum((t * t for t in delta), F(0))
+        for x, _ in A:        # rank_trunc_forgetting_bound
+            tail = mh3_resid(x, kept_for[kmin], d)
+            tail2 = sum((t * t for t in tail), F(0))
+            dx = sum((delta[i] * x[i] for i in range(d)), F(0))
+            assert dx * dx <= nrm2 * tail2, \
+                "ABORT: rank-trunc forgetting bound violated"
+            if abs(dx) > rt_max_forget_out:
+                rt_max_forget_out = abs(dx)
+        o0, o1 = cl_mse(w, B), cl_mse(cand, B)
+        if o1 < o0:
+            rt_raw.append({"obj": o0, "obj'": o1,
+                           "drop": o0 - o1,
+                           "risk": cl_mse(w, A),
+                           "risk'": cl_mse(cand, A)})
+            if any(delta):
+                rt_relaxed += 1
+            w = cand
+        else:
+            rt_holds.append({"drop": o0 - o1,
+                             "reason": "drop <= 0: HOLD "
+                                       "(rank-trunc arm)"})
+    rt_forget = cl_mse(w, A) - lossA_after1
+    rt_progress = sum((s["drop"] for s in rt_raw), F(0))
+
+    # ---------- arm 2: A-GEM (C498 agemStep) ----------
+    w = list(wA)
+    ag_raw, ag_holds = [], []
+    conflicts, free_steps = 0, 0
+    conflict_interf = []          # d . g_old on conflicts (>= 0)
+    for _ in range(steps):
+        g = cl_grad(w, B)
+        g_old = cl_grad(w, A)
+        dd, conflict = agn_agem_step(g, g_old, d)
+        if conflict:
+            conflicts += 1
+            interf = sum((dd[i] * g_old[i] for i in range(d)),
+                         F(0))
+            assert interf >= 0, \
+                "ABORT: agemStep interference < 0 (theorem " \
+                "violated)"
+            conflict_interf.append(interf)
+        else:
+            free_steps += 1
+        delta = cl_snap([-CL_ETA * t for t in dd])
+        cand = [w[i] + delta[i] for i in range(d)]
+        o0, o1 = cl_mse(w, B), cl_mse(cand, B)
+        if o1 < o0:
+            ag_raw.append({"obj": o0, "obj'": o1,
+                          "drop": o0 - o1,
+                          "risk": cl_mse(w, A),
+                          "risk'": cl_mse(cand, A)})
+            w = cand
+        else:
+            ag_holds.append({"drop": o0 - o1,
+                             "reason": "drop <= 0: HOLD "
+                                       "(A-GEM arm)"})
+    ag_forget = cl_mse(w, A) - lossA_after1
+    ag_progress = sum((s["drop"] for s in ag_raw), F(0))
+
+    # ---------- certify both trajectories (C485 form) ----------
+    for name, raw in (("rank-trunc", rt_raw), ("agem", ag_raw)):
+        assert raw, f"ABORT: {name} arm committed no steps"
+        n = len(raw)
+        for t, dd_ in enumerate(raw):
+            dd_["budget"] = F(n - t) / n
+            dd_["budget'"] = F(n - t - 1) / n
+            if not check_step(dd_):
+                sys.exit(f"ABORT: {name} step {t} failed "
+                         f"certified admission: {dd_}")
+        for a, b in zip(raw, raw[1:]):
+            assert a["obj'"] == b["obj"], \
+                f"ABORT: {name} obj chain broken"
+
+    return {
+        "n_points": len(pts), "n_A": len(A), "n_B": len(B),
+        "rankA": r, "steps": steps, "eps": str(AGN_EPS),
+        "phase1": {"n_steps": len(traj1),
+                   "lossA_after": str(lossA_after1)},
+        "rank_trunc": {
+            "k": kmin, "rank": r,
+            "tail2max_by_k": [str(t) for t in tail2max],
+            "committed": len(rt_raw), "holds": len(rt_holds),
+            "relaxed_steps": rt_relaxed,
+            "B_progress": str(rt_progress),
+            "B_progress_float": float(rt_progress),
+            "forgetA": str(rt_forget),
+            "forgetA_float": float(rt_forget),
+            "max_forget_out": str(rt_max_forget_out),
+            "traj": rt_raw, "holds_detail": rt_holds},
+        "agem": {
+            "committed": len(ag_raw), "holds": len(ag_holds),
+            "conflicts": conflicts, "free_steps": free_steps,
+            "conflict_interference_min": (
+                str(min(conflict_interf))
+                if conflict_interf else "n/a (no conflicts)"),
+            "B_progress": str(ag_progress),
+            "B_progress_float": float(ag_progress),
+            "forgetA": str(ag_forget),
+            "forgetA_float": float(ag_forget),
+            "traj": ag_raw, "holds_detail": ag_holds},
+        "mseB0": str(mseB0),
+    }
+
+
+def emit_lean_agn(path, res, witness_steps=3):
+    """C508 witness: both arm trajectories (prefix, header
+    documents FULL counts) + #eval x2 + valid theorems +
+    negative control (inflated last AGEM drop -> false) +
+    #check of the two C498 theorems the arms instantiate."""
+    blocks = [("RT", res["rank_trunc"]["traj"]),
+              ("AG", res["agem"]["traj"])]
+    starts = {"RT": blocks[0][1][0]["obj"],
+              "AG": blocks[1][1][0]["obj"]}
+    out = ["-- C508 A-GEM vs rank-trunc continual witness "
+           "(real unified_ledger data).\n"
+           f"-- shared phase-1 wA (lossA {res['phase1']['lossA_after']}); "
+           "FULL accepted steps: "
+           f"rank-trunc={len(blocks[0][1])}, "
+           f"agem={len(blocks[1][1])}; first "
+           f"{witness_steps} machine-checked prefixes below.\n"
+           "-- arms differ ONLY in the step-direction "
+           "mechanism (same wA, B data, steps, eta, grid).\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.GPMRelaxed\n\n"
+           "open Hagi.Runtime\n\n"]
+    for name, traj in blocks:
+        ds = [dict(d) for d in traj[:witness_steps]]
+        out.append(
+            f"def benchStartC508{name} : \u211a := "
+            f"{rat(starts[name])}\n\n"
+            f"def benchTrajectoryC508{name} : List "
+            "Hagi.Runtime.CertStepData :=\n[\n"
+            + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            f"#eval checkTrajectory benchStartC508{name} "
+            f"benchTrajectoryC508{name}\n\n"
+            f"theorem agn_traj_{name.lower()}_valid :\n"
+            f"    checkTrajectory benchStartC508{name} "
+            f"benchTrajectoryC508{name} = true := by\n"
+            "  set_option linter.unusedSimpArgs false in\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStartC508{name}, "
+            f"benchTrajectoryC508{name}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n\n")
+    # negative: inflated last AGEM drop -> checker rejects
+    bad = [dict(d) for d in blocks[1][1][:witness_steps]]
+    bad[-1]["drop"] = bad[-1]["drop"] + F(1)
+    out.append(
+        "def benchStartC508AGBad : \u211a := "
+        f"{rat(starts['AG'])}\n\n"
+        "def benchTrajectoryC508AGBad : List "
+        "Hagi.Runtime.CertStepData :=\n[\n"
+        + ",\n".join(lean_step(d) for d in bad)
+        + "\n]\n\n"
+        "#eval checkTrajectory benchStartC508AGBad "
+        "benchTrajectoryC508AGBad\n\n"
+        "theorem agn_traj_ag_invalid :\n"
+        "    checkTrajectory benchStartC508AGBad "
+        "benchTrajectoryC508AGBad = false := by\n"
+        "  set_option linter.unusedSimpArgs false in\n"
+        "  simp only [checkTrajectory, checkStep, "
+        "benchStartC508AGBad, benchTrajectoryC508AGBad, "
+        "Bool.and_eq_true, decide_eq_true_eq]\n"
+        "  norm_num\n\n")
+    out.append("#check @Hagi.Theory.GPMRelaxed."
+               "agem_step_nonneg_interf\n"
+               "#check @Hagi.Theory.GPMRelaxed."
+               "rank_trunc_forgetting_bound\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode",
@@ -5674,7 +5942,8 @@ def main():
                              "continual", "continual-multi",
                              "wrbound", "cert-sandwich", "mini-hagi",
                              "mini-hagi2", "mini-hagi3",
-                             "mini-hagi4", "mini-hagi5", "vs-trainer"],
+                             "mini-hagi4", "mini-hagi5", "vs-trainer",
+                             "agem-vs-ranktrunc"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -5983,6 +6252,71 @@ def main():
         }, indent=1))
         if args.emit_lean:
             emit_lean_contm(args.emit_lean, res)
+        return
+
+    if args.mode == "agem-vs-ranktrunc":
+        res = agn_run(
+            args.data, args.steps if args.steps is not None
+            else AGN_STEPS)
+        print(json.dumps({
+            "mode": "agem-vs-ranktrunc",
+            "n_points": res["n_points"],
+            "n_taskA": res["n_A"], "n_taskB": res["n_B"],
+            "rank_spanA": res["rankA"], "steps": res["steps"],
+            "eps_rank_trunc": res["eps"],
+            "model": "linear head w in Q^4 (C485 scenario), "
+                     "same wA / B data / steps / eta / grid "
+                     "for both arms; ONLY the step-direction "
+                     "mechanism differs",
+            "guarantee": "per-arm admission ONLY by MEASURED "
+                         "drop > 0 on B (guarded rollback); "
+                         "rank-trunc: per-step per-old-input "
+                         "assert |delta.x|^2 <= ||delta||^2 * "
+                         "sigmaTail^2 (rank_trunc_forgetting_"
+                         "bound); A-GEM: per-conflict assert "
+                         "d . g_old >= 0 (agem_step_nonneg_"
+                         "interf); loss_A drift is MEASURED "
+                         "telemetry (snapping may break the "
+                         "pre-snap first-order guarantee)",
+            "phase1": res["phase1"],
+            "arms": {
+                "rank_trunc": {k: v for k, v in
+                               res["rank_trunc"].items()
+                               if k not in ("traj",
+                                            "holds_detail")},
+                "agem": {k: v for k, v in res["agem"].items()
+                         if k not in ("traj", "holds_detail")}},
+            "comparison_table": {
+                "columns": ["B_progress", "forgetA",
+                            "projections", "committed",
+                            "holds"],
+                "rank_trunc": {
+                    "B_progress": res["rank_trunc"][
+                        "B_progress"],
+                    "forgetA": res["rank_trunc"]["forgetA"],
+                    "projections": res["rank_trunc"][
+                        "relaxed_steps"],
+                    "committed": res["rank_trunc"]["committed"],
+                    "holds": res["rank_trunc"]["holds"]},
+                "agem": {
+                    "B_progress": res["agem"]["B_progress"],
+                    "forgetA": res["agem"]["forgetA"],
+                    "projections": res["agem"]["conflicts"],
+                    "committed": res["agem"]["committed"],
+                    "holds": res["agem"]["holds"]}},
+            "holds_detail": {
+                "rank_trunc": res["rank_trunc"][
+                    "holds_detail"],
+                "agem": res["agem"]["holds_detail"]},
+            "trajectory_rank_trunc": [
+                {k: str(v) for k, v in d.items()}
+                for d in res["rank_trunc"]["traj"]],
+            "trajectory_agem": [
+                {k: str(v) for k, v in d.items()}
+                for d in res["agem"]["traj"]],
+        }, indent=1))
+        if args.emit_lean:
+            emit_lean_agn(args.emit_lean, res)
         return
 
     if args.mode == "continual":

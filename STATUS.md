@@ -6867,3 +6867,36 @@ grow_blocks_obj_invariant_repeat (congrArg). Witness
 3 шага, шапка честная: полные дроби depth-5 ~10^5 знаков
 непереносимы в Lean) + негатив = false. Regression mini-hagi4/
 mini-hagi3 идентичны (exit 0). Freeze 8589+2.
+
+## A-GEM vs rank-trunc continual comparison (C508)
+
+Roadmap C505 (5): GPM-семья замкнута эмпирически — ОБА
+continual-механизма C498 на ОДНОМ сценарии C485 (задача A →
+задача B на живом unified_ledger, 46 точек, ранг span(A)=2 из
+dim 4). `scripts/bench_bridge.py --mode agem-vs-ranktrunc`
+(backward-совместимо; единственное различие рукавов — механизм
+направления шага; общие wA/B-данные/бюджет 24 шага/eta/сетка):
+rank-trunc GPM (C500-механика: k = min k с max_old sigmaTail² ≤
+ε²=1/100, измерено k=1 < rank 2; per-step per-old-input exact
+assert (delta·x)² ≤ ‖delta‖²·sigmaTail² — bench-форма
+rank_trunc_forgetting_bound) vs A-GEM (C498 agemStep: свободный
+шаг при ⟨g,g_old⟩ ≥ 0, при конфликте одна GS-итерация с exact
+assert d·g_old ≥ 0 — живой экземпляр agem_step_nonneg_interf).
+Обе — certified (admission ТОЛЬКО по measured drop > 0 на B,
+guarded rollback). Итог (точные Fractions): A-GEM B-прогресс
+0.2667, forgetA −0.140 (улучшение A как сторонний эффект —
+честная телеметрия), 18 конфликтов/24 шага, все с
+interference РОВНО 0; rank-trunc B-прогресс 0.0499, forgetA
+−0.0013, 24 проекций/24 шага; HOLD 0 у обоих. Интерпретация:
+при РЕДКИХ конфликтах A-GEM дешевле и быстрее (свободные шаги,
+полный градиент); при исчерпании span (C494-тупик full-GPM)
+ранк-усечение — единственный выход; на этом сценарии конфликт
+B↔A редок у старта и становится нормой (18/24) — проекция
+A-GEM не уничтожает прогресс (0.267 > 0.050), но и не даёт
+per-point bound забывания (только first-order 0). Witness
+.tmp/C508/trajAgnVsRt.lean: #eval ×2 = true + негатив = false
+(simp+norm_num), #check agem_step_nonneg_interf +
+rank_trunc_forgetting_bound. Freeze 8591 без изменений (нет
+новых Hagi.* деклараций). Известное пре-существующее:
+--mode continual падает на живом корпусе (нет smoke_gpu.bin в
+rd_load_dataset, воспроизведено на HEAD C507 до коммита).
