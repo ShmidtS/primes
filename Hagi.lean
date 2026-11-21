@@ -58,8 +58,6 @@ import Hagi.Budget.WaterFilling
 import Hagi.Pretraining.Dust
 import Hagi.Pretraining.ProbeError
 import Hagi.Pretraining.RobustnessLaw
-import Hagi.Pretraining.DustAlign
-import Hagi.Pretraining.DustMeasure
 import Hagi.Math.Foundations.StageCalculus
 import Hagi.Unified.CostComposition
 import Hagi.Theory.Compression
@@ -212,7 +210,6 @@ import Hagi.Architecture.LiveDelta
 import Hagi.Step.LiveDeltaSafe
 import Hagi.Growth.Thermostat
 import Hagi.State.MemoryCycle
-import Hagi.Numerics.QuantSafeUpdate
 import Hagi.Unified.LiveDeltaCycle
 import Hagi.Probability.PMFBridge
 import Hagi.Probability.Substrate
@@ -314,7 +311,6 @@ import Hagi.Semantics.CanonicalParams
 import Hagi.Unified.LinkedQVec
 import Hagi.Training.ExecutedCert
 import Hagi.Unified.CertifiedLoop
-import Hagi.Unified.CertifiedLoopKernel
 import Hagi.Unified.StochasticLoop
 import Hagi.Unified.StochasticCELearning
 import Hagi.Unified.EmpiricalPremises
@@ -344,7 +340,7 @@ import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.RobbinsMonro
 import Hagi.Probability.MirrorHedgeMWU
 import Hagi.Optimization.MirrorHedge
-import Hagi.Numerics.SoftmaxFix
+import Hagi.Numerics.Numerics
 import Hagi.Planning.Imagination
 import Hagi.Geometry.SphericalSimplex
 import Hagi.Ensemble.UniformCert

@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Hagi.Probability.Freedman
-import Hagi.Unified.CertifiedLoopKernel
+import Hagi.Unified.CertifiedLoop
 
 /-!
 # StochasticLoop — стохастический certified loop через ядерный адаптер (C353)

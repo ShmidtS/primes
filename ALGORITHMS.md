@@ -2756,7 +2756,7 @@ C260 — сертификат перестаёт быть периферийны
   L_i(y_i) − H(y) не зависит от a. Числовой якорь Fin 2 × Bool:
   LF_0(t)=3, LF_0(f)=0, H(t,t)=5, H(f,t)=2 — обе ветви (probe C266).
 - SHIFT-ИНВАРИАНТНОСТЬ (аудит-пин): лемма «softmax от константного
-  сдвига» в Prelude/Concat/SoftmaxFix ОТСУТСТВУЕТ (проверено rg) —
+  сдвига» в Prelude/Concat/Numerics ОТСУТСТВУЕТ (проверено rg) —
   добавлены минимальные приватные `softDef_add_const` /
   `ceOneHot_add_const` в новом файле (additive; Prelude не тронут).
   Следствия: `conditionalDist_eq_localField_softmax` —

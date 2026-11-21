@@ -3563,7 +3563,7 @@ one-hot CE.
   спада величине `1/66` не утверждается.
 
 
-## Hagi/Numerics/SoftmaxFix.lean
+## Hagi/Numerics/Numerics.lean (вкл. SoftmaxFix, слит C526)
 - `ce_grad_sum_zero`: для нормированной `p`
   `Σ(softDef z-p)=0`; `distill_grad_self_zero` обнуляет остаток при
   `zS=zT`.
@@ -3937,13 +3937,13 @@ one-hot CE.
 - В этом файле доказан случай двух выборок, а не общий закон `1/K` и не общая K-ошибка выравнивания.
 
 
-## Hagi/Pretraining/DustAlign.lean
+## Hagi/Pretraining/Dust.lean (вкл. DustAlign, слит C526)
 - `hcVarK`: для центрированного скалярного поля и `K > 0` средний квадрат среднего по `K` независимым точкам куба равен одношаговому среднему квадрату, делённому на `K`. `dustVarK` доказывает такое же точное тождество для суммы квадратов координатной ошибки `esEst`, а `dustVarK_expQ` записывает его через `Probability.expQ`.
 - `dustAlignmentK`: при `K > 0`, `0 < δ ≤ 1` и положительной норме `quadfGrad` масса `prodQ` траекторий с `(1-2δ)*Nrm(g)*Nrm(ĝ_K) ≤ g ⬝ᵥ ĝ_K` не меньше `1 - (V/K)/(δ*Nrm(g))^2`, где `V` — одношаговая сумма квадратов ошибки.
 - Это конечная вероятностная оценка скалярного произведения и норм, а не утверждение о сходимости обучения.
 
 
-## Hagi/Pretraining/DustMeasure.lean
+## Hagi/Pretraining/Dust.lean (вкл. DustMeasure, слит C526)
 - `rademacherLaw` получает вероятностную меру честного булева произведения; `rademacher_expect_sign` и `rademacher_projection_mean` дают нулевые средние знака и проекции шума.
 - `rademacher_projection_independent` доказывает независимость проекций по координатам `j : Fin m` для фиксированных эксперта `i` и направления `d`, с отдельными результатами измеримости.
 - Если каждое `u i` имеет единичную норму, `rademacherNoise_norm_le_one` даёт `‖rademacherNoise u i j ω‖ ≤ 1`. Независимость между экспертами или моментами времени не вводится.
@@ -5400,7 +5400,7 @@ one-hot CE.
   предикат; это не физическая гарантия и не минимум вне заданного семейства.
 
 
-## Hagi/Numerics/QuantSafeUpdate.lean
+## Hagi/Numerics/Numerics.lean (вкл. QuantSafeUpdate, слит C526)
 - `quantized_safe_window`: при `L i,eps i,eta ≥ 0`, идеальном окне,
   `‖δ‖ ≤ q` и линейной оценке возмущённого шага получается
   `dL i ≤ eps i + eta‖g i‖q + L i·eta²(‖d‖q+q²/2)` для всех `i`.
@@ -5865,7 +5865,7 @@ merger cert carriers (Freeze-дисциплина: statement change).
   `stepCert_to_bounded_to_exact_budgetBound` (заявленная трата ≤
   дефинициональной). Полное поглощение S3 — следующий бит (QW4/5).
 
-## Hagi/Unified/CertifiedLoopKernel.lean — капстон на ядре (C345, A14 QW4+QW5)
+## Hagi/Unified/CertifiedLoop.lean (вкл. CertifiedLoopKernel, слит C526) — капстон на ядре (C345, A14 QW4+QW5)
 
 - `certified_loop_kernel` — КАПСТОН НА ЯДРЕ: bounded-цепь
   `CertStepGenBounded` с ПРОИЗВОЛЬНЫМ TaskId (жёсткий `Fin 5`

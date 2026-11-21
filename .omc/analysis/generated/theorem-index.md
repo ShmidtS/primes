@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 539
-- theorems: 12754
+- modules: 535
+- theorems: 12750
 - defs: 4722
 - noncomputable decls: 1213
-- status Proven: 459 modules
+- status Proven: 455 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -319,8 +319,7 @@ theorems.
 | Hagi.Model.SpecDecoding | 15 | 4 | anchorSeq | no | Proven |
 | Hagi.Model.StageSemantics | 128 | 41 | wS0, wU2, growInput, growSeq, wTraj, growTraj, wU1, wTraj2, wU0 | no | Proven |
 | Hagi.Model.TanhCEStep | 25 | 3 | tanhJacobian, tanhEmbedding, tanhModel | no | Proven |
-| Hagi.Numerics.QuantSafeUpdate | 9 | 0 | - | no | Proven |
-| Hagi.Numerics.SoftmaxFix | 30 | 2 | expTilt, logitMargin | no | Proven |
+| Hagi.Numerics.Numerics | 39 | 2 | expTilt, logitMargin | no | Proven |
 | Hagi.Optimization.AdaptiveCycle | 2 | 0 | - | no | Proven |
 | Hagi.Optimization.Checkpoint | 2 | 0 | - | no | Proven |
 | Hagi.Optimization.ComputeScaling | 11 | 0 | - | no | Proven |
@@ -340,9 +339,7 @@ theorems.
 | Hagi.Optimization.SphericalDamping | 7 | 0 | - | no | Proven |
 | Hagi.Optimization.SubspaceGrowth | 6 | 1 | projResidual | no | Proven |
 | Hagi.Planning.Imagination | 6 | 0 | - | yes | Conditional |
-| Hagi.Pretraining.Dust | 19 | 6 | esEst, hcAvg | no | Proven |
-| Hagi.Pretraining.DustAlign | 62 | 3 | pairQ, Nrm, prodQ | no | Proven |
-| Hagi.Pretraining.DustMeasure | 12 | 3 | rademacherLaw, fairBoolMeasure | no | Proven |
+| Hagi.Pretraining.Dust | 91 | 12 | pairQ, Nrm, rademacherLaw, esEst, hcAvg, prodQ, fairBoolMeasure | no | Proven |
 | Hagi.Pretraining.ProbeError | 104 | 14 | boundedProbeOptimalStep, probeGridRound, noisyCentralCubicProbe, gridCentralCubicProbe, centralCubicProbe, probeCubicEnergy, mlpResidual, probeQuadraticEnergy, probeOptimalStep, probeCost, forwardQuadraticProbe, probeCubicGrad, centralQuadraticProbe | yes | Conditional |
 | Hagi.Pretraining.RobustnessLaw | 8 | 0 | - | no | Proven |
 | Hagi.Pretraining.Speedrun | 15 | 1 | ceLogit | no | Proven |
@@ -528,8 +525,7 @@ theorems.
 | Hagi.Training.TransitionCert | 22 | 37 | - | no | Proven |
 | Hagi.Unified.AnytimeMartingale | 32 | 0 | - | yes | Empirical |
 | Hagi.Unified.CandidateConfig | 16 | 20 | - | no | Proven |
-| Hagi.Unified.CertifiedLoop | 27 | 17 | - | no | Proven |
-| Hagi.Unified.CertifiedLoopKernel | 46 | 18 | anchorB, anchorObj, anchorW, anchorKm, anchorStep1, anchorStep0, anchorChain, anchorObl | no | Proven |
+| Hagi.Unified.CertifiedLoop | 71 | 35 | anchorB, anchorStep0, anchorStep1, anchorObl, anchorObj, anchorW, anchorKm, anchorChain | no | Proven |
 | Hagi.Unified.CertifiedTrajectory | 2 | 0 | - | no | Proven |
 | Hagi.Unified.CommitGate | 16 | 20 | gateDecision, toCertStepGen, instDecidableGate | no | Proven |
 | Hagi.Unified.CostComposition | 13 | 2 | - | no | Proven |

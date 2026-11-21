@@ -139,7 +139,7 @@ section Shift
 
 Audit note (C266 plan, challenge 1): NO softmax/CE const-shift
 lemma exists in the Prelude (`InfoCore`), `Core.Concat`, or
-`Numerics.SoftmaxFix` — only `softDef_pos`, `softDef_sum_one`,
+`Numerics.Numerics` — only `softDef_pos`, `softDef_sum_one`,
 `softDef_eq_exp_sub_lse`, `temperature_*`. These two minimal
 companions are PRIVATE to this file to keep the addition
 additive (no existing module touched). -/

@@ -1,4 +1,4 @@
-import Hagi.Unified.CertifiedLoopKernel
+import Hagi.Unified.CertifiedLoop
 
 /-!
 # Comparator-Challenge v4 (kernel-form): CertifiedLoopKernel
