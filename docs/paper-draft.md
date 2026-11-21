@@ -1,7 +1,7 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.3 (C548). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD ebbd400e), либо измеренный результат прогона с
+Draft v0.4 (C552). Все утверждения — либо Lean-якорь (FQN, файл,
+строка на HEAD 977c930b), либо измеренный результат прогона с
 указанием витка (Cn), либо явный PIN в §Limitations. Никаких
 недоказанных клеймов.
 
@@ -12,8 +12,8 @@ learning system takes a step only after a machine-checked
 certificate: the loop **PROPOSE → CERTIFY → ADMIT →
 COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by a
 Lean 4 theorem proved against Mathlib; the corpus currently
-counts **543 modules / 12 853 theorems / 0 `sorry`** (generated
-theorem index at HEAD ebbd400e). The cycle-level soundness theorem
+counts **543 modules / 12 862 theorems / 0 `sorry`** (generated
+theorem index at HEAD 977c930b). The cycle-level soundness theorem
 `certify_then_commit_sound` guarantees, per T-round run: objective
 telescoping over the committed ledger, a probability-δtotal bound
 on false commits, an ε-bound on holdout-risk growth, and exact
@@ -38,8 +38,18 @@ and five external HAGI_v2 observations were absorbed as theorems
 (C537–C545), including the exact weight-decay leak factor (1−ηλ)
 and an Empirical-Bernstein sample saving of 27.49×. The era
 closes with a full self-improving loop in a single trace (C547):
-26 certified steps, 10 adapter parameters, zero-forgetting exact,
-and exact-bypass coverage 99.1%. We state honest pins: measurement premises
+26 certified steps, 10 adapter
+parameters, zero-forgetting exact, and exact-bypass coverage
+99.1%. Since v0.3 the loop has become iterative and universal:
+repeated certified self-improvement grows coverage monotonically
+over a space built from its own accepted primitives (7
+iterations, 54.9% → 93.8%, compositional necessity proven by
+in-run negatives), and the same loop on the full live corpus
+(113 domains, real targets) reaches 93.8% coverage by constant
+clusters with per-domain zero forgetting (bit-exact, 113/113) —
+while honestly measuring that no linear law exists on live
+data and that synthetic-layered laws do not transfer (0/113).
+We state honest pins
 (`BandDescribes`), measured ε-compromises, hybrid degeneration,
 corpus drift, and mini-scale.
 
@@ -439,6 +449,107 @@ targets (PIN); one position remains uncovered (the OE space was
 exhausted — completeness does not promise solutions outside the
 space).
 
+### 3.13 Iterative self-improvement (C549)
+
+<!-- source: .tmp/C549/receipt.md -->
+
+The full loop of §3.12 becomes ITERATIVE: one run executes 7
+iterations in a single trace (one run / telemetry / JSON /
+witness; budget MAX_ITER = 8 never exhausted — the stop is the
+EB gate). Each iteration: OE-search in a space GROWN from the
+accepted primitives → EXACT coverage extension (monotonicity
+asserted bit-exact) → adapter retraining on the shrinking
+residual (certified snap-GD, 10 steps/iteration, drop > 0 /
+HOLD) → EB telemetry (n_EB < n_Hoeffding at every iteration).
+
+> **Theorem (iterative_loop_sound).**
+> `Hagi/Theory/MiniHagiLoop.lean:154` (C549). Induction over
+> the chain of additive iterations: coverage at step k is a
+> subset of coverage at step n for all k ≤ n. The only new
+> mathematical fact is monotonicity:
+> `coverage_append_monotone` (`:134`, via `coversPrim` `:128`,
+> `iterStep` `:122`, `IterState` `:117`); per-iteration soundness
+> is `full_loop_sound` (§3.12) with no weakening.
+
+Corpus (layered, PIN grid 1/16): L1 const (57 pos, i%2==0);
+L2 = snap(256·x0+32·x3, 1/16) (19 pos, i%3==0) — anchored on
+an accepted constant; L3 = snap(L2+32·x2, 1/16) (7 pos,
+i%5==0) — block L2 as a building block; the 30-position
+residual carries real tau(y).
+
+| it | coverage | accepted primitive | residual CE (certified) |
+|---|---|---|---|
+| 1 | 0 → 54.9% | const (L1 + real tau-cluster) | 1504.8 → 1153.0 |
+| 2 | 71.7% | affine, deps p1 | 3334.1 → 1593.1 |
+| 3 | 78.8% | affine², deps p3 | 2291.0 → 1671.1 |
+| 4 | 85.0% | real tau-cluster | 3053.9 → 2019.5 |
+| 5 | 89.4% | real tau-cluster | 2.486 → 0.171 |
+| 6 | 93.8% | real tau-cluster | 2.584 → 0.221 |
+| 7 | 93.8% STOP | 0 accepted — EB gate | 2.954 → 0.221 |
+
+60 certified steps total, 0 holds, 4 adapter parameters per
+iteration.
+
+**Compositional necessity (in-run negatives, asserted).** Law 2
+is NOT found without block 1 (max constant coverage of the L2
+residual = 1 < 5); law 3 is NOT found without block 2 (max
+level-1 (c+aff) coverage of the L3 residual = 0 < 5). The
+accepted chain p1 (const) → p3 (aff, deps p1) → p5 (aff², deps
+p3) is genuinely compositional: later laws require earlier
+building blocks. Real tau-clusters are found legitimately at
+iterations 1, 3, 5, 6.
+
+### 3.14 Universal loop on the full live corpus (C551) — an honest measurement
+
+<!-- source: .tmp/C551/receipt.md -->
+
+The C549 compromise "the laws live in the corpus" is lifted:
+the loop runs on ALL 113 live points of ALL domain keys of the
+live `unified_ledger` (domain = ledger key; 114 keys / 113
+live; the task-statement "~185 points" was rejected by direct
+file read, recorded in research). Targets are REAL
+snap(ce_i, 1/16). OE-search is honest: constants from real t;
+linear p + a·x_j on real features (grid 1/16..256). If a law is
+not found, that IS the result.
+
+> **Theorem (universal_loop_corpus_mono).**
+> `Hagi/Theory/MiniHagiLoop.lean:190` (C551). Union-additivity
+> of coverage over corpus concatenation lA ++ lB, composed with
+> `iterative_loop_sound` — the universal run inherits the same
+> certified monotone coverage as the iterative loop.
+
+Iterations (one run / telemetry / witness): it1 — 4 constant
+clusters (11/8, 25/16, 13/8, 27/16), 0 → 64/113; it2 — const
+3/2 → 86/113; it3 — const 23/16 → 106/113 (93.8%); it4 — 0
+accepted, EB-gate STOP. Certified: 1826 adapter steps
+(drop > 0), 134 HOLD; coverage monotonicity asserted bit-exact
+at every iteration; drift detector: recomputation on a frozen
+copy gives 106 == 106; negatives: wrong-const err = 1/256 ≠ 0,
+HOLD leaves state unchanged.
+
+**Per-domain isolation.** 113 domains; 106/113 fully covered
+(93.8%); adapter CE mean 0.0739 (min 2.5e-6, max 1.094);
+**forgetA = 0 on ALL 113 domains** — real bit-exact asserts of
+parameter snapshots after every training phase of every domain
+(the C544 isolation), not a declaration.
+
+**The honest part.**
+
+- The 93.8% real coverage is achieved ENTIRELY by constant
+  clusters — genuine structure in the data, but the weakest
+  kind of law.
+- NOT ONE linear law was found (every candidate < 5 new
+  positions): the universal complexity of the live corpus is
+  MEASURED — the real corpus is less deterministic than the
+  layered synthetic one. This is a measured applicability
+  boundary of the loop, not a failure of the search: the search
+  space was enumerated honestly.
+- Stability vs C549 (c549_stability): const 0 — 0/113;
+  snap(256·x0+32·x3) — 0/113; +32·x2 — 0/113. The synthetic
+  laws of §3.13 do NOT transfer to real full-corpus targets
+  (0/113) — the layered targets were a construction of C549,
+  and this run says so on record.
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI (C500)
@@ -459,6 +570,33 @@ accuracy 4/6 (bounded by the model, not the certificate —
 certified midpoints agree with the true softmax argmax 6/6);
 adaptive band-tightening was available (nm doubling to 1024) but
 not needed: all bands disjoint already at n = m = 4.
+
+### 4.3 What self-improvement actually yields on live data
+
+<!-- source: .tmp/C549/receipt.md; .tmp/C551/receipt.md -->
+
+On the full live corpus (§3.14) the loop finds few laws — and
+that outcome is itself the honest headline. What
+self-improvement demonstrably yields even when "laws are
+scarce" are three certified SYSTEM properties:
+
+1. **Isolated memory.** forgetA = 0 structurally — per-task
+   adapters need no projections or budgets (C544); measured as
+   bit-exact parameter-snapshot asserts after every training
+   phase of all 113 domains (C551), 113/113.
+2. **Monotone coverage.** Accepted primitives only ADD coverage
+   (`coverage_append_monotone`, asserted bit-exact per
+   iteration in both C549 and C551) — the loop cannot forget
+   what it has covered, whatever the data.
+3. **Self-termination under budget.** The EB gate stops the run
+   when candidates stop paying (C551 it4: 0 accepted; C549
+   iteration 7: 0 accepted with MAX_ITER = 8 unspent;
+   n_EB < n_Hoeffding at every iteration) — the stopping rule
+   is certified, not a heuristic timeout.
+
+These properties hold on live data regardless of how many laws
+the corpus actually contains; the loop measures that number
+instead of assuming it.
 
 ## 5. Honest limitations (pins)
 
@@ -509,6 +647,24 @@ not needed: all bands disjoint already at n = m = 4.
    enumerated space; it does not promise that a solution exists
    in the space (one position stayed uncovered in C547 after the
    space was exhausted), nor semantic program equivalence.
+12. **Synthetic laws do not transfer.** The layered laws of the
+   C549 corpus (const 0, snap(256·x0+32·x3), +32·x2) cover
+   0/113 positions of the real full-corpus targets (C551
+   c549_stability) — the layered targets were a construction of
+   C549. §3.13's compositional chain demonstrates the mechanism,
+   not a claim about the live corpus.
+13. **Live-corpus coverage is constant clusters only.** The
+   93.8% (106/113) coverage of C551 is achieved entirely by
+   constant clusters; not one linear law was found (all
+   candidates < 5 new positions). Measured applicability
+   boundary: the real corpus is less deterministic than any
+   synthetic layered corpus we constructed.
+14. **EB-stop before budget.** C551 stopped at iteration 4
+   (0 accepted) and C549 at iteration 7 (0 accepted, MAX_ITER =
+   8 unspent): the certified stop fired as designed, but on
+   data this weak it may fire before any non-constant structure
+   is found — the stopping rule is data-limited, not
+   budget-limited.
 
 ## 6. Experiment plan (to strengthen before submission)
 
@@ -527,7 +683,7 @@ not needed: all bands disjoint already at n = m = 4.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (verified at HEAD ebbd400e)
+## Appendix A: anchor table (verified at HEAD 977c930b)
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -562,6 +718,12 @@ not needed: all bands disjoint already at n = m = 4.
 | trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:599 | C544 |
 | polar_express_step3_bound | Hagi/Optimization/PolarExpressCert.lean:373 | C545 |
 | full_loop_sound | Hagi/Theory/MiniHagiLoop.lean:64 | C547 |
+| IterState | Hagi/Theory/MiniHagiLoop.lean:117 | C549 |
+| iterStep | Hagi/Theory/MiniHagiLoop.lean:122 | C549 |
+| coversPrim | Hagi/Theory/MiniHagiLoop.lean:128 | C549 |
+| coverage_append_monotone | Hagi/Theory/MiniHagiLoop.lean:134 | C549 |
+| iterative_loop_sound | Hagi/Theory/MiniHagiLoop.lean:154 | C549 |
+| universal_loop_corpus_mono | Hagi/Theory/MiniHagiLoop.lean:190 | C551 |
 
-<!-- verified at HEAD ebbd400e (C548); anchor lines via rg on
+<!-- verified at HEAD 977c930b (C552); anchor lines via rg on
      Hagi/**/*.lean -->
