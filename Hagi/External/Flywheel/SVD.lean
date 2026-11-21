@@ -8,6 +8,13 @@ import Hagi.External.Flywheel.SVDRectangularOrdering
 import Hagi.External.Flywheel.SVDRectangularNorms
 import Hagi.External.Flywheel.SVDRectangularDecomposition
 import Hagi.External.Flywheel.SVDRectangularCoherence
+/-!
+# SVD — внешнее зеркало Flywheel (C528)
+
+Корневой re-export зеркала внешней библиотеки Flywheel по сингулярным
+разложениям; канон описан в исходном зеркале ниже. Правка зеркала
+ограничена: внешний sync может откатить docstring-уровень.
+-/
 
 /-
 Copyright (c) 2025 FLYWHEEL. All rights reserved.

@@ -7,6 +7,13 @@ import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.GibbsCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
+/-!
+# MomentBounds — моментные оценки (C528)
+
+Канон моментных границ: Поповичи для ограниченных взвешенных величин,
+дисперсионные и хвостовые следствия для вероятностных носителей. Сводка:
+STATUS.md, секция Hagi/Probability/MomentBounds.lean.
+-/
 
 namespace Hagi.Probability
 

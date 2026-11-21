@@ -6,6 +6,13 @@ import Hagi.Probability.EntropyConvexity
 import Hagi.Probability.GibbsCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
+/-!
+# ChernoffCGF — производящие функции и точность Чернова (C528)
+
+Канон границ Чернова через производящие функции моментов: sup Донскера
+достигается, экспоненциальная маркировка даёт хвостовые оценки. Сводка
+результатов: STATUS.md, секция Hagi/Probability/ChernoffCGF.lean.
+-/
 
 namespace Hagi.Probability
 

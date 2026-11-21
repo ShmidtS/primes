@@ -7,6 +7,13 @@ import Hagi.Unified.ParetoExecution.Selection
 import Hagi.Unified.ParetoExecution.Controller
 import Hagi.Unified.ParetoExecution.Trajectory
 set_option linter.style.header false
+/-!
+# ParetoExecution — исполнение парето-цикла (C528)
+
+Корневой модуль парето-исполнения: повторно экспортирует выбор,
+контроллер и траекторию; собственных объявлений не содержит. Сводка:
+STATUS.md, секция Hagi/Unified/ParetoExecution.lean.
+-/
 
 namespace Hagi.Unified.ParetoExecution
 end Hagi.Unified.ParetoExecution

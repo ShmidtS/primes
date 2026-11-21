@@ -4,6 +4,14 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Budget.RankBudget
 
 set_option linter.style.header false
+/-!
+# WeightedExpAlloc — экспоненциальное распределение бюджета (C528)
+
+Канон взвешенного экспоненциального распределения ресурсного бюджета:
+эффективные веса затухают по коэффициентам остаточного распада,
+логарифмически-аффинное давление задаёт непрерывное решение. Раздел
+сводки результатов: STATUS.md, секция Hagi/Budget/WeightedExpAlloc.lean.
+-/
 
 open scoped BigOperators
 
