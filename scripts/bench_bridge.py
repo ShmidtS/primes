@@ -7424,7 +7424,585 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
     print(f"written: {path}", file=sys.stderr)
 
 
-# C508: A-GEM vs RANK-TRUNC continual comparison
+# C536: SVD-MATRYOSHKA ADAPTER MERGE (--mode adapter-merge)
+#
+# The stack-compression breakthrough: the C533 adapter-snap
+# stack (8 rank-1 LoRA levels, 2*8*d = 64 params, folded
+# sequentially f -> (I + B_l A_l) f) is MERGED into ONE rank-k
+# adapter with a certified obj bound:
+#
+#   1. CYCLE: the C533 fixed-rank-1 stack (fresh loop, the
+#      old modes untouched), tracking the per-level matrices
+#      M_l = I + B_l^snap A_l^snap (d x d Fractions);
+#      M_total = M_8 * ... * M_1; Delta = M_total - I.
+#   2. RANK: exact rational Gaussian rank rho of Delta
+#      (Fraction elimination, EXACT; rho <= min(d, 8) = 4 —
+#      adapter_stack_rank_bound).
+#   3. EXACT MERGE (k = rho): Delta = C * R with rational
+#      factors (independent columns + echelon coefficients),
+#      merged features from the ORIGINAL trunk features;
+#      grid snap; certified per-point bound
+#      obj_bound(F_stack_final, F_merged, w) — EXACT (C533
+#      formula (2|s-y|+|ds|)*|ds|). Params 2*rho*d.
+#   4. MATRYOSHKA k < rho: deflated power-iteration top-k on
+#      Delta^T Delta (d = 4, pure Python floats, IEEE-
+#      deterministic) PROPOSES the factors (C489 principle:
+#      numeric candidate, RATIONAL certificate); factor snap
+#      q/2^20; the SAME exact per-point bound. Numeric sigma
+#      tail ||Delta - Delta_k||_F — the a-priori estimate
+#      (Lean form: truncated_svd_error_eq_tail / mdl_rank_ce).
+#   5. TELESCOPE: obj_merged <= obj_stack_final + merge_bound
+#      and obj_stack_final <= cycle_start + sum snap_bounds.
+
+AMG_LEVELS = 8                     # stack levels (C533 shape)
+AMG_K = 40                         # feature snap grid q/2^k
+AMG_KFAC = 20                      # matryoshka factor snap grid
+AMG_STEPS = 4                      # certified fd steps per level
+
+
+def _mat_mul(M, N):
+    n_, m_, p_ = len(M), len(N), len(N[0])
+    return [[sum((M[i][t] * N[t][j] for t in range(m_)), F(0))
+             for j in range(p_)] for i in range(n_)]
+
+
+def _mat_vec(M, f):
+    return [sum((M[i][j] * f[j] for j in range(len(f))), F(0))
+            for i in range(len(M))]
+
+
+def _exact_rank_and_factors(M):
+    """Exact rational rank + factorization M = C * X (d x rho,
+    rho x d) via Gauss-Jordan on Fractions: pivot columns give
+    the basis C, the reduced echelon gives X. EXACT."""
+    rows, cols = len(M), len(M[0])
+    A = [row[:] for row in M]
+    pivcols = []
+    r = 0
+    for c in range(cols):
+        sel = None
+        for rr in range(r, rows):
+            if A[rr][c] != 0:
+                sel = rr
+                break
+        if sel is None:
+            continue
+        A[r], A[sel] = A[sel], A[r]
+        pv = A[r][c]
+        A[r] = [v / pv for v in A[r]]
+        for rr in range(rows):
+            if rr != r and A[rr][c] != 0:
+                fq = A[rr][c]
+                A[rr] = [a - fq * b for a, b in zip(A[rr], A[r])]
+        pivcols.append(c)
+        r += 1
+    rho = r
+    C = [[M[i][c] for c in pivcols] for i in range(rows)]
+    X = [[F(0)] * cols for _ in range(rho)]
+    for i, c in enumerate(pivcols):
+        X[i][c] = F(1)
+    for c in range(cols):
+        if c in pivcols:
+            continue
+        for i in range(rho):
+            X[i][c] = A[i][c]
+    return rho, C, X
+
+
+def _power_topk(Dm, k):
+    """Deflated power iteration for the top-k right singular
+    subspace of Dm (floats, deterministic): returns list of
+    (sigma, u, v) triples, u = D v / sigma."""
+    import math
+    n = len(Dm)
+    DtD = [[sum((float(Dm[t][i]) * float(Dm[t][j])
+                 for t in range(n)))
+            for j in range(n)] for i in range(n)]
+    resid = [row[:] for row in Dm]
+    out = []
+    for _ in range(k):
+        v = [1.0 / math.sqrt(n)] * n
+        lam = 0.0
+        for _it in range(400):
+            w = [sum(DtD[i][j] * v[j] for j in range(n))
+                 for i in range(n)]
+            nv = math.sqrt(sum(x * x for x in w))
+            if nv < 1e-300:
+                break
+            v = [x / nv for x in w]
+        lam = sum(v[i] * sum(DtD[i][j] * v[j] for j in range(n))
+                  for i in range(n))
+        sigma = math.sqrt(max(lam, 0.0))
+        u = [sum(float(resid[i][j]) * v[j] for j in range(n))
+             for i in range(n)]
+        if sigma > 0:
+            un = math.sqrt(sum(x * x for x in u))
+            u = [x / (un if un > 0 else 1.0) for x in u]
+            # deflate BOTH DtD (for the next v) and resid
+            # (for the next u)
+            for i in range(n):
+                for j in range(n):
+                    DtD[i][j] -= sigma * sigma * u[i] * u[j]
+            for i in range(n):
+                for j in range(n):
+                    resid[i][j] -= sigma * u[i] * v[j]
+        out.append((sigma, u, v))
+    return out
+
+
+def adapter_merge_run(ledger_path):
+    """C536 SVD-matryoshka adapter merge: run the C533 rank-1
+    stack (8 levels, 64 params), compute Delta = M_total - I,
+    exact rational rank rho, merge to a single rank-k adapter
+    (exact at k = rho; numeric-proposed + exact certified at
+    k < rho). Returns (start, [accepted steps], telemetry,
+    stats)."""
+    sys.set_int_max_str_digits(0)
+    t0 = time.perf_counter()
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(kx, x, y) for i, (kx, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "levels": [], "snap": [], "budget": [],
+                    "merge": [],
+                    "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    # --- rank-1 adapter stack branch (f + B(A f))
+    def fwd1(f, A, B):
+        z = sum((A[0][k] * f[k] for k in range(MH2_D)), F(0))
+        return [f[i] + B[i][0] * z for i in range(MH2_D)]
+
+    def feats_ad(base, A, B):
+        return [[(fwd1(f, A, B), y) for f, y in tk] for tk in base]
+
+    def snapfeats(base):
+        return [[([gs_snap2k(c) for c in f], y)
+                 for f, y in tk] for tk in base]
+
+    def maxden(base):
+        return max(abs(c.denominator)
+                   for tk in base for f, _ in tk for c in f)
+
+    def obj_bound(base_orig, base_final, wcur):
+        """EXACT certified bound (C533): per point
+        |(s2-y)^2 - (s1-y)^2| <= (2|s1-y| + |ds|)*|ds|."""
+        Bsum = F(0)
+        cnt = 0
+        for tk, tkf in zip(base_orig, base_final):
+            for (f1, y), (f2, _) in zip(tk, tkf):
+                ds = sum((wcur[i] * (f2[i] - f1[i])
+                          for i in range(MH2_D)), F(0))
+                s = sum((wcur[i] * f1[i]
+                         for i in range(MH2_D)), F(0))
+                Bsum += (2 * abs(s - y) + abs(ds)) * abs(ds)
+                cnt += 1
+        return Bsum / cnt
+
+    def unflat_ad(pp):
+        A = [[pp[j] for j in range(MH2_D)]]
+        B = [[pp[MH2_D + i]] for i in range(MH2_D)]
+        return A, B
+
+    def canonp(pp, base):
+        A, Bl = unflat_ad(pp)
+        return mh2_fcanon(w, feats_ad(base, A, Bl))
+
+    # trunk FROZEN: snapped features (the ORIGINAL trunk state
+    # is the merge base — every merged candidate starts here)
+    FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in tasks]
+    HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in htasks]
+    FT = snapfeats(FT_un)
+    HF = snapfeats(HF_un)
+    assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
+        obj_bound(FT_un, FT, w), \
+        "ABORT: freeze snap broke its certified bound"
+    FT0 = [[(f[:], y) for f, y in tk] for tk in FT]  # merge base
+    HF0 = [[(f[:], y) for f, y in tk] for tk in HF]
+
+    # --- (B) rank-1 stack: 8 C533 levels + matrix tracking
+    depth = 2
+    cycle_start_obj = mh2_fcanon(w, FT)
+    cumulative_bound = F(0)
+    allowances = [{"phase": "A-freeze-snap",
+                   "obj_before_snap": str(mh2_fcanon(w, FT_un)),
+                   "obj_after_snap": str(cycle_start_obj),
+                   "actual_degradation":
+                       str(cycle_start_obj -
+                           mh2_fcanon(w, FT_un)),
+                   "certified_bound":
+                       str(obj_bound(FT_un, FT, w)),
+                   "bound_ge_actual": True}]
+    params_total = 0
+    M_total = [[F(1) if i == j else F(0)
+                for j in range(MH2_D)] for i in range(MH2_D)]
+    stack_mats = []
+    for lev in range(AMG_LEVELS):
+        # ADMIT r=1: A = unit row on coord lev mod d, B = 0
+        p = [F(1) if k == lev % MH2_D else F(0)
+             for k in range(MH2_D)] + [F(0)] * MH2_D
+        oA = mh2_fcanon(w, FT)
+        A0, B0 = unflat_ad(p)
+        assert mh2_fcanon(w, feats_ad(FT, A0, B0)) == oA, \
+            "ABORT: adapter admission #{} broke obj".format(lev + 1)
+        tel["admissions"].append({
+            "phase": f"B-adapter-l{lev + 1}", "rank": 1,
+            "new_params": 2 * MH2_D,
+            "coords": [lev % MH2_D],
+            "decision": "ADMIT (LoRA zero-init: B = 0, obj "
+                        "invariant asserted EXACTLY)"})
+
+        # TRAIN: certified fd steps on the 2*d adapter params
+        phase_name = f"C-adapt-l{lev + 1}"
+        committed = 0
+        for _ in range(AMG_STEPS):
+            o = canonp(p, FT)
+            gfd = []
+            for kk in range(len(p)):
+                q = list(p)
+                q[kk] = q[kk] + MH2_H
+                gfd.append((canonp(q, FT) - o) / MH2_H)
+            cand = cl_snap([p[kk] - MH2_ETA * gfd[kk]
+                            for kk in range(len(p))], MH2_GRID)
+            o2 = canonp(cand, FT)
+            if o2 < o:
+                raw.append({"phase": phase_name, "obj": o,
+                            "obj'": o2, "drop": o - o2,
+                            "risk": canonp(p, HF),
+                            "risk'": canonp(cand, HF)})
+                p = cand
+                committed += 1
+            else:
+                tel["holds"].append({
+                    "phase": phase_name, "drop": o - o2,
+                    "reason": "canonical drop <= 0: HOLD "
+                              "(adapter fd step rolled back)"})
+
+        # SNAP: weights + features, exact per-point bound
+        o_before = canonp(p, FT)
+        ps = [gs_snap2k(v) for v in p]
+        As, Bs = unflat_ad(ps)
+        Ao, Bo = unflat_ad(p)
+        FTo = feats_ad(FT, Ao, Bo)
+        FTc = feats_ad(FT, As, Bs)
+        HF = snapfeats(feats_ad(HF, As, Bs))
+        FT = snapfeats(FTc)
+        o_after = mh2_fcanon(w, FT)
+        err_bound = obj_bound(FTo, FT, w)
+        assert o_after <= o_before + err_bound, \
+            "ABORT: adapter snap broke its certified bound"
+        assert maxden(FT) <= (1 << AMG_K), \
+            "ABORT: adapter snap failed to reset denominators"
+        cumulative_bound += err_bound
+        allowances.append({"phase": phase_name,
+                           "obj_before_snap": str(o_before),
+                           "obj_after_snap": str(o_after),
+                           "actual_degradation":
+                               str(o_after - o_before),
+                           "certified_bound": str(err_bound),
+                           "bound_ge_actual": True})
+        tel["snap"].append({
+            "level": lev + 1, "depth": depth + 1,
+            "grid": f"q/2^{AMG_K}",
+            "obj_before_snap": str(o_before),
+            "obj_after_snap": str(o_after),
+            "certified_err_bound": str(err_bound),
+            "maxden_digits": len(str(maxden(FT)))})
+        # track the level matrix M_l = I + B A (snapped)
+        Ml = [[(F(1) if i == j else F(0)) +
+               Bs[i][0] * As[0][j] for j in range(MH2_D)]
+              for i in range(MH2_D)]
+        M_total = _mat_mul(Ml, M_total)
+        stack_mats.append(Ml)
+        params_total += 2 * MH2_D
+        tel["levels"].append({
+            "level": lev + 1, "params": 2 * MH2_D,
+            "committed": committed,
+            "canonical": str(mh2_fcanon(w, FT))})
+        depth += 1
+        tel["phases"].append({
+            "phase": phase_name, "depth": depth,
+            "params": 2 * MH2_D, "committed": committed,
+            "canonical": str(mh2_fcanon(w, FT))})
+
+    n = len(raw)
+    assert n > 0, "ABORT: adapter-merge committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    # obj chain across snap boundaries (C533 reconciliation)
+    snap_deltas = [F(x["obj_after_snap"]) -
+                   F(x["obj_before_snap"]) for x in allowances]
+    si = 0
+    for a, b in zip(raw, raw[1:]):
+        if a["obj'"] == b["obj"]:
+            continue
+        needed = b["obj"] - a["obj'"]
+        si0 = si
+        acc = F(0)
+        while si < len(snap_deltas):
+            acc += snap_deltas[si]
+            si += 1
+            if acc == needed:
+                break
+        assert si > si0 and acc == needed, \
+            "ABORT: obj chain broken outside certified snaps"
+    assert si <= len(snap_deltas), \
+        "ABORT: more chain boundaries than certified snaps"
+    # telescoped certified stack bound (the C533 statement)
+    obj_stack_final = raw[-1]["obj'"]
+    assert obj_stack_final <= cycle_start_obj + cumulative_bound, \
+        "ABORT: telescoped stack cycle bound violated"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: adapter-merge step failed "
+                     f"certified admission: {dd}")
+
+    # --- (C) MERGE: Delta = M_total - I, exact rank, matryoshka
+    Delta = [[M_total[i][j] -
+              (F(1) if i == j else F(0))
+              for j in range(MH2_D)] for i in range(MH2_D)]
+    rho, Cex, Xex = _exact_rank_and_factors(Delta)
+    # sanity: factorization EXACT
+    assert _mat_mul(Cex, Xex) == Delta, \
+        "ABORT: exact factorization Delta = C*X failed"
+    tel["merge"].append({
+        "step": "delta", "exact_rank": rho,
+        "rank_le_min_d_L": True,
+        "adapter_stack_rank_bound":
+            f"rank(Delta) <= min(d, L) = min({MH2_D}, "
+            f"{AMG_LEVELS}) = {min(MH2_D, AMG_LEVELS)}",
+        "rank_bound_tight": rho == min(MH2_D, AMG_LEVELS)})
+
+    def merged_feats(FTbase, Bm, Am, rk):
+        """single rank-rk adapter on the ORIGINAL trunk
+        features: f -> f + B(A f), then grid snap"""
+        def fw(f):
+            z = [sum((Am[j][k] * f[k] for k in range(MH2_D)),
+                     F(0)) for j in range(rk)]
+            return [f[i] + sum((Bm[i][j] * z[j]
+                                for j in range(rk)), F(0))
+                    for i in range(MH2_D)]
+        return [[(fw(f)[:], y) for f, y in tk] for tk in FTbase]
+
+    matryoshka = []
+    o_stack_final = mh2_fcanon(w, FT)
+    for kk in range(rho, 0, -1):
+        if kk == rho:
+            # EXACT merge: Delta = C * X, rational, zero
+            # perturbation before the feature snap
+            Bm, Am = Cex, Xex
+            how = "exact-rational (Gauss-Jordan C*X = Delta)"
+        else:
+            # numeric deflated power iteration PROPOSES the
+            # factors (C489: numeric candidate, rational
+            # certificate); factor snap q/2^KFAC
+            trip = _power_topk(Delta, kk)
+            Bm = [[gs_snap2k(F(round(sum(
+                              float(Delta[i][j]) * v[j]
+                              for j in range(MH2_D)) /
+                             (sg if sg > 1e-300 else 1.0), 12)),
+                             AMG_KFAC)
+                   for (sg, _, v) in trip] for i in range(MH2_D)]
+            Am = [[gs_snap2k(F(round(v[j], 12)), AMG_KFAC)
+                   for j in range(MH2_D)] for (sg, _, v) in trip]
+            how = (f"numeric power-iteration top-{kk} + factor "
+                   f"snap q/2^{AMG_KFAC}")
+        FTm = snapfeats(merged_feats(FT0, Bm, Am, kk))
+        HFm = snapfeats(merged_feats(HF0, Bm, Am, kk))
+        o_m = mh2_fcanon(w, FTm)
+        bnd = obj_bound(FT, FTm, w)
+        actual = o_m - o_stack_final
+        assert o_m <= o_stack_final + bnd, \
+            f"ABORT: merge k={kk} broke its certified bound"
+        assert maxden(FTm) <= (1 << AMG_K), \
+            f"ABORT: merge k={kk} failed denominator reset"
+        # numeric sigma-tail estimate (a priori, informative)
+        Dk = _mat_mul(Bm, Am)
+        tail_sq = sum((float(Delta[i][j] - Dk[i][j]) ** 2
+                       for i in range(MH2_D)
+                       for j in range(MH2_D)), 0.0)
+        matryoshka.append({
+            "k": kk, "params": 2 * kk * MH2_D,
+            "method": how,
+            "obj_merged": str(o_m),
+            "actual_degradation_vs_stack": str(actual),
+            "certified_bound": str(bnd),
+            "bound_ge_actual": True,
+            "sigma_tail_frobenius_est":
+                f"{tail_sq ** 0.5:.6e}",
+            "usable": actual <= F(1, 1000) * o_stack_final,
+            "maxden_digits": len(str(maxden(FTm)))})
+        tel["merge"].append(dict(matryoshka[-1]))
+
+    # the FINAL deployed merged model: exact rank rho
+    final = next(m for m in matryoshka if m["k"] == rho)
+    o_final_merged = F(final["obj_merged"])
+    merge_bound_final = F(final["certified_bound"])
+    # full telescope: stack + merge
+    assert o_final_merged <= cycle_start_obj + \
+        cumulative_bound + merge_bound_final, \
+        "ABORT: telescoped merge cycle bound violated"
+
+    elapsed = time.perf_counter() - t0
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path,
+        "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
+                 f"q/2^{AMG_K}) + {AMG_LEVELS} rank-1 adapter "
+                 "levels (C533 cycle) MERGED into ONE rank-rho "
+                 "adapter (SVD-matryoshka)",
+        "trunk_depth_final": depth,
+        "levels": AMG_LEVELS,
+        "stack_params_total": params_total,
+        "stack_params_formula": f"2*L*d = 2*{AMG_LEVELS}*"
+                                f"{MH2_D} = {params_total}",
+        "merged_exact_rank": rho,
+        "merged_params": 2 * rho * MH2_D,
+        "merged_params_formula":
+            f"2*rho*d = 2*{rho}*{MH2_D} = {2 * rho * MH2_D}",
+        "params_saved": params_total - 2 * rho * MH2_D,
+        "params_saved_fraction":
+            str(F(params_total - 2 * rho * MH2_D,
+                  params_total)),
+        "matryoshka": matryoshka,
+        "matvecs": {"stack": AMG_LEVELS, "merged": 1},
+        "snap_grid": f"q/2^{AMG_K}",
+        "factor_snap_grid": f"q/2^{AMG_KFAC} (matryoshka arms)",
+        "snap_bounds_all_certified": True,
+        "merge_bounds_all_certified": True,
+        "snap_cumulative_certified_bound": str(cumulative_bound),
+        "merge_certified_bound": str(merge_bound_final),
+        "cycle_obj_start": str(cycle_start_obj),
+        "cycle_certified_bound_full":
+            str(cycle_start_obj + cumulative_bound +
+                merge_bound_final),
+        "obj_stack_final": str(o_stack_final),
+        "obj_merged_final": str(o_final_merged),
+        "merge_actual_degradation":
+            str(o_final_merged - o_stack_final),
+        "maxden_digits_final": final["maxden_digits"],
+        "elapsed_s": round(elapsed, 3),
+        "canonical_start": str(obj0),
+        "total_drop": str(obj0 - o_final_merged),
+        "model": "linear head over trunk features + ONE "
+                 f"rank-{rho} adapter (the C533 8-level "
+                 "rank-1 stack merged: Delta = M_total - I with "
+                 "EXACT rational rank rho and factorization "
+                 "Delta = C*X; certified obj bound per k on the "
+                 "matryoshka curve)",
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "adapter_stack_rank_bound / "
+                   "adapter_merge_error_bound / "
+                   "adapter_merge_params (C536)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_trajmerge(path, start, traj, tel, stats,
+                        witness_steps=3):
+    """C536 witness: literal merged-stack trajectory prefix +
+    #eval checkTrajectory + norm_num theorem + the three C536
+    theorems and a REAL stack-rank instance."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    rho = stats["merged_exact_rank"]
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C536 SVD-matryoshka adapter-merge witness "
+                "(real unified_ledger data; the C533 rank-1 "
+                "stack cycle, then the certified merge into "
+                "ONE rank-rho adapter).\n"
+                f"-- FULL accepted steps: {len(traj)}; "
+                f"phases: {phases};\n-- first {len(ds)} "
+                "machine-checked steps below (prefix witness; "
+                "the neutrality/count/snap-bound/rank-bound "
+                "facts are covered by Hagi.Theory."
+                "AdapterGrowth).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.AdapterGrowth\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartMerge : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryMerge : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartMerge "
+                "benchTrajectoryMerge\n\n"
+                "theorem merge_bench_valid :\n"
+                "    checkTrajectory benchStartMerge "
+                "benchTrajectoryMerge = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartMerge, benchTrajectoryMerge, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_stack_rank_bound\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_merge_error_bound\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "adapter_merge_params\n\n"
+                "-- REAL stack-rank instance: a 2-level stack of "
+                "-- rank-1 perturbations on Fin 2 — the merged "
+                "-- perturbation stackProd [E1, E2] - 1 has rank 2 "
+                "-- (the adapter_stack_rank_bound sum 1+1 is "
+                "-- TIGHT, not vacuous)\n"
+                "#eval (Hagi.Theory.AdapterGrowth.stackProd "
+                "[!![0, 1; 0, 0], !![0, 0; 1, 0]] - 1 : "
+                "  Matrix (Fin 2) (Fin 2) \u211d).rank\n\n"
+                "#eval ([Hagi.Theory.AdapterGrowth.stackProd "
+                "  [!![0, 1; 0, 0], !![0, 0; 1, 0]]].map "
+                "  Matrix.rank).head\n")
+    print(f"written: {path}", file=sys.stderr)
+
 # (--mode agem-vs-ranktrunc)
 #
 # The GPM-family empirical closure: BOTH continual mechanisms
@@ -8078,6 +8656,7 @@ def main():
                              "grow-snap",
                              "adapter-snap-grow",
                              "adapter-rank-adaptive",
+                             "adapter-merge",
                              "adapter-grow",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
@@ -8302,6 +8881,26 @@ def main():
                 "holds": [{k: (str(v) if isinstance(v, F) else v)
                            for k, v in h.items()}
                           for h in tel["holds"]]}}, indent=1))
+        return
+    if args.mode == "adapter-merge":
+        start, traj, tel, stats = adapter_merge_run(args.data)
+        if args.emit_lean:
+            emit_lean_trajmerge(args.emit_lean, start, traj,
+                                tel, stats)
+        print(json.dumps({"mode": "adapter-merge", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": tel["admissions"],
+                "levels": tel["levels"],
+                "snap": tel["snap"],
+                "merge": tel["merge"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]]}}))
         return
     if args.mode == "adapter-snap-grow":
         start, traj, tel, stats = \

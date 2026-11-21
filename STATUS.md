@@ -3723,3 +3723,39 @@ card instances); the main theorems carry the content.
   adaptive ≡ fix-r1 побитово. r=2 даёт тот же drop при ×2 параметров
   (10 шагов против 17) — бюджетный критерий корректно отвергает его.
   Детерминизм: повторный прогон побитово идентичен (выборы и числа).
+
+## Hagi/Theory/AdapterGrowth.lean (C536: SVD-«Матрёшка» adapter merge)
+
+- `stackProd` / `adapter_stack_rank_bound`: суммарное возмущение
+  стека L LoRA-уровней Δ = Π(I+E_i) − I имеет ранг ≤ Σ рангов E_i
+  (индукция: head-шаг E·Π + (Π−1), `Matrix.rank_mul_le_left` +
+  подаддитивность rank_add_le'; в этой Mathlib-версии
+  Matrix.rank_add_le отсутствует — собран из
+  LinearMap.rank_add_le + Submodule.finrank-неравенств).
+  Следствие (bench-форма L=8, r=1, d=4): rank(Δ) ≤ min(4, 8) — merge
+  ГАРАНТИРОВАНО дешевле стека независимо от данных.
+- `cs_row` (строчная Коши–Шварц из abs_real_inner_le_norm) +
+  `adapter_merge_error_bound`: Frobenius-хвост усечения
+  Σ (Δ−Δ_k)² ≤ ε² + Σ f² ≤ B² + obj ℓ¹-Lipschitz (Lc) ⇒
+  obj после замены Δ на Δ_k ≤ obj до + Lc·n·ε·B — certified
+  ε-окрестность (σ_tail × Lipschitz; замыкается гипотезой hF через
+  Contracts/TruncatedSVDTail.truncated_svd_error_eq_tail /
+  mdl_rank_ce — ССЫЛКОЙ, без импорта Contracts в Theory).
+- `adapter_merge_params`: k ≤ L ⇒ 2·k·d ≤ 2·L·d.
+- Bench `--mode adapter-merge` (измерено, .tmp/C536/
+  bench-adapter-merge.json, замороженный корпус): C533-стек 8
+  уровней r=1 (64 парам, телеметрия матриц M_ℓ = I+B_ℓA_ℓ) →
+  Δ = M_total − I → ТОЧНЫЙ rational Gaussian ранг ρ = 2 (!) →
+  exact merge Δ = C·R (Gauss-Jordan, рационально ТОЧНО,
+  возмущение 0 до снапа) → 16 параметров, −75% к стеку, matvec
+  1 против 8; certified per-point bound (C533-формула) держится,
+  фактическая деградация даже ОТРИЦАТЕЛЬНАЯ (merged-признаки
+  пересчитаны из исходных trunk-признаков без промежуточных
+  снапов). Матрёшка: k=1 (8 парам) — числовой deflated
+  power-iteration кандидат + снап факторов q/2^20 + ТОТ ЖЕ
+  точный cert-bound (C489-принцип: числа не доверяем) —
+  честно unusable (деградация ~0.5): trade-off кривая
+  k = {2: −75% параметров, bound certified; 1: −87.5%, большой
+  bound}. Телескоп obj_merged ≤ cycle_start + Σ snap_i +
+  merge_bound (assert). Детерминизм: повтор побитово идентичен.
+  Регресс C533/C535: побитово (regress-c53{3,5}-mine.json).

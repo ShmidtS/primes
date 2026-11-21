@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Mathlib.Tactic
+import Mathlib.Analysis.InnerProductSpace.PiL2
 import Hagi.Theory.GrowSnap
 
 /-!
@@ -317,5 +318,187 @@ theorem rank_select_sound (s1 s2 : ℝ)
     exact Or.inl ⟨trivial, hc1⟩
 
 end RankAdaptive
+
+/-! ## C536: SVD-Матрёшка — merge стека адаптеров компрессией
+
+Стек L LoRA-уровней (C533/C535: `f ↦ (I + B_L A_L)·…·(I + B_1 A_1)·f`,
+2·L·d параметров) сворачивается в ОДИН адаптер ранга k ≤ min(d, L):
+суммарное возмущение Δ = Π(I+E_i) − I имеет ранг ≤ Σ рангов
+E_i = L (структурный выигрыш: 2·k·d < 2·L·d параметров при k < L,
+один matmul вместо L). Точная obj-близость после усечения —
+σ_tail × Lipschitz (прецедент rank-trunc C498/C500 и
+`Hagi.Contracts.TruncatedSVDTail.truncated_svd_error_eq_tail` —
+ГОТОВАЯ форма ‖Δ − Δ_k‖² = Σ tail σ²; `mdl_rank_ce` — паттерн
+kappaF-Lipschitz). Bench-инстанс: `--mode adapter-merge`
+(точный rational rank + exact merge Δ = C·R при k = ρ; матрёшка
+k < ρ — числовой power-iteration кандидат + ТОЧНЫЙ рациональный
+per-point cert-bound, C489-принцип: числа не доверяем, доверяем
+сертификату). -/
+section Merge
+
+open scoped Matrix
+
+variable {d : Type*} [Fintype d] [DecidableEq d]
+
+/-- Матричная композиция стека адаптеров: произведение
+`Π (I + E_i)` по списку возмущений уровней (E_i = B_i·A_i — ранг
+≤ r_i). Матричная форма fold-цепочки C533: уровень ℓ действует на
+выход уровня ℓ−1. -/
+def stackProd : List (Matrix d d ℝ) → Matrix d d ℝ
+  | [] => 1
+  | E :: L => (1 + E) * stackProd L
+
+/-- Строчная Коши–Шварц-граница (техническая; из
+`abs_real_inner_le_norm` на EuclideanSpace): |Σ a·b| ≤
+‖a‖₂·‖b‖₂ — носитель строчного шага merge-границы. -/
+theorem cs_row {n : Type*} [Fintype n] (a b : n → ℝ) :
+    |∑ j, a j * b j| ≤ (∑ j, a j ^ 2).sqrt * (∑ j, b j ^ 2).sqrt := by
+  have h := abs_real_inner_le_norm
+    (WithLp.toLp 2 a : EuclideanSpace ℝ n) (WithLp.toLp 2 b : EuclideanSpace ℝ n)
+  rw [PiLp.inner_apply, EuclideanSpace.norm_eq] at h
+  norm_num [RCLike.inner_apply, star_trivial, starRingEnd_apply] at h
+  rw [EuclideanSpace.norm_eq] at h
+  simp only [Real.norm_eq_abs, sq_abs] at h
+  have hab : ∑ x, b x * a x = ∑ j, a j * b j :=
+    Finset.sum_congr rfl fun j _ => mul_comm _ _
+  rw [hab] at h
+  simpa [mul_comm (∑ j, a j ^ 2) (∑ j, b j ^ 2)] using h
+
+/-- Подаддитивность ранга (техническая; в этой Mathlib-версии нет
+`Matrix.rank_add_le` — собирается из `LinearMap.rank_add_le` +
+`Submodule.finrank_add_le_finrank_add_finrank`). -/
+theorem rank_add_le' {m n : Type*} [Fintype m] [Fintype n]
+    (A B : Matrix m n ℝ) : (A + B).rank ≤ A.rank + B.rank := by
+  have h1 : A.mulVecLin + B.mulVecLin = (A + B).mulVecLin := by
+    ext v i; simp [Matrix.mulVecLin]
+  have hr : (A + B).mulVecLin.range ≤
+      A.mulVecLin.range ⊔ B.mulVecLin.range := by
+    rw [← h1]; exact LinearMap.range_add_le _ _
+  have e1 : (A + B).rank =
+      Module.finrank ℝ ↥((A + B).mulVecLin).range := rfl
+  have e2 : A.rank = Module.finrank ℝ ↥(A.mulVecLin).range := rfl
+  have e3 : B.rank = Module.finrank ℝ ↥(B.mulVecLin).range := rfl
+  rw [e1, e2, e3]
+  have hs := Submodule.finrank_mono (R := ℝ) hr
+  have hsup := Submodule.finrank_add_le_finrank_add_finrank
+    A.mulVecLin.range B.mulVecLin.range
+  omega
+
+/-- Ранговая граница merge'а: суммарное возмущение стека из L
+адаптеров Δ = Π(I+E_i) − I имеет ранг ≤ Σ рангов E_i — потому
+стек L ранг-r уровней сворачивается в ОДИН адаптер ранга ≤ L·r
+(при L·r ≥ d — и того меньше: rank ≤ min(d, Σ)). Индукция:
+`Π_{i≤n+1} − 1 = E_{n+1}·Π_{i≤n} + (Π_{i≤n} − 1)`, затем
+`Matrix.rank_mul_le_left` + подаддитивность. Bench-инстанс
+(C533/C535: L = 8, r = 1, d = 4): rank(Δ) ≤ 4 — merge даёт
+≤ 2·4·4 = 32 параметров против 64 у стека, ГАРАНТИРОВАНО
+структурой, независимо от данных. -/
+theorem adapter_stack_rank_bound (L : List (Matrix d d ℝ)) :
+    (stackProd L - 1).rank ≤ (L.map Matrix.rank).sum := by
+  induction L with
+  | nil =>
+      have hz : stackProd ([] : List (Matrix d d ℝ)) - 1 = 0 := by
+        simp [stackProd]
+      rw [hz, Matrix.rank_zero]
+      simp
+  | cons E L ih =>
+      have hsplit : stackProd (E :: L) - 1
+          = E * stackProd L + (stackProd L - 1) := by
+        have h : stackProd (E :: L) = (1 + E) * stackProd L := rfl
+        rw [h, Matrix.add_mul, Matrix.one_mul]
+        abel
+      rw [hsplit]
+      have h0 : (E * stackProd L + (stackProd L - 1)).rank
+          ≤ E.rank + (stackProd L - 1).rank := by
+        have h1 : (E * stackProd L + (stackProd L - 1)).rank
+            ≤ (E * stackProd L).rank + (stackProd L - 1).rank :=
+          rank_add_le' _ _
+        have h2 : (E * stackProd L).rank ≤ E.rank :=
+          Matrix.rank_mul_le_left E (stackProd L)
+        omega
+      simpa using le_trans h0 (Nat.add_le_add (Nat.le_refl _) ih)
+
+/-- Счёт параметров merge'а: ранг-k адаптер (2·k·d параметров)
+не дороже стека L ранг-1 уровней (2·L·d) при k ≤ L. -/
+theorem adapter_merge_params (dd L k : ℕ) (hk : k ≤ L) :
+    2 * k * dd ≤ 2 * L * dd :=
+  Nat.mul_le_mul (Nat.mul_le_mul_left 2 hk) (Nat.le_refl dd)
+
+/-- Certified obj-граница merge-усечения: если Frobenius-хвост
+усечения Σ (Δ − Δ_k)² ≤ ε² (σ_tail-факт: замыкается
+`truncated_svd_error_eq_tail` — ‖Δ−Δ_k‖² = Σ tail σ² — или
+`mdl_rank_ce`-паттерном), признаки ограничены Σ f² ≤ B², а obj
+ℓ¹-Lipschitz по признакам (Lc), то obj после замены Δ на Δ_k
+отличается не более чем на Lc·n·ε·B — CERTIFIED ε-окрестность
+функции стека (C533 `adapter_snap_bound`-паттерн: пошаговая
+покоординатная граница + Lipschitz-перенос). Bench-инстанс
+сертифицирует СИЛЬНЕЕ: точный рациональный per-point bound
+(2|s−y|+|ds|)·|ds| без всяких γ-констант. -/
+theorem adapter_merge_error_bound {n : ℕ} (obj : (Fin n → ℝ) → ℝ)
+    (Lc : ℝ) (hL0 : 0 ≤ Lc)
+    (hL : ∀ f g : Fin n → ℝ,
+      |obj f - obj g| ≤ Lc * (∑ i, |f i - g i|))
+    (D Dk : Matrix (Fin n) (Fin n) ℝ) (eps B : ℝ)
+    (heps : 0 ≤ eps) (hB0 : 0 ≤ B)
+    (hF : (∑ i, ∑ j, (D i j - Dk i j) ^ 2) ≤ eps ^ 2)
+    (f : Fin n → ℝ)
+    (hf : (∑ j, f j ^ 2) ≤ B ^ 2) :
+    obj (fun i => f i + (Dk *ᵥ f) i) ≤
+      obj (fun i => f i + (D *ᵥ f) i) + Lc * n * eps * B := by
+  have hmulvec : ∀ (M : Matrix (Fin n) (Fin n) ℝ),
+      ∀ i, (M *ᵥ f) i = ∑ j, M i j * f j := fun M i => rfl
+  -- per-row Frobenius tail
+  have hrow : ∀ i, (∑ j, (D i j - Dk i j) ^ 2) ≤ eps ^ 2 := fun i =>
+    le_trans
+      (Finset.single_le_sum
+        (f := fun p => ∑ j, (D p j - Dk p j) ^ 2)
+        (fun p _ => Finset.sum_nonneg fun j _ => sq_nonneg _)
+        (Finset.mem_univ i))
+      hF
+  -- per-row Cauchy-Schwarz: |((D - Dk) *ᵥ f) i| ≤ eps * B
+  have hper : ∀ i, |((D - Dk) *ᵥ f) i| ≤ eps * B := by
+    intro i
+    have hcs := cs_row (fun j => D i j - Dk i j) f
+    rw [hmulvec (D - Dk) i]
+    simp only [Matrix.sub_apply]
+    have h1s : (∑ j, (D i j - Dk i j) ^ 2).sqrt ≤ eps :=
+      Real.sqrt_le_iff.mpr ⟨heps, hrow i⟩
+    have h2s : (∑ j, f j ^ 2).sqrt ≤ B :=
+      Real.sqrt_le_iff.mpr ⟨hB0, hf⟩
+    exact le_trans hcs
+      (mul_le_mul h1s h2s (Real.sqrt_nonneg _) heps)
+  -- obj transfer via the ℓ¹-Lipschitz premise
+  have h2 : (∑ i : Fin n,
+      |f i + (Dk *ᵥ f) i - (f i + (D *ᵥ f) i)|) ≤ n * (eps * B) := by
+    have h2a : ∀ i : Fin n,
+        |f i + (Dk *ᵥ f) i - (f i + (D *ᵥ f) i)| ≤ eps * B := by
+      intro i
+      have hexp : f i + (Dk *ᵥ f) i - (f i + (D *ᵥ f) i)
+          = -(((D - Dk) *ᵥ f) i) := by
+        have e1 : (Dk *ᵥ f) i - (D *ᵥ f) i
+            = -(((D - Dk) *ᵥ f) i) := by
+          rw [hmulvec Dk i, hmulvec D i, hmulvec (D - Dk) i]
+          simp [Matrix.sub_apply, Finset.sum_sub_distrib,
+            sub_mul, neg_sub]
+        rw [show f i + (Dk *ᵥ f) i - (f i + (D *ᵥ f) i)
+            = (Dk *ᵥ f) i - (D *ᵥ f) i from by ring, e1]
+      rw [hexp, abs_neg]
+      exact hper i
+    have h2b : (∑ i : Fin n, eps * B) = n * (eps * B) := by
+      simp [Finset.card_univ, nsmul_eq_mul]
+    exact le_trans (Finset.sum_le_sum fun i _ => h2a i)
+      (le_of_eq h2b)
+  have h1 := hL (fun i => f i + (Dk *ᵥ f) i)
+    (fun i => f i + (D *ᵥ f) i)
+  have h3 : Lc * (∑ i : Fin n,
+      |f i + (Dk *ᵥ f) i - (f i + (D *ᵥ f) i)|) ≤
+      Lc * (n * (eps * B)) :=
+    mul_le_mul_of_nonneg_left h2 hL0
+  have h4 := le_abs_self
+    (obj (fun i => f i + (Dk *ᵥ f) i) - obj (fun i => f i + (D *ᵥ f) i))
+  have h5 : Lc * (n * (eps * B)) = Lc * n * eps * B := by ring
+  linarith
+
+end Merge
 
 end Hagi.Theory.AdapterGrowth
