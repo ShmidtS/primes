@@ -3836,3 +3836,31 @@ card instances); the main theorems carry the content.
   идентичен [false,true,false]; негатив (несовместимый с
   пробами target [true,false,false]) → none в обоих.
   Аксиомы: только propext/Quot.sound (def-ы — без аксиом).
+
+## Hagi/Theory/ExactBypass.lean (C541: exact bypass zero CE — P8)
+
+- P8 внешнего плана (mapping C537, top-4): Exact-First Residual
+  Coupling — символьные эксперты с сертификатом PROVEN_EXACT
+  перехватывают детерминированные паттерны (0 нейронных FLOP;
+  связка z_joint = z_core + Σ g·α·φ — DerivAlong/
+  CECoupledShortcut). Теорема корректности в вероятностной
+  семантике: p = 1 на истинном байте ⇒ точечный log-loss
+  −ln 1 = 0 РОВНО; вклад покрытия нулевой; CE линеен по
+  позициям ⇒ CE_total = 0 + CE_residual (GapBuffer-разложение).
+- `ce_pointwise_of_prob_one`: p = 1 → cePoint p = 0 (ядро P8).
+- `ce_covered_zero`: (∀ x ∈ xs, p x = 1) → ceSum p xs = 0 —
+  суммарный CE-вклад PROVEN_EXACT-покрытия нулевой.
+- `ce_split` / `ce_total_eq_residual`: линейность CE по
+  позициям (байты независимы) ⇒ на смешанной последовательности
+  общий CE равен CE остатка.
+- `exact_gate_sound` / `exact_gate_rejects_zero`: honest-гейт —
+  покрытие сертифицируется только при p = 1; ошибочное покрытие
+  (p = 0 на истинном байте) гейт ОТВЕРГАЕТ (бесконечный
+  log-loss = отвергнутый сертификат; junk-лог не используется).
+- `ceOneHot_eq_zero_of_softmaxP_eq_one`: мост к канону —
+  softmaxP z t = 1 → Hagi.Core.ceOneHot t z = 0 (общий SSOT,
+  композиция с CECoupledShortcut без дублирования его типов).
+- Witness .tmp/C541/trajExact.lean: смешанная последовательность
+  (6 покрытых p=1 + 4 остаточных p<1): вклад покрытия 0.0,
+  total = residual (4.264244, бит-в-бит); негатив p=0 → гейт
+  false. Аксиомы: только propext/Quot.sound/Classical.choice.
