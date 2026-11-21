@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 559
-- theorems: 12761
+- modules: 560
+- theorems: 12764
 - defs: 4725
 - noncomputable decls: 1213
-- status Proven: 478 modules
+- status Proven: 479 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -516,6 +516,7 @@ theorems.
 | Hagi.Theory.FullPipeline | 18 | 40 | - | no | Proven |
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |
 | Hagi.Theory.GaugeQuotient | 17 | 16 | quotientResidual, seq, rot | no | Proven |
+| Hagi.Theory.GrowSnap | 3 | 0 | - | no | Proven |
 | Hagi.Theory.GrowTrunkBlock | 9 | 2 | - | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |

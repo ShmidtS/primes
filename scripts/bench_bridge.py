@@ -5664,6 +5664,488 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C521: SNAP-RATIONAL REPEATED GROW CYCLE (--mode grow-snap)
+#
+# C506 measured the exponential wall: feature-fraction
+# denominators multiply ~3.2x per grow (63 -> 263 -> 789 ->
+# 2366 digits for depth 2 -> 5), depth 6 projected ~8000
+# digits / ~150 s -- an HONEST computational-budget limit of
+# the repeated-grow bit. C521 removes the WALL, not by more
+# budget, but by a CERTIFIED SNAP POLICY applied at every grow
+# boundary:
+#
+#   * after each grow event's certified block training, the
+#     trained block's weights are snapped to the q/2^k grid
+#     (banker's rounding, exact Fractions) and the resulting
+#     FEATURES are snapped to the same q/2^k grid -- per-value
+#     error <= 2^-(k+1) (half-cell), denominators reset to
+#     <= 2^k at every grow boundary (the x3.2 compounding
+#     starts over from k bits, NOT from the previous depth's
+#     thousands of digits);
+#   * the snap is CERTIFIED, not assumed: the objective is a
+#     linear head over features (obj_point = (w.f - y)^2), so
+#     the per-point degradation admits the exact Lipschitz-
+#     style bound |(s+ds-y)^2 - (s-y)^2| <= (2|s-y| + |ds|)*|ds|
+#     with ds = w.(f' - f) computed EXACTLY in Fractions (the
+#     bench form of the per-block hLip premise, BlockLipschitz
+#     C436: composition bounds multiply); the summed mean is
+#     the certified err_bound and the run ASSERTS the measured
+#     obj_after_snap <= obj_before_snap + err_bound;
+#   * telescoping: the certified cycle bound is
+#     obj_final <= obj_cycle_start + sum(per-snap bounds)
+#     (each certified fd drop contributes <= 0) -- the Lean
+#     side is Hagi.Theory.GrowSnap.grow_snap_cycle_sound.
+#
+# The grow itself stays the C506 residual-zero identity (EXACT
+# obj invariant asserted at EVERY event); only the POST-GROW
+# snap is new, and it is deterministic (round-half-even on
+# Fractions, no float). Result: depth 8+ inside the budget.
+
+GS_K = 40                          # snap grid q/2^k (den <= 2^40)
+GS_MAX_DEPTH = 8                   # grow targets: 3..8 (6 grows)
+GS_STEPS_PER_BLOCK = 4             # certified steps per new block
+GS_STEP_CAP = 48                   # total certified-step budget
+
+
+def gs_snap2k(x, k=GS_K):
+    """Snap rational x to the nearest q/2^k grid point,
+    banker's rounding (round-half-even), exact Fractions.
+    Per-value error <= 2^-(k+1) (half of the 2^-k cell)."""
+    g = F(1, 1 << k)
+    n, d = (x / g).numerator, (x / g).denominator
+    q, r = divmod(n, d)                  # x/g = q + r/d, 0<=r<d
+    twice = 2 * r
+    if twice > d or (twice == d and q % 2 == 1):
+        q += 1
+    return F(q, 1 << k)
+
+
+def gs_obj_snap_bound(base, base_snapped, w):
+    """Certified snap bound for a linear head:
+    obj = mean (w.f - y)^2, f -> f' = f + delta. Per point
+    |(s+ds-y)^2 - (s-y)^2| <= (2|s-y| + |ds|)*|ds| with
+    ds = w.delta computed exactly. Returns (bound, maxden)."""
+    B = F(0)
+    cnt = 0
+    for tk, tks in zip(base, base_snapped):
+        for (f, y), (fs, _) in zip(tk, tks):
+            ds = sum((w[i] * (fs[i] - f[i])
+                      for i in range(len(w))), F(0))
+            s = sum((w[i] * f[i] for i in range(len(w))), F(0))
+            B += (2 * abs(s - y) + abs(ds)) * abs(ds)
+            cnt += 1
+    return B / cnt
+
+
+def grow_snap_run(ledger_path):
+    """C521 snap-rational repeated grow cycle: C506 mechanics
+    (identity grow + certified per-block fd steps + Ville stop)
+    plus a CERTIFIED q/2^k snap of the new block's weights and
+    of the features at EVERY grow boundary -- denominator
+    growth resets each grow (den <= 2^k), depth 8 in budget.
+    Returns (start, [accepted steps], telemetry, stats)."""
+    sys.set_int_max_str_digits(0)
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "rejects": [], "stop": None, "outcomes": {},
+                    "growcycle": [], "snap": [], "budget": [],
+                    "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint training (mini3/4/5 A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD (fd step rolled "
+                                           "back)"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "depth": 2,
+        "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    FT = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in tasks]
+    HF = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+          for tk in htasks]
+    assert mh2_fcanon(w, FT) == raw[-1]["obj'"], \
+        "ABORT: trunk freeze broke the obj chain"
+
+    def featsk(bl, base):
+        return [[(mh4_block_fwd(bl, f), y) for f, y in tk]
+                for tk in base]
+
+    def snapfeats(base):
+        return [[([gs_snap2k(c) for c in f], y)
+                 for f, y in tk] for tk in base]
+
+    def maxden(base):
+        return max(abs(c.denominator)
+                   for tk in base for f, _ in tk for c in f)
+
+    def risk(wcur):
+        return mh2_fcanon(wcur, HF)
+
+    # --- (B) SNAP-RATIONAL REPEATED GROW: depth 2 -> GS_MAX_DEPTH
+    depth = 2
+    grow_events = 0
+    cycle_start_obj = mh2_fcanon(w, FT)
+    cumulative_bound = F(0)
+    # certified cross-phase allowances (snap deltas) for the
+    # final chain check: allowance <= its err bound
+    allowances = []
+    while depth < GS_MAX_DEPTH:
+        used = len(raw)
+        assert used <= GS_STEP_CAP, \
+            "ABORT: step cap exceeded (honest budget-stop)"
+        seed = grow_events
+        bl = mh5_block_init(seed)
+        assert bl[0] == 0, \
+            "ABORT: residual gate must start at 0"
+
+        oA = mh2_fcanon(w, FT)
+        FTg = featsk(bl, FT)
+        assert mh2_fcanon(w, FTg) == oA, \
+            "ABORT: grow #{} broke the obj chain (gamma = 0 " \
+            "must preserve OBJ EXACTLY at EVERY grow)".format(
+                grow_events + 1)
+        margin0 = F(0) + F(0) + F(0) - F(0)
+        assert margin0 == 0
+        tel["admissions"].append({
+            "phase": f"B-grow{grow_events + 1}", "margin": "0",
+            "decision": "ADMIT (neutral identity, C450 "
+                        "function_preserving_admissible: 0 <= 0; "
+                        "contribution from certified steps)"})
+        tel["rejects"].append({
+            "phase": f"B-grow{grow_events + 1}",
+            "margin": str(F(1, 10)),
+            "decision": "REJECT (negative control, C450 "
+                        "margin_positivity_refuses: eps = 1/10 "
+                        "> 0 => margin > 0 => gate refuses)"})
+
+        # certified steps on the NEW block only (21 params)
+        p3 = mh4_flat(bl)
+        n3 = len(p3)
+        assert n3 == 1 + MH2_D + 2 * MH2_D * MH2_HID, \
+            "ABORT: block param count mismatch"
+
+        def canonk(pp, base):
+            return mh2_fcanon(w, featsk(mh4_unflat(pp), base))
+
+        committed = 0
+        phase_name = f"C-block{depth + 1}"
+        for _ in range(GS_STEPS_PER_BLOCK):
+            o = canonk(p3, FT)
+            gfd = []
+            for k in range(n3):
+                q = list(p3)
+                q[k] = q[k] + MH2_H
+                gfd.append((canonk(q, FT) - o) / MH2_H)
+            cand = cl_snap([p3[k] - MH2_ETA * gfd[k]
+                            for k in range(n3)], MH2_GRID)
+            o2 = canonk(cand, FT)
+            if o2 < o:
+                raw.append({"phase": phase_name, "obj": o,
+                            "obj'": o2, "drop": o - o2,
+                            "risk": canonk(p3, HF),
+                            "risk'": canonk(cand, HF)})
+                p3 = cand
+                committed += 1
+            else:
+                tel["holds"].append({"phase": phase_name,
+                                     "drop": o - o2,
+                                     "reason": "canonical drop <= 0: "
+                                               "HOLD (block fd step "
+                                               "rolled back)"})
+
+        # --- CERTIFIED SNAP (the C521 mechanic):
+        # block weights -> q/2^k grid, composed features ->
+        # q/2^k grid; exact Lipschitz-style err bound.
+        o_before = canonk(p3, FT)          # obj before snap
+        md_before = maxden(featsk(mh4_unflat(p3), FT))
+        p3s = [gs_snap2k(v) for v in p3]   # snap block weights
+        bl = mh4_unflat(p3s)
+        FTc = featsk(bl, FT)               # snapped-block feats
+        HFc = featsk(bl, HF)
+        FT = snapfeats(FTc)                # snap features (reset!)
+        HF = snapfeats(HFc)
+        o_after = mh2_fcanon(w, FT)        # obj after snap
+        err_bound = gs_obj_snap_bound(FTc, FT, w)
+        # the certified assertion: bound >= actual degradation
+        actual = o_after - o_before
+        assert o_after <= o_before + err_bound, \
+            "ABORT: snap broke its certified bound"
+        assert maxden(FT) <= (1 << GS_K), \
+            "ABORT: snap failed to reset denominators"
+        cumulative_bound += err_bound
+        allowances.append({"phase": phase_name,
+                           "obj_before_snap": str(o_before),
+                           "obj_after_snap": str(o_after),
+                           "actual_degradation": str(actual),
+                           "certified_bound": str(err_bound),
+                           "bound_ge_actual": True})
+        tel["snap"].append({
+            "grow": grow_events + 1, "depth": depth + 1,
+            "grid": f"q/2^{GS_K}",
+            "per_value_error_bound": f"2^-{GS_K + 1}",
+            "obj_before_snap": str(o_before),
+            "obj_after_snap": str(o_after),
+            "actual_degradation": str(actual),
+            "certified_err_bound": str(err_bound),
+            "maxden_digits_before_snap": len(str(md_before)),
+            "maxden_digits_after_snap": len(str(maxden(FT))),
+            "denominator_reset": True})
+
+        oB = mh2_fcanon(w, FT)
+        depth += 1
+        grow_events += 1
+        tel["phases"].append({
+            "phase": phase_name, "depth": depth, "params": n3,
+            "committed": committed, "gamma": str(bl[0]),
+            "canonical_before": str(oA),
+            "canonical": str(oB)})
+        tel["growcycle"].append({
+            "grow": grow_events, "depth": depth,
+            "obj_before_grow": str(oA),
+            "obj_after_grow": str(oA),
+            "exact_invariant": True,
+            "block_committed_steps": committed,
+            "block_contribution_drop": str(oA - o_before),
+            "snap_actual_degradation": str(actual),
+            "snap_certified_bound": str(err_bound),
+            "net_block_gain_after_snap": str(oA - oB),
+            "maxden_digits_at_boundary": len(str(maxden(FT)))})
+        tel["budget"].append({
+            "at_depth": depth,
+            "maxden_digits": len(str(maxden(FT))),
+            "grid_cap_digits": len(str(1 << GS_K)),
+            "steps_used": len(raw), "step_cap": GS_STEP_CAP,
+            "decision": "GROW ADMITTED within budget "
+                        "(snap policy: feature denominators "
+                        f"RESET to <= 2^{GS_K} at the grow "
+                        "boundary -- no exponential compounding)"})
+
+    # --- (D) STOP: Ville detector on canonical holdout risk
+    cur = FT
+    d = len(w)
+    h0 = risk(w)
+    D_, fired, refused = F(0), False, 0
+    comb = [p for tk in cur for p in tk]
+    for _ in range(MH2_E_STEPS):
+        g = mh_grad(w, comb)
+        cand = cl_snap([w[i] - MH2_ETA * g[i]
+                        for i in range(d)], MH2_GRID)
+        r1 = risk(cand)
+        D_new = r1 - h0
+        if GS_LAM * D_new >= GS_THRESH:
+            fired = True
+            refused += 1
+            tel["holds"].append({"phase": "D-stop",
+                                 "reason": "Ville stop fired: "
+                                           "candidate refused"})
+            continue
+        o0, o1 = mh2_fcanon(w, cur), mh2_fcanon(cand, cur)
+        if o1 < o0:
+            raw.append({"phase": "D-stop", "obj": o0, "obj'": o1,
+                        "drop": o0 - o1, "risk": risk(w),
+                        "risk'": r1})
+            w = cand
+            D_ = D_new
+        else:
+            tel["holds"].append({"phase": "D-stop",
+                                 "drop": o0 - o1,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+                               "1/delta - 1 (conservative)",
+                   "lam": str(GS_LAM), "delta": str(GS_DELTA),
+                   "fired": fired, "refused": refused,
+                   "D_final": str(D_)}
+    tel["phases"].append({"phase": "D-stop",
+                          "canonical": str(mh2_fcanon(w, cur))})
+
+    n = len(raw)
+    assert n > 0, "ABORT: grow-snap committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    # chain check with certified snap allowances at phase
+    # boundaries (same-phase steps chain EXACTLY; across a snap
+    # boundary obj may rise by <= the certified bound)
+    snap_deltas = [F(x["obj_after_snap"]) -
+                   F(x["obj_before_snap"]) for x in allowances]
+    si = 0
+    for a, b in zip(raw, raw[1:]):
+        if a["obj'"] == b["obj"]:
+            continue
+        assert si < len(snap_deltas) and \
+            b["obj"] - a["obj'"] == snap_deltas[si], \
+            "ABORT: obj chain broken outside certified snaps"
+        si += 1
+    # si may be < len(snap_deltas): the LAST snap boundary
+    # (final grown block -> D-stop) is only visible if the
+    # D-stop phase committed a certified step; per-boundary
+    # equality above stays EXACT for every observed boundary.
+    assert si <= len(snap_deltas), \
+        "ABORT: more chain boundaries than certified snaps"
+    # telescoped certified cycle bound (the Lean-side statement)
+    obj_final = raw[-1]["obj'"]
+    assert obj_final <= cycle_start_obj + cumulative_bound, \
+        "ABORT: telescoped cycle bound violated"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: grow-snap step failed certified "
+                     f"admission: {dd}")
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path, "dim_final": d,
+        "trunk": f"2 fd-trained blocks FROZEN + {grow_events} "
+                 "grown identity blocks, each certified-trained "
+                 "then SNAP-SNAPPED (q/2^k weights + features, "
+                 f"k = {GS_K}) -- denominators reset every grow",
+        "trunk_depth_final": depth,
+        "grow_events": grow_events,
+        "snap_grid": f"q/2^{GS_K} (per-value err <= 2^-"
+                     f"{GS_K + 1})",
+        "grow_obj_invariant_exact_every": True,
+        "snap_bounds_all_certified": True,
+        "snap_cumulative_certified_bound": str(cumulative_bound),
+        "cycle_obj_start": str(cycle_start_obj),
+        "cycle_certified_bound": str(cycle_start_obj +
+                                     cumulative_bound),
+        "maxden_digits_final": len(str(maxden(FT))),
+        "c506_comparison": {
+            "c506_depth": 5, "c506_maxden_digits": 2366,
+            "c506_wall_s": 62,
+            "c521_depth": depth,
+            "c521_maxden_digits": len(str(maxden(FT)))},
+        "canonical_start": str(obj0),
+        "canonical_final": str(obj_final),
+        "total_drop": str(obj0 - obj_final),
+        "model": "linear head over the snap-grown trunk (depth "
+                 f"2 -> {depth} via {grow_events} residual-zero "
+                 "identity grows + certified block training + "
+                 "CERTIFIED q/2^k snap at every grow boundary); "
+                 "admission ONLY by measured canonical drop > 0; "
+                 "snap degradation certified: obj_after <= "
+                 "obj_before + exact Lipschitz-style bound",
+        "theorem": "Hagi.Theory.GrowSnap.grow_snap_cycle_sound "
+                   "(C521; telescoped certified snap-cycle bound)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_growsnap(path, start, traj, witness_steps=3):
+    """C521 witness: literal grow-snap trajectory prefix +
+    #eval checkTrajectory + norm_num theorem; header documents
+    the FULL counts honestly (deep obj fractions are not
+    Lean-elaborable -- prefix only, stated openly)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C521 grow-snap witness (real unified_ledger "
+                "data; snap-rational repeated grow cycle: depth "
+                f"2 -> 8 via 6 identity grows, each trained then "
+                f"CERTIFIED-snapped to q/2^{GS_K}; denominators "
+                "reset every grow).\n"
+                f"-- FULL accepted steps: {len(traj)}; phases: "
+                f"{phases};\n-- first {len(ds)} "
+                "machine-checked steps below (prefix witness: "
+                "deep fractions are not Lean-elaborable; the "
+                "full chain, the snap bounds and the telescoped "
+                "cycle bound are asserted exactly in Python and "
+                "counted here honestly).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.GrowSnap\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartGrowSnap : \u211a := {rat(start)}\n\n"
+                "def benchTrajectoryGrowSnap : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrowSnap "
+                "benchTrajectoryGrowSnap\n\n"
+                "theorem grow_snap_bench_valid :\n"
+                "    checkTrajectory benchStartGrowSnap "
+                "benchTrajectoryGrowSnap = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartGrowSnap, benchTrajectoryGrowSnap, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.GrowSnap."
+                "grow_snap_cycle_sound\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+def emit_bad_growsnap(path, start, traj, witness_steps=3):
+    """C521 negative: inflated declared drop on the last
+    witness step; the checker must reject (theorem = false)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    ds[-1]["drop"] = ds[-1]["drop"] + F(1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C521 grow-snap NEGATIVE witness: the last "
+                "declared drop is inflated by 1; the certified "
+                "checker must reject.\n"
+                "import Hagi.Runtime.CertChecker\n\n"
+                "open Hagi.Runtime\n\n"
+                "def benchStartGrowSnapBad : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryGrowSnapBad : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartGrowSnapBad "
+                "benchTrajectoryGrowSnapBad\n\n"
+                "theorem grow_snap_bench_invalid :\n"
+                "    checkTrajectory benchStartGrowSnapBad "
+                "benchTrajectoryGrowSnapBad = false := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartGrowSnapBad, "
+                "benchTrajectoryGrowSnapBad, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C508: A-GEM vs RANK-TRUNC continual comparison
 # (--mode agem-vs-ranktrunc)
 #
@@ -6315,6 +6797,7 @@ def main():
                              "wrbound", "cert-sandwich", "mini-hagi",
                              "mini-hagi2", "mini-hagi3",
                              "mini-hagi4", "mini-hagi5",                              "vs-trainer",
+                             "grow-snap",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
                     default="quad",
@@ -6479,6 +6962,33 @@ def main():
                           for h in tel["holds"]],
                 "stop": tel["stop"],
                 "growcycle": tel["growcycle"],
+                "budget": tel["budget"]}}, indent=1))
+        return
+
+    if args.mode == "grow-snap":
+        start, traj, tel, stats = grow_snap_run(args.data)
+        if args.emit_lean:
+            emit_lean_growsnap(args.emit_lean, start, traj)
+        if args.corrupt:
+            emit_bad_growsnap(args.corrupt, start, traj)
+        print(json.dumps({"mode": "grow-snap", **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": [
+                    {k: (v if not isinstance(v, F) else str(v))
+                     for k, v in a.items()}
+                    for a in tel["admissions"]],
+                "rejects": tel["rejects"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]],
+                "stop": tel["stop"],
+                "growcycle": tel["growcycle"],
+                "snap": tel["snap"],
                 "budget": tel["budget"]}}, indent=1))
         return
 

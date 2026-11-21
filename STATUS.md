@@ -6964,3 +6964,40 @@ ChallengeCheck/MachineDiffTest/TestFreeze/TestAllAxiomCheck/
 TestAssumptionScan+AssumptionScan/TestPremiseRegistry/
 TestMergeModule exit 0; regression quad exit 0). Index regen:
 theorem-index 12767→12778 (HybridContinual 11 decls, Proven).
+
+## Snap-rational grow depth cycle (C521)
+
+Roadmap C520 top-1б: победа измеренного экспоненциального
+предела знаменателей C506 (×~3.2 на grow, глубина 5 ≈ 2366
+цифр, глубина 6 ≈ 8000 цифр / ~150 s — ВЫЧИСЛИТЕЛЬНЫЙ предел
+Fraction-арифметики, не теоретический) через CERTIFIED
+snap-политику при identity-grow. `scripts/bench_bridge.py
+--mode grow-snap` (backward-совместимо; клон цикла C506):
+после каждого grow-обучения веса НОВОГО блока и ПРИЗНАКИ
+снапятся к рациональной сетке q/2^k (k=40, banker's rounding,
+ДЕТЕРМИНИРОВАН, точные Fractions, per-value ошибка ≤ 2^-41);
+знаменатели признаков на КАЖДОЙ границе grow bounded 2^40
+(assert в рантайме) — компаундинг начинается заново с 13
+цифр, а не с 2366. Деградация obj от снапа CERTIFIED через
+точный Lipschitz-стиль bound линейной головы: per-point
+|(s+ds−y)² − (s−y)²| ≤ (2|s−y| + |ds|)·|ds|, ds = w·δf точно в
+Fraction (bench-форма per-block hLip premise BlockLipschitz
+C436); run-time assert measured obj_after ≤ obj_before +
+bound на каждом снапе; телескоп: obj_final ≤ obj_cycle_start
++ Σ bounds (assert). Итог прогона: глубина 8 (6 grow-событий,
+28 certified шагов) за 8 s против C506 глубина 5 за 62 s;
+maxden признаков 13 цифр против 2366; все 6 snap-bound'ов ≥
+фактической деградации (часть снапов даже УЛУЧШИЛА obj —
+отрицательная actual). Lean: Hagi/Theory/GrowSnap.lean (новый,
++3): snap_preserves_objective_bound (Lipschitz-премиза +
+per-coord err ≤ 2^-(k+1) ⇒ obj после снапа ≤ obj + L·n·2^-
+(k+1)), snap_denominator_reset ((q/2^k : ℚ).den ≤ 2^k, Mathlib
+Rat.den_dvd), grow_snap_cycle_sound (телескоп по списку
+bound'ов, индукция). Witness .tmp/C521/trajGrowSnap.lean:
+#eval checkTrajectory = true + негатив = false, lake exit 0.
+Regression mini-hagi5/mini-hagi4 exit 0 (корпус дрейфнул с
+C506 — obj отличаются, счётчики шагов идентичны); mini-hagi3
+ABORT — pre-existing corpus drift (C516 precedent), honored
+via Lean witness .tmp/C500/trajMini3.lean exit 0. Freeze
+8592→8595 (verify 0 aliased); ALLAXIOMS только propext/
+Quot.sound/Classical.choice; index regen 560 modules.

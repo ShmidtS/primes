@@ -454,6 +454,7 @@ import Hagi.Theory.BlockAdmission
 import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.GrowTrunkBlock
+import Hagi.Theory.GrowSnap
 import Hagi.Theory.AdaptiveMajorizer
 import Hagi.Theory.FlowMatching
 import Hagi.Theory.Interpretability
