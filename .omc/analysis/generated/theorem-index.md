@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 552
-- theorems: 12756
-- defs: 4725
+- modules: 547
+- theorems: 12754
+- defs: 4723
 - noncomputable decls: 1213
-- status Proven: 471 modules
+- status Proven: 466 modules
 - status Conditional: 26 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -82,8 +82,7 @@ theorems.
 | Hagi.Contracts.BatchCEAlignmentBudget | 30 | 2 | fixedAlignmentCesaro, rangeCurvature | no | Proven |
 | Hagi.Contracts.BatchCEBestResidual | 4 | 0 | - | no | Proven |
 | Hagi.Contracts.BatchCEBudgetGuard | 160 | 32 | batchParetoProblemSafeDecidable, identityParetoBatchStep, batchParetoProblem, pairMinimumNormBatchParetoProblemSafeDecidable, expandedTrainState, batchDirectionHalfTrainInput, batchCEMeasured, batchSampleCE, batchDirectionHalfTrainStep, batchParetoStepFun, guardedBatchTrainStep, asymmetricPairMinimumNormBatchStep, guardedBatchParetoStepFun, guardedBatchParetoProblemSafeDecidable, evaluatedBatchMinimumNormCert, pairMinimumNormBatchParetoProblem, minimumNormBatchParetoProblem, batchMinimumNormMinimalCert, expandedHalfTrainStep, batchMinimumNormTrainStep, minimumNormBatchParetoProblemSafeDecidable, batchPairMinimumNormTrainStep, identityMinimumNormBatchStep, asymmetricMeanBatchStep, guardedBatchParetoProblem, budgetedParetoBatchTrainStep, batchDirectionTrainStep | no | Proven |
-| Hagi.Contracts.BatchCEGrowth | 105 | 58 | residualDirection, residualAdmissionMargin, residualStepMargin, residualFeatures, grownBatchState, quarantinedGrowStep, growthObjective, residualPath, growthPath, boundedGrowStep | no | Proven |
-| Hagi.Contracts.BatchCEGrowthSelection | 89 | 22 | growthAdmissionProblemAt_decidable_safe, growthAdmissionPlanStep, growthCandidateOperationIncrement, growthAdmissionMemoryIncrement, growthCandidateStep, smoothedGrowthYield, growthSelection, growthAdmissionPlanRollout, growthAdmissionPlanSelection, growthProblemAt, growthAdmissionOperationIncrement, growthAdmissionSelectionTrace, growthAdmissionSelection, growthAdmissionSelectionPath, growthAdmissionPlanProblemAt, growthAdmissionSelectionNext, growthAdmissionPlanProblemAt_decidable_safe, growthProblemAt_decidable_safe, growthSelectionNext, growthCandidateMemoryIncrement, growthAdmissionProblemAt | no | Proven |
+| Hagi.Contracts.BatchCEGrowth | 194 | 80 | growthAdmissionProblemAt_decidable_safe, growthAdmissionPlanStep, growthCandidateOperationIncrement, residualDirection, residualAdmissionMargin, growthAdmissionMemoryIncrement, residualStepMargin, residualFeatures, growthCandidateStep, grownBatchState, smoothedGrowthYield, growthSelection, growthAdmissionPlanRollout, quarantinedGrowStep, growthAdmissionPlanSelection, growthProblemAt, growthAdmissionOperationIncrement, growthAdmissionSelectionTrace, growthAdmissionSelection, growthObjective, growthAdmissionSelectionPath, growthAdmissionPlanProblemAt, growthAdmissionSelectionNext, residualPath, growthAdmissionPlanProblemAt_decidable_safe, growthPath, growthProblemAt_decidable_safe, boundedGrowStep, growthSelectionNext, growthCandidateMemoryIncrement, growthAdmissionProblemAt | no | Proven |
 | Hagi.Contracts.BatchCEStepCore | 47 | 13 | heterogeneousStepCert, batchDirectionTrainInput, batchPairMinimumNormTrainInput, batchTrainStepCert, batchTrainStepMinimalCert, batchCEObjective, batchTrainInput, batchTrainStep, batchLogitCertifiedDrop, batchMinimumNormTrainInput, batchCertifiedDrop, heterogeneousStep | no | Proven |
 | Hagi.Contracts.BatchCETrajectory | 0 | 0 | - | no | Proven |
 | Hagi.Contracts.BatchCETrajectory.Core | 53 | 0 | - | no | Proven |
@@ -93,13 +92,11 @@ theorems.
 | Hagi.Contracts.BudgetedParetoStepCert | 6 | 1 | budgetedParetoStepCert | no | Proven |
 | Hagi.Contracts.BudgetedParetoStepContract | 3 | 1 | budgetedParetoStepContract | no | Proven |
 | Hagi.Contracts.CEStepCertificate | 36 | 10 | ceTrainInput, batchCEObservation, identityStepCert, identityInitialState, identityCEStep, ceTrainStepCert, ceTrainStep, ceTrainStepMinimalCert, coreCEObjective, coreParameters | no | Proven |
-| Hagi.Contracts.ChangingEMTrajectory | 29 | 9 | changingEMPath, changingEMPathDrop, changingEMPathMGain, changingEMPathNLL, currentPosterior, changingEMPathKLResidual | no | Proven |
 | Hagi.Contracts.ComputeToQuality | 14 | 1 | totalComputeProduct | no | Proven |
 | Hagi.Contracts.CurriculumCert | 7 | 1 | curriculumTotal | no | Proven |
 | Hagi.Contracts.DataToQuality | 13 | 1 | sampleComplexity | no | Proven |
 | Hagi.Contracts.DepthExitCert | 30 | 26 | d2, d1 | no | Proven |
-| Hagi.Contracts.FactorizedMixtureEM | 16 | 4 | mixtureUnitScore, factorizedMixtureLabels, mixtureCurrentPosterior, mixtureVectorBank | no | Proven |
-| Hagi.Contracts.FiniteEMTrajectory | 20 | 6 | currentPosterior, finiteEMPathNLL, finiteEMPath | no | Proven |
+| Hagi.Contracts.EMTrajectory | 105 | 43 | mixtureGridWeight, mixtureModel, currentPosterior, changingEMPathDrop, changingEMPath, mixtureFamily, mixtureUnitScore, mixtureState, mixtureStateStep, mixtureJointMass, changingEMPathMGain, factorizedMixtureLabels, mixtureCanonicalPath, mixturePriorMass, changingEMPathNLL, finiteEMPathNLL, mixtureTrajectoryModel, mixtureCurrentPosterior, finiteEMPath, mixtureChannel, mixtureVectorBank, mixtureTrajectoryBank, currentPosterior, changingEMPathKLResidual | no | Proven |
 | Hagi.Contracts.GatePipeline | 25 | 0 | - | no | Proven |
 | Hagi.Contracts.GatedCEGradientNorm | 5 | 1 | gatedGrad | no | Proven |
 | Hagi.Contracts.GatedCEStepCertificate | 67 | 13 | gatedCEProblemSafeDecidable, identityScaledGatedCEPath, gatedCETrainStepCert, gatedCETrainStep, identityGatedCEStep, gatedCETrainInput, gatedCETrainStepMinimalCert, gatedCEProblem, gatedCEStepFun, gatedCEValueEstimate, budgetedGatedCETrainStep, gatedCEObjective, identityGatedStepCert | no | Proven |
@@ -113,8 +110,6 @@ theorems.
 | Hagi.Contracts.KVCacheCert | 44 | 27 | lseCombine, tokFull, tokKV, kv_step_certified, tokDen, kvStep, cachedAttn, tokNum | no | Proven |
 | Hagi.Contracts.LogicChoiceCert | 31 | 8 | witX, choiceCEMetrics, onesV, choiceCE_transitionStep_progress, witθ, choiceFeatures | no | Proven |
 | Hagi.Contracts.LogitGrad | 6 | 1 | logitGrad | no | Proven |
-| Hagi.Contracts.MixtureEMTrajectory | 42 | 26 | mixtureState, mixtureGridWeight, mixtureJointMass, mixtureModel, mixtureCanonicalPath, mixtureStateStep, mixtureChannel, mixtureFamily, mixtureTrajectoryModel, mixturePriorMass, mixtureTrajectoryBank | no | Proven |
-| Hagi.Contracts.NaturalLean | 0 | 0 | - | no | Proven |
 | Hagi.Contracts.ObjectiveTrajectory | 23 | 0 | - | no | Proven |
 | Hagi.Contracts.SparseInferenceCert | 28 | 8 | sparse_step_certified | no | Proven |
 | Hagi.Contracts.StepCertificate | 8 | 3 | trainStepCert, trainMeasured, trainStepMinimalCert | yes | Conditional |

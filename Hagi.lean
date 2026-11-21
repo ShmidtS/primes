@@ -385,10 +385,7 @@ import Hagi.State.TrainTrajectory
 import Hagi.State.EvalBindingCert
 import Hagi.State.Views
 import Hagi.Contracts.ObjectiveTrajectory
-import Hagi.Contracts.FiniteEMTrajectory
-import Hagi.Contracts.ChangingEMTrajectory
-import Hagi.Contracts.MixtureEMTrajectory
-import Hagi.Contracts.FactorizedMixtureEM
+import Hagi.Contracts.EMTrajectory
 import Hagi.Contracts.GuardedLogitTrajectory
 import Hagi.Contracts.StepCertificate
 import Hagi.Contracts.CEStepCertificate
@@ -399,8 +396,6 @@ import Hagi.Contracts.BatchCEBudgetGuard
 import Hagi.Contracts.BudgetedParetoStepContract
 import Hagi.Contracts.BudgetedParetoStepCert
 import Hagi.Contracts.BatchCEGrowth
-import Hagi.Contracts.BatchCEGrowthSelection
-import Hagi.Contracts.NaturalLean
 import Hagi.Contracts.BatchCETrajectory
 import Hagi.Contracts.BatchRangeBF16Cert
 import Hagi.Contracts.BatchCEAlignmentBudget

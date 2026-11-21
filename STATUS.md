@@ -331,13 +331,12 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `exists_sqrt_alignment_le_sqrt_initial_div_time`: та же оценка выполняется после взятия квадратного корня из обеих сторон; это результат о лучшем элементе префикса, а не о последнем итерате.
 
 
-## Hagi/Contracts/BatchCEGrowth.lean
+## Hagi/Contracts/BatchCEGrowth.lean (вкл. BatchCEGrowthSelection и NaturalLean, слит C524)
 - `growthObjective_iteratedQuarantinedGrowStep_antitone`: цель `growthObjective` на точной последовательности итераций `quarantinedGrowStep` не возрастает.
 - `iteratedQuarantinedGrowStep_budget_nonneg`: если исходный бюджет `S0.state.res.budget` неотрицателен, неотрицательность сохраняется после любого числа таких итераций.
 - `growthObjective_iteratedQuarantinedGrowStep_tendsto_ciInf`: неотрицательная антимонотонная последовательность целей сходится к своей точной нижней грани; равенство этой грани нулю или глобальному оптимуму не утверждается.
 
 
-## Hagi/Contracts/BatchCEGrowthSelection.lean
 - `growthAdmissionPlanFold_flops` и `growthAdmissionPlanRollout_flops`: для заданной модели ресурсов сумма стартового и накопленного счётчика flops точно воспроизводится свёрткой и развёрткой плана.
 - `growthAdmissionPlanSelection_flops_le_of_objective_eq_and_memory_eq`: если реализованный план допустим, а выбранный план имеет ту же цель и тот же счётчик памяти, то его flops не превосходят flops реализованного плана; требуются также заданные ограничения операций.
 - Счётчики относятся к абстрактной модели кандидатов, а не к физической памяти или времени вычислений.
@@ -391,20 +390,20 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   о мире.
 
 
-## Hagi/Contracts/ChangingEMTrajectory.lean
+## Hagi/Contracts/EMTrajectory.lean (вкл. ChangingEMTrajectory, слит C524)
 - `changingEMPath_nll_antitone`: при `∀ t a i, 0 < observationEvidence (c t a i).1 (c t a i).2 (y i)`, сохранении текущих пар (условие hKeep) и включении носителей текущих постериоров в носители постериоров всех кандидатов следующего шага (условие hClose) агрегированная наблюдаемая NLL не возрастает.
 - `changingEMPathDrop_budget` и `changingEMPathKLResidual_budget`: суммы уменьшений NLL и KL-постериора ограничены начальной NLL; обе величины неотрицательны и суммируемы.
 - `changingEMPath_nll_tendsto_ciInf`: NLL сходится к своей неотрицательной точной нижней грани, без утверждения об оптимальности модели или сходимости параметров.
 - `changingEMPath_drop_tsum_eq_m_add_kl`: полная сумма уменьшений равна сумме выигрышей `changingEMPathMGain` плюс сумме KL-постериора.
 
 
-## Hagi/Contracts/FactorizedMixtureEM.lean
+## Hagi/Contracts/EMTrajectory.lean (вкл. FactorizedMixtureEM, слит C524)
 - `factorizedMixture_nll_le_old`: при конечных `I`, `X` и положительной исходной `observationEvidence` факторизованный выбор меток даёт суммарную наблюдаемую NLL не выше исходной.
 - `mixtureUnitQuery_card`: число элементов `Σ _ : I, Option (Fin n)` равно `Fintype.card I * (n + 1)`.
 - `mixtureVectorCandidate_card`: число векторов `I → Option (Fin n)` равно `(n + 1) ^ Fintype.card I`; это размеры абстрактных пространств кандидатов, а не затраты исполнения.
 
 
-## Hagi/Contracts/FiniteEMTrajectory.lean
+## Hagi/Contracts/EMTrajectory.lean (вкл. FiniteEMTrajectory, слит C524)
 - `finiteEMPath_nll_nonneg` и `finiteEMPath_nll_antitone`: для конечного замкнутого семейства с `∀ a i, 0 < observationEvidence (c a i).1 (c a i).2 (y i)` и включением носителя постериора каждого элемента base в носитель постериора каждого кандидата для всех `i` агрегированная NLL неотрицательна и не возрастает.
 - `finiteEMPath_nll_eventually_constant`: последовательность NLL стабилизируется после некоторого `N`.
 - `finiteEMPath_nll_ciInf_attainment`: точная нижняя грань NLL достигается на некотором фактическом шаге; одновременно `finiteEMPath_nll_tendsto_ciInf` доказывает сходимость к ней.
@@ -641,14 +640,13 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   экономия.
 
 
-## Hagi/Contracts/MixtureEMTrajectory.lean
+## Hagi/Contracts/EMTrajectory.lean (вкл. MixtureEMTrajectory, слит C524)
 - `mixtureTrajectoryBank_succ`: для положительной исходной свидетельствуемости банк на шаге `t + 1` получается смешиванием текущей модели с соответствующей seed-моделью и весом `mixtureGridWeight`.
 - `mixtureTrajectory_selected_model`: канонический путь меток выбирает в банке в точности текущую модель траектории.
 - `mixtureTrajectory_close`: частная лемма доказывает включение носителя текущего постериора в носитель постериора любого следующего кандидата.
 - `mixtureTrajectory_nll_antitone`: агрегированная наблюдаемая NLL полученной траектории с меняющимся семейством не возрастает; сходимость выбранной модели или параметров не утверждается.
 
 
-## Hagi/Contracts/NaturalLean.lean
 Авторских верхнеуровневых теорем нет. Анонимный пример проверяет на произвольном `BoundedBatchState S` равенство `smoothedGrowthYield S S = 0`: тактика default_apply применяет существующую теорему `smoothedGrowthYield_self`, не создавая нового именованного математического результата.
 
 

@@ -102,7 +102,16 @@ class Cursor:
         start = self.pos
         char = self.text[self.pos]
         if char in "\"'":
-            return self.quoted(char)
+            try:
+                return self.quoted(char)
+            except MergeError:
+                # A lone `'` that is not a terminated character literal is
+                # Lean notation such as the binder prime in `∑'` / `∏'`:
+                # tokenize it as a single character instead of failing.
+                if char == "'":
+                    self.pos = start + 1
+                    return Token(char, start, self.pos)
+                raise
         if _identifier_start(char):
             self.pos += 1
             while self.pos < len(self.text):

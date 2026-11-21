@@ -13,7 +13,7 @@ Hagi.Theory.budget_ledger_telescope
 # HEAD 54cfc6a predates C476; verified each is a deliberate twin:
 # private wrapper proving by exact reference, or documented
 # "tight twin" / same-statement cross-layer restatement).
-Hagi/Contracts/ChangingEMTrajectory.lean:Hagi.Contracts.ChangingEMTrajectory.bounded_nonnegative_budget
+Hagi/Contracts/EMTrajectory.lean:Hagi.Contracts.ChangingEMTrajectory.bounded_nonnegative_budget
 Hagi.Theory.MDLPrune.prune_negative_experts_improve_sum
 Hagi.Model.CEScaleChoice.grouped_scale_choice_sum_le
 Hagi.Model.CEScaleChoice.joint_scale_choice_le
