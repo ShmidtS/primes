@@ -268,4 +268,54 @@ theorem adapter_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
 
 end SnapCycle
 
+/-! ## Ранговая адаптивность (C535): измеримый селектор ранга
+
+Каркас C533, обобщённый на ранг r ∈ {1, 2}: на каждом уровне
+ранг выбирается по ИЗМЕРЕННОМУ критерию probe-drop-на-параметр
+(паттерн `hybridSelect` C510 — детерминированный селектор на
+измеренных числах, гарантия = дизъюнкция веток). -/
+section RankAdaptive
+
+/-- Измеренный критерий выбора ранга: certified probe-drop НА
+ПАРАМЕТР адаптера (эквивалент λ-penalty формы drop − λ·params
+при монотонном λ; bench-инстанс: Fractions, точное
+деление). Параметры > 0 (ранг-строки непусты). -/
+noncomputable def rankScore (drop params : ℝ) : ℝ := drop / params
+
+/-- Детерминированный селектор ранга по измеренным score
+(тотальный порядок linorder на ℝ; НЕТ порогов и случайности
+— только измеренные числа): r=2 ⇔ score_2 СТРОГО больше;
+равенство → r=1 (budget-приоритет меньшего ранга). -/
+noncomputable def rankSelect (s1 s2 : ℝ) : ℕ := if s2 > s1 then 2 else 1
+
+/-- Выбор — ФУНКЦИЯ измеренного состояния: равные probe-
+числа дают равный ранг (тотальность linorder делает
+сравнение детерминированным; повторный прогон bench даёт
+побитово те же выборы). -/
+theorem rank_select_deterministic (s1 s2 s1' s2' : ℝ)
+    (h1 : s1 = s1') (h2 : s2 = s2') :
+    rankSelect s1 s2 = rankSelect s1' s2' := by
+  rw [h1, h2]
+
+/-- Certified-гарантия выбранной ветки СОХРАНЯЕТСЯ: какая
+ветка ни выбрана, obj-граница ИМЕННО ЕЁ certified-цикла
+держится (дизъюнкция r-веток, паттерн `hybrid_step_sound`
+C510: case-on-state без ослабления). Probe-шаги в гарантию
+не входят — они вычисляются на копии (C530 no-commit
+rollback: состояние не двигалось, откат ТОЧЕН), в цепь
+попадают только COMMIT-шаги выбранного ранга. -/
+theorem rank_select_sound (s1 s2 : ℝ)
+    (objAfter : ℕ → ℝ) (o b1 b2 : ℝ)
+    (hc1 : objAfter 1 ≤ o + b1) (hc2 : objAfter 2 ≤ o + b2) :
+    (rankSelect s1 s2 = 1 ∧ objAfter 1 ≤ o + b1) ∨
+    (rankSelect s1 s2 = 2 ∧ objAfter 2 ≤ o + b2) := by
+  unfold rankSelect
+  by_cases h : s2 > s1
+  · simp only [ite_true, if_pos h]
+    exact Or.inr ⟨trivial, hc2⟩
+  · simp only [ite_false, if_neg h]
+    exact Or.inl ⟨trivial, hc1⟩
+
+end RankAdaptive
+
 end Hagi.Theory.AdapterGrowth

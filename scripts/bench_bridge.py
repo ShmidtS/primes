@@ -6917,6 +6917,513 @@ def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C535: ADAPTER RANK-ADAPTIVE GROW (--mode adapter-rank-adaptive)
+#
+# The r-adaptivity breakthrough: the C533 adapter-snap cycle
+# generalized over the adapter RANK r in {1, 2}, with the rank
+# CHOSEN PER LEVEL by a MEASURED criterion (the C510 hybrid
+# selector pattern applied to growth volume):
+#
+#   level l:  PROBE r=1 and r=2 from ONE state: k = 2
+#               certified-mechanism fd steps each, computed on
+#               a COPY of the level parameters -- the live
+#               state is never touched (probe = no-commit,
+#               the C530 rollback gate semantics: rollback is
+#               EXACT because the state never moved).
+#             SELECT by the measured score
+#               score_r = probe_drop_r / (2*r*d)   (drop per
+#             param; the lambda-penalty variant
+#               drop_r - lambda*(2*r*d) is the same order for
+#             monotone lambda): r=2 iff score_2 > score_1
+#             STRICTLY; a tie goes to r=1 (fewer params --
+#             budget priority). Fractions + linorder make the
+#             criterion a TOTAL order, so the selection is a
+#             deterministic function of the measured state.
+#             ADMIT the chosen rank (A = unit rows on coords
+#               l..l+r-1 mod d, B = 0 -- obj invariant EXACTLY)
+#             TRAIN 4 certified fd steps on ONLY the 2*r*d new
+#               params (COMMIT by measured drop > 0 / HOLD)
+#             SNAP q/2^40 + certified err bound (the C533
+#               boundary; denominators reset EVERY level).
+#
+# --fix-rank {1,2} disables the selector for comparison runs
+# (fixed-rank arms of the same code path). Telemetry
+# tel["rank_select"] records BOTH probe drops, BOTH scores,
+# the chosen rank and the reason at EVERY level.
+
+ARA_LEVELS = 8                     # grow levels (depth 2 -> 10)
+ARA_K = 40                         # snap grid q/2^k (C521 PIN)
+ARA_STEPS = 4                      # certified fd steps per level
+ARA_PROBE_STEPS = 2                # probe steps per rank arm
+ARA_RANKS = (1, 2)                 # the probed rank arms
+
+
+def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
+    """C535 rank-adaptive adapter grow cycle on the live
+    corpus: per level, probe r=1 and r=2 from one state,
+    select by drop/params, commit the chosen rank through the
+    C533 certified cycle. Returns (start, [accepted steps],
+    telemetry, stats)."""
+    sys.set_int_max_str_digits(0)
+    t0 = time.perf_counter()
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": [], "admissions": [],
+                    "levels": [], "snap": [], "budget": [],
+                    "rank_select": [], "probes": [],
+                    "skipped_degenerate_T2": skipped}
+
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    obj0 = mh2_canon(w, tasks, theta)
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": "canonical drop <= 0: "
+                                           "HOLD"})
+    assert raw, "ABORT: phase A committed no steps"
+    tel["phases"].append({
+        "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
+        "canonical": str(mh2_canon(w, tasks, theta))})
+
+    # --- rank-generalized adapter branch: f + B(A f), r rows
+    def fwd_r(f, A, B, r):
+        out = list(f)
+        for j in range(r):
+            z = sum((A[j][k] * f[k] for k in range(MH2_D)),
+                    F(0))
+            for i in range(MH2_D):
+                out[i] += B[i][j] * z
+        return out
+
+    def feats_ad(base, A, B, r):
+        return [[(fwd_r(f, A, B, r), y) for f, y in tk]
+                for tk in base]
+
+    def snapfeats(base):
+        return [[([gs_snap2k(c) for c in f], y)
+                 for f, y in tk] for tk in base]
+
+    def maxden(base):
+        return max(abs(c.denominator)
+                   for tk in base for f, _ in tk for c in f)
+
+    def obj_bound(base_orig, base_final, wcur):
+        """EXACT certified bound covering the WHOLE snap chain
+        (C533): per point |(s2-y)^2 - (s1-y)^2| <=
+        (2|s1-y| + |ds|)*|ds|, ds = w.(f_final - f_orig)."""
+        Bsum = F(0)
+        cnt = 0
+        for tk, tkf in zip(base_orig, base_final):
+            for (f1, y), (f2, _) in zip(tk, tkf):
+                ds = sum((wcur[i] * (f2[i] - f1[i])
+                          for i in range(MH2_D)), F(0))
+                s = sum((wcur[i] * f1[i]
+                         for i in range(MH2_D)), F(0))
+                Bsum += (2 * abs(s - y) + abs(ds)) * abs(ds)
+                cnt += 1
+        return Bsum / cnt
+
+    def admit_params(lev, r):
+        """ADMIT init for rank r: A = unit rows on coords
+        lev..lev+r-1 mod d, B = 0 (obj invariant EXACTLY)."""
+        A = [[F(1) if k == (lev + j) % MH2_D else F(0)
+              for k in range(MH2_D)] for j in range(r)]
+        p = [e for row in A for e in row] + \
+            [F(0)] * (r * MH2_D)
+        return p
+
+    def unflat_ad(pp, r):
+        A = [[pp[j * MH2_D + k] for k in range(MH2_D)]
+             for j in range(r)]
+        B = [[pp[r * MH2_D + j * MH2_D + i] for j in range(r)]
+             for i in range(MH2_D)]
+        return A, B
+
+    def canonp(pp, r, base):
+        A, Bl = unflat_ad(pp, r)
+        return mh2_fcanon(w, feats_ad(base, A, Bl, r))
+
+    # trunk FROZEN: snapped feature matrices (the freeze
+    # boundary; every level starts from the grid)
+    FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in tasks]
+    HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
+             for tk in htasks]
+    FT = snapfeats(FT_un)
+    HF = snapfeats(HF_un)
+    assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
+        obj_bound(FT_un, FT, w), \
+        "ABORT: freeze snap broke its certified bound"
+
+    # --- (P) PROBE both rank arms from ONE state: the k-step
+    # certified mechanism on a COPY -- the live level state is
+    # never touched (C530 no-commit probe), so the rollback is
+    # EXACT; the probe drops are selector inputs, NOT links of
+    # the certified obj chain.
+    def probe_drop(lev, r):
+        p = admit_params(lev, r)
+        drop = F(0)
+        for _ in range(ARA_PROBE_STEPS):
+            o = canonp(p, r, FT)
+            gfd = []
+            for kk in range(len(p)):
+                q = list(p)
+                q[kk] = q[kk] + MH2_H
+                gfd.append((canonp(q, r, FT) - o) / MH2_H)
+            cand = cl_snap([p[kk] - MH2_ETA * gfd[kk]
+                            for kk in range(len(p))], MH2_GRID)
+            o2 = canonp(cand, r, FT)
+            if o2 < o:
+                drop += o - o2
+                p = cand
+        return drop
+
+    # --- (B) RANK-ADAPTIVE COMPOSITE GROW: ARA_LEVELS levels
+    depth = 2
+    cycle_start_obj = mh2_fcanon(w, FT)
+    cumulative_bound = F(0)
+    allowances = [{"phase": "A-freeze-snap",
+                   "obj_before_snap": str(mh2_fcanon(w, FT_un)),
+                   "obj_after_snap": str(cycle_start_obj),
+                   "actual_degradation":
+                       str(cycle_start_obj -
+                           mh2_fcanon(w, FT_un)),
+                   "certified_bound":
+                       str(obj_bound(FT_un, FT, w)),
+                   "bound_ge_actual": True}]
+    ranks_chosen = []
+    params_total = 0
+    for lev in range(ARA_LEVELS):
+        # PROBE + SELECT (measured, deterministic, total order)
+        if fix_rank in (1, 2):
+            d = {rr: probe_drop(lev, rr) for rr in ARA_RANKS}
+            r = fix_rank
+            reason = (f"FIXED-RANK comparison run "
+                      f"(--fix-rank {fix_rank}; probe measured "
+                      f"but not applied)")
+        else:
+            d1 = probe_drop(lev, 1)
+            d2 = probe_drop(lev, 2)
+            d = {1: d1, 2: d2}
+            s1 = d1 / F(2 * 1 * MH2_D)
+            s2 = d2 / F(2 * 2 * MH2_D)
+            r = 2 if s2 > s1 else 1
+            reason = ("score_2 > score_1 (drop/params): r=2"
+                      if r == 2 else
+                      "score_2 <= score_1 (tie -> fewer params "
+                      "budget priority): r=1")
+        s1 = d[1] / F(2 * 1 * MH2_D)
+        s2 = d[2] / F(2 * 2 * MH2_D)
+        ranks_chosen.append(r)
+        params_total += 2 * r * MH2_D
+        tel["rank_select"].append({
+            "level": lev + 1, "chosen_rank": r,
+            "probe_steps": ARA_PROBE_STEPS,
+            "probe_drop_r1": str(d[1]),
+            "probe_drop_r2": str(d[2]),
+            "score_r1": str(s1), "score_r2": str(s2),
+            "params_r1": 2 * 1 * MH2_D,
+            "params_r2": 2 * 2 * MH2_D,
+            "reason": reason,
+            "probe_semantics": "no-commit probe on a parameter "
+                               "COPY (C530 rollback: state never "
+                               "moved, rollback EXACT)"})
+
+        # ADMIT the chosen rank (B = 0, obj invariant EXACTLY)
+        p = admit_params(lev, r)
+        npar = len(p)
+        assert npar == 2 * r * MH2_D
+        oA = mh2_fcanon(w, FT)
+        A0, B0 = unflat_ad(p, r)
+        FTg = feats_ad(FT, A0, B0, r)
+        assert mh2_fcanon(w, FTg) == oA, \
+            "ABORT: adapter admission #{} broke obj (B = 0 " \
+            "must preserve obj EXACTLY)".format(lev + 1)
+        tel["admissions"].append({
+            "phase": f"B-adapter-l{lev + 1}",
+            "rank": r, "new_params": 2 * r * MH2_D,
+            "coords": [(lev + j) % MH2_D for j in range(r)],
+            "decision": "ADMIT (LoRA zero-init: B = 0, obj "
+                        "invariant asserted EXACTLY)"})
+
+        # TRAIN: certified fd steps on ONLY the 2*r*d params
+        phase_name = f"C-adapt-l{lev + 1}"
+        committed = 0
+        for _ in range(ARA_STEPS):
+            o = canonp(p, r, FT)
+            gfd = []
+            for k in range(npar):
+                q = list(p)
+                q[k] = q[k] + MH2_H
+                gfd.append((canonp(q, r, FT) - o) / MH2_H)
+            cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                            for k in range(npar)], MH2_GRID)
+            o2 = canonp(cand, r, FT)
+            if o2 < o:
+                raw.append({"phase": phase_name, "obj": o,
+                            "obj'": o2, "drop": o - o2,
+                            "risk": canonp(p, r, HF),
+                            "risk'": canonp(cand, r, HF)})
+                p = cand
+                committed += 1
+            else:
+                tel["holds"].append({
+                    "phase": phase_name, "drop": o - o2,
+                    "reason": "canonical drop <= 0: HOLD "
+                              "(adapter fd step rolled back)"})
+
+        # SNAP: the C533 boundary (weights + features, exact
+        # per-point Lipschitz bound, denominator reset)
+        o_before = canonp(p, r, FT)
+        ps = [gs_snap2k(v) for v in p]
+        As, Bs = unflat_ad(ps, r)
+        Ao, Bo = unflat_ad(p, r)
+        FTo = feats_ad(FT, Ao, Bo, r)
+        FTc = feats_ad(FT, As, Bs, r)
+        HFc = feats_ad(HF, As, Bs, r)
+        FT = snapfeats(FTc)
+        HF = snapfeats(HFc)
+        o_after = mh2_fcanon(w, FT)
+        err_bound = obj_bound(FTo, FT, w)
+        actual = o_after - o_before
+        assert o_after <= o_before + err_bound, \
+            "ABORT: adapter snap broke its certified bound"
+        assert maxden(FT) <= (1 << ARA_K), \
+            "ABORT: adapter snap failed to reset denominators"
+        cumulative_bound += err_bound
+        allowances.append({"phase": phase_name,
+                           "obj_before_snap": str(o_before),
+                           "obj_after_snap": str(o_after),
+                           "actual_degradation": str(actual),
+                           "certified_bound": str(err_bound),
+                           "bound_ge_actual": True})
+        tel["snap"].append({
+            "level": lev + 1, "depth": depth + 1,
+            "rank": r, "grid": f"q/2^{ARA_K}",
+            "obj_before_snap": str(o_before),
+            "obj_after_snap": str(o_after),
+            "actual_degradation": str(actual),
+            "certified_err_bound": str(err_bound),
+            "maxden_digits": len(str(maxden(FT))),
+            "denominator_reset": True})
+        tel["levels"].append({
+            "level": lev + 1, "rank": r, "params": npar,
+            "committed": committed,
+            "net_gain_after_snap": str(oA - mh2_fcanon(w, FT)),
+            "canonical": str(mh2_fcanon(w, FT))})
+        depth += 1
+        tel["phases"].append({
+            "phase": phase_name, "depth": depth,
+            "params": npar, "committed": committed,
+            "canonical": str(mh2_fcanon(w, FT))})
+        tel["budget"].append({
+            "at_level": lev + 1, "depth": depth,
+            "rank": r, "params_level": npar,
+            "params_total": params_total,
+            "maxden_digits": len(str(maxden(FT))),
+            "grid_cap_digits": len(str(1 << ARA_K)),
+            "steps_used": len(raw),
+            "decision": "LEVEL ADMITTED within budget (rank "
+                        f"{r} selected by measured drop/params; "
+                        "snap policy: feature denominators "
+                        f"RESET to <= 2^{ARA_K} -- no "
+                        "compounding)"})
+
+    n = len(raw)
+    assert n > 0, "ABORT: adapter-rank-adaptive committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    # obj chain across snap boundaries (C533 reconciliation)
+    snap_deltas = [F(x["obj_after_snap"]) -
+                   F(x["obj_before_snap"]) for x in allowances]
+    si = 0
+    for a, b in zip(raw, raw[1:]):
+        if a["obj'"] == b["obj"]:
+            continue
+        needed = b["obj"] - a["obj'"]
+        si0 = si
+        acc = F(0)
+        while si < len(snap_deltas):
+            acc += snap_deltas[si]
+            si += 1
+            if acc == needed:
+                break
+        assert si > si0 and acc == needed, \
+            "ABORT: obj chain broken outside certified snaps"
+    assert si <= len(snap_deltas), \
+        "ABORT: more chain boundaries than certified snaps"
+    # telescoped certified cycle bound (the Lean-side statement)
+    obj_final = raw[-1]["obj'"]
+    assert obj_final <= cycle_start_obj + cumulative_bound, \
+        "ABORT: telescoped rank-adaptive cycle bound violated"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: adapter-rank-adaptive step failed "
+                     f"certified admission: {dd}")
+    elapsed = time.perf_counter() - t0
+    stats = {
+        "n_points": len(pts),
+        "task_sizes": [len(t) for t in tasks],
+        "skipped_degenerate_T2": skipped,
+        "n_holdout": sum(len(t) for t in htasks),
+        "source": ledger_path,
+        "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
+                 f"q/2^{ARA_K}) + {ARA_LEVELS} RANK-ADAPTIVE "
+                 "adapter levels (r in {1,2} selected per level "
+                 "by measured probe drop/params), each "
+                 "certified-trained then SNAP-FOLDED into the "
+                 "grid-bounded features",
+        "trunk_depth_final": depth,
+        "levels": ARA_LEVELS,
+        "fix_rank": fix_rank,
+        "ranks_chosen": ranks_chosen,
+        "rank_histogram": {str(rr): ranks_chosen.count(rr)
+                           for rr in ARA_RANKS},
+        "probe_steps_per_arm": ARA_PROBE_STEPS,
+        "adapter_params_total": params_total,
+        "adapter_params_r1_fix": ARA_LEVELS * 2 * 1 * MH2_D,
+        "adapter_params_r2_fix": ARA_LEVELS * 2 * 2 * MH2_D,
+        "full_block_params_per_grow": 1 + MH2_D +
+                                       2 * MH2_D * MH2_HID,
+        "snap_grid": f"q/2^{ARA_K} (per-value err <= 2^-"
+                     f"{ARA_K + 1})",
+        "grow_obj_invariant_exact_every": True,
+        "snap_bounds_all_certified": True,
+        "probe_no_commit_rollback_exact": True,
+        "snap_cumulative_certified_bound":
+            str(cumulative_bound),
+        "cycle_obj_start": str(cycle_start_obj),
+        "cycle_certified_bound": str(cycle_start_obj +
+                                     cumulative_bound),
+        "maxden_digits_final": len(str(maxden(FT))),
+        "elapsed_s": round(elapsed, 3),
+        "canonical_start": str(obj0),
+        "canonical_final": str(obj_final),
+        "total_drop": str(obj0 - obj_final),
+        "drop_per_param_total":
+            str((obj0 - obj_final) / F(params_total)),
+        "model": "linear head over the rank-adaptive "
+                 f"adapter-snap-grown feature stack (depth 2 -> "
+                 f"{depth} via {ARA_LEVELS} LoRA adapter levels, "
+                 "rank r in {1,2} chosen per level by the "
+                 "measured probe drop/params criterion "
+                 "(deterministic total order), each admitted at "
+                 "B = 0 with EXACT obj invariance, certified fd "
+                 "training of only the 2*r*d new params, then "
+                 "q/2^k snap-fold with certified err bound; "
+                 "denominators bounded at EVERY level)",
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "rank_select_sound / "
+                   "rank_select_deterministic (C535)"
+    }
+    return obj0, raw, tel, stats
+
+
+def emit_lean_trajrankadaptive(path, start, traj, tel,
+                               witness_steps=3):
+    """C535 witness: literal rank-adaptive trajectory prefix +
+    #eval checkTrajectory + norm_num theorem + the rank-select
+    theorems and a real selector instance (the C521/C532/C533
+    witness pattern)."""
+    ds = [dict(d) for d in traj[:witness_steps]]
+    phases = ", ".join(sorted({d["phase"] for d in traj}))
+    rs = tel.get("rank_select", [])
+    sel_lines = ""
+    if rs:
+        s1, s2 = rs[0]["score_r1"], rs[0]["score_r2"]
+        ch = rs[0]["chosen_rank"]
+        sel_lines = (
+            "-- REAL selector instance (level 1 measured "
+            "probe numbers): the r=2 score is NOT strictly "
+            "greater, so the choice is r=1\n"
+            "theorem rank_select_inst_l1 :\n"
+            "    Hagi.Theory.AdapterGrowth.rankSelect\n"
+            f"      ({s1}) ({s2}) = 1 := by\n"
+            "      norm_num [Hagi.Theory.AdapterGrowth."
+            "rankSelect]\n\n"
+            "-- negative: an inflated r=1 score must keep the "
+            "choice at 1 (score_2 must be STRICTLY greater "
+            "for r=2)\n"
+            "theorem rank_select_neg_inflated :\n"
+            "    Hagi.Theory.AdapterGrowth.rankSelect (2 : \u211d) "
+            "0 = 1 := by\n"
+            "      norm_num [Hagi.Theory.AdapterGrowth."
+            "rankSelect]\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("-- C535 rank-adaptive adapter grow witness "
+                "(real unified_ledger data; per level the rank "
+                "r in {1,2} is chosen by the measured probe "
+                "drop/params criterion -- a deterministic total "
+                "order -- then committed through the C533 "
+                "certified cycle).\n"
+                f"-- FULL accepted steps: {len(traj)}; "
+                f"phases: {phases};\n-- first {len(ds)} "
+                "machine-checked steps below (prefix witness; "
+                "the full chain, the neutrality/count/snap-bound/"
+                "rank-select facts are covered by Hagi.Theory."
+                "AdapterGrowth).\n"
+                "import Hagi.Runtime.CertChecker\n"
+                "import Hagi.Theory.AdapterGrowth\n\n"
+                "open Hagi.Runtime\n\n"
+                f"def benchStartRankAdaptive : \u211a := "
+                f"{rat(start)}\n\n"
+                "def benchTrajectoryRankAdaptive : "
+                "List Hagi.Runtime.CertStepData :=\n"
+                "[\n" + ",\n".join(lean_step(d) for d in ds)
+                + "\n]\n\n"
+                "#eval checkTrajectory benchStartRankAdaptive "
+                "benchTrajectoryRankAdaptive\n\n"
+                "theorem rank_adaptive_bench_valid :\n"
+                "    checkTrajectory benchStartRankAdaptive "
+                "benchTrajectoryRankAdaptive = true := by\n"
+                "  simp only [checkTrajectory, checkStep, "
+                "benchStartRankAdaptive, "
+                "benchTrajectoryRankAdaptive, "
+                "Bool.and_eq_true, decide_eq_true_eq]\n"
+                "  norm_num\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "rank_select_sound\n\n"
+                "#check @Hagi.Theory.AdapterGrowth."
+                "rank_select_deterministic\n"
+                + sel_lines)
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C508: A-GEM vs RANK-TRUNC continual comparison
 # (--mode agem-vs-ranktrunc)
 #
@@ -7570,6 +8077,7 @@ def main():
                              "mini-hagi4", "mini-hagi5",                              "vs-trainer",
                              "grow-snap",
                              "adapter-snap-grow",
+                             "adapter-rank-adaptive",
                              "adapter-grow",
                              "agem-vs-ranktrunc",
                              "hybrid-continual"],
@@ -7661,6 +8169,12 @@ def main():
                     default=RD_DEFAULT_LEDGER,
                     help="real-data: path to unified_ledger.json "
                          "(domains/ dir is resolved as its sibling)")
+    ap.add_argument("--fix-rank", type=int, default=None,
+                    choices=[1, 2],
+                    help="adapter-rank-adaptive only: disable "
+                         "the rank selector and use a FIXED "
+                         "rank per level (comparison arms "
+                         "r=1/r=2 of the same code path)")
     ap.add_argument("--grad-steps", type=int, default=None,
                     help="cert-tern: gradient phase steps "
                          "(default 1; grow-stop: base steps, default 2)")
@@ -7766,6 +8280,29 @@ def main():
         return
 
 
+    if args.mode == "adapter-rank-adaptive":
+        start, traj, tel, stats =             adapter_rank_adaptive_run(args.data,
+                                      fix_rank=args.fix_rank)
+        if args.emit_lean:
+            emit_lean_trajrankadaptive(args.emit_lean, start,
+                                       traj, tel)
+        print(json.dumps({"mode": "adapter-rank-adaptive",
+            **stats,
+            "n_steps": len(traj), "steps": [
+                {"phase": d["phase"], "obj": str(d["obj"]),
+                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+                for d in traj],
+            "telemetry": {
+                "phases": tel["phases"],
+                "admissions": tel["admissions"],
+                "levels": tel["levels"],
+                "rank_select": tel["rank_select"],
+                "snap": tel["snap"],
+                "budget": tel["budget"],
+                "holds": [{k: (str(v) if isinstance(v, F) else v)
+                           for k, v in h.items()}
+                          for h in tel["holds"]]}}, indent=1))
+        return
     if args.mode == "adapter-snap-grow":
         start, traj, tel, stats = \
             adapter_snap_grow_run(args.data)
