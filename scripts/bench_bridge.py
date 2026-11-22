@@ -12155,6 +12155,36 @@ ATG_PROBE_STEPS = 2            # probe steps per arm (2-4)
 ATG_ADV_C = F(1)               # adversarial scale c (t = -c*theta.x)
 ATG_LEDGER = (".tmp/C566/corpus/unified_ledger.json")
 
+# C609: AUTO LR from the certified optimal step (C606).
+# Lean: Hagi.Theory.NegativeTransfer.nl_drop_optimal
+#   (L G : R) (hL : 0 < L) :
+#   nlDrop (1 / L) L G = G ^ 2 / (2 * L)
+# - the guaranteed per-step drop is MAXIMAL at the optimal
+#   step gamma* = 1/L (full square in nlDrop); bench rule:
+#   take the step from the MEASURED L (2*trace(Hbar), the
+#   same conservative exact rational bound C601 telemeters
+#   as L_bound_2traceH) instead of a manual constant.
+#   --fixed-lr keeps the old constant path (golden A/B).
+FIXED_LR = False                # set by --fixed-lr in main()
+
+
+def auto_lr(dts):
+    """C609: certified auto step gamma* = 1/L on the
+    quadratic mh_mse objective (exact Fractions). Python
+    twin of Hagi.Theory.NegativeTransfer.nl_drop_optimal
+    (C606): nlDrop (1/L) L G = G^2/(2*L) - the guaranteed
+    drop is maximal at gamma* = 1/L. L = 2*trace(Hbar),
+    Hbar = mean(xx^T) PSD (lambda_max <= trace, never
+    tuned). Returns (gamma, L); fail-closed on L = 0 (the
+    hL : 0 < L premise)."""
+    n = len(dts)
+    trace_h = sum((x[i] * x[i] for x, _ in dts
+                   for i in range(CL_D)), F(0)) / F(n)
+    lr_l = F(2) * trace_h
+    assert lr_l > 0, \
+        "ABORT auto_lr: degenerate domain (L = 0)"
+    return F(1) / lr_l, lr_l
+
 
 def atg_quadratic_form(dts, w):
     """Exact H-metric values for the C572 boundary telemetry:
@@ -12206,19 +12236,48 @@ def adapter_transfer_auto_run(ledger_path):
     sel = [pairs[0], pairs[len(pairs) // 2], pairs[-1]]
 
     def train(w0, dts, steps=TR_STEPS):
-        """K certified snap-GD steps (commit only drop > 0)."""
+        """K certified snap-GD steps (commit only drop > 0).
+        C609: step gamma = 1/L measured (auto_lr, the
+        certified optimal step of nl_drop_optimal C606)
+        unless --fixed-lr keeps the old constant TR_ETA.
+        Per-step telemetry: measured drop vs the C606 bound
+        G^2/(2L) (G = ||grad|| at step start; the bound may
+        be loose - shown, honest)."""
+        gamma, lr_l = ((TR_ETA, None) if FIXED_LR
+                       else auto_lr(dts))
         w = list(w0)
         o0 = mh_mse(w, dts)
         traj = [{"step": 0, "obj": o0}]
         for st in range(1, steps + 1):
+            prev = o0
             g = mh_grad(w, dts)
-            cand = cl_snap([w[i] - TR_ETA * g[i]
+            cand = cl_snap([w[i] - gamma * g[i]
                             for i in range(CL_D)])
             o1 = mh_mse(cand, dts)
             if o1 < o0:
                 w, o0 = cand, o1
-            traj.append({"step": st, "obj": o0})
+            entry = {"step": st, "obj": o0,
+                     "drop": str(prev - o0)}
+            if lr_l is not None:
+                g2 = sum((c * c for c in g), F(0))
+                entry["gamma"] = str(gamma)
+                entry["drop_bound_G2_over_2L"] = \
+                    str(g2 / (F(2) * lr_l))
+            traj.append(entry)
         return w, o0, traj
+
+    def lr_tel(dts):
+        """C609 telemetry: gamma_auto = 1/L (nl_drop_optimal)
+        vs the old constant TR_ETA = 1/10 on this domain."""
+        if FIXED_LR:
+            return {"mode": "fixed-lr (--fixed-lr)",
+                    "gamma_used": str(TR_ETA)}
+        gamma_d, lr_l = auto_lr(dts)
+        return {"mode": "auto 1/L (C609, nl_drop_optimal)",
+                "gamma_used": str(gamma_d),
+                "gamma_old_constant": str(TR_ETA),
+                "L_2traceH": str(lr_l)}
+
 
     def probe(w0, dts):
         """ATG_PROBE_STEPS rollback probe steps on a COPY of w0
@@ -12265,6 +12324,7 @@ def adapter_transfer_auto_run(ledger_path):
         tel["pairs"].append({
             "A": str(A), "B": str(B), "dist": str(d0),
             "kind": "real",
+            "lr": lr_tel(ptsB),
             "probe": {"auc_warm": str(auc_pw),
                       "auc_cold": str(auc_pc),
                       "gate": gate},
@@ -12272,7 +12332,14 @@ def adapter_transfer_auto_run(ledger_path):
                             "warm_side": gap0 > 0},
             "chosen": {"arm": gate, "final_ce": str(fS),
                        "auc": str(chosen_auc),
-                       "traj": [str(d["obj"]) for d in tS]},
+                       "steps_drop_vs_bound": [
+                           {"step": d["step"],
+                            "obj": str(d["obj"]),
+                            "drop": d.get("drop"),
+                            "bound_G2_over_2L":
+                                d.get(
+                                    "drop_bound_G2_over_2L")}
+                           for d in tS]},
             "cold_ref": {"final_ce": str(fc),
                          "auc": str(cold_auc)},
             "verdict": verdict})
@@ -12298,13 +12365,21 @@ def adapter_transfer_auto_run(ledger_path):
     tel["pairs"].append({
         "A": str(A), "B": "adversarial(-theta.x)",
         "dist": str(d0), "kind": "adversarial",
+        "lr": lr_tel(pts_adv),
         "probe": {"auc_warm": str(auc_pw),
                   "auc_cold": str(auc_pc), "gate": gate},
         "boundary_k0": {"gap_2tb_minus_tHt": str(gap0),
                         "warm_side": gap0 > 0},
         "chosen": {"arm": gate, "final_ce": str(fS),
                    "auc": str(chosen_auc),
-                   "traj": [str(d["obj"]) for d in tS]},
+                   "steps_drop_vs_bound": [
+                           {"step": d["step"],
+                            "obj": str(d["obj"]),
+                            "drop": d.get("drop"),
+                            "bound_G2_over_2L":
+                                d.get(
+                                    "drop_bound_G2_over_2L")}
+                           for d in tS]},
         "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
         "verdict": ("gate-cold (expected, C572 synthetic)"
                     if gate == "cold" else
@@ -12443,18 +12518,34 @@ def transfer_gate_certified_run(ledger_path):
     sel = [pairs[0], pairs[len(pairs) // 2], pairs[-1]]
 
     def train(w0, dts, steps=TR_STEPS):
-        """K certified snap-GD steps (commit only drop > 0)."""
+        """K certified snap-GD steps (commit only drop > 0).
+        C609: step gamma = 1/L measured (auto_lr, the
+        certified optimal step of nl_drop_optimal C606)
+        unless --fixed-lr keeps the old constant TR_ETA.
+        Per-step telemetry: measured drop vs the C606 bound
+        G^2/(2L) (G = ||grad|| at step start; the bound may
+        be loose - shown, honest)."""
+        gamma, lr_l = ((TR_ETA, None) if FIXED_LR
+                       else auto_lr(dts))
         w = list(w0)
         o0 = mh_mse(w, dts)
         traj = [{"step": 0, "obj": o0, "w": list(w)}]
         for st in range(1, steps + 1):
+            prev = o0
             g = mh_grad(w, dts)
-            cand = cl_snap([w[i] - TR_ETA * g[i]
+            cand = cl_snap([w[i] - gamma * g[i]
                             for i in range(CL_D)])
             o1 = mh_mse(cand, dts)
             if o1 < o0:
                 w, o0 = cand, o1
-            traj.append({"step": st, "obj": o0, "w": list(w)})
+            entry = {"step": st, "obj": o0, "w": list(w),
+                     "drop": str(prev - o0)}
+            if lr_l is not None:
+                g2 = sum((c * c for c in g), F(0))
+                entry["gamma"] = str(gamma)
+                entry["drop_bound_G2_over_2L"] = \
+                    str(g2 / (F(2) * lr_l))
+            traj.append(entry)
         return w, o0, traj
 
     def grad_norm2(w, dts):
@@ -12465,7 +12556,10 @@ def transfer_gate_certified_run(ledger_path):
            "corpus": ("C566-snapshot" if ledger_path == ATG_LEDGER
                       else ledger_path),
            "n_points": len(data), "n_domains": len(doms),
-           "gamma": TR_ETA, "n": TR_STEPS,
+           "lr_mode": ("fixed-lr" if FIXED_LR
+                        else "auto 1/L (C609)"),
+           "gamma_old_constant": str(TR_ETA),
+           "n": TR_STEPS,
            "gate_rule": ("warm iff start_gap = f(thetaA) - f(0) "
                          "<= n*nlBudget (C592 certified; nlBudget "
                          "gamma L G = gamma*G^2 + L*gamma^2*G^2/2 "
@@ -12486,6 +12580,10 @@ def transfer_gate_certified_run(ledger_path):
         traceH = sum((sum((x[i] * x[i] for x, _ in ptsB), F(0))
                       for i in range(CL_D)), F(0)) / nB
         L_bound = F(2) * traceH
+        # C609: gamma actually used by train() on this pair's
+        # domain points (auto 1/L unless --fixed-lr)
+        gamma_b, _ = ((TR_ETA, None) if FIXED_LR
+                      else auto_lr(ptsB))
         # --- G: measured max ||grad|| over REALIZED warm/cold
         # trajectories (honest premise hG for the realized run)
         _, _, trajW = train(list(wA), ptsB)
@@ -12502,8 +12600,8 @@ def transfer_gate_certified_run(ledger_path):
         # nlBudget needs G (as a number) with G^2 exact: since the
         # only occurrences of G are G^2, evaluate the budget with
         # the EXACT squared value by substituting G^2 := G2:
-        budget_step = (TR_ETA * G2
-                       + L_bound * TR_ETA ** 2 * G2 / F(2))
+        budget_step = (gamma_b * G2
+                       + L_bound * gamma_b ** 2 * G2 / F(2))
         threshold = F(TR_STEPS) * budget_step
         certified_neg = start_gap > threshold
         gate = "cold-certified" if certified_neg else "warm"
@@ -12514,7 +12612,7 @@ def transfer_gate_certified_run(ledger_path):
         gap0 = 2 * wb - hww
         quad_gate = "warm" if gap0 > 0 else "cold"
         # --- premise check: gamma <= 2/L
-        prem_ok = TR_ETA <= F(2) / L_bound
+        prem_ok = gamma_b <= F(2) / L_bound
         # --- full certified cycle of the gate-chosen arm
         chosen_init = (list(wA) if gate == "warm"
                        else [F(0)] * CL_D)
@@ -12537,7 +12635,12 @@ def transfer_gate_certified_run(ledger_path):
                 "L_bound_2traceH": str(L_bound),
                 "G2_max_grad_norm2": str(G2),
                 "gamma_le_2_over_L": prem_ok,
-                "n": TR_STEPS, "gamma": TR_ETA},
+                "n": TR_STEPS, "gamma": str(gamma_b)},
+            "lr": {"mode": ("fixed-lr" if FIXED_LR
+                              else "auto 1/L (C609, "
+                                   "nl_drop_optimal)"),
+                   "gamma_used": str(gamma_b),
+                   "gamma_old_constant": str(TR_ETA)},
             "certified_gate": {
                 "budget_step": str(budget_step),
                 "threshold_n_budget": str(threshold),
@@ -12546,7 +12649,14 @@ def transfer_gate_certified_run(ledger_path):
             "quad_gate_c572": {"gap_2tb_minus_tHt": str(gap0),
                                "gate": quad_gate},
             "chosen": {"arm": gate, "final_ce": str(fS),
-                       "auc": str(chosen_auc)},
+                       "auc": str(chosen_auc),
+                       "steps_drop_vs_bound": [
+                           {"step": d["step"],
+                            "drop": d.get("drop"),
+                            "bound_G2_over_2L":
+                                d.get(
+                                    "drop_bound_G2_over_2L")}
+                           for d in tS]},
             "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
             "verdict": verdict})
 
@@ -12563,12 +12673,14 @@ def transfer_gate_certified_run(ledger_path):
     traceH = sum((sum((x[i] * x[i] for x, _ in pts_adv), F(0))
                   for i in range(CL_D)), F(0)) / nB
     L_bound = F(2) * traceH
+    gamma_adv, _ = ((TR_ETA, None) if FIXED_LR
+                  else auto_lr(pts_adv))
     _, _, trajW = train(list(wA), pts_adv)
     _, _, trajC = train([F(0)] * CL_D, pts_adv)
     G2 = max(max(grad_norm2(d["w"], pts_adv) for d in trajW),
              max(grad_norm2(d["w"], pts_adv) for d in trajC))
-    budget_step = (TR_ETA * G2
-                   + L_bound * TR_ETA ** 2 * G2 / F(2))
+    budget_step = (gamma_adv * G2
+                   + L_bound * gamma_adv ** 2 * G2 / F(2))
     threshold = F(TR_STEPS) * budget_step
     certified_neg = start_gap > threshold
     gate = "cold-certified" if certified_neg else "warm"
@@ -12576,7 +12688,7 @@ def transfer_gate_certified_run(ledger_path):
     hww, wb = atg_quadratic_form(pts_adv, wA)
     gap0 = 2 * wb - hww
     quad_gate = "warm" if gap0 > 0 else "cold"
-    prem_ok = TR_ETA <= F(2) / L_bound
+    prem_ok = gamma_adv <= F(2) / L_bound
     chosen_init = (list(wA) if gate == "warm" else [F(0)] * CL_D)
     wS, fS, tS = train(chosen_init, pts_adv)
     chosen_auc = sum((d["obj"] for d in tS), F(0))
@@ -12592,7 +12704,12 @@ def transfer_gate_certified_run(ledger_path):
             "L_bound_2traceH": str(L_bound),
             "G2_max_grad_norm2": str(G2),
             "gamma_le_2_over_L": prem_ok,
-            "n": TR_STEPS, "gamma": TR_ETA},
+            "n": TR_STEPS, "gamma": str(gamma_adv)},
+        "lr": {"mode": ("fixed-lr" if FIXED_LR
+                          else "auto 1/L (C609, "
+                               "nl_drop_optimal)"),
+               "gamma_used": str(gamma_adv),
+               "gamma_old_constant": str(TR_ETA)},
         "certified_gate": {
             "budget_step": str(budget_step),
             "threshold_n_budget": str(threshold),
@@ -13016,6 +13133,14 @@ def main():
                          "intervals) on holdout models, accuracy "
                          "among certified only + live selfloop "
                          "round/COMMIT telemetry (C461)")
+    ap.add_argument("--fixed-lr", action="store_true",
+                    help="C609: keep the OLD constant step "
+                         "gamma = 1/10 in the auto-LR modes "
+                         "(adapter-transfer-auto, "
+                         "transfer-gate-certified) instead of "
+                         "the certified auto step gamma* = 1/L "
+                         "(nl_drop_optimal, C606) - golden A/B "
+                         "comparison path")
     ap.add_argument("--live-corpus", action="store_true",
                     help="C608: run data modes on the LIVE HAGI_v2 "
                          "ledger (C:/HAGI_v2/checkpoints/...) instead "
@@ -13054,6 +13179,11 @@ def main():
                     help="vs-trainer: path to the live "
                          "experiments/selfloop_result.json")
     args = ap.parse_args()
+
+    # C609: propagate --fixed-lr to the auto-LR modes (module
+    # global, read by train()/auto_lr).
+    global FIXED_LR
+    FIXED_LR = args.fixed_lr
 
     # C608: snapshot-vs-live corpus policy (lesson C535). Default
     # --data is the PINNED snapshot (deterministic regressions);
@@ -13608,7 +13738,8 @@ def main():
             "corpus": tel["corpus"],
             "n_points": tel["n_points"],
             "n_domains": tel["n_domains"],
-            "gamma": tel["gamma"],
+            "lr_mode": tel["lr_mode"],
+            "gamma_old_constant": tel["gamma_old_constant"],
             "n": tel["n"],
             "gate_rule": tel["gate_rule"],
             "steps_budget": tel["steps_budget"],

@@ -2115,3 +2115,27 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Farina, Cambridge DAMPT lecture3, angms sufficient-decrease).
   Числовой witness (L=2, G=1, γ*=1/2): drop γ=0.1/0.5/0.9 →
   9/100, 1/4, 9/100 — симметрия параболы вокруг вершины.
+
+## C609 Auto-LR (bench-применение nl_drop_optimal C606)
+
+- `scripts/bench_bridge.py`: режимы GD с константой TR_ETA=1/10 —
+  `adapter-transfer-auto` (C577) и `transfer-gate-certified`
+  (C601) — переведены на auto-LR γ = 1/(2·trace(H̄)) (auto_lr,
+  exact Fractions, assert L>0): certified-оптимальный шаг
+  `nl_drop_optimal` (C606). Старый путь доступен флагом
+  `--fixed-lr`. NOT changed (research.md): grow/cert-семейство уже
+  1/L; mini-hagi golden; continual/loop size-pin ABORT; trunk/
+  real-data не-GD-константы.
+- Телеметрия: per-step фактический drop vs bound G²/(2L)
+  (`steps_drop_vs_bound` в каждой паре; honest — bound может быть
+  loose), `lr.mode/gamma_used/gamma_old_constant`. Примеры γ_auto:
+  5000000/10470759 ≈ 0.477, 13500000/25944901 ≈ 0.520,
+  156250/234227 ≈ 0.667 vs старая 1/10 = 0.1.
+- A/B (auto vs fixed vs pre): все exit 0; вердикты идентичны
+  (T1-positive ×3 + adversarial gate-cold в ATA; T1-positive ×3 +
+  «UNEXPECTED warm (H degenerate?)» в TGC — как в pre). Числовой
+  паритет fixed vs pre (diff только телеметрия). Golden-режимы
+  (grow-snap, mini-hagi, adaptive-span) PASS, grow-snap
+  бит-идентичен pre.
+- Freeze 8818 до/после (Lean не менялся); 17 гейтов PASS
+  (.tmp/C609/logs/).
