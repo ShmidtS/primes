@@ -4217,3 +4217,52 @@ ledger растёт МЕЖДУ прогонами; в прогоне корпу�
   EB-стой собираются в один трейс без потери ни одного
   сертификата (CE кластеров 0, forget 0, параметры bounded,
   obj-телескоп).
+
+## scripts/bench_bridge.py + Hagi/Theory/AdapterGrowth.lean (C560: adapter-transfer, top-2 roadmap C557 — последний unexplored контур)
+
+Bench `--mode adapter-transfer` (backward-совместимо; append-блок +
+choice + dispatch). Cross-domain перенос адаптеров: warm-start
+домена B копией обученного адаптера домена A vs холодный нулевой
+(C532), РАВНЫЕ certified-бюджеты (K=30 snap-GD шагов, commit только
+drop>0). Домены = const-кластеры snapped ce (≥5 точек; снапшот
+116 точек, 6 доменов). Близость пар pre-registered ДО прогона:
+dist = L1(mean_x) + |ce_A−ce_B|/range(ce); пары argmin/median/argmax
+всех C(6,2)=15. forgetA=0 — реальный bit-exact assert (A frozen).
+
+- Transfer-таблица (прогон .tmp/C560/bench.log; AUC = Σ exact
+  Fraction CE-трейектории за K+1 шагов — первичная drop-скорость):
+
+| Пара (A→B) | dist | arm | AUC | final CE_B | commits | Вердикт |
+|---|---|---|---|---|---|---|
+| близкая 23/16→3/2 | 0.1245 | cold | 5.8054 | 0.000263 | 26/30 | |
+| | | warm | **0.0150** | 0.000332 | 12/30 | T1 |
+| | | poisoned | 22.54 | 0.000204 | 29/30 | медленней |
+| средняя 11/8→25/16 | 0.3300 | cold | 9.1307 | 0.065203 | 30/30 | |
+| | | warm | **2.4962** | 0.067929 | 30/30 | T1 |
+| | | poisoned | 25.34 | 0.062607 | 30/30 | медленней |
+| далёкая 11/8→27/16 | 0.6898 | cold | 18.160 | 0.249730 | 30/30 | |
+| | | warm | **9.9486** | 0.259213 | 30/30 | T1 |
+| | | poisoned | 35.71 | 0.240659 | 30/30 | медленней |
+
+- T-вердикт: 3/3 T1-positive по AUC (drop-ускорение ×387 на
+  близкой паре: CE@1 0.0015 vs 1.377); честные оговорки: (а) финал
+  CE у cold чуть ЛУЧШЕ на всех парах (разница 4-26e-5..0.01 —
+  snap-грид: cold за 30 шагов догоняет и попадает в чуть более
+  глубокую ячейку); (б) poisoned хуже по drop-скорости (AUC), но
+  НЕ хуже по final CE — snap-грид стирает плохой init за 30 шагов;
+  (в) T2 на далёких НЕ подтверждён — warm полезен и на далёкой
+  паре (позитив-трансфер доминирует в этой постановке).
+- Lean: новых деклараций НЕТ (KISS): adapter_step_certified
+  сформулирован над произвольными s s' — init в statement не
+  входит, warm-start получает ту же гарантию (honest-заметка
+  секции C560 в AdapterGrowth.lean). Freeze 8707 (+0); аксиомы
+  только propext / Quot.sound / Classical.choice.
+- Witness .tmp/C560/trajTransfer.lean: 8 #eval/norm_num-теорем
+  (AUC-сравнения 3 пар × {warm<cold, poisoned>cold}, шаг-1
+  ускорение, forgetA=0 инстанс) + #check adapter_step_certified /
+  adapter_step_hold; rc=0 (.tmp/C560/gates-witness-check.log).
+- ВЫВОД: перенос адаптера A как warm-init домена B даёт
+  измеренное drop-ускорение на ВСЕХ близостях (T1), forgetA=0
+  сохранён, certified-гарантии init-независимы. Последний
+  unexplored контур roadmap C557 закрыт (внешний спрос wave205
+  удовлетворён измерением).

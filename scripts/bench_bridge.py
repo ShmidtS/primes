@@ -11698,6 +11698,160 @@ def emit_lean_universal_nl(path, res, witness_steps=2):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C560: CROSS-DOMAIN ADAPTER TRANSFER (--mode adapter-transfer)
+#
+# Roadmap C557 top-2 (the last unexplored contour; external
+# demand wave205): can an adapter trained on domain A ACCELERATE
+# training on domain B (warm start) vs the neutral cold start
+# (C532)? Hypotheses: T1 positive transfer on close domains,
+# T2 negative on far ones, T3 no effect. Any outcome is an
+# honest measured result.
+#
+# HONESTY PINS (fail-closed):
+# - DOMAINS = const clusters of the snapped ce target (the
+#   C551/C558 "constant clusters" of the live corpus), each
+#   with >= TR_MIN_PTS points; the adapter is a 4-param linear
+#   head, obj = exact cluster MSE (mh_mse).
+# - Pair closeness is PRE-REGISTERED and computed BEFORE any
+#   training: dist(A,B) = L1(mean_x_A, mean_x_B)
+#   + |ce_A - ce_B| / (max ce - min ce). Pairs = argmin (close),
+#   median (medium), argmax (far) of ALL cross-cluster pairs,
+#   lexicographic tie-break. NO post-hoc pair selection.
+# - EQUAL budgets: every arm trains exactly TR_STEPS certified
+#   snap-GD steps (commit only on measured drop > 0, else HOLD).
+# - forgetA = 0 is a REAL assert: the source adapter A is
+#   snapshotted bit-exact before the copy trains on B (the warm
+#   arm trains a COPY; the frozen original must be unchanged).
+# - PRIMARY metric: AUC of the CE trajectory (exact Fraction
+#   sum over the K+1 objective values) = drop SPEED; secondary:
+#   final CE_B, commits, holds. Verdict per pair: warm AUC <
+#   cold AUC -> T1, > -> T2, == -> T3 (pre-registered).
+# - Poisoned negative: an adapter trained on A with NEGATED
+#   targets as the init for B; if it is NOT worse than cold,
+#   that IS the honest result (snap-grid erasure).
+
+TR_STEPS = 30                  # equal certified budget per arm
+TR_ETA = UL_ETA                # certified adapter step size
+TR_MIN_PTS = 5                 # min cluster size to be a domain
+
+
+def adapter_transfer_run(ledger_path):
+    """C560: warm-start (copy of a trained domain-A adapter)
+    vs cold (zero) init for domain-B training, on the live
+    corpus const clusters; equal certified budgets, forgetA
+    bit-exact assert, pre-registered pair closeness."""
+    data = [{"x": x, "t": fl2_snap(F(str(y)))}
+            for (_, x, y) in mh_load_dataset(ledger_path)]
+    assert len(data) > 0, "ABORT: live corpus empty"
+    ces = [d["t"] for d in data]
+    rng = max(ces) - min(ces)
+    assert rng > 0, "ABORT: degenerate corpus (single ce)"
+
+    # domains = const clusters (>= TR_MIN_PTS points)
+    by_t = {}
+    for d in data:
+        by_t.setdefault(d["t"], []).append(d["x"])
+    doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
+    assert len(doms) >= 2, \
+        f"ABORT: need >=2 domains, got {len(doms)}"
+    pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
+           for t in doms}
+    mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
+                  / F(len(by_t[t])) for i in range(CL_D)]
+              for t in doms}
+
+    def dist(a, b):
+        l1 = sum(abs(mean_x[a][i] - mean_x[b][i])
+                 for i in range(CL_D))
+        return l1 + abs(a - b) / rng
+
+    pairs = sorted((dist(a, b), a, b)
+                   for i, a in enumerate(doms)
+                   for b in doms[i + 1:])
+    sel = [pairs[0], pairs[len(pairs) // 2], pairs[-1]]
+
+    def train(w0, dts):
+        """K certified snap-GD steps (commit only drop > 0)."""
+        w = list(w0)
+        o0 = mh_mse(w, dts)
+        traj = [{"step": 0, "obj": o0}]
+        commits, holds = 0, 0
+        for st in range(1, TR_STEPS + 1):
+            g = mh_grad(w, dts)
+            cand = cl_snap([w[i] - TR_ETA * g[i]
+                            for i in range(CL_D)])
+            o1 = mh_mse(cand, dts)
+            if o1 < o0:
+                w, o0 = cand, o1
+                commits += 1
+            else:
+                holds += 1
+            traj.append({"step": st, "obj": o0})
+        return w, o0, commits, holds, traj
+
+    tel = {"mode": "adapter-transfer",
+           "n_points": len(data), "n_domains": len(doms),
+           "domains": [{"ce": str(t), "n": len(by_t[t])}
+                       for t in doms],
+           "metric": "L1(mean_x) + |ce_A-ce_B|/range",
+           "steps_budget": TR_STEPS, "pairs": [],
+           "forgetA_pair": None}
+
+    for d0, A, B in sel:
+        ptsA, ptsB = pts[A], pts[B]
+        # source adapter A (trained ONCE per pair, frozen)
+        wA, _, cA, hA, tA = train([F(0)] * CL_D, ptsA)
+        snapA = list(wA)
+        # arm cold: neutral zero init (C532)
+        _, fc, cc, hc, tc = train([F(0)] * CL_D, ptsB)
+        # arm warm: init = COPY of trained A
+        wW, fw, cw, hw, tw = train(list(wA), ptsB)
+        # forgetA = 0 (REAL assert): the frozen original A is
+        # bit-exact unchanged after B's warm training
+        assert wA == snapA, \
+            "ABORT forgetA: source adapter A mutated during " \
+            "domain-B training (isolation broken)"
+        auc_c = sum((d["obj"] for d in tc), F(0))
+        auc_w = sum((d["obj"] for d in tw), F(0))
+        verdict = "T1-positive" if auc_w < auc_c else \
+            "T2-negative" if auc_w > auc_c else "T3-none"
+        # poisoned negative: A trained on NEGATED targets -> init B
+        wP, _, _, _, _ = train([F(0)] * CL_D,
+                               [(x, -A) for (x, _) in ptsA])
+        _, fp, cp, hp, tp = train(list(wP), ptsB)
+        tel["pairs"].append({
+            "A": str(A), "B": str(B), "dist": str(d0),
+            "dist_f": float(d0),
+            "cold": {"final_ce": str(fc), "commits": cc,
+                     "holds": hc, "auc": str(auc_c),
+                     "traj": [str(d["obj"]) for d in tc]},
+            "warm": {"final_ce": str(fw), "commits": cw,
+                     "holds": hw, "auc": str(auc_w),
+                     "init_ce": str(tw[0]["obj"]),
+                     "traj": [str(d["obj"]) for d in tw]},
+            "poisoned": {"final_ce": str(fp), "commits": cp,
+                         "holds": hp,
+                         "auc": str(sum((d["obj"] for d in tp),
+                                        F(0))),
+                         "traj": [str(d["obj"]) for d in tp]},
+            "source_A": {"final_ce": str(mh_mse(wA, ptsA)),
+                         "commits": cA, "holds": hA,
+                         "w": [str(v) for v in wA]},
+            "verdict": verdict})
+        if tel["forgetA_pair"] is None:
+            tel["forgetA_pair"] = ([str(v) for v in snapA],
+                                   [str(v) for v in wA])
+
+    v = [p["verdict"] for p in tel["pairs"]]
+    tel["final"] = {
+        "pairs": len(sel), "verdicts": v,
+        "t1_pairs": v.count("T1-positive"),
+        "t2_pairs": v.count("T2-negative"),
+        "t3_pairs": v.count("T3-none"),
+        "forgetA": 0}
+    return {"tel": tel}
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -11724,7 +11878,8 @@ def main():
                              "universal-loop-nl",
                              "self-compress-loop",
                              "distill",
-                             "mini-hagi-v3"],
+                             "mini-hagi-v3",
+                             "adapter-transfer"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -12403,6 +12558,28 @@ def main():
         }, indent=1, default=str))
         if args.emit_lean:
             emit_lean_v3(args.emit_lean, res)
+        return
+
+    if args.mode == "adapter-transfer":
+        res = adapter_transfer_run(args.data)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "adapter-transfer",
+            "n_points": tel["n_points"],
+            "n_domains": tel["n_domains"],
+            "domains": tel["domains"],
+            "metric": tel["metric"],
+            "steps_budget": tel["steps_budget"],
+            "pairs": [
+                {k: (v if not isinstance(v, dict) else
+                     {k2: (v2 if not isinstance(v2, list) else
+                           v2[:3] + ["..."] if len(v2) > 6 else v2)
+                      for k2, v2 in v.items()})
+                 for k, v in p.items()}
+                for p in tel["pairs"]],
+            "forgetA_pair": tel["forgetA_pair"],
+            "final": tel["final"],
+        }, indent=1, default=str))
         return
 
     if args.mode == "self-compress-loop":

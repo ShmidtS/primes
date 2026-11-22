@@ -890,4 +890,19 @@ theorem v3_assembly_sound {ι : Type} (k dd : ℕ)
 
 end V3Assembly
 
+/-! ## C560: cross-domain перенос адаптеров (honest-заметка)
+
+Bench `--mode adapter-transfer` (C560): warm-start домена B
+копией обученного адаптера домена A vs холодный нулевой
+старт (C532), равные certified-бюджеты. Измерение на живом
+корпусе: 3/3 пары (близкая/средняя/далёкая, близость
+зарегистрирована ДО прогона) — T1-positive по AUC
+CE-трейектории (drop-скорость), poisoned-инициализация хуже
+по drop-скорости. НОВОЙ теоремы НЕ нужно: гарантия шага
+`adapter_step_certified` сформулирована над произвольными
+`s s'` — инициализация в неё не входит, поэтому warm-start
+наслаждается той же certified-гарантией (переносимая теорема
+тривиальна). Ценность C560 — bench-измерение, не новый Lean-
+факт (KISS). Witness: `.tmp/C560/trajTransfer.lean`. -/
+
 end Hagi.Theory.AdapterGrowth
