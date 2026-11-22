@@ -420,4 +420,82 @@ theorem sufficient_negative_transfer (f : E → ℝ) (grad : E → E)
 
 end SmoothNL
 
+/-! ## C606: Schedule — certified-optimal шаг γ* = 1/L -/
+
+section Schedule
+
+variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- **nlDrop (C606)**: guaranteed per-step УБЫВАНИЕ objective для
+L-smooth GD с градиентной G-границей — нижний (drop) аналог
+`nlBudget` (C592): descent-член γG² минус smoothness-член
+Lγ²G²/2. Конкретный знак при Lγ²G²/2 — единственное отличие от
+`nlBudget`. -/
+noncomputable def nlDrop (γ L G : ℝ) : ℝ :=
+  γ * G ^ 2 - L * γ ^ 2 * G ^ 2 / 2
+
+/-- **nl_drop_bound (C606, a)**: per-step guaranteed drop — descent
+лемма в точке старта (premise-form `hsm`, как `nl_step_mono`):
+`f (nlStep γ grad z) ≤ f z − nlDrop γ L ‖grad z‖`, т.е.
+drop `f z − f (next) ≥ γ‖g‖² − Lγ²‖g‖²/2`. При γ > 2/L nlDrop
+отрицателен (шаг «слишком большой») — граница остаётся
+честной. -/
+theorem nl_drop_bound (f : E → ℝ) (grad : E → E) (L γ : ℝ)
+    (z : E)
+    (hsm : ∀ x y : E, f y ≤ f x + ⟪grad x, y - x⟫_ℝ
+      + L / 2 * ‖y - x‖ ^ 2) :
+    f (nlStep γ grad z) ≤ f z - nlDrop γ L ‖grad z‖ := by
+  have hstep := hsm z (z - γ • grad z)
+  have hin : ⟪grad z, z - γ • grad z - z⟫_ℝ = -(γ) * ‖grad z‖ ^ 2 := by
+    rw [show z - γ • grad z - z = -(γ • grad z) by module,
+      inner_neg_right, real_inner_smul_right, real_inner_self_eq_norm_sq]
+    ring
+  have hnorm : ‖z - γ • grad z - z‖ ^ 2 = γ ^ 2 * ‖grad z‖ ^ 2 := by
+    rw [show z - γ • grad z - z = -(γ • grad z) by module,
+      norm_neg, norm_smul, Real.norm_eq_abs, mul_pow, sq_abs]
+  rw [hin, hnorm] at hstep
+  unfold nlDrop
+  have hdef : nlStep γ grad z = z - γ • grad z := rfl
+  rw [hdef]
+  linarith
+
+/-- **nlDrop_le_optimal (C606, b)**: certified-оптимальность шага
+γ* = 1/L — guaranteed drop `nlDrop γ L G` максимален при
+`γ = 1/L` для ЛЮБОГО γ (глобальный максимум параболы, не только
+на descent-зоне [0, 2/L]): полный квадрат
+`nlDrop (1/L) − nlDrop γ = (G²/(2L))·(1 − Lγ)² ≥ 0`. -/
+theorem nlDrop_le_optimal (L G γ : ℝ) (hL : 0 < L) :
+    nlDrop γ L G ≤ nlDrop (1 / L) L G := by
+  unfold nlDrop
+  have hsq : (1 - L * γ) ^ 2 ≥ 0 := sq_nonneg _
+  have hpos : 0 < 2 * L := by positivity
+  field_simp
+  nlinarith [hsq, hpos]
+
+/-- **nl_drop_optimal (C606, MAIN)**: guaranteed per-step drop при
+оптимальном шаге γ* = 1/L равен `G²/(2L)` — классический
+one-step sufficient decrease (Cambridge DAMTP L3; MIT 6.7220
+L12: η = 1/L гарантирует улучшение при ненулевом градиенте).
+Bench-правило: авто-LR из измеренного L — телеметрия вместо
+текущих констант. -/
+theorem nl_drop_optimal (L G : ℝ) (hL : 0 < L) :
+    nlDrop (1 / L) L G = G ^ 2 / (2 * L) := by
+  unfold nlDrop
+  field_simp
+  ring
+
+/-! Числовой witness (C606): L = 2, G = 1 ⟹ γ* = 1/2;
+tаблица guaranteed drop: γ = 0.1 → 9/100, γ = 0.5 → 1/4,
+γ = 0.9 → 9/100 — симметрия параболы вокруг вершины γ* = 1/2. -/
+example : nlDrop (1 / 10 : ℝ) 2 1 = 9 / 100 := by
+  unfold nlDrop; norm_num
+
+example : nlDrop (1 / 2 : ℝ) 2 1 = 1 / 4 := by
+  unfold nlDrop; norm_num
+
+example : nlDrop (9 / 10 : ℝ) 2 1 = 9 / 100 := by
+  unfold nlDrop; norm_num
+
+end Schedule
+
 end Hagi.Theory.NegativeTransfer

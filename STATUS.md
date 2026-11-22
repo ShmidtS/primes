@@ -2094,3 +2094,24 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   дыре (необходимость s ≤ w); негатив переполнения: 1152/w=64/s=17 —
   65 окон > 64, старое усечение теряет байт 0; фикс s=18 — 62 окна,
   covered (covStartsStep_adaptive_covers применена).
+
+## Hagi/Theory/NegativeTransfer.lean C606 Schedule (optimal step size certified)
+
+- Секция Schedule (C606): certified-оптимальный шаг L-smooth GD.
+  `nlDrop γ L G = γG² − Lγ²G²/2` — guaranteed per-step drop
+  (нижний аналог `nlBudget` C592, отличие — знак при Lγ²G²/2).
+  `nl_drop_bound` (a): `f (nlStep γ grad z) ≤ f z − nlDrop γ L
+  ‖grad z‖` из той же premise-form hsm, что `nl_step_mono`
+  (классический sufficient decrease). `nlDrop_le_optimal` (b):
+  `nlDrop γ L G ≤ nlDrop (1/L) L G` для ЛЮБОГО γ (глобальный
+  максимум параболы: полный квадрат (G²/2L)(1−Lγ)² ≥ 0, без
+  ограничения γ descent-зоной). `nl_drop_optimal` (MAIN): drop
+  при γ* = 1/L равен G²/(2L). Кандидат «γ* = 2/(3L)» из
+  roadmap-черновика отклонён: d/dγ[γG² − Lγ²G²/2] = G² − LγG² = 0
+  ⟺ γ = 1/L (выведено дважды: производная + полный квадрат;
+  probe .tmp/C606/probe.lean exit=0).
+- Bench-правило: γ = 1/L — certified (авто-LR из измеренного L;
+  телеметрия vs текущих констант; источники: MIT 6.7220 L12
+  Farina, Cambridge DAMPT lecture3, angms sufficient-decrease).
+  Числовой witness (L=2, G=1, γ*=1/2): drop γ=0.1/0.5/0.9 →
+  9/100, 1/4, 9/100 — симметрия параболы вокруг вершины.
