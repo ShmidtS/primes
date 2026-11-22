@@ -4751,3 +4751,36 @@ Witness .tmp/C582/trajCtx.lean (rc=0): toy-кривая elbow → some `2`
 нулевой tol → только точный минимум (some `8`); theorem-инстансы
 (budget ≤ 16, within-tol); аксиомы — только propext /
 Classical.choice / Quot.sound (все три теоремы).
+
+## Hagi/Theory/KnowledgeConsolidation.lean (C584: knowledge-consolidation мост — wave225, Unified.remember/consolidate/learn_from_dialog)
+
+Мост к HAGI_v2 wave225 (d2ef948, READ-ONLY): секция «WAVE 225:
+knowledge consolidation from external memory», hagi/unified.py:285-315
+— Unified получает memory() (SemanticMemory singleton),
+remember() (append в SQLite/FTS5 архив, веса не трогаются),
+consolidate() (retrieval-augmented ask: top-3 страницы памяти в
+prompt-префикс) и learn_from_dialog() (полный цикл: диалог →
+постоянная память → ingest как тренировочный домен). Родня:
+FactLedger (C579, append-only). Волна стабильна (d2ef948 = HEAD
+HAGI_v2) — мост не отложен (research .tmp/C584/research.md, anchors
+file:line: unified.py:285, 287-297, 299-306, 308-315;
+memory_store/__init__.py:11-31).
+
+Модель: PageStore = список строк-страниц; remember = append.
+
+- `consolidate_prompt_empty`: buildPrompt [] q = q — graceful
+  degradation: пустая выдача памяти → retrieval-префикс не
+  добавляется, consolidate вырождается в чистый ask (unified.py:304);
+- `remember_preserves_pages`: p ∈ m → p ∈ remember m t —
+  append-only покрытие: консолидация не теряет знание на уровне
+  store (только INSERT, путей удаления нет; родня
+  fact_lookup_monotone C579);
+- `learn_from_dialog_archives`: полный цикл консолидации архивирует
+  текст диалога в память ДО ingest (unified.py:312-315).
+
+Honest: top-k ранжирование НЕ монотонно (новая страница может
+вытеснить старую из top-3 по запросу) — теорема про top-k честно
+опущена; гарантируется только membership в store. Witness
+.tmp/C584/trajCons.lean (rc=0): #eval пустой/непустой hits, NEGATIVE
+no-smuggling (чужой строки в памяти нет), порядок learnFromDialog =
+remember до ingest; аксиомы — propext / 0 / 0 (все ≤ 3 стандартных).

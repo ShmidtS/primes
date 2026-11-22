@@ -477,6 +477,7 @@ import Hagi.Theory.MasterTheoremV3
 import Hagi.Theory.FactLedger
 import Hagi.Theory.RangeWrap
 import Hagi.Theory.AdaptiveContext
+import Hagi.Theory.KnowledgeConsolidation
 set_option linter.style.header false
 
 /-!

@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 551
-- theorems: 12952
-- defs: 4859
+- modules: 552
+- theorems: 12955
+- defs: 4865
 - noncomputable decls: 1225
-- status Proven: 471 modules
+- status Proven: 472 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -504,6 +504,7 @@ theorems.
 | Hagi.Theory.GrowTrunkBlock | 9 | 2 | - | no | Proven |
 | Hagi.Theory.HadamardIncoherence | 22 | 6 | - | no | Proven |
 | Hagi.Theory.Interpretability | 14 | 18 | instFintypeGoodSet | no | Proven |
+| Hagi.Theory.KnowledgeConsolidation | 3 | 6 | - | no | Proven |
 | Hagi.Theory.LogitGrowth | 43 | 11 | step, trajectory, orbit, initial, next, unitEta, measuredInput | no | Proven |
 | Hagi.Theory.MDLPrune | 20 | 3 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
