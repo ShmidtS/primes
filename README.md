@@ -171,6 +171,14 @@ allowlist LAYER_EXCEPTIONS.
   по каждому Lean-файлу Root, с существенными условиями.
 - **[Hagi.lean](Hagi.lean)** — карта импортов для перехода к
   непосредственным определениям и теоремам в дереве `Hagi/`.
+- **[docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md)** — карточки
+  восьми C5XX-результатов для [Palomar](https://palomar-registry.org/)
+  (реестр Lean-верифицированной математики). Карточки готовы;
+  отправка — внешний user-шаг: форма
+  [submit.palomar-registry.org](https://submit.palomar-registry.org/)
+  требует публичного GitHub-репозитория с выделенным
+  Challenge/Solution comparator-проектом (см. секцию Submission
+  requirements в файле карточек).
 
 ## Сборка
 
