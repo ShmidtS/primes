@@ -73,6 +73,19 @@ def corpus_abort(reason, hint=""):
     assert-ABORTs mean the LIVE ledger's new content breaks the
     mode's certified bound/precondition (expected fail-closed;
     e.g. wave238 chat_law entries break grow-snap's bound).
+
+    C610 three-level corpus policy (single resolve point in
+    main): default = pinned snapshot; if the snapshot is
+    STRUCTURALLY insufficient for the mode's domain
+    requirement (transfer family needs >= 2 const-cluster
+    domains; the 35-key snapshot has 0), the default run emits
+    a stderr WARNING and falls back to LIVE (drift possible)
+    instead of aborting. --live-corpus = always live;
+    --snapshot-corpus = always snapshot (ABORT on structural
+    insufficiency -- fail-closed, no fallback). CONTENT aborts
+    (certified bounds, N >= 100, rank-3, const-cluster pins)
+    remain ABORT in every corpus mode -- the fallback is only
+    for structural lack of required data, never for content.
     """
     msg = f"BENCH-ABORT: {reason}"
     if hint:
@@ -13017,6 +13030,31 @@ def adaptive_span_run():
             "rows": rows, "verdict": "PASS" if ok else "FAIL"}
 
 
+# C610: modes whose corpus precondition is a STRUCTURAL domain
+# requirement (>= 2 const-cluster domains, TR_MIN_PTS points
+# each). Only these participate in the snapshot->live fallback
+# of the three-level corpus policy; all other corpus_abort
+# preconditions (certified bounds, N pins, rank-3, const
+# cluster) are CONTENT conditions and stay fail-closed.
+DOMAIN_REQ_MODES = frozenset((
+    "adapter-transfer",
+    "adapter-transfer-auto",
+    "transfer-gate-certified",
+))
+
+
+def _snapshot_domain_count():
+    """C610: count const-cluster domains (>= TR_MIN_PTS points
+    per snapped ce) in the pinned snapshot -- exactly the
+    domain construction the transfer-family modes use, so the
+    corpus-resolve point can detect STRUCTURAL insufficiency
+    before the mode runs."""
+    by_t = {}
+    for (_, x, y) in mh_load_dataset(SNAPSHOT_LEDGER):
+        by_t.setdefault(fl2_snap(F(str(y))), []).append(x)
+    return sum(1 for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -13142,11 +13180,17 @@ def main():
                          "(nl_drop_optimal, C606) - golden A/B "
                          "comparison path")
     ap.add_argument("--live-corpus", action="store_true",
-                    help="C608: run data modes on the LIVE HAGI_v2 "
+                    help="C608/C610: run data modes on the LIVE HAGI_v2 "
                          "ledger (C:/HAGI_v2/checkpoints/...) instead "
                          "of the pinned corpus snapshot; results may "
                          "drift between runs (fail-closed aborts on "
-                         "new corpus content are expected)")
+                         "new corpus content are expected); mutually "
+                         "exclusive with --snapshot-corpus")
+    ap.add_argument("--snapshot-corpus", action="store_true",
+                    help="C610: force the PINNED corpus snapshot even "
+                         "when it is structurally insufficient for "
+                         "the mode (>= 2 domains) - fail-closed "
+                         "corpus_abort, NO live fallback")
     ap.add_argument("--data", metavar="PATH",
                     default=SNAPSHOT_LEDGER,
                     help="real-data: path to unified_ledger.json "
@@ -13185,20 +13229,56 @@ def main():
     global FIXED_LR
     FIXED_LR = args.fixed_lr
 
-    # C608: snapshot-vs-live corpus policy (lesson C535). Default
-    # --data is the PINNED snapshot (deterministic regressions);
-    # --live-corpus switches to the live HAGI_v2 ledger (drifting
-    # ~1 wave / 15 min; fail-closed ABORTs on new content expected).
+    # C608/C610: three-level snapshot-vs-live corpus policy
+    # (lesson C535), resolved in ONE point. Default --data is
+    # the PINNED snapshot (deterministic regressions);
+    # --live-corpus forces the live HAGI_v2 ledger (drifting
+    # ~1 wave / 15 min; fail-closed ABORTs on new content
+    # expected); --snapshot-corpus forces the snapshot even
+    # when it is structurally insufficient for the mode
+    # (fail-closed ABORT, no fallback). On the DEFAULT path, a
+    # snapshot that STRUCTURALLY lacks data the mode must have
+    # (transfer family: >= 2 const-cluster domains) falls back
+    # to LIVE with a WARNING (drift possible) instead of
+    # aborting. Content aborts (certified bounds etc.) stay
+    # ABORT everywhere -- fallback never masks content.
+    import os as _os
+    if getattr(args, "live_corpus", False) and getattr(
+            args, "snapshot_corpus", False):
+        ap.error("--live-corpus and --snapshot-corpus are "
+                 "mutually exclusive")
+    domain_req = args.mode in DOMAIN_REQ_MODES
     if getattr(args, "live_corpus", False):
-        import os as _os
         args.data = RD_DEFAULT_LEDGER
         print("[telemetry] corpus=LIVE ({}): live HAGI_v2 ledger, "
               "results may DRIFT between runs".format(
                   RD_DEFAULT_LEDGER), file=sys.stderr)
-    else:
-        import os as _os
-        if _os.path.abspath(args.data) == _os.path.abspath(
-                SNAPSHOT_LEDGER):
+    elif getattr(args, "snapshot_corpus", False):
+        args.data = SNAPSHOT_LEDGER
+        if domain_req:
+            nd = _snapshot_domain_count()
+            if nd < 2:
+                corpus_abort(
+                    f"need >=2 domains, got {nd}",
+                    hint=f"{args.mode}: snapshot forced by "
+                         "--snapshot-corpus, no fallback (C610)")
+        print("[telemetry] corpus=SNAPSHOT-FORCED ({}): pinned "
+              "corpus snapshot, deterministic, fallback "
+              "disabled".format(SNAPSHOT_LEDGER), file=sys.stderr)
+    elif (_os.path.abspath(args.data)
+            == _os.path.abspath(SNAPSHOT_LEDGER)):
+        nd = _snapshot_domain_count() if domain_req else None
+        if domain_req and nd < 2:
+            print("WARNING: snapshot lacks >=2 domains (got "
+                  f"{nd}), falling back to LIVE (drift possible)",
+                  file=sys.stderr)
+            args.data = RD_DEFAULT_LEDGER
+            print("[telemetry] corpus=LIVE-FALLBACK ({}): "
+                  "snapshot structurally insufficient, live "
+                  "HAGI_v2 ledger, results may DRIFT between "
+                  "runs".format(RD_DEFAULT_LEDGER),
+                  file=sys.stderr)
+        else:
             print("[telemetry] corpus=SNAPSHOT ({}): pinned corpus "
                   "snapshot, deterministic".format(SNAPSHOT_LEDGER),
                   file=sys.stderr)
