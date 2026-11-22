@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 544
-- theorems: 12895
-- defs: 4816
-- noncomputable decls: 1222
-- status Proven: 464 modules
+- modules: 545
+- theorems: 12905
+- defs: 4819
+- noncomputable decls: 1223
+- status Proven: 465 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -509,6 +509,7 @@ theorems.
 | Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.MiniHagi2 | 3 | 1 | miniHagi2Canonical | no | Proven |
 | Hagi.Theory.MiniHagiLoop | 10 | 12 | - | no | Proven |
+| Hagi.Theory.NegativeTransfer | 10 | 3 | quadObj | no | Proven |
 | Hagi.Theory.OEComplete | 8 | 6 | - | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
