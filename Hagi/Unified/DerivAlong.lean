@@ -51,6 +51,24 @@ theorem lip_energy_quantization {W : Type*} [NormedAddCommGroup W]
     |E w - E (qTern w)| ≤ kappa * ‖w - qTern w‖ :=
   lip_energy_from_gradient E kappa hdiff hnorm w (qTern w)
 
+/-- **Разрядка h_emp_lip (евклидова форма, C605)**: мост из
+`lip_energy_from_gradient` (R563) в точную форму биндера
+Runtime/TernaryExact (`dE ≤ κ·sqrt(∑ (w i − q i)²)`):
+искажение энергии от квантования весов ограничено
+κ-кратным евклидовым расстоянием до квантованной точки.
+Вывод безпосылочный на уровне модели κ = sup‖∇E‖; сам
+измеренный κ — внешняя константа. -/
+theorem discharge_premise_h_emp_lip_euclidean
+    {ι : Type*} [Fintype ι] (E : EuclideanSpace ℝ ι → ℝ)
+    (kappa : ℝ)
+    (hdiff : ∀ w, HasFDerivAt E (fderiv ℝ E w) w)
+    (hnorm : ∀ w, ‖fderiv ℝ E w‖ ≤ kappa)
+    (w q : EuclideanSpace ℝ ι) :
+    |E w - E q| ≤ kappa * Real.sqrt (∑ i, (w i - q i) ^ 2) := by
+  have h := lip_energy_from_gradient E kappa hdiff hnorm w q
+  rw [EuclideanSpace.norm_eq] at h
+  simpa [Real.norm_eq_abs] using h
+
 
 /-- **h_emp_grow из certified descent (R564)**: энергетический
 учёт grow-стадии (growEnergy ≤ energy − growGain) — точная

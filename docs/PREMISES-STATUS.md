@@ -54,10 +54,10 @@ AssumptionScan, PASS против кода), `scripts/premise_registry.toml`
 | h_emp_conc | Model | Research/Legacy/TopLevel | вогнутость целевого функционала модели |
 | h_emp_grow | Model | CorePremisesDerived; MasterHAGI; System/GrowthState | карта роста (модельная): вывод из h_emp_dyn-типа законов |
 | h_emp_quad | Model | Research/Legacy/RecursiveGrowth | квадратичность локальной аппроксимации |
-| h_emp_merge | Mathematical | StageCalculus; CorePremisesDerived; MasterHAGI; RecursiveGrowth; GrowthState | алгебра merge-закона: доказать для конкретного merge-оператора |
+| h_emp_merge | Mathematical (partial: flat-concat разряжен) | StageCalculus; CorePremisesDerived; MasterHAGI; RecursiveGrowth; GrowthState | алгебра merge-закона; РАЗРЯЖЕНА для two-expert flat-concat (h_emp_merge_of_bridge, Nonvacuity R263); вне его — доказать закон для конкретного merge-оператора |
 | h_emp_dist | Model (partial) | StageCalculus; MasterHAGI; RecursiveGrowth; PPT; GrowthState | регулярность распределения; точечно-массная форма уже разряжена (PPTCanonical) |
-| h_emp_lip | Model | StageCalculus; MasterHAGI; RecursiveGrowth; TopLevel; SeedOnly; TernaryExact; GrowthState | липшицевость: доказать для конкретного оператора (как rn_lipschitz_region в RMSNormTransfer) |
-| h_emp_smooth | Model | 8 файлов (StageCalculus…SafeQPStep) | гладкость: оценка кривизны конкретного лосса |
+| h_emp_lip | Model (partial: градиентная модель разряжена) | StageCalculus; MasterHAGI; RecursiveGrowth; TopLevel; SeedOnly; TernaryExact; GrowthState | липшицевость: РАЗРЯЖЕНА на модели κ = sup‖∇E‖ (lip_energy_from_gradient R563 + discharge_premise_h_emp_lip_euclidean C605); внешний — измеренный κ (как rn_lipschitz_region в RMSNormTransfer) |
+| h_emp_smooth | Model (partial: L-гладкий градиент разряжен) | 8 файлов (StageCalculus…SafeQPStep) | гладкость: РАЗРЯЖЕНА на модели L-гладкого градиента (joint_emp_smooth_derived R565 — точная форма joint_stage); внешний — измеренный L |
 | h_emp_gate | Empirical | Pretraining/SyntheticPretrain | статистика активации гейта (замер probe) |
 | h_emp_gap | Empirical | Step/Compound | наблюдаемый suboptimality gap (трейс обучения) |
 | h_emp_c | Model | Step/Compound | масштабная константа модели |
@@ -86,9 +86,16 @@ hybrid_stack_transfer_descent(_strict)`. Доказательство = серт
 
 ## Куда копать дальше (маршруты разрядки)
 
-1. `h_emp_lip`/`h_emp_smooth` по образцу RMSNormTransfer: явные
-   константы для конкретных операторов (region/ε-floor discharge).
-2. `h_emp_merge`: доказать merge-закон для оператора слияния
-   StageCalculus (algebraic).
+1. ~~`h_emp_lip`/`h_emp_smooth`~~ — разряжены C605 на уровне
+   моделей (κ = sup‖∇E‖, L-гладкость градиента); следующий
+   уровень — явные константы для КОНКРЕТНЫХ архитектур
+   (RoPE/нелинейные стеки) по образцу rn_lipschitz_region
+   (RMSNormTransfer).
+2. ~~`h_emp_merge`~~ — разряжен C605 для two-expert flat-concat
+   (Nonvacuity R263 уже давал мост; зафиксирован статус).
+   Следующий уровень — merge-закон для блочно-диагональных /
+   Hadamard-операторов (см. Nonvacuity:258).
 3. Runtime-PPT: инициализация/смешивание цепи → разрядка
    h_emp_fiber/h_emp_dist до уровня canonical.
+4. `h_emp_quad`: PSD-мажоризация F (dL ≤ ⟪dW, F dW⟫) — готового
+   моста нет, кандидат на отдельный виток.

@@ -135,11 +135,11 @@ note = "distance/divergence regularity of the data distribution model; point-mas
 
 [premises.h_emp_lip]
 type = "model"
-note = "Lipschitz regularity of the loss/dynamics model"
+note = "Lipschitz regularity of the loss/dynamics model; DISCHARGED on the gradient-bound model by Hagi.Unified.lip_energy_from_gradient / lip_energy_quantization (DerivAlong.lean, R563) plus the euclidean-form bridge discharge_premise_h_emp_lip_euclidean (DerivAlong.lean, C605) matching the TernaryExact binder exactly; the measured kappa = sup of the loss gradient norm remains external"
 
 [premises.h_emp_smooth]
 type = "model"
-note = "smoothness (curvature bound) of the loss model"
+note = "smoothness (curvature bound) of the loss model; DISCHARGED on the L-Lipschitz-gradient model by Hagi.Unified.joint_emp_smooth_derived (DerivAlong.lean, R565), the exact StageCalculus joint_stage premise form derived via smooth_from_lipschitz_gradient; the measured L remains external"
 
 [premises.h_emp_conc]
 type = "model"
@@ -179,7 +179,7 @@ note = "growth-map premise of the master model"
 
 [premises.h_emp_merge]
 type = "mathematical"
-note = "algebraic merge-law premise (stated as a hypothesis of the merge calculus)"
+note = "algebraic merge-law premise; DISCHARGED for the two-expert flat-concat merge operator by Hagi.Examples.h_emp_merge_of_bridge (Nonvacuity.lean, R263): an exact equality merge_energy_bridge with gap = jensenGap, plus strict-positivity witness; merge operators beyond flat-concat remain external"
 
 [premises.h_emp_quad]
 type = "model"
