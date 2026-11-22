@@ -35,6 +35,15 @@ real-world atoms with derived constants (derivability, not tightness):
   (`convAtt_l1`), CertifiedBlock `certifiedConvAtt` with lip = 2,
   unconditional. Softmax bounded-logit context: `Hagi.Model.QKNorm.attP`
   / `qk_no_saturation` (cited).
+* (d) Attention with x-DEPENDENT scoring (softmax weights `w x` of
+  the scores) under a CERTIFIED value bound: `attn_xdep_lipschitz`
+  derives the block Lipschitz constant `B_V·(1 + L_w·R_x)` from the
+  classical two-leg decomposition (weight-shift leg
+  `≤ (Σ|Δw|)·B_V·R_x` via the operator bound + input radius;
+  value-shift leg `≤ B_V·d` via convexity `Σ w = 1`). Closes the
+  C465 honest pin: the value-bounded carrier exists as a
+  DOMAIN-BOUNDED theorem (explicit radius/value premises), not as an
+  unconditional `CertifiedBlock`.
 
 ## Honest pins (negatives and limits)
 
@@ -43,9 +52,15 @@ real-world atoms with derived constants (derivability, not tightness):
   by `M·‖w(x)−w(y)‖₁` with `M = sup_i ‖x i‖∞` — the obstruction is the
   UNBOUNDED VALUES, not the softmax (softmax itself is globally
   ≤ 1/2-Lipschitz in ℓ2, Pauli et al. 2023 — pinned, not restated).
-  `CertifiedBlock.hLip` is an unconditional field, so the
-  bounded-logit version needs a value-bounded carrier (a domain-bounded
-  CertifiedBlock) — deliberately out of scope (YAGNI).
+  CLOSED (C564): with a certified value bound the positive side is
+  derivable — `attn_xdep_lipschitz` gives `B_V·(1 + L_w·R_x)` under
+  (i) the operator bound `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, (ii) the input
+  radius `‖x i‖₁ ≤ R_x`, (iii) weight stability
+  `‖w(x)−w(y)‖₁ ≤ L_w·‖x−y‖₁` (classically `L_w = 2·L_s` via the
+  softmax TV-bound `‖sm a − sm b‖₁ ≤ 2‖a−b‖∞` — pinned, not
+  restated). `CertifiedBlock.hLip` remains unconditional, so the
+  value-bounded version is a domain-bounded theorem, not a
+  `CertifiedBlock` instance — the honest asymmetry stands.
 - RMSNorm WITHOUT the ε-floor (`x ↦ x/‖x‖`) is not defined at 0 and
   not Lipschitz across sign changes (x vs −x collapse to opposite
   unit vectors); the ε-floor is exactly what makes the unconditional
@@ -885,6 +900,137 @@ noncomputable def certifiedConvAtt : Hagi.Model.LMCompose.CertifiedBlock V where
       unfold attAgg
       exact Finset.sum_congr rfl fun i hi => by rw [hfun i hi]
     rw [hxA, hfun t (Finset.mem_range.mpr (Nat.lt_succ_self t))]
+
+/-! ## (d) x-Dependent attention scoring under a certified value
+bound -/
+
+variable {n : ℕ}
+
+/-- Value projection `valProj A u = A • u` applied to one context
+vector (row `A v`, inner product with `u`). -/
+def attnXDepVal (A : V → V → ℝ) (u : V → ℝ) (v : V) : ℝ :=
+  ∑ q, A v q * u q
+
+/-- x-Dependent attention output: at the query position, convex
+weights `w x` (e.g. the softmax of x-dependent scores) over the
+context `Fin n`, values `A • x i`. -/
+def attnXDepOut (A : V → V → ℝ) (w : (Fin n → V → ℝ) → Fin n → ℝ)
+    (x : Fin n → V → ℝ) (v : V) : ℝ :=
+  ∑ i, w x i * attnXDepVal A (x i) v
+
+/-- **x-Dependent attention is Lipschitz under a certified value
+bound** (closes the C465 honest pin): with convex x-dependent
+weights `w x` (nonneg, sum 1), value operator bound
+`‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, input radius `‖x i‖₁ ≤ R_x`, and
+weight stability `‖w(x) − w(y)‖₁ ≤ L_w·‖x − y‖₁`, the attention
+output is Lipschitz with the DERIVED constant
+`B_V·(1 + L_w·R_x)` — the classical two-leg decomposition:
+weight-shift `≤ (Σ|Δw|)·B_V·R_x`, value-shift `≤ B_V·d` (convexity
+`Σ w = 1`). Without the value bound the map is NOT globally
+Lipschitz (see the module pins); the radius is exactly the
+domain-bounded carrier the pin called for. Weight stability with
+`L_w = 2·L_s` follows from score Lipschitzness via the softmax
+TV-bound `‖sm a − sm b‖₁ ≤ 2‖a − b‖∞` (pinned, not restated). -/
+theorem attn_xdep_lipschitz
+    (A : V → V → ℝ) (w : (Fin n → V → ℝ) → Fin n → ℝ)
+    (x y : Fin n → V → ℝ)
+    (Bv Lw Rx : ℝ) (hBv : 0 ≤ Bv) (hRx : 0 ≤ Rx)
+    (hop : ∀ u z : V → ℝ,
+      ∑ p, |attnXDepVal A u p - attnXDepVal A z p|
+        ≤ Bv * ∑ q, |u q - z q|)
+    (hw_nonneg : ∀ z : Fin n → V → ℝ, ∀ i, 0 ≤ w z i)
+    (hw_sum : ∀ z : Fin n → V → ℝ, ∑ i, w z i = 1)
+    (hw_lip : ∀ a b : Fin n → V → ℝ,
+      ∑ i, |w a i - w b i| ≤ Lw * ∑ i, ∑ v, |a i v - b i v|)
+    (hradx : ∀ i : Fin n, ∑ v, |x i v| ≤ Rx) :
+    ∑ v, |attnXDepOut A w x v - attnXDepOut A w y v|
+      ≤ Bv * (1 + Lw * Rx) * ∑ i, ∑ v, |x i v - y i v| := by
+  set d : ℝ := ∑ i, ∑ v, |x i v - y i v| with hd
+  -- per-i algebra: a*b - c*d = (a-c)*b + c*(b-d)
+  have key : ∀ v : V, (attnXDepOut A w x v - attnXDepOut A w y v)
+      = ∑ i, ((w x i - w y i) * attnXDepVal A (x i) v
+          + w y i * (attnXDepVal A (x i) v
+            - attnXDepVal A (y i) v)) := by
+    intro v
+    rw [attnXDepOut, attnXDepOut, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    ring
+  have hzero : ∀ p : V, attnXDepVal A 0 p = 0 := by
+    intro p
+    unfold attnXDepVal
+    simp
+  -- magnitude leg: |A • u| via hop at z = 0
+  have hmag : ∀ i : Fin n,
+      ∑ p, |attnXDepVal A (x i) p| ≤ Bv * Rx := by
+    intro i
+    have h0 := hop (x i) 0
+    have h0' : ∑ p, |attnXDepVal A (x i) p| ≤ Bv * ∑ q, |x i q| := by
+      simpa only [hzero, sub_zero, Pi.zero_apply] using h0
+    exact h0'.trans (mul_le_mul_of_nonneg_left (hradx i) hBv)
+  -- value-shift leg via hop
+  have hvshift : ∀ i : Fin n,
+      ∑ p, |attnXDepVal A (x i) p - attnXDepVal A (y i) p|
+        ≤ Bv * ∑ q, |x i q - y i q| :=
+    fun i => hop (x i) (y i)
+  -- per-context-position distance is a summand of d
+  have hgd : ∀ i : Fin n, ∑ q, |x i q - y i q| ≤ d := fun i =>
+    Finset.single_le_sum
+      (f := fun j => ∑ v, |x j v - y j v|)
+      (fun j _ => Finset.sum_nonneg fun _ _ => abs_nonneg _)
+      (Finset.mem_univ i)
+  -- convex weights concentrate the value-shift leg on d
+  have hwg : ∑ i, w y i * ∑ q, |x i q - y i q| ≤ d := by
+    have h1 : ∑ i, w y i * ∑ q, |x i q - y i q|
+        ≤ ∑ i, w y i * d :=
+      Finset.sum_le_sum fun i _ =>
+        mul_le_mul_of_nonneg_left (hgd i) (hw_nonneg y i)
+    exact h1.trans_eq (by
+      rw [← Finset.sum_mul, hw_sum y, one_mul])
+  -- main triangle
+  calc ∑ v, |attnXDepOut A w x v - attnXDepOut A w y v|
+      ≤ ∑ v, ∑ i, (|(w x i - w y i) * attnXDepVal A (x i) v|
+          + |w y i * (attnXDepVal A (x i) v
+            - attnXDepVal A (y i) v)|) := by
+        refine Finset.sum_le_sum fun v _ => ?_
+        rw [key v]
+        refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+        exact Finset.sum_le_sum fun i _ => abs_add_le _ _
+    _ = ∑ i, (|w x i - w y i| * ∑ v, |attnXDepVal A (x i) v|
+        + w y i * ∑ v, |attnXDepVal A (x i) v
+          - attnXDepVal A (y i) v|) := by
+        rw [Finset.sum_comm]
+        refine Finset.sum_congr rfl fun i _ => ?_
+        simp only [abs_mul, abs_of_nonneg (hw_nonneg y i),
+          Finset.sum_add_distrib, Finset.mul_sum]
+    _ ≤ (∑ i, |w x i - w y i|) * (Bv * Rx)
+        + Bv * (∑ i, w y i * ∑ q, |x i q - y i q|) := by
+        rw [Finset.sum_add_distrib]
+        have e1 : ∑ i, |w x i - w y i| * ∑ v, |attnXDepVal A (x i) v|
+            ≤ (∑ i, |w x i - w y i|) * (Bv * Rx) := by
+          calc ∑ i, |w x i - w y i| * ∑ v, |attnXDepVal A (x i) v|
+              ≤ ∑ i, |w x i - w y i| * (Bv * Rx) :=
+                Finset.sum_le_sum fun i _ =>
+                  mul_le_mul_of_nonneg_left (hmag i) (abs_nonneg _)
+            _ = (∑ i, |w x i - w y i|) * (Bv * Rx) :=
+                (Finset.sum_mul _ _ _).symm
+        have e2 : ∑ i, w y i * ∑ v, |attnXDepVal A (x i) v
+              - attnXDepVal A (y i) v|
+            ≤ Bv * (∑ i, w y i * ∑ q, |x i q - y i q|) := by
+          calc ∑ i, w y i * ∑ v, |attnXDepVal A (x i) v
+                - attnXDepVal A (y i) v|
+              ≤ ∑ i, w y i * (Bv * ∑ q, |x i q - y i q|) :=
+                Finset.sum_le_sum fun i _ =>
+                  mul_le_mul_of_nonneg_left (hvshift i) (hw_nonneg y i)
+            _ = Bv * ∑ i, w y i * ∑ q, |x i q - y i q| := by
+                rw [Finset.mul_sum
+                  (f := fun i => w y i * ∑ q, |x i q - y i q|)]
+                exact Finset.sum_congr rfl fun i _ => by ring
+        exact add_le_add e1 e2
+    _ ≤ (Lw * d) * (Bv * Rx) + Bv * d := by
+        refine add_le_add (mul_le_mul_of_nonneg_right (hw_lip x y)
+          (by positivity)) ?_
+        exact mul_le_mul_of_nonneg_left hwg hBv
+    _ = Bv * (1 + Lw * Rx) * d := by ring
 
 end Hagi.Theory.BlockLipschitz
 

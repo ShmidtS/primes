@@ -13,8 +13,8 @@ theorems.
 ## Summary
 
 - modules: 543
-- theorems: 12875
-- defs: 4807
+- theorems: 12877
+- defs: 4809
 - noncomputable decls: 1219
 - status Proven: 463 modules
 - status Conditional: 25 modules
@@ -484,7 +484,7 @@ theorems.
 | Hagi.Theory.AdaptiveMajorizer | 59 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.BlockAdmission | 23 | 23 | - | no | Proven |
-| Hagi.Theory.BlockLipschitz | 48 | 9 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
+| Hagi.Theory.BlockLipschitz | 50 | 11 | relu, mlpApply, rmsDen, attAgg, rmsN, certifiedConvAtt, attW, certifiedRMSNorm, certifiedMLP | no | Proven |
 | Hagi.Theory.CEChain | 60 | 18 | gatedStep, batchStep, universalDrop, singleSampleStep, universalStepSize | no | Proven |
 | Hagi.Theory.CertCEHoldout | 2 | 1 | - | no | Proven |
 | Hagi.Theory.CertSandwichBench | 2 | 0 | - | no | Proven |
