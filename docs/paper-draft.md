@@ -1,7 +1,7 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.4 (C552). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD 977c930b), либо измеренный результат прогона с
+Draft v0.5 (C559). Все утверждения — либо Lean-якорь (FQN, файл,
+строка на HEAD e40aa426), либо измеренный результат прогона с
 указанием витка (Cn), либо явный PIN в §Limitations. Никаких
 недоказанных клеймов.
 
@@ -12,8 +12,8 @@ learning system takes a step only after a machine-checked
 certificate: the loop **PROPOSE → CERTIFY → ADMIT →
 COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by a
 Lean 4 theorem proved against Mathlib; the corpus currently
-counts **543 modules / 12 862 theorems / 0 `sorry`** (generated
-theorem index at HEAD 977c930b). The cycle-level soundness theorem
+counts **543 modules / 12 875 theorems / 0 `sorry`** (generated
+theorem index at HEAD e40aa426, regen C558). The cycle-level soundness theorem
 `certify_then_commit_sound` guarantees, per T-round run: objective
 telescoping over the committed ledger, a probability-δtotal bound
 on false commits, an ε-bound on holdout-risk growth, and exact
@@ -51,7 +51,19 @@ while honestly measuring that no linear law exists on live
 data and that synthetic-layered laws do not transfer (0/113).
 We state honest pins
 (`BandDescribes`), measured ε-compromises, hybrid degeneration,
-corpus drift, and mini-scale.
+corpus drift, and mini-scale. Since v0.4 the adapter era has
+been UNIFIED into one machine: a self-compressing loop keeps
+parameters bounded at 2·k·d = 32 across unlimited certified
+growth (measured drop monotone 0.158→0.364, residual CE −84%),
+and constant clusters distill losslessly into rank-1 adapters
+(CE = 0 bit-exact, exact-gate branches 113→0, honest contrast:
+48 adapter parameters vs 6 symbolic values). The unification
+era closes with mini-HAGI v3 — a full certified assembly of
+the self-improving machine in ONE live trace (108/115 covered:
+bypass → distill → 7 certified fd-steps on the residual, CE
+3.80→0.51→0.0733, params ≤ 32, forget = 0; C558) — and with
+the first EXTERNAL consumer: the wave205 bridge synchronization
+between the HAGI_v2 runtime and this theory (C557).
 
 ## 1. Related Work
 
@@ -550,6 +562,104 @@ parameter snapshots after every training phase of every domain
   (0/113) — the layered targets were a construction of C549,
   and this run says so on record.
 
+### 3.15 Unification: one adapter machine for the whole knowledge lifecycle (C554–C556)
+
+<!-- source: .tmp/C555/receipt.md; .tmp/C556/receipt.md; .tmp/C557/receipt.md -->
+
+The phase analysis C557 names C554–C556 the UNIFICATION era:
+growth, continual learning, compression and distillation stop
+being separate mechanisms and become one certified adapter
+machine — the full algebra of a knowledge lifecycle (admit,
+learn, merge, distill, cover) under a single mathematical
+object: a rank-bounded adapter stack. Two pillars carry the
+"min volume, max quality" claim:
+
+**Pillar 1 — self-compressing loop (C555).** The loop
+learn→merge→learn admits rank-1 levels with an EXACT objective
+invariant (B = 0), trains all live parameters by certified
+fd-steps, and merges exactly (Gauss–Jordan over Fractions, so
+the merge-error telescope sums to 0 bit-exact). Measured on
+the full live corpus (113 domains): parameters after EVERY
+merge ≤ 2·K·d = 32 (asserted, exact count it1→8, it2→16,
+it3→24, it4..it6→32) while the no-merge contrast grows
+linearly to 2·L·d = 48; cumulative certified drop monotone
+0.158→0.248→0.276→0.317→0.346→0.364; residual CE
+0.4354→0.0717 (−84%); 56 certified steps / 0 HOLD. Knowledge
+grows; volume does not.
+
+> **Theorem (self_compress_loop_sound).**
+> `Hagi/Theory/AdapterGrowth.lean:708` (C555). The loop
+> telescopes the objective (delegate of grow_snap_cycle_sound,
+> generalized to a merge cycle) AND keeps params ≤
+> selfCompressParams k d = 2·k·d for ANY number of iterations
+> (`self_compress_params_bounded`, :682; strict contrast
+> `self_compress_params_contrast`, :692).
+
+Honest negative: squeezing below k = d destroys knowledge on
+this corpus (matryoshka k = 3 degrades to 5.44, k = 2 to 1.22
+— both covered by the certified bound marking them unusable).
+
+**Pillar 2 — lossless distillation of constant clusters
+(C556).** The six constant clusters of C551 (106/113 via the
+exact gate) are distilled into rank-1 adapters θ(c) = (A := 0,
+B := const c): the output ≡ c on ANY input, EXACTLY, with zero
+training steps. Measured: cluster CE 0.7831 → 0 BIT-EXACT
+(per-cluster asserts + drift detector 106 == 106); exact-gate
+branches 113 → 0 — the whole corpus runs one adapter path with
+no branching.
+
+> **Theorem (constant_distill_exact / distill_coverage_preserved).**
+> `Hagi/Theory/AdapterGrowth.lean:769` / `:806` (C556). The
+> distilled readout is exactly c (construction), so coverage
+> and CE = 0 are PRESERVED — composition with exact_gate_sound
+> (C541), not a duplicate.
+
+**The honest parameter contrast** (a Lean fact, not a claim):
+the distillate costs 6×2d = 48 parameters while symbolic
+storage needs only the 6 VALUES — symbolic is strictly cheaper
+(`symbolic_storage_cheaper`, :835: J < 2·J·d for d ≥ 2). The
+value of distillation is UNIFICATION of paths (0 branches, one
+matmul path, exact-bypass merged into the adapter residual),
+not memory.
+
+### 3.16 Mini-HAGI v3: the full certified assembly in one trace (C558) — the headline result
+
+<!-- source: .tmp/C558/receipt.md -->
+
+The unification era closes with a reference assembly: every
+certified component of C547–C556 executes in ONE bench run on
+the live corpus (snapshot frozen on the run — lesson C535; the
+live ledger had grown 113 → 115 between C556 and C558, and the
+run honestly took 115 points; invariants stable: 6 constant
+clusters, residual 7, coverage n−7 = 108/115). One trace, one
+JSON, 115 points, 1.87 s, 55 certified steps, 0 holds,
+forget = 0 (bit-exact frozen-copy drift detector).
+
+| phase | mechanism | measured result (one trace, C558) |
+|---|---|---|
+| P1 bypass | exact-gate const clusters (C541/C551) | 6 clusters, 108/115, coverage monotone bit-exact |
+| P2 distill | θ(c_j) rank-1 adapters, certified init (C556) | cluster CE = 0 BIT-EXACT; gate branches 115 → 0 |
+| P3 adapter residual | certified fd-steps (C532) | 7/7 committed (drop > 0), residual CE 3.8022 → 0.5120 |
+| P4 self-compress | admit→learn→exact-merge, K=d=4 (C555) | params ≤ 2·K·d = 32 after EVERY merge; obj 0.5120 → 0.0733; cum drop 0.4387 monotone; merge telescope = 0 |
+| P5 EB stop | commit = 0 ⇒ STOP (C539) | branch active; actual stop = budget MAX_ITER = 6 (honest, pinned in §5) |
+| total | v3_assembly_sound | **55 certified steps, 0 holds, forget = 0, params ≤ 32, 1.87 s** |
+
+> **Theorem (v3_assembly_sound).**
+> `Hagi/Theory/AdapterGrowth.lean:871` (C558). The unified
+> adapter machine is the CONJUNCTION of the distill branch
+> (`distill_coverage_preserved` ⇒ CE = 0 on every cluster) and
+> the self-compress branch (`self_compress_loop_sound` ⇒
+> objective telescope + params ≤ 2·k·d) — composition with NO
+> weakening of the components' hypotheses. No new deep facts:
+> this is the reference theorem that the full self-improving
+> machine assembles soundly.
+
+Witness (.tmp/C558/trajV3.lean, rc = 0): #eval trajectory
+checks on run numbers (P3 + P4-it1), params-bounded instance
+32 ≤ 32, telescope instance on run numbers, count contrast
+32 < 48, negatives (wrong-const 1/256 ≠ 0; head-only CE ≠ 0 on
+clusters before distillation).
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI (C500)
@@ -597,6 +707,20 @@ scarce" are three certified SYSTEM properties:
 These properties hold on live data regardless of how many laws
 the corpus actually contains; the loop measures that number
 instead of assuming it.
+
+### 4.4 Impact note: the first external consumer (wave205, C557)
+
+<!-- source: .tmp/C557/receipt.md -->
+
+The theory also acquired its first EXTERNAL consumer. The
+HAGI_v2 runtime recheck during the C557 phase analysis observed
+waves 205–207c, and wave205 synchronized the runtime's theory
+state with this repository at commit ab28579e (C555): the
+bridge that exports the certified constants to the runtime
+went from an unused artifact to a live dependency — the first
+real use of this theory by an external system. This is an
+existence proof of external synchronization, not yet an
+evaluation of downstream benefit (pinned below, §5.17).
 
 ## 5. Honest limitations (pins)
 
@@ -665,6 +789,22 @@ instead of assuming it.
    data this weak it may fire before any non-constant structure
    is found — the stopping rule is data-limited, not
    budget-limited.
+15. **The corpus is live and growing.** The `unified_ledger`
+   grew from 113 points (C551–C556) to 115 points by C558
+   (measured in-run; snapshot frozen per run, lesson C535).
+   Cross-era numeric comparisons (e.g. §3.15 vs §3.16) use each
+   run's own receipted snapshot; coverage ratios (106/113 vs
+   108/115) are not comparable across corpus versions.
+16. **The EB-stop did not fire in the v3 assembly.** In the
+   C558 trace every iteration committed (drop > 0), so the EB
+   branch (commit = 0 ⇒ STOP) never triggered; the actual stop
+   was the budget MAX_ITER = 6. The certified stop is exercised
+   live only on weaker data (C549/C551, pin 14) — in the v3
+   assembly it is budget-limited, honestly.
+17. **External consumer is a synchronization event, not a
+   result.** The wave205 consumer of §4.4 proves the bridge is
+   used; it does not measure any downstream benefit to the
+   HAGI_v2 runtime.
 
 ## 6. Experiment plan (to strengthen before submission)
 
@@ -724,6 +864,19 @@ instead of assuming it.
 | coverage_append_monotone | Hagi/Theory/MiniHagiLoop.lean:134 | C549 |
 | iterative_loop_sound | Hagi/Theory/MiniHagiLoop.lean:154 | C549 |
 | universal_loop_corpus_mono | Hagi/Theory/MiniHagiLoop.lean:190 | C551 |
+| selfCompressParams | Hagi/Theory/AdapterGrowth.lean:677 | C555 |
+| self_compress_params_bounded | Hagi/Theory/AdapterGrowth.lean:682 | C555 |
+| self_compress_params_contrast | Hagi/Theory/AdapterGrowth.lean:692 | C555 |
+| self_compress_loop_sound | Hagi/Theory/AdapterGrowth.lean:708 | C555 |
+| distillAdapter | Hagi/Theory/AdapterGrowth.lean:760 | C556 |
+| constant_distill_exact | Hagi/Theory/AdapterGrowth.lean:769 | C556 |
+| distill_prob_one | Hagi/Theory/AdapterGrowth.lean:790 | C556 |
+| distill_coverage_preserved | Hagi/Theory/AdapterGrowth.lean:806 | C556 |
+| distill_param_count | Hagi/Theory/AdapterGrowth.lean:819 | C556 |
+| distill_params_total | Hagi/Theory/AdapterGrowth.lean:826 | C556 |
+| symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:835 | C556 |
+| v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:871 | C558 |
 
-<!-- verified at HEAD 977c930b (C552); anchor lines via rg on
-     Hagi/**/*.lean -->
+<!-- Appendix A rows up to C551 verified at HEAD 977c930b
+     (C552); C555/C556/C558 rows verified at HEAD e40aa426
+     (C559); anchor lines via rg on Hagi/**/*.lean -->
