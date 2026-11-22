@@ -244,3 +244,95 @@ theorem covStartsStep_adaptive_covers (n w s m : ℕ) (hs : 0 < s)
     omega
 
 end Hagi.Theory.CoverageReading
+
+namespace Hagi.Theory.CoverageReading
+
+/-!
+## C611: иерархические окна — снятие INFEASIBLE-границы adaptive span
+
+Одноуровневая граница C602: бюджет (n−w)/s+2 ≤ m при s ≤ w даёт
+n ≤ w + s·(m−2) ≤ w·(m−1) (= 4032 при w = m = 64) — дальше окон
+больше max_span, полному чтению «не хватает» окон. Решение —
+2 уровня: вход режется на блоки длины B; внутри каждого блока
+covStartsStep с окном w и шагом s; блоки обрабатываются
+ПОСЛЕДОВАТЕЛЬНО (streaming-модель): в памяти одновременно только
+окна ТЕКУЩЕГО блока ⇒ peak-память ≤ m окон на блок, а полное
+покрытие [0, n) сохраняется для ЛЮБОГО n (блоков ⌈n/B⌉ — не
+ограничено). Честно: peak ≠ total — суммарное число окон растёт
+как ⌈n/B⌉·(≤ m); теоремы ниже про peak (окон на блок), не про
+total. Точный бюджет: при s = w, B = w·(m−1) пик (B−w)/s+2 = m.
+Witness .tmp/C611/trajHier.lean: n = 8128 (> 4032) покрыт;
+одноуровневый covStartsStep 8128 64 64 даёт 128 окон > 64.
+-/
+
+/-- Длина блока j: ℓ_j = min B (n − j·B) — полный блок B,
+хвостовой короче (последний блок). -/
+def hierBlockLen (n B j : ℕ) : ℕ := min B (n - j * B)
+
+/-- Старты иерархического чтения: плоская конкатенация поблочных
+стартов covStartsStep (блок j сдвигает свои старты на j·B);
+numBlocks = ⌈n/B⌉ блоков. -/
+def hierStarts (n B w s : ℕ) : List ℕ :=
+  (((List.range ((n + B - 1) / B)).map (fun j =>
+    ((covStartsStep (hierBlockLen n B j) w s).map (fun t => j * B + t)))).flatten)
+
+/-- **Иерархическое покрытие ЛЮБОГО n** (снятие INFEASIBLE-границы
+C602): без верхней границы на n старты hierStarts покрывают
+каждый байт i < n окном [t, t + w) при 0 < s ≤ w и 0 < B —
+байты блока j = i/B покрываются окнами этого блока
+(covStartsStep_covers поблочно), число блоков ⌈n/B⌉ не
+ограничено. -/
+theorem hier_covers_any_n (n B w s : ℕ) (hB : 0 < B) (hs : 0 < s) (hsw : s ≤ w) :
+    ∀ i < n, ∃ t ∈ hierStarts n B w s, t ≤ i ∧ i < t + w := by
+  intro i hi
+  have hdm : (i / B) * B + i % B = i := by
+    have h := Nat.div_add_mod i B
+    rw [Nat.mul_comm] at h
+    exact h
+  have hm : i % B < B := Nat.mod_lt i hB
+  have hjle : (i / B) * B ≤ i := Nat.div_mul_le_self i B
+  have hjlt : i / B < (n + B - 1) / B := by
+    rw [Nat.lt_div_iff_mul_lt hB]
+    have hring : (i / B + 1) * B = (i / B) * B + B := by ring
+    omega
+  have hℓ : i - (i / B) * B < hierBlockLen n B (i / B) := by
+    unfold hierBlockLen
+    rw [Nat.min_def]
+    split <;> omega
+  obtain ⟨t', ht', ht'le, ht'lt⟩ :=
+    covStartsStep_covers (hierBlockLen n B (i / B)) w s hs hsw (i - (i / B) * B) hℓ
+  refine ⟨(i / B) * B + t', ?_, by omega, by omega⟩
+  refine List.mem_flatten.mpr
+    ⟨(covStartsStep (hierBlockLen n B (i / B)) w s).map (fun t => (i / B) * B + t), ?_, ?_⟩
+  · exact List.mem_map.mpr ⟨i / B, List.mem_range.mpr hjlt, rfl⟩
+  · exact List.mem_map.mpr ⟨t', ht', rfl⟩
+
+/-- **Peak-бюджет (streaming)**: при 0 < s ≤ w, w ≤ B и бюджете
+(B−w)/s + 2 ≤ m в списке КАЖДОГО блока не больше m окон — блоки
+обрабатываются последовательно, одновременно в памяти ≤ m окон
+(peak ≠ total: суммарно ⌈n/B⌉·(≤ m), с n растёт только total).
+Точный выбор: s = w, B = w·(m−1) ⇒ (B−w)/s + 2 = m окон на блок
+при любом n (w = m = 64: B = 4032, ровно 63–64 окна на блок,
+witness .tmp/C611/trajHier.lean). -/
+theorem hier_peak_window_budget (n B w s m : ℕ) (hs : 0 < s) (hsw : s ≤ w)
+    (hwB : w ≤ B) (hbudget : (B - w) / s + 2 ≤ m) :
+    ∀ j ∈ List.range ((n + B - 1) / B),
+      ((covStartsStep (hierBlockLen n B j) w s).map (fun t => j * B + t)).length ≤ m := by
+  intro j _hj
+  have hℓ : hierBlockLen n B j ≤ B := Nat.min_le_left B (n - j * B)
+  by_cases hw : hierBlockLen n B j ≤ w
+  · have hlen1 : ((covStartsStep (hierBlockLen n B j) w s).map (fun t => j * B + t)).length = 1 := by
+      simp only [List.length_map]
+      rw [covStartsStep, if_pos hw]
+      simp
+    have h4 : 0 ≤ (B - w) / s := Nat.zero_le _
+    have h2 : 2 ≤ (B - w) / s + 2 := by omega
+    have h3 := Nat.le_trans h2 hbudget
+    omega
+  · have hlen := covStartsStep_len_le (hierBlockLen n B j) w s hs (by omega)
+    simp only [List.length_map] at hlen ⊢
+    have h5 : (hierBlockLen n B j - w) / s ≤ (B - w) / s :=
+      Nat.div_le_div_right (by omega)
+    omega
+
+end Hagi.Theory.CoverageReading

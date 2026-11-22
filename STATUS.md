@@ -2139,3 +2139,27 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   бит-идентичен pre.
 - Freeze 8818 до/после (Lean не менялся); 17 гейтов PASS
   (.tmp/C609/logs/).
+
+## C611 Hagi/Theory/CoverageReading.lean (hierarchical windows, INFEASIBLE lifted)
+
+- Секция C611: снятие INFEASIBLE-границы adaptive span C602
+  (одноуровнево (n−w)/s+2 ≤ m при s ≤ w ⇒ n ≤ w(m−1) = 4032 при
+  w = m = 64). Модель: 2 уровня — блоки длины B, внутри блока
+  `covStartsStep` (окно w, шаг s), блоки последовательно
+  (streaming). `hierStarts n B w s` — плоская конкатенация
+  поблочных стартов (`hierBlockLen` = min B (n − j·B)).
+  `hier_covers_any_n` (0 < B, 0 < s ≤ w): полное покрытие [0, n)
+  для ЛЮБОГО n без верхней границы (сведение поблочно к
+  `covStartsStep_covers`). `hier_peak_window_budget` (w ≤ B,
+  (B−w)/s+2 ≤ m): ≤ m окон в КАЖДОМ блоке — peak-память ≤ m окон
+  при streaming; честная граница: peak ≠ total (total
+  ⌈n/B⌉·(≤ m) растёт с n). Точный бюджет: s = w, B = w·(m−1) ⇒
+  (B−w)/s+2 = m (w = m = 64: B = 4032, per-block 63–64 окна).
+- Witness .tmp/C611/trajHier.lean (rc=0): n = 8128 (> 4032),
+  B = 4032, s = w = 64 — covered=true, per-block [63, 63, 1],
+  peak 63 ≤ 64; негатив: одноуровневый covStartsStep 8128 64 64 —
+  127 окон > 64 (budget (n−w)/s+2 = 128 > 64) — та самая
+  INFEASIBLE-граница C602.
+- Freeze 8818 → 8818+4 (hierBlockLen, hierStarts,
+  hier_covers_any_n, hier_peak_window_budget); 17 гейтов PASS
+  (.tmp/C611/logs/).
