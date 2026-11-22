@@ -5901,10 +5901,69 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
 # snap is new, and it is deterministic (round-half-even on
 # Fractions, no float). Result: depth 8+ inside the budget.
 
-GS_K = 40                          # snap grid q/2^k (den <= 2^40)
+GS_K = 40                          # LEGACY manual snap grid (C521);
+                                   # superseded by snap_k_auto (C593
+                                   # theory / C597 wiring): kept as
+                                   # the comparison baseline only
 GS_MAX_DEPTH = 8                   # grow targets: 3..8 (6 grows)
 GS_STEPS_PER_BLOCK = 4             # certified steps per new block
 GS_STEP_CAP = 48                   # total certified-step budget
+
+
+def snap_k_auto(L, d, eps):
+    """C597: python double of Lean `snapK` (C593):
+    the minimal k >= 0 with L*d <= eps*2^(k+1) (`snapAdmissible`);
+    when eps < L*d the closed form is k* = ceil(log2(L*d/eps)) - 1
+    (Hagi.Theory.GrowSnap.snap_k_eq_ceil -- EXACT: feasibility +
+    minimality). Exact integer search (no floats), Fraction L/eps.
+    Bench witness cross-check: .tmp/C593/trajSnap.lean instances
+    (L,d,eps) = (1,10,2^-12)->15, (3,1,2^-6)->7, (1,1,1/4)->1."""
+    if L * d <= eps:
+        return 0
+    q = F(L) * F(d) / F(eps)          # > 1 here
+    n, dd = q.numerator, q.denominator
+    k = 0
+    while (dd << (k + 1)) < n:        # 2^(k+1) < L*d/eps
+        k += 1
+    return k
+
+
+def gs_lipschitz_const(base, w):
+    """C597 bench instance of the theory Lipschitz factor L:
+    per-point snap bound (2|s-y|+|ds|)*|ds| with prediction
+    shift |ds| <= Wsum*2^-(k+1) (Wsum = sum|w_i|, per-coordinate
+    grid error <= half-cell 2^-(k+1)) gives, with R = max|s-y|,
+    err_pt <= (2R+1)*Wsum*2^-(k+1) whenever Wsum*2^-(k+1) <= 1;
+    the runtime EXACT assertion (obj_after <= obj_before +
+    gs_obj_snap_bound) stays the certified guarantee, k-choice
+    is theory-guided via this L. Exact Fractions."""
+    R = F(0)
+    for tk in base:
+        for f, y in tk:
+            s = sum((w[i] * f[i] for i in range(len(w))), F(0))
+            if abs(s - y) > R:
+                R = abs(s - y)
+    Wsum = sum((abs(c) for c in w), F(0))
+    return (2 * R + 1) * Wsum
+
+
+def gs_auto_snap_k(base, w, last_drop, legacy_k=GS_K):
+    """C597 auto-k* instance for a snap site: eps = drop/10
+    (the snap error budget may eat at most 10% of the LAST
+    certified committed drop -- fixed principle), d = len(w)
+    (snapped feature coordinates = head weights), L =
+    gs_lipschitz_const. Returns (k, telemetry dict with the
+    formula instance and the bit saving vs the legacy 40 grid)."""
+    eps = last_drop / 10
+    L = gs_lipschitz_const(base, w)
+    k = snap_k_auto(L, len(w), eps)
+    info = {"k_auto": k, "legacy_k": legacy_k,
+            "formula": "k* = ceil(log2(L*d/eps)) - 1 "
+                       "(Hagi.Theory.GrowSnap.snap_k_eq_ceil)",
+            "L": str(L), "d": len(w), "eps": str(eps),
+            "bits_saved_vs_legacy": (len(w) * (legacy_k - k)
+                                     if k < legacy_k else 0)}
+    return k, info
 
 
 def gs_snap2k(x, k=GS_K):
@@ -6011,8 +6070,8 @@ def grow_snap_run(ledger_path):
         return [[(mh4_block_fwd(bl, f), y) for f, y in tk]
                 for tk in base]
 
-    def snapfeats(base):
-        return [[([gs_snap2k(c) for c in f], y)
+    def snapfeats(base, k):
+        return [[([gs_snap2k(c, k) for c in f], y)
                  for f, y in tk] for tk in base]
 
     def maxden(base):
@@ -6094,24 +6153,29 @@ def grow_snap_run(ledger_path):
                                                "HOLD (block fd step "
                                                "rolled back)"})
 
-        # --- CERTIFIED SNAP (the C521 mechanic):
+        # --- CERTIFIED SNAP (the C521 mechanic) + C597 AUTO-K*:
         # block weights -> q/2^k grid, composed features ->
-        # q/2^k grid; exact Lipschitz-style err bound.
+        # q/2^k grid; k* chosen by THEORY (C593 snap_k_eq_ceil:
+        # eps = last certified drop / 10, exact L/d instance),
+        # replacing the legacy manual 40; the exact
+        # Lipschitz-style err bound stays the certified guarantee.
         o_before = canonk(p3, FT)          # obj before snap
         md_before = maxden(featsk(mh4_unflat(p3), FT))
-        p3s = [gs_snap2k(v) for v in p3]   # snap block weights
+        k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
+                                       legacy_k=GS_K)
+        p3s = [gs_snap2k(v, k_snap) for v in p3]   # snap weights
         bl = mh4_unflat(p3s)
         FTc = featsk(bl, FT)               # snapped-block feats
         HFc = featsk(bl, HF)
-        FT = snapfeats(FTc)                # snap features (reset!)
-        HF = snapfeats(HFc)
+        FT = snapfeats(FTc, k_snap)        # snap features (reset!)
+        HF = snapfeats(HFc, k_snap)
         o_after = mh2_fcanon(w, FT)        # obj after snap
         err_bound = gs_obj_snap_bound(FTc, FT, w)
         # the certified assertion: bound >= actual degradation
         actual = o_after - o_before
         assert o_after <= o_before + err_bound, \
             "ABORT: snap broke its certified bound"
-        assert maxden(FT) <= (1 << GS_K), \
+        assert maxden(FT) <= (1 << k_snap), \
             "ABORT: snap failed to reset denominators"
         cumulative_bound += err_bound
         allowances.append({"phase": phase_name,
@@ -6122,8 +6186,9 @@ def grow_snap_run(ledger_path):
                            "bound_ge_actual": True})
         tel["snap"].append({
             "grow": grow_events + 1, "depth": depth + 1,
-            "grid": f"q/2^{GS_K}",
-            "per_value_error_bound": f"2^-{GS_K + 1}",
+            "grid": f"q/2^{k_snap}",
+            "per_value_error_bound": f"2^-{k_snap + 1}",
+            "k_auto": k_snap, "k_legacy": GS_K, **kinfo,
             "obj_before_snap": str(o_before),
             "obj_after_snap": str(o_after),
             "actual_degradation": str(actual),
@@ -6154,11 +6219,12 @@ def grow_snap_run(ledger_path):
         tel["budget"].append({
             "at_depth": depth,
             "maxden_digits": len(str(maxden(FT))),
-            "grid_cap_digits": len(str(1 << GS_K)),
+            "grid_cap_digits": len(str(1 << k_snap)),
             "steps_used": len(raw), "step_cap": GS_STEP_CAP,
             "decision": "GROW ADMITTED within budget "
                         "(snap policy: feature denominators "
-                        f"RESET to <= 2^{GS_K} at the grow "
+                        f"RESET to <= 2^{k_snap} (k* AUTO, C593 "
+                        "snap_k_eq_ceil; legacy 40) at the grow "
                         "boundary -- no exponential compounding)"})
 
     # --- (D) STOP: Ville detector on canonical holdout risk
@@ -6241,11 +6307,20 @@ def grow_snap_run(ledger_path):
         "trunk": f"2 fd-trained blocks FROZEN + {grow_events} "
                  "grown identity blocks, each certified-trained "
                  "then SNAP-SNAPPED (q/2^k weights + features, "
-                 f"k = {GS_K}) -- denominators reset every grow",
+                 "k* AUTO per grow: "
+                 f"{[s['k_auto'] for s in tel['snap']]}, "
+                 "legacy manual 40) -- "
+                 "denominators reset every grow",
         "trunk_depth_final": depth,
         "grow_events": grow_events,
-        "snap_grid": f"q/2^{GS_K} (per-value err <= 2^-"
-                     f"{GS_K + 1})",
+        "snap_grid": "AUTO k* = ceil(log2(L*d/eps)) - 1 "
+                     "(Hagi.Theory.GrowSnap.snap_k_eq_ceil, "
+                     "C593/C597; eps = last certified drop/10); "
+                     "k per grow: "
+                     f"{[s['k_auto'] for s in tel['snap']]}; "
+                     "legacy manual q/2^40",
+        "snap_bits_saved_vs_legacy": sum(
+            s["bits_saved_vs_legacy"] for s in tel["snap"]),
         "grow_obj_invariant_exact_every": True,
         "snap_bounds_all_certified": True,
         "snap_cumulative_certified_bound": str(cumulative_bound),
@@ -6285,7 +6360,8 @@ def emit_lean_growsnap(path, start, traj, witness_steps=3):
         f.write("-- C521 grow-snap witness (real unified_ledger "
                 "data; snap-rational repeated grow cycle: depth "
                 f"2 -> 8 via 6 identity grows, each trained then "
-                f"CERTIFIED-snapped to q/2^{GS_K}; denominators "
+                f"CERTIFIED-snapped (k* auto per grow, C593 "
+                "snap_k_eq_ceil; legacy manual 40); denominators "
                 "reset every grow).\n"
                 f"-- FULL accepted steps: {len(traj)}; phases: "
                 f"{phases};\n-- first {len(ds)} "
@@ -6823,8 +6899,8 @@ def adapter_snap_grow_run(ledger_path):
         return [[(adapter_fwd(f, A, B), y) for f, y in tk]
                 for tk in base]
 
-    def snapfeats(base):
-        return [[([gs_snap2k(c) for c in f], y)
+    def snapfeats(base, k):
+        return [[([gs_snap2k(c, k) for c in f], y)
                  for f, y in tk] for tk in base]
 
     def maxden(base):
@@ -6849,13 +6925,18 @@ def adapter_snap_grow_run(ledger_path):
 
     # trunk FROZEN: feature matrices (train + holdout), snapped
     # ONCE to the q/2^k grid (the freeze boundary; every level
-    # then starts from the grid)
+    # then starts from the grid); k* AUTO (C593 snap_k_eq_ceil:
+    # eps = last certified drop / 10, legacy manual 40)
     FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in tasks]
     HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in htasks]
-    FT = snapfeats(FT_un)
-    HF = snapfeats(HF_un)
+    k_fr, kinfo_fr = gs_auto_snap_k(FT_un, w, raw[-1]["drop"],
+                                    legacy_k=AS_K)
+    FT = snapfeats(FT_un, k_fr)
+    HF = snapfeats(HF_un, k_fr)
+    tel["snap"].append({"phase": "trunk-freeze", "k_auto": k_fr,
+                        "k_legacy": AS_K, **kinfo_fr})
     assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
         obj_bound(FT_un, FT, w), \
         "ABORT: freeze snap broke its certified bound"
@@ -6930,24 +7011,28 @@ def adapter_snap_grow_run(ledger_path):
                     "reason": "canonical drop <= 0: HOLD "
                               "(adapter fd step rolled back)"})
 
-        # SNAP: adapter weights -> q/2^k; features recomputed
+        # SNAP: adapter weights -> q/2^k (k* AUTO, C593
+        # snap_k_eq_ceil / C597 wiring: eps = last certified
+        # drop / 10, legacy manual 40); features recomputed
         # (snapped weights) and snapped; the exact bound covers
         # the WHOLE chain (weight-snap + feature-snap together)
         o_before = canonp(p, FT)
-        ps = [gs_snap2k(v) for v in p]
+        k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
+                                       legacy_k=AS_K)
+        ps = [gs_snap2k(v, k_snap) for v in p]
         As, Bs = unflat_ad(ps)
         Ao, Bo = unflat_ad(p)
         FTo = feats_adapt(FT, Ao, Bo)
         FTc = feats_adapt(FT, As, Bs)
         HFc = feats_adapt(HF, As, Bs)
-        FT = snapfeats(FTc)              # denominators reset
-        HF = snapfeats(HFc)
+        FT = snapfeats(FTc, k_snap)      # denominators reset
+        HF = snapfeats(HFc, k_snap)
         o_after = mh2_fcanon(w, FT)
         err_bound = obj_bound(FTo, FT, w)
         actual = o_after - o_before
         assert o_after <= o_before + err_bound, \
             "ABORT: adapter snap broke its certified bound"
-        assert maxden(FT) <= (1 << AS_K), \
+        assert maxden(FT) <= (1 << k_snap), \
             "ABORT: adapter snap failed to reset denominators"
         cumulative_bound += err_bound
         allowances.append({"phase": phase_name,
@@ -6958,7 +7043,8 @@ def adapter_snap_grow_run(ledger_path):
                            "bound_ge_actual": True})
         tel["snap"].append({
             "level": lev + 1, "depth": depth + 1,
-            "grid": f"q/2^{AS_K}",
+            "grid": f"q/2^{k_snap}",
+            "k_auto": k_snap, "k_legacy": AS_K, **kinfo,
             "obj_before_snap": str(o_before),
             "obj_after_snap": str(o_after),
             "actual_degradation": str(actual),
@@ -6978,11 +7064,11 @@ def adapter_snap_grow_run(ledger_path):
         tel["budget"].append({
             "at_level": lev + 1, "depth": depth,
             "maxden_digits": len(str(maxden(FT))),
-            "grid_cap_digits": len(str(1 << AS_K)),
+            "grid_cap_digits": len(str(1 << k_snap)),
             "steps_used": len(raw),
             "decision": "LEVEL ADMITTED within budget (snap "
                         "policy: feature denominators RESET to "
-                        f"<= 2^{AS_K} -- no compounding)"})
+                        f"<= 2^{k_snap} -- no compounding)"})
 
     n = len(raw)
     assert n > 0, "ABORT: adapter-snap-grow committed no steps"
@@ -7029,7 +7115,8 @@ def adapter_snap_grow_run(ledger_path):
         "n_holdout": sum(len(t) for t in htasks),
         "source": ledger_path,
         "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
-                 f"q/2^{AS_K}) + {AS_LEVELS} adapter levels "
+                 f"q/2^{k_fr}, k* AUTO) + {AS_LEVELS} adapter "
+                 "levels "
                  "(r=1 each), each certified-trained then "
                  "SNAP-FOLDED into the grid-bounded features",
         "trunk_depth_final": depth,
@@ -7042,8 +7129,9 @@ def adapter_snap_grow_run(ledger_path):
         "param_ratio_per_grow": str(F(2 * AS_RANK * MH2_D,
                                        1 + MH2_D +
                                        2 * MH2_D * MH2_HID)),
-        "snap_grid": f"q/2^{AS_K} (per-value err <= 2^-"
-                     f"{AS_K + 1})",
+        "snap_grid": f"q/2^{k_snap} (per-value err <= 2^-"
+                     f"{k_snap + 1}; k* AUTO per snap from "
+                     f"snap_k_eq_ceil, legacy manual 40)",
         "grow_obj_invariant_exact_every": True,
         "snap_bounds_all_certified": True,
         "snap_cumulative_certified_bound":
@@ -7232,8 +7320,8 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
         return [[(fwd_r(f, A, B, r), y) for f, y in tk]
                 for tk in base]
 
-    def snapfeats(base):
-        return [[([gs_snap2k(c) for c in f], y)
+    def snapfeats(base, k):
+        return [[([gs_snap2k(c, k) for c in f], y)
                  for f, y in tk] for tk in base]
 
     def maxden(base):
@@ -7277,13 +7365,18 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
         return mh2_fcanon(w, feats_ad(base, A, Bl, r))
 
     # trunk FROZEN: snapped feature matrices (the freeze
-    # boundary; every level starts from the grid)
+    # boundary; every level starts from the grid); k* AUTO
+    # (C593 snap_k_eq_ceil, C597 wiring; legacy manual 40)
     FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in tasks]
     HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in htasks]
-    FT = snapfeats(FT_un)
-    HF = snapfeats(HF_un)
+    k_fr, kinfo_fr = gs_auto_snap_k(FT_un, w, raw[-1]["drop"],
+                                    legacy_k=ARA_K)
+    FT = snapfeats(FT_un, k_fr)
+    HF = snapfeats(HF_un, k_fr)
+    tel["snap"].append({"phase": "trunk-freeze", "k_auto": k_fr,
+                        "k_legacy": ARA_K, **kinfo_fr})
     assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
         obj_bound(FT_un, FT, w), \
         "ABORT: freeze snap broke its certified bound"
@@ -7406,22 +7499,25 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                               "(adapter fd step rolled back)"})
 
         # SNAP: the C533 boundary (weights + features, exact
-        # per-point Lipschitz bound, denominator reset)
+        # per-point Lipschitz bound, denominator reset); k* AUTO
+        # (C593 snap_k_eq_ceil, C597 wiring; legacy manual 40)
         o_before = canonp(p, r, FT)
-        ps = [gs_snap2k(v) for v in p]
+        k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
+                                       legacy_k=ARA_K)
+        ps = [gs_snap2k(v, k_snap) for v in p]
         As, Bs = unflat_ad(ps, r)
         Ao, Bo = unflat_ad(p, r)
         FTo = feats_ad(FT, Ao, Bo, r)
         FTc = feats_ad(FT, As, Bs, r)
         HFc = feats_ad(HF, As, Bs, r)
-        FT = snapfeats(FTc)
-        HF = snapfeats(HFc)
+        FT = snapfeats(FTc, k_snap)
+        HF = snapfeats(HFc, k_snap)
         o_after = mh2_fcanon(w, FT)
         err_bound = obj_bound(FTo, FT, w)
         actual = o_after - o_before
         assert o_after <= o_before + err_bound, \
             "ABORT: adapter snap broke its certified bound"
-        assert maxden(FT) <= (1 << ARA_K), \
+        assert maxden(FT) <= (1 << k_snap), \
             "ABORT: adapter snap failed to reset denominators"
         cumulative_bound += err_bound
         allowances.append({"phase": phase_name,
@@ -7432,7 +7528,8 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                            "bound_ge_actual": True})
         tel["snap"].append({
             "level": lev + 1, "depth": depth + 1,
-            "rank": r, "grid": f"q/2^{ARA_K}",
+            "rank": r, "grid": f"q/2^{k_snap}",
+            "k_auto": k_snap, "k_legacy": ARA_K, **kinfo,
             "obj_before_snap": str(o_before),
             "obj_after_snap": str(o_after),
             "actual_degradation": str(actual),
@@ -7454,12 +7551,12 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
             "rank": r, "params_level": npar,
             "params_total": params_total,
             "maxden_digits": len(str(maxden(FT))),
-            "grid_cap_digits": len(str(1 << ARA_K)),
+            "grid_cap_digits": len(str(1 << k_snap)),
             "steps_used": len(raw),
             "decision": "LEVEL ADMITTED within budget (rank "
                         f"{r} selected by measured drop/params; "
                         "snap policy: feature denominators "
-                        f"RESET to <= 2^{ARA_K} -- no "
+                        f"RESET to <= 2^{k_snap} -- no "
                         "compounding)"})
 
     n = len(raw)
@@ -7502,7 +7599,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
         "n_holdout": sum(len(t) for t in htasks),
         "source": ledger_path,
         "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
-                 f"q/2^{ARA_K}) + {ARA_LEVELS} RANK-ADAPTIVE "
+                 f"q/2^{k_fr} AUTO) + {ARA_LEVELS} RANK-ADAPTIVE "
                  "adapter levels (r in {1,2} selected per level "
                  "by measured probe drop/params), each "
                  "certified-trained then SNAP-FOLDED into the "
@@ -7519,8 +7616,9 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
         "adapter_params_r2_fix": ARA_LEVELS * 2 * 2 * MH2_D,
         "full_block_params_per_grow": 1 + MH2_D +
                                        2 * MH2_D * MH2_HID,
-        "snap_grid": f"q/2^{ARA_K} (per-value err <= 2^-"
-                     f"{ARA_K + 1})",
+        "snap_grid": f"q/2^{k_fr} (per-value err <= 2^-"
+                     f"{k_fr + 1}; trunk-freeze k*={k_fr}, "
+                     f"levels k* AUTO, legacy manual 40)",
         "grow_obj_invariant_exact_every": True,
         "snap_bounds_all_certified": True,
         "probe_no_commit_rollback_exact": True,
@@ -7819,8 +7917,8 @@ def adapter_merge_run(ledger_path):
     def feats_ad(base, A, B):
         return [[(fwd1(f, A, B), y) for f, y in tk] for tk in base]
 
-    def snapfeats(base):
-        return [[([gs_snap2k(c) for c in f], y)
+    def snapfeats(base, k):
+        return [[([gs_snap2k(c, k) for c in f], y)
                  for f, y in tk] for tk in base]
 
     def maxden(base):
@@ -7857,8 +7955,12 @@ def adapter_merge_run(ledger_path):
              for tk in tasks]
     HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in htasks]
-    FT = snapfeats(FT_un)
-    HF = snapfeats(HF_un)
+    k_fr, kinfo_fr = gs_auto_snap_k(FT_un, w, raw[-1]["drop"],
+                                    legacy_k=AMG_K)
+    FT = snapfeats(FT_un, k_fr)
+    HF = snapfeats(HF_un, k_fr)
+    tel["snap"].append({"phase": "trunk-freeze", "k_auto": k_fr,
+                        "k_legacy": AMG_K, **kinfo_fr})
     assert mh2_fcanon(w, FT) <= mh2_fcanon(w, FT_un) + \
         obj_bound(FT_un, FT, w), \
         "ABORT: freeze snap broke its certified bound"
@@ -7923,20 +8025,23 @@ def adapter_merge_run(ledger_path):
                     "reason": "canonical drop <= 0: HOLD "
                               "(adapter fd step rolled back)"})
 
-        # SNAP: weights + features, exact per-point bound
+        # SNAP: weights + features, exact per-point bound;
+        # k* AUTO (C593 snap_k_eq_ceil, C597 wiring; legacy 40)
         o_before = canonp(p, FT)
-        ps = [gs_snap2k(v) for v in p]
+        k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
+                                       legacy_k=AMG_K)
+        ps = [gs_snap2k(v, k_snap) for v in p]
         As, Bs = unflat_ad(ps)
         Ao, Bo = unflat_ad(p)
         FTo = feats_ad(FT, Ao, Bo)
         FTc = feats_ad(FT, As, Bs)
-        HF = snapfeats(feats_ad(HF, As, Bs))
-        FT = snapfeats(FTc)
+        HF = snapfeats(feats_ad(HF, As, Bs), k_snap)
+        FT = snapfeats(FTc, k_snap)
         o_after = mh2_fcanon(w, FT)
         err_bound = obj_bound(FTo, FT, w)
         assert o_after <= o_before + err_bound, \
             "ABORT: adapter snap broke its certified bound"
-        assert maxden(FT) <= (1 << AMG_K), \
+        assert maxden(FT) <= (1 << k_snap), \
             "ABORT: adapter snap failed to reset denominators"
         cumulative_bound += err_bound
         allowances.append({"phase": phase_name,
@@ -7948,7 +8053,8 @@ def adapter_merge_run(ledger_path):
                            "bound_ge_actual": True})
         tel["snap"].append({
             "level": lev + 1, "depth": depth + 1,
-            "grid": f"q/2^{AMG_K}",
+            "grid": f"q/2^{k_snap}",
+            "k_auto": k_snap, "k_legacy": AMG_K, **kinfo,
             "obj_before_snap": str(o_before),
             "obj_after_snap": str(o_after),
             "certified_err_bound": str(err_bound),
@@ -8053,14 +8159,14 @@ def adapter_merge_run(ledger_path):
                    for j in range(MH2_D)] for (sg, _, v) in trip]
             how = (f"numeric power-iteration top-{kk} + factor "
                    f"snap q/2^{AMG_KFAC}")
-        FTm = snapfeats(merged_feats(FT0, Bm, Am, kk))
-        HFm = snapfeats(merged_feats(HF0, Bm, Am, kk))
+        FTm = snapfeats(merged_feats(FT0, Bm, Am, kk), k_snap)
+        HFm = snapfeats(merged_feats(HF0, Bm, Am, kk), k_snap)
         o_m = mh2_fcanon(w, FTm)
         bnd = obj_bound(FT, FTm, w)
         actual = o_m - o_stack_final
         assert o_m <= o_stack_final + bnd, \
             f"ABORT: merge k={kk} broke its certified bound"
-        assert maxden(FTm) <= (1 << AMG_K), \
+        assert maxden(FTm) <= (1 << k_snap), \
             f"ABORT: merge k={kk} failed denominator reset"
         # numeric sigma-tail estimate (a priori, informative)
         Dk = _mat_mul(Bm, Am)
@@ -8097,7 +8203,7 @@ def adapter_merge_run(ledger_path):
         "n_holdout": sum(len(t) for t in htasks),
         "source": ledger_path,
         "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
-                 f"q/2^{AMG_K}) + {AMG_LEVELS} rank-1 adapter "
+                 f"q/2^{k_snap} AUTO) + {AMG_LEVELS} rank-1 adapter "
                  "levels (C533 cycle) MERGED into ONE rank-rho "
                  "adapter (SVD-matryoshka)",
         "trunk_depth_final": depth,
@@ -8115,7 +8221,8 @@ def adapter_merge_run(ledger_path):
                   params_total)),
         "matryoshka": matryoshka,
         "matvecs": {"stack": AMG_LEVELS, "merged": 1},
-        "snap_grid": f"q/2^{AMG_K}",
+        "snap_grid": f"q/2^{k_snap} (k* AUTO, legacy "
+                     f"manual {AMG_K})",
         "factor_snap_grid": f"q/2^{AMG_KFAC} (matryoshka arms)",
         "snap_bounds_all_certified": True,
         "merge_bounds_all_certified": True,
