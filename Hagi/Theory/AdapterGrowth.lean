@@ -6,6 +6,7 @@ import Mathlib.Tactic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Hagi.Theory.GrowSnap
 import Hagi.Theory.WeightDecayLeak
+import Hagi.Theory.ExactBypass
 
 /-!
 # AdapterGrowth — certified low-rank адаптер роста (C532)
@@ -719,5 +720,125 @@ theorem self_compress_loop_sound (k d : ℕ) (o0 : ℝ)
     exact le_of_eq (by simp [selfCompressParams])⟩
 
 end SelfCompress
+
+/-!
+## C556: constant cluster distillation (exact → adapter)
+
+Дистилляция констант-кластеров (C551/C553: 6 констант,
+106/113 exact-покрытия) из символьного exact-гейта (C541
+ExactBypass) в АДАПТЕРНЫЕ веса: символьное знание живёт в
+нейро-слое, ветвление exact-bypass отключается, контуры
+унифицируются БЕЗ потерь CE.
+
+Носитель — rank-1 ветка с внутренней bias-единицей:
+`distillAdapter A B x = B *ᵥ (A *ᵥ x + 1)`, где единица —
+конструктор ветки (не обучаемый вес). Конструкция θ(c) :=
+(A := 0, B := const c): A-проекция игнорируется, внутренняя
+координата ≡ 1, выход ≡ c на ЛЮБЫХ входах ТОЧНО — rank-1
+адаптер МОЖЕТ представлять константу, `adapterVec` C532 не
+может (его выход содержит x). distill-условие: p = 1 на
+кластере ⇒ ceSum = 0 — переносится КОМПОЗИЦИЕЙ с
+`exact_gate_sound` (C541), не копией доказательства.
+
+Параметр-контраст ЧЕСТЕН в обе стороны: дистиллянт = 2d
+параметров на кластер (Σ = 2·J·d), символьное хранение = J
+констант-ЗНАЧЕНИЙ — дешевле (`symbolic_storage_cheaper`);
+ценность дистилляции — унификация контуров (0 ветвлений,
+единый matmul-путь), не экономия памяти. Bench-инстанс:
+`--mode distill` (J = 6 кластеров, d = 4). -/
+section ConstantDistill
+
+open Hagi.Theory.ExactBypass
+
+variable {d : Type*} [Fintype d] [Nonempty d]
+
+/-- Rank-1 дистилл-ветка: down-фактор `A`, up-фактор `B`,
+внутренняя координата с bias-единицей (конструктор ветки,
+не вес). При A = 0 внутренняя координата ≡ 1 независимо от
+входа — ветка может выдавать КОНСТАНТУ (в отличие от
+`adapterVec`, чей выход содержит x). -/
+def distillAdapter (A : Matrix (Fin 1) d ℝ)
+    (B : Matrix d (Fin 1) ℝ) (x : d → ℝ) : d → ℝ :=
+  B *ᵥ (A *ᵥ x + 1)
+
+omit [Nonempty d] in
+/-- **(точность конструкции)** θ(c) = (A := 0, B := const c):
+выход дистилл-адаптера ≡ c на ЛЮБОМ входе, ТОЧНО (0·x + 1
+= 1, c·1 = c). Символьная константа представима rank-1
+адаптером с 2d параметрами без единого обучающего шага. -/
+theorem constant_distill_exact (c : ℝ) (x : d → ℝ) :
+    distillAdapter (0 : Matrix (Fin 1) d ℝ)
+      (fun _ _ => c) x = fun _ => c := by
+  funext i
+  unfold distillAdapter
+  simp [Matrix.mulVec, dotProduct]
+
+open Classical in
+/-- Вероятность, назначенная дистиллянтом (readout по
+координате j): точное совпадение с целью ⇒ 1, иначе 0 —
+мост от адаптерного выхода к p-семантике ExactBypass. -/
+noncomputable def distillProb {ι : Type} (t : ι → ℝ)
+    (f : ι → d → ℝ) (j : d)
+    (A : Matrix (Fin 1) d ℝ) (B : Matrix d (Fin 1) ℝ) :
+    ι → ℝ :=
+  fun x => if (distillAdapter A B (f x)) j = t x then 1 else 0
+
+omit [Nonempty d] in
+/-- Кластер (t x = c на xs) покрыт дистиллянтом: p = 1 на
+КАЖДОЙ позиции кластера — конструируется из
+`constant_distill_exact` (выход ≡ c ⇒ readout = c = t x). -/
+theorem distill_prob_one {ι : Type} (c : ℝ) (t : ι → ℝ)
+    (f : ι → d → ℝ) (j : d) (xs : List ι)
+    (hcl : ∀ x ∈ xs, t x = c) :
+    ∀ x ∈ xs, distillProb t f j (0 : Matrix (Fin 1) d ℝ)
+      (fun _ _ => c) x = 1 := by
+  intro x hx
+  unfold distillProb
+  rw [constant_distill_exact]
+  simp [hcl x hx]
+
+open Classical in
+/-- **(distill-условие / сохранение покрытия, C556)**: после
+дистилляции кластера CE на нём = 0 РОВНО — та же теорема
+`ce_pointwise_of_prob_one` (переносится композицией:
+constant_distill_exact → distill_prob_one → exact_gate_sound).
+Exact-гейт можно отключить: нулевой CE обеспечивают веса. -/
+theorem distill_coverage_preserved {ι : Type} (c : ℝ)
+    (t : ι → ℝ) (f : ι → d → ℝ) (j : d) (xs : List ι)
+    (hcl : ∀ x ∈ xs, t x = c) :
+    ceSum (distillProb t f j (0 : Matrix (Fin 1) d ℝ)
+      (fun _ _ => c)) xs = 0 :=
+  exact_gate_sound _ xs
+    (distill_prob_one c t f j xs hcl)
+
+omit [Nonempty d] in
+/-- Счёт параметров дистиллянта: rank-1 θ(c) несет РОВНО
+2·card d параметров (down 1×d + up d×1) — делегат
+`adapter_param_count` при r = Fin 1 (bias-единица —
+конструктор, не вес). -/
+theorem distill_param_count :
+    (Finset.univ : Finset (Fin 1 × d)).card +
+      (Finset.univ : Finset (d × Fin 1)).card =
+    2 * Fintype.card d := by
+  simpa using adapter_param_count (Fin 1) d
+
+/-- J кластеров → Σ 2·d = 2·J·d параметров дистиллянта. -/
+theorem distill_params_total (J d : ℕ) :
+    (∑ _j ∈ Finset.range J, 2 * d) = 2 * J * d := by
+  simp; ring
+
+/-- **Честный контраст**: символьное хранение J констант-
+ЗНАЧЕНИЙ дешевле дистиллянта (J < 2·J·d при d ≥ 2, J ≥ 1).
+Ценность дистилляции — НЕ память, а унификация контуров
+(0 ветвлений exact-гейта, единый adapter-путь) и слияние
+exact-bypass с адаптерным остатком (C555). -/
+theorem symbolic_storage_cheaper (J d : ℕ)
+    (hJ : 0 < J) (hd : 1 < d) : J < 2 * J * d := by
+  have h1 : J * 2 ≤ J * d := Nat.mul_le_mul_left J hd
+  have h2 : J < J * 2 := by nlinarith
+  have h3 : J * d ≤ 2 * J * d := by nlinarith
+  omega
+
+end ConstantDistill
 
 end Hagi.Theory.AdapterGrowth

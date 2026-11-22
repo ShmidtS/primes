@@ -4120,3 +4120,57 @@ Bench `--mode self-compress-loop` (backward-совместимо; append-бло�
   backticks с «unc» (не идентификатор) — statuslint снова PASS
   (сбой был pre-existing на HEAD 9103d775, воспроизведён git
   stash до моих правок).
+
+## scripts/bench_bridge.py + Hagi/Theory/AdapterGrowth.lean (C556: distill, top-2 roadmap C554 — констант-кластеры в веса)
+
+Bench `--mode distill` (backward-совместимо; append-блок + choice
++ dispatch). Top-2 ответ roadmap C554: дистилляция 6 констант-
+кластеров (C551/C553, 106/113) из символьного exact-гейта в
+rank-1 адаптерные веса — символьное знание живёт в нейро-слое,
+exact-bypass ветвление отключается, контуры унифицируются БЕЗ
+потерь CE.
+
+- Конструкция θ(c) (AdapterGrowth.lean, секция C556):
+  `distillAdapter A B x = B *ᵥ (A *ᵥ x + 1)` — rank-1 ветка с
+  внутренней bias-единицей (конструктор, не вес; adapterVec C532
+  константу дать НЕ может — выход содержит x). θ(c) = (A := 0,
+  B := const c): выход ≡ c на ЛЮБЫХ входах ТОЧНО
+  (`constant_distill_exact`), 2d параметров
+  (`distill_param_count`), 0 обучающих шагов.
+- Distill-условие (`distill_coverage_preserved`): t x = c на
+  кластере ⇒ p = 1 (`distill_prob_one`) ⇒ ceSum = 0 —
+  КОМПОЗИЦИЯ с `exact_gate_sound` C541, не копия; exact-гейт
+  можно отключить — нулевой CE обеспечивают веса.
+- Distill-таблица (прогон .tmp/C556/bench.log, полный живой
+  корпус 113): 6 кластеров (11/8, 3/2, 13/8, 23/8, 25/16,
+  27/16), покрытие 106/113; CE кластеров ДО (certified голова
+  одна на всё) 0.7831 → ПОСЛЕ (adapter-путь) 0 БИТ-В-БИТ
+  (assert; 6× `distill_ce_zero_*` в witness); certified init:
+  выход θ(c_j) ≡ c_j assert на всех точках кластера + 4 probe;
+  ветвления 113 → 0 (единый adapter-контур на весь корпус,
+  residual — прежняя замороженная голова).
+- ЧЕСТНЫЙ параметр-контраст (`symbolic_storage_cheaper`):
+  дистиллянт 6 × 2d = 48 параметров против 6 констант-ЗНАЧЕНИЙ
+  символьного хранения — символьное ДЕШЕВЛЕ по памяти (Lean-факт
+  J < 2·J·d при d ≥ 2); ценность дистилляции — унификация
+  контуров (0 ветвлений, единый matmul-путь, exact-bypass
+  сливается с адаптерным остатком C555 в один нейро-слой), не
+  экономия памяти. Timing-телеметрия честно показывает, что
+  python unified-проход не быстрее gated (членство в кластерах
+  через next()) — структурная выгода в ветвлениях, не в тактах
+  интерпретатора.
+- Негативы: wrong-const (θ(c)+1/16) err = 1/256 ≠ 0; head-only
+  CE на кластерах ≠ 0 (негатив-база «до»); drift-детект frozen
+  copy 106 == 106 (bit-exact).
+- Freeze 8698 → 8706 (+8: distillAdapter, constant_distill_exact,
+  distillProb, distill_prob_one, distill_coverage_preserved,
+  distill_param_count, distill_params_total,
+  symbolic_storage_cheaper); аксиомы только propext /
+  Quot.sound / Classical.choice.
+- Witness .tmp/C556/trajDistill.lean: 6× CE=0 инстансов,
+  head-CE ≠ 0, wrong-const, параметр-контраст 6 < 48 (norm_num),
+  #check всех 8 C556-теорем; rc=0
+  (.tmp/C556/gates-witness-check.log).
+- ВЫВОД: контуры exact-bypass и адаптерный остаток УНИФИЦИРУЕМЫ
+  без потерь CE — константное символьное знание представимо
+  rank-1 адаптерами точно, гейт-ветвление устранимо.
