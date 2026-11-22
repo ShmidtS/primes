@@ -148,3 +148,99 @@ theorem covStarts_trunc_uncovered_zero (n k m : ℕ) (hk : 0 < k)
   omega
 
 end Hagi.Theory.CoverageReading
+
+namespace Hagi.Theory.CoverageReading
+
+/-!
+## C602: adaptive span — параметрический шаг (замыкание негатива C598)
+
+Код-импликация `covStarts_trunc_uncovered_zero`: при переполнении
+(окон > max_span) НЕ усекать хвост слепо (байт 0 теряется), а
+ПЕРЕСЧИТАТЬ старты с бОльшим шагом s ≤ w — покрытие сохраняется,
+число окон входит в бюджет. Точное условие покрытия при окне
+длины w и шаге s: 0 < s ≤ w (соседние окна перекрываются/
+стыкуются, суффикс-фоллбек закрывает хвост); при s > w между
+окнами остаётся дыра (witness .tmp/C602/trajSpan.lean).
+-/
+
+/-- Обобщение covStarts: окно длины w, шаг решётки s
+(covStarts n k = covStartsStep n k k — tiling-частный случай).
+При n ≤ w одно окно с паддингом; иначе решётка 0, s, 2s, … ≤ n−w
+плюс суффикс-окно n−w при s ∤ n−w. -/
+def covStartsStep (n w s : ℕ) : List ℕ :=
+  if n ≤ w then [0]
+  else (List.range ((n - w) / s + 1)).map (fun j => j * s) ++
+       (if s ∣ n - w then [] else [n - w])
+
+/-- covStarts — частный случай covStartsStep при шаге = длине
+окна (def-eq, без доказательства содержимого). -/
+theorem covStarts_eq_step (n k : ℕ) : covStarts n k = covStartsStep n k k := rfl
+
+/-- **Adaptive span, покрытие**: старты covStartsStep покрывают
+каждый байт i < n окном [t, t + w), если шаг строго положителен
+и НЕ превосходит длины окна (ТОЧНОЕ условие: s ≤ w — соседние
+окна перекрываются/стыкуются; при s > w между окнами дыра). -/
+theorem covStartsStep_covers (n w s : ℕ) (hs : 0 < s) (hsw : s ≤ w) :
+    ∀ i < n, ∃ t ∈ covStartsStep n w s, t ≤ i ∧ i < t + w := by
+  intro i hi
+  by_cases hnw : n ≤ w
+  · exact ⟨0, by rw [covStartsStep, if_pos hnw]; simp, Nat.zero_le i, by omega⟩
+  · by_cases hlast : i < n - w
+    · -- байт решётки: окно j*s, j = i/s (j ≤ (n-w)/s)
+      have hmem : i / s * s ∈ (List.range ((n - w) / s + 1)).map (fun j => j * s) := by
+        refine List.mem_map.mpr ⟨i / s, List.mem_range.mpr ?_, rfl⟩
+        have hle : i / s ≤ (n - w) / s := Nat.div_le_div_right (by omega)
+        omega
+      refine ⟨i / s * s, ?_, Nat.div_mul_le_self i s, ?_⟩
+      · rw [covStartsStep, if_neg hnw]
+        by_cases hd : s ∣ n - w
+        · rw [if_pos hd]; simpa only [List.mem_append] using Or.inl hmem
+        · rw [if_neg hd]; simpa only [List.mem_append] using Or.inl hmem
+      · have hdm := Nat.div_add_mod i s
+        have hltm := Nat.mod_lt i hs
+        rw [Nat.mul_comm] at hdm
+        have hsucc : i / s * s + w = i / s * s + s + (w - s) := by omega
+        omega
+    · -- хвостовой байт: суффикс-окно [n-w, n-w+w)
+      refine ⟨n - w, ?_, by omega, by omega⟩
+      rw [covStartsStep, if_neg hnw]
+      by_cases hd : s ∣ n - w
+      · rw [if_pos hd]
+        have hq : (n - w) / s * s = n - w := by
+          rw [Nat.mul_comm]; exact Nat.mul_div_cancel' hd
+        simpa only [List.mem_append] using Or.inl
+          (List.mem_map.mpr ⟨(n - w) / s, List.mem_range.mpr (Nat.lt_succ_self _), hq⟩)
+      · rw [if_neg hd]
+        simpa only [List.mem_append] using Or.inr (by simp)
+
+/-- **Adaptive span, бюджет**: при n > w стартов не больше
+(n−w)/s + 2 (решётка (n−w)/s+1 + ≤1 суффикс) — условие входа
+в max_span без всякого усечения. -/
+theorem covStartsStep_len_le (n w s : ℕ) (_hs : 0 < s) (hw : w < n) :
+    (covStartsStep n w s).length ≤ (n - w) / s + 2 := by
+  rw [covStartsStep, if_neg (by omega : ¬ n ≤ w), List.length_append,
+    List.length_map, List.length_range]
+  by_cases hd : s ∣ n - w <;> simp [hd]
+
+/-- **Замыкание негатива C598**: адаптивный шаг s (0 < s ≤ w,
+бюджет (n−w)/s + 2 ≤ m) даёт ПОЛНОЕ покрытие [0, n) окнами
+длины w И число окон ≤ m — усечение windows[-max_span:]
+не срабатывает, старт 0 (и каждый байт) остаётся прочитанным.
+Contrast: covStarts_trunc_uncovered_zero — слепое усечение при
+переполнении теряет байт 0; пересчёт шага вместо усечения —
+coverage-preserving стратегия. -/
+theorem covStartsStep_adaptive_covers (n w s m : ℕ) (hs : 0 < s)
+    (hsw : s ≤ w) (hbudget : (n - w) / s + 2 ≤ m) :
+    (covStartsStep n w s).length ≤ m ∧
+    ∀ i < n, ∃ t ∈ covStartsStep n w s, t ≤ i ∧ i < t + w := by
+  refine ⟨?_, covStartsStep_covers n w s hs hsw⟩
+  by_cases hw : w < n
+  · exact Nat.le_trans (covStartsStep_len_le n w s hs hw) hbudget
+  · have h1 : (covStartsStep n w s).length = 1 := by
+      rw [covStartsStep, if_pos (by omega : n ≤ w)]; simp
+    have h2 : n - w = 0 := by omega
+    rw [h2] at hbudget
+    have : 2 ≤ m := by simpa using hbudget
+    omega
+
+end Hagi.Theory.CoverageReading

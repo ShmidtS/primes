@@ -2056,3 +2056,41 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   99.66 > start_gap 5.43 — консервативность smooth-уровня налицо
   (sufficient, НЕ iff; C572-iff точнее в квадратичном мире). Реальные
   3 пары: оба уровня warm, вердикт T1-positive, forgetA=0.
+
+## Hagi/Theory/CoverageReading.lean C602 + bench adaptive-span (adaptive span, замыкание негатива C598)
+
+- Roadmap C599 top-1: код-импликация негатива C598
+  (covStarts_trunc_uncovered_zero: усечение windows[-max_span:]
+  теряет байт 0 при переполнении). Coverage-preserving стратегия:
+  при переполнении НЕ усекать хвост, а ПЕРЕСЧИТАТЬ старты с
+  адаптивным шагом s ≤ w. Расширение CoverageReading (только ADD,
+  freeze-safe): `covStartsStep n w s` (окно w, шаг s; covStarts =
+  частный случай — covStarts_eq_step, rfl), `covStartsStep_covers`
+  (ТОЧНОЕ условие полного покрытия: 0 < s ≤ w — соседние окна
+  перекрываются, суффикс-фоллбек закрывает хвост; при s > w дыра —
+  witness), `covStartsStep_len_le` (окон ≤ (n−w)/s + 2),
+  `covStartsStep_adaptive_covers` — замыкание негатива C598:
+  при 0 < s ≤ w и (n−w)/s + 2 ≤ m — покрытие полное И окон ≤ m,
+  усечение не срабатывает, старт 0 остаётся прочитанным.
+- bench scripts/bench_bridge.py (C602-блок): `adaptive_span(n, w=64,
+  max_span=64)` — старты по Lean-формуле (s = min(w, ⌈(n−w)/(m−2)⌉),
+  docstring → covStartsStep_covers / covStartsStep_adaptive_covers),
+  fail-closed asserts (число окон ≤ max_span, побайтовое покрытие);
+  честная INFEASIBLE-ветка (нужный шаг > w ⇒ n > w + (m−2)·w ≈ 4032
+  при w=m=64): возвращает None, НЕ усекает молча — за границей
+  полное покрытие окнами w в бюджете m невозможно в принципе,
+  нужен рост w или max_span. Режим `--mode adaptive-span`: телеметрия
+  k' (шаг) vs старое усечение [-m:] на pre-registered n ∈ {540, 1088,
+  1152, 4032, 4160, 8256, 16448, 500000} — verdict PASS; старая
+  стратегия теряет байт 0 с n = 4160 (65 окон), адаптив держит
+  покрытие до n = 4032 включительно (s = w = 64), выше — честный
+  infeasible. Замечание: формулировка roadmap «k' = ⌈n/max_span⌉»
+  (для 540/64 → 9) достаточна вдали от границы, но не доказуема в
+  бюджете у границы (даёт ~m окон БЕЗ запаса на решётку+суффикс);
+  доказуемая форма — ⌈(n−w)/(m−2)⌉ (для 540 → 8; witness использует
+  s = 9 из roadmap-формы, оба удовлетворяют теореме).
+- Witness .tmp/C602/trajSpan.lean (rc=0): 540/w=64/s=9 — 54 окна,
+  covered (теорема применена); негатив s=17 > w=9 (n=60): байт 9 в
+  дыре (необходимость s ≤ w); негатив переполнения: 1152/w=64/s=17 —
+  65 окон > 64, старое усечение теряет байт 0; фикс s=18 — 62 окна,
+  covered (covStartsStep_adaptive_covers применена).

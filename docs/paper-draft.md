@@ -890,6 +890,8 @@ evaluation of downstream benefit (pinned below, §5.17).
 | learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:79 | C584 |
 | covStarts_covers | Hagi/Theory/CoverageReading.lean:50 | C598 |
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:126 | C598 |
+| covStartsStep_covers | Hagi/Theory/CoverageReading.lean:183 | C602 |
+| covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:233 | C602 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426

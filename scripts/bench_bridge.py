@@ -12714,6 +12714,130 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
         "telemetry": telemetry}, indent=1))
 
 
+# C602: ADAPTIVE SPAN FULL-COVERAGE WINDOWS (--mode adaptive-span)
+#
+# Roadmap C599 top-1: the C598 negative
+# (Hagi.Theory.CoverageReading.covStarts_trunc_uncovered_zero)
+# showed that the upstream _read_all_windows truncation
+# `windows[-max_span:]` (C:\HAGI_v2\hagi\lm.py b7f7f64, READ-ONLY,
+# max_span = 64) DROPS the leading windows - including start 0 -
+# whenever the step-k lattice produces more than max_span windows,
+# leaving byte 0 unread (a hole in the head).
+#
+# Code implication (this module): when len(windows) would exceed
+# max_span, DO NOT blindly truncate; RE-STRIDE the lattice with an
+# adaptive step s <= w so that BOTH hold:
+#   (a) coverage is FULL  - Hagi.Theory.CoverageReading
+#       .covStartsStep_covers: 0 < s <= w  => every byte i < n is
+#       covered by some window [t, t + w) (EXACT condition:
+#       stride <= window size; s > w leaves holes);
+#   (b) the window count fits the budget without ANY truncation -
+#       covStartsStep_len_le: length <= (n - w)/s + 2, so
+#       s >= ceil((n - w)/(max_span - 2)) keeps length <= max_span
+#       (covStartsStep_adaptive_covers closes the C598 negative:
+#       with the adaptive stride the [-max_span:] cut never fires
+#       and start 0 stays).
+#
+# HONESTY PINS (fail-closed):
+# - the stride formula is the Lean budget condition verbatim:
+#   s = min(w, ceil((n - w)/(max_span - 2)));
+# - if full coverage within max_span windows is IMPOSSIBLE
+#   (needed s > w, i.e. roughly n > (max_span - 1)*w), we return
+#   None - we NEVER silently truncate (that would re-create the
+#   C598 hole we just certified away);
+# - asserts mirror the Lean covers relation byte-for-byte.
+
+
+def adaptive_span(n, w=64, max_span=64):
+    """C602: coverage-preserving adaptive stride for read windows.
+
+    Lean grounding (Hagi.Theory.CoverageReading, C602):
+    - covStartsStep_covers (0 < s, s <= w): full byte coverage;
+    - covStartsStep_len_le + covStartsStep_adaptive_covers:
+      (n - w)/s + 2 <= max_span  =>  window count <= max_span, so
+      the upstream `windows[-max_span:]` truncation
+      (covStarts_trunc_uncovered_zero, C598) never fires.
+
+    Returns (stride, starts); stride is None when full coverage in
+    <= max_span windows is impossible (honest infeasibility - the
+    caller must grow w or max_span, NOT truncate).
+    """
+    assert max_span >= 3, "ABORT: max_span < 3 has no budget room"
+    assert w > 0, "ABORT: window size must be positive"
+    if n <= w:
+        return w, [0]           # single padded window (start 0)
+    need = -(-(n - w) // (max_span - 2))   # ceil((n-w)/(m-2))
+    if need > w:
+        return None, None       # honest infeasible: n too large
+    s = max(1, need)
+    starts = list(range(0, n - w + 1, s))  # lattice, step s <= w
+    if starts[-1] != n - w:
+        starts.append(n - w)               # suffix fallback
+    assert len(starts) <= max_span, \
+        f"ABORT: {len(starts)} windows > max_span {max_span}"
+    assert all(any(t <= i < t + w for t in starts)
+               for i in range(n)), "ABORT: coverage hole"
+    return s, starts
+
+
+def _cov_step_starts(n, w, s):
+    """Lean covStartsStep n w s, verbatim (lattice + suffix)."""
+    if n <= w:
+        return [0]
+    starts = list(range(0, (n - w) // s + 1))
+    starts = [j * s for j in starts]
+    if (n - w) % s != 0:
+        starts.append(n - w)
+    return starts
+
+
+def adaptive_span_run():
+    """C602 telemetry: adaptive stride k' vs the old blind
+    truncation windows[-max_span:] on pre-registered inputs."""
+    W, MS = 64, 64
+    cases = [540, 1088, 1152, 4032, 4160, 8256, 16448, 500000]
+    rows = []
+    for n in cases:
+        naive = _cov_step_starts(n, W, W)      # old: step = w
+        old_trunc = naive[-MS:] if len(naive) > MS else naive
+        old_cov = all(any(t <= i < t + W for t in old_trunc)
+                      for i in range(n))
+        old_head_lost = (len(naive) > MS
+                         and not any(t <= 0 < t + W for t in old_trunc))
+        s, starts = adaptive_span(n, W, MS)
+        rows.append({
+            "n": n,
+            "naive_windows": len(naive),
+            "old_trunc_windows": len(old_trunc),
+            "old_trunc_covered": old_cov,
+            "old_byte0_lost": old_head_lost,
+            "adaptive_stride": s,
+            "adaptive_windows": (None if starts is None
+                                  else len(starts)),
+            "adaptive_covered": (None if starts is None else
+                                 all(any(t <= i < t + W
+                                         for t in starts)
+                                     for i in range(n))),
+        })
+    # PASS: every feasible row is fully covered within max_span windows
+    # (Lean covStartsStep_adaptive_covers); every INFEASIBLE row (needed
+    # stride > w, i.e. n > w + (max_span-2)*w - honest boundary) must
+    # indeed show the C598 truncation hole in the old strategy - the
+    # two telemetry columns are mutually consistent.
+    ok = all(
+        (r["adaptive_covered"] is True and r["adaptive_windows"] <= MS)
+        if r["adaptive_stride"] is not None
+        else r["old_byte0_lost"] is True
+        for r in rows)
+    return {"mode": "adaptive-span", "w": W, "max_span": MS,
+            "rule": ("s = min(w, ceil((n-w)/(max_span-2))); "
+                     "coverage by covStartsStep_covers (s <= w), "
+                     "budget by covStartsStep_adaptive_covers "
+                     "((n-w)/s+2 <= m); replaces windows[-m:] "
+                     "(covStarts_trunc_uncovered_zero C598)"),
+            "rows": rows, "verdict": "PASS" if ok else "FAIL"}
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -12744,7 +12868,8 @@ def main():
                              "mini-hagi-v3",
                              "adapter-transfer",
                              "adapter-transfer-auto",
-                             "transfer-gate-certified"],
+                             "transfer-gate-certified",
+                             "adaptive-span"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -13374,6 +13499,10 @@ def main():
                 for p in tel["pairs"]],
             "final": tel["final"],
         }, indent=1, default=str))
+        return
+
+    if args.mode == "adaptive-span":
+        print(json.dumps(adaptive_span_run(), indent=1))
         return
 
     if args.mode == "transfer-gate-certified":
