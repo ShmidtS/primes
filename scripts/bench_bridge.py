@@ -47,6 +47,28 @@ import time
 import sys
 from fractions import Fraction as F
 
+
+def corpus_abort(reason, hint=""):
+    """C596: honest graceful abort for corpus-drift failures.
+
+    The unified_ledger corpus is LIVE by design and prunes across
+    sessions (185 -> ~11 usable keys). When a bench mode's pinned
+    corpus precondition (N >= 100/185, a rank-3 point, a const
+    cluster, >= 2 domains, ...) is unmet, that is a property of
+    the ENVIRONMENT, not a code bug: report it on stderr with a
+    clear message and a distinct exit code (3), WITHOUT a
+    traceback. Exit 3 keeps it honest: callers see a failure,
+    never a silent pass.
+    """
+    msg = f"BENCH-ABORT: {reason}"
+    if hint:
+        msg += f" ({hint})"
+    print(msg +
+          " -- live unified_ledger corpus drifted "
+          "(usable keys pruned); see scripts/bench_bridge.py "
+          "corpus_abort docs (C596)", file=sys.stderr)
+    sys.exit(3)
+
 # Rational dataset: linear regression, model y ~ w*x, scalar w.
 XS = [F(1), F(2), F(3)]
 YS = [F(2), F(4), F(7)]
@@ -1987,6 +2009,7 @@ def rd_load_dataset(ledger_path):
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
+    _validate_ledger_schema(led, ledger_path)
     dom = os.path.join(os.path.dirname(os.path.abspath(
         ledger_path)), "domains")
     pts = []
@@ -2075,8 +2098,10 @@ def real_data_run(ledger_path, steps=RD_STEPS):
     """Real-dataset certified trunk training: guarded fd-gradient
     snap steps admitted only by measured drop > 0 (C481)."""
     pts = rd_load_dataset(ledger_path)
-    assert len(pts) >= 100, \
-        f"ABORT: expected 100+ real points, got {len(pts)}"
+    if len(pts) < 100:
+        corpus_abort(
+            f"expected 100+ real points, got {len(pts)}",
+            hint="real-data (C484)")
     train, hold = rd_split(pts)
     cfix = max(sum((abs(v) for v in x), F(0))
                for _, x, _ in pts) + RD_EPS
@@ -2680,8 +2705,10 @@ def continual_run(ledger_path, steps=CL_STEPS):
     """Full continual scenario: phase 1 on A, phase 2 on B both
     ways (naive vs GPM)."""
     pts = rd_load_dataset(ledger_path)
-    assert len(pts) >= 100, \
-        f"ABORT: expected 100+ real points, got {len(pts)}"
+    if len(pts) < 100:
+        corpus_abort(
+            f"expected 100+ real points, got {len(pts)}",
+            hint="continual (C485)")
     A, B = cl_split(pts)
     basis = cl_gs_basis([x for x, _ in A])
     assert 0 < len(basis) < CL_D, \
@@ -2824,8 +2851,11 @@ def clm_split(pts):
             continue
         T2, i2, basis = [(x, y)], i, nb
         break
-    assert T2 and len(basis) == 3, \
-        "ABORT: no rank-3 point found for task 2"
+    if not T2 or len(basis) != 3:
+        corpus_abort("no rank-3 point found for task 2",
+                     hint=f"continual-multi split: "
+                          f"{len(s)} points, skipped "
+                          f"{skipped} degenerate")
     used.add(i2)
     T3 = [(x, y) for i, (_, x, y) in enumerate(s)
           if i not in used]
@@ -2838,8 +2868,10 @@ def continual_multi_run(ledger_path, steps=CL_STEPS):
     task, losses of ALL previous tasks (forgetting matrix),
     rank track of the accumulated span."""
     pts = rd_load_dataset(ledger_path)
-    assert len(pts) >= 100, \
-        f"ABORT: expected 100+ real points, got {len(pts)}"
+    if len(pts) < 100:
+        corpus_abort(
+            f"expected 100+ real points, got {len(pts)}",
+            hint="continual-multi (C488)")
     tasks, skipped2 = clm_split(pts)
     T = len(tasks)
     res = {"n_points": len(pts), "n_tasks": T,
@@ -2991,7 +3023,10 @@ WR_DELTA = 0.05
 def wrbound_run(ledger_path, steps=RD_STEPS):
     import math
     pts = rd_load_dataset(ledger_path)
-    assert len(pts) >= 185,         f"ABORT: expected 185+ real points, got {len(pts)}"
+    if len(pts) < 185:
+        corpus_abort(
+            f"expected 185+ real points, got {len(pts)}",
+            hint="wrbound (C487), N=185 pinned")
     pts = pts[:185]                       # N = 185 pinned
     N, k = len(pts), 37
     train = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 != 4]
@@ -3394,12 +3429,34 @@ MH_E_STEPS = 4
 MH_QUANT_FT = 1
 
 
+def _validate_ledger_schema(led, path):
+    """C596: fail-closed corpus-schema validation with a clear
+    message instead of a deep KeyError/TypeError traceback."""
+    import os
+    if not isinstance(led, dict) or not all(
+            isinstance(k, str) for k in led):
+        corpus_abort(f"ledger {path} is not a JSON dict of "
+                     "str keys", hint="schema drift")
+    for k, v in led.items():
+        if not isinstance(v, dict) or not isinstance(
+                v.get("ce"), (int, float)):
+            corpus_abort(
+                f"ledger entry '{k}' lacks a numeric 'ce'",
+                hint="schema drift")
+    dom = os.path.join(os.path.dirname(os.path.abspath(path)),
+                       "domains")
+    if not os.path.isdir(dom):
+        corpus_abort(f"domains dir missing next to {path}",
+                     hint="corpus layout drift")
+
+
 def mh_load_dataset(ledger_path):
     """Live-corpus loader (C491 cs family, C484 rd features):
     skip ledger keys without a .bin sibling."""
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
+    _validate_ledger_schema(led, ledger_path)
     dom = os.path.join(os.path.dirname(os.path.abspath(
         ledger_path)), "domains")
     pts = []
@@ -3482,11 +3539,19 @@ def mini_hagi_run(ledger_path):
     """The unified 5-phase certified cycle on the real corpus.
     Returns (start_obj, [accepted steps], telemetry, stats)."""
     pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    if not pts:
+        corpus_abort("live corpus empty (no ledger key has a "
+                     ".bin)", hint="mini-hagi (C492)")
     A, B = cl_split(pts)
     holdA, holdB = cl_split([(kk, x, y) for i, (kk, x, y)
                             in enumerate(pts) if i % 5 == 4])
+    if not (A and B and holdA and holdB):
+        corpus_abort(
+            f"degenerate split on {len(pts)} points "
+            f"(|A|={len(A)}, |B|={len(B)}, "
+            f"|holdA|={len(holdA)}, |holdB|={len(holdB)}): "
+            "tasks/holdout must be non-empty",
+            hint="mini-hagi (C492); Fraction guard C596")
 
     hA, hB = holdA, holdB      # extended alongside the grow
 
@@ -3690,6 +3755,7 @@ def mini_hagi_run(ledger_path):
 
     n = len(raw)
     assert n > 0, "ABORT: mini-hagi committed no steps"
+    o_final = mh_canon(wg, Ax, Bx)   # C596: was o_adapted (NameError)
     for t, dd in enumerate(raw):
         dd["budget"] = F(n - t) / n
         dd["budget'"] = F(n - t - 1) / n
@@ -3709,8 +3775,8 @@ def mini_hagi_run(ledger_path):
         "quant_admitted": any(a["phase"] == "D-quant"
                               for a in tel["admissions"]),
         "canonical_start": str(obj0),
-        "canonical_final": str(o_adapted),
-        "total_drop": str(obj0 - o_adapted),
+        "canonical_final": str(o_final),
+        "total_drop": str(obj0 - o_final),
         "model": "linear head over the fixed byte-feature "
                  "trunk (C484 family), canonical obj = "
                  "(MSE_A + MSE_B)/2, admission ONLY by measured "
@@ -8217,8 +8283,9 @@ def agn_run(ledger_path, steps=AGN_STEPS):
                  F(0)) for x, _ in A] + [F(0)]))
     kmin = next((k for k in range(r)
                  if tail2max[k] <= AGN_EPS ** 2), None)
-    assert kmin is not None, \
-        "ABORT: no k < rank within eps-budget on live corpus"
+    if kmin is None:
+        corpus_abort("no k < rank within eps-budget "
+                     "on live corpus", hint="agem-vs-ranktrunc")
     Qk = cl_complement_projector(kept_for[kmin])
 
     w = list(wA)
@@ -8819,8 +8886,10 @@ def adapter_continual_run(ledger_path):
     sys.set_int_max_str_digits(0)
     # live corpus: skip ledger keys without a .bin sibling
     pts = mh_load_dataset(ledger_path)
-    assert len(pts) >= 100, \
-        f"ABORT: expected 100+ real points, got {len(pts)}"
+    if len(pts) < 100:
+        corpus_abort(
+            f"expected 100+ real points, got {len(pts)}",
+            hint="adapter-continual (C544)")
     A, B0r = cl_split(pts)
     d = CL_D
     # CONFLICT PIN (C544): same-distribution B gives POSITIVE
@@ -9334,8 +9403,9 @@ def mini_hagi_loop_run(ledger_path):
         f"ABORT P5: EB gate cost infeasible (n_EB={nEB}, " \
         f"n_H={nH}; degenerate sigma-hat = R/2)"
     cov_final = F(len(covered1) + len(newcov), n)
-    assert cov_final > coverage(set(covered1)), \
-        "ABORT P5: coverage did not grow (OE search found nothing)"
+    if cov_final <= coverage(set(covered1)):
+        corpus_abort("coverage did not grow (OE search found "
+                     "nothing)", hint="mini-hagi-loop P5")
     tel["phases"].append({
         "phase": "P5-OE-EB", "space": len(space),
         "oe_firsts": len(oe), "accepted": accepted,
@@ -10067,6 +10137,10 @@ def universal_loop_run(ledger_path):
     tel["c549_stability"] = stability
 
     # ---- in-run negatives ----
+    if not covered:
+        corpus_abort("no covered position for the wrong-const "
+                     "negative (coverage empty)",
+                     hint="universal-loop negatives")
     cov_any = next(i for i in range(n) if i in covered)
     wrong = data[cov_any]["t"] + FL2_QGRID
     err_wrong = (wrong - data[cov_any]["t"]) ** 2
@@ -10278,7 +10352,9 @@ def self_compress_loop_run(ledger_path):
             assert data[i]["t"] == c, "ABORT: const gate broken"
         covered |= set(newi)
         laws.append({"law": f"const {c}", "new": len(newi)})
-    assert len(laws) > 0, "ABORT: no const cluster on the corpus"
+    if not laws:
+        corpus_abort("no const cluster on the corpus",
+                     hint="self-compress-loop P0")
     res_pts = [(d0["x"], d0["t"]) for i, d0 in enumerate(data)
                if i not in covered]
     assert res_pts, "ABORT: empty residual after consts"
@@ -10672,7 +10748,8 @@ def distill_run(ledger_path):
         covered |= set(newi)
         clusters.append({"c": c, "idx": list(newi),
                          "idxset": set(newi)})
-    assert len(clusters) > 0, "ABORT: no const cluster"
+    if not clusters:
+        corpus_abort("no const cluster", hint="distill P0")
     J = len(clusters)
     res_pts = [(d0["x"], d0["t"]) for i, d0 in enumerate(data)
                if i not in covered]
@@ -10927,7 +11004,8 @@ def mini_hagi_v3_run(ledger_path):
         assert len(covered) > prev_cov
         clusters.append({"c": c, "idx": list(newi),
                          "idxset": set(newi)})
-    assert len(clusters) > 0, "ABORT P1: no const cluster"
+    if not clusters:
+        corpus_abort("no const cluster", hint="mini-hagi-v3 P1")
     J = len(clusters)
     res_pts = [(d0["x"], d0["t"]) for i, d0 in enumerate(data)
                if i not in covered]
@@ -11652,6 +11730,10 @@ def universal_loop_nl_run(ledger_path):
         for i, d in enumerate(data) if i not in lin_cov]
 
     # ---- in-run negatives ----
+    if not covered:
+        corpus_abort("no covered position for the wrong-const "
+                     "negative (coverage empty)",
+                     hint="universal-loop-nl negatives")
     cov_any = next(i for i in range(n) if i in covered)
     wrong = data[cov_any]["t"] + FL2_QGRID
     err_wrong = (wrong - data[cov_any]["t"]) ** 2
@@ -11937,8 +12019,9 @@ def adapter_transfer_auto_run(ledger_path):
     for d in data:
         by_t.setdefault(d["t"], []).append(d["x"])
     doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
-    assert len(doms) >= 2, \
-        f"ABORT: need >=2 domains, got {len(doms)}"
+    if len(doms) < 2:
+        corpus_abort(f"need >=2 domains, got {len(doms)}",
+                     hint="adapter-transfer-auto (C577)")
     pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
            for t in doms}
     mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
@@ -12088,8 +12171,9 @@ def adapter_transfer_run(ledger_path):
     for d in data:
         by_t.setdefault(d["t"], []).append(d["x"])
     doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
-    assert len(doms) >= 2, \
-        f"ABORT: need >=2 domains, got {len(doms)}"
+    if len(doms) < 2:
+        corpus_abort(f"need >=2 domains, got {len(doms)}",
+                     hint="adapter-transfer (C560)")
     pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
            for t in doms}
     mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
