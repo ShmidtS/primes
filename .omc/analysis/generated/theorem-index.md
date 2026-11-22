@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 548
-- theorems: 12930
-- defs: 4836
+- modules: 549
+- theorems: 12939
+- defs: 4853
 - noncomputable decls: 1225
-- status Proven: 468 modules
+- status Proven: 469 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -494,6 +494,7 @@ theorems.
 | Hagi.Theory.Compression | 52 | 9 | thrComp, signComp | no | Proven |
 | Hagi.Theory.Continual | 30 | 22 | agemStep, nrm, sigmaTail, hybridSelect, hybridStep | no | Proven |
 | Hagi.Theory.ExactBypass | 9 | 3 | cePoint, ceSum | no | Proven |
+| Hagi.Theory.FactLedger | 9 | 17 | - | no | Proven |
 | Hagi.Theory.FlowMatching | 14 | 7 | cfmLoss, cfmLinStep, cfmJoint, cfmSampleLoss, cfmOtField | no | Proven |
 | Hagi.Theory.FullPipeline | 18 | 40 | - | no | Proven |
 | Hagi.Theory.FunctionPreservingGrowth | 17 | 3 | - | no | Proven |

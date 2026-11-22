@@ -4663,3 +4663,31 @@ T1/T2/T3-вердикта. Bench `--mode adapter-transfer-auto`
   main-теоремы; #print axioms — только propext / Quot.sound /
   Classical.choice.
 - Freeze 8750 → 8757 (+7).
+
+## Hagi/Theory/FactLedger.lean (C579: fact-ledger append-only мост — memory store волны 219–220, top-1 roadmap C578)
+
+Fresh-minimal мост к HAGI_v2 волне 219 (`hagi/memory_store/facts.py`
+— external memory store): класс ConflictAwareFactStore — append-only
+evidence ledger. Код гарантирует (research .tmp/C579/research.md,
+anchors file:line): (1) каждый propose INSERT-ит новую строку в
+guarded_fact_history, DELETE записей истории нет; (2) найденный
+ключ guarded_fact_current не удаляется — только INSERT/UPDATE;
+(3) идемпотентности append НЕ гарантирует (reaffirm всё равно
+INSERT-ит, facts.py:152-154,171) — dedup-теорема честно опущена.
+
+Модель: `FactEntry` (key/value/source, модель строки истории),
+`FactHistory = List FactEntry`, `factAppend = facts ++ [e]`.
+
+- `fact_append_preserves`: `(facts ++ [e]).take facts.length =
+  facts` — существующие записи идентичны после append (Mathlib
+  take-леммы; вклад = framing в fact-терминах);
+- `fact_lookup_monotone`: `e' ∈ facts → e' ∈ factAppend facts e`
+  (Mathlib `List.mem_append`) — найденный факт остаётся найденным.
+
+Чистый мост к Mathlib (недублирование: `List.mem_append` /
+take-леммы переиспользуются как есть; честная оговорка — вклад
+витка framing + witness). Witness .tmp/C579/trajFact.lean (rc=0):
+toy-леджер, позитивы preserves/monotone, НЕГАТИВ — rewrite
+(замена записи) ломает preserves; #eval длина повторного append =
+3 (dedup нет, как в коде); аксиомы — propext только (monotone —
+вообще без аксиом). Freeze 8756 → 8758 (+2).
