@@ -4617,3 +4617,49 @@ anti_mono, точечная — C495): суммарная оценка охар�
   boundary-пример предшественника (‖(1/2,0)‖² = 1/4, не 1).
 - Freeze 8749 → 8750 (+1); аксиомы только
   propext / Quot.sound / Classical.choice.
+
+## scripts/bench_bridge.py + Hagi/Theory/AutoTransferGate.lean (C577: авто warm/cold transfer-гейт, top-3 roadmap C575)
+
+Transfer-режим становится самонастраивающимся (практическое
+применение границы C572 через probe-A/B): перед задачей B гейт
+запускает PROBE_STEPS=2 certified snap-GD шага от warm-init θ_A
+(КОПИЯ — rollback-семантика C530, слот A нетронут, bit-exact
+assert) и от cold-init 0; выбирается рука со СТРОГО меньшим
+probe-AUC (точные Fractions, без порогов и оценок t̂ — паттерн
+hybridSelect C510; tie → cold). Затем полный certified-цикл
+ВЫБРАННОЙ руки (K=30, drop>0 commit); cold-контроль для
+T1/T2/T3-вердикта. Bench `--mode adapter-transfer-auto`
+(backward-совместимо); corpus = pinned снимок C566
+(122 точки, 6/6 C560-доменов — live-леджер сжался до 35 живых
+точек, честная телеметрия "corpus": "C566-snapshot").
+
+- Авто vs ручной C560 (все 3 пре-регистрированные пары, тот же
+  sel/train-код; probe AUC warm < cold — гейт warm; вердикты
+  T1 сохранены ПОБИТОВО):
+
+| Пара (A→B) | C560 (ручной) | C577 auto gate | verdict | boundary k=0 |
+|---|---|---|---|---|
+| близкая 11/8→23/16 | warm T1 | **warm** | T1-positive | gap>0 (warm-сторона) |
+| средняя 13/8→25/16 | warm T1 | **warm** | T1-positive | gap>0 |
+| далёкая 13/8→27/16 | warm T1 | **warm** | T1-positive | gap>0 |
+| adversarial t=−1·(θ·x) | (C572-синтетика) | **cold** | gate-cold | gap<0 (neg-сторона) |
+
+  Телеметрия каждой пары: probe AUC обеих рук, выбор, точный
+  boundaryGap = 2·θᵀb − θᵀHθ (рациональные Fractions; mh_mse
+  квадратична ⇒ k=0-гейт ТОЧНО равен C572-границе в H-метрике).
+- Lean Hagi/Theory/AutoTransferGate.lean (+7 деклараций):
+  `autoGate` (детерминированный селектор на probe-числах),
+  `gate_char` — гейт = точная граница C572
+  2⟪θ,t⟫_ℝ > ‖θ‖² при |1−2η|>0 (через transfer_helps_budget:
+  probe-бюджет НЕ размывает границу), `gate_adversarial_cold`
+  (t = −c•θ ⇒ cold всегда), `auto_transfer_gate_sound` (main) —
+  match-дизъюнкция веток без ослабления (паттерн
+  hybrid_step_sound C510): warm-ветка = вся конъюнкция
+  warm_transfer_sound (forgetA=0, dst=копия, certified-шаг),
+  cold-ветка = adapter_step_certified от 0 (init-независимость:
+  θ в statement не входит).
+- Witness .tmp/C577/trajAuto.lean (rc=0): theorem-инстансы
+  warm/cold/boundary(k=0, tie→cold)/probe-k=2-выбор + обе ветки
+  main-теоремы; #print axioms — только propext / Quot.sound /
+  Classical.choice.
+- Freeze 8750 → 8757 (+7).

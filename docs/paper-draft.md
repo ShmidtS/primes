@@ -877,6 +877,7 @@ evaluation of downstream benefit (pinned below, §5.17).
 | symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:835 | C556 |
 | v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:871 | C558 |
 | master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:57 | C576 |
+| auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426

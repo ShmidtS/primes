@@ -11867,6 +11867,207 @@ TR_STEPS = 30                  # equal certified budget per arm
 TR_ETA = UL_ETA                # certified adapter step size
 TR_MIN_PTS = 5                 # min cluster size to be a domain
 
+# C577: AUTO WARM/COLD TRANSFER GATE (--mode adapter-transfer-auto)
+#
+# Practical application of the C572 rule via a deterministic
+# probe-A/B gate (roadmap C575 top-3): before task B, run
+# PROBE_STEPS (2-4) certified snap-GD steps from the warm init
+# theta = w_A (a COPY - rollback semantics C530: the source
+# slot is never touched, bit-exact assert) and from the cold
+# init 0; choose the arm with the STRICTLY smaller probe AUC
+# (exact Fractions, no thresholds, no estimates - the
+# hybridSelect C510 pattern on two measured numbers; tie goes
+# to cold). Then run the FULL certified cycle of the CHOSEN
+# arm (cold reference arm kept for the C560 T1/T2/T3 verdict).
+#
+# HONESTY PINS (fail-closed, inherited from C560):
+# - mh_mse is QUADRATIC in w: err(theta) - err(0) =
+#   theta.H.theta - 2 theta.b with H = mean(xx^T) PSD,
+#   b = mean(t x) = H t_hat - so the k=0 gate IS EXACTLY the
+#   C572 boundary 2<theta, t_hat> > |theta|^2 in the H-metric
+#   (Hagi.Theory.AutoTransferGate.gate_char: at |1-2*eta| > 0
+#   the probe budget does NOT blur the boundary,
+#   transfer_helps_budget). Telemetry reports the exact
+#   boundary gap 2*theta.b - theta.H.theta per pair.
+# - probe NEVER commits: state w_A is snapshotted and asserted
+#   bit-exact after probing (C530 rollback: state never moved).
+# - corpus: the live C:/HAGI_v2 ledger has since shrunk
+#   (116 -> 35 live points); the default --data is the pinned
+#   C566 snapshot that reproduces the exact C560 6-domain
+#   corpus (pre-registered honesty pin, telemetry field
+#   "corpus": "C566-snapshot").
+# - adversarial pair (C572-style synthetic): targets
+#   t = -1 * (w_A . x) on the closest pair's xs - the boundary
+#   gap is (1 + 2c) * theta.H.theta > 0 (theta.H.theta >= 0,
+#   H PSD), so the gate MUST choose cold (gate_adversarial_cold).
+ATG_PROBE_STEPS = 2            # probe steps per arm (2-4)
+ATG_ADV_C = F(1)               # adversarial scale c (t = -c*theta.x)
+ATG_LEDGER = (".tmp/C566/corpus/unified_ledger.json")
+
+
+def atg_quadratic_form(dts, w):
+    """Exact H-metric values for the C572 boundary telemetry:
+    (w.H.w, w.b) with H = mean(xx^T), b = mean(t x) - so
+    err(w) = w.H.w - 2 w.b + const and the boundary gap
+    2 w.b - w.H.w decides warm (gap > 0) vs cold (gap <= 0)."""
+    n = len(dts)
+    hww = sum((w[i] * w[j] * sum((d[0][i] * d[0][j] for d in dts),
+                                 F(0))
+               for i in range(CL_D) for j in range(CL_D)),
+              F(0)) / F(n)
+    wb = sum((w[i] * sum((d[1] * d[0][i] for d in dts), F(0))
+              for i in range(CL_D)), F(0)) / F(n)
+    return hww, wb
+
+
+def adapter_transfer_auto_run(ledger_path):
+    """C577: probe-A/B auto warm/cold transfer gate on the same
+    pre-registered C560 pairs + one adversarial (C572) pair;
+    full certified cycle of the CHOSEN arm; forgetA bit-exact
+    assert; boundary telemetry."""
+    data = [{"x": x, "t": fl2_snap(F(str(y)))}
+            for (_, x, y) in mh_load_dataset(ledger_path)]
+    assert len(data) > 0, "ABORT: corpus empty"
+    ces = [d["t"] for d in data]
+    rng = max(ces) - min(ces)
+    assert rng > 0, "ABORT: degenerate corpus (single ce)"
+    by_t = {}
+    for d in data:
+        by_t.setdefault(d["t"], []).append(d["x"])
+    doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
+    assert len(doms) >= 2, \
+        f"ABORT: need >=2 domains, got {len(doms)}"
+    pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
+           for t in doms}
+    mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
+                  / F(len(by_t[t])) for i in range(CL_D)]
+              for t in doms}
+
+    def dist(a, b):
+        l1 = sum(abs(mean_x[a][i] - mean_x[b][i])
+                 for i in range(CL_D))
+        return l1 + abs(a - b) / rng
+
+    pairs = sorted((dist(a, b), a, b)
+                   for i, a in enumerate(doms)
+                   for b in doms[i + 1:])
+    sel = [pairs[0], pairs[len(pairs) // 2], pairs[-1]]
+
+    def train(w0, dts, steps=TR_STEPS):
+        """K certified snap-GD steps (commit only drop > 0)."""
+        w = list(w0)
+        o0 = mh_mse(w, dts)
+        traj = [{"step": 0, "obj": o0}]
+        for st in range(1, steps + 1):
+            g = mh_grad(w, dts)
+            cand = cl_snap([w[i] - TR_ETA * g[i]
+                            for i in range(CL_D)])
+            o1 = mh_mse(cand, dts)
+            if o1 < o0:
+                w, o0 = cand, o1
+            traj.append({"step": st, "obj": o0})
+        return w, o0, traj
+
+    def probe(w0, dts):
+        """ATG_PROBE_STEPS rollback probe steps on a COPY of w0
+        (C530: no commit, the source state never moves)."""
+        _, _, traj = train(list(w0), dts, ATG_PROBE_STEPS)
+        return sum((d["obj"] for d in traj), F(0))
+
+    tel = {"mode": "adapter-transfer-auto",
+           "corpus": ("C566-snapshot" if ledger_path == ATG_LEDGER
+                      else ledger_path),
+           "n_points": len(data), "n_domains": len(doms),
+           "probe_steps": ATG_PROBE_STEPS,
+           "gate_rule": ("warm iff probe_auc_warm < "
+                         "probe_auc_cold (exact Fractions, "
+                         "tie->cold; C572 boundary at k=0)"),
+           "steps_budget": TR_STEPS, "pairs": []}
+
+    for d0, A, B in sel:
+        ptsA, ptsB = pts[A], pts[B]
+        # source adapter A trained ONCE per pair, frozen
+        wA = train([F(0)] * CL_D, ptsA, TR_STEPS)[0]
+        snapA = list(wA)
+        # --- PROBE A/B (rollback, C530): no commit, no mutation
+        auc_pw = probe(wA, ptsB)
+        auc_pc = probe([F(0)] * CL_D, ptsB)
+        gate = "warm" if auc_pw < auc_pc else "cold"
+        hww, wb = atg_quadratic_form(ptsB, wA)
+        gap0 = 2 * wb - hww          # k=0 boundary (C572 form)
+        assert wA == snapA, \
+            "ABORT probe rollback: source adapter A mutated " \
+            "during probe (C530 broken)"
+        # --- FULL certified cycle: chosen arm + cold reference
+        _, fc, cc, tc = (lambda r: (r[0], r[1], len(r[2]), r[2]))(
+            train([F(0)] * CL_D, ptsB))
+        cold_auc = sum((d["obj"] for d in tc), F(0))
+        chosen_init = list(wA) if gate == "warm" else [F(0)] * CL_D
+        wS, fS, tS = train(chosen_init, ptsB)
+        chosen_auc = sum((d["obj"] for d in tS), F(0))
+        assert wA == snapA, \
+            "ABORT forgetA: source adapter A mutated during " \
+            "domain-B training (isolation broken)"
+        verdict = "T1-positive" if chosen_auc < cold_auc else \
+            "T2-negative" if chosen_auc > cold_auc else "T3-none"
+        tel["pairs"].append({
+            "A": str(A), "B": str(B), "dist": str(d0),
+            "kind": "real",
+            "probe": {"auc_warm": str(auc_pw),
+                      "auc_cold": str(auc_pc),
+                      "gate": gate},
+            "boundary_k0": {"gap_2tb_minus_tHt": str(gap0),
+                            "warm_side": gap0 > 0},
+            "chosen": {"arm": gate, "final_ce": str(fS),
+                       "auc": str(chosen_auc),
+                       "traj": [str(d["obj"]) for d in tS]},
+            "cold_ref": {"final_ce": str(fc),
+                         "auc": str(cold_auc)},
+            "verdict": verdict})
+
+    # --- adversarial pair (C572-style synthetic: t = -c*theta.x)
+    d0, A, B = sel[0]
+    wA = train([F(0)] * CL_D, pts[A], TR_STEPS)[0]
+    pts_adv = [(x, -ATG_ADV_C * mh_pred(wA, x))
+               for (x, _) in pts[B]]
+    snapA = list(wA)
+    auc_pw = probe(wA, pts_adv)
+    auc_pc = probe([F(0)] * CL_D, pts_adv)
+    gate = "warm" if auc_pw < auc_pc else "cold"
+    hww, wb = atg_quadratic_form(pts_adv, wA)
+    gap0 = 2 * wb - hww
+    assert wA == snapA, "ABORT probe rollback (adversarial)"
+    _, fc, _, tc = (lambda r: (r[0], r[1], None, r[2]))(
+        train([F(0)] * CL_D, pts_adv))
+    cold_auc = sum((d["obj"] for d in tc), F(0))
+    chosen_init = list(wA) if gate == "warm" else [F(0)] * CL_D
+    wS, fS, tS = train(chosen_init, pts_adv)
+    chosen_auc = sum((d["obj"] for d in tS), F(0))
+    tel["pairs"].append({
+        "A": str(A), "B": "adversarial(-theta.x)",
+        "dist": str(d0), "kind": "adversarial",
+        "probe": {"auc_warm": str(auc_pw),
+                  "auc_cold": str(auc_pc), "gate": gate},
+        "boundary_k0": {"gap_2tb_minus_tHt": str(gap0),
+                        "warm_side": gap0 > 0},
+        "chosen": {"arm": gate, "final_ce": str(fS),
+                   "auc": str(chosen_auc),
+                   "traj": [str(d["obj"]) for d in tS]},
+        "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
+        "verdict": ("gate-cold (expected, C572 synthetic)"
+                    if gate == "cold" else
+                    "UNEXPECTED warm (H degenerate?)")})
+
+    v = [p["verdict"] for p in tel["pairs"][:3]]
+    tel["final"] = {
+        "real_pairs": 3, "verdicts": v,
+        "t1_pairs": v.count("T1-positive"),
+        "gates": [p["probe"]["gate"] for p in tel["pairs"]],
+        "adversarial_gate": tel["pairs"][-1]["probe"]["gate"],
+        "forgetA": 0,
+        "probe_rollback_exact": True}
+    return {"tel": tel}
+
 
 def adapter_transfer_run(ledger_path):
     """C560: warm-start (copy of a trained domain-A adapter)
@@ -12013,7 +12214,8 @@ def main():
                              "self-compress-loop",
                              "distill",
                              "mini-hagi-v3",
-                             "adapter-transfer"],
+                             "adapter-transfer",
+                             "adapter-transfer-auto"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -12718,6 +12920,33 @@ def main():
                  for k, v in p.items()}
                 for p in tel["pairs"]],
             "forgetA_pair": tel["forgetA_pair"],
+            "final": tel["final"],
+        }, indent=1, default=str))
+        return
+
+    if args.mode == "adapter-transfer-auto":
+        import os as _os
+        ledger = (ATG_LEDGER
+                  if _os.path.abspath(args.data)
+                  == _os.path.abspath(RD_DEFAULT_LEDGER)
+                  else args.data)
+        res = adapter_transfer_auto_run(ledger)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "adapter-transfer-auto",
+            "corpus": tel["corpus"],
+            "n_points": tel["n_points"],
+            "n_domains": tel["n_domains"],
+            "probe_steps": tel["probe_steps"],
+            "gate_rule": tel["gate_rule"],
+            "steps_budget": tel["steps_budget"],
+            "pairs": [
+                {k: (v if not isinstance(v, dict) else
+                     {k2: (v2 if not isinstance(v2, list) else
+                           v2[:3] + ["..."] if len(v2) > 6 else v2)
+                      for k2, v2 in v.items()})
+                 for k, v in p.items()}
+                for p in tel["pairs"]],
             "final": tel["final"],
         }, indent=1, default=str))
         return
