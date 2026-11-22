@@ -64,9 +64,15 @@ def corpus_abort(reason, hint=""):
     'ce' (wave236k PARTIAL_LAW schema) are NOT an abort -- they
     are a KNOWN wave schema and are FILTERED with an explicit
     stderr warning by _validate_ledger_schema. corpus_abort
-    fires only when the corpus is genuinely unusable: zero
-    valid entries, structural drift, or a mode's N-pin unmet
-    after the filter.
+    C608 snapshot-vs-live policy: data modes run on the PINNED
+    corpus snapshot (SNAPSHOT_LEDGER) by default, so results are
+    DETERMINISTIC and corpus-drift-immune. corpus_abort on the
+    snapshot means the SNAPSHOT itself no longer satisfies the
+    mode's precondition (e.g. mini corpus size pins) -- stable,
+    reproducible, not drift. On --live-corpus, corpus_abort and
+    assert-ABORTs mean the LIVE ledger's new content breaks the
+    mode's certified bound/precondition (expected fail-closed;
+    e.g. wave238 chat_law entries break grow-snap's bound).
     """
     msg = f"BENCH-ABORT: {reason}"
     if hint:
@@ -1998,6 +2004,19 @@ RD_STEPS = 6                     # default joint steps
 RD_NPAR = 1 + RD_HID * RD_D + RD_K * RD_HID + RD_K   # = 21
 RD_DEFAULT_LEDGER = ("C:/HAGI_v2/checkpoints/"
                      "unified_ledger.json")
+# C608: corpus snapshot pinning (lesson C535). Bench data modes run
+# on a FROZEN snapshot by default so regression results are stable
+# against the live HAGI_v2 ledger drift (~1 wave / 15 min). The
+# snapshot is the last corpus state on which grow-snap PASSES its
+# certified bound (pre-wave238: 34 ns_* + law_alphabet; the wave238
+# chat_law_* entries break the bound on content, not timing).
+# Snapshot: 2026-11-22, pre-wave238 (35 keys). NOT in git (.tmp).
+# Regenerate from a corpus state of your choice:
+#   python -c "import shutil; shutil.copytree('C:/HAGI_v2/checkpoints/domains','.tmp/corpus-snap/domains',dirs_exist_ok=True); shutil.copy('C:/HAGI_v2/checkpoints/unified_ledger.json','.tmp/corpus-snap/unified_ledger.json')"
+# then prune ledger keys without .bin (rd loader requires all keys
+# to have one) or drop wave entries that break certified bounds.
+# --live-corpus switches back to the live RD_DEFAULT_LEDGER.
+SNAPSHOT_LEDGER = ".tmp/C608/corpus/unified_ledger.json"
 
 
 def rd_snap(v):
@@ -12997,10 +13016,20 @@ def main():
                          "intervals) on holdout models, accuracy "
                          "among certified only + live selfloop "
                          "round/COMMIT telemetry (C461)")
+    ap.add_argument("--live-corpus", action="store_true",
+                    help="C608: run data modes on the LIVE HAGI_v2 "
+                         "ledger (C:/HAGI_v2/checkpoints/...) instead "
+                         "of the pinned corpus snapshot; results may "
+                         "drift between runs (fail-closed aborts on "
+                         "new corpus content are expected)")
     ap.add_argument("--data", metavar="PATH",
-                    default=RD_DEFAULT_LEDGER,
+                    default=SNAPSHOT_LEDGER,
                     help="real-data: path to unified_ledger.json "
-                         "(domains/ dir is resolved as its sibling)")
+                         "(domains/ dir is resolved as its sibling). "
+                         "DEFAULT: pinned corpus snapshot "
+                         "(.tmp/C608/corpus, C608/C535) -- stable "
+                         "for regressions; use --live-corpus for the "
+                         "live HAGI_v2 ledger")
     ap.add_argument("--fix-rank", type=int, default=None,
                     choices=[1, 2],
                     help="adapter-rank-adaptive only: disable "
@@ -13025,6 +13054,24 @@ def main():
                     help="vs-trainer: path to the live "
                          "experiments/selfloop_result.json")
     args = ap.parse_args()
+
+    # C608: snapshot-vs-live corpus policy (lesson C535). Default
+    # --data is the PINNED snapshot (deterministic regressions);
+    # --live-corpus switches to the live HAGI_v2 ledger (drifting
+    # ~1 wave / 15 min; fail-closed ABORTs on new content expected).
+    if getattr(args, "live_corpus", False):
+        import os as _os
+        args.data = RD_DEFAULT_LEDGER
+        print("[telemetry] corpus=LIVE ({}): live HAGI_v2 ledger, "
+              "results may DRIFT between runs".format(
+                  RD_DEFAULT_LEDGER), file=sys.stderr)
+    else:
+        import os as _os
+        if _os.path.abspath(args.data) == _os.path.abspath(
+                SNAPSHOT_LEDGER):
+            print("[telemetry] corpus=SNAPSHOT ({}): pinned corpus "
+                  "snapshot, deterministic".format(SNAPSHOT_LEDGER),
+                  file=sys.stderr)
 
     if args.mode == "vs-trainer":
         stats, w = vs_trainer_run(args.data, args.selfloop,
