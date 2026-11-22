@@ -59,6 +59,14 @@ def corpus_abort(reason, hint=""):
     clear message and a distinct exit code (3), WITHOUT a
     traceback. Exit 3 keeps it honest: callers see a failure,
     never a silent pass.
+
+    C607 boundary note: ledger entries with null/non-numeric
+    'ce' (wave236k PARTIAL_LAW schema) are NOT an abort -- they
+    are a KNOWN wave schema and are FILTERED with an explicit
+    stderr warning by _validate_ledger_schema. corpus_abort
+    fires only when the corpus is genuinely unusable: zero
+    valid entries, structural drift, or a mode's N-pin unmet
+    after the filter.
     """
     msg = f"BENCH-ABORT: {reason}"
     if hint:
@@ -2009,7 +2017,7 @@ def rd_load_dataset(ledger_path):
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
-    _validate_ledger_schema(led, ledger_path)
+    led = _validate_ledger_schema(led, ledger_path)
     dom = os.path.join(os.path.dirname(os.path.abspath(
         ledger_path)), "domains")
     pts = []
@@ -2113,7 +2121,9 @@ def real_data_run(ledger_path, steps=RD_STEPS):
         "grad": "forward finite differences h=1/1000 (Fraction)",
         "step": "snap_{1/1000}(theta - (1/10)*g_fd)",
         "guarantee": "per-step MEASURED drop > 0 + guarded "
-                     "rollback (C481 form)"}}
+                     "rollback (C481 form)",
+        # C607: ledger entries skipped by the null-ce filter
+        "corpus_ce_skipped": len(CE_SKIPPED_KEYS)}}
     obj0 = rd_mse(p, train, cfix)
     for t in range(steps):
         obj, risk = rd_mse(p, train, cfix), rd_mse(p, hold, cfix)
@@ -2277,6 +2287,11 @@ def cs_load_dataset(ledger_path):
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
+    # C607: filter null/non-numeric 'ce' entries (wave schema);
+    # structural=False keeps cs-loader behavior unchanged beyond
+    # the ce filter (no NEW aborts on this path).
+    led = _validate_ledger_schema(led, ledger_path,
+                                  structural=False)
     dom = os.path.join(os.path.dirname(os.path.abspath(
         ledger_path)), "domains")
     pts = []
@@ -3429,25 +3444,51 @@ MH_E_STEPS = 4
 MH_QUANT_FT = 1
 
 
-def _validate_ledger_schema(led, path):
-    """C596: fail-closed corpus-schema validation with a clear
-    message instead of a deep KeyError/TypeError traceback."""
+# C607: ledger entries skipped by the null/non-numeric-ce
+# filter (wave PARTIAL_LAW schema); telemetry reads len().
+CE_SKIPPED_KEYS = []
+
+
+def _validate_ledger_schema(led, path, structural=True):
+    """C596/C607 corpus-schema handling.
+
+    C596 semantics kept for REAL unusability: non-dict ledger,
+    domains/ dir missing, or ZERO remaining valid entries ->
+    honest corpus_abort (exit 3).
+
+    C607 tolerance: entries whose 'ce' is null / non-numeric
+    (wave236k PARTIAL_LAW schema) are SKIPPED, not fatal: the
+    filter prints an explicit stderr warning listing every
+    skipped key with its reason, and only the valid entries
+    are returned."""
     import os
     if not isinstance(led, dict) or not all(
             isinstance(k, str) for k in led):
         corpus_abort(f"ledger {path} is not a JSON dict of "
                      "str keys", hint="schema drift")
+    skipped = []
     for k, v in led.items():
         if not isinstance(v, dict) or not isinstance(
                 v.get("ce"), (int, float)):
-            corpus_abort(
-                f"ledger entry '{k}' lacks a numeric 'ce'",
-                hint="schema drift")
-    dom = os.path.join(os.path.dirname(os.path.abspath(path)),
-                       "domains")
-    if not os.path.isdir(dom):
-        corpus_abort(f"domains dir missing next to {path}",
-                     hint="corpus layout drift")
+            skipped.append(k)
+    if skipped:
+        print(f"C607 WARNING: skipping {len(skipped)} ledger "
+              f"entries with null/non-numeric 'ce' "
+              f"(wave PARTIAL_LAW schema): "
+              f"{', '.join(sorted(skipped))}", file=sys.stderr)
+        CE_SKIPPED_KEYS.extend(sorted(skipped))
+        led = {k: v for k, v in led.items() if k not in skipped}
+    if not led:
+        corpus_abort("no ledger entry has a numeric 'ce' "
+                     "(all skipped by the C607 null-ce filter)",
+                     hint="corpus unusable")
+    if structural:
+        dom = os.path.join(os.path.dirname(os.path.abspath(path)),
+                           "domains")
+        if not os.path.isdir(dom):
+            corpus_abort(f"domains dir missing next to {path}",
+                         hint="corpus layout drift")
+    return led
 
 
 def mh_load_dataset(ledger_path):
@@ -3456,7 +3497,7 @@ def mh_load_dataset(ledger_path):
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
-    _validate_ledger_schema(led, ledger_path)
+    led = _validate_ledger_schema(led, ledger_path)
     dom = os.path.join(os.path.dirname(os.path.abspath(
         ledger_path)), "domains")
     pts = []
@@ -12704,6 +12745,8 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
         "holds": _holds(tel),
         "stop": tel["stop"],
         "outcomes": tel["outcomes"],
+        # C607: ledger entries skipped by the null-ce filter
+        "corpus_ce_skipped": len(CE_SKIPPED_KEYS),
     }
     telemetry.update(extra_tel)
     print(json.dumps({"mode": mode, **stats,
