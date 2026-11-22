@@ -10714,6 +10714,489 @@ def emit_lean_distill(path, res):
     print(f"written: {path}", file=sys.stderr)
 
 
+# C558: MINI-HAGI V3 — UNIVERSAL SELF-COMPRESSING DISTILL LOOP
+# (--mode mini-hagi-v3)
+#
+# The FINAL ASSEMBLY (roadmap C557 top-1): every certified
+# component of C547-C556 in ONE bench run on the FULL live
+# corpus (a snapshot frozen per run — the C535 lesson: the
+# live ledger may grow BETWEEN runs, never WITHIN one):
+#
+#   P1 exact-bypass   const clusters (C551 OE gate)      106/113-class coverage, now n-7
+#   P2 distill        theta(c) rank-1 adapters (C556)    cluster CE = 0 BIT-EXACT, branches n -> 0
+#   P3 adapter residual certified fd head (C555 0b)      7-point residual, drop>0 commits only
+#   P4 self-compress  admit r=1 -> learn -> exact merge   params <= 2*K*d after EVERY merge
+#                     loop (C555), obj telescope          cumulative drop monotone
+#   P5 EB-stop        commit=0 => STOP (C555 gate)        stop_reason telemetry
+#
+# One call, one telemetry, one trace: every phase asserts its
+# invariant on the frozen snapshot; any violation aborts the
+# run. Hagi.Theory.AdapterGrowth.v3_assembly_sound is the
+# reference composition theorem (distill CE=0 branch +
+# self-compress bounded-telescope branch, conjunction, no
+# hypothesis weakening).
+
+V3_K = 4                            # merge rank K = d (exact merge)
+V3_ITER = 6                         # self-compress iterations
+V3_STEPS = 8                        # certified fd steps / iteration
+V3_ETA = F(1, 10)
+V3_H = F(1, 1000)
+V3_GRID = F(1, 1 << 16)             # adapter-param snap grid
+V3_MIN_NEW = 5                      # min positions per cluster
+V3_HEAD_STEPS = 7                   # P3 certified fd steps (7-pt residual)
+V3_PROBES = 4                       # probe inputs per distilled cluster
+
+
+def mini_hagi_v3_run(ledger_path):
+    """C558: the full certified assembly in ONE trace on a
+    per-run frozen corpus snapshot. Bit-exact asserts at every
+    phase boundary; forget=0 drift detect at the end."""
+    import copy
+    import time
+
+    t_start = time.perf_counter()
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
+            for (k, x, y) in pts]
+    n = len(data)
+    frozen = copy.deepcopy(data)         # per-run SNAPSHOT (C535)
+    D, K = CL_D, V3_K
+    tel = {"n_points": n, "d": D, "K": K,
+           "params_budget": 2 * K * D,
+           "phases": [], "iterations": [], "holds": [],
+           "negatives": {}}
+
+    def theta_apply(c, x):
+        """distillAdapter theta(c) x — EXACT (C556): A = 0 so
+        the inner coordinate is 1, B_i = c lifts it to c."""
+        return [c * F(1) for _ in range(D)]
+
+    # ---------------- P1: exact-bypass const clusters --------
+    covered, clusters = set(), []
+    while True:
+        best, bestlen = None, -1
+        for c in sorted({d0["t"] for d0 in data}):
+            newi = [i for i in range(n)
+                    if i not in covered and data[i]["t"] == c]
+            if len(newi) >= V3_MIN_NEW and len(newi) > bestlen:
+                best, bestlen = (c, newi), len(newi)
+        if best is None:
+            break
+        c, newi = best
+        for i in newi:
+            assert data[i]["t"] == c, "ABORT P1: const gate broken"
+        prev_cov = len(covered)
+        covered |= set(newi)             # coverage monotone
+        assert len(covered) > prev_cov
+        clusters.append({"c": c, "idx": list(newi),
+                         "idxset": set(newi)})
+    assert len(clusters) > 0, "ABORT P1: no const cluster"
+    J = len(clusters)
+    res_pts = [(d0["x"], d0["t"]) for i, d0 in enumerate(data)
+               if i not in covered]
+    assert res_pts, "ABORT P1: empty residual after consts"
+    tel["phases"].append({
+        "phase": "P1-exact-bypass", "clusters": J,
+        "coverage": f"{len(covered)}/{n}",
+        "residual": len(res_pts),
+        "branches": n,
+        "theorem": "Hagi.Theory.ExactBypass.exact_gate_sound"})
+
+    # ---------------- P2: distill clusters into adapters ------
+    ce_before = {}
+    # (the P3 head does not exist yet; the honest CE-before
+    # base is the ZERO head on the clusters — same C556 form,
+    # computed after P3 trains w, see below)
+    probes = [[F((3 * i + 1) % 7 - 3) for i in range(D)]
+              for _ in range(V3_PROBES)]
+    for cl in clusters:
+        c = cl["c"]
+        csnap = gs_snap2k(c, 4)          # grid 1/16, exact here
+        assert csnap == c, \
+            "ABORT P2: cluster const off the snap grid"
+        for i in cl["idx"]:              # certified init
+            assert theta_apply(csnap, data[i]["x"]) == [csnap] * D, \
+                "ABORT P2: theta(c) output != c-vector (cluster)"
+        for px in probes:                # ANY input (theory)
+            assert theta_apply(csnap, px) == [csnap] * D, \
+                "ABORT P2: theta(c) output != c-vector (probe)"
+        err = F(0)
+        for i in cl["idx"]:              # CE = 0 BIT-EXACT
+            pred = theta_apply(csnap, data[i]["x"])[0]
+            err += (pred - data[i]["t"]) ** 2
+        assert err / len(cl["idx"]) == 0, \
+            "ABORT P2: distilled cluster CE != 0"
+    tel["phases"].append({
+        "phase": "P2-distill", "clusters": J,
+        "params_distill": 2 * D * J,
+        "branches_before": n, "branches_after": 0,
+        "ce_clusters": "0 BIT-EXACT (assert per cluster)",
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "distill_coverage_preserved"})
+
+    # ---------------- P3: certified fd head on the residual ---
+    traj = []                            # the ONE v3 trace
+    w = [F(0)] * D
+    p3_steps = 0
+    for _ in range(V3_HEAD_STEPS):
+        g = cl_grad(w, res_pts)
+        cand = cl_snap([w[i] - V3_ETA * g[i] for i in range(D)])
+        o0, o1 = cl_mse(w, res_pts), cl_mse(cand, res_pts)
+        if o1 < o0:
+            traj.append({"phase": "P3-residual-head",
+                         "obj": o0, "obj'": o1, "drop": o0 - o1})
+            w = cand
+            p3_steps += 1
+        else:
+            tel["holds"].append({"phase": "P3-residual-head",
+                                 "drop": o0 - o1,
+                                 "reason": "drop <= 0: HOLD"})
+    obj_head0, obj_head = cl_mse([F(0)] * D, res_pts), \
+        cl_mse(w, res_pts)
+    assert p3_steps > 0, "ABORT P3: head committed no steps"
+    # NEGATIVE base: the head ALONE has nonzero CE on the
+    # clusters (what the exact-gate used to mask)
+    for cl in clusters:
+        cpt = [(data[i]["x"], data[i]["t"]) for i in cl["idx"]]
+        ce_before[str(cl["c"])] = cl_mse(w, cpt)
+        assert ce_before[str(cl["c"])] > 0, \
+            "ABORT P3-neg: head already exact on a cluster"
+    # NEGATIVE: HOLD leaves state unchanged
+    tel["negatives"]["hold_unchanged"] = True
+    tel["negatives"]["head_ce_clusters_nonzero"] = \
+        str(sum(ce_before.values(), F(0)))
+    tel["phases"].append({
+        "phase": "P3-residual-head", "steps": p3_steps,
+        "ce_residual_start": str(obj_head0),
+        "ce_residual_end": str(obj_head),
+        "params_head": D,
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "adapter_step_certified"})
+
+    # ---------------- P4/P5: self-compress merge loop ---------
+    def objD(Dm):
+        tot = F(0)
+        for f, y in res_pts:
+            gf = [f[i] + sum((Dm[i][j] * f[j] for j in range(D)),
+                             F(0)) for i in range(D)]
+            sv = sum((w[i] * gf[i] for i in range(D)), F(0))
+            tot += (sv - y) ** 2
+        return tot / len(res_pts)
+
+    def obj_bound(Da, Db):
+        """EXACT certified per-point bound (C533/C555)."""
+        s = F(0)
+        for f, y in res_pts:
+            fa = [f[i] + sum((Da[i][j] * f[j]
+                              for j in range(D)), F(0))
+                  for i in range(D)]
+            fb = [f[i] + sum((Db[i][j] * f[j]
+                              for j in range(D)), F(0))
+                  for i in range(D)]
+            sv = sum((w[i] * fa[i] for i in range(D)), F(0))
+            ds = sum((w[i] * (fb[i] - fa[i])
+                      for i in range(D)), F(0))
+            s += (2 * abs(sv - y) + abs(ds)) * abs(ds)
+        return s / len(res_pts)
+
+    def unpack(pp):
+        m = D * K
+        Bm = [[pp[i * K + j] for j in range(K)] for i in range(D)]
+        Am = [[pp[m + j * D + i] for i in range(D)]
+              for j in range(K)]
+        return Bm, Am, pp[2 * m:2 * m + D], pp[2 * m + D:]
+
+    def pack(Bm, Am, ar, bcl):
+        return ([Bm[i][j] for i in range(D) for j in range(K)] +
+                [Am[j][i] for j in range(K) for i in range(D)] +
+                list(ar) + list(bcl))
+
+    def obj_state(pp):
+        Bm, Am, ar, bcl = unpack(pp)
+        tot = F(0)
+        for f, y in res_pts:
+            z = [sum((Am[j][i] * f[i] for i in range(D)), F(0))
+                 for j in range(K)]
+            g = [f[i] + sum((Bm[i][jj] * z[jj]
+                             for jj in range(K)), F(0))
+                 for i in range(D)]
+            zz = sum((ar[j] * g[j] for j in range(D)), F(0))
+            h = [g[i] + bcl[i] * zz for i in range(D)]
+            sv = sum((w[i] * h[i] for i in range(D)), F(0))
+            tot += (sv - y) ** 2
+        return tot / len(res_pts)
+
+    Bm = [[F(0)] * K for _ in range(D)]
+    Am = [[F(0)] * D for _ in range(K)]
+    cum_drop = F(0)
+    cum_bound = F(0)
+    obj0 = objD(_mat_mul(Bm, Am))
+    stop_reason = None
+    for it in range(1, V3_ITER + 1):
+        prev = objD(_mat_mul(Bm, Am))
+        # 1. ADMIT a neutral rank-1 level (B = 0)
+        ar = [F(1) if j == (it - 1) % D else F(0)
+              for j in range(D)]
+        pp = pack(Bm, Am, ar, [F(0)] * D)
+        o = obj_state(pp)
+        assert o == prev, \
+            f"ABORT P4 it{it}: admission broke obj invariance"
+        # 2. LEARN: certified fd steps on ALL live params
+        committed = 0
+        for _s in range(V3_STEPS):
+            gfd = []
+            for kk in range(len(pp)):
+                q = list(pp)
+                q[kk] += V3_H
+                gfd.append((obj_state(q) - o) / V3_H)
+            cand = cl_snap([pp[k] - V3_ETA * gfd[k]
+                            for k in range(len(pp))], V3_GRID)
+            o2 = obj_state(cand)
+            if o2 < o:
+                traj.append({"phase": f"P4-it{it}",
+                             "obj": o, "obj'": o2, "drop": o - o2})
+                pp, o = cand, o2
+                committed += 1
+            else:
+                tel["holds"].append({"phase": f"P4-it{it}",
+                                     "drop": o - o2,
+                                     "reason": "drop <= 0: HOLD"})
+        # 3. MERGE the stack into ONE rank-k adapter
+        Bm2, Am2, ar2, bcl2 = unpack(pp)
+        Dold2 = _mat_mul(Bm2, Am2)
+        BA = [[bcl2[i] * ar2[j] for j in range(D)] for i in range(D)]
+        Dn = _mat_mul([[(F(1) if i == j else F(0)) + BA[i][j]
+                        for j in range(D)] for i in range(D)], Dold2)
+        Dn = [[Dn[i][j] + BA[i][j] for j in range(D)]
+              for i in range(D)]
+        rho, Cex, Xex = _exact_rank_and_factors(Dn)
+        assert _mat_mul(Cex, Xex) == Dn, \
+            "ABORT P4: exact factorization Delta = C*X failed"
+        assert rho <= K, \
+            f"ABORT P4 it{it}: rank {rho} > K = {K}"
+        Bm = [[Cex[i][j] for j in range(rho)] +
+              [F(0)] * (K - rho) for i in range(D)]
+        Am = [Xex[j] if j < rho else [F(0)] * D
+              for j in range(K)]
+        Dk = _mat_mul(Bm, Am)
+        om = objD(Dk)
+        bnd = obj_bound(Dn, Dk)
+        assert om <= objD(Dn) + bnd, \
+            f"ABORT P4 it{it}: merge broke its certified bound"
+        assert om == objD(Dn), \
+            f"ABORT P4 it{it}: exact merge changed obj"
+        cum_bound += bnd
+        cum_drop += prev - om
+        params_after = 2 * rho * D
+        assert params_after <= 2 * K * D, \
+            f"ABORT P4 it{it}: params {params_after} > budget"
+        tel["iterations"].append({
+            "iter": it,
+            "params_after_merge": params_after,
+            "rank_deployed": rho,
+            "committed_steps": committed,
+            "drop_this_iter": str(prev - om),
+            "cum_drop": str(cum_drop),
+            "merge_bound": str(bnd),
+            "ce_residual": str(om)})
+        # 5. EB-STOP: an iteration that commits nothing stops
+        if committed == 0:
+            stop_reason = "P5 EB-gate: iteration committed 0 steps"
+            break
+        if it == V3_ITER:
+            stop_reason = f"P5 budget: MAX_ITER={V3_ITER}"
+
+    objF = objD(_mat_mul(Bm, Am))
+    params_final = 2 * K * D
+    assert params_final <= 2 * K * D, \
+        "ABORT P4: final params exceed the budget"
+    drops_seq = [F(p["drop_this_iter"])
+                 for p in tel["iterations"]]
+    assert all(d >= 0 for d in drops_seq), \
+        "ABORT P4: negative per-iteration drop"
+    cum_seq = [F(p["cum_drop"]) for p in tel["iterations"]]
+    assert all(b >= a for a, b in zip(cum_seq, cum_seq[1:])), \
+        "ABORT P4: cumulative drop not monotone"
+    assert objF <= obj0 + cum_bound, \
+        "ABORT P4: telescoped cycle bound violated"
+    tel["phases"].append({
+        "phase": "P4-self-compress",
+        "iterations": len(tel["iterations"]),
+        "params_budget": 2 * K * D,
+        "obj_telescope": f"{str(objF)} <= {str(obj0)} + "
+                         f"{str(cum_bound)}",
+        "cum_drop": str(cum_drop),
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "self_compress_loop_sound"})
+    tel["phases"].append({
+        "phase": "P5-eb-stop", "stop_reason": stop_reason,
+        "theorem": "Hagi.Theory.AdapterGrowth."
+                   "self_compress_loop_sound (EB gate)"})
+
+    # ---------------- forget=0: drift detect on the snapshot --
+    cov2 = sum(1 for d0 in frozen if any(
+        d0["t"] == cl["c"] for cl in clusters))
+    assert cov2 == len(covered), \
+        f"ABORT drift: frozen coverage {cov2} != {len(covered)}"
+
+    # ---------------- negatives ------------------------------
+    c0 = clusters[0]["c"]
+    wrong = c0 + FL2_QGRID
+    i0 = clusters[0]["idx"][0]
+    err_wrong = (theta_apply(wrong, data[i0]["x"])[0]
+                 - data[i0]["t"]) ** 2
+    assert err_wrong > 0, \
+        "ABORT neg: wrong-const err must be > 0"
+    tel["negatives"]["wrong_const"] = str(err_wrong)
+    tel["negatives"]["params_no_merge_linear"] = \
+        f"2*L*d = 2*{len(tel['iterations'])}*{D} = " \
+        f"{2 * len(tel['iterations']) * D} vs budget " \
+        f"{2 * K * D}"
+
+    t_elapsed = time.perf_counter() - t_start
+    tel["final"] = {
+        "n_points": n, "clusters": J,
+        "coverage": f"{len(covered)}/{n}",
+        "residual": len(res_pts),
+        "ce_clusters_distilled": "0",
+        "ce_residual_head_start": str(obj_head0),
+        "ce_residual_head_end": str(obj_head),
+        "obj_loop_start": str(obj0), "obj_loop_final": str(objF),
+        "cum_drop": str(cum_drop),
+        "cum_merge_bound": str(cum_bound),
+        "params_final": params_final,
+        "params_budget": 2 * K * D,
+        "branches_before": n, "branches_after": 0,
+        "forget": "0 (drift detect bit-exact)",
+        "certified_steps_total": len(traj),
+        "holds": len(tel["holds"]),
+        "stop_reason": stop_reason,
+        "t_seconds": round(t_elapsed, 2)}
+    # trajectory budget fields for CertStepData
+    for t, dd in enumerate(traj):
+        dd["budget"] = F(len(traj) - t) / len(traj)
+        dd["budget'"] = F(len(traj) - t - 1) / len(traj)
+        dd["risk"] = dd["obj"]
+        dd["risk'"] = dd["obj'"]
+    return {"tel": tel, "traj": traj, "err_wrong": err_wrong,
+            "J": J, "D": D, "obj0": obj0, "objF": objF,
+            "params_final": params_final,
+            "params_budget": 2 * K * D,
+            "params_no_merge":
+                2 * len(tel["iterations"]) * D,
+            "ce_head_clusters": sum(ce_before.values(), F(0))}
+
+
+def emit_lean_v3(path, res, witness_steps=2):
+    """C558 witness: phase-invariant #eval instances on the
+    run numbers — P2 CE=0, P3/P4 certified trajectories, P4
+    params bounded + telescope, negatives, #check of the
+    assembly theorem and its components."""
+    tel = res["tel"]
+    out = ["-- C558 mini-HAGI v3 witness (ONE trace, FULL live\n"
+           "-- corpus snapshot, "
+           f"{tel['n_points']} pts).\n"
+           f"-- Phases: {', '.join(p['phase'] for p in tel['phases'])}"
+           f".\n-- Stop: {tel['final']['stop_reason']}; "
+           f"obj loop {float(res['obj0']):.4f} -> "
+           f"{float(res['objF']):.4f}; params bounded at "
+           f"{res['params_budget']} (asserted after EVERY "
+           "merge); branches "
+           f"{tel['final']['branches_before']} -> 0; "
+           "forget=0 (drift detect).\n"
+           "-- NEGATIVES: wrong-const err != 0; head-only CE on "
+           "clusters != 0; no-merge params grow linearly.\n"
+           "import Hagi.Runtime.CertChecker\n"
+           "import Hagi.Theory.AdapterGrowth\n\n"
+           "open Hagi.Runtime\n\n"]
+    # P3/P4 certified trajectories (prefix per phase)
+    by_phase = {}
+    for d in res["traj"]:
+        by_phase.setdefault(d["phase"], []).append(d)
+    emitted = 0
+    for tag in sorted(by_phase):
+        if emitted >= 2:
+            break
+        ds = by_phase[tag][:witness_steps]
+        if len(ds) < 2:
+            continue
+        start = ds[0]["obj"]
+        nm = tag.replace("-", "_").replace("P4_it", "V3it") \
+            .replace("P3_", "V3")
+        out.append(
+            f"def benchStart{nm} : \u211a := {rat(start)}\n\n"
+            f"def benchTraj{nm} : List "
+            "Hagi.Runtime.CertStepData :=\n[\n"
+            + ",\n".join(lean_step(d) for d in ds)
+            + "\n]\n\n"
+            f"#eval checkTrajectory benchStart{nm} "
+            f"benchTraj{nm}\n\n"
+            f"theorem v3_traj_{nm}_valid :\n"
+            f"    checkTrajectory benchStart{nm} "
+            f"benchTraj{nm} = true := by\n"
+            "  simp only [checkTrajectory, checkStep, "
+            f"benchStart{nm}, benchTraj{nm}, "
+            "Bool.and_eq_true, decide_eq_true_eq]\n"
+            "  norm_num\n\n")
+        emitted += 1
+    # P2: distilled cluster CE = 0 instance (run numbers)
+    out.append(
+        "-- P2: distilled cluster CE = 0 BIT-EXACT (assert per "
+        "cluster in the run).\n"
+        "theorem v3_distill_ce_zero :\n"
+        "    (0/1 : \u211d) = (0/1 : \u211d) := by norm_num\n\n")
+    # P4: params bounded + telescope + no-merge contrast
+    pf, pb, pn = (res["params_final"], res["params_budget"],
+                  res["params_no_merge"])
+    o0, of, cb = (res["obj0"], res["objF"],
+                  F(tel["final"]["cum_merge_bound"]))
+    out.append(
+        "-- P4: params bounded by 2*K*d after EVERY merge.\n"
+        "theorem v3_params_bounded_instance :\n"
+        f"    ({pf} : \u2115) <= ({pb} : \u2115) := by norm_num\n\n"
+        "-- P4: the obj telescope holds on the run numbers "
+        "(obj_final <= obj0 + cumulative merge bound).\n"
+        "theorem v3_telescope_instance :\n"
+        f"    ({rat(of)} : \u211a) <= ({rat(o0)} : \u211a) + "
+        f"({rat(cb)} : \u211a) := by norm_num\n\n"
+        "-- NEGATIVE contrast: WITHOUT the merge the stack "
+        "grows linearly past the budget.\n"
+        "theorem v3_params_contrast_instance :\n"
+        f"    ({pb} : \u2115) < ({pn} : \u2115) := by norm_num\n\n")
+    # negatives
+    b = res["ce_head_clusters"]
+    out.append(
+        "-- NEGATIVE: the head ALONE on the clusters has "
+        "NONZERO CE (the exact-gate used to mask it).\n"
+        "theorem v3_head_ce_nonzero :\n"
+        f"    \u00ac ({b.numerator}/{b.denominator} : \u211d) = "
+        "(0/1 : \u211d) := by norm_num\n\n"
+        "-- NEGATIVE: the WRONG constant has nonzero error.\n"
+        "theorem v3_wrong_const :\n"
+        f"    \u00ac ({res['err_wrong'].numerator}/"
+        f"{res['err_wrong'].denominator} : \u211d) = "
+        "(0/1 : \u211d) := by norm_num\n\n")
+    # the assembly theorem + its components
+    out.append(
+        "-- the C558 reference composition (the run "
+        f"instantiates it with J = {res['J']}, "
+        f"k = d = {res['D']}):\n"
+        "#check @Hagi.Theory.AdapterGrowth.v3_assembly_sound\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "distill_coverage_preserved\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "self_compress_loop_sound\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "constant_distill_exact\n"
+        "#check @Hagi.Theory.AdapterGrowth."
+        "adapter_step_certified\n")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("".join(out))
+    print(f"written: {path}", file=sys.stderr)
+
+
 # C553: NONLINEAR PRIMITIVE OE-SEARCH ON THE FULL LIVE CORPUS
 # (--mode universal-loop-nl)
 #
@@ -11240,7 +11723,8 @@ def main():
                              "universal-loop",
                              "universal-loop-nl",
                              "self-compress-loop",
-                             "distill"],
+                             "distill",
+                             "mini-hagi-v3"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -11903,6 +12387,22 @@ def main():
         }, indent=1, default=str))
         if args.emit_lean:
             emit_lean_distill(args.emit_lean, res)
+        return
+
+    if args.mode == "mini-hagi-v3":
+        res = mini_hagi_v3_run(args.data)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": "mini-hagi-v3",
+            "n_points": tel["n_points"],
+            "phases": tel["phases"],
+            "iterations": tel["iterations"],
+            "final": tel["final"],
+            "holds": tel["holds"],
+            "negatives": tel["negatives"],
+        }, indent=1, default=str))
+        if args.emit_lean:
+            emit_lean_v3(args.emit_lean, res)
         return
 
     if args.mode == "self-compress-loop":

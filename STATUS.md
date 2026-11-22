@@ -4174,3 +4174,46 @@ exact-bypass ветвление отключается, контуры униф�
 - ВЫВОД: контуры exact-bypass и адаптерный остаток УНИФИЦИРУЕМЫ
   без потерь CE — константное символьное знание представимо
   rank-1 адаптерами точно, гейт-ветвление устранимо.
+
+## scripts/bench_bridge.py + Hagi/Theory/AdapterGrowth.lean (C558: mini-HAGI v3 — ФИНАЛЬНАЯ СБОРКА, top-1 roadmap C557)
+
+Bench `--mode mini-hagi-v3` (backward-совместимо; append-блок +
+choice + dispatch). Референсная сборка «мини-HAGI v3»: ВСЕ
+certified-компоненты C547–C556 в ОДНОМ bench-прогоне на полном
+живом корпусе (снапшот заморожен на прогон — урок C535: живой
+ledger растёт МЕЖДУ прогонами; в прогоне корпус был 115 точек,
+против 106/113 в C556 — инварианты стабильны: 6 кластеров,
+остаток 7).
+
+- v3-таблица (фазы × метрики, прогон .tmp/C558/bench.log, ОДИН
+  трейс, 115 живых точек):
+
+| Фаза | Компонент | Итог (assert в прогоне) |
+|------|-----------|-------------------------|
+| P1 exact-bypass | C551 const-кластеры | 6 кластеров, покрытие 108/115, остаток 7; gate bit-exact, покрытие монотонно |
+| P2 distill | C556 θ(c) rank-1 | CE кластеров = 0 БИТ-В-БИТ (по кластеру + probes); ветвления 115 → 0 |
+| P3 residual head | C555 certified fd | 7/7 шагов commit (drop>0), CE остатка 3.8022 → 0.5120 |
+| P4 self-compress | C555 merge-цикл | 6 итераций admit→learn→merge; params ≤ 2·K·d = 32 после КАЖДОГО merge (rank 1→…); obj 0.5120 → 0.0733, cum drop 0.4387 монотонен; телескоп obj_final ≤ obj0 + Σ bounds (exact merge ⇒ Σ = 0) |
+| P5 EB-стоп | C555 EB-gate | stop = budget MAX_ITER=6 (EB-ветка активна: commit=0 ⇒ STOP); 55 certified-шагов, holds 0, forget=0 (drift-детект bit-exact), 1.87 s |
+
+- Lean (AdapterGrowth.lean, секция C558): `v3_assembly_sound` —
+  референсная теорема сборки: конъюнкция делегатов
+  `distill_coverage_preserved` (дистилл-ветка: CE = 0) и
+  `self_compress_loop_sound` (obj-телескоп + параметр-бюджет
+  2·k·dd) БЕЗ ослабления гипотез компонент — итог: единая
+  адаптерная машина с bounded-объёмом и certified-CE на каждом
+  шаге. Новых глубоких фактов нет (сборка, не дубль — duplint /
+  stmdup гейты в силе).
+- Witness .tmp/C558/trajV3.lean: #eval checkTrajectory ×2 (P3,
+  P4-ит1, числа прогона) + params-bounded 32 ≤ 32 + телескоп-
+  инстанс + счёт-контраст 32 < 48 (без merge) + негативы
+  wrong-const 1/256 ≠ 0, head-CE на кластерах ≠ 0 + #check
+  `v3_assembly_sound` и 4 компонент; rc=0
+  (.tmp/C558/gates-witness-check.log).
+- Freeze 8706 → 8707 (+1: v3_assembly_sound); аксиомы только
+  propext / Quot.sound / Classical.choice.
+- ВЫВОД: мини-HAGI v3 = ПОЛНАЯ certified-сборка — exact-bypass,
+  дистилляция, адаптерный остаток, self-compressing merge и
+  EB-стой собираются в один трейс без потери ни одного
+  сертификата (CE кластеров 0, forget 0, параметры bounded,
+  obj-телескоп).

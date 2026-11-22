@@ -841,4 +841,53 @@ theorem symbolic_storage_cheaper (J d : ℕ)
 
 end ConstantDistill
 
+/-!
+## C558: mini-HAGI v3 — референсная сборка (universal
+self-compressing distill loop)
+
+Финальная композиция C547–C556 в ОДНОМ bench-прогоне
+(`scripts/bench_bridge.py --mode mini-hagi-v3`, один трейс на
+замороженном снапшоте живого корпуса): Ф1 exact-bypass
+(констант-кластеры) → Ф2 distill (θ(c) rank-1 адаптеры,
+CE = 0 бит-в-бит) → Ф3 certified fd-голова остатка →
+Ф4 self-compress merge-цикл (параметры bounded) → Ф5 EB-стоп.
+Новых глубоких фактов НЕТ — только корректная сборка уже
+доказанных компонент.
+-/
+
+section V3Assembly
+
+variable {d : Type*} [Fintype d] [Nonempty d]
+
+/-- **(мини-HAGI v3, референсная сборка C558)**: единая
+адаптерная машина = J дистиллированных констант-кластеров
+(`distill_coverage_preserved` ⇒ CE = 0 на каждом кластере
+ТОЧНО) + self-compress цикл (`self_compress_loop_sound` ⇒
+obj-телескоп `step bs.length ≤ o0 + bs.sum` И параметр-бюджет
+`params bs.length ≤ 2 * k * dd`). Конъюнкция компонент БЕЗ
+ослабления их гипотез: каждый certified-шаг цикла сохраняет
+телескоп, каждый merge сохраняет объём ≤ 2·k·dd, каждая
+дистиллированная ветка сохраняет CE = 0. -/
+theorem v3_assembly_sound {ι : Type} (k dd : ℕ)
+    (hcard : Fintype.card d = dd)
+    (t : ι → ℝ) (f : ι → d → ℝ) (j : d) (c : ℝ)
+    (xs : List ι) (hcl : ∀ x ∈ xs, t x = c)
+    (o0 : ℝ) (bs : List ℝ) (step params : ℕ → ℝ)
+    (h0 : step 0 ≤ o0)
+    (hstep : ∀ i, i < bs.length →
+      step (i + 1) ≤ step i + bs.getD i 0)
+    (hparams : ∀ i, i ≤ bs.length →
+      params i = selfCompressParams k dd) :
+    Hagi.Theory.ExactBypass.ceSum
+      (distillProb t f j (0 : Matrix (Fin 1) d ℝ)
+        (fun _ _ => c)) xs = 0 ∧
+      step bs.length ≤ o0 + bs.sum ∧
+      params bs.length ≤ 2 * k * dd := by
+  have hsc := self_compress_loop_sound k dd o0 bs step
+    params h0 hstep hparams
+  exact ⟨distill_coverage_preserved c t f j xs hcl,
+    hsc.1, hsc.2⟩
+
+end V3Assembly
+
 end Hagi.Theory.AdapterGrowth
