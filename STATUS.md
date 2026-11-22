@@ -1887,6 +1887,35 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   сужаемых импортов ПУСТ (терминальное состояние). Эффект:
   15.0s → 9.2s на файл (BlockNorm probe). Freeze 8729.
 
+## Hagi/Theory/GrowSnap.lean (C521+C593: certified snap-политика и оптимальный k)
+
+- C521 (GrowSnap): certified snap q/2^k на границе grow
+  (`snap_preserves_objective_bound`, `snap_denominator_reset`,
+  `grow_snap_cycle_sound`) — снимает экспоненциальную стену
+  знаменателей C506 (2366 цифр → k бит).
+- **C593 (OptimalK) — snap-грид оптимальность**: выбор
+  знаменатель-грида 2^k формализован теорией вместо ручного
+  2^40-класса. Кирпичи: `snap_err_bound` (ДВУСТОРОННЯЯ
+  obj-ошибка |obj g − obj f| ≤ L·d·2^-(k+1), композиция ℓ¹-
+  Lipschitz C521 с per-weight полуячейкой; C521-версия —
+  односторонняя деградация), `snapAdmissible`/`snapK`
+  (минимальное допустимое k: Nat.find, минимальность по
+  построению), `snap_k_admissible` (feasibility: err-bound(k*)
+  ≤ ε), `snap_k_min` (ТОЧНОСТЬ: любое допустимое k ≥ k*),
+  `snap_k_lt_violates` (негатив: k < k* ⇒ err-bound СТРОГО > ε),
+  `snap_k_eq_ceil` (ЗАМКНУТАЯ ФОРМА, точная: при L·d > ε
+  k* = ⌈log₂(L·d/ε)⌉ − 1; обе стороны из feasibility +
+  minimality, не из достаточности), `snapBits` (биты = d·(k+1)),
+  `snap_bits_err_tradeoff` (Pareto: k ≤ k' ⇒ биты ↑, полуячейка ↓
+  — фронт параметризован k), `snap_optimal_k` (DECISION-ПРАВИЛО:
+  k* даёт certified err в бюджете ε И минимальные биты среди
+  допустимых — v3-машина выбирает k теорией). Witness
+  (.tmp/C593/trajSnap.lean, rc=0, ℚ-зеркало поиска): I1
+  L=1,d=10,ε=2^-12 → k*=15, биты 160, k=14 нарушает бюджет;
+  I2 L=3,d=1,ε=2^-6 → k*=7, k=6 нарушает; I3 ГРАНИЦА РАВЕНСТВА
+  Ld/ε=4=2² → k*=1, bound = ε (равенство допустимо, log₂ целое),
+  k=0 нарушает.
+
 ## Hagi/Theory/NegativeTransfer.lean (C572+C592: negative transfer — T2-теория и нелинейное расширение)
 
 - Точная iff-граница для квадратичной модели: warm хуже cold ⟺

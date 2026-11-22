@@ -162,4 +162,253 @@ theorem grow_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
 
 end CycleSound
 
+/-! ## (d) Оптимальный k: certified trade-off err-bound vs биты (C593)
+
+Выбор знаменатель-грида 2^k в snap-механике выше — ручной
+(бенчмарк C521 брал 2^40-класс). C593 формализует выбор k
+теорией: per-weight ошибка ≤ полуячейка 2^-(k+1) даёт obj-err
+≤ L·d·2^-(k+1) (композиция с (a)), биты = d·(k+1). Монотонности
+противоположные (err ↓, биты ↑) — Pareto-фронт параметризован k;
+для бюджета ошибок ε минимальное допустимое k существует
+(`snapK`, Nat.find: минимальность по построению) и при
+L·d > ε выражается ЗАМКНУТОЙ ФОРМОЙ ⌈log₂(L·d/ε)⌉ − 1
+(`snap_k_eq_ceil`, точной: обе стороны из feasibility +
+minimality). Decision-правило: k* = snapK — certified err в
+бюджете, минимальные биты (`snap_optimal_k`) — v3-машина
+выбирает k теорией вместо ручного 2^40. -/
+
+
+section OptimalK
+
+/-- Биты снапа d весов на гриде 2^k: k+1 бит на вес
+(знаменатель-грид 2^k + 1), d весов — d·(k+1) всего. -/
+def snapBits (d k : ℕ) : ℕ := d * (k + 1)
+
+/-- Допустимость k для бюджета ошибок ε: certified err-bound
+L·d·2^-(k+1) ≤ ε в положительной форме (эквивалентность —
+`snap_admissible_iff`). -/
+def snapAdmissible (L d ε : ℝ) (k : ℕ) : Prop :=
+    L * d ≤ ε * (2:ℝ) ^ (k + 1)
+
+/-- Полуячейка грида 2^k как обратная Nat-степень: мостик между
+отрицательно-показательной формой (C521 `herr`) и положительной
+формой допустимости. -/
+lemma two_pow_cell_eq_inv (k : ℕ) :
+    (2:ℝ) ^ (-(k:ℝ) - 1) = ((2:ℝ) ^ (k + 1))⁻¹ := by
+  have h : (-(k:ℝ) - 1) = -(((k:ℕ) + 1 : ℕ) : ℝ) := by push_cast; ring
+  rw [h, Real.rpow_neg (by positivity), Real.rpow_natCast]
+
+/-- Допустимость k ⟺ certified err-граница в бюджете ε
+(ε > 0): положительная и полуячеечная формы эквивалентны. -/
+lemma snap_admissible_iff (L d ε : ℝ) (hε : 0 < ε) (k : ℕ) :
+    snapAdmissible L d ε k ↔
+      L * d * (2:ℝ) ^ (-(k:ℝ) - 1) ≤ ε := by
+  have hx : (0:ℝ) < (2:ℝ) ^ (k + 1) := by positivity
+  rw [snapAdmissible, two_pow_cell_eq_inv, ← div_eq_mul_inv,
+    div_le_iff₀ hx]
+
+/-- (a) C593: ДВУСТОРОННЯЯ certified граница obj-ошибки снапа
+d весов: |obj g − obj f| ≤ L·d·2^-(k+1) — композиция ℓ¹-Lipschitz
+премизы C521 с per-weight полуячейкой; суммарная err-форма для
+бюджетного анализа (C521 `snap_preserves_objective_bound` —
+односторонняя деградация, здесь — каноническая ошибка). -/
+theorem snap_err_bound {n : ℕ} (obj : (Fin n → ℝ) → ℝ) (L : ℝ)
+    (hL0 : 0 ≤ L)
+    (k : ℕ) (hL : ∀ f g : Fin n → ℝ,
+      |obj f - obj g| ≤ L * ∑ i, |f i - g i|)
+    (f g : Fin n → ℝ)
+    (herr : ∀ i, |f i - g i| ≤ (2:ℝ) ^ (-(k:ℝ) - 1)) :
+    |obj g - obj f| ≤ L * n * (2:ℝ) ^ (-(k:ℝ) - 1) := by
+  have h1 := hL g f
+  have h2 : (∑ i, |g i - f i|) ≤
+      (∑ _ : Fin n, (2:ℝ) ^ (-(k:ℝ) - 1)) :=
+    Finset.sum_le_sum fun i _ => by simpa [abs_sub_comm] using herr i
+  have h3 : (∑ _ : Fin n, (2:ℝ) ^ (-(k:ℝ) - 1)) =
+      n * (2:ℝ) ^ (-(k:ℝ) - 1) := by
+    simp [Finset.card_univ, nsmul_eq_mul]
+  have h4 : L * (∑ i, |g i - f i|) ≤
+      L * n * (2:ℝ) ^ (-(k:ℝ) - 1) := by
+    refine le_trans (mul_le_mul_of_nonneg_left h2 hL0) ?_
+    rw [h3]
+    exact le_of_eq (by ring)
+  exact le_trans h1 h4
+
+/-- n ≤ 2^n: локальная база архимедовости степеней двойки. -/
+lemma self_le_two_pow (n : ℕ) : n ≤ 2 ^ n := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+    have h1 : (1:ℕ) ≤ 2 ^ n := Nat.one_le_two_pow
+    rw [Nat.pow_succ]
+    omega
+
+/-- Степени двойки неограничены: любой n ограничен 2^m —
+экзистенциальная база k*-поиска. -/
+lemma two_pow_unbounded (n : ℕ) : ∃ m : ℕ, n ≤ 2 ^ m := by
+  induction n with
+  | zero => exact ⟨0, by omega⟩
+  | succ n ih =>
+    obtain ⟨m, hm⟩ := ih
+    have h1 : (1:ℕ) ≤ 2 ^ m := Nat.one_le_two_pow
+    exact ⟨m + 1, by rw [Nat.pow_succ]; omega⟩
+
+/-- Существует допустимое k для любого бюджета ε > 0
+(L·d ≥ 0): 2^(k+1) обгоняет L·d/ε. -/
+lemma pow2_le_succ (n : ℕ) : (2:ℝ) ^ n ≤ (2:ℝ) ^ (n + 1) := by
+  have heq : (2:ℝ) ^ (n + 1) = (2:ℝ) ^ n + (2:ℝ) ^ n := by
+    rw [pow_succ, mul_two]
+  rw [heq]
+  have h8 : (0:ℝ) ≤ (2:ℝ) ^ n := by positivity
+  linarith
+
+lemma snap_admissible_exists (L d ε : ℝ) (hε : 0 < ε)
+    (hLd : 0 ≤ L * d) : ∃ k : ℕ, snapAdmissible L d ε k := by
+  obtain ⟨m, hm⟩ := two_pow_unbounded (Nat.ceil (L * d / ε))
+  have hceil : L * d / ε ≤ ((Nat.ceil (L * d / ε) : ℕ) : ℝ) :=
+    Nat.le_ceil _
+  have h2r : L * d / ε ≤ ((2 ^ m : ℕ) : ℝ) :=
+    le_trans hceil (by exact_mod_cast hm)
+  have hcast : ((2 ^ m : ℕ) : ℝ) = (2:ℝ) ^ m := by
+    push_cast
+    rfl
+  rw [hcast] at h2r
+  refine ⟨m, ?_⟩
+  unfold snapAdmissible
+  calc L * d ≤ ε * (L * d / ε) := by
+        field_simp
+        exact le_rfl
+    _ ≤ ε * (2:ℝ) ^ m := mul_le_mul_of_nonneg_left h2r hε.le
+    _ ≤ ε * (2:ℝ) ^ (m + 1) :=
+        mul_le_mul_of_nonneg_left (pow2_le_succ m) hε.le
+
+open Classical in
+/-- МИНИМАЛЬНОЕ допустимое k: certified выбор знаменатель-грида
+2^k для бюджета ошибок ε (decision-правило v3-машины). -/
+noncomputable def snapK (L d ε : ℝ) (hε : 0 < ε)
+    (hLd : 0 ≤ L * d) : ℕ :=
+  Nat.find (snap_admissible_exists L d ε hε hLd)
+
+open Classical in
+/-- k* допустимо: certified err-граница L·d·2^-(k*+1) ≤ ε. -/
+theorem snap_k_admissible (L d ε : ℝ) (hε : 0 < ε)
+    (hLd : 0 ≤ L * d) :
+    snapAdmissible L d ε (snapK L d ε hε hLd) :=
+  Nat.find_spec (snap_admissible_exists L d ε hε hLd)
+
+open Classical in
+/-- МИНИМАЛЬНОСТЬ (точность, не достаточность): любое допустимое
+k не меньше k*. -/
+theorem snap_k_min (L d ε : ℝ) (hε : 0 < ε) (hLd : 0 ≤ L * d)
+    (k : ℕ) (h : snapAdmissible L d ε k) :
+    snapK L d ε hε hLd ≤ k :=
+  Nat.find_min' (snap_admissible_exists L d ε hε hLd) h
+
+/-- Негатив-сторона Pareto: k < k* НАРУШАЕТ бюджет — err-граница
+СТРОГО больше ε (иначе k было бы допустимым). -/
+theorem snap_k_lt_violates (L d ε : ℝ) (hε : 0 < ε)
+    (hLd : 0 ≤ L * d) (k : ℕ) (h : k < snapK L d ε hε hLd) :
+    ε < L * d * (2:ℝ) ^ (-(k:ℝ) - 1) := by
+  have hx : (0:ℝ) < (2:ℝ) ^ (k + 1) := by positivity
+  have hnot : ¬ (L * d ≤ ε * (2:ℝ) ^ (k + 1)) := by
+    intro hk
+    have := snap_k_min L d ε hε hLd k hk
+    omega
+  rw [two_pow_cell_eq_inv, ← div_eq_mul_inv, lt_div_iff₀ hx]
+  exact lt_of_not_ge hnot
+
+/-- Биты монотонны по k: больше грид — больше бит на веса. -/
+lemma snapBits_mono (d k k' : ℕ) (h : k ≤ k') :
+    snapBits d k ≤ snapBits d k' :=
+  Nat.mul_le_mul_left d (Nat.add_le_add_right h 1)
+
+/-- Err-граница АНТИмонотонна по k: больше грид — меньше
+полуячейка (Pareto-сторона err ↓). -/
+lemma snap_cell_antitone (k k' : ℕ) (h : k ≤ k') :
+    (2:ℝ) ^ (-(k':ℝ) - 1) ≤ (2:ℝ) ^ (-(k:ℝ) - 1) := by
+  rw [two_pow_cell_eq_inv, two_pow_cell_eq_inv,
+    inv_le_inv₀ (show (0:ℝ) < (2:ℝ) ^ (k' + 1) by positivity)
+      (show (0:ℝ) < (2:ℝ) ^ (k + 1) by positivity)]
+  exact_mod_cast
+    (Nat.pow_le_pow_right (show (1:ℕ) ≤ 2 by norm_num)
+      (show k + 1 ≤ k' + 1 by omega) :
+      (2:ℕ) ^ (k + 1) ≤ (2:ℕ) ^ (k' + 1))
+
+/-- (b) C593: ЗАМКНУТАЯ ФОРМА k* (ТОЧНАЯ): при L·d > ε
+минимальное допустимое k равно ⌈log₂(L·d/ε)⌉ − 1. Обе стороны
+выведены из Nat.find-фактов (feasibility даёт ceil ≤ k*+1,
+minimality даёт k* ≤ ceil−1), т.е. ТОЧНОСТЬ, не достаточность.
+При L·d ≤ ε: k* = 0 (k = 0 допустим, `Nat.find` минимален) и
+формула с усечённым вычитанием тоже даёт 0. -/
+theorem snap_k_eq_ceil (L d ε : ℝ) (hε : 0 < ε) (hLd : ε < L * d) :
+    snapK L d ε hε (by linarith : (0:ℝ) ≤ L * d)
+      = Nat.ceil (Real.logb 2 (L * d / ε)) - 1 := by
+  have hc0 : 0 < L * d / ε :=
+    div_pos (by linarith : (0:ℝ) < L * d) hε
+  have hlog0 : 0 < Real.logb 2 (L * d / ε) := by
+    refine Real.logb_pos (by norm_num) ?_
+    rw [one_lt_div hε]
+    exact hLd
+  have hceil1 : 1 ≤ Nat.ceil (Real.logb 2 (L * d / ε)) :=
+    Nat.ceil_pos.mpr hlog0
+  -- допустимость ↔ ceil-неравенство
+  have hadm : ∀ k : ℕ, snapAdmissible L d ε k ↔
+      Nat.ceil (Real.logb 2 (L * d / ε)) ≤ k + 1 := by
+    intro k
+    constructor
+    · intro h
+      have hcdiv : L * d / ε ≤ (2:ℝ) ^ (k + 1) := by
+        rw [div_le_iff₀ hε, mul_comm ((2:ℝ) ^ (k + 1)) ε]; exact h
+      exact (Nat.ceil_le (a := Real.logb 2 (L * d / ε))).2
+        ((Real.logb_le_iff_le_rpow (b := 2)
+          (x := L * d / ε) (y := (((k:ℕ)+1 : ℕ) : ℝ))
+          (by norm_num) hc0).2
+          (by rw [Real.rpow_natCast]; exact hcdiv))
+    · intro h
+      have h2 : Real.logb 2 (L * d / ε) ≤ (((k:ℕ)+1 : ℕ) : ℝ) :=
+        (Nat.ceil_le (a := Real.logb 2 (L * d / ε))).1 h
+      have h3 : L * d / ε ≤ (2:ℝ) ^ (((k:ℕ)+1 : ℕ) : ℝ) :=
+        (Real.logb_le_iff_le_rpow (b := 2)
+          (x := L * d / ε) (y := (((k:ℕ)+1 : ℕ) : ℝ))
+          (by norm_num) hc0).1 h2
+      rw [Real.rpow_natCast, div_le_iff₀ hε] at h3
+      rw [mul_comm ((2:ℝ) ^ (k + 1)) ε] at h3
+      exact h3
+  -- ceil ≤ k*+1: k* допустимо
+  have hge : Nat.ceil (Real.logb 2 (L * d / ε))
+      ≤ snapK L d ε hε (by linarith : (0:ℝ) ≤ L * d) + 1 :=
+    (hadm _).1 (snap_k_admissible L d ε hε
+      (by linarith : (0:ℝ) ≤ L * d))
+  -- k* ≤ ceil−1: k := ceil−1 допустимо, минимальность
+  have hadm2 : snapAdmissible L d ε
+      (Nat.ceil (Real.logb 2 (L * d / ε)) - 1) := by
+    refine (hadm _).2 ?_
+    omega
+  have hle := snap_k_min L d ε hε
+    (by linarith : (0:ℝ) ≤ L * d) _ hadm2
+  omega
+
+/-- (c) C593: Pareto-фронт trade-off параметризован k: при
+k ≤ k' биты не убывают, полуячейка не возрастает. -/
+theorem snap_bits_err_tradeoff (d k k' : ℕ) (h : k ≤ k') :
+    snapBits d k ≤ snapBits d k' ∧
+      (2:ℝ) ^ (-(k':ℝ) - 1) ≤ (2:ℝ) ^ (-(k:ℝ) - 1) :=
+  ⟨snapBits_mono d k k' h, snap_cell_antitone k k' h⟩
+
+/-- DECISION-ПРАВИЛО (MAIN C593): выбери k* = snapK — certified
+err-граница в бюджете ε И минимальные биты среди всех допустимых
+k (замена ручного 2^40 в v3-машине). d передаётся и как ℝ-вес
+(границы), и как ℕ (биты), связанные hd. -/
+theorem snap_optimal_k (L d ε : ℝ) (dε : ℕ) (hd : (dε:ℝ) = d)
+    (hε : 0 < ε) (hLd : 0 ≤ L * d) :
+    L * d * (2:ℝ) ^ (-(((snapK L d ε hε hLd : ℕ) : ℝ)) - 1) ≤ ε ∧
+    ∀ k : ℕ, snapAdmissible L d ε k →
+      snapBits dε (snapK L d ε hε hLd) ≤ snapBits dε k := by
+  refine ⟨?_, ?_⟩
+  · exact (snap_admissible_iff L d ε hε (snapK L d ε hε hLd)).mp
+      (snap_k_admissible L d ε hε hLd)
+  · intro k hk
+    exact snapBits_mono dε _ _ (snap_k_min L d ε hε hLd k hk)
+
+end OptimalK
+
 end Hagi.Theory.GrowSnap
