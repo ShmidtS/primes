@@ -55,6 +55,24 @@ trunk+head certified fd-шаги (C521 phase A), freeze trunk,
   `Hagi.Core.delta_rank_le`).
 - **Lipschitz обученного адаптера** — не утверждается (per-block
   premise — контракт C436); на шаге 0 добавка 0.
+
+## Карта секций
+
+Файл = четыре macro-секции + honest-хвост (маркеры `## C-bit:`
+между секциями):
+
+1. **C532 базис** (секции Adapter · ParamCount · CertifiedStep ·
+   SnapCycle · RankAdaptive · Merge · ContinualIsolation) —
+   low-rank адаптер, параметр-счёт, certified-шаг, snap-цикл,
+   rank-admission, merge-стек, continual-isolation.
+2. **C555** self-compressing adapter loop (`section
+   SelfCompress`) — learn→merge→learn с bounded-объёмом.
+3. **C556** constant cluster distillation (`section
+   ConstantDistill`) — exact-кластеры в rank-1 адаптеры.
+4. **C558** mini-HAGI v3 (`section V3Assembly`) — референсная
+   сборка фаз exact→distill→fd→compress→EB-стоп.
+5. Хвост **C560** — honest-заметка о cross-domain переносе
+   (bench-измерение, новой теоремы нет).
 -/
 
 set_option relaxedAutoImplicit false
