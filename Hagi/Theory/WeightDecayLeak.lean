@@ -19,8 +19,8 @@ protected subspace of continual learning.
   `W ← W − ηλ·(W − W·P)` (decay only in the complement of the
   GPM-protected span, `W − W·P = W·P⊥`) leaves the protected
   (parallel) component `W·P` EXACTLY invariant. This is the
-  machine-checked form of the HAGI_v2 experiment's projected
-  SubspaceLeak 5.68e-15 — a numerical zero for an exact one.
+  machine-checked form of the HAGI_v2 experiment's measured projected
+  SubspaceLeak 5.68e-15 (measured) — a numerical zero for an exact one.
 * `naive_decay_leak`: NAIVE weight decay `W ← (1 − ηλ)·W`
   shrinks the protected component by the EXACT factor
   (1 − ηλ) < 1 — strict memory leak (the experiment's naive
@@ -90,8 +90,8 @@ theorem wd_compl_annihilates (W : Matrix (Fin m) (Fin n) ℝ)
 decay — `W' = W − ηλ • (W − W * P)`, i.e. decay applied only in
 the complement `W − W * P = W·P⊥` of the protected span —
 leaves the protected (parallel) component `W * P` EXACTLY
-invariant. The projected-decay experiment line (SubspaceLeak
-5.68e-15) is this exact zero up to floating point. -/
+invariant. The projected-decay experiment line
+(SubspaceLeak 5.68e-15, measured) is this exact zero up to floating point. -/
 theorem wd_proj_preserves (W : Matrix (Fin m) (Fin n) ℝ)
     (P : Matrix (Fin n) (Fin n) ℝ) (hP : P * P = P) (c : ℝ) :
     (W - c • (W - W * P)) * P = W * P := by
