@@ -4558,3 +4558,31 @@ anti_mono, точечная — C495): суммарная оценка охар�
   векторное); t̂-гипотеза явно помечена.
 - Аксиомы: только propext / Quot.sound / Classical.choice
   (10/10 новых деклараций, gates-allaxioms.log).
+
+## Hagi/Theory/TritCodec.lean (C574: wave214 trit-кодек мост — 5 тритов в байте, fresh-minimal)
+
+Биекция-ядро wave214 кодека pack_trits5/unpack_trits5
+(`C:/HAGI_v2/hagi/trunk_ops.py:375-411`, 3^5 = 243 ≤ 2^8):
+группа из 5 тритов ↔ код < 243 (один байт).
+
+- `tritPack` / `tritUnpack`: код `Σ tᵢ·3ⁱ` (pack_trits5:386),
+  декод цифры i = `(v / 3ⁱ) % 3` (unpack_trits5:404-408) — точное
+  обращение, без потерь (exact integer arithmetic).
+- **tritPack_lt_243**: код любой группы < 243 = 3⁵ — guard
+  trunk_ops.py:391 недостижим (каждая группа — один байт).
+- **trit_roundtrip**: `tritUnpack (tritPack t) = t` — позиционная
+  декомпозиция суммы (вынос 3^(i+1) из старших членов +
+  единственность div/mod), base-3 позиционная система без потерь.
+- **tritPack_injective**: разные группы → разные коды (бесплатное
+  следствие round-trip; base-3 единственность при фиксированной
+  длине группы = 5).
+- Вспомогательные: sum_range_pow_lt (младшая часть суммы < 3ⁱ),
+  digit_of_sum (позиционное восстановление цифры делением).
+- Witness .tmp/C574/trajTrit.lean (rc=0): #eval round-trip на 3
+  инстансах (121, 2, 140 + точное восстановление [2,1,0,2,1] и
+  др.), decide-инъективность игрушечных пар, theorem-инстанс
+  trit_roundtrip.
+- Freeze 8742 → 8749 (+7); аксиомы только
+  propext / Quot.sound / Classical.choice (7/7 новых деклараций).
+- Adaptive context (вторая половина wave214) — OUT OF SCOPE
+  (fresh-minimal после двух погибших предшественников; KISS).

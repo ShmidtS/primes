@@ -193,6 +193,7 @@ import Hagi.Unified.FiniteMeasureBridge
 import Hagi.Energy.STEStep
 import Hagi.Runtime.BF16Delta
 import Hagi.Runtime.TernaryExact
+import Hagi.Theory.TritCodec
 import Hagi.Runtime.VennPacking
 import Hagi.Runtime.CertChecker
 import Hagi.Step.JointPreserve
