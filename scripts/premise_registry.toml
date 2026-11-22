@@ -32,6 +32,7 @@ measured = "estimated from external trial frequencies, see STATUS.md Conditional
 type = "empirical"
 note = "variance bound for Freedman concentration"
 measured = "sample variance bound from data, see STATUS.md Hagi/Probability/Freedman"
+resolved_by = "Hagi.Probability.adaptive_success_freedman_adaptive (Freedman.lean, C438): unconditional history-adapted tail with variance <= 1/4 derived via popoviciu_var_le; strictly stronger than the legacy sig-parameterized form. Legacy binder kept for statement stability (zero consumers); canonical use is discharged."
 
 [premises.h_emp_noise_bound]
 type = "empirical"
@@ -120,7 +121,7 @@ measured = "straight-through residual measurement, see STATUS.md Hagi/Energy/STE
 
 [premises.h_emp_fiber]
 type = "empirical"
-note = "PPT fiber premise"
+note = "PPT fiber premise; DISCHARGED on the canonical identity-sampler carrier by Hagi.Discovery.discovery_prob_stationary_identity (PPTCanonical.lean) — remains empirical for runtime PPT chains"
 measured = "external fiber statistic, see STATUS.md Hagi/Research/PPT"
 
 [premises.h_emp_disp_step]
@@ -130,7 +131,7 @@ measured = "growth dispersion measurement, see STATUS.md Hagi/Growth/SeedOnly"
 
 [premises.h_emp_dist]
 type = "model"
-note = "distance/divergence regularity of the data distribution model"
+note = "distance/divergence regularity of the data distribution model; point-mass form DISCHARGED on the canonical carrier by discovery_prob_stationary_identity (see PPTCanonical.lean)"
 
 [premises.h_emp_lip]
 type = "model"

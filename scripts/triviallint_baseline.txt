@@ -1,3 +1,47 @@
+# C595 audit: every baseline line carries a justification.
+# UNUSED_PARAM = Lean unusedVariables linter finding: the named
+# hypothesis is mechanically verified as unused in the proof body.
+# Removal would change the frozen statement (Freeze bake) and break
+# the public named-hypothesis API of every caller. Debt accepted;
+# revisit only with a dedicated statement-migration cycle (>5 files).
+# Hagi.Core.gqa_cache_card — cache-cardinality hypothesis kept for
+#   interface symmetry with sibling GQA cache theorems.
+# Hagi.Energy.ift_normalization — normalization scale unused; kept as
+#   documented energy-unit convention of the IFT pack.
+# Hagi.Energy.second_law — entropy-bookkeeping hypothesis documents
+#   the physical premise even where the algebra does not consume it.
+# Hagi.Foundations.band_target_unreachable — target-band parameter
+#   unused; statement documents the unreachable regime.
+# Hagi.Probability.prod_two_sel — selector-count parameter unused by
+#   the product form.
+# Hagi.Step.convex_min_unique (x2: two decls share the flag) —
+#   strictness/coercion hypotheses unused after convexity rewrite.
+# Hagi.Step.mdlObjective_neg_lambda_forbidden (x2) — sign hypotheses
+#   retained to pin the MDL objective's parameter domain.
+# Hagi.System.cycle_certificate_sound — certificate binder documents
+#   the audited cycle invariant.
+# Hagi.Unified.MasterHAGI_linked — legacy named-premise link theorem;
+#   hypotheses are the documented contract, proof reduces elsewhere.
+# Hagi.Unified.certified_cone0_takeoff — cone0 premise part of the
+#   certified-takeoff contract tuple.
+# Hagi.Unified.certified_gainprod_takeoff — same contract pattern.
+# Hagi.Examples.corePremises_nonvacuous(_strict) — nonvacuity witness
+#   examples carry the full premise list by design.
+# Hagi.Unified.frontier_cone_struct — structure lemma keeps frontier
+#   parameters for interface uniformity.
+# Hagi.Unified.hagi_horizon_bound — horizon-scale hypothesis unused
+#   after bound simplification; kept in statement.
+# Hagi.Unified.hagi_synthesis — top-level synthesis keeps the full
+#   premise contract even where steps discharge some binders.
+# Hagi.Unified.sustained_takeoff_struct — same contract pattern.
+# Hagi.Unified.MemorySemantics.certified_gain_margin — margin premise
+#   documents the certified memory contract.
+# Hagi.Unified.TC.certs_telescope — telescope binder contract.
+# Hagi.Learning.ContinualForgetting.floorsKept_trajectory — floor
+#   schedule unused by the trajectory-form proof.
+# Hagi.Learning.ContinualForgetting.floor_floor_telescope — same.
+# Hagi.Training.AlternatingJoint.boundary_damage_bound — boundary
+#   regularization binder documents the alternating-joint contract.
 UNUSED_PARAM|Hagi.Core.gqa_cache_card
 UNUSED_PARAM|Hagi.Energy.ift_normalization
 UNUSED_PARAM|Hagi.Energy.second_law
