@@ -1990,3 +1990,21 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   degradation), `remember_preserves_pages` (append-only, родня
   C579), `learn_from_dialog_archives` (архив до ingest). HONEST:
   top-k ранжирование НЕ монотонно — теорема опущена.
+
+## Hagi/Theory/CoverageReading.lean (C598: coverage-reading мост)
+
+- Мост к wave228 (lm.py b7f7f64: _read_all_windows + generate_auto
+  + Unified.ask_auto): промпт читается ЦЕЛИКОМ окнами k с шагом k
+  (без пропусков), суффикс-окно n-k при k ∤ n-k, паддинг при n ≤ k.
+  covStarts_covers — union интервалов стартов покрывает каждый
+  байт [0, n) (полное чтение входа).
+- ЧЕСТНАЯ ГРАНИЦА (не позитив): усечение `windows[-max_span:]`
+  (max_span=64) гарантирует «каждый байт прочитан» только пока
+  окон ≤ 64. covStarts_trunc_uncovered_zero — при окон > m
+  срез [-m:] отбрасывает старт 0, байт 0 остаётся непрочитанным
+  (дыра в голове). Стоп-предикаты generate_auto (sentence + low
+  confidence + 8-step repetition + entropy collapse) — чистые
+  функции измеренного состояния, формализация опущена как def-eq
+  тривиальность; max_bytes как safety cap — однострочная граница
+  цикла, опущена. Witness .tmp/C598/trajCov.lean: 540/64 covered=
+  true (9 окон), негатив truncLast 3/10 → covered=false.
