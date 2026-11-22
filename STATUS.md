@@ -4319,3 +4319,74 @@ trained_at 05:42–07:29 22.11 — все после C558 e40aa426 05:39:51).
   существующими кластерами, знания не дрейфуют (forget=0,
   константы идентичны). Известный предел: время растёт
   суперлинейно в loader-части (цель следующей волны).
+
+## Hagi/Theory/AdapterBank.lean (wave210/210b → Lean мост) (C567: adapter bank bridge from hagi v2, top-2 roadmap C565)
+
+Source-anchored мост (прецедент wave199→C530): HAGI_v2 волна
+210/210b реализовала bank per-domain адаптеров + warm-start перенос
+БЕЗ теории; C567 формализует семантику их КОДА точно (что код
+делает — и честно НЕ обещает того, чего в нём нет).
+
+- Source-anchors (C:\HAGI_v2, read-only): hagi/trunk_ops.py:310-345
+  (AdapterBank: per-domain independent adapters, ONE shared
+  trunk + isolated side-branches, forgetA=0 bit-exact upstream-
+  measured), trunk_ops.py:286-303 (adapter_warm_start: копия
+  dst.A = src.A.copy(), source untouched by construction),
+  hagi/unified.py:147-165 (wave210: fresh слот нейтрален B=0,
+  certified-обучение только fresh-домена), hagi/lm.py:770-777
+  (forward x + B(A x) из своего слота).
+- Таблица код ↔ теорема (Hagi/Theory/AdapterBank.lean, 10 новых
+  деклараций, freeze 8720 = 8710 + 13, «new fine»):
+  bankUpdate = семантика get/apply/transfer (трогают один слот);
+  warmTransfer = adapter_warm_start (копия слота src в dst);
+  adapter_bank_isolation — обновление слота j не меняет выход
+  слота i ≠ j ТОЧНО (+ obj-форма adapter_bank_isolation_obj):
+  конечная форма C544 adapter_isolation_zero_forgetting (гипотеза
+  s' i = s i стала структурным фактом bankUpdate);
+  warm_transfer_sound — forgetA=0 (слот src не меняется при ЛЮБОМ
+  src/dst, включая вырожденную копию себя) ∧ dst = копия src ∧
+  certified-шаг с warm-init (adapterStep obj (bank src) cand при
+  measured drop — та же гарантия adapter_step_certified, init в
+  statement не входит; C560 honest-заметка AdapterGrowth поднята
+  до ЯВНОЙ теоремы); warm_transfer_train_isolation — certified-
+  обучение dst после переноса не трогает src (честная гипотеза
+  src ≠ dst: при src = dst «обучение dst» = обучение A, как в
+  коде); bank_composition — bankBatch (fold bankUpdate по N
+  доменам) держит выход каждого нетронутого слота ТОЧНО —
+  индукция по списку обновлений.
+- HONEST (что НЕ гарантируется): transfer-качество (T1/T2 —
+  bench-эмпирика C560, теоремы нет и не обещано); негатив в
+  witness: warm-init может быть ХУЖЕ cold на measured obj
+  (|A−5|=12 > 5 — dual-инстанс к T1-positive 3/3). Shape-mismatch
+  ветка transfer→False вне модели (слоты банка гомогенные (d,r)
+  по построению); ленивое get-создание слота = нейтральный
+  дефолт (adapter_neutral_B, B=0 ⇒ identity); «когда переносить»
+  — caller (pre-registered closeness, не теорема).
+- Недублирование доказано: rg bankUpdate|warmTransfer|bankBatch
+  вне AdapterBank.lean пусто; C544 — изоляция по гипотезе (здесь
+  структурно), C560 — комментарий (здесь теорема); stmdup PASS.
+- Witness .tmp/C567/trajBank.lean (rc=0,
+  gates-witness-check.log): банк Fin 3 × (Fin 1, Fin 2), точная
+  матричная арифметика: изоляция слота 0 при обновлении слота 2
+  (bank0_slots_neutral: все слоты identity — B=0), forgetA=0
+  после warm 0→2 + ОБУЧЕНИЯ слота 2, вырожденный перенос
+  warmTransfer bank 1 1 = bank, copy-семантика dst, certified
+  COMMIT с warm-init, bank_composition инстанс (batch слотов
+  0,1 не трогает слот 2), негатив warm-hуже-cold; #check
+  adapter_bank_isolation / adapter_bank_isolation_obj /
+  warm_transfer_sound / warm_transfer_train_isolation /
+  bank_composition / adapter_step_certified.
+- Гейты (.tmp/C567/gates-*.log, все PASS): build (19357 jobs),
+  reachlint (544 modules), trivialint, triviality, mathlibpin
+  (fc4f59e5), duplint, nslint, doclint, layerlint, statuslint,
+  challenge 2/2, stmdup, machinediff (2000 configs),
+  assumptionscan, testasum, testfreeze, mergemodule (20 tests),
+  allaxioms + testallax (только propext / Quot.sound /
+  Classical.choice — #print axioms на всех 5 теоремах C567),
+  premisereg, freeze (8720, 0 aliased), genindex (544 modules),
+  witness-check (rc=0).
+- ВЫВОД: семантика wave210/210b AdapterBank + warm-start
+  формализована точно (изоляция слотов, forgetA=0 копией,
+  init-независимая certified-обучаемость, N-доменная композиция);
+  граница честности проведена явно: transfer-качество — эмпирика,
+  теоремой не подменено.
