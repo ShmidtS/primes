@@ -1,8 +1,6 @@
 /.lake
 .omc/*
-!.omc/analysis/
-.omc/analysis/*
-!.omc/analysis/generated/
+.tmp/*
 __pycache__/
 .context-mode/
 
@@ -15,6 +13,5 @@ REFACTOR_PLAN.md
 *.txt
 *.try
 *.tmp
-.omc/snap/
 audit/
 declarations.lock
