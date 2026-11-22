@@ -4718,3 +4718,36 @@ toy-алфавит a..z (lo=97, m=26): фикс c=0, сдвиг c=3, wrap-пер
 [97,123) (замыкание действует и на мусорный вход); аксиомы —
 только propext / Quot.sound / Classical.choice. Freeze 8761 →
 8764 (+3).
+
+## Hagi/Theory/AdaptiveContext.lean (C582: adaptive-context мост — wave214-долг, lm.AdaptiveContextSelector)
+
+Мост к HAGI_v2 `lm.AdaptiveContextSelector` (`hagi/lm.py:124`):
+модель выбирает размер собственного контекста на вход —
+адаптивность = число агрегируемых скользящих окон W (mean-logits
+ансамбль), измеренное self-CE на хвосте промпта; выбирается
+НАИМЕНЬШИЙ W с CE ≤ best·(1+tol) — «self-CE elbow», формализация
+Occam-выбора окна («no wider ensemble without measured benefit»).
+Полная история у вызывающего: unbounded SOURCE, bounded compute
+(research .tmp/C582/research.md, anchors file:line: lm.py:124,
+125-131, 133-137, 139-160, 162-197, 1253-1257). Wave214-долг
+закрыт полностью: trit C574 + context C582.
+
+Модель: `selectW tol ce best ws` — первый кандидат списка с
+`ce w ≤ best * (1 + tol)`; none = fallback «no W fits». Выбор —
+чистая функция измеренной кривой (детерминизм).
+
+- `selectW_spec`: some w → w ∈ ws ∧ ce w ≤ best·(1+tol) —
+  elbow-спецификация (принятие в пределах tol от лучшего);
+- `selectW_occam_minimal`: Pairwise (<) ws → some w → ∀ w' < w из
+  ws: best·(1+tol) < ce w' — минимальное окно (меньшие отклонены
+  измерением);
+- `selectW_budget_bound`: some w → w ≤ ws.foldr max 0 — бюджет
+  вычислений: ≤ maxW окон по k байт независимо от длины источника
+  (certified saving, связь с patch_attn_saving).
+
+Чистый мост (недублирование; вклад витка = framing + witness).
+Witness .tmp/C582/trajCtx.lean (rc=0): toy-кривая elbow → some `2`
+(W=1 отклонён), НЕГАТИВ 1 — все хуже границы → none, НЕГАТИВ 2 —
+нулевой tol → только точный минимум (some `8`); theorem-инстансы
+(budget ≤ 16, within-tol); аксиомы — только propext /
+Classical.choice / Quot.sound (все три теоремы).

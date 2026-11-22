@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 550
-- theorems: 12945
-- defs: 4854
+- modules: 551
+- theorems: 12952
+- defs: 4859
 - noncomputable decls: 1225
-- status Proven: 470 modules
+- status Proven: 471 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -482,6 +482,7 @@ theorems.
 | Hagi.System.UnifiedStep | 3 | 0 | - | no | Proven |
 | Hagi.Theory.AdapterBank | 8 | 4 | - | no | Proven |
 | Hagi.Theory.AdapterGrowth | 45 | 14 | distillProb, rankSelect, rankScore, adapterStep | no | Proven |
+| Hagi.Theory.AdaptiveContext | 7 | 5 | - | no | Proven |
 | Hagi.Theory.AdaptiveMajorizer | 59 | 4 | ceAdaptiveCurv, ceAdaptiveCurvTight, varWeight, kappa | no | Proven |
 | Hagi.Theory.AnytimeHoldoutStop | 13 | 4 | eProcess | no | Proven |
 | Hagi.Theory.AutoTransferGate | 6 | 15 | autoGate, probeObj | no | Proven |
