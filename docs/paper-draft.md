@@ -1,9 +1,16 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.5 (C559). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD e40aa426), либо измеренный результат прогона с
+Draft v0.6 (C604). Все утверждения — либо Lean-якорь (FQN, файл,
+строка на HEAD 3c94a958), либо измеренный результат прогона с
 указанием витка (Cn), либо явный PIN в §Limitations. Никаких
-недоказанных клеймов.
+недоказанных клеймов. С v0.5 (C559) добавлено: консолидированный
+statement hagi_master_v31 — 8 клозов (§3.17, C600); эра
+сертифицированных параметров proxy→формула с числами −2788 бит /
+33 snap (C597), certified transfer-гейт (C601), adaptive span с
+INFEASIBLE-границей n≤4032 и coverage-iff (C602) — §4.5; pins
+18–21 (§5); related-matrix (§1); Appendix A расширен (C592/C593/
+C600/C602). Теоремный счётчик abstract остаётся от e40aa426 (C559):
+новый индекс в C604 не генерировался.
 
 ## Abstract
 
@@ -86,6 +93,17 @@ between the HAGI_v2 runtime and this theory (C557).
   work contributes the cycle-level end-to-end theorem plus SVD
   infrastructure prepared for Mathlib upstream
   (docs/UPSTREAM-SVD.md).
+
+**Related-matrix (v0.6):** where each new-era result sits against
+the closest classical line.
+
+| Aspect | Classical line | This work (anchor, cycle) |
+|---|---|---|
+| Continual zero-forgetting | GPM projections | per-task adapter isolation, exact (clause 2 of `hagi_master_v31`, C600/C544) |
+| Transfer control | heuristic warm-start gates (ce proxy) | exact quad-iff + smooth sufficient budget `n•nlBudget` (clauses 5+8, C572/C592; bench gate C601) |
+| Quantization schedule | fixed grids | optimal `k* = ⌈log₂(L·d/ε)⌉−1` (`snap_k_eq_ceil`, C593; auto-k* bench C597) |
+| Input coverage / reading | fixed or truncated windows | coverage iff `s ≤ w` with adaptive step and honest INFEASIBLE (`covStartsStep_covers`/`_adaptive_covers`, C602) |
+| Master statements | per-property theorems | one 8-clause conjunction over the whole machine (`hagi_master_v31`, C600) |
 
 ## 2. Framework: the certify-then-commit cycle
 
@@ -660,6 +678,51 @@ checks on run numbers (P3 + P4-it1), params-bounded instance
 32 < 48, negatives (wrong-const 1/256 ≠ 0; head-only CE ≠ 0 on
 clusters before distillation).
 
+### 3.17 The consolidated statement: hagi_master_v31 (C600)
+
+<!-- source: Hagi/Theory/MasterTheoremV31.lean:59 (формулы дословно из тела theorem, HEAD 3c94a958); .tmp/C600/receipt.md (консолидация, axioms 3, freeze 8808 на C600; 8813 на C602) -->
+
+The consolidation era closes with ONE statement covering the whole
+certified machine: a conjunction of 8 clauses, each a DELEGATE to an
+already-proven theorem with hypotheses verbatim and no weakening —
+no new deep facts, only the conjunction (the `master_theorem_v3`
+pattern of C576).
+
+> **Theorem (hagi_master_v31).**
+> `Hagi/Theory/MasterTheoremV31.lean:59` (C600). For any run of the
+> v3 machine, all five v3 guarantees hold simultaneously, PLUS
+> three closure clauses:
+>
+> (1) `params bs.length ≤ 2 * k * dd` — the parameter budget at any
+>     cycle length (delegate `master_theorem_v3.1`, C576/C555);
+> (2) `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by
+>     per-task adapter isolation (`master_theorem_v3.2`, C576/C544);
+> (3) `step bs.length ≤ o0 + bs.sum` — the certified objective
+>     telescope (`master_theorem_v3.3`, C576/C555);
+> (4) `coversPrim CovP (st n) i` — coverage is monotone along the
+>     append-only cycle (`master_theorem_v3.4`, C576/C549);
+> (5) `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2` —
+>     transfer governed by an EXACT iff boundary
+>     (`master_theorem_v3.5`, C576/C572);
+> (6) `snapK L d ε = ⌈log₂(L·d/ε)⌉ − 1` — the snap grid is MINIMAL
+>     for the ε-budget, premises `0 < ε`, `ε < L·d` verbatim
+>     (`snap_k_eq_ceil`, GrowSnap.lean:342, C593);
+> (7) `∀ ib < n, ∃ sw ∈ covStarts n k, sw ≤ ib ∧ ib < sw + k` — every
+>     byte of the input is covered by some lattice window, premise
+>     `0 < k` verbatim (`covStarts_covers`, CoverageReading.lean:50,
+>     C598);
+> (8) `f z − n•nlBudget γ L G ≤ f (nlRun n γ grad z) ≤ f z` — the
+>     smooth sufficient-transfer bound at equal GD budget, premises
+>     L-smooth + G-bound verbatim (`smooth_obj_transfer_bound`,
+>     NegativeTransfer.lean:386, C592), where
+>     `nlBudget γ L G = γ·G² + L·γ²·G²/2` (NegativeTransfer.lean:242).
+
+Clauses (5)+(8) form the two-level transfer-certified circuit: an
+exact quadratic iff plus a conservative smooth sufficient level.
+Axioms of the conjunction: `propext`, `Classical.choice`,
+`Quot.sound` (3, all delegates axiom-clean — C600 receipt).
+Witness: `.tmp/C600/trajMT31.lean` (#check of the 8 clauses, exit 0).
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI (C500)
@@ -721,6 +784,42 @@ went from an unused artifact to a live dependency — the first
 real use of this theory by an external system. This is an
 existence proof of external synchronization, not yet an
 evaluation of downstream benefit (pinned below, §5.17).
+
+### 4.5 From proxies to formulas: the certified-parameters era (C560–C603)
+
+<!-- source: .tmp/C597/receipt.md (auto-k*, 2788 бит/33 snap); .tmp/C601/receipt.md + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); .tmp/C602/receipt.md + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); .tmp/C594/receipt.md (wave232 round-trip 33 мин); .tmp/C595/receipt.md + docs/PREMISES-STATUS.md (premise audit); .tmp/C596/receipt.md (bench sweep); .omc/analysis/period-c599-602-analysis.md (паттерн негатив-цикла) -->
+
+The frontier era replaced hand-set proxies of the runtime era by
+FORMULAS imported verbatim from Lean theorems, each landing as a
+bench mode with telemetry:
+
+| Proxy (runtime era) | Certified formula (Lean anchor) | Measured effect (receipt) |
+|---|---|---|
+| manual snap grid `GS_K=40` | `k* = ⌈log₂(L·d/ε)⌉−1` (`snap_k_eq_ceil`, GrowSnap.lean:342, C593) | auto-k* in 4 snap modes (grow-snap k*=18/19/20, trunk-freeze k*=11); **2788 bits saved vs legacy k=40 over 33 snap events** (telemetry bits_saved_vs_legacy, fixture run, C597) |
+| warm-start gate `ce ≤ 0.5` (HAGI_v2 wave232 proxy) | warm ⟺ `start_gap = f(θA) − f(0) ≤ n•nlBudget γ L G` (`certified_transfer_gate` ← `sufficient_negative_transfer` C592; `nlBudget = γG² + Lγ²G²/2`) | exact boundary: nlBudget(1/5, 2, 2) = 24/25; gap 24/25 → warm, 25/25 → cold-certified; live bench 3 pairs warm, forgetA = 0, T1-positive (C601) |
+| window truncation `windows[-max_span:]` | adaptive step `s = min(w, ⌈(n−w)/(m−2)⌉)` (`covStartsStep_adaptive_covers`, CoverageReading.lean:232, C602) | w=m=64: n=540 → s=8, 61 windows, covered; n=4032 → s=64 (boundary), covered; n=4160+ → honest INFEASIBLE (None) instead of silent truncation (C602) |
+
+**Coverage iff.** `covStartsStep_covers` (CoverageReading.lean:183,
+C602) is exact: windows of width w with step s cover `[0, n)` IFF
+`s ≤ w` — necessity by witness s=17 > w=9 leaving byte 9 in a hole;
+the adaptive budget form keeps windows ≤ m (`covStartsStep_len_le`,
+:219).
+
+**The negative-cycle pattern (C598 → C602).** A measured defect
+(truncation loses byte 0: `covStarts_trunc_uncovered_zero`,
+CoverageReading.lean:126, C598) → negative theorem → exact iff →
+fail-closed code with an honest INFEASIBLE branch. This
+theory-to-code round trip reproduces the wave232 result — where the
+HAGI_v2 runtime integrated the C592 sufficient-transfer gate with a
+theory→code round-trip of 33 minutes (C594 receipt) — now fully on
+our side of the bridge.
+
+**Debt closure.** The premise debt was audited rather than assumed:
+C595 produced docs/PREMISES-STATUS.md (full open-premise table,
+classes and discharge routes; PROVEN-NOW 1, PARTIAL 2, DEAD 0); C596
+swept all 35 bench modes into either PASS (13) or honest corpus-drift
+ABORT (22) with zero tracebacks — no silent failures left in the
+harness (see pin 18).
 
 ## 5. Honest limitations (pins)
 
@@ -805,6 +904,31 @@ evaluation of downstream benefit (pinned below, §5.17).
    result.** The wave205 consumer of §4.4 proves the bridge is
    used; it does not measure any downstream benefit to the
    HAGI_v2 runtime.
+18. **Adaptive-span INFEASIBLE boundary.** Full coverage within a
+   window budget m is IMPOSSIBLE in principle for n > w + (m−2)·w
+   ≈ 4032 at w = m = 64 (`covStartsStep_adaptive_covers` premise,
+   C602) — the bench reports INFEASIBLE (None) rather than
+   silently truncating; covering longer inputs needs a different
+   (e.g. hierarchical) scheme, not this one.
+19. **The smooth transfer gate is conservative, not exact.** On a
+   measured adversarial pair the quad-iff (clause 5) correctly
+   certifies cold while the smooth gate (clause 8) says warm: the
+   measured gradient bound G ≈ 0.03 makes the sufficient budget
+   99.66 exceed the start_gap 5.43 (C601 bench) — sufficiency, not
+   iff; the exact answer is the quadratic clause only. The G
+   premise is measured over the realized trajectory.
+20. **Open premises are counted, not hidden.** STILL-EXTERNAL:
+   46 registry premises (31 empirical + 14 model + 1 mathematical)
+   + 11 operational + 11 unprefixed; full budget 106 h_emp-binders
+   over 36 files; PROVEN-NOW 1 (h_emp_var), PARTIAL 2
+   (h_emp_fiber, h_emp_dist), DEAD 0 (docs/PREMISES-STATUS.md,
+   C595 audit).
+21. **Bench corpus drift.** The live unified_ledger was pruned
+   185 → 11-12 keys before C596; 22 of 35 bench modes honestly
+   ABORT (exit 3, corpus-drift) rather than fabricate guarantees
+   on a starved corpus (C596/C597 sweeps). Cross-mode numeric
+   claims in §4.5 use the C597 fixture run (20 keys) and the C601
+   gate_check witnesses.
 
 ## 6. Experiment plan (to strengthen before submission)
 
@@ -892,7 +1016,14 @@ evaluation of downstream benefit (pinned below, §5.17).
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:126 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:183 | C602 |
 | covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:233 | C602 |
+| hagi_master_v31 | Hagi/Theory/MasterTheoremV31.lean:59 | C600 |
+| snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
+| nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
+| smooth_obj_transfer_bound | Hagi/Theory/NegativeTransfer.lean:386 | C592 |
+| covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:219 | C602 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426
-     (C559); anchor lines via rg on Hagi/**/*.lean -->
+     (C559); C592/C593/C600/C602 rows verified at HEAD 3c94a958
+     (C604, rg on Hagi/**/*.lean); anchor lines via rg on
+     Hagi/**/*.lean -->
