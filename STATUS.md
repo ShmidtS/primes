@@ -4586,3 +4586,34 @@ anti_mono, точечная — C495): суммарная оценка охар�
   propext / Quot.sound / Classical.choice (7/7 новых деклараций).
 - Adaptive context (вторая половина wave214) — OUT OF SCOPE
   (fresh-minimal после двух погибших предшественников; KISS).
+
+## Hagi/Theory/MasterTheoremV3.lean (C576: master theorem v3 — machine specification, top-2 roadmap C575)
+
+Метатеорема-сборка certified-машины mini-HAGI v3: ВСЕ пять гарантий
+одного прогона — ОДНИМ statement, каждый клоз — делегат к уже
+доказанной теореме (без ослабления гипотез, adapt-мосты не нужны:
+формулировки делегатов уже итоговые).
+
+- **master_theorem_v3**: конъюнкция 5 клозов — (1) параметр-бюджет
+  `params bs.length ≤ 2·k·dd` + (3) obj-телескоп
+  `step bs.length ≤ o0 + bs.sum` (`self_compress_loop_sound`,
+  C555, деструкция .1/.2 без ослабления); (2) zero-forgetting
+  `perTaskVec (s τ) a = perTaskVec (s 0) a`
+  (`adapter_per_task_sound`, C544); (4) coverage-монотонность
+  `coversPrim CovP (st n) i` (`iterative_loop_sound`, C549,
+  специализация k = 0 — инстанс, не ослабление); (5) transfer
+  управляем точной границей `quadObj t θ > quadObj t 0 ↔
+  2⟪θ,t⟫ < ‖θ‖²` (`neg_transfer_char`, C572).
+- НЕ дублирует MasterTheorem.lean (C392 reference-machine noisy-PL
+  certified-or-refuse) — другой носитель, другие делегаты;
+  уровнем выше v3_assembly_sound (C558): это спецификация ВСЕЙ
+  машины, а не одного контура.
+- Witness .tmp/C576/trajMaster.lean (rc=0): #check всех делегатов,
+  #eval params (2·4·4 = 32, C558-инвариант), theorem-инстансы всех
+  5 частей на числах реальных прогонов C558/C560/C572 (телескоп
+  0.0733 ≤ 0.5120 + 2·0.4387/2; forget = 0; append-only покрытие;
+  transfer-граница обе стороны + равенство на границе
+  θ=(1,0), t=(1/2,0)) + полная конъюнкция-инстанс. Исправлен
+  boundary-пример предшественника (‖(1/2,0)‖² = 1/4, не 1).
+- Freeze 8749 → 8750 (+1); аксиомы только
+  propext / Quot.sound / Classical.choice.

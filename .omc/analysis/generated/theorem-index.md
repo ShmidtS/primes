@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 546
-- theorems: 12923
+- modules: 547
+- theorems: 12924
 - defs: 4821
 - noncomputable decls: 1223
-- status Proven: 466 modules
+- status Proven: 467 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -505,6 +505,7 @@ theorems.
 | Hagi.Theory.MDLPrune | 20 | 3 | - | no | Proven |
 | Hagi.Theory.MasterEF | 14 | 18 | - | yes | Conditional |
 | Hagi.Theory.MasterTheorem | 46 | 31 | stepPenalty, stepCost, stepDrop | no | Proven |
+| Hagi.Theory.MasterTheoremV3 | 1 | 0 | - | no | Proven |
 | Hagi.Theory.MergeQuant | 46 | 12 | curvRemainder, quadLoss, mid, quadLossDiag | no | Proven |
 | Hagi.Theory.MiniHagi | 3 | 1 | miniHagiCanonical | no | Proven |
 | Hagi.Theory.MiniHagi2 | 3 | 1 | miniHagi2Canonical | no | Proven |

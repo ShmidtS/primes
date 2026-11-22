@@ -472,6 +472,7 @@ import Hagi.Theory.MiniHagi
 import Hagi.Theory.MiniHagi2
 
 import Hagi.Theory.MiniHagiLoop
+import Hagi.Theory.MasterTheoremV3
 set_option linter.style.header false
 
 /-!
