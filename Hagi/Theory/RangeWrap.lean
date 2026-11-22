@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
 import Hagi.Theory.FactLedger
 
+set_option relaxedAutoImplicit false
+
 /-!
-## RangeWrap — piecewise range-affine мост (C581, волна 222)
+# RangeWrap — piecewise range-affine мост (C581, волна 222)
 
 Roadmap C580-анализа top-1: мост к HAGI_v2 piecewise range-affine
 шаблону (`hagi/core.py`, функция `_mod_affine_expr`): синтез
@@ -26,9 +31,6 @@ Fresh-minimal инвариант (KISS, 2 теоремы):
 framing в range-wrap термины). Идемпотентность композиции wrap
 честно опущена: ненулевой сдвиг меняет аргумент.
 -/
-
-set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.RangeWrap
 

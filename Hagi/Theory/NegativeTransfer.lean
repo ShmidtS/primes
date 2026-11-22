@@ -57,7 +57,6 @@ cold-init 0 (нейтральный слот, C532). Certified-шаги — GD �
 -/
 
 set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.NegativeTransfer
 

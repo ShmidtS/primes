@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
 import Hagi.Theory.MasterTheoremV3
 
+set_option relaxedAutoImplicit false
+
 /-!
-## KnowledgeConsolidation — knowledge consolidation from external
+# KnowledgeConsolidation — knowledge consolidation from external
 memory (C584)
 
 Roadmap C583 top-1: мост к HAGI_v2 wave225 (commit d2ef948, READ-ONLY).
@@ -30,9 +35,6 @@ Honest: top-k ранжирование НЕ монотонно (новая ст�
 гарантируется только membership в store. Волна стабильна
 (d2ef948 = HEAD HAGI_v2) — мост не откладывается.
 -/
-
-set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.KnowledgeConsolidation
 

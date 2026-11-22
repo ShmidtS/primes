@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
 import Hagi.Theory.MasterTheoremV3
 
+set_option relaxedAutoImplicit false
+
 /-!
-## FactLedger — append-only факт-леджер memory store (C579)
+# FactLedger — append-only факт-леджер memory store (C579)
 
 Roadmap C578 top-1: мост к HAGI_v2 волны 219–220 (external memory
 store, `hagi/memory_store/facts.py:1` — WAVE 219). Класс
@@ -25,9 +30,6 @@ Fresh-minimal инвариант (KISS, 2 теоремы): история фак
 `List.mem_append`; вклад витка = framing в fact-терминах
 (недублирование: леммы Mathlib переиспользуются как есть).
 -/
-
-set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.FactLedger
 

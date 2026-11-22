@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
 import Hagi.Theory.RangeWrap
 
+set_option relaxedAutoImplicit false
+
 /-!
-## AdaptiveContext — Occam-выбор окна контекста (C582, wave214)
+# AdaptiveContext — Occam-выбор окна контекста (C582, wave214)
 
 Мост к HAGI_v2 `lm.AdaptiveContextSelector` (hagi/lm.py, класс с
 тем же именем): модель выбирает размер собственного контекста на
@@ -26,9 +31,6 @@ research); fallback-ветка (нет подходящего W) моделир�
   (bounded compute: не более maxW окон по k байт независимо от
   длины источника — certified saving, связь с patch_attn_saving).
 -/
-
-set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.AdaptiveContext
 

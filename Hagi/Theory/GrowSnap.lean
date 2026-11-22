@@ -59,7 +59,6 @@ obj_final ≤ obj_cycle_start + Σ bounds.
 -/
 
 set_option relaxedAutoImplicit false
-set_option linter.style.header false
 
 namespace Hagi.Theory.GrowSnap
 
