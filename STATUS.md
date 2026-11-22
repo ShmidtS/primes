@@ -2008,3 +2008,19 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   тривиальность; max_bytes как safety cap — однострочная граница
   цикла, опущена. Witness .tmp/C598/trajCov.lean: 540/64 covered=
   true (9 окон), негатив truncLast 3/10 → covered=false.
+
+## Hagi/Theory/MasterTheoremV31.lean (C600: метатеория v3.1 — консолидация)
+
+- `hagi_master_v31` — certified-машина v3.1 ОДНОЙ теоремой: конъюнкция
+  8 клозов, каждый — делегат к доказанной теореме без ослабления
+  гипотез (прецедент C576). Покрытие: (1) params-бюджет ≤ 2·k·dd,
+  (2) zero-forgetting per-task адаптеров, (3) certified obj-телескоп
+  ≤ o0 + Σ bounds, (4) монотонность покрытия, (5) точный iff-transfer
+  (квадр, C572), (6) snap-грид оптимальность k* = ⌈log₂(L·d/ε)⌉−1
+  (C593), (7) coverage-чтение — каждый байт прочитан окном решётки
+  covStarts (C598), (8) smooth sufficient-transfer: f z − n•nlBudget
+  ≤ f (nlRun n γ grad z) ≤ f z при L-smooth obj и равном GD-бюджете
+  (C592). Клозы (5)+(8) = двухуровневый transfer-контур (точный iff
+  + консервативный sufficient). Ничего нового не доказывается —
+  только конъюнкция. Witness .tmp/C600/trajMT31.lean (#check
+  раскрытие 8 клозов). Axioms: propext, Classical.choice, Quot.sound.
