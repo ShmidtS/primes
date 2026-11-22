@@ -3378,3 +3378,42 @@ Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
 [`MiniHagi`](Hagi/Theory/MiniHagi.lean),
 [`MiniHagi2`](Hagi/Theory/MiniHagi2.lean),
 [`TrainerBenchmark`](Hagi/Theory/TrainerBenchmark.lean).
+
+### 27a. Мосты HAGI_v2 и bench-режимы (канон C588, v6 V4)
+
+Source-anchored мосты волн HAGI_v2 (C521–C584; детали и
+witness-ссылки — карточки STATUS.md):
+
+| Мост | Волна/C | Суть (одно описание — ровно один раз) |
+| --- | --- | --- |
+| [`GrowSnap`](Hagi/Theory/GrowSnap.lean) | C521 | snap-политика grow: сброс знаменателей на границе уровня. |
+| [`RollbackGate`](Hagi/Theory/RollbackGate.lean) | C530 | exact pre-step rollback: no-commit probe на копии. |
+| [`WeightDecayLeak`](Hagi/Theory/WeightDecayLeak.lean) | C538 | projected decay сохраняет GPM-память ТОЧНО, naive — строгая утечка теоремой. |
+| [`EmpiricalBernstein`](Hagi/Probability/EmpiricalBernstein.lean) | C539 | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman. |
+| [`OEComplete`](Hagi/Theory/OEComplete.lean) | C540 | OE-дедупликация поиска НЕ теряет решение (полнота относительно проб). |
+| [`ExactBypass`](Hagi/Theory/ExactBypass.lean) | C541 | p = 1 ⇒ CE-вклад покрытия 0 РОВНО; honest-гейт отвергает p = 0. |
+| [`MiniHagiLoop`](Hagi/Theory/MiniHagiLoop.lean) | C547/C549 | full_loop_sound — композиционная обёртка certified-цикла; итеративная версия — только coverage-монотонность как новый факт. |
+| [`AdapterGrowth`](Hagi/Theory/AdapterGrowth.lean) | C532–C560 | механика роста адаптеров (snap-цикл, rank-adaptive, SVD-merge, self-compress, distill, v3-сборка); карта секций — module docstring (C587). |
+| [`AdapterBank`](Hagi/Theory/AdapterBank.lean) | C567 | изоляция слотов банка ТОЧНО; warm-transfer = копия + forgetA=0. |
+| [`NegativeTransfer`](Hagi/Theory/NegativeTransfer.lean) | C572 | точная iff-граница warm хуже cold (квадратичный мир); бюджет не размывает. |
+| [`Softmax` (C569)](Hagi/Theory/Softmax.lean) | C569 | суммарная p̂-анти-монотонность: держится ровно при фиксированном числителе одной банки; контрпример-теорема при смешении. |
+| [`TritCodec`](Hagi/Theory/TritCodec.lean) | C574 | биекция 5 тритов ↔ байт (3^5 = 243 ≤ 2^8), roundtrip + инъективность. |
+| [`MasterTheoremV3`](Hagi/Theory/MasterTheoremV3.lean) | C576 | 5 гарантий машины v3 одним statement (конъюнкция делегатов). |
+| [`AutoTransferGate`](Hagi/Theory/AutoTransferGate.lean) | C577 | probe-A/B гейт warm/cold = точная граница C572 в H-метрике. |
+| [`FactLedger`](Hagi/Theory/FactLedger.lean) | C579 | append-only факт-леджер: preserves + monotone; dedup честно опущен. |
+| [`RangeWrap`](Hagi/Theory/RangeWrap.lean) | C581 | замкнутость mod-wrap в [lo, lo+m) (Int.emod). |
+| [`AdaptiveContext`](Hagi/Theory/AdaptiveContext.lean) | C582 | self-CE elbow: наименьший W с CE ≤ best·(1+tol). |
+| [`KnowledgeConsolidation`](Hagi/Theory/KnowledgeConsolidation.lean) | C584 | remember/consolidate: append-only память, graceful degradation. |
+
+Канон bench-паттерна (все режимы `scripts/bench_bridge.py` —
+C547–C577, единый скелет: append-блок + choice + dispatch,
+certified snap-GD с drop>0 COMMIT / HOLD, forgetA=0 bit-exact
+asserts, drift-детект на замороженной копии корпуса, EB-телеметрия,
+негативи wrong-const/HOLD, witness-lean, аксиомы только
+propext/Quot.sound/Classical.choice): режимы mini-hagi-loop,
+mini-hagi-loop2, universal-loop, universal-loop-nl,
+self-compress-loop, distill, mini-hagi-v3,
+adapter-transfer, adapter-transfer-auto, band-check,
+adapter-snap-grow, adapter-rank-adaptive, adapter-merge.
+Измеренные вердикты — карточки STATUS.md (C547–C577), там же
+witness-пути и freeze-дельты.
