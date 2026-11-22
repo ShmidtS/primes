@@ -8409,7 +8409,9 @@ def emit_lean_agn(path, res, witness_steps=3):
 # Roadmap C509 top-1: ONE continual loop whose per-step step
 # mechanism is selected DETERMINISTICALLY from the MEASURED
 # state (the C509 decision table, .omc/analysis/
-# period-c506-508-analysis.md section b):
+# period-c506-508-analysis.md section b; файл удалён в
+# c442e69, история:
+# git show c442e69^:.omc/analysis/period-c506-508-analysis.md):
 #
 #   (a) span fullness (measured once per scenario — an exact
 #       rational Gram-Schmidt fact): rank(span A \u222a B) < dim
@@ -12186,6 +12188,41 @@ def adapter_transfer_run(ledger_path):
     return {"tel": tel}
 
 
+def _holds(tel):
+    """Serialize telemetry holds: Fraction values as exact
+    strings (shared by the mini-family and adapter report
+    blocks)."""
+    return [{k: (str(v) if isinstance(v, F) else v)
+             for k, v in h.items()} for h in tel["holds"]]
+
+
+def _mini_report(mode, stats, traj, tel, **extra_tel):
+    """Shared report for the mini-hagi/grow-snap mode family:
+    steps + telemetry (phases, admissions with Fractions as
+    strings, rejects, holds, stop, outcomes) followed by any
+    mode-specific extra telemetry keys (order preserved:
+    extras come after outcomes, matching the per-mode output
+    byte for byte)."""
+    telemetry = {
+        "phases": tel["phases"],
+        "admissions": [
+            {k: (v if not isinstance(v, F) else str(v))
+             for k, v in a.items()}
+            for a in tel["admissions"]],
+        "rejects": tel["rejects"],
+        "holds": _holds(tel),
+        "stop": tel["stop"],
+        "outcomes": tel["outcomes"],
+    }
+    telemetry.update(extra_tel)
+    print(json.dumps({"mode": mode, **stats,
+        "n_steps": len(traj), "steps": [
+            {"phase": d["phase"], "obj": str(d["obj"]),
+             "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+            for d in traj],
+        "telemetry": telemetry}, indent=1))
+
+
 def main():
 
     ap = argparse.ArgumentParser()
@@ -12347,24 +12384,8 @@ def main():
             emit_lean_mini4(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_mini4(args.corrupt, start, traj)
-        print(json.dumps({"mode": "mini-hagi4", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "outcomes": tel["outcomes"],
-                "growblock": tel["growblock"]}}, indent=1))
+        _mini_report("mini-hagi4", stats, traj, tel,
+                     growblock=tel["growblock"])
         return
 
     if args.mode == "mini-hagi5":
@@ -12373,24 +12394,8 @@ def main():
             emit_lean_mini5(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_mini5(args.corrupt, start, traj)
-        print(json.dumps({"mode": "mini-hagi5", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "growcycle": tel["growcycle"],
-                "budget": tel["budget"]}}, indent=1))
+        _mini_report("mini-hagi5", stats, traj, tel,
+                     growcycle=tel["growcycle"], budget=tel["budget"])
         return
 
     if args.mode == "grow-snap":
@@ -12399,25 +12404,9 @@ def main():
             emit_lean_growsnap(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_growsnap(args.corrupt, start, traj)
-        print(json.dumps({"mode": "grow-snap", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "growcycle": tel["growcycle"],
-                "snap": tel["snap"],
-                "budget": tel["budget"]}}, indent=1))
+        _mini_report("grow-snap", stats, traj, tel,
+                     growcycle=tel["growcycle"], snap=tel["snap"],
+                     budget=tel["budget"])
         return
 
 
@@ -12440,9 +12429,7 @@ def main():
                 "rank_select": tel["rank_select"],
                 "snap": tel["snap"],
                 "budget": tel["budget"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]]}}, indent=1))
+                "holds": _holds(tel)}}, indent=1))
         return
     if args.mode == "adapter-merge":
         start, traj, tel, stats = adapter_merge_run(args.data)
@@ -12460,9 +12447,7 @@ def main():
                 "levels": tel["levels"],
                 "snap": tel["snap"],
                 "merge": tel["merge"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]]}}))
+                "holds": _holds(tel)}}))
         return
     if args.mode == "adapter-snap-grow":
         start, traj, tel, stats = \
@@ -12480,9 +12465,7 @@ def main():
                 "levels": tel["levels"],
                 "snap": tel["snap"],
                 "budget": tel["budget"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]]}}, indent=1))
+                "holds": _holds(tel)}}, indent=1))
         return
     if args.mode == "adapter-grow":
         start, traj, tel, stats = adapter_grow_run(args.data)
@@ -12498,9 +12481,7 @@ def main():
                 "admissions": tel["admissions"],
                 "adapters": tel["adapters"],
                 "block_head_to_head": tel["block_head_to_head"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]]}}, indent=1))
+                "holds": _holds(tel)}}, indent=1))
         return
 
     if args.mode == "mini-hagi3":
@@ -12509,24 +12490,8 @@ def main():
             emit_lean_mini3(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_mini3(args.corrupt, start, traj)
-        print(json.dumps({"mode": "mini-hagi3", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "outcomes": tel["outcomes"],
-                "gpm2": tel["gpm2"]}}, indent=1))
+        _mini_report("mini-hagi3", stats, traj, tel,
+                     gpm2=tel["gpm2"])
         return
 
     if args.mode == "mini-hagi2":
@@ -12535,23 +12500,7 @@ def main():
             emit_lean_mini2(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_mini2(args.corrupt, start, traj)
-        print(json.dumps({"mode": "mini-hagi2", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "outcomes": tel["outcomes"]}}, indent=1))
+        _mini_report("mini-hagi2", stats, traj, tel)
         return
 
     if args.mode == "mini-hagi":
@@ -12560,23 +12509,7 @@ def main():
             emit_lean_mini(args.emit_lean, start, traj)
         if args.corrupt:
             emit_bad_mini(args.corrupt, start, traj)
-        print(json.dumps({"mode": "mini-hagi", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
-            "telemetry": {
-                "phases": tel["phases"],
-                "admissions": [
-                    {k: (v if not isinstance(v, F) else str(v))
-                     for k, v in a.items()}
-                    for a in tel["admissions"]],
-                "rejects": tel["rejects"],
-                "holds": [{k: (str(v) if isinstance(v, F) else v)
-                           for k, v in h.items()}
-                          for h in tel["holds"]],
-                "stop": tel["stop"],
-                "outcomes": tel["outcomes"]}}, indent=1))
+        _mini_report("mini-hagi", stats, traj, tel)
         return
 
     if args.mode == "wrbound":

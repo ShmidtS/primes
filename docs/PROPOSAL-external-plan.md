@@ -4,7 +4,9 @@ For: the HAGI_v2 implementation agent. Written by the primes
 agent (C543; theory landed in primes C538–C541, Freeze 8666).
 This is the answer to the external optimization plan mapped in
 `.omc/analysis/external-plan-c537-mapping.md` (top-4 items
-P4/P1/P6/P8): every gap identified there is now proved and
+P4/P1/P6/P8; the mapping file was removed in c442e69 — history:
+`git show c442e69^:.omc/analysis/external-plan-c537-mapping.md`):
+every gap identified there is now proved and
 frozen in primes. This document is the bridge theory →
 implementation: per plan item — the exact theorem, what the code
 must do so the theorem applies, the fix in meaning (not code),

@@ -1708,7 +1708,9 @@ trajectory_telescope n t steps :
 обязательства); держится посылкой каждого шага и переносится
 композицией. Дублирование имени `CertStep` с
 `Hagi.Unified.HonestTransition.CertStep` — транзиторный долг
-(см. `.omc/tech-debt.md`); поглощение старой структуры — Track S3.
+(см. `.omc/tech-debt.md`; файл удалён в c442e69, история:
+`git show c442e69^:.omc/tech-debt.md`); поглощение старой
+структуры — Track S3.
 
 Обобщение ядра (C278, addendum A10): `Hagi/Cert/StepGen.lean` вводит
 ОБЩЕЕ ядро `Hagi.Cert.CertStepGen` — произвольный индекс задач
@@ -1769,7 +1771,8 @@ gate активен, разность «риск-остаток − операц
 под лимитом). Операционный риск остаётся символическим до появления
 медленного consumer'а. Rewiring BatchCEAlignmentBudget
 (`rangeCurvature` против более точного `batchLogitRangeSquare`) —
-отложен (см. `.omc/tech-debt.md`, R2).
+отложен (см. `.omc/tech-debt.md` R2; файл удалён в c442e69,
+история: `git show c442e69^:.omc/tech-debt.md`).
 
 ## 13. Средне-скоростной optimizer-стек: EF21-Muon (C231)
 
@@ -3336,8 +3339,9 @@ quality` (тотал = шаги × FLOP/шаг, честная premise-мини�
 (строго при n ≥ 2), `kv_step_certified` (риск-канал тратит НОЛЬ —
 первый zero-error сертификат). Дуга теперь полная: per-step FLOP
 (C328) + steps-to-ε (C330) + inference cost (C331) + compression
-tradeoff (C330). Канонический анализ фазы —
-`.omc/analysis/period-c330-c332-analysis.md`; карточки файлов —
+tradeoff (C330). Канонический анализ фазы — удалён в c442e69,
+история: `git show c442e69^:.omc/analysis/period-c330-c332-analysis.md`;
+карточки файлов —
 STATUS.md (C330/C331).
 
 ## 27. Каноны Theory (v4 T1–T6, C518 карта)

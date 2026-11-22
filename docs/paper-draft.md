@@ -177,7 +177,7 @@ certified descent through bands (`sandwich_descent`,
 
 ### 3.6 Repeated certified trunk growth (C506)
 
-<!-- source: .tmp/C506/receipt.md; .omc/analysis/period-c506-508-analysis.md §(а) -->
+<!-- source: .tmp/C506/receipt.md; .omc/analysis/period-c506-508-analysis.md §(а); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
 
 Three identity-grow events in a single run grow the trunk depth
 2 → 3 → 4 → 5, each grow asserting the EXACT objective
@@ -229,7 +229,7 @@ improved the objective.
 
 ### 3.8 Continual-learning mechanism family (C498–C510)
 
-<!-- source: .tmp/C508/receipt.md; .tmp/C510/receipt.md; decision table: .omc/analysis/period-c506-508-analysis.md §(б) -->
+<!-- source: .tmp/C508/receipt.md; .tmp/C510/receipt.md; decision table: .omc/analysis/period-c506-508-analysis.md §(б); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
 
 Per-step decision table over the four certified mechanisms
 (zero-GPM, full-GPM, rank-trunc, A-GEM), driven by MEASURED
@@ -369,7 +369,7 @@ the data gave rank 2 < min(d,L) = 4, so the bound is not vacuum.
 
 ### 3.11 External absorption: five HAGI_v2 observations as theorems (C537–C545)
 
-<!-- source: .tmp/C538..C541,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md; delivery: docs/PROPOSAL-external-plan.md (C543) -->
+<!-- source: .tmp/C538..C541,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md (файл удалён в c442e69, история: git show c442e69^:.omc/analysis/external-plan-c537-mapping.md); delivery: docs/PROPOSAL-external-plan.md (C543) -->
 
 A mapping audit (C537) inverted the bridge: instead of porting
 HAGI_v2 code, its top observed defects were formalized as

@@ -1679,7 +1679,9 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 ## Hagi/Deployment/CanaryRamp.lean
 
 - C324 — аудит §7 p.1 по ранжированию
-  `.omc/analysis/period-c313-c323-analysis.md` (canary-приёмка):
+  `.omc/analysis/period-c313-c323-analysis.md` (canary-приёмка;
+  файл удалён в c442e69, история:
+  `git show c442e69^:.omc/analysis/period-c313-c323-analysis.md`):
   вес маршрута w непрерывен, канареечный разгон 0→1, утечка линейна
   по w (`cascade_leak_router_linear`, C250), e-процесс следит за
   вредом (Ville, C264/C295 — процитированы premise-form, Unified
