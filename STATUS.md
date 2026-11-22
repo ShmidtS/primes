@@ -1887,7 +1887,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   сужаемых импортов ПУСТ (терминальное состояние). Эффект:
   15.0s → 9.2s на файл (BlockNorm probe). Freeze 8729.
 
-## Hagi/Theory/NegativeTransfer.lean (C572: negative transfer — T2-теория)
+## Hagi/Theory/NegativeTransfer.lean (C572+C592: negative transfer — T2-теория и нелинейное расширение)
 
 - Точная iff-граница для квадратичной модели: warm хуже cold ⟺
   `2•⟪θ,t⟫ < ‖θ‖²` (`neg_transfer_char`, `warm_better_char`,
@@ -1896,6 +1896,24 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (`gd_run_dist`, `warm_better_budget`). Decision-правило: warm iff
   `2⟪θ,t̂⟫ > ‖θ‖²`, t̂ — честная гипотеза caller'а. Дополняет C560
   (T1-эмпирика) и закрывает honest-pin C567.
+- **C592 (SmoothNL) — нелинейное расширение**: L-smooth objective
+  (premise-form) + GD равным бюджетом ⇒ CERTIFIED SUFFICIENT
+  (не iff): `smooth_obj_transfer_bound` (финал зажат стартом ±
+  n•`nlBudget γ L G`), `sufficient_negative_transfer` (стартовый
+  запас > n•nlBudget ⇒ warm строго хуже), кирпичи `nl_step_mono` /
+  `nl_step_lower` / `nl_obj_le_start` / `nl_obj_ge_budget`.
+  Градиентная G-граница — честный binder вдоль траектории
+  (глобальная не выводится из smoothness). Негатив-инстанс
+  (.tmp/C592/trajNL.lean, рациональные константы γ=1/5, L=2,
+  G=2): n=1 — условие выполнено (1 > 24/25) ⇒ certified;
+  n=2 — условие НЕ выполнено (1 ≤ 48/25), но warm всё равно
+  хуже ⇒ достаточность ≠ необходимость.
+- **Контраст (когда какую границу применять)**:
+
+| Мир obj | Граница | Тип | Применять когда |
+|---|---|---|---|
+| квадратичная `‖z−t‖²` | `neg_transfer_char` (C572) | ТОЧНАЯ iff (старт и финал при равном бюджете) | obj известен квадратичный; нужен decision-порог |
+| L-smooth произвольный | `sufficient_negative_transfer` (C592) | КОНСЕРВАТИВНАЯ sufficient (certified) | нелинейный obj; есть G-оценка градиента на траектории; консервативный вердикт достаточен |
 
 ## Hagi/Theory/TritCodec.lean (C574: trit-кодек, 5 тритов в байте)
 
