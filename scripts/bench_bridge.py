@@ -1994,8 +1994,8 @@ def rd_load_dataset(ledger_path):
         b = open(os.path.join(dom, k + ".bin"), "rb").read()
         s = len(b)
         x = [rd_snap(F(s, 1 << 20)),
-             rd_snap(F(sum(1 for c in b if c == 0), s)),
-             rd_snap(F(sum(1 for c in b if 32 <= c < 127), s)),
+             rd_snap(F(b.count(0), s)),
+             rd_snap(F(sum(b.count(i) for i in range(32, 127)), s)),
              rd_snap(F(sum(b), 256 * s))]
         pts.append((k, x, F(led[k]["ce"])))   # float->Fraction EXACT
     return pts
@@ -2261,8 +2261,8 @@ def cs_load_dataset(ledger_path):
         b = open(os.path.join(dom, k + ".bin"), "rb").read()
         s = len(b)
         x = [cs_snap(F(s, 1 << 20), CS_FGRID),
-             cs_snap(F(sum(1 for c in b if c == 0), s), CS_FGRID),
-             cs_snap(F(sum(1 for c in b if 32 <= c < 127), s),
+             cs_snap(F(b.count(0), s), CS_FGRID),
+             cs_snap(F(sum(b.count(i) for i in range(32, 127)), s),
                      CS_FGRID),
              cs_snap(F(sum(b), 256 * s), CS_FGRID)]
         pts.append((k, x, F(led[k]["ce"])))
@@ -3277,8 +3277,8 @@ def mh_load_dataset(ledger_path):
         b = open(p, "rb").read()
         s = len(b)
         x = [rd_snap(F(s, 1 << 20)),
-             rd_snap(F(sum(1 for c in b if c == 0), s)),
-             rd_snap(F(sum(1 for c in b if 32 <= c < 127), s)),
+             rd_snap(F(b.count(0), s)),
+             rd_snap(F(sum(b.count(i) for i in range(32, 127)), s)),
              rd_snap(F(sum(b), 256 * s))]
         pts.append((k, x, F(led[k]["ce"])))
     return pts
