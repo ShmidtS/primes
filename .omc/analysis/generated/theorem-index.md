@@ -13,9 +13,9 @@ theorems.
 ## Summary
 
 - modules: 544
-- theorems: 12888
-- defs: 4813
-- noncomputable decls: 1219
+- theorems: 12895
+- defs: 4816
+- noncomputable decls: 1222
 - status Proven: 464 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
@@ -515,7 +515,7 @@ theorems.
 | Hagi.Theory.RollbackGate | 22 | 44 | - | no | Proven |
 | Hagi.Theory.SafeStep | 72 | 43 | instDecidableAcceptCondition, ternaryCompress, certifiedDrop, dist2, proposalMetrics, safeStepMap, acceptStepCert, stochastic_safe_step_certificate, compressedCertifiedDrop, certifiedStepSize | no | Proven |
 | Hagi.Theory.SelfEdit | 43 | 21 | vel, clampIdx, idxTraj, qround | no | Proven |
-| Hagi.Theory.Softmax | 52 | 7 | auxG, bandWidth, sandwichMid | no | Proven |
+| Hagi.Theory.Softmax | 59 | 10 | hiM3, auxG, bandWidth, totalLo, sandwichMid, loN1 | no | Proven |
 | Hagi.Theory.Statistics | 164 | 18 | popMean, sigWR, wrPopMean, muCond, qdWR, popDens, holdoutMean, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
 | Hagi.Theory.TrainerBenchmark | 10 | 3 | loTB, hiTB | no | Proven |
 | Hagi.Theory.WeightDecayLeak | 9 | 0 | - | no | Proven |

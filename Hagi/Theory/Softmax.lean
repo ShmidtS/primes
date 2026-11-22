@@ -29,6 +29,13 @@ from them is provably below and above the true softmax.
   monotone in `x`, disjoint sandwich intervals certify the argmax
   (the C489 Bernoulli-in-`n` pin remained open — closed one layer
   up by BandTightening).
+* Summed `p̂` anti-monotonicity, exactly characterized (C569):
+  the TOTAL lower estimate is anti-monotone when only the
+  denominator walls of ONE band are refined
+  (`sum_phat_anti_mono_single_domain`); when the walls move
+  with the logits the total is NOT anti-monotone — the C495
+  honest pin, now a formal counterexample inside the certified
+  band (`band_mix_counterex`, `phat_total_not_anti_mono`).
 * Monotonicity in the DENOMINATOR and band tightening
   (`Hagi.Theory.BandTightening`, C502): `(1 + x / n) ^ n` is
   nondecreasing in `n` (the closed C489 pin, Lagrange MVT), the
@@ -279,6 +286,101 @@ theorem sandwich_lower_anti_mono {lo hi hi' : V → ℝ}
     Finset.sum_le_sum (fun j _ => hle j)
   rw [div_le_div_iff₀ hsum' hsum]
   exact mul_le_mul_of_nonneg_left hsumle (le_of_lt (hlo0 v))
+
+/-- C569 single-domain total lift: summing the pointwise
+anti-monotonicity over ALL classes, the TOTAL lower sandwich
+estimate inherits it — as long as the refinement touches only
+the denominator walls (`hi ≤ hi'` pointwise from ONE band,
+numerator `lo` FIXED).  This is the domain condition under
+which summed `p̂`-monotonicity HOLDS; outside it the walls
+move with the argument and the total need not be
+anti-monotone (`band_mix_counterex` below).  Proof is the
+induction-from-pointwise lift: `Finset.sum_le_sum` over
+`sandwich_lower_anti_mono`. -/
+theorem sum_phat_anti_mono_single_domain {lo hi hi' : V → ℝ}
+    (hlo0 : ∀ v, 0 < lo v) (hhi0 : ∀ v, 0 < hi v)
+    (hhi'0 : ∀ v, 0 < hi' v) (hle : ∀ j, hi j ≤ hi' j) :
+    ∑ v, lo v / ∑ w, hi' w ≤ ∑ v, lo v / ∑ w, hi w := by
+  exact Finset.sum_le_sum (fun v _ =>
+    sandwich_lower_anti_mono hlo0 hhi0 hhi'0 hle v)
+
+/-! ## The mixed-domain negative (C495 counterexample, C569 formalization) -/
+
+/-- Bernoulli lower wall with `n = 1`: `loN1 x = 1 + x`. -/
+noncomputable def loN1 (x : ℝ) : ℝ := 1 + x
+
+/-- Bernoulli upper wall with `m = 3`: `hiM3 x = (1 - x/3)⁻³`,
+valid (as an upper exp wall) for `x < 3`. -/
+noncomputable def hiM3 (x : ℝ) : ℝ := 1 / (1 - x / 3) ^ 3
+
+/-- The TOTAL lower sandwich estimate on `Fin 2` when the
+walls MOVE with the logits: `totalLo z = ∑ v, loN1 (z v) /
+∑ w, hiM3 (z w)`.  This is the mixed-domain object whose
+anti-monotonicity FAILS (`band_mix_counterex`). -/
+noncomputable def totalLo (z : Fin 2 → ℝ) : ℝ :=
+  ∑ v, loN1 (z v) / ∑ w, hiM3 (z w)
+
+/-- The C495 negative, formalized (C569): inside a fully
+CERTIFIED band (`1 + x ≤ e ^ x ≤ (1 - x/3)⁻³` on every
+logit), with nested logits `z ≤ z'` in the valid domain
+`[0, 3)`, the total lower estimate can still GROW:
+`z = (0, 2)` gives `totalLo z = 1/7`, `z' = (1, 2)` gives
+`totalLo z' = 40/243`, and `1/7 < 40/243`.  The numerator
+wall `loN1 (z v)` and the denominator contribution `hiM3
+(z v)` rise together for the moving class, and the balance
+depends on the companion logit — so no summed
+anti-monotonicity theorem exists under these (weak,
+pointwise-nested) hypotheses.  Together with
+`sum_phat_anti_mono_single_domain` this CLOSES the pinned
+open question with an exact characterization: summed `p̂`
+anti-monotonicity holds exactly when the refinement moves
+only the denominator walls of one band. -/
+theorem band_mix_counterex :
+    ∃ z z' : Fin 2 → ℝ,
+      (∀ v, 0 ≤ z v) ∧ (∀ j, z j ≤ z' j) ∧ (∀ j, z' j < 3) ∧
+      (∀ v, loN1 (z v) ≤ Real.exp (z v) ∧
+        Real.exp (z v) ≤ hiM3 (z v)) ∧
+      (∀ v, loN1 (z' v) ≤ Real.exp (z' v) ∧
+        Real.exp (z' v) ≤ hiM3 (z' v)) ∧
+      totalLo z < totalLo z' := by
+  refine ⟨![0, 2], ![1, 2], ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro j; fin_cases j <;> norm_num
+  · intro j; fin_cases j <;> norm_num
+  · intro j; fin_cases j <;> norm_num
+  · intro v; fin_cases v
+    · constructor
+      · have h := Real.add_one_le_exp 0
+        norm_num [loN1] <;> linarith
+      · exact exp_le_expUpper_inv (m := 3) (by norm_num) (by norm_num)
+    · constructor
+      · have h := Real.add_one_le_exp 2
+        norm_num [loN1] <;> linarith
+      · exact exp_le_expUpper_inv (m := 3) (by norm_num) (by norm_num)
+  · intro v; fin_cases v
+    · constructor
+      · have h := Real.add_one_le_exp 1
+        norm_num [loN1] <;> linarith
+      · exact exp_le_expUpper_inv (m := 3) (by norm_num) (by norm_num)
+    · constructor
+      · have h := Real.add_one_le_exp 2
+        norm_num [loN1] <;> linarith
+      · exact exp_le_expUpper_inv (m := 3) (by norm_num) (by norm_num)
+  · simp only [totalLo, loN1, hiM3, Fin.sum_univ_two,
+      Matrix.cons_val_zero, Matrix.cons_val_one]
+    norm_num
+
+/-- Direct negation of summed anti-monotonicity in the mixed
+domain: under the weak hypotheses that suffice pointwise
+(nonnegative nested logits inside the band `[0, 3)`), the
+conclusion `totalLo z' ≤ totalLo z` is NOT derivable —
+`band_mix_counterex` is a counterexample. -/
+theorem phat_total_not_anti_mono :
+    ¬ ∀ (z z' : Fin 2 → ℝ), (∀ v, 0 ≤ z v) → (∀ j, z j ≤ z' j) →
+      (∀ j, z' j < 3) → totalLo z' ≤ totalLo z := by
+  intro h
+  obtain ⟨z, z', hz0, hle, hlt3, _, _, hlt⟩ := band_mix_counterex
+  have hanti := h z z' hz0 hle hlt3
+  linarith
 
 /-! ## Certified prediction from disjoint sandwich intervals -/
 
