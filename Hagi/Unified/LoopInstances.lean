@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.DescentCoreQuad
 

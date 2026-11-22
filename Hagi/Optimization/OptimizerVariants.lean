@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Math.Foundations.Recurrence
 import Mathlib.Tactic
 

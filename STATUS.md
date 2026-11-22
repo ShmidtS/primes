@@ -4474,3 +4474,43 @@ anti_mono, точечная — C495): суммарная оценка охар�
 - Аксиомы новых теорем: только propext / Quot.sound /
   Classical.choice (#print axioms в witness); все гейты PASS
   (.tmp/C569/gates-*.log); freeze 8723 → 8729.
+
+## Imports final deriv-safe (C571: bare-import сужение, pinned-список сужений закрыт)
+
+Историческая гигиена импортов завершена (roadmap C570 top-2):
+`import Mathlib` → `import Mathlib.Tactic` (+ точные модули) в
+40 файлах: bare-счёт 62 → 22. Freeze identity 8729, build
+19357 jobs зелёный, все гейты PASS, аксиомы чистые
+(propext / Quot.sound / Classical.choice, 11981 теорем).
+
+- Batch A (10): 0-consumer без deriv — BYOL, BlockNorm,
+  DiffAttention, Grokfast, HNet (+MeanInequalities), Losses,
+  MeasuredEffects, SourceMixture, NewtonSchulzMatrix
+  (+CStarAlgebra.Matrix), ThermoBridge.
+- Batch B (30): consumers без deriv — Adaptive, Attention,
+  GDNBridge, NeuralComputer, Perceiver, RL, RoPETransfer
+  (+InnerProductSpace.PiL2), DREAM, EF21Quantizer, LRSchedule,
+  OptimizerVariants, RobustnessLaw, EmpiricalBernstein,
+  FiniteFamilyConfidenceEmpirical, MirrorHedgeGibbs/MWU,
+  Pseudolikelihood.Core/LocalField/Mixing, CommitGate,
+  DescentCoreDiag/Quad, LinkedQVec, LoopInstances, MachineProto,
+  NCStepCert, QuadMachine, StepContract, BatchCEAlignmentBudget,
+  Muon; потребители починены прямыми импортами
+  (DirectionProvider +PiL2, NewtonSchulzMatrix+CStarAlgebra).
+- Batch C (deriv-risk, 13 сужено standalone-зелёно) ПОЛНОСТЬЮ
+  ОТКАЧЕН: Freeze-детект нашёл statement-drift на deriv-
+  теоремах (Hagi.Energy.*, CEMarginPL.*, CEGlobalConvergence.*,
+  GatedCEDescent/Gradient, TanhTaylor) — C482-урок подтверждён:
+  deriv-высказывания элаборируют иначе в суженном env.
+- Остаток 22 bare = перманентные deriv-pins (сужение
+  недоказуемо безопасно): InfoCore, SphericalAngle, SoftmaxStep,
+  Generative, RiemannNewtonPolar, SyntheticPretrain, ProbeError,
+  PolarExpressCert, CoherenceCharacterization, Chord,
+  QuadraticEndToEnd, EnergyCoordinateStep, EnergyFlow, Concat,
+  StochasticCELearning, MirrorHedge, CEGlobalConvergence,
+  CEGradient, CEMarginPL, DerivAlong, Freedman, CRAM.
+- Pinned-список СУЖАЕМЫХ импортов теперь ПУСТОЙ (впервые):
+  дальнейшие сужения невозможны без statement-drift —
+  зафиксировано как терминальное состояние гигиены импортов.
+- Build-эффект (probe): 15.0s → 9.2s на файл (BlockNorm,
+  lake env lean); транзитивный хвост Mathlib снят у 40 модулей.

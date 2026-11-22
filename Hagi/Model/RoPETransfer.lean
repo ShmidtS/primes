@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
-import Mathlib
+import Mathlib.Tactic
+import Mathlib.Analysis.InnerProductSpace.PiL2
 import Hagi.Model.AttentionTransfer
 import Hagi.Core.RoPEMoments
 

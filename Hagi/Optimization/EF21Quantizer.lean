@@ -3,7 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
 import Hagi.Energy.Ternary
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Math.Foundations.Recurrence
 
 /-!

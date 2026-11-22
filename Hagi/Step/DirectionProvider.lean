@@ -2,6 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
+import Mathlib.Analysis.InnerProductSpace.PiL2
 import Hagi.Step.Muon
 import Hagi.Step.SafeQPStep
 import Hagi.Step.SignSGD

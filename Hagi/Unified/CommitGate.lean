@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Energy.Quantizer
 import Hagi.Cert.StepGen
 

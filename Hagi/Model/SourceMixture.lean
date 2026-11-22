@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # SourceMixture — единый objective (источник №58: Song et

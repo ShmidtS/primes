@@ -2,7 +2,7 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.ReferenceMachine

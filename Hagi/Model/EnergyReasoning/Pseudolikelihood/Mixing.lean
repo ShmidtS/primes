@@ -6,7 +6,7 @@ import Hagi.Core.Concat
 import Hagi.Energy.PairwiseCategorical
 import Hagi.Optimization.InexactContraction
 import Hagi.Energy.SingleCellDescent
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Runtime.BF16Delta
 import Hagi.Probability.MirrorHedgeMWU
 import Hagi.Cert.Core

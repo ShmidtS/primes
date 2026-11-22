@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # DiffAttention (источник №80: Ye et al., "Differential

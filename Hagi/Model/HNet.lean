@@ -1,4 +1,5 @@
-import Mathlib
+import Mathlib.Tactic
+import Mathlib.Analysis.MeanInequalities
 
 /-!
 # H-Net: иерархическая byte-level токенизация (источник №37)

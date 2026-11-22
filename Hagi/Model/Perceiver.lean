@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # Perceiver — latent bottleneck (источник №54: Jaegle et al.,

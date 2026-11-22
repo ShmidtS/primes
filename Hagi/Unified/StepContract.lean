@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 import Hagi.Math.Foundations.Telescope
 import Hagi.Cert.Core
 import Hagi.Cert.StepGen

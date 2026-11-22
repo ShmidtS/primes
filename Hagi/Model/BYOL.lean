@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # BYOL (источник №87: Grill et al., "Bootstrap Your Own

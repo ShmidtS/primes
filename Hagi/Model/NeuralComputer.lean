@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Tactic
 
 /-!
 # NeuralComputer (приоритет 4 «HAGI Neural Computer»,
