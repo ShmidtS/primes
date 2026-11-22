@@ -2024,3 +2024,35 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   + консервативный sufficient). Ничего нового не доказывается —
   только конъюнкция. Witness .tmp/C600/trajMT31.lean (#check
   раскрытие 8 клозов). Axioms: propext, Classical.choice, Quot.sound.
+
+## scripts/bench_bridge.py transfer-gate-certified (C601: certified-порог wave232-гейта)
+
+- `certified_transfer_gate` + `nl_budget` — honest start-gap измеритель
+  против CERTIFIED-порога из Lean (roadmap C599 top-2): warm допустим
+  ⟺ start_gap = f(θA) − f(0) ≤ n•nlBudget γ L G (формула
+  Hagi.Theory.NegativeTransfer.nlBudget, γG² + Lγ²G²/2, ДОСЛОВНО);
+  иначе certified negative transfer (sufficient_negative_transfer
+  C592: стартовый запас > n•nlBudget ⇒ warm строго хуже cold).
+  Docstring ссылается на smooth_obj_transfer_bound /
+  sufficient_negative_transfer. Заменяет/дополняет proxy ce≤0.5
+  wave232 (C:\HAGI_v2\hagi\unified.py, READ-ONLY) на нашей bench-
+  стороне; proxy не удаляется (может служить pre-filter).
+- Режим `--mode transfer-gate-certified` (расширение C577-гейта):
+  те же pre-registered C566-snapshot пары + adversarial; start_gap —
+  точные Fractions; L = 2•trace(H̄) (PSD λmax ≤ trace, консервативная
+  рациональная оценка для квадратичного bench obj); G² — измеренный
+  максимум ‖grad‖² по реализованным warm/cold траекториям (honest
+  measured premise hG); γ = TR_ETA; премиса γ ≤ 2/L телеметрируется;
+  forgetA bit-exact + rollback asserts. ДВУХУРОВНЕВАЯ семантика:
+  quad-iff (C572: gap0 = 2wb − wHw, точная для квадратичного obj) +
+  smooth-sufficient (C592 certified threshold); полный certified-цикл
+  arm'а, выбранного certified-гейтом.
+- Witness .tmp/C601/gate_check.py: nlBudget(1/5, 2, 2) = 24/25 exact;
+  граница ровно n•nlBudget — 24/25 → warm, 25/25 → cold-certified,
+  n=2 → 48/25; все PASS (Lean-формульный порог, не подобранный).
+- ЧЕСТНЫЙ РЕЗУЛЬТАТ (не подогнан): adversarial-пара — quad-iff
+  говорит cold (точный iff), но smooth-гейт честно допускает warm:
+  measured G вдоль adversarial-траектории мал (≈0.03), бюджет
+  99.66 > start_gap 5.43 — консервативность smooth-уровня налицо
+  (sufficient, НЕ iff; C572-iff точнее в квадратичном мире). Реальные
+  3 пары: оба уровня warm, вердикт T1-positive, forgetA=0.

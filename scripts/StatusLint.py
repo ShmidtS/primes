@@ -34,6 +34,7 @@ RUNTIME_NAMES = {
     "not_latest_is_best_allowed", "increment_envelope",
     "sum_w_pair_mid", "AssumptionScan", "AssumptionScan.py",
     "assumptions.lock",
+    "certified_transfer_gate", "nl_budget",  # C601 bench_bridge.py
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,

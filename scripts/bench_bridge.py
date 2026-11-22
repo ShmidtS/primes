@@ -12261,6 +12261,306 @@ def adapter_transfer_auto_run(ledger_path):
     return {"tel": tel}
 
 
+# C601: CERTIFIED TRANSFER GATE (--mode transfer-gate-certified)
+#
+# Roadmap C599 top-2: HAGI_v2 wave232 (hagi/unified.py, READ-ONLY)
+# warm-starts a fresh adapter from the best source domain by a
+# PROXY (source ce <= 0.5, "a measured proxy for a small start
+# gap"). C601 replaces/complements that decision on OUR side
+# with an HONEST start-gap meter against the CERTIFIED budget
+# threshold from Lean (C592):
+#
+#   warm allowed  iff  start_gap = f(thetaA) - f(0) <= n*nlBudget
+#   otherwise: CERTIFIED negative transfer -> cold
+#
+# where nlBudget gamma L G = gamma*G^2 + L*gamma^2*G^2/2 is
+# Hagi.Theory.NegativeTransfer.nlBudget (verbatim formula) and
+# the semantics are sufficient_negative_transfer (C592: start
+# gap > n*nlBudget => warm strictly worse than cold after the
+# equal n-step budget; smooth_obj_transfer_bound gives the
+# two-sided start +/- budget sandwich). CONSERVATIVE (NOT iff)
+# in the smooth world: start_gap <= n*nlBudget permits warm
+# but does not promise benefit; the exact iff lives in the
+# quadratic world (C572 boundary, reported alongside).
+#
+# HONESTY PINS (fail-closed, inherited from C577/C560):
+# - start_gap is EXACT (Fractions): mh_mse(wA, ptsB) minus
+#   mh_mse(0, ptsB) - the measured f(thetaA) - f(0), no
+#   estimates, no proxies.
+# - L: the bench obj mh_mse is quadratic with Hessian
+#   2*Hbar (Hbar = mean(xx^T) PSD), so L = 2*lambda_max <=
+#   2*trace(Hbar) - a conservative EXACT rational upper bound
+#   (PSD: lambda_max <= trace). Never tuned.
+# - G: MEASURED max gradient norm over the REALIZED warm/cold
+#   trajectories (exact Fractions) - satisfies the hG premise
+#   "forall k <= n, ||grad(nlRun k z)|| <= G" for the realized
+#   run (honest measured premise, not an estimate).
+# - gamma = TR_ETA (the certified adapter step size); the
+#   premise gamma <= 2/L is checked and telemetered.
+# - Two-level gate semantics: quad-iff (C572: gap0 =
+#   2*w.b - w.H.w decides warm exactly for the quadratic
+#   bench obj) AND smooth-sufficient (C592 certified budget
+#   threshold). The certified gate runs the FULL certified
+#   cycle of ITS chosen arm; cold reference kept for verdict.
+# - forgetA bit-exact asserts (C577/C530 rollback).
+
+
+def nl_budget(gamma, L, G):
+    """C601: the certified per-step budget, the VERBATIM Lean
+    formula Hagi.Theory.NegativeTransfer.nlBudget:
+    nlBudget gamma L G = gamma*G^2 + L*gamma^2*G^2/2
+    (exact Fractions)."""
+    return gamma * G ** 2 + L * gamma ** 2 * G ** 2 / F(2)
+
+
+def certified_transfer_gate(start_gap, n, gamma, L, G):
+    """C601: certified warm/cold transfer decision on the
+    MEASURED start gap.
+
+    Lean grounding (Hagi.Theory.NegativeTransfer, C592):
+    - smooth_obj_transfer_bound: for an L-smooth objective with
+      gradient bound G along the trajectory, after n GD steps
+      f(z) - n*nlBudget <= f(nlRun n z) <= f(z);
+    - sufficient_negative_transfer: f(thetaA) - f(0) >
+      n*nlBudget => warm is STRICTLY worse than cold after the
+      equal n-step budget (certified negative transfer).
+
+    Decision: warm is allowed iff start_gap <= n*nlBudget;
+    otherwise certified-cold (the warm arm is CERTIFIED to end
+    worse). Conservative in the smooth world (NOT iff):
+    start_gap <= threshold permits warm without promising
+    benefit; the exact quadratic iff is the C572 boundary.
+    """
+    budget = nl_budget(gamma, L, G)
+    threshold = F(n) * budget
+    certified_neg = start_gap > threshold
+    return {
+        "decision": "cold-certified" if certified_neg else "warm",
+        "threshold": threshold,
+        "budget": budget,
+        "certified_negative_transfer": certified_neg,
+        "rule": ("warm iff start_gap <= n*nlBudget "
+                 "(sufficient_negative_transfer C592; "
+                 "nlBudget gamma L G = gamma*G^2 "
+                 "+ L*gamma^2*G^2/2)"),
+    }
+
+
+def transfer_gate_certified_run(ledger_path):
+    """C601: certified start-gap transfer gate on the C577
+    pre-registered pairs + adversarial pair; exact measured
+    start_gap vs the Lean-budget threshold; two-level
+    (quad-iff C572 + smooth-sufficient C592) telemetry;
+    full certified cycle of the gate-chosen arm; forgetA
+    bit-exact assert."""
+    data = [{"x": x, "t": fl2_snap(F(str(y)))}
+            for (_, x, y) in mh_load_dataset(ledger_path)]
+    assert len(data) > 0, "ABORT: corpus empty"
+    ces = [d["t"] for d in data]
+    rng = max(ces) - min(ces)
+    assert rng > 0, "ABORT: degenerate corpus (single ce)"
+    by_t = {}
+    for d in data:
+        by_t.setdefault(d["t"], []).append(d["x"])
+    doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
+    if len(doms) < 2:
+        corpus_abort(f"need >=2 domains, got {len(doms)}",
+                     hint="transfer-gate-certified (C601)")
+    pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
+           for t in doms}
+    mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
+                  / F(len(by_t[t])) for i in range(CL_D)]
+              for t in doms}
+
+    def dist(a, b):
+        l1 = sum(abs(mean_x[a][i] - mean_x[b][i])
+                 for i in range(CL_D))
+        return l1 + abs(a - b) / rng
+
+    pairs = sorted((dist(a, b), a, b)
+                   for i, a in enumerate(doms)
+                   for b in doms[i + 1:])
+    sel = [pairs[0], pairs[len(pairs) // 2], pairs[-1]]
+
+    def train(w0, dts, steps=TR_STEPS):
+        """K certified snap-GD steps (commit only drop > 0)."""
+        w = list(w0)
+        o0 = mh_mse(w, dts)
+        traj = [{"step": 0, "obj": o0, "w": list(w)}]
+        for st in range(1, steps + 1):
+            g = mh_grad(w, dts)
+            cand = cl_snap([w[i] - TR_ETA * g[i]
+                            for i in range(CL_D)])
+            o1 = mh_mse(cand, dts)
+            if o1 < o0:
+                w, o0 = cand, o1
+            traj.append({"step": st, "obj": o0, "w": list(w)})
+        return w, o0, traj
+
+    def grad_norm2(w, dts):
+        g = mh_grad(w, dts)
+        return sum((c * c for c in g), F(0))
+
+    tel = {"mode": "transfer-gate-certified",
+           "corpus": ("C566-snapshot" if ledger_path == ATG_LEDGER
+                      else ledger_path),
+           "n_points": len(data), "n_domains": len(doms),
+           "gamma": TR_ETA, "n": TR_STEPS,
+           "gate_rule": ("warm iff start_gap = f(thetaA) - f(0) "
+                         "<= n*nlBudget (C592 certified; nlBudget "
+                         "gamma L G = gamma*G^2 + L*gamma^2*G^2/2 "
+                         "verbatim from Lean); quad level: C572 "
+                         "iff gap0 = 2*w.b - w.H.w"),
+           "steps_budget": TR_STEPS, "pairs": []}
+
+    for d0, A, B in sel:
+        ptsA, ptsB = pts[A], pts[B]
+        wA = train([F(0)] * CL_D, ptsA, TR_STEPS)[0]
+        snapA = list(wA)
+        # --- honest start gap: exact f(thetaA) - f(0) on B
+        f_warm0 = mh_mse(wA, ptsB)
+        f_cold0 = mh_mse([F(0)] * CL_D, ptsB)
+        start_gap = f_warm0 - f_cold0
+        # --- L: 2*trace(Hbar) (PSD lambda_max <= trace, exact)
+        nB = F(len(ptsB))
+        traceH = sum((sum((x[i] * x[i] for x, _ in ptsB), F(0))
+                      for i in range(CL_D)), F(0)) / nB
+        L_bound = F(2) * traceH
+        # --- G: measured max ||grad|| over REALIZED warm/cold
+        # trajectories (honest premise hG for the realized run)
+        _, _, trajW = train(list(wA), ptsB)
+        _, _, trajC = train([F(0)] * CL_D, ptsB)
+    # G premise: measured max ||grad||^2 over the REALIZED
+    # trajectories (exact Fractions); satisfies the hG premise
+    # "||grad|| <= G" for the realized run. Since nlBudget uses
+    # G only via G^2, the budget is evaluated with the EXACT
+    # squared value (no irrational sqrt on rationals).
+        G2 = max(max(grad_norm2(d["w"], ptsB)
+                     for d in trajW),
+                 max(grad_norm2(d["w"], ptsB)
+                     for d in trajC))
+        # nlBudget needs G (as a number) with G^2 exact: since the
+        # only occurrences of G are G^2, evaluate the budget with
+        # the EXACT squared value by substituting G^2 := G2:
+        budget_step = (TR_ETA * G2
+                       + L_bound * TR_ETA ** 2 * G2 / F(2))
+        threshold = F(TR_STEPS) * budget_step
+        certified_neg = start_gap > threshold
+        gate = "cold-certified" if certified_neg else "warm"
+        assert wA == snapA, \
+            "ABORT gate rollback: source adapter A mutated (C530)"
+        # --- quad level (C572 iff) telemetry
+        hww, wb = atg_quadratic_form(ptsB, wA)
+        gap0 = 2 * wb - hww
+        quad_gate = "warm" if gap0 > 0 else "cold"
+        # --- premise check: gamma <= 2/L
+        prem_ok = TR_ETA <= F(2) / L_bound
+        # --- full certified cycle of the gate-chosen arm
+        chosen_init = (list(wA) if gate == "warm"
+                       else [F(0)] * CL_D)
+        wS, fS, tS = train(chosen_init, ptsB)
+        chosen_auc = sum((d["obj"] for d in tS), F(0))
+        _, fc, tc = train([F(0)] * CL_D, ptsB)
+        cold_auc = sum((d["obj"] for d in tc), F(0))
+        assert wA == snapA, \
+            "ABORT forgetA: source adapter A mutated during " \
+            "domain-B training (isolation broken)"
+        verdict = "T1-positive" if chosen_auc < cold_auc else \
+            "T2-negative" if chosen_auc > cold_auc else "T3-none"
+        tel["pairs"].append({
+            "A": str(A), "B": str(B), "dist": str(d0),
+            "kind": "real",
+            "start_gap": {"f_warm0": str(f_warm0),
+                          "f_cold0": str(f_cold0),
+                          "gap": str(start_gap)},
+            "smooth_premises": {
+                "L_bound_2traceH": str(L_bound),
+                "G2_max_grad_norm2": str(G2),
+                "gamma_le_2_over_L": prem_ok,
+                "n": TR_STEPS, "gamma": TR_ETA},
+            "certified_gate": {
+                "budget_step": str(budget_step),
+                "threshold_n_budget": str(threshold),
+                "gate": gate,
+                "certified_negative_transfer": certified_neg},
+            "quad_gate_c572": {"gap_2tb_minus_tHt": str(gap0),
+                               "gate": quad_gate},
+            "chosen": {"arm": gate, "final_ce": str(fS),
+                       "auc": str(chosen_auc)},
+            "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
+            "verdict": verdict})
+
+    # --- adversarial pair (C572-style synthetic: t = -c*theta.x)
+    d0, A, B = sel[0]
+    wA = train([F(0)] * CL_D, pts[A], TR_STEPS)[0]
+    pts_adv = [(x, -ATG_ADV_C * mh_pred(wA, x))
+               for (x, _) in pts[B]]
+    snapA = list(wA)
+    f_warm0 = mh_mse(wA, pts_adv)
+    f_cold0 = mh_mse([F(0)] * CL_D, pts_adv)
+    start_gap = f_warm0 - f_cold0
+    nB = F(len(pts_adv))
+    traceH = sum((sum((x[i] * x[i] for x, _ in pts_adv), F(0))
+                  for i in range(CL_D)), F(0)) / nB
+    L_bound = F(2) * traceH
+    _, _, trajW = train(list(wA), pts_adv)
+    _, _, trajC = train([F(0)] * CL_D, pts_adv)
+    G2 = max(max(grad_norm2(d["w"], pts_adv) for d in trajW),
+             max(grad_norm2(d["w"], pts_adv) for d in trajC))
+    budget_step = (TR_ETA * G2
+                   + L_bound * TR_ETA ** 2 * G2 / F(2))
+    threshold = F(TR_STEPS) * budget_step
+    certified_neg = start_gap > threshold
+    gate = "cold-certified" if certified_neg else "warm"
+    assert wA == snapA, "ABORT gate rollback (adversarial)"
+    hww, wb = atg_quadratic_form(pts_adv, wA)
+    gap0 = 2 * wb - hww
+    quad_gate = "warm" if gap0 > 0 else "cold"
+    prem_ok = TR_ETA <= F(2) / L_bound
+    chosen_init = (list(wA) if gate == "warm" else [F(0)] * CL_D)
+    wS, fS, tS = train(chosen_init, pts_adv)
+    chosen_auc = sum((d["obj"] for d in tS), F(0))
+    _, fc, tc = train([F(0)] * CL_D, pts_adv)
+    cold_auc = sum((d["obj"] for d in tc), F(0))
+    tel["pairs"].append({
+        "A": str(A), "B": "adversarial(-theta.x)",
+        "dist": str(d0), "kind": "adversarial",
+        "start_gap": {"f_warm0": str(f_warm0),
+                      "f_cold0": str(f_cold0),
+                      "gap": str(start_gap)},
+        "smooth_premises": {
+            "L_bound_2traceH": str(L_bound),
+            "G2_max_grad_norm2": str(G2),
+            "gamma_le_2_over_L": prem_ok,
+            "n": TR_STEPS, "gamma": TR_ETA},
+        "certified_gate": {
+            "budget_step": str(budget_step),
+            "threshold_n_budget": str(threshold),
+            "gate": gate,
+            "certified_negative_transfer": certified_neg},
+        "quad_gate_c572": {"gap_2tb_minus_tHt": str(gap0),
+                           "gate": quad_gate},
+        "chosen": {"arm": gate, "final_ce": str(fS),
+                   "auc": str(chosen_auc)},
+        "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
+        "verdict": ("gate-cold (expected, C572 synthetic)"
+                    if gate != "warm" else
+                    "UNEXPECTED warm (H degenerate?)")})
+
+    v = [p["verdict"] for p in tel["pairs"][:3]]
+    tel["final"] = {
+        "real_pairs": 3, "verdicts": v,
+        "certified_gates": [p["certified_gate"]["gate"]
+                            for p in tel["pairs"]],
+        "quad_gates": [p["quad_gate_c572"]["gate"]
+                       for p in tel["pairs"]],
+        "adversarial_gate": tel["pairs"][-1][
+            "certified_gate"]["gate"],
+        "forgetA": 0,
+        "rollback_exact": True}
+    return {"tel": tel}
+
+
 def adapter_transfer_run(ledger_path):
     """C560: warm-start (copy of a trained domain-A adapter)
     vs cold (zero) init for domain-B training, on the live
@@ -12443,7 +12743,8 @@ def main():
                              "distill",
                              "mini-hagi-v3",
                              "adapter-transfer",
-                             "adapter-transfer-auto"],
+                             "adapter-transfer-auto",
+                             "transfer-gate-certified"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -13062,6 +13363,34 @@ def main():
             "n_points": tel["n_points"],
             "n_domains": tel["n_domains"],
             "probe_steps": tel["probe_steps"],
+            "gate_rule": tel["gate_rule"],
+            "steps_budget": tel["steps_budget"],
+            "pairs": [
+                {k: (v if not isinstance(v, dict) else
+                     {k2: (v2 if not isinstance(v2, list) else
+                           v2[:3] + ["..."] if len(v2) > 6 else v2)
+                      for k2, v2 in v.items()})
+                 for k, v in p.items()}
+                for p in tel["pairs"]],
+            "final": tel["final"],
+        }, indent=1, default=str))
+        return
+
+    if args.mode == "transfer-gate-certified":
+        import os as _os
+        ledger = (ATG_LEDGER
+                  if _os.path.abspath(args.data)
+                  == _os.path.abspath(RD_DEFAULT_LEDGER)
+                  else args.data)
+        res = transfer_gate_certified_run(ledger)
+        tel = res["tel"]
+        print(json.dumps({
+            "mode": tel["mode"],
+            "corpus": tel["corpus"],
+            "n_points": tel["n_points"],
+            "n_domains": tel["n_domains"],
+            "gamma": tel["gamma"],
+            "n": tel["n"],
             "gate_rule": tel["gate_rule"],
             "steps_budget": tel["steps_budget"],
             "pairs": [
