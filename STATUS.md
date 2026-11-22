@@ -4691,3 +4691,30 @@ toy-леджер, позитивы preserves/monotone, НЕГАТИВ — rewrit
 (замена записи) ломает preserves; #eval длина повторного append =
 3 (dedup нет, как в коде); аксиомы — propext только (monotone —
 вообще без аксиом). Freeze 8756 → 8758 (+2).
+
+## Hagi/Theory/RangeWrap.lean (C581: piecewise range-affine мост — wave222, top-1 roadmap C580-анализа)
+
+Fresh-minimal мост к HAGI_v2 piecewise range-affine шаблону
+(`hagi/core.py`: `_mod_affine_expr`, base-offset affine — CAESAR на
+codepoint-алфавитах): y = ((x − lo + c) mod m) + lo внутри сегмента
+входов, вне — гейт вызывающего отбраковывает. Python floor-mod =
+`Int.emod` — семантика совпадает (research .tmp/C581/research.md,
+anchors file:line: core.py:3021, 3076, 3095-3096, 3098-3107).
+Идемпотентность композиции wrap честно опущена (c≠0 сдвигает).
+
+Модель: `rangeWrap lo c x m = (x - lo + c) % m + lo`.
+
+- `rangeWrap_inrange`: m > 0 → lo ≤ wrap < lo + m — замкнутость в
+  диапазон, round-robin перенос (Mathlib `Int.emod_nonneg` /
+  `Int.emod_lt_of_pos`);
+- `rangeWrap_fixed_point`: нулевой сдвиг (c % m = 0) не двигает
+  аргумент из [lo, lo+m) (Mathlib `Int.add_emod` /
+  `Int.emod_eq_of_lt`).
+
+Чистый мост к Mathlib-леммам (недублирование; вклад витка =
+framing + witness). Witness .tmp/C581/trajWrap.lean (rc=0):
+toy-алфавит a..z (lo=97, m=26): фикс c=0, сдвиг c=3, wrap-перенос
+'z'+3→99, НЕГАТИВ — вне-диапазонный вход 200 заворачивается в
+[97,123) (замыкание действует и на мусорный вход); аксиомы —
+только propext / Quot.sound / Classical.choice. Freeze 8761 →
+8764 (+3).

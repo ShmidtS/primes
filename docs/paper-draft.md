@@ -880,6 +880,8 @@ evaluation of downstream benefit (pinned below, §5.17).
 | auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
 | fact_append_preserves | Hagi/Theory/FactLedger.lean:59 | C579 |
 | fact_lookup_monotone | Hagi/Theory/FactLedger.lean:67 | C579 |
+| rangeWrap_inrange | Hagi/Theory/RangeWrap.lean:43 | C581 |
+| rangeWrap_fixed_point | Hagi/Theory/RangeWrap.lean:53 | C581 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426

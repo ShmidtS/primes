@@ -12,11 +12,11 @@ theorems.
 
 ## Summary
 
-- modules: 549
-- theorems: 12939
-- defs: 4853
+- modules: 550
+- theorems: 12945
+- defs: 4854
 - noncomputable decls: 1225
-- status Proven: 469 modules
+- status Proven: 470 modules
 - status Conditional: 25 modules
 - status Empirical: 10 modules
 - status Speculative: 25 modules
@@ -516,6 +516,7 @@ theorems.
 | Hagi.Theory.OEComplete | 8 | 6 | - | no | Proven |
 | Hagi.Theory.OnlinePL | 28 | 0 | - | no | Proven |
 | Hagi.Theory.ProvenTrunk | 11 | 5 | witnessW, provenBlocks, trunkLip, concreteLM, witnessG | no | Proven |
+| Hagi.Theory.RangeWrap | 6 | 1 | - | no | Proven |
 | Hagi.Theory.RollbackGate | 22 | 44 | - | no | Proven |
 | Hagi.Theory.SafeStep | 72 | 43 | instDecidableAcceptCondition, ternaryCompress, certifiedDrop, dist2, proposalMetrics, safeStepMap, acceptStepCert, stochastic_safe_step_certificate, compressedCertifiedDrop, certifiedStepSize | no | Proven |
 | Hagi.Theory.SelfEdit | 43 | 21 | vel, clampIdx, idxTraj, qround | no | Proven |
