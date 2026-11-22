@@ -3198,7 +3198,140 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
     return stats, w
 
 
-# C492: MINI-HAGI - the FULL bench in ONE certified run on the
+# (--mode band-check)
+#
+# C568: the BandDescribes measurement bridge — empirical side.
+# Lean side (TrainerBenchmark.lean, C568): BandDescribes is a
+# THEOREM for genuine certified bands (bandDescribes_of_pointwise
+# + bernoulliBandDescribes). This mode is the DRIFT DETECTOR:
+# ONE run of the vs-trainer pipeline (same train/holdout split)
+# checks, for EVERY holdout model and EVERY class, that the true
+# softmax (60-digit Decimal) lies inside the exact rational
+# normalized bands lo/Σhi ≤ soft ≤ hi/Σlo, at the fixed training
+# CS_NM and at the C502 adaptive eval-nm. No historical intervals
+# are mixed in — bands and facts come from the SAME run.
+# EB gate (Maurer–Pontil, α=0.05) on the in-fraction; negative
+# control: a distorted band (lo := hi swap) must go OUT.
+def band_check_run(ledger_path, steps=CS_STEPS):
+    """C568: BandDescribes fact-vs-band check on the live corpus.
+    Returns (stats, w)."""
+    import math
+    from decimal import Decimal as D, getcontext
+    getcontext().prec = 60
+    pts, med = cs_load_dataset(ledger_path)
+    assert len(pts) > 0, "ABORT: no usable real points"
+    data = [(x, 0 if y <= med else 1) for _, x, y in pts]
+    train = [d for i, d in enumerate(data) if i % 5 != 4]
+    hold = [(k, d[0], d[1]) for i, (k, d) in
+            enumerate(zip([p[0] for p in pts], data)) if i % 5 == 4]
+    w = list(CS_W0)
+    for t in range(steps):
+        g = cs_grad_log(w, train)
+        mx = max(abs(v) for v in g)
+        cand = [cs_snap(w[kk] - CS_ETA * g[kk] / mx, CS_WGRID)
+                for kk in range(CS_K * CS_D)]
+        o1, o2 = cs_obj(w, train), cs_obj(cand, train)
+        if o2 is not None and o2 < o1:
+            w = cand
+
+    def dfrac(fr):
+        return D(fr.numerator) / D(fr.denominator)
+
+    def check_membership(z, nm, distort=False):
+        """Exact rational bands at nm; true softmax (Decimal) in?
+        Returns (rows, n_in, n_checked, margins)."""
+        t = cs_terms_nm(z, nm)
+        if t is None:
+            return None
+        lo, hi = t
+        if distort:  # negative control: swap the walls
+            lo, hi = hi, lo
+        slo, shi = sum(lo, F(0)), sum(hi, F(0))
+        loN = [lo[c] / shi for c in range(CS_K)]
+        hiN = [hi[c] / slo for c in range(CS_K)]
+        E = [dfrac(z[c]).exp() for c in range(CS_K)]
+        SE = sum(E, D(0))
+        rows, n_in, margins = [], 0, []
+        for c in range(CS_K):
+            p = E[c] / SE
+            lo_d, hi_d = dfrac(loN[c]), dfrac(hiN[c])
+            inside = (lo_d <= p) and (p <= hi_d)
+            margin = float(min(p - lo_d, hi_d - p))
+            margins.append(margin)
+            n_in += inside
+            rows.append({"class": c, "in": inside,
+                         "lo": str(loN[c]), "hi": str(hiN[c]),
+                         "soft": str(p), "margin": margin})
+        return rows, n_in, margins
+
+    table, n_in, n_tot, min_margin = [], 0, 0, float("inf")
+    neg_rows = None
+    for k, x, y in hold:
+        z = cs_logits(w, x)
+        entry = {"key": k, "label": y, "bands": {}}
+        # fixed training-nm band
+        r = check_membership(z, CS_NM)
+        assert r is not None, "ABORT: range guard hit at CS_NM"
+        rows, nin, mgs = r
+        entry["bands"]["train_nm"] = rows
+        n_in += nin
+        n_tot += CS_K
+        min_margin = min(min_margin, *mgs)
+        # C502 adaptive eval-nm (the nm actually used for a
+        # certified prediction, if any)
+        nm = CS_NM
+        while nm <= CS_NM_EVAL_MAX:
+            t = cs_terms_nm(z, nm)
+            if t is not None:
+                lo, hi = t
+                slo, shi = sum(lo, F(0)), sum(hi, F(0))
+                if all(hi[c] / slo < lo[c2] / shi
+                       for c in range(CS_K)
+                       for c2 in range(CS_K) if c != c2):
+                    break
+            nm *= 2
+        if nm <= CS_NM_EVAL_MAX and nm != CS_NM:
+            r2 = check_membership(z, nm)
+            if r2 is not None:
+                rows2, nin2, mgs2 = r2
+                entry["bands"]["eval_nm"] = {"nm": nm,
+                                             "rows": rows2}
+                n_in += nin2
+                n_tot += CS_K
+                min_margin = min(min_margin, *mgs2)
+        # negative control on the FIRST holdout point only
+        if neg_rows is None:
+            rn = check_membership(z, CS_NM, distort=True)
+            if rn is not None:
+                rowsn, ninn, _ = rn
+                neg_rows = {"key": k, "rows": rowsn,
+                            "n_in": ninn}
+        table.append(entry)
+    assert neg_rows is not None and neg_rows["n_in"] < CS_K, \
+        "ABORT: negative control (swapped band) did not go OUT"
+    # EB (Maurer–Pontil) lower bound on the in-fraction, α=0.05
+    alpha = 0.05
+    phat = n_in / n_tot
+    ln3a = math.log(3.0 / alpha)
+    eb_low = (phat - math.sqrt(2 * phat * (1 - phat)
+                               * ln3a / n_tot)
+              - 3 * ln3a / n_tot)
+    stats = {
+        "mode": "band-check", "n_points": len(pts),
+        "n_train": len(train), "n_holdout": len(hold),
+        "n_checked": n_tot, "n_in": n_in,
+        "in_fraction": phat, "min_margin": min_margin,
+        "eb_lower_bound": {"value": eb_low, "alpha": alpha,
+                           "rule": "maurer-pontil"},
+        "gate": "PASS" if n_in == n_tot else "FAIL",
+        "negative_control_swapped_band": neg_rows,
+        "holdout": table,
+        "theorem": "Hagi.Theory.TrainerBenchmark."
+                   "bandDescribes_of_pointwise + "
+                   "bernoulliBandDescribes (C568)",
+        "source": ledger_path,
+    }
+    return stats, w
 # REAL corpus (--mode mini-hagi)
 #
 # PIN (unification): ONE run on the live unified_ledger corpus
@@ -11864,6 +11997,7 @@ def main():
                              "wrbound", "cert-sandwich", "mini-hagi",
                              "mini-hagi2", "mini-hagi3",
                              "mini-hagi4", "mini-hagi5",                              "vs-trainer",
+                            "band-check",
                              "grow-snap",
                              "adapter-snap-grow",
                              "adapter-rank-adaptive",
@@ -11995,6 +12129,12 @@ def main():
 
     if args.mode == "vs-trainer":
         stats, w = vs_trainer_run(args.data, args.selfloop,
+                                  args.steps or CS_STEPS)
+        print(json.dumps(stats, indent=1, default=str))
+        return
+
+    if args.mode == "band-check":
+        stats, w = band_check_run(args.data,
                                   args.steps or CS_STEPS)
         print(json.dumps(stats, indent=1, default=str))
         return

@@ -24,16 +24,21 @@ argmax of the rational midpoint surrogate — coincides with
 the argmax of the true ranking. Both orderings are derived;
 no `ε` is needed.
 
-## Honest pin (measurement premise)
+## Honest pin (measurement premise) — CLOSED (C568)
 
-`BandDescribes z lo hi` is a MEASUREMENT premise
-(`Describes`-type): it is not proven here from the data. It
-IS implied by the soundness hypotheses of
+`BandDescribes z lo hi` was a MEASUREMENT premise
+(`Describes`-type). C568 closes the measurement bridge as a
+theorem: it IS implied by the soundness hypotheses of
 `Hagi.Theory.RationalSoftmax.rationalSoftmaxCert`
-(`lo v ≤ e ^ z v ≤ hi v`), but on the benchmark the band is
-accepted as the certified reading of the measured model —
-the theorem's contribution is that disjointness then
-transfers the certified forecast to the true ranking.
+(`lo v ≤ e ^ z v ≤ hi v`) — `bandDescribes_of_pointwise`
+below — and the bench bands (C489/C502 Bernoulli shape on
+max-shifted logits) satisfy those hypotheses exactly
+(`bernoulliBandDescribes`). The theorem's contribution —
+disjointness transfers the certified forecast to the true
+ranking — is unchanged; the premise is no longer data-
+dependent for genuine certified bands. The `--mode
+band-check` bench (C568) is the empirical drift detector
+(implementation vs theorem).
 
 ## Numeric example (real holdout)
 
@@ -126,5 +131,67 @@ example (z : Bool → ℝ) (hband : BandDescribes z loTB hiTB) :
   certified_forecast_sound hband
     (by intro a ha; cases a; exact absurd rfl ha; exact
       trainer_benchmark_sep_example)
+
+/-! ## The measurement bridge (C568): BandDescribes is a theorem
+
+The pinned measurement premise closes one layer down: the
+pointwise certified exponential sandwich implies the
+normalized band-describes property, and the bench band shape
+(C489/C502 bench band builder) is an
+instance. -/
+
+/-- Softmax is shift-invariant: subtracting a constant from
+ every logit multiplies numerator and denominator by the
+ same exponential factor, so `softDef` is unchanged. -/
+theorem softDef_shift (z : V → ℝ) (c : ℝ) (v : V) :
+    softDef (fun w => z w - c) v = softDef z v := by
+  have hsum : ∑ w, Real.exp (z w - c)
+      = Real.exp (-c) * ∑ w, Real.exp (z w) := by
+    simp only [Real.exp_sub, Real.exp_neg, div_eq_inv_mul,
+      Finset.mul_sum]
+  show Real.exp (z v - c) / _ = Real.exp (z v) / _
+  rw [hsum, Real.exp_sub, Real.exp_neg]
+  field_simp
+
+/-- The measurement bridge: if `lo ≤ e ^ (z ·) ≤ hi` holds
+POINTWISE (with `0 < lo`), then the normalized certified
+band describes the true softmax of EVERY class — exactly the
+`BandDescribes` premise of `certified_forecast_sound`, now
+derived instead of assumed. -/
+theorem bandDescribes_of_pointwise {z lo hi : V → ℝ}
+    (hlo : ∀ v, lo v ≤ Real.exp (z v)) (hlo0 : ∀ v, 0 < lo v)
+    (hhi : ∀ v, Real.exp (z v) ≤ hi v) :
+    BandDescribes z lo hi :=
+  fun v => rationalSoftmaxCert hlo hlo0 hhi v
+
+/-- The bench band shape describes: the C489/C502 bands on
+max-shifted logits — `lo v = (1 + s v / n) ^ n`,
+`hi v = 1 / (1 - s v / n) ^ n` where `s v = z v - z b` and
+`b` is any logit maximizer — satisfy the pointwise sandwich
+(`expLower_le_exp`, `exp_le_expUpper_inv`), hence
+`BandDescribes`. The strict range premise `-n < s v` mirrors
+the bench range guard (the cs_terms_nm builder HOLDs outside
+it), and
+gives `0 < lo`. -/
+theorem bernoulliBandDescribes {n : ℕ} (hn : 0 < n)
+    {z : V → ℝ} {b : V} (hmax : ∀ w, z w ≤ z b)
+    (hgt : ∀ w, -n < z w - z b) :
+    BandDescribes z
+      (fun v => (1 + (z v - z b) / n) ^ n)
+      (fun v => 1 / (1 - (z v - z b) / n) ^ n) := by
+  have hnR : (0:ℝ) < n := by positivity
+  have key := bandDescribes_of_pointwise
+    (z := fun w => z w - z b)
+    (fun v => expLower_le_exp hn (by have := hgt v; linarith))
+    (fun v => pow_pos (by
+      have h := hgt v
+      have h2 : (-1:ℝ) < (z v - z b) / n := by
+        rw [lt_div_iff₀ hnR]; linarith
+      linarith) n)
+    (fun v => exp_le_expUpper_inv hn (by
+      have hb := hmax v
+      linarith))
+  unfold BandDescribes at key ⊢
+  simpa only [softDef_shift z (z b)] using key
 
 end Hagi.Theory.TrainerBenchmark

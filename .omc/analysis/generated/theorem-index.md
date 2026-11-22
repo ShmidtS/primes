@@ -13,7 +13,7 @@ theorems.
 ## Summary
 
 - modules: 544
-- theorems: 12885
+- theorems: 12888
 - defs: 4813
 - noncomputable decls: 1219
 - status Proven: 464 modules
@@ -517,7 +517,7 @@ theorems.
 | Hagi.Theory.SelfEdit | 43 | 21 | vel, clampIdx, idxTraj, qround | no | Proven |
 | Hagi.Theory.Softmax | 52 | 7 | auxG, bandWidth, sandwichMid | no | Proven |
 | Hagi.Theory.Statistics | 164 | 18 | popMean, sigWR, wrPopMean, muCond, qdWR, popDens, holdoutMean, wrMean, wrPopVar, wrX, wrM, cSc | no | Proven |
-| Hagi.Theory.TrainerBenchmark | 7 | 3 | loTB, hiTB | no | Proven |
+| Hagi.Theory.TrainerBenchmark | 10 | 3 | loTB, hiTB | no | Proven |
 | Hagi.Theory.WeightDecayLeak | 9 | 0 | - | no | Proven |
 | Hagi.Training.AdaptiveAnytime | 21 | 15 | adaptiveRoundWeights | no | Proven |
 | Hagi.Training.Admission | 25 | 34 | admissionMargin, admitRule | yes | Conditional |

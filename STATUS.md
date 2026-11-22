@@ -4390,3 +4390,56 @@ Source-anchored мост (прецедент wave199→C530): HAGI_v2 волна
   init-независимая certified-обучаемость, N-доменная композиция);
   граница честности проведена явно: transfer-качество — эмпирика,
   теоремой не подменено.
+
+## Hagi/Theory/TrainerBenchmark.lean + scripts/bench_bridge.py (--mode band-check) (C568: band describes measurement bridge, top-3 roadmap C565)
+
+Закрытие pinned-open премисы BandDescribes (TrainerBenchmark.lean:62,
+последний top-3 пин C565): «факт внутри интервала» был премисой —
+стал ТЕОРЕМОЙ (исход (c) по pre-registered критериям research.md).
+
+- Исход (c): премиса выводима из существующего поточечного
+  сертификата — rationalSoftmaxCert (Softmax.lean:113) даёт
+  softDef z v ∈ [lo v/∑hi, hi v/∑lo] уже при lo ≤ e^z· ≤ hi
+  поточечно. Новые теоремы (freeze 8723 = 8720 + 3, «16 new
+  fine»): softDef_shift (softmax сдвиг-инвариантен — exp-фактор
+  сокращается в числителе/знаменателе);
+  bandDescribes_of_pointwise (measurement-мост: поточечный
+  сэндвич ⇒ нормализованная полоса описывает КАЖДЫЙ класс —
+  премиса certified_forecast_sound теперь выводима, а не
+  измеряема); bernoulliBandDescribes (bench-форма полосы
+  C489/C502 на max-shifted логитах lo=(1+s/n)^n,
+  hi=1/(1-s/n)^n удовлетворяет поточечному сэндвичу через
+  expLower_le_exp / exp_le_expUpper_inv; строгая гипотеза
+  -n < s — ЧЕСТНЫЙ аналог bench range-guard, даёт 0 < lo).
+  Аксиомы: только propext / Quot.sound / Classical.choice.
+- Bench (--mode band-check, ОДИН прогон, same-run: полосы и
+  факты из одного прогона, исторические интервалы C497/C502 не
+  смешиваются): live corpus 124 точки, 24 holdout-модели × 2
+  класса = 48 проверок — истинный softmax (60-значный Decimal,
+  margin логируется, min margin 3.6e-05) лежит в точной
+  rational полосе lo/Σhi ≤ soft ≤ hi/Σlo в 48/48 случаях;
+  EB-гейт Maurer–Pontil (α=0.05) lower bound 0.744; PASS.
+  Bench = drift-детектор «реализация vs теорема» (теорема несёт
+  доказательство, прогон — телеметрию).
+- Негатив-контроль (Pesticide): переставленная полоса
+  (lo := hi swap) — 0/2 класса in (bench), Lean-двойник:
+  ¬ BandDescribes z (2,1) — softmax < 1 строго, стена 2/2 = 1
+  невозможна (.tmp/C568/trajBand.lean, rc=0).
+- Недублирование: rationalSoftmaxCert — точечная (один v),
+  bandDescribes_of_pointwise — ∀v-пакет премисной формы,
+  bernoulliBandDescribes — bench-инстанс формы; C497
+  certified_forecast_sound не менялся (потребитель премисы);
+  stmdup PASS.
+- Гейты (.tmp/C568/gates-*.log, все PASS): build (19357 jobs),
+  witness-check (rc=0), reachlint, trivialint, triviality,
+  mathlibpin (fc4f59e5, toolchain v4.36.0 match), duplint,
+  nslint, doclint, layerlint, statuslint, challenge 2/2,
+  stmdup, machinediff, assumptionscan, testasum, testfreeze,
+  mergemodule (tests), allaxioms (11974 теорем, только
+  propext/Quot.sound/Classical.choice) + testallax, premisereg,
+  freeze (8723, 0 aliased), genindex (544 modules,
+  TrainerBenchmark 7→10 theorems, всего 12885→12888).
+- ВЫВОД: measurement-мост замкнут — BandDescribes-премиса
+  дедуктивно следует из поточечного сертификата, bench
+  подтверждает на живом корпусе 48/48; пин C565 «pinned-open →
+  closed-theorem» (сильнее closed-empirical).
