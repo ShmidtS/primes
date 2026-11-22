@@ -1,0 +1,9 @@
+files scanned: 551
+R4 (docstring names) findings: 4
+  R4_DOC | Theory\FactLedger.lean | `guarded_fact_history` not declared anywhere
+  R4_DOC | Theory\FactLedger.lean | `guarded_fact_history` not declared anywhere
+  R4_DOC | Theory\FactLedger.lean | `propose` not declared anywhere
+  R4_DOC | Theory\FactLedger.lean | `guarded_fact_history` not declared anywhere
+R5 (unmarked numbers) findings: 1
+  R5_NUM | Theory\WeightDecayLeak.lean | number 5 unmarked/uncomputed
+DOCLINT: FAIL
