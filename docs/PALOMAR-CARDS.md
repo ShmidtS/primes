@@ -284,6 +284,52 @@ and budget
 - **Category.** Discrete mathematics (arXiv cs.DM); MSC2020
   68W40, 05B40.
 
+## Card 12 — Information-theoretic floor for reading n bytes
+with width-w windows
+
+- **Statement.** Информационный floor: любой список стартов L,
+  покрывающий каждый байт i < n окном [t, t+w), имеет длину не
+  меньше ⌈n/w⌉ — Lean дословно:
+
+  `theorem hier_total_floor (L : List ℕ) (w n : ℕ) (hw : 0 < w)`
+  `(hcover : ∀ i < n, ∃ t ∈ L, t ≤ i ∧ i < t + w) :`
+  `n ≤ L.length * w`
+
+  и иерархия из Card 10 при s = w, w ∣ B достигает floor
+  (`hier_total_min` :468):
+
+  `theorem hier_total_min (n B w : ℕ) (hw : 0 < w) (hB : 0 < B)`
+  `(hdiv : w ∣ B) :`
+  `(hierStarts n B w w).length = (n + w - 1) / w`
+
+  замыкая оптимум (`hier_optimal` :539): total иерархии = ⌈n/w⌉
+  ∧ ∀ L-покрытие: `(n + w - 1) / w ≤ L.length`.
+- **Наглядность.** Никакая иерархия не прочитает n байт окнами
+  ширины w меньше чем ⌈n/w⌉ чтениями — это геометрия, а не
+  алгоритм: k окон покрывают не более k·w байтов (инъекция
+  i ↦ (окно, сдвиг) в пары «t × [0, w)»). Floor не зависит от
+  структуры иерархии — только от ширины окна w; выбор B
+  свободен (любое B, кратное w, даёт один и тот же total,
+  гипотеза B* = √(nw) опровергнута телескоп-суммой).
+- **Anchor.**
+  `Hagi.Theory.CoverageReading.hier_total_floor`
+  (Hagi/Theory/CoverageReading.lean:502);
+  `hier_total_min` (:468); `hier_optimal` (:539);
+  `hier_total_formula` (:446); `hier_blocks_sum_tiling` (:395);
+  `covStartsStep_len_tiling` (:360); определения `hierBlockLen`
+  (:270), `hierStarts` (:275).
+- **Dependencies.** Mathlib (Finset.card_le_card_of_injOn,
+  List, Nat.div); без внешних теорий. Числа-инстансы (receipt
+  C618): n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉ для
+  всех B ∈ {64, 2048, 4032, 4096} (константен по B); s = 32 < w
+  → 3033 > 1563 (строго хуже floor); n = 8128 → 127.
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Ценность — сертифицированная НЕУЛУЧШАЕМОСТЬ
+  иерархии Card 10 по total: достигнут информационный минимум,
+  дальше сокращать нечего без уменьшения w.
+- **Category.** Discrete mathematics / streaming algorithms
+  (arXiv cs.DM); MSC2020 68W40, 68P05, 05B40.
+
 ---
 
 ## Submission requirements (что нужно для реальной отправки)
