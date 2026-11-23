@@ -935,18 +935,16 @@ def _proof_full(name_suffix, ok):
 def emit_lean_full(path, start, traj):
     """C479 witness: the unified 6-phase trajectory literal +
     #eval + norm_num theorem."""
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartFull : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryFull : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in traj)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartFull "
-                "benchTrajectoryFull\n\n"
-                + _proof_full("", True))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartFull : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryFull : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartFull "
+                      "benchTrajectoryFull\n\n"
+                      + _proof_full("", True))
 
 
 def emit_bad_full(path, start, traj):
@@ -954,19 +952,17 @@ def emit_bad_full(path, start, traj):
     last step; the checker must reject the whole trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                "def benchStartFullBad : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryFullBad : "
-                "List Hagi.Runtime.CertStepData :=\n["
-                + ",\n".join(lean_step(d) for d in bad)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartFullBad "
-                "benchTrajectoryFullBad\n\n"
-                + _proof_full("Bad", False))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      "def benchStartFullBad : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryFullBad : "
+                      "List Hagi.Runtime.CertStepData :=\n["
+                      + ",\n".join(lean_step(d) for d in bad)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartFullBad "
+                      "benchTrajectoryFullBad\n\n"
+                      + _proof_full("Bad", False))
 
 
 # ----------------------------------------------------------------
@@ -1135,18 +1131,16 @@ def emit_bad_ef21(path, start, traj):
     the actual descent — the checker must reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartEF21Bad : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryEF21Bad : "
-                "List Hagi.Runtime.CertStepData :=\n["
-                + ",\n".join(lean_step(d) for d in bad)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartEF21Bad "
-                "benchTrajectoryEF21Bad\n\n"
-                + _proof_ef21("Bad", False))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartEF21Bad : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryEF21Bad : "
+                      "List Hagi.Runtime.CertStepData :=\n["
+                      + ",\n".join(lean_step(d) for d in bad)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartEF21Bad "
+                      "benchTrajectoryEF21Bad\n\n"
+                      + _proof_ef21("Bad", False))
 
 def rat(q):
     """Fraction -> exact Lean rational literal."""
@@ -1183,18 +1177,16 @@ def _proof(name_suffix, ok):
 
 
 def emit_lean(path, start, traj, name_suffix="", ok=True):
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStart{name_suffix} : \u211a := {rat(start)}\n\n"
-                f"def benchTrajectory{name_suffix} : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in traj)
-                + "]\n\n"
-                f"#eval checkTrajectory benchStart{name_suffix} "
-                f"benchTrajectory{name_suffix}\n\n"
-                + _proof(name_suffix, ok))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStart{name_suffix} : \u211a := {rat(start)}\n\n"
+                      f"def benchTrajectory{name_suffix} : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                      + "]\n\n"
+                      f"#eval checkTrajectory benchStart{name_suffix} "
+                      f"benchTrajectory{name_suffix}\n\n"
+                      + _proof(name_suffix, ok))
 
 
 def emit_bad(path, start, traj):
@@ -1224,18 +1216,16 @@ def _proof_ce(name_suffix, ok):
 def emit_lean_ce(path, start, traj, name_suffix="", ok=True):
     """C442 witness for the certified CE trajectory (same literal /
     #eval / norm_num pattern as the default mode)."""
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStart{name_suffix} : \u211a := {rat(start)}\n\n"
-                f"def benchTrajectory{name_suffix} : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in traj)
-                + "]\n\n"
-                f"#eval checkTrajectory benchStart{name_suffix} "
-                f"benchTrajectory{name_suffix}\n\n"
-                + _proof_ce(name_suffix, ok))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStart{name_suffix} : \u211a := {rat(start)}\n\n"
+                      f"def benchTrajectory{name_suffix} : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                      + "]\n\n"
+                      f"#eval checkTrajectory benchStart{name_suffix} "
+                      f"benchTrajectory{name_suffix}\n\n"
+                      + _proof_ce(name_suffix, ok))
 
 
 def emit_bad_ce(path, start, traj):
@@ -1651,38 +1641,34 @@ def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
     literals) and the negative: the FIRST blocked candidate had a
     POSITIVE measured gain -- without the stop the cycle would have
     continued (no_stop_admits)."""
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartGrowStop : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryGrowStop : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in traj)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartGrowStop "
-                "benchTrajectoryGrowStop\n\n")
-        f.write(_proof_grow_stop("", True))
-        f.write(
-            "\n/-- Machine-checked STOP (C446): the conservative "
-            "rational rule fired --\n1/delta - 1 <= lam * D on the "
-            "exact measured literals, hence the e-value\ncrossed "
-            "1/delta (stop_implies_evalue) and admission is "
-            "blocked for every later\nblock "
-            "(Hagi.Theory/Statistics, AnytimeHoldoutStop section). -/\n"
-            "theorem growstop_fired :\n"
-            f"    {rat(GS_THRESH)} <= {rat(GS_LAM)} * "
-            f"{rat(stop_rec['D'])} := by\n"
-            "  norm_num\n")
-        f.write(
-            "\n/-- Negative (cycle would continue without the "
-            "stop): the FIRST blocked\ncandidate has POSITIVE "
-            "measured certified gain -- the C444 margin alone would\n"
-            "admit it (no_stop_admits). The stop is the ONLY "
-            "reason growth halted. -/\n"
-            "theorem growstop_blocked_would_admit :\n"
-            f"    0 < {rat(blocked['gain'])} := by\n"
-            "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartGrowStop : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryGrowStop : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in traj)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartGrowStop "
+                      "benchTrajectoryGrowStop\n\n"
+                  + (_proof_grow_stop("", True))
+                  + "\n/-- Machine-checked STOP (C446): the conservative "
+                      "rational rule fired --\n1/delta - 1 <= lam * D on the "
+                      "exact measured literals, hence the e-value\ncrossed "
+                      "1/delta (stop_implies_evalue) and admission is "
+                      "blocked for every later\nblock "
+                      "(Hagi.Theory/Statistics, AnytimeHoldoutStop section). -/\n"
+                      "theorem growstop_fired :\n"
+                      f"    {rat(GS_THRESH)} <= {rat(GS_LAM)} * "
+                      f"{rat(stop_rec['D'])} := by\n"
+                      "  norm_num\n"
+                  + "\n/-- Negative (cycle would continue without the "
+                      "stop): the FIRST blocked\ncandidate has POSITIVE "
+                      "measured certified gain -- the C444 margin alone would\n"
+                      "admit it (no_stop_admits). The stop is the ONLY "
+                      "reason growth halted. -/\n"
+                      "theorem growstop_blocked_would_admit :\n"
+                      f"    0 < {rat(blocked['gain'])} := by\n"
+                      "  norm_num\n")
 
 
 def emit_bad_grow_stop(path, start, traj):
@@ -1690,18 +1676,16 @@ def emit_bad_grow_stop(path, start, traj):
     must reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartGrowStopBad : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryGrowStopBad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in bad)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartGrowStopBad "
-                "benchTrajectoryGrowStopBad\n\n")
-        f.write(_proof_grow_stop("Bad", False))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartGrowStopBad : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryGrowStopBad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in bad)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartGrowStopBad "
+                      "benchTrajectoryGrowStopBad\n\n"
+                  + (_proof_grow_stop("Bad", False)))
 
 
 def emit_bad_grow(path, start, traj):
@@ -1709,18 +1693,16 @@ def emit_bad_grow(path, start, traj):
     reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartGrowBad : ℚ := {rat(start)}\n\n"
-                "def benchTrajectoryGrowBad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in bad)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartGrowBad "
-                "benchTrajectoryGrowBad\n\n")
-        f.write(_proof_grow("Bad", False))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartGrowBad : ℚ := {rat(start)}\n\n"
+                      "def benchTrajectoryGrowBad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in bad)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartGrowBad "
+                      "benchTrajectoryGrowBad\n\n"
+                  + (_proof_grow("Bad", False)))
 
 
 # ----------------------------------------------------------------
@@ -1954,23 +1936,21 @@ def emit_lean_trunk(path, start, traj, bad=False):
         if bad else ("benchTrajectoryTrunk", "trunk_bench_valid")
     if bad:
         ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartTrunk : \u211a := {rat(start)}\n\n"
-                f"def {name} : List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                f"#eval checkTrajectory benchStartTrunk {name}\n\n"
-                f"theorem {thm} :\n"
-                f"    checkTrajectory benchStartTrunk {name} = "
-                f"{'false' if bad else 'true'} := by\n"
-                "  set_option linter.unusedSimpArgs false in\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartTrunk, "
-                f"{name}, Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartTrunk : \u211a := {rat(start)}\n\n"
+                      f"def {name} : List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      f"#eval checkTrajectory benchStartTrunk {name}\n\n"
+                      f"theorem {thm} :\n"
+                      f"    checkTrajectory benchStartTrunk {name} = "
+                      f"{'false' if bad else 'true'} := by\n"
+                      "  set_option linter.unusedSimpArgs false in\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartTrunk, "
+                      f"{name}, Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C484: REAL-DATASET certified trunk bench (--mode real-data)
@@ -2220,31 +2200,28 @@ def emit_lean_real(path, start, traj, witness_steps=4,
     (task form: first N steps machine-checked)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     full = full_steps if full_steps is not None else len(traj)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(
-            "-- C484 real-dataset trunk bench witness.\n"
-            f"-- FULL accepted trajectory: {full} steps; the "
-            f"first {len(ds)} are machine-checked below\n"
-            "-- (checkTrajectory over a prefix validates the "
-            "chain start, every admission and chaining).\n"
-            "import Hagi.Runtime.CertChecker\n\n"
-            "open Hagi.Runtime\n\n"
-            f"def benchStartReal : \u211a := {rat(start)}\n\n"
-            "def benchTrajectoryReal : List "
-            "Hagi.Runtime.CertStepData :=\n"
-            + "[\n" + ",\n".join(lean_step(d) for d in ds)
-            + "\n]\n\n"
-            "#eval checkTrajectory benchStartReal "
-            "benchTrajectoryReal\n\n"
-            "theorem real_bench_valid :\n"
-            "    checkTrajectory benchStartReal "
-            "benchTrajectoryReal = true := by\n"
-            "  set_option linter.unusedSimpArgs false in\n"
-            "  simp only [checkTrajectory, checkStep, "
-            "benchStartReal, benchTrajectoryReal, "
-            "Bool.and_eq_true, decide_eq_true_eq]\n"
-            "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C484 real-dataset trunk bench witness.\n"
+                      f"-- FULL accepted trajectory: {full} steps; the "
+                      f"first {len(ds)} are machine-checked below\n"
+                      "-- (checkTrajectory over a prefix validates the "
+                      "chain start, every admission and chaining).\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartReal : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryReal : List "
+                      "Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartReal "
+                      "benchTrajectoryReal\n\n"
+                      "theorem real_bench_valid :\n"
+                      "    checkTrajectory benchStartReal "
+                      "benchTrajectoryReal = true := by\n"
+                      "  set_option linter.unusedSimpArgs false in\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartReal, benchTrajectoryReal, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C491: CERTIFIED SANDWICH CE training on real data
@@ -2532,33 +2509,30 @@ def emit_lean_cs(path, start, traj, witness_steps=2,
     certificate products)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     full = full_steps if full_steps is not None else len(traj)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(
-            "-- C491 certified sandwich CE bench witness.\n"
-            f"-- FULL accepted trajectory: {full} steps; the "
-            f"first {len(ds)} are machine-checked below\n"
-            "-- (obj/obj'/drop are the EXACT rational "
-            "certificate products; Hagi.Theory.\n"
-            "-- CertSandwichBench.certCE_descent links the "
-            "certificate drop to the true-CE drop).\n"
-            "import Hagi.Runtime.CertChecker\n\n"
-            "open Hagi.Runtime\n\n"
-            f"def benchStartSand : \u211a := {rat(start)}\n\n"
-            "def benchTrajectorySand : List "
-            "Hagi.Runtime.CertStepData :=\n"
-            + "[\n" + ",\n".join(lean_step(d) for d in ds)
-            + "\n]\n\n"
-            "#eval checkTrajectory benchStartSand "
-            "benchTrajectorySand\n\n"
-            "theorem sand_bench_valid :\n"
-            "    checkTrajectory benchStartSand "
-            "benchTrajectorySand = true := by\n"
-            "  set_option linter.unusedSimpArgs false in\n"
-            "  simp only [checkTrajectory, checkStep, "
-            "benchStartSand, benchTrajectorySand, "
-            "Bool.and_eq_true, decide_eq_true_eq]\n"
-            "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C491 certified sandwich CE bench witness.\n"
+                      f"-- FULL accepted trajectory: {full} steps; the "
+                      f"first {len(ds)} are machine-checked below\n"
+                      "-- (obj/obj'/drop are the EXACT rational "
+                      "certificate products; Hagi.Theory.\n"
+                      "-- CertSandwichBench.certCE_descent links the "
+                      "certificate drop to the true-CE drop).\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartSand : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectorySand : List "
+                      "Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartSand "
+                      "benchTrajectorySand\n\n"
+                      "theorem sand_bench_valid :\n"
+                      "    checkTrajectory benchStartSand "
+                      "benchTrajectorySand = true := by\n"
+                      "  set_option linter.unusedSimpArgs false in\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartSand, benchTrajectorySand, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 def emit_bad_cs(path, start, traj):
@@ -2567,28 +2541,25 @@ def emit_bad_cs(path, start, traj):
     bad = [dict(d) for d in traj[:2]]
     last = bad[-1]
     last["drop"] = last["drop"] + last["obj"]
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(
-            "-- C491 negative control: last drop inflated by obj "
-            "(drop > obj - obj').\n"
-            "import Hagi.Runtime.CertChecker\n\n"
-            "open Hagi.Runtime\n\n"
-            f"def benchStartSandBad : \u211a := {rat(start)}\n\n"
-            "def benchTrajectorySandBad : "
-            "List Hagi.Runtime.CertStepData :=\n["
-            + ",\n".join(lean_step(d) for d in bad)
-            + "\n]\n\n"
-            "#eval checkTrajectory benchStartSandBad "
-            "benchTrajectorySandBad\n\n"
-            "theorem sand_bench_invalid :\n"
-            "    checkTrajectory benchStartSandBad "
-            "benchTrajectorySandBad = false := by\n"
-            "  set_option linter.unusedSimpArgs false in\n"
-            "  simp only [checkTrajectory, checkStep, "
-            "benchStartSandBad, benchTrajectorySandBad, "
-            "Bool.and_eq_true, decide_eq_true_eq]\n"
-            "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C491 negative control: last drop inflated by obj "
+                      "(drop > obj - obj').\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartSandBad : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectorySandBad : "
+                      "List Hagi.Runtime.CertStepData :=\n["
+                      + ",\n".join(lean_step(d) for d in bad)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartSandBad "
+                      "benchTrajectorySandBad\n\n"
+                      "theorem sand_bench_invalid :\n"
+                      "    checkTrajectory benchStartSandBad "
+                      "benchTrajectorySandBad = false := by\n"
+                      "  set_option linter.unusedSimpArgs false in\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartSandBad, benchTrajectorySandBad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C485: CONTINUAL two-task bench (--mode continual)
@@ -2830,9 +2801,7 @@ def emit_lean_cont(path, res, witness_steps=4):
                    "Bool.and_eq_true, decide_eq_true_eq]\n"
                    "  norm_num\n\n")
     out.append("#check @Hagi.Theory.ContinualBench.gpm_bench_bridge\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 
@@ -3043,9 +3012,7 @@ def emit_lean_contm(path, res, witness_steps=4):
     out.append("#check @Hagi.Theory.ContinualMulti."
                "gpm_multi_zero_forgetting\n"
                "#check @Hagi.Spectral.rank_orthogonal_growth\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C487: WITHOUT-REPLACEMENT holdout bound bench (--mode wrbound)
@@ -3866,33 +3833,31 @@ def emit_lean_mini(path, start, traj, witness_steps=3):
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C492 mini-HAGI witness (real unified_ledger "
-                "data).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} machine-checked "
-                "steps below. Canonical obj = (MSE_A + MSE_B)/2 "
-                "(exact Fractions).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.MiniHagi\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini "
-                "benchTrajectoryMini\n\n"
-                "theorem mini_hagi_bench_valid :\n"
-                "    checkTrajectory benchStartMini "
-                "benchTrajectoryMini = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini, benchTrajectoryMini, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.MiniHagi."
-                "mini_hagi_gpm_canonical_descent\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C492 mini-HAGI witness (real unified_ledger "
+                      "data).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} machine-checked "
+                      "steps below. Canonical obj = (MSE_A + MSE_B)/2 "
+                      "(exact Fractions).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.MiniHagi\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini "
+                      "benchTrajectoryMini\n\n"
+                      "theorem mini_hagi_bench_valid :\n"
+                      "    checkTrajectory benchStartMini "
+                      "benchTrajectoryMini = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini, benchTrajectoryMini, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.MiniHagi."
+                      "mini_hagi_gpm_canonical_descent\n")
 
 
 def emit_bad_mini(path, start, traj, witness_steps=3):
@@ -3900,28 +3865,26 @@ def emit_bad_mini(path, start, traj, witness_steps=3):
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C492 mini-HAGI NEGATIVE witness: the last "
-                "declared drop is inflated by 1; the certified "
-                "checker must reject.\n"
-                "import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMiniBad : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryMiniBad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMiniBad "
-                "benchTrajectoryMiniBad\n\n"
-                "theorem mini_hagi_bench_invalid :\n"
-                "    checkTrajectory benchStartMiniBad "
-                "benchTrajectoryMiniBad = false := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMiniBad, benchTrajectoryMiniBad, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C492 mini-HAGI NEGATIVE witness: the last "
+                      "declared drop is inflated by 1; the certified "
+                      "checker must reject.\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMiniBad : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryMiniBad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMiniBad "
+                      "benchTrajectoryMiniBad\n\n"
+                      "theorem mini_hagi_bench_invalid :\n"
+                      "    checkTrajectory benchStartMiniBad "
+                      "benchTrajectoryMiniBad = false := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMiniBad, benchTrajectoryMiniBad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C494: MINI-HAGI2 - the SCALED mini bench (deeper trunk, 3
@@ -3978,6 +3941,102 @@ MH2_E_STEPS = 4                    # Ville-stop phase steps
 MH2_QUANT_FT = 1                   # quant finetune steps
 MH2_NPAR = 2 * (MH2_D + MH2_HID * MH2_D + MH2_D * MH2_HID) \
     + MH2_D                        # 2 blocks + head = 44
+
+
+
+def _load_corpus(ledger_path):
+    """Load the real corpus points (mh_load_dataset) with the
+    fail-closed non-empty assert shared by the mini-hagi /
+    adapter / loop mode families."""
+    pts = mh_load_dataset(ledger_path)
+    assert len(pts) > 0, \
+        "ABORT: live corpus empty (no ledger key has a .bin)"
+    return pts
+
+
+def _phaseA_corpus(ledger_path):
+    """Phase-A corpus prefix shared by the 2-block mini-hagi /
+    grow-snap / adapter families: unlimited Fraction printing,
+    corpus load, the 3-task clm_split and the 1/5 holdout split.
+    Returns (pts, tasks, htasks, skipped)."""
+    sys.set_int_max_str_digits(0)   # deep-trunk rationals: no
+    # decimal-print limit for exact Fraction telemetry
+    pts = _load_corpus(ledger_path)
+    tasks, skipped = clm_split(pts)
+    T = len(tasks)
+    assert T == 3, "ABORT: expected 3 tasks from clm_split"
+    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
+            if i % 5 == 4]
+    htasks, _ = clm_split(hold)
+    assert all(htasks), "ABORT: empty holdout task after split"
+    return pts, tasks, htasks, skipped
+
+
+def _phaseA_train(tasks, htasks, theta, w, raw, tel, hold_reason):
+    """Phase A: MH2_A_STEPS joint fd trunk+head steps admitted only by a
+    measured canonical drop > 0 (HOLD steps are logged in tel["holds"]
+    with the per-mode `hold_reason`). Returns (theta, w)."""
+    def riskA(th, wcur):
+        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
+                   F(0)) / F(len(htasks))
+
+    for _ in range(MH2_A_STEPS):
+        p = mh2_flat(theta, w)
+        o = mh2_canon(w, tasks, theta)
+        gfd = []
+        for k in range(MH2_NPAR):
+            q = list(p)
+            q[k] = q[k] + MH2_H
+            th2, w2 = mh2_unflat(q)
+            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
+        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
+                        for k in range(MH2_NPAR)], MH2_GRID)
+        th2, w2 = mh2_unflat(cand)
+        o2 = mh2_canon(w2, tasks, th2)
+        if o2 < o:
+            raw.append({"phase": "A-trunk2", "obj": o,
+                        "obj'": o2, "drop": o - o2,
+                        "risk": riskA(theta, w),
+                        "risk'": riskA(th2, w2)})
+            theta, w = th2, w2
+        else:
+            tel["holds"].append({"phase": "A-trunk2",
+                                 "drop": o - o2,
+                                 "reason": hold_reason})
+    return theta, w
+
+
+def _finalize_traj(raw, name):
+    """Shared trajectory tail: Ville budget fill, exact obj-chain
+    assert and the executable check_step re-verification (fail-closed
+    exit naming the mode)."""
+    n = len(raw)
+    assert n > 0, f"ABORT: {name} committed no steps"
+    for t, dd in enumerate(raw):
+        dd["budget"] = F(n - t) / n
+        dd["budget'"] = F(n - t - 1) / n
+    for a, b in zip(raw, raw[1:]):
+        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
+    for dd in raw:
+        if not check_step(dd):
+            sys.exit(f"ABORT: {name} step failed certified "
+                     f"admission: {dd}")
+
+
+def _write_text(path, text):
+    """Write an emitted Lean witness / negative file and report it on
+    stderr (shared tail of the emit_lean_* / emit_bad_* family)."""
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"written: {path}", file=sys.stderr)
+
+
+def _traj_steps(traj):
+    """The per-step (phase, obj, obj', drop) JSON rows shared by the
+    mini-hagi / adapter report tails (Fractions as exact strings)."""
+    return [{"phase": d["phase"], "obj": str(d["obj"]),
+             "obj'": str(d["obj'"]), "drop": str(d["drop"])}
+            for d in traj]
 
 
 def mh2_block_init(seed):
@@ -4068,18 +4127,7 @@ def mini_hagi2_run(ledger_path):
     ternary quant, Ville stop - ONE canonical CertStepData
     chain. Returns (start_obj, [accepted steps], telemetry,
     stats)."""
-    sys.set_int_max_str_digits(0)   # deep-trunk rationals: no
-    # decimal-print limit for exact Fraction telemetry
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     # --- phase A state: joint trunk+head
     theta = (mh2_block_init(0), mh2_block_init(1))
@@ -4088,37 +4136,11 @@ def mini_hagi2_run(ledger_path):
                     "rejects": [], "stop": None, "outcomes": {},
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     obj0 = mh2_canon(w, tasks, theta)
     mse_start = [mh2_mse(w, t, theta) for t in tasks]
-    for t in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):        # fd through BOTH blocks
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD (fd step rolled "
-                                           "back)"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD (fd step rolled back)")
     tel["phases"].append({
         "phase": "A-trunk2", "params": MH2_NPAR,
         "trunk": "2 blocks x (L1-rms -> W1 -> ReLU -> W2), "
@@ -4355,17 +4377,7 @@ def mini_hagi2_run(ledger_path):
                           "mse_T3": str(mh2_fmse(w, cur[2])),
                           "canonical": str(mh2_fcanon(w, cur))})
 
-    n = len(raw)
-    assert n > 0, "ABORT: mini-hagi2 committed no steps"
-    for t, dd in enumerate(raw):
-        dd["budget"] = F(n - t) / n
-        dd["budget'"] = F(n - t - 1) / n
-    for a, b in zip(raw, raw[1:]):
-        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
-    for dd in raw:
-        if not check_step(dd):
-            sys.exit(f"ABORT: mini-hagi2 step failed certified "
-                     f"admission: {dd}")
+    _finalize_traj(raw, "mini-hagi2")
     stats = {
         "n_points": len(pts),
         "task_sizes": [len(t) for t in tasks],
@@ -4402,36 +4414,34 @@ def emit_lean_mini2(path, start, traj, witness_steps=3):
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C494 mini-hagi2 witness (real "
-                "unified_ledger data; 2-block trunk, 3 tasks, "
-                "2 grows).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} "
-                "machine-checked steps below (phase-A fd steps "
-                "through BOTH trunk blocks). Canonical obj = "
-                "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
-                "Fractions).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.MiniHagi2\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini2 : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini2 : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini2 "
-                "benchTrajectoryMini2\n\n"
-                "theorem mini_hagi2_bench_valid :\n"
-                "    checkTrajectory benchStartMini2 "
-                "benchTrajectoryMini2 = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini2, benchTrajectoryMini2, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.MiniHagi2."
-                "mini_hagi2_gpm_descent\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C494 mini-hagi2 witness (real "
+                      "unified_ledger data; 2-block trunk, 3 tasks, "
+                      "2 grows).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (phase-A fd steps "
+                      "through BOTH trunk blocks). Canonical obj = "
+                      "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
+                      "Fractions).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.MiniHagi2\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini2 : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini2 : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini2 "
+                      "benchTrajectoryMini2\n\n"
+                      "theorem mini_hagi2_bench_valid :\n"
+                      "    checkTrajectory benchStartMini2 "
+                      "benchTrajectoryMini2 = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini2, benchTrajectoryMini2, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.MiniHagi2."
+                      "mini_hagi2_gpm_descent\n")
 
 
 def emit_bad_mini2(path, start, traj, witness_steps=3):
@@ -4439,28 +4449,26 @@ def emit_bad_mini2(path, start, traj, witness_steps=3):
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C494 mini-hagi2 NEGATIVE witness: the last "
-                "declared drop is inflated by 1; the certified "
-                "checker must reject.\n"
-                "import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini2Bad : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryMini2Bad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini2Bad "
-                "benchTrajectoryMini2Bad\n\n"
-                "theorem mini_hagi2_bench_invalid :\n"
-                "    checkTrajectory benchStartMini2Bad "
-                "benchTrajectoryMini2Bad = false := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini2Bad, benchTrajectoryMini2Bad, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C494 mini-hagi2 NEGATIVE witness: the last "
+                      "declared drop is inflated by 1; the certified "
+                      "checker must reject.\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini2Bad : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryMini2Bad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini2Bad "
+                      "benchTrajectoryMini2Bad\n\n"
+                      "theorem mini_hagi2_bench_invalid :\n"
+                      "    checkTrajectory benchStartMini2Bad "
+                      "benchTrajectoryMini2Bad = false := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini2Bad, benchTrajectoryMini2Bad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 
@@ -4515,17 +4523,7 @@ def mini_hagi3_run(ledger_path):
     grows) with the gpm2 phase ESCAPED by rank-trunc relaxed
     GPM (C498 theory) when the full projection is exhausted.
     Returns (start_obj, [accepted steps], telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -4533,37 +4531,11 @@ def mini_hagi3_run(ledger_path):
                     "rejects": [], "stop": None, "outcomes": {},
                     "gpm2": None, "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     obj0 = mh2_canon(w, tasks, theta)
     mse_start = [mh2_mse(w, t, theta) for t in tasks]
-    for t in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD (fd step rolled "
-                                           "back)"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD (fd step rolled back)")
     tel["phases"].append({
         "phase": "A-trunk2", "params": MH2_NPAR,
         "trunk": "2 blocks x (L1-rms -> W1 -> ReLU -> W2), "
@@ -4979,17 +4951,7 @@ def mini_hagi3_run(ledger_path):
                           "mse_T3": str(mh2_fmse(w, cur[2])),
                           "canonical": str(mh2_fcanon(w, cur))})
 
-    n = len(raw)
-    assert n > 0, "ABORT: mini-hagi3 committed no steps"
-    for t, dd in enumerate(raw):
-        dd["budget"] = F(n - t) / n
-        dd["budget'"] = F(n - t - 1) / n
-    for a, b in zip(raw, raw[1:]):
-        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
-    for dd in raw:
-        if not check_step(dd):
-            sys.exit(f"ABORT: mini-hagi3 step failed certified "
-                     f"admission: {dd}")
+    _finalize_traj(raw, "mini-hagi3")
     stats = {
         "n_points": len(pts),
         "task_sizes": [len(t) for t in tasks],
@@ -5037,35 +4999,33 @@ def emit_lean_mini3(path, start, traj, witness_steps=3):
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C500 mini-hagi3 witness (real "
-                "unified_ledger data; C494 structure + rank-trunc "
-                "relaxed GPM escape on the gpm2 phase).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} "
-                "machine-checked steps below. Canonical obj = "
-                "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
-                "Fractions).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.Continual\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini3 : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini3 : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini3 "
-                "benchTrajectoryMini3\n\n"
-                "theorem mini_hagi3_bench_valid :\n"
-                "    checkTrajectory benchStartMini3 "
-                "benchTrajectoryMini3 = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini3, benchTrajectoryMini3, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.GPMRelaxed."
-                "rank_trunc_forgetting_bound\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C500 mini-hagi3 witness (real "
+                      "unified_ledger data; C494 structure + rank-trunc "
+                      "relaxed GPM escape on the gpm2 phase).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} "
+                      "machine-checked steps below. Canonical obj = "
+                      "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
+                      "Fractions).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.Continual\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini3 : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini3 : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini3 "
+                      "benchTrajectoryMini3\n\n"
+                      "theorem mini_hagi3_bench_valid :\n"
+                      "    checkTrajectory benchStartMini3 "
+                      "benchTrajectoryMini3 = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini3, benchTrajectoryMini3, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.GPMRelaxed."
+                      "rank_trunc_forgetting_bound\n")
 
 
 def emit_bad_mini3(path, start, traj, witness_steps=3):
@@ -5176,17 +5136,7 @@ def mini_hagi4_run(ledger_path):
     whole-block trunk grow (depth 2 -> 3, residual-zero identity
     admission C450, certified block training). Returns (start,
     [accepted steps], telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -5195,37 +5145,11 @@ def mini_hagi4_run(ledger_path):
                     "growblock": None,
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint training (mini3 phase A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD (fd step rolled "
-                                           "back)"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD (fd step rolled back)")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2,
@@ -5434,17 +5358,7 @@ def mini_hagi4_run(ledger_path):
     tel["phases"].append({"phase": "F-stop",
                           "canonical": str(mh2_fcanon(w, cur))})
 
-    n = len(raw)
-    assert n > 0, "ABORT: mini-hagi4 committed no steps"
-    for t, dd in enumerate(raw):
-        dd["budget"] = F(n - t) / n
-        dd["budget'"] = F(n - t - 1) / n
-    for a, b in zip(raw, raw[1:]):
-        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
-    for dd in raw:
-        if not check_step(dd):
-            sys.exit(f"ABORT: mini-hagi4 step failed certified "
-                     f"admission: {dd}")
+    _finalize_traj(raw, "mini-hagi4")
     stats = {
         "n_points": len(pts),
         "task_sizes": [len(t) for t in tasks],
@@ -5480,36 +5394,34 @@ def emit_lean_mini4(path, start, traj, witness_steps=3):
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C504 mini-hagi4 witness (real "
-                "unified_ledger data; mini-hagi3 skeleton with "
-                "the WHOLE-BLOCK trunk grow: depth 2 -> 3 via a "
-                "residual-zero identity block, C450 pattern).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} "
-                "machine-checked steps below. Canonical obj = "
-                "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
-                "Fractions).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.GrowTrunkBlock\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini4 : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini4 : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini4 "
-                "benchTrajectoryMini4\n\n"
-                "theorem mini_hagi4_bench_valid :\n"
-                "    checkTrajectory benchStartMini4 "
-                "benchTrajectoryMini4 = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini4, benchTrajectoryMini4, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.GrowTrunkBlock."
-                "grow_block_bench_sound\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C504 mini-hagi4 witness (real "
+                      "unified_ledger data; mini-hagi3 skeleton with "
+                      "the WHOLE-BLOCK trunk grow: depth 2 -> 3 via a "
+                      "residual-zero identity block, C450 pattern).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} "
+                      "machine-checked steps below. Canonical obj = "
+                      "(MSE_T1 + MSE_T2 + MSE_T3)/3 (exact "
+                      "Fractions).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.GrowTrunkBlock\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini4 : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini4 : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini4 "
+                      "benchTrajectoryMini4\n\n"
+                      "theorem mini_hagi4_bench_valid :\n"
+                      "    checkTrajectory benchStartMini4 "
+                      "benchTrajectoryMini4 = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini4, benchTrajectoryMini4, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.GrowTrunkBlock."
+                      "grow_block_bench_sound\n")
 
 
 def emit_bad_mini4(path, start, traj, witness_steps=3):
@@ -5517,27 +5429,25 @@ def emit_bad_mini4(path, start, traj, witness_steps=3):
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C504 mini-hagi4 NEGATIVE witness: the last "
-                "declared drop is inflated by 1; the certified "
-                "checker must reject.\n"
-                "import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini4Bad : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini4Bad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini4Bad "
-                "benchTrajectoryMini4Bad\n\n"
-                "theorem mini_hagi4_bench_invalid :\n"
-                "    checkTrajectory benchStartMini4Bad "
-                "benchTrajectoryMini4Bad = false := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini4Bad, benchTrajectoryMini4Bad, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C504 mini-hagi4 NEGATIVE witness: the last "
+                      "declared drop is inflated by 1; the certified "
+                      "checker must reject.\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini4Bad : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini4Bad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini4Bad "
+                      "benchTrajectoryMini4Bad\n\n"
+                      "theorem mini_hagi4_bench_invalid :\n"
+                      "    checkTrajectory benchStartMini4Bad "
+                      "benchTrajectoryMini4Bad = false := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini4Bad, benchTrajectoryMini4Bad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # (--mode mini-hagi5)
@@ -5585,17 +5495,7 @@ def mini_hagi5_run(ledger_path):
     certified training of the NEW block only; explicit
     computational budget; Ville stop finally. Returns (start,
     [accepted steps], telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -5604,37 +5504,11 @@ def mini_hagi5_run(ledger_path):
                     "growcycle": [], "budget": [],
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint training (mini3/4 phase A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD (fd step rolled "
-                                           "back)"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD (fd step rolled back)")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2,
@@ -5823,17 +5697,7 @@ def mini_hagi5_run(ledger_path):
     tel["phases"].append({"phase": "D-stop",
                           "canonical": str(mh2_fcanon(w, cur))})
 
-    n = len(raw)
-    assert n > 0, "ABORT: mini-hagi5 committed no steps"
-    for t, dd in enumerate(raw):
-        dd["budget"] = F(n - t) / n
-        dd["budget'"] = F(n - t - 1) / n
-    for a, b in zip(raw, raw[1:]):
-        assert a["obj'"] == b["obj"], "ABORT: obj chain broken"
-    for dd in raw:
-        if not check_step(dd):
-            sys.exit(f"ABORT: mini-hagi5 step failed certified "
-                     f"admission: {dd}")
+    _finalize_traj(raw, "mini-hagi5")
     stats = {
         "n_points": len(pts),
         "task_sizes": [len(t) for t in tasks],
@@ -5873,40 +5737,38 @@ def emit_lean_mini5(path, start, traj, witness_steps=3):
     are not Lean-elaborable -- prefix only, stated openly)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C506 mini-hagi5 witness (real "
-                "unified_ledger data; REPEATED grow cycle: depth "
-                "2 -> 5 via 3 residual-zero identity grows, each "
-                "followed by certified block training; explicit "
-                "computational budget + Ville stop).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness: "
-                "deep-grow obj fractions are ~10^5 chars and not "
-                "Lean-elaborable; the full chain is asserted "
-                "exactly in Python and counted here honestly). "
-                "Canonical obj = (MSE_T1 + MSE_T2 + MSE_T3)/3 "
-                "(exact Fractions).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.GrowTrunkBlock\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini5 : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini5 : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini5 "
-                "benchTrajectoryMini5\n\n"
-                "theorem mini_hagi5_bench_valid :\n"
-                "    checkTrajectory benchStartMini5 "
-                "benchTrajectoryMini5 = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini5, benchTrajectoryMini5, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.GrowTrunkBlock."
-                "grow_blocks_repeat_sound\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C506 mini-hagi5 witness (real "
+                      "unified_ledger data; REPEATED grow cycle: depth "
+                      "2 -> 5 via 3 residual-zero identity grows, each "
+                      "followed by certified block training; explicit "
+                      "computational budget + Ville stop).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness: "
+                      "deep-grow obj fractions are ~10^5 chars and not "
+                      "Lean-elaborable; the full chain is asserted "
+                      "exactly in Python and counted here honestly). "
+                      "Canonical obj = (MSE_T1 + MSE_T2 + MSE_T3)/3 "
+                      "(exact Fractions).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.GrowTrunkBlock\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini5 : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini5 : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini5 "
+                      "benchTrajectoryMini5\n\n"
+                      "theorem mini_hagi5_bench_valid :\n"
+                      "    checkTrajectory benchStartMini5 "
+                      "benchTrajectoryMini5 = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini5, benchTrajectoryMini5, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.GrowTrunkBlock."
+                      "grow_blocks_repeat_sound\n")
 
 
 def emit_bad_mini5(path, start, traj, witness_steps=3):
@@ -5914,27 +5776,25 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C506 mini-hagi5 NEGATIVE witness: the last "
-                "declared drop is inflated by 1; the certified "
-                "checker must reject.\n"
-                "import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMini5Bad : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMini5Bad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMini5Bad "
-                "benchTrajectoryMini5Bad\n\n"
-                "theorem mini_hagi5_bench_invalid :\n"
-                "    checkTrajectory benchStartMini5Bad "
-                "benchTrajectoryMini5Bad = false := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMini5Bad, benchTrajectoryMini5Bad, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C506 mini-hagi5 NEGATIVE witness: the last "
+                      "declared drop is inflated by 1; the certified "
+                      "checker must reject.\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMini5Bad : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMini5Bad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMini5Bad "
+                      "benchTrajectoryMini5Bad\n\n"
+                      "theorem mini_hagi5_bench_invalid :\n"
+                      "    checkTrajectory benchStartMini5Bad "
+                      "benchTrajectoryMini5Bad = false := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMini5Bad, benchTrajectoryMini5Bad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C521: SNAP-RATIONAL REPEATED GROW CYCLE (--mode grow-snap)
@@ -6180,9 +6040,7 @@ def emit_lean_gatetest(path, tel):
             lines.append(
                 f"example : {rat(pb)} <= {rat(c_add)} := by "
                 f"norm_num  -- {name}: certified stay premise")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "\n".join(lines) + "\n")
 
 
 LAMBDA_SWEEP = [F(1, 10**4), F(1, 10**3), F(1, 10**2),
@@ -6349,17 +6207,7 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
     c_add = params * lam (default PIN 1/10^4) for the --lambda-
     sweep calibration; the default call path is unchanged.
     Returns (start, [accepted steps], telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -6370,37 +6218,11 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
                     "grow_steps_skipped_certified": 0,
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint training (mini3/4/5 A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD (fd step rolled "
-                                           "back)"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD (fd step rolled back)")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2,
@@ -6745,40 +6567,38 @@ def emit_lean_growsnap(path, start, traj, witness_steps=3):
     Lean-elaborable -- prefix only, stated openly)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C521 grow-snap witness (real unified_ledger "
-                "data; snap-rational repeated grow cycle: depth "
-                f"2 -> 8 via 6 identity grows, each trained then "
-                f"CERTIFIED-snapped (k* auto per grow, C593 "
-                "snap_k_eq_ceil; legacy manual 40); denominators "
-                "reset every grow).\n"
-                f"-- FULL accepted steps: {len(traj)}; phases: "
-                f"{phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness: "
-                "deep fractions are not Lean-elaborable; the "
-                "full chain, the snap bounds and the telescoped "
-                "cycle bound are asserted exactly in Python and "
-                "counted here honestly).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.GrowSnap\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartGrowSnap : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryGrowSnap : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartGrowSnap "
-                "benchTrajectoryGrowSnap\n\n"
-                "theorem grow_snap_bench_valid :\n"
-                "    checkTrajectory benchStartGrowSnap "
-                "benchTrajectoryGrowSnap = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartGrowSnap, benchTrajectoryGrowSnap, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.GrowSnap."
-                "grow_snap_cycle_sound\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C521 grow-snap witness (real unified_ledger "
+                      "data; snap-rational repeated grow cycle: depth "
+                      f"2 -> 8 via 6 identity grows, each trained then "
+                      f"CERTIFIED-snapped (k* auto per grow, C593 "
+                      "snap_k_eq_ceil; legacy manual 40); denominators "
+                      "reset every grow).\n"
+                      f"-- FULL accepted steps: {len(traj)}; phases: "
+                      f"{phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness: "
+                      "deep fractions are not Lean-elaborable; the "
+                      "full chain, the snap bounds and the telescoped "
+                      "cycle bound are asserted exactly in Python and "
+                      "counted here honestly).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.GrowSnap\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartGrowSnap : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryGrowSnap : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartGrowSnap "
+                      "benchTrajectoryGrowSnap\n\n"
+                      "theorem grow_snap_bench_valid :\n"
+                      "    checkTrajectory benchStartGrowSnap "
+                      "benchTrajectoryGrowSnap = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartGrowSnap, benchTrajectoryGrowSnap, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.GrowSnap."
+                      "grow_snap_cycle_sound\n")
 
 
 def emit_bad_growsnap(path, start, traj, witness_steps=3):
@@ -6786,29 +6606,27 @@ def emit_bad_growsnap(path, start, traj, witness_steps=3):
     witness step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C521 grow-snap NEGATIVE witness: the last "
-                "declared drop is inflated by 1; the certified "
-                "checker must reject.\n"
-                "import Hagi.Runtime.CertChecker\n\n"
-                "open Hagi.Runtime\n\n"
-                "def benchStartGrowSnapBad : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryGrowSnapBad : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartGrowSnapBad "
-                "benchTrajectoryGrowSnapBad\n\n"
-                "theorem grow_snap_bench_invalid :\n"
-                "    checkTrajectory benchStartGrowSnapBad "
-                "benchTrajectoryGrowSnapBad = false := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartGrowSnapBad, "
-                "benchTrajectoryGrowSnapBad, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C521 grow-snap NEGATIVE witness: the last "
+                      "declared drop is inflated by 1; the certified "
+                      "checker must reject.\n"
+                      "import Hagi.Runtime.CertChecker\n\n"
+                      "open Hagi.Runtime\n\n"
+                      "def benchStartGrowSnapBad : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryGrowSnapBad : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartGrowSnapBad "
+                      "benchTrajectoryGrowSnapBad\n\n"
+                      "theorem grow_snap_bench_invalid :\n"
+                      "    checkTrajectory benchStartGrowSnapBad "
+                      "benchTrajectoryGrowSnapBad = false := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartGrowSnapBad, "
+                      "benchTrajectoryGrowSnapBad, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n")
 
 
 # C532: CERTIFIED ADAPTER GROWTH, LoRA-style
@@ -6849,17 +6667,7 @@ AG_H = F(1, 1000)                  # fd step h (same as MH2_H)
 def adapter_grow_run(ledger_path):
     """C532 certified adapter-growth cycle on the live corpus.
     Returns (start, [accepted steps], telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -6869,36 +6677,11 @@ def adapter_grow_run(ledger_path):
            "growthgate": [], "grow_steps_skipped_certified": 0,
            "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint certified steps (C521 A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "params": MH2_NPAR,
@@ -7185,40 +6968,38 @@ def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
     pattern; prefix only, deep fractions not elaborable)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C532 adapter-grow witness (real "
-                "unified_ledger data; LoRA-style side-branch "
-                "adapters r=1,2 admitted at B = 0 with EXACT "
-                "obj invariance, certified fd training of only "
-                "the 2*r*d adapter params).\n"
-                f"-- FULL accepted steps: {len(traj)}; "
-                f"phases: {phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness: "
-                "deep fractions are not Lean-elaborable; the "
-                "full chain and the neutrality/count facts are "
-                "covered by Hagi.Theory.AdapterGrowth).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.AdapterGrowth\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartAdapterGrow : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryAdapterGrow : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartAdapterGrow "
-                "benchTrajectoryAdapterGrow\n\n"
-                "theorem adapter_grow_bench_valid :\n"
-                "    checkTrajectory benchStartAdapterGrow "
-                "benchTrajectoryAdapterGrow = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartAdapterGrow, "
-                "benchTrajectoryAdapterGrow, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_neutral_B\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C532 adapter-grow witness (real "
+                      "unified_ledger data; LoRA-style side-branch "
+                      "adapters r=1,2 admitted at B = 0 with EXACT "
+                      "obj invariance, certified fd training of only "
+                      "the 2*r*d adapter params).\n"
+                      f"-- FULL accepted steps: {len(traj)}; "
+                      f"phases: {phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness: "
+                      "deep fractions are not Lean-elaborable; the "
+                      "full chain and the neutrality/count facts are "
+                      "covered by Hagi.Theory.AdapterGrowth).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.AdapterGrowth\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartAdapterGrow : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryAdapterGrow : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartAdapterGrow "
+                      "benchTrajectoryAdapterGrow\n\n"
+                      "theorem adapter_grow_bench_valid :\n"
+                      "    checkTrajectory benchStartAdapterGrow "
+                      "benchTrajectoryAdapterGrow = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartAdapterGrow, "
+                      "benchTrajectoryAdapterGrow, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_neutral_B\n")
 
 
 # C533: ADAPTER SNAP COMPOSITE GROW (--mode adapter-snap-grow)
@@ -7263,18 +7044,8 @@ def adapter_snap_grow_run(ledger_path):
     """C533 adapter-snap composite grow cycle on the live
     corpus. Returns (start, [accepted steps], telemetry,
     stats)."""
-    sys.set_int_max_str_digits(0)
     t0 = time.perf_counter()
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -7282,36 +7053,11 @@ def adapter_snap_grow_run(ledger_path):
                     "levels": [], "snap": [], "budget": [],
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint certified steps (C521 A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
@@ -7592,43 +7338,41 @@ def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
     C521/C532 witness pattern)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C533 adapter-snap-grow witness (real "
-                "unified_ledger data; LoRA-style adapter levels "
-                "r=1 admitted at B = 0 with EXACT obj "
-                "invariance, certified fd training of only the "
-                "8 new params per level, q/2^k snap-fold with "
-                "certified err bound at EVERY level).\n"
-                f"-- FULL accepted steps: {len(traj)}; "
-                f"phases: {phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness; "
-                "the full chain, the neutrality/count/snap-bound "
-                "facts are covered by Hagi.Theory."
-                "AdapterGrowth).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.AdapterGrowth\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartAdapterSnapGrow : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryAdapterSnapGrow : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                + "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartAdapterSnapGrow "
-                "benchTrajectoryAdapterSnapGrow\n\n"
-                "theorem adapter_snap_grow_bench_valid :\n"
-                "    checkTrajectory benchStartAdapterSnapGrow "
-                "benchTrajectoryAdapterSnapGrow = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartAdapterSnapGrow, "
-                "benchTrajectoryAdapterSnapGrow, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_snap_bound\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_snap_cycle_sound\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C533 adapter-snap-grow witness (real "
+                      "unified_ledger data; LoRA-style adapter levels "
+                      "r=1 admitted at B = 0 with EXACT obj "
+                      "invariance, certified fd training of only the "
+                      "8 new params per level, q/2^k snap-fold with "
+                      "certified err bound at EVERY level).\n"
+                      f"-- FULL accepted steps: {len(traj)}; "
+                      f"phases: {phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness; "
+                      "the full chain, the neutrality/count/snap-bound "
+                      "facts are covered by Hagi.Theory."
+                      "AdapterGrowth).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.AdapterGrowth\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartAdapterSnapGrow : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryAdapterSnapGrow : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      + "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartAdapterSnapGrow "
+                      "benchTrajectoryAdapterSnapGrow\n\n"
+                      "theorem adapter_snap_grow_bench_valid :\n"
+                      "    checkTrajectory benchStartAdapterSnapGrow "
+                      "benchTrajectoryAdapterSnapGrow = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartAdapterSnapGrow, "
+                      "benchTrajectoryAdapterSnapGrow, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_snap_bound\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_snap_cycle_sound\n")
 
 
 # C535: ADAPTER RANK-ADAPTIVE GROW (--mode adapter-rank-adaptive)
@@ -7678,18 +7422,8 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
     select by drop/params, commit the chosen rank through the
     C533 certified cycle. Returns (start, [accepted steps],
     telemetry, stats)."""
-    sys.set_int_max_str_digits(0)
     t0 = time.perf_counter()
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(k, x, y) for i, (k, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -7698,36 +7432,11 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                     "rank_select": [], "probes": [],
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint certified steps (C521 A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
@@ -8108,44 +7817,42 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
             "0 = 1 := by\n"
             "      norm_num [Hagi.Theory.AdapterGrowth."
             "rankSelect]\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C535 rank-adaptive adapter grow witness "
-                "(real unified_ledger data; per level the rank "
-                "r in {1,2} is chosen by the measured probe "
-                "drop/params criterion -- a deterministic total "
-                "order -- then committed through the C533 "
-                "certified cycle).\n"
-                f"-- FULL accepted steps: {len(traj)}; "
-                f"phases: {phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness; "
-                "the full chain, the neutrality/count/snap-bound/"
-                "rank-select facts are covered by Hagi.Theory."
-                "AdapterGrowth).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.AdapterGrowth\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartRankAdaptive : \u211a := "
-                f"{rat(start)}\n\n"
-                "def benchTrajectoryRankAdaptive : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartRankAdaptive "
-                "benchTrajectoryRankAdaptive\n\n"
-                "theorem rank_adaptive_bench_valid :\n"
-                "    checkTrajectory benchStartRankAdaptive "
-                "benchTrajectoryRankAdaptive = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartRankAdaptive, "
-                "benchTrajectoryRankAdaptive, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "rank_select_sound\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "rank_select_deterministic\n"
-                + sel_lines)
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C535 rank-adaptive adapter grow witness "
+                      "(real unified_ledger data; per level the rank "
+                      "r in {1,2} is chosen by the measured probe "
+                      "drop/params criterion -- a deterministic total "
+                      "order -- then committed through the C533 "
+                      "certified cycle).\n"
+                      f"-- FULL accepted steps: {len(traj)}; "
+                      f"phases: {phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness; "
+                      "the full chain, the neutrality/count/snap-bound/"
+                      "rank-select facts are covered by Hagi.Theory."
+                      "AdapterGrowth).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.AdapterGrowth\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartRankAdaptive : \u211a := "
+                      f"{rat(start)}\n\n"
+                      "def benchTrajectoryRankAdaptive : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartRankAdaptive "
+                      "benchTrajectoryRankAdaptive\n\n"
+                      "theorem rank_adaptive_bench_valid :\n"
+                      "    checkTrajectory benchStartRankAdaptive "
+                      "benchTrajectoryRankAdaptive = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartRankAdaptive, "
+                      "benchTrajectoryRankAdaptive, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "rank_select_sound\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "rank_select_deterministic\n"
+                      + sel_lines)
 
 
 # C536: SVD-MATRYOSHKA ADAPTER MERGE (--mode adapter-merge)
@@ -8281,18 +7988,8 @@ def adapter_merge_run(ledger_path):
     (exact at k = rho; numeric-proposed + exact certified at
     k < rho). Returns (start, [accepted steps], telemetry,
     stats)."""
-    sys.set_int_max_str_digits(0)
     t0 = time.perf_counter()
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
-    tasks, skipped = clm_split(pts)
-    T = len(tasks)
-    assert T == 3, "ABORT: expected 3 tasks from clm_split"
-    hold = [(kx, x, y) for i, (kx, x, y) in enumerate(pts)
-            if i % 5 == 4]
-    htasks, _ = clm_split(hold)
-    assert all(htasks), "ABORT: empty holdout task after split"
+    pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
     theta = (mh2_block_init(0), mh2_block_init(1))
     w = [F(0)] * MH2_D
@@ -8301,36 +7998,11 @@ def adapter_merge_run(ledger_path):
                     "merge": [],
                     "skipped_degenerate_T2": skipped}
 
-    def riskA(th, wcur):
-        return sum((mh2_mse(wcur, tk, th) for tk in htasks),
-                   F(0)) / F(len(htasks))
-
     # --- (A) 2-block trunk + head joint certified steps (C521 A)
     obj0 = mh2_canon(w, tasks, theta)
-    for _ in range(MH2_A_STEPS):
-        p = mh2_flat(theta, w)
-        o = mh2_canon(w, tasks, theta)
-        gfd = []
-        for k in range(MH2_NPAR):
-            q = list(p)
-            q[k] = q[k] + MH2_H
-            th2, w2 = mh2_unflat(q)
-            gfd.append((mh2_canon(w2, tasks, th2) - o) / MH2_H)
-        cand = cl_snap([p[k] - MH2_ETA * gfd[k]
-                        for k in range(MH2_NPAR)], MH2_GRID)
-        th2, w2 = mh2_unflat(cand)
-        o2 = mh2_canon(w2, tasks, th2)
-        if o2 < o:
-            raw.append({"phase": "A-trunk2", "obj": o,
-                        "obj'": o2, "drop": o - o2,
-                        "risk": riskA(theta, w),
-                        "risk'": riskA(th2, w2)})
-            theta, w = th2, w2
-        else:
-            tel["holds"].append({"phase": "A-trunk2",
-                                 "drop": o - o2,
-                                 "reason": "canonical drop <= 0: "
-                                           "HOLD"})
+    theta, w = _phaseA_train(tasks, htasks, theta, w,
+                                 raw, tel,
+                                 "canonical drop <= 0: HOLD")
     assert raw, "ABORT: phase A committed no steps"
     tel["phases"].append({
         "phase": "A-trunk2", "depth": 2, "params": MH2_NPAR,
@@ -8689,52 +8361,50 @@ def emit_lean_trajmerge(path, start, traj, tel, stats,
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
     rho = stats["merged_exact_rank"]
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C536 SVD-matryoshka adapter-merge witness "
-                "(real unified_ledger data; the C533 rank-1 "
-                "stack cycle, then the certified merge into "
-                "ONE rank-rho adapter).\n"
-                f"-- FULL accepted steps: {len(traj)}; "
-                f"phases: {phases};\n-- first {len(ds)} "
-                "machine-checked steps below (prefix witness; "
-                "the neutrality/count/snap-bound/rank-bound "
-                "facts are covered by Hagi.Theory."
-                "AdapterGrowth).\n"
-                "import Hagi.Runtime.CertChecker\n"
-                "import Hagi.Theory.AdapterGrowth\n\n"
-                "open Hagi.Runtime\n\n"
-                f"def benchStartMerge : \u211a := {rat(start)}\n\n"
-                "def benchTrajectoryMerge : "
-                "List Hagi.Runtime.CertStepData :=\n"
-                "[\n" + ",\n".join(lean_step(d) for d in ds)
-                + "\n]\n\n"
-                "#eval checkTrajectory benchStartMerge "
-                "benchTrajectoryMerge\n\n"
-                "theorem merge_bench_valid :\n"
-                "    checkTrajectory benchStartMerge "
-                "benchTrajectoryMerge = true := by\n"
-                "  simp only [checkTrajectory, checkStep, "
-                "benchStartMerge, benchTrajectoryMerge, "
-                "Bool.and_eq_true, decide_eq_true_eq]\n"
-                "  norm_num\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_stack_rank_bound\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_merge_error_bound\n\n"
-                "#check @Hagi.Theory.AdapterGrowth."
-                "adapter_merge_params\n\n"
-                "-- REAL stack-rank instance: a 2-level stack of "
-                "-- rank-1 perturbations on Fin 2 — the merged "
-                "-- perturbation stackProd [E1, E2] - 1 has rank 2 "
-                "-- (the adapter_stack_rank_bound sum 1+1 is "
-                "-- TIGHT, not vacuous)\n"
-                "#eval (Hagi.Theory.AdapterGrowth.stackProd "
-                "[!![0, 1; 0, 0], !![0, 0; 1, 0]] - 1 : "
-                "  Matrix (Fin 2) (Fin 2) \u211d).rank\n\n"
-                "#eval ([Hagi.Theory.AdapterGrowth.stackProd "
-                "  [!![0, 1; 0, 0], !![0, 0; 1, 0]]].map "
-                "  Matrix.rank).head\n")
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, "-- C536 SVD-matryoshka adapter-merge witness "
+                      "(real unified_ledger data; the C533 rank-1 "
+                      "stack cycle, then the certified merge into "
+                      "ONE rank-rho adapter).\n"
+                      f"-- FULL accepted steps: {len(traj)}; "
+                      f"phases: {phases};\n-- first {len(ds)} "
+                      "machine-checked steps below (prefix witness; "
+                      "the neutrality/count/snap-bound/rank-bound "
+                      "facts are covered by Hagi.Theory."
+                      "AdapterGrowth).\n"
+                      "import Hagi.Runtime.CertChecker\n"
+                      "import Hagi.Theory.AdapterGrowth\n\n"
+                      "open Hagi.Runtime\n\n"
+                      f"def benchStartMerge : \u211a := {rat(start)}\n\n"
+                      "def benchTrajectoryMerge : "
+                      "List Hagi.Runtime.CertStepData :=\n"
+                      "[\n" + ",\n".join(lean_step(d) for d in ds)
+                      + "\n]\n\n"
+                      "#eval checkTrajectory benchStartMerge "
+                      "benchTrajectoryMerge\n\n"
+                      "theorem merge_bench_valid :\n"
+                      "    checkTrajectory benchStartMerge "
+                      "benchTrajectoryMerge = true := by\n"
+                      "  simp only [checkTrajectory, checkStep, "
+                      "benchStartMerge, benchTrajectoryMerge, "
+                      "Bool.and_eq_true, decide_eq_true_eq]\n"
+                      "  norm_num\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_stack_rank_bound\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_merge_error_bound\n\n"
+                      "#check @Hagi.Theory.AdapterGrowth."
+                      "adapter_merge_params\n\n"
+                      "-- REAL stack-rank instance: a 2-level stack of "
+                      "-- rank-1 perturbations on Fin 2 — the merged "
+                      "-- perturbation stackProd [E1, E2] - 1 has rank 2 "
+                      "-- (the adapter_stack_rank_bound sum 1+1 is "
+                      "-- TIGHT, not vacuous)\n"
+                      "#eval (Hagi.Theory.AdapterGrowth.stackProd "
+                      "[!![0, 1; 0, 0], !![0, 0; 1, 0]] - 1 : "
+                      "  Matrix (Fin 2) (Fin 2) \u211d).rank\n\n"
+                      "#eval ([Hagi.Theory.AdapterGrowth.stackProd "
+                      "  [!![0, 1; 0, 0], !![0, 0; 1, 0]]].map "
+                      "  Matrix.rank).head\n")
 
 # (--mode agem-vs-ranktrunc)
 #
@@ -8788,9 +8458,7 @@ def agn_run(ledger_path, steps=AGN_STEPS):
     """C508: phase 1 on A (shared), phase 2 on B by BOTH
     continual mechanisms; per-arm certified trajectories and
     the honest comparison table."""
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     A, B = cl_split(pts)
     d = CL_D
     basis = cl_gs_basis([x for x, _ in A])
@@ -8999,9 +8667,7 @@ def emit_lean_agn(path, res, witness_steps=3):
                "agem_step_nonneg_interf\n"
                "#check @Hagi.Theory.GPMRelaxed."
                "rank_trunc_forgetting_bound\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C510: HYBRID CONTINUAL MECHANISM SELECTION
@@ -9061,9 +8727,7 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
     asserts), and the telemetry reports `rank_trunc_degenerate`
     = true with the measured k. All three rows share the SAME
     wA / B data / steps / eta / snap grid."""
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     A, B = cl_split(pts)
     d = CL_D
     basis = cl_gs_basis([x for x, _ in A])
@@ -9373,9 +9037,7 @@ def emit_lean_hyb(path, res, witness_steps=3):
                "agem_step_nonneg_interf\n"
                "#check @Hagi.Theory.GPMRelaxed."
                "rank_trunc_forgetting_bound\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C544: ADAPTER CONTINUAL ISOLATION bench (--mode adapter-continual)
@@ -9632,9 +9294,7 @@ def emit_lean_adaptercont(path, res, witness_steps=2):
                "adapter_per_task_obj_sound\n"
                "#check @Hagi.Theory.AdapterGrowth."
                "trunk_update_needs_projection\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C547: MINI-HAGI FULL SELF-IMPROVING LOOP (--mode mini-hagi-loop)
@@ -9741,9 +9401,7 @@ def fl_eb_costs(errs):
 def mini_hagi_loop_run(ledger_path):
     """The C547 full self-improving loop: ONE trace, per-phase
     bit-exact asserts, telemetry for the final metrics JSON."""
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [(k, x, fl_tau(y)) for k, x, y in pts]
     n = len(data)
     tel = {"n_points": n, "phases": [], "negatives": {},
@@ -10035,9 +9693,7 @@ def emit_lean_fullloop(path, res, witness_steps=2):
         "#check @Hagi.Probability."
         "empirical_bernstein_mean_bound\n"
         "#check @Hagi.Theory.MiniHagiLoop.full_loop_sound\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C549: ITERATIVE SELF-IMPROVEMENT LOOP (--mode mini-hagi-loop2)
@@ -10100,9 +9756,7 @@ def fl2_build_corpus(ledger_path):
     """Layered corpus: real features, synthesized 3-level
     deterministic targets + real-tau residual (see the section
     header PIN)."""
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = []
     for i, (k, x, y) in enumerate(pts):
         if i % 2 == 0:
@@ -10422,9 +10076,7 @@ def emit_lean_loop2(path, res, witness_steps=2):
         "coverage_append_monotone\n"
         "#check @Hagi.Theory.MiniHagiLoop."
         "iterative_loop_sound\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C551: UNIVERSAL-LOOP ON THE FULL LIVE CORPUS
@@ -10482,9 +10134,7 @@ def universal_loop_run(ledger_path):
     honest OE). One run, one telemetry, bit-exact asserts."""
     import copy
 
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
@@ -10809,9 +10459,7 @@ def emit_lean_universal(path, res, witness_steps=2):
         "#check @Hagi.Theory.MiniHagiLoop.iterative_loop_sound\n"
         "#check @Hagi.Theory.MiniHagiLoop."
         "universal_loop_corpus_mono\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C555: SELF-COMPRESSING ADAPTER LOOP (--mode self-compress-loop)
@@ -10857,9 +10505,7 @@ def self_compress_loop_run(ledger_path):
     asserts."""
     import copy
 
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
@@ -11210,9 +10856,7 @@ def emit_lean_selfcomp(path, res, witness_steps=2):
         "adapter_merge_error_bound\n"
         "#check @Hagi.Theory.AdapterGrowth."
         "adapter_step_certified\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C556: CONSTANT CLUSTER DISTILLATION (--mode distill)
@@ -11254,9 +10898,7 @@ def distill_run(ledger_path):
     import copy
     import time
 
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
@@ -11455,9 +11097,7 @@ def emit_lean_distill(path, res):
         "#check @Hagi.Theory.AdapterGrowth.distill_params_total\n"
         "#check @Hagi.Theory.AdapterGrowth."
         "symbolic_storage_cheaper\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C558: MINI-HAGI V3 — UNIVERSAL SELF-COMPRESSING DISTILL LOOP
@@ -11501,9 +11141,7 @@ def mini_hagi_v3_run(ledger_path):
     import time
 
     t_start = time.perf_counter()
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
@@ -11939,9 +11577,7 @@ def emit_lean_v3(path, res, witness_steps=2):
         "constant_distill_exact\n"
         "#check @Hagi.Theory.AdapterGrowth."
         "adapter_step_certified\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C553: NONLINEAR PRIMITIVE OE-SEARCH ON THE FULL LIVE CORPUS
@@ -12039,9 +11675,7 @@ def universal_loop_nl_run(ledger_path):
     telemetry, bit-exact asserts, code-computed H-verdict."""
     import copy
 
-    pts = mh_load_dataset(ledger_path)
-    assert len(pts) > 0, \
-        "ABORT: live corpus empty (no ledger key has a .bin)"
+    pts = _load_corpus(ledger_path)
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
@@ -12444,9 +12078,7 @@ def emit_lean_universal_nl(path, res, witness_steps=2):
         "theorem universal_no_progress_stop :\n"
         f"    ({len(tel['iterations'][-1]['accepted'])}"
         " : \u2115) = 0 := by norm_num\n\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(out))
-    print(f"written: {path}", file=sys.stderr)
+    _write_text(path, ("".join(out)))
 
 
 # C560: CROSS-DOMAIN ADAPTER TRANSFER (--mode adapter-transfer)
@@ -13253,10 +12885,7 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
     }
     telemetry.update(extra_tel)
     print(json.dumps({"mode": mode, **stats,
-        "n_steps": len(traj), "steps": [
-            {"phase": d["phase"], "obj": str(d["obj"]),
-             "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-            for d in traj],
+        "n_steps": len(traj), "steps": _traj_steps(traj),
         "telemetry": telemetry}, indent=1))
 
 
@@ -14004,10 +13633,7 @@ def main():
                                        traj, tel)
         print(json.dumps({"mode": "adapter-rank-adaptive",
             **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
+            "n_steps": len(traj), "steps": _traj_steps(traj),
             "telemetry": {
                 "phases": tel["phases"],
                 "admissions": tel["admissions"],
@@ -14023,10 +13649,7 @@ def main():
             emit_lean_trajmerge(args.emit_lean, start, traj,
                                 tel, stats)
         print(json.dumps({"mode": "adapter-merge", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
+            "n_steps": len(traj), "steps": _traj_steps(traj),
             "telemetry": {
                 "phases": tel["phases"],
                 "admissions": tel["admissions"],
@@ -14041,10 +13664,7 @@ def main():
         if args.emit_lean:
             emit_lean_adaptersnap(args.emit_lean, start, traj)
         print(json.dumps({"mode": "adapter-snap-grow", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
+            "n_steps": len(traj), "steps": _traj_steps(traj),
             "telemetry": {
                 "phases": tel["phases"],
                 "admissions": tel["admissions"],
@@ -14058,10 +13678,7 @@ def main():
         if args.emit_lean:
             emit_lean_adaptergrow(args.emit_lean, start, traj)
         print(json.dumps({"mode": "adapter-grow", **stats,
-            "n_steps": len(traj), "steps": [
-                {"phase": d["phase"], "obj": str(d["obj"]),
-                 "obj'": str(d["obj'"]), "drop": str(d["drop"])}
-                for d in traj],
+            "n_steps": len(traj), "steps": _traj_steps(traj),
             "telemetry": {
                 "phases": tel["phases"],
                 "admissions": tel["admissions"],
