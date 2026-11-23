@@ -1886,11 +1886,11 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 
 ## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.3)
 
-- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83): 5 гарантий
+- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:81): 5 гарантий
   машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
   obj-телескоп, transfer-граница) — конъюнкция делегатов без
   ослабления; не дублирует MasterTheorem.lean.
-- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:275) — certified-
+- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:273) — certified-
   машина v3.3 ОДНОЙ теоремой; каждый клоз — делегат к доказанной
   теореме, гипотезы дословно, ноль новых доказательств:
 
@@ -1908,8 +1908,8 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 | (10) | hierarchical coverage: любой i < nB покрыт окном `hierStarts` решётки при 0 < B, 0 < s' ≤ w — ЛЮБОЕ n | `hier_covers_any_n` | v3.2 |
 | (11) | reading floor: (hierStarts nB B w w).length = ⌈nB/w⌉ (0 < w, w ∣ B) = floor любого покрытия | `hier_optimal` | v3.3 (C622) |
 
-- v3.1 `hagi_master_v31` (:137) = (1)–(8); v3.2 `hagi_master_v32`
-  (:204) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:275) = v3.2 + (11).
+- v3.1 `hagi_master_v31` (:135) = (1)–(8); v3.2 `hagi_master_v32`
+  (:202) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:273) = v3.2 + (11).
   Witness: C600 trajMT31 (#check 8 клозов), C614 trajMT32 (клоз (9):
   L=2, G=1 → drop 1/4; (10): n=8128, B=4032), C622 trajMT33 (клоз
   (11): total 127 = ⌈8128/64⌉). Axioms: propext, Classical.choice,

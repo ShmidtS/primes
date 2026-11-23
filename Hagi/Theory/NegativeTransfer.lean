@@ -10,7 +10,7 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 /-!
 # NegativeTransfer — точная граница негативного переноса
 
-Source-anchored мост волны HAGI_v2 (roadmap top-3): upstream
+Source-anchored мост волны HAGI_v2: upstream
 `hagi/unified.py:147-165` решает «когда warm-start переносить»
 эвристикой (pre-registered closeness); этот модуль даёт ТОЧНУЮ
 границу для квадратичной модели задачи B — дополняет
@@ -509,7 +509,7 @@ end Hagi.Theory.NegativeTransfer
 
 # GrowthGate — certified-гейт ёмкости: когда рост оправдан
 
-Новая эра (roadmap top-1): rank/adapter-ёмкость. Аналогия
+Новая эра: rank/adapter-ёмкость. Аналогия
 transfer-гейта (bench / `autoGate`): рост ёмкости
 (rank+1 / adapter-add) допустим ⟺ certified-выигрыш покрывает
 стоимость. Модель: текущая модель M_r (rank r) дообучается

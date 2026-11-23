@@ -1,7 +1,7 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
 Draft v0.8. Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены rg на 2d619fc8 (+T5)), либо измеренный результат прогона с
+сверены rg на 7ea1ee87 (+W2)), либо измеренный результат прогона с
 указанием витка (Cn), либо PIN в §Limitations. Никаких недоказанных
 клеймов. Теоремный счётчик abstract остаётся от e40aa426: новый индекс
 не генерировался.
@@ -663,11 +663,11 @@ clusters before distillation).
 .
 C600 (v3.1), C614 (v3.2), C622 (v3.3). The consolidation era closes
 with ONE statement covering the whole certified machine:
-`hagi_master_v33` (`Hagi/Theory/MasterTheoremV3.lean:275`), a
+`hagi_master_v33` (`Hagi/Theory/MasterTheoremV3.lean:273`), a
 conjunction of eleven clauses, each a DELEGATE to an already-proven
 theorem with hypotheses verbatim and no weakening — no new deep
 facts, only the conjunction (the `master_theorem_v3` pattern of
-C576, `MasterTheoremV3.lean:83`). Hypotheses: the machine block of
+C576, `MasterTheoremV3.lean:81`). Hypotheses: the machine block of
 v3.1 verbatim, the transfer block (`L G hL`, smoothness + G-bound),
 the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 `hw : 0 < w` and `hdiv : w ∣ B`.
@@ -676,7 +676,7 @@ the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 |---|---|---|---|---|
 | (1) | `params bs.length ≤ 2 * k * dd` — parameter budget at any cycle length | `self_compress_loop_sound` | Hagi/Theory/AdapterGrowth.lean:726 | v3.1 (C600) |
 | (2) | `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by per-task adapter isolation | `adapter_per_task_sound` | Hagi/Theory/AdapterGrowth.lean:582 | v3.1 |
-| (3) | `step bs.length ≤ o0 + bs.sum` — the certified objective telescope | (machine obj bound) | Hagi/Theory/MasterTheoremV3.lean:83 | v3.1 |
+| (3) | `step bs.length ≤ o0 + bs.sum` — the certified objective telescope | (machine obj bound) | Hagi/Theory/MasterTheoremV3.lean:81 | v3.1 |
 | (4) | `coversPrim CovP (st n) i` — coverage is monotone along the append-only cycle | `iterative_loop_sound` | Hagi/Theory/MiniHagiLoop.lean:154 | v3.1 |
 | (5) | `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2` — transfer governed by an EXACT iff boundary | `neg_transfer_char` | Hagi/Theory/NegativeTransfer.lean:117 | v3.1 |
 | (6) | `snapK Lq dq εq hεq hLd0 = ⌈log₂ (Lq * dq / εq)⌉ - 1` — the snap grid is MINIMAL for the ε-budget | `snap_k_eq_ceil` | Hagi/Theory/GrowSnap.lean:342 | v3.1 |
@@ -686,9 +686,9 @@ the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 | (10) | `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧ ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming peak ≤ m windows | `hier_covers_any_n` | Hagi/Theory/CoverageReading.lean:283 | v3.2 |
 | (11) | `(hierStarts nB B w w).length = (nB + w - 1) / w ∧ ∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) → (nB + w - 1) / w ≤ Ll.length` — the machine's total at s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows is shorter | `hier_optimal` | Hagi/Theory/CoverageReading.lean:533 | v3.3 (C622) |
 
-Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:137`) =
-(1)–(8); `hagi_master_v32` (`:204`) = v3.1 + (9)(10); `hagi_master_v33`
-(`:275`) = v3.2 + (11). Each version carries the previous statement
+Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:135`) =
+(1)–(8); `hagi_master_v32` (`:202`) = v3.1 + (9)(10); `hagi_master_v33`
+(`:273`) = v3.2 + (11). Each version carries the previous statement
 unfolded verbatim and discharges it through ONE delegate (`hV31` /
 `hV32` + projections); the engineering note of the C614 receipt: a
 delegate theorem used AS the statement is ill-typed (a proof term is
@@ -889,7 +889,7 @@ real use of this theory by an external system. This is an
 existence proof of external synchronization, not yet an
 evaluation of downstream benefit (pinned below, §5.17).
 
-### 4.5 From proxies to formulas: the certified-parameters era (C560–C603)
+### 4.5 From proxies to formulas: the certified-parameters era
 
 <!-- source: receipt C597 (auto-k*, 2788 бит/33 snap); receipt C601 + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); receipt C602 + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); receipt C594 (wave232 round-trip 33 мин); receipt C595 + docs/PREMISES-STATUS.md (premise audit); receipt C596 (bench sweep); .omc/analysis/era-index.md#c599-c602 (эра консолидации) -->
 
@@ -925,7 +925,7 @@ swept all 35 bench modes into either PASS (13) or honest corpus-drift
 ABORT (22) with zero tracebacks — no silent failures left in the
 harness (see pin 18).
 
-### 4.6 The formula-driven era (C606–C613): every parameter a formula
+### 4.6 The formula-driven era: every parameter a formula
 
 <!-- source: block — receipt C606 (γ*=1/L, drop G²/(2L),
      witness L=2,G=1 drop 1/4); receipt C609 (γ_auto
@@ -1202,7 +1202,7 @@ not a Lean clause.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (verified at 2d619fc8 (+T5))
+## Appendix A: anchor table (verified at 7ea1ee87 (+W2))
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -1255,7 +1255,7 @@ not a Lean clause.
 | distill_params_total | Hagi/Theory/AdapterGrowth.lean:844 | C556 |
 | symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:853 | C556 |
 | v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:889 | C558 |
-| master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:83 | C576 |
+| master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:81 | C576 |
 | auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
 | fact_append_preserves | Hagi/Theory/FactLedger.lean:61 | C579 |
 | fact_lookup_monotone | Hagi/Theory/FactLedger.lean:69 | C579 |
@@ -1271,12 +1271,12 @@ not a Lean clause.
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:130 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:184 | C602 |
 | covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:233 | C602 |
-| hagi_master_v31 | Hagi/Theory/MasterTheoremV3.lean:137 | C600 |
+| hagi_master_v31 | Hagi/Theory/MasterTheoremV3.lean:135 | C600 |
 | snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
 | nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
 | smooth_obj_transfer_bound | Hagi/Theory/NegativeTransfer.lean:386 | C592 |
 | covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:220 | C602 |
-| hagi_master_v32 | Hagi/Theory/MasterTheoremV3.lean:204 | C614 |
+| hagi_master_v32 | Hagi/Theory/MasterTheoremV3.lean:202 | C614 |
 | nlStep | Hagi/Theory/NegativeTransfer.lean:231 | C606 |
 | nlDrop | Hagi/Theory/NegativeTransfer.lean:434 | C606 |
 | nl_drop_bound | Hagi/Theory/NegativeTransfer.lean:443 | C606 |
@@ -1287,4 +1287,4 @@ not a Lean clause.
 | hier_covers_any_n | Hagi/Theory/CoverageReading.lean:283 | C611 |
 | hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:315 | C611 |
 
-<!-- Appendix A: every row re-verified by rg on Hagi/**/*.lean at 2d619fc8 (+T5). -->
+<!-- Appendix A: every row re-verified by rg on Hagi/**/*.lean at 7ea1ee87 (+W2). -->

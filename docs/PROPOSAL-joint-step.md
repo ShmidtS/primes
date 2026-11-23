@@ -14,7 +14,7 @@ phases (primes twin: `Hagi.Training.AlternatingJoint`,
 admission boundaries, and a SIMULTANEOUS (trunk, head) step had no
 certificate (pin `crmsm_joint_separation`); primes C475 proved one.
 
-## (b) Formulas and Lean anchors (primes, Freeze 8462)
+## (b) Formulas and Lean anchors
 
 Main theorem (`Hagi.Training.JointTrunkHead`):
 

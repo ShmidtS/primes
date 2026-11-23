@@ -9,10 +9,10 @@ import Hagi.Theory.CertCEHoldout
 /-!
 # BlockAdmission — certified-адмиссия нового блока в растущую LM
 
-Дорожная карта (топ-3, рост/композиция): модель РАСТЁТ — новый
-блок допускается в trunk LM только через certified-адмиссию.
-Кандидат — орто-fiber-инъекция (посылки OrthoInjection-корпуса:
-сигнал только в направлении, ортогональном cortex); критерий — в
+Модель РАСТЁТ — новый блок допускается в trunk LM только через
+certified-адмиссию. Кандидат — орто-fiber-инъекция
+(посылки OrthoInjection-корпуса: сигнал только в направлении,
+ортогональном cortex); критерий — в
 стиле MemoryCycle/merge_gate (стоимость + риск + запас покрываются
 выигрышем); soundness — через Lipschitz-композицию `trunk_lipschitz`
  (константа L_old·L_new, prefix-determined индукцией); отказ —

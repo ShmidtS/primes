@@ -17,7 +17,7 @@ per-coordinate curvature (Fisher/Gershgorin) budget is quadratic,
 not linear, in the error and that the optimal allocation is
 monotone in curvature.
 
-## (b) Formulas and Lean anchors (primes, Freeze 8462)
+## (b) Formulas and Lean anchors
 
 Second-order machinery (all in `Hagi.Theory.FisherQuant`):
 

@@ -8,7 +8,7 @@ import Hagi.Model.SoftmaxHead
 # BlockLipschitz — derived lip/causal for REAL atoms (RMSNorm, MLP,
 bounded-weight attention)
 
-Beat (A19 G1, roadmap): the per-block premises
+The per-block premises
 `CertifiedBlock.hLip` / `hCausal` (`Hagi.Model.LMCompose`, разрядка
 заявлена в honest pins того модуля) are DISCHARGED here for concrete
 real-world atoms with derived constants (derivability, not tightness):

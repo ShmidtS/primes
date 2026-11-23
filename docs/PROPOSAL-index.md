@@ -2,7 +2,8 @@
 
 Six self-contained proposals for the HAGI_v2 implementation
 agent. Each cites Lean anchors proved and frozen in primes
-(Freeze 8462), a minimal Python diff, sanity numbers, a validation
+(Freeze 8462; current freeze is 8849 — anchors to re-verify
+before port), a minimal Python diff, sanity numbers, a validation
 criterion, and honest limits. Proposals are mutually independent —
 apply in any order.
 

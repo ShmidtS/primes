@@ -16,7 +16,7 @@ model; primes C476 proved the measured (δ-gated) version for
 ARBITRARY nonlinear merge losses and a NEGATIVE theorem showing
 the unmeasured gate is unsafe.
 
-## (b) Formulas and Lean anchors (primes, Freeze 8462)
+## (b) Formulas and Lean anchors
 
 Measured-residual machinery (`Hagi.Theory.NonlinearMerge`):
 

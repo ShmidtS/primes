@@ -10,7 +10,7 @@ set_option relaxedAutoImplicit false
 /-!
 # Full pipeline — the unified six-phase cycle
 
-The roadmap gap: the bench modes exercised the phases
+Gap: the bench modes exercised the phases
 SEPARATELY (cert-ce, ef21-step, hadamard-tern, grow, grow-stop);
 no single certified trajectory ran the WHOLE lifecycle on one
 objective chain. adds the unified composition: ONE task
@@ -217,7 +217,7 @@ set_option relaxedAutoImplicit false
 /-!
 # Trunk training — certified joint trunk+head steps
 
-The roadmap gap (item 4): every bench mode trained a LINEAR
+Gap: every bench mode trained a LINEAR
 head on a frozen carrier; the joint theory
 (`Hagi.Training.JointTrunkHead`) had no executable Python face.
  adds the trunk-training bench (`scripts/bench_bridge.py`,

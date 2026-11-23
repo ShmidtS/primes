@@ -17,7 +17,7 @@ multiplier family, so the C466 curvature overestimates by the
 factor `e^R / κ(R)` — 2.77× at R=0.5, 3.79× at R=1, 6.73× at R=2 —
 for free.
 
-## (b) Formulas and Lean anchors (primes, Freeze 8462)
+## (b) Formulas and Lean anchors
 
 Tight Bennett constant and its laws (all in
 `Hagi.Theory.AdaptiveMajorizer`):
