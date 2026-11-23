@@ -3303,7 +3303,7 @@ Statement-канон результатов с карточками (оптим�
 иерархические окна, reading floor, growth gate) —
 [docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md), карточки 9–14; Lean-носители —
 [`CoverageReading`](Hagi/Theory/CoverageReading.lean),
-[`GrowthGate`](Hagi/Theory/GrowthGate.lean).
+[`growthGate`](Hagi/Theory/NegativeTransfer.lean) (namespace `Hagi.Theory.GrowthGate`).
 
 Отдельные мосты: [`MasterEF`](Hagi/Theory/MasterEF.lean) (endpoint-only
 EF-штраф), [`CEChain`](Hagi/Theory/CEChain.lean) (унифицированная

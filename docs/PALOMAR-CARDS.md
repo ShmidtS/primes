@@ -417,9 +417,9 @@ width-independent
   (GROW ⟺ λ < pb/params, монотонность по λ).
 - **Anchor.**
   `Hagi.Theory.GrowthGate.growthGate`
-  (Hagi/Theory/GrowthGate.lean:75);
-  `growth_gate_stay_char` (:81); `nl_drop_step_eq` (:109);
-  `nl_drop_total` (:121); `growth_gate_sound` (:178).
+  (Hagi/Theory/NegativeTransfer.lean:574, namespace внутри модуля);
+  `growth_gate_stay_char` (:580); `nl_drop_step_eq` (:608);
+  `nl_drop_total` (:620); `growth_gate_sound` (:677).
   Потребители: `Hagi.Budget.WaterFilling` (WaterFilling.lean:366),
   `Hagi.Probability.GibbsCore` (GibbsCore.lean:1416).
 - **Dependencies.** Без Mathlib-теорий (field_simp, ring,

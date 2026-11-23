@@ -1851,7 +1851,7 @@ Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10
 → k*=15, биты 160, k=14 нарушает; I2 L=3,d=1,ε=2^-6 → k*=7, k=6
 нарушает; I3 ГРАНИЦА РАВЕНСТВА Ld/ε=4 → k*=1, bound = ε, k=0 нарушает.
 
-## Hagi/Theory/NegativeTransfer.lean (C572+C592+C606: negative transfer, smooth, schedule)
+## Hagi/Theory/NegativeTransfer.lean (C572+C592+C606+C632: negative transfer, smooth, schedule, growth gate)
 
 | теорема | формулировка | file:line | bench |
 |---|---|---|---|
@@ -1859,6 +1859,9 @@ Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10
 | `neg_transfer_adversarial`, `gd_run_dist`, `warm_better_budget` | t = −c•θ ⇒ всегда T2; бюджет НЕ размывает границу | Hagi/Theory/NegativeTransfer.lean:150, :176, :191 | — |
 | `smooth_obj_transfer_bound`, `sufficient_negative_transfer` | C592: L-smooth obj + GD равным бюджетом ⇒ f z − n•`nlBudget γ L G` ≤ f (nlRun n γ grad z) ≤ f z; стартовый запас > n•nlBudget ⇒ warm строго хуже. G — честный binder вдоль траектории (глобальная не выводится) | Hagi/Theory/NegativeTransfer.lean:386, :406 | `--mode transfer-gate-certified` (smooth-sufficient уровень) |
 | `nlDrop`, `nl_drop_bound`, `nlDrop_le_optimal`, `nl_drop_optimal` | C606 Schedule: drop = γG² − Lγ²G²/2 ≤ G²/(2L) для любого γ, равенство при γ* = 1/L (полный квадрат). Кандидат 2/(3L) отклонён | Hagi/Theory/NegativeTransfer.lean:434, :443, :467, :481 | auto-LR γ = 1/L (C609) |
+| `growthGate`, `growth_gate_stay_char` | C632 (второй namespace `Hagi.Theory.GrowthGate` в этом же файле, блок перенесён дословно): grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/NegativeTransfer.lean:574, :580 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
+| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/NegativeTransfer.lean:608, :620 | — |
+| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/NegativeTransfer.lean:677 | `growth_gate_measure` |
 
 Контраст: квадратичная obj → точный iff (C572); L-smooth произвольный →
 консервативная sufficient (C592), применять когда есть G-оценка на
@@ -1866,6 +1869,14 @@ Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10
 (trajNL.lean, γ=1/5, L=2, G=2): n=1 certified (1 > 24/25); n=2 условие
 НЕ выполнено (1 ≤ 48/25), но warm всё равно хуже ⇒ sufficient ≠
 necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
+
+- C632 рост-гейт (блок `Hagi.Theory.GrowthGate` ниже секции Schedule):
+  отличие от C535 (rankSelect по probe-score) и C577/C601 (два
+  probe-прогона): ноль измерений, решение по формуле ДО probe.
+  Honest: потенциал-модель квадратичная (для L-smooth потолок шире
+  — nlBudget C592, гейт пересчитывается); grow = РАЗРЕШЕНИЕ, не
+  обещание; sound только у stay-ветки. Witness C632 trajGate.lean:
+  G=2, L=2, n=5 → bound 5; c_add=10 → stay; c_add=4 → grow.
 
 ## Hagi/Theory/TritCodec.lean (C574: trit-кодек, 5 тритов в байте)
 
@@ -1960,21 +1971,6 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   4096}; s=32, B=1088 → 3033 > floor. C623 trajW.lean n=100000, w ∈
   {16, 64, 256}: чтения {6250, 1563, 391}; linear-cost {100000, 100032,
   100096}.
-
-## Hagi/Theory/GrowthGate.lean (C632: certified growth capacity gate)
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `growthGate`, `growth_gate_stay_char` | grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/GrowthGate.lean:75, :81 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
-| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/GrowthGate.lean:109, :121 | — |
-| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/GrowthGate.lean:178 | `growth_gate_measure` |
-
-- Отличие от C535 (rankSelect по probe-score) и C577/C601 (два
-  probe-прогона): ноль измерений, решение по формуле ДО probe.
-  Honest: потенциал-модель квадратичная (для L-smooth потолок шире
-  — nlBudget C592, гейт пересчитывается); grow = РАЗРЕШЕНИЕ, не
-  обещание; sound только у stay-ветки. Witness C632 trajGate.lean:
-  G=2, L=2, n=5 → bound 5; c_add=10 → stay; c_add=4 → grow.
 
 ## scripts/bench_bridge.py (C551–C635: режимы без собственного Lean-ряда)
 

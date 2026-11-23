@@ -5844,7 +5844,8 @@ GS_STEP_CAP = 48                   # total certified-step budget
 
 
 # C633: GROWTH GATE (application of the C632 Lean module
-# Hagi.Theory.GrowthGate into the bench grow modes).
+# Hagi.Theory.GrowthGate, module Hagi/Theory/NegativeTransfer.lean,
+# into the bench grow modes).
 #
 # Before adding capacity (a grown identity block in grow-snap,
 # a LoRA adapter in adapter-grow) the grow step now asks the
@@ -5861,7 +5862,7 @@ GROW_CADD_LAM = F(1, 10 ** 4)      # c_add = params * lambda (PIN)
 
 def growth_gate(potential_bound, c_add):
     """C633: python double of Hagi.Theory.GrowthGate.growthGate
-    (C632): grow ⟺ potential_bound > c_add; equality -> stay.
+    (C632; module Hagi/Theory/NegativeTransfer.lean): grow ⟺ potential_bound > c_add; equality -> stay.
     Stay is CERTIFIED by growth_gate_sound (C632): if
     n*G^2/(2L) <= c_add then ANY n-step retraining (incl. with
     the added capacity, same budget-class G/L bounds) drops the
@@ -6025,7 +6026,7 @@ def emit_lean_gatetest(path, tel):
         "-- the certified inequality pb <= c_add (norm_num), the",
         "-- Lean form of growth_gate_sound's premise "
         "n*G^2/(2L) <= c_add.",
-        "import Hagi.Theory.GrowthGate",
+        "import Hagi.Theory.NegativeTransfer",
         "",
     ]
     for s, (name, G, L, n, c_add, exp_stay) in zip(
