@@ -2416,3 +2416,40 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Аксиомы пяти теорем: [propext, Classical.choice, Quot.sound].
 - Freeze 8880 -> 8887 (+7: 2 def, 5 theorem; 0 lost/changed);
   17 гейтов PASS (.tmp/C644/logs/ci.log).
+
+## C646 certified step on block params via logit range lemma
+
+- Beat: C646 = roadmap C645 top-1 — certified_step_block. Base HEAD
+  46a28709, tree clean. HAGI_v2 (READ-ONLY) @ca52eb4:
+  `_certified_finite_step` (hagi/lm.py:826) пишет только в trunk;
+  warm-up блока — plain Adam.
+- ВОПРОС-ГИТ (вердикт): зависит ли range-лемма CE
+  (finite_displacement_ce_upper, lm.py:235) от носителя параметров?
+  НЕТ. Она — о логитах: CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ +
+  range(d)²/8, d — смещение ЛОГИТОВ. В каноне это
+  `lse_shift_upper` (PoEBond: абстрактные `x y : V → ℝ`). θ-носитель
+  не входит ⇒ шаг по любым параметрам (блок, trunk) сертифицируется
+  той же леммой, если известен range(Δz). Перенос «бесплатный».
+- Теоремы (FunctionPreservingGrowth.lean, секция WarmUp):
+  `certified_step_block_of_range` — для любого `L : B → K → ℝ`
+  (логиты как функция параметров; в частности `L b = lmLogits`
+  модели с блоком `b` при замороженном trunk; `lmLogits_grow_identity`
+  — точка старта) и `d = L b' − L b`: та же оценка;
+  `block_step_certified_of_range_bound` — range ≤ r ⇒
+  obj_b b' ≤ obj_b b − drop (drop = −upper);
+  `block_step_commit_of_range_bound` — drop > `stepEps` ⇒ COMMIT-ветка
+  `CertifiedFiniteStep` ⇒ `warmup_h1_of_certified_steps` применим
+  к блоку; негатив `block_range_bound_violated_not_certified`
+  (range bound нарушен, objective растёт ⇒ сертификата нет ни при
+  каком drop — аналог `batch_drop_not_global`).
+- Что остаётся КОДУ (не доказано, реализация): вычислить range(Δz)
+  через block-only JVP при замороженном trunk (Δz = ∂z/∂θ_block ·
+  Δθ_block) и вариант `_certified_finite_step` по параметрам блока.
+  Существование полезного блока — не доказывается (тот же pin).
+- Witness .tmp/C646/traj.lean (lake env lean 4.36.0, rc=0,
+  logs/traj.log): L b = (0, b), шаг 0 → 1/2, range 1/2 ≤ 1, upper =
+  −1/4 + 1/8 ⇒ drop = 1/8 > `stepEps`, COMMIT; шаг 1 HOLD;
+  `warmup_h1_of_certified_steps` / `warmup_safe_of_certified_steps`
+  на блоке; негатив. Аксиомы: [propext, Classical.choice, Quot.sound].
+- Freeze 8887 -> 8891 (+4 theorem; 0 lost/changed); 17 гейтов PASS
+  (.tmp/C646/logs/ci.log).

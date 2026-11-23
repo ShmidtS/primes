@@ -145,3 +145,14 @@
   trunk по batch-CE, не в блок; batch-drop не телескопирует в global.
 - Фронтир: `certified_step_block`, телескоп batch→global, Adam EMA-лемма,
   paper v0.9, external push proposal. Разбор: `period-c642-c644-analysis.md`.
+
+<a id="c645-c646"></a>
+## C645–C646 — certified-шаг на параметрах блока (freeze 8887→8891)
+
+- Коммиты: 46a28709 (C645 разбор), C646 `FunctionPreservingGrowth.lean` (+4).
+- Вердикт: range-лемма CE — на ЛОГИТАХ (`lse_shift_upper`), от θ-носителя
+  не зависит ⇒ certified-шаг переносится на блок бесплатно.
+- Доказано: `certified_step_block_of_range`, `block_step_certified_of_range_bound`,
+  `block_step_commit_of_range_bound` ⇒ `warmup_h1_of_certified_steps` на блоке.
+- Негатив: `block_range_bound_violated_not_certified`.
+- Honest: range(Δz) через block-only JVP — реализация кода, не теорема.

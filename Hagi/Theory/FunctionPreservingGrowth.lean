@@ -34,6 +34,12 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   rollback, drop = 0) ⇒ h1 (`warmup_h1_of_certified_steps`) ⇒
   композиция с (e); негативы: uncertified-шаг контракт не проходит,
   per-batch drop на другой objective не телескопирует.
+* (g) Certified-шаг на параметрах БЛОКА (C646) — range-лемма CE
+  живёт на ЛОГИТАХ (`Hagi.Energy.lse_shift_upper`), носитель θ не
+  входит: `certified_step_block_of_range` (любое `L : B → K → ℝ`),
+  `block_step_certified_of_range_bound` / `block_step_commit_of_range_bound`
+  (COMMIT-ветка контракта для `CE ∘ L`); негатив
+  `block_range_bound_violated_not_certified`.
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -418,6 +424,95 @@ theorem batch_drop_not_global :
   refine ⟨fun x => -x, id, 0, 1, 1 / 2, by norm_num, ?_, ?_⟩
   · norm_num
   · simp only [id_eq]; norm_num
+
+/-! ### Certified-шаг на параметрах БЛОКА (C646)
+
+`_certified_finite_step` пишет только в trunk. Вопрос-гейт C645:
+зависит ли range-лемма CE (`finite_displacement_ce_upper`, lm.py:235)
+от носителя параметров? НЕТ: лемма — о ЛОГИТАХ, `d` — смещение
+логитов. В каноне это `Hagi.Energy.lse_shift_upper` на абстрактных
+`x y : V → ℝ` (носитель θ не входит). Ниже — развёртка на абстрактный
+носитель `B`: `L : B → V → ℝ` — «логиты(параметры)», в частности
+`L b = lmLogits (m с блоком b) x t` при замороженном trunk
+(`lmLogits_grow_identity` — точка старта: у identity-блока L = старые
+логиты). Код-side: Δz = block-only JVP — реализация, не теорема. -/
+
+variable {K : Type} [Fintype K] [Nonempty K] {B : Type}
+
+/-- **`certified_step_block_of_range`**: для ЛЮБОГО отображения
+`L : B → K → ℝ` (логиты как функция параметров — блока, trunk'а,
+всей модели) и смещения логитов `d = L b' − L b`:
+CE_t(L b') − CE_t(L b) ≤ ⟨softmax (L b) − onehot_t, d⟩ + range(d)²/8.
+Носитель параметров не входит — это `lse_shift_upper` при
+`x = L b`, `y = L b'`. -/
+theorem certified_step_block_of_range (L : B → K → ℝ) (b b' : B) (t : K)
+    (r : ℝ) (hr : ∀ u v, (L b' u - L b u) - (L b' v - L b v) ≤ r) :
+    Hagi.ceOneHot t (L b') ≤ Hagi.ceOneHot t (L b)
+      + (∑ v, Hagi.Energy.smax (L b) v * (L b' v - L b v) - (L b' t - L b t))
+      + r ^ 2 / 8 := by
+  have h := Hagi.Energy.lse_shift_upper (V := K) (L b) (L b') r hr
+  unfold Hagi.ceOneHot Hagi.lse
+  linarith
+
+/-- **`block_step_certified_of_range_bound`** — COMMIT-ветка контракта
+`CertifiedFiniteStep` для objective на параметрах блока `obj_b b =
+CE_t (L b)`: если range смещения логитов ≤ r, то
+`obj_b b' ≤ obj_b b − drop`, где `drop = −(⟨softmax z − onehot, d⟩ + r²/8)`;
+при `drop > stepEps` пара `(b', drop)` проходит контракт. Т.е.
+`warmup_h1_of_certified_steps` применим к блоку наравне с trunk —
+сертификат требует только range(Δz), а не носителя θ. -/
+theorem block_step_certified_of_range_bound (L : B → K → ℝ) (b b' : B)
+    (t : K) (r : ℝ)
+    (hr : ∀ u v, (L b' u - L b u) - (L b' v - L b v) ≤ r) (drop : ℝ)
+    (hdrop : ∑ v, Hagi.Energy.smax (L b) v * (L b' v - L b v) - (L b' t - L b t)
+        + r ^ 2 / 8 = -drop) :
+    Hagi.ceOneHot t (L b') ≤ Hagi.ceOneHot t (L b) - drop := by
+  have h := certified_step_block_of_range L b b' t r hr
+  calc Hagi.ceOneHot t (L b') ≤ Hagi.ceOneHot t (L b)
+        + (∑ v, Hagi.Energy.smax (L b) v * (L b' v - L b v) - (L b' t - L b t))
+        + r ^ 2 / 8 := h
+    _ = Hagi.ceOneHot t (L b) - drop := by linarith [hdrop.le]
+
+/-- COMMIT-ветка: когда upper < −stepEps (т.е. drop > stepEps), шаг по
+блоку удовлетворяет `CertifiedFiniteStep` на `obj_b = CE_t ∘ L`. -/
+theorem block_step_commit_of_range_bound (L : B → K → ℝ) (b b' : B) (t : K)
+    (r : ℝ) (hr : ∀ u v, (L b' u - L b u) - (L b' v - L b v) ≤ r)
+    (hpos : stepEps < -(∑ v, Hagi.Energy.smax (L b) v * (L b' v - L b v)
+        - (L b' t - L b t) + r ^ 2 / 8)) :
+    CertifiedFiniteStep (fun c => Hagi.ceOneHot t (L c)) b b'
+      (-(∑ v, Hagi.Energy.smax (L b) v * (L b' v - L b v)
+        - (L b' t - L b t) + r ^ 2 / 8)) := by
+  refine Or.inl ⟨hpos, ?_⟩
+  exact block_step_certified_of_range_bound L b b' t r hr _ (by ring)
+
+/-- **Негатив (граница range нарушена)**: аналог `batch_drop_not_global` —
+сертификат по bound'у `r = 1/2` недоступен, если посылка о range ложна:
+шаг с range(Δz) = 1 > 1/2 РАСТЁТ по objective (log 2 → log (1 + e)),
+и потому контракт `CertifiedFiniteStep` не выполнен ни при каком drop. -/
+
+theorem block_range_bound_violated_not_certified :
+    ∃ (L : Bool → Bool → ℝ),
+      (¬ ∀ u v, (L true u - L false u) - (L true v - L false v) ≤ 1 / 2)
+        ∧ ∀ drop, ¬ CertifiedFiniteStep
+          (fun c => Hagi.ceOneHot false (L c)) false true drop := by
+  have hexp : (1 : ℝ) < Real.exp 1 := Real.one_lt_exp_iff.mpr (by norm_num)
+  have hlog : Real.log 2 < Real.log (1 + Real.exp 1) :=
+    Real.log_lt_log (by positivity) (by ring_nf at hexp ⊢; linarith [hexp])
+  refine ⟨fun c v => if c && v then 1 else 0, ?_, ?_⟩
+  · intro h
+    have := h true false
+    norm_num at this
+  · intro drop
+    rintro (⟨hpos, hle⟩ | ⟨heq, _⟩)
+    · simp only [Hagi.ceOneHot, Hagi.lse] at hle
+      norm_num [Finset.sum_ite_eq, Finset.filter_eq] at hle
+      unfold stepEps at hpos
+      norm_num at hpos
+      have hpos' : (0 : ℝ) < drop := by linarith
+      rw [add_comm] at hlog
+      have h2 : Real.log 2 - drop < Real.log 2 := sub_lt_self _ hpos'
+      exact absurd hle (not_le.mpr (lt_trans h2 hlog))
+    · exact absurd heq (by norm_num)
 
 end WarmUp
 
