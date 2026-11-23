@@ -2194,3 +2194,75 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   вещественный тест, не float-семантику.
 - Freeze 8861 -> 8869 (+8: 3 def, 5 theorem; 0 lost/changed);
   17 гейтов PASS (.tmp/C639/logs/).
+
+## C640 function preserving growth bridge from hagi v2 wave 255
+
+- Beat: C640 = соответствие кода HAGI_v2 function-preserving trunk
+  growth (ca52eb4, wave 255) канону роста primes. Base HEAD 9fbca579,
+  tree clean. HAGI_v2 ca52eb4 = коммит из 4 python-файлов
+  (hagi/lm.py, hagi/unified.py, scripts/neuro_symbolic_cycle.py,
+  tests/test_live_adapter.py); Lean-файла FunctionPreservingGrowth.lean
+  в репозитории HAGI_v2 НЕТ ни в коммите, ни в дереве (fd по
+  C:/HAGI_v2: 0 .lean) — имя существует только в заголовке коммита и
+  в комментариях кода (hagi/lm.py:565, :583; hagi/unified.py:75).
+  Statement «FunctionPreservingGrowth.lean» = имя bench-прецедента
+  (bench_bridge --mode grow, C444), не Lean-файл: sorry/axioms
+  проверять не в чем.
+- Вердикт-класс: (a) — statement кода ⊂ канон, код не дублируется.
+  Код (hagi/lm.py:581-587 `_block_add`): `h = h + relu(a @ W1 + b1) @ Wo`;
+  свежий блок `grow()` (:589-601): W1 случайная (:594), b1 = 0 (:595),
+  Wo = 0 (:596). Это residual-блок с нулевым выходным фактором и
+  произвольной (нелинейной, случайной) внутренностью.
+  - `benchResidualBlock` (Hagi/Theory/GrowTrunkBlock.lean:86) +
+    `benchResidual_zero` (:95): γ = 0 маскирует ЛЮБУЮ внутреннюю h —
+    сильнее кода (код: скалярно-матричный нуль Wo, канон: произвольный
+    нулевой гейт). Инстанс: γ • Wo, witness growBlock_eq.
+  - `grow_block_bench_sound` (:124), `grow_block_obj_invariant` (:135):
+    глубина 2 → 3 сохраняет trunk-функцию и ЛЮБОЙ функционал (логиты,
+    CE) ТОЧНО = «logits preserved EXACTLY, max|diff| = 0.0»
+    (tests/test_live_adapter.py:85). `grow_blocks_repeat_sound` (:149)
+    = MAX_BLOCKS = 2 (hagi/unified.py:381).
+  - LM-носитель: `identityBlock` (Hagi/Theory/FunctionPreservingGrowth.lean:79),
+    `trunk_function_preserving` (:108), `lmLogits_grow_identity` (:118 —
+    то же имя, что в комментарии кода lm.py:568), `function_preserving_growth`
+    (:142).
+  - LoRA-форма: `adapter_neutral_B` (Hagi/Theory/AdapterGrowth.lean:103,
+    B = 0 ⇒ identity при произвольной A) — паттерн wave 230
+    (AdapterBank, C532), который wave 255 переносит на блоки trunk.
+  - Core: `zero_init_identity` (Hagi/Core/NonlinearStep0.lean:104).
+- Что в коде НОВОЕ относительно доказанного (честные границы):
+  - Гейт `_maybe_grow` (hagi/unified.py:383-440): сигнал GrowthGate
+    `128·‖G‖²/(2L)` (:405) против c_add (:404, доля новых
+    параметров × 10) → HOLD (:407); канон `growthGate`
+    (Hagi/Theory/NegativeTransfer.lean:574, `growth_gate_sound` :677)
+    сертифицирует только ветку stay при `signal ≤ c_add`; порог
+    c_add в коде — эвристика, не каноническая стоимость.
+  - Warm-up блока при замороженном trunk (:423-434, Adam только по
+    W1/b1/Wo, 2 эпохи, ≤300 шагов/эпоху) и keep-iff `holdout CE` не
+    хуже, иначе точный `blocks.pop()` (:435-437): сертификата
+    «после обучения функция сохранена» НЕТ и быть не может — после
+    шага 0 Wo ≠ 0, блок меняет функцию. Канон это и говорит: gain
+    после шага 0 — measured, не теорема (honest pins
+    FunctionPreservingGrowth.lean); клоз (2) master_theorem_v3
+    (MasterTheoremV3.lean:81, zero-forgetting через
+    `adapter_per_task_sound` AdapterGrowth.lean:582) требует
+    замороженной per-task ветви — growth блока trunk под него НЕ
+    подпадает; код это признаёт эмпирически (OLD CE +0.123 vs +0.498,
+    не 0).
+  - Измеренное «forgetting 4x lower» — A/B на 6 чанках с одного
+    чекпоинта (коммит-сообщение), не теорема; «нейтральный блок не
+    забывает» верно только на шаге 0.
+  - Bench-соответствие: scripts/bench_bridge.py --mode grow (C444)
+    исполняет `blockAdmissionRule`; wave 255 использует другой гейт
+    (GrowthGate-сигнал + holdout), унификация gate-ов — вне бита.
+- Witness .tmp/C640/traj.lean (lake env lean 4.36.0, rc=0, logs/traj.log):
+  growBlock W1 b1 Wo x = x + reluBranch — форма кода; growBlock_eq:
+  при `Wo = γ • Wo'` блок = `benchResidualBlock γ (branch)` —
+  положительное: grow_2_to_3 (глубина 2 → 3, Wo = 0, W1 произвольная),
+  grow_2_to_3_obj (любой функционал), grow_2_blocks (2 блока),
+  lm_grow (LM-носитель). Негатив (nonzero_out_not_preserving): x = 0,
+  b1 = 1, Wo = 1 → выход = card r ≠ 0 — ненулевая выходная матрица
+  (после warm-up) функцию НЕ сохраняет. Аксиомы всех пяти:
+  [propext, Classical.choice, Quot.sound].
+- Freeze 8869 (без изменений: только карточка); 17 гейтов PASS
+  (.tmp/C640/logs/ci.log).
