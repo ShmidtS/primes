@@ -12,7 +12,7 @@ comparator.json, formalization.yaml (arXiv-категории, MSC2020,
 редакционный вердикт («no blocking problem»). Реестр не
 ранжирует и не одобряет результаты.
 
-Этот файл — подготовительные карточки (draft entries) восьми
+Этот файл — подготовительные карточки (draft entries) одиннадцати
 machine-checked результатов C5XX-витков: самодостаточные
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
@@ -189,6 +189,100 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
   low-rank-эффективности (LoRA-доминирование).
 - **Category.** Combinatorics / machine learning theory (arXiv
   cs.LG); MSC2020 05A99, 68T07.
+
+## Card 9 — Optimal gradient step γ* = 1/L: perfect-square gap
+
+- **Statement.** Пусть `φ(γ) = γG − (L/2)γ²G²` — guaranteed
+  per-step drop градиентного шага для L-smooth функции с
+  градиентной нормой G > 0 (посылка smoothness: `f(y) ≤ f(x) +
+  ⟪∇f(x), y−x⟫ + (L/2)‖y−x‖²`). Тогда для любого γ:
+
+  `φ(1/L) − φ(γ) = (G²/(2L))·(1 − Lγ)² ≥ 0`,
+
+  т.е. γ* = 1/L — глобальный максимум параболы (не только на
+  descent-зоне [0, 2/L]), а максимальный drop равен
+  `φ(1/L) = G²/(2L)` (одношаговый sufficient decrease).
+- **Anchor.** `Hagi.Theory.NegativeTransfer.nlDrop_le_optimal`
+  (Hagi/Theory/NegativeTransfer.lean:467); `nl_drop_optimal`
+  (:481); premise-форма `nl_drop_bound` (:443); определения
+  `nlDrop` (:434), `nlStep` (:231).
+- **Dependencies.** Mathlib (NormedSpace, inner product);
+  внутренние определения модуля. Bench-числа (C609):
+  auto-LR γ_auto = 1/(2·trace(H̄)) ∈ {5000000/10470759 ≈
+  0.477, 13500000/25944901 ≈ 0.520, 156250/234227 ≈ 0.667} —
+  измеренный диапазон 0.48–0.67 против прежней константы 1/10.
+- **Status.** Machine-checked (Lean 4.36); аксиомы:
+  стандартные три Lean. Классический факт (η = 1/L), ценность —
+  certified-мост от измеренной L к шагу (бенчмарк-телеметрия
+  per-step drop vs bound G²/(2L)).
+- **Category.** Optimization (arXiv math.OC); MSC2020 90C25,
+  68T07.
+
+## Card 10 — Hierarchical window coverage for every n with
+bounded peak
+
+- **Statement.** Разобьём [0, n) на блоки длины ≤ B
+  (`ℓ_j = min B (n − jB)`), в каждом блоке возьмём старты окон
+  длины w с шагом s. Тогда при `0 < B`, `0 < s ≤ w`:
+
+  `∀ i < n, ∃ t ∈ starts: t ≤ i ∧ i < t + w`
+
+  — полное покрытие при любом n (без верхней границы на n);
+  а при `w ≤ B`, `(B−w)/s + 2 ≤ m` в каждом блоке ≤ m окон,
+  т.е. streaming peak-память ≤ m окон (total растёт с числом
+  блоков ⌈n/B⌉ — честное peak ≠ total).
+- **Anchor.** `Hagi.Theory.CoverageReading.hier_covers_any_n`
+  (Hagi/Theory/CoverageReading.lean:285);
+  `hier_peak_window_budget` (:317); определения `hierBlockLen`
+  (:270), `hierStarts` (:275).
+- **Dependencies.** Та же Mathlib-база; сведение поблочно к
+  `covStartsStep_covers` (Card 11). Числа-инстансы (C613,
+  w = m = 64, B = 4032, s = 64): n = 100000 → 25 блоков
+  (per-block 24×63 + 51 окон), total 1563, peak 63 ≤ 64;
+  Lean-свидетель n = 8128 → блоки [63, 63, 1], peak 63
+  (machine-checked #eval, C611/C613).
+- **Status.** Machine-checked (Lean 4.36); аксиомы:
+  стандартные три Lean. Ценность — сертифицированное снятие
+  одноуровневой границы покрытия (n ≤ 4032 при w = m = 64)
+  иерархией без роста peak-памяти.
+- **Category.** Discrete mathematics / streaming algorithms
+  (arXiv cs.DM); MSC2020 68W40, 68P05.
+
+## Card 11 — Single-level window coverage iff step fits window
+and budget
+
+- **Statement.** Для стартов окон [t, t+w) с шагом s на [0, n)
+  одноуровневое покрытие
+
+  `∀ i < n, ∃ t ∈ starts: t ≤ i ∧ i < t + w`
+
+  доказуемо при `0 < s ≤ w` (условие точно: шаг > длины окна
+  оставляет дыры — контрпример s = 17 > w = 9, байт 9
+  непокрыт); число окон ≤ `(n−w)/s + 2`; при бюджете m окон
+  покрытие в бюджете доказуемо при `0 < s ≤ w`,
+  `(n−w)/s + 2 ≤ m` — замыкание негатива «усечение списка
+  стартов до m теряет байт 0»: адаптивный шаг вместо
+  усечения сохраняет старт 0. Следствие-граница: при
+  s = w одноуровневое покрытие возможно ⟺ n ≤ w +
+  s(m−2) ≤ w(m−1) — при w = m = 64 это n ≤ 4032; при
+  n > 4032 одноуровнево INFEASIBLE (снимается иерархией
+  Card 10).
+- **Anchor.**
+  `Hagi.Theory.CoverageReading.covStartsStep_covers`
+  (Hagi/Theory/CoverageReading.lean:183);
+  `covStartsStep_len_le` (:219);
+  `covStartsStep_adaptive_covers` (:232).
+- **Dependencies.** Mathlib (List, Nat.div); без внешних
+  теорий. Bench-числа (C602/C611): n = 540 → s = 8, 61 окно,
+  covered; n = 4032 → s = 64 (граница), covered; n = 8128 →
+  127 окон > 64 — INFEASIBLE.
+- **Status.** Machine-checked (Lean 4.36); аксиомы:
+  стандартные три Lean. Sufficiency (0 < s ≤ w ⇒ покрытие;
+  + бюджет ⇒ ≤ m окон) — Lean-теоремы; необходимость условия
+  s ≤ w и потеря байта 0 при усечении — Lean-witness
+  (machine-checked контрпримеры).
+- **Category.** Discrete mathematics (arXiv cs.DM); MSC2020
+  68W40, 05B40.
 
 ---
 
