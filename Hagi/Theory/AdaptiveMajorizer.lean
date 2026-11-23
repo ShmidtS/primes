@@ -1184,4 +1184,356 @@ theorem ceOneHot_next_le_linear_of_zero_var_tight (X : Matrix V (Fin d) ℝ)
   rw [hvar, mul_zero, mul_zero, add_zero] at h
   exact h
 
+/-! ## Code bridge: the implementation's claim, at the exact range
+
+HAGI_v2 `hagi/lm.py` (`CertifiedStepLM._adaptive_step`, wave 252)
+returns the claim `A * η - C * η ^ 2` at the `η` it actually takes,
+with `C = kappa R * Var`, `R` the MAXIMAL range of the directional
+logit displacement. `Hagi.Model.ceStepRange = 2 * ∑ |g|` is only a
+computable bound on that range, so the canon is restated first at
+the exact range; the claim is then certified at every step in the
+majorizer's domain. -/
+
+variable {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
+
+/-- The exact range of the directional logit displacement. -/
+
+noncomputable def ceDispRange (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) : ℝ :=
+  Finset.sup' Finset.univ Finset.univ_nonempty
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+    - Finset.inf' Finset.univ Finset.univ_nonempty
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+
+/-- The exact range is nonnegative. -/
+
+theorem ceDispRange_nonneg (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) : 0 ≤ ceDispRange X θ t := by
+  obtain ⟨w⟩ := ‹Nonempty V›
+  have hlo := Finset.inf'_le (s := Finset.univ) (fun v =>
+    Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) (Finset.mem_univ w)
+  have hhi := Finset.le_sup' (s := Finset.univ) (fun v =>
+    Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) (Finset.mem_univ w)
+  unfold ceDispRange
+  linarith
+
+/-- The eta-scaled displacement has range at most `η` times the
+range of the direction. -/
+
+theorem ce_direction_range (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) {η : ℝ} (hη : 0 ≤ η) (u v : V) :
+    Hagi.Model.ceNextLogits X θ t η u - Hagi.Model.ceLogits X θ u
+      - (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+      ≤ η * ceDispRange X θ t := by
+  have hu : Hagi.Model.ceNextLogits X θ t η u - Hagi.Model.ceLogits X θ u
+      = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) u := by
+    rw [Hagi.Model.ceNextLogits_apply X θ t η u]
+    ring
+  have hv : Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v
+      = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v := by
+    rw [Hagi.Model.ceNextLogits_apply X θ t η v]
+    ring
+  have hsu := Finset.le_sup' (s := Finset.univ) (fun v =>
+    Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) (Finset.mem_univ u)
+  have hiv := Finset.inf'_le (s := Finset.univ) (fun v =>
+    Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) (Finset.mem_univ v)
+  unfold ceDispRange at *
+  rw [hu, hv]
+  nlinarith
+
+/-- The adaptive curvature at the exact range (the tight canon
+there). -/
+
+noncomputable def ceAdaptiveCurvRange (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) : ℝ :=
+  kappa (ceDispRange X θ t)
+    * varWeight (Hagi.Energy.smax (Hagi.Model.ceLogits X θ))
+        (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+
+/-- **The adaptive CE step majorizer at the EXACT range**: the tight
+canon `ceOneHot_next_le_adaptive_tight` with the Bennett multiplier
+evaluated at `ceDispRange` instead of the computable bound
+`Hagi.Model.ceStepRange`. Same proof; the displacement range
+hypothesis is supplied by `ce_direction_range`. -/
+
+theorem ceOneHot_next_le_adaptive_range (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) {η : ℝ}
+    (hη0 : 0 ≤ η) (hη1 : η ≤ 1) :
+    Hagi.ceOneHot t (Hagi.Model.ceNextLogits X θ t η)
+      ≤ Hagi.ceOneHot t (Hagi.Model.ceLogits X θ)
+        - η * Hagi.Model.ceAlignment X θ t
+        + η ^ 2 * ceAdaptiveCurvRange X θ t := by
+  rcases eq_or_lt_of_le hη0 with rfl | hη'
+  · -- eta = 0: the step is the identity; the bound is an equality
+    have hstep : Hagi.Model.ceNextLogits X θ t 0 = Hagi.Model.ceLogits X θ := by
+      funext v
+      rw [Hagi.Model.ceNextLogits_apply X θ t 0 v]
+      ring
+    rw [hstep]
+    simp
+  have hR : 0 ≤ ceDispRange X θ t :=
+    ceDispRange_nonneg X θ t
+  rcases eq_or_lt_of_le hR with hR0 | hR'
+  · -- zero step range: the displacement is constant, variance zero
+    have hvar : varWeight (Hagi.Energy.smax (Hagi.Model.ceLogits X θ))
+        (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+      = 0 := by
+      refine varWeight_eq_zero_of_range_le_zero _
+        (Hagi.Energy.smax_sum_one _) _ ?_
+      intro u v
+      have hr := ce_direction_range X θ t hη0
+      rw [← hR0] at hr
+      have hu : Hagi.Model.ceNextLogits X θ t η u
+          - Hagi.Model.ceLogits X θ u
+          = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) u := by
+        rw [Hagi.Model.ceNextLogits_apply X θ t η u]
+        ring
+      have hv : Hagi.Model.ceNextLogits X θ t η v
+          - Hagi.Model.ceLogits X θ v
+          = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v := by
+        rw [Hagi.Model.ceNextLogits_apply X θ t η v]
+        ring
+      have hcomb : (Hagi.Model.ceNextLogits X θ t η u - Hagi.Model.ceLogits X θ u)
+          - (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+          = η * (Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) u
+              - Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) := by
+        rw [hu, hv]
+        ring
+      have hruv := hr u v
+      nlinarith [hruv, hcomb, hη']
+    have hcurv0 : ceAdaptiveCurvRange X θ t = 0 := by
+      unfold ceAdaptiveCurvRange
+      unfold kappa
+      rw [← hR0]
+      simp
+    rw [hcurv0, mul_zero, add_zero]
+    -- linear bound inline (no dependency on the weak family): the
+    -- weak lse twin at r = η * R = 0 with the variance collapsed
+    rw [Hagi.Energy.smax_eq_softDef (Hagi.Model.ceLogits X θ)] at hvar
+    have hlse0 := lse_shift_upper_var (Hagi.Model.ceLogits X θ)
+      (Hagi.Model.ceNextLogits X θ t η) (η * ceDispRange X θ t)
+      (mul_nonneg hη0 hR) (ce_direction_range X θ t hη0)
+    have hlin := Hagi.Model.ce_first_order_eq X θ t η
+    have ht := Hagi.Model.ceNextLogits_apply X θ t η t
+    classical
+    have honehot : ∑ v, (if v = t then (1 : ℝ) else 0)
+        * (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+        = Hagi.Model.ceNextLogits X θ t η t - Hagi.Model.ceLogits X θ t := by
+      simp
+    simp only [Hagi.Model.ceResidual, sub_mul, Finset.sum_sub_distrib] at hlin
+    rw [honehot, ht] at hlin
+    rw [Hagi.Energy.smax_eq_softDef (Hagi.Model.ceLogits X θ)] at hlse0
+    have hsoft : ∑ v, Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ) v
+        * (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+        = -η * Hagi.Model.ceAlignment X θ t
+          + η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) t := by
+      linarith
+    rw [hsoft] at hlse0
+    have happly : ∀ v, Hagi.Model.ceNextLogits X θ t η v
+        - Hagi.Model.ceLogits X θ v
+        = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v := by
+      intro v
+      rw [Hagi.Model.ceNextLogits_apply X θ t η v]
+      ring
+    have hscale : varWeight
+        (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+        (fun v => Hagi.Model.ceNextLogits X θ t η v
+          - Hagi.Model.ceLogits X θ v)
+        = η ^ 2 * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+            (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) := by
+      have hvar2 := varWeight_scale
+        (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+        (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) η
+      have hfun : (fun v => η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+          = (fun v => Hagi.Model.ceNextLogits X θ t η v
+              - Hagi.Model.ceLogits X θ v) := by
+        funext v
+        rw [happly v]
+      rw [← hfun]
+      exact hvar2
+    rw [hscale, hvar, mul_zero, mul_zero, add_zero] at hlse0
+    unfold Hagi.ceOneHot Hagi.Core.lse
+    rw [ht]
+    linarith
+  have hlse := lse_shift_upper_var_tight (Hagi.Model.ceLogits X θ)
+    (Hagi.Model.ceNextLogits X θ t η) (η * ceDispRange X θ t)
+    (mul_pos hη' hR') (ce_direction_range X θ t hη0)
+  have hlin := Hagi.Model.ce_first_order_eq X θ t η
+  have ht := Hagi.Model.ceNextLogits_apply X θ t η t
+  classical
+  have honehot : ∑ v, (if v = t then (1 : ℝ) else 0)
+      * (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+      = Hagi.Model.ceNextLogits X θ t η t - Hagi.Model.ceLogits X θ t := by
+    simp
+  simp only [Hagi.Model.ceResidual, sub_mul, Finset.sum_sub_distrib] at hlin
+  rw [honehot, ht] at hlin
+  rw [Hagi.Energy.smax_eq_softDef (Hagi.Model.ceLogits X θ)] at hlse
+  have hsoft : ∑ v, Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ) v
+      * (Hagi.Model.ceNextLogits X θ t η v - Hagi.Model.ceLogits X θ v)
+      = -η * Hagi.Model.ceAlignment X θ t
+        + η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) t := by
+    linarith
+  have happly : ∀ v, Hagi.Model.ceNextLogits X θ t η v
+      - Hagi.Model.ceLogits X θ v
+      = η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v := by
+    intro v
+    rw [Hagi.Model.ceNextLogits_apply X θ t η v]
+    ring
+  rw [hsoft] at hlse
+  -- the variance of the eta-scaled displacement (softDef weights)
+  have hscale : varWeight
+      (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+      (fun v => Hagi.Model.ceNextLogits X θ t η v
+        - Hagi.Model.ceLogits X θ v)
+      = η ^ 2 * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+          (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) := by
+    have hvar' := varWeight_scale
+      (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) η
+    have hfun : (fun v => η * Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+        = (fun v => Hagi.Model.ceNextLogits X θ t η v
+            - Hagi.Model.ceLogits X θ v) := by
+      funext v
+      rw [happly v]
+    rw [← hfun]
+    exact hvar'
+  rw [hscale] at hlse
+  -- kappa (eta * R) ≤ kappa R by kappa_mono
+  have hkap : kappa (η * ceDispRange X θ t)
+      ≤ kappa (ceDispRange X θ t) :=
+    kappa_mono (mul_pos hη' hR')
+      (by nlinarith [mul_le_mul_of_nonneg_right hη1 hR])
+  have hvD0 : 0 ≤ varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v) := by
+    have h := varWeight_nonneg
+      (fun v => Hagi.Energy.smax_nonneg (Hagi.Model.ceLogits X θ) v)
+      (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+    rw [Hagi.Energy.smax_eq_softDef (Hagi.Model.ceLogits X θ)] at h
+    exact h
+  -- reassociate and dominate kappa (eta * R) by kappa R
+  have hswap : kappa (η * ceDispRange X θ t)
+      * (η ^ 2 * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+          (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v))
+      = η ^ 2 * (kappa (η * ceDispRange X θ t)
+          * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+            (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)) := by
+    ring
+  rw [hswap] at hlse
+  have hmono2 : η ^ 2 * (kappa (η * ceDispRange X θ t)
+          * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+            (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v))
+      ≤ η ^ 2 * (kappa (ceDispRange X θ t)
+          * varWeight (Hagi.Prelude.softDef (Hagi.Model.ceLogits X θ))
+            (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)) := by
+    exact mul_le_mul_of_nonneg_left
+      (mul_le_mul_of_nonneg_right hkap hvD0) (sq_nonneg η)
+  unfold Hagi.ceOneHot Hagi.Core.lse
+  rw [ht]
+  unfold ceAdaptiveCurvRange
+  rw [Hagi.Energy.smax_eq_softDef (Hagi.Model.ceLogits X θ)]
+  linarith [hlse, hmono2]
+
+/-- The implementation's Bennett multiplier: the limit `1 / 2`
+below `10 ^ (-5 : ℤ)` (the closed form loses all precision there),
+else the value at the capped range `min R 50`. -/
+
+noncomputable def kappaClamp (R : ℝ) : ℝ :=
+  if R ≤ 10 ^ (-5 : ℤ) then 1 / 2 else kappa (min R 50)
+
+/-- The adaptive curvature AS COMPUTED by the implementation. -/
+
+noncomputable def ceAdaptiveCurvCode (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) : ℝ :=
+  kappaClamp (ceDispRange X θ t)
+    * varWeight (Hagi.Energy.smax (Hagi.Model.ceLogits X θ))
+        (fun v => Hagi.Model.ceLogits X (Hagi.Model.ceDirection X θ t) v)
+
+/-- On a range strictly above the clamp threshold and up to the cap
+the clamped multiplier IS the exact one. Outside that window it
+only bounds: below the threshold `1 / 2 ≤ kappa R`
+(`kappa_ge_half`), beyond the cap `kappa 50 ≤ kappa R`
+(`kappa_mono`); there the computed curvature understates the
+canon, so the claim is NOT certified by this bridge. -/
+
+theorem kappaClamp_eq_kappa {R : ℝ} (hlo : 10 ^ (-5 : ℤ) < R) (hcap : R ≤ 50) :
+    kappaClamp R = kappa R := by
+  unfold kappaClamp
+  by_cases h : R ≤ 10 ^ (-5 : ℤ)
+  · exact absurd h (not_le.mpr hlo)
+  · rw [if_neg h, min_eq_left hcap]
+
+/-- **Bridge to the implementation, adaptive branch (majorizer at the
+step actually taken)**: for `η ∈ [0, 1]` the cross-entropy after
+the step is at most the current one minus `η * A - η ^ 2 * C` with
+the COMPUTED curvature `C = ceAdaptiveCurvCode`, PROVIDED the
+exact range lies strictly between the clamp threshold and the cap
+(the window where the computed multiplier is the exact one). No
+hypothesis ties `η` to `A / (2 * C)`: the claim is the majorizer
+itself, so it is certified at any scaled step. -/
+
+theorem ce_adaptive_code_drop (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) {η : ℝ}
+    (hlo : 10 ^ (-5 : ℤ) < ceDispRange X θ t)
+    (hcap : ceDispRange X θ t ≤ 50)
+    (hη0 : 0 ≤ η) (hη1 : η ≤ 1) :
+    Hagi.ceOneHot t (Hagi.Model.ceNextLogits X θ t η)
+      ≤ Hagi.ceOneHot t (Hagi.Model.ceLogits X θ)
+        - (η * Hagi.Model.ceAlignment X θ t
+          - η ^ 2 * ceAdaptiveCurvCode X θ t) := by
+  have h := ceOneHot_next_le_adaptive_range X θ t hη0 hη1
+  have hκ : kappaClamp (ceDispRange X θ t) = kappa (ceDispRange X θ t) :=
+    kappaClamp_eq_kappa hlo hcap
+  have hC : ceAdaptiveCurvCode X θ t = ceAdaptiveCurvRange X θ t := by
+    unfold ceAdaptiveCurvCode ceAdaptiveCurvRange
+    rw [hκ]
+  rw [hC]
+  linarith
+
+/-- **Bridge to the implementation, range branch**: for every
+`η ≥ 0` the claim `η * A - η ^ 2 * (R ^ 2 / 8)` with the range
+curvature of `Hagi.Theory.CEChain.singleSampleStep` is certified
+(no unit cap: the range majorizer holds on `[0, ∞)`). Restates
+`Hagi.Model.ceOneHot_next_le` in claim form. -/
+
+theorem ce_range_code_drop (X : Matrix V (Fin d) ℝ)
+    (θ : EuclideanSpace ℝ (Fin d)) (t : V) {η : ℝ} (hη0 : 0 ≤ η) :
+    Hagi.ceOneHot t (Hagi.Model.ceNextLogits X θ t η)
+      ≤ Hagi.ceOneHot t (Hagi.Model.ceLogits X θ)
+        - (η * Hagi.Model.ceAlignment X θ t
+          - η ^ 2 * (Hagi.Model.ceStepRange X θ t ^ 2 / 8)) := by
+  have h := Hagi.Model.ceOneHot_next_le X θ t hη0
+  have hsq : (η * Hagi.Model.ceStepRange X θ t) ^ 2 / 8
+      = η ^ 2 * (Hagi.Model.ceStepRange X θ t ^ 2 / 8) := by ring
+  rw [hsq] at h
+  linarith
+
+/-- **The scaled claim (pure algebra)**: at the step
+`s * (A / (2 * C))` with `C > 0` the claim `A * η - C * η ^ 2`
+equals `(2 * s - s ^ 2)` times the optimal drop `A ^ 2 / (4 * C)`. -/
+
+theorem adaptive_claim_scaled (A C s : ℝ) (hC : 0 < C) :
+    A * (s * (A / (2 * C))) - C * (s * (A / (2 * C))) ^ 2
+      = (2 * s - s ^ 2) * (A ^ 2 / (4 * C)) := by
+  field_simp
+  ring
+
+/-- **The scaled claim is honest and not the optimal drop**: for
+`s ∈ [0, 1]` and `C > 0` the claim at `s * (A / (2 * C))` lies
+between `s ^ 2` and one times `A ^ 2 / (4 * C)`. The upper side is
+the defect: claiming the full `A ^ 2 / (4 * C)` for a step scaled
+by `s < 1` overclaims (at `s = 0` the claim should be `0`). -/
+
+theorem adaptive_claim_scaled_bounds (A C s : ℝ) (hC : 0 < C)
+    (hs0 : 0 ≤ s) (hs1 : s ≤ 1) :
+    s ^ 2 * (A ^ 2 / (4 * C))
+      ≤ A * (s * (A / (2 * C))) - C * (s * (A / (2 * C))) ^ 2
+      ∧ A * (s * (A / (2 * C))) - C * (s * (A / (2 * C))) ^ 2
+        ≤ A ^ 2 / (4 * C) := by
+  rw [adaptive_claim_scaled A C s hC]
+  have hk : 0 ≤ A ^ 2 / (4 * C) := by positivity
+  have hlo : s ^ 2 ≤ 2 * s - s ^ 2 := by nlinarith [sq_nonneg s]
+  have hhi : 2 * s - s ^ 2 ≤ 1 := by nlinarith [sq_nonneg (s - 1)]
+  exact ⟨mul_le_mul_of_nonneg_right hlo hk,
+    by simpa using mul_le_mul_of_nonneg_right hhi hk⟩
+
 end Hagi.Theory.AdaptiveMajorizer

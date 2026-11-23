@@ -2054,3 +2054,69 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   per-beat files — `git log`; line-level
   history: `git log --oneline -- STATUS.md` (полный дожатый журнал —
   b3939aa5).
+
+## C638 adaptive step certificate bridge from hagi v2 waves 252-254
+
+- Beat: C638 = Lean-мост от сертификата шага HAGI_v2 (коммиты
+  4c70f7a wave252, 1ae924e wave254, hagi/lm.py:1261-1345 и
+  hagi/selfmodel.py:78-175) к primes. Base HEAD 0b28a7a7, tree clean.
+  Freeze 8849 -> 8861 (+12 decl, 0 lost/changed). Файл:
+  [`AdaptiveMajorizer.lean`](Hagi/Theory/AdaptiveMajorizer.lean),
+  секция «Code bridge» (строки 1190-1540).
+- Карточка файл -> теорема -> код-якорь HAGI_v2 (1ae924e):
+  - `ceDispRange` (1201) + `ceDispRange_nonneg` (1210) +
+    `ce_direction_range` (1223): точный диапазон направленного
+    логит-смещения (sup' - inf'), his range при масштабе eta.
+    Якорь: lm.py:1286,1293 (per_sample_range, `R = max`).
+  - `ceAdaptiveCurvRange` (1247) + `ceOneHot_next_le_adaptive_range`
+    (1259): канон `ceOneHot_next_le_adaptive_tight` на ТОЧНОМ
+    диапазоне (тот же перенос, range-гипотеза из
+    `ce_direction_range`). Якорь: lm.py:1287-1300 (C = kappa(R)*Var).
+  - `kappaClamp` (1440) = множитель кода (1/2 ниже 1e-5, иначе
+    kappa(min R 50)); `kappaClamp_eq_kappa` (1458): на окне
+    (1e-5, 50] он РАВЕН точному. Якорь: lm.py:1298-1300.
+  - `ceAdaptiveCurvCode` (1445) + `ce_adaptive_code_drop` (1474):
+    для eta в [0,1] CE после шага <= текущего - (eta*A - eta^2*C)
+    с C кода, при диапазоне в окне. Без привязки eta к A/(2C):
+    claim = сам majorizer, сертифицирован на любом
+    масштабированном шаге (defect 2 wave252: drop считался для
+    непромасштабированного eta*). Якорь: lm.py:1313-1324.
+  - `ce_range_code_drop` (1498): для eta >= 0 claim
+    eta*A - eta^2*(R^2/8) ветки range БЕЗ unit-cap (majorizer
+    `Hagi.Model.ceOneHot_next_le` на [0,inf)). Якорь:
+    lm.py:1314,1323-1324 (eta = 4A/R^2*lr_scale, drop).
+- `adaptive_claim_scaled` (1514) + `adaptive_claim_scaled_bounds`
+  (1526): чистая алгебра defect 2 — при s в [0,1] claim в точке
+  s*A/(2C) равен (2s - s^2)*(A^2/(4C)) и лежит между s^2 и 1
+  дробей A^2/(4C); при s=0.05 это 39/400 (в 400/39 ~ 10.26 раз
+  меньше старого claim A^2/(4C) — измерено в 4c70f7a как «~10x»).
+- Честные границы (negative), witness .tmp/C638/traj.lean (lake env
+  lean, rc=0):
+  - реальный код на конфиге теста wave252 (dim 32, hidden 64, seed
+    0, lr_scale 0.05), инструментированный прогон 12 шагов:
+    adaptive-ветка НЕ берётся ни разу (eta* ~ 203-260 > 1), все
+    12 шагов идут через range-ветку, 12/12 claim <= реализованный
+    drop (например A=0.14199921488761902, R=0.23055753111839294,
+    eta=0.5342657242561132, claim 0.07396868055108989 <=
+    0.07546329498291016) — то есть сертификат реального кода
+    это `ce_range_code_drop`, а не `ce_adaptive_code_drop`.
+    Float-негатив clamp: kappa(1e-8) = -0.607747, kappa(1e-9) =
+    82.740371 (точный множитель в коде непригоден ниже 1e-6).
+  - окно (1e-5, 50] — реальная гипотеза: ниже порога clamp даёт
+    1/2 < kappa(R), выше cap — kappa(50) < kappa(R); там C кода
+    ЗАНИЖЕН относительно канона и claim НЕ сертифицирован
+    мостом (код полагается на post-step rollback lm.py:1337-1344).
+    Мост объявляет это явно гипотезами hlo/hcap.
+  - tangent-vs-exact: код строит majorizer на JVP-смещении, теорема
+    — о точном; в нелинейной LM (dim 16, hidden 32, seed 0, 5
+    шагов lr_scale 0.05) rollback сработал 2/5 (eta 1.011 и 1.139,
+    реализованный drop 0 < claim 0.083/0.095) — вне модели
+    линейного CE, честно вне моста.
+- Wave254 (selfmodel: MGDA на нормированных градиентах,
+  LR-масштабирование Adam-бэктрекинга, per-task gate) НЕ
+  формализован в C638: в коде нет константы гладкости L и нет
+  Armijo-условия (гейт — validation loss), поэтому Armijo-теорема
+  не имела бы код-якоря; соответствие evaluated finite MGDA
+  траекторий (FixedBatch.lean) коду mgda_weights — кандидат C639.
+- Freeze 8861 (+12: 4 def, 8 theorem); 17 гейтов PASS
+  (.tmp/C638/logs/).
