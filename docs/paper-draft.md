@@ -1,14 +1,14 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
 Draft v0.8 (C629). Все утверждения — либо Lean-якорь (FQN, файл,
-строка; секции до §3.18 — HEAD 5254f6e8, новые §3.19/§3.20 и
-строки §4.6/§4.7 — HEAD dd4102cf), либо измеренный результат
-прогона с указанием витка (Cn), либо явный PIN в §Limitations.
+строка; все якоря сверены rg на 2d619fc8 (+T5)), либо измеренный
+результат прогона с указанием витка (Cn), либо PIN в §Limitations.
 Никаких недоказанных клеймов. С v0.7 (C617) добавлено:
 чтение-эра — полная линия одной секцией: floor чтения →
 иерархия достигает floor → три режима стоимости окна →
-near-const → mixed-w* AM-GM (§3.19, C618–C628); центральный
-statement v3.3 — hagi_master_v33, 11 клозов (§3.20, C622);
+near-const → mixed-w* AM-GM (§3.18, C618–C628); центральный
+statement v3.3 — hagi_master_v33, 11 клозов одной clause-map (§3.17,
+C600–C622);
 таблица параметров пополняется window-width rule (§4.6,
 C623/C626/C628); PALOMAR Cards 12–13 (§4.7, C621/C625).
 Теоремный счётчик abstract остаётся от e40aa426 (C559): новый
@@ -135,6 +135,7 @@ source: C399 `adaptive_anytime_valid`, C446 `false_stop_bound`.
 
 ### 3.1 Adaptive majorizer with tight κ
 
+.
 > **Theorem (adaptive_descent).**
 > `Hagi/Theory/AdaptiveMajorizer.lean:714`.
 > If `next η ≤ L − η·A + η²·C` for all η ∈ [0,1] with A ≥ 0,
@@ -148,6 +149,7 @@ pessimism by e^R/κ(R).
 
 ### 3.2 Fisher-quantized updates
 
+.
 > **Theorem (fisher_quant_loss_bound).**
 > `Hagi/Theory/MergeQuant.lean:204`.
 > If the loss has coordinatewise-bounded second-order curvature
@@ -162,6 +164,7 @@ dominate uniform ones (`fisher_beats_lipschitz`, :316;
 
 ### 3.3 GPM-relaxed with σ_tail
 
+.
 > **Theorem (rank_trunc_forgetting_bound).**
 > `Hagi/Theory/Continual.lean:239` (C498).
 > A rank-truncated GPM step changes the response on an old input
@@ -182,22 +185,25 @@ phenomenon (`gpm_hold_when_covered`, :370).
 
 ### 3.4 Sandwich-softmax certified prediction
 
+.
 > **Theorem (cert_pred_adaptive).**
-> `Hagi/Theory/Softmax.lean:711` (C495/C502).
+> `Hagi/Theory/Softmax.lean:813` (C495/C502).
 > If every class's certified band around the softmax is at most
 > 2ε wide and the true softmax gap exceeds 2ε, the band midpoint
 > argmax is certified.
 
 Refining the walls (larger denominator precision n, m) never
-un-certifies a prediction (`cert_pred_adaptive_mono`, :731;
-`bandWidth_mono`, same file), built on the sandwich accuracy lemma
-`sandwich_mid_acc` (`Hagi/Theory/Softmax.lean:307`) and
+un-certifies a prediction (`cert_pred_adaptive_mono`, :833;
+`bandWidth_mono`, :781), built on the sandwich accuracy lemma
+`sandwich_mid_acc` (`Hagi/Theory/Softmax.lean:409`) and
 certified descent through bands (`sandwich_descent`,
 `Hagi/Theory/CertSandwichBench.lean:65`).
 
-### 3.6 Repeated certified trunk growth (C506)
+### 3.5 Repeated certified trunk growth
 
-<!-- source: .tmp/C506/receipt.md; .omc/analysis/period-c506-508-analysis.md §(а); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
+<!-- source: receipt C506; .omc/analysis/period-c506-508-analysis.md §(а); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
+
+C506.
 
 Three identity-grow events in a single run grow the trunk depth
 2 → 3 → 4 → 5, each grow asserting the EXACT objective
@@ -221,9 +227,11 @@ denominators grow ×~3.2 per grow, so depth 6 projects to ~8000
 digits / ~150 s — recorded in telemetry as an explicit budget
 limit (caps in place, never fired).
 
-### 3.7 Snap-rational grow: the exponential wall defeated (C521)
+### 3.6 Snap-rational grow: the exponential wall defeated
 
-<!-- source: .tmp/C521/receipt.md -->
+<!-- source: receipt C521 -->
+
+C521.
 
 Snap policy: after each block is certified-trained, the new
 block's weights and features snap to q/2^40 (banker's rounding,
@@ -231,8 +239,8 @@ exact `Fraction` arithmetic, per-value error ≤ 2^-41) with a
 certified per-point error bound (2|s−y| + |ds|)·|ds| and a
 telescoped final guarantee obj_final ≤ obj_cycle_start + Σ
 bounds (cumulative ~2.7e-38). Lean: `snap_preserves_objective_bound`
-(`Hagi/Theory/GrowSnap.lean:82`), `snap_denominator_reset`
-(`:120`), `grow_snap_cycle_sound` (`:146`).
+(`Hagi/Theory/GrowSnap.lean:81`), `snap_denominator_reset`
+(`:119`), `grow_snap_cycle_sound` (`:145`).
 
 Before/after (C506 → C521 runs, live corpus):
 
@@ -247,9 +255,11 @@ Honest note: snap is not objective-monotone — the certified
 state carries a bound, not a drop; 3 of the 6 snaps actually
 improved the objective.
 
-### 3.8 Continual-learning mechanism family (C498–C510)
+### 3.7 Continual-learning mechanism family
 
-<!-- source: .tmp/C508/receipt.md; .tmp/C510/receipt.md; decision table: .omc/analysis/period-c506-508-analysis.md §(б); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
+<!-- source: receipt C508; receipt C510; decision table: .omc/analysis/period-c506-508-analysis.md §(б); файл удалён в c442e69, история: git show c442e69^:.omc/analysis/period-c506-508-analysis.md -->
+
+C498–C510.
 
 Per-step decision table over the four certified mechanisms
 (zero-GPM, full-GPM, rank-trunc, A-GEM), driven by MEASURED
@@ -289,9 +299,11 @@ progress 0.4322, forgetA −0.3831, all 24 committed), while the
 degenerate rank-trunc arm (k=2=rank) kept forgetA exactly 0.
 This degeneration is pinned in §5.
 
-### 3.9 Rollback gate as a certify-then-commit component (C530)
+### 3.8 Rollback gate as a certify-then-commit component
 
-<!-- source: .tmp/C530/receipt.md (source anchors: HAGI_v2 hagi/selfmodel.py guarded_optimizer_step, wave199) -->
+<!-- source: receipt C530 (source anchors: HAGI_v2 hagi/selfmodel.py guarded_optimizer_step, wave199) -->
+
+C530.
 
 The COMMIT/HOLD decision of §2 is closed under failure: HOLD
 restores the EXACT pre-step state — parameters, optimizer state
@@ -313,8 +325,9 @@ COMMIT (no phantom HOLDs), and `weak_gate_loses` is the negative
 twin: forcing a commit without the gate strictly worsens the
 objective.
 
-### 3.5 Rank-truncation escape
+### 3.9 Rank-truncation escape
 
+.
 In the mini-HAGI gpm2 phase, full-GPM honestly HOLDs (4 HOLD
 rounds, first delta exactly zero on the 1/10000 grid — exact
 replica of the C494 phenomenon), and the relaxed rank-truncated
@@ -322,9 +335,11 @@ projection escapes: minimal k with max sigmaTail² ≤ eps², eps =
 1/10 (PIN, §5), gives 4 committed steps with per-step forgetting
 ≤ ‖delta‖·sigmaTail (assert-checked). Measured run: C500.
 
-### 3.10 Adapter era: four certified growth mechanisms (C532–C536)
+### 3.10 Adapter era: four certified growth mechanisms
 
-<!-- source: .tmp/C532/receipt.md; .tmp/C533/receipt.md; .tmp/C535/receipt.md; .tmp/C536/receipt.md -->
+<!-- source: receipt C532; receipt C533; receipt C535; receipt C536 -->
+
+C532–C536.
 
 The growth mechanism family now spans four certified paths. All
 admit new capacity by an EXACT objective-invariant admission and
@@ -338,8 +353,8 @@ train only the new parameters by certified steps.
 | SVD-Matryoshka merge (stack → single) | C536 | 16 (rank ρ=2) | 10 → 1 matvec | 13 digits |
 
 Core theory (Hagi/Theory/AdapterGrowth.lean):
-`adapter_neutral_B` (:84) — B = 0 makes the side-branch EXACTLY
-neutral for arbitrary A; `adapter_step_certified` (:173) —
+`adapter_neutral_B` (:103) — B = 0 makes the side-branch EXACTLY
+neutral for arbitrary A; `adapter_step_certified` (:192) —
 COMMIT only on a measured strict drop; `adapter_param_count`
 (2·r·d) with `adapter_param_count_le_block` (2rd ≤ d² at 2r ≤ d).
 Measured (C532 bench, obj invariant EXACT at every admission):
@@ -356,14 +371,14 @@ Canonical run: start ≈ 2.283, total certified drop 2.271, 21
 steps, 3.2–4.3 s, bit-identical deterministic repeat. The
 cumulative snap error bound ≈ 2.98e-13 against a certified drop
 of 2.27 — a ~13-orders-of-magnitude margin. Lean:
-`adapter_snap_cycle_sound` (:264).
+`adapter_snap_cycle_sound` (:283).
 
 **Rank-adaptive selector (C535).** At each level the selector
 PROBEs r=1 and r=2 on a copy (exact C530 rollback — the live
 state never moves) and selects by measured score =
 probe_drop/params (ties → r=1). `rankSelect` is a deterministic
 function of the measured state (`rank_select_deterministic`);
-`rank_select_sound` (:309) keeps the full guarantee of whichever
+`rank_select_sound` (:328) keeps the full guarantee of whichever
 branch is chosen. Measured: score(r=2) ≤ score(r=1) at all 8
 levels, so the selector honestly picks r=1 every time (adaptive
 ≡ fix-r1 bit-for-bit, 64 params, drop/param 0.035310, 17 steps);
@@ -373,9 +388,9 @@ steps) and is correctly rejected — no degradation.
 **SVD-Matryoshka merge (C536).** After the 8-level stack, an
 exact rational Gauss-Jordan rank/ factorization merges the
 stack into a single adapter on the original trunk features:
-`adapter_stack_rank_bound` (:397, rank(Π(I+Eᵢ) − 1) ≤ Σ rank Eᵢ),
-`adapter_merge_error_bound` (:438, σ_tail + ℓ¹-Lipschitz),
-`adapter_merge_params` (:424). Measured (exact rank of Δ = 2):
+`adapter_stack_rank_bound` (:416, rank(Π(I+Eᵢ) − 1) ≤ Σ rank Eᵢ),
+`adapter_merge_error_bound` (:457, σ_tail + ℓ¹-Lipschitz),
+`adapter_merge_params` (:443). Measured (exact rank of Δ = 2):
 
 | model | params | matvec | obj change | certified bound |
 |---|---|---|---|---|
@@ -387,10 +402,11 @@ Honest: k=1 (σ_tail ≈ 0.998) is correctly reported unusable;
 the data gave rank 2 < min(d,L) = 4, so the bound is not vacuum.
 17 certified steps, ~3.6 s, bit-identical repeat.
 
-### 3.11 External absorption: five HAGI_v2 observations as theorems (C537–C545)
+### 3.11 External absorption: five HAGI_v2 observations as theorems
 
-<!-- source: .tmp/C538..C541,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md (файл удалён в c442e69, история: git show c442e69^:.omc/analysis/external-plan-c537-mapping.md); delivery: docs/PROPOSAL-external-plan.md (C543) -->
+<!-- source: receipt,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md (файл удалён в c442e69, история: git show c442e69^:.omc/analysis/external-plan-c537-mapping.md); delivery: docs/PROPOSAL-external-plan.md (C543) -->
 
+C537–C545.
 A mapping audit (C537) inverted the bridge: instead of porting
 HAGI_v2 code, its top observed defects were formalized as
 theorems (C538–C541, C545) and delivered back with exact
@@ -414,7 +430,7 @@ n_EB(MP form) = 6439 — a **27.49×** sample saving (our form:
 4267, 41.5×). Honest: σ̂ is a runtime premise (no MP λ-trick).
 
 **(3) Observational-equivalence search completeness (C540, P6).**
-`oe_search_complete` (:82): OE-dedup search never loses a
+`oe_search_complete` (:80): OE-dedup search never loses a
 solution that matches the target on the probes — completeness
 is RELATIVE TO THE PROBES, no semantic equivalence claimed.
 Witness: toy space 343 → 4 visits (~86×); the HAGI_v2 analogue
@@ -422,9 +438,9 @@ compressed 6478 → 896 candidates (7.2×).
 
 **(4) Exact bypass, zero cross-entropy (C541, P8).** On a
 PROVEN_EXACT coverage, CE contribution is EXACTLY zero:
-`ce_pointwise_of_prob_one`, `ce_total_eq_residual` (:92) —
+`ce_pointwise_of_prob_one`, `ce_total_eq_residual` (:90) —
 total = residual, bit-for-bit (witness 4.264244 == 4.264244);
-`exact_gate_sound` (:99) and the negative `exact_gate_rejects_zero`
+`exact_gate_sound` (:97) and the negative `exact_gate_rejects_zero`
 (p = 0 ⇒ rejected, junk log never used).
 
 **(5) Polar-Express interval certificate (C545, P3).** A
@@ -440,20 +456,21 @@ spectrum to exactly 1.
 
 **Adapter continual isolation (C544).** Composing adapters with
 the continual line: per-task adapters give zero forgetting
-STRUCTURALLY — `adapter_isolation_zero_forgetting` (:548) and
-`adapter_per_task_sound` (:563) need no projections or budgets.
+STRUCTURALLY — `adapter_isolation_zero_forgetting` (:567) and
+`adapter_per_task_sound` (:582) need no projections or budgets.
 Measured head-to-head (conflict-pinned task B, same
 trunk/data/eta/grid): ISO forgetA = 0 EXACT (bit-exact assert)
 vs SHARED +0.2331 vs naive-trunk +5.5757 (the scenario of
-`trunk_update_needs_projection`, :599, composed with C538).
+`trunk_update_needs_projection`, :618, composed with C538).
 PIN: on a same-distribution B the measured forgetting was
 negative (SHARED −0.304 / TRUNK −0.753) — forgetting is a
 conflict phenomenon; the conflict pin is documented in code.
 
-### 3.12 The full self-improving loop in one trace (C547)
+### 3.12 The full self-improving loop in one trace
 
-<!-- source: .tmp/C547/receipt.md -->
+<!-- source: receipt C547 -->
 
+C547.
 The era closes with all certified components composed into ONE
 live run (`--mode mini-hagi-loop`, real unified_ledger, 113
 points): a single trace, a single JSON, one theorem.
@@ -481,10 +498,11 @@ targets (PIN); one position remains uncovered (the OE space was
 exhausted — completeness does not promise solutions outside the
 space).
 
-### 3.13 Iterative self-improvement (C549)
+### 3.13 Iterative self-improvement
 
-<!-- source: .tmp/C549/receipt.md -->
+<!-- source: receipt C549 -->
 
+C549.
 The full loop of §3.12 becomes ITERATIVE: one run executes 7
 iterations in a single trace (one run / telemetry / JSON /
 witness; budget MAX_ITER = 8 never exhausted — the stop is the
@@ -531,10 +549,11 @@ p3) is genuinely compositional: later laws require earlier
 building blocks. Real tau-clusters are found legitimately at
 iterations 1, 3, 5, 6.
 
-### 3.14 Universal loop on the full live corpus (C551) — an honest measurement
+### 3.14 Universal loop on the full live corpus — an honest measurement
 
-<!-- source: .tmp/C551/receipt.md -->
+<!-- source: receipt C551 -->
 
+C551.
 The C549 compromise "the laws live in the corpus" is lifted:
 the loop runs on ALL 113 live points of ALL domain keys of the
 live `unified_ledger` (domain = ledger key; 114 keys / 113
@@ -582,10 +601,11 @@ parameter snapshots after every training phase of every domain
   (0/113) — the layered targets were a construction of C549,
   and this run says so on record.
 
-### 3.15 Unification: one adapter machine for the whole knowledge lifecycle (C554–C556)
+### 3.15 Unification: one adapter machine for the whole knowledge lifecycle
 
-<!-- source: .tmp/C555/receipt.md; .tmp/C556/receipt.md; .tmp/C557/receipt.md -->
+<!-- source: receipt C555; receipt C556; receipt C557 -->
 
+C554–C556.
 The phase analysis C557 names C554–C556 the UNIFICATION era:
 growth, continual learning, compression and distillation stop
 being separate mechanisms and become one certified adapter
@@ -612,8 +632,8 @@ grows; volume does not.
 > telescopes the objective (delegate of grow_snap_cycle_sound,
 > generalized to a merge cycle) AND keeps params ≤
 > selfCompressParams k d = 2·k·d for ANY number of iterations
-> (`self_compress_params_bounded`, :682; strict contrast
-> `self_compress_params_contrast`, :692).
+> (`self_compress_params_bounded`, :700; strict contrast
+> `self_compress_params_contrast`, :710).
 
 Honest negative: squeezing below k = d destroys knowledge on
 this corpus (matryoshka k = 3 degrades to 5.44, k = 2 to 1.22
@@ -629,7 +649,7 @@ branches 113 → 0 — the whole corpus runs one adapter path with
 no branching.
 
 > **Theorem (constant_distill_exact / distill_coverage_preserved).**
-> `Hagi/Theory/AdapterGrowth.lean:769` / `:806` (C556). The
+> `Hagi/Theory/AdapterGrowth.lean:787` / `:824` (C556). The
 > distilled readout is exactly c (construction), so coverage
 > and CE = 0 are PRESERVED — composition with exact_gate_sound
 > (C541), not a duplicate.
@@ -637,15 +657,16 @@ no branching.
 **The honest parameter contrast** (a Lean fact, not a claim):
 the distillate costs 6×2d = 48 parameters while symbolic
 storage needs only the 6 VALUES — symbolic is strictly cheaper
-(`symbolic_storage_cheaper`, :835: J < 2·J·d for d ≥ 2). The
+(`symbolic_storage_cheaper`, :853: J < 2·J·d for d ≥ 2). The
 value of distillation is UNIFICATION of paths (0 branches, one
 matmul path, exact-bypass merged into the adapter residual),
 not memory.
 
-### 3.16 Mini-HAGI v3: the full certified assembly in one trace (C558) — the headline result
+### 3.16 Mini-HAGI v3: the full certified assembly in one trace — the headline result
 
-<!-- source: .tmp/C558/receipt.md -->
+<!-- source: receipt C558 -->
 
+C558.
 The unification era closes with a reference assembly: every
 certified component of C547–C556 executes in ONE bench run on
 the live corpus (snapshot frozen on the run — lesson C535; the
@@ -665,7 +686,7 @@ forget = 0 (bit-exact frozen-copy drift detector).
 | total | v3_assembly_sound | **55 certified steps, 0 holds, forget = 0, params ≤ 32, 1.87 s** |
 
 > **Theorem (v3_assembly_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:871` (C558). The unified
+> `Hagi/Theory/AdapterGrowth.lean:889` (C558). The unified
 > adapter machine is the CONJUNCTION of the distill branch
 > (`distill_coverage_preserved` ⇒ CE = 0 on every cluster) and
 > the self-compress branch (`self_compress_loop_sound` ⇒
@@ -674,111 +695,62 @@ forget = 0 (bit-exact frozen-copy drift detector).
 > this is the reference theorem that the full self-improving
 > machine assembles soundly.
 
-Witness (.tmp/C558/trajV3.lean, rc = 0): #eval trajectory
+Witness (C558, rc = 0): #eval trajectory
 checks on run numbers (P3 + P4-it1), params-bounded instance
 32 ≤ 32, telescope instance on run numbers, count contrast
 32 < 48, negatives (wrong-const 1/256 ≠ 0; head-only CE ≠ 0 on
 clusters before distillation).
 
-### 3.17 The consolidated statement: hagi_master_v31 (C600)
 
-<!-- source: Hagi/Theory/MasterTheoremV3.lean:137 (формулы дословно из тела theorem, HEAD 3c94a958); .tmp/C600/receipt.md (консолидация, axioms 3, freeze 8808 на C600; 8813 на C602) -->
+### 3.17 The consolidated statement: clause map of the certified machine
 
-The consolidation era closes with ONE statement covering the whole
-certified machine: a conjunction of 8 clauses, each a DELEGATE to an
-already-proven theorem with hypotheses verbatim and no weakening —
-no new deep facts, only the conjunction (the `master_theorem_v3`
-pattern of C576).
+.
+C600 (v3.1), C614 (v3.2), C622 (v3.3). The consolidation era closes
+with ONE statement covering the whole certified machine:
+`hagi_master_v33` (`Hagi/Theory/MasterTheoremV3.lean:275`), a
+conjunction of eleven clauses, each a DELEGATE to an already-proven
+theorem with hypotheses verbatim and no weakening — no new deep
+facts, only the conjunction (the `master_theorem_v3` pattern of
+C576, `MasterTheoremV3.lean:83`). Hypotheses: the machine block of
+v3.1 verbatim, the transfer block (`L G hL`, smoothness + G-bound),
+the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
+`hw : 0 < w` and `hdiv : w ∣ B`.
 
-> **Theorem (hagi_master_v31).**
-> `Hagi/Theory/MasterTheoremV3.lean:137` (C600). For any run of the
-> v3 machine, all five v3 guarantees hold simultaneously, PLUS
-> three closure clauses:
->
-> (1) `params bs.length ≤ 2 * k * dd` — the parameter budget at any
->     cycle length (delegate `master_theorem_v3.1`, C576/C555);
-> (2) `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by
->     per-task adapter isolation (`master_theorem_v3.2`, C576/C544);
-> (3) `step bs.length ≤ o0 + bs.sum` — the certified objective
->     telescope (`master_theorem_v3.3`, C576/C555);
-> (4) `coversPrim CovP (st n) i` — coverage is monotone along the
->     append-only cycle (`master_theorem_v3.4`, C576/C549);
-> (5) `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2` —
->     transfer governed by an EXACT iff boundary
->     (`master_theorem_v3.5`, C576/C572);
-> (6) `snapK L d ε = ⌈log₂(L·d/ε)⌉ − 1` — the snap grid is MINIMAL
->     for the ε-budget, premises `0 < ε`, `ε < L·d` verbatim
->     (`snap_k_eq_ceil`, GrowSnap.lean:342, C593);
-> (7) `∀ ib < n, ∃ sw ∈ covStarts n k, sw ≤ ib ∧ ib < sw + k` — every
->     byte of the input is covered by some lattice window, premise
->     `0 < k` verbatim (`covStarts_covers`, CoverageReading.lean:54,
->     C598);
-> (8) `f z − n•nlBudget γ L G ≤ f (nlRun n γ grad z) ≤ f z` — the
->     smooth sufficient-transfer bound at equal GD budget, premises
->     L-smooth + G-bound verbatim (`smooth_obj_transfer_bound`,
->     NegativeTransfer.lean:386, C592), where
->     `nlBudget γ L G = γ·G² + L·γ²·G²/2` (NegativeTransfer.lean:242).
+| # | clause (Lean-verbatim) | delegate | carrier | since |
+|---|---|---|---|---|
+| (1) | `params bs.length ≤ 2 * k * dd` — parameter budget at any cycle length | `self_compress_loop_sound` | Hagi/Theory/AdapterGrowth.lean:726 | v3.1 (C600) |
+| (2) | `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by per-task adapter isolation | `adapter_per_task_sound` | Hagi/Theory/AdapterGrowth.lean:582 | v3.1 |
+| (3) | `step bs.length ≤ o0 + bs.sum` — the certified objective telescope | (machine obj bound) | Hagi/Theory/MasterTheoremV3.lean:83 | v3.1 |
+| (4) | `coversPrim CovP (st n) i` — coverage is monotone along the append-only cycle | `iterative_loop_sound` | Hagi/Theory/MiniHagiLoop.lean:154 | v3.1 |
+| (5) | `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2` — transfer governed by an EXACT iff boundary | `neg_transfer_char` | Hagi/Theory/NegativeTransfer.lean:117 | v3.1 |
+| (6) | `snapK Lq dq εq hεq hLd0 = ⌈log₂ (Lq * dq / εq)⌉ - 1` — the snap grid is MINIMAL for the ε-budget | `snap_k_eq_ceil` | Hagi/Theory/GrowSnap.lean:342 | v3.1 |
+| (7) | `∀ ib < nc, ∃ sw ∈ covStarts nc kc, sw ≤ ib ∧ ib < sw + kc` — every byte of the input is covered by some lattice window | `covStarts_covers` | Hagi/Theory/CoverageReading.lean:54 | v3.1 |
+| (8) | `f z - nE * nlBudget γ L G ≤ f (nlRun nE γ grad z) ∧ f (nlRun nE γ grad z) ≤ f z` — smooth sufficient-transfer bound at equal GD budget, `nlBudget γ L G = γ·G² + L·γ²·G²/2` | `smooth_obj_transfer_bound` | Hagi/Theory/NegativeTransfer.lean:386 | v3.1 |
+| (9) | `nlDrop (1 / L) L G = G ^ 2 / (2 * L)` — the certified-optimal single-step drop γ* = 1/L | `nl_drop_optimal` | Hagi/Theory/NegativeTransfer.lean:481 | v3.2 (C614) |
+| (10) | `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧ ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming peak ≤ m windows | `hier_covers_any_n` | Hagi/Theory/CoverageReading.lean:283 | v3.2 |
+| (11) | `(hierStarts nB B w w).length = (nB + w - 1) / w ∧ ∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) → (nB + w - 1) / w ≤ Ll.length` — the machine's total at s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows is shorter | `hier_optimal` | Hagi/Theory/CoverageReading.lean:533 | v3.3 (C622) |
 
-Clauses (5)+(8) form the two-level transfer-certified circuit: an
-exact quadratic iff plus a conservative smooth sufficient level.
-Axioms of the conjunction: `propext`, `Classical.choice`,
-`Quot.sound` (3, all delegates axiom-clean — C600 receipt).
-Witness: `.tmp/C600/trajMT31.lean` (#check of the 8 clauses, exit 0).
+Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:137`) =
+(1)–(8); `hagi_master_v32` (`:204`) = v3.1 + (9)(10); `hagi_master_v33`
+(`:275`) = v3.2 + (11). Each version carries the previous statement
+unfolded verbatim and discharges it through ONE delegate (`hV31` /
+`hV32` + projections); the engineering note of the C614 receipt: a
+delegate theorem used AS the statement is ill-typed (a proof term is
+not a `Prop`) — clauses live in the statement, delegates in the
+proof. Clauses (5)+(8) form the two-level transfer-certified circuit
+(an exact quadratic iff plus a conservative smooth sufficient level).
+Axioms of every version: `propext`, `Classical.choice`, `Quot.sound`
+(3). Witnesses: C600 trajMT31.lean (#check of 8 clauses), C614
+trajMT32.lean (applications of (9) to L=2, G=1 — drop = 1/4 — and of
+(10) to n=8128, B=4032, w=s'=64), C622 trajMT33.lean (application of
+(11) at n=8128, B=4032, w=64 — total 127 = ⌈8128/64⌉, floor against
+an arbitrary covering list L); all rc = 0.
 
-### 3.18 The v3.2 canon: hagi_master_v32, ten clauses (C614)
+### 3.18 The reading era: floor → hierarchy → w-rule → near-const → mixed-w*
 
-<!-- source: Hagi/Theory/MasterTheoremV3.lean:204-249 (прочитан
-     полностью на HEAD 5254f6e8, клозы дословно из statement);
-     .tmp/C614/receipt.md (freeze 8822→8823, axioms 3, witness) -->
-
-The v3.1 statement is extended to the **v3.2 canon** — the
-consolidated certified machine plus the two clauses the formula
-era added on top of it: the certified-optimal step size and
-unbounded hierarchical reading. `hagi_master_v32`
-(MasterTheoremV3.lean:204) carries hypotheses of v3.1 verbatim
-plus the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`) and
-reuses `L G hL` from the transfer block; the ten clauses of the
-conclusion, verbatim from the Lean statement:
-
-> (1) `params bs.length ≤ 2 * k * dd`;
-> (2) `perTaskVec (s τ) a = perTaskVec (s 0) a`;
-> (3) `step bs.length ≤ o0 + bs.sum`;
-> (4) `coversPrim CovP (st n) i`;
-> (5) `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2`;
-> (6) `snapK Lq dq εq hεq hLd0 = ⌈log₂ (Lq * dq / εq)⌉ - 1`;
-> (7) `∀ ib < nc, ∃ sw ∈ covStarts nc kc, sw ≤ ib ∧ ib < sw + kc`;
-> (8) `f z - nE * nlBudget γ L G ≤ f (nlRun nE γ grad z)
->     ∧ f (nlRun nE γ grad z) ≤ f z`;
-> (9) `nlDrop (1 / L) L G = G ^ 2 / (2 * L)` — the certified-
->     optimal single-step drop γ* = 1/L (`nl_drop_optimal`,
->     C606);
-> (10) `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧
->      ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming
->      peak ≤ m windows (`hier_covers_any_n`, C611).
-
-Clauses (1)–(8) are the v3.1 machine unfolded in the statement
-and discharged by ONE application of `hagi_master_v31` (`have
-hV31` + projections); clause (9) delegates to `nl_drop_optimal`
-(C606), clause (10) to `hier_covers_any_n` (C611) — zero new
-proofs. Engineering note recorded by the C614 receipt: a
-delegate theorem used AS the statement is ill-typed (a proof
-term is not a `Prop`); the correct canon form is clauses
-unfolded in the statement, delegates in the proof. Axioms of
-`hagi_master_v32`: `propext`, `Classical.choice`, `Quot.sound`
-(3). Freeze identity moved 8822 → 8823 (the one new
-declaration). Witness: `.tmp/C614/trajMT32.lean` (#check of the
-ten-clause conjunction, applications of (9) to L=2, G=1 — drop
-= 1/4 — and of (10) to n=8128, B=4032, w=s'=64; exit 0).
-
-### 3.19 The reading era (C618–C628): floor → hierarchy → w-rule → near-const → mixed-w*
-
-<!-- source: .tmp/C618/receipt.md (hier_total_floor/min/optimal,
-     B*-опровержение, числа :47-49); .tmp/C623/receipt.md
-     (WindowTradeoff режимы (a)/(b), w*-набросок, таблица :42-46);
-     .tmp/C626/receipt.md (bench --cost-regime, pinned asserts);
-     .tmp/C628/receipt.md (mixedCost_* AM-GM, freeze 8844);
-     якоря rg HEAD dd4102cf: CoverageReading.lean :463/:497/:534,
-     WindowTradeoff -> CoverageReading.lean :556/:578/:587/:603/:614/:631/:651/:676 -->
+C618–C628.
+<!-- source: receipt C618, C623, C626, C628; якоря rg 2d619fc8:
+     CoverageReading.lean (ns WindowTradeoff слит сюда) -->
 
 The formula era made every operating parameter a formula; the
 reading era asks the complementary question — what does it COST
@@ -794,10 +766,10 @@ section states it as one arc.
 > `n ≤ L.length * w`
 
 (`Hagi.Theory.CoverageReading.hier_total_floor`,
-CoverageReading.lean:496). The hierarchy of §3.18 clause (10)
+CoverageReading.lean:496). The hierarchy of §3.17 clause map (10)
 ATTAINS the floor at `s = w`, `w ∣ B` —
-`hier_total_min` (:468): `(hierStarts n B w w).length =
-(n + w - 1) / w`, closed by `hier_optimal` (:539): total =
+`hier_total_min` (:462): `(hierStarts n B w w).length =
+(n + w - 1) / w`, closed by `hier_optimal` (:533): total =
 ⌈n/w⌉ ∧ every covering list L has `(n + w - 1) / w ≤
 L.length`. Geometry, not algorithm: k windows cover at most k·w
 bytes (injection i ↦ (window, offset)). Two consequences,
@@ -808,7 +780,7 @@ REFUTED by the telescoping sum (C618); and shrinking the stride
 below the width only pays: s = 32, B = 1088 reads 3033 > 1563,
 strictly worse than the floor. At n = 8128 the floor-attaining
 total is 127 = ⌈8128/64⌉.
-<!-- source: .tmp/C618/receipt.md:47-49 (1563/3033/127); :13-18 (B*) -->
+<!-- source: receipt C618:47-49 (1563/3033/127); :13-18 (B*) -->
 
 **(ii) Three cost regimes and the w-rule (C623).** With a
 per-read window cost c(w), totalCost(w) = ⌈n/w⌉·c(w), and the
@@ -817,26 +789,26 @@ CoverageReading.lean, freeze 8841):
 
 - **(a) fixed cost c(w) = c:** totalCost = c·⌈n/w⌉ is
   monotonically non-increasing in w (`windowCost_fixed_mono`,
-  :83, core `ceil_div_anti` :61) — the certified choice is
+  :577, core `ceil_div_anti` :555) — the certified choice is
   w = w_max;
 - **(b) linear cost c(w) = c·w:** totalCost is nearly
   width-INDEPENDENT — `w·⌈n/w⌉` sits in [n, n + w − 1]
-  (`windowCost_linear_bounds`, :92) and any two widths differ
+  (`windowCost_linear_bounds`, :586) and any two widths differ
   by less than the cost of one window
-  (`windowCost_linear_near_const`, :108) — w is free, choose it
+  (`windowCost_linear_near_const`, :602) — w is free, choose it
   for accuracy, not budget;
 - **(c) mixed cost c(w) = a + c·w^α, α > 1:** at C623 the
   interior optimum w* = (a/(c·(α−1)))^(1/α) was an honest
   Real-arithmetic sketch in STATUS.md, NOT a Lean clause.
 
-The bridge back to (i) is `windowCost_hier` (:119): at
+The bridge back to (i) is `windowCost_hier` (:613): at
 w ∣ B the machine's total IS ⌈n/w⌉ reads, so the certified
 hierarchy total and the cost model agree. Measured table
 (n = 100000; C623 #eval, re-verified bit-identical by the bench
 twin in C626): w ∈ {16, 64, 256} → reads {6250, 1563, 391};
 linear-regime totals {100000, 100032, 100096}, each inside the
 corridor [100000, 100000 + w).
-<!-- source: .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md
+<!-- source: receipt C623:42-46; receipt C626
      (witness-сверка C623 pinned asserts) -->
 
 **(iii) Near-const is a card (C625).** Regime (b) became
@@ -853,14 +825,14 @@ freeze 8841 → 8844), three clauses, Lean-verbatim:
 > `(hc : 0 < c) (hw : 0 < w) :`
 > `2 * Real.sqrt (a * c) ≤ a / w + c * w`
 
-(:136 — AM-GM: (√u − √v)² ≥ 0 at u = a/w, v = c·w);
+(:630 — AM-GM: (√u − √v)² ≥ 0 at u = a/w, v = c·w);
 
 > `theorem mixedCost_relax_min_eq {a c : ℝ} (ha : 0 < a)`
 > `(hc : 0 < c) :`
 > `a / Real.sqrt (a / c) + c * Real.sqrt (a / c)`
 > `= 2 * Real.sqrt (a * c)`
 
-(:156 — equality at w = √(a/c): both summands equal √(a·c), so
+(:650 — equality at w = √(a/c): both summands equal √(a·c), so
 w* = √(a/c), the α = 2 case of w* = (a/(c·(α−1)))^(1/α), is
 certified); and the discrete lower bound
 
@@ -869,14 +841,14 @@ certified); and the discrete lower bound
 > `2 * (n : ℝ) * Real.sqrt (a * c)`
 > `≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2)`
 
-(:181 — ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) via the ceil-bridge
+(:675 — ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) via the ceil-bridge
 `windowCost_linear_bounds` + the relaxation ×n). Honest scope:
 this is a certified LOWER bound; discrete equality needs
 w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
 Real-calculus outside the Nat model of the file — the bench
 text says "NOT a Lean clause" for α ≠ 2.
-<!-- source: Hagi/Theory/CoverageReading.lean:625/:651/:676
-     (statement дословно, HEAD dd4102cf); .tmp/C628/receipt.md -->
+<!-- source: Hagi/Theory/CoverageReading.lean:630/:650/:675
+     (statement дословно, HEAD 2d619fc8); receipt C628 -->
 
 **(v) The bench application (C626).** `cost_regime_w` in
 scripts/bench_bridge.py is the python twin of the three regimes
@@ -890,7 +862,7 @@ instances n = 540/4032/8128/100000). The C623 numbers above are
 pinned asserts in the dispatch — python and Lean #eval agree
 verbatim; the C628 landing changed ZERO bench numbers (the
 mixed-rule text only gained its Lean anchor at α = 2).
-<!-- source: .tmp/C626/receipt.md; .tmp/C628/receipt.md (diff
+<!-- source: receipt C626; receipt C628 (diff
      cost_mixed.log пуст) -->
 
 The arc closes: reading has a floor (i), the certified
@@ -898,38 +870,6 @@ hierarchy attains it, the cost model says which w to pick per
 regime (ii), the counter-intuitive regime got its own card
 (iii), the last grey element became a theorem (iv), and the
 bench consumes all of it fail-closed (v).
-
-### 3.20 The v3.3 canon: hagi_master_v33, eleven clauses (C622)
-
-<!-- source: Hagi/Theory/MasterTheoremV3.lean:275-326 (statement
-     прочитан полностью на HEAD dd4102cf, клозы дословно);
-     .tmp/C622/receipt.md (freeze 8835→8836, axioms 3, witness
-     trajMT33.lean rc=0) -->
-
-The v3.2 canon of §3.18 is extended to **v3.3** by one clause:
-the reading floor. `hagi_master_v33`
-(Hagi/Theory/MasterTheoremV3.lean:275) carries the hypotheses
-of v3.2 verbatim plus `hw : 0 < w` and `hdiv : w ∣ B` on the
-hier block, and its conclusion is the ten clauses of v3.2
-verbatim (§3.18 (1)–(10)) AND the eleventh, verbatim from the
-statement:
-
-> (11) `(hierStarts nB B w w).length = (nB + w - 1) / w ∧
-> `∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) →`
-> `(nB + w - 1) / w ≤ Ll.length` — the machine's total at
-> s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows
-> is shorter (`hier_optimal`, C618).
-
-Zero new proofs: clauses (1)–(10) discharge through ONE
-delegate `hagi_master_v32` (projections), clause (11) is
-`hier_optimal` (C618) — the KISS-conjunction pattern of
-C600/C614. Axioms of `hagi_master_v33`: `propext`,
-`Classical.choice`, `Quot.sound` (3). Freeze identity moved
-8835 → 8836 (the one new declaration). Witness
-(`.tmp/C622/trajMT33.lean`, exit 0): #check of the eleven-clause
-conjunction plus an application of (11) at n = 8128, B = 4032,
-w = 64 — total 127 = ⌈8128/64⌉, floor against an arbitrary
-covering list L, numerically cross-checked.
 
 ## 4. Benchmarks (measured only)
 
@@ -954,7 +894,7 @@ not needed: all bands disjoint already at n = m = 4.
 
 ### 4.3 What self-improvement actually yields on live data
 
-<!-- source: .tmp/C549/receipt.md; .tmp/C551/receipt.md -->
+<!-- source: receipt C549; receipt C551 -->
 
 On the full live corpus (§3.14) the loop finds few laws — and
 that outcome is itself the honest headline. What
@@ -981,7 +921,7 @@ instead of assuming it.
 
 ### 4.4 Impact note: the first external consumer (wave205, C557)
 
-<!-- source: .tmp/C557/receipt.md -->
+<!-- source: receipt C557 -->
 
 The theory also acquired its first EXTERNAL consumer. The
 HAGI_v2 runtime recheck during the C557 phase analysis observed
@@ -995,7 +935,7 @@ evaluation of downstream benefit (pinned below, §5.17).
 
 ### 4.5 From proxies to formulas: the certified-parameters era (C560–C603)
 
-<!-- source: .tmp/C597/receipt.md (auto-k*, 2788 бит/33 snap); .tmp/C601/receipt.md + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); .tmp/C602/receipt.md + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); .tmp/C594/receipt.md (wave232 round-trip 33 мин); .tmp/C595/receipt.md + docs/PREMISES-STATUS.md (premise audit); .tmp/C596/receipt.md (bench sweep); .omc/analysis/period-c599-602-analysis.md (паттерн негатив-цикла) -->
+<!-- source: receipt C597 (auto-k*, 2788 бит/33 snap); receipt C601 + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); receipt C602 + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); receipt C594 (wave232 round-trip 33 мин); receipt C595 + docs/PREMISES-STATUS.md (premise audit); receipt C596 (bench sweep); .omc/analysis/period-c599-602-analysis.md (паттерн негатив-цикла) -->
 
 The frontier era replaced hand-set proxies of the runtime era by
 FORMULAS imported verbatim from Lean theorems, each landing as a
@@ -1031,18 +971,18 @@ harness (see pin 18).
 
 ### 4.6 The formula-driven era (C606–C613): every parameter a formula
 
-<!-- source: block — .tmp/C606/receipt.md (γ*=1/L, drop G²/(2L),
-     witness L=2,G=1 drop 1/4); .tmp/C609/receipt.md (γ_auto
+<!-- source: block — receipt C606 (γ*=1/L, drop G²/(2L),
+     witness L=2,G=1 drop 1/4); receipt C609 (γ_auto
      5000000/10470759≈0.477, 13500000/25944901≈0.520,
-     156250/234227≈0.667, verdicts идентичны pre); .tmp/C611/
+     156250/234227≈0.667, verdicts идентичны pre); receipt
      receipt.md (B=4032, s=w, per-block 63–64, witness n=8128
      [63,63,1] peak 63; одноуровневый 127 окон > 64);
-     .tmp/C613/receipt.md (n=100000: 25 блоков, 24×63+51,
+     receipt C613 (n=100000: 25 блоков, 24×63+51,
      total 1563, peak 63; HierEval #eval 3/[63,63,1]/63);
-     .tmp/C607/receipt.md (null-ce skip 5 ключей, 18 режимов
-     оживлены); .tmp/C608/receipt.md (snapshot 35 ключей, live
-     45/41-key ABORT); .tmp/C610/receipt.md (три уровня,
-     fail-closed exit 3); anchors rg HEAD 5254f6e8 -->
+     receipt C607 (null-ce skip 5 ключей, 18 режимов
+     оживлены); receipt C608 (snapshot 35 ключей, live
+     45/41-key ABORT); receipt C610 (три уровня,
+     fail-closed exit 3); anchors rg 2d619fc8 -->
 
 The proxy→formula program of §4.5 is now COMPLETE for the five
 operating parameters of the loop: each is a formula with a Lean
@@ -1056,7 +996,7 @@ anchor, a bench application, and measured bits —
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
 | window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:315 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
 | window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:575/:603/:631/:651/:676 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
-<!-- source: строка w-rule — .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md (cost_regime_w, pinned asserts, w_max=256→391); .tmp/C628/receipt.md (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
+<!-- source: строка w-rule — receipt C623:42-46; receipt C626 (cost_regime_w, pinned asserts, w_max=256→391); receipt C628 (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
 
 Two structural remarks. First, the optimal-step clause is
 self-contained: `φ(1/L) − φ(γ) = (G²/(2L))·(1 − Lγ)² ≥ 0` is a
@@ -1069,7 +1009,7 @@ not heuristic: with `s = w`, `B = w·(m−1)` the per-block budget
 `(B−w)/s + 2` EQUALS m, so the same peak-m streaming budget that
 bounded the single level at `n ≤ w(m−1) = 4032` (w=m=64) now
 covers ANY n — the witness n=8128 lands [63, 63, 1] with peak 63
-in BOTH Lean (`.tmp/C611/trajHier.log`) and the bench twin
+in BOTH Lean (`C611`) and the bench twin
 (`HierEval.lean` #eval, C613) — a literal python==Lean match.
 
 **Corpus policy as measurement infrastructure (C607/C608/C610).**
@@ -1093,10 +1033,10 @@ telemetered decision.
 
 ### 4.7 The PALOMAR niche: an honest external check (C615/C616)
 
-<!-- source: .tmp/C616/receipt.md + .tmp/C616/palomar_recent.json
+<!-- source: receipt C616 + C616
      / palomar_q1.json / palomar_q2.json (API totals {"results":
      1293, "projects": 983}, entries [] по всем запросам;
-     revision 1122); .tmp/C615/receipt.md + docs/PALOMAR-CARDS.md
+     revision 1122); receipt C615 + docs/PALOMAR-CARDS.md
      (Cards 9–11, якоря rg HEAD 609726d1); HAGI_v2 recheck ce68e21
      wave240 (C616 receipt) -->
 
@@ -1128,14 +1068,14 @@ square `φ(1/L) − φ(γ) = (G²/(2L))(1 − Lγ)²`; `nl_drop_optimal`
 - **Card 10 — hierarchical window coverage at any n.**
 `hier_covers_any_n` (CoverageReading.lean:285): for `0 < B`,
 `0 < s ≤ w`, every `i < n` lies in a window of `hierStarts n B w
-s` — no upper bound on n; `hier_peak_window_budget` (:317):
+s` — no upper bound on n; `hier_peak_window_budget` (:315):
 peak windows per block ≤ m (peak ≠ total, stated honestly).
 Bench numbers: n=100000 → 25 blocks, 24×63+51, total 1563, peak
 63; Lean witness n=8128 → [63, 63, 1], peak 63 (C611/C613).
 - **Card 11 — adaptive-span iff and its exact budget.**
 `covStartsStep_covers` (CoverageReading.lean:184): coverage of
 `[0, n)` IFF `s ≤ w` — necessity by witness s=17 > w=9 leaving
-byte 9 in a hole; `covStartsStep_len_le` (:219): window count
+byte 9 in a hole; `covStartsStep_len_le` (:220): window count
 `(n−w)/s + 2 ≤ m`; boundary `s = w`: `n ≤ w(m−1) = 4032` (w=m=64),
 beyond which the single level is honestly INFEASIBLE — removed
 by the hierarchy of Card 10 (C602/C611).
@@ -1146,8 +1086,8 @@ statements Lean-verbatim). Honest scope: the C616 niche check
 covered the Cards 9–11 statements; Cards 12–13 have NOT been
 checked against the registry — that check is a separate beat,
 not claimed here.
-<!-- source: .tmp/C621/receipt.md (Card 12, DocLint/freeze logs);
-     .tmp/C625/receipt.md (Card 13); .tmp/C616/receipt.md
+<!-- source: receipt C621 (Card 12, DocLint/freeze logs);
+     receipt C625 (Card 13); receipt C616
      (ниша-проверка — только Cards 9–11) -->
 
 - **Card 12 — information-theoretic floor for reading n bytes
@@ -1155,8 +1095,8 @@ with width-w windows.** Any covering list L of [0, n) by
 width-w windows satisfies `n ≤ L.length * w`
 (`hier_total_floor`, CoverageReading.lean:496), and the
 hierarchy ATTAINS the floor at `s = w`, `w ∣ B`:
-`hier_total_min` (:468) — `(hierStarts n B w w).length =
-(n + w - 1) / w`; `hier_optimal` (:539) closes the optimum
+`hier_total_min` (:462) — `(hierStarts n B w w).length =
+(n + w - 1) / w`; `hier_optimal` (:533) closes the optimum
 total = ⌈n/w⌉ ∧ ∀ covering L: ⌈n/w⌉ ≤ L.length. Bench numbers
 (C618): n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉,
 constant over B ∈ {64, 2048, 4032, 4096}; s = 32 → 3033 > 1563;
@@ -1169,15 +1109,15 @@ width-independent.** For any `0 < w1, w2`:
 (w1 - 1)` (`windowCost_linear_near_const`,
 CoverageReading.lean:600) — totalCost(w1) ≤ totalCost(w2) +
 c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
-n + w − 1 (`windowCost_linear_bounds`, :92); contrast regime
-(a) `windowCost_fixed_mono` (:83): fixed cost makes w = w_max
-optimal; bridge `windowCost_hier` (:119). Bench numbers
+n + w − 1 (`windowCost_linear_bounds`, :586); contrast regime
+(a) `windowCost_fixed_mono` (:577): fixed cost makes w = w_max
+optimal; bridge `windowCost_hier` (:613). Bench numbers
 (C623/C626): n = 100000, w ∈ {16, 64, 256} → reads {6250,
 1563, 391}, linear totals {100000, 100032, 100096} — all in
 [100000, 100000 + w). Regime (c) mixed cost: at α = 2 the
 AM-GM optimum w* = √(a/c) and the lower bound
 ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) are Lean theorems (C628,
-§3.19 (iv)); general α > 1 remains a Real-arithmetic sketch,
+§3.18 (iv)); general α > 1 remains a Real-arithmetic sketch,
 not a Lean clause.
 
 ## 5. Honest limitations (pins)
@@ -1211,7 +1151,7 @@ not a Lean clause.
 8. **Corpus drift.** The live `unified_ledger` corpus drifts
    between runs (46 → 51 → 53 points across C508–C510; mini-hagi3
    ABORT in C521 is pre-existing drift). Cross-cycle numeric
-   comparisons (e.g. §3.6 vs §3.7) use each run's own receipted
+   comparisons (e.g. §3.5 vs §3.6) use each run's own receipted
    measurements; objective values are not comparable across
    corpus versions.
 
@@ -1306,7 +1246,7 @@ not a Lean clause.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (verified at HEAD 977c930b)
+## Appendix A: anchor table (verified at 2d619fc8 (+T5))
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -1316,29 +1256,29 @@ not a Lean clause.
 | fisher_quant_loss_bound | Hagi/Theory/MergeQuant.lean:204 | C472 |
 | rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:239 | C498 |
 | gpm_tradeoff | Hagi/Theory/Continual.lean:346 | C498 |
-| cert_pred_adaptive | Hagi/Theory/Softmax.lean:711 | C495/C502 |
+| cert_pred_adaptive | Hagi/Theory/Softmax.lean:813 | C495/C502 |
 | grow_blocks_repeat_sound | Hagi/Theory/GrowTrunkBlock.lean:149 | C506 |
-| snap_preserves_objective_bound | Hagi/Theory/GrowSnap.lean:82 | C521 |
-| grow_snap_cycle_sound | Hagi/Theory/GrowSnap.lean:146 | C521 |
+| snap_preserves_objective_bound | Hagi/Theory/GrowSnap.lean:81 | C521 |
+| grow_snap_cycle_sound | Hagi/Theory/GrowSnap.lean:145 | C521 |
 | hybrid_step_sound | Hagi/Theory/Continual.lean:456 | C510 |
 | rollback_gate_sound | Hagi/Theory/RollbackGate.lean:98 | C530 |
-| adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:84 | C532 |
-| adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:173 | C532 |
-| adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:264 | C533 |
-| rank_select_sound | Hagi/Theory/AdapterGrowth.lean:309 | C535 |
-| adapter_stack_rank_bound | Hagi/Theory/AdapterGrowth.lean:397 | C536 |
-| adapter_merge_params | Hagi/Theory/AdapterGrowth.lean:424 | C536 |
-| adapter_merge_error_bound | Hagi/Theory/AdapterGrowth.lean:438 | C536 |
+| adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:103 | C532 |
+| adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:192 | C532 |
+| adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:283 | C533 |
+| rank_select_sound | Hagi/Theory/AdapterGrowth.lean:328 | C535 |
+| adapter_stack_rank_bound | Hagi/Theory/AdapterGrowth.lean:416 | C536 |
+| adapter_merge_params | Hagi/Theory/AdapterGrowth.lean:443 | C536 |
+| adapter_merge_error_bound | Hagi/Theory/AdapterGrowth.lean:457 | C536 |
 | naive_decay_leak | Hagi/Theory/WeightDecayLeak.lean:128 | C538 |
 | wd_gpm_step_sound | Hagi/Theory/WeightDecayLeak.lean:159 | C538 |
 | empirical_bernstein_bound | Hagi/Probability/EmpiricalBernstein.lean:208 | C539 |
 | empirical_bernstein_mean_bound | Hagi/Probability/EmpiricalBernstein.lean:286 | C539 |
-| oe_search_complete | Hagi/Theory/OEComplete.lean:82 | C540 |
-| ce_total_eq_residual | Hagi/Theory/ExactBypass.lean:92 | C541 |
-| exact_gate_sound | Hagi/Theory/ExactBypass.lean:99 | C541 |
-| adapter_isolation_zero_forgetting | Hagi/Theory/AdapterGrowth.lean:548 | C544 |
-| adapter_per_task_sound | Hagi/Theory/AdapterGrowth.lean:563 | C544 |
-| trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:599 | C544 |
+| oe_search_complete | Hagi/Theory/OEComplete.lean:80 | C540 |
+| ce_total_eq_residual | Hagi/Theory/ExactBypass.lean:90 | C541 |
+| exact_gate_sound | Hagi/Theory/ExactBypass.lean:97 | C541 |
+| adapter_isolation_zero_forgetting | Hagi/Theory/AdapterGrowth.lean:567 | C544 |
+| adapter_per_task_sound | Hagi/Theory/AdapterGrowth.lean:582 | C544 |
+| trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:618 | C544 |
 | polar_express_step3_bound | Hagi/Optimization/PolarExpressCert.lean:373 | C545 |
 | full_loop_sound | Hagi/Theory/MiniHagiLoop.lean:64 | C547 |
 | IterState | Hagi/Theory/MiniHagiLoop.lean:117 | C549 |
@@ -1347,30 +1287,30 @@ not a Lean clause.
 | coverage_append_monotone | Hagi/Theory/MiniHagiLoop.lean:134 | C549 |
 | iterative_loop_sound | Hagi/Theory/MiniHagiLoop.lean:154 | C549 |
 | universal_loop_corpus_mono | Hagi/Theory/MiniHagiLoop.lean:190 | C551 |
-| selfCompressParams | Hagi/Theory/AdapterGrowth.lean:677 | C555 |
-| self_compress_params_bounded | Hagi/Theory/AdapterGrowth.lean:682 | C555 |
-| self_compress_params_contrast | Hagi/Theory/AdapterGrowth.lean:692 | C555 |
-| self_compress_loop_sound | Hagi/Theory/AdapterGrowth.lean:708 | C555 |
-| distillAdapter | Hagi/Theory/AdapterGrowth.lean:760 | C556 |
-| constant_distill_exact | Hagi/Theory/AdapterGrowth.lean:769 | C556 |
-| distill_prob_one | Hagi/Theory/AdapterGrowth.lean:790 | C556 |
-| distill_coverage_preserved | Hagi/Theory/AdapterGrowth.lean:806 | C556 |
-| distill_param_count | Hagi/Theory/AdapterGrowth.lean:819 | C556 |
-| distill_params_total | Hagi/Theory/AdapterGrowth.lean:826 | C556 |
-| symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:835 | C556 |
-| v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:871 | C558 |
+| selfCompressParams | Hagi/Theory/AdapterGrowth.lean:695 | C555 |
+| self_compress_params_bounded | Hagi/Theory/AdapterGrowth.lean:700 | C555 |
+| self_compress_params_contrast | Hagi/Theory/AdapterGrowth.lean:710 | C555 |
+| self_compress_loop_sound | Hagi/Theory/AdapterGrowth.lean:726 | C555 |
+| distillAdapter | Hagi/Theory/AdapterGrowth.lean:778 | C556 |
+| constant_distill_exact | Hagi/Theory/AdapterGrowth.lean:787 | C556 |
+| distill_prob_one | Hagi/Theory/AdapterGrowth.lean:808 | C556 |
+| distill_coverage_preserved | Hagi/Theory/AdapterGrowth.lean:824 | C556 |
+| distill_param_count | Hagi/Theory/AdapterGrowth.lean:837 | C556 |
+| distill_params_total | Hagi/Theory/AdapterGrowth.lean:844 | C556 |
+| symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:853 | C556 |
+| v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:889 | C558 |
 | master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:83 | C576 |
 | auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
-| fact_append_preserves | Hagi/Theory/FactLedger.lean:59 | C579 |
-| fact_lookup_monotone | Hagi/Theory/FactLedger.lean:67 | C579 |
-| rangeWrap_inrange | Hagi/Theory/RangeWrap.lean:43 | C581 |
-| rangeWrap_fixed_point | Hagi/Theory/RangeWrap.lean:53 | C581 |
-| selectW_spec | Hagi/Theory/AdaptiveContext.lean:49 | C582 |
-| selectW_occam_minimal | Hagi/Theory/AdaptiveContext.lean:71 | C582 |
-| selectW_budget_bound | Hagi/Theory/AdaptiveContext.lean:99 | C582 |
-| consolidate_prompt_empty | Hagi/Theory/KnowledgeConsolidation.lean:66 | C584 |
-| remember_preserves_pages | Hagi/Theory/KnowledgeConsolidation.lean:72 | C584 |
-| learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:79 | C584 |
+| fact_append_preserves | Hagi/Theory/FactLedger.lean:61 | C579 |
+| fact_lookup_monotone | Hagi/Theory/FactLedger.lean:69 | C579 |
+| rangeWrap_inrange | Hagi/Theory/RangeWrap.lean:45 | C581 |
+| rangeWrap_fixed_point | Hagi/Theory/RangeWrap.lean:55 | C581 |
+| selectW_spec | Hagi/Theory/AdaptiveContext.lean:51 | C582 |
+| selectW_occam_minimal | Hagi/Theory/AdaptiveContext.lean:73 | C582 |
+| selectW_budget_bound | Hagi/Theory/AdaptiveContext.lean:101 | C582 |
+| consolidate_prompt_empty | Hagi/Theory/KnowledgeConsolidation.lean:68 | C584 |
+| remember_preserves_pages | Hagi/Theory/KnowledgeConsolidation.lean:74 | C584 |
+| learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:81 | C584 |
 | covStarts_covers | Hagi/Theory/CoverageReading.lean:54 | C598 |
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:130 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:184 | C602 |
@@ -1379,21 +1319,16 @@ not a Lean clause.
 | snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
 | nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
 | smooth_obj_transfer_bound | Hagi/Theory/NegativeTransfer.lean:386 | C592 |
-| covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:219 | C602 |
+| covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:220 | C602 |
 | hagi_master_v32 | Hagi/Theory/MasterTheoremV3.lean:204 | C614 |
 | nlStep | Hagi/Theory/NegativeTransfer.lean:231 | C606 |
 | nlDrop | Hagi/Theory/NegativeTransfer.lean:434 | C606 |
 | nl_drop_bound | Hagi/Theory/NegativeTransfer.lean:443 | C606 |
 | nlDrop_le_optimal | Hagi/Theory/NegativeTransfer.lean:467 | C606 |
 | nl_drop_optimal | Hagi/Theory/NegativeTransfer.lean:481 | C606 |
-| hierBlockLen | Hagi/Theory/CoverageReading.lean:270 | C611 |
-| hierStarts | Hagi/Theory/CoverageReading.lean:275 | C611 |
-| hier_covers_any_n | Hagi/Theory/CoverageReading.lean:285 | C611 |
+| hierBlockLen | Hagi/Theory/CoverageReading.lean:268 | C611 |
+| hierStarts | Hagi/Theory/CoverageReading.lean:273 | C611 |
+| hier_covers_any_n | Hagi/Theory/CoverageReading.lean:283 | C611 |
 | hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:315 | C611 |
 
-<!-- Appendix A rows up to C551 verified at HEAD 977c930b
-     (C552); C555/C556/C558 rows verified at HEAD e40aa426
-     (C559); C592/C593/C600/C602 rows verified at HEAD 3c94a958
-     (C604, rg on Hagi/**/*.lean); C606/C611/C614 rows verified
-     at HEAD 5254f6e8 (C617, rg on Hagi/**/*.lean); anchor lines
-     via rg on Hagi/**/*.lean -->
+<!-- Appendix A: every row re-verified by rg on Hagi/**/*.lean at 2d619fc8 (+T5). -->

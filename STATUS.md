@@ -1692,7 +1692,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - C327 — ранжирование item c (C323): continual-learning forgetting
   bounds — формальный контракт контроля забывания старых задач при
-  адаптации к новым (вывод — `.tmp/C327/research.md`).
+  адаптации к новым (вывод — research C327).
 
 - `auditSpendChain` + `auditSpendChain_delta_split` — цепочка из m
   принятых адаптаций (адаптация k тратит срез δₖ на задачу tsk k):
@@ -1768,14 +1768,14 @@ the truncated approximant approxK satisfies
   сохраняет ТОЧНО: `wd_compl_annihilates`/`wd_proj_preserves`
   (равенство), `naive_decay_leak` (СТРОГАЯ утечка теоремой),
   `wd_gpm_step_sound` (main: шаг в дополнении + projected decay ⇒
-  W·P неизменно). Witness .tmp/C538 (ℚ, P = diag(1,0)).
+  W·P неизменно). Witness C538 (ℚ, P = diag(1,0)).
 
 ## Hagi/Probability/EmpiricalBernstein.lean (C539: empirical bernstein — P1)
 
 - EB-confidence как дополнение Freedman (C525): σ̂-подстановка +
   аддитивный член (Maurer–Pontil стиль). `freedman_tail_two_sided`,
   `eb_radius_algebra`, `empirical_bernstein_bound` (main),
-  `empirical_bernstein_mean_bound`. Контраст (witness .tmp/C539):
+  `empirical_bernstein_mean_bound`. Контраст (witness C539):
   n_EB(наша форма) = 4267 против n_Hoeffding = 176995 (41.5×).
 
 ## Hagi/Theory/OEComplete.lean (C540: OE search completeness — P6)
@@ -1811,56 +1811,6 @@ the truncated approximant approxK satisfies
   `coverage_append_monotone`, `iterative_loop_sound` (новый факт —
   только монотонность).
 
-## scripts/bench_bridge.py — режимы C551–C577 (канон паттерна: ALGORITHMS §27)
-
-Все режимы следуют одному скелету (append-блок + choice + dispatch,
-backward-совместимо): certified snap-GD (drop>0 COMMIT / HOLD),
-forgetA=0 bit-exact asserts, drift-детект на замороженной копии,
-EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0,
-аксиомы только propext/Quot.sound/Classical.choice.
-
-- C551 `--mode universal-loop`: ПОЛНЫЙ живой корпус (113/113 доменов,
-  реальные цели). Покрытие 93.8% = 6 РЕАЛЬНЫХ констант-кластеров;
-  линейных законов НЕТ (измерено); синтетические законы C549 на
-  реальный корпус не переносятся (0/113). Lean:
-  `universal_loop_corpus_mono`. Freeze 8694.
-- C553 `--mode universal-loop-nl`: нелинейный язык v2 (произведения,
-  min/max, пороговые). ВЕРДИКТ H2: нелинейных законов НЕТ (19204
-  кандидата, покрытие идентично C551). Попутно найден и исправлен
-  GATE-FIX (stale unc при «≥5 новых»). Новая теорема не нужна
-  (oe_search_complete абстрагирован по Prog/space).
-- C555 `--mode self-compress-loop`: learn→merge→learn, параметры
-  BOUNDED ≤ 2·K·d = 32 при монотонном росте знания (CE остатка
-  −84%); телескоп Σ merge bounds = 0 (merge exact). Матрёшка-негативы:
-  k<ρ теряет знание (usable=false). Lean: `selfCompressParams`,
-  `self_compress_params_bounded`/`_contrast`, `self_compress_loop_sound`.
-- C556 `--mode distill`: констант-кластеры → rank-1 веса
-  (`distillAdapter`, θ(c) = (A:=0, B:=c), `constant_distill_exact`):
-  CE кластеров 0 БИТ-В-БИТ, ветвления 113 → 0. Честный контраст
-  (`symbolic_storage_cheaper`): символьное хранение дешевле по
-  памяти; ценность — унификация контуров. Freeze 8706.
-- C558 `--mode mini-hagi-v3`: ФИНАЛЬНАЯ СБОРКА всех компонентов
-  C547–C556 в одном трейсе (115 точек): кластеры 108/115, CE
-  кластеров 0, ветвления → 0, params ≤ 32, forget 0. Lean:
-  `v3_assembly_sound` (конъюнкция делегатов без ослабления).
-  Freeze 8707.
-- C560 `--mode adapter-transfer`: warm vs cold vs poisoned, равные
-  бюджеты. T-вердикт 3/3 T1 по AUC (×387 на близкой паре); финал CE
-  у cold чуть лучше (snap-грид); poisoned хуже по AUC, не по финалу.
-  Lean: новых деклараций нет (adapter_step_certified init-независим).
-- C566 реактивный v3 (код без изменений, корпус 115→122): все
-  инварианты стабильны, новые точки легли в существующий кластер
-  11/8 без пере-дистилляции, константы идентичны, forget=0.
-- C568 `--mode band-check`: премиса BandDescribes стала теоремой
-  (`softDef_shift`, `bandDescribes_of_pointwise`,
-  `bernoulliBandDescribes`); bench 48/48 полос на живом корпусе,
-  негатив-контроль переставленной полосы 0/2. Freeze 8723.
-- C577 `--mode adapter-transfer-auto`: probe-A/B гейт (2 шага,
-  rollback-семантика C530) выбирает warm/cold — на 3 парах C560
-  вердикты T1 сохранены ПОБИТОВО, adversarial → cold. Lean:
-  `autoGate`, `gate_char` (гейт = точная граница C572),
-  `auto_transfer_gate_sound` (main). Freeze 8757.
-
 ## Hagi/Theory/AdapterBank.lean (C567: adapter bank bridge from hagi v2)
 
 - Source-anchored мост волны 210/210b (hagi/trunk_ops.py:310-345,
@@ -1869,7 +1819,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   не трогает слот i ТОЧНО; `warm_transfer_sound` (forgetA=0 копией +
   certified-обучаемость warm-init), `bank_composition` (индукция по
   batch). HONEST: transfer-качество — эмпирика (C560), теоремой не
-  подменено; негатив warm-хуже-cold в witness. Freeze 8720.
+  подменено; негатив warm-хуже-cold в witness. Bench: нет (мост).
 
 ## Hagi/Theory/Softmax.lean (C569: phat monotonicity domain characterization)
 
@@ -1877,111 +1827,103 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   `sum_phat_anti_mono_single_domain` (держится при фиксированном
   числителе и вложенных стенах одной банки) +
   `band_mix_counterex`/`phat_total_not_anti_mono` (ТЕОРЕМА-
-  контрпример при смешении доменов). Freeze 8729.
+  контрпример при смешении доменов). Bench: нет.
 
 ## Imports final deriv-safe (C571: bare-import сужение)
 
 - `import Mathlib` → точные модули в 40 файлах (bare 62 → 22).
-  Batch C (deriv-risk) откачан: Freeze-детект statement-drift —
+  Batch C (deriv-risk) откачан: freeze-детект statement-drift —
   C482-урок. Остаток 22 bare = перманентные deriv-pins; список
   сужаемых импортов ПУСТ (терминальное состояние). Эффект:
-  15.0s → 9.2s на файл (BlockNorm probe). Freeze 8729.
+  15.0s → 9.2s на файл (BlockNorm probe).
 
 ## Hagi/Theory/GrowSnap.lean (C521+C593: certified snap-политика и оптимальный k)
 
-- C521 (GrowSnap): certified snap q/2^k на границе grow
-  (`snap_preserves_objective_bound`, `snap_denominator_reset`,
-  `grow_snap_cycle_sound`) — снимает экспоненциальную стену
-  знаменателей C506 (2366 цифр → k бит).
-- **C593 (OptimalK) — snap-грид оптимальность**: выбор
-  знаменатель-грида 2^k формализован теорией вместо ручного
-  2^40-класса. Кирпичи: `snap_err_bound` (ДВУСТОРОННЯЯ
-  obj-ошибка |obj g − obj f| ≤ L·d·2^-(k+1), композиция ℓ¹-
-  Lipschitz C521 с per-weight полуячейкой; C521-версия —
-  односторонняя деградация), `snapAdmissible`/`snapK`
-  (минимальное допустимое k: Nat.find, минимальность по
-  построению), `snap_k_admissible` (feasibility: err-bound(k*)
-  ≤ ε), `snap_k_min` (ТОЧНОСТЬ: любое допустимое k ≥ k*),
-  `snap_k_lt_violates` (негатив: k < k* ⇒ err-bound СТРОГО > ε),
-  `snap_k_eq_ceil` (ЗАМКНУТАЯ ФОРМА, точная: при L·d > ε
-  k* = ⌈log₂(L·d/ε)⌉ − 1; обе стороны из feasibility +
-  minimality, не из достаточности), `snapBits` (биты = d·(k+1)),
-  `snap_bits_err_tradeoff` (Pareto: k ≤ k' ⇒ биты ↑, полуячейка ↓
-  — фронт параметризован k), `snap_optimal_k` (DECISION-ПРАВИЛО:
-  k* даёт certified err в бюджете ε И минимальные биты среди
-  допустимых — v3-машина выбирает k теорией). Witness
-  (.tmp/C593/trajSnap.lean, rc=0, ℚ-зеркало поиска): I1
-  L=1,d=10,ε=2^-12 → k*=15, биты 160, k=14 нарушает бюджет;
-  I2 L=3,d=1,ε=2^-6 → k*=7, k=6 нарушает; I3 ГРАНИЦА РАВЕНСТВА
-  Ld/ε=4=2² → k*=1, bound = ε (равенство допустимо, log₂ целое),
-  k=0 нарушает.
-
-## Hagi/Theory/NegativeTransfer.lean (C572+C592: negative transfer — T2-теория и нелинейное расширение)
-
-- Точная iff-граница для квадратичной модели: warm хуже cold ⟺
-  `2•⟪θ,t⟫ < ‖θ‖²` (`neg_transfer_char`, `warm_better_char`,
-  `transfer_boundary` — граница точная); `neg_transfer_adversarial`
-  (t = −c•θ ⇒ всегда T2); бюджет НЕ размывает границу
-  (`gd_run_dist`, `warm_better_budget`). Decision-правило: warm iff
-  `2⟪θ,t̂⟫ > ‖θ‖²`, t̂ — честная гипотеза caller'а. Дополняет C560
-  (T1-эмпирика) и закрывает honest-pin C567.
-- **C592 (SmoothNL) — нелинейное расширение**: L-smooth objective
-  (premise-form) + GD равным бюджетом ⇒ CERTIFIED SUFFICIENT
-  (не iff): `smooth_obj_transfer_bound` (финал зажат стартом ±
-  n•`nlBudget γ L G`), `sufficient_negative_transfer` (стартовый
-  запас > n•nlBudget ⇒ warm строго хуже), кирпичи `nl_step_mono` /
-  `nl_step_lower` / `nl_obj_le_start` / `nl_obj_ge_budget`.
-  Градиентная G-граница — честный binder вдоль траектории
-  (глобальная не выводится из smoothness). Негатив-инстанс
-  (.tmp/C592/trajNL.lean, рациональные константы γ=1/5, L=2,
-  G=2): n=1 — условие выполнено (1 > 24/25) ⇒ certified;
-  n=2 — условие НЕ выполнено (1 ≤ 48/25), но warm всё равно
-  хуже ⇒ достаточность ≠ необходимость.
-- **Контраст (когда какую границу применять)**:
-
-| Мир obj | Граница | Тип | Применять когда |
+| теорема | формулировка | file:line | bench |
 |---|---|---|---|
-| квадратичная `‖z−t‖²` | `neg_transfer_char` (C572) | ТОЧНАЯ iff (старт и финал при равном бюджете) | obj известен квадратичный; нужен decision-порог |
-| L-smooth произвольный | `sufficient_negative_transfer` (C592) | КОНСЕРВАТИВНАЯ sufficient (certified) | нелинейный obj; есть G-оценка градиента на траектории; консервативный вердикт достаточен |
+| `snap_preserves_objective_bound`, `snap_denominator_reset`, `grow_snap_cycle_sound` | C521: certified snap q/2^k на границе grow — снимает экспоненциальную стену знаменателей C506 (2366 цифр → k бит) | Hagi/Theory/GrowSnap.lean:81, :119, :145 | `--mode adapter-snap-grow` (AdapterGrowth) |
+| `snap_err_bound` | ДВУСТОРОННЯЯ obj-ошибка \|obj g − obj f\| ≤ L·d·2^-(k+1) (C521-версия — односторонняя) | Hagi/Theory/GrowSnap.lean:215 | — |
+| `snapAdmissible`/`snapK` (Nat.find), `snap_k_admissible`, `snap_k_min`, `snap_k_lt_violates` | k* = минимальное допустимое k: feasibility err(k*) ≤ ε; точность (любое допустимое k ≥ k*); негатив k < k* ⇒ err СТРОГО > ε | Hagi/Theory/GrowSnap.lean:190, :287, :293, :301, :308 | — |
+| `snap_k_eq_ceil` | ЗАМКНУТАЯ ФОРМА: при L·d > ε k* = ⌈log₂(L·d/ε)⌉ − 1 (обе стороны из feasibility + minimality) | Hagi/Theory/GrowSnap.lean:342 | — |
+| `snapBits`, `snap_bits_err_tradeoff`, `snap_optimal_k` | биты = d·(k+1); Pareto k ≤ k' ⇒ биты ↑, полуячейка ↓; DECISION-ПРАВИЛО: k* даёт certified err ≤ ε И минимальные биты | Hagi/Theory/GrowSnap.lean:185, :392, :401 | — |
+
+Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10,ε=2^-12
+→ k*=15, биты 160, k=14 нарушает; I2 L=3,d=1,ε=2^-6 → k*=7, k=6
+нарушает; I3 ГРАНИЦА РАВЕНСТВА Ld/ε=4 → k*=1, bound = ε, k=0 нарушает.
+
+## Hagi/Theory/NegativeTransfer.lean (C572+C592+C606: negative transfer, smooth, schedule)
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `neg_transfer_char`, `warm_better_char`, `transfer_boundary` | C572: квадратичная obj, равный бюджет: warm хуже cold ⟺ 2•⟪θ,t⟫ < ‖θ‖² (ТОЧНАЯ iff). Decision: warm iff 2⟪θ,t̂⟫ > ‖θ‖² | Hagi/Theory/NegativeTransfer.lean:117, :127, :137 | `--mode transfer-gate-certified` (quad-iff уровень) |
+| `neg_transfer_adversarial`, `gd_run_dist`, `warm_better_budget` | t = −c•θ ⇒ всегда T2; бюджет НЕ размывает границу | Hagi/Theory/NegativeTransfer.lean:150, :176, :191 | — |
+| `smooth_obj_transfer_bound`, `sufficient_negative_transfer` | C592: L-smooth obj + GD равным бюджетом ⇒ f z − n•`nlBudget γ L G` ≤ f (nlRun n γ grad z) ≤ f z; стартовый запас > n•nlBudget ⇒ warm строго хуже. G — честный binder вдоль траектории (глобальная не выводится) | Hagi/Theory/NegativeTransfer.lean:386, :406 | `--mode transfer-gate-certified` (smooth-sufficient уровень) |
+| `nlDrop`, `nl_drop_bound`, `nlDrop_le_optimal`, `nl_drop_optimal` | C606 Schedule: drop = γG² − Lγ²G²/2 ≤ G²/(2L) для любого γ, равенство при γ* = 1/L (полный квадрат). Кандидат 2/(3L) отклонён | Hagi/Theory/NegativeTransfer.lean:434, :443, :467, :481 | auto-LR γ = 1/L (C609) |
+
+Контраст: квадратичная obj → точный iff (C572); L-smooth произвольный →
+консервативная sufficient (C592), применять когда есть G-оценка на
+траектории и консервативного вердикта достаточно. Witness C592
+(trajNL.lean, γ=1/5, L=2, G=2): n=1 certified (1 > 24/25); n=2 условие
+НЕ выполнено (1 ≤ 48/25), но warm всё равно хуже ⇒ sufficient ≠
+necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 
 ## Hagi/Theory/TritCodec.lean (C574: trit-кодек, 5 тритов в байте)
 
 - Биекция wave214 pack/unpack_trits5 (3^5 = 243 ≤ 2^8):
   `tritPack`/`tritUnpack`, `tritPack_lt_243` (guard недостижим),
-  `trit_roundtrip`, `tritPack_injective`; вспомогательные
-  `sum_range_pow_lt`, `digit_of_sum`. Freeze 8749.
+  `trit_roundtrip`, `tritPack_injective`. Bench: нет.
 
-## Hagi/Theory/MasterTheoremV3.lean (C576: master theorem v3)
+## Hagi/Theory/MasterTheoremV3.lean (C576/C600/C614/C622: метатеорема v3 → v3.3)
 
-- `master_theorem_v3`: ВСЕ 5 гарантий машины v3 одним statement —
-  параметр-бюджет (`self_compress_loop_sound`), zero-forgetting
-  (`adapter_per_task_sound` C544), coverage-монотонность
-  (`iterative_loop_sound` C549), obj-телескоп, transfer-граница
-  (`neg_transfer_char` C572) — конъюнкция делегатов без ослабления.
-  Уровнем выше v3_assembly_sound (C558); не дублирует
-  MasterTheorem.lean (C392). Freeze 8750.
+- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83): 5 гарантий
+  машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
+  obj-телескоп, transfer-граница) — конъюнкция делегатов без
+  ослабления; не дублирует MasterTheorem.lean (C392).
+- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:275) — certified-
+  машина v3.3 ОДНОЙ теоремой; каждый клоз — делегат к доказанной
+  теореме, гипотезы дословно, ноль новых доказательств:
+
+| # | клоз | делегат | с версии |
+|---|---|---|---|
+| (1) | params-бюджет ≤ 2·k·dd | `self_compress_loop_sound` | v3.1 (C600) |
+| (2) | zero-forgetting per-task адаптеров | `adapter_per_task_sound` | v3.1 |
+| (3) | certified obj-телескоп ≤ o0 + Σ bounds | — | v3.1 |
+| (4) | монотонность покрытия | `iterative_loop_sound` | v3.1 |
+| (5) | точный iff-transfer (квадр) | `neg_transfer_char` | v3.1 |
+| (6) | snap-грид оптимальность k* = ⌈log₂(L·d/ε)⌉−1 | `snap_optimal_k` | v3.1 |
+| (7) | coverage-чтение: каждый байт прочитан окном решётки covStarts | `covStarts_covers` | v3.1 |
+| (8) | smooth sufficient-transfer: f z − n·nlBudget ≤ f (nlRun n γ grad z) ≤ f z | `sufficient_negative_transfer` | v3.1 |
+| (9) | guaranteed drop при γ* = 1/L равен G²/(2L) | `nl_drop_optimal` | v3.2 (C614) |
+| (10) | hierarchical coverage: любой i < nB покрыт окном `hierStarts` решётки при 0 < B, 0 < s' ≤ w — ЛЮБОЕ n | `hier_covers_any_n` | v3.2 |
+| (11) | reading floor: (hierStarts nB B w w).length = ⌈nB/w⌉ (0 < w, w ∣ B) = floor любого покрытия | `hier_optimal` | v3.3 (C622) |
+
+- v3.1 `hagi_master_v31` (:137) = (1)–(8); v3.2 `hagi_master_v32`
+  (:204) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:275) = v3.2 + (11).
+  Witness: C600 trajMT31 (#check 8 клозов), C614 trajMT32 (клоз (9):
+  L=2, G=1 → drop 1/4; (10): n=8128, B=4032), C622 trajMT33 (клоз
+  (11): total 127 = ⌈8128/64⌉). Axioms: propext, Classical.choice,
+  Quot.sound.
 
 ## Hagi/Theory/FactLedger.lean (C579: fact-ledger append-only мост)
 
 - Мост к wave219 memory_store (facts.py): `FactEntry`/`FactHistory`,
   `fact_append_preserves` (take-инвариант), `fact_lookup_monotone`.
   Честно: идемпотентности append НЕТ (как в коде), dedup-теорема
-  опущена. Freeze 8758.
+  опущена. Bench: нет.
 
 ## Hagi/Theory/RangeWrap.lean (C581: piecewise range-affine мост)
 
 - Мост к wave222 `_mod_affine_expr` (core.py): `rangeWrap lo c x m`,
   `rangeWrap_inrange` (замкнутость в [lo, lo+m), `Int.emod`),
   `rangeWrap_fixed_point` (c % m = 0 не двигает). Идемпотентность
-  композиции честно опущена. Freeze 8764.
+  композиции честно опущена. Bench: нет.
 
 ## Hagi/Theory/AdaptiveContext.lean (C582: adaptive-context мост)
 
 - Мост к lm.AdaptiveContextSelector (lm.py:124): «self-CE elbow» —
   наименьший W с CE ≤ best·(1+tol). `selectW_spec`,
   `selectW_occam_minimal` (меньшие окна отклонены измерением),
-  `selectW_budget_bound` (≤ maxW окон). Wave214-долг закрыт:
-  trit C574 + context C582.
+  `selectW_budget_bound` (≤ maxW окон). Bench: нет.
 
 ## Hagi/Theory/KnowledgeConsolidation.lean (C584: knowledge-consolidation мост)
 
@@ -1989,499 +1931,129 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   learn_from_dialog): `consolidate_prompt_empty` (graceful
   degradation), `remember_preserves_pages` (append-only, родня
   C579), `learn_from_dialog_archives` (архив до ingest). HONEST:
-  top-k ранжирование НЕ монотонно — теорема опущена.
+  top-k ранжирование НЕ монотонно — теорема опущена. Bench: нет.
 
-## Hagi/Theory/CoverageReading.lean (C598: coverage-reading мост)
+## Hagi/Theory/CoverageReading.lean (C598/C602/C611/C618/C623/C628: чтение и стоимость окна)
 
-- Мост к wave228 (lm.py b7f7f64: _read_all_windows + generate_auto
-  + Unified.ask_auto): промпт читается ЦЕЛИКОМ окнами k с шагом k
-  (без пропусков), суффикс-окно n-k при k ∤ n-k, паддинг при n ≤ k.
-  covStarts_covers — union интервалов стартов покрывает каждый
-  байт [0, n) (полное чтение входа).
-- ЧЕСТНАЯ ГРАНИЦА (не позитив): усечение `windows[-max_span:]`
-  (max_span=64) гарантирует «каждый байт прочитан» только пока
-  окон ≤ 64. covStarts_trunc_uncovered_zero — при окон > m
-  срез [-m:] отбрасывает старт 0, байт 0 остаётся непрочитанным
-  (дыра в голове). Стоп-предикаты generate_auto (sentence + low
-  confidence + 8-step repetition + entropy collapse) — чистые
-  функции измеренного состояния, формализация опущена как def-eq
-  тривиальность; max_bytes как safety cap — однострочная граница
-  цикла, опущена. Witness .tmp/C598/trajCov.lean: 540/64 covered=
-  true (9 окон), негатив truncLast 3/10 → covered=false.
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `covStarts_covers` | C598: окна k с шагом k (+ суффикс-окно) покрывают каждый байт [0, n) — полное чтение входа | Hagi/Theory/CoverageReading.lean:54 | — |
+| `covStarts_trunc_uncovered_zero` | ЧЕСТНАЯ ГРАНИЦА (не позитив): усечение windows[-max_span:] при окон > m отбрасывает старт 0, байт 0 не прочитан | Hagi/Theory/CoverageReading.lean:130 | мотивация adaptive-span |
+| `covStartsStep`, `covStarts_eq_step`, `covStartsStep_covers`, `covStartsStep_len_le`, `covStartsStep_adaptive_covers` | C602: старты с шагом s: покрытие ТОЧНО при 0 < s ≤ w (s > w — дыра); окон ≤ (n−w)/s + 2; при (n−w)/s+2 ≤ m покрытие полное И усечение не срабатывает | Hagi/Theory/CoverageReading.lean:171, :178, :184, :220, :233 | `--mode adaptive-span`, `adaptive_span` |
+| `hierBlockLen`, `hierStarts`, `hier_covers_any_n`, `hier_peak_window_budget` | C611: 2 уровня (блоки B × `covStartsStep`): покрытие [0, n) для ЛЮБОГО n без верхней границы; peak ≤ m окон в каждом блоке (peak ≠ total). Точный бюджет s = w, B = w·(m−1) | Hagi/Theory/CoverageReading.lean:268, :273, :283, :315 | `--mode generate-hier`, `hier_span` |
+| `covStartsStep_len_tiling`, `hier_blocks_sum_tiling`, `hier_total_formula`, `hier_total_min`, `hier_total_floor`, `hier_optimal` | C618: total ≤ ⌈n/B⌉·((B−w)/s+2); при s = w, w ∣ B total = ⌈n/w⌉ ТОЧНО и не зависит от B (внутреннего оптимума B* нет); информационный floor любого покрытия ≥ ⌈n/w⌉ ⇒ выбор C611 total-оптимален | Hagi/Theory/CoverageReading.lean:354, :389, :440, :462, :496, :533 | pinned assert C613 |
+| `ceil_div_anti`, `windowCost_fixed_mono`, `windowCost_linear_bounds`, `windowCost_linear_near_const`, `windowCost_hier` | C623 (ns WindowTradeoff): totalCost(w) = ⌈n/w⌉·c(w). c(w)=c ⇒ монотонно невозрастает, оптимально w_max; c(w)=c·w ⇒ n ≤ w⌈n/w⌉ ≤ n+w−1, total ∈ [c·n, c·(n+w)) — НЕ зависит от w; мост к `hier_total_min` | Hagi/Theory/CoverageReading.lean:555, :577, :586, :602, :613 | `--cost-regime fixed/linear`, `cost_regime_w` |
+| `mixedCost_relax_min`, `mixedCost_relax_min_eq`, `mixedCost_lower` | C628: c(w) = a + c·w²: a/w + c·w ≥ 2√(a·c) (AM-GM), равенство при w = √(a/c) — внутренний оптимум w*; дискретный ⌈n/w⌉(a+c·w²) ≥ 2n√(a·c) (равенство в общем случае недостижимо — точку берёт целый argmin bench) | Hagi/Theory/CoverageReading.lean:630, :650, :675 | `--cost-regime mixed`, α=2 |
 
-## Hagi/Theory/MasterTheoremV3.lean (C600: метатеория v3.1 — консолидация)
+- Правило выбора w: c(w)=c ⇒ w_max; c(w)=c·w ⇒ свободно (по
+  точности); c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α). Общий α>1 —
+  вне Lean (honest Real-sketch deriv+convexOn); чистая c·w^α
+  оптимума не имеет (optimum w → min). Стоп-предикаты generate_auto
+  (sentence + low confidence + 8-step repetition + entropy collapse)
+  — def-eq тривиальность, опущены.
+- Witness: C598 trajCov.lean 540/64 covered (9 окон), негатив 3/10
+  false; C602 trajSpan.lean 540/w64/s=9 — 54 окна covered; s=17 > w=9
+  (n=60) байт 9 в дыре; 1152/w64/s=17 — 65 окон > 64, усечение теряет
+  байт 0, фикс s=18 — 62 окна covered. C611 trajHier.lean n=8128, B=4032,
+  s=w=64: per-block [63, 63, 1], peak 63; одноуровнево 127 > 64. C618
+  trajOptB.lean n=100000: total 1563 = ⌈n/w⌉ для B ∈ {64, 2048, 4032,
+  4096}; s=32, B=1088 → 3033 > floor. C623 trajW.lean n=100000, w ∈
+  {16, 64, 256}: чтения {6250, 1563, 391}; linear-cost {100000, 100032,
+  100096}.
 
-- `hagi_master_v31` — certified-машина v3.1 ОДНОЙ теоремой: конъюнкция
-  8 клозов, каждый — делегат к доказанной теореме без ослабления
-  гипотез (прецедент C576). Покрытие: (1) params-бюджет ≤ 2·k·dd,
-  (2) zero-forgetting per-task адаптеров, (3) certified obj-телескоп
-  ≤ o0 + Σ bounds, (4) монотонность покрытия, (5) точный iff-transfer
-  (квадр, C572), (6) snap-грид оптимальность k* = ⌈log₂(L·d/ε)⌉−1
-  (C593), (7) coverage-чтение — каждый байт прочитан окном решётки
-  covStarts (C598), (8) smooth sufficient-transfer: f z − n•nlBudget
-  ≤ f (nlRun n γ grad z) ≤ f z при L-smooth obj и равном GD-бюджете
-  (C592). Клозы (5)+(8) = двухуровневый transfer-контур (точный iff
-  + консервативный sufficient). Ничего нового не доказывается —
-  только конъюнкция. Witness .tmp/C600/trajMT31.lean (#check
-  раскрытие 8 клозов). Axioms: propext, Classical.choice, Quot.sound.
+## Hagi/Theory/GrowthGate.lean (C632: certified growth capacity gate)
 
-## scripts/bench_bridge.py transfer-gate-certified (C601: certified-порог wave232-гейта)
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `growthGate`, `growth_gate_stay_char` | grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/GrowthGate.lean:75, :81 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
+| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/GrowthGate.lean:109, :121 | — |
+| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/GrowthGate.lean:178 | `growth_gate_measure` |
 
-- `certified_transfer_gate` + `nl_budget` — honest start-gap измеритель
-  против CERTIFIED-порога из Lean (roadmap C599 top-2): warm допустим
-  ⟺ start_gap = f(θA) − f(0) ≤ n•nlBudget γ L G (формула
-  Hagi.Theory.NegativeTransfer.nlBudget, γG² + Lγ²G²/2, ДОСЛОВНО);
-  иначе certified negative transfer (sufficient_negative_transfer
-  C592: стартовый запас > n•nlBudget ⇒ warm строго хуже cold).
-  Docstring ссылается на smooth_obj_transfer_bound /
-  sufficient_negative_transfer. Заменяет/дополняет proxy ce≤0.5
-  wave232 (C:\HAGI_v2\hagi\unified.py, READ-ONLY) на нашей bench-
-  стороне; proxy не удаляется (может служить pre-filter).
-- Режим `--mode transfer-gate-certified` (расширение C577-гейта):
-  те же pre-registered C566-snapshot пары + adversarial; start_gap —
-  точные Fractions; L = 2•trace(H̄) (PSD λmax ≤ trace, консервативная
-  рациональная оценка для квадратичного bench obj); G² — измеренный
-  максимум ‖grad‖² по реализованным warm/cold траекториям (honest
-  measured premise hG); γ = TR_ETA; премиса γ ≤ 2/L телеметрируется;
-  forgetA bit-exact + rollback asserts. ДВУХУРОВНЕВАЯ семантика:
-  quad-iff (C572: gap0 = 2wb − wHw, точная для квадратичного obj) +
-  smooth-sufficient (C592 certified threshold); полный certified-цикл
-  arm'а, выбранного certified-гейтом.
-- Witness .tmp/C601/gate_check.py: nlBudget(1/5, 2, 2) = 24/25 exact;
-  граница ровно n•nlBudget — 24/25 → warm, 25/25 → cold-certified,
-  n=2 → 48/25; все PASS (Lean-формульный порог, не подобранный).
-- ЧЕСТНЫЙ РЕЗУЛЬТАТ (не подогнан): adversarial-пара — quad-iff
-  говорит cold (точный iff), но smooth-гейт честно допускает warm:
-  measured G вдоль adversarial-траектории мал (≈0.03), бюджет
-  99.66 > start_gap 5.43 — консервативность smooth-уровня налицо
-  (sufficient, НЕ iff; C572-iff точнее в квадратичном мире). Реальные
-  3 пары: оба уровня warm, вердикт T1-positive, forgetA=0.
+- Отличие от C535 (rankSelect по probe-score) и C577/C601 (два
+  probe-прогона): ноль измерений, решение по формуле ДО probe.
+  Honest: потенциал-модель квадратичная (для L-smooth потолок шире
+  — nlBudget C592, гейт пересчитывается); grow = РАЗРЕШЕНИЕ, не
+  обещание; sound только у stay-ветки. Witness C632 trajGate.lean:
+  G=2, L=2, n=5 → bound 5; c_add=10 → stay; c_add=4 → grow.
 
-## Hagi/Theory/CoverageReading.lean C602 + bench adaptive-span (adaptive span, замыкание негатива C598)
+## scripts/bench_bridge.py (C551–C635: режимы без собственного Lean-ряда)
 
-- Roadmap C599 top-1: код-импликация негатива C598
-  (covStarts_trunc_uncovered_zero: усечение windows[-max_span:]
-  теряет байт 0 при переполнении). Coverage-preserving стратегия:
-  при переполнении НЕ усекать хвост, а ПЕРЕСЧИТАТЬ старты с
-  адаптивным шагом s ≤ w. Расширение CoverageReading (только ADD,
-  freeze-safe): `covStartsStep n w s` (окно w, шаг s; covStarts =
-  частный случай — covStarts_eq_step, rfl), `covStartsStep_covers`
-  (ТОЧНОЕ условие полного покрытия: 0 < s ≤ w — соседние окна
-  перекрываются, суффикс-фоллбек закрывает хвост; при s > w дыра —
-  witness), `covStartsStep_len_le` (окон ≤ (n−w)/s + 2),
-  `covStartsStep_adaptive_covers` — замыкание негатива C598:
-  при 0 < s ≤ w и (n−w)/s + 2 ≤ m — покрытие полное И окон ≤ m,
-  усечение не срабатывает, старт 0 остаётся прочитанным.
-- bench scripts/bench_bridge.py (C602-блок): `adaptive_span(n, w=64,
-  max_span=64)` — старты по Lean-формуле (s = min(w, ⌈(n−w)/(m−2)⌉),
-  docstring → covStartsStep_covers / covStartsStep_adaptive_covers),
-  fail-closed asserts (число окон ≤ max_span, побайтовое покрытие);
-  честная INFEASIBLE-ветка (нужный шаг > w ⇒ n > w + (m−2)·w ≈ 4032
-  при w=m=64): возвращает None, НЕ усекает молча — за границей
-  полное покрытие окнами w в бюджете m невозможно в принципе,
-  нужен рост w или max_span. Режим `--mode adaptive-span`: телеметрия
-  k' (шаг) vs старое усечение [-m:] на pre-registered n ∈ {540, 1088,
-  1152, 4032, 4160, 8256, 16448, 500000} — verdict PASS; старая
-  стратегия теряет байт 0 с n = 4160 (65 окон), адаптив держит
-  покрытие до n = 4032 включительно (s = w = 64), выше — честный
-  infeasible. Замечание: формулировка roadmap «k' = ⌈n/max_span⌉»
-  (для 540/64 → 9) достаточна вдали от границы, но не доказуема в
-  бюджете у границы (даёт ~m окон БЕЗ запаса на решётку+суффикс);
-  доказуемая форма — ⌈(n−w)/(m−2)⌉ (для 540 → 8; witness использует
-  s = 9 из roadmap-формы, оба удовлетворяют теореме).
-- Witness .tmp/C602/trajSpan.lean (rc=0): 540/w=64/s=9 — 54 окна,
-  covered (теорема применена); негатив s=17 > w=9 (n=60): байт 9 в
-  дыре (необходимость s ≤ w); негатив переполнения: 1152/w=64/s=17 —
-  65 окон > 64, старое усечение теряет байт 0; фикс s=18 — 62 окна,
-  covered (covStartsStep_adaptive_covers применена).
+Все режимы: append-блок + choice + dispatch (backward-совместимо,
+канон ALGORITHMS §27), certified snap-GD (drop>0 COMMIT / HOLD),
+forgetA=0 bit-exact asserts, drift-детект на замороженной копии,
+EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0,
+аксиомы только propext/Quot.sound/Classical.choice.
 
-## Hagi/Theory/NegativeTransfer.lean C606 Schedule (optimal step size certified)
+- C551 `--mode universal-loop`: полный живой корпус 113/113 —
+  покрытие 93.8% = 6 реальных констант-кластеров; линейных законов
+  НЕТ (измерено); законы C549 на реальный корпус не переносятся
+  (0/113). Lean: `universal_loop_corpus_mono`.
+- C553 `--mode universal-loop-nl`: нелинейный язык v2 (произведения,
+  min/max, пороговые): законов НЕТ (19204 кандидата, покрытие
+  идентично). Новая теорема не нужна (oe_search_complete абстрагирован
+  по Prog/space).
+- C555 `--mode self-compress-loop`: learn→merge→learn, params ≤
+  2·K·d = 32 при монотонном росте знания (CE остатка −84%), Σ merge
+  bounds = 0; негативы k<ρ теряют знание (usable=false). Lean:
+  `selfCompressParams`, `self_compress_params_bounded`/`_contrast`,
+  `self_compress_loop_sound`.
+- C556 `--mode distill`: констант-кластеры → rank-1 (`distillAdapter`,
+  `constant_distill_exact`): CE кластеров 0 бит-в-бит, ветвления 113
+  → 0. Контраст `symbolic_storage_cheaper`: символьное хранение
+  дешевле по памяти.
+- C558 `--mode mini-hagi-v3`: сборка C547–C556 (115 точек): кластеры
+  108/115, params ≤ 32, forget 0. Lean: `v3_assembly_sound`.
+- C560 `--mode adapter-transfer`: warm vs cold vs poisoned, равные
+  бюджеты — T1 3/3 по AUC (×387 на близкой паре); poisoned хуже по
+  AUC. C566 реактивно (корпус 115→122): инварианты стабильны.
+- C568 `--mode band-check`: 48/48 полос на живом корпусе, негатив
+  переставленной полосы 0/2. Lean: `softDef_shift`,
+  `bandDescribes_of_pointwise`, `bernoulliBandDescribes`
+  (Hagi/Theory/TrainerBenchmark.lean:146, :161, :176).
+- C577 `--mode adapter-transfer-auto`: probe-A/B гейт (2 шага,
+  rollback C530) выбирает warm/cold — T1 сохранены, adversarial →
+  cold. Lean: `gate_char`, `auto_transfer_gate_sound`
+  (Hagi/Theory/AutoTransferGate.lean:80, :139).
+- C601 `--mode transfer-gate-certified` (bench_bridge.py:12442,
+  :12450): `nl_budget` γG² + Lγ²G²/2 ДОСЛОВНО из Lean; warm допустим
+  ⟺ start_gap = f(θA) − f(0) ≤ n·nlBudget; двухуровневая семантика
+  quad-iff + smooth-sufficient. L = 2·trace(H̄), G — измеренный
+  max ‖grad‖² (honest premise). Honest: adversarial — quad-iff
+  cold, smooth-гейт допускает warm (G ≈ 0.03, бюджет 99.66 > 5.43)
+  — sufficient ≠ iff. Порог точно по границе: 24/25 → warm, 25/25 →
+  cold. 3 реальные пары: оба уровня warm.
+- C609 auto-LR (bench_bridge.py:12170): adapter-transfer-auto и
+  transfer-gate-certified переведены на γ = 1/(2·trace(H̄)) по
+  `nl_drop_optimal`; старая константа 1/10 — флаг --fixed-lr.
+  Телеметрия `steps_drop_vs_bound` (bound может быть loose). γ_auto
+  примеры 0.477 / 0.520 / 0.667. A/B: вердикты идентичны, golden
+  бит-идентичен. NOT changed: grow-семейство уже 1/L, mini-hagi,
+  trunk.
+- C613 `--mode generate-hier` (bench_bridge.py:13051): `hier_span` —
+  двойник `hierStarts`; n = 540/4032/8128/100000 → блоков 1/1/3/25,
+  total 9/63/127/1563, peak 9/63/63/63, covered; одноуровневый
+  adaptive_span: OK / OK / INFEASIBLE / INFEASIBLE. Pinned: n=8128 →
+  [63, 63, 1] (совпало с #eval C613 HierEval.lean).
+- C626 `--cost-regime {fixed,linear,mixed}` в generate-hier
+  (bench_bridge.py:13150): `cost_regime_w` — точные Fractions,
+  fail-closed asserts (коридор, near-const, w_max, argmin); n =
+  540/4032/8128/100000, варианты w {16, 64, 256, w_max}; сверка с
+  C623 совпала дословно.
+- C633 growth gate в grow-snap / adapter-grow (bench_bridge.py:5862,
+  :5882): `growth_gate_measure` (G² — сумма квадратов fd-градиентов;
+  L — однокоординатная выборка кривизны, honest proxy, L=0 → GROW
+  fail-closed); c_add = n_new_params·λ, λ = 1/10⁴ (PIN = одна
+  минимальная ячейка snap-сетки). grow-snap: 6 событий, все GROW,
+  глубина 8 = golden; adapter-grow: 2 события (r=1, r=2) GROW, ranks
+  [1, 2]. skipped-certified = 0 — честно.
+- C635 `--gate-test` (bench_bridge.py:5952): 6 синтетик — S1..S4 STAY
+  (в т.ч. равенство), G1/G2 GROW, физически проходит SKIP-ветку;
+  Lean-witness gatetest.lean PASS. `--lambda-sweep`: λ=1/10⁴ → 6 GROW
+  (golden); λ ≥ 1/10³ → первый гейт STAY, глубина 2; certified_stay
+  λ* ≈ 10⁴¹ (GROW ⟺ λ < pb/params).
 
-- Секция Schedule (C606): certified-оптимальный шаг L-smooth GD.
-  `nlDrop γ L G = γG² − Lγ²G²/2` — guaranteed per-step drop
-  (нижний аналог `nlBudget` C592, отличие — знак при Lγ²G²/2).
-  `nl_drop_bound` (a): `f (nlStep γ grad z) ≤ f z − nlDrop γ L
-  ‖grad z‖` из той же premise-form hsm, что `nl_step_mono`
-  (классический sufficient decrease). `nlDrop_le_optimal` (b):
-  `nlDrop γ L G ≤ nlDrop (1/L) L G` для ЛЮБОГО γ (глобальный
-  максимум параболы: полный квадрат (G²/2L)(1−Lγ)² ≥ 0, без
-  ограничения γ descent-зоной). `nl_drop_optimal` (MAIN): drop
-  при γ* = 1/L равен G²/(2L). Кандидат «γ* = 2/(3L)» из
-  roadmap-черновика отклонён: d/dγ[γG² − Lγ²G²/2] = G² − LγG² = 0
-  ⟺ γ = 1/L (выведено дважды: производная + полный квадрат;
-  probe .tmp/C606/probe.lean exit=0).
-- Bench-правило: γ = 1/L — certified (авто-LR из измеренного L;
-  телеметрия vs текущих констант; источники: MIT 6.7220 L12
-  Farina, Cambridge DAMPT lecture3, angms sufficient-decrease).
-  Числовой witness (L=2, G=1, γ*=1/2): drop γ=0.1/0.5/0.9 →
-  9/100, 1/4, 9/100 — симметрия параболы вокруг вершины.
+## History (C538–C635)
 
-## C609 Auto-LR (bench-применение nl_drop_optimal C606)
-
-- `scripts/bench_bridge.py`: режимы GD с константой TR_ETA=1/10 —
-  `adapter-transfer-auto` (C577) и `transfer-gate-certified`
-  (C601) — переведены на auto-LR γ = 1/(2·trace(H̄)) (auto_lr,
-  exact Fractions, assert L>0): certified-оптимальный шаг
-  `nl_drop_optimal` (C606). Старый путь доступен флагом
-  `--fixed-lr`. NOT changed (research.md): grow/cert-семейство уже
-  1/L; mini-hagi golden; continual/loop size-pin ABORT; trunk/
-  real-data не-GD-константы.
-- Телеметрия: per-step фактический drop vs bound G²/(2L)
-  (`steps_drop_vs_bound` в каждой паре; honest — bound может быть
-  loose), `lr.mode/gamma_used/gamma_old_constant`. Примеры γ_auto:
-  5000000/10470759 ≈ 0.477, 13500000/25944901 ≈ 0.520,
-  156250/234227 ≈ 0.667 vs старая 1/10 = 0.1.
-- A/B (auto vs fixed vs pre): все exit 0; вердикты идентичны
-  (T1-positive ×3 + adversarial gate-cold в ATA; T1-positive ×3 +
-  «UNEXPECTED warm (H degenerate?)» в TGC — как в pre). Числовой
-  паритет fixed vs pre (diff только телеметрия). Golden-режимы
-  (grow-snap, mini-hagi, adaptive-span) PASS, grow-snap
-  бит-идентичен pre.
-- Freeze 8818 до/после (Lean не менялся); 17 гейтов PASS
-  (.tmp/C609/logs/).
-
-## C611 Hagi/Theory/CoverageReading.lean (hierarchical windows, INFEASIBLE lifted)
-
-- Секция C611: снятие INFEASIBLE-границы adaptive span C602
-  (одноуровнево (n−w)/s+2 ≤ m при s ≤ w ⇒ n ≤ w(m−1) = 4032 при
-  w = m = 64). Модель: 2 уровня — блоки длины B, внутри блока
-  `covStartsStep` (окно w, шаг s), блоки последовательно
-  (streaming). `hierStarts n B w s` — плоская конкатенация
-  поблочных стартов (`hierBlockLen` = min B (n − j·B)).
-  `hier_covers_any_n` (0 < B, 0 < s ≤ w): полное покрытие [0, n)
-  для ЛЮБОГО n без верхней границы (сведение поблочно к
-  `covStartsStep_covers`). `hier_peak_window_budget` (w ≤ B,
-  (B−w)/s+2 ≤ m): ≤ m окон в КАЖДОМ блоке — peak-память ≤ m окон
-  при streaming; честная граница: peak ≠ total (total
-  ⌈n/B⌉·(≤ m) растёт с n). Точный бюджет: s = w, B = w·(m−1) ⇒
-  (B−w)/s+2 = m (w = m = 64: B = 4032, per-block 63–64 окна).
-- Witness .tmp/C611/trajHier.lean (rc=0): n = 8128 (> 4032),
-  B = 4032, s = w = 64 — covered=true, per-block [63, 63, 1],
-  peak 63 ≤ 64; негатив: одноуровневый covStartsStep 8128 64 64 —
-  127 окон > 64 (budget (n−w)/s+2 = 128 > 64) — та самая
-  INFEASIBLE-граница C602.
-- Freeze 8818 → 8818+4 (hierBlockLen, hierStarts,
-  hier_covers_any_n, hier_peak_window_budget); 17 гейтов PASS
-  (.tmp/C611/logs/).
-
-## C613 generate-hier bench-режим (применение C611: чтение любого объёма входа с peak ≤ m)
-
-- `scripts/bench_bridge.py`: `hier_span(n, w=64, m=64)` —
-  python-двойник `hierStarts` (B = w·(m−1) = 4032, s = w = 64;
-  re-use `_cov_step_starts` = двойник `covStartsStep`, C602;
-  docstring → `hier_covers_any_n` / `hier_peak_window_budget`);
-  fail-closed asserts: покрытие поблочно, peak ≤ m, бюджетная
-  формула (B−w)/s+2 = m. Режим `--mode generate-hier` (corpus-free,
-  как adaptive-span C610): телеметрия-таблица n = 540 / 4032 /
-  8128 / 100000 — blocks, per-block окон, total/peak, covered=true,
-  рядом честный verdict одноуровневого `adaptive_span` (C602):
-  OK (stride/окна) при n ≤ 4032, INFEASIBLE (его None-ветка)
-  выше границы n > w+(m−2)·w.
-- Числа: 540 → 1 блок, 9 окон (OK: s=8, 61); 4032 → 1 блок, 63
-  (OK: s=64, 63); 8128 → 3 блока [63, 63, 1], total 127, peak 63
-  (INFEASIBLE одноуровнево); 100000 → 25 блоков (24×63 + 51),
-  total 1563, peak 63 (INFEASIBLE). Verdict PASS.
-- Тест-сверка python == Lean: pinned assert n=8128 → blocks 3,
-  per_block [63, 63, 1], peak 63 (witness .tmp/C611/trajHier.lean)
-  в телеметрии + свежий #eval `hierStarts`-длин блоков
-  (.tmp/C613/HierEval.lean, rc=0): 3 / [63, 63, 1] / 63 —
-  совпадает дословно.
-- Freeze 8822 до/после (identity — Lean не менялся); 17 гейтов
-  PASS (.tmp/C613/logs/).
-
-## C614 метатеорема v3.2: 10 клозов (машина 8 + шаг-оптимум + неограниченное чтение)
-
-- `Hagi/Theory/MasterTheoremV3.lean` (v3.2):
-  `Hagi.Theory.MasterTheoremV32.hagi_master_v32` — консолидация
-  certified-машины v3.2 по прецеденту C600 (`hagi_master_v31`,
-  8 клозов): клозы (1)–(8) — делегат `hagi_master_v31` (C600)
-  одним `have hV31` + проекции (машина v3.1 дословно); (9)
-  schedule-клоз — `nl_drop_optimal` (C606): guaranteed drop при
-  γ* = 1/L равен G²/(2L); (10) hierarchical-coverage-клоз —
-  `hier_covers_any_n` (C611): каждый байт i < nB покрыт окном
-  [t, t + w) решётки `hierStarts nB B w s'` при 0 < B, 0 < s' ≤ w
-  — ЛЮБОЕ n, peak ≤ m. Ноль новых доказательств, гипотезы
-  дословно, БЕЗ ослабления (KISS-конъюнкция).
-- Witness .tmp/C614/trajMT32.lean (rc=0): #check раскрытие
-  10-клозной конъюнкции + применения клозов (9) к L=2, G=1
-  (drop = 1/4) и (10) к n = 8128, B = 4032, w = s' = 64
-  (параметры witness C611).
-- Freeze 8822 → 8823 (+hagi_master_v32); 17 гейтов PASS
-  (.tmp/C614/logs/); axioms [propext, Classical.choice,
-  Quot.sound] (= 3).
-
-## C618 Hagi/Theory/CoverageReading.lean (hierarchical total window optimality)
-
-- Секция C618 (roadmap C616 top-2): оптимальность выбора B в
-  иерархии C611 по TOTAL окон при ограничении peak ≤ m.
-  `covStartsStep_len_tiling` (0 < ℓ): точный per-block счёт при
-  s = w — ровно ⌈ℓ/w⌉ стартов. `hier_blocks_sum_tiling`
-  (B = w·c, m ≤ k·B): телескоп-сумма поблочных ⌈·/w⌉ равна
-  ⌈m/w⌉ (полные блоки по B/w, хвост добивает). `hier_total_formula`
-  (0 < B, 0 < s ≤ w ≤ B): общий upper bound total ≤
-  ⌈n/B⌉·((B−w)/s+2). `hier_total_min` (0 < w, w ∣ B): ТОЧНЫЙ total
-  при s = w равен ⌈n/w⌉ и НЕ зависит от B. `hier_total_floor`:
-  информационный минимум — любое покрытие [0, n) окнами длины w
-  требует ≥ ⌈n/w⌉ окон (инъекция i ↦ (t, i−t), Ico длины w).
-  `hier_optimal`: ИТОГ — при s = w и w ∣ B иерархия даёт total
-  ровно ⌈n/w⌉ = floor; внутреннего оптимума B* нет (total
-  константен по B), выбор C611 (s = w, B = w·(m−1) = 4032 при
-  w = m = 64) certified как total-оптимальный.
-- Witness .tmp/C618/trajOptB.lean (rc=0): n = 100000, w = m = 64:
-  total = 1563 = ⌈n/w⌉ для B ∈ {64, 2048, 4032, 4096} (константен,
-  включая точный peak-максимум B = w·m = 4096); s = 32 < w:
-  B = 1088 даёт 3033 > 1563 (строго хуже floor); n = 8128:
-  total 127 = ⌈8128/64⌉. Все 6 теорем применены к witness-параметрам
-  (example-блоки).
-- Freeze 8823 → 8823+6 (covStartsStep_len_tiling,
-  hier_blocks_sum_tiling, hier_total_formula, hier_total_min,
-  hier_total_floor, hier_optimal); 17 гейтов PASS
-  (.tmp/C618/logs/).
-
-## C622 метатеорема v3.3: 11 клозов (машина 8 + шаг-оптимум + неограниченное чтение + reading floor)
-
-- `Hagi/Theory/MasterTheoremV3.lean` (v3.3):
-  `Hagi.Theory.MasterTheoremV33.hagi_master_v33` — консолидация
-  certified-машины v3.3 по прецедентам C600/C614: клозы (1)–(10)
-  — развёртка в statement (statement v3.2 дословно), делегат
-  `hagi_master_v32` (C614) одним `have hV32` + проекции; клоз (11)
-  reading floor — делегат `hier_optimal` (C618): при `s = w` и
-  `w ∣ B` total иерархического чтения `(hierStarts nB B w
-  w).length = (nB + w - 1) / w = ⌈nB/w⌉` — информационному floor
-  ЛЮБОГО покрытия (никакой список L не покрывает [0, nB) окнами
-  длины w меньшим числом окон). Ноль новых доказательств, гипотезы
-  v3.2 дословно + `hw : 0 < w`, `hdiv : w ∣ B` (hB общий).
-- Witness .tmp/C622/trajMT33.lean (rc=0, лог logs/trajMT33.log):
-  #check раскрытие 11-клозной конъюнкции + применение клоза (11)
-  к witness C618 n = 8128, B = 4032, w = 64 (total = 127 =
-  ⌈8128/64⌉; floor на произвольном L; численная сверка).
-- Hagi.lean: `import Hagi.Theory.MasterTheoremV3` (ReachLint).
-  Axioms hagi_master_v33: [propext, Classical.choice, Quot.sound]
-  (= 3). Freeze 8835 → 8836 (+hagi_master_v33); 17 гейтов PASS
-  (.tmp/C622/logs/).
-
-## C623 window width cost tradeoff: адаптивный w — два certified-режима + honest-набросок суперлинейного
-
-- Модель: totalCost(w) = ⌈n/w⌉ · c(w) — число чтений floor-ится
-  (⌈n/w⌉, убывает по w), стоимость чтения одного окна c(w) растёт
-  по w; фундамент — total-оптимальность C618 (`hier_total_min`:
-  иерархия достигает ⌈n/w⌉ чтений).
-- `Hagi/Theory/CoverageReading.lean`, namespace
-  `Hagi.Theory.WindowTradeoff` (5 теорем; T2: модуль WindowTradeoff.lean слит сюда):
-  `ceil_div_anti` (анти-монотонность ⌈n/w⌉: 0 < w ≤ w' ⇒
-  (n+w'−1)/w' ≤ (n+w−1)/w), `windowCost_fixed_mono` — режим (a)
-  c(w) = c: totalCost = c·⌈n/w⌉ монотонно невозрастает ⇒
-  ОПТИМАЛЬНО w = w_max (укрупнение окна бесплатно);
-  `windowCost_linear_bounds` + `windowCost_linear_near_const` —
-  режим (b) c(w) = c·w: n ≤ w·⌈n/w⌉ ≤ n + w − 1 ⇒ total-cost
-  «почти константа» ∈ [c·n, c·(n+w)), для любых w1 w2:
-  w1·⌈n/w1⌉ ≤ w2·⌈n/w2⌉ + (w1−1) — УДИВИТЕЛЬНЫЙ результат: при
-  линейной стоимости окна total-cost НЕ зависит от w (зазор
-  < c·w); выбор ширины свободен по стоимости — решают только
-  точность/глубина контекста; `windowCost_hier` — мост: totalCost
-  = c·(hierStarts n B w w).length при w ∣ B (делегат
-  `hier_total_min` C618).
-- Режим (c) — суперлинейное окно: чистая c(w) = c·w^α (α > 1)
-  внутреннего оптимума НЕ имеет
-  (totalCost ≈ c·n·w^(α−1) растёт по w ⇒ optimum w → min);
-  внутренний оптимум возникает при смешанной стоимости
-  c(w) = a + c·w^α (фиксированный overhead a + суперлинейный
-  контекст): totalCost ≈ a·n/w + c·n·w^(α−1), d/dw = 0 ⇒
-  w* = (a/(c·(α−1)))^(1/α) — при α = 2 (bench-default) это
-  √(a/c), теперь CERTIFIED в Lean (C628:
-  `mixedCost_relax_min`/`mixedCost_relax_min_eq`/
-  `mixedCost_lower`, см. ниже); общий α>1 — Real-sketch
-  (deriv+convexOn вне KISS-сферы). ПРАВИЛО ВЫБОРА w: c(w)=c ⇒
-  w_max;
-  c(w)=c·w ⇒ свободно (зазор < c·w, по точности);
-  c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α).
-- Witness .tmp/C623/trajW.lean (rc=0, лог logs/trajW.log):
-  таблица n = 100000, w ∈ {16, 64, 256}: чтения {6250, 1563,
-  391} (режим a монотонно ↓); linear-cost {100000, 100032,
-  100096} — в коридоре [100000, 100000+w), все теоремы
-  применены к witness-параметрам (example-блоки).
-- Axioms всех 5: [propext, (Classical.choice,) Quot.sound] (≤ 3).
-  Freeze 8836 → 8841 (+ceil_div_anti, windowCost_fixed_mono,
-  windowCost_linear_bounds, windowCost_linear_near_const,
-  windowCost_hier); 17 гейтов PASS (.tmp/C623/logs/).
-
-## C626 bench cost-regime: certified выбор w в generate-hier (применение C623 завершено)
-
-- `scripts/bench_bridge.py`: `cost_regime_w(regime, n, w_max, a, c,
-  alpha)` — python-двойник теорем WindowTradeoff (freeze 8841),
-  docstring → `windowCost_fixed_mono` / `windowCost_linear_bounds`
-  / `windowCost_linear_near_const` / `ceil_div_anti`:
-  - режим fixed (c(w)=c): certified правило w = w_max
-    (монотонное невозрастание totalCost = c·⌈n/w⌉);
-  - режим linear (c(w)=c·w): w телеграфируется свободно (default
-    64) — total-cost «почти константа», телеметрия near-const
-    коридора [c·n, c·(n+w)) (зазор < c·w);
-  - режим mixed (c(w)=a+c·w^α, целое α>1): при α=2 (default)
-    w* = √(a/c) — CERTIFIED C628 (`mixedCost_relax_min`,
-    `mixedCost_relax_min_eq`, `mixedCost_lower`, freeze 8844);
-    при α≠2 — honest Real-sketch, не Lean-клоз; вещественный
-    корень идёт телеметрией, целый w выбирается точным
-    Fraction-argmin по окрестности корня.
-  Арифметика точная (fractions.Fraction), fail-closed asserts:
-  коридор linear, near-const неравенство w1·⌈n/w1⌉ ≤ w2·⌈n/w2⌉ +
-  (w1−1), оптимальность fixed w_max, argmin mixed.
-- CLI: `--cost-regime {fixed,linear,mixed}` (+ `--cw-a/--cw-c/
-  --cw-alpha/--cw-wmax`) в `--mode generate-hier`; телеметрия:
-  w_выбран, чтения ⌈n/w⌉, total-cost, коридор, сравнение
-  w-вариантов {16, 64, 256, w_max}; инстансы n = 540/4032/8128/
-  100000.
-- Witness-сверка с C623 (pinned asserts): n=100000 чтения
-  6250/1563/391 и linear-cost 100000/100032/100096 для w ∈
-  {16, 64, 256} — совпали дословно (Lean #eval .tmp/C623/trajW.lean).
-- `scripts/StatusLint.py`: RUNTIME_NAMES += cost_regime_w
-  (прецедент C613 hier_span). Freeze 8841 identity (Lean не
-  менялся); 17 гейтов PASS (.tmp/C626/logs/).
-
-## C628 mixed cost w star theorem: последний серый элемент эры чтения — Lean-клозы α=2 (AM-GM)
-
-- Beat: C628 = roadmap C627 top-2 (mixed-w* в Lean — догнать
-  честность). Base HEAD ef57c959 (C627), freeze 8841 → 8844.
-- `Hagi/Theory/CoverageReading.lean` (+3 теоремы, режим (c)
-  формализован для α=2 — bench-default `cost_regime_w`):
-  - `mixedCost_relax_min (a c w : ℝ) (0<a)(0<c)(0<w)`:
-    `2*√(a*c) ≤ a/w + c*w` — AM-GM ядро релаксации:
-    (√u − √v)² ≥ 0 при u = a/w, v = c·w, √u·√v = √(a·c)
-    (`Real.sqrt_mul`); непрерывная релаксация totalCost =
-    (n/w)·(a + c·w²) = n·(a/w + c·w) ≥ 2n·√(a·c);
-  - `mixedCost_relax_min_eq (a c : ℝ) (0<a)(0<c)`: при
-    w = √(a/c) равенство: a/w = √(a·c) и c·w = √(a·c)
-    (квадраты обеих = a·c, injectivity `pow_left_inj₀`) —
-    внутренний оптимум смешанной стоимости α=2:
-    w* = (a/(c·(α−1)))^(1/α) = √(a/c), certified;
-  - `mixedCost_lower (n w : ℕ) (a c : ℝ) (0<a)(0<c)(0<w)`:
-    дискретный totalCost = ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) —
-    ceil-мост: ⌈n/w⌉ = (n+w−1)/w ≥ n/w (`windowCost_linear_
-    bounds` + каст в ℝ), множитель a + c·w² > 0, далее
-    релаксация ×n. Дискретное равенство в общем случае НЕ
-    достигается (⌈n/w⌉ > n/w при w ∤ n) — нижняя граница
-    certified, точку выбирает целочисленный argmin bench.
-- Общий α>1 — вне scope (honest: real calculus deriv+convexOn;
-  α=2 покрывает bench-default; KISS, план .tmp/C628/plan.md).
-- bench `scripts/bench_bridge.py`: mixed-режим rule-текст
-  обновлён — ссылка на Lean-теоремы + freeze 8844 при α=2;
-  при α≠2 сохранён honest-текст. Числа НЕ ИЗМЕНИЛИСЬ — diff
-  cost_mixed.log C626 vs C628 без строки "rule" пуст
-  (тождественен), asserts fail-closed PASS.
-- Axioms всех новых: [propext, Quot.sound, Classical.choice]
-  (≤ 3, allaxioms PASS на 12207 Hagi.*-теоремах). Freeze
-  8841 → 8844 (+mixedCost_relax_min, _min_eq, mixedCost_lower;
-  только добавления, nothing lost/changed); 17 гейтов PASS
-  (.tmp/C628/logs/).
-
-## C632 certified growth capacity gate: открыта новая эра — ёмкость-гейт (rank/adapter-add когда рост оправдан)
-
-- Beat: C632 = roadmap C631 top-1 (rank/adapter-ёмкость).
-  Base HEAD 0286bfcd (C631), tree clean. Freeze 8844 → 8849.
-- `Hagi/Theory/GrowthGate.lean` (+4 теоремы + 1 def, namespace
-  Hagi.Theory.GrowthGate; import Hagi.Theory.NegativeTransfer):
-  - `growthGate (potentialBound cAdd : ℚ) : Bool` — grow ⟺
-    bound > c_add (равенство → stay: budget-приоритет меньшей
-    ёмкости, паттерн C535 rankSelect; детерминизм ℚ-порядка);
-  - `growth_gate_stay_char`: gate = false ↔ pb ≤ c — гейт
-    совпадает с порогом, no hidden state;
-  - `nl_drop_step_eq`: nlDrop (1/L) L x = x²/(2L) — поточечная
-    форма nl_drop_optimal (C606);
-  - `nl_drop_total`: в квадратичной потенциальной модели
-    (hmodel: drop одного γ*=1/L-шага ТОЧНО ‖grad‖²/(2L);
-    guaranteed per-step drop C606 — значение на границе G) n шагов
-    уменьшают objective ≤ n·G²/(2L) — certified-потолок выигрыша
-    (телескоп-индукция, паттерн nl_obj_ge_budget C592);
-  - `growth_gate_sound` (MAIN, certified-stay): n·G²/(2L) ≤ c_add
-    ⟹ ЛЮБОЕ n-шаговое дообучение уменьшает objective ≤ c_add —
-    рост ёмкости НЕ может окупиться за n шагов, stay certified.
-- Отличия от прецедентов: C535 — селектор ранга 1 vs 2 по
-  измеренным probe-score (режим); C632 — решение «расти/нет» по
-  ФОРМУЛЬНОЙ границе теории vs cost, ДО probe. C601/C577 —
-  сравнение двух probe-прогонов; C632 — ноль измерений.
-- Honest: потенциал-модель квадратичная (равенство descent-леммы,
-  прецедент C572); для общего L-smooth потолок шире — форма
-  nlBudget C592 (3G²/(2L) при γ=1/L), там гейт пересчитывается.
-  Grow-ветка = РАЗРЕШЕНИЕ, не обещание (bound — верхняя граница
-  возможного, не факт; grad=0 → выигрыш 0). Sound-гарантия только
-  у stay-ветки (паттерн C592 sufficient ≠ iff).
-- Witness .tmp/C632/trajGate.lean: G=2, L=2, n=5 → bound 5;
-  c_add=10 → gate=false (stay certified); c_add=4 → gate=true;
-  per-step nlDrop (1/2) 2 2 = 1 (C606-сверка).
-- Freeze 8849 (+growthGate, growth_gate_stay_char,
-  nl_drop_step_eq, nl_drop_total, growth_gate_sound; только
-  добавления); 17 гейтов PASS (.tmp/C632/logs/).
-
-## C633 bench growth gate certified: ёмкость-решения grow-режимов по гейту C632
-
-- Beat: C633 = применение growthGate (C632) к bench grow-режимам.
-  Base HEAD 5cfdb759 (C632), tree clean. Freeze 8849 — Lean НЕ
-  тронут (только scripts/bench_bridge.py + STATUS.md).
-- `scripts/bench_bridge.py`: python-double `growth_gate(pb, c_add)`
-  (docstring → growth_gate_sound C632, honest-pins: квадратичный
-  класс nl_drop_step_eq/nl_drop_total, НЕ широкий 3G²/(2L)
-  nlBudget C592; grow = разрешение, не обещание; sound только у
-  stay-ветки) + `growth_gate_measure` (G² = точная сумма
-  квадратов fd-градиентов; L = однокоординатная выборка кривизны
-  в argmax|g| — honest pin: measured proxy, не certified bound;
-  L = 0 → GROW fail-closed, SKIP только по certified-базису).
-- Cost-модель c_add = n_new_params × λ, λ = GROW_CADD_LAM = 1/10⁴
-  (PIN, не тюнинг: одна минимальная ячейка snap-сетки MH2_GRID —
-  drop-эквивалент). Равенство → stay (паттерн C535).
-- Режим 1, grow-snap: гейт перед КАЖДЫМ добавлением identity-
-  блока в while depth < GS_MAX_DEPTH; pb = GS_STEPS_PER_BLOCK·
-  G²/(2L), c_add = 21·λ (mh4_flat). Stay → honest SKIP
-  (grow_steps_skipped_certified, break) + телеметрия
-  tel["growthgate"] (at_depth, n, gsq, L, pb, c_add, decision,
-  formula).
-- Режим 2, adapter-grow: гейт перед КАЖДЫМ допуском rank-r
-  LoRA-адаптера; pb = AG_STEPS·G²/(2L), c_add = 2·r·MH2_D·λ.
-  Stay → счётчик + continue (ранг не добавлен). Downstream
-  синхронизирован: stats["ranks"]/adapt_params = только
-  допущенные.
-- Прогоны (C608 snapshot corpus, exit 0 оба): grow-snap — 6 гейт-
-  событий, все GROW (pb ≫ c_add), глубина 8 как в golden;
-  adapter-grow — 2 события (r=1, r=2), все GROW, ranks [1, 2],
-  12 шагов как в golden. Skipped-certified = 0 — честно: на этом
-  корпусе рост всегда окупается по certified-потолку; SKIP-ветка
-  исполняема (break/continue + телеметрия decision), живого
-  пропуска нет (golden-тождественность поведения без гейт-отказа).
-- Honest: SKIP certified только при L > 0 measured; L — прокси;
-  для не-квадратичного objective certified-потолок шире (nlBudget
-  C592) — там гейт пересчитывается.
-- Freeze 8849 (без изменений — Lean не тронут); 17 гейтов PASS
-  (.tmp/C633/logs/, 22 файла).
-
-## C635 growth gate negative control + lambda sweep
-
-- Beat: C635 = негативный контроль growthGate (C632/C633) +
-  λ-калибровка. Base HEAD 99b5efff (C634), tree clean. Freeze 8849
-  — Lean НЕ тронут (только scripts/bench_bridge.py + STATUS.md).
-- `--gate-test PATH` (scripts/bench_bridge.py): 6 синтетик
-  (G, L, n, c_add), ожидание STAY по формуле n·G²/(2L) ≤ c_add:
-  S1-smallG (pb 1/10000 ≤ 1/10), S2-largeL (1/1000 ≤ 1/10),
-  S3-highcadd (2 ≤ 100), S4-equality (1/10 = 1/10, равенство →
-  stay, паттерн C535) — 4 STAY ≥ 2 требуемых; G1 (9 > 1/100) и
-  G2-pin-scale (2 > 21/10⁴) — GROW. gate_test_run физически
-  проходит SKIP-ветку decision-loop (skipped_certified += 1;
-  break — та же ветка, что в grow_snap), assert решения против
-  формулы. Lean-witness (gatetest.lean): per-сценарий
-  growthGate pb c_add = bool (unfold + norm_num — kernel decide
-  не редуцирует Rat-сравнения) и для STAY certified-посылку
-  pb ≤ c_add (norm_num) — Lean-форма premise growth_gate_sound;
-  lake env lean: PASS.
-- `--lambda-sweep` (--mode grow-snap): c_add = params·λ, полный
-  rerun grow-snap на λ ∈ {1/10⁴, 1/10³, 1/10², 1/10, 1}
-  (.tmp/C635/sweep.json): λ=1/10⁴ (PIN) → 6 GROW / 0 STAY
-  (глубина 8, golden-тождественность canonical_final C633);
-  λ ≥ 1/10³ → 0 GROW / 1 STAY (первый же гейт — certified SKIP,
-  глубина 2). first_stay_lam = 1/10³ — честно отмечен.
-  certified_stay_threshold_lam* = min(pb/new_params) по гейт-
-  событиям финального прогона (~10⁴¹): PIN-λ на ~45 порядков
-  ниже порога — при PIN-стоимости certified-совет всегда «расти
-  дозволено», stay-ветка реальна только при λ ≥ λ* (монотонность
-  решения по λ: GROW ⟺ λ < pb/params).
-- Захваченный вывод default grow-snap идентичен golden C633
-  (canonical_final равен) — параметризация cadd_lam не изменила
-  поведение при PIN-λ.
-- Freeze 8849 (без изменений — Lean не тронут); 17 гейтов PASS
-  (.tmp/C635/logs/).
+- Per-beat analysis: `.omc/analysis/period-*-analysis.md`; line-level
+  history: `git log --oneline -- STATUS.md` (полный дожатый журнал —
+  b3939aa5).
