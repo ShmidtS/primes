@@ -410,3 +410,42 @@ Honest limitations (для formalization.yaml):
 - Palomar не подтверждает новизну: EB-граница имеет
   классические аналоги (Maurer–Pontil); наша версия —
   two-sided inverted с runtime-σ̂².
+---
+
+## Niche-recheck C630 (23.11.2026)
+
+Повторение внешней проверки C616 против расширенного набора тем
+(теперь включая floor / иерархию / w-trade-off / near-const /
+mixed-w* / AM-GM — темы, которых в запросе C616 не было).
+
+Метод: прямой fetch `data.palomar-registry.org/api/v1/results`.
+API с C616 сменился на пагинацию (schema_version 1, revision
+1129): полный обход 52 страниц по opaque-курсорам `next` →
+1298 results / 987 projects (C616: 1293/983; +5 новых, ни одна
+не в наших темах). Запросы `q=` по 19 темам (старые C616:
+hier_covers, covStartsStep, nlDrop, adaptive span, optimal step
+size, window coverage hierarchy; новые C630: window covering
+floor, hierarchical attention coverage, context window cost
+tradeoff, AM-GM window sizing, information-theoretic reading
+bound, sliding window cost invariance, gamma star, negative
+transfer, snap quantization, reading cost hierarchy, mixed cost)
+плюс независимый локальный substring-скан полного дампа по 28
+фразам карточек (title+abstract+preview+path).
+
+Результат: 0 тематических пересечений — ниша подтверждена.
+Размытые single-word срабатывания проверены чтением и
+нерелевантны: "gamma star" → Mahler minimizers (слово "star");
+"negative transfer" → Bugeaud 10.61 (u.d. mod 1);
+"mixed cost" → optimal control / packing relaxation;
+"am-gm" → некоммутативный AM-GM для PSD-матриц;
+"quantization" → Poisson scales / stochastic quantization SPDE;
+"floor" (62 вхождения) — floor-функция в чужих текстах, ни
+одного про окно чтения/бюджет.
+
+Отличие от C616: расширенный охват тем (все 13 карточек, включая
+Cards 9–13 чтение-эры), два независимых метода проверки (API q=
+и локальный скан полного дампа сошлись), учёт смены формата API
+(пагинация вместо единого дампа). Все 13 карточек внешне
+уникальны; отправка остаётся user-шагом. Артефакты:
+`.tmp/C630/api/` (results.json, all_entries.json — 1298 записей,
+query_summary.json, llms.txt), `.tmp/C630/research.md`.

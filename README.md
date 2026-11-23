@@ -195,7 +195,9 @@ allowlist LAYER_EXCEPTIONS.
   [submit.palomar-registry.org](https://submit.palomar-registry.org/)
   требует публичного GitHub-репозитория с выделенным
   Challenge/Solution comparator-проектом (см. секцию Submission
-  requirements в файле карточек).
+  requirements в файле карточек). Все 13 карточек внешне
+  уникальны: recheck C630 против полного дампа реестра
+  (1298 results, расширенный набор тем) — 0 пересечений.
 
 ## Сборка
 
