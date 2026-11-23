@@ -2372,3 +2372,41 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   8841 → 8844 (+mixedCost_relax_min, _min_eq, mixedCost_lower;
   только добавления, nothing lost/changed); 17 гейтов PASS
   (.tmp/C628/logs/).
+
+## C632 certified growth capacity gate: открыта новая эра — ёмкость-гейт (rank/adapter-add когда рост оправдан)
+
+- Beat: C632 = roadmap C631 top-1 (rank/adapter-ёмкость).
+  Base HEAD 0286bfcd (C631), tree clean. Freeze 8844 → 8849.
+- `Hagi/Theory/GrowthGate.lean` (+4 теоремы + 1 def, namespace
+  Hagi.Theory.GrowthGate; import Hagi.Theory.NegativeTransfer):
+  - `growthGate (potentialBound cAdd : ℚ) : Bool` — grow ⟺
+    bound > c_add (равенство → stay: budget-приоритет меньшей
+    ёмкости, паттерн C535 rankSelect; детерминизм ℚ-порядка);
+  - `growth_gate_stay_char`: gate = false ↔ pb ≤ c — гейт
+    совпадает с порогом, no hidden state;
+  - `nl_drop_step_eq`: nlDrop (1/L) L x = x²/(2L) — поточечная
+    форма nl_drop_optimal (C606);
+  - `nl_drop_total`: в квадратичной потенциальной модели
+    (hmodel: drop одного γ*=1/L-шага ТОЧНО ‖grad‖²/(2L);
+    guaranteed per-step drop C606 — значение на границе G) n шагов
+    уменьшают objective ≤ n·G²/(2L) — certified-потолок выигрыша
+    (телескоп-индукция, паттерн nl_obj_ge_budget C592);
+  - `growth_gate_sound` (MAIN, certified-stay): n·G²/(2L) ≤ c_add
+    ⟹ ЛЮБОЕ n-шаговое дообучение уменьшает objective ≤ c_add —
+    рост ёмкости НЕ может окупиться за n шагов, stay certified.
+- Отличия от прецедентов: C535 — селектор ранга 1 vs 2 по
+  измеренным probe-score (режим); C632 — решение «расти/нет» по
+  ФОРМУЛЬНОЙ границе теории vs cost, ДО probe. C601/C577 —
+  сравнение двух probe-прогонов; C632 — ноль измерений.
+- Honest: потенциал-модель квадратичная (равенство descent-леммы,
+  прецедент C572); для общего L-smooth потолок шире — форма
+  nlBudget C592 (3G²/(2L) при γ=1/L), там гейт пересчитывается.
+  Grow-ветка = РАЗРЕШЕНИЕ, не обещание (bound — верхняя граница
+  возможного, не факт; grad=0 → выигрыш 0). Sound-гарантия только
+  у stay-ветки (паттерн C592 sufficient ≠ iff).
+- Witness .tmp/C632/trajGate.lean: G=2, L=2, n=5 → bound 5;
+  c_add=10 → gate=false (stay certified); c_add=4 → gate=true;
+  per-step nlDrop (1/2) 2 2 = 1 (C606-сверка).
+- Freeze 8849 (+growthGate, growth_gate_stay_char,
+  nl_drop_step_eq, nl_drop_total, growth_gate_sound; только
+  добавления); 17 гейтов PASS (.tmp/C632/logs/).
