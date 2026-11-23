@@ -6,7 +6,7 @@ import Hagi.Theory.Softmax
 /-!
 # Certified trainer benchmark
 
-Roadmap (`--mode vs-trainer` of `scripts/bench_bridge.py`):
+Bench (`--mode vs-trainer` of `scripts/bench_bridge.py`):
 mini-HAGI (the certified rational sandwich trainer
 family, trained on the LIVE HAGI_v2 `unified_ledger` corpus)
 is compared against the real trainer — its holdout models'

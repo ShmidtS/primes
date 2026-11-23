@@ -240,7 +240,7 @@ bounded peak
   w = m = 64, B = 4032, s = 64): n = 100000 → 25 блоков
   (per-block 24×63 + 51 окон), total 1563, peak 63 ≤ 64;
   Lean-свидетель n = 8128 → блоки [63, 63, 1], peak 63
-  (machine-checked #eval, C611/C613).
+  (machine-checked #eval).
 - **Status.** Machine-checked (Lean 4.36); аксиомы:
   стандартные три Lean. Ценность — сертифицированное снятие
   одноуровневой границы покрытия (n ≤ 4032 при w = m = 64)

@@ -5,7 +5,7 @@ import Hagi.Theory.AdapterBank
 /-!
 ## AutoTransferGate — самонастраивающийся warm/cold transfer-гейт
 
-Roadmap top-3: практическое применение границы —
+Практическое применение границы —
 переносить адаптер A в домен B warm-стартом ТОГДА И ТОЛЬКО ТОГДА,
 когда измеряемый probe-критерий предсказывает пользу. Bench-механика
 (`--mode adapter-transfer-auto`, bench_bridge.py): перед задачей B

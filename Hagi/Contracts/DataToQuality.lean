@@ -12,8 +12,8 @@ set_option linter.style.header false
 
 The DATA-side complement of the compute-to-quality arc (
 `Hagi.Contracts.ComputeToQuality`): how many SAMPLES certify that the
-selected energy model is near-optimal in population PL-risk.  The
-frontier item #1 of `.omc/analysis/period-c330-c332-analysis.md`.
+selected energy model is near-optimal in population PL-risk — the data-side
+frontier item of the compute-to-quality arc.
 
 All carriers are landed and CITED, not re-proved:
 

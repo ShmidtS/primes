@@ -10,7 +10,7 @@ import Mathlib.Tactic
 /-!
 # The variance-adaptive cross-entropy majorizer (tight Bennett canon)
 
-Roadmap top-2 / A19-P1 (weak) (tight): the range
+The range
 majorizer `Hagi.Energy.lse_shift_upper` bounds the lse shift by
 `r ^ 2 / 8`, which uses only the RANGE of the logit displacement and
 ignores the variance under the target distribution.  Near the end of
@@ -729,11 +729,10 @@ theorem adaptive_descent {L : ℝ} (next : ℝ → ℝ) (A C : ℝ)
 weakened Bennett multiplier `Real.exp R` at the one-unit logit
 range `R = ceStepRange`, times the variance of the directional
 logit displacement under the current soft target
-`smax (ceLogits X θ)`.
-Pin: the tight Bennett constant
-`κ R = (Real.exp R - 1 - R) / R ^ 2` (with `Real.exp R ≥ κ R`) is
-future work; the series route to it is quarantined after the
-`hasSum_nat_add_iff` whnf hang. -/
+`smax (ceLogits X θ)`. Weakened form (`Real.exp R` for the
+multiplier); the tight Bennett canon is `ceAdaptiveCurvTight` with
+`κ R = (Real.exp R - 1 - R) / R ^ 2`, which dominates this one by
+`kappa_le_expR`. -/
 
 noncomputable def ceAdaptiveCurv (X : Matrix V (Fin d) ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (t : V) : ℝ :=

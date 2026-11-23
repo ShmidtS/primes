@@ -10,7 +10,7 @@ import Mathlib.Tactic
 /-!
 # Mini-HAGI full self-improving loop (bench bridge)
 
-Roadmap top-1: the FULL certified-era bench
+The FULL certified-era bench
 (`scripts/bench_bridge.py`, `--mode mini-hagi-loop`) — all
 components in ONE trace: P1 exact bypass (a symbolic law covers
 part of the corpus with EXACTLY zero CE-contribution), P2/P3

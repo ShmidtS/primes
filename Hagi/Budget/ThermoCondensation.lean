@@ -4,9 +4,9 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Ensemble.Hoeffding
 import Mathlib.Tactic
 /-!
-# Wave3: the third GitHub-scout wave — the best finds, transported
+# Wave3: GitHub-scout finds, transported
 
-Four upgrades from the wave-3 scouts (round 39):
+Four upgrades from the scouts (round 39):
 
 **1. `jl_inner_approx` (from amirzandieh/QJL — 1-bit JL transform
 with a formal attention error bound)**: if the KV projection
@@ -177,9 +177,9 @@ end Hagi.External
 
 
 /-!
-# Wave4: the fourth GitHub-scout wave — the best finds, transported
+# Wave4: GitHub-scout finds, transported
 
-Four upgrades from the wave-4 scouts (round 40):
+Four upgrades from the scouts (round 40):
 
 **1. `mup_scale_invariance`** (from microsoft/mup +
 vankadara-lab/mssp-moe — the μP width/depth/expert-count

@@ -1,78 +1,34 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.8 (C629). Все утверждения — либо Lean-якорь (FQN, файл,
-строка; все якоря сверены rg на 2d619fc8 (+T5)), либо измеренный
-результат прогона с указанием витка (Cn), либо PIN в §Limitations.
-Никаких недоказанных клеймов. С v0.7 (C617) добавлено:
-чтение-эра — полная линия одной секцией: floor чтения →
-иерархия достигает floor → три режима стоимости окна →
-near-const → mixed-w* AM-GM (§3.18, C618–C628); центральный
-statement v3.3 — hagi_master_v33, 11 клозов одной clause-map (§3.17,
-C600–C622);
-таблица параметров пополняется window-width rule (§4.6,
-C623/C626/C628); PALOMAR Cards 12–13 (§4.7, C621/C625).
-Теоремный счётчик abstract остаётся от e40aa426 (C559): новый
-индекс в C617/C629 не генерировался.
+Draft v0.8. Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены rg на 2d619fc8 (+T5)), либо измеренный результат прогона с
+указанием витка (Cn), либо PIN в §Limitations. Никаких недоказанных
+клеймов. Теоремный счётчик abstract остаётся от e40aa426: новый индекс
+не генерировался.
 
 ## Abstract
 
 We present **certify-then-commit (CTC)**, a discipline in which a
 learning system takes a step only after a machine-checked
 certificate: the loop **PROPOSE → CERTIFY → ADMIT →
-COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by a
-Lean 4 theorem proved against Mathlib; the corpus currently
-counts **543 modules / 12 875 theorems / 0 `sorry`** (generated
-theorem index at HEAD e40aa426, regen C558). The cycle-level soundness theorem
-`certify_then_commit_sound` guarantees, per T-round run: objective
-telescoping over the committed ledger, a probability-δtotal bound
-on false commits, an ε-bound on holdout-risk growth, and exact
-budget balance. The loop is exercised live: the HAGI_v2 runtime
-emits per-step telemetry that is assert-checked at runtime against
-the theorem bounds (Python, exit 0), and a mini-HAGI continual
-benchmark on measured tasks (3 tasks, 2 grow phases) runs 15
-certified steps with zero forgetting in the full-GPM arm and a
-measured rank-truncation escape (4 committed steps) in the
-relaxed arm, while a held-out prediction benchmark reaches 6/6
-certified forecasts. Since v0.1 the loop has been pushed along
-two new axes: repeated certified trunk growth now reaches depth
-8 (from 5) after a snap-to-dyadic policy defeated the measured
-×3.2-per-grow denominator explosion (C506 → C521), and the
-commit/hold decision gained a formally verified rollback gate
-restoring the full pre-step state (C530). Since v0.2 the loop has
-been extended along two further axes: certified LoRA-style
-adapter growth with snap-folding reaches trunk depth 10 at 64
-parameters with 13-digit denominators (C532–C536, incl. an exact
-rank-2 merge to 16 parameters, −75%, at certified bound 6.6e-8);
-and five external HAGI_v2 observations were absorbed as theorems
-(C537–C545), including the exact weight-decay leak factor (1−ηλ)
-and an Empirical-Bernstein sample saving of 27.49×. The era
-closes with a full self-improving loop in a single trace (C547):
-26 certified steps, 10 adapter
-parameters, zero-forgetting exact, and exact-bypass coverage
-99.1%. Since v0.3 the loop has become iterative and universal:
-repeated certified self-improvement grows coverage monotonically
-over a space built from its own accepted primitives (7
-iterations, 54.9% → 93.8%, compositional necessity proven by
-in-run negatives), and the same loop on the full live corpus
-(113 domains, real targets) reaches 93.8% coverage by constant
-clusters with per-domain zero forgetting (bit-exact, 113/113) —
-while honestly measuring that no linear law exists on live
-data and that synthetic-layered laws do not transfer (0/113).
-We state honest pins
-(`BandDescribes`), measured ε-compromises, hybrid degeneration,
-corpus drift, and mini-scale. Since v0.4 the adapter era has
-been UNIFIED into one machine: a self-compressing loop keeps
-parameters bounded at 2·k·d = 32 across unlimited certified
-growth (measured drop monotone 0.158→0.364, residual CE −84%),
-and constant clusters distill losslessly into rank-1 adapters
-(CE = 0 bit-exact, exact-gate branches 113→0, honest contrast:
-48 adapter parameters vs 6 symbolic values). The unification
-era closes with mini-HAGI v3 — a full certified assembly of
-the self-improving machine in ONE live trace (108/115 covered:
-bypass → distill → 7 certified fd-steps on the residual, CE
-3.80→0.51→0.0733, params ≤ 32, forget = 0; C558) — and with
-the first EXTERNAL consumer: the wave205 bridge synchronization
-between the HAGI_v2 runtime and this theory (C557).
+COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by one
+of **12 875 theorems in 543 Lean 4 modules against Mathlib, 0
+`sorry`** (count at HEAD e40aa426); the cycle-level soundness
+theorem `certify_then_commit_sound` guarantees, per T-round run:
+objective telescoping over the committed ledger, a probability-δtotal
+bound on false commits, an ε-bound on holdout-risk growth, and exact
+budget balance. Measured end to end, the loop self-improves without
+forgetting: mini-HAGI v3 covers 108/115 targets in ONE live trace
+(26 certified steps, params ≤ 32, CE 3.80→0.0733, forget = 0
+bit-exact; C558), the full live corpus reaches 93.8% coverage by
+constant clusters distilled into rank-1 adapters (CE = 0 bit-exact,
+113/113; C551/C556), and the reading theory is tight: the
+certified coverage floor ⌈nB/w⌉ is attained, and a 2-level hierarchy
+cuts the peak per-level window budget from 127 to 63 at n = 8128
+(C611), with a certified window-width rule and its mixed-cost AM-GM
+refinement (C623/C628).
+We state honest pins (`BandDescribes`), measured ε-compromises,
+hybrid degeneration, corpus drift, and mini-scale (§Limitations).
 
 ## 1. Related Work
 
@@ -84,8 +40,8 @@ between the HAGI_v2 runtime and this theory (C557).
   all-HOLD phenomenon (`gpm_hold_when_covered`).
 - **Anytime-valid inference.** Sequential tests with Ville-type
   master bounds; our discharge routes cite the stitched-Ville
-  master `adaptive_anytime_valid` (C399) and stop-mediated
-  `false_stop_bound` (C446) as premise-discharge channels.
+  master `adaptive_anytime_valid` and stop-mediated
+  `false_stop_bound` as premise-discharge channels.
 - **Certified descent / majorizers.** Quadratic majorization with
   safe step sizes; our tight Bennett multiplier κ (§3.1) sharpens
   the classical e^R multiplier by a measured factor
@@ -114,7 +70,7 @@ certificates, admission gates, commit/hold/rollback decisions and
 a budget ledger. The single end-to-end theorem:
 
 > **Theorem (certify_then_commit_sound).**
-> `Hagi/Theory/CertifyThenCommit.lean:332` (C463, G6).
+> `Hagi/Theory/CertifyThenCommit.lean:332` (G6).
 > For any T-round CTC cycle, under per-round false-commit measure
 > premises (μ{falseCommit i} ≤ δ i) with Σδ i ≤ δtotal and
 > per-round holdout allowances Σ e i ≤ ε:
@@ -166,13 +122,13 @@ dominate uniform ones (`fisher_beats_lipschitz`, :316;
 
 .
 > **Theorem (rank_trunc_forgetting_bound).**
-> `Hagi/Theory/Continual.lean:239` (C498).
+> `Hagi/Theory/Continual.lean:239`.
 > A rank-truncated GPM step changes the response on an old input
 > by at most `‖row‖ · sigmaTail` — the forgetting budget is tail
 > energy leakage, not zero.
 
 > **Theorem (gpm_tradeoff).**
-> `Hagi/Theory/Continual.lean:346` (C498).
+> `Hagi/Theory/Continual.lean:346`.
 > Old-input forgetting and new-input progress are both bounded by
 > the same `‖row‖·sigmaTail` product: shrinking the tail shrinks
 > both. The ε² compromise is exact, not asymptotic.
@@ -187,7 +143,7 @@ phenomenon (`gpm_hold_when_covered`, :370).
 
 .
 > **Theorem (cert_pred_adaptive).**
-> `Hagi/Theory/Softmax.lean:813` (C495/C502).
+> `Hagi/Theory/Softmax.lean:813`.
 > If every class's certified band around the softmax is at most
 > 2ε wide and the true softmax gap exceeds 2ε, the band midpoint
 > argmax is certified.
@@ -290,7 +246,7 @@ rank-trunc buys a per-point forgetting bound
 first-order non-interference; its negative forgetA is honestly
 reported (snapping gives no post-snap guarantee).
 
-The deterministic per-step selector (C510, `hybrid_step_sound`,
+The deterministic per-step selector (`hybrid_step_sound`,
 `Hagi/Theory/Continual.lean:456`) picks the branch with NO
 weakening of its guarantee; on its measured snapshot
 (corpus-pin n=53) conflicts were 0/24, so the hybrid honestly
@@ -312,7 +268,7 @@ measured weighted validation gain above the full error budget
 (e_gen + e_quant + e_route + m_safety).
 
 > **Theorem (rollback_gate_sound).**
-> `Hagi/Theory/RollbackGate.lean:98` (C530).
+> `Hagi/Theory/RollbackGate.lean:98`.
 > gate = false ⟹ the guarded step equals the incoming state
 > exactly (with per-component params/optimizer/RNG corollaries).
 
@@ -407,12 +363,12 @@ the data gave rank 2 < min(d,L) = 4, so the bound is not vacuum.
 <!-- source: receipt,C544,C545 receipts; plan: .omc/analysis/external-plan-c537-mapping.md (файл удалён в c442e69, история: git show c442e69^:.omc/analysis/external-plan-c537-mapping.md); delivery: docs/PROPOSAL-external-plan.md (C543) -->
 
 C537–C545.
-A mapping audit (C537) inverted the bridge: instead of porting
+A mapping audit inverted the bridge: instead of porting
 HAGI_v2 code, its top observed defects were formalized as
-theorems (C538–C541, C545) and delivered back with exact
-code-fix mappings (docs/PROPOSAL-external-plan.md, C543).
+theorems (C538–C541) and delivered back with exact
+code-fix mappings (docs/PROPOSAL-external-plan.md).
 
-**(1) Weight-decay leak (C538, P4).** `wd_proj_preserves`:
+**(1) Weight-decay leak (P4).** `wd_proj_preserves`:
 projected decay W′ = W − ηλ·(W − W·P) keeps W·P EXACTLY (the
 measured projected leak 5.68e-15 is a machine zero = exact
 zero); naive decay (1−ηλ)·W has the EXACT leak factor (1−ηλ) on
@@ -421,7 +377,7 @@ the protected component (`naive_decay_parallel`,
 measured naive leak 1.945); `wd_gpm_step_sound` (:159) composes
 a black-box complement step with projected decay.
 
-**(2) Empirical-Bernstein radius (C539, P1).**
+**(2) Empirical-Bernstein radius (P1).**
 `empirical_bernstein_bound` / `_mean_bound` (+
 `freedman_tail_two_sided`, `eb_radius_algebra`): with measured
 σ̂² and range b, |μ̂| < √(2σ̂²L/n) + 2bL/n at ≥ 1−α. Witness
@@ -429,21 +385,21 @@ contrast (ΔCE=0.04, R=11.09, α=0.01): n_Hoeffding = 176 995 vs
 n_EB(MP form) = 6439 — a **27.49×** sample saving (our form:
 4267, 41.5×). Honest: σ̂ is a runtime premise (no MP λ-trick).
 
-**(3) Observational-equivalence search completeness (C540, P6).**
+**(3) Observational-equivalence search completeness (P6).**
 `oe_search_complete` (:80): OE-dedup search never loses a
 solution that matches the target on the probes — completeness
 is RELATIVE TO THE PROBES, no semantic equivalence claimed.
 Witness: toy space 343 → 4 visits (~86×); the HAGI_v2 analogue
 compressed 6478 → 896 candidates (7.2×).
 
-**(4) Exact bypass, zero cross-entropy (C541, P8).** On a
+**(4) Exact bypass, zero cross-entropy (P8).** On a
 PROVEN_EXACT coverage, CE contribution is EXACTLY zero:
 `ce_pointwise_of_prob_one`, `ce_total_eq_residual` (:90) —
 total = residual, bit-for-bit (witness 4.264244 == 4.264244);
 `exact_gate_sound` (:97) and the negative `exact_gate_rejects_zero`
 (p = 0 ⇒ rejected, junk log never used).
 
-**(5) Polar-Express interval certificate (C545, P3).** A
+**(5) Polar-Express interval certificate (P3).** A
 scalar, SVD-free interval certificate for the minimax
 Newton–Schulz iteration: three rationalized p(x) = ax+bx³+cx⁵
 polynomials map the spectral box by EXACT rational bounds:
@@ -476,7 +432,7 @@ live run (`--mode mini-hagi-loop`, real unified_ledger, 113
 points): a single trace, a single JSON, one theorem.
 
 > **Theorem (full_loop_sound).**
-> `Hagi/Theory/MiniHagiLoop.lean:64` (C547).
+> `Hagi/Theory/MiniHagiLoop.lean:64`.
 > Composition of `exact_gate_sound` + `adapter_step_certified` +
 > `adapter_isolation_zero_forgetting` + `oe_search_complete` +
 > `empirical_bernstein_mean_bound` — no new deep facts, only
@@ -513,7 +469,7 @@ residual (certified snap-GD, 10 steps/iteration, drop > 0 /
 HOLD) → EB telemetry (n_EB < n_Hoeffding at every iteration).
 
 > **Theorem (iterative_loop_sound).**
-> `Hagi/Theory/MiniHagiLoop.lean:154` (C549). Induction over
+> `Hagi/Theory/MiniHagiLoop.lean:154`. Induction over
 > the chain of additive iterations: coverage at step k is a
 > subset of coverage at step n for all k ≤ n. The only new
 > mathematical fact is monotonicity:
@@ -564,7 +520,7 @@ linear p + a·x_j on real features (grid 1/16..256). If a law is
 not found, that IS the result.
 
 > **Theorem (universal_loop_corpus_mono).**
-> `Hagi/Theory/MiniHagiLoop.lean:190` (C551). Union-additivity
+> `Hagi/Theory/MiniHagiLoop.lean:190`. Union-additivity
 > of coverage over corpus concatenation lA ++ lB, composed with
 > `iterative_loop_sound` — the universal run inherits the same
 > certified monotone coverage as the iterative loop.
@@ -628,7 +584,7 @@ linearly to 2·L·d = 48; cumulative certified drop monotone
 grows; volume does not.
 
 > **Theorem (self_compress_loop_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:708` (C555). The loop
+> `Hagi/Theory/AdapterGrowth.lean:708`. The loop
 > telescopes the objective (delegate of grow_snap_cycle_sound,
 > generalized to a merge cycle) AND keeps params ≤
 > selfCompressParams k d = 2·k·d for ANY number of iterations
@@ -649,10 +605,10 @@ branches 113 → 0 — the whole corpus runs one adapter path with
 no branching.
 
 > **Theorem (constant_distill_exact / distill_coverage_preserved).**
-> `Hagi/Theory/AdapterGrowth.lean:787` / `:824` (C556). The
+> `Hagi/Theory/AdapterGrowth.lean:787` / `:824`. The
 > distilled readout is exactly c (construction), so coverage
-> and CE = 0 are PRESERVED — composition with exact_gate_sound
-> (C541), not a duplicate.
+> and CE = 0 are PRESERVED — composition with exact_gate_sound,
+> not a duplicate.
 
 **The honest parameter contrast** (a Lean fact, not a claim):
 the distillate costs 6×2d = 48 parameters while symbolic
@@ -686,7 +642,7 @@ forget = 0 (bit-exact frozen-copy drift detector).
 | total | v3_assembly_sound | **55 certified steps, 0 holds, forget = 0, params ≤ 32, 1.87 s** |
 
 > **Theorem (v3_assembly_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:889` (C558). The unified
+> `Hagi/Theory/AdapterGrowth.lean:889`. The unified
 > adapter machine is the CONJUNCTION of the distill branch
 > (`distill_coverage_preserved` ⇒ CE = 0 on every cluster) and
 > the self-compress branch (`self_compress_loop_sound` ⇒
@@ -695,7 +651,7 @@ forget = 0 (bit-exact frozen-copy drift detector).
 > this is the reference theorem that the full self-improving
 > machine assembles soundly.
 
-Witness (C558, rc = 0): #eval trajectory
+Witness (rc = 0): #eval trajectory
 checks on run numbers (P3 + P4-it1), params-bounded instance
 32 ≤ 32, telescope instance on run numbers, count contrast
 32 < 48, negatives (wrong-const 1/256 ≠ 0; head-only CE ≠ 0 on
@@ -776,7 +732,7 @@ bytes (injection i ↦ (window, offset)). Two consequences,
 measured: the total is CONSTANT in B at s = w — n = 100000,
 w = m = 64 gives 1563 = ⌈100000/64⌉ for every B ∈ {64, 2048,
 4032, 4096}, so the hypothesized interior optimum B* = √(nw) is
-REFUTED by the telescoping sum (C618); and shrinking the stride
+REFUTED by the telescoping sum; and shrinking the stride
 below the width only pays: s = 32, B = 1088 reads 3033 > 1563,
 strictly worse than the floor. At n = 8128 the floor-attaining
 total is 127 = ⌈8128/64⌉.
@@ -873,7 +829,7 @@ bench consumes all of it fail-closed (v).
 
 ## 4. Benchmarks (measured only)
 
-### 4.1 mini-HAGI (C500)
+### 4.1 mini-HAGI
 
 3 tasks, 2-block trunk, 2 grow phases, holdout, canonical
 objective. Full pipeline (A-trunk2 → C-gpm1 → E-gpm2relax →
@@ -883,7 +839,7 @@ HOLDs vs relaxed arm 4 committed (k = 1, eps = 1/10);
 zero forgetting in the full-GPM arm; relaxed-arm forgetting ≤
 bound at every step (asserts green, exit 0).
 
-### 4.2 vs-trainer certified forecasts (C495/C502)
+### 4.2 vs-trainer certified forecasts
 
 31 measured points (25 train / 6 holdout); 8 committed training
 steps; **6/6 holdout predictions certified** (disjoint bands);
@@ -902,9 +858,9 @@ self-improvement demonstrably yields even when "laws are
 scarce" are three certified SYSTEM properties:
 
 1. **Isolated memory.** forgetA = 0 structurally — per-task
-   adapters need no projections or budgets (C544); measured as
+   adapters need no projections or budgets; measured as
    bit-exact parameter-snapshot asserts after every training
-   phase of all 113 domains (C551), 113/113.
+   phase of all 113 domains, 113/113.
 2. **Monotone coverage.** Accepted primitives only ADD coverage
    (`coverage_append_monotone`, asserted bit-exact per
    iteration in both C549 and C551) — the loop cannot forget
@@ -919,14 +875,14 @@ These properties hold on live data regardless of how many laws
 the corpus actually contains; the loop measures that number
 instead of assuming it.
 
-### 4.4 Impact note: the first external consumer (wave205, C557)
+### 4.4 Impact note: the first external consumer (wave205)
 
 <!-- source: receipt C557 -->
 
 The theory also acquired its first EXTERNAL consumer. The
 HAGI_v2 runtime recheck during the C557 phase analysis observed
 waves 205–207c, and wave205 synchronized the runtime's theory
-state with this repository at commit ab28579e (C555): the
+state with this repository at commit ab28579e: the
 bridge that exports the certified constants to the runtime
 went from an unused artifact to a live dependency — the first
 real use of this theory by an external system. This is an
@@ -935,7 +891,7 @@ evaluation of downstream benefit (pinned below, §5.17).
 
 ### 4.5 From proxies to formulas: the certified-parameters era (C560–C603)
 
-<!-- source: receipt C597 (auto-k*, 2788 бит/33 snap); receipt C601 + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); receipt C602 + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); receipt C594 (wave232 round-trip 33 мин); receipt C595 + docs/PREMISES-STATUS.md (premise audit); receipt C596 (bench sweep); .omc/analysis/period-c599-602-analysis.md (паттерн негатив-цикла) -->
+<!-- source: receipt C597 (auto-k*, 2788 бит/33 snap); receipt C601 + gate_check.log (certified gate, nlBudget 24/25, G≈0.03, 99.66 vs 5.43); receipt C602 + trajSpan.lean (adaptive span, n≤4032, s=17>w=9, 1152/s17→65 окон); receipt C594 (wave232 round-trip 33 мин); receipt C595 + docs/PREMISES-STATUS.md (premise audit); receipt C596 (bench sweep); .omc/analysis/era-index.md#c599-c602 (эра консолидации) -->
 
 The frontier era replaced hand-set proxies of the runtime era by
 FORMULAS imported verbatim from Lean theorems, each landing as a
@@ -955,7 +911,7 @@ the adaptive budget form keeps windows ≤ m (`covStartsStep_len_le`,
 
 **The negative-cycle pattern (C598 → C602).** A measured defect
 (truncation loses byte 0: `covStarts_trunc_uncovered_zero`,
-CoverageReading.lean:130, C598) → negative theorem → exact iff →
+CoverageReading.lean:130) → negative theorem → exact iff →
 fail-closed code with an honest INFEASIBLE branch. This
 theory-to-code round trip reproduces the wave232 result — where the
 HAGI_v2 runtime integrated the C592 sufficient-transfer gate with a
@@ -1010,7 +966,7 @@ not heuristic: with `s = w`, `B = w·(m−1)` the per-block budget
 bounded the single level at `n ≤ w(m−1) = 4032` (w=m=64) now
 covers ANY n — the witness n=8128 lands [63, 63, 1] with peak 63
 in BOTH Lean (`C611`) and the bench twin
-(`HierEval.lean` #eval, C613) — a literal python==Lean match.
+(`HierEval.lean` #eval) — a literal python==Lean match.
 
 **Corpus policy as measurement infrastructure (C607/C608/C610).**
 Formula-driven benches are only as good as the corpus they read,
@@ -1019,19 +975,19 @@ landed, in one resolution point of `bench_bridge.py`: (i) null-ce
 tolerance — wave `PARTIAL_LAW` records with `ce: null` (5 keys:
 law_alphabet, law_double, law_fib_sum, law_plus3, law_xor_ff)
 are skip-warned and filtered instead of aborting, reviving 18
-modes to exit 0 while keeping content aborts fail-closed (C607);
+modes to exit 0 while keeping content aborts fail-closed;
 (ii) snapshot pinning — the default corpus is a pinned 35-key
 snapshot (34 ns_* + law_alphabet) selected by grow-snap PASSING
 its certified bound; live 45-key and 41-key corpora ABORT on
-that same bound — a data property, not timing (C608); (iii)
+that same bound — a data property, not timing; (iii)
 three-level fallback — default snapshot → structural lack (≥2
 const-cluster domains) → stderr WARNING + LIVE-FALLBACK, with
 `--snapshot-corpus` fail-closed (exit 3) and `--live-corpus`
-opt-in (C610). The result: bench tables are deterministic and
+opt-in. The result: bench tables are deterministic and
 drift-immune by default, and every deviation is an explicit,
 telemetered decision.
 
-### 4.7 The PALOMAR niche: an honest external check (C615/C616)
+### 4.7 The PALOMAR niche: an honest external check
 
 <!-- source: receipt C616 + C616
      / palomar_q1.json / palomar_q2.json (API totals {"results":
@@ -1050,7 +1006,7 @@ projects, revision 1122) returned ZERO entries for every query.
 The honest finding, stated as measured: **the niche is empty —
 none of the Cards 9–11 statements is absorbed by the registry**,
 and uploading them is a user-side step, not claimed here. This
-is a one-point-in-time check (C616); the registry grows and the
+is a one-point-in-time check; the registry grows and the
 claim is not that the niche stays empty, only that it was empty
 at the checked revision.
 
@@ -1071,14 +1027,14 @@ square `φ(1/L) − φ(γ) = (G²/(2L))(1 − Lγ)²`; `nl_drop_optimal`
 s` — no upper bound on n; `hier_peak_window_budget` (:315):
 peak windows per block ≤ m (peak ≠ total, stated honestly).
 Bench numbers: n=100000 → 25 blocks, 24×63+51, total 1563, peak
-63; Lean witness n=8128 → [63, 63, 1], peak 63 (C611/C613).
+63; Lean witness n=8128 → [63, 63, 1], peak 63.
 - **Card 11 — adaptive-span iff and its exact budget.**
 `covStartsStep_covers` (CoverageReading.lean:184): coverage of
 `[0, n)` IFF `s ≤ w` — necessity by witness s=17 > w=9 leaving
 byte 9 in a hole; `covStartsStep_len_le` (:220): window count
 `(n−w)/s + 2 ≤ m`; boundary `s = w`: `n ≤ w(m−1) = 4032` (w=m=64),
 beyond which the single level is honestly INFEASIBLE — removed
-by the hierarchy of Card 10 (C602/C611).
+by the hierarchy of Card 10.
 
 Two more cards joined the registry draft in the reading era
 (docs/PALOMAR-CARDS.md, C621/C625; anchors rg-verified,
@@ -1133,7 +1089,7 @@ not a Lean clause.
 3. **Scale.** mini-HAGI: 3 tasks, small d; vs-trainer: 31 points.
    No large-scale claims.
 4. **Premise-form channels.** falseCommit bounds are premise-form
-   with cited discharge routes (C399/C446); in general they
+   with cited discharge routes; in general they
    assume honest reporting of the measurement layer.
 5. **Telemetry is runtime-asserted, not Lean-IO.** "Machine
    checked" in this paper refers to Lean proofs; the live-loop
@@ -1157,7 +1113,7 @@ not a Lean clause.
 
 9. **EB contrast is data-dependent.** The live full-loop corpus
    shows an EB-vs-Hoeffding sample contrast of only 1.12×
-   (n_EB 9649 ≤ n_Hoeffding 10851, C547) against the 27.49× of
+   (n_EB 9649 ≤ n_Hoeffding 10851) against the 27.49× of
    the C539 calibration point (eps = R/128 on a small residual
    range) — a property of the data, not of the bound form.
 10. **Polar-Express upper end.** The certified final spectral
@@ -1197,7 +1153,7 @@ not a Lean clause.
    C558 trace every iteration committed (drop > 0), so the EB
    branch (commit = 0 ⇒ STOP) never triggered; the actual stop
    was the budget MAX_ITER = 6. The certified stop is exercised
-   live only on weaker data (C549/C551, pin 14) — in the v3
+   live only on weaker data (pin 14) — in the v3
    assembly it is budget-limited, honestly.
 17. **External consumer is a synchronization event, not a
    result.** The wave205 consumer of §4.4 proves the bridge is

@@ -939,7 +939,7 @@ set_option linter.style.header false
 /-!
 # Finite-class generalization for learned energy models
 
-P4 frontier item (ranked #3 in `.omc/analysis/period-c298-c312-analysis.md`):
+P4 frontier item:
 what generalization claim is TRUE and cheaply provable for a learned-energy
 solver.  The honest two-tier structure:
 

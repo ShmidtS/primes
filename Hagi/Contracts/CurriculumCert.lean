@@ -9,8 +9,7 @@ set_option linter.style.header false
 /-!
 # Curriculum certificates: phase accounting and dependency chains
 
-The training-curriculum beat (frontier item #2 of
-`.omc/analysis/period-c330-c335-analysis.md`): does data ORDERING
+The training-curriculum beat: does data ORDERING
 provably matter?  The honest answer has two halves, both landed as
 theorems:
 

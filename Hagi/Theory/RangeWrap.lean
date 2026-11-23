@@ -8,7 +8,7 @@ set_option relaxedAutoImplicit false
 /-!
 # RangeWrap — piecewise range-affine мост (волна 222)
 
-Roadmap C580-анализа top-1: мост к HAGI_v2 piecewise range-affine
+Мост к HAGI_v2 piecewise range-affine
 шаблону (`hagi/core.py`, функция `_mod_affine_expr`): синтез
 CAESAR-подобных программ на codepoint-алфавитах по формуле
 `y = ((x - lo + c) mod m) + lo` — base-offset affine. Внутри

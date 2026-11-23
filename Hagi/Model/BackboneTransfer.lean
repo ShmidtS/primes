@@ -10,7 +10,7 @@ set_option linter.style.header false
 # Residual transfer of certified descent (E4 first composition)
 
 The first composition theorem of the nonlinear backbone certificate
-(E4 seed, `.omc/analysis/period-c292-c297-analysis.md` rank 2): a
+(E4 seed): a
 certified head descent transfers through residual blocks with an
 explicit leak bound — the cascade-leak pattern of
 `Hagi.Architecture.CascadeLeak` applied to the UPDATE path

@@ -65,13 +65,13 @@ trunk+head certified fd-шаги (phase A), freeze trunk,
    SnapCycle · RankAdaptive · Merge · ContinualIsolation) —
    low-rank адаптер, параметр-счёт, certified-шаг, snap-цикл,
    rank-admission, merge-стек, continual-isolation.
-2. ** ** self-compressing adapter loop (`section
+2. **self-compressing adapter loop** (`section
    SelfCompress`) — learn→merge→learn с bounded-объёмом.
-3. ** ** constant cluster distillation (`section
+3. **constant cluster distillation** (`section
    ConstantDistill`) — exact-кластеры в rank-1 адаптеры.
-4. ** ** mini-HAGI v3 (`section V3Assembly`) — референсная
+4. **mini-HAGI v3** (`section V3Assembly`) — референсная
    сборка фаз exact→distill→fd→compress→EB-стоп.
-5. Хвост ** ** — honest-заметка о cross-domain переносе
+5. **Хвост** — honest-заметка о cross-domain переносе
    (bench-измерение, новой теоремы нет).
 -/
 

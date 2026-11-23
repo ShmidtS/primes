@@ -12,7 +12,6 @@ import Hagi.Theory.GrowSnap
 import Hagi.Theory.CoverageReading
 
 /-!
-/-!
 # MasterTheoremV3 — лестница метатеорем-спецификаций certified-машины v3
 
 Один файл, четыре namespace-блока в порядке зависимости
@@ -56,7 +55,6 @@ hypotheses дословно (без ослабления).
 audit'а: certified-or-refuse дихотомия reference-machine noisy-PL
 траекторий) — здесь машина v3 bench-контура (distill + self-compress
 + adapter bank), другой носитель и другие делегаты.
--/
 -/
 
 --! v3

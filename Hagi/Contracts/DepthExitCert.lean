@@ -11,7 +11,7 @@ set_option linter.style.header false
 /-!
 # Certified early-exit depth routing (mixture-of-depths)
 
-The rank-1 track of `.omc/analysis/period-c330-c335-analysis.md`:
+The rank-1 track (mixture-of-depths):
 per-token depth routing with a certified early-exit error bound —
 what the mixture-of-depths idea buys once the backbone certificate
 is on the stack (`Hagi.Model.BackboneTransfer`).

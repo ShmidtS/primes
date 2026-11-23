@@ -8,9 +8,9 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Wave2: the second GitHub-scout wave — the best finds, transported
+# Wave2: GitHub-scout finds, transported
 
-Four upgrades from the wave-2 scouts (round 38):
+Four upgrades from the scouts (round 38):
 
 **1. `grad_dist_polarization` / `grad_zero_merge_perfect`**
 (from Rose-STL-Lab/demystifying-mergeability, ICML 2026):

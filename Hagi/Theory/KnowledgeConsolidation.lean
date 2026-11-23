@@ -9,7 +9,7 @@ set_option relaxedAutoImplicit false
 # KnowledgeConsolidation — knowledge consolidation from external
 memory
 
-Roadmap top-1: мост к HAGI_v2 wave225 (commit d2ef948, READ-ONLY).
+Мост к HAGI_v2 wave225 (commit d2ef948, READ-ONLY).
 Секция `WAVE 225: knowledge consolidation from external memory`,
 `hagi/unified.py:285-315`: `Unified` получает `memory()` /
 `remember()` / `consolidate()` / `learn_from_dialog()` поверх
