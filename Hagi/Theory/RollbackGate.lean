@@ -34,8 +34,10 @@ restored — exactly, with no partial borrowing from the candidate.
 
 - The state model is the three-component snapshot of the source;
   backtracking (half-stepping the scale) is search INSIDE the
-  step and is intentionally not modeled — it only affects WHICH
-  candidate reaches the gate, not the gate/rollback semantics.
+  step; the gate/rollback semantics above do not depend on it (it
+  only affects WHICH candidate reaches the gate). The scale schedule
+  and the per-trial accept predicate ARE modeled below (WAVE 254
+  bridge, C643); the Adam trial step itself is not.
 - The early HOLD branches (missing tasks, backward failure,
   non-finite gradient, gradient conflict, degenerate direction —
   source: hagi/selfmodel.py:95-124) leave the state untouched in
@@ -235,5 +237,57 @@ theorem weak_gate_loses :
   refine ⟨fun st => st.params, ⟨0, 0, 0⟩, ⟨1, 0, 0⟩, 0, ?_, ?_⟩
   · unfold commitGate; norm_num
   · unfold guardedStep; norm_num
+
+/-- WAVE 254 backtracking bridge: the trial scale `btScale bt` of the
+bt-th trial (`scale = 1.0`, then `scale *= 0.5` after every trial that
+did not commit).
+source: hagi/selfmodel.py:133-134 and :174. -/
+noncomputable def btScale (bt : ℕ) : ℝ := (1 / 2 : ℝ) ^ bt
+
+/-- Accept predicate of ONE backtracking trial: the worst per-task
+regression stays within `mtr` (max_task_regression) and the weighted
+validation gain strictly exceeds the error budget (`gain > total_bound`).
+There is NO Armijo term here: the code never forms an inner product of
+the gradient and the direction for the accept decision.
+source: hagi/selfmodel.py:164-169. -/
+def backtrackAccept (wb wa errBound worst mtr : ℝ) : Prop :=
+  worst ≤ mtr ∧ wb - wa > errBound
+
+/-- **`backtrack_accept_drop`** (h1 form of C642 for a COMMIT trial): an
+accepted trial lowers the weighted validation loss by more than the error
+budget: `wa ≤ wb − drop` with `drop := wb − wa − errBound ≥ 0` (in fact
+strictly positive). `drop` is a fact of the accept predicate, not a
+hypothesis.
+source: hagi/selfmodel.py:169 (early return on `gain > total_bound`). -/
+theorem backtrack_accept_drop (wb wa errBound worst mtr : ℝ)
+    (herr : 0 ≤ errBound) (h : backtrackAccept wb wa errBound worst mtr) :
+    wa ≤ wb - (wb - wa - errBound) ∧ 0 ≤ wb - wa - errBound := by
+  unfold backtrackAccept at h
+  obtain ⟨_, hg⟩ := h
+  constructor <;> linarith
+
+/-- Without a commit the next trial uses half the scale.
+source: hagi/selfmodel.py:174 (`scale *= 0.5`). -/
+theorem backtrack_scale_halves (bt : ℕ) :
+    btScale (bt + 1) = btScale bt / 2 := by
+  unfold btScale
+  rw [pow_succ]
+  ring
+
+/-- **`backtrack_trials_bounded`**: `btScale` is nonincreasing, so the
+scale of a later trial never exceeds that of an earlier one; with the
+code default `btScale 8 = 1 / 256`. The loop is a bounded for over
+`max_backtracks + 1` trials, so termination is by construction and not
+by a minimal-step test.
+source: hagi/selfmodel.py:78 and :134. -/
+theorem backtrack_trials_bounded :
+    Monotone (fun bt => -btScale bt) ∧ btScale 8 = 1 / 256 := by
+  constructor
+  · intro a b hab
+    unfold btScale
+    have h := pow_le_pow_of_le_one (by norm_num : (0:ℝ) ≤ 1/2) (by norm_num : (1/2:ℝ) ≤ 1) hab
+    linarith
+  · unfold btScale
+    norm_num
 
 end Hagi.Theory.RollbackGate

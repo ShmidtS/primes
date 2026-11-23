@@ -2317,3 +2317,53 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   всех шести: [propext, Classical.choice, Quot.sound].
 - Freeze 8869 -> 8875 (+6: 6 theorem; 0 lost/changed); 17 гейтов
   PASS (.tmp/C642/logs/ci.log).
+
+## C643 armijo backtracking bridge from hagi v2 wave 254
+
+- Beat: C643 — гипотезу h1 из C642 («каждый шаг warm-up certified»)
+  превратить из гипотезы в код-факт для Adam backtracking wave254.
+  Base HEAD eb399530, tree clean. HAGI_v2 (READ-ONLY) @1ae924e:
+  hagi/selfmodel.py:78-180 (guarded_optimizer_step).
+- ЧТО КОД ДЕЛАЕТ НА САМОМ ДЕЛЕ (посылка задачи не подтвердилась):
+  это НЕ Armijo. Предикат приёма пробного шага
+  (`backtrackAccept`): worst ≤ max_task_regression ∧ wb − wa >
+  total_bound (selfmodel.py:164-169) — worst = максимум регрессии
+  одной задачи, wb/wa = взвешенные holdout-до/после,
+  total_bound = e_gen + e_quant + e_route + m_safety. Членов
+  σ·γ·⟪g,d⟫ в коде НЕТ: σ отсутствует. Направление d — MGDA на
+  НОРМАЛИЗОВАННЫХ градиентах (selfmodel.py:119-120), записывается в
+  p.grad и подаётся в Adam; масштаб пробного шага — умножение lr
+  каждой param-group (selfmodel.py:150), не θ − γ·d. Полускорость:
+  scale = 1.0, scale *= 0.5 (β = 1/2, selfmodel.py:133,174);
+  k_max = max_backtracks = 8 (selfmodel.py:78) → range(9): ровно 9
+  проб; при непринятии — полный rollback (HOLD).
+- Теоремы (Hagi/Theory/RollbackGate.lean, ns Hagi.Theory.RollbackGate):
+  - `btScale` — масштаб bt-й пробы: (1/2)^bt;
+  - `backtrackAccept` — предикат приёма пробы (как в коде);
+  - `backtrack_accept_drop` — принятое ⇒ wa ≤ wb − drop ∧ 0 ≤ drop,
+    drop = wb − wa − errBound (h1-форма, drop — факт предиката);
+  - `backtrack_scale_halves` — btScale (bt+1) = btScale bt / 2;
+  - `backtrack_trials_bounded` — убывание масштаба; btScale 8 =
+    1/256 (числа кода). Терминация — bounded for (9 проб), а не
+    порог γ_min: порога в коде нет.
+- ЗАРЫВАЕТ ЛИ h1 ДЛЯ WARM-UP: НЕТ. Warm-up gate _maybe_grow
+  (hagi/unified.py:423-437 @ca52eb4) — голый torch Adam:
+  zero_grad / backward / step, 2 эпохи, без backtracking.
+  guarded_optimizer_step вызывается ТОЛЬКО из self-test
+  (selfmodel.py:201,214,222) — ни train, ни warm-up его не зовут.
+  h1 остаётся гипотезой для warm-up. Мост закрывает только: ЕСЛИ
+  шаг принят предикатом wave254, ТО drop ≥ 0 (и obj в нём —
+  holdout-лосс, не train-obj).
+- Лемма adam_inner_nonneg НЕ доказана и не включена: код не
+  подаёт сырой градиент в Adam напрямую (EMA m̂/√v̂ по направлению
+  MGDA), покомпонентная знаковая лемма код-фактом не является.
+- Witness .tmp/C643/traj.lean (lake env lean 4.36.0, rc=0,
+  logs/traj.log): btScale 0/1/8/9 = 1, 1/2, 1/256, 1/512; 9 проб;
+  принятая проба wb = 2, wa = 1.9 ⇒ drop = 0.1 > 0; hstep/hdrop
+  `warmup_safe` следуют из по-шагового приёма. Негатив: без предиката
+  obj растёт (`uncertified_step_can_worsen`). Аксиомы трёх теорем:
+  [propext, Classical.choice, Quot.sound].
+- Отклонение от плана: заявленный Armijo-предикат (σ, β, γ_min) в
+  коде отсутствует — формализован фактический предикат.
+- Freeze 8875 -> 8880 (+5: 2 def, 3 theorem; 0 lost/changed);
+  17 гейтов PASS (.tmp/C643/logs/ci.log).
