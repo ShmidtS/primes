@@ -179,7 +179,7 @@ note = "growth-map premise of the master model"
 
 [premises.h_emp_merge]
 type = "mathematical"
-note = "algebraic merge-law premise; DISCHARGED for the two-expert flat-concat merge operator by Hagi.Examples.h_emp_merge_of_bridge (Nonvacuity.lean, R263): an exact equality merge_energy_bridge with gap = jensenGap, plus strict-positivity witness; merge operators beyond flat-concat remain external"
+note = "algebraic merge-law premise; DISCHARGED for the two-expert flat-concat merge operator by Hagi.Examples.h_emp_merge_of_bridge (Nonvacuity.lean, R263), and since C619 for the WHOLE class of finite convex-combination merge operators by Hagi.Examples.h_emp_merge_of_bridgeW (Nonvacuity, C619; exact-equality bridge merge_energy_bridgeW with weighted Jensen gap via Hagi.Core.lse_weighted_le, InfoCore C619) covering alpha-mixing and the N-expert uniform mean; merge operators outside the convex-combination class (Hadamard / block-diagonal) remain external"
 
 [premises.h_emp_quad]
 type = "model"

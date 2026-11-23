@@ -1,6 +1,6 @@
 h_emp files: 36
-h_emp identifiers: 111
-h_emp proven theorems: 5
+h_emp identifiers: 112
+h_emp proven theorems: 6
 primitive defs: 11
 operational premise names: 11
 
@@ -31,7 +31,7 @@ Hagi/Research/Legacy/Assumptions.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_
 Hagi/Research/Legacy/CorePremisesDerived.lean: h_emp_G h_emp_grow h_emp_merge
 Hagi/Research/Legacy/MasterHAGI.lean: h_emp_01 h_emp_G h_emp_dist h_emp_grow h_emp_indep h_emp_lip h_emp_meas h_emp_merge h_emp_p h_emp_smooth
 Hagi/Research/Legacy/MasterHAGITrunc.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_step
-Hagi/Research/Legacy/Nonvacuity.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_merge_of_bridge
+Hagi/Research/Legacy/Nonvacuity.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod h_emp_merge_of_bridge h_emp_merge_of_bridgeW
 Hagi/Research/Legacy/NonvacuityHorizon.lean: h_emp_takeoff_exponential
 Hagi/Research/Legacy/RecursiveGrowth.lean: h_emp_dist h_emp_lip h_emp_merge h_emp_quad h_emp_smooth
 Hagi/Research/Legacy/StateTakeoff.lean: h_emp_C_cap h_emp_beta h_emp_cone0 h_emp_dyn h_emp_gain_prod
@@ -52,6 +52,7 @@ h_emp_dyn_explicit
 h_emp_dyn_linear_growth
 h_emp_gain_geometric
 h_emp_merge_of_bridge
+h_emp_merge_of_bridgeW
 h_emp_takeoff_exponential
 
 [primitives]

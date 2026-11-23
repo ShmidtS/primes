@@ -54,7 +54,7 @@ AssumptionScan, PASS против кода), `scripts/premise_registry.toml`
 | h_emp_conc | Model | Research/Legacy/TopLevel | вогнутость целевого функционала модели |
 | h_emp_grow | Model | CorePremisesDerived; MasterHAGI; System/GrowthState | карта роста (модельная): вывод из h_emp_dyn-типа законов |
 | h_emp_quad | Model | Research/Legacy/RecursiveGrowth | квадратичность локальной аппроксимации |
-| h_emp_merge | Mathematical (partial: flat-concat разряжен) | StageCalculus; CorePremisesDerived; MasterHAGI; RecursiveGrowth; GrowthState | алгебра merge-закона; РАЗРЯЖЕНА для two-expert flat-concat (h_emp_merge_of_bridge, Nonvacuity R263); вне его — доказать закон для конкретного merge-оператора |
+| h_emp_merge | Mathematical (partial: flat-concat + весь выпуклый класс разряжены) | StageCalculus; CorePremisesDerived; MasterHAGI; RecursiveGrowth; GrowthState | алгебра merge-закона; РАЗРЯЖЕНА для two-expert flat-concat (h_emp_merge_of_bridge, Nonvacuity R263) и с C619 — для ВСЕГО класса конечных выпуклых комбинаций (h_emp_merge_of_bridgeW, Nonvacuity C619: точное равенство merge_energy_bridgeW со взвешенным jensen-зазором через lse_weighted_le, InfoCore C619; покрывает α-микширование и N-экспертное среднее); вне выпуклого класса (Hadamard / блочно-диагональные) — внешний |
 | h_emp_dist | Model (partial) | StageCalculus; MasterHAGI; RecursiveGrowth; PPT; GrowthState | регулярность распределения; точечно-массная форма уже разряжена (PPTCanonical) |
 | h_emp_lip | Model (partial: градиентная модель разряжена) | StageCalculus; MasterHAGI; RecursiveGrowth; TopLevel; SeedOnly; TernaryExact; GrowthState | липшицевость: РАЗРЯЖЕНА на модели κ = sup‖∇E‖ (lip_energy_from_gradient R563 + discharge_premise_h_emp_lip_euclidean C605); внешний — измеренный κ (как rn_lipschitz_region в RMSNormTransfer) |
 | h_emp_smooth | Model (partial: L-гладкий градиент разряжен) | 8 файлов (StageCalculus…SafeQPStep) | гладкость: РАЗРЯЖЕНА на модели L-гладкого градиента (joint_emp_smooth_derived R565 — точная форма joint_stage); внешний — измеренный L |
@@ -91,9 +91,11 @@ hybrid_stack_transfer_descent(_strict)`. Доказательство = серт
    уровень — явные константы для КОНКРЕТНЫХ архитектур
    (RoPE/нелинейные стеки) по образцу rn_lipschitz_region
    (RMSNormTransfer).
-2. ~~`h_emp_merge`~~ — разряжен C605 для two-expert flat-concat
-   (Nonvacuity R263 уже давал мост; зафиксирован статус).
-   Следующий уровень — merge-закон для блочно-диагональных /
+2. `h_emp_merge` — разряжен C605 для two-expert flat-concat
+   (Nonvacuity R263); C619 расширил разрядку на ВЕСЬ класс
+   конечных выпуклых комбинаций (lse_weighted_le,
+   merge_energy_bridgeW / h_emp_merge_of_bridgeW). Следующий
+   уровень — merge-закон для блочно-диагональных /
    Hadamard-операторов (см. Nonvacuity:258).
 3. Runtime-PPT: инициализация/смешивание цепи → разрядка
    h_emp_fiber/h_emp_dist до уровня canonical.

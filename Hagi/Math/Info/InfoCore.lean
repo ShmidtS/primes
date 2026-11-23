@@ -1727,6 +1727,113 @@ theorem lse_mean_le_mean_lse (z : Fin N → k → ℝ) :
   rw [hconv] at hlog
   exact hlog
 
+omit [NeZero N] in
+/-- Weighted Jensen bound for `lse` (C619): for strictly positive
+mixing weights `w` with `∑ a, w a = 1`, the `lse` of the
+convex-combination mixture is at most the weighted mean of the
+children's `lse` — by the pointwise weighted AM-GM applied to
+`t a v = exp (z a v) / S a` (the same route as
+`lse_mean_le_mean_lse`, which is the uniform-weights case).
+Does NOT need `NeZero N` (positivity of the weights carries the
+mass normalization). -/
+theorem lse_weighted_le (w : Fin N → ℝ) (z : Fin N → k → ℝ)
+    (hw : ∀ a, 0 < w a) (hw' : ∑ a, w a = 1) :
+    lse (∑ a, w a • z a) ≤ ∑ a, w a * lse (z a) := by
+  -- normalization: S a = ∑_v exp (z a v) > 0, t a v = exp (z a v)/S a
+  set S : Fin N → ℝ := fun a => ∑ v, Real.exp (z a v) with hS
+  have hSpos : ∀ a, 0 < S a := fun a => exp_sum_pos (z a)
+  set t : Fin N → k → ℝ := fun a v => Real.exp (z a v) / S a with ht
+  have htpos : ∀ a v, 0 < t a v := fun a v =>
+    div_pos (Real.exp_pos _) (hSpos a)
+  -- pointwise weighted AM-GM: ∏_a (t a v)^(w a) ≤ ∑_a w a * t a v
+  have hamgm : ∀ v : k,
+      ∏ a, (t a v) ^ (w a) ≤ ∑ a, w a * t a v := fun v =>
+    Real.geom_mean_le_arith_mean_weighted
+      (Finset.univ : Finset (Fin N)) w (fun a => t a v)
+      (fun a _ => le_of_lt (hw a))
+      (by rw [hw'])
+      (fun a _ => le_of_lt (htpos a v))
+  -- the per-child mass is 1
+  have hmass : ∀ a, ∑ v, t a v = 1 := by
+    intro a
+    simp only [ht, ← Finset.sum_div]
+    exact div_self (ne_of_gt (hSpos a))
+  -- the Hoelder split of the merged summand
+  have hsplit : ∀ v : k,
+      Real.exp ((∑ a, w a • z a) v)
+        = (∏ a, (S a) ^ (w a)) * ∏ a, (t a v) ^ (w a) := by
+    intro v
+    have hv : (∑ a, w a • z a) v = ∑ a, w a * z a v := by
+      rw [Finset.sum_apply]
+      exact Finset.sum_congr rfl fun a _ => rfl
+    rw [hv, Real.exp_sum]
+    rw [← Finset.prod_mul_distrib]
+    refine Finset.prod_congr rfl fun a _ => ?_
+    have hst : S a * t a v = Real.exp (z a v) := by
+      simp only [ht]
+      exact mul_div_cancel₀ _ (ne_of_gt (hSpos a))
+    have hwz : w a * z a v = z a v * w a := mul_comm _ _
+    rw [hwz, ← Real.mul_rpow (le_of_lt (hSpos a))
+      (by positivity : (0:ℝ) ≤ t a v), hst,
+      Real.rpow_def_of_pos (Real.exp_pos (z a v)), Real.log_exp]
+  -- E ≤ ∏ (S a)^(w a)
+  have hE : ∑ v, Real.exp ((∑ a, w a • z a) v)
+      ≤ ∏ a, (S a) ^ (w a) := by
+    have h1 : ∑ v, Real.exp ((∑ a, w a • z a) v)
+        = (∏ a, (S a) ^ (w a))
+          * ∑ v, ∏ a, (t a v) ^ (w a) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun v _ => hsplit v
+    rw [h1]
+    have h2 : ∑ v, ∏ a, (t a v) ^ (w a) ≤ 1 := by
+      calc ∑ v, ∏ a, (t a v) ^ (w a)
+          ≤ ∑ v, ∑ a, w a * t a v :=
+            Finset.sum_le_sum fun v _ => hamgm v
+        _ = ∑ a, ∑ v, w a * t a v := Finset.sum_comm
+        _ = ∑ a, w a * ∑ v, t a v := by
+            refine Finset.sum_congr rfl fun a _ => ?_
+            exact (Finset.mul_sum Finset.univ (t a) (w a)).symm
+        _ = ∑ a, w a * 1 := by
+            refine Finset.sum_congr rfl fun a _ => ?_
+            rw [hmass a]
+        _ = 1 := by simp [hw']
+    have hpos : (0:ℝ) < ∏ a, (S a) ^ (w a) :=
+      Finset.prod_pos fun a _ => Real.rpow_pos_of_pos (hSpos a) _
+    calc (∏ a, (S a) ^ (w a)) * ∑ v, ∏ a, (t a v) ^ (w a)
+        ≤ (∏ a, (S a) ^ (w a)) * 1 :=
+          mul_le_mul_of_nonneg_left h2 (le_of_lt hpos)
+      _ = ∏ a, (S a) ^ (w a) := by ring
+  -- log both sides
+  unfold lse
+  have hlog := Real.log_le_log (exp_sum_pos _) hE
+  rw [Real.log_prod (fun a _ =>
+    ne_of_gt (Real.rpow_pos_of_pos (hSpos a) _))] at hlog
+  rw [Finset.sum_congr rfl fun a _ =>
+    Real.log_rpow (hSpos a) _] at hlog
+  exact hlog
+
+omit [NeZero N] in
+/-- Weighted ensemble bound for the cross-entropy (C619):
+`ceOneHot t (weighted mixture of the z a) ≤ ∑ a, w a * ceOneHot t (z a)`,
+the weighted generalization of `ensemble_ce_le_mean_general`.
+Jensen for `lse` (`lse_weighted_le`); the linear target term
+cancels. Does NOT need `NeZero N`. -/
+theorem ensemble_ce_le_weighted (t : k) (w : Fin N → ℝ) (z : Fin N → k → ℝ)
+    (hw : ∀ a, 0 < w a) (hw' : ∑ a, w a = 1) :
+    ceOneHot t (∑ a, w a • z a)
+      ≤ ∑ a, w a * ceOneHot t (z a) := by
+  have hlse := lse_weighted_le w z hw hw'
+  unfold ceOneHot
+  have ht : (∑ a, w a • z a) t = ∑ a, w a * z a t := by
+    rw [Finset.sum_apply]
+    exact Finset.sum_congr rfl fun a _ => rfl
+  have hlin : ∑ a, w a * (lse (z a) - z a t)
+      = ∑ a, w a * lse (z a) - ∑ a, w a * z a t := by
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun a _ => by ring
+  rw [ht, hlin]
+  linarith
+
 /-- General-N ensemble bound for the cross-entropy:
 `ceOneHot t (mean of the z a) ≤ (∑ a, ceOneHot t (z a)) / N`. -/
 theorem ensemble_ce_le_mean_general (t : k) (z : Fin N → k → ℝ) :
