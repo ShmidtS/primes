@@ -1,4 +1,4 @@
-# Era index — C591–C640 (2026-11-22/23)
+# Era index — C591–C651 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -195,3 +195,17 @@
 - Фронтир: paper v0.9 (8 мостов C638–C648); Adam EMA-лемма;
   bench certified-warmup-sim; WOR; external push proposal.
   Разбор: `period-c646-648-analysis.md`.
+
+<a id="c650-c651"></a>
+## C650–C651 — paper v0.9; repair + archiver (freeze 8907→8921)
+
+- Коммиты: 8fb0f1fa (C650 paper v0.9: §3.20 8 мостов, §4.8 таблица,
+  pins 22–29, дрейф якорей lm.py:826→:831), b32a9003 (C651
+  `RepairForgetting.lean` +114, WindowOrder +40).
+- Доказано: `repair_sound` (z ≤ v − tol·a ∧ z ≤ v ∧ a ≤ r — линейно, ρ в
+  коде нет); `slot_mono`, `slot_last`, `slotRev_first` (порядок, не
+  цель). Не доказано: archiver (range coder в Lean нет, lossless = тесты);
+  h1 warm-up; WOR; Adam EMA.
+- Фронтир: archiver statement-кандидат (codelength ↔ CE/H; entropy-модуля
+  в Mathlib нет); Adam EMA; certified-warmup-sim; target-смежность
+  `_windows` (баг b3740e0). Разбор: `period-c650-651-analysis.md`.
