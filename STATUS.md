@@ -2188,3 +2188,24 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   совпадает дословно.
 - Freeze 8822 до/после (identity — Lean не менялся); 17 гейтов
   PASS (.tmp/C613/logs/).
+
+## C614 метатеорема v3.2: 10 клозов (машина 8 + шаг-оптимум + неограниченное чтение)
+
+- `Hagi/Theory/MasterTheoremV32.lean`:
+  `Hagi.Theory.MasterTheoremV32.hagi_master_v32` — консолидация
+  certified-машины v3.2 по прецеденту C600 (`hagi_master_v31`,
+  8 клозов): клозы (1)–(8) — делегат `hagi_master_v31` (C600)
+  одним `have hV31` + проекции (машина v3.1 дословно); (9)
+  schedule-клоз — `nl_drop_optimal` (C606): guaranteed drop при
+  γ* = 1/L равен G²/(2L); (10) hierarchical-coverage-клоз —
+  `hier_covers_any_n` (C611): каждый байт i < nB покрыт окном
+  [t, t + w) решётки `hierStarts nB B w s'` при 0 < B, 0 < s' ≤ w
+  — ЛЮБОЕ n, peak ≤ m. Ноль новых доказательств, гипотезы
+  дословно, БЕЗ ослабления (KISS-конъюнкция).
+- Witness .tmp/C614/trajMT32.lean (rc=0): #check раскрытие
+  10-клозной конъюнкции + применения клозов (9) к L=2, G=1
+  (drop = 1/4) и (10) к n = 8128, B = 4032, w = s' = 64
+  (параметры witness C611).
+- Freeze 8822 → 8823 (+hagi_master_v32); 17 гейтов PASS
+  (.tmp/C614/logs/); axioms [propext, Classical.choice,
+  Quot.sound] (= 3).
