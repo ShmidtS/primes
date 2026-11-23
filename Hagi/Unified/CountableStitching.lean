@@ -5,16 +5,16 @@ import Hagi.Unified.StitchingEProcess
 import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
-# Countable stitching of e-processes (C295, P4 item E3)
+# Countable stitching of e-processes (P4 item E3)
 
 The countable-family extension of the finite stitching gate
-(C232, `Hagi.Unified.StitchingEProcess`): given a COUNTABLE family
+(`Hagi.Unified.StitchingEProcess`): given a COUNTABLE family
 of nonnegative anytime e-processes `E k` on ℕ with summable
 nonnegative prior weights, the tsum-mixture master
 `M t = ∑' k, w k * E k t` inherits the Ville time-uniform
 false-alarm control.
 
-Reduction route (audited at C295): the finite carrier mixes ALL
+Reduction route: the finite carrier mixes ALL
 components at ALL times — there is no activation schedule — so the
 honest reduction is the MONOTONE FINITE-PREFIX route: the strict
 alarm set at level `c` sits inside the increasing union of the

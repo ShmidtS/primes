@@ -15,7 +15,7 @@ set_option linter.style.header false
 set_option linter.unusedSectionVars false
 
 /-!
-# Compression — the error-feedback canon (C434 → C515)
+# Compression — the error-feedback canon (→)
 
 One canonical module for the EF/compression family (merged from
 EFTheory.lean + EF21InStep.lean + CertTernaryJump.lean; namespaces
@@ -33,11 +33,11 @@ ONCE here.
   (`Hagi.Unified.QuantEnergyBridge`).
 * EF21 in-step (`Hagi.Theory.EF21InStep`): the in-step quantized
   loop — residual, telescope, energy split, and the certified
-  reject-hold `ef21_reject_hold` (bench mode `ef21-step`, C474).
+  reject-hold `ef21_reject_hold` (bench mode `ef21-step`).
 * The certified ternary jump (`Hagi.Theory.CertTernaryJump`): a
   jump to the ternary grid is admissible iff the exact ternary
   witness certifies it; otherwise the round is held
-  (`ternary_hold_rejected`; bench mode `cert-tern`, C443).
+  (`ternary_hold_rejected`; bench mode `cert-tern`).
 -/
 
 /-! ## EFTheory — the EF telescope canon (five merged sections, names preserved) -/

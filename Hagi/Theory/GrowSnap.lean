@@ -5,13 +5,13 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Theory.GrowTrunkBlock
 
 /-!
-# GrowSnap — certified snap-политика при identity-grow (C521)
+# GrowSnap — certified snap-политика при identity-grow
 
-C506 измерил экспоненциальную стену повторяемого grow-цикла:
+ измерил экспоненциальную стену повторяемого grow-цикла:
 знаменатели дробей признаков растут ~×3.2 на grow-событие
 (63 → 263 → 789 → 2366 цифр для глубин 2 → 5), глубина 6
 проецировалась ~8000 цифр / ~150 s — честный вычислительный
-предел Fraction-арифметики (не теоретический). C521 снимает
+предел Fraction-арифметики (не теоретический). снимает
 стену certified snap-политикой на КАЖДОЙ границе grow:
 
 * веса обученного нового блока и признаки снапятся к
@@ -25,7 +25,7 @@ C506 измерил экспоненциальную стену повторяе
   (w·f − y)²), per-point bound
   |(s+ds−y)² − (s−y)²| ≤ (2|s−y| + |ds|)·|ds|, ds = w·δf
   вычислим ТОЧНО в Fraction — bench-форма per-block hLip
-  premise (`CertifiedBlock` C436 / BlockLipschitz:
+  premise (`CertifiedBlock` / BlockLipschitz:
   композиция перемножает константы). Общая форма —
   `snap_preserves_objective_bound`;
 * телескоп по циклу: если каждая фаза даёт
@@ -34,7 +34,7 @@ C506 измерил экспоненциальную стену повторяе
   (индукция по списку bound'ов).
 
 Cycle-соответствие: `scripts/bench_bridge.py --mode grow-snap`
-исполняет ровно эту схему: C506 repeated grow (γ=0 identity,
+исполняет ровно эту схему: repeated grow (γ=0 identity,
 EXACT obj-инвариант на каждом событии, certified fd-шаги
 блока) + snap-фаза после обучения каждого блока; run-time
 assert'ы: obj_after_snap ≤ obj_before + bound (bound ≥ факт),
@@ -43,11 +43,11 @@ obj_final ≤ obj_cycle_start + Σ bounds.
 
 ## Honest pins (что этот мост НЕ покрывает)
 
-- **Certified-шаги** — measured (drop > 0), как в C504/C506;
+- **Certified-шаги** — measured (drop > 0)
   snap-BOUND certified, но не монотонность obj через снап
   (снап может поднять obj в пределах bound — честно
   репортируется: bound vs actual).
-- **Per-block hLip premise** — премиза (как в C436 контракте
+- **Per-block hLip premise** — премиза (как  контракте
   `CertifiedBlock`): bench-инстанс выставляет точный
   линейный bound для линейной головы; производные hLip
   (BlockLipschitz) — отдельный модуль.
@@ -55,7 +55,7 @@ obj_final ≤ obj_cycle_start + Σ bounds.
   (divmod + round-half-even на Fractions) — bench-факт,
   Lean-модель оперирует готовым snapped-значением из грида.
 - **Глубина 8+** — bench-измерение бюджета (13 цифр
-  знаменателей на границе против 2366 у C506), не теорема.
+  знаменателей на границе против 2366 у), не теорема.
 -/
 
 set_option relaxedAutoImplicit false
@@ -108,7 +108,7 @@ end ObjectiveBound
 
 Точка сетки q/2^k имеет знаменатель ≤ 2^k: на границе grow
 знаменатели признаков bounded, экспоненциальный компаундинг
-(~×3.2 на grow, C506) начинается заново с k бит. -/
+(~×3.2 на grow) начинается заново с k бит. -/
 section DenominatorReset
 
 /-- Любая точка рациональной сетки q/2^k (q целое) имеет
@@ -162,10 +162,10 @@ theorem grow_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
 
 end CycleSound
 
-/-! ## (d) Оптимальный k: certified trade-off err-bound vs биты (C593)
+/-! ## (d) Оптимальный k: certified trade-off err-bound vs биты
 
 Выбор знаменатель-грида 2^k в snap-механике выше — ручной
-(бенчмарк C521 брал 2^40-класс). C593 формализует выбор k
+(бенчмарк брал 2^40-класс). формализует выбор k
 теорией: per-weight ошибка ≤ полуячейка 2^-(k+1) даёт obj-err
 ≤ L·d·2^-(k+1) (композиция с (a)), биты = d·(k+1). Монотонности
 противоположные (err ↓, биты ↑) — Pareto-фронт параметризован k;
@@ -191,7 +191,7 @@ def snapAdmissible (L d ε : ℝ) (k : ℕ) : Prop :=
     L * d ≤ ε * (2:ℝ) ^ (k + 1)
 
 /-- Полуячейка грида 2^k как обратная Nat-степень: мостик между
-отрицательно-показательной формой (C521 `herr`) и положительной
+отрицательно-показательной формой (`herr`) и положительной
 формой допустимости. -/
 lemma two_pow_cell_eq_inv (k : ℕ) :
     (2:ℝ) ^ (-(k:ℝ) - 1) = ((2:ℝ) ^ (k + 1))⁻¹ := by
@@ -207,10 +207,10 @@ lemma snap_admissible_iff (L d ε : ℝ) (hε : 0 < ε) (k : ℕ) :
   rw [snapAdmissible, two_pow_cell_eq_inv, ← div_eq_mul_inv,
     div_le_iff₀ hx]
 
-/-- (a) C593: ДВУСТОРОННЯЯ certified граница obj-ошибки снапа
+/-- (a) ДВУСТОРОННЯЯ certified граница obj-ошибки снапа
 d весов: |obj g − obj f| ≤ L·d·2^-(k+1) — композиция ℓ¹-Lipschitz
-премизы C521 с per-weight полуячейкой; суммарная err-форма для
-бюджетного анализа (C521 `snap_preserves_objective_bound` —
+премизы с per-weight полуячейкой; суммарная err-форма для
+бюджетного анализа (`snap_preserves_objective_bound` —
 односторонняя деградация, здесь — каноническая ошибка). -/
 theorem snap_err_bound {n : ℕ} (obj : (Fin n → ℝ) → ℝ) (L : ℝ)
     (hL0 : 0 ≤ L)
@@ -333,7 +333,7 @@ lemma snap_cell_antitone (k k' : ℕ) (h : k ≤ k') :
       (show k + 1 ≤ k' + 1 by omega) :
       (2:ℕ) ^ (k + 1) ≤ (2:ℕ) ^ (k' + 1))
 
-/-- (b) C593: ЗАМКНУТАЯ ФОРМА k* (ТОЧНАЯ): при L·d > ε
+/-- (b) ЗАМКНУТАЯ ФОРМА k* (ТОЧНАЯ): при L·d > ε
 минимальное допустимое k равно ⌈log₂(L·d/ε)⌉ − 1. Обе стороны
 выведены из Nat.find-фактов (feasibility даёт ceil ≤ k*+1,
 minimality даёт k* ≤ ceil−1), т.е. ТОЧНОСТЬ, не достаточность.
@@ -387,14 +387,14 @@ theorem snap_k_eq_ceil (L d ε : ℝ) (hε : 0 < ε) (hLd : ε < L * d) :
     (by linarith : (0:ℝ) ≤ L * d) _ hadm2
   omega
 
-/-- (c) C593: Pareto-фронт trade-off параметризован k: при
+/-- (c) Pareto-фронт trade-off параметризован k: при
 k ≤ k' биты не убывают, полуячейка не возрастает. -/
 theorem snap_bits_err_tradeoff (d k k' : ℕ) (h : k ≤ k') :
     snapBits d k ≤ snapBits d k' ∧
       (2:ℝ) ^ (-(k':ℝ) - 1) ≤ (2:ℝ) ^ (-(k:ℝ) - 1) :=
   ⟨snapBits_mono d k k' h, snap_cell_antitone k k' h⟩
 
-/-- DECISION-ПРАВИЛО (MAIN C593): выбери k* = snapK — certified
+/-- DECISION-ПРАВИЛО (MAIN): выбери k* = snapK — certified
 err-граница в бюджете ε И минимальные биты среди всех допустимых
 k (замена ручного 2^40 в v3-машине). d передаётся и как ℝ-вес
 (границы), и как ℕ (биты), связанные hd. -/

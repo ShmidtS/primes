@@ -93,7 +93,7 @@ theorem warmup_telescope_bound (T : ℕ) (Δ g eta : ℕ → ℝ)
     ∃ t < T, g t ^ 2 * (∑ i ∈ Finset.range T, eta i)
       ≤ 2 * Δ 0 := by
   -- усиленный инвариант: Σ_{t<n} (η_t/2)g_t² ≤ Δ₀ − Δ_n
-  -- (C349: миграция на generic-ядро telescope_sum_floor_le)
+  -- (миграция на generic-ядро telescope_sum_floor_le)
   have hstrong : ∀ n ≤ T,
       ∑ i ∈ Finset.range n, eta i / 2 * g i ^ 2
         ≤ Δ 0 - Δ n := fun n hn =>

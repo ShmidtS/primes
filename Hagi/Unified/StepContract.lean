@@ -161,7 +161,7 @@ def constContract (eps : ℝ) (heps : 0 ≤ eps) : StepContract where
   hRiskNonneg := le_refl 0
   hBudgetNonneg := le_refl 0
 
-/-! ### C280: мост в каноническое ядро `Hagi.Cert.CertStepGen`
+/-! ### мост в каноническое ядро `Hagi.Cert.CertStepGen`
 
 Замыкает диспозицию survey-строки 7 (merge map A10: Step + Optimization →
 StepProvider interface): `StepContract` остаётся моноидом учёта
@@ -171,9 +171,9 @@ StepProvider interface): `StepContract` остаётся моноидом учё
 * `decrease` контракта лишь ≥ 0 (моноидная единица = 0 — это HOLD,
   не прогресс): ядро требует СТРОГОГО спуска, поэтому строгость —
   явная посылка `hdrop`; нулевой контракт — носитель `HoldStep`, не
-  `CertStepGen` (смешение прогресса и hold — дефект класса C254).
+  `CertStepGen` (смешение прогресса и hold — дефект класса).
 * `riskRem` — СВОБОДНЫЙ параметр + посылки split/next/nonneg
-  (паттерн снятия 0-пиннинга C278/C279): контракт не имеет
+  (паттерн снятия 0-пиннинга): контракт не имеет
   рискового носителя, остаток задаёт потребитель. -/
 /-- С280-адаптер: контракт + пучок системных метрик с посылками
 собираются в канонический `CertStepGen` (δ-канал нулевой на

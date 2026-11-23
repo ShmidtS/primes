@@ -8,12 +8,12 @@ set_option linter.style.header false
 /-!
 # The truncated-SVD tail bridge: the approximant ACHIEVES the tail
 
-The missing UPPER side of the rectangular Eckart–Young pair. C232/C281
+The missing UPPER side of the rectangular Eckart–Young pair.
 proved the LOWER bound — no rank-`k` approximant beats the rectangular
 spectral tail (`eckart_young_lower_bound_rect_true_tail`, cited by
-C328 `sparse_inference_error` at its `hE` premise sites). This module
+ `sparse_inference_error` at its `hE` premise sites). This module
 proves the upper side for the EXPLICITLY CONSTRUCTED truncated-SVD
-approximant, under the SVD premise (the C297 `ns_contraction_svd`
+approximant, under the SVD premise (`ns_contraction_svd`
 premise-form decomposition — `A = U·S·Vᴴ` with `S` the diagonal carrier
 of the rectangular singular spectrum):
 
@@ -27,7 +27,7 @@ of the rectangular singular spectrum):
 * `rot_tail_sq` — `‖U·S_k·Vᴴ‖_F² = ∑_{q≥k} σ_q²`;
 * `truncated_svd_error_eq_tail` — **MAIN**: under the SVD premise,
   `‖A − A_k‖_F² = ∑ i, (rectangularTail A k i)²` — EQUALITY;
-* `sparse_premise_discharged` — the `hE` premise of C328 becomes a
+* `sparse_premise_discharged` — the `hE` premise becomes a
   theorem for SVD-decomposable `A`: `‖A − A_k‖ = (∑ tail²)^{1/2}`.
 
 The proof route by-passes singular-value identification of the rotated
@@ -36,20 +36,20 @@ trace is unitary-invariant (trace cycling), and the carrier Gram trace
 collapses by double sparsity. No root sorting — which is exactly what
 the deferred legs need (see pins).
 
-Honest scope (pins):
+Honest scope:
 
 * SPECTRAL leg deferred: `‖A − A_k‖₂ = σ_{k+1}` needs the singular-value
   IDENTIFICATION of `U·S_k·Vᴴ` (rotated Gram, same charpoly
-  root-sorting wall as C232/C281). The Frobenius form is the one C328
+  root-sorting wall). The Frobenius form is the one
   consumes (`Matrix.frobeniusSeminormedAddCommGroup` local instance).
 * NO new SVD existence: `A = U·S·Vᴴ` is premise-form (every real matrix
   has an SVD mathematically; constructiveness stays behind the premise,
-  C297 discipline). The spectrum identification `hσ` (the diagonal IS
+ discipline). The spectrum identification `hσ` (the diagonal IS
   the rectangular singular spectrum) is likewise premise-form — the
   honest general case.
-* Matrix ↔ `LinearMap` gap stays pinned (C281 Mathlib note).
+* Matrix ↔ `LinearMap` gap stays pinned (Mathlib note).
 
-Created: 2026-11-16 (C342, A13 priority P-3)
+Created: 2026-11-16 (A13 priority P-3)
 -/
 
 open Matrix Finset
@@ -300,11 +300,11 @@ paired injections, and `hσ` identifying the diagonal with the carrier's
 rectangular singular spectrum — premise-form, the honest general case),
 the truncated approximant `A_k` ACHIEVES the rectangular spectral-tail
 error with EQUALITY in the Frobenius form — exactly the `hE` bound of
-C328 `sparse_inference_error`, now with `:=` instead of hypothesis.
-Together with C281 `eckart_young_lower_bound_rect_true_tail` (no rank-`k`
+ `sparse_inference_error`, now with `:=` instead of hypothesis.
+Together `eckart_young_lower_bound_rect_true_tail` (no rank-`k`
 approximant does better) this closes the rectangular Eckart–Young pair
 for SVD-decomposable `A`. Frobenius only; the spectral leg is deferred
-with the C232/C281 root-sorting gap. -/
+with the root-sorting gap. -/
 theorem truncated_svd_error_eq_tail
     (A : Matrix m n ℂ) (k : ℕ)
     (eM : Fin (min (Fintype.card m) (Fintype.card n)) → m)
@@ -324,12 +324,12 @@ theorem truncated_svd_error_eq_tail
   unfold rectangularTail
   rw [← hσ i]
 
-/-- **The C328 premise discharged**: under the same SVD premise, the
+/-- **The premise discharged**: under the same SVD premise, the
 `hE` hypothesis of `sparse_inference_error` holds with EQUALITY for the
 constructed approximant — `‖A − A_k‖ = (∑ i, (rectangularTail A k i)²)
 ^{1/2}`. The premise-form becomes theorem-form for explicit
 SVD-decomposable `A` (every real matrix has an SVD mathematically; the
-premise remains for constructiveness — the C297 discipline). -/
+premise remains for constructiveness — the discipline). -/
 theorem sparse_premise_discharged
     (A : Matrix m n ℂ) (k : ℕ)
     (eM : Fin (min (Fintype.card m) (Fintype.card n)) → m)
@@ -353,6 +353,6 @@ The 2x2 diagonal(3,1), k=1 anchor (tail = 1) is deferred: the
 `decide` reduction (classical Decidable instances in card proofs).
 Recorded as an honest gap; the main theorems
 `truncated_svd_error_eq_tail` / `sparse_premise_discharged` carry
-the mathematical content. See .tmp/C342-343 receipts.
+the mathematical content.
 -/
 end TruncatedSVDTail

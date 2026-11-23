@@ -40,7 +40,7 @@ has a finite mean controlled by the tail constant.
   and measurable from the tail.
 
 **Honest boundary.** No claim here connects the bound to
-GENERALIZATION (that link is PAC-Bayes territory,); the
+GENERALIZATION (that link is PAC-Bayes territory); the
 constant-stepsize SGD provenance of the tail hypothesis is
 runtime interpretation — only the tail-to-moment calculus is
 a theorem.

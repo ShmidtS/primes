@@ -36,14 +36,14 @@ inverse temperature β, over the FREE cells of a CRAM problem.
   symmetric-K premise of the main identities by construction.
 * `conditionalLogit_eq_neg_localField_add_const` — (B2 MAIN)
   under symmetric `K`, `−H(y^{i←a}) = −L_i(a) + C_i(y)` with
-  `C_i(y) = L_i(y_i) − H(y)` a constant in `a` — the C261
+  `C_i(y) = L_i(y_i) − H(y)` a constant in `a`
   single-cell delta identity (reused verbatim) read as a
   constant offset.
 * `conditionalDist_eq_localField_softmax` — the local Gibbs
   conditional satisfies `softDef(−β·H(y^{i←a})) =
   softDef(−β·L_i)` for EVERY β: the constant `β·C_i(y)` cancels
   in softmax (shift-invariance — NOT in the Prelude, added here
-  as minimal private lemmas; audit note in the C266 plan).
+  as minimal private lemmas; audit note in the plan).
 * `localFieldLogit` — the −β-scaled local-field logit vector
   `z_i(a) = −β·L_i(a)` (the local training logits).
 * `freeCellPseudolikelihood` — the free-cell PL objective
@@ -143,7 +143,7 @@ section Shift
 
 /-! ## Minimal shift-invariance lemmas (private)
 
-Audit note (C266 plan, challenge 1): NO softmax/CE const-shift
+Audit note (plan, challenge 1): NO softmax/CE const-shift
 lemma exists in the Prelude (`InfoCore`), `Core.Concat`, or
 `Numerics.Numerics` — only `softDef_pos`, `softDef_sum_one`,
 `softDef_eq_exp_sub_lse`, `temperature_*`. These two minimal
@@ -474,21 +474,21 @@ remainder), bridged into the canonical certification kernel
   `CRAMTrainStep.measured_of_majorizer` is the majorizer entry
   (surrogate anchored at the old parameters).
 * `CRAMEnergyDescentStep` — single-cell energy descent from the
-  C261 strict-drop margin, with MarginBudget accounting (the
+ strict-drop margin, with MarginBudget accounting (the
   certified margin is deducted from the risk remainder);
   `strictDrop` reuses `strict_drop_of_positive_margin` verbatim;
   `toLossCeilingDrop` wires the LossCeiling polarity.
 * `CRAMExplorationStep` — legal exploration transition: positive
-  kernel mass, row-stochastic kernel premise (the C263
+  kernel mass, row-stochastic kernel premise (
   `mixture_rowsum` premise shape), clamps (givens) preserved,
   search budget consumed.  NO DESCENT CLAIM: exploration may
   RAISE the energy (stationarity is not monotonicity).
 * `CRAMAcceptedSolution` — production certificate: a
   `ValidityCertificate` (givens preserved + constraints
-  satisfied, C263 `EnergyStop`) agreeing with the board,
+  satisfied `EnergyStop`) agreeing with the board,
   with an OPTIONAL energy bound.
 * `CRAMEnergyDescentStep.toKernelCertStep` — the canonical-kernel
-  bridge (pattern: `HonestTransition.toKernelCertStep`, C254):
+  bridge (pattern: `HonestTransition.toKernelCertStep`):
   under explicit metric-readout premises the descent step is a
   `Hagi.Cert.CertStep`, so the kernel telescope applies.
 * `HoldStep.cram_state_components` — a kernel hold on the CRAM
@@ -599,7 +599,7 @@ board, an optional latent configuration, the search budget
 (false-commit probability) budget. -/
 structure CRAMState (ι : Type*) [Fintype ι] [DecidableEq ι]
     (α : Type*) [Fintype α] [DecidableEq α] where
-  /-- The CRAM problem (constraint carrier, C266). -/
+  /-- The CRAM problem (constraint carrier). -/
   problem : CRAMProblem ι α
   /-- The current board configuration. -/
   board : ι → α
@@ -632,7 +632,7 @@ theorem CRAMState.ext_iff (s s' : CRAMState ι α) :
 /-! ## CRAMTrainStep: measured-drop / majorizer premise-form -/
 
 /-- Parameter-training contract on the free-cell
-pseudolikelihood objective (C266): a MEASURED drop premise — the
+pseudolikelihood objective: a MEASURED drop premise — the
 new parameters achieve at most the old objective minus the drop —
 plus exact resource laws.  Premise-form: no gradient proof and no
 convergence claim is made (the gradient FORMULA exists in
@@ -687,18 +687,18 @@ theorem CRAMTrainStep.measured_of_majorizer (β : ℝ)
   rw [hAnchor]
   exact hNew
 
-/-! ## CRAMEnergyDescentStep: C261 strict drop + MarginBudget -/
+/-! ## CRAMEnergyDescentStep: strict drop + MarginBudget -/
 
 /-- Single-cell energy-descent contract: a strictly positive
-local-field margin (the C261 form) certifies a strict energy drop
+local-field margin (the form) certifies a strict energy drop
 `E(y^{i←a}) < E(y)`; the certified margin is DEDUCTED from the
 risk remainder (MarginBudget accounting), the compute budget is
 spent exactly, and the board moves by the single-cell update. -/
 structure CRAMEnergyDescentStep (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (s s' : CRAMState ι α) where
-  /-- Symmetric coupling premise (load-bearing for the C261
+  /-- Symmetric coupling premise (load-bearing for
   strict-drop theorem; satisfied by the constructive symmetrizer
-  `symmetrizeCoupling` of C266). -/
+  `symmetrizeCoupling`). -/
   hK : ∀ i j a b, K i j a b = K j i b a
   /-- The moved cell. -/
   cell : ι
@@ -706,7 +706,7 @@ structure CRAMEnergyDescentStep (B : ι → α → ℝ)
   move : α
   /-- The certified local-field margin. -/
   margin : ℝ
-  /-- Strictly positive margin, C261 form:
+  /-- Strictly positive margin, form:
   `L_i(y_i) − L_i(move) > 0`. -/
   margin_pos : 0 < localField B K s.board cell (s.board cell)
     - localField B K s.board cell move
@@ -734,7 +734,7 @@ structure CRAMEnergyDescentStep (B : ι → α → ℝ)
   /-- Descent consumes no delta. -/
   delta_next : s'.deltaRem = s.deltaRem
 
-/-- The C261 strict drop, verbatim: a positive local-field margin
+/-- The strict drop, verbatim: a positive local-field margin
 gives `E(s'.board) < E(s.board)` — the existing
 `strict_drop_of_positive_margin` applied at the board update. -/
 theorem CRAMEnergyDescentStep.strictDrop (B : ι → α → ℝ)
@@ -765,7 +765,7 @@ noncomputable def CRAMEnergyDescentStep.toLossCeilingDrop (B : ι → α → ℝ
       MetricDirection.improves_lossCeiling_intro _ _ _ _ (by linarith)⟩
 
 /-- The canonical-kernel bridge (pattern:
-`HonestTransition.toKernelCertStep`, C254): under EXPLICIT
+`HonestTransition.toKernelCertStep`): under EXPLICIT
 metric-readout premises — the kernel metrics read the board
 energy, the compute budget and the risk remainder — a
 `CRAMEnergyDescentStep` IS a canonical `Hagi.Cert.CertStep`:
@@ -799,7 +799,7 @@ noncomputable def CRAMEnergyDescentStep.toKernelCertStep {TaskId : Type*}
 /-! ## CRAMExplorationStep: legal move, NO descent claim -/
 
 /-- Legal exploration transition: the new board has POSITIVE
-kernel mass under a ROW-STOCHASTIC kernel (the C263
+kernel mass under a ROW-STOCHASTIC kernel (
 `mixture_rowsum` premise shape — the kernel is a premise, e.g.
 the focused heat-bath mixture), every given (clamp) is preserved
 exactly, and the search budget is CONSUMED (strictly positive
@@ -812,11 +812,11 @@ see `focused_mixture_stationary`).  Descent is claimed ONLY by
 `CRAMEnergyDescentStep`. -/
 structure CRAMExplorationStep (s s' : CRAMState ι α) where
   /-- The transition kernel (premise-form data; e.g. a focused
-  heat-bath mixture of C263). -/
+  heat-bath mixture). -/
   kernel : (ι → α) → (ι → α) → ℝ
   /-- Legality: the new board has positive transition mass. -/
   legality : 0 < kernel s.board s'.board
-  /-- Row-stochasticity premise (C263 `mixture_rowsum` shape):
+  /-- Row-stochasticity premise (`mixture_rowsum` shape):
   every row of the kernel sums to one. -/
   rowStochastic : ∀ y, ∑ z, kernel y z = 1
   /-- Clamps preserved: every given value is intact. -/
@@ -846,14 +846,14 @@ structure CRAMExplorationStep (s s' : CRAMState ι α) where
 /-! ## CRAMAcceptedSolution: production certificate -/
 
 /-- The production certificate: a `ValidityCertificate` (givens
-preserved + constraints satisfied — C263 `EnergyStop`)
+preserved + constraints satisfied `EnergyStop`)
 agreeing with the current board, with an OPTIONAL energy bound.
 Validity says NOTHING about energy (E4 separation: the bound is
 optional data, and an energy threshold alone certifies nothing). -/
 structure CRAMAcceptedSolution (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (C : ι → α → Prop)
     (s : CRAMState ι α) where
-  /-- The validity certificate (C263). -/
+  /-- The validity certificate. -/
   cert : ValidityCertificate s.problem.givens C
   /-- The certified configuration IS the current board. -/
   board_agrees : ∀ i, cert.y i = s.board i
@@ -892,7 +892,7 @@ A10 item 2 (третий адаптер): спускной шаг CRAM как ш
 живёт на носителе `deltaRem` (нулевой расход у спускового шага —
 запись явная, свёрнутый C245-канал). -/
 
-/-- C278: спускной шаг CRAM — шаг общего ядра (premise-form:
+/-- спускной шаг CRAM — шаг общего ядра (premise-form:
 метрики читают энергию доски, вычислительный бюджет и остаток
 риска; δ-канал — на носителе `deltaRem`, спуск δ не тратит;
 неотрицательность δ-остатка — явная посылка `hdelta` — в самом
@@ -937,25 +937,25 @@ end Hagi.Model.EnergyReasoning
 set_option linter.style.header false
 
 /-!
-# Finite-class generalization for learned energy models (C315)
+# Finite-class generalization for learned energy models
 
 P4 frontier item (ranked #3 in `.omc/analysis/period-c298-c312-analysis.md`):
 what generalization claim is TRUE and cheaply provable for a learned-energy
-solver.  The honest two-tier structure (research: `.tmp/C315/research.md`):
+solver.  The honest two-tier structure:
 
 * TIER 1 (correctness, EXACT): accepted outputs are validated by the
   independent `CRAMAcceptedSolution` certificate (givens preserved +
-  constraints satisfied, C267/C263).  Correctness does NOT depend on any
+  constraints satisfied).  Correctness does NOT depend on any
   generalization bound — the learned energy is quarantined to efficiency.
 * TIER 2 (efficiency, LEARNED): over a FINITE hypothesis class of energy
   tables indexed by a `Fintype ι`, uniform convergence of the [0,1]-bounded
-  PL loss holds via the C264 finite-family union composed with the C287
+  PL loss holds via the finite-family union composed
   concentration API (`concRadius`, `concRadius_valid`) — no new
   concentration mathematics.
 
 What is NOT claimed (honesty ledger, research.md §2): no continuous
 classes, no Rademacher/VC machinery, no stability, no claim that low PL
-loss implies validity (that is exactly the C269 non-separation), no
+loss implies validity (that is exactly the non-separation), no
 distributional assumption beyond the explicit independent finite product.
 
 The `[0,1]` bound on the loss `X k` is a PREMISE (the `[0,L]` scale route
@@ -970,11 +970,11 @@ open Hagi.Probability Hagi.Probability.FiniteFamilyConfidence
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
-/-- C315 MAIN (uniform convergence, finite class): for a FINITE class of
+/-- MAIN (uniform convergence, finite class): for a FINITE class of
 energy tables indexed by `ι` with `[0,1]`-normalized PL losses `X k`, with
 probability ≥ `1 − δ` EVERY hypothesis's population PL-loss is within
-`concRadius (δ/|ι|) n` of its empirical loss.  This is the C264 finite
-family union bound (`finite_family_upper_confidence`) at the C287 radius
+`concRadius (δ/|ι|) n` of its empirical loss.  This is the finite
+family union bound (`finite_family_upper_confidence`) at the radius
 `concRadius (δ/|class|) n` (`concRadius_valid`): the class-size penalty
 is the standard `log |class|` structural-risk term on a finite class. -/
 theorem finite_class_pl_uniform {n : ℕ} {ι : Type} [Fintype ι]
@@ -1016,9 +1016,9 @@ theorem finite_class_pl_uniform {n : ℕ} {ι : Type} [Fintype ι]
           concRadius (delta / (Fintype.card ι : ℝ)) n) := by
           exact hconf
 
-/-- C315 margin corollary (finite-class argmax identification): on the
+/-- margin corollary (finite-class argmax identification): on the
 simultaneous two-sided event of `finite_family_abs_error_confidence`
-(C264), if the empirical winner `best`'s margin over every other
+if the empirical winner `best`'s margin over every other
 hypothesis is at least `2 * eps`, then `best` is the TRUE population-best
 hypothesis: population loss of `best` ≤ population loss of every `k`.
 Standard finite-class identification (the informal "gap > 2·radius"
@@ -1054,9 +1054,9 @@ section Solver
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
-/-- C315 TIER-1 MAIN (exact correctness, energy-free): any ACCEPTED
+/-- TIER-1 MAIN (exact correctness, energy-free): any ACCEPTED
 solution of the learned-energy solver — acceptance goes through the
-independent `CRAMAcceptedSolution` certificate (C267), never through the
+independent `CRAMAcceptedSolution` certificate, never through the
 energy — preserves every given cell BOTH in the certificate and ON THE
 BOARD, and satisfies every constraint on the board.  Correctness does not
 depend on any generalization bound: the statement mentions neither sample
@@ -1075,7 +1075,7 @@ theorem learned_solver_correctness_exact {B : ι → α → ℝ}
     have hci := sol.cert.satisfies_constraints i
     exact sol.board_agrees i ▸ hci
 
-/-- C315 QUARANTINE (two-tier separation, failure side): even on the
+/-- QUARANTINE (two-tier separation, failure side): even on the
 COMPLEMENT of the uniform-convergence event of `finite_class_pl_uniform`,
 every accepted solution is STILL valid.  Generalization debt is confined
 to efficiency (how often search succeeds, how tight the optional energy
@@ -1102,7 +1102,7 @@ end Solver
 
 /-! ## Numeric anchor -/
 
-/-- C315 numeric anchor: at `m = 1000` samples, class size `|ι| = 10`,
+/-- numeric anchor: at `m = 1000` samples, class size `|ι| = 10`,
 `δ = 0.05`, the per-class budget is `δ/|ι| = 0.005` and the radius is
 `concRadius 0.005 1000 = sqrt (log 200 / 2000) ≈ 0.0515` (float, for
 orientation only).  The PROVED bound is the honest loose form

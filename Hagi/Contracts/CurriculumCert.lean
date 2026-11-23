@@ -17,8 +17,8 @@ theorems:
 * ORDER-FREE (the negative result, stated precisely): within
   phase-rate accounting — a fixed two-phase schedule where each phase
   is an interval of certified steps with its OWN uniform drop
-  (per-phase descent-rate premise on the C291 carrier's interface,
-  composed exactly as C330 `steps_to_quality` does per phase) — the
+  (per-phase descent-rate premise on the carrier's interface,
+  composed exactly `steps_to_quality` does per phase) — the
   total bound is the SYMMETRIC sum `n₁·d₁ + n₂·d₂` and the idealized
   total `curriculumTotal Δ₁ Δ₂ d₁ d₂ = Δ₁/d₁ + Δ₂/d₂` commutes
   (`curriculumTotal_comm`).  The certificate cannot distinguish the
@@ -36,17 +36,17 @@ theorems:
   it is UNCERTIFIED: the conditional premise has no discharged
   antecedent.  The certification, not optimality, is the content.
 
-Carriers (all landed, CITED not re-proved): C291
+Carriers (all landed, CITED not re-proved)
 `Hagi.Model.CEDescent` (the descent rate: at the safe step the
 certified drop is exactly `2·A²/R²` per `ceOneHot_safeStep_le_
-residual` — no constant is baked in here), C278 `Hagi.Cert.CertStepGen`
-(the drop field + `trajectory_telescope_gen`), C330
+residual` — no constant is baked in here) `Hagi.Cert.CertStepGen`
+(the drop field + `trajectory_telescope_gen`)
 `Hagi.Contracts.ComputeToQuality` (`steps_to_quality`,
 `budget_telescope_gen`).
 
 Honest scope: fixed two-phase schedule (no adaptive curriculum
 selection — YAGNI: the 2-phase form carries the whole content);
-deterministic descent premises only (the C330 interface); no claim
+deterministic descent premises only (the interface); no claim
 that certified ⇒ empirically better; numbers live in the numeric
 `Anchor` lemmas only.
 -/
@@ -62,7 +62,7 @@ variable (M : Hagi.Cert.SystemMetrics S TaskId) (obl : Hagi.Cert.StepObligations
 
 /-- **Curriculum total** — the idealized per-phase minimal-witness
 bookkeeping functional: phase i contributes `Δᵢ/dᵢ` (its gap over its
-uniform certified drop; the C330 `totalComputeProduct` shape per
+uniform certified drop `totalComputeProduct` shape per
 phase). -/
 noncomputable def curriculumTotal (Δ₁ Δ₂ d₁ d₂ : ℝ) : ℝ := Δ₁ / d₁ + Δ₂ / d₂
 
@@ -125,7 +125,7 @@ theorem curriculum_phase_accounting_swap (deltaLevel : S → ℝ)
 /-- **MAIN 2 — curriculum dependency chain**: the dependency-ordered
 two-phase certificate. Phase 1 has the UNCONDITIONAL rate `d₁` and
 closes to the intermediate gate `q₁` (`objective (t 0) − q₁ ≤ n₁·d₁`
-⟹ `objective (t n₁) ≤ q₁`, the C330 `steps_to_quality`). Phase 2's
+⟹ `objective (t n₁) ≤ q₁` `steps_to_quality`). Phase 2's
 rate `d₂` is the phase-conditional value `d₂(q₁)` — its drop premise
 is certified ONLY UNDER the phase-1 endpoint (`hd2` is a CONDITIONAL
 premise: `objective (t n₁) ≤ q₁ → d₂ ≤ drop_j`; the warm-up reading:
@@ -161,12 +161,12 @@ theorem curriculum_dependency_chain (deltaLevel : S → ℝ)
 
 /-! ## The packaging certificate -/
 
-/-- **MAIN 3 — the curriculum certificate** (three books, the C330
+/-- **MAIN 3 — the curriculum certificate** (three books
 `compute_budget_certificate` shape): the dependency-ordered schedule
 simultaneously closes the INTERMEDIATE gate (`objective (t n₁) ≤ q₁`),
 the FINAL floor (`objective (t (n₁+n₂)) ≤ ε`, the chain), and the
 compute ledger exactly (`budget (t (n₁+n₂)) = budget (t 0) −
-(n₁+n₂)·W`, the C330 `budget_telescope_gen` over the concatenated
+(n₁+n₂)·W` `budget_telescope_gen` over the concatenated
 schedule). One certificate, three books. -/
 theorem curriculum_certificate (deltaLevel : S → ℝ)
     (ε q₁ d₁ d₂ W : ℝ) (n₁ n₂ : ℕ) (t : ℕ → S)

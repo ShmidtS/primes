@@ -19,15 +19,15 @@ directions the audit demanded:
   NCStepCert) is a CONSUMER instantiation, not a kernel constraint;
 * risk-remainder as a FIELD: `riskRem` is explicit data with the split
   law `M.risk s = riskSpend + riskRem`, so adapters no longer pin the
-  remainder to zero (the C254 `toKernelCertStep` defect: only the last
+  remainder to zero (`toKernelCertStep` defect: only the last
   step of a trajectory could spend risk);
-* folded delta budget: the fourth resource of `CertStepDelta` (C245,
+* folded delta budget: the fourth resource of `CertStepDelta` (
   A7 — false-commit probability budget) is a kernel field, with the
   same exact telescoping law.
 
 Bridges: `certStep_to_gen` embeds every frozen `CertStep` (at the zero
 delta level); `CertStepGen.toCertStep` projects back (dropping the
-delta channel); `certStepDelta_to_gen` folds the C245 add-on in.
+delta channel); `certStepDelta_to_gen` folds the add-on in.
 Composition `CertStepGen.trans` and the drop/delta telescopes mirror
 the kernel laws.
 -/
@@ -63,7 +63,7 @@ structure CertStepGen (deltaLevel : S → ℝ) (s s' : S) where
   /-- Risk budget spent by the step. -/
   riskSpend : ℝ
   /-- The risk REMAINDER as explicit data (the audit field: adapters
-  may keep a nonzero remainder; pinning to zero was the C254 defect). -/
+  may keep a nonzero remainder; pinning to zero was the defect). -/
   riskRem : ℝ
   /-- The post-risk level IS the remainder. -/
   risk_next : M.risk s' = riskRem
@@ -72,7 +72,7 @@ structure CertStepGen (deltaLevel : S → ℝ) (s s' : S) where
   risk_nonneg : 0 ≤ riskRem
   /-- Delta budget (false-commit probability) spent by the step. -/
   delta : ℝ
-  /-- Exact delta law against the explicit carrier (C245 form). -/
+  /-- Exact delta law against the explicit carrier (form). -/
   delta_next : deltaLevel s' = deltaLevel s - delta
   delta_nonneg : 0 ≤ deltaLevel s'
   floorsKept : FloorsKept M obl s'
@@ -140,7 +140,7 @@ def CertStepGen.toCertStep {deltaLevel : S → ℝ} {s s' : S}
   risk_nonneg := by rw [h.risk_next]; exact h.risk_nonneg
   floorsKept := h.floorsKept
 
-/-- Fold-in of the C245 fourth-resource add-on: every `CertStepDelta`
+/-- Fold-in of the fourth-resource add-on: every `CertStepDelta`
 is a `CertStepGen` at the same delta level (risk remainder read off
 the post-state).  `CertStepDelta` stays verbatim (Freeze). -/
 def certStepDelta_to_gen {deltaLevel : S → ℝ} {s s' : S}
@@ -275,7 +275,7 @@ theorem risk_telescope_gen (deltaLevel : S → ℝ)
   exact Hagi.Cert.additive_ledger_telescope_floor
     (level := M.risk) n t hnn steps
 
-/-! ## Bounded variant (A14 QW3, C344): ≤-law constructor
+/-! ## Bounded variant (A14 QW3): ≤-law constructor
 
 The exact kernel demands EQUALITY consumption laws; legacy loop
 carriers (e.g. `StepCert`) only certify the ≤ law (hdec).  The
@@ -419,20 +419,20 @@ theorem delta_telescope_gen_bounded (deltaLevel : S → ℝ)
     (c := fun j => (steps j).delta)
     (fun j _ => (steps j).delta_next_le)
 
-/-! ## TransitionStep lift (C290, kernel-unification closeout)
+/-! ## TransitionStep lift (kernel-unification closeout)
 
 The frozen `TransitionStep` (progress | hold) is lifted to the gen
-kernel through the C278 embedding `certStep_to_gen`.  A hold is
+kernel through the embedding `certStep_to_gen`.  A hold is
 honestly `none`: the kernel demands a POSITIVE certified drop and a
 hold makes no progress claim — faking a zero-drop certificate would
-be a defect, so the bridge is Option-valued (the C280 StepProvider
+be a defect, so the bridge is Option-valued (the StepProvider
 precedent: Option = "no certified step from here").  The trajectory
 composition lemma links OLD progress trajectories to the EXISTING
-gen telescope (C278 already provides `trajectory_telescope_gen`;
+gen telescope (already provides `trajectory_telescope_gen`;
 nothing is re-proved here). -/
 
 /-- Bridge embedding the frozen `TransitionStep` into the gen
-kernel at the zero delta level: progress lands on the C278
+kernel at the zero delta level: progress lands on
 `certStep_to_gen` embedding, hold honestly yields `none`. -/
 def transitionStep_to_gen {s s' : S}
     (h : TransitionStep M obl s s') :
@@ -441,7 +441,7 @@ def transitionStep_to_gen {s s' : S}
   | .progress c => some (certStep_to_gen M obl c)
   | .hold _ => none
 
-/-- The progress case of the bridge lands EXACTLY on the C278
+/-- The progress case of the bridge lands EXACTLY on
 embedding (the bridge composes with `certStep_to_gen`; no third
 adapter is introduced). -/
 theorem transitionStep_to_gen_progress {s s' : S}
@@ -449,7 +449,7 @@ theorem transitionStep_to_gen_progress {s s' : S}
     transitionStep_to_gen M obl (TransitionStep.progress c)
       = some (certStep_to_gen M obl c) := rfl
 
-/-- Extract form for consumers (premise-form, the C278 bridge
+/-- Extract form for consumers (premise-form, the bridge
 pattern): a `TransitionStep` witnessed as progress carries the gen
 certificate obtained through the existing embedding. -/
 theorem transitionStep_progress_to_gen {s s' : S}
@@ -460,7 +460,7 @@ theorem transitionStep_progress_to_gen {s s' : S}
   exact transitionStep_to_gen_progress M obl c
 
 /-- Composition lemma linking old trajectories through the bridge to
-the EXISTING gen-kernel telescope (C278 `trajectory_telescope_gen`):
+the EXISTING gen-kernel telescope (`trajectory_telescope_gen`):
 a trajectory of `TransitionStep`s in which every step is witnessed
 progress satisfies the gen telescope bound.  The all-progress premise
 is honest — a hold makes no drop claim and cannot appear in a
@@ -477,9 +477,9 @@ theorem trajectory_telescope_progress_bridge
   exact trajectory_telescope_gen M obl (fun _ => 0) n t
     (fun j => certStep_to_gen M obl (Classical.choose (hprog j)))
 
-/-! ### Journal bridge (C449, A19.2): gen kernel → StepRecord -/
+/-! ### Journal bridge (A19.2): gen kernel → StepRecord -/
 
-/-- Журнальная запись gen-шага (C449): drop-ядро + траты бюджет/риск
+/-- Журнальная запись gen-шага: drop-ядро + траты бюджет/риск
 и δ-канал как телеметрия. Законы потребления остаются в `CertStepGen`. -/
 def CertStepGen.toRecord {deltaLevel : S → ℝ} {s s' : S}
     (c : CertStepGen M obl deltaLevel s s') :

@@ -5,7 +5,7 @@ import Hagi.Cert.EvalBinding
 import Hagi.Probability.Concentration
 
 /-!
-# MacroStatCert — statistically valid macro-cycle certificate (A16 TT-CAT, C380)
+# MacroStatCert — statistically valid macro-cycle certificate (A16 TT-CAT)
 
 The macro-loop certificate of the A16 TT-CAT two-level training design:
 every `K` micro-steps the controller forms a quality estimate `ΔQ̂_K`
@@ -15,18 +15,18 @@ uncertainty zone — no state change), `rollback` (UCB confirms
 degradation OR a hard limit is breached — restore the last committed
 checkpoint).
 
-Composition, no new probability (C341 thin-adapter convention):
+Composition, no new probability (thin-adapter convention):
 
 * the anytime-validity premise is carried by `Hagi.Contracts.VilleMonitor.EProcMonitor`
-  (C341) — the decision consumes the monitor's α and firing predicate;
+ — the decision consumes the monitor's α and firing predicate;
 * `commit_sound` is a direct descent from
-  `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (the C232/C295
-  Ville engine) with the C264 `gate_anytime_valid` embedding premise
+  `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (
+  Ville engine) `gate_anytime_valid` embedding premise
   shape: the false-commit event embeds in the e-process crossing;
-* `rollback_sound` / `hold_safe` run on the C363
+* `rollback_sound` / `hold_safe` run on
   `Hagi.State.applyStep` / `hold_rollback_total` machinery (total-state
   rollback, partial rollback not expressible);
-* `r_conf` is the C378 `Hagi.Cert.ConfidenceRadius` type — a radius is
+* `r_conf` is `Hagi.Cert.ConfidenceRadius` type — a radius is
   never silently mixed with a risk level.
 
 Honest pins (A16 acceptance bar — "plain Freedman on reused data is
@@ -39,10 +39,10 @@ insufficient"):
    claimed on adaptively reused data.
 2. **E-process validity binder (premise-form)**: the supermartingale
    premises `hL`/`hLnn`/`hL0` of `commit_sound` — the consumer's to
-   discharge, as in C232/C341.
+   discharge .
 3. **Adaptive-data route**: pointer only — future instantiation via
-   the `EProcMonitor` stitched masters (C232
-   `stitching_eprocess_anytime`, C295 `stitching_countable_ville`).
+   the `EProcMonitor` stitched masters (
+   `stitching_eprocess_anytime` `stitching_countable_ville`).
 -/
 
 set_option relaxedAutoImplicit false
@@ -145,10 +145,10 @@ degradation. -/
 the versioned state transition `sBefore → sAfter` (the `S_t → S_{t+1}`
 binding shared by all four certificates), the last committed
 checkpoint `sCheckpoint` (the rollback target), the quality estimate
-`deltaQ` (`ΔQ̂_K`), the TYPED confidence radius `r_conf` (C378 — a
+`deltaQ` (`ΔQ̂_K`), the TYPED confidence radius `r_conf` (— a
 radius is not a risk level), the commit `threshold`, the hard-limit
 `breach` flag, the anytime-validity premise carrier `mon`
-(`EProcMonitor`, C341), and the `decision` — pinned by `decide_ok` to
+(`EProcMonitor`), and the `decision` — pinned by `decide_ok` to
 be exactly the output of `macroDecide` (no free-floating decision). -/
 structure MacroStatCert (S : Type*) (objective : S → ℝ) where
   /-- State BEFORE this macro-cycle (S_t). -/
@@ -159,13 +159,13 @@ structure MacroStatCert (S : Type*) (objective : S → ℝ) where
   sCheckpoint : S
   /-- The quality estimate ΔQ̂_K on the macro window. -/
   deltaQ : ℝ
-  /-- The typed confidence radius r_conf (C378). -/
+  /-- The typed confidence radius r_conf. -/
   r_conf : ConfidenceRadius
   /-- The commit threshold. -/
   threshold : ℝ
   /-- Hard limit violated flag. -/
   breach : Bool
-  /-- The anytime-validity premise carrier (C341 monitor). -/
+  /-- The anytime-validity premise carrier (monitor). -/
   mon : EProcMonitor
   /-- The decision actually taken. -/
   decision : MacroDecision
@@ -174,8 +174,8 @@ structure MacroStatCert (S : Type*) (objective : S → ℝ) where
     decision = macroDecide deltaQ r_conf threshold breach
 
 /-- Execute the certificate's decision on the pre-state, through the
-C363 total-state step semantics: `commit` installs `sAfter`,
-`hold` keeps `sBefore` (total rollback, C363), `rollback` restores
+ total-state step semantics: `commit` installs `sAfter`,
+`hold` keeps `sBefore` (total rollback), `rollback` restores
 the last committed checkpoint `sCheckpoint`. -/
 def applyDecision {S : Type*} {objective : S → ℝ}
     (cert : MacroStatCert S objective) : S :=
@@ -188,7 +188,7 @@ def applyDecision {S : Type*} {objective : S → ℝ}
 /-! ## Decision soundness -/
 
 /-- **hold_safe**: a Hold decision changes NOTHING — `applyDecision`
-returns the pre-state exactly, by the C363 total-rollback invariant
+returns the pre-state exactly, by the total-rollback invariant
 `Hagi.State.hold_rollback_total` (partial state change not
 expressible). -/
 theorem hold_safe {S : Type*} {objective : S → ℝ}
@@ -199,7 +199,7 @@ theorem hold_safe {S : Type*} {objective : S → ℝ}
   exact hold_rollback_total cert.sBefore
 
 /-- **rollback_sound**: a Rollback decision restores the LAST
-COMMITTED CHECKPOINT — total-state restore through the C363
+COMMITTED CHECKPOINT — total-state restore through
 `applyStep` semantics (the full carrier, weights and optimizer
 buffers alike, is replaced by the checkpoint state; a partial
 rollback is not expressible). -/
@@ -210,12 +210,12 @@ theorem rollback_sound {S : Type*} {objective : S → ℝ}
   simp only [applyDecision, h]
   rfl
 
-/-- **commit_sound (anytime-valid, C264 embedding shape)**: under the
+/-- **commit_sound (anytime-valid, embedding shape)**: under the
 e-process premises — the trajectory `L` fed to the monitor is a
 nonnegative supermartingale with `μ[L 0] ≤ 1` (premise-form e-process
 validity; on ADAPTIVELY reused data this premise is NOT derivable —
 see the module pins) — and the two policy premises:
-`hembed` (the C264 `gate_anytime_valid` embedding shape): if the
+`hembed` (`gate_anytime_valid` embedding shape): if the
 committed gain is FALSE (`¬goodGain`), the e-process has crossed the
 threshold `mon.α⁻¹` by horizon `n` — the e-process DETECTS the false
 commit;
@@ -223,7 +223,7 @@ commit;
 `commit` decision —
 then the probability of a FALSE COMMIT is at most `α`, i.e.
 `μ.real {ω | committed ∧ ¬goodGain ω} ≤ mon.α`. Proof: direct descent
-from `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (the C232/C295
+from `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (
 Ville engine) by measure monotonicity — exactly the
 `audit_monitor_fires` proof shape; no new concentration. -/
 theorem commit_sound {S : Type*} {objective : S → ℝ}
@@ -238,8 +238,8 @@ theorem commit_sound {S : Type*} {objective : S → ℝ}
       ¬ ∃ t ∈ Finset.range (n + 1), cert.mon.α⁻¹ ≤ L t ω) :
     μ.real {ω | cert.decision = MacroDecision.commit ∧ ¬ goodGain ω}
       ≤ cert.mon.α := by
-  -- C394: the radius now flows through the unified premise record
-  -- (`ConcVilleChannel`) instead of the raw C341 monitor form.
+  -- the radius now flows through the unified premise record
+  -- (`ConcVilleChannel`) instead of the raw monitor form.
   have hmain := Hagi.Contracts.VilleMonitor.concVilleAnytime
     (C := ⟨cert.mon.α, cert.mon.α_pos, 𝒢, L, hL, hLnn, hL0⟩) n
 
@@ -299,7 +299,7 @@ theorem macroDecide_anchor_breach :
 
 /-- The full anchor certificate (S := ℝ, objective := id) carrying a
 COMMIT decision over the fresh-batch monitor at `α = 1/4` with
-factors `[2, 2]` (the C341 firing anchor batch). -/
+factors `[2, 2]` (the firing anchor batch). -/
 noncomputable def macroCertAnchor : MacroStatCert ℝ id where
   sBefore := 0
   sAfter := 1
@@ -319,7 +319,7 @@ noncomputable def macroCertAnchor : MacroStatCert ℝ id where
 theorem applyDecision_anchor_commit :
     applyDecision macroCertAnchor = 1 := rfl
 
-/-- The anchor certificate's monitor is exactly the C341 firing
+/-- The anchor certificate's monitor is exactly the firing
 anchor batch: factors `[2, 2]` at `α = 1/4` reach the e-value `4`
 and the monitor FIRES (a false commit under this monitor is caught
 by `commit_sound` at level `α = 1/4`). -/

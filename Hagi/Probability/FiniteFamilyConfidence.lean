@@ -31,7 +31,7 @@ noncomputable def populationMean {n : ℕ} (p : Fin n → V → ℝ)
   (∑ i, coordMean p X i) / (n : ℝ)
 
 /- `empiricalMean` moved to `Hagi.Probability.FiniteFamilyConfidenceEmpirical`
-(same namespace, C276). -/
+(same namespace). -/
 
 omit [Nonempty V] in
 /-- Population means commute with multiplication by an arbitrary real

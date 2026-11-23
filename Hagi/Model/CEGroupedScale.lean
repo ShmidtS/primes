@@ -8,10 +8,10 @@ import Hagi.Model.CEQuantized
 import Hagi.Runtime.TernaryExact
 
 /-!
-# CEGroupedScale — the grouped dyadic-scale canon (C523)
+# CEGroupedScale — the grouped dyadic-scale canon
 
-Merged here (C523, v5 W1): `Hagi.Model.CEGroupedScaleBasic`
-(`featureAbsSum` leaf; the C276 import-cost split is reverted as a
+Merged here (v5 W1): `Hagi.Model.CEGroupedScaleBasic`
+(`featureAbsSum` leaf; the import-cost split is reverted as a
 known cost accepted by plan v5), and `Hagi.Model.CEScaleSelection`
 (packed-step payload section).  Namespaces unchanged.
 -/
@@ -318,7 +318,7 @@ end Hagi.Model.CEScaleSelection
 
 The single Mathlib-only definition `featureAbsSum` that the batch
 descent common part consumes.  Split out of `Hagi.Model.CEGroupedScale`
-(C276) so that the descent import path does not pay for the grouped
+ so that the descent import path does not pay for the grouped
 scale stack; the namespace is continued here, so the fully-qualified
 name is unchanged.
 -/
@@ -474,7 +474,7 @@ noncomputable def blockWeights {G : ℕ}
   fun i => w.ofLp (e (g, i))
 
 /- `featureAbsSum` moved to `Hagi.Model.CEGroupedScaleBasic` (same
-namespace, C276). -/
+namespace). -/
 
 /-- Twice the actual sum of absolute logit changes of one block. -/
 noncomputable def groupObservedPenalty {G : ℕ} {V : Type} [Fintype V]
@@ -1092,7 +1092,7 @@ theorem ceQuantWitness_decoded_packedBlock_strict_descent :
   · exact ceQuantWitness_selectedGroupScales_strict_descent
 
 
-/-! ## Computable per-block scale selector (C248, TD A5-R5-C241)
+/-! ## Computable per-block scale selector (TD A5-R5-C241)
 
 The executable counterpart of `selectedGroupScales`: an explicit
 `List.foldl` argmin over all 255 dyadic codes, seeded at

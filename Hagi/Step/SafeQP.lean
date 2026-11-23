@@ -561,7 +561,7 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
         field_simp
 
 
-/-- C365 общий ингредиент концентрационных доказательств: проекция
+/-- общий ингредиент концентрационных доказательств: проекция
 шума на направление ограничена `σ·‖d‖` (Коши–Шварц). Ранее
 байт-в-байт дублировался в `minibatch_inner_concentration` и
 `minibatch_inner_concentration_upper`. -/
@@ -575,7 +575,7 @@ theorem noise_proj_abs_le {m : ℕ} (d : X) (sigma : ℝ)
     _ ≤ sigma * ‖d‖ :=
         mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg d)
 
-/-- C365 общий ингредиент: тождество показателя хвоста
+/-- общий ингредиент: тождество показателя хвоста
 `m·noiseEps² = 2·(σ‖d‖)²·log(|K|/δ)`. Ранее дублировался
 байт-в-байт в обоих концентрационных доказательствах. -/
 theorem noiseEps_sq_identity {m : ℕ} [Nonempty K] (hm : 0 < m)
@@ -942,9 +942,9 @@ theorem lr_batch_equivalence {m k : ℕ} (hm : 0 < m) (hk : 0 < k)
     (2 * Real.log ((Fintype.card K : ℝ) / delta) / m) (k:ℝ) hk']
   field_simp
 
-/-! ### C287: мост к единому concentration API -/
+/-! ### мост к единому concentration API -/
 
-/-- C287: единичный шумовой радиус R = 1/2 — частный случай
+/-- единичный шумовой радиус R = 1/2 — частный случай
 `minibatch_inner_tail`, инстанцирующий единый
 `Hagi.Probability.concConfidence ε m` API: экспонента
 `−m·ε²/(2·(1/2)²) = −2mε²` совпадает с канонической. -/
@@ -1644,7 +1644,7 @@ end Hagi.Step
 # Варианты SafeQP: метрический SafeQP и KLS-SafeQP
 
 Разделы ниже слиты из отдельных модулей; имена деклараций
-сохранены (политика слияний — C416, см. Hagi/Step/SafeQP.lean).
+сохранены (политика слияний — см. Hagi/Step/SafeQP.lean).
 
 Проекция кандидата d₀ на допустимое множество
 `⟪g_i, d⟫ ≥ −ε_i` в метрике d ↦ ‖A d‖ (симметричная

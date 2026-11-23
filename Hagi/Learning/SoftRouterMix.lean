@@ -291,7 +291,7 @@ set_option linter.style.header false
 /-!
 # SoftRouterTotal — сквозной regret-бандл мягкого роутера (цикл 20)
 
-Композиция C320: `soft_router_ce_bound` (C319, по-раундовая
+Композиция `soft_router_ce_bound` (по-раундовая
 калибровка смеси логитов) + регрет-носитель Hedge
 (`Hagi.Optimization.MirrorHedgeRouting.router_regret_bound` с
 выведенной посылкой выживания `Hagi.Optimization.MirrorHedgeSurvivor.
@@ -299,7 +299,7 @@ hsurv_derived`). Итог — `soft_router_total_bound`: за T раундов
 мягкий роутинг с Hedge-весами wᵗ = ewNorm CE-потерь конкурентен
 ЛЮБОМУ одиночному эксперту в ретроспективе (total mixture CE ≤
 best-expert total CE + log N/η + η·T/2), причём калиброванный CE
-гарантирован на КАЖДОМ шаге (C319). Новая математики нет — только
+гарантирован на КАЖДОМ шаге. Новая математики нет — только
 суммирование-склейка; обе стороны процитированы.
 
 Challenge-pins (честные границы, все три в докстрингах):
@@ -311,7 +311,7 @@ Challenge-pins (честные границы, все три в докстрин
   abstention: эксперты с CE > 1 — уверенно неверные уровня wz2 —
   исключены; для них нужен масштабированный η, не заявлено).
 * ИНДЕКС ЭКСПЕРТОВ: носитель `ewNorm` фиксирован во вселенной
-  `Type` 0, а C319 индексирует экспертов `Fin N` — композиция
+  `Type` 0, а индексирует экспертов `Fin N` — композиция
   заявлена на `Fin N` с `[Nonempty (Fin N)]`, оба носителя
   применяются дословно.
 * GUARD / SLEEPING EXPERTS: у носителя Hedge НЕТ механизма
@@ -349,15 +349,15 @@ theorem ceOneHot_nonneg {k : Type*} [Fintype k] [Nonempty k]
   rw [Real.log_exp] at h2
   linarith
 
-/-- ГЛАВНЫЙ РЕЗУЛЬТАТ C320 — сквозной бандл: за T раундов с
+/-- ГЛАВНЫЙ РЕЗУЛЬТАТ — сквозной бандл: за T раундов с
 Hedge-весами wᵗ = ewNorm CE-потерь (η ∈ (0,1]) и посылкой CE ≤ 1
 (exact-expert abstention) суммарный CE мягкой смеси не превосходит
 суммарный CE ЛЮБОГО одиночного эксперта плюс константу регрета
 носителя log N/η + η·T/2. Композиция: по-раундовая калибровка
-`soft_router_ce_bound` (C319) + агрегация `hsurv_derived` +
+`soft_router_ce_bound` + агрегация `hsurv_derived` +
 `router_regret_bound` (Hedge-носитель); новые факты — только
 неотрицательность CE и суммирование. Эксперты — `Fin N` (вселенная
-носителя Type 0, C319 индексирует Fin N); sleeping-experts regret не
+носителя Type 0, индексирует Fin N); sleeping-experts regret не
 заявлен (см. докстринг модуля). -/ 
 theorem soft_router_total_bound {k : Type*} [Fintype k] [Nonempty k]
     {N : ℕ} [Nonempty (Fin N)]
@@ -374,7 +374,7 @@ theorem soft_router_total_bound {k : Type*} [Fintype k] [Nonempty k]
   have hl : ∀ t ∈ Finset.range T, ∀ j, 0 ≤ l t j ∧ l t j ≤ 1 := by
     intro t ht j
     exact ⟨ceOneHot_nonneg (lab t) (z t j), hce t ht j⟩
-  -- по-раундовая калибровочная склейка (C319)
+  -- по-раундовая калибровочная склейка
   have hround : ∀ t ∈ Finset.range T,
       ceOneHot (lab t) (fun v => ∑ j, ewNorm l eta t j * z t j v)
         ≤ ∑ j, ewNorm l eta t j * l t j := by
@@ -555,13 +555,12 @@ set_option linter.style.header false
 /-!
 # SleepingRouter — sleeping-experts regret мягкого роутера (цикл 21)
 
-C325 закрывает honest gap C320 (`SoftRouterTotal`): у Hedge-носителя
+ закрывает honest gap (`SoftRouterTotal`): у Hedge-носителя
 нет механизма спящих экспертов — веса обновляются по ВСЕМ экспертам
 каждый раунд, поэтому его regret не покрывает конкуренцию с лучшим
 ДОСТУПНЫМ экспертом, когда guard-гатенные эксперты спят на части
 раундов. Здесь — классический imputed-loss редукционный трюк
-(Freund–Schapire share updates / specialists; вывод —
-`.tmp/C325/research.md`):
+(Freund–Schapire share updates / specialists):
 
 * спящие эксперты обновляются ПОТЕРЕЙ СМЕСИ m_t (не своими ℓ):
   `w(t+1,i) = w(t,i)·(if awake then e^{-ηℓ} else e^{-η m_t})`;
@@ -578,11 +577,11 @@ C325 закрывает honest gap C320 (`SoftRouterTotal`): у Hedge-носит
   даже неотрицательность m_t не нужна).
 
 Итог — `sleeping_hedge_regret` (носитель) и
-`sleeping_router_total_bound` (композиция C320, апгрейд): мягкий
+`sleeping_router_total_bound` (композиция апгрейд): мягкий
 роутер конкурирует с ЛЮБЫМ экспертом i НА ЕГО СОБСТВЕННЫХ
 ДОСТУПНЫХ РАУНДАХ — total mixture CE ≤ Σ_{t: i awake} CE_i +
 log N/η + η·T/2 при по-раундовой калибровке `soft_router_ce_bound`
-(C319) на awake-supported симплекс-весах `swPredW`.
+ на awake-supported симплекс-весах `swPredW`.
 
 Challenge-pins (честные границы):
 
@@ -937,7 +936,7 @@ theorem swPredW_sum {N : ℕ} (l : ℕ → Fin N → ℝ) (a : ℕ → Fin N →
     (swWeight_pos l a eta t)
   simpa only [mul_one] using hns
 
-/-- `swPredW_ce` — по-раундовая калибровка (C319): CE смеси логитов
+/-- `swPredW_ce` — по-раундовая калибровка: CE смеси логитов
 не хуже взвешенного среднего CE экспертов; на awake-supported
 весах взвешенная сумма CE РАВНА потере смеси `swMixLoss`
 (`swPredW_mul_sum`). -/
@@ -964,13 +963,13 @@ section Total
 
 variable {k : Type*} [Fintype k] [Nonempty k]
 
-/-- ГЛАВНЫЙ РЕЗУЛЬТАТ КОМПОЗИЦИИ — апгрейд C320
+/-- ГЛАВНЫЙ РЕЗУЛЬТАТ КОМПОЗИЦИИ — апгрейд
 (`soft_router_total_bound` со спящими экспертами). За T раундов с
 guard-маской a (каждый раунд хоть один эксперт доступен, CE ≤ 1 —
-exact-expert abstention как в C320) суммарный CE мягкой awake-смеси
+exact-expert abstention) суммарный CE мягкой awake-смеси
 НА ДОСТУПНЫХ РАУНДАХ ЭКСПЕРТА i не превосходит суммарный CE
 эксперта i на тех же раундах плюс константа носителя
-log N/η + η·T/2. Композиция: по-раундовая калибровка C319
+log N/η + η·T/2. Композиция: по-раундовая калибровка
 (`swPredW_ce`) + `sleeping_hedge_regret`; новые факты — только
 суммирование-склейка. Honest scope: oblivious-последовательности
 (без drift/адаптивности — скоуп носителя); regret против
@@ -1069,7 +1068,7 @@ theorem mixLossOf_singleton {ι : Type} [Fintype ι] (w lt : ι → ℝ)
   rw [hfil, Finset.sum_singleton, Finset.sum_singleton, div_self hw,
     one_mul]
 
-/-- Якорные потери: CE экспертов C320 (`az`): эксперт 0 = wz1
+/-- Якорные потери: CE экспертов (`az`): эксперт 0 = wz1
 (CE = L = log(1+e⁻²)), эксперт 1 = константа 1 (CE = log 2). -/
 noncomputable def sleep_anchor_loss : ℕ → Fin 2 → ℝ :=
   fun t j => ceOneHot 0 (Hagi.Learning.SoftRouterTotal.az t j)

@@ -8,7 +8,7 @@ set_option linter.style.header false
 set_option linter.dupNamespace false
 
 /-!
-# Audit ledger (C274, audit item E7): Lean bridge for the Python
+# Audit ledger (audit item E7): Lean bridge for the Python
 HoeffdingAudit protocol
 
 Аудит-протокол (A10 synthesis) — это протокол НЕПРЕРЫВНОГО
@@ -408,17 +408,17 @@ theorem audit_rejected_consumed (L : AuditLedger σ ι) (s : σ) (k : ℕ)
     · omega
     · omega
 
-/-! ## Мастер-теорема: связка с C264 gate_pipeline_false_commit -/
+/-! ## Мастер-теорема: связка с gate_pipeline_false_commit -/
 
 /-- MASTER (E7): если событие Bad t «floor старой задачи t
 ложно пострадал» имеет вероятность ≤ spent t (форма
 CertifiedEstimator e^{−2nε²}, см. `audit_alpha_spends_radius`), то
 вероятность, что НИ одна старая задача не пострадает ложно за весь
-протокол, ≥ 1 − δtotal. ПРЯМОЕ применение C264
+протокол, ≥ 1 − δtotal. ПРЯМОЕ применение
 `gate_pipeline_false_commit` с β := spent, δ := δtotal —
 инвариант-поле spentTotal реестра есть в точности посылка Σ β ≤ δ
 гейта; новая union-математика НЕ выводится (challenge-pin
-плана C274). -/
+плана). -/
 theorem audit_false_harm_bounded {V : Type} [Fintype V] [Nonempty V]
     {n : ℕ} (L : AuditLedger σ ι) (p : Fin n → V → ℝ)
     (hp : Hagi.Probability.IsProbSys p)

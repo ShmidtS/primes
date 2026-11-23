@@ -8,19 +8,19 @@ import Hagi.Dynamics.EndpointContraction
 /-!
 # Online PL tracking rate for a frozen extractor (streaming head)
 
-C412. The streaming counterpart of the static PL convergence theory
-(C351): data arrive sequentially, the extractor is FROZEN, and only
+ . The streaming counterpart of the static PL convergence theory
+data arrive sequentially, the extractor is FROZEN, and only
 the head trains online with gradient descent (`plStep`, step `1/L`).
 The per-round objective changes (`L_t`), so two regimes live here:
 
 * STATIC (fixed distribution): per-t PL + smoothness give the
   geometric loss rate `(1 - μ/L)^T` of `margin_pl_convergence` —
-  the C351 machinery applies verbatim per t; nothing new is needed.
+  the machinery applies verbatim per t; nothing new is needed.
 * DYNAMIC (drifting optimum): the iterate TRACKS the moving optimum
   `θ*_t` with the affine recursion `d(t+1) ≤ q·d t + Δ`,
   `q = 1 - μ/L`, hence the steady-state radius `Δ·L/μ`.
 
-Key honesty points (the C412 plan-review challenges):
+Key honesty points (the plan-review challenges):
 
 * DISTANCE contraction needs STRONG CONVEXITY, not bare PL: PL alone
   bounds the loss gap (`pl_descent_step_at`); the bridge
@@ -39,7 +39,7 @@ Key honesty points (the C412 plan-review challenges):
   margin route of `margin_pl_ball` is the intended per-head
   discharger.
 
-Streaming composition pointer (C402): each `HeadPhase` of the
+Streaming composition pointer: each `HeadPhase` of the
 alternating joint training loop is a frozen-extractor head phase; its
 per-phase certificate gets the rate form
 `‖θ_t − θ*_t‖ ≤ (1 - μ/L)^t·d₀ + Δ·L/μ` and the induced loss bound of
@@ -47,7 +47,7 @@ per-phase certificate gets the rate form
 reference, and the phase-to-phase drift enters as the `Δ` binder.
 
 no reference: Mathlib snapshot has no co-coercivity or PL-tracking
-API (C351 survey); classical shift-plus-descent proof route adapted.
+API; classical shift-plus-descent proof route adapted.
 -/
 
 open scoped InnerProductSpace
@@ -236,7 +236,7 @@ theorem gd_dist_contraction (f : E → ℝ) (grad : E → E) (L μ : ℝ) (hL : 
 /-- The SC ⊂ PL bridge: first-order strong convexity plus
 stationarity of `θ*` (`grad θstar = 0`), `fstar = f θstar` and the
 floor imply the PL inequality `2μ(f θ − fstar) ≤ ‖grad θ‖²` at every
-point — so the static C351 machinery (`pl_descent_step_at`,
+point — so the static machinery (`pl_descent_step_at`,
 `margin_pl_convergence`) applies per t under SC. -/
 theorem sc_implies_pl (f : E → ℝ) (grad : E → E) (μ fstar : ℝ) (hμ : 0 < μ)
     (h_sconv : ∀ x y : E, f x + ⟪grad x, y - x⟫_ℝ + μ / 2 * ‖y - x‖ ^ 2 ≤ f y)
@@ -280,7 +280,7 @@ envelope `(1 − μ/L)^n·d₀ + Δ·L/μ`, where `Δ` is the drift binder
 (`‖θs(t+1) − θs t‖ ≤ Δ`, the distribution-shift premise) and each
 `θs t` is stationary for its round objective (`grad t (θs t) = 0`).
 Static case `Δ = 0`: pure geometric contraction to the fixed
-optimum; per-t loss rate = `pl_descent_step_at` (C351) at each round. -/
+optimum; per-t loss rate = `pl_descent_step_at` at each round. -/
 theorem online_tracking (f : ℕ → E → ℝ) (grad : ℕ → E → E) (L μ Δ : ℝ)
     (hL : 0 < L) (hμ : 0 < μ) (hμL : μ < L) (hΔ : 0 ≤ Δ)
     (h_smooth : ∀ t : ℕ, ∀ x y : E,
@@ -316,7 +316,7 @@ theorem online_tracking (f : ℕ → E → ℝ) (grad : ℕ → E → E) (L μ �
     rw [h_step t] at htri
     rw [← hqdef] at hcontr
     linarith
-  -- C415: affine tracking recursion bound is
+  -- affine tracking recursion bound is
   -- Hagi.Dynamics.contraction_limit (α-duplicate restatement removed).
   have hmain := Hagi.Dynamics.contraction_limit
     (fun t => ‖θ t - θs t‖) q Δ hq hq1 hΔ hrec n

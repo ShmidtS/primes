@@ -13,14 +13,14 @@ The first composition theorem of the nonlinear backbone certificate
 (E4 seed, `.omc/analysis/period-c292-c297-analysis.md` rank 2): a
 certified head descent transfers through residual blocks with an
 explicit leak bound — the cascade-leak pattern of
-`Hagi.Architecture.CascadeLeak` (C250) applied to the UPDATE path
+`Hagi.Architecture.CascadeLeak` applied to the UPDATE path
 instead of the adapter path.
 
 Carrier is the abstract residual stream of `Hagi.Model.Residual`
 (`resStep f x = x + f x`, source №22). No differentiability is
 assumed anywhere: the residual-branch response `f (x + dx) − f x`
 is bounded by a `LipschitzWith` premise-form, and the certified
-head drop enters as a premise (`hdrop`) of the C291 shape
+head drop enters as a premise (`hdrop`) of the shape
 (`ceOneHot_next_le_param` instantiates it).
 
 One block (`resStep_lipschitz`, `residual_transfer_le`,
@@ -106,7 +106,7 @@ theorem residual_transfer_le {f : X → X} {loss : X → ℝ}
   linarith
 
 /-- Certified head descent transfers through ONE residual block: a
-drop `δ` certified at the block output for the intended step (C291
+drop `δ` certified at the block output for the intended step (
 premise-form) survives the block up to the leak slack `Lc·μ·‖dx‖`. -/
 theorem residual_transfer_descent {f : X → X} {loss : X → ℝ}
     {μ Lc : NNReal} {δ : ℝ} (hf : LipschitzWith μ f)
@@ -257,7 +257,7 @@ theorem resStack_lipschitz (blocks : List ((X → X) × NNReal))
 `G (x + dx) − G x` deviates from the intended identity-path step
 `dx` by at most `(∏ (1 + μᵢ) − 1)·‖dx‖`. The leak composes
 MULTIPLICATIVELY (one block: `μ·‖dx‖`; each new block multiplies the
-factor by `(1 + μᵢ)`) — the cascade-leak composition of C250 on the
+factor by `(1 + μᵢ)`) — the cascade-leak composition on the
 update path. -/
 theorem resStack_leak_le (blocks : List ((X → X) × NNReal))
     (h : ∀ b ∈ blocks, LipschitzWith b.2 b.1) (x dx : X) :

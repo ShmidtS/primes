@@ -214,7 +214,7 @@ theorem ef_objective_deviation (f : V → ℝ) (L : ℝ) (hL : 0 ≤ L)
 /-- НАИВНАЯ ГРАНИЦА (без EF): если шаг квантуется напрямую
 `Q (η t • d t)` без резидуала, отклонение от идеальной траектории
 ≤ T • ε — ЛИНЕЙНОЕ накопление ошибок компрессора (паттерн
-`Hagi.State.obj_telescope_err` C375 на векторах отклонения). -/
+`Hagi.State.obj_telescope_err` на векторах отклонения). -/
 theorem naive_deviation_bound (T : ℕ) (xN y : ℕ → V)
     (η : ℕ → ℝ) (d : ℕ → V) (Q : V → V) (ε : ℝ)
     (hQ : boundedErrorCompressor Q ε)

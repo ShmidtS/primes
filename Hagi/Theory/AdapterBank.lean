@@ -6,10 +6,10 @@ import Mathlib.Tactic
 import Hagi.Theory.AdapterGrowth
 
 /-!
-# AdapterBank — bank доменных адаптеров + warm-start (C567)
+# AdapterBank — bank доменных адаптеров + warm-start
 
 Source-anchored мост волны HAGI_v2 210/210b (прецедент
-wave199 → C530): upstream-код реализовал bank per-domain
+wave199 →): upstream-код реализовал bank per-domain
 адаптеров и warm-start перенос БЕЗ теории — этот модуль
 формализует семантику КОДА точно.
 
@@ -22,7 +22,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
   факторов src в dst («copy semantics — source untouched by
   construction»);
 - `hagi/unified.py:147-165` — wave210 использование: fresh слот
-  нейтрален (B=0 ⇒ identity, C532), certified-обучение только
+  нейтрален (B=0 ⇒ identity), certified-обучение только
   fresh-домена;
 - `hagi/lm.py:770-777` — forward `x + B(A x)` из своего слота.
 
@@ -41,8 +41,8 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
 - `warm_transfer_sound` — forgetA=0 (слот src не меняется при
   ЛЮБОМ соотношении src/dst, включая вырожденную копию себя) ∧
   dst-слот = копия src ∧ certified-шаг с warm-init (та же
-  гарантия, что `adapter_step_certified` C532 — init в statement
-  не входит; C560 honest-заметка поднята до теоремы);
+  гарантия, что `adapter_step_certified` — init в statement
+  не входит; honest-заметка поднята до теоремы);
 - `warm_transfer_train_isolation` — certified-обучение dst ПОСЛЕ
   warm-transfer не трогает src (забывание = 0 структурно);
 - `bank_composition` — N доменных обновлений (fold bankBatch):
@@ -52,9 +52,8 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
 ## Honest pins (что этот мост НЕ покрывает)
 
 - **Transfer-качество НЕ гарантируется**: T1/T2 (better/worse
-  than cold) — bench-ЭМПИРИКА (C560: 3/3 пары T1 по AUC), не
-  теорема; warm-init может быть хуже cold (негатив в
-  `.tmp/C567/trajBank.lean`). Решение «когда переносить» —
+  than cold) — bench-ЭМПИРИКА (3/3 пары T1 по AUC), не
+  теорема; warm-init может быть хуже cold (bench-негатив). Решение «когда переносить» —
   caller (unified.py:156, pre-registered closeness).
 - **Shape-mismatch ветка transfer → False** (разные (d,r)) —
   ВНЕ модели: внутри банка формы совпадают по построению
@@ -66,7 +65,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
 - **Обучение trunk/head** — вне носителя: банк замораживает
   общий trunk (wave210: «never changes the incumbent path»);
   если trunk обновляется — см. `trunk_update_needs_projection`
-  (C544/C538).
+.
 -/
 
 set_option relaxedAutoImplicit false
@@ -97,7 +96,7 @@ def bankUpdate (bank : AdapterBankState ι r d) (j : ι)
     (a : AdaptState r d) : AdapterBankState ι r d :=
   fun i => if i = j then a else bank i
 
-/-- Warm-start перенос (wave210b / C560 adapter_warm_start,
+/-- Warm-start перенос (wave210b / adapter_warm_start,
 trunk_ops.py:286): слот dst получает КОПИЮ факторов слота src.
 Копия, не ссылка: в Lean-значениях присваивание пары = копия —
 source untouched by construction. -/
@@ -105,9 +104,9 @@ def warmTransfer (bank : AdapterBankState ι r d) (src dst : ι) :
     AdapterBankState ι r d :=
   bankUpdate bank dst (bank src)
 
-/-- **(a) adapter_bank_isolation (C567)**: обновление слота `j`
+/-- **(a) adapter_bank_isolation**: обновление слота `j`
 не меняет выход слота `i ≠ j` ТОЧНО (ни при каком содержимом
-нового слота `a` и входе `x`). Конечная форма C544
+нового слота `a` и входе `x`). Конечная форма
 `adapter_isolation_zero_forgetting`: там изоляция — ГИПОТЕЗА
 `s' i = s i`; здесь она — структурный факт `bankUpdate`.
 Upstream-семантика trunk_ops.py:327 «isolation by construction
@@ -151,7 +150,7 @@ theorem warm_transfer_source_unchanged
   · subst h; simp
   · simp [h]
 
-/-- **(b) warm_transfer_sound (C567)**: конъюнкция гарантий
+/-- **(b) warm_transfer_sound**: конъюнкция гарантий
 warm-start — ровно то, что код даёт и ничего больше:
 (1) forgetA = 0: слот src не меняется (`copy semantics`);
 (2) dst-слот = копия src (`dst.A = src.A.copy()` + `dst.B =
@@ -159,8 +158,8 @@ src.B.copy()`);
 (3) certified-обучаемость с warm-init: measured drop
 `obj cand < obj (bank src)` ⇒ шаг `adapterStep obj (bank src) cand`
 COMMIT-ится и obj строго убывает — та же гарантия
-`adapter_step_certified` (C532), init в её statement не входит
-(C560 honest-заметка AdapterGrowth — теперь ЯВНАЯ теорема). -/
+`adapter_step_certified`, init в её statement не входит
+(honest-заметка AdapterGrowth — теперь ЯВНАЯ теорема). -/
 theorem warm_transfer_sound (bank : AdapterBankState ι r d)
     (src dst : ι) (obj : AdaptState r d → ℝ)
     (cand : AdaptState r d)
@@ -205,7 +204,7 @@ def bankBatch (bank : AdapterBankState ι r d)
     (upd : List (ι × AdaptState r d)) : AdapterBankState ι r d :=
   upd.foldl (fun b p => bankUpdate b p.1 p.2) bank
 
-/-- **(c) bank_composition (C567)**: после N доменных обновлений
+/-- **(c) bank_composition**: после N доменных обновлений
 (bankBatch, каждый домен — СВОЙ слот) выход слота `i`, которого
 НЕ касался ни один шаг, неизменен ТОЧНО — все инварианты
 нетронутых доменов держатся при любом числе доменов. Индукция по

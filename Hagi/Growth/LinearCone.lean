@@ -10,11 +10,11 @@ import Hagi.Growth.GainRenewal
 set_option linter.style.header false
 
 /-!
-# LinearCone — consolidated cone-family core (C238, A5 R3 slice 5)
+# LinearCone — consolidated cone-family core (A5 R3 slice 5)
 
 Byte-identical merge of PerronCone, ConeCorridor, GrowthDynamics,
 ConeDynamics, NonlinearCone, FrontierScaling. Namespace blocks and
-declaration FQNs preserved; see .tmp/C238/ for the census receipt.
+declaration FQNs preserved.
 -/
 
 section C238_perron

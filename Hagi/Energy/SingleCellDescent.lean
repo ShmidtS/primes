@@ -27,7 +27,7 @@ nonincrease certificate, and the three DISTINCT stationarity/validity notions
 * `single_cell_move_energy_delta` — (E2a MAIN, general, NO symmetry
   assumed): `E(y^{i←a}) − E(y) = (1/2)·((Ld a + Lt a) − (Ld b + Lt b)) +
   (B_i(a) − B_i(b))`, `b = y_i`. Every partition term not involving cell `i`
-  cancels EXACTLY — this is the clean cancellation the C260 ordered-pair
+  cancels EXACTLY — this is the clean cancellation the ordered-pair
   convention (factor `1/2` outside) buys.
 * `single_cell_move_energy_delta_symm` — under symmetric `K`
   (`K_ij(a,b) = K_ji(b,a)`, the CRAM `W = sym(K)`): the delta is EXACTLY
@@ -88,7 +88,7 @@ theorem sum_univ_split (f : ι → ℝ) (i : ι) :
 
 /-- (E2a MAIN, general, NO symmetry): the exact single-cell move delta is
 the SYMMETRIZED-field difference. All interaction terms not involving the
-moved cell `i` cancel exactly (the C260 ordered-pair convention with the
+moved cell `i` cancel exactly (the ordered-pair convention with the
 factor `1/2` outside). -/
 theorem single_cell_move_energy_delta (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)
     (y : ι → α) (i : ι) (a : α) :
@@ -283,7 +283,7 @@ theorem global_minimum_is_coordinate_minimum (B : ι → α → ℝ)
 end Minima
 
 section Fixture
-/-! ## Fin 2 × Bool fixture (vacuity audit; C260 carrier Bex/Kex/xex/xtt) -/
+/-! ## Fin 2 × Bool fixture (vacuity audit; carrier Bex/Kex/xex/xtt) -/
 
 open Hagi.Energy
 

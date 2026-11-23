@@ -9,7 +9,7 @@ import Hagi.Model.BatchCEDescentLogitRange
 /-!
 # BatchCEStepCore
 
-Canonical batch CE step inputs, executed `trainStep` descent certificates, certified drop, and the heterogeneous mixed-feature witness. Split from `BatchCEStepCertificate` (C255).
+Canonical batch CE step inputs, executed `trainStep` descent certificates, certified drop, and the heterogeneous mixed-feature witness. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -330,9 +330,9 @@ theorem batchCertifiedDrop_le_actualDrop [Nonempty V]
     rw [batchCEObjective, batchCEObjective, coreParameters_batchTrainStep]
     linarith
 
-/-! ## Sharp-range certified drop (C233 R2 wiring) -/
+/-! ## Sharp-range certified drop (R2 wiring) -/
 
-/-- Sharp-range certified residual: the exact C223 expression
+/-- Sharp-range certified residual: the exact expression
 `2 * batchAlignment^2 / batchLogitRangeSquare` under the same zero-branch
 convention as `batchCertifiedDrop`, with the sharp mean logit range
 `batchLogitRangeSquare` in place of `batchRangeSquare`. -/

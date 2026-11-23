@@ -15,7 +15,7 @@ The rope rung of the E4 backbone ladder (TD E4-C300/C307 notes):
 the existing rotary fact `Hagi.Core.RoPEMoments.rot_norm` preserves
 the pairwise-block inner product `pairInner x x` (same-vector form
 only), and this rung upgrades it to a genuine NORMED-SPACE isometry
-and wires it into the C300/C307 transfer stack.
+and wires it into the transfer stack.
 
 The upgrade route (probe-verified):
 
@@ -37,11 +37,11 @@ The upgrade route (probe-verified):
   pre/post-composition keeps a Lipschitz constant unchanged
   (`LipschitzWith μ (f ∘ R)` from `LipschitzWith μ f`).
 * `attention_block_rope_transfer` — a RoPE-wrapped pre-norm
-  attention block satisfies the SAME C300 leak bound at the
+  attention block satisfies the SAME leak bound at the
   unchanged composed damping `μn·μatt`.
 * `attnRopeBlockList`, `attnRopeStack`, `attnRopeGain` — stacks of
   rope-wrapped blocks: the gain is UNCHANGED (`attnRopeGain_eq`,
-  `stackGain_wrap`), and the C300 stack descent theorem applies
+  `stackGain_wrap`), and the stack descent theorem applies
   verbatim (`attention_rope_stack_transfer_descent`, `_strict`).
 
 Anchor: the concrete 4-dimensional rotation by π/3 (d = 2) is
@@ -51,7 +51,7 @@ Honest scope: the isometry is on the Euclidean carrier
 `EuclideanSpace ℝ (Fin d ⊕ Fin d)` through the `toEuc` transport —
 no operator-norm statement, no matrix-orthogonality claim
 (`RᵀR = I` form), no softmax-map Lipschitz, no RMSNorm constant;
-those stay premise-form / future rungs as in C307.
+those stay premise-form / future rungs .
 -/
 
 namespace Hagi.Model.RoPETransfer
@@ -193,7 +193,7 @@ theorem rope_block_post_transfer {X : Type*} [NormedAddCommGroup X]
 -/
 
 /-- A RoPE-wrapped pre-norm attention block (rotation applied to
-the block input) satisfies the SAME C300 leak bound at the
+the block input) satisfies the SAME leak bound at the
 unchanged composed damping `μn·μatt`. -/
 theorem attention_block_rope_transfer
     {n : EuclideanSpace ℝ (Fin d ⊕ Fin d) →
@@ -242,7 +242,7 @@ noncomputable def attnRopeBlockList (bs : List (AttnBlock
       EuclideanSpace ℝ (Fin d ⊕ Fin d)) × NNReal) :=
   (attnBlockList bs).map fun c => (fun x => c.1 (rotEuc θ m x), c.2)
 
-/-- The rope-wrapped stack: the C300 residual stack over the
+/-- The rope-wrapped stack: the residual stack over the
 wrapped list. -/
 noncomputable def attnRopeStack (bs : List (AttnBlock
     (EuclideanSpace ℝ (Fin d ⊕ Fin d)) ι)) (θ : Fin d → ℝ) (m : ℕ) :
@@ -265,7 +265,7 @@ theorem attnRopeGain_eq (bs : List (AttnBlock
   unfold attnRopeGain attnGain attnRopeBlockList attnBlockList
   exact stackGain_wrap _ _
 
-/-- Every rope-wrapped block satisfies the C300 block hypothesis at
+/-- Every rope-wrapped block satisfies the block hypothesis at
 the UNCHANGED composed damping. -/
 theorem attnRopeBlockList_lipschitz (bs : List (AttnBlock
     (EuclideanSpace ℝ (Fin d ⊕ Fin d)) ι)) (θ : Fin d → ℝ) (m : ℕ)
@@ -283,7 +283,7 @@ theorem attnRopeBlockList_lipschitz (bs : List (AttnBlock
 
 /-- Certified head descent transfers through a stack of
 rope-wrapped attention blocks with the UNCHANGED leak factor
-`Lc·(∏ (1 + μnᵢ·μattᵢ) − 1)·‖dx‖` — the C300 stack theorem applied
+`Lc·(∏ (1 + μnᵢ·μattᵢ) − 1)·‖dx‖` — the stack theorem applied
 verbatim. -/
 theorem attention_rope_stack_transfer_descent (bs : List (AttnBlock
     (EuclideanSpace ℝ (Fin d ⊕ Fin d)) ι)) (θ : Fin d → ℝ) (m : ℕ)

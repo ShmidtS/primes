@@ -438,7 +438,7 @@ theorem fixedBatch_meanDirection_tendsto_zero
   rw [hEq]
   simpa using h.neg
 
-/-! ## Sharp-range wiring (C233 R2, resolves the C230 deferral) -/
+/-! ## Sharp-range wiring (R2, resolves the deferral) -/
 
 /-- The sharp mean logit-range square is controlled by the same explicit
 feature-curvature constant as the engine range square: transitivity of
@@ -453,7 +453,7 @@ theorem batchLogitRangeSquare_le_rangeCurvature_mul_alignment [Nonempty V]
 
 /-- Under a positive sharp mean range-square the budget constant
 `2 / (rangeCurvature + 1)` certifies the SHARP-range residual
-`batchLogitCertifiedDrop` (the exact C223/C230 gate expression), not only
+`batchLogitCertifiedDrop` (the exact gate expression), not only
 the engine residual: the old bound transports through
 `batchCertifiedDrop_le_batchLogitCertifiedDrop`. -/
 theorem alignment_le_scaled_logitCertifiedDrop [Nonempty V]

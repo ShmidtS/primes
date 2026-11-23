@@ -3,7 +3,7 @@ import Hagi.Cert.StepGen
 
 /-!
 # CanonicalTrainState — единое каноническое состояние обучения
-с инвариантом полного откката (user audit 3.1, C363)
+с инвариантом полного откката (user audit 3.1)
 
 Контракт поверх Freeze-locked `Hagi.State.TrainState` (§4.1):
 
@@ -21,12 +21,12 @@ import Hagi.Cert.StepGen
   не может спрятать дрейф буферов за спуск весов;
 * `FullStepCert` + `fullStepCert_toCertStepGen` — сертификат шага,
   связывающий ПОЛНОЕ состояние с общим ядром `Hagi.Cert.CertStepGen`
-  (C345): один адаптер показывает, что ядро может вести это
+один адаптер показывает, что ядро может вести это
   состояние.
 
 Честный объём (honest scope): это ОПРЕДЕЛЕНИЕ КОНТРАКТА + инвариант,
 НЕ миграция. Кандидаты на миграцию (последующие транши):
-`Hagi.Model.EnergyReasoning.CRAMState` (C267), потребители
+`Hagi.Model.EnergyReasoning.CRAMState`, потребители
 `Hagi.System.GrowthState`, файлы `Hagi.Model.*` — всё это остаётся
 раздельным и не трогается здесь.
 -/
@@ -95,7 +95,7 @@ def fullObjective (s : CanonicalTrainState n a e q r c k) : ℝ :=
 /-! ### Сертификат полного шага -/
 
 /-- Сертификат Progress-шага на ПОЛНОМ состоянии (premise-form,
-паттерн C278/C279): положительный drop, спуск полной цели
+паттерн): положительный drop, спуск полной цели
 (веса + буферы), точные бюджетный и риск-законы ledger'а. -/
 structure FullStepCert (s s' : CanonicalTrainState n a e q r c k) where
   /-- Заявленный спуск полной цели. -/
@@ -112,7 +112,7 @@ structure FullStepCert (s s' : CanonicalTrainState n a e q r c k) where
   budget_nonneg : 0 ≤ s'.core.res.budget
   /-- Риск-трата (независимый канал). -/
   riskSpend : ℝ
-  /-- Остаток риска (свободный, не 0-пиннинг C254). -/
+  /-- Остаток риска (свободный, не 0-пиннинг). -/
   riskRem : ℝ
   /-- Риск-закон следующего состояния. -/
   risk_next : s'.core.saf.risk = riskRem
@@ -127,7 +127,7 @@ theorem fullStepCert_descent (s s' : CanonicalTrainState n a e q r c k)
     fullObjective s' ≤ fullObjective s - hcert.drop :=
   hcert.descent
 
-/-! ### Адаптер в общее ядро CertStepGen (C345) -/
+/-! ### Адаптер в общее ядро CertStepGen -/
 
 /-- Метрики канонического состояния для общего ядра: objective —
 ПОЛНАЯ цель (буферы включены), budget/risk — из ledger'а ядра

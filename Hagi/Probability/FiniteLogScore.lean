@@ -7,7 +7,7 @@ import Hagi.Math.Info.InfoCore
 import Hagi.Probability.FiniteBayes
 
 /-!
-# FiniteLogScore (canon, C525)
+# FiniteLogScore
 
 Canonical finite categorical log-score family (v5 W3 consolidation).
 Sections merged here (namespaces and FQNs preserved, module files

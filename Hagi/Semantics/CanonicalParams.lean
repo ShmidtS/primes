@@ -3,7 +3,7 @@ import Hagi.System.GrowthState
 import Hagi.Model.StageSemantics
 
 /-!
-# CanonicalParams 
+# CanonicalParams
 
 Проблема: в проекте две семантики параметров —
 `StageSemantics.advance` обновляет `params`, копируя

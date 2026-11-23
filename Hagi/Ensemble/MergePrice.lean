@@ -141,7 +141,7 @@ def MergeApproved (twoGap : ℝ) (xs : Fin N → (Fin K → (Fin n → ℝ)))
 κ√n·s/2, то слияние сертифицировано: суммарный ожидаемый
 лосс-прирост по доменам и сжатию меньше ансамблевого прироста.
 Честно: twoGap/цены — измеряемые величины; κ√n·s/2 —
-terнарная цена из Runtime (satTail-корректная,). -/
+terнарная цена из Runtime (satTail-корректная). -/
 theorem merge_gate_certified {twoGap : ℝ}
     {xs : Fin N → (Fin K → (Fin n → ℝ))}
     {devs : Fin N → (Fin n → ℝ)} {w : Fin N → ℝ}

@@ -8,7 +8,7 @@ import Hagi.Theory.CEChain
 /-!
 # Certified discrete Flow Matching bridge
 
-C420. The bridge between Conditional Flow Matching (Lipman et al.,
+ . The bridge between Conditional Flow Matching (Lipman et al.,
 Flow Matching for Generative Modeling) and the certified learning
 stack of this repository — an HONEST DISCRETE core, no
 continuous-time overreach:
@@ -22,7 +22,7 @@ continuous-time overreach:
   prior is NOT constructed, any `PMF Ω` carries it) of the
   squared-difference sample loss `cfmSampleLoss` over a finite time
   grid, data distribution and noise distribution;
-* the objective-side instantiation: `cfmSampleLoss` IS the C384
+* the objective-side instantiation: `cfmSampleLoss` IS
   objective `Hagi.Semantics.sqDiffObjective` evaluated at the
   velocity prediction `v t (ψ_t x₀)` against the OT field target —
   the bridge `cfmSampleLoss_eq_sqDiff` is definitional;
@@ -34,7 +34,7 @@ continuous-time overreach:
   constant, hence equal gradients);
 * the certified-FM micro-loop `cfmLinStep`: the linearized
   (constant-field) velocity parameter carries a
-  `Hagi.Theory.CEChain.UniversalSafeStep` structure (C387) whose
+  `Hagi.Theory.CEChain.UniversalSafeStep` structure whose
   majorizer law is an EQUALITY, so `cfm_lin_descent` specializes the
   universal certified drop, and `cfm_lin_safe_step_zero` shows the
   universal safe step size `A / (2 * C)` drives the sample loss
@@ -61,7 +61,7 @@ continuous-time overreach:
 The OT conditional path `cfmPsi` is affine in `t`, so its
 conditional vector field is CONSTANT along the path — the
 discrete shadow of the paper's straightness discussion.  In the
-tracking frame of `Hagi.Theory.OnlinePL` (C412) a straight path is
+tracking frame of `Hagi.Theory.OnlinePL` a straight path is
 the zero-drift regime: the target does not move, so the tracking
 recursion contracts without the steady-state radius.  This is a
 documented analogy, not a theorem.
@@ -96,11 +96,11 @@ the module pins for the division. -/
 noncomputable def cfmOtField (σmin t : ℝ) (x0 x1 : V → ℝ) : V → ℝ :=
   fun i => (x1 i - (1 - σmin) * x0 i) / cfmSigma σmin t
 
-/-! ## The sample loss as an ObjectiveSpec instantiation (C384) -/
+/-! ## The sample loss as an ObjectiveSpec instantiation -/
 
 /-- The per-sample CFM loss: the squared difference between the
 velocity prediction `v t (ψ_t x₀)` and the OT conditional field
-target.  Definitional bridge: this IS the C384 objective
+target.  Definitional bridge: this IS the objective
 `Hagi.Semantics.sqDiffObjective` evaluated on the prediction and
 the target — see `cfmSampleLoss_eq_sqDiff`. -/
 noncomputable def cfmSampleLoss (σmin t : ℝ)
@@ -117,7 +117,7 @@ theorem cfmSampleLoss_nonneg (σmin t : ℝ)
   Hagi.Semantics.sqDiffObjective.loss_nonneg _ _
 
 omit [Nonempty V] in
-/-- The bridge to the C384 objective side, definitionally: the CFM
+/-- The bridge to the objective side, definitionally: the CFM
 sample loss is `Hagi.Semantics.sqDiffObjective` on the pair
 (velocity prediction at the interpolated point, OT field target). -/
 theorem cfmSampleLoss_eq_sqDiff (σmin t : ℝ)
@@ -189,7 +189,7 @@ theorem cfm_expected_diff (m : ℕ)
 
 end Objective
 
-/-! ## The certified micro-loop: linearized VF as a UniversalSafeStep (C387) -/
+/-! ## The certified micro-loop: linearized VF as a UniversalSafeStep -/
 
 omit [Nonempty V] in
 /-- The single-sample majorizer EQUALITY of the linearized velocity
@@ -226,7 +226,7 @@ theorem cfmLin_majorizer_eq (σmin t : ℝ) (x0 x1 θ : V → ℝ) (η : ℝ) :
 
 /-- The certified-FM micro-loop: the linearized (constant-field)
 velocity parameter `θ` as a `Hagi.Theory.CEChain.UniversalSafeStep`
-(C387) on ONE sample — the TT-CAT micro-loop shape that can drive
+ on ONE sample — the TT-CAT micro-loop shape that can drive
 FM training.  Alignment and curvature coincide (`A = C = 4‖θ −
 u‖²`), and the majorizer law is the equality
 `cfmLin_majorizer_eq`. -/
@@ -242,7 +242,7 @@ noncomputable def cfmLinStep (σmin t : ℝ) (x0 x1 : V → ℝ) :
   majorizes θ η _ := le_of_eq (cfmLin_majorizer_eq σmin t x0 x1 θ η)
 
 omit [Nonempty V] in
-/-- Certified descent, FM shape (C387 chain): the universal safe
+/-- Certified descent, FM shape (chain): the universal safe
 step theorem of `Hagi.Theory.CEChain` applies verbatim to the
 linearized velocity parameter — at positive curvature the safe step
 decreases the sample CFM loss by at least the certified drop

@@ -7,14 +7,14 @@ import Hagi.Unified.CountableStitching
 import Hagi.Training.MacroStatCert
 
 /-!
-# Adaptive anytime validation via stitched Ville (C399, A16/A17)
+# Adaptive anytime validation via stitched Ville (A16/A17)
 
-The adaptive macro-loop route the C380 pin deferred: the loop
+The adaptive macro-loop route the pin deferred: the loop
 EVALUATES CHECKPOINTS ADAPTIVELY (which checkpoint to evaluate, and
 whether to commit or roll back, chosen from PAST validation
 results), and classical fixed-sample bounds do not transfer to such
 reused data. This module lifts the pin through the stitched
-Ville masters — C232 `stitching_eprocess_anytime` and C295
+Ville masters `stitching_eprocess_anytime`
 `stitching_countable_ville` — at the `MacroStatCert` level: an
 anytime-valid commit control over ANY adaptively chosen sequence of
 at most `K` evaluations, with the exact stitched constant `K·α`.
@@ -23,7 +23,7 @@ Modeling (honest, no new probability — composition only):
 
 * each round `k` carries its own e-process `E k : ℕ → Ω → ℝ` on the
   SAME filtered probability space `(Ω, 𝒢, μ)`;
-* the per-round premise is exactly the C232/C295 binder —
+* the per-round premise is exactly the binder —
   `Supermartingale (E k) 𝒢 μ`, nonnegative, unit initial budget:
   the e-value update has conditional mean ≤ its current value given
   the ENTIRE past filtration `𝒢 t`. This is the "fresh sample drawn
@@ -35,7 +35,7 @@ Modeling (honest, no new probability — composition only):
   with uniform weights `w k = 1/K`; the bound never consults the
   selection rule. No predictability or stopping-time machinery is
   needed (and none is smuggled: `μ.real` is monotone on arbitrary
-  sets, the frozen C380 convention).
+  sets, the frozen convention).
 
 Main statements:
 
@@ -45,20 +45,20 @@ Main statements:
   `α⁻¹` by the horizon), the false-commit probability over ANY
   adaptively chosen sequence of ≤ K evaluations is ≤ `K·α` (the
   uniform-weight stitched constant: crossing `α⁻¹` at some round
-  drives the master to `(1/K)·α⁻¹ = (K·α)⁻¹`, and C295 bounds the
+  drives the master to `(1/K)·α⁻¹ = (K·α)⁻¹`, bounds the
   master crossing at level `δ := K·α`; for `K·α ≥ 1` the bound is
-  the honest trivial branch inherited from C295).
+  the honest trivial branch inherited).
 * `adaptive_anytime_budget_split` — the Bonferroni view through the
   SAME master: thresholds `(α/K)⁻¹` per round give the total ≤ `α`.
-* `adaptive_commit_bridge` — the `MacroStatCert` (C380) bridge: a
-  finite family of macro certificates, each under its own C380
+* `adaptive_commit_bridge` — the `MacroStatCert` bridge: a
+  finite family of macro certificates, each under its own
   premise bundle, has `μ.real {∃ k, commit k ∧ ¬goodGain k} ≤
   ∑ k, α k` (per-round `commit_sound` + finite union). The frozen
-  C380 statement is cited verbatim, not modified.
+ statement is cited verbatim, not modified.
 * `adaptive_commit_bridge_uniform` — the equal-level corollary
   `∑ k, α = K•α`.
 
-Honest scope (pins):
+Honest scope:
 
 1. **Per-round conditional validity (premise-form)**: the binder
    `Supermartingale (E k) 𝒢 μ` holds when each evaluation consumes
@@ -115,7 +115,7 @@ structure AdaptiveEvalTrace (Ω : Type*) [MeasurableSpace Ω] where
 /-! ## The uniform stitched schedule -/
 
 /-- The uniform round schedule: weight `1/K` on rounds `k < K`, 0
-beyond — a countable stitch with total mass exactly 1 (C295 binder
+beyond — a countable stitch with total mass exactly 1 (binder
 at `∑' w ≤ 1`). -/
 noncomputable def adaptiveRoundWeights (K : ℕ) (k : ℕ) : ℝ :=
   if k < K then (K : ℝ)⁻¹ else 0
@@ -188,11 +188,11 @@ private theorem master_cross_of_round_cross {Ω : Type*}
 
 /-! ## Main theorem: adaptive anytime validity -/
 
-/-- **Adaptive anytime validity (MAIN, C399)**: for an adaptive
+/-- **Adaptive anytime validity (MAIN)**: for an adaptive
 evaluation trace with `K ≥ 1` rounds at level `α`, under the
 stitched-master per-round premise (each round's e-process is a
 nonnegative `𝒢`-supermartingale with unit initial budget — the
-C232/C295 binder; per-round CONDITIONAL validity given the common
+ binder; per-round CONDITIONAL validity given the common
 filtration, i.e. a fresh conditional draw per round — full reuse
 without fresh draws is NOT covered, see the module pins) and the
 C264-style embedding premise (a FALSE commit at round `k` embeds in
@@ -200,9 +200,9 @@ round `k`'s e-process crossing `α⁻¹` within the horizon), the
 probability of a false commit over ANY adaptively chosen sequence of
 ≤ K evaluations is at most `K·α` — the exact uniform-weight stitched
 constant (`δ := K·α` in `Hagi.Unified.stitching_countable_ville`,
-C295). Adaptivity is free: the superset crossing event covers every
+). Adaptivity is free: the superset crossing event covers every
 selection schedule, measurable or not. For `K·α ≥ 1` the bound is
-the honest trivial branch inherited from C295. -/
+the honest trivial branch inherited . -/
 theorem adaptive_anytime_valid {Ω : Type*} {m0 : MeasurableSpace Ω}
     {μ : Measure Ω} [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
     (tr : AdaptiveEvalTrace Ω) (hK : 0 < tr.numRounds)
@@ -238,7 +238,7 @@ master)**: with per-round thresholds `(α/K)⁻¹` — each round spends
 only an `α/K` share of the budget — the total false-commit
 probability over any adaptive sequence of ≤ K evaluations is at
 most `α`: a round crossing `(α/K)⁻¹` drives the uniform master to
-`(1/K)·(α/K)⁻¹ = α⁻¹` EXACTLY, and C295 bounds the master crossing
+`(1/K)·(α/K)⁻¹ = α⁻¹` EXACTLY, bounds the master crossing
 at `δ := α`. -/
 theorem adaptive_anytime_budget_split {Ω : Type*}
     {m0 : MeasurableSpace Ω} {μ : Measure Ω}
@@ -291,20 +291,20 @@ theorem adaptive_anytime_budget_split {Ω : Type*}
     (le_of_eq (adaptiveRoundWeights_tsum K hK)) hE hEnn hE0 hsum
     tr.α_pos tr.horizon
 
-/-! ## The MacroStatCert bridge (C380, frozen statement cited) -/
+/-! ## The MacroStatCert bridge (frozen statement cited) -/
 
-/-- **The adaptive commit bridge (C399 → C380)**: a finite family of
+/-- **The adaptive commit bridge (→)**: a finite family of
 macro-cycle certificates `certs : Fin K → MacroStatCert S objective`,
-each under its own C380 premise bundle — its monitor trajectory
+each under its own premise bundle — its monitor trajectory
 `L k` is a nonnegative supermartingale with unit initial budget, the
 C264-style embedding (a false commit at k embeds in `L k` crossing
 the k-th monitor's threshold) and the guard (a fired monitor never
 commits) — has total false-commit probability at most the level sum
 `∑ k, (certs k).mon.α`. Per round this is EXACTLY the frozen
-`Hagi.Training.commit_sound` (C380, cited verbatim); the finite
+`Hagi.Training.commit_sound` (cited verbatim); the finite
 union is `measureReal_iUnion_fintype_le`. The bound covers ANY
 adaptive schedule over the K cycles (the union event does not
-consult the schedule), which is the adaptive-data route the C380
+consult the schedule), which is the adaptive-data route
 module pin deferred to "the stitched masters, pointer only" — this
 module is that pointer's target. -/
 theorem adaptive_commit_bridge {S : Type*} {objective : S → ℝ}
@@ -341,7 +341,7 @@ theorem adaptive_commit_bridge {S : Type*} {objective : S → ℝ}
 /-- The equal-level corollary: K certificates all carrying the same
 monitor level `α` have total false-commit probability ≤ `K * α` —
 the same stitched constant as `adaptive_anytime_valid`, through
-the C380 route. -/
+the route. -/
 theorem adaptive_commit_bridge_uniform {S : Type*}
     {objective : S → ℝ} {Ω : Type*} {m0 : MeasurableSpace Ω}
     {μ : Measure Ω} [IsProbabilityMeasure μ]

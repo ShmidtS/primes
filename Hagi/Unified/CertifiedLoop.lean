@@ -228,17 +228,17 @@ A10 item 2 (второй адаптер, капстон-цикл): шаг цик
 демонстрирует поглощение жёсткого `Fin 5`-индекса общим типом
 ядра (сам `StepCert`/`FloorKept` не меняются — Freeze).
 
-Честные границы (premise-form, паттерн C254/C267):
+Честные границы (premise-form, паттерн):
 * точный бюджетный закон `hbudeq : b' = bt - budgetSpend` — посылка
   (в самом цикле закон нестрогий `hdec : b' ≤ bt - budgetSpend`);
 * риск-канал — посылки `hrisk`/`hrisk'` со свободным остатком
-  `riskRem` (0-пиннинг C254 отсутствует);
+  `riskRem` (0-пиннинг отсутствует);
 * ядерный floor (`hfloors`) — на ОБЪЕКТИВЕ, а качество цикла
   `FloorKept` — на измерителе `evaluate`; адаптер их НЕ
   отождествляет, обе посылки задаёт потребитель.
 -/
 
-/-- C278: шаг капстон-цикла как шаг общего ядра (premise-form,
+/-- шаг капстон-цикла как шаг общего ядра (premise-form,
 `TaskId := Fin 5` — частный случай общего индекса ядра). -/
 def StepCert.toCertStepGen {S : Type*} {obj : S → ℝ}
     {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
@@ -283,7 +283,7 @@ A14 QW3: точная бюджетная посылка `hbudeq` C278-адапт
 ПРЕВЫШАТЬ заявленную (нижнее обязательство) — теорема
 `stepCert_to_bounded_to_exact_budgetBound`. -/
 
-/-- C344: шаг цикла как bounded-шаг ядра (premise-form без
+/-- шаг цикла как bounded-шаг ядра (premise-form без
 hbudeq: нестрогий hdec цикла даёт budget_next_le). -/
 def StepCert.toCertStepGenBounded {S : Type*} {obj : S → ℝ}
     {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
@@ -311,7 +311,7 @@ def StepCert.toCertStepGenBounded {S : Type*} {obj : S → ℝ}
   delta_nonneg := by norm_num
   floorsKept := hfloors
 
-/-- C344 corollary: БЕЗ-HBUDEQ маршрут StepCert → bounded → точное
+/-- corollary: БЕЗ-HBUDEQ маршрут StepCert → bounded → точное
 ядро; точная бюджетная трата — ОПРЕДЕЛЕНИЕ как разность считываний
 состояния (посылка-форма адаптера становится безызбыточной по
 точности: точность приходит из определения, а не из посылки). -/
@@ -370,7 +370,7 @@ theorem stepCert_to_bounded_to_exact_budgetBound {S : Type*}
 end Hagi.Unified.CertifiedLoop
 
 /-!
-# CertifiedLoopKernel — капстон на общем ядре (C345, A14 QW4+QW5)
+# CertifiedLoopKernel — капстон на общем ядре (A14 QW4+QW5)
 
 Капстон `certified_loop` переформулирован над цепями
 `Hagi.Cert.CertStepGenBounded` общего ядра (`TaskId` произвольный —
@@ -382,7 +382,7 @@ view:
   неотрицательный бюджет, бюджетный телескоп, риск- и δ-леджери;
 * мост на ℕ × S (`bridgeMetrics`/`bridgeObl`/`legacy_chain`):
   траектория `StepCert` погружается в ядерную цепь БЕЗ посылок
-  hbudeq/hrisk/hrisk'/hfloors C278-адаптера (C344 bounded-маршрут;
+  hbudeq/hrisk/hrisk'/hfloors C278-адаптера (bounded-маршрут;
   riskLim ≥ 0 ВЫВОДИТСЯ из riskBound + неотрицательности траты);
 * `certified_loop_eq_kernel` — заключения legacy `certified_loop`
   ВЫВЕДЕНЫ из ядерного капстона (+ риск-агрегация как бонус);
@@ -575,7 +575,7 @@ def bridgeObl (obj : S → ℝ) (x : S) : StepObligations Unit where
 
 /-- Один legacy-шаг как bounded-шаг ядра на носителях моста:
 посылок hbudeq/hrisk/hrisk'/hfloors НЕТ — нестрогих законов
-StepCert достаточно (C344), риск-носитель и floor держатся
+StepCert достаточно, риск-носитель и floor держатся
 следствиями самого StepCert. -/
 def stepCert_to_kernel_bounded (obj : S → ℝ) (Mm : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ) (f : ℕ → S) (b : ℕ → ℝ) (n : ℕ)

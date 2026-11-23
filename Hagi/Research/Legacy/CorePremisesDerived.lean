@@ -148,7 +148,7 @@ theorem core_premises_operational_scalar_v2
   -- hdn и h_emp_dist ВЫВЕДЕНЫ из семантики решётки, не декларированы:
   have hdn : 0 ≤ S.toGrowthState.effects.quantErr := by
     rw [hquantdef]; exact abs_nonneg _
-  -- C439: доказанный факт, не предпосылка — честное имя
+  -- доказанный факт, не предпосылка — честное имя
   -- (h_emp_* резервируется для premise binders).
   have hdist_derived : S.toGrowthState.effects.quantErr ≤ 1 / 2 := by
     have hq := Hagi.Energy.gridQ_error Δ hΔ

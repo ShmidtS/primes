@@ -10,7 +10,7 @@ import Mathlib.Tactic
 /-!
 # The variance-adaptive cross-entropy majorizer (tight Bennett canon)
 
-Roadmap C460 top-2 / A19-P1 (weak C462) and C471 (tight): the range
+Roadmap top-2 / A19-P1 (weak) (tight): the range
 majorizer `Hagi.Energy.lse_shift_upper` bounds the lse shift by
 `r ^ 2 / 8`, which uses only the RANGE of the logit displacement and
 ignores the variance under the target distribution.  Near the end of
@@ -18,7 +18,7 @@ training the soft target concentrates (one-hot limit), the variance
 of the displacement under `smax x` collapses, but the range does not
 — certified steps stay unjustifiably small (THEORY_ALIGNMENT pain).
 
-CANON (tight, C471): with the exact Bennett multiplier
+CANON (tight): with the exact Bennett multiplier
 `kappa r = (Real.exp r - 1 - r) / r ^ 2`,
 
 `log (∑ v, exp (y v)) ≤ log (∑ v, exp (x v)) + ⟨smax x, y − x⟩
@@ -26,14 +26,14 @@ CANON (tight, C471): with the exact Bennett multiplier
 
 with `1/2 ≤ kappa r ≤ Real.exp r` on `r > 0` (`kappa_ge_half`,
 `kappa_le_expR`; monotone `kappa_mono`).  Every WEAK theorem of this
-module (the C462 family with the multiplier `Real.exp r` and the
+module (the family with the multiplier `Real.exp r` and the
 weaker hypothesis `0 ≤ r` in place of `0 < r`) is a one-step
 CONSEQUENCE of its tight twin via `kappa_le_expR` plus the
 degenerate `r = 0` case (constant displacement, zero variance) —
 no parallel proofs are maintained.
 
 The mechanism is deliberately series-free (the series route hung on
-`hasSum_nat_add_iff` whnf in a previous session, C462 route 1):
+`hasSum_nat_add_iff` whnf in a previous session, route 1):
 
 - `kappa_mono` via `exp_aux_N_nonneg`: `N t = e ^ t * (t − 2) + t + 2`
   has `N 0 = N' 0 = 0`, `N'' t = t * e ^ t ≥ 0` — Lagrange MVT twice;
@@ -179,7 +179,7 @@ theorem exp_quad_neg {y : ℝ} (hy : y ≤ 0) :
     _ ≤ 1 - -y + (-y) ^ 2 / 2 := hinv
     _ = 1 + y + y ^ 2 / 2 := by ring
 
-/-! ## The tight Bennett multiplier `kappa` (C471)
+/-! ## The tight Bennett multiplier `kappa`
 
 The exact Bennett constant `kappa R = (Real.exp R - 1 - R) / R ^ 2`
 and its comparison laws — the CANON of the module; every weak
@@ -304,7 +304,7 @@ theorem kappa_pos {R : ℝ} (hR : 0 < R) : 0 < kappa R :=
   lt_of_lt_of_le (by norm_num) (kappa_ge_half hR)
 
 /-- **The comparison theorem**: the tight Bennett multiplier always
-dominates-loses to the weakened C462 multiplier `Real.exp R`, for
+dominates-loses to the weakened multiplier `Real.exp R`, for
 every `R > 0` (via `1 - R ≤ e ^ (-R)`, i.e. `e ^ R - 1 ≤ R * e ^ R`). -/
 
 theorem kappa_le_expR {R : ℝ} (hR : 0 < R) :
@@ -374,7 +374,7 @@ theorem varWeight_eq_zero_of_range_le_zero {V : Type} [Fintype V]
   rw [hμ]
   simp [hconst]
 
-/-! ## The weak (C462) twins: corollaries of the tight canon
+/-! ## The weak twins: corollaries of the tight canon
 
 Each weak statement (multiplier `Real.exp R`, hypothesis `0 ≤ R`)
 follows from its tight twin by `kappa_le_expR` plus the degenerate
@@ -383,7 +383,7 @@ one-step consequences; no parallel proofs. -/
 
 /-- Positive-side quadratic majorant with the weakened multiplier
 `Real.exp R`: corollary of the tight `exp_quad_pos_tight` via the
-comparison theorem `kappa_le_expR` (the C462 statement, now a tight
+comparison theorem `kappa_le_expR` (the statement, now a tight
 consequence). -/
 theorem exp_quad_pos {y R : ℝ} (_hR : 0 ≤ R) (hy0 : 0 ≤ y)
     (hyR : y ≤ R) :
@@ -421,7 +421,7 @@ theorem exp_quad_bound {y R : ℝ} (hR : 0 ≤ R) (hyR : |y| ≤ R) :
 /-! ## The variance-sensitive CGF bound (tight canon, weak follows) -/
 
 /-- The variance-sensitive CGF bound with the TIGHT Bennett
-multiplier `kappa R = (e ^ R - 1 - R) / R ^ 2` (roadmap C471): for
+multiplier `kappa R = (e ^ R - 1 - R) / R ^ 2`: for
 weights `q` of total mass one and a function `g` of range at most
 `R > 0`, the log-mgf is bounded by the mean plus `kappa R` times the
 `q`-variance. Dominates `varMgf_le` by `kappa_le_expR`. -/
@@ -940,7 +940,7 @@ theorem ceOneHot_next_le_adaptive_tight (X : Matrix V (Fin d) ℝ)
   linarith [hlse, hmono2]
 
 /-- The adaptive CE step majorizer with the weakened multiplier
-`Real.exp R` (the C462 statement): for every step size `η ∈ [0, 1]`,
+`Real.exp R` (the statement): for every step size `η ∈ [0, 1]`,
 the cross-entropy after the step is bounded by the current one minus
 `η * A` plus `η ^ 2 *` the weakened adaptive curvature
 `ceAdaptiveCurv`.  Corollary of the tight

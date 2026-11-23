@@ -319,8 +319,6 @@ theorem floorBoundaryChunks_adaptive_lt_of_strict {α : Type*} (c : k → ℝ)
 -- C214_ADJACENT_BLOCK_START
 /-! ## Adjacent previous/current tags with plain-erasure projection -/
 
--- Proof route: reviewed A-snd probe at
--- `.tmp/C214/research/AdjacentPrefixProbe.lean`, using C213 transport.
 /-- Tag each value with its predecessor; the seed is a dummy pair. -/
 def adjacentPairs {α : Type*} : List α → List (α × α)
   | [] => []
@@ -451,13 +449,13 @@ theorem ne_nil_of_mem_floorAdjacent_projection {α : Type*} (L r : ℝ)
   obtain ⟨rawChunk, hraw, rfl⟩ := List.mem_map.mp hmem
   simpa using ne_nil_of_mem_cappedBoundaryChunks hSuccess hraw
 -- C214_ADJACENT_BLOCK_END
-/-! C215 probe: head-position recovery over `boundaryChunks`. -/
+/-! probe: head-position recovery over `boundaryChunks`. -/
 
 /-- Candidate definition: head token of every boundary chunk, Option carrier. -/
 def boundaryHeads {α : Type*} (boundary : α → Bool) (xs : List α) : List (Option α) :=
   (boundaryChunks boundary xs).map List.head?
 
-/-- Heads count equals the exact C213 route count. -/
+/-- Heads count equals the exact route count. -/
 theorem length_boundaryHeads {α : Type*} (boundary : α → Bool) (xs : List α) :
     (boundaryHeads boundary xs).length = (boundaryChunks boundary xs).length := by
   simp [boundaryHeads]
@@ -564,7 +562,7 @@ theorem boundary_of_mem_boundaryHeads_tail {α : Type*} {boundary : α → Bool}
       exact hfalse
 
 
-/-! Paired-route transport (C214 style). -/
+/-! Paired-route transport. -/
 
 /-- The paired route's first head is the dummy seed (a, a), playing the
 role of H-Net's forced first head. -/

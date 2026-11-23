@@ -34,7 +34,7 @@ bridge, not a duplicate: no statement of an existing module changes.
 ## Honest ledger: model-side / objective-side / mixed (later tranches)
 
 - Model side (head/logit maps and their facts): `Model.SoftmaxHead`
-  (`LogitMap`, C283 parametric head core), `Model.CEDescent.ceLogits`
+  (`LogitMap`, parametric head core), `Model.CEDescent.ceLogits`
   (linear head), the gated/tanh/packed head families (`GatedCE*`,
   `TanhCEStep`, `CEPackedStep`).
 - Objective side (loss functionals and their laws): `Hagi.ceOneHot` /
@@ -44,7 +44,7 @@ bridge, not a duplicate: no statement of an existing module changes.
   `Step.NCEExact`.
 - Mixed (head, loss and descent fused in one statement — migration
   tranches, NOT touched here): `Model.CEDescent` and the whole
-  `Model.BatchCEDescent*` family, `Model.CEModel` (C364: already the
+  `Model.BatchCEDescent*` family, `Model.CEModel` (already the
   objective-side safe-step contract by its own ledger), and the
   gated/nonlinear/quantized CE tranches it lists.
 - `sqDiffObjective` below is a DEMO objective (no L2-on-logits SSOT
@@ -156,7 +156,7 @@ def sqDiffObjective : ObjectiveSpec V where
 
 open Hagi.Model in
 /-- The single-sample CE safe-step interface `Model.CEModel`
-(C364) IS the combination of the linear head spec with the one-hot
+ IS the combination of the linear head spec with the one-hot
 cross-entropy objective: definitionally, both sides are
 `Hagi.ceOneHot t (Model.CEDescent.ceLogits X θ)`.  A bridge, not a
 duplicate: no existing statement is restated. -/

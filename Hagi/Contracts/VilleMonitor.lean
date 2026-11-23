@@ -11,12 +11,12 @@ import Hagi.Probability.Concentration
 set_option linter.style.header false
 
 /-!
-# Ville monitor bridge (C341, addendum A13 priority P-2)
+# Ville monitor bridge (addendum A13 priority P-2)
 
 The reusable MONITOR interface connecting the existing Ville /
 e-process machinery into the runtime harm/gain watcher that the
-canary ramp (C324 `Hagi.Deployment.canaryVilleMonitorHold`) and the
-audit ledger (C274 harm events via the C264 embedding premise)
+canary ramp (`Hagi.Deployment.canaryVilleMonitorHold`) and the
+audit ledger (harm events via the embedding premise)
 cite premise-form. THIN, composition only: the sole new content is
 the adapter layer — the identification of the monitor threshold
 `1/α` with the Ville threshold `δ⁻¹` at `δ := α` — every
@@ -37,17 +37,17 @@ carrier theorem.
   Direct instantiation of
   `Hagi.Unified.ville_anytime_false_alarm` at `δ := α`.
 * `monitor_ville_valid_stitched` — the same bound for the finite
-  stitched master `Hagi.Unified.stitchedMaster` (C232, exact
+  stitched master `Hagi.Unified.stitchedMaster` (exact
   citation of `Hagi.Unified.stitching_eprocess_anytime`).
 * `monitor_ville_valid_countable` — the same bound for the
   countable tsum master `Hagi.Unified.stitchedMasterCountable`
-  (C295, exact citation of `Hagi.Unified.stitching_countable_ville`).
-* `canary_monitor_fires` — the C324 adapter (one line): at
+  (exact citation of `Hagi.Unified.stitching_countable_ville`).
+* `canary_monitor_fires` — the adapter (one line): at
   `thresh = α⁻¹` the premise-form canary contract
   `Hagi.Deployment.canaryVilleMonitorHold` IS the monitor-firing ⇒
   certified-HOLD implication (definitional unfolding). The hold
-  witness supply stays premise-form, as in C324.
-* `audit_monitor_fires` — the C264/C274 adapter: if every harm
+  witness supply stays premise-form .
+* `audit_monitor_fires` — the adapter: if every harm
   event `F t` embeds in the monitor crossing (`F t ω → α⁻¹ ≤ L t ω`,
   the exact `Hagi.Contracts.GatePipeline.gate_anytime_valid`
   embedding premise shape), then `μ.real {∃ t ≤ n, F t} ≤ α`.
@@ -58,11 +58,11 @@ carrier theorem.
   trajectory `2^t` crosses `(1/4)⁻¹` first at `t = 2`.
 
 Honest scope: anytime validity comes ENTIRELY from the cited
-carriers (C232/C295 stitching, the Ville engine beneath them, the
-C264 embedding form) — no new concentration, no new supermartingale
+carriers (stitching, the Ville engine beneath them, the
+ embedding form) — no new concentration, no new supermartingale
 closure, no construction of per-expert e-processes. The increment
 being a VALID e-process factor is premise-form, carried by the
-supermartingale premise of the validity theorems (C232/C295
+supermartingale premise of the validity theorems (
 premise-form convention). The runtime interface is deterministic
 bookkeeping; the probability statements live on the Ω-indexed
 trajectory the monitor is fed.
@@ -107,7 +107,7 @@ def monitorUpdate (mon : EProcMonitor) (fac : ℝ) : EProcMonitor where
     exact mul_comm mon.M fac
 
 /-- The monitor fires: the e-value has reached the Ville threshold
-`1/α` (the C232/C295 form `M_t ≥ 1/α`). -/
+`1/α` (the form `M_t ≥ 1/α`). -/
 def monitorFires (mon : EProcMonitor) : Prop := mon.α⁻¹ ≤ mon.M
 
 /-! ## The Ville firing bound (direct carrier instantiations) -/
@@ -128,7 +128,7 @@ theorem monitor_ville_valid (mon : EProcMonitor)
     μ.real {ω | ∃ t ∈ Finset.range (n + 1), mon.α⁻¹ ≤ L t ω} ≤ mon.α :=
   Hagi.Unified.ville_anytime_false_alarm hL hLnn hL0 n mon.α_pos
 
-/-- The C232 instantiation: the monitor over the finite stitched
+/-- The instantiation: the monitor over the finite stitched
 master `Hagi.Unified.stitchedMaster w E` (nonnegative weights
 summing to ≤ 1 over nonnegative unit-budget supermartingale
 experts) fires with probability ≤ α, every horizon at once. Direct
@@ -144,7 +144,7 @@ theorem monitor_ville_valid_stitched (mon : EProcMonitor)
   Hagi.Unified.stitching_eprocess_anytime w hw hwsum E hE hEnn hE0
     mon.α_pos n
 
-/-- The C295 instantiation: the monitor over the countable tsum
+/-- The instantiation: the monitor over the countable tsum
 master `Hagi.Unified.stitchedMasterCountable w E` (summable
 nonnegative weights with tsum ≤ 1) fires with probability ≤ α,
 every horizon at once. Direct application of
@@ -163,13 +163,13 @@ theorem monitor_ville_valid_countable (mon : EProcMonitor)
 
 /-! ## Consumer bridges (one line each) -/
 
-/-- **The C324 canary adapter**: at threshold `thresh = α⁻¹` the
+/-- **The canary adapter**: at threshold `thresh = α⁻¹` the
 premise-form canary monitor contract
 `Hagi.Deployment.canaryVilleMonitorHold` is EXACTLY the
 monitor-firing ⇒ certified-HOLD implication — a definitional
 unfolding, nothing new. What the bridge discharges is the threshold
 IDENTIFICATION; the hold-witness supply `steps` stays premise-form,
-as in C324. -/
+ . -/
 theorem canary_monitor_fires {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId)
@@ -181,7 +181,7 @@ theorem canary_monitor_fires {S TaskId : Type*}
           steps j = Hagi.Cert.TransitionStep.hold h :=
   Iff.rfl
 
-/-- **The C264/C274 audit adapter**: if every harm event `F t` (the
+/-- **The audit adapter**: if every harm event `F t` (the
 runtime harm watcher's alarm, C274's Bad-event side) embeds in the
 monitor crossing at `t` — the exact `hF` embedding premise shape of
 `Hagi.Contracts.GatePipeline.gate_anytime_valid` — then the
@@ -243,18 +243,18 @@ theorem monitor_anchor_traj :
   rw [show monitorAnchor.α = 1 / 4 from rfl]
   exact ⟨2, by norm_num, by norm_num⟩
 
-/-! ## The unified Ville channel (C394, A17 stage 4) -/
+/-! ## The unified Ville channel (A17 stage 4) -/
 
 /-- **The anytime-valid master on the unified premise record**
-(C394): for a `ConcVilleChannel` — level α, filtration, e-process
+for a `ConcVilleChannel` — level α, filtration, e-process
 with the supermartingale / nonnegativity / unit-budget premises —
 the crossing probability is at most α for EVERY horizon n at
-once. One citation of the C232 Ville engine
+once. One citation of the Ville engine
 (`ville_anytime_false_alarm`) against the layer-2 record
 `Hagi.Probability.ConcVilleChannel`; `monitor_ville_valid` above
 is the EProcMonitor-shaped view of the SAME statement. Adaptive-
 data caveat inherited unchanged: the e-process premises are
-premise-form (C341/C380 pins). -/
+premise-form. -/
 theorem concVilleAnytime {Ω : Type*} {m0 : MeasurableSpace Ω}
     {μ : Measure Ω} [IsProbabilityMeasure μ]
     (C : Hagi.Probability.ConcVilleChannel μ) (n : ℕ) :

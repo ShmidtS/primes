@@ -13,7 +13,7 @@ import Hagi.Contracts.BatchCETrajectory.Direction
 /-!
 # BatchCETrajectoryEvaluated
 
-Evaluated finite MGDA trajectories: floor-kept two-step witness through the actual computed minimum-norm step. Split from `BatchCETrajectory` (C256).
+Evaluated finite MGDA trajectories: floor-kept two-step witness through the actual computed minimum-norm step. Split from `BatchCETrajectory`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -133,7 +133,7 @@ theorem directionBatchHalfObjective_tendsto_ciInf
 
 /-! ## Evaluated finite MGDA trajectories
 
-This section uses the existing guarded path and C189 certificate: every input
+This section uses the existing guarded path certificate: every input
 is computed from the current successor, and quality is computed -CE rather
 than stored telemetry.  A zero opCost in the recurring witness is only a
 logical ledger choice, not a claim that MGDA is computationally free.

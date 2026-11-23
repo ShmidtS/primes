@@ -324,11 +324,11 @@ end NewtonSchulzScalar
 end Hagi.Step
 
 /-!
-# Newton–Schulz matrix iterate — diagonal contraction (C296)
+# Newton–Schulz matrix iterate — diagonal contraction
 
 The matrix Newton–Schulz polar iterate `X ← X(3I − XᵀX)/2`
-(cycle C296, tech-debt TD A8-F6-C254). The scalar certificate is
-C231 (`Hagi.Step.nsStep`); this module lifts it to matrices on
+(cycle tech-debt TD A8-F6-C254). The scalar certificate is
+ (`Hagi.Step.nsStep`); this module lifts it to matrices on
 the DIAGONAL subspace and proves orthogonal equivariance of the
 iterate:
 
@@ -473,9 +473,9 @@ theorem muon_step_bound_ns_diagonal {n : Type} [Fintype n]
 end Hagi.Step
 
 /-!
-# Newton–Schulz spectral-norm SVD transport (C297)
+# Newton–Schulz spectral-norm SVD transport
 
-The documented follow-up of C296 (design note: the orthogonal
+The documented follow-up (design note: the orthogonal
 invariance of the spectral norm was the missing transport piece).
 Route: the pinned Mathlib DOES provide a spectral-norm Matrix API
 — the scoped `Matrix.Norms.L2Operator` norm transported from
@@ -484,13 +484,13 @@ Matrix.lean`, a `CStarRing`: `‖Aᴴ * A‖ = ‖A‖²`). C296's "absent
 from Mathlib" verdict was stale for this pin.
 
 * `nsOrthogonal_mul_star_self` — companion `V Vᵀ = 1` of an
-  orthogonal `VᵀV = 1` (det/unit route, as in C296);
-* `nsSpectralNorm_orth_inv` — THE C296 missing piece: the L2
+  orthogonal `VᵀV = 1` (det/unit route);
+* `nsSpectralNorm_orth_inv` — THE missing piece: the L2
   operator (spectral) norm is invariant under orthogonal left/right
   multiplication, `‖U A Vᵀ‖₂ = ‖A‖₂` for `UᵀU = VᵀV = 1`;
 * `ns_contraction_svd` — SVD-premise transport: for
   `A = U Σ Vᵀ` with singular values in the scalar bracket `[0,1]`
-  the NS iterate has spectral norm ≤ 1 (C296 equivariance +
+  the NS iterate has spectral norm ≤ 1 (equivariance +
   invariance + the diagonal case);
 * `muon_step_bound_ns_svd` — CONSUMER: the Muon step bound on
   `EuclideanSpace ℝ n` with `hP` discharged under the SVD premise.
@@ -510,7 +510,7 @@ namespace Hagi.Step
 variable {n : Type} [Fintype n] [DecidableEq n]
 
 /-- ORTHOGONAL COMPANION: `Vᵀ V = 1` implies `V Vᵀ = 1`
-(determinant/unit bookkeeping, the C296 `nsMatrixStep_orth`
+(determinant/unit bookkeeping `nsMatrixStep_orth`
 route). -/
 theorem nsOrthogonal_mul_star_self (V : Matrix n n ℝ) (hV : Vᵀ * V = 1) :
     V * Vᵀ = 1 := by
@@ -518,7 +518,7 @@ theorem nsOrthogonal_mul_star_self (V : Matrix n n ℝ) (hV : Vᵀ * V = 1) :
   rw [← Matrix.inv_eq_left_inv hV]
   exact Matrix.mul_nonsing_inv V hdet
 
-/-- ORTHOGONAL INVARIANCE (the C296 missing piece): the spectral
+/-- ORTHOGONAL INVARIANCE (the missing piece): the spectral
 (L2 operator) norm is invariant under orthogonal left and right
 factors — `‖U A Vᵀ‖₂ = ‖A‖₂` for `UᵀU = VᵀV = 1`. Route: C*
 identity `‖XᴴX‖ = ‖X‖²` (left factor peeling, square
@@ -555,10 +555,10 @@ theorem nsSpectralNorm_orth_inv (A U V : Matrix n n ℝ)
 /-- SVD TRANSPORT CONTRACTION: for an input with a (premise-form)
 SVD `A = U Σ Vᵀ` (`UᵀU = VᵀV = 1`, Σ diagonal with entries in the
 scalar bracket `[0,1]`), the NS iterate has spectral norm ≤ 1.
-Composition: C296 equivariance `nsMatrixStep_orth` first, then
+Composition: equivariance `nsMatrixStep_orth` first, then
 peel `Vᵀ` (right), then peel `U` (left), then collapse via
 `nsMatrixStep_diagonal` + `l2_opNorm_diagonal` (sup-norm RHS) +
-the C231 scalar bracket. -/
+the scalar bracket. -/
 theorem ns_contraction_svd (A U V : Matrix n n ℝ) (σ : n → ℝ)
     (hσ : ∀ i, 0 ≤ σ i ∧ σ i ≤ 1)
     (hU : Uᵀ * U = 1) (hV : Vᵀ * V = 1)

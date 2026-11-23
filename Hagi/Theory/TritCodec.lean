@@ -5,7 +5,7 @@ import Mathlib.Tactic
 set_option linter.style.openClassical false
 
 /-!
-# The wave214 trit codec bridge — 5 trits per byte (C574)
+# The wave214 trit codec bridge — 5 trits per byte
 
 The wave214 codec (`C:/HAGI_v2/hagi/trunk_ops.py:375`, WAVE 214
 hagi_lab: packed 5-trit/byte codec, «3^5=243<=2^8») packs a group of

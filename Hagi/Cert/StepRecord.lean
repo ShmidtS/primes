@@ -8,7 +8,7 @@ set_option linter.style.header false
 set_option relaxedAutoImplicit false
 
 /-!
-# StepRecord — единая запись журнала одного шага (A19.2, beat C449)
+# StepRecord — единая запись журнала одного шага (A19.2, beat)
 
 Аудит A19 N2/N3: 24 cert-структуры со спад-неравенством пере-записывают
 одно и то же «drop > 0, obj s' ≤ obj s − drop» плюс разрозненную
@@ -16,13 +16,12 @@ set_option relaxedAutoImplicit false
 commit SSOT): drop-ядро (единственный закон — спад) + свободные
 телеметрические скаляры (budgetSpend / riskSpend / delta — данные
 журнала, БЕЗ законов; законы остаются в замороженных носителях).
-Телескоп получается бесплатно из C425: один инстанс `AdditiveLedger`,
+Телескоп получается бесплатно: один инстанс `AdditiveLedger`,
 ни одной новой индукции.
 
 Модуль — лист (не импортирует cert-структуры); мосты `toRecord` для
 ядра живут в `Hagi.Cert.Core`/`StepGen`, для Unified/Training-носителей
-— в их собственных файлах (направление слоёв). Инвентарь и классификация
-(a)/(b)/(c): `.tmp/C449/research.md`.
+— в их собственных файлах (направление слоёв). Инвентарь и классификация (a)/(b)/(c) — в карточке модуля STATUS.md.
 -/
 
 namespace Hagi.Cert
@@ -56,7 +55,7 @@ def StepRecord.core {obj : S → ℝ} {s s' : S} (drop : ℝ) (hpos : 0 < drop)
   riskSpend := 0
   delta := 0
 
-/-! ## Телескоп из C425 (бесплатно) -/
+/-! ## Телескоп (бесплатно) -/
 
 /-- `StepRecord` списывает certified drop из objective (≤-закон;
 единственный инстанс записи — телеметрия законов не несёт). -/

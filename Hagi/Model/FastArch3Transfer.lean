@@ -14,57 +14,57 @@ set_option linter.style.header false
 The FINAL rung of the E4 backbone ladder (TD E4-C300 remaining
 rung: "chain all rungs into the full FastArch3 stack certificate"):
 the end-to-end FastArch3-SHAPED certified-descent theorem — the
-parametric SoftmaxHead (C283/C291) on top of the hybrid stack
-(C307 attention + C308 RoPE wrap + C309 RMSNorm discharge + C310
+parametric SoftmaxHead on top of the hybrid stack
+(attention + RoPE wrap + RMSNorm discharge
 GDN), assembled as COMPOSITION ONLY of the landed carriers, with
 every remaining hypothesis exposed as an explicit PREMISE LEDGER
-entry (`.tmp/C311/premise-ledger.md`, summarized in STATUS.md).
+entry (summarized in STATUS.md).
 
 Structure (a thin config over existing carriers — KISS):
 
-* `FA3Block n ι` — one hybrid backbone block: `att a R` (a C307
+* `FA3Block n ι` — one hybrid backbone block: `att a R` (
   `AttnBlock` on the Euclidean carrier, optionally wrapped in a
-  RoPE-style pre-rotation `R`; C308 instantiates `R = rotEuc θ m`,
+  RoPE-style pre-rotation `R`; instantiates `R = rotEuc θ m`,
   an `Isometry`, at UNCHANGED damping; `R = id` when unwrapped) or
-  `gdn g` (a C310 `GdnBlock`: μg-Lipschitz gate premise +
-  doubly-stochastic mixing, C231).
+  `gdn g` (`GdnBlock`: μg-Lipschitz gate premise +
+  doubly-stochastic mixing).
 * `FastArch3Spec n ι β` — the full FastArch3 shape: the hybrid
-  blocks list plus the C283 `HeadConfig` (LogitMap / Reduction
+  blocks list plus `HeadConfig` (LogitMap / Reduction
   axes) of the parametric head.
-* `fa3BlockList` / `fa3Stack` / `fa3Gain` — the C300 residual
+* `fa3BlockList` / `fa3Stack` / `fa3Gain` — the residual
   stack over the heterogeneous blocks list, per-block damping
   `μᵢ` (attention `μn·μatt`, GDN `μg`), gain `∏ (1 + μᵢ)`.
 * `fa3BlockList_lipschitz` — the premise-ledger dispatch: each
-  block's C300 block hypothesis from its carrier premises
-  (C307 adapter composed with the C308 isometry pattern for
-  attention; C310 adapter for GDN).
+  block's block hypothesis from its carrier premises
+  (adapter composed with the isometry pattern for
+  attention; adapter for GDN).
 * `fa3HeadLoss` / `fastarch3_head_Lc` — P7 per-instance discharge
-  (C313): the ident-logit headCE at a fixed label is `2`-Lipschitz
+the ident-logit headCE at a fixed label is `2`-Lipschitz
   on the Euclidean carrier (`Lc = 2`, via `euclid_coord_abs_sub_le`
-  `‖·‖∞ ≤ ‖·‖₂` and the C283 sup-norm estimate).
+  `‖·‖∞ ≤ ‖·‖₂` and the sup-norm estimate).
 * `fa3Objective` — the END-TO-END objective: the loss evaluated at
   the stack output (the head loss composed through the backbone).
 * `fastarch3_transfer_descent` (+ `_strict`) — THE assembly
   theorem: given each block's ledgered premise, the head's
-  certified drop `δ` (C291 premise shape) and the head-loss
+  certified drop `δ` (premise shape) and the head-loss
   Lipschitz premise `Lc`, the composed guard
   `Lc·(∏ (1 + μᵢ) − 1)·‖dx‖ < δ` makes the end-to-end objective
-  STRICTLY decrease. Pure composition: the C300 stack theorem
+  STRICTLY decrease. Pure composition: the stack theorem
   applied to the FastArch3 block list.
 
 PREMISE LEDGER (every hypothesis of the final theorem):
 
 | id | premise | source | state |
 |----|---------|--------|-------|
-| P1 | softmax weight map `p` is a fixed simplex | C307 | lived-with |
-| P2 | value maps `v i` are `μatt`-Lipschitz | C307 | per-instance |
-| P3 | pre-norm `μn`-Lipschitz | C307 premise | DISCHARGED by C309 (region `2√n/r`, ε-form `2/√ε`) |
-| P4 | rope wrap `R` is an `Isometry` | C308 | DISCHARGED (`rotEuc`) |
-| P5 | GDN gate `μg`-Lipschitz | C310 | DISCHARGED per-instance by C313 (`gdnGateTanh_lipschitz`, tanh family, μg = 1; other gate families remain per-instance) |
-| P6 | mixing matrix doubly stochastic | C231/C310 | lived-with |
-| P7 | head loss `Lc`-Lipschitz (Euclidean carrier) | assembly | DISCHARGED per-instance by C313 (`fastarch3_head_Lc`, ident-logit headCE at fixed label, Lc = 2) |
-| P8 | head certified drop `δ` | C291 | per-instance via `ceOneHot_next_le_param` |
-| P9 | realized step `dx` on the identity path | C300 form | structural |
+| P1 | softmax weight map `p` is a fixed simplex | | lived-with |
+| P2 | value maps `v i` are `μatt`-Lipschitz | | per-instance |
+| P3 | pre-norm `μn`-Lipschitz | premise | DISCHARGED (region `2√n/r`, ε-form `2/√ε`) |
+| P4 | rope wrap `R` is an `Isometry` | | DISCHARGED (`rotEuc`) |
+| P5 | GDN gate `μg`-Lipschitz | | DISCHARGED per-instance (`gdnGateTanh_lipschitz`, tanh family, μg = 1; other gate families remain per-instance) |
+| P6 | mixing matrix doubly stochastic | | lived-with |
+| P7 | head loss `Lc`-Lipschitz (Euclidean carrier) | assembly | DISCHARGED per-instance (`fastarch3_head_Lc`, ident-logit headCE at fixed label, Lc = 2) |
+| P8 | head certified drop `δ` | | per-instance via `ceOneHot_next_le_param` |
+| P9 | realized step `dx` on the identity path | form | structural |
 
 Honest scope: certified descent for the FastArch3-SHAPED model
 UNDER THE LEDGERED PREMISES — NOT a claim about trained weights or
@@ -86,10 +86,10 @@ variable {n : Type*} [Fintype n] [DecidableEq n]
 ## The FastArch3 shape (thin config)
 -/
 
-/-- One FastArch3 backbone block: an attention block (C307) with an
-optional RoPE-style pre-rotation `R` (C308: an `Isometry` premise,
+/-- One FastArch3 backbone block: an attention block with an
+optional RoPE-style pre-rotation `R` (an `Isometry` premise,
 instantiated by `rotEuc`; `id` when unwrapped), or a GDN block
-(C310: gate + doubly-stochastic mixing). -/
+(gate + doubly-stochastic mixing). -/
 inductive FA3Block (n : Type*) [Fintype n] [DecidableEq n]
     (ι : Type*) [Fintype ι] where
   /-- Attention block + rope wrap map (premise: `Isometry R`). -/
@@ -99,29 +99,29 @@ inductive FA3Block (n : Type*) [Fintype n] [DecidableEq n]
   | gdn (g : GdnBlock n)
 
 /-- The full FastArch3 shape: the hybrid backbone blocks plus the
-parametric head configuration (C283 `HeadConfig`: the LogitMap and
+parametric head configuration (`HeadConfig`: the LogitMap and
 Reduction axes of the SoftmaxHead family). -/
 structure FastArch3Spec (n : Type*) [Fintype n] [DecidableEq n]
     (ι : Type*) [Fintype ι] (β : Type) [Fintype β] where
   /-- Hybrid backbone: attention and GDN blocks, bottom-up order. -/
   blocks : List (FA3Block n ι)
-  /-- Parametric SoftmaxHead configuration (C283). -/
+  /-- Parametric SoftmaxHead configuration. -/
   head : HeadConfig β
 
 /-!
-## The C300 stack instantiation
+## The stack instantiation
 -/
 
-/-- The C300 block list of a FastArch3 backbone: attention blocks
+/-- The block list of a FastArch3 backbone: attention blocks
 carry their composed damping `μn·μatt` (the rope wrap `R` changes
-no constant — C308), GDN blocks their gate damping `μg`. -/
+no constant), GDN blocks their gate damping `μg`. -/
 noncomputable def fa3BlockList (bs : List (FA3Block n ι)) :
     List ((EuclideanSpace ℝ n → EuclideanSpace ℝ n) × NNReal) :=
   bs.map fun b => match b with
     | .att a R => (fun x => attnBranch a.p a.v (a.n (R x)), a.μn * a.μatt)
     | .gdn g => (gdnBlockBranch g, g.μg)
 
-/-- The FastArch3 backbone stack: the C300 residual stack over the
+/-- The FastArch3 backbone stack: the residual stack over the
 hybrid blocks list. -/
 noncomputable def fa3Stack (bs : List (FA3Block n ι)) :
     EuclideanSpace ℝ n → EuclideanSpace ℝ n :=
@@ -129,15 +129,15 @@ noncomputable def fa3Stack (bs : List (FA3Block n ι)) :
 
 /-- The FastArch3 stack gain: `∏ (1 + μᵢ)` over the per-block
 composed dampings (attention `μn·μatt` — unchanged by the rope
-wrap, C308 — and GDN `μg`). -/
+wrap, — and GDN `μg`). -/
 noncomputable def fa3Gain (bs : List (FA3Block n ι)) : NNReal :=
   stackGain (fa3BlockList bs)
 
 /-- Every block of a well-premised FastArch3 backbone satisfies the
-C300 block hypothesis — the PREMISE-LEDGER dispatch: attention
-blocks through the C307 adapter composed with the C308 isometry
+ block hypothesis — the PREMISE-LEDGER dispatch: attention
+blocks through the adapter composed with the isometry
 pattern (`Isometry R` premise, constant unchanged), GDN blocks
-through the C310 adapter. Each hypothesis below is a ledger row
+through the adapter. Each hypothesis below is a ledger row
 (P1–P6). -/
 theorem fa3BlockList_lipschitz (bs : List (FA3Block n ι))
     (hatt : ∀ (a : AttnBlock (EuclideanSpace ℝ n) ι)
@@ -178,9 +178,9 @@ noncomputable def fa3Objective (bs : List (FA3Block n ι))
 /-- THE ASSEMBLY THEOREM: certified head descent through the whole
 FastArch3 backbone. Given (a) each block's ledgered premises
 (P1–P6), (b) the head's certified drop `δ` at the stack output
-(C291 premise shape — `ceOneHot_next_le_param` instantiates it),
+(premise shape — `ceOneHot_next_le_param` instantiates it),
 and (c) the head-loss Lipschitz premise `Lc` (P7), the composed
-leak slack is `Lc·(∏ (1 + μᵢ) − 1)·‖dx‖` — the C300 stack theorem
+leak slack is `Lc·(∏ (1 + μᵢ) − 1)·‖dx‖` — the stack theorem
 instantiated over the FastArch3 block list, composition only. -/
 theorem fastarch3_transfer_descent (bs : List (FA3Block n ι))
     {loss : EuclideanSpace ℝ n → ℝ} {Lc : NNReal} {δ : ℝ}
@@ -221,10 +221,10 @@ theorem fastarch3_transfer_descent_strict (bs : List (FA3Block n ι))
 
 /-!
 ## P7 per-instance discharge: the head loss on the Euclidean
- carrier (C313)
+ carrier
 
 The abstract head-loss premise `LipschitzWith Lc loss` is
-discharged per-instance for the C283 parametric head at the
+discharged per-instance for the parametric head at the
 identity logit map, fixed label: the sup-norm 2-Lipschitz
 estimate `headCE_le_of_abs_sub_le` transported to the Euclidean
 carrier through the coordinate bound `|x i − y i| ≤ ‖x − y‖`
@@ -256,9 +256,9 @@ theorem euclid_coord_abs_sub_le {n : Type} [Fintype n]
   obtain ⟨h1, h2⟩ := abs_le_of_sq_le_sq' h hb
   exact abs_le.2 ⟨h1, h2⟩
 
-/-- P7 DISCHARGE (per-instance, C313): the head CE at the identity
+/-- P7 DISCHARGE (per-instance): the head CE at the identity
 logit map and fixed label is `2`-Lipschitz on the Euclidean
-carrier — the honest readout constant `Lc = 2` (the C283 sup-norm
+carrier — the honest readout constant `Lc = 2` (the sup-norm
 estimate at `r = ‖x − y‖`). -/
 theorem fastarch3_head_Lc {n : Type} [Fintype n] [Nonempty n]
     (t : n) : LipschitzWith 2 (fa3HeadLoss t) := by
@@ -282,7 +282,7 @@ theorem fastarch3_head_Lc {n : Type} [Fintype n] [Nonempty n]
 ## Anchors (nonvacuity + numeric instance)
 -/
 
-/-- Rope-wrap premise nonvacuity (P4): the C308 rotation IS an
+/-- Rope-wrap premise nonvacuity (P4): the rotation IS an
 isometry, instantiating the `R` premise of an `att` block. -/
 example : Isometry (rotEuc (fun _ : Fin 2 => Real.pi / 3) 1) :=
   rope_isometry _ _

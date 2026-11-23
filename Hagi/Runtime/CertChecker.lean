@@ -8,7 +8,7 @@ set_option linter.style.header false
 set_option relaxedAutoImplicit false
 
 /-!
-# Executable certificate step checker (A18.8, beat C430)
+# Executable certificate step checker (A18.8, beat)
 
 Audit W7: the certified loop lives on `noncomputable ℝ`, so the
 certified layer has no executable counterpart — a trainer cannot

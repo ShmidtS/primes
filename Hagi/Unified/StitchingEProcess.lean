@@ -129,9 +129,9 @@ theorem stitching_eprocess_anytime (w : k → ℝ) (hw : ∀ i, 0 ≤ w i)
   exact ville_anytime_false_alarm hM hMnn hmass n hdelta
 
 
-/-! ## Freedman empirical predictable variance (C248, A8 F5)
+/-! ## Freedman empirical predictable variance (A8 F5)
 
-Extension of the C232 stitching gate with the empirical-variance
+Extension of the stitching gate with the empirical-variance
 comparison: when the cumulative predictable variance satisfies the
 budget `V ≤ c²`, the empirical Freedman exponent
 `exp (-r² / (4 * (V + B * r)))` (the bound shape of

@@ -92,7 +92,7 @@ theorem frontier_cone_struct (C G D : ℕ → ℝ)
 /-- **Усечённый takeoff**: из усечённых посылок (только
 t < T) — C_T >= C0 * (1+alpha)^T. Совместимость с потолком C*
 (если C* < C0·(1+alpha)^T) даёт оценку горизонта:
-см. cert_horizon_bound (ArchitectureTheorem). 
+см. cert_horizon_bound (ArchitectureTheorem).
 АУДИТ v4 §3.8-2: при том же `alpha` в `h_emp_C_cap` и в конусе
 посылки принуждают C (t+1) = (1+alpha)·C t (точную экспоненту).
 Путь БЕЗ потолка: `Foundations.trunc_premises_geometric_growth`

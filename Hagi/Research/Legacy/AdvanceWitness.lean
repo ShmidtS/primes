@@ -3,7 +3,7 @@ import Hagi.Research.Legacy.MasterHAGI
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
 /-!
-# AdvanceWitness — продуктивный T=свидетель (C528)
+# AdvanceWitness — продуктивный T=свидетель
 
 Карантин Research/Legacy: docstring-заголовок только; код не трогается.
 Продуктивный свидетель итогового инварианта на реальных advance-переходах

@@ -8,13 +8,13 @@ import Mathlib.Tactic
 /-!
 # Mini-HAGI 2 bench bridge (scaled mini bench)
 
-Roadmap C494: the SCALED mini bench
+The SCALED mini bench
 (`scripts/bench_bridge.py`, `--mode mini-hagi2`) — a deeper
 trunk (2 sequential L1-rms → W1 → ReLU → W2 blocks, joint
 finite-difference training through BOTH blocks in phase A), 3
-continual tasks (C488 split family), 2 fiber grow events
-(C444 margin each), accumulated GPM continual phases, ternary
-quantization (C443 gate) and the Ville holdout stop (C446), all
+continual tasks (split family), 2 fiber grow events
+(margin each), accumulated GPM continual phases, ternary
+quantization (gate) and the Ville holdout stop, all
 on ONE canonical-objective `CertStepData` chain.
 
 ## The canonical objective rule (T = 3)
@@ -33,7 +33,7 @@ admission contract.
 `mini_hagi2_gpm_descent`: the accumulated-GPM bridge — a step
 orthogonal to the input spans of BOTH past tasks leaves their
 bench losses EXACTLY invariant
-(`Hagi.Theory.ContinualBench.gpm_bench_bridge`, C485), so a
+(`Hagi.Theory.ContinualBench.gpm_bench_bridge`), so a
 measured current-task decrease is a canonical decrease: the
 third continual phase descends the canonical objective with
 certified zero forgetting on both past tasks.
@@ -41,8 +41,8 @@ certified zero forgetting on both past tasks.
 ## Honest pins
 
 1. The 2-block trunk is trained ONLY in phase A (joint fd
-   gradients through both blocks, C481 form) and FROZEN
-   afterwards: GPM zero-forgetting and the C444 grow mechanics
+   gradients through both blocks, form) and FROZEN
+   afterwards: GPM zero-forgetting and the grow mechanics
    are linear-readout statements, so phases B–E operate on the
    linear head over the frozen trunk features.
 2. η = 1/10 with snap-to-grid candidates (1/10000 head /
@@ -61,7 +61,7 @@ namespace Hagi.Theory.MiniHagi2
 noncomputable def miniHagi2Canonical (a b c : ℝ) : ℝ :=
   (a + b + c) / 3
 
-/-- **mini_hagi2_canonical_drop (C494)**: if no task loss grows
+/-- **mini_hagi2_canonical_drop**: if no task loss grows
 and at least one strictly decreases, the 3-task canonical
 objective strictly decreases — the admission contract every
 mini-hagi2 phase satisfies on the shared chain. -/
@@ -72,11 +72,11 @@ theorem mini_hagi2_canonical_drop {a a' b b' c c' : ℝ}
   unfold miniHagi2Canonical
   rcases h with h | h | h <;> linarith
 
-/-- **mini_hagi2_gpm_descent (C494)**: the accumulated-GPM
+/-- **mini_hagi2_gpm_descent**: the accumulated-GPM
 bridge for the third continual phase. A step (each row of `ΔW`
 orthogonal to every past-task input) leaves the bench losses of
 BOTH past tasks EXACTLY invariant
-(`Hagi.Theory.ContinualBench.gpm_bench_bridge`, C485); a
+(`Hagi.Theory.ContinualBench.gpm_bench_bridge`); a
 measured current-task loss decrease then forces a strict
 3-task canonical-objective decrease — continual training
 descends the chain with certified zero forgetting on tasks 1

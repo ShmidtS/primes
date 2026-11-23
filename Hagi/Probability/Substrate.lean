@@ -18,14 +18,14 @@ Freedman-семейства не переписано (KISS-транш).
 
 ## Манифест SSOT
 
-* `Hagi.Probability.pmfMean` (FreedmanTwoSided, C360) — канонический
+* `Hagi.Probability.pmfMean` (FreedmanTwoSided) — канонический
   словарь ожиданий на Mathlib-типе `PMF`; наибольшая потребительская
   база; мосты в меры уже есть (`Hagi.Probability.toPMF`,
   `Hagi.Unified.pmfMean_eq_integral`).
 * `prodDens`/`prodE`/`prodPq` (CertifiedEstimator, Freedman-семейство) —
   density-словарь независимого произведения; сохраняется как есть,
   мостится в PMF-подложку теоремой `prodE_eq_pmfMean` ниже.
-* `densD`/`expD`/`probD` (FreedmanAdaptive, C438) — зависимое
+* `densD`/`expD`/`probD` (FreedmanAdaptive) — зависимое
   обобщение; сохраняется как есть; вкладывается в density-словарь
   теоремами `densD_const`/`expD_const` (постоянные условные веса).
 
@@ -89,7 +89,7 @@ theorem prodE_eq_pmfMean {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
 /-! ## Мост зависимое → независимое -/
 
 /-- Зависимая плотность с постоянными условными весами — это
-независимая плотность произведения (словарь C438 вкладывается
+независимая плотность произведения (словарь вкладывается
 в словарь Freedman-семейства). -/
 theorem densD_const (q : ℕ → V → ℝ) : ∀ {n : ℕ} (ω : Fin n → V),
     densD (fun t _ => q t) ω = ∏ i : Fin n, q ↑i (ω i) := by

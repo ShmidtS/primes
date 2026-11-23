@@ -8,7 +8,7 @@ import Hagi.Model.CEGroupedScale
 /-!
 # BatchCEDescentStochastic
 
-C249 stochastic minibatch R'-step (A8 F3): `stochasticStepDraw`, expected descent, and feature-norm budgets.
+ stochastic minibatch R'-step (A8 F3): `stochasticStepDraw`, expected descent, and feature-norm budgets.
 -/
 
 set_option relaxedAutoImplicit false
@@ -23,14 +23,14 @@ open Hagi.Probability
 
 
 
-/-! ## C249 stochastic minibatch R'-step (A8 F3)
+/-! ## stochastic minibatch R'-step (A8 F3)
 
 One inverse-propensity stochastic minibatch step along the raw CE
 residual-gradient draw, with an honest expected-descent theorem: the
 descent term is `eta * ‖meanResidualTranspose‖^2` (unbiasedness), the
-curvature term is the global C216 Böhning range majorizer
+curvature term is the global Böhning range majorizer
 `eta^2/8 * batchFeatureRangeCoefficient * E[‖ĝ‖^2]`, and the variance
-is bounded by the C200 featureNormSum propensity machinery
+is bounded by the featureNormSum propensity machinery
 `selectedMeanGradientMSE_featureNormSum_le`. No Ville or concentration
 duplication — this is the one-step expectation statement. -/
 
@@ -57,7 +57,7 @@ private theorem dirRange_neg {V : Type} [Fintype V] {d : ℕ}
   intro v _hv
   rw [hlogit v, abs_neg]
 
-/-- Pointwise dampened-step bound: for any direction `D` and every `eta ≥ 0`, the whole-batch loss after `θ + eta • (-D)` is at most `batchLoss X θ y - eta • ⟪meanResidualTranspose, D⟫ + eta^2/8 • batchFeatureRangeCoefficient X • ‖D‖^2` (C216 Böhning majorizer summed over the batch; the coefficient is the batch-summed `4 * ∑ featureAbsSum^2`, conservative vs the per-sample sum). -/
+/-- Pointwise dampened-step bound: for any direction `D` and every `eta ≥ 0`, the whole-batch loss after `θ + eta • (-D)` is at most `batchLoss X θ y - eta • ⟪meanResidualTranspose, D⟫ + eta^2/8 • batchFeatureRangeCoefficient X • ‖D‖^2` (Böhning majorizer summed over the batch; the coefficient is the batch-summed `4 * ∑ featureAbsSum^2`, conservative vs the per-sample sum). -/
 private theorem batchLoss_alongNext_neg_le {V : Type} [Fintype V] [Nonempty V]
     {B d : ℕ} (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
     (y : Fin B → V) (hB : 0 < B) (D : EuclideanSpace ℝ (Fin d))
@@ -384,7 +384,7 @@ theorem pmfMean_normSq_stochasticStepDraw_eq
   rw [hf]
 
 
-/-- For the featureNormSum optimal propensity, the second moment of the stochastic step draw is at most `(∑ |featureNormSum|)^2 / B^2` — the C200 propensity MSE bound with the mean term recombined. -/
+/-- For the featureNormSum optimal propensity, the second moment of the stochastic step draw is at most `(∑ |featureNormSum|)^2 / B^2` — the propensity MSE bound with the mean term recombined. -/
 theorem pmfMean_normSq_stochasticStepDraw_featureNormSum_le
     {V : Type} [Fintype V] {B d : ℕ}
     (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))

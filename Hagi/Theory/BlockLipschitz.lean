@@ -12,7 +12,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 # BlockLipschitz — derived lip/causal for REAL atoms (RMSNorm, MLP,
 bounded-weight attention)
 
-Beat C465 (A19 G1, roadmap C464): the per-block premises
+Beat (A19 G1, roadmap): the per-block premises
 `CertifiedBlock.hLip` / `hCausal` (`Hagi.Model.LMCompose`, разрядка
 заявлена в honest pins того модуля) are DISCHARGED here for concrete
 real-world atoms with derived constants (derivability, not tightness):
@@ -24,7 +24,7 @@ real-world atoms with derived constants (derivability, not tightness):
   NO boundedness premise on the inputs is needed). CertifiedBlock:
   `certifiedRMSNorm`, lip = `1 + G·(n+1)/ε` (residual + norm).
 * (b) MLP atom `x ↦ W₂·relu(W₁·x)`: ℓ1-constant
-  `√n·‖W₂‖_F·‖W₁‖_F` (`mlp_l1_lip`) — C426
+  `√n·‖W₂‖_F·‖W₁‖_F` (`mlp_l1_lip`)
   `linear_lipschitz_frobenius` (cited) on the first layer + row
   Cauchy–Schwarz + relu 1-Lip (`relu_lip_abs`; no ReLU lemma in the
   corpus — NormAct has swish only). CertifiedBlock: `certifiedMLP`,
@@ -41,7 +41,7 @@ real-world atoms with derived constants (derivability, not tightness):
   classical two-leg decomposition (weight-shift leg
   `≤ (Σ|Δw|)·B_V·R_x` via the operator bound + input radius;
   value-shift leg `≤ B_V·d` via convexity `Σ w = 1`). Closes the
-  C465 honest pin: the value-bounded carrier exists as a
+ honest pin: the value-bounded carrier exists as a
   DOMAIN-BOUNDED theorem (explicit radius/value premises), not as an
   unconditional `CertifiedBlock`.
 
@@ -52,7 +52,7 @@ real-world atoms with derived constants (derivability, not tightness):
   by `M·‖w(x)−w(y)‖₁` with `M = sup_i ‖x i‖∞` — the obstruction is the
   UNBOUNDED VALUES, not the softmax (softmax itself is globally
   ≤ 1/2-Lipschitz in ℓ2, Pauli et al. 2023 — pinned, not restated).
-  CLOSED (C564): with a certified value bound the positive side is
+  CLOSED: with a certified value bound the positive side is
   derivable — `attn_xdep_lipschitz` gives `B_V·(1 + L_w·R_x)` under
   (i) the operator bound `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, (ii) the input
   radius `‖x i‖₁ ≤ R_x`, (iii) weight stability
@@ -66,7 +66,7 @@ real-world atoms with derived constants (derivability, not tightness):
   unit vectors); the ε-floor is exactly what makes the unconditional
   constant derivable. The derived `G(n+1)/ε` is honest but NOT tight
   (true near-zero slope is `1/ε` per coordinate plus saturation).
-- MLP constant uses the Frobenius bound (`‖W‖₂ ≤ ‖W‖_F`, C426 pin);
+- MLP constant uses the Frobenius bound (`‖W‖₂ ≤ ‖W‖_F`, pin);
   the op-norm lemma is absent from the pinned Mathlib.
 - Constants are per-position ℓ1 (the `dPre` metric of LMCompose);
   ℓ2→ℓ1 conversions cost the √n factors. Derivability is the goal of
@@ -309,7 +309,7 @@ theorem rmsN_l1_lip (ε : ℝ) (hε : 0 < ε) (x y : V → ℝ) :
 
 /-- CertifiedBlock for the RMSNorm atom (attn = id, norm = g·rmsN ε):
 `hLip` DERIVED with lip = `1 + G·(n+1)/ε` (residual + derived norm
-constant), `hCausal` DERIVED (positional dependence only, C450
+constant), `hCausal` DERIVED (positional dependence only
 pattern). Gain bounded by G coordinatewise. -/
 noncomputable def certifiedRMSNorm (g : V → ℝ) (G : ℝ≥0) (ε : ℝ)
     (hε : 0 < ε) (hg : ∀ v, |g v| ≤ (G : ℝ)) :
@@ -421,7 +421,7 @@ noncomputable def mlpApply (W₁ W₂ : V → V → ℝ) (x : V → ℝ) (v : V)
 
 /-- The MLP atom is ℓ1-Lipschitz with constant
 `√n·‖W₂‖_F·‖W₁‖_F`: per-layer chain of row Cauchy–Schwarz
-(`Finset.sum_mul_sq_le_sq_mul_sq`, C426 mechanic — first-layer
+(`Finset.sum_mul_sq_le_sq_mul_sq`, mechanic — first-layer
 Frobenius leg CITED from `BlockSmooth.linear_lipschitz_frobenius`
 style), relu 1-Lip, and ℓ2→ℓ1 bridges. -/
 theorem mlp_l1_lip (W₁ W₂ : V → V → ℝ) (x y : V → ℝ) :
@@ -919,7 +919,7 @@ def attnXDepOut (A : V → V → ℝ) (w : (Fin n → V → ℝ) → Fin n → �
   ∑ i, w x i * attnXDepVal A (x i) v
 
 /-- **x-Dependent attention is Lipschitz under a certified value
-bound** (closes the C465 honest pin): with convex x-dependent
+bound** (closes the honest pin): with convex x-dependent
 weights `w x` (nonneg, sum 1), value operator bound
 `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, input radius `‖x i‖₁ ≤ R_x`, and
 weight stability `‖w(x) − w(y)‖₁ ≤ L_w·‖x − y‖₁`, the attention

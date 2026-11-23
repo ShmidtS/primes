@@ -15,19 +15,19 @@ steps does it take to reach quality ε (the descent rate), and what
 is the TOTAL certified compute (steps × per-step FLOP). Both
 carriers already landed; only the COMPOSITION is new:
 
-* the descent-rate carrier is C291 (`Hagi.Model.CEDescent`): the
+* the descent-rate carrier is (`Hagi.Model.CEDescent`): the
   one-step certificate `ceOneHot_next_le`
   `next ≤ cur − η·A + (η·R)²/8`, which at the safe step
   `safeStepSize = 4A/R²` (`ceMajorizer_safeStep_eq`) certifies the
   EXACT drop `d = 2·A²/R²` (`ceOneHot_safeStep_le_residual`).
   CITED IN DOCSTRINGS ONLY — the composition takes the uniform
-  drop as a PREMISE over the C278 kernel's `CertStepGen.drop`
+  drop as a PREMISE over the kernel's `CertStepGen.drop`
   field; no rate constants are invented or re-derived here.
-* the per-step FLOP carrier is C328
+* the per-step FLOP carrier is
   (`Hagi.Contracts.SparseInferenceCert`): the work model
   `denseMatVecWork n = n²`, `lowRankMatVecWork k n = 2kn`,
   `lowrank_op_ratio` — cited verbatim, not re-proved.
-* the kernel is C278 (`Hagi.Cert.CertStepGen`): the drop telescope
+* the kernel is (`Hagi.Cert.CertStepGen`): the drop telescope
   `trajectory_telescope_gen` is the engine; this module adds the
   missing BUDGET telescope (the exact ledger identity) and the
   step-count / total-compute / tradeoff / packaging theorems on
@@ -36,7 +36,7 @@ carriers already landed; only the COMPOSITION is new:
 Honest scope:
 
 * DETERMINISTIC descent premise only: the uniform-drop hypothesis
-  is the honest interface to the C291 carrier; no adaptivity, no
+  is the honest interface to the carrier; no adaptivity, no
   SGD noise, no stochastic rates are claimed.
 * The (d, W) frontier is EMPIRICAL: whether the compressed
   configuration's descent constant survives (`d ≤ d'` in
@@ -47,7 +47,7 @@ Honest scope:
   `total_compute_to_quality`) is honest ceiling arithmetic: only
   `Δ₀ ≤ n·d` follows from descent (a trajectory may overrun); the
   minimal witness n = ⌈Δ₀/d⌉ satisfies BOTH premises.
-* Work measured in the C328 entry-read model; no asymptotics, no
+* Work measured in the entry-read model; no asymptotics, no
   hardware model, no probability; numbers live in the numeric
   `Anchor` lemmas only.
 -/
@@ -63,12 +63,12 @@ variable (M : Hagi.Cert.SystemMetrics S TaskId) (obl : Hagi.Cert.StepObligations
 
 /-! ## The budget telescope (the fourth channel) -/
 
-/-- **Budget telescope** — the missing fourth telescope of the C278
+/-- **Budget telescope** — the missing fourth telescope
 kernel (drop, delta and risk already telescope): the terminal
 compute budget is the initial budget minus the EXACT sum of
 per-step spends (induction on `CertStepGen.budget_next`; the
 identity form, stronger than the pointwise `CertStepGen.budgetBound`).
-This is the resource-ledger law the C267 budget pattern demanded
+This is the resource-ledger law the budget pattern demanded
 for compute. -/
 theorem budget_telescope_gen (deltaLevel : S → ℝ)
     (n : ℕ) (t : ℕ → S)
@@ -86,13 +86,13 @@ theorem budget_telescope_gen (deltaLevel : S → ℝ)
 
 /-- **MAIN 1 — steps to quality**: if every certified step drops
 the objective by at least `d` (the uniform-drop premise — the
-honest interface to the C291 carrier: at the safe step the
+honest interface to the carrier: at the safe step the
 certified drop is exactly `2·A²/R²` per `ceOneHot_safeStep_le_
 residual`, but NO constant is baked in here), and the initial gap
 `Δ₀ = objective (t 0) − ε` fits in `n` drops (`Δ₀ ≤ n·d`), then
 after `n` steps the quality floor ε is met: `objective (t n) ≤ ε`.
 Pure telescoping — the C294-style bound applied to training steps
-(the engine is C278 `trajectory_telescope_gen`; the sum bound is
+(the engine is `trajectory_telescope_gen`; the sum bound is
 `Finset.sum_le_sum`). No upper bound on n is claimed or needed. -/
 theorem steps_to_quality (deltaLevel : S → ℝ)
     (ε d : ℝ) (n : ℕ) (t : ℕ → S)
@@ -150,7 +150,7 @@ COMPRESSED configuration's per-step descent constant is no better
 than the dense one (`hdd : d ≤ d'` — a PREMISE; no claim that
 compression preserves the descent rate), the gap is nonnegative,
 and the rank is low enough for the per-step advantage (`2k ≤ n`,
-the C328 `lowrank_op_count_le` condition), then the idealized
+ `lowrank_op_count_le` condition), then the idealized
 low-rank total compute `(Δ₀/d')·2kn` beats the dense `(Δ₀/d)·n²`:
 on the (d, W) frontier the cheaper per-step work wins exactly when
 the descent constant does not degrade. The work products are CITED

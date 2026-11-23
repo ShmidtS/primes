@@ -10,7 +10,7 @@ import Hagi.Step.SignSGD
 # The direction-provider contract (audit 4.2)
 
 Optimizers in this layer certify different properties of the
-DIRECTION they propose.  Survey (`.tmp/C366/survey.md`): the
+DIRECTION they propose.  Survey of this layer: the
 genuinely common shape is not a solver but three certificate
 predicates over a state→direction map — descent alignment, a norm
 bound, and feasibility — with each optimizer honestly claiming a
@@ -49,7 +49,7 @@ is genuinely needed — documented, untouched.
 Bridged (delegation theorems, existing SSOT lemmas named):
 
 1. negated gradient — `negGradient_isDescent` (exact descent);
-2. Muon (C297 spectral bridge) — `muonProvider_hasNormBound`,
+2. Muon (spectral bridge) — `muonProvider_hasNormBound`,
    delegating to `muon_step_bound` under the contraction
    hypothesis `∀ z, ‖P z‖ ≤ ‖z‖` (Muon certifies the norm bound,
    NOT descent — honestly only that);
@@ -74,7 +74,7 @@ Not bridged (tranches, with reasons):
 - Newton–Schulz iterations: certify scalar spectral dynamics,
   not a state→direction contract.
 
-Step sizes (`safeqpEtaMax`, the C364 `CEModel` safe step) are the
+Step sizes (`safeqpEtaMax` `CEModel` safe step) are the
 step-side SSOT; this contract deliberately covers only the
 direction side (KISS: unify the certificate shape, not the
 solvers).
@@ -146,7 +146,7 @@ theorem negGradient_isDescent (grad : S → D) :
     real_inner_self_eq_norm_sq]
   linarith [sq_nonneg (‖grad s‖)]
 
-/-! ## Bridge 2: Muon (C297 spectral bridge) -/
+/-! ## Bridge 2: Muon (spectral bridge) -/
 
 variable {W : Type} [NormedAddCommGroup W]
 
@@ -158,7 +158,7 @@ def muonProvider (P : W → W) : DirectionProvider W W where
 
 /-- Muon certifies the NORM BOUND (not descent): under the
 contraction `∀ z, ‖P z‖ ≤ ‖z‖`, `‖muonDir P g‖ ≤ ‖g‖` —
-delegates to `muon_step_bound` (C297). -/
+delegates to `muon_step_bound`. -/
 theorem muonProvider_hasNormBound (P : W → W)
     (hP : ∀ z, ‖P z‖ ≤ ‖z‖) :
     hasNormBound (fun g => ‖g‖) (muonProvider P) := fun _ =>

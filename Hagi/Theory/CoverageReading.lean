@@ -6,7 +6,7 @@ import Hagi.Theory.AdaptiveContext
 set_option relaxedAutoImplicit false
 
 /-!
-# CoverageReading — полное чтение входа окнами (C598, wave228)
+# CoverageReading — полное чтение входа окнами (wave228)
 
 Мост к HAGI_v2 `CertifiedStepLM._read_all_windows` (hagi/lm.py,
 commit b7f7f64): промпт читается ЦЕЛИКОМ скользящими окнами — окно k,
@@ -31,9 +31,9 @@ Fresh-minimal инвариант (KISS, 2 теоремы): список стар
 - `covStarts_trunc_uncovered_zero` — если окон больше m, усечение
   до последних m отбрасывает старт 0 ⇒ байт 0 не покрыт никем
   (граница заявки «every byte, ≤64 windows»).
-- второй namespace модуля `Hagi.Theory.WindowTradeoff` (C623/C628):
+- второй namespace модуля `Hagi.Theory.WindowTradeoff`:
   certified trade-off ширины окна (totalCost = ⌈n/w⌉ · c(w), режимы
-  fixed / linear / mixed) — опирается на `hier_total_min` C618 ниже.
+  fixed / linear / mixed) — опирается на `hier_total_min` ниже.
 
 -/
 
@@ -153,7 +153,7 @@ theorem covStarts_trunc_uncovered_zero (n k m : ℕ) (hk : 0 < k)
 
 
 /-!
-## C602: adaptive span — параметрический шаг (замыкание негатива C598)
+## adaptive span — параметрический шаг (замыкание негатива)
 
 Код-импликация `covStarts_trunc_uncovered_zero`: при переполнении
 (окон > max_span) НЕ усекать хвост слепо (байт 0 теряется), а
@@ -161,7 +161,7 @@ theorem covStarts_trunc_uncovered_zero (n k m : ℕ) (hk : 0 < k)
 число окон входит в бюджет. Точное условие покрытия при окне
 длины w и шаге s: 0 < s ≤ w (соседние окна перекрываются/
 стыкуются, суффикс-фоллбек закрывает хвост); при s > w между
-окнами остаётся дыра (witness .tmp/C602/trajSpan.lean).
+окнами остаётся дыра (bench-witness).
 -/
 
 /-- Обобщение covStarts: окно длины w, шаг решётки s
@@ -223,7 +223,7 @@ theorem covStartsStep_len_le (n w s : ℕ) (_hs : 0 < s) (hw : w < n) :
     List.length_map, List.length_range]
   by_cases hd : s ∣ n - w <;> simp [hd]
 
-/-- **Замыкание негатива C598**: адаптивный шаг s (0 < s ≤ w,
+/-- **Замыкание негатива **: адаптивный шаг s (0 < s ≤ w,
 бюджет (n−w)/s + 2 ≤ m) даёт ПОЛНОЕ покрытие [0, n) окнами
 длины w И число окон ≤ m — усечение windows[-max_span:]
 не срабатывает, старт 0 (и каждый байт) остаётся прочитанным.
@@ -246,9 +246,9 @@ theorem covStartsStep_adaptive_covers (n w s m : ℕ) (hs : 0 < s)
 
 
 /-!
-## C611: иерархические окна — снятие INFEASIBLE-границы adaptive span
+## иерархические окна — снятие INFEASIBLE-границы adaptive span
 
-Одноуровневая граница C602: бюджет (n−w)/s+2 ≤ m при s ≤ w даёт
+Одноуровневая граница бюджет (n−w)/s+2 ≤ m при s ≤ w даёт
 n ≤ w + s·(m−2) ≤ w·(m−1) (= 4032 при w = m = 64) — дальше окон
 больше max_span, полному чтению «не хватает» окон. Решение —
 2 уровня: вход режется на блоки длины B; внутри каждого блока
@@ -259,7 +259,7 @@ covStartsStep с окном w и шагом s; блоки обрабатываю
 ограничено). Честно: peak ≠ total — суммарное число окон растёт
 как ⌈n/B⌉·(≤ m); теоремы ниже про peak (окон на блок), не про
 total. Точный бюджет: при s = w, B = w·(m−1) пик (B−w)/s+2 = m.
-Witness .tmp/C611/trajHier.lean: n = 8128 (> 4032) покрыт;
+Bench-witness: n = 8128 (> 4032) покрыт;
 одноуровневый covStartsStep 8128 64 64 даёт 128 окон > 64.
 -/
 
@@ -275,7 +275,7 @@ def hierStarts (n B w s : ℕ) : List ℕ :=
     ((covStartsStep (hierBlockLen n B j) w s).map (fun t => j * B + t)))).flatten)
 
 /-- **Иерархическое покрытие ЛЮБОГО n** (снятие INFEASIBLE-границы
-C602): без верхней границы на n старты hierStarts покрывают
+): без верхней границы на n старты hierStarts покрывают
 каждый байт i < n окном [t, t + w) при 0 < s ≤ w и 0 < B —
 байты блока j = i/B покрываются окнами этого блока
 (covStartsStep_covers поблочно), число блоков ⌈n/B⌉ не
@@ -311,7 +311,7 @@ theorem hier_covers_any_n (n B w s : ℕ) (hB : 0 < B) (hs : 0 < s) (hsw : s ≤
 (peak ≠ total: суммарно ⌈n/B⌉·(≤ m), с n растёт только total).
 Точный выбор: s = w, B = w·(m−1) ⇒ (B−w)/s + 2 = m окон на блок
 при любом n (w = m = 64: B = 4032, ровно 63–64 окна на блок,
-witness .tmp/C611/trajHier.lean). -/
+bench-witness). -/
 theorem hier_peak_window_budget (n B w s m : ℕ) (hs : 0 < s) (hsw : s ≤ w)
     (hwB : w ≤ B) (hbudget : (B - w) / s + 2 ≤ m) :
     ∀ j ∈ List.range ((n + B - 1) / B),
@@ -335,17 +335,16 @@ theorem hier_peak_window_budget (n B w s m : ℕ) (hs : 0 < s) (hsw : s ≤ w)
 
 
 /-!
-## C618: оптимальность B — TOTAL окон иерархии
+## оптимальность B — TOTAL окон иерархии
 
-C611 честно разделил peak (≤ m окон на блок, streaming) и total
+ честно разделил peak (≤ m окон на блок, streaming) и total
 (⌈n/B⌉·(≤ m), растёт с n). Здесь закрывается вопрос теории из
 roadmap: минимизирует ли выбор s = w, B = w·(m−1) суммарное число
 окон при ограничении peak ≤ m. Ответ: при s = w и w ∣ B total
 равен ⌈n/w⌉ — ИНФОРМАЦИОННОМУ МИНИМУМУ (k окон длины w покрывают
 не более k·w байтов) — и НЕ зависит от B: внутреннего оптимума
-B* нет, выбор C611 certified (любое B, кратное w, в допустимой
-области B ≤ w + s·(m−1) даёт тот же минимальный total; witness
-.tmp/C618/trajOptB.lean).
+B* нет, выбор certified (любое B, кратное w, в допустимой
+области B ≤ w + s·(m−1) даёт тот же минимальный total; bench-witness).
 -/
 
 /-- Точное число стартов при шаге = длине окна (tiling): при
@@ -436,7 +435,7 @@ theorem hier_blocks_sum_tiling (B w c k : ℕ) (hw : 0 < w) (hB : B = w * c) :
       omega
 
 /-- Общий upper bound TOTAL: суммарное число окон иерархии не
-превосходит ⌈n/B⌉·((B−w)/s + 2) — per-block бюджет C611,
+превосходит ⌈n/B⌉·((B−w)/s + 2) — per-block бюджет
 умноженный на число блоков (peak-оценка, честная по total). -/
 theorem hier_total_formula (n B w s : ℕ) (hB : 0 < B) (hs : 0 < s) (hsw : s ≤ w) (hwB : w ≤ B) :
     (hierStarts n B w s).length ≤ ((n + B - 1) / B) * ((B - w) / s + 2) := by
@@ -525,11 +524,11 @@ theorem hier_total_floor (L : List ℕ) (w n : ℕ) (hw : 0 < w)
     _ = L.toFinset.card * w := by simp
     _ ≤ L.length * w := Nat.mul_le_mul_right _ (List.toFinset_card_le L)
 
-/-- **Оптимальность иерархии по total** (замыкание вопроса C618):
+/-- **Оптимальность иерархии по total** (замыкание вопроса):
 при s = w и w ∣ B иерархическое чтение даёт total ровно ⌈n/w⌉ —
 информационный минимум из `hier_total_floor`: никакое покрытие
 [0, n) окнами длины w не использует меньше ⌈n/w⌉ окон. Выбор
-C611 (s = w, B = w·(m−1)) certified: внутреннего оптимума B нет —
+ (s = w, B = w·(m−1)) certified: внутреннего оптимума B нет —
 total одинаков для любого допустимого B, кратного w. -/
 theorem hier_optimal (n B w : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
     (hierStarts n B w w).length = (n + w - 1) / w ∧
@@ -606,16 +605,16 @@ theorem windowCost_linear_near_const (n w1 w2 : ℕ) (hw1 : 0 < w1) (hw2 : 0 < w
   obtain ⟨hle1', hle2'⟩ := windowCost_linear_bounds n w2 hw2
   omega
 
-/-- **Мост к иерархическому чтению C618**: totalCost(w) в модели
+/-- **Мост к иерархическому чтению **: totalCost(w) в модели
 равен c·(hierStarts n B w w).length — стоимости реального
 полного чтения (total = ⌈n/w⌉ при w ∣ B, делегат `hier_total_min`
-C618: иерархия ДОСТИГАЕТ информационного минимума чтений, на
+иерархия ДОСТИГАЕТ информационного минимума чтений, на
 котором стоит вся модель стоимости этого файла). -/
 theorem windowCost_hier (n B w c : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
     c * ((n + w - 1) / w) = c * (hierStarts n B w w).length := by
   rw [hier_total_min n B w hw hB hdiv]
 
-/-! ### Режим (c): суперлинейное окно c(w) = a + c·w² (C628)
+/-! ### Режим (c): суперлинейное окно c(w) = a + c·w²
 
 Непрерывная релаксация totalCost — амортизированная стоимость
 n·(a/w + c·w) (расщепление «дешёвые частые чтения vs дорогие

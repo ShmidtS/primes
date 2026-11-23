@@ -5,7 +5,7 @@ import Hagi.Model.BatchCEDescent
 /-!
 # BatchCEDescentLogitRange
 
-Logit-range family incl. the C223 MAIN theorems: `dirLogitRange`, `batchLogitRangeSquare`, `batchLogitSafeStep`/`Majorizer`/`NextParameters`, and comparison with the existing engine. Split from `BatchCEDescent` (C257).
+Logit-range family incl. the MAIN theorems: `dirLogitRange`, `batchLogitRangeSquare`, `batchLogitSafeStep`/`Majorizer`/`NextParameters`, and comparison with the existing engine. Split from `BatchCEDescent`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -24,7 +24,7 @@ open Hagi.Probability
 /-! ## Per-example logit range of an arbitrary direction -/
 
 /-- The logit RANGE of a one-unit directional displacement:
-`sup d − inf d`, written as `sup' d + sup' (-d)` (C216 pattern). -/
+`sup d − inf d`, written as `sup' d + sup' (-d)` (pattern). -/
 noncomputable def dirLogitRange {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
     (X : Matrix V (Fin d) ℝ) (D : EuclideanSpace ℝ (Fin d)) : ℝ :=
   Finset.sup' Finset.univ Finset.univ_nonempty
@@ -64,7 +64,7 @@ theorem dirLogit_sub_le {V : Type} [Fintype V] [Nonempty V] {d : ℕ}
 
 /-- The actual eta-scaled displacement has pairwise difference at most
 `eta * dirLogitRange`, feeding `lse_shift_upper` (batch mirror of
-C216 `ce_logitDisplacement_range`). -/
+ `ce_logitDisplacement_range`). -/
 theorem dir_logitDisplacement_logitRange {V : Type} [Fintype V] [Nonempty V]
     {d : ℕ} (X : Matrix V (Fin d) ℝ) (θ D : EuclideanSpace ℝ (Fin d))
     {eta : ℝ} (heta : 0 ≤ eta) (u v : V) :
@@ -301,7 +301,7 @@ theorem batchLogitMajorizer_logitSafeStep_eq
   field_simp
   ring
 
-/-- MAIN (C223, batch mirror of C216): the sharp-range batch safe step
+/-- MAIN (batch mirror): the sharp-range batch safe step
 loses at least `2·A²/R'` on the arithmetic-mean batch loss, with
 `R' = mean of (sup d − inf d)²` never exceeding `batchRangeSquare`. -/
 theorem batchLoss_logitSafeStep_le_residual

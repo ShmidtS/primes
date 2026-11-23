@@ -8,103 +8,103 @@ import Hagi.Theory.MasterTheorem
 import Hagi.Theory.MasterEF
 
 /-!
-# TT-CAT — the joint controller theorem (A16 two-level training, C418)
+# TT-CAT — the joint controller theorem (A16 two-level training)
 
 The FINAL composition of the TT-CAT controller: the alternating
-micro level (C402 phases + C390-gated boundaries with the C408
-derived damages), the admission events (C390), and the macro
-Commit/Hold/Rollback checkpoints (C380, adaptivity route C399) in
+micro level (phases + C390-gated boundaries
+derived damages), the admission events, and the macro
+Commit/Hold/Rollback checkpoints (adaptivity route) in
 ONE record, and ONE joint theorem `ttcat_complete`: with high
 probability — the union over ALL failure events (micro δ's +
 admission α's + macro α's, one explicit Σ) — EITHER every level ran
 correctly and the trajectory satisfies the master bound with the
-DERIVED damages (C408) plus the budget (C392/C398) plus the EF
-endpoint (C393), OR a rollback occurred and the last committed
-checkpoint of the SAME trajectory is restored (C380/C363). This is
+DERIVED damages plus the budget plus the EF
+endpoint, OR a rollback occurred and the last committed
+checkpoint of the SAME trajectory is restored. This is
 the project's ultimate certified-or-safe statement.
 
 ## Mapping to the A16 TT-CAT spec sequence (line by line)
 
 Micro loop (runs T steps, extractor frozen within phases):
 1. forward pass on the frozen CR-MSM block — `alt.headCerts`
-   (C396 `CRMSMStep`);
-2. certified head step at the frozen extractor — the C387 universal
-   step inside `HeadPhase` (C402 `head_phase_certified`);
+   (`CRMSMStep`);
+2. certified head step at the frozen extractor — the universal
+   step inside `HeadPhase` (`head_phase_certified`);
 3. error-feedback quantized update with residual carry — the EF
    channel, whose endpoint bound is `master_trajectory_bound_ef_closed`
-   (C393), carried as the EF conjunct of `ttcat_complete`;
-4. compression penalty accounting (C389 form `2·L_lip·ε_q`) —
-   `alt.stepPenalty'` (C396/C402 master certificates);
-5. resource ledger spend of each step — `master.stepCost` (C392),
-   summed against B by the budget conjunct (C398 route:
+carried as the EF conjunct of `ttcat_complete`;
+4. compression penalty accounting (form `2·L_lip·ε_q`) —
+   `alt.stepPenalty'` (master certificates);
+5. resource ledger spend of each step — `master.stepCost`,
+   summed against B by the budget conjunct (route:
    `MasterBudgetCert` premise, `masterBudgetCert_of_resource_ledger`
    construction);
-6. rare extractor boundary every K steps through the C390 admission
+6. rare extractor boundary every K steps through the admission
    gate with the DERIVED damage `2·headLip·D` — `alt.boundaries`
-   (C402/C408 `DerivedExtractorBoundary`).
+   (`DerivedExtractorBoundary`).
 
 Macro loop (every K steps, checkpoint windows `cp m → cp m + 1`):
 1. the window closes at a scheduled checkpoint index — `cp`/`cp_lt`;
-2. quality estimate ΔQ̂_K with the TYPED confidence radius (C378) —
+2. quality estimate ΔQ̂_K with the TYPED confidence radius —
    `macros m`.deltaQ / r_conf;
 3. the LCB/UCB three-way decision commit/hold/rollback —
-   `macros m`.decision pinned by C380 `decide_ok`;
+   `macros m`.decision pinned `decide_ok`;
 4. checkpoint bookkeeping: the rollback target is a PREVIOUSLY
    EXECUTED window boundary of the same trajectory (or the initial
    state) — `checkpoint_ok`;
 5. budget accounting against B — the budget conjunct;
 6. anytime-valid α accounting, adaptive route included — the macro
-   α family of the union bound (discharge route C380 `commit_sound` /
-   C399 `adaptive_commit_bridge`).
+   α family of the union bound (discharge route `commit_sound` /
+ `adaptive_commit_bridge`).
 
 ## What the joint theorem adds beyond the conjunction of parts
 
-The conjunction C408 ∧ C380 ∧ C390 permits cross-level
+The conjunction ∧ ∧ permits cross-level
 inconsistency: a macro COMMIT recorded on states the micro
 trajectory never visited, or a ROLLBACK to a "checkpoint" outside
 the executed trajectory. The controller's hversion equations
-(`macro_before`/`macro_after`, the C383 mechanism) pin every macro
+(`macro_before`/`macro_after`, the mechanism) pin every macro
 certificate onto the SAME states the alternating trajectory
 certified, and `checkpoint_ok` pins the rollback target to the same
 trajectory — mixing is not expressible in the type.
 `ttcat_commit_installs` and `ttcat_rollback_preserves` extract this
 as theorems: a macro commit installs EXACTLY the micro trajectory's
 window-end state; a rollback restores EXACTLY a previously executed
-window boundary (C363 total-state restore).
+window boundary (total-state restore).
 
 ## Honesty pins
 
 - **Measure premises are PREMISE-form** (the repo convention, C380/
-  C390/C399): the per-event level bounds `hMicro`/`hAdm`/`hMacro`
+): the per-event level bounds `hMicro`/`hAdm`/`hMacro`
   are the consumer's to discharge. Discharge routes, CITED not
-  restated (statement-duplication discipline): macro α's via C380
-  `commit_sound` (single window) or C399 `adaptive_commit_bridge`
+  restated (statement-duplication discipline): macro α's
+  `commit_sound` (single window) `adaptive_commit_bridge`
   (adaptive family, Σ α, covers any selection schedule); admission
-  α's via C390 `admit_sound`. The e-process premises of those
+  α's `admit_sound`. The e-process premises of those
   routes are conditional (fresh-draw) — full reuse is NOT covered
-  (the C399 negative pin inherits).
-- **The decision fields are ω-INDEPENDENT** (the C399 convention):
+  (the negative pin inherits).
+- **The decision fields are ω-INDEPENDENT** (the convention):
   the controller records ONE decision sequence; only the
   goodGain/micro-realization predicates are ω-dependent.
 - **`master` is the BUDGET-carrying view** of the same states
   (`masterStates`); drop-channel coherence between the master view
   and the alternating view is NOT claimed (the two views share
   states and cost channel only).
-- **The EF conjunct is a PACKAGED C393 endpoint bound** over an
+- **The EF conjunct is a PACKAGED endpoint bound** over an
   explicit `EFTrajectory` binder on an arbitrary normed space W;
   the carrier bridge (head iterate ↔ canonical states) remains the
-  C392 pin — no fabricated link premise.
-- **microBad is the C392 whp channel, premise-form**: microBad j ω
+ pin — no fabricated link premise.
+- **microBad is the whp channel, premise-form**: microBad j ω
   is the consumer's "the realized descent of micro step j failed
   its certificate" predicate (the `master_union_bound` δ_t
   convention).
-- **Derived damages keep the C402 pin**: the fullObjective channel
+- **Derived damages keep the pin**: the fullObjective channel
   of a boundary remains premise-form with the DERIVED constant
   `2·headLip·D`.
 
 Layer decision: Training (8), same as AlternatingJoint/MacroStatCert
 — the module must see the alternating trajectory (8), the macro
-certificates (8) and the C392/C393 theory (7); only layer 8 can.
+certificates (8) and the theory (7); only layer 8 can.
 -/
 
 set_option relaxedAutoImplicit false
@@ -120,21 +120,21 @@ variable {Θ X V F : Type} [NormedAddCommGroup X] [NormedAddCommGroup F]
 variable [Fintype V] [Nonempty V] {mE rE dE n a e q r c k : ℕ}
 
 /-- THE TT-CAT controller (A16 two-level loop, one record): the
-alternating micro trajectory (`alt`, C408 derived variant — head
+alternating micro trajectory (`alt`, derived variant — head
 phases at a frozen extractor, admission-gated boundaries with
 derived damages, holds), the budget-carrying master view of the
 SAME states (`master` + `masterStates`), the budget premise B
-(C392 `MasterBudgetCert`; construction route C398), the macro
-checkpoint windows (`cp`), and the macro certificates (C380) —
+(`MasterBudgetCert`; construction route), the macro
+checkpoint windows (`cp`), and the macro certificates —
 pinned by hversion equations onto the alternating trajectory's
-states (the C383 mechanism), with the rollback target pinned to a
+states (the mechanism), with the rollback target pinned to a
 previously executed window boundary of the SAME trajectory. -/
 structure TTCATController (T M : ℕ) where
-  /-- The alternating micro trajectory (C402/C408 derived). -/
+  /-- The alternating micro trajectory (derived). -/
   alt : Hagi.Training.AlternatingJoint.DerivedAlternatingTrajectory
     (n := n) (a := a) (e := e) (q := q) (r := r) (c := c) (k := k)
     (Θ := Θ) (X := X) (V := V) (F := F) (mE := mE) (rE := rE) (dE := dE) T
-  /-- The budget-carrying master view (C392). -/
+  /-- The budget-carrying master view. -/
   master : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
     (r := r) (c := c) (k := k) T
   /-- The master view runs on the SAME states as the alternating
@@ -142,18 +142,18 @@ structure TTCATController (T M : ℕ) where
   masterStates : master.states = alt.states
   /-- The budget level B. -/
   B : ℝ
-  /-- The budget premise certificate (C392; construction route C398
+  /-- The budget premise certificate (construction route
   `masterBudgetCert_of_resource_ledger`). -/
   budget : MasterBudgetCert T master B
   /-- The macro checkpoint window starts. -/
   cp : Fin M → ℕ
   /-- Every window is inside the trajectory. -/
   cp_lt : ∀ m : Fin M, cp m + 1 ≤ T
-  /-- The macro certificates (C380), one per checkpoint window. -/
+  /-- The macro certificates, one per checkpoint window. -/
   macros : Fin M → MacroStatCert (CanonicalTrainState n a e q r c k)
     fullObjective
   /-- hversion: macro window m starts at the alternating
-  trajectory's `cp m` state (the C383 mechanism — no cross-level
+  trajectory's `cp m` state (the mechanism — no cross-level
   state mixing). -/
   macro_before : ∀ m : Fin M, (macros m).sBefore = alt.states (cp m)
   /-- hversion: macro window m ends at the alternating
@@ -174,7 +174,7 @@ structure TTCATController (T M : ℕ) where
 /-- A macro COMMIT installs EXACTLY the micro trajectory's
 window-end state — through the hversion equation `macro_after`, the
 macro decision and the micro trajectory provably act on the SAME
-states, not on two separately-versioned copies (the C383
+states, not on two separately-versioned copies (
 mechanism, extracted as a theorem). -/
 theorem ttcat_commit_installs (T M : ℕ)
     (ctl : TTCATController (Θ := Θ) (X := X) (V := V) (F := F)
@@ -188,7 +188,7 @@ theorem ttcat_commit_installs (T M : ℕ)
   rfl
 
 /-- A macro ROLLBACK restores the last committed checkpoint
-(total-state restore, C380 `rollback_sound` / C363) AND the restored
+(total-state restore `rollback_sound` /) AND the restored
 state is a previously executed window boundary of the SAME
 trajectory (or the initial state) — the cross-level rollback
 coherence: the controller can never land on a state the micro level
@@ -209,18 +209,18 @@ theorem ttcat_rollback_preserves (T M : ℕ)
 
 /-- The TT-CAT failure events on ONE probability space Ω
 (heterogeneous levels normalized to Ω-predicates; decisions are
-ω-independent record fields, the C399 convention): the micro
-realization failures (`microBad` — the C392 whp channel,
-premise-form), the false admissions (`admBad` — C390), the false
-commits (`macroBad` — C380/C399), with their explicit levels δ,
+ω-independent record fields, the convention): the micro
+realization failures (`microBad` — the whp channel,
+premise-form), the false admissions (`admBad`), the false
+commits (`macroBad`), with their explicit levels δ,
 α_adm, α_macro. -/
 structure TTCATEvents (T M : ℕ) (Ω : Type*) where
   /-- Micro step j's realized descent failed its certificate (the
-  C392 whp δ-channel, premise-form consumer predicate). -/
+ whp δ-channel, premise-form consumer predicate). -/
   microBad : ℕ → Ω → Prop
-  /-- Boundary i was a false admission (C390 route: `admit_sound`). -/
+  /-- Boundary i was a false admission (route: `admit_sound`). -/
   admBad : ℕ → Ω → Prop
-  /-- Macro window m was a false commit (C380/C399 route:
+  /-- Macro window m was a false commit (route:
   `commit_sound` / `adaptive_commit_bridge`). -/
   macroBad : ℕ → Ω → Prop
   /-- The micro failure levels δ_j. -/
@@ -234,7 +234,7 @@ structure TTCATEvents (T M : ℕ) (Ω : Type*) where
 rollback was ever decided and every level ran correctly (no false
 commit, no false admission, no micro realization failure), OR a
 rollback occurred and the last committed checkpoint is preserved
-(the deterministic C380/C363 + `checkpoint_ok` coherence). The
+(the deterministic + `checkpoint_ok` coherence). The
 trajectory/budget/EF payload is deterministic and carried by
 `ttcat_complete` as separate conjuncts. -/
 def TTCATGood (T M : ℕ)
@@ -285,19 +285,19 @@ theorem ttcat_bad_subset_fail (T M : ℕ)
 
 /-! ## THE JOINT THEOREM -/
 
-/-- **ttcat_complete (C418, the project's ultimate
+/-- **ttcat_complete (the project's ultimate
 certified-or-safe statement)**: for any execution of the TT-CAT
 controller, under the per-family measure premises (premise-form,
-repo convention; discharge routes CITED: macro α's via C380
-`commit_sound` / C399 `adaptive_commit_bridge`, admission α's via
-C390 `admit_sound`, micro δ's via the C392 whp channel):
+repo convention; discharge routes CITED: macro α's
+`commit_sound` / `adaptive_commit_bridge`, admission α's via
+ `admit_sound`, micro δ's via the whp channel):
 1. the trajectory satisfies the master bound with the DERIVED
-   boundary damages (C408: `2·headLip·D`, no opaque δ);
-2. the total master-view cost stays within the budget B (C392
-   premise channel, C398 construction route);
-3. the EF endpoint satisfies the C393 closed bound (packaged over
+   boundary damages (`2·headLip·D`, no opaque δ);
+2. the total master-view cost stays within the budget B (
+   premise channel, construction route);
+3. the EF endpoint satisfies the closed bound (packaged over
    an explicit `EFTrajectory` binder; the carrier bridge stays the
-   C392 pin);
+ pin);
 4. with high probability the outcome is GOOD: EITHER every level
    ran correctly (no false commit, no false admission, no micro
    realization failure, and no rollback was needed), OR a rollback
@@ -357,12 +357,12 @@ theorem ttcat_complete (T M : ℕ)
 
 /-! ## Corollary: quality-optimality accounting -/
 
-/-- **Quality-optimality form (C418 corollary)**: the accepted
+/-- **Quality-optimality form (corollary)**: the accepted
 trajectory's total quality change — the full-objective decrease —
 is at least the sum of certified drops MINUS the compression
 penalties MINUS the derived boundary damages: the optimality gap is
 EXACTLY the accounted penalties and damages, nothing unaccounted
-(direct accounting from the C408 derived bound). -/
+(direct accounting from the derived bound). -/
 theorem ttcat_quality_optimality (T M : ℕ)
     (ctl : TTCATController (Θ := Θ) (X := X) (V := V) (F := F)
       (mE := mE) (rE := rE) (dE := dE) (n := n) (a := a) (e := e) (q := q)

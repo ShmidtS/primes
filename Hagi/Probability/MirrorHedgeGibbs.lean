@@ -17,7 +17,7 @@ set_option linter.style.header false
 # MirrorHedgeGibbs
 
 Gibbs-концентрация (R498+): дисперсия энергии Гиббса, thermostat-стопы, затухание дисперсии и грубая оценка избыточной средней энергии.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability

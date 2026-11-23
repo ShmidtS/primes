@@ -9,12 +9,12 @@ import Hagi.Theory.WeightDecayLeak
 import Hagi.Theory.ExactBypass
 
 /-!
-# AdapterGrowth — certified low-rank адаптер роста (C532)
+# AdapterGrowth — certified low-rank адаптер роста
 
 Существующие механизмы роста добавляют объём ЦЕЛИКОМ: fiber-width
-C494 (`mkOrthoFiberBlock` — widening признаков) и depth-block
-C504/C506/C521 (`benchResidualBlock γ h` — ЦЕЛЫЙ блок,
-~d·d параметров при скрытой ширине ~d). C532 добавляет
+ (`mkOrthoFiberBlock` — widening признаков) и depth-block
+ (`benchResidualBlock γ h` — ЦЕЛЫЙ блок,
+~d·d параметров при скрытой ширине ~d). добавляет
 МИНИМАЛЬНЫЙ носитель роста: low-rank side-branch адаптер
 (LoRA-форма, Hu et al. 2021, arXiv:2106.09685)
 
@@ -29,13 +29,13 @@ C504/C506/C521 (`benchResidualBlock γ h` — ЦЕЛЫЙ блок,
 ОДНОМ нулевом множителе (ядро LoRA-инициализации: в произведении
 `B * A` достаточно обнулить один сомножитель), плюс obj-инвариант
 для ЛЮБОГО функционала при admission (grow-мост, паттерн
-`grow_block_obj_invariant` C504), ЯВНЫЙ счёт параметров с
+`grow_block_obj_invariant`), ЯВНЫЙ счёт параметров с
 неравенством против полного блока и certified-шаг обучения
-адаптера (measured drop > 0 / HOLD — паттерн C506/C521).
+адаптера (measured drop > 0 / HOLD — паттерн).
 
 Cycle-соответствие: `scripts/bench_bridge.py --mode adapter-grow`
 исполняет ровно эту схему на живом корпусе unified_ledger:
-trunk+head certified fd-шаги (C521 phase A), freeze trunk,
+trunk+head certified fd-шаги (phase A), freeze trunk,
 адаптер на голове `pred = w·(f + B·(A·f))` растёт при B = 0
 (assert: obj-инвариант ТОЧНО), certified fd-шаги ТОЛЬКО по 2·r·d
 параметрам адаптера (r = 1 → 8, r = 2 → 16 против 21 параметра
@@ -54,24 +54,24 @@ trunk+head certified fd-шаги (C521 phase A), freeze trunk,
   r фиксирована по построению носителя, ранг ≤ r —
   `Hagi.Core.delta_rank_le`).
 - **Lipschitz обученного адаптера** — не утверждается (per-block
-  premise — контракт C436); на шаге 0 добавка 0.
+  premise — контракт); на шаге 0 добавка 0.
 
 ## Карта секций
 
 Файл = четыре macro-секции + honest-хвост (маркеры `## C-bit:`
 между секциями):
 
-1. **C532 базис** (секции Adapter · ParamCount · CertifiedStep ·
+1. **базис** (секции Adapter · ParamCount · CertifiedStep ·
    SnapCycle · RankAdaptive · Merge · ContinualIsolation) —
    low-rank адаптер, параметр-счёт, certified-шаг, snap-цикл,
    rank-admission, merge-стек, continual-isolation.
-2. **C555** self-compressing adapter loop (`section
+2. ** ** self-compressing adapter loop (`section
    SelfCompress`) — learn→merge→learn с bounded-объёмом.
-3. **C556** constant cluster distillation (`section
+3. ** ** constant cluster distillation (`section
    ConstantDistill`) — exact-кластеры в rank-1 адаптеры.
-4. **C558** mini-HAGI v3 (`section V3Assembly`) — референсная
+4. ** ** mini-HAGI v3 (`section V3Assembly`) — референсная
    сборка фаз exact→distill→fd→compress→EB-стоп.
-5. Хвост **C560** — honest-заметка о cross-domain переносе
+5. Хвост ** ** — honest-заметка о cross-domain переносе
    (bench-измерение, новой теоремы нет).
 -/
 
@@ -89,8 +89,8 @@ variable {d r : Type*} [Fintype d] [Fintype r]
 
 /-- LoRA-адаптер слоя: side-branch `x + B *ᵥ (A *ᵥ x)` с факторами
 `A : r × d` (down) и `B : d × r` (up). Носитель `d → ℝ` НЕ
-расширяется (в отличие от fiber-grow C494) и НЕ добавляется целый
-блок (C504): рост живёт в существующем пространстве. -/
+расширяется (в отличие от fiber-grow) и НЕ добавляется целый
+блок: рост живёт в существующем пространстве. -/
 def adapterVec (A : Matrix r d ℝ) (B : Matrix d r ℝ)
     (x : d → ℝ) : d → ℝ := x + B *ᵥ (A *ᵥ x)
 
@@ -119,7 +119,7 @@ omit [DecidableEq d] [DecidableEq r] in
 /-- Admission-инвариант: при нейтральной инициализации (любой
 один нулевой фактор) ЛЮБОЙ функционал obj от выхода слоя сохраняет
 значение ТОЧНО — certified-нейтральность добавления адаптера
-(congrArg-мост, паттерн `grow_block_obj_invariant` C504). -/
+(congrArg-мост, паттерн `grow_block_obj_invariant`). -/
 theorem adapter_obj_invariant {A : Matrix r d ℝ}
     {B : Matrix d r ℝ} (hB : B = 0) (obj : (d → ℝ) → ℝ)
     (x : d → ℝ) : obj (adapterVec A B x) = obj x := by
@@ -147,7 +147,7 @@ theorem adapter_param_count :
 variable {r d}
 
 /-- Полный d×d-блок того же слоя несёт `card d * card d`
-параметров — база сравнения объёма (identity-блок C504 при
+параметров — база сравнения объёма (identity-блок при
 скрытой ширине ~d). -/
 theorem block_param_count : (Fintype.card d * Fintype.card d :
     ℕ) = (Finset.univ : Finset (d × d)).card := by
@@ -156,7 +156,7 @@ theorem block_param_count : (Fintype.card d * Fintype.card d :
 /-- Экономия объёма: при `2 * card r ≤ card d` адаптер ранга `r`
 строго меньше полного блока по числу параметров
 (`2·r·d ≤ d·d`, равенство только при `2r = d`). Bench-инстанс
-C532: r=1, d=4 → 8 ≤ 16. -/
+r=1, d=4 → 8 ≤ 16. -/
 theorem adapter_param_count_le_block
     (h : 2 * Fintype.card r ≤ Fintype.card d) :
     2 * Fintype.card r * Fintype.card d ≤
@@ -182,7 +182,7 @@ variable {S : Type*} (obj : S → ℝ) (s s' : S)
 
 /-- Certified-шаг обучения адаптера: COMMIT только по measured
 строгому drop (obj s' < obj s), иначе HOLD (состояние не меняется)
-— bench-семантика grow-цикла C506/C521 (admission drop > 0,
+— bench-семантика grow-цикла (admission drop > 0,
 rollback при не-спуске). -/
 noncomputable def adapterStep : S :=
   if obj s' < obj s then s' else s
@@ -197,7 +197,7 @@ theorem adapter_step_certified (h : obj s' < obj s) :
   · rename_i h'; exact ⟨rfl, h'⟩
   · rename_i h'; exact absurd h h'
 
-/-- Негатив (noBlockAdmissionWithoutMargin-паттерн C444):
+/-- Негатив (noBlockAdmissionWithoutMargin-паттерн):
 отсутствие строгого drop ⇒ HOLD, состояние ТОЧНО не меняется —
 нулевой/отрицательный кандидат не допускается. -/
 theorem adapter_step_hold (h : ¬ obj s' < obj s) :
@@ -209,9 +209,9 @@ theorem adapter_step_hold (h : ¬ obj s' < obj s) :
 
 end CertifiedStep
 
-/-! ## C533: snap адаптера и телескоп составного цикла
+/-! ## snap адаптера и телескоп составного цикла
 
-Композиция C532×C521: рост уровня — адаптер (admission при
+Композиция ×рост уровня — адаптер (admission при
 B = 0, ТОЧНЫЙ инвариант), certified fd-обучение только 2·r·d
 параметров, затем snap к q/2^k с certified-границей; следующий
 уровень стартует с грида (знаменатели bounded на КАЖДОМ
@@ -278,7 +278,7 @@ theorem adapter_snap_bound
 /-- Телескоп составного adapter-snap цикла: admission вклад
 ТОЧНО 0 (adapter_obj_invariant), certified fd-шаги вклад ≤ 0
 (measured drop > 0), snap вклад ≤ b_i — потому итог финала
-≤ старта + Σ b_i. Делегат к `grow_snap_cycle_sound` (C521,
+≤ старта + Σ b_i. Делегат к `grow_snap_cycle_sound` (
 индукция по списку bound'ов) — не копия доказательства. -/
 theorem adapter_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
     (step : ℕ → ℝ) (h0 : step 0 ≤ o0)
@@ -289,11 +289,11 @@ theorem adapter_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
 
 end SnapCycle
 
-/-! ## Ранговая адаптивность (C535): измеримый селектор ранга
+/-! ## Ранговая адаптивность: измеримый селектор ранга
 
-Каркас C533, обобщённый на ранг r ∈ {1, 2}: на каждом уровне
+Каркас обобщённый на ранг r ∈ {1, 2}: на каждом уровне
 ранг выбирается по ИЗМЕРЕННОМУ критерию probe-drop-на-параметр
-(паттерн `hybridSelect` C510 — детерминированный селектор на
+(паттерн `hybridSelect` — детерминированный селектор на
 измеренных числах, гарантия = дизъюнкция веток). -/
 section RankAdaptive
 
@@ -321,8 +321,8 @@ theorem rank_select_deterministic (s1 s2 s1' s2' : ℝ)
 /-- Certified-гарантия выбранной ветки СОХРАНЯЕТСЯ: какая
 ветка ни выбрана, obj-граница ИМЕННО ЕЁ certified-цикла
 держится (дизъюнкция r-веток, паттерн `hybrid_step_sound`
-C510: case-on-state без ослабления). Probe-шаги в гарантию
-не входят — они вычисляются на копии (C530 no-commit
+case-on-state без ослабления). Probe-шаги в гарантию
+не входят — они вычисляются на копии (no-commit
 rollback: состояние не двигалось, откат ТОЧЕН), в цепь
 попадают только COMMIT-шаги выбранного ранга. -/
 theorem rank_select_sound (s1 s2 : ℝ)
@@ -339,14 +339,14 @@ theorem rank_select_sound (s1 s2 : ℝ)
 
 end RankAdaptive
 
-/-! ## C536: SVD-Матрёшка — merge стека адаптеров компрессией
+/-! ## SVD-Матрёшка — merge стека адаптеров компрессией
 
-Стек L LoRA-уровней (C533/C535: `f ↦ (I + B_L A_L)·…·(I + B_1 A_1)·f`,
+Стек L LoRA-уровней (`f ↦ (I + B_L A_L)·…·(I + B_1 A_1)·f`,
 2·L·d параметров) сворачивается в ОДИН адаптер ранга k ≤ min(d, L):
 суммарное возмущение Δ = Π(I+E_i) − I имеет ранг ≤ Σ рангов
 E_i = L (структурный выигрыш: 2·k·d < 2·L·d параметров при k < L,
 один matmul вместо L). Точная obj-близость после усечения —
-σ_tail × Lipschitz (прецедент rank-trunc C498/C500 и
+σ_tail × Lipschitz (прецедент rank-trunc и
 `Hagi.Contracts.TruncatedSVDTail.truncated_svd_error_eq_tail` —
 ГОТОВАЯ форма ‖Δ − Δ_k‖² = Σ tail σ²; `mdl_rank_ce` — паттерн
 kappaF-Lipschitz). Bench-инстанс: `--mode adapter-merge`
@@ -362,7 +362,7 @@ variable {d : Type*} [Fintype d] [DecidableEq d]
 
 /-- Матричная композиция стека адаптеров: произведение
 `Π (I + E_i)` по списку возмущений уровней (E_i = B_i·A_i — ранг
-≤ r_i). Матричная форма fold-цепочки C533: уровень ℓ действует на
+≤ r_i). Матричная форма fold-цепочки уровень ℓ действует на
 выход уровня ℓ−1. -/
 def stackProd : List (Matrix d d ℝ) → Matrix d d ℝ
   | [] => 1
@@ -410,7 +410,7 @@ theorem rank_add_le' {m n : Type*} [Fintype m] [Fintype n]
 (при L·r ≥ d — и того меньше: rank ≤ min(d, Σ)). Индукция:
 `Π_{i≤n+1} − 1 = E_{n+1}·Π_{i≤n} + (Π_{i≤n} − 1)`, затем
 `Matrix.rank_mul_le_left` + подаддитивность. Bench-инстанс
-(C533/C535: L = 8, r = 1, d = 4): rank(Δ) ≤ 4 — merge даёт
+(L = 8, r = 1, d = 4): rank(Δ) ≤ 4 — merge даёт
 ≤ 2·4·4 = 32 параметров против 64 у стека, ГАРАНТИРОВАНО
 структурой, независимо от данных. -/
 theorem adapter_stack_rank_bound (L : List (Matrix d d ℝ)) :
@@ -450,7 +450,7 @@ theorem adapter_merge_params (dd L k : ℕ) (hk : k ≤ L) :
 `mdl_rank_ce`-паттерном), признаки ограничены Σ f² ≤ B², а obj
 ℓ¹-Lipschitz по признакам (Lc), то obj после замены Δ на Δ_k
 отличается не более чем на Lc·n·ε·B — CERTIFIED ε-окрестность
-функции стека (C533 `adapter_snap_bound`-паттерн: пошаговая
+функции стека (`adapter_snap_bound`-паттерн: пошаговая
 покоординатная граница + Lipschitz-перенос). Bench-инстанс
 сертифицирует СИЛЬНЕЕ: точный рациональный per-point bound
 (2|s−y|+|ds|)·|ds| без всяких γ-констант. -/
@@ -521,21 +521,21 @@ theorem adapter_merge_error_bound {n : ℕ} (obj : (Fin n → ℝ) → ℝ)
 
 end Merge
 
-/-! ## C544: continual через ИЗОЛИРОВАННЫЕ адаптеры
+/-! ## continual через ИЗОЛИРОВАННЫЕ адаптеры
 
 Композиция AdapterGrowth (C532/533/535/536) × Continual
-(C485/C508/C510) × WeightDecayLeak (C538): continual-обучение
+ × WeightDecayLeak: continual-обучение
 ЗАДАЧА-ЗА-ЗАДАЧЕЙ, где каждая задача получает СВОЙ адаптер
-(нейтральная инициализация C532), а trunk и все ЗАВЕРШЁННЫЕ
+(нейтральная инициализация), а trunk и все ЗАВЕРШЁННЫЕ
 адаптеры заморожены. Забывание тогда равно нулю СТРУКТУРНО:
 замороженный адаптер не меняется ВООБЩЕ — проще GPM-проекции
-(C485: шаг обязан лежать в ортогональном дополнении span
-старых входов) и A-GEM (C508: пер-шаговая проверка конфликта):
+(шаг обязан лежать в ортогональном дополнении span
+старых входов) и A-GEM (пер-шаговая проверка конфликта):
 никакого ограничения на шаг НОВОЙ задачи не нужно, изоляция
 архитектурная. Если же trunk всё же обновляется, защита
 обязана быть проекционной — `trunk_update_needs_projection`
-(композиция с C538 `naive_decay_parallel`/`naive_decay_leak`,
-не дубль: C538 говорит про КОМПОНЕНТУ `W * P`, здесь — про
+(композиция с `naive_decay_parallel`/`naive_decay_leak`,
+не дубль: говорит про КОМПОНЕНТУ `W * P`, здесь — про
 ВЫХОД на protected входе). -/
 section ContinualIsolation
 
@@ -551,12 +551,12 @@ abbrev AdaptState (r d : Type*) [Fintype r] [Fintype d] :=
 
 /-- Выход задачи `i`: LoRA-ветка СВОЕГО адаптера на входе `x`
 (труnk применяет host-слой к результату — здесь носитель
-`adapterVec` C532 без изменений). -/
+`adapterVec` без изменений). -/
 def perTaskVec {r d : Type*} [Fintype r] [Fintype d]
     (s : ι → AdaptState r d) (i : ι) (x : d → ℝ) : d → ℝ :=
   adapterVec (s i).1 (s i).2 x
 
-/-- **(a) adapter_isolation_zero_forgetting (C544)**: если
+/-- **(a) adapter_isolation_zero_forgetting**: если
 обновление состояния НЕ тронуло адаптер задачи `i`
 (заморозка: `s' i = s i` — остальные адаптеры произвольны),
 то выход задачи `i` идентичен ТОЧНО — шаг-за-шагом, при любых
@@ -571,7 +571,7 @@ theorem adapter_isolation_zero_forgetting
     perTaskVec s' i x = perTaskVec s i x := by
   rw [perTaskVec, perTaskVec, hfrozen]
 
-/-- **(b) adapter_per_task_sound (C544, структурный
+/-- **(b) adapter_per_task_sound (структурный
 zero-forgetting)**: continual-цикл `s 0, s 1, …` по задачам
 1..k, каждая своим адаптером; после завершения задачи `i` её
 адаптер заморожен (`∀ t, s (t+1) i = s t i` — шаги задач
@@ -603,18 +603,18 @@ theorem adapter_per_task_obj_sound
     obj (perTaskVec (s t) i x) = obj (perTaskVec (s 0) i x) := by
   rw [adapter_per_task_sound s i hfroz t]
 
-/-- **(c) trunk_update_needs_projection (C544, композиция с
-C538)**: если trunk всё же обновляется, то БЕЗ проекции в
+/-- **(c) trunk_update_needs_projection (композиция с
+)**: если trunk всё же обновляется, то БЕЗ проекции в
 дополнение protected-подпространства происходит утечка: naive
 decay `W' = (1 − c) • W` с `0 < c < 1` и ненулевой
 protected-компонентой строки `i` СТРОГО меняет выход на
 некотором protected входе `x` (столбце идемпотентного
 проектора P: `P *ᵥ x = x`). Существование такого x — мост от
-`naive_decay_parallel` (C538: компонента сжимается фактором
+`naive_decay_parallel` (компонента сжимается фактором
 `1 − c < 1`) к ВЫХОДНОЙ форме: нулевая компонента ⇒ строка
 неизменна, сжатие строго ⇒ строка изменилась ⇒ некоторый её
 вход даёт другой скаляр. Проекционная форма спасения —
-C538 `wd_gpm_step_sound` (цитируется, не дублируется). -/
+ `wd_gpm_step_sound` (цитируется, не дублируется). -/
 theorem trunk_update_needs_projection {m n : ℕ}
     (W : Matrix (Fin m) (Fin n) ℝ)
     (P : Matrix (Fin n) (Fin n) ℝ) (hP : P * P = P)
@@ -669,7 +669,7 @@ theorem trunk_update_needs_projection {m n : ℕ}
 end ContinualIsolation
 
 /-!
-## C555: self-compressing adapter loop
+## self-compressing adapter loop
 
 Цикл learn→merge→learn: рост знания адаптерами при BOUNDED
 объёме. Итерация: admit ранг-1 уровня (нейтральный B = 0),
@@ -681,7 +681,7 @@ merge равны `selfCompressParams k d = 2·k·d` и НЕ растут с
 числом итераций, а суммарный certified-drop накапливается
 (телескоп: obj ≤ start + Σ bounds, делегат `grow_snap_cycle_sound`).
 Bench-инстанс: `--mode self-compress-loop` (полный живой корпус
-C551, констант-кластеры + адаптерный остаток, K = d = 4).
+констант-кластеры + адаптерный остаток, K = d = 4).
 -/
 section SelfCompress
 
@@ -706,7 +706,7 @@ theorem self_compress_params_bounded (k d L : ℕ)
 ранг-k адаптера при `k < L` и непустом d — параметры
 unmerged-цикла растут ЛИНЕЙНО с числом итераций, self-compress
 цикл держит их на `selfCompressParams k d` (bench-инстанс
-C555: k = d = 4, L = 6 — 32 < 48). -/
+k = d = 4, L = 6 — 32 < 48). -/
 theorem self_compress_params_contrast {k d L : ℕ}
     (hk : k < L) (hd : 0 < d) :
     selfCompressParams k d < 2 * L * d := by
@@ -714,7 +714,7 @@ theorem self_compress_params_contrast {k d L : ℕ}
   exact Nat.mul_lt_mul_of_lt_of_le (by omega)
     (Nat.le_refl d) hd
 
-/-- **Soundness self-compress цикла (C555)**: композиция
+/-- **Soundness self-compress цикла**: композиция
 (admit + certified-шаг + merge) × n итераций даёт
 (а) телескоп-границу `step n ≤ o0 + bs.sum` (admit вклад 0,
 шаги вклад ≤ 0, merge вклад b_i — делегат `grow_snap_cycle_sound`,
@@ -740,10 +740,10 @@ theorem self_compress_loop_sound (k d : ℕ) (o0 : ℝ)
 end SelfCompress
 
 /-!
-## C556: constant cluster distillation (exact → adapter)
+## constant cluster distillation (exact → adapter)
 
-Дистилляция констант-кластеров (C551/C553: 6 констант,
-106/113 exact-покрытия) из символьного exact-гейта (C541
+Дистилляция констант-кластеров (6 констант,
+106/113 exact-покрытия) из символьного exact-гейта (
 ExactBypass) в АДАПТЕРНЫЕ веса: символьное знание живёт в
 нейро-слое, ветвление exact-bypass отключается, контуры
 унифицируются БЕЗ потерь CE.
@@ -753,10 +753,10 @@ ExactBypass) в АДАПТЕРНЫЕ веса: символьное знание
 конструктор ветки (не обучаемый вес). Конструкция θ(c) :=
 (A := 0, B := const c): A-проекция игнорируется, внутренняя
 координата ≡ 1, выход ≡ c на ЛЮБЫХ входах ТОЧНО — rank-1
-адаптер МОЖЕТ представлять константу, `adapterVec` C532 не
+адаптер МОЖЕТ представлять константу, `adapterVec` не
 может (его выход содержит x). distill-условие: p = 1 на
 кластере ⇒ ceSum = 0 — переносится КОМПОЗИЦИЕЙ с
-`exact_gate_sound` (C541), не копией доказательства.
+`exact_gate_sound`, не копией доказательства.
 
 Параметр-контраст ЧЕСТЕН в обе стороны: дистиллянт = 2d
 параметров на кластер (Σ = 2·J·d), символьное хранение = J
@@ -816,7 +816,7 @@ theorem distill_prob_one {ι : Type} (c : ℝ) (t : ι → ℝ)
   simp [hcl x hx]
 
 open Classical in
-/-- **(distill-условие / сохранение покрытия, C556)**: после
+/-- **(distill-условие / сохранение покрытия)**: после
 дистилляции кластера CE на нём = 0 РОВНО — та же теорема
 `ce_pointwise_of_prob_one` (переносится композицией:
 constant_distill_exact → distill_prob_one → exact_gate_sound).
@@ -849,7 +849,7 @@ theorem distill_params_total (J d : ℕ) :
 ЗНАЧЕНИЙ дешевле дистиллянта (J < 2·J·d при d ≥ 2, J ≥ 1).
 Ценность дистилляции — НЕ память, а унификация контуров
 (0 ветвлений exact-гейта, единый adapter-путь) и слияние
-exact-bypass с адаптерным остатком (C555). -/
+exact-bypass с адаптерным остатком. -/
 theorem symbolic_storage_cheaper (J d : ℕ)
     (hJ : 0 < J) (hd : 1 < d) : J < 2 * J * d := by
   have h1 : J * 2 ≤ J * d := Nat.mul_le_mul_left J hd
@@ -860,7 +860,7 @@ theorem symbolic_storage_cheaper (J d : ℕ)
 end ConstantDistill
 
 /-!
-## C558: mini-HAGI v3 — референсная сборка (universal
+## mini-HAGI v3 — референсная сборка (universal
 self-compressing distill loop)
 
 Финальная композиция C547–C556 в ОДНОМ bench-прогоне
@@ -877,7 +877,7 @@ section V3Assembly
 
 variable {d : Type*} [Fintype d] [Nonempty d]
 
-/-- **(мини-HAGI v3, референсная сборка C558)**: единая
+/-- **(мини-HAGI v3, референсная сборка)**: единая
 адаптерная машина = J дистиллированных констант-кластеров
 (`distill_coverage_preserved` ⇒ CE = 0 на каждом кластере
 ТОЧНО) + self-compress цикл (`self_compress_loop_sound` ⇒
@@ -908,11 +908,11 @@ theorem v3_assembly_sound {ι : Type} (k dd : ℕ)
 
 end V3Assembly
 
-/-! ## C560: cross-domain перенос адаптеров (honest-заметка)
+/-! ## cross-domain перенос адаптеров (honest-заметка)
 
-Bench `--mode adapter-transfer` (C560): warm-start домена B
+Bench `--mode adapter-transfer`: warm-start домена B
 копией обученного адаптера домена A vs холодный нулевой
-старт (C532), равные certified-бюджеты. Измерение на живом
+старт, равные certified-бюджеты. Измерение на живом
 корпусе: 3/3 пары (близкая/средняя/далёкая, близость
 зарегистрирована ДО прогона) — T1-positive по AUC
 CE-трейектории (drop-скорость), poisoned-инициализация хуже
@@ -920,7 +920,7 @@ CE-трейектории (drop-скорость), poisoned-инициализа
 `adapter_step_certified` сформулирована над произвольными
 `s s'` — инициализация в неё не входит, поэтому warm-start
 наслаждается той же certified-гарантией (переносимая теорема
-тривиальна). Ценность C560 — bench-измерение, не новый Lean-
-факт (KISS). Witness: `.tmp/C560/trajTransfer.lean`. -/
+тривиальна). Ценность — bench-измерение, не новый Lean-
+факт (KISS). -/
 
 end Hagi.Theory.AdapterGrowth

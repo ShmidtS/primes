@@ -26,7 +26,7 @@ The mechanism (QuIP#-style, but pinned to THIS repo's carriers —
   ternary quantization error on the Hadamard image is at most
   `2^k·(s/2)² + (energy in out-of-range coordinates)` —
   `n·ε_small² + energy-above-threshold` with ε_small = s/2 the
-  exact `qTern_error_in` half-step of the C238/C246 carrier.
+  exact `qTern_error_in` half-step of the carrier.
 * `hadamard_ternary_error_bound_of_spread` — conditional ρ-form:
   if the out-of-range energy is ≤ ρ·‖x‖², the error is
   ≤ n(s/2)² + ρ‖x‖². `hadamard_ternary_error_worst_case` is the

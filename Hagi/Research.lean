@@ -18,7 +18,7 @@ import Hagi.Research.RsiCriterion
 import Hagi.Research.SeedOnly
 
 /-!
-# Hagi.Research — quarantined research models (C240, A5 §R4)
+# Hagi.Research — quarantined research models (A5 §R4)
 
 These research-model modules (Omni cross-modal invariants, Percolation
 site thresholds, Schelling routing/selection, Discovery PPT) are

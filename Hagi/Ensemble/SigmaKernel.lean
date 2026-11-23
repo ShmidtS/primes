@@ -50,7 +50,7 @@ namespace Hagi.Ensemble
 variable {n k : Type*} [Fintype n] [DecidableEq n]
   [Fintype k] [DecidableEq k]
 
-/-! ##: PSD-ядро интерференции -/
+/-! ## PSD-ядро интерференции -/
 
 /-- Факторизованная квадратичная форма интерференции:
 v ⬝ᵥ (Σ.mulVec v) = ‖A.mulVec v‖² при Σ = Aᵀ·A. -/
@@ -85,7 +85,7 @@ theorem kernel_interference_zero (A : Matrix k n ℝ) (v : n → ℝ)
     v ⬝ᵥ ((Aᵀ * A).mulVec v) = 0 := by
   rw [hker, dotProduct_zero]
 
-/-! ##: мост Гаусса-Ньютона (GPM ⟹ SafeQP) -/
+/-! ## мост Гаусса-Ньютона (GPM ⟹ SafeQP) -/
 
 /-- Внутреннее произведение GN-градиента с направлением из
 ker(X): g = Xᵀ·r (масштаб 1/m опущен — константа) ⟹

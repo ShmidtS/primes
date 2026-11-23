@@ -39,7 +39,7 @@ downstream Lipschitz head:
   `‖W x − Wqq x‖ ≤ (e₁ + e₂)·B`;
 * `logit_head_total_error` — **MAIN**: the concrete ε_total for a
   compressed logit head — low-rank truncation (stage 1, `e_svd`:
-  the premise discharged theorem-form by C342
+  the premise discharged theorem-form
   `sparse_premise_discharged` on the Frobenius side) then
   quantization (stage 2, `e_quant`), both through the bounded input
   and the `L`-Lipschitz decoder with its own error `e_dec`:
@@ -50,7 +50,7 @@ Honest scope (pins — stage combinations NOT yet composable):
 * FROBENIUS → OPNORM: `truncated_svd_error_eq_tail` is Frobenius;
   the stage premise `‖W − Wq‖op ≤ e_svd` needs `‖·‖op ≤ ‖·‖F`,
   absent from the repo (the `External/Flywheel/MatrixNormRelations`
-  spectral identification wall is the same C232/C281 root-sorting
+  spectral identification wall is the same root-sorting
   gap). The instantiation keeps this bridge premise-form.
 * SCALAR → VECTOR QUANT: `qTern_error_in` is scalar per-coordinate;
   the lift to a `ContinuousLinearMap` stage bound (`‖Wq − Wqq‖op ≤
@@ -62,7 +62,7 @@ Honest scope (pins — stage combinations NOT yet composable):
   cross-carrier heads use the general `LipschitzWith` form above;
   instantiating `D` by a concrete stack needs an endo `Y → Y` head.
 
-Created: 2026-11-17 (C367, audit 4.3 / A15 step 4.3)
+Created: 2026-11-17 (audit 4.3 / A15 step 4.3)
 -/
 
 open ContinuousLinearMap
@@ -140,7 +140,7 @@ theorem linear_pair_output_error
 
 /-- **ε_total for a compressed logit head** (MAIN): stage 1 = low-rank
 truncation (`e_svd`; the Frobenius side is `sparse_premise_discharged`,
-C342), stage 2 = quantization (`e_quant`), both mapped to output space
+), stage 2 = quantization (`e_quant`), both mapped to output space
 by the input bound `B`, then chained through the `L`-Lipschitz decoder
 `D` whose own served error is `e_dec`:
 `‖D (W x) − D' (Wqq x)‖ ≤ L·((e_svd + e_quant)·B) + e_dec`. -/

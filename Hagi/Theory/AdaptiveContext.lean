@@ -6,7 +6,7 @@ import Hagi.Theory.RangeWrap
 set_option relaxedAutoImplicit false
 
 /-!
-# AdaptiveContext — Occam-выбор окна контекста (C582, wave214)
+# AdaptiveContext — Occam-выбор окна контекста (wave214)
 
 Мост к HAGI_v2 `lm.AdaptiveContextSelector` (hagi/lm.py, класс с
 тем же именем): модель выбирает размер собственного контекста на

@@ -7,7 +7,7 @@ import Hagi.Math.Foundations.Telescope
 import Mathlib.Tactic
 
 /-!
-# AdditiveLedger — единый обобщённый телескоп (A18.3, beat C425)
+# AdditiveLedger — единый обобщённый телескоп (A18.3, beat)
 
 Аудит W6: cert-телескопы (`trajectory_telescope`, `delta_telescope`,
 `trajectory_telescope_gen`, `risk_telescope_gen`,
@@ -16,14 +16,14 @@ import Mathlib.Tactic
 интерфейс: typeclass `AdditiveLedger` (≤-закон списания) и его точная
 версия `ExactAdditiveLedger` (=-закон), с ОДНОЙ обобщённой леммой
 `additive_ledger_telescope` (плюс `_eq`/`_floor` формы). Вся индукция
-делегируется ядру `Hagi.Foundations.telescope_*` (C346) — здесь нет
+делегируется ядру `Hagi.Foundations.telescope_*` — здесь нет
 ни одной новой индукции.
 
 Модуль — лист (не импортирует cert-структуры): инстансы для
 `CertStep`/`CertStepDelta` живут в `Hagi.Cert.Core`, для
 `CertStepGen` — в `Hagi.Cert.StepGen`; доменные телескопы становятся
 one-line специализациями `additive_ledger_telescope` с явным `level`.
-НЕ сводятся без искажения (см. .tmp/C425/research.md): `certs_telescope`
+НЕ сводятся без искажения: `certs_telescope`
 (строгое убывание + risk-рост конъюнкцией), `ctv2_family_telescope`
 (суть — per-step nlinarith, не телескоп), `floor_floor_telescope`
 (контракт-обёртка двух каналов).

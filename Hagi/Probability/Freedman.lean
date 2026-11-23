@@ -8,7 +8,7 @@ import Mathlib
 set_option linter.style.header false
 
 /-!
-# Freedman-канон (Probability, C525)
+# Freedman-канон
 
 Canonical Freedman concentration family (v5 W3 consolidation).
 Sections merged here (namespaces and FQNs preserved, module files
@@ -1774,7 +1774,7 @@ end Hagi.Probability
 
 /-!
 # FreedmanTwoSided — the |S| form of the joint maximal
-Freedman (: the Hagi corollary closing the plan's
+Freedman (the Hagi corollary closing the plan's
 "two-sided anytime joint" line)
 
 The plan (§1.2) asks for
@@ -2089,7 +2089,7 @@ end Hagi
 Строится на адаптивном Freedman-хвосте `history_additive_freedman`
 (P[отклонение ≥ r при компенсаторе ≤ V] ≤ exp(−r²/(4(V+c·r)))).
 
-**C356 (variance-компенсатор):** фиксированный-λ Freedman-хвост с
+**(variance-компенсатор):** фиксированный-λ Freedman-хвост с
 ФАКТИЧЕСКИМ дисперсионным компенсатором (суммой условных
 дисперсий) вместо константного σ: суперmartингал
 `history_exp_compensated_le`, хвост `history_variance_freedman_lam`,
@@ -2119,7 +2119,7 @@ exp(−r²/(4·(T·σ+c·r)))).
 * `stochastic_safe_step_closed` — то же с замкнутым радиусом
   R = 2·√(T·σ·L) + 4·c·L и failure ≤ δ.
 
-**C410 (полная форма Freedman, Bennett-chord):** хорда Беннетта
+**(полная форма Freedman, Bennett-chord):** хорда Беннетта
 `exp_le_chord_nonneg` (для x ∈ [0,3):
 eˣ − 1 − x ≤ x²/(2(1−x/3)), доказана с нуля цепочкой из трёх
 монотонностей; MGF с хордовым коэффициентом
@@ -2138,8 +2138,8 @@ exp(−r²/(4(V+cr))) всегда (константы 4→2, cr→cr/3, рав�
 **Честные ограничения (premise-form limitations):**
 
 * адаптивного-λ Freedman нет — используется λ-оптимизация
-  фиксированного хвоста из базовой теоремы; C356 добавил
-  fixed-λ вариант с фактическим variance-компенсатором, а C410
+  фиксированного хвоста из базовой теоремы; добавил
+  fixed-λ вариант с фактическим variance-компенсатором, а
   закрыл полный радиус r²/(2(V+cr/3)) хордой Беннетта
   (λ-оптимизация в `freedman_full`, per-instance);
   data-зависимый λ-процесс по-прежнему не строится;
@@ -2517,7 +2517,7 @@ theorem historyCounter_var_le (K : ℕ → α → PMF α)
     _ = (min k T : ℕ) * σ := by
         rw [Finset.sum_const, Finset.card_range]; simp
 
-/-- **Variance-compensator суперmartингал** (C356): при
+/-- **Variance-compensator суперmartингал**: при
 ограниченном шуме (|g| ≤ c), нулевом условном среднем и
 условной дисперсии ≤ v, для λ ≥ 0 с λ·c ≤ 1 экспоненциальный
 компенсированный потенциал exp(λ·S_k − λ²·C_k) — суперmartingale
@@ -2640,7 +2640,7 @@ theorem history_exp_compensated_le (initial : PMF α) (K : ℕ → α → PMF α
       exact hmono.trans (hFk.trans_le ih)
 
 /-- **Fixed-λ Freedman-хвост с фактическим компенсатором**
-(C356): P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−λ·r + λ²·V) для любого
+P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−λ·r + λ²·V) для любого
 λ ∈ [0, 1/c] и детерминированного порога V ≥ 0. Компенсатор
 C_k — фактическая сумма условных дисперсий (не константа). -/
 theorem history_variance_freedman_lam (initial : PMF α) (K : ℕ → α → PMF α)
@@ -2661,7 +2661,7 @@ theorem history_variance_freedman_lam (initial : PMF α) (K : ℕ → α → PMF
     (history_exp_compensated_le initial K g v T c lam hlam hclam
       hbounded hmean hvar k)
 
-/-- **Замкнутый радиус с variance-компенсатором** (C356):
+/-- **Замкнутый радиус с variance-компенсатором**:
 оптимизация λ = r/(2·V) в режиме c·r ≤ 2·V (λ·c ≤ 1) даёт
 P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−r²/(4·V)) — БЕЗ линейного члена,
 строго сильнее базового радиуса exp(−r²/(4·(V+c·r))) при
@@ -2694,7 +2694,7 @@ theorem freedman_variance_radius (initial : PMF α) (K : ℕ → α → PMF α)
   rw [hexp] at htail
   exact htail
 
-/-- **Freedman-мост, variance-форма (C356, главный)**: при тех же
+/-- **Freedman-мост, variance-форма (главный)**: при тех же
 посылках, что `stochastic_safe_step_whp`, плюс режим
 `hrc : c·r ≤ 2·T·σ`, drop = T·γ − r достигается с вероятностью
 ≥ 1 − exp(−r²/(4·T·σ)) — радиус без линейного члена, строго
@@ -2816,7 +2816,7 @@ theorem stochastic_safe_step_variance_whp (initial : PMF α)
       linarith
     linarith
 
-/-- Обёртка-сертификат (C356): variance-форма моста в форме
+/-- Обёртка-сертификат: variance-форма моста в форме
 `CertStochasticStep`; failure = exp(−r²/(4·T·σ)) в режиме
 c·r ≤ 2·T·σ. -/
 noncomputable def stochastic_safe_step_variance (initial : PMF α)
@@ -2853,12 +2853,12 @@ open Set
 
 variable {α : Type*} [Fintype α]
 
-/-! ## C410: Bennett-chord Freedman — полная форма r²/(2(V+c·r/3))
+/-! ## Bennett-chord Freedman — полная форма r²/(2(V+c·r/3))
 
-Цикл C410 закрывает честные пины C356: MGF-константа 1 и
+Цикл закрывает честные пины MGF-константа 1 и
 отсутствие λ-оптимизации. Ядро — хорда Беннетта (доказана
 из принципа через цепочку из трёх монотонностей, Mathlib такой
-леммы на pinned rev не содержит — survey .tmp/C410/research.md):
+леммы на pinned rev не содержит):
 для x ∈ [0,3): exp x − 1 − x ≤ x²/(2(1−x/3)). -/
 
 /-- Первый шаг цепочки: eˣ·(1−x) ≤ 1 при x ≥ 0
@@ -2922,7 +2922,7 @@ theorem exp_mul_two_sub_le (x : ℝ) (hx : 0 ≤ x) :
         hanti (mem_Ici.mpr (le_refl 0)) (mem_Ici.mpr hx) hx
     _ = 0 := h0
 
-/-- **Хорда Беннетта** (ядро C410): для 0 ≤ x < 3,
+/-- **Хорда Беннетта** (ядро): для 0 ≤ x < 3,
 exp x − 1 − x ≤ x²/(2·(1 − x/3)). Доказательство: h(x) :=
 (1−x/3)·(eˣ−1−x) − x²/2 антиубывает на [0,∞) (h' = m/3, m
 антиубывает по `exp_mul_two_sub_le`), h(0) = 0; деление на
@@ -3001,7 +3001,7 @@ theorem exp_le_quad_of_nonpos (x : ℝ) (hx : x ≤ 0) :
   have hle := hmono (mem_Iic.mpr hx) (mem_Iic.mpr (le_refl 0)) hx
   simpa using hle
 
-/-- **MGF с хордой Беннетта** (C410): при 0 ≤ c, |X| ≤ c, E X ≤ 0,
+/-- **MGF с хордой Беннетта**: при 0 ≤ c, |X| ≤ c, E X ≤ 0,
 E X² ≤ v, 0 ≤ λ и λ·c < 3 (строго — знаменатель хорды положителен):
 E[exp(λX)] ≤ exp(λ²·v/(2(1−λc/3))). Заменяет константу 1 леммы
 `pmfMean_exp_le` на хордовый коэффициент 1/(2(1−λc/3)) — это и
@@ -3093,11 +3093,11 @@ theorem pmfMean_exp_chord_le (p : PMF α)
         rw [div_mul_eq_mul_div]
 
 
-/-- **Chord-compensated суперmartingale** (C410): при
+/-- **Chord-compensated суперmartingale**: при
 ограниченном шуме (|g| ≤ c, 0 ≤ c), нулевом условном среднем и
 условной дисперсии ≤ v, для λ ≥ 0 с λ·c < 3 экспоненциальный
 потенциал exp(λ·S_k − (λ²/(2(1−λc/3)))·C_k) — суперmartingale:
-его среднее по historyLaw ≤ 1. Зеркало C356
+его среднее по historyLaw ≤ 1. Зеркало
 `history_exp_compensated_le` с хордовым коэффициентом вместо 1. -/
 theorem history_exp_chord_compensated_le (initial : PMF α)
     (K : ℕ → α → PMF α)
@@ -3234,7 +3234,7 @@ theorem history_exp_chord_compensated_le (initial : PMF α)
 
 /-- Хвостовая лемма с общим компенсаторным коэффициентом μ ≥ 0
 (обобщение `pmfMean_compensated_tail` на случай exp(λX − μV)
-с μ ≠ λ²; C410). -/
+с μ ≠ λ²). -/
 theorem pmfMean_chord_tail {α : Type*} [Fintype α] (p : PMF α)
     (X V : α → ℝ) (lam mu r v : ℝ) (hlam : 0 ≤ lam) (hmu : 0 ≤ mu)
     (hmgf : pmfMean p (fun a => Real.exp (lam * X a - mu * V a)) ≤ 1) :
@@ -3260,7 +3260,7 @@ theorem pmfMean_chord_tail {α : Type*} [Fintype α] (p : PMF α)
       mul_le_mul_of_nonneg_right hmgf (Real.exp_pos _).le
     _ = _ := one_mul _
 
-/-- **Fixed-λ chord-хвост** (C410): для λ ≥ 0 с λ·c < 3
+/-- **Fixed-λ chord-хвост**: для λ ≥ 0 с λ·c < 3
 и детерминированного порога V ≥ 0:
 P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−λ·r + λ²·V/(2(1−λc/3))). -/
 theorem history_variance_freedman_chord_lam (initial : PMF α)
@@ -3294,12 +3294,12 @@ theorem history_variance_freedman_chord_lam (initial : PMF α)
   rw [← div_mul_eq_mul_div]
   exact h
 
-/-- **Полная форма Freedman** (C410, ГЛАВНЫЙ): при ограниченном
+/-- **Полная форма Freedman** (ГЛАВНЫЙ): при ограниченном
 центрированном шуме с условной дисперсией ≤ v, для r > 0, V > 0,
 БЕЗ режимной посылки:
 P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−r²/(2(V + c·r/3))).
 λ-оптимизация λ = r/(V + cr/3) (λ·c < 3 автоматически при V > 0);
-замыкает честные пины C356 (MGF-константа 1, отсутствие
+замыкает честные пины (MGF-константа 1, отсутствие
 λ-оптимизации). -/
 theorem freedman_full (initial : PMF α) (K : ℕ → α → PMF α)
     (g : ℕ → α → α → ℝ) (v : ℕ → α → ℝ)
@@ -3344,7 +3344,7 @@ theorem freedman_full (initial : PMF α) (K : ℕ → α → PMF α)
   rw [hexp1, hVt] at htail
   exact htail
 
-/-- **Сравнение с mixed-формой C350/C356** (C410): полная
+/-- **Сравнение с mixed-формой **: полная
 форма ≤ mixed-формы exp(−r²/(4(V+c·r))) при r ≥ 0, c ≥ 0, V ≥ 0 —
 константы 4 → 2 и c·r → c·r/3, БЕЗ режимной посылки. Равенство
 только при c·r = 0. -/
@@ -3366,7 +3366,7 @@ theorem freedman_full_exp_le_mixed_exp (r V c : ℝ) (hr : 0 < r)
   rw [div_le_div_iff₀ h2 h4]
   nlinarith [hcr, hnn]
 
-/-- **Режимное сравнение с variance-формой C356** (C410, честность):
+/-- **Режимное сравнение с variance-формой ** (честность):
 при c·r/3 ≤ V полная форма не хуже variance-радиуса
 exp(−r²/(4V)); при V ≤ c·r/3 наоборот — формы несравнимы
 глобально, режимная посылка явная. -/
@@ -3384,7 +3384,7 @@ theorem freedman_full_exp_le_variance_exp (r V c : ℝ) (hr : 0 < r)
   rw [div_le_div_iff₀ h2 h4]
   nlinarith [hnn, hrc]
 
-/-- Обратное режимное сравнение (C410): при V ≤ c·r/3
+/-- Обратное режимное сравнение: при V ≤ c·r/3
 variance-радиус exp(−r²/(4V)) не хуже полной формы. -/
 theorem freedman_variance_exp_le_full_exp (r V c : ℝ) (hr : 0 < r)
     (hV : 0 < V) (hc : 0 < c) (hvr : V ≤ c * r / 3) :
@@ -3409,7 +3409,7 @@ set_option linter.style.header false
 /-!
 # Freedman для адаптированных дисперсий — история-зависимое q
 
-C438 (хвост W5-аудита: «h_emp_var прячет вопрос адаптивности
+ (хвост W5-аудита: «h_emp_var прячет вопрос адаптивности
 дисперсии»; «конечные пространства историй с ФИКСИРОВАННЫМ
 одношаговым q»). В `Hagi.Probability.Freedman` условное
 распределение шага — один и тот же вектор q для каждого шага и

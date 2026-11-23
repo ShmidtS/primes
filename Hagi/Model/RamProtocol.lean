@@ -237,9 +237,9 @@ example : ∀ (S : Matrix (Fin 3) (Fin 2) ℝ) (v w : Fin 2 → ℝ),
   · exact ram_store_load_roundtrip _ _ _
 
 /-!
-## C317: span offsets (аддитивное окно по смещению)
+## span offsets (аддитивное окно по смещению)
 
-Модель адресов C303 — `Fin m` (строки GDNRAM), без усечений:
+Модель адресов — `Fin m` (строки GDNRAM), без усечений:
 каждый адрес конструируется корректным. Окно-адрес — explicit
 mod-wrap (единственное честное сведение `base + off` к `Fin m`);
 внутри окна перенос НЕ срабатывает (`ram_span_no_wrap`), так что
@@ -252,7 +252,7 @@ mod-wrap (единственное честное сведение `base + off` 
 -/
 
 /-- ОКНО-АДРЕС: base + off с явным mod-переносом в Fin m
-(премиза `hm : 0 < m`; усечения нет — в C303 адреса всегда
+(премиза `hm : 0 < m`; усечения нет —  адреса всегда
 корректны, перенос инертен внутри окна). -/
 def ramSpanAddr {m : ℕ} (hm : 0 < m) (base : Fin m) (off : ℕ) :
     Fin m := ⟨(base.val + off) % m, Nat.mod_lt _ hm⟩
@@ -265,7 +265,7 @@ def ramLoadSpan (S : Matrix (Fin m) (Fin n) ℝ) (base : Fin m)
 
 /-- SPAN-ROUNDTRIP: запись по адресу base+off и чтение окном с
 базой base по индексу off возвращают записанное значение
-(композиция C303 `ram_store_load_roundtrip` на окно-адресе). -/
+(композиция `ram_store_load_roundtrip` на окно-адресе). -/
 theorem ram_span_offset_roundtrip (S : Matrix (Fin m) (Fin n) ℝ)
     (base : Fin m) (off : ℕ) (hm : 0 < m) (v : Fin n → ℝ) :
     ramLoadSpan (ramStore S (ramSpanAddr hm base off) v) base off hm
@@ -291,7 +291,7 @@ theorem ram_span_no_wrap (base : Fin m) (off : ℕ) (hm : 0 < m)
   Nat.mod_eq_of_lt h
 
 /-!
-## C317: разделение selection/gate (RamAccess)
+## разделение selection/gate (RamAccess)
 
 Дисциплина Python-стороны: выбор адреса (диспетчер) отделён от
 решения о допуске (gate); никаких захардкоженных token ID —
@@ -339,7 +339,7 @@ theorem ram_access_selection_free (S : Matrix (Fin m) (Fin n) ℝ)
     w₁ = w₂ := by
   cases g₁ <;> cases g₂ <;> simp_all [ramAccess]
 
-/-! ## Якоря C317 (decide) -/
+/-! ## Якоря (decide) -/
 
 /-- Якорь span-офсетов на Fin 8: окно с базой 2 и смещением 3
 указывает на адрес 5. -/

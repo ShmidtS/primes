@@ -707,7 +707,7 @@ end Hagi
 set_option linter.style.header false
 
 /-!
-# GrowthState effects recompute + capability tie-in (A16, C379)
+# GrowthState effects recompute + capability tie-in (A16)
 
 The A16 mandatory fix #1, honesty half. Two pinned defects of
 `Hagi.System.GrowthState` (statements Freeze-locked, so this module
@@ -727,7 +727,7 @@ ADDS the fix beside them, never edits them):
   missing premise is named here (`CapabilityTie`) and PROVEN for the
   new fresh ops (`capability_telescope_fresh`).
 
-The fix (the C378 `EvalBinding` pattern — data carried with explicit
+The fix (`EvalBinding` pattern — data carried with explicit
 re-evaluation, no hidden convention): the fresh ops `growR`, `mergeR`,
 `jointR`, `compressR` perform the SAME certified channel updates as
 the old ops (measured at the pre-state `S`) but install the
@@ -835,7 +835,7 @@ theorem stale_effects_gap_witness :
     simp only [grow, merge, joint, compress, witState, witEffects, witParams] at h
     linarith
 
-/-! ### The fresh ops (recomputed effects, C378 EvalBinding pattern) -/
+/-! ### The fresh ops (recomputed effects, EvalBinding pattern) -/
 
 /-- **growR**: the certified grow transition with a RE-MEASURED
 effects record. The state-level channel updates are exactly `grow`'s

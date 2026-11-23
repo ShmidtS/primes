@@ -8,7 +8,7 @@ import Hagi.Model.BatchCEDescentLogitRange
 /-!
 # CE-trained mask choice over the exact Venn head
 
-Track B7 (master plan v3 addendum A4), C243 — the first hybrid
+Track B7 (master plan v3 addendum A4), — the first hybrid
 neuro-symbolic certificate. The 16 Boolean masks of the Venn lattice
 (`Fin 4 → Bool`, a `Fintype` of size 16) are the CLASSES of a choice
 problem: a log-linear head over the four Venn atom features scores
@@ -21,9 +21,9 @@ Wiring, end-to-end:
   `X v j = vAtoms A B j * maskReal (cand v) j`, so the class-`v` logit
   of the all-ones parameterization is EXACTLY `vennHead (maskReal
   (cand v)) A B` (`choiceFeatures_logit_ones`): the log-linear choice
-  head scores a mask by the exact output of the C242 Venn head for
+  head scores a mask by the exact output of the Venn head for
   that mask on the same inputs.
-- The choice-CE is the C223 batch CE machinery
+- The choice-CE is the batch CE machinery
   (`Hagi.Model.BatchCEDescent`) instantiated on the choice batch: the
   certified drop `2 * batchAlignment^2 / batchLogitRangeSquare`
   (`batchLoss_logitSafeStep_le_residual`) and the strict descent
@@ -240,7 +240,7 @@ theorem choiceCEMetrics_budget {V : Type} [Fintype V] {B d : ℕ}
     (riskRem budgetRem : ℝ) (θ : EuclideanSpace ℝ (Fin d)) :
     (choiceCEMetrics X y riskRem budgetRem).budget θ = budgetRem := rfl
 
-/-- The C223 certified safe step on the choice batch assembles into a
+/-- The certified safe step on the choice batch assembles into a
 canonical progress `TransitionStep`: the `CertStep` objective is the
 choice-CE descent with the certified drop
 `2 * batchAlignment^2 / batchLogitRangeSquare`, budget/risk preserved
@@ -290,7 +290,7 @@ noncomputable def choiceCE_transitionStep_progress {V : Type} [Fintype V]
 /-! ## End-to-end witness: certified descent + exact execution -/
 
 /-- END-TO-END WITNESS: on the concrete choice batch there is a
-positive certified drop `Δ` such that the C223 safe step decreases the
+positive certified drop `Δ` such that the safe step decreases the
 choice-CE by at least `Δ`, AND the executed head of every candidate
 mask is exact (the 64-case Venn bridge). Together: certified descent
 of the choice-CE plus exact execution of the chosen function — the

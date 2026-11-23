@@ -10,7 +10,7 @@ set_option linter.style.openClassical false
 /-!
 # Packing variants table for the Venn lattice matrix
 
-C251 (master plan v3 addendum A8, item F4).  The sixteen Venn masks
+ (master plan v3 addendum A8, item F4).  The sixteen Venn masks
 of `Hagi.Data.BoolVenn` form a `16 × 4` matrix of `{0,1}` entries —
 sixty-four ternary symbols at level one (`vennTritRow`, middle /
 positive branches of the existing `ternaryValueEncode`).  This module

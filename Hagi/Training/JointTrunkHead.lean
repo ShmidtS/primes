@@ -9,10 +9,10 @@ import Hagi.Theory.ProvenTrunk
 /-!
 # JointTrunkHead — одновременный certified шаг trunk+head
 
-C475 (G2-хвост из A19): закрыть брешь AlternatingJoint (C402) —
+ (G2-хвост из A19): закрыть брешь AlternatingJoint —
 там чередование (extractor заморожен внутри фазы, движется только
 на admission-границах), а ОДНОВРЕМЕННЫЙ шаг по (θ_trunk, θ_head)
-оставался под пином `crmsm_joint_separation` (C396). Здесь
+оставался под пином `crmsm_joint_separation`. Здесь
 одновременный шаг m → m' = ⟨bs', headProj, θ'⟩ (меняются блоки
 ствола И параметры головы за ОДИН переход) сертифицируется
 additive-damage мажорантой:
@@ -22,7 +22,7 @@ additive-damage мажорантой:
 где − 2A²/R² — certified head-спад на СТАРЫХ features
 (`ceOneHot_safeStep_le_residual`, C387-семейство), а 2·HL·d —
 trunk-канал: CE-lip 2‖·‖sup (`ce_head_lipschitz_in_logits`,
-C408) + логит-смещение от смены ствола, доминируемое
+) + логит-смещение от смены ствола, доминируемое
 headLip-нормой НОВОЙ головы HL и MEASURED trunk-смещением d.
 
 ## Honest pins
@@ -35,22 +35,22 @@ headLip-нормой НОВОЙ головы HL и MEASURED trunk-смещени
   damage-форма того же порядка раз в K шагов, см.
   `joint_vs_alternating_cycle`).
 - **Параметрическая липшиц-константа ствола выводима только для
-  атомов C465.** Для RMSNorm-gain: √n·Σ|Δg| (насыщение
+  атомов .** Для RMSNorm-gain: √n·Σ|Δg| (насыщение
   |rmsN| ≤ √n); для MLP-весов: n·Z·(F₁·FΔ₂ + F₂'·FΔ₁).
   Для ПРОИЗВОЛЬНОГО trunk вывода нет и здесь он не вводится
   (новый класс посылок = YAGNI): d остаётся measured binder
-  (прецедент честности — D-binder C408, non-circular: смещение
+  (прецедент честности — D-binder non-circular: смещение
   ствола не выводится из lip ОДНОГО экстрактора).
-- **Пин C396 остаётся.** Joint-гарантия — conditional на
+- **Пин остаётся.** Joint-гарантия — conditional на
   measured d; одновременный majorizer БЕЗ d-члена не заявляется.
 - **Trade-off теорема — арифметика.** `joint_vs_alternating_cycle`
   сравнивает ДВЕ данные гарантии; содержимое — явное условие
   превосходства, не новая механика.
-- **Мост к certify-then-commit (C463).** `joint_step_commit_strict`
+- **Мост к certify-then-commit.** `joint_step_commit_strict`
   даёт drop > 0 — критерий приёма шага в интерфейсе
-  `commit_drop_checked`; сам C463 не правится.
+  `commit_drop_checked`; сам не правится.
 - Trunk-«параметры» в ProvenTrunk — данные уровня модуля (g, W₁,
-  W₂); константы derivable-but-not-tight (наследие атомов C465).
+  W₂); константы derivable-but-not-tight (наследие атомов).
 
 Layer decision: Training (8) — модуль расширяет семейство
 AlternatingJoint (8) и потребляет Theory (7) + Model (≤7).
@@ -65,13 +65,13 @@ open Hagi.Training.AlternatingJoint
 
 namespace Hagi.Training.JointTrunkHead
 
-/-! ## Section A: параметрическая чувствительность атомов C465 -/
+/-! ## Section A: параметрическая чувствительность атомов -/
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- Насыщение RMSNorm-атома: нормированный выход не превосходит
 √n по модулю в каждой координате (ε-floor семантика; причина
-выводимости UNCONDITIONAL-констант C465 — та же, что и там). -/
+выводимости UNCONDITIONAL-констант — та же, что и там). -/
 theorem rmsN_coord_le (ε : ℝ) (hε : 0 < ε) (z : V → ℝ) (v : V) :
     |rmsN ε z v| ≤ Real.sqrt (Fintype.card V) := by
   have hn : (0:ℝ) < Real.sqrt (Fintype.card V) := by positivity
@@ -538,10 +538,10 @@ theorem joint_head_trunk_step_le (m : LM V K d)
   linarith
 
 
-/-- Strict-вариант (мост к certify-then-commit C463): если certified
+/-- Strict-вариант (мост к certify-then-commit): если certified
 head-спад доминирует additive trunk-канал, одновременный шаг
 СТРОГО уменьшает CE — критерий приёма шага в интерфейсе
-`commit_drop_checked` (C463 не правится; консумируется его
+`commit_drop_checked` (не правится; консумируется его
 интерфейс drop > 0). -/
 theorem joint_step_commit_strict (m : LM V K d)
     (bs' : List (CertifiedBlock V)) (x : ℕ → V → ℝ) (t : ℕ)
@@ -559,7 +559,7 @@ theorem joint_step_commit_strict (m : LM V K d)
   have h := joint_head_trunk_step_le m bs' x t tgt hr HL dd hHL hD
   exact lt_of_le_of_lt h (by linarith)
 
-/-! ## Section C: производные смещения ствола для атомов C465 -/
+/-! ## Section C: производные смещения ствола для атомов -/
 
 omit [Nonempty V] in
 /-- Смена ГОЛОВНОГО (первого) блока списка: смещение trunk-выхода

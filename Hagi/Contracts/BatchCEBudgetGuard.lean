@@ -11,7 +11,7 @@ import Hagi.Model.BatchCEDescentHalfEta
 /-!
 # BatchCEBudgetGuard
 
-Budgeted batch CE guard: sample CE basics, the generic guarded canonical transition, and the arbitrary-direction step. Split from `BatchCEStepCertificate` (C255).
+Budgeted batch CE guard: sample CE basics, the generic guarded canonical transition, and the arbitrary-direction step. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -438,15 +438,15 @@ theorem coreParameters_batchDirectionTrainStep_eq_of_not_certificate
       (fun S => batchDirectionTrainInput X y D S opCost opRisk write) S h]
 
 /-!
-## C286 tranche three: parametric (SoftmaxHead) bridges of the P-FLOOR
+## tranche three: parametric (SoftmaxHead) bridges of the P-FLOOR
 wrappers
 
-Migration tranche three (`.tmp/C286/ledger.md`): the C6 contracts
+Migration tranche three: the C6 contracts
 wrappers that restate the core CE statements are bridged to the
 parametric instances of `Hagi.Model.SoftmaxHead`.  The wrapper
-definitions and frozen originals above are untouched; the C286
-statement-duplicate `_param` floor twins were removed in C289
-(`.tmp/C289/`, TD C288): their statements were identical to the
+definitions and frozen originals above are untouched
+statement-duplicate `_param` floor twins were removed
+their statements were identical to the
 frozen `batchSampleCE_nonneg` / `batchCEObjective_nonneg`.
 -/
 
@@ -461,7 +461,7 @@ theorem batchSampleCE_param (X : Fin B → Matrix V (Fin n) ℝ)
 /-!
 # BatchCEBudgetHalf
 
-Budgeted batch CE half-window and minimum-norm guarded steps. Split from `BatchCEStepCertificate` (C255).
+Budgeted batch CE half-window and minimum-norm guarded steps. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -838,7 +838,7 @@ theorem batchMinimumNormTrainStep_flops_of_active
 /-!
 # BatchCEBudgetPareto
 
-Budgeted batch CE explicit pair step and the pointwise-budget Pareto guard. Split from `BatchCEStepCertificate` (C255).
+Budgeted batch CE explicit pair step and the pointwise-budget Pareto guard. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -1091,7 +1091,7 @@ theorem qual_budgetedParetoBatchTrainStep
 /-!
 # BatchCEBudgetExpanded
 
-Expanded-state half-step descent and the computed five-task batch evaluation through the actual MGDA step. Split from `BatchCEStepCertificate` (C255).
+Expanded-state half-step descent and the computed five-task batch evaluation through the actual MGDA step. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -1451,7 +1451,7 @@ noncomputable def evaluatedBatchMinimumNormCert
 /-!
 # BatchCEBudgetIdentity
 
-Budgeted batch CE feasibility problems, identity fixture, and the identity minimum-norm step. Split from `BatchCEStepCertificate` (C255).
+Budgeted batch CE feasibility problems, identity fixture, and the identity minimum-norm step. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -1986,7 +1986,7 @@ theorem identityMinimumNormBatchStep_flops :
 /-!
 # BatchCEBudgetAsym
 
-Two-sample asymmetric CE guard comparison fixtures. Split from `BatchCEStepCertificate` (C255).
+Two-sample asymmetric CE guard comparison fixtures. Split from `BatchCEStepCertificate`.
 -/
 
 set_option relaxedAutoImplicit false

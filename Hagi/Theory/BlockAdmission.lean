@@ -7,32 +7,32 @@ import Hagi.Runtime.CertChecker
 import Hagi.Theory.CertCEHoldout
 
 /-!
-# BlockAdmission — certified-адмиссия нового блока в растущую LM (C444)
+# BlockAdmission — certified-адмиссия нового блока в растущую LM
 
-Дорожная карта C441 (топ-3, рост/композиция): модель РАСТЁТ — новый
+Дорожная карта (топ-3, рост/композиция): модель РАСТЁТ — новый
 блок допускается в trunk LM только через certified-адмиссию.
 Кандидат — орто-fiber-инъекция (посылки OrthoInjection-корпуса:
 сигнал только в направлении, ортогональном cortex); критерий — в
 стиле MemoryCycle/merge_gate (стоимость + риск + запас покрываются
 выигрышем); soundness — через Lipschitz-композицию `trunk_lipschitz`
-C436 (константа L_old·L_new, prefix-determined индукцией); отказ —
+ (константа L_old·L_new, prefix-determined индукцией); отказ —
 machine-checked контрпримером (дорогой блок с нулевым gain).
 
 Что доказано:
 
 * (cost) `lmKVCost_grow` — Δcost-канал: KV-стоимость grown-модели
   РАВНА старой + стоимость нового блока (механика `lmKVCost` /
-  `gqaKVCost` C436, точное равенство — не телеметрия);
+  `gqaKVCost` точное равенство — не телеметрия);
 * (критерий a) `blockGainOk` / `blockAdmissionRule` — блок
   допускается, если `λM·Δcost + λR·Δrisk + ε_cert ≤ gain` (стиль
   MemoryCycle `gainOk` / merge_gate `MergeApproved`; значения —
   точные ℚ, как у демо-тренера);
 * (b) `block_admission_sound` — при выполненном критерии, gain,
   ограниченном drop'ом certified-шага с валидной holdout-
-  телеметрией (RiskChannel, C442), и Δcost = точном KV-приросте:
+  телеметрией (RiskChannel), и Δcost = точном KV-приросте:
   grown trunk certified (константа Липшица `L_old·L_new`,
   dPre-граница, prefix-determined — `trunk_lipschitz` /
-  `trunk_prefix_determined` C436 на append-списке) И certified
+  `trunk_prefix_determined` на append-списке) И certified
   drop покрывает `λM·Δcost + λR·Δrisk + ε_cert`;
 * (c) отказ: `noBlockAdmissionWithoutMargin` (margin не выполнен ⇒
   правило отказывает), `costly_zero_gain_block_refused`
@@ -46,16 +46,16 @@ machine-checked контрпримером (дорогой блок с нуле�
 - **gain — измеряемая величина** (certified drop шага обучения),
   а не доказанная априорная нижняя граница: посылка `hgain` в
   `block_admission_sound` — на потребителе, как `estimatedGain`-pin
-  C390 (`Hagi.Training.Admission`).
-- **Ville-часть — premise-form** (переиспользование паттерна C390
+ (`Hagi.Training.Admission`).
+- **Ville-часть — premise-form** (переиспользование паттерна
   `admit_sound` без пере-доказательства; слой Training(8) >
   Theory(7) — импорт нелегален): anytime-валидность измерений
   гарантируется потребителем через собственный e-process; здесь
   валидность телеметрии потребляется посылкой `hchan` (RiskChannel,
-  C442) — точный accuracy-контракт risk-полей.
+) — точный accuracy-контракт risk-полей.
 - **hLip кандидата — per-block premise** (контракт `CertifiedBlock`
-  C436): операторная норма ‖A − U·(Uᵀ·A)‖_op не выводится здесь.
-- **Δrisk — телеметрия** (holdout-канал C442/C435): может расти;
+): операторная норма ‖A − U·(Uᵀ·A)‖_op не выводится здесь.
+- **Δrisk — телеметрия** (holdout-канал): может расти;
   чекер требует лишь 0 ≤ risk'. Критерий учитывает её честно
   (положительный Δrisk ест margin).
 - Существование полезного блока НЕ доказывается: адмиссия —
@@ -77,7 +77,7 @@ variable {V : Type} [Fintype V] {K : Type} [Fintype K] [Nonempty K]
 
 /-! ## Cost-канал: точный Δcost роста -/
 
-/-- KV-стоимость одного блока (механика `gqaKVCost` C436,
+/-- KV-стоимость одного блока (механика `gqaKVCost`
 per-block геометрия nKv, d). -/
 def kvCostOfBlock (T : ℕ) (b : CertifiedBlock V) : ℕ :=
   Hagi.Model.GQA.gqaKVCost T b.toTransformerBlock.nKv
@@ -91,14 +91,14 @@ omit [Nonempty K] in
 /-- **Точный Δcost**: KV-стоимость grown-модели РАВНА старой плюс
 стоимость нового блока (`List.sum_append` под `lmKVCost`). Это
 равенство специфицирует Δcost-канал адмиссии через реальную
-cost-механику C436 — не телеметрию. -/
+cost-механику — не телеметрию. -/
 theorem lmKVCost_grow (m : LM V K d) (T : ℕ) (b : CertifiedBlock V) :
     lmKVCost (growLM m b) T = lmKVCost m T + kvCostOfBlock T b := by
   simp only [lmKVCost, growLM, kvCostOfBlock, List.map_append,
     List.sum_append, List.map_cons, List.map_nil, List.sum_cons,
     List.sum_nil, add_zero]
 
-/-! ## Композиция grown-trunk (механика C436 на append) -/
+/-! ## Композиция grown-trunk (механика на append) -/
 
 omit [Nonempty K] in
 /-- Константа Липшица grown-trunk: произведение старой константы
@@ -120,7 +120,7 @@ omit [Nonempty K] in
 /-- **Grown-trunk механика certified**: для ЛЮБОГО списка
 certified-блоков и любого certified-кандидата append-композиция
 Липшиц с константой `blocksLip trunk * lip b` и prefix-determined
-— следствия `trunk_lipschitz` / `trunk_prefix_determined` C436 на
+— следствия `trunk_lipschitz` / `trunk_prefix_determined` на
 расширенном списке. Механика сама по себе адмиссию НЕ решает —
 см. `composition_without_admission`. -/
 theorem grown_trunk_mechanics (bs : List (CertifiedBlock V))
@@ -196,7 +196,7 @@ theorem orthoFiberCore_causal {d c : ℕ}
 
 /-- Блок-кандидат: орто-fiber-инъекция как `CertifiedBlock` —
 `hCausal` доказан (`orthoFiberCore_causal`), `hLip` — per-block
-premise (контракт C436: операторная норма инъекции на
+premise (контракт операторная норма инъекции на
 потребителе; см. pins модуля). -/
 def mkOrthoFiberBlock {d c : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (A : Matrix (Fin d) (Fin d) ℝ) (hLip : ℝ≥0)
@@ -227,7 +227,7 @@ structure BlockAdmissionChecks where
   gain : ℚ
   /-- Прирост стоимости (KV-прирост через lmKVCost_grow). -/
   Δcost : ℚ
-  /-- Прирост риска (holdout-телеметрия, C442/C435). -/
+  /-- Прирост риска (holdout-телеметрия). -/
   Δrisk : ℚ
   /-- Вес стоимости. -/
   lamM : ℚ
@@ -248,14 +248,14 @@ def blockAdmissionRule (p : BlockAdmissionChecks) : Bool :=
     decide (p.lamM * p.Δcost + p.lamR * p.Δrisk + p.ε_cert ≤ p.gain)
 
 /-- Решение — в точности критерий: нет дрейфа между правилом и
-его развёрткой (как `admitRule_iff` C390). -/
+его развёрткой (как `admitRule_iff`). -/
 @[simp] theorem blockAdmissionRule_iff (p : BlockAdmissionChecks) :
     blockAdmissionRule p = true ↔ blockGainOk p := by
   simp only [blockAdmissionRule, blockGainOk, decide_eq_true_eq]
 
 /-- **Gate closure**: невыполненный критерий ⇒ правило отказывает —
 какой бы эвристикой ни был получен gain (аналог
-`noAdmitWithoutPositiveMargin` C390). -/
+`noAdmitWithoutPositiveMargin`). -/
 theorem noBlockAdmissionWithoutMargin (p : BlockAdmissionChecks)
     (h : p.gain < p.lamM * p.Δcost + p.lamR * p.Δrisk + p.ε_cert) :
     blockAdmissionRule p = false := by
@@ -302,15 +302,15 @@ omit [Nonempty K] in
 /-- **block_admission_sound**: если (i) критерий выполнен
 (`hcrit`: `λM·Δcost + λR·Δrisk + ε_cert ≤ gain`), (ii) gain —
 честная доля certified-шага (`hgain`: gain ≤ drop), чья holdout-
-телеметрия валидна (`hchan`: RiskChannel-контракт C442 — точное
+телеметрия валидна (`hchan`: RiskChannel-контракт — точное
 равенство risk-полей holdout-средним; Ville/anytime-валидность
-измерений — premise-form паттерна C390 `admit_sound`, см. pins),
+измерений — premise-form паттерна `admit_sound`, см. pins),
 и (iii) Δcost — точный KV-прирост (`hcost` через `lmKVCost_grow`),
 ТО grown trunk certified: (1) certified drop покрывает
 `λM·Δcost + λR·Δrisk + ε_cert` (стоимость и риск съедены
 доказанным снижением, не эвристикой), (2) константа Липшица
 grown-trunk = `L_old·L_new` (`blocksLip_append_single`), (3)
-dPre-граница и (4) prefix-determined — индукция C436 на
+dPre-граница и (4) prefix-determined — индукция на
 append-списке. -/
 theorem block_admission_sound {Ω Θ : Type}
     {ℓ : Θ → Ω → ℝ} {k : ℕ} {ωs : Fin k → Ω}

@@ -231,7 +231,7 @@ makes that gap exact:
   the MARGINAL per-round cost of growth-by-fibers beats the
   monolith's d² — the skeptic's 1.5H may win a one-shot race
   (empirical), but a MANY-round growth program pays fibers,
-  not monoliths (conditional on round viability,).
+  not monoliths (conditional on round viability).
 -/
 
 namespace Hagi.Budget

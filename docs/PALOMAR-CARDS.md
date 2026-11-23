@@ -313,7 +313,7 @@ with width-w windows
   гипотеза B* = √(nw) опровергнута телескоп-суммой).
 - **Anchor.**
   `Hagi.Theory.CoverageReading.hier_total_floor`
-  (Hagi/Theory/CoverageReading.lean:497);
+  (Hagi/Theory/CoverageReading.lean:496);
   `hier_total_min` (:468); `hier_optimal` (:539);
   `hier_total_formula` (:446); `hier_blocks_sum_tiling` (:395);
   `covStartsStep_len_tiling` (:360); определения `hierBlockLen`
@@ -360,7 +360,7 @@ width-independent
   c·w меняет вывод на противоположный (w_max → свободно).
 - **Anchor.**
   `Hagi.Theory.WindowTradeoff.windowCost_linear_near_const`
-  (Hagi/Theory/CoverageReading.lean:597);
+  (Hagi/Theory/CoverageReading.lean:594);
   `windowCost_linear_bounds` (:581);
   `windowCost_fixed_mono` (:572); `ceil_div_anti` (:550);
   `windowCost_hier` (:608).

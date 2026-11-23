@@ -4,15 +4,15 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Theory.BlockLipschitz
 
 /-!
-# ProvenTrunk — первый ПОЛНОСТЬЮ доказанный LM-ствол (C470)
+# ProvenTrunk — первый ПОЛНОСТЬЮ доказанный LM-ствол
 
-Дорожная карта C469 топ-1: первая языковая модель в корпусе, где
+Дорожная карта топ-1: первая языковая модель в корпусе, где
 НИ ОДНА lip/causal-посылка не является полем — всё выведено из
 атомов. Склейка трёх результатов:
 
-* C436 `Hagi.Model.LMCompose`: `trunk_lipschitz` (Π Lᵢ индукция),
+* `Hagi.Model.LMCompose`: `trunk_lipschitz` (Π Lᵢ индукция),
   `lm_logit_lipschitz`, `lm_probs_prefix_determined`;
-* C450/C465 `Hagi.Theory.BlockLipschitz`: атомы с ВЫВЕДЕННЫМИ
+* `Hagi.Theory.BlockLipschitz`: атомы с ВЫВЕДЕННЫМИ
   константами — `certifiedRMSNorm` (lip = 1 + G·(n+1)/ε),
   `certifiedMLP` (lip = 1 + √n·‖W₂‖_F·‖W₁‖_F), `certifiedConvAtt`
   (lip = 2), все с выведенными `hLip`/`hCausal`.
@@ -116,7 +116,7 @@ theorem blocksLip_eq_trunkLip (g : V → ℝ) (G : ℝ≥0) (ε : ℝ)
   rfl
 
 /-- Липшиц-ствол: trunk из трёх атомов `trunkLip`-Липшиц в
-prefix-метрике — ПРИМЕНЕНИЕ `trunk_lipschitz` C436 с выведенными
+prefix-метрике — ПРИМЕНЕНИЕ `trunk_lipschitz` с выведенными
 константами атомов (новой индукции нет). -/
 theorem provenTrunk_lip (g : V → ℝ) (G : ℝ≥0) (ε : ℝ) (hε : 0 < ε)
     (hg : ∀ v, |g v| ≤ (G : ℝ)) (W₁ W₂ : V → V → ℝ)
@@ -143,7 +143,7 @@ noncomputable def concreteLM (g : V → ℝ) (G : ℝ≥0) (ε : ℝ)
   headTheta := θ
 
 /-- Полная lip LM: |logit a(x) − logit a(y)| ≤ `headLip · trunkLip ·
-dPre x y` — применение `lm_logit_lipschitz` C436; НИ ОДНОЙ
+dPre x y` — применение `lm_logit_lipschitz` НИ ОДНОЙ
 структурной посылки: обе константы выведены (голова — ℓ1-норма
 данных, ствол — формула из атомов). -/
 theorem proven_lm_lip (g : V → ℝ) (G : ℝ≥0) (ε : ℝ) (hε : 0 < ε)
@@ -169,7 +169,7 @@ theorem proven_lm_lip (g : V → ℝ) (G : ℝ≥0) (ε : ℝ) (hε : 0 < ε)
             rw [hkey]
 
 /-- Каузальность всей LM (бесплатно): выходное распределение
-prefix-determined — применение `lm_probs_prefix_determined` C436 к
+prefix-determined — применение `lm_probs_prefix_determined` к
 выведенным `hCausal` атомов. Нулевая утечка из будущего. -/
 theorem proven_lm_probs_prefix_determined (g : V → ℝ) (G : ℝ≥0)
     (ε : ℝ) (hε : 0 < ε) (hg : ∀ v, |g v| ≤ (G : ℝ))

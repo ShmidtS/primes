@@ -221,7 +221,7 @@ private theorem selectedLoss_optimalPropensity_featureNormSum_support
 
 /-- For the supported feature-mass propensity, every item has nonzero
 propensity or a zero raw-gradient target, and the `(n*q)⁻¹` draw is
-coordinatewise unbiased for the actual C199 arithmetic-mean CE residual
+coordinatewise unbiased for the actual arithmetic-mean CE residual
 transpose. This is not an actual-gradient Neyman-oracle construction. -/
 theorem pmfMean_featureNormSum_optimalPropensity
     {V : Type} [Fintype V] {B d : ℕ}
@@ -240,7 +240,7 @@ theorem pmfMean_featureNormSum_optimalPropensity
     (selectedLoss_optimalPropensity_featureNormSum_support X θ y hF)
     (card_pos_of_sum_abs_featureNormSum_pos X hF) j
 
-/-- The C200 upper-envelope bound for arithmetic-mean MSE under the exact
+/-- The upper-envelope bound for arithmetic-mean MSE under the exact
 feature-mass proposal and its actual raw CE gradients. This is only an upper
 bound for the fixed full-sum vector target, not a local-optimality claim. -/
 theorem selectedMeanGradientMSE_featureNormSum_le

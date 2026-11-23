@@ -19,7 +19,7 @@ set_option linter.style.header false
 
 The rmsnorm rung of the E4 backbone ladder (TD E4-C300/C307 notes:
 "Lipschitz для RMSNorm premise-form (μn, звено 4)"): the pre-norm
-`LipschitzWith μn` premise of the C307 attention transfer stack is
+`LipschitzWith μn` premise of the attention transfer stack is
 discharged into explicit constants, matched to the EXACT carrier
 definition `Hagi.Model.RMSNorm.rnVec x i = x i / sqrt (ms x)` — the
 PURE Zhang–Sennrich base form (no ε-floor, no affine weight `g`).
@@ -41,15 +41,15 @@ Honest-constant verdict (what is TRUE for this carrier):
   `msE_abs_sub_le`; no calculus). This is the honest global
   surrogate through which the STACK theorem discharges μn.
 
-Wiring into the C300/C307 stack:
+Wiring into the stack:
 
-* `residual_transfer_le_pointwise` — the C300 leak bound at a step
+* `residual_transfer_le_pointwise` — the leak bound at a step
   from a POINTWISE branch-response bound (no global Lipschitz).
-* `attention_block_transfer_rmsnorm` — THE rung theorem: the C307
+* `attention_block_transfer_rmsnorm` — THE rung theorem
   attention block theorem with μn DISCHARGED as `μn(r) = 2√n/r`
   (region premises on both step endpoints), composed leak constant
   `Lc·((2√n/r)·μatt)` explicit.
-* `attention_stack_transfer_rmsnorm_eps` (+ `_strict`) — the C307
+* `attention_stack_transfer_rmsnorm_eps` (+ `_strict`)
   stack descent theorem instantiated with the ε-floored pre-norms
   and the explicit global constant `μnEps ε hε = 2/√ε`.
 
@@ -66,7 +66,7 @@ Honest scope: no global Lipschitz claim for the PURE carrier (pinned
 as the negative above); the carrier has NO affine weight `g`, so no
 `g`-scaling appears in the constants (were a `g` added later, the
 constants scale by `max |g|`); the softmax weight-map Lipschitz stays
-premise-form (C307); the full FastArch3 forward/backward certificate
+premise-form; the full FastArch3 forward/backward certificate
 is NOT claimed here.
 -/
 
@@ -603,7 +603,7 @@ theorem rnEuc_not_lipschitz_with {n : ℕ} (hn : 2 ≤ n) (μ : NNReal) :
 
 /-- Pointwise residual leak: if the residual-branch response at the
 step `(x, dx)` is bounded by `c·‖dx‖` (no global Lipschitz needed),
-the C300 leak bound holds with the composed constant `Lc·c`. -/
+the leak bound holds with the composed constant `Lc·c`. -/
 theorem residual_transfer_le_pointwise {X : Type*} [NormedAddCommGroup X]
     {f : X → X} {loss : X → ℝ} {Lc : NNReal} {c : ℝ}
     (hc : 0 ≤ c) (x dx : X)
@@ -628,7 +628,7 @@ theorem residual_transfer_le_pointwise {X : Type*} [NormedAddCommGroup X]
           mul_le_mul_of_nonneg_left hpt (NNReal.coe_nonneg Lc)
   linarith
 
-/-- THE C309 RUNG: the C307 attention block theorem with the RMSNorm
+/-- THE RUNG: the attention block theorem with the RMSNorm
 premise `μn` DISCHARGED — the pure carrier RMSNorm `rnEuc` enters
 with the honest region-bounded constant `μn(r) = 2√n/r` on the
 step region `{z | r ≤ ‖z‖}` (both endpoints of the step). The
@@ -667,7 +667,7 @@ function of ε: `μn(ε) = 2/√ε`. -/
 noncomputable def μnEps (ε : ℝ) (hε : 0 < ε) : NNReal :=
   ⟨2 / Real.sqrt ε, by positivity⟩
 
-/-- The stack instance: the C307 stack descent theorem with the RMSNorm
+/-- The stack instance: the stack descent theorem with the RMSNorm
 premise DISCHARGED via the ε-floored variant — every block's pre-norm
 is `rnEpsEuc ε` with the explicit global constant `μn(ε) = 2/√ε`
 (the pure `rnEuc` admits NO global constant — `rnEuc_not_lipschitz_with`

@@ -8,7 +8,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# DerivedState — energy/effects as FUNCTIONS of weights (A18.6, C428)
+# DerivedState — energy/effects as FUNCTIONS of weights (A18.6)
 
 Answer to audit W1 (addendum A18): in the abstract `GrowthState` the
 fields `weights`/`energy`/`effects` are independent and coupled only
@@ -29,7 +29,7 @@ finite dataset (`FixedDataset`, a `Fintype` carrier):
   `derived_potential_joint` needs no empirical premise at all: the
   potential decrease `η‖∇‖²/2` holds BY CONSTRUCTION under `η ≤ 1/L`.
 
-The coherence invariant (C386 `coherentGrowth`, weights = projection of
+The coherence invariant (`coherentGrowth`, weights = projection of
 params) holds for `derivedGrowthState` by construction (`weights := θ`,
 `params := θ`); the genuine C386-symbol tie lives in the layer-5 bridge
 `Hagi/Semantics/DerivedStateCoherence.lean` (System layer 3 may not
@@ -177,7 +177,7 @@ noncomputable def derivedEffects (ds : FixedDataset I d) (η : ℝ)
 
 /-- The derived growth state: `energy := energyOf ds θ` (computed, not
 measured), `weights := θ`, `params := θ` (coherent by construction —
-the C386 invariant needs no repair theorem here), `grad = stepDir :=
+the invariant needs no repair theorem here), `grad = stepDir :=
 gradOf ds θ`, smoothness `L := smoothL ds`, and the WHOLE effects record
 computed. -/
 noncomputable def derivedGrowthState (ds : FixedDataset I d) (η : ℝ)
@@ -210,7 +210,7 @@ theorem derived_energy_channel (ds : FixedDataset I d) (η : ℝ)
 
 /-- The weights/params coherence, construction level: the compressed
 weights are the coordinate view of the parameters — the abstract state's
-missing invariant (audit W1 / C386) holds for the derived state BY
+missing invariant (audit W1 /) holds for the derived state BY
 CONSTRUCTION. -/
 theorem derived_coe (ds : FixedDataset I d) (η : ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (i : Fin d) :

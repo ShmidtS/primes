@@ -5,9 +5,9 @@ import Hagi.Theory.Statistics
 import Hagi.Theory.BlockAdmission
 
 /-!
-# AnytimeHoldoutStop — Ville-стоп роста по holdout-деградации (C446)
+# AnytimeHoldoutStop — Ville-стоп роста по holdout-деградации
 
-Дорожная карта C445 (топ-1): holdout-телеметрия grow-цикла C444
+Дорожная карта (топ-1): holdout-телеметрия grow-цикла
 растёт без стопа — рост может продолжаться при деградации
 обобщения. Этот модуль замыкает цикл anytime-предохранителем:
 admission-стоп по certified-доказательству holdout-деградации.
@@ -17,7 +17,7 @@ admission-стоп по certified-доказательству holdout-дегр�
 * (a) `degradation_detect_anytime` — детектор деградации:
   e-process `L_t = exp(λ·S_t)` (S_t — накопленная holdout-
   деградация) при нулевой деградации (посылка-контракт: инкременты
-  holdout мартингальные — дух `holdout_unbiased` C435 для модели,
+  holdout мартингальные — дух `holdout_unbiased` для модели,
   фиксированной до holdout-дроу) — неотрицательный супермартингал
   с E[L_0] ≤ 1, и Ville даёт P[∃t ≤ n, log(1/δ)/λ < S_t] ≤ δ —
   anytime: момент проверки адаптивный;
@@ -31,13 +31,13 @@ admission-стоп по certified-доказательству holdout-дегр�
   `if stop then false else blockAdmissionRule p`;
   `stop_blocks_admission` — сработавший стоп блокирует адмиссию
   любого кандидата; `no_stop_admits` — без стопа прошедший
-  критерий C444 кандидат допускается (рост продолжается);
+  критерий кандидат допускается (рост продолжается);
 * (c) `grow_stop_sound` — если стоп сработал на рациональных
   readout'ах r_t = λ·S_t, вероятность ЛОЖНОГО стопа (при нулевой
   деградации — supermartingale-посылке) ≤ δ: FDR-тип контроль
   anytime-ошибки первого рода;
 * (d) честность: `selection_bias_pin` — пере-экспорт
-  selection-bias-негатива C435: при data-dependent выборе модели
+  selection-bias-негатива при data-dependent выборе модели
   ПОСЛЕ просмотра holdout инкременты НЕ мартингальные
   (E[holdout выбранной] = 0 ≠ 1/2 = popRisk) — посылка (a)/(c)
   недоступна, детектор может не сработать. Пин обязателен.
@@ -47,14 +47,14 @@ admission-стоп по certified-доказательству holdout-дегр�
 - **Supermartingale-посылка — контракт** (как в AnytimePACBayes:
   конструкция супермартингала — гипотеза контракта): «нулевая
   деградация» = мартингальные инкременты holdout. Она честна для
-  модели, фиксированной до holdout-дроу (C435 `holdout_unbiased`),
+  модели, фиксированной до holdout-дроу (`holdout_unbiased`),
   и ЛОМАЕТСЯ selection'ом (selection_bias_pin). Ville-часть
   безусловна.
 - **Чувствительность**: рациональный порог 1/δ − 1 выше точного
   log(1/δ) (фактор ~1.5–2 при малых δ): сертифицированный ценой
   позже срабатывающий детектор. Ложных тревог НЕ больше.
 - **S_t — накопленная ТЕЛЕМЕТРИЯ** (rational readout'ы risk-полей
-  CertStepData / RiskChannel C442): вероятностная гарантия —
+  CertStepData / RiskChannel): вероятностная гарантия —
   условная теорема на посылке; измерение — на потребителе.
 - Детектор ловит ДЕГРАДАЦИЮ обобщения (рост holdout-риска), не
   «переобучение» как таковое: локальные улучшения holdout ниже
@@ -84,7 +84,7 @@ noncomputable def eProcess (lam : ℝ) (S : ℕ → ℝ) (t : ℕ) : ℝ :=
 /-- **(a) Anytime-детектор деградации**: если e-process
 `L_t = exp(λ·S_t)` — неотрицательный супермартингал (посылка
 нулевой деградации: holdout-инкременты мартингальны — контракт в
-духе C435 `holdout_unbiased` для фиксированной модели) с
+духе `holdout_unbiased` для фиксированной модели) с
 E[L_0] ≤ 1, то вероятность хоть одного пересечения порога
 log(1/δ)/λ за n шагов ≤ δ. Anytime: порог держится равномерно,
 момент проверки можно выбирать по данным (в т.ч. самим
@@ -243,10 +243,10 @@ theorem false_stop_bound {S : ℕ → Ω → ℝ} {lam δ : ℚ}
 
 /-! ## (b) admission-гейт со стопом -/
 
-/-- Admission-гейт C444, усиленный anytime-стопом: сработавший
+/-- Admission-гейт усиленный anytime-стопом: сработавший
 стоп блокирует адмиссию ЛЮБОГО кандидата (certified
 предохранитель роста); без стопа решает точный критерий
-`blockAdmissionRule` C444. -/
+`blockAdmissionRule` . -/
 def admitWithStop (p : BlockAdmissionChecks) (stop : Bool) :
     Bool := if stop then false else blockAdmissionRule p
 
@@ -258,7 +258,7 @@ theorem stop_blocks_admission (p : BlockAdmissionChecks) :
   simp [admitWithStop]
 
 /-- **Без стопа цикл продолжил бы** (честность-негатив): если
-стоп НЕ сработал и критерий C444 выполнен, кандидат допускается —
+стоп НЕ сработал и критерий выполнен, кандидат допускается —
 gate не останавливает рост сам по себе; единственная причина
 отказа в этой точке — anytime-стоп по деградации. -/
 theorem no_stop_admits {p : BlockAdmissionChecks}
@@ -267,7 +267,7 @@ theorem no_stop_admits {p : BlockAdmissionChecks}
   simp [admitWithStop, h]
 
 /-- Спецификация гейта одной iff: адмиссия со стопом ⇔
-(нет стопа) ∧ (критерий C444). -/
+(нет стопа) ∧ (критерий). -/
 theorem admit_with_stop_spec (p : BlockAdmissionChecks)
     (stop : Bool) :
     admitWithStop p stop = true ↔
@@ -276,7 +276,7 @@ theorem admit_with_stop_spec (p : BlockAdmissionChecks)
   · simp [admitWithStop]
   · simp [admitWithStop]
 
-/-! ## (d) честность: selection-bias пин (негатив C435) -/
+/-! ## (d) честность: selection-bias пин (негатив) -/
 
 /-- **(d) Пин обязательности мартингальной посылки**: для ЛЮБОГО
 holdout-дроу ωs data-dependent выбор модели ПОСЛЕ просмотра holdout

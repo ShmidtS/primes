@@ -3,7 +3,7 @@ import Hagi.State.CanonicalTrainState
 
 /-!
 # TrainTrajectory — траекторная теорема на CanonicalTrainState
-(user audit 5.3, C375, A15 Step 5.3 = C373 rank #2)
+(user audit 5.3, A15 Step 5.3 = rank #2)
 
 Финальная траекторная теорема, учитывающая численную погрешность
 (BF16/ternary) реального бэкенда, делающая C363-carrier
@@ -13,11 +13,11 @@ import Hagi.State.CanonicalTrainState
   ЛИНЕЙНОЕ накопление (треугольник по значению цели, без
   квадратичного раздувания через расстояния состояний);
 * `Trajectory T` — карта траектории: T сертифицированных
-  Progress-шагов, каждый несёт `FullStepCert` (C363) на ПОЛНОМ
+  Progress-шагов, каждый несёт `FullStepCert` на ПОЛНОМ
   состоянии (веса + Adam-буферы);
 * `trajectory_descent` — телескоп: `fullObjective(θ_T) ≤
   fullObjective(θ_0) − ∑ drop_j`, ЯВНАЯ константа c(T) = ∑ drops
-  (индукция той же формы, что ядерная `kernel_core` C345; само ядро
+  (индукция той же формы, что ядерная `kernel_core` само ядро
   лежит в Unified layer 6 и не импортируемо со слоя State = 3);
 * `RoundedFullStepCert` / `RoundedTrajectory` — исполненный шаг
   реального бэкенда: спуск полной цели минус drop ПЛЮС аддитивная
@@ -33,7 +33,7 @@ import Hagi.State.CanonicalTrainState
   импорт Runtime→State запрещён LayerLint, см. TernaryExact) +
   L-липшицевость цели дают ошибку шага ≤ L·m·s/2;
 * `with_holds_bound` — форма с Hold: Hold — тождество
-  (`hold_rollback_total`, C363), вклад 0; суммы по всем шагам, где
+  (`hold_rollback_total`), вклад 0; суммы по всем шагам, где
   hold-шаги вносят нулевые d/e — эффективных шагов T' ≤ T.
 
 Честные пины (premise-form): `execErr` per backend — binder;
@@ -72,7 +72,7 @@ theorem obj_telescope_err (T : ℕ) (g d e : ℕ → ℝ)
 /-! ## Progress-only траектория и телескоп -/
 
 /-- Карта траектории (audit 5.3): T сертифицированных Progress-шагов
-на каноническом состоянии — каждый шаг несёт `FullStepCert` C363 на
+на каноническом состоянии — каждый шаг несёт `FullStepCert` на
 ПОЛНОМ состоянии (веса + Adam-буферы). -/
 structure Trajectory (T : ℕ) where
   /-- Состояния траектории: `states j` — после j шагов. -/
@@ -80,7 +80,7 @@ structure Trajectory (T : ℕ) where
   /-- Сертификат каждого шага. -/
   certs : ∀ j < T, FullStepCert (states j) (states (j + 1))
 
-/-- Drop шага j как полная функция (kernel-паттерн C345: суммы по
+/-- Drop шага j как полная функция (kernel-паттерн суммы по
 `ℕ → ℝ`, доказательство равенства отдельно). -/
 noncomputable def Trajectory.stepDrop (T : ℕ)
     (tr : Trajectory (n := n) (a := a) (e := e) (q := q) (r := r)
@@ -115,7 +115,7 @@ theorem trajectory_descent (T : ℕ)
 
 /-- Сертификат ИСПОЛНЕННОГО шага реального бэкенда (BF16/ternary):
 спуск полной цели минус drop плюс АДДИТИВНАЯ ошибка исполнения
-`execErr` (округление). `FullStepCert` C363 — идеализированный
+`execErr` (округление). `FullStepCert` — идеализированный
 частный случай (execErr = 0). -/
 structure RoundedFullStepCert (s s' : CanonicalTrainState n a e q r c k) where
   /-- Заявленный спуск полной цели. -/
@@ -253,7 +253,7 @@ theorem coord_err_bound {m : ℕ} (w w' : Fin m → ℝ) (s L : ℝ)
 
 /-- ФОРМА С HOLD: в смешанном прогоне длины T каждый шаг — либо
 Progress с сертифицированным (округлённым) спуском, либо Hold,
-который по `hold_rollback_total` (C363) — тождество на состоянии и
+который по `hold_rollback_total` — тождество на состоянии и
 вкладывает НУЛЕВЫЕ d/e в суммы. Заключение — тот же телескоп по
 всем T шагам; ненулевые drop'ы встречаются только на progress-шагах,
 т.е. эффективных шагов T' ≤ T. -/

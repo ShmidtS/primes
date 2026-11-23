@@ -28,27 +28,27 @@ from its own carrier; only the COMPOSITION is new:
   per-stage product law
   (`quantProd_relError_sq`: (e + f + e·f)² cross-term law) — the
   εᵢ recipe for factorized (LoRA-style) stages is that same law
-  cited verbatim (same namespace, C326 dedup removed the former
+  cited verbatim (same namespace, dedup removed the former
   statement-identical wrapper);
 * the sensitivity scaling is the iso-Frobenius cascade
-  calibration of C252 (`Hagi.Budget.isoFrobSensitivity`:
+  calibration (`Hagi.Budget.isoFrobSensitivity`:
   c_j = isoFrobEnergy(J_{>j})·hScale_j) — the Lipschitz premise
   `|phi X − phi Y| ≤ sens·‖X−Y‖_F` of `rd_step_error_bound` is
   its premise-form instantiation at the composed pipeline;
-* the certified transition is the C278 kernel
+* the certified transition is the kernel
   (`Hagi.Cert.CertStepGen`): `rd_step_certified` packages the
   compression step with byte-budget accounting
   (`budget' = budget − bytes(alloc)`, nonneg) and the quality
   cost `rdAllocError alloc` in the risk channel, remainder free
-  (the C254 no-zero-pinning lesson). The descent premise is in
-  drop form `obj s' ≤ obj s − drop` — exactly the C267
+  (the no-zero-pinning lesson). The descent premise is in
+  drop form `obj s' ≤ obj s − drop` — exactly
   LossCeiling polarity
   (`Hagi.Model.EnergyReasoning.MetricDirection.improves_lossCeiling_intro`
   of CramContracts: lower objective is better; docstring wiring,
   no import — layer discipline).
 
 Re-audit note (the εᵢ recipe for Hadamard-wrapped blocks): the
-C321 spread bound `Hagi.Contracts.hadamard_ternary_error_bound_of_spread`
+ spread bound `Hagi.Contracts.hadamard_ternary_error_bound_of_spread`
 (ε = n·(s/2)² + ρ·‖x‖², ρ the deterministic energy-spread
 premise) is the per-stage constant for blocks quantized through
 an orthonormal Hadamard rotation — instantiate `RDAlloc.eps`
@@ -74,7 +74,7 @@ constants. PREMISE-FORM: the allocation only SATISFIES the bit
 budget (`hbudget`); water-filling optimality is C237's
 (`rankResidual_equalized` / `rankResidual_allocation`), cited —
 not re-proven here. The per-stage `eps i` is the error constant
-εᵢ(bᵢ) of stage i at the allocated width (the C321
+εᵢ(bᵢ) of stage i at the allocated width (
   hadamard_ternary_error_bound_of_spread` bound is the recipe for
   Hadamard-wrapped stages; `Hagi.Budget.quantProd_relError_sq` is the
   recipe for factorized stages). -/
@@ -101,7 +101,7 @@ def rdAllocError (alloc : RDAlloc ι) : ℝ := ∑ i, alloc.eps i
 theorem rdAllocError_nonneg (alloc : RDAlloc ι) : 0 ≤ rdAllocError alloc :=
   sum_nonneg fun i _ => alloc.heps i
 
-/-! ## The staged error law (C253, exact composition) -/
+/-! ## The staged error law (exact composition) -/
 
 /-- Squares kill the sign: frobSq(−X) = frobSq X (glue, needed to
 match the sensitivity premise direction). -/
@@ -110,11 +110,11 @@ theorem frobSq_neg (X : Matrix m n ℝ) : frobSq (-X) = frobSq X := by
   simp [Matrix.neg_apply]
 
 /-- **MAIN — the composed slow-loop compression error**: the
-two-stage residual pipeline Ŵ = R1 + R2 with the C253 additive
+two-stage residual pipeline Ŵ = R1 + R2 with the additive
 error law (ε₁ as the sign premise, ε₂ bounding the second
 residual — exactly `residualTwoStage_error_le_add`'s hypotheses)
 read out through a sensitivity-`sens` function `phi`
-(premise-form iso-Frobenius sensitivity, C252: the readout is
+(premise-form iso-Frobenius sensitivity, the readout is
 Lipschitz in the Frobenius metric) has function-level perturbation
 bounded by `sens · (ε₁ + ε₂)` — weight error to function error
 through the sensitivity, weight error composed by the staged
@@ -152,17 +152,17 @@ theorem rd_step_anchor (W R1 R2 : Matrix m n ℝ)
     (by norm_num) h2 phi 2 (by norm_num) hlip
   linarith
 
-/-! ## The certified transition (C278 kernel packaging) -/
+/-! ## The certified transition (kernel packaging) -/
 
 /-- **The compression step IS a certified transition**: the
 RD-compression step packaged as a `Hagi.Cert.CertStepGen`
-(premise-form, the C279 `StepCertificate.toCertStepGen` pattern):
+(premise-form `StepCertificate.toCertStepGen` pattern):
 byte-budget accounting `budget' = budget − bytes(alloc)` with the
 nonnegative remainder as premises, the quality cost
 `rdAllocError alloc` carried in the RISK channel (the error
-budget) with a FREE remainder (the C254 no-zero-pinning lesson),
+budget) with a FREE remainder (the no-zero-pinning lesson),
 the false-commit delta channel in premise form, and the descent in
-drop form `obj s' ≤ obj s − drop` — exactly the C267 LossCeiling
+drop form `obj s' ≤ obj s − drop` — exactly the LossCeiling
 polarity (`MetricDirection.improves_lossCeiling_intro`: lower
 objective is better). -/
 noncomputable def rd_step_certified {S TaskId : Type*}

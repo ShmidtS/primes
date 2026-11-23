@@ -21,7 +21,7 @@ the factor-2 balance. honest boundary: this is an existence
 proof (via `Finset.min'`), not a construction; the
 TERMINATION OF THE GREEDY REALLOCATION LOOP is now
 formalized separately in `BitAllocTermination.
-no_infinite_improving_chain` (: a strictly-improving
+no_infinite_improving_chain` (a strictly-improving
 walk on the finite fixed-budget allocation space cannot
 continue forever).
 

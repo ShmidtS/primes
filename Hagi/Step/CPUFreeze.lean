@@ -1,7 +1,7 @@
 import Mathlib.Tactic
 
 /-!
-# CPUFreeze (приоритет 5 «HAGI Neural Computer», ):
+# CPUFreeze (приоритет 5 «HAGI Neural Computer»):
 SafeQP-ограничение C1 — параметры встроенного процессора
 АБСОЛЮТНО инвариантны к градиентам.
 

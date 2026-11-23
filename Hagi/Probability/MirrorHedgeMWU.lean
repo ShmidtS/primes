@@ -15,7 +15,7 @@ import Hagi.Probability.MirrorHedgeGibbs
 set_option linter.style.header false
 
 /-!
-# MWU-канон (Probability, C525)
+# MWU-канон
 
 Canonical MirrorHedge/MWU family (v5 W3 consolidation). Sections
 merged here (namespaces and FQNs preserved, module files removed):
@@ -35,7 +35,7 @@ consumer, untouched.
 # MirrorHedgeMWU
 
 MWU-потенциал (R433+): одношаговый анализ экспоненциальных весов, логарифм нормировочной константы, double/sqrt-оценки и gibbs_hedge_squeeze.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -512,7 +512,7 @@ set_option linter.style.header false
 # MirrorHedgeMWUSelectedLoss
 
 Selected-loss семейство: inverse-propensity выбранные потери, selectedLossMSE, оптимальная propensity и характеризация нуля MSE.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -1085,7 +1085,7 @@ set_option linter.style.header false
 # MirrorHedgeMWUSelectedGradient
 
 Selected-gradient семейство: selectedGradientMSE/selectedMeanGradientMSE (включая приватные леммы trace и optimalPropensity_value), оценки через upper-bound propensity.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -1425,7 +1425,7 @@ set_option linter.style.header false
 # MirrorHedgeCertificates
 
 Суррогатные сертификаты Гиббса (R463–R464): сохранение сертификата при нижней оценке энтропии, bridge-тождество, декомпозиция зазора, compounding-оценки, mutual information и amortized policy bound.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability

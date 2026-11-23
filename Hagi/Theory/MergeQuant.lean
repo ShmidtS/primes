@@ -7,7 +7,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# MergeQuant — the Fisher quantization / measured merge canon (C472, C476)
+# MergeQuant — the Fisher quantization / measured merge canon
 
 One canonical module for the merge-quantization family (merged
 from FisherQuant.lean + NonlinearMerge.lean; namespaces preserved,
@@ -36,7 +36,7 @@ variable {d : ℕ} {I : Type} [Fintype I]
 
 variable {d : ℕ} {I : Type} [Fintype I]
 
-/-! ## Quadratic carrier: exact second-order identity (C428 pattern) -/
+/-! ## Quadratic carrier: exact second-order identity (pattern) -/
 
 /-- Least-squares loss on a fixed dataset, coordinate form:
 `quadLoss a y θ = Σᵢ (⟪a i, θ⟫ − y i)²/2`. -/
@@ -283,7 +283,7 @@ theorem quad_fisher_quant_bound (a : I → Fin d → ℝ) (y : I → ℝ)
   linarith
 
 /-- At a stationary point of the quadratic loss the price is purely
-curvature: ½Σ c_j ε_j² — the C472 headline. -/
+curvature: ½Σ c_j ε_j² — the headline. -/
 theorem quad_fisher_quant_bound_opt (a : I → Fin d → ℝ) (y : I → ℝ)
     (θ θq ε : Fin d → ℝ)
     (hgrad : ∀ j, quadGrad a y θ j = 0) (hε : ∀ j, |θq j - θ j| ≤ ε j) :
@@ -341,7 +341,7 @@ theorem fisher_tolerance_mono (L : ℝ) (c : Fin d → ℝ) (hL : 0 ≤ L)
 /-! ## Bridge to weightedExpAllocation: Fisher-weighted bit allocation -/
 
 open Hagi.Budget in
-/-- BRIDGE (C472): the closed-form optimal allocation of
+/-- BRIDGE: the closed-form optimal allocation of
 `weightedExpAllocation` (with uniform decay κ and weights w) is
 MONOTONE in the cost coefficient c: coordinates with larger Fisher
 curvature c receive MORE budget r*. Reading r as bits and c as the
@@ -405,7 +405,7 @@ def linAt (L : (Fin d → ℝ) → ℝ) (g : Fin d → ℝ) (w1 w2 : Fin d → �
 /-- **ИЗМЕРИМАЯ премиса**: остаток линеаризации на конечной сетке
 t-точек — Σ_t |L(w_t) − L_lin(w_t)| мажорирует sup по сетке.
 Процедура: конечная выборка t-точек, вычисление L и линеаризации;
-точность измерения — концентрация машины C435 (Hoeffding), здесь не
+точность измерения — концентрация машины (Hoeffding), здесь не
 дублируется. -/
 def linResidualGrid (L : (Fin d → ℝ) → ℝ) (g : Fin d → ℝ)
     (w1 w2 : Fin d → ℝ) {T : Type} [Fintype T] (ts : T → ℝ) : ℝ :=
@@ -445,10 +445,10 @@ theorem nonlinear_merge_bound (L : (Fin d → ℝ) → ℝ) (g : Fin d → ℝ)
     linarith
   linarith
 
-/-! ## Квадратичный случай: ТОЧНО (diag-кривизна, мост C472) -/
+/-! ## Квадратичный случай: ТОЧНО (diag-кривизна, мост) -/
 
 /-- Диагонально-квадратичный лосс ½Σ cᵢ(θᵢ−aᵢ)² — Fisher/кривизнный
-носитель C472 (FisherQuant: quadLoss + colCurv; здесь диагональная
+носитель (FisherQuant: quadLoss + colCurv; здесь диагональная
 форма c). -/
 noncomputable def quadLossDiag (c a θ : Fin d → ℝ) : ℝ :=
   ∑ i, c i * (θ i - a i) ^ 2 / 2
@@ -458,7 +458,7 @@ def quadGradDiag (c a θ : Fin d → ℝ) (j : Fin d) : ℝ :=
   c j * (θ j - a j)
 
 /-- Кривизнный остаток merge: δ_curv = ⅛ Σ cᵢ (w2ᵢ−w1ᵢ)² — второй
-порядок Taylor (C472 pattern) в диагональной метрике. -/
+порядок Taylor (pattern) в диагональной метрике. -/
 noncomputable def curvRemainder (c w1 w2 : Fin d → ℝ) : ℝ :=
   ∑ i, c i * (w2 i - w1 i) ^ 2 / 8
 

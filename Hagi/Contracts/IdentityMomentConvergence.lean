@@ -4,7 +4,7 @@ import Hagi.Contracts.BatchCEAlignmentBudget
 # Identity-feature mean-prediction convergence
 
 On identity features, the fixed-batch mean residual equals mean model
-probability minus the empirical one-hot average.  The actual C205
+probability minus the empirical one-hot average.  The actual
 mean-gradient limit therefore gives marginal moment matching on a positive
 batch, with a singleton specialization.  These statements make no claim of
 parameter convergence, individual mixed-batch prediction convergence,
@@ -54,7 +54,7 @@ private theorem meanPrediction_sub_empiricalTarget_eq_meanResidualTranspose
     exact_mod_cast (Nat.ne_of_gt hB)
   field_simp
 
-/-- Direct consequence of the real C205 gradient limit on the actual
+/-- Direct consequence of the real gradient limit on the actual
 fixed-batch trajectory: identity-feature mean probabilities approach the
 supplied empirical one-hot average. -/
 theorem fixedBatch_meanPrediction_tendsto_empiricalTarget

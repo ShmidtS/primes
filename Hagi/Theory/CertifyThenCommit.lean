@@ -9,7 +9,7 @@ import Mathlib.MeasureTheory.Measure.Real
 set_option relaxedAutoImplicit false
 
 /-!
-# Certify-then-commit — the end-to-end cycle theorem (A19/G6, beat C463)
+# Certify-then-commit — the end-to-end cycle theorem (A19/G6, beat)
 
 The G6 audit gap: a THROUGH-CYCLE theorem for the certify-then-commit
 loop — T rounds, each round owned by one of the four gates
@@ -26,35 +26,35 @@ Every substantive leg is an EXISTING theorem, cited here as the
 construction route for the per-round `CertStep` supply (interface
 fields only; nothing restated):
 
-- **HeadStep** (adaptive majorizer, C462): the certified drop
+- **HeadStep** (adaptive majorizer): the certified drop
   `A ^ 2 / (4 * C)` at the bounded safe step —
   `Hagi.Theory.AdaptiveMajorizer.adaptive_descent` and its CE
   instantiation `ce_adaptive_descent`.
-- **GrowBlock** (C444 + C446): admission with the LCB margin
+- **GrowBlock** (): admission with the LCB margin
   `λM·Δcost + λR·Δrisk + ε_cert ≤ drop` —
   `Hagi.Theory.BlockAdmission.block_admission_sound` (checker-
   verified `CertStepData`); the anytime holdout stop —
   `Hagi.Theory.AnytimeHoldoutStop.grow_stop_sound` /
   `false_stop_bound` (false stop ≤ δ, Ville) and the blocking law
   `admitWithStop` / `stop_blocks_admission` (here: `stop_blocks`).
-- **Compress** (MDL prune, C458): objective non-increasing, code
+- **Compress** (MDL prune): objective non-increasing, code
   cost strictly decreasing, fiber floors preserved —
   `Hagi.Theory.MDLPrune.mdl_prune_cycle_sound`,
   `prune_preserves_fiber_floor`.
-- **SelfEdit** (strict adopt gate, C457/C459): adoptions strictly
+- **SelfEdit** (strict adopt gate): adoptions strictly
   increase the score over a finite knob space —
   `Hagi.Theory.SelfEditGate.adopt_chain_terminates`,
   `Hagi.Theory.KnobMomentum.momentum_adopt_gated` /
   `momentum_chain_terminates`.
-- **Executable checker** (C430): `Hagi.Runtime.checkStep` /
+- **Executable checker**: `Hagi.Runtime.checkStep` /
   `checkStep_sound` — a committed round's reported data is
   machine-checked (positive drop, real descent) — the (a) leg.
-- **Probability glue** (Ville stitching, C399/C295): the per-round
+- **Probability glue** (Ville stitching): the per-round
   false-commit level premises are DISCHARGED by
   `Hagi.Training.AdaptiveAnytime.adaptive_anytime_valid`
   (stitched master, Σ weights ≤ 1, ≤ K·α) or
   `adaptive_anytime_budget_split` (≤ α); the union leg here is the
-  C418 `ttcat_complete` pattern (`measureReal_iUnion_fintype_le`).
+ `ttcat_complete` pattern (`measureReal_iUnion_fintype_le`).
 
 ## Honesty pins
 
@@ -66,12 +66,12 @@ fields only; nothing restated):
 - **`CertStep` does NOT imply risk monotonicity** (the sign of
   `riskSpend` is free): the (d) holdout channel is premise-form —
   per-round allowances `e i ≥ 0` with `Σ e ≤ ε`, discharged through
-  the C444 risk channel / C446 stop routes. ε is a premise, not a
+  the risk channel / stop routes. ε is a premise, not a
   derived quantity.
 - **Measure premises are PREMISE-form** (repo convention,
-  C380/C399/C418): `μ.real {falseCommit i} ≤ δ i` is the consumer's
+): `μ.real {falseCommit i} ≤ δ i` is the consumer's
   to discharge (cited routes above); `commit`/`stop` are
-  ω-INDEPENDENT record fields (the C399 convention).
+  ω-INDEPENDENT record fields (the convention).
 - The checker leg (a) verifies the reported readouts (`checkStep`);
   the full data-to-kernel bridge is `Hagi.Runtime.mkCertStep`
   (cited; the list-level `checkTrajectory` fold is not duplicated
@@ -94,22 +94,22 @@ namespace Hagi.Theory.CertifyThenCommit
 /-! ## Round kinds -/
 
 /-- The four gate owners of a certify-then-commit round (the A19
-cycle): a certified head step (C462 adaptive majorizer), a growth
-block admission (C444/C446), an MDL compression prune (C458), or a
-strict-gate self-edit adoption (C457/C459). The kind is a TAG for
+cycle): a certified head step (adaptive majorizer), a growth
+block admission, an MDL compression prune, or a
+strict-gate self-edit adoption. The kind is a TAG for
 the construction route (cited in the module docstring); the cycle
 theorem consumes only the `CertStep` interface. -/
 inductive CTCRound where
   /-- Certified head step: drop A²/4C at the bounded safe step
-  (C462 `adaptive_descent` / `ce_adaptive_descent`). -/
+  (`adaptive_descent` / `ce_adaptive_descent`). -/
   | headStep
   /-- Growth block admission with the LCB margin and the anytime
-  stop (C444 `block_admission_sound`, C446 `grow_stop_sound`). -/
+  stop (`block_admission_sound` `grow_stop_sound`). -/
   | growBlock
-  /-- MDL compression prune (C458 `mdl_prune_cycle_sound`). -/
+  /-- MDL compression prune (`mdl_prune_cycle_sound`). -/
   | compress
-  /-- Strict-gate self-edit adoption (C457 `adoptGate` /
-  C459 momentum). -/
+  /-- Strict-gate self-edit adoption (`adoptGate` /
+ momentum). -/
   | selfEdit
 
 /-! ## The cycle record (interface fields only) -/
@@ -117,7 +117,7 @@ inductive CTCRound where
 variable {S TaskId : Type}
 
 /-- THE certify-then-commit cycle over T rounds: the ledger carrier
-(`M`/`obl`, C425 kernel), the round kinds, the state trajectory
+(`M`/`obl`, kernel), the round kinds, the state trajectory
 (round `i` occupies `t i → t (i + 1)`), the ω-independent commit
 decisions, the certified ledger steps at commits (`step` — the
 interface every gate discharges through its cited component
@@ -132,16 +132,16 @@ structure CertifyThenCommitCycle (M : SystemMetrics S TaskId)
   kind : Fin T → CTCRound
   /-- The state trajectory; round i occupies `t i → t (i + 1)`. -/
   t : ℕ → S
-  /-- The commit decision of round i (ω-independent, C399). -/
+  /-- The commit decision of round i (ω-independent). -/
   commit : Fin T → Bool
-  /-- A committed round's certified ledger entry (C425 kernel
+  /-- A committed round's certified ledger entry (kernel
   interface; construction routes cited in the module docstring). -/
   step : ∀ i : Fin T, commit i = true → CertStep M obl (t i) (t (i + 1))
   /-- A held round is a no-op: the state does not move. -/
   held : ∀ i : Fin T, commit i = false → t (i + 1) = t i
-  /-- The anytime holdout stop flag of round i (C446). -/
+  /-- The anytime holdout stop flag of round i. -/
   stop : Fin T → Bool
-  /-- A fired stop blocks the commit (C446 `admitWithStop` /
+  /-- A fired stop blocks the commit (`admitWithStop` /
   `stop_blocks_admission`): growth can only be stopped, never
   committed through. -/
   stop_blocks : ∀ i : Fin T, stop i = true → commit i = false
@@ -156,7 +156,7 @@ structure CertifyThenCommitCycle (M : SystemMetrics S TaskId)
     spendV i = (step i h).budgetSpend
   spend_hold : ∀ i : Fin T, commit i = false → spendV i = 0
   /-- The per-round holdout-risk allowance (premise-form (d)
-  channel; discharged through the C444 risk channel / C446 stop
+  channel; discharged through the risk channel / stop
   routes). -/
   e : Fin T → ℝ
   e_nonneg : ∀ i : Fin T, 0 ≤ e i
@@ -231,7 +231,7 @@ theorem ctc_mixed_ledger {M : SystemMetrics S TaskId}
 
 /-! ## Coordination laws -/
 
-/-- **A fired stop never commits** (the C446 coordination law,
+/-- **A fired stop never commits** (the coordination law,
 pure field consequence of `stop_blocks`): when the anytime holdout
 stop fires in round i, that round HOLDS — no growth-block, no
 ledger entry, no drop claim. -/
@@ -245,10 +245,10 @@ theorem stop_never_commits {M : SystemMetrics S TaskId}
 
 /-- **Leg (a)**: every COMMIT round of the cycle produces a
 machine-CHECKED step record: if round i's readout data `data i`
-passes the executable checker (`checkStep`, C430) and the declared
+passes the executable checker (`checkStep`) and the declared
 drop agrees with the ledger entry, then the committed drop is
 positive — the certified-descent side of
-`certify_then_commit_sound`, established by the C430 leg
+`certify_then_commit_sound`, established by the leg
 `checkStep_sound` (the data-to-kernel bridge is
 `Hagi.Runtime.mkCertStep`, cited). -/
 theorem commit_drop_checked {M : SystemMetrics S TaskId}
@@ -303,7 +303,7 @@ theorem liftFun_sum (f : Fin T → ℝ) :
 
 variable {Ω : Type}
 
-/-- The false-commit event family of the cycle (C418 pattern):
+/-- The false-commit event family of the cycle (pattern):
 round i committed (`commit i = true`) while the committed claim
 was false (`falseCommit i ω` — the consumer predicate,
 premise-form). -/
@@ -311,21 +311,21 @@ def ctcFalseCommitSet (commit : Fin T → Bool)
     (falseCommit : Fin T → Ω → Prop) (i : Fin T) : Set Ω :=
   {ω | commit i = true ∧ falseCommit i ω}
 
-/-- **certify_then_commit_sound (C463, G6 — the end-to-end cycle
+/-- **certify_then_commit_sound (G6 — the end-to-end cycle
 theorem)**: for any T-round certify-then-commit cycle, under the
 per-round false-commit measure premises (premise-form; discharge
-routes CITED: C399 `adaptive_anytime_valid` — the stitched Ville
-master with Σ weights ≤ 1 — or `adaptive_commit_bridge`; C446
+routes CITED `adaptive_anytime_valid` — the stitched Ville
+master with Σ weights ≤ 1 — or `adaptive_commit_bridge`
 `false_stop_bound` for stop-mediated rounds), with levels summing
 to at most `δtotal` and per-round holdout allowances summing to at
 most `ε`:
 - (b) the objective TELESCOPES: `obj (t T) ≤ obj (t 0) − Σ drops`
   over the committed ledger entries;
 - (c) with probability ≥ 1 − δtotal NO commit is false: the
-  union-bound leg (the C418 pattern) over the T false-commit
+  union-bound leg (the pattern) over the T false-commit
   events;
 - (d) the holdout risk grew by at most ε (premise-form channel,
-  discharged through C444/C446);
+  discharged through);
 - (e) the budget ledger BALANCES (`budget (t T) + Σ spends =
   budget (t 0)`), the budget stays nonnegative and the floors are
   kept at the terminal state. -/

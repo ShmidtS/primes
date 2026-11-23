@@ -144,7 +144,7 @@ theorem momentum_floor (e : ℕ → ℝ) (q β δ : ℝ) (hq : 0 < q)
     have hstp := hstep k hk
     have hcc : (1 - q - β) * c = δ := by
       rw [hc, mul_div_cancel₀ _ (ne_of_gt hqb0)]
-    -- e_{k+1} − c ≤ q e_k + β e_{k-1} + δ − c = q e_k + β e_{k-1} + (1−q−β)c − ... 
+    -- e_{k+1} − c ≤ q e_k + β e_{k-1} + δ − c = q e_k + β e_{k-1} + (1−q−β)c − ...
     linarith [hcc]
   have hmb := momentum_bound (fun n => e n - c) q β hq hβ hqb hcx k
   -- перенести: e k = x k + c

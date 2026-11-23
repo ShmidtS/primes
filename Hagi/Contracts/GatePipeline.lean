@@ -9,7 +9,7 @@ import Hagi.Unified.StitchingEProcess
 set_option linter.style.header false
 
 /-!
-# Gate pipeline (C264, addendum A10 priority P1)
+# Gate pipeline (addendum A10 priority P1)
 
 Формализация гейта, КАК его использует Python-код (audit A10 §3):
 пошаговый пайплайн «измерение → доверительная граница → бюджет →
@@ -38,11 +38,11 @@ set_option linter.style.header false
   суммарный расход ≤ δ·Σ 6/(π²(k+1)²) ≤ δ (множитель (1+m)
   сокращается — никакого скрытого фактора);
 * anytime-мост: `gate_anytime_valid` — Ville-овская равномерная по
-  времени граница (C232 `stitching_eprocess_anytime`): если каждое
+  времени граница (`stitching_eprocess_anytime`): если каждое
   событие ложного commit вложено в {δ⁻¹ ≤ M_t} со сшитым мастером
   M_t, то μ.real{∃ t ≤ n, ложный commit} ≤ δ ОДНОВРЕМЕННО для всех
   n — замена фиксированного-n объединения; ПРОДАКШН-РЕКОМЕНДАЦИЯ:
-  эмпирическая дисперсия Freedman (C248
+  эмпирическая дисперсия Freedman (
   `freedman_exp_empirical_le_fixed`, `stitching_alarm_superset`):
   при кумулятивной предсказуемой дисперсии в бюджете c² эмпирический
   показатель не хуже фиксированного — адаптивный n вместо
@@ -254,13 +254,13 @@ theorem gate_pipeline_budget (δ : ℝ) (hδ : 0 ≤ δ) (m : ℕ) (K : ℕ)
 /-- ANYTIME-МОСТ: Ville-овская равномерная по времени граница
 заменяет фиксированное-n объединение пайплайна. Если каждое событие
 ложного commit `F t` вложено в пересечение порога δ⁻¹ сшитым
-мастером `stitchedMaster w E t` (C232), то для КАЖДОГО горизонта n
+мастером `stitchedMaster w E t`, то для КАЖДОГО горизонта n
 ОДНОВРЕМЕННО μ.real{∃ t ≤ n, ложный commit} ≤ δ. Это прямое следствие
 `Hagi.Unified.stitching_eprocess_anytime` (новой вероятностной
 неравенственности не утверждается); вклад моста — форма посылки
 вложения (то, что гейт обязан построить в рантайме) и ∀-n
 одновременность вместо union по горизонтам. ПРОДАКШЕН: адаптивный n
-с эмпирической дисперсией Freedman (C248
+с эмпирической дисперсией Freedman (
 `freedman_exp_empirical_le_fixed`,
 `Hagi.Unified.stitching_alarm_superset`) — эмпирический показатель не
 хуже фиксированного при дисперсии в бюджете c². -/
@@ -327,14 +327,14 @@ theorem gate_fixed_radius_unusable (r : ℝ) (hr0 : 0 ≤ r)
   have hcontra : (2:ℝ)/729 ≤ 1/27000 := le_trans hlower hr
   norm_num at hcontra
 
-/-! ## C287: мосты к единому concentration API
+/-! ## мосты к единому concentration API
 
 `Hagi.Probability.Concentration` — единый radius/confidence API
 (A10 merge map). Гейтова форма — частный случай: [−1,1]-радиус η это
 [0,1]-радиус η/2 (`concConfidence_pm1_rescale`). -/
 
-/-- C287: двусторонняя [−1,1]-граница гейта `2e^{−nη²/2}` это в точности
-`2 · concConfidence (η/2) n` — C264 gate radius инстанцирует единый
+/-- двусторонняя [−1,1]-граница гейта `2e^{−nη²/2}` это в точности
+`2 · concConfidence (η/2) n` — gate radius инстанцирует единый
 `Hagi.Probability` concentration API. -/
 theorem hoeffding_pm1_two_sided_via_conc {n : ℕ} (p : Fin n → V → ℝ)
     (hp : Hagi.Probability.IsProbSys p) (X : Fin n → V → ℝ)
@@ -348,7 +348,7 @@ theorem hoeffding_pm1_two_sided_via_conc {n : ℕ} (p : Fin n → V → ℝ)
   rw [Hagi.Probability.concConfidence_pm1_rescale hn eta] at h
   exact h
 
-/-- C287: гейтов радиус-константа `e^{−256·r²}` — это
+/-- гейтов радиус-константа `e^{−256·r²}` — это
 `concConfidence (r/2) 512` (n = 512, [−1,1]-радиус r, [0,1]-радиус
 r/2: 2·512·(r/2)² = 256·r²). -/
 theorem gate_fixed_radius_conc (r : ℝ) :
@@ -360,7 +360,7 @@ theorem gate_fixed_radius_conc (r : ℝ) :
   field_simp
   ring
 
-/-- C287: `gate_fixed_radius_unusable` через единый API: если
+/-- `gate_fixed_radius_unusable` через единый API: если
 `2 · concConfidence (r/2) 512 ≤ 1/27000`, то фиксированный радиус
 непригоден (`0.14 < r`). -/
 theorem gate_fixed_radius_unusable_via_conc (r : ℝ) (hr0 : 0 ≤ r)

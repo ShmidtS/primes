@@ -13,7 +13,7 @@ set_option linter.style.header false
 The attention rung of the E4 backbone ladder (TD E4-C300,
 `.omc/tech-debt.md`): the existing softmax error-damping
 certificate `Hagi.Core.attention_error_damped` is wired into the
-C300 residual-transfer stack (`Hagi.Model.BackboneTransfer`).
+ residual-transfer stack (`Hagi.Model.BackboneTransfer`).
 
 The attention branch is the softmax-weighted value composition
 `attnBranch p v x = ∑ i, p i • v i x`. The damping interface: the
@@ -27,11 +27,11 @@ into a branch Lipschitz constant (`attn_branch_lipschitz`).
 A pre-norm `n` enters as a `LipschitzWith μn` premise, so the
 pre-norm attention branch `fun x => attnBranch p v (n x)` is
 `(μn·μatt)`-Lipschitz (`attn_norm_branch_lipschitz`) — exactly
-the C300 block hypothesis shape — and one attention block
+the block hypothesis shape — and one attention block
 (pre-norm + softmax-weighted branch + residual) satisfies the
-C300 leak bound (`attention_block_transfer`). Stacks of attention
+ leak bound (`attention_block_transfer`). Stacks of attention
 blocks (`AttnBlock`, `attnStack`, `attnGain`) inherit the
-multiplicative C300 descent bound
+multiplicative descent bound
 (`attention_stack_transfer_descent`, `_strict`).
 
 Honest scope: the softmax weight map (p depending on x through
@@ -62,7 +62,7 @@ noncomputable def attnBranch (p : ι → ℝ) (v : ι → X → X) (x : X) : X :
   ∑ i, p i • v i x
 
 /-- Damping wire: the branch perturbation is bounded by the
-largest value-map response — the C307 instance of
+largest value-map response — the instance of
 `Hagi.Core.attention_error_damped` with value errors
 `e i = v i (x + dx) − v i x`. -/
 theorem attn_branch_damped (p : ι → ℝ) (v : ι → X → X)
@@ -124,7 +124,7 @@ theorem attn_branch_lipschitz {p : ι → ℝ} {v : ι → X → X} {μatt : NNR
 /-- Pre-norm composition: a `μn`-Lipschitz norm map (`μn`
 premise-form — the RMSNorm Lipschitz rung instantiates it later)
 composed with the `μatt`-Lipschitz attention branch gives the
-`(μn·μatt)`-Lipschitz pre-norm branch — exactly the C300 block
+`(μn·μatt)`-Lipschitz pre-norm branch — exactly the block
 hypothesis shape. -/
 theorem attn_norm_branch_lipschitz {n : X → X} {p : ι → ℝ}
     {v : ι → X → X} {μn μatt : NNReal} (hn : LipschitzWith μn n)
@@ -136,7 +136,7 @@ theorem attn_norm_branch_lipschitz {n : X → X} {p : ι → ℝ}
   exact hb.comp hn
 
 /-- One attention block (pre-norm + softmax-weighted branch +
-residual) satisfies the C300 leak bound: the loss at the realized
+residual) satisfies the leak bound: the loss at the realized
 output exceeds the intended head output loss by at most the leak
 `Lc·(μn·μatt)·‖dx‖`. -/
 theorem attention_block_transfer {n : X → X} {p : ι → ℝ} {v : ι → X → X}
@@ -173,22 +173,22 @@ structure AttnBlock (X : Type*) [NormedAddCommGroup X]
 noncomputable def attnBlockBranch (b : AttnBlock X ι) : X → X :=
   fun y => attnBranch b.p b.v (b.n y)
 
-/-- The C300 block list of attention blocks: each block carries
+/-- The block list of attention blocks: each block carries
 its composed damping `μn·μatt`. -/
 noncomputable def attnBlockList (bs : List (AttnBlock X ι)) : List ((X → X) × NNReal) :=
   bs.map fun b => (attnBlockBranch b, b.μn * b.μatt)
 
-/-- Stack of attention blocks: the C300 residual stack over the
+/-- Stack of attention blocks: the residual stack over the
 composed dampings. -/
 noncomputable def attnStack (bs : List (AttnBlock X ι)) : X → X :=
   resStack (attnBlockList bs)
 
 /-- Multiplicative gain of an attention stack: `∏ (1 + μnᵢ·μattᵢ)`
-(the C300 `stackGain` on the composed dampings). -/
+(`stackGain` on the composed dampings). -/
 noncomputable def attnGain (bs : List (AttnBlock X ι)) : NNReal :=
   stackGain (attnBlockList bs)
 
-/-- Every attention block in a well-damped list satisfies the C300
+/-- Every attention block in a well-damped list satisfies
 block hypothesis (Lipschitz through the composed damping). -/
 theorem attnBlockList_lipschitz (bs : List (AttnBlock X ι))
     (hn : ∀ b ∈ bs, LipschitzWith b.μn b.n)
@@ -202,7 +202,7 @@ theorem attnBlockList_lipschitz (bs : List (AttnBlock X ι))
     (hp1 b₀ hb₀) (hv b₀ hb₀)
 
 /-- Certified head descent transfers through a stack of attention
-blocks: the C300 stack theorem applied with the composed damping
+blocks: the stack theorem applied with the composed damping
 `μnᵢ·μattᵢ` per block — leak slack
 `Lc·(∏ (1 + μnᵢ·μattᵢ) − 1)·‖dx‖`. -/
 theorem attention_stack_transfer_descent (bs : List (AttnBlock X ι))

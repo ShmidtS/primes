@@ -8,10 +8,10 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Empirical-Bernstein-граница (Probability, C539)
+# Empirical-Bernstein-граница
 
 Empirical-Bernstein (EB) confidence — дополнение
-Freedman-канона (C525) в стиле Maurer–Pontil 2009
+Freedman-канона в стиле Maurer–Pontil 2009
 ("Empirical Bernstein Bounds and Sample Variance
 Penalization"): вместо диапазонной дисперсии R² (Hoeffding,
 AuditLedger) подставляется измеренная эмпирическая дисперсия
@@ -29,7 +29,7 @@ R²L/(2Δ²) ≈ 177k сэмплов; MP-форма ε_EB (3R·ln(3/α)/(n−1))
 n = 6439 (27.5×, в точности план); наша форма (√(2σ̂²L/n) +
 2RL/n, L = ln(2/α)) — n = 4267 (41.5×): инверсия Freedman с
 L = ln(2/α) и слагаемым 2/n даже тоньше констант MP на этой
-точке. Числа: .tmp/C539 (witness).
+точке. Числа — bench-witness.
 
 **Честные границы**: sig — измеряемая runtime-посылка
 (условная дисперсия при каждом префиксе, h_emp-стиль канона —
@@ -203,7 +203,7 @@ h_emp-стиль канона) при 0 < α < 1
 
 — двухсторонняя инвертированная Freedman-граница: √-член
 несёт σ̂-подстановку (EB vs Hoeffding R²), аддитивный 2bL —
-диапазонную цену. Семантика плана C537 P1: 27.5× экономия
+диапазонную цену. Семантика плана P1: 27.5× экономия
 валидации vs Hoeffding при σ̂² ≪ R². -/
 theorem empirical_bernstein_bound (q : V → ℝ)
     (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)

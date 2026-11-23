@@ -13,7 +13,7 @@ import Mathlib.Tactic
 /-!
 # MasterTheorem — сборная траекторная теорема certified-or-refuse
 
-C392, центральная теорема A17 (audit's master statement):
+центральная теорема A17 (audit's master statement):
 
 «EITHER performs a certified update with controlled descent and
 preserved constraints, OR safely refuses; across the trajectory
@@ -24,33 +24,33 @@ bounds.»
 
 | Пункт аудита | Формальный пункт |
 |---|---|
-| EITHER certified update | `MasterStepCert` (drop ≥ 0, penalty ≥ 0 — форма C389 `2·L_lip·ε_q`, cost ≥ 0, спуск `fullObjective s' ≤ fullObjective s − drop + penalty`) |
-| OR safely refuses | `MasterTrajectory.holds`: hold ⇒ тождество состояния (семантика C363 `hold_rollback_total`; та же дихотомия у C388 `hold_refusal_safe` и C390 `refuse_safe`) |
-| total quality loss bounded | `master_trajectory_bound` (ТЕЛЕСКОП C375 `obj_telescope_err`, линейное накопление penalty) |
+| EITHER certified update | `MasterStepCert` (drop ≥ 0, penalty ≥ 0 — форма `2·L_lip·ε_q`, cost ≥ 0, спуск `fullObjective s' ≤ fullObjective s − drop + penalty`) |
+| OR safely refuses | `MasterTrajectory.holds`: hold ⇒ тождество состояния (семантика `hold_rollback_total`; та же дихотомия у `hold_refusal_safe` `refuse_safe`) |
+| total quality loss bounded | `master_trajectory_bound` (ТЕЛЕСКОП `obj_telescope_err`, линейное накопление penalty) |
 | compute budget in proven bounds | `MasterBudgetCert` (PREMISE-канал: Σ cost ≤ B, потребительский биндер) + доказанный `master_budget_uniform` (cap c ⇒ Σ ≤ T·c) |
-| risk in proven bounds | whp-канал: `master_union_bound` (P[all good] ≥ 1 − Σδ_t, паттерн C353) + `master_conditional_bound` (телескоп на good-событии) |
-| preserved constraints | указатель `master_accept_fullCert` (C363 FullStepCert) → C383 `fourCert_of_parts` (layer 8) + C380/C390 книги |
+| risk in proven bounds | whp-канал: `master_union_bound` (P[all good] ≥ 1 − Σδ_t, паттерн) + `master_conditional_bound` (телескоп на good-событии) |
+| preserved constraints | указатель `master_accept_fullCert` (FullStepCert) → `fourCert_of_parts` (layer 8) + книги |
 
 ## Честные пины (premise-form)
 
 - **Бюджет — premise-канал.** `MasterBudgetCert` — явный
-  биндер, НЕ ресурсный учёт: пин C388 (budget = 0 zero-channel)
+  биндер, НЕ ресурсный учёт: пин (budget = 0 zero-channel)
   наследуется и становится явным. Реальный учёт — co-beat.
-- **EF residual, траекторный член — ПИН.** C381 endpoint-формы
+- **EF residual, траекторный член — ПИН.** endpoint-формы
   (`ef_compressed_step_bound`) цитируются; Σ‖e_t‖-телескоп —
-  co-beat (C391 ranked #2).
-- **PL-геометрия (C351/C357) — ПИН.** Теоремы живут на CE-reg
+  co-beat (ranked #2).
+- **PL-геометрия — ПИН.** Теоремы живут на CE-reg
   носителе (`ce_global_convergence_reg_closed`), не на
   `fullObjective` канонического состояния; композиция требует
   carrier-моста (co-beat). Здесь: `master_uniform` даёт линейную
   замкнутую форму, геометрическая — при мосте.
-- **whp — условно-на-good-событиях** (даунгрейд C391 gap 3):
+- **whp — условно-на-good-событиях** (даунгрейд gap 3):
   union bound без независимости; δ-бюджет покрывает только
-  descent-отказы шагов (caveats C353/C380 наследуются).
+  descent-отказы шагов (caveats наследуются).
 - **Four-cert — указатель.** LayerLint: Training (8) > Theory (7),
   `fourCert_of_parts` не импортируем — конструктивен до layer 3
   (`FullStepCert`), завершение композиции описано в docstring.
-- Адаптивные данные: caveats C380 (e-process fresh-data premise)
+- Адаптивные данные: caveats (e-process fresh-data premise)
   наследуются без изменений.
 -/
 
@@ -66,7 +66,7 @@ variable {n a e q r c k : ℕ}
 /-! ## Сертификат одного шага: certified-or-refuse -/
 
 /-- Сертификат ПРИНЯТОГО шага мастера: контролируемый спуск
-(заявленный drop ≥ 0), аддитивный penalty ≥ 0 (форма C389:
+(заявленный drop ≥ 0), аддитивный penalty ≥ 0 (форма
 2·L_lip·ε_q на сжатых эндпоинтах), стоимость cost ≥ 0 (канал
 бюджета) и доказанный спуск полной цели с penalty. Refusal НЕ
 носит этот сертификат — refusal это Hold (см.
@@ -76,7 +76,7 @@ structure MasterStepCert (s s' : CanonicalTrainState n a e q r c k) where
   drop : ℝ
   /-- Спуск неотрицателен. -/
   drop_nonneg : 0 ≤ drop
-  /-- Аддитивный штраф сжатия (форма C389: 2·L_lip·ε_q). -/
+  /-- Аддитивный штраф сжатия (форма 2·L_lip·ε_q). -/
   penalty : ℝ
   /-- Штраф неотрицателен. -/
   penalty_nonneg : 0 ≤ penalty
@@ -84,13 +84,13 @@ structure MasterStepCert (s s' : CanonicalTrainState n a e q r c k) where
   cost : ℝ
   /-- Стоимость неотрицательна. -/
   cost_nonneg : 0 ≤ cost
-  /-- Спуск ПОЛНОЙ цели с штрафом:(weights+буферы, C363). -/
+  /-- Спуск ПОЛНОЙ цели с штрафом:(weights+буферы). -/
   descent : fullObjective s' ≤ fullObjective s - drop + penalty
 
 /-- Траектория мастера: T шагов на каноническом состоянии, каждый
 шаг ЛИБО сертифицированный accept (`outs j ≠ hold` несёт
 `MasterStepCert`), ЛИБО отказ (`outs j = hold` ⇒ тождество
-состояния, C363 Hold). Бюджет B — PREMISE-канал (`MasterBudgetCert`): суммарная
+состояния, Hold). Бюджет B — PREMISE-канал (`MasterBudgetCert`): суммарная
 стоимость ≤ B как явный биндер (не ресурсный учёт). -/
 structure MasterTrajectory (T : ℕ) where
   /-- Состояния траектории: `states j` — после j шагов. -/
@@ -104,7 +104,7 @@ structure MasterTrajectory (T : ℕ) where
   holds : ∀ j < T, outs j = Outcome.hold → states (j + 1) = states j
 
 
-/-! ## Тотальные функции шагов (паттерн C375 stepDrop) -/
+/-! ## Тотальные функции шагов (паттерн stepDrop) -/
 
 /-- Drop шага j как полная функция: 0 на отказах. -/
 noncomputable def MasterTrajectory.stepDrop (T : ℕ)
@@ -147,7 +147,7 @@ theorem MasterTrajectory.stepCost_eq (T : ℕ)
 
 /-- Бюджетный PREMISE-носитель: суммарная стоимость шагов
 траектории ≤ B — как ЭКСПЛИЦИТНЫЙ биндер (потребитель
-предъявляет; пин C388 zero-budget наследуется и становится
+предъявляет; пин zero-budget наследуется и становится
 явным; НЕ ресурсный учёт — co-beat). -/
 structure MasterBudgetCert (T : ℕ)
     (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
@@ -161,9 +161,9 @@ structure MasterBudgetCert (T : ℕ)
 /-- МАСТЕР-ТЕОРЕМА (детерминированный телескоп над either/or
 шагами): после T шагов certified-or-refuse полная цель не выше
 начальной минус сумма заявленных drop'ов плюс ЛИНЕЙНАЯ сумма
-штрафов сжатия (форма C389). Отказ (hold) вносит НУЛЕВОЙ drop И
+штрафов сжатия. Отказ (hold) вносит НУЛЕВОЙ drop И
 нулевой penalty — по доказательству (тождество состояния,
-`holds`), не по конвенции. Движок — C375 `obj_telescope_err`
+`holds`), не по конвенции. Движок `obj_telescope_err`
 (переиспользование, без новой индукции). -/
 theorem master_trajectory_bound (T : ℕ)
     (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
@@ -218,7 +218,7 @@ theorem master_descent (T : ℕ)
   exact h
 
 /-- СЛЕДСТВИЕ (замкнутая форма): равномерные drop ≥ δ и penalty
-≤ ε дают `L(S_T) ≤ L(S_0) − T·δ + T·ε` (паттерн C375
+≤ ε дают `L(S_T) ≤ L(S_0) − T·δ + T·ε` (паттерн
 `rounded_trajectory_uniform`). -/
 theorem master_uniform (T : ℕ)
     (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
@@ -250,7 +250,7 @@ theorem master_uniform (T : ℕ)
 /-- БЮДЖЕТ, доказанная часть: равномерный cap стоимости c на
 каждый шаг ⇒ суммарная стоимость ≤ T·c (телескоп-лемма бюджета).
 Само B — premise (поле `budget_ok`): честный канал, реальный
-ресурсный учёт — пин C388, наследуется. -/
+ресурсный учёт — пин наследуется. -/
 theorem master_budget_uniform (T : ℕ)
     (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
       (r := r) (c := c) (k := k) T) (cap : ℝ)
@@ -275,7 +275,7 @@ theorem master_budget_of_cap (T : ℕ)
     ∑ j ∈ Finset.range T, m.stepCost T j ≤ B :=
   le_trans (master_budget_uniform T m cap hcap) hB
 
-/-! ## whp-канал: union bound + условный телескоп (паттерн C353) -/
+/-! ## whp-канал: union bound + условный телескоп (паттерн) -/
 
 variable {Ω : Type*} [Fintype Ω]
 
@@ -299,11 +299,11 @@ theorem pmfMean_sum_range (law : PMF Ω) (f : ℕ → Ω → ℝ) (T : ℕ) :
       _ = ∑ j ∈ Finset.range (T + 1), pmfMean law (f j) := by
           rw [Finset.sum_range_succ, ih]
 
-/-- UNION BOUND (паттерн C353 `stochastic_loop_certified`,
+/-- UNION BOUND (паттерн `stochastic_loop_certified`,
 без независимости): если bad-событие шага j имеет вероятность
 ≤ δ_j, то вероятность того, что ВСЕ T шагов good, ≥ 1 − Σδ_j.
 Риск-канал мастера: Σδ_t и есть траекторный риск-бюджет
-(δ покрывает descent-отказы шагов; caveats C353/C380
+(δ покрывает descent-отказы шагов; caveats
 наследуются). -/
 theorem master_union_bound (law : PMF Ω) (good : ℕ → Ω → Prop)
     (T : ℕ) (deltas : ℕ → ℝ)
@@ -365,18 +365,18 @@ theorem master_conditional_bound (T : ℕ)
   exact obj_telescope_err T (fun j => obj j ω) drop_ pen
     (hkey ω hall)
 
-/-! ## Указатель four-cert (C383, layer 8 — по ссылке) -/
+/-! ## Указатель four-cert (layer 8 — по ссылке) -/
 
 /-- FOUR-CERT УКАЗАТЕЛЬ: принятый шаг мастера с положительным
 drop, бюджетным законом ledger'а (premise) и риск-каналом ledger'а
-(premise) даёт C363 `FullStepCert` — ингредиент, который C383
+(premise) даёт `FullStepCert` — ингредиент, который
 `fourCert_of_parts` (layer 8, Training — LayerLint запрещает
-импорт сюда) собирает с growth-книгой (C390
-`growthCert_of_admission`) и macro-книгой (C380) в
+импорт сюда) собирает с growth-книгой (
+`growthCert_of_admission`) и macro-книгой в
 `FourCertTransition`. Управляющая дихотомия мастера
-(accept/refuse) совпадает с дихотомией C388/C390, поэтому каждый
+(accept/refuse) совпадает с дихотомией поэтому каждый
 принятый шаг траектории мастера FOUR-CERT-композируем;
-`hpen : penalty = 0` — честный мост: FullStepCert (C363)
+`hpen : penalty = 0` — честный мост: FullStepCert
 формулируется БЕЗ penalty-канала, поэтому указатель покрывает
 бесштрафный (несжатый) случай; сжатый случай потребует
 penalty-aware расширения сертификата — co-beat. -/
@@ -411,24 +411,24 @@ end Hagi.Theory
 /-!
 # MasterBudget — resource-ledger bridge for the budget clause
 
-C398, ресурсный мост: premise-канал бюджета C392
+ресурсный мост: premise-канал бюджета
 (`MasterBudgetCert`: Σ cost ≤ B как явный биндер потребителя)
 закрывается ДОКАЗАННЫМ королларием resource-слоя — телескоп
-бюджетного_LEDGERа C330 (`budget_telescope_gen`: терминальный
+бюджетного_LEDGERа (`budget_telescope_gen`: терминальный
 бюджет = начальный − Σ точных трат) плюс доказанная
 неотрицательность остатка (`CertStepGen.budget_nonneg`).
 Кап Σ costs ≤ B ВЫВОДИТСЯ, не предполагается.
 
 ## Что мостится (bridged)
 
-- Любой cost-канал, реализующий C278 ledger: явная
+- Любой cost-канал, реализующий ledger: явная
   instantiation-гипотеза `hmatch` (stepCost = budgetSpend)
   даёт ТОЧНЫЙ баланс Σ costs = budget₀ − budget_T
   (`budget_from_resource_ledger`), а кап — следствие
   неотрицательности терминального остатка
   (`masterBudgetCert_of_resource_ledger` возвращает
   `MasterBudgetCert` как theorem output).
-- Демо (C331 KV-cache): per-step cost = cached per-token work
+- Демо (KV-cache): per-step cost = cached per-token work
   `cachedTokenWork t = t + 1`; точная сумма
   2·Σ = T·(T+1) (форма `cached_total_work_eq`) закрывает
   budget_ok на ТОЧНОМ cached-тотале (`master_budget_kv_cached`);
@@ -437,8 +437,8 @@ C398, ресурсный мост: premise-канал бюджета C392
 ## Что остаётся premise-form (честные пины)
 
 - Потребители `MasterBudgetCert` БЕЗ ledger-реализации — кап
-  остаётся биндером (наследуется пин C388).
-- (d, W)-фронт C334 (`data_compute_budget`: десцент-рейт и
+  остаётся биндером (наследуется пин).
+- (d, W)-фронт (`data_compute_budget`: десцент-рейт и
   per-step work — премизы честного интерфейса) здесь не
   пере-выводится: мост адресует КАНАЛ, не фронт.
 - Демо не строит полный `SystemMetrics`-объект с KV-тратами
@@ -451,7 +451,7 @@ C398, ресурсный мост: premise-канал бюджета C392
 
 Theory (7) не может импортировать Contracts (7) — телескоп
 пере-доказан локально над ТЕМ ЖЕ kernel-полем
-`CertStepGen.budget_next` (паттерн C330 `budget_telescope_gen`,
+`CertStepGen.budget_next` (паттерн `budget_telescope_gen`,
 цитируется; переиспользование доказательства, не результата —
 LayerLint-ограничение, не дублирование намерения).
 -/
@@ -465,7 +465,7 @@ open scoped BigOperators Classical
 
 variable {n a e q r c k : ℕ}
 
-/-! ## Локальный телескоп ledger-а (паттерн C330) -/
+/-! ## Локальный телескоп ledger-а (паттерн) -/
 
 section Bridge
 
@@ -474,7 +474,7 @@ variable (M : Hagi.Cert.SystemMetrics S TaskId)
 variable (obl : Hagi.Cert.StepObligations TaskId)
 
 /-- Телескоп ресурсного ledger-а над kernel-полем
-`CertStepGen.budget_next` (тот же паттерн, что C330
+`CertStepGen.budget_next` (тот же паттерн
 `budget_telescope_gen`; с A18.3/С425 — one-line специализация
 обобщённого `additive_ledger_telescope_eq` через budget-инстанс
 `Hagi.Cert.ExactAdditiveLedger`). Терминальный бюджет = начальный минус
@@ -531,7 +531,7 @@ theorem master_budget_of_resource_ledger (deltaLevel : S → ℝ)
 /-- УПАКОВКА: budget-клауза мастер-теоремы как theorem output —
 `MasterBudgetCert` при B = budget₀ строится ДОКАЗАТЕЛЬСТВОМ
 (bridge + nonneg), а не предъявляется потребителем. Это и есть
-замена premise-канала ресурсным королларием (beat C397 top-2). -/
+замена premise-канала ресурсным королларием (beat top-2). -/
 theorem masterBudgetCert_of_resource_ledger (deltaLevel : S → ℝ)
     (T : ℕ) (traj : ℕ → S)
     (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1)))
@@ -545,11 +545,11 @@ theorem masterBudgetCert_of_resource_ledger (deltaLevel : S → ℝ)
 
 end Bridge
 
-/-! ## Демо: KV-cache cost-модель (C331) в budget-клаузе -/
+/-! ## Демо: KV-cache cost-модель в budget-клаузе -/
 
 /-- Helper: точная сумма cached per-token работ над T шагами в
 форме без деления — 2·Σ_{j<T} ((j:ℝ)+1) = T·(T+1); ℝ-зерка
-identity C331 `cached_total_work_eq` (2·cachedTotalWork n =
+identity `cached_total_work_eq` (2·cachedTotalWork n =
 n(n+1), где `cachedTokenWork t = t + 1`). -/
 theorem sum_range_succ_cast_two (T : ℕ) :
     2 * ∑ j ∈ Finset.range T, ((j : ℝ) + 1) = (T : ℝ) * ((T : ℝ) + 1) := by
@@ -562,7 +562,7 @@ theorem sum_range_succ_cast_two (T : ℕ) :
     push_cast
     nlinarith [ih, h]
 
-/-- ДЕМО-ИНСТАНЦИАЦИЯ (C331 KV-cache): если per-step стоимость
+/-- ДЕМО-ИНСТАНЦИАЦИЯ (KV-cache): если per-step стоимость
 мастер-шага j — cached per-token work `cachedTokenWork j = j + 1`
 (реальная ресурсная модель: один проход по кэшу = j+1 чтений), то
 budget-клауза закрывается на ТОЧНОМ cached-тотале

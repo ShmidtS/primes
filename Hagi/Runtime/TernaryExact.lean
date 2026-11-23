@@ -239,7 +239,7 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
   rw [heq]
   exact hmain
 
-/-- C375 instantiation (audit 5.3): coordinatewise ternary rounding
+/-- instantiation (audit 5.3): coordinatewise ternary rounding
 (qTern, in-range) + an L-Lipschitz objective (in the sum of
 coordinate deviations) bounds the objective error by
 `L·(m·s/2)` — the concrete rounding feed for the State-layer

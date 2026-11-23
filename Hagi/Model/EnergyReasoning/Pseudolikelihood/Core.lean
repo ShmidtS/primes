@@ -24,7 +24,7 @@ Track E1 (addendum A9, CRAM / arXiv:2611.17309): the pseudolikelihood
 objective of a categorical pairwise energy is EXACTLY the mean local
 cross-entropy over the CRAM-sign conditional logits — reducing it to
 the existing `Hagi.Prelude.ceDef` / `Hagi.Prelude.softDef` machinery
-(the C235 Prelude spine), so the CEDescent toolchain applies to
+(the Prelude spine), so the CEDescent toolchain applies to
 pseudolikelihood training by construction, with no new CE theory.
 
 * `conditionalLogit` — the local logits `z_ia = −H(y^{i←a})` (CRAM
@@ -184,7 +184,7 @@ Main results:
 * `visible_descent_frozen_z` — the TWO-PHASE protocol composition: after
   settling `z` and FREEZING it into the constant bias
   `visibleBiasWithZ B zc`, the visible greedy single-cell descent
-  (`Hagi.Energy.greedy_single_cell_nonincreasing`, C261) applies verbatim.
+  (`Hagi.Energy.greedy_single_cell_nonincreasing`) applies verbatim.
 
 ## Two-phase protocol (supplement mandate)
 
@@ -193,7 +193,7 @@ Phase 1: iterate `latentUpdate` until `‖z^k − z*‖ < ε_z`
 latent contribution `zc` (constant in the visible state `y`) and run the
 visible CRAM descent with bias `visibleBiasWithZ B zc`. JOINT `(z, p)`
 updates are FORBIDDEN by this theory: a z-move changes the bias
-`B' i a = B i a + zc i` mid-descent, so the C261 single-cell delta
+`B' i a = B i a + zc i` mid-descent, so the single-cell delta
 identity no longer bounds the total energy change and the Lyapunov
 argument breaks. The frozen-z premise is structural: `zc : ι → ℝ` is not
 a function of `y`. No joint-update descent theorem exists (see the
@@ -917,13 +917,13 @@ section TwoPhase
 /-- **`visible_descent_frozen_z`** — (E3 MAIN, thin by design) the
 two-phase composition: after settling `z` and FREEZING it into the
 constant bias `visibleBiasWithZ B zc` (constant in the visible state `y`
-BY CONSTRUCTION — `zc` is not a function of `y`), the C261 greedy
+BY CONSTRUCTION — `zc` is not a function of `y`), the greedy
 single-cell visible descent applies verbatim: the energy
 `pairwiseEnergy (visibleBiasWithZ B zc) K` does not increase under a move
 to a local-field minimizer.
 
 JOINT `(z, p)` updates break the Lyapunov argument: a z-move changes the
-bias mid-descent, the C261 single-cell delta identity no longer bounds the
+bias mid-descent, the single-cell delta identity no longer bounds the
 total energy change, and NO joint-update descent theorem is claimed (the RootApi negative
 pin: the name visible_descent_joint_z is nonexistent — records this). -/
 theorem visible_descent_frozen_z {α : Type*} (B : ι → α → ℝ)
@@ -1002,7 +1002,7 @@ density, and the focused (state-dependent) mixture.
   free-cells premise, not a construction.
 * `heatbath_detailed_balance` — (E4 MAIN) under symmetric `K` and `T ≠ 0`
   the kernel is reversible w.r.t. the unnormalized Boltzmann density
-  `π(y) = exp(−E(y)/T)`. The proof reduces EXACTLY to the C261 identity
+  `π(y) = exp(−E(y)/T)`. The proof reduces EXACTLY to the identity
   `single_cell_move_energy_delta_symm` plus the off-cell localField
   invariance; the softmax normalizer cancels (both weights are evaluated at
   the same state's fields).
@@ -1054,7 +1054,7 @@ private def heatbathOffCellCond (y : ι → α) (i : ι) (z : ι → α) : Prop 
 
 /-- The heat-bath weight of value `a` at cell `i` from state `y`: the
 softmax (`softDef` reuse) of the NEGATIVE local field over temperature,
-`exp(−L_i(a)/T) / Σ_c exp(−L_i(c)/T)` with `L_i` the C261 `localField`. -/
+`exp(−L_i(a)/T) / Σ_c exp(−L_i(c)/T)` with `L_i` `localField`. -/
 noncomputable def heatbathWeight (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)
     (T : ℝ) (y : ι → α) (i : ι) (a : α) : ℝ :=
   softDef (fun c => -(localField B K y i c) / T) a
@@ -1078,7 +1078,7 @@ def kernelStationary (π : (ι → α) → ℝ) (Q : (ι → α) → (ι → α)
   ∀ z, ∑ y, π y * Q y z = π z
 
 /-- The unnormalized Boltzmann density `π(y) = exp(−E(y)/T)` of the
-C261 `pairwiseEnergy`. -/
+ `pairwiseEnergy`. -/
 noncomputable def boltzmannDensity (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)
     (T : ℝ) (y : ι → α) : ℝ :=
   Real.exp (-(pairwiseEnergy B K y) / T)
@@ -1202,7 +1202,7 @@ omit [DecidableEq α] [Nonempty α] in
 /-- (E4 MAIN) Heat-bath detailed balance: under symmetric `K`
 (`K_ij(a,b) = K_ji(b,a)`, the CRAM `W = sym(K)`) and `T ≠ 0`, the
 single-cell kernel is REVERSIBLE w.r.t. the unnormalized Boltzmann density
-`π(y) = exp(−E(y)/T)`. The proof is exactly the C261 delta identity
+`π(y) = exp(−E(y)/T)`. The proof is exactly the delta identity
 `E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)` (all non-`i` partition terms cancel)
 plus the off-cell localField invariance; the softmax normalizer cancels
 because both weights are evaluated at the SAME state's fields. `T ≠ 0` is
@@ -1413,7 +1413,7 @@ theorem focused_mixture_preserves_givens (w : (ι → α) → ι → ℝ)
 end Mixture
 
 section Fixture
-/-! ## Fin 2 × Bool fixture (Bex/Kex/xtt carriers from C260) -/
+/-! ## Fin 2 × Bool fixture (Bex/Kex/xtt carriers) -/
 
 open Hagi.Energy
 
@@ -1423,8 +1423,8 @@ private theorem Kex_symm :
   simp only [Kex, Bool.and_comm]
   split_ifs <;> ring
 
-/-- Numeric anchor: `L_0(f) = 0`, `L_0(t) = 3` at `xtt = (t,t)` (C260
-anchors `E(t,t) = 5`, `E(f,t) = 2`, so the C261 delta identity gives
+/-- Numeric anchor: `L_0(f) = 0`, `L_0(t) = 3` at `xtt = (t,t)` (
+anchors `E(t,t) = 5`, `E(f,t) = 2`, so the delta identity gives
 `2 − 5 = 0 − 3`), hence the heat-bath weight of moving cell `0` to `f` at
 `T = 1` is `1/(1 + exp(−3))`. -/
 example : heatbathKernel Bex Kex 1 0 xtt (Function.update xtt 0 false)

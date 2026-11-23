@@ -3,7 +3,7 @@ import Hagi.Unified.HonestTransition
 import Hagi.Cert.StepGen
 
 /-!
-# ExecutedCert 
+# ExecutedCert
 
 Проблема: MeasurementCert (claimed/measured/delta),
 StepContract и CertifiedTrajectory — три несвязанных
@@ -93,7 +93,7 @@ theorem telescope_measured (obj : S → ℝ) (step : S → S)
     linarith
 
 
-/-! ### Мост в ядро StepRecord (цикл 41 → C449) -/
+/-! ### Мост в ядро StepRecord (цикл 41 →) -/
 
 /-- ExecutedCert → StepRecord (δ-канал измерения — вне записи:
 это ошибка измерения, не трата; журнал фиксирует только
@@ -126,7 +126,7 @@ A10 item 2 (adapter batch 2): исполнительный сертификат 
 законы даёт потребитель. δ-канал измерения остаётся вне ядра
 (как и в мосте цикла 41). -/
 
-/-- C279: сертификат исполненного измеренного шага как шаг
+/-- сертификат исполненного измеренного шага как шаг
 общего ядра (premise-form: спад — декларация носителя,
 подкреплённая `actual`; riskRem — свободный параметр, в
 носителе риск-понятия нет). -/

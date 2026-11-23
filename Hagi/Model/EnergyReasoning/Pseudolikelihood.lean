@@ -11,7 +11,7 @@ set_option linter.style.header false
 /-!
 # Pseudolikelihood (umbrella)
 
-C455 slicing: the former 5555-line monolith is split into four files
+ slicing: the former 5555-line monolith is split into four files
 under `Hagi.Model.EnergyReasoning.Pseudolikelihood.*` (Core, LocalField,
 Mixing, CRAM) with unchanged fully-qualified names. This module remains
 the import point for consumers (Hagi.lean, Training.StepProvider,

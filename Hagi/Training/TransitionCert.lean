@@ -4,11 +4,11 @@ import Hagi.Training.MacroStatCert
 
 /-!
 # FourCertTransition — four-certificate composition on one versioned
-transition (A16, C383)
+transition (A16)
 
 The A16 composition record: FOUR certificates — micro-optimization
-(C363 `FullStepCert`), resource ledger, quality growth, macro-statistics
-(C380 `MacroStatCert`) — all referencing the SAME versioned state
+(`FullStepCert`), resource ledger, quality growth, macro-statistics
+(`MacroStatCert`) — all referencing the SAME versioned state
 transition `S_t → S_{t+1}` on the canonical carrier
 `Hagi.State.CanonicalTrainState`. Version coherence is by construction:
 the record carries `macro_before`/`macro_after` hversion proofs that the
@@ -16,9 +16,9 @@ macro certificate's states ARE the states the micro/resource/growth
 certificates are indexed by — no cross-transition mixing.
 
 * `ResourceCert` — the thin resource book: the exact budget/risk ledger
-  laws of the transition (the per-step form of the C330/C334 budget
+  laws of the transition (the per-step form of the budget
   account `data_compute_budget`; adapter `fullStepCert_resource`
-  extracts it from any C363 certificate);
+  extracts it from any certificate);
 * `GrowthCert` — the missing fourth certificate (premise-form): the
   quality channels of the canonical state change EXACTLY by the recorded
   per-channel deltas `growth` (telemetry tie — TrainState §4.1: quality
@@ -34,7 +34,7 @@ certificates are indexed by — no cross-transition mixing.
 Honest exposure (rollback): a ROLLBACK decision restores
 `macro.sCheckpoint`, which is OUTSIDE the certified pair `s, s'` by
 construction — NO micro/growth coherence is claimed for the rollback
-target (`rollback_sound` of C380 applies unchanged).
+target (`rollback_sound` applies unchanged).
 -/
 
 set_option relaxedAutoImplicit false
@@ -48,8 +48,8 @@ variable {n a e q r c k : ℕ}
 /-! ## ResourceCert — the per-transition resource ledger -/
 
 /-- The resource certificate of ONE transition: the exact budget and
-risk ledger laws (C363 `FullStepCert` fields, in the per-step form of
-the C330/C334 `data_compute_budget` account). -/
+risk ledger laws (`FullStepCert` fields, in the per-step form of
+ `data_compute_budget` account). -/
 structure ResourceCert (s s' : CanonicalTrainState n a e q r c k) where
   /-- Budget spent by the transition (compute channel). -/
   budgetSpend : ℝ
@@ -68,7 +68,7 @@ structure ResourceCert (s s' : CanonicalTrainState n a e q r c k) where
   /-- Residual risk is nonnegative. -/
   risk_nonneg : 0 ≤ riskRem
 
-/-- Adapter: every C363 `FullStepCert` already carries the resource
+/-- Adapter: every `FullStepCert` already carries the resource
 ledger laws — extract the resource book of the SAME transition. -/
 def fullStepCert_resource (h : FullStepCert s s') : ResourceCert s s' where
   budgetSpend := h.budgetSpend
@@ -102,19 +102,19 @@ structure GrowthCert (s s' : CanonicalTrainState n a e q r c k) where
 
 /-- The four-certificate composition on ONE versioned transition
 `S_t → S_{t+1}` (states `s`, `s'` of the canonical carrier): micro
-(C363), resource, growth, macro (C380). Version coherence is by
+resource, growth, macro. Version coherence is by
 construction: `macro_before`/`macro_after` are the hversion proofs that
 the macro certificate's recorded states ARE `s` and `s'` — all four
 certificates bind the identical pair, cross-transition mixing is not
 expressible in this type. -/
 structure FourCertTransition (s s' : CanonicalTrainState n a e q r c k) where
-  /-- Micro-optimization certificate (C363 full step). -/
+  /-- Micro-optimization certificate (full step). -/
   micro : FullStepCert s s'
   /-- Resource ledger book of the same transition. -/
   resource : ResourceCert s s'
   /-- Quality growth book of the same transition. -/
   growth : GrowthCert s s'
-  /-- Macro statistical certificate (C380), on the full objective. -/
+  /-- Macro statistical certificate, on the full objective. -/
   macroStat : MacroStatCert (CanonicalTrainState n a e q r c k) fullObjective
   /-- hversion: the macro pre-state IS the micro/resource/growth
   pre-state `s`. -/
@@ -124,7 +124,7 @@ structure FourCertTransition (s s' : CanonicalTrainState n a e q r c k) where
   macro_after : macroStat.sAfter = s'
 
 /-- Assembly lemma (the canonical-carrier demo): the existing pieces —
-a C363 micro certificate, a growth book, and a C380 macro certificate
+a micro certificate, a growth book, and a macro certificate
 whose recorded states are `s`/`s'` — compose into the versioned
 transition record, with the resource book extracted from the micro
 certificate by `fullStepCert_resource`. -/
@@ -161,7 +161,7 @@ theorem fourCert_commit_descent (s s' : CanonicalTrainState n a e q r c k)
 
 /-- COMPOSITION SOUNDNESS, hold case: if the macro decision is `hold`,
 the executed state IS the pre-state `s` (through `macro_before` and the
-C363 total-rollback invariant behind C380 `hold_safe`) — a hold executes
+ total-rollback invariant behind `hold_safe`) — a hold executes
 no transition at all, so no book of the record is bypassed. -/
 theorem fourCert_hold_sound (s s' : CanonicalTrainState n a e q r c k)
     (tc : FourCertTransition s s')

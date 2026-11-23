@@ -11,7 +11,7 @@ import Hagi.Theory.BlockAdmission
 Аудит N8: 14 модулей Core/Architecture — острова; центральная идея
 «точное слияние/расширение экспертов» (`step0_equivalence` Core/
 BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
-ни к росту (BlockAdmission C444 / `growLM`), ни к циклу. Этот
+ни к росту (BlockAdmission / `growLM`), ни к циклу. Этот
 модуль — мост (одна теорема-семейство, не переноска островов):
 
 * `identityBlock` — step-0 блок (zero-init attention, identity
@@ -24,7 +24,7 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   grown LM и старая LM вычисляют одни и те же логиты/вероятности.
 * (b) `blocksLip_grow_identity` — константа Липшица не меняется
   (`L_old · 1 = L_old`: lip-добавка на шаге 0 = 0, выведена);
-  общий случай — per-block premise контракта C436/C444 (см. pins).
+  общий случай — per-block premise контракта (см. pins).
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -32,9 +32,9 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   польза приходит из последующего certified-обучения головы/блока.
   Контр-симметрия `margin_positivity_refuses`: ε_cert > 0 ⇒ gate
   отказывает — нейтральность не обходит gate.
-* (d) `zero_init_orthoFiber_identity` — орто-fiber-кандидат C444
+* (d) `zero_init_orthoFiber_identity` — орто-fiber-кандидат
   (`orthoFiberAttn U A`) при A = 0 — step-0 инстанс: инъекция = id;
-  KV-стоимость роста — точный канал `lmKVCost_grow` C444.
+  KV-стоимость роста — точный канал `lmKVCost_grow` .
 
 Cycle-соответствие: `scripts/bench_bridge.py --mode grow` исполняет
 то же правило `decide (λM·Δcost + λR·Δrisk + ε_cert ≤ gain)`
@@ -48,11 +48,11 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
 - **gain после шага 0** — measured (certified drop шага обучения),
   не доказанная нижняя граница; на шаге 0 gain = 0 по построению.
 - **lip после обучения** — per-block premise контракта
-  `CertifiedBlock` (C436/C444): операторная норма обученного
+  `CertifiedBlock`: операторная норма обученного
   блока на потребителе. На шаге 0 добавка = 0 выведена здесь.
 - **Существование полезного блока** не доказывается: мост —
   gate-совместимость нейтрального расширения, не теорема
-  существования (тот же pin, что у BlockAdmission C444).
+  существования (тот же pin, что у BlockAdmission).
 - **Носители BlockDiag/NonlinearStep0** (Σ-тип, Fin N → V) и
   `CertifiedBlock` (ℕ → V → ℝ) различны: перенос ФОРМУЛЫ
   step0-эквивалентности = identity-инициализация здесь;
@@ -112,7 +112,7 @@ theorem trunk_function_preserving (bs : List (CertifiedBlock V))
 
 variable {K : Type} [Fintype K] {d : ℕ}
 
-/-- Следствие (a): grown LM (`growLM` C444 с identity-блоком) и
+/-- Следствие (a): grown LM (`growLM` с identity-блоком) и
 старая LM имеют ОДИНАКОВЫЕ логиты — certified-голова читает тот же
 trunk (`lmFeatures` зависит от trunk'а линейно). -/
 theorem lmLogits_grow_identity (m : LM V K d) (x : ℕ → V → ℝ) (t : ℕ) :
@@ -130,8 +130,8 @@ theorem lmProbs_grow_identity (m : LM V K d) (x : ℕ → V → ℝ) (t : ℕ) :
 
 /-- **Мост (b)**: константа Липшица grown-trunk РАВНА старой:
 `L_old · lip(identity) = L_old · 1 = L_old` (`blocksLip_append_single`
-C444; lip-добавка = 0 выведена честно из identity-инициализации).
-После обучения добавка — per-block premise контракта C436 (pins). -/
+lip-добавка = 0 выведена честно из identity-инициализации).
+После обучения добавка — per-block premise контракта. -/
 theorem blocksLip_grow_identity (bs : List (CertifiedBlock V)) :
     blocksLip (bs ++ [identityBlock]) = blocksLip bs := by
   rw [blocksLip_append_single]
@@ -151,7 +151,7 @@ theorem function_preserving_growth (m : LM V K d)
 /-- Нейтральная конфигурация адмиссии для step-0 кандидата:
 gain = 0 (точное равенство ⇒ нулевой certified drop), Δrisk = 0,
 λM = λR = 0, ε_cert = 0; Δcost = фактический KV-прирост
-(`kvCostOfBlock`/`lmKVCost_grow` C444) — любое. -/
+(`kvCostOfBlock`/`lmKVCost_grow`) — любое. -/
 def neutralGrowthChecks (kv : ℚ) : BlockAdmissionChecks where
   gain := 0
   Δcost := kv
@@ -182,7 +182,7 @@ def strictGrowthChecks (kv ε : ℚ) : BlockAdmissionChecks where
 /-- **Контр-симметрия (c)**: gate реален — нейтральность не
 обходит его: при ε_cert > 0 правило ОТКАЗЫВАЕТ (0 < ε нарушает
 margin), сколь бы «безвреден» ни был блок. Адмиссия выше — граничный
-случай, не лазейка (симметр `noBlockAdmissionWithoutMargin` C444). -/
+случай, не лазейка (симметр `noBlockAdmissionWithoutMargin`). -/
 theorem margin_positivity_refuses (kv ε : ℚ) (hε : 0 < ε) :
     blockAdmissionRule (strictGrowthChecks kv ε) = false := by
   refine decide_eq_false ?_
@@ -190,15 +190,15 @@ theorem margin_positivity_refuses (kv ε : ℚ) (hε : 0 < ε) :
   norm_num
   linarith
 
-/-! ## (d) Step-0 инстанс орто-fiber-кандидата C444 -/
+/-! ## (d) Step-0 инстанс орто-fiber-кандидата -/
 
-/-- **Мост (d)**: орто-fiber-инъекция C444 (`orthoFiberAttn U A`)
+/-- **Мост (d)**: орто-fiber-инъекция (`orthoFiberAttn U A`)
 при A = 0 — тождественна: резидуал `(A − U·(Uᵀ·A)) *ᵥ x` нулевой
 (любой U). Так `mkOrthoFiberBlock U 0` — step-0 инстанс моста:
 рост начинается функция-сохраняющим орто-блоком, дальнейший сигнал
 идёт строго в ортогональном cortex направлении
 (`fiber_injection_preserves_cortex`, C444/CortexFiber);
-KV-стоимость роста — точный канал `lmKVCost_grow` C444. -/
+KV-стоимость роста — точный канал `lmKVCost_grow` . -/
 theorem zero_init_orthoFiber_identity {D C : ℕ}
     (U : Matrix (Fin D) (Fin C) ℝ)
     (x : ℕ → Fin D → ℝ) (t : ℕ) :

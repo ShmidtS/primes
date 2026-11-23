@@ -12,7 +12,7 @@ The audit §7 canary-acceptance contract: the route weight `w` is made
 continuous and rolled out canary-style from 0 to 1 while the
 e-process watches for harm — the leak is LINEAR in `w`
 (`cascade_leak_router_linear`), so the per-step exposure is
-`wₜ · L_stack · ‖ΔR‖ · ‖projR U *ᵥ x‖` (the C250 form
+`wₜ · L_stack · ‖ΔR‖ · ‖projR U *ᵥ x‖` (the form
 `cascade_leak_bound_op` with `L_stack = cascadeGain S`).
 
 Pieces:
@@ -21,7 +21,7 @@ Pieces:
   weight sequence in `[0, 1]` (`mono`, `nonneg`, `le_one` fields).
 * `linearRamp` — the standard ramp `wₜ = t / T`, with
   `linearRamp_canary` certifying it against the generic premise.
-* `canaryStepLeak` — the C250 constant form `w * L * dR * px`:
+* `canaryStepLeak` — the constant form `w * L * dR * px`:
   linear in `w` by construction, matching
   `cascade_leak_router_linear` (exact linearity) and
   `cascade_leak_bound_op` (the bound).
@@ -34,18 +34,18 @@ Pieces:
   standard linear ramp `wₜ = t / T` over `t ∈ [0, T]` the exposure is
   exactly `((T+1)/2) · L · dR · px` — finite and controlled.
 * `canary_step_certified` — the ramp step AS a
-  `Hagi.Cert.CertStepGen` (the C278 kernel, `rd_step_certified`
+  `Hagi.Cert.CertStepGen` (the kernel, `rd_step_certified`
   pattern): the leak rides the RISK channel with a FREE remainder
-  (the C254 no-zero-pinning lesson).
+  (the no-zero-pinning lesson).
 * `canaryVilleMonitorHold` — the monitor contract (PREMISE-form):
   whenever the e-process crosses the Ville threshold the ramp step
-  is a certified HOLD. Cites `gate_anytime_valid` (C264: the Ville
-  time-uniform gate) and `stitching_eprocess_anytime` (C295: the
+  is a certified HOLD. Cites `gate_anytime_valid` (the Ville
+  time-uniform gate) and `stitching_eprocess_anytime` (the
   stitched master e-process) — cited, not imported (Unified layer 6
   sits above Deployment 5).
 * `canary_ramp_completion_bound` — an all-progress ramp with
   per-step risk spend `leak(w j)` keeps the total exposure inside
-  the initial risk level (the C278 telescope law `risk_telescope_gen`,
+  the initial risk level (the telescope law `risk_telescope_gen`,
   windowed to a finite ramp).
 * `canary_ramp_acceptance` — the canary contract: either some step
   crossed the Ville threshold (the ramp halts at a certified hold)
@@ -55,8 +55,8 @@ Pieces:
   `w = 0, 1/2, 1` at `L = dR = px = 1` has total exposure `3/2`,
   exactly the `(T+1)/2` law at `T = 2`.
 
-Honest scope: the e-process FIRING logic is premise-form (the C264 /
-C295 Ville statements are cited; no probability is imported), and the
+Honest scope: the e-process FIRING logic is premise-form (the /
+ Ville statements are cited; no probability is imported), and the
 ramp policy SHAPE is a premise — any nondecreasing `[0, 1]` sequence
 works, the theorems are generic in the ramp.
 -/
@@ -128,9 +128,9 @@ theorem linearRamp_canary (T : ℕ) (hT : 0 < T) :
     fun j hj => ?_⟩
   exact min_eq_left ((linearRamp_bounded T hT j).2 hj)
 
-/-! ## The per-step leak (C250 constant form) -/
+/-! ## The per-step leak (constant form) -/
 
-/-- The C250 leak constant form: the canary step's harm exposure is
+/-- The leak constant form: the canary step's harm exposure is
 `w · L_stack · ‖ΔR‖ · ‖projR U *ᵥ x‖` — LINEAR in the weight `w`,
 matching `cascade_leak_router_linear` (exact linearity of the leak
 in the router weight). -/
@@ -138,7 +138,7 @@ def canaryStepLeak (L dR px w : ℝ) : ℝ := w * L * dR * px
 
 /-- The per-step leak bound: at a nonnegative weight `w` the cascade
 output perturbation of the adapter step is at most
-`canaryStepLeak (cascadeGain S) ‖ΔR‖ ‖projR U *ᵥ x‖ w` — the C250
+`canaryStepLeak (cascadeGain S) ‖ΔR‖ ‖projR U *ᵥ x‖ w`
 `cascade_leak_bound_op` instantiated at `|w| = w`. -/
 theorem canary_step_leak_bound {d c : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (S : List (Matrix (Fin d) (Fin d) ℝ × (Fin d → ℝ)))
@@ -153,7 +153,7 @@ theorem canary_step_leak_bound {d c : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
 /-! ## The cumulative harm bound -/
 
 /-- The cumulative harm exposure of the ramp: the sum of per-step
-leaks factors as the weight sum times the C250 constant triple —
+leaks factors as the weight sum times the constant triple —
 `∑ w j · L · dR · px = (∑ w j) · L · dR · px`. -/
 theorem canary_ramp_harm_bound (T : ℕ) (r : CanaryRamp) (L dR px : ℝ) :
     ∑ j ∈ Finset.range T, canaryStepLeak L dR px (r.w j)
@@ -180,7 +180,7 @@ theorem canary_ramp_linear_sum (T : ℕ) (hT : 0 < T) :
 
 /-- The total exposure bound of the whole standard linear ramp:
 `∑_{t≤T} leak(wₜ) = ((T+1)/2) · L · dR · px` — finite and controlled
-(half the window length times the C250 constant triple). -/
+(half the window length times the constant triple). -/
 theorem canary_linear_ramp_harm (T : ℕ) (hT : 0 < T) (L dR px : ℝ) :
     ∑ j ∈ Finset.range (T + 1), canaryStepLeak L dR px (linearRamp T j)
       = ((T + 1) / 2) * L * dR * px := by
@@ -198,13 +198,13 @@ theorem canary_linear_ramp_harm (T : ℕ) (hT : 0 < T) (L dR px : ℝ) :
   rw [← he, canary_ramp_harm_bound (T + 1) r L dR px, hw,
     canary_ramp_linear_sum T hT]
 
-/-! ## The certified transition packaging (C278 kernel) -/
+/-! ## The certified transition packaging (kernel) -/
 
 /-- **The ramp step IS a certified transition**: the canary step at
-weight `w` packaged as a `Hagi.Cert.CertStepGen` (the C322
+weight `w` packaged as a `Hagi.Cert.CertStepGen` (
 `rd_step_certified` pattern): the leak `canaryStepLeak L dR px w`
 rides the RISK channel (the harm budget) with a FREE remainder (the
-C254 no-zero-pinning lesson), the false-commit delta channel and the
+ no-zero-pinning lesson), the false-commit delta channel and the
 budget/descent/floors laws are premises — the certificate is about
 the ACCOUNTING, not about an executed rollout. -/
 noncomputable def canary_step_certified {S TaskId : Type*}
@@ -242,7 +242,7 @@ noncomputable def canary_step_certified {S TaskId : Type*}
   delta_nonneg := hdeltaNN
   floorsKept := hfloors
 
-/-- The risk-channel spend of the certified ramp step is the C250
+/-- The risk-channel spend of the certified ramp step is
 leak form at the step's weight. -/
 theorem canary_step_certified_riskSpend {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
@@ -273,8 +273,8 @@ theorem canary_step_certified_riskSpend {S TaskId : Type*}
 `eProc : ℕ → ℝ` with threshold `thresh` guards the ramp trajectory
 `t`; whenever the process CROSSES the threshold at step `j`, that
 step is a certified HOLD (`TransitionStep.hold`). Cited backing (NOT
-imported — Unified layer 6 sits above Deployment 5): C264
-`gate_anytime_valid` (the Ville time-uniform gate) and C295
+imported — Unified layer 6 sits above Deployment 5)
+`gate_anytime_valid` (the Ville time-uniform gate)
 `stitching_eprocess_anytime` (the stitched master e-process). -/
 def canaryVilleMonitorHold {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
@@ -287,9 +287,9 @@ def canaryVilleMonitorHold {S TaskId : Type*}
       steps j = Hagi.Cert.TransitionStep.hold h
 
 /-- The all-progress completion bound: a ramp whose steps `j < T` are
-certified transitions spending exactly the C250 leak at their weights
+certified transitions spending exactly the leak at their weights
 keeps the TOTAL harm exposure inside the initial risk level — the
-C278 telescope law (`risk_telescope_gen`), windowed to the ramp
+ telescope law (`risk_telescope_gen`), windowed to the ramp
 length (the kernel law is ℕ-indexed over all steps; the windowed
 form carries the same induction, restated here for a finite ramp). -/
 theorem canary_ramp_completion_bound {S TaskId : Type*}
@@ -337,7 +337,7 @@ halts — some step `j < T` crossed the Ville threshold, and by `mon`
 that step is a certified hold — OR completes with the total harm
 exposure `∑ leak(w j)` inside the initial risk level. Classical
 case split on a crossing inside the window; the progress branch is
-the windowed C278 telescope (`canary_ramp_completion_bound`). -/
+the windowed telescope (`canary_ramp_completion_bound`). -/
 theorem canary_ramp_acceptance {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId)

@@ -15,7 +15,7 @@ import Hagi.External.Flywheel.SVDDiagonal
 /-!
 # SVDTruncated
 
-Truncated SVD section: rank-`k` truncation of the decomposition. Split from `SVD` (C258).
+Truncated SVD section: rank-`k` truncation of the decomposition. Split from `SVD`.
 -/
 
 open Matrix Polynomial

@@ -8,9 +8,9 @@ import Hagi.Model.CEGlobalConvergence
 /-!
 # Margin-based PL for the unregularized cross-entropy
 
-C373 research queue #3.  `Hagi.Model.CEGlobalConvergence` pinned the
+ research queue #3.  `Hagi.Model.CEGlobalConvergence` pinned the
 PL premise of the unregularized CE open: the regularized route
-(`ce_global_convergence_reg`, C358) discharges PL through the ℓ2
+(`ce_global_convergence_reg`) discharges PL through the ℓ2
 strong convexity constant `λ` (weight decay).  This module replaces
 that λ-crutch with data geometry: on a realizable 2-class problem with
 margin, the UNREGULARIZED CE satisfies PL on a ball with an explicit
@@ -69,8 +69,7 @@ weight decay exactly when the data is well separable.
   (geometric decay of `scalarCE`), and says nothing about parameter
   convergence — consistent with the drift phenomenon above.
 
-Reference search (research notes, `.tmp/C376/research.md`, via
-ask.sciencemadereadable.com) found: Karimi–Nutini–Schmidt 2016
+Reference search found: Karimi–Nutini–Schmidt 2016
 (PL linear convergence, doi:10.1007/978-3-319-46128-1_50 — the PL
 machinery this repo already carries); Ji–Telgarsky 2018 (global PL
 falsity on separable data); Freund–Grigas–Mazumder 2018 (logistic
@@ -81,9 +80,9 @@ no reference: the explicit constant μ = a²·e^{−aB}/8 is derived here
 from classical inequalities (`log (1+u) ≤ u`, AM-GM on `u`); no
 formalization source found.
 
-## C414: the multiclass extension (V classes, explicit μ(a,B,V))
+## the multiclass extension (V classes, explicit μ(a,B,V))
 
-C407 queue item 4.  The scalar 2-class head above generalizes to a
+ queue item 4.  The scalar 2-class head above generalizes to a
 V-class gap head: correct logit `a·θ`, every wrong logit `0`, loss
 `gapHead a θ = log (1 + c·e^{−aθ})` with `c = card V − 1` (bridged by
 `gapHead_eq_ceOneHot`; `c = 0` degenerates to the constant zero loss).
@@ -91,13 +90,13 @@ The multiclass margin-PL constant is
 `muBallV a B = a²·c·e^{−aB}/(2·(1+c·e^{aB})²)` — on the ball
 `|θ| ≤ B` the PL inequality holds with this explicit constant
 (`margin_pl_multiclass`); the V-dependence is polynomial (through
-`c`), the margin decay exponential — same family as C376.  The
+`c`), the margin decay exponential — same family .  The
 curvature route is V-independent (`|sigmaV'| ≤ 1/4`, AM-GM on
 `w = c·e^{−x}`), so smoothness stays `L = a²/2` and the corollary
 `ce_global_convergence_multiclass` gives the rate
 `(1 − muBallV/(a²/2))^T` with confinement pinned as a premise.
 
-Honest scope pins (C414): PL is proven for the GAP-HEAD logit
+Honest scope pins: PL is proven for the GAP-HEAD logit
 structure only; PL in parameter space for general `X·θ` heads
 (needs rank/injectivity of `Xᵀ`) and confinement of iterates remain
 open premises.  Two general logit-space margin lemmas carry the
@@ -105,8 +104,7 @@ premise-form margin `∀ v ≠ t, γ ≤ z t − z v`:
 `ce_margin_le` (softmax-margin-to-loss) and `softDef_margin_lb`
 (softmax-margin-to-probability, `1/(1+c·e^{−γ}) =
 e^{γ}/(e^{γ}+c)`).  Probe evidence: numeric sweep (2·10⁵ points,
-max(2μf − f'²) = −8.5e−19 ≤ 0) plus Lean crux pre-verification
-(`.tmp/C414/probe.lean`, research in `.tmp/C414/research.md`).
+max(2μf − f'²) = −8.5e−19 ≤ 0) plus Lean crux pre-verification.
 -/
 
 set_option relaxedAutoImplicit false
@@ -1176,7 +1174,7 @@ theorem softDef_margin_lb {V : Type} [Fintype V] [Nonempty V] [DecidableEq V]
 /-- The multiclass warm-start anchor: a realized margin `γ ≤ a*θstar`
 bounds the gap-head loss by `log (1+c·e^{−γ})` (which is in turn at
 most `c·e^{−γ}` by `log (1+w) ≤ w`, not stated here) — the margin
-anchor of C376, V-class form. -/
+anchor of V-class form. -/
 theorem margin_anchor_multiclass {V : Type} [Fintype V] [Nonempty V]
     (a θstar γ : ℝ) (hgap : γ ≤ a * θstar) :
     gapHead (V := V) a θstar

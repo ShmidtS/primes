@@ -3,29 +3,29 @@ import Hagi.Theory.AdapterBank
 
 
 /-!
-## AutoTransferGate — самонастраивающийся warm/cold transfer-гейт (C577)
+## AutoTransferGate — самонастраивающийся warm/cold transfer-гейт
 
-Roadmap C575 top-3: практическое применение границы C572 —
+Roadmap top-3: практическое применение границы —
 переносить адаптер A в домен B warm-стартом ТОГДА И ТОЛЬКО ТОГДА,
 когда измеряемый probe-критерий предсказывает пользу. Bench-механика
 (`--mode adapter-transfer-auto`, bench_bridge.py): перед задачей B
-probe A/B — 2 certified snap-GD-шага (rollback-семантика C530,
+probe A/B — 2 certified snap-GD-шага (rollback-семантика
 probe не мутирует слот A) от warm-инициализации `θ` и от cold-инициализации
 `0`; гейт выбирает arm с МЕНЬШИМ probe-objective (точные
 рациональные числа, детерминированное сравнение — паттерн
-`hybridSelect` C510). Затем выбранный arm проходит полный
+`hybridSelect`). Затем выбранный arm проходит полный
 certified-цикл.
 
 Ключевые факты:
 
 - `autoGate` — детерминированный селектор на измеренных probe-числах;
-- `gate_char` — гейт совпадает с ТОЧНОЙ границей C572
+- `gate_char` — гейт совпадает с ТОЧНОЙ границей
   `2⟪θ, t⟫_ℝ > ‖θ‖²` при невырожденном шаге (`|1 − 2η| > 0`,
   `transfer_helps_budget`): probe A/B НЕ размывает границу;
 - `gate_adversarial_cold` — adversarial-цель `t = −c • θ` (C572-синтетика)
   всегда даёт cold;
 - `auto_transfer_gate_sound` (main) — дизъюнкция веток без ослабления
-  (паттерн `hybrid_step_sound` C510): warm-ветка сохраняет ВСЕ гарантии
+  (паттерн `hybrid_step_sound`): warm-ветка сохраняет ВСЕ гарантии
   `warm_transfer_sound` (forgetA = 0, dst = копия, certified-обучаемость
   с warm-init), cold-ветка — certified-гарантию нейтрального старта 0
   (`adapter_step_certified`; init-независимость: `θ` в statement
@@ -48,22 +48,22 @@ section Gate
 variable {n : Type*} [Fintype n]
 
 /-- Выбор transfer-ветки: warm (перенести адаптер A) или cold
-(нейтральный старт 0, C532). -/
+(нейтральный старт 0). -/
 inductive TransferChoice : Type
   | warm | cold
 
 /-- Probe-objective: objective домена B после k certified-GD-шагов
 от старта z (`gdRun` — чистые итерации функции: probe НЕ мутирует
-состояние z, rollback-семантика C530 — сравнение вычисляется на
+состояние z, rollback-семантика — сравнение вычисляется на
 копиях, слот A нетронут). -/
 noncomputable def probeObj (η : ℝ) (k : ℕ)
     (t z : EuclideanSpace ℝ n) : ℝ :=
   quadObj t (gdRun k η t z)
 
-/-- **autoGate (C577, def)**: детерминированный warm/cold-селектор
+/-- **autoGate (def)**: детерминированный warm/cold-селектор
 на ДВУХ измеренных probe-числах (probe A/B): warm ⟺ probe-objective
 от `θ` СТРОГО меньше probe-objective от `0`. Без порогов и оценок:
-сравнение точных чисел (паттерн `hybridSelect` C510; равенство =
+сравнение точных чисел (паттерн `hybridSelect` равенство =
 граница → cold — перестраховочная ветка). -/
 noncomputable def autoGate (η : ℝ) (k : ℕ)
     (t θ : EuclideanSpace ℝ n) : TransferChoice :=
@@ -72,8 +72,8 @@ noncomputable def autoGate (η : ℝ) (k : ℕ)
   else
     TransferChoice.cold
 
-/-- **gate_char (C577)**: при невырожденном шаге (`|1 − 2η| > 0`)
-probe-A/B-гейт совпадает с ТОЧНОЙ границей C572 — переносить warm
+/-- **gate_char**: при невырожденном шаге (`|1 − 2η| > 0`)
+probe-A/B-гейт совпадает с ТОЧНОЙ границей — переносить warm
 ⟺ удвоенное скалярное произведение больше квадрата нормы θ
 (`transfer_helps_budget`: равный probe-бюджет НЕ размывает границу;
 bench-аналог — квадратичность bench objective mh_mse: gap = 2·θᵀb − θᵀHθ). -/
@@ -93,7 +93,7 @@ theorem gate_char (η : ℝ) (hη : |1 - 2 * η| > 0) (k : ℕ)
       · intro hb
         exact absurd ((transfer_helps_budget k η hη θ t).mpr hb) h
 
-/-- **gate_adversarial_cold (C577)**: adversarial-цель
+/-- **gate_adversarial_cold**: adversarial-цель
 `t = −c • θ` (c > 0, θ ≠ 0) — C572-синтетика bench-режима —
 гейт ОБЯЗАН выбрать cold: скалярное произведение отрицательно,
 границу `> ‖θ‖²` не выполнить. -/
@@ -124,15 +124,15 @@ section Sound
 variable {n ι r d : Type*} [Fintype n] [Fintype r] [Fintype d]
   [DecidableEq ι]
 
-/-- **auto_transfer_gate_sound (C577, main)**: выбор ветки по
+/-- **auto_transfer_gate_sound (main)**: выбор ветки по
 ИЗМЕРЕННОМУ probe-критерию сохраняет гарантию ВЫБРАННОЙ ветки —
-дизъюнкция без ослабления (паттерн `hybrid_step_sound` C510).
+дизъюнкция без ослабления (паттерн `hybrid_step_sound`).
 
-Warm-ветка: ВСЕ гарантии `warm_transfer_sound` (C567) — forgetA = 0
+Warm-ветка: ВСЕ гарантии `warm_transfer_sound` — forgetA = 0
 (слот src нетронут), dst-слот = копия src, certified-обучаемость
 с warm-init (measured drop ⇒ COMMIT + строгий спуск).
 
-Cold-ветка: certified-гарантия нейтрального старта 0 (C532,
+Cold-ветка: certified-гарантия нейтрального старта 0 (
 `adapter_step_certified`) — init-независимость: statement ветки
 содержит только нулевой init, θ домена A в него НЕ входит (cold
 не зависит от переноса по построению). -/

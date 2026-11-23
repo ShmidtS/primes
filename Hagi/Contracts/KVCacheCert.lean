@@ -10,7 +10,7 @@ set_option linter.style.header false
 # KV-cache inference: cached attention IS exact recompute
 
 The sequence-inference extension of the compute-certification line
-(C328 `SparseInferenceCert`, C330 `ComputeToQuality`): the KV-cache
+(`SparseInferenceCert` `ComputeToQuality`): the KV-cache
 certificate — cached attention (each new token attends over stored
 keys/values through a running summary) has per-token work `t + 1`
 while the recompute-from-scratch regime RE-ATTENDS every past
@@ -31,15 +31,15 @@ the honest List level:
   additive summaries, the `Hagi.External.MemT.GDN2` lag-1
   recurrent contrast) decomposes even more trivially and is cited
   as the contrast, not formalized here;
-* the work model is the C272/C328 discipline (`localField_dense_
+* the work model is the discipline (`localField_dense_
   work`, `denseMatVecWork` style): ℕ definitions, theorems only
   ABOUT the products, division-free product identities —
   `2·cachedTotalWork n = n(n+1)` (quadratic) against
   `6·recomputeTotalWork n = n(n+1)(n+2)` (cubic), exact ratio
   `(n+2)/3` (`kv_work_ratio`), strict cached < recompute for
   n ≥ 2 (`kv_total_work_lt`);
-* the certified transition is the C328 packaging pattern
-  (`sparse_step_certified` over the C278 kernel
+* the certified transition is the packaging pattern
+  (`sparse_step_certified` over the kernel
   `Hagi.Cert.CertStepGen`): `kv_step_certified` spends
   `cachedTokenWork` in the budget channel and ZERO in the risk
   channel — exactness (`kv_cache_exact`) makes the error spend
@@ -56,7 +56,7 @@ Honest scope:
   attention-pass count contrast alone; no multi-head, no
   numerical-stability claim (the lse form is GIVEN as the stable
   image, not proven superior).
-* Work measured in the C328 entry-read model; no asymptotics in
+* Work measured in the entry-read model; no asymptotics in
   statements; numbers live in the numeric `Anchor` lemmas only.
 -/
 
@@ -219,7 +219,7 @@ theorem lse_cache_step (q k v : ℝ) (toks : List (ℝ × ℝ))
   unfold lseCombine
   rw [tokDen_append, Real.exp_log hpos]
 
-/-! ## The work model (C272/C328 discipline, division-free) -/
+/-! ## The work model (discipline, division-free) -/
 
 /-- Cached per-token work at prefix length `t`: the new query's
 ONE pass over the `t` stored keys plus itself — `t + 1`
@@ -357,16 +357,16 @@ theorem kv_total_work_lt (n : ℕ) (hn : 2 ≤ n) :
   have h1 : (∑ s ∈ Finset.range (1 : ℕ), (s + 1)) = 1 := by simp
   omega
 
-/-! ## The certified transition (C328 packaging over the C278 kernel) -/
+/-! ## The certified transition (packaging over the kernel) -/
 
 /-- **The KV-cache step IS a certified transition**: the cached
-attention step packaged as a `Hagi.Cert.CertStepGen` (the C328
+attention step packaged as a `Hagi.Cert.CertStepGen` (
 `sparse_step_certified` pattern): the budget channel spends the
 cached per-token work `workSpend` (instantiate at
 `cachedTokenWork t`; the compute accounting), the risk channel
 spends ZERO error — exactness (`kv_cache_exact`) makes the error
 spend zero with the full prior risk as the explicit nonnegative
-remainder (the C254 no-zero-pinning lesson) — that is the
+remainder (the no-zero-pinning lesson) — that is the
 certificate: correctness + the cost statement in one object. -/
 noncomputable def kv_step_certified {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)

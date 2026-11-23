@@ -108,7 +108,7 @@ private theorem tanhModel_remainder_eq (w : ℝ) :
       tanhEmbedding (Real.tanh w - Real.tanh 0 - sechSq 0 * (w - 0))
   rw [← map_sub, ← map_sub, sechSq_zero, one_mul]
 
-/-- Local premise for the C153 application: `θ = 0`, radius `1`, and `ρ = 2`,
+/-- Local premise for the application: `θ = 0`, radius `1`, and `ρ = 2`,
 on the ordinary finite-Pi sup-normed space.  The scalar source estimate is
 global, so closed-ball membership is intentionally unused. -/
 private theorem tanhModel_local_remainder :
@@ -133,7 +133,7 @@ private theorem tanhModel_local_remainder :
 
 
 /-- The exact two-logit tanh step has at least the rational decrease
-certified by the imported C153 local Jacobian majorizer. -/
+certified by the imported local Jacobian majorizer. -/
 theorem ceOneHot_tanh_step_le :
     Hagi.ceOneHot (0 : Fin 2) ![Real.tanh ((2 : ℝ) / 33), 0] ≤
       Hagi.ceOneHot (0 : Fin 2) ![0, 0] - 1 / 66 := by

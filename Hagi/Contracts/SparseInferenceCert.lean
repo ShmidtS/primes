@@ -19,25 +19,25 @@ carrier; only the PACKAGING is new:
 
 * the mask error law is Eckart-Young — cited EXACTLY as
   `Hagi.Contracts.GradientBottleneckIdentification.
-  eckart_young_lower_bound_rect_true_tail` (C281, true rectangular
+  eckart_young_lower_bound_rect_true_tail` (true rectangular
   tail): NO rank-`k` approximant beats the tail — cited directly at
-  the `hE` premise sites; NOT re-proven here (the C333 dedup removed the
-  delegation twin of C281);
-* the function-level transfer is the C300/C322 Lipschitz-readout
+  the `hE` premise sites; NOT re-proven here (the dedup removed the
+  delegation twin);
+* the function-level transfer is the Lipschitz-readout
   route (`Hagi.Budget.rd_step_error_bound` pattern): weight-space
   error becomes function error through a sensitivity-`sens`
   premise (`sparse_inference_error`);
-* the op-count family is the C272 work-model discipline
+* the op-count family is the work-model discipline
   (`Hagi.Model.EnergyReasoning.localField_dense_work` et al.):
   ℕ product definitions, theorems only ABOUT the products
   (`denseMatVecWork`, `lowRankMatVecWork`, `lowrank_op_count_le/lt`,
   `lowrank_op_ratio`);
-* the certified transition is the C322 packaging
-  (`Hagi.Budget.rd_step_certified` pattern) over the C278 kernel
+* the certified transition is the packaging
+  (`Hagi.Budget.rd_step_certified` pattern) over the kernel
   (`Hagi.Cert.CertStepGen`): `sparse_step_certified` spends the
   low-rank matvec work in the budget channel (compute accounting)
   and the certified function error in the risk channel, explicit
-  nonnegative remainders (the C254 no-zero-pinning lesson).
+  nonnegative remainders (the no-zero-pinning lesson).
 
 Honest scope:
 
@@ -46,7 +46,7 @@ Honest scope:
   `sparse_inference_error` (the mask ACHIEVES the tail bound; exact
   equality holds for the truncated spectral mask in the square
   case, `frobenius_error_truncatedSVD` in Flywheel; the
-  rectangular exact-equality bridge is deferred with the C232/C281
+  rectangular exact-equality bridge is deferred
   root-sorting gap).
 * UNSTRUCTURED (entrywise) sparsity is NOT claimed: the optimal
   entrywise mask under an error budget is NP-hard (Natarajan 1995,
@@ -78,8 +78,8 @@ rank-`k` spectral mask `B` achieves the spectral-tail error bound
 (premise-form `hE : ‖A − B‖ ≤ (∑ i, (rectangularTail A k i)²)^{1/2}`;
 true with equality for the truncated spectral mask — square case
 `frobenius_error_truncatedSVD`, and unimprovable by
-C281 `eckart_young_lower_bound_rect_true_tail`), then every `sens`-Lipschitz readout `phi`
-(C300 pattern: the head-input perturbation through the backbone
+ `eckart_young_lower_bound_rect_true_tail`), then every `sens`-Lipschitz readout `phi`
+(pattern: the head-input perturbation through the backbone
 sensitivity) changes by at most `sens` times the tail root:
 `|phi B − phi A| ≤ sens · (∑ tail²)^{1/2}`. The mask structure is
 the premise; the tail theorem is C281's, cited — the composition is
@@ -96,9 +96,9 @@ theorem sparse_inference_error
     _ ≤ sens * (∑ i, (rectangularTail A k i)^2).sqrt :=
       mul_le_mul_of_nonneg_left hE hsens
 
-/-! ## The op-count family (C272 work-model discipline) -/
+/-! ## The op-count family (work-model discipline) -/
 
-/-- Dense matvec work (work-model definition, C272
+/-- Dense matvec work (work-model definition
 `localField_dense_work` style): applying an `n×n` weight reads all
 `n²` entries. -/
 def denseMatVecWork (n : ℕ) : ℕ := n * n
@@ -136,18 +136,18 @@ theorem lowrank_op_ratio (k n : ℕ) (hn : 0 < n) :
   push_cast
   field_simp
 
-/-! ## The certified transition (C322 packaging over the C278 kernel) -/
+/-! ## The certified transition (packaging over the kernel) -/
 
 /-- **The sparsification step IS a certified transition**: the
-spectral-mask step packaged as a `Hagi.Cert.CertStepGen` (the C322
+spectral-mask step packaged as a `Hagi.Cert.CertStepGen` (
 `rd_step_certified` pattern): the budget channel spends
 `workSpend` (instantiate at `lowRankMatVecWork k n` — the compute
 accounting), the risk channel spends `errSpend` (instantiate at
 `sens * (∑ tail²)^{1/2}` — the certified bound of
 `sparse_inference_error`) with an EXPLICIT nonnegative remainder
-(the C254 no-zero-pinning lesson), the false-commit delta channel
+(the no-zero-pinning lesson), the false-commit delta channel
 in premise form, descent in drop form `obj s' ≤ obj s − drop`
-(the C267 LossCeiling polarity). -/
+(the LossCeiling polarity). -/
 noncomputable def sparse_step_certified {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId)
@@ -269,7 +269,7 @@ tail `∑ i ≥ 1 σᵢ² = 0` — the rank-1 mask is EXACT. (The spectrum
 head beyond the rank vanishes: antitone +
 `rank_eq_card_nonzero_singularValues_rect`; two nonzero singulars
 would force rank ≥ 2 > 1. A NONZERO numeric tail is not yet
-mechanizable — charpoly root-sorting, the C232/C281 deferral.) -/
+mechanizable — charpoly root-sorting, the deferral.) -/
 private theorem tail_zero :
     ∑ i, (rectangularTail Aex 1 i)^2 = 0 := by
   refine Finset.sum_eq_zero fun i _ => ?_

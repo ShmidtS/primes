@@ -3,7 +3,7 @@ import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 
 /-!
-# HonestTransition 
+# HonestTransition
 
 Дефект старого `CertifiedTransition.progress`: оно
 сертифицирует ПОЛОЖИТЕЛЬНОСТЬ ВЫЧИСЛЯЕМОГО ПОКАЗАТЕЛЯ
@@ -92,16 +92,16 @@ theorem honest_two_steps_existent :
   refine ⟨3, 3 / 4, by norm_num, by norm_num, ?_, ?_⟩ <;> norm_num [quadObj]
 
 
-/-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord (C449, A19.2)
+/-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord (A19.2)
 
-C449 (аудит A19 N2): минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
+ (аудит A19 N2): минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
 было единственным истинным дублем класса (a) — оно сливается с новой
 ЕДИНОЙ записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
 телеметрия budget/risk/δ). Старое имя — deprecated-алиас; все
 сертификаты HAGI обязаны давать мост в StepRecord (toRecord/toCertStep). -/
 
 /-- ЕДИНАЯ запись журнала сертифицированного шага (бывшее локальное
-ядро CertStep цикла 41 — класс (a) дубль, слит в C449).
+ядро CertStep цикла 41 — класс (a) дубль, слит).
 Deprecated: используйте `Hagi.Cert.StepRecord` напрямую. -/
 @[deprecated Hagi.Cert.StepRecord (since := "2026-11-19")]
 abbrev CertStep (obj : S → ℝ) (s s' : S) : Type :=
@@ -175,7 +175,7 @@ def HonestTransition.toKernelCertStep {S TaskId : Type*}
 
 A10 item 2 (первый адаптер): переход в ЕДИНОЕ общее ядро
 `Hagi.Cert.CertStepGen` (общий индекс задач, остаток риска —
-ПОЛЕ, свёрнутый δ-бюджет). Дефект C254 устранён по построению:
+ПОЛЕ, свёрнутый δ-бюджет). Дефект устранён по построению:
 посылка `hrisk' : M.risk s' = 0` (остаток риска запинен в ноль —
 тратить риск мог только последний шаг траектории) заменена парой
 `hrisk : M.risk s = rs + riskRem`, `hrisk' : M.risk s' = riskRem`
@@ -183,8 +183,8 @@ A10 item 2 (первый адаптер): переход в ЕДИНОЕ общ�
 случай `riskRem := 0`; неотрицательность остатка — явная посылка
 `hrem`, в самом HonestTransition её нет). -/
 
-/-- C278: честный переход собирается в общее ядро `CertStepGen`:
-остаток риска — свободный параметр (0-пиннинг C254 снят),
+/-- честный переход собирается в общее ядро `CertStepGen`:
+остаток риска — свободный параметр (0-пиннинг снят),
 δ-канал нулевой на тривиальном носителе `fun _ => 0`. -/
 def HonestTransition.toCertStepGen {S TaskId : Type*}
     {obj : S → ℝ} {s s' : S} {rs rl bs b' riskRem : ℝ}

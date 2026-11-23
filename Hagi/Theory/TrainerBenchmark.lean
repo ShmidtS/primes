@@ -4,45 +4,45 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Theory.Softmax
 
 /-!
-# Certified trainer benchmark (C497)
+# Certified trainer benchmark
 
-Roadmap C497 (`--mode vs-trainer` of `scripts/bench_bridge.py`):
-mini-HAGI (the certified rational sandwich trainer, C491
+Roadmap (`--mode vs-trainer` of `scripts/bench_bridge.py`):
+mini-HAGI (the certified rational sandwich trainer
 family, trained on the LIVE HAGI_v2 `unified_ledger` corpus)
 is compared against the real trainer — its holdout models'
 measured `ce` labels are predicted by CERTIFIED predictions
-(C495: disjoint sandwich intervals), not by point estimates.
+(disjoint sandwich intervals), not by point estimates.
 
 ## The soundness contract
 
 `certified_forecast_sound`: if the certified sandwich
 intervals of the holdout model are pairwise disjoint (the
-C495 separation `hi a / ∑ lo < lo b / ∑ hi`), and the
+ separation `hi a / ∑ lo < lo b / ∑ hi`), and the
 model-reality (the true softmax) lies inside the certified
 band (`BandDescribes`), then the certified forecast — the
 argmax of the rational midpoint surrogate — coincides with
 the argmax of the true ranking. Both orderings are derived;
 no `ε` is needed.
 
-## Honest pin (measurement premise) — CLOSED (C568)
+## Honest pin (measurement premise) — CLOSED
 
 `BandDescribes z lo hi` was a MEASUREMENT premise
-(`Describes`-type). C568 closes the measurement bridge as a
+(`Describes`-type). closes the measurement bridge as a
 theorem: it IS implied by the soundness hypotheses of
 `Hagi.Theory.RationalSoftmax.rationalSoftmaxCert`
 (`lo v ≤ e ^ z v ≤ hi v`) — `bandDescribes_of_pointwise`
-below — and the bench bands (C489/C502 Bernoulli shape on
+below — and the bench bands (Bernoulli shape on
 max-shifted logits) satisfy those hypotheses exactly
 (`bernoulliBandDescribes`). The theorem's contribution —
 disjointness transfers the certified forecast to the true
 ranking — is unchanged; the premise is no longer data-
 dependent for genuine certified bands. The `--mode
-band-check` bench (C568) is the empirical drift detector
+band-check` bench is the empirical drift detector
 (implementation vs theorem).
 
 ## Numeric example (real holdout)
 
-The C497 run on the live ledger (31 usable models, 25 train
+The run on the live ledger (31 usable models, 25 train
 / 6 holdout, 8 certified training steps) produces for the
 holdout model ns_0019 the exact rational sandwich bounds
 below; `trainer_benchmark_sep_example` certifies their
@@ -70,7 +70,7 @@ def BandDescribes (z lo hi : V → ℝ) : Prop :=
 
 omit [Nonempty V] in
 /-- Certified forecast soundness: pairwise disjoint
-certified intervals (C495 separation) plus the
+certified intervals (separation) plus the
 reality-inside-band measurement make the certified forecast
 (the rational midpoint argmax) coincide with the argmax of
 the true ranking — both the surrogate and the true softmax
@@ -99,7 +99,7 @@ theorem certified_forecast_sound {z lo hi : V → ℝ} {b : V}
 /-! ## Numeric example: the real holdout model ns_0019 -/
 
 /-- The exact rational lower sandwich bounds of the holdout
-model ns_0019 (C497 run on the live ledger; `z` shifted by
+model ns_0019 (run on the live ledger; `z` shifted by
 its max, so the class-0 logit bound is exactly `1`). -/
 noncomputable def loTB : Bool → ℝ := fun v =>
   if v then 13392445265761 / 16000000000000 else 1
@@ -132,12 +132,12 @@ example (z : Bool → ℝ) (hband : BandDescribes z loTB hiTB) :
     (by intro a ha; cases a; exact absurd rfl ha; exact
       trainer_benchmark_sep_example)
 
-/-! ## The measurement bridge (C568): BandDescribes is a theorem
+/-! ## The measurement bridge: BandDescribes is a theorem
 
 The pinned measurement premise closes one layer down: the
 pointwise certified exponential sandwich implies the
 normalized band-describes property, and the bench band shape
-(C489/C502 bench band builder) is an
+(bench band builder) is an
 instance. -/
 
 /-- Softmax is shift-invariant: subtracting a constant from
@@ -164,7 +164,7 @@ theorem bandDescribes_of_pointwise {z lo hi : V → ℝ}
     BandDescribes z lo hi :=
   fun v => rationalSoftmaxCert hlo hlo0 hhi v
 
-/-- The bench band shape describes: the C489/C502 bands on
+/-- The bench band shape describes: the bands on
 max-shifted logits — `lo v = (1 + s v / n) ^ n`,
 `hi v = 1 / (1 - s v / n) ^ n` where `s v = z v - z b` and
 `b` is any logit maximizer — satisfy the pointwise sandwich

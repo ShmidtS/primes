@@ -28,7 +28,7 @@ Honesty notes (premise-form statement):
   remains true.
 
 The entire content is the definitions plus the rank premise: the
-theorem is a direct corollary of `eckart_young_lower_bound` (C226)
+theorem is a direct corollary of `eckart_young_lower_bound`
 applied to `logitGradM`. The row facts live in
 `Hagi.Contracts.LogitGrad`.
 -/
@@ -63,7 +63,7 @@ theorem gradient_bottleneck_bound (z N : n → n → ℝ) (k : ℕ)
 
 
 /-!
-## Rectangular extension (C232)
+## Rectangular extension
 
 The Flywheel truncated-SVD / Eckart–Young machinery is SQUARE
 (`Matrix n n ℂ`; only `Matrix.SVD.singularValues` has a rectangular

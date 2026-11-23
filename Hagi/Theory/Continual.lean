@@ -8,7 +8,7 @@ import Mathlib.Tactic
 set_option relaxedAutoImplicit false
 
 /-!
-# Continual — the GPM continual-learning canon (C485 → C510)
+# Continual — the GPM continual-learning canon (→)
 
 One line of development, one canonical module. Each concept is
 described ONCE here; the four sections keep their historical
@@ -47,7 +47,7 @@ and cites `Hagi.Spectral.RankGrowth`; the bench modes
 `scripts/bench_bridge.py` consume this module.
 -/
 
-/-! ## Exact GPM bench bridge (C485) — `Hagi.Theory.ContinualBench` -/
+/-! ## Exact GPM bench bridge — `Hagi.Theory.ContinualBench` -/
 
 open scoped Matrix
 
@@ -57,13 +57,13 @@ variable {n K : ℕ}
 
 /-- The continual bench loss on one task: sum of squared errors
 of the scalar linear head `W` over the task inputs `xs` and
-targets `ys` (the C485 bench uses the mean; the sum scales by a
+targets `ys` (the bench uses the mean; the sum scales by a
 positive constant and the invariance statement is identical). -/
 def gpmBenchLoss (W : Matrix (Fin 1) (Fin n) ℝ)
     (xs : Fin K → (Fin n → ℝ)) (ys : Fin K → ℝ) : ℝ :=
   ∑ k, ((W *ᵥ xs k) 0 - ys k) ^ 2
 
-/-- **gpm_bench_bridge (C485)**: a GPM step (each row of `ΔW`
+/-- **gpm_bench_bridge**: a GPM step (each row of `ΔW`
 orthogonal to every task-A input, `gpmOrth`) leaves the bench
 loss on task A EXACTLY invariant — `gpm_zero_forgetting` applied
 per point of the bench structure. This is the machine-checked
@@ -77,7 +77,7 @@ theorem gpm_bench_bridge (W ΔW : Matrix (Fin 1) (Fin n) ℝ)
   refine Finset.sum_congr rfl fun k _ => ?_
   rw [Hagi.Step.gpm_zero_forgetting W ΔW xs horth k]
 
-/-- **naive_step_can_forget (C485)**: the mini-negative — without
+/-- **naive_step_can_forget**: the mini-negative — without
 the GPM orthogonality the task-A output is NOT preserved: an
 explicit `W`, `ΔW` and task-A input where `gpmOrth` fails and the
 head output on the old input moves (`1 ≠ 0`, machine-checked).
@@ -102,10 +102,10 @@ theorem naive_step_can_forget :
 
 end Hagi.Theory.ContinualBench
 
-/-! ## Multi-task accumulation (C488) — `Hagi.Theory.ContinualMulti`
+/-! ## Multi-task accumulation — `Hagi.Theory.ContinualMulti`
 
 Zero forgetting across the whole task sequence, chained from the
-C485 bridge; rank track via `Hagi.Spectral.rank_orthogonal_growth`. -/
+ bridge; rank track via `Hagi.Spectral.rank_orthogonal_growth`. -/
 
 open scoped Matrix
 
@@ -113,7 +113,7 @@ namespace Hagi.Theory.ContinualMulti
 
 variable {n K : ℕ}
 
-/-- **gpm_multi_step_invariant (C488)**: if the step `dW t` of
+/-- **gpm_multi_step_invariant**: if the step `dW t` of
 phase `t+1` is GPM-orthogonal to every input of every task `s ≤ t`
 (orthogonality to the ACCUMULATED span of tasks `1..t`), then the
 bench loss on each past task is exactly invariant under the step. -/
@@ -132,7 +132,7 @@ theorem gpm_multi_step_invariant
   exact Hagi.Theory.ContinualBench.gpm_bench_bridge (W t) (dW t)
     (xs s) (ys s) (horth t s hs)
 
-/-- **gpm_multi_zero_forgetting (C488, main)**: with each phase
+/-- **gpm_multi_zero_forgetting (main)**: with each phase
 step orthogonal to all inputs of all past tasks (GPM on the
 accumulated subspace), the bench loss of task `s` at ANY later
 phase end `t ≥ s+1` equals its value right after phase `s` —
@@ -168,10 +168,10 @@ theorem gpm_multi_zero_forgetting
 
 end Hagi.Theory.ContinualMulti
 
-/-! ## Relaxed projection: rank-trunc / A-Gem trade-off (C498) — `Hagi.Theory.GPMRelaxed`
+/-! ## Relaxed projection: rank-trunc / A-Gem trade-off — `Hagi.Theory.GPMRelaxed`
 
 See the module header for the canon; the exact-GPM degenerate case
-and the C494 all-HOLD phenomenon are the two faces of the tail. -/
+and the all-HOLD phenomenon are the two faces of the tail. -/
 
 open scoped Matrix
 
@@ -230,7 +230,7 @@ theorem dot_split {n : ℕ} (P : Matrix (Fin n) (Fin n) ℝ)
   rw [dotProduct_sub]
   ring
 
-/-- **rank_trunc_forgetting_bound (C498)**: a rank-truncated
+/-- **rank_trunc_forgetting_bound**: a rank-truncated
 GPM step (rows orthogonal to the projected old inputs,
 `gpmOrthP`) changes the response on old input `xs k` by at
 most `‖row‖ · sigmaTail` — the forgetting budget is the tail
@@ -248,7 +248,7 @@ theorem rank_trunc_forgetting_bound
   rw [hsplit]
   exact cs_abs _ _
 
-/-- **rank_trunc_output_bound (C498)**: the per-row output
+/-- **rank_trunc_output_bound**: the per-row output
 change on an old input under a rank-truncated GPM step is
 bounded by `‖row‖ · sigmaTail` (the matrix form of
 `rank_trunc_forgetting_bound`; via `mulVec_eq_dotProduct`). -/
@@ -266,7 +266,7 @@ theorem rank_trunc_output_bound
   rw [hsplit]
   exact rank_trunc_forgetting_bound ΔW xs P horth i k
 
-/-- **sigmaTail_one_zero (C498)**: at the full projection
+/-- **sigmaTail_one_zero**: at the full projection
 `P = 1` the tail energy leakage is exactly zero. -/
 theorem sigmaTail_one_zero {n : ℕ} (x : Fin n → ℝ) :
     sigmaTail (1 : Matrix (Fin n) (Fin n) ℝ) x = 0 := by
@@ -274,7 +274,7 @@ theorem sigmaTail_one_zero {n : ℕ} (x : Fin n → ℝ) :
   rw [Matrix.one_mulVec, sub_self]
   simp
 
-/-- **gpm_full_zero (C498)**: at the full projection `P = 1`
+/-- **gpm_full_zero**: at the full projection `P = 1`
 the relaxed condition `gpmOrthP` degenerates to exact
 `gpmOrth`, so the instance `k = full` of the truncation family
 recovers the exact zero-forgetting theory
@@ -289,10 +289,10 @@ theorem gpm_full_zero (ΔW : Matrix (Fin m) (Fin n) ℝ)
   have h := horth i k
   rwa [Matrix.one_mulVec] at h
 
-/-- **rank_zero_unbounded (C498)**: the k = 0 negative —
+/-- **rank_zero_unbounded**: the k = 0 negative —
 WITHOUT projection (P = 0) forgetting is unbounded: for every
 budget `C > 0` there is an old input and a unit-norm step row
-achieving response change exactly `C`. The qualitative C485
+achieving response change exactly `C`. The qualitative
 negative `naive_step_can_forget` is the special case `C = 1`;
 here the magnitude is arbitrary (unit step, scaled input). -/
 theorem rank_zero_unbounded (C : ℝ) (hC : 0 < C) :
@@ -308,7 +308,7 @@ theorem rank_zero_unbounded (C : ℝ) (hC : 0 < C) :
     linarith
   · simp [nrm, dotProduct, Matrix.of_apply, Real.sqrt_one]
 
-/-- **agemStep (C498, def)**: the A-GEM conditional projection —
+/-- **agemStep (def)**: the A-GEM conditional projection —
 the step is FREE when the current gradient does not conflict
 with the old gradient (`0 ≤ g ⬝ᵥ g_old`; first-order old-loss
 change `−η·⟨g, g_old⟩ ≤ 0`), and is orthogonalized onto
@@ -317,7 +317,7 @@ noncomputable def agemStep {n : ℕ} (g g_old : Fin n → ℝ) : Fin n → ℝ :
   if 0 ≤ g ⬝ᵥ g_old then g
   else g - (g ⬝ᵥ g_old / (g_old ⬝ᵥ g_old)) • g_old
 
-/-- **agem_step_nonneg_interf (C498)**: the applied A-GEM rule
+/-- **agem_step_nonneg_interf**: the applied A-GEM rule
 ALWAYS has non-negative first-order old-interference: in the
 free branch by hypothesis, in the conflict branch exactly zero
 (orthogonalized). Together with the free-branch reading this
@@ -334,7 +334,7 @@ theorem agem_step_nonneg_interf {n : ℕ} (g g_old : Fin n → ℝ)
     field_simp
     linarith
 
-/-- **gpm_tradeoff (C498)**: the honest trade-off — under ONE
+/-- **gpm_tradeoff**: the honest trade-off — under ONE
 relaxed-orthogonality hypothesis (rows orthogonal to the
 projected old inputs, and to the projected new input), BOTH
 sides of the continual compromise are controlled by the SAME
@@ -360,8 +360,8 @@ theorem gpm_tradeoff (ΔW : Matrix (Fin m) (Fin n) ℝ)
     rw [hsplit]
     exact cs_abs _ _
 
-/-- **gpm_hold_when_covered (C498)**: the machine-checked form
-of the C494 all-HOLD phenomenon — when the projection covers
+/-- **gpm_hold_when_covered**: the machine-checked form
+of the all-HOLD phenomenon — when the projection covers
 the new input (`sigmaTail P x_new = 0`, span reached the new
 directions), EVERY admissible step has exactly zero progress
 on it: no step is both admissible and useful, so the method
@@ -380,9 +380,9 @@ theorem gpm_hold_when_covered (ΔW : Matrix (Fin m) (Fin n) ℝ)
 
 end Hagi.Theory.GPMRelaxed
 
-/-! ## Hybrid mechanism selection (C510) — `Hagi.Theory.HybridContinual`
+/-! ## Hybrid mechanism selection — `Hagi.Theory.HybridContinual`
 
-Deterministic selection over the three C498 mechanisms (full-GPM /
+Deterministic selection over the three mechanisms (full-GPM /
 A-GEM free / rank-trunc); each branch keeps THAT mechanism's
 guarantee — see the section above. -/
 
@@ -391,15 +391,15 @@ namespace Hagi.Theory.HybridContinual
 open scoped Matrix
 open Hagi.Theory.GPMRelaxed
 
-/-- The three continual mechanisms of the C509 decision table:
+/-- The three continual mechanisms of the decision table:
 full-GPM (exact projection, zero forgetting), A-GEM free step
 (no conflict), rank-trunc relaxed GPM (per-point forgetting
 bound). -/
 inductive HybridMech : Type
   | fullGPM | agemFree | rankTrunc
 
-/-- **hybridSelect (C510, def)**: the deterministic per-step
-mechanism selector on the two MEASURED predicates of the C509
+/-- **hybridSelect (def)**: the deterministic per-step
+mechanism selector on the two MEASURED predicates
 decision table — span fullness (`spanFree = rank(span A ∪ B) <
 dim`, an exact rational Gram-Schmidt fact) and the conflict sign
 `⟨g, g_old⟩`. No randomness, no thresholds beyond the measured
@@ -410,7 +410,7 @@ noncomputable def hybridSelect {n : ℕ} (spanFree : Bool)
   else if 0 ≤ g ⬝ᵥ g_old then HybridMech.agemFree
   else HybridMech.rankTrunc
 
-/-- **hybridStep (C510, def)**: the step direction of each
+/-- **hybridStep (def)**: the step direction of each
 mechanism. `P` is the orthogonal projector onto the relevant old
 subspace (full span of the old task for full-GPM, the kept
 top-k directions for rank-trunc); the free A-GEM branch takes
@@ -423,7 +423,7 @@ noncomputable def hybridStep {n : ℕ} (m : HybridMech)
   | HybridMech.agemFree => g
   | HybridMech.rankTrunc => g - P *ᵥ g
 
-/-- **proj_compl_orth (C510)**: for an orthogonal projector
+/-- **proj_compl_orth**: for an orthogonal projector
 (`P² = P`, `Pᵀ = P`) the complement-projected direction is
 exactly orthogonal to the projected subspace. This single
 computation powers both the full-GPM branch (exact zero
@@ -441,9 +441,9 @@ theorem proj_compl_orth {n : ℕ} (P : Matrix (Fin n) (Fin n) ℝ)
         Matrix.mulVec_mulVec, hPs, hP]
   rw [hgl, hR, sub_self]
 
-/-- **hybrid_step_sound (C510, main)**: selecting the continual
+/-- **hybrid_step_sound (main)**: selecting the continual
 mechanism by the measured per-step state preserves the guarantee
-of the SELECTED branch — a disjunction of the three C509/C498
+of the SELECTED branch — a disjunction of the three
 mechanisms with no weakening. In the full-GPM branch the step is
 exactly orthogonal to every old input of the projected span
 (zero forgetting, the `gpm_zero_forgetting` face); in the free

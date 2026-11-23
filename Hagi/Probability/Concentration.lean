@@ -2,12 +2,12 @@ import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Freedman
 
 /-!
-# Unified concentration radius/confidence API (C287, A10 merge map)
+# Unified concentration radius/confidence API (A10 merge map)
 
 One parameterized `radius`/`confidence` pair for the Hoeffding mean-tail
 family, with the canonical theorem chain routed through it and comparison
 lemmas fixing the strongest–weakest spine of the tree's concentration
-statements (survey `.tmp/C287/survey.md`):
+statements:
 
 * `concConfidence ε n = exp(−2nε²)` — the CANONICAL one-sided [0,1]
   mean-tail confidence (`hoeffding_mean_tail`, the exponent the audit
@@ -15,7 +15,7 @@ statements (survey `.tmp/C287/survey.md`):
 * `concConfidenceTwoSided ε n = 2·exp(−2nε²)` — canonical two-sided;
 * `concRadius δ n = sqrt(log(1/δ)/(2n))` — the matching radius, with the
   duality `concRadius_valid`;
-* `concConfidence_pm1_rescale` — the C264 gate's [−1,1] form
+* `concConfidence_pm1_rescale` — the gate's [−1,1] form
   `exp(−nη²/2)` IS `concConfidence (η/2) n` (radius doubles on the
   [−1,1] scale);
 * `hoeffdingBridge_weaker` — `Ensemble/HoeffdingBridge`'s
@@ -121,7 +121,7 @@ theorem cert_upper_api {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
 
 /-! ## Consumer-form identity lemmas -/
 
-/-- C264 gate [−1,1] rescale form: `exp(−nη²/2) = concConfidence (η/2)
+/-- gate [−1,1] rescale form: `exp(−nη²/2) = concConfidence (η/2)
 n` — the [−1,1] radius η corresponds to [0,1] radius η/2 (radius
 doubles on the doubled scale). Backs
 `Contracts.GatePipeline.hoeffding_pm1_two_sided`. -/
@@ -158,14 +158,14 @@ theorem hoeffdingBridge_weaker {n : ℕ} (hn : 0 < n) {t : ℝ} (_ht : 0 ≤ t) 
     mul_nonneg (mul_nonneg (sq_nonneg t) hnn.le) (by nlinarith)
   nlinarith [h5]
 
-/-! ## Unified premise API for the Freedman family (C394, A17
+/-! ## Unified premise API for the Freedman family (A17
 stage 4)
 
 The audit ask: ONE premise shape for the concentration family so
 consumers take the radius from ONE place. The record below
-packages the C350/C356 premise tuple; the radius corollaries are
+packages the premise tuple; the radius corollaries are
 BRIDGES (direct citations of the frozen carriers in
-the Freedman canon (`Hagi.Probability.Freedman`, C525)), not reproofs. The regime
+the Freedman canon (`Hagi.Probability.Freedman`)), not reproofs. The regime
 split is kept honest: the variance-regime bound
 (`concRadiusVar`, `exp(−r²/(4V))` under `c·r ≤ 2·V`) and the
 all-regime mixed bound (`concRadiusMixed`, `exp(−r²/(4(V+c·r)))`)
@@ -173,12 +173,12 @@ are SEPARATE theorems with the regime premise explicit; the
 constant-σ specialization is a lemma (`concPremise_comp_const`),
 not a merged premise field. -/
 
-/-- The unified concentration premise (C394): the Markov-noise
+/-- The unified concentration premise: the Markov-noise
 premise tuple of the Freedman family — initial law, state kernel,
 noise increments `g`, compensator rate `v` (per-state conditional
 variance bound), horizon `T`, magnitude bound `c`, and the three
 premise laws (bounded / centered / variance-dominated). ONE shape
-covering C350 (const `v = σ`) and C356 (actual compensator). -/
+covering (const `v = σ`) (actual compensator). -/
 structure ConcPremise (α : Type*) [Fintype α] where
   /-- initial law of the state chain -/
   initial : PMF α
@@ -204,10 +204,10 @@ structure ConcPremise (α : Type*) [Fintype α] where
   hvar : ∀ k < T, ∀ a ∈ (markovLaw initial K k).support,
     pmfMean (K k a) (fun b => (g k a b) ^ 2) ≤ v k a
 
-/-- The master fixed-λ tail on the record (C394): for λ ∈ [0, 1/c]
+/-- The master fixed-λ tail on the record: for λ ∈ [0, 1/c]
 and a deterministic compensator cap `V`, the Freedman tail
 `P[S_k ≥ r ∧ C_k ≤ V] ≤ exp(−λr + λ²V)`. Direct citation of the
-C356 `history_variance_freedman_lam` on the record fields. -/
+ `history_variance_freedman_lam` on the record fields. -/
 theorem concPremise_tail_lam {α : Type*} [Fintype α] (P : ConcPremise α)
     (lam : ℝ) (hlam : 0 ≤ lam) (hclam : lam * P.c ≤ 1)
     (k : ℕ) (r V : ℝ) (hr : 0 < r) (hV : 0 ≤ V) :
@@ -218,10 +218,10 @@ theorem concPremise_tail_lam {α : Type*} [Fintype α] (P : ConcPremise α)
   history_variance_freedman_lam P.initial P.K P.g P.v P.T P.c lam
     hlam hclam P.hbounded P.hmean P.hvar k r V hr hV
 
-/-- The variance-regime radius (C394): in the regime `c·r ≤ 2·V`
+/-- The variance-regime radius: in the regime `c·r ≤ 2·V`
 the λ = r/(2V) optimization gives `exp(−r²/(4V))` — NO linear
 term, strictly stronger than the mixed radius in this regime.
-Direct citation of the C356 `freedman_variance_radius`. The regime
+Direct citation `freedman_variance_radius`. The regime
 premise is explicit: this bound is NOT available outside it. -/
 theorem concRadiusVar {α : Type*} [Fintype α] (P : ConcPremise α)
     (k : ℕ) (r V : ℝ) (hr : 0 < r) (hV : 0 < V) (hrc : P.c * r ≤ 2 * V) :
@@ -232,8 +232,8 @@ theorem concRadiusVar {α : Type*} [Fintype α] (P : ConcPremise α)
   freedman_variance_radius P.initial P.K P.g P.v P.T P.c P.hc
     P.hbounded P.hmean P.hvar k r V hr hV hrc
 
-/-- The all-regime mixed radius (C394): with NO regime premise,
-`exp(−r²/(4·(V + c·r)))`. Direct citation of the C350
+/-- The all-regime mixed radius: with NO regime premise,
+`exp(−r²/(4·(V + c·r)))`. Direct citation
 `history_additive_freedman`. -/
 theorem concRadiusMixed {α : Type*} [Fintype α] (P : ConcPremise α)
     (k : ℕ) (r V : ℝ) (hr : 0 < r) (hV : 0 ≤ V) :
@@ -244,10 +244,10 @@ theorem concRadiusMixed {α : Type*} [Fintype α] (P : ConcPremise α)
   history_additive_freedman P.initial P.K P.g P.v P.T P.c P.hc
     P.hbounded P.hmean P.hvar k r V hr hV
 
-/-- The constant-σ regime identification (C394, regime honesty):
+/-- The constant-σ regime identification (regime honesty):
 if the compensator rate is the constant `σ`, the actual
 compensator `historyCounter` at any `k` is at most `T·σ` (the
-C350 deterministic cap). This lemma is the ONLY bridge between
+ deterministic cap). This lemma is the ONLY bridge between
 the constant-σ and compensator forms — the premise record itself
 never blurs them. -/
 theorem concPremise_comp_const {α : Type*} [Fintype α] (P : ConcPremise α)
@@ -258,10 +258,10 @@ theorem concPremise_comp_const {α : Type*} [Fintype α] (P : ConcPremise α)
   rw [heq, historyCounter_const]
   exact mul_le_mul_of_nonneg_right (Nat.cast_le.mpr (Nat.min_le_right k P.T)) hσ
 
-/-- The C350 exponent recovered through the unified API (C394):
-at `V := T·σ` the mixed radius is exactly the C350
+/-- The exponent recovered through the unified API:
+at `V := T·σ` the mixed radius is exactly
 `stochastic_safe_step_whp` failure bound
-`exp(−r²/(4·(T·σ + c·r)))`. The consumers of the C350 form take
+`exp(−r²/(4·(T·σ + c·r)))`. The consumers of the form take
 the radius from HERE; the Freedman canon's (`Hagi.Probability.Freedman`) own bridges stay frozen
 (pin: they carry drift semantics, not radius derivation). -/
 theorem concRadiusMixed_const {α : Type*} [Fintype α] (P : ConcPremise α)
@@ -274,18 +274,18 @@ theorem concRadiusMixed_const {α : Type*} [Fintype α] (P : ConcPremise α)
   concRadiusMixed P k r ((P.T : ℝ) * σ) hr
     (mul_nonneg (Nat.cast_nonneg _) hσ)
 
-/-- The one-draw variance-form confidence (C394): the radius of a
+/-- The one-draw variance-form confidence: the radius of a
 single bounded centered measurement with variance at most `σ` —
 `exp(−r²/(4σ))` in the regime `c·r ≤ 2σ`. Exposed as a def so
-consumers (C388 `noise_tail_le` and successors) take the
+consumers (`noise_tail_le` and successors) take the
 single-draw radius from the unified layer. -/
 noncomputable def concOneDrawConfidence (σ r : ℝ) : ℝ :=
   Real.exp (-r ^ 2 / (4 * σ))
 
-/-- The one-draw variance-form tail (C394): for a bounded centered
+/-- The one-draw variance-form tail: for a bounded centered
 `g` with variance at most `σ`, in the regime `c·r ≤ 2σ`, the
 one-sided tail obeys `P[r ≤ g] ≤ concOneDrawConfidence σ r`.
-This is the one-measurement instance of the C356 variance-regime
+This is the one-measurement instance of the variance-regime
 radius (`freedman_variance_radius` at `V := σ`); the λ = r/(2σ)
 optimization runs on the same carrier pair
 (`pmfMean_exp_le` + `pmfMean_compensated_tail`). -/
@@ -335,10 +335,10 @@ theorem concOneDrawRadius {Ω : Type} [Fintype Ω] (law : PMF Ω)
   intro ω _
   simp
 
-/-- The full Freedman radius (C410): the Bennett-chord form
+/-- The full Freedman radius: the Bennett-chord form
 `exp(−r²/(2(V + c·r/3)))` through the unified premise record,
 with NO regime premise (the λ = r/(V+cr/3) optimization is
-admissible whenever V > 0). Direct citation of the C410
+admissible whenever V > 0). Direct citation
 `freedman_full`. Strictly dominates `concRadiusMixed` (constants
 4 → 2, c·r → c·r/3; equality only at c·r = 0) and is
 incomparable with the variance-regime `concRadiusVar`: the
@@ -354,7 +354,7 @@ theorem concRadiusFull {α : Type*} [Fintype α] (P : ConcPremise α)
   freedman_full P.initial P.K P.g P.v P.T P.c P.hc.le
     P.hbounded P.hmean P.hvar k r V hr hV
 
-/-- The full radius dominates the mixed radius (C410): through
+/-- The full radius dominates the mixed radius: through
 the record, exp(−r²/(2(V+cr/3))) ≤ exp(−r²/(4(V+cr))) with NO
 regime premise — the unified API now serves the strongest
 all-regime bound. -/
@@ -368,16 +368,16 @@ section VilleChannel
 
 open MeasureTheory ProbabilityTheory
 
-/-- The Ville-channel premise record (C394): the anytime-valid side
+/-- The Ville-channel premise record: the anytime-valid side
 of the unified API. A significance `level` (α), a filtration, an
 e-process `L` with the supermartingale / nonnegativity /
 unit-budget premises — the premise shape behind `EProcMonitor`
-(C341) and the anytime-valid consumers. DATA only: the engine
-(`ville_anytime_false_alarm`, C232) lives above layer 2; the
+ and the anytime-valid consumers. DATA only: the engine
+(`ville_anytime_false_alarm`) lives above layer 2; the
 master theorem `Hagi.Contracts.VilleMonitor.concVilleAnytime`
 cites it once against this record. Adaptive-data caveat
 inherited: the e-process premises are premise-form, exactly as in
-C341/C380 — nothing here claims validity on adaptively reused
+ — nothing here claims validity on adaptively reused
 data. -/
 structure ConcVilleChannel {Ω : Type*} {m0 : MeasurableSpace Ω}
     (μ : Measure Ω) [IsProbabilityMeasure μ] where

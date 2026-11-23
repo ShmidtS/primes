@@ -17,7 +17,7 @@ One line of development, one canonical module. Each statistical
 concept is described ONCE here; the five sections keep their
 historical namespaces so every fully-qualified name is stable.
 
-* Honest finite-population holdout risk (W3 / C435): a model
+* Honest finite-population holdout risk (W3 /): a model
   fixed BEFORE the draw is a loss table; the holdout law is the
   uniform product law — unbiasedness, Hoeffding concentration,
   the selection-bias counterexample, and the finite-codebook
@@ -27,20 +27,20 @@ historical namespaces so every fully-qualified name is stable.
   the check time may be adaptive (`Hagi.Unified.AnytimePACBayes`).
 * Conditional two-domain confidence transport for guarded
   selection (`Hagi.Unified.TwoDomainConfidence`).
-* Holdout WITHOUT replacement (C487): the sequential
+* Holdout WITHOUT replacement: the sequential
   without-replacement kernel, the Doob martingale identity, and
   the Freedman-adapted concentration with partial fpc credit —
   strictly better than the with-replacement surrogate under an
   explicit checkable variance condition
   (`Hagi.Theory.HoldoutWithoutReplacement`).
-* The anytime holdout admission-stop (C446, the statistics→growth
+* The anytime holdout admission-stop (the statistics→growth
   bridge) lives in `Hagi.Theory.AnytimeHoldoutStop`: it consumes
   `Hagi.Theory.BlockAdmission`, which sits BELOW this canon
   (`BlockAdmission → CertCEHoldout → Statistics`), so merging it
   here would create an import cycle — kept separate, names stable.
 
 Honest pins live in each section; the with-replacement surrogate
-pin of C435 is closed by the C487 section above it.  Layer
+pin is closed by the section above it.  Layer
 decision: Theory — consumes the `Hagi.Probability` tower
 (CertifiedEstimator / Concentration / Azuma / FreedmanAdaptive),
 `Hagi.Unified.AnytimeMartingale` (Ville) and
@@ -52,7 +52,7 @@ decision: Theory — consumes the `Hagi.Probability` tower
 set_option relaxedAutoImplicit false
 set_option linter.style.header false
 
-/-! ## Honest finite-population holdout (C435) — `Hagi.Theory.HoldoutRisk` -/
+/-! ## Honest finite-population holdout — `Hagi.Theory.HoldoutRisk` -/
 
 namespace Hagi.Theory.HoldoutRisk
 
@@ -518,7 +518,7 @@ theorem finite_family_two_domain_guarded_improvement
 
 end Hagi.Unified.TwoDomainConfidence
 
-/-! ## Holdout without replacement: Serfling-oriented concentration (C487) — `Hagi.Theory.HoldoutWithoutReplacement` -/
+/-! ## Holdout without replacement: Serfling-oriented concentration — `Hagi.Theory.HoldoutWithoutReplacement` -/
 
 namespace Hagi.Theory.HoldoutWithoutReplacement
 
@@ -666,7 +666,7 @@ theorem muCond_mem [Nonempty Ω] {f : Ω → ℝ} (hf : ∀ v, 0 ≤ f v ∧ f v
 
 /-- **(b) Условное центрирование** — мартингальность приращений:
 среднее центрированного приращения по ядру равно нулю (тождество
-для ЛЮБОГО префикса — посылки машины C438). -/
+для ЛЮБОГО префикса — посылки машины). -/
 theorem wr_cond_mean_zero [Nonempty Ω] (f : Ω → ℝ) (t : ℕ) (pref : Fin t → Ω) :
     ∑ v, qdWR t pref v * (f v - muCond f t pref) = 0 := by
   have h1 : ∑ v, qdWR t pref v * (f v - muCond f t pref)
@@ -1498,7 +1498,7 @@ theorem wrMean_dev_upper [Nonempty Ω] (f : Ω → ℝ) {k : ℕ} (hk : 0 < k)
   exact hr
 
 set_option maxHeartbeats 1000000 in
-/-- Нижний хвост через машину Freedman (C438): junk-траектории
+/-- Нижний хвост через машину Freedman: junk-траектории
 отрезаются нулевой плотностью, на инъективных — тождество Дуба. -/
 theorem holdout_wr_lower [Nonempty Ω] {f : Ω → ℝ} (hf : ∀ v, 0 ≤ f v ∧ f v ≤ 1)
     {k : ℕ} (hk : 0 < k) (hkN : k + 1 ≤ Fintype.card Ω)
@@ -1717,10 +1717,10 @@ theorem holdout_wr_concentration [Nonempty Ω] {f : Ω → ℝ}
     (fun ω : Fin k → Ω => ε ≤ wrMean f ω - wrPopMean f)
   linarith [hmono, hu, hlow, hup]
 
-/-- **(d) Сравнение с with-replacement Hoeffding (C435)**: при
+/-- **(d) Сравнение с with-replacement Hoeffding**: при
 проверяемом условии `σ̂²(2N−k)/N + ε ≤ 1/4` без-возвратная граница
 не хуже `2·exp(−2kε²)` — variance-adaptivity окупается при малой
-дисперсии популяции (bench C484: σ̂² ≈ 0.01 ≪ 1/4). -/
+дисперсии популяции (bench σ̂² ≈ 0.01 ≪ 1/4). -/
 theorem wr_bound_le_with_replacement [Nonempty Ω] {f : Ω → ℝ}
     (hf : ∀ v, 0 ≤ f v ∧ f v ≤ 1)
     {k : ℕ} (hk : 0 < k) (hkN : k + 1 ≤ Fintype.card Ω)

@@ -5,7 +5,7 @@ import Hagi.Runtime.CertChecker
 import Hagi.Theory.Statistics
 
 /-!
-# Certified CE training: the holdout-risk interpretation bridge (C442)
+# Certified CE training: the holdout-risk interpretation bridge
 
 The certified CE training loop (scripts/bench_bridge.py `--mode
 cert-ce`) feeds `Hagi.Runtime.CertChecker` with trajectories of a
@@ -18,7 +18,7 @@ meaning-level bridge:
 * `RiskChannel` — the accuracy contract for the risk fields: the
   `risk`/`risk'` readouts of a step equal the `holdoutMean` of the
   model's loss table on the holdout sample, before/after the update
-  (the C435 tie: holdout telemetry on a finite dataset, honest in
+  (the tie: holdout telemetry on a finite dataset, honest in
   the sense that it is NOT required to decrease);
 * `cert_ce_interpretation` — a passing executable trajectory check
   whose data describes the real transitions and whose risk fields
@@ -28,14 +28,14 @@ meaning-level bridge:
   equals the holdout mean of the final model — the end-to-end reading
   of a certified training run.
 
-## Honest boundaries (pins)
+## Honest boundaries
 
 1. The Python trainer's `L` is a Frobenius ESTIMATE (as the
    `BlockSmooth` empirical smoothness premise), not a certified
    Hessian bound for the surrogate; what is certified is each step's
    exact admission (`checkStep`), not the a priori smoothness claim.
 2. The holdout sample here is a fixed `k`-point draw; the risk
-   channel is exact equality of readouts, and — per the C435
+   channel is exact equality of readouts, and
    selection-bias results — nothing here claims the holdout estimate
    decreases or is unbiased under data-dependent model selection.
 -/

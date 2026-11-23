@@ -10,7 +10,7 @@ set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
 
 /-!
-# SelfEdit — the adopt-gate / knob canon (C457 → C515)
+# SelfEdit — the adopt-gate / knob canon (→)
 
 One canonical module for the self-edit loop family; each concept
 is described ONCE here. The two sections keep their historical
@@ -195,7 +195,7 @@ theorem weak_gate_cycles : ∃ (weak : Config Bool Bool → ℝ)
 
 /-- "MAX_GATE_RUNS" — maximum rejections kept per series before the
 reset. source: hagi/selfedit.py:167 `MAX_GATE_RUNS = 6` (tied to the
-GatePipeline C264 delta-schedule bound Σ_{k≤6} 6/(π²k²) ≤ 1). -/
+GatePipeline delta-schedule bound Σ_{k≤6} 6/(π²k²) ≤ 1). -/
 def maxGateRuns : ℕ := 6
 
 /-- Rejection-series trim: at `≥ maxGateRuns` accumulated rejections
@@ -208,7 +208,7 @@ def rejectSeriesTrim (L : List α) : List α :=
 
 /-- INVARIANT: after the trim performed at the top of each
 self-edit cycle, the rejection series is bounded by `maxGateRuns`
-(the certified-regime range of the C264 delta schedule).
+(the certified-regime range of the delta schedule).
 source: hagi/selfedit.py:180-182. -/
 theorem reject_series_bounded (L : List α) :
     (rejectSeriesTrim L).length ≤ maxGateRuns := by
@@ -364,7 +364,7 @@ theorem momentum_clip_bounds (n : ℕ) (η β : ℝ) (g : ℕ → ℝ) (hn : 0 <
   | zero => simp [idxTraj]; omega
   | succ t ih => unfold idxTraj; unfold clampIdx; omega
 
-/-! ### Мост к C457: momentum НЕ обходит certify -/
+/-! ### Мост к momentum НЕ обходит certify -/
 
 variable {κ : Type*} [DecidableEq κ] {V : Type*} [DecidableEq V]
 variable (score : Config κ V → ℝ)
@@ -386,7 +386,7 @@ theorem momentum_adopt_gated (f : ℕ → Config κ V) (h : MomentumChain score 
   rw [hf]
   exact hg
 
-/-- МОСТ К C457: в конечном knob-space бесконечная цепочка принятых
+/-- МОСТ К в конечном knob-space бесконечная цепочка принятых
 momentum-патчей НЕВОЗМОЖНА — прямое следствие `adopt_chain_terminates`
 (SelfEditGate.lean:139). Momentum-динамика не расширяет пространство
 принятий: сколько бы скорость ни накапливала сигнал, принятия идут

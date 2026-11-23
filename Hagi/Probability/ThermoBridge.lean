@@ -69,7 +69,7 @@ theorem batchVar_expQ (g : V → ℝ) {b : ℕ} [Nonempty (Fin b)] :
 end Hagi.Probability
 
 /-!
-# WSqD — the full warm-stable-decay noise budget (;
+# WSqD — the full warm-stable-decay noise budget (
 plan §5.4, source 2607.10959 + 1711.00489)
 
 The WSqD scheduler runs THREE phases: warmup, a long
@@ -115,7 +115,7 @@ theorem stable_phase_noise {sigma : ℝ} (B0 : ℝ)
 
 /-- **The cooldown tail is CONSTANT**: the entire decay
 phase — of ANY length — contributes at most the geometric
-bound σ²·c/(B₀(c−1)) (`anneal_by_batch`,). An
+bound σ²·c/(B₀(c−1)) (`anneal_by_batch`). An
 unboundedly long cooldown is nearly free in noise. -/
 theorem cooldown_tail_constant {sigma : ℝ}
     (B : ℕ → ℝ) (n_d : ℕ) (hsigma : 0 ≤ sigma)

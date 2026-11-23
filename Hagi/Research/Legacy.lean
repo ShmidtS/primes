@@ -20,10 +20,10 @@ import Hagi.Research.Legacy.TernaryGrad
 import Hagi.Research.Legacy.TopLevel
 
 /-!
-# Hagi.Research.Legacy — archived legacy modules (C217 quarantine, C456 archive move)
+# Hagi.Research.Legacy — archived legacy modules (quarantine, archive move)
 
-Legacy vacuous-stack modules (C217 quarantine), physically archived
-under `Hagi/Research/Legacy/` in C456 (A19.1, C448 Growth→Research
+Legacy vacuous-stack modules (quarantine), physically archived
+under `Hagi/Research/Legacy/` (A19.1, Growth→Research
 precedent). Module names changed `Hagi.Legacy.X` →
 `Hagi.Research.Legacy.X`; original declaration namespaces
 (Hagi.Unified / Hagi.Examples / Hagi.Data / Hagi.Challenge /

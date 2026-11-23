@@ -6,7 +6,7 @@ import Hagi.Probability.GibbsCore
 import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 /-!
-# EntropyConvexity — выпуклость энтропии и log-sum (C528)
+# EntropyConvexity — выпуклость энтропии и log-sum
 
 Канон выпуклости энтропийных функционалов: log-sum неравенство,
 выпуклость относительной энтропии и следствия для сглаживания. Сводка:

@@ -32,7 +32,7 @@ the per-tranche duplicated strict-descent tails.
 ## Honest ledger (outside the interface, pinned migration tranches)
 
 - `StochasticCE`: the end-to-end stochastic learning theorem lives in
-  `Hagi.Unified.StochasticCELearning` (C360), above this layer; it is
+  `Hagi.Unified.StochasticCELearning`, above this layer; it is
   a consumer of the same `ceOneHot` SSOT and is a pointer target, not
   a bridge, here.
 - `GatedCE`: the `Model.GatedCE*` family uses a curvature-selected

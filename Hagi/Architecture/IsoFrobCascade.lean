@@ -16,7 +16,7 @@ RankBudget when sensitivities are taken as spectral products
 and starves later ones (A8 empirical: spectral cascade WORSE than
 uniform; isotropic-Frobenius calibration `‖J_{>j}‖_F²/d · ‖h_j‖²`
 fixed it, MSE 2.2e-5 vs uniform 2.5e-5 — motivation only, never a
-Lean premise). The provable slice over the C250 linear-cascade
+Lean premise). The provable slice over the linear-cascade
 carrier (`Hagi.Core.propagateLin`):
 
 * `isoFrobEnergy J = frobSq J / d` — the A8 per-dimension

@@ -7,7 +7,7 @@ import Hagi.Data.BoolVenn
 /-!
 # Exact Boolean Venn head: atoms as ReLU neurons
 
-Track B7 (master plan v3 addendum A4), C242. The four Venn atoms of
+Track B7 (master plan v3 addendum A4). The four Venn atoms of
 `Hagi.Data.BoolVenn` are realized by ReLU threshold neurons
 `vAtom sA sB A B = relu (sA*A + sB*B - 1)` on `{−1,+1}` inputs
 (exactly-one-hot: `vAtoms_sum_one`, `vAtoms_mem`), and the 16 boolean
@@ -33,7 +33,7 @@ Boundary, honestly: this is exactness for two-variable boolean logic
 (the 16-function Venn lattice), not logic in general; the honest
 scalability boundary of mask-linear heads is `n ≤ 4-5` inputs.
 
-C251 additions (A8 F4): the two-layer Hasse composition — the 2-bit
+ additions (A8 F4): the two-layer Hasse composition — the 2-bit
 adder/subtractor built from two 1-layer heads over bit-split
 channels (`venn2Head`): sum = XOR (`xorMask`, rank two), carry =
 AND (`andMask`, rank one, the two-input majority), borrow =
@@ -177,7 +177,7 @@ theorem venn_mask_ternary {w : ℝ} (hw : w = 0 ∨ w = 1) :
   rcases hw with hw | hw <;> subst hw <;>
     unfold qTern roundTern <;> norm_num
 
-/-! ## C251: 2-layer Hasse composition (ADD4 / SUB4 grounding) -/
+/-! ## 2-layer Hasse composition (ADD4 / SUB4 grounding) -/
 
 /-- The XOR mask (rank two). -/
 def xorMask : Fin 4 → Bool := ![false, true, true, false]
@@ -228,7 +228,7 @@ theorem venn2_suber_correct (x y : Bool) :
       = (bval x + (4 - bval y)) % 4 := by
   cases x <;> cases y <;> norm_num [bval]
 
-/-- The executed sum channel equals the XOR truth value (the C242
+/-- The executed sum channel equals the XOR truth value (
 bridge `vennHead_exact` on the XOR mask). -/
 theorem venn2_sum_head (x y : Bool) :
     vennHead (maskReal xorMask) (s x) (s y)

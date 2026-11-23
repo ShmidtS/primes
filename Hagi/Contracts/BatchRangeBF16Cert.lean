@@ -11,10 +11,10 @@ import Hagi.Model.BatchCEDescentLogitRange
 /-!
 # BF16-guarded batch range-safe-step descent and cert transition
 
-This file wires the C223 batch range-safe step into the canonical
+This file wires the batch range-safe step into the canonical
 `Hagi.Cert` transition kernel under a BF16 representation-error guard.
 
-The certified drop is the exact C223 expression
+The certified drop is the exact expression
 `2 * batchAlignment^2 / batchLogitRangeSquare` from
 `Hagi.Model.BatchCEDescent.batchLoss_logitSafeStep_le_residual`.  If
 the logit update passes through a BF16 representation with uniform
@@ -93,7 +93,7 @@ theorem batchLoss_le_of_logitPerturbation {V : Type} [Fintype V] [Nonempty V]
     rw [h2]
     exact hkey
 
-/-- Workhorse: the C223 range-safe-step certified drop
+/-- Workhorse: the range-safe-step certified drop
 `2 * batchAlignment^2 / batchLogitRangeSquare` survives a uniform
 per-logit BF16 representation error `eps` whenever the strict gate
 `4 * eps < certified drop` holds; the retained margin is
@@ -115,7 +115,7 @@ theorem bf16_guarded_ceRange_descent_le {V : Type} [Fintype V] [Nonempty V]
     (batchLogitNextParameters X θ y) θbf y heps hbf
   linarith
 
-/-- MAIN (C230): under the BF16 per-logit error guard and the strict
+/-- MAIN: under the BF16 per-logit error guard and the strict
 gate `4 * eps < 2 * batchAlignment^2 / batchLogitRangeSquare`, the
 real bf16 next state strictly decreases the true arithmetic-mean batch
 cross-entropy by some positive certified `Δ`. -/
@@ -254,7 +254,7 @@ noncomputable def batchCE_transitionStep_hold {V : Type} [Fintype V]
     (Hagi.Contracts.BatchCETrajectory.batchLoss_nonneg X θ y))
 
 
-/-! ## C249 derived-eps bridge from the rational BF16 carrier (A8 F3)
+/-! ## derived-eps bridge from the rational BF16 carrier (A8 F3)
 
 The eps premise of the guarded-descent gate is normally supplied by
 the caller. For rational-valued target logits inside the bf16 normal
@@ -309,7 +309,7 @@ theorem bf16_logitPerturbation_of_nearestNormalCodes
   exact h2.trans (mul_le_mul_of_nonneg_left (hlogit b v)
     (by positivity : (0 : ℝ) ≤ ((2 : ℚ) ^ (-8 : ℤ) : ℝ)))
 
-/-- `bf16_guarded_ceRange_descent_of_nearestNormalCodes`: the C223
+/-- `bf16_guarded_ceRange_descent_of_nearestNormalCodes`
 guarded-descent gate with the eps premise DERIVED from the rational
 BF16 carrier instead of supplied manually: whenever the nearest-code
 readback hypotheses of the bridge hold and the strict gate

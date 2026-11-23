@@ -502,7 +502,7 @@ export Hagi.External (dead_layer_stop)
 end Hagi
 /-!
 # FactorizedBPW — bits-per-weight arithmetic of the
-factorized ternary branch (; LittleBit scheme,
+factorized ternary branch (LittleBit scheme,
 ternary body, FP16 scales)
 
 A square d×d layer is replaced by a factorized branch

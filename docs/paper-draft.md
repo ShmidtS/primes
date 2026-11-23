@@ -794,7 +794,7 @@ section states it as one arc.
 > `n ≤ L.length * w`
 
 (`Hagi.Theory.CoverageReading.hier_total_floor`,
-CoverageReading.lean:497). The hierarchy of §3.18 clause (10)
+CoverageReading.lean:496). The hierarchy of §3.18 clause (10)
 ATTAINS the floor at `s = w`, `w ∣ B` —
 `hier_total_min` (:468): `(hierStarts n B w w).length =
 (n + w - 1) / w`, closed by `hier_optimal` (:539): total =
@@ -875,7 +875,7 @@ this is a certified LOWER bound; discrete equality needs
 w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
 Real-calculus outside the Nat model of the file — the bench
 text says "NOT a Lean clause" for α ≠ 2.
-<!-- source: Hagi/Theory/CoverageReading.lean:631/:651/:676
+<!-- source: Hagi/Theory/CoverageReading.lean:625/:651/:676
      (statement дословно, HEAD dd4102cf); .tmp/C628/receipt.md -->
 
 **(v) The bench application (C626).** `cost_regime_w` in
@@ -1055,7 +1055,7 @@ anchor, a bench application, and measured bits —
 | window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:233 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
 | window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:315 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
-| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:578/:603/:631/:651/:676 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
+| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:575/:603/:631/:651/:676 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
 <!-- source: строка w-rule — .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md (cost_regime_w, pinned asserts, w_max=256→391); .tmp/C628/receipt.md (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
 
 Two structural remarks. First, the optimal-step clause is
@@ -1153,7 +1153,7 @@ not claimed here.
 - **Card 12 — information-theoretic floor for reading n bytes
 with width-w windows.** Any covering list L of [0, n) by
 width-w windows satisfies `n ≤ L.length * w`
-(`hier_total_floor`, CoverageReading.lean:497), and the
+(`hier_total_floor`, CoverageReading.lean:496), and the
 hierarchy ATTAINS the floor at `s = w`, `w ∣ B`:
 `hier_total_min` (:468) — `(hierStarts n B w w).length =
 (n + w - 1) / w`; `hier_optimal` (:539) closes the optimum
@@ -1167,7 +1167,7 @@ B at s = w.
 width-independent.** For any `0 < w1, w2`:
 `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) +
 (w1 - 1)` (`windowCost_linear_near_const`,
-CoverageReading.lean:603) — totalCost(w1) ≤ totalCost(w2) +
+CoverageReading.lean:600) — totalCost(w1) ≤ totalCost(w2) +
 c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
 n + w − 1 (`windowCost_linear_bounds`, :92); contrast regime
 (a) `windowCost_fixed_mono` (:83): fixed cost makes w = w_max

@@ -7,7 +7,7 @@ import Hagi.Probability.FiniteMultiEM
 import Hagi.Contracts.ObjectiveTrajectory
 
 /-!
-# EM trajectory contracts (canon, C524)
+# EM trajectory contracts
 
 Canonical Contracts-side EM trajectory family (v5 W2 consolidation).
 Carrier stays `Hagi.Probability.FiniteMultiEM` (untouched). Sections
@@ -333,7 +333,7 @@ open scoped BigOperators ENNReal
 
 namespace Hagi.Contracts.MixtureEMTrajectory
 
--- BEGIN C151 ISOLATED CORE
+-- BEGIN ISOLATED CORE
 
 private noncomputable def mixturePriorMass {X : Type} (ε : NNReal)
     (p r : PMF X) (x : X) : ENNReal :=
@@ -750,7 +750,7 @@ private theorem mixtureTrajectory_close {n : ℕ} {I X Y : Type} [Fintype I] [Fi
   rw [hp]
   exact mixtureFamily_support y s.model s.positive (seed t) d i
 
-/-- Genuine C150 integration: retained whole models and posterior support
+/-- Genuine integration: retained whole models and posterior support
 closure make the actual canonical path NLL antitone. -/
 theorem mixtureTrajectory_nll_antitone {n : ℕ} {I X Y : Type} [Fintype I] [Fintype X]
     (y : I → Y) (initial : I → PMF X × (X → PMF Y))

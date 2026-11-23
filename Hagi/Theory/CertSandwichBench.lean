@@ -7,11 +7,11 @@ import Mathlib.Tactic
 /-!
 # Certified sandwich CE bench bridge
 
-Roadmap C491: the consumption bit of `Hagi.Theory.
-RationalSoftmax` (C489).  The certified-CE training loop of
+The consumption bit of `Hagi.Theory.
+RationalSoftmax`.  The certified-CE training loop of
 `scripts/bench_bridge.py` (`--mode cert-sandwich`) descends the
 RATIONAL sandwich certificate `-log (lo u / ∑ hi)` (built from
-the C489 two-sided exponential bounds) instead of the C442
+the two-sided exponential bounds) instead
 `z ^ 2 / Σ z ^ 2` surrogate.  This module states the descent
 bridge that makes that loop meaningful: a measured drop of the
 rational certificate controls the drop of the TRUE one-hot
@@ -42,11 +42,11 @@ descends the true CE down to the gap boundary.
    never evaluates an irrational log.  Float true-CE in the
    bench is TELEMETRY ONLY (outside the certificate).
 2. The bench learning rate is a guarded normalized analytic
-   gradient step (C481 measured-drop admission); no smoothness
+   gradient step (measured-drop admission); no smoothness
    constant is certified for the sandwich objective, and the
    adaptive-majorizer η of `Hagi.Theory.AdaptiveMajorizer` is a
    future bit.
-3. Feature/weight snap-to-grid pins (C484/C481 family) live in
+3. Feature/weight snap-to-grid pins (family) live in
    the bench script, not here; this module is n,m-free.
 -/
 

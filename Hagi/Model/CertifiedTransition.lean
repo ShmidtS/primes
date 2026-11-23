@@ -530,7 +530,7 @@ A10 item 2 (adapter batch 2): V3-переход — view над общим яд�
 (0-пиннинг отсутствует; выравнивание риска с метриками —
 на потребителе). -/
 
-/-- C279: V3-переход как шаг общего ядра (premise-form: дроп и
+/-- V3-переход как шаг общего ядра (premise-form: дроп и
 бюджет — из носителя, риск-split — посылки потребителя). -/
 noncomputable def CertifiedTransitionV3.toCertStepGen
     {TaskId : Type*}

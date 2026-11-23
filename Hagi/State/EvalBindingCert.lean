@@ -3,17 +3,17 @@ import Hagi.State.CanonicalTrainState
 import Hagi.Cert.EvalBinding
 
 /-!
-# EvalBindingCert — demo theorem on the canonical carrier (A16, C378)
+# EvalBindingCert — demo theorem on the canonical carrier (A16)
 
-The C378 demo: a full certificate on `CanonicalTrainState` carrying
+The demo: a full certificate on `CanonicalTrainState` carrying
 `Hagi.Cert.EvalBinding`, where the certificate's `L_before`/`L_after`
-are the SAME values the descent theorem of C363 talks about — that is
+are the SAME values the descent theorem talks about — that is
 the "detached counters" fix made concrete:
 
-* `FullEvalCert` — a `FullStepCert` (C363) PLUS an `EvalBinding` at
+* `FullEvalCert` — a `FullStepCert` PLUS an `EvalBinding` at
   `evalFn := fun st _ _ => fullObjective st` on the recorded
   before/after states (θ carried BY the canonical state itself);
-* `fullEvalCert_descent` — the C363 descent restated on the BOUND
+* `fullEvalCert_descent` — the descent restated on the BOUND
   numbers: `L_after ≤ L_before − drop`.  The descent theorem's
   objective values and the certificate's reported losses coincide BY
   PROOF (`hbefore`/`hafter` of the binding, definitionally equal to
@@ -38,15 +38,15 @@ variable {Arch Batch : Type*}
 /-- The evaluation function of the canonical carrier: parameters ARE
 the canonical state, evaluated by the FULL objective (weights plus
 optimizer buffers — buffer drift cannot hide behind weight descent,
-C363).  Architecture and batch are abstract parameters. -/
+).  Architecture and batch are abstract parameters. -/
 noncomputable def canonicalEval (st : CanonicalTrainState n a e q r c k)
     (_a : Arch) (_b : Batch) : ℝ := fullObjective st
 
 /-- Full certificate on the canonical carrier WITH the evaluation
-binding: the C363 step certificate plus the C378 binding of the
+binding: the step certificate plus the binding of the
 reported numbers to the evaluation of the recorded states. -/
 structure FullEvalCert (s s' : CanonicalTrainState n a e q r c k) where
-  /-- The C363 certified progress step (full objective, budget/risk
+  /-- The certified progress step (full objective, budget/risk
   ledger laws). -/
   cert : FullStepCert s s'
   /-- The evaluation binding on the same states. -/
@@ -77,7 +77,7 @@ theorem FullEvalCert.lbefore_eq
   rw [fc.thetaBefore_eq] at h
   exact h
 
-/-- DEMO THEOREM (detachment closed): the descent law of the C363
+/-- DEMO THEOREM (detachment closed): the descent law
 certificate, stated ENTIRELY on the bound certificate numbers —
 `L_after ≤ L_before − drop`.  The values the descent theorem talks
 about and the numbers the certificate reports are the SAME values,

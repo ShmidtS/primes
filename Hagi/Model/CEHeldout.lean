@@ -5,9 +5,9 @@ import Hagi.Model.CEGroupedScale
 import Hagi.Probability.FiniteFamilyConfidence
 
 /-!
-# CEHeldout — the held-out confidence canon (C523)
+# CEHeldout — the held-out confidence canon
 
-Merged here (C523, v5 W1): `Hagi.Model.CEConfidenceScale`
+Merged here (v5 W1): `Hagi.Model.CEConfidenceScale`
 (raw cross-entropy confidence and sample budgets).  Namespace
 `Hagi.Model.CEConfidenceScale` unchanged.
 -/

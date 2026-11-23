@@ -390,7 +390,7 @@ theorem guardedRead_nearest_returns_new (anchor new delta recovered : Code)
   · simp [guardedRead, hGuard]
 
 
-/-! ## C249 nearest-normal relative rounding error (A8 F3)
+/-! ## nearest-normal relative rounding error (A8 F3)
 
 The `Fin 128` fraction carrier plus the implicit leading one give 8
 significant bits, so nearest selection inside the normal range

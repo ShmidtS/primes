@@ -5,7 +5,7 @@ import Hagi.Probability.Freedman
 import Hagi.Unified.AnytimeMartingale
 
 /-!
-# Finite-PMF ↔ MeasureTheory bridge (A18.7, C429)
+# Finite-PMF ↔ MeasureTheory bridge (A18.7)
 
 Audit W5: the library spoke in two unconnected probabilistic
 languages. Tower 1: finite sums — the `pmfMean` machine

@@ -204,7 +204,7 @@ theorem trajectory_telescope_fin {S : Type*} {TaskId : Type*}
     rw [Fin.sum_univ_castSucc]
     linarith
 
-/-! ## 4th resource: delta budget (C245, Phase 1, addendum A7)
+/-! ## 4th resource: delta budget (Phase 1, addendum A7)
 
 `CertStepDelta` — аддитивная надстройка над байт-идентичным
 `CertStep`: четвёртый ресурс `delta` — пошаговый бюджет вероятности
@@ -269,7 +269,7 @@ theorem delta_telescope {S : Type*} {TaskId : Type*}
     (level := deltaLevel) n t hnn steps
 
 
-/-! ### Journal bridges (C449, A19.2): kernel steps → StepRecord -/
+/-! ### Journal bridges (A19.2): kernel steps → StepRecord -/
 
 /-- Журнальная запись замороженного шага: drop-ядро + точные траты
 бюджета/риска как телеметрия (δ-канала в ядре нет — 0). Законы
@@ -283,7 +283,7 @@ def CertStep.toRecord {s s' : S} (c : CertStep M obl s s') :
   riskSpend := c.riskSpend
   delta := 0
 
-/-- Журнальная запись шага с δ-каналом (C449): как выше, δ-трата
+/-- Журнальная запись шага с δ-каналом: как выше, δ-трата
 из четвёртого ресурса. -/
 def CertStepDelta.toRecord {deltaLevel : S → ℝ} {s s' : S}
     (c : CertStepDelta M obl deltaLevel s s') :
@@ -295,7 +295,7 @@ def CertStepDelta.toRecord {deltaLevel : S → ℝ} {s s' : S}
   riskSpend := c.step.riskSpend
   delta := c.delta
 
-/-! ## Optimizer-state carrier (C248, A8 F5): HoldStep covers (m, v, t)
+/-! ## Optimizer-state carrier (A8 F5): HoldStep covers (m, v, t)
 
 A8 empirical finding (Class-D evidence, motivation only): a hold step
 that restores the weight state but NOT the optimizer buffers keeps

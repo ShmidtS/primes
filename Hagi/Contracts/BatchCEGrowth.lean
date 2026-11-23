@@ -13,7 +13,7 @@ set_option linter.style.header false
 /-!
 # Function-preserving batch CE growth with exact capacity counters
 
-Canon (C524, v5 W2): also hosts the merged sections (namespaces and
+Canon (v5 W2): also hosts the merged sections (namespaces and
 FQNs preserved, module files removed):
 `Hagi.Contracts.BatchCEGrowthSelection` (growth candidate selection,
 admission-yield, finite open-loop) and `Hagi.Contracts.NaturalLean`

@@ -7,15 +7,15 @@ set_option relaxedAutoImplicit false
 
 /-!
 # KnowledgeConsolidation — knowledge consolidation from external
-memory (C584)
+memory
 
-Roadmap C583 top-1: мост к HAGI_v2 wave225 (commit d2ef948, READ-ONLY).
+Roadmap top-1: мост к HAGI_v2 wave225 (commit d2ef948, READ-ONLY).
 Секция `WAVE 225: knowledge consolidation from external memory`,
 `hagi/unified.py:285-315`: `Unified` получает `memory()` /
 `remember()` / `consolidate()` / `learn_from_dialog()` поверх
 `SemanticMemory` (SQLite/FTS5 append-only архив страниц +
 gemma-cosine rerank, `hagi/memory_store/__init__.py:11-31`).
-Родня: FactLedger (C579, append-only история фактов).
+Родня: FactLedger (append-only история фактов).
 
 Fresh-minimal инварианты (KISS, 3 теоремы):
 

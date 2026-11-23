@@ -4,7 +4,7 @@ import Hagi.Core.Hadamard
 /-!
 # Boolean Venn lattice: the 16 two-variable boolean functions
 
-Track B7 (master plan v3 addendum A4), C242. Every `Bool → Bool → Bool`
+Track B7 (master plan v3 addendum A4). Every `Bool → Bool → Bool`
 function is a Venn mask: a lookup `Fin 4 → Bool` indexed by the atom
 (active conjunction) of its input (`.vennBool`, `.venn_universal`).
 All 16 functions carry the structure of the four-atom boolean lattice:
@@ -19,7 +19,7 @@ Everything here is `decide`-level on the Bool carrier. The ReLU-neuron
 realization of the same lattice and its certified-exact head live in
 `Hagi.Model.Logic.VennHead`.
 
-C251 additions (A8 F4): the `H₄` role correction — the mask ↔
+ additions (A8 F4): the `H₄` role correction — the mask ↔
 truth-table identification on the four atoms is the IDENTITY
 (`mask_truth_table_identity`) while the Walsh–Hadamard matrix
 `vennWalsh` (the `Hagi.Core.sylvester` order-four matrix reindexed
@@ -93,7 +93,7 @@ theorem hasse_edges :
       = 32 := by
   decide
 
-/-! ## C251: the `H₄` role correction (identity vs spectrum transform) -/
+/-! ## the `H₄` role correction (identity vs spectrum transform) -/
 
 open Hagi.Core
 open scoped Matrix
@@ -167,7 +167,7 @@ theorem vennWalshOrthonormal :
     ((1 / 2 : ℝ) • vennWalshReal) * ((1 / 2 : ℝ) • vennWalshReal)ᵀ = 1 := by
   exact smul_orthonormal vennWalshReal_mul_transpose (by norm_num)
 
-/-! ## C251: 16-class CE floor on single-atom batches
+/-! ## 16-class CE floor on single-atom batches
 
 The log-linear choice head of `Hagi.Contracts.LogicChoiceCert` on a
 single-atom input `b` (only atom `b` hot) scores a candidate mask

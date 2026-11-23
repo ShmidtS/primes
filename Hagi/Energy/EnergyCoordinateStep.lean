@@ -273,7 +273,7 @@ private theorem pull2 (s : Finset ι) (d : α → ℝ) (F : ι → α → α →
 
 /-- Local mean-field field at cell `i` over marginal background `p`:
 `hz(a) = B i a + (1/2)·Σ_{j≠i} Σ_b (K i j a b + K j i b a)·p j b`.
-The `1/2` sits OUTSIDE the ordered double count (C260 convention), so
+The `1/2` sits OUTSIDE the ordered double count (convention), so
 BOTH ordered directions enter with weight `1/2` each; under symmetric
 `K` this collapses to the classic `L_i(a) = B_i(a) + Σ_{j≠i} Σ_b
 K i j a b·p j b` (the marginal analogue of the discrete `localField` /
@@ -287,7 +287,7 @@ noncomputable def meanFieldField (B : ι → α → ℝ) (K : ι → ι → α �
 
 omit [Fintype ι] in
 /-- Gibbs gap strictness: `t > 0`, `t ≠ 1 ⟹ 0 < t·log t − t + 1`
-(via `log (1/t) < 1/t − 1`; probe C265 P4). -/
+(via `log (1/t) < 1/t − 1`; probe P4). -/
 private theorem strict_log_term (t : ℝ) (ht0 : 0 < t) (ht1 : t ≠ 1) :
     0 < t * Real.log t - t + 1 := by
   have hinv : 0 < 1 / t := by positivity
@@ -403,8 +403,8 @@ premises, exact for every `q`, `p`, `B`, `K`, `β`. All terms of the
 energy not involving cell `i` — entropy cells `j ≠ i`, unary fields
 `j ≠ i`, and the both-indices-off-`i` interaction pairs — are invariant
 under the update; the cross terms are linear in `p i`, which is where
-the ordered-pair `1/2`-outside convention of C260 is load-bearing
-(numeric anchor: asymmetric `K` on `Fin 2 × Bool`, probe C265). -/
+the ordered-pair `1/2`-outside convention is load-bearing
+(numeric anchor: asymmetric `K` on `Fin 2 × Bool`, probe). -/
 theorem meanField_coordinate_update_eq_singleCell (β : ℝ) (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (p : ι → (α → ℝ)) (i : ι) (q : α → ℝ) :
     meanFieldFreeEnergy β B K (Function.update p i q)
@@ -542,7 +542,7 @@ omit [DecidableEq α] in
 FULL mean-field free energy: with `β > 0` and a probability vector
 `p i`, updating coordinate `i` to the local Gibbs minimizer
 `q_i = softDef (−β·hz)` changes `F` by the single-cell delta, which
-C261 proved equals `(1/β)·KL ≥ 0` (reused verbatim via
+ proved equals `(1/β)·KL ≥ 0` (reused verbatim via
 `coordinate_kl_nonneg`; positivity is NOT reproved here). -/
 theorem meanField_coordinate_gibbs_nonincreasing [Nonempty α] (β : ℝ)
     (hβ : 0 < β) (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)

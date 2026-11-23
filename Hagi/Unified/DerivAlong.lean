@@ -51,7 +51,7 @@ theorem lip_energy_quantization {W : Type*} [NormedAddCommGroup W]
     |E w - E (qTern w)| ≤ kappa * ‖w - qTern w‖ :=
   lip_energy_from_gradient E kappa hdiff hnorm w (qTern w)
 
-/-- **Разрядка h_emp_lip (евклидова форма, C605)**: мост из
+/-- **Разрядка h_emp_lip (евклидова форма)**: мост из
 `lip_energy_from_gradient` (R563) в точную форму биндера
 Runtime/TernaryExact (`dE ≤ κ·sqrt(∑ (w i − q i)²)`):
 искажение энергии от квантования весов ограничено
@@ -509,7 +509,7 @@ theorem potential_joint_of_ceLinear_residualDirection
         S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
       rw [← hCEold, hLdef, hnormStep]
 
-/-! ## Sharp-range wiring (C233 R2) -/
+/-! ## Sharp-range wiring (R2) -/
 
 /-- The sharp single-example logit range square is controlled by the same
 feature-mass constant as `ceStepRange`: transitivity of
@@ -561,7 +561,7 @@ theorem ceStepLogitQuad_le_engine
 
 /-- Sharpened pointwise joint-energy bound: under the same premises as
 `potential_joint_of_ceLinear_residualDirection`, the actual joint CE is
-bounded by the SHARP logit-range quadratic majorant (C216
+bounded by the SHARP logit-range quadratic majorant (
 `ceOneHot_next_le_rangeMajorizer`), whose quadratic term is never larger
 than the engine's by `ceStepLogitQuad_le_engine`. -/
 theorem jointEnergy_le_ceLinear_logitRange

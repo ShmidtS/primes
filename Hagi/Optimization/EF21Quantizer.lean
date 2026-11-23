@@ -34,7 +34,7 @@ that loop:
   discipline as `Hagi.Optimization.pl_linear_convergence`).
 
 Honest boundary: the REAL quantizer instances are bridged in
-`Hagi/Optimization/EF21Quantizer.lean` (C247, A7 bridge 2): fixed-
+`Hagi/Optimization/EF21Quantizer.lean` (A7 bridge 2): fixed-
 support TopK and the ternary lift `qTernVec` are `α = 0`
 contractive, NOT `α > 0` contractive (both refuted with explicit
 witnesses), and the additive-error contract `IsInexactCompressor`
@@ -200,7 +200,7 @@ set_option linter.style.openClassical false
 
 The bridge from REAL quantizers (ternary rounding, TopK sparsifier)
 to the EF21 Markov contract `IsContractive`
-(`Hagi/Optimization/EF21Markov.lean`, C231). Honest math:
+(`Hagi/Optimization/EF21Markov.lean`). Honest math:
 
 * `topK` (fixed-support mask) IS `alpha = 0` contractive
   (`topK_contractive`): zeroing the tail never expands. It is NOT

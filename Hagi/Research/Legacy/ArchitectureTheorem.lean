@@ -12,7 +12,7 @@ import Hagi.Math.Foundations.ConeTakeoff
 # T5 AntiCollapse — честная непрерывность энтропии
 
 FORMALIZATION_PLAN §7.1 T5 (P1): ревизия опровергла hcert
-(: «KL ≤ δ ⟹ энтропия не падает» — контрпример: может
+(«KL ≤ δ ⟹ энтропия не падает» — контрпример: может
 сжигать энтропию, sharpening tail при малом KL). Замена:
 Pinsker + явная непрерывность энтропии (Fannes-форма):
 

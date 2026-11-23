@@ -51,7 +51,7 @@ not a grammatical prior.
 * `task_selection_marginal` — the adaptive-task-choice corollary
 in the ComputeBudget style: among finitely many candidate
 synthetic tasks j with measured gains g_j and POSITIVE costs
-c_j > 0 (: hc — with nonpositive costs the ratio g/c is
+c_j > 0 (hc — with nonpositive costs the ratio g/c is
 meaningless, and Lean's x/0 = 0 would let the argmax exist
 vacuously), the argmax of g_j/c_j exists and its ratio
 dominates every alternative's — with positive costs the

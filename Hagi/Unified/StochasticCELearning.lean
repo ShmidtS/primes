@@ -7,7 +7,7 @@ import Hagi.Probability.Freedman
 import Hagi.Unified.StochasticLoop
 
 /-!
-# StochasticCELearning — end-to-end stochastic learning theorem (C360)
+# StochasticCELearning — end-to-end stochastic learning theorem
 
 Joint composition of the three landed pillars (the first end-to-end
 learning theorem of the repo):
@@ -26,7 +26,7 @@ learning theorem of the repo):
   (`Hagi.Unified.StochasticLoop`): per-step `CertStochasticStep`
   certificates telescope through `stochastic_loop_certified`.
 
-## The honest finite-noise route (C360)
+## The honest finite-noise route
 
 The probability layer lives on `PMF` over `Fintype` carriers; the CE
 parameter space is continuous.  The resolution: in REAL SGD the only
@@ -67,7 +67,7 @@ of the real objective.
 * `stochastic_ce_loop_whp_pl` — the drift floor DISCHARGED from PL
   (`μ = λ` via `strong_convex_pl` + `ceReg_attains`-style attainment
   binder) plus a global gap floor premise.
-* PUNNED to a follow-up (honest scope cut, C360 session): (a) the
+* PUNNED to a follow-up (honest scope cut, session): (a) the
   componentwise formalization of the REAL uniform-minibatch row
   estimator (`card V • (softmax−onehot)_v X_v + λθ`) and its
   unbiasedness for `ceGradReg` under `uniformOfFinset` — the
@@ -75,9 +75,9 @@ of the real objective.
   through `stochastic_loop_certified` per-step
   `CertStochasticStep` certificates over the product noise space
   (needs a marginalization lemma for `historyLaw` prefixes not in
-  the C353 API).
+  the API).
 * `stochastic_ce_loop_certified` — the same composition routed
-  through the C353 kernel adapter `stochastic_loop_certified`:
+  through the kernel adapter `stochastic_loop_certified`:
   per-step `CertStochasticStep` certificates over the noise-sequence
   space give the union bound + certified-loop telescope.
 
@@ -282,7 +282,7 @@ theorem pmfMean_inner_left (ν : PMF ι) (u : EuclideanSpace ℝ (Fin d))
 
 end InnerMean
 
-/-! ## Part 4: the noise-sequence chain (C360 composition) -/
+/-! ## Part 4: the noise-sequence chain (composition) -/
 
 section Chain
 
@@ -487,7 +487,7 @@ theorem stepDrift_sub_stepNoise_le (X : Matrix V (Fin d) ℝ) (t : V)
 directional unbiasedness of the stochastic gradient (`hbias`: the
 `ν`-mean of every directional pairing equals the pairing with the
 true gradient), the σ₂-centered step noise has conditional mean zero
-over the kernel — the C350 bridge premise, discharged for the real
+over the kernel — the bridge premise, discharged for the real
 objective. -/
 theorem stepNoise_mean_zero (X : Matrix V (Fin d) ℝ) (t : V) (lam γr : ℝ)
     (hγ : γr ≠ 0)
@@ -790,7 +790,7 @@ theorem stepDrift_ge_floor (X : Matrix V (Fin d) ℝ) (t : V) (lam γr : ℝ)
   linarith
 
 set_option maxHeartbeats 400000 in
-/-- **THE FIRST END-TO-END STOCHASTIC LEARNING THEOREM** (C360).
+/-- **THE FIRST END-TO-END STOCHASTIC LEARNING THEOREM**.
 
 Training the REAL ℓ2-regularized log-linear CE head `ceReg X t lam`
 by stochastic gradient descent with a FRESH noise sample per step
@@ -932,7 +932,7 @@ theorem stochastic_ce_loop_whp
   exact hcongr.trans_ge hmain
 
 
-/-- **PL-discharged endgame corollary** (C360): the global gradient
+/-- **PL-discharged endgame corollary**: the global gradient
 floor `cGsq` of the main theorem is DERIVED from the PL inequality
 of the regularized objective (`μ = lam`, `strong_convex_pl` with
 the first-order strong convexity `ceReg_strong_convex_ident` and

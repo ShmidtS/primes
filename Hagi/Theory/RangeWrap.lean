@@ -6,7 +6,7 @@ import Hagi.Theory.FactLedger
 set_option relaxedAutoImplicit false
 
 /-!
-# RangeWrap — piecewise range-affine мост (C581, волна 222)
+# RangeWrap — piecewise range-affine мост (волна 222)
 
 Roadmap C580-анализа top-1: мост к HAGI_v2 piecewise range-affine
 шаблону (`hagi/core.py`, функция `_mod_affine_expr`): синтез

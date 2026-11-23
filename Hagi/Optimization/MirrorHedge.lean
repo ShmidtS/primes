@@ -22,10 +22,10 @@ end Hagi.Optimization
 /-!
 # MirrorHedge — канон зеркального шага (хаб)
 
-Хаб (split C259): семейство экспоненциальных весов
+Хаб (split): семейство экспоненциальных весов
 (Gibbs-концентрация, MWU-потенциал, зеркальный шаг, Hedge-роутинг,
 survivor-склейка аудита v5). Содержимое разнесено в тематические
-части; модуль сохраняет имя для потребителей (C236 → C259).
+части; модуль сохраняет имя для потребителей (→).
 -/
 
 set_option linter.style.header false
@@ -34,7 +34,7 @@ set_option linter.style.header false
 # MirrorHedgeCore
 
 Зеркальный шаг (вариационный принцип): mirrorStep, тождество зеркального спуска, floor/attainment, AIF-EFO, hedge_free_energy_step, mirror_progress_identity.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 /-
@@ -317,7 +317,7 @@ set_option linter.style.header false
 # MirrorHedgeRegret
 
 Итерированные зеркальные веса: mirrorIterate, regret-оценки (mirror_step_regret, mirror_regret), semigroup-свойство и кумулятивность.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -768,7 +768,7 @@ set_option linter.style.header false
 # MirrorHedgeEnergy
 
 Энергетическая монотонность итераций: mirrorIterate_energy_monotone/converges и термодинамический предел mirrorIterate_energy_infimum (Nernst), stepNorm и compose.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -1045,7 +1045,7 @@ set_option linter.style.header false
 # MirrorHedgeWealth
 
 Hedge-капитал: hedge_wealth_product (телескопирование нормировок), hedge_wealth_nernst, hedge_wealth_rate, mirror_step_variational_descent, mirrorIterate_partial_mono.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -1442,7 +1442,7 @@ set_option linter.style.header false
 # MirrorHedgeRouting
 
 Exponential-weights routing (Hedge): exp_neg_le_quad, hedge_step, hedge_telescope, router_regret_bound.
-Split from `MirrorHedge` (C259).
+Split from `MirrorHedge`.
 -/
 
 /-!
@@ -1619,8 +1619,8 @@ set_option linter.style.header false
 /-!
 # MirrorHedgeSurvivor
 
-HedgeSurvivor — склейка аудита v5 (C228): ewWeight/ewPot/ewNorm, hsurv_derived, ewNorm_survivor_lower, ewNorm_as_mirror.
-Split from `MirrorHedge` (C259).
+HedgeSurvivor — склейка аудита v5: ewWeight/ewPot/ewNorm, hsurv_derived, ewNorm_survivor_lower, ewNorm_as_mirror.
+Split from `MirrorHedge`.
 -/
 
 /-!

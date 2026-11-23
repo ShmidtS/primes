@@ -7,21 +7,21 @@ Authors: HAGI_v2 authors
 import Hagi.Theory.NegativeTransfer
 
 /-!
-# GrowthGate — certified-гейт ёмкости: когда рост оправдан (C632)
+# GrowthGate — certified-гейт ёмкости: когда рост оправдан
 
-Новая эра (roadmap C631 top-1): rank/adapter-ёмкость. Аналогия
-transfer-гейта (C601 bench / C577 `autoGate`): рост ёмкости
+Новая эра (roadmap top-1): rank/adapter-ёмкость. Аналогия
+transfer-гейта (bench / `autoGate`): рост ёмкости
 (rank+1 / adapter-add) допустим ⟺ certified-выигрыш покрывает
 стоимость. Модель: текущая модель M_r (rank r) дообучается
 градиентно на residual; при L-smooth и градиентной G-границе
 guaranteed per-step drop равен `G²/(2L)` при оптимальном шаге
-γ* = 1/L (C606 `nl_drop_optimal`) ⇒ за n шагов возможное
+γ* = 1/L (`nl_drop_optimal`) ⇒ за n шагов возможное
 убывание objective ≤ `n·G²/(2L)` (`nl_drop_total`). Стоимость
 добавления ёмкости — scalar `c_add` (параметры/вычисления).
 
 - `growthGate (potentialBound cAdd : ℚ) : Bool` — grow ⟺
   potentialBound > c_add (равенство → stay: budget-приоритет
-  меньшей ёмкости, паттерн C535 `rankSelect`);
+  меньшей ёмкости, паттерн `rankSelect`);
 - `growth_gate_stay_char` — гейт совпадает с порогом
   (детерминизм тотального порядка ℚ);
 - `growth_gate_sound` (MAIN) — CERTIFIED-STAY: если
@@ -30,18 +30,18 @@ guaranteed per-step drop равен `G²/(2L)` при оптимальном ш�
   budget-класса границ G, L) уменьшает objective не более чем на
   `c_add` — рост НЕ может окупиться за n шагов.
 
-Отличия от прецедентов: C535 — селектор ранга 1 vs 2 по измеренным
+Отличия от прецедентов — селектор ранга 1 vs 2 по измеренным
 probe-score (выбор режима); здесь — решение «расти/нет» по
 ФОРМУЛЬНОЙ границе теории против cost-модели, до всякого probe.
-C601/C577 — сравнение двух измеренных probe-прогонов; здесь —
-ноль измерений: чистая theory-граница (C606) + scalar cost.
+ — сравнение двух измеренных probe-прогонов; здесь —
+ноль измерений: чистая theory-граница + scalar cost.
 
 ## Honest pins (что этот модуль НЕ покрывает)
 
 - **Потенциал-модель — квадратичный класс** (`hmodel`):
-  равенство в descent-лемме (прецедент C572: точная теория — в
+  равенство в descent-лемме (прецедент точная теория — в
   квадратичном мире). Для ОБЩЕГО L-smooth non-quadratic objective
-  certified-потолок per-step drop шире — форма `nlBudget` C592
+  certified-потолок per-step drop шире — форма `nlBudget`
   `γG² + Lγ²G²/2` (= 3G²/(2L) при γ = 1/L); там гейт нужно
   пересчитывать с этой более широкой границей.
 - **Grow-ветка = разрешение, НЕ обещание**:
@@ -53,7 +53,7 @@ C601/C577 — сравнение двух измеренных probe-прого�
   теорем. Граница G — градиентная граница ТЕКУЩЕЙ модели на
   residual: если модель роста имеет больший G, bound пересчитывается
   и гейт честно решает заново (гейт — функция констант, паттерн
-  детерминизма C535).
+  детерминизма).
 -/
 
 set_option relaxedAutoImplicit false
@@ -66,16 +66,16 @@ open Hagi.Theory.NegativeTransfer
 
 /-! ## Детерминированный ℚ-гейт ёмкости -/
 
-/-- **growthGate (C632, def)**: решение grow/stay по формульной
-границе — рост оправдан ⟺ potential-bound (n·G²/(2L), C606)
+/-- **growthGate (def)**: решение grow/stay по формульной
+границе — рост оправдан ⟺ potential-bound (n·G²/(2L))
 СТРОГО больше стоимости c_add. Равенство → stay (budget-приоритет
-меньшей ёмкости, паттерн C535 `rankSelect`; тотальный порядок ℚ
+меньшей ёмкости, паттерн `rankSelect`; тотальный порядок ℚ
 делает сравнение детерминированным — повторный вызов на тех же
 константах даёт тот же ответ). -/
 def growthGate (potentialBound cAdd : ℚ) : Bool :=
   decide (cAdd < potentialBound)
 
-/-- **growth_gate_stay_char (C632)**: stay-ветка гейта — в точности
+/-- **growth_gate_stay_char**: stay-ветка гейта — в точности
 порог «bound ≤ cost»: гейт не добавляет и не теряет информации
 относительно сравнения чисел (детерминизм, no hidden state). -/
 theorem growth_gate_stay_char (pb c : ℚ) :
@@ -92,32 +92,32 @@ theorem growth_gate_stay_char (pb c : ℚ) :
 
 /-! ## n-шаговая certified-граница возможного выигрыша
 
-Модель потенциала: КВАДРАТИЧНЫЙ класс (прецедент C572: там
+Модель потенциала: КВАДРАТИЧНЫЙ класс (прецедент там
 точная iff-теория живёт в квадратичном мире; честный pin ниже).
 hmodel — точная форма потенциала на оптимальном шаге: drop за
 один γ*=1/L-шаг РАВЕН `‖grad x‖²/(2L)` (для f = (L/2)·quadObj —
-равенство в descent-лемме; guaranteed-drop C606 `G²/(2L)` —
+равенство в descent-лемме; guaranteed-drop `G²/(2L)` —
 значение этой же формы на границе G). -/
 
 section TotalDrop
 
 variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- **nl_drop_step_eq (C632, a)**: per-step guaranteed drop при
+/-- **nl_drop_step_eq (a)**: per-step guaranteed drop при
 оптимальном шаге γ* = 1/L для ЛЮБОГО значения градиента x —
-поточечная форма `nl_drop_optimal` (C606: x = G). -/
+поточечная форма `nl_drop_optimal` (x = G). -/
 theorem nl_drop_step_eq {L : ℝ} (hL : L ≠ 0) (x : ℝ) :
     nlDrop (1 / L) L x = x ^ 2 / (2 * L) := by
   unfold nlDrop
   field_simp
   ring
 
-/-- **nl_drop_total (C632, b)**: телескоп-индукция — в квадратичной
+/-- **nl_drop_total (b)**: телескоп-индукция — в квадратичной
 потенциальной модели (hmodel: drop одного γ*=1/L-шага ТОЧНО равен
 `‖grad‖²/(2L)`, descent-лемма без зазора) n шагов уменьшают
 objective ровно на `Σ‖grad_k‖²/(2L)` и потому НЕ БОЛЕЕ чем на
 `n·G²/(2L)` — certified-потолок возможного выигрыша n-шагового
-дообучения (per-step drop ≤ потолка C606 `nl_drop_optimal`). -/
+дообучения (per-step drop ≤ потолка `nl_drop_optimal`). -/
 theorem nl_drop_total (f : E → ℝ) (grad : E → E) (L G : ℝ)
     (hL : 0 < L) (n : ℕ) (z : E)
     (hmodel : ∀ x : E, f (nlStep (1 / L) grad x)
@@ -167,7 +167,7 @@ end TotalDrop
 
 /-! ## Certified-stay (sound-ветка гейта) -/
 
-/-- **growth_gate_sound (C632, MAIN — certified stay)**: если
+/-- **growth_gate_sound (MAIN — certified stay)**: если
 потолок возможного выигрыша n-шагового дообучения `n·G²/(2L)`
 НЕ превышает стоимость добавления ёмкости `c_add`, то ЛЮБОЕ
 такое дообучение уменьшает objective не более чем на `c_add` —

@@ -205,7 +205,7 @@ theorem nc_loop_horizon (S : NCState) (u : ℕ → NCInput)
 end Hagi.Unified.NCStepCert
 
 /-!
-# NCTheorem (приоритет 7 «HAGI Neural Computer», )
+# NCTheorem (приоритет 7 «HAGI Neural Computer»)
 
 ГЛОБАЛЬНАЯ ТЕОРЕМА нейрокомпьютера: траектория
 ncAdvance-переходов с честными контрактами шага

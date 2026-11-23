@@ -14,11 +14,11 @@ set_option linter.style.header false
 The rank-1 track of `.omc/analysis/period-c330-c335-analysis.md`:
 per-token depth routing with a certified early-exit error bound —
 what the mixture-of-depths idea buys once the backbone certificate
-is on the C300 stack (`Hagi.Model.BackboneTransfer`).
+is on the stack (`Hagi.Model.BackboneTransfer`).
 
 The exit model: `G` is the full residual stack `resStack`, and
 `G_k` runs only the FIRST k blocks, then identity (the rest
-skipped). The C300 leak theorem `resStack_leak_le` bounds the
+skipped). The leak theorem `resStack_leak_le` bounds the
 UPDATE-path deviation `‖G(x+dx) − Gx − dx‖` — it does NOT bound
 the skip distance `‖G x − G_k x‖`, and this module does not
 misapply it. The honest skip composition is the premise-form the
@@ -27,7 +27,7 @@ globally bounded `‖res z‖ ≤ bᵢ` (a PREMISE, no claim any trained
 net satisfies it), the exit error obeys the tail-leak sum
 `Σᵢ bᵢ·∏_{j>i}(1+μⱼ)` (`exitLeak`, recursive, plus the explicit
 `exitLeak_eq_sum`). The μ weights enter through `stackGain` of the
-blocks strictly after each position — the C300 multiplicative
+blocks strictly after each position — the multiplicative
 pattern as an amplification weight, with NO Lipschitz premise
 needed for the skip distance itself.
 
@@ -37,8 +37,8 @@ at `k = route x`, THEN the token's exit-head output deviates from
 the full-stack head output by at most `Lh · exitLeak (drop k)`
 (head Lipschitz composed C311-style) AND its executed work is the
 prefix share of the exact work ledger `early_exit_work` (per-block
-counts in the C328 entry-read model, `denseMatVecWork` the cited
-form). A depth router for WHO exits is the C325 sleeping-router
+counts in the entry-read model, `denseMatVecWork` the cited
+form). A depth router for WHO exits is the sleeping-router
 pattern (`Hagi.Learning.SleepingRouter`); connected by citation
 only, no integration claimed.
 
@@ -54,17 +54,17 @@ open Hagi.Model.Residual Hagi.Model.BackboneTransfer
 variable {X : Type*} [NormedAddCommGroup X]
 
 /-- A depth-routed residual block: the residual branch `res`, its
-damping `mu` (the C300 `μᵢ`), the global residual-magnitude bound
+damping `mu` (`μᵢ`), the global residual-magnitude bound
 `bres` (`‖res z‖ ≤ bres` for every z), and the per-block work count
-`work` (C328 entry-read model). -/
+`work` (entry-read model). -/
 structure DepthBlock (X : Type*) [NormedAddCommGroup X] where
   /-- The residual branch of the block. -/
   res : X → X
-  /-- The block damping `μᵢ` (C300). -/
+  /-- The block damping `μᵢ`. -/
   mu : NNReal
   /-- The global residual-magnitude premise bound `bᵢ`. -/
   bres : NNReal
-  /-- The per-block work count `Wᵢ` (C328 count model). -/
+  /-- The per-block work count `Wᵢ` (count model). -/
   work : ℕ
 
 def toBlocks (blocks : List (DepthBlock X)) : List ((X → X) × NNReal) :=
@@ -156,7 +156,7 @@ theorem early_exit_error (blocks : List (DepthBlock X)) (k : ℕ)
 
 /-- MAIN 2 (head-composed bound): the exit head applied at depth k
 vs the same head at the full output differs by at most `Lh` times
-the tail `exitLeak` (C311 transfer style: head Lipschitz composes
+the tail `exitLeak` (transfer style: head Lipschitz composes
 through the skip distance). -/
 theorem early_exit_error_bound (blocks : List (DepthBlock X)) (k : ℕ)
     (hb : ∀ d ∈ blocks, ∀ z : X, ‖d.res z‖ ≤ (d.bres : ℝ)) (x : X)
@@ -178,7 +178,7 @@ theorem early_exit_error_bound (blocks : List (DepthBlock X)) (k : ℕ)
     _ ≤ Lh * exitLeak (blocks.drop k) :=
         mul_le_mul_of_nonneg_left h2 (NNReal.coe_nonneg Lh)
 
-/-- The per-block work sum (C328 count model per layer). -/
+/-- The per-block work sum (count model per layer). -/
 def blockWork (blocks : List (DepthBlock X)) : ℕ :=
   (blocks.map DepthBlock.work).sum
 

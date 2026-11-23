@@ -224,11 +224,11 @@ noncomputable def mergeStrictCertStep (t : Fin 2) (a : ℝ) (ha : a ≠ 0) :
     (jensenGap_pos_witness a ha)
 
 /-!
-## C619: the merge bridge for ARBITRARY convex-combination merges
+## the merge bridge for ARBITRARY convex-combination merges
 
 The R263 bridge above discharges `h_emp_merge` only for the
 two-expert flat-concat `(z₁+z₂)/2`. The weighted Jensen bound
-`Hagi.Core.lse_weighted_le` (InfoCore, C619) closes the class of
+`Hagi.Core.lse_weighted_le` (InfoCore) closes the class of
 ALL finite convex-combination merge operators: for strictly
 positive weights `w` with `∑ a, w a = 1`, the mixture
 `z_w = ∑ a, w a • z a` (α-mixing of two experts, the N-expert
@@ -245,12 +245,12 @@ variable {k : Type} [Fintype k] [Nonempty k] {N : ℕ}
 
 /-- The weighted Jensen gap of an N-child merge: the
 normalizer-level disagreement `∑ w·lse − lse(mixture)` the
-children average away (weighted Core `lse` theory, C619). -/
+children average away (weighted Core `lse` theory). -/
 noncomputable def jensenGapW (w : Fin N → ℝ) (z : Fin N → k → ℝ) : ℝ :=
   ∑ a, w a * Hagi.lse (z a) - Hagi.lse (∑ a, w a • z a)
 
 /-- The weighted gap is nonnegative — weighted Jensen for `lse`
-(`Hagi.Core.lse_weighted_le`, C619). -/
+(`Hagi.Core.lse_weighted_le`). -/
 theorem jensenGapW_nonneg (w : Fin N → ℝ) (z : Fin N → k → ℝ)
     (hw : ∀ a, 0 < w a) (hw' : ∑ a, w a = 1) :
     0 ≤ jensenGapW w z := by
@@ -258,7 +258,7 @@ theorem jensenGapW_nonneg (w : Fin N → ℝ) (z : Fin N → k → ℝ)
   unfold jensenGapW
   linarith
 
-/-- **The weighted merge-energy bridge (C619)**: for every token
+/-- **The weighted merge-energy bridge**: for every token
 `t`, the convex-combination merged model's cross-entropy is
 EXACTLY the children's weighted mean minus the weighted Jensen
 gap. Both the stage law `mergeEnergy ≤ growEnergy − gap` (an
@@ -280,7 +280,7 @@ theorem merge_energy_bridgeW (t : k) (w : Fin N → ℝ) (z : Fin N → k → �
   rw [hsplit]
   ring
 
-/-- **h_emp_merge for the whole convex-combination class (C619)**:
+/-- **h_emp_merge for the whole convex-combination class**:
 with the stage ledger fields read off an arbitrary finite
 convex mixture (`growEnergy` = the children's weighted-mean CE,
 `mergeEnergy` = the merged model's CE, `gap` = the weighted

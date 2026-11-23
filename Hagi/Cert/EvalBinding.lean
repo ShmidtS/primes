@@ -2,7 +2,7 @@ import Mathlib.Tactic
 import Hagi.Cert.StepGen
 
 /-!
-# EvalBinding — certificates bound to real evaluation (A16, C378)
+# EvalBinding — certificates bound to real evaluation (A16)
 
 A16 directive, top-priority item: every certificate must bind to REAL
 evaluation `Eval(θ, A, B)` — the actual loss for parameters θ,
@@ -26,7 +26,7 @@ THREE type-distinct concepts instead of one conflated `ℝ` risk.
 * The machine-vs-abstract gap is HONEST: a `MachineEvalBridge` is a
   premise `|machineEval − evalFn| ≤ ε_eval`, instantiated by consumers
   from the Runtime rounding lemmas (TernaryExact / BF16Delta) —
-  Runtime is not imported here (layering; the C375 `coord_err_bound`
+  Runtime is not imported here (layering `coord_err_bound`
   premise pattern).
 
 Honest pins (A16): `evalFn (θ, A, B) → ℝ` stays an abstract PARAMETER —
@@ -86,7 +86,7 @@ def riskRemaining (S : Type*) (risk : S → ℝ) (s : S) : RiskRemaining S risk 
   val := risk s
   hval := rfl
 
-/-- ADAPTER (C378): the frozen kernel's ℝ field `CertStepGen.riskRem`
+/-- ADAPTER: the frozen kernel's ℝ field `CertStepGen.riskRem`
 maps explicitly into the typed `RiskRemaining` of the post-state —
 no frozen statement changes, and new consumers get the type
 protection. -/
@@ -119,7 +119,7 @@ architecture, batch → loss.  Honest pin: a PARAMETER; real network
 evaluation is out of Lean scope. -/
 abbrev EvalFn (Θ A B : Type*) : Type _ := Θ → A → B → ℝ
 
-/-- Machine-vs-abstract rounding bridge (C375 premise pattern): the
+/-- Machine-vs-abstract rounding bridge (premise pattern): the
 machine evaluation is within `eps` of the abstract evaluation
 everywhere.  Consumers instantiate `bound` from Runtime rounding
 lemmas (TernaryExact / BF16Delta); no `machine = real` pretense. -/

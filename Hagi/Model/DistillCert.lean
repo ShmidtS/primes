@@ -3,7 +3,7 @@ import Hagi.Energy.Quantizer
 import Hagi.Optimization.MomentumHB
 
 /-!
-# DistillCert (приоритет 6 «HAGI Neural Computer», ):
+# DistillCert (приоритет 6 «HAGI Neural Computer»):
 СЕРТИФИКАТ КОНСОЛИДАЦИИ — качество после дистилляции
 И квантования.
 

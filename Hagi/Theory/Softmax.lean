@@ -9,7 +9,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Softmax — the certified rational exp-interval canon (C486 → C516)
+# Softmax — the certified rational exp-interval canon (→)
 
 One canonical module for the certified softmax sandwich family
 (merged from RationalSoftmax.lean + SandwichMonotone.lean +
@@ -21,29 +21,29 @@ rational at rational `x`), so a rational-arithmetic softmax built
 from them is provably below and above the true softmax.
 
 * The exponential interval and the certified softmax / CE bridge
-  (`Hagi.Theory.RationalSoftmax`, C486/C489): the two-sided
+  (`Hagi.Theory.RationalSoftmax`): the two-sided
   rational exponential bounds, `rationalSoftmaxCert`, and the
   one-hot CE certificates `certCE_le` / `certCE_gap`.
 * Monotonicity in the LOGIT and certified prediction
-  (`Hagi.Theory.SandwichMonotone`, C495): the rational walls are
+  (`Hagi.Theory.SandwichMonotone`): the rational walls are
   monotone in `x`, disjoint sandwich intervals certify the argmax
-  (the C489 Bernoulli-in-`n` pin remained open — closed one layer
+  (the Bernoulli-in-`n` pin remained open — closed one layer
   up by BandTightening).
-* Summed `p̂` anti-monotonicity, exactly characterized (C569):
+* Summed `p̂` anti-monotonicity, exactly characterized:
   the TOTAL lower estimate is anti-monotone when only the
   denominator walls of ONE band are refined
   (`sum_phat_anti_mono_single_domain`); when the walls move
-  with the logits the total is NOT anti-monotone — the C495
+  with the logits the total is NOT anti-monotone
   honest pin, now a formal counterexample inside the certified
   band (`band_mix_counterex`, `phat_total_not_anti_mono`).
 * Monotonicity in the DENOMINATOR and band tightening
-  (`Hagi.Theory.BandTightening`, C502): `(1 + x / n) ^ n` is
-  nondecreasing in `n` (the closed C489 pin, Lagrange MVT), the
+  (`Hagi.Theory.BandTightening`): `(1 + x / n) ^ n` is
+  nondecreasing in `n` (the closed pin, Lagrange MVT), the
   band width shrinks under wall refinement, and adaptive
   calibration certifies the midpoint argmax.
 -/
 
-/-! ## RationalSoftmax — the exp interval and the certified softmax/CE bridge (C486/C489) -/
+/-! ## RationalSoftmax — the exp interval and the certified softmax/CE bridge -/
 
 namespace Hagi.Theory.RationalSoftmax
 
@@ -164,7 +164,7 @@ widths `(hi u * ∑ hi) / (lo u * ∑ lo)` — the product of the
 pointwise interval width `hi u / lo u` and the normalizer
 interval width `∑ hi / ∑ lo`.  This is the certified
 `(n, m, R)`-width link for the `(1 + x / n) ^ n` family (see the
-module docstring; the C442 / C481 surrogate closure rides on
+module docstring; the surrogate closure rides on
 this bound in a future bench bit). -/
 theorem certCE_gap {z lo hi : V → ℝ}
     (hlo : ∀ v, lo v ≤ Real.exp (z v)) (hlo0 : ∀ v, 0 < lo v)
@@ -203,7 +203,7 @@ theorem certCE_gap {z lo hi : V → ℝ}
 
 end Hagi.Theory.RationalSoftmax
 
-/-! ## SandwichMonotone — logit monotonicity and certified prediction (C495) -/
+/-! ## SandwichMonotone — logit monotonicity and certified prediction -/
 
 namespace Hagi.Theory.SandwichMonotone
 
@@ -246,7 +246,7 @@ theorem expUpper_mono {m : ℕ} (hm : 0 < m) {x x' : ℝ}
     linarith
   exact pow_le_pow_left₀ hbase0 hbase m
 
-/-- The C489 product-form upper bound in relation form: for
+/-- The product-form upper bound in relation form: for
 `0 < m` and `x < m`, `e ^ x ≤ 1 / (1 - x/m) ^ m` (the inverse
 of the shrinking base).  This is the `hi` shape used by the
 numeric example below. -/
@@ -287,7 +287,7 @@ theorem sandwich_lower_anti_mono {lo hi hi' : V → ℝ}
   rw [div_le_div_iff₀ hsum' hsum]
   exact mul_le_mul_of_nonneg_left hsumle (le_of_lt (hlo0 v))
 
-/-- C569 single-domain total lift: summing the pointwise
+/-- single-domain total lift: summing the pointwise
 anti-monotonicity over ALL classes, the TOTAL lower sandwich
 estimate inherits it — as long as the refinement touches only
 the denominator walls (`hi ≤ hi'` pointwise from ONE band,
@@ -304,7 +304,7 @@ theorem sum_phat_anti_mono_single_domain {lo hi hi' : V → ℝ}
   exact Finset.sum_le_sum (fun v _ =>
     sandwich_lower_anti_mono hlo0 hhi0 hhi'0 hle v)
 
-/-! ## The mixed-domain negative (C495 counterexample, C569 formalization) -/
+/-! ## The mixed-domain negative (counterexample, formalization) -/
 
 /-- Bernoulli lower wall with `n = 1`: `loN1 x = 1 + x`. -/
 noncomputable def loN1 (x : ℝ) : ℝ := 1 + x
@@ -320,7 +320,7 @@ anti-monotonicity FAILS (`band_mix_counterex`). -/
 noncomputable def totalLo (z : Fin 2 → ℝ) : ℝ :=
   ∑ v, loN1 (z v) / ∑ w, hiM3 (z w)
 
-/-- The C495 negative, formalized (C569): inside a fully
+/-- The negative, formalized: inside a fully
 CERTIFIED band (`1 + x ≤ e ^ x ≤ (1 - x/3)⁻³` on every
 logit), with nested logits `z ≤ z'` in the valid domain
 `[0, 3)`, the total lower estimate can still GROW:
@@ -452,12 +452,12 @@ theorem certified_pred_sep {z lo hi : V → ℝ} {b : V}
   have h3 := hsep a ha
   linarith
 
-/-! ## Numeric example: the C489 sanity case is certified -/
+/-! ## Numeric example: the sanity case is certified -/
 
 /-- Powers of the sanity case `z = (0, 1, 2)`, `n = m = 10`,
 as exact rationals: the lower bounds `(11/10) ^ 10` and
 `(6/5) ^ 10` and the upper bounds `(10/9) ^ 10` and
-`(5/4) ^ 10` (inverse form of the C489 shrinking bases). -/
+`(5/4) ^ 10` (inverse form of the shrinking bases). -/
 example : (11 / 10 : ℝ) ^ 10 = 25937424601 / 10000000000 := by norm_num
 
 example : (6 / 5 : ℝ) ^ 10 = 60466176 / 9765625 := by norm_num
@@ -499,7 +499,7 @@ theorem sandwich_sep12 :
 
 end Hagi.Theory.SandwichMonotone
 
-/-! ## BandTightening — Bernoulli monotonicity in n and band tightening (C502) -/
+/-! ## BandTightening — Bernoulli monotonicity in n and band tightening -/
 
 namespace Hagi.Theory.BandTightening
 
@@ -591,10 +591,10 @@ theorem log_add_one_sub_div_pos {u : ℝ} (h1 : -1 < u)
       field_simp
     linarith
 
-/-! ## Bernoulli monotonicity (the C489 pin, closed) -/
+/-! ## Bernoulli monotonicity (the pin, closed) -/
 
 /-- The Bernoulli sequence is nondecreasing: for `0 < n ≤ m`
-and `-n ≤ x`, `(1 + x/n) ^ n ≤ (1 + x/m) ^ m` — the C489
+and `-n ≤ x`, `(1 + x/n) ^ n ≤ (1 + x/m) ^ m`
 lower rational exponential bound grows with its denominator.
 Degenerate walls first (`x = -n`: left side `0`; `x = 0`:
 both sides `1`), then Lagrange MVT for
@@ -749,7 +749,7 @@ theorem bernoulliLower_mono {n m : ℕ} (hn : 0 < n) (hnm : n ≤ m)
 
 /-- The upper bound base INCREASES: for `0 < m ≤ k` and
 `x < m`, `(1 - x/m) ^ m ≤ (1 - x/k) ^ k` — so the upper
-rational wall `(1 - x/m) ^ (-m)` of the C489 sandwich
+rational wall `(1 - x/m) ^ (-m)` of the sandwich
 SHRINKS as `m` grows (its denominator grows)
 (`bernoulliLower_mono` at `-x`; the premise `-m ≤ -x` is
 `x ≤ m`, implied by `x < m`). -/
@@ -769,7 +769,7 @@ theorem expUpper_base_mono {m k : ℕ} (hm : 0 < m)
 variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- The normalized certified band width of class `v` in the
-C495/C497 bench: the width of the sandwich interval
+ bench: the width of the sandwich interval
 `[lo v / ∑ hi, hi v / ∑ lo]`. -/
 noncomputable def bandWidth (lo hi : V → ℝ) (v : V) : ℝ :=
   hi v / ∑ w, lo w - lo v / ∑ w, hi w
@@ -853,7 +853,7 @@ theorem cert_pred_adaptive_mono {z lo hi lo' hi' : V → ℝ}
 
 /-! ## Numeric sanity -/
 
-/-- Bernoulli sanity from the C497 bench shape: the max-shift
+/-- Bernoulli sanity from the bench shape: the max-shift
 lower bounds tighten from `n = 4` to `n = 8` at `x = -2`
 (`(1/2) ^ 4 ≤ (3/4) ^ 8`), an instance of the closed pin. -/
 example : (1 + (-(2 : ℝ)) / 4) ^ 4 ≤ (1 + (-(2 : ℝ)) / 8) ^ 8 :=

@@ -6,11 +6,11 @@ import Hagi.Probability.Freedman
 import Hagi.Unified.CertifiedLoop
 
 /-!
-# StochasticLoop — стохастический certified loop через ядерный адаптер (C353)
+# StochasticLoop — стохастический certified loop через ядерный адаптер
 
 Consumer-layer адаптер (A14 C352-analysis top-1): цепь
-стохастических шагов C350 (`CertStochasticStep`: drop / failure /
-descent_whp) погружается в ядерный капстон C345
+стохастических шагов (`CertStochasticStep`: drop / failure /
+descent_whp) погружается в ядерный капстон
 (`certified_loop_kernel` над `CertStepGenBounded`), так что
 стохастический тренировочный цикл получает ту же
 certified-loop гарантию, что и детерминированные, с whp-бюджетом
@@ -195,7 +195,7 @@ drop'ы) ≥ 1 − ∑ δ_j: суммарная вероятность отка�
 (2) TELESCOPE: на good-событии пер-шаговые drop'ы телескопируют
 (∑ drops ≤ obj₀ − obj_T), floors держатся, бюджет неотрицателен —
 заключения выведены ЧЕРЕЗ `certified_loop_kernel` (ядерный
-капстон C345, переиспользование).
+капстон переиспользование).
 
 Посылки: `certs` — CertStochasticStep-сертификаты шагов;
 `hnn` — δ_j ≥ 0; `hfail` — failure_j ≤ δ_j; `hbnb`/`hflr` —

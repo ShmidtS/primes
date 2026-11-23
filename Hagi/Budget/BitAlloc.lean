@@ -504,7 +504,7 @@ sensitivity, any budget split `x + (x + 2d)` is dominated by
 the balanced split `(x+d, x+d)` — balancing two layers never
 hurts (even imbalance; the odd case is covered up to the
 factor-2 invariant of `stable_factor_two`). The greedy
-exchange loop TERMINATES ( `BitAllocTermination.
+exchange loop TERMINATES (`BitAllocTermination.
 no_infinite_improving_chain`: finite allocation space +
 strict improvement ⟹ pigeonhole), and at the stop point
 `stable_factor_two` certifies factor-2 balance. Still not
@@ -685,7 +685,7 @@ theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
     (hsumf : ∑ i, f i = B) (hsumg : ∑ i, g i = B)
     (halign : ∀ i j, c i / 2 ^ (f i) = c j / 2 ^ (f j)) :
     totalErrorCont c f ≤ totalErrorCont c g := by
-  -- C237: reduced to the shared exponential water-filling core
+  -- reduced to the shared exponential water-filling core
   -- `RankBudget.rankResidual_equalized` with κ = log 2 and unit
   -- budget weights (the dictionary 2^x = exp (x log 2); the former
   -- Jensen engine is superseded by the canon tangent bound).

@@ -4,9 +4,9 @@ import Hagi.External.Flywheel.SVDRectangularOrdering
 set_option relaxedAutoImplicit false
 
 /-!
-# Rectangular spectral identification bridge (E2 / C281)
+# Rectangular spectral identification bridge (E2 /)
 
-C232 embedded rectangular carriers into the square Flywheel SVD via
+ embedded rectangular carriers into the square Flywheel SVD via
 the row-selector `selP inj` and proved the Eckart-Young lower bound
 for the EMBEDDED spectrum, deferring its identification with the
 rectangular `Matrix.SVD.Rectangular.singularValues` spectrum. This
@@ -26,10 +26,10 @@ Hermitian Gram matrix, hence:
 * `embedded_singularValues_eq_rect` — the embedded square
   `Matrix.SVD.singularValues₀` agrees with
   `Matrix.SVD.Rectangular.singularValues` on the `min`-index range;
-* `tail_sum_sq_truncatedSingularValues_tail_eq` — the C232 tail
+* `tail_sum_sq_truncatedSingularValues_tail_eq` — the tail
   sum over the embedded spectrum equals the sum over the TRUE
   rectangular tail `rectangularTail`;
-* `eckart_young_lower_bound_rect_true_tail` — the C232 rectangular
+* `eckart_young_lower_bound_rect_true_tail` — the rectangular
   Eckart-Young lower bound restated against the rectangular
   spectrum itself (the audit's identification);
 * `gradient_bottleneck_bound_rect_true_tail` — the consumer
@@ -47,7 +47,7 @@ offers a `LinearMap.singularValues` API with the analogous facts,
 but no matrix ↔ `LinearMap` bridge is pinned in this repository;
 this file stays in the matrix/`eigenvalues₀` carrier.
 
-Created: 2026-11-15 (C281)
+Created: 2026-11-15
 -/
 
 open Matrix Finset
@@ -134,7 +134,7 @@ set_option linter.unusedDecidableInType false in
 index range, the square `Matrix.SVD.singularValues₀` of the
 embedded matrix `selP inj * A` agrees with the rectangular
 `Matrix.SVD.Rectangular.singularValues` of `A`. This is the
-identification deferred by C232. -/
+identification deferred . -/
 theorem embedded_singularValues_eq_rect (inj : m → n) (hinj : Function.Injective inj)
     (A : Matrix m n ℂ) (k : Fin (min (Fintype.card m) (Fintype.card n))) :
     Matrix.SVD.singularValues₀ (selP inj * A)
@@ -203,7 +203,7 @@ noncomputable def rectangularTail (A : Matrix m n ℂ) (k : ℕ) :
 
 set_option linter.unusedSectionVars false in
 set_option linter.unusedDecidableInType false in
-/-- **Tail-sum identification**: the C232 tail sum — squares of
+/-- **Tail-sum identification**: the tail sum — squares of
 `truncatedSingularValues_tail` of the EMBEDDED matrix `selP inj *
 A` — equals the sum of squares of the TRUE rectangular tail
 `rectangularTail`. Indices at or beyond `min #m #n` contribute
@@ -292,7 +292,7 @@ set_option linter.unusedDecidableInType false in
 /-- **Rectangular Eckart-Young lower bound, true-tail form**: any
 rectangular `B` with `B.rank ≤ k` leaves Frobenius error at least
 the squared tail of the RECTANGULAR spectrum of `A` itself — the
-C232 `eckart_young_lower_bound_rect` bound with its tail identified
+ `eckart_young_lower_bound_rect` bound with its tail identified
 via `tail_sum_sq_truncatedSingularValues_tail_eq`. -/
 theorem eckart_young_lower_bound_rect_true_tail (inj : m → n)
     (hinj : Function.Injective inj) (A B : Matrix m n ℂ) (k : ℕ)
@@ -303,11 +303,11 @@ theorem eckart_young_lower_bound_rect_true_tail (inj : m → n)
 
 set_option linter.unusedSectionVars false in
 set_option linter.unusedDecidableInType false in
-/-- **Rectangular gradient bottleneck, true-tail form**: the C232
+/-- **Rectangular gradient bottleneck, true-tail form**
 `gradient_bottleneck_bound_rect` with the tail identified as the
 TRUE rectangular spectrum tail of the (un-embedded) logit gradient
 matrix. Premise-form `hΔ` unchanged (the rank-`D` head derivation
-stays deferred, as in C232); what changes is only the spectral
+stays deferred); what changes is only the spectral
 identification of the tail. -/
 theorem gradient_bottleneck_bound_rect_true_tail (ctxInj : m → n)
     (hinj : Function.Injective ctxInj) (z N : m → n → ℝ) (k : ℕ)

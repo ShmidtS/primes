@@ -12,8 +12,7 @@ import Hagi.Model.BatchCEDescentHalfEta
 # Parametric softmax head core
 
 The cross-entropy family (gated, tanh, packed, grouped/joint scale,
-padding, held-out confidence, batch descent; survey
-`.tmp/C283/survey.md`) consists of variants of one theory whose
+padding, held-out confidence, batch descent) consists of variants of one theory whose
 definitional axes are the pointwise logit transform and the batch
 aggregation.  This module is the migration seed: those axes become an
 inductive configuration, the CE functional is defined by recursion on
@@ -162,9 +161,9 @@ theorem headLoss_nonneg_uniform (m : LogitMap) (t : ι → V)
   simp [Reduction.weight]
 
 /-!
-## C284 tranche one: the parametric range bound and ident bridges
+## tranche one: the parametric range bound and ident bridges
 
-Migration tranche one (`.tmp/C284/ledger.md`): the range-bound class
+Migration tranche one: the range-bound class
 and the `LogitMap.ident` bridges for the floor, Lipschitz and padding
 statements of the variant files, each derived from the parametric core
 above.  The original statements in `CEHeldout`, `CEQuantized` and
@@ -182,7 +181,7 @@ theorem headCE_le_two_add_log_card (m : LogitMap) (t : V) (z : V → ℝ)
     headCE m t z ≤ 2 * r + Real.log (Fintype.card V : ℝ) :=
   Hagi.Model.CEHeldout.ceOneHot_le_two_add_log_card t _ r h
 
-/-- Parametric instance (C283 core): the saturating `tanh` head always
+/-- Parametric instance (core): the saturating `tanh` head always
 satisfies the range-bound hypothesis at `r = 1`, because
 `|tanh| < 1`; this is the constant-`2` special case of the saturating
 family (a NEW constant bound, not a bridge of an existing statement). -/
@@ -192,14 +191,14 @@ theorem headCE_tanh_le_two_add_log_card (t : V) (z : V → ℝ) :
   intro v
   exact le_of_lt (Real.abs_tanh_lt_one _)
 
-/-- Parametric instance (C283 core) of P-FLOOR at `LogitMap.ident`:
+/-- Parametric instance (core) of P-FLOOR at `LogitMap.ident`:
 the bridge form of `CEHeldout.ceOneHot_nonneg`, with the identical
 conclusion constant `0`, derived from `headCE_nonneg`. -/
 theorem ceOneHot_nonneg_param (t : V) (z : V → ℝ) :
     0 ≤ headCE .ident t z :=
   headCE_nonneg .ident t z
 
-/-- Parametric instance (C283 core) of P-LIPSCHITZ at
+/-- Parametric instance (core) of P-LIPSCHITZ at
 `LogitMap.ident`: the bridge form of
 `CEQuantized.ceOneHot_le_of_abs_sub_le`, with the identical conclusion
 constant `2 * r` and the identical hypothesis pattern, derived from
@@ -209,7 +208,7 @@ theorem ceOneHot_le_of_abs_sub_le_param (t : V) (z y : V → ℝ) (r : ℝ)
     headCE .ident t z ≤ headCE .ident t y + 2 * r :=
   headCE_le_of_abs_sub_le .ident t z y r h
 
-/-- Parametric instance (C283 core) of P-RANGE-BOUND at
+/-- Parametric instance (core) of P-RANGE-BOUND at
 `LogitMap.ident`: the bridge form of
 `CEHeldout.ceOneHot_le_two_add_log_card`, with the identical conclusion
 constant `2 * r + log card`, derived from `headCE_le_two_add_log_card`.
@@ -219,7 +218,7 @@ theorem ceOneHot_le_two_add_log_card_param (t : V) (z : V → ℝ) (r : ℝ)
     headCE .ident t z ≤ 2 * r + Real.log (Fintype.card V : ℝ) :=
   headCE_le_two_add_log_card .ident t z r hz
 
-/-- Parametric instance (C283 core) of P-LIPSCHITZ at radius zero:
+/-- Parametric instance (core) of P-LIPSCHITZ at radius zero:
 the bridge form of `CEPadding.ceOneHot_padVector`, the equality of the
 cross-entropy before and after zero padding, derived from two
 applications of `headCE_le_of_abs_sub_le` at `r = 0` (the pad-specific
@@ -253,17 +252,16 @@ theorem ceOneHot_padVector_param {d : ℕ}
   exact le_antisymm h1 h2
 
 /-!
-## C285 tranche two: the batch aggregation core theorem and the C4/C5
+## tranche two: the batch aggregation core theorem and the C4/C5
 bridges
 
-Migration tranche two (`.tmp/C285/ledger.md`): survey §4 clusters C5
-(batch descent, priority 2) and C4 (confidence/held-out, priority 5).
+Migration tranche two: batch descent (priority 2) and confidence/held-out (priority 5).
 One new batch parametric core theorem (the `Finset.sum` composition
 every C5 file repeats inline), the definitional bridge from
 `BatchCEDescent.batchLoss` to `headLoss` at the inverse-card weighted
 reduction, a P-FLOOR batch corollary, the bridge of the batch margin
 sum theorem, and the C4 decoded-codebook range-bound bridges (closing
-the C284 ledger row-7 partial).  The original statements in
+the ledger row-7 partial).  The original statements in
 `BatchCEDescent*` and `CEHeldout` are unchanged and remain the frozen
 originals; the bridges carry the same conclusion constants.
 -/
@@ -309,7 +307,7 @@ theorem batchLoss_param {B d : ℕ}
   rfl
 
 /-- P-FLOOR at batch level (new-constant corollary, no original
-restated): the batch family's loss is nonnegative, from the C284
+restated): the batch family's loss is nonnegative
 parametric batch floor. -/
 theorem batchLoss_nonneg_param {B d : ℕ}
     (X : Fin B → Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
@@ -321,7 +319,7 @@ theorem batchLoss_nonneg_param {B d : ℕ}
   intro i
   exact inv_nonneg.mpr (Nat.cast_nonneg B)
 
-/-- C365 P-AGGREGATE descent template, once: any next parameter
+/-- P-AGGREGATE descent template, once: any next parameter
 point whose per-example CE is bounded by `ceOneHot (y b) θ - m b`
 has batch loss bounded by `batchLoss θ - (∑ m)/B`.  The three
 `*_le_*_sum_param` bridges below are one-line instances; previously
@@ -354,7 +352,7 @@ theorem batchLoss_next_le_of_forall_ceOneHot_le {B d : ℕ}
   rw [sub_eq_add_neg]
   exact hcore
 
-/-- Parametric instance (C285) of P-AGGREGATE at the batch family's
+/-- Parametric instance of P-AGGREGATE at the batch family's
 margin bound: the bridge form of
 `BatchCEDescent.batchLoss_batchDirectionNextParameters_le_margin_sum`,
 with the identical conclusion constants (`- (∑ margin) / ↑B`); the
@@ -374,12 +372,12 @@ theorem batchLoss_batchDirectionNextParameters_le_margin_sum_param
     (fun b =>
       Hagi.Model.BatchCEDescent.ceOneHot_batchDirectionNextParameters_le_margin X θ y D b)
 
-/-- Parametric instance (C285) of P-RANGE-BOUND over decoded codebook
+/-- Parametric instance of P-RANGE-BOUND over decoded codebook
 logits: the bridge form of
 `CEHeldout.ceOneHot_decodeJoint_le_log_card_add`, with the identical
 conclusion constants (`log card + 4 * featureAbsSum`); the
 range-bound hypothesis is the frozen `abs_ceLogits_decodeJoint_le`
-at radius `2 * featureAbsSum`.  Closes the C284 ledger row-7 partial.
+at radius `2 * featureAbsSum`.  Closes the ledger row-7 partial.
 -/
 theorem ceOneHot_decodeJoint_le_log_card_add_param {G : ℕ}
     (e : (Fin G × Fin 5) ≃ Fin (5 * G))
@@ -396,7 +394,7 @@ theorem ceOneHot_decodeJoint_le_log_card_add_param {G : ℕ}
   refine le_trans h ?_
   linarith
 
-/-- Parametric instance (C285): the ceBound corollary, bridge form of
+/-- Parametric instance: the ceBound corollary, bridge form of
 `CEHeldout.ceOneHot_decodeJoint_le_ceBound`, with the identical
 conclusion constant `ceBound X`, derived from the range-bound bridge
 above plus nonnegativity of the feature mass. -/
@@ -413,21 +411,20 @@ theorem ceOneHot_decodeJoint_le_ceBound_param {G : ℕ}
   linarith
 
 /-!
-## C291 tranche four: the C1 single-example descent bridge
+## tranche four: the C1 single-example descent bridge
 
-Migration tranche four (`.tmp/C291/`): closes the C286 ledger row 9
-(the C285 receipt "C1 single-example P-DESCENT").  The C1 one-step
+Migration tranche four: the C1 one-step
 descent certificate `CEDescent.ceOneHot_next_le` lives entirely on the
 pointwise CE functional, so it bridges to `headCE` at `LogitMap.ident`
 definitionally (constants verbatim), and the batch axis composes
-trivially through the C285 P-AGGREGATE core at `Reduction.uniform`
+trivially through the P-AGGREGATE core at `Reduction.uniform`
 over the singleton batch — the only tranche exercising `.uniform`.
 The frozen original is used, not restated; `ce_first_order_eq` (the
 row-9 companion) is proof-level machinery consumed inside the frozen
 proof, used as-is.
 -/
 
-/-- Parametric instance (C291) of P-DESCENT at the C1 single-example
+/-- Parametric instance of P-DESCENT at the C1 single-example
 certificate: the bridge form of `CEDescent.ceOneHot_next_le`, with the
 identical conclusion constants (`- eta * ceAlignment +
 (eta * ceStepRange) ^ 2 / 8`); proved by the frozen original through
@@ -441,7 +438,7 @@ theorem ceOneHot_next_le_param {V : Type} [Fintype V] [Nonempty V]
         + (eta * Hagi.Model.ceStepRange X θ t) ^ 2 / 8 :=
   Hagi.Model.ceOneHot_next_le X θ t heta
 
-/-- Parametric instance (C291): the single-example descent composed
+/-- Parametric instance: the single-example descent composed
 through the batch aggregation core at `Reduction.uniform` +
 `LogitMap.ident` over the singleton batch, conclusion in collapsed
 constant form (same constants as the frozen original). -/
@@ -472,12 +469,11 @@ theorem headLoss_uniform_next_le_param {V : Type} [Fintype V]
   linarith
 
 /-!
-## C286 tranche three: the remaining C5 P-DESCENT margin-sum pair and
+## tranche three: the remaining C5 P-DESCENT margin-sum pair and
 the C6 contracts wrapper bridges
 
-Migration tranche three (`.tmp/C286/ledger.md`): survey §4 cluster C5
-remainder — the eta-adaptive half-window margin-sum theorems of
-`BatchCEDescentHalfEta`, bridged through the C285 P-AGGREGATE core
+Migration tranche three: the eta-adaptive half-window margin-sum theorems of
+`BatchCEDescentHalfEta`, bridged through the P-AGGREGATE core
 composed with the frozen per-example descent facts (the parametric
 descent template IS the aggregation theorem; no new core needed). The
 C6 contracts wrapper bridges (P-FLOOR wrappers of
@@ -488,7 +484,7 @@ not-parametric-with-reason in the ledger: their RHS is a
 Jensen-gap aggregate, not a `∑ w * F` composition.
 -/
 
-/-- Parametric instance (C286) of P-DESCENT at the eta-adaptive half
+/-- Parametric instance of P-DESCENT at the eta-adaptive half
 window: the bridge form of `BatchCEDescentHalfEta.
 batchLoss_batchDirectionHalfNextParameters_le_quadraticMargin_sum`, with
 the identical conclusion constants (`- (∑ quadraticMargin (halfEta)) /
@@ -511,7 +507,7 @@ theorem batchLoss_batchDirectionHalfNextParameters_le_quadraticMargin_sum_param
       Hagi.Model.BatchCEDescent.ceOneHot_batchDirectionHalfNextParameters_le_quadraticMargin
           X θ y D b)
 
-/-- Parametric instance (C286) of P-DESCENT at the eta-adaptive half
+/-- Parametric instance of P-DESCENT at the eta-adaptive half
 window: the bridge form of `BatchCEDescentHalfEta.
 batchLoss_batchDirectionHalfNextParameters_le_margin_sum`, with the
 identical conclusion constants (`- (∑ batchDirectionMargin) / ↑B`);

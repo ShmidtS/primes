@@ -26,7 +26,7 @@ namespace Hagi.System
 
 /-! ## Per-stage certificates -/
 
-/-- The stage-drop certificate (C440 consolidation of two former
+/-- The stage-drop certificate (consolidation of two former
 field-shape-duplicate stage certificates, grow and merge): a stage
 enters with `preEnergy` and exits with `energy`, dropping it BY the
 certified nonnegative amount `drop`.

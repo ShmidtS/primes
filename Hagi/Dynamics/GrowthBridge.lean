@@ -11,12 +11,12 @@ import Hagi.Growth.GainDecomposition
 set_option linter.style.header false
 
 /-!
-# GrowthBridge — consolidated growth bridges (C238, A5 R3 slice 5)
+# GrowthBridge — consolidated growth bridges (A5 R3 slice 5)
 
 Byte-identical merge of FastGrowth, WallClockTakeoff,
 FrontierProduction, GrowthGate, ChainToCone, T3Ignition and the
 former Unified.GrowthBridge. Namespace blocks and declaration
-FQNs preserved; see .tmp/C238/ for the census receipt.
+FQNs preserved.
 -/
 
 section C238_fastgrowth

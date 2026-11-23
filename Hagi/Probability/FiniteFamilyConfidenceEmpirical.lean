@@ -8,7 +8,7 @@ import Mathlib.Tactic
 
 The single Mathlib-only definition `empiricalMean` that the batch
 descent parts consume.  Split out of
-`Hagi.Probability.FiniteFamilyConfidence` (C276) so that the descent
+`Hagi.Probability.FiniteFamilyConfidence` so that the descent
 import path does not pay for the full confidence stack; the namespace
 is continued here, so the fully-qualified name is unchanged.
 -/

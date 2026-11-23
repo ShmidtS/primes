@@ -8,28 +8,28 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Data efficiency: samples to quality (C334)
+# Data efficiency: samples to quality
 
-The DATA-side complement of the compute-to-quality arc (C330
+The DATA-side complement of the compute-to-quality arc (
 `Hagi.Contracts.ComputeToQuality`): how many SAMPLES certify that the
 selected energy model is near-optimal in population PL-risk.  The
 frontier item #1 of `.omc/analysis/period-c330-c332-analysis.md`.
 
 All carriers are landed and CITED, not re-proved:
 
-* the concentration carrier is C287
+* the concentration carrier is
   (`Hagi.Probability.Concentration`): the canonical one-sided [0,1]
   confidence `concConfidence ε n = exp(−2nε²)` and the radius
   `concRadius δ n = sqrt(log(1/δ)/(2n))` (`concRadius_valid`);
-* the finite-class carrier is C315
+* the finite-class carrier is
   (`finite_class_pl_margin_argmax`): empirical margin ≥ 2η over the
   winner ⟹ population-best with confidence
   `1 − 2|ι|·exp(−2nη²)`;
-* the compute-ledger pattern is C330
+* the compute-ledger pattern is
   (`steps_to_quality`, `total_compute_to_quality`): the minimal-
   witness honesty interface.
 
-The only NEW mathematics is the C287 radius INVERSION — solving
+The only NEW mathematics is the radius INVERSION — solving
 `concConfidence η n ≤ δ/m` for n (the radius run backwards):
 
 * `sampleComplexity m δ η = log(m/δ)/(2η²)`;
@@ -39,7 +39,7 @@ The only NEW mathematics is the C287 radius INVERSION — solving
 
 Compositions on top:
 
-* MAIN 1 `samples_to_quality`: finite class + C315 margin premise +
+* MAIN 1 `samples_to_quality`: finite class + margin premise +
   `n ≥ sampleComplexity (2|ι|) δ η` ⟹ w.p. ≥ 1 − δ the empirical
   winner is the POPULATION-best hypothesis (C315's argmax with the
   explicit sample count; the union constant 2 of C264's two-sided
@@ -54,10 +54,10 @@ Compositions on top:
   descent.
 
 Honest scope: finite classes only (`Fintype ι`); the margin is a
-PREMISE on the sample (the C315 interface, no margin-model claim);
+PREMISE on the sample (the interface, no margin-model claim);
 NO active learning, NO curriculum, NO adaptive sampling (separate
 frontier candidates, not claimed); sample minimality is a premise
-(the C330 step-ceiling honesty shape); no asymptotics; numbers live
+(the step-ceiling honesty shape); no asymptotics; numbers live
 in the numeric `Anchor` lemma only.
 -/
 
@@ -68,9 +68,9 @@ namespace Hagi.Contracts.DataToQuality
 open Hagi.Probability Hagi.Probability.FiniteFamilyConfidence
 open Hagi.Model.EnergyReasoning
 
-/-! ## The inversion of the C287 radius -/
+/-! ## The inversion of the radius -/
 
-/-- **Sample complexity functional** — the C287 radius run backwards:
+/-- **Sample complexity functional** — the radius run backwards:
 the minimal sample count at which the canonical one-sided confidence
 `concConfidence η n = exp(−2nη²)` fits a per-class budget `δ/m`
 (the inversion lemma below proves sufficiency; m is the union
@@ -78,7 +78,7 @@ multiplicity, `2·|class|` in MAIN 1). -/
 noncomputable def sampleComplexity (m delta eta : ℝ) : ℝ :=
   Real.log (m / delta) / (2 * eta ^ 2)
 
-/-- **The C287 radius inversion** (the new glue of C334): if the
+/-- **The radius inversion** (the new glue): if the
 sample count `n` reaches `sampleComplexity m δ η = log(m/δ)/(2η²)`,
 then the canonical confidence fits the per-class budget:
 `concConfidence η n ≤ δ/m`.  Exact algebra — the canonical [0,1]
@@ -112,13 +112,13 @@ theorem concConfidence_le_of_sample_bound {delta m : ℝ}
 variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- **MAIN 1 — samples to quality** (finite class, margin form): with
-the C315 margin premise (the empirical winner `best` beats every `k`
+the margin premise (the empirical winner `best` beats every `k`
 by ≥ 2η on the empirical PL-loss mean) and the EXPLICIT sample count
 `n ≥ sampleComplexity (2|ι|) δ η = log(2|ι|/δ)/(2η²)`, the selected
 hypothesis is the POPULATION-best with probability ≥ 1 − δ.
-Composition: C315 `finite_class_pl_margin_argmax` gives confidence
+Composition `finite_class_pl_margin_argmax` gives confidence
 `1 − 2|ι|·exp(−2nη²)`; the inversion at the union multiplicity
-m = 2|ι| (the two-sided constant of C264
+m = 2|ι| (the two-sided constant
 `finite_family_abs_error_confidence`) fits the budget, closing the
 remaining mass at δ. -/
 theorem samples_to_quality {n : ℕ} {ι : Type} [Fintype ι]
@@ -189,12 +189,12 @@ model to the descent constants, and none is claimed:
   population-best w.p. ≥ 1 − δ (`samples_to_quality`);
 * the COMPUTE book (deterministic): after `k` certified steps of
   uniform drop `d` with gap `Δ₀ ≤ k·d`, quality ε is met
-  (C330 `steps_to_quality`);
+  (`steps_to_quality`);
 * the RESOURCE ledger: the total account
   `n·w + Σ spends ≤ (sampleComplexity+1)·w + (Δ₀+d)/d·W`, where w is
   the per-sample work (a premise-carried constant) and W the per-step
   spend cap.  Minimality of BOTH witnesses is honest-premise-form
-  (`hnsamp_min`: n < sC+1; `hceil`: k·d ≤ Δ₀+d — the C330 ceiling):
+  (`hnsamp_min`: n < sC+1; `hceil`: k·d ≤ Δ₀+d — the ceiling):
   nothing forces a bigger lab or a longer trajectory not to spend
   more; the bounds are SUFFICIENCY bounds for the minimal witnesses.
 -/
@@ -237,13 +237,13 @@ theorem data_compute_budget (deltaLevel : S → ℝ)
 
 /-! ## Numeric anchor -/
 
-/-- C334 numeric anchor: at class size `|ι| = 10`, `δ = 0.05`,
+/-- numeric anchor: at class size `|ι| = 10`, `δ = 0.05`,
 accuracy `η = 0.1` (the frontier's γ−ε), the sample-complexity
 functional is `sampleComplexity 20 0.05 0.1 = log 400 / 0.02 ≈ 299.6`
 (float, orientation only; log 400, not 200 — the union multiplicity
 is m = 2|ι| = 20) — 300 samples suffice.  The PROVED bound is
 the honest loose form `≤ 450` via `log 400 ≤ 9` (since `400 ≤ 2^9 ≤
-e^9`, using `2 = 1 + 1 ≤ exp 1`) — the C315 `concRadius_anchor_315`
+e^9`, using `2 = 1 + 1 ≤ exp 1`) `concRadius_anchor_315`
 style (slack 9 vs the true 5.99 documented). -/
 theorem sample_complexity_anchor_334 :
     sampleComplexity (2 * 10) 0.05 0.1 ≤ 450 := by

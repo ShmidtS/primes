@@ -23,7 +23,7 @@ READ-ONLY: `C:\HAGI_v2\hagi\mdl.py`, 185 строк; интеграция —
 (`prune_library`, hagi/mdl.py:77-148): удаление поведенческих
 дубликатов (keep-shortest-AST, :98-99) и unreferenced/pseudo
 экспертов ПО ОДНОМУ за проход (`while changed`, :129-138),
-с сохранением call-DAG (:7-8) и полной ре-валидацией после
+с сохранением call-DAG (7-8) и полной ре-валидацией после
 (`apply_prune`, :159-184 — любая неудача АБОРТИРУЕТ prune).
 
 СОСТАВНАЯ теорема `mdl_prune_cycle_sound` СОЕДИНЯЕТ четыре
@@ -53,7 +53,7 @@ READ-ONLY: `C:\HAGI_v2\hagi\mdl.py`, 185 строк; интеграция —
   формальное содержание контрабаланса — switching-режим);
 * (d) завершаемость — строгая убыль card на каждом erase-шаге
   над конечной библиотекой ⇒ бесконечный prune-цикл невозможен
-  (паттерн C457 `adopt_chain_terminates`, SelfEdit.lean:134;
+  (паттерн `adopt_chain_terminates`, SelfEdit.lean:134;
   Theory→Theory импорт запрещён LayerLint — переиспользован
   паттерн, не импорт).
 
@@ -82,7 +82,7 @@ variable {N : Type*} [Fintype N] [DecidableEq N]
 /-- Конечная библиотека экспертов. source: hagi/mdl.py — словарь
 `proc.experts` с конечным числом имён (`names = list(experts.
 keys())`, :80-82); one-step erase-семантика — цикл `while
-changed` удаляет по одному эксперту за проход (:129-138). -/
+changed` удаляет по одному эксперту за проход (129-138). -/
 abbrev Library (N) [Fintype N] := Finset N
 
 /-- Код-стоимость библиотеки: сумма AST-размеров экспертов.
@@ -268,7 +268,7 @@ theorem pruned_switching_le_dense (r d : ℕ) {s : Library N}
 удаляет ровно одного эксперта (`while changed`, erase — source:
 hagi/mdl.py:129-138), поэтому card строго убывает; строго
 убывающая ℕ-цепочка ограничена card начальной библиотеки ⇒
-бесконечный prune-цикл НЕВОЗМОЖЕН. Паттерн C457
+бесконечный prune-цикл НЕВОЗМОЖЕН. Паттерн
 `adopt_chain_terminates` (SelfEdit.lean:134: строгий
 gain/убыль + конечность ⇒ нет бесконечной цепочки; здесь
 ℕ-индукция вместо Fintype.card-противоречия, Theory→Theory
@@ -307,7 +307,7 @@ source: hagi/mdl.py:54-64, :98-99) с положительной
   MDLThreeCurrency, цикл 33 сверки);
 * (a′) код-стоимость СТРОГО убывает (keep-shortest-AST);
 * (d) card строго убывает ⇒ завершаемость
-  (`prune_chain_terminates`, паттерн C457).
+  (`prune_chain_terminates`, паттерн).
 
 Ноги (b) (флоры: `prune_preserves_fiber_floor` из
 `fiber_params_floor` + call-DAG-посылка) и (merge)

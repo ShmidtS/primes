@@ -9,7 +9,7 @@ set_option linter.style.header false
 /-!
 # ANF/Möbius (Zhegalkin) transform: the compiler-correctness core
 
-Track E5 (C292–C297 analysis rank #3), C301. The Python V3 compiler
+Track E5 (C292–C297 analysis rank #3) . The Python V3 compiler
 side synthesizes Boolean functions into ANF (algebraic normal form)
 via the Möbius/Zhegalkin butterfly and evaluates back; this module
 lands the ANF CORE bridge on the Lean side, over the exact Boolean
@@ -48,7 +48,7 @@ Contents:
 Honest scope (E5 ladder, follow-up beats): `compose3`, context
 signatures, argument ranges, and collision abstention are NOT
 claimed here — only the core transform/involution/roundtrip. The
-Walsh–Hadamard `vennWalsh` (`Hagi.Data.BoolVenn`, C251) is a
+Walsh–Hadamard `vennWalsh` (`Hagi.Data.BoolVenn`) is a
 different transform (±1 character spectrum over ℤ); the ANF
 transform is the GF(2) butterfly.
 -/
@@ -346,7 +346,7 @@ set_option linter.style.header false
 /-!
 # ANF composition (compose3 seed) with guarded support
 
-Track E5 ladder rung 2 (TD E5-C301 rung 1: `compose3`), C302. The
+Track E5 ladder rung 2 (TD E5-C301 rung 1: `compose3`) . The
 Python V3 compiler composes Boolean stencil functions via
 `compose3(f, g, h) = f(g(x), h(x))` nests over ANF-compiled truth
 tables. This module lands the SEED case honestly on the
@@ -478,7 +478,7 @@ set_option linter.style.header false
 # ANF dispatch with collision abstention
 
 Track E5 ladder rung 3 (TD E5-C302 remaining rungs 3+4: argument
-ranges + collision abstention), C306. The Python V3 compiler
+ranges + collision abstention) . The Python V3 compiler
 dispatches among candidate stencils by their argument ranges; when
 two candidates' ranges overlap AMBIGUOUSLY and the candidates
 disagree, the compiler ABSTAINS rather than guessing. This module
@@ -517,7 +517,7 @@ carriers:
   would force the ranges equal, contradicting disjointness), so
   the abstention never fires spuriously for support-disjoint
   candidates. The lemma needs no supportedness hypothesis — it
-  holds for arbitrary stencils, strengthening the C302 guard
+  holds for arbitrary stencils, strengthening the guard
   composition.
 - `anfFin2_dispatch_abstain`, `anfFin2_dispatch_ok`: the Fin 2
   anchor — a colliding pair (both ranges `{0}`, stencils `x₀` and
@@ -525,10 +525,10 @@ carriers:
   (`{0}` vs `{1}` → dispatch returns the applicable candidate's
   value), both by `decide`.
 
-## Priority dispatch (C314, final E5 rung)
+## Priority dispatch (final E5 rung)
 
 The module ALSO carries the second dispatch policy, formalized in
-C314 — the Python V3 arg-range PRIORITY ordering over > 2 stencil
+ — the Python V3 arg-range PRIORITY ordering over > 2 stencil
 candidates:
 
 - `dispatchPriority`: iterate candidates in list order (priority);
@@ -671,7 +671,7 @@ collide — both being in range at a context `x` would force the
 ranges to be equal (the context's position set determines the
 range), contradicting disjointness. Holds for arbitrary stencils
 (no supportedness needed), so support-disjoint guarded candidates
-(C302 `stencil_guard_sound`) are never spuriously abstained. -/
+(`stencil_guard_sound`) are never spuriously abstained. -/
 theorem guard_disjoint_no_collision {n : ℕ} (a b : AnfCand n)
     (hdisj : Disjoint a.argRanges b.argRanges)
     (hne : a.argRanges.Nonempty ∨ b.argRanges.Nonempty) :
@@ -851,7 +851,7 @@ theorem dispatchPriority_agree_sound {n : ℕ} (cs : List (AnfCand n))
       · intro e he hin'
         exact hagr e (List.mem_cons_of_mem _ he) hin'
 
-/-- Semantic bridge to C306: for a two-candidate list with NO
+/-- Semantic bridge to for a two-candidate list with NO
 collision and at least one candidate in range, the priority
 dispatch returns exactly what `dispatchOrAbstain` returns — the
 two dispatchers are consistent on the non-colliding overlap of

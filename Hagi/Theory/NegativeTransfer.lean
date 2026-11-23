@@ -8,20 +8,20 @@ import Mathlib.Tactic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
-# NegativeTransfer — точная граница негативного переноса (C572)
+# NegativeTransfer — точная граница негативного переноса
 
-Source-anchored мост волны HAGI_v2 (roadmap C570 top-3): upstream
+Source-anchored мост волны HAGI_v2 (roadmap top-3): upstream
 `hagi/unified.py:147-165` решает «когда warm-start переносить»
 эвристикой (pre-registered closeness); этот модуль даёт ТОЧНУЮ
-границу для квадратичной модели задачи B — дополняет C560
-(T1-эмпирика: 3/3 пары перенос помогает по AUC) и C567
+границу для квадратичной модели задачи B — дополняет
+(T1-эмпирика: 3/3 пары перенос помогает по AUC)
 (`warm_transfer_sound`: forgetA=0 + certified-обучаемость с
 любого init; transfer-качество НЕ обещано — honest-pin закрыт
 здесь теорией для квадратичного случая).
 
 Модель: objective домена B — `quadObj t z = ‖z − t‖²` (цель t);
-warm-init θ = скопированный слот A (`warmTransfer` C567),
-cold-init 0 (нейтральный слот, C532). Certified-шаги — GD с
+warm-init θ = скопированный слот A (`warmTransfer`),
+cold-init 0 (нейтральный слот). Certified-шаги — GD с
 постоянным шагом η (градиент 2(z − t)); равенство бюджетов =
 равное число шагов k.
 
@@ -41,7 +41,7 @@ cold-init 0 (нейтральный слот, C532). Certified-шаги — GD �
 - `transfer_helps_budget`: композиция — переносить warm iff
   `2 * ⟪θ, t⟫_ℝ > ‖θ‖²` (в терминах t̂ — оценка цели B: честная
   гипотеза CALLER'а, в теореме t точный).
-- **C592 (нелинейное расширение, секция SmoothNL)**: абстрактный
+- **(нелинейное расширение, секция SmoothNL)**: абстрактный
   L-smooth objective + GD с равным бюджетом — CERTIFIED
   SUFFICIENT-граница (не iff): `smooth_obj_transfer_bound`
   (двусторонняя: финал зажат стартом ± n•`nlBudget`),
@@ -54,7 +54,7 @@ cold-init 0 (нейтральный слот, C532). Certified-шаги — GD �
 - **Только квадратичный мир — ТОЧНАЯ iff-граница** (C572-секция
   Quad): нелинейные objectives — точной iff нет; в C592-секции
   SmoothNL — только консервативная certified-достаточность
-  (sufficient, НЕ necessary — негатив-инстанс .tmp/C592/trajNL.lean
+  (sufficient, НЕ necessary — bench-негатив-инстанс
   показывает случай «условие не выполнено, но warm всё равно
   хуже»); там же — bench-эмпирика.
 - **t̂ — гипотеза**: decision-правило использует ЦЕЛЬ B; на
@@ -79,7 +79,7 @@ section Quad
 variable {n : Type*} [Fintype n]
 
 /-- Квадратичный objective домена B: расстояние-в-квадрате до
-цели `t` (warm-init θ = слот A, cold-init 0 — C532). -/
+цели `t` (warm-init θ = слот A, cold-init 0). -/
 noncomputable def quadObj (t z : EuclideanSpace ℝ n) : ℝ := ‖z - t‖ ^ 2
 
 /-- Certified-GD-шаг с постоянным шагом η: градиент
@@ -109,7 +109,7 @@ theorem quad_obj_zero (t : EuclideanSpace ℝ n) :
 
 /-! ## T2: точная iff-граница негативного переноса -/
 
-/-- **neg_transfer_char (C572, T2)**: warm-старт θ хуже cold
+/-- **neg_transfer_char (T2)**: warm-старт θ хуже cold
 (старт-объектив строго больше) ТОЧНО тогда, когда удвоенное
 скалярное произведение ⟨θ, t⟩ меньше квадрата нормы θ — обе
 стороны, без зазора. Дополняет C560-эмпирику: там 3/3 пары T1
@@ -121,7 +121,7 @@ theorem neg_transfer_char (θ t : EuclideanSpace ℝ n) :
     show ‖(0 : EuclideanSpace ℝ n) - t‖ ^ 2 = ‖t‖ ^ 2 from by simp]
   constructor <;> intro h <;> linarith
 
-/-- **warm_better_char (C572, T1-граница)**: перенос помогает
+/-- **warm_better_char (T1-граница)**: перенос помогает
 старту ⟺ удвоенное скалярное произведение больше квадрата
 нормы θ — точная iff, симметричная к `neg_transfer_char`. -/
 theorem warm_better_char (θ t : EuclideanSpace ℝ n) :
@@ -131,7 +131,7 @@ theorem warm_better_char (θ t : EuclideanSpace ℝ n) :
     show ‖(0 : EuclideanSpace ℝ n) - t‖ ^ 2 = ‖t‖ ^ 2 from by simp]
   constructor <;> intro h <;> linarith
 
-/-- **transfer_boundary (C572)**: на границе неравенства старты
+/-- **transfer_boundary**: на границе неравенства старты
 РАВНЫ (warm = cold точно) — граница не зазорена, равенство
 достигается. -/
 theorem transfer_boundary (θ t : EuclideanSpace ℝ n)
@@ -142,7 +142,7 @@ theorem transfer_boundary (θ t : EuclideanSpace ℝ n)
     show ‖(0 : EuclideanSpace ℝ n) - t‖ ^ 2 = ‖t‖ ^ 2 from by simp, h]
   ring
 
-/-- **neg_transfer_adversarial (C572)**: adversarial-цель
+/-- **neg_transfer_adversarial**: adversarial-цель
 `t = -c • θ` (c > 0, θ ≠ 0) даёт T2 ВСЕГДА — warm-старт
 неизбежно хуже cold. Следствие `neg_transfer_char`: скалярное
 произведение отрицательно, доминировать ‖θ‖² не может.
@@ -183,7 +183,7 @@ theorem gd_run_dist (k : ℕ) (η : ℝ) (t z : EuclideanSpace ℝ n) :
         gd_step_dist η t z, pow_succ]
       ring
 
-/-- **warm_better_budget (C572)**: при невырожденном шаге
+/-- **warm_better_budget**: при невырожденном шаге
 (`|1 - 2η| > 0`; при η = 1/2 любой старт попадает в оптимум за
 один шаг — граница вырождается в равенство) финальное
 преимущество warm после РАВНОГО бюджета k шагов ⟺ стартовое:
@@ -205,7 +205,7 @@ theorem warm_better_budget (k : ℕ) (η : ℝ) (hη : |1 - 2 * η| > 0)
   · intro h
     nlinarith [hr2, h]
 
-/-- **transfer_helps_budget (C572, decision-граница)**:
+/-- **transfer_helps_budget (decision-граница)**:
 переносить warm после равного бюджета ⟺ удвоенное скалярное
 произведение ⟨θ, t⟩ больше квадрата нормы θ (композиция
 `warm_better_budget` × `warm_better_char`). На практике цель t
@@ -219,7 +219,7 @@ theorem transfer_helps_budget (k : ℕ) (η : ℝ)
 
 end Quad
 
-/-! ## C592: нелинейное расширение — L-smooth sufficient-граница -/
+/-! ## нелинейное расширение — L-smooth sufficient-граница -/
 
 section SmoothNL
 
@@ -227,7 +227,7 @@ variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- Нелинейный certified-GD-шаг с постоянным шагом γ по
 градиентному полю `grad` (абстрактный objective; квадратичный
-случай C572 — `gdStep` = `nlStep` при `grad = 2•(·−t)`). -/
+случай — `gdStep` = `nlStep` при `grad = 2•(·−t)`). -/
 def nlStep {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
     (γ : ℝ) (grad : F → F) (z : F) : F := z - γ • grad z
 
@@ -249,7 +249,7 @@ theorem nl_coef_nonneg (L γ : ℝ) (_hγ : 0 < γ) (hγL : γ ≤ 2 / L)
   have h2 : L * γ ≤ 2 := by linarith
   linarith
 
-/-- **nl_step_mono (C592)**: при `0 < γ ≤ 2/L` GD-шаг по
+/-- **nl_step_mono**: при `0 < γ ≤ 2/L` GD-шаг по
 L-smooth полю (premise-form `hsm`, как `gd_drift_lemma`-конвенция
 репо) не увеличивает objective — descent-лемма с неотрицательным
 коэффициентом (схема Unified/StochasticCELearning.gd_drift_lemma;
@@ -274,7 +274,7 @@ theorem nl_step_mono (f : E → ℝ) (grad : E → E) (L γ : ℝ)
   have hnn : 0 ≤ ‖grad z‖ ^ 2 := sq_nonneg _
   nlinarith [hstep, hγ, hL, hc, hnn]
 
-/-- **nl_step_lower (C592)**: per-step убывание ограничено снизу
+/-- **nl_step_lower**: per-step убывание ограничено снизу
 бюджетом `nlBudget γ L G` — descent-лемма в точке next + C-S +
 локальные G-границы градиента (в `z` и в next). -/
 theorem nl_step_lower (f : E → ℝ) (grad : E → E) (L γ G : ℝ)
@@ -316,7 +316,7 @@ theorem nl_step_lower (f : E → ℝ) (grad : E → E) (L γ G : ℝ)
     exact mul_le_mul_of_nonneg_left hg2 (by positivity)
   nlinarith [hstep2, hγcs, hLb]
 
-/-- **nl_obj_le_start (C592)**: при `0 < γ ≤ 2/L` равный бюджет
+/-- **nl_obj_le_start**: при `0 < γ ≤ 2/L` равный бюджет
 n GD-шагов не увеличивает objective (monotone-индукция по n) —
 финал любого старта ≤ старту. -/
 theorem nl_obj_le_start (f : E → ℝ) (grad : E → E) (L γ : ℝ)
@@ -336,7 +336,7 @@ theorem nl_obj_le_start (f : E → ℝ) (grad : E → E) (L γ : ℝ)
       rw [heq]
       exact le_trans hih hmono
 
-/-- **nl_obj_ge_budget (C592)**: телескоп-индукция — при
+/-- **nl_obj_ge_budget**: телескоп-индукция — при
 градиентной G-границе вдоль траектории финал ≥ старт −
 n•`nlBudget` (per-step убывание ограничено бюджетом). -/
 theorem nl_obj_ge_budget (f : E → ℝ) (grad : E → E) (L γ G : ℝ)
@@ -377,11 +377,11 @@ theorem nl_obj_ge_budget (f : E → ℝ) (grad : E → E) (L γ G : ℝ)
       push_cast
       nlinarith [hstep, hih]
 
-/-- **smooth_obj_transfer_bound (C592, MAIN)**: для L-smooth
+/-- **smooth_obj_transfer_bound (MAIN)**: для L-smooth
 objective (premise-form `hsm`) с градиентной G-границей вдоль
 траектории (`hG`: ∀ k ≤ n) после n GD-шагов финал зажат
 стартом ± бюджет: `f z − n•nlBudget ≤ f (nlRun n z) ≤ f z`.
-Квадратичный аналог (C572) точнее: там граница не зазорена; здесь
+Квадратичный аналог точнее: там граница не зазорена; здесь
 — консервативная certified-двусторонность для ЛЮБОГО smooth obj. -/
 theorem smooth_obj_transfer_bound (f : E → ℝ) (grad : E → E)
     (L γ G : ℝ) (hγ : 0 < γ) (hγL : γ ≤ 2 / L) (hL : 0 < L)
@@ -395,14 +395,14 @@ theorem smooth_obj_transfer_bound (f : E → ℝ) (grad : E → E)
   have hlow := nl_obj_ge_budget f grad L γ G hγ hL n z hsm hG
   exact ⟨hlow, hle⟩
 
-/-- **sufficient_negative_transfer (C592)**: CERTIFIED
+/-- **sufficient_negative_transfer**: CERTIFIED
 SUFFICIENT-условие негативного переноса для L-smooth objective:
 если стартовый запас warm (`f θA − f 0`, θA — скопированный слот
 A) больше бюджета `n • nlBudget`, то после РАВНОГО бюджета n
 GD-шагов warm СТРОГО хуже cold. КОНСЕРВАТИВНО: НЕ iff —
 границы start→finish для нелинейных obj не точны; обратная
-импликация ЛОЖНА (негатив-инстанс .tmp/C592/trajNL.lean:условие не выполнено, но warm всё равно хуже). Квадратичный
-мир — точная iff `neg_transfer_char` (C572). -/
+импликация ЛОЖНА (bench-негатив-инстанс: условие не выполнено, но warm всё равно хуже). Квадратичный
+мир — точная iff `neg_transfer_char`. -/
 theorem sufficient_negative_transfer (f : E → ℝ) (grad : E → E)
     (L γ G : ℝ) (hγ : 0 < γ) (hγL : γ ≤ 2 / L) (hL : 0 < L)
     (n : ℕ) (θA : E)
@@ -420,21 +420,21 @@ theorem sufficient_negative_transfer (f : E → ℝ) (grad : E → E)
 
 end SmoothNL
 
-/-! ## C606: Schedule — certified-optimal шаг γ* = 1/L -/
+/-! ## Schedule — certified-optimal шаг γ* = 1/L -/
 
 section Schedule
 
 variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- **nlDrop (C606)**: guaranteed per-step УБЫВАНИЕ objective для
+/-- **nlDrop**: guaranteed per-step УБЫВАНИЕ objective для
 L-smooth GD с градиентной G-границей — нижний (drop) аналог
-`nlBudget` (C592): descent-член γG² минус smoothness-член
+`nlBudget`: descent-член γG² минус smoothness-член
 Lγ²G²/2. Конкретный знак при Lγ²G²/2 — единственное отличие от
 `nlBudget`. -/
 noncomputable def nlDrop (γ L G : ℝ) : ℝ :=
   γ * G ^ 2 - L * γ ^ 2 * G ^ 2 / 2
 
-/-- **nl_drop_bound (C606, a)**: per-step guaranteed drop — descent
+/-- **nl_drop_bound (a)**: per-step guaranteed drop — descent
 лемма в точке старта (premise-form `hsm`, как `nl_step_mono`):
 `f (nlStep γ grad z) ≤ f z − nlDrop γ L ‖grad z‖`, т.е.
 drop `f z − f (next) ≥ γ‖g‖² − Lγ²‖g‖²/2`. При γ > 2/L nlDrop
@@ -459,7 +459,7 @@ theorem nl_drop_bound (f : E → ℝ) (grad : E → E) (L γ : ℝ)
   rw [hdef]
   linarith
 
-/-- **nlDrop_le_optimal (C606, b)**: certified-оптимальность шага
+/-- **nlDrop_le_optimal (b)**: certified-оптимальность шага
 γ* = 1/L — guaranteed drop `nlDrop γ L G` максимален при
 `γ = 1/L` для ЛЮБОГО γ (глобальный максимум параболы, не только
 на descent-зоне [0, 2/L]): полный квадрат
@@ -472,7 +472,7 @@ theorem nlDrop_le_optimal (L G γ : ℝ) (hL : 0 < L) :
   field_simp
   nlinarith [hsq, hpos]
 
-/-- **nl_drop_optimal (C606, MAIN)**: guaranteed per-step drop при
+/-- **nl_drop_optimal (MAIN)**: guaranteed per-step drop при
 оптимальном шаге γ* = 1/L равен `G²/(2L)` — классический
 one-step sufficient decrease (Cambridge DAMTP L3; MIT 6.7220
 L12: η = 1/L гарантирует улучшение при ненулевом градиенте).
@@ -484,7 +484,7 @@ theorem nl_drop_optimal (L G : ℝ) (hL : 0 < L) :
   field_simp
   ring
 
-/-! Числовой witness (C606): L = 2, G = 1 ⟹ γ* = 1/2;
+/-! Числовой witness: L = 2, G = 1 ⟹ γ* = 1/2;
 tаблица guaranteed drop: γ = 0.1 → 9/100, γ = 0.5 → 1/4,
 γ = 0.9 → 9/100 — симметрия параболы вокруг вершины γ* = 1/2. -/
 example : nlDrop (1 / 10 : ℝ) 2 1 = 9 / 100 := by

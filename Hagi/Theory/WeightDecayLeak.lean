@@ -7,7 +7,7 @@ import Mathlib.Tactic
 set_option relaxedAutoImplicit false
 
 /-!
-# Weight-decay leak — the GPM memory invariant under decay (C538)
+# Weight-decay leak — the GPM memory invariant under decay
 
 The projection face of weight decay (P4 of the external plan
 mapping, `.omc/analysis/external-plan-c537-mapping.md`): unlike
@@ -48,7 +48,7 @@ namespace Hagi.Theory.WeightDecayLeak
 
 variable {m n : ℕ}
 
-/-- **nrm_smul (C538)**: the row norm of `Hagi.Theory.GPMRelaxed.nrm`
+/-- **nrm_smul**: the row norm of `Hagi.Theory.GPMRelaxed.nrm`
 is absolutely homogeneous — scalar scaling scales the norm. -/
 theorem nrm_smul (a : ℝ) (v : Fin n → ℝ) :
     nrm (a • v) = |a| * nrm v := by
@@ -65,7 +65,7 @@ theorem nrm_smul (a : ℝ) (v : Fin n → ℝ) :
   rw [hsum, Real.sqrt_mul (mul_self_nonneg a),
     Real.sqrt_mul_self_eq_abs a]
 
-/-- **proj_compl_mul_cancel (C538)**: for an idempotent projector
+/-- **proj_compl_mul_cancel**: for an idempotent projector
 the complement annihilates the protected span from the right:
 `(1 − P) * P = 0`. Pure algebra, no symmetry needed. -/
 theorem proj_compl_mul_cancel (P : Matrix (Fin n) (Fin n) ℝ)
@@ -75,7 +75,7 @@ theorem proj_compl_mul_cancel (P : Matrix (Fin n) (Fin n) ℝ)
       = (1 : Matrix (Fin n) (Fin n) ℝ) * P - P * P := Matrix.sub_mul _ _ _
   rw [h1, Matrix.one_mul, hP, sub_self]
 
-/-- **wd_compl_annihilates (C538)**: the complement component
+/-- **wd_compl_annihilates**: the complement component
 `W − W * P = W·P⊥` has zero parallel projection — decay applied
 to it cannot touch the protected span. -/
 theorem wd_compl_annihilates (W : Matrix (Fin m) (Fin n) ℝ)
@@ -86,7 +86,7 @@ theorem wd_compl_annihilates (W : Matrix (Fin m) (Fin n) ℝ)
     exact (Matrix.mul_sub W (1 : Matrix (Fin n) (Fin n) ℝ) P).symm
   rw [e1, Matrix.mul_assoc, proj_compl_mul_cancel P hP, Matrix.mul_zero]
 
-/-- **wd_proj_preserves (C538, invariant)**: PROJECTED weight
+/-- **wd_proj_preserves (invariant)**: PROJECTED weight
 decay — `W' = W − ηλ • (W − W * P)`, i.e. decay applied only in
 the complement `W − W * P = W·P⊥` of the protected span —
 leaves the protected (parallel) component `W * P` EXACTLY
@@ -98,7 +98,7 @@ theorem wd_proj_preserves (W : Matrix (Fin m) (Fin n) ℝ)
   rw [Matrix.sub_mul, Matrix.smul_mul, wd_compl_annihilates W P hP,
     smul_zero, sub_zero]
 
-/-- **naive_decay_parallel (C538)**: NAIVE weight decay
+/-- **naive_decay_parallel**: NAIVE weight decay
 `W ← (1 − c) • W` acts on the protected component as scalar
 multiplication by the SAME factor `(1 − c)` — the decay pulls
 the memory toward zero including the protected directions. -/
@@ -107,7 +107,7 @@ theorem naive_decay_parallel (W : Matrix (Fin m) (Fin n) ℝ)
     ((1 - c) • W) * P = (1 - c) • (W * P) := by
   exact Matrix.smul_mul _ _ _
 
-/-- **naive_decay_norm (C538, exact leak identity)**: for
+/-- **naive_decay_norm (exact leak identity)**: for
 `0 ≤ c ≤ 1` the naive-decayed protected component of every row
 has norm EXACTLY `(1 − c) * ‖row of W * P‖` — the memory shrinks
 by the exact decay factor, not a bound. -/
@@ -119,7 +119,7 @@ theorem naive_decay_norm (W : Matrix (Fin m) (Fin n) ℝ)
   show nrm ((1 - c) • (W * P) i) = (1 - c) * nrm ((W * P) i)
   rw [nrm_smul, abs_of_nonneg (by linarith)]
 
-/-- **naive_decay_leak (C538, strict)**: if the protected
+/-- **naive_decay_leak (strict)**: if the protected
 component of row `i` is non-trivial and `0 < c < 1`, one naive
 weight-decay step STRICTLY shrinks it — strict memory leak. This
 is the theorem behind the experiment's naive SubspaceLeak 1.945:
@@ -138,7 +138,7 @@ theorem naive_decay_leak (W : Matrix (Fin m) (Fin n) ℝ)
     mul_lt_mul_of_pos_right (by linarith) hpos
   linarith
 
-/-- **compl_step_preserves (C538)**: any update living entirely
+/-- **compl_step_preserves**: any update living entirely
 in the complement of the protected span (`ΔC * P = 0`) leaves
 the protected component exactly invariant — the black-box
 interface for momentum projection, polar/NS operators, and
@@ -149,8 +149,8 @@ theorem compl_step_preserves (W ΔC : Matrix (Fin m) (Fin n) ℝ)
     (W + ΔC) * P = W * P := by
   rw [Matrix.add_mul, hC, add_zero]
 
-/-- **wd_gpm_step_sound (C538, main)**: the FULL GPM continual
-step — a complement update `ΔC` (any of the C498/C510 mechanisms
+/-- **wd_gpm_step_sound (main)**: the FULL GPM continual
+step — a complement update `ΔC` (any of the mechanisms
 in their projected form, kept as the black box `ΔC * P = 0`)
 followed by PROJECTED weight decay — preserves the protected
 component exactly. Composition of `compl_step_preserves` with

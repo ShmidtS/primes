@@ -8,7 +8,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Empirical — типизированная обёртка эмпирических посылок (C245, Phase 1)
+# Empirical — типизированная обёртка эмпирических посылок (Phase 1)
 
 Заместительный типизированный путь для голых гипотез `h_emp_*`
 (AssumptionScan остаётся как есть — массовой миграции нет, обёртка

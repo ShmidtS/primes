@@ -135,7 +135,7 @@ gate ⟹ СТРОГИЙ дроп (commitProductive в форме ядра). Ри
 посылками (без молчаливого 0); структурное слияние гейта в
 Loop-слой — отдельный бит (карта слияния A10). -/
 
-/-- C279: коммит-ветвь гейта как шаг общего ядра (premise-form:
+/-- коммит-ветвь гейта как шаг общего ядра (premise-form:
 `hgate` даёт строгий дроп; выравнивание потенциала — посылки). -/
 noncomputable def GateCert.toCertStepGen {S TaskId : Type*}
     (c : GateCert) (hgate : gate c)

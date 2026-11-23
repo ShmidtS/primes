@@ -93,7 +93,7 @@ theorem lyapunov_gain_noise {V gain noise : ℕ → ℝ} {T : ℕ}
   linarith
 
 /-- Если `f (t + 1) ≤ f t − c t` при всех `t < T`, то
-`f T ≤ f 0 − ∑ t < T, c t` (C346: прямая sub-форма телескопа). -/
+`f T ≤ f 0 − ∑ t < T, c t` (прямая sub-форма телескопа). -/
 theorem telescope_le_sub {f c : ℕ → ℝ} {T : ℕ}
     (h : ∀ t < T, f (t + 1) ≤ f t - c t) :
     f T ≤ f 0 - ∑ t ∈ Finset.range T, c t := by
@@ -102,7 +102,7 @@ theorem telescope_le_sub {f c : ℕ → ℝ} {T : ℕ}
   rw [Finset.sum_neg_distrib] at h'
   linarith
 
-/-- Остаточная форма телескопа (C344 bounded pattern): если
+/-- Остаточная форма телескопа (bounded pattern): если
 `f (t + 1) ≤ f t − c t` при `t < T` и пол `lo ≤ f T`, то
 `∑ t < T, c t ≤ f 0 − lo`. -/
 theorem telescope_sum_floor_le {f c : ℕ → ℝ} {T : ℕ} (lo : ℝ)

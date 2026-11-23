@@ -33,7 +33,7 @@ set_option linter.style.header false
 
 Размещение: A5-цель `Hagi/Math/` отсутствует в LAYERS карты
 `scripts/LayerLint.py` (6-слойная цель аспирационна); канон лежит
-в `Hagi/Cert/` (слой 2, каноническое certification-ядро C224).
+в `Hagi/Cert/` (слой 2, каноническое certification-ядро).
 Миграция в Math/ — debt-запись (см. `.omc/tech-debt.md`).
 -/
 

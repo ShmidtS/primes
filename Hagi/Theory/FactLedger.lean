@@ -6,9 +6,9 @@ import Mathlib.Tactic
 set_option relaxedAutoImplicit false
 
 /-!
-# FactLedger — append-only факт-леджер memory store (C579)
+# FactLedger — append-only факт-леджер memory store
 
-Roadmap C578 top-1: мост к HAGI_v2 волны 219–220 (external memory
+Roadmap top-1: мост к HAGI_v2 волны 219–220 (external memory
 store, `hagi/memory_store/facts.py:1` — WAVE 219). Класс
 `ConflictAwareFactStore` («append-only evidence ledger with guarded
 current-value updates», facts.py:56-59): каждое `facts.propose` INSERT-ит

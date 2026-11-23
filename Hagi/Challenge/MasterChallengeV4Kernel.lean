@@ -6,7 +6,7 @@ import Hagi.Unified.CertifiedLoop
 Ядерная форма challenge-методологии openai/math Comparator: та же
 дисциплина, что у `master_hagi_challenge_v3` (заключение прописано
 ПОЛНОСТЬЮ, посылки — только сертифицированная цепь), но носитель —
-ОБЩЕЕ ЯДРО `Hagi.Cert.CertStepGenBounded` (C345, A14 QW5):
+ОБЩЕЕ ЯДРО `Hagi.Cert.CertStepGenBounded` (A14 QW5):
 `TaskId` произвольный (жёсткий `Fin 5` legacy-цикла — инстанциация
 потребителя, не ограничение), bounded-законы списания (≤).
 Допустимые аксиомы: ровно propext, Classical.choice, Quot.sound.

@@ -25,41 +25,41 @@ hypotheses дословно (без ослабления).
 
 | Клоз | Гарантия | Делегат |
 |---|---|---|
-| (1) | параметры ≤ 2·k·dd при любом n цикла | `self_compress_loop_sound` (C555) |
-| (2) | забывание = 0 (изоляция per-task адаптеров) | `adapter_per_task_sound` (C544) |
-| (3) | obj-цепь certified: телескоп ≤ o0 + Σ bounds | `self_compress_loop_sound` (C555) |
-| (4) | покрытие монотонно вдоль append-only цикла | `iterative_loop_sound` (C549) |
-| (5) | перенос управляем iff-границей 2⟪θ,t⟫ vs ‖θ‖² | `neg_transfer_char` (C572) |
-| (6) | snap-грид k* минимален для ε-бюджета | `snap_k_eq_ceil` (C593) |
-| (7) | вход прочитан побайтово (contiguous coverage) | `covStarts_covers` (C598) |
-| (8) | smooth sufficient-граница переноса (равный бюджет) | `smooth_obj_transfer_bound` (C592) |
-| (9) | schedule-оптимум: γ* = 1/L, max drop = G²/(2L) | `nl_drop_optimal` (C606) |
-| (10) | иерархическое покрытие ЛЮБОГО n (peak ≤ m) | `hier_covers_any_n` (C611) |
-| (11) | reading floor: total = ⌈n/w⌉ = floor любого покрытия | `hier_optimal` (C618) |
+| (1) | параметры ≤ 2·k·dd при любом n цикла | `self_compress_loop_sound` |
+| (2) | забывание = 0 (изоляция per-task адаптеров) | `adapter_per_task_sound` |
+| (3) | obj-цепь certified: телескоп ≤ o0 + Σ bounds | `self_compress_loop_sound` |
+| (4) | покрытие монотонно вдоль append-only цикла | `iterative_loop_sound` |
+| (5) | перенос управляем iff-границей 2⟪θ,t⟫ vs ‖θ‖² | `neg_transfer_char` |
+| (6) | snap-грид k* минимален для ε-бюджета | `snap_k_eq_ceil` |
+| (7) | вход прочитан побайтово (contiguous coverage) | `covStarts_covers` |
+| (8) | smooth sufficient-граница переноса (равный бюджет) | `smooth_obj_transfer_bound` |
+| (9) | schedule-оптимум: γ* = 1/L, max drop = G²/(2L) | `nl_drop_optimal` |
+| (10) | иерархическое покрытие ЛЮБОГО n (peak ≤ m) | `hier_covers_any_n` |
+| (11) | reading floor: total = ⌈n/w⌉ = floor любого покрытия | `hier_optimal` |
 
 ## Дельты версий (каждая ступень = предыдущая + добор)
 
-- `master_theorem_v3` (C576) — клозы (1)–(5): референсная
-  метатеорема-сборка уровнем выше `v3_assembly_sound` (C558).
-- `hagi_master_v31` (C600) — += (6)–(8): клозы (1)–(5) проведены
+- `master_theorem_v3` — клозы (1)–(5): референсная
+  метатеорема-сборка уровнем выше `v3_assembly_sound`.
+- `hagi_master_v31` — += (6)–(8): клозы (1)–(5) проведены
   проекциями `hV3`. Клозы (5) + (8) = двухуровневый
   transfer-certified-контур: квадратичный iff (точный) + smooth
   sufficient (консервативный).
-- `hagi_master_v32` (C614) — += (9)–(10): клозы (1)–(8) проведены
+- `hagi_master_v32` — += (9)–(10): клозы (1)–(8) проведены
   одним делегатом `hagi_master_v31` (`have hV31`); (9)–(10)
   переиспользуют L/G/hL из гипотез v3.1.
-- `hagi_master_v33` (C622) — += (11): клозы (1)–(10) проведены одним
+- `hagi_master_v33` — += (11): клозы (1)–(10) проведены одним
   делегатом `hagi_master_v32` (`have hV32`); (11) переиспользует
   nB/B из hier-блока v3.2 и добавляет `hw : 0 < w`, `hdiv : w ∣ B`.
 
-НЕ дублирует `MasterTheorem.lean` (C392, центральная теорема A17
+НЕ дублирует `MasterTheorem.lean` (центральная теорема A17
 audit'а: certified-or-refuse дихотомия reference-machine noisy-PL
 траекторий) — здесь машина v3 bench-контура (distill + self-compress
 + adapter bank), другой носитель и другие делегаты.
 -/
 -/
 
---! v3 (C576)
+--! v3
 namespace Hagi.Theory.MasterTheoremV3
 
 open scoped InnerProductSpace
@@ -67,7 +67,7 @@ open scoped InnerProductSpace
 open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer
 
-/-- **(master_theorem_v3, C576 — спецификация машины)**: для любого
+/-- **(master_theorem_v3, — спецификация машины)**: для любого
 прогона v3-машины на любом конечном корпусе ВСЕ пять гарантий
 выполняются одновременно — existentially-quantified композиция
 полных частей: (1) параметр-бюджет `params bs.length ≤ 2·k·dd` —
@@ -114,7 +114,7 @@ theorem master_theorem_v3
 
 end Hagi.Theory.MasterTheoremV3
 
---! v3.1 (C600)
+--! v3.1
 namespace Hagi.Theory.MasterTheoremV31
 
 open scoped InnerProductSpace
@@ -123,7 +123,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.GrowSnap
   Hagi.Theory.CoverageReading
 
-/-- **(hagi_master_v31, C600 — консолидация certified-машины v3.1)**:
+/-- **(hagi_master_v31, — консолидация certified-машины v3.1)**:
 для любого прогона v3-машины все ПЯТЬ гарантий v3 (параметр-бюджет,
 zero-forgetting, certified obj-телескоп, монотонность покрытия,
 точный iff-transfer) выполняются одновременно, И к ним три клоза
@@ -182,7 +182,7 @@ theorem hagi_master_v31
 
 end Hagi.Theory.MasterTheoremV31
 
---! v3.2 (C614)
+--! v3.2
 namespace Hagi.Theory.MasterTheoremV32
 
 open scoped InnerProductSpace
@@ -191,14 +191,14 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.CoverageReading
   Hagi.Theory.GrowSnap
 
-/-- **(hagi_master_v32, C614 — консолидация certified-машины v3.2)**:
-все 8 гарантий v3.1 (`hagi_master_v31`, C600) выполняются
+/-- **(hagi_master_v32, — консолидация certified-машины v3.2)**:
+все 8 гарантий v3.1 (`hagi_master_v31`) выполняются
 одновременно, И к ним (9) schedule-клоз: guaranteed per-step drop
 при оптимальном шаге γ* = 1/L равен `G ^ 2 / (2 * L)`
-(`nl_drop_optimal`, C606); (10) hierarchical-coverage-клоз: без
+(`nl_drop_optimal`); (10) hierarchical-coverage-клоз: без
 верхней границы на n каждый байт `i < nB` входа покрыт окном
 `[t, t + w)` решётки `hierStarts nB B w s'` при `0 < B`, `0 < s' ≤ w`
-(`hier_covers_any_n`, C611; peak ≤ m — streaming-чтение любого
+(`hier_covers_any_n`, peak ≤ m — streaming-чтение любого
 объёма). Каждая конъюнкта — делегат БЕЗ ослабления гипотез;
 клозы (9)–(10) переиспользуют L/G/hL из гипотез v3.1. -/
 theorem hagi_master_v32
@@ -254,7 +254,7 @@ theorem hagi_master_v32
 
 end Hagi.Theory.MasterTheoremV32
 
---! v3.3 (C622)
+--! v3.3
 namespace Hagi.Theory.MasterTheoremV33
 
 open scoped InnerProductSpace
@@ -263,13 +263,13 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.CoverageReading
   Hagi.Theory.GrowSnap
 
-/-- **(hagi_master_v33, C622 — консолидация certified-машины v3.3)**:
-все 10 гарантий v3.2 (`hagi_master_v32`, C614) выполняются
+/-- **(hagi_master_v33, — консолидация certified-машины v3.3)**:
+все 10 гарантий v3.2 (`hagi_master_v32`) выполняются
 одновременно, И к ним (11) reading-floor-клоз: при строчке `s = w`
 (`hierStarts nB B w w`) и `w ∣ B` total окон равен
 `(nB + w - 1) / w = ⌈nB/w⌉` — информационному минимуму — и НЕ
 превышается никаким списком `L`, покрывающим `[0, nB)` окнами
-длины `w` (`hier_optimal`, C618). Каждая конъюнкта — делегат БЕЗ
+длины `w` (`hier_optimal`). Каждая конъюнкта — делегат БЕЗ
 ослабления гипотез; клоз (11) переиспользует nB/B из hier-блока
 v3.2 и добавляет `hw : 0 < w`, `hdiv : w ∣ B`. -/
 theorem hagi_master_v33

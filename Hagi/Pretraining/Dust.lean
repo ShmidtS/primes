@@ -905,7 +905,7 @@ Probability (Markov on the pair space, welded by):
 * `dustAlignment`: on the two-draw pair space, the averaged
   estimate ĝ satisfies ⟨g, ĝ⟩ ≥ (1−2δ)‖g‖‖ĝ‖ except on a
   pair set of q-mass ≤ V/(δ²·‖g‖²), where V = E‖ĝ−g‖² is
-  the (halved,) estimator error energy. Failure decays
+  the (halved) estimator error energy. Failure decays
   as 1/K in the population — the proved shape of Fig. 5.
 -/
 

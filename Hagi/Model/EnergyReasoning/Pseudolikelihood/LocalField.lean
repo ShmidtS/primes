@@ -22,12 +22,12 @@ set_option linter.style.header false
 
 Track D3 (addendum A11 P3 "sparse field update correctness"): the
 claimed FLOP advantage of LOCAL (sparse) couplings, turned into
-theorems. The dense C261 `localField`
+theorems. The dense `localField`
 `L_i(a) = B i a + Σ_{j ≠ i} K i j a (y j)` sums over ALL off-diagonal
 cells; when the coupling `K` is SUPPORTED on neighbour sets
 `N : ι → Finset ι` (`j ∉ N i → K i j a b = 0`), summing only over
 `N i` computes EXACTLY the same field, and the single-cell delta
-identity of C261 composes unchanged. The cost advantage is a formal
+identity composes unchanged. The cost advantage is a formal
 ℕ-inequality: sparse work `(N i).card · (card α)²` ≤ dense work
 `card(univ \ {i}) · (card α)²`, STRICT for a proper neighbour subset
 — a Finset count, NOT a complexity framework.
@@ -37,7 +37,7 @@ identity of C261 composes unchanged. The cost advantage is a formal
 * `sparseLocalField` — the neighbour-restricted field
   `B i a + Σ_{j ∈ N i}, K i j a (y j)`.
 * `sparse_neighbours_subset` — no self-neighbour (`i ∉ N i`) gives
-  `N i ⊆ univ \ {i}` VERBATIM: the sparse split respects the C260
+  `N i ⊆ univ \ {i}` VERBATIM: the sparse split respects
   ordered-pair convention (off-diagonal, `1/2` outside in the energy;
   the field is one-sided and creates/destroys no diagonal entry).
 * `sparse_localField_eq_dense` — (D3 MAIN) under support and
@@ -45,7 +45,7 @@ identity of C261 composes unchanged. The cost advantage is a formal
   zero couplings contribute nothing (`Finset.sum_subset`).
 * `sparse_update_energy_delta_eq` — (D3 MAIN) with symmetric `K` the
   exact single-cell energy delta is the SPARSE field difference —
-  the C261 `single_cell_move_energy_delta_symm` composed (cited, not
+ `single_cell_move_energy_delta_symm` composed (cited, not
   reproved) through the equivalence above.
 * `neighbour_card_le` — `(N i).card ≤ Fintype.card ι`
   (`Finset.subset_univ`): at most all cells.
@@ -71,7 +71,7 @@ identity of C261 composes unchanged. The cost advantage is a formal
   an arbitrary `K` admits a small `N` (that is the modeling
   assumption behind sparse couplings, not a result).
 * For a constructively symmetrized kernel (`both directed edges in
-  every entry`, the C271 `attentionCoupling` recipe), support of the
+  every entry` `attentionCoupling` recipe), support of the
   directed parts gives support of the kernel on `N i ∪ N j`-shaped
   sets; this remark is documentation, not a theorem here.
 -/
@@ -121,7 +121,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 /-- No self-neighbour (`∀ i, i ∉ N i`) puts every neighbour set
-inside the dense off-diagonal `univ \ {i}` VERBATIM — the C260
+inside the dense off-diagonal `univ \ {i}` VERBATIM
 ordered-pair convention (the field is one-sided; no diagonal entry
 is created or destroyed by the sparse split). -/
 theorem sparse_neighbours_subset (N : ι → Finset ι)
@@ -134,7 +134,7 @@ theorem sparse_neighbours_subset (N : ι → Finset ι)
 
 omit [Fintype α] [DecidableEq α] in
 /-- (D3 MAIN) Under coupling support and no-self-neighbour the SPARSE
-field EQUALS the dense C261 `localField`: zero couplings contribute
+field EQUALS the dense `localField`: zero couplings contribute
 nothing (`Finset.sum_subset` over `N i ⊆ univ \ {i}`). -/
 theorem sparse_localField_eq_dense (N : ι → Finset ι)
     (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ) (y : ι → α)
@@ -148,7 +148,7 @@ theorem sparse_localField_eq_dense (N : ι → Finset ι)
 
 omit [Fintype α] [DecidableEq α] in
 /-- (D3 MAIN) With symmetric `K` the exact single-cell move delta of
-the DENSE pairwise energy is the SPARSE field difference — the C261
+the DENSE pairwise energy is the SPARSE field difference
 `single_cell_move_energy_delta_symm` composed (cited, not reproved)
 through `sparse_localField_eq_dense`. -/
 theorem sparse_update_energy_delta_eq (N : ι → Finset ι)
@@ -256,7 +256,7 @@ private theorem carrier_no_self : ∀ i, i ∉ Nex i := by
   · simp [Nex, h0]
 
 /-- Vacuity/equivalence check: on the carrier the sparse field equals
-the dense C261 field for every cell and value. -/
+the dense field for every cell and value. -/
 example (i : Fin 4) (c : Bool) :
     sparseLocalField Nex Bex4 Kex4 yex4 i c
       = localField Bex4 Kex4 yex4 i c :=
@@ -282,7 +282,7 @@ set_option linter.style.header false
 Track P3 (addendum A11, first item): the CRAM solver's computed local
 fields `L̂_i` (e.g. BF16-rounded evaluations) carry a per-value error
 `|L̂_i(a) − L_i(a)| ≤ ε`. This file bridges that numerical premise to
-the exact-arithmetic descent of `Hagi.Energy.SingleCellDescent` (C261):
+the exact-arithmetic descent of `Hagi.Energy.SingleCellDescent`:
 
 * `guarded_energy_delta_error` — the energy-delta error is at most
   `2ε`: the single-cell delta `Δ = E(y^{i←a}) − E(y)` equals
@@ -418,7 +418,7 @@ theorem localField_visibleBiasWithZ (B : ι → α → ℝ)
   unfold localField visibleBiasWithZ
   ring
 
-/-- **`guarded_greedy_strict_drop`** — (P3 MAIN, composition with C261
+/-- **`guarded_greedy_strict_drop`** — (P3 MAIN, composition
 `strict_drop_of_positive_margin`) guarded acceptance under the
 two-phase frozen-z setting: computed fields of the frozen-bias energy
 `pairwiseEnergy (visibleBiasWithZ B zc) K` with margin clearing `2ε`
@@ -535,7 +535,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 section Support
 
 /-- **`latent_fixed_unique`** — two fixed points of the latent update
-coincide (direct consequence of the C272 ℓ∞ contraction
+coincide (direct consequence of the ℓ∞ contraction
 `latent_update_contraction` with factor `Δ/m < 1`). -/
 theorem latent_fixed_unique (N : ι → Finset ι) (m : ℝ) (G : ι)
     {Δ : ℕ} (hΔ : ∀ i, (N i).card ≤ Δ) (hm : (Δ : ℝ) < m)
@@ -844,7 +844,7 @@ coupling carries BOTH directed edges in every entry:
 * `attention_coupling_symmetric` — (B3 MAIN) `L_ij(a,b) = L_ji(b,a)`
   BY CONSTRUCTION: the two directed contributions swap exactly. This
   is the A9 upper-triangle trick — both directed edges are built into
-  every `L_ij`, so the kernel satisfies the C261 `hK` premise with NO
+  every `L_ij`, so the kernel satisfies `hK` premise with NO
   symmetry hypothesis on `κ` or `w`. Fin 3 numeric anchor below uses
   a deliberately ASYMMETRIC `κ` to catch any index-role slip.
 * `attention_coupling_bounded` — `|L_ij(a,b)| ≤ 2·κmax·fmax` when
@@ -852,9 +852,9 @@ coupling carries BOTH directed edges in every entry:
   TIGHT: two directed contributions, each `≤ κmax·fmax` (witness: `f`
   constant `±fmax` attains both simultaneously).
 * `attentionK` — the kernel `K(z)` at frozen `z` (`w = α(·; z)`),
-  `attention_K_symmetric` — the C261 premise verbatim.
+  `attention_K_symmetric` — the premise verbatim.
 * `frozen_z_field_with_attention` — the local field for `K(z)` is
-  well-defined and the C261 machinery applies at frozen `z`: a
+  well-defined and the machinery applies at frozen `z`: a
   local-field minimizer move does not increase
   `pairwiseEnergy B (attentionK κ (attentionWeights s) f)`.
 * `attention_coupling_field_diff` — weight drift `|w1 − w2| ≤ δ`
@@ -865,7 +865,7 @@ coupling carries BOTH directed edges in every entry:
   PREMISE `|w(z) − w(z*)| ≤ L_sm·η` (no such lemma is claimed for
   this carrier; `z` is frozen) bounds the field perturbation by
   `|S_i|·2κmax·fmax·L_sm·η`.
-* `latent_attention_guarded_drop` — the C270 guard ABSORBS the latent
+* `latent_attention_guarded_drop` — the guard ABSORBS the latent
   error: with `ε := |S_i|·2κmax·fmax·L_sm·η`, a computed margin
   `2ε < L̂(y_i) − L̂(a)` on the `K(z)`-fields gives a STRICT drop of
   the TRUE energy `pairwiseEnergy B (attentionK κ w(z*) f)` — the
@@ -877,7 +877,7 @@ coupling carries BOTH directed edges in every entry:
 This is the STRUCTURAL CRAM+Z bridge only. Full Maze-Hard semantics —
 support of `z*`, reachability, and JOINT `(z, y)` updates — remain
 OPEN: joint updates are still forbidden by the E3 two-phase protocol
-(a mid-descent z-move changes the kernel and voids the C261 delta
+(a mid-descent z-move changes the kernel and voids the delta
 identity; no joint theorem exists or is claimed). The softmax
 Lipschitz-in-z step is a premise, not a theorem.
 -/
@@ -952,7 +952,7 @@ noncomputable def attentionCoupling (κ w : ι → ι → ℝ) (f : α → α �
 /-- **`attention_coupling_symmetric`** — (B3 MAIN) symmetry BY
 CONSTRUCTION: `L_ij(a,b) = L_ji(b,a)` — the two directed
 contributions swap exactly (add_comm; NO symmetry premise on `κ` or
-`w`). This is why the kernel `attentionK` satisfies the C261 `hK`
+`w`). This is why the kernel `attentionK` satisfies `hK`
 premise verbatim. -/
 theorem attention_coupling_symmetric (κ w : ι → ι → ℝ) (f : α → α → ℝ)
     (i j : ι) (a b : α) :
@@ -1004,19 +1004,19 @@ noncomputable def attentionK (κ w : ι → ι → ℝ) (f : α → α → ℝ) 
     ι → ι → α → α → ℝ :=
   fun i j a b => attentionCoupling κ w f i j a b
 
-/-- **`attention_K_symmetric`** — `K(z)` satisfies the C261 `hK`
+/-- **`attention_K_symmetric`** — `K(z)` satisfies `hK`
 premise verbatim, for ANY `κ` and `w` (constructive symmetry). -/
 theorem attention_K_symmetric (κ w : ι → ι → ℝ) (f : α → α → ℝ) :
     ∀ i j a b, attentionK κ w f i j a b = attentionK κ w f j i b a :=
   fun i j a b => attention_coupling_symmetric κ w f i j a b
 
 /-- **`frozen_z_field_with_attention`** — (B3 MAIN, thin by design)
-the local field for `K(z)` is well-defined and the C261 machinery
+the local field for `K(z)` is well-defined and the machinery
 applies AT FROZEN `z`: moving cell `i` to a local-field minimizer of
 `pairwiseEnergy B (attentionK κ (attentionWeights s) f)` does not
 increase the energy. PREMISE-FORM for the descent — NO joint
 `(z, y)` theorem exists or is claimed (E3 two-phase protocol: a
-mid-descent z-move changes the kernel and voids the C261 delta
+mid-descent z-move changes the kernel and voids the delta
 identity). -/
 theorem frozen_z_field_with_attention (B : ι → α → ℝ)
     (κ : ι → ι → ℝ) (s : ι → ι → ℝ) (f : α → α → ℝ)
@@ -1132,14 +1132,14 @@ theorem latent_error_couples_field (B : ι → α → ℝ) (κ : ι → ι → �
       ≤ ((Finset.univ \ {i}).card : ℝ) * (2 * κmax * fmax * (Lsm * η)) :=
   attention_coupling_field_diff B κ w1 w2 f hκ hf hsoft y i a
 
-/-- **`latent_attention_guarded_drop`** — (B3 MAIN) the C270 guard
+/-- **`latent_attention_guarded_drop`** — (B3 MAIN) the guard
 ABSORBS the latent error: with
 `ε := |S_i|·2κmax·fmax·L_sm·η` (the coupling bound), a computed
 improvement margin `2ε < L̂(y_i) − L̂(a)` on the `K(z)`-fields gives a
 STRICT drop of the TRUE energy
 `pairwiseEnergy B (attentionK κ w2 f)` — the `2ε`-guard recipe of
 `guarded_energy_delta` instantiated at the attention coupling bound.
-Rejection still carries no information (C270 honesty). Joint
+Rejection still carries no information (honesty). Joint
 `(z, y)` updates remain FORBIDDEN (E3). -/
 theorem latent_attention_guarded_drop [Nonempty α] (B : ι → α → ℝ)
     (κ : ι → ι → ℝ) (w1 w2 : ι → ι → ℝ) (f : α → α → ℝ)

@@ -9,7 +9,7 @@ import Hagi.Cert.Core
 set_option linter.style.header false
 
 /-!
-# Views — тонкие представления носителей состояния (C245, Phase 1)
+# Views — тонкие представления носителей состояния (Phase 1)
 
 Обзор носителей состояния (addendum A7, L3 HagiLoop State):
 

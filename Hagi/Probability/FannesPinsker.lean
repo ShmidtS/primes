@@ -10,14 +10,14 @@ import Hagi.Probability.GibbsCooling
 set_option linter.style.header false
 
 /-!
-# FannesPinsker — consolidated Fannes + Pinsker canon (A5 §R3, C235)
+# FannesPinsker — consolidated Fannes + Pinsker canon (A5 §R3)
 
 Merge of `Hagi.Unified.FannesComplete` (discrete Fannes, mixed-entropy
 bounds; namespace `Hagi.Unified` preserved), `Hagi.Unified.InfoCanonical`
 (entDef/tvDef-world bridges), `Hagi.Unified.NernstFannes` (Nernst via
 Fannes), and `Hagi.Probability.PinskerTV` (Pinsker family; namespaces
 `Hagi.Probability` and tail `Hagi.Information` preserved). FQNs of all
-moved declarations preserved via namespace blocks (C234 pattern);
+moved declarations preserved via namespace blocks (pattern);
 statements byte-identical. Definitions live in `Hagi.Math.Info.InfoCore`.
 -/
 
@@ -472,7 +472,7 @@ theorem shannon_eq_entDef {V : Type*} [Fintype V] (p : V → ℝ) :
   simp [Hagi.Information.shannon, Hagi.Prelude.entDef,
     Real.negMulLog]
 
-/-- Полная вариация: tvHalf = tvDef. ДЕДУП (A19.3, C451):
+/-- Полная вариация: tvHalf = tvDef. ДЕДУП (A19.3):
 канонический мост — `Hagi.Information.tvHalf_eq_tvDef`;
 здесь — deprecated alias на него. -/
 @[deprecated Hagi.Information.tvHalf_eq_tvDef (since := "2026-11-19")]

@@ -6,7 +6,7 @@ import Mathlib.Tactic
 set_option relaxedAutoImplicit false
 
 /-!
-# RollbackGate — the exact pre-step rollback gate (C530)
+# RollbackGate — the exact pre-step rollback gate
 
 Lean bridge for the HAGI_v2 wave199 rollback gate: a validation-
 gated optimizer step with EXACT rollback. The controller state is
@@ -42,8 +42,8 @@ restored — exactly, with no partial borrowing from the candidate.
   the same way; the gate theorem covers them all as `gate = false`.
 - Neighbor coverage: `Hagi.Unified.CommitGate.holdSafe` pins only
   the scalar potential; the state-unification `hold_rollback_total`
-  (C363) is a different setting without the gate condition; TTCAT
-  (C380/C383) restores the last COMMITTED checkpoint, not the
+ is a different setting without the gate condition; TTCAT
+ restores the last COMMITTED checkpoint, not the
   pre-step state. None of them covers the wave199 bundle
   (gate condition + full state + budget + telemetry chain).
 -/

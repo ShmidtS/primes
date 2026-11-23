@@ -8,9 +8,9 @@ import Hagi.Probability.EmpiricalBernstein
 import Mathlib.Tactic
 
 /-!
-# Mini-HAGI full self-improving loop (C547 bench bridge)
+# Mini-HAGI full self-improving loop (bench bridge)
 
-Roadmap C546 top-1: the FULL certified-era bench
+Roadmap top-1: the FULL certified-era bench
 (`scripts/bench_bridge.py`, `--mode mini-hagi-loop`) — all
 components in ONE trace: P1 exact bypass (a symbolic law covers
 part of the corpus with EXACTLY zero CE-contribution), P2/P3
@@ -19,7 +19,7 @@ admission, neutral-init grow, snap determinism), P4 continual
 isolation (per-task adapters, frozen task A keeps its outputs
 IDENTICAL — forgetA = 0 bit-exact), P5 OE primitive search with
 an EB-gated accept (validation exact; n_EB vs n_Hoeffding as the
-C539 cost contrast), P6 final metrics.
+ cost contrast), P6 final metrics.
 
 `full_loop_sound` is a COMPOSITIONAL WRAPPER: under the phase
 hypotheses (each one exactly the hypothesis of an existing
@@ -37,7 +37,7 @@ theorem's conclusion verbatim).
    TELEMETRY; the accept decision in the bench is exact
    (all-or-nothing validation, error == 0 in Fractions).
 3. The adapter/continual phases are per-task adapter statements
-   (`AdapterGrowth.ContinualIsolation`, C544); this module adds
+   (`AdapterGrowth.ContinualIsolation`); this module adds
    only the composition, not new forgetting theory.
 -/
 
@@ -54,7 +54,7 @@ variable {ι V : Type} [Fintype V] [Nonempty V]
     {Prog Obs : Type}
     [DecidableEq Obs] (obsV : Prog → Obs)
 
-/-- **Full-loop soundness (C547)**: one certified full-loop run
+/-- **Full-loop soundness**: one certified full-loop run
 preserves ALL phase invariants simultaneously. Each conjunct of
 the conclusion is the VERBATIM conclusion of a component theorem
 (`exact_gate_sound`, `adapter_step_certified`,
@@ -108,7 +108,7 @@ theorem full_loop_sound {p : ι → ℝ} {cov : List ι}
 
 end FullLoop
 
-/-! ## `IterativeLoop` (C549): the self-improvement CYCLE -/
+/-! ## `IterativeLoop`: the self-improvement CYCLE -/
 
 section IterativeLoop
 
@@ -129,7 +129,7 @@ def coversPrim {Prog ι : Type} (CovP : Prog → ι → Prop)
     (st : IterState Prog ι) (i : ι) : Prop :=
   ∃ p ∈ st.prims, CovP p i
 
-/-- **Coverage monotonicity of one iteration (C549)**: an
+/-- **Coverage monotonicity of one iteration**: an
 append-only step preserves every previously covered position. -/
 theorem coverage_append_monotone {Prog ι : Type}
     (CovP : Prog → ι → Prop) (st : IterState Prog ι)
@@ -139,7 +139,7 @@ theorem coverage_append_monotone {Prog ι : Type}
   obtain ⟨p, hp, hcov⟩ := h
   exact ⟨p, List.mem_append_left _ hp, hcov⟩
 
-/-- **Iterative loop soundness (C549)**: if EVERY iteration of
+/-- **Iterative loop soundness**: if EVERY iteration of
 an n-iteration run extends the primitive list additively (the
 exact-gate is conservative: a position covered by an accepted
 primitive stays covered — `coverage_append_monotone`), then the
@@ -178,11 +178,11 @@ theorem iterative_loop_sound {Prog ι : Type}
 
 end IterativeLoop
 
-/-! ## `UniversalLoop` (C551): the full live corpus -/
+/-! ## `UniversalLoop`: the full live corpus -/
 
 section UniversalLoop
 
-/-- **Union-additivity of corpus coverage (C551)**: if a loop
+/-- **Union-additivity of corpus coverage**: if a loop
 state covers every position of domain list `lA` AND every
 position of domain list `lB`, then it covers every position of
 the UNION corpus `lA ++ lB`. Extending the corpus by a union of

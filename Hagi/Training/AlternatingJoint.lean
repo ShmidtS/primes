@@ -9,15 +9,15 @@ import Hagi.State.TrainTrajectory
 /-!
 # Alternating joint update — piecewise-certified trajectory with phase guards
 
-C402, research beat of the C397 queue (ranked item 5, "joint
-update — research goal"): LOOSEN the C396 `crmsm_joint_separation`
+research beat of the queue (ranked item 5, "joint
+update — research goal"): LOOSEN `crmsm_joint_separation`
 pin through an ALTERNATING schedule. The extractor updates RARELY
 (at phase boundaries, every `K` steps, C380-style period) and is
 admitted only through a re-certification gate; between boundaries
-the extractor is FROZEN, so the head-descent theorems (C387 via
-the C396 wiring, C392 master steps) apply VERBATIM — the
+the extractor is FROZEN, so the head-descent theorems (via
+the wiring, master steps) apply VERBATIM — the
 separation lemma's precondition holds by FREEZING, not by equality
-of a joint update. Precedent: C293 R1 alternating rounds
+of a joint update. Precedent: R1 alternating rounds
 (one-sided dependency z* → visible: each round's guarantee is
 conditional on the frozen other side).
 
@@ -25,11 +25,11 @@ conditional on the frozen other side).
 
 - WITHIN a phase (`HeadPhase`, `head_phase_certified`,
   `head_phase_bound`): at a frozen extractor every head step
-  carries `HeadControl` (the C396 bridge applies unchanged) and
-  the phase telescopes the C387 universal drops.
+  carries `HeadControl` (the bridge applies unchanged) and
+  the phase telescopes the universal drops.
 - AT a boundary (`ExtractorBoundary`, `extractor_phase_admitted`,
   `boundary_refusal_freezes`): the extractor may move ONLY through
-  the C390 admission rule (no free-floating decision; non-positive
+  the admission rule (no free-floating decision; non-positive
   margin ⇒ refuse), ONLY at multiples of the schedule period `K`,
   and the loss change across the boundary is bounded by an
   explicit premise `delta ≥ 0`. Refusal freezes the extractor —
@@ -42,7 +42,7 @@ conditional on the frozen other side).
 
 ## What this module does NOT prove (the pin stays)
 
-`crmsm_joint_separation` (C396) is INTENTIONALLY untouched: a
+`crmsm_joint_separation` is INTENTIONALLY untouched: a
 SIMULTANEOUS single-step joint extractor+head update remains
 uncovered. What alternating achieves is the PIECEWISE-CERTIFIED
 trajectory above; it is a partial result next to the pin, not a
@@ -50,9 +50,9 @@ replacement of it.
 
 ## Honesty pins
 
-- **Damage bound is a PREMISE (C402), with a DERIVED counterpart
-  (C408).** `delta` is a per-boundary binder `fullObjective s' ≤
-  fullObjective s + delta`, `delta ≥ 0`. C408 derives the
+- **Damage bound is a PREMISE, with a DERIVED counterpart
+.** `delta` is a per-boundary binder `fullObjective s' ≤
+  fullObjective s + delta`, `delta ≥ 0`. derives the
   CE-channel damage: the CE head is 2-Lipschitz in the logits
   (sup norm, `ce_head_lipschitz_in_logits`), the head logit map
   is `headLip`-Lipschitz in the FEATURES (premise), and the
@@ -60,7 +60,7 @@ replacement of it.
   binder (`ExtractorSpec.lip` bounds ONE extractor on TWO
   inputs — it cannot bound two extractors). Composed:
   `boundary_damage_bound` / `derived_boundary_damage` give
-  `|ΔCE| ≤ 2 * headLip * D`, and the C408 variant trajectory
+  `|ΔCE| ≤ 2 * headLip * D`, and the variant trajectory
   `alternating_trajectory_bound_derived` replaces every `delta`
   by the derived `2 * headLip * D`. The feature → fullObjective
   bridge remains OPEN: in the derived variant the fullObjective
@@ -77,9 +77,9 @@ replacement of it.
   `K`); a consumer instantiating huge `delta`s gets a weak bound —
   that is the honest price of premise-form.
 
-Layer decision: Training (8), same as CRMSM (C396) — the module
-must see the CR-MSM skeleton (8), the C392 master theorem (7) and
-the C387 carrier; only layer 8 can.
+Layer decision: Training (8), same as CRMSM — the module
+must see the CR-MSM skeleton (8), the master theorem (7) and
+the carrier; only layer 8 can.
 -/
 
 set_option relaxedAutoImplicit false
@@ -109,9 +109,9 @@ variable {mE rE dE : ℕ}
 
 /-- A head phase of length `K` at a FROZEN extractor: a sequence
 of CR-MSM blocks whose extractors are all equal to the phase-start
-extractor, and a head-parameter trajectory following the C387
+extractor, and a head-parameter trajectory following
 universal steps. The freezing premise is exactly what makes the
-C396 head wiring apply — the separation lemma's precondition holds
+ head wiring apply — the separation lemma's precondition holds
 by freezing, not by a joint-update argument. -/
 structure HeadPhase (K : ℕ) (U : Hagi.Theory.CEChain.UniversalSafeStep Θ)
     where
@@ -122,7 +122,7 @@ structure HeadPhase (K : ℕ) (U : Hagi.Theory.CEChain.UniversalSafeStep Θ)
   /-- The extractor is FROZEN within the phase: every block's
   extractor equals the phase-start one. -/
   frozen : ∀ j ≤ K, (blocks j).extractor = (blocks 0).extractor
-  /-- The head follows the C387 universal step at the universal
+  /-- The head follows the universal step at the universal
   step size. -/
   headSteps : ∀ j < K, θs (j + 1) =
     U.step (θs j) (Hagi.Theory.CEChain.universalStepSize U (θs j))
@@ -130,7 +130,7 @@ structure HeadPhase (K : ℕ) (U : Hagi.Theory.CEChain.UniversalSafeStep Θ)
   curvaturePos : ∀ j ≤ K, 0 < U.curvature (θs j)
 
 /-- Phase certification: within a head phase EVERY step carries
-`HeadControl` — the C396 fixed-extractor bridge applies verbatim,
+`HeadControl` — the fixed-extractor bridge applies verbatim,
 the extractor-equality channel supplied by freezing. This is the
 phase-level restatement of `crmsm_head_step_safe` over a frozen
 sequence; no new mathematics. -/
@@ -144,7 +144,7 @@ theorem head_phase_certified (K : ℕ)
     U _ (hp.curvaturePos j (by omega))
 
 /-- Phase bound: at a frozen extractor the head loss telescopes
-the C387 universal drops over the whole phase — the phase-level
+the universal drops over the whole phase — the phase-level
 counterpart of the per-step `universal_descent`. -/
 theorem head_phase_bound (K : ℕ)
     (U : Hagi.Theory.CEChain.UniversalSafeStep Θ)
@@ -169,7 +169,7 @@ theorem head_phase_bound (K : ℕ)
 variable {n a e q r c k : ℕ}
 
 /-- A phase boundary: the extractor update event between two
-canonical states, GATED by the C390 admission rule (no
+canonical states, GATED by the admission rule (no
 free-floating decision — the recorded decision is EXACTLY
 `admitRule proposal`), with the honest damage bookkeeping:
 - the extractor moves ONLY on an admitted decision (iff);
@@ -189,7 +189,7 @@ structure ExtractorBoundary (s s' : Hagi.State.CanonicalTrainState n a e q r c k
   proposal : AdmissionProposal
   /-- The recorded decision. -/
   decision : Bool
-  /-- No drift: the decision is exactly the C390 rule output. -/
+  /-- No drift: the decision is exactly the rule output. -/
   admit_ok : decision = admitRule proposal
   /-- The extractor moves IFF the boundary was admitted. -/
   extractor_moves_iff :
@@ -202,7 +202,7 @@ structure ExtractorBoundary (s s' : Hagi.State.CanonicalTrainState n a e q r c k
   boundary (PREMISE: the only bound on extractor-update damage). -/
   damage : Hagi.State.fullObjective s' ≤ Hagi.State.fullObjective s + delta
   /-- Re-certification (existence premise): on admission, a fresh
-  certified C387 head carrier exists at the new extractor — the
+  certified head carrier exists at the new extractor — the
   fresh alignment/curvature constants A', C' of the next phase. -/
   recertified : decision = true →
     ∃ U' : Hagi.Theory.CEChain.UniversalSafeStep Θ,
@@ -211,7 +211,7 @@ structure ExtractorBoundary (s s' : Hagi.State.CanonicalTrainState n a e q r c k
 /-- The boundary gate, admission direction: an admitted extractor
 update forces a strictly positive admission margin AND the
 re-certification premise to hold. The extractor cannot move
-against the C390 gate (refusal direction:
+against the gate (refusal direction:
 `boundary_refusal_freezes` below). -/
 theorem extractor_phase_admitted
     {s s' : Hagi.State.CanonicalTrainState n a e q r c k}
@@ -247,7 +247,7 @@ theorem boundary_refusal_freezes
 
 /-- The kind of an alternating-trajectory step: a certified head
 step (extractor frozen), an extractor boundary step (admission-
-gated, damage-bounded), or a hold (identity, C363 semantics). -/
+gated, damage-bounded), or a hold (identity, semantics). -/
 inductive AltStepKind where
   /-- A head step at a frozen extractor (carries a CRMSMStep). -/
   | headStep : AltStepKind
@@ -258,7 +258,7 @@ inductive AltStepKind where
 deriving DecidableEq
 
 /-- The alternating trajectory: `T` canonical-state steps, each a
-certified head step (a C396 `CRMSMStep` — hence a C392
+certified head step (`CRMSMStep` — hence
 `MasterStepCert`), an admission-gated extractor boundary, or a
 hold. The C380-style rare-update discipline is explicit: extractor
 boundaries occur ONLY at indices `j` with `(j + 1) % K = 0`. -/
@@ -269,8 +269,8 @@ structure AlternatingTrajectory (T : ℕ) where
   states : ℕ → Hagi.State.CanonicalTrainState n a e q r c k
   /-- The kind of each step. -/
   kinds : ℕ → AltStepKind
-  /-- Head steps carry the C396 CR-MSM step certificate (at a
-  frozen extractor, with the C392 master certificate inside). -/
+  /-- Head steps carry the CR-MSM step certificate (at a
+  frozen extractor, with the master certificate inside). -/
   headCerts : ∀ j < T, kinds j = AltStepKind.headStep →
     CRMSMStep (Θ := Θ) (X := X) (V := V) (F := F)
       (mE := mE) (rE := rE) (dE := dE) (states j) (states (j + 1))
@@ -278,11 +278,11 @@ structure AlternatingTrajectory (T : ℕ) where
   boundaries : ∀ j < T, kinds j = AltStepKind.extractorStep →
     ExtractorBoundary (Θ := Θ) (X := X) (V := V) (F := F)
       (mE := mE) (rE := rE) (dE := dE) (states j) (states (j + 1))
-  /-- Holds are identities (safe refusal, C363). -/
+  /-- Holds are identities (safe refusal). -/
   holdIds : ∀ j < T, kinds j = AltStepKind.holdStep →
     states (j + 1) = states j
   /-- Rare-update discipline: extractor boundaries only at
-  multiples of the schedule period (C380 pattern). -/
+  multiples of the schedule period (pattern). -/
   periodic : ∀ j < T, kinds j = AltStepKind.extractorStep →
     (j + 1) % sch.K = 0
 
@@ -316,10 +316,10 @@ noncomputable def AlternatingTrajectory.stepDamage (T : ℕ)
 /-- The alternating trajectory bound: over `T` steps the full
 objective is bounded by its start MINUS the sum of certified head
 drops PLUS the sum of compression penalties PLUS the sum of
-boundary damages. Head phases descend (C392 via C396, extractor
+boundary damages. Head phases descend (via extractor
 frozen); extractor boundaries pay their premise damage; holds are
 free. The decomposition IS the result — the simultaneous joint
-update remains pinned (C396 `crmsm_joint_separation`, untouched).
+update remains pinned (`crmsm_joint_separation`, untouched).
 Proof: per-step key by kind discipline, then the generic
 telescope `obj_telescope_err`. -/
 theorem alternating_trajectory_bound (T : ℕ)
@@ -374,15 +374,15 @@ theorem alternating_trajectory_bound (T : ℕ)
   rw [Finset.sum_add_distrib] at h
   linarith
 
-/-! ## C408: the extractor-damage bridge (derived boundary damage)
+/-! ## the extractor-damage bridge (derived boundary damage)
 
-The C402 boundary damage was PREMISE-form (`delta`). This section
+The boundary damage was PREMISE-form (`delta`). This section
 DERIVES the damage on the CE-head channel from two honest inputs:
 the CE head is 2-Lipschitz in the logits (sup norm), and the head
 logit map is Lipschitz in the FEATURES with the consumer's binder
 `headLip`; composing with the MEASURED extractor displacement
 binder `D` at the boundary gives the derived damage `2 * headLip * D`.
-The C402 declarations above are FROZEN and untouched. -/
+The declarations above are FROZEN and untouched. -/
 
 /-- One-sided shift bound for `lse`: if every coordinate of `a`
 is at most `b + d`, then `lse a ≤ lse b + d`. Elementary:
@@ -511,7 +511,7 @@ extractor displacement binder `D`; the CE-channel damage is then
 a THEOREM (`derived_boundary_damage`), and the fullObjective
 channel keeps a premise whose CONSTANT is the derived value
 `2 * headLip * D` (the feature → fullObjective bridge remains
-open — the C402 honesty pin). -/
+open — the honesty pin). -/
 structure DerivedExtractorBoundary [Fintype V] [Nonempty V]
     (s s' : Hagi.State.CanonicalTrainState n a e q r c k) where
   /-- The block before the boundary. -/
@@ -522,7 +522,7 @@ structure DerivedExtractorBoundary [Fintype V] [Nonempty V]
   proposal : AdmissionProposal
   /-- The recorded decision. -/
   decision : Bool
-  /-- No drift: the decision is exactly the C390 rule output. -/
+  /-- No drift: the decision is exactly the rule output. -/
   admit_ok : decision = admitRule proposal
   /-- The extractor moves IFF the boundary was admitted. -/
   extractor_moves_iff :
@@ -545,7 +545,7 @@ structure DerivedExtractorBoundary [Fintype V] [Nonempty V]
   D_nonneg : 0 ≤ D
   /-- Every input's feature displacement is at most `D`. -/
   disp : ∀ x : X, ‖block'.extractor.extract x - block.extractor.extract x‖ ≤ D
-  /-- The fullObjective channel (premise-form, C402 pin) with the
+  /-- The fullObjective channel (premise-form, pin) with the
   DERIVED constant `2 * headLip * D`. -/
   damage_derived : Hagi.State.fullObjective s'
     ≤ Hagi.State.fullObjective s + 2 * headLip * D
@@ -577,7 +577,7 @@ structure DerivedAlternatingTrajectory [Fintype V] [Nonempty V] (T : ℕ) where
   states : ℕ → Hagi.State.CanonicalTrainState n a e q r c k
   /-- The kind of each step. -/
   kinds : ℕ → AltStepKind
-  /-- Head steps carry the C396 CR-MSM step certificate. -/
+  /-- Head steps carry the CR-MSM step certificate. -/
   headCerts : ∀ j < T, kinds j = AltStepKind.headStep →
     CRMSMStep (Θ := Θ) (X := X) (V := V) (F := F)
       (mE := mE) (rE := rE) (dE := dE) (states j) (states (j + 1))
@@ -585,11 +585,11 @@ structure DerivedAlternatingTrajectory [Fintype V] [Nonempty V] (T : ℕ) where
   boundaries : ∀ j < T, kinds j = AltStepKind.extractorStep →
     DerivedExtractorBoundary (Θ := Θ) (X := X) (V := V) (F := F)
       (mE := mE) (rE := rE) (dE := dE) (states j) (states (j + 1))
-  /-- Holds are identities (safe refusal, C363). -/
+  /-- Holds are identities (safe refusal). -/
   holdIds : ∀ j < T, kinds j = AltStepKind.holdStep →
     states (j + 1) = states j
   /-- Rare-update discipline: extractor boundaries only at
-  multiples of the schedule period (C380 pattern). -/
+  multiples of the schedule period (pattern). -/
   periodic : ∀ j < T, kinds j = AltStepKind.extractorStep →
     (j + 1) % sch.K = 0
 
@@ -621,14 +621,14 @@ noncomputable def DerivedAlternatingTrajectory.derivedStepDamage [Fintype V] [No
     2 * (tr.boundaries j h.1 h.2).headLip * (tr.boundaries j h.1 h.2).D
   else 0
 
-/-- The DERIVED alternating trajectory bound (C408): over `T`
+/-- The DERIVED alternating trajectory bound: over `T`
 steps the full objective is bounded by its start MINUS the sum of
 certified head drops PLUS the sum of compression penalties PLUS
 the sum of DERIVED boundary damages `2 * headLip * D` — no opaque
 `delta` binder anywhere. The CE-channel component of each
 boundary's damage is fully derived
 (`derived_boundary_damage`); the fullObjective channel keeps the
-C402 premise with the derived constant. Proof mirrors
+ premise with the derived constant. Proof mirrors
 `alternating_trajectory_bound` (per-step key by kind discipline,
 then the generic telescope). -/
 theorem alternating_trajectory_bound_derived [Fintype V] [Nonempty V] (T : ℕ)

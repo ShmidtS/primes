@@ -722,7 +722,7 @@ theorem spectralFactor_column {A : Matrix ι ι ℂ} (hA : A.PosSemidef) (k : ι
 section
 variable {ι : Type u_1} {α : Type u_4} [Fintype ι] [DecidableEq ι] [Fintype α] [DecidableEq α]
 
--- C455 heartbeat tranche: elaborates within 400k (was 1000000).
+-- heartbeat tranche: elaborates within 400k (was 1000000).
 set_option maxHeartbeats 400000 in
 set_option maxRecDepth 10000 in
 theorem entropy_sum_le (A : α → Matrix ι ι ℂ) (hA : ∀ a, (A a).PosSemidef) :
@@ -1155,7 +1155,7 @@ noncomputable def tvHalf (p q : ι → ℝ) : ℝ := (∑ i, |p i - q i|) / 2
 omit [DecidableEq ι] in
 /-- ДЕДУП (аудит v5 п.5): tvHalf — то же определение, что
 каноническое Prelude.tvDef (половина L1-расстояния);
-связь rfl. Канонический дубля-моста A19.3 (C451):
+связь rfl. Канонический дубля-моста A19.3:
 `Hagi.Unified.InfoCanonical.tvHalf_eq_tvDef` — deprecated alias
 на ЭТУ теорему; binder `DecidableEq` не используется (omit) —
 канонический тип совпадает с типом алиаса-копии. -/
@@ -1526,7 +1526,7 @@ end Hagi.Data
 /-!
 ## The log-sum-exp convexity and the ensemble theorem
 
-A19.1 (C448): moved from `Hagi.Core.Concat` to the canonical Info
+A19.1: moved from `Hagi.Core.Concat` to the canonical Info
 module (layer 0, C348/A14 QW8). FQNs frozen: `Hagi.Core.lse`,
 `Hagi.Core.ceOneHot`, `Hagi.Core.softmaxP`, the `Hagi.*` exports, and
 all bridge theorems — consumers unchanged (Lean imports are transitive;
@@ -1728,7 +1728,7 @@ theorem lse_mean_le_mean_lse (z : Fin N → k → ℝ) :
   exact hlog
 
 omit [NeZero N] in
-/-- Weighted Jensen bound for `lse` (C619): for strictly positive
+/-- Weighted Jensen bound for `lse`: for strictly positive
 mixing weights `w` with `∑ a, w a = 1`, the `lse` of the
 convex-combination mixture is at most the weighted mean of the
 children's `lse` — by the pointwise weighted AM-GM applied to
@@ -1813,7 +1813,7 @@ theorem lse_weighted_le (w : Fin N → ℝ) (z : Fin N → k → ℝ)
   exact hlog
 
 omit [NeZero N] in
-/-- Weighted ensemble bound for the cross-entropy (C619):
+/-- Weighted ensemble bound for the cross-entropy:
 `ceOneHot t (weighted mixture of the z a) ≤ ∑ a, w a * ceOneHot t (z a)`,
 the weighted generalization of `ensemble_ce_le_mean_general`.
 Jensen for `lse` (`lse_weighted_le`); the linear target term

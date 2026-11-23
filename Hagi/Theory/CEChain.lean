@@ -52,7 +52,7 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
   plus uncertainty `u`, the accept condition
   `0 < Â - r ∧ 0 < Ĉ + u` certifies the drop lower bound
   `(Â - r) ^ 2 / (4 * (Ĉ + u))` directly from the universal form
-  (pure algebra; the full Freedman-radius theorem is C388).
+  (pure algebra; the full Freedman-radius theorem is).
   The end-to-end whp learning theorem stays in
   `Hagi.Unified.StochasticCELearning` (re-exported below).
 * CONVERGENCE — the chain head: `ce_global_convergence_reg_closed`
@@ -63,14 +63,14 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
 
 - The GatedCE zero-curvature unit fallback (`η = 1`, drop `A`) is
   outside the universal form: the quadratic degenerates.  It stays
-  in `Model.GatedCESafeStep` (documented C365: the pointwise
+  in `Model.GatedCESafeStep` (documented the pointwise
   curvature law `0 < R ^ 2 → 0 < A` is false there).
-- `Model.CEModel` — the C364 `η = 4A / R ^ 2` descent CONTRACT on
+- `Model.CEModel` `η = 4A / R ^ 2` descent CONTRACT on
   `loss/next/alignment/rangeSquare`: a parallel packaging of the
   same single/batch facts; this module does not change it.
 - `Model.NonlinearCE` / `Model.CEJacobianMajorizer` (Jacobian
   remainder ball), `Model.CEQuantized` (penalty constants), and the
-  `Semantics.Split` objective combination (C384) are separate
+  `Semantics.Split` objective combination are separate
   tranches, not instances of the quadratic form.
 - The margin/realizability convergence route stays open
   (`Model.CEGlobalConvergence` pins).
@@ -154,12 +154,12 @@ theorem universalDrop_ge_of_bounds (U : UniversalSafeStep Θ) (θ : Θ)
   nlinarith
 
 /-- The accept-form of the universal step (audit 5.2 algebra, the
-C388 target shape): with an alignment estimate `Â` carrying
+ target shape): with an alignment estimate `Â` carrying
 nonnegative uncertainty `r` and a curvature estimate `Ĉ` carrying
 uncertainty `u`, the accept condition `0 < Â - r ∧ 0 < Ĉ + u`
 certifies, from the universal form alone, the drop lower bound
 `(Â - r) ^ 2 / (4 * (Ĉ + u))`.  No probability here — the
-Freedman-radius theorem is C388. -/
+Freedman-radius theorem is . -/
 theorem universal_accept_form (U : UniversalSafeStep Θ) (θ : Θ)
     {Â Ĉ r u : ℝ} (hCpos : 0 < U.curvature θ)
     (hA : Â - r ≤ U.alignment θ) (hC : U.curvature θ ≤ Ĉ + u) :
@@ -341,19 +341,19 @@ theorem gated_descent (X : Matrix V (Fin d) ℝ) (t : V)
         - universalDrop (gatedStep X t) θ :=
   universal_descent _ θ hC
 
-/-! ## Stage 4 — the stochastic pointer (full theorem: C388) -/
+/-! ## Stage 4 — the stochastic pointer (full theorem) -/
 
 /-- Chain pointer to the end-to-end stochastic learning theorem
-(C360): whp descent of the real regularized head under fresh-sample
+whp descent of the real regularized head under fresh-sample
 SGD with the Freedman radius.  The accept-form algebra above is its
-C387 interface. -/
+ interface. -/
 alias stochasticLearning :=
   Hagi.Unified.StochasticCELearning.stochastic_ce_loop_whp_pl
 
 /-! ## Stage 5 — the convergence head -/
 
 /-- Chain pointer to the closed PL geometric-rate convergence
-theorem for the regularized CE head (C351/C354/C357/C359 chain:
+theorem for the regularized CE head (chain:
 convexity → smoothness → PL → rate, attainment discharged). -/
 alias convergenceRegClosed :=
   Hagi.Model.CEGlobalConvergence.ce_global_convergence_reg_closed

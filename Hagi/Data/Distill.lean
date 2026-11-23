@@ -867,7 +867,7 @@ open Finset
 
 /-!
 # Canonical — ONE definition per information-theoretic
-concept (; architecture audit P0-1, stage 0/1;
+concept (architecture audit P0-1, stage 0/1;
 lives in Data for LayerLint reasons: bridges Data+Energy)
 
 The audit found the same mathematical objects under 3–4
@@ -888,12 +888,12 @@ the oldest and most widely consumed):
 
 Bridged variants (each `..._eq_canonical`):
 
-* KL:  Data.Distill.klDiv (delegate,),
-       Data.DField (rfl; сам KLdiv удалён, аудит 2026-10-24,),
+* KL:  Data.Distill.klDiv (delegate),
+       Data.DField (rfl; сам KLdiv удалён, аудит 2026-10-24),
        Energy.FreeEnergy.kldiv (new bridge below);
 * H:   Data.DistillRecursion.shannonEntropy (new),
        Information.DiscreteFannes.shannon (new);
-* TV:  Data.FannesSmooth.tvDist (rfl,),
+* TV:  Data.FannesSmooth.tvDist (rfl),
        Information.DiscreteFannes.tvHalf (new).
 
 not unified (deliberately, per the audit §2/§24): the

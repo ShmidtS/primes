@@ -63,7 +63,7 @@ carrier behind the quarantine boundary; it is NOT imported here).
   irreducibility and aperiodicity — those are NOT claimed for the
   unconditional kernel (names `heatbath_irreducible` /
   `heatbath_aperiodic` are RootApi negative pins).
-* The focused (state-dependent) mixture is OUT of scope: C268 showed
+* The focused (state-dependent) mixture is OUT of scope: showed
   the INVARIANCE premise can fail; only the plain single-cell
   heat-bath kernel is treated.
 * No spectral-gap or cutoff claim; only the Doeblin geometric rate.
@@ -667,7 +667,7 @@ theorem heatbath_mixing_time (B : ι → α → ℝ)
 end Stationary
 
 section Fixture
-/-! ## Fin 2 × Bool fixture (Bex/Kex/xtt carriers from C260) -/
+/-! ## Fin 2 × Bool fixture (Bex/Kex/xtt carriers) -/
 
 open Hagi.Energy
 
@@ -726,7 +726,7 @@ greedy single-cell search story on a FINITE configuration space.
   lists). No rate or complexity claim is made.
 * `greedy_search_terminal_is_coordinate_minimum` — (A6 MAIN) a
   terminal state of strict-improvement greedy search — one where NO
-  single-cell move has a positive C261 local-field margin — is a
+  single-cell move has a positive local-field margin — is a
   COORDINATE minimum (`IsCoordinateMinimum` reused verbatim).
 * `focusedDisagreementWeight` — the PRACTICAL focused selection rule
   of A9-supplement §E4: cell `i` is weighted by its OWN disagreement
@@ -818,7 +818,7 @@ variable {α : Type*}
 
 /-- (A6 MAIN) The terminal state of strict-improvement greedy search
 is a COORDINATE minimum: if at `y` NO single-cell move has a strictly
-positive C261 local-field margin (`0 < L_i(y_i) − L_i(a)` fails for
+positive local-field margin (`0 < L_i(y_i) − L_i(a)` fails for
 every cell `i` and value `a` — strict improvement is unavailable),
 then `y` is an `IsCoordinateMinimum` (no single-cell move decreases
 the energy; ties allowed). HONEST SCOPE: a coordinate minimum is NOT
@@ -841,7 +841,7 @@ end Terminal
 
 section FocusAudit
 
-/-! ## A7: the practical focused selection rule vs the C263
+/-! ## A7: the practical focused selection rule
 INVARIANCE premise. The rule weights cell `i` by its OWN
 disagreement — state-dependent through y_i ITSELF, which is
 exactly what the invariance premise forbids. -/
@@ -851,17 +851,17 @@ variable {α : Type*} [Fintype α] [DecidableEq α]
 
 /-- The PRACTICAL focused selection weight of A9-supplement §E4:
 cell `i` is weighted by its own disagreement
-`Σ_a max 0 (L_i(y_i) − L_i(a))` with `L` the C261 `localField`.
+`Σ_a max 0 (L_i(y_i) − L_i(a))` with `L` `localField`.
 State-dependent through y_i itself (and through the other cells via the
 field). This is the rule the CRAM focused sampler actually uses;
-against the C263 `focused_mixture_stationary` premises it satisfies
+against `focused_mixture_stationary` premises it satisfies
 SUPPORT structurally (heat-bath kernels) but INVARIANCE only as an
 UNVERIFIED premise — see the witness below. -/
 noncomputable def focusedDisagreementWeight (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (y : ι → α) (i : ι) : ℝ :=
   ∑ a, max 0 (localField B K y i (y i) - localField B K y i a)
 
-/-- Local-field anchor on the Fin 2 × Bool fixture (C260 `Bex`/
+/-- Local-field anchor on the Fin 2 × Bool fixture (`Bex`/
 `Kex`/`xtt`): at cell `0`, whenever `y 1 = true`, the field is
 `L_0(c) = if c then 3 else 0` — it depends ONLY on `y 1`, never on
 `y 0`. -/
@@ -883,11 +883,11 @@ example : focusedDisagreementWeight Bex Kex xtt 0 = 3 := by
 
 /-- (A7 MAIN, NEGATIVE WITNESS) The practical focused selection rule
 VIOLATES the INVARIANCE premise of `focused_mixture_stationary`
-(C263): after the greedy move of cell `0` from `t` to `f` (its local
+after the greedy move of cell `0` from `t` to `f` (its local
 field minimizer on the fixture), the weight of cell `0` DROPS from
 `3` to `0` — `w(y^{0←f})_0 ≠ w(y)_0`. The weight depends on y_0
 itself through `L_i(y_i)`, which is exactly what the premise
-forbids. Consequence, stated honestly: the C263 stationarity
+forbids. Consequence, stated honestly: the stationarity
 theorem applies to the practical focused sampler ONLY in
 premise-form — the INVARIANCE premise is FALSE for this policy, so
 NO stationarity claim for the practical focused sampler is certified
@@ -920,7 +920,7 @@ end FocusAudit
 
 section Fixture
 /-! ## Fin 2 × Bool fixture: the termination bound closes on a
-concrete two-state trajectory (C260 carriers). -/
+concrete two-state trajectory (carriers). -/
 
 /-- Bound fixture: the two-state strictly-decreasing trajectory
 `[true, false]` under `H = fun b => if b then 1 else 0` has length
@@ -1305,7 +1305,7 @@ Track B4 (master-plan-v3 addendum A11 B4: "alternating minimization
 with summable errors ... важно не выдавать текущий frozen-z result
 за joint convergence"). DESIGN-FIRST beat: the joint latent-visible
 descent is organized as ALTERNATING ROUNDS with per-round
-tolerances (route R1 of `.tmp/C293/design.md`):
+tolerances:
 
   round t = z-phase (settle `z` toward `z*` to tolerance η_t) +
             y-phase (one guarded visible move on computed
@@ -1328,7 +1328,7 @@ Main results:
   through the declared softmax-Lipschitz premise
   `hsoft : |w(z_t) − w(z*)| ≤ Lsm·η`, delivery lemma
   `LatentEnergy.latent_settle_tolerance`), the computed fields
-  `L̂` of the `K(z_t)`-energy carry numerical error ≤ ε (C270
+  `L̂` of the `K(z_t)`-energy carry numerical error ≤ ε (
   premise), and the computed margin clears the COMPOSED slack
   `2·(ε + |S_i|·2κmax·fmax·L_sm·η)` (C270's 2ε plus C271's coupling
   bound), then the visible energy at the TRUE frozen-z* kernel
@@ -1343,31 +1343,31 @@ Main results:
   `‖latentUpdate N m G z − z*‖ ≤ (Δ/m)·‖z − z*‖` for a fixed point
   `z*` — per-round tolerances satisfy η_t ≤ q·η_{t−1}, q = Δ/m,
   WITHOUT restarting (the summability input of the R1 design).
-* `alternating_round_slack_summable` — (B4 N1, C294) ROUND-ERROR
+* `alternating_round_slack_summable` — (B4 N1) ROUND-ERROR
   SUMMABILITY: a round-guard slack sequence with premise-form
   geometric decay `slack (t+1) ≤ (Δ/m)·slack t` (delivered for
   the coupling part by `alternating_zphase_one_step_error`) has
   ALL partial sums bounded by the geometric budget
   `slack 0 · m/(m−Δ)`.
 * `alternating_trajectory_bound` / `alternating_trajectory_
-descent_budget` — (B4 N2, C294) TRAJECTORY TELESCOPING: rounds
+descent_budget` — (B4 N2) TRAJECTORY TELESCOPING: rounds
   each dropping `d t` (premise-form) telescope to
   `E (y N) ≤ E (y 0) − Σ d t`; with a bounded-below PREMISE
   `Emin ≤ E (y t)` the total descent is budgeted by
   `E (y 0) − Emin` (the floor is a hypothesis, not a conclusion).
-* `alternating_rounds_converge` — (B4 N3, C294) TERMINAL FINITE
+* `alternating_rounds_converge` — (B4 N3) TERMINAL FINITE
   FORM: on a finite configuration space, strictly-decreasing
   alternating rounds terminate (length ≤ card of the energy
-  image) — the C268 ranking bound reused; the unconditional
+  image) — the ranking bound reused; the unconditional
   analytic convergence stays OPEN (pinned negative).
 
 ## Honest boundaries (B4)
 
 * PREMISE-FORM throughout: the z-phase inexactness (η, `hsoft`) and
   the numerical field error (ε) are HYPOTHESES, not conclusions;
-  the softmax-Lipschitz step remains a declared premise (C271
+  the softmax-Lipschitz step remains a declared premise (
   honesty inherited), and rejection below the slack carries no
-  information (C270 honesty inherited).
+  information (honesty inherited).
 * NO UNCONDITIONAL joint `(z, y)` convergence theorem exists or is
   claimed: the names `alternating_round_converges` and
   `visible_descent_joint_z` are NONEXISTENT (RootApi negative
@@ -1380,10 +1380,10 @@ descent_budget` — (B4 N2, C294) TRAJECTORY TELESCOPING: rounds
   if the latent energy ever becomes y-dependent, R2's small-gain
   machinery becomes necessary and this file's design must be
   revisited (design doc records the dispositions).
-* C294 convergence lift (N1–N3) stays PREMISE-FORM and FINITE:
+* convergence lift (N1–N3) stays PREMISE-FORM and FINITE:
   the geometric slack decay and the per-round drops are HYPOTHESES;
   the energy floor `Emin` is a PREMISE; the terminal statement is
-  the FINITE/STRICT form only (length bound via the C268 ranking
+  the FINITE/STRICT form only (length bound via the ranking
   argument). The UNCONDITIONAL analytic convergence statement
   `alternating_round_converges` STILL does not exist and stays
   OPEN (RootApi negative pin unchanged); the near-name
@@ -1407,7 +1407,7 @@ the z-phase settled-state weights `w1 = w(z_t)` within `Lsm·η` of
 the fixed-point weights `w2 = w(z*)` (premise-form delivery: η is
 the settle tolerance of `latent_settle_tolerance`, composed through
 the declared softmax-Lipschitz premise), computed fields `L̂` of the
-`K(z_t)`-energy within ε of the exact ones (C270 numerical
+`K(z_t)`-energy within ε of the exact ones (numerical
 premise), and the computed margin clearing the COMPOSED slack
 `2·(ε + |S_i|·2κmax·fmax·(Lsm·η))`, the visible energy at the TRUE
 frozen-z* kernel STRICTLY decreases across the round. -/
@@ -1502,7 +1502,7 @@ private theorem slack_partial_sum {q : ℝ} (hq0 : 0 ≤ q) (hq1 : q < 1)
           field_simp
           nlinarith [hqn, h5, h3]
 
-/-- **`alternating_round_slack_summable`** — (B4 N1, C294,
+/-- **`alternating_round_slack_summable`** — (B4 N1
 ROUND-ERROR SUMMABILITY) the composed round-guard slack with
 geometric decay (premise-form `slack (t+1) ≤ (Δ/m)·slack t`; the
 delivery for the C·η_t part is `alternating_zphase_one_step_error`)
@@ -1541,7 +1541,7 @@ section Trajectory
 
 variable {γ : Type*}
 
-/-- **`alternating_trajectory_bound`** — (B4 N2, C294, TRAJECTORY
+/-- **`alternating_trajectory_bound`** — (B4 N2, TRAJECTORY
 TELESCOPING) a trajectory of rounds `y 0, y 1, …` each satisfying
 the strict-drop premise with per-round drop `d t` (premise-form)
 telescopes: the final visible energy is at most the initial minus
@@ -1568,7 +1568,7 @@ theorem alternating_trajectory_bound {E : γ → ℝ} (y : ℕ → γ)
       linarith
   exact hkey N hstep
 
-/-- **`alternating_trajectory_descent_budget`** — (B4 N2, C294,
+/-- **`alternating_trajectory_descent_budget`** — (B4 N2
 floor corollary) with the visible energy BOUNDED BELOW by `Emin`
 (the honest floor premise — nonneg or bounded-below by
 construction; a HYPOTHESIS, not a conclusion), the total descent
@@ -1597,12 +1597,12 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 omit [DecidableEq α] in
-/-- **`alternating_rounds_converge`** — (B4 N3, C294, TERMINAL
+/-- **`alternating_rounds_converge`** — (B4 N3, TERMINAL
 FINITE FORM) on a finite configuration space, a trajectory of
 alternating rounds along which the visible energy at the TRUE
 frozen-z* kernel `pairwiseEnergy B (attentionK κ w f)` strictly
 decreases at every pair has length at most the number of DISTINCT
-energy values — the C268 ranking bound reused
+energy values — the ranking bound reused
 (`greedy_strict_search_terminates` cited, not restated). Hence an
 infinite strictly-improving alternating run CANNOT exist: the
 process reaches a round where the composed guard fails (a STALL —
@@ -1623,7 +1623,7 @@ theorem alternating_rounds_converge (B : ι → α → ℝ) (κ : ι → ι → 
 
 end TerminalFinite
 
-/-! ## Numeric anchors (C294) -/
+/-! ## Numeric anchors -/
 section Anchors
 
 /-- ANCHOR (geometric slack sum numeric check): slack t = (1/2)^t

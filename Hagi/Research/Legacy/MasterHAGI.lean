@@ -247,7 +247,7 @@ theorem MasterHAGICore (S S' : GenState X) (lam nu Qtarget epsQ : ℝ)
   have hcompE : (compress (joint (merge (grow S.toGrowthState)))).energy
       ≤ S.toGrowthState.energy - (verify S.toGrowthState).decrease := by
     linarith
-  -- C439: доказанный факт (из certificate_sound), не предпосылка —
+  -- доказанный факт (из certificate_sound), не предпосылка —
   -- честное имя (h_emp_* резервируется для premise binders).
   have hfit_derived : S'.toGrowthState.energy
       ≤ S.toGrowthState.energy - (verify S.toGrowthState).decrease := by

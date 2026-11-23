@@ -5,9 +5,9 @@ import Hagi.Math.Info.InfoCore
 set_option linter.unusedSectionVars false
 
 /-!
-# ExactBypass — нулевой CE символьного bypass на PROVEN_EXACT-покрытии (C541)
+# ExactBypass — нулевой CE символьного bypass на PROVEN_EXACT-покрытии
 
-Внешний план C537 (mapping, P8, top-4): HAGI_v2 Exact-First
+Внешний план (mapping, P8, top-4): HAGI_v2 Exact-First
 Residual Coupling — детерминированные паттерны перехватываются
 символьными экспертами с сертификатом PROVEN_EXACT (0 нейронных
 FLOP на покрытых позициях), остаток — нейронным ядром

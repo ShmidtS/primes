@@ -4,9 +4,9 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Model.CEGroupedScale
 
 /-!
-# CEJointScale — the joint/choice scale canon (C523)
+# CEJointScale — the joint/choice scale canon
 
-Merged here (C523, v5 W1): `Hagi.Model.CEScaleChoice` (the common
+Merged here (v5 W1): `Hagi.Model.CEScaleChoice` (the common
 certified finite scale-choice interface).  Namespaces unchanged.
 -/
 

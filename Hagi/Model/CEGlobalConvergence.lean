@@ -44,7 +44,7 @@ The two halves are deliberately independent:
   is made for it.
 * The smoothness premise is DISCHARGED for the linear head:
   `ce_smooth_ident` derives the descent lemma with the row-energy
-  constant `ceSmoothL X = \sum v \sum j X v j ^ 2` (C354; the
+  constant `ceSmoothL X = \sum v \sum j X v j ^ 2` (the
   single-sample analog of the data-geometry bound
   `(1/n) \sum |phi(x_i)|^2`, unnormalized here).  The sharp
   constant `lambda_max(X^T X)` and an `L <= B^2`-style feature
@@ -72,7 +72,7 @@ The two halves are deliberately independent:
   on ALL iterates' distance to a minimizer (level-set boundedness not
   formalized).
 
-Reference search (research notes, `.tmp/C351/research.md`) found no
+Reference search found no
 logsumexp or PL API in the pinned Mathlib commit; the two-point
 weighted AM-GM route adapts the normalization pattern of
 `lse_mean_le_mean_lse` from `Hagi.Core.Concat`.
@@ -1109,7 +1109,7 @@ theorem ce_convex_ident (X : Matrix V (Fin d) ℝ) (t : V)
 set_option maxHeartbeats 400000 in
 /-- **PL-free sublinear rate for the real log-linear CE head.**  No PL
 premise: convexity is supplied by `ce_convex_ident` (derived) and
-smoothness by `ce_smooth_ident` (C354, `L = ceSmoothL X`), giving
+smoothness by `ce_smooth_ident` (`L = ceSmoothL X`), giving
 `f (θ_T) − fstar ≤ 2·ceSmoothL X·R²/(T+1)` for every `T ≥ 1`.
 
 Honest premise ledger: the loss floor (`h_floor`), attainment
@@ -1155,11 +1155,11 @@ attainment of `fstar` yields the PL inequality with `μ = λ` by
 completing the square — this is `strong_convex_pl`.  No smoothness
 is needed for the PL derivation itself; the descent lemma for
 `ceReg` with `L = ceSmoothL X + λ` (`ceReg_smooth_ident`) is the
-CE bound of C354 plus the exact quadratic shift.  The corollary
-`ce_global_convergence_reg` instantiates the C351 rate machine for
+CE bound plus the exact quadratic shift.  The corollary
+`ce_global_convergence_reg` instantiates the rate machine for
 the REAL regularized model: geometric factor
 `1 − λ/(ceSmoothL X + λ)` with only `λ > 0`, the floor `fstar`, and
-attainment (`h_att`, the C355 pattern) explicit — PL and smoothness
+attainment (`h_att`, the pattern) explicit — PL and smoothness
 are fully discharged. -/
 
 section StrongConvexPL
@@ -1259,7 +1259,7 @@ theorem ceReg_strong_convex_ident (X : Matrix V (Fin d) ℝ) (t : V)
   linarith [hcvx, hq]
 
 /-- **Descent lemma for the regularized objective** with the
-constant `ceSmoothL X + λ`: the C354 CE bound plus the exact
+constant `ceSmoothL X + λ`: the CE bound plus the exact
 quadratic shift. -/
 theorem ceReg_smooth_ident (X : Matrix V (Fin d) ℝ) (t : V)
     (lam : ℝ) (θ θ' : EuclideanSpace ℝ (Fin d)) :
@@ -1281,7 +1281,7 @@ theorem ceReg_smooth_ident (X : Matrix V (Fin d) ℝ) (t : V)
   linarith [hsm, hq]
 
 /-- **Global geometric convergence for the REAL ℓ2-regularized
-log-linear CE head — PL fully discharged.**  Instantiates the C351
+log-linear CE head — PL fully discharged.**  Instantiates
 rate machine `ce_global_convergence` with `f = ceReg`, gradient
 `ceGradReg`, `L = ceSmoothL X + λ` and `μ = λ`: the smoothness and
 PL premises are DERIVED (`ceReg_smooth_ident`, `ceReg_strong_convex_ident`
@@ -1327,7 +1327,7 @@ the finite-dimensional parameter space it attains its minimum
 `ce_global_convergence_reg_closed` whose only analytic premise is
 `0 < λ`.
 
-Pinned (honest negative): the UNREGULARIZED head of C355
+Pinned (honest negative): the UNREGULARIZED head
 (`ce_rate_no_pl`) keeps `h_attains` as a premise by mathematical
 necessity — bare CE is not coercive (e.g. `X = 0` gives a constant
 objective); the margin/realizability route stays open. -/
@@ -1442,7 +1442,7 @@ Honest premise ledger: the ONLY analytic premise is `hlam : 0 < lam`
 `θstar` binder (it is existential inside).  Data `X`, target `t`,
 start `θ₀` and horizon `T` are explicit.  `X = 0` is admissible (the
 objective degenerates to `(λ/2)‖θ‖²` with minimizer `0` and `L = λ`).
-The unregularized C355 rate keeps its `h_attains` premise by
+The unregularized rate keeps its `h_attains` premise by
 mathematical necessity (bare CE is not coercive). -/
 theorem ce_global_convergence_reg_closed (X : Matrix V (Fin d) ℝ) (t : V)
     (lam : ℝ) (hlam : 0 < lam)
