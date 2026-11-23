@@ -1,18 +1,18 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.7 (C617). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD 5254f6e8), либо измеренный результат прогона с
-указанием витка (Cn), либо явный PIN в §Limitations. Никаких
-недоказанных клеймов. С v0.6 (C604) добавлено: центральный
-statement v3.2 — hagi_master_v32, 10 клозов (§3.18, C614);
-formula-driven-эра — все параметры → формулы с Lean-якорями и
-bench-применениями (§4.6, C593–C613); corpus-политика snapshot
-default → live fallback (C607/C608/C610, §4.6); PALOMAR-ниша —
-прямая проверка реестра: 1293 results, 0 пересечений (§4.7,
-C616); PALOMAR Cards 9–11 (γ*, иерархия, iff-span, C615, §4.7);
-Appendix A расширен (C606/C611/C614, верификация HEAD 5254f6e8).
+Draft v0.8 (C629). Все утверждения — либо Lean-якорь (FQN, файл,
+строка; секции до §3.18 — HEAD 5254f6e8, новые §3.19/§3.20 и
+строки §4.6/§4.7 — HEAD dd4102cf), либо измеренный результат
+прогона с указанием витка (Cn), либо явный PIN в §Limitations.
+Никаких недоказанных клеймов. С v0.7 (C617) добавлено:
+чтение-эра — полная линия одной секцией: floor чтения →
+иерархия достигает floor → три режима стоимости окна →
+near-const → mixed-w* AM-GM (§3.19, C618–C628); центральный
+statement v3.3 — hagi_master_v33, 11 клозов (§3.20, C622);
+таблица параметров пополняется window-width rule (§4.6,
+C623/C626/C628); PALOMAR Cards 12–13 (§4.7, C621/C625).
 Теоремный счётчик abstract остаётся от e40aa426 (C559): новый
-индекс в C617 не генерировался.
+индекс в C617/C629 не генерировался.
 
 ## Abstract
 
@@ -770,6 +770,167 @@ declaration). Witness: `.tmp/C614/trajMT32.lean` (#check of the
 ten-clause conjunction, applications of (9) to L=2, G=1 — drop
 = 1/4 — and of (10) to n=8128, B=4032, w=s'=64; exit 0).
 
+### 3.19 The reading era (C618–C628): floor → hierarchy → w-rule → near-const → mixed-w*
+
+<!-- source: .tmp/C618/receipt.md (hier_total_floor/min/optimal,
+     B*-опровержение, числа :47-49); .tmp/C623/receipt.md
+     (WindowTradeoff режимы (a)/(b), w*-набросок, таблица :42-46);
+     .tmp/C626/receipt.md (bench --cost-regime, pinned asserts);
+     .tmp/C628/receipt.md (mixedCost_* AM-GM, freeze 8844);
+     якоря rg HEAD dd4102cf: CoverageReading.lean :468/:502/:539,
+     WindowTradeoff.lean :61/:83/:92/:108/:119/:136/:156/:181 -->
+
+The formula era made every operating parameter a formula; the
+reading era asks the complementary question — what does it COST
+to read n bytes with width-w windows, and which w should the
+machine choose? The whole line landed in five beats, and this
+section states it as one arc.
+
+**(i) The information-theoretic floor (C618).** No coverage of
+[0, n) by width-w windows can use fewer than ⌈n/w⌉ windows:
+
+> `theorem hier_total_floor (L : List ℕ) (w n : ℕ) (hw : 0 < w)`
+> `(hcover : ∀ i < n, ∃ t ∈ L, t ≤ i ∧ i < t + w) :`
+> `n ≤ L.length * w`
+
+(`Hagi.Theory.CoverageReading.hier_total_floor`,
+CoverageReading.lean:502). The hierarchy of §3.18 clause (10)
+ATTAINS the floor at `s = w`, `w ∣ B` —
+`hier_total_min` (:468): `(hierStarts n B w w).length =
+(n + w - 1) / w`, closed by `hier_optimal` (:539): total =
+⌈n/w⌉ ∧ every covering list L has `(n + w - 1) / w ≤
+L.length`. Geometry, not algorithm: k windows cover at most k·w
+bytes (injection i ↦ (window, offset)). Two consequences,
+measured: the total is CONSTANT in B at s = w — n = 100000,
+w = m = 64 gives 1563 = ⌈100000/64⌉ for every B ∈ {64, 2048,
+4032, 4096}, so the hypothesized interior optimum B* = √(nw) is
+REFUTED by the telescoping sum (C618); and shrinking the stride
+below the width only pays: s = 32, B = 1088 reads 3033 > 1563,
+strictly worse than the floor. At n = 8128 the floor-attaining
+total is 127 = ⌈8128/64⌉.
+<!-- source: .tmp/C618/receipt.md:47-49 (1563/3033/127); :13-18 (B*) -->
+
+**(ii) Three cost regimes and the w-rule (C623).** With a
+per-read window cost c(w), totalCost(w) = ⌈n/w⌉·c(w), and the
+certified w-rule has three regimes (Hagi/Theory/
+WindowTradeoff.lean, freeze 8841):
+
+- **(a) fixed cost c(w) = c:** totalCost = c·⌈n/w⌉ is
+  monotonically non-increasing in w (`windowCost_fixed_mono`,
+  :83, core `ceil_div_anti` :61) — the certified choice is
+  w = w_max;
+- **(b) linear cost c(w) = c·w:** totalCost is nearly
+  width-INDEPENDENT — `w·⌈n/w⌉` sits in [n, n + w − 1]
+  (`windowCost_linear_bounds`, :92) and any two widths differ
+  by less than the cost of one window
+  (`windowCost_linear_near_const`, :108) — w is free, choose it
+  for accuracy, not budget;
+- **(c) mixed cost c(w) = a + c·w^α, α > 1:** at C623 the
+  interior optimum w* = (a/(c·(α−1)))^(1/α) was an honest
+  Real-arithmetic sketch in STATUS.md, NOT a Lean clause.
+
+The bridge back to (i) is `windowCost_hier` (:119): at
+w ∣ B the machine's total IS ⌈n/w⌉ reads, so the certified
+hierarchy total and the cost model agree. Measured table
+(n = 100000; C623 #eval, re-verified bit-identical by the bench
+twin in C626): w ∈ {16, 64, 256} → reads {6250, 1563, 391};
+linear-regime totals {100000, 100032, 100096}, each inside the
+corridor [100000, 100000 + w).
+<!-- source: .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md
+     (witness-сверка C623 pinned asserts) -->
+
+**(iii) Near-const is a card (C625).** Regime (b) became
+PALOMAR Card 13 (§4.7): width choice cannot buy budget savings
+under linear window cost — the lower edge c·n is common to all
+w, the gap is < c·w, while the read count ⌈n/w⌉ moves by
+orders of magnitude.
+
+**(iv) mixed-w* becomes a theorem (C628).** For the bench
+default α = 2 the sketch is now certified (WindowTradeoff.lean,
+freeze 8841 → 8844), three clauses, Lean-verbatim:
+
+> `theorem mixedCost_relax_min {a c w : ℝ} (ha : 0 < a)`
+> `(hc : 0 < c) (hw : 0 < w) :`
+> `2 * Real.sqrt (a * c) ≤ a / w + c * w`
+
+(:136 — AM-GM: (√u − √v)² ≥ 0 at u = a/w, v = c·w);
+
+> `theorem mixedCost_relax_min_eq {a c : ℝ} (ha : 0 < a)`
+> `(hc : 0 < c) :`
+> `a / Real.sqrt (a / c) + c * Real.sqrt (a / c)`
+> `= 2 * Real.sqrt (a * c)`
+
+(:156 — equality at w = √(a/c): both summands equal √(a·c), so
+w* = √(a/c), the α = 2 case of w* = (a/(c·(α−1)))^(1/α), is
+certified); and the discrete lower bound
+
+> `theorem mixedCost_lower {n w : ℕ} {a c : ℝ} (ha : 0 < a)`
+> `(hc : 0 < c) (hw : 0 < w) :`
+> `2 * (n : ℝ) * Real.sqrt (a * c)`
+> `≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2)`
+
+(:181 — ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) via the ceil-bridge
+`windowCost_linear_bounds` + the relaxation ×n). Honest scope:
+this is a certified LOWER bound; discrete equality needs
+w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
+Real-calculus outside the Nat model of the file — the bench
+text says "NOT a Lean clause" for α ≠ 2.
+<!-- source: Hagi/Theory/WindowTradeoff.lean:136/:156/:181
+     (statement дословно, HEAD dd4102cf); .tmp/C628/receipt.md -->
+
+**(v) The bench application (C626).** `cost_regime_w` in
+scripts/bench_bridge.py is the python twin of the three regimes
+(exact `fractions.Fraction` arithmetic, fail-closed asserts:
+linear corridor, near-const inequality w1·⌈n/w1⌉ ≤
+w2·⌈n/w2⌉ + (w1 − 1), fixed optimality of w_max, mixed argmin),
+exposed as `--cost-regime {fixed,linear,mixed}` in
+`--mode generate-hier` with telemetry (w_chosen, reads ⌈n/w⌉,
+exact total_cost, corridor, w_compare at {16, 64, 256, w_max};
+instances n = 540/4032/8128/100000). The C623 numbers above are
+pinned asserts in the dispatch — python and Lean #eval agree
+verbatim; the C628 landing changed ZERO bench numbers (the
+mixed-rule text only gained its Lean anchor at α = 2).
+<!-- source: .tmp/C626/receipt.md; .tmp/C628/receipt.md (diff
+     cost_mixed.log пуст) -->
+
+The arc closes: reading has a floor (i), the certified
+hierarchy attains it, the cost model says which w to pick per
+regime (ii), the counter-intuitive regime got its own card
+(iii), the last grey element became a theorem (iv), and the
+bench consumes all of it fail-closed (v).
+
+### 3.20 The v3.3 canon: hagi_master_v33, eleven clauses (C622)
+
+<!-- source: Hagi/Theory/MasterTheoremV33.lean:54-120 (statement
+     прочитан полностью на HEAD dd4102cf, клозы дословно);
+     .tmp/C622/receipt.md (freeze 8835→8836, axioms 3, witness
+     trajMT33.lean rc=0) -->
+
+The v3.2 canon of §3.18 is extended to **v3.3** by one clause:
+the reading floor. `hagi_master_v33`
+(Hagi/Theory/MasterTheoremV33.lean:54) carries the hypotheses
+of v3.2 verbatim plus `hw : 0 < w` and `hdiv : w ∣ B` on the
+hier block, and its conclusion is the ten clauses of v3.2
+verbatim (§3.18 (1)–(10)) AND the eleventh, verbatim from the
+statement:
+
+> (11) `(hierStarts nB B w w).length = (nB + w - 1) / w ∧
+> `∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) →`
+> `(nB + w - 1) / w ≤ Ll.length` — the machine's total at
+> s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows
+> is shorter (`hier_optimal`, C618).
+
+Zero new proofs: clauses (1)–(10) discharge through ONE
+delegate `hagi_master_v32` (projections), clause (11) is
+`hier_optimal` (C618) — the KISS-conjunction pattern of
+C600/C614. Axioms of `hagi_master_v33`: `propext`,
+`Classical.choice`, `Quot.sound` (3). Freeze identity moved
+8835 → 8836 (the one new declaration). Witness
+(`.tmp/C622/trajMT33.lean`, exit 0): #check of the eleven-clause
+conjunction plus an application of (11) at n = 8128, B = 4032,
+w = 64 — total 127 = ⌈8128/64⌉, floor against an arbitrary
+covering list L, numerically cross-checked.
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI (C500)
@@ -894,6 +1055,8 @@ anchor, a bench application, and measured bits —
 | window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:232 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
 | window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:317 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
+| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, WindowTradeoff.lean:83/:108/:136/:156/:181 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
+<!-- source: строка w-rule — .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md (cost_regime_w, pinned asserts, w_max=256→391); .tmp/C628/receipt.md (mixedCost_* freeze 8844); якоря WindowTradeoff.lean rg HEAD dd4102cf -->
 
 Two structural remarks. First, the optimal-step clause is
 self-contained: `φ(1/L) − φ(γ) = (G²/(2L))·(1 − Lγ)² ≥ 0` is a
@@ -976,6 +1139,46 @@ byte 9 in a hole; `covStartsStep_len_le` (:219): window count
 `(n−w)/s + 2 ≤ m`; boundary `s = w`: `n ≤ w(m−1) = 4032` (w=m=64),
 beyond which the single level is honestly INFEASIBLE — removed
 by the hierarchy of Card 10 (C602/C611).
+
+Two more cards joined the registry draft in the reading era
+(docs/PALOMAR-CARDS.md, C621/C625; anchors rg-verified,
+statements Lean-verbatim). Honest scope: the C616 niche check
+covered the Cards 9–11 statements; Cards 12–13 have NOT been
+checked against the registry — that check is a separate beat,
+not claimed here.
+<!-- source: .tmp/C621/receipt.md (Card 12, DocLint/freeze logs);
+     .tmp/C625/receipt.md (Card 13); .tmp/C616/receipt.md
+     (ниша-проверка — только Cards 9–11) -->
+
+- **Card 12 — information-theoretic floor for reading n bytes
+with width-w windows.** Any covering list L of [0, n) by
+width-w windows satisfies `n ≤ L.length * w`
+(`hier_total_floor`, CoverageReading.lean:502), and the
+hierarchy ATTAINS the floor at `s = w`, `w ∣ B`:
+`hier_total_min` (:468) — `(hierStarts n B w w).length =
+(n + w - 1) / w`; `hier_optimal` (:539) closes the optimum
+total = ⌈n/w⌉ ∧ ∀ covering L: ⌈n/w⌉ ≤ L.length. Bench numbers
+(C618): n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉,
+constant over B ∈ {64, 2048, 4032, 4096}; s = 32 → 3033 > 1563;
+n = 8128 → 127. The interior optimum hypothesis B* = √(nw) is
+refuted by the telescoping sum — the total does not depend on
+B at s = w.
+- **Card 13 — linear window cost makes the total budget nearly
+width-independent.** For any `0 < w1, w2`:
+`w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) +
+(w1 - 1)` (`windowCost_linear_near_const`,
+WindowTradeoff.lean:108) — totalCost(w1) ≤ totalCost(w2) +
+c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
+n + w − 1 (`windowCost_linear_bounds`, :92); contrast regime
+(a) `windowCost_fixed_mono` (:83): fixed cost makes w = w_max
+optimal; bridge `windowCost_hier` (:119). Bench numbers
+(C623/C626): n = 100000, w ∈ {16, 64, 256} → reads {6250,
+1563, 391}, linear totals {100000, 100032, 100096} — all in
+[100000, 100000 + w). Regime (c) mixed cost: at α = 2 the
+AM-GM optimum w* = √(a/c) and the lower bound
+⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) are Lean theorems (C628,
+§3.19 (iv)); general α > 1 remains a Real-arithmetic sketch,
+not a Lean clause.
 
 ## 5. Honest limitations (pins)
 
