@@ -476,6 +476,7 @@ import Hagi.Theory.MiniHagiLoop
 import Hagi.Theory.MasterTheoremV3
 import Hagi.Theory.MasterTheoremV31
 import Hagi.Theory.MasterTheoremV32
+import Hagi.Theory.MasterTheoremV33
 import Hagi.Theory.FactLedger
 import Hagi.Theory.RangeWrap
 import Hagi.Theory.AdaptiveContext

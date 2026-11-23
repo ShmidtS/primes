@@ -2237,3 +2237,25 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   hier_blocks_sum_tiling, hier_total_formula, hier_total_min,
   hier_total_floor, hier_optimal); 17 гейтов PASS
   (.tmp/C618/logs/).
+
+## C622 метатеорема v3.3: 11 клозов (машина 8 + шаг-оптимум + неограниченное чтение + reading floor)
+
+- `Hagi/Theory/MasterTheoremV33.lean`:
+  `Hagi.Theory.MasterTheoremV33.hagi_master_v33` — консолидация
+  certified-машины v3.3 по прецедентам C600/C614: клозы (1)–(10)
+  — развёртка в statement (statement v3.2 дословно), делегат
+  `hagi_master_v32` (C614) одним `have hV32` + проекции; клоз (11)
+  reading floor — делегат `hier_optimal` (C618): при `s = w` и
+  `w ∣ B` total иерархического чтения `(hierStarts nB B w
+  w).length = (nB + w - 1) / w = ⌈nB/w⌉` — информационному floor
+  ЛЮБОГО покрытия (никакой список L не покрывает [0, nB) окнами
+  длины w меньшим числом окон). Ноль новых доказательств, гипотезы
+  v3.2 дословно + `hw : 0 < w`, `hdiv : w ∣ B` (hB общий).
+- Witness .tmp/C622/trajMT33.lean (rc=0, лог logs/trajMT33.log):
+  #check раскрытие 11-клозной конъюнкции + применение клоза (11)
+  к witness C618 n = 8128, B = 4032, w = 64 (total = 127 =
+  ⌈8128/64⌉; floor на произвольном L; численная сверка).
+- Hagi.lean: `import Hagi.Theory.MasterTheoremV33` (ReachLint).
+  Axioms hagi_master_v33: [propext, Classical.choice, Quot.sound]
+  (= 3). Freeze 8835 → 8836 (+hagi_master_v33); 17 гейтов PASS
+  (.tmp/C622/logs/).
