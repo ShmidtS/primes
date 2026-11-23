@@ -2281,14 +2281,18 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   точность/глубина контекста; `windowCost_hier` — мост: totalCost
   = c·(hierStarts n B w w).length при w ∣ B (делегат
   `hier_total_min` C618).
-- Режим (c) — суперлинейное окно, honest-набросок (не Lean):
-  чистая c(w) = c·w^α (α > 1) внутреннего оптимума НЕ имеет
+- Режим (c) — суперлинейное окно: чистая c(w) = c·w^α (α > 1)
+  внутреннего оптимума НЕ имеет
   (totalCost ≈ c·n·w^(α−1) растёт по w ⇒ optimum w → min);
   внутренний оптимум возникает при смешанной стоимости
   c(w) = a + c·w^α (фиксированный overhead a + суперлинейный
   контекст): totalCost ≈ a·n/w + c·n·w^(α−1), d/dw = 0 ⇒
-  w* = (a/(c·(α−1)))^(1/α) — Real-арифметика вне Nat-сферы файла
-  (KISS down-scope). ПРАВИЛО ВЫБОРА w: c(w)=c ⇒ w_max;
+  w* = (a/(c·(α−1)))^(1/α) — при α = 2 (bench-default) это
+  √(a/c), теперь CERTIFIED в Lean (C628:
+  `mixedCost_relax_min`/`mixedCost_relax_min_eq`/
+  `mixedCost_lower`, см. ниже); общий α>1 — Real-sketch
+  (deriv+convexOn вне KISS-сферы). ПРАВИЛО ВЫБОРА w: c(w)=c ⇒
+  w_max;
   c(w)=c·w ⇒ свободно (зазор < c·w, по точности);
   c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α).
 - Witness .tmp/C623/trajW.lean (rc=0, лог logs/trajW.log):
@@ -2312,10 +2316,12 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   - режим linear (c(w)=c·w): w телеграфируется свободно (default
     64) — total-cost «почти константа», телеметрия near-const
     коридора [c·n, c·(n+w)) (зазор < c·w);
-  - режим mixed (c(w)=a+c·w^α, целое α>1): HONEST — w* =
-    (a/(c·(α−1)))^(1/α) — STATUS-набросок C623, НЕ Lean-клоз;
-    вещественный корень идёт телеметрией, целый w выбирается
-    точным Fraction-argmin по окрестности корня.
+  - режим mixed (c(w)=a+c·w^α, целое α>1): при α=2 (default)
+    w* = √(a/c) — CERTIFIED C628 (`mixedCost_relax_min`,
+    `mixedCost_relax_min_eq`, `mixedCost_lower`, freeze 8844);
+    при α≠2 — honest Real-sketch, не Lean-клоз; вещественный
+    корень идёт телеметрией, целый w выбирается точным
+    Fraction-argmin по окрестности корня.
   Арифметика точная (fractions.Fraction), fail-closed asserts:
   коридор linear, near-const неравенство w1·⌈n/w1⌉ ≤ w2·⌈n/w2⌉ +
   (w1−1), оптимальность fixed w_max, argmin mixed.
@@ -2330,3 +2336,39 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - `scripts/StatusLint.py`: RUNTIME_NAMES += cost_regime_w
   (прецедент C613 hier_span). Freeze 8841 identity (Lean не
   менялся); 17 гейтов PASS (.tmp/C626/logs/).
+
+## C628 mixed cost w star theorem: последний серый элемент эры чтения — Lean-клозы α=2 (AM-GM)
+
+- Beat: C628 = roadmap C627 top-2 (mixed-w* в Lean — догнать
+  честность). Base HEAD ef57c959 (C627), freeze 8841 → 8844.
+- `Hagi/Theory/WindowTradeoff.lean` (+3 теоремы, режим (c)
+  формализован для α=2 — bench-default `cost_regime_w`):
+  - `mixedCost_relax_min (a c w : ℝ) (0<a)(0<c)(0<w)`:
+    `2*√(a*c) ≤ a/w + c*w` — AM-GM ядро релаксации:
+    (√u − √v)² ≥ 0 при u = a/w, v = c·w, √u·√v = √(a·c)
+    (`Real.sqrt_mul`); непрерывная релаксация totalCost =
+    (n/w)·(a + c·w²) = n·(a/w + c·w) ≥ 2n·√(a·c);
+  - `mixedCost_relax_min_eq (a c : ℝ) (0<a)(0<c)`: при
+    w = √(a/c) равенство: a/w = √(a·c) и c·w = √(a·c)
+    (квадраты обеих = a·c, injectivity `pow_left_inj₀`) —
+    внутренний оптимум смешанной стоимости α=2:
+    w* = (a/(c·(α−1)))^(1/α) = √(a/c), certified;
+  - `mixedCost_lower (n w : ℕ) (a c : ℝ) (0<a)(0<c)(0<w)`:
+    дискретный totalCost = ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) —
+    ceil-мост: ⌈n/w⌉ = (n+w−1)/w ≥ n/w (`windowCost_linear_
+    bounds` + каст в ℝ), множитель a + c·w² > 0, далее
+    релаксация ×n. Дискретное равенство в общем случае НЕ
+    достигается (⌈n/w⌉ > n/w при w ∤ n) — нижняя граница
+    certified, точку выбирает целочисленный argmin bench.
+- Общий α>1 — вне scope (honest: real calculus deriv+convexOn;
+  α=2 покрывает bench-default; KISS, план .tmp/C628/plan.md).
+- bench `scripts/bench_bridge.py`: mixed-режим rule-текст
+  обновлён — ссылка на Lean-теоремы + freeze 8844 при α=2;
+  при α≠2 сохранён honest-текст. Числа НЕ ИЗМЕНИЛИСЬ — diff
+  cost_mixed.log C626 vs C628 без строки "rule" пуст
+  (тождественен), asserts fail-closed PASS.
+- Axioms всех новых: [propext, Quot.sound, Classical.choice]
+  (≤ 3, allaxioms PASS на 12207 Hagi.*-теоремах). Freeze
+  8841 → 8844 (+mixedCost_relax_min, _min_eq, mixedCost_lower;
+  только добавления, nothing lost/changed); 17 гейтов PASS
+  (.tmp/C628/logs/).

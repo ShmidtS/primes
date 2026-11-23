@@ -13183,8 +13183,16 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
       is < c*w; w is cost-FREE (telegraphed freely, default 64;
       precision/context depth decides, not economy).
     - regime 'mixed' (c): c(w) = a + c*w^alpha, integer
-      alpha > 1 -- HONEST STATUS-sketch (STATUS.md C623), NOT a
-      Lean theorem: pure c*w^alpha has no interior optimum;
+      alpha > 1. For alpha = 2 (the default) the real optimum
+      w* = (a/(c*(alpha-1)))^(1/alpha) = sqrt(a/c) is now a
+      LEAN THEOREM (C628, Hagi/Theory/WindowTradeoff.lean,
+      freeze 8844): `mixedCost_relax_min` (AM-GM per-read
+      relaxation a/w + c*w >= 2*sqrt(a*c)),
+      `mixedCost_relax_min_eq` (equality at w = sqrt(a/c)),
+      `mixedCost_lower` (discrete totalCost = ceil(n/w)*(a +
+      c*w^2) >= 2*n*sqrt(a*c) via ceil bridge). For integer
+      alpha != 2 the root stays an honest Real sketch (not a
+      Lean clause). Pure c*w^alpha has no interior optimum;
       the mixed cost has the interior optimum
         w* = (a/(c*(alpha-1)))^(1/alpha)
       (Real arithmetic). Here: real root reported as telemetry,
@@ -13241,10 +13249,18 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
         lo = max(1, min(w_max, int(w_star) - 2))
         hi = max(1, min(w_max, int(w_star) + 3))
         chosen = min(range(lo, hi + 1), key=total)
-        rule = ("mixed: HONEST STATUS-sketch (NOT a Lean "
-                "theorem, STATUS.md C623) -- c(w)=a+c*w^alpha, "
-                "w* = (a/(c*(alpha-1)))^(1/alpha); integer w = "
-                "exact-Fraction argmin near the real root")
+        rule = ("mixed: C628 Lean theorems (WindowTradeoff, "
+                "freeze 8844) -- c(w)=a+c*w^2, "
+                "mixedCost_relax_min (a/w+c*w >= 2*sqrt(ac)), "
+                "mixedCost_relax_min_eq (w* = sqrt(a/c)), "
+                "mixedCost_lower (totalCost >= 2*n*sqrt(ac)); "
+                "integer w = exact-Fraction argmin near the "
+                "certified root" if alpha == 2 else
+                ("mixed: alpha != 2 -- HONEST Real sketch (NOT "
+                 "a Lean clause; alpha=2 is the certified "
+                 "case) -- c(w)=a+c*w^alpha, w* = (a/(c*"
+                 "(alpha-1)))^(1/alpha); integer w = "
+                 "exact-Fraction argmin near the real root"))
         corridor = None
 
     t = total(chosen)

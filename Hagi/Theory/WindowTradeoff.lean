@@ -38,10 +38,16 @@ Total-стоимость моделируется как
   чтения C618 (total = ⌈n/w⌉ при w ∣ B).
 
 Режим (c) — суперлинейное окно c(w) = a + c·w^α, α > 1 —
-honest-набросок в STATUS.md: чистая c·w^α внутреннего оптимума
-не имеет (totalCost ≈ c·n·w^(α−1) растёт по w); внутренний
-оптимум смешанной стоимости w* = (a/(c·(α−1)))^(1/α) требует
-вещественной арифметики — вне Nat-сферы этого файла (KISS).
+formal-часть C628 (квадратичный случай α = 2, покрывающий
+bench-default `cost_regime_w`): непрерывная релаксация
+  (n/w)·(a + c·w²) = n·(a/w + c·w)
+минимизируется AM-GM: a/w + c·w ≥ 2√(a·c) с равенством при
+w = √(a/c) (`mixedCost_relax_min`, `mixedCost_relax_min_eq`),
+и дискретный totalCost = ⌈n/w⌉·(a+c·w²) наследует нижнюю
+границу 2n√(a·c) (`mixedCost_lower`): внутренний оптимум
+смешанной стоимости w* = (a/(c·(α−1)))^(1/α) при α=2 равен
+√(a/c) — теперь certified. Общий α>1 — вне этого файла
+(real calculus deriv+convexOn; honest note в STATUS).
 -/
 
 namespace Hagi.Theory.WindowTradeoff
@@ -113,5 +119,86 @@ C618: иерархия ДОСТИГАЕТ информационного мин�
 theorem windowCost_hier (n B w c : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
     c * ((n + w - 1) / w) = c * (hierStarts n B w w).length := by
   rw [hier_total_min n B w hw hB hdiv]
+
+/-! ### Режим (c): суперлинейное окно c(w) = a + c·w² (C628)
+
+Непрерывная релаксация totalCost — амортизированная стоимость
+n·(a/w + c·w) (расщепление «дешёвые частые чтения vs дорогие
+широкие окна») — минимизируется AM-GM; дискретный totalCost
+наследует нижнюю границу через ⌈n/w⌉ ≥ n/w. -/
+
+/-- **Режим (c) — квадратичное окно, нижняя граница AM-GM**:
+релаксация per-read-стоимости a/w + c·w ≥ 2·√(a·c) при
+a, c, w > 0 (AM-GM: (√u − √v)² ≥ 0 для u = a/w, v = c·w,
+√u·√v = √(u·v) = √(a·c)). Ядро смешанного режима: минимум
+непрерывной релаксации (n/w)·(a + c·w²) = n·(a/w + c·w)
+не ниже 2n·√(a·c). -/
+theorem mixedCost_relax_min {a c w : ℝ} (ha : 0 < a) (hc : 0 < c)
+    (hw : 0 < w) : 2 * Real.sqrt (a * c) ≤ a / w + c * w := by
+  have hu : 0 ≤ a / w := by positivity
+  have hv : 0 ≤ c * w := by positivity
+  have key := sq_nonneg (Real.sqrt (a / w) - Real.sqrt (c * w))
+  rw [sub_sq, Real.sq_sqrt hu, Real.sq_sqrt hv] at key
+  have hmul : Real.sqrt (a / w) * Real.sqrt (c * w) = Real.sqrt (a * c) := by
+    rw [← Real.sqrt_mul]
+    congr 1
+    field_simp
+    positivity
+  linarith [key, hmul]
+
+/-- **Режим (c) — точка равенства релаксации**: при
+w = √(a/c) неравенство `mixedCost_relax_min` обращается в
+равенство: обе части a/w и c·w равны √(a·c) (квадраты обеих
+равны a·c, injectivity по pow_left_inj₀). Итого внутренний
+оптимум квадратичной смешанной стоимости w* = √(a/c) —
+certified (bench-случай α = 2 формулы
+w* = (a/(c·(α−1)))^(1/α)). -/
+theorem mixedCost_relax_min_eq {a c : ℝ} (ha : 0 < a) (hc : 0 < c) :
+    a / Real.sqrt (a / c) + c * Real.sqrt (a / c)
+      = 2 * Real.sqrt (a * c) := by
+  have hw2 : (Real.sqrt (a / c)) ^ 2 = a / c :=
+    Real.sq_sqrt (by positivity)
+  have h1 : (a / Real.sqrt (a / c)) ^ 2 = a * c := by
+    rw [div_pow, hw2, div_div_eq_mul_div]; field_simp
+  have h2 : (c * Real.sqrt (a / c)) ^ 2 = a * c := by
+    rw [mul_pow, hw2]; field_simp
+  have e1 : a / Real.sqrt (a / c) = Real.sqrt (a * c) := by
+    apply (pow_left_inj₀ (by positivity) (by positivity) two_ne_zero).1
+    rw [h1, Real.sq_sqrt (by positivity)]
+  have e2 : c * Real.sqrt (a / c) = Real.sqrt (a * c) := by
+    apply (pow_left_inj₀ (by positivity) (by positivity) two_ne_zero).1
+    rw [h2, Real.sq_sqrt (by positivity)]
+  rw [e1, e2]; ring
+
+/-- **Режим (c) — certified нижняя граница дискретного
+totalCost**: totalCost(w) = ⌈n/w⌉·(a + c·w²) ≥ 2n·√(a·c) при
+a, c > 0, w > 0. Мост: ⌈n/w⌉ = (n+w−1)/w ≥ n/w
+(`windowCost_linear_bounds`, каст в ℝ), множитель a + c·w² > 0,
+далее релаксация `mixedCost_relax_min` ×n. Дискретное
+равенство в общем случае НЕ достигается (⌈n/w⌉ > n/w при
+w ∤ n) — нижняя граница certified, точность определяется
+целочисленным argmin bench. -/
+theorem mixedCost_lower {n w : ℕ} {a c : ℝ} (ha : 0 < a)
+    (hc : 0 < c) (hw : 0 < w) :
+    2 * (n : ℝ) * Real.sqrt (a * c)
+      ≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2) := by
+  obtain ⟨hle, _⟩ := windowCost_linear_bounds n w hw
+  have hcast : (n : ℝ) ≤ (w : ℝ) * ((n + w - 1) / w : ℕ) :=
+    by exact_mod_cast hle
+  have hw' : (0 : ℝ) < (w : ℕ) := by exact_mod_cast hw
+  have hbridge : (n : ℝ) / (w : ℝ) ≤ ((n + w - 1) / w : ℕ) := by
+    rw [div_le_iff₀ hw']; linarith
+  have hpos : (0 : ℝ) < a + c * (w : ℝ) ^ 2 := by positivity
+  have hstep1 : (n : ℝ) / (w : ℝ) * (a + c * (w : ℝ) ^ 2)
+      ≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2) :=
+    mul_le_mul_of_nonneg_right hbridge hpos.le
+  have hstep2 : (n : ℝ) / (w : ℝ) * (a + c * (w : ℝ) ^ 2)
+      = (n : ℝ) * (a / (w : ℝ) + c * (w : ℝ)) := by
+    field_simp
+  calc 2 * (n : ℝ) * Real.sqrt (a * c)
+      ≤ (n : ℝ) * (a / (w : ℝ) + c * (w : ℝ)) :=
+        by nlinarith [mixedCost_relax_min (w := (w : ℝ)) ha hc hw']
+    _ = (n : ℝ) / (w : ℝ) * (a + c * (w : ℝ) ^ 2) := hstep2.symm
+    _ ≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2) := hstep1
 
 end Hagi.Theory.WindowTradeoff
