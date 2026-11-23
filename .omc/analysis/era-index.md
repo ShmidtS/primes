@@ -1,4 +1,4 @@
-# Era index — C591–C633 (2026-11-22/23)
+# Era index — C591–C640 (2026-11-22/23)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -117,3 +117,15 @@
   Honest pins: квадратичный класс; grow = разрешение, не обещание.
 - Фронтир: негатив-контроль stay-ветки; калибровка c_add (λ);
   Card 14 — закрыты fbcaa5e0 / 606e899f.
+
+<a id="c638-c640"></a>
+## C638–C640 — эра «код HAGI_v2 → Lean-мосты» (freeze 8849→8869)
+
+- Коммиты: 8999bdc8 (`AdaptiveMajorizer.lean` +352), 9fbca579
+  (`BatchCEDescentMgdaCode.lean` +157), 38e0892b (карточка роста).
+- Мосты кода: `ce_range_code_drop` (реальный сертификат шага;
+  adaptive-ветка не берётся), `mgda_eq_of_stationary` (ε=0 точен,
+  иначе 2ε), рост wave255 ⊂ `benchResidualBlock` / `identityBlock`.
+- Фронтир: post-warm-up сертификат роста; Armijo-мост Adam
+  backtracking; JVP-остаток range-ветки; per-task gate ↔ C601.
+- Полный разбор: `period-c638-c640-analysis.md`.
