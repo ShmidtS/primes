@@ -2266,3 +2266,54 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   [propext, Classical.choice, Quot.sound].
 - Freeze 8869 (без изменений: только карточка); 17 гейтов PASS
   (.tmp/C640/logs/ci.log).
+
+## C642 post warmup growth certificate from hagi v2 wave 255
+
+- Beat: C642 = roadmap C641 top-1 — закрыть главный разрыв C640:
+  после warm-up (Wo ≠ 0) функция нового блока не сертифицирована.
+  Base HEAD 945887b7, tree clean. Код HAGI_v2 (READ-ONLY):
+  hagi/unified.py:383-440 (gate _maybe_grow @ca52eb4) — grow()
+  добавляет identity-блок, warm-up учит ТОЛЬКО новый блок при
+  замороженном trunk, keep iff holdout CE не хуже, иначе точный
+  blocks.pop (rollback); hagi/lm.py:589-601 (свежий блок Wo = 0).
+- Теорема-форма (Hagi/Theory/FunctionPreservingGrowth.lean, секция
+  WarmUp, ns Hagi.Theory.FunctionPreservingGrowth дословно):
+  - Носитель (минимальный, честный): obj : B → ℝ — train-objective
+    модели trunk ⊕ block(b); θ : ℕ → B — траектория warm-up по
+    параметрам НОВОГО блока; drop : ℕ → ℝ — сертифицированный спад
+    шага. Носитель абстрактный: параметризация блока кода
+    (W1/b1/Wo, Adam) в L-smooth модель NegativeTransfer (nlRun /
+    nl_obj_le_start) НЕ вписана — Adam не GD, L-smooth блока не
+    доказана; поэтому индукция SafeStep-типа (hstep как посылка).
+  - `warmup_telescope` — obj (θ n) ≤ obj (θ 0) − Σ drop (индукция).
+  - `warmup_safe` — (h0) obj (θ 0) = fOld [identity-старт:
+    функция старой модели = `function_preserving_growth` на шаге 0],
+    (h1) ∀ t, obj (θ (t+1)) ≤ obj (θ t) − drop t ∧ 0 ≤ drop t
+    ⇒ obj (θ n) ≤ fOld. Рост НИКОГДА не ухудшает train-objective.
+  - `warmup_strict` — + (∀ t, dMin ≤ drop t) ⇒ obj (θ n) ≤
+    fOld − n·dMin.
+  - `post_warmup_growth_safe` — композиция с rollback-гейтом:
+    итог = guardedStep gate (θ 0) (θ n); ACCEPT-ветка как посылка
+    haccept, REJECT — точный rollback (`rollback_state_params`) ⇒
+    obj = fOld. `post_warmup_growth_safe_of_certified` — haccept
+    выведен из `warmup_safe` ⇒ при любом вердикте гейта
+    obj ≤ fOld.
+  - Негатив `uncertified_step_can_worsen`: без h1 один шаг может
+    дать obj (θ 1) = 1 > 0 = obj (θ 0) (θ 0 = 0).
+- Что сертифицировано: train-obj монотонность (≤ fOld) при h0+h1
+  для ЛЮБОГО числа шагов, с любым вердиктом holdout-гейта.
+  Что остаётся гипотезой (не теорема):
+  - h1 «каждый шаг warm-up certified» — код warm-up (Adam, 2 эпохи)
+    НЕ проверяет drop на каждом шаге; сертификат условный;
+  - holdout-гейт — код ИЗМЕРЯЕТ holdout CE, неравенство не доказано
+    (train ≠ holdout); в теореме это ветвление, не вывод;
+  - L-smooth нового блока и рост функции ≠ сохранение функции:
+    «функция сохранена после warm-up» по-прежнему НЕТ и быть не
+    может (C640 negativeTransfer-вердикт не меняется).
+- Witness .tmp/C642/traj.lean (lake env lean 4.36.0, rc=0,
+  logs/traj.log): n = 3 шага, θ t = −t, drop = 1 ⇒ θ 3 = −3 ≤ 0 и
+  ≤ 0 − 3·1 (точно); witness_gate — оба вердикта gate сохраняют
+  obj ≤ 0; witness_negative — без h1 рост obj возможен. Аксиомы
+  всех шести: [propext, Classical.choice, Quot.sound].
+- Freeze 8869 -> 8875 (+6: 6 theorem; 0 lost/changed); 17 гейтов
+  PASS (.tmp/C642/logs/ci.log).

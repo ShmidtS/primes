@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 
 import Hagi.Model.LMCompose
 import Hagi.Theory.BlockAdmission
+import Hagi.Theory.RollbackGate
 
 /-!
 # FunctionPreservingGrowth — функция-сохраняющее расширение (A19.5)
@@ -205,5 +206,121 @@ theorem zero_init_orthoFiber_identity {D C : ℕ}
     orthoFiberAttn U 0 x t = x t := by
   unfold orthoFiberAttn
   simp
+
+/-! ## (e) Post warm-up сертификат роста (C642)
+
+Разрыв C640: после шага 0 (`Wo ≠ 0`) функция НЕ сохранена —
+сертификата «функция сохранена после обучения» нет. Что можно
+сертифицировать честно: train-objective НИКОГДА не ухудшается
+относительно старой модели, если warm-up стартует с identity и
+каждый шаг либо certified (drop ≥ 0), либо отброшен rollback'ом.
+Holdout-гейт кода (блок принимается iff holdout CE не хуже) —
+другой функционал; ветка ACCEPT входит в теорему только как
+гипотеза, не как доказанный факт. -/
+
+section WarmUp
+
+variable {B : Type}
+
+/-- Warm-up: `n` шагов обучения параметров НОВОГО блока при
+замороженном trunk. Носитель минимален: `obj b` — train-objective
+модели `trunk ⊕ block(b)`; `θ : ℕ → B` — траектория warm-up
+(`θ 0` — identity-старт); `drop t` — сертифицированный спад
+шага `t`. **Телескоп warm-up**: каждый шаг даёт `obj (θ (t+1)) ≤ obj (θ t)
+− drop t` ⇒ после `n` шагов `obj ≤ obj (θ 0) − Σ drop`. -/
+theorem warmup_telescope (obj : B → ℝ) (θ : ℕ → B) (drop : ℕ → ℝ)
+    (hstep : ∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t) (n : ℕ) :
+    obj (θ n) ≤ obj (θ 0) - ∑ t ∈ Finset.range n, drop t := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      rw [Finset.sum_range_succ]
+      have := hstep n
+      linarith
+
+/-- **`warmup_safe`**: (h0) identity-старт `obj (θ 0) = fOld`
+(функция старой модели сохранена на шаге 0 —
+`function_preserving_growth`), (h1) каждый шаг certified
+(`drop t ≥ 0`) ⇒ train-objective после warm-up НЕ ХУЖЕ старой
+модели: `obj (θ n) ≤ fOld`. Индукция по шагам (`warmup_telescope`). -/
+theorem warmup_safe (obj : B → ℝ) (θ : ℕ → B) (drop : ℕ → ℝ)
+    (fOld : ℝ)
+    (h0 : obj (θ 0) = fOld)
+    (hstep : ∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t)
+    (hdrop : ∀ t, 0 ≤ drop t) (n : ℕ) :
+    obj (θ n) ≤ fOld := by
+  have h := warmup_telescope obj θ drop hstep n
+  have hs : 0 ≤ ∑ t ∈ Finset.range n, drop t :=
+    Finset.sum_nonneg fun t _ => hdrop t
+  rw [h0] at h
+  linarith
+
+/-- **Строгий вариант**: если КАЖДЫЙ шаг дал drop ≥ `dMin`, то
+`obj (θ n) ≤ fOld − n·dMin` — рост не просто безопасен, а
+монотонно улучшает train-objective с гарантированной скоростью. -/
+theorem warmup_strict (obj : B → ℝ) (θ : ℕ → B) (drop : ℕ → ℝ)
+    (fOld dMin : ℝ)
+    (h0 : obj (θ 0) = fOld)
+    (hstep : ∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t)
+    (hmin : ∀ t, dMin ≤ drop t) (n : ℕ) :
+    obj (θ n) ≤ fOld - (n : ℝ) * dMin := by
+  have h := warmup_telescope obj θ drop hstep n
+  have hs : (n : ℝ) * dMin ≤ ∑ t ∈ Finset.range n, drop t := by
+    calc (n : ℝ) * dMin = ∑ _t ∈ Finset.range n, dMin := by
+          rw [Finset.sum_const, nsmul_eq_mul, Finset.card_range]
+      _ ≤ _ := Finset.sum_le_sum fun t _ => hmin t
+  rw [h0] at h
+  linarith
+
+/-- **Негатив (без h1)**: без certified-шагов заключение `warmup_safe`
+ЛОЖНО — один шаг warm-up с `obj (θ 1) = 1 > 0 = obj (θ 0)`
+(identity-старт, но шаг не сертифицирован: objective вырос). -/
+theorem uncertified_step_can_worsen :
+    ∃ (obj : ℝ → ℝ) (θ : ℕ → ℝ), θ 0 = 0 ∧ obj (θ 0) = 0
+      ∧ 0 < obj (θ 1) := by
+  refine ⟨id, fun t => if t = 0 then 0 else 1, ?_, ?_, ?_⟩
+  · norm_num
+  · norm_num
+  · norm_num
+
+/-- **Композиция с rollback-гейтом кода** (gate _maybe_grow модели
+hagi/unified.py: блок принят iff holdout CE не хуже, иначе точный
+blocks.pop). Итоговое состояние = `guardedStep gate (θ n) (θ 0)`:
+* ACCEPT — train-objective ≤ fOld (`warmup_safe`, h0/h1);
+* REJECT — точный rollback к pre-step (`rollback_state_params`) ⇒
+  train-objective = fOld точно.
+⇒ при ЛЮБОМ вердикте гейта рост НИКОГДА не ухудшает train-objective.
+Честно: holdout-неравенство код ИЗМЕРЯЕТ; ветка ACCEPT входит здесь
+как посылка `haccept` (гипотеза гейта), а не как теорема. -/
+theorem post_warmup_growth_safe (obj : B → ℝ) (θ : ℕ → B)
+    (drop : ℕ → ℝ) (fOld : ℝ)
+    (h0 : obj (θ 0) = fOld)
+    (hstep : ∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t)
+    (hdrop : ∀ t, 0 ≤ drop t) (n : ℕ) (gate : Bool)
+    (haccept : gate = true → obj (θ n) ≤ fOld) :
+    obj ((Hagi.Theory.RollbackGate.guardedStep gate
+      ⟨θ 0, (), 0⟩ ⟨θ n, (), 0⟩).params) ≤ fOld := by
+  by_cases hg : gate = true
+  · rw [hg]
+    simp [Hagi.Theory.RollbackGate.guardedStep]
+    exact haccept hg
+  · rw [Hagi.Theory.RollbackGate.rollback_state_params gate _ _ (by simpa using hg), h0]
+
+/-- Сертифицированная ветка ACCEPT: при h0/h1 посылка `haccept`
+гейта ВЫПОЛНЕНА (`warmup_safe`) — т.е. если holdout-гейт кода
+принял блок, train-objective ≤ fOld; если отверг — rollback
+даёт равенство. Итог: при h0/h1 рост не ухудшает train-objective
+независимо от решения гейта. -/
+theorem post_warmup_growth_safe_of_certified (obj : B → ℝ)
+    (θ : ℕ → B) (drop : ℕ → ℝ) (fOld : ℝ)
+    (h0 : obj (θ 0) = fOld)
+    (hstep : ∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t)
+    (hdrop : ∀ t, 0 ≤ drop t) (n : ℕ) (gate : Bool) :
+    obj ((Hagi.Theory.RollbackGate.guardedStep gate
+      ⟨θ 0, (), 0⟩ ⟨θ n, (), 0⟩).params) ≤ fOld :=
+  post_warmup_growth_safe obj θ drop fOld h0 hstep hdrop n gate
+    fun _ => warmup_safe obj θ drop fOld h0 hstep hdrop n
+
+end WarmUp
 
 end Hagi.Theory.FunctionPreservingGrowth
