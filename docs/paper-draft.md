@@ -1,9 +1,11 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.8. Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены rg на 7ea1ee87 (+W2)), либо измеренный результат прогона с
-указанием витка (Cn), либо PIN в §Limitations. Никаких недоказанных
-клеймов. Теоремный счётчик abstract остаётся от e40aa426: новый индекс
+Draft v0.9. Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены rg на 551c8025; freeze identity 8907), либо измеренный результат
+прогона с указанием витка (Cn), либо PIN в §Limitations. Якоря кода
+HAGI_v2 (python `file:line@sha`) сверены `git show` на указанном sha
+(мости C638–C648: @ca52eb4, wave 255). Никаких недоказанных клеймов.
+Теоремный счётчик abstract остаётся от e40aa426: новый индекс
 не генерировался.
 
 ## Abstract
@@ -26,9 +28,15 @@ constant clusters distilled into rank-1 adapters (CE = 0 bit-exact,
 certified coverage floor ⌈nB/w⌉ is attained, and a 2-level hierarchy
 cuts the peak per-level window budget from 127 to 63 at n = 8128
 (C611), with a certified window-width rule and its mixed-cost AM-GM
-refinement (C623/C628).
+refinement (C623/C628). The **code-bridge era** (C638–C648,
+§3.20, §4.8) reverses the flow: the consumer's code (HAGI_v2) is now
+checked against the Lean canon, and primes answers with **8 code
+bridges** — exact, conditional, or honest-gap — pinned to python
+`file:line@sha` (freeze 8849 → 8907, +58 declarations, 0
+lost/changed).
 We state honest pins (`BandDescribes`), measured ε-compromises,
-hybrid degeneration, corpus drift, and mini-scale (§Limitations).
+hybrid degeneration, corpus drift, and mini-scale (§Limitations, §5
+pins 22–29 for the code-bridge era).
 
 ## 1. Related Work
 
@@ -827,6 +835,257 @@ regime (ii), the counter-intuitive regime got its own card
 (iii), the last grey element became a theorem (iv), and the
 bench consumes all of it fail-closed (v).
 
+### 3.20 Code bridges: the consumer's code checked against the canon (C638–C648)
+
+**(0) The era.** Until C637 the flow was one-directional: primes
+supplied theory, HAGI_v2 (python) consumed it. From wave 252 the
+consumer checks itself against the Lean canon (its commit 4c70f7a is
+titled "three certificate defects, found by checking it against
+Lean"), and primes answers with **code bridges**: Lean theorems whose
+premises are the code's own predicates, anchored to exact python lines
+`file:line@sha`. A bridge has one of three statuses — **exact** (the
+code's statement is literally an instance of the theorem at the cited
+lines), **conditional** (the theorem holds under a model hypothesis the
+code does not check), or **honest gap** (what the code does is outside
+the bridge and is said so). Freeze 8849 → 8907 over the era: +58
+declarations (7+4+5 def, the rest theorem), 0 lost/changed.
+<!-- source: .omc/analysis/period-c638-c640-analysis.md, period-c642-c644-analysis.md,
+     period-c646-648-analysis.md; receipts .tmp/C638–C648 -->
+
+Code anchors of this section are `hagi/lm.py`, `hagi/unified.py`,
+`hagi/selfmodel.py` of C:/HAGI_v2 **@ca52eb4 (wave 255)** unless a
+different sha is written; the adaptive-step anchors are **@1ae924e
+(wave 254)**, where the lines of the C638 card were taken. At HAGI_v2
+HEAD b3740e0 (wave 258) the same constructs moved (`_certified_finite_step`
+lm.py:826 → :831, the refine loop :999 → :1007, `MAX_BLOCKS` 2 → 4,
+warm-up lr 3e-3 → 1e-3); no wave 256–258 claim is bridged here.
+<!-- source: git show ca52eb4|1ae924e|HEAD:hagi/*.py, rg line check
+     2026-11-24 -->
+
+**(i) Adaptive certified step (C638) — exact on the range branch,
+honest gap on the adaptive branch.** The code's `_adaptive_step`
+(lm.py:1261 @1ae924e) builds a majorizer on the directional logit
+displacement: `R = max` per-sample range (:1293), curvature
+`C = kappa(R)·Var` with kappa clamped to 1/2 below 1e-5 and capped at
+R = 50 (:1298-1300), step `eta = A/(2C)` or the range step `4A/R²`
+(:1313), claim `A·eta − C·eta²` or `A·eta − (R²/8)·eta²` (:1323-1324).
+- `ce_direction_range` (AdaptiveMajorizer.lean:1223) and `kappaClamp`
+  (:1440): on the window (1e-5, 50] the clamped multiplier EQUALS the
+  exact kappa (`kappaClamp_eq_kappa` :1458). Outside it the code's C is
+  BELOW the canon and the claim is not certified by the bridge — the
+code relies on its post-step rollback there.
+- `ce_adaptive_code_drop` (:1474): for eta ∈ [0,1], CE after the step ≤
+  CE before − (eta·A − eta²·C) with the code's C. Bound to the eta
+  ACTUALLY taken — this is defect 2 of wave 252 (the claim was computed
+  for the unscaled eta*). Pure algebra: `adaptive_claim_scaled` (:1514)
+  and `adaptive_claim_scaled_bounds` (:1526) — at s = 0.05 the claim is
+  (2s − s²)·A²/(4C) = **39/400** of A²/(4C), i.e. the old claim was
+  **400/39 ≈ 10.26×** too large (measured in 4c70f7a as "~10x").
+- `ce_range_code_drop` (:1498): for every eta ≥ 0 the range-branch claim
+  `eta·A − eta²·R²/8` is certified with NO unit cap (majorizer
+  `Hagi.Model.ceOneHot_next_le` on [0,∞)).
+- Honest gap: instrumented run of the real code on the wave-252 test
+  config (dim 32, hidden 64, seed 0, lr_scale 0.05, 12 steps) — the
+  adaptive branch is NEVER taken (eta* ≈ 203–260 > 1); all 12 steps go
+  through the range branch, 12/12 claim ≤ realised drop (e.g.
+  A = 0.14199921488761902, R = 0.23055753111839294, eta =
+  0.5342657242561132, claim 0.07396868055108989 ≤ 0.07546329498291016).
+  **The certificate of the real code is `ce_range_code_drop`, not
+  `ce_adaptive_code_drop`.** The code builds the majorizer on the JVP
+  displacement, the theorem is about the exact one: in a nonlinear LM
+  (dim 16, hidden 32, 5 steps) rollback fired 2/5 (realised drop 0 <
+  claim 0.083/0.095) — outside the bridge. Clamp negatives:
+  kappa(1e-8) = −0.607747, kappa(1e-9) = 82.740371.
+<!-- source: STATUS.md cards C638 (witness .tmp/C638/traj.lean rc=0);
+     Hagi/Theory/AdaptiveMajorizer.lean:1223/:1440/:1474/:1498/:1514/:1526
+     (rg, HEAD 551c8025); hagi/lm.py:1261/:1293/:1298-1300/:1313/:1323-1324 @1ae924e -->
+
+**(ii) MGDA direction (C639) — exact at ε = 0 and equal norms,
+otherwise a different problem.** `mgda_weights` (selfmodel.py:35-60
+@ca52eb4) is Frank-Wolfe on the simplex over NORMALIZED gradients
+`G = g/(‖g‖+1e-12)` (:44), uniform start (:45), step 2/(2+t) (:52),
+at most 200 iterations (:35), stop when `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`
+(:48-50). The canon `batchGradientMinimizer`
+(Hagi/Model/BatchCEDescent.lean:368-402) is the exact min-norm point
+of the convex hull of RAW `batchResidualGradient`.
+- `MgdaStationary` (BatchCEDescentMgdaCode.lean:54) IS the stop test;
+  `mgdaCodeDirection` (:44) IS the code's `d = alpha @ G`; `SimplexWeights`
+  (:49) is the clamp/renormalize contract (:55-60).
+- `mgda_eq_of_stationary` (:126): at ε = 0 the code's mixture EQUALS the
+  min-norm point; `mgda_norm_sq_le_of_stationary` (:102): at ε > 0 only
+  `‖d‖² − 2ε ≤ ‖c‖²` (Young); `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary`
+  (:146) instantiates it on the canon.
+- Three verdicts: EXACT at the stop (float32 gap 0.0 on all 6 probe
+cases, `1e-16` < eps(f32) ≈ 1.2e-7); APPROXIMATE with tolerance 2ε;
+  DIFFERENT PROBLEM under normalization — with unequal ‖g_j‖ the code
+  minimizes the norm over the hull of normalized gradients, which is not
+  the raw hull (the code knows: selfmodel.py:114-120, "WAVE 254 (bug)").
+  Frank-Wolfe rate is NOT formalized; the 200-iteration exit without the
+  stop test yields only a simplex point, no certificate.
+<!-- source: STATUS.md card C639 (witness rc=0, probe 6 cases);
+     Hagi/Model/BatchCEDescentMgdaCode.lean:44/:49/:54/:102/:126/:146 (rg) -->
+
+**(iii) Function-preserving trunk growth, wave 255 (C640) — exact
+("code statement ⊂ canon").** `_block_add` (lm.py:581-587 @ca52eb4)
+computes `h = h + relu(a @ W1 + b1) @ Wo`; a fresh block `grow()`
+(:589-601) has random W1 (:594), b1 = 0 (:595), Wo = 0 (:596). This is
+`benchResidualBlock` (GrowTrunkBlock.lean:86) with γ = 0:
+`benchResidual_zero` (:95) masks ANY inner function; `grow_block_bench_sound`
+(:124) and `grow_block_obj_invariant` (:135) — depth 2 → 3 preserves the
+trunk function and ANY functional (logits, CE) EXACTLY = the code's
+"logits preserved EXACTLY, max|diff| = 0.0"; `grow_blocks_repeat_sound`
+(:149) = `MAX_BLOCKS = 2` (unified.py:381). LM carrier:
+`identityBlock` (FunctionPreservingGrowth.lean:94), `trunk_function_preserving`
+(:123), `lmLogits_grow_identity` (:133 — the very name in the code
+comment, lm.py:568), `function_preserving_growth` (:157). Verdict class (a):
+0 new theorems, one correspondence card. Both Lean files are native to
+primes (merge-islands era), not a port — HAGI_v2 has 0 `.lean` files.
+<!-- source: STATUS.md card C640; Hagi/Theory/GrowTrunkBlock.lean:86/:95/:124/:135/:149,
+     Hagi/Theory/FunctionPreservingGrowth.lean:94/:123/:133/:157 (rg) -->
+
+**(iv) Warm-up certificate (C642, C644) — conditional on h1.** The
+code warms the new block by bare Adam on (W1, b1, Wo) with the trunk
+frozen (unified.py:423-433 @ca52eb4) and keeps it iff holdout CE did
+not worsen, else `blocks.pop()` (:435-437). After step 0, Wo ≠ 0:
+"function preserved after training" is FALSE and cannot be a theorem.
+What IS proved (FunctionPreservingGrowth.lean, section WarmUp; carrier
+`obj : B → ℝ` is the TRAIN objective, abstract):
+- `warmup_telescope` (:245): obj(θ n) ≤ obj(θ 0) − Σ drop.
+- `warmup_safe` (:260): (h0) obj(θ 0) = fOld — the identity start, the
+  one link where code and theorem coincide literally — and (h1)
+  ∀t, obj(θ(t+1)) ≤ obj(θ t) − drop t ⇒ obj(θ n) ≤ fOld, for ANY
+  number of steps. `warmup_strict` (:275) adds − n·dMin.
+- `post_warmup_growth_safe` (:309): composed with the rollback gate,
+  under BOTH verdicts obj ≤ fOld (REJECT = exact `rollback_state_params`);
+  `_of_certified` derives the ACCEPT premise from `warmup_safe`.
+- `CertifiedFiniteStep` (:359, `stepEps` = 1e-12 :352) is the abstract
+  contract of the code's `_certified_finite_step` (lm.py:826-879
+  @ca52eb4): COMMIT (drop > 1e-12 ∧ obj θ' ≤ obj θ − drop) ∨ HOLD (θ' = θ
+  ∧ drop = 0). `warmup_h1_of_certified_steps` (:367): every step by the
+  contract ⇒ h1; `warmup_safe_of_certified_steps` (:383) and
+  `post_warmup_growth_safe_of_certified_steps` (:394) follow.
+- Negatives: `uncertified_step_can_worsen` (:292) — without h1 one
+  step can raise obj from 0 to 1; `uncertified_step_not_certified`;
+  `batch_drop_not_global` (:421) — a certified drop of 1/2 on a
+  batch objective coexists with +1 on another functional.
+- Honest gap: in the CODE, h1 is NOT a code fact — warm-up never calls
+  `_certified_finite_step`, and that step writes to the TRUNK, not the
+  block, certifying its minibatch's CE. The holdout gate is MEASURED,
+  not proved (train ≠ holdout). The chain identity → warm-up → gate is
+  conditional on the trajectory consisting of contract steps on ONE
+  and the same objective. Closing it on the HAGI_v2 side is the subject
+  of `docs/PROPOSAL-certified-warmup.md` (C644, external push;
+  numbers not measured).
+<!-- source: STATUS.md cards C642, C644; Hagi/Theory/FunctionPreservingGrowth.lean:245/:260/:275/:292/:309/:352/:359/:367/:383/:394/:421 (rg);
+     hagi/lm.py:826 @ca52eb4; hagi/unified.py:423-437 @ca52eb4 -->
+
+**(v) Adam backtracking, wave 254 (C643) — exact bridge, not Armijo.**
+`guarded_optimizer_step` (selfmodel.py:78-180 @ca52eb4) accepts a trial
+iff `worst ≤ max_task_regression ∧ wb − wa > total_bound` (:164-169;
+wb/wa = weighted holdout before/after, total_bound = e_gen + e_quant
++ e_route + m_safety); `scale *= 0.5` (:133, :174); `max_backtracks = 8`
+(:78) → `range(9)`, exactly 9 trials. There is NO σ·γ·⟪g,d⟫ term — the
+task's "Armijo" premise did not survive reading the code, and the ACTUAL
+predicate was formalized (RollbackGate.lean): `btScale` (:245) =
+(1/2)^bt; `backtrackAccept` (:253); `backtrack_accept_drop` (:262): an
+accepted trial gives wa ≤ wb − drop with drop = wb − wa − errBound ≥ 0
+(h1-form); `backtrack_scale_halves` (:271); `backtrack_trials_bounded`
+(:283) — btScale 8 = 1/256. Termination is a bounded loop, not a γ_min
+threshold (none in the code). Honest gap: this does NOT close h1 for
+warm-up — `guarded_optimizer_step` is called only from the self-test
+(selfmodel.py:201, :214, :222); the objective in it is holdout loss,
+not train obj. The lemma `adam_inner_nonneg` is neither proved nor
+included: ⟨g, d⟩ ≤ 0 for the EMA direction m̂/√v̂ is not a code fact.
+<!-- source: STATUS.md card C643 (witness rc=0); Hagi/Theory/RollbackGate.lean:245/:253/:262/:271/:283 (rg);
+     hagi/selfmodel.py:78/:133/:164-169/:174/:201 @ca52eb4 -->
+
+**(vi) Certified step on BLOCK parameters (C646) — the carrier does
+not matter.** Question: does the CE range lemma
+(`finite_displacement_ce_upper`, lm.py:235 @ca52eb4:
+CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ + range(d)²/8) depend on
+WHICH parameters carry the step? No — `d` is a shift of LOGITS, and in
+the canon that is `lse_shift_upper` (Hagi/Energy/PoEBound.lean:168) over
+abstract `x y : V → ℝ`. Hence:
+- `certified_step_block_of_range` (:448): for any logit map
+  `L : B → K → ℝ` (in particular `L b = lmLogits` of the model with block
+  `b` and frozen trunk) and `d = L b' − L b`, the same bound holds —
+  carrier-independence of the certificate.
+- `block_step_certified_of_range_bound` (:464): range ≤ r ⇒ obj_b b' ≤
+  obj_b b − drop; `block_step_commit_of_range_bound` (:478): drop >
+  stepEps ⇒ the COMMIT branch of `CertifiedFiniteStep` ⇒
+  `warmup_h1_of_certified_steps` applies to the block.
+- Negative `block_range_bound_violated_not_certified` (:493): with the
+  range bound violated and the objective rising, there is no certificate
+  at any drop.
+- Left to the code (implementation, not theorem): compute range(Δz)
+  via a block-only JVP with frozen trunk and a block-parameter variant
+  of `_certified_finite_step`. Functional logits of the block do not
+  exist in the code today.
+<!-- source: STATUS.md card C646 (witness rc=0); Hagi/Theory/FunctionPreservingGrowth.lean:448/:464/:478/:493;
+     Hagi/Energy/PoEBound.lean:168 (rg); hagi/lm.py:235 @ca52eb4 -->
+
+**(vii) Batch → global telescoping (C647) — three levels.** Code fact
+(lm.py:978-1008 @ca52eb4): up to 64 positions by
+`rng.choice(..., replace=False)`, 8 rounds of `rng.permutation`, slices
+of 32, `_certified_finite_step` per batch (:999), ANY d > 0 accepted,
+ledger "per-batch-sum, no telescoping guarantee" (:1008). Levels:
+- (A) batch = whole dataset: the batch objective IS the global one; the
+  telescope already exists (`master_theorem_v3` clause 3,
+  `fixedBatchObjective_sum_certifiedDrop_le_telescope`).
+- (B) FIXED batch — proved deterministically: `batch_telescope_fixed`
+  (BatchGlobalTelescope.lean:45), `fixedBatch_telescope` (:61).
+- (C) RANDOM batch per step — proved only under an iid model:
+  `batch_drop_generalizes` (:121): δ = per-sample loss increment, iid
+  sample of n ⇒ 1 − α ≤ P[mean_sample δ < Σ q δ + ebGap] via
+  `empirical_bernstein_mean_bound` (Hagi/Probability/EmpiricalBernstein.lean:286),
+  premises: range b, weighted variance ≤ sig, sig > 0;
+  `certified_batch_drop_global` (:177): on the sample where the
+  certified dropB ≤ the realized sample drop, obj_G θ' ≤ obj_G θ −
+  dropB + ebGap with probability ≥ 1 − α. `ebGap` (:75) =
+  √(2·sig·ln(2/α)/n) + 2·b·ln(2/α)/n.
+- Honest gap: the code samples WITHOUT replacement — iid is a
+  conservative idealization, not formalized; the code measures drop on
+  a batch of 32 but does not compute b and sig for the per-sample
+  increments, so ebGap is never evaluated.
+<!-- source: STATUS.md card C647 (witness rc=0); Hagi/Contracts/BatchGlobalTelescope.lean:45/:61/:75/:121/:177;
+     Hagi/Probability/EmpiricalBernstein.lean:286 (rg); hagi/lm.py:978-1008 @ca52eb4 -->
+
+**(viii) Union bound over rounds (C648) — conditional on round
+independence.** MODEL (hypothesis, not code fact): rounds are
+independent — `Fin k → Fin n → V` with the product measure `roundP`
+(:233; round density `roundDens` :228 = iid sample from q;
+`roundP_isProb` :236, `round_marginal` :251).
+- `rounds_union` (:299): `1 − Σ eps i ≤ P[∀ i, A i]` via
+  `prodPq_union_finset` and `round_marginal`.
+- `rounds_telescope` (:340): obj(i+1) ≤ obj i − dropB i + g ⇒ obj k ≤
+  obj 0 − Σ dropB + k·g.
+- `certified_rounds_union` (:366), the T1 of the era: with EB
+  premises per round (b, sig on per-sample increments),
+  **1 − α ≤ P[ (∀ i, roundGood … (ebGap b sig n (α/k)) i) ∧
+  (certified ≤ realized drop in every round ⇒ Σ q·loss k ≤ Σ q·loss 0
+  − Σ dropB + k·ebGap(α/k)) ]**. Real reading for the code: the
+  8-round certified drop weakens by 8·ebGap(α/8); at α = 1/10 the
+  per-round level is α/k = **1/80** (witness: ebGap 1 1 4 (1/80) =
+  √(2·ln 160/4) + 2·ln 160/4, slack 8·ebGap > 0).
+- Honest gap: for the code the rounds are DEPENDENT through the θ
+  update between them — the bound is conditional on the model.
+  WOR conservativity (FCP (N−n)/(N−1) ≤ 1) is intuition: Mathlib has
+  no such lemma (rg: nothing usable), the price is an
+  order-statistics/FCP lemma. The code neither computes b/sig nor
+  splits α over rounds.
+<!-- source: STATUS.md card C648 (witness rc=0); Hagi/Contracts/BatchGlobalTelescope.lean:228/:233/:236/:251/:299/:340/:366 (rg) -->
+
+**(ix) The chain in one line.** identity start (h0, literal) →
+certified step on the block (vi, carrier-free) ⇒ h1 (iv) ⇒ obj ≤ fOld
+under both gate verdicts → batch → global only probabilistically (vii,
+viii) under the iid/independence model. Across the era the weak link
+moved from "the step is not certified" to "the batch/round model is a
+hypothesis". Axioms of every new theorem: propext, Classical.choice,
+Quot.sound. Of the 8 bridges (§4.8), 4 are exact at their cited
+lines — (i) range branch, (ii) at ε = 0, (iii), (v) as a predicate —
+and 4 are conditional — (iv), (vii), (viii), plus the carrier lemma
+(vi) that feeds (iv).
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI
@@ -1076,6 +1335,31 @@ AM-GM optimum w* = √(a/c) and the lower bound
 §3.18 (iv)); general α > 1 remains a Real-arithmetic sketch,
 not a Lean clause.
 
+### 4.8 The code-bridge table: code anchor ↔ theorem ↔ status
+
+Eight bridges of the code-bridge era (C638–C648). Code anchors are
+HAGI_v2 python `file:line@sha` (wave 254 = 1ae924e, wave 255 =
+ca52eb4), Lean anchors are at HEAD 551c8025 (freeze 8907). Status:
+**exact** = the code's statement at the cited lines is an instance of
+the theorem; **conditional** = holds under a hypothesis the code does
+not check; the honest-gap column says what is outside the bridge.
+
+| # | Code anchor (HAGI_v2 @sha) | primes theorem (file:line) | Status | Honest gap |
+|---|---|---|---|---|
+| 1 | `_adaptive_step` range branch, hagi/lm.py:1313-1324 @1ae924e | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1498); `ce_adaptive_code_drop` (:1474); `adaptive_claim_scaled` (:1514) | exact (range branch, eta ≥ 0); adaptive branch exact only on the window (1e-5, 50] (`kappaClamp_eq_kappa` :1458) | adaptive branch never taken in 12/12 instrumented steps; JVP vs exact displacement (rollback 2/5 in the nonlinear LM); outside the window C is understated |
+| 2 | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126); `mgda_norm_sq_le_of_stationary` (:102) | exact at ε = 0 (and equal ‖g_j‖); 2ε-approximate at ε > 0; different problem under normalization | unequal norms → hull of normalized, not raw gradients; FW rate and the 200-iteration exit not formalized |
+| 3 | `_block_add` / `grow`, hagi/lm.py:581-601 @ca52eb4 | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:157) | exact (code statement ⊂ canon) | growth gate `_maybe_grow` (unified.py:383-440): signal 128·‖G‖²/(2L) vs heuristic c_add, not the canonical `growthGate` (NegativeTransfer.lean:574); no "function preserved after step 0" |
+| 4 | warm-up, hagi/unified.py:423-437 @ca52eb4 | `warmup_safe` (FunctionPreservingGrowth.lean:260); `post_warmup_growth_safe` (:309) | conditional (h1: every step certified) | warm-up is bare Adam, never calls the certified step; holdout gate measured, not proved |
+| 5 | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | `CertifiedFiniteStep` (FunctionPreservingGrowth.lean:359); `warmup_h1_of_certified_steps` (:367); `batch_drop_not_global` (:421) | conditional (steps must be on ONE objective) | the code's step writes to the trunk, certifies batch CE; batch drop does not telescope to global |
+| 6 | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | `backtrack_accept_drop` (Hagi/Theory/RollbackGate.lean:262); `backtrack_trials_bounded` (:283) | exact as a predicate (the code's own, β = 1/2, 9 trials) | NOT Armijo (no σ·γ·⟪g,d⟫); called only from self-test; objective is holdout loss; `adam_inner_nonneg` unproved |
+| 7 | block step: JVP range of Δz (not in code), lemma hagi/lm.py:235 @ca52eb4 | `certified_step_block_of_range` (FunctionPreservingGrowth.lean:448); `block_step_commit_of_range_bound` (:478) | conditional (range bound supplied) | block-only JVP and a block variant of the certified step are implementation, absent today |
+| 8 | refine loop, hagi/lm.py:978-1008 @ca52eb4 | `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:121); `certified_rounds_union` (:366) | conditional (iid batch; independent rounds; k·ebGap(α/k)) | sampling without replacement, rounds dependent through θ; code computes neither b/sig nor α/8; WOR conservativity not formalized |
+
+The count used in the abstract is the 8 table rows. "8" is a sum over
+the cards C638–C648, not a machine-checked number.
+<!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c646-648-analysis.md
+     («8 мостов — сумма по карточкам, не machine-checked»); all file:line rg-verified on HEAD 551c8025 -->
+
 ## 5. Honest limitations (pins)
 
 1. **Measurement premise.** Certified prediction is conditional
@@ -1184,6 +1468,51 @@ not a Lean clause.
    on a starved corpus (C596/C597 sweeps). Cross-mode numeric
    claims in §4.5 use the C597 fixture run (20 keys) and the C601
    gate_check witnesses.
+22. **Code bridges are pinned to a sha, and the code drifts.**
+   Every code anchor of §3.20/§4.8 is `file:line@sha` (wave 254
+   1ae924e, wave 255 ca52eb4). At HAGI_v2 HEAD b3740e0 (wave 258)
+   the lines moved (`_certified_finite_step` lm.py:826 → :831, refine
+   loop :999 → :1007, `MAX_BLOCKS` 2 → 4, warm-up lr 3e-3 → 1e-3);
+   waves 256–258 are NOT bridged. The tree was read-only for primes.
+23. **The real certificate is the range branch.** On the wave-252
+   test config the adaptive branch of `_adaptive_step` is never taken
+   (eta* ≈ 203–260 > 1); `ce_adaptive_code_drop` is a bridge to a
+   branch the code does not exercise on that config, and its window
+   (1e-5, 50] is a real hypothesis (C638).
+24. **Tangent vs exact displacement.** The code builds the CE
+   majorizer on a JVP; the theorem is about the exact logits. In the
+   nonlinear LM rollback fired on 2/5 steps (C638) — the bridge is
+   about the certificate, the rollback is about the residual, and
+   the residual is not bounded (C638).
+25. **Warm-up is not certified in the code.** h1 of `warmup_safe` is a
+   hypothesis: the warm-up of `_maybe_grow` is bare Adam
+   (unified.py:423-433 @ca52eb4). The certified-step contract
+   (`CertifiedFiniteStep`, lm.py:826) writes to the trunk, not to the
+   block. Closing this is an EXTERNAL push
+   (`docs/PROPOSAL-certified-warmup.md`, C644; numbers not measured).
+26. **Backtracking is not Armijo.** The wave-254 predicate has no
+   sufficient-decrease term; `backtrack_accept_drop` is a bridge to
+   the code's own accept test, which is called only from the self-test
+   (C643). "Adam EMA descent" ⟨g, m̂/√v̂⟩ ≤ 0 is NOT a code fact;
+   `adam_inner_nonneg` is unproved and not included.
+27. **Block-only JVP is implementation.** `certified_step_block_of_range`
+   is carrier-free because the range lemma is about logits; the
+   range of Δz over the block parameters with a frozen trunk must be
+   computed by the code, which has no functional block logits (C646).
+28. **iid batch and independent rounds are models, not code facts.**
+   The code samples without replacement and updates θ between the 8
+   rounds, so the rounds are dependent; `certified_rounds_union` is
+   conditional on the product model `roundP`. WOR conservativity
+   (FCP ≤ 1) is not formalized — Mathlib has no lemma. The code
+   computes neither b/sig nor the per-round level α/k (C647, C648).
+29. **Holdout gates are measured.** Both the keep-iff-holdout gate of
+   the growth path and the `wb − wa > total_bound` test of the
+   controller compare measured holdout values; no theorem relates
+   train obj to holdout CE. The "forgetting 4× lower" of wave 255 is
+   an A/B on 6 chunks from one checkpoint (commit message), not a
+   theorem (C640, C642, C643).
+<!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c638-c640 / c642-c644 /
+     c646-648 analyses -->
 
 ## 6. Experiment plan (to strengthen before submission)
 
@@ -1202,7 +1531,7 @@ not a Lean clause.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (verified at 7ea1ee87 (+W2))
+## Appendix A: anchor table (C598–C614 verified at 7ea1ee87 (+W2); C638–C648 at 551c8025)
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -1286,5 +1615,23 @@ not a Lean clause.
 | hierStarts | Hagi/Theory/CoverageReading.lean:273 | C611 |
 | hier_covers_any_n | Hagi/Theory/CoverageReading.lean:283 | C611 |
 | hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:315 | C611 |
+| ce_adaptive_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1474 | C638 |
+| ce_range_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1498 | C638 |
+| adaptive_claim_scaled_bounds | Hagi/Theory/AdaptiveMajorizer.lean:1526 | C638 |
+| mgda_eq_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:126 | C639 |
+| batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:146 | C639 |
+| grow_block_bench_sound | Hagi/Theory/GrowTrunkBlock.lean:124 | C640 |
+| function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:157 | C640 |
+| warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:260 | C642 |
+| post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:309 | C642 |
+| backtrack_accept_drop | Hagi/Theory/RollbackGate.lean:262 | C643 |
+| warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:367 | C644 |
+| batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:421 | C644 |
+| certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:448 | C646 |
+| batch_drop_generalizes | Hagi/Contracts/BatchGlobalTelescope.lean:121 | C647 |
+| certified_batch_drop_global | Hagi/Contracts/BatchGlobalTelescope.lean:177 | C647 |
+| rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:299 | C648 |
+| certified_rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:366 | C648 |
 
-<!-- Appendix A: every row re-verified by rg on Hagi/**/*.lean at 7ea1ee87 (+W2). -->
+<!-- Appendix A: rows up to C614 re-verified by rg on Hagi/**/*.lean at 7ea1ee87 (+W2);
+     rows C638–C648 re-verified by rg on HEAD 551c8025 (freeze 8907). -->
