@@ -102,8 +102,6 @@ theorem naive_latent_merge_kills_flipped
 
 
 
-end Hagi.Architecture
-
 /-!
 # ResidualSplit — expert disagreement and quantization error
 are different residuals
@@ -124,10 +122,9 @@ The merge separates two corrections: the expert disagreement
   residual is kept and the quantization residual driven down.
 -/
 
+
 open scoped BigOperators
 open Matrix
-
-namespace Hagi.Architecture
 
 variable {d : ℕ}
 

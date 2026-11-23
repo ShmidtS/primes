@@ -70,11 +70,6 @@ theorem fiberSplitEnergy {d c r : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
   rw [hsplit, hcross, hUenergy]
   ring
 
-end Hagi.Architecture
-
-open Matrix
-open Finset
-
 /-!
 # OrthoInjection — geometric capability injection
 
@@ -91,7 +86,8 @@ orthogonal to the retained cortex state:
   orthogonally to the cortex component.
 -/
 
-namespace Hagi.Architecture
+open Matrix
+open Finset
 
 /-- The cortex coordinates of the state are unchanged by the
 injection, for any payload `x`. -/

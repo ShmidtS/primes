@@ -112,8 +112,6 @@ theorem quantizer_optimal_step (c Δ : ℝ) (hc : 0 < c) (hΔ : 0 < Δ) :
     rw [one_div, Real.log_inv]
   rw [h4, h5]
   linarith
-end Hagi.Energy
-
 /-!
 # Векторный контракт квантования: единая решётка
 
@@ -125,7 +123,6 @@ end Hagi.Energy
 Никаких гипотез за пределами положительности шага.
 -/
 
-namespace Hagi.Energy
 
 open Finset
 

@@ -105,10 +105,6 @@ theorem constructive_scale (L : ℕ) (v : ℝ)
 
 end BranchScale
 
-end Hagi.Energy
-
-set_option linter.style.header false
-
 /-!
 # PreNorm: the normalization seam — direction preservation and the gain's frozen-update bound
 
@@ -172,9 +168,9 @@ init for the whole run.
    the fp32-keep is even more critical there.
 -/
 
-open Finset
 
-namespace Hagi.Energy
+set_option linter.style.header false
+open Finset
 
 section PreNorm
 

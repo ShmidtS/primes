@@ -120,9 +120,6 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
 
 end Ternary
 
-end Hagi.Energy
-set_option linter.style.header false
-
 /-!
 # the STE step model (the optimizer that actually runs)
 
@@ -139,9 +136,9 @@ neighborhood — STE converges to the s-ball, never to the
 point.
 -/
 
-open Real
 
-namespace Hagi.Energy
+set_option linter.style.header false
+open Real
 
 /-- **STE descent residual** (round-62 program: model the
 optimizer that runs): the straight-through update's
