@@ -7,6 +7,8 @@
 """
 import os, re, sys, subprocess
 
+from _shared import HAGI_MODULE
+
 ROOT = os.path.join(os.path.dirname(__file__), "..", "Hagi")
 CAPSTONES = [
     "Hagi.Unified.MasterHAGI", "Hagi.Unified.GrandSynthesis",
@@ -112,7 +114,7 @@ CAPSTONES = [
     "Hagi.Unified.Robustness",     # robustness corridor facade
 ]
 
-IMP = re.compile(r"^import\s+(Hagi\.[A-Za-z0-9_.]+)\s*$", re.M)
+IMP = re.compile(rf"^import\s+({HAGI_MODULE})\s*$", re.M)
 
 def modules():
     mods = {}

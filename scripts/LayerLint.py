@@ -9,6 +9,8 @@ import re
 import sys
 from pathlib import Path
 
+from _shared import MODULE_SUFFIX, lean_files
+
 ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 # layer assignment of Hagi/<Folder> (higher = later = may
 # import lower). Unification target per audit 2026-10-05.
@@ -87,7 +89,7 @@ LAYER_EXCEPTIONS = {
     
 }
 
-IMPORT_RE = re.compile(r"^import\s+Hagi\.([A-Za-z0-9_.]+)\s*$", re.M)
+IMPORT_RE = re.compile(rf"^import\s+Hagi\.({MODULE_SUFFIX})\s*$", re.M)
 
 def rel(p: Path) -> str:
     return p.relative_to(ROOT).as_posix()
@@ -115,7 +117,7 @@ def check_source(src: str, text: str) -> list:
 
 def main() -> int:
     bad = []
-    for f in sorted(ROOT.rglob("*.lean")):
+    for f in lean_files(ROOT):
         src = rel(f)
         bad += check_source(src, f.read_text(encoding="utf-8"))
     if bad:

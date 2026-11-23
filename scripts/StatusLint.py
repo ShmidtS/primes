@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-from _shared import lean_files
+from _shared import lean_files, read_baseline
 
 ROOT = Path(__file__).resolve().parent.parent
 HAGI = ROOT / "Hagi"
@@ -67,7 +67,7 @@ def is_skip(ident: str) -> bool:
         return True
     # a backticked name that is an actual Hagi/Primes module
     if any((ident + ".lean") == f.name
-           for d in (HAGI, ROOT / "Primes") for f in d.rglob("*.lean")):
+           for d in (HAGI, ROOT / "Primes") for f in lean_files(d)):
         return True
     # hypothesis-pattern fragments and suffix references
     if ident.startswith("_") or ident.startswith("h_emp_")             or ident.startswith("h_model_") or ident == "h_emp_":
@@ -102,9 +102,7 @@ def check(fname: str, names: set, baseline: set) -> list:
 
 def load_baseline() -> set:
     if BASELINE_FILE.exists():
-        return set(l.strip() for l in
-                   BASELINE_FILE.read_text(encoding="utf-8").splitlines()
-                   if l.strip())
+        return read_baseline(BASELINE_FILE)
     return set()
 
 

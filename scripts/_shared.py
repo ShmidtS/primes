@@ -8,6 +8,12 @@ here. Linter logic stays in its own script (plan v5 W5).
 import re
 from pathlib import Path
 
+# Module-name tokens shared by every import/namespace regex (LayerLint,
+# ClosureReport, ReachLint, Metrics x2). The surrounding regexes differ in
+# anchors and capture groups on purpose and stay in their own scripts.
+MODULE_SUFFIX = r"[A-Za-z0-9_.]+"
+HAGI_MODULE = r"Hagi\." + MODULE_SUFFIX
+
 # Byte-identical declaration regex shared by DupLint and Metrics.
 # Variants in Freeze/StatusLint/DocLint/AssumptionScan differ in
 # modifier sets and capture groups on purpose — do not unify.
@@ -25,13 +31,17 @@ DECL_RE = re.compile(
 LEGACY_PREFIX = "Hagi/Legacy/"
 BENCH_PREFIX = "Hagi/Benchmarks/"
 RESEARCH_PREFIX = "Hagi/Research/"
-# Umbrella modules of the quarantine libs (ReachLint exemptions).
-QUARANTINE_UMBRELLAS = ("Hagi.Legacy", "Hagi.Benchmarks", "Hagi.Research")
 
 
 def lean_files(base: Path) -> list:
     """Sorted list of *.lean files under base (deterministic order)."""
     return sorted(base.rglob("*.lean"))
+
+
+def read_baseline(path) -> set:
+    """Stripped, non-empty lines of a baseline file (StatusLint, NsLint)."""
+    with open(path, encoding="utf-8") as fh:
+        return {line.strip() for line in fh if line.strip()}
 
 
 def strip_comments(text):

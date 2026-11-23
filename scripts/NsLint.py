@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from _shared import (BENCH_PREFIX, LEGACY_PREFIX, RESEARCH_PREFIX,
-                     lean_files)
+                     lean_files, read_baseline)
 
 ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 BASELINE = os.path.join(os.path.dirname(__file__), "nslint_baseline.txt")
@@ -52,8 +52,7 @@ def main() -> int:
             fh.write("\n".join(v) + "\n")
         print(f"NSLINT: wrote baseline ({len(v)} violations)")
         return 0
-    with open(BASELINE, encoding="utf-8") as fh:
-        base = {line.strip() for line in fh if line.strip()}
+    base = read_baseline(BASELINE)
     new_extra = sorted(set(v) - base)
     if new_extra:
         print(f"NSLINT : FAIL "

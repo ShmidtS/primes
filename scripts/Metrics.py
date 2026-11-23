@@ -18,13 +18,13 @@ import re
 import sys
 from collections import defaultdict
 
-from _shared import DECL_RE
+from _shared import DECL_RE, HAGI_MODULE
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HAGI = os.path.join(ROOT, 'Hagi')
 
-NS_RE = re.compile(r'^namespace\s+(Hagi\.[A-Za-z0-9_.]+)', re.M)
-IMPORT_RE = re.compile(r'^import\s+(Hagi\.[A-Za-z0-9_.]+)', re.M)
+NS_RE = re.compile(rf'^namespace\s+({HAGI_MODULE})', re.M)
+IMPORT_RE = re.compile(rf'^import\s+({HAGI_MODULE})', re.M)
 
 MASTER_ROOTS = [
     'Hagi.Unified.MasterHAGI',

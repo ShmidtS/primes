@@ -12,7 +12,7 @@ import re
 import sys
 from pathlib import Path
 
-from _shared import BENCH_PREFIX, LEGACY_PREFIX, RESEARCH_PREFIX
+from _shared import BENCH_PREFIX, HAGI_MODULE, LEGACY_PREFIX, lean_files, RESEARCH_PREFIX
 
 ROOT = Path(__file__).resolve().parent.parent
 HAGI_ROOT = ROOT / "Hagi.lean"
@@ -39,7 +39,7 @@ QUARANTINED = {
     "Hagi.Dynamics.GrowthBridge",
 }
 
-IMPORT = re.compile(r"^\s*import\s+(Hagi\.[A-Za-z0-9_.]+)", re.M)
+IMPORT = re.compile(rf"^\s*import\s+({HAGI_MODULE})", re.M)
 
 
 def module_of(path: Path) -> str:
@@ -53,11 +53,11 @@ def imports_of(path: Path):
 
 
 def main() -> int:
-    all_modules = {module_of(p) for p in (ROOT / "Hagi").rglob("*.lean")}
-    legacy = {module_of(p) for p in (ROOT / "Hagi" / "Legacy").rglob("*.lean")}
-    legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Benchmarks").rglob("*.lean")}
+    all_modules = {module_of(p) for p in lean_files(ROOT / "Hagi")}
+    legacy = {module_of(p) for p in lean_files(ROOT / "Hagi" / "Legacy")}
+    legacy |= {module_of(p) for p in lean_files(ROOT / "Hagi" / "Benchmarks")}
     legacy.add("Hagi.Benchmarks")  # umbrella module of the quarantine lib
-    legacy |= {module_of(p) for p in (ROOT / "Hagi" / "Research").rglob("*.lean")}
+    legacy |= {module_of(p) for p in lean_files(ROOT / "Hagi" / "Research")}
     legacy.add("Hagi.Research")  # umbrella module of the quarantine lib
     # BFS from the root
     seen = set()
