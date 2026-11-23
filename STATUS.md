@@ -2120,3 +2120,77 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   траекторий (FixedBatch.lean) коду mgda_weights — кандидат C639.
 - Freeze 8861 (+12: 4 def, 8 theorem); 17 гейтов PASS
   (.tmp/C638/logs/).
+
+## C639 mgda code correspondence bridge from hagi v2 wave 254
+
+- Beat: C639 = соответствие кода HAGI_v2 mgda_weights
+  (hagi/selfmodel.py:35-60, коммит 1ae924e wave 254; вызов
+  selfmodel.py:113, тесты tests/test_selfmodel_gate.py:74-77 и
+  selftest selfmodel.py:229-233) канону `batchGradientMinimizer`
+  (Hagi/Model/BatchCEDescent.lean:368-402, потребители
+  FixedBatch.lean «Evaluated finite MGDA trajectories» 134-196,
+  `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt`
+  147-186). Base HEAD 8999bdc8, tree clean. Файл:
+  [`BatchCEDescentMgdaCode.lean`](Hagi/Model/BatchCEDescentMgdaCode.lean).
+- Вердикт соответствия: ТОЧНО на остановке, ПРИБЛИЖЁННО по
+  допуску, РАЗНЫЕ ЗАДАЧИ по нормировке.
+  - Код: Frank-Wolfe по симплексу над НОРМИРОВАННЫМИ градиентами
+    `G = g/(‖g‖+1e-12)` (selfmodel.py:44), старт равномерный
+    (:45), шаг `gamma = 2/(2+t)` (:52), максимум 200 итераций
+    (:35); стоп, когда `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`, `d = α@G`
+    (:48-50); затем clamp/renormalize (:55-60, тождество, если
+    цикл вышел через стоп-тест).
+  - Канон Lean: `batchGradientMinimizer` = точная min-norm точка
+    convex hull RAW `batchResidualGradient` (:368-374), сертифицирует
+    min-norm (`_norm_le` :395), KKT (`_kkt` :542: `‖ω‖² ≤ ⟨g_b,ω⟩`
+    для всех b) и спуск вдоль `-ω` (`dirAction_neg_…_le` :578).
+    Это в точности вариационное неравенство стоп-теста кода.
+  - Код решает ТУ ЖЕ задачу (min-norm на hull) при `ε = 0`;
+    при `ε > 0` — 2ε-приближение по квадрату нормы; при разных
+    ‖g_j‖ — min-norm точку hull НОРМИРОВАННЫХ градиентов, что
+    НЕ min-norm точка raw hull (код это знает: selfmodel.py:114-120,
+    «WAVE 254 (bug)», и смешивает нормированные). Канон-мост
+    вербатим применим, когда все ‖g_j‖ равны (тест-пары).
+- Карточка файл -> теорема -> код-якорь HAGI_v2 (1ae924e):
+  - `mgdaCodeDirection` (44): `∑ α_j • v_j` = смесь кода
+    `d = alpha @ G` (selfmodel.py:49). Якорь: :49, :120.
+  - `SimplexWeights` (49): `(∀ j, 0 ≤ α_j) ∧ ∑ α_j = 1` —
+    контракта `alpha / s` после clamp (:55-60).
+  - `MgdaStationary v α ε` (54): `∀ j, ‖d‖² − ε ≤ ⟨v_j, d⟩` —
+    стоп-тест `dots[j] >= d·d − 1e-16` (:50) при `ε = 1e-16`.
+  - `inner_le_of_mem_convexHull_range` (60): любая точка hull не
+    хуже наименее выровненной вершины (`⟪c,d⟫ ≥ min_j ⟨v_j,d⟩`).
+  - `mgdaCodeDirection_mem_convexHull` (91): симплекс-смесь ∈ hull.
+  - `mgda_norm_sq_le_of_stationary` (102): ε-стационарная смесь
+    даёт `‖d‖² − 2ε ≤ ‖c‖²` для всех c ∈ hull (Young) —
+    приближённое соответствие при допуске.
+  - `mgda_eq_of_stationary` (126): при `ε = 0` смесь кода РАВНА
+    min-norm точке. Якорь: стоп-тест :50 с `1e-16` в float32
+    неотличим от 0 (probe: gap = 0.0 на всех 6 кейсах).
+  - `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary`
+    (146): инстанциация на канон `batchGradientMinimizer X θ y`
+    через `batchResidualGradient`. Якорь: selfmodel.py:113 (`alpha =
+    mgda_weights(grads)`), FixedBatch.lean:147.
+- Witness .tmp/C639/traj.lean (lake env lean, rc=0): тест-пара
+  tests/test_selfmodel_gate.py:74-77 (a=e0, b=e1): α=(1/2,1/2)
+  — probe кода: stop на итерации 0, gap 0.0; hstat проверяет
+  стоп-тест точно, мост даёт `d = segmentMinNorm e0 e1`.
+  Негативы: (1) α=[2,−1] — не SimplexWeights, d ∉ hull;
+  (2) α=[1,0] — на симплексе, но `MgdaStationary` ЛОЖЬ
+  (⟨e1,e0⟩=0 < 1), мост неприменим и ‖d‖²=1 > 1/2;
+  (3) при ε>0 — только 2ε-оценка, равенства нет.
+  Probe кода (read-only, .tmp/C639/probe.py / probe.json): 6 кейсов
+  (orthogonal, identical, conflict, 4d e1/e2, scaled 500 vs 5e-4,
+  60°) — все останавливаются на итерации 0 с gap 0.0.
+- Честные границы: (a) нормировка — код решает на `g/‖g‖`, канон
+  на raw; при разных нормах вербатим-моста к raw-hull нет (код
+  смешивает нормированные, selfmodel.py:120; но dots/conflict-гейт
+  считает на RAW :121-123 — смешение двух пространств, вне моста);
+  (b) Frank-Wolfe без стоп-теста (200 итераций исчерпаны) —
+  только симплекс, без сертификата; скорость O(1/k) для FW НЕ
+  формализована (KISS: 2ε-оценка — единственное приближение);
+  (c) float32: `1e-16` < eps(f32)≈1.2e-7, т.е. тест в коде
+  фактически `≥ ‖d‖²` с округлением — мост формализует
+  вещественный тест, не float-семантику.
+- Freeze 8861 -> 8869 (+8: 3 def, 5 theorem; 0 lost/changed);
+  17 гейтов PASS (.tmp/C639/logs/).

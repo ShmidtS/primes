@@ -156,6 +156,7 @@ import Hagi.Model.BatchCEDescentFixtures
 import Hagi.Model.BatchCEDescentHalfEta
 import Hagi.Model.BatchCEDescentResidualNorm
 import Hagi.Model.BatchCEDescentLogitRange
+import Hagi.Model.BatchCEDescentMgdaCode
 import Hagi.Model.BatchCEDescentStochastic
 import Hagi.Model.CEExpansion
 import Hagi.Model.HypothesisCompetition
