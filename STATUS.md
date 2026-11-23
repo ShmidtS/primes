@@ -2300,3 +2300,33 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Freeze 8836 → 8841 (+ceil_div_anti, windowCost_fixed_mono,
   windowCost_linear_bounds, windowCost_linear_near_const,
   windowCost_hier); 17 гейтов PASS (.tmp/C623/logs/).
+
+## C626 bench cost-regime: certified выбор w в generate-hier (применение C623 завершено)
+
+- `scripts/bench_bridge.py`: `cost_regime_w(regime, n, w_max, a, c,
+  alpha)` — python-двойник теорем WindowTradeoff (freeze 8841),
+  docstring → `windowCost_fixed_mono` / `windowCost_linear_bounds`
+  / `windowCost_linear_near_const` / `ceil_div_anti`:
+  - режим fixed (c(w)=c): certified правило w = w_max
+    (монотонное невозрастание totalCost = c·⌈n/w⌉);
+  - режим linear (c(w)=c·w): w телеграфируется свободно (default
+    64) — total-cost «почти константа», телеметрия near-const
+    коридора [c·n, c·(n+w)) (зазор < c·w);
+  - режим mixed (c(w)=a+c·w^α, целое α>1): HONEST — w* =
+    (a/(c·(α−1)))^(1/α) — STATUS-набросок C623, НЕ Lean-клоз;
+    вещественный корень идёт телеметрией, целый w выбирается
+    точным Fraction-argmin по окрестности корня.
+  Арифметика точная (fractions.Fraction), fail-closed asserts:
+  коридор linear, near-const неравенство w1·⌈n/w1⌉ ≤ w2·⌈n/w2⌉ +
+  (w1−1), оптимальность fixed w_max, argmin mixed.
+- CLI: `--cost-regime {fixed,linear,mixed}` (+ `--cw-a/--cw-c/
+  --cw-alpha/--cw-wmax`) в `--mode generate-hier`; телеметрия:
+  w_выбран, чтения ⌈n/w⌉, total-cost, коридор, сравнение
+  w-вариантов {16, 64, 256, w_max}; инстансы n = 540/4032/8128/
+  100000.
+- Witness-сверка с C623 (pinned asserts): n=100000 чтения
+  6250/1563/391 и linear-cost 100000/100032/100096 для w ∈
+  {16, 64, 256} — совпали дословно (Lean #eval .tmp/C623/trajW.lean).
+- `scripts/StatusLint.py`: RUNTIME_NAMES += cost_regime_w
+  (прецедент C613 hier_span). Freeze 8841 identity (Lean не
+  менялся); 17 гейтов PASS (.tmp/C626/logs/).

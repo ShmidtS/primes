@@ -13164,6 +13164,116 @@ def generate_hier_run():
             "rows": rows, "verdict": "PASS" if ok else "FAIL"}
 
 
+def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
+    """C626: certified choice of the window width w by the C623
+    cost regime rule. Python twin of the WindowTradeoff theorems
+    (Hagi/Theory/WindowTradeoff.lean, freeze 8841):
+
+    Model: totalCost(w) = ceil(n/w) * c(w), reads ceil(n/w) is
+    the Lean `(n+w-1)/w` of every theorem below.
+
+    - regime 'fixed' (a): c(w) = c -- `windowCost_fixed_mono`:
+      totalCost = c*ceil(n/w) is monotone NONINCREASING in w
+      (`ceil_div_anti`) => the certified rule is w = w_max
+      (widening the window strictly saves reads).
+    - regime 'linear' (b): c(w) = c*w -- `windowCost_linear_
+      bounds` / `windowCost_linear_near_const`:
+      n <= w*ceil(n/w) <= n+w-1, so totalCost = c*(w*ceil(n/w))
+      lives in [c*n, c*(n+w)) -- a NEAR-CONST corridor whose gap
+      is < c*w; w is cost-FREE (telegraphed freely, default 64;
+      precision/context depth decides, not economy).
+    - regime 'mixed' (c): c(w) = a + c*w^alpha, integer
+      alpha > 1 -- HONEST STATUS-sketch (STATUS.md C623), NOT a
+      Lean theorem: pure c*w^alpha has no interior optimum;
+      the mixed cost has the interior optimum
+        w* = (a/(c*(alpha-1)))^(1/alpha)
+      (Real arithmetic). Here: real root reported as telemetry,
+      the integer w chosen is the exact-Fraction argmin over
+      the root neighbourhood {1..w_max} clamped -- every cost
+      compared is EXACT rational arithmetic.
+
+    Returns dict: chosen w, rule id, reads, total cost (exact
+    Fraction), corridor bounds, per-w comparison table.
+    """
+    assert regime in ("fixed", "linear", "mixed"), \
+        f"ABORT: unknown cost regime {regime!r}"
+    assert w_max > 0 and n > 0, "ABORT: need n > 0, w_max > 0"
+    a, c, alpha = F(a), F(c), F(alpha)
+    assert a > 0 and c > 0, "ABORT: need a > 0, c > 0"
+
+    def reads(w):
+        return (n + w - 1) // w          # Lean (n+w-1)/w
+
+    def total(w):
+        if regime == "fixed":            # c(w) = c
+            return c * reads(w)
+        if regime == "linear":           # c(w) = c*w
+            return c * (w * reads(w))
+        return reads(w) * (a + c * F(w) ** alpha)   # a+c*w^alpha
+
+    wv = [16, 64, 256] + [w_max]
+    wv = sorted({w for w in wv if 0 < w})
+    compare = [{"w": w, "reads": reads(w),
+                "total_cost": str(total(w))} for w in wv]
+
+    if regime == "fixed":
+        # windowCost_fixed_mono: monotone nonincreasing => w_max
+        chosen = w_max
+        rule = ("fixed: windowCost_fixed_mono -- c(w)=c, "
+                "totalCost = c*ceil(n/w) monotone nonincreasing "
+                "(ceil_div_anti) => certified w = w_max")
+        corridor = None
+        w_star = None
+    elif regime == "linear":
+        # near-const corridor [c*n, c*(n+w)); w telegraphed free
+        chosen = 64
+        rule = ("linear: windowCost_linear_bounds / _near_const "
+                "-- c(w)=c*w, totalCost in [c*n, c*(n+w)), gap "
+                "< c*w => w cost-free (telegraphed freely, "
+                "default 64; precision decides)")
+        corridor = [str(c * n), str(c * (n + chosen))]
+        w_star = None
+    else:
+        assert alpha > 1, "ABORT: mixed regime needs alpha > 1"
+        ratio = a / (c * (alpha - 1))   # exact Fraction
+        w_star = float(ratio) ** (1.0 / float(alpha))  # telemetry
+        # exact integer argmin over root neighbourhood, clamped
+        lo = max(1, min(w_max, int(w_star) - 2))
+        hi = max(1, min(w_max, int(w_star) + 3))
+        chosen = min(range(lo, hi + 1), key=total)
+        rule = ("mixed: HONEST STATUS-sketch (NOT a Lean "
+                "theorem, STATUS.md C623) -- c(w)=a+c*w^alpha, "
+                "w* = (a/(c*(alpha-1)))^(1/alpha); integer w = "
+                "exact-Fraction argmin near the real root")
+        corridor = None
+
+    t = total(chosen)
+    res = {"regime": regime, "n": n, "w_max": w_max,
+           "a": str(a), "c": str(c), "alpha": str(alpha),
+           "w_chosen": chosen, "rule": rule,
+           "reads": reads(chosen), "total_cost": str(t),
+           "w_star": w_star, "corridor": corridor,
+           "w_compare": compare}
+    # fail-closed checks: the Lean theorem facts must hold
+    if regime == "fixed":
+        assert all(t <= F(r["total_cost"]) for r in compare), \
+            "ABORT: windowCost_fixed_mono violated (w_max)"
+    if regime == "linear":
+        lo_c, hi_c = c * n, c * (n + chosen)
+        assert lo_c <= t < hi_c, \
+            "ABORT: windowCost_linear_bounds corridor violated"
+        # windowCost_linear_near_const: any w1 w2 gap < c*w1
+        for r in compare:
+            w1 = r["w"]
+            assert t <= F(r["total_cost"]) + c * (chosen - 1) \
+                and F(r["total_cost"]) <= t + c * (w1 - 1), \
+                "ABORT: windowCost_linear_near_const violated"
+    if regime == "mixed":
+        assert t <= min(F(r["total_cost"]) for r in compare), \
+            "ABORT: mixed chosen w not argmin vs witness w set"
+    return res
+
+
 # C610: modes whose corpus precondition is a STRUCTURAL domain
 # requirement (>= 2 const-cluster domains, TR_MIN_PTS points
 # each). Only these participate in the snapshot->live fallback
@@ -13346,6 +13456,28 @@ def main():
     ap.add_argument("--ft-steps", type=int, default=None,
                     help="cert-tern: finetune phase steps "
                          "(default 1; grow-stop: grown steps, default 1)")
+    ap.add_argument("--cost-regime",
+                    choices=["fixed", "linear", "mixed"],
+                    default=None,
+                    help="C626: generate-hier only -- choose w by "
+                         "the C623 WindowTradeoff rule: fixed "
+                         "(c(w)=c -> certified w = w_max), "
+                         "linear (c(w)=c*w -> w cost-free, "
+                         "default 64, near-const corridor), "
+                         "mixed (c(w)=a+c*w^alpha -> HONEST "
+                         "w* formula, not a Lean theorem)")
+    ap.add_argument("--cw-a", type=int, default=1,
+                    help="cost-regime mixed: fixed window "
+                         "overhead a (default 1)")
+    ap.add_argument("--cw-c", type=int, default=1,
+                    help="cost-regime: per-window cost "
+                         "coefficient c (default 1)")
+    ap.add_argument("--cw-alpha", type=int, default=2,
+                    help="cost-regime mixed: superlinear "
+                         "exponent alpha > 1 (default 2)")
+    ap.add_argument("--cw-wmax", type=int, default=256,
+                    help="cost-regime: maximal admissible "
+                         "window width w_max (default 256)")
     ap.add_argument("--steps", type=int, default=None)
     ap.add_argument("--emit-lean", metavar="PATH")
     ap.add_argument("--corrupt", metavar="PATH")
@@ -13941,7 +14073,44 @@ def main():
         return
 
     if args.mode == "generate-hier":
-        print(json.dumps(generate_hier_run(), indent=1))
+        if args.cost_regime is None:
+            print(json.dumps(generate_hier_run(), indent=1))
+            return
+        # C626: certified w-choice telemetry by the C623 rule.
+        # Witness cross-check (.tmp/C623/trajW.lean, Lean #eval,
+        # n = 100000): reads {6250, 1563, 391} and linear-cost
+        # {100000, 100032, 100096} for w in {16, 64, 256} --
+        # fail-closed pinned asserts (python twin == Lean).
+        WITNESS_W = [16, 64, 256]
+        WITNESS_READS = [6250, 1563, 391]
+        WITNESS_LINEAR = [100000, 100032, 100096]
+        for w, wr in zip(WITNESS_W, WITNESS_READS):
+            assert (100000 + w - 1) // w == wr, \
+                f"ABORT: reads({w}) != C623 Lean witness {wr}"
+        for w, wl in zip(WITNESS_W, WITNESS_LINEAR):
+            assert w * ((100000 + w - 1) // w) == wl, \
+                f"ABORT: linear cost({w}) != C623 witness {wl}"
+        cases = [540, 4032, 8128, 100000]
+        rows = [cost_regime_w(args.cost_regime, n, args.cw_wmax,
+                              a=args.cw_a, c=args.cw_c,
+                              alpha=args.cw_alpha)
+                for n in cases]
+        w100k = next(r for r in rows if r["n"] == 100000)
+        cmp_by_w = {e["w"]: e for e in w100k["w_compare"]}
+        for w, wr in zip(WITNESS_W, WITNESS_READS):
+            assert cmp_by_w[w]["reads"] == wr, \
+                "ABORT: reads drift vs C623 witness"
+        ok = all(r["regime"] == args.cost_regime for r in rows)
+        print(json.dumps({
+            "mode": "generate-hier", "cost_regime": args.cost_regime,
+            "a": rows[0]["a"], "c": rows[0]["c"],
+            "alpha": rows[0]["alpha"], "w_max": args.cw_wmax,
+            "witness_check": ("C623 n=100000: reads "
+                              "6250/1563/391, linear-cost "
+                              "100000/100032/100096 -- pinned "
+                              "asserts PASS"),
+            "rows": rows, "verdict": "PASS" if ok else "FAIL",
+        }, indent=1))
         return
 
     if args.mode == "transfer-gate-certified":

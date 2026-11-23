@@ -38,6 +38,7 @@ RUNTIME_NAMES = {
     "steps_drop_vs_bound",                 # C609 bench_bridge.py
     "adaptive_span", "_cov_step_starts",   # C602 bench_bridge.py
     "hier_span",                           # C613 bench_bridge.py
+    "cost_regime_w",                       # C626 bench_bridge.py
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,
