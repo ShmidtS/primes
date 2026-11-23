@@ -127,7 +127,7 @@ allowlist LAYER_EXCEPTIONS.
 | Contracts EM | `Hagi/Contracts/EMTrajectory.lean` | поглощены MixtureEMTrajectory/FactorizedMixtureEM/FiniteEMTrajectory/ChangingEMTrajectory (W2); носитель `Probability/FiniteMultiEM` не тронут |
 | Contracts step | `Hagi/Contracts/BatchCEStepCore.lean`, `BatchCEBestResidual.lean` | план W2 предлагал слияние — не доведено (deriv-риск), оба живые каноны |
 | Theory мосты HAGI_v2 | [`ALGORITHMS.md` §27a](ALGORITHMS.md#27a-мосты-hagi_v2-и-bench-режимы-канон-c588-v6-v4) | канон описаний мостов волн C530+ (18 мостов + bench-паттерн, C588): одно описание одного моста — ровно один раз; Lean-носители — отдельные файлы `Hagi/Theory/*.lean` |
-| Theory v3-машина | `Hagi/Theory/MasterTheoremV3.lean` | 5 гарантий машины v3 одним statement (C576) |
+| Theory v3-машина | `Hagi/Theory/MasterTheoremV3.lean` | лестница метатеорем машины v3 → v3.3 одним файлом: 5 гарантий (C576), 8 (C600), 10 (C614), 11 клозов (C622) |
 | Theory рост адаптеров | `Hagi/Theory/AdapterGrowth.lean` | механика роста адаптеров C532–C560; 4 секции промаркированы канон-заголовками (v6-V3), нарезка на файлы не делалась |
 | Probability EB-радиус | `Hagi/Probability/EmpiricalBernstein.lean` | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman (C539) |
 | Probability Freedman | `Hagi/Probability/Freedman.lean` | поглощены Step/TwoSided/Adaptive/FamilyConfidence (W3) |

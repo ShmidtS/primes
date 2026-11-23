@@ -682,7 +682,7 @@ clusters before distillation).
 
 ### 3.17 The consolidated statement: hagi_master_v31 (C600)
 
-<!-- source: Hagi/Theory/MasterTheoremV31.lean:59 (формулы дословно из тела theorem, HEAD 3c94a958); .tmp/C600/receipt.md (консолидация, axioms 3, freeze 8808 на C600; 8813 на C602) -->
+<!-- source: Hagi/Theory/MasterTheoremV3.lean:137 (формулы дословно из тела theorem, HEAD 3c94a958); .tmp/C600/receipt.md (консолидация, axioms 3, freeze 8808 на C600; 8813 на C602) -->
 
 The consolidation era closes with ONE statement covering the whole
 certified machine: a conjunction of 8 clauses, each a DELEGATE to an
@@ -691,7 +691,7 @@ no new deep facts, only the conjunction (the `master_theorem_v3`
 pattern of C576).
 
 > **Theorem (hagi_master_v31).**
-> `Hagi/Theory/MasterTheoremV31.lean:59` (C600). For any run of the
+> `Hagi/Theory/MasterTheoremV3.lean:137` (C600). For any run of the
 > v3 machine, all five v3 guarantees hold simultaneously, PLUS
 > three closure clauses:
 >
@@ -727,7 +727,7 @@ Witness: `.tmp/C600/trajMT31.lean` (#check of the 8 clauses, exit 0).
 
 ### 3.18 The v3.2 canon: hagi_master_v32, ten clauses (C614)
 
-<!-- source: Hagi/Theory/MasterTheoremV32.lean:48-93 (прочитан
+<!-- source: Hagi/Theory/MasterTheoremV3.lean:204-249 (прочитан
      полностью на HEAD 5254f6e8, клозы дословно из statement);
      .tmp/C614/receipt.md (freeze 8822→8823, axioms 3, witness) -->
 
@@ -735,7 +735,7 @@ The v3.1 statement is extended to the **v3.2 canon** — the
 consolidated certified machine plus the two clauses the formula
 era added on top of it: the certified-optimal step size and
 unbounded hierarchical reading. `hagi_master_v32`
-(MasterTheoremV32.lean:48) carries hypotheses of v3.1 verbatim
+(MasterTheoremV3.lean:204) carries hypotheses of v3.1 verbatim
 plus the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`) and
 reuses `L G hL` from the transfer block; the ten clauses of the
 conclusion, verbatim from the Lean statement:
@@ -901,14 +901,14 @@ bench consumes all of it fail-closed (v).
 
 ### 3.20 The v3.3 canon: hagi_master_v33, eleven clauses (C622)
 
-<!-- source: Hagi/Theory/MasterTheoremV33.lean:54-120 (statement
+<!-- source: Hagi/Theory/MasterTheoremV3.lean:275-326 (statement
      прочитан полностью на HEAD dd4102cf, клозы дословно);
      .tmp/C622/receipt.md (freeze 8835→8836, axioms 3, witness
      trajMT33.lean rc=0) -->
 
 The v3.2 canon of §3.18 is extended to **v3.3** by one clause:
 the reading floor. `hagi_master_v33`
-(Hagi/Theory/MasterTheoremV33.lean:54) carries the hypotheses
+(Hagi/Theory/MasterTheoremV3.lean:275) carries the hypotheses
 of v3.2 verbatim plus `hw : 0 < w` and `hdiv : w ∣ B` on the
 hier block, and its conclusion is the ten clauses of v3.2
 verbatim (§3.18 (1)–(10)) AND the eleventh, verbatim from the
@@ -1359,7 +1359,7 @@ not a Lean clause.
 | distill_params_total | Hagi/Theory/AdapterGrowth.lean:826 | C556 |
 | symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:835 | C556 |
 | v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:871 | C558 |
-| master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:57 | C576 |
+| master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:83 | C576 |
 | auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
 | fact_append_preserves | Hagi/Theory/FactLedger.lean:59 | C579 |
 | fact_lookup_monotone | Hagi/Theory/FactLedger.lean:67 | C579 |
@@ -1375,12 +1375,12 @@ not a Lean clause.
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:126 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:183 | C602 |
 | covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:232 | C602 |
-| hagi_master_v31 | Hagi/Theory/MasterTheoremV31.lean:59 | C600 |
+| hagi_master_v31 | Hagi/Theory/MasterTheoremV3.lean:137 | C600 |
 | snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
 | nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
 | smooth_obj_transfer_bound | Hagi/Theory/NegativeTransfer.lean:386 | C592 |
 | covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:219 | C602 |
-| hagi_master_v32 | Hagi/Theory/MasterTheoremV32.lean:48 | C614 |
+| hagi_master_v32 | Hagi/Theory/MasterTheoremV3.lean:204 | C614 |
 | nlStep | Hagi/Theory/NegativeTransfer.lean:231 | C606 |
 | nlDrop | Hagi/Theory/NegativeTransfer.lean:434 | C606 |
 | nl_drop_bound | Hagi/Theory/NegativeTransfer.lean:443 | C606 |

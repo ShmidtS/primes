@@ -2009,7 +2009,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   цикла, опущена. Witness .tmp/C598/trajCov.lean: 540/64 covered=
   true (9 окон), негатив truncLast 3/10 → covered=false.
 
-## Hagi/Theory/MasterTheoremV31.lean (C600: метатеория v3.1 — консолидация)
+## Hagi/Theory/MasterTheoremV3.lean (C600: метатеория v3.1 — консолидация)
 
 - `hagi_master_v31` — certified-машина v3.1 ОДНОЙ теоремой: конъюнкция
   8 клозов, каждый — делегат к доказанной теореме без ослабления
@@ -2191,7 +2191,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 
 ## C614 метатеорема v3.2: 10 клозов (машина 8 + шаг-оптимум + неограниченное чтение)
 
-- `Hagi/Theory/MasterTheoremV32.lean`:
+- `Hagi/Theory/MasterTheoremV3.lean` (v3.2):
   `Hagi.Theory.MasterTheoremV32.hagi_master_v32` — консолидация
   certified-машины v3.2 по прецеденту C600 (`hagi_master_v31`,
   8 клозов): клозы (1)–(8) — делегат `hagi_master_v31` (C600)
@@ -2240,7 +2240,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 
 ## C622 метатеорема v3.3: 11 клозов (машина 8 + шаг-оптимум + неограниченное чтение + reading floor)
 
-- `Hagi/Theory/MasterTheoremV33.lean`:
+- `Hagi/Theory/MasterTheoremV3.lean` (v3.3):
   `Hagi.Theory.MasterTheoremV33.hagi_master_v33` — консолидация
   certified-машины v3.3 по прецедентам C600/C614: клозы (1)–(10)
   — развёртка в statement (statement v3.2 дословно), делегат
@@ -2255,7 +2255,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   #check раскрытие 11-клозной конъюнкции + применение клоза (11)
   к witness C618 n = 8128, B = 4032, w = 64 (total = 127 =
   ⌈8128/64⌉; floor на произвольном L; численная сверка).
-- Hagi.lean: `import Hagi.Theory.MasterTheoremV33` (ReachLint).
+- Hagi.lean: `import Hagi.Theory.MasterTheoremV3` (ReachLint).
   Axioms hagi_master_v33: [propext, Classical.choice, Quot.sound]
   (= 3). Freeze 8835 → 8836 (+hagi_master_v33); 17 гейтов PASS
   (.tmp/C622/logs/).
