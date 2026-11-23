@@ -2453,3 +2453,57 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   на блоке; негатив. Аксиомы: [propext, Classical.choice, Quot.sound].
 - Freeze 8887 -> 8891 (+4 theorem; 0 lost/changed); 17 гейтов PASS
   (.tmp/C646/logs/ci.log).
+
+## C647 batch to global drop telescoping
+
+- Beat: C647 = roadmap C645 top-2 — телескоп batch→global, разбор
+  негатива C644 `batch_drop_not_global`. Base HEAD e84eac25, tree
+  clean. HAGI_v2 (READ-ONLY) @ca52eb4: `_certified_finite_step`
+  (hagi/lm.py:831), вызов lm.py:999 в refine-фазе train_guarded.
+- КОД-ФАКТ (lm.py:978-1008 @ca52eb4): до 64 позиций
+  `rng.choice(..., size=min(64, N), replace=False)` — БЕЗ возвращения;
+  8 раундов `rng.permutation`, срезы по 32 (`bx = refine_X[perm[s:s+32]]`);
+  каждый вызов сертифицирует CE СВОЕГО минибатча, принимается любой
+  `d > 0` (commits += 1, total_drop += d), отбора по величине нет;
+  mixed/global objective отсутствует; ledger = сумма per-batch
+  ("scope": "per-batch-sum, no telescoping guarantee"`, комментарий
+  lm.py:1002-1005 — per-batch bounds НЕ телескопируют). unified.py шаг
+  `_certified_finite_step` не зовёт; его батчи — `rng.choice`
+  (unified.py:427, :835), тоже без возвращения.
+- УРОВНИ (вердикт):
+  (A) batch = весь датасет: batch-objective = глобальный, телескоп уже
+  есть — `master_theorem_v3` клоз 3 (obj = `step`, абстракция над
+  носителем; NOT batch-specific) и `fixedBatchObjective_sum_certifiedDrop_le_telescope`.
+  (B) фиксированный batch: ДОКАЗАНО детерминистически + вероятностно.
+  (C) случайный batch на каждом шаге: НЕ формализовано — нужна модель
+  батча; честно сводится к (B) + union bound по шагам (не сделано).
+- Теоремы (Hagi/Contracts/BatchGlobalTelescope.lean, ns
+  Hagi.Contracts.BatchGlobalTelescope): `batch_telescope_fixed` — T1,
+  абстрактный телескоп по ОДНОМУ objective (шаг `t < T`: `f (t+1) ≤ f t − d t`
+  ⇒ `f T + Σ d ≤ f 0`); `fixedBatch_telescope` — T1 на `fixedBatchState`
+  (3 строки из существующего `fixedBatchObjective_sum_certifiedDrop_le_telescope`,
+  форма «финал ≤ старт − Σ drop»); `batch_drop_generalizes` — T2: δ v —
+  per-sample приращение loss, `Σ q δ` — глобальное; iid-выборка n ⇒
+  `1 − α ≤ P[mean_sample δ < Σ q δ + ebGap]` через
+  `empirical_bernstein_mean_bound` (посылки: диапазон b, взвешенная
+  дисперсия ≤ sig, sig > 0); `certified_batch_drop_global` — композиция:
+  на сэмпле, где `dropB ≤` фактический drop по выборке,
+  `obj_G θ' ≤ obj_G θ − dropB + ebGap` с вероятностью ≥ 1 − α
+  (через δ' = −δ, нижняя сторона EB); `ebGap` =
+  √(2·sig·ln(2/α)/n) + 2·b·ln(2/α)/n; вспомогательные `centeredSample`,
+  `centeredSample_snoc`, `azumaSum_centeredSample` (сведение `azumaSum`
+  к сумме сэмплов).
+- ЧТО ИМЕННО ЗАКРЫТО/НЕТ: закрыт МОСТ «batch drop → глобальный objective»
+  при iid-модели батча. НЕ доказано: (1) iid для кода — там выборка без
+  возвращения (консервативная идеализация: конечная совокупность даёт
+  меньшую дисперсию, но это не формализовано); (2) код меряет drop на
+  батче из 32, а EB посылки (b, sig) — про per-sample приращения, их
+  надо СЧИТАТЬ на коде (не делается); (3) уровень (C) — 8 раундов с
+  новой перестановкой: union bound по шагам не собран.
+- Witness .tmp/C647/traj.lean (lake env lean 4.36.0, rc=0,
+  logs/traj.log): T1 n = 3 (f t = 10 − t, d = 1 ⇒ f 3 + 3 = 10 точно);
+  T2 V = Bool, q uniform, δ = ±1, b = sig = 1, n = 4, α = 1/2;
+  композиция loss v θ = θ·δ v, θ = 0 → 1, dropB = 0. Аксиомы: [propext,
+  Classical.choice, Quot.sound].
+- Freeze 8891 -> 8899 (+6 theorem, +2 def; 0 lost/changed); 17 гейтов
+  PASS (.tmp/C647/logs/ci.log).

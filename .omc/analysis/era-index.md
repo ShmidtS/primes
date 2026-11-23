@@ -156,3 +156,16 @@
   `block_step_commit_of_range_bound` ⇒ `warmup_h1_of_certified_steps` на блоке.
 - Негатив: `block_range_bound_violated_not_certified`.
 - Honest: range(Δz) через block-only JVP — реализация кода, не теорема.
+
+<a id="c647"></a>
+## C647 — телескоп batch→global (freeze 8891→8899)
+
+- Коммит: C647 `Contracts/BatchGlobalTelescope.lean` (+6 theorem, +2 def).
+- Вердикт: per-batch certified drop телескопирует только в batch-objective
+  (`batch_telescope_fixed`/`fixedBatch_telescope`); глобальный objective
+  контролируется вероятностно (`batch_drop_generalizes` через EB,
+  `certified_batch_drop_global`) при iid-модели батча.
+- Код (lm.py:978-1008 @ca52eb4): выборка без возвращения, 8 раундов
+  перестановок по 32, любой d > 0 принимается — уровень (C), не (A)/(B).
+- Honest: iid — идеализация; b/sig для EB код не считает; union bound по
+  шагам не собран.

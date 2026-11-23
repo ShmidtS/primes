@@ -393,6 +393,7 @@ import Hagi.Contracts.BudgetedParetoStepContract
 import Hagi.Contracts.BudgetedParetoStepCert
 import Hagi.Contracts.BatchCEGrowth
 import Hagi.Contracts.BatchCETrajectory
+import Hagi.Contracts.BatchGlobalTelescope
 import Hagi.Contracts.BatchRangeBF16Cert
 import Hagi.Contracts.BatchCEAlignmentBudget
 import Hagi.Contracts.IdentityMomentConvergence
