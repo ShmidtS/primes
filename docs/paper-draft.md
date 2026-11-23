@@ -1,16 +1,18 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.6 (C604). Все утверждения — либо Lean-якорь (FQN, файл,
-строка на HEAD 3c94a958), либо измеренный результат прогона с
+Draft v0.7 (C617). Все утверждения — либо Lean-якорь (FQN, файл,
+строка на HEAD 5254f6e8), либо измеренный результат прогона с
 указанием витка (Cn), либо явный PIN в §Limitations. Никаких
-недоказанных клеймов. С v0.5 (C559) добавлено: консолидированный
-statement hagi_master_v31 — 8 клозов (§3.17, C600); эра
-сертифицированных параметров proxy→формула с числами −2788 бит /
-33 snap (C597), certified transfer-гейт (C601), adaptive span с
-INFEASIBLE-границей n≤4032 и coverage-iff (C602) — §4.5; pins
-18–21 (§5); related-matrix (§1); Appendix A расширен (C592/C593/
-C600/C602). Теоремный счётчик abstract остаётся от e40aa426 (C559):
-новый индекс в C604 не генерировался.
+недоказанных клеймов. С v0.6 (C604) добавлено: центральный
+statement v3.2 — hagi_master_v32, 10 клозов (§3.18, C614);
+formula-driven-эра — все параметры → формулы с Lean-якорями и
+bench-применениями (§4.6, C593–C613); corpus-политика snapshot
+default → live fallback (C607/C608/C610, §4.6); PALOMAR-ниша —
+прямая проверка реестра: 1293 results, 0 пересечений (§4.7,
+C616); PALOMAR Cards 9–11 (γ*, иерархия, iff-span, C615, §4.7);
+Appendix A расширен (C606/C611/C614, верификация HEAD 5254f6e8).
+Теоремный счётчик abstract остаётся от e40aa426 (C559): новый
+индекс в C617 не генерировался.
 
 ## Abstract
 
@@ -723,6 +725,51 @@ Axioms of the conjunction: `propext`, `Classical.choice`,
 `Quot.sound` (3, all delegates axiom-clean — C600 receipt).
 Witness: `.tmp/C600/trajMT31.lean` (#check of the 8 clauses, exit 0).
 
+### 3.18 The v3.2 canon: hagi_master_v32, ten clauses (C614)
+
+<!-- source: Hagi/Theory/MasterTheoremV32.lean:48-93 (прочитан
+     полностью на HEAD 5254f6e8, клозы дословно из statement);
+     .tmp/C614/receipt.md (freeze 8822→8823, axioms 3, witness) -->
+
+The v3.1 statement is extended to the **v3.2 canon** — the
+consolidated certified machine plus the two clauses the formula
+era added on top of it: the certified-optimal step size and
+unbounded hierarchical reading. `hagi_master_v32`
+(MasterTheoremV32.lean:48) carries hypotheses of v3.1 verbatim
+plus the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`) and
+reuses `L G hL` from the transfer block; the ten clauses of the
+conclusion, verbatim from the Lean statement:
+
+> (1) `params bs.length ≤ 2 * k * dd`;
+> (2) `perTaskVec (s τ) a = perTaskVec (s 0) a`;
+> (3) `step bs.length ≤ o0 + bs.sum`;
+> (4) `coversPrim CovP (st n) i`;
+> (5) `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2`;
+> (6) `snapK Lq dq εq hεq hLd0 = ⌈log₂ (Lq * dq / εq)⌉ - 1`;
+> (7) `∀ ib < nc, ∃ sw ∈ covStarts nc kc, sw ≤ ib ∧ ib < sw + kc`;
+> (8) `f z - nE * nlBudget γ L G ≤ f (nlRun nE γ grad z)
+>     ∧ f (nlRun nE γ grad z) ≤ f z`;
+> (9) `nlDrop (1 / L) L G = G ^ 2 / (2 * L)` — the certified-
+>     optimal single-step drop γ* = 1/L (`nl_drop_optimal`,
+>     C606);
+> (10) `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧
+>      ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming
+>      peak ≤ m windows (`hier_covers_any_n`, C611).
+
+Clauses (1)–(8) are the v3.1 machine unfolded in the statement
+and discharged by ONE application of `hagi_master_v31` (`have
+hV31` + projections); clause (9) delegates to `nl_drop_optimal`
+(C606), clause (10) to `hier_covers_any_n` (C611) — zero new
+proofs. Engineering note recorded by the C614 receipt: a
+delegate theorem used AS the statement is ill-typed (a proof
+term is not a `Prop`); the correct canon form is clauses
+unfolded in the statement, delegates in the proof. Axioms of
+`hagi_master_v32`: `propext`, `Classical.choice`, `Quot.sound`
+(3). Freeze identity moved 8822 → 8823 (the one new
+declaration). Witness: `.tmp/C614/trajMT32.lean` (#check of the
+ten-clause conjunction, applications of (9) to L=2, G=1 — drop
+= 1/4 — and of (10) to n=8128, B=4032, w=s'=64; exit 0).
+
 ## 4. Benchmarks (measured only)
 
 ### 4.1 mini-HAGI (C500)
@@ -820,6 +867,115 @@ classes and discharge routes; PROVEN-NOW 1, PARTIAL 2, DEAD 0); C596
 swept all 35 bench modes into either PASS (13) or honest corpus-drift
 ABORT (22) with zero tracebacks — no silent failures left in the
 harness (see pin 18).
+
+### 4.6 The formula-driven era (C606–C613): every parameter a formula
+
+<!-- source: block — .tmp/C606/receipt.md (γ*=1/L, drop G²/(2L),
+     witness L=2,G=1 drop 1/4); .tmp/C609/receipt.md (γ_auto
+     5000000/10470759≈0.477, 13500000/25944901≈0.520,
+     156250/234227≈0.667, verdicts идентичны pre); .tmp/C611/
+     receipt.md (B=4032, s=w, per-block 63–64, witness n=8128
+     [63,63,1] peak 63; одноуровневый 127 окон > 64);
+     .tmp/C613/receipt.md (n=100000: 25 блоков, 24×63+51,
+     total 1563, peak 63; HierEval #eval 3/[63,63,1]/63);
+     .tmp/C607/receipt.md (null-ce skip 5 ключей, 18 режимов
+     оживлены); .tmp/C608/receipt.md (snapshot 35 ключей, live
+     45/41-key ABORT); .tmp/C610/receipt.md (три уровня,
+     fail-closed exit 3); anchors rg HEAD 5254f6e8 -->
+
+The proxy→formula program of §4.5 is now COMPLETE for the five
+operating parameters of the loop: each is a formula with a Lean
+anchor, a bench application, and measured bits —
+
+| Parameter | Certified formula | Lean anchor (file:line) | Bench application | Measured bits |
+|---|---|---|---|---|
+| snap grid | `k* = ⌈log₂(L·d/ε)⌉ − 1` | `snap_k_eq_ceil`, GrowSnap.lean:342 (C593) | auto-k* in 4 snap modes | 2788 bits saved vs legacy k=40 over 33 snap events (C597) |
+| transfer gate | warm ⟺ `start_gap ≤ n•nlBudget γ L G`, `nlBudget = γG² + Lγ²G²/2` | `nlBudget`, NegativeTransfer.lean:242 (C592/C601) | TGC/ATA modes | exact boundary nlBudget(1/5,2,2) = 24/25; 3 warm pairs, forgetA = 0 (C601) |
+| window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:232 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
+| step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
+| window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:317 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
+
+Two structural remarks. First, the optimal-step clause is
+self-contained: `φ(1/L) − φ(γ) = (G²/(2L))·(1 − Lγ)² ≥ 0` is a
+complete square (`nlDrop_le_optimal`, NegativeTransfer.lean:467),
+so γ* = 1/L is the global maximizer of the guaranteed drop on
+all of ℝ — not merely on the descent zone [0, 2/L]; the
+candidate γ* = 2/(3L) from the draft was REJECTED as an
+arithmetic slip (C606 receipt). Second, the hierarchy is exact,
+not heuristic: with `s = w`, `B = w·(m−1)` the per-block budget
+`(B−w)/s + 2` EQUALS m, so the same peak-m streaming budget that
+bounded the single level at `n ≤ w(m−1) = 4032` (w=m=64) now
+covers ANY n — the witness n=8128 lands [63, 63, 1] with peak 63
+in BOTH Lean (`.tmp/C611/trajHier.log`) and the bench twin
+(`HierEval.lean` #eval, C613) — a literal python==Lean match.
+
+**Corpus policy as measurement infrastructure (C607/C608/C610).**
+Formula-driven benches are only as good as the corpus they read,
+and the live corpus drifts (wave240 of HAGI_v2). Three fixes
+landed, in one resolution point of `bench_bridge.py`: (i) null-ce
+tolerance — wave `PARTIAL_LAW` records with `ce: null` (5 keys:
+law_alphabet, law_double, law_fib_sum, law_plus3, law_xor_ff)
+are skip-warned and filtered instead of aborting, reviving 18
+modes to exit 0 while keeping content aborts fail-closed (C607);
+(ii) snapshot pinning — the default corpus is a pinned 35-key
+snapshot (34 ns_* + law_alphabet) selected by grow-snap PASSING
+its certified bound; live 45-key and 41-key corpora ABORT on
+that same bound — a data property, not timing (C608); (iii)
+three-level fallback — default snapshot → structural lack (≥2
+const-cluster domains) → stderr WARNING + LIVE-FALLBACK, with
+`--snapshot-corpus` fail-closed (exit 3) and `--live-corpus`
+opt-in (C610). The result: bench tables are deterministic and
+drift-immune by default, and every deviation is an explicit,
+telemetered decision.
+
+### 4.7 The PALOMAR niche: an honest external check (C615/C616)
+
+<!-- source: .tmp/C616/receipt.md + .tmp/C616/palomar_recent.json
+     / palomar_q1.json / palomar_q2.json (API totals {"results":
+     1293, "projects": 983}, entries [] по всем запросам;
+     revision 1122); .tmp/C615/receipt.md + docs/PALOMAR-CARDS.md
+     (Cards 9–11, якоря rg HEAD 609726d1); HAGI_v2 recheck ce68e21
+     wave240 (C616 receipt) -->
+
+PALOMAR (palomar-registry.org) is a registry of formally
+verified results. A direct API check
+(`data.palomar-registry.org/api/v1/results`) was run against the
+formula-era statements — queries `hier_covers`, `covStartsStep`,
+`nlDrop`, `adaptive span`, `optimal step size`, `window coverage
+hierarchy` over the full registry (totals 1293 results / 983
+projects, revision 1122) returned ZERO entries for every query.
+The honest finding, stated as measured: **the niche is empty —
+none of the Cards 9–11 statements is absorbed by the registry**,
+and uploading them is a user-side step, not claimed here. This
+is a one-point-in-time check (C616); the registry grows and the
+claim is not that the niche stays empty, only that it was empty
+at the checked revision.
+
+The three cards submitted-ready (docs/PALOMAR-CARDS.md, C615;
+anchors rg-verified, statements Lean-verbatim):
+
+- **Card 9 — optimal step size.** `nlDrop γ L G = γG² − Lγ²G²/2`;
+`nlDrop_le_optimal` (NegativeTransfer.lean:467): `∀ γ,
+nlDrop γ L G ≤ nlDrop (1/L) L G` at `L > 0`, via the complete
+square `φ(1/L) − φ(γ) = (G²/(2L))(1 − Lγ)²`; `nl_drop_optimal`
+(:481): `nlDrop (1/L) L G = G²/(2L)`; `nl_drop_bound` (:443),
+`nlDrop` (:434), `nlStep` (:231). Bench numbers: γ_auto =
+0.477/0.520/0.667 exact Fractions vs the old constant 1/10
+(C609).
+- **Card 10 — hierarchical window coverage at any n.**
+`hier_covers_any_n` (CoverageReading.lean:285): for `0 < B`,
+`0 < s ≤ w`, every `i < n` lies in a window of `hierStarts n B w
+s` — no upper bound on n; `hier_peak_window_budget` (:317):
+peak windows per block ≤ m (peak ≠ total, stated honestly).
+Bench numbers: n=100000 → 25 blocks, 24×63+51, total 1563, peak
+63; Lean witness n=8128 → [63, 63, 1], peak 63 (C611/C613).
+- **Card 11 — adaptive-span iff and its exact budget.**
+`covStartsStep_covers` (CoverageReading.lean:183): coverage of
+`[0, n)` IFF `s ≤ w` — necessity by witness s=17 > w=9 leaving
+byte 9 in a hole; `covStartsStep_len_le` (:219): window count
+`(n−w)/s + 2 ≤ m`; boundary `s = w`: `n ≤ w(m−1) = 4032` (w=m=64),
+beyond which the single level is honestly INFEASIBLE — removed
+by the hierarchy of Card 10 (C602/C611).
 
 ## 5. Honest limitations (pins)
 
@@ -1015,15 +1171,26 @@ harness (see pin 18).
 | covStarts_covers | Hagi/Theory/CoverageReading.lean:50 | C598 |
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:126 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:183 | C602 |
-| covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:233 | C602 |
+| covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:232 | C602 |
 | hagi_master_v31 | Hagi/Theory/MasterTheoremV31.lean:59 | C600 |
 | snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
 | nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
 | smooth_obj_transfer_bound | Hagi/Theory/NegativeTransfer.lean:386 | C592 |
 | covStartsStep_len_le | Hagi/Theory/CoverageReading.lean:219 | C602 |
+| hagi_master_v32 | Hagi/Theory/MasterTheoremV32.lean:48 | C614 |
+| nlStep | Hagi/Theory/NegativeTransfer.lean:231 | C606 |
+| nlDrop | Hagi/Theory/NegativeTransfer.lean:434 | C606 |
+| nl_drop_bound | Hagi/Theory/NegativeTransfer.lean:443 | C606 |
+| nlDrop_le_optimal | Hagi/Theory/NegativeTransfer.lean:467 | C606 |
+| nl_drop_optimal | Hagi/Theory/NegativeTransfer.lean:481 | C606 |
+| hierBlockLen | Hagi/Theory/CoverageReading.lean:270 | C611 |
+| hierStarts | Hagi/Theory/CoverageReading.lean:275 | C611 |
+| hier_covers_any_n | Hagi/Theory/CoverageReading.lean:285 | C611 |
+| hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:317 | C611 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426
      (C559); C592/C593/C600/C602 rows verified at HEAD 3c94a958
-     (C604, rg on Hagi/**/*.lean); anchor lines via rg on
-     Hagi/**/*.lean -->
+     (C604, rg on Hagi/**/*.lean); C606/C611/C614 rows verified
+     at HEAD 5254f6e8 (C617, rg on Hagi/**/*.lean); anchor lines
+     via rg on Hagi/**/*.lean -->
