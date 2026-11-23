@@ -2259,3 +2259,44 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Axioms hagi_master_v33: [propext, Classical.choice, Quot.sound]
   (= 3). Freeze 8835 → 8836 (+hagi_master_v33); 17 гейтов PASS
   (.tmp/C622/logs/).
+
+## C623 window width cost tradeoff: адаптивный w — два certified-режима + honest-набросок суперлинейного
+
+- Модель: totalCost(w) = ⌈n/w⌉ · c(w) — число чтений floor-ится
+  (⌈n/w⌉, убывает по w), стоимость чтения одного окна c(w) растёт
+  по w; фундамент — total-оптимальность C618 (`hier_total_min`:
+  иерархия достигает ⌈n/w⌉ чтений).
+- `Hagi/Theory/WindowTradeoff.lean` (5 теорем, namespace
+  `Hagi.Theory.WindowTradeoff`, import в Hagi.lean):
+  `ceil_div_anti` (анти-монотонность ⌈n/w⌉: 0 < w ≤ w' ⇒
+  (n+w'−1)/w' ≤ (n+w−1)/w), `windowCost_fixed_mono` — режим (a)
+  c(w) = c: totalCost = c·⌈n/w⌉ монотонно невозрастает ⇒
+  ОПТИМАЛЬНО w = w_max (укрупнение окна бесплатно);
+  `windowCost_linear_bounds` + `windowCost_linear_near_const` —
+  режим (b) c(w) = c·w: n ≤ w·⌈n/w⌉ ≤ n + w − 1 ⇒ total-cost
+  «почти константа» ∈ [c·n, c·(n+w)), для любых w1 w2:
+  w1·⌈n/w1⌉ ≤ w2·⌈n/w2⌉ + (w1−1) — УДИВИТЕЛЬНЫЙ результат: при
+  линейной стоимости окна total-cost НЕ зависит от w (зазор
+  < c·w); выбор ширины свободен по стоимости — решают только
+  точность/глубина контекста; `windowCost_hier` — мост: totalCost
+  = c·(hierStarts n B w w).length при w ∣ B (делегат
+  `hier_total_min` C618).
+- Режим (c) — суперлинейное окно, honest-набросок (не Lean):
+  чистая c(w) = c·w^α (α > 1) внутреннего оптимума НЕ имеет
+  (totalCost ≈ c·n·w^(α−1) растёт по w ⇒ optimum w → min);
+  внутренний оптимум возникает при смешанной стоимости
+  c(w) = a + c·w^α (фиксированный overhead a + суперлинейный
+  контекст): totalCost ≈ a·n/w + c·n·w^(α−1), d/dw = 0 ⇒
+  w* = (a/(c·(α−1)))^(1/α) — Real-арифметика вне Nat-сферы файла
+  (KISS down-scope). ПРАВИЛО ВЫБОРА w: c(w)=c ⇒ w_max;
+  c(w)=c·w ⇒ свободно (зазор < c·w, по точности);
+  c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α).
+- Witness .tmp/C623/trajW.lean (rc=0, лог logs/trajW.log):
+  таблица n = 100000, w ∈ {16, 64, 256}: чтения {6250, 1563,
+  391} (режим a монотонно ↓); linear-cost {100000, 100032,
+  100096} — в коридоре [100000, 100000+w), все теоремы
+  применены к witness-параметрам (example-блоки).
+- Axioms всех 5: [propext, (Classical.choice,) Quot.sound] (≤ 3).
+  Freeze 8836 → 8841 (+ceil_div_anti, windowCost_fixed_mono,
+  windowCost_linear_bounds, windowCost_linear_near_const,
+  windowCost_hier); 17 гейтов PASS (.tmp/C623/logs/).
