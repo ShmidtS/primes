@@ -129,3 +129,19 @@
 - Фронтир: post-warm-up сертификат роста; Armijo-мост Adam
   backtracking; JVP-остаток range-ветки; per-task gate ↔ C601.
 - Полный разбор: `period-c638-c640-analysis.md`.
+
+<a id="c642-c644"></a>
+## C642–C644 — эра «сертификация роста» (freeze 8869→8887)
+
+- Коммиты: eb399530 (C642 `FunctionPreservingGrowth.lean` +117), ad36e5bb
+  (C643 `RollbackGate.lean` +58), 8de578e3 (C644 + `PROPOSAL-certified-warmup.md`).
+- Доказано: `warmup_safe` (identity-старт + certified-шаги ⇒ obj ≤ fOld),
+  `post_warmup_growth_safe` (любой вердикт rollback-гейта),
+  `backtrack_accept_drop` (реальный предикат wave254, не Armijo),
+  `CertifiedFiniteStep` ⇒ `warmup_h1_of_certified_steps`.
+- Негативы: `uncertified_step_can_worsen`, `uncertified_step_not_certified`,
+  `batch_drop_not_global`.
+- Honest: в коде warm-up — голый Adam (h1 условна); certified-шаг пишет в
+  trunk по batch-CE, не в блок; batch-drop не телескопирует в global.
+- Фронтир: `certified_step_block`, телескоп batch→global, Adam EMA-лемма,
+  paper v0.9, external push proposal. Разбор: `period-c642-c644-analysis.md`.
