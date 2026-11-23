@@ -2555,3 +2555,128 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Classical.choice, Quot.sound].
 - Freeze 8899 -> 8907 (+5 theorem, +3 def; 0 lost/changed); гейты PASS
   (.tmp/C648/logs/ci.log).
+
+## C651 bridges: repair forgetting (wave 257) and window order (wave 258)
+
+- Beat: C651 = волны 256–258 (HAGI_v2 READ-ONLY: e9a96fc, b3740e0;
+  HEAD b3740e0, dirty worktree — чтение только через git show).
+  Base HEAD 8fb0f1fa, tree clean. Freeze 8907.
+- Волна 256 (e9a96fc, lm.py:694): lr train_guarded 3e-3 → 1e-3 — Adam
+  двигает каждый вес ~lr за шаг независимо от градиента, длинный
+  прогон раздувает веса до сатурации softmax. Гиперпараметр, моста
+  нет.
+- Волна 257 (e9a96fc, unified.py:402-406, :408-455, вызов :256):
+  после шага на свежем домене, пока парный gate (CE старых доменов на
+  фиксированных окнах, `_old_domains_ce` :635-660) выше pre: snapshot
+  параметров → train_certified на СТАРЫХ байтах (весь trunk, lr 3e-4,
+  2 эпохи) → замер; нет улучшения (new ≥ post − 1e-4) → точный
+  rollback (`q.copy_(s0)` :450) и СТОП; иначе следующий раунд. Бюджет
+  6 раундов. Это НЕ replay-батчи A в B и НЕ rollback адаптера —
+  ограждённый retrain старых доменов с откатом за раунд. Режим block
+  (:462-495, только новый блок, trunk заморожен) измерен хуже (+2.62)
+  и выключен.
+- Числа +0.553 → +0.036 (commit msg, здесь НЕ перемеряно): средний CE
+  первых 10 доменов после чанка 60 минус после чанка 10 (60 реальных
+  чанков): без repair 2.73 → 3.28; r=3/lr=1e-3 +0.343; r=6/lr=3e-4
+  +0.036. Это сквозное забывание прогона, а не gate-значение раунда.
+  Не ноль: 20/89 repair-шагов упёрлись в rollback; цена ×10 времени.
+- Сопоставление с клозом (2) `master_theorem_v3`
+  (Hagi/Theory/MasterTheoremV3.lean:81): zero-forgetting ТОЧНО при
+  hfroz (состояние замороженной задачи не пишется). Repair пишет в
+  общий trunk — посылка НЕ выполнена, клоз кодом не инстанцируется;
+  `adapter_per_task_sound` (AdapterGrowth.lean:582, C544) и GPM
+  `gpm_multi_zero_forgetting` (Continual.lean:145) — тоже мимо: в коде
+  нет ни per-task адаптера, ни проекции градиента, просто Adam на
+  старых байтах.
+- Теорема-мост (Hagi/Theory/RepairForgetting.lean, ns
+  Hagi.Theory.RepairForgetting, +5 theorem, +2 def, +1 inductive):
+  `stepValue` / `stepValue_retrain` / `stepValue_rollback` (один раунд
+  как функция: принятый шаг = кандидат, откаченный = прежнее значение
+  ТОЧНО); RepairRun tol r v z — индуктивное отношение «старт →
+  финал» с тремя ветками кода (done / retrain при w < v − tol /
+  rollback при ¬ w < v − tol с точным сохранением значения и СТОП);
+  `acceptedCount`; `repair_drop_bound` — ЛИНЕЙНАЯ граница
+  z ≤ v − tol·(#принятых); `accepted_le_budget` (#принятых ≤ r);
+  `repair_sound` — конъюнкция: z ≤ v (gate никогда не растёт, при
+  0 ≤ tol), z ≤ v − tol·a, a ≤ r.
+- HONEST: геометрической границы (1 − ρ)^k НЕТ и из кода не следует —
+  раунд принимается при любом улучшении > 1e-4 (ρ не фиксирован),
+  цикл останавливается на первом не-улучшении, так что post может
+  остаться > pre (верхней границы забывания нет). Gate-значение —
+  выборочная оценка CE (≤ 8 доменов × 256 позиций), не популяционное
+  забывание. Bridge status: EXACT для потока управления (ветки, порог,
+  бюджет, rollback = тождество), гипотеза-уровень для самих чисел.
+- Волна 258 (b3740e0, hagi/archiver.py): byte LM = вероятностная
+  модель арифметического кодера: 32-бит range coder, 16-бит CDF,
+  probs_to_cdf :33-39 (freq = max(1, round(P·65200)), остаток до
+  65536 — в argmax ⇒ ни у одного байта нет нулевой вероятности);
+  encode_step :52-70, decode_step :96-118; контейнер
+  HAGI3 | u32 len | mode (0 stored / 1 coded), coded выбирается только
+  если строго короче stored (:188); колонковый батчинг: блоки по L = k
+  байт независимы (нулевой паддинг k перед блоком), колонка c всех
+  блоков группы кодируется одним forward по уже известным байтам —
+  декодер (:191-222) симметричен. Хеша чекпоинта в контейнере нет:
+  «only the SAME model decodes» — контракт docstring (:19), не код.
+- Измерено: commit — production checkpoint, 11/11 lossless, 5.16
+  бит/байт против zlib 2.40. Здесь: tests/test_archiver.py @b3740e0,
+  извлечён через git show в копию вне worktree — 6 passed (round-trip
+  на skewed/random/periodic/tiny, stored-fallback, < 7 b/B на
+  периодике, привязка к модели, порча отвергается).
+- Сопоставление с `trit_roundtrip` (TritCodec.lean:117) /
+  `tritPack_injective` (:132): это позиционная упаковка 5 тритов в ℕ
+  < 243, а не последовательный интервальный кодер на квантованных
+  softmax-вероятностях. В primes нет Lean-модели range coder.
+  Вердикт: теоремы НЕТ — честный мост требует (i) модели интервального
+  кодера с инвариантом непустого интервала (freq ≥ 1, сумма 65536,
+  lo ≤ hi после шага) и (ii) леммы симуляции encoder/decoder — это
+  отдельный цикл, не следствие TritCodec. Lossless сегодня = тесты +
+  измерение, не Lean. Compression.lean и MergeQuant.lean — lossy
+  rate-distortion, неприменимы.
+- Волна 258, фикс реверсных окон (b3740e0, unified.py:297-316): было
+  X = idx[p+k−1 .. p] newest-first при train-time gather_all
+  (lm.py:738-755) oldest-first raw[pos−len .. pos−1], y = raw[pos].
+  Commit-замер (production trunk, 3 чанка): CE 3.51/4.36/3.67 против
+  6.03/6.41/6.09 при реверсе.
+- НАХОДКА (здесь, код b3740e0): после фикса контекст стал
+  idx[p−n .. p) (:314), но цель осталась y = idx[pos + k] (:315) — для
+  p ≥ k между новейшим байтом контекста и целью зазор в k байт.
+  Замерено на копии hagi/ @b3740e0 (git show; small model dim 32,
+  hidden 64, периодика 64, 6 эпох, 512 позиций, k = 96;
+  .tmp/C651/logs/windows_probe.log): e9a96fc newest-first CE 4.455;
+  b3740e0 `_windows` CE 7.307; train-порядок с соседней целью
+  (y = idx[p]) CE 0.181; gate `_old_domains_ce` CE 0.181. Фикс сделал
+  вход гейта ХУЖЕ для всех потребителей `_windows` (adapter gate
+  `_fit_domain_adapter` :360/:367/:518, `_maybe_grow` :518, live
+  adapter :611); gate repair `_old_domains_ce` и archiver (своя
+  конструкция `_ctx`) не затронуты. HAGI_v2 read-only — не чинилось.
+  Реверс остался в certified holdout (lm.py:900-910) и
+  `_read_all_windows` (lm.py:1042, :1564) — commit это заявляет.
+- Сопоставление с CoverageReading: `covStarts` (:45) — о ТОМ, какие
+  позиции читаются (`covStarts_covers` :54), не о порядке внутри окна
+  и не о том, какой байт цель; класс бага wave 258 не моделировался.
+- Теоремы порядка (секция WindowOrder в Hagi/Theory/CoverageReading.lean,
+  ns Hagi.Theory.WindowOrder, +4 theorem, +2 def): slot k p j = p + j
+  (oldest-first слот → позиция), `slot_mono`, `slot_last` (query-слот
+  k−1 = новейший байт p+k−1), slotRev k p j = p + (k−1−j),
+  `slotRev_first` (в реверсе слот 0 = новейший байт), `slotRev_last`.
+  HONEST: это инвариант ПОРЯДКА только; инвариант смежности цели
+  (target = idx[p] для окна, кончающегося на p−1) — тот, который
+  b3740e0 нарушает, Lean-утверждением здесь не является.
+- Witness .tmp/C651/witness.lean (lake env lean 4.36.0, rc=0,
+  logs/witness.log): tol = 1/10000, бюджет 6, прогон 3.28 → 3.10 →
+  2.90 → 2.80 (3 принятых, затем done) ⇒ 2.80 ≤ 3.28 − tol·3; rollback-
+  прогон 3.28 (кандидат 3.2799) ⇒ значение сохранено, 0 принятых;
+  k = 96: slot_last = 95, slotRev_first = 95, slotRev_last = 0.
+  Аксиомы: [propext, Classical.choice, Quot.sound] (window-часть без
+  Classical.choice).
+- Research: .tmp/C651/research.md (anchors file:line@sha по всем трём
+  волнам). Попутно: docs/paper-draft.md Appendix A — rollback_gate_sound
+  :98 → :100 (rg на HEAD), IterState :117 сверен (совпадает).
+- Итог цикла (замерено на закоммиченном дереве): Freeze 8907 -> 8921
+  (+9 theorem, +4 def, +1 inductive; 0 lost/changed). Gates: CI PASS
+  17/17, LAKE_JOBS=8 lake build Hagi rc=0 (.tmp/C651/logs/ci.log,
+  build.log). Якоря file:line сверенены по `git show` e9a96fc /
+  b3740e0 (lm.py:694, unified.py:256/:402-406/:408-458/:635-660,
+  archiver.py:19/:33-39/:52-70/:96-118/:188, lm.py:738-755); числа
+  +0.553 / +0.036 / +0.343 / +2.62 / 20/89 — из commit message
+  e9a96fc (не перемеряны).

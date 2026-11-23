@@ -276,7 +276,7 @@ measured weighted validation gain above the full error budget
 (e_gen + e_quant + e_route + m_safety).
 
 > **Theorem (rollback_gate_sound).**
-> `Hagi/Theory/RollbackGate.lean:98`.
+> `Hagi/Theory/RollbackGate.lean:100`.
 > gate = false ⟹ the guarded step equals the incoming state
 > exactly (with per-component params/optimizer/RNG corollaries).
 
@@ -1357,6 +1357,16 @@ not check; the honest-gap column says what is outside the bridge.
 
 The count used in the abstract is the 8 table rows. "8" is a sum over
 the cards C638–C648, not a machine-checked number.
+Not in the table (C651, waves 256–258 of HAGI_v2 @e9a96fc/@b3740e0):
+the iterative repair of forgetting (`Unified._repair_forgetting`,
+unified.py:436-454 @e9a96fc) is bridged by `RepairRun` /
+`repair_sound` (Hagi/Theory/RepairForgetting.lean:61, :105) — exact
+for the control flow, with a LINEAR bound (gate falls by ≥ `tol` per
+accepted round), not a geometric one, and no clause (2)
+zero-forgetting instance (the code writes the shared trunk). The
+lossless archiver (hagi/archiver.py @b3740e0) has no Lean bridge:
+primes models no range coder (`trit_roundtrip` is a positional pack),
+losslessness is tests + measured 11/11 only.
 <!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c646-648-analysis.md
      («8 мостов — сумма по карточкам, не machine-checked»); all file:line rg-verified on HEAD 551c8025 -->
 
@@ -1546,7 +1556,7 @@ the cards C638–C648, not a machine-checked number.
 | snap_preserves_objective_bound | Hagi/Theory/GrowSnap.lean:81 | C521 |
 | grow_snap_cycle_sound | Hagi/Theory/GrowSnap.lean:145 | C521 |
 | hybrid_step_sound | Hagi/Theory/Continual.lean:456 | C510 |
-| rollback_gate_sound | Hagi/Theory/RollbackGate.lean:98 | C530 |
+| rollback_gate_sound | Hagi/Theory/RollbackGate.lean:100 | C530 |
 | adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:103 | C532 |
 | adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:192 | C532 |
 | adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:283 | C533 |
@@ -1633,5 +1643,17 @@ the cards C638–C648, not a machine-checked number.
 | rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:299 | C648 |
 | certified_rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:366 | C648 |
 
+| RepairRun | Hagi/Theory/RepairForgetting.lean:61 | C651 |
+| acceptedCount | Hagi/Theory/RepairForgetting.lean:69 | C651 |
+| repair_drop_bound | Hagi/Theory/RepairForgetting.lean:78 | C651 |
+| accepted_le_budget | Hagi/Theory/RepairForgetting.lean:93 | C651 |
+| repair_sound | Hagi/Theory/RepairForgetting.lean:105 | C651 |
+| slot | Hagi/Theory/CoverageReading.lean:709 | C651 |
+| slotRev | Hagi/Theory/CoverageReading.lean:714 | C651 |
+| slot_last | Hagi/Theory/CoverageReading.lean:722 | C651 |
+| slotRev_first | Hagi/Theory/CoverageReading.lean:734 | C651 |
+
 <!-- Appendix A: rows up to C614 re-verified by rg on Hagi/**/*.lean at 7ea1ee87 (+W2);
-     rows C638–C648 re-verified by rg on HEAD 551c8025 (freeze 8907). -->
+     rows C638–C648 re-verified by rg on HEAD 551c8025 (freeze 8907);
+     rows C651 + rollback_gate_sound :98 -> :100 re-verified by rg on HEAD (C651);
+     IterState :117 re-verified, unchanged. -->

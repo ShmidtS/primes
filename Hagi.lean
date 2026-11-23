@@ -481,6 +481,7 @@ import Hagi.Theory.RangeWrap
 import Hagi.Theory.AdaptiveContext
 import Hagi.Theory.CoverageReading
 import Hagi.Theory.KnowledgeConsolidation
+import Hagi.Theory.RepairForgetting
 set_option linter.style.header false
 
 /-!

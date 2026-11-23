@@ -696,3 +696,43 @@ theorem mixedCost_lower {n w : ℕ} {a c : ℝ} (ha : 0 < a)
     _ ≤ ((n + w - 1) / w : ℕ) * (a + c * (w : ℝ) ^ 2) := hstep1
 
 end Hagi.Theory.WindowTradeoff
+
+/-! ## WindowOrder — порядок слотов внутри одного окна (C651) -/
+
+namespace Hagi.Theory.WindowOrder
+
+/-- Окно длины `k`, прочитанное ОТ СТАРЕГО К НОВОМУ (oldest-first):
+слот `j` держит позицию `p + j`. Так строит контекст train-time
+gather_all (hagi/lm.py:738-755 @b3740e0: `raw[pos-len .. pos-1]`,
+цель `raw[pos]`): слот `k − 1` = самый новый байт = query, и
+recency-вес `−lam·(L−1−j)` равен нулю именно на нём. -/
+def slot (k p : ℕ) : Fin k → ℕ := fun j => p + j
+
+/-- Reversed-окно (wave 258 bug, unified.py:297-318 @b3740e0): тот же
+набор позиций, но слоты идут от НОВОГО к СТАРОМУ: слот `j` держит
+`p + (k − 1 − j)`. -/
+def slotRev (k p : ℕ) : Fin k → ℕ := fun j => p + (k - 1 - j)
+
+/-- Oldest-first окно монотонно по слотам: позиция слота `i` ≤ позиции
+слота `j` при `i ≤ j`. -/
+theorem slot_mono (k p : ℕ) (i j : Fin k) (hij : i ≤ j) : slot k p i ≤ slot k p j :=
+  Nat.add_le_add_left (Fin.le_def.mp hij) p
+
+/-- Query-слот oldest-first окна — самый новый байт `p + k − 1`. -/
+theorem slot_last {k p : ℕ} (hk : 0 < k) :
+    slot k p ⟨k - 1, by omega⟩ = p + k - 1 := by
+  simp only [slot]; omega
+
+/-- В развёрнутом окне query-слот занимает САМЫЙ СТАРЫЙ байт — тот,
+на котором train-time recency-вес `−lam·(L−1−j)` максимален. -/
+theorem slotRev_last {k p : ℕ} (hk : 0 < k) :
+    slotRev k p ⟨k - 1, by omega⟩ = p := by simp [slotRev]
+
+/-- В развёрнутом окне САМЫЙ СТАРЫЙ слот держит самый НОВЫЙ байт —
+инвариант oldest-first чтения (query = последний слот, `slot_last`)
+развёрнут ровно наоборот: query-байт `p + k − 1` стоит в слоте 0. -/
+theorem slotRev_first {k p : ℕ} (hk : 0 < k) :
+    slotRev k p ⟨0, by omega⟩ = p + k - 1 := by
+  simp only [slotRev]; omega
+
+end Hagi.Theory.WindowOrder
