@@ -88,16 +88,16 @@ README не заменяет их математическую специфик�
 | Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |
 | Переходы обучения | [`Hagi/Step`](Hagi/Step), [`Hagi/Pretraining`](Hagi/Pretraining), [`Hagi/Planning`](Hagi/Planning), [`Hagi/Contracts`](Hagi/Contracts) | Шаги, контроллеры, контракты переходов и конечные траектории. |
 | Рост и динамика | [`Hagi/Growth`](Hagi/Growth), [`Hagi/Dynamics`](Hagi/Dynamics), [`Hagi/State`](Hagi/State) | Состояния роста, устойчивость, бюджеты и динамические законы. |
-| Теория и канон-модули | [`Hagi/Theory`](Hagi/Theory) | 47 файлов: 10 канон-модулей v5 (Continual, Statistics, SelfEdit, Compression, MergeQuant, Softmax, SafeStep, MasterTheorem, FullPipeline, BlockLipschitz) плюс канон машины v3 `MasterTheoremV3` (C576), канон механики роста адаптеров `AdapterGrowth` (4 промаркированные секции, v6-V3), growth-семья (`AdapterBank`, `GrowSnap`, `GrowTrunkBlock`, `FunctionPreservingGrowth`), source-anchored мосты HAGI_v2 волн C530+ (`RollbackGate`, `WeightDecayLeak`, `OEComplete`, `ExactBypass`, `FactLedger`, `RangeWrap`, `AdaptiveContext`, `NegativeTransfer`, `AutoTransferGate`, `TritCodec`, `MiniHagiLoop`, `KnowledgeConsolidation` и др. — канон описаний в [ALGORITHMS §27a](ALGORITHMS.md#27a-мосты-hagi_v2-и-bench-режимы-канон-c588-v6-v4)) и bench-мосты (`MiniHagi`, `MiniHagi2`, `TrainerBenchmark`, `CertCEHoldout`, `CertSandwichBench`). |
+| Теория | [`Hagi/Theory`](Hagi/Theory) | 49 файлов: 10 канон-модулей, мосты HAGI_v2, growth-семья и bench-мосты; карта — [ALGORITHMS §27](ALGORITHMS.md#27-каноны-theory). |
 | Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
 | Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy) | Маршрутизация и смежные автономные модели. |
 | Примеры и сопровождение | [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Сравнительные формулировки, аудит и внешние математические связи. |
-| Карантин и сертификаты | [`Hagi/Cert`](Hagi/Cert), [`Hagi/Benchmarks`](Hagi/Benchmarks), [`Hagi/Research`](Hagi/Research) | Ядро сертификации (`Hagi/Cert`), а также модули вне корневого замыкания `Hagi.lean`: демонстрационные свидетели (`Benchmarks`), исследовательские модели Omni/Percolation/Schelling/Discovery (`Research`) и архив исторических результатов Legacy (`Hagi/Research/Legacy`, C456; сборка целью `Hagi.Research`). |
+| Карантин и сертификаты | [`Hagi/Cert`](Hagi/Cert), [`Hagi/Benchmarks`](Hagi/Benchmarks), [`Hagi/Research`](Hagi/Research) | Ядро сертификации (`Hagi/Cert`), а также модули вне корневого замыкания `Hagi.lean`: демонстрационные свидетели (`Benchmarks`), исследовательские модели Omni/Percolation/Schelling/Discovery (`Research`) и архив исторических результатов Legacy (`Hagi/Research/Legacy`; сборка целью `Hagi.Research`). |
 
 Каталог `scripts/` содержит вспомогательные средства сопровождения
 формализации. Математическим источником остаются файлы `Hagi/**/*.lean`.
 
-## Канон-карта (после рефакторингов v5 W1–W8 и v6 V1–V5)
+## Канон-карта
 
 Инвариант структуры — import-DAG слоёв `scripts/LayerLint.py`
 (лимита размера файла нет): модуль может импортировать только
@@ -116,31 +116,26 @@ allowlist LAYER_EXCEPTIONS.
 | 7 | `Hagi/Contracts`, `Hagi/Challenge`, `Hagi/Theory` |
 | 8 | `Hagi/Training` |
 
-Канон-файлы (одно понятие — один носитель; слияния v5 W1–W4):
+Канон-файлы (одно понятие — один носитель):
 
 | Семья | Канон-носитель | Что поглощено / статус |
 | --- | --- | --- |
-| Theory | `Hagi/Theory/{Continual, Statistics, SelfEdit, Compression, MergeQuant, Softmax, SafeStep, MasterTheorem, FullPipeline, BlockLipschitz}.lean` — 10 канонов | одно понятие описано один раз; ns слиты стабильно (C511+) |
-| Model CE-спуск | `Hagi/Model/BatchCEDescent.lean` | поглощены Common/Arithmetic/Direction/SafeStep (W1); HalfEta/LogitRange/ResidualNorm/Stochastic/Fixtures — отдельные файлы |
-| Model CE-шкалы | `Hagi/Model/CEGroupedScale.lean`, `CEJointScale.lean` | CEGroupedScaleBasic поглощён (W1); CEScaleChoice/CEScaleSelection слиты; CEJointScale остался отдельным каноном шкал |
-| Contracts growth | `Hagi/Contracts/BatchCEGrowth.lean` | BatchCEGrowthSelection поглощён (W2) |
-| Contracts EM | `Hagi/Contracts/EMTrajectory.lean` | поглощены MixtureEMTrajectory/FactorizedMixtureEM/FiniteEMTrajectory/ChangingEMTrajectory (W2); носитель `Probability/FiniteMultiEM` не тронут |
-| Contracts step | `Hagi/Contracts/BatchCEStepCore.lean`, `BatchCEBestResidual.lean` | план W2 предлагал слияние — не доведено (deriv-риск), оба живые каноны |
-| Theory мосты HAGI_v2 | [`ALGORITHMS.md` §27a](ALGORITHMS.md#27a-мосты-hagi_v2-и-bench-режимы-канон-c588-v6-v4) | канон описаний мостов волн C530+ (18 мостов + bench-паттерн, C588): одно описание одного моста — ровно один раз; Lean-носители — отдельные файлы `Hagi/Theory/*.lean` |
-| Theory v3-машина | `Hagi/Theory/MasterTheoremV3.lean` | лестница метатеорем машины v3 → v3.3 одним файлом: 5 гарантий (C576), 8 (C600), 10 (C614), 11 клозов (C622) |
-| Theory рост адаптеров | `Hagi/Theory/AdapterGrowth.lean` | механика роста адаптеров C532–C560; 4 секции промаркированы канон-заголовками (v6-V3), нарезка на файлы не делалась |
-| Probability EB-радиус | `Hagi/Probability/EmpiricalBernstein.lean` | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman (C539) |
-| Probability Freedman | `Hagi/Probability/Freedman.lean` | поглощены Step/TwoSided/Adaptive/FamilyConfidence (W3) |
+| Model CE-спуск | `Hagi/Model/BatchCEDescent.lean` | поглощены Common/Arithmetic/Direction/SafeStep; HalfEta/LogitRange/ResidualNorm/Stochastic/Fixtures — отдельные файлы |
+| Model CE-шкалы | `Hagi/Model/CEGroupedScale.lean`, `CEJointScale.lean` | CEGroupedScaleBasic, CEScaleChoice, CEScaleSelection слиты; CEJointScale — отдельный канон шкал |
+| Contracts growth | `Hagi/Contracts/BatchCEGrowth.lean` | BatchCEGrowthSelection поглощён |
+| Contracts EM | `Hagi/Contracts/EMTrajectory.lean` | поглощены MixtureEMTrajectory/FactorizedMixtureEM/FiniteEMTrajectory/ChangingEMTrajectory; носитель `Probability/FiniteMultiEM` не тронут |
+| Contracts step | `Hagi/Contracts/BatchCEStepCore.lean`, `BatchCEBestResidual.lean` | слияние отклонено (deriv-риск), оба живые каноны |
+| Probability EB-радиус | `Hagi/Probability/EmpiricalBernstein.lean` | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman |
+| Probability Freedman | `Hagi/Probability/Freedman.lean` | поглощены Step/TwoSided/Adaptive/FamilyConfidence |
 | Probability MWU | `Hagi/Probability/MirrorHedgeMWU.lean`, `MirrorHedgeGibbs.lean` | семья MWU в двух файлах; `Optimization/MirrorHedge` — независимый потребитель (слой 3) |
-| Probability logscore | `Hagi/Probability/FiniteLogScore.lean` | FiniteJointLogScore поглощён (W3) |
-| Unified loop | `Hagi/Unified/CertifiedLoop.lean` | CertifiedLoopKernel поглощён (W4) |
-| Numerics | `Hagi/Numerics/Numerics.lean` | SoftmaxFix/QuantSafeUpdate поглощены (W4) |
-| Pretraining dust | `Hagi/Pretraining/Dust.lean` | DustAlign/DustMeasure поглощены (W4) |
-| Scripts | `scripts/_shared.py` | общие helpers 5 линтеров + Freeze (W5); `bench_bridge.py` — монолит (см. границы) |
-| Docs | `STATUS.md` (сжат в W6), nodoc 0 | канон-заголовки всех модулей (W6) |
+| Probability logscore | `Hagi/Probability/FiniteLogScore.lean` | FiniteJointLogScore поглощён |
+| Unified loop | `Hagi/Unified/CertifiedLoop.lean` | CertifiedLoopKernel поглощён |
+| Numerics | `Hagi/Numerics/Numerics.lean` | SoftmaxFix/QuantSafeUpdate поглощены |
+| Pretraining dust | `Hagi/Pretraining/Dust.lean` | DustAlign/DustMeasure поглощены |
+| Scripts | `scripts/_shared.py` | общие helpers линтеров и Freeze |
 
 Словарь перегруженных имён (одно имя в разных пространствах имён;
-канон-определение — первое): `CertStep` → `Hagi.Cert` (`Hagi/Cert/Core.lean`; вариант `Hagi.Unified.HonestTransition`), `CertStepGen`/`CertStepGenBounded` → `Hagi.Cert.StepGen`, `EvalBinding` → `Hagi.Cert.EvalBinding`, `HonestTransition` → `Hagi.Unified.HonestTransition`, `MetricDirection` → `Hagi.Model.EnergyReasoning` (CRAM), `singularValues`/`Matrix` → `Hagi.External.Flywheel` (зеркало, словарь только здесь). Полное переименование — вне v5.
+канон-определение — первое): `CertStep` → `Hagi.Cert` (`Hagi/Cert/Core.lean`; вариант `Hagi.Unified.HonestTransition`), `CertStepGen`/`CertStepGenBounded` → `Hagi.Cert.StepGen`, `EvalBinding` → `Hagi.Cert.EvalBinding`, `HonestTransition` → `Hagi.Unified.HonestTransition`, `MetricDirection` → `Hagi.Model.EnergyReasoning` (CRAM), `singularValues`/`Matrix` → `Hagi.External.Flywheel` (зеркало, словарь только здесь). Полное переименование не делалось.
 
 ## Честные границы
 
@@ -148,33 +143,24 @@ allowlist LAYER_EXCEPTIONS.
 
 - `Hagi/External/` и `upstream/` — зеркала внешних источников;
   правка воспроизводится при sync (допуск — только docstring-
-  заголовки для nodoc 0, W6).
+  заголовки).
 - `Hagi/Research/` и `Hagi/Research/Legacy/` — карантин: код не
   трогаем, только docstring-уровень.
 - `scripts/bench_bridge.py` — монолит: 20+ режимов зафиксированы
-  bench-мостами в Lean; parity-gate дороже выгоды нарезки (W5).
+  bench-мостами в Lean; parity-gate дороже выгоды нарезки.
 - Certificate-хабы (`Hagi/Cert`, cert-семьи Model/Contracts) не
-  сливаем — deriv-риск (урок v4).
+  сливаем — deriv-риск.
 - Oversized-нарезка (`BatchCEBudgetGuard`, `Dynamics/GrowthBridge`,
   `System/GrowthState`, `Learning/SoftRouterMix`, `Ensemble/Hoeffding`)
   отложена: LayerLint size-лимита нет, нарезка — чистый code-risk
-  без гейтовой выгоды (W7, honest-noop).
-- BestResidual-цикл: `Hagi/Contracts/BatchCEBestResidual.lean` +
-  residual-ось `Hagi/Model/BatchCEDescent.lean` — слияние отклонено
-  (deriv-риск), оба файла — живые каноны.
+  без гейтовой выгоды.
 - V2Bridges-слияние микс-мостов Theory (`FactLedger`,
   `RangeWrap`, `AdaptiveContext`, `OEComplete`, `ExactBypass`,
-  `TritCodec`) отложено до стабилизации HAGI_v2 cadence и опроса
-  внешнего sync-агента (FQN vs module import) — вариант (c)
-  v6-плана; карантин мостов волн C567+. Пере-оценка C590
-  (2026-11-22): волны 219–225 легли все в один день, последний
-  коммит за 2.3ч до оценки — критерий «стабильность ≥12ч» не
-  выполнен, sync-агент активен; ОСТАЁТСЯ ОТЛОЖЕННЫМ. Критерий
-  исполнения: ≥12ч без коммитов в HAGI_v2 + неактивный
-  sync-агент + повторный опрос FQN-vs-module-import.
-- 22 bare `import Mathlib` — перманентные deriv-pins (C571,
-  терминальное состояние): список сужаемых импортов пуст,
-  сужение оставшихся запрещено deriv-риском (урок C482).
+  `TritCodec`) отложено: критерий — ≥12ч без коммитов в HAGI_v2,
+  неактивный sync-агент, повторный опрос FQN-vs-module-import.
+- 22 bare `import Mathlib` — перманентные deriv-pins
+  (терминальное состояние): список сужаемых импортов пуст,
+  сужение оставшихся запрещено deriv-риском.
 - AnytimeHoldoutStop-цикл: `Hagi/Theory/AnytimeHoldoutStop.lean` +
   потребители `Statistics`/`CertifyThenCommit`/`FullPipeline` —
   каркас anytime-остановки, не трогаем.
@@ -196,8 +182,8 @@ allowlist LAYER_EXCEPTIONS.
   требует публичного GitHub-репозитория с выделенным
   Challenge/Solution comparator-проектом (см. секцию Submission
   requirements в файле карточек). Все 14 карточек внешне
-  уникальны: recheck C630 против полного дампа реестра
-  (1298 results, расширенный набор тем) — 0 пересечений.
+  уникальны (сверка с полным дампом реестра, 1298 results —
+  0 пересечений).
 
 ## Сборка
 

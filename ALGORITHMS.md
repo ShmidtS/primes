@@ -538,16 +538,6 @@ Numeric controls (identity two-class example, measured as
 пункт P0c внешнего архитектурного аудита
 (`.omc/analysis/external-architecture-audit-2026-11-12.md`).
 
-Census (измерено, fresh,
-`.tmp/C216/validation/census-report.md`, TSV SHA
-`1f2f63279977e1aa634fcbbdaf36363313ad79e6b2eaf81d06fb7e6390dc5e06`,
-2933930 bytes / 14131 LF / 0 CR): OWNER 12281 → 12308 (+27, ровно
-namepool ADDED, включая 2 private mangled `c216_*`), IR 1264 → 1264
-(+0), CONSUMER 38 без изменений (новая публичная часть не приобрела
-consumers), модуль `Hagi.Model.CEDescent` OWNER 328 → 355, fingerprint
-4917100471297953757 → 11502919156674973306, retained rows
-byte-identical.
-
 Область заявления — только certified-descent: одношаговая верхняя
 оценка CE и размер certified step. Не утверждаются wall-clock
 ускорение, скорость или факт сходимости итерации, CE→0,
@@ -624,16 +614,6 @@ generic-инстанциация прогоняет `batchLogitSafeStep_ge_batch
 на произвольном положительном экземпляре. Две отрицательные пробы
 (neg1/neg2) подтверждают, что ослабленные/противоречивые версии
 не доказуемы.
-
-Census (измерено, fresh,
-`.tmp/C223/validation/census-report.md`, TSV SHA-256
-`492e9386457b1915e460de938ce353b5d52683b3d4327775901211486d255081`,
-2850509 bytes / 13664 LF / 0 CR): OWNER 11849 → 11878 (+29: 22
-source-level объявления + 7 компиляторных `.eq_1`/`.congr_simp`),
-IR 1247 без изменений, CONSUMER 38 без изменений, модуль
-`Hagi.Model.BatchCEDescent` OWNER 249 → 278, root source fingerprint
-14718226048161838198 → 14249654862734778222, retained rows
-byte-identical; +29 OWNER == NamePool ADDED по множествам.
 
 Область заявления — как в §3.8 (только certified-descent; не
 утверждаются wall-clock, сходимость итерации, CE→0, generalization,
@@ -791,7 +771,7 @@ payload с выбранными параметрами. Classical choose в exac
 Разрешимость конечного поиска и стоимостная (не конструктивная) природа
 проблемы 255^G — см. §16.
 
-Исполняемый селектор (C248, TD A5-R5-C241 закрыт):
+Исполняемый селектор:
 [`selectedGroupScalesExec`](Hagi/Model/CEGroupedScale.lean) — явный
 foldl-argmin по `List.finRange 255` с seed `knownSampleScale` (тот же
 seed, что у choose-канона). Мост — COST EQUALITY
@@ -1339,16 +1319,6 @@ chunks фактического маршрута, а не множество у�
 `theta_of_mem_adjacentHeads_tail`; private-помощник `head_boundary_of_mem_tail`
 в публичный API не входит.
 
-Census-измерение C215 (fresh,
-`.tmp/C215/validation/census-report.md`, TSV SHA
-bcd363f63a758a5d79843363a9a65183a0440134968bc60f9dc3408a20fdb711,
-2928937 bytes / 14104 LF / 0 CR): OWNER 12270 → 12281 (модуль
-AdaptiveChunking 51 → 62, +11: 8 публичных, 1 private и 2
-compiler-generated), IR 1261 → 1264 (+3 codegen aux), CONSUMER 38 без
-изменений, consumers byte-identical, fingerprint
-12672784764919925193 → 4917100471297953757; NamePool delta 11/0.
-Физический размер модуля 21722 → 27244 bytes (+128 строк против C214).
-
 Это структурные свойства детерминированного фактического маршрута, а не
 learned/differentiable/causal/online router и не утверждение о качестве
 routing. Forced first head здесь — структурное следствие `List.splitBy`, а не
@@ -1523,7 +1493,7 @@ A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.
 Используем этот закон только на конечном energy family. Адаптивную
 piecewise dynamics и универсальный analytic entropy limit сюда не подставляем.
 
-### Сертифицированный перенос спуска через residual-блоки (C300, E4 seed)
+### Сертифицированный перенос спуска через residual-блоки
 
 Первая композиция нелинейного backbone-сертификата
 (`Hagi/Model/BackboneTransfer.lean`): спуск головы (C291-форма,
@@ -1545,7 +1515,7 @@ piecewise dynamics и универсальный analytic entropy limit сюда
 RAM-звено, RMSNorm-константы) НЕ заявлены — это лестница
 продолжений (см. tech-debt E4-C300).
 
-### Композиция attention-блока в переносе спуска (C307, E4 attention rung)
+### Композиция attention-блока в переносе спуска
 
 Attention-звено лестницы E4
 (`Hagi/Model/AttentionTransfer.lean`): существующий сертификат
@@ -1568,7 +1538,7 @@ premise-форма; Lipschitz RMSNorm — посылка (звено 4); изо�
 RoPE на нормированном носителе — следующее звено; полный
 FastArch3 certificate НЕ заявлен.
 
-### Изометрия RoPE в переносе спуска (C308, E4 rope rung)
+### Изометрия RoPE в переносе спуска
 
 RoPE-звено лестницы E4
 (`Hagi/Model/RoPETransfer.lean`): вращение — изометрия
@@ -1589,7 +1559,7 @@ RoPE-звено лестницы E4
 softmax/RMSNorm — premise-форма; полный FastArch3 certificate НЕ
 заявлен.
 
-### Разрядка константы Липшица RMSNorm (C309, E4 rmsnorm rung)
+### Разрядка константы Липшица RMSNorm
 
 RMSNorm-звено лестницы E4
 (`Hagi/Model/RMSNormTransfer.lean`): предпосылка `μn` из C307
@@ -1606,13 +1576,13 @@ Wiring: `attention_block_transfer_rmsnorm` — блок C307 с
 (отрицание); веса g в носителе нет; softmax — premise-форма;
 полный FastArch3 certificate НЕ заявлен.
 
-### GDN block transfer + гибридный стек (C310, E4 GDN rung)
+### GDN block transfer + гибридный стек
 
 GDN-звено лестницы E4
 (`Hagi/Model/GDNTransfer.lean`): GDN-сторона гибридного
 attention+GDN backbone встроена в C300 transfer stack, посажена
 HYBRID-теорема. Вердикт по форме: блок GDN — mHC state mixing
-`x ↦ M *ᵥ x` с M дважды стохастической (C231), GDN-гейт —
+`x ↦ M *ᵥ x` с M дважды стохастической, GDN-гейт —
 premise-форма μg (зеркально пре-норм C307; GDN2 memory update и
 GDNBridge RAM-семантика честно НЕ заявлены как state-сжатия).
 ГЛАВНАЯ лемма `gdnMix_lipschitz`: IsDoublyStochastic M ⇒
@@ -1627,11 +1597,11 @@ C300. Wiring: `gdn_block_transfer` (утечка Lc·μg·‖dx‖),
 Честная граница: гейт premise-форма; Sinkhorn не заявлен; полный
 FastArch3 certificate не заявлен.
 
-### FastArch3 end-to-end transfer assembly (C311, E4 FINAL rung)
+### FastArch3 end-to-end transfer assembly
 
 Финальное звено лестницы E4
 (`Hagi/Model/FastArch3Transfer.lean`): end-to-end FastArch3-SHAPED
-certified-descent теорема — параметрический SoftmaxHead (C283/C291)
+certified-descent теорема — параметрический SoftmaxHead
 поверх гибридного стека (C307 attention + C308 RoPE + C309 RMSNorm
 + C310 GDN), собранная КАК КОМПОЗИЦИЯ уложенных носителей, с
 явным PREMISE LEDGER (P1–P9, `.tmp/C311/premise-ledger.md`).
@@ -1649,11 +1619,11 @@ C308-изометрия; C310-адаптер), `fa3Objective`, ГЛАВНАЯ т
 FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение о
 обученных весах или Python runtime; softmax-map не разряжен (P1);
 полный forward/backward certificate не заявлен.
-C313: P5 и P7 разряжены per-instance — `gdnGateTanh_lipschitz`
+P5 и P7 разряжены per-instance — `gdnGateTanh_lipschitz`
 (тanh-семейство гейта, μg = 1, MVT-маршрут `1/cosh² ≤ 1`) и
 `fastarch3_head_Lc` (ident-logit headCE, Lc = 2, транспорт
 sup-norm → евклидов носитель через `euclid_coord_abs_sub_le`);
-реестр v2 — `.tmp/C313/premise-ledger-v2.md`; другие семейства
+другие семейства
 гейтов/не-ident logit maps несут собственные per-instance
 константы (без отмывания).
 
@@ -1712,17 +1682,17 @@ trajectory_telescope n t steps :
 `git show c442e69^:.omc/tech-debt.md`); поглощение старой
 структуры — Track S3.
 
-Обобщение ядра (C278, addendum A10): `Hagi/Cert/StepGen.lean` вводит
+Обобщение ядра: `Hagi/Cert/StepGen.lean` вводит
 ОБЩЕЕ ядро `Hagi.Cert.CertStepGen` — произвольный индекс задач
 TaskId (жёсткий `Fin 5` цикла становится инстанциацией), остаток
-риска как ПОЛЕ с законом расщепления и свёрнутый δ-канал C245 на
+риска как ПОЛЕ с законом расщепления и свёрнутый δ-канал на
 явном носителе. Замороженное `CertStep` вкладывается
-(`Hagi.Cert.certStep_to_gen`). К C278–C290 все 13 строк носителей
-scoreboard адаптированы к общему ядру (переходной канал поднят в
-C290); интерфейсный слой — `Hagi/Unified/StepProvider.lean` (C280).
+(`Hagi.Cert.certStep_to_gen`). Все 13 строк носителей scoreboard
+адаптированы к общему ядру; интерфейсный слой —
+`Hagi/Unified/StepProvider.lean`.
 Итоги фазы — §24.
 
-## 12. BF16-гард для batch-шага и переход в Cert/Core (C230)
+## 12. BF16-гард для batch-шага и переход в Cert/Core
 
 Срез двухступенчатого gate (addendum A5): стадия 3a (pre-screen)
 теперь формально заземлена. Сертифицированный спуск — точное
@@ -1774,11 +1744,11 @@ gate активен, разность «риск-остаток − операц
 отложен (см. `.omc/tech-debt.md` R2; файл удалён в c442e69,
 история: `git show c442e69^:.omc/tech-debt.md`).
 
-## 13. Средне-скоростной optimizer-стек: EF21-Muon (C231)
+## 13. Средне-скоростной optimizer-стек: EF21-Muon
 
 Средняя петля обучения по addendum A5 — coherence curriculum
 с EF21-Muon телом и тернарной проекцией через EF21 Markov feedback.
-Формальный слой (C231):
+Формальный слой:
 
 ```
 IsContractive C α                    : ‖C u − u‖₂ ≤ (1−α)‖u‖₂ (контракт)
@@ -1810,7 +1780,7 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
 относительная контрактивность c<1 (пер-векторный скейлинг
 литературы EF21) и saturation-tail инстанс (в energy-форме —
 `ternary_split_le`, Hagi/Runtime/TernaryExact.lean). Связь Muon/Newton-Schulz: скалярный сертификат
-`one_sub_nsStep`/`nsIter_dist_sq` (C231) относится к сингулярным
+`one_sub_nsStep`/`nsIter_dist_sq` относится к сингулярным
 значениям в (0,√3); C296 (`Hagi/Step/NewtonSchulzMatrix.lean`) снимает
 матричную часть на диагональном подпространстве
 (`nsMatrixStep_diagonal_contraction`, sup-норма) + ортогональная
@@ -1824,7 +1794,7 @@ scaling `u ↦ c•u` (α=c ∈ [0,1]). Bridge 2 (C247,
 гипотезой (честная граница C297). mHC: Sinkhorn не требуется — M дважды
 стохастическая посылкой; оценка точная на перестановках.
 
-## 14. Anytime stitching + прямоугольный bottleneck + space decoupling (C232)
+## 14. Anytime stitching + прямоугольный bottleneck + space decoupling
 
 Три моста addendum A5 §C232:
 
@@ -1856,7 +1826,7 @@ rank(Δ) ≤ 2D из ранга головы — посылка, как и в к
 Slow-loop gate 3b теперь формально замкнут на stitching: конечный
 набор anytime-сертификатов с priors Σ ≤ 1 даёт один anytime-гейт.
 
-Эмпирическая дисперсия Фридмана (C248, A8 F5): при бюджетe
+Эмпирическая дисперсия Фридмана: при бюджетe
 предсказуемой дисперсии `V ≤ c²` эмпирический экспонент
 `exp(−r²/(4(V+B·r)))` (форма `raw_bank_freedman_maximal_confidence`,
 V — накопленная предсказуемая дисперсия, B — потолок диапазона)
@@ -1896,7 +1866,7 @@ stitching_countable_geometric_weights : ∑' (1/2)^(k+1) = 1 (якорь)
 Ville-переноса); новые concentration-утверждения не добавляются —
 конечный движок переиспользован дословно.
 
-### 14a. Gate pipeline (C264, addendum A10 P1): гейт как он реально используется
+### 14a. Gate pipeline (addendum A10 P1): гейт как он реально используется
 
 Формальная опора Python-гейта — весь конвейер
 «измерение → Hoeffding-граница → δ-расписание → этажи → решение»
@@ -1969,7 +1939,7 @@ audit_touch_final_breaks     : касание финального теста п
 старым задачам входит через Bad t в мастер-теореме); семантика метрик —
 на стороне измерения (как в CertifiedEstimator).
 
-## 15. R2: подключение острых range-констант к consumer'ам (C233)
+## 15. R2: подключение острых range-констант к consumer'ам
 
 Addendum A5 §R2: константы C216 (`ceStepLogitRange`, sup−inf) и C223
 (`batchLogitRangeSquare`) врываются в существующие consumer'ы
@@ -2012,7 +1982,7 @@ jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,
 alignment) старый residual положителен, острый — нуль. Отрицательные
 контроли: `.tmp/C233/neg1.lean`, `neg2.lean` (оба обязаны фейлиться).
 
-## 16. Исполняемый путь против spec-селекторов (C241/R5)
+## 16. Исполняемый путь против spec-селекторов
 
 Addendum A5 §R5: неконструктивные селекторы изолированы от исполняемого
 пути обучения. Критерий изоляции — Classical.choose/existence-witness
@@ -2066,7 +2036,7 @@ Spec-only селекторы (Classical.choose; только теоремы-по
 
 Обзорная таблица и инвентаризация: `.tmp/C241/survey.md`.
 
-## 17. Нейро-символьный точный слой: булева голова Венна (C242/Track B7)
+## 17. Нейро-символьный точный слой: булева голова Венна
 
 Мастер-план v3 addendum A4. Все 16 булевых функций двух переменных —
 маски `Fin 4 → Bool` на решётке Венна (4 атома-конъюнкции); слой
@@ -2095,7 +2065,7 @@ Spec-only селекторы (Classical.choose; только теоремы-по
 малых целых отложена (не композится с `Hagi/Runtime/BF16Delta.lean`
 без нового API).
 
-### C243: CE-обученный выбор маски под сертифицированным гвардом
+### CE-обученный выбор маски под сертифицированным гвардом
 
 [`Hagi/Contracts/LogicChoiceCert.lean`](Hagi/Contracts/LogicChoiceCert.lean)
 (Track B7 item 3 addendum A4) — первый гибридный нейро-символьный
@@ -2120,7 +2090,7 @@ CHOICE-CE (прогресс обучения к размеченной маск�
 мире. Пункт 3 addendum A4 закрыт; из B7 остался testbed роста решётки
 Хассе (пункт 4).
 
-### C251: спецификации процессора Венна (A8 F4)
+### Спецификации процессора Венна
 
 Addendum A8 F4 — точные спецификации упаковки, роли H₄, CE-пола и
 композиции Хассе, все на фактических определениях кодека/головы.
@@ -2212,7 +2182,7 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
   `dispatch_two_eq_priority`). Сквозная эквивалентность
   компилятора Python V3 — не заявлена (TD E5-C306).
 
-### Приоритетный dispatch (C314, E5 финальный рунг)
+### Приоритетный dispatch
 
 `dispatchPriority` — мульти-кандидатный обход списка по
 приоритету: значение первого применимого (`inRange`)
@@ -2227,7 +2197,7 @@ Addendum A8 F4 — точные спецификации упаковки, ро�
 динамический re-ranking не заявлен; сквозная эквивалентность
 Python V3 — не заявлена.
 
-## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс (C245)
+## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс
 
 Два аддитивных контракта addendum A7 (Freeze: только additions,
 старые statements байт-идентичны):
@@ -2257,7 +2227,7 @@ delta_telescope n t L h0 steps :
 (statement change под Freeze-дисциплиной).
 
 **`Hagi/Cert/Core.lean` — `StateWithOptimizer` (носитель с
-оптимизаторным состоянием, C248 A8 F5).** Эмпирическое обоснование
+оптимизаторным состоянием).** Эмпирическое обоснование
 (A8, Class-D): hold, восстанавливающий веса, но НЕ откатывающий
 буферы оптимизатора (m, v, t), держит stale momentum — сертифицированный
 bias разворачивается (+0.040 против честного −0.117). Carrier-level
@@ -2292,7 +2262,7 @@ TaskId = Unit); спецификации — rfl. Унификация носи�
 
 
 **`Hagi/Model/BatchCEDescent.lean` — стохастический minibatch
-R'-шаг (C249 A8 F3).** Один обратный-propensity шаг по сырому CE
+R'-шаг.** Один обратный-propensity шаг по сырому CE
 residual-градиенту с честной теоремой ожидаемого спуска:
 
 ```
@@ -2318,7 +2288,7 @@ featureNormSum-пропенсити как условие сходимости),
 дублируются — это одношаговый statement об ожидании.
 
 **`Hagi/Runtime/BF16Delta.lean` + `Hagi/Contracts/BatchRangeBF16Cert.lean`
-— ℚ→ℝ BF16 мост с производным eps (C249 A8 F3).** Относительная
+— ℚ→ℝ BF16 мост с производным eps.** Относительная
 ошибка nearest-кода над рациональным носителем:
 
 ```
@@ -2344,10 +2314,10 @@ FP32-мастер; формализовано как документирова�
 перепроверка).
 
 
-## 19. Cascade leak bound для projected adapters (C250/A8 F1)
+## 19. Cascade leak bound для projected adapters
 
 **`Hagi/Core/ErrorProp.lean` + `Hagi/Architecture/CascadeLeak.lean`
-— композиционая граница утечки через каскад (C250 A8 F1).** На
+— композиционая граница утечки через каскад.** На
 абстрактном линейно-каскадном носителе `propagate` (никакой новой
 модели сети):
 
@@ -2390,7 +2360,7 @@ readback `Uᵀ h`: `readback_noise_witness` даёт явный witness
 шума с ненулевым cortex-readback; защита readback требует гейтинга
 (w → 0) или посылки `Uᵀ *ᵥ Δ = 0` из `spaceDecoupling_zero_drift`.
 
-## 20. Isotropic-Frobenius cascade sensitivities (C252/A8 F7)
+## 20. Isotropic-Frobenius cascade sensitivities
 
 **`Hagi/Architecture/IsoFrobCascade.lean` +
 `Hagi/Budget/IsoFrobAlloc.lean` + `Hagi/Step/SafeQPStep.lean`
@@ -2450,7 +2420,7 @@ SafeQP билинейные адаптеры требуют квадратичн
 формализовано как точное разложение, witness недостаточности
 линейного теста и premise-form PSD-лемма.
 
-## 21. Product-of-quantized-factors error: ResidualVQ law (C253/A8 F2)
+## 21. Product-of-quantized-factors error: ResidualVQ law
 
 Эмпирика A8: одностадийное 3.2-бит q(A)·q(B) роняет нелинейные
 адаптеры до ~50%; двухстадийный ResidualVQ (6.4b body + BF16
@@ -2482,7 +2452,7 @@ Prescription: биты на фактор — по закону (e+f+ef)²; на
 произведении — только через резидуальную вторую стадию
 (аддитивная, а не мультипликативная композиция ошибки).
 
-## 22. Remaining bridges: heldout anytime, GDN lag-1, kernel adapter, MDL C_state (C254/A8 F6)
+## 22. Remaining bridges: heldout anytime, GDN lag-1, kernel adapter, MDL C_state
 
 Эмпирика A8 (только мотивация, не Lean-посылки): юнион-баунд
 61965^G по словарю вакуозен при умеренных G (anytime-граница
@@ -3032,7 +3002,7 @@ Finset упорядоченных пар, граф — симметрическ�
   (z,y)-обновления) остаётся ОТКРЫТОЙ; softmax-Липшиц по z —
   премиза, не теорема.
 
-### B4 (дополнение A11, C293): alternating (z,y)-раунд — дизайн R1 и первый честный раундовый шаг
+### B4 (дополнение A11): alternating (z,y)-раунд — дизайн R1 и первый честный раундовый шаг
 
 Joint latent-visible спуск организован как ЧЕРЕДУЮЩИЕСЯ РАУНДЫ с
 потолками на раунд (дизайн-решение записано в docstring; выбор
@@ -3072,7 +3042,7 @@ Joint latent-visible спуск организован как ЧЕРЕДУЮЩИ
   Числовой якорь Fin 2/Bool — ПРИКЛАДНОЙ (энергия 0 → −2 через
   саму теорему раунда).
 
-#### C294: сходимостный подъём N1–N3 (суммируемый слэк,
+#### сходимостный подъём N1–N3 (суммируемый слэк,
   телескопирование траекторий, конечная терминация)
 
 - N1 СУММИРУЕМОСТЬ СЛЭКА РАУНДА:
@@ -3244,7 +3214,7 @@ namespace `Hagi.Discovery`, НЕ импортируется) на CRAM heat-bath
   фокусная смесь вне области (C268 — нарушение INVARIANCE);
   spectral gap / cutoff не заявлены.
 
-### E2 (дополнение A10, C281): прямоугольная спектральная идентификация — Eckart-Young true-tail мост
+### E2 (дополнение A10): прямоугольная спектральная идентификация — Eckart-Young true-tail мост
 
 Замыкание отложенной идентификации C232 (хвост встроенной
 квадратной матрицы ↔ спектр прямоугольных singularValues).
@@ -3277,74 +3247,40 @@ premise-form (как в C232); Mathlib
 tail-формы не дублируют общую форму (общей прямоугольной формы до
 C281 не существовало).
 
-## 24. Итоги фазы C263–C291
+## 24. Итоги фазы C263–C291: ядро сертификации и parametric CE
 
-Фаза из 29 циклов (коммиты eacd3ff…182a756, аудит-приоритеты A10/A11
-и parametric-CE): (1) гейт-теорема конвейера с anytime-мостом (C264,
-`Hagi/Contracts/GatePipeline.lean`); (2) унификация ядра — общее ядро
-`Hagi.Cert.CertStepGen` (C278, адаптеры C279–C280, закрытие переходного
-канала в C290, все 13 строк носителей scoreboard; детали — §11);
-(3) единый concentration-API `Hagi/Probability/Concentration.lean` (C287:
-`concConfidence`/ `concRadius` + duality) с удалением более слабого
-Hoeffding-моста (C288); (4) parametric-CE семейство — ядро
-`Hagi/Model/SoftmaxHead.lean` (C283) с траншами C284–C286/C291 —
-пересказ в карточке STATUS `Hagi/Model/SoftmaxHead.lean`;
-(5) E-track закрыт полностью C265–C273 (§23). Канонический
-пересказ фазы с per-commit строками — phase-analysis цикла C291
-(артефакт цикла, вне git). Открытое: структурная view-конверсия
-носителей (Freeze-deferred), joint latent-descent (требует
-собственного ядра mean-of-margin), счётное сшивание.
+Пять результатов: гейт-теорема конвейера с anytime-мостом
+(`Hagi/Contracts/GatePipeline.lean`); общее ядро `Hagi.Cert.CertStepGen`
+с адаптерами и 13 строками носителей (§11); единый concentration-API
+`Hagi/Probability/Concentration.lean` (`concConfidence`/`concRadius` +
+duality) вместо слабого Hoeffding-моста; parametric-CE семейство
+`Hagi/Model/SoftmaxHead.lean` (детали — карточка STATUS); E-track
+(§23). Открытое: структурная view-конверсия носителей, joint
+latent-descent, счётное сшивание. Формулировки — карточки STATUS.md.
 
-## 25. Итоги фазы C313–C317
+## 25. Итоги фазы C313–C317: E4/E5/E6-хвосты и Python-зеркало
 
-Фаза из 5 циклов (коммиты b212bcc…323e57b; E4-хвост, E5-финал,
-P4-frontier, Python-зеркало, E6-хвост):
-(1) C313 — per-instance разрядка P5 (μg=1, tanh-гейт,
-`gdnGateTanh_lipschitz`) и P7 (Lc=2, `fastarch3_head_Lc`) из
-реестра E4 (v2 — `.tmp/C313/premise-ledger-v2.md`);
-(2) C314 — мульти-кандидатный приоритетный dispatch
-`dispatchPriority` (E5 финальный рунг; обе семантики —
-абстенция и приоритет — сосуществуют, см. карточку C306);
-(3) C315 — двухуровневая рамка генерализации для выученных
-энергий: конечный класс + concRadius (без новой
-концентрационной математики), карантин корректности от
-генерализационного долга (`Hagi/Model/EnergyReasoning/Pseudolikelihood.lean`);
-(4) C316 — Python CRAMExpert референс (numpy-зеркало,
-конечно-разностная верификация градиентов/тождеств против
-Lean FQN; артефакты `.tmp/C316/`, вне git по прецеденту C246);
-(5) C317 — E6 финальные рунги: span offsets (`ramSpanAddr`,
-mod-перенос инертен в окне) и разделение выбора/допуска
-(`RamAccess`); E6 аудит-список исчерпан, stream bridge
-остаётся отложенным. Канонический health-пересказ фазы —
-`.tmp/C318/` (артефакт цикла).
+Пять циклов: разрядка P5/P7 реестра E4 (`gdnGateTanh_lipschitz`,
+`fastarch3_head_Lc`); мульти-кандидатный приоритетный dispatch
+`dispatchPriority` (абстенция и приоритет сосуществуют); двухуровневая
+рамка генерализации выученных энергий (конечный класс + `concRadius`,
+карантин генерализационного долга — `Hagi/Model/EnergyReasoning/Pseudolikelihood.lean`);
+Python CRAMExpert — numpy-зеркало Lean FQN; E6 — span offsets
+(`ramSpanAddr`) и разделение выбора/допуска (`RamAccess`), stream
+bridge отложен. Формулировки — карточки STATUS.md.
 
-## 26. Итоги фазы C324–C331 (compute-сертификация)
+## 26. Итоги фазы C324–C331: compute-сертификация
 
-Хвост фазы (C330–C331) замыкает GOAL-ось «минимизация вычислений»
-end-to-end: (1) C330 — `Hagi/Contracts/ComputeToQuality.lean`:
-`steps_to_quality` (равномерный сертифицированный спуск ⇒ ε за
-⌈Δ₀/d⌉ шагов, premise-интерфейс к C291), `total_compute_to_
-quality` (тотал = шаги × FLOP/шаг, честная premise-минимальность),
-`lowrank_total_compute_le` (трейдофф компрессии: при d ≤ d' и
-2k ≤ n идеализированный low-rank тотал (Δ₀/d')·2kn бьёт плотный
-(Δ₀/d)·n²), `compute_budget_certificate` (resource-ledger:
-качество + ТОЧНЫЙ бюджетный телескоп) + `budget_telescope_gen` —
-четвёртый телескоп ядра C278 CertStepGen (бюджетная идентичность);
-(2) C331 — `Hagi/Contracts/KVCacheCert.lean`: route (b) — softmax-
-веса не разлагаются, пара (den, num) простых сумм разлагается
-точно: `kv_cache_exact` (cached = full recompute, List-носитель),
-`lse_combine_assoc`/`lse_cache_step` (бегущий logsumexp, ТОЧНО),
-безделительные ℕ-тождества 2W=n(n+1), 6R=n(n+1)(n+2),
-`kv_work_ratio` (точное отношение 3R=(n+2)W), `kv_total_work_lt`
-(строго при n ≥ 2), `kv_step_certified` (риск-канал тратит НОЛЬ —
-первый zero-error сертификат). Дуга теперь полная: per-step FLOP
-(C328) + steps-to-ε (C330) + inference cost (C331) + compression
-tradeoff (C330). Канонический анализ фазы — удалён в c442e69,
-история: `git show c442e69^:.omc/analysis/period-c330-c332-analysis.md`;
-карточки файлов —
-STATUS.md (C330/C331).
+Ось «минимизация вычислений» замкнута end-to-end: per-step FLOP →
+steps-to-ε → inference cost → compression tradeoff. Два носителя:
+`Hagi/Contracts/ComputeToQuality.lean` (`steps_to_quality`,
+`total_compute_to_quality`, `lowrank_total_compute_le`,
+`compute_budget_certificate`, телескоп `budget_telescope_gen`) и
+`Hagi/Contracts/KVCacheCert.lean` (`kv_cache_exact`, `lse_combine_assoc`,
+`lse_cache_step`, `kv_work_ratio`, `kv_total_work_lt`,
+`kv_step_certified`). Формулировки — карточки STATUS.md.
 
-## 27. Каноны Theory (v4 T1–T6, C518 карта)
+## 27. Каноны Theory
 
 Семейные теории живут в канон-модулях: одно понятие описано ровно один
 раз, исторические пространства имён сохранены внутри одного файла.
@@ -3362,6 +3298,12 @@ STATUS.md (C330/C331).
 | [`Hagi/Theory/MasterTheorem.lean`](Hagi/Theory/MasterTheorem.lean) | Сборная траекторная теорема certified-or-refuse + бюджет/whp-каналы (C392, v4 T6). |
 | [`Hagi/Theory/FullPipeline.lean`](Hagi/Theory/FullPipeline.lean) | Единый шестифазный certified-цикл на одной цели (C479). |
 | [`Hagi/Theory/BlockLipschitz.lean`](Hagi/Theory/BlockLipschitz.lean) | Выведенные lip/causal константы реальных атомов (RMSNorm, MLP, attention; C465). |
+
+Statement-канон результатов с карточками (оптимальный шаг γ* = 1/L,
+иерархические окна, reading floor, growth gate) —
+[docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md), карточки 9–14; Lean-носители —
+[`CoverageReading`](Hagi/Theory/CoverageReading.lean),
+[`GrowthGate`](Hagi/Theory/GrowthGate.lean).
 
 Отдельные мосты: [`MasterEF`](Hagi/Theory/MasterEF.lean) (endpoint-only
 EF-штраф), [`CEChain`](Hagi/Theory/CEChain.lean) (унифицированная
@@ -3383,10 +3325,9 @@ Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
 [`MiniHagi2`](Hagi/Theory/MiniHagi2.lean),
 [`TrainerBenchmark`](Hagi/Theory/TrainerBenchmark.lean).
 
-### 27a. Мосты HAGI_v2 и bench-режимы (канон C588, v6 V4)
+### 27a. Мосты HAGI_v2 и bench-режимы
 
-Source-anchored мосты волн HAGI_v2 (C521–C584; детали и
-witness-ссылки — карточки STATUS.md):
+Мосты HAGI_v2 (детали и witness-ссылки — карточки STATUS.md):
 
 | Мост | Волна/C | Суть (одно описание — ровно один раз) |
 | --- | --- | --- |
@@ -3409,11 +3350,11 @@ witness-ссылки — карточки STATUS.md):
 | [`AdaptiveContext`](Hagi/Theory/AdaptiveContext.lean) | C582 | self-CE elbow: наименьший W с CE ≤ best·(1+tol). |
 | [`KnowledgeConsolidation`](Hagi/Theory/KnowledgeConsolidation.lean) | C584 | remember/consolidate: append-only память, graceful degradation. |
 
-Канон bench-паттерна (все режимы `scripts/bench_bridge.py` —
-C547–C577, единый скелет: append-блок + choice + dispatch,
+Канон bench-паттерна (все режимы `scripts/bench_bridge.py`,
+единый скелет: append-блок + choice + dispatch,
 certified snap-GD с drop>0 COMMIT / HOLD, forgetA=0 bit-exact
 asserts, drift-детект на замороженной копии корпуса, EB-телеметрия,
-негативи wrong-const/HOLD, witness-lean, аксиомы только
+негативы wrong-const/HOLD, witness-lean, аксиомы только
 propext/Quot.sound/Classical.choice): режимы mini-hagi-loop,
 mini-hagi-loop2, universal-loop, universal-loop-nl,
 self-compress-loop, distill, mini-hagi-v3,
