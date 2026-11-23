@@ -414,10 +414,6 @@ end Hagi.Theory.StochasticSafeStep
 
 /-! ## CompressedSafeStep — safe step with in-step EF compression (ns Hagi.Theory.CompressedSafeStep preserved) -/
 
-/-
-Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
--/
-
 /-!
 # Compression-aware safe step with error budget
 

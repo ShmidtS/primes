@@ -465,9 +465,6 @@ theorem zero_stage_kills_gain (E_dev G_policy G_cap η_p η_s : ℝ)
 end Hagi.Growth
 
 
-/-
-Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
--/
 /-!
 # OptimizerStage — оптимизатор как отдельная стадия конверсии
 

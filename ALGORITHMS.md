@@ -3247,38 +3247,13 @@ premise-form (как в C232); Mathlib
 tail-формы не дублируют общую форму (общей прямоугольной формы до
 C281 не существовало).
 
-## 24. Итоги фазы C263–C291: ядро сертификации и parametric CE
+## История фаз
 
-Пять результатов: гейт-теорема конвейера с anytime-мостом
-(`Hagi/Contracts/GatePipeline.lean`); общее ядро `Hagi.Cert.CertStepGen`
-с адаптерами и 13 строками носителей (§11); единый concentration-API
-`Hagi/Probability/Concentration.lean` (`concConfidence`/`concRadius` +
-duality) вместо слабого Hoeffding-моста; parametric-CE семейство
-`Hagi/Model/SoftmaxHead.lean` (детали — карточка STATUS); E-track
-(§23). Открытое: структурная view-конверсия носителей, joint
-latent-descent, счётное сшивание. Формулировки — карточки STATUS.md.
-
-## 25. Итоги фазы C313–C317: E4/E5/E6-хвосты и Python-зеркало
-
-Пять циклов: разрядка P5/P7 реестра E4 (`gdnGateTanh_lipschitz`,
-`fastarch3_head_Lc`); мульти-кандидатный приоритетный dispatch
-`dispatchPriority` (абстенция и приоритет сосуществуют); двухуровневая
-рамка генерализации выученных энергий (конечный класс + `concRadius`,
-карантин генерализационного долга — `Hagi/Model/EnergyReasoning/Pseudolikelihood.lean`);
-Python CRAMExpert — numpy-зеркало Lean FQN; E6 — span offsets
-(`ramSpanAddr`) и разделение выбора/допуска (`RamAccess`), stream
-bridge отложен. Формулировки — карточки STATUS.md.
-
-## 26. Итоги фазы C324–C331: compute-сертификация
-
-Ось «минимизация вычислений» замкнута end-to-end: per-step FLOP →
-steps-to-ε → inference cost → compression tradeoff. Два носителя:
-`Hagi/Contracts/ComputeToQuality.lean` (`steps_to_quality`,
-`total_compute_to_quality`, `lowrank_total_compute_le`,
-`compute_budget_certificate`, телескоп `budget_telescope_gen`) и
-`Hagi/Contracts/KVCacheCert.lean` (`kv_cache_exact`, `lse_combine_assoc`,
-`lse_cache_step`, `kv_work_ratio`, `kv_total_work_lt`,
-`kv_step_certified`). Формулировки — карточки STATUS.md.
+Итоги фаз C263–C331 (ядро сертификации и parametric CE, хвосты
+E4–E6 и Python-зеркало, compute-сертификация) вынесены из этого
+файла: события — `git log`, разбор эр C591–C633 —
+[era-index](.omc/analysis/era-index.md); формулировки — карточки
+STATUS.md, каноны — §27.
 
 ## 27. Каноны Theory
 

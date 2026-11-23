@@ -4,10 +4,6 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Model.LMCompose
 import Hagi.Model.SoftmaxHead
 
-/-
-Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
--/
-
 /-!
 # BlockLipschitz — derived lip/causal for REAL atoms (RMSNorm, MLP,
 bounded-weight attention)

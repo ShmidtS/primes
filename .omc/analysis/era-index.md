@@ -1,0 +1,119 @@
+# Era index — C591–C633 (2026-11-22/23)
+
+Навигация по эрам: период | главные коммиты | доказанные
+результаты | фронтир на конец эры. Per-beat разбор удалённых
+`period-*-analysis.md` — `git log` / `git show <sha>`. Имена —
+по состоянию на HEAD (модули v7-слияний: `GrowthGate`,
+`WindowTradeoff`, лестница `MasterTheoremV31..V33` →
+`Hagi/Theory/{NegativeTransfer,CoverageReading,MasterTheoremV3}.lean`).
+Числа freeze — рост только на новые Lean-декларации; docs-витки
+— identity. Планы рефакторинга: `refactor-master-plan-v7.md`,
+`refactor-master-plan-v7-cycle2.md` (этот каталог).
+
+<a id="c591-c593"></a>
+## C591–C593 — фронтир: certified-оптимумы параметров (freeze 8775→8803)
+
+- Коммиты: 9d29c12e (integrity post-cleanup, bench dedup −57),
+  8ee33d9e, 0e8c65e0.
+- Доказано: `smooth_obj_transfer_bound` / `sufficient_negative_transfer`
+  (L-smooth transfer — sufficient, не iff); `snap_k_eq_ceil`,
+  `snap_k_min`, `snap_optimal_k`: k* = ⌈log₂(Ld/ε)⌉−1 —
+  доказанный минимум бит-бюджета снапа.
+- Фронтир: авто-k* в bench; certified-порог wave232-гейта
+  (вместо proxy ce ≤ 0.5); метатеория-2.
+
+<a id="c594-c598"></a>
+## C594–C598 — техдолг + применение теории (freeze 8803→8807)
+
+- Коммиты: a58554ec, 06b52134 (docs/PREMISES-STATUS.md), 8ff8787b
+  (bench sweep: 13 PASS / 22 honest-ABORT / 0 traceback), 272a5593
+  (auto snapK, −2788 бит / 33 snap), 1646cd02.
+- Доказано: `covStarts_covers` (полный список стартов покрывает
+  каждый байт); негатив `covStarts_trunc_uncovered_zero`
+  (tail-усечение окон теряет байт 0).
+- Фронтир: метатеория v3.1; certified transfer-гейт; span окон
+  (код-импликация негатива).
+
+<a id="c599-c602"></a>
+## C599–C602 — консолидация: v3.1 + гейты + adaptive span (freeze 8807→8813)
+
+- Коммиты: c26c0510, b6ca19e9 (`hagi_master_v31`, 8 клозов-
+  делегатов, без новых доказательств), 5a1caff3 (двухуровневый
+  transfer-гейт: quad-iff + smooth-sufficient), fa5ba08d.
+- Доказано: `covStartsStep_covers` — покрытие ⇔ 0 < s ≤ w (iff);
+  `covStartsStep_len_le`; `covStartsStep_adaptive_covers`.
+- Фронтир: иерархия окон за границей n ≤ 4032 (INFEASIBLE);
+  paper v0.6; h_emp-разрядки.
+
+<a id="c606-c611"></a>
+## C606–C611 — formula-driven: γ*, corpus-политика, иерархия (freeze 8814→8822)
+
+- Коммиты: 9ac23393, 0da35ab7, d71a06bb (snapshot default),
+  c60f69bf (auto_lr = 1/(2·tr H̄)), 76354a17 (трёхуровневый
+  fallback), dd0e1ea2.
+- Доказано: `nl_drop_bound`, `nl_drop_optimal`
+  — γ* = 1/L, max drop G²/(2L) (полный квадрат); `hier_covers_any_n`
+  — покрытие любого n без верхней границы; `hier_peak_window_budget`
+  (peak ≠ total).
+- Фронтир: применение иерархии в bench; метатеория v3.2; Card 9–11.
+
+<a id="c612-c615"></a>
+## C612–C615 — v3.2-канон (freeze 8822→8823)
+
+- Коммиты: d1bea6a2, 819ae31f (`--mode generate-hier`, сверка с
+  Lean #eval: n=8128 → [63,63,1]), 609726d1 (`hagi_master_v32`,
+  10 клозов: v3.1 + γ* + hier), dff31052 (Card 9–11).
+- Доказано: нового нет — только конъюнкция делегатов, аксиомы = 3.
+- Фронтир: paper v0.7; оптимальность B; PARTIAL-разрядки.
+
+<a id="c616-c619"></a>
+## C616–C619 — зрелость: paper v0.7, floor, разрядки-раунд 2 (freeze 8823→8835)
+
+- Коммиты: 5254f6e8, db2d3d2a (paper v0.7 §3.18/§4.6), 8ff07bd8,
+  feb74d6b.
+- Доказано: `hier_optimal` — total = ⌈n/w⌉, floor любого покрытия,
+  константность по B (гипотеза B* = √(nw) опровергнута: 1563 при
+  B ∈ {64,2048,4032,4096}); `lse_weighted_le`, `ensemble_ce_le_weighted`,
+  `merge_energy_bridgeW` (точное равенство CE(mixture); ныне
+  `Hagi/Research/Legacy/Nonvacuity.lean`).
+- Фронтир: Card 12; адаптивный w; v3.3 клоз 11.
+
+<a id="c620-c623"></a>
+## C620–C623 — теория чтения: Card 12, v3.3, w-trade-off (freeze 8835→8841)
+
+- Коммиты: 50319384, 0caca593 (Card 12), b127b605
+  (`hagi_master_v33`, 11 клозов), 30e9a6ec.
+- Доказано: `windowCost_linear_near_const` — при линейной цене
+  окна total ≈ не зависит от w (зазор < c·w); fixed ⇒ w_max.
+- Фронтир: Card 13; bench cost-regime; mixed w* (не-теорема).
+
+<a id="c624-c626"></a>
+## C624–C626 — чтение-эра закрыта внутренне (freeze 8841 identity)
+
+- Коммиты: d3e0da84, c8715f3b (Card 13), 7d7ff186 (`--cost-regime
+  {fixed,linear,mixed}`, python-двойник с fail-closed asserts).
+- Доказано: нового нет (bench-виток без Lean-дерева).
+- Фронтир: paper v0.8; mixed-w* в Lean; rank/adapter-ёмкость.
+
+<a id="c627-c630"></a>
+## C627–C630 — чтение-эра закрыта внешне (freeze 8841→8844)
+
+- Коммиты: ef57c959, dd4102cf (mixed w* = (a/(c·(α−1)))^(1/α)),
+  912f16c4 (paper v0.8), 83d80193 (Palomar recheck: 1298 results,
+  0 пересечений по 13 карточкам).
+- Доказано: `mixedCost_relax_min_eq`, `mixedCost_lower` (AM-GM);
+  последний не-теоремный элемент серии стал certified.
+- Фронтир: certified rank/adapter-ёмкость; memory-consolidation;
+  publication gate (user).
+
+<a id="c631-c633"></a>
+## C631–C633 — открытие capacity-эры: growth-gate (freeze 8844→8849)
+
+- Коммиты: 0286bfcd, 5cfdb759 (`GrowthGate.lean` +189), 1341c611
+  (гейт перед каждым добавлением блока/адаптера в bench).
+- Доказано: `growthGate`, `growth_gate_stay_char` (iff порога),
+  `nl_drop_step_eq`/`nl_drop_total`, `growth_gate_sound` —
+  certified-STAY: при n·G²/(2L) ≤ c_add рост не окупается.
+  Honest pins: квадратичный класс; grow = разрешение, не обещание.
+- Фронтир: негатив-контроль stay-ветки; калибровка c_add (λ);
+  Card 14 — закрыты fbcaa5e0 / 606e899f.

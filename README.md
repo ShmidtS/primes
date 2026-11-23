@@ -50,7 +50,7 @@ joint potential. Обе CE-идентификации остаются пред�
 направление допускается. Это не утверждение о глобальной гладкости,
 универсальном строгом спуске, сходимости, обобщении или времени работы.
 Условия и точная формула приведены в [разделе 3.4](ALGORITHMS.md#34-конечная-log-linear-ce-и-joint-potential),
-а главный результат — в [карточке DerivAlong](STATUS.md#hagiunifiedderivalonglean).
+а главный результат — в [карточке DerivAlong](STATUS.md#hagiunified).
 
 Формализация сама по себе не доказывает достижение AGI, оптимальность
 архитектуры, качество обучения или преимущество по времени и объёму
@@ -82,7 +82,7 @@ README не заменяет их математическую специфик�
 
 | Домен | Каталоги | Содержание на верхнем уровне |
 | --- | --- | --- |
-| База | [`Hagi/Prelude`](Hagi/Prelude), [`Hagi/Core`](Hagi/Core), [`Hagi/Numerics`](Hagi/Numerics), [`Hagi/Geometry`](Hagi/Geometry), [`Hagi/Spectral`](Hagi/Spectral), [`Hagi/StatMech`](Hagi/StatMech) | Общие определения, конечные носители, алгебраические и геометрические результаты. |
+| База | [`Hagi/Math`](Hagi/Math), [`Hagi/Core`](Hagi/Core), [`Hagi/Numerics`](Hagi/Numerics), [`Hagi/Geometry`](Hagi/Geometry), [`Hagi/Spectral`](Hagi/Spectral), [`Hagi/StatMech`](Hagi/StatMech) | Общие определения, конечные носители, алгебраические и геометрические результаты. |
 | Архитектура | [`Hagi/Architecture`](Hagi/Architecture), [`Hagi/Ensemble`](Hagi/Ensemble), [`Hagi/Sparsity`](Hagi/Sparsity) | Композиция компонентов, объединение экспертов и структурные ограничения. |
 | Энергия и ресурсы | [`Hagi/Energy`](Hagi/Energy), [`Hagi/Budget`](Hagi/Budget), [`Hagi/Runtime`](Hagi/Runtime) | Квантование, энергия, ресурсный учёт и точные представления исполнения. |
 | Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |
@@ -107,7 +107,7 @@ allowlist LAYER_EXCEPTIONS.
 | Слой | Каталоги |
 | --- | --- |
 | 0 | `Hagi/Math`, `Hagi/Foundations`, `Hagi/Audit` |
-| 1 | `Hagi/Prelude`, `Hagi/Information`, `Hagi/Core`, `Hagi/Spectral`, `Hagi/Sparsity`, `Hagi/Geometry`, `Hagi/Planning` |
+| 1 | `Hagi/Information`, `Hagi/Core`, `Hagi/Spectral`, `Hagi/Sparsity`, `Hagi/Geometry`, `Hagi/Planning` |
 | 2 | `Hagi/Cert`, `Hagi/Architecture`, `Hagi/Data`, `Hagi/Energy`, `Hagi/Probability`, `Hagi/External` |
 | 3 | `Hagi/Ensemble`, `Hagi/Step`, `Hagi/Optimization`, `Hagi/Runtime`, `Hagi/System`, `Hagi/State` |
 | 4 | `Hagi/Model`, `Hagi/Numerics`, `Hagi/Growth`, `Hagi/Generalization`, `Hagi/Budget` |
