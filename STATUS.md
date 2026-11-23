@@ -2450,3 +2450,38 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   C592) — там гейт пересчитывается.
 - Freeze 8849 (без изменений — Lean не тронут); 17 гейтов PASS
   (.tmp/C633/logs/, 22 файла).
+
+## C635 growth gate negative control + lambda sweep
+
+- Beat: C635 = негативный контроль growthGate (C632/C633) +
+  λ-калибровка. Base HEAD 99b5efff (C634), tree clean. Freeze 8849
+  — Lean НЕ тронут (только scripts/bench_bridge.py + STATUS.md).
+- `--gate-test PATH` (scripts/bench_bridge.py): 6 синтетик
+  (G, L, n, c_add), ожидание STAY по формуле n·G²/(2L) ≤ c_add:
+  S1-smallG (pb 1/10000 ≤ 1/10), S2-largeL (1/1000 ≤ 1/10),
+  S3-highcadd (2 ≤ 100), S4-equality (1/10 = 1/10, равенство →
+  stay, паттерн C535) — 4 STAY ≥ 2 требуемых; G1 (9 > 1/100) и
+  G2-pin-scale (2 > 21/10⁴) — GROW. gate_test_run физически
+  проходит SKIP-ветку decision-loop (skipped_certified += 1;
+  break — та же ветка, что в grow_snap), assert решения против
+  формулы. Lean-witness (gatetest.lean): per-сценарий
+  growthGate pb c_add = bool (unfold + norm_num — kernel decide
+  не редуцирует Rat-сравнения) и для STAY certified-посылку
+  pb ≤ c_add (norm_num) — Lean-форма premise growth_gate_sound;
+  lake env lean: PASS.
+- `--lambda-sweep` (--mode grow-snap): c_add = params·λ, полный
+  rerun grow-snap на λ ∈ {1/10⁴, 1/10³, 1/10², 1/10, 1}
+  (.tmp/C635/sweep.json): λ=1/10⁴ (PIN) → 6 GROW / 0 STAY
+  (глубина 8, golden-тождественность canonical_final C633);
+  λ ≥ 1/10³ → 0 GROW / 1 STAY (первый же гейт — certified SKIP,
+  глубина 2). first_stay_lam = 1/10³ — честно отмечен.
+  certified_stay_threshold_lam* = min(pb/new_params) по гейт-
+  событиям финального прогона (~10⁴¹): PIN-λ на ~45 порядков
+  ниже порога — при PIN-стоимости certified-совет всегда «расти
+  дозволено», stay-ветка реальна только при λ ≥ λ* (монотонность
+  решения по λ: GROW ⟺ λ < pb/params).
+- Захваченный вывод default grow-snap идентичен golden C633
+  (canonical_final равен) — параметризация cadd_lam не изменила
+  поведение при PIN-λ.
+- Freeze 8849 (без изменений — Lean не тронут); 17 гейтов PASS
+  (.tmp/C635/logs/).

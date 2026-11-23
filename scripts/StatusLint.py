@@ -39,6 +39,7 @@ RUNTIME_NAMES = {
     "adaptive_span", "_cov_step_starts",   # C602 bench_bridge.py
     "hier_span",                           # C613 bench_bridge.py
     "cost_regime_w",                       # C626 bench_bridge.py
+    "growth_gate_measure",                 # C633 bench_bridge.py
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,

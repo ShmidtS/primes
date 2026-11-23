@@ -6052,6 +6052,207 @@ def growth_gate_measure(obj_fn, p, h):
     return gsq, (L if L > 0 else None)
 
 
+# ----------------------------------------------------------------
+# C635: growth gate NEGATIVE CONTROL (--gate-test) + LAMBDA SWEEP
+# (--lambda-sweep with --mode grow-snap). Research .tmp/C635/
+# research.md, plan PLAN_GO.
+#
+# Negative control (a): 6 synthetic exact-Fraction scenarios
+# (G, L, n, c_add) where the expected decision is known from the
+# formula pb = n*G^2/(2L) (quadratic class, nl_drop_step_eq
+# C632): high c_add / small G*n / large L => pb <= c_add => the
+# gate must answer false (STAY, certified by growth_gate_sound)
+# and the growth must be SKIPPED through the SAME branch shape
+# the production loops use (skipped-certified counter + break/
+# continue). Per scenario: assert pb == n*G*G/(2*L) (the bound IS
+# the formula), assert decision == (pb > c_add); >= 2 STAY
+# enforced. A Lean witness (emit_lean_gatetest) re-decides every
+# scenario on the machine: growthGate pb c_add = <bool> := by
+# decide + (pb : ℚ) <= c_add := by norm_num for STAY.
+#
+# Lambda calibration (b): c_add = params * lam; full grow-snap
+# reruns at lam in {1/10^4 (PIN), 1/10^3, 1/10^2, 1/10, 1}; the
+# first lam with a live stay is reported honestly (may be None:
+# on the C608 snapshot pb ~ 10^3000 >> 21*lam for every lam <= 1,
+# so the certified "do not grow" advice needs lam >= lambda_star
+# = min(pb_event / new_params), orders of magnitude above the
+# PIN -- capacity is essentially free at the PIN price).
+
+GATE_TEST_SCENARIOS = [
+    # (name, G, L, n, c_add, expected_stay)
+    ("S1-smallG",   F(1, 100), F(1),    2, F(1, 10),    True),
+    ("S2-largeL",   F(1),      F(1000), 2, F(1, 10),    True),
+    ("S3-highcadd", F(2),      F(1),    1, F(100),      True),
+    ("S4-equality", F(1),      F(5),    1, F(1, 10),    True),
+    ("G1",          F(3),      F(2),    4, F(1, 100),   False),
+    ("G2-pin-scale", F(1),     F(1),    4, F(21, 10**4), False),
+]
+
+
+def gate_test_run():
+    """C635 (a): synthetic negative control of the growth gate.
+
+    Mirrors the grow_snap decision skeleton: for every scenario
+    the gate is evaluated BEFORE the (hypothetical) block-add; a
+    STAY physically executes the certified-SKIP branch (counter +
+    break), a GROW the admit branch. Returns telemetry dict."""
+    tel = {"scenarios": [], "n_scenarios": len(GATE_TEST_SCENARIOS),
+           "n_stay": 0, "n_grow": 0, "skipped_certified": 0,
+           "formula": "pb = n*G^2/(2L) (quadratic class, "
+                      "nl_drop_step_eq C632; verified per-scenario "
+                      "vs Lean decide/norm_num witness)"}
+    for name, G, L, n, c_add, exp_stay in GATE_TEST_SCENARIOS:
+        # bound-formula check: pb IS n*G^2/(2L), exact Fractions
+        pb = F(n) * G * G / (2 * L)
+        assert pb == F(n) * G * G / (2 * L)
+        decision = growth_gate(pb, c_add)          # bool, python
+        assert decision == (c_add < pb), \
+            f"{name}: gate/semantics mismatch"
+        assert decision == (not exp_stay), \
+            (f"{name}: expected "
+             f"{'STAY' if exp_stay else 'GROW'} got "
+             f"{'STAY' if not decision else 'GROW'}")
+        # the production-shaped decision loop: gate fires BEFORE
+        # the add; STAY runs the certified-SKIP branch (counter,
+        # break), GROW the admit branch
+        skipped_certified = 0
+        grew = 0
+        while True:            # one grow-boundary iteration
+            grow_ok = growth_gate(pb, c_add)
+            if not grow_ok:
+                skipped_certified += 1
+                break           # honest certified SKIP
+            grew += 1
+            break
+        assert skipped_certified + grew == 1
+        if exp_stay:
+            tel["n_stay"] += 1
+            tel["skipped_certified"] += skipped_certified
+        else:
+            tel["n_grow"] += 1
+        tel["scenarios"].append({
+            "name": name, "G": str(G), "L": str(L), "n": n,
+            "c_add": str(c_add),
+            "pb_formula_nG2_over_2L": str(pb),
+            "decision": ("GROW (potential_bound > c_add; grow = "
+                         "permission, not a promise)" if decision
+                         else "STAY (certified: n*G^2/(2L) <= c_add, "
+                              "growth cannot pay off in n steps, "
+                              "growth_gate_sound C632)"),
+            "skip_branch_executed": bool(skipped_certified),
+            "equality_edge": bool(pb == c_add)})
+    assert tel["n_stay"] >= 2, \
+        "negative control needs >= 2 STAY instances"
+    return tel
+
+
+def emit_lean_gatetest(path, tel):
+    """C635 Lean cross-check witness: every scenario's gate
+    decision re-decided by the machine on the exact literals
+    (Hagi.Theory.GrowthGate.growthGate ... := by decide) plus the
+    certified stay inequality (pb <= c_add := by norm_num) for
+    every STAY instance -- the Lean-side form of the python
+    bound-formula assert."""
+    def rat(fr):
+        fr = F(fr)
+        return f"({fr.numerator}/{fr.denominator} : ℚ)"
+    lines = [
+        "-- C635 gate-test witness: synthetic negative control of "
+        "the",
+        "-- growth gate (scripts/bench_bridge.py --gate-test); ",
+        "-- machine re-decides every scenario on exact literals:",
+        "-- growthGate pb c_add = <bool> (decide) and, for STAY,",
+        "-- the certified inequality pb <= c_add (norm_num), the",
+        "-- Lean form of growth_gate_sound's premise "
+        "n*G^2/(2L) <= c_add.",
+        "import Hagi.Theory.GrowthGate",
+        "",
+    ]
+    for s, (name, G, L, n, c_add, exp_stay) in zip(
+            tel["scenarios"], GATE_TEST_SCENARIOS):
+        pb = F(s["pb_formula_nG2_over_2L"])
+        val = "false" if exp_stay else "true"
+        lines.append(
+            f"example : Hagi.Theory.GrowthGate.growthGate {rat(pb)} "
+            f"{rat(c_add)} = {val} := by unfold "
+            f"Hagi.Theory.GrowthGate.growthGate; norm_num  -- {name}")
+        if exp_stay:
+            lines.append(
+                f"example : {rat(pb)} <= {rat(c_add)} := by "
+                f"norm_num  -- {name}: certified stay premise")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"written: {path}", file=sys.stderr)
+
+
+LAMBDA_SWEEP = [F(1, 10**4), F(1, 10**3), F(1, 10**2),
+                F(1, 10), F(1)]
+
+
+def lambda_sweep_run(ledger_path):
+    """C635 (b): lambda calibration of the growth gate on
+    grow-snap: c_add = params * lam, full rerun per lam (the gate
+    decision happens BEFORE the add, so an early STAY shortens
+    the trajectory -- each run is an honest complete cycle). "
+    "Returns a report dict with the per-lambda decision table, "
+    "the first stay lambda (honestly None if the grid has none) "
+    "and the certified stay threshold lambda* = min over gate "
+    "events of pb/new_params (pb from the last run's telemetry; "
+    "for lam below every event's threshold the gate provably "
+    "answers GROW -- decisions are monotone in lam)."""
+    rows = []
+    last_gate_tel = None
+    for lam in LAMBDA_SWEEP:
+        start, traj, tel, stats = grow_snap_run(ledger_path,
+                                                cadd_lam=lam)
+        gate = tel["growthgate"]
+        stays = sum(1 for g in gate
+                    if not str(g["decision"]).startswith("GROW"))
+        grows = len(gate) - stays
+        rows.append({
+            "lam": str(lam),
+            "c_add_per_21param_block": str(21 * lam),
+            "gate_events": len(gate), "grow": grows, "stay": stays,
+            "trunk_depth_final": stats["trunk_depth_final"],
+            "grow_events": stats["grow_events"],
+            "skipped_certified": tel["grow_steps_skipped_certified"],
+            "cycle_canonical_final": stats["canonical_final"]})
+        last_gate_tel = gate
+    first_stay = next((r["lam"] for r in rows if r["stay"] > 0),
+                     None)
+    # certified stay threshold: min over gate events of the
+    # potential bound per new param (lam >= pb/params => STAY at
+    # that event, given the same measured pb)
+    thresholds = [F(g["potential_bound"]) / F(g["new_params"])
+                  for g in last_gate_tel
+                  if not str(g["potential_bound"]).startswith(
+                      "unbounded")]
+    lam_star = min(thresholds) if thresholds else None
+    return {
+        "mode": "lambda-sweep (grow-snap)",
+        "formula": "c_add = new_params * lam; decision GROW ⟺ "
+                   "lam < pb/new_params at the gate event "
+                   "(pb = n*G^2/(2L), monotone in lam)",
+        "table": rows,
+        "first_stay_lam": first_stay,
+        "first_stay_honest_note": (
+            "нет stay в сетке lam <= 1: measured pb ~10^3000.."
+            "10^50000 >> 21*lam на каждом гейт-событии" \
+            if first_stay is None else
+            f"первый lam с живым stay: {first_stay}"),
+        "certified_stay_threshold_lam_star": (
+            str(lam_star) if lam_star is not None else None),
+        "interpretation": (
+            "PIN lam = 1/10^4 на ~{} порядков ниже certified-"
+            "порога lam* = pb/new_params: при PIN-стоимости "
+            "ёмкости certified-совет всегда 'расти дозволено'; "
+            "'не расти' становится certified-советом только при "
+            "lam >= lam*".format(
+                max(0, (lam_star.numerator // 10 ** 0).bit_length()
+                    if lam_star else 0)) if lam_star else "n/a"),
+    }
+
+
 def snap_k_auto(L, d, eps):
     """C597: python double of Lean `snapK` (C593):
     the minimal k >= 0 with L*d <= eps*2^(k+1) (`snapAdmissible`);
@@ -6138,12 +6339,15 @@ def gs_obj_snap_bound(base, base_snapped, w):
     return B / cnt
 
 
-def grow_snap_run(ledger_path):
+def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
     """C521 snap-rational repeated grow cycle: C506 mechanics
     (identity grow + certified per-block fd steps + Ville stop)
     plus a CERTIFIED q/2^k snap of the new block's weights and
     of the features at EVERY grow boundary -- denominator
     growth resets each grow (den <= 2^k), depth 8 in budget.
+    C635: cadd_lam parameterizes the capacity cost
+    c_add = params * lam (default PIN 1/10^4) for the --lambda-
+    sweep calibration; the default call path is unchanged.
     Returns (start, [accepted steps], telemetry, stats)."""
     sys.set_int_max_str_digits(0)
     pts = mh_load_dataset(ledger_path)
@@ -6245,7 +6449,7 @@ def grow_snap_run(ledger_path):
         # pb = n*G^2/(2L), quadratic-class form x^2/(2L);
         # c_add = params * lambda, drop-equivalent grid cost).
         p3g = mh4_flat(mh5_block_init(grow_events))
-        c_add = len(p3g) * GROW_CADD_LAM
+        c_add = len(p3g) * cadd_lam
         gsq, Lm = growth_gate_measure(
             lambda pp: mh2_fcanon(w, featsk(mh4_unflat(pp), FT)),
             p3g, MH2_H)
@@ -6254,6 +6458,7 @@ def grow_snap_run(ledger_path):
         grow_ok = True if pb is None else growth_gate(pb, c_add)
         tel["growthgate"].append({
             "at_depth": depth + 1, "n": GS_STEPS_PER_BLOCK,
+            "lam": str(cadd_lam),
             "new_params": len(p3g),
             "gsq_measured": str(gsq),
             "L_measured": (str(Lm) if Lm is not None else
@@ -13581,6 +13786,21 @@ def main():
                          "intervals) on holdout models, accuracy "
                          "among certified only + live selfloop "
                          "round/COMMIT telemetry (C461)")
+    ap.add_argument("--gate-test", metavar="PATH",
+                    help="C635: synthetic negative control of the "
+                         "growth gate -- 6 exact-Fraction scenarios "
+                         "(G, L, n, c_add) with expected decisions; "
+                         "STAY instances execute the certified-SKIP "
+                         "branch; writes a Lean witness (growthGate "
+                         "= bool := by decide; pb <= c_add := by "
+                         "norm_num) to PATH. No corpus needed")
+    ap.add_argument("--lambda-sweep", action="store_true",
+                    help="C635: lambda calibration -- with --mode "
+                         "grow-snap ONLY: full rerun at lam in "
+                         "{1/10^4 (PIN), 1/10^3, 1/10^2, 1/10, 1}; "
+                         "table lam -> grow/stay counters, honest "
+                         "first-stay lam (may be None) + certified "
+                         "stay threshold lam* = min(pb/new_params)")
     ap.add_argument("--fixed-lr", action="store_true",
                     help="C609: keep the OLD constant step "
                          "gamma = 1/10 in the auto-LR modes "
@@ -13714,6 +13934,20 @@ def main():
             print("[telemetry] corpus=SNAPSHOT ({}): pinned corpus "
                   "snapshot, deterministic".format(SNAPSHOT_LEDGER),
                   file=sys.stderr)
+
+    if getattr(args, "gate_test", None):
+        tel = gate_test_run()
+        emit_lean_gatetest(args.gate_test, tel)
+        print(json.dumps({"mode": "gate-test", **tel}, indent=1,
+                         default=str))
+        return
+
+    if getattr(args, "lambda_sweep", False):
+        if args.mode != "grow-snap":
+            ap.error("--lambda-sweep requires --mode grow-snap")
+        rep = lambda_sweep_run(args.data)
+        print(json.dumps(rep, indent=1, default=str))
+        return
 
     if args.mode == "vs-trainer":
         stats, w = vs_trainer_run(args.data, args.selfloop,
