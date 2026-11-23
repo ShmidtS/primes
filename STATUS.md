@@ -2209,3 +2209,31 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Freeze 8822 → 8823 (+hagi_master_v32); 17 гейтов PASS
   (.tmp/C614/logs/); axioms [propext, Classical.choice,
   Quot.sound] (= 3).
+
+## C618 Hagi/Theory/CoverageReading.lean (hierarchical total window optimality)
+
+- Секция C618 (roadmap C616 top-2): оптимальность выбора B в
+  иерархии C611 по TOTAL окон при ограничении peak ≤ m.
+  `covStartsStep_len_tiling` (0 < ℓ): точный per-block счёт при
+  s = w — ровно ⌈ℓ/w⌉ стартов. `hier_blocks_sum_tiling`
+  (B = w·c, m ≤ k·B): телескоп-сумма поблочных ⌈·/w⌉ равна
+  ⌈m/w⌉ (полные блоки по B/w, хвост добивает). `hier_total_formula`
+  (0 < B, 0 < s ≤ w ≤ B): общий upper bound total ≤
+  ⌈n/B⌉·((B−w)/s+2). `hier_total_min` (0 < w, w ∣ B): ТОЧНЫЙ total
+  при s = w равен ⌈n/w⌉ и НЕ зависит от B. `hier_total_floor`:
+  информационный минимум — любое покрытие [0, n) окнами длины w
+  требует ≥ ⌈n/w⌉ окон (инъекция i ↦ (t, i−t), Ico длины w).
+  `hier_optimal`: ИТОГ — при s = w и w ∣ B иерархия даёт total
+  ровно ⌈n/w⌉ = floor; внутреннего оптимума B* нет (total
+  константен по B), выбор C611 (s = w, B = w·(m−1) = 4032 при
+  w = m = 64) certified как total-оптимальный.
+- Witness .tmp/C618/trajOptB.lean (rc=0): n = 100000, w = m = 64:
+  total = 1563 = ⌈n/w⌉ для B ∈ {64, 2048, 4032, 4096} (константен,
+  включая точный peak-максимум B = w·m = 4096); s = 32 < w:
+  B = 1088 даёт 3033 > 1563 (строго хуже floor); n = 8128:
+  total 127 = ⌈8128/64⌉. Все 6 теорем применены к witness-параметрам
+  (example-блоки).
+- Freeze 8823 → 8823+6 (covStartsStep_len_tiling,
+  hier_blocks_sum_tiling, hier_total_formula, hier_total_min,
+  hier_total_floor, hier_optimal); 17 гейтов PASS
+  (.tmp/C618/logs/).

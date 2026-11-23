@@ -336,3 +336,216 @@ theorem hier_peak_window_budget (n B w s m : ℕ) (hs : 0 < s) (hsw : s ≤ w)
     omega
 
 end Hagi.Theory.CoverageReading
+
+namespace Hagi.Theory.CoverageReading
+
+/-!
+## C618: оптимальность B — TOTAL окон иерархии
+
+C611 честно разделил peak (≤ m окон на блок, streaming) и total
+(⌈n/B⌉·(≤ m), растёт с n). Здесь закрывается вопрос теории из
+roadmap: минимизирует ли выбор s = w, B = w·(m−1) суммарное число
+окон при ограничении peak ≤ m. Ответ: при s = w и w ∣ B total
+равен ⌈n/w⌉ — ИНФОРМАЦИОННОМУ МИНИМУМУ (k окон длины w покрывают
+не более k·w байтов) — и НЕ зависит от B: внутреннего оптимума
+B* нет, выбор C611 certified (любое B, кратное w, в допустимой
+области B ≤ w + s·(m−1) даёт тот же минимальный total; witness
+.tmp/C618/trajOptB.lean).
+-/
+
+/-- Точное число стартов при шаге = длине окна (tiling): при
+0 < ℓ список `covStartsStep` ℓ w w имеет ровно ⌈ℓ/w⌉ = (ℓ+w−1)/w
+элементов — решётка шага w без суффикс-дубля при w ∣ (ℓ−w),
+с суффиксом иначе; при ℓ ≤ w одно окно. -/
+theorem covStartsStep_len_tiling (l w : ℕ) (hw : 0 < w) (hl : 0 < l) :
+    (covStartsStep l w w).length = (l + w - 1) / w := by
+  by_cases hle : l ≤ w
+  · rw [covStartsStep, if_pos hle]
+    simp only [List.length_singleton]
+    exact (Nat.div_eq_of_lt_le (k := 1) (by omega) (by omega)).symm
+  · have hw' : w < l := by omega
+    rw [covStartsStep, if_neg (by omega : ¬ l ≤ w)]
+    by_cases hd : w ∣ l - w
+    · rw [if_pos hd]
+      simp only [List.length_append, List.length_map, List.length_range, List.length_nil,
+        Nat.add_zero]
+      have hq : w * ((l - w) / w) = l - w := Nat.mul_div_cancel' hd
+      have e1 : ((l - w) / w + 1) * w = w * ((l - w) / w) + 1 * w := by ring
+      have e2 : ((l - w) / w + 2) * w = w * ((l - w) / w) + 2 * w := by ring
+      have hval : (l + w - 1) / w = (l - w) / w + 1 :=
+        Nat.div_eq_of_lt_le (k := (l - w) / w + 1)
+          (by rw [e1, hq]; omega) (by rw [e2, hq]; omega)
+      omega
+    · rw [if_neg hd]
+      simp only [List.length_append, List.length_map, List.length_range, List.length_singleton]
+      have hdvd : (l - w) % w ≠ 0 := fun h0 => hd (Nat.dvd_iff_mod_eq_zero.mpr h0)
+      have hdm : w * ((l - w) / w) + (l - w) % w = l - w := Nat.div_add_mod _ _
+      have hmod : (l - w) % w < w := Nat.mod_lt _ hw
+      have hq2 : w * ((l - w) / w) = l - w - (l - w) % w := by omega
+      have e1 : ((l - w) / w + 2) * w = w * ((l - w) / w) + 2 * w := by ring
+      have e2 : ((l - w) / w + 3) * w = w * ((l - w) / w) + 3 * w := by ring
+      have hval : (l + w - 1) / w = (l - w) / w + 2 :=
+        Nat.div_eq_of_lt_le (k := (l - w) / w + 2)
+          (by rw [e1, hq2]; omega) (by rw [e2, hq2]; omega)
+      omega
+
+/-- Телескоп-сумма поблочных tiling-счётов: при B = w·c сумма
+⌈min B (m − j·B)/w⌉ по j < k (m ≤ k·B) равна ⌈m/w⌉ — полные блоки
+дают ровно c = B/w каждый, хвостовой добивает остаток. -/
+theorem hier_blocks_sum_tiling (B w c k : ℕ) (hw : 0 < w) (hB : B = w * c) :
+    ∀ m ≤ k * B,
+      ((List.range k).map (fun j => (min B (m - j * B) + w - 1) / w)).sum
+        = (m + w - 1) / w := by
+  induction k with
+  | zero =>
+    intro m hm
+    rw [Nat.zero_mul] at hm
+    simp only [List.range_zero, List.map_nil, List.sum_nil]
+    have h0 : (0 + w - 1) / w = 0 := Nat.div_eq_of_lt (by omega)
+    have hme : m = 0 := by omega
+    subst hme
+    rw [h0]
+  | succ k ih =>
+    intro m hm
+    rw [List.range_succ, List.map_append, List.sum_append, List.map_singleton]
+    by_cases hfit : m ≤ k * B
+    · have hz : min B (m - k * B) + w - 1 = w - 1 := by
+        simp only [Nat.sub_eq_zero_of_le hfit]
+        simp
+      have h0 : (w - 1) / w = 0 := Nat.div_eq_of_lt (by omega)
+      rw [hz, h0]
+      simp only [List.sum_singleton]
+      exact ih m hfit
+    · have hfull : ∀ j ∈ List.range k, (min B (m - j * B) + w - 1) / w = c := by
+        intro j hj
+        have hjk : j < k := List.mem_range.mp hj
+        have ej : (j + 1) * B = j * B + B := by ring
+        have ek : (k + 1) * B = k * B + B := by ring
+        have hmul : (j + 1) * B ≤ k * B := Nat.mul_le_mul_right B (by omega)
+        have hleB : B ≤ m - j * B := by omega
+        rw [min_eq_left hleB, hB]
+        have e : w * c + w - 1 = (w - 1) + w * c := by omega
+        rw [e, Nat.add_mul_div_left (w - 1) c hw, Nat.div_eq_of_lt (by omega : w - 1 < w),
+          Nat.zero_add]
+      rw [List.map_congr_left hfull]
+      have hsum : ((List.range k).map (fun _ => c)).sum = k * c := by simp
+      rw [hsum]
+      have hle : m - k * B ≤ B := by
+        have ek : (k + 1) * B = k * B + B := by ring
+        omega
+      rw [min_eq_right hle]
+      simp only [List.sum_singleton]
+      have e3 : k * B = w * (k * c) := by rw [hB]; ring
+      have eM : m + w - 1 = (m - k * B + w - 1) + w * (k * c) := by omega
+      rw [eM, Nat.add_mul_div_left _ (k * c) hw]
+      omega
+
+/-- Общий upper bound TOTAL: суммарное число окон иерархии не
+превосходит ⌈n/B⌉·((B−w)/s + 2) — per-block бюджет C611,
+умноженный на число блоков (peak-оценка, честная по total). -/
+theorem hier_total_formula (n B w s : ℕ) (hB : 0 < B) (hs : 0 < s) (hsw : s ≤ w) (hwB : w ≤ B) :
+    (hierStarts n B w s).length ≤ ((n + B - 1) / B) * ((B - w) / s + 2) := by
+  unfold hierStarts hierBlockLen
+  rw [List.length_flatten, List.map_map]
+  have hblk : ∀ j ∈ List.range ((n + B - 1) / B),
+      List.length (List.map (fun t => j * B + t) (covStartsStep (min B (n - j * B)) w s))
+        ≤ (B - w) / s + 2 := by
+    intro j _
+    rw [List.length_map]
+    by_cases hw : min B (n - j * B) ≤ w
+    · rw [covStartsStep, if_pos hw]; simp
+    · have hmB : min B (n - j * B) ≤ B := Nat.min_le_left _ _
+      have hlen := covStartsStep_len_le (min B (n - j * B)) w s hs (by omega)
+      have hmono := Nat.div_le_div_right (c := s) (by omega : min B (n - j * B) - w ≤ B - w)
+      omega
+  refine (List.sum_le_sum hblk).trans ?_
+  simp
+
+/-- ТОЧНЫЙ total при шаге = окну и B, кратном w: суммарное число
+окон `hierStarts` n B w w равно ⌈n/w⌉ — НЕ зависит от B (любое
+допустимое B даёт один и тот же total; телескоп-сумма
+`hier_blocks_sum_tiling`). -/
+theorem hier_total_min (n B w : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
+    (hierStarts n B w w).length = (n + w - 1) / w := by
+  obtain ⟨c, hc⟩ := hdiv
+  unfold hierStarts hierBlockLen
+  rw [List.length_flatten, List.map_map]
+  have hjn : ∀ j ∈ List.range ((n + B - 1) / B), j * B < n := by
+    intro j hj
+    have hjk : j < (n + B - 1) / B := List.mem_range.mp hj
+    by_contra hcon
+    push_neg at hcon
+    have e : (j + 1) * B = j * B + B := by ring
+    have hlt : (n + B - 1) / B < j + 1 := (Nat.div_lt_iff_lt_mul hB).mpr (by omega)
+    omega
+  have hterm : ∀ j ∈ List.range ((n + B - 1) / B),
+      (List.map (fun t => j * B + t) (covStartsStep (min B (n - j * B)) w w)).length
+        = (min B (n - j * B) + w - 1) / w := by
+    intro j hj
+    rw [List.length_map]
+    exact covStartsStep_len_tiling _ w hw (by have := hjn j hj; omega)
+  show ((List.range ((n + B - 1) / B)).map
+    (fun j => (List.map (fun t => j * B + t) (covStartsStep (min B (n - j * B)) w w)).length)).sum
+    = (n + w - 1) / w
+  rw [List.map_congr_left hterm]
+  have hfit : n ≤ ((n + B - 1) / B) * B := by
+    have hlt : (n + B - 1) < (((n + B - 1) / B) + 1) * B :=
+      (Nat.div_lt_iff_lt_mul hB).mp (Nat.lt_succ_self _)
+    have e : (((n + B - 1) / B) + 1) * B = ((n + B - 1) / B) * B + B := by ring
+    omega
+  exact hier_blocks_sum_tiling B w c ((n + B - 1) / B) hw hc n hfit
+
+/-- Информационный floor: любой список стартов, покрывающий
+каждый байт i < n окном [t, t+w), имеет длину не меньше n/w —
+k окон покрывают не более k·w байтов (инъекция i ↦ (t, i − t) в
+пары «окно × сдвиг»; Ico-интервалы длины w). -/
+theorem hier_total_floor (L : List ℕ) (w n : ℕ) (hw : 0 < w)
+    (hcover : ∀ i < n, ∃ t ∈ L, t ≤ i ∧ i < t + w) :
+    n ≤ L.length * w := by
+  classical
+  have hico : ∀ t : ℕ, (Finset.Ico t (t + w)).card ≤ w := by
+    intro t
+    have hmaps : Set.MapsTo (fun i => i - t) ↑(Finset.Ico t (t + w)) ↑(Finset.range w) := by
+      intro i hi
+      refine Finset.mem_range.mpr ?_
+      have h := Finset.mem_Ico.mp hi
+      show i - t < w
+      omega
+    have hinj : Set.InjOn (fun i => i - t) ↑(Finset.Ico t (t + w)) := by
+      intro a ha b hb hab
+      have hka := Finset.mem_Ico.mp ha
+      have hkb := Finset.mem_Ico.mp hb
+      have hab' : a - t = b - t := hab
+      omega
+    have hcard := Finset.card_le_card_of_injOn (fun i => i - t) hmaps hinj
+    simpa using hcard
+  have hsub : Finset.range n ⊆ L.toFinset.biUnion (fun t => Finset.Ico t (t + w)) := by
+    intro i hi
+    obtain ⟨t, ht, hle, hlt⟩ := hcover i (Finset.mem_range.mp hi)
+    exact Finset.mem_biUnion.mpr ⟨t, List.mem_toFinset.mpr ht, Finset.mem_Ico.mpr ⟨hle, by omega⟩⟩
+  calc n = (Finset.range n).card := (Finset.card_range n).symm
+    _ ≤ (L.toFinset.biUnion (fun t => Finset.Ico t (t + w))).card := Finset.card_le_card hsub
+    _ ≤ ∑ t ∈ L.toFinset, (Finset.Ico t (t + w)).card := Finset.card_biUnion_le
+    _ ≤ ∑ t ∈ L.toFinset, w := Finset.sum_le_sum (fun t _ => hico t)
+    _ = L.toFinset.card * w := by simp
+    _ ≤ L.length * w := Nat.mul_le_mul_right _ (List.toFinset_card_le L)
+
+/-- **Оптимальность иерархии по total** (замыкание вопроса C618):
+при s = w и w ∣ B иерархическое чтение даёт total ровно ⌈n/w⌉ —
+информационный минимум из `hier_total_floor`: никакое покрытие
+[0, n) окнами длины w не использует меньше ⌈n/w⌉ окон. Выбор
+C611 (s = w, B = w·(m−1)) certified: внутреннего оптимума B нет —
+total одинаков для любого допустимого B, кратного w. -/
+theorem hier_optimal (n B w : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
+    (hierStarts n B w w).length = (n + w - 1) / w ∧
+      ∀ L : List ℕ, (∀ i < n, ∃ t ∈ L, t ≤ i ∧ i < t + w) →
+        (n + w - 1) / w ≤ L.length := by
+  refine ⟨hier_total_min n B w hw hB hdiv, ?_⟩
+  intro L hc
+  have hf := hier_total_floor L w n hw hc
+  have hq1 : w * ((n + w - 1) / w) ≤ n + w - 1 := Nat.mul_div_le _ _
+  have e4 : w * (L.length + 1) = L.length * w + w := by ring
+  have hlt : w * ((n + w - 1) / w) < w * (L.length + 1) := by omega
+  exact Nat.le_of_lt_succ (Nat.lt_of_mul_lt_mul_left hlt)
+
+end Hagi.Theory.CoverageReading
