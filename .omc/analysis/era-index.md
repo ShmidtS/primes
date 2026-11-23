@@ -181,3 +181,17 @@
 - Honest: независимость раундов — гипотеза-модель (код зависим через θ);
   WOR-консервативность не формализована (Mathlib леммы нет); код не
   считает b/sig и не делит α по раундам.
+
+<a id="c646-c648"></a>
+## C646–C648 — эра «рост + вероятность» (freeze 8887→8907)
+
+- Коммиты: e84eac25 (C646 certified-шаг на блоке), 2a554dc7 (C647
+  `Contracts/BatchGlobalTelescope.lean`, уровни A/B/C), eaee5ea2 (C648).
+- Доказано: `certified_step_block_of_range` (range-лемма на логитах
+  носитель-независима), `batch_drop_generalizes` (через EB),
+  `certified_rounds_union` (k раундов, slack k·ebGap(α/k)).
+- Honest: iid/независимость раундов — модель, не код; код не считает
+  b/sig; WOR-консервативность не формализована; JVP — реализация.
+- Фронтир: paper v0.9 (8 мостов C638–C648); Adam EMA-лемма;
+  bench certified-warmup-sim; WOR; external push proposal.
+  Разбор: `period-c646-648-analysis.md`.
