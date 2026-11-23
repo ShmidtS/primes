@@ -12,7 +12,7 @@ comparator.json, formalization.yaml (arXiv-категории, MSC2020,
 редакционный вердикт («no blocking problem»). Реестр не
 ранжирует и не одобряет результаты.
 
-Этот файл — подготовительные карточки (draft entries) одиннадцати
+Этот файл — подготовительные карточки (draft entries) тринадцати
 machine-checked результатов C5XX-витков: самодостаточные
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
@@ -329,6 +329,54 @@ with width-w windows
   дальше сокращать нечего без уменьшения w.
 - **Category.** Discrete mathematics / streaming algorithms
   (arXiv cs.DM); MSC2020 68W40, 68P05, 05B40.
+
+## Card 13 — Linear window cost makes total budget nearly
+width-independent
+
+- **Statement.** Модель totalCost(w) = ⌈n/w⌉·c(w). При
+  линейной стоимости чтения окна c(w) = c·w total-cost почти
+  НЕ зависит от ширины окна — Lean дословно
+  (`windowCost_linear_near_const`, для любых 0 < w1, w2):
+
+  `theorem windowCost_linear_near_const (n w1 w2 : ℕ) (hw1 : 0 < w1)`
+  `(hw2 : 0 < w2) :`
+  `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) + (w1 - 1)`
+
+  т.е. totalCost(w1) ≤ totalCost(w2) + c·(w1 − 1) и симметрично
+  (обе границы `windowCost_linear_bounds` :86: n ≤ w·⌈n/w⌉ ≤
+  n + w − 1 — total зажат в [c·n, c·(n+w))). Контраст — режим
+  (a) фиксированной стоимости `windowCost_fixed_mono` :77: при
+  c(w) = c totalCost(w) = c·⌈n/w⌉ монотонно невозрастает по w
+  (ядро `ceil_div_anti` :55) — оптимально w = w_max. Мост к
+  иерархии C618: `windowCost_hier` :113 (total = ⌈n/w⌉ при
+  w ∣ B).
+- **Наглядность.** При линейной стоимости окна ширина почти
+  не влияет на общий бюджет — выбирай по точности, не по
+  экономии: нижняя граница c·n едина для всех w (каждый байт
+  оплачен ровно c раз в лучшем случае), а зазор верхних
+  оценок < c·w — цена выбора w ограничена стоимостью ОДНОГО
+  окна максимальной ширины, тогда как число чтений ⌈n/w⌉
+  меняется на порядки. Смена режима стоимости c(w) = c →
+  c·w меняет вывод на противоположный (w_max → свободно).
+- **Anchor.**
+  `Hagi.Theory.WindowTradeoff.windowCost_linear_near_const`
+  (Hagi/Theory/WindowTradeoff.lean:102);
+  `windowCost_linear_bounds` (:86);
+  `windowCost_fixed_mono` (:77); `ceil_div_anti` (:55);
+  `windowCost_hier` (:113).
+- **Dependencies.** Без Mathlib-теорий (Nat.div_add_mod,
+  Nat.mod_lt, omega); числа-инстансы (receipt C623): n =
+  100000, w ∈ {16, 64, 256} → чтения {6250, 1563, 391}, а
+  линейный total-cost {100000, 100032, 100096} — все в
+  коридоре [100000, 100000+w); мост hierStarts 100000 4032
+  64 64 = 1563 (= Card 12).
+- **Status.** Machine-checked (Lean 4.36); аксиомы:
+  стандартные три Lean. Режим (c) — суперлинейное окно
+  c(w) = a + c·w^α, α > 1, с формулой w* = (a/(c·(α−1)))^(1/α)
+  — honest-набросок в STATUS.md (Real-арифметика, вне
+  Nat-модели файла), не Lean-клоз.
+- **Category.** Discrete mathematics / streaming algorithms
+  (arXiv cs.DM); MSC2020 68W40, 68P05.
 
 ---
 
