@@ -380,6 +380,63 @@ width-independent
 
 ---
 
+## Card 14 — Certified capacity gate: when growth cannot pay back
+
+- **Statement.** Решение «расти/нет» по формульной границе — Lean
+  дословно (`growthGate`, для любых ℚ):
+
+  `def growthGate (potentialBound cAdd : ℚ) : Bool :=`
+  `decide (cAdd < potentialBound)`
+
+  grow ⟺ potentialBound > c_add, равенство → stay
+  (`growth_gate_stay_char` :81: `growthGate pb c = false ↔ pb ≤ c`).
+  MAIN (`growth_gate_sound` :178, CERTIFIED-STAY): если потолок
+  возможного выигрыша n-шагового дообучения
+
+  `theorem growth_gate_sound ... (hc : n * (G ^ 2 / (2 * L)) ≤ cAdd) :`
+  `f z - f (nlRun n (1 / L) grad z) ≤ cAdd`
+
+  т.е. при `n·G²/(2L) ≤ c_add` ЛЮБОЕ n-шаговое дообучение (в т.ч.
+  с добавленной ёмкостью) уменьшает objective не более чем на
+  `c_add` — рост НЕ может окупиться за n шагов. Ядро:
+  `nl_drop_total` :121 — телескоп-индукция, drop за n шагов ≤
+  `n·G²/(2L)` (per-step `nl_drop_step_eq` :109 = C606
+  `nl_drop_optimal` при γ* = 1/L).
+- **Наглядность.** Certified-совет «не расти»: потолок выигрыша
+  ≤ стоимости ёмкости. Гейт сравнивает два числа — гарантированный
+  потолок убывания objective против цены новой ёмкости — и если
+  даже идеальное дообучение не отобьёт цену, рост запрещён
+  математически, без единого измерения. Асимметрия честна:
+  stay-ветка certified, grow-ветка — только разрешение (верхняя
+  граница возможного ≠ факт). Числа (receipt C635): 6 синтетик —
+  S1–S4 STAY (S4: pb = c_add, равенство → stay), G1/G2 GROW;
+  λ-sweep при c_add = new_params·λ: PIN λ=1/10⁴ → 6 GROW/0 STAY
+  (golden-идентичность C633), first_stay_lam = 1/10³;
+  certified_stay_threshold λ* = min(pb/params) ≈ 10⁴¹ — PIN-λ
+  на ~45 порядков ниже: stay-ветка реальна при λ ≥ λ*
+  (GROW ⟺ λ < pb/params, монотонность по λ).
+- **Anchor.**
+  `Hagi.Theory.GrowthGate.growthGate`
+  (Hagi/Theory/GrowthGate.lean:75);
+  `growth_gate_stay_char` (:81); `nl_drop_step_eq` (:109);
+  `nl_drop_total` (:121); `growth_gate_sound` (:178).
+  Потребители: `Hagi.Budget.WaterFilling` (WaterFilling.lean:366),
+  `Hagi.Probability.GibbsCore` (GibbsCore.lean:1416).
+- **Dependencies.** Без Mathlib-теорий (field_simp, ring,
+  nlinarith, induction-телескоп); NegativeTransfer-прологи
+  (`nlDrop`, `nlStep`, `nlRun`, C606 `nl_drop_optimal`).
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Honest pins: потенциал-модель — квадратичный класс
+  (`hmodel`, равенство в descent-лемме, прецедент C572); для
+  общего L-smooth certified-потолок шире — nlBudget C592
+  `γG² + Lγ²G²/2`, гейт пересчитывается. Граница G — градиентная
+  граница ТЕКУЩЕЙ модели на residual; grow-ветка ничего не
+  обещает (bound — верхняя граница возможного, не факт).
+- **Category.** Learning theory / optimization (arXiv cs.LG);
+  MSC2020 68T05, 90C25.
+
+---
+
 ## Submission requirements (что нужно для реальной отправки)
 
 По /how-to-submit реестра, для каждой карточки требуется
