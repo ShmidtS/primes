@@ -2410,3 +2410,43 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Freeze 8849 (+growthGate, growth_gate_stay_char,
   nl_drop_step_eq, nl_drop_total, growth_gate_sound; только
   добавления); 17 гейтов PASS (.tmp/C632/logs/).
+
+## C633 bench growth gate certified: ёмкость-решения grow-режимов по гейту C632
+
+- Beat: C633 = применение growthGate (C632) к bench grow-режимам.
+  Base HEAD 5cfdb759 (C632), tree clean. Freeze 8849 — Lean НЕ
+  тронут (только scripts/bench_bridge.py + STATUS.md).
+- `scripts/bench_bridge.py`: python-double `growth_gate(pb, c_add)`
+  (docstring → growth_gate_sound C632, honest-pins: квадратичный
+  класс nl_drop_step_eq/nl_drop_total, НЕ широкий 3G²/(2L)
+  nlBudget C592; grow = разрешение, не обещание; sound только у
+  stay-ветки) + `growth_gate_measure` (G² = точная сумма
+  квадратов fd-градиентов; L = однокоординатная выборка кривизны
+  в argmax|g| — honest pin: measured proxy, не certified bound;
+  L = 0 → GROW fail-closed, SKIP только по certified-базису).
+- Cost-модель c_add = n_new_params × λ, λ = GROW_CADD_LAM = 1/10⁴
+  (PIN, не тюнинг: одна минимальная ячейка snap-сетки MH2_GRID —
+  drop-эквивалент). Равенство → stay (паттерн C535).
+- Режим 1, grow-snap: гейт перед КАЖДЫМ добавлением identity-
+  блока в while depth < GS_MAX_DEPTH; pb = GS_STEPS_PER_BLOCK·
+  G²/(2L), c_add = 21·λ (mh4_flat). Stay → honest SKIP
+  (grow_steps_skipped_certified, break) + телеметрия
+  tel["growthgate"] (at_depth, n, gsq, L, pb, c_add, decision,
+  formula).
+- Режим 2, adapter-grow: гейт перед КАЖДЫМ допуском rank-r
+  LoRA-адаптера; pb = AG_STEPS·G²/(2L), c_add = 2·r·MH2_D·λ.
+  Stay → счётчик + continue (ранг не добавлен). Downstream
+  синхронизирован: stats["ranks"]/adapt_params = только
+  допущенные.
+- Прогоны (C608 snapshot corpus, exit 0 оба): grow-snap — 6 гейт-
+  событий, все GROW (pb ≫ c_add), глубина 8 как в golden;
+  adapter-grow — 2 события (r=1, r=2), все GROW, ranks [1, 2],
+  12 шагов как в golden. Skipped-certified = 0 — честно: на этом
+  корпусе рост всегда окупается по certified-потолку; SKIP-ветка
+  исполняема (break/continue + телеметрия decision), живого
+  пропуска нет (golden-тождественность поведения без гейт-отказа).
+- Honest: SKIP certified только при L > 0 measured; L — прокси;
+  для не-квадратичного objective certified-потолок шире (nlBudget
+  C592) — там гейт пересчитывается.
+- Freeze 8849 (без изменений — Lean не тронут); 17 гейтов PASS
+  (.tmp/C633/logs/, 22 файла).

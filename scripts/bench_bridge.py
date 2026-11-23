@@ -5983,6 +5983,75 @@ GS_STEPS_PER_BLOCK = 4             # certified steps per new block
 GS_STEP_CAP = 48                   # total certified-step budget
 
 
+# C633: GROWTH GATE (application of the C632 Lean module
+# Hagi.Theory.GrowthGate into the bench grow modes).
+#
+# Before adding capacity (a grown identity block in grow-snap,
+# a LoRA adapter in adapter-grow) the grow step now asks the
+# CERTIFIED capacity gate: grow ⟺ potential_bound > c_add.
+#
+# c_add model (FIXED principle, drop-equivalent): cost of one
+# added parameter = one cell of the minimal certified snap grid
+# (MH2_GRID = 1/10000): c_add = n_new_params * GROW_CADD_LAM.
+# Not tuned; equality -> stay (budget priority of the smaller
+# model, the C632 gate convention, pattern C535 rankSelect).
+
+GROW_CADD_LAM = F(1, 10 ** 4)      # c_add = params * lambda (PIN)
+
+
+def growth_gate(potential_bound, c_add):
+    """C633: python double of Hagi.Theory.GrowthGate.growthGate
+    (C632): grow ⟺ potential_bound > c_add; equality -> stay.
+    Stay is CERTIFIED by growth_gate_sound (C632): if
+    n*G^2/(2L) <= c_add then ANY n-step retraining (incl. with
+    the added capacity, same budget-class G/L bounds) drops the
+    objective by at most c_add -- growth cannot pay off in n
+    steps. HONEST pins (verbatim from the Lean module):
+    (a) the formula is the QUADRATIC-CLASS exact form
+        x^2/(2L) (nl_drop_step_eq / nl_drop_total: the drop of
+        one gamma*=1/L step is EXACTLY ||grad||^2/(2L)); the
+        WIDER general-class ceiling nlBudget C592
+        (gamma*G^2 + L*gamma^2*G^2/2 = 3G^2/(2L) at gamma=1/L)
+        is NOT used here;
+    (b) grow = permission, NOT a promise (the bound is a
+        ceiling on the possible drop, not a fact); the
+        soundness guarantee exists only on the stay branch."""
+    return c_add < potential_bound
+
+
+def growth_gate_measure(obj_fn, p, h):
+    """C633: measured (G^2, L) instance for the growth gate at
+    the admission point p (identity / zero-init).
+    - G^2 = sum g_i^2 with g the exact fd gradients of the NEW
+      block/adapter params (exact Fractions; G enters the
+      formula only squared, so no sqrt);
+    - L = single-coordinate curvature sample
+      |g_k(p + h e_k) - g_k(p)|/h at k = argmax|g| (2 extra
+      objective evals).
+    HONEST pin: this is a MEASUREMENT proxy, not a certified
+    smoothness bound; the Lean soundness (growth_gate_sound)
+    applies under the theorem's hypotheses (quadratic hmodel +
+    G bound along the trajectory), which the bench does NOT
+    claim. SKIP is fail-closed: only taken when pb is exact and
+    pb <= c_add; L = 0 (flat sample) -> L None -> decision GROW
+    (no certified basis to skip). Returns (gsq, L_or_None)."""
+    o = obj_fn(p)
+    g = []
+    for k in range(len(p)):
+        q = list(p)
+        q[k] = q[k] + h
+        g.append((obj_fn(q) - o) / h)
+    gsq = sum((gi * gi for gi in g), F(0))
+    k = max(range(len(g)), key=lambda i: abs(g[i]))
+    q = list(p)
+    q[k] = q[k] + h
+    q2 = list(q)
+    q2[k] = q2[k] + h
+    gk_b = (obj_fn(q2) - obj_fn(q)) / h
+    L = abs(gk_b - g[k]) / h
+    return gsq, (L if L > 0 else None)
+
+
 def snap_k_auto(L, d, eps):
     """C597: python double of Lean `snapK` (C593):
     the minimal k >= 0 with L*d <= eps*2^(k+1) (`snapAdmissible`);
@@ -6093,6 +6162,8 @@ def grow_snap_run(ledger_path):
     raw, tel = [], {"phases": [], "holds": [], "admissions": [],
                     "rejects": [], "stop": None, "outcomes": {},
                     "growcycle": [], "snap": [], "budget": [],
+                    "growthgate": [],
+                    "grow_steps_skipped_certified": 0,
                     "skipped_degenerate_T2": skipped}
 
     def riskA(th, wcur):
@@ -6157,6 +6228,7 @@ def grow_snap_run(ledger_path):
     # --- (B) SNAP-RATIONAL REPEATED GROW: depth 2 -> GS_MAX_DEPTH
     depth = 2
     grow_events = 0
+    grow_steps_skipped_certified = 0
     cycle_start_obj = mh2_fcanon(w, FT)
     cumulative_bound = F(0)
     # certified cross-phase allowances (snap deltas) for the
@@ -6166,6 +6238,45 @@ def grow_snap_run(ledger_path):
         used = len(raw)
         assert used <= GS_STEP_CAP, \
             "ABORT: step cap exceeded (honest budget-stop)"
+
+        # --- C633 GROWTH GATE: certified capacity decision
+        # BEFORE adding the block (python double of
+        # Hagi.Theory.GrowthGate.growthGate / growth_gate_sound:
+        # pb = n*G^2/(2L), quadratic-class form x^2/(2L);
+        # c_add = params * lambda, drop-equivalent grid cost).
+        p3g = mh4_flat(mh5_block_init(grow_events))
+        c_add = len(p3g) * GROW_CADD_LAM
+        gsq, Lm = growth_gate_measure(
+            lambda pp: mh2_fcanon(w, featsk(mh4_unflat(pp), FT)),
+            p3g, MH2_H)
+        pb = (F(GS_STEPS_PER_BLOCK) * gsq / (2 * Lm)
+              if Lm is not None else None)
+        grow_ok = True if pb is None else growth_gate(pb, c_add)
+        tel["growthgate"].append({
+            "at_depth": depth + 1, "n": GS_STEPS_PER_BLOCK,
+            "new_params": len(p3g),
+            "gsq_measured": str(gsq),
+            "L_measured": (str(Lm) if Lm is not None else
+                           "0 (flat sample: no certified basis "
+                           "to skip)"),
+            "potential_bound": (str(pb) if pb is not None else
+                                "unbounded (L = 0)"),
+            "c_add": str(c_add),
+            "decision": ("GROW (potential_bound > c_add; grow = "
+                         "permission, not a promise)" if grow_ok
+                         else "SKIP (certified: рост не окупится "
+                              f"за {GS_STEPS_PER_BLOCK} шагов: "
+                              "potential_bound <= c_add, "
+                              "growth_gate_sound C632)"),
+            "formula": "pb = n*G^2/(2L) (quadratic class, "
+                       "nl_drop_step_eq C632; NOT the wider "
+                       "3G^2/(2L) nlBudget C592)"})
+        if not grow_ok:
+            grow_steps_skipped_certified += 1
+            tel["grow_steps_skipped_certified"] = \
+                grow_steps_skipped_certified
+            break   # honest certified SKIP: growth stops here
+
         seed = grow_events
         bl = mh5_block_init(seed)
         assert bl[0] == 0, \
@@ -6550,6 +6661,7 @@ def adapter_grow_run(ledger_path):
     raw = []
     tel = {"phases": [], "holds": [], "admissions": [],
            "adapters": [], "block_head_to_head": None,
+           "growthgate": [], "grow_steps_skipped_certified": 0,
            "skipped_degenerate_T2": skipped}
 
     def riskA(th, wcur):
@@ -6656,6 +6768,43 @@ def adapter_grow_run(ledger_path):
             "ABORT: adapter admission #{} broke obj (B = 0 " \
             "must preserve obj EXACTLY)".format(ai + 1)
         npar = 2 * r * MH2_D
+
+        # --- C633 GROWTH GATE: certified capacity decision
+        # BEFORE admitting the rank-r adapter (same python
+        # double of Hagi.Theory.GrowthGate as grow-snap: pb =
+        # n*G^2/(2L) quadratic-class form, c_add = params*lambda)
+        ranks_m = [len(A) for A, _ in adapters] + [r]
+        c_add = npar * GROW_CADD_LAM
+        p_init = adapter_flat(cand_factors)
+        gsq, Lm = growth_gate_measure(
+            lambda pp: canon_adapt(w, FT, adapter_unflat(
+                pp, ranks_m)),
+            p_init, AG_H)
+        pb = (F(AG_STEPS) * gsq / (2 * Lm)
+              if Lm is not None else None)
+        grow_ok = True if pb is None else growth_gate(pb, c_add)
+        tel["growthgate"].append({
+            "rank": r, "n": AG_STEPS, "new_params": npar,
+            "gsq_measured": str(gsq),
+            "L_measured": (str(Lm) if Lm is not None else
+                           "0 (flat sample: no certified basis "
+                           "to skip)"),
+            "potential_bound": (str(pb) if pb is not None else
+                                "unbounded (L = 0)"),
+            "c_add": str(c_add),
+            "decision": ("GROW (potential_bound > c_add; grow = "
+                         "permission, not a promise)" if grow_ok
+                         else "SKIP (certified: рост не окупится "
+                              f"за {AG_STEPS} шагов: "
+                              "potential_bound <= c_add, "
+                              "growth_gate_sound C632)"),
+            "formula": "pb = n*G^2/(2L) (quadratic class, "
+                       "nl_drop_step_eq C632; NOT the wider "
+                       "3G^2/(2L) nlBudget C592)"})
+        if not grow_ok:
+            tel["grow_steps_skipped_certified"] += 1
+            continue   # honest certified SKIP: rank not added
+
         tel["admissions"].append({
             "phase": f"B-adapter-r{r}",
             "rank": r, "new_params": npar,
@@ -6664,7 +6813,7 @@ def adapter_grow_run(ledger_path):
                         "invariant asserted exactly)"})
 
         # certified fd training of ONLY the adapter params
-        ranks = AG_RANKS[:ai + 1]
+        ranks = [len(A) for A, _ in adapters] + [r]   # incl. new
         p = adapter_flat(cand_factors)
         assert len(p) == sum(2 * rr * MH2_D for rr in ranks)
 
@@ -6710,7 +6859,7 @@ def adapter_grow_run(ledger_path):
             "canonical": str(canon_adapt(w, FT, adapters))})
 
     o_adapted = canon_adapt(w, FT, adapters)
-    adapt_params = sum(2 * r * MH2_D for r in AG_RANKS)
+    adapt_params = sum(2 * len(A) * MH2_D for A, _ in adapters)
 
     # --- (C) HEAD-TO-HEAD: the identity-BLOCK grow (C504/C521
     # mechanic, 21 params, gamma = 0) trained with the SAME
@@ -6802,7 +6951,7 @@ def adapter_grow_run(ledger_path):
         "skipped_degenerate_T2": skipped,
         "n_holdout": sum(len(t) for t in htasks),
         "source": ledger_path,
-        "ranks": AG_RANKS,
+        "ranks": [len(A) for A, _ in adapters],  # admitted only
         "adapter_params_total": adapt_params,
         "full_block_params": n3,
         "param_ratio": str(F(adapt_params, n3)),
@@ -13606,7 +13755,10 @@ def main():
             emit_bad_growsnap(args.corrupt, start, traj)
         _mini_report("grow-snap", stats, traj, tel,
                      growcycle=tel["growcycle"], snap=tel["snap"],
-                     budget=tel["budget"])
+                     budget=tel["budget"],
+                     growthgate=tel["growthgate"],
+                     grow_steps_skipped_certified=tel[
+                         "grow_steps_skipped_certified"])
         return
 
 
@@ -13680,6 +13832,9 @@ def main():
                 "phases": tel["phases"],
                 "admissions": tel["admissions"],
                 "adapters": tel["adapters"],
+                "growthgate": tel["growthgate"],
+                "grow_steps_skipped_certified":
+                    tel["grow_steps_skipped_certified"],
                 "block_head_to_head": tel["block_head_to_head"],
                 "holds": _holds(tel)}}, indent=1))
         return
