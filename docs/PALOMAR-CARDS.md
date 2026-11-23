@@ -232,7 +232,7 @@ bounded peak
   т.е. streaming peak-память ≤ m окон (total растёт с числом
   блоков ⌈n/B⌉ — честное peak ≠ total).
 - **Anchor.** `Hagi.Theory.CoverageReading.hier_covers_any_n`
-  (Hagi/Theory/CoverageReading.lean:285);
+  (Hagi/Theory/CoverageReading.lean:283);
   `hier_peak_window_budget` (:317); определения `hierBlockLen`
   (:270), `hierStarts` (:275).
 - **Dependencies.** Та же Mathlib-база; сведение поблочно к
@@ -269,7 +269,7 @@ and budget
   Card 10).
 - **Anchor.**
   `Hagi.Theory.CoverageReading.covStartsStep_covers`
-  (Hagi/Theory/CoverageReading.lean:183);
+  (Hagi/Theory/CoverageReading.lean:184);
   `covStartsStep_len_le` (:219);
   `covStartsStep_adaptive_covers` (:232).
 - **Dependencies.** Mathlib (List, Nat.div); без внешних
@@ -313,7 +313,7 @@ with width-w windows
   гипотеза B* = √(nw) опровергнута телескоп-суммой).
 - **Anchor.**
   `Hagi.Theory.CoverageReading.hier_total_floor`
-  (Hagi/Theory/CoverageReading.lean:502);
+  (Hagi/Theory/CoverageReading.lean:497);
   `hier_total_min` (:468); `hier_optimal` (:539);
   `hier_total_formula` (:446); `hier_blocks_sum_tiling` (:395);
   `covStartsStep_len_tiling` (:360); определения `hierBlockLen`
@@ -360,10 +360,10 @@ width-independent
   c·w меняет вывод на противоположный (w_max → свободно).
 - **Anchor.**
   `Hagi.Theory.WindowTradeoff.windowCost_linear_near_const`
-  (Hagi/Theory/WindowTradeoff.lean:102);
-  `windowCost_linear_bounds` (:86);
-  `windowCost_fixed_mono` (:77); `ceil_div_anti` (:55);
-  `windowCost_hier` (:113).
+  (Hagi/Theory/CoverageReading.lean:597);
+  `windowCost_linear_bounds` (:581);
+  `windowCost_fixed_mono` (:572); `ceil_div_anti` (:550);
+  `windowCost_hier` (:608).
 - **Dependencies.** Без Mathlib-теорий (Nat.div_add_mod,
   Nat.mod_lt, omega); числа-инстансы (receipt C623): n =
   100000, w ∈ {16, 64, 256} → чтения {6250, 1563, 391}, а

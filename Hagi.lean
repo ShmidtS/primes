@@ -478,7 +478,6 @@ import Hagi.Theory.FactLedger
 import Hagi.Theory.RangeWrap
 import Hagi.Theory.AdaptiveContext
 import Hagi.Theory.CoverageReading
-import Hagi.Theory.WindowTradeoff
 import Hagi.Theory.KnowledgeConsolidation
 import Hagi.Theory.GrowthGate
 set_option linter.style.header false

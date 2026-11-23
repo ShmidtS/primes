@@ -13521,7 +13521,7 @@ def generate_hier_run():
 def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     """C626: certified choice of the window width w by the C623
     cost regime rule. Python twin of the WindowTradeoff theorems
-    (Hagi/Theory/WindowTradeoff.lean, freeze 8841):
+    (Hagi/Theory/CoverageReading.lean, freeze 8841):
 
     Model: totalCost(w) = ceil(n/w) * c(w), reads ceil(n/w) is
     the Lean `(n+w-1)/w` of every theorem below.
@@ -13539,7 +13539,7 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     - regime 'mixed' (c): c(w) = a + c*w^alpha, integer
       alpha > 1. For alpha = 2 (the default) the real optimum
       w* = (a/(c*(alpha-1)))^(1/alpha) = sqrt(a/c) is now a
-      LEAN THEOREM (C628, Hagi/Theory/WindowTradeoff.lean,
+      LEAN THEOREM (C628, Hagi/Theory/CoverageReading.lean,
       freeze 8844): `mixedCost_relax_min` (AM-GM per-read
       relaxation a/w + c*w >= 2*sqrt(a*c)),
       `mixedCost_relax_min_eq` (equality at w = sqrt(a/c)),

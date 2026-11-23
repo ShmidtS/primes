@@ -2266,8 +2266,8 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (⌈n/w⌉, убывает по w), стоимость чтения одного окна c(w) растёт
   по w; фундамент — total-оптимальность C618 (`hier_total_min`:
   иерархия достигает ⌈n/w⌉ чтений).
-- `Hagi/Theory/WindowTradeoff.lean` (5 теорем, namespace
-  `Hagi.Theory.WindowTradeoff`, import в Hagi.lean):
+- `Hagi/Theory/CoverageReading.lean`, namespace
+  `Hagi.Theory.WindowTradeoff` (5 теорем; T2: модуль WindowTradeoff.lean слит сюда):
   `ceil_div_anti` (анти-монотонность ⌈n/w⌉: 0 < w ≤ w' ⇒
   (n+w'−1)/w' ≤ (n+w−1)/w), `windowCost_fixed_mono` — режим (a)
   c(w) = c: totalCost = c·⌈n/w⌉ монотонно невозрастает ⇒
@@ -2341,7 +2341,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 
 - Beat: C628 = roadmap C627 top-2 (mixed-w* в Lean — догнать
   честность). Base HEAD ef57c959 (C627), freeze 8841 → 8844.
-- `Hagi/Theory/WindowTradeoff.lean` (+3 теоремы, режим (c)
+- `Hagi/Theory/CoverageReading.lean` (+3 теоремы, режим (c)
   формализован для α=2 — bench-default `cost_regime_w`):
   - `mixedCost_relax_min (a c w : ℝ) (0<a)(0<c)(0<w)`:
     `2*√(a*c) ≤ a/w + c*w` — AM-GM ядро релаксации:

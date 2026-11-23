@@ -711,7 +711,7 @@ pattern of C576).
 >     (`snap_k_eq_ceil`, GrowSnap.lean:342, C593);
 > (7) `∀ ib < n, ∃ sw ∈ covStarts n k, sw ≤ ib ∧ ib < sw + k` — every
 >     byte of the input is covered by some lattice window, premise
->     `0 < k` verbatim (`covStarts_covers`, CoverageReading.lean:50,
+>     `0 < k` verbatim (`covStarts_covers`, CoverageReading.lean:54,
 >     C598);
 > (8) `f z − n•nlBudget γ L G ≤ f (nlRun n γ grad z) ≤ f z` — the
 >     smooth sufficient-transfer bound at equal GD budget, premises
@@ -777,8 +777,8 @@ ten-clause conjunction, applications of (9) to L=2, G=1 — drop
      (WindowTradeoff режимы (a)/(b), w*-набросок, таблица :42-46);
      .tmp/C626/receipt.md (bench --cost-regime, pinned asserts);
      .tmp/C628/receipt.md (mixedCost_* AM-GM, freeze 8844);
-     якоря rg HEAD dd4102cf: CoverageReading.lean :468/:502/:539,
-     WindowTradeoff.lean :61/:83/:92/:108/:119/:136/:156/:181 -->
+     якоря rg HEAD dd4102cf: CoverageReading.lean :463/:497/:534,
+     WindowTradeoff -> CoverageReading.lean :556/:578/:587/:603/:614/:631/:651/:676 -->
 
 The formula era made every operating parameter a formula; the
 reading era asks the complementary question — what does it COST
@@ -794,7 +794,7 @@ section states it as one arc.
 > `n ≤ L.length * w`
 
 (`Hagi.Theory.CoverageReading.hier_total_floor`,
-CoverageReading.lean:502). The hierarchy of §3.18 clause (10)
+CoverageReading.lean:497). The hierarchy of §3.18 clause (10)
 ATTAINS the floor at `s = w`, `w ∣ B` —
 `hier_total_min` (:468): `(hierStarts n B w w).length =
 (n + w - 1) / w`, closed by `hier_optimal` (:539): total =
@@ -813,7 +813,7 @@ total is 127 = ⌈8128/64⌉.
 **(ii) Three cost regimes and the w-rule (C623).** With a
 per-read window cost c(w), totalCost(w) = ⌈n/w⌉·c(w), and the
 certified w-rule has three regimes (Hagi/Theory/
-WindowTradeoff.lean, freeze 8841):
+CoverageReading.lean, freeze 8841):
 
 - **(a) fixed cost c(w) = c:** totalCost = c·⌈n/w⌉ is
   monotonically non-increasing in w (`windowCost_fixed_mono`,
@@ -846,7 +846,7 @@ w, the gap is < c·w, while the read count ⌈n/w⌉ moves by
 orders of magnitude.
 
 **(iv) mixed-w* becomes a theorem (C628).** For the bench
-default α = 2 the sketch is now certified (WindowTradeoff.lean,
+default α = 2 the sketch is now certified (CoverageReading.lean,
 freeze 8841 → 8844), three clauses, Lean-verbatim:
 
 > `theorem mixedCost_relax_min {a c w : ℝ} (ha : 0 < a)`
@@ -875,7 +875,7 @@ this is a certified LOWER bound; discrete equality needs
 w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
 Real-calculus outside the Nat model of the file — the bench
 text says "NOT a Lean clause" for α ≠ 2.
-<!-- source: Hagi/Theory/WindowTradeoff.lean:136/:156/:181
+<!-- source: Hagi/Theory/CoverageReading.lean:631/:651/:676
      (statement дословно, HEAD dd4102cf); .tmp/C628/receipt.md -->
 
 **(v) The bench application (C626).** `cost_regime_w` in
@@ -1005,9 +1005,9 @@ bench mode with telemetry:
 |---|---|---|
 | manual snap grid `GS_K=40` | `k* = ⌈log₂(L·d/ε)⌉−1` (`snap_k_eq_ceil`, GrowSnap.lean:342, C593) | auto-k* in 4 snap modes (grow-snap k*=18/19/20, trunk-freeze k*=11); **2788 bits saved vs legacy k=40 over 33 snap events** (telemetry bits_saved_vs_legacy, fixture run, C597) |
 | warm-start gate `ce ≤ 0.5` (HAGI_v2 wave232 proxy) | warm ⟺ `start_gap = f(θA) − f(0) ≤ n•nlBudget γ L G` (`certified_transfer_gate` ← `sufficient_negative_transfer` C592; `nlBudget = γG² + Lγ²G²/2`) | exact boundary: nlBudget(1/5, 2, 2) = 24/25; gap 24/25 → warm, 25/25 → cold-certified; live bench 3 pairs warm, forgetA = 0, T1-positive (C601) |
-| window truncation `windows[-max_span:]` | adaptive step `s = min(w, ⌈(n−w)/(m−2)⌉)` (`covStartsStep_adaptive_covers`, CoverageReading.lean:232, C602) | w=m=64: n=540 → s=8, 61 windows, covered; n=4032 → s=64 (boundary), covered; n=4160+ → honest INFEASIBLE (None) instead of silent truncation (C602) |
+| window truncation `windows[-max_span:]` | adaptive step `s = min(w, ⌈(n−w)/(m−2)⌉)` (`covStartsStep_adaptive_covers`, CoverageReading.lean:233, C602) | w=m=64: n=540 → s=8, 61 windows, covered; n=4032 → s=64 (boundary), covered; n=4160+ → honest INFEASIBLE (None) instead of silent truncation (C602) |
 
-**Coverage iff.** `covStartsStep_covers` (CoverageReading.lean:183,
+**Coverage iff.** `covStartsStep_covers` (CoverageReading.lean:184,
 C602) is exact: windows of width w with step s cover `[0, n)` IFF
 `s ≤ w` — necessity by witness s=17 > w=9 leaving byte 9 in a hole;
 the adaptive budget form keeps windows ≤ m (`covStartsStep_len_le`,
@@ -1015,7 +1015,7 @@ the adaptive budget form keeps windows ≤ m (`covStartsStep_len_le`,
 
 **The negative-cycle pattern (C598 → C602).** A measured defect
 (truncation loses byte 0: `covStarts_trunc_uncovered_zero`,
-CoverageReading.lean:126, C598) → negative theorem → exact iff →
+CoverageReading.lean:130, C598) → negative theorem → exact iff →
 fail-closed code with an honest INFEASIBLE branch. This
 theory-to-code round trip reproduces the wave232 result — where the
 HAGI_v2 runtime integrated the C592 sufficient-transfer gate with a
@@ -1052,11 +1052,11 @@ anchor, a bench application, and measured bits —
 |---|---|---|---|---|
 | snap grid | `k* = ⌈log₂(L·d/ε)⌉ − 1` | `snap_k_eq_ceil`, GrowSnap.lean:342 (C593) | auto-k* in 4 snap modes | 2788 bits saved vs legacy k=40 over 33 snap events (C597) |
 | transfer gate | warm ⟺ `start_gap ≤ n•nlBudget γ L G`, `nlBudget = γG² + Lγ²G²/2` | `nlBudget`, NegativeTransfer.lean:242 (C592/C601) | TGC/ATA modes | exact boundary nlBudget(1/5,2,2) = 24/25; 3 warm pairs, forgetA = 0 (C601) |
-| window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:232 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
+| window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:233 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
-| window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:317 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
-| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, WindowTradeoff.lean:83/:108/:136/:156/:181 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
-<!-- source: строка w-rule — .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md (cost_regime_w, pinned asserts, w_max=256→391); .tmp/C628/receipt.md (mixedCost_* freeze 8844); якоря WindowTradeoff.lean rg HEAD dd4102cf -->
+| window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:315 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
+| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:578/:603/:631/:651/:676 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
+<!-- source: строка w-rule — .tmp/C623/receipt.md:42-46; .tmp/C626/receipt.md (cost_regime_w, pinned asserts, w_max=256→391); .tmp/C628/receipt.md (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
 
 Two structural remarks. First, the optimal-step clause is
 self-contained: `φ(1/L) − φ(γ) = (G²/(2L))·(1 − Lγ)² ≥ 0` is a
@@ -1133,7 +1133,7 @@ peak windows per block ≤ m (peak ≠ total, stated honestly).
 Bench numbers: n=100000 → 25 blocks, 24×63+51, total 1563, peak
 63; Lean witness n=8128 → [63, 63, 1], peak 63 (C611/C613).
 - **Card 11 — adaptive-span iff and its exact budget.**
-`covStartsStep_covers` (CoverageReading.lean:183): coverage of
+`covStartsStep_covers` (CoverageReading.lean:184): coverage of
 `[0, n)` IFF `s ≤ w` — necessity by witness s=17 > w=9 leaving
 byte 9 in a hole; `covStartsStep_len_le` (:219): window count
 `(n−w)/s + 2 ≤ m`; boundary `s = w`: `n ≤ w(m−1) = 4032` (w=m=64),
@@ -1153,7 +1153,7 @@ not claimed here.
 - **Card 12 — information-theoretic floor for reading n bytes
 with width-w windows.** Any covering list L of [0, n) by
 width-w windows satisfies `n ≤ L.length * w`
-(`hier_total_floor`, CoverageReading.lean:502), and the
+(`hier_total_floor`, CoverageReading.lean:497), and the
 hierarchy ATTAINS the floor at `s = w`, `w ∣ B`:
 `hier_total_min` (:468) — `(hierStarts n B w w).length =
 (n + w - 1) / w`; `hier_optimal` (:539) closes the optimum
@@ -1167,7 +1167,7 @@ B at s = w.
 width-independent.** For any `0 < w1, w2`:
 `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) +
 (w1 - 1)` (`windowCost_linear_near_const`,
-WindowTradeoff.lean:108) — totalCost(w1) ≤ totalCost(w2) +
+CoverageReading.lean:603) — totalCost(w1) ≤ totalCost(w2) +
 c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
 n + w − 1 (`windowCost_linear_bounds`, :92); contrast regime
 (a) `windowCost_fixed_mono` (:83): fixed cost makes w = w_max
@@ -1371,10 +1371,10 @@ not a Lean clause.
 | consolidate_prompt_empty | Hagi/Theory/KnowledgeConsolidation.lean:66 | C584 |
 | remember_preserves_pages | Hagi/Theory/KnowledgeConsolidation.lean:72 | C584 |
 | learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:79 | C584 |
-| covStarts_covers | Hagi/Theory/CoverageReading.lean:50 | C598 |
-| covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:126 | C598 |
-| covStartsStep_covers | Hagi/Theory/CoverageReading.lean:183 | C602 |
-| covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:232 | C602 |
+| covStarts_covers | Hagi/Theory/CoverageReading.lean:54 | C598 |
+| covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:130 | C598 |
+| covStartsStep_covers | Hagi/Theory/CoverageReading.lean:184 | C602 |
+| covStartsStep_adaptive_covers | Hagi/Theory/CoverageReading.lean:233 | C602 |
 | hagi_master_v31 | Hagi/Theory/MasterTheoremV3.lean:137 | C600 |
 | snap_k_eq_ceil | Hagi/Theory/GrowSnap.lean:342 | C593 |
 | nlBudget | Hagi/Theory/NegativeTransfer.lean:242 | C592 |
@@ -1389,7 +1389,7 @@ not a Lean clause.
 | hierBlockLen | Hagi/Theory/CoverageReading.lean:270 | C611 |
 | hierStarts | Hagi/Theory/CoverageReading.lean:275 | C611 |
 | hier_covers_any_n | Hagi/Theory/CoverageReading.lean:285 | C611 |
-| hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:317 | C611 |
+| hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:315 | C611 |
 
 <!-- Appendix A rows up to C551 verified at HEAD 977c930b
      (C552); C555/C556/C558 rows verified at HEAD e40aa426
