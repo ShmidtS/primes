@@ -36,6 +36,8 @@ RUNTIME_NAMES = {
     "assumptions.lock",
     "certified_transfer_gate", "nl_budget",  # C601 bench_bridge.py
     "steps_drop_vs_bound",                 # C609 bench_bridge.py
+    "adaptive_span", "_cov_step_starts",   # C602 bench_bridge.py
+    "hier_span",                           # C613 bench_bridge.py
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,

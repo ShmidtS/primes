@@ -2163,3 +2163,28 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Freeze 8818 → 8818+4 (hierBlockLen, hierStarts,
   hier_covers_any_n, hier_peak_window_budget); 17 гейтов PASS
   (.tmp/C611/logs/).
+
+## C613 generate-hier bench-режим (применение C611: чтение любого объёма входа с peak ≤ m)
+
+- `scripts/bench_bridge.py`: `hier_span(n, w=64, m=64)` —
+  python-двойник `hierStarts` (B = w·(m−1) = 4032, s = w = 64;
+  re-use `_cov_step_starts` = двойник `covStartsStep`, C602;
+  docstring → `hier_covers_any_n` / `hier_peak_window_budget`);
+  fail-closed asserts: покрытие поблочно, peak ≤ m, бюджетная
+  формула (B−w)/s+2 = m. Режим `--mode generate-hier` (corpus-free,
+  как adaptive-span C610): телеметрия-таблица n = 540 / 4032 /
+  8128 / 100000 — blocks, per-block окон, total/peak, covered=true,
+  рядом честный verdict одноуровневого `adaptive_span` (C602):
+  OK (stride/окна) при n ≤ 4032, INFEASIBLE (его None-ветка)
+  выше границы n > w+(m−2)·w.
+- Числа: 540 → 1 блок, 9 окон (OK: s=8, 61); 4032 → 1 блок, 63
+  (OK: s=64, 63); 8128 → 3 блока [63, 63, 1], total 127, peak 63
+  (INFEASIBLE одноуровнево); 100000 → 25 блоков (24×63 + 51),
+  total 1563, peak 63 (INFEASIBLE). Verdict PASS.
+- Тест-сверка python == Lean: pinned assert n=8128 → blocks 3,
+  per_block [63, 63, 1], peak 63 (witness .tmp/C611/trajHier.lean)
+  в телеметрии + свежий #eval `hierStarts`-длин блоков
+  (.tmp/C613/HierEval.lean, rc=0): 3 / [63, 63, 1] / 63 —
+  совпадает дословно.
+- Freeze 8822 до/после (identity — Lean не менялся); 17 гейтов
+  PASS (.tmp/C613/logs/).

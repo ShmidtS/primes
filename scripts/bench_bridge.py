@@ -13030,6 +13030,140 @@ def adaptive_span_run():
             "rows": rows, "verdict": "PASS" if ok else "FAIL"}
 
 
+# C613: HIERARCHICAL BLOCK READ WINDOWS (--mode generate-hier)
+#
+# Application of C611 (Hagi.Theory.CoverageReading): the C602
+# one-level adaptive span is honestly INFEASIBLE beyond
+# n > w + (max_span-2)*w (w=m=64: n > 4032) -- no stride s <= w
+# fits the window budget. The C611 hierarchy removes that
+# boundary: read the input as blocks of B = w*(m-1) bytes, cover
+# EACH block with its own covStartsStep lattice (stride s = w),
+# stream blocks one at a time -- peak memory stays <= m windows
+# for ANY n, only the total grows with n (peak != total).
+#
+# Lean grounding (Hagi.Theory.CoverageReading, C611):
+# - hierStarts n B w s / hierBlockLen n B j = min B (n - j*B):
+#   flat concatenation of per-block covStartsStep starts
+#   (block j shifts its starts by j*B); numBlocks = ceil(n/B).
+# - hier_covers_any_n (0 < B, 0 < s <= w): EVERY byte i < n is
+#   covered by some window [t, t+w) -- NO upper bound on n.
+# - hier_peak_window_budget (w <= B, (B-w)/s + 2 <= m): each
+#   block's list has <= m windows -- streaming model, peak <= m.
+# - exact choice (C611): s = w, B = w*(m-1) => (B-w)/s + 2 = m
+#   exactly (w=m=64: B=4032, 63 lattice windows per full block).
+#
+# HONESTY PINS (fail-closed asserts):
+# - per-block starts come from _cov_step_starts (the verbatim
+#   covStartsStep twin, C602) on hierBlockLen lengths -- numbers
+#   are the Lean formulas, not re-invented;
+# - coverage is checked per block as the interval-equivalent of
+#   the Lean relation (first start <= 0, gaps <= w, tail reached);
+# - peak <= m asserted for EVERY instance (budget side), full
+#   coverage asserted byte-block-wise (covers side);
+# - the one-level verdict column calls the REAL adaptive_span
+#   (C602): OK with its actual stride/windows when feasible,
+#   INFEASIBLE (its honest None branch) past 4032.
+
+
+def hier_span(n, w=64, m=64):
+    """C613: hierarchical block windows for ANY n, peak <= m.
+
+    Lean grounding (Hagi.Theory.CoverageReading, C611):
+    - hierStarts n B w s with B = w*(m-1), s = w (exact budget:
+      (B-w)/s + 2 = m, hier_peak_window_budget premise);
+    - hier_covers_any_n (0 < B, 0 < s <= w): full coverage of
+      every byte i < n with no upper bound on n;
+    - per-block starts = _cov_step_starts(hierBlockLen n B j)
+      (covStartsStep twin, C602) shifted by j*B.
+
+    Returns dict with blocks, per_block window counts, total,
+    peak (max per-block, <= m), and covered (per-block check).
+    """
+    assert w > 0 and m >= 3, "ABORT: need w > 0, m >= 3"
+    B = w * (m - 1)
+    s = w
+    assert (B - w) // s + 2 == m, "ABORT: budget formula broken"
+    num_blocks = (n + B - 1) // B
+    per_block = []
+    covered = True
+    for j in range(num_blocks):
+        lj = min(B, n - j * B)             # hierBlockLen n B j
+        starts = _cov_step_starts(lj, w, s)
+        per_block.append(len(starts))
+        # interval-equivalent of hier_covers_any_n on this block:
+        # first window at 0, gaps <= w, last window reaches lj.
+        if starts[0] > 0 or starts[-1] + w < lj \
+                or any(starts[k + 1] - starts[k] > w
+                       for k in range(len(starts) - 1)):
+            covered = False
+    peak = max(per_block)
+    assert covered, "ABORT: coverage hole (hier_covers_any_n)"
+    assert peak <= m, \
+        f"ABORT: peak {peak} > m {m} (hier_peak_window_budget)"
+    return {"n": n, "w": w, "m": m, "B": B, "s": s,
+            "blocks": num_blocks, "per_block": per_block,
+            "total": sum(per_block), "peak": peak,
+            "covered": covered}
+
+
+def generate_hier_run():
+    """C613 telemetry: hier_span vs one-level adaptive-span.
+
+    Pre-registered instances n = 540 / 4032 / 8128 / 100000
+    (w = m = 64, B = 4032, s = 64). Each row: blocks, total/peak
+    windows, covered verdict (hierStarts formulas), and the REAL
+    C602 adaptive_span verdict next to it (OK with stride and
+    window count, or honest INFEASIBLE past n > 4032).
+
+    Cross-check: pinned Lean witness numbers from C611
+    (.tmp/C611/trajHier.lean, #eval hierStarts 8128 4032 64 64):
+    blocks 3, per-block windows [63, 63, 1], peak 63 -- asserted
+    at runtime against the python twin (fail-closed).
+    """
+    W, MS = 64, 64
+    cases = [540, 4032, 8128, 100000]
+    # Lean #eval (C611 witness): block window counts + peak.
+    LEAN_WITNESS = {8128: ([63, 63, 1], 63)}
+    rows = []
+    for n in cases:
+        h = hier_span(n, W, MS)
+        if n in LEAN_WITNESS:
+            lw, lpeak = LEAN_WITNESS[n]
+            assert h["per_block"] == lw and h["peak"] == lpeak, \
+                f"ABORT: python hierStarts != Lean witness {n}"
+        s, starts = adaptive_span(n, W, MS)   # real C602 verdict
+        rows.append({
+            "n": n,
+            "blocks": h["blocks"],
+            "per_block": h["per_block"],
+            "total_windows": h["total"],
+            "peak_windows": h["peak"],
+            "hier_covered": h["covered"],
+            "single_level": ("OK" if s is not None else
+                              "INFEASIBLE"),
+            "single_level_stride": s,
+            "single_level_windows": (None if starts is None
+                                      else len(starts)),
+        })
+    # PASS: every instance covered with peak <= m via the C611
+    # hierarchy; the one-level verdict flips to INFEASIBLE exactly
+    # past the honest C602 boundary n > w + (m-2)*w = 4032.
+    ok = all(r["hier_covered"] is True and r["peak_windows"] <= MS
+             and ((r["single_level"] == "OK"
+                   and r["n"] <= W + (MS - 2) * W)
+                  or (r["single_level"] == "INFEASIBLE"
+                      and r["n"] > W + (MS - 2) * W))
+             for r in rows)
+    return {"mode": "generate-hier", "w": W, "m": MS,
+            "B": W * (MS - 1), "s": W,
+            "rule": ("blocks B = w(m-1), stride s = w; coverage by "
+                     "hier_covers_any_n (any n), peak <= m by "
+                     "hier_peak_window_budget ((B-w)/s+2 = m); "
+                     "removes the one-level adaptive-span "
+                     "INFEASIBLE boundary n > w+(m-2)*w (C602)"),
+            "rows": rows, "verdict": "PASS" if ok else "FAIL"}
+
+
 # C610: modes whose corpus precondition is a STRUCTURAL domain
 # requirement (>= 2 const-cluster domains, TR_MIN_PTS points
 # each). Only these participate in the snapshot->live fallback
@@ -13086,7 +13220,8 @@ def main():
                              "adapter-transfer",
                              "adapter-transfer-auto",
                              "transfer-gate-certified",
-                             "adaptive-span"],
+                             "adaptive-span",
+                             "generate-hier"],
                     default="quad",
                     help="quad: C434 quadratic GD (default); "
                          "cert-ce: C442 certified CE loop; "
@@ -13803,6 +13938,10 @@ def main():
 
     if args.mode == "adaptive-span":
         print(json.dumps(adaptive_span_run(), indent=1))
+        return
+
+    if args.mode == "generate-hier":
+        print(json.dumps(generate_hier_run(), indent=1))
         return
 
     if args.mode == "transfer-gate-certified":
