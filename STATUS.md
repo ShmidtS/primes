@@ -2367,3 +2367,52 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   коде отсутствует — формализован фактический предикат.
 - Freeze 8875 -> 8880 (+5: 2 def, 3 theorem; 0 lost/changed);
   17 гейтов PASS (.tmp/C643/logs/ci.log).
+
+## C644 certified warmup composition and proposal from hagi v2 wave 255
+
+- Beat: C644 = roadmap C643 — закрыть h1 из C642 честно с нашей
+  стороны: теорема-композиция «warm-up из certified-шагов ⇒ h1 ⇒
+  warmup_safe» + docs-предложение для HAGI_v2 (user-push, их код не
+  правим). Base HEAD ad36e5bb, tree clean. HAGI_v2 (READ-ONLY)
+  @ca52eb4: hagi/lm.py `_certified_finite_step`.
+- КОНТРАКТ КОДА (точный, lm.py:826-879 @ca52eb4; «:793» в задаче —
+  не строка def: при ca52eb4 def на 826, HEAD тоже 826; :793 —
+  докстринг train_guarded). Сигнатура: (ctx, nxt, lr_scale=1.0,
+  max_backtracks=12) -> float. Параметры — ТОЛЬКО trunk (emb, W1,
+  b1, W2, b2), snapshot. Направление −∇ CE(full_logits(ctx)[:, -1],
+  nxt); ‖d‖² ≤ 1e-24 → 0.0 (HOLD). eta = lr_scale·4A/r2 (r2 — JVP
+  tangent width²; fallback 1.0). 13 проб: restore, θ += eta·d,
+  upper = finite_displacement_ce_upper(z0, z1, nxt) (lm.py:235 —
+  лемма диапазона CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ +
+  range(d)²/8, без линейности по θ), drop = −upper; drop > 1e-12 →
+  return drop (COMMIT), иначе eta *= 0.5; после цикла — restore и
+  0.0 (HOLD). Единственный вызов: lm.py:999 (refine byte-LM,
+  батчи по 32; комментарий lm.py:1002-1005: per-batch bounds НЕ
+  телескопируют). unified.py шаг НЕ зовёт.
+- Теоремы (Hagi/Theory/FunctionPreservingGrowth.lean, секция WarmUp,
+  ns Hagi.Theory.FunctionPreservingGrowth): `stepEps` (1e-12);
+  `CertifiedFiniteStep` — абстрактный контракт: COMMIT (drop >
+  stepEps ∧ obj θ' ≤ obj θ − drop) ∨ HOLD (θ' = θ ∧ drop = 0);
+  `warmup_h1_of_certified_steps` — каждый шаг по контракту ⇒ h1;
+  `warmup_safe_of_certified_steps`, — h0 + контракт ⇒ obj ≤ fOld
+  (C642 `warmup_safe`); `post_warmup_growth_safe_of_certified_steps`
+  — то же через rollback-гейт, оба вердикта; негативы:
+  `uncertified_step_not_certified` (шаг с ростом obj не проходит
+  контракт ни при каком drop), `batch_drop_not_global` (drop 1/2 на
+  batch-objective при росте другого functional на 1).
+- ЧТО НЕ ЗАКРЫТО (честно): в КОДЕ warm-up остаётся голым Adam
+  (unified.py:423-433) — h1 закрыт УСЛОВНО: траектория обязана
+  состоять из шагов по контракту НА ОДНОМ И ТОМ ЖЕ obj. Шаг кода
+  сертифицирует batch CE своего минибатча и пишет в trunk, а не в
+  блок; переносу на warm-up посвящено предложение.
+- Proposal docs/PROPOSAL-certified-warmup.md (+ строка 7 в
+  docs/PROPOSAL-index.md): warm-up через механизм certified step с
+  HOLD-семантикой на фиксированном objective вместо Adam; приоритет
+  высокий; стоимость — forward на пробу (+ JVP, если есть
+  functional-логиты блока — их нет); числа НЕ измерены (не запускали).
+- Witness .tmp/C644/traj.lean (lake env lean 4.36.0, rc=0,
+  logs/traj.log): n = 2, шаг 0 COMMIT drop = 1/2, шаг 1 HOLD; итог
+  obj = −1/2 ≤ 0 − 1/2 (точно); оба вердикта gate; негативы.
+  Аксиомы пяти теорем: [propext, Classical.choice, Quot.sound].
+- Freeze 8880 -> 8887 (+7: 2 def, 5 theorem; 0 lost/changed);
+  17 гейтов PASS (.tmp/C644/logs/ci.log).

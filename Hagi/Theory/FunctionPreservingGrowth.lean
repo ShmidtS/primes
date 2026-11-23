@@ -26,6 +26,14 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
 * (b) `blocksLip_grow_identity` — константа Липшица не меняется
   (`L_old · 1 = L_old`: lip-добавка на шаге 0 = 0, выведена);
   общий случай — per-block premise контракта (см. pins).
+* (e) Post warm-up сертификат роста (C642) — `warmup_safe`: при
+  identity-старте и certified-шагах train-objective ≤ fOld при
+  любом вердикте holdout-гейта.
+* (f) Контракт certified-шага (C644) — `CertifiedFiniteStep`
+  (COMMIT: drop выше порога ∧ obj θ' ≤ obj θ − drop; HOLD: точный
+  rollback, drop = 0) ⇒ h1 (`warmup_h1_of_certified_steps`) ⇒
+  композиция с (e); негативы: uncertified-шаг контракт не проходит,
+  per-batch drop на другой objective не телескопирует.
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -320,6 +328,96 @@ theorem post_warmup_growth_safe_of_certified (obj : B → ℝ)
       ⟨θ 0, (), 0⟩ ⟨θ n, (), 0⟩).params) ≤ fOld :=
   post_warmup_growth_safe obj θ drop fOld h0 hstep hdrop n gate
     fun _ => warmup_safe obj θ drop fOld h0 hstep hdrop n
+
+/-! ### Контракт certified-шага ⇒ h1 (C644)
+
+h1 из `warmup_safe` («каждый шаг certified») — гипотеза, пока шаги
+делает голый Adam (unified.py:423-431 @ca52eb4). Носитель шага,
+который её ЗАКРЫВАЕТ: _certified_finite_step (hagi/lm.py:826
+@ca52eb4). Контракт кода: направление −∇ (batch CE), eta из JVP,
+до 13 проб с половением eta; COMMIT iff drop > 1e-12, где
+drop = −upper, upper = finite_displacement_ce_upper (lm.py:235,
+лемма о диапазоне: CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ +
+range(d)²/8 — без предположения линейности); иначе точный rollback
+к snapshot и HOLD (возврат 0.0). Форма ниже абстрактная: obj —
+той же batch-CE, на которой выдан сертификат. -/
+
+/-- Порог приёма шага (число кода lm.py:872 @ca52eb4). -/
+def stepEps : ℝ := 1e-12
+
+/-- **`CertifiedFiniteStep`** — контракт ОДНОГО вызова
+_certified_finite_step: либо COMMIT — `drop` выше порога `stepEps`
+и `obj θ' ≤ obj θ − drop` (сертификат конечного смещения логитов),
+либо HOLD — параметры восстановлены точно (`θ' = θ`) и возвращён
+`drop = 0`. Никакого третьего исхода код не имеет. -/
+def CertifiedFiniteStep (obj : B → ℝ) (θ θ' : B) (drop : ℝ) : Prop :=
+  (stepEps < drop ∧ obj θ' ≤ obj θ - drop) ∨ (θ' = θ ∧ drop = 0)
+
+/-- **`warmup_h1_of_certified_steps`**: если КАЖДЫЙ шаг t траектории
+произведён certified-шагом (`CertifiedFiniteStep`), то h1 из
+`warmup_safe` ВЫПОЛНЕНА: `obj (θ (t+1)) ≤ obj (θ t) − drop t` и
+`0 ≤ drop t`. COMMIT-ветка даёт оба неравенства (drop > stepEps > 0),
+HOLD-ветка — равенство `obj (θ (t+1)) = obj (θ t)` при drop = 0. -/
+theorem warmup_h1_of_certified_steps (obj : B → ℝ) (θ : ℕ → B)
+    (drop : ℕ → ℝ)
+    (hcert : ∀ t, CertifiedFiniteStep obj (θ t) (θ (t + 1)) (drop t)) :
+    (∀ t, obj (θ (t + 1)) ≤ obj (θ t) - drop t) ∧ (∀ t, 0 ≤ drop t) := by
+  refine ⟨fun t => ?_, fun t => ?_⟩
+  · rcases hcert t with ⟨hpos, hle⟩ | ⟨heq, h0⟩
+    · exact hle
+    · rw [heq, h0]; linarith
+  · rcases hcert t with ⟨hpos, _⟩ | ⟨_, h0⟩
+    · have hE : (0:ℝ) < stepEps := by unfold stepEps; norm_num
+      linarith
+    · rw [h0]
+
+/-- **`warmup_safe_of_certified_steps`** — композиция с C642: при
+identity-старте (h0) certified-траектория даёт `obj (θ n) ≤ fOld`
+(`warmup_safe` с hstep/hdrop из `warmup_h1_of_certified_steps`). -/
+theorem warmup_safe_of_certified_steps (obj : B → ℝ) (θ : ℕ → B)
+    (drop : ℕ → ℝ) (fOld : ℝ) (n : ℕ)
+    (h0 : obj (θ 0) = fOld)
+    (hcert : ∀ t, CertifiedFiniteStep obj (θ t) (θ (t + 1)) (drop t)) :
+    obj (θ n) ≤ fOld := by
+  obtain ⟨hstep, hdrop⟩ := warmup_h1_of_certified_steps obj θ drop hcert
+  exact warmup_safe obj θ drop fOld h0 hstep hdrop n
+
+/-- **`post_warmup_growth_safe_of_certified_steps`** — та же
+композиция через rollback-гейт _maybe_grow: при любом вердикте гейта
+train-objective ≤ fOld (`post_warmup_growth_safe_of_certified`). -/
+theorem post_warmup_growth_safe_of_certified_steps (obj : B → ℝ)
+    (θ : ℕ → B) (drop : ℕ → ℝ) (fOld : ℝ) (n : ℕ) (gate : Bool)
+    (h0 : obj (θ 0) = fOld)
+    (hcert : ∀ t, CertifiedFiniteStep obj (θ t) (θ (t + 1)) (drop t)) :
+    obj ((Hagi.Theory.RollbackGate.guardedStep gate
+      ⟨θ 0, (), 0⟩ ⟨θ n, (), 0⟩).params) ≤ fOld := by
+  obtain ⟨hstep, hdrop⟩ := warmup_h1_of_certified_steps obj θ drop hcert
+  exact post_warmup_growth_safe_of_certified obj θ drop fOld h0 hstep hdrop n gate
+
+/-- **Негатив (без сертификата)**: шаг из негатива C642
+(identity-старт, `obj (θ 1) = 1 > 0`) НЕ удовлетворяет контракту
+`CertifiedFiniteStep` ни при каком drop — т.е. контракт отсекает
+шаг, портящий objective, а не просто его игнорирует. -/
+theorem uncertified_step_not_certified (drop : ℝ) :
+    ¬ CertifiedFiniteStep id 0 1 drop := by
+  rintro (⟨hpos, hle⟩ | ⟨heq, _⟩)
+  · have : (0:ℝ) < stepEps := by unfold stepEps; norm_num
+    simp only [id_eq] at hle
+    linarith
+  · exact absurd heq (by norm_num)
+
+/-- **Негатив (per-batch)**: сертификат шага — на batch-CE СВОЕГО
+минибатча (WAVE 239, lm.py:1002-1005: «per-batch bounds do NOT
+ telescope»). Для ДРУГОГО функционала тот же шаг даёт рост:obj_b
+упал на 1/2, а obj вырос на 1. Значит `hcert` с ОДНИМ obj —
+реальное ограничение: телескоп C642 законен только если все шаги
+сертифицированы на одном и том же функционале. -/
+theorem batch_drop_not_global :
+    ∃ (objB obj : ℝ → ℝ) (θ θ' : ℝ) (d : ℝ),
+      0 < d ∧ objB θ' ≤ objB θ - d ∧ obj θ < obj θ' := by
+  refine ⟨fun x => -x, id, 0, 1, 1 / 2, by norm_num, ?_, ?_⟩
+  · norm_num
+  · simp only [id_eq]; norm_num
 
 end WarmUp
 
