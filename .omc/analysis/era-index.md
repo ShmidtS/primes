@@ -169,3 +169,15 @@
   перестановок по 32, любой d > 0 принимается — уровень (C), не (A)/(B).
 - Honest: iid — идеализация; b/sig для EB код не считает; union bound по
   шагам не собран.
+
+<a id="c648"></a>
+## C648 — union bound по раундам (freeze 8899→8907)
+
+- Коммит: C648 `Contracts/BatchGlobalTelescope.lean` (+5 theorem, +3 def).
+- Вердикт: в модели независимых раундов (`roundP`) union bound
+  (`rounds_union`, через `prodPq_union_finset`) + телескоп
+  (`rounds_telescope`) ⇒ `certified_rounds_union`: P ≥ 1−α все раунды
+  хорошие ⇒ obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k).
+- Honest: независимость раундов — гипотеза-модель (код зависим через θ);
+  WOR-консервативность не формализована (Mathlib леммы нет); код не
+  считает b/sig и не делит α по раундам.

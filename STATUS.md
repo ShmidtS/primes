@@ -2507,3 +2507,51 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Classical.choice, Quot.sound].
 - Freeze 8891 -> 8899 (+6 theorem, +2 def; 0 lost/changed); 17 гейтов
   PASS (.tmp/C647/logs/ci.log).
+
+## C648 certified rounds union bound
+
+- Beat: C648 = продолжение C647, уровень (C) — случайный batch на каждом
+  шаге. Base HEAD 2a554dc7, tree clean. Код-факт тот же
+  (HAGI_v2 @ca52eb4, lm.py:978-1008): 8 раундов permutation-срезов по 32,
+  `_certified_finite_step` per-batch, принимается любой d > 0.
+- МОДЕЛЬ (гипотеза, не факт кода): раунды НЕЗАВИСИМЫ — пространство
+  `Fin k → Fin n → V` с произведением мер `roundP` (плотность раунда
+  `roundDens` = iid-выборка из `q`). Для кода независимость от обновления θ
+  НЕ гарантирована: permutation-раунды зависимы через θ; bound УСЛОВНЫЙ
+  на модель. Внутри раунда iid — консервативная идеализация WOR (см. T2).
+- Теоремы (Hagi/Contracts/BatchGlobalTelescope.lean, ns
+  Hagi.Contracts.BatchGlobalTelescope): `roundP_isProb`,
+  `round_marginal` (маргинал раунда под произведением = мера одного
+  раунда); `rounds_union` — union bound: `A i` о выборке раунда `i`,
+  `∀i, 1 − eps i ≤ P[A i]` ⇒ `1 − ∑ eps ≤ P[∀ i, A i]`
+  (через `prodPq_union_finset` + `round_marginal`);
+  `rounds_telescope` — `obj (i+1) ≤ obj i − dropB i + g` ⇒
+  `obj k ≤ obj 0 − ∑ dropB + k·g` (из `batch_telescope_fixed`);
+  `roundGood` (def) — хороший раунд; `certified_rounds_union` — T1:
+  при посылках EB для каждого раунда (b, sig по per-sample приращениям)
+  с вероятностью ≥ `1 − alpha` каждый раунд хорош, и тогда при
+  «certified ≤ фактического drop по выборке» в каждом раунде
+  `obj k ≤ obj 0 − ∑ dropB + k·ebGap b sig n (alpha/k)`. Реальный вывод
+  для кода: суммарный certified drop 8 раундов ослабляется на
+  `8·ebGap(α/8)` (α = 1/10 ⇒ на раунд α/8 = 1/80).
+- T2 (консервативность выборки без возвращения) — НЕ доказано, honest-карточка:
+  в Mathlib (rg по `without replacement|sampleWOR|finite population|
+  hypergeometric|Finset.random|orderPreserving`) нет готовой леммы о
+  дисперсии выборки без возвращения (finite population correction
+  (N−n)/(N−1) ≤ 1). Консервативность WOR относительно iid-EB — интуиция,
+  не формализовано; цена: нужна order-statistics/FCP-лемма (варианта
+  среднего по равномерной n-подвыборке ≤ вар. среднего по iid). Не
+  выдумывал.
+- ЧТО ИМЕННО ЗАКРЫТО/НЕТ: закрыт union bound по k раундам В МОДЕЛИ
+  независимых раундов и телескоп глобального objective со slack k·ebGap.
+  НЕ доказано: (1) независимость раундов для кода — гипотеза-модель;
+  (2) консервативность WOR (T2); (3) коду требуется СЧИТАТЬ `b` и `sig`
+  для per-sample приращений loss на каждом раунде (сейчас не считает) и
+  разделывать α по раундам (α/8).
+- Witness .tmp/C648/traj.lean (lake env lean 4.36.0, rc=0): k = 8,
+  α = 1/10 ⇒ α/k = 1/80; V = Bool, q uniform, loss v t = t·δ v,
+  δ = ±1, b = sig = 1, n = 4, dropB = 0; `ebGap 1 1 4 (1/80) =
+  √(2·ln 160/4) + 2·ln 160/4`, slack `8·ebGap > 0`. Аксиомы: [propext,
+  Classical.choice, Quot.sound].
+- Freeze 8899 -> 8907 (+5 theorem, +3 def; 0 lost/changed); гейты PASS
+  (.tmp/C648/logs/ci.log).
