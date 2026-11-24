@@ -202,9 +202,8 @@ lake build
 
 - **Версия Lean** — файл `lean-toolchain` (локальная сборка
   `lean-4.36.0-windows`); канонический пин коммита компилятора —
-  `scripts/mathlib-rev.txt`, строка 2 (`toolchain eb6cafb…`).
-- **Версия Mathlib** — `scripts/mathlib-rev.txt`, строка 1
-  (`56a0058…`).
+  `scripts/mathlib-rev.txt`, строка 2 (без суффикса сборки).
+- **Версия Mathlib** — `scripts/mathlib-rev.txt`, строка 1.
 - **Сборка** — `lake build` (цели по умолчанию заданы в `lakefile.toml`); полная батарея проверок — шаги
   `scripts/ci.sh`.
 
