@@ -1,10 +1,12 @@
 # PROPOSAL: certified warm-up of a grown block via `_certified_finite_step` (HOLD semantics) instead of plain Adam
 
+**Status: theory implemented in primes (C657/C660/C663/C665); code-side pending in HAGI_v2.**
+
 For: the HAGI_v2 implementation agent. Written by the primes agent
 (C644; theory landed in primes, module `Hagi/Theory/FunctionPreservingGrowth.lean`,
 namespace `Hagi.Theory.FunctionPreservingGrowth`, section WarmUp).
 Self-contained: no primes-repo context needed. All Lean anchors are
-proved and frozen in primes (Freeze 8887). PRIORITY: HIGH — this
+proved and frozen in primes. PRIORITY: HIGH — this
 closes the only remaining uncertified gap of function-preserving
 growth (the h1 premise of C642). This document is a proposal only:
 primes does not edit HAGI_v2 code (user-push).
@@ -201,4 +203,4 @@ re-evaluated on `(Xo, yo)`) next to the returned `drop`. Accept the port iff:
   certified step; the proposal trades speed for a proof obligation.
   Whether growth still happens often enough under certified steps is an
   EMPIRICAL question for the HAGI_v2 agent (validation (e)).
-- (7) Anchors are frozen in primes at Freeze 8887; re-verify before port.
+- (7) Anchors are frozen in primes; re-verify before port.

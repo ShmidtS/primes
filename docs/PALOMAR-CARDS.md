@@ -1,4 +1,4 @@
-# Palomar-cards — C5XX-теория как кандидаты для реестра Lean-результатов
+# Palomar-cards — C5XX–C6XX-теория как кандидаты для реестра Lean-результатов
 
 [Palomar](https://palomar-registry.org/) — публичный реестр
 Lean-верифицированной математики (Lean FRO + ICARM). Запись
@@ -13,7 +13,7 @@ comparator.json, formalization.yaml (arXiv-категории, MSC2020,
 ранжирует и не одобряет результаты.
 
 Этот файл — подготовительные карточки (draft entries) семнадцати
-machine-checked результатов C5XX-витков: самодостаточные
+machine-checked результатов C5XX–C6XX-витков: самодостаточные
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
 проверены Lean 4.36 (pinned Mathlib, см. lake-manifest.json);

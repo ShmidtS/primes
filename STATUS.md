@@ -1929,7 +1929,7 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   MasterTheoremV3 импортирует только Hagi.lean; транзитивные импорты
   FunctionPreservingGrowth (70 модулей) / AdamDirection (1) /
   HoldoutGateTwoWay (53) не содержат MasterTheoremV3* ⇒ v3.4 в том же
-  файле. Witness: C662 traj (.tmp/C662/traj.lean, #check 14 клозов;
+  файле. Witness: C662 traj (#check 14 клозов;
   (14): ln 400 ≤ 2·1200·0.05²). Axioms: propext, Classical.choice,
   Quot.sound. Proposal: docs/PROPOSAL-holdout-size.md (#8).
 
@@ -2078,8 +2078,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Beat: C638 = Lean-мост от сертификата шага HAGI_v2 (коммиты
   4c70f7a wave252, 1ae924e wave254, hagi/lm.py:1261-1345 и
   hagi/selfmodel.py:78-175) к primes. Base HEAD 0b28a7a7, tree clean.
-  Freeze 8849 -> 8861 (+12 decl, 0 lost/changed). Файл:
-  [`AdaptiveMajorizer.lean`](Hagi/Theory/AdaptiveMajorizer.lean),
+  Файл: [`AdaptiveMajorizer.lean`](Hagi/Theory/AdaptiveMajorizer.lean),
   секция «Code bridge» (строки 1190-1540).
 - Карточка файл -> теорема -> код-якорь HAGI_v2 (1ae924e):
   - `ceDispRange` (1201) + `ceDispRange_nonneg` (1210) +
@@ -2108,7 +2107,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   s*A/(2C) равен (2s - s^2)*(A^2/(4C)) и лежит между s^2 и 1
   дробей A^2/(4C); при s=0.05 это 39/400 (в 400/39 ~ 10.26 раз
   меньше старого claim A^2/(4C) — измерено в 4c70f7a как «~10x»).
-- Честные границы (negative), witness .tmp/C638/traj.lean (lake env
+- Честные границы (negative), witness (lake env
   lean, rc=0):
   - реальный код на конфиге теста wave252 (dim 32, hidden 64, seed
     0, lr_scale 0.05), инструментированный прогон 12 шагов:
@@ -2136,8 +2135,6 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Armijo-условия (гейт — validation loss), поэтому Armijo-теорема
   не имела бы код-якоря; соответствие evaluated finite MGDA
   траекторий (FixedBatch.lean) коду mgda_weights — кандидат C639.
-- Freeze 8861 (+12: 4 def, 8 theorem); 17 гейтов PASS
-  (.tmp/C638/logs/).
 
 ## C639 mgda code correspondence bridge from hagi v2 wave 254
 
@@ -2189,7 +2186,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
     (146): инстанциация на канон `batchGradientMinimizer X θ y`
     через `batchResidualGradient`. Якорь: selfmodel.py:113 (`alpha =
     mgda_weights(grads)`), FixedBatch.lean:147.
-- Witness .tmp/C639/traj.lean (lake env lean, rc=0): тест-пара
+- Witness (lake env lean, rc=0): тест-пара
   tests/test_selfmodel_gate.py:74-77 (a=e0, b=e1): α=(1/2,1/2)
   — probe кода: stop на итерации 0, gap 0.0; hstat проверяет
   стоп-тест точно, мост даёт `d = segmentMinNorm e0 e1`.
@@ -2197,7 +2194,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (2) α=[1,0] — на симплексе, но `MgdaStationary` ЛОЖЬ
   (⟨e1,e0⟩=0 < 1), мост неприменим и ‖d‖²=1 > 1/2;
   (3) при ε>0 — только 2ε-оценка, равенства нет.
-  Probe кода (read-only, .tmp/C639/probe.py / probe.json): 6 кейсов
+  Probe кода (read-only): 6 кейсов
   (orthogonal, identical, conflict, 4d e1/e2, scaled 500 vs 5e-4,
   60°) — все останавливаются на итерации 0 с gap 0.0.
 - Честные границы: (a) нормировка — код решает на `g/‖g‖`, канон
@@ -2210,8 +2207,6 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (c) float32: `1e-16` < eps(f32)≈1.2e-7, т.е. тест в коде
   фактически `≥ ‖d‖²` с округлением — мост формализует
   вещественный тест, не float-семантику.
-- Freeze 8861 -> 8869 (+8: 3 def, 5 theorem; 0 lost/changed);
-  17 гейтов PASS (.tmp/C639/logs/).
 
 ## C640 function preserving growth bridge from hagi v2 wave 255
 
@@ -2273,7 +2268,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   - Bench-соответствие: scripts/bench_bridge.py --mode grow (C444)
     исполняет `blockAdmissionRule`; wave 255 использует другой гейт
     (GrowthGate-сигнал + holdout), унификация gate-ов — вне бита.
-- Witness .tmp/C640/traj.lean (lake env lean 4.36.0, rc=0, logs/traj.log):
+- Witness (lake env lean 4.36.0, rc=0):
   growBlock W1 b1 Wo x = x + reluBranch — форма кода; growBlock_eq:
   при `Wo = γ • Wo'` блок = `benchResidualBlock γ (branch)` —
   положительное: grow_2_to_3 (глубина 2 → 3, Wo = 0, W1 произвольная),
@@ -2282,8 +2277,6 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   b1 = 1, Wo = 1 → выход = card r ≠ 0 — ненулевая выходная матрица
   (после warm-up) функцию НЕ сохраняет. Аксиомы всех пяти:
   [propext, Classical.choice, Quot.sound].
-- Freeze 8869 (без изменений: только карточка); 17 гейтов PASS
-  (.tmp/C640/logs/ci.log).
 
 ## C642 post warmup growth certificate from hagi v2 wave 255
 
@@ -2328,13 +2321,11 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   - L-smooth нового блока и рост функции ≠ сохранение функции:
     «функция сохранена после warm-up» по-прежнему НЕТ и быть не
     может (C640 negativeTransfer-вердикт не меняется).
-- Witness .tmp/C642/traj.lean (lake env lean 4.36.0, rc=0,
+- Witness (lake env lean 4.36.0, rc=0,
   logs/traj.log): n = 3 шага, θ t = −t, drop = 1 ⇒ θ 3 = −3 ≤ 0 и
   ≤ 0 − 3·1 (точно); witness_gate — оба вердикта gate сохраняют
   obj ≤ 0; witness_negative — без h1 рост obj возможен. Аксиомы
   всех шести: [propext, Classical.choice, Quot.sound].
-- Freeze 8869 -> 8875 (+6: 6 theorem; 0 lost/changed); 17 гейтов
-  PASS (.tmp/C642/logs/ci.log).
 
 ## C643 armijo backtracking bridge from hagi v2 wave 254
 
@@ -2375,7 +2366,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Лемма adam_inner_nonneg НЕ доказана и не включена: код не
   подаёт сырой градиент в Adam напрямую (EMA m̂/√v̂ по направлению
   MGDA), покомпонентная знаковая лемма код-фактом не является.
-- Witness .tmp/C643/traj.lean (lake env lean 4.36.0, rc=0,
+- Witness (lake env lean 4.36.0, rc=0,
   logs/traj.log): btScale 0/1/8/9 = 1, 1/2, 1/256, 1/512; 9 проб;
   принятая проба wb = 2, wa = 1.9 ⇒ drop = 0.1 > 0; hstep/hdrop
   `warmup_safe` следуют из по-шагового приёма. Негатив: без предиката
@@ -2383,8 +2374,6 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   [propext, Classical.choice, Quot.sound].
 - Отклонение от плана: заявленный Armijo-предикат (σ, β, γ_min) в
   коде отсутствует — формализован фактический предикат.
-- Freeze 8875 -> 8880 (+5: 2 def, 3 theorem; 0 lost/changed);
-  17 гейтов PASS (.tmp/C643/logs/ci.log).
 
 ## C644 certified warmup composition and proposal from hagi v2 wave 255
 
@@ -2393,8 +2382,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   warmup_safe» + docs-предложение для HAGI_v2 (user-push, их код не
   правим). Base HEAD ad36e5bb, tree clean. HAGI_v2 (READ-ONLY)
   @ca52eb4: hagi/lm.py `_certified_finite_step`.
-- КОНТРАКТ КОДА (точный, lm.py:826-879 @ca52eb4; «:793» в задаче —
-  не строка def: при ca52eb4 def на 826, HEAD тоже 826; :793 —
+- КОНТРАКТ КОДА (точный, lm.py:826-879 @ca52eb4).
   докстринг train_guarded). Сигнатура: (ctx, nxt, lr_scale=1.0,
   max_backtracks=12) -> float. Параметры — ТОЛЬКО trunk (emb, W1,
   b1, W2, b2), snapshot. Направление −∇ CE(full_logits(ctx)[:, -1],
@@ -2428,12 +2416,10 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   HOLD-семантикой на фиксированном objective вместо Adam; приоритет
   высокий; стоимость — forward на пробу (+ JVP, если есть
   functional-логиты блока — их нет); числа НЕ измерены (не запускали).
-- Witness .tmp/C644/traj.lean (lake env lean 4.36.0, rc=0,
+- Witness (lake env lean 4.36.0, rc=0,
   logs/traj.log): n = 2, шаг 0 COMMIT drop = 1/2, шаг 1 HOLD; итог
   obj = −1/2 ≤ 0 − 1/2 (точно); оба вердикта gate; негативы.
   Аксиомы пяти теорем: [propext, Classical.choice, Quot.sound].
-- Freeze 8880 -> 8887 (+7: 2 def, 5 theorem; 0 lost/changed);
-  17 гейтов PASS (.tmp/C644/logs/ci.log).
 
 ## C646 certified step on block params via logit range lemma
 
@@ -2464,20 +2450,18 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   через block-only JVP при замороженном trunk (Δz = ∂z/∂θ_block ·
   Δθ_block) и вариант `_certified_finite_step` по параметрам блока.
   Существование полезного блока — не доказывается (тот же pin).
-- Witness .tmp/C646/traj.lean (lake env lean 4.36.0, rc=0,
+- Witness (lake env lean 4.36.0, rc=0,
   logs/traj.log): L b = (0, b), шаг 0 → 1/2, range 1/2 ≤ 1, upper =
   −1/4 + 1/8 ⇒ drop = 1/8 > `stepEps`, COMMIT; шаг 1 HOLD;
   `warmup_h1_of_certified_steps` / `warmup_safe_of_certified_steps`
   на блоке; негатив. Аксиомы: [propext, Classical.choice, Quot.sound].
-- Freeze 8887 -> 8891 (+4 theorem; 0 lost/changed); 17 гейтов PASS
-  (.tmp/C646/logs/ci.log).
 
 ## C647 batch to global drop telescoping
 
 - Beat: C647 = roadmap C645 top-2 — телескоп batch→global, разбор
   негатива C644 `batch_drop_not_global`. Base HEAD e84eac25, tree
   clean. HAGI_v2 (READ-ONLY) @ca52eb4: `_certified_finite_step`
-  (hagi/lm.py:831), вызов lm.py:999 в refine-фазе train_guarded.
+  (hagi/lm.py:826), вызов lm.py:999 в refine-фазе train_guarded.
 - КОД-ФАКТ (lm.py:978-1008 @ca52eb4): до 64 позиций
   `rng.choice(..., size=min(64, N), replace=False)` — БЕЗ возвращения;
   8 раундов `rng.permutation`, срезы по 32 (`bx = refine_X[perm[s:s+32]]`);
@@ -2518,13 +2502,11 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   батче из 32, а EB посылки (b, sig) — про per-sample приращения, их
   надо СЧИТАТЬ на коде (не делается); (3) уровень (C) — 8 раундов с
   новой перестановкой: union bound по шагам не собран.
-- Witness .tmp/C647/traj.lean (lake env lean 4.36.0, rc=0,
+- Witness (lake env lean 4.36.0, rc=0,
   logs/traj.log): T1 n = 3 (f t = 10 − t, d = 1 ⇒ f 3 + 3 = 10 точно);
   T2 V = Bool, q uniform, δ = ±1, b = sig = 1, n = 4, α = 1/2;
   композиция loss v θ = θ·δ v, θ = 0 → 1, dropB = 0. Аксиомы: [propext,
   Classical.choice, Quot.sound].
-- Freeze 8891 -> 8899 (+6 theorem, +2 def; 0 lost/changed); 17 гейтов
-  PASS (.tmp/C647/logs/ci.log).
 
 ## C648 certified rounds union bound
 
@@ -2566,19 +2548,17 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (2) консервативность WOR (T2); (3) коду требуется СЧИТАТЬ `b` и `sig`
   для per-sample приращений loss на каждом раунде (сейчас не считает) и
   разделывать α по раундам (α/8).
-- Witness .tmp/C648/traj.lean (lake env lean 4.36.0, rc=0): k = 8,
+- Witness (lake env lean 4.36.0, rc=0): k = 8,
   α = 1/10 ⇒ α/k = 1/80; V = Bool, q uniform, loss v t = t·δ v,
   δ = ±1, b = sig = 1, n = 4, dropB = 0; `ebGap 1 1 4 (1/80) =
   √(2·ln 160/4) + 2·ln 160/4`, slack `8·ebGap > 0`. Аксиомы: [propext,
   Classical.choice, Quot.sound].
-- Freeze 8899 -> 8907 (+5 theorem, +3 def; 0 lost/changed); гейты PASS
-  (.tmp/C648/logs/ci.log).
 
-## C651 bridges: repair forgetting (wave 257) and window order (wave 258)
+## C651 bridges: repair forgetting (wave 257) and window order (wave 258; superseded by C664)
 
 - Beat: C651 = волны 256–258 (HAGI_v2 READ-ONLY: e9a96fc, b3740e0;
   HEAD b3740e0, dirty worktree — чтение только через git show).
-  Base HEAD 8fb0f1fa, tree clean. Freeze 8907.
+  Base HEAD 8fb0f1fa, tree clean.
 - Волна 256 (e9a96fc, lm.py:694): lr train_guarded 3e-3 → 1e-3 — Adam
   двигает каждый вес ~lr за шаг независимо от градиента, длинный
   прогон раздувает веса до сатурации softmax. Гиперпараметр, моста
@@ -2660,7 +2640,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   p ≥ k между новейшим байтом контекста и целью зазор в k байт.
   Замерено на копии hagi/ @b3740e0 (git show; small model dim 32,
   hidden 64, периодика 64, 6 эпох, 512 позиций, k = 96;
-  .tmp/C651/logs/windows_probe.log): e9a96fc newest-first CE 4.455;
+  e9a96fc newest-first CE 4.455;
   b3740e0 `_windows` CE 7.307; train-порядок с соседней целью
   (y = idx[p]) CE 0.181; gate `_old_domains_ce` CE 0.181. Фикс сделал
   вход гейта ХУЖЕ для всех потребителей `_windows` (adapter gate
@@ -2680,20 +2660,16 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   HONEST: это инвариант ПОРЯДКА только; инвариант смежности цели
   (target = idx[p] для окна, кончающегося на p−1) — тот, который
   b3740e0 нарушает, Lean-утверждением здесь не является.
-- Witness .tmp/C651/witness.lean (lake env lean 4.36.0, rc=0,
-  logs/witness.log): tol = 1/10000, бюджет 6, прогон 3.28 → 3.10 →
+- Witness (lake env lean 4.36.0, rc=0): tol = 1/10000, бюджет 6,
+  прогон 3.28 → 3.10 →
   2.90 → 2.80 (3 принятых, затем done) ⇒ 2.80 ≤ 3.28 − tol·3; rollback-
   прогон 3.28 (кандидат 3.2799) ⇒ значение сохранено, 0 принятых;
   k = 96: slot_last = 95, slotRev_first = 95, slotRev_last = 0.
   Аксиомы: [propext, Classical.choice, Quot.sound] (window-часть без
   Classical.choice).
-- Research: .tmp/C651/research.md (anchors file:line@sha по всем трём
-  волнам). Попутно: docs/paper-draft.md Appendix A — rollback_gate_sound
+- Попутно: docs/paper-draft.md Appendix A — rollback_gate_sound
   :98 → :100 (rg на HEAD), IterState :117 сверен (совпадает).
-- Итог цикла (замерено на закоммиченном дереве): Freeze 8907 -> 8921
-  (+9 theorem, +4 def, +1 inductive; 0 lost/changed). Gates: CI PASS
-  17/17, LAKE_JOBS=8 lake build Hagi rc=0 (.tmp/C651/logs/ci.log,
-  build.log). Якоря file:line сверенены по `git show` e9a96fc /
+- Якоря file:line сверенены по `git show` e9a96fc /
   b3740e0 (lm.py:694, unified.py:256/:402-406/:408-458/:635-660,
   archiver.py:19/:33-39/:52-70/:96-118/:188, lm.py:738-755); числа
   +0.553 / +0.036 / +0.343 / +2.62 / 20/89 — из commit message
@@ -2797,8 +2773,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   length_le_one`); Mathlib не содержит entropy-as-codelength —
   выведено здесь через Gibbs из primes.
 - Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
-  ключевых теорем (.tmp/C653/logs/axioms.log). Witness
-  .tmp/C653/traj.lean. Log: .tmp/C653/logs/build.log.
+  ключевых теорем.
 
 ## C654 bench certified-warmup-sim (simulation, adapter-grow carrier)
 
@@ -2852,7 +2827,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   torch: param_groups betas (0.9, 0.999), eps 1e-08). AdamW (с weight_decay) — только
   memory_store/memory_policy.py:188.
 - Модуль Hagi/Step/AdamDirection.lean (ns Hagi.Step), 11 деклараций.
-  ВЕРДИКТ: `⟨g, d⟩ ≥ 0` — код-факт ТОЛЬКО на первом шаге (t = 1);
+  ВЕРДИКТ: `⟨g, d⟩ ≥ 0` — ТОЛЬКО на первом шаге (t = 1);
   на t ≥ 2 общий шаг Адама НЕ является сертифицированным спуском.
   - `ema_one_unbiased`: m₁ = (1−β)·g₁, m̂₁ = m₁/(1−β¹) = g₁.
   - T1 `adam_first_step_dot_nonneg`: m̂ = g, v̂ = g² ⇒
@@ -2876,13 +2851,11 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   направления MGDA ДО записи в p.grad и ДО Адама — т.е. код НИКОГДА
   не опирается на ⟨g, d_Adam⟩ ≥ 0. ⇒ C642 h1 для Adam-шага требует
   backtrack_accept; цепочка C642 → C643 → C655 замкнута.
-- - Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
-  ключевых теорем (.tmp/C655/axioms.log).
-- Gates: lake build Hagi PASS (lean 4.36.0), Freeze PASS (8948 = 8937
-  + 11 new, 0 lost/changed; локальный declarations.lock,
-  не в git, был stale на 68 имён C642-C653 — обновлён), ReachLint, LayerLint, NsLint, DocLint,
-  DupLint, STMDUP, Challenge, TrivialLint, StatusLint PASS. Witness
-  .tmp/C655/traj.lean. Log: .tmp/C655/gates.log.
+- Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
+  ключевых теорем.
+- Gates: lake build Hagi PASS (lean 4.36.0), Freeze PASS, ReachLint,
+  LayerLint, NsLint, DocLint, DupLint, STMDUP, Challenge, TrivialLint,
+  StatusLint PASS.
 
 ## C657 useful first warmup step: certified drop > 0 (honest, U1)
 
@@ -2924,19 +2897,14 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   ландшафте (многих шагов) + UAT на конечной сетке — ни того, ни
   другого в primes нет; код: W1 random ⇒ a ≠ 0 почти наверняка, но
   это вероятностное утверждение кода, не теорема.
-- Honest pins: (1) связь `a < 0` с C655 `adam_first_step_dot_pos`
-  (`⟨g, d⟩ > 0` ⇒ `a = ⟨Jᵀ(p−y), d⟩ < 0` по chain rule) НЕ
-  формализована — `L` нелинейна по параметрам, `a < 0` входит как
-  гипотеза «descent в логитах»; (2) линейность смещения по η —
-  гипотеза hlin (код-side: JVP по Wo при Wo = 0), не теорема;
-  (3) η* — certificate-оптимум, не шаг кода (Adam step-size
-  фиксирован lr).
+- Pins: (1) `a < 0` ← `⟨g, d⟩ > 0` по chain rule и (2) линейность по η
+  — закрыты C663 (линейный носитель; нелинейный — C665, без
+  certified-величины drop); (3) η* — certificate-оптимум, не шаг кода.
 - Аксиомы: [propext, Classical.choice, Quot.sound] для всех пяти
-  ключевых теорем (.tmp/C657/traj.log).
-- Witness .tmp/C657/traj.lean: A = −1, R = 2 ⇒ η* = 1,
+  ключевых теорем.
+- Witness: A = −1, R = 2 ⇒ η* = 1,
   drop_max = 1/2 > stepEps; η = 1/2 ⇒ 3/8; η = 2 ⇒ 0; η = 4 ⇒ −4
-  (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
-  .tmp/C657/gates.log.
+  (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η.
 
 ## C667 width-рост grow_width: полный function-preserving (T1 attention, T2 rotary, T3 logits)
 
@@ -2993,16 +2961,14 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   depth-носитель — `CertifiedBlock`/`lmTrunk` (LMCompose), width-носитель
   — `WParams` (NadyaOptimal); дословной унификации носителей нет
   (KISS, как и pins FunctionPreservingGrowth).
-- Аксиомы (AllAxiomCheck + .tmp/C667/traj.log): все три —
+- Аксиомы (AllAxiomCheck): все три —
   [propext, Classical.choice, Quot.sound].
-- Witness .tmp/C667/traj.lean (rc=0): qScale 12 24 = √2; T1 hd0=12,
+- Witness (rc=0): qScale 12 24 = √2; T1 hd0=12,
   hd1=24 (scores равны); T2 half0=6, half1=12; T3 WParams 6→12.
-- Gates (.tmp/C667/gates.log): scripts/ci.sh → CI: PASS rc=0
+- Gates: scripts/ci.sh → CI: PASS rc=0
   (ReachLint 559, TrivialLint, triviality, MathlibPin fc4f59e5, DupLint,
-  NsLint, DocLint, LayerLint, FREEZE PASS 9043, AssumptionScan,
+  NsLint, DocLint, LayerLint, FREEZE, AssumptionScan,
   MergeModule, StatusLint, Challenge, StmtDup, MachineDiff, ALLAXIOMS).
-- Freeze: 9043 = 9003 + 40 (26 def + 2 structure + 12 theorem = 40,
-  ровно новые объявления).
 
 
 
@@ -3084,15 +3050,15 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   10. Best-snapshot по holdout каждые 75/25 шагов (Надя.txt:847-855,
       :500-505) — УЖЕ ЕСТЬ: peeking покрыт union bound C660
       `holdout_gate_two_way_delta` (HoldoutGateTwoWay.lean).
-- Аксиомы (AllAxiomCheck + .tmp/C666/traj.log): все 16 —
+- Аксиомы (AllAxiomCheck): все 16 —
   [propext, Classical.choice, Quot.sound]; `int4_roundtrip` —
   [propext, Quot.sound].
-- Witness .tmp/C666/traj.lean (rc=0): trit5 [1,0,2,1,0] → code 140
+- Witness (rc=0): trit5 [1,0,2,1,0] → code 140
   (decide) → round-trip; int4 (3,14) → 227 → (3,14); cosine
   T = 450: sched 0 = 1, sched 450 = 3/20, sched 225 ≤ sched 100;
   rmsnorm_scale_inv d0 = 24, d1 = 48; lcb B = 1, r = 1/8, k = 512 ⇒
   2·exp(−4); bypass Fin 1: p = q = 1 ⇒ CE = expLen = H = 0.
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (9003 = 8977 + 26).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
 
 ## C665 нелинейный носитель: спуск по дифференциалу для relu-блока (honest)
 
@@ -3141,7 +3107,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (`w i + b i = 0`) relu недифференцируема — носитель выпадает из
   посылки T4 (в коде kink вероятность 0, но формально не доказано);
   (4) `L`-носитель к коду lm.py:581 — code-side, не теорема.
-- Witness .tmp/C665/traj.lean (rc=0): Fin 1 → Fin 2, w = 10, b1 = 0,
+- Witness (rc=0): Fin 1 → Fin 2, w = 10, b1 = 0,
   Wo = (1, 0), t = 0, eps = 1/8 ⇒ z = (10, 0), g 0 = 1 − p 0 = p 1 > 0
   (доказано из `softDef_sum_one` + `smax_pos`), g ≠ 0, T4 даёт
   ∃ η > 0 с CE (reluL w (b1 + η • adamDir g …) wo) < CE (reluL w b1 wo).
@@ -3152,7 +3118,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Аксиомы: [propext, Classical.choice, Quot.sound] —
   useful_step_of_fderiv / useful_of_adam_first_fderiv /
   useful_of_adam_first_relu / hasFDerivAt_reluL (AllAxiomCheck).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8977 = 8967 + 10, вкл. private reluJacLin).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (вкл. private reluJacLin).
 
 ## C664 wave258b-мост: generation-путь и train_guarded holdout — порядок окон (exact для порядка)
 
@@ -3200,12 +3166,12 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   CE на 4..7 nats (commit msg); (3) measured-числа — из commit msg;
   (4) `_read_all_windows` второго класса (lm.py:1569-1581) и до bab8aff
   был oldest-first с паддингом 32 — не менялся.
-- Witness .tmp/C664/traj.lean (rc=0): k = 4, n = 2, p = 10, pad = 32 →
+- Witness (rc=0): k = 4, n = 2, p = 10, pad = 32 →
   [32, 32, 10, 11]; полное n = k → [10, 11, 12, 13] = slot; последний
   слот = 11 = p + n − 1. Негатив: slotRev 2 10 ⟨0⟩ = 11 — query-байт
   в слоте 0 (до фикса).
 - Аксиомы: [propext, Quot.sound] (padSlot*; AllAxiomCheck PASS).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8967 = 8963 + 4).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
   Paper: 74 якоря перепинены (repin.py/repin2.py), v1.1, v3.4/14 клозов.
 
 ## C663 chain rule связка: Adam-first ⇒ useful warm-up (honest, линейный носитель)
@@ -3234,15 +3200,15 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
     `first_step_useful_certified` (C657).
 - ВЕРДИКТ. Pin C657 (1) ЗАКРЫТ для ЛИНЕЙНОГО носителя (Wo-блок при
   фиксированных h): гипотеза «a < 0» выведена, а не постулирована.
-  Honest: НЕЛИНЕЙНЫЙ носитель (b1/W1: Δz зависит от параметров через
-  relu) — открыт, нужен HasFDerivAt chain rule; `L` в Lean —
-  абстрактная функция, носитель hlin/hg к коду — code-side.
-- Witness .tmp/C663/traj.lean: P = K = Fin 2, J = id, z = (0,0),
+  Нелинейный носитель (b1) закрыт C665 (`useful_of_adam_first_relu`,
+  строгое убывание для малого η, без certified-величины); `L` в
+  Lean — абстрактная функция, носитель hlin/hg к коду — code-side.
+- Witness: P = K = Fin 2, J = id, z = (0,0),
   t = 0, ε = 1 ⇒ g = (1/2, −1/2), d = (1/3, −1/3), ⟪g, d⟫ = 1/3,
   range = 2/3 < 1, stepEps < 2/9 ⇒ COMMIT; T1 численно (d = (1,2)):
   ⟨p − y, d⟩ = 1/2 = −⟪g, d⟫. Негатив g = 0 ⇒ `linDrop 0 R η ≤ 0`.
 - Аксиомы: [propext, Classical.choice, Quot.sound] (AllAxiomCheck).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8963 = 8960 + 3).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
 
 ## C660 holdout-гейт ↔ PAC-Bayes: two-way сертификат (honest)
 
@@ -3291,7 +3257,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
     состояния блока.
   - `two_sided_union_budget`: log(2N/δ) ≤ 2kx² ⇒ 2N·exp(−2kx²) ≤ δ.
   - `holdout_gate_two_way_delta`: |Θ| ≤ N ⇒ 1 − δ ≤ тот же event.
-- Witness .tmp/C660/traj.lean: k = 512, δ = 1/20, |Θ| = 2 (нет
+- Witness: k = 512, δ = 1/20, |Θ| = 2 (нет
   peeking), B = 1, ε = 1/8: log 80 ≤ 16 = 2·512·(1/8)² ⇒
   P ≥ 19/20 [гейт принял ⇒ pop_new ≤ pop_old + 1/4]; GOOD-событие
   ⇒ вывод (witness c660_gate_conclusion, только .tmp). Аксиомы всех 5: [propext,
@@ -3312,5 +3278,4 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (4) связь с `gen` CommitGate (GateCert.gen ≥ 2ε замыкает гейт
   коммита) — НЕ формализована (CommitGate в слое Unified, импорт
   Theory → Unified не добавлялся).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8959 = 8956 + 3);
-  ALLAXIOMS: PASS (.tmp/C660/gates.log).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS; ALLAXIOMS: PASS.

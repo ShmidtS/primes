@@ -1,4 +1,4 @@
-# Era index — C591–C664 (2026-11-22/24)
+# Era index — C591–C667 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -199,7 +199,7 @@
 <a id="c650-c651"></a>
 ## C650–C651 — paper v0.9; repair + archiver (freeze 8907→8921)
 
-- Коммиты: 8fb0f1fa (C650 paper v0.9: §3.20 8 мостов, §4.8 таблица,
+- Коммиты: 8fb0f1fa (C650 paper v0.9: 8 мостов (ныне §3.19), §4.8 таблица,
   pins 22–29, дрейф якорей lm.py:826→:831), b32a9003 (C651
   `RepairForgetting.lean` +114, WindowOrder +40).
 - Доказано: `repair_sound` (z ≤ v − tol·a ∧ z ≤ v ∧ a ≤ r — линейно, ρ в
@@ -263,3 +263,14 @@
   worktree dirty — чтение только через git show.
 - Фронтир: unified.py:1010 → push; HasFDerivAt chain rule; U2; решение по
   k ≥ 1199. Разбор: `period-c662-664-analysis.md`.
+
+<a id="c665-c667"></a>
+## C665–C667 — эра «нелинейный носитель + Надя + width-рост» (freeze 8967→9043)
+
+- Коммиты: 32a61ee5 (C665 `useful_of_adam_first_fderiv/_relu` —
+  b1-блок, строгое убывание для малого η), 5c99e460 (C666 — носители
+  10 идей «Надя.txt»: BitAlloc/Schedules/LCB/Bypass),
+  3ba95ac3 (C667 `grow_width` function-preserving, nh = 1, T1–T3).
+- Honest: certified-величина drop для нелинейного носителя и
+  производная по W1 открыты; нечётная ширина и nh > 1 не формализованы;
+  hagi/unified.py:1010 @bab8aff ещё `[::-1]`; U2 открыт.

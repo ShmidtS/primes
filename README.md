@@ -88,7 +88,7 @@ README не заменяет их математическую специфик�
 | Данные и обучение | [`Hagi/Data`](Hagi/Data), [`Hagi/Information`](Hagi/Information), [`Hagi/Probability`](Hagi/Probability), [`Hagi/Learning`](Hagi/Learning), [`Hagi/Optimization`](Hagi/Optimization), [`Hagi/Model`](Hagi/Model), [`Hagi/Generalization`](Hagi/Generalization) | Модели данных, выборки и потерь, оценки, оптимизация и отдельные вопросы обобщения. |
 | Переходы обучения | [`Hagi/Step`](Hagi/Step), [`Hagi/Pretraining`](Hagi/Pretraining), [`Hagi/Planning`](Hagi/Planning), [`Hagi/Contracts`](Hagi/Contracts) | Шаги, контроллеры, контракты переходов и конечные траектории. |
 | Рост и динамика | [`Hagi/Growth`](Hagi/Growth), [`Hagi/Dynamics`](Hagi/Dynamics), [`Hagi/State`](Hagi/State) | Состояния роста, устойчивость, бюджеты и динамические законы. |
-| Теория | [`Hagi/Theory`](Hagi/Theory) | 49 файлов: 10 канон-модулей, мосты HAGI_v2, growth-семья и bench-мосты; карта — [ALGORITHMS §27](ALGORITHMS.md#27-каноны-theory). |
+| Теория | [`Hagi/Theory`](Hagi/Theory) | Канон-модули, мосты HAGI_v2, growth-семья и bench-мосты; карта — [ALGORITHMS §27](ALGORITHMS.md#27-каноны-theory). |
 | Интеграция | [`Hagi/System`](Hagi/System), [`Hagi/Unified`](Hagi/Unified) | Связанные состояния, измеренные эффекты, мосты и условные сертификаты. |
 | Дополнительные направления | [`Hagi/Autonomy`](Hagi/Autonomy) | Маршрутизация и смежные автономные модели. |
 | Примеры и сопровождение | [`Hagi/Challenge`](Hagi/Challenge), [`Hagi/Audit`](Hagi/Audit), [`Hagi/External`](Hagi/External) | Сравнительные формулировки, аудит и внешние математические связи. |
@@ -175,7 +175,7 @@ allowlist LAYER_EXCEPTIONS.
 - **[Hagi.lean](Hagi.lean)** — карта импортов для перехода к
   непосредственным определениям и теоремам в дереве `Hagi/`.
 - **[docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md)**   — карточки
-  семнадцати C5XX-результатов для [Palomar](https://palomar-registry.org/)
+  семнадцати C5XX–C6XX-результатов для [Palomar](https://palomar-registry.org/)
   (реестр Lean-верифицированной математики). Карточки готовы;
   отправка — внешний user-шаг: форма
   [submit.palomar-registry.org](https://submit.palomar-registry.org/)

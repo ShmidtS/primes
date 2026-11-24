@@ -2,8 +2,7 @@
 
 Eight self-contained proposals for the HAGI_v2 implementation
 agent. Each cites Lean anchors proved and frozen in primes
-(Freeze 8462, #7 at 8887; current freeze is 8887 — anchors to re-verify
-before port), a minimal Python diff, sanity numbers, a validation
+(anchors to re-verify before port), a minimal Python diff, sanity numbers, a validation
 criterion, and honest limits. Proposals are mutually independent —
 apply in any order.
 
@@ -15,8 +14,8 @@ apply in any order.
 | 4 | [PROPOSAL-joint-step.md](PROPOSAL-joint-step.md) | C475 | Proposed | Simultaneous trunk+head certified step CE ≤ −2A²/R² + 2·HL·dd with measured trunk displacement; strict-commit criterion and the joint-vs-alternating window. |
 | 5 | [PROPOSAL-merge-meas.md](PROPOSAL-merge-meas.md) | C476 | Proposed | Measured (δ-gated) expert merge for MDL-prune: linResidualGrid on a rational t-grid replaces the δ-free quadratic gate; negative theorem pins why measurement is mandatory. |
 | 6 | [PROPOSAL-external-plan.md](PROPOSAL-external-plan.md) | C538–C541 | Proposed | The external optimization plan top-4 ported: projected weight decay (leak factor (1−ηλ) exact), Empirical-Bernstein validation radius (27.49× samples), OE hash-consing prune completeness (relative to probes), PROVEN_EXACT bypass with CE = 0 on covered positions (gate rejects p = 0). |
-| 7 | [PROPOSAL-certified-warmup.md](PROPOSAL-certified-warmup.md) (C644) | C642, C644 | Proposed — **high priority** | Warm-up of a grown block via the `_certified_finite_step` mechanism (COMMIT iff drop > 1e-12, else exact-rollback HOLD) on ONE fixed objective instead of plain Adam: closes the h1 premise of C642, so train-objective ≤ fOld becomes certified for any holdout-gate verdict; cost = one forward per trial; per-batch drops still do not telescope (negative theorem). |
-| 8 | [PROPOSAL-holdout-size.md](PROPOSAL-holdout-size.md) (C662) | C660, C662 | Proposed | Holdout slice size for a non-trivial growth-gate certificate: k ≥ ln(2N/δ)/(2(ε/B)²); at ε=0.05B, δ=0.05 → k ≥ 1199 (N=10) / 877 (N=2) vs ≤512 in code (2ε ≈ 0.13–0.15B); holdout ≥ 1200 windows or fewer checkpoint peeks. |
+| 7 | [PROPOSAL-certified-warmup.md](PROPOSAL-certified-warmup.md) (C644) | C642, C644 | Theory implemented in primes (C657/C660/C663/C665); code-side pending in HAGI_v2 | Warm-up of a grown block via the `_certified_finite_step` mechanism (COMMIT iff drop > 1e-12, else exact-rollback HOLD) on ONE fixed objective instead of plain Adam: closes the h1 premise of C642, so train-objective ≤ fOld becomes certified for any holdout-gate verdict; cost = one forward per trial; per-batch drops still do not telescope (negative theorem). |
+| 8 | [PROPOSAL-holdout-size.md](PROPOSAL-holdout-size.md) (C662) | C660, C662 | Theory implemented in primes; code-side pending in HAGI_v2 | Holdout slice size for a non-trivial growth-gate certificate: k ≥ ln(2N/δ)/(2(ε/B)²); at ε=0.05B, δ=0.05 → k ≥ 1199 (N=10) / 877 (N=2) vs ≤512 in code (2ε ≈ 0.13–0.15B); holdout ≥ 1200 windows or fewer checkpoint peeks. |
 
 Statuses: SUPERSEDED = replaced by a strictly stronger version
 (kept for history); Proposed = ready for the HAGI_v2 agent,

@@ -1,5 +1,7 @@
 # PROPOSAL: holdout slice large enough for a non-trivial growth-gate certificate
 
+**Status: theory implemented in primes (C657/C660/C663/C665); code-side pending in HAGI_v2.**
+
 For: the HAGI_v2 implementation agent. Written by the primes agent
 (C662; theory landed in primes, module `Hagi/Theory/HoldoutGateTwoWay.lean`,
 namespace `Hagi.Theory.HoldoutGateTwoWay`, C660; consolidated as clause (14)
