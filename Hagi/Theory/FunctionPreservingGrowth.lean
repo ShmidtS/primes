@@ -40,6 +40,12 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   `block_step_certified_of_range_bound` / `block_step_commit_of_range_bound`
   (COMMIT-ветка контракта для `CE ∘ L`); негатив
   `block_range_bound_violated_not_certified`.
+* (h) Полезность первого шага (C657) — `useful_first_step`
+  (drop(η) = |a|η − R²η²/8, η* = 4|a|/R², drop_max = 2a²/R²),
+  `useful_eta_le` (максимум единственный), `exists_useful_eta`,
+  `first_step_useful_certified` (COMMIT-контракт на `CE_t ∘ L`),
+  `first_step_strict_improves` (obj < fOld); негатив
+  `no_signal_no_drop` (a = 0 ⇒ drop ≤ 0).
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -65,9 +71,14 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
 - **lip после обучения** — per-block premise контракта
   `CertifiedBlock`: операторная норма обученного
   блока на потребителе. На шаге 0 добавка = 0 выведена здесь.
-- **Существование полезного блока** не доказывается: мост —
-  gate-совместимость нейтрального расширения, не теорема
-  существования (тот же pin, что у BlockAdmission).
+- **Существование полезного блока** — ЛОКАЛЬНО доказано (C657,
+  секция «Полезность первого warm-up шага»): при линейном по η
+  смещении логитов, descent-сигнале `a < 0` и `stepEps < 2a²/R²`
+  первый шаг блока certified COMMIT (`first_step_useful_certified`,
+  `first_step_strict_improves`). Глобальная достижимость
+  (`drop ≥ δ` после многих шагов, non-convex) — по-прежнему не
+  доказана; `a < 0` — гипотеза (chain rule к `⟨g, d⟩` не
+  формализован).
 - **Носители BlockDiag/NonlinearStep0** (Σ-тип, Fin N → V) и
   `CertifiedBlock` (ℕ → V → ℝ) различны: перенос ФОРМУЛЫ
   step0-эквивалентности = identity-инициализация здесь;
@@ -79,6 +90,7 @@ set_option linter.style.header false
 
 namespace Hagi.Theory.FunctionPreservingGrowth
 
+open scoped BigOperators
 open Hagi.Model.LMCompose Hagi.Theory.BlockAdmission
 
 variable {V : Type} [Fintype V]
@@ -514,6 +526,140 @@ theorem block_range_bound_violated_not_certified :
       exact absurd hle (not_le.mpr (lt_trans h2 hlog))
     · exact absurd heq (by norm_num)
 
+/-! ### Полезность первого warm-up шага (C657)
+
+Вопрос C656: доказано лишь `obj ≤ fOld` («не хуже»). Когда блок
+гарантированно даёт drop? Носитель: семейство шагов `bη η` с
+ЛИНЕЙНЫМ по η смещением логитов `L (bη η) − L b = η • D` (код:
+шаг с фиксированным направлением, lm.py:581 `h = h +
+relu(a@W1+b1)@Wo`, Wo = 0 — JVP по Wo линеен). Тогда посылка
+range-леммы выполняется с `r = η·R`, `R` — range-константа
+направления `D`, а линейная часть равна `η·a`,
+`a = ⟨softmax z − onehot, D⟩`. Сертификат:
+`linDrop a R η = −(η·a + η²·R²/8)` — вогнутая парабола по η.
+Связь `a` с `⟨g, d⟩` C655 (`a = ⟨Jᵀ(p−y), d⟩` по chain rule) НЕ
+формализована: `L` нелинейна по параметрам, `a < 0` входит как
+гипотеза «descent в логитах». -/
+
+/-- Сертифицированный drop линейного по η семейства шагов:
+`−(η·a + η²·R²/8)`, где `a` — линейная часть range-леммы,
+`R` — range-константа направления. -/
+noncomputable def linDrop (a R η : ℝ) : ℝ := -(η * a + η ^ 2 * R ^ 2 / 8)
+
+/-- **`useful_first_step` (U1)**: парабола `linDrop` в точке
+`η* = 4|a|/R² = −4a/R² (a < 0)` равна `2a²/R²` — точное значение
+максимума (`useful_eta_le`); тождество верно при любом `a`. -/
+theorem useful_first_step {a R : ℝ} (hR : R ≠ 0) :
+    linDrop a R (-4 * a / R ^ 2) = 2 * a ^ 2 / R ^ 2 := by
+  unfold linDrop; field_simp; ring
+
+/-- Максимум строго положителен: `drop_max = 2a²/R² > 0` при
+`a < 0` (ненулевой residual-сигнал) и `0 < R`. -/
+theorem useful_first_step_pos {a R : ℝ} (ha : a < 0) (hR : 0 < R) :
+    0 < linDrop a R (-4 * a / R ^ 2) := by
+  rw [useful_first_step (Ne.symm hR.ne)]
+  exact div_pos (by nlinarith) (sq_pos_of_pos hR)
+
+/-- **`useful_eta_le`**: `drop_max = 2a²/R²` — глобальная верхняя
+граница `drop η`; равенство возможно только при `η = η*`. -/
+theorem useful_eta_le {a R η : ℝ} (hR : R ≠ 0) :
+    linDrop a R η ≤ 2 * a ^ 2 / R ^ 2
+      ∧ (linDrop a R η = 2 * a ^ 2 / R ^ 2 → η = -4 * a / R ^ 2) := by
+  have hid : (R ^ 2 * η + 4 * a) ^ 2 / (8 * R ^ 2)
+      = 2 * a ^ 2 / R ^ 2 - linDrop a R η := by
+    unfold linDrop; field_simp; ring
+  have hn : (0 : ℝ) < 8 * R ^ 2 := by positivity
+  have hnn : (0 : ℝ) ≤ (R ^ 2 * η + 4 * a) ^ 2 / (8 * R ^ 2) :=
+    div_nonneg (sq_nonneg _) hn.le
+  refine ⟨by linarith, fun heq => ?_⟩
+  have hz : (R ^ 2 * η + 4 * a) ^ 2 / (8 * R ^ 2) = 0 := by
+    rw [← heq] at hid; linarith
+  have hs : R ^ 2 * η + 4 * a = 0 := by
+    rcases div_eq_zero_iff.mp hz with h | h
+    · exact sq_eq_zero_iff.mp h
+    · exact absurd h (by positivity)
+  have hR2 : (R ^ 2 : ℝ) ≠ 0 := by positivity
+  field_simp
+  nlinarith
+
+/-- **`exists_useful_eta`**: если `drop_max = 2a²/R²` превышает порог
+приёма `stepEps` (эквивалент `|a| > √(stepEps·R²/2)`), существует
+`η > 0` с `stepEps < drop η` — certified COMMIT. -/
+theorem exists_useful_eta {a R : ℝ} (ha : a < 0) (hR : 0 < R)
+    (hmax : stepEps < 2 * a ^ 2 / R ^ 2) :
+    ∃ η : ℝ, 0 < η ∧ stepEps < linDrop a R η :=
+  ⟨-4 * a / R ^ 2, div_pos (by linarith) (sq_pos_of_pos hR), by
+    rw [useful_first_step (Ne.symm hR.ne)]; exact hmax⟩
+
+/-- **Негатив (нет сигнала)**: при `a = 0` линейная часть исчезает,
+`drop η = −η²·R²/8 ≤ 0` при любом η — COMMIT невозможен ни при
+каком шаге: полезность требует ненулевого residual-сигнала. -/
+theorem no_signal_no_drop (R η : ℝ) : linDrop 0 R η ≤ 0 := by
+  unfold linDrop
+  have : 0 ≤ η ^ 2 * R ^ 2 / 8 := by positivity
+  linarith
+
+/-- **`first_step_useful_certified` (U1 на носителе блока)**: для
+семейства шагов `bη` с линейным смещением логитов
+`L (bη η) u − L b u = η·D u` и range-константой `R`
+(`D u − D v ≤ R`), при `a = ⟨softmax (L b) − onehot_t, D⟩ < 0`,
+`0 < R` и `stepEps < 2a²/R²` существует `η > 0`, для которого шаг
+`b → bη η` удовлетворяет контракту `CertifiedFiniteStep` на
+`CE_t ∘ L` (через `block_step_commit_of_range_bound`). -/
+theorem first_step_useful_certified {K : Type} [Fintype K] [Nonempty K]
+    (L : B → K → ℝ) (b : B) (bη : ℝ → B) (D : K → ℝ) (t : K) (a R : ℝ)
+    (hlin : ∀ η u, L (bη η) u - L b u = η * D u)
+    (hR : 0 < R) (hrange : ∀ u v, D u - D v ≤ R)
+    (ha : a = ∑ v, Hagi.Energy.smax (L b) v * D v - D t)
+    (hdesc : a < 0) (hmax : stepEps < 2 * a ^ 2 / R ^ 2) :
+    ∃ η : ℝ, 0 < η ∧ stepEps < linDrop a R η ∧
+      CertifiedFiniteStep (fun c => Hagi.ceOneHot t (L c)) b (bη η)
+        (linDrop a R η) := by
+  obtain ⟨η, hη, hdrop⟩ := exists_useful_eta hdesc hR hmax
+  have h1 : ∑ v, (Hagi.Energy.smax (L b) v * (L (bη η) v - L b v))
+      = η * ∑ v, Hagi.Energy.smax (L b) v * D v := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl (fun v _ => by rw [hlin]; ring)
+  have hlin' : ∑ v, Hagi.Energy.smax (L b) v * (L (bη η) v - L b v)
+      - (L (bη η) t - L b t) = η * a := by
+    rw [h1, hlin, ha]; ring
+  have hval : linDrop a R η
+      = -(∑ v, Hagi.Energy.smax (L b) v * (L (bη η) v - L b v)
+          - (L (bη η) t - L b t) + (η * R) ^ 2 / 8) := by
+    unfold linDrop
+    rw [hlin', mul_pow]
+  refine ⟨η, hη, hdrop, hval ▸ ?_⟩
+  refine block_step_commit_of_range_bound L b (bη η) t (η * R) ?_ ?_
+  · intro u v
+    rw [hlin η u, hlin η v]
+    have hmul := mul_le_mul_of_nonneg_left (hrange u v) hη.le
+    nlinarith
+  · rw [hlin', mul_pow]
+    unfold linDrop at hdrop
+    linarith
+
+/-- **`first_step_strict_improves`**: тот же единственный полезный
+первый шаг от identity-старта (`CE_t (L b) = fOld`) даёт
+`CE_t (L (bη η)) < fOld` — строгое улучшение, а не «не хуже». -/
+theorem first_step_strict_improves {K : Type} [Fintype K] [Nonempty K]
+    (L : B → K → ℝ) (b : B) (bη : ℝ → B) (D : K → ℝ) (t : K) (a R fOld : ℝ)
+    (hlin : ∀ η u, L (bη η) u - L b u = η * D u)
+    (hR : 0 < R) (hrange : ∀ u v, D u - D v ≤ R)
+    (ha : a = ∑ v, Hagi.Energy.smax (L b) v * D v - D t)
+    (hdesc : a < 0) (hmax : stepEps < 2 * a ^ 2 / R ^ 2)
+    (h0 : Hagi.ceOneHot t (L b) = fOld) :
+    ∃ η : ℝ, 0 < η ∧ Hagi.ceOneHot t (L (bη η)) < fOld := by
+  obtain ⟨η, hη, hdrop, hcert⟩ :=
+    first_step_useful_certified L b bη D t a R hlin hR hrange ha hdesc hmax
+  have hE : (0 : ℝ) < stepEps := by unfold stepEps; norm_num
+  rcases hcert with ⟨-, hle⟩ | ⟨_, hz⟩
+  · have hle' : Hagi.ceOneHot t (L (bη η)) ≤ Hagi.ceOneHot t (L b) - linDrop a R η := hle
+    have hpos : 0 < linDrop a R η := lt_trans hE hdrop
+    rw [h0] at hle'
+    exact ⟨η, hη, lt_of_le_of_lt hle' (sub_lt_self fOld hpos)⟩
+  · rw [hz] at hdrop; exact absurd hdrop (by unfold stepEps; norm_num)
+
 end WarmUp
+
 
 end Hagi.Theory.FunctionPreservingGrowth

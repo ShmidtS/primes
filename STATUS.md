@@ -2865,3 +2865,57 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   не в git, был stale на 68 имён C642-C653 — обновлён), ReachLint, LayerLint, NsLint, DocLint,
   DupLint, STMDUP, Challenge, TrivialLint, StatusLint PASS. Witness
   .tmp/C655/traj.lean. Log: .tmp/C655/gates.log.
+
+## C657 useful first warmup step: certified drop > 0 (honest, U1)
+
+- Beat: C657 = roadmap C656 top-3 — «существование полезного
+  блока»: certified условие, при котором новый блок ГАРАНТИРОВАННО
+  даёт drop > 0 после шага 0 (доказано было лишь obj ≤ fOld).
+  Base HEAD d9b046b4, tree clean. Lean-правка: только
+  Hagi/Theory/FunctionPreservingGrowth.lean (секция WarmUp, +1 def,
+  +7 theorem).
+- Код HAGI_v2 (READ-ONLY) @ca52eb4: lm.py:581
+  `h = h + relu(a@W1+b1)@Wo` (новый блок — 1-hidden-layer MLP на
+  residual-потоке, W1 random, b1 = 0, Wo = 0); lm.py:235
+  range-лемма (`lse_shift_upper`: CE(z+d) − CE(z) ≤
+  ⟨softmax z − onehot, d⟩ + range(d)²/8); lm.py:594-596 AdaptiveMajorizer
+  ce_direction_range. UAT-стейтмента в primes НЕТ (rg по Hagi:
+  только «universal» в RobustnessLaw/BoolVenn — не об аппроксимации).
+- Носитель (minimal): семейство шагов `bη : ℝ → B` с линейным
+  смещением логитов `L (bη η) u − L b u = η·D u` (шаг по
+  фиксированному направлению при Wo = 0), `R` — range-константа
+  направления (`D u − D v ≤ R`), `a = ⟨softmax (L b) − onehot_t, D⟩`.
+  Certificate: `linDrop a R η = −(η·a + η²·R²/8)` (r = η·R — посылка
+  range-леммы выполняется тривиально).
+  - `useful_first_step`: drop(η*) = 2a²/R² при η* = −4a/R² = 4|a|/R².
+  - `useful_eta_le`: drop(η) ≤ 2a²/R² ∀η, равенство только при η*
+    (едининая точка максимума); `useful_first_step_pos`: 2a²/R² > 0.
+  - `exists_useful_eta`: a < 0, R > 0, stepEps < 2a²/R²
+    (⇔ |a| > √(stepEps·R²/2)) ⇒ ∃ η > 0: stepEps < drop(η).
+  - `first_step_useful_certified`: то же на носителе блока — шаг
+    `b → bη η` удовлетворяет `CertifiedFiniteStep` на `CE_t ∘ L`
+    (через `block_step_commit_of_range_bound`, C646).
+  - `first_step_strict_improves`: + identity-старт `CE_t (L b) = fOld`
+    ⇒ CE_t (L (bη η)) < fOld — строгое улучшение (warmup_strict n=1).
+  - Негатив `no_signal_no_drop`: a = 0 ⇒ drop(η) = −η²R²/8 ≤ 0 ∀η
+    — без residual-сигнала COMMIT невозможен ни при каком шаге.
+- ВЕРДИКТ. U1 (локальный) ДОКАЗАН: первый warm-up шаг certified-выгоден
+  ⟺ descent-сигнал a < 0 (residual-сигнал ≠ 0) и drop_max = 2a²/R²
+  > stepEps. U2 (глобальный, «блок expressive ⇒ reachable drop ≥ δ»)
+  — ЧЕСТНО ОТКРЫТ: нужна оптимизационная гарантия на non-convex
+  ландшафте (многих шагов) + UAT на конечной сетке — ни того, ни
+  другого в primes нет; код: W1 random ⇒ a ≠ 0 почти наверняка, но
+  это вероятностное утверждение кода, не теорема.
+- Honest pins: (1) связь `a < 0` с C655 `adam_first_step_dot_pos`
+  (`⟨g, d⟩ > 0` ⇒ `a = ⟨Jᵀ(p−y), d⟩ < 0` по chain rule) НЕ
+  формализована — `L` нелинейна по параметрам, `a < 0` входит как
+  гипотеза «descent в логитах»; (2) линейность смещения по η —
+  гипотеза hlin (код-side: JVP по Wo при Wo = 0), не теорема;
+  (3) η* — certificate-оптимум, не шаг кода (Adam step-size
+  фиксирован lr).
+- Аксиомы: [propext, Classical.choice, Quot.sound] для всех пяти
+  ключевых теорем (.tmp/C657/traj.log).
+- Witness .tmp/C657/traj.lean: A = −1, R = 2 ⇒ η* = 1,
+  drop_max = 1/2 > stepEps; η = 1/2 ⇒ 3/8; η = 2 ⇒ 0; η = 4 ⇒ −4
+  (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
+  .tmp/C657/gates.log.
