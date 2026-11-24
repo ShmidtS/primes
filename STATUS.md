@@ -1861,9 +1861,9 @@ Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10
 | `neg_transfer_adversarial`, `gd_run_dist`, `warm_better_budget` | t = −c•θ ⇒ всегда T2; бюджет НЕ размывает границу | Hagi/Theory/NegativeTransfer.lean:150, :176, :191 | — |
 | `smooth_obj_transfer_bound`, `sufficient_negative_transfer` | C592: L-smooth obj + GD равным бюджетом ⇒ f z − n•`nlBudget γ L G` ≤ f (nlRun n γ grad z) ≤ f z; стартовый запас > n•nlBudget ⇒ warm строго хуже. G — честный binder вдоль траектории (глобальная не выводится) | Hagi/Theory/NegativeTransfer.lean:386, :406 | `--mode transfer-gate-certified` (smooth-sufficient уровень) |
 | `nlDrop`, `nl_drop_bound`, `nlDrop_le_optimal`, `nl_drop_optimal` | C606 Schedule: drop = γG² − Lγ²G²/2 ≤ G²/(2L) для любого γ, равенство при γ* = 1/L (полный квадрат). Кандидат 2/(3L) отклонён | Hagi/Theory/NegativeTransfer.lean:434, :443, :467, :481 | auto-LR γ = 1/L (C609) |
-| `growthGate`, `growth_gate_stay_char` | C632 (второй namespace `Hagi.Theory.GrowthGate` в этом же файле, блок перенесён дословно): grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/NegativeTransfer.lean:574, :580 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
-| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/NegativeTransfer.lean:608, :620 | — |
-| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/NegativeTransfer.lean:677 | `growth_gate_measure` |
+| `growthGate`, `growth_gate_stay_char` | C632 (второй namespace `Hagi.Theory.GrowthGate` в этом же файле, блок перенесён дословно): grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/NegativeTransfer.lean:570, :576 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
+| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/NegativeTransfer.lean:604, :616 | — |
+| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/NegativeTransfer.lean:673 | `growth_gate_measure` |
 
 Контраст: квадратичная obj → точный iff; L-smooth произвольный →
 консервативная sufficient, применять когда есть G-оценка на
@@ -1971,10 +1971,10 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 | `covStarts_covers` | C598: окна k с шагом k (+ суффикс-окно) покрывают каждый байт [0, n) — полное чтение входа | Hagi/Theory/CoverageReading.lean:54 | — |
 | `covStarts_trunc_uncovered_zero` | ЧЕСТНАЯ ГРАНИЦА (не позитив): усечение windows[-max_span:] при окон > m отбрасывает старт 0, байт 0 не прочитан | Hagi/Theory/CoverageReading.lean:130 | мотивация adaptive-span |
 | `covStartsStep`, `covStarts_eq_step`, `covStartsStep_covers`, `covStartsStep_len_le`, `covStartsStep_adaptive_covers` | C602: старты с шагом s: покрытие ТОЧНО при 0 < s ≤ w (s > w — дыра); окон ≤ (n−w)/s + 2; при (n−w)/s+2 ≤ m покрытие полное И усечение не срабатывает | Hagi/Theory/CoverageReading.lean:171, :178, :184, :220, :233 | `--mode adaptive-span`, `adaptive_span` |
-| `hierBlockLen`, `hierStarts`, `hier_covers_any_n`, `hier_peak_window_budget` | C611: 2 уровня (блоки B × `covStartsStep`): покрытие [0, n) для ЛЮБОГО n без верхней границы; peak ≤ m окон в каждом блоке (peak ≠ total). Точный бюджет s = w, B = w·(m−1) | Hagi/Theory/CoverageReading.lean:268, :273, :283, :315 | `--mode generate-hier`, `hier_span` |
-| `covStartsStep_len_tiling`, `hier_blocks_sum_tiling`, `hier_total_formula`, `hier_total_min`, `hier_total_floor`, `hier_optimal` | C618: total ≤ ⌈n/B⌉·((B−w)/s+2); при s = w, w ∣ B total = ⌈n/w⌉ ТОЧНО и не зависит от B (внутреннего оптимума B* нет); информационный floor любого покрытия ≥ ⌈n/w⌉ ⇒ выбор C611 total-оптимален | Hagi/Theory/CoverageReading.lean:354, :389, :440, :462, :496, :533 | pinned assert C613 |
-| `ceil_div_anti`, `windowCost_fixed_mono`, `windowCost_linear_bounds`, `windowCost_linear_near_const`, `windowCost_hier` | C623 (ns WindowTradeoff): totalCost(w) = ⌈n/w⌉·c(w). c(w)=c ⇒ монотонно невозрастает, оптимально w_max; c(w)=c·w ⇒ n ≤ w⌈n/w⌉ ≤ n+w−1, total ∈ [c·n, c·(n+w)) — НЕ зависит от w; мост к `hier_total_min` | Hagi/Theory/CoverageReading.lean:555, :577, :586, :602, :613 | `--cost-regime fixed/linear`, `cost_regime_w` |
-| `mixedCost_relax_min`, `mixedCost_relax_min_eq`, `mixedCost_lower` | C628: c(w) = a + c·w²: a/w + c·w ≥ 2√(a·c) (AM-GM), равенство при w = √(a/c) — внутренний оптимум w*; дискретный ⌈n/w⌉(a+c·w²) ≥ 2n√(a·c) (равенство в общем случае недостижимо — точку берёт целый argmin bench) | Hagi/Theory/CoverageReading.lean:630, :650, :675 | `--cost-regime mixed`, α=2 |
+| `hierBlockLen`, `hierStarts`, `hier_covers_any_n`, `hier_peak_window_budget` | C611: 2 уровня (блоки B × `covStartsStep`): покрытие [0, n) для ЛЮБОГО n без верхней границы; peak ≤ m окон в каждом блоке (peak ≠ total). Точный бюджет s = w, B = w·(m−1) | Hagi/Theory/CoverageReading.lean:268, :273, :282, :314 | `--mode generate-hier`, `hier_span` |
+| `covStartsStep_len_tiling`, `hier_blocks_sum_tiling`, `hier_total_formula`, `hier_total_min`, `hier_total_floor`, `hier_optimal` | C618: total ≤ ⌈n/B⌉·((B−w)/s+2); при s = w, w ∣ B total = ⌈n/w⌉ ТОЧНО и не зависит от B (внутреннего оптимума B* нет); информационный floor любого покрытия ≥ ⌈n/w⌉ ⇒ выбор C611 total-оптимален | Hagi/Theory/CoverageReading.lean:352, :387, :438, :460, :494, :531 | pinned assert C613 |
+| `ceil_div_anti`, `windowCost_fixed_mono`, `windowCost_linear_bounds`, `windowCost_linear_near_const`, `windowCost_hier` | C623 (ns WindowTradeoff): totalCost(w) = ⌈n/w⌉·c(w). c(w)=c ⇒ монотонно невозрастает, оптимально w_max; c(w)=c·w ⇒ n ≤ w⌈n/w⌉ ≤ n+w−1, total ∈ [c·n, c·(n+w)) — НЕ зависит от w; мост к `hier_total_min` | Hagi/Theory/CoverageReading.lean:553, :575, :584, :600, :611 | `--cost-regime fixed/linear`, `cost_regime_w` |
+| `mixedCost_relax_min`, `mixedCost_relax_min_eq`, `mixedCost_lower` | C628: c(w) = a + c·w²: a/w + c·w ≥ 2√(a·c) (AM-GM), равенство при w = √(a/c) — внутренний оптимум w*; дискретный ⌈n/w⌉(a+c·w²) ≥ 2n√(a·c) (равенство в общем случае недостижимо — точку берёт целый argmin bench) | Hagi/Theory/CoverageReading.lean:628, :648, :673 | `--cost-regime mixed`, α=2 |
 
 - Правило выбора w: c(w)=c ⇒ w_max; c(w)=c·w ⇒ свободно (по
   точности); c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α). Общий α>1 —
@@ -2025,7 +2025,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - C568 `--mode band-check`: 48/48 полос на живом корпусе, негатив
   переставленной полосы 0/2. Lean: `softDef_shift`,
   `bandDescribes_of_pointwise`, `bernoulliBandDescribes`
-  (Hagi/Theory/TrainerBenchmark.lean:146, :161, :176).
+  (Hagi/Theory/TrainerBenchmark.lean:140, :155, :169).
 - C577 `--mode adapter-transfer-auto`: probe-A/B гейт (2 шага,
   rollback C530) выбирает warm/cold — T1 сохранены, adversarial →
   cold. Lean: `gate_char`, `auto_transfer_gate_sound`
@@ -2080,16 +2080,16 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
 | теорема | формулировка | file:line | bench |
 |---|---|---|---|
-| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:217), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:103) | Hagi/Theory/FunctionPreservingGrowth.lean:133, :162, :172, :196 | `--mode grow` (C444, `blockAdmissionRule`) |
+| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:215), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:101) | Hagi/Theory/FunctionPreservingGrowth.lean:133, :162, :172, :196 | `--mode grow` (C444, `blockAdmissionRule`) |
 | `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:284, :299, :314 | `certified-warmup-sim` (C654) |
 | `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:331 | — |
-| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:87): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:348, :367 | — |
+| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:86): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:348, :367 | — |
 | `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:391, :398, :406, :422, :433 | `certified-warmup-sim` (C654) |
 | `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:446, :460 | — |
-| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:168) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:487, :503, :517, :532 | — |
+| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:164) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:487, :503, :517, :532 | — |
 | `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:575, :580, :586, :593, :616, :637, :672, :625 | — |
 | `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:708, :716, :741 | — |
-| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:108, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:805, :860, :888, :892, :909, :921, :895, :932, :977 | — |
+| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:104, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:805, :860, :888, :892, :909, :921, :895, :932, :977 | — |
 
 - Honest-остаток: (F3) производная по W1 не формализована; (U2) global
   reachability «expressive блок ⇒ drop ≥ δ» открыт (non-convex + UAT);
@@ -2142,12 +2142,12 @@ eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
 
 | теорема | формулировка | file:line | код-якорь @sha |
 |---|---|---|---|
-| `ceDispRange`, `ceDispRange_nonneg`, `ce_direction_range` | точный диапазон направленного логит-смещения (sup' − inf') | Hagi/Theory/AdaptiveMajorizer.lean:1201, :1210, :1223 | lm.py:1286, :1293 |
-| `ceAdaptiveCurvRange`, `ceOneHot_next_le_adaptive_range` | канон `ceOneHot_next_le_adaptive_tight` (:764) на точном диапазоне | Hagi/Theory/AdaptiveMajorizer.lean:1247, :1259 | lm.py:1287-1300 |
-| `kappaClamp`, `kappaClamp_eq_kappa`, `ceAdaptiveCurvCode` | множитель кода (1/2 ниже 1e-5, иначе kappa(min R 50)); на окне (1e-5, 50] равен точному | Hagi/Theory/AdaptiveMajorizer.lean:1440, :1458, :1445 | lm.py:1298-1300 |
-| `ce_adaptive_code_drop` | CE после шага ≤ текущего − (eta·A − eta²·C), eta ∈ [0,1], C кода, диапазон в окне (majorizer — без привязки eta к A/2C) | Hagi/Theory/AdaptiveMajorizer.lean:1474 | lm.py:1313-1324 |
-| `ce_range_code_drop` | eta ≥ 0: claim eta·A − eta²·R²/8 ветки range без unit-cap (`ceOneHot_next_le` CEDescent.lean:282) | Hagi/Theory/AdaptiveMajorizer.lean:1498 | lm.py:1314, :1323-1324 |
-| `adaptive_claim_scaled`, `adaptive_claim_scaled_bounds` | defect 2: claim в точке s·A/2C = (2s − s²)·A²/4C ∈ [s², 1]·A²/4C; s = 0.05 → 39/400 | Hagi/Theory/AdaptiveMajorizer.lean:1514, :1526 | 4c70f7a «~10x» |
+| `ceDispRange`, `ceDispRange_nonneg`, `ce_direction_range` | точный диапазон направленного логит-смещения (sup' − inf') | Hagi/Theory/AdaptiveMajorizer.lean:1200, :1209, :1222 | lm.py:1286, :1293 |
+| `ceAdaptiveCurvRange`, `ceOneHot_next_le_adaptive_range` | канон `ceOneHot_next_le_adaptive_tight` (:764) на точном диапазоне | Hagi/Theory/AdaptiveMajorizer.lean:1246, :1258 | lm.py:1287-1300 |
+| `kappaClamp`, `kappaClamp_eq_kappa`, `ceAdaptiveCurvCode` | множитель кода (1/2 ниже 1e-5, иначе kappa(min R 50)); на окне (1e-5, 50] равен точному | Hagi/Theory/AdaptiveMajorizer.lean:1439, :1457, :1444 | lm.py:1298-1300 |
+| `ce_adaptive_code_drop` | CE после шага ≤ текущего − (eta·A − eta²·C), eta ∈ [0,1], C кода, диапазон в окне (majorizer — без привязки eta к A/2C) | Hagi/Theory/AdaptiveMajorizer.lean:1473 | lm.py:1313-1324 |
+| `ce_range_code_drop` | eta ≥ 0: claim eta·A − eta²·R²/8 ветки range без unit-cap (`ceOneHot_next_le` CEDescent.lean:282) | Hagi/Theory/AdaptiveMajorizer.lean:1497 | lm.py:1314, :1323-1324 |
+| `adaptive_claim_scaled`, `adaptive_claim_scaled_bounds` | defect 2: claim в точке s·A/2C = (2s − s²)·A²/4C ∈ [s², 1]·A²/4C; s = 0.05 → 39/400 | Hagi/Theory/AdaptiveMajorizer.lean:1513, :1525 | 4c70f7a «~10x» |
 
 - Honest: на конфиге теста w252 adaptive-ветка не берётся (eta* ~ 203-260 >
   1) — сертификат реального кода это `ce_range_code_drop`; вне окна (1e-5,
@@ -2166,11 +2166,11 @@ eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
 |---|---|---|---|
 | `mgdaCodeDirection`, `SimplexWeights`, `mgdaCodeDirection_mem_convexHull` | смесь кода `d = alpha @ G` на симплексе ∈ convex hull | Hagi/Model/BatchCEDescentMgdaCode.lean:44, :49, :91 | selfmodel.py:49, :55-60 |
 | `MgdaStationary`, `inner_le_of_mem_convexHull_range`, `mgda_norm_sq_le_of_stationary` | стоп-тест `∀j, ‖d‖² − ε ≤ ⟨v_j,d⟩`; ε-стационарная смесь ⇒ ‖d‖² − 2ε ≤ ‖c‖² ∀c ∈ hull | Hagi/Model/BatchCEDescentMgdaCode.lean:54, :60, :102 | selfmodel.py:50 |
-| `mgda_eq_of_stationary`, `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary` | ε = 0 ⇒ смесь = min-norm точке hull; инстанс канона `batchGradientMinimizer` (BatchCEDescent.lean:368, сырые `batchResidualGradient` :338; потребитель `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt` FixedBatch.lean:147) | Hagi/Model/BatchCEDescentMgdaCode.lean:126, :146 | selfmodel.py:113 |
+| `mgda_eq_of_stationary`, `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary` | ε = 0 ⇒ смесь = min-norm точке hull; инстанс канона `batchGradientMinimizer` (BatchCEDescent.lean:366, сырые `batchResidualGradient` :338; потребитель `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt` FixedBatch.lean:147) | Hagi/Model/BatchCEDescentMgdaCode.lean:126, :146 | selfmodel.py:113 |
 
 - Вердикт: ТОЧНО на остановке, ПРИБЛИЖЁННО (2ε) по допуску, РАЗНЫЕ ЗАДАЧИ
   по нормировке. Witness: α = (1/2, 1/2) = `segmentMinNorm` e0 e1
-  (ProjectionDescent.lean:79); негативы [2,−1], [1,0]. Bench: нет.
+  (ProjectionDescent.lean:78); негативы [2,−1], [1,0]. Bench: нет.
 - Honest: код решает на g/‖g‖, канон — на raw (при разных нормах моста
   нет; conflict-гейт считает на raw, selfmodel.py:114-123); FW без
   стоп-теста — только симплекс, скорость O(1/k) не формализована;
@@ -2183,11 +2183,11 @@ eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
 
 | теорема | формулировка | file:line | bench |
 |---|---|---|---|
-| `batch_telescope_fixed`, `fixedBatch_telescope` | T1: шаг t < T: f(t+1) ≤ f t − d t ⇒ f T + Σ d ≤ f 0 (клоз 3 `master_theorem_v3`: obj = `step` LogitGrowth.lean:62); на `fixedBatchState` (BatchCETrajectory/FixedBatch.lean:288; родня `fixedBatchObjective_sum_certifiedDrop_le_telescope` :368) | Hagi/Contracts/BatchGlobalTelescope.lean:45, :61 | refine train_guarded |
-| `ebGap`, `centeredSample`, `centeredSample_snoc`, `azumaSum_centeredSample`, `batch_drop_generalizes` | T2: iid-выборка n ⇒ P[mean δ < Σ q δ + ebGap] ≥ 1 − α через `empirical_bernstein_mean_bound` (EmpiricalBernstein.lean:286; посылки b, `sig` > 0 — взвешенная дисперсия; `azumaSum` Azuma.lean:169) | Hagi/Contracts/BatchGlobalTelescope.lean:75, :81, :88, :97, :121 | — |
-| `certified_batch_drop_global` | на сэмпле dropB ≤ фактического drop ⇒ obj_G θ' ≤ obj_G θ − dropB + ebGap, w.p. ≥ 1 − α | Hagi/Contracts/BatchGlobalTelescope.lean:177 | — |
-| `roundDens`, `roundP`, `roundP_isProb`, `round_marginal`, `rounds_union` | модель независимых раундов; union bound 1 − Σ eps ≤ P[∀ i, A i] (`prodPq_union_finset` CertifiedEstimator.lean:563) | Hagi/Contracts/BatchGlobalTelescope.lean:228, :233, :236, :251, :299 | — |
-| `rounds_telescope`, `roundGood`, `certified_rounds_union` | k раундов: obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k) (8 раундов, α = 1/10 → α/8 = 1/80) | Hagi/Contracts/BatchGlobalTelescope.lean:340, :352, :366 | — |
+| `batch_telescope_fixed`, `fixedBatch_telescope` | T1: шаг t < T: f(t+1) ≤ f t − d t ⇒ f T + Σ d ≤ f 0 (клоз 3 `master_theorem_v3`: obj = `step` LogitGrowth.lean:62); на `fixedBatchState` (BatchCETrajectory/FixedBatch.lean:288; родня `fixedBatchObjective_sum_certifiedDrop_le_telescope` :368) | Hagi/Contracts/BatchGlobalTelescope.lean:46, :62 | refine train_guarded |
+| `ebGap`, `centeredSample`, `centeredSample_snoc`, `azumaSum_centeredSample`, `batch_drop_generalizes` | T2: iid-выборка n ⇒ P[mean δ < Σ q δ + ebGap] ≥ 1 − α через `empirical_bernstein_mean_bound` (EmpiricalBernstein.lean:286; посылки b, `sig` > 0 — взвешенная дисперсия; `azumaSum` Azuma.lean:169) | Hagi/Contracts/BatchGlobalTelescope.lean:76, :82, :89, :98, :122 | — |
+| `certified_batch_drop_global` | на сэмпле dropB ≤ фактического drop ⇒ obj_G θ' ≤ obj_G θ − dropB + ebGap, w.p. ≥ 1 − α | Hagi/Contracts/BatchGlobalTelescope.lean:178 | — |
+| `roundDens`, `roundP`, `roundP_isProb`, `round_marginal`, `rounds_union` | модель независимых раундов; union bound 1 − Σ eps ≤ P[∀ i, A i] (`prodPq_union_finset` CertifiedEstimator.lean:563) | Hagi/Contracts/BatchGlobalTelescope.lean:229, :234, :237, :252, :300 | — |
+| `rounds_telescope`, `roundGood`, `certified_rounds_union` | k раундов: obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k) (8 раундов, α = 1/10 → α/8 = 1/80) | Hagi/Contracts/BatchGlobalTelescope.lean:341, :353, :367 | — |
 
 - Honest: (WOR) консервативность выборки без возвращения относительно
   iid-EB НЕ доказана (finite population correction; в Mathlib леммы нет);
@@ -2211,7 +2211,7 @@ eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
   post может остаться > pre); gate — выборочная CE (≤ 8 доменов × 256
   позиций), не популяционное забывание; Repair пишет в общий trunk ⇒ клоз
   (2) `master_theorem_v3` (замороженная ветка; `adapter_per_task_sound`
-  AdapterGrowth.lean:582, `gpm_multi_zero_forgetting` Continual.lean:145)
+  AdapterGrowth.lean:579, `gpm_multi_zero_forgetting` Continual.lean:145)
   не инстанцируется.
 
 ## Hagi/Theory/CoverageReading.lean — WindowOrder (порядок слотов окна)
@@ -2223,9 +2223,9 @@ nats — commit msg).
 
 | теорема | формулировка | file:line | носитель кода @sha |
 |---|---|---|---|
-| `slot`, `slot_mono`, `slot_last` | oldest-first: slot k p j = p + j, query-слот k−1 = байт p+k−1 | Hagi/Theory/CoverageReading.lean:709, :718, :722 | lm.py:905-907 @bab8aff |
-| `slotRev`, `slotRev_first`, `slotRev_last` | реверс: слот 0 = новейший байт | Hagi/Theory/CoverageReading.lean:714, :734, :728 | до фикса |
-| `padSlot`, `padSlot_tail`, `padSlot_last`, `padSlot_full` | generation-путь: левый паддинг + `slot` со сдвигом; query в слоте k−1; n = k ⇒ окно = `slot k p` | Hagi/Theory/CoverageReading.lean:743, :748, :756, :765 | lm.py:1041-1054 @bab8aff |
+| `slot`, `slot_mono`, `slot_last` | oldest-first: slot k p j = p + j, query-слот k−1 = байт p+k−1 | Hagi/Theory/CoverageReading.lean:707, :716, :720 | lm.py:905-907 @bab8aff |
+| `slotRev`, `slotRev_first`, `slotRev_last` | реверс: слот 0 = новейший байт | Hagi/Theory/CoverageReading.lean:712, :732, :726 | до фикса |
+| `padSlot`, `padSlot_tail`, `padSlot_last`, `padSlot_full` | generation-путь: левый паддинг + `slot` со сдвигом; query в слоте k−1; n = k ⇒ окно = `slot k p` | Hagi/Theory/CoverageReading.lean:741, :746, :754, :763 | lm.py:1041-1054 @bab8aff |
 
 - `covStarts` (:45) — про начала окон, инвариант другой, не пересекается.
 - Honest: инвариант ТОЛЬКО порядка (смежность цели — не Lean-утверждение);
@@ -2286,7 +2286,7 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   `RiskChannel` CertCEHoldout.lean:58) популяции не даёт.
 - Honest: (iid holdout) — МОДЕЛЬ: код — связный срез (окна
   перекрываются на k−1); CE ∉ [0,B] — нормировка на `ceBound`
-  (CEHeldout.lean:203) не формализована; (k = 512 вакуумность) ε ≈ 0.12·B
+  (CEHeldout.lean:200) не формализована; (k = 512 вакуумность) ε ≈ 0.12·B
   ≫ margin 1e-4 ⇒ сертификат полезен при k ≫ 512 или малом B; N = 2 +
   число checkpoint-оценок — из кода; связь с `GateCert`
   (Unified/CommitGate.lean:37) не формализована.
@@ -2297,8 +2297,8 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
 
 | теорема | формулировка | file:line | код-якорь @sha |
 |---|---|---|---|
-| `btScale`, `backtrack_scale_halves`, `backtrack_trials_bounded` | масштаб bt-й пробы (1/2)^bt; btScale 8 = 1/256; ровно 9 проб | Hagi/Theory/RollbackGate.lean:245, :271, :283 | selfmodel.py:133, :174 |
-| `backtrackAccept`, `backtrack_accept_drop` | приём: worst ≤ max_task_regression ∧ wb − wa > total_bound (НЕ Armijo: σ·γ·⟪g,d⟫ нет) ⇒ drop = wb − wa − errBound ≥ 0 | Hagi/Theory/RollbackGate.lean:253, :262 | selfmodel.py:164-169 |
+| `btScale`, `backtrack_scale_halves`, `backtrack_trials_bounded` | масштаб bt-й пробы (1/2)^bt; btScale 8 = 1/256; ровно 9 проб | Hagi/Theory/RollbackGate.lean:244, :270, :282 | selfmodel.py:133, :174 |
+| `backtrackAccept`, `backtrack_accept_drop` | приём: worst ≤ max_task_regression ∧ wb − wa > total_bound (НЕ Armijo: σ·γ·⟪g,d⟫ нет) ⇒ drop = wb − wa − errBound ≥ 0 | Hagi/Theory/RollbackGate.lean:252, :261 | selfmodel.py:164-169 |
 
 - Родня: `rollback_state_params` (:105), `rollback_gate_sound` (:100).
 - Honest: h1 для warm-up НЕ закрыт — `_maybe_grow` warm-up (unified.py:423-437
@@ -2310,12 +2310,12 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
 
 | теорема | формулировка | file:line |
 |---|---|---|
-| `benchResidualBlock`, `benchResidual_zero` | γ = 0 маскирует любую внутреннюю h (сильнее кода: нулевой гейт vs Wo = 0) | Hagi/Theory/GrowTrunkBlock.lean:86, :95 |
-| `grow_block_bench_sound`, `grow_block_obj_invariant`, `grow_blocks_repeat_sound` | глубина 2 → 3 сохраняет функцию и любой функционал ТОЧНО; повтор ≤ MAX_BLOCKS = 2 | Hagi/Theory/GrowTrunkBlock.lean:124, :135, :149 |
+| `benchResidualBlock`, `benchResidual_zero` | γ = 0 маскирует любую внутреннюю h (сильнее кода: нулевой гейт vs Wo = 0) | Hagi/Theory/GrowTrunkBlock.lean:85, :94 |
+| `grow_block_bench_sound`, `grow_block_obj_invariant`, `grow_blocks_repeat_sound` | глубина 2 → 3 сохраняет функцию и любой функционал ТОЧНО; повтор ≤ MAX_BLOCKS = 2 | Hagi/Theory/GrowTrunkBlock.lean:123, :134, :148 |
 
 - Код-якорь: lm.py:589-601, unified.py:381 @ca52eb4 (`CertifiedBlock`/
-  `lmTrunk` LMCompose.lean:115, :138). Гейт `_maybe_grow` (сигнал
-  `growthGate` 128·‖G‖²/2L vs c_add, NegativeTransfer.lean:574,
+  `lmTrunk` LMCompose.lean:114, :136). Гейт `_maybe_grow` (сигнал
+  `growthGate` 128·‖G‖²/2L vs c_add, NegativeTransfer.lean:570,
   `growth_gate_sound` :677) сертифицирует только ветку stay; c_add в коде —
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.

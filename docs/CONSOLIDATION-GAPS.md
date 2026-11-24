@@ -35,3 +35,23 @@ C-beats по канону C584; med (replay budget-split как ℕ-модель
 pre/post-измерение как state-монотонность) — после; high
 (CE-метрика, cosine-align) — честно отложены до появления
 Real/float-слоя (прецедент honest-набросков STATUS.md).
+
+## Dangling references (X12 findings)
+
+Имена, которые docstring'ы/документы называют как существующие декларации
+или модули, хотя в HEAD `27749d86` их нет (rg по `Hagi/`, `scripts/`,
+`docs/`, 2026-11-25). Ссылки не удаляются молча: они помечены здесь, а
+действие вынесено в next. Freeze identity 9043 не затронута — все строки
+ниже лежат в comment/doc-слое.
+
+| Файл | Имя | Статус | Действие-next |
+| --- | --- | --- | --- |
+| `Hagi/Step/Muon.lean` | `chunked_sum_exact`, `ce_prior_decomposition` | exists-elsewhere: обе доказаны в `Hagi/Data/DataMixing.lean` (`:77`, `:109`), модульный docstring Muon их рекламировал как свои | docstring Muon уже срезан в X12 (D); при возврате — ссылаться на `Hagi.Data.*`, не «в модуле» |
+| `Hagi/Step/Upgrades.lean:206` | `sink_mass_tradeoff` | not-found: доказанной декларации нет (есть только `sink_cost_bound`); имя живёт в docstring-списке | переименовать в «(not formalized) candidate» либо формализовать; docs не ссылаются |
+| `Hagi/External/Flywheel/SpectralNormGap.lean:508-509` | `spectral_error_eq_next_singularValue`, `frobenius_optimal_spectral_gap` | not-found: деклараций нет; реальный результат — `Matrix.SVD.Rectangular.spectral_error_truncatedSVD` (`MatrixNormRelations.lean:673`) | заменить две строки списка на существующую теорему либо пометить «candidate» |
+| `Hagi/Unified/StochasticCELearning.lean` | `stochastic_ce_loop_certified` | lost-in-merge: имя встречалось только в docstring (удалён в X12); доказаны `stochastic_ce_loop_whp`, `_whp_pl` | проверить receipt волны слияния Unified; если перенесена — восстановить ссылку, иначе закрыть |
+| `Hagi/Step/MDLThreeCurrency.lean:122-123,133`, `ALGORITHMS.md:2462` | `Hagi.Runtime.TernaryCodec`, `Hagi.Runtime.DyadicTernary` (`DyadicTernary dyadicBlock`) | not-found: модулей нет ни в `Hagi/`, ни в `Hagi/Research/`; `dyadicBlock` — «намеченный инстанс», которого тоже нет (X12 E; ссылка из `TernaryExact` уже снята) | указать реальный источник 16-битных блоков либо пометить «planned instance» в трёх местах |
+| `Hagi/External/Flywheel/SVDRectangularDecomposition.lean:185` | `extendedONB_rectangular` | dead-candidate: объявлен, но `constructedU_rectangular` использует `_v2`; потребителей нет | кандидат на удаление после ReachLint-проверки (не в v8: Freeze identity) |
+| `Hagi/Theory/MasterTheoremV3.lean` (docstring `master_theorem_v3`) | «(master_theorem_v3, — …» ×5, метка «A17 audit» | honest-noop (X12 B, D1): битые скобки в docstring; Statement не трогался | переформулировать docstring при следующем docstring-проходе (вне Freeze identity нельзя) |
+| `scripts/ClosureReport.py` | `Hagi.Ensemble.HoeffdingBridge` + 6 заглушек `"H"` | fixed (X13): модуль не существует; список корней замыкания чист, отчёт печатает `ROOTS: present / quarantined / renamed-or-deleted` | — |
+| `Hagi/Step/FrobeniusLMO.lean:129` | «Mathlib v4.34.1» | fixed (X13): фактическая версия — v4.36.0 (pin `scripts/mathlib-rev.txt`); утверждение «дуальности нет» подтверждено rg по Mathlib pin | — |

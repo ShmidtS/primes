@@ -7,7 +7,6 @@ import Hagi.Optimization.InexactContraction
 import Hagi.Optimization.SubspaceGrowth
 import Hagi.Optimization.DirectionPacking
 import Hagi.Probability.GibbsCore
-import Hagi.Probability.GibbsCore
 
 set_option linter.style.header false
 

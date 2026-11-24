@@ -53,30 +53,30 @@ something the theorem does not cover, said so). Row numbers are cycles.
 
 | Layer | Canon (Lean file:line) | Code anchor (HAGI_v2 file:line@sha) | Status | Cycle |
 |---|---|---|---|---|
-| growth | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:196) | `_block_add`/`grow`, hagi/lm.py:581-601 @ca52eb4 | exact | C640 |
-| growth | `grow_blocks_repeat_sound` (Hagi/Theory/GrowTrunkBlock.lean:149) | `MAX_BLOCKS = 2`, hagi/unified.py:381 @ca52eb4 | exact (2 blocks) | C640 |
-| growth | `growthGate` (Hagi/Theory/NegativeTransfer.lean:574) | `_maybe_grow`, hagi/unified.py:383-440 @ca52eb4 | honest gap: heuristic signal, not the canonical gate | C640 |
+| growth | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:123); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:196) | `_block_add`/`grow`, hagi/lm.py:581-601 @ca52eb4 | exact | C640 |
+| growth | `grow_blocks_repeat_sound` (Hagi/Theory/GrowTrunkBlock.lean:148) | `MAX_BLOCKS = 2`, hagi/unified.py:381 @ca52eb4 | exact (2 blocks) | C640 |
+| growth | `growthGate` (Hagi/Theory/NegativeTransfer.lean:570) | `_maybe_grow`, hagi/unified.py:383-440 @ca52eb4 | honest gap: heuristic signal, not the canonical gate | C640 |
 | growth | `snap_k_eq_ceil` (Hagi/Theory/GrowSnap.lean:342); `grow_snap_cycle_sound` (:145) | no snap grid in HAGI_v2; bench twin `--mode grow-snap` | honest gap: no consumer code | C521/C593 |
-| growth | `adapter_step_certified` (Hagi/Theory/AdapterGrowth.lean:192) | bench twin `--mode adapter-grow` | conditional (bench carrier) | C532 |
-| step | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1498) | range branch, hagi/lm.py:1313-1324 @1ae924e | exact | C638 |
-| step | `ce_adaptive_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1474) | `_adaptive_step`, hagi/lm.py:1261 @1ae924e | conditional (window (1e-5, 50]) | C638 |
+| growth | `adapter_step_certified` (Hagi/Theory/AdapterGrowth.lean:190) | bench twin `--mode adapter-grow` | conditional (bench carrier) | C532 |
+| step | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1497) | range branch, hagi/lm.py:1313-1324 @1ae924e | exact | C638 |
+| step | `ce_adaptive_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1473) | `_adaptive_step`, hagi/lm.py:1261 @1ae924e | conditional (window (1e-5, 50]) | C638 |
 | step | `CertifiedFiniteStep` (Hagi/Theory/FunctionPreservingGrowth.lean:398); `warmup_h1_of_certified_steps` (:406) | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | conditional (one objective) | C644 |
 | step | `useful_first_step` (Hagi/Theory/FunctionPreservingGrowth.lean:580); `first_step_useful_certified` (:637) | block `grow()`, hagi/lm.py:589-601 @ca52eb4 | conditional (a < 0, hlin) | C657 |
 | step | `adam_first_step_dot_pos` (Hagi/Step/AdamDirection.lean:85); `ema_sign_flip_negative` (:125) | `torch.optim.Adam`, hagi/lm.py:349 @b3740e0 | exact as a verdict: descent only at t = 1 | C655 |
 | step | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126) | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | exact at ε = 0, equal ‖g‖ | C639 |
 | reading | `covStartsStep_covers` (Hagi/Theory/CoverageReading.lean:184); `hier_covers_any_n` (:283) | bench twin `--mode adaptive-span`, `generate-hier` | honest gap: no consumer code | C602/C611 |
-| reading | `slot_last` (Hagi/Theory/CoverageReading.lean:722); `slotRev_first` (:734) | `_windows`, hagi/unified.py:297-316 @b3740e0 | exact for order; honest gap: target adjacency | C651 |
-| reading | `slot_last` (Hagi/Theory/CoverageReading.lean:722); `padSlot_tail` (:748); `padSlot_last` (:756); `padSlot_full` (:765) | train_guarded holdout, hagi/lm.py:905-907 @bab8aff; `_read_all_windows`, hagi/lm.py:1041-1054 @bab8aff; `generate`, hagi/lm.py:1126-1127 @bab8aff | exact for order; honest gap: `unified.py:1010` @bab8aff still reads `[::-1]` | C664 |
+| reading | `slot_last` (Hagi/Theory/CoverageReading.lean:720); `slotRev_first` (:734) | `_windows`, hagi/unified.py:297-316 @b3740e0 | exact for order; honest gap: target adjacency | C651 |
+| reading | `slot_last` (Hagi/Theory/CoverageReading.lean:720); `padSlot_tail` (:748); `padSlot_last` (:756); `padSlot_full` (:765) | train_guarded holdout, hagi/lm.py:905-907 @bab8aff; `_read_all_windows`, hagi/lm.py:1041-1054 @bab8aff; `generate`, hagi/lm.py:1126-1127 @bab8aff | exact for order; honest gap: `unified.py:1010` @bab8aff still reads `[::-1]` | C664 |
 | step | `chain_linear` (Hagi/Theory/FunctionPreservingGrowth.lean:716); `useful_of_adam_first` (:741) | block `grow()`, hagi/lm.py:581/:594-596 @ca52eb4 | conditional (linear carrier; nonlinear: strict descent only, C665) | C663 |
 | probability | `holdout_gate_two_way` (Hagi/Theory/HoldoutGateTwoWay.lean:52); `holdout_gate_two_way_delta` (:109) | growth gate, hagi/unified.py:536-543/:563-567/:577 @b3740e0 | conditional (iid slice; k = 512 near-vacuous) | C660 |
 | transfer | `neg_transfer_char` (Hagi/Theory/NegativeTransfer.lean:117); `nl_drop_optimal` (:481) | `_fit_domain_adapter`, hagi/unified.py:360/:367 @b3740e0 | conditional (quad model; bench gate C601) | C572/C606 |
 | transfer | `auto_transfer_gate_sound` (Hagi/Theory/AutoTransferGate.lean:139) | bench twin `--mode transfer-gate-certified` | honest gap: no consumer code | C577 |
-| compression | `constant_distill_exact` (Hagi/Theory/AdapterGrowth.lean:787); `distill_coverage_preserved` (:824) | bench twin `--mode distill` | honest gap: no consumer code | C556 |
+| compression | `constant_distill_exact` (Hagi/Theory/AdapterGrowth.lean:782); `distill_coverage_preserved` (:824) | bench twin `--mode distill` | honest gap: no consumer code | C556 |
 | compression | `codelength_ge_entropy_of_kraft` (Hagi/Theory/ArchiverCodeLength.lean:55); `idealLen_le_ce_add_one` (:164) | `probs_to_cdf`/`encode_step`, hagi/archiver.py:33-70 @b3740e0 | conditional (ideal coder, not range coder) | C653 |
 | compression | `trit_roundtrip` (Hagi/Theory/TritCodec.lean:117) | `decode_step`, hagi/archiver.py:96-118 @b3740e0 | honest gap: positional pack, not a range coder | C651/C653 |
-| probability | `empirical_bernstein_mean_bound` (Hagi/Probability/EmpiricalBernstein.lean:286); `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:121) | refine loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (iid batch) | C647 |
-| probability | `certified_rounds_union` (Hagi/Contracts/BatchGlobalTelescope.lean:366) | 8-round loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (independent rounds; WOR open) | C648 |
-| rollback | `rollback_gate_sound` (Hagi/Theory/RollbackGate.lean:100); `backtrack_accept_drop` (:262) | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | exact as a predicate | C530/C643 |
+| probability | `empirical_bernstein_mean_bound` (Hagi/Probability/EmpiricalBernstein.lean:286); `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:122) | refine loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (iid batch) | C647 |
+| probability | `certified_rounds_union` (Hagi/Contracts/BatchGlobalTelescope.lean:367) | 8-round loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (independent rounds; WOR open) | C648 |
+| rollback | `rollback_gate_sound` (Hagi/Theory/RollbackGate.lean:99); `backtrack_accept_drop` (:262) | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | exact as a predicate | C530/C643 |
 | rollback | `repair_sound` (Hagi/Theory/RepairForgetting.lean:105); `repair_drop_bound` (:78) | `_repair_forgetting`, hagi/unified.py:408-454 @e9a96fc | exact for control flow; linear bound only | C651 |
 | compression | `trit5_roundtrip` (Hagi/Theory/NadyaOptimal.lean:79); `int4_roundtrip` (:98); `exists_best_mse_scale` (:126) | `trit5Pack`/`_pack_int4`/`_best_mse_ternary`, Надя.txt:390-440 (snapshot 2026-11-24) | exact for the pack; honest gap: list-level int4 padding, candidate list | C666 |
 | step | `cosine_sched_bounds` (Hagi/Theory/NadyaOptimal.lean:143); `muon_step_norm_bound` (:201) | HybridMuon schedule, Надя.txt:120-152 | conditional (polar norm c is a hypothesis; momentum and weight decay outside) | C666 |
@@ -87,7 +87,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
 the cycle theorem (`certify_then_commit_sound`,
-Hagi/Theory/CertifyThenCommit.lean:332) and its fourteen-clause
+Hagi/Theory/CertifyThenCommit.lean:327) and its fourteen-clause
 consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:323)
 — budget, zero-forgetting under a frozen task, objective telescoping,
 coverage monotonicity, the exact transfer iff, the minimal snap grid,
@@ -156,7 +156,7 @@ certificates, admission gates, commit/hold/rollback decisions and
 a budget ledger. The single end-to-end theorem:
 
 > **Theorem (certify_then_commit_sound).**
-> `Hagi/Theory/CertifyThenCommit.lean:332` (G6).
+> `Hagi/Theory/CertifyThenCommit.lean:327` (G6).
 > For any T-round CTC cycle, under per-round false-commit measure
 > premises (μ{falseCommit i} ≤ δ i) with Σδ i ≤ δtotal and
 > per-round holdout allowances Σ e i ≤ ε:
@@ -178,7 +178,7 @@ source: C399 `adaptive_anytime_valid`, C446 `false_stop_bound`.
 ### 3.1 Adaptive majorizer with tight κ
 
 > **Theorem (adaptive_descent).**
-> `Hagi/Theory/AdaptiveMajorizer.lean:714`.
+> `Hagi/Theory/AdaptiveMajorizer.lean:713`.
 > If `next η ≤ L − η·A + η²·C` for all η ∈ [0,1] with A ≥ 0,
 > C > 0, and η* = A/(2C) ≤ 1, then `next η* ≤ L − A²/(4C)`.
 
@@ -225,7 +225,7 @@ phenomenon (`gpm_hold_when_covered`, :370).
 ### 3.4 Sandwich-softmax certified prediction
 
 > **Theorem (cert_pred_adaptive).**
-> `Hagi/Theory/Softmax.lean:813`.
+> `Hagi/Theory/Softmax.lean:810`.
 > If every class's certified band around the softmax is at most
 > 2ε wide and the true softmax gap exceeds 2ε, the band midpoint
 > argmax is certified.
@@ -233,7 +233,7 @@ phenomenon (`gpm_hold_when_covered`, :370).
 Refining the walls (larger denominator precision n, m) never
 un-certifies a prediction (`cert_pred_adaptive_mono`, :833;
 `bandWidth_mono`, :781), built on the sandwich accuracy lemma
-`sandwich_mid_acc` (`Hagi/Theory/Softmax.lean:409`) and
+`sandwich_mid_acc` (`Hagi/Theory/Softmax.lean:406`) and
 certified descent through bands (`sandwich_descent`,
 `Hagi/Theory/CertSandwichBench.lean:65`).
 
@@ -249,7 +249,7 @@ invariant (residual-zero identity, γ=0; neutral admission +
 negative control ε=1/10 ⇒ REJECT), followed by certified
 finite-difference training of the new block only (old blocks
 frozen). Soundness: `grow_blocks_repeat_sound`
-(`Hagi/Theory/GrowTrunkBlock.lean:149`) and
+(`Hagi/Theory/GrowTrunkBlock.lean:148`) and
 `grow_blocks_obj_invariant_repeat` (`:164`).
 
 | depth | max feature denominator (digits) | certified steps |
@@ -350,7 +350,7 @@ measured weighted validation gain above the full error budget
 (e_gen + e_quant + e_route + m_safety).
 
 > **Theorem (rollback_gate_sound).**
-> `Hagi/Theory/RollbackGate.lean:100`.
+> `Hagi/Theory/RollbackGate.lean:99`.
 > gate = false ⟹ the guarded step equals the incoming state
 > exactly (with per-component params/optimizer/RNG corollaries).
 
@@ -486,15 +486,15 @@ Newton–Schulz iteration: three rationalized p(x) = ax+bx³+cx⁵
 polynomials map the spectral box by EXACT rational bounds:
 [1/1000, 1] → [1/256, 1313/1024] → [5/512, 601/512] → final
 [9/512, 1049/1024] ≈ [0.0176, 1.0244] (`polar_express_step3_bound`,
-Hagi/Optimization/PolarExpressCert.lean:373). Honest correction:
+Hagi/Optimization/PolarExpressCert.lean:372). Honest correction:
 the upper end is 1.0244, i.e. within 2.5% of 1 — no spectral
 explosion, but the iteration does not pin the top of the
 spectrum to exactly 1.
 
 **Adapter continual isolation (C544).** Composing adapters with
 the continual line: per-task adapters give zero forgetting
-STRUCTURALLY — `adapter_isolation_zero_forgetting` (AdapterGrowth.lean:567) and
-`adapter_per_task_sound` (AdapterGrowth.lean:582) need no projections or budgets.
+STRUCTURALLY — `adapter_isolation_zero_forgetting` (AdapterGrowth.lean:564) and
+`adapter_per_task_sound` (AdapterGrowth.lean:579) need no projections or budgets.
 Measured head-to-head (conflict-pinned task B, same
 trunk/data/eta/grid): ISO forgetA = 0 EXACT (bit-exact assert)
 vs SHARED +0.2331 vs naive-trunk +5.5757 (the scenario of
@@ -665,7 +665,7 @@ linearly to 2·L·d = 48; cumulative certified drop monotone
 grows; volume does not.
 
 > **Theorem (self_compress_loop_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:726`. The loop
+> `Hagi/Theory/AdapterGrowth.lean:722`. The loop
 > telescopes the objective (delegate of grow_snap_cycle_sound,
 > generalized to a merge cycle) AND keeps params ≤
 > selfCompressParams k d = 2·k·d for ANY number of iterations
@@ -686,7 +686,7 @@ branches 113 → 0 — the whole corpus runs one adapter path with
 no branching.
 
 > **Theorem (constant_distill_exact / distill_coverage_preserved).**
-> `Hagi/Theory/AdapterGrowth.lean:787` / `:824`. The
+> `Hagi/Theory/AdapterGrowth.lean:782` / `:824`. The
 > distilled readout is exactly c (construction), so coverage
 > and CE = 0 are PRESERVED — composition with exact_gate_sound,
 > not a duplicate.
@@ -723,7 +723,7 @@ forget = 0 (bit-exact frozen-copy drift detector).
 | total | v3_assembly_sound | **55 certified steps, 0 holds, forget = 0, params ≤ 32, 1.87 s** |
 
 > **Theorem (v3_assembly_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:889`. The unified
+> `Hagi/Theory/AdapterGrowth.lean:884`. The unified
 > adapter machine is the CONJUNCTION of the distill branch
 > (`distill_coverage_preserved` ⇒ CE = 0 on every cluster) and
 > the self-compress branch (`self_compress_loop_sound` ⇒
@@ -754,8 +754,8 @@ the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 
 | # | clause (Lean-verbatim) | delegate | carrier | since |
 |---|---|---|---|---|
-| (1) | `params bs.length ≤ 2 * k * dd` — parameter budget at any cycle length | `self_compress_loop_sound` | Hagi/Theory/AdapterGrowth.lean:726 | v3.1 (C600) |
-| (2) | `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by per-task adapter isolation | `adapter_per_task_sound` | Hagi/Theory/AdapterGrowth.lean:582 | v3.1 |
+| (1) | `params bs.length ≤ 2 * k * dd` — parameter budget at any cycle length | `self_compress_loop_sound` | Hagi/Theory/AdapterGrowth.lean:722 | v3.1 (C600) |
+| (2) | `perTaskVec (s τ) a = perTaskVec (s 0) a` — zero forgetting by per-task adapter isolation | `adapter_per_task_sound` | Hagi/Theory/AdapterGrowth.lean:579 | v3.1 |
 | (3) | `step bs.length ≤ o0 + bs.sum` — the certified objective telescope | (machine obj bound) | Hagi/Theory/MasterTheoremV3.lean:83 | v3.1 |
 | (4) | `coversPrim CovP (st n) i` — coverage is monotone along the append-only cycle | `iterative_loop_sound` | Hagi/Theory/MiniHagiLoop.lean:154 | v3.1 |
 | (5) | `quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖^2` — transfer governed by an EXACT iff boundary | `neg_transfer_char` | Hagi/Theory/NegativeTransfer.lean:117 | v3.1 |
@@ -763,8 +763,8 @@ the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 | (7) | `∀ ib < nc, ∃ sw ∈ covStarts nc kc, sw ≤ ib ∧ ib < sw + kc` — every byte of the input is covered by some lattice window | `covStarts_covers` | Hagi/Theory/CoverageReading.lean:54 | v3.1 |
 | (8) | `f z - nE * nlBudget γ L G ≤ f (nlRun nE γ grad z) ∧ f (nlRun nE γ grad z) ≤ f z` — smooth sufficient-transfer bound at equal GD budget, `nlBudget γ L G = γ·G² + L·γ²·G²/2` | `smooth_obj_transfer_bound` | Hagi/Theory/NegativeTransfer.lean:386 | v3.1 |
 | (9) | `nlDrop (1 / L) L G = G ^ 2 / (2 * L)` — the certified-optimal single-step drop γ* = 1/L | `nl_drop_optimal` | Hagi/Theory/NegativeTransfer.lean:481 | v3.2 (C614) |
-| (10) | `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧ ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming peak ≤ m windows | `hier_covers_any_n` | Hagi/Theory/CoverageReading.lean:283 | v3.2 |
-| (11) | `(hierStarts nB B w w).length = (nB + w - 1) / w ∧ ∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) → (nB + w - 1) / w ≤ Ll.length` — the machine's total at s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows is shorter | `hier_optimal` | Hagi/Theory/CoverageReading.lean:533 | v3.3 (C622) |
+| (10) | `∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧ ib < t + w` — coverage of `[0, nB)` at ANY nB, streaming peak ≤ m windows | `hier_covers_any_n` | Hagi/Theory/CoverageReading.lean:282 | v3.2 |
+| (11) | `(hierStarts nB B w w).length = (nB + w - 1) / w ∧ ∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) → (nB + w - 1) / w ≤ Ll.length` — the machine's total at s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows is shorter | `hier_optimal` | Hagi/Theory/CoverageReading.lean:531 | v3.3 (C622) |
 
 Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:128`) =
 (1)–(8); `hagi_master_v32` (`:187`) = v3.1 + (9)(10); `hagi_master_v33`
@@ -808,7 +808,7 @@ section states it as one arc.
 > `n ≤ L.length * w`
 
 (`Hagi.Theory.CoverageReading.hier_total_floor`,
-CoverageReading.lean:496). The hierarchy of §3.17 clause map (10)
+CoverageReading.lean:494). The hierarchy of §3.17 clause map (10)
 ATTAINS the floor at `s = w`, `w ∣ B` —
 `hier_total_min` (:462): `(hierStarts n B w w).length =
 (n + w - 1) / w`, closed by `hier_optimal` (:533): total =
@@ -888,7 +888,7 @@ this is a certified LOWER bound; discrete equality needs
 w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
 Real-calculus outside the Nat model of the file — the bench
 text says "NOT a Lean clause" for α ≠ 2.
-<!-- source: Hagi/Theory/CoverageReading.lean:630/:650/:675
+<!-- source: Hagi/Theory/CoverageReading.lean:628/:650/:675
      (statement дословно); receipt C628 -->
 
 **(v) The bench application (C626).** `cost_regime_w` in
@@ -1162,8 +1162,8 @@ anchor, a bench application, and measured bits —
 | transfer gate | warm ⟺ `start_gap ≤ n•nlBudget γ L G`, `nlBudget = γG² + Lγ²G²/2` | `nlBudget`, NegativeTransfer.lean:242 (C592/C601) | TGC/ATA modes | exact boundary nlBudget(1/5,2,2) = 24/25; 3 warm pairs, forgetA = 0 (C601) |
 | window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:233 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
-| window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:315 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
-| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:577/:602/:630/:650/:675 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
+| window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:314 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
+| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:575/:602/:630/:650/:675 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
 <!-- source: строка w-rule — receipt C623:42-46; receipt C626 (cost_regime_w, pinned asserts, w_max=256→391); receipt C628 (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
 
 Two structural remarks. First, the optimal-step clause is
@@ -1234,7 +1234,7 @@ square `φ(1/L) − φ(γ) = (G²/(2L))(1 − Lγ)²`; `nl_drop_optimal`
 0.477/0.520/0.667 exact Fractions vs the old constant 1/10
 (C609).
 - **Card 10 — hierarchical window coverage at any n.**
-`hier_covers_any_n` (CoverageReading.lean:283): for `0 < B`,
+`hier_covers_any_n` (CoverageReading.lean:282): for `0 < B`,
 `0 < s ≤ w`, every `i < n` lies in a window of `hierStarts n B w
 s` — no upper bound on n; `hier_peak_window_budget` (:315):
 peak windows per block ≤ m (peak ≠ total, stated honestly).
@@ -1260,7 +1260,7 @@ and C658 all 17 (docs/PALOMAR-CARDS.md) — 0 overlaps.
 - **Card 12 — information-theoretic floor for reading n bytes
 with width-w windows.** Any covering list L of [0, n) by
 width-w windows satisfies `n ≤ L.length * w`
-(`hier_total_floor`, CoverageReading.lean:496), and the
+(`hier_total_floor`, CoverageReading.lean:494), and the
 hierarchy ATTAINS the floor at `s = w`, `w ∣ B`:
 `hier_total_min` (:462) — `(hierStarts n B w w).length =
 (n + w - 1) / w`; `hier_optimal` (:533) closes the optimum
@@ -1274,7 +1274,7 @@ B at s = w.
 width-independent.** For any `0 < w1, w2`:
 `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) +
 (w1 - 1)` (`windowCost_linear_near_const`,
-CoverageReading.lean:602) — totalCost(w1) ≤ totalCost(w2) +
+CoverageReading.lean:600) — totalCost(w1) ≤ totalCost(w2) +
 c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
 n + w − 1 (`windowCost_linear_bounds`, :586); contrast regime
 (a) `windowCost_fixed_mono` (:577): fixed cost makes w = w_max
@@ -1291,7 +1291,7 @@ not a Lean clause.
 
 1. **Measurement premise.** Certified prediction is conditional
    on `BandDescribes z lo hi` — a MEASUREMENT premise
-   (`Hagi/Theory/TrainerBenchmark.lean:62`), not derived from the
+   (`Hagi/Theory/TrainerBenchmark.lean:60`), not derived from the
    model.
 2. **ε-tolerances are measured, not tuned.** eps = 1/10 in
    mini-HAGI is a PIN: eps = 1/100 is impossible at any k < rank
@@ -1499,36 +1499,36 @@ not a Lean clause.
 
 | Anchor | File:line | Cycle |
 |---|---|---|
-| certify_then_commit_sound | Hagi/Theory/CertifyThenCommit.lean:332 | C463 |
-| adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:714 | C462+ |
-| kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:310 | C471 |
+| certify_then_commit_sound | Hagi/Theory/CertifyThenCommit.lean:327 | C463 |
+| adaptive_descent | Hagi/Theory/AdaptiveMajorizer.lean:713 | C462+ |
+| kappa_le_expR | Hagi/Theory/AdaptiveMajorizer.lean:309 | C471 |
 | fisher_quant_loss_bound | Hagi/Theory/MergeQuant.lean:204 | C472 |
 | rank_trunc_forgetting_bound | Hagi/Theory/Continual.lean:239 | C498 |
 | gpm_tradeoff | Hagi/Theory/Continual.lean:346 | C498 |
-| cert_pred_adaptive | Hagi/Theory/Softmax.lean:813 | C495/C502 |
-| grow_blocks_repeat_sound | Hagi/Theory/GrowTrunkBlock.lean:149 | C506 |
+| cert_pred_adaptive | Hagi/Theory/Softmax.lean:810 | C495/C502 |
+| grow_blocks_repeat_sound | Hagi/Theory/GrowTrunkBlock.lean:148 | C506 |
 | snap_preserves_objective_bound | Hagi/Theory/GrowSnap.lean:81 | C521 |
 | grow_snap_cycle_sound | Hagi/Theory/GrowSnap.lean:145 | C521 |
 | hybrid_step_sound | Hagi/Theory/Continual.lean:456 | C510 |
-| rollback_gate_sound | Hagi/Theory/RollbackGate.lean:100 | C530 |
-| adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:103 | C532 |
-| adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:192 | C532 |
-| adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:283 | C533 |
-| rank_select_sound | Hagi/Theory/AdapterGrowth.lean:328 | C535 |
-| adapter_stack_rank_bound | Hagi/Theory/AdapterGrowth.lean:416 | C536 |
-| adapter_merge_params | Hagi/Theory/AdapterGrowth.lean:443 | C536 |
-| adapter_merge_error_bound | Hagi/Theory/AdapterGrowth.lean:457 | C536 |
-| naive_decay_leak | Hagi/Theory/WeightDecayLeak.lean:128 | C538 |
-| wd_gpm_step_sound | Hagi/Theory/WeightDecayLeak.lean:159 | C538 |
+| rollback_gate_sound | Hagi/Theory/RollbackGate.lean:99 | C530 |
+| adapter_neutral_B | Hagi/Theory/AdapterGrowth.lean:101 | C532 |
+| adapter_step_certified | Hagi/Theory/AdapterGrowth.lean:190 | C532 |
+| adapter_snap_cycle_sound | Hagi/Theory/AdapterGrowth.lean:281 | C533 |
+| rank_select_sound | Hagi/Theory/AdapterGrowth.lean:326 | C535 |
+| adapter_stack_rank_bound | Hagi/Theory/AdapterGrowth.lean:414 | C536 |
+| adapter_merge_params | Hagi/Theory/AdapterGrowth.lean:441 | C536 |
+| adapter_merge_error_bound | Hagi/Theory/AdapterGrowth.lean:455 | C536 |
+| naive_decay_leak | Hagi/Theory/WeightDecayLeak.lean:126 | C538 |
+| wd_gpm_step_sound | Hagi/Theory/WeightDecayLeak.lean:157 | C538 |
 | empirical_bernstein_bound | Hagi/Probability/EmpiricalBernstein.lean:208 | C539 |
 | empirical_bernstein_mean_bound | Hagi/Probability/EmpiricalBernstein.lean:286 | C539 |
 | oe_search_complete | Hagi/Theory/OEComplete.lean:80 | C540 |
 | ce_total_eq_residual | Hagi/Theory/ExactBypass.lean:90 | C541 |
 | exact_gate_sound | Hagi/Theory/ExactBypass.lean:97 | C541 |
-| adapter_isolation_zero_forgetting | Hagi/Theory/AdapterGrowth.lean:567 | C544 |
-| adapter_per_task_sound | Hagi/Theory/AdapterGrowth.lean:582 | C544 |
-| trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:618 | C544 |
-| polar_express_step3_bound | Hagi/Optimization/PolarExpressCert.lean:373 | C545 |
+| adapter_isolation_zero_forgetting | Hagi/Theory/AdapterGrowth.lean:564 | C544 |
+| adapter_per_task_sound | Hagi/Theory/AdapterGrowth.lean:579 | C544 |
+| trunk_update_needs_projection | Hagi/Theory/AdapterGrowth.lean:614 | C544 |
+| polar_express_step3_bound | Hagi/Optimization/PolarExpressCert.lean:372 | C545 |
 | full_loop_sound | Hagi/Theory/MiniHagiLoop.lean:64 | C547 |
 | IterState | Hagi/Theory/MiniHagiLoop.lean:117 | C549 |
 | iterStep | Hagi/Theory/MiniHagiLoop.lean:122 | C549 |
@@ -1536,30 +1536,30 @@ not a Lean clause.
 | coverage_append_monotone | Hagi/Theory/MiniHagiLoop.lean:134 | C549 |
 | iterative_loop_sound | Hagi/Theory/MiniHagiLoop.lean:154 | C549 |
 | universal_loop_corpus_mono | Hagi/Theory/MiniHagiLoop.lean:190 | C551 |
-| selfCompressParams | Hagi/Theory/AdapterGrowth.lean:695 | C555 |
-| self_compress_params_bounded | Hagi/Theory/AdapterGrowth.lean:700 | C555 |
-| self_compress_params_contrast | Hagi/Theory/AdapterGrowth.lean:710 | C555 |
-| self_compress_loop_sound | Hagi/Theory/AdapterGrowth.lean:726 | C555 |
-| distillAdapter | Hagi/Theory/AdapterGrowth.lean:778 | C556 |
-| constant_distill_exact | Hagi/Theory/AdapterGrowth.lean:787 | C556 |
-| distill_prob_one | Hagi/Theory/AdapterGrowth.lean:808 | C556 |
-| distill_coverage_preserved | Hagi/Theory/AdapterGrowth.lean:824 | C556 |
-| distill_param_count | Hagi/Theory/AdapterGrowth.lean:837 | C556 |
-| distill_params_total | Hagi/Theory/AdapterGrowth.lean:844 | C556 |
-| symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:853 | C556 |
-| v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:889 | C558 |
+| selfCompressParams | Hagi/Theory/AdapterGrowth.lean:691 | C555 |
+| self_compress_params_bounded | Hagi/Theory/AdapterGrowth.lean:696 | C555 |
+| self_compress_params_contrast | Hagi/Theory/AdapterGrowth.lean:706 | C555 |
+| self_compress_loop_sound | Hagi/Theory/AdapterGrowth.lean:722 | C555 |
+| distillAdapter | Hagi/Theory/AdapterGrowth.lean:773 | C556 |
+| constant_distill_exact | Hagi/Theory/AdapterGrowth.lean:782 | C556 |
+| distill_prob_one | Hagi/Theory/AdapterGrowth.lean:803 | C556 |
+| distill_coverage_preserved | Hagi/Theory/AdapterGrowth.lean:819 | C556 |
+| distill_param_count | Hagi/Theory/AdapterGrowth.lean:832 | C556 |
+| distill_params_total | Hagi/Theory/AdapterGrowth.lean:839 | C556 |
+| symbolic_storage_cheaper | Hagi/Theory/AdapterGrowth.lean:848 | C556 |
+| v3_assembly_sound | Hagi/Theory/AdapterGrowth.lean:884 | C558 |
 | master_theorem_v3 | Hagi/Theory/MasterTheoremV3.lean:83 | C576 |
 | auto_transfer_gate_sound | Hagi/Theory/AutoTransferGate.lean:139 | C577 |
-| fact_append_preserves | Hagi/Theory/FactLedger.lean:61 | C579 |
-| fact_lookup_monotone | Hagi/Theory/FactLedger.lean:69 | C579 |
-| rangeWrap_inrange | Hagi/Theory/RangeWrap.lean:45 | C581 |
-| rangeWrap_fixed_point | Hagi/Theory/RangeWrap.lean:55 | C581 |
+| fact_append_preserves | Hagi/Theory/FactLedger.lean:59 | C579 |
+| fact_lookup_monotone | Hagi/Theory/FactLedger.lean:67 | C579 |
+| rangeWrap_inrange | Hagi/Theory/RangeWrap.lean:43 | C581 |
+| rangeWrap_fixed_point | Hagi/Theory/RangeWrap.lean:53 | C581 |
 | selectW_spec | Hagi/Theory/AdaptiveContext.lean:51 | C582 |
 | selectW_occam_minimal | Hagi/Theory/AdaptiveContext.lean:73 | C582 |
 | selectW_budget_bound | Hagi/Theory/AdaptiveContext.lean:101 | C582 |
-| consolidate_prompt_empty | Hagi/Theory/KnowledgeConsolidation.lean:68 | C584 |
-| remember_preserves_pages | Hagi/Theory/KnowledgeConsolidation.lean:74 | C584 |
-| learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:81 | C584 |
+| consolidate_prompt_empty | Hagi/Theory/KnowledgeConsolidation.lean:66 | C584 |
+| remember_preserves_pages | Hagi/Theory/KnowledgeConsolidation.lean:72 | C584 |
+| learn_from_dialog_archives | Hagi/Theory/KnowledgeConsolidation.lean:79 | C584 |
 | covStarts_covers | Hagi/Theory/CoverageReading.lean:54 | C598 |
 | covStarts_trunc_uncovered_zero | Hagi/Theory/CoverageReading.lean:130 | C598 |
 | covStartsStep_covers | Hagi/Theory/CoverageReading.lean:184 | C602 |
@@ -1577,37 +1577,37 @@ not a Lean clause.
 | nl_drop_optimal | Hagi/Theory/NegativeTransfer.lean:481 | C606 |
 | hierBlockLen | Hagi/Theory/CoverageReading.lean:268 | C611 |
 | hierStarts | Hagi/Theory/CoverageReading.lean:273 | C611 |
-| hier_covers_any_n | Hagi/Theory/CoverageReading.lean:283 | C611 |
-| hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:315 | C611 |
-| ce_adaptive_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1474 | C638 |
-| ce_range_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1498 | C638 |
-| adaptive_claim_scaled_bounds | Hagi/Theory/AdaptiveMajorizer.lean:1526 | C638 |
+| hier_covers_any_n | Hagi/Theory/CoverageReading.lean:282 | C611 |
+| hier_peak_window_budget | Hagi/Theory/CoverageReading.lean:314 | C611 |
+| ce_adaptive_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1473 | C638 |
+| ce_range_code_drop | Hagi/Theory/AdaptiveMajorizer.lean:1497 | C638 |
+| adaptive_claim_scaled_bounds | Hagi/Theory/AdaptiveMajorizer.lean:1525 | C638 |
 | mgda_eq_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:126 | C639 |
 | batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:146 | C639 |
-| grow_block_bench_sound | Hagi/Theory/GrowTrunkBlock.lean:124 | C640 |
+| grow_block_bench_sound | Hagi/Theory/GrowTrunkBlock.lean:123 | C640 |
 | function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:196 | C640 |
 | warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:299 | C642 |
 | post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:348 | C642 |
-| backtrack_accept_drop | Hagi/Theory/RollbackGate.lean:262 | C643 |
+| backtrack_accept_drop | Hagi/Theory/RollbackGate.lean:261 | C643 |
 | warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:406 | C644 |
 | batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:460 | C644 |
 | certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:487 | C646 |
-| batch_drop_generalizes | Hagi/Contracts/BatchGlobalTelescope.lean:121 | C647 |
-| certified_batch_drop_global | Hagi/Contracts/BatchGlobalTelescope.lean:177 | C647 |
-| rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:299 | C648 |
-| certified_rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:366 | C648 |
+| batch_drop_generalizes | Hagi/Contracts/BatchGlobalTelescope.lean:122 | C647 |
+| certified_batch_drop_global | Hagi/Contracts/BatchGlobalTelescope.lean:178 | C647 |
+| rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:300 | C648 |
+| certified_rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:367 | C648 |
 
 | RepairRun | Hagi/Theory/RepairForgetting.lean:61 | C651 |
 | acceptedCount | Hagi/Theory/RepairForgetting.lean:69 | C651 |
 | repair_drop_bound | Hagi/Theory/RepairForgetting.lean:78 | C651 |
 | accepted_le_budget | Hagi/Theory/RepairForgetting.lean:93 | C651 |
 | repair_sound | Hagi/Theory/RepairForgetting.lean:105 | C651 |
-| slot | Hagi/Theory/CoverageReading.lean:709 | C651 |
-| slotRev | Hagi/Theory/CoverageReading.lean:714 | C651 |
-| slot_last | Hagi/Theory/CoverageReading.lean:722 | C651 |
-| slotRev_first | Hagi/Theory/CoverageReading.lean:734 | C651 |
-| slot_mono | Hagi/Theory/CoverageReading.lean:718 | C651 |
-| slotRev_last | Hagi/Theory/CoverageReading.lean:728 | C651 |
+| slot | Hagi/Theory/CoverageReading.lean:707 | C651 |
+| slotRev | Hagi/Theory/CoverageReading.lean:712 | C651 |
+| slot_last | Hagi/Theory/CoverageReading.lean:720 | C651 |
+| slotRev_first | Hagi/Theory/CoverageReading.lean:732 | C651 |
+| slot_mono | Hagi/Theory/CoverageReading.lean:716 | C651 |
+| slotRev_last | Hagi/Theory/CoverageReading.lean:726 | C651 |
 | codelength_ge_entropy_of_kraft | Hagi/Theory/ArchiverCodeLength.lean:55 | C653 |
 | codelength_ge_entropy_of_uniquelyDecodable | Hagi/Theory/ArchiverCodeLength.lean:106 | C653 |
 | idealLen_kraft | Hagi/Theory/ArchiverCodeLength.lean:150 | C653 |
@@ -1639,7 +1639,7 @@ not a Lean clause.
 | block_step_certified_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:503 | C646 |
 | block_step_commit_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:517 | C646 |
 | block_range_bound_violated_not_certified | Hagi/Theory/FunctionPreservingGrowth.lean:532 | C646 |
-| growthGate | Hagi/Theory/NegativeTransfer.lean:574 | C640 |
+| growthGate | Hagi/Theory/NegativeTransfer.lean:570 | C640 |
 | neg_transfer_char | Hagi/Theory/NegativeTransfer.lean:117 | C572 |
 | hagi_master_v33 | Hagi/Theory/MasterTheoremV3.lean:252 | C622 |
 | hagi_master_v34 | Hagi/Theory/MasterTheoremV3.lean:323 | C662 |
@@ -1647,10 +1647,10 @@ not a Lean clause.
 | holdout_gate_two_way_delta | Hagi/Theory/HoldoutGateTwoWay.lean:109 | C660 |
 | chain_linear | Hagi/Theory/FunctionPreservingGrowth.lean:716 | C663 |
 | useful_of_adam_first | Hagi/Theory/FunctionPreservingGrowth.lean:741 | C663 |
-| padSlot | Hagi/Theory/CoverageReading.lean:743 | C664 |
-| padSlot_tail | Hagi/Theory/CoverageReading.lean:748 | C664 |
-| padSlot_last | Hagi/Theory/CoverageReading.lean:756 | C664 |
-| padSlot_full | Hagi/Theory/CoverageReading.lean:765 | C664 |
+| padSlot | Hagi/Theory/CoverageReading.lean:741 | C664 |
+| padSlot_tail | Hagi/Theory/CoverageReading.lean:746 | C664 |
+| padSlot_last | Hagi/Theory/CoverageReading.lean:754 | C664 |
+| padSlot_full | Hagi/Theory/CoverageReading.lean:763 | C664 |
 | mgda_norm_sq_le_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:102 | C639 |
 
 <!-- Appendix A: every row re-verified by .tmp/C659/audit.py on HEAD 4e4ef126

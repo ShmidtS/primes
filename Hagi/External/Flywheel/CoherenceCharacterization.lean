@@ -340,8 +340,8 @@ theorem coherenceFactor_bounds (E : Matrix n n ℂ) (hE : E ≠ 0) :
 /-- The spectral norm can be bounded using the coherence factor:
     ‖E‖₂ ≤ frobeniusNorm' E / (√rank(E) · μ(E))
 
-    For coherent matrices (μ ≈ 1), this gives ‖E‖₂ ≈ ‖E‖_F / √rank
-    For incoherent matrices (μ ≈ 1/√rank), this gives ‖E‖₂ ≈ ‖E‖_F (trivial) -/
+    For incoherent matrices (μ ≈ 1), this gives ‖E‖₂ ≈ ‖E‖_F / √rank
+    For coherent matrices (μ ≈ 1/√rank), this gives ‖E‖₂ ≈ ‖E‖_F (trivial) -/
 theorem spectral_bound_with_coherence (E : Matrix n n ℂ) (hE : E ≠ 0)
     (_h_coh_pos : 0 < coherenceFactor E) :
     ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by

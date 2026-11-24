@@ -60,7 +60,7 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
   `ΔC·P = 0` оставляет её точно инвариантной
   (`compl_step_preserves`).
 - **Anchor.** `Hagi.Theory.WeightDecayLeak.naive_decay_leak`
-  (Hagi/Theory/WeightDecayLeak.lean:128); сопутствующая
+  (Hagi/Theory/WeightDecayLeak.lean:126); сопутствующая
   `wd_gpm_step_sound` (:159).
 - **Dependencies.** Mathlib (Matrix, Real.sqrt); локальные
   леммы модуля.
@@ -158,7 +158,7 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
   опровергаются контрпримером `p(9/10) = −35451/100000 < 0`
   (`polar_express_bad_coeff_counterex`).
 - **Anchor.** `Hagi.Optimization.PolarExpressCert.polar_express_cycle_cert`
-  (Hagi/Optimization/PolarExpressCert.lean:403);
+  (Hagi/Optimization/PolarExpressCert.lean:402);
   ступенчатые леммы `polar_express_step{1,2,3}_bound`.
 - **Dependencies.** Mathlib (Real.arith, nlinarith); без
   внешних теорий.
@@ -180,7 +180,7 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
 
   Явный счёт: `card(A) + card(B) = 2·|r|·|d|`.
 - **Anchor.** `Hagi.Theory.AdapterGrowth.adapter_param_count_le_block`
-  (Hagi/Theory/AdapterGrowth.lean:160); `adapter_param_count`
+  (Hagi/Theory/AdapterGrowth.lean:158); `adapter_param_count`
   (:140), `block_param_count` (:152),
   `adapter_param_count_lt_block` (:167).
 - **Dependencies.** Mathlib (Fintype, Finset.card); без внешних
@@ -233,7 +233,7 @@ bounded peak
   т.е. streaming peak-память ≤ m окон (total растёт с числом
   блоков ⌈n/B⌉ — честное peak ≠ total).
 - **Anchor.** `Hagi.Theory.CoverageReading.hier_covers_any_n`
-  (Hagi/Theory/CoverageReading.lean:283);
+  (Hagi/Theory/CoverageReading.lean:282);
   `hier_peak_window_budget` (:315); определения `hierBlockLen`
   (:268), `hierStarts` (:273).
 - **Dependencies.** Та же Mathlib-база; сведение поблочно к
@@ -314,7 +314,7 @@ with width-w windows
   гипотеза B* = √(nw) опровергнута телескоп-суммой).
 - **Anchor.**
   `Hagi.Theory.CoverageReading.hier_total_floor`
-  (Hagi/Theory/CoverageReading.lean:496);
+  (Hagi/Theory/CoverageReading.lean:494);
   `hier_total_min` (:462); `hier_optimal` (:533);
   `hier_total_formula` (:440); `hier_blocks_sum_tiling` (:389);
   `covStartsStep_len_tiling` (:354); определения `hierBlockLen`
@@ -361,7 +361,7 @@ width-independent
   c·w меняет вывод на противоположный (w_max → свободно).
 - **Anchor.**
   `Hagi.Theory.WindowTradeoff.windowCost_linear_near_const`
-  (Hagi/Theory/CoverageReading.lean:594);
+  (Hagi/Theory/CoverageReading.lean:592);
   `windowCost_linear_bounds` (:586);
   `windowCost_fixed_mono` (:577); `ceil_div_anti` (:555);
   `windowCost_hier` (:613).
@@ -418,7 +418,7 @@ width-independent
   (GROW ⟺ λ < pb/params, монотонность по λ).
 - **Anchor.**
   `Hagi.Theory.GrowthGate.growthGate`
-  (Hagi/Theory/NegativeTransfer.lean:574, namespace внутри модуля);
+  (Hagi/Theory/NegativeTransfer.lean:570, namespace внутри модуля);
   `growth_gate_stay_char` (:580); `nl_drop_step_eq` (:608);
   `nl_drop_total` (:620); `growth_gate_sound` (:677).
   Потребитель: bench `--mode grow-snap` / `adapter-grow`.

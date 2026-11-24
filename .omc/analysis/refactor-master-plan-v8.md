@@ -163,31 +163,47 @@ STOP, откат, запись в план. Коммит `refactor(v8 Xn): <summ
 
 ---
 
-# CLOSEOUT — v8 LANDED (X1–X11)
+# CLOSEOUT — v8 CLOSED (X1–X13)
 
-Статус: **v8 LANDED X1–X11**. Freeze identity 9043 во всех волнах
-(ни одна волна не меняла statement ни одной декларации; `lake build`,
-Freeze, ci.sh — PASS на каждой волне). Базовые цифры survey (§0)
-исторические — сверху.
+Статус: **v8 CLOSED**. Freeze identity 9043 во всех волнах (ни одна волна
+не меняла statement ни одной декларации; `lake build`, Freeze, ci.sh — PASS
+на каждой волне). Базовые цифры survey (§0) исторические — сверху.
 
-## Итоги по коммитам (base 3ba95ac3)
+## Итоговая таблица коммитов (base 3ba95ac3, 15 коммитов)
 
-| Волна | commit | +/− | Что |
-| --- | --- | ---: | --- |
-| X1 | 555ff987 | +138/−163 | ложные статусы honest-карточек (F1–F4), счётчики (F5–F7, F9–F11, F13–F16, F22, F26) |
-| X2 | 36850ac1 | +251/−1214 | STATUS-журнал → канон-карточки по файлу (M1, F19, F25) |
-| X3 | 3da082ec | +11/−718 | era-index вместо 7 period-файлов (M5), статусы PROPOSAL (F24) |
-| X4 | 60fe47a4 | +137/−446 | paper: одна карта мостов в §0, §3.20 → дельты, §4.8 удалён (M4, F8) |
-| X5 | 238813a9 | +903/−866 | Nadya WidthGrowth → `Hagi/Theory/WidthGrowth.lean` (M3; identity) |
-| X8 | 1a33035e | +9/−6 | bench `cw_*` → существующие lse/CE-хелперы (F23) |
-| X6 | 4d7bf131 | +62/−109 | Lean docstrings: событийные метки, карты клозов (F20) |
-| X6b | 7d971508 | +59/−59 | перепин FPG/MasterTheoremV3 после X6 |
-| X9 | b5e1b506 | +44/−92 | `Hagi.Research` вне defaultTargets; ci.sh строит явно |
-| X10 | f9bda399 | +116/−155 | ALGORITHMS-канон, repo-wide ложь, README/RELATED/GAPS |
-| X11 | (этот коммит) | — | финальное прочтение, archive v7-планов, закрытие v8 |
+| Волна | commit | +/− | Δ строк | Что |
+| --- | --- | ---: | ---: | --- |
+| survey | e160b7ec | +162/−0 | +162 | план v8 (этот файл) |
+| X1 | 555ff987 | +138/−163 | −25 | ложные статусы honest-карточек (F1–F4), счётчики (F5–F7, F9–F11, F13–F16, F22, F26) |
+| X2 | 36850ac1 | +251/−1214 | −963 | STATUS-журнал → канон-карточки по файлу (M1, F19, F25) |
+| X3 | 3da082ec | +11/−718 | −707 | era-index вместо 7 period-файлов (M5), статусы PROPOSAL (F24) |
+| X4 | 60fe47a4 | +137/−446 | −309 | paper: одна карта мостов в §0, §3.20 → дельты, §4.8 удалён (M4, F8) |
+| X5 | 238813a9 | +903/−866 | +37 | Nadya WidthGrowth → `Hagi/Theory/WidthGrowth.lean` (M3; identity) |
+| X8 | 1a33035e | +9/−6 | +3 | bench `cw_*` → существующие lse/CE-хелперы (F23) |
+| X6 | 4d7bf131 | +62/−109 | −47 | Lean docstrings: событийные метки, карты клозов (F20) |
+| X6b | 7d971508 | +59/−59 | 0 | перепин FPG/MasterTheoremV3 после X6 |
+| X9 | b5e1b506 | +44/−92 | −48 | `Hagi.Research` вне defaultTargets; ci.sh строит явно |
+| X10 | f9bda399 | +116/−155 | −39 | ALGORITHMS-канон, repo-wide ложь, README/RELATED/GAPS |
+| X11 | 1ead431c | +138/−81 | +57 | финальное прочтение, archive v7-планов, закрытие v8 (X1–X11) |
+| X12p1 | 357aefdc | +988/−1799 | −811 | Lean docstrings слои C E + частично A B D: ложная изоляция, water |
+| X12p2 | 27749d86 | +1284/−1869 | −585 | Lean docstrings слои A B D (хвост) |
+| X13 | (этот коммит) | — | — | перепин docs-якорей по имени после X12 + `DocAnchorCheck` gate; хвосты FINDINGS X12; закрытие v8 |
 
-`git diff --shortstat 3ba95ac3..f9bda399` = **−1936 строк** (35 файлов);
-прогноз был −1900…−2100 — выполнен. Tracked total: 241 848 → 239 912.
+Сумма 14 landed коммитов (`git diff --shortstat 3ba95ac3..27749d86`):
+327 файлов, +4142/−7417 = **−3275 строк**. Tracked total: 241 848 → 238 585.
+
+По слоям (tracked, 3ba95ac3 → 27749d86, до X13):
+
+| Слой | до | после | Δ |
+| --- | ---: | ---: | ---: |
+| Lean `Hagi/` без Research | 206 621 | 205 208 | −1413 |
+| Lean `Hagi/Research/` (карантин, не читался) | 10 911 | 10 911 | 0 |
+| docs: все tracked `*.md` | 12 642 | 10 829 | −1813 |
+| `scripts/` | 20 855 | 20 862 | +7 |
+| config (lakefile, toolchain, toml, Hagi.lean) | 1 024 | 968 | −56 |
+
+Прогноз survey был −1900…−2100 (X1–X11: −1936, выполнен); X12 добавил −1396
+(перечитывание docstrings ~490 файлов), X13 — перепин без изменения объёма.
 
 ## DECISION-решения
 
@@ -205,11 +221,20 @@ Freeze, ci.sh — PASS на каждой волне). Базовые цифры 
 
 ## Честная граница v8 (не провал — граница)
 
-- Построчно в v8 перечитаны: докстринги эры C638–C667 (X6), STATUS,
+- **X12 (357aefdc, 27749d86)**: построчно перечитан comment/doc-слой всех
+  Lean-модулей вне карантина (~490 файлов, receipts `.tmp/X12/{A..E}`);
+  тела доказательств не читались — их неизменность гарантирует Freeze identity
+  + strip-comments identity (receipts X12 D/E).
+- **X13 (этот коммит)**: docs-якоря перепинены по ИМЕНИ декларации (не по
+  смещению) от базы `1ead431c` (последнее состояние до X12); gate
+  `scripts/DocAnchorCheck.py` + `scripts/docanchors.lock` в ci.sh. Хвосты
+  FINDINGS X12 — `docs/CONSOLIDATION-GAPS.md` § «Dangling references».
+
+- X1–X11 построчно перечитаны: докстринги эры C638–C667 (X6), STATUS,
   PALOMAR-CARDS, paper-draft, PROPOSAL-*, PREMISES-STATUS,
   CONSOLIDATION-GAPS, ALGORITHMS, README, RELATED, era-index.
-- Остальной Lean (≈206k строк / 560 файлов, минус перечитанные
-  докстринги) построчно НЕ перечитывался; покрытие — v7 (T3, TrivialLint)
+- Тела доказательств остального Lean (≈206k строк / 560 файлов) построчно
+  НЕ перечитывались; покрытие — v7 (T3, TrivialLint)
   и автоматические гейты (DocLint/Freeze/AllAxiomCheck). Кандидаты v9:
   `Hagi/Probability/Freedman.lean` 4490, `Hagi/Contracts/BatchCEGrowth.lean`
   2920, `BatchCEBudgetGuard.lean` 2395, `Hagi/Model/` целиком (89 файлов,

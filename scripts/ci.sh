@@ -98,6 +98,12 @@ step "StatusLint (doc identifiers exist in code, baseline-gated)"
 out=$(python scripts/StatusLint.py 2>&1 | tail -1)
 echo "$out"; [ "$out" = "STATUSLINT: PASS" ] || { echo "STATUSLINT: FAIL"; fail=1; }
 
+step "DocAnchorCheck (docs' File.lean:N anchors still point at the locked declaration)"
+out=$(python scripts/DocAnchorCheck.py 2>&1 | tail -1)
+echo "$out"; case "$out" in DOCANCHORS:\ PASS*) ;; *) echo "DOCANCHORS: FAIL"; fail=1;; esac
+python scripts/TestDocAnchorCheck.py -q 2>&1 | tail -1 | grep -q "OK" \
+  || { echo "DOCANCHORS: regression FAIL"; fail=1; }
+
 echo
 if [ "$fail" -ne 0 ]; then echo "CI: FAIL (early)"; exit 1; fi
 

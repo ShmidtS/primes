@@ -74,13 +74,7 @@ CAPSTONES = [
     "Hagi.Examples.QuadraticEndToEnd",   # end-to-end witness
     "Hagi.Examples.QuarticWitness",      # quartic witness
     "Hagi.Examples.QuadLoopWitness",     # quad loop witness
-    "H",
-    "H",
-    "H",
-    "H",
-    "H",
-    "H",
-    "Hagi.Ensemble.HoeffdingBridge", # M4 weighted/product bridge
+    "Hagi.Ensemble.Hoeffding",       # M4 weighted/product bridge (kernel `hoeffding_fin`)
     "Hagi.Probability.GibbsCore",    # M4 Gibbs canon
     "Hagi.Unified.LoopInstances",
     "Hagi.Unified.SignDescent",
@@ -139,10 +133,19 @@ def closure(mods, roots):
 
 def main():
     mods = modules()
-    cl = closure(mods, CAPSTONES)
+    # Roots that no longer exist as modules are not dropped silently: they were
+    # quarantined (Hagi/Research/**) or renamed, and the closure share is
+    # computed over the roots that are really in the build.
+    present = [c for c in dict.fromkeys(CAPSTONES) if c in mods]
+    gone = [c for c in dict.fromkeys(CAPSTONES) if c not in mods]
+    research = {m.rsplit(".", 1)[-1] for m in mods if m.startswith("Hagi.Research")}
+    quarantined = [c for c in gone if c.rsplit(".", 1)[-1] in research]
+    cl = closure(mods, present)
     lib = sorted(set(mods) - cl)
     print(f"CLOSURE: {len(cl)}/{len(mods)} modules under capstones "
           f"({100*len(cl)/len(mods):.0f}%); library: {len(lib)}")
+    print(f"ROOTS: {len(present)} in build, {len(quarantined)} quarantined "
+          f"(Hagi.Research), {len(gone) - len(quarantined)} renamed-or-deleted")
     for m in lib:
         print(f"  lib: {m}")
     return 0
