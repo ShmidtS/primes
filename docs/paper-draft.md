@@ -1,42 +1,115 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v0.9. Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены rg на 551c8025; freeze identity 8907), либо измеренный результат
-прогона с указанием витка (Cn), либо PIN в §Limitations. Якоря кода
-HAGI_v2 (python `file:line@sha`) сверены `git show` на указанном sha
-(мости C638–C648: @ca52eb4, wave 255). Никаких недоказанных клеймов.
-Теоремный счётчик abstract остаётся от e40aa426: новый индекс
-не генерировался.
+Draft v1.0 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены скриптом .tmp/C659/audit.py на HEAD 4e4ef126; freeze identity
+8956), либо измеренный результат прогона с указанием витка (Cn), либо
+PIN в §5. Якоря кода HAGI_v2 (python `file:line@sha`) сверены `git show`
+на указанном sha (мосты C638–C648: @1ae924e / @ca52eb4, волны 254–255;
+мосты C651–C657: @e9a96fc / @b3740e0, волны 256–258). Карта
+«слой машины ↔ теорема ↔ код» — §0; мосты C651–C657 — §3.21.
+Никаких недоказанных клеймов. Теоремный счётчик abstract остаётся от
+e40aa426: новый индекс не генерировался.
 
 ## Abstract
 
-We present **certify-then-commit (CTC)**, a discipline in which a
-learning system takes a step only after a machine-checked
-certificate: the loop **PROPOSE → CERTIFY → ADMIT →
-COMMIT/HOLD/ROLLBACK → LOG**. Every accepted step is backed by one
-of **12 875 theorems in 543 Lean 4 modules against Mathlib, 0
-`sorry`** (count at HEAD e40aa426); the cycle-level soundness
-theorem `certify_then_commit_sound` guarantees, per T-round run:
-objective telescoping over the committed ledger, a probability-δtotal
-bound on false commits, an ε-bound on holdout-risk growth, and exact
-budget balance. Measured end to end, the loop self-improves without
-forgetting: mini-HAGI v3 covers 108/115 targets in ONE live trace
-(26 certified steps, params ≤ 32, CE 3.80→0.0733, forget = 0
-bit-exact; C558), the full live corpus reaches 93.8% coverage by
-constant clusters distilled into rank-1 adapters (CE = 0 bit-exact,
-113/113; C551/C556), and the reading theory is tight: the
-certified coverage floor ⌈nB/w⌉ is attained, and a 2-level hierarchy
-cuts the peak per-level window budget from 127 to 63 at n = 8128
-(C611), with a certified window-width rule and its mixed-cost AM-GM
-refinement (C623/C628). The **code-bridge era** (C638–C648,
-§3.20, §4.8) reverses the flow: the consumer's code (HAGI_v2) is now
-checked against the Lean canon, and primes answers with **8 code
-bridges** — exact, conditional, or honest-gap — pinned to python
-`file:line@sha` (freeze 8849 → 8907, +58 declarations, 0
-lost/changed).
-We state honest pins (`BandDescribes`), measured ε-compromises,
-hybrid degeneration, corpus drift, and mini-scale (§Limitations, §5
-pins 22–29 for the code-bridge era).
+**Certified HAGI** is a self-improving learning system in which every
+step is taken only after a machine-checked certificate: PROPOSE →
+CERTIFY → ADMIT → COMMIT/HOLD/ROLLBACK → LOG, formalized in Lean 4
+against Mathlib (**12 875 theorems in 543 modules, 0 `sorry`**, count at
+e40aa426; freeze identity **8956** declarations at HEAD). The cycle
+theorem `certify_then_commit_sound` gives, per T-round run, objective
+telescoping, a 1 − δtotal bound on false commits, an ε-bound on
+holdout-risk growth and exact budget balance; the consolidated statement
+`hagi_master_v33` covers the machine in eleven clauses. Measured end to
+end: mini-HAGI v3 covers 108/115 targets in one live trace (26 certified
+steps, forget = 0 bit-exact; C558), the reading floor ⌈nB/w⌉ is attained
+and a 2-level hierarchy cuts the peak window budget 127 → 63 at n = 8128
+(C611). The formula hits of the paper are closed form and proved:
+the optimal snap grid k* = ⌈log₂(L·d/ε)⌉ − 1, the useful first warm-up
+step **η* = 4|a|/R² with drop_max = 2a²/R²**, and the codelength sandwich
+**H(p) ≤ E[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1** via Kraft–McMillan.
+Release feature: **17 PALOMAR cards** and a **§0 map of ≥17 code
+bridges** (C572–C658) in which the consumer's own code (HAGI_v2, python
+`file:line@sha`) is checked against the canon and labelled exact,
+conditional or honest-gap. We state the open hypotheses as pins (§5,
+pins 30–34): U2 global reachability, the chain rule behind a < 0,
+without-replacement conservativity, the range-coder round-trip, and the
+holdout gate.
+
+## 0. Certified HAGI map: machine layer ↔ theorem ↔ code
+
+One table for the whole release. **Layer** is the part of the machine;
+**canon** is the Lean declaration (`file:line`, rg-verified at HEAD
+4e4ef126, freeze 8956); **code anchor** is HAGI_v2 python
+`file:line@sha` (`git show`-verified) or the primes bench twin;
+**status** is one of **exact** (the code's statement at the cited lines
+is an instance of the theorem), **conditional** (holds under a model
+hypothesis the code does not check), **honest gap** (the code does
+something the theorem does not cover, said so). Row numbers are cycles.
+<!-- source: .tmp/C659/audit.py (Lean anchors); git show <sha>:hagi/*.py (code anchors) -->
+
+| Layer | Canon (Lean file:line) | Code anchor (HAGI_v2 file:line@sha) | Status | Cycle |
+|---|---|---|---|---|
+| growth | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:169) | `_block_add`/`grow`, hagi/lm.py:581-601 @ca52eb4 | exact | C640 |
+| growth | `grow_blocks_repeat_sound` (Hagi/Theory/GrowTrunkBlock.lean:149) | `MAX_BLOCKS = 2`, hagi/unified.py:381 @ca52eb4 | exact (2 blocks) | C640 |
+| growth | `growthGate` (Hagi/Theory/NegativeTransfer.lean:574) | `_maybe_grow`, hagi/unified.py:383-440 @ca52eb4 | honest gap: heuristic signal, not the canonical gate | C640 |
+| growth | `snap_k_eq_ceil` (Hagi/Theory/GrowSnap.lean:342); `grow_snap_cycle_sound` (:145) | no snap grid in HAGI_v2; bench twin `--mode grow-snap` | honest gap: no consumer code | C521/C593 |
+| growth | `adapter_step_certified` (Hagi/Theory/AdapterGrowth.lean:192) | bench twin `--mode adapter-grow` | conditional (bench carrier) | C532 |
+| step | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1498) | range branch, hagi/lm.py:1313-1324 @1ae924e | exact | C638 |
+| step | `ce_adaptive_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1474) | `_adaptive_step`, hagi/lm.py:1261 @1ae924e | conditional (window (1e-5, 50]) | C638 |
+| step | `CertifiedFiniteStep` (Hagi/Theory/FunctionPreservingGrowth.lean:371); `warmup_h1_of_certified_steps` (:379) | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | conditional (one objective) | C644 |
+| step | `useful_first_step` (Hagi/Theory/FunctionPreservingGrowth.lean:552); `first_step_useful_certified` (:609) | block `grow()`, hagi/lm.py:589-601 @ca52eb4 | conditional (a < 0, hlin) | C657 |
+| step | `adam_first_step_dot_pos` (Hagi/Step/AdamDirection.lean:85); `ema_sign_flip_negative` (:125) | `torch.optim.Adam`, hagi/lm.py:349 @b3740e0 | exact as a verdict: descent only at t = 1 | C655 |
+| step | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126) | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | exact at ε = 0, equal ‖g‖ | C639 |
+| reading | `covStartsStep_covers` (Hagi/Theory/CoverageReading.lean:184); `hier_covers_any_n` (:283) | bench twin `--mode adaptive-span`, `generate-hier` | honest gap: no consumer code | C602/C611 |
+| reading | `slot_last` (Hagi/Theory/CoverageReading.lean:722); `slotRev_first` (:734) | `_windows`, hagi/unified.py:297-316 @b3740e0 | exact for order; honest gap: target adjacency | C651 |
+| transfer | `neg_transfer_char` (Hagi/Theory/NegativeTransfer.lean:117); `nl_drop_optimal` (:481) | `_fit_domain_adapter`, hagi/unified.py:360/:367 @b3740e0 | conditional (quad model; bench gate C601) | C572/C606 |
+| transfer | `auto_transfer_gate_sound` (Hagi/Theory/AutoTransferGate.lean:139) | bench twin `--mode transfer-gate-certified` | honest gap: no consumer code | C577 |
+| compression | `constant_distill_exact` (Hagi/Theory/AdapterGrowth.lean:787); `distill_coverage_preserved` (:824) | bench twin `--mode distill` | honest gap: no consumer code | C556 |
+| compression | `codelength_ge_entropy_of_kraft` (Hagi/Theory/ArchiverCodeLength.lean:55); `idealLen_le_ce_add_one` (:164) | `probs_to_cdf`/`encode_step`, hagi/archiver.py:33-70 @b3740e0 | conditional (ideal coder, not range coder) | C653 |
+| compression | `trit_roundtrip` (Hagi/Theory/TritCodec.lean:117) | `decode_step`, hagi/archiver.py:96-118 @b3740e0 | honest gap: positional pack, not a range coder | C651/C653 |
+| probability | `empirical_bernstein_mean_bound` (Hagi/Probability/EmpiricalBernstein.lean:286); `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:121) | refine loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (iid batch) | C647 |
+| probability | `certified_rounds_union` (Hagi/Contracts/BatchGlobalTelescope.lean:366) | 8-round loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (independent rounds; WOR open) | C648 |
+| rollback | `rollback_gate_sound` (Hagi/Theory/RollbackGate.lean:100); `backtrack_accept_drop` (:262) | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | exact as a predicate | C530/C643 |
+| rollback | `repair_sound` (Hagi/Theory/RepairForgetting.lean:105); `repair_drop_bound` (:78) | `_repair_forgetting`, hagi/unified.py:408-454 @e9a96fc | exact for control flow; linear bound only | C651 |
+| rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:321) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
+
+**What is proved end to end.** Inside Lean, with no code hypothesis:
+the cycle theorem (`certify_then_commit_sound`,
+Hagi/Theory/CertifyThenCommit.lean:332) and its eleven-clause
+consolidation (`hagi_master_v33`, Hagi/Theory/MasterTheoremV3.lean:273)
+— budget, zero-forgetting under a frozen task, objective telescoping,
+coverage monotonicity, the exact transfer iff, the minimal snap grid,
+the coverage floor and peak window budget. **What is proved end to end.** Inside Lean, with no code hypothesis:
+the cycle theorem (`certify_then_commit_sound`,
+Hagi/Theory/CertifyThenCommit.lean:332) and its eleven-clause
+consolidation (`hagi_master_v33`, Hagi/Theory/MasterTheoremV3.lean:273)
+— budget, zero-forgetting under a frozen task, objective telescoping,
+coverage monotonicity, the exact transfer iff, the minimal snap grid,
+the coverage floor and peak window budget. Against the consumer's code,
+the exact bridges are the range branch of the certified step, identity
+growth of the trunk, the MGDA direction at ε = 0, and three control-flow
+predicates (backtracking, repair, window order) — repair with a linear,
+not geometric, bound. Two rows are exact only as *verdicts*: the
+wave-258 window fix leaves a k-byte gap between context and target, and
+Adam is a descent step only at t = 1.
+<!-- source: STATUS.md cards C638–C658; §3.20 (i)–(ix); §3.21; §4.8 -->
+
+**What remains a hypothesis or a model.** (1) h1 for the real warm-up:
+the code warms the block with bare Adam and never calls the certified
+step (pin 25). (2) Batch → global: iid sampling and independent rounds,
+while the code samples without replacement and updates θ between
+rounds; the WOR conservativity is an unproved intuition (pin 28, 32).
+(3) The descent signal a < 0 of the useful first step is a hypothesis;
+its chain-rule link to `adam_first_step_dot_pos` is not formalized (pin
+31), and the global reachability of a useful block (U2) is open (pin
+30). (4) Codelength bounds are for the ideal coder ⌈−log₂ p̂⌉₊; the
+range coder of archiver.py has no Lean model, and losslessness is tests
+plus a measured 11/11 (pin 33). (5) Every holdout gate compares
+measured values; no theorem relates train objective to holdout CE (pin
+29, 34). (6) No bridge at all for the snap grid, adaptive-span and
+hierarchical reading, the auto transfer gate, or constant distillation
+— bench twins only.
 
 ## 1. Related Work
 
@@ -592,7 +665,7 @@ linearly to 2·L·d = 48; cumulative certified drop monotone
 grows; volume does not.
 
 > **Theorem (self_compress_loop_sound).**
-> `Hagi/Theory/AdapterGrowth.lean:708`. The loop
+> `Hagi/Theory/AdapterGrowth.lean:726`. The loop
 > telescopes the objective (delegate of grow_snap_cycle_sound,
 > generalized to a merge cycle) AND keeps params ≤
 > selfCompressParams k d = 2·k·d for ANY number of iterations
@@ -935,13 +1008,13 @@ computes `h = h + relu(a @ W1 + b1) @ Wo`; a fresh block `grow()`
 trunk function and ANY functional (logits, CE) EXACTLY = the code's
 "logits preserved EXACTLY, max|diff| = 0.0"; `grow_blocks_repeat_sound`
 (:149) = `MAX_BLOCKS = 2` (unified.py:381). LM carrier:
-`identityBlock` (FunctionPreservingGrowth.lean:94), `trunk_function_preserving`
-(:123), `lmLogits_grow_identity` (:133 — the very name in the code
-comment, lm.py:568), `function_preserving_growth` (:157). Verdict class (a):
+`identityBlock` (FunctionPreservingGrowth.lean:106), `trunk_function_preserving`
+(:135), `lmLogits_grow_identity` (:145 — the very name in the code
+comment, lm.py:568), `function_preserving_growth` (:169). Verdict class (a):
 0 new theorems, one correspondence card. Both Lean files are native to
 primes (merge-islands era), not a port — HAGI_v2 has 0 `.lean` files.
 <!-- source: STATUS.md card C640; Hagi/Theory/GrowTrunkBlock.lean:86/:95/:124/:135/:149,
-     Hagi/Theory/FunctionPreservingGrowth.lean:94/:123/:133/:157 (rg) -->
+     Hagi/Theory/FunctionPreservingGrowth.lean:106/:135/:145/:169 (rg) -->
 
 **(iv) Warm-up certificate (C642, C644) — conditional on h1.** The
 code warms the new block by bare Adam on (W1, b1, Wo) with the trunk
@@ -950,23 +1023,23 @@ not worsen, else `blocks.pop()` (:435-437). After step 0, Wo ≠ 0:
 "function preserved after training" is FALSE and cannot be a theorem.
 What IS proved (FunctionPreservingGrowth.lean, section WarmUp; carrier
 `obj : B → ℝ` is the TRAIN objective, abstract):
-- `warmup_telescope` (:245): obj(θ n) ≤ obj(θ 0) − Σ drop.
-- `warmup_safe` (:260): (h0) obj(θ 0) = fOld — the identity start, the
+- `warmup_telescope` (:257): obj(θ n) ≤ obj(θ 0) − Σ drop.
+- `warmup_safe` (:272): (h0) obj(θ 0) = fOld — the identity start, the
   one link where code and theorem coincide literally — and (h1)
   ∀t, obj(θ(t+1)) ≤ obj(θ t) − drop t ⇒ obj(θ n) ≤ fOld, for ANY
-  number of steps. `warmup_strict` (:275) adds − n·dMin.
-- `post_warmup_growth_safe` (:309): composed with the rollback gate,
+  number of steps. `warmup_strict` (:287) adds − n·dMin.
+- `post_warmup_growth_safe` (:321): composed with the rollback gate,
   under BOTH verdicts obj ≤ fOld (REJECT = exact `rollback_state_params`);
   `_of_certified` derives the ACCEPT premise from `warmup_safe`.
 - `CertifiedFiniteStep` (:359, `stepEps` = 1e-12 :352) is the abstract
   contract of the code's `_certified_finite_step` (lm.py:826-879
   @ca52eb4): COMMIT (drop > 1e-12 ∧ obj θ' ≤ obj θ − drop) ∨ HOLD (θ' = θ
-  ∧ drop = 0). `warmup_h1_of_certified_steps` (:367): every step by the
-  contract ⇒ h1; `warmup_safe_of_certified_steps` (:383) and
-  `post_warmup_growth_safe_of_certified_steps` (:394) follow.
-- Negatives: `uncertified_step_can_worsen` (:292) — without h1 one
+  ∧ drop = 0). `warmup_h1_of_certified_steps` (:379): every step by the
+  contract ⇒ h1; `warmup_safe_of_certified_steps` (:395) and
+  `post_warmup_growth_safe_of_certified_steps` (:406) follow.
+- Negatives: `uncertified_step_can_worsen` (:304) — without h1 one
   step can raise obj from 0 to 1; `uncertified_step_not_certified`;
-  `batch_drop_not_global` (:421) — a certified drop of 1/2 on a
+  `batch_drop_not_global` (:433) — a certified drop of 1/2 on a
   batch objective coexists with +1 on another functional.
 - Honest gap: in the CODE, h1 is NOT a code fact — warm-up never calls
   `_certified_finite_step`, and that step writes to the TRUNK, not the
@@ -976,7 +1049,7 @@ What IS proved (FunctionPreservingGrowth.lean, section WarmUp; carrier
   and the same objective. Closing it on the HAGI_v2 side is the subject
   of `docs/PROPOSAL-certified-warmup.md` (C644, external push;
   numbers not measured).
-<!-- source: STATUS.md cards C642, C644; Hagi/Theory/FunctionPreservingGrowth.lean:245/:260/:275/:292/:309/:352/:359/:367/:383/:394/:421 (rg);
+<!-- source: STATUS.md cards C642, C644; Hagi/Theory/FunctionPreservingGrowth.lean:257/:272/:287/:304/:321/:364/:371/:379/:395/:406/:433 (rg);
      hagi/lm.py:826 @ca52eb4; hagi/unified.py:423-437 @ca52eb4 -->
 
 **(v) Adam backtracking, wave 254 (C643) — exact bridge, not Armijo.**
@@ -1006,22 +1079,22 @@ CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ + range(d)²/8) depend on
 WHICH parameters carry the step? No — `d` is a shift of LOGITS, and in
 the canon that is `lse_shift_upper` (Hagi/Energy/PoEBound.lean:168) over
 abstract `x y : V → ℝ`. Hence:
-- `certified_step_block_of_range` (:448): for any logit map
+- `certified_step_block_of_range` (:460): for any logit map
   `L : B → K → ℝ` (in particular `L b = lmLogits` of the model with block
   `b` and frozen trunk) and `d = L b' − L b`, the same bound holds —
   carrier-independence of the certificate.
-- `block_step_certified_of_range_bound` (:464): range ≤ r ⇒ obj_b b' ≤
-  obj_b b − drop; `block_step_commit_of_range_bound` (:478): drop >
+- `block_step_certified_of_range_bound` (:476): range ≤ r ⇒ obj_b b' ≤
+  obj_b b − drop; `block_step_commit_of_range_bound` (:490): drop >
   stepEps ⇒ the COMMIT branch of `CertifiedFiniteStep` ⇒
   `warmup_h1_of_certified_steps` applies to the block.
-- Negative `block_range_bound_violated_not_certified` (:493): with the
+- Negative `block_range_bound_violated_not_certified` (:505): with the
   range bound violated and the objective rising, there is no certificate
   at any drop.
 - Left to the code (implementation, not theorem): compute range(Δz)
   via a block-only JVP with frozen trunk and a block-parameter variant
   of `_certified_finite_step`. Functional logits of the block do not
   exist in the code today.
-<!-- source: STATUS.md card C646 (witness rc=0); Hagi/Theory/FunctionPreservingGrowth.lean:448/:464/:478/:493;
+<!-- source: STATUS.md card C646 (witness rc=0); Hagi/Theory/FunctionPreservingGrowth.lean:460/:476/:490/:505;
      Hagi/Energy/PoEBound.lean:168 (rg); hagi/lm.py:235 @ca52eb4 -->
 
 **(vii) Batch → global telescoping (C647) — three levels.** Code fact
@@ -1085,6 +1158,138 @@ Quot.sound. Of the 8 bridges (§4.8), 4 are exact at their cited
 lines — (i) range branch, (ii) at ε = 0, (iii), (v) as a predicate —
 and 4 are conditional — (iv), (vii), (viii), plus the carrier lemma
 (vi) that feeds (iv).
+
+### 3.21 Later bridges (C651–C657): repair, archiver, Adam, the useful first step
+
+The code-bridge era continues past wave 255. Code anchors are
+`git show`-verified at **@e9a96fc (wave 256–257)** and **@b3740e0
+(wave 258, HAGI_v2 HEAD)**; Lean anchors are rg-verified at HEAD
+4e4ef126 (freeze 8956).
+<!-- source: STATUS.md cards C651, C653, C654, C655, C657; receipts
+     .tmp/C651–C657 -->
+
+**(i) Repair of forgetting (C651) — exact control flow, linear bound.**
+`_repair_forgetting` (unified.py:408-454 @e9a96fc; call :256) runs,
+while the paired gate `_old_domains_ce` (:635-660) is above pre:
+snapshot → `train_certified` on OLD bytes (:436-437) → measure → on no
+improvement `new ≥ post − 1e-4` an exact rollback `q.copy_(s0)`
+(:450-452) and STOP, else the next round; budget `REPAIR_ROUNDS = 6`
+(:403). The canon `Hagi/Theory/RepairForgetting.lean`: `RepairRun`
+(:61) is an inductive relation with the code's three branches (done /
+retrain when `w < v − tol` / rollback otherwise, value preserved
+exactly), and
+
+> **Theorem (`repair_sound`, :105).** `0 ≤ tol` and
+> `run : RepairRun tol r v z` imply `z ≤ v − tol·(acceptedCount run)`
+> ∧ `z ≤ v` ∧ `acceptedCount run ≤ r`.
+
+The bound is LINEAR because the code accepts any improvement > 1e-4
+(no contraction factor ρ) and stops at the first non-improvement; post
+may remain above pre. The gate is a sample estimate (≤ 8 domains × 256
+positions). Clause (2) zero-forgetting of `master_theorem_v3`
+(Hagi/Theory/MasterTheoremV3.lean:81) is NOT instantiated: repair
+writes the shared trunk. Measured numbers are the commit message's
+(+0.553 → +0.036; 20/89 rounds hit rollback), not re-measured.
+Window order (same card, wave 258): `slot_last`
+(Hagi/Theory/CoverageReading.lean:722) — the query slot k−1 is the
+newest byte p+k−1; `slotRev_first` (:734). Finding: after the fix the
+context is `idx[p−n .. p)` (:314) but the target is `idx[pos + k]`
+(:315) — a k-byte gap for p ≥ k; measured CE 7.307 against 0.181 with
+the adjacent target (.tmp/C651/logs/windows_probe.log).
+<!-- source: STATUS.md card C651; hagi/unified.py:256/:403/:408-454/:635-660 @e9a96fc,
+     :297-316 @b3740e0 (git show); Hagi/Theory/RepairForgetting.lean:61/:105,
+     Hagi/Theory/CoverageReading.lean:722/:734 (rg) -->
+
+**(ii) Archiver codelength (C653) — conditional on the ideal coder.**
+The code claims (archiver.py:1-4 @b3740e0): "archive size is within
+o(1) of −log2 P(data), so the compression ratio IS the model's CE".
+The codec is a 32-bit range coder with a 16-bit CDF, `probs_to_cdf`
+(:33-39), `encode_step` (:52-70), `decode_step` (:96-118). What is
+proved (`Hagi/Theory/ArchiverCodeLength.lean`, for `len = ⌈−log₂ p̂⌉₊`):
+
+> **Theorem (`codelength_ge_entropy_of_kraft`, :55).** If
+> `∑ x, 2^{−len x} ≤ 1` then `entBits p ≤ expLen p len`.
+> **(`idealLen_le_ce_add_one`, :164).** `expLen p (idealLen q) ≤
+> ceBits p q + 1`. **(`ceBits_eq_entBits_add_kl`, :194).**
+> `ceBits p q = entBits p + klDef p q / log 2`.
+
+Together: **H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1**; at p̂ = p
+(`idealLen_self_bounds`, :208) KL = 0 and `H ≤ E[len] ≤ H + 1`. The
+Kraft hypothesis is discharged from Mathlib's Kraft–McMillan
+(`codelength_ge_entropy_of_uniquelyDecodable`, :106). Honest gaps: the
+model is the IDEAL coder, not the range coder (o(1) per stream there);
+p̂ is the quantized CDF (freq = max(1, round(P·65200))); the round-trip
+is tests + measured 11/11 (5.16 bit/byte vs zlib 2.40), not a theorem —
+`trit_roundtrip` (Hagi/Theory/TritCodec.lean:117) is a positional pack.
+<!-- source: STATUS.md card C653; hagi/archiver.py:1-4/:33-39/:52-70/:96-118 @b3740e0 (git show);
+     Hagi/Theory/ArchiverCodeLength.lean:55/:106/:164/:194/:208 (rg) -->
+
+**(iii) Adam direction (C655) — a verdict, not a bridge.** The code
+calls `torch.optim.Adam` with defaults β₁ = 0.9, β₂ = 0.999, eps =
+1e-8 (lm.py:349, :403; unified.py:473, :548 @b3740e0). In
+`Hagi/Step/AdamDirection.lean`:
+
+> **Theorem (`adam_first_step_dot_pos`, :85).** `g ≠ 0` and `0 < eps`
+> imply `0 < adamDot g (adamDir g (fun i => g i ^ 2) eps)`.
+> **(`ema_sign_flip_negative`, :125).** At β₁ = 9/10, β₂ = 999/1000,
+> g₁ = 1, g₂ = −1/10 the second Adam step has `adamDot g d < 0`.
+
+So ⟨g, d⟩ > 0 is a code fact ONLY at t = 1; from t = 2 Adam is not a
+certified descent (`adam_step_not_always_descent`, :116). The code
+never relies on it: the Adam step is accepted only by the measured
+`backtrackAccept` (selfmodel.py:134-169 @b3740e0), and `min_dot ≥
+−conflict_tol` (:121-126) is computed for the MGDA direction before
+Adam. Chain C642 → C643 → C655 closes: h1 for an Adam step needs the
+backtracking gate. This settles pin 26's open lemma as a NEGATIVE
+verdict.
+<!-- source: STATUS.md card C655; hagi/lm.py:349/:403, hagi/unified.py:473/:548,
+     hagi/selfmodel.py:121-126/:134-169 @b3740e0 (git show);
+     Hagi/Step/AdamDirection.lean:85/:116/:125 (rg) -->
+
+**(iv) Useful first warm-up step (C657) — the formula hit.** Carrier:
+a family `bη : ℝ → B` with linear logit displacement
+`L (bη η) u − L b u = η·D u` (the step on `Wo` at `Wo = 0`), range
+constant `R` (`D u − D v ≤ R`), and `a = ⟨softmax (L b) − onehot_t, D⟩`.
+Certificate `linDrop a R η = −(η·a + η²·R²/8)` (:547).
+
+> **Theorem (`useful_first_step`, :552).** `R ≠ 0` ⇒
+> `linDrop a R (−4a/R²) = 2a²/R²`.
+> **(`useful_eta_le`, :565).** `linDrop a R η ≤ 2a²/R²`, with equality
+> only at `η = −4a/R²`. **(`exists_useful_eta`, :588).** `a < 0`,
+> `0 < R`, `stepEps < 2a²/R²` ⇒ `∃ η > 0, stepEps < linDrop a R η`.
+> **(`first_step_useful_certified`, :609).** The same on the block
+> carrier: `∃ η > 0` with `CertifiedFiniteStep (CE_t ∘ L) b (bη η)
+> (linDrop a R η)`. **(`first_step_strict_improves`, :644).** With
+> identity start `CE_t (L b) = fOld`: `∃ η > 0, CE_t (L (bη η)) < fOld`.
+
+That is, **η* = 4|a|/R² and drop_max = 2a²/R²**: the first step is
+certifiably useful iff the residual signal a is nonzero and
+2a²/R² > stepEps; with a = 0 no step commits (`no_signal_no_drop`,
+:597). Witness (.tmp/C657/traj.lean, rc=0): a = −1, R = 2 ⇒ η* = 1,
+drop_max = 1/2. Honest pins: a < 0 is a hypothesis (its chain-rule link
+to C655 is not formalized, pin 31), hlin is a code-side JVP fact, η* is
+the certificate optimum and not the code's fixed lr, and the global
+statement U2 is open (pin 30).
+<!-- source: STATUS.md card C657; Hagi/Theory/FunctionPreservingGrowth.lean:547/:552/:565/:588/:597/:609/:644 (rg);
+     witness .tmp/C657/traj.lean, gates .tmp/C657/gates.log -->
+
+**(v) The certified warm-up, simulated (C654).** Bench mode
+`certified-warmup-sim` (scripts/bench_bridge.py) compares a certified
+arm (python twin of `_certified_finite_step` on the real finite logit
+displacement, COMMIT iff drop > 1e-12, ≤ 600 steps) with the plain Adam
+arm of unified.py (lr 1e-3, 2 epochs, no check, no rollback), on the
+bench carrier with the trunk frozen — a simulation, not a HAGI_v2 run.
+
+| corpus | fOld | certified | plain Adam (steps) | verdict |
+|---|---|---|---|---|
+| snapshot (34 pts, T=2, n_params=66) | 3.761650 | 2.783855 (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.561600) | 3.583951 (2) | PASS |
+| --live-corpus (C610 fallback, T=2, n_params=102) | 4.811144 | 3.394217 (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.780696) | 4.444299 (4) | PASS |
+
+The honest fact: plain Adam ALSO lowered the objective in both runs —
+but without a certificate; the certified arm guarantees obj_final ≤
+fOld by construction (every COMMIT is asserted `obj' ≤ obj − drop`).
+The certificate is a batch mean over all points, not a task mean.
+<!-- source: STATUS.md card C654; .tmp/C654/receipt.md, snap.out, live2.out (C654) -->
 
 ## 4. Benchmarks (measured only)
 
@@ -1339,7 +1544,9 @@ not a Lean clause.
 
 Eight bridges of the code-bridge era (C638–C648). Code anchors are
 HAGI_v2 python `file:line@sha` (wave 254 = 1ae924e, wave 255 =
-ca52eb4), Lean anchors are at HEAD 551c8025 (freeze 8907). Status:
+ca52eb4), Lean anchors are at HEAD 4e4ef126 (freeze 8956; the
+FunctionPreservingGrowth.lean rows moved +12 lines since v0.9 with the
+C657 section). Status:
 **exact** = the code's statement at the cited lines is an instance of
 the theorem; **conditional** = holds under a hypothesis the code does
 not check; the honest-gap column says what is outside the bridge.
@@ -1348,31 +1555,28 @@ not check; the honest-gap column says what is outside the bridge.
 |---|---|---|---|---|
 | 1 | `_adaptive_step` range branch, hagi/lm.py:1313-1324 @1ae924e | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1498); `ce_adaptive_code_drop` (:1474); `adaptive_claim_scaled` (:1514) | exact (range branch, eta ≥ 0); adaptive branch exact only on the window (1e-5, 50] (`kappaClamp_eq_kappa` :1458) | adaptive branch never taken in 12/12 instrumented steps; JVP vs exact displacement (rollback 2/5 in the nonlinear LM); outside the window C is understated |
 | 2 | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126); `mgda_norm_sq_le_of_stationary` (:102) | exact at ε = 0 (and equal ‖g_j‖); 2ε-approximate at ε > 0; different problem under normalization | unequal norms → hull of normalized, not raw gradients; FW rate and the 200-iteration exit not formalized |
-| 3 | `_block_add` / `grow`, hagi/lm.py:581-601 @ca52eb4 | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:157) | exact (code statement ⊂ canon) | growth gate `_maybe_grow` (unified.py:383-440): signal 128·‖G‖²/(2L) vs heuristic c_add, not the canonical `growthGate` (NegativeTransfer.lean:574); no "function preserved after step 0" |
-| 4 | warm-up, hagi/unified.py:423-437 @ca52eb4 | `warmup_safe` (FunctionPreservingGrowth.lean:260); `post_warmup_growth_safe` (:309) | conditional (h1: every step certified) | warm-up is bare Adam, never calls the certified step; holdout gate measured, not proved |
-| 5 | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | `CertifiedFiniteStep` (FunctionPreservingGrowth.lean:359); `warmup_h1_of_certified_steps` (:367); `batch_drop_not_global` (:421) | conditional (steps must be on ONE objective) | the code's step writes to the trunk, certifies batch CE; batch drop does not telescope to global |
+| 3 | `_block_add` / `grow`, hagi/lm.py:581-601 @ca52eb4 | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:169) | exact (code statement ⊂ canon) | growth gate `_maybe_grow` (unified.py:383-440): signal 128·‖G‖²/(2L) vs heuristic c_add, not the canonical `growthGate` (NegativeTransfer.lean:574); no "function preserved after step 0" |
+| 4 | warm-up, hagi/unified.py:423-437 @ca52eb4 | `warmup_safe` (FunctionPreservingGrowth.lean:272); `post_warmup_growth_safe` (:321) | conditional (h1: every step certified) | warm-up is bare Adam, never calls the certified step; holdout gate measured, not proved |
+| 5 | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | `CertifiedFiniteStep` (FunctionPreservingGrowth.lean:371); `warmup_h1_of_certified_steps` (:379); `batch_drop_not_global` (:433) | conditional (steps must be on ONE objective) | the code's step writes to the trunk, certifies batch CE; batch drop does not telescope to global |
 | 6 | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | `backtrack_accept_drop` (Hagi/Theory/RollbackGate.lean:262); `backtrack_trials_bounded` (:283) | exact as a predicate (the code's own, β = 1/2, 9 trials) | NOT Armijo (no σ·γ·⟪g,d⟫); called only from self-test; objective is holdout loss; `adam_inner_nonneg` unproved |
-| 7 | block step: JVP range of Δz (not in code), lemma hagi/lm.py:235 @ca52eb4 | `certified_step_block_of_range` (FunctionPreservingGrowth.lean:448); `block_step_commit_of_range_bound` (:478) | conditional (range bound supplied) | block-only JVP and a block variant of the certified step are implementation, absent today |
+| 7 | block step: JVP range of Δz (not in code), lemma hagi/lm.py:235 @ca52eb4 | `certified_step_block_of_range` (FunctionPreservingGrowth.lean:460); `block_step_commit_of_range_bound` (:490) | conditional (range bound supplied) | block-only JVP and a block variant of the certified step are implementation, absent today |
 | 8 | refine loop, hagi/lm.py:978-1008 @ca52eb4 | `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:121); `certified_rounds_union` (:366) | conditional (iid batch; independent rounds; k·ebGap(α/k)) | sampling without replacement, rounds dependent through θ; code computes neither b/sig nor α/8; WOR conservativity not formalized |
 
-The count used in the abstract is the 8 table rows. "8" is a sum over
-the cards C638–C648, not a machine-checked number.
-Not in the table (C651, waves 256–258 of HAGI_v2 @e9a96fc/@b3740e0):
+The count of this era is the 8 table rows, a sum over the cards
+C638–C648, not a machine-checked number. Later bridges (C651–C657,
+§3.21; full map §0), not table rows:
 the iterative repair of forgetting (`Unified._repair_forgetting`,
-unified.py:436-454 @e9a96fc) is bridged by `RepairRun` /
-`repair_sound` (Hagi/Theory/RepairForgetting.lean:61, :105) — exact
+unified.py:408-454 @e9a96fc) is bridged by `RepairRun` (Hagi/Theory/RepairForgetting.lean:61) / `repair_sound` (:105) — exact
 for the control flow, with a LINEAR bound (gate falls by ≥ `tol` per
 accepted round), not a geometric one, and no clause (2)
 zero-forgetting instance (the code writes the shared trunk). The
 lossless archiver (hagi/archiver.py @b3740e0) has a codelength
-bridge only for the IDEAL coder: `codelength_ge_entropy_of_kraft` /
-`idealLen_le_ce_add_one` / `idealLen_self_bounds`
-(Hagi/Theory/ArchiverCodeLength.lean) prove H(p) ≤ E[len] ≤ H(p) +
+bridge only for the IDEAL coder: `codelength_ge_entropy_of_kraft` (Hagi/Theory/ArchiverCodeLength.lean:55) / `idealLen_le_ce_add_one` (:164) / `idealLen_self_bounds` (:208) prove H(p) ≤ E[len] ≤ H(p) +
 KL(p‖p̂)/log 2 + 1 for len = ⌈−log₂ p̂⌉₊ via Kraft–McMillan + Gibbs.
 primes still models no range coder (`trit_roundtrip` is a positional
 pack); losslessness of archiver.py is tests + measured 11/11 only.
 <!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c646-648-analysis.md
-     («8 мостов — сумма по карточкам, не machine-checked»); all file:line rg-verified on HEAD 551c8025 -->
+     («8 мостов — сумма по карточкам, не machine-checked»); all file:line re-verified by .tmp/C659/audit.py on HEAD 4e4ef126 -->
 
 ## 5. Honest limitations (pins)
 
@@ -1487,7 +1691,8 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    1ae924e, wave 255 ca52eb4). At HAGI_v2 HEAD b3740e0 (wave 258)
    the lines moved (`_certified_finite_step` lm.py:826 → :831, refine
    loop :999 → :1007, `MAX_BLOCKS` 2 → 4, warm-up lr 3e-3 → 1e-3);
-   waves 256–258 are NOT bridged. The tree was read-only for primes.
+   waves 256–258 are bridged only in §3.21 (C651, C653, C655, C657) at
+   @e9a96fc / @b3740e0. The tree was read-only for primes.
 23. **The real certificate is the range branch.** On the wave-252
    test config the adaptive branch of `_adaptive_step` is never taken
    (eta* ≈ 203–260 > 1); `ce_adaptive_code_drop` is a bridge to a
@@ -1508,11 +1713,15 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    sufficient-decrease term; `backtrack_accept_drop` is a bridge to
    the code's own accept test, which is called only from the self-test
    (C643). "Adam EMA descent" ⟨g, m̂/√v̂⟩ ≤ 0 is NOT a code fact;
-   `adam_inner_nonneg` is unproved and not included.
+   `adam_inner_nonneg` is unproved and not included. VERDICT (C655,
+   §3.21 iii): ⟨g, d⟩ > 0 is a code fact only at t = 1; from t = 2 Adam
+   is not a certified descent — the lemma is false as stated.
 27. **Block-only JVP is implementation.** `certified_step_block_of_range`
    is carrier-free because the range lemma is about logits; the
    range of Δz over the block parameters with a frozen trunk must be
    computed by the code, which has no functional block logits (C646).
+   UPDATE (C657): given that range R and a descent signal a < 0, the
+   useful step is η* = 4|a|/R² with drop 2a²/R².
 28. **iid batch and independent rounds are models, not code facts.**
    The code samples without replacement and updates θ between the 8
    rounds, so the rounds are dependent; `certified_rounds_union` is
@@ -1525,7 +1734,37 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    train obj to holdout CE. The "forgetting 4× lower" of wave 255 is
    an A/B on 6 chunks from one checkpoint (commit message), not a
    theorem (C640, C642, C643).
-<!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c638-c640 / c642-c644 /
+30. **U2: global reachability of a useful block is open.**
+   `useful_first_step` proves the LOCAL statement (η* = 4|a|/R²,
+   drop_max = 2a²/R²) under a < 0. "An expressive block can reach a
+   drop ≥ δ in many steps" needs an optimization guarantee on a
+   non-convex landscape plus a UAT on a finite grid; primes has neither
+   (no UAT statement at all), and the code's random W1 gives a ≠ 0 only
+   probabilistically (C657).
+31. **The descent signal a < 0 is a hypothesis.** Its link to C655
+   (`adam_first_step_dot_pos` ⇒ a = ⟨Jᵀ(p−y), d⟩ < 0 by the chain rule)
+   is NOT formalized: L is nonlinear in the parameters and a < 0 enters
+   as a hypothesis. hlin (linear logit displacement in η) is a code-side
+   JVP fact at Wo = 0, not a theorem (C657).
+32. **Without-replacement conservativity is not formalized.** The code
+   samples batches without replacement; `batch_drop_generalizes` assumes
+   iid. The finite-population factor (N−n)/(N−1) ≤ 1 is intuition only:
+   Mathlib has no such lemma (rg), and the price is an
+   order-statistics/FCP lemma (C647, C648).
+33. **The range-coder round-trip is tests, not a theorem.** The
+   codelength bounds (C653) are for the IDEAL coder ⌈−log₂ p̂⌉₊;
+   archiver.py has no Lean model (a nonempty-interval invariant, a
+   searchsorted lemma and a renorm invariant; est. ≥ 400 lines).
+   `trit_roundtrip` is a positional pack. "Within o(1) of −log₂ P" for
+   the range coder is a classical fact, not proved here. Lossless =
+   11/11 measured + 6 tests (C651, C653).
+34. **The certified warm-up is a simulation.** The C654 bench
+   (`certified-warmup-sim`) runs the python twin of the certified step
+   on the bench carrier, not in HAGI_v2; its PASS is obj_final ≤ fOld by
+   construction, and plain Adam also lowered obj in both runs. The
+   holdout gate that would accept such a block in the code remains the
+   measured test of pin 25 (C654).
+<!-- source: STATUS.md cards C638–C657 (pins 22–29: C638–C648; 30–34: C651–C657); .omc/analysis/period-c638-c640 / c642-c644 /
      c646-648 analyses -->
 
 ## 6. Experiment plan (to strengthen before submission)
@@ -1545,7 +1784,7 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
 6. SVD upstream landing (docs/UPSTREAM-SVD.md) to shorten the
    non-Mathlib trusted base.
 
-## Appendix A: anchor table (C598–C614 verified at 7ea1ee87 (+W2); C638–C648 at 551c8025)
+## Appendix A: anchor table (all rows re-verified at HEAD 4e4ef126, freeze 8956)
 
 | Anchor | File:line | Cycle |
 |---|---|---|
@@ -1635,13 +1874,13 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
 | mgda_eq_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:126 | C639 |
 | batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:146 | C639 |
 | grow_block_bench_sound | Hagi/Theory/GrowTrunkBlock.lean:124 | C640 |
-| function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:157 | C640 |
-| warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:260 | C642 |
-| post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:309 | C642 |
+| function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:169 | C640 |
+| warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:272 | C642 |
+| post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:321 | C642 |
 | backtrack_accept_drop | Hagi/Theory/RollbackGate.lean:262 | C643 |
-| warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:367 | C644 |
-| batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:421 | C644 |
-| certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:448 | C646 |
+| warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:379 | C644 |
+| batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:433 | C644 |
+| certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:460 | C646 |
 | batch_drop_generalizes | Hagi/Contracts/BatchGlobalTelescope.lean:121 | C647 |
 | certified_batch_drop_global | Hagi/Contracts/BatchGlobalTelescope.lean:177 | C647 |
 | rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:299 | C648 |
@@ -1656,8 +1895,48 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
 | slotRev | Hagi/Theory/CoverageReading.lean:714 | C651 |
 | slot_last | Hagi/Theory/CoverageReading.lean:722 | C651 |
 | slotRev_first | Hagi/Theory/CoverageReading.lean:734 | C651 |
+| slot_mono | Hagi/Theory/CoverageReading.lean:718 | C651 |
+| slotRev_last | Hagi/Theory/CoverageReading.lean:728 | C651 |
+| codelength_ge_entropy_of_kraft | Hagi/Theory/ArchiverCodeLength.lean:55 | C653 |
+| codelength_ge_entropy_of_uniquelyDecodable | Hagi/Theory/ArchiverCodeLength.lean:106 | C653 |
+| idealLen_kraft | Hagi/Theory/ArchiverCodeLength.lean:150 | C653 |
+| idealLen_ge_entropy | Hagi/Theory/ArchiverCodeLength.lean:157 | C653 |
+| idealLen_le_ce_add_one | Hagi/Theory/ArchiverCodeLength.lean:164 | C653 |
+| ceBits_eq_entBits_add_kl | Hagi/Theory/ArchiverCodeLength.lean:194 | C653 |
+| idealLen_self_bounds | Hagi/Theory/ArchiverCodeLength.lean:208 | C653 |
+| ema_one_unbiased | Hagi/Step/AdamDirection.lean:67 | C655 |
+| adam_first_step_dot_nonneg | Hagi/Step/AdamDirection.lean:74 | C655 |
+| adam_first_step_dot_pos | Hagi/Step/AdamDirection.lean:85 | C655 |
+| adam_coord_sign_flip_neg | Hagi/Step/AdamDirection.lean:106 | C655 |
+| adam_step_not_always_descent | Hagi/Step/AdamDirection.lean:116 | C655 |
+| ema_sign_flip_negative | Hagi/Step/AdamDirection.lean:125 | C655 |
+| linDrop | Hagi/Theory/FunctionPreservingGrowth.lean:547 | C657 |
+| useful_first_step | Hagi/Theory/FunctionPreservingGrowth.lean:552 | C657 |
+| useful_first_step_pos | Hagi/Theory/FunctionPreservingGrowth.lean:558 | C657 |
+| useful_eta_le | Hagi/Theory/FunctionPreservingGrowth.lean:565 | C657 |
+| exists_useful_eta | Hagi/Theory/FunctionPreservingGrowth.lean:588 | C657 |
+| no_signal_no_drop | Hagi/Theory/FunctionPreservingGrowth.lean:597 | C657 |
+| first_step_useful_certified | Hagi/Theory/FunctionPreservingGrowth.lean:609 | C657 |
+| first_step_strict_improves | Hagi/Theory/FunctionPreservingGrowth.lean:644 | C657 |
+| identityBlock | Hagi/Theory/FunctionPreservingGrowth.lean:106 | C640 |
+| trunk_function_preserving | Hagi/Theory/FunctionPreservingGrowth.lean:135 | C640 |
+| lmLogits_grow_identity | Hagi/Theory/FunctionPreservingGrowth.lean:145 | C640 |
+| warmup_telescope | Hagi/Theory/FunctionPreservingGrowth.lean:257 | C642 |
+| warmup_strict | Hagi/Theory/FunctionPreservingGrowth.lean:287 | C642 |
+| uncertified_step_can_worsen | Hagi/Theory/FunctionPreservingGrowth.lean:304 | C642 |
+| CertifiedFiniteStep | Hagi/Theory/FunctionPreservingGrowth.lean:371 | C644 |
+| block_step_certified_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:476 | C646 |
+| block_step_commit_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:490 | C646 |
+| block_range_bound_violated_not_certified | Hagi/Theory/FunctionPreservingGrowth.lean:505 | C646 |
+| growthGate | Hagi/Theory/NegativeTransfer.lean:574 | C640 |
+| neg_transfer_char | Hagi/Theory/NegativeTransfer.lean:117 | C572 |
+| hagi_master_v33 | Hagi/Theory/MasterTheoremV3.lean:273 | C622 |
+| mgda_norm_sq_le_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:102 | C639 |
 
-<!-- Appendix A: rows up to C614 re-verified by rg on Hagi/**/*.lean at 7ea1ee87 (+W2);
-     rows C638–C648 re-verified by rg on HEAD 551c8025 (freeze 8907);
-     rows C651 + rollback_gate_sound :98 -> :100 re-verified by rg on HEAD (C651);
-     IterState :117 re-verified, unchanged. -->
+<!-- Appendix A: every row re-verified by .tmp/C659/audit.py on HEAD 4e4ef126
+     (freeze 8956): the declaration must start at the cited line. History:
+     rows to C614 at 7ea1ee87 (+W2), C638–C648 at 551c8025, C651 at 8fb0f1fa.
+     v1.0: FunctionPreservingGrowth.lean rows moved +12 lines (C657 section
+     inserted at :40/:65/:79 before them); self_compress_loop_sound :708 ->
+     :726 (§3.15, stale since v0.8); rows C653/C655/C657 added. IterState :117
+     re-verified (structure on a `-/ structure` line). -->
