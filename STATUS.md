@@ -2781,3 +2781,44 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
 - Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
   ключевых теорем (.tmp/C653/logs/axioms.log). Witness
   .tmp/C653/traj.lean. Log: .tmp/C653/logs/build.log.
+
+## C654 bench certified-warmup-sim (simulation, adapter-grow carrier)
+
+- Beat: C654 = сравнение certified warm-up блока против plain Adam
+  warm-up. НОВЫЙ bench-режим `certified-warmup-sim` в
+  scripts/bench_bridge.py (`certified_warmup_sim_run`). Base HEAD
+  08405376, tree clean. Это СИМУЛЯЦИЯ на bench-носителе (adapter-grow /
+  mh2 trunk заморожен после phase A), а НЕ воспроизведение кода range
+  coder'а HAGI_v2 и НЕ прогон HAGI_v2.
+- Certified arm (python double `ByteLM._certified_finite_step` /
+  `finite_displacement_ce_upper`): upper = <softmax - onehot, dlogits>
+  + range(dlogits)^2/8 на РЕАЛЬНОМ конечном смещении логитов (dlogits
+  считается аналитическим JVP `tangent_range_sq`, без линейности по
+  параметрам); drop = -upper; COMMIT iff drop > 1e-12, иначе eta/2 (до
+  12 halvings), затем HOLD с точным откатом. <= 600 шагов.
+- Plain arm (unified.py): Adam lr 1e-3, betas 0.9/0.999, eps 1e-8, 2
+  эпохи, batch 64, <= 300 шагов/эпоху, БЕЗУСЛОВНО — ни один шаг не
+  проверяется, отката нет.
+- Identity: Wo = 0 дает obj == fOld бит-в-бит (assert `logits ==
+  old_Z`). Задачи с < 2 snapped классов отброшены (CE тождественный 0).
+- ЧИСЛА snapshot (34 pts, T=2 после фильтра, H=2, n_params=66):
+  fOld 3.761650 -> certified 2.783855 (600 COMMIT, 0 HOLD, 0 halvings,
+  sum_drop 0.561600; bound 3.200050 >= obj), plain Adam 3.583951
+  (2 шага, sum|dq| 0.105631). Verdict PASS, warmup_safe true.
+- ЧИСЛА --live-corpus (C610 fallback, T=2, n_params=102; LIVE-лог
+  может дрейфовать между прогонами): fOld 4.811144 -> certified 3.394217
+  (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.780696; bound 4.030448 >=
+  obj), plain Adam 4.444299 (4 шага). Verdict PASS.
+- ЧЕСТНЫЙ ФАКТ по plain arm: в ОБЕИХ прогонах plain Adam УМЕНИШИЛ obj
+  (3.58 < 3.76; 4.44 < 4.81), т.е. знак отрицательный — НО без
+  сертификата: не существует проверки, что это верно для следующего
+  корпуса/инициализации. Certified arm гарантирует obj_final <= fOld по
+  построению (каждый COMMIT удовлетворяет obj' <= obj - drop, что и
+  проверяется assert'ом на каждом шаге).
+- Precision: obj = mean CE по ВСЕМ точкам (batch mean сертификата и
+  градиента; task-mean сертификатом НЕ покрывается).
+- Golden 5/5 byte-identical (grow-snap, mini-hagi, adapter-grow,
+  adaptive-span, transfer-gate-certified). pytest scripts/Test*.py: 5
+  failed / 58 passed — тот же набор, что на чистом HEAD 08405376 (Lean
+  .olean «incompatible header», TestFreeze/TestAllAxiomCheck, env).
+  DocLint PASS, StatusLint PASS.

@@ -38,6 +38,8 @@ RUNTIME_NAMES = {
     "steps_drop_vs_bound",                 # C609 bench_bridge.py
     "adaptive_span", "_cov_step_starts",   # C602 bench_bridge.py
     "hier_span",                           # C613 bench_bridge.py
+    "certified_warmup_sim_run", "finite_displacement_ce_upper",
+    "tangent_range_sq",                 # C654 bench_bridge.py
     "cost_regime_w",                       # C626 bench_bridge.py
     "growth_gate_measure",                 # C633 bench_bridge.py
 }

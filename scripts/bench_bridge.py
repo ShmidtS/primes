@@ -43,6 +43,8 @@ Modes:
 
 import argparse
 import json
+import math
+import random
 import time
 import sys
 from fractions import Fraction as F
@@ -13287,6 +13289,332 @@ DOMAIN_REQ_MODES = frozenset((
 ))
 
 
+CW_H = 2                         # new-block hidden width (sim PIN)
+CW_MAX_STEPS = 600               # certified warm-up step budget (proposal)
+CW_ETA0 = 1.0                    # lr_scale of the certified step (lm.py)
+CW_BACKTRACKS = 12               # lm.py max_backtracks (13 trials)
+CW_ADAM_LR = 1e-3                # HAGI_v2 unified.py plain warm-up lr
+CW_ADAM_BATCH = 64               # plain warm-up batch (unified.py)
+CW_ADAM_MAX_STEPS = 300          # <= 300 Adam steps / epoch (unified.py)
+CW_STEP_EPS = 1e-12              # stepEps (Hagi.Theory.FunctionPreservingGrowth)
+
+
+def cw_softmax(z):
+    """Softmax of a python-double logit vector (the `smax` / `softDef`
+    object of Hagi.Energy.lse_shift_upper)."""
+    m = max(z)
+    e = [math.exp(v - m) for v in z]
+    s = sum(e)
+    return [v / s for v in e]
+
+
+def cw_ce(z, y):
+    """ceOneHot t z = lse z - z_t for a python-double logit vector."""
+    m = max(z)
+    return m + math.log(sum(math.exp(v - m) for v in z)) - z[y]
+
+
+def finite_displacement_ce_upper(z0, z1, y):
+    """python double of HAGI_v2 hagi/lm.py:235
+    `finite_displacement_ce_upper` (mean over the batch):
+    CE(z+d) - CE(z) <= <softmax(z) - onehot(y), d> + range(d)^2/8, i.e.
+    Hagi.Energy.lse_shift_upper applied to the ACTUAL finite logit
+    displacement (no linearity in the parameters)."""
+    tot = 0.0
+    for a, b, t in zip(z0, z1, y):
+        d = [b[k] - a[k] for k in range(len(a))]
+        p = cw_softmax(a)
+        first = sum((p[k] - (1.0 if k == t else 0.0)) * d[k]
+                    for k in range(len(a)))
+        tot += first + (max(d) - min(d)) ** 2 / 8.0
+    return tot / len(z0)
+
+
+def certified_warmup_sim_run(ledger_path):
+    """C654 bench `certified-warmup-sim`: SIMULATION of the certified
+    warm-up of a grown block on the adapter-grow carrier (2-block
+    trunk frozen after phase A) -- NOT a reproduction of the HAGI_v2
+    range coder code. See the mode help in main() for the design.
+    Returns a dict (mode, f_old, obj_cert, obj_plain, telemetry,
+    verdict)."""
+    _, tasks, htasks, _ = _phaseA_corpus(ledger_path)
+    theta = (mh2_block_init(0), mh2_block_init(1))
+    w = [F(0)] * MH2_D
+    raw, tel = [], {"phases": [], "holds": []}
+    theta, w = _phaseA_train(tasks, htasks, theta, w, raw, tel,
+                             "canonical drop <= 0: HOLD")
+    assert raw, "ABORT: phase A committed no steps"
+    feats = [[(mh2_trunk_fwd(theta, x), fl2_snap(y)) for x, y in tk]
+             for tk in tasks]
+    assert len(feats) == 3, "ABORT: expected 3 tasks"
+    # a task with < 2 snapped target classes has CE == 0 identically
+    # (no CE problem): it is dropped, not asserted on (C654 honest fact)
+    feats = [tk for tk in feats
+             if len(set(c for _, c in tk)) >= 2]
+    assert feats, "ABORT: no task has >= 2 target classes"
+    vocabs = [sorted(set(c for _, c in tk)) for tk in feats]
+    assert all(len(v) >= 2 for v in vocabs), \
+        "ABORT: a task has < 2 target clusters (no CE problem)"
+    d = MH2_D
+    # per task: list of (float feature f, class id); K classes
+    data = [([([float(v) for v in f], v.index(c)) for f, c in tk],
+              len(v)) for tk, v in zip(feats, vocabs)]
+    # B0 = the fixed "existing" head grid (K x d, 1/1000 grid, PIN)
+    B0 = [[[float(F((1 + 7 * ((k + 3 * i + t) % 11)) ** 2, 1000))
+            for i in range(d)] for k in range(K)]
+          for t, (_, K) in enumerate(data)]
+    H = CW_H
+    T = len(data)
+
+    def block_init():
+        """blk = (W1, b1, Wo) per task; W1 on the 1/1000 grid (index
+        seeded; HAGI_v2 grow() uses randn*0.08), b1 = 0, Wo = 0."""
+        return [([[float(F((5 + 13 * ((j + 5 * i + t) % 17)) ** 2, 1000))
+                    for i in range(d)] for j in range(H)],
+                  [0.0] * H,
+                  [[0.0] * H for _ in range(K)])
+                for t, (_, K) in enumerate(data)]
+
+    def flat(blk):
+        return [e for W1, b1, Wo in blk for m in (W1, [b1], Wo)
+                for row in m for e in row]
+
+    def unflat(p):
+        out, i = [], 0
+        for _, K in data:
+            W1 = [[p[i + j * d + k] for k in range(d)]
+                  for j in range(H)]
+            i += H * d
+            b1 = p[i:i + H]
+            i += H
+            Wo = [[p[i + c * H + j] for j in range(H)]
+                  for c in range(K)]
+            i += K * H
+            out.append((W1, b1, Wo))
+        assert i == len(p), "ABORT: block flat mismatch"
+        return out
+
+    def forward(pc):
+        """Float forward: per task a list of (z, h, act) per point.
+        z = B0 f + Wo relu(W1 f + b1); with Wo = 0, z == B0 f."""
+        blk = unflat(pc)
+        out = []
+        for t, (tk, _) in enumerate(data):
+            W1, b1, Wo = blk[t]
+            rows = []
+            for f, _ in tk:
+                pre = [sum(W1[j][i] * f[i] for i in range(d)) + b1[j]
+                       for j in range(H)]
+                act = [q > 0 for q in pre]
+                h = [q if a else 0.0 for q, a in zip(pre, act)]
+                z = [sum(B0[t][k][i] * f[i] for i in range(d))
+                     + sum(Wo[k][j] * h[j] for j in range(H))
+                     for k in range(data[t][1])]
+                rows.append((z, h, act))
+            out.append(rows)
+        return out
+
+    def logits(fw):
+        return [[r[0] for r in rows] for rows in fw]
+
+    def obj_of(Z):
+        """canonical obj: mean CE over ALL points (the batch mean of
+        finite_displacement_ce_upper and grad_full; tasks have unequal
+        sizes, so a task-mean would NOT be the certified quantity)."""
+        tot, cnt = 0.0, 0
+        for t, zt in enumerate(Z):
+            for z, (_, c) in zip(zt, data[t][0]):
+                tot += cw_ce(z, c)
+                cnt += 1
+        return tot / cnt
+
+    def grad_full(pc, fw, idx=None):
+        """grad of the mean CE over points `idx` (all points if None)
+        wrt the block params (the chain rule of cross_entropy)."""
+        blk = unflat(pc)
+        g = []
+        sel = set(idx) if idx is not None else None
+        nsel = len(idx) if idx is not None else sum(
+            len(tk) for tk, _ in data)
+        for t, (tk, _) in enumerate(data):
+            Wo = blk[t][2]
+            K = data[t][1]
+            gW1 = [[0.0] * d for _ in range(H)]
+            gb1 = [0.0] * H
+            gWo = [[0.0] * H for _ in range(K)]
+            for n, ((z, h, act), (f, c)) in enumerate(zip(fw[t], tk)):
+                if sel is not None and (t, n) not in sel:
+                    continue
+                pz = cw_softmax(z)
+                dz = [pz[k] - (1.0 if k == c else 0.0)
+                      for k in range(K)]
+                dh = [sum(Wo[k][j] * dz[k] for k in range(K))
+                      for j in range(H)]
+                for j in range(H):
+                    if not act[j]:
+                        continue
+                    for i in range(d):
+                        gW1[j][i] += dh[j] * f[i] / nsel
+                    gb1[j] += dh[j] / nsel
+                for k in range(K):
+                    for j in range(H):
+                        if act[j]:
+                            gWo[k][j] += dz[k] * h[j] / nsel
+            g += [e for row in gW1 for e in row] + gb1                 + [e for row in gWo for e in row]
+        return g
+
+    def tangent_range_sq(pc, fw, direc):
+        """r2 = mean over the batch of range(jvp tangent)^2 of the logit
+        map along `direc` (analytic JVP: the python double of the
+        torch.autograd.functional.jvp in lm.py)."""
+        blk, dl = unflat(pc), unflat(direc)
+        tot, cnt = 0.0, 0
+        for t, (tk, _) in enumerate(data):
+            W1, _, Wo = blk[t]
+            dW1, db1, dWo = dl[t]
+            for (z, h, act), (f, _) in zip(fw[t], tk):
+                dpre = [sum(dW1[j][i] * f[i] for i in range(d)) + db1[j]
+                        for j in range(H)]
+                dz = [sum(dWo[k][j] * h[j]
+                          + Wo[k][j] * (dpre[j] if act[j] else 0.0)
+                          for j in range(H)) for k in range(data[t][1])]
+                tot += (max(dz) - min(dz)) ** 2
+                cnt += 1
+        return tot / cnt
+
+    # --- (1) identity admission: obj(Wo = 0) == fOld BIT-IDENTICALLY
+    p0 = flat(block_init())
+    npar = len(p0)
+    old_Z = [[[sum(B0[t][k][i] * f[i] for i in range(d))
+               for k in range(data[t][1])] for f, _ in data[t][0]]
+             for t in range(T)]
+    f_old = obj_of(old_Z)              # the "existing coder" alone
+    assert logits(forward(p0)) == old_Z, \
+        "ABORT: identity admission changed the logits (Wo = 0)"
+    assert obj_of(logits(forward(p0))) == f_old, \
+        "ABORT: identity admission broke obj (Wo = 0 must keep obj)"
+
+    # --- (2) arm A: certified warm-up (python double of
+    #     ByteLM._certified_finite_step on the NEW block only)
+    targets = [c for tk, _ in data for _, c in tk]
+    p = list(p0)
+    led = {"commits": 0, "holds": 0, "sum_drop": 0.0,
+           "trials": 0, "halvings": 0}
+    bound = f_old                    # certified running upper bound
+    chain = []
+    streak = 0
+    for step in range(CW_MAX_STEPS):
+        fw = forward(p)
+        Z0 = logits(fw)
+        o = obj_of(Z0)
+        direction = [-g for g in grad_full(p, fw)]
+        A = sum(v * v for v in direction)
+        if A <= 1e-24:
+            led["holds"] += 1
+            chain.append({"step": step, "obj": o, "drop": 0.0,
+                          "verdict": "HOLD (zero gradient)"})
+            streak += 1
+            if streak >= 2:
+                break
+            continue
+        r2 = tangent_range_sq(p, fw, direction)
+        eta = CW_ETA0 * (4.0 * A / r2 if r2 > 1e-24 else 1.0)
+        drop = 0.0
+        committed = False
+        for trial in range(CW_BACKTRACKS + 1):
+            cand = [p[k] + eta * direction[k] for k in range(npar)]
+            Z1 = logits(forward(cand))
+            upper = finite_displacement_ce_upper(
+                [z for zt in Z0 for z in zt],
+                [z for zt in Z1 for z in zt], targets)
+            led["trials"] += 1
+            drop = -upper
+            if drop > CW_STEP_EPS:
+                p = cand
+                led["commits"] += 1
+                led["sum_drop"] += drop
+                bound += upper
+                chain.append({"step": step, "obj": o,
+                              "obj'": obj_of(Z1), "drop": drop,
+                              "eta": eta, "trial": trial,
+                              "verdict": "COMMIT"})
+                committed = True
+                streak = 0
+                break
+            eta *= 0.5
+            led["halvings"] += 1
+        if not committed:
+            led["holds"] += 1
+            chain.append({"step": step, "obj": o, "drop": drop,
+                          "verdict": "HOLD (13 trials, exact rollback)"})
+            streak += 1
+            if streak >= 2:
+                break
+    obj_cert = obj_of(logits(forward(p)))
+    # warmup_safe (C642) on the simulated chain: each COMMIT obeys
+    # obj' <= obj - drop (asserted per step), hence obj_final <= fOld
+    for r in chain:
+        if r["verdict"] == "COMMIT":
+            assert r["obj'"] <= r["obj"] - r["drop"] + 1e-12, \
+                "ABORT: certificate violated (obj' > obj - drop)"
+    assert obj_cert <= f_old, "ABORT: warm-up is not warmup_safe"
+    assert obj_cert <= bound + 1e-12, "ABORT: obj above certified bound"
+
+    # --- (3) arm B: plain Adam warm-up (unified.py: lr=1e-3, betas
+    #     0.9/0.999, eps=1e-8, batch 64, 2 epochs, <=300 steps/epoch,
+    #     UNCONDITIONAL: every step is applied, nothing is checked)
+    rng = random.Random(7)
+    q = list(p0)
+    mA = [0.0] * npar
+    vA = [0.0] * npar
+    b1, b2, epsA = 0.9, 0.999, 1e-8
+    adam_steps = 0
+    ups = 0.0
+    pts = [(t, n) for t, (tk, _) in enumerate(data)
+           for n in range(len(tk))]
+    for _ep in range(2):
+        order = list(range(len(pts)))
+        rng.shuffle(order)
+        nb = min(CW_ADAM_MAX_STEPS, (len(order) + CW_ADAM_BATCH - 1)
+                 // CW_ADAM_BATCH)
+        for s in range(nb):
+            idx = [pts[i] for i in
+                   order[s * CW_ADAM_BATCH:(s + 1) * CW_ADAM_BATCH]]
+            fw = forward(q)
+            g = grad_full(q, fw, idx)
+            adam_steps += 1
+            for k in range(npar):
+                mA[k] = b1 * mA[k] + (1 - b1) * g[k]
+                vA[k] = b2 * vA[k] + (1 - b2) * g[k] * g[k]
+                mh = mA[k] / (1 - b1 ** adam_steps)
+                vh = vA[k] / (1 - b2 ** adam_steps)
+                dq = CW_ADAM_LR * mh / (math.sqrt(vh) + epsA)
+                q[k] -= dq
+                ups += abs(dq)
+    obj_adam = obj_of(logits(forward(q)))
+    plain_sign = ("obj_final > fOld (plain Adam warm-up RAISED the "
+                  "objective)" if obj_adam > f_old else
+                  ("obj_final == fOld" if obj_adam == f_old else
+                   "obj_final < fOld (plain Adam lowered it, "
+                   "but WITHOUT any certificate)"))
+    verdict = ("PASS" if obj_cert <= f_old and
+               logits(forward(p0)) == old_Z else "FAIL")
+    return {"mode": "certified-warmup-sim",
+            "f_old": f_old,
+            "obj_cert": obj_cert,
+            "obj_plain": obj_adam,
+            "certified": led,
+            "plain": {"steps": adam_steps, "sum_abs_update": ups,
+                      "sign": plain_sign},
+            "identity": logits(forward(p0)) == old_Z,
+            "warmup_safe": obj_cert <= f_old,
+            "bound": bound,
+            "steps": len(chain),
+            "n_params": npar, "T": T, "H": H,
+            "verdict": verdict}
+
+
+
 def _snapshot_domain_count():
     """C610: count const-cluster domains (>= TR_MIN_PTS points
     per snapped ce) in the pinned snapshot -- exactly the
@@ -13330,6 +13658,7 @@ def main():
                              "adapter-transfer",
                              "adapter-transfer-auto",
                              "transfer-gate-certified",
+                             "certified-warmup-sim",
                              "adaptive-span",
                              "generate-hier"],
                     default="quad",
@@ -14134,6 +14463,11 @@ def main():
                               "asserts PASS"),
             "rows": rows, "verdict": "PASS" if ok else "FAIL",
         }, indent=1))
+        return
+
+    if args.mode == "certified-warmup-sim":
+        res = certified_warmup_sim_run(args.data)   # C610 policy resolves args.data
+        print(json.dumps(res, indent=1, sort_keys=True))
         return
 
     if args.mode == "transfer-gate-certified":
