@@ -1364,9 +1364,13 @@ unified.py:436-454 @e9a96fc) is bridged by `RepairRun` /
 for the control flow, with a LINEAR bound (gate falls by ≥ `tol` per
 accepted round), not a geometric one, and no clause (2)
 zero-forgetting instance (the code writes the shared trunk). The
-lossless archiver (hagi/archiver.py @b3740e0) has no Lean bridge:
-primes models no range coder (`trit_roundtrip` is a positional pack),
-losslessness is tests + measured 11/11 only.
+lossless archiver (hagi/archiver.py @b3740e0) has a codelength
+bridge only for the IDEAL coder: `codelength_ge_entropy_of_kraft` /
+`idealLen_le_ce_add_one` / `idealLen_self_bounds`
+(Hagi/Theory/ArchiverCodeLength.lean) prove H(p) ≤ E[len] ≤ H(p) +
+KL(p‖p̂)/log 2 + 1 for len = ⌈−log₂ p̂⌉₊ via Kraft–McMillan + Gibbs.
+primes still models no range coder (`trit_roundtrip` is a positional
+pack); losslessness of archiver.py is tests + measured 11/11 only.
 <!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c646-648-analysis.md
      («8 мостов — сумма по карточкам, не machine-checked»); all file:line rg-verified on HEAD 551c8025 -->
 

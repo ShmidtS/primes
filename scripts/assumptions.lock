@@ -1,7 +1,7 @@
 h_emp files: 36
 h_emp identifiers: 112
 h_emp proven theorems: 6
-primitive defs: 11
+primitive defs: 12
 operational premise names: 11
 
 [premise classes]
@@ -67,6 +67,7 @@ Hagi/Math/Info/InfoCore.lean:tvDef
 Hagi/Math/Info/InfoCore.lean:tvHalf
 Hagi/Research/OmniState.lean:entryCount
 Hagi/Step/Upgrades.lean:softmaxW
+Hagi/Theory/ArchiverCodeLength.lean:entBits
 
 [operational]
 hActualDescent

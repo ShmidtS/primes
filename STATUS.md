@@ -2680,3 +2680,104 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   archiver.py:19/:33-39/:52-70/:96-118/:188, lm.py:738-755); числа
   +0.553 / +0.036 / +0.343 / +2.62 / 20/89 — из commit message
   e9a96fc (не перемеряны).
+
+## C653 bridge: archiver codelength vs entropy (wave 258, archiver statement-audit)
+
+- Beat: C653 = roadmap C652 top-1: statement-audit `hagi/archiver.py`
+  @b3740e0 + минимальный честный мост (HAGI_v2 READ-ONLY через
+  `git show`; HEAD b3740e0, clean). Base HEAD 596b5504, tree clean.
+- ЧТО КОД УТВЕРЖДАЕТ (буквально): (1) docstring archiver.py:1-4 —
+  «archive size is within o(1) of -log2 P(data), so the compression
+  ratio IS the model's CE in bits per byte»; (2) :6-7 — 32-bit range
+  coder, 16-bit CDF, freq ≥ 1 (ни один байт не имеет нулевой
+  вероятности); (3) :19 — «Only the SAME model decodes» (контракт
+  docstring, хеша чекпоинта в контейнере нет); (4) commit msg —
+  lossless 11/11, 5.16 b/B vs zlib 2.40, ~90 KB/s.
+- АЛГОРИТМ: классический binary range coder (не arithmetic coder с
+  точными дробями): probs_to_cdf :33-39 — freq = max(1, round(P·65200))
+  int32, остаток 65536 − Σfreq → в argmax, кумулятивная cdf (N,257);
+  encode_step :52-70 — на символ: rl = hi−lo+1, hi := lo + (rl·c_hi)//T
+  − 1, lo := lo + (rl·c_lo)//T (T = 65536), затем renorm-цикл
+  (E1 hi<HALF → бит 0; E2 lo≥HALF → бит 1; E3 lo≥Q1 ∧ hi<Q3 →
+  underflow-счётчик uf+1) с bit-stuffing `_put` :46-50; finish :72-78
+  — 1 дополнительный бит + паддинг до байта; decode_step :96-118 —
+  searchsorted по cdf для target ((val−lo+1)·T − 1)//rl, тот же
+  renorm с подкачкой битов (`_nb` возвращает 0 за концом потока).
+  Модель — softmax(logits) по контексту k байт (_probs :121-131),
+  колонковый батчинг: блоки по L = k байт независимы (нулевой паддинг
+  в начале блока), колонка c всех блоков группы — один forward.
+- Codelength: нигде явно не считается; биты выхода = Σ по символам
+  (−log₂ p̂_сим) + o(1) — СВОЙСТВО range coder'а, код его не считает и
+  не логирует; «ratio IS CE» — утверждение о выходе, а не измеренная в
+  коде величина (bench считает len(archive)·8/len(data), CE отдельно
+  не печатается).
+- ЧИСЛА wave258 (commit msg): lossless 11/11 (9 disk chunks + 2
+  текста, production checkpoint, CUDA); 5.16 бит/байт против zlib 2.40
+  (per chunk 2.76..6.78 vs 0.77..3.86); периодика, малая модель:
+  0.535 b/B trained / 0.553 unseen; ~90 KB/s encode. «20/89» — НЕ из
+  wave258: это repair-раунды e9a96fc (20 из 89 упёрлись в rollback),
+  STATUS C651 уже фиксирует. Здесь не перемеряно (C651 прогонял 6
+  тестов test_archiver.py на копии @b3740e0: 6 passed).
+- ФОРМАТ: MAGIC "HAGI3" (5) | u32 total_len | u8 mode; mode 0: raw; mode 1:
+  u8 L | группы {u16 nb, u32 bit_len, bitstream} | tail (байты вне
+  n_blk·L). compress :160-188 выбирает stored, если coded не короче
+  (:188) или len < 64 / n_blk = 0 (:171).
+- ROUND-TRIP: «lossless» = ТЕСТ (tests/test_archiver.py:13-17
+  `_roundtrip` assert decompress(compress(d)) == d; 6 кейсов :40-41),
+  не теорема и не claim в коде; симметрия encoder/decoder —
+  «by construction» (docstring :9-12).
+
+### Statement-audit — три уровня
+
+- L1 (round-trip injective: decode(encode(x)) = x для range coder
+  archiver.py:52-118): ВЕРДИКТ — НЕ формализуется в этом бите, честная
+  карточка. Оценка цены по коду: нужно (i) модель состояния
+  (lo, hi : ℕ, uf, bits), (ii) лемма непустоты интервала после шага
+  `(rl·c_lo)//T ≤ (rl·c_hi)//T − 1` при rl ≥ T (32-битный диапазон
+  до renorm, T = 2^16) и c_lo < c_hi (freq ≥ 1, :35), (iii) лемма
+  searchsorted (decode_step :102: c[sym] ≤ target < c[sym+1]),
+  (iv) инвариант val ∈ [lo, hi] через renorm-ветки E1/E2/E3 (:106-116)
+  с подкачкой битов, (v) finish/паддинг. Оценка ≥ 400 строк Lean + 2
+  новые модели (encoder state, bit-поток с underflow); прецедента в
+  primes нет (TritCodec — позиционная упаковка, не интервальный
+  кодер). 3 fails → not attempted.
+- L2 (codelength bound) — ДОКАЗАНО, Hagi/Theory/ArchiverCodeLength.lean
+  (ns Hagi.Theory.ArchiverCodeLength, +11 theorem, +5 def):
+  - `codelength_ge_entropy_of_kraft`: Σ 2^{−len} ≤ 1 ⇒ entBits p ≤
+    expLen p len (Kraft ⇒ H(p) ≤ E[len], биты). Доказательство: q_i =
+    2^{−len_i}/K — распределение, Gibbs `ceDef_self_le_of_support`
+    (FiniteLogScore.lean:168) даёт ceDef p p ≤ ceDef p q =
+    log2·E[len] + log K, log K ≤ 0.
+  - `codelength_ge_entropy_of_uniquelyDecodable`: гипотеза Kraft
+    выводится из Mathlib `IsUniquelyDecodable.
+    finsetSum_one_div_card_pow_length_le_one` (KraftMcMillan.lean) для
+    inj enc : X → List Bool с IsUniquelyDecodable (range enc).
+  - `idealLen_kraft`: len i = ⌈−log₂ p̂_i⌉₊ удовлетворяет Kraft
+    (2^{−⌈a⌉} ≤ 2^{−a} = p̂_i); `idealLen_ge_entropy`: H(p) ≤ E_p[len].
+  - `idealLen_le_ce_add_one` (L2b): E_p[⌈−log₂ p̂⌉₊] ≤ ceBits p p̂ + 1
+    (⌈a⌉ < a + 1; посылка p̂ ≤ 1 — распределение).
+  - `ceBits_eq_entBits_add_kl`: CE_bits = H_bits + KL(p‖p̂)/log 2 —
+    мост к `klDef_eq_ceDef_sub_of_support` (FiniteLogScore.lean:97).
+  Итого сэндвич: H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1.
+- L3 («HAGI as archiver», p̂ = p): `idealLen_self_bounds` — при p̂ = p
+  KL = 0 ⇒ H(p) ≤ E_p[⌈−log₂ p⌉₊] ≤ H(p) + 1. Это единственный
+  экземпляр, где «codelength = H» literally true (с точностью +1 бит).
+- HONEST ГРАНИЦЫ: (a) модель — ИДЕАЛЬНЫЙ кодер (len = ⌈−log₂ p̂⌉₊,
+  Shannon-Fano-стиль), а не range coder archiver.py: +1 бит/символ —
+  цена ⌈⌉, у range coder'а o(1) на ВЕСЬ поток, а не на символ, но
+  Lean-модели range coder нет (L1); (b) p̂ — квантованная CDF
+  (freq = round(P·65200), min 1, :35) ≠ softmax P: реальная цена —
+  KL(p‖q_cdf) ≥ KL(p‖P), в коде не измеряется; (c) stored-mode
+  (:188) и заголовок (10 + 6 байт/группа) в границе не учтены —
+  граница для mode 1 payload; (d) «within o(1) of −log₂ P» — для
+  range coder'а это классический факт, здесь НЕ доказан (только
+  идеальный кодер); (e)round-trip — тест, не теорема.
+- Сопоставление: `trit_roundtrip` (TritCodec.lean:117) — не
+  интервальный кодер; Compression.lean / MergeQuant.lean — lossy;
+  Mathlib @fc4f59e5 Kraft/KraftMcMillan/PrefixFree/UniquelyDecodable —
+  использованы (KraftMcMillan.lean:155 `finsetSum_one_div_card_pow_
+  length_le_one`); Mathlib не содержит entropy-as-codelength —
+  выведено здесь через Gibbs из primes.
+- Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
+  ключевых теорем (.tmp/C653/logs/axioms.log). Witness
+  .tmp/C653/traj.lean. Log: .tmp/C653/logs/build.log.
