@@ -8,9 +8,13 @@ export PATH="$HOME/.elan/bin:$PATH"
 fail=0
 step() { echo; echo "=== $1 ==="; }
 
-step "lake build (default target: Hagi)"
+step "lake build (default targets: Hagi, Hagi.Benchmarks)"
 LAKE_JOBS=32 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
   || { echo "BUILD: FAIL"; fail=1; }
+
+step "lake build Hagi.Research (quarantine: outside default targets, Freeze inventory imports it)"
+LAKE_JOBS=32 lake build Hagi.Research 2>&1 | tail -2 | grep -q "Build completed successfully" \
+  || { echo "BUILD RESEARCH: FAIL"; fail=1; }
 
 step "ReachLint (every module reachable from Hagi.lean root)"
 out=$(python scripts/ReachLint.py 2>&1 | tail -1)

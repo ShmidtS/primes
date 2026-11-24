@@ -145,7 +145,9 @@ allowlist LAYER_EXCEPTIONS.
   правка воспроизводится при sync (допуск — только docstring-
   заголовки).
 - `Hagi/Research/` и `Hagi/Research/Legacy/` — карантин: код не
-  трогаем, только docstring-уровень.
+  трогаем, только docstring-уровень; вне целей `lake build` по
+  умолчанию, собирается явно (`lake build Hagi.Research`; в CI и для
+  Freeze — `scripts/inventory.lean` его импортирует).
 - `scripts/bench_bridge.py` — монолит: 20+ режимов зафиксированы
   bench-мостами в Lean; parity-gate дороже выгоды нарезки.
 - Certificate-хабы (`Hagi/Cert`, cert-семьи Model/Contracts) не
