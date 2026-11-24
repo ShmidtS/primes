@@ -2822,3 +2822,46 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   failed / 58 passed — тот же набор, что на чистом HEAD 08405376 (Lean
   .olean «incompatible header», TestFreeze/TestAllAxiomCheck, env).
   DocLint PASS, StatusLint PASS.
+
+## C655 adam direction: first step vs sign flip (wave 259, honest)
+
+- Beat: C655 = roadmap C649/C652 top-2 — честная проверка: является
+  ли `⟨g, d_Adam⟩ ≥ 0` код-фактом (d = m̂/(√v̂+eps), m̂ = EMA
+  градиентов, v̂ = EMA квадратов). Base HEAD 0ccaa34f, tree clean.
+- Код HAGI_v2 (READ-ONLY) @b3740e0: `torch.optim.Adam(...)` без
+  аргументов betas/eps — lm.py:349,403,779,930, unified.py:473,548 — т.е.
+  torch-дефолты β₁ = 0.9, β₂ = 0.999, eps = 1e-8 (проверено в
+  torch: param_groups betas (0.9, 0.999), eps 1e-08). AdamW (с weight_decay) — только
+  memory_store/memory_policy.py:188.
+- Модуль Hagi/Step/AdamDirection.lean (ns Hagi.Step), 11 деклараций.
+  ВЕРДИКТ: `⟨g, d⟩ ≥ 0` — код-факт ТОЛЬКО на первом шаге (t = 1);
+  на t ≥ 2 общий шаг Адама НЕ является сертифицированным спуском.
+  - `ema_one_unbiased`: m₁ = (1−β)·g₁, m̂₁ = m₁/(1−β¹) = g₁.
+  - T1 `adam_first_step_dot_nonneg`: m̂ = g, v̂ = g² ⇒
+    d_i = g_i/(|g_i|+eps), ⟨g,d⟩ = Σ g_i²/(|g_i|+eps) ≥ 0;
+    `adam_first_step_dot_pos`: строго > 0 при g ≠ 0, eps > 0.
+  - T2 `adam_coord_sign_flip_neg`: знак d_i — знак m̂_i, не g_i;
+    при g_i·m̂_i < 0 вклад координаты < 0.
+  - `ema_sign_flip_negative`: контрпример шага 2, β₁ = 9/10,
+    β₂ = 999/1000, g₁ = 1, g₂ = −1/10: m₂ = 2/25 (0.08),
+    m̂₂ = (2/25)/(19/100) > 0, v₂ = 1009/10⁶, v̂₂ > 0 ⇒
+    ⟨g₂, d₂⟩ < 0. ВНИМАНИЕ: арифметика посылки задачи (m̂₂ = 0.89)
+    считала m̂₂ = β₁g₁ + (1−β₁)g₂ — это НЕ форма torch; корректно
+    m̂₂ = (β₁·m₁ + (1−β₁)g₂)/(1−β₁²) = 0.08/0.19 ≈ 0.421. Знак и
+    вывод те же; в теореме — форма torch.
+  - `adam_step_not_always_descent`: ¬∀ g m v eps, 0 ≤ g·(m/(√v+eps)).
+- СВЯЗКА С КОДОМ (C643 мост): шаг Адама принимается только
+  измерённым гейтом `backtrackAccept` (selfmodel.py:134-169: worst ≤
+  max_task_regression ∧ wb − wa > total_bound, иначе HOLD с точным
+  откатом параметров и optimizer state). Согласование градиентов
+  `min_dot ≥ −conflict_tol` (selfmodel.py:121-126) считается для
+  направления MGDA ДО записи в p.grad и ДО Адама — т.е. код НИКОГДА
+  не опирается на ⟨g, d_Adam⟩ ≥ 0. ⇒ C642 h1 для Adam-шага требует
+  backtrack_accept; цепочка C642 → C643 → C655 замкнута.
+- - Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
+  ключевых теорем (.tmp/C655/axioms.log).
+- Gates: lake build Hagi PASS (lean 4.36.0), Freeze PASS (8948 = 8937
+  + 11 new, 0 lost/changed; локальный declarations.lock,
+  не в git, был stale на 68 имён C642-C653 — обновлён), ReachLint, LayerLint, NsLint, DocLint,
+  DupLint, STMDUP, Challenge, TrivialLint, StatusLint PASS. Witness
+  .tmp/C655/traj.lean. Log: .tmp/C655/gates.log.
