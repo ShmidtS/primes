@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """LayerLint: import graph must respect layer order.
 
-Layer map (pre-migration, by current folder). A module may
-import only from STRICTLY LOWER layers. Violations must be
-listed in LAYER_EXCEPTIONS (a shrinking allowlist).
+Layer map by current folder. A module may import only from
+STRICTLY LOWER layers. Violations must be listed in
+LAYER_EXCEPTIONS (a shrinking allowlist).
 """
 import re
 import sys
@@ -13,10 +13,10 @@ from _shared import MODULE_SUFFIX, lean_files
 
 ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 # layer assignment of Hagi/<Folder> (higher = later = may
-# import lower). Unification target per audit 2026-10-05.
+# import lower).
 LAYERS = {
-    # A7 target 5-layer DAG (C244). Dirs do NOT exist yet — entries are
-    # inert until Phase 1-3 create them; they activate automatically then.
+    # HagiCert/HagiModel/HagiLoop/HagiRecipes have no directory in the
+    # tree; their entries are inert until one is created.
     # C348 (A14 QW8): Hagi/Math activated — canonical math carrier
     # at layer 0 (renamed from the inert A7 "HagiMath" entry; the
     # dir chosen by QW8 is Hagi/Math, namespaces stay file-declared).
@@ -81,7 +81,6 @@ LAYER_EXCEPTIONS = {
     # аудит 2026-10-24: External/MemT/GDN2 -> Optimization.InexactContraction
     # (внешний остров MemT; кандидат на вынос из дерева после миграции)
     ("External/MemT/GDN2.lean", "Optimization/InexactContraction.lean"),
-    # (R169: 49; R170: 46; R171: 26; R172: 24; R173: 23)
     
     
     

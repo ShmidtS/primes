@@ -6,39 +6,67 @@ Pure stdlib: arithmetic is exact via fractions.Fraction — no floats, no
 numpy. After each GD step the trainer serializes a CertStepData record
 (obj, obj', drop, budget, budget', risk, risk') as exact rationals.
 
-Modes:
-  default            run T GD steps, print the JSON trajectory
+Modes (`--mode X`; every mode prints one JSON report on stdout; corpus modes
+abort with exit 3 when their corpus precondition is unmet):
+
+  quad (default)       T certified GD steps on a rational regression
+  cert-ce              certified CE training (rational-softmax surrogate)
+  cert-tern            train -> one ternary jump -> certified finetune
+  hadamard-tern        ternary jump behind a measured coherence gate
+  ef21-step            EF21 in-step quantized loop with error feedback
+  grow                 certified block admission (feature x^2)
+  grow-stop            grow plus the Ville anytime holdout stop
+  full-pipeline        train, EF21, hadamard-tern, grow, merge, stop
+  trunk-train          certified joint trunk+head training (nonlinear)
+  real-data            trunk-train on the real ledger (byte features)
+  continual            two-task continual bench, naive vs GPM
+  continual-multi      three tasks with accumulated GPM subspaces
+  wrbound              without-replacement vs Hoeffding holdout bound
+  cert-sandwich        certified sandwich-CE training on real data
+  mini-hagi            trunk, grow, GPM, quant, Ville stop on one chain
+  mini-hagi2           scaled: 2-block trunk, 3 tasks, 2 grows
+  mini-hagi3           mini-hagi2 with rank-trunc relaxed GPM
+  mini-hagi4           grow = whole residual-zero identity block
+  mini-hagi5           repeated identity-block grow under a budget
+  vs-trainer           certified predictions vs the real trainer's ce
+  band-check           drift detector: true softmax inside the bands
+  grow-snap            repeated grow with certified q/2^k snapping
+  adapter-snap-grow    LoRA levels composed with snapping
+  adapter-rank-adaptive  LoRA rank chosen per level by measured drop
+  adapter-merge        merge the LoRA stack into one rank-k adapter
+  adapter-grow         LoRA adapter vs identity-block head-to-head
+  adapter-continual    per-task isolated adapters vs shared vs trunk
+  agem-vs-ranktrunc    A-GEM vs rank-trunc GPM on one scenario
+  hybrid-continual     per-step mechanism selected from measured state
+  mini-hagi-loop       one pass: bypass, adapter, grow, isolation, search
+  mini-hagi-loop2      iterative self-improvement on a layered corpus
+  universal-loop       iterative loop on the full live corpus
+  universal-loop-nl    the same with a nonlinear primitive language
+  self-compress-loop   admit, learn, exact-merge loop (bounded params)
+  distill              constant clusters distilled into adapter weights
+  mini-hagi-v3         distill + residual head + self-compress assembly
+  adapter-transfer     warm vs cold adapter init across domains
+  adapter-transfer-auto  probe-A/B warm/cold gate
+  transfer-gate-certified  certified start-gap transfer gate
+  certified-warmup-sim   simulation of a certified warm-up vs Adam
+  adaptive-span        coverage-preserving adaptive window stride
+  generate-hier        hierarchical block read windows for any n
+
+Options shared by modes:
   --emit-lean PATH   additionally write a Lean witness file with the
                      literal `benchTrajectory : List CertStepData`,
-                     #eval checkTrajectory and a `decide` theorem
+                     #eval checkTrajectory and a `simp only + norm_num`
+                     validity theorem (not `decide`: ℚ Decidable instances
+                     are not kernel-reducible here)
   --corrupt PATH     negative control: same trajectory but one drop
                      inflated so the checker MUST reject it (false)
-  --mode cert-ce     C442: certified cross-entropy training loop — a
-                     softmax-CE-style linear classifier trained by GD
-                     with exact rational arithmetic, per-step checker
-                     admission (abort on a non-certified step) and
-                     holdout risk telemetry (C435 tie). See below.
-  --mode cert-tern   C443: certified ternary quantization jump — the
-                     C442 CE loop extended with a train→quantize→
-                     finetune cycle: gradient steps, then ONE ternary
-                     jump w → s*·roundTern(w/s₀) with the LS-optimal
-                     scale (lsScale formula, exact Fractions),
-                     accepted only by the exact certified criterion
-                     drop > 0 (rejected ⇒ HOLD: weights unchanged,
-                     the hold step is EXCLUDED from the trajectory —
-                     checkStep demands 0 < drop — and logged in the
-                     `holds` telemetry), then certified finetune GD
-                     steps on the quantized weights.
-  --mode ef21-step  C474: EF21 IN-STEP quantized training loop — the
-                     update is compressed INSIDE every gradient step
-                     with error feedback: m = g + e (exact gradient +
-                     accumulated residual); d = tern_s(m) (fixed-scale
-                     ternary quantizer); e' = m − d (error feedback);
-                     trial step θ − η·d, admitted ONLY by the exact
-                     certified criterion drop > 0 (a rejected trial —
-                     possibly with NEGATIVE drop — is a HOLD: weights
-                     and residual unchanged, the step is EXCLUDED from
-                     the trajectory and logged as reject telemetry).
+  --data PATH        ledger for the corpus modes (default: pinned snapshot)
+  --live-corpus / --snapshot-corpus   override the corpus policy
+  --gate-test PATH, --lambda-sweep, --fixed-lr, --fix-rank,
+  --grad-steps, --ft-steps, --cost-regime, --cw-*, --steps,
+  --hold-demo, --selfloop   see `--help`
+
+Each mode's pins are documented at its section header in the body.
 """
 
 import argparse
@@ -65,16 +93,16 @@ def corpus_abort(reason, hint=""):
     C607 boundary note: ledger entries with null/non-numeric
     'ce' (wave236k PARTIAL_LAW schema) are NOT an abort -- they
     are a KNOWN wave schema and are FILTERED with an explicit
-    stderr warning by _validate_ledger_schema. corpus_abort
+    stderr warning by _validate_ledger_schema.
+
     C608 snapshot-vs-live policy: data modes run on the PINNED
     corpus snapshot (SNAPSHOT_LEDGER) by default, so results are
     DETERMINISTIC and corpus-drift-immune. corpus_abort on the
     snapshot means the SNAPSHOT itself no longer satisfies the
-    mode's precondition (e.g. mini corpus size pins) -- stable,
-    reproducible, not drift. On --live-corpus, corpus_abort and
-    assert-ABORTs mean the LIVE ledger's new content breaks the
-    mode's certified bound/precondition (expected fail-closed;
-    e.g. wave238 chat_law entries break grow-snap's bound).
+    mode's precondition -- stable, reproducible, not drift. On
+    --live-corpus, corpus_abort and assert-ABORTs mean the LIVE
+    ledger's new content breaks the mode's certified
+    bound/precondition (expected fail-closed).
 
     C610 three-level corpus policy (single resolve point in
     main): default = pinned snapshot; if the snapshot is
@@ -2257,8 +2285,8 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 # admission - EXACT analytic gradient of log OBJ (rational),
 # normalized direction, fixed step 1/100, snap to grid, accept
 # IFF the MEASURED OBJ drop > 0 (else HOLD, step excluded).
-# Adaptive-majorizer eta (Hagi.Theory.AdaptiveMajorizer) is a
-# future bit.
+# Hagi.Theory.AdaptiveMajorizer exists but is not wired into this
+# mode's step choice.
 #
 # PIN (dataset, live corpus): unified_ledger.json + domains/
 # (C484 loader family).  The corpus is LIVE: 185 points at C484,
@@ -8676,12 +8704,9 @@ def emit_lean_agn(path, res, witness_steps=3):
 # C510: HYBRID CONTINUAL MECHANISM SELECTION
 # (--mode hybrid-continual)
 #
-# Roadmap C509 top-1: ONE continual loop whose per-step step
-# mechanism is selected DETERMINISTICALLY from the MEASURED
-# state (the C509 decision table, .omc/analysis/
-# period-c506-508-analysis.md section b; файл удалён в
-# c442e69, история:
-# git show c442e69^:.omc/analysis/period-c506-508-analysis.md):
+# ONE continual loop whose per-step step mechanism is selected
+# DETERMINISTICALLY from the MEASURED state (the C509 decision
+# table):
 #
 #   (a) span fullness (measured once per scenario — an exact
 #       rational Gram-Schmidt fact): rank(span A \u222a B) < dim
@@ -8719,10 +8744,9 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
     the SAME data/phase-1/budget for the honest 3-row table.
 
     Corpus-drift honesty (C510): the C508 `agem-vs-ranktrunc`
-    mode ABORTS on the current live corpus (its rank-trunc pin
-    kmin < rank is violated after the ledger drifted past the
-    C508-era data — PRE-EXISTING, reproduced on clean HEAD c5b13c
-    before this commit). This mode therefore computes the pure
+    mode ABORTS on a live corpus whose ledger drifted past the
+    C508-era data (its rank-trunc pin kmin < rank is violated).
+    This mode therefore computes the pure
     rank-trunc arm with the RELAXED k_eff = min(kmin, rank):
     when the eps-budget forces k_eff = rank the truncation is
     degenerate (sigmaTail = 0 on old inputs; the per-point
@@ -13153,7 +13177,7 @@ def generate_hier_run():
 def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     """C626: certified choice of the window width w by the C623
     cost regime rule. Python twin of the WindowTradeoff theorems
-    (Hagi/Theory/CoverageReading.lean, freeze 8841):
+    (Hagi/Theory/CoverageReading.lean):
 
     Model: totalCost(w) = ceil(n/w) * c(w), reads ceil(n/w) is
     the Lean `(n+w-1)/w` of every theorem below.
@@ -13171,8 +13195,8 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     - regime 'mixed' (c): c(w) = a + c*w^alpha, integer
       alpha > 1. For alpha = 2 (the default) the real optimum
       w* = (a/(c*(alpha-1)))^(1/alpha) = sqrt(a/c) is now a
-      LEAN THEOREM (C628, Hagi/Theory/CoverageReading.lean,
-      freeze 8844): `mixedCost_relax_min` (AM-GM per-read
+      LEAN THEOREM (C628, Hagi/Theory/CoverageReading.lean):
+      `mixedCost_relax_min` (AM-GM per-read
       relaxation a/w + c*w >= 2*sqrt(a*c)),
       `mixedCost_relax_min_eq` (equality at w = sqrt(a/c)),
       `mixedCost_lower` (discrete totalCost = ceil(n/w)*(a +
@@ -13711,7 +13735,6 @@ def main():
                          "certificate (exact Fractions, guarded "
                          "measured-drop steps)"
                          "; mini-hagi: C492 the FULL bench in ONE "
-                         "mini-hagi: C492 the FULL bench in ONE "
                          "certified run on the real corpus - "
                          "trunk-train (C481 form), fiber grow "
                          "(C444), continual GPM (C485), ternary "

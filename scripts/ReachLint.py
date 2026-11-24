@@ -20,7 +20,7 @@ HAGI_ROOT = ROOT / "Hagi.lean"
 # C217/C239/C240 quarantine: modules under the shared quarantine prefixes
 # (see scripts/_shared.py) are intentionally outside the root import
 # closure (vacuous-stack and toy-witness quarantines). They must still
-# build (separate lean_lib, default target).
+# build (separate lean_lib Hagi.Research, not a default target).
 # C456: Legacy archived under Hagi/Research/Legacy/ (covered by
 # RESEARCH_PREFIX); legacy prefix kept for history, dir scan is a no-op.
 

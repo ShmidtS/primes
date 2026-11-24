@@ -9,7 +9,9 @@ Reports:
 - M2 duplicate declaration names across modules;
 - M3 import graph: island modules (no Hagi imports), and
   theorem reachability from the Master roots (MasterHAGI*,
-  GrandSynthesis, ArchitectureTheorem, TopLevel);
+  GrandSynthesis, ArchitectureTheorem, TopLevel). Those roots
+  are archived under Hagi/Research/Legacy and outside the root
+  import closure, so on the current tree M3 reports 0 reachable;
 - M4 h_emp_* premise count (audit: premise-driven vs
   model-derived theory).
 """

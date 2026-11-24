@@ -30,8 +30,8 @@ IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
 # suffixes and primed identifiers are preserved instead of truncated.
 # C218 (audit P0b): unprefixed empirical premise registry.
 # PER-FILE, SHRINK-ONLY: each entry names binder names that are
-# acknowledged empirical premises in that specific file (MasterHAGI
-# docstring 84-92; ModeState). NOT a name-registry: names like hbeta
+# acknowledged empirical premises in that specific file (MasterHAGI's
+# h_emp inventory; ModeState). NOT a name-registry: names like hbeta
 # have ~60 structural binder sites elsewhere in the repo, so
 # cross-file matching would misregister structural hypotheses as
 # empirical (documented blindness). The list may only shrink in
