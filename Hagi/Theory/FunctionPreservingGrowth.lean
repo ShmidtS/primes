@@ -5,6 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Model.LMCompose
 import Hagi.Theory.BlockAdmission
 import Hagi.Theory.RollbackGate
+import Hagi.Step.AdamDirection
 
 /-!
 # FunctionPreservingGrowth — функция-сохраняющее расширение (A19.5)
@@ -46,6 +47,10 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   `first_step_useful_certified` (COMMIT-контракт на `CE_t ∘ L`),
   `first_step_strict_improves` (obj < fOld); негатив
   `no_signal_no_drop` (a = 0 ⇒ drop ≤ 0).
+* (i) Chain rule для линейного носителя (C663) — `chainGrad`,
+  `chain_linear` (T1: ⟨p − y, J·d⟩ = −⟪g, d⟫, g = Jᵀ(y − p)),
+  `useful_of_adam_first` (T2: Adam-first + линейность ⇒ COMMIT —
+  гипотеза (h) «a < 0» ВЫВЕДЕНА из C655).
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -77,8 +82,13 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
   первый шаг блока certified COMMIT (`first_step_useful_certified`,
   `first_step_strict_improves`). Глобальная достижимость
   (`drop ≥ δ` после многих шагов, non-convex) — по-прежнему не
-  доказана; `a < 0` — гипотеза (chain rule к `⟨g, d⟩` не
-  формализован).
+  доказана; `a < 0` — гипотеза для НЕЛИНЕЙНОГО по параметрам
+  носителя (b1/W1; нужен HasFDerivAt chain rule — не формализован).
+  Для ЛИНЕЙНОГО носителя (Wo-блок при фиксированных скрытых
+  активациях, lm.py:581) гипотеза ЗАКРЫТА (C663, секция «Chain rule
+  для линейного носителя»): `chain_linear` даёт
+  `a = −⟪g, d⟫`, `useful_of_adam_first` выводит COMMIT из
+  `adam_first_step_dot_pos`.
 - **Носители BlockDiag/NonlinearStep0** (Σ-тип, Fin N → V) и
   `CertifiedBlock` (ℕ → V → ℝ) различны: перенос ФОРМУЛЫ
   step0-эквивалентности = identity-инициализация здесь;
@@ -92,6 +102,7 @@ namespace Hagi.Theory.FunctionPreservingGrowth
 
 open scoped BigOperators
 open Hagi.Model.LMCompose Hagi.Theory.BlockAdmission
+open Hagi.Step (adamDot adamDir)
 
 variable {V : Type} [Fintype V]
 
@@ -661,5 +672,97 @@ theorem first_step_strict_improves {K : Type} [Fintype K] [Nonempty K]
 
 end WarmUp
 
+/-! ### Chain rule для линейного носителя (C663)
+
+Вопрос C657: откуда берётся `a < 0`? Код (lm.py:581 `h = h +
+relu(a@W1+b1)@Wo`): градиент CE по Wo идёт через residual-поток,
+шаг — Adam-first (`d_i = g_i/(|g_i|+ε)`, C655). Формально
+`∇_b (CE ∘ L)(b) = DL(b)ᵀ ∇CE(z)` — chain rule. На ЛИНЕЙНОМ по
+параметрам носителе (Wo при фиксированных h: Δz = J·ΔWo)
+производных Фреше не нужно — это алгебра Finset-сумм (перестановка
+`Finset.sum_comm`): Σ_v (p_v − y_v)·Σ_i J_{v i} d_i
+= −Σ_i d_i·Σ_v J_{v i}(y_v − p_v). Носитель: индекс параметров
+`P`, якобиан `J : K → P → ℝ`, направление `d : P → ℝ`,
+смещение логитов `D v = Σ_i J v i * d i`. НЕЛИНЕЙНЫЙ носитель
+(b1/W1: нужен HasFDerivAt chain rule) — honest-карточка, открыт. -/
+
+/-- Градиент `CE ∘ L` по параметрам линейного носителя (chain rule
+для линейной части): `g i = Σ_v J v i * (y v − p v)` = `Jᵀ ∇CE`. -/
+noncomputable def chainGrad {P K : Type} [Fintype K] (J : K → P → ℝ)
+    (p y : K → ℝ) : P → ℝ :=
+  fun i => ∑ v, J v i * (y v - p v)
+
+/-- **T1 `chain_linear`**: для носителя, линейного по параметрам,
+линейная часть range-леммы `a = ⟨p − y, J·d⟩` равна `−⟪g, d⟫`, где
+`g = chainGrad J p y` — chain rule `∇_b (CE ∘ L) = Jᵀ ∇CE` для
+линейной части как алгебра (перестановка сумм, `mul_comm`). -/
+theorem chain_linear {P K : Type} [Fintype P] [Fintype K]
+    (J : K → P → ℝ) (p y : K → ℝ) (d : P → ℝ) (D : K → ℝ)
+    (hD : ∀ v, D v = ∑ i, J v i * d i) :
+    ∑ v, (p v - y v) * D v = -adamDot (chainGrad J p y) d := by
+  have hterm : ∀ v, (p v - y v) * D v
+      = ∑ i, -(J v i * (y v - p v) * d i) := by
+    intro v
+    rw [hD v, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun i _ => by ring
+  rw [Finset.sum_congr rfl (fun v _ => hterm v), ← Finset.sum_comm]
+  simp only [adamDot, chainGrad, Finset.sum_neg_distrib]
+  refine neg_injective ?_
+  rw [show (∑ i, (∑ v, J v i * (y v - p v)) * d i)
+      = ∑ i, ∑ v, J v i * (y v - p v) * d i from
+    Finset.sum_congr rfl fun i _ => Finset.sum_mul Finset.univ _ (d i)]
+
+/-- **T2 `useful_of_adam_first`**: гипотеза C657 «`a < 0`» ВЫВЕДЕНА
+для линейного носителя из `adam_first_step_dot_pos` (C655).
+Посылки (параметры — вектор `P → ℝ`, кодовый Wo-блок):
+`g = chainGrad J (softmax (L b)) (onehot t) ≠ 0` (градиент `CE_t ∘ L`
+по параметрам), `d = Adam-first` направление `g/(|g|+ε)`,
+`L (bη η) − L b = η • (J·d)` (линейность смещения логитов по
+параметрам при данном направлении), `0 < R` — range-константа `J·d`,
+`stepEps < 2⟪g, d⟫²/R²`. Заключение: ∃ η > 0 с certified COMMIT
+(`CertifiedFiniteStep` на `CE_t ∘ L`, drop = `linDrop (−⟪g, d⟫) R η`). -/
+theorem useful_of_adam_first {P K : Type} [Fintype P] [Fintype K] [Nonempty K] [Nonempty P]
+    [DecidableEq K]
+    (L : (P → ℝ) → K → ℝ) (b : P → ℝ) (bη : ℝ → P → ℝ) (J : K → P → ℝ) (t : K)
+    (g d : P → ℝ) {eps : ℝ} (heps : 0 < eps) {R : ℝ} (hR : 0 < R)
+    (hg : g = chainGrad J (Hagi.Energy.smax (L b)) (fun v => if v = t then 1 else 0))
+    (hgne : g ≠ 0) (hd : d = adamDir g (fun i => g i ^ 2) eps)
+    (hlin : ∀ η u, L (bη η) u - L b u = η * ∑ i, J u i * d i)
+    (hrange : ∀ u v, (∑ i, J u i * d i) - ∑ i, J v i * d i ≤ R)
+    (hmax : stepEps < 2 * adamDot g d ^ 2 / R ^ 2) :
+    ∃ η : ℝ, 0 < η ∧ CertifiedFiniteStep (fun c => Hagi.ceOneHot t (L c)) b (bη η)
+      (linDrop (-adamDot g d) R η) := by
+  have hpos : 0 < adamDot g d := hd ▸ Hagi.Step.adam_first_step_dot_pos g hgne heps
+  have hdesc : -adamDot g d < 0 := neg_lt_zero.mpr hpos
+  have hD : ∀ v, (∑ i, J v i * d i) = ∑ i, J v i * d i := fun _ => rfl
+  have hy : ∀ v, (if v = t then 1 else 0) * (∑ i, J v i * d i)
+      = if v = t then ∑ i, J v i * d i else 0 := by
+    intro v
+    by_cases h : v = t
+    · subst h; simp
+    · simp [h]
+  have ha : -adamDot g d
+      = ∑ v, Hagi.Energy.smax (L b) v * (∑ i, J v i * d i) - ∑ i, J t i * d i := by
+    have h1 := chain_linear J (Hagi.Energy.smax (L b))
+      (fun v => if v = t then 1 else 0) d _ hD
+    rw [← hg] at h1
+    have hs : ∑ v, (Hagi.Energy.smax (L b) v - (if v = t then 1 else 0))
+          * (∑ i, J v i * d i)
+        = (∑ v, Hagi.Energy.smax (L b) v * (∑ i, J v i * d i))
+          - ∑ v, (if v = t then 1 else 0) * (∑ i, J v i * d i) := by
+      rw [show (∑ v, (Hagi.Energy.smax (L b) v - (if v = t then 1 else 0))
+          * (∑ i, J v i * d i))
+        = ∑ v, (Hagi.Energy.smax (L b) v * (∑ i, J v i * d i)
+          - (if v = t then 1 else 0) * (∑ i, J v i * d i)) from
+        Finset.sum_congr rfl fun v _ => sub_mul _ _ _, Finset.sum_sub_distrib]
+    rw [Finset.sum_congr rfl (fun v _ => hy v),
+      Finset.sum_ite_eq' Finset.univ t (fun v => ∑ i, J v i * d i)] at hs
+    simp only [Finset.mem_univ, ite_true] at hs
+    linarith
+  obtain ⟨η, hη, hdrop, hcert⟩ :=
+    first_step_useful_certified L b bη (fun u => ∑ i, J u i * d i) t
+      (-adamDot g d) R hlin hR hrange ha hdesc
+      (by simpa using hmax)
+  exact ⟨η, hη, hcert⟩
 
 end Hagi.Theory.FunctionPreservingGrowth

@@ -2938,6 +2938,42 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
 
+## C663 chain rule связка: Adam-first ⇒ useful warm-up (honest, линейный носитель)
+
+- Beat: C663 = roadmap C661 top-3 — закрыть honest-pin C657 (1):
+  «`a < 0` — гипотеза; chain rule к `⟨g, d⟩` не формализован». Base HEAD
+  4fd95e00, tree clean. Lean-правка: только
+  Hagi/Theory/FunctionPreservingGrowth.lean (+import Hagi.Step.AdamDirection,
+  +1 def `chainGrad`, +2 theorem, пункт (i) в docstring).
+- Код HAGI_v2 (READ-ONLY) @ca52eb4: lm.py:581
+  `h = h + relu(a@W1+b1)@Wo` — при фиксированных скрытых активациях
+  логиты ЛИНЕЙНЫ по Wo (Δz = relu(a@W1)ᵀ ΔWo): градиент CE по Wo идёт
+  через residual-поток (chain rule `∇_Wo (CE ∘ L) = Jᵀ ∇CE(z)`).
+- Носитель: параметры `P → ℝ`, якобиан `J : K → P → ℝ`,
+  `chainGrad J p y i = Σ_v J v i * (y v − p v)` (= `Jᵀ ∇CE`).
+  - **T1 `chain_linear`**: `Σ_v (p v − y v)·(J·d) v
+    = −⟪chainGrad J p y, d⟫` — чистая алгебра (перестановка
+    `Finset.sum_comm`, коммутативность множителей), без анализа/
+    производных.
+  - **T2 `useful_of_adam_first`**: `g = chainGrad J (softmax (L b))
+    (onehot t) ≠ 0`, `d = adamDir g g² ε` (Adam-first), смещение
+    логитов линейно по параметрам (`L (bη η) − L b = η • (J·d)`),
+    `0 < R`, range(J·d) ≤ R, `stepEps < 2⟪g, d⟫²/R²` ⇒
+    `∃ η > 0, CertifiedFiniteStep (CE_t ∘ L) b (bη η) (linDrop (−⟪g,d⟫) R η)`.
+    Вывод: `a = −⟪g, d⟫ < 0` из `adam_first_step_dot_pos` (C655) + T1 ⇒
+    `first_step_useful_certified` (C657).
+- ВЕРДИКТ. Pin C657 (1) ЗАКРЫТ для ЛИНЕЙНОГО носителя (Wo-блок при
+  фиксированных h): гипотеза «a < 0» выведена, а не постулирована.
+  Honest: НЕЛИНЕЙНЫЙ носитель (b1/W1: Δz зависит от параметров через
+  relu) — открыт, нужен HasFDerivAt chain rule; `L` в Lean —
+  абстрактная функция, носитель hlin/hg к коду — code-side.
+- Witness .tmp/C663/traj.lean: P = K = Fin 2, J = id, z = (0,0),
+  t = 0, ε = 1 ⇒ g = (1/2, −1/2), d = (1/3, −1/3), ⟪g, d⟫ = 1/3,
+  range = 2/3 < 1, stepEps < 2/9 ⇒ COMMIT; T1 численно (d = (1,2)):
+  ⟨p − y, d⟩ = 1/2 = −⟪g, d⟫. Негатив g = 0 ⇒ `linDrop 0 R η ≤ 0`.
+- Аксиомы: [propext, Classical.choice, Quot.sound] (AllAxiomCheck).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8963 = 8960 + 3).
+
 ## C660 holdout-гейт ↔ PAC-Bayes: two-way сертификат (honest)
 
 - Beat: C660 = roadmap C656 (4) — «holdout-гейт ↔ PAC-Bayes»:
