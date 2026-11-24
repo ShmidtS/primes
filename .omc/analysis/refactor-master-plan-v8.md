@@ -163,13 +163,13 @@ STOP, откат, запись в план. Коммит `refactor(v8 Xn): <summ
 
 ---
 
-# CLOSEOUT — v8 CLOSED (X1–X13)
+# CLOSEOUT — v8 CLOSED (X1–X14)
 
 Статус: **v8 CLOSED**. Freeze identity 9043 во всех волнах (ни одна волна
 не меняла statement ни одной декларации; `lake build`, Freeze, ci.sh — PASS
 на каждой волне). Базовые цифры survey (§0) исторические — сверху.
 
-## Итоговая таблица коммитов (base 3ba95ac3, 15 коммитов)
+## Итоговая таблица коммитов (base 3ba95ac3, 18 коммитов)
 
 | Волна | commit | +/− | Δ строк | Что |
 | --- | --- | ---: | ---: | --- |
@@ -187,17 +187,22 @@ STOP, откат, запись в план. Коммит `refactor(v8 Xn): <summ
 | X11 | 1ead431c | +138/−81 | +57 | финальное прочтение, archive v7-планов, закрытие v8 (X1–X11) |
 | X12p1 | 357aefdc | +988/−1799 | −811 | Lean docstrings слои C E + частично A B D: ложная изоляция, water |
 | X12p2 | 27749d86 | +1284/−1869 | −585 | Lean docstrings слои A B D (хвост) |
-| X13 | (этот коммит) | — | — | перепин docs-якорей по имени после X12 + `DocAnchorCheck` gate; хвосты FINDINGS X12; закрытие v8 |
+| X13 | 155f1ce0 | +1041/−210 | +831 | перепин 537 docs-якорей по имени после X12; gate `scripts/DocAnchorCheck.py` + lock (+457 строк инструмента); FINDINGS-хвосты; dangling-таблица в GAPS |
+| X13b | 668bf572 | +1/−5 | −4 | 4 дубля `import Mathlib.Tactic`; заметка о версии Mathlib |
+| X14a | 4ec0b65c | +142/−96 | +46 | карантин `Hagi/Research` прочитан; метка `Quarantine (provenance)` 39/39 |
+| X14b | 63c46387 | +86/−62 | +24 | bench/lint-скрипты прочитаны; module docstring bench = факт 42 режимов | перепин docs-якорей по имени после X12 + `DocAnchorCheck` gate; хвосты FINDINGS X12; закрытие v8 |
 
-Сумма 14 landed коммитов (`git diff --shortstat 3ba95ac3..27749d86`):
-327 файлов, +4142/−7417 = **−3275 строк**. Tracked total: 241 848 → 238 585.
+Сумма 18 коммитов (`git diff --shortstat 3ba95ac3..63c46387`): 376 файлов,
++5351/−7729 = **−2378 строк**. Tracked total: 241 848 → 239 470.
+Из +5351 вставленных: 457 — gate `DocAnchorCheck` (скрипт+тест+lock),
+39 — метки карантина; остальное — перепин якорей и уточнённые docstrings.
 
 По слоям (tracked, 3ba95ac3 → 27749d86, до X13):
 
 | Слой | до | после | Δ |
 | --- | ---: | ---: | ---: |
 | Lean `Hagi/` без Research | 206 621 | 205 208 | −1413 |
-| Lean `Hagi/Research/` (карантин, не читался) | 10 911 | 10 911 | 0 |
+| Lean `Hagi/Research/` (карантин) | 10 911 | 10 957 | +46 (39 меток) |
 | docs: все tracked `*.md` | 12 642 | 10 829 | −1813 |
 | `scripts/` | 20 855 | 20 862 | +7 |
 | config (lakefile, toolchain, toml, Hagi.lean) | 1 024 | 968 | −56 |
